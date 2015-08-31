@@ -28,7 +28,7 @@ struct Quoteinfo
 };
 
 void	*_fmtflush(Fmt*, void*, int);
-void	*_fmtdispatch(Fmt*, void*, int);
+void	*_fmtdispatch(Fmt*, const void*, int);
 int	_floatfmt(Fmt*, double);
 int	_fmtpad(Fmt*, int);
 int	_rfmtpad(Fmt*, int);
@@ -44,8 +44,8 @@ int	_runefmt(Fmt*);
 int	_runesfmt(Fmt*);
 int	_strfmt(Fmt*);
 int	_badfmt(Fmt*);
-int	_fmtcpy(Fmt*, void*, int, int);
-int	_fmtrcpy(Fmt*, void*, int n);
+int	_fmtcpy(Fmt*, const void*, int, int);
+int	_fmtrcpy(Fmt*, const void*, int n);
 
 void	_fmtlock(void);
 void	_fmtunlock(void);

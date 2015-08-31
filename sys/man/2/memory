@@ -8,7 +8,7 @@ memccpy, memchr, memcmp, memcpy, memmove, memset \- memory operations
 .PP
 .ta \w'\fLvoid* 'u
 .B
-void*	memccpy(void *s1, void *s2, int c, ulong n)
+void*	memccpy(void *s1, const void *s2, int c, ulong n)
 .PP
 .B
 void*	memchr(void *s, int c, ulong n)

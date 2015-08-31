@@ -12,23 +12,23 @@
 
 int	(*doquote)(int);
 
-extern int _needsquotes(char*, int*);
-extern int _runeneedsquotes(Rune*, int*);
+extern int _needsquotes(const char*, int*);
+extern int _runeneedsquotes(const Rune*, int*);
 
 char*
-unquotestrdup(char *s)
+unquotestrdup(const char *s)
 {
-	char *t, *ret;
+	char *s1, *t, *ret;
 	int quoting;
 
-	ret = s = strdup(s);	/* return unquoted copy */
+	ret = s1 = strdup(s);	/* return unquoted copy */
 	if(ret == nil)
 		return ret;
 	quoting = 0;
-	t = s;	/* s is output string, t is input string */
+	t = s1;	/* s1 is output string, t is input string */
 	while(*t!='\0' && (quoting || (*t!=' ' && *t!='\t'))){
 		if(*t != '\''){
-			*s++ = *t++;
+			*s1++ = *t++;
 			continue;
 		}
 		/* *t is a quote */
@@ -46,27 +46,27 @@ unquotestrdup(char *s)
 		}
 		/* doubled quote; fold one quote into two */
 		t++;
-		*s++ = *t++;
+		*s1++ = *t++;
 	}
-	if(t != s)
-		memmove(s, t, strlen(t)+1);
+	if(t != s1)
+		memmove(s1, t, strlen(t)+1);
 	return ret;
 }
 
 Rune*
-unquoterunestrdup(Rune *s)
+unquoterunestrdup(const Rune *s)
 {
-	Rune *t, *ret;
+	Rune *s1, *t, *ret;
 	int quoting;
 
-	ret = s = runestrdup(s);	/* return unquoted copy */
+	ret = s1 = runestrdup(s);	/* return unquoted copy */
 	if(ret == nil)
 		return ret;
 	quoting = 0;
-	t = s;	/* s is output string, t is input string */
+	t = s1;	/* s1 is output string, t is input string */
 	while(*t!='\0' && (quoting || (*t!=' ' && *t!='\t'))){
 		if(*t != '\''){
-			*s++ = *t++;
+			*s1++ = *t++;
 			continue;
 		}
 		/* *t is a quote */
@@ -84,17 +84,18 @@ unquoterunestrdup(Rune *s)
 		}
 		/* doubled quote; fold one quote into two */
 		t++;
-		*s++ = *t++;
+		*s1++ = *t++;
 	}
-	if(t != s)
-		memmove(s, t, (runestrlen(t)+1)*sizeof(Rune));
+	if(t != s1)
+		memmove(s1, t, (runestrlen(t)+1)*sizeof(Rune));
 	return ret;
 }
 
 char*
-quotestrdup(char *s)
+quotestrdup(const char *s)
 {
-	char *t, *u, *ret;
+	const char *t;
+	char *u, *ret;
 	int quotelen;
 	Rune r;
 
@@ -118,9 +119,10 @@ quotestrdup(char *s)
 }
 
 Rune*
-quoterunestrdup(Rune *s)
+quoterunestrdup(const Rune *s)
 {
-	Rune *t, *u, *ret;
+	const Rune *t;
+	Rune *u, *ret;
 	int quotelen;
 	Rune r;
 

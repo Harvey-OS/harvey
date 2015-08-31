@@ -10,22 +10,22 @@ dec64, enc64, dec32, enc32, dec16, enc16, encodefmt \- encoding byte arrays as s
 .B #include <libc.h>
 .PP
 .B
-int	dec64(uchar *out, int lim, char *in, int n)
+int	dec64(uint8_t *out, int lim, const char *in, int n)
 .PP
 .B
-int	enc64(char *out, int lim, uchar *in, int n)
+int	enc64(char *out, int lim, const uint8_t *in, int n)
 .PP
 .B
-int	dec32(uchar *out, int lim, char *in, int n)
+int	dec32(uint8_t *out, int lim, const char *in, int n)
 .PP
 .B
-int	enc32(char *out, int lim, uchar *in, int n)
+int	enc32(char *out, int lim, const uint8_t *in, int n)
 .PP
 .B
-int	dec16(uchar *out, int lim, char *in, int n)
+int	dec16(uint8_t *out, int lim, const char *in, int n)
 .PP
 .B
-int	enc16(char *out, int lim, uchar *in, int n)
+int	enc16(char *out, int lim, const uint8_t *in, int n)
 .PP
 .B
 int	encodefmt(Fmt*)

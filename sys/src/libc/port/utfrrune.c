@@ -11,11 +11,11 @@
 #include <libc.h>
 
 char*
-utfrrune(char *s, int32_t c)
+utfrrune(const char *s, Rune c)
 {
 	int32_t c1;
 	Rune r;
-	char *s1;
+	const char *s1;
 
 	if(c < Runesync)		/* not part of utf sequence */
 		return strrchr(s, c);
@@ -25,7 +25,7 @@ utfrrune(char *s, int32_t c)
 		c1 = *(uint8_t*)s;
 		if(c1 < Runeself) {	/* one byte rune */
 			if(c1 == 0)
-				return s1;
+				return (char *)s1;
 			if(c1 == c)
 				s1 = s;
 			s++;

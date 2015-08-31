@@ -7,16 +7,16 @@ quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quo
 .B #include <libc.h>
 .PP
 .B
-char *quotestrdup(char *s)
+char *quotestrdup(const char *s)
 .PP
 .B
-Rune *quoterunestrdup(Rune *s)
+Rune *quoterunestrdup(const Rune *s)
 .PP
 .B
-char *unquotestrdup(char *s)
+char *unquotestrdup(const char *s)
 .PP
 .B
-Rune *unquoterunestrdup(Rune *s)
+Rune *unquoterunestrdup(const Rune *s)
 .PP
 .B
 int quotestrfmt(Fmt*)

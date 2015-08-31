@@ -7,25 +7,25 @@ stat, fstat, wstat, fwstat, dirstat, dirfstat, dirwstat, dirfwstat, nulldir \- g
 .B #include <libc.h>
 .PP
 .B
-int stat(char *name, uchar *edir, int nedir)
+int stat(const char *name, uchar *edir, int nedir)
 .PP
 .B
 int fstat(int fd, uchar *edir, int nedir)
 .PP
 .B
-int wstat(char *name, uchar *edir, int nedir)
+int wstat(const char *name, uchar *edir, int nedir)
 .PP
 .B
 int fwstat(int fd, uchar *edir, int nedir)
 .PP
 .B
-Dir* dirstat(char *name)
+Dir* dirstat(const char *name)
 .PP
 .B
 Dir* dirfstat(int fd)
 .PP
 .B
-int dirwstat(char *name, Dir *dir)
+int dirwstat(const char *name, Dir *dir)
 .PP
 .B
 int dirfwstat(int fd, Dir *dir)

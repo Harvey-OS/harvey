@@ -19,37 +19,37 @@ runestrstr \- rune string operations
 .PP
 .ta \w'\fLRune* \fP'u
 .B
-Rune*	runestrcat(Rune *s1, Rune *s2)
+Rune*	runestrcat(Rune *s1, const Rune *s2)
 .PP
 .B
 Rune*	runestrncat(Rune *s1, Rune *s2, long n)
 .PP
 .B
-int	runestrcmp(Rune *s1, Rune *s2)
+int	runestrcmp(const Rune *s1, const Rune *s2)
 .PP
 .B
-int	runestrncmp(Rune *s1, Rune *s2, long n)
+int	runestrncmp(const Rune *s1, const Rune *s2, long n)
 .PP
 .B
-Rune*	runestrcpy(Rune *s1, Rune *s2)
+Rune*	runestrcpy(Rune *s1, const Rune *s2)
 .PP
 .B
-Rune*	runestrncpy(Rune *s1, Rune *s2, long n)
+Rune*	runestrncpy(Rune *s1, const Rune *s2, long n)
 .PP
 .B
-Rune*	runestrecpy(Rune *s1, Rune *es1, Rune *s2)
+Rune*	runestrecpy(Rune *s1, Rune *es1, const Rune *s2)
 .PP
 .B
-long	runestrlen(Rune *s)
+long	runestrlen(const Rune *s)
 .PP
 .B
-Rune*	runestrchr(Rune *s, Rune c)
+Rune*	runestrchr(const Rune *s, Rune c)
 .PP
 .B
-Rune*	runestrrchr(Rune *s, Rune c)
+Rune*	runestrrchr(const Rune *s, Rune c)
 .PP
 .B
-Rune*	runestrdup(Rune *s)
+Rune*	runestrdup(const Rune *s)
 .PP
 .B
 Rune*	runestrstr(Rune *s1, Rune *s2)

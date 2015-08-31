@@ -8,9 +8,9 @@ exits, _exits, atexit, atexitdont, terminate \- terminate process, process clean
 .PP
 .nf
 .B
-void	_exits(char *msg)
+void	_exits(const char *msg)
 .B
-void	exits(char *msg)
+void	exits(const char *msg)
 .PP
 .B
 int	atexit(void(*)(void))
