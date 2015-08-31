@@ -41,7 +41,7 @@ usage(void)
 }
 
 void
-ding(void *, char *msg)
+ding(void *v, char *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);
@@ -103,8 +103,8 @@ main(int argc, char *argv[])
 	int debug, len, fd;
 	uint err;
 	char *sysname, *dnsdomain, *dom, *inform, *ns, net[32];
-	uchar *p, buf[4096], addr[IPv4addrlen], v6addr[IPaddrlen];
-	ushort txid;
+	unsigned char *p, buf[4096], addr[IPv4addrlen], v6addr[IPaddrlen];
+	uint16_t txid;
 	Ndb *db;
 	Ndbtuple *t, *tt;
 	static char *query[] = { "dom", "dnsdomain", "ns", "inform" };

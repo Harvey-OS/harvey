@@ -22,7 +22,6 @@ enum {
 Cfg cfg;
 
 static char *servername;
-static RR *serverrr;
 static RR *serveraddrs;
 
 char	*dbfile;
