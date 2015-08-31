@@ -60,7 +60,7 @@ runefmtstrinit(Fmt *f)
  * print into an allocated string buffer
  */
 Rune*
-runevsmprint(char *fmt, va_list args)
+runevsmprint(const char *fmt, va_list args)
 {
 	Fmt f;
 	int n;

@@ -8,55 +8,55 @@ print, fprint, sprint, snprint, seprint, smprint, runesprint, runesnprint, runes
 .PP
 .ta \w'\fLchar* 'u
 .B
-int	print(char *format, ...)
+int	print(const char *format, ...)
 .PP
 .B
-int	fprint(int fd, char *format, ...)
+int	fprint(int fd, const char *format, ...)
 .PP
 .B
-int	sprint(char *s, char *format, ...)
+int	sprint(char *s, const char *format, ...)
 .PP
 .B
-int	snprint(char *s, int len, char *format, ...)
+int	snprint(char *s, int len, const char *format, ...)
 .PP
 .B
-char*	seprint(char *s, char *e, char *format, ...)
+char*	seprint(char *s, char *e, const char *format, ...)
 .PP
 .B
-char*	smprint(char *format, ...)
+char*	smprint(const char *format, ...)
 .PP
 .B
-int	runesprint(Rune *s, char *format, ...)
+int	runesprint(Rune *s, const char *format, ...)
 .PP
 .B
-int	runesnprint(Rune *s, int len, char *format, ...)
+int	runesnprint(Rune *s, int len, const char *format, ...)
 .PP
 .B
-Rune*	runeseprint(Rune *s, Rune *e, char *format, ...)
+Rune*	runeseprint(Rune *s, Rune *e, const char *format, ...)
 .PP
 .B
-Rune*	runesmprint(char *format, ...)
+Rune*	runesmprint(const char *format, ...)
 .PP
 .B
-int	vfprint(int fd, char *format, va_list v)
+int	vfprint(int fd, const char *format, va_list v)
 .PP
 .B
-int	vsnprint(char *s, int len, char *format, va_list v)
+int	vsnprint(char *s, int len, const char *format, va_list v)
 .PP
 .B
-char*	vseprint(char *s, char *e, char *format, va_list v)
+char*	vseprint(char *s, char *e, const char *format, va_list v)
 .PP
 .B
-char*	vsmprint(char *format, va_list v)
+char*	vsmprint(const char *format, va_list v)
 .PP
 .B
-int	runevsnprint(Rune *s, int len, char *format, va_list v)
+int	runevsnprint(Rune *s, int len, const char *format, va_list v)
 .PP
 .B
-Rune*	runevseprint(Rune *s, Rune *e, char *format, va_list v)
+Rune*	runevseprint(Rune *s, Rune *e, const char *format, va_list v)
 .PP
 .B
-Rune*	runevsmprint(Rune *format, va_list v)
+Rune*	runevsmprint(const char *format, va_list v)
 .PP
 .B
 .SH DESCRIPTION

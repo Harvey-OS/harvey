@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-setnetmtpt(char *net, int n, char *x)
+setnetmtpt(char *net, int n, const char *x)
 {
 	if(x == nil)
 		x = "/net";

@@ -49,7 +49,7 @@ enum
 	S7,			// _+#.#e+#	#S7
 };
 
-static	int	xcmp(char*, char*);
+static	int	xcmp(const char*, char*);
 static	int	fpcmp(char*, uint32_t*);
 static	void	frnorm(uint32_t*);
 static	void	divascii(char*, int*, int*, int*);
@@ -65,12 +65,13 @@ struct	Tab
 };
 
 double
-strtod(char *as, char **aas)
+strtod(const char *as, const char **aas)
 {
 	int na, ona, ex, dp, bp, c, i, flag, state;
 	uint32_t low[Prec], hig[Prec], mid[Prec], num, den;
 	double d;
-	char *s, a[Ndig];
+	const char *s;
+	char a[Ndig];
 
 	flag = 0;	// Fsign, Fesign, Fdpoint
 	na = 0;		// number of digits of a[]
@@ -514,7 +515,7 @@ mulascii(char *a, int *na, int *dp, int *bp)
 }
 
 static int
-xcmp(char *a, char *b)
+xcmp(const char *a, char *b)
 {
 	int c1, c2;
 
