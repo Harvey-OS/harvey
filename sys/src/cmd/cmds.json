@@ -23,7 +23,8 @@
 		"fossil/fossil.json",
 		"ip/ip.json",
 		"hoc/hoc.json",
-		"grep/grep.json"
+		"grep/grep.json",
+		"ndb/ndb.json"
 	],
 	"SourceFilesCmd": [
 		"aan.c",
