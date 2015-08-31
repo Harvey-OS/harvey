@@ -197,7 +197,7 @@ typedef struct Txt	Txt;
 struct Request
 {
 	int	isslave;	/* pid of slave */
-	uvlong	aborttime;	/* time in ms at which we give up */
+	uint64_t	aborttime;	/* time in ms at which we give up */
 	jmp_buf	mret;		/* where master jumps to after starting a slave */
 	int	id;
 	char	*from;		/* who asked us? */
@@ -225,10 +225,10 @@ struct DN
 	/* refs was `char' but we've seen refs > 120, so go whole hog */
 	uint32_t	refs;		/* for mark and sweep */
 	uint32_t	ordinal;
-	ushort	class;		/* RR class */
-	uchar	keep;		/* flag: never age this name */
-	uchar	respcode;	/* response code */
-/* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
+	uint16_t	class;		/* RR class */
+	unsigned char	keep;		/* flag: never age this name */
+	unsigned char	respcode;	/* response code */
+/* was:	char	nonexistent; *//* true if we get an authoritative nx for this domain */
 	/* permit only 1 query per (domain name, type) at a time */
 	Querylck querylck[Maxlcks];
 };
@@ -239,7 +239,7 @@ struct DN
 struct Block
 {
 	int	dlen;
-	uchar	*data;
+	unsigned char	*data;
 };
 struct Key
 {
@@ -290,12 +290,12 @@ struct RR
 	uint32_t	ttl;		/* time to live to be passed on */
 	uint32_t	expire;		/* time this entry expires locally */
 	uint32_t	marker;		/* used locally when scanning rrlists */
-	ushort	type;		/* RR type */
-	ushort	query;		/* query type is in response to */
-	uchar	auth;		/* flag: authoritative */
-	uchar	db;		/* flag: from database */
-	uchar	cached;		/* flag: rr in cache */
-	uchar	negative;	/* flag: this is a cached negative response */
+	uint16_t	type;		/* RR type */
+	uint16_t	query;		/* query type is in response to */
+	unsigned char	auth;		/* flag: authoritative */
+	unsigned char	db;		/* flag: from database */
+	unsigned char	cached;		/* flag: rr in cache */
+	unsigned char	negative;	/* flag: this is a cached negative response */
 
 	union {			/* discriminated by negative & type */
 		DN	*negsoaowner;	/* soa for cached negative response */
@@ -313,7 +313,7 @@ struct RR
 		DN	*os;	/* operating system - hinfo */
 		uint32_t	pref;	/* preference value - mx */
 		uint32_t	local;	/* ns served from local database - ns */
-		ushort	port;	/* - srv */
+		uint16_t	port;	/* - srv */
 		uintptr	arg1;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated by type */
@@ -337,7 +337,7 @@ struct Server
 };
 
 /*
- *  timers for a start-of-authority record.  all ulongs are in seconds.
+ *  timers for a start-of-authority record.  all uint32_t's are in seconds.
  */
 struct SOA
 {
@@ -356,8 +356,8 @@ struct SOA
  */
 struct Srv
 {
-	ushort	pri;
-	ushort	weight;
+	uint16_t	pri;
+	uint16_t	weight;
 };
 
 typedef struct Rrlist Rrlist;
@@ -372,7 +372,7 @@ struct Rrlist
  */
 struct DNSmsg
 {
-	ushort	id;
+	uint16_t	id;
 	int	flags;
 	int	qdcount;	/* questions */
 	RR 	*qd;
@@ -410,25 +410,25 @@ struct Cfg {
 /* (udp) query stats */
 typedef struct {
 	QLock;
-	ulong	slavehiwat;	/* procs */
-	ulong	qrecvd9p;	/* query counts */
-	ulong	qrecvdudp;
-	ulong	qsent;
-	ulong	qrecvd9prpc;	/* packet count */
-	ulong	alarms;
+	uint32_t	slavehiwat;	/* procs */
+	uint32_t	qrecvd9p;	/* query counts */
+	uint32_t	qrecvdudp;
+	uint32_t	qsent;
+	uint32_t	qrecvd9prpc;	/* packet count */
+	uint32_t	alarms;
 	/* reply times by count */
-	ulong	under10ths[3*10+2];	/* under n*0.1 seconds, n is index */
-	ulong	tmout;
-	ulong	tmoutcname;
-	ulong	tmoutv6;
+	uint32_t	under10ths[3*10+2];	/* under n*0.1 seconds, n is index */
+	uint32_t	tmout;
+	uint32_t	tmoutcname;
+	uint32_t	tmoutv6;
 
-	ulong	answinmem;	/* answers in memory */
-	ulong	negans;		/* negative answers received */
-	ulong	negserver;	/* neg ans with Rserver set */
-	ulong	negbaddeleg;	/* neg ans with bad delegations */
-	ulong	negbdnoans;	/* ⋯ and no answers */
-	ulong	negnorname;	/* neg ans with no Rname set */
-	ulong	negcached;	/* neg ans cached */
+	uint32_t	answinmem;	/* answers in memory */
+	uint32_t	negans;		/* negative answers received */
+	uint32_t	negserver;	/* neg ans with Rserver set */
+	uint32_t	negbaddeleg;	/* neg ans with bad delegations */
+	uint32_t	negbdnoans;	/* ⋯ and no answers */
+	uint32_t	negnorname;	/* neg ans with no Rname set */
+	uint32_t	negcached;	/* neg ans cached */
 } Stats;
 
 Stats stats;
@@ -451,7 +451,7 @@ extern char	mntpt[];
 extern int	needrefresh;
 extern int	norecursion;
 extern uint32_t	now;		/* time base */
-extern vlong	nowns;
+extern int64_t	nowns;
 extern Area	*owned;
 extern int	sendnotifies;
 extern uint32_t	target;
@@ -486,7 +486,7 @@ void	dndump(char*);
 void	dnget(void);
 void	dninit(void);
 DN*	dnlookup(char*, int, int);
-void	dnptr(uchar*, uchar*, char*, int, int, int);
+void	dnptr(unsigned char*, unsigned char*, char*, int, int, int);
 void	dnpurge(void);
 void	dnput(void);
 void	dnslog(char*, ...);
@@ -525,35 +525,35 @@ void	freearea(Area**);
 void	addarea(DN *dp, RR *rp, Ndbtuple *t);
 
 /* dblookup.c */
-int	baddelegation(RR*, RR*, uchar*);
+int	baddelegation(RR*, RR*, unsigned char*);
 RR*	dbinaddr(DN*, int);
 RR*	dblookup(char*, int, int, int, int);
 void	dnforceage(void);
 RR*	dnsservers(int);
 RR*	domainlist(int);
 int	insideaddr(char *dom);
-int	insidens(uchar *ip);
+int	insidens(unsigned char *ip);
 int	myaddr(char *addr);
 int	opendatabase(void);
-uchar*	outsidens(int);
+unsigned char*	outsidens(int);
 
 /* dns.c */
 char*	walkup(char*);
 RR*	getdnsservers(int);
-void	logreply(int, uchar*, DNSmsg*);
-void	logsend(int, int, uchar*, char*, char*, int);
+void	logreply(int, unsigned char*, DNSmsg*);
+void	logsend(int, int, unsigned char*, char*, char*, int);
 void	procsetname(char *fmt, ...);
 
 /* dnresolve.c */
 RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
 int	udpport(char *);
-int	mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno);
+int	mkreq(DN *dp, int type, unsigned char *buf, int flags, uint16_t reqno);
 int	seerootns(void);
-void	initdnsmsg(DNSmsg *mp, RR *rp, int flags, ushort reqno);
-DNSmsg*	newdnsmsg(RR *rp, int flags, ushort reqno);
+void	initdnsmsg(DNSmsg *mp, RR *rp, int flags, uint16_t reqno);
+DNSmsg*	newdnsmsg(RR *rp, int flags, uint16_t reqno);
 
 /* dnserver.c */
-void	dnserver(DNSmsg*, DNSmsg*, Request*, uchar *, int);
+void	dnserver(DNSmsg*, DNSmsg*, Request*, unsigned char *, int);
 void	dnudpserver(char*);
 void	dntcpserver(char*);
 
@@ -562,9 +562,9 @@ void	dnnotify(DNSmsg*, DNSmsg*, Request*);
 void	notifyproc(void);
 
 /* convDNS2M.c */
-int	convDNS2M(DNSmsg*, uchar*, int);
+int	convDNS2M(DNSmsg*, unsigned char*, int);
 
 /* convM2DNS.c */
-char*	convM2DNS(uchar*, int, DNSmsg*, int*);
+char*	convM2DNS(unsigned char*, int, DNSmsg*, int*);
 
 #pragma varargck argpos dnslog 1
