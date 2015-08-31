@@ -140,14 +140,14 @@ redistrib(uint8_t *buf, int len)
 void
 dnudpserver(char *mntpt)
 {
-	volatile int fd, len, op, rcode;
-	char *volatile err;
-	volatile char tname[32];
-	volatile uint8_t buf[Udphdrsize + Maxpayload];
-	volatile DNSmsg reqmsg, repmsg;
-	Inprogress *volatile p;
-	volatile Request req;
-	Udphdr *volatile uh;
+	int fd, len, op, rcode;
+	char *err;
+	char tname[32];
+	uint8_t buf[Udphdrsize + Maxpayload];
+	DNSmsg reqmsg, repmsg;
+	Inprogress *p;
+	Request req;
+	Udphdr *uh;
 
 	/*
 	 * fork sharing text, data, and bss with parent.

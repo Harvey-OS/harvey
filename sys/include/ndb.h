@@ -7,9 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	src	"/sys/src/libndb"
-#pragma	lib	"libndb.a"
-
 /*
  *  this include file requires includes of <u.h> and <bio.h>
  */
@@ -18,9 +15,6 @@ typedef struct Ndbtuple	Ndbtuple;
 typedef struct Ndbhf	Ndbhf;
 typedef struct Ndbs	Ndbs;
 typedef struct Ndbcache	Ndbcache;
-
-#pragma incomplete Ndbhf
-#pragma incomplete Ndbcache
 
 enum
 {
@@ -122,13 +116,13 @@ struct Ndbs
 /*
  *  macros for packing and unpacking pointers
  */
-#define NDBPUTP(v,a) { (a)[0] = v; (a)[1] = (v)>>8; (a)[2] = (v)>>16; }
+#define NDBPUTP(v,a) { (a)[0] = (uint8_t)v; (a)[1] = (uint8_t)(v)>>8; (a)[2] = (uint8_t)(v)>>16; }
 #define NDBGETP(a) ((a)[0] | ((a)[1]<<8) | ((a)[2]<<16))
 
 /*
  *  macros for packing and unpacking unsigned longs
  */
-#define NDBPUTUL(v,a) { (a)[0] = v; (a)[1] = (v)>>8; (a)[2] = (v)>>16; (a)[3] = (v)>>24; }
+#define NDBPUTUL(v,a) { (a)[0] = (uint8_t)v; (a)[1] = (uint8_t)(v)>>8; (a)[2] = (uint8_t)(v)>>16; (a)[3] = (uint8_t)(v)>>24; }
 #define NDBGETUL(a) ((a)[0] | ((a)[1]<<8) | ((a)[2]<<16) | ((a)[3]<<24))
 
 #define NDB_IPlen 16
