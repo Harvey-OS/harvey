@@ -43,11 +43,11 @@ DN *ht[HTLEN];
 
 static struct {
 	Lock;
-	ulong	names;		/* names allocated */
-	ulong	oldest;		/* longest we'll leave a name around */
+	uint32_t	names;		/* names allocated */
+	uint32_t	oldest;		/* longest we'll leave a name around */
 	int	active;
 	int	mutex;
-	ushort	id;		/* same size as in packet */
+	uint16_t	id;		/* same size as in packet */
 } dnvars;
 
 /* names of RR types */
@@ -159,7 +159,7 @@ static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
 
 static void
-ding(void*, char *msg)
+ding(void *v, char *msg)
 {
 	if(strstr(msg, "alarm") != nil) {
 		stats.alarms++;
