@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-getenv(char *name)
+getenv(const char *name)
 {
 	int r, f;
 	int32_t s;

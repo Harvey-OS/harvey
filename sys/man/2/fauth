@@ -10,7 +10,7 @@ fauth \- set up authentication on a file descriptor to a file server
 .PP
 .ft P
 .B
-int   fauth(int fd, char *aname)
+int   fauth(int fd, const char *aname)
 .SH DESCRIPTION
 .PP
 .I Fauth

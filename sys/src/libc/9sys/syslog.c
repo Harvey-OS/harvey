@@ -49,7 +49,7 @@ eqdirdev(Dir *a, Dir *b)
  * If cons or log file can't be opened, print on the system console, too.
  */
 void
-syslog(int cons, char *logname, char *fmt, ...)
+syslog(int cons, const char *logname, const char *fmt, ...)
 {
 	char buf[1024];
 	char *ctim, *p;

@@ -7,7 +7,7 @@ access \- determine accessibility of file
 .B #include <libc.h>
 .PP
 .B
-int access(char *name, int mode)
+int access(const char *name, int mode)
 .SH DESCRIPTION
 .I Access
 evaluates the given

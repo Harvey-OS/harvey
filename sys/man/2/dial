@@ -7,28 +7,28 @@ dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt, getnetcon
 .B #include <libc.h>
 .PP
 .B
-int   dial(char *addr, char *local, char *dir, int *cfdp)
+int   dial(const char *addr, const char *local, char *dir, int *cfdp)
 .PP
 .B
 int   hangup(int ctl)
 .PP
 .B
-int   announce(char *addr, char *dir)
+int   announce(const char *addr, char *dir)
 .PP
 .B
-int   listen(char *dir, char *newdir)
+int   listen(const char *dir, char *newdir)
 .PP
 .B
-int   accept(int ctl, char *dir)
+int   accept(int ctl, const char *dir)
 .PP
 .B
-int   reject(int ctl, char *dir, char *cause)
+int   reject(int ctl, const char *dir, const char *cause)
 .PP
 .B
-char* netmkaddr(char *addr, char *defnet, char *defservice)
+char* netmkaddr(const char *addr, const char *defnet, const char *defservice)
 .PP
 .B
-void  setnetmtpt(char *to, int tolen, char *from)
+void  setnetmtpt(char *to, int tolen, const char *from)
 .PP
 .B
 NetConnInfo*  getnetconninfo(char *conndir, int fd)
@@ -321,8 +321,15 @@ bekremvax(void)
 }
 .EE
 .SH SOURCE
-.BR /sys/src/libc/9sys ,
-.B /sys/src/libc/port
+.B /sys/src/libc/9sys/announce.c
+.br
+.B /sys/src/libc/9sys/dial.c
+.br
+.B /sys/src/libc/9sys/getnetconninfo.c
+.br
+.B /sys/src/libc/9sys/setnetmtpt.c
+.br
+.B /sys/src/libc/port/netmkaddr.c
 .SH "SEE ALSO"
 .IR auth (2),
 .IR ip (3),

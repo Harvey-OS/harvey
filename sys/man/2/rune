@@ -8,34 +8,34 @@ runetochar, chartorune, runelen, runenlen, fullrune, utfecpy, utflen, utfnlen, u
 .B #include <libc.h>
 .PP
 .B
-int	runetochar(char *s, Rune *r)
+int	runetochar(char *s, const Rune *r)
 .PP
 .B
-int	chartorune(Rune *r, char *s)
+int	chartorune(Rune *r, const char *s)
 .PP
 .B
-int	runelen(long r)
+int	runelen(Rune r)
 .PP
 .B
-int	runenlen(Rune *r, int n)
+int	runenlen(const Rune *r, int n)
 .PP
 .B
-int	fullrune(char *s, int n)
+int	fullrune(const char *s, int n)
 .PP
 .B
-char*	utfecpy(char *s1, char *es1, char *s2)
+char*	utfecpy(char *s1, char *es1, const char *s2)
 .PP
 .B
-int	utflen(char *s)
+int	utflen(const char *s)
 .PP
 .B
-int	utfnlen(char *s, long n)
+int	utfnlen(const char *s, long n)
 .PP
 .B
-char*	utfrune(char *s, long c)
+char*	utfrune(const char *s, Rune c)
 .PP
 .B
-char*	utfrrune(char *s, long c)
+char*	utfrrune(const char *s, Rune c)
 .PP
 .B
 char*	utfutf(char *s1, char *s2)
@@ -43,6 +43,8 @@ char*	utfutf(char *s1, char *s2)
 These routines convert to and from a
 .SM UTF
 byte stream and runes.
+.br
+Runes are unsigned 32bit integers that represent Unicode points.
 .PP
 .I Runetochar
 copies one rune at

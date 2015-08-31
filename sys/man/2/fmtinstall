@@ -70,25 +70,25 @@ Rune*	runefmtstrflush(Fmt *f);
 int	fmtinstall(int c, int (*fn)(Fmt*));
 .PP
 .B
-int	dofmt(Fmt *f, char *fmt);
+int	dofmt(Fmt *f, const char *fmt);
 .PP
 .B
-int	dorfmt(Fmt*, Rune *fmt);
+int	dorfmt(Fmt*, const Rune *fmt);
 .PP
 .B
-int	fmtprint(Fmt *f, char *fmt, ...);
+int	fmtprint(Fmt *f, const char *fmt, ...);
 .PP
 .B
-int	fmtvprint(Fmt *f, char *fmt, va_list v);
+int	fmtvprint(Fmt *f, const char *fmt, va_list v);
 .PP
 .B
 int	fmtrune(Fmt *f, int r);
 .PP
 .B
-int	fmtstrcpy(Fmt *f, char *s);
+int	fmtstrcpy(Fmt *f, const char *s);
 .PP
 .B
-int	fmtrunestrcpy(Fmt *f, Rune *s);
+int	fmtrunestrcpy(Fmt *f, const Rune *s);
 .PP
 .B
 int	errfmt(Fmt *f);

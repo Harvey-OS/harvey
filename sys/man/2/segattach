@@ -8,7 +8,7 @@ segattach, segdetach, segfree \- map/unmap a segment in virtual memory
 .PP
 .ta \w'\fLlong 'u
 .B
-void*	segattach(int attr, char *class, void *va, ulong len)
+void*	segattach(int attr, const char *class, void *va, ulong len)
 .PP
 .B
 int	segdetach(void *addr)

@@ -8,61 +8,61 @@ strcat, strncat, strcmp, strncmp, cistrcmp, cistrncmp, strcpy, strncpy, strecpy,
 .PP
 .ta \w'\fLchar* \fP'u
 .B
-char*	strcat(char *s1, char *s2)
+char*	strcat(char *s1, const char *s2)
 .PP
 .B
-char*	strncat(char *s1, char *s2, long n)
+char*	strncat(char *s1, const char *s2, long n)
 .PP
 .B
-int	strcmp(char *s1, char *s2)
+int	strcmp(const char *s1, const char *s2)
 .PP
 .B
-int	strncmp(char *s1, char *s2, long n)
+int	strncmp(const char *s1, const char *s2, long n)
 .PP
 .B
-int	cistrcmp(char *s1, char *s2)
+int	cistrcmp(const char *s1, const char *s2)
 .PP
 .B
-int	cistrncmp(char *s1, char *s2, long n)
+int	cistrncmp(const char *s1, const char *s2, long n)
 .PP
 .B
-char*	strcpy(char *s1, char *s2)
+char*	strcpy(char *s1, const char *s2)
 .PP
 .B
-char*	strecpy(char *s1, char *es1, char *s2)
+char*	strecpy(char *s1, char *es1, const char *s2)
 .PP
 .B
-char*	strncpy(char *s1, char *s2, long n)
+char*	strncpy(char *s1, const char *s2, long n)
 .PP
 .B
-long	strlen(char *s)
+long	strlen(const char *s)
 .PP
 .B
-char*	strchr(char *s, char c)
+char*	strchr(const char *s, char c)
 .PP
 .B
-char*	strrchr(char *s, char c)
+char*	strrchr(const char *s, char c)
 .PP
 .B
-char*	strpbrk(char *s1, char *s2)
+char*	strpbrk(const char *s1, const char *s2)
 .PP
 .B
-long	strspn(char *s1, char *s2)
+long	strspn(const char *s1, const char *s2)
 .PP
 .B
-long	strcspn(char *s1, char *s2)
+long	strcspn(const char *s1, const char *s2)
 .PP
 .B
 char*	strtok(char *s1, char *s2)
 .PP
 .B
-char*	strdup(char *s)
+char*	strdup(const char *s)
 .PP
 .B
-char*	strstr(char *s1, char *s2)
+char*	strstr(const char *s1, const char *s2)
 .PP
 .B
-char*	cistrstr(char *s1, char *s2)
+char*	cistrstr(const char *s1, const char *s2)
 .SH DESCRIPTION
 The arguments
 .I s1, s2

@@ -333,7 +333,7 @@ screenrect(void)
 }
 
 int
-postnote(int group, int pid, char *note)
+postnote(int group, int pid, const char *note)
 {
 	char file[128];
 	int f, r;

@@ -7,13 +7,13 @@ bind, mount, unmount \- change name space
 .B #include <libc.h>
 .PP
 .B
-int bind(char *name, char *old, int flag)
+int bind(const char *name, const char *old, int flag)
 .PP
 .B
-int mount(int fd, int afd, char *old, int flag, char *aname)
+int mount(int fd, int afd, const char *old, int flag, const char *aname)
 .PP
 .B
-int unmount(char *name, char *old)
+int unmount(const char *name, const char *old)
 .SH DESCRIPTION
 .I Bind
 and

@@ -13,7 +13,7 @@ int errstr(char *err, uint nerr)
 void rerrstr(char *err, uint nerr)
 .PP
 .B
-void werrstr(char *fmt, ...)
+void werrstr(const char *fmt, ...)
 .SH DESCRIPTION
 When a system call fails it returns \-1 and
 records a null terminated string describing the error in a per-process buffer.

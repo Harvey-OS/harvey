@@ -38,7 +38,7 @@ struct DS {
 	char	*rem;
 
 	/* other args */
-	char	*local;
+	const char	*local;
 	char	*dir;
 	int	*cfdp;
 };
@@ -74,14 +74,14 @@ struct Dest {
 
 static int	call(char*, char*, DS*, Dest*, Conn*);
 static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
+static void	_dial_string_parse(const char*, DS*);
 
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 static int
-dialimpl(char *dest, char *local, char *dir, int *cfdp)
+dialimpl(const char *dest, const char *local, char *dir, int *cfdp)
 {
 	DS ds;
 	int rv;
@@ -123,10 +123,10 @@ dialimpl(char *dest, char *local, char *dir, int *cfdp)
  * the thread library can't cope with rfork(RFMEM|RFPROC),
  * so it must override this with a private version of dial.
  */
-int (*_dial)(char *, char *, char *, int *) = dialimpl;
+int (*_dial)(const char *, const char *, char *, int *) = dialimpl;
 
 int
-dial(char *dest, char *local, char *dir, int *cfdp)
+dial(const char *dest, const char *local, char *dir, int *cfdp)
 {
 	return (*_dial)(dest, local, dir, cfdp);
 }
@@ -530,7 +530,7 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(const char *str, DS *ds)
 {
 	char *p, *p2;
 

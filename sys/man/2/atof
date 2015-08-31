@@ -9,34 +9,34 @@ atof, atoi, atol, atoll, charstod, strtod, strtol, strtoll, strtoul, strtoull \-
 .nf
 .ta \w'\fLdouble 'u
 .B
-double	atof(char *nptr)
+double	atof(const char *nptr)
 .PP
 .B
-int	atoi(char *nptr)
+int	atoi(const char *nptr)
 .PP
 .B
-long	atol(char *nptr)
+long	atol(const char *nptr)
 .PP
 .B
-vlong	atoll(char *nptr)
+vlong	atoll(const char *nptr)
 .PP
 .B
 double	charstod(int (*f)(void *), void *a)
 .PP
 .B
-double	strtod(char *nptr, char **rptr)
+double	strtod(const char *nptr, const char **rptr)
 .PP
 .B
-long	strtol(char *nptr, char **rptr, int base)
+long	strtol(const char *nptr, const char **rptr, int base)
 .PP
 .B
-vlong	strtoll(char *nptr, char **rptr, int base)
+vlong	strtoll(const char *nptr, const char **rptr, int base)
 .PP
 .B
-ulong	strtoul(char *nptr, char **rptr, int base)
+ulong	strtoul(const char *nptr, const char **rptr, int base)
 .PP
 .B
-uvlong	strtoull(char *nptr, char **rptr, int base)
+uvlong	strtoull(const char *nptr, const char **rptr, int base)
 .fi
 .SH DESCRIPTION
 .IR Atof ,

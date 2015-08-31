@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-access(char *name, int mode)
+access(const char *name, int mode)
 {
 	int fd;
 	Dir *db;

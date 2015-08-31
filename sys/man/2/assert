@@ -10,7 +10,7 @@ assert \- check program invariants
 #define assert(cond) if(cond);else _assert("cond")
 .PP
 .B
-void _assert(char* cond)
+void _assert(const char* cond)
 .SH DESCRIPTION
 .I Assert
 is a preprocessor macro that

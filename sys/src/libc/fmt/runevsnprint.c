@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-runevsnprint(Rune *buf, int len, char *fmt, va_list args)
+runevsnprint(Rune *buf, int len, const char *fmt, va_list args)
 {
 	Fmt f;
 

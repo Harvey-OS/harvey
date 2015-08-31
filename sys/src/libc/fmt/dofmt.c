@@ -13,7 +13,7 @@
 
 /* format the output into f->to and return the number of characters fmted  */
 int
-dofmt(Fmt *f, char *fmt)
+dofmt(Fmt *f, const char *fmt)
 {
 	Rune rune, *rt, *rs;
 	int r;
@@ -124,10 +124,11 @@ _rfmtpad(Fmt *f, int n)
 }
 
 int
-_fmtcpy(Fmt *f, void *vm, int n, int sz)
+_fmtcpy(Fmt *f, const void *vm, int n, int sz)
 {
 	Rune *rt, *rs, r;
-	char *t, *s, *m, *me;
+	char *t, *s;
+	const char *m, *me;
 	uint32_t fl;
 	int nc, w;
 
@@ -180,9 +181,10 @@ _fmtcpy(Fmt *f, void *vm, int n, int sz)
 }
 
 int
-_fmtrcpy(Fmt *f, void *vm, int n)
+_fmtrcpy(Fmt *f, const void *vm, int n)
 {
-	Rune r, *m, *me, *rt, *rs;
+	Rune r, *rt, *rs;
+	const Rune *m, *me;
 	char *t, *s;
 	uint32_t fl;
 	int w;
@@ -243,7 +245,7 @@ _runefmt(Fmt *f)
 
 /* public helper routine: fmt out a null terminated string already in hand */
 int
-fmtstrcpy(Fmt *f, char *s)
+fmtstrcpy(Fmt *f, const char *s)
 {
 	int i, j;
 	Rune r;
@@ -272,9 +274,9 @@ _strfmt(Fmt *f)
 
 /* public helper routine: fmt out a null terminated rune string already in hand */
 int
-fmtrunestrcpy(Fmt *f, Rune *s)
+fmtrunestrcpy(Fmt *f, const Rune *s)
 {
-	Rune *e;
+	const Rune *e;
 	int n, p;
 
 	if(!s)

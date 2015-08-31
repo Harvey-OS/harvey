@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-utfecpy(char *to, char *e, char *from)
+utfecpy(char *to, char *e, const char *from)
 {
 	char *end;
 
@@ -19,7 +19,7 @@ utfecpy(char *to, char *e, char *from)
 		return to;
 	end = memccpy(to, from, '\0', e - to);
 	if(end == nil){
-		end = e;
+			end = e;
 		while(end>to && (*--end&0xC0)==0x80)
 			;
 		*end = '\0';

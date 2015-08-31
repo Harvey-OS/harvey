@@ -8,10 +8,10 @@ exec, execl, _privates, _nprivates, _tos \- execute a file
 .PP
 .nf
 .B
-void* exec(char *name, char* argv[])
+void* exec(const char *name, char* const argv[])
 .PP
 .B
-void* execl(char *name, ...)
+void* execl(const char *name, ...)
 .PP
 .B
 void	**_privates;

@@ -70,7 +70,7 @@ Edit edit = {
  * Catch the obvious error routines to fix up the disk.
  */
 void
-sysfatal(char *fmt, ...)
+sysfatal(const char *fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
