@@ -13,9 +13,9 @@
 #define UVLONG_MAX	(1LL<<63)
 
 uint64_t
-strtoull(char *nptr, char **endptr, int base)
+strtoull(const char *nptr, const char **endptr, int base)
 {
-	char *p;
+	const char *p;
 	uint64_t n, nn, m;
 	int c, ovfl, v, neg, ndig;
 

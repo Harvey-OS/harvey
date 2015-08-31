@@ -167,22 +167,6 @@ Entity pl_entity[]=
 };
 
 int
-cistrcmp(char *a, char *b)
-{
-	int c, d;
-
-	for(;; a++, b++){
-		d = tolower(*a);
-		c = d - tolower(*b);
-		if(c)
-			break;
-		if(d == 0)
-			break;
-	}
-	return c;
-}
-
-int
 readupto(char *buf, int n, char d, char notme)
 {
 	char *p;

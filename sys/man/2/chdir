@@ -7,7 +7,7 @@ chdir \- change working directory
 .B #include <libc.h>
 .PP
 .B
-int chdir(char *dirname)
+int chdir(const char *dirname)
 .SH DESCRIPTION
 .I Chdir
 changes the working directory

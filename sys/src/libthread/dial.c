@@ -43,7 +43,7 @@ struct DS {
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 int
-_threaddial(char *dest, char *local, char *dir, int *cfdp)
+_threaddial(const char *dest, const char *local, char *dir, int *cfdp)
 {
 	DS ds;
 	int rv;

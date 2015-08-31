@@ -7,10 +7,10 @@ open, create, close \- open a file for reading or writing, create file
 .B #include <libc.h>
 .PP
 .B
-int open(char *file, int omode)
+int open(const char *file, int omode)
 .PP
 .B
-int create(char *file, int omode, ulong perm)
+int create(const char *file, int omode, ulong perm)
 .PP
 .B
 int close(int fd)

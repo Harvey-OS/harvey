@@ -13,10 +13,10 @@
 void (*__assert)(char*);
 
 void
-_assert(char *s)
+_assert(const char *s)
 {
 	if(__assert)
-		(*__assert)(s);
+		(*__assert)((char*)s);
 	fprint(2, "assert failed: %s\n", s);
 	abort();
 }

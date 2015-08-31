@@ -39,7 +39,6 @@ int	connect(char*, char*, int);
 int	passive(void);
 int	old9p(int);
 void	catcher(void *c, char*);
-void	sysfatal(char*, ...);
 void	usage(void);
 int	filter(int, char *, char *);
 

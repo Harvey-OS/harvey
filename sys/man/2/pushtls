@@ -8,9 +8,9 @@ pushtls, tlsClient, tlsServer, initThumbprints, freeThumbprints, okThumbprint, r
 .PP
 .nf
 .B
-int	pushtls(int fd, char *hashalg, char *encalg,
+int	pushtls(int fd, const char *hashalg, const char *encalg,
 .B
-		int isclient, char *secret, char *dir)
+		int isclient, const char *secret, char *dir)
 .PP
 .nf
 .B #include <mp.h>

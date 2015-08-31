@@ -11,14 +11,14 @@
 #include <libc.h>
 
 Rune*
-runestrrchr(Rune *s, Rune c)
+runestrrchr(const Rune *s, Rune c)
 {
-	Rune *r;
+	const Rune *r;
 
 	if(c == 0)
 		return runestrchr(s, 0);
 	r = 0;
 	while(s = runestrchr(s, c))
 		r = s++;
-	return r;
+	return (Rune *)r;
 }

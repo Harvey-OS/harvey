@@ -37,7 +37,7 @@ descriptor will get encrypted and authenticated and then written to the
 file descriptor,
 .IR fd .
 .SH SOURCE
-.B /sys/src/libc/9sys
+.B /sys/src/libc/9sys/pushssl.c
 .SH "SEE ALSO"
 .IR dial (2),
 .IR ssl (3),

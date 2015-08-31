@@ -7,13 +7,13 @@ perror, syslog, sysfatal \- system error messages
 .B #include <libc.h>
 .PP
 .B
-void perror(char *s)
+void perror(const char *s)
 .PP
 .B
-void syslog(int cons, char *logname, char *fmt, ...)
+void syslog(int cons, const char *logname, const char *fmt, ...)
 .PP
 .B
-void sysfatal(char *fmt, ...)
+void sysfatal(const char *fmt, ...)
 .SH DESCRIPTION
 .I Perror
 produces a short error message
