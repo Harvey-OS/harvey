@@ -17,10 +17,6 @@
 		"rm *.o *.a",
 		"../../../../util/data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
 	],
-	"Pre": [
-		"[ ! -f bootk8cpu.elf.out ] || rm *.elf.out",
-		"awk -f ../mk/parse -- -mkbootconf ../k10/k8cpu \u003e bootk8cpu.c"
-	],
 	"Program": "bootk8cpu.elf.out",
 	"Projects": [
 		"boot.json"
