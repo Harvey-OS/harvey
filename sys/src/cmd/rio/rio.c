@@ -128,7 +128,6 @@ void
 threadmain(int argc, char *argv[])
 {
 	char *initstr, *kbdin, *s;
-	static void *arg[1];
 	char buf[256];
 	Image *i;
 	Rectangle r;
