@@ -1,0 +1,19 @@
+{
+	"Include": [
+		"/sys/src/cmd/cmd.json"
+	],
+	"Install": "/$ARCH/bin/",
+	"Name": "rio",
+	"Program": "rio",
+	"SourceFiles": [
+		"rio.c",
+		"data.c",
+		"fsys.c",
+		"scrl.c",
+		"time.c",
+		"util.c",
+		"wctl.c",
+		"wind.c",
+		"xfid.c"
+	]
+}
