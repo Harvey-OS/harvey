@@ -963,19 +963,6 @@ isvalidip(uint8_t *ip)
 	return ipcmp(ip, IPnoaddr) != 0 && ipcmp(ip, v4prefix) != 0;
 }
 
-static uint8_t loopbacknet[IPaddrlen] = {
-	0, 0, 0, 0,
-	0, 0, 0, 0,
-	0, 0, 0xff, 0xff,
-	127, 0, 0, 0
-};
-static uint8_t loopbackmask[IPaddrlen] = {
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0, 0, 0
-};
-
 void
 readipinterfaces(void)
 {
@@ -1081,7 +1068,6 @@ netinit(int background)
 {
 	char clone[Maxpath];
 	Network *np;
-	static int working;
 
 	if(background){
 		switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
@@ -1510,7 +1496,7 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
 	Ndbtuple *t;
 	Ndbs s;
 
-	USED(np, nolookup, serv);
+	USED(np); USED(nolookup); USED(serv);
 
 	werrstr("can't translate address");
 	free(ndbgetvalue(db, &s, "sys", host, "telco", &t));
@@ -1524,7 +1510,7 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
  *  translate a telephone address
  */
 char*
-telcotrans(Ndbtuple *t, Network *np, char *serv, char *rem, int)
+telcotrans(Ndbtuple *t, Network *np, char *serv, char *rem, int i)
 {
 	char reply[Maxreply];
 	char x[Maxservice];
