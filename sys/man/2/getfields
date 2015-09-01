@@ -11,10 +11,13 @@ getfields, gettokens, tokenize \- break a string into fields
 int	getfields(char *str, char **args, int maxargs, int multiflag,
 .br
 .B
-	    char *delims)
+	    const char *delims)
 .PP
 .B
-int	gettokens(char *str, char **args, int maxargs, char *delims)
+int	gettokens(char *str, char **args, int maxargs,
+.br
+.B
+	    const char *delims)
 .PP
 .B
 int	tokenize(char *str, char **args, int maxargs)

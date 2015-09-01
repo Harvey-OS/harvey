@@ -7,7 +7,7 @@ remove \- remove a file
 .B #include <libc.h>
 .PP
 .B
-int remove(char *file)
+int remove(const char *file)
 .SH DESCRIPTION
 .I Remove
 removes

@@ -17,7 +17,7 @@
  */
 
 int
-pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
+pushssl(int fd, const char *alg, const char *secin, const char *secout, int *cfd)
 {
 	char buf[8];
 	char dname[64];

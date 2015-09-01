@@ -51,7 +51,7 @@ qtoken(char *s, char *sep)
 }
 
 static char*
-etoken(char *t, char *sep)
+etoken(char *t, const char *sep)
 {
 	int quoting;
 
@@ -78,11 +78,11 @@ etoken(char *t, char *sep)
 		/* doubled quote; fold one quote into two */
 		t += 2;
 	}
-	return t;
+	return (char*)t;
 }
 
 int
-gettokens(char *s, char **args, int maxargs, char *sep)
+gettokens(char *s, char **args, int maxargs, const char *sep)
 {
 	int nargs;
 

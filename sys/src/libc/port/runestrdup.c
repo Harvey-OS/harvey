@@ -11,7 +11,7 @@
 #include <libc.h>
 
 Rune*
-runestrdup(Rune *s) 
+runestrdup(const Rune *s)
 {  
 	Rune *ns;
 
