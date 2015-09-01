@@ -13,6 +13,10 @@
 		"-fno-builtin",
 		"-mcmodel=small"
 	],
+        "Pre": [
+                "mksys -o bootk8cpu.c -mode=bootk8cpu.c $HARVEY/sys/src/sysconf.json",
+                "[ ! -f bootk8cpu.elf.out ] || rm *.elf.out"
+        ],
 	"Include": [
 		"/sys/src/lib.json"
 	],
@@ -25,10 +29,10 @@
 		"boot.c",
 		"bootcache.c",
 		"bootip.c",
+		"bootk8cpu.c",
 		"console.c",
 		"embed.c",
 		"local.c",
-		"hack.c",
 		"paq.c",
 		"sac.c",
 		"settime.c"

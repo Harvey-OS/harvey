@@ -916,5 +916,13 @@
 			"Name": "Eunmount",
 			"String": "not mounted"
 		}
+	],
+	"Bootmethods": [
+		{
+			"Name": "tcp",
+			"Config": "configtcp",
+			"Connect": "connecttcp",
+			"Arg": ""
+		}
 	]
 }
