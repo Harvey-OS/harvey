@@ -343,8 +343,8 @@ Channel*	deletechan;
 char		*startdir;
 int		sweeping;
 int		wctlfd;
-char		srvpipe[];
-char		srvwctl[];
+char		*srvpipe;
+char		*srvwctl;
 int		errorshouldabort;
 int		menuing;		/* menu action is pending; waiting for window to be indicated */
 int		snarfversion;	/* updated each time it is written */

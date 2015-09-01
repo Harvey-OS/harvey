@@ -60,13 +60,9 @@ static int		dostat(Filsys*, int, Dirtab*, uint8_t*, int, uint);
 int	clockfd;
 int	firstmessage = 1;
 
-char	srvpipe[64];
-char	srvwctl[64];
-
 static	Xfid*	filsysflush(Filsys*, Xfid*, Fid*);
 static	Xfid*	filsysversion(Filsys*, Xfid*, Fid*);
 static	Xfid*	filsysauth(Filsys*, Xfid*, Fid*);
-static	Xfid*	filsysnop(Filsys*, Xfid*, Fid*);
 static	Xfid*	filsysattach(Filsys*, Xfid*, Fid*);
 static	Xfid*	filsyswalk(Filsys*, Xfid*, Fid*);
 static	Xfid*	filsysopen(Filsys*, Xfid*, Fid*);
