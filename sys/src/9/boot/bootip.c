@@ -121,6 +121,7 @@ print("ipconfig...");
 		if (parseip(auip, buf) == -1)
 			fprint(2, "configip: can't parse auth ip %s\n", buf);
 	}
+	free(arg);
 }
 
 static void
@@ -175,11 +176,12 @@ netenv(char *attr, uint8_t *ip)
 		return;
 
 	n = read(fd, buf, sizeof(buf)-1);
-	if(n <= 0)
-		return;
-	buf[n] = 0;
-	if (parseip(ip, buf) == -1)
-		fprint(2, "netenv: can't parse ip %s\n", buf);
+	if(n > 0){
+		buf[n] = 0;
+		if (parseip(ip, buf) == -1)
+			fprint(2, "netenv: can't parse ip %s\n", buf);
+	}
+	close(fd);
 }
 
 static void
