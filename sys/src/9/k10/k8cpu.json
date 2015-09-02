@@ -20,12 +20,14 @@
 				"arch",
 				"cap",
 				"cons",
+				"draw",
 				"dup",
 				"env",
 				"ether",
 				"ip",
 				"kprof",
 				"mnt",
+				"mouse",
 				"pci",
 				"pipe",
 				"pmc",
@@ -40,6 +42,7 @@
 				"uart",
 				"ws",
 				"usb",
+				"vga",
 				"zp"
 			],
 			"Ip": [
@@ -70,6 +73,9 @@
 			"Uart": [
 				"i8250",
 				"pci"
+			],
+			"VGA": [
+
 			]
 		},
 		"Ramfiles": {
@@ -95,12 +101,18 @@
 		"cga.c",
 		"devacpi.c",
 		"devusb.c",
+		"devvga.c",
 		"ether8139.c",
 		"ether82563.c",
 		"k8cpu.c",
+		"kbd.c",
+		"mouse.c",
+		"screen.c",
 		"sdata.c",
 		"usbehcipc.c",
 		"usbohci.c",
-		"usbuhci.c"
+		"usbuhci.c",
+		"vga.c",
+		"vgax.c"
 	]
 }
