@@ -40,6 +40,7 @@ type kernconfig struct {
 	Link []string
 	Sd   []string
 	Uart []string
+	VGA  []string
 }
 
 type kernel struct {
@@ -499,6 +500,27 @@ SDifc* sdifc[] = {
 {{ end }}
 PhysUart* physuart[] = {
 {{ range .Config.Uart }}	&{{ . }}physuart,
+{{ end }}
+	nil,
+};
+
+#define	Image	IMAGE
+#include <draw.h>
+#include <memdraw.h>
+#include <cursor.h>
+#include "screen.h"
+{{ range .Config.VGA }}extern VGAdev {{ . }}dev;
+{{ end }}
+VGAdev* vgadev[] = {
+{{ range .Config.VGA }}	&{{ . }}dev,
+{{ end }}
+	nil,
+};
+
+{{ range .Config.VGA }}extern VGAcur {{ . }}cur;
+{{ end }}
+VGAcur* vgacur[] = {
+{{ range .Config.VGA }}	&{{ . }}cur,
 {{ end }}
 	nil,
 };

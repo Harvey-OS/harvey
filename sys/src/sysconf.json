@@ -793,126 +793,131 @@
 		},
 		{
 			"Id": 27,
+			"Name": "Emouseset",
+			"String": "mount rpc error"
+		},
+		{
+			"Id": 28,
 			"Name": "Enegoff",
 			"String": "negative i/o offset"
 		},
 		{
-			"Id": 28,
+			"Id": 29,
 			"Name": "Enoattach",
 			"String": "mount/attach disallowed"
 		},
 		{
-			"Id": 29,
+			"Id": 30,
 			"Name": "Enochild",
 			"String": "no living children"
 		},
 		{
-			"Id": 30,
+			"Id": 31,
 			"Name": "Enocreate",
 			"String": "mounted directory forbids creation"
 		},
 		{
-			"Id": 31,
+			"Id": 32,
 			"Name": "Enodev",
 			"String": "no free devices"
 		},
 		{
-			"Id": 32,
+			"Id": 33,
 			"Name": "Enoerror",
 			"String": "no error"
 		},
 		{
-			"Id": 33,
+			"Id": 34,
 			"Name": "Enofd",
 			"String": "no free file descriptors"
 		},
 		{
-			"Id": 34,
+			"Id": 35,
 			"Name": "Enomem",
 			"String": "kernel allocate failed"
 		},
 		{
-			"Id": 35,
+			"Id": 36,
 			"Name": "Enonexist",
 			"String": "file does not exist"
 		},
 		{
-			"Id": 36,
+			"Id": 37,
 			"Name": "Enoport",
 			"String": "network port not available"
 		},
 		{
-			"Id": 37,
+			"Id": 38,
 			"Name": "Enoreg",
 			"String": "process has no saved registers"
 		},
 		{
-			"Id": 38,
+			"Id": 39,
 			"Name": "Enoswap",
 			"String": "swap space full"
 		},
 		{
-			"Id": 39,
+			"Id": 40,
 			"Name": "Enotdir",
 			"String": "not a directory"
 		},
 		{
-			"Id": 40,
+			"Id": 41,
 			"Name": "Enovmem",
 			"String": "virtual memory allocation failed"
 		},
 		{
-			"Id": 41,
+			"Id": 42,
 			"Name": "Eperm",
 			"String": "permission denied"
 		},
 		{
-			"Id": 42,
+			"Id": 43,
 			"Name": "Eprocdied",
 			"String": "process exited"
 		},
 		{
-			"Id": 43,
+			"Id": 44,
 			"Name": "Eshort",
 			"String": "i/o count too small"
 		},
 		{
-			"Id": 44,
+			"Id": 45,
 			"Name": "Eshortstat",
 			"String": "stat buffer too small"
 		},
 		{
-			"Id": 45,
+			"Id": 46,
 			"Name": "Eshutdown",
 			"String": "device shut down"
 		},
 		{
-			"Id": 46,
+			"Id": 47,
 			"Name": "Esoverlap",
 			"String": "segments overlap"
 		},
 		{
-			"Id": 47,
+			"Id": 48,
 			"Name": "Etimedout",
 			"String": "connection timed out"
 		},
 		{
-			"Id": 48,
+			"Id": 49,
 			"Name": "Etoobig",
 			"String": "read or write too large"
 		},
 		{
-			"Id": 49,
+			"Id": 50,
 			"Name": "Etoosmall",
 			"String": "read or write too small"
 		},
 		{
-			"Id": 50,
+			"Id": 51,
 			"Name": "Eunion",
 			"String": "not in union"
 		},
 		{
-			"Id": 51,
+			"Id": 52,
 			"Name": "Eunmount",
 			"String": "not mounted"
 		}
