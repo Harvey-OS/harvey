@@ -24,9 +24,12 @@
 		"-Wmaybe-uninitialized"
 	],
 	"Libs": [
+		"/amd64/lib/klibmemlayer.a",
+		"/amd64/lib/klibmemdraw.a",
 		"/amd64/lib/klibc.a",
+		"/amd64/lib/klibdraw.a",
 		"/amd64/lib/klibip.a",
-		"/amd64/lib/klibdraw.a"
+		"/amd64/lib/klibsec.a"
 	],
 	"Name": "core",
 	"Oflags": [

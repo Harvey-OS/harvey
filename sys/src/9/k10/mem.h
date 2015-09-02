@@ -43,6 +43,8 @@
  * Sizes
  */
 #define BI2BY		8			/* bits per byte */
+#define	BI2WD		32			/* bits per word */
+#define	BY2WD		4			/* bytes per word */
 #define BY2V		8			/* bytes per double word */
 #define BY2SE		8			/* bytes per stack element */
 #define BLOCKALIGN	8
