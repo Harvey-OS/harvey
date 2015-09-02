@@ -47,6 +47,30 @@ static	Consdev	consdevs[Nconsdevs] =			/* keep this order */
 	{nil, nil,	kmesgputs,	0},			/* kmesg */
 };
 
+static struct
+{
+	QLock;
+
+	int	raw;		/* true if we shouldn't process input */
+	Ref	ctl;		/* number of opens to the control file */
+	int	x;		/* index into line */
+	char	line[1024];	/* current input line */
+
+	int	count;
+	int	ctlpoff;
+
+	/* a place to save up characters at interrupt time before dumping them in the queue */
+	Lock	lockputc;
+	char	istage[1024];
+	char	*iw;
+	char	*ir;
+	char	*ie;
+} kbd = {
+	.iw	= kbd.istage,
+	.ir	= kbd.istage,
+	.ie	= kbd.istage + sizeof(kbd.istage),
+};
+
 int	panicking;
 
 
@@ -284,6 +308,37 @@ pprint(char *fmt, ...)
 	return n;
 }
 
+/*
+ *  Put character, possibly a rune, into read queue at interrupt time.
+ *  Called at interrupt time to process a character.
+ */
+int
+kbdputc(Queue *q, int ch)
+{
+	int i, n;
+	char buf[3];
+	Rune r;
+	char *next;
+
+	if(kbd.ir == nil)
+		return 0;		/* in case we're not inited yet */
+	
+	ilock(&kbd.lockputc);		/* just a mutex */
+	r = ch;
+	n = runetochar(buf, &r);
+	for(i = 0; i < n; i++){
+		next = kbd.iw+1;
+		if(next >= kbd.ie)
+			next = kbd.istage;
+		if(next == kbd.ir)
+			break;
+		*kbd.iw = buf[i];
+		kbd.iw = next;
+	}
+	iunlock(&kbd.lockputc);
+	return 0;
+}
+
 enum{
 	Qdir,
 	Qbintime,
@@ -406,6 +461,7 @@ consopen(Chan *c, int omode)
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
 	switch((uint32_t)c->qid.path){
 	case Qconsctl:
+		incref(&kbd.ctl);
 		break;
 
 	case Qkprint:
