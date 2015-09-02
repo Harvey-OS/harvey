@@ -189,9 +189,6 @@ outin(char *prompt, char *def, int len)
 	if(n < 0){
 		return 1;
 	}
-	if(n > 1){
-		buf[n-1] = 0;
-		strcpy(def, buf);
-	}
+	strncpy(def, buf, len);
 	return n;
 }
