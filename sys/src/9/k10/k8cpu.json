@@ -20,12 +20,14 @@
 				"arch",
 				"cap",
 				"cons",
+				"draw",
 				"dup",
 				"env",
 				"ether",
 				"ip",
 				"kprof",
 				"mnt",
+				"mouse",
 				"pci",
 				"pipe",
 				"pmc",
@@ -98,9 +100,14 @@
 		"ether8139.c",
 		"ether82563.c",
 		"k8cpu.c",
+		"kbd.c",
+		"mouse.c",
+		"screen.c",
 		"sdata.c",
 		"usbehcipc.c",
 		"usbohci.c",
-		"usbuhci.c"
+		"usbuhci.c",
+		"vga.c",
+		"vgax.c"
 	]
 }
