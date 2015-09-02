@@ -13,7 +13,6 @@
 		"-lflate",
 		"-lframe",
 		"-lgeometry",
-		"-lhtml",
 		"-lhttpd",
 		"-lbin",
 		"-llex",
