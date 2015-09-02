@@ -389,6 +389,8 @@ Uart*		uartconsole(int, char*);
 int		uartctl(Uart*, char*);
 int		uartgetc(void);
 void		uartkick(void*);
+void		uartmouse(Uart*, int (*)(Queue*, int), int);
+void		uartsetmouseputc(Uart*, int (*)(Queue*, int));
 void		uartputc(int);
 void		uartputs(char*, int);
 void		uartrecv(Uart*, char);
@@ -408,16 +410,6 @@ Proc*		wakeup(Rendez*);
 int		walk(Chan**, char**, int, int, int*);
 void		wlock(RWlock*);
 void		wunlock(RWlock*);
-/* xalloc */
-void*           xalloc(uint32_t);
-void*           xallocz(uint32_t, int);
-void            xfree(void*);
-void            xhole(uintmem, uint32_t);
-void            xinit(void);
-int             xmerge(void*, void*);
-void*           xspanalloc(uint32_t, int, uint32_t);
-void            xsummary(void);
-/* end xalloc */
 void		yield(void);
 uintptr_t		zgetaddr(Segment*);
 void		zgrow(Segment*);
