@@ -185,6 +185,8 @@ outin(char *prompt, char *def, int len)
 		print("\n");
 		return 1;
 	}
-	strncpy(def, buf, len);
+	if (n > 0) {
+		strncpy(def, buf, len);
+	}
 	return n;
 }
