@@ -79,4 +79,5 @@ glenda(void)
 			fprint(2, "setting #c/hostowner to %s: %r\n", s);
 		close(fd);
 	}
+	fprint(2, "Set hostowner to %s\n", s);
 }
