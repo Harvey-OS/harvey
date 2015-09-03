@@ -1,7 +1,11 @@
 #!/bin/bash
 ./BUILD kernel && \
-sudo cp sys/src/9/k10/9k8cpu.32bit /var/lib/tftpboot && \
-	sudo service isc-dhcp-server restart && echo "OK" && exit
+	cp sys/src/9/k10/9k8cpu.32bit /var/lib/tftpboot && \
+	echo "OK" &&  \
+	exit
+
+
+# sudo service isc-dhcp-server restart && echo "OK" && exit
 
 
 echo " IT WENT WRONG"
