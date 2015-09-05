@@ -78,6 +78,7 @@
 			"cat": "/amd64/bin/cat",
 			"date": "/amd64/bin/date",
 			"echo": "/amd64/bin/echo",
+			"factotum": "/amd64/bin/auth/factotum",
 			"ipconfig": "/amd64/bin/ip/ipconfig",
 			"listen1": "/amd64/bin/aux/listen1",
 			"ls": "/amd64/bin/ls",
