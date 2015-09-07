@@ -575,7 +575,7 @@ void
 callwithureg(void (*fn)(Ureg*))
 {
 	Ureg ureg;
-	ureg.ip = getcallerpc(&fn);
+	ureg.ip = getcallerpc();
 	ureg.sp = PTR2UINT(&fn);
 	fn(&ureg);
 }

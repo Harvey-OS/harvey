@@ -93,7 +93,7 @@ qunlock(QLock *q)
 	lock(&q->lock);
 	if (q->locked == 0)
 		fprint(2, "qunlock called with qlock not held, from %#p\n",
-			getcallerpc(&q));
+			getcallerpc());
 	p = q->head;
 	if(p != nil){
 		/* wakeup head waiting process */

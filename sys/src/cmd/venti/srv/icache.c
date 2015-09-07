@@ -423,7 +423,7 @@ insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
 		toload = nil;
 		if(as == nil)
 			fprint(2, "%T insertscore IEDirty without as; called from %#p\n",
-				getcallerpc(&score));
+				getcallerpc());
 		else{
 			if(icache.as.aa > as->aa)
 				fprint(2, "%T insertscore: aa moving backward: %#llux -> %#llux\n", icache.as.aa, as->aa);

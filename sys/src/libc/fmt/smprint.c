@@ -19,6 +19,6 @@ smprint(const char *fmt, ...)
 	va_start(args, fmt);
 	p = vsmprint(fmt, args);
 	va_end(args);
-	setmalloctag(p, getcallerpc(&fmt));
+	setmalloctag(p, getcallerpc());
 	return p;
 }

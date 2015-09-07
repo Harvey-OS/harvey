@@ -165,7 +165,7 @@ estrdup(char *s)
 	d = strdup(s);
 	if(d == nil)
 		sysfatal("strdup: %r");
-	setmalloctag(d, getcallerpc(&s));
+	setmalloctag(d, getcallerpc());
 	return d;
 }
 
@@ -179,7 +179,7 @@ emallocz(uint32_t size, int zero)
 		sysfatal("malloc: %r");
 	if(zero)
 		memset(x, 0, size);
-	setmalloctag(x, getcallerpc(&size));
+	setmalloctag(x, getcallerpc());
 	return x;
 }
 

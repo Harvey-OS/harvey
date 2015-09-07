@@ -33,7 +33,7 @@ vtmalloc(int size)
 	p = malloc(size);
 	if(p == 0)
 		sysfatal("vtmalloc: out of memory");
-	setmalloctag(p, getcallerpc(&size));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -42,7 +42,7 @@ vtmallocz(int size)
 {
 	void *p = vtmalloc(size);
 	memset(p, 0, size);
-	setmalloctag(p, getcallerpc(&size));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -54,7 +54,7 @@ vtrealloc(void *p, int size)
 	p = realloc(p, size);
 	if(p == 0)
 		sysfatal("vtMemRealloc: out of memory");
-	setrealloctag(p, getcallerpc(&size));
+	setrealloctag(p, getcallerpc());
 	return p;
 }
 

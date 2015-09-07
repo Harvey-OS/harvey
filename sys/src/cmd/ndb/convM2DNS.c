@@ -553,7 +553,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		rp = quest? convM2Q(sp): convM2RR(sp, what);
 		if(rp == nil)
 			break;
-		setmalloctag(rp, getcallerpc(&sp));
+		setmalloctag(rp, getcallerpc());
 		/*
 		 * it might be better to ignore the bad rr, possibly break out,
 		 * but return the previous rrs, if any.  that way our callers
@@ -567,7 +567,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		l = &rp->next;
 	}
 //	if(first)
-//		setmalloctag(first, getcallerpc(&sp));
+//		setmalloctag(first, getcallerpc());
 	return first;
 }
 

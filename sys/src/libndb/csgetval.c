@@ -88,7 +88,7 @@ csgetvalue(char *netroot, char *attr, char *val, char *rattr,
 	}
 
 	if(pp){
-		setmalloctag(first, getcallerpc(&netroot));
+		setmalloctag(first, getcallerpc());
 		*pp = first;
 	} else
 		ndbfree(first);
@@ -114,6 +114,6 @@ csgetval(char *netroot, char *attr, char *val, char *rattr,
 		}
 		free(p);
 	}
-	ndbsetmalloctag(t, getcallerpc(&netroot));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
