@@ -13,7 +13,11 @@
 #define ULONG_MAX	4294967295UL
 
 uint32_t
+<<<<<<< HEAD
 strtoul(char *nptr, char **endptr, int base)
+=======
+strtoul(const char *nptr, char **endptr, int base)
+>>>>>>> 064e99309... Changed strto[l|ul|ull] functions to have correct signature
 {
 	char *p;
 	uint32_t n, nn, m;
@@ -97,7 +101,7 @@ strtoul(char *nptr, char **endptr, int base)
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = p;
+		*endptr = (char*)p;
 	if(ovfl)
 		return ULONG_MAX;
 	if(neg)
