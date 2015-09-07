@@ -62,6 +62,7 @@
 #define	X86EMU_UNUSED(v)	v __attribute__((unused))
 #endif
 
+#include <u.h>
 #include "x86emu/x86emu.h"
 #include "x86emu/regs.h"
 #include "debug.h"
@@ -82,19 +83,19 @@
 extern "C" {            			/* Use "C" linkage when in C++ mode */
 #endif
 
-extern u8  	(X86APIP sys_rdb)(u32 addr);
-extern u16 	(X86APIP sys_rdw)(u32 addr);
-extern u32 	(X86APIP sys_rdl)(u32 addr);
-extern void (X86APIP sys_wrb)(u32 addr,u8 val);
-extern void (X86APIP sys_wrw)(u32 addr,u16 val);
-extern void (X86APIP sys_wrl)(u32 addr,u32 val);
+extern uint8_t  	(X86APIP sys_rdb)(uint32_t addr);
+extern uint16_t 	(X86APIP sys_rdw)(uint32_t addr);
+extern uint32_t 	(X86APIP sys_rdl)(uint32_t addr);
+extern void (X86APIP sys_wrb)(uint32_t addr,uint8_t val);
+extern void (X86APIP sys_wrw)(uint32_t addr,uint16_t val);
+extern void (X86APIP sys_wrl)(uint32_t addr,uint32_t val);
 
-extern u8  	(X86APIP sys_inb)(X86EMU_pioAddr addr);
-extern u16 	(X86APIP sys_inw)(X86EMU_pioAddr addr);
-extern u32 	(X86APIP sys_inl)(X86EMU_pioAddr addr);
-extern void (X86APIP sys_outb)(X86EMU_pioAddr addr,u8 val);
-extern void (X86APIP sys_outw)(X86EMU_pioAddr addr,u16 val);
-extern void	(X86APIP sys_outl)(X86EMU_pioAddr addr,u32 val);
+extern uint8_t  	(X86APIP sys_inb)(X86EMU_pioAddr addr);
+extern uint16_t 	(X86APIP sys_inw)(X86EMU_pioAddr addr);
+extern uint32_t 	(X86APIP sys_inl)(X86EMU_pioAddr addr);
+extern void (X86APIP sys_outb)(X86EMU_pioAddr addr,uint8_t val);
+extern void (X86APIP sys_outw)(X86EMU_pioAddr addr,uint16_t val);
+extern void	(X86APIP sys_outl)(X86EMU_pioAddr addr,uint32_t val);
 
 #ifdef  __cplusplus
 }                       			/* End of "C" linkage for C++   	*/

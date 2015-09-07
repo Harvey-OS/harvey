@@ -39,14 +39,14 @@
 #include <vbe.h>
 
 // pointer to VBEInfoBuffer, set by vbe_prepare
-u8 *vbe_info_buffer = 0;
+uint8_t *vbe_info_buffer = 0;
 
 // virtual BIOS Memory
-u8 *biosmem;
-u32 biosmem_size;
+uint8_t *biosmem;
+uint32_t biosmem_size;
 
 #if CONFIG_FRAMEBUFFER_SET_VESA_MODE
-static inline u8
+static inline uint8_t
 vbe_prepare(void)
 {
 	vbe_info_buffer = biosmem + (VBE_SEGMENT << 4);	// segment:offset off VBE Data Area
@@ -65,7 +65,7 @@ vbe_prepare(void)
 }
 
 // VBE Function 00h
-static u8
+static uint8_t
 vbe_info(vbe_info_t * info)
 {
 	vbe_prepare();
@@ -112,12 +112,12 @@ vbe_info(vbe_info_t * info)
 	info->capabilities = in32le(vbe_info_buffer + 10);
 
 	// offset 14: 32 bit le containing segment:offset of supported video mode table
-	u16 *video_mode_ptr;
+	uint16_t *video_mode_ptr;
 	video_mode_ptr =
-	    (u16 *) (biosmem +
+	    (uint16_t *) (biosmem +
 			  ((in16le(vbe_info_buffer + 16) << 4) +
 			   in16le(vbe_info_buffer + 14)));
-	u32 i = 0;
+	uint32_t i = 0;
 	do {
 		info->video_mode_list[i] = in16le(video_mode_ptr + i);
 		i++;
@@ -141,7 +141,7 @@ int vbe_mode_info_valid(void)
 }
 
 // VBE Function 01h
-static u8
+static uint8_t
 vbe_get_mode_info(vbe_mode_info_t * mode_info)
 {
 	vbe_prepare();
@@ -183,7 +183,7 @@ vbe_get_mode_info(vbe_mode_info_t * mode_info)
 }
 
 // VBE Function 02h
-static u8
+static uint8_t
 vbe_set_mode(vbe_mode_info_t * mode_info)
 {
 	vbe_prepare();
@@ -221,8 +221,8 @@ vbe_set_mode(vbe_mode_info_t * mode_info)
 
 #if 0
 //VBE Function 08h
-static u8
-vbe_set_palette_format(u8 format)
+static uint8_t
+vbe_set_palette_format(uint8_t format)
 {
 	vbe_prepare();
 	// call VBE function 09h (Set/Get Palette Data Function)
@@ -257,8 +257,8 @@ vbe_set_palette_format(u8 format)
 }
 
 // VBE Function 09h
-static u8
-vbe_set_color(u16 color_number, u32 color_value)
+static uint8_t
+vbe_set_color(uint16_t color_number, uint32_t color_value)
 {
 	vbe_prepare();
 	// call VBE function 09h (Set/Get Palette Data Function)
@@ -299,8 +299,8 @@ vbe_set_color(u16 color_number, u32 color_value)
 	return 0;
 }
 
-static u8
-vbe_get_color(u16 color_number, u32 * color_value)
+static uint8_t
+vbe_get_color(uint16_t color_number, uint32_t * color_value)
 {
 	vbe_prepare();
 	// call VBE function 09h (Set/Get Palette Data Function)
@@ -342,7 +342,7 @@ vbe_get_color(u16 color_number, u32 * color_value)
 }
 
 // VBE Function 15h
-static u8
+static uint8_t
 vbe_get_ddc_info(vbe_ddc_info_t * ddc_info)
 {
 	vbe_prepare();
@@ -416,10 +416,10 @@ vbe_get_ddc_info(vbe_ddc_info_t * ddc_info)
 	return 0;
 }
 
-static u32
+static uint32_t
 vbe_get_info(void)
 {
-	u8 rval;
+	uint8_t rval;
 	int i;
 
 	// XXX FIXME these need to be filled with sane values
@@ -603,19 +603,19 @@ vbe_get_info(void)
 		//   this way...)
 		// this resembles the palette that the kernel/X Server seems to expect...
 
-		u8 mixed_color_values[6] =
+		uint8_t mixed_color_values[6] =
 		    { 0xFF, 0xDA, 0xB3, 0x87, 0x54, 0x00 };
-		u8 primary_color_values[10] =
+		uint8_t primary_color_values[10] =
 		    { 0xF3, 0xE7, 0xCD, 0xC0, 0xA5, 0x96, 0x77, 0x66, 0x3F,
 			0x27
 		};
-		u8 mc_size = sizeof(mixed_color_values);
-		u8 prim_size = sizeof(primary_color_values);
+		uint8_t mc_size = sizeof(mixed_color_values);
+		uint8_t prim_size = sizeof(primary_color_values);
 
-		u8 curr_color_index;
-		u32 curr_color;
+		uint8_t curr_color_index;
+		uint32_t curr_color;
 
-		u8 r, g, b;
+		uint8_t r, g, b;
 		// 216 mixed colors
 		for (r = 0; r < mc_size; r++) {
 			for (g = 0; g < mc_size; g++) {
@@ -624,9 +624,9 @@ vbe_get_info(void)
 					    (r * mc_size * mc_size) +
 					    (g * mc_size) + b;
 					curr_color = 0;
-					curr_color |= ((u32) mixed_color_values[r]) << 16;	//red value
-					curr_color |= ((u32) mixed_color_values[g]) << 8;	//green value
-					curr_color |= (u32) mixed_color_values[b];	//blue value
+					curr_color |= ((uint32_t) mixed_color_values[r]) << 16;	//red value
+					curr_color |= ((uint32_t) mixed_color_values[g]) << 8;	//green value
+					curr_color |= (uint32_t) mixed_color_values[b];	//blue value
 					vbe_set_color(curr_color_index,
 						      curr_color);
 				}
@@ -637,21 +637,21 @@ vbe_get_info(void)
 		// red
 		for (r = 0; r < prim_size; r++) {
 			curr_color_index = mc_size * mc_size * mc_size + r;
-			curr_color = ((u32) primary_color_values[r]) << 16;
+			curr_color = ((uint32_t) primary_color_values[r]) << 16;
 			vbe_set_color(curr_color_index, curr_color);
 		}
 		//green
 		for (g = 0; g < prim_size; g++) {
 			curr_color_index =
 			    mc_size * mc_size * mc_size + prim_size + g;
-			curr_color = ((u32) primary_color_values[g]) << 8;
+			curr_color = ((uint32_t) primary_color_values[g]) << 8;
 			vbe_set_color(curr_color_index, curr_color);
 		}
 		//blue
 		for (b = 0; b < prim_size; b++) {
 			curr_color_index =
 			    mc_size * mc_size * mc_size + prim_size * 2 + b;
-			curr_color = (u32) primary_color_values[b];
+			curr_color = (uint32_t) primary_color_values[b];
 			vbe_set_color(curr_color_index, curr_color);
 		}
 		// 10 shades of grey
@@ -659,9 +659,9 @@ vbe_get_info(void)
 			curr_color_index =
 			    mc_size * mc_size * mc_size + prim_size * 3 + i;
 			curr_color = 0;
-			curr_color |= ((u32) primary_color_values[i]) << 16;	//red
-			curr_color |= ((u32) primary_color_values[i]) << 8;	//green
-			curr_color |= ((u32) primary_color_values[i]);	//blue
+			curr_color |= ((uint32_t) primary_color_values[i]) << 16;	//red
+			curr_color |= ((uint32_t) primary_color_values[i]) << 8;	//green
+			curr_color |= ((uint32_t) primary_color_values[i]);	//blue
 			vbe_set_color(curr_color_index, curr_color);
 		}
 
@@ -688,7 +688,7 @@ vbe_mode_info_t mode_info;
 
 void vbe_set_graphics(void)
 {
-	u8 rval;
+	uint8_t rval;
 
 	vbe_info_t info;
 	rval = vbe_info(&info);

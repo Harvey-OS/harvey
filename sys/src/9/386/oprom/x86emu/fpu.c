@@ -42,7 +42,7 @@
 /*----------------------------- Implementation ----------------------------*/
 
 /* opcode=0xd8 */
-void x86emuOp_esc_coprocess_d8(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_d8(uint8_t X86EMU_UNUSED(op1))
 {
     START_OF_INSTR();
     DECODE_PRINTF("ESC D8\n");
@@ -98,11 +98,11 @@ static const char *x86emu_fpu_op_d9_tab1[] = {
 #endif /* DEBUG */
 
 /* opcode=0xd9 */
-void x86emuOp_esc_coprocess_d9(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_d9(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
-    u8 X86EMU_FPU_ONLY(stkelem);
+    uint8_t X86EMU_FPU_ONLY(stkelem);
 
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
@@ -127,7 +127,7 @@ void x86emuOp_esc_coprocess_d9(u8 X86EMU_UNUSED(op1))
         DECODE_PRINTF("\n");
         break;
       case 3:                   /* register to register */
-        stkelem = (u8)rl;
+        stkelem = (uint8_t)rl;
         if (rh < 4) {
                 DECODE_PRINTF2("ST(%d)\n", stkelem);
         } else {
@@ -325,11 +325,11 @@ static const char *x86emu_fpu_op_da_tab[] = {
 #endif /* DEBUG */
 
 /* opcode=0xda */
-void x86emuOp_esc_coprocess_da(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_da(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
-    u8 X86EMU_FPU_ONLY(stkelem);
+    uint8_t X86EMU_FPU_ONLY(stkelem);
 
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
@@ -348,7 +348,7 @@ void x86emuOp_esc_coprocess_da(u8 X86EMU_UNUSED(op1))
         DECODE_PRINTF("\n");
         break;
       case 3:           /* register to register */
-        stkelem = (u8)rl;
+        stkelem = (uint8_t)rl;
         DECODE_PRINTF2("\tST(%d),ST\n", stkelem);
         break;
     }
@@ -406,7 +406,7 @@ static const char *x86emu_fpu_op_db_tab[] = {
 #endif /* DEBUG */
 
 /* opcode=0xdb */
-void x86emuOp_esc_coprocess_db(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_db(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
@@ -533,11 +533,11 @@ static const char *x86emu_fpu_op_dc_tab[] = {
 #endif /* DEBUG */
 
 /* opcode=0xdc */
-void x86emuOp_esc_coprocess_dc(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_dc(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
-    u8 X86EMU_FPU_ONLY(stkelem);
+    uint8_t X86EMU_FPU_ONLY(stkelem);
 
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
@@ -556,7 +556,7 @@ void x86emuOp_esc_coprocess_dc(u8 X86EMU_UNUSED(op1))
         DECODE_PRINTF("\n");
         break;
       case 3:                   /* register to register */
-        stkelem = (u8)rl;
+        stkelem = (uint8_t)rl;
         DECODE_PRINTF2("\tST(%d),ST\n", stkelem);
         break;
     }
@@ -643,11 +643,11 @@ static const char *x86emu_fpu_op_dd_tab[] = {
 #endif /* DEBUG */
 
 /* opcode=0xdd */
-void x86emuOp_esc_coprocess_dd(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_dd(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
-    u8 X86EMU_FPU_ONLY(stkelem);
+    uint8_t X86EMU_FPU_ONLY(stkelem);
 
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
@@ -666,7 +666,7 @@ void x86emuOp_esc_coprocess_dd(u8 X86EMU_UNUSED(op1))
         DECODE_PRINTF("\n");
         break;
       case 3:                   /* register to register */
-        stkelem = (u8)rl;
+        stkelem = (uint8_t)rl;
         DECODE_PRINTF2("\tST(%d),ST\n", stkelem);
         break;
     }
@@ -750,11 +750,11 @@ static const char *x86emu_fpu_op_de_tab[] =
 #endif /* DEBUG */
 
 /* opcode=0xde */
-void x86emuOp_esc_coprocess_de(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_de(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
-    u8 X86EMU_FPU_ONLY(stkelem);
+    uint8_t X86EMU_FPU_ONLY(stkelem);
 
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
@@ -773,7 +773,7 @@ void x86emuOp_esc_coprocess_de(u8 X86EMU_UNUSED(op1))
         DECODE_PRINTF("\n");
         break;
       case 3:                   /* register to register */
-        stkelem = (u8)rl;
+        stkelem = (uint8_t)rl;
         DECODE_PRINTF2("\tST(%d),ST\n", stkelem);
         break;
     }
@@ -869,11 +869,11 @@ static const char *x86emu_fpu_op_df_tab[] = {
 #endif /* DEBUG */
 
 /* opcode=0xdf */
-void x86emuOp_esc_coprocess_df(u8 X86EMU_UNUSED(op1))
+void x86emuOp_esc_coprocess_df(uint8_t X86EMU_UNUSED(op1))
 {
     int mod, rl, rh;
     uint X86EMU_FPU_ONLY(destoffset);
-    u8 X86EMU_FPU_ONLY(stkelem);
+    uint8_t X86EMU_FPU_ONLY(stkelem);
 
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
@@ -892,7 +892,7 @@ void x86emuOp_esc_coprocess_df(u8 X86EMU_UNUSED(op1))
         DECODE_PRINTF("\n");
         break;
       case 3:                   /* register to register */
-        stkelem = (u8)rl;
+        stkelem = (uint8_t)rl;
         DECODE_PRINTF2("\tST(%d)\n", stkelem);
         break;
     }

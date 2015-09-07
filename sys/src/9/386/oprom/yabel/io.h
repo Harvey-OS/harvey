@@ -10,21 +10,15 @@
  *     IBM Corporation - initial implementation
  *****************************************************************************/
 
-#ifndef _BIOSEMU_IO_H_
-#define _BIOSEMU_IO_H_
-#include <x86emu/x86emu.h>
-#include <types.h>
+uint8_t my_inb(uint16_t addr);
 
-u8 my_inb(X86EMU_pioAddr addr);
+uint16_t my_inw(uint16_t addr);
 
-u16 my_inw(X86EMU_pioAddr addr);
+uint32_t my_inl(uint16_t addr);
 
-u32 my_inl(X86EMU_pioAddr addr);
+void my_outb(uint16_t addr, uint8_t val);
 
-void my_outb(X86EMU_pioAddr addr, u8 val);
+void my_outw(uint16_t addr, uint16_t val);
 
-void my_outw(X86EMU_pioAddr addr, u16 val);
+void my_outl(uint16_t addr, uint32_t val);
 
-void my_outl(X86EMU_pioAddr addr, u32 val);
-
-#endif

@@ -26,13 +26,13 @@
 biosemu_device_t bios_device;
 //max. 6 BARs and 1 Exp.ROM plus CfgSpace and 3 legacy ranges, plus 2 "special" memory ranges
 translate_address_t translate_address_array[13];
-u8 taa_last_entry;
+uint8_t taa_last_entry;
 
 typedef struct {
-	u8 info;
-	u8 bus;
-	u8 devfn;
-	u8 cfg_space_offset;
+	uint8_t info;
+	uint8_t bus;
+	uint8_t devfn;
+	uint8_t cfg_space_offset;
 	u64 address;
 	u64 size;
 } __attribute__ ((__packed__)) assigned_address_t;
@@ -45,8 +45,8 @@ biosemu_dev_get_addr_info(void)
 {
 	int taa_index = 0;
 	struct resource *r;
-	u8 bus = bios_device.dev->bus->secondary;
-	u16 devfn = bios_device.dev->path.pci.devfn;
+	uint8_t bus = bios_device.dev->bus->secondary;
+	uint16_t devfn = bios_device.dev->path.pci.devfn;
 
 	bios_device.bus =  bus;
 	bios_device.devfn = devfn;
@@ -213,7 +213,7 @@ biosemu_dev_get_addr_info(void)
 // (ie. no translation). Necessary if option ROMs attempt DMA there, map registers or
 // do similarly crazy things.
 void
-biosemu_add_special_memory(u32 start, u32 size)
+biosemu_add_special_memory(uint32_t start, uint32_t size)
 {
 	int taa_index = ++taa_last_entry;
 	translate_address_array[taa_index].info = IORESOURCE_FIXED | IORESOURCE_MEM;
@@ -287,7 +287,7 @@ static void
 biosemu_dev_get_device_vendor_id(void)
 {
 
-	u32 pci_config_0;
+	uint32_t pci_config_0;
 #if CONFIG_PCI_OPTION_ROM_RUN_YABEL
 	pci_config_0 = pci_read_config32(bios_device.dev, 0x0);
 #else
@@ -296,8 +296,8 @@ biosemu_dev_get_device_vendor_id(void)
 				 bios_device.devfn, 0x0);
 #endif
 	bios_device.pci_device_id =
-	    (u16) ((pci_config_0 & 0xFFFF0000) >> 16);
-	bios_device.pci_vendor_id = (u16) (pci_config_0 & 0x0000FFFF);
+	    (uint16_t) ((pci_config_0 & 0xFFFF0000) >> 16);
+	bios_device.pci_vendor_id = (uint16_t) (pci_config_0 & 0x0000FFFF);
 	DEBUG_PRINTF("PCI Device ID: %04x, PCI Vendor ID: %x\n",
 		     bios_device.pci_device_id, bios_device.pci_vendor_id);
 }
@@ -308,12 +308,12 @@ biosemu_dev_get_device_vendor_id(void)
  * the Expansion ROM image and will be used, if it is == 0, the Expansion ROM
  * BAR address will be used.
  */
-u8
+uint8_t
 biosemu_dev_check_exprom(unsigned long rom_base_addr)
 {
 	int i = 0;
 	translate_address_t ta;
-	u16 pci_ds_offset;
+	uint16_t pci_ds_offset;
 	pci_data_struct_t pci_ds;
 	if (rom_base_addr == 0) {
 		// check for ExpROM Address (Offset 30) in taa
@@ -335,12 +335,12 @@ biosemu_dev_check_exprom(unsigned long rom_base_addr)
 			return -1;
 		}
 		set_ci();
-		u16 rom_signature = in16le((void *) rom_base_addr);
+		uint16_t rom_signature = in16le((void *) rom_base_addr);
 		clr_ci();
 		if (rom_signature != 0xaa55) {
 			printf
 			    ("Error: invalid Expansion ROM signature: %02x!\n",
-			     *((u16 *) rom_base_addr));
+			     *((uint16_t *) rom_base_addr));
 			return -1;
 		}
 		set_ci();
@@ -406,10 +406,10 @@ biosemu_dev_check_exprom(unsigned long rom_base_addr)
 	return 0;
 }
 
-u8
+uint8_t
 biosemu_dev_init(struct device * device)
 {
-	u8 rval = 0;
+	uint8_t rval = 0;
 	//init bios_device struct
 	DEBUG_PRINTF("%s\n", __func__);
 	memset(&bios_device, 0, sizeof(bios_device));
@@ -437,7 +437,7 @@ biosemu_dev_init(struct device * device)
 // by dev_get_addr_info... MUCH faster than calling translate_address_dev
 // and accessing client interface for every translation...
 // returns: 0 if addr not found in translate_address_array, 1 if found.
-u8
+uint8_t
 biosemu_dev_translate_address(int type, unsigned long * addr)
 {
 	int i = 0;
@@ -455,7 +455,7 @@ biosemu_dev_translate_address(int type, unsigned long * addr)
 	}
 	if ((bios_device.vmem_size > 0)
 	    && ((*addr >= 0xB8000) && (*addr < 0xC0000))) {
-		u8 shift = *addr & 1;
+		uint8_t shift = *addr & 1;
 		*addr &= 0xfffffffe;
 		*addr = (*addr - 0xB8000) * 4 + shift + bios_device.vmem_addr;
 	}

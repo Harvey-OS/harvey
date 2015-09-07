@@ -55,27 +55,27 @@
 extern "C" {            			/* Use "C" linkage when in C++ mode */
 #endif
 
-void 	x86emu_intr_raise (u8 type);
+void 	x86emu_intr_raise (uint8_t type);
 void    fetch_decode_modrm (int *mod,int *regh,int *regl);
-u8      fetch_byte_imm (void);
-u16     fetch_word_imm (void);
-u32     fetch_long_imm (void);
-u8      fetch_data_byte (uint offset);
-u8      fetch_data_byte_abs (uint segment, uint offset);
-u16     fetch_data_word (uint offset);
-u16     fetch_data_word_abs (uint segment, uint offset);
-u32     fetch_data_long (uint offset);
-u32     fetch_data_long_abs (uint segment, uint offset);
-void    store_data_byte (uint offset, u8 val);
-void    store_data_byte_abs (uint segment, uint offset, u8 val);
-void    store_data_word (uint offset, u16 val);
-void    store_data_word_abs (uint segment, uint offset, u16 val);
-void    store_data_long (uint offset, u32 val);
-void    store_data_long_abs (uint segment, uint offset, u32 val);
-u8* 	decode_rm_byte_register(int reg);
-u16* 	decode_rm_word_register(int reg);
-u32* 	decode_rm_long_register(int reg);
-u16* 	decode_rm_seg_register(int reg);
+uint8_t      fetch_byte_imm (void);
+uint16_t     fetch_word_imm (void);
+uint32_t     fetch_long_imm (void);
+uint8_t      fetch_data_byte (uint offset);
+uint8_t      fetch_data_byte_abs (uint segment, uint offset);
+uint16_t     fetch_data_word (uint offset);
+uint16_t     fetch_data_word_abs (uint segment, uint offset);
+uint32_t     fetch_data_long (uint offset);
+uint32_t     fetch_data_long_abs (uint segment, uint offset);
+void    store_data_byte (uint offset, uint8_t val);
+void    store_data_byte_abs (uint segment, uint offset, uint8_t val);
+void    store_data_word (uint offset, uint16_t val);
+void    store_data_word_abs (uint segment, uint offset, uint16_t val);
+void    store_data_long (uint offset, uint32_t val);
+void    store_data_long_abs (uint segment, uint offset, uint32_t val);
+uint8_t* 	decode_rm_byte_register(int reg);
+uint16_t* 	decode_rm_word_register(int reg);
+uint32_t* 	decode_rm_long_register(int reg);
+uint16_t* 	decode_rm_seg_register(int reg);
 unsigned decode_rm00_address(int rm);
 unsigned decode_rm01_address(int rm);
 unsigned decode_rm10_address(int rm);

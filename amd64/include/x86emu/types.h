@@ -43,6 +43,6 @@
 
 typedef unsigned int uint;
 typedef signed int sint;
-typedef u16 X86EMU_pioAddr;
+typedef uint16_t X86EMU_pioAddr;
 
 #endif	/* __X86EMU_TYPES_H */

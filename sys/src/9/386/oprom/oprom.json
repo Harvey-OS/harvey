@@ -4,7 +4,9 @@
 		"-I ../386/oprom/include"
 	],
 	"SourceFiles": [
-		"../386/oprom/yabel/biosemu.c",
+		"../386/oprom/yabel/biosemu.c"
+	],
+	"NotWorkingSourceFiles": [
 		"../386/oprom/yabel/pmm.c",
 		"../386/oprom/yabel/mem.c",
 		"../386/oprom/yabel/interrupt.c",
