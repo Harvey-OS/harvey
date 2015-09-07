@@ -273,7 +273,7 @@ sysfatal(char *fmt, ...)
 void
 _assert(char *fmt)
 {
-	panic("assert failed at %#p: %s", getcallerpc(&fmt), fmt);
+	panic("assert failed at %#p: %s", getcallerpc(), fmt);
 }
 
 int

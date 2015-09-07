@@ -45,7 +45,7 @@ void
 cclose(Chan *c)
 {
 	if(c->flag&CFREE)
-		panic("cclose %#p", getcallerpc(&c));
+		panic("cclose %#p", getcallerpc());
 	if(decref(c))
 		return;
 

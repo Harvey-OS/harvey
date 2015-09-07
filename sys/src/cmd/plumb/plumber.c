@@ -153,6 +153,6 @@ estrdup(char *s)
 	t = strdup(s);
 	if(t == nil)
 		error("estrdup failed: %r");
-	setmalloctag(t, getcallerpc(&s));
+	setmalloctag(t, getcallerpc());
 	return t;
 }

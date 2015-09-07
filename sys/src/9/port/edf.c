@@ -99,7 +99,7 @@ edflock(Proc *p)
 		return nil;
 	ilock(&thelock);
 	if((e = p->edf) && (e->flags & Admitted)){
-		thelock._pc = getcallerpc(&p);
+		thelock._pc = getcallerpc();
 #ifdef EDFCYCLES
 		edfcycles -= lcycles();
 #endif
@@ -209,7 +209,7 @@ release(Proc *p)
 		}
 	}else{
 		DPRINT("%lud release %d[%s], too late t=%lud, called from %#p\n",
-			now, p->pid, statename[p->state], e->t, getcallerpc(&p));
+			now, p->pid, statename[p->state], e->t, getcallerpc());
 	}
 }
 

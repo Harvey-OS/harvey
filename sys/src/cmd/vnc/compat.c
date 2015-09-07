@@ -114,7 +114,7 @@ smalloc(uint32_t n)
 	p = mallocz(n, 1);
 	if(p == nil)
 		panic("out of memory");
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 

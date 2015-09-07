@@ -41,6 +41,6 @@ _getsubfont(Display *d, char *name)
 	if(f == 0)
 		fprint(2, "getsubfont: can't read %s: %r\n", name);
 	close(fd);
-	setmalloctag(f, getcallerpc(&d));
+	setmalloctag(f, getcallerpc());
 	return f;
 }

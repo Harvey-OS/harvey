@@ -177,7 +177,7 @@ allocbuf(Ether *e)
 		if(e->nabufs < Nbufs){
 			bp = emallocz(sizeof(Buf), 1);
 			e->nabufs++;
-			setmalloctag(bp, getcallerpc(&e));
+			setmalloctag(bp, getcallerpc());
 			deprint(2, "%s: %d buffers\n", argv0, e->nabufs);
 		}
 		qunlock(e);
