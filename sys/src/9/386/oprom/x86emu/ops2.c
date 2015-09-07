@@ -49,7 +49,7 @@ op1 - Instruction op code
 REMARKS:
 Handles illegal opcodes.
 ****************************************************************************/
-static void x86emuOp2_illegal_op(u8 op2)
+static void x86emuOp2_illegal_op(uint8_t op2)
 {
     START_OF_INSTR();
     DECODE_PRINTF("ILLEGAL EXTENDED X86 OPCODE\n");
@@ -65,10 +65,10 @@ static void x86emuOp2_illegal_op(u8 op2)
  * Handles opcode 0x0f,0x01
  * ****************************************************************************/
 
-static void x86emuOp2_opc_01(u8 op2)
+static void x86emuOp2_opc_01(uint8_t op2)
 {
   int mod, rl, rh;
-  u16 *destreg;
+  uint16_t *destreg;
   uint destoffset;
 
   START_OF_INSTR();
@@ -118,7 +118,7 @@ static void x86emuOp2_opc_01(u8 op2)
  * REMARKS:
  * Handles opcode 0x0f,0x08
  * ****************************************************************************/
-static void x86emuOp2_invd(u8 op2)
+static void x86emuOp2_invd(uint8_t op2)
 {
   START_OF_INSTR();
   DECODE_PRINTF("INVD\n");
@@ -131,7 +131,7 @@ static void x86emuOp2_invd(u8 op2)
  * REMARKS:
  * Handles opcode 0x0f,0x09
  * ****************************************************************************/
-static void x86emuOp2_wbinvd(u8 op2)
+static void x86emuOp2_wbinvd(uint8_t op2)
 {
   START_OF_INSTR();
   DECODE_PRINTF("WBINVD\n");
@@ -144,7 +144,7 @@ static void x86emuOp2_wbinvd(u8 op2)
  * REMARKS:
  * Handles opcode 0x0f,0x30
  * ****************************************************************************/
-static void x86emuOp2_wrmsr(u8 op2)
+static void x86emuOp2_wrmsr(uint8_t op2)
 {
   /* dummy implementation, does nothing */
 
@@ -159,12 +159,12 @@ static void x86emuOp2_wrmsr(u8 op2)
 REMARKS:
 Handles opcode 0x0f,0x31
 ****************************************************************************/
-static void x86emuOp2_rdtsc(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_rdtsc(uint8_t X86EMU_UNUSED(op2))
 {
 #ifdef __HAS_LONG_LONG__
   static u64 counter = 0;
 #else
-  static u32 counter = 0;
+  static uint32_t counter = 0;
 #endif
 
   counter += 0x10000;
@@ -193,7 +193,7 @@ static void x86emuOp2_rdtsc(u8 X86EMU_UNUSED(op2))
  * REMARKS:
  * Handles opcode 0x0f,0x32
  * ****************************************************************************/
-static void x86emuOp2_rdmsr(u8 op2)
+static void x86emuOp2_rdmsr(uint8_t op2)
 {
   /* dummy implementation, always return 0 */
 
@@ -212,7 +212,7 @@ static void x86emuOp2_rdmsr(u8 op2)
 REMARKS:
 Handles opcode 0x0f,0x80-0x8F
 ****************************************************************************/
-int x86emu_check_jump_condition(u8 op)
+int x86emu_check_jump_condition(uint8_t op)
 {
     switch (op) {
       case 0x0:
@@ -282,7 +282,7 @@ int x86emu_check_jump_condition(u8 op)
     }
 }
 
-static void x86emuOp2_long_jump(u8 op2)
+static void x86emuOp2_long_jump(uint8_t op2)
 {
     s32 target;
     int cond;
@@ -295,7 +295,7 @@ static void x86emuOp2_long_jump(u8 op2)
     DECODE_PRINTF2("%04x\n", target);
     TRACE_AND_STEP();
     if (cond) {
-        M.x86.R_IP = (u16)target;
+        M.x86.R_IP = (uint16_t)target;
 	JMP_TRACE(M.x86.saved_cs, M.x86.saved_ip, M.x86.R_CS, M.x86.R_IP, " LONG COND ");
     }
     DECODE_CLEAR_SEGOVR();
@@ -317,7 +317,7 @@ static s32 x86emu_bswap(s32 reg)
    return reg;
 }
 
-static void x86emuOp2_bswap(u8 op2)
+static void x86emuOp2_bswap(uint8_t op2)
 {
     /* byte swap 32 bit register */
     START_OF_INSTR();
@@ -365,11 +365,11 @@ static void x86emuOp2_bswap(u8 op2)
 REMARKS:
 Handles opcode 0x0f,0x90-0x9F
 ****************************************************************************/
-static void x86emuOp2_set_byte(u8 op2)
+static void x86emuOp2_set_byte(uint8_t op2)
 {
     int mod, rl, rh;
     uint destoffset;
-    u8  *destreg;
+    uint8_t  *destreg;
     const char *X86EMU_DEBUG_ONLY(name) = NULL;
     int cond = 0;
 
@@ -461,7 +461,7 @@ static void x86emuOp2_set_byte(u8 op2)
 REMARKS:
 Handles opcode 0x0f,0xa0
 ****************************************************************************/
-static void x86emuOp2_push_FS(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_push_FS(uint8_t X86EMU_UNUSED(op2))
 {
     START_OF_INSTR();
     DECODE_PRINTF("PUSH\tFS\n");
@@ -475,7 +475,7 @@ static void x86emuOp2_push_FS(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xa1
 ****************************************************************************/
-static void x86emuOp2_pop_FS(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_pop_FS(uint8_t X86EMU_UNUSED(op2))
 {
     START_OF_INSTR();
     DECODE_PRINTF("POP\tFS\n");
@@ -489,7 +489,7 @@ static void x86emuOp2_pop_FS(u8 X86EMU_UNUSED(op2))
 REMARKS: CPUID takes EAX/ECX as inputs, writes EAX/EBX/ECX/EDX as output
 Handles opcode 0x0f,0xa2
 ****************************************************************************/
-static void x86emuOp2_cpuid(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_cpuid(uint8_t X86EMU_UNUSED(op2))
 {
     START_OF_INSTR();
     DECODE_PRINTF("CPUID\n");
@@ -503,7 +503,7 @@ static void x86emuOp2_cpuid(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xa3
 ****************************************************************************/
-static void x86emuOp2_bt_R(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_bt_R(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -515,8 +515,8 @@ static void x86emuOp2_bt_R(u8 X86EMU_UNUSED(op2))
     if (mod < 3) {
         srcoffset = decode_rmXX_address(mod, rl);
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval;
-            u32 *shiftreg;
+            uint32_t srcval;
+            uint32_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
@@ -526,8 +526,8 @@ static void x86emuOp2_bt_R(u8 X86EMU_UNUSED(op2))
             srcval = fetch_data_long(srcoffset+disp);
             CONDITIONAL_SET_FLAG(srcval & (0x1 << bit),F_CF);
         } else {
-            u16 srcval;
-            u16 *shiftreg;
+            uint16_t srcval;
+            uint16_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
@@ -539,7 +539,7 @@ static void x86emuOp2_bt_R(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *srcreg,*shiftreg;
+            uint32_t *srcreg,*shiftreg;
 
             srcreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -548,7 +548,7 @@ static void x86emuOp2_bt_R(u8 X86EMU_UNUSED(op2))
             bit = *shiftreg & 0x1F;
             CONDITIONAL_SET_FLAG(*srcreg & (0x1 << bit),F_CF);
         } else {
-            u16 *srcreg,*shiftreg;
+            uint16_t *srcreg,*shiftreg;
 
             srcreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -566,11 +566,11 @@ static void x86emuOp2_bt_R(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xa4
 ****************************************************************************/
-static void x86emuOp2_shld_IMM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_shld_IMM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint destoffset;
-    u8 shift;
+    uint8_t shift;
 
     START_OF_INSTR();
     DECODE_PRINTF("SHLD\t");
@@ -578,8 +578,8 @@ static void x86emuOp2_shld_IMM(u8 X86EMU_UNUSED(op2))
     if (mod < 3) {
         destoffset = decode_rmXX_address(mod, rl);
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 destval;
-            u32 *shiftreg;
+            uint32_t destval;
+            uint32_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
@@ -591,8 +591,8 @@ static void x86emuOp2_shld_IMM(u8 X86EMU_UNUSED(op2))
             destval = shld_long(destval,*shiftreg,shift);
             store_data_long(destoffset, destval);
         } else {
-            u16 destval;
-            u16 *shiftreg;
+            uint16_t destval;
+            uint16_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
@@ -606,7 +606,7 @@ static void x86emuOp2_shld_IMM(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg,*shiftreg;
+            uint32_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -617,7 +617,7 @@ static void x86emuOp2_shld_IMM(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = shld_long(*destreg,*shiftreg,shift);
         } else {
-            u16 *destreg,*shiftreg;
+            uint16_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -637,7 +637,7 @@ static void x86emuOp2_shld_IMM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xa5
 ****************************************************************************/
-static void x86emuOp2_shld_CL(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_shld_CL(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint destoffset;
@@ -648,8 +648,8 @@ static void x86emuOp2_shld_CL(u8 X86EMU_UNUSED(op2))
     if (mod < 3) {
         destoffset = decode_rmXX_address(mod, rl);
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 destval;
-            u32 *shiftreg;
+            uint32_t destval;
+            uint32_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
@@ -659,8 +659,8 @@ static void x86emuOp2_shld_CL(u8 X86EMU_UNUSED(op2))
             destval = shld_long(destval,*shiftreg,M.x86.R_CL);
             store_data_long(destoffset, destval);
         } else {
-            u16 destval;
-            u16 *shiftreg;
+            uint16_t destval;
+            uint16_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
@@ -672,7 +672,7 @@ static void x86emuOp2_shld_CL(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg,*shiftreg;
+            uint32_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -681,7 +681,7 @@ static void x86emuOp2_shld_CL(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = shld_long(*destreg,*shiftreg,M.x86.R_CL);
         } else {
-            u16 *destreg,*shiftreg;
+            uint16_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -699,7 +699,7 @@ static void x86emuOp2_shld_CL(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xa8
 ****************************************************************************/
-static void x86emuOp2_push_GS(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_push_GS(uint8_t X86EMU_UNUSED(op2))
 {
     START_OF_INSTR();
     DECODE_PRINTF("PUSH\tGS\n");
@@ -713,7 +713,7 @@ static void x86emuOp2_push_GS(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xa9
 ****************************************************************************/
-static void x86emuOp2_pop_GS(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_pop_GS(uint8_t X86EMU_UNUSED(op2))
 {
     START_OF_INSTR();
     DECODE_PRINTF("POP\tGS\n");
@@ -727,7 +727,7 @@ static void x86emuOp2_pop_GS(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xab
 ****************************************************************************/
-static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_bts_R(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -739,8 +739,8 @@ static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
     if (mod < 3) {
         srcoffset = decode_rmXX_address(mod, rl);
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval,mask;
-            u32 *shiftreg;
+            uint32_t srcval,mask;
+            uint32_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
@@ -752,8 +752,8 @@ static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
             store_data_long(srcoffset+disp, srcval | mask);
         } else {
-            u16 srcval,mask;
-            u16 *shiftreg;
+            uint16_t srcval,mask;
+            uint16_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
@@ -761,14 +761,14 @@ static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
             bit = *shiftreg & 0xF;
             disp = (s16)*shiftreg >> 4;
             srcval = fetch_data_word(srcoffset+disp);
-            mask = (u16)(0x1 << bit);
+            mask = (uint16_t)(0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
             store_data_word(srcoffset+disp, srcval | mask);
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *srcreg,*shiftreg;
-            u32 mask;
+            uint32_t *srcreg,*shiftreg;
+            uint32_t mask;
 
             srcreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -779,15 +779,15 @@ static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
             *srcreg |= mask;
         } else {
-            u16 *srcreg,*shiftreg;
-            u16 mask;
+            uint16_t *srcreg,*shiftreg;
+            uint16_t mask;
 
             srcreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
             bit = *shiftreg & 0xF;
-            mask = (u16)(0x1 << bit);
+            mask = (uint16_t)(0x1 << bit);
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
             *srcreg |= mask;
         }
@@ -800,11 +800,11 @@ static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xac
 ****************************************************************************/
-static void x86emuOp2_shrd_IMM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_shrd_IMM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint destoffset;
-    u8 shift;
+    uint8_t shift;
 
     START_OF_INSTR();
     DECODE_PRINTF("SHLD\t");
@@ -812,8 +812,8 @@ static void x86emuOp2_shrd_IMM(u8 X86EMU_UNUSED(op2))
     if (mod < 3) {
         destoffset = decode_rmXX_address(mod, rl);
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 destval;
-            u32 *shiftreg;
+            uint32_t destval;
+            uint32_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
@@ -825,8 +825,8 @@ static void x86emuOp2_shrd_IMM(u8 X86EMU_UNUSED(op2))
             destval = shrd_long(destval,*shiftreg,shift);
             store_data_long(destoffset, destval);
         } else {
-            u16 destval;
-            u16 *shiftreg;
+            uint16_t destval;
+            uint16_t *shiftreg;
 
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
@@ -840,7 +840,7 @@ static void x86emuOp2_shrd_IMM(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg,*shiftreg;
+            uint32_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -851,7 +851,7 @@ static void x86emuOp2_shrd_IMM(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = shrd_long(*destreg,*shiftreg,shift);
         } else {
-            u16 *destreg,*shiftreg;
+            uint16_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -871,7 +871,7 @@ static void x86emuOp2_shrd_IMM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xad
 ****************************************************************************/
-static void x86emuOp2_shrd_CL(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_shrd_CL(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint destoffset;
@@ -883,8 +883,8 @@ static void x86emuOp2_shrd_CL(u8 X86EMU_UNUSED(op2))
         destoffset = decode_rmXX_address(mod, rl);
         DECODE_PRINTF(",");
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 destval;
-            u32 *shiftreg;
+            uint32_t destval;
+            uint32_t *shiftreg;
 
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",CL\n");
@@ -893,8 +893,8 @@ static void x86emuOp2_shrd_CL(u8 X86EMU_UNUSED(op2))
             destval = shrd_long(destval,*shiftreg,M.x86.R_CL);
             store_data_long(destoffset, destval);
         } else {
-            u16 destval;
-            u16 *shiftreg;
+            uint16_t destval;
+            uint16_t *shiftreg;
 
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",CL\n");
@@ -905,7 +905,7 @@ static void x86emuOp2_shrd_CL(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg,*shiftreg;
+            uint32_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -914,7 +914,7 @@ static void x86emuOp2_shrd_CL(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = shrd_long(*destreg,*shiftreg,M.x86.R_CL);
         } else {
-            u16 *destreg,*shiftreg;
+            uint16_t *destreg,*shiftreg;
 
             destreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -932,7 +932,7 @@ static void x86emuOp2_shrd_CL(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xaf
 ****************************************************************************/
-static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_imul_R_RM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -942,9 +942,9 @@ static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
     FETCH_DECODE_MODRM(mod, rh, rl);
     if (mod < 3) {
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg;
-            u32 srcval;
-            u32 res_lo,res_hi;
+            uint32_t *destreg;
+            uint32_t srcval;
+            uint32_t res_lo,res_hi;
 
             destreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -959,11 +959,11 @@ static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
                 CLEAR_FLAG(F_CF);
                 CLEAR_FLAG(F_OF);
             }
-            *destreg = (u32)res_lo;
+            *destreg = (uint32_t)res_lo;
         } else {
-            u16 *destreg;
-            u16 srcval;
-            u32 res;
+            uint16_t *destreg;
+            uint16_t srcval;
+            uint32_t res;
 
             destreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -978,12 +978,12 @@ static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
                 CLEAR_FLAG(F_CF);
                 CLEAR_FLAG(F_OF);
             }
-            *destreg = (u16)res;
+            *destreg = (uint16_t)res;
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg,*srcreg;
-            u32 res_lo,res_hi;
+            uint32_t *destreg,*srcreg;
+            uint32_t res_lo,res_hi;
 
             destreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -997,10 +997,10 @@ static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
                 CLEAR_FLAG(F_CF);
                 CLEAR_FLAG(F_OF);
             }
-            *destreg = (u32)res_lo;
+            *destreg = (uint32_t)res_lo;
         } else {
-            u16 *destreg,*srcreg;
-            u32 res;
+            uint16_t *destreg,*srcreg;
+            uint32_t res;
 
             destreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1013,7 +1013,7 @@ static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
                 CLEAR_FLAG(F_CF);
                 CLEAR_FLAG(F_OF);
             }
-            *destreg = (u16)res;
+            *destreg = (uint16_t)res;
         }
     }
     DECODE_CLEAR_SEGOVR();
@@ -1024,10 +1024,10 @@ static void x86emuOp2_imul_R_RM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xb2
 ****************************************************************************/
-static void x86emuOp2_lss_R_IMM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_lss_R_IMM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rh, rl;
-    u16 *dstreg;
+    uint16_t *dstreg;
     uint srcoffset;
 
     START_OF_INSTR();
@@ -1053,7 +1053,7 @@ static void x86emuOp2_lss_R_IMM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xb3
 ****************************************************************************/
-static void x86emuOp2_btr_R(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_btr_R(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -1066,8 +1066,8 @@ static void x86emuOp2_btr_R(u8 X86EMU_UNUSED(op2))
         srcoffset = decode_rmXX_address(mod, rl);
         DECODE_PRINTF(",");
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval,mask;
-            u32 *shiftreg;
+            uint32_t srcval,mask;
+            uint32_t *shiftreg;
 
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
             TRACE_AND_STEP();
@@ -1078,22 +1078,22 @@ static void x86emuOp2_btr_R(u8 X86EMU_UNUSED(op2))
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
             store_data_long(srcoffset+disp, srcval & ~mask);
         } else {
-            u16 srcval,mask;
-            u16 *shiftreg;
+            uint16_t srcval,mask;
+            uint16_t *shiftreg;
 
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
             bit = *shiftreg & 0xF;
             disp = (s16)*shiftreg >> 4;
             srcval = fetch_data_word(srcoffset+disp);
-            mask = (u16)(0x1 << bit);
+            mask = (uint16_t)(0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
-            store_data_word(srcoffset+disp, (u16)(srcval & ~mask));
+            store_data_word(srcoffset+disp, (uint16_t)(srcval & ~mask));
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *srcreg,*shiftreg;
-            u32 mask;
+            uint32_t *srcreg,*shiftreg;
+            uint32_t mask;
 
             srcreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -1104,15 +1104,15 @@ static void x86emuOp2_btr_R(u8 X86EMU_UNUSED(op2))
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
             *srcreg &= ~mask;
         } else {
-            u16 *srcreg,*shiftreg;
-            u16 mask;
+            uint16_t *srcreg,*shiftreg;
+            uint16_t mask;
 
             srcreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
             bit = *shiftreg & 0xF;
-            mask = (u16)(0x1 << bit);
+            mask = (uint16_t)(0x1 << bit);
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
             *srcreg &= ~mask;
         }
@@ -1125,10 +1125,10 @@ static void x86emuOp2_btr_R(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xb4
 ****************************************************************************/
-static void x86emuOp2_lfs_R_IMM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_lfs_R_IMM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rh, rl;
-    u16 *dstreg;
+    uint16_t *dstreg;
     uint srcoffset;
 
     START_OF_INSTR();
@@ -1154,10 +1154,10 @@ static void x86emuOp2_lfs_R_IMM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xb5
 ****************************************************************************/
-static void x86emuOp2_lgs_R_IMM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_lgs_R_IMM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rh, rl;
-    u16 *dstreg;
+    uint16_t *dstreg;
     uint srcoffset;
 
     START_OF_INSTR();
@@ -1183,7 +1183,7 @@ static void x86emuOp2_lgs_R_IMM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xb6
 ****************************************************************************/
-static void x86emuOp2_movzx_byte_R_RM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_movzx_byte_R_RM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -1193,8 +1193,8 @@ static void x86emuOp2_movzx_byte_R_RM(u8 X86EMU_UNUSED(op2))
     FETCH_DECODE_MODRM(mod, rh, rl);
     if (mod < 3) {
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg;
-            u32 srcval;
+            uint32_t *destreg;
+            uint32_t srcval;
 
             destreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1204,8 +1204,8 @@ static void x86emuOp2_movzx_byte_R_RM(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = srcval;
         } else {
-            u16 *destreg;
-            u16 srcval;
+            uint16_t *destreg;
+            uint16_t srcval;
 
             destreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1217,8 +1217,8 @@ static void x86emuOp2_movzx_byte_R_RM(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg;
-            u8  *srcreg;
+            uint32_t *destreg;
+            uint8_t  *srcreg;
 
             destreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1227,8 +1227,8 @@ static void x86emuOp2_movzx_byte_R_RM(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = *srcreg;
         } else {
-            u16 *destreg;
-            u8  *srcreg;
+            uint16_t *destreg;
+            uint8_t  *srcreg;
 
             destreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1246,13 +1246,13 @@ static void x86emuOp2_movzx_byte_R_RM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xb7
 ****************************************************************************/
-static void x86emuOp2_movzx_word_R_RM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_movzx_word_R_RM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
-    u32 *destreg;
-    u32 srcval;
-    u16 *srcreg;
+    uint32_t *destreg;
+    uint32_t srcval;
+    uint16_t *srcreg;
 
     START_OF_INSTR();
     DECODE_PRINTF("MOVZX\t");
@@ -1281,11 +1281,11 @@ static void x86emuOp2_movzx_word_R_RM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xba
 ****************************************************************************/
-static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_btX_I(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
-    u8 shift;
+    uint8_t shift;
     int bit;
 
     START_OF_INSTR();
@@ -1318,7 +1318,7 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
         TRACE_AND_STEP();
 
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval, mask;
+            uint32_t srcval, mask;
 
             bit = shift & 0x1F;
             srcval = fetch_data_long(srcoffset);
@@ -1338,7 +1338,7 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
                 break;
             }
         } else {
-            u16 srcval, mask;
+            uint16_t srcval, mask;
 
             bit = shift & 0xF;
             srcval = fetch_data_word(srcoffset);
@@ -1360,8 +1360,8 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *srcreg;
-            u32 mask;
+            uint32_t *srcreg;
+            uint32_t mask;
 
             srcreg = DECODE_RM_LONG_REGISTER(rl);
             shift = fetch_byte_imm();
@@ -1384,8 +1384,8 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
                 break;
             }
         } else {
-            u16 *srcreg;
-            u16 mask;
+            uint16_t *srcreg;
+            uint16_t mask;
 
             srcreg = DECODE_RM_WORD_REGISTER(rl);
             shift = fetch_byte_imm();
@@ -1417,7 +1417,7 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xbb
 ****************************************************************************/
-static void x86emuOp2_btc_R(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_btc_R(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -1430,8 +1430,8 @@ static void x86emuOp2_btc_R(u8 X86EMU_UNUSED(op2))
         srcoffset = decode_rmXX_address(mod, rl);
         DECODE_PRINTF(",");
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval,mask;
-            u32 *shiftreg;
+            uint32_t srcval,mask;
+            uint32_t *shiftreg;
 
             shiftreg = DECODE_RM_LONG_REGISTER(rh);
             TRACE_AND_STEP();
@@ -1442,22 +1442,22 @@ static void x86emuOp2_btc_R(u8 X86EMU_UNUSED(op2))
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
             store_data_long(srcoffset+disp, srcval ^ mask);
         } else {
-            u16 srcval,mask;
-            u16 *shiftreg;
+            uint16_t srcval,mask;
+            uint16_t *shiftreg;
 
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
             bit = *shiftreg & 0xF;
             disp = (s16)*shiftreg >> 4;
             srcval = fetch_data_word(srcoffset+disp);
-            mask = (u16)(0x1 << bit);
+            mask = (uint16_t)(0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
-            store_data_word(srcoffset+disp, (u16)(srcval ^ mask));
+            store_data_word(srcoffset+disp, (uint16_t)(srcval ^ mask));
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *srcreg,*shiftreg;
-            u32 mask;
+            uint32_t *srcreg,*shiftreg;
+            uint32_t mask;
 
             srcreg = DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -1468,15 +1468,15 @@ static void x86emuOp2_btc_R(u8 X86EMU_UNUSED(op2))
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
             *srcreg ^= mask;
         } else {
-            u16 *srcreg,*shiftreg;
-            u16 mask;
+            uint16_t *srcreg,*shiftreg;
+            uint16_t mask;
 
             srcreg = DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
             shiftreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
             bit = *shiftreg & 0xF;
-            mask = (u16)(0x1 << bit);
+            mask = (uint16_t)(0x1 << bit);
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
             *srcreg ^= mask;
         }
@@ -1489,7 +1489,7 @@ static void x86emuOp2_btc_R(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xbc
 ****************************************************************************/
-static void x86emuOp2_bsf(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_bsf(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -1501,7 +1501,7 @@ static void x86emuOp2_bsf(u8 X86EMU_UNUSED(op2))
         srcoffset = decode_rmXX_address(mod, rl);
         DECODE_PRINTF(",");
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval, *dstreg;
+            uint32_t srcval, *dstreg;
 
             dstreg = DECODE_RM_LONG_REGISTER(rh);
             TRACE_AND_STEP();
@@ -1510,7 +1510,7 @@ static void x86emuOp2_bsf(u8 X86EMU_UNUSED(op2))
             for(*dstreg = 0; *dstreg < 32; (*dstreg)++)
                 if ((srcval >> *dstreg) & 1) break;
         } else {
-            u16 srcval, *dstreg;
+            uint16_t srcval, *dstreg;
 
             dstreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
@@ -1521,7 +1521,7 @@ static void x86emuOp2_bsf(u8 X86EMU_UNUSED(op2))
         }
     } else {             /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval, *dstreg;
+            uint32_t srcval, *dstreg;
 
             srcval = *DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -1531,7 +1531,7 @@ static void x86emuOp2_bsf(u8 X86EMU_UNUSED(op2))
             for(*dstreg = 0; *dstreg < 32; (*dstreg)++)
                 if ((srcval >> *dstreg) & 1) break;
         } else {
-            u16 srcval, *dstreg;
+            uint16_t srcval, *dstreg;
 
             srcval = *DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -1550,7 +1550,7 @@ static void x86emuOp2_bsf(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xbd
 ****************************************************************************/
-static void x86emuOp2_bsr(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_bsr(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -1562,7 +1562,7 @@ static void x86emuOp2_bsr(u8 X86EMU_UNUSED(op2))
         srcoffset = decode_rmXX_address(mod, rl);
         DECODE_PRINTF(",");
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval, *dstreg;
+            uint32_t srcval, *dstreg;
 
             dstreg = DECODE_RM_LONG_REGISTER(rh);
             TRACE_AND_STEP();
@@ -1571,7 +1571,7 @@ static void x86emuOp2_bsr(u8 X86EMU_UNUSED(op2))
             for(*dstreg = 31; *dstreg > 0; (*dstreg)--)
                 if ((srcval >> *dstreg) & 1) break;
         } else {
-            u16 srcval, *dstreg;
+            uint16_t srcval, *dstreg;
 
             dstreg = DECODE_RM_WORD_REGISTER(rh);
             TRACE_AND_STEP();
@@ -1582,7 +1582,7 @@ static void x86emuOp2_bsr(u8 X86EMU_UNUSED(op2))
         }
     } else {             /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 srcval, *dstreg;
+            uint32_t srcval, *dstreg;
 
             srcval = *DECODE_RM_LONG_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -1592,7 +1592,7 @@ static void x86emuOp2_bsr(u8 X86EMU_UNUSED(op2))
             for(*dstreg = 31; *dstreg > 0; (*dstreg)--)
                 if ((srcval >> *dstreg) & 1) break;
         } else {
-            u16 srcval, *dstreg;
+            uint16_t srcval, *dstreg;
 
             srcval = *DECODE_RM_WORD_REGISTER(rl);
             DECODE_PRINTF(",");
@@ -1611,7 +1611,7 @@ static void x86emuOp2_bsr(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xbe
 ****************************************************************************/
-static void x86emuOp2_movsx_byte_R_RM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_movsx_byte_R_RM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
@@ -1621,8 +1621,8 @@ static void x86emuOp2_movsx_byte_R_RM(u8 X86EMU_UNUSED(op2))
     FETCH_DECODE_MODRM(mod, rh, rl);
     if (mod < 3) {
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg;
-            u32 srcval;
+            uint32_t *destreg;
+            uint32_t srcval;
 
             destreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1632,8 +1632,8 @@ static void x86emuOp2_movsx_byte_R_RM(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = srcval;
         } else {
-            u16 *destreg;
-            u16 srcval;
+            uint16_t *destreg;
+            uint16_t srcval;
 
             destreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1645,8 +1645,8 @@ static void x86emuOp2_movsx_byte_R_RM(u8 X86EMU_UNUSED(op2))
         }
     } else {                     /* register to register */
         if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-            u32 *destreg;
-            u8  *srcreg;
+            uint32_t *destreg;
+            uint8_t  *srcreg;
 
             destreg = DECODE_RM_LONG_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1655,8 +1655,8 @@ static void x86emuOp2_movsx_byte_R_RM(u8 X86EMU_UNUSED(op2))
             TRACE_AND_STEP();
             *destreg = (s32)((s8)*srcreg);
         } else {
-            u16 *destreg;
-            u8  *srcreg;
+            uint16_t *destreg;
+            uint8_t  *srcreg;
 
             destreg = DECODE_RM_WORD_REGISTER(rh);
             DECODE_PRINTF(",");
@@ -1674,13 +1674,13 @@ static void x86emuOp2_movsx_byte_R_RM(u8 X86EMU_UNUSED(op2))
 REMARKS:
 Handles opcode 0x0f,0xbf
 ****************************************************************************/
-static void x86emuOp2_movsx_word_R_RM(u8 X86EMU_UNUSED(op2))
+static void x86emuOp2_movsx_word_R_RM(uint8_t X86EMU_UNUSED(op2))
 {
     int mod, rl, rh;
     uint srcoffset;
-    u32 *destreg;
-    u32 srcval;
-    u16 *srcreg;
+    uint32_t *destreg;
+    uint32_t srcval;
+    uint16_t *srcreg;
 
     START_OF_INSTR();
     DECODE_PRINTF("MOVSX\t");
@@ -1708,7 +1708,7 @@ static void x86emuOp2_movsx_word_R_RM(u8 X86EMU_UNUSED(op2))
 /***************************************************************************
  * Double byte operation code table:
  **************************************************************************/
-void (*x86emu_optab2[256])(u8) =
+void (*x86emu_optab2[256])(uint8_t) =
 {
 /*  0x00 */ x86emuOp2_illegal_op,  /* Group F (ring 0 PM)      */
 /*  0x01 */ x86emuOp2_opc_01,      /* Group G (ring 0 PM)      */

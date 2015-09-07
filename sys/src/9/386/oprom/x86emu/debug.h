@@ -216,14 +216,14 @@ void x86emu_single_step (void);
 void x86emu_end_instr (void);
 void x86emu_dump_regs (void);
 void x86emu_dump_xregs (void);
-void x86emu_print_int_vect (u16 iv);
+void x86emu_print_int_vect (uint16_t iv);
 void x86emu_instrument_instruction (void);
 void x86emu_check_ip_access (void);
 void x86emu_check_sp_access (void);
-void x86emu_check_mem_access (u32 p);
+void x86emu_check_mem_access (uint32_t p);
 void x86emu_check_data_access (uint s, uint o);
 
-void disassemble_forward (u16 seg, u16 off, int n);
+void disassemble_forward (uint16_t seg, uint16_t off, int n);
 
 #ifdef  __cplusplus
 }                       			/* End of "C" linkage for C++   	*/

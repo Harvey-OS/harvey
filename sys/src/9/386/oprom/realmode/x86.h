@@ -26,7 +26,7 @@
 #define REALMODE_BASE ((void *)0x600)
 
 struct realmode_idt {
-	u16 offset, cs;
+	uint16_t offset, cs;
 };
 
 void x86_exception(struct eregs *info);
@@ -37,11 +37,11 @@ extern unsigned int __idt_handler_size;
 extern unsigned char __realmode_code;
 extern unsigned int __realmode_code_size;
 
-extern void (*realmode_call)(u32 addr, u32 eax, u32 ebx, u32 ecx, u32 edx,
-		u32 esi, u32 edi) asmlinkage;
+extern void (*realmode_call)(uint32_t addr, uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx,
+		uint32_t esi, uint32_t edi) asmlinkage;
 
-extern void (*realmode_interrupt)(u32 intno, u32 eax, u32 ebx, u32 ecx, u32 edx,
-		u32 esi, u32 edi) asmlinkage;
+extern void (*realmode_interrupt)(uint32_t intno, uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx,
+		uint32_t esi, uint32_t edi) asmlinkage;
 
 #define FAKE_MEMORY_SIZE (1024*1024) // only 1MB
 #define INITIAL_EBDA_SEGMENT 0xF600

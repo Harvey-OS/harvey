@@ -49,5 +49,5 @@ void mainboard_interrupt_handlers(int, yabel_handleIntFunc);
 
 struct device;
 
-u32 biosemu(u8 *biosmem, u32 biosmem_size, struct device *dev, unsigned long rom_addr);
+uint32_t biosemu(uint8_t *biosmem, uint32_t biosmem_size, struct device *dev, unsigned long rom_addr);
 #endif
