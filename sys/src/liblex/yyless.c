@@ -18,7 +18,7 @@ extern	int	yyprevious;
 void	yyunput(int c);
 
 void
-yyless(int x)
+yyless(uintptr_t x)
 {
 	char *lastch, *ptr;
 

@@ -397,10 +397,10 @@ extern	void	qsort(void*, int32_t, int32_t,
 				int (*)(const void*, const void*));
 extern	int	setjmp(jmp_buf);
 extern	double	strtod(const char*, const char**);
-extern	int32_t	strtol(const char*, const char**, int);
-extern	uint32_t	strtoul(const char*, const char**, int);
-extern	int64_t	strtoll(const char*, const char**, int);
-extern	uint64_t	strtoull(const char*, const char**, int);
+extern	int32_t	strtol(const char*, char**, int);
+extern	uint32_t	strtoul(const char*, char**, int);
+extern	int64_t	strtoll(const char*, char**, int);
+extern	uint64_t	strtoull(const char*, char**, int);
 extern	void	sysfatal(const char*, ...);
 #pragma	varargck	argpos	sysfatal	1
 extern	void	syslog(int, const char*, const char*, ...);
