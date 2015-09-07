@@ -15,16 +15,16 @@
 #include <x86emu/x86emu.h>
 #include <types.h>
 
-u8 my_inb(X86EMU_pioAddr addr);
+uint8_t my_inb(X86EMU_pioAddr addr);
 
-u16 my_inw(X86EMU_pioAddr addr);
+uint16_t my_inw(X86EMU_pioAddr addr);
 
-u32 my_inl(X86EMU_pioAddr addr);
+uint32_t my_inl(X86EMU_pioAddr addr);
 
-void my_outb(X86EMU_pioAddr addr, u8 val);
+void my_outb(X86EMU_pioAddr addr, uint8_t val);
 
-void my_outw(X86EMU_pioAddr addr, u16 val);
+void my_outw(X86EMU_pioAddr addr, uint16_t val);
 
-void my_outl(X86EMU_pioAddr addr, u32 val);
+void my_outl(X86EMU_pioAddr addr, uint32_t val);
 
 #endif

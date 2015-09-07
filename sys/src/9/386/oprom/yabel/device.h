@@ -23,45 +23,45 @@
 // a Expansion Header Struct as defined in Plug and Play BIOS Spec 1.0a Chapter 3.2
 typedef struct {
 	char signature[4];	// signature
-	u8 structure_revision;
-	u8 length;		// in 16 byte blocks
-	u16 next_header_offset;	// offset to next Expansion Header as 16bit little-endian value, as offset from the start of the Expansion ROM
-	u8 reserved;
-	u8 checksum;	// the sum of all bytes of the Expansion Header must be 0
-	u32 device_id;	// PnP Device ID as 32bit little-endian value
-	u16 p_manufacturer_string;	//16bit little-endian offset from start of Expansion ROM
-	u16 p_product_string;	//16bit little-endian offset from start of Expansion ROM
-	u8 device_base_type;
-	u8 device_sub_type;
-	u8 device_if_type;
-	u8 device_indicators;
+	uint8_t structure_revision;
+	uint8_t length;		// in 16 byte blocks
+	uint16_t next_header_offset;	// offset to next Expansion Header as 16bit little-endian value, as offset from the start of the Expansion ROM
+	uint8_t reserved;
+	uint8_t checksum;	// the sum of all bytes of the Expansion Header must be 0
+	uint32_t device_id;	// PnP Device ID as 32bit little-endian value
+	uint16_t p_manufacturer_string;	//16bit little-endian offset from start of Expansion ROM
+	uint16_t p_product_string;	//16bit little-endian offset from start of Expansion ROM
+	uint8_t device_base_type;
+	uint8_t device_sub_type;
+	uint8_t device_if_type;
+	uint8_t device_indicators;
 	// the following vectors are all 16bit little-endian offsets from start of Expansion ROM
-	u16 bcv;		// Boot Connection Vector
-	u16 dv;		// Disconnect Vector
-	u16 bev;		// Bootstrap Entry Vector
-	u16 reserved_2;
-	u16 sriv;		// Static Resource Information Vector
+	uint16_t bcv;		// Boot Connection Vector
+	uint16_t dv;		// Disconnect Vector
+	uint16_t bev;		// Bootstrap Entry Vector
+	uint16_t reserved_2;
+	uint16_t sriv;		// Static Resource Information Vector
 } __attribute__ ((__packed__)) exp_header_struct_t;
 
 // a PCI Data Struct as defined in PCI 2.3 Spec Chapter 6.3.1.2
 typedef struct {
-	u8 signature[4];	// signature, the String "PCIR"
-	u16 vendor_id;
-	u16 device_id;
-	u16 reserved;
-	u16 pci_ds_length;	// PCI Data Structure Length, 16bit little-endian value
-	u8 pci_ds_revision;
-	u8 class_code[3];
-	u16 img_length;	// length of the Exp.ROM Image, 16bit little-endian value in 512 bytes
-	u16 img_revision;
-	u8 code_type;
-	u8 indicator;
-	u16 reserved_2;
+	uint8_t signature[4];	// signature, the String "PCIR"
+	uint16_t vendor_id;
+	uint16_t device_id;
+	uint16_t reserved;
+	uint16_t pci_ds_length;	// PCI Data Structure Length, 16bit little-endian value
+	uint8_t pci_ds_revision;
+	uint8_t class_code[3];
+	uint16_t img_length;	// length of the Exp.ROM Image, 16bit little-endian value in 512 bytes
+	uint16_t img_revision;
+	uint8_t code_type;
+	uint8_t indicator;
+	uint16_t reserved_2;
 } __attribute__ ((__packed__)) pci_data_struct_t;
 
 typedef struct {
-	u8 bus;
-	u8 devfn;
+	uint8_t bus;
+	uint8_t devfn;
 #if CONFIG_PCI_OPTION_ROM_RUN_YABEL
 	struct device* dev;
 #else
@@ -75,23 +75,23 @@ typedef struct {
 	u64 vmem_size;
 	// used to buffer I/O Accesses, that do not access the I/O Range of the device...
 	// 64k might be overkill, but we can buffer all I/O accesses...
-	u8 io_buffer[64 * 1024];
-	u16 pci_vendor_id;
-	u16 pci_device_id;
+	uint8_t io_buffer[64 * 1024];
+	uint16_t pci_vendor_id;
+	uint16_t pci_device_id;
 	// translated address of the "PC-Compatible" Expansion ROM Image for this device
 	unsigned long img_addr;
-	u32 img_size;	// size of the Expansion ROM Image (read from the PCI Data Structure)
+	uint32_t img_size;	// size of the Expansion ROM Image (read from the PCI Data Structure)
 } biosemu_device_t;
 
 typedef struct {
 #if CONFIG_PCI_OPTION_ROM_RUN_YABEL
 	unsigned long info;
 #else
-	u8 info;
+	uint8_t info;
 #endif
-	u8 bus;
-	u8 devfn;
-	u8 cfg_space_offset;
+	uint8_t bus;
+	uint8_t devfn;
+	uint8_t cfg_space_offset;
 	u64 address;
 	u64 address_offset;
 	u64 size;
@@ -108,39 +108,39 @@ extern translate_address_t translate_address_array[13];
 
 // index of last translate_address_array entry
 // set by get_dev_addr_info function
-extern u8 taa_last_entry;
+extern uint8_t taa_last_entry;
 
 // add 1:1 mapped memory regions to translation table
-void biosemu_add_special_memory(u32 start, u32 size);
+void biosemu_add_special_memory(uint32_t start, uint32_t size);
 
 /* the device we are working with... */
 extern biosemu_device_t bios_device;
 
-u8 biosemu_dev_init(struct device * device);
+uint8_t biosemu_dev_init(struct device * device);
 // NOTE: for dev_check_exprom to work, biosemu_dev_init MUST be called first!
-u8 biosemu_dev_check_exprom(unsigned long rom_base_addr);
+uint8_t biosemu_dev_check_exprom(unsigned long rom_base_addr);
 
-u8 biosemu_dev_translate_address(int type, unsigned long * addr);
+uint8_t biosemu_dev_translate_address(int type, unsigned long * addr);
 
 /* endianness swap functions for 16 and 32 bit words
  * copied from axon_pciconfig.c
  */
 static inline void
-out32le(void *addr, u32 val)
+out32le(void *addr, uint32_t val)
 {
 #if CONFIG_ARCH_X86 || CONFIG_ARCH_ARM
-	*((u32*) addr) = cpu_to_le32(val);
+	*((uint32_t*) addr) = cpu_to_le32(val);
 #else
 	asm volatile ("stwbrx  %0, 0, %1"::"r" (val), "r"(addr));
 #endif
 }
 
-static inline u32
+static inline uint32_t
 in32le(void *addr)
 {
-	u32 val;
+	uint32_t val;
 #if CONFIG_ARCH_X86 || CONFIG_ARCH_ARM
-	val = cpu_to_le32(*((u32 *) addr));
+	val = cpu_to_le32(*((uint32_t *) addr));
 #else
 	asm volatile ("lwbrx  %0, 0, %1":"=r" (val):"r"(addr));
 #endif
@@ -148,21 +148,21 @@ in32le(void *addr)
 }
 
 static inline void
-out16le(void *addr, u16 val)
+out16le(void *addr, uint16_t val)
 {
 #if CONFIG_ARCH_X86 || CONFIG_ARCH_ARM
-	*((u16*) addr) = cpu_to_le16(val);
+	*((uint16_t*) addr) = cpu_to_le16(val);
 #else
 	asm volatile ("sthbrx  %0, 0, %1"::"r" (val), "r"(addr));
 #endif
 }
 
-static inline u16
+static inline uint16_t
 in16le(void *addr)
 {
-	u16 val;
+	uint16_t val;
 #if CONFIG_ARCH_X86 || CONFIG_ARCH_ARM
-	val = cpu_to_le16(*((u16*) addr));
+	val = cpu_to_le16(*((uint16_t*) addr));
 #else
 	asm volatile ("lhbrx %0, 0, %1":"=r" (val):"r"(addr));
 #endif

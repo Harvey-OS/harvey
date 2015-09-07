@@ -12,8 +12,7 @@
  *     IBM Corporation - initial implementation
  *****************************************************************************/
 
-#include <string.h>
-#include <types.h>
+#include <u.h>
 
 #include "debug.h"
 
@@ -61,10 +60,10 @@ mainboard_interrupt_handlers(int interrupt, yabel_handleIntFunc func)
  * rom_addr = address of the OptionROM to be executed, if this is = 0, YABEL
  * 	will look for an ExpansionROM BAR and use the code from there.
  */
-u32
-biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_addr)
+uint32_t
+biosemu(uint8_t *biosmem, uint32_t biosmem_size, struct device * dev, unsigned long rom_addr)
 {
-	u8 *rom_image;
+	uint8_t *rom_image;
 	int i = 0;
 #if CONFIG_X86EMU_DEBUG
 	debug_flags = 0;
@@ -124,7 +123,7 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 	biosemu_add_special_memory(0, 0x500); // IVT + BDA
 	biosemu_add_special_memory(OPTION_ROM_CODE_SEGMENT << 4, 0x10000); // option ROM
 
-	rom_image = (u8 *) bios_device.img_addr;
+	rom_image = (uint8_t *) bios_device.img_addr;
 	DEBUG_PRINTF("executing rom_image from %p\n", rom_image);
 	DEBUG_PRINTF("biosmem at %p\n", biosmem);
 
@@ -147,9 +146,9 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 	// copy expansion ROM image to segment OPTION_ROM_CODE_SEGMENT
 	// NOTE: this sometimes fails, some bytes are 0x00... so we compare
 	// after copying and do some retries...
-	u8 *mem_img = (u8*)(OPTION_ROM_CODE_SEGMENT << 4);
-	u8 copy_count = 0;
-	u8 cmp_result = 0;
+	uint8_t *mem_img = (uint8_t*)(OPTION_ROM_CODE_SEGMENT << 4);
+	uint8_t copy_count = 0;
+	uint8_t cmp_result = 0;
 	do {
 #if 0
 		set_ci();
@@ -157,7 +156,7 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 		clr_ci();
 #else
 		// memcpy fails... try copy byte-by-byte with set/clr_ci
-		u8 c;
+		uint8_t c;
 		for (i = 0; i < bios_device.img_size; i++) {
 			set_ci();
 			c = *(rom_image + i);
@@ -170,7 +169,7 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 				break;
 			}
 			clr_ci();
-			my_wrb((u32)mem_img + i, c);
+			my_wrb((uint32_t)mem_img + i, c);
 		}
 #endif
 		copy_count++;
@@ -268,7 +267,7 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 	X86EMU_setupMemFuncs(&my_mem_funcs);
 
 	//setup PMM struct in BIOS_DATA_SEGMENT, offset 0x0
-	u8 pmm_length = pmm_setup(BIOS_DATA_SEGMENT, 0x0);
+	uint8_t pmm_length = pmm_setup(BIOS_DATA_SEGMENT, 0x0);
 	if (pmm_length <= 0) {
 		printf ("\nYABEL: Warning: PMM Area could not be setup. PMM not available (%x)\n",
 		     pmm_length);

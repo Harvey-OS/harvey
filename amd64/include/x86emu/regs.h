@@ -37,9 +37,6 @@
 ****************************************************************************/
 /* $XFree86: xc/extras/x86emu/include/x86emu/regs.h,v 1.3 2001/10/28 03:32:25 tsi Exp $ */
 
-#ifndef __X86EMU_REGS_H
-#define __X86EMU_REGS_H
-
 /*---------------------- Macros and type definitions ----------------------*/
 
 #pragma pack(1)
@@ -62,29 +59,29 @@
 #ifdef	__BIG_ENDIAN__
 
 typedef struct {
-    u32 e_reg;
+    uint32_t e_reg;
 	} I32_reg_t;
 
 typedef struct {
-	u16 filler0, x_reg;
+	uint16_t filler0, x_reg;
 	} I16_reg_t;
 
 typedef struct {
-	u8 filler0, filler1, h_reg, l_reg;
+	uint8_t filler0, filler1, h_reg, l_reg;
 	} I8_reg_t;
 
 #else /* !__BIG_ENDIAN__ */
 
 typedef struct {
-    u32 e_reg;
+    uint32_t e_reg;
 	} I32_reg_t;
 
 typedef struct {
-	u16 x_reg;
+	uint16_t x_reg;
 	} I16_reg_t;
 
 typedef struct {
-	u8 l_reg, h_reg;
+	uint8_t l_reg, h_reg;
 	} I8_reg_t;
 
 #endif /* BIG_ENDIAN */
@@ -103,7 +100,7 @@ typedef struct i386_general_regs Gen_reg_t;
 
 struct i386_special_regs {
 	i386_general_register SP, BP, SI, DI, IP;
-	u32 FLAGS;
+	uint32_t FLAGS;
 	};
 
 /*
@@ -112,7 +109,7 @@ struct i386_special_regs {
  */
 
 struct i386_segment_regs {
-    u16 CS, DS, SS, ES, FS, GS;
+    uint16_t CS, DS, SS, ES, FS, GS;
 	};
 
 /* 8 bit registers */
@@ -276,20 +273,20 @@ typedef struct {
      *  Extern interrupt        1 bits
      *  Halted                  1 bits
      */
-    u32                         mode;
+    uint32_t                         mode;
     volatile int                intr;   /* mask of pending interrupts */
     volatile int                         debug;
 #if CONFIG_X86EMU_DEBUG
     int                         check;
-    u16                         saved_ip;
-    u16                         saved_cs;
+    uint16_t                         saved_ip;
+    uint16_t                         saved_cs;
     int                         enc_pos;
     int                         enc_str_pos;
     char                        decode_buf[32]; /* encoded byte stream  */
     char                        decoded_buf[256]; /* disassembled strings */
 #endif
-    u8                          intno;
-    u8                          __pad[3];
+    uint8_t                          intno;
+    uint8_t                          __pad[3];
 	} X86EMU_regs;
 
 /****************************************************************************
@@ -314,10 +311,6 @@ typedef struct {
 #pragma pack()
 
 /*----------------------------- Global Variables --------------------------*/
-
-#ifdef  __cplusplus
-extern "C" {            			/* Use "C" linkage when in C++ mode */
-#endif
 
 /* Global emulator machine state.
  *
@@ -365,8 +358,3 @@ extern    X86EMU_sysEnv	_X86EMU_env;
 #define X86_CH M.x86.R_CH
 #define X86_DH M.x86.R_DH
 
-#ifdef  __cplusplus
-}                       			/* End of "C" linkage for C++   	*/
-#endif
-
-#endif /* __X86EMU_REGS_H */

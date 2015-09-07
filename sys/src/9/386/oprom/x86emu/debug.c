@@ -43,7 +43,7 @@
 
 #ifdef DEBUG
 
-static void     print_encoded_bytes (u16 s, u16 o);
+static void     print_encoded_bytes (uint16_t s, uint16_t o);
 static void     print_decoded_instruction (void);
 int      parse_line (char *s, int *ps, int *n);
 
@@ -82,11 +82,11 @@ void x86emu_just_disassemble (void)
     print_decoded_instruction();
 }
 
-void disassemble_forward (u16 seg, u16 off, int n)
+void disassemble_forward (uint16_t seg, uint16_t off, int n)
 {
     X86EMU_sysEnv tregs;
     int i;
-    u8 op1;
+    uint8_t op1;
     /*
      * hack, hack, hack.  What we do is use the exact machinery set up
      * for execution, except that now there is an additional state
@@ -131,7 +131,7 @@ void disassemble_forward (u16 seg, u16 off, int n)
      * Note the use of a copy of the register structure...
      */
     for (i=0; i<n; i++) {
-        op1 = (*sys_rdb)(((u32)M.x86.R_CS<<4) + (M.x86.R_IP++));
+        op1 = (*sys_rdb)(((uint32_t)M.x86.R_CS<<4) + (M.x86.R_IP++));
         (x86emu_optab[op1])(op1);
     }
     /* end major hack mode. */
@@ -146,7 +146,7 @@ void x86emu_check_sp_access (void)
 {
 }
 
-void x86emu_check_mem_access (u32 dummy)
+void x86emu_check_mem_access (uint32_t dummy)
 {
     /*  check bounds, etc */
 }
@@ -181,7 +181,7 @@ void x86emu_end_instr (void)
     M.x86.enc_pos = 0;
 }
 
-static void print_encoded_bytes (u16 s, u16 o)
+static void print_encoded_bytes (uint16_t s, uint16_t o)
 {
     int i;
     char buf1[64];
@@ -196,9 +196,9 @@ static void print_decoded_instruction (void)
     printf("%s", M.x86.decoded_buf);
 }
 
-void x86emu_print_int_vect (u16 iv)
+void x86emu_print_int_vect (uint16_t iv)
 {
-    u16 seg,off;
+    uint16_t seg,off;
 
     if (iv > 256) return;
     seg   = fetch_data_word_abs(0,iv*4);
@@ -206,12 +206,12 @@ void x86emu_print_int_vect (u16 iv)
     printf("%04x:%04x ", seg, off);
 }
 
-void X86EMU_dump_memory (u16 seg, u16 off, u32 amt)
+void X86EMU_dump_memory (uint16_t seg, uint16_t off, uint32_t amt)
 {
-    u32 start = off & 0xfffffff0;
-    u32 end  = (off+16) & 0xfffffff0;
-    u32 i;
-    u32 current;
+    uint32_t start = off & 0xfffffff0;
+    uint32_t end  = (off+16) & 0xfffffff0;
+    uint32_t i;
+    uint32_t current;
 
     current = start;
     while (end <= off + amt) {
@@ -260,22 +260,22 @@ void x86emu_single_step (void)
         cmd = parse_line(s, ps, &ntok);
         switch(cmd) {
           case 'u':
-            disassemble_forward(M.x86.saved_cs,(u16)offset,10);
+            disassemble_forward(M.x86.saved_cs,(uint16_t)offset,10);
             break;
           case 'd':
                             if (ntok == 2) {
                                     segment = M.x86.saved_cs;
                                     offset = ps[1];
-                                    X86EMU_dump_memory(segment,(u16)offset,16);
+                                    X86EMU_dump_memory(segment,(uint16_t)offset,16);
                                     offset += 16;
                             } else if (ntok == 3) {
                                     segment = ps[1];
                                     offset = ps[2];
-                                    X86EMU_dump_memory(segment,(u16)offset,16);
+                                    X86EMU_dump_memory(segment,(uint16_t)offset,16);
                                     offset += 16;
                             } else {
                                     segment = M.x86.saved_cs;
-                                    X86EMU_dump_memory(segment,(u16)offset,16);
+                                    X86EMU_dump_memory(segment,(uint16_t)offset,16);
                                     offset += 16;
                             }
             break;

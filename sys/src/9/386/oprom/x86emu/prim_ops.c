@@ -112,7 +112,7 @@
 
 /*------------------------- Global Variables ------------------------------*/
 
-static u32 x86emu_parity_tab[8] =
+static uint32_t x86emu_parity_tab[8] =
 {
     0x96696996,
     0x69969669,
@@ -137,33 +137,33 @@ REMARKS:
 implements side effects for byte operations that don't overflow
 ****************************************************************************/
 
-static void set_parity_flag(u32 res)
+static void set_parity_flag(uint32_t res)
 {
     CONDITIONAL_SET_FLAG(PARITY(res & 0xFF), F_PF);
 }
 
-static void set_szp_flags_8(u8 res)
+static void set_szp_flags_8(uint8_t res)
 {
     CONDITIONAL_SET_FLAG(res & 0x80, F_SF);
     CONDITIONAL_SET_FLAG(res == 0, F_ZF);
     set_parity_flag(res);
 }
 
-static void set_szp_flags_16(u16 res)
+static void set_szp_flags_16(uint16_t res)
 {
     CONDITIONAL_SET_FLAG(res & 0x8000, F_SF);
     CONDITIONAL_SET_FLAG(res == 0, F_ZF);
     set_parity_flag(res);
 }
 
-static void set_szp_flags_32(u32 res)
+static void set_szp_flags_32(uint32_t res)
 {
     CONDITIONAL_SET_FLAG(res & 0x80000000, F_SF);
     CONDITIONAL_SET_FLAG(res == 0, F_ZF);
     set_parity_flag(res);
 }
 
-static void no_carry_byte_side_eff(u8 res)
+static void no_carry_byte_side_eff(uint8_t res)
 {
     CLEAR_FLAG(F_OF);
     CLEAR_FLAG(F_CF);
@@ -171,7 +171,7 @@ static void no_carry_byte_side_eff(u8 res)
     set_szp_flags_8(res);
 }
 
-static void no_carry_word_side_eff(u16 res)
+static void no_carry_word_side_eff(uint16_t res)
 {
     CLEAR_FLAG(F_OF);
     CLEAR_FLAG(F_CF);
@@ -179,7 +179,7 @@ static void no_carry_word_side_eff(u16 res)
     set_szp_flags_16(res);
 }
 
-static void no_carry_long_side_eff(u32 res)
+static void no_carry_long_side_eff(uint32_t res)
 {
     CLEAR_FLAG(F_OF);
     CLEAR_FLAG(F_CF);
@@ -187,9 +187,10 @@ static void no_carry_long_side_eff(u32 res)
     set_szp_flags_32(res);
 }
 
-static void calc_carry_chain(int bits, u32 d, u32 s, u32 res, int set_carry)
+static void calc_carry_chain(int bits, uint32_t d, uint32_t s, uint32_t res,
+                             int set_carry)
 {
-    u32 cc;
+    uint32_t cc;
 
     cc = (s & d) | ((~res) & (s | d));
     CONDITIONAL_SET_FLAG(XOR2(cc >> (bits - 2)), F_OF);
@@ -199,9 +200,10 @@ static void calc_carry_chain(int bits, u32 d, u32 s, u32 res, int set_carry)
     }
 }
 
-static void calc_borrow_chain(int bits, u32 d, u32 s, u32 res, int set_carry)
+static void calc_borrow_chain(int bits, uint32_t d, uint32_t s,
+                              uint32_t res, int set_carry)
 {
-    u32 bc;
+    uint32_t bc;
 
     bc = (res & (~d | s)) | (~d & s);
     CONDITIONAL_SET_FLAG(XOR2(bc >> (bits - 2)), F_OF);
@@ -215,9 +217,9 @@ static void calc_borrow_chain(int bits, u32 d, u32 s, u32 res, int set_carry)
 REMARKS:
 Implements the AAA instruction and side effects.
 ****************************************************************************/
-u16 aaa_word(u16 d)
+uint16_t aaa_word(uint16_t d)
 {
-    u16 res;
+    uint16_t res;
     if ((d & 0xf) > 0x9 || ACCESS_FLAG(F_AF)) {
         d += 0x6;
         d += 0x100;
@@ -227,7 +229,7 @@ u16 aaa_word(u16 d)
         CLEAR_FLAG(F_CF);
         CLEAR_FLAG(F_AF);
     }
-    res = (u16)(d & 0xFF0F);
+    res = (uint16_t)(d & 0xFF0F);
     set_szp_flags_16(res);
     return res;
 }
@@ -236,9 +238,9 @@ u16 aaa_word(u16 d)
 REMARKS:
 Implements the AAA instruction and side effects.
 ****************************************************************************/
-u16 aas_word(u16 d)
+uint16_t aas_word(uint16_t d)
 {
-    u16 res;
+    uint16_t res;
     if ((d & 0xf) > 0x9 || ACCESS_FLAG(F_AF)) {
         d -= 0x6;
         d -= 0x100;
@@ -248,7 +250,7 @@ u16 aas_word(u16 d)
         CLEAR_FLAG(F_CF);
         CLEAR_FLAG(F_AF);
     }
-    res = (u16)(d & 0xFF0F);
+    res = (uint16_t)(d & 0xFF0F);
     set_szp_flags_16(res);
     return res;
 }
@@ -257,14 +259,14 @@ u16 aas_word(u16 d)
 REMARKS:
 Implements the AAD instruction and side effects.
 ****************************************************************************/
-u16 aad_word(u16 d)
+uint16_t aad_word(uint16_t d)
 {
-    u16 l;
-    u8 hb, lb;
+    uint16_t l;
+    uint8_t hb, lb;
 
-    hb = (u8)((d >> 8) & 0xff);
-    lb = (u8)((d & 0xff));
-    l = (u16)((lb + 10 * hb) & 0xFF);
+    hb = (uint8_t)((d >> 8) & 0xff);
+    lb = (uint8_t)((d & 0xff));
+    l = (uint16_t)((lb + 10 * hb) & 0xFF);
 
     no_carry_byte_side_eff(l & 0xFF);
     return l;
@@ -274,13 +276,13 @@ u16 aad_word(u16 d)
 REMARKS:
 Implements the AAM instruction and side effects.
 ****************************************************************************/
-u16 aam_word(u8 d)
+uint16_t aam_word(uint8_t d)
 {
-    u16 h, l;
+    uint16_t h, l;
 
-    h = (u16)(d / 10);
-    l = (u16)(d % 10);
-    l |= (u16)(h << 8);
+    h = (uint16_t)(d / 10);
+    l = (uint16_t)(d % 10);
+    l |= (uint16_t)(h << 8);
 
     no_carry_byte_side_eff(l & 0xFF);
     return l;
@@ -290,9 +292,9 @@ u16 aam_word(u8 d)
 REMARKS:
 Implements the ADC instruction and side effects.
 ****************************************************************************/
-u8 adc_byte(u8 d, u8 s)
+uint8_t adc_byte(uint8_t d, uint8_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + s;
     if (ACCESS_FLAG(F_CF)) res++;
@@ -300,36 +302,36 @@ u8 adc_byte(u8 d, u8 s)
     set_szp_flags_8(res);
     calc_carry_chain(8,s,d,res,1);
 
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ADC instruction and side effects.
 ****************************************************************************/
-u16 adc_word(u16 d, u16 s)
+uint16_t adc_word(uint16_t d, uint16_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + s;
     if (ACCESS_FLAG(F_CF))
         res++;
 
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
     calc_carry_chain(16,s,d,res,1);
 
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ADC instruction and side effects.
 ****************************************************************************/
-u32 adc_long(u32 d, u32 s)
+uint32_t adc_long(uint32_t d, uint32_t s)
 {
-    u32 lo;    /* all operands in native machine order */
-    u32 hi;
-    u32 res;
+    uint32_t lo;    /* all operands in native machine order */
+    uint32_t hi;
+    uint32_t res;
 
     lo = (d & 0xFFFF) + (s & 0xFFFF);
     res = d + s;
@@ -353,39 +355,39 @@ u32 adc_long(u32 d, u32 s)
 REMARKS:
 Implements the ADD instruction and side effects.
 ****************************************************************************/
-u8 add_byte(u8 d, u8 s)
+uint8_t add_byte(uint8_t d, uint8_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + s;
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
     calc_carry_chain(8,s,d,res,1);
 
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ADD instruction and side effects.
 ****************************************************************************/
-u16 add_word(u16 d, u16 s)
+uint16_t add_word(uint16_t d, uint16_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + s;
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
     calc_carry_chain(16,s,d,res,1);
 
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ADD instruction and side effects.
 ****************************************************************************/
-u32 add_long(u32 d, u32 s)
+uint32_t add_long(uint32_t d, uint32_t s)
 {
-    u32 res;
+    uint32_t res;
 
     res = d + s;
     set_szp_flags_32(res);
@@ -400,9 +402,9 @@ u32 add_long(u32 d, u32 s)
 REMARKS:
 Implements the AND instruction and side effects.
 ****************************************************************************/
-u8 and_byte(u8 d, u8 s)
+uint8_t and_byte(uint8_t d, uint8_t s)
 {
-    u8 res;    /* all operands in native machine order */
+    uint8_t res;    /* all operands in native machine order */
 
     res = d & s;
 
@@ -414,9 +416,9 @@ u8 and_byte(u8 d, u8 s)
 REMARKS:
 Implements the AND instruction and side effects.
 ****************************************************************************/
-u16 and_word(u16 d, u16 s)
+uint16_t and_word(uint16_t d, uint16_t s)
 {
-    u16 res;   /* all operands in native machine order */
+    uint16_t res;   /* all operands in native machine order */
 
     res = d & s;
 
@@ -428,9 +430,9 @@ u16 and_word(u16 d, u16 s)
 REMARKS:
 Implements the AND instruction and side effects.
 ****************************************************************************/
-u32 and_long(u32 d, u32 s)
+uint32_t and_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d & s;
     no_carry_long_side_eff(res);
@@ -441,12 +443,12 @@ u32 and_long(u32 d, u32 s)
 REMARKS:
 Implements the CMP instruction and side effects.
 ****************************************************************************/
-u8 cmp_byte(u8 d, u8 s)
+uint8_t cmp_byte(uint8_t d, uint8_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d - s;
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
     calc_borrow_chain(8, d, s, res, 1);
 
     return d;
@@ -456,12 +458,12 @@ u8 cmp_byte(u8 d, u8 s)
 REMARKS:
 Implements the CMP instruction and side effects.
 ****************************************************************************/
-u16 cmp_word(u16 d, u16 s)
+uint16_t cmp_word(uint16_t d, uint16_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d - s;
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
     calc_borrow_chain(16, d, s, res, 1);
 
     return d;
@@ -471,9 +473,9 @@ u16 cmp_word(u16 d, u16 s)
 REMARKS:
 Implements the CMP instruction and side effects.
 ****************************************************************************/
-u32 cmp_long(u32 d, u32 s)
+uint32_t cmp_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d - s;
     set_szp_flags_32(res);
@@ -486,9 +488,9 @@ u32 cmp_long(u32 d, u32 s)
 REMARKS:
 Implements the DAA instruction and side effects.
 ****************************************************************************/
-u8 daa_byte(u8 d)
+uint8_t daa_byte(uint8_t d)
 {
-    u32 res = d;
+    uint32_t res = d;
     if ((d & 0xf) > 9 || ACCESS_FLAG(F_AF)) {
         res += 6;
         SET_FLAG(F_AF);
@@ -497,15 +499,15 @@ u8 daa_byte(u8 d)
         res += 0x60;
         SET_FLAG(F_CF);
     }
-    set_szp_flags_8((u8)res);
-    return (u8)res;
+    set_szp_flags_8((uint8_t)res);
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the DAS instruction and side effects.
 ****************************************************************************/
-u8 das_byte(u8 d)
+uint8_t das_byte(uint8_t d)
 {
     if ((d & 0xf) > 9 || ACCESS_FLAG(F_AF)) {
         d -= 6;
@@ -523,39 +525,39 @@ u8 das_byte(u8 d)
 REMARKS:
 Implements the DEC instruction and side effects.
 ****************************************************************************/
-u8 dec_byte(u8 d)
+uint8_t dec_byte(uint8_t d)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d - 1;
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
     calc_borrow_chain(8, d, 1, res, 0);
 
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the DEC instruction and side effects.
 ****************************************************************************/
-u16 dec_word(u16 d)
+uint16_t dec_word(uint16_t d)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d - 1;
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
     calc_borrow_chain(16, d, 1, res, 0);
 
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the DEC instruction and side effects.
 ****************************************************************************/
-u32 dec_long(u32 d)
+uint32_t dec_long(uint32_t d)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d - 1;
 
@@ -569,39 +571,39 @@ u32 dec_long(u32 d)
 REMARKS:
 Implements the INC instruction and side effects.
 ****************************************************************************/
-u8 inc_byte(u8 d)
+uint8_t inc_byte(uint8_t d)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + 1;
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
     calc_carry_chain(8, d, 1, res, 0);
 
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the INC instruction and side effects.
 ****************************************************************************/
-u16 inc_word(u16 d)
+uint16_t inc_word(uint16_t d)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + 1;
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
     calc_carry_chain(16, d, 1, res, 0);
 
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the INC instruction and side effects.
 ****************************************************************************/
-u32 inc_long(u32 d)
+uint32_t inc_long(uint32_t d)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d + 1;
     set_szp_flags_32(res);
@@ -614,9 +616,9 @@ u32 inc_long(u32 d)
 REMARKS:
 Implements the OR instruction and side effects.
 ****************************************************************************/
-u8 or_byte(u8 d, u8 s)
+uint8_t or_byte(uint8_t d, uint8_t s)
 {
-    u8 res;    /* all operands in native machine order */
+    uint8_t res;    /* all operands in native machine order */
 
     res = d | s;
     no_carry_byte_side_eff(res);
@@ -628,9 +630,9 @@ u8 or_byte(u8 d, u8 s)
 REMARKS:
 Implements the OR instruction and side effects.
 ****************************************************************************/
-u16 or_word(u16 d, u16 s)
+uint16_t or_word(uint16_t d, uint16_t s)
 {
-    u16 res;   /* all operands in native machine order */
+    uint16_t res;   /* all operands in native machine order */
 
     res = d | s;
     no_carry_word_side_eff(res);
@@ -641,9 +643,9 @@ u16 or_word(u16 d, u16 s)
 REMARKS:
 Implements the OR instruction and side effects.
 ****************************************************************************/
-u32 or_long(u32 d, u32 s)
+uint32_t or_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d | s;
     no_carry_long_side_eff(res);
@@ -654,12 +656,12 @@ u32 or_long(u32 d, u32 s)
 REMARKS:
 Implements the OR instruction and side effects.
 ****************************************************************************/
-u8 neg_byte(u8 s)
+uint8_t neg_byte(uint8_t s)
 {
-    u8 res;
+    uint8_t res;
 
     CONDITIONAL_SET_FLAG(s != 0, F_CF);
-    res = (u8)-s;
+    res = (uint8_t)-s;
     set_szp_flags_8(res);
     calc_borrow_chain(8, 0, s, res, 0);
 
@@ -670,13 +672,13 @@ u8 neg_byte(u8 s)
 REMARKS:
 Implements the OR instruction and side effects.
 ****************************************************************************/
-u16 neg_word(u16 s)
+uint16_t neg_word(uint16_t s)
 {
-    u16 res;
+    uint16_t res;
 
     CONDITIONAL_SET_FLAG(s != 0, F_CF);
-    res = (u16)-s;
-    set_szp_flags_16((u16)res);
+    res = (uint16_t)-s;
+    set_szp_flags_16((uint16_t)res);
     calc_borrow_chain(16, 0, s, res, 0);
 
     return res;
@@ -686,12 +688,12 @@ u16 neg_word(u16 s)
 REMARKS:
 Implements the OR instruction and side effects.
 ****************************************************************************/
-u32 neg_long(u32 s)
+uint32_t neg_long(uint32_t s)
 {
-    u32 res;
+    uint32_t res;
 
     CONDITIONAL_SET_FLAG(s != 0, F_CF);
-    res = (u32)-s;
+    res = (uint32_t)-s;
     set_szp_flags_32(res);
     calc_borrow_chain(32, 0, s, res, 0);
 
@@ -702,7 +704,7 @@ u32 neg_long(u32 s)
 REMARKS:
 Implements the NOT instruction and side effects.
 ****************************************************************************/
-u8 not_byte(u8 s)
+uint8_t not_byte(uint8_t s)
 {
     return ~s;
 }
@@ -711,7 +713,7 @@ u8 not_byte(u8 s)
 REMARKS:
 Implements the NOT instruction and side effects.
 ****************************************************************************/
-u16 not_word(u16 s)
+uint16_t not_word(uint16_t s)
 {
     return ~s;
 }
@@ -720,7 +722,7 @@ u16 not_word(u16 s)
 REMARKS:
 Implements the NOT instruction and side effects.
 ****************************************************************************/
-u32 not_long(u32 s)
+uint32_t not_long(uint32_t s)
 {
     return ~s;
 }
@@ -729,7 +731,7 @@ u32 not_long(u32 s)
 REMARKS:
 Implements the RCL instruction and side effects.
 ****************************************************************************/
-u8 rcl_byte(u8 d, u8 s)
+uint8_t rcl_byte(uint8_t d, uint8_t s)
 {
     unsigned int res, cnt, mask, cf;
 
@@ -795,14 +797,14 @@ u8 rcl_byte(u8 d, u8 s)
                              F_OF);
 
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the RCL instruction and side effects.
 ****************************************************************************/
-u16 rcl_word(u16 d, u8 s)
+uint16_t rcl_word(uint16_t d, uint8_t s)
 {
     unsigned int res, cnt, mask, cf;
 
@@ -819,16 +821,16 @@ u16 rcl_word(u16 d, u8 s)
         CONDITIONAL_SET_FLAG(cnt == 1 && XOR2(cf + ((res >> 14) & 0x2)),
                              F_OF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the RCL instruction and side effects.
 ****************************************************************************/
-u32 rcl_long(u32 d, u8 s)
+uint32_t rcl_long(uint32_t d, uint8_t s)
 {
-    u32 res, cnt, mask, cf;
+    uint32_t res, cnt, mask, cf;
 
     res = d;
     if ((cnt = s % 33) != 0) {
@@ -850,10 +852,10 @@ u32 rcl_long(u32 d, u8 s)
 REMARKS:
 Implements the RCR instruction and side effects.
 ****************************************************************************/
-u8 rcr_byte(u8 d, u8 s)
+uint8_t rcr_byte(uint8_t d, uint8_t s)
 {
-    u32 res, cnt;
-    u32 mask, cf, ocf = 0;
+    uint32_t res, cnt;
+    uint32_t mask, cf, ocf = 0;
 
     /* rotate right through carry */
     /*
@@ -927,17 +929,17 @@ u8 rcr_byte(u8 d, u8 s)
                                  F_OF);
         }
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the RCR instruction and side effects.
 ****************************************************************************/
-u16 rcr_word(u16 d, u8 s)
+uint16_t rcr_word(uint16_t d, uint8_t s)
 {
-    u32 res, cnt;
-    u32 mask, cf, ocf = 0;
+    uint32_t res, cnt;
+    uint32_t mask, cf, ocf = 0;
 
     /* rotate right through carry */
     res = d;
@@ -959,17 +961,17 @@ u16 rcr_word(u16 d, u8 s)
                                  F_OF);
         }
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the RCR instruction and side effects.
 ****************************************************************************/
-u32 rcr_long(u32 d, u8 s)
+uint32_t rcr_long(uint32_t d, uint8_t s)
 {
-    u32 res, cnt;
-    u32 mask, cf, ocf = 0;
+    uint32_t res, cnt;
+    uint32_t mask, cf, ocf = 0;
 
     /* rotate right through carry */
     res = d;
@@ -999,7 +1001,7 @@ u32 rcr_long(u32 d, u8 s)
 REMARKS:
 Implements the ROL instruction and side effects.
 ****************************************************************************/
-u8 rol_byte(u8 d, u8 s)
+uint8_t rol_byte(uint8_t d, uint8_t s)
 {
     unsigned int res, cnt, mask;
 
@@ -1041,14 +1043,14 @@ u8 rol_byte(u8 d, u8 s)
            bit of the result!!!                               */
         CONDITIONAL_SET_FLAG(res & 0x1, F_CF);
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ROL instruction and side effects.
 ****************************************************************************/
-u16 rol_word(u16 d, u8 s)
+uint16_t rol_word(uint16_t d, uint8_t s)
 {
     unsigned int res, cnt, mask;
 
@@ -1066,16 +1068,16 @@ u16 rol_word(u16 d, u8 s)
            bit of the result!!!                               */
         CONDITIONAL_SET_FLAG(res & 0x1, F_CF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ROL instruction and side effects.
 ****************************************************************************/
-u32 rol_long(u32 d, u8 s)
+uint32_t rol_long(uint32_t d, uint8_t s)
 {
-    u32 res, cnt, mask;
+    uint32_t res, cnt, mask;
 
     res = d;
     if ((cnt = s % 32) != 0) {
@@ -1098,7 +1100,7 @@ u32 rol_long(u32 d, u8 s)
 REMARKS:
 Implements the ROR instruction and side effects.
 ****************************************************************************/
-u8 ror_byte(u8 d, u8 s)
+uint8_t ror_byte(uint8_t d, uint8_t s)
 {
     unsigned int res, cnt, mask;
 
@@ -1137,14 +1139,14 @@ u8 ror_byte(u8 d, u8 s)
            bit of the result!!!                               */
         CONDITIONAL_SET_FLAG(res & 0x80, F_CF);
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ROR instruction and side effects.
 ****************************************************************************/
-u16 ror_word(u16 d, u8 s)
+uint16_t ror_word(uint16_t d, uint8_t s)
 {
     unsigned int res, cnt, mask;
 
@@ -1160,16 +1162,16 @@ u16 ror_word(u16 d, u8 s)
            bit of the result!!!                               */
         CONDITIONAL_SET_FLAG(res & 0x8000, F_CF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the ROR instruction and side effects.
 ****************************************************************************/
-u32 ror_long(u32 d, u8 s)
+uint32_t ror_long(uint32_t d, uint8_t s)
 {
-    u32 res, cnt, mask;
+    uint32_t res, cnt, mask;
 
     res = d;
     if ((cnt = s % 32) != 0) {
@@ -1190,7 +1192,7 @@ u32 ror_long(u32 d, u8 s)
 REMARKS:
 Implements the SHL instruction and side effects.
 ****************************************************************************/
-u8 shl_byte(u8 d, u8 s)
+uint8_t shl_byte(uint8_t d, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1202,9 +1204,9 @@ u8 shl_byte(u8 d, u8 s)
             res = d << cnt;
             cf = d & (1 << (8 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_8((u8)res);
+            set_szp_flags_8((uint8_t)res);
         } else {
-            res = (u8) d;
+            res = (uint8_t) d;
         }
 
         if (cnt == 1) {
@@ -1225,14 +1227,14 @@ u8 shl_byte(u8 d, u8 s)
         SET_FLAG(F_PF);
         SET_FLAG(F_ZF);
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SHL instruction and side effects.
 ****************************************************************************/
-u16 shl_word(u16 d, u8 s)
+uint16_t shl_word(uint16_t d, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1242,9 +1244,9 @@ u16 shl_word(u16 d, u8 s)
             res = d << cnt;
             cf = d & (1 << (16 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_16((u16)res);
+            set_szp_flags_16((uint16_t)res);
         } else {
-            res = (u16) d;
+            res = (uint16_t) d;
         }
 
         if (cnt == 1) {
@@ -1263,14 +1265,14 @@ u16 shl_word(u16 d, u8 s)
         SET_FLAG(F_PF);
         SET_FLAG(F_ZF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SHL instruction and side effects.
 ****************************************************************************/
-u32 shl_long(u32 d, u8 s)
+uint32_t shl_long(uint32_t d, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1280,7 +1282,7 @@ u32 shl_long(u32 d, u8 s)
             res = d << cnt;
             cf = d & (1 << (32 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_32((u32)res);
+            set_szp_flags_32((uint32_t)res);
         } else {
             res = d;
         }
@@ -1305,7 +1307,7 @@ u32 shl_long(u32 d, u8 s)
 REMARKS:
 Implements the SHR instruction and side effects.
 ****************************************************************************/
-u8 shr_byte(u8 d, u8 s)
+uint8_t shr_byte(uint8_t d, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1315,9 +1317,9 @@ u8 shr_byte(u8 d, u8 s)
             cf = d & (1 << (cnt - 1));
             res = d >> cnt;
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_8((u8)res);
+            set_szp_flags_8((uint8_t)res);
         } else {
-            res = (u8) d;
+            res = (uint8_t) d;
         }
 
         if (cnt == 1) {
@@ -1333,14 +1335,14 @@ u8 shr_byte(u8 d, u8 s)
         SET_FLAG(F_PF);
         SET_FLAG(F_ZF);
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SHR instruction and side effects.
 ****************************************************************************/
-u16 shr_word(u16 d, u8 s)
+uint16_t shr_word(uint16_t d, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1350,7 +1352,7 @@ u16 shr_word(u16 d, u8 s)
             cf = d & (1 << (cnt - 1));
             res = d >> cnt;
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_16((u16)res);
+            set_szp_flags_16((uint16_t)res);
         } else {
             res = d;
         }
@@ -1368,14 +1370,14 @@ u16 shr_word(u16 d, u8 s)
         CLEAR_FLAG(F_SF);
         CLEAR_FLAG(F_PF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SHR instruction and side effects.
 ****************************************************************************/
-u32 shr_long(u32 d, u8 s)
+uint32_t shr_long(uint32_t d, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1385,7 +1387,7 @@ u32 shr_long(u32 d, u8 s)
             cf = d & (1 << (cnt - 1));
             res = d >> cnt;
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_32((u32)res);
+            set_szp_flags_32((uint32_t)res);
         } else {
             res = d;
         }
@@ -1409,7 +1411,7 @@ u32 shr_long(u32 d, u8 s)
 REMARKS:
 Implements the SAR instruction and side effects.
 ****************************************************************************/
-u8 sar_byte(u8 d, u8 s)
+uint8_t sar_byte(uint8_t d, uint8_t s)
 {
     unsigned int cnt, res, cf, mask, sf;
 
@@ -1424,7 +1426,7 @@ u8 sar_byte(u8 d, u8 s)
         if (sf) {
             res |= ~mask;
         }
-        set_szp_flags_8((u8)res);
+        set_szp_flags_8((uint8_t)res);
     } else if (cnt >= 8) {
         if (sf) {
             res = 0xff;
@@ -1440,14 +1442,14 @@ u8 sar_byte(u8 d, u8 s)
             CLEAR_FLAG(F_PF);
         }
     }
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SAR instruction and side effects.
 ****************************************************************************/
-u16 sar_word(u16 d, u8 s)
+uint16_t sar_word(uint16_t d, uint8_t s)
 {
     unsigned int cnt, res, cf, mask, sf;
 
@@ -1462,7 +1464,7 @@ u16 sar_word(u16 d, u8 s)
         if (sf) {
             res |= ~mask;
         }
-        set_szp_flags_16((u16)res);
+        set_szp_flags_16((uint16_t)res);
     } else if (cnt >= 16) {
         if (sf) {
             res = 0xffff;
@@ -1478,16 +1480,16 @@ u16 sar_word(u16 d, u8 s)
             CLEAR_FLAG(F_PF);
         }
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SAR instruction and side effects.
 ****************************************************************************/
-u32 sar_long(u32 d, u8 s)
+uint32_t sar_long(uint32_t d, uint8_t s)
 {
-    u32 cnt, res, cf, mask, sf;
+    uint32_t cnt, res, cf, mask, sf;
 
     sf = d & 0x80000000;
     cnt = s % 32;
@@ -1523,7 +1525,7 @@ u32 sar_long(u32 d, u8 s)
 REMARKS:
 Implements the SHLD instruction and side effects.
 ****************************************************************************/
-u16 shld_word (u16 d, u16 fill, u8 s)
+uint16_t shld_word (uint16_t d, uint16_t fill, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1533,7 +1535,7 @@ u16 shld_word (u16 d, u16 fill, u8 s)
             res = (d << cnt) | (fill >> (16-cnt));
             cf = d & (1 << (16 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_16((u16)res);
+            set_szp_flags_16((uint16_t)res);
         } else {
             res = d;
         }
@@ -1551,14 +1553,14 @@ u16 shld_word (u16 d, u16 fill, u8 s)
         SET_FLAG(F_PF);
         SET_FLAG(F_ZF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SHLD instruction and side effects.
 ****************************************************************************/
-u32 shld_long (u32 d, u32 fill, u8 s)
+uint32_t shld_long (uint32_t d, uint32_t fill, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1568,7 +1570,7 @@ u32 shld_long (u32 d, u32 fill, u8 s)
             res = (d << cnt) | (fill >> (32-cnt));
             cf = d & (1 << (32 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_32((u32)res);
+            set_szp_flags_32((uint32_t)res);
         } else {
             res = d;
         }
@@ -1593,7 +1595,7 @@ u32 shld_long (u32 d, u32 fill, u8 s)
 REMARKS:
 Implements the SHRD instruction and side effects.
 ****************************************************************************/
-u16 shrd_word (u16 d, u16 fill, u8 s)
+uint16_t shrd_word (uint16_t d, uint16_t fill, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1603,7 +1605,7 @@ u16 shrd_word (u16 d, u16 fill, u8 s)
             cf = d & (1 << (cnt - 1));
             res = (d >> cnt) | (fill << (16 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_16((u16)res);
+            set_szp_flags_16((uint16_t)res);
         } else {
             res = d;
         }
@@ -1621,14 +1623,14 @@ u16 shrd_word (u16 d, u16 fill, u8 s)
         CLEAR_FLAG(F_SF);
         CLEAR_FLAG(F_PF);
     }
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SHRD instruction and side effects.
 ****************************************************************************/
-u32 shrd_long (u32 d, u32 fill, u8 s)
+uint32_t shrd_long (uint32_t d, uint32_t fill, uint8_t s)
 {
     unsigned int cnt, res, cf;
 
@@ -1638,7 +1640,7 @@ u32 shrd_long (u32 d, u32 fill, u8 s)
             cf = d & (1 << (cnt - 1));
             res = (d >> cnt) | (fill << (32 - cnt));
             CONDITIONAL_SET_FLAG(cf, F_CF);
-            set_szp_flags_32((u32)res);
+            set_szp_flags_32((uint32_t)res);
         } else {
             res = d;
         }
@@ -1662,56 +1664,56 @@ u32 shrd_long (u32 d, u32 fill, u8 s)
 REMARKS:
 Implements the SBB instruction and side effects.
 ****************************************************************************/
-u8 sbb_byte(u8 d, u8 s)
+uint8_t sbb_byte(uint8_t d, uint8_t s)
 {
-    u32 res;   /* all operands in native machine order */
-    u32 bc;
+    uint32_t res;   /* all operands in native machine order */
+    uint32_t bc;
 
     if (ACCESS_FLAG(F_CF))
         res = d - s - 1;
     else
         res = d - s;
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
 
     /* calculate the borrow chain.  See note at top */
     bc = (res & (~d | s)) | (~d & s);
     CONDITIONAL_SET_FLAG(bc & 0x80, F_CF);
     CONDITIONAL_SET_FLAG(XOR2(bc >> 6), F_OF);
     CONDITIONAL_SET_FLAG(bc & 0x8, F_AF);
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SBB instruction and side effects.
 ****************************************************************************/
-u16 sbb_word(u16 d, u16 s)
+uint16_t sbb_word(uint16_t d, uint16_t s)
 {
-    u32 res;   /* all operands in native machine order */
-    u32 bc;
+    uint32_t res;   /* all operands in native machine order */
+    uint32_t bc;
 
     if (ACCESS_FLAG(F_CF))
         res = d - s - 1;
     else
         res = d - s;
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
 
     /* calculate the borrow chain.  See note at top */
     bc = (res & (~d | s)) | (~d & s);
     CONDITIONAL_SET_FLAG(bc & 0x8000, F_CF);
     CONDITIONAL_SET_FLAG(XOR2(bc >> 14), F_OF);
     CONDITIONAL_SET_FLAG(bc & 0x8, F_AF);
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SBB instruction and side effects.
 ****************************************************************************/
-u32 sbb_long(u32 d, u32 s)
+uint32_t sbb_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
-    u32 bc;
+    uint32_t res;   /* all operands in native machine order */
+    uint32_t bc;
 
     if (ACCESS_FLAG(F_CF))
         res = d - s - 1;
@@ -1732,50 +1734,50 @@ u32 sbb_long(u32 d, u32 s)
 REMARKS:
 Implements the SUB instruction and side effects.
 ****************************************************************************/
-u8 sub_byte(u8 d, u8 s)
+uint8_t sub_byte(uint8_t d, uint8_t s)
 {
-    u32 res;   /* all operands in native machine order */
-    u32 bc;
+    uint32_t res;   /* all operands in native machine order */
+    uint32_t bc;
 
     res = d - s;
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
 
     /* calculate the borrow chain.  See note at top */
     bc = (res & (~d | s)) | (~d & s);
     CONDITIONAL_SET_FLAG(bc & 0x80, F_CF);
     CONDITIONAL_SET_FLAG(XOR2(bc >> 6), F_OF);
     CONDITIONAL_SET_FLAG(bc & 0x8, F_AF);
-    return (u8)res;
+    return (uint8_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SUB instruction and side effects.
 ****************************************************************************/
-u16 sub_word(u16 d, u16 s)
+uint16_t sub_word(uint16_t d, uint16_t s)
 {
-    u32 res;   /* all operands in native machine order */
-    u32 bc;
+    uint32_t res;   /* all operands in native machine order */
+    uint32_t bc;
 
     res = d - s;
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
 
     /* calculate the borrow chain.  See note at top */
     bc = (res & (~d | s)) | (~d & s);
     CONDITIONAL_SET_FLAG(bc & 0x8000, F_CF);
     CONDITIONAL_SET_FLAG(XOR2(bc >> 14), F_OF);
     CONDITIONAL_SET_FLAG(bc & 0x8, F_AF);
-    return (u16)res;
+    return (uint16_t)res;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the SUB instruction and side effects.
 ****************************************************************************/
-u32 sub_long(u32 d, u32 s)
+uint32_t sub_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
-    u32 bc;
+    uint32_t res;   /* all operands in native machine order */
+    uint32_t bc;
 
     res = d - s;
     set_szp_flags_32(res);
@@ -1792,14 +1794,14 @@ u32 sub_long(u32 d, u32 s)
 REMARKS:
 Implements the TEST instruction and side effects.
 ****************************************************************************/
-void test_byte(u8 d, u8 s)
+void test_byte(uint8_t d, uint8_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d & s;
 
     CLEAR_FLAG(F_OF);
-    set_szp_flags_8((u8)res);
+    set_szp_flags_8((uint8_t)res);
     /* AF == don't care */
     CLEAR_FLAG(F_CF);
 }
@@ -1808,14 +1810,14 @@ void test_byte(u8 d, u8 s)
 REMARKS:
 Implements the TEST instruction and side effects.
 ****************************************************************************/
-void test_word(u16 d, u16 s)
+void test_word(uint16_t d, uint16_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d & s;
 
     CLEAR_FLAG(F_OF);
-    set_szp_flags_16((u16)res);
+    set_szp_flags_16((uint16_t)res);
     /* AF == don't care */
     CLEAR_FLAG(F_CF);
 }
@@ -1824,9 +1826,9 @@ void test_word(u16 d, u16 s)
 REMARKS:
 Implements the TEST instruction and side effects.
 ****************************************************************************/
-void test_long(u32 d, u32 s)
+void test_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d & s;
 
@@ -1840,9 +1842,9 @@ void test_long(u32 d, u32 s)
 REMARKS:
 Implements the XOR instruction and side effects.
 ****************************************************************************/
-u8 xor_byte(u8 d, u8 s)
+uint8_t xor_byte(uint8_t d, uint8_t s)
 {
-    u8 res;    /* all operands in native machine order */
+    uint8_t res;    /* all operands in native machine order */
 
     res = d ^ s;
     no_carry_byte_side_eff(res);
@@ -1853,9 +1855,9 @@ u8 xor_byte(u8 d, u8 s)
 REMARKS:
 Implements the XOR instruction and side effects.
 ****************************************************************************/
-u16 xor_word(u16 d, u16 s)
+uint16_t xor_word(uint16_t d, uint16_t s)
 {
-    u16 res;   /* all operands in native machine order */
+    uint16_t res;   /* all operands in native machine order */
 
     res = d ^ s;
     no_carry_word_side_eff(res);
@@ -1866,9 +1868,9 @@ u16 xor_word(u16 d, u16 s)
 REMARKS:
 Implements the XOR instruction and side effects.
 ****************************************************************************/
-u32 xor_long(u32 d, u32 s)
+uint32_t xor_long(uint32_t d, uint32_t s)
 {
-    u32 res;   /* all operands in native machine order */
+    uint32_t res;   /* all operands in native machine order */
 
     res = d ^ s;
     no_carry_long_side_eff(res);
@@ -1879,7 +1881,7 @@ u32 xor_long(u32 d, u32 s)
 REMARKS:
 Implements the IMUL instruction and side effects.
 ****************************************************************************/
-void imul_byte(u8 s)
+void imul_byte(uint8_t s)
 {
     s16 res = (s16)((s8)M.x86.R_AL * (s8)s);
 
@@ -1898,12 +1900,12 @@ void imul_byte(u8 s)
 REMARKS:
 Implements the IMUL instruction and side effects.
 ****************************************************************************/
-void imul_word(u16 s)
+void imul_word(uint16_t s)
 {
     s32 res = (s16)M.x86.R_AX * (s16)s;
 
-    M.x86.R_AX = (u16)res;
-    M.x86.R_DX = (u16)(res >> 16);
+    M.x86.R_AX = (uint16_t)res;
+    M.x86.R_DX = (uint16_t)(res >> 16);
     if (((M.x86.R_AX & 0x8000) == 0 && M.x86.R_DX == 0x0000) ||
         ((M.x86.R_AX & 0x8000) != 0 && M.x86.R_DX == 0xFFFF)) {
         CLEAR_FLAG(F_CF);
@@ -1918,17 +1920,18 @@ void imul_word(u16 s)
 REMARKS:
 Implements the IMUL instruction and side effects.
 ****************************************************************************/
-void imul_long_direct(u32 *res_lo, u32* res_hi,u32 d, u32 s)
+void imul_long_direct(uint32_t *res_lo, uint32_t* res_hi,uint32_t d,
+                      uint32_t s)
 {
 #ifdef  __HAS_LONG_LONG__
     s64 res = (s64)(s32)d * (s64)(s32)s;
 
-    *res_lo = (u32)res;
-    *res_hi = (u32)(res >> 32);
+    *res_lo = (uint32_t)res;
+    *res_hi = (uint32_t)(res >> 32);
 #else
-    u32 d_lo,d_hi,d_sign;
-    u32 s_lo,s_hi,s_sign;
-    u32 rlo_lo,rlo_hi,rhi_lo;
+    uint32_t d_lo,d_hi,d_sign;
+    uint32_t s_lo,s_hi,s_sign;
+    uint32_t rlo_lo,rlo_hi,rhi_lo;
 
     if ((d_sign = d & 0x80000000) != 0)
         d = -d;
@@ -1956,7 +1959,7 @@ void imul_long_direct(u32 *res_lo, u32* res_hi,u32 d, u32 s)
 REMARKS:
 Implements the IMUL instruction and side effects.
 ****************************************************************************/
-void imul_long(u32 s)
+void imul_long(uint32_t s)
 {
     imul_long_direct(&M.x86.R_EAX,&M.x86.R_EDX,M.x86.R_EAX,s);
     if (((M.x86.R_EAX & 0x80000000) == 0 && M.x86.R_EDX == 0x00000000) ||
@@ -1973,9 +1976,9 @@ void imul_long(u32 s)
 REMARKS:
 Implements the MUL instruction and side effects.
 ****************************************************************************/
-void mul_byte(u8 s)
+void mul_byte(uint8_t s)
 {
-    u16 res = (u16)(M.x86.R_AL * s);
+    uint16_t res = (uint16_t)(M.x86.R_AL * s);
 
     M.x86.R_AX = res;
     if (M.x86.R_AH == 0) {
@@ -1991,12 +1994,12 @@ void mul_byte(u8 s)
 REMARKS:
 Implements the MUL instruction and side effects.
 ****************************************************************************/
-void mul_word(u16 s)
+void mul_word(uint16_t s)
 {
-    u32 res = M.x86.R_AX * s;
+    uint32_t res = M.x86.R_AX * s;
 
-    M.x86.R_AX = (u16)res;
-    M.x86.R_DX = (u16)(res >> 16);
+    M.x86.R_AX = (uint16_t)res;
+    M.x86.R_DX = (uint16_t)(res >> 16);
     if (M.x86.R_DX == 0) {
         CLEAR_FLAG(F_CF);
         CLEAR_FLAG(F_OF);
@@ -2010,17 +2013,17 @@ void mul_word(u16 s)
 REMARKS:
 Implements the MUL instruction and side effects.
 ****************************************************************************/
-void mul_long(u32 s)
+void mul_long(uint32_t s)
 {
 #ifdef  __HAS_LONG_LONG__
     u64 res = (u64)M.x86.R_EAX * s;
 
-    M.x86.R_EAX = (u32)res;
-    M.x86.R_EDX = (u32)(res >> 32);
+    M.x86.R_EAX = (uint32_t)res;
+    M.x86.R_EDX = (uint32_t)(res >> 32);
 #else
-    u32 a,a_lo,a_hi;
-    u32 s_lo,s_hi;
-    u32 rlo_lo,rlo_hi,rhi_lo;
+    uint32_t a,a_lo,a_hi;
+    uint32_t s_lo,s_hi;
+    uint32_t rlo_lo,rlo_hi,rhi_lo;
 
     a = M.x86.R_EAX;
     a_lo = a & 0xFFFF;
@@ -2046,7 +2049,7 @@ void mul_long(u32 s)
 REMARKS:
 Implements the IDIV instruction and side effects.
 ****************************************************************************/
-void idiv_byte(u8 s)
+void idiv_byte(uint8_t s)
 {
     s32 dvd, div, mod;
 
@@ -2069,7 +2072,7 @@ void idiv_byte(u8 s)
 REMARKS:
 Implements the IDIV instruction and side effects.
 ****************************************************************************/
-void idiv_word(u16 s)
+void idiv_word(uint16_t s)
 {
     s32 dvd, div, mod;
 
@@ -2089,15 +2092,15 @@ void idiv_word(u16 s)
     CONDITIONAL_SET_FLAG(div == 0, F_ZF);
     set_parity_flag(mod);
 
-    M.x86.R_AX = (u16)div;
-    M.x86.R_DX = (u16)mod;
+    M.x86.R_AX = (uint16_t)div;
+    M.x86.R_DX = (uint16_t)mod;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the IDIV instruction and side effects.
 ****************************************************************************/
-void idiv_long(u32 s)
+void idiv_long(uint32_t s)
 {
 #ifdef  __HAS_LONG_LONG__
     s64 dvd, div, mod;
@@ -2116,11 +2119,11 @@ void idiv_long(u32 s)
 #else
     s32 div = 0, mod;
     s32 h_dvd = M.x86.R_EDX;
-    u32 l_dvd = M.x86.R_EAX;
-    u32 abs_s = s & 0x7FFFFFFF;
-    u32 abs_h_dvd = h_dvd & 0x7FFFFFFF;
-    u32 h_s = abs_s >> 1;
-    u32 l_s = abs_s << 31;
+    uint32_t l_dvd = M.x86.R_EAX;
+    uint32_t abs_s = s & 0x7FFFFFFF;
+    uint32_t abs_h_dvd = h_dvd & 0x7FFFFFFF;
+    uint32_t h_s = abs_s >> 1;
+    uint32_t l_s = abs_s << 31;
     int counter = 31;
     int carry;
 
@@ -2163,48 +2166,48 @@ void idiv_long(u32 s)
     SET_FLAG(F_ZF);
     set_parity_flag(mod);
 
-    M.x86.R_EAX = (u32)div;
-    M.x86.R_EDX = (u32)mod;
+    M.x86.R_EAX = (uint32_t)div;
+    M.x86.R_EDX = (uint32_t)mod;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the DIV instruction and side effects.
 ****************************************************************************/
-void div_byte(u8 s)
+void div_byte(uint8_t s)
 {
-    u32 dvd, div, mod;
+    uint32_t dvd, div, mod;
 
     dvd = M.x86.R_AX;
     if (s == 0) {
         x86emu_intr_raise(0);
         return;
     }
-    div = dvd / (u8)s;
-    mod = dvd % (u8)s;
+    div = dvd / (uint8_t)s;
+    mod = dvd % (uint8_t)s;
     if (abs(div) > 0xff) {
         x86emu_intr_raise(0);
         return;
     }
-    M.x86.R_AL = (u8)div;
-    M.x86.R_AH = (u8)mod;
+    M.x86.R_AL = (uint8_t)div;
+    M.x86.R_AH = (uint8_t)mod;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the DIV instruction and side effects.
 ****************************************************************************/
-void div_word(u16 s)
+void div_word(uint16_t s)
 {
-    u32 dvd, div, mod;
+    uint32_t dvd, div, mod;
 
-    dvd = (((u32)M.x86.R_DX) << 16) | M.x86.R_AX;
+    dvd = (((uint32_t)M.x86.R_DX) << 16) | M.x86.R_AX;
     if (s == 0) {
         x86emu_intr_raise(0);
         return;
     }
-    div = dvd / (u16)s;
-    mod = dvd % (u16)s;
+    div = dvd / (uint16_t)s;
+    mod = dvd % (uint16_t)s;
     if (abs(div) > 0xffff) {
         x86emu_intr_raise(0);
         return;
@@ -2214,15 +2217,15 @@ void div_word(u16 s)
     CONDITIONAL_SET_FLAG(div == 0, F_ZF);
     set_parity_flag(mod);
 
-    M.x86.R_AX = (u16)div;
-    M.x86.R_DX = (u16)mod;
+    M.x86.R_AX = (uint16_t)div;
+    M.x86.R_DX = (uint16_t)mod;
 }
 
 /****************************************************************************
 REMARKS:
 Implements the DIV instruction and side effects.
 ****************************************************************************/
-void div_long(u32 s)
+void div_long(uint32_t s)
 {
 #ifdef  __HAS_LONG_LONG__
     u64 dvd, div, mod;
@@ -2232,8 +2235,8 @@ void div_long(u32 s)
         x86emu_intr_raise(0);
         return;
     }
-    div = dvd / (u32)s;
-    mod = dvd % (u32)s;
+    div = dvd / (uint32_t)s;
+    mod = dvd % (uint32_t)s;
     if (abs(div) > 0xffffffff) {
         x86emu_intr_raise(0);
         return;
@@ -2241,10 +2244,10 @@ void div_long(u32 s)
 #else
     s32 div = 0, mod;
     s32 h_dvd = M.x86.R_EDX;
-    u32 l_dvd = M.x86.R_EAX;
+    uint32_t l_dvd = M.x86.R_EAX;
 
-    u32 h_s = s;
-    u32 l_s = 0;
+    uint32_t h_s = s;
+    uint32_t l_s = 0;
     int counter = 32;
     int carry;
 
@@ -2284,8 +2287,8 @@ void div_long(u32 s)
     SET_FLAG(F_ZF);
     set_parity_flag(mod);
 
-    M.x86.R_EAX = (u32)div;
-    M.x86.R_EDX = (u32)mod;
+    M.x86.R_EAX = (uint32_t)div;
+    M.x86.R_EDX = (uint32_t)mod;
 }
 
 /****************************************************************************
@@ -2313,7 +2316,7 @@ void ins(int size)
     if (M.x86.mode & (SYSMODE_PREFIX_REPE | SYSMODE_PREFIX_REPNE)) {
         /* don't care whether REPE or REPNE */
         /* in until (E)CX is ZERO. */
-        u32 count = ((M.x86.mode & SYSMODE_32BIT_REP) ?
+        uint32_t count = ((M.x86.mode & SYSMODE_32BIT_REP) ?
                      M.x86.R_ECX : M.x86.R_CX);
         while (count--) {
           single_in(size);
@@ -2355,7 +2358,7 @@ void outs(int size)
     if (M.x86.mode & (SYSMODE_PREFIX_REPE | SYSMODE_PREFIX_REPNE)) {
         /* don't care whether REPE or REPNE */
         /* out until (E)CX is ZERO. */
-        u32 count = ((M.x86.mode & SYSMODE_32BIT_REP) ?
+        uint32_t count = ((M.x86.mode & SYSMODE_32BIT_REP) ?
                      M.x86.R_ECX : M.x86.R_CX);
         while (count--) {
           single_out(size);
@@ -2379,7 +2382,7 @@ addr    - Address to fetch word from
 REMARKS:
 Fetches a word from emulator memory using an absolute address.
 ****************************************************************************/
-u16 mem_access_word(int addr)
+uint16_t mem_access_word(int addr)
 {
 DB( if (CHECK_MEM_ACCESS())
       x86emu_check_mem_access(addr);)
@@ -2392,12 +2395,12 @@ Pushes a word onto the stack.
 
 NOTE: Do not inline this, as (*sys_wrX) is already inline!
 ****************************************************************************/
-void push_word(u16 w)
+void push_word(uint16_t w)
 {
 DB( if (CHECK_SP_ACCESS())
       x86emu_check_sp_access();)
     M.x86.R_SP -= 2;
-    (*sys_wrw)(((u32)M.x86.R_SS << 4)  + M.x86.R_SP, w);
+    (*sys_wrw)(((uint32_t)M.x86.R_SS << 4)  + M.x86.R_SP, w);
 }
 
 /****************************************************************************
@@ -2406,12 +2409,12 @@ Pushes a long onto the stack.
 
 NOTE: Do not inline this, as (*sys_wrX) is already inline!
 ****************************************************************************/
-void push_long(u32 w)
+void push_long(uint32_t w)
 {
 DB( if (CHECK_SP_ACCESS())
       x86emu_check_sp_access();)
     M.x86.R_SP -= 4;
-    (*sys_wrl)(((u32)M.x86.R_SS << 4)  + M.x86.R_SP, w);
+    (*sys_wrl)(((uint32_t)M.x86.R_SS << 4)  + M.x86.R_SP, w);
 }
 
 /****************************************************************************
@@ -2420,13 +2423,13 @@ Pops a word from the stack.
 
 NOTE: Do not inline this, as (*sys_rdX) is already inline!
 ****************************************************************************/
-u16 pop_word(void)
+uint16_t pop_word(void)
 {
-    u16 res;
+    uint16_t res;
 
 DB( if (CHECK_SP_ACCESS())
       x86emu_check_sp_access();)
-    res = (*sys_rdw)(((u32)M.x86.R_SS << 4)  + M.x86.R_SP);
+    res = (*sys_rdw)(((uint32_t)M.x86.R_SS << 4)  + M.x86.R_SP);
     M.x86.R_SP += 2;
     return res;
 }
@@ -2437,13 +2440,13 @@ Pops a long from the stack.
 
 NOTE: Do not inline this, as (*sys_rdX) is already inline!
 ****************************************************************************/
-u32 pop_long(void)
+uint32_t pop_long(void)
 {
-    u32 res;
+    uint32_t res;
 
 DB( if (CHECK_SP_ACCESS())
       x86emu_check_sp_access();)
-    res = (*sys_rdl)(((u32)M.x86.R_SS << 4)  + M.x86.R_SP);
+    res = (*sys_rdl)(((uint32_t)M.x86.R_SS << 4)  + M.x86.R_SP);
     M.x86.R_SP += 4;
     return res;
 }
@@ -2454,7 +2457,7 @@ CPUID takes EAX/ECX as inputs, writes EAX/EBX/ECX/EDX as output
 ****************************************************************************/
 void x86emu_cpuid(void)
 {
-    u32 feature = M.x86.R_EAX;
+    uint32_t feature = M.x86.R_EAX;
 
     switch (feature) {
     case 0:

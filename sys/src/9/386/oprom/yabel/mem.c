@@ -24,12 +24,12 @@
 
 // define a check for access to certain (virtual) memory regions (interrupt handlers, BIOS Data Area, ...)
 #if CONFIG_X86EMU_DEBUG
-static u8 in_check = 0;	// to avoid recursion...
+static uint8_t in_check = 0;	// to avoid recursion...
 
-static inline void DEBUG_CHECK_VMEM_READ(u32 _addr, u32 _rval)
+static inline void DEBUG_CHECK_VMEM_READ(uint32_t _addr, uint32_t _rval)
 {
-	u16 ebda_segment;
-	u32 ebda_size;
+	uint16_t ebda_segment;
+	uint32_t ebda_size;
 	if (!((debug_flags & DEBUG_CHECK_VMEM_ACCESS) && (in_check == 0)))
 		return;
 	in_check = 1;
@@ -94,10 +94,10 @@ static inline void DEBUG_CHECK_VMEM_READ(u32 _addr, u32 _rval)
 	in_check = 0;
 }
 
-static inline void DEBUG_CHECK_VMEM_WRITE(u32 _addr, u32 _val)
+static inline void DEBUG_CHECK_VMEM_WRITE(uint32_t _addr, uint32_t _val)
 {
-	u16 ebda_segment;
-	u32 ebda_size;
+	uint16_t ebda_segment;
+	uint32_t ebda_size;
 	if (!((debug_flags & DEBUG_CHECK_VMEM_ACCESS) && (in_check == 0)))
 		return;
 	in_check = 1;
@@ -163,8 +163,8 @@ static inline void DEBUG_CHECK_VMEM_WRITE(u32 _addr, u32 _val)
 	in_check = 0;
 }
 #else
-static inline void DEBUG_CHECK_VMEM_READ(u32 _addr, u32 _rval) {};
-static inline void DEBUG_CHECK_VMEM_WRITE(u32 _addr, u32 _val) {};
+static inline void DEBUG_CHECK_VMEM_READ(uint32_t _addr, uint32_t _rval) {};
+static inline void DEBUG_CHECK_VMEM_WRITE(uint32_t _addr, uint32_t _val) {};
 #endif
 
 //update time in BIOS Data Area
@@ -172,16 +172,16 @@ static inline void DEBUG_CHECK_VMEM_WRITE(u32 _addr, u32 _val) {};
 //byte at 0x70 is timer overflow (set if midnight passed since last call to interrupt 1a function 00
 //cur_val is the current value, of offset 6c...
 static void
-update_time(u32 cur_val)
+update_time(uint32_t cur_val)
 {
 	//for convenience, we let the start of timebase be at midnight, we currently don't support
 	//real daytime anyway...
 	u64 ticks_per_day = tb_freq * 60 * 24;
 	// at 18Hz a period is ~55ms, converted to ticks (tb_freq is ticks/second)
-	u32 period_ticks = (55 * tb_freq) / 1000;
+	uint32_t period_ticks = (55 * tb_freq) / 1000;
 	u64 curr_time = get_time();
 	u64 ticks_since_midnight = curr_time % ticks_per_day;
-	u32 periods_since_midnight = ticks_since_midnight / period_ticks;
+	uint32_t periods_since_midnight = ticks_since_midnight / period_ticks;
 	// if periods since midnight is smaller than last value, set overflow
 	// at BDA Offset 0x70
 	if (periods_since_midnight < cur_val) {
@@ -192,19 +192,19 @@ update_time(u32 cur_val)
 }
 
 // read byte from memory
-u8
-my_rdb(u32 addr)
+uint8_t
+my_rdb(uint32_t addr)
 {
 	unsigned long translated_addr = addr;
-	u8 translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
-	u8 rval;
+	uint8_t translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
+	uint8_t rval;
 	if (translated != 0) {
 		//translation successful, access VGA Memory (BAR or Legacy...)
 		DEBUG_PRINTF_MEM("%s(%08x): access to VGA Memory\n",
 				 __func__, addr);
 		//DEBUG_PRINTF_MEM("%s(%08x): translated_addr: %llx\n", __func__, addr, translated_addr);
 		set_ci();
-		rval = *((u8 *) translated_addr);
+		rval = *((uint8_t *) translated_addr);
 		clr_ci();
 		DEBUG_PRINTF_MEM("%s(%08x) VGA --> %02x\n", __func__, addr,
 				 rval);
@@ -216,7 +216,7 @@ my_rdb(u32 addr)
 		HALT_SYS();
 	} else {
 		/* read from virtual memory */
-		rval = *((u8 *) (M.mem_base + addr));
+		rval = *((uint8_t *) (M.mem_base + addr));
 		DEBUG_CHECK_VMEM_READ(addr, rval);
 		return rval;
 	}
@@ -224,12 +224,12 @@ my_rdb(u32 addr)
 }
 
 //read word from memory
-u16
-my_rdw(u32 addr)
+uint16_t
+my_rdw(uint32_t addr)
 {
 	unsigned long translated_addr = addr;
-	u8 translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
-	u16 rval;
+	uint8_t translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
+	uint16_t rval;
 	if (translated != 0) {
 		//translation successful, access VGA Memory (BAR or Legacy...)
 		DEBUG_PRINTF_MEM("%s(%08x): access to VGA Memory\n",
@@ -241,8 +241,8 @@ my_rdw(u32 addr)
 			//read bytes a using my_rdb, because of the remapping to BARs
 			//words may not be contiguous in memory, so we need to translate
 			//every address...
-			rval = ((u8) my_rdb(addr)) |
-			    (((u8) my_rdb(addr + 1)) << 8);
+			rval = ((uint8_t) my_rdb(addr)) |
+			    (((uint8_t) my_rdb(addr + 1)) << 8);
 		} else {
 			if ((translated_addr & (u64) 0x1) == 0) {
 				// 16 bit aligned access...
@@ -252,8 +252,8 @@ my_rdw(u32 addr)
 			} else {
 				// unaligned access, read single bytes
 				set_ci();
-				rval = (*((u8 *) translated_addr)) |
-				    (*((u8 *) translated_addr + 1) << 8);
+				rval = (*((uint8_t *) translated_addr)) |
+				    (*((uint8_t *) translated_addr + 1) << 8);
 				clr_ci();
 			}
 		}
@@ -275,12 +275,12 @@ my_rdw(u32 addr)
 }
 
 //read long from memory
-u32
-my_rdl(u32 addr)
+uint32_t
+my_rdl(uint32_t addr)
 {
 	unsigned long translated_addr = addr;
-	u8 translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
-	u32 rval;
+	uint8_t translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
+	uint32_t rval;
 	if (translated != 0) {
 		//translation successful, access VGA Memory (BAR or Legacy...)
 		DEBUG_PRINTF_MEM("%s(%x): access to VGA Memory\n",
@@ -292,10 +292,10 @@ my_rdl(u32 addr)
 			//read bytes a using my_rdb, because of the remapping to BARs
 			//dwords may not be contiguous in memory, so we need to translate
 			//every address...
-			rval = ((u8) my_rdb(addr)) |
-			    (((u8) my_rdb(addr + 1)) << 8) |
-			    (((u8) my_rdb(addr + 2)) << 16) |
-			    (((u8) my_rdb(addr + 3)) << 24);
+			rval = ((uint8_t) my_rdb(addr)) |
+			    (((uint8_t) my_rdb(addr + 1)) << 8) |
+			    (((uint8_t) my_rdb(addr + 2)) << 16) |
+			    (((uint8_t) my_rdb(addr + 3)) << 24);
 		} else {
 			if ((translated_addr & (u64) 0x3) == 0) {
 				// 32 bit aligned access...
@@ -305,10 +305,10 @@ my_rdl(u32 addr)
 			} else {
 				// unaligned access, read single bytes
 				set_ci();
-				rval = (*((u8 *) translated_addr)) |
-				    (*((u8 *) translated_addr + 1) << 8) |
-				    (*((u8 *) translated_addr + 2) << 16) |
-				    (*((u8 *) translated_addr + 3) << 24);
+				rval = (*((uint8_t *) translated_addr)) |
+				    (*((uint8_t *) translated_addr + 1) << 8) |
+				    (*((uint8_t *) translated_addr + 2) << 16) |
+				    (*((uint8_t *) translated_addr + 3) << 24);
 				clr_ci();
 			}
 		}
@@ -339,17 +339,17 @@ my_rdl(u32 addr)
 
 //write byte to memory
 void
-my_wrb(u32 addr, u8 val)
+my_wrb(uint32_t addr, uint8_t val)
 {
 	unsigned long translated_addr = addr;
-	u8 translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
+	uint8_t translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
 	if (translated != 0) {
 		//translation successfull, access VGA Memory (BAR or Legacy...)
 		DEBUG_PRINTF_MEM("%s(%x, %x): access to VGA Memory\n",
 				 __func__, addr, val);
 		//DEBUG_PRINTF_MEM("%s(%08x): translated_addr: %llx\n", __func__, addr, translated_addr);
 		set_ci();
-		*((u8 *) translated_addr) = val;
+		*((uint8_t *) translated_addr) = val;
 		clr_ci();
 	} else if (addr > M.mem_size) {
 		DEBUG_PRINTF("%s(%08x): Memory Access out of range!\n",
@@ -359,15 +359,15 @@ my_wrb(u32 addr, u8 val)
 	} else {
 		/* write to virtual memory */
 		DEBUG_CHECK_VMEM_WRITE(addr, val);
-		*((u8 *) (M.mem_base + addr)) = val;
+		*((uint8_t *) (M.mem_base + addr)) = val;
 	}
 }
 
 void
-my_wrw(u32 addr, u16 val)
+my_wrw(uint32_t addr, uint16_t val)
 {
 	unsigned long translated_addr = addr;
-	u8 translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
+	uint8_t translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
 	if (translated != 0) {
 		//translation successfull, access VGA Memory (BAR or Legacy...)
 		DEBUG_PRINTF_MEM("%s(%x, %x): access to VGA Memory\n",
@@ -379,8 +379,8 @@ my_wrw(u32 addr, u16 val)
 			//read bytes a using my_rdb, because of the remapping to BARs
 			//words may not be contiguous in memory, so we need to translate
 			//every address...
-			my_wrb(addr, (u8) (val & 0x00FF));
-			my_wrb(addr + 1, (u8) ((val & 0xFF00) >> 8));
+			my_wrb(addr, (uint8_t) (val & 0x00FF));
+			my_wrb(addr + 1, (uint8_t) ((val & 0xFF00) >> 8));
 		} else {
 			if ((translated_addr & (u64) 0x1) == 0) {
 				// 16 bit aligned access...
@@ -390,10 +390,10 @@ my_wrw(u32 addr, u16 val)
 			} else {
 				// unaligned access, write single bytes
 				set_ci();
-				*((u8 *) translated_addr) =
-				    (u8) (val & 0x00FF);
-				*((u8 *) translated_addr + 1) =
-				    (u8) ((val & 0xFF00) >> 8);
+				*((uint8_t *) translated_addr) =
+				    (uint8_t) (val & 0x00FF);
+				*((uint8_t *) translated_addr + 1) =
+				    (uint8_t) ((val & 0xFF00) >> 8);
 				clr_ci();
 			}
 		}
@@ -409,10 +409,10 @@ my_wrw(u32 addr, u16 val)
 	}
 }
 void
-my_wrl(u32 addr, u32 val)
+my_wrl(uint32_t addr, uint32_t val)
 {
 	unsigned long translated_addr = addr;
-	u8 translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
+	uint8_t translated = biosemu_dev_translate_address(IORESOURCE_MEM, &translated_addr);
 	if (translated != 0) {
 		//translation successfull, access VGA Memory (BAR or Legacy...)
 		DEBUG_PRINTF_MEM("%s(%x, %x): access to VGA Memory\n",
@@ -424,10 +424,10 @@ my_wrl(u32 addr, u32 val)
 			//read bytes a using my_rdb, because of the remapping to BARs
 			//words may not be contiguous in memory, so we need to translate
 			//every address...
-			my_wrb(addr, (u8) (val & 0x000000FF));
-			my_wrb(addr + 1, (u8) ((val & 0x0000FF00) >> 8));
-			my_wrb(addr + 2, (u8) ((val & 0x00FF0000) >> 16));
-			my_wrb(addr + 3, (u8) ((val & 0xFF000000) >> 24));
+			my_wrb(addr, (uint8_t) (val & 0x000000FF));
+			my_wrb(addr + 1, (uint8_t) ((val & 0x0000FF00) >> 8));
+			my_wrb(addr + 2, (uint8_t) ((val & 0x00FF0000) >> 16));
+			my_wrb(addr + 3, (uint8_t) ((val & 0xFF000000) >> 24));
 		} else {
 			if ((translated_addr & (u64) 0x3) == 0) {
 				// 32 bit aligned access...
@@ -437,14 +437,14 @@ my_wrl(u32 addr, u32 val)
 			} else {
 				// unaligned access, write single bytes
 				set_ci();
-				*((u8 *) translated_addr) =
-				    (u8) (val & 0x000000FF);
-				*((u8 *) translated_addr + 1) =
-				    (u8) ((val & 0x0000FF00) >> 8);
-				*((u8 *) translated_addr + 2) =
-				    (u8) ((val & 0x00FF0000) >> 16);
-				*((u8 *) translated_addr + 3) =
-				    (u8) ((val & 0xFF000000) >> 24);
+				*((uint8_t *) translated_addr) =
+				    (uint8_t) (val & 0x000000FF);
+				*((uint8_t *) translated_addr + 1) =
+				    (uint8_t) ((val & 0x0000FF00) >> 8);
+				*((uint8_t *) translated_addr + 2) =
+				    (uint8_t) ((val & 0x00FF0000) >> 16);
+				*((uint8_t *) translated_addr + 3) =
+				    (uint8_t) ((val & 0xFF000000) >> 24);
 				clr_ci();
 			}
 		}
@@ -460,38 +460,38 @@ my_wrl(u32 addr, u32 val)
 	}
 }
 #else
-u8
-my_rdb(u32 addr)
+uint8_t
+my_rdb(uint32_t addr)
 {
 	return rdb(addr);
 }
 
-u16
-my_rdw(u32 addr)
+uint16_t
+my_rdw(uint32_t addr)
 {
 	return rdw(addr);
 }
 
-u32
-my_rdl(u32 addr)
+uint32_t
+my_rdl(uint32_t addr)
 {
 	return rdl(addr);
 }
 
 void
-my_wrb(u32 addr, u8 val)
+my_wrb(uint32_t addr, uint8_t val)
 {
 	wrb(addr, val);
 }
 
 void
-my_wrw(u32 addr, u16 val)
+my_wrw(uint32_t addr, uint16_t val)
 {
 	wrw(addr, val);
 }
 
 void
-my_wrl(u32 addr, u32 val)
+my_wrl(uint32_t addr, uint32_t val)
 {
 	wrl(addr, val);
 }

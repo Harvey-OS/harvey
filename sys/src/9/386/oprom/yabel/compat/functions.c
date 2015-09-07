@@ -25,15 +25,15 @@
 
 #if !CONFIG_YABEL_DIRECTHW
 #if CONFIG_YABEL_VIRTMEM_LOCATION
-u8* vmem = (u8 *) CONFIG_YABEL_VIRTMEM_LOCATION;
+uint8_t* vmem = (uint8_t *) CONFIG_YABEL_VIRTMEM_LOCATION;
 #else
-u8* vmem = (u8 *) (16*1024*1024); /* default to 16MB */
+uint8_t* vmem = (uint8_t *) (16*1024*1024); /* default to 16MB */
 #endif
 #else
-u8* vmem = NULL;
+uint8_t* vmem = NULL;
 #endif
 
-extern u8 *biosmem;
+extern uint8_t *biosmem;
 
 void run_bios(struct device * dev, unsigned long addr)
 {
@@ -52,7 +52,7 @@ u64 get_time(void)
 {
     u64 act = 0;
 #if CONFIG_ARCH_X86
-    u32 eax, edx;
+    uint32_t eax, edx;
 
     __asm__ __volatile__(
 	"rdtsc"

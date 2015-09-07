@@ -13,18 +13,14 @@
 #ifndef _BIOSEMU_DEBUG_H_
 #define _BIOSEMU_DEBUG_H_
 
-#include <timer.h>
-#include <types.h>
-
 #if CONFIG_X86EMU_DEBUG_TIMINGS
 extern struct mono_time zero;
 #endif
-extern u32 debug_flags;
+extern uint32_t debug_flags;
 // from x86emu...needed for debugging
 extern void x86emu_dump_xregs(void);
 
 /* printf is not available in coreboot... use printk */
-#include <console/console.h>
 #include "x86emu/x86emu.h"
 #define printf(x...) printk(BIOS_DEBUG, x)
 
@@ -109,6 +105,6 @@ static inline void set_ci(void) {};
 
 #endif				//DEBUG
 
-void dump(u8 * addr, u32 len);
+void dump(uint8_t * addr, uint32_t len);
 
 #endif

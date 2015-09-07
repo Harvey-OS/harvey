@@ -47,14 +47,14 @@ Handles any pending asynchronous interrupts.
 ****************************************************************************/
 static void x86emu_intr_handle(void)
 {
-    u8  intno;
+    uint8_t  intno;
 
     if (M.x86.intr & INTR_SYNCH) {
         intno = M.x86.intno;
         if (_X86EMU_intrTab[intno]) {
             (*_X86EMU_intrTab[intno])(intno);
         } else {
-            push_word((u16)M.x86.R_FLG);
+            push_word((uint16_t)M.x86.R_FLG);
             CLEAR_FLAG(F_IF);
             CLEAR_FLAG(F_TF);
             push_word(M.x86.R_CS);
@@ -74,8 +74,7 @@ REMARKS:
 Raise the specified interrupt to be handled before the execution of the
 next instruction.
 ****************************************************************************/
-void x86emu_intr_raise(
-    u8 intrnum)
+void x86emu_intr_raise(uint8_t intrnum)
 {
     printf("%s, raising exception %x\n", __func__, intrnum);
     x86emu_dump_regs();
@@ -91,7 +90,7 @@ original real mode call.
 ****************************************************************************/
 void X86EMU_exec(void)
 {
-    u8 op1;
+    uint8_t op1;
 
     M.x86.intr = 0;
     DB(x86emu_end_instr();)
@@ -119,7 +118,7 @@ DB(             if (M.x86.R_SP != 0) {
                 x86emu_intr_handle();
             }
         }
-        op1 = (*sys_rdb)(((u32)M.x86.R_CS << 4) + (M.x86.R_IP++));
+        op1 = (*sys_rdb)(((uint32_t)M.x86.R_CS << 4) + (M.x86.R_IP++));
         (*x86emu_optab[op1])(op1);
         //if (M.x86.debug & DEBUG_EXIT) {
         //    M.x86.debug &= ~DEBUG_EXIT;
@@ -158,7 +157,7 @@ void fetch_decode_modrm(
 
 DB( if (CHECK_IP_FETCH())
         x86emu_check_ip_access();)
-    fetched = (*sys_rdb)(((u32)M.x86.R_CS << 4) + (M.x86.R_IP++));
+    fetched = (*sys_rdb)(((uint32_t)M.x86.R_CS << 4) + (M.x86.R_IP++));
     INC_DECODED_INST_LEN(1);
     *mod  = (fetched >> 6) & 0x03;
     *regh = (fetched >> 3) & 0x07;
@@ -175,13 +174,13 @@ moves the instruction pointer to the next value.
 
 NOTE: Do not inline this function, as (*sys_rdb) is already inline!
 ****************************************************************************/
-u8 fetch_byte_imm(void)
+uint8_t fetch_byte_imm(void)
 {
-    u8 fetched;
+    uint8_t fetched;
 
 DB( if (CHECK_IP_FETCH())
         x86emu_check_ip_access();)
-    fetched = (*sys_rdb)(((u32)M.x86.R_CS << 4) + (M.x86.R_IP++));
+    fetched = (*sys_rdb)(((uint32_t)M.x86.R_CS << 4) + (M.x86.R_IP++));
     INC_DECODED_INST_LEN(1);
     return fetched;
 }
@@ -196,13 +195,13 @@ moves the instruction pointer to the next value.
 
 NOTE: Do not inline this function, as (*sys_rdw) is already inline!
 ****************************************************************************/
-u16 fetch_word_imm(void)
+uint16_t fetch_word_imm(void)
 {
-    u16 fetched;
+    uint16_t fetched;
 
 DB( if (CHECK_IP_FETCH())
         x86emu_check_ip_access();)
-    fetched = (*sys_rdw)(((u32)M.x86.R_CS << 4) + (M.x86.R_IP));
+    fetched = (*sys_rdw)(((uint32_t)M.x86.R_CS << 4) + (M.x86.R_IP));
     M.x86.R_IP += 2;
     INC_DECODED_INST_LEN(2);
     return fetched;
@@ -218,13 +217,13 @@ moves the instruction pointer to the next value.
 
 NOTE: Do not inline this function, as (*sys_rdw) is already inline!
 ****************************************************************************/
-u32 fetch_long_imm(void)
+uint32_t fetch_long_imm(void)
 {
-    u32 fetched;
+    uint32_t fetched;
 
 DB( if (CHECK_IP_FETCH())
         x86emu_check_ip_access();)
-    fetched = (*sys_rdl)(((u32)M.x86.R_CS << 4) + (M.x86.R_IP));
+    fetched = (*sys_rdl)(((uint32_t)M.x86.R_CS << 4) + (M.x86.R_IP));
     M.x86.R_IP += 4;
     INC_DECODED_INST_LEN(4);
     return fetched;
@@ -259,7 +258,7 @@ cpu-state-variable M.x86.mode. There are several potential states:
 
 Each of the above 7 items are handled with a bit in the mode field.
 ****************************************************************************/
-_INLINE u32 get_data_segment(void)
+_INLINE uint32_t get_data_segment(void)
 {
 #define GET_SEGMENT(segment)
     switch (M.x86.mode & SYSMODE_SEGMASK) {
@@ -302,12 +301,12 @@ Byte value read from the absolute memory location.
 
 NOTE: Do not inline this function as (*sys_rdX) is already inline!
 ****************************************************************************/
-u8 fetch_data_byte(
+uint8_t fetch_data_byte(
     uint offset)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
-        x86emu_check_data_access((u16)get_data_segment(), offset);
+        x86emu_check_data_access((uint16_t)get_data_segment(), offset);
 #endif
     return (*sys_rdb)((get_data_segment() << 4) + offset);
 }
@@ -321,12 +320,12 @@ Word value read from the absolute memory location.
 
 NOTE: Do not inline this function as (*sys_rdX) is already inline!
 ****************************************************************************/
-u16 fetch_data_word(
+uint16_t fetch_data_word(
     uint offset)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
-        x86emu_check_data_access((u16)get_data_segment(), offset);
+        x86emu_check_data_access((uint16_t)get_data_segment(), offset);
 #endif
     return (*sys_rdw)((get_data_segment() << 4) + offset);
 }
@@ -340,12 +339,12 @@ Long value read from the absolute memory location.
 
 NOTE: Do not inline this function as (*sys_rdX) is already inline!
 ****************************************************************************/
-u32 fetch_data_long(
+uint32_t fetch_data_long(
     uint offset)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
-        x86emu_check_data_access((u16)get_data_segment(), offset);
+        x86emu_check_data_access((uint16_t)get_data_segment(), offset);
 #endif
     return (*sys_rdl)((get_data_segment() << 4) + offset);
 }
@@ -360,7 +359,7 @@ Byte value read from the absolute memory location.
 
 NOTE: Do not inline this function as (*sys_rdX) is already inline!
 ****************************************************************************/
-u8 fetch_data_byte_abs(
+uint8_t fetch_data_byte_abs(
     uint segment,
     uint offset)
 {
@@ -368,7 +367,7 @@ u8 fetch_data_byte_abs(
     if (CHECK_DATA_ACCESS())
         x86emu_check_data_access(segment, offset);
 #endif
-    return (*sys_rdb)(((u32)segment << 4) + offset);
+    return (*sys_rdb)(((uint32_t)segment << 4) + offset);
 }
 
 /****************************************************************************
@@ -381,7 +380,7 @@ Word value read from the absolute memory location.
 
 NOTE: Do not inline this function as (*sys_rdX) is already inline!
 ****************************************************************************/
-u16 fetch_data_word_abs(
+uint16_t fetch_data_word_abs(
     uint segment,
     uint offset)
 {
@@ -389,7 +388,7 @@ u16 fetch_data_word_abs(
     if (CHECK_DATA_ACCESS())
         x86emu_check_data_access(segment, offset);
 #endif
-    return (*sys_rdw)(((u32)segment << 4) + offset);
+    return (*sys_rdw)(((uint32_t)segment << 4) + offset);
 }
 
 /****************************************************************************
@@ -402,7 +401,7 @@ Long value read from the absolute memory location.
 
 NOTE: Do not inline this function as (*sys_rdX) is already inline!
 ****************************************************************************/
-u32 fetch_data_long_abs(
+uint32_t fetch_data_long_abs(
     uint segment,
     uint offset)
 {
@@ -410,7 +409,7 @@ u32 fetch_data_long_abs(
     if (CHECK_DATA_ACCESS())
         x86emu_check_data_access(segment, offset);
 #endif
-    return (*sys_rdl)(((u32)segment << 4) + offset);
+    return (*sys_rdl)(((uint32_t)segment << 4) + offset);
 }
 
 /****************************************************************************
@@ -426,11 +425,11 @@ NOTE: Do not inline this function as (*sys_wrX) is already inline!
 ****************************************************************************/
 void store_data_byte(
     uint offset,
-    u8 val)
+    uint8_t val)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
-        x86emu_check_data_access((u16)get_data_segment(), offset);
+        x86emu_check_data_access((uint16_t)get_data_segment(), offset);
 #endif
     (*sys_wrb)((get_data_segment() << 4) + offset, val);
 }
@@ -448,11 +447,11 @@ NOTE: Do not inline this function as (*sys_wrX) is already inline!
 ****************************************************************************/
 void store_data_word(
     uint offset,
-    u16 val)
+    uint16_t val)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
-        x86emu_check_data_access((u16)get_data_segment(), offset);
+        x86emu_check_data_access((uint16_t)get_data_segment(), offset);
 #endif
     (*sys_wrw)((get_data_segment() << 4) + offset, val);
 }
@@ -470,11 +469,11 @@ NOTE: Do not inline this function as (*sys_wrX) is already inline!
 ****************************************************************************/
 void store_data_long(
     uint offset,
-    u32 val)
+    uint32_t val)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
-        x86emu_check_data_access((u16)get_data_segment(), offset);
+        x86emu_check_data_access((uint16_t)get_data_segment(), offset);
 #endif
     (*sys_wrl)((get_data_segment() << 4) + offset, val);
 }
@@ -493,13 +492,13 @@ NOTE: Do not inline this function as (*sys_wrX) is already inline!
 void store_data_byte_abs(
     uint segment,
     uint offset,
-    u8 val)
+    uint8_t val)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
         x86emu_check_data_access(segment, offset);
 #endif
-    (*sys_wrb)(((u32)segment << 4) + offset, val);
+    (*sys_wrb)(((uint32_t)segment << 4) + offset, val);
 }
 
 /****************************************************************************
@@ -516,13 +515,13 @@ NOTE: Do not inline this function as (*sys_wrX) is already inline!
 void store_data_word_abs(
     uint segment,
     uint offset,
-    u16 val)
+    uint16_t val)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
         x86emu_check_data_access(segment, offset);
 #endif
-    (*sys_wrw)(((u32)segment << 4) + offset, val);
+    (*sys_wrw)(((uint32_t)segment << 4) + offset, val);
 }
 
 /****************************************************************************
@@ -539,13 +538,13 @@ NOTE: Do not inline this function as (*sys_wrX) is already inline!
 void store_data_long_abs(
     uint segment,
     uint offset,
-    u32 val)
+    uint32_t val)
 {
 #ifdef DEBUG
     if (CHECK_DATA_ACCESS())
         x86emu_check_data_access(segment, offset);
 #endif
-    (*sys_wrl)(((u32)segment << 4) + offset, val);
+    (*sys_wrl)(((uint32_t)segment << 4) + offset, val);
 }
 
 /****************************************************************************
@@ -559,7 +558,7 @@ REMARKS:
 Return a pointer to the register given by the R/RM field of the
 modrm byte, for byte operands. Also enables the decoding of instructions.
 ****************************************************************************/
-u8* decode_rm_byte_register(
+uint8_t* decode_rm_byte_register(
     int reg)
 {
     switch (reg) {
@@ -603,7 +602,7 @@ REMARKS:
 Return a pointer to the register given by the R/RM field of the
 modrm byte, for word operands.  Also enables the decoding of instructions.
 ****************************************************************************/
-u16* decode_rm_word_register(
+uint16_t* decode_rm_word_register(
     int reg)
 {
     switch (reg) {
@@ -647,7 +646,7 @@ REMARKS:
 Return a pointer to the register given by the R/RM field of the
 modrm byte, for dword operands.  Also enables the decoding of instructions.
 ****************************************************************************/
-u32* decode_rm_long_register(
+uint32_t* decode_rm_long_register(
     int reg)
 {
     switch (reg) {
@@ -692,7 +691,7 @@ Return a pointer to the register given by the R/RM field of the
 modrm byte, for word operands, modified from above for the weirdo
 special case of segreg operands.  Also enables the decoding of instructions.
 ****************************************************************************/
-u16* decode_rm_seg_register(
+uint16_t* decode_rm_seg_register(
     int reg)
 {
     switch (reg) {
