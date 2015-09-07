@@ -61,9 +61,9 @@ X86EMU_intrFuncs _X86EMU_intrTab[256];
 /*----------------------------- Implementation ----------------------------*/
 
 /* compute a pointer. This replaces code scattered all over the place! */
-static u8 *mem_ptr(u32 addr, int size)
+static uint8_t *mem_ptr(uint32_t addr, int size)
 {
-	u8 *retaddr = 0;
+	uint8_t *retaddr = 0;
 
 	if (addr > M.mem_size - size) {
 		DB(printf("mem_ptr: address %#x out of range!\n", addr);)
@@ -73,7 +73,7 @@ static u8 *mem_ptr(u32 addr, int size)
 		//printf("%x:%x updating int vector 0x%x\n",
 		//       M.x86.R_CS, M.x86.R_IP, addr >> 2);
 	}
-	retaddr = (u8 *) (M.mem_base + addr);
+	retaddr = (uint8_t *) (M.mem_base + addr);
 
 	return retaddr;
 }
@@ -88,10 +88,10 @@ Byte value read from emulator memory.
 REMARKS:
 Reads a byte value from the emulator memory.
 ****************************************************************************/
-u8 X86API rdb(u32 addr)
+uint8_t X86API rdb(uint32_t addr)
 {
-	u8 val;
-	u8 *ptr;
+	uint8_t val;
+	uint8_t *ptr;
 
 	ptr = mem_ptr(addr, 1);
 
@@ -111,13 +111,13 @@ Word value read from emulator memory.
 REMARKS:
 Reads a word value from the emulator memory.
 ****************************************************************************/
-u16 X86API rdw(u32 addr)
+uint16_t X86API rdw(uint32_t addr)
 {
-	u16 val = 0;
-	u8 *ptr;
+	uint16_t val = 0;
+	uint8_t *ptr;
 
 	ptr = mem_ptr(addr, 2);
-	val = *(u16 *) (ptr);
+	val = *(uint16_t *) (ptr);
 
 	DB(if (DEBUG_MEM_TRACE())
 	   printf("%#08x 2 -> %#x\n", addr, val);)
@@ -133,13 +133,13 @@ Long value read from emulator memory.
 REMARKS:
 Reads a long value from the emulator memory.
 ****************************************************************************/
-u32 X86API rdl(u32 addr)
+uint32_t X86API rdl(uint32_t addr)
 {
-	u32 val = 0;
-	u8 *ptr;
+	uint32_t val = 0;
+	uint8_t *ptr;
 
 	ptr = mem_ptr(addr, 4);
-       	val = *(u32 *) (ptr);
+       	val = *(uint32_t *) (ptr);
 
 	DB(if (DEBUG_MEM_TRACE())
 	   printf("%#08x 4 -> %#x\n", addr, val);)
@@ -154,12 +154,12 @@ val		- Value to store
 REMARKS:
 Writes a byte value to emulator memory.
 ****************************************************************************/
-void X86API wrb(u32 addr, u8 val)
+void X86API wrb(uint32_t addr, uint8_t val)
 {
-	u8 *ptr;
+	uint8_t *ptr;
 
 	ptr = mem_ptr(addr, 1);
-	*(u8 *) (ptr) = val;
+	*(uint8_t *) (ptr) = val;
 
 	DB(if (DEBUG_MEM_TRACE())
 	   printf("%#08x 1 <- %#x\n", addr, val);)
@@ -173,12 +173,12 @@ val		- Value to store
 REMARKS:
 Writes a word value to emulator memory.
 ****************************************************************************/
-void X86API wrw(u32 addr, u16 val)
+void X86API wrw(uint32_t addr, uint16_t val)
 {
-	u8 *ptr;
+	uint8_t *ptr;
 
 	ptr = mem_ptr(addr, 2);
-	*(u16 *) (ptr) = val;
+	*(uint16_t *) (ptr) = val;
 
 	DB(if (DEBUG_MEM_TRACE())
 	   printf("%#08x 2 <- %#x\n", addr, val);)
@@ -192,12 +192,12 @@ val		- Value to store
 REMARKS:
 Writes a long value to emulator memory.
 ****************************************************************************/
-void X86API wrl(u32 addr, u32 val)
+void X86API wrl(uint32_t addr, uint32_t val)
 {
-	u8 *ptr;
+	uint8_t *ptr;
 
 	ptr = mem_ptr(addr, 4);
-	*(u32 *) (ptr) = val;
+	*(uint32_t *) (ptr) = val;
 
 	DB(if (DEBUG_MEM_TRACE())
 	   printf("%#08x 4 <- %#x\n", addr, val);)
@@ -213,7 +213,7 @@ RETURN:
 REMARKS:
 Default PIO byte read function. Doesn't perform real inb.
 ****************************************************************************/
-static u8 X86API p_inb(X86EMU_pioAddr addr)
+static uint8_t X86API p_inb(X86EMU_pioAddr addr)
 {
 	DB(if (DEBUG_IO_TRACE())
 		printf("inb %#04x \n", addr);)
@@ -228,7 +228,7 @@ RETURN:
 REMARKS:
 Default PIO word read function. Doesn't perform real inw.
 ****************************************************************************/
-static u16 X86API p_inw(X86EMU_pioAddr addr)
+static uint16_t X86API p_inw(X86EMU_pioAddr addr)
 {
 	DB(if (DEBUG_IO_TRACE())
 		printf("inw %#04x \n", addr);)
@@ -243,7 +243,7 @@ RETURN:
 REMARKS:
 Default PIO long read function. Doesn't perform real inl.
 ****************************************************************************/
-static u32 X86API p_inl(X86EMU_pioAddr addr)
+static uint32_t X86API p_inl(X86EMU_pioAddr addr)
 {
 	DB(if (DEBUG_IO_TRACE())
 		printf("inl %#04x \n", addr);)
@@ -257,7 +257,7 @@ val     - Value to store
 REMARKS:
 Default PIO byte write function. Doesn't perform real outb.
 ****************************************************************************/
-static void X86API p_outb(X86EMU_pioAddr addr, u8 val)
+static void X86API p_outb(X86EMU_pioAddr addr, uint8_t val)
 {
 	DB(if (DEBUG_IO_TRACE())
 		printf("outb %#02x -> %#04x \n", val, addr);)
@@ -272,7 +272,7 @@ val     - Value to store
 REMARKS:
 Default PIO word write function. Doesn't perform real outw.
 ****************************************************************************/
-static void X86API p_outw(X86EMU_pioAddr addr, u16 val)
+static void X86API p_outw(X86EMU_pioAddr addr, uint16_t val)
 {
 	DB(if (DEBUG_IO_TRACE())
 		printf("outw %#04x -> %#04x \n", val, addr);)
@@ -287,7 +287,7 @@ val     - Value to store
 REMARKS:
 Default PIO ;ong write function. Doesn't perform real outl.
 ****************************************************************************/
-static void X86API p_outl(X86EMU_pioAddr addr, u32 val)
+static void X86API p_outl(X86EMU_pioAddr addr, uint32_t val)
 {
 	DB(if (DEBUG_IO_TRACE())
 	       printf("outl %#08x -> %#04x \n", val, addr);)
@@ -390,7 +390,7 @@ hook and handle certain software interrupts as necessary.
 ****************************************************************************/
 void X86EMU_prepareForInt(int num)
 {
-	push_word((u16) M.x86.R_FLG);
+	push_word((uint16_t) M.x86.R_FLG);
 	CLEAR_FLAG(F_IF);
 	CLEAR_FLAG(F_TF);
 	push_word(M.x86.R_CS);

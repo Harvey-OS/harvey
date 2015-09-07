@@ -35,7 +35,7 @@ setupInt(int intNum)
 	DEBUG_PRINTF_INTR("%s(%x): executing interrupt handler @%08x\n",
 			  __func__, intNum, my_rdl(intNum * 4));
 	// push current R_FLG... will be popped by IRET
-	push_word((u16) M.x86.R_FLG);
+	push_word((uint16_t) M.x86.R_FLG);
 	CLEAR_FLAG(F_IF);
 	CLEAR_FLAG(F_TF);
 	// push current CS:IP to the stack, will be popped by IRET
@@ -168,7 +168,7 @@ handleInt10(void)
 }
 
 // this table translates ASCII chars into their XT scan codes:
-static u8 keycode_table[256] = {
+static uint8_t keycode_table[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	// 0 - 7
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	// 8 - 15
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	// 16 - 23
@@ -208,11 +208,11 @@ static u8 keycode_table[256] = {
 static void
 translate_keycode(u64 * keycode)
 {
-	u8 scan_code = 0;
-	u8 char_code = 0;
+	uint8_t scan_code = 0;
+	uint8_t char_code = 0;
 	if (*keycode < 256) {
 		scan_code = keycode_table[*keycode];
-		char_code = (u8) * keycode & 0xff;
+		char_code = (uint8_t) * keycode & 0xff;
 	} else {
 		switch (*keycode) {
 		case 0x1b50:
@@ -227,7 +227,7 @@ translate_keycode(u64 * keycode)
 		}
 	}
 	//assemble scan/char code in keycode
-	*keycode = (u64) ((((u16) scan_code) << 8) | char_code);
+	*keycode = (u64) ((((uint16_t) scan_code) << 8) | char_code);
 }
 
 // handle int16 (Keyboard BIOS Interrupt)
@@ -253,7 +253,7 @@ handleInt16(void)
 	case 0x00:
 		// get keystroke
 		if (*keycode) {
-			M.x86.R_AX = (u16) * keycode;
+			M.x86.R_AX = (uint16_t) * keycode;
 			// clear keycode
 			*keycode = 0;
 		} else {
@@ -268,7 +268,7 @@ handleInt16(void)
 		if (*keycode) {
 			// already read, but not yet taken
 			CLEAR_FLAG(F_ZF);
-			M.x86.R_AX = (u16) * keycode;
+			M.x86.R_AX = (uint16_t) * keycode;
 		} else {
 			/* TODO: we need getchar... */
 			c = -1; //getchar();
@@ -298,7 +298,7 @@ handleInt16(void)
 					SET_FLAG(F_ZF);
 				} else {
 					CLEAR_FLAG(F_ZF);
-					M.x86.R_AX = (u16) * keycode;
+					M.x86.R_AX = (uint16_t) * keycode;
 					//X86EMU_trace_on();
 					//M.x86.debug &= ~DEBUG_DECODE_NOPRINT_F;
 				}
@@ -529,7 +529,7 @@ handleInt1a(void)
 void
 handleInterrupt(int intNum)
 {
-	u8 int_handled = 0;
+	uint8_t int_handled = 0;
 #ifndef DEBUG_PRINT_INT10
 	// this printf makes output by int 10 unreadable...
 	// so we only enable it, if int10 print is disabled

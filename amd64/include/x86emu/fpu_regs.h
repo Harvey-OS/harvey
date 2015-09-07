@@ -36,9 +36,6 @@
 *
 ****************************************************************************/
 
-#ifndef __X86EMU_FPU_REGS_H
-#define __X86EMU_FPU_REGS_H
-
 #ifdef X86_FPU_SUPPORT
 
 #pragma	pack(1)
@@ -102,6 +99,7 @@ struct x86_fpu_registers {
 
 #endif /* X86_FPU_SUPPORT */
 
+// TODO: get rid of this horrid nonsense.
 #if CONFIG_X86EMU_DEBUG
 # define DECODE_PRINTINSTR32(t,mod,rh,rl)     	\
 	DECODE_PRINTF(t[(mod<<3)+(rh)]);
@@ -112,4 +110,3 @@ struct x86_fpu_registers {
 # define DECODE_PRINTINSTR256(t,mod,rh,rl)
 #endif
 
-#endif /* __X86EMU_FPU_REGS_H */

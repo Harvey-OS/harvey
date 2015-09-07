@@ -24,9 +24,9 @@
  * All areas are assigned in PMM_CONV_SEGMENT
  */
 typedef struct {
-	u32 handle;		/* handle that is returned to PMM caller */
-	u32 offset;		/* in PMM_CONV_SEGMENT */
-	u32 length;		/* length of this area */
+	uint32_t handle;		/* handle that is returned to PMM caller */
+	uint32_t offset;		/* in PMM_CONV_SEGMENT */
+	uint32_t length;		/* length of this area */
 } pmm_allocation_t;
 
 #define MAX_PMM_AREAS 10
@@ -35,7 +35,7 @@ typedef struct {
 static pmm_allocation_t pmm_allocation_array[MAX_PMM_AREAS];
 
 /* index into pmm_allocation_array */
-static u32 curr_pmm_allocation_index = 0;
+static uint32_t curr_pmm_allocation_index = 0;
 
 /* This function is used to setup the PMM struct in virtual memory
  * at a certain offset, the length of the PMM struct is returned */
@@ -289,8 +289,8 @@ exit:
 /* This function tests the pmm_handleInt() function above. */
 void pmm_test(void)
 {
-	u32 handle, length, addr;
-	u16 function, flags;
+	uint32_t handle, length, addr;
+	uint16_t function, flags;
 	/*-------------------- Test simple allocation/find/deallocation ----------------------------- */
 	function = 0;		/* pmmAllocate */
 	handle = 0xdeadbeef;
@@ -303,7 +303,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	DEBUG_PRINTF_PMM("%s: allocated memory at: %04x:%04x\n", __func__,
 			 M.x86.R_DX, M.x86.R_AX);
 	function = 1;		/* pmmFind */
@@ -333,7 +333,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	DEBUG_PRINTF_PMM("%s: allocated memory at: %04x:%04x\n", __func__,
 			 M.x86.R_DX, M.x86.R_AX);
 	function = 0;		/* pmmAllocate */
@@ -348,7 +348,7 @@ void pmm_test(void)
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
 	/* the address should be aligned to 0x800, so probably it is at offset 0x1800... */
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	DEBUG_PRINTF_PMM("%s: allocated memory at: %04x:%04x\n", __func__,
 			 M.x86.R_DX, M.x86.R_AX);
 	function = 1;		/* pmmFind */
@@ -356,7 +356,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	function = 2;		/* pmmDeallocate */
 	push_long(addr);
 	push_word(function);
@@ -371,7 +371,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	function = 2;		/* pmmDeallocate */
 	push_long(addr);
 	push_word(function);
@@ -392,7 +392,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	length = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	length = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	length /= 16;		/* length in paragraphs */
 	DEBUG_PRINTF_PMM("%s: largest possible length: %08x\n", __func__,
 			 length);
@@ -405,7 +405,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	DEBUG_PRINTF_PMM("%s: allocated memory at: %04x:%04x\n", __func__,
 			 M.x86.R_DX, M.x86.R_AX);
 	function = 0;		/* pmmAllocate */
@@ -420,7 +420,7 @@ void pmm_test(void)
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
 	/* this should fail, so 0x0 should be returned */
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	DEBUG_PRINTF_PMM
 	    ("%s: allocated memory at: %04x:%04x expected: 0000:0000\n",
 	     __func__, M.x86.R_DX, M.x86.R_AX);
@@ -430,7 +430,7 @@ void pmm_test(void)
 	push_word(function);
 	push_long(0);		/* This is the return address for the ABI, unused in this implementation */
 	pmm_handleInt();
-	addr = ((u32) M.x86.R_DX << 16) | M.x86.R_AX;
+	addr = ((uint32_t) M.x86.R_DX << 16) | M.x86.R_AX;
 	function = 2;		/* pmmDeallocate */
 	push_long(addr);
 	push_word(function);

@@ -54,11 +54,13 @@ extern unsigned char __realmode_buffer;
 /* to have a common register file for interrupt handlers */
 X86EMU_sysEnv _X86EMU_env;
 
-void (*realmode_call)(u32 addr, u32 eax, u32 ebx, u32 ecx, u32 edx,
-		u32 esi, u32 edi) asmlinkage;
+void (*realmode_call)(uint32_t addr, uint32_t eax, uint32_t ebx,
+		      uint32_t ecx, uint32_t edx,
+		uint32_t esi, uint32_t edi) asmlinkage;
 
-void (*realmode_interrupt)(u32 intno, u32 eax, u32 ebx, u32 ecx, u32 edx,
-		u32 esi, u32 edi) asmlinkage;
+void (*realmode_interrupt)(uint32_t intno, uint32_t eax, uint32_t ebx,
+			   uint32_t ecx, uint32_t edx,
+		uint32_t esi, uint32_t edi) asmlinkage;
 
 static void setup_realmode_code(void)
 {
@@ -170,7 +172,7 @@ static void setup_interrupt_handlers(void)
 	}
 }
 
-static void write_idt_stub(void *target, u8 intnum)
+static void write_idt_stub(void *target, uint8_t intnum)
 {
 	unsigned char *codeptr;
 	codeptr = (unsigned char *) target;
@@ -225,13 +227,13 @@ int vbe_mode_info_valid(void)
 	return mode_info_valid;
 }
 
-static u8 vbe_get_mode_info(vbe_mode_info_t * mi)
+static uint8_t vbe_get_mode_info(vbe_mode_info_t * mi)
 {
 	printk(BIOS_DEBUG, "VBE: Getting information about VESA mode %04x\n",
 		mi->video_mode);
 	char *buffer = PTR_TO_REAL_MODE(__realmode_buffer);
-	u16 buffer_seg = (((unsigned long)buffer) >> 4) & 0xff00;
-	u16 buffer_adr = ((unsigned long)buffer) & 0xffff;
+	uint16_t buffer_seg = (((unsigned long)buffer) >> 4) & 0xff00;
+	uint16_t buffer_adr = ((unsigned long)buffer) & 0xffff;
 	realmode_interrupt(0x10, VESA_GET_MODE_INFO, 0x0000,
 			mi->video_mode, 0x0000, buffer_seg, buffer_adr);
 	memcpy(mi->mode_info_block, buffer, sizeof(mi->mode_info_block));
@@ -239,7 +241,7 @@ static u8 vbe_get_mode_info(vbe_mode_info_t * mi)
 	return 0;
 }
 
-static u8 vbe_set_mode(vbe_mode_info_t * mi)
+static uint8_t vbe_set_mode(vbe_mode_info_t * mi)
 {
 	printk(BIOS_DEBUG, "VBE: Setting VESA mode %04x\n", mi->video_mode);
 	// request linear framebuffer mode
@@ -320,7 +322,7 @@ void fill_lb_framebuffer(struct lb_framebuffer *framebuffer)
 
 void run_bios(struct device *dev, unsigned long addr)
 {
-	u32 num_dev = (dev->bus->secondary << 8) | dev->path.pci.devfn;
+	uint32_t num_dev = (dev->bus->secondary << 8) | dev->path.pci.devfn;
 
 	/* Setting up required hardware.
 	 * Removing this will cause random illegal instruction exceptions
@@ -362,9 +364,9 @@ void run_bios(struct device *dev, unsigned long addr)
 void do_vsmbios(void);
 
 /* VSA virtual register helper */
-static u32 VSA_vrRead(u16 classIndex)
+static uint32_t VSA_vrRead(uint16_t classIndex)
 {
-	u32 eax, ebx, ecx, edx;
+	uint32_t eax, ebx, ecx, edx;
 	asm volatile (
 		"movw	$0x0AC1C, %%dx\n"
 		"orl	$0x0FC530000, %%eax\n"
@@ -432,25 +434,25 @@ void do_vsmbios(void)
 /* interrupt_handler() is called from assembler code only,
  * so there is no use in putting the prototype into a header file.
  */
-int asmlinkage interrupt_handler(u32 intnumber,
-	    u32 gsfs, u32 dses,
-	    u32 edi, u32 esi,
-	    u32 ebp, u32 esp,
-	    u32 ebx, u32 edx,
-	    u32 ecx, u32 eax,
-	    u32 cs_ip, u16 stackflags);
+int asmlinkage interrupt_handler(uint32_t intnumber,
+	    uint32_t gsfs, uint32_t dses,
+	    uint32_t edi, uint32_t esi,
+	    uint32_t ebp, uint32_t esp,
+	    uint32_t ebx, uint32_t edx,
+	    uint32_t ecx, uint32_t eax,
+	    uint32_t cs_ip, uint16_t stackflags);
 
-int asmlinkage interrupt_handler(u32 intnumber,
-	    u32 gsfs, u32 dses,
-	    u32 edi, u32 esi,
-	    u32 ebp, u32 esp,
-	    u32 ebx, u32 edx,
-	    u32 ecx, u32 eax,
-	    u32 cs_ip, u16 stackflags)
+int asmlinkage interrupt_handler(uint32_t intnumber,
+	    uint32_t gsfs, uint32_t dses,
+	    uint32_t edi, uint32_t esi,
+	    uint32_t ebp, uint32_t esp,
+	    uint32_t ebx, uint32_t edx,
+	    uint32_t ecx, uint32_t eax,
+	    uint32_t cs_ip, uint16_t stackflags)
 {
-	u32 ip;
-	u32 cs;
-	u32 flags;
+	uint32_t ip;
+	uint32_t cs;
+	uint32_t flags;
 	int ret = 0;
 
 	ip = cs_ip & 0xffff;
@@ -492,12 +494,12 @@ int asmlinkage interrupt_handler(u32 intnumber,
 	// the values of the parameters of this function. We do this
 	// because we know that they stay alive on the stack after
 	// we leave this function. Don't say this is bollocks.
-	*(volatile u32 *)&eax = X86_EAX;
-	*(volatile u32 *)&ecx = X86_ECX;
-	*(volatile u32 *)&edx = X86_EDX;
-	*(volatile u32 *)&ebx = X86_EBX;
-	*(volatile u32 *)&esi = X86_ESI;
-	*(volatile u32 *)&edi = X86_EDI;
+	*(volatile uint32_t *)&eax = X86_EAX;
+	*(volatile uint32_t *)&ecx = X86_ECX;
+	*(volatile uint32_t *)&edx = X86_EDX;
+	*(volatile uint32_t *)&ebx = X86_EBX;
+	*(volatile uint32_t *)&esi = X86_ESI;
+	*(volatile uint32_t *)&edi = X86_EDI;
 	flags = X86_EFLAGS;
 
 	/* Pass success or error back to our caller via the CARRY flag */
@@ -507,7 +509,7 @@ int asmlinkage interrupt_handler(u32 intnumber,
 		printk(BIOS_DEBUG,"int%02x call returned error.\n", intnumber);
 		flags |= 1;  // error: set carry
 	}
-	*(volatile u16 *)&stackflags = flags;
+	*(volatile uint16_t *)&stackflags = flags;
 
 	/* The assembler code doesn't actually care for the return value,
 	 * but keep it around so its expectations are met */

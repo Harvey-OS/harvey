@@ -39,14 +39,14 @@
 #include <vbe.h>
 
 // pointer to VBEInfoBuffer, set by vbe_prepare
-u8 *vbe_info_buffer = 0;
+uint8_t *vbe_info_buffer = 0;
 
 // virtual BIOS Memory
-u8 *biosmem;
-u32 biosmem_size;
+uint8_t *biosmem;
+uint32_t biosmem_size;
 
 #if CONFIG_FRAMEBUFFER_SET_VESA_MODE
-static inline u8
+static inline uint8_t
 vbe_prepare(void)
 {
 	vbe_info_buffer = biosmem + (VBE_SEGMENT << 4);	// segment:offset off VBE Data Area
@@ -688,7 +688,7 @@ vbe_mode_info_t mode_info;
 
 void vbe_set_graphics(void)
 {
-	u8 rval;
+	uint8_t rval;
 
 	vbe_info_t info;
 	rval = vbe_info(&info);
