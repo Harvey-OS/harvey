@@ -14,7 +14,7 @@
 #define LONG_MIN	-2147483648L
 
 int32_t
-strtol(const char *nptr, const char **endptr, int base)
+strtol(const char *nptr, char **endptr, int base)
 {
 	const char *p;
 	int32_t n, nn, m;
@@ -98,7 +98,7 @@ Return:
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = p;
+		*endptr = (char*)p;
 	if(ovfl){
 		if(neg)
 			return LONG_MIN;

@@ -27,16 +27,16 @@ double	charstod(int (*f)(void *), void *a)
 double	strtod(const char *nptr, const char **rptr)
 .PP
 .B
-long	strtol(const char *nptr, const char **rptr, int base)
+long	strtol(const char *nptr, char **rptr, int base)
 .PP
 .B
-vlong	strtoll(const char *nptr, const char **rptr, int base)
+vlong	strtoll(const char *nptr, char **rptr, int base)
 .PP
 .B
-ulong	strtoul(const char *nptr, const char **rptr, int base)
+ulong	strtoul(const char *nptr, char **rptr, int base)
 .PP
 .B
-uvlong	strtoull(const char *nptr, const char **rptr, int base)
+uvlong	strtoull(const char *nptr, char **rptr, int base)
 .fi
 .SH DESCRIPTION
 .IR Atof ,
