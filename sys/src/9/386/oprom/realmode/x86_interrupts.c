@@ -45,7 +45,7 @@ enum {
 int int10_handler(void)
 {
 	int res=0;
-	static u8 cursor_row=0, cursor_col=0;
+	static uint8_t cursor_row=0, cursor_col=0;
 	switch((X86_EAX & 0xff00)>>8) {
 	case 0x01: // Set cursor shape
 		res = 1;
@@ -129,9 +129,9 @@ int int1a_handler(void)
 	short devindex;
 	unsigned char bus;
 	struct device *dev;
-	u32 dword;
-	u16 word;
-	u8 byte, reg;
+	uint32_t dword;
+	uint16_t word;
+	uint8_t byte, reg;
 
 	switch (func) {
 	case 0xb101: /* PCIBIOS Check */

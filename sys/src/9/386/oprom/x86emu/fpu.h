@@ -45,14 +45,14 @@ extern "C" {            			/* Use "C" linkage when in C++ mode */
 
 /* these have to be defined, whether 8087 support compiled in or not. */
 
-extern void x86emuOp_esc_coprocess_d8 (u8 op1);
-extern void x86emuOp_esc_coprocess_d9 (u8 op1);
-extern void x86emuOp_esc_coprocess_da (u8 op1);
-extern void x86emuOp_esc_coprocess_db (u8 op1);
-extern void x86emuOp_esc_coprocess_dc (u8 op1);
-extern void x86emuOp_esc_coprocess_dd (u8 op1);
-extern void x86emuOp_esc_coprocess_de (u8 op1);
-extern void x86emuOp_esc_coprocess_df (u8 op1);
+extern void x86emuOp_esc_coprocess_d8 (uint8_t op1);
+extern void x86emuOp_esc_coprocess_d9 (uint8_t op1);
+extern void x86emuOp_esc_coprocess_da (uint8_t op1);
+extern void x86emuOp_esc_coprocess_db (uint8_t op1);
+extern void x86emuOp_esc_coprocess_dc (uint8_t op1);
+extern void x86emuOp_esc_coprocess_dd (uint8_t op1);
+extern void x86emuOp_esc_coprocess_de (uint8_t op1);
+extern void x86emuOp_esc_coprocess_df (uint8_t op1);
 
 #ifdef  __cplusplus
 }                       			/* End of "C" linkage for C++   	*/

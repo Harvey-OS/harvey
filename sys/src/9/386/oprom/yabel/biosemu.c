@@ -12,8 +12,8 @@
  *     IBM Corporation - initial implementation
  *****************************************************************************/
 
-#include <string.h>
-#include <types.h>
+#include "u.h"
+#include "../port/lib.h"
 
 #include "debug.h"
 
@@ -25,10 +25,8 @@
 #include "io.h"
 #include "mem.h"
 #include "interrupt.h"
-#include "device.h"
 #include "pmm.h"
 
-#include <device/device.h>
 #include "compat/rtas.h"
 
 #if CONFIG_X86EMU_DEBUG_TIMINGS
@@ -61,10 +59,10 @@ mainboard_interrupt_handlers(int interrupt, yabel_handleIntFunc func)
  * rom_addr = address of the OptionROM to be executed, if this is = 0, YABEL
  * 	will look for an ExpansionROM BAR and use the code from there.
  */
-u32
-biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_addr)
+uint32_t
+biosemu(uint8_t *biosmem, uint32_t biosmem_size, struct device * dev, unsigned long rom_addr)
 {
-	u8 *rom_image;
+	uint8_t *rom_image;
 	int i = 0;
 #if CONFIG_X86EMU_DEBUG
 	debug_flags = 0;
@@ -109,22 +107,27 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 #endif
 
 	if (biosmem_size < MIN_REQUIRED_VMEM_SIZE) {
-		printf("Error: Not enough virtual memory: %x, required: %x!\n",
+		print("Error: Not enough virtual memory: %x, required: %x!\n",
 		       biosmem_size, MIN_REQUIRED_VMEM_SIZE);
 		return -1;
 	}
+#warning "FIX ME"
+#if 0
 	if (biosemu_dev_init(dev) != 0) {
-		printf("Error initializing device!\n");
+		print("Error initializing device!\n");
 		return -1;
 	}
+
 	if (biosemu_dev_check_exprom(rom_addr) != 0) {
-		printf("Error: Device Expansion ROM invalid!\n");
+		print("Error: Device Expansion ROM invalid!\n");
 		return -1;
 	}
+
 	biosemu_add_special_memory(0, 0x500); // IVT + BDA
 	biosemu_add_special_memory(OPTION_ROM_CODE_SEGMENT << 4, 0x10000); // option ROM
 
-	rom_image = (u8 *) bios_device.img_addr;
+	rom_image = (uint8_t *) bios_device.img_addr;
+#endif
 	DEBUG_PRINTF("executing rom_image from %p\n", rom_image);
 	DEBUG_PRINTF("biosmem at %p\n", biosmem);
 
@@ -147,40 +150,46 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 	// copy expansion ROM image to segment OPTION_ROM_CODE_SEGMENT
 	// NOTE: this sometimes fails, some bytes are 0x00... so we compare
 	// after copying and do some retries...
-	u8 *mem_img = (u8*)(OPTION_ROM_CODE_SEGMENT << 4);
-	u8 copy_count = 0;
-	u8 cmp_result = 0;
+	uint8_t *mem_img = (uint8_t*)(OPTION_ROM_CODE_SEGMENT << 4);
+	uint8_t copy_count = 0;
+	uint8_t cmp_result = 0;
 	do {
 #if 0
 		set_ci();
 		memcpy(mem_img, rom_image, len);
 		clr_ci();
 #else
+#warning "FIX ME TOO"
+#if 0
 		// memcpy fails... try copy byte-by-byte with set/clr_ci
-		u8 c;
+		uint8_t c;
 		for (i = 0; i < bios_device.img_size; i++) {
 			set_ci();
 			c = *(rom_image + i);
 			if (c != *(rom_image + i)) {
 				clr_ci();
-				printf("Copy failed at: %x/%x\n", i,
+				print("Copy failed at: %x/%x\n", i,
 				       bios_device.img_size);
-				printf("rom_image(%x): %x, mem_img(%x): %x\n",
+				print("rom_image(%x): %x, mem_img(%x): %x\n",
 				       i, *(rom_image + i), i, *(mem_img + i));
 				break;
 			}
 			clr_ci();
-			my_wrb((u32)mem_img + i, c);
+			my_wrb((uint32_t)mem_img + i, c);
 		}
+#endif
 #endif
 		copy_count++;
 		set_ci();
+#warning "fix me three"
+#if 0
 		cmp_result = memcmp(mem_img, rom_image, bios_device.img_size);
+#endif
 		clr_ci();
 	}
 	while ((copy_count < 5) && (cmp_result != 0));
 	if (cmp_result != 0) {
-		printf
+		print
 		    ("\nCopying Expansion ROM Image to Memory failed after %d retries! (%x)\n",
 		     copy_count, cmp_result);
 		dump(rom_image, 0x20);
@@ -268,9 +277,9 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 	X86EMU_setupMemFuncs(&my_mem_funcs);
 
 	//setup PMM struct in BIOS_DATA_SEGMENT, offset 0x0
-	u8 pmm_length = pmm_setup(BIOS_DATA_SEGMENT, 0x0);
+	uint8_t pmm_length = pmm_setup(BIOS_DATA_SEGMENT, 0x0);
 	if (pmm_length <= 0) {
-		printf ("\nYABEL: Warning: PMM Area could not be setup. PMM not available (%x)\n",
+		print ("\nYABEL: Warning: PMM Area could not be setup. PMM not available (%x)\n",
 		     pmm_length);
 		return 0;
 	} else {
@@ -282,8 +291,11 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 		}
 	}
 	// setup the CPU
+#warning "and me"
+#if 0
 	M.x86.R_AH = bios_device.bus;
 	M.x86.R_AL = bios_device.devfn;
+#endif
 	M.x86.R_DX = 0x80;
 	M.x86.R_EIP = 3;
 	M.x86.R_CS = OPTION_ROM_CODE_SEGMENT;
@@ -390,7 +402,7 @@ biosemu(u8 *biosmem, u32 biosmem_size, struct device * dev, unsigned long rom_ad
 	    && (M.x86.R_SP == STACK_START_OFFSET)) {
 		DEBUG_PRINTF("Stack is clean, initialization successful!\n");
 	} else {
-		printf("Stack unclean, initialization probably NOT COMPLETE!\n");
+		print("Stack unclean, initialization probably NOT COMPLETE!\n");
 		DEBUG_PRINTF("SS:SP = %04x:%04x, expected: %04x:%04x\n",
 			     M.x86.R_SS, M.x86.R_SP, STACK_SEGMENT,
 			     STACK_START_OFFSET);
