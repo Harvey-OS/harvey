@@ -14,7 +14,7 @@
 #define VLONG_MIN	(1LL<<63)
 
 int64_t
-strtoll(const char *nptr, const char **endptr, int base)
+strtoll(const char *nptr, char **endptr, int base)
 {
 	const char *p;
 	int64_t n, nn, m;
@@ -98,7 +98,7 @@ Return:
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = p;
+		*endptr = (char *)p;
 	if(ovfl){
 		if(neg)
 			return VLONG_MIN;
