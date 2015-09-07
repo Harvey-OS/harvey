@@ -5,7 +5,8 @@
 	],
 	"SourceFiles": [
 		"../386/oprom/yabel/biosemu.c",
-		"../386/oprom/yabel/pmm.c"
+		"../386/oprom/yabel/pmm.c",
+		"../386/oprom/yabel/device.c"
 	],
 	"NotWorkingSourceFiles": [
 		"../386/oprom/yabel/mem.c",
@@ -14,7 +15,6 @@
 		"../386/oprom/yabel/debug.c",
 		"../386/oprom/yabel/io.c",
 		"../386/oprom/yabel/vbe.c",
-		"../386/oprom/yabel/device.c",
 		"../386/oprom/x86emu/ops.c",
 		"../386/oprom/x86emu/sys.c",
 		"../386/oprom/x86emu/decode.c",

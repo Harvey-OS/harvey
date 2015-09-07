@@ -12,15 +12,10 @@
  *****************************************************************************/
 
 
+#include "u.h"
 #include "device.h"
 #include "compat/rtas.h"
-#include <string.h>
 #include "debug.h"
-
-#include <device/device.h>
-#include <device/pci.h>
-#include <device/pci_ops.h>
-#include <device/resource.h>
 
 /* the device we are working with... */
 biosemu_device_t bios_device;
@@ -33,8 +28,8 @@ typedef struct {
 	uint8_t bus;
 	uint8_t devfn;
 	uint8_t cfg_space_offset;
-	u64 address;
-	u64 size;
+	uint64_t address;
+	uint64_t size;
 } __attribute__ ((__packed__)) assigned_address_t;
 
 #if CONFIG_PCI_OPTION_ROM_RUN_YABEL
@@ -126,8 +121,8 @@ biosemu_dev_get_addr_info(void)
 }
 #else
 // use translate_address_dev and get_puid from net-snk's net_support.c
-void translate_address_dev(u64 *, phandle_t);
-u64 get_puid(phandle_t node);
+void translate_address_dev(uint64_t *, phandle_t);
+uint64_t get_puid(phandle_t node);
 
 
 // scan all addresses assigned to the device ("assigned-addresses" and "reg")
@@ -151,7 +146,7 @@ biosemu_dev_get_addr_info(void)
 	int i = 0;
 	// index to insert data into translate_address_array
 	int taa_index = 0;
-	u64 address_offset;
+	uint64_t address_offset;
 	for (i = 0; i < (len / sizeof(assigned_address_t)); i++, taa_index++) {
 		//copy all info stored in assigned-addresses
 		translate_address_array[taa_index].info = buf[i].info;
