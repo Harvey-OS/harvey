@@ -12,6 +12,7 @@
 void
 abort(void)
 {
+	fprint(2, "aborted: %#p\n", __builtin_return_address(0));
 	while(*(int*)0)
 		;
 }
