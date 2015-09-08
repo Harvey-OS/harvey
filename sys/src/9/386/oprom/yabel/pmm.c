@@ -9,7 +9,9 @@
  * Copyright (c) 2008 Pattrick Hueper <phueper@hueper.net>
  ****************************************************************************/
 #include <u.h>
+#include "../port/lib.h"
 #include <x86emu/x86emu.h>
+#include <x86emu/regs.h>
 #include "../x86emu/prim_ops.h"
 
 #include "biosemu.h"
@@ -112,7 +114,7 @@ void pmm_handleInt()
 		if ((flags & 0x1) != 0) {
 			/* request to allocate in  conventional memory */
 			if (curr_pmm_allocation_index >= MAX_PMM_AREAS) {
-				printf
+				print
 				    ("%s: pmmAllocate: Maximum Number of allocatable areas reached (%d), cannot allocate more memory!\n",
 				     __func__, MAX_PMM_AREAS);
 				rval = 0;
@@ -166,7 +168,7 @@ void pmm_handleInt()
 			}
 			if ((next_offset + length) > 0xFFFF) {
 				rval = 0;
-				printf
+				print
 				    ("%s: pmmAllocate: Not enough memory available for allocation!\n",
 				     __func__);
 				goto exit;
@@ -183,7 +185,7 @@ void pmm_handleInt()
 			     __func__, rval);
 		} else {
 			rval = 0;
-			printf
+			print
 			    ("%s: pmmAllocate: allocation in extended memory not supported!\n",
 			     __func__);
 		}
@@ -260,7 +262,7 @@ void pmm_handleInt()
 		goto exit;
 	default:
 		/* invalid/unimplemented function */
-		printf("%s: invalid PMM function (0x%04x) called!\n",
+		print("%s: invalid PMM function (0x%04x) called!\n",
 		       __func__, function);
 		/* PMM spec says if function is invalid, return 0xFFFFFFFF */
 		rval = 0xFFFFFFFF;
