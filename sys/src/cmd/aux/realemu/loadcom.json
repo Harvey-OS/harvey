@@ -1,0 +1,10 @@
+{
+	"Include": [
+		"../../cmd.json"
+	],
+	"Install": "/$ARCH/bin/aux",
+	"Name": "Loadcom",
+	"SourceFilesCmd": [
+		"loadcom.c"
+	]
+}
