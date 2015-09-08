@@ -12,7 +12,8 @@ void	abort(void)
 .fi
 .SH DESCRIPTION
 .I Abort
-causes an access fault, causing the current process to enter the `Broken' state.
+prints the caller address to standard error and causes an access fault, 
+so that the current process will enter the `Broken' state.
 The process can then be inspected by a debugger.
 .SH SOURCE
 .B /sys/src/libc/9sys/abort.c
