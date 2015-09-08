@@ -457,7 +457,7 @@ static void
 edlinked(Ed *ed, Ed *next)
 {
 	if(ed == nil)
-		print("edlinked: nil ed: pc %#p\n", getcallerpc(&ed));
+		print("edlinked: nil ed: pc %#p\n", getcallerpc());
 	ed->nexted = ptr2pa(next);
 	ed->next = next;
 }

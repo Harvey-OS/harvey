@@ -187,7 +187,7 @@ sched(void)
 			machp()->ilockdepth,
 			up? up->lastilock: nil,
 			(up && up->lastilock)? up->lastilock->_pc: 0,
-			getcallerpc(&p+2));
+			getcallerpc());
 
 	kstackok();
 	if(up){
@@ -1165,12 +1165,12 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 
 	if(up->nlocks)
 		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
-			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc(&r));
+			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc());
 	lock(r);
 	lock(&up->rlock);
 	if(r->_p){
 		print("double sleep called from %#p, %d %d\n",
-			getcallerpc(&r), r->_p->pid, up->pid);
+			getcallerpc(), r->_p->pid, up->pid);
 		dumpstack();
 	}
 

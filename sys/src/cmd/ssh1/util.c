@@ -54,7 +54,7 @@ emalloc(int32_t n)
 	a = mallocz(n, 1);
 	if(a == nil)
 		error(Ememory);
-	setmalloctag(a, getcallerpc(&n));
+	setmalloctag(a, getcallerpc());
 	return a;
 }
 
@@ -64,7 +64,7 @@ erealloc(void *v, int32_t n)
 	v = realloc(v, n);
 	if(v == nil)
 		error(Ememory);
-	setrealloctag(v, getcallerpc(&v));
+	setrealloctag(v, getcallerpc());
 	return v;
 }
 

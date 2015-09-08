@@ -556,7 +556,7 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	}
 
 	if(b)
-		b->pc = getcallerpc(&p);
+		b->pc = getcallerpc();
 
 	if(b == nil || mode == OReadOnly)
 		return b;
@@ -584,7 +584,7 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	if(b == nil)
 		return nil;
 
-	b->pc = getcallerpc(&p);
+	b->pc = getcallerpc();
 	assert(b->l.epoch == fs->ehi);
 
 	blockDirty(b);
@@ -814,7 +814,7 @@ _sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 		blockPut(b);
 		b = bb;
 	}
-	b->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
 	return b;
 Err:
 	blockPut(b);
@@ -828,7 +828,7 @@ sourceBlock(Source *r, uint32_t bn, int mode)
 
 	b = _sourceBlock(r, bn, mode, 0, 0);
 	if(b)
-		b->pc = getcallerpc(&r);
+		b->pc = getcallerpc();
 	return b;
 }
 

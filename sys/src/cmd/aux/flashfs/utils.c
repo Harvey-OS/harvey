@@ -42,7 +42,7 @@ putc3(uint8_t *buff, uint32_t v)
 		return 3;
 	}
 
-	fprint(2, "%s: putc3 fail 0x%lux, called from %#p\n", prog, v, getcallerpc(&buff));
+	fprint(2, "%s: putc3 fail 0x%lux, called from %#p\n", prog, v, getcallerpc());
 	abort();
 	return -1;
 }

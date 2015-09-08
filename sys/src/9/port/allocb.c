@@ -67,7 +67,7 @@ allocb(int size)
 	 * Can still error out of here, though.
 	 */
 	if(up == nil)
-		panic("allocb without up: %#p\n", getcallerpc(&size));
+		panic("allocb without up: %#p\n", getcallerpc());
 	if((b = _allocb(size)) == nil){
 		mallocsummary();
 		panic("allocb: no memory for %d bytes\n", size);

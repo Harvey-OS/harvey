@@ -827,7 +827,7 @@ safecpy(char *to, char *from, int n)
 		return to;
 	if(from==nil)
 		sysfatal("safecpy called with from==nil, pc=%#p",
-			getcallerpc(&to));
+			getcallerpc());
 	strncpy(to, from, n-1);
 	return to;
 }
@@ -844,7 +844,7 @@ setattr(Attr *a, char *fmt, ...)
 	va_end(arg);
 	b = _parseattr(buf);
 	a = setattrs(a, b);
-	setmalloctag(a, getcallerpc(&a));
+	setmalloctag(a, getcallerpc());
 	_freeattr(b);
 	return a;
 }
@@ -886,7 +886,7 @@ setattrs(Attr *a, Attr *b)
 		}
 		if(found == 0){
 			*l = _mkattr(b->type, b->name, b->val, nil);
-			setmalloctag(*l, getcallerpc(&a));
+			setmalloctag(*l, getcallerpc());
 		}
 continue2:;
 	}
@@ -896,7 +896,7 @@ continue2:;
 void
 setmalloctaghere(void *v)
 {
-	setmalloctag(v, getcallerpc(&v));
+	setmalloctag(v, getcallerpc());
 }
 
 Attr*

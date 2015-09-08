@@ -49,7 +49,7 @@ decref(Ref *r)
 	x = --r->ref;
 	unlock(r);
 	if(x < 0)
-		panic("decref pc=%#p", getcallerpc(&r));
+		panic("decref pc=%#p", getcallerpc());
 
 	return x;
 }

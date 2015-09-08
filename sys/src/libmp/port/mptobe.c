@@ -24,7 +24,7 @@ mptobe(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	if(p == nil){
 		n = (b->top+1)*Dbytes;
 		p = malloc(n);
-		setmalloctag(p, getcallerpc(&b));
+		setmalloctag(p, getcallerpc());
 	}
 	if(p == nil)
 		return -1;

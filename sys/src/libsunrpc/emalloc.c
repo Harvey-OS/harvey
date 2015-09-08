@@ -23,7 +23,7 @@ emalloc(uint32_t n)
 abort();
 		sysfatal("out of memory");
 }
-	setmalloctag(v, getcallerpc(&n));
+	setmalloctag(v, getcallerpc());
 	return v;
 }
 
@@ -36,7 +36,7 @@ erealloc(void *v, uint32_t n)
 abort();
 		sysfatal("out of memory");
 }
-	setrealloctag(v, getcallerpc(&n));
+	setrealloctag(v, getcallerpc());
 	return v;
 }
 

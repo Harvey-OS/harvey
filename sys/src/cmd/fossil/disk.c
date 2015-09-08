@@ -295,7 +295,7 @@ diskSize(Disk *disk, int part)
 static uintptr
 mypc(int x)
 {
-	return getcallerpc(&x);
+	return getcallerpc();
 }
 
 static char *

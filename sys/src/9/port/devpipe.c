@@ -323,7 +323,7 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 	Pipe *p;
 
 	if(0)if(!islo())
-		print("pipewrite hi %#p\n", getcallerpc(&c)); // devmnt?
+		print("pipewrite hi %#p\n", getcallerpc()); // devmnt?
 
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */

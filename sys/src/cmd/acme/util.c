@@ -290,7 +290,7 @@ runetobyte(Rune *r, int n)
 	if(r == nil)
 		return nil;
 	s = emalloc(n*UTFmax+1);
-	setmalloctag(s, getcallerpc(&r));
+	setmalloctag(s, getcallerpc());
 	snprint(s, n*UTFmax+1, "%.*S", n, r);
 	return s;
 }
@@ -403,7 +403,7 @@ estrdup(char *s)
 	t = strdup(s);
 	if(t == nil)
 		error("strdup failed");
-	setmalloctag(t, getcallerpc(&s));
+	setmalloctag(t, getcallerpc());
 	return t;
 }
 
@@ -415,7 +415,7 @@ emalloc(uint n)
 	p = malloc(n);
 	if(p == nil)
 		error("malloc failed");
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	memset(p, 0, n);
 	return p;
 }
@@ -426,7 +426,7 @@ erealloc(void *p, uint n)
 	p = realloc(p, n);
 	if(p == nil)
 		error("realloc failed");
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 

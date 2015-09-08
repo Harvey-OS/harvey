@@ -67,7 +67,7 @@ mpnew(int n)
 		sysfatal("mpsetminbits: n < 0");
 
 	b = mallocz(sizeof(mpint), 1);
-	setmalloctag(b, getcallerpc(&n));
+	setmalloctag(b, getcallerpc());
 	if(b == nil)
 		sysfatal("mpnew: %r");
 	n = DIGITS(n);
