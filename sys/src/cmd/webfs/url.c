@@ -918,7 +918,7 @@ parseurl(char *url, Url *base)
 		if((*postparse[u->ischeme])(u) < 0)
 			goto Fail;
 
-	setmalloctag(u, getcallerpc(&url));
+	setmalloctag(u, getcallerpc());
 	return u;
 }
 

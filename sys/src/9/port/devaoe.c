@@ -758,7 +758,7 @@ unit2dev(uint32_t unit)
 			return d;
 		}
 	runlock(&devs);
-	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc(&unit));
+	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc());
 	error(up->genbuf);
 	return nil;
 }

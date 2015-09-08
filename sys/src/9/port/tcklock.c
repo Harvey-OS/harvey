@@ -175,7 +175,7 @@ lock(Lock *l)
 	uint32_t user;
 	uint64_t t0;
 
-	pc = getcallerpc(&l);
+	pc = getcallerpc();
 	lockstats.locks++;
 	if(up)
 		ainc(&up->nlocks);	/* prevent being scheded */
@@ -223,7 +223,7 @@ ilock(Lock *l)
 	uint64_t t0;
 	uint32_t user;
 
-	pc = getcallerpc(&l);
+	pc = getcallerpc();
 	lockstats.locks++;
 
 	pl = splhi();
@@ -255,7 +255,7 @@ canlock(Lock *l)
 	uintptr_t pc;
 	uint64_t t0;
 
-	pc = getcallerpc(&l);
+	pc = getcallerpc();
 
 	lockstats.locks++;
 	if(up)
@@ -286,12 +286,12 @@ void
 unlock(Lock *l)
 {
 	if(getticket(l->key) == getuser(l->key))
-		print("unlock: not locked: pc %#p\n", getcallerpc(&l));
+		print("unlock: not locked: pc %#p\n", getcallerpc());
 	if(l->isilock)
-		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
+		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(), l->pc);
 	if(l->p != up)
 		print("unlock: up changed: pc %#p, acquired at pc %#p,"
-			" lock p %#p, unlock up %#p\n", getcallerpc(&l), l->pc, l->p, up);
+			" lock p %#p, unlock up %#p\n", getcallerpc(), l->pc, l->p, up);
 	l->m = nil;
 	incticket(&l->key);
 
@@ -310,14 +310,14 @@ iunlock(Lock *l)
 	Mpl pl;
 
 	if(getticket(l->key) == getuser(l->key))
-		print("iunlock: not locked: pc %#p\n", getcallerpc(&l));
+		print("iunlock: not locked: pc %#p\n", getcallerpc());
 	if(!l->isilock)
-		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
+		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(), l->pc);
 	if(islo())
-		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
+		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(), l->pc);
 	if(l->m != m){
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			machp()->machno, l->machp()->machno, getcallerpc(&l), l->pc);
+			machp()->machno, l->machp()->machno, getcallerpc(), l->pc);
 	}
 
 	pl = l->pl;

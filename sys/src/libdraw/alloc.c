@@ -18,7 +18,7 @@ allocimage(Display *d, Rectangle r, uint32_t chan, int repl, uint32_t val)
 
 	i =  _allocimage(nil, d, r, chan, repl, val, 0, 0);
 	if (i)
-		setmalloctag(i, getcallerpc(&d));
+		setmalloctag(i, getcallerpc());
 	return i;
 }
 

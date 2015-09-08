@@ -98,7 +98,7 @@ allocmsg(Conn *c, int type, int len)
 		abort();
 
 	m = (Msg*)emalloc(sizeof(Msg)+4+8+1+len+4);
-	setmalloctag(m, getcallerpc(&c));
+	setmalloctag(m, getcallerpc());
 	p = (uint8_t*)&m[1];
 	m->c = c;
 	m->bp = p;
@@ -144,7 +144,7 @@ recvmsg0(Conn *c)
 	pad = 8 - len%8;
 
 	m = (Msg*)emalloc(sizeof(Msg)+pad+len);
-	setmalloctag(m, getcallerpc(&c));
+	setmalloctag(m, getcallerpc());
 	m->c = c;
 	m->bp = (uint8_t*)&m[1];
 	m->ep = m->bp + pad+len-4;	/* -4: don't include crc */
@@ -198,7 +198,7 @@ recvmsg(Conn *c, int type)
 		if(m==nil || m->type!=type)
 			badmsg(m, type);
 	}
-	setmalloctag(m, getcallerpc(&c));
+	setmalloctag(m, getcallerpc());
 	return m;
 }
 
@@ -336,7 +336,7 @@ getRSApub(Msg *m)
 		error(Ememory);
 	key->ek = getmpint(m);
 	key->n = getmpint(m);
-	setmalloctag(key, getcallerpc(&m));
+	setmalloctag(key, getcallerpc());
 	return key;
 }
 
