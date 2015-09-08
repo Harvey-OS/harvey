@@ -1,0 +1,16 @@
+{
+	"Include": [
+		"../../cmd.json"
+	],
+	"Install": "/$ARCH/bin/aux/",
+	"Name": "realemu",
+	"Program": "realemu",
+	"SourceFiles": [
+		"arg.c",
+		"decode.c",
+		"fmt.c",
+		"main.c",
+		"pit.c",
+		"xec.c"
+	]
+}
