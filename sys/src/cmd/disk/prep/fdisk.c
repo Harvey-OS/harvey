@@ -90,7 +90,7 @@ sysfatal(const char *fmt, ...)
 }
 
 void
-abort(void)
+recoverOnAbort(void)
 {
 	fprint(2, "abort\n");
 	recover(&edit);
@@ -108,6 +108,7 @@ main(int argc, char **argv)
 {
 	int64_t secsize;
 
+	_abort = recoverOnAbort;
 	secsize = 0;
 	ARGBEGIN{
 	case 'a':

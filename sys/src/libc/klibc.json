@@ -12,7 +12,6 @@
 		"9syscall/9syscall.json"
 	],
 	"SourceFiles": [
-		"9sys/abort.c",
 		"9sys/access.c",
 		"9sys/announce.c",
 		"9sys/convD2M.c",
