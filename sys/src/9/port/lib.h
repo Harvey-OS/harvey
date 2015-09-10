@@ -12,7 +12,10 @@
  */
 #define nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define offsetof(s, m)	(uint64_t)(&(((s*)0)->m))
-#define assert(x)	if(x){}else _assert("x")
+#define assert(x)	if(x){}else _assert(#x)
+
+/* there's no reason to support _abort in the kernel */
+#define abort() while(*(int*)0);
 
 /*
  * mem routines

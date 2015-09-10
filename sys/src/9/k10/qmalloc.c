@@ -122,7 +122,6 @@ static void ppanic(Pool*, char*, ...);
 static void plock(Pool*);
 static void punlock(Pool*);
 
-extern	void	abort(void);
 extern	void*	sbrk(uint32_t);
 
 typedef struct Private	Private;

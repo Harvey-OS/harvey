@@ -9,10 +9,19 @@ abort \- generate a fault
 .nf
 .B
 void	abort(void)
+.PP 
+.B 
+extern void (*_abort)(void);
 .fi
 .SH DESCRIPTION
 .I Abort
-causes an access fault, causing the current process to enter the `Broken' state.
+is a macro that causes an access fault, causing the current process to enter the `Broken' state.
 The process can then be inspected by a debugger.
+.PP
+User space applications can set
+.I _abort
+to override this behaviour. Libraries should not.
+.br
+If the provided function does not terminate the process, no further invariant will hold.
 .SH SOURCE
-.B /sys/src/libc/9sys/abort.c
+.B /sys/src/libc/amd64/argv0.c
