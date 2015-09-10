@@ -28,6 +28,7 @@
 		"thread.c",
 		"tsemacquire.c",
 		"va_copy.c",
+		"vseprint.c",
 		"tls.c",
 		"hcube.c"
 	]
