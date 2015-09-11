@@ -8,6 +8,8 @@
 		"mnihongo/mnihongo.json",
 		"flashfs/flashfs.json",
 		"gps/gps.json",
+		"realemu/realemu.json",
+		"realemu/loadcom.json",
 		"vga/vga.json"
 	],
 	"SourceFilesCmd": [
