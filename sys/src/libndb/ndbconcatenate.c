@@ -23,6 +23,6 @@ ndbconcatenate(Ndbtuple *a, Ndbtuple *b)
 	for(t = a; t->entry; t = t->entry)
 		;
 	t->entry = b;
-	ndbsetmalloctag(a, getcallerpc(&a));
+	ndbsetmalloctag(a, getcallerpc());
 	return a;
 }

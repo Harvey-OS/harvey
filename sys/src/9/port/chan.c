@@ -116,7 +116,7 @@ kstrdup(char **p, char *s)
 	/* if it's a user, we can wait for memory; if not, something's very wrong */
 	if(up){
 		t = smalloc(n);
-		setmalloctag(t, getcallerpc(&p));
+		setmalloctag(t, getcallerpc());
 	}else{
 		t = malloc(n);
 		if(t == nil)
@@ -192,7 +192,7 @@ newpath(char *s)
 	 * allowed, but other names with / in them draw warnings.
 	 */
 	if(strchr(s, '/') && strcmp(s, "#/") != 0 && strcmp(s, "/") != 0)
-		print("newpath: %s from %#p\n", s, getcallerpc(&s));
+		print("newpath: %s from %#p\n", s, getcallerpc());
 
 	p->mlen = 1;
 	p->malen = PATHMSLOP;
@@ -389,7 +389,7 @@ cclose(Chan *c)
 {
 	Proc *up = externup();
 	if(c->flag&CFREE)
-		panic("cclose %#p", getcallerpc(&c));
+		panic("cclose %#p", getcallerpc());
 
 	DBG("cclose %#p name=%s ref=%d\n", c, c->path->s, c->ref);
 	if(decref(c))
@@ -422,7 +422,7 @@ void
 ccloseq(Chan *c)
 {
 	if(c->flag&CFREE)
-		panic("ccloseq %#p", getcallerpc(&c));
+		panic("ccloseq %#p", getcallerpc());
 
 	DBG("ccloseq %#p name=%s ref=%d\n", c, c->path->s, c->ref);
 
@@ -559,7 +559,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 		error(Emount);
 
 	if(old->umh)
-		print("cmount: unexpected umh, caller %#p\n", getcallerpc(&newp));
+		print("cmount: unexpected umh, caller %#p\n", getcallerpc());
 
 	order = flag&MORDER;
 
@@ -837,7 +837,7 @@ undomount(Chan *c, Path *path)
 
 	if(path->ref != 1 || path->mlen == 0)
 		print("undomount: path %s ref %d mlen %d caller %#p\n",
-			path->s, path->ref, path->mlen, getcallerpc(&c));
+			path->s, path->ref, path->mlen, getcallerpc());
 
 	if(path->mlen>0 && (nc=path->mtpt[path->mlen-1]) != nil){
 		DBG("undomount %#p %s => remove %p\n", path, path->s, nc);
@@ -1677,13 +1677,13 @@ validname0(char *aname, int slashok, int dup, uintptr_t pc)
 void
 validname(char *aname, int slashok)
 {
-	validname0(aname, slashok, 0, getcallerpc(&aname));
+	validname0(aname, slashok, 0, getcallerpc());
 }
 
 char*
 validnamedup(char *aname, int slashok)
 {
-	return validname0(aname, slashok, 1, getcallerpc(&aname));
+	return validname0(aname, slashok, 1, getcallerpc());
 }
 
 void

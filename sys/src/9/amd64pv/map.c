@@ -46,7 +46,7 @@ PADDR(void* va)
 	if(pa > KSEG2)
 		return pa-KSEG2;
 
-	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc(&va));
+	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());
 	return 0;
 }
 
@@ -54,7 +54,7 @@ KMap*
 kmap(Page* page)
 {
 	DBG("kmap(%#llux) @ %#p: %#p %#p\n",
-		page->pa, getcallerpc(&page),
+		page->pa, getcallerpc(),
 		page->pa, KADDR(page->pa));
 
 	return KADDR(page->pa);

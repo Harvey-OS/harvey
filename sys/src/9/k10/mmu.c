@@ -646,7 +646,7 @@ vmap(uintptr_t pa, usize size)
 	uintptr_t va;
 	usize o, sz;
 
-	DBG("vmap(%#p, %lud) pc=%#p\n", pa, size, getcallerpc(&pa));
+	DBG("vmap(%#p, %lud) pc=%#p\n", pa, size, getcallerpc());
 
 	if(machp()->machno != 0)
 		panic("vmap");
@@ -677,7 +677,7 @@ vmap(uintptr_t pa, usize size)
 	sz = ROUNDUP(size+o, PGSZ);
 
 	if(pa == 0){
-		print("vmap(0, %lud) pc=%#p\n", size, getcallerpc(&pa));
+		print("vmap(0, %lud) pc=%#p\n", size, getcallerpc());
 		return nil;
 	}
 	ilock(&vmaplock);

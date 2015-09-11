@@ -104,7 +104,7 @@ allocmemimage(Rectangle r, uint32_t chan)
 	*(Memdata**)p = md;
 	p += sizeof(Memdata*);
 
-	*(uint32_t*)p = getcallerpc(&r);
+	*(uint32_t*)p = getcallerpc();
 	p += sizeof(uint32_t);
 
 	/* if this changes, memimagemove must change too */

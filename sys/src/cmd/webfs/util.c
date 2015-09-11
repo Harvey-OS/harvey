@@ -24,7 +24,7 @@ erealloc(void *a, uint n)
 	a = realloc(a, n);
 	if(a == nil)
 		sysfatal("realloc %d: out of memory", n);
-	setrealloctag(a, getcallerpc(&a));
+	setrealloctag(a, getcallerpc());
 	return a;
 }
 
@@ -36,7 +36,7 @@ emalloc(uint n)
 	a = mallocz(n, 1);
 	if(a == nil)
 		sysfatal("malloc %d: out of memory", n);
-	setmalloctag(a, getcallerpc(&n));
+	setmalloctag(a, getcallerpc());
 	return a;
 }
 
@@ -46,7 +46,7 @@ estrdup(char *s)
 	s = strdup(s);
 	if(s == nil)
 		sysfatal("strdup: out of memory");
-	setmalloctag(s, getcallerpc(&s));
+	setmalloctag(s, getcallerpc());
 	return s;
 }
 
@@ -58,7 +58,7 @@ estredup(char *s, char *e)
 	t = emalloc(e-s+1);
 	memmove(t, s, e-s);
 	t[e-s] = '\0';
-	setmalloctag(t, getcallerpc(&s));
+	setmalloctag(t, getcallerpc());
 	return t;
 }
 

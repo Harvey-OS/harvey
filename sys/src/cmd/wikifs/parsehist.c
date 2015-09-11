@@ -121,7 +121,7 @@ Brdwhist(Biobuf *b)
 	h->ndoc = n;
 	h->current = current;
 	incref(h);
-	setmalloctag(h, getcallerpc(&b));
+	setmalloctag(h, getcallerpc());
 	return h;
 
 Error:

@@ -24,7 +24,7 @@ emalloc9p(uint32_t sz)
 		exits("mem");
 	}
 	memset(v, 0, sz);
-	setmalloctag(v, getcallerpc(&sz));
+	setmalloctag(v, getcallerpc());
 	return v;
 }
 
@@ -38,8 +38,8 @@ erealloc9p(void *v, uint32_t sz)
 		exits("mem");
 	}
 	if(v == nil)
-		setmalloctag(nv, getcallerpc(&v));
-	setrealloctag(nv, getcallerpc(&v));
+		setmalloctag(nv, getcallerpc());
+	setrealloctag(nv, getcallerpc());
 	return nv;
 }
 
@@ -52,7 +52,7 @@ estrdup9p(char *s)
 		fprint(2, "out of memory in strdup(%.10s)\n", s);
 		exits("mem");
 	}
-	setmalloctag(t, getcallerpc(&s));
+	setmalloctag(t, getcallerpc());
 	return t;
 }
 

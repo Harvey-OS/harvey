@@ -188,7 +188,7 @@ emalloc(int n)
 		exits("out of memory");
 	}
 	memset(p, 0, n);
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -279,7 +279,7 @@ ber_decode(uint8_t** pp, uint8_t* pend, Elem* pelem)
 			if(tag.class == Universal) {
 				err = value_decode(pp, pend, length, tag.num, isconstr, &val);
 				if(val.tag == VSeq || val.tag == VSet)
-					setmalloctag(val.u.seqval, getcallerpc(&pp));
+					setmalloctag(val.u.seqval, getcallerpc());
 			}else
 				err = value_decode(pp, pend, length, OCTET_STRING, 0, &val);
 			if(err == ASN_OK) {
@@ -518,7 +518,7 @@ value_decode(uint8_t** pp, uint8_t* pend, int length, int kind,
 
 	case SEQUENCE:
 		err = seq_decode(&p, pend, length, isconstr, &vl);
-		setmalloctag(vl, getcallerpc(&pp));
+		setmalloctag(vl, getcallerpc());
 		if(err == ASN_OK) {
 			pval->tag = VSeq ;
 			pval->u.seqval = vl;
@@ -527,7 +527,7 @@ value_decode(uint8_t** pp, uint8_t* pend, int length, int kind,
 
 	case SETOF:
 		err = seq_decode(&p, pend, length, isconstr, &vl);
-		setmalloctag(vl, getcallerpc(&pp));
+		setmalloctag(vl, getcallerpc());
 		if(err == ASN_OK) {
 			pval->tag = VSet;
 			pval->u.setval = vl;
@@ -766,7 +766,7 @@ seq_decode(uint8_t** pp, uint8_t* pend, int length, int isconstr,
 	}
 	*pp = p;
 	*pelist = ans;
-	setmalloctag(ans, getcallerpc(&pp));
+	setmalloctag(ans, getcallerpc());
 	return err;
 }
 
@@ -1429,7 +1429,7 @@ mkel(Elem e, Elist* tail)
 	Elist* el;
 
 	el = (Elist*)emalloc(sizeof(Elist));
-	setmalloctag(el, getcallerpc(&e));
+	setmalloctag(el, getcallerpc());
 	el->hd = e;
 	el->tl = tail;
 	return el;

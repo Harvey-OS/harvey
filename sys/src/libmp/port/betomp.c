@@ -20,7 +20,7 @@ betomp(uint8_t *p, uint n, mpint *b)
 
 	if(b == nil){
 		b = mpnew(0);
-		setmalloctag(b, getcallerpc(&p));
+		setmalloctag(b, getcallerpc());
 	}
 
 	// dump leading zeros

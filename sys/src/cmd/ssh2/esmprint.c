@@ -21,6 +21,6 @@ esmprint(char *fmt, ...)
 	va_end(args);
 	if (p == nil)
 		sysfatal("esmprint: out of memory: %r");
-	setmalloctag(p, getcallerpc(&fmt));
+	setmalloctag(p, getcallerpc());
 	return p;
 }

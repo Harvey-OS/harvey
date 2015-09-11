@@ -159,8 +159,8 @@ emalloc(uint32_t n)
 		sysfatal("out of memory allocating %lud", n);
 	}
 	memset(p, 0xa5, n);
-	setmalloctag(p, getcallerpc(&n));
-if(0)print("emalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
+if(0)print("emalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc());
 	return p;
 }
 
@@ -176,8 +176,8 @@ ezmalloc(uint32_t n)
 		sysfatal("out of memory allocating %lud", n);
 	}
 	memset(p, 0, n);
-	setmalloctag(p, getcallerpc(&n));
-if(0)print("ezmalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
+if(0)print("ezmalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc());
 	return p;
 }
 
@@ -190,8 +190,8 @@ erealloc(void *p, uint32_t n)
 			abort();
 		sysfatal("out of memory allocating %lud", n);
 	}
-	setrealloctag(p, getcallerpc(&p));
-if(0)print("erealloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&p));
+	setrealloctag(p, getcallerpc());
+if(0)print("erealloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc());
 	return p;
 }
 
@@ -204,8 +204,8 @@ estrdup(char *s)
 	n = strlen(s) + 1;
 	t = emalloc(n);
 	memmove(t, s, n);
-	setmalloctag(t, getcallerpc(&s));
-if(0)print("estrdup %p-%p by %#p\n", t, (char*)t+n, getcallerpc(&s));
+	setmalloctag(t, getcallerpc());
+if(0)print("estrdup %p-%p by %#p\n", t, (char*)t+n, getcallerpc());
 	return t;
 }
 

@@ -29,7 +29,7 @@ getenv(const char *name)
 	s = seek(f, 0, 2);
 	ans = malloc(s+1);
 	if(ans) {
-		setmalloctag(ans, getcallerpc(&name));
+		setmalloctag(ans, getcallerpc());
 		seek(f, 0, 0);
 		r = read(f, ans, s);
 		if(r >= 0) {
