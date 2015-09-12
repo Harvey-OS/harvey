@@ -471,7 +471,6 @@ extern unsigned	nrname;
 extern char	*opname[];
 extern Lock	dnlock;
 
-void	abort(); /* char*, ... */;
 void	addserver(Server**, char*);
 Server*	copyserverlist(Server*);
 void	db2cache(int);
