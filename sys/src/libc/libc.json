@@ -263,7 +263,6 @@
 		"amd64/argv0.c",
 		"amd64/rdpmc.c",
 		"amd64/setjmp.s",
-		"amd64/sqrt.s",
 		"amd64/tas.s",
 		"amd64/atom.S",
 		"amd64/main9.S"
