@@ -413,18 +413,6 @@ extern	int	tolower(int);
 extern	int	toupper(int);
 
 /*
- *  profiling
- */
-enum {
-	Profoff,		/* No profiling */
-	Profuser,		/* Measure user time only (default) */
-	Profkernel,		/* Measure user + kernel time */
-	Proftime,		/* Measure total time */
-	Profsample,		/* Use clock interrupt to sample (default when there is no cycle counter) */
-}; /* what */
-extern	void	prof(void (*fn)(void*), void *arg, int entries, int what);
-
-/*
  * atomic
  */
 int32_t	ainc(int32_t*);
