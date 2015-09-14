@@ -95,7 +95,6 @@
 		"ns.c",
 		"pbd.c",
 		"p.c",
-		"pcc.c",
 		"pipefile.c",
 		"pr.c",
 		"primes.c",
