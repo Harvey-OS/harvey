@@ -322,7 +322,6 @@ void		qunlock(QLock*);
 int		qwindow(Queue*);
 int		qwrite(Queue*, void*, int);
 int		rand(void);
-void		randominit(void);
 uint32_t		randomread(void*, uint32_t);
 uint32_t		urandomread(void*, uint32_t);
 void		rdb(void);
