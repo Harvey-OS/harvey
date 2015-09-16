@@ -445,6 +445,7 @@ struct Lock {
 extern int	_tas(int*);
 
 extern	void	lock(Lock*);
+extern	int	lockt(Lock*,uint32_t);
 extern	void	unlock(Lock*);
 extern	int	canlock(Lock*);
 
@@ -466,6 +467,7 @@ struct QLock
 } QLock;
 
 extern	void	qlock(QLock*);
+extern	int	qlockt(QLock*, uint32_t);
 extern	void	qunlock(QLock*);
 extern	int	canqlock(QLock*);
 extern	void	_qlockinit(void* (*)(void*, void*));	/* called only by the thread library */

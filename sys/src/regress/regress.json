@@ -30,6 +30,7 @@
 		"va_copy.c",
 		"vseprint.c",
 		"tls.c",
+		"qlockt.c",
 		"hcube.c"
 	]
 }
