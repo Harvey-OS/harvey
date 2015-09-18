@@ -199,7 +199,6 @@
 		"port/pool.c",
 		"port/pow.c",
 		"port/pow10.c",
-		"port/profile.c",
 		"port/qsort.c",
 		"port/quote.c",
 		"port/rand.c",
