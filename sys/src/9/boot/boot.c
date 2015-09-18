@@ -214,6 +214,7 @@ findmethod(char *a)
 static Method*
 rootserver(char *arg)
 {
+	//This must be refactored to avoid old plan9.ini
 	char prompt[256];
 	int rc;
 	Method *mp;
@@ -222,7 +223,9 @@ rootserver(char *arg)
 	int n;
 
 	/* look for required reply */
-	rc = readfile("#e/nobootprompt", reply, sizeof(reply));
+	//rc = readfile("#e/nobootprompt", reply, sizeof(reply));
+	rc = 0;
+	reply[0] = 0;
 	if(rc == 0 && reply[0]){
 		mp = findmethod(reply);
 		if(mp)
@@ -239,7 +242,9 @@ rootserver(char *arg)
 	sprint(prompt+n, ")");
 
 	/* create default reply */
-	readfile("#e/bootargs", reply, sizeof(reply));
+	//readfile("#e/bootargs", reply, sizeof(reply));
+	reply[0] = 0;
+	arg = 0;
 	if(reply[0] == 0 && arg != 0)
 		strcpy(reply, arg);
 	if(reply[0]){
