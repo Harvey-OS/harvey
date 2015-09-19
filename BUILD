@@ -39,7 +39,7 @@ build_go_utils()
 
 build_libs()
 { (
-	rm -rf "$HARVEY/amd64/lib/"*
+	git clean -d -x -f "$HARVEY/amd64/lib/"*
 	cd "$SRC_DIR"
 	build libs.json
 ) }
@@ -52,7 +52,7 @@ build_klibs()
 
 build_cmds()
 { (
-	rm -rf "$HARVEY/amd64/bin/"*
+	git clean -d -x -f "$HARVEY/amd64/bin/"*
 	cd "$CMD_DIR"
 	build cmds.json
 	build kcmds.json
@@ -60,7 +60,7 @@ build_cmds()
 
 build_regress()
 { (
-	rm -rf "$HARVEY/amd64/bin/regress"
+	git clean -d -x -f "$HARVEY/amd64/bin/regress"
 	cd "$SRC_DIR"/regress
 	build regress.json
 ) }
