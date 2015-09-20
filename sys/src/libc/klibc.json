@@ -221,7 +221,6 @@
 		"port/runetype.c",
 		"port/sin.c",
 		"port/sinh.c",
-		"port/sqrt.c",
 		"port/strcat.c",
 		"port/strchr.c",
 		"port/strcmp.c",
@@ -262,6 +261,7 @@
 		"amd64/argv0.c",
 		"amd64/rdpmc.c",
 		"amd64/setjmp.s",
+		"amd64/sqrt.s",
 		"amd64/tas.s",
 		"amd64/atom.S",
 		"amd64/main9.S"

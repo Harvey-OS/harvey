@@ -22,6 +22,7 @@
 		"pipering.c",
 		"privates.c",
 		"psx.c",
+		"sqrt.c",
 		"syscall.c",
 		"sysfatal.c",
 		"sysstatread.c",
