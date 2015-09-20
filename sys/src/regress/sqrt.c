@@ -7,18 +7,17 @@
  * in the LICENSE file.
  */
 
+#include <u.h>
+#include <libc.h>
+
 /*
-	sqrt returns the square root of its floating
+	sqrtC returns the square root of its floating
 	point argument. Newton's method.
 
 	calls frexp
 */
-
-#include <u.h>
-#include <libc.h>
-
 double
-sqrt(double arg)
+sqrtC(double arg)
 {
 	double x, temp;
 	int exp, i;
@@ -60,4 +59,25 @@ sqrt(double arg)
 	for(i=0; i<=4; i++)
 		temp = 0.5*(temp + arg/temp);
 	return temp;
+}
+
+void
+main(void)
+{
+	double v;
+	char *a, *b;
+	
+	for(v = 4; v < 65536; v += 3) {
+		a = smprint("%f", sqrtC(v));
+		b = smprint("%f", sqrt(v));
+		if(strcmp(a, b)){
+			print("FAIL");
+			exits("FAIL");
+		}
+		free(a);
+		free(b);
+	}
+	
+	print("PASS");
+	exits("PASS");
 }
