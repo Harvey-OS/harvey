@@ -39,7 +39,7 @@ build_go_utils()
 
 build_libs()
 { (
-	git clean -d -x -f "$HARVEY/amd64/lib/"*
+	[ -d "$HARVEY/amd64/lib/" ] && git clean -d -x -f "$HARVEY/amd64/lib/"*
 	cd "$SRC_DIR"
 	build libs.json
 ) }
