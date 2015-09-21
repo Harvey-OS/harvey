@@ -24,4 +24,6 @@ main(void)
 		print("%s\n", msg);
 		exits(msg);
 	}
+	print("PASS\n");
+	exits("PASS");
 }

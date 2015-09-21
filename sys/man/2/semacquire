@@ -10,7 +10,7 @@ semacquire, tsemacquire, semrelease - user level semaphores
 int semacquire(long *addr, int block);
 .PP
 .B
-int tsemacquire(long *addr, ulong ms);
+int tsemacquire(long *addr, uint64_t ms);
 .PP
 .B
 long semrelease(long *addr, long count);

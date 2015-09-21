@@ -274,30 +274,3 @@ addclock0link(void (*f)(void), int ms)
 	iunlock(&timers[0]);
 	return nt;
 }
-
-/*
- *  This tk2ms avoids overflows that the macro version is prone to.
- *  It is a LOT slower so shouldn't be used if you're just converting
- *  a delta.
- */
-uint32_t
-tk2ms(uint32_t ticks)
-{
-	uint64_t t, hz;
-
-	t = ticks;
-	hz = HZ;
-	t *= 1000L;
-	t = t/hz;
-	ticks = t;
-	return ticks;
-}
-
-uint32_t
-ms2tk(uint32_t ms)
-{
-	/* avoid overflows at the cost of precision */
-	if(ms >= 1000000000/HZ)
-		return (ms/1000)*HZ;
-	return (ms*HZ+500)/1000;
-}

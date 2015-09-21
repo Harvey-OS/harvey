@@ -5,6 +5,7 @@
 	"Install": "/$ARCH/bin/regress",
 	"Name": "Regress",
 	"SourceFilesCmd": [
+		"alarm.c",
 		"args.c",
 		"execl.c",
 		"float.c",

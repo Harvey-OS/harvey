@@ -479,7 +479,7 @@ static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Proc *up = externup();
-	uint32_t l;
+	uint64_t l;
 	Mach *mp;
 	char *b, *bp, *s, *e;
 	char tmp[512];		/* Qswap is 381 bytes at clu */

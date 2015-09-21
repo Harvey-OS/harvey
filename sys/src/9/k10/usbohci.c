@@ -206,7 +206,7 @@ struct Qio
 	int	toggle;		/* Tddata0/Tddata1 */
 	uint32_t	usbid;		/* device/endpoint address */
 	int	tok;		/* Tdsetup, Tdtokin, Tdtokout */
-	int32_t	iotime;		/* last I/O time; to hold interrupt polls */
+	int64_t	iotime;		/* last I/O time; to hold interrupt polls */
 	int	debug;		/* for the endpoint */
 	char*	err;		/* error status */
 	int	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
@@ -1618,7 +1618,7 @@ epread(Ep *ep, void *a, int32_t count)
 	Ctlio *cio;
 	Qio *io;
 	char buf[80];
-	uint32_t delta;
+	uint64_t delta;
 
 	if(ep->aux == nil)
 		panic("epread: not open");

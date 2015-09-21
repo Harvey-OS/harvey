@@ -161,7 +161,7 @@ typedef struct Srb Srb;
 struct Srb {
 	Rendez;
 	Srb	*next;
-	uint32_t	ticksent;
+	uint64_t	ticksent;
 	uint32_t	len;
 	int64_t	sector;
 	short	write;
@@ -176,7 +176,7 @@ typedef struct {
 	uint32_t	bcnt;
 	uint32_t	dlen;
 	int64_t	lba;
-	uint32_t	ticksent;
+	uint64_t	ticksent;
 	int	nhdr;
 	uint8_t	hdr[ETHERMINTU];
 	void	*dp;
@@ -214,7 +214,7 @@ struct Aoedev {
 	uint32_t	lostjumbo;
 	uint16_t	nout;
 	uint16_t	maxout;
-	uint32_t	lastwadj;
+	uint64_t	lastwadj;
 	Srb	*_head;
 	Srb	*_tail;
 	Srb	*inprocess;

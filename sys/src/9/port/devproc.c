@@ -791,7 +791,8 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	Proc *up = externup();
 	Proc *p;
 	Mach *ac, *wired;
-	int32_t l, r;
+	int64_t l;
+	int32_t r;
 	Waitq *wq;
 	Ureg kur;
 	uint8_t *rptr;
@@ -1549,7 +1550,7 @@ parsetime(int64_t *rt, char *s)
 
 	if (s == nil)
 		return("missing value");
-	ticks=strtoul(s, &e, 10);
+	ticks=strtoull(s, &e, 10);
 	if (*e == '.'){
 		p = e+1;
 		l = strtoul(p, &e, 10);

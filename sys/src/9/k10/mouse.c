@@ -100,7 +100,7 @@ ps2mouseputc(int c, int shift)
 	static int nb;
 	static unsigned char b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 3, 2, 3, 6, 7 };
 	static uint32_t lasttick;
-	uint32_t m;
+	uint64_t m;
 	int buttons, dx, dy;
 
 	/*

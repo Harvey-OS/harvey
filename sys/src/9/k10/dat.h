@@ -274,15 +274,15 @@ struct Mach
 	void*	gdt;
 	void*	tss;
 
-	uint32_t	ticks;			/* of the clock since boot time */
+	uint64_t	ticks;			/* of the clock since boot time */
 	Label	sched;			/* scheduler wakeup */
 	Lock	alarmlock;		/* access to alarm list */
 	void*	alarm;			/* alarms bound to this clock */
 	int	inclockintr;
 
 	Proc*	readied;		/* old runproc, only relevant if kernel booted with nosmp (-n append) */
-	uint32_t   schedticks;		/* next forced context switch, same as above */
-	uint32_t	qstart;			/* time when up started running */
+	uint64_t   schedticks;		/* next forced context switch, same as above */
+	uint64_t	qstart;			/* time when up started running */
 	int	qexpired;		/* quantum expired */
 
 	int	tlbfault;
@@ -360,7 +360,7 @@ struct Sys {
 			int		nc[NIXROLES];		/* number of online processors */
 			int		nmach;
 			int		load;
-			uint32_t	ticks;			/* of the clock since boot time */
+			uint64_t	ticks;			/* of the clock since boot time */
 		};
 		unsigned char	syspage[4*KiB];
 	};

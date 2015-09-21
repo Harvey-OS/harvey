@@ -116,7 +116,7 @@ static int
 getline(char *buf, int size, int timeout)
 {
 	int c, i=0;
-	uint32_t start;
+	uint64_t start;
 	char echo;
 
 	for (;;) {

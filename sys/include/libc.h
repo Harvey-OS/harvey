@@ -649,7 +649,7 @@ struct IOchunk
 extern	void	_exits(const char*);
 
 extern	int	access(const char*, int);
-extern	int32_t	alarm(uint32_t);
+extern	int64_t	alarm(uint64_t);
 extern	int	await(char*, int);
 extern	int	bind(const char*, const char*, int);
 extern	int	brk(void*);
@@ -694,7 +694,7 @@ extern	int	semacquire(int32_t*, int);
 extern	int32_t	semrelease(int32_t*, int32_t);
 extern	int	sleep(int32_t);
 extern	int	stat(const char*, uint8_t*, int);
-extern	int	tsemacquire(int32_t*, uint32_t);
+extern	int	tsemacquire(int32_t*, uint64_t);
 extern	Waitmsg*	wait(void);
 extern	int	waitpid(void);
 extern	int32_t	write(int, const void*, int32_t);

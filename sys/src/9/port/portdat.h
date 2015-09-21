@@ -838,7 +838,7 @@ struct Proc
 	Fgrp	*closingfgrp;	/* used during teardown */
 
 	int	parentpid;
-	uint32_t	time[6];	/* User, Sys, Real; child U, S, R */
+	uint64_t	time[6];	/* User, Sys, Real; child U, S, R */
 
 	uint64_t	kentry;		/* Kernel entry time stamp (for profiling) */
 	/*
@@ -910,10 +910,10 @@ struct Proc
 	uint32_t	priority;	/* priority level */
 	uint32_t	basepri;	/* base priority level */
 	int	fixedpri;	/* priority level does not change */
-	uint32_t	cpu;		/* cpu average */
-	uint32_t	lastupdate;
-	uint32_t	readytime;	/* time process came ready */
-	uint32_t	movetime;	/* last time process switched processors */
+	uint64_t	cpu;		/* cpu average */
+	uint64_t	lastupdate;
+	uint64_t	readytime;	/* time process came ready */
+	uint64_t	movetime;	/* last time process switched processors */
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
@@ -1160,13 +1160,13 @@ extern	Uart*	consuart;
  */
 struct Perf
 {
-	uint32_t	intrts;		/* time of last interrupt */
-	uint32_t	inintr;		/* time since last clock tick in interrupt handlers */
-	uint32_t	avg_inintr;	/* avg time per clock tick in interrupt handlers */
-	uint32_t	inidle;		/* time since last clock tick in idle loop */
-	uint32_t	avg_inidle;	/* avg time per clock tick in idle loop */
-	uint32_t	last;		/* value of perfticks() at last clock tick */
-	uint32_t	period;		/* perfticks() per clock tick */
+	uint64_t	intrts;		/* time of last interrupt */
+	uint64_t	inintr;		/* time since last clock tick in interrupt handlers */
+	uint64_t	avg_inintr;	/* avg time per clock tick in interrupt handlers */
+	uint64_t	inidle;		/* time since last clock tick in idle loop */
+	uint64_t	avg_inidle;	/* avg time per clock tick in idle loop */
+	uint64_t	last;		/* value of perfticks() at last clock tick */
+	uint64_t	period;		/* perfticks() per clock tick */
 };
 
 struct Watchdog

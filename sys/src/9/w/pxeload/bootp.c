@@ -243,7 +243,8 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 	uint8_t *dp;
 	uint16_t csm;
 	Udphdr *h;
-	uint32_t addr, timo;
+	uint32_t addr;
+	uint64_t timo;
 	Etherpkt pkt;
 	static int rxactive;
 

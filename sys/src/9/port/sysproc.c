@@ -730,14 +730,14 @@ void
 syssleep(Ar0* ar0, ...)
 {
 	Proc *up = externup();
-	int32_t ms;
+	int64_t ms;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
 	 * int sleep(long millisecs);
 	 */
-	ms = va_arg(list, int32_t);
+	ms = va_arg(list, int64_t);
 	va_end(list);
 
 	ar0->i = 0;
@@ -756,7 +756,7 @@ syssleep(Ar0* ar0, ...)
 void
 sysalarm(Ar0* ar0, ...)
 {
-	unsigned long ms;
+	uint64_t ms;
 	va_list list;
 	va_start(list, ar0);
 
@@ -764,10 +764,10 @@ sysalarm(Ar0* ar0, ...)
 	 * long alarm(unsigned long millisecs);
 	 * Odd argument type...
 	 */
-	ms = va_arg(list, unsigned long);
+	ms = va_arg(list, uint64_t);
 	va_end(list);
 
-	ar0->l = procalarm(ms);
+	ar0->vl = procalarm(ms);
 }
 
 void
@@ -1242,11 +1242,11 @@ semacquire(Segment* s, int* addr, int block)
 
 /* Acquire semaphore or time-out */
 static int
-tsemacquire(Segment* s, int* addr, int32_t ms)
+tsemacquire(Segment* s, int* addr, int64_t ms)
 {
 	Proc *up = externup();
 	int acquired;
-	uint32_t t;
+	uint64_t t;
 	Sema phore;
 
 	if(canacquire(addr))
@@ -1316,19 +1316,20 @@ systsemacquire(Ar0* ar0, ...)
 {
 	Proc *up = externup();
 	Segment *s;
-	int *addr, ms;
+	int *addr;
+	uint64_t ms;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
-	 * int tsemacquire(long* addr, uint32_t ms);
+	 * int tsemacquire(long* addr, uint64_t ms);
 	 * should be (and will be implemented below as) perhaps
-	 * int tsemacquire(int* addr, uint32_t ms);
+	 * int tsemacquire(int* addr, uint64_t ms);
 	 */
 	addr = va_arg(list, int*);
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
-	ms = va_arg(list, uint32_t);
+	ms = va_arg(list, uint64_t);
 	va_end(list);
 
 	if((s = seg(up, PTR2UINT(addr), 0)) == nil)

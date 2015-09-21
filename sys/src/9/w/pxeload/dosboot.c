@@ -91,7 +91,7 @@ enum
 typedef struct	Clustbuf	Clustbuf;
 struct Clustbuf
 {
-	int	age;
+	int64_t	age;
 	int32_t	sector;
 	uint8_t	*iobuf;
 	Dos	*dos;
