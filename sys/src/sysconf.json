@@ -70,12 +70,12 @@
 		{
 			"#Id": 6,
 			"Args": [
-				"uint32_t"
+				"uint64_t"
 			],
 			"Id": 4102,
 			"Name": "alarm",
 			"Ret": [
-				"int32_t"
+				"int64_t"
 			]
 		},
 		{
@@ -569,7 +569,7 @@
 			"#Id": 52,
 			"Args": [
 				"int32_t*",
-				"uint32_t"
+				"uint64_t"
 			],
 			"Id": 4148,
 			"Name": "tsemacquire",

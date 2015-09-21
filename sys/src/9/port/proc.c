@@ -409,7 +409,7 @@ static void
 updatecpu(Proc *p)
 {
 	Proc *up = externup();
-	int D, n, t, ocpu;
+	int64_t D, n, t, ocpu;
 
 	if(p->edf)
 		return;
@@ -607,7 +607,8 @@ static void
 rebalance(void)
 {
 	Mpl pl;
-	int pri, npri, t;
+	int pri, npri;
+	int64_t t;
 	Schedq *rq;
 	Proc *p;
 
@@ -649,7 +650,7 @@ static void
 preemptfor(Proc *p)
 {
 	Proc *up = externup();
-	uint32_t delta;
+	uint64_t delta;
 	uint i, /*j,*/ rr;
 	Proc *mup;
 	Mach *mp;
@@ -699,7 +700,7 @@ mach0sched(void)
 	Schedq *rq;
 	Proc *p;
 	Mach *mp;
-	uint32_t start, now;
+	uint64_t start, now;
 	int n, i; //, j;
 
 	assert(machp()->machno == 0);
@@ -786,7 +787,7 @@ smprunproc(void)
 {
 	Schedq *rq;
 	Proc *p;
-	uint32_t start, now;
+	uint64_t start, now;
 	int i;
 
 	start = perfticks();
@@ -849,7 +850,8 @@ singlerunproc(void)
 {
 	Schedq *rq;
 	Proc *p;
-	uint32_t start, now, skipscheds;
+	uint64_t start, now;
+	uint32_t skipscheds;
 	int i;
 
 	start = perfticks();
@@ -1784,7 +1786,7 @@ scheddump(void)
 			continue;
 		print("run[%ld]:", rq-run.runq);
 		for(p = rq->head; p; p = p->rnext)
-			print(" %d(%lud)", p->pid, machp()->ticks - p->readytime);
+			print(" %d(%llud)", p->pid, machp()->ticks - p->readytime);
 		print("\n");
 		delay(150);
 	}
@@ -2020,7 +2022,7 @@ void
 accounttime(void)
 {
 	Proc *p;
-	uint32_t n, per;
+	uint64_t n, per;
 
 	p = machp()->proc;
 	if(p) {

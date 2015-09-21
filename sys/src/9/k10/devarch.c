@@ -630,7 +630,7 @@ delay(int millisecs)
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
-uint32_t
+uint64_t
 perfticks(void)
 {
 	uint64_t x;

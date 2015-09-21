@@ -55,8 +55,8 @@ struct {
 	int64_t	off;		/* offset from epoch to last */
 	int64_t	lasttime;	/* last return value from todget */
 	int64_t	delta;	/* add 'delta' each slow clock tick from sstart to send */
-	uint32_t	sstart;		/* ... */
-	uint32_t	send;		/* ... */
+	uint64_t	sstart;		/* ... */
+	uint64_t	send;		/* ... */
 } tod;
 
 static void todfix(void);
@@ -131,7 +131,7 @@ todget(int64_t *ticksp)
 {
 	uint64_t x;
 	int64_t ticks, diff;
-	uint32_t t;
+	uint64_t t;
 
 	if(!tod.init)
 		todinit();

@@ -627,8 +627,8 @@ m3mouseputc(Queue *queue, int c)
 	static unsigned char b[] = { 0, 4, 1, 5, 0, 2, 1, 3 };
 	short x;
 	int dx, dy, newbuttons;
-	static uint32_t lasttick;
-	uint32_t m;
+	static uint64_t lasttick;
+	uint64_t m;
 
 	/* Resynchronize in stream with timing. */
 	m = machp()->ticks;
@@ -681,8 +681,8 @@ m5mouseputc(Queue *queue, int c)
 {
 	static unsigned char msg[3];
 	static int nb;
-	static uint32_t lasttick;
-	uint32_t m;
+	static uint64_t lasttick;
+	uint64_t m;
 
 	/* Resynchronize in stream with timing. */
 	m = machp()->ticks;
@@ -719,8 +719,8 @@ mouseputc(Queue *queue, int c)
 	static int nb;
 	static unsigned char b[] = {0, 4, 2, 6, 1, 5, 3, 7, 0, 2, 2, 6, 1, 3, 3, 7};
 	int dx, dy, newbuttons;
-	static uint32_t lasttick;
-	uint32_t m;
+	static uint64_t lasttick;
+	uint64_t m;
 
 	/* Resynchronize in stream with timing. */
 	m = machp()->ticks;

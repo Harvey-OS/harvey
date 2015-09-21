@@ -267,7 +267,7 @@ void
 intrtime(int vno)
 {
 	Proc *up = externup();
-	uint32_t diff, x;		/* should be uint64_t */
+	uint64_t diff, x;
 
 	x = perfticks();
 	diff = x - machp()->perf.intrts;

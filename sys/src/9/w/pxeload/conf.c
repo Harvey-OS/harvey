@@ -240,17 +240,6 @@ again:
 	print("\n");
 }
 
-/*
-static void
-msleep(int msec)
-{
-	ulong start;
-
-	for(start = machp()->ticks; TK2MS(machp()->ticks - start) < msec; )
-		;
-}
-*/
-
 void
 readlsconf(void)
 {
