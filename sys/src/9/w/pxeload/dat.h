@@ -86,7 +86,7 @@ typedef struct Mach {
 	uint32_t*	pdb;			/* page directory base for this processor (va) */
 	Segdesc	*gdt;			/* gdt for this processor */
 
-	uint32_t	ticks;			/* of the clock since boot time */
+	uint64_t	ticks;			/* of the clock since boot time */
 	void	*alarm;			/* alarms bound to this clock */
 } Mach;
 
