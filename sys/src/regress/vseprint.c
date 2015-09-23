@@ -20,7 +20,8 @@ testvseprint(char *buf, int n, char *fmt, ...)
 	va_end(arg);
 }
 
-main()
+void
+main(void)
 {
 	char buf[1024];
 	testvseprint(buf, sizeof(buf), "This is a really long message %d %d %d %d\n", 1, 2, 3, 4);

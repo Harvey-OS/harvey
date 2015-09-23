@@ -109,13 +109,12 @@ main(int argc, char *argv[])
 		id = hyperfork(fd, id, i);
 
 	for(i = 0; i < dim; i++){
-		int tlen, rlen, len;
+		int tlen, rlen;
 		tlen = snprint(buf, sizeof buf, "hello %d\n", id);
 		write(fd[i], buf, tlen);
 		rlen = read(fd[i], buf, sizeof buf-1);
 		buf[rlen] = '\0';
-		len = snprint(buf2, sizeof buf2, "%d: %s", id, buf);
-		//write(1, buf2, len);
+		snprint(buf2, sizeof buf2, "%d: %s", id, buf);
 	}
 
 	for(i = 0; i < dim; i++)

@@ -4,7 +4,6 @@
 void
 main(int argc, char *argv[])
 {
-	unsigned char *c = (void *)(512ULL * 1024 * 1024 * 1024);
 	int pid;
 	int p[2], mfd;
 	char *name;
@@ -24,7 +23,6 @@ main(int argc, char *argv[])
 	if (pid == 0) {
 		char w[1];
 		read(p[0], w, 1);
-		//*c = 0;
 		print("PASS\n");
 		exits("PASS");
 	}
