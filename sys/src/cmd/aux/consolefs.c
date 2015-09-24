@@ -98,7 +98,8 @@ struct Console
 
 	int	pid;			/* pid of reader */
 
-	int	fd;
+	int	infd;
+	int	outfd;
 	int	cfd;
 	int	sfd;
 
@@ -401,29 +402,35 @@ fsreopen(Fs* fs, Console *c)
 		c->pid = 0;
 	}
 
-	if(c->fd >= 0){
-		close(c->fd);
+	if(c->infd >= 0){
+	//	close(c->fd);
 		close(c->cfd);
 		close(c->sfd);
 		c->cfd = -1;
-		c->fd = -1;
+		c->infd = -1;
+		c->outfd = -1;
 		c->sfd = -1;
 	}
 
 	if(c->flist == nil && c->ondemand)
 		return 0;
 
+#if 0
 	c->fd = open(c->dev, ORDWR);
 	if(c->fd < 0)
 		return -1;
+#endif
 
+	c->cfd = c->sfd = -1;
+	c->infd = 0;
+	c->outfd = 1;
 	snprint(buf, sizeof(buf), "%sctl", c->dev);
 	c->cfd = open(buf, ORDWR);
+	fprint(2, "cfd: %r\n");
 	fprint(c->cfd, "b%d", c->speed);
 
 	snprint(buf, sizeof(buf), "%sstat", c->dev);
 	c->sfd = open(buf, OREAD);
-
 	v[0] = fs;
 	v[1] = c;
 	proccreate(fsreader, v, 16*1024);
@@ -514,7 +521,8 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly,
 		c->chat = 1;
 	else 
 		c->chat = 0;
-	c->fd = -1;
+	c->infd = -1;
+	c->outfd = -1;
 	c->cfd = -1;
 	c->sfd = -1;
 	change(fs, c, 1, speed, cronly, ondemand);
@@ -614,7 +622,7 @@ fsreader(void *v)
 	if(c->chat)
 		threadexits(nil);
 	for(;;){
-		n = read(c->fd, buf, sizeof(buf));
+		n = read(c->infd, buf, sizeof(buf));
 		if(n < 0)
 			break;
 		lock(c);
@@ -1143,7 +1151,7 @@ fswrite(Fs *fs, Request *r, Fid *f)
 			}
 		}
 		else
-			write(f->c->fd, r->f.data, r->f.count);
+			write(f->c->outfd, r->f.data, r->f.count);
 		break;
 	}
 	fsreply(fs, r, nil);
