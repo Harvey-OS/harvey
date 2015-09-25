@@ -7,6 +7,7 @@
 	"SourceFilesCmd": [
 		"alarm.c",
 		"args.c",
+		"awake.c",
 		"execl.c",
 		"float.c",
 		"fork.c",

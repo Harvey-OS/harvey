@@ -5,6 +5,8 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
+ *
+ * Copyright (C) 2015 Giacomo Tesio <giacomo@tesio.it>
  */
 
 #pragma	lib	"libc.a"
@@ -651,6 +653,8 @@ extern	void	_exits(const char*);
 extern	int	access(const char*, int);
 extern	int64_t	alarm(uint64_t);
 extern	int	await(char*, int);
+extern	int64_t	awake(int64_t);
+extern	int	awakened(int64_t);
 extern	int	bind(const char*, const char*, int);
 extern	int	brk(void*);
 extern	int	chdir(const char*);
@@ -660,6 +664,7 @@ extern	int	dup(int, int);
 extern	int	errstr(char*, uint);
 extern	int	exec(const char*, char* const[]);
 extern	int	execl(const char*, ...);
+extern	int	forgivewkp(int64_t);
 extern	int	fork(void);
 extern	int	rfork(int);
 extern	int	fauth(int, const char*);
