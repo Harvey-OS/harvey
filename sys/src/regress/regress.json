@@ -15,6 +15,7 @@
 		"idseg.c",
 		"iphash.c",
 		"lockdeath.c",
+		"lockt.c",
 		"longjmp.c",
 		"mixedfloat.c",
 		"mmap.c",
