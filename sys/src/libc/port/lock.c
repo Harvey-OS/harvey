@@ -5,6 +5,8 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
+ *
+ * Copyright (C) 2015 Giacomo Tesio <giacomo@tesio.it>
  */
 
 #include <u.h>
@@ -39,4 +41,27 @@ canlock(Lock *l)
 		return 0;	/* changed from 1 -> 0: no contention */
 	semrelease(&l->sem, 1);
 	return 0;
+}
+
+int
+lockt(Lock *l, uint32_t ms)
+{
+	int semr;
+	int64_t start, end;
+
+	if(ainc(&l->key) == 1)
+		return 1;	/* changed from 0 -> 1: we hold lock */
+	/* otherwise wait in kernel */
+	semr = 0;
+	start = nsec() / (1000 * 1000);
+	end = start + ms;
+	while(start < end && (semr = tsemacquire(&l->sem, ms)) < 0){
+		/* interrupted; try again */
+		start = nsec() / (1000 * 1000);
+		ms = end - start;
+	}
+	/* copy canlock semantic for return values */
+	if(semr == 1)
+		return 1;	/* success, lock acquired */
+	return 0;		/* timed out or interrupt at timeout */
 }
