@@ -690,6 +690,7 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
+	kproc("awake", awakekproc, 0);
 	//debugtouser((void *)UTZERO);
 	touser(sp);
 }

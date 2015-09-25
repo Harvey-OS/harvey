@@ -5,6 +5,8 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
+ *
+ * Copyright (C) 2015 Giacomo Tesio <giacomo@tesio.it>
  */
 
 #include	"u.h"
@@ -768,6 +770,23 @@ sysalarm(Ar0* ar0, ...)
 	va_end(list);
 
 	ar0->vl = procalarm(ms);
+}
+
+void
+sysawake(Ar0* ar0, ...)
+{
+	int64_t ms;
+	va_list list;
+	va_start(list, ar0);
+
+	/*
+	 * int64_t awake(int64_t millisecs);
+	 * Odd argument type...
+	 */
+	ms = va_arg(list, int64_t);
+	va_end(list);
+
+	ar0->vl = procawake(ms);
 }
 
 void

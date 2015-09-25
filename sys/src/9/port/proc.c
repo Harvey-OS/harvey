@@ -1036,6 +1036,7 @@ newproc(void)
 		p->procctl = 0;
 	p->syscalltrace = nil;
 	p->notepending = 0;
+	p->wakeups = 0;
 	p->ureg = 0;
 	p->privatemem = 0;
 	p->noswap = 0;
@@ -1496,6 +1497,7 @@ pexit(char *exitstr, int freemem)
 		free(up->syscalltrace);
 	up->syscalltrace = nil;
 	up->alarm = 0;
+	clearwakeups(up);
 
 	if (up->tt)
 		timerdel(up);
