@@ -868,6 +868,7 @@ struct Proc
 	int	kp;		/* true if a kernel process */
 	Proc	*palarm;	/* Next alarm time */
 	uint32_t	alarm;		/* Time of call */
+	uint32_t	wakeups;	/* Number of pending wakeups */
 	int	newtlb;		/* Pager has changed my pte's, I must flush */
 	int	noswap;		/* process is not swappable */
 
