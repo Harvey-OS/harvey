@@ -185,6 +185,7 @@ hzclock(Ureg *ur)
 		exit(0);
 	}
 
+	checkwakeups();
 	checkalarms();
 
 	if(up && up->state == Running)

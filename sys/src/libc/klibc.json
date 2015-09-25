@@ -14,6 +14,7 @@
 	"SourceFiles": [
 		"9sys/access.c",
 		"9sys/announce.c",
+		"9sys/awakened.c",
 		"9sys/convD2M.c",
 		"9sys/convM2D.c",
 		"9sys/convM2S.c",
@@ -60,6 +61,7 @@
 		"9sys/writev.c",
 		"9syscall/alarm.s",
 		"9syscall/await.s",
+		"9syscall/awake.s",
 		"9syscall/bind.s",
 		"9syscall/brk_.s",
 		"9syscall/chdir.s",
