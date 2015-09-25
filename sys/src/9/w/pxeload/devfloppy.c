@@ -405,7 +405,7 @@ static void
 timedsleep(int (*f)(void*), void* arg, int ms)
 {
 	int s;
-	uint32_t end;
+	uint64_t end;
 
 	end = machp()->ticks + 1 + MS2TK(ms);
 	while(machp()->ticks < end && !(*f)(arg)){

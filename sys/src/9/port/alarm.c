@@ -21,7 +21,7 @@ alarmkproc(void* v)
 {
 	Proc *up = externup();
 	Proc *rp;
-	uint32_t now;
+	uint64_t now;
 
 	for(;;){
 		now = sys->ticks;
@@ -53,7 +53,7 @@ void
 checkalarms(void)
 {
 	Proc *p;
-	uint32_t now;
+	uint64_t now;
 
 	p = alarms._head;
 	now = sys->ticks;
@@ -62,12 +62,12 @@ checkalarms(void)
 		wakeup(&alarmr);
 }
 
-uint32_t
-procalarm(uint32_t time)
+uint64_t
+procalarm(uint64_t time)
 {
 	Proc *up = externup();
 	Proc **l, *f;
-	uint32_t when, old;
+	uint64_t when, old;
 
 	if(up->alarm)
 		old = tk2ms(up->alarm - sys->ticks);

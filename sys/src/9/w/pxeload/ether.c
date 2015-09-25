@@ -183,7 +183,7 @@ etheraddr(int ctlrno)
 static int
 wait(RingBuf* ring, uint8_t owner, int timo)
 {
-	uint32_t start;
+	uint64_t start;
 	extern void hlt(void);
 
 	start = machp()->ticks;

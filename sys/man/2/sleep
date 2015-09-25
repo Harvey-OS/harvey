@@ -7,10 +7,10 @@ sleep, alarm \- delay, ask for delayed note
 .B #include <libc.h>
 .PP
 .B
-int sleep(long millisecs)
+int sleep(uint64_t millisecs)
 .PP
 .B
-long alarm(unsigned long millisecs)
+long alarm(uint64_t millisecs)
 .SH DESCRIPTION
 .I Sleep
 suspends the current process for the number
