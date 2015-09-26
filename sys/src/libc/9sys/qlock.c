@@ -5,6 +5,8 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
+ *
+ * Copyright (C) 2015 Giacomo Tesio <giacomo@tesio.it>
  */
 
 #include <u.h>
@@ -107,6 +109,75 @@ qunlock(QLock *q)
 	}
 	q->locked = 0;
 	unlock(&q->lock);
+}
+
+int
+qlockt(QLock *q, uint32_t ms)
+{
+	QLp *p, *mp;
+	int64_t step, end, wkup;
+
+	end = (ms * 1000 * 1000) + nsec();
+
+	if(!lockt(&q->lock, ms))
+		return 0;
+
+	if(!q->locked){
+		q->locked = 1;
+		unlock(&q->lock);
+		return 1;
+	}
+
+	/* set up awake to interrupt rendezvous */
+	step = nsec();
+	if (step > end) {
+		unlock(&q->lock);
+		return 0;
+	}
+
+	wkup = awake((end - step) / (1000 * 1000));
+
+	/* chain into waiting list */
+	mp = getqlp();
+	p = q->tail;
+	if(p == nil)
+		q->head = mp;
+	else
+		p->next = mp;
+	q->tail = mp;
+	mp->state = Queuing;
+	unlock(&q->lock);
+
+	/* wait */
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~0) {
+		if (awakened(wkup)) {
+			/* interrupted by awake */
+			lock(&q->lock);
+
+			/* search my QLp to remove */
+			p = q->head;
+			while(p != nil && p != mp && p->next != mp && p != q->tail)
+				p = p->next;
+			assert(p != nil);	/* we must be somewhere */
+
+			if(p == mp){
+				/* mp was head */
+				q->head = mp->next;
+			} else {
+				p->next = mp->next;
+			}
+			if(q->head == nil)
+				q->tail = nil;
+			mp->inuse = 0;
+
+			unlock(&q->lock);
+			return 0;
+		}
+	}
+	forgivewkp(wkup);
+	mp->inuse = 0;
+
+	return 1;
 }
 
 int
