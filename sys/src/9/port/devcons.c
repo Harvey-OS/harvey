@@ -319,7 +319,7 @@ kbdputc(Queue *q, int ch)
 	char buf[3];
 	Rune r;
 	char *next;
-
+	
 	if(kbd.ir == nil)
 		return 0;		/* in case we're not inited yet */
 	
@@ -429,11 +429,20 @@ readstr(int32_t offset, char *buf, int32_t n, char *str)
 	return n;
 }
 
+// TODO: REMOVE these two lines.
+extern Queue*kbdq;
+static	Queue*	lineq;		/* processed console input */
+void kbdenable(void);
+
 static void
 consinit(void)
 {
 	todinit();
 	randominit();
+	lineq = qopen(2*1024, 0, nil, nil);
+	if(lineq == nil)
+		panic("printinit");
+	qnoblock(lineq, 1);
 }
 
 static Chan*
@@ -475,16 +484,18 @@ consclose(Chan *c)
 {
 }
 
+
 static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	uint64_t l;
 	Mach *mp;
-	char *b, *bp, *s, *e;
+	char *b, *bp, *s, *e, ch;
 	char tmp[512];		/* Qswap is 381 bytes at clu */
 	int i, k, id;
 	int32_t offset;
+	int send = 0;
 
 
 	if(n <= 0)
@@ -496,7 +507,58 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
 
 	case Qcons:
-		error(Egreg);
+		if (! lineq) panic("O LINEQ");
+		if (! kbdq) {
+			kbdenable();
+		}
+		if (! kbdq) error("well, that went badly");
+		qlock(&kbd);
+		if(waserror()) {
+			qunlock(&kbd);
+			nexterror();
+		}
+print("kbdqlock\n");
+
+		while(!qcanread(lineq)){
+print("qcanread\n");
+			if(qread(kbdq, &ch, 1) == 0)
+				continue;
+			send = 0;
+			if(ch == 0){
+				/* flush output on rawoff -> rawon */
+				if(kbd.x > 0)
+					send = !qcanread(kbdq);
+			}else if(kbd.raw){
+				kbd.line[kbd.x++] = ch;
+				send = !qcanread(kbdq);
+			}else{
+				switch(ch){
+				case '\b':
+					if(kbd.x > 0)
+						kbd.x--;
+					break;
+				case 0x15:	/* ^U */
+					kbd.x = 0;
+					break;
+				case '\n':
+				case 0x04:	/* ^D */
+					send = 1;
+				default:
+					if(ch != 0x04)
+						kbd.line[kbd.x++] = ch;
+					break;
+				}
+			}
+			if(send || kbd.x == sizeof kbd.line){
+				qwrite(lineq, kbd.line, kbd.x);
+				kbd.x = 0;
+			}
+		}
+print("try to read lineq\n");
+		n = qread(lineq, buf, n);
+		qunlock(&kbd);
+		poperror();
+		return n;
 
 	case Qcputime:
 		k = offset;
