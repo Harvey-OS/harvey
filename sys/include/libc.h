@@ -457,6 +457,7 @@ struct QLock
 } QLock;
 
 extern	void	qlock(QLock*);
+extern	int	qlockt(QLock*, uint32_t);
 extern	void	qunlock(QLock*);
 extern	int	canqlock(QLock*);
 extern	void	_qlockinit(void* (*)(void*, void*));	/* called only by the thread library */

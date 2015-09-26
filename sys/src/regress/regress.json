@@ -14,6 +14,7 @@
 		"frexp.c",
 		"idseg.c",
 		"iphash.c",
+		"hcube.c",
 		"lockdeath.c",
 		"lockt.c",
 		"longjmp.c",
@@ -25,6 +26,8 @@
 		"pipering.c",
 		"privates.c",
 		"psx.c",
+		"qlockt0.c",
+		"qlockt1.c",
 		"sqrt.c",
 		"syscall.c",
 		"sysfatal.c",
@@ -33,7 +36,6 @@
 		"tsemacquire.c",
 		"va_copy.c",
 		"vseprint.c",
-		"tls.c",
-		"hcube.c"
+		"tls.c"
 	]
 }
