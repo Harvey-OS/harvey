@@ -83,21 +83,23 @@ func main() {
 		conns = append(conns, c)
 	}
 
-	unraw, err := terminal.MakeRaw(0)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
-	defer terminal.Restore(0, unraw)
-
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
-	go func() {
-		for _ = range sigc {
-			terminal.Restore(0, unraw)
+	if terminal.IsTerminal(0) {
+		unraw, err := terminal.MakeRaw(0)
+		if err != nil {
+			fmt.Printf("%v\n", err)
 			os.Exit(1)
 		}
-	}()
+		defer terminal.Restore(0, unraw)
+
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
+		go func() {
+			for _ = range sigc {
+				terminal.Restore(0, unraw)
+				os.Exit(1)
+			}
+		}()
+	}
 
 	go func() {
 		buf := make([]byte, 256)
