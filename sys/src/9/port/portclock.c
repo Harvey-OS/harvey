@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2015 Giacomo Tesio <giacomo@tesio.it>
+ *
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -185,8 +187,11 @@ hzclock(Ureg *ur)
 		exit(0);
 	}
 
-	checkwakeups();
-	checkalarms();
+	if(machp()->machno == 0) {
+		/* since sys->ticks is only updated if machp()->machno == 0 */
+		checkwakeups();
+		checkalarms();
+	}
 
 	if(up && up->state == Running)
 		hzsched();	/* in proc.c */
