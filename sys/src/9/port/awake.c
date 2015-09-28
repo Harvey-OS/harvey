@@ -103,9 +103,10 @@ wakeupProc(Proc *p)
 void
 awakekproc(void* v)
 {
-	Proc *up = externup();
+	Proc *p, *up = externup();
 	PendingWakeup *toAwake, *tail;
 	uint64_t now;
+	int s;
 
 	for(;;){
 		now = sys->ticks;
@@ -128,15 +129,24 @@ awakekproc(void* v)
 
 		/* wakeup sleeping processes */
 		while(toAwake != nil){
-			/* debugged processes will miss wakeups, but the
-			 * alternatives seem even worse
+			p = toAwake->p;
+			s = p->state;
+
+			/* it would be nice to be able to simply do
+			 *		if(p->state <= Ready)
+			 * but states are not sorted that way
 			 */
-			if(canqlock(&toAwake->p->debug)){
-				if(!waserror()){
-					wakeupProc(toAwake->p);
-					poperror();
+			if(s != Dead && s != Moribund && s != Broken && s != Ready) {
+				/* debugged processes will miss wakeups, but the
+				 * alternatives seem even worse
+				 */
+				if(canqlock(&p->debug)){
+					if(!waserror()){
+						wakeupProc(p);
+						poperror();
+					}
+					qunlock(&p->debug);
 				}
-				qunlock(&toAwake->p->debug);
 			}
 			tail = toAwake->next;
 			free(toAwake);
@@ -201,7 +211,7 @@ void
 checkwakeups(void)
 {
 	PendingWakeup *p;
-	uint32_t now;
+	uint64_t now;
 
 	p = alarms;
 	now = sys->ticks;
@@ -255,6 +265,7 @@ forgivewakeup(int64_t time)
 	}
 	while(w != nil && w->time == time && w->p != up){
 		last = &w->next;
+		w = w->next;
 	}
 	if(w == nil || w->time > time || w->p != up){
 		/* wakeup not found */
