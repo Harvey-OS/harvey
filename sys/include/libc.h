@@ -473,6 +473,7 @@ struct RWLock
 } RWLock;
 
 extern	void	rlock(RWLock*);
+extern	int	rlockt(RWLock*, uint32_t);
 extern	void	runlock(RWLock*);
 extern	int	canrlock(RWLock*);
 extern	void	wlock(RWLock*);

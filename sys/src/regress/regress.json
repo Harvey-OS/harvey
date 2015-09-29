@@ -28,6 +28,8 @@
 		"psx.c",
 		"qlockt0.c",
 		"qlockt1.c",
+		"rlockt0.c",
+		"rlockt1.c",
 		"sqrt.c",
 		"syscall.c",
 		"sysfatal.c",

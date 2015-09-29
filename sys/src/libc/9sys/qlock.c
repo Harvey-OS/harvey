@@ -225,6 +225,83 @@ rlock(RWLock *q)
 }
 
 int
+rlockt(RWLock *q, uint32_t ms)
+{
+	QLp *p, *mp;
+	int64_t step, end, wkup;
+
+	end = (ms * 1000 * 1000) + nsec();
+
+	if(!lockt(&q->lock, ms))
+		return 0;
+
+	if(q->writer == 0 && q->head == nil){
+		/* no writer, go for it */
+		q->_readers++;
+		unlock(&q->lock);
+		return 1;
+	}
+
+	/* set up awake to interrupt rendezvous */
+	step = nsec();
+	if (step > end) {
+		unlock(&q->lock);
+		return 0;
+	}
+
+	wkup = awake((end - step) / (1000 * 1000));
+
+	/* chain into waiting list */
+	mp = getqlp();
+	p = q->tail;
+	if(p == 0)
+		q->head = mp;
+	else
+		p->next = mp;
+	q->tail = mp;
+	mp->next = nil;
+	mp->state = QueuingR;
+	unlock(&q->lock);
+
+	/* wait in kernel */
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~0) {
+		if (awakened(wkup)) {
+			/* interrupted by awake */
+			lock(&q->lock);
+
+			/* search my QLp to remove */
+			p = q->head;
+			while(p != nil && p != mp && p->next != mp && p != q->tail)
+				p = p->next;
+			if(p == nil)
+				abort();		/* we must be somewhere */
+
+			if(p == mp){
+				/* mp was head */
+				q->head = mp->next;
+			} else {
+				p->next = mp->next;
+			}
+			if(q->head == nil)
+				q->tail = nil;
+			mp->inuse = 0;
+
+			/* note that we do not have to wakeup anybody because the
+			 * owner of the lock will do it if required, on unlock
+			 */
+
+			unlock(&q->lock);
+			return 0;
+		}
+	}
+
+	forgivewkp(wkup);
+	mp->inuse = 0;
+
+	return 1;
+}
+
+int
 canrlock(RWLock *q)
 {
 	lock(&q->lock);
