@@ -18,10 +18,10 @@
 #include <u.h>
 #include <libc.h>
 
-/* verify that rlockt returns 0 on timeout */
+/* verify that qlockt returns 0 even on tight timeouts */
 
 #define NPROC 50
-RWLock alwaysLocked;	/* held by main process, readers will timeout */
+QLock alwaysLocked;	/* held by main process, waiters will timeout */
 
 int killerProc;	/* pid, will kill the other processes if starved */
 
@@ -55,11 +55,9 @@ stopAllAfter(int seconds)
 				print("killer proc timedout: pid %d\n", getpid());
 			exits("FAIL");
 		case -1:
-			fprint(2, "stopAllAfter: %r\n");
+			fprint(2, "%r\n");
 			exits("rfork fails");
 		default:
-			if(verbose)
-				print("killer proc spawn: pid %d\n", getpid());
 			killerProc = pid;
 			atexit(killKiller);
 	}
@@ -68,10 +66,11 @@ stopAllAfter(int seconds)
 int
 handletimeout(void *v, char *s)
 {
+	/* just not exit, please */
 	if(strcmp(s, "timedout") == 0){
 		if(verbose)
 			print("%d: noted: %s\n", getpid(), s);
-		print("FAIL: timedout");
+		print("FAIL: timedout\n");
 		exits("FAIL");
 	}
 	return 0;
@@ -80,10 +79,11 @@ handletimeout(void *v, char *s)
 int
 handlefail(void *v, char *s)
 {
+	/* just not exit, please */
 	if(strncmp(s, "fail", 4) == 0){
 		if(verbose)
 			print("%d: noted: %s\n", getpid(), s);
-		print("FAIL: %s", s);
+		print("FAIL: %s\n", s);
 		exits("FAIL");
 	}
 	return 0;
@@ -96,24 +96,24 @@ waiter(int index)
 
 	/* wait for the alwaysLocked to be locked by the main process */
 	qlock(&rl);
-	while(alwaysLocked.writer == 0)
+	while(alwaysLocked.locked == 0)
 		rsleep(&rStart);
 	qunlock(&rl);
 
-	/* try to lock for ~1000 ms */
+	/* try to lock for ~1 ms */
 	start = nsec();
 	end = start;
 	if(verbose)
-		print("reader %d: started\n", getpid());
-	if(rlockt(&alwaysLocked, 1000)){
+		print("waiter %d: started\n", getpid());
+	if(qlockt(&alwaysLocked, 1)){
 		if(verbose)
-			print("reader %d failed: got the rlock\n", getpid());
-		runlock(&alwaysLocked);
-		postnote(PNGROUP, getpid(), smprint("fail: reader %d got the rlock", getpid()));
+			print("waiter %d failed: got the qlock\n", getpid());
+		qunlock(&alwaysLocked);
+		postnote(PNGROUP, getpid(), smprint("fail: waiter %d got the qlock", getpid()));
 	} else {
 		end = nsec();
 		if(verbose)
-			print("reader %d: rlockt timedout in %lld ms\n", getpid(), (end - start) / (1000*1000));
+			print("waiter %d: qlockt timedout in %lld ms\n", getpid(), (end - start) / (1000*1000));
 	}
 
 	/* notify the main process that we have completed */
@@ -144,7 +144,7 @@ spawnWaiter(int index)
 			break;
 		default:
 			if(verbose)
-				print("spawn reader %d\n", pid);
+				print("spawn waiter %d\n", pid);
 			break;
 	}
 }
@@ -169,37 +169,35 @@ main(void)
 	stopAllAfter(30);
 
 	if (!atnotify(handletimeout, 1)){
-		fprint(2, "atnotify(handletimeout): %r\n");
+		fprint(2, "%r\n");
 		exits("atnotify fails");
 	}
 	if (!atnotify(handlefail, 1)){
-		fprint(2, "atnotify(handlefail): %r\n");
+		fprint(2, "%r\n");
 		exits("atnotify fails");
 	}
 
-	if(verbose)
-		print("main: ready to lock...\n");
 	qlock(&rl);
-	wlock(&alwaysLocked);
+	qlock(&alwaysLocked);
 	if(verbose)
-		print("main: got the alwaysLocked: wakeup all readers...\n");
+		print("main: got the alwaysLocked: wakeup all waiters...\n");
 	rwakeupall(&rStart);
 	if(verbose)
-		print("main: got the alwaysLocked: wakeup all readers... done\n");
+		print("main: got the alwaysLocked: wakeup all waiters... done\n");
 	qunlock(&rl);
 
 	qlock(&rl);
 	if(verbose)
-		print("main: waiting all readers to timeout...\n");
+		print("main: waiting all waiters to timeout...\n");
 	while(completed < NPROC){
 		rsleep(&rCompleted);
 		if(verbose && completed < NPROC)
-			print("main: awaked, but %d readers are still pending\n", NPROC - completed);
+			print("main: awaked, but %d waiters are still pending\n", NPROC - completed);
 	}
-	wunlock(&alwaysLocked);
+	qunlock(&alwaysLocked);
 	qunlock(&rl);
 	if(verbose)
-		print("main: waiting all readers to timeout... done\n");
+		print("main: waiting all waiters to timeout... done\n");
 
 	average = 0;
 	for(i = 0; i < NPROC; ++i){
@@ -207,7 +205,7 @@ main(void)
 	}
 	average = average / NPROC / (1000 * 1000);
 
-	if(average > 900 && average < 1300) /* 30% error on timeout is acceptable */
+	if(average < 100) /* we asked for 1ms... we are dumb, after all */
 	{
 		print("PASS\n");
 		exits("PASS");

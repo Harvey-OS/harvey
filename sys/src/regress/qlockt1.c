@@ -25,7 +25,7 @@
 #define NPROC 50
 QLock afterAWhile;	/* held for a while by main, then waiters will take it */
 
-int killerProc;	/* pid, will kill the other processes if starwed */
+int killerProc;	/* pid, will kill the other processes if starved */
 
 int elapsed[NPROC];
 int32_t completed;
