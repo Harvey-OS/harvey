@@ -56,6 +56,30 @@ getqlp(void)
 	}
 	return p;
 }
+static void
+releaseqlp(QLp **head, QLp **tail, QLp *mp)
+{
+	/* NOTE: we assume a lock is held during the execution to prevent
+	 * modifications to the chain
+	 */
+	QLp *p;
+	
+	p = *head;
+	while(p != nil && p != mp && p->next != mp && p != *tail)
+		p = p->next;
+	if(p == nil)
+		abort();	/* mp must be somewhere */
+
+	if(p == mp){
+		/* mp was head */
+		*head = mp->next;
+	} else {
+		p->next = mp->next;
+	}
+	if(*head == nil)
+		*tail = nil;
+	mp->inuse = 0;
+}
 
 void
 qlock(QLock *q)
@@ -115,27 +139,22 @@ int
 qlockt(QLock *q, uint32_t ms)
 {
 	QLp *p, *mp;
-	int64_t step, end, wkup;
+	int64_t wkup;
 
-	end = (ms * 1000 * 1000) + nsec();
+	/* set up awake to interrupt rendezvous */
+	wkup = awake(ms);
 
-	if(!lockt(&q->lock, ms))
+	if(!lockt(&q->lock, ms)){
+		forgivewkp(wkup);
 		return 0;
+	}
 
 	if(!q->locked){
+		forgivewkp(wkup);
 		q->locked = 1;
 		unlock(&q->lock);
 		return 1;
 	}
-
-	/* set up awake to interrupt rendezvous */
-	step = nsec();
-	if (step > end) {
-		unlock(&q->lock);
-		return 0;
-	}
-
-	wkup = awake((end - step) / (1000 * 1000));
 
 	/* chain into waiting list */
 	mp = getqlp();
@@ -146,34 +165,25 @@ qlockt(QLock *q, uint32_t ms)
 		p->next = mp;
 	q->tail = mp;
 	mp->state = Queuing;
+
+	if (awakened(wkup)) {	/* do not miss already occurred wakeups */
+		releaseqlp(&q->head, &q->tail, mp);
+		unlock(&q->lock);
+		return 0;
+	}
+
 	unlock(&q->lock);
 
 	/* wait */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0) {
-		if (awakened(wkup)) {
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+		if (awakened(wkup)){
 			/* interrupted by awake */
 			lock(&q->lock);
-
-			/* search my QLp to remove */
-			p = q->head;
-			while(p != nil && p != mp && p->next != mp && p != q->tail)
-				p = p->next;
-			assert(p != nil);	/* we must be somewhere */
-
-			if(p == mp){
-				/* mp was head */
-				q->head = mp->next;
-			} else {
-				p->next = mp->next;
-			}
-			if(q->head == nil)
-				q->tail = nil;
-			mp->inuse = 0;
-
+			releaseqlp(&q->head, &q->tail, mp);
 			unlock(&q->lock);
 			return 0;
 		}
-	}
+
 	forgivewkp(wkup);
 	mp->inuse = 0;
 
@@ -228,28 +238,23 @@ int
 rlockt(RWLock *q, uint32_t ms)
 {
 	QLp *p, *mp;
-	int64_t step, end, wkup;
+	int64_t wkup;
 
-	end = (ms * 1000 * 1000) + nsec();
+	/* set up awake to interrupt rendezvous */
+	wkup = awake(ms);
 
-	if(!lockt(&q->lock, ms))
+	if(!lockt(&q->lock, ms)) {
+		forgivewkp(wkup);
 		return 0;
+	}
 
 	if(q->writer == 0 && q->head == nil){
 		/* no writer, go for it */
+		forgivewkp(wkup);
 		q->_readers++;
 		unlock(&q->lock);
 		return 1;
 	}
-
-	/* set up awake to interrupt rendezvous */
-	step = nsec();
-	if (step > end) {
-		unlock(&q->lock);
-		return 0;
-	}
-
-	wkup = awake((end - step) / (1000 * 1000));
 
 	/* chain into waiting list */
 	mp = getqlp();
@@ -261,39 +266,24 @@ rlockt(RWLock *q, uint32_t ms)
 	q->tail = mp;
 	mp->next = nil;
 	mp->state = QueuingR;
+
+	if (awakened(wkup)) {	/* do not miss already occurred wakeups */
+		releaseqlp(&q->head, &q->tail, mp);
+		unlock(&q->lock);
+		return 0;
+	}
+
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0) {
-		if (awakened(wkup)) {
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+		if (awakened(wkup)){
 			/* interrupted by awake */
 			lock(&q->lock);
-
-			/* search my QLp to remove */
-			p = q->head;
-			while(p != nil && p != mp && p->next != mp && p != q->tail)
-				p = p->next;
-			if(p == nil)
-				abort();		/* we must be somewhere */
-
-			if(p == mp){
-				/* mp was head */
-				q->head = mp->next;
-			} else {
-				p->next = mp->next;
-			}
-			if(q->head == nil)
-				q->tail = nil;
-			mp->inuse = 0;
-
-			/* note that we do not have to wakeup anybody because the
-			 * owner of the lock will do it if required, on unlock
-			 */
-
+			releaseqlp(&q->head, &q->tail, mp);
 			unlock(&q->lock);
 			return 0;
 		}
-	}
 
 	forgivewkp(wkup);
 	mp->inuse = 0;
@@ -373,6 +363,7 @@ wlock(RWLock *q)
 		;
 	mp->inuse = 0;
 }
+
 
 int
 canwlock(RWLock *q)

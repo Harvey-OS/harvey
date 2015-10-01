@@ -18,7 +18,7 @@
 #include <u.h>
 #include <libc.h>
 
-/* verify that rlockt returns 0 on timeout */
+/* verify that rlockt returns 0 even on tight timeouts */
 
 #define NPROC 50
 RWLock alwaysLocked;	/* held by main process, readers will timeout */
@@ -31,7 +31,7 @@ QLock rl;
 Rendez rStart;
 Rendez rCompleted;
 
-int verbose = 0;
+int verbose = 1;
 
 void
 killKiller(void)
@@ -71,7 +71,7 @@ handletimeout(void *v, char *s)
 	if(strcmp(s, "timedout") == 0){
 		if(verbose)
 			print("%d: noted: %s\n", getpid(), s);
-		print("FAIL: timedout");
+		print("FAIL: timedout\n");
 		exits("FAIL");
 	}
 	return 0;
@@ -83,7 +83,7 @@ handlefail(void *v, char *s)
 	if(strncmp(s, "fail", 4) == 0){
 		if(verbose)
 			print("%d: noted: %s\n", getpid(), s);
-		print("FAIL: %s", s);
+		print("FAIL: %s\n", s);
 		exits("FAIL");
 	}
 	return 0;
@@ -100,12 +100,12 @@ waiter(int index)
 		rsleep(&rStart);
 	qunlock(&rl);
 
-	/* try to lock for ~1000 ms */
+	/* try to lock for ~1 ms */
 	start = nsec();
 	end = start;
 	if(verbose)
 		print("reader %d: started\n", getpid());
-	if(rlockt(&alwaysLocked, 1000)){
+	if(rlockt(&alwaysLocked, 1)){
 		if(verbose)
 			print("reader %d failed: got the rlock\n", getpid());
 		runlock(&alwaysLocked);
@@ -207,7 +207,7 @@ main(void)
 	}
 	average = average / NPROC / (1000 * 1000);
 
-	if(average > 900 && average < 1300) /* 30% error on timeout is acceptable */
+	if(average < 100) /* we asked for 1ms... we are dumb, after all */
 	{
 		print("PASS\n");
 		exits("PASS");
