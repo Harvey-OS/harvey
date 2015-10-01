@@ -346,7 +346,7 @@ wlock(RWLock *q)
 		return;
 	}
 
-	/* wait */
+	/* chain into waiting list */
 	p = q->tail;
 	mp = getqlp();
 	if(p == nil)
@@ -361,9 +361,66 @@ wlock(RWLock *q)
 	/* wait in kernel */
 	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
 		;
+
 	mp->inuse = 0;
 }
 
+
+int
+wlockt(RWLock *q, uint32_t ms)
+{
+	QLp *p, *mp;
+	int64_t wkup;
+
+	/* set up awake to interrupt rendezvous */
+	wkup = awake(ms);
+
+	if(!lockt(&q->lock, ms)) {
+		forgivewkp(wkup);
+		return 0;
+	}
+
+	if(q->_readers == 0 && q->writer == 0){
+		/* noone waiting, go for it */
+		forgivewkp(wkup);
+		q->writer = 1;
+		unlock(&q->lock);
+		return 1;
+	}
+
+	/* wait */
+	p = q->tail;
+	mp = getqlp();
+	if(p == nil)
+		q->head = mp;
+	else
+		p->next = mp;
+	q->tail = mp;
+	mp->next = nil;
+	mp->state = QueuingW;
+
+	if (awakened(wkup)) {	/* do not miss already occurred wakeups */
+		releaseqlp(&q->head, &q->tail, mp);
+		unlock(&q->lock);
+		return 0;
+	}
+
+	unlock(&q->lock);
+
+	/* wait in kernel */
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+		if (awakened(wkup)){
+			/* interrupted by awake */
+			lock(&q->lock);
+			releaseqlp(&q->head, &q->tail, mp);
+			unlock(&q->lock);
+			return 0;
+		}
+	forgivewkp(wkup);
+	mp->inuse = 0;
+
+	return 1;
+}
 
 int
 canwlock(RWLock *q)
