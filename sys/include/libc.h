@@ -477,6 +477,7 @@ extern	int	rlockt(RWLock*, uint32_t);
 extern	void	runlock(RWLock*);
 extern	int	canrlock(RWLock*);
 extern	void	wlock(RWLock*);
+extern	int	wlockt(RWLock*, uint32_t);
 extern	void	wunlock(RWLock*);
 extern	int	canwlock(RWLock*);
 
