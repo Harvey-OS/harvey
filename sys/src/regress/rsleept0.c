@@ -18,10 +18,11 @@
 #include <u.h>
 #include <libc.h>
 
-/* verify that rlockt returns 0 on timeout */
+/* verify that rsleept returns 0 on timeout */
 
 #define NPROC 50
-RWLock alwaysLocked;	/* held by main process, readers will timeout */
+QLock al;
+Rendez neverAwakened;	/* sleepers will timeout */
 
 int killerProc;	/* pid, will kill the other processes if starved */
 
@@ -31,7 +32,7 @@ QLock rl;
 Rendez rStart;
 Rendez rCompleted;
 
-int verbose = 0;
+int verbose = 1;
 
 void
 killKiller(void)
@@ -55,11 +56,9 @@ stopAllAfter(int seconds)
 				print("killer proc timedout: pid %d\n", getpid());
 			exits("FAIL");
 		case -1:
-			fprint(2, "stopAllAfter: %r\n");
+			fprint(2, "%r\n");
 			exits("rfork fails");
 		default:
-			if(verbose)
-				print("killer proc spawn: pid %d\n", getpid());
 			killerProc = pid;
 			atexit(killKiller);
 	}
@@ -68,6 +67,7 @@ stopAllAfter(int seconds)
 int
 handletimeout(void *v, char *s)
 {
+	/* just not exit, please */
 	if(strcmp(s, "timedout") == 0){
 		if(verbose)
 			print("%d: noted: %s\n", getpid(), s);
@@ -80,40 +80,42 @@ handletimeout(void *v, char *s)
 int
 handlefail(void *v, char *s)
 {
+	/* just not exit, please */
 	if(strncmp(s, "fail", 4) == 0){
 		if(verbose)
 			print("%d: noted: %s\n", getpid(), s);
-		print("FAIL: %s\n", s);
+		print("FAIL: %s\n");
 		exits("FAIL");
 	}
 	return 0;
 }
 
 char *
-waiter(int index)
+sleeper(int index)
 {
 	int64_t start, end;
 
-	/* wait for the alwaysLocked to be locked by the main process */
+	/* wait for the other sleepers to be ready to start */
 	qlock(&rl);
-	while(alwaysLocked.writer == 0)
+	while(!neverAwakened.l)
 		rsleep(&rStart);
 	qunlock(&rl);
 
-	/* try to lock for ~1000 ms */
+	/* try to sleep for ~1000 ms */
 	start = nsec();
 	end = start;
 	if(verbose)
-		print("reader %d: started\n", getpid());
-	if(rlockt(&alwaysLocked, 1000)){
+		print("sleeper %d: started\n", getpid());
+	qlock(neverAwakened.l);
+	if(rsleept(&neverAwakened, 1000)){
 		if(verbose)
-			print("reader %d failed: got the rlock\n", getpid());
-		runlock(&alwaysLocked);
-		postnote(PNGROUP, getpid(), smprint("fail: reader %d got the rlock", getpid()));
+			print("sleeper %d failed: awakened by rwakeup\n", getpid());
+		qunlock(neverAwakened.l);
+		postnote(PNGROUP, getpid(), smprint("fail: sleeper %d awakened by rwakeup", getpid()));
 	} else {
 		end = nsec();
 		if(verbose)
-			print("reader %d: rlockt timedout in %lld ms\n", getpid(), (end - start) / (1000*1000));
+			print("sleeper %d: rsleept timedout in %lld ms\n", getpid(), (end - start) / (1000*1000));
 	}
 
 	/* notify the main process that we have completed */
@@ -127,7 +129,7 @@ waiter(int index)
 }
 
 void
-spawnWaiter(int index)
+spawnsleeper(int index)
 {
 	int pid;
 	char * res;
@@ -135,16 +137,16 @@ spawnWaiter(int index)
 	switch((pid = rfork(RFMEM|RFPROC|RFNOWAIT)))
 	{
 		case 0:
-			res = waiter(index);
+			res = sleeper(index);
 			exits(res);
 			break;
 		case -1:
-			print("spawnWaiter: %r\n");
+			print("spawnsleeper: %r\n");
 			exits("rfork fails");
 			break;
 		default:
 			if(verbose)
-				print("spawn reader %d\n", pid);
+				print("spawn sleeper %d\n", pid);
 			break;
 	}
 }
@@ -163,43 +165,40 @@ main(void)
 		print("main: started with pid %d\n", getpid());
 
 	for(i = 0; i < NPROC; ++i){
-		spawnWaiter(i);
+		spawnsleeper(i);
 	}
 
 	stopAllAfter(30);
 
 	if (!atnotify(handletimeout, 1)){
-		fprint(2, "atnotify(handletimeout): %r\n");
+		fprint(2, "%r\n");
 		exits("atnotify fails");
 	}
 	if (!atnotify(handlefail, 1)){
-		fprint(2, "atnotify(handlefail): %r\n");
+		fprint(2, "%r\n");
 		exits("atnotify fails");
 	}
 
-	if(verbose)
-		print("main: ready to lock...\n");
 	qlock(&rl);
-	wlock(&alwaysLocked);
+	neverAwakened.l = &al;
 	if(verbose)
-		print("main: got the alwaysLocked: wakeup all readers...\n");
+		print("main: wakeup all sleepers...\n");
 	rwakeupall(&rStart);
 	if(verbose)
-		print("main: got the alwaysLocked: wakeup all readers... done\n");
+		print("main: wakeup all sleepers... done\n");
 	qunlock(&rl);
 
 	qlock(&rl);
 	if(verbose)
-		print("main: waiting all readers to timeout...\n");
+		print("main: waiting all sleepers to timeout...\n");
 	while(completed < NPROC){
 		rsleep(&rCompleted);
 		if(verbose && completed < NPROC)
-			print("main: awaked, but %d readers are still pending\n", NPROC - completed);
+			print("main: awaked, but %d sleepers are still pending\n", NPROC - completed);
 	}
-	wunlock(&alwaysLocked);
 	qunlock(&rl);
 	if(verbose)
-		print("main: waiting all readers to timeout... done\n");
+		print("main: waiting all sleepers to timeout... done\n");
 
 	average = 0;
 	for(i = 0; i < NPROC; ++i){
