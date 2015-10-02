@@ -521,6 +521,71 @@ rsleep(Rendez *r)
 }
 
 int
+rsleept(Rendez *r, uint32_t ms)
+{
+	QLp *t, *me;
+	int64_t wkup;
+
+	if(!r->l)
+		abort();
+
+	/* set up awake to interrupt rendezvous */
+	wkup = awake(ms);
+
+	if(!lockt(&r->l->lock, ms)){
+		forgivewkp(wkup);
+		return 0;
+	}
+
+	/* we should hold the qlock */
+	if(!r->l->locked)
+		abort();
+
+	/* add ourselves to the wait list */
+	me = getqlp();
+	me->state = Sleeping;
+	if(r->head == nil)
+		r->head = me;
+	else
+		r->tail->next = me;
+	me->next = nil;
+	r->tail = me;
+
+	/* pass the qlock to the next guy */
+	t = r->l->head;
+	if(t){
+		r->l->head = t->next;
+		if(r->l->head == nil)
+			r->l->tail = nil;
+		unlock(&r->l->lock);
+
+		while((*_rendezvousp)(t, (void*)0x12345) == (void*)~0)
+			;
+	}else{
+		r->l->locked = 0;
+		unlock(&r->l->lock);
+	}
+
+	/* wait for a rwakeup (or a timeout) */
+	do
+	{
+		if (awakened(wkup)){
+			/* interrupted by awake */
+			lock(&r->l->lock);
+			releaseqlp(&r->head, &r->tail, me);
+			unlock(&r->l->lock);
+			return 0;
+		}
+	}
+	while((*_rendezvousp)(me, (void*)1) == (void*)~0);
+
+	forgivewkp(wkup);
+	me->inuse = 0;
+
+	return 1;
+}
+
+int
 rwakeup(Rendez *r)
 {
 	QLp *t;

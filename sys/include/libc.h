@@ -490,6 +490,7 @@ struct Rendez
 } Rendez;
 
 extern	void	rsleep(Rendez*);	/* unlocks r->l, sleeps, locks r->l again */
+extern	int	rsleept(Rendez*, uint32_t);	/* unlocks r->l, sleeps (up to ms), locks r->l again (if not timedout) */
 extern	int	rwakeup(Rendez*);
 extern	int	rwakeupall(Rendez*);
 extern	void**	privalloc(void);
