@@ -98,7 +98,7 @@ int
 alt(Alt *alts)
 {
 	Alt *a, *xa, *ca;
-	Channel *c;
+	Channel volatile *c;
 	int n, s, waiting, allreadycl;
 	void* r;
 	Thread *t;
@@ -135,7 +135,7 @@ alt(Alt *alts)
 			return -1;
 		}
 
-		if(isopenfor(c, xa->op) && canexec(xa))
+		if(isopenfor((Channel*)c, xa->op) && canexec(xa))
 			if(nrand(++n) == 0)
 				a = xa;
 	}
@@ -161,7 +161,7 @@ alt(Alt *alts)
 				continue;
 			else if(isopenfor(xa->c, xa->op)){
 				waiting = 1;
-				enqueue(xa, &c);
+				enqueue(xa, (struct Channel **)&c);
 			} else if(xa->err != errcl)
 				ca = xa;
 			else
@@ -191,21 +191,18 @@ alt(Alt *alts)
 		 * if the channel was closed, the op is done
 		 * and we flag an error for the entry.
 		 */
-		Channel volatile *vc;
-		vc = (Channel volatile *)c;
 	    Again:
 		unlock(&chanlock);
 		_procsplx(s);
-		r = _threadrendezvous(&vc, 0);
+		r = _threadrendezvous(&c, 0);
 		s = _procsplhi();
 		lock(&chanlock);
 
 		if(r==Intred){		/* interrupted */
-			if(vc!=nil)	/* someone will meet us; go back */
+			if(c!=nil)	/* someone will meet us; go back */
 				goto Again;
-			vc = (Channel*)~0;	/* so no one tries to meet us */
+			c = (Channel*)~0;	/* so no one tries to meet us */
 		}
-		c = (Channel *)vc;
 
 		/* dequeue from channels, find selected one */
 		a = nil;
