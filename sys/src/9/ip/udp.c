@@ -462,7 +462,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		}
 	}
 
-	qlock(c);
+	qlock(&c->ql);
 	qunlock(udp);
 
 	/*
@@ -481,7 +481,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		panic("udpiput4: version %d", version);
 	}
 	if(bp == nil){
-		qunlock(c);
+		qunlock(&c->ql);
 		netlog(f, Logudp, "udp: len err %I.%d -> %I.%d\n", raddr, rport,
 		       laddr, lport);
 		upriv->lenerr++;
@@ -508,7 +508,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		bp = concatblock(bp);
 
 	if(qfull(c->rq)){
-		qunlock(c);
+		qunlock(&c->ql);
 		netlog(f, Logudp, "udp: qfull %I.%d -> %I.%d\n", raddr, rport,
 		       laddr, lport);
 		freeblist(bp);
@@ -516,7 +516,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	}
 
 	qpass(c->rq, bp);
-	qunlock(c);
+	qunlock(&c->ql);
 
 }
 
@@ -577,11 +577,11 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		if(ipcmp(s->laddr, source) == 0){
 			if(s->ignoreadvice)
 				break;
-			qlock(s);
+			qlock(&s->ql);
 			qunlock(udp);
 			qhangup(s->rq, msg);
 			qhangup(s->wq, msg);
-			qunlock(s);
+			qunlock(&s->ql);
 			freeblist(bp);
 			return;
 		}
