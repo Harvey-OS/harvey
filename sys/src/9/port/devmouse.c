@@ -258,12 +258,12 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 		if(n < 2*4+2*2*16)
 			error(Eshort);
 		n = 2*4+2*2*16;
-		lock(&cursor);
+		lock(&cursor.l);
 		BPLONG(p+0, curs.offset.x);
 		BPLONG(p+4, curs.offset.y);
 		memmove(p+8, curs.clr, 2*16);
 		memmove(p+40, curs.set, 2*16);
-		unlock(&cursor);
+		unlock(&cursor.l);
 		return n;
 
 	case Qmouse:
@@ -286,11 +286,11 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 			if(++mouse.ri == nelem(mouse.queue))
 				mouse.ri = 0;
 		} else {
-			while(!canlock(&cursor))
+			while(!canlock(&cursor.l))
 				tsleep(&up->sleep, return0, 0, TK2MS(1));
 
 			m = mouse.Mousestate;
-			unlock(&cursor);
+			unlock(&cursor.l);
 		}
 
 		b = buttonmap[m.buttons&7];
@@ -503,10 +503,10 @@ Dev mousedevtab = {
 void
 Cursortocursor(Cursor *c)
 {
-	lock(&cursor);
-	memmove(&cursor.Cursor, c, sizeof(Cursor));
+	lock(&cursor.l);
+	memmove(&cursor.c, c, sizeof(Cursor));
 	setcursor(c);
-	unlock(&cursor);
+	unlock(&cursor.l);
 }
 
 
@@ -522,11 +522,11 @@ mouseclock(void)
 		mouse.dx = 0;
 		mouse.dy = 0;
 	}
-	if(mouse.redraw && canlock(&cursor)){
+	if(mouse.redraw && canlock(&cursor.l)){
 		mouse.redraw = 0;
 		cursoroff(0);
 		mouse.redraw = cursoron(0);
-		unlock(&cursor);
+		unlock(&cursor.l);
 	}
 	drawactive(0);
 }
