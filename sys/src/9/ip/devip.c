@@ -438,9 +438,9 @@ ipopen(Chan* c, int omode)
 		p = f->p[PROTO(c->qid)];
 		qlock(p);
 		cv = p->conv[CONV(c->qid)];
-		qlock(cv);
+		qlock(&cv->ql);
 		if(waserror()) {
-			qunlock(cv);
+			qunlock(&cv->ql);
 			qunlock(p);
 			nexterror();
 		}
@@ -456,7 +456,7 @@ ipopen(Chan* c, int omode)
 			kstrdup(&cv->owner, ATTACHER(c));
 			cv->perm = 0660;
 		}
-		qunlock(cv);
+		qunlock(&cv->ql);
 		qunlock(p);
 		poperror();
 		break;
@@ -477,9 +477,9 @@ ipopen(Chan* c, int omode)
 			closeconv(cv);
 			nexterror();
 		}
-		qlock(cv);
+		qlock(&cv->ql);
 		cv->inuse++;
-		qunlock(cv);
+		qunlock(&cv->ql);
 
 		nc = nil;
 		while(nc == nil) {
@@ -496,14 +496,14 @@ ipopen(Chan* c, int omode)
 			/* wait for a connect */
 			sleep(&cv->listenr, incoming, cv);
 
-			qlock(cv);
+			qlock(&cv->ql);
 			nc = cv->incall;
 			if(nc != nil){
 				cv->incall = nc->next;
 				mkqid(&c->qid, QID(PROTO(c->qid), nc->x, Qctl), 0, QTFILE);
 				kstrdup(&cv->owner, ATTACHER(c));
 			}
-			qunlock(cv);
+			qunlock(&cv->ql);
 
 			qunlock(&cv->listenq);
 			poperror();
@@ -567,10 +567,10 @@ closeconv(Conv *cv)
 	Conv *nc;
 	Ipmulti *mp;
 
-	qlock(cv);
+	qlock(&cv->ql);
 
 	if(--cv->inuse > 0) {
-		qunlock(cv);
+		qunlock(&cv->ql);
 		return;
 	}
 
@@ -591,7 +591,7 @@ closeconv(Conv *cv)
 	cv->rgen = 0;
 	cv->p->close(cv);
 	cv->state = Idle;
-	qunlock(cv);
+	qunlock(&cv->ql);
 }
 
 static void
@@ -984,13 +984,13 @@ connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 	if(p != nil)
 		error(p);
 
-	qunlock(c);
+	qunlock(&c->ql);
 	if(waserror()){
-		qlock(c);
+		qlock(&c->ql);
 		nexterror();
 	}
 	sleep(&c->cr, connected, c);
-	qlock(c);
+	qlock(&c->ql);
 	poperror();
 
 	if(c->cerr[0] != '\0')
@@ -1038,13 +1038,13 @@ announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 	if(p != nil)
 		error(p);
 
-	qunlock(c);
+	qunlock(&c->ql);
 	if(waserror()){
-		qlock(c);
+		qlock(&c->ql);
 		nexterror();
 	}
 	sleep(&c->cr, announced, c);
-	qlock(c);
+	qlock(&c->ql);
 	poperror();
 
 	if(c->cerr[0] != '\0')
@@ -1140,9 +1140,9 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 		c = x->conv[CONV(ch->qid)];
 		cb = parsecmd(a, n);
 
-		qlock(c);
+		qlock(&c->ql);
 		if(waserror()) {
-			qunlock(c);
+			qunlock(&c->ql);
 			free(cb);
 			nexterror();
 		}
@@ -1197,7 +1197,7 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 				error(p);
 		} else
 			error("unknown control request");
-		qunlock(c);
+		qunlock(&c->ql);
 		free(cb);
 		poperror();
 	}
@@ -1306,7 +1306,7 @@ retry:
 			c = malloc(sizeof(Conv));
 			if(c == nil)
 				error(Enomem);
-			qlock(c);
+			qlock(&c->ql);
 			c->p = p;
 			c->x = pp - p->conv;
 			if(p->ptclsize != 0){
@@ -1322,7 +1322,7 @@ retry:
 			(*p->create)(c);
 			break;
 		}
-		if(canqlock(c)){
+		if(canqlock(&c->ql)){
 			/*
 			 *  make sure both processes and protocol
 			 *  are done with this Conv
@@ -1330,7 +1330,7 @@ retry:
 			if(c->inuse == 0 && (p->inuse == nil || (*p->inuse)(c) == 0))
 				break;
 
-			qunlock(c);
+			qunlock(&c->ql);
 		}
 	}
 	if(pp >= ep) {
@@ -1361,7 +1361,7 @@ retry:
 	qreopen(c->wq);
 	qreopen(c->eq);
 
-	qunlock(c);
+	qunlock(&c->ql);
 	return c;
 }
 
@@ -1411,14 +1411,14 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	Conv **l;
 	int i;
 
-	qlock(c);
+	qlock(&c->ql);
 	i = 0;
 	for(l = &c->incall; *l; l = &(*l)->next)
 		i++;
 	if(i >= Maxincall) {
 		static int beenhere;
 
-		qunlock(c);
+		qunlock(&c->ql);
 		if (!beenhere) {
 			beenhere = 1;
 			print("Fsnewcall: incall queue full (%d) on port %d\n",
@@ -1430,7 +1430,7 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	/* find a free conversation */
 	nc = Fsprotoclone(c->p, network);
 	if(nc == nil) {
-		qunlock(c);
+		qunlock(&c->ql);
 		return nil;
 	}
 	ipmove(nc->raddr, raddr);
@@ -1442,7 +1442,7 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	nc->state = Connected;
 	nc->ipversion = version;
 
-	qunlock(c);
+	qunlock(&c->ql);
 
 	wakeup(&c->listenr);
 

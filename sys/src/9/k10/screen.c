@@ -262,11 +262,11 @@ getcolor(uint32_t p, uint32_t* pr, uint32_t* pg, uint32_t* pb)
 	}
 	p &= x;
 
-	lock(&cursor);
+	lock(&cursor.l);
 	*pr = scr->colormap[p][0];
 	*pg = scr->colormap[p][1];
 	*pb = scr->colormap[p][2];
-	unlock(&cursor);
+	unlock(&cursor.l);
 }
 
 int
@@ -278,7 +278,7 @@ setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
 	scr = &vgascreen[0];
 	d = scr->palettedepth;
 
-	lock(&cursor);
+	lock(&cursor.l);
 	scr->colormap[p][0] = r;
 	scr->colormap[p][1] = g;
 	scr->colormap[p][2] = b;
@@ -286,7 +286,7 @@ setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
 	vgao(Pdata, r>>(32-d));
 	vgao(Pdata, g>>(32-d));
 	vgao(Pdata, b>>(32-d));
-	unlock(&cursor);
+	unlock(&cursor.l);
 
 	return ~0;
 }
@@ -334,10 +334,10 @@ cursoron(int dolock)
 		return 0;
 
 	if(dolock)
-		lock(&cursor);
+		lock(&cursor.l);
 	v = scr->cur->move(scr, mousexy());
 	if(dolock)
-		unlock(&cursor);
+		unlock(&cursor.l);
 
 	return v;
 }

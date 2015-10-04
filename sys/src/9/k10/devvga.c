@@ -235,36 +235,36 @@ vgactl(Cmdbuf *cb)
 	switch(ct->index){
 	case CMhwgc:
 		if(strcmp(cb->f[1], "off") == 0){
-			lock(&cursor);
+			lock(&cursor.l);
 			if(scr->cur){
 				if(scr->cur->disable)
 					scr->cur->disable(scr);
 				scr->cur = nil;
 			}
-			unlock(&cursor);
+			unlock(&cursor.l);
 			return;
 		}
 		if(strcmp(cb->f[1], "soft") == 0){
-			lock(&cursor);
+			lock(&cursor.l);
 			swcursorinit();
 			if(scr->cur && scr->cur->disable)
 				scr->cur->disable(scr);
 			scr->cur = &swcursor;
 			if(scr->cur->enable)
 				scr->cur->enable(scr);
-			unlock(&cursor);
+			unlock(&cursor.l);
 			return;
 		}
 		for(i = 0; vgacur[i]; i++){
 			if(strcmp(cb->f[1], vgacur[i]->name))
 				continue;
-			lock(&cursor);
+			lock(&cursor.l);
 			if(scr->cur && scr->cur->disable)
 				scr->cur->disable(scr);
 			scr->cur = vgacur[i];
 			if(scr->cur->enable)
 				scr->cur->enable(scr);
-			unlock(&cursor);
+			unlock(&cursor.l);
 			return;
 		}
 		break;

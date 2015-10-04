@@ -179,7 +179,7 @@ struct Ip4hdr
  */
 struct Conv
 {
-	QLock;
+	QLock ql;
 
 	int	x;			/* conversation index */
 	Proto*	p;

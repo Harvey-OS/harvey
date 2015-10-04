@@ -602,10 +602,10 @@ tcpkick(void *x)
 	tcb = (Tcpctl*)s->ptcl;
 
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->ql);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->ql);
 
 	switch(tcb->state) {
 	case Syn_sent:
@@ -622,7 +622,7 @@ tcpkick(void *x)
 		break;
 	}
 
-	qunlock(s);
+	qunlock(&s->ql);
 	poperror();
 }
 
@@ -662,15 +662,15 @@ tcpacktimer(void *v)
 	tcb = (Tcpctl*)s->ptcl;
 
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->ql);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->ql);
 	if(tcb->state != Closed){
 		tcb->flags |= FORCE;
 		tcpoutput(s);
 	}
-	qunlock(s);
+	qunlock(&s->ql);
 	poperror();
 }
 
@@ -2233,10 +2233,10 @@ reset:
 	 */
 	tcb = (Tcpctl*)s->ptcl;
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->ql);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->ql);
 	qunlock(tcp);
 
 	/* fix up window */
@@ -2285,7 +2285,7 @@ reset:
 		else
 			freeblist(bp);
 
-		qunlock(s);
+		qunlock(&s->ql);
 		poperror();
 		return;
 	case Syn_received:
@@ -2332,7 +2332,7 @@ reset:
 			tcb->flags |= FORCE;
 			goto output;
 		}
-		qunlock(s);
+		qunlock(&s->ql);
 		poperror();
 		return;
 	}
@@ -2483,7 +2483,7 @@ reset:
 					freeblist(bp);
 				sndrst(tcp, source, dest, length, &seg, version,
 					"send to Finwait2");
-				qunlock(s);
+				qunlock(&s->ql);
 				poperror();
 				return;
 			}
@@ -2552,11 +2552,11 @@ reset:
 	}
 output:
 	tcpoutput(s);
-	qunlock(s);
+	qunlock(&s->ql);
 	poperror();
 	return;
 raise:
-	qunlock(s);
+	qunlock(&s->ql);
 	poperror();
 	freeblist(bp);
 	tcpkick(s);
@@ -2791,8 +2791,8 @@ tcpoutput(Conv *s)
 			panic("tcpoutput2: version %d", version);
 		}
 		if((msgs%4) == 3){
-			qunlock(s);
-			qlock(s);
+			qunlock(&s->ql);
+			qlock(&s->ql);
 		}
 	}
 }
@@ -2879,10 +2879,10 @@ tcpkeepalive(void *v)
 	s = v;
 	tcb = (Tcpctl*)s->ptcl;
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->ql);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->ql);
 	if(tcb->state != Closed){
 		if(--(tcb->kacounter) <= 0) {
 			localclose(s, Etimedout);
@@ -2891,7 +2891,7 @@ tcpkeepalive(void *v)
 			tcpgo(s->p->priv, &tcb->katimer);
 		}
 	}
-	qunlock(s);
+	qunlock(&s->ql);
 	poperror();
 }
 
@@ -2977,10 +2977,10 @@ tcptimeout(void *arg)
 	tcb = (Tcpctl*)s->ptcl;
 
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->ql);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->ql);
 	switch(tcb->state){
 	default:
 		tcb->backoff++;
@@ -3023,7 +3023,7 @@ tcptimeout(void *arg)
 	case Closed:
 		break;
 	}
-	qunlock(s);
+	qunlock(&s->ql);
 	poperror();
 }
 
@@ -3276,14 +3276,14 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 		if(tcb->state != Closed)
 		if(ipcmp(s->raddr, dest) == 0)
 		if(ipcmp(s->laddr, source) == 0){
-			qlock(s);
+			qlock(&s->ql);
 			qunlock(tcp);
 			switch(tcb->state){
 			case Syn_sent:
 				localclose(s, msg);
 				break;
 			}
-			qunlock(s);
+			qunlock(&s->ql);
 			freeblist(bp);
 			return;
 		}
@@ -3357,7 +3357,7 @@ tcpgc(Proto *tcp)
 		c = *pp;
 		if(c == nil)
 			break;
-		if(!canqlock(c))
+		if(!canqlock(&c->ql))
 			continue;
 		tcb = (Tcpctl*)c->ptcl;
 		switch(tcb->state){
@@ -3374,7 +3374,7 @@ tcpgc(Proto *tcp)
 			}
 			break;
 		}
-		qunlock(c);
+		qunlock(&c->ql);
 	}
 	return n;
 }
