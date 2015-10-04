@@ -328,11 +328,11 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 	buf[n] = 0;
 
 	if(waserror()){
-		qunlock(nif);
+		qunlock(&nif->q);
 		nexterror();
 	}
 
-	qlock(nif);
+	qlock(&nif->q);
 	f = nif->f[NETID(c->qid.path)];
 	if((p = matchtoken(buf, "connect")) != 0){
 		qclose(f->iq);
@@ -394,7 +394,7 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 			error(p);
 	} else
 		n = -1;
-	qunlock(nif);
+	qunlock(&nif->q);
 	poperror();
 	return n;
 }
@@ -449,37 +449,37 @@ netifclose(Netif *nif, Chan *c)
 		return;
 
 	f = nif->f[NETID(c->qid.path)];
-	qlock(f);
+	qlock(&f->q);
 	if(--(f->inuse) == 0){
 		if(f->prom){
-			qlock(nif);
+			qlock(&nif->q);
 			if(--(nif->prom) == 0 && nif->promiscuous != nil)
 				nif->promiscuous(nif->arg, 0);
-			qunlock(nif);
+			qunlock(&nif->q);
 			f->prom = 0;
 		}
 		if(f->scan){
-			qlock(nif);
+			qlock(&nif->q);
 			if(--(nif->_scan) == 0 && nif->scanbs != nil)
 				nif->scanbs(nif->arg, 0);
-			qunlock(nif);
+			qunlock(&nif->q);
 			f->prom = 0;
 			f->scan = 0;
 		}
 		if(f->nmaddr){
-			qlock(nif);
+			qlock(&nif->q);
 			t = 0;
 			for(ap = nif->maddr; ap; ap = ap->next){
 				if(f->maddr[t/8] & (1<<(t%8)))
 					netmulti(nif, f, ap->addr, 0);
 			}
-			qunlock(nif);
+			qunlock(&nif->q);
 			f->nmaddr = 0;
 		}
 		if(f->type < 0){
-			qlock(nif);
+			qlock(&nif->q);
 			--(nif->all);
-			qunlock(nif);
+			qunlock(&nif->q);
 		}
 		f->owner[0] = 0;
 		f->type = 0;
@@ -487,7 +487,7 @@ netifclose(Netif *nif, Chan *c)
 		f->headersonly = 0;
 		qclose(f->iq);
 	}
-	qunlock(f);
+	qunlock(&f->q);
 }
 
 Lock netlock;
@@ -537,16 +537,16 @@ openfile(Netif *nif, int id)
 		f = nif->f[id];
 		if(f == 0)
 			error(Enodev);
-		qlock(f);
+		qlock(&f->q);
 		qreopen(f->iq);
 		f->inuse++;
-		qunlock(f);
+		qunlock(&f->q);
 		return id;
 	}
 
-	qlock(nif);
+	qlock(&nif->q);
 	if(waserror()){
-		qunlock(nif);
+		qunlock(&nif->q);
 		nexterror();
 	}
 	efp = &nif->f[nif->nfile];
@@ -562,19 +562,19 @@ openfile(Netif *nif, int id)
 				exhausted("memory");
 			}
 			*fp = f;
-			qlock(f);
+			qlock(&f->q);
 		} else {
-			qlock(f);
+			qlock(&f->q);
 			if(f->inuse){
-				qunlock(f);
+				qunlock(&f->q);
 				continue;
 			}
 		}
 		f->inuse = 1;
 		qreopen(f->iq);
 		netown(f, up->user, 0);
-		qunlock(f);
-		qunlock(nif);
+		qunlock(&f->q);
+		qunlock(&nif->q);
 		poperror();
 		return fp - nif->f;
 	}
