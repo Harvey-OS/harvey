@@ -35,6 +35,8 @@ struct Consdev
 	int	flags;
 };
 
+extern int printallsyscalls;
+
 void	(*consdebug)(void) = nil;
 void	(*consputs)(char*, int) = nil;
 void	(*consuartputs)(char*, int) = nil;
@@ -364,6 +366,7 @@ enum{
 	Qtime,
 	Quser,
 	Qzero,
+	Qsyscall,
 	Qdebug,
 };
 
@@ -397,6 +400,7 @@ static Dirtab consdir[]={
 	"time",		{Qtime},	NUMSIZE+3*VLNUMSIZE,	0664,
 	"user",		{Quser},	0,		0666,
 	"zero",		{Qzero},	0,		0444,
+	"syscall",	{Qsyscall},	0,		0666,
 	"debug",	{Qdebug},	0,		0666,
 };
 
@@ -653,6 +657,11 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		seprint(s, tmp + sizeof tmp, "qlockq %uld\n", qlockstats.qlockq);
 		return readstr(offset, buf, n, tmp);
 		break;
+
+	case Qsyscall:
+		snprint(tmp, sizeof tmp, "%s", printallsyscalls ? "on" : "off");
+		return readstr(offset, buf, n, tmp);
+		break;
 	default:
 		print("consread %#llux\n", c->qid.path);
 		error(Egreg);
@@ -804,6 +813,27 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		if(n > 0 && buf[n-1] == '\n')
 			buf[n-1] = 0;
 		error(Ebadctl);
+		break;
+
+	case Qsyscall:
+		if(n >= sizeof(buf))
+			n = sizeof(buf)-1;
+		strncpy(buf, a, n);
+		buf[n] = 0;
+		if(n > 0 && buf[n-1] == '\n')
+			buf[n-1] = 0;
+		// Doing strncmp right is just painful and overkill here.
+		if (buf[0] == 'o') {
+			if (buf[1] == 'n' && buf[2] == 0) { 
+				printallsyscalls = 1;
+				break;
+			}
+			if (buf[1] == 'f' && buf[2] == 'f' && buf[3] == 0) {
+				printallsyscalls = 0;
+				break;
+			}
+		}
+		error("#c/syscall: can only write on or off");
 		break;
 	default:
 		print("conswrite: %#llux\n", c->qid.path);
