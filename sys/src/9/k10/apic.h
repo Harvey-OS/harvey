@@ -19,7 +19,7 @@ typedef	struct	Lapic	Lapic;
 typedef	struct	Apic	Apic;
 
 struct Ioapic {
-	Lock;					/* IOAPIC: register access */
+	Lock l;					/* IOAPIC: register access */
 	uint32_t*	addr;				/* IOAPIC: register base */
 	int	nrdt;				/* IOAPIC: size of RDT */
 	int	gsib;				/* IOAPIC: global RDT index */
