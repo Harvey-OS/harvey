@@ -34,7 +34,7 @@ struct Netlog {
 	uint8_t	iponly[IPaddrlen];		/* ip address to print debugging for */
 	int	iponlyset;
 
-	QLock;
+	QLock ql;
 	Rendez;
 };
 
@@ -87,9 +87,9 @@ void
 netlogopen(Fs *f)
 {
 	Proc *up = externup();
-	lock(f->alog);
+	lock(&f->alog->_lock);
 	if(waserror()){
-		unlock(f->alog);
+		unlock(&f->alog->_lock);
 		nexterror();
 	}
 	if(f->alog->opens == 0){
@@ -138,14 +138,14 @@ netlogread(Fs *f, void *a, uint32_t u, int32_t n)
 	int i, d;
 	char *p, *rptr;
 
-	qlock(f->alog);
+	qlock(&f->alog->ql);
 	if(waserror()){
-		qunlock(f->alog);
+		qunlock(&f->alog->ql);
 		nexterror();
 	}
 
 	for(;;){
-		lock(f->alog);
+		lock(&f->alog->_lock);
 		if(f->alog->len){
 			if(n > f->alog->len)
 				n = f->alog->len;
@@ -157,7 +157,7 @@ netlogread(Fs *f, void *a, uint32_t u, int32_t n)
 				f->alog->rptr = f->alog->buf + d;
 			}
 			f->alog->len -= n;
-			unlock(f->alog);
+			unlock(&f->alog->_lock);
 
 			i = n-d;
 			p = a;
@@ -166,12 +166,12 @@ netlogread(Fs *f, void *a, uint32_t u, int32_t n)
 			break;
 		}
 		else
-			unlock(f->alog);
+			unlock(&f->alog->_lock);
 
 		sleep(f->alog, netlogready, f);
 	}
 
-	qunlock(f->alog);
+	qunlock(&f->alog->ql);
 	poperror();
 
 	return n;
@@ -255,7 +255,7 @@ netlog(Fs *f, int mask, char *fmt, ...)
 	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 
-	lock(f->alog);
+	lock(&f->alog->_lock);
 	i = f->alog->len + n - Nlog;
 	if(i > 0){
 		f->alog->len -= i;
@@ -271,7 +271,6 @@ netlog(Fs *f, int mask, char *fmt, ...)
 			t = f->alog->buf + (t - f->alog->end);
 		*t++ = *fp++;
 	}
-	unlock(f->alog);
-
+	unlock(&f->alog->_lock);
 	wakeup(f->alog);
 }
