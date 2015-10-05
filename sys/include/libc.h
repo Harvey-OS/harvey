@@ -392,7 +392,6 @@ extern	double	ldexp(double, int);
 extern	void	longjmp(jmp_buf, int);
 extern	char*	mktemp(char*);
 extern	double	modf(double, double*);
-extern	int	netcrypt(void*, void*);
 extern	void	notejmp(void*, jmp_buf, int);
 extern	void	perror(const char*);
 extern	int	postnote(int, int, const char *);

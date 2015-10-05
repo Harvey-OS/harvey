@@ -9,9 +9,26 @@
 
 #include <u.h>
 #include <libc.h>
+#include <libsec.h>
 #include <authsrv.h>
 #include <bio.h>
 #include "authcmdlib.h"
+#include <auth.h>
+
+static int
+netcrypt(void *key, void *chal)
+{
+	uint8_t buf[8], *p;
+
+	strncpy((char*)buf, chal, 7);
+	buf[7] = '\0';
+	for(p = buf; *p && *p != '\n'; p++)
+		;
+	*p = '\0';
+	encrypt(key, buf, 8);
+	sprint(chal, "%.2ux%.2ux%.2ux%.2ux", buf[0], buf[1], buf[2], buf[3]);
+	return 1;
+}
 
 
 void
