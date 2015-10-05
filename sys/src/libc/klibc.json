@@ -193,7 +193,6 @@
 		"port/muldiv.c",
 		"port/nan.c",
 		"port/needsrcquote.c",
-		"port/netcrypt.c",
 		"port/netmkaddr.c",
 		"port/nrand.c",
 		"port/ntruerand.c",
