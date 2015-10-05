@@ -2,7 +2,7 @@
 trap : 2
 
 $HARVEY/util/ufs -root=$HARVEY &
-pids=$!
+ufspid=$!
 
 if [ "$(uname)" = "Linux" ] && ([ -O /dev/kvm ] || [ -G /dev/kvm ]); then
 	kvmflag='-enable-kvm'
@@ -10,25 +10,20 @@ else
 	kvmflag=''
 fi
 
-(
-	sleep 5
-	$HARVEY/util/telnet localhost:5555 <<-EOF
-		srv tcp!10.0.2.2!5640 k
-		mount -a /srv/k /
-		cd /amd64/bin/regress
-		for(f in *){ echo \$f; ./\$f }
-		exit
-	EOF
-)&
-pids="$pids $!"
 
-qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048  \
-$kvmflag \
+qemu-system-x86_64 -s -cpu Opteron_G1 -smp 2 -m 2048 $kvmflag  \
 -serial stdio \
 --machine pc \
+-nographic \
+-monitor /dev/null \
 -net nic,model=rtl8139 \
 -net user,hostfwd=tcp::5555-:1522 \
--kernel $HARVEY/sys/src/9/k10/9k8cpu.32bit $* 
+-net dump,file=/tmp/vm0.pcap \
+-redir tcp:17010::17010 \
+-redir tcp:17013::17013 \
+-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 param" \
+-kernel 9k8cpu.32bit $*
 
-kill $pids
+kill $ufspid
 wait
+
