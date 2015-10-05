@@ -318,7 +318,7 @@ struct Hostparams {
 
 struct Ipifc
 {
-	RWlock;
+	RWlock rwl;
 
 	Conv	*conv;		/* link to its conversation structure */
 	char	dev[64];	/* device we're attached to */
@@ -380,7 +380,7 @@ struct Iphash
 };
 struct Ipht
 {
-	Lock;
+	Lock l;
 	Iphash	*tab[Nipht];
 };
 void iphtadd(Ipht*, Conv*);
@@ -392,7 +392,7 @@ Conv* iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp);
  */
 struct Proto
 {
-	QLock;
+	QLock ql;
 	char*		name;		/* protocol name */
 	int		x;		/* protocol index */
 	int		ipproto;	/* ip protocol type */
@@ -429,7 +429,7 @@ struct Proto
  */
 struct Fs
 {
-	RWlock;
+	RWlock rwl;
 	int	dev;
 
 	int	np;

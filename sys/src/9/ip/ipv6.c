@@ -113,11 +113,11 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		eh->vcf[1]  = tos << 4;
 	}
 
-	if(!canrlock(ifc))
+	if(!canrlock(&ifc->rwl))
 		goto free;
 
 	if(waserror()){
-		runlock(ifc);
+		runlock(&ifc->rwl);
 		nexterror();
 	}
 
@@ -129,7 +129,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	if(len <= medialen) {
 		hnputs(eh->ploadlen, len - IP6HDR);
 		ifc->medium->bwrite(ifc, bp, V6, gate);
-		runlock(ifc);
+		runlock(&ifc->rwl);
 		poperror();
 		return 0;
 	}
@@ -225,7 +225,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	ip->stats[FragOKs]++;
 
 raise:
-	runlock(ifc);
+	runlock(&ifc->rwl);
 	poperror();
 free:
 	freeblist(bp);

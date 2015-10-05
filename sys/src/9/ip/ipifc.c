@@ -46,7 +46,7 @@ struct Ipself
 
 struct Ipselftab
 {
-	QLock;
+	QLock ql;
 	int	inited;
 	int	acceptall;	/* true if an interface has the null address */
 	Ipself	*hash[NHASH];	/* hash chains */
@@ -126,13 +126,13 @@ ipifcbind(Conv *c, char **argv, int argc)
 	if(medium == nil)
 		return "unknown interface type";
 
-	wlock(ifc);
+	wlock(&ifc->rwl);
 	if(ifc->medium != nil){
-		wunlock(ifc);
+		wunlock(&ifc->rwl);
 		return "interface already bound";
 	}
 	if(waserror()){
-		wunlock(ifc);
+		wunlock(&ifc->rwl);
 		nexterror();
 	}
 
@@ -170,7 +170,7 @@ ipifcbind(Conv *c, char **argv, int argc)
 	qreopen(c->eq);
 	qreopen(c->sq);
 
-	wunlock(ifc);
+	wunlock(&ifc->rwl);
 	poperror();
 
 	return nil;
@@ -187,10 +187,10 @@ ipifcunbind(Ipifc *ifc)
 	char *err;
 
 	if(waserror()){
-		wunlock(ifc);
+		wunlock(&ifc->rwl);
 		nexterror();
 	}
-	wlock(ifc);
+	wlock(&ifc->rwl);
 
 	/* dissociate routes */
 	if(ifc->medium != nil && ifc->medium->unbindonclose == 0)
@@ -221,7 +221,7 @@ ipifcunbind(Ipifc *ifc)
 	qclose(ifc->conv->sq);
 
 	ifc->medium = nil;
-	wunlock(ifc);
+	wunlock(&ifc->rwl);
 	poperror();
 	return nil;
 }
@@ -247,13 +247,13 @@ ipifcstate(Conv *c, char *state, int n)
 		ifc->rp.rxmitra, ifc->rp.ttl, ifc->rp.routerlt,
 		ifc->in, ifc->out, ifc->inerr, ifc->outerr);
 
-	rlock(ifc);
+	rlock(&ifc->rwl);
 	for(lifc = ifc->lifc; lifc && n > m; lifc = lifc->next)
 		m += snprint(state+m, n - m, slineformat, lifc->local,
 			lifc->mask, lifc->remote, lifc->validlt, lifc->preflt);
 	if(ifc->lifc == nil)
 		m += snprint(state+m, n - m, "\n");
-	runlock(ifc);
+	runlock(&ifc->rwl);
 	return m;
 }
 
@@ -268,14 +268,14 @@ ipifclocal(Conv *c, char *state, int n)
 	ifc = (Ipifc*)c->ptcl;
 	m = 0;
 
-	rlock(ifc);
+	rlock(&ifc->rwl);
 	for(lifc = ifc->lifc; lifc; lifc = lifc->next){
 		m += snprint(state+m, n - m, "%-40.40I ->", lifc->local);
 		for(link = lifc->link; link; link = link->lifclink)
 			m += snprint(state+m, n - m, " %-40.40I", link->self->a);
 		m += snprint(state+m, n - m, "\n");
 	}
-	runlock(ifc);
+	runlock(&ifc->rwl);
 	return m;
 }
 
@@ -304,19 +304,19 @@ ipifckick(void *x)
 		return;
 
 	ifc = (Ipifc*)c->ptcl;
-	if(!canrlock(ifc)){
+	if(!canrlock(&ifc->rwl)){
 		freeb(bp);
 		return;
 	}
 	if(waserror()){
-		runlock(ifc);
+		runlock(&ifc->rwl);
 		nexterror();
 	}
 	if(ifc->medium == nil || ifc->medium->pktin == nil)
 		freeb(bp);
 	else
 		(*ifc->medium->pktin)(c->p->f, ifc, bp);
-	runlock(ifc);
+	runlock(&ifc->rwl);
 	poperror();
 }
 
@@ -427,7 +427,7 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 	}
 	if(isv4(ip))
 		tentative = 0;
-	wlock(ifc);
+	wlock(&ifc->rwl);
 
 	/* ignore if this is already a local address for this ifc */
 	for(lifc = ifc->lifc; lifc; lifc = lifc->next) {
@@ -541,7 +541,7 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 		(*ifc->medium->areg)(ifc, ip);
 
 out:
-	wunlock(ifc);
+	wunlock(&ifc->rwl);
 	if(tentative && sendnbrdisc)
 		icmpns(f, 0, SRC_UNSPEC, ip, TARG_MULTI, ifc->mac);
 	return nil;
@@ -614,7 +614,7 @@ ipifcrem(Ipifc *ifc, char **argv, int argc)
 		if (parseip(rem, argv[3]) == -1)
 			return Ebadip;
 
-	wlock(ifc);
+	wlock(&ifc->rwl);
 
 	/*
 	 *  find address on this interface and remove from chain.
@@ -629,7 +629,7 @@ ipifcrem(Ipifc *ifc, char **argv, int argc)
 	}
 
 	rv = ipifcremlifc(ifc, lifc);
-	wunlock(ifc);
+	wunlock(&ifc->rwl);
 	return rv;
 }
 
@@ -691,16 +691,16 @@ ipifcconnect(Conv* c, char **argv, int argc)
 		 return "ipifc not yet bound to device";
 
 	if(waserror()){
-		wunlock(ifc);
+		wunlock(&ifc->rwl);
 		nexterror();
 	}
-	wlock(ifc);
+	wlock(&ifc->rwl);
 	while(ifc->lifc){
 		err = ipifcremlifc(ifc, ifc->lifc);
 		if(err)
 			error(err);
 	}
-	wunlock(ifc);
+	wunlock(&ifc->rwl);
 	poperror();
 
 	err = ipifcadd(ifc, argv, argc, 0, nil);
@@ -850,7 +850,7 @@ addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a, int type)
 	Iplink *lp;
 	int h;
 
-	qlock(f->self);
+	qlock(&f->self->ql);
 
 	/* see if the address already exists */
 	h = hashipa(a);
@@ -899,7 +899,7 @@ addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a, int type)
 	} else
 		lp->ref++;
 
-	qunlock(f->self);
+	qunlock(&f->self->ql);
 }
 
 /*
@@ -962,7 +962,7 @@ remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a)
 	Ipself *p, **l;
 	Iplink *link, **l_self, **l_lifc;
 
-	qlock(f->self);
+	qlock(&f->self->ql);
 
 	/* find the unique selftab entry */
 	l = &f->self->hash[hashipa(a)];
@@ -1032,7 +1032,7 @@ remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a)
 		f->self->acceptall = 0;
 
 out:
-	qunlock(f->self);
+	qunlock(&f->self->ql);
 }
 
 static char *stformat = "%-44.44I %2.2d %4.4s\n";
@@ -1051,7 +1051,7 @@ ipselftabread(Fs *f, char *cp, uint32_t offset, int n)
 
 	m = 0;
 	off = offset;
-	qlock(f->self);
+	qlock(&f->self->ql);
 	for(i = 0; i < NHASH && m < n; i++){
 		for(p = f->self->hash[i]; p != nil && m < n; p = p->next){
 			nifc = 0;
@@ -1065,7 +1065,7 @@ ipselftabread(Fs *f, char *cp, uint32_t offset, int n)
 			}
 		}
 	}
-	qunlock(f->self);
+	qunlock(&f->self->ql);
 	return m;
 }
 
@@ -1247,7 +1247,7 @@ findlocalip(Fs *f, uint8_t *local, uint8_t *remote)
 
 	USED(atype);
 	USED(atypel);
-	qlock(f->ipifc);
+	qlock(&f->ipifc->ql);
 	r = v6lookup(f, remote, nil);
  	version = (memcmp(remote, v4prefix, IPv4off) == 0)? V4: V6;
 
@@ -1314,7 +1314,7 @@ findlocalip(Fs *f, uint8_t *local, uint8_t *remote)
 	}
 
 out:
-	qunlock(f->ipifc);
+	qunlock(&f->ipifc->ql);
 }
 
 /*
@@ -1462,14 +1462,14 @@ ipifcaddmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 			continue;
 		ifc = (Ipifc*)(*p)->ptcl;
 		if(waserror()){
-			wunlock(ifc);
+			wunlock(&ifc->rwl);
 			nexterror();
 		}
-		wlock(ifc);
+		wlock(&ifc->rwl);
 		for(lifc = ifc->lifc; lifc; lifc = lifc->next)
 			if(ipcmp(ia, lifc->local) == 0)
 				addselfcache(f, ifc, lifc, ma, Rmulti);
-		wunlock(ifc);
+		wunlock(&ifc->rwl);
 		poperror();
 	}
 }
@@ -1506,14 +1506,14 @@ ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 
 		ifc = (Ipifc*)(*p)->ptcl;
 		if(waserror()){
-			wunlock(ifc);
+			wunlock(&ifc->rwl);
 			nexterror();
 		}
-		wlock(ifc);
+		wlock(&ifc->rwl);
 		for(lifc = ifc->lifc; lifc; lifc = lifc->next)
 			if(ipcmp(ia, lifc->local) == 0)
 				remselfcache(f, ifc, lifc, ma);
-		wunlock(ifc);
+		wunlock(&ifc->rwl);
 		poperror();
 	}
 
@@ -1553,10 +1553,10 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uint8_t *ip)
 		for(cp = f->ipifc->conv; cp < e; cp++){
 			if(*cp == nil || (nifc = (Ipifc*)(*cp)->ptcl) == ifc)
 				continue;
-			rlock(nifc);
+			rlock(&nifc->rwl);
 			m = nifc->medium;
 			if(m == nil || m->addmulti == nil) {
-				runlock(nifc);
+				runlock(&nifc->rwl);
 				continue;
 			}
 			for(lifc = nifc->lifc; lifc; lifc = lifc->next){
@@ -1570,17 +1570,17 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uint8_t *ip)
 					break;
 				}
 			}
-			runlock(nifc);
+			runlock(&nifc->rwl);
 		}
 	}
 	else {					/* V4 */
 		for(cp = f->ipifc->conv; cp < e; cp++){
 			if(*cp == nil || (nifc = (Ipifc*)(*cp)->ptcl) == ifc)
 				continue;
-			rlock(nifc);
+			rlock(&nifc->rwl);
 			m = nifc->medium;
 			if(m == nil || m->areg == nil){
-				runlock(nifc);
+				runlock(&nifc->rwl);
 				continue;
 			}
 			for(lifc = nifc->lifc; lifc; lifc = lifc->next){
@@ -1590,7 +1590,7 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uint8_t *ip)
 					break;
 				}
 			}
-			runlock(nifc);
+			runlock(&nifc->rwl);
 		}
 	}
 }
