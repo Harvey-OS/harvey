@@ -139,12 +139,12 @@ ZZZ is this a good idea?
 				ifc->conv->p->ctl(ifc->conv, argv, 1);
 			pexit("hangup", 1);
 		}
-		if(!canrlock(ifc)){
+		if(!canrlock(&ifc->rwl)){
 			freeb(bp);
 			continue;
 		}
 		if(waserror()){
-			runlock(ifc);
+			runlock(&ifc->rwl);
 			nexterror();
 		}
 		ifc->in++;
@@ -152,7 +152,7 @@ ZZZ is this a good idea?
 			freeb(bp);
 		else
 			ipiput4(er->f, ifc, bp);
-		runlock(ifc);
+		runlock(&ifc->rwl);
 		poperror();
 	}
 }

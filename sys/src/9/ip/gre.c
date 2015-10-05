@@ -190,7 +190,7 @@ greconnect(Conv *c, char **argv, int argc)
 
 	/* make sure noone's already connected to this other sys */
 	p = c->p;
-	qlock(p);
+	qlock(&p->ql);
 	ecp = &p->conv[p->nc];
 	for(cp = p->conv; cp < ecp; cp++){
 		tc = *cp;
@@ -205,7 +205,7 @@ greconnect(Conv *c, char **argv, int argc)
 			break;
 		}
 	}
-	qunlock(p);
+	qunlock(&p->ql);
 
 	if(err != nil)
 		return err;
@@ -587,7 +587,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	}
 	ip = (Ip4hdr *)(bp->rp + hdrlen);
 
-	qlock(proto);
+	qlock(&proto->ql);
 	/*
 	 * Look for a conversation structure for this port and address, or
 	 * match the retunnel part, or match on the raw flag.
@@ -607,7 +607,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			grepdin++;
 			grebdin += BLEN(bp);
 			gredownlink(c, bp);
-			qunlock(proto);
+			qunlock(&proto->ql);
 			return;
 		}
 
@@ -615,7 +615,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			grepuin++;
 			grebuin += BLEN(bp);
 			greuplink(c, bp);
-			qunlock(proto);
+			qunlock(&proto->ql);
 			return;
 		}
 	}
@@ -640,7 +640,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			break;
 	}
 
-	qunlock(proto);
+	qunlock(&proto->ql);
 
 	if(*p == nil){
 		freeb(bp);

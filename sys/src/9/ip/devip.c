@@ -418,13 +418,13 @@ ipopen(Chan* c, int omode)
 		break;
 	case Qclone:
 		p = f->p[PROTO(c->qid)];
-		qlock(p);
+		qlock(&p->ql);
 		if(waserror()){
-			qunlock(p);
+			qunlock(&p->ql);
 			nexterror();
 		}
 		cv = Fsprotoclone(p, ATTACHER(c));
-		qunlock(p);
+		qunlock(&p->ql);
 		poperror();
 		if(cv == nil) {
 			error(Enodev);
@@ -436,12 +436,12 @@ ipopen(Chan* c, int omode)
 	case Qctl:
 	case Qerr:
 		p = f->p[PROTO(c->qid)];
-		qlock(p);
+		qlock(&p->ql);
 		cv = p->conv[CONV(c->qid)];
 		qlock(&cv->ql);
 		if(waserror()) {
 			qunlock(&cv->ql);
-			qunlock(p);
+			qunlock(&p->ql);
 			nexterror();
 		}
 		if((perm & (cv->perm>>6)) != perm) {
@@ -457,7 +457,7 @@ ipopen(Chan* c, int omode)
 			cv->perm = 0660;
 		}
 		qunlock(&cv->ql);
-		qunlock(p);
+		qunlock(&p->ql);
 		poperror();
 		break;
 	case Qlisten:
@@ -757,7 +757,7 @@ setluniqueport(Conv* c, int lport)
 
 	p = c->p;
 
-	qlock(p);
+	qlock(&p->ql);
 	for(x = 0; x < p->nc; x++){
 		xp = p->conv[x];
 		if(xp == nil)
@@ -769,12 +769,12 @@ setluniqueport(Conv* c, int lport)
 		&& xp->rport == c->rport
 		&& ipcmp(xp->raddr, c->raddr) == 0
 		&& ipcmp(xp->laddr, c->laddr) == 0){
-			qunlock(p);
+			qunlock(&p->ql);
 			return "address in use";
 		}
 	}
 	c->lport = lport;
-	qunlock(p);
+	qunlock(&p->ql);
 	return nil;
 }
 
@@ -802,7 +802,7 @@ setlport(Conv* c)
 	int i, port;
 
 	p = c->p;
-	qlock(p);
+	qlock(&p->ql);
 	if(c->restricted){
 		/* Restricted ports cycle between 600 and 1024. */
 		for(i=0; i<1024-600; i++){
@@ -829,7 +829,7 @@ setlport(Conv* c)
 				goto chosen;
 		}
 	}
-	qunlock(p);
+	qunlock(&p->ql);
 	/*
 	 * debugging: let's see if we ever get this.
 	 * if we do (and we're a cpu server), we might as well restart
@@ -840,7 +840,7 @@ setlport(Conv* c)
 
 chosen:
 	c->lport = port;
-	qunlock(p);
+	qunlock(&p->ql);
 	return nil;
 }
 

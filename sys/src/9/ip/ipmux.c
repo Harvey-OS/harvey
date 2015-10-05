@@ -587,9 +587,9 @@ ipmuxconnect(Conv *c, char **argv, int argc)
 	r->chain = chain;
 
 	/* add the chain to the protocol demultiplexor tree */
-	wlock(f);
+	wlock(&f->rwl);
 	f->ipmux->priv = ipmuxmerge(f->ipmux->priv, mux);
-	wunlock(f);
+	wunlock(&f->rwl);
 
 	Fsconnected(c, nil);
 	return nil;
@@ -637,9 +637,9 @@ ipmuxclose(Conv *c)
 	c->lport = 0;
 	c->rport = 0;
 
-	wlock(f);
+	wlock(&f->rwl);
 	ipmuxremove((struct Ipmux **)&(c->p->priv), r->chain);
-	wunlock(f);
+	wunlock(&f->rwl);
 	ipmuxtreefree(r->chain);
 	r->chain = nil;
 }
@@ -686,7 +686,7 @@ ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
 	len = BLEN(bp);
 
 	/* run the v4 filter */
-	rlock(f);
+	rlock(&f->rwl);
 	c = nil;
 	mux = f->ipmux->priv;
 	while(mux != nil){
@@ -748,7 +748,7 @@ yes:
 			c = mux->conv;
 		mux = mux->yes;
 	}
-	runlock(f);
+	runlock(&f->rwl);
 
 	if(c != nil){
 		/* tack on interface address */
@@ -815,9 +815,9 @@ ipmuxstats(Proto *p, char *buf, int len)
 	int n;
 	Fs *f = p->f;
 
-	rlock(f);
+	rlock(&f->rwl);
 	n = ipmuxsprint(p->priv, 0, buf, len);
-	runlock(f);
+	runlock(&f->rwl);
 
 	return n;
 }

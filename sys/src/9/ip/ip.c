@@ -193,10 +193,10 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	if(!gating)
 		eh->tos = tos;
 
-	if(!canrlock(ifc))
+	if(!canrlock(&ifc->rwl))
 		goto free;
 	if(waserror()){
-		runlock(ifc);
+		runlock(&ifc->rwl);
 		nexterror();
 	}
 	if(ifc->medium == nil)
@@ -220,7 +220,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		hnputs(eh->cksum, ipcsum(&eh->vihl));
 		assert(bp->next == nil);
 		ifc->medium->bwrite(ifc, bp, V4, gate);
-		runlock(ifc);
+		runlock(&ifc->rwl);
 		poperror();
 		return 0;
 	}
@@ -309,7 +309,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	}
 	ip->stats[FragOKs]++;
 raise:
-	runlock(ifc);
+	runlock(&ifc->rwl);
 	poperror();
 free:
 	freeblist(bp);

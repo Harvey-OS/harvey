@@ -109,7 +109,7 @@ void udpkick(void *x, Block *bp);
 typedef struct Udpcb Udpcb;
 struct Udpcb
 {
-	QLock;
+	QLock ql;
 	uint8_t	headers;
 };
 
@@ -410,13 +410,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		return;	/* to avoid a warning */
 	}
 
-	qlock(udp);
+	qlock(&udp->ql);
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
 		/* no conversation found */
 		upriv->ustats.udpNoPorts++;
-		qunlock(udp);
+		qunlock(&udp->ql);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
 		       laddr, lport);
 
@@ -453,7 +453,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 			}
 			c = Fsnewcall(c, raddr, rport, laddr, lport, version);
 			if(c == nil){
-				qunlock(udp);
+				qunlock(&udp->ql);
 				freeblist(bp);
 				return;
 			}
@@ -463,7 +463,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	}
 
 	qlock(&c->ql);
-	qunlock(udp);
+	qunlock(&udp->ql);
 
 	/*
 	 * Trim the packet down to data size
@@ -568,7 +568,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 	}
 
 	/* Look for a connection */
-	qlock(udp);
+	qlock(&udp->ql);
 	for(p = udp->conv; *p; p++) {
 		s = *p;
 		if(s->rport == pdest)
@@ -578,7 +578,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 			if(s->ignoreadvice)
 				break;
 			qlock(&s->ql);
-			qunlock(udp);
+			qunlock(&udp->ql);
 			qhangup(s->rq, msg);
 			qhangup(s->wq, msg);
 			qunlock(&s->ql);
@@ -586,7 +586,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 			return;
 		}
 	}
-	qunlock(udp);
+	qunlock(&udp->ql);
 	freeblist(bp);
 }
 

@@ -74,7 +74,7 @@ struct IGMPrep
 typedef struct IGMP IGMP;
 struct IGMP
 {
-	Lock;
+	Lock l;
 	Rendez	r;
 	IGMPrep	*reports;
 };

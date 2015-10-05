@@ -1621,7 +1621,7 @@ limborexmit(Proto *tcp)
 
 	tpriv = tcp->priv;
 
-	if(!canqlock(tcp))
+	if(!canqlock(&tcp->ql))
 		return;
 	seen = 0;
 	now = NOW;
@@ -1654,7 +1654,7 @@ limborexmit(Proto *tcp)
 			l = &lp->next;
 		}
 	}
-	qunlock(tcp);
+	qunlock(&tcp->ql);
 }
 
 /*
@@ -2186,7 +2186,7 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 	}
 
 	/* lock protocol while searching for a conversation */
-	qlock(tcp);
+	qlock(&tcp->ql);
 
 	/* Look for a matching conversation */
 	s = iphtlook(&tpriv->ht, source, seg.source, dest, seg.dest);
@@ -2194,7 +2194,7 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 		netlog(f, Logtcp, "iphtlook(src %I!%d, dst %I!%d) failed\n",
 			source, seg.source, dest, seg.dest);
 reset:
-		qunlock(tcp);
+		qunlock(&tcp->ql);
 		sndrst(tcp, source, dest, length, &seg, version, "no conversation");
 		freeblist(bp);
 		return;
@@ -2205,7 +2205,7 @@ reset:
 	if(tcb->state == Listen){
 		if(seg.flags & RST){
 			limborst(s, &seg, source, dest, version);
-			qunlock(tcp);
+			qunlock(&tcp->ql);
 			freeblist(bp);
 			return;
 		}
@@ -2213,7 +2213,7 @@ reset:
 		/* if this is a new SYN, put the call into limbo */
 		if((seg.flags & SYN) && (seg.flags & ACK) == 0){
 			limbo(s, source, dest, &seg, version);
-			qunlock(tcp);
+			qunlock(&tcp->ql);
 			freeblist(bp);
 			return;
 		}
@@ -2237,7 +2237,7 @@ reset:
 		nexterror();
 	}
 	qlock(&s->ql);
-	qunlock(tcp);
+	qunlock(&tcp->ql);
 
 	/* fix up window */
 	seg.wnd <<= tcb->rcv.scale;
@@ -3267,7 +3267,7 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 	}
 
 	/* Look for a connection */
-	qlock(tcp);
+	qlock(&tcp->ql);
 	for(p = tcp->conv; *p; p++) {
 		s = *p;
 		tcb = (Tcpctl*)s->ptcl;
@@ -3277,7 +3277,7 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 		if(ipcmp(s->raddr, dest) == 0)
 		if(ipcmp(s->laddr, source) == 0){
 			qlock(&s->ql);
-			qunlock(tcp);
+			qunlock(&tcp->ql);
 			switch(tcb->state){
 			case Syn_sent:
 				localclose(s, msg);
@@ -3288,7 +3288,7 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 			return;
 		}
 	}
-	qunlock(tcp);
+	qunlock(&tcp->ql);
 	freeblist(bp);
 }
 
