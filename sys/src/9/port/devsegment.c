@@ -44,7 +44,7 @@ struct Freemsg
 
 struct Globalseg
 {
-	Ref;
+	Ref r;
 	Segment	*s;
 
 	char	*name;
@@ -55,7 +55,7 @@ struct Globalseg
 	Freemsg	*free;
 
 	/* kproc to do reading and writing */
-	QLock	l;		/* sync kproc access */
+	QLock	ql;		/* sync kproc access */
 	Rendez	cmdwait;	/* where kproc waits */
 	Rendez	replywait;	/* where requestor waits */
 	Proc	*kproc;
@@ -91,7 +91,7 @@ getgseg(Chan *c)
 		panic("getgseg");
 	g = globalseg[x];
 	if(g != nil)
-		incref(g);
+		incref(&g->r);
 	unlock(&globalseglock);
 	if(g == nil)
 		error("global segment disappeared");
@@ -101,7 +101,7 @@ getgseg(Chan *c)
 static void
 putgseg(Globalseg *g)
 {
-	if(decref(g) > 0)
+	if(decref(&g->r) > 0)
 		return;
 	if(g->s == heapseg)
 		heapseg = nil;
@@ -263,9 +263,9 @@ segmentopen(Chan *c, int omode)
 		if(g->s == nil)
 			error("segment not yet allocated");
 		if(g->kproc == nil){
-			qlock(&g->l);
+			qlock(&g->ql);
 			if(waserror()){
-				qunlock(&g->l);
+				qunlock(&g->ql);
 				nexterror();
 			}
 			if(g->kproc == nil){
@@ -274,7 +274,7 @@ segmentopen(Chan *c, int omode)
 				docmd(g, Cstart);
 			}
 			poperror();
-			qunlock(&g->l);
+			qunlock(&g->ql);
 		}
 		c->aux = g;
 		poperror();
@@ -347,7 +347,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 			error(Eexist);
 	}
 	g = smalloc(sizeof(Globalseg));
-	g->ref = 1;
+	g->r.ref = 1;
 	kstrdup(&g->name, name);
 	kstrdup(&g->uid, up->user);
 	g->perm = 0660;
@@ -445,9 +445,9 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 			if(n <= 0)
 				break;
 		}
-		qlock(&g->l);
+		qlock(&g->ql);
 		if(waserror()){
-			qunlock(&g->l);
+			qunlock(&g->ql);
 			nexterror();
 		}
 
@@ -464,7 +464,7 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 		free(g->data);
 
 		poperror();
-		qunlock(&g->l);
+		qunlock(&g->ql);
 		return g->dlen;
 	default:
 		panic("segmentread");
@@ -569,9 +569,9 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 			if(n <= 0)
 				break;
 		}
-		qlock(&g->l);
+		qlock(&g->ql);
 		if(waserror()){
-			qunlock(&g->l);
+			qunlock(&g->ql);
 			nexterror();
 		}
 
@@ -588,7 +588,7 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 		free(g->data);
 
 		poperror();
-		qunlock(&g->l);
+		qunlock(&g->ql);
 		break;
 	default:
 		panic("segmentwrite");
@@ -683,7 +683,7 @@ globalsegattach(Proc *p, char *name)
 		error("global segment not assigned a virtual address");
 	if(isoverlap(p, s->base, s->top - s->base) != nil)
 		error("overlaps existing segment");
-	incref(s);
+	incref(&s->r);
 	unlock(&globalseglock);
 	poperror();
 	return s;
@@ -733,7 +733,7 @@ segmentkproc(void *arg)
 		panic("segmentkproc");
 	g->kproc = up;
 
-	incref(g->s);
+	incref(&g->s->r);
 	up->seg[sno] = g->s;
 	qunlock(&up->seglock);
 

@@ -84,7 +84,7 @@ wakeupProc(Proc *p)
 		return;
 	}
 	/* Try and pull out of a rendezvous */
-	lock(p->rgrp);
+	lock(&p->rgrp->r.l);
 	if(p->state == Rendezvous) {
 		p->rendval = ~0;
 		l = &REND(p->rgrp, p->rendtag);
@@ -97,7 +97,7 @@ wakeupProc(Proc *p)
 		}
 		ready(p);
 	}
-	unlock(p->rgrp);
+	unlock(&p->rgrp->r.l);
 }
 
 void

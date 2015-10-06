@@ -744,7 +744,7 @@ userinit(void)
 	p = newproc();
 	p->pgrp = newpgrp();
 	p->egrp = smalloc(sizeof(Egrp));
-	p->egrp->ref = 1;
+	p->egrp->r.ref = 1;
 	p->fgrp = dupfgrp(nil);
 	p->rgrp = newrgrp();
 	p->procmode = 0640;

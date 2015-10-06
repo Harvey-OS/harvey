@@ -150,7 +150,7 @@ newchan(void)
 
 	c->dev = nil;
 	c->flag = 0;
-	c->ref = 1;
+	c->r.ref = 1;
 	c->devno = 0;
 	c->offset = 0;
 	c->devoffset = 0;
@@ -183,7 +183,7 @@ newpath(char *s)
 	p->alen = i+PATHSLOP;
 	p->s = smalloc(p->alen);
 	memmove(p->s, s, i+1);
-	p->ref = 1;
+	p->r.ref = 1;
 	incref(&npath);
 
 	/*
@@ -207,7 +207,7 @@ copypath(Path *p)
 	Path *pp;
 
 	pp = smalloc(sizeof(Path));
-	pp->ref = 1;
+	pp->r.ref = 1;
 	incref(&npath);
 	DBG("copypath %s %#p => %#p\n", p->s, p, pp);
 
@@ -222,7 +222,7 @@ copypath(Path *p)
 	for(i=0; i<pp->mlen; i++){
 		pp->mtpt[i] = p->mtpt[i];
 		if(pp->mtpt[i])
-			incref(pp->mtpt[i]);
+			incref(&pp->mtpt[i]->r);
 	}
 
 	return pp;
@@ -236,12 +236,12 @@ pathclose(Path *p)
 	if(p == nil)
 		return;
 //XXX
-	DBG("pathclose %#p %s ref=%d =>", p, p->s, p->ref);
+	DBG("pathclose %#p %s ref=%d =>", p, p->s, p->r.ref);
 	for(i=0; i<p->mlen; i++)
 		DBG(" %#p", p->mtpt[i]);
 	DBG("\n");
 
-	if(decref(p))
+	if(decref(&p->r))
 		return;
 	decref(&npath);
 	free(p->s);
@@ -284,7 +284,7 @@ uniquepath(Path *p)
 {
 	Path *new;
 
-	if(p->ref > 1){
+	if(p->r.ref > 1){
 		/* copy on write */
 		new = copypath(p);
 		pathclose(p);
@@ -337,7 +337,7 @@ addelem(Path *p, char *s, Chan *from)
 		DBG("addelem %s %s => add %#p\n", p->s, s, from);
 		p->mtpt[p->mlen++] = from;
 		if(from)
-			incref(from);
+			incref(&from->r);
 	}
 	return p;
 }
@@ -391,8 +391,8 @@ cclose(Chan *c)
 	if(c->flag&CFREE)
 		panic("cclose %#p", getcallerpc());
 
-	DBG("cclose %#p name=%s ref=%d\n", c, c->path->s, c->ref);
-	if(decref(c))
+	DBG("cclose %#p name=%s ref=%d\n", c, c->path->s, c->r.ref);
+	if(decref(&c->r))
 		return;
 
 	if(!waserror()){
@@ -424,9 +424,9 @@ ccloseq(Chan *c)
 	if(c->flag&CFREE)
 		panic("ccloseq %#p", getcallerpc());
 
-	DBG("ccloseq %#p name=%s ref=%d\n", c, c->path->s, c->ref);
+	DBG("ccloseq %#p name=%s ref=%d\n", c, c->path->s, c->r.ref);
 
-	if(decref(c))
+	if(decref(&c->r))
 		return;
 
 	lock(&clunkq.l);
@@ -490,7 +490,7 @@ cunique(Chan *c)
 {
 	Chan *nc;
 
-	if(c->ref != 1){
+	if(c->r.ref != 1){
 		nc = cclone(c);
 		cclose(c);
 		c = nc;
@@ -539,9 +539,9 @@ newmhead(Chan *from)
 	Mhead *mh;
 
 	mh = smalloc(sizeof(Mhead));
-	mh->ref = 1;
+	mh->r.ref = 1;
 	mh->from = from;
-	incref(from);
+	incref(&from->r);
 	return mh;
 }
 
@@ -751,7 +751,7 @@ cclone(Chan *c)
 	free(wq);
 	nc->path = c->path;
 	if(c->path)
-		incref(c->path);
+		incref(&c->path->r);
 	return nc;
 }
 
@@ -775,14 +775,14 @@ findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 		if(eqchanddq(mh->from, dc, devno, qid, 1)){
 			runlock(&pg->ns);
 			if(mp != nil){
-				incref(mh);
+				incref(&mh->r);
 				if(*mp != nil)
 					putmhead(*mp);
 				*mp = mh;
 			}
 			if(*cp != nil)
 				cclose(*cp);
-			incref(mh->mount->to);
+			incref(&mh->mount->to->r);
 			*cp = mh->mount->to;
 			runlock(&mh->lock);
 			return 1;
@@ -815,7 +815,7 @@ domount(Chan **cp, Mhead **mp, Path **path)
 			lc = &p->mtpt[p->mlen-1];
 			DBG("domount %#p %s => add %#p (was %#p)\n",
 				p, p->s, (*mp)->from, p->mtpt[p->mlen-1]);
-			incref((*mp)->from);
+			incref(&(*mp)->from->r);
 			if(*lc)
 				cclose(*lc);
 			*lc = (*mp)->from;
@@ -835,9 +835,9 @@ undomount(Chan *c, Path *path)
 {
 	Chan *nc;
 
-	if(path->ref != 1 || path->mlen == 0)
+	if(path->r.ref != 1 || path->mlen == 0)
 		print("undomount: path %s ref %d mlen %d caller %#p\n",
-			path->s, path->ref, path->mlen, getcallerpc());
+			path->s, path->r.ref, path->mlen, getcallerpc());
 
 	if(path->mlen>0 && (nc=path->mtpt[path->mlen-1]) != nil){
 		DBG("undomount %#p %s => remove %p\n", path, path->s, nc);
@@ -881,9 +881,9 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 	Walkqid *wq;
 
 	c = *cp;
-	incref(c);
+	incref(&c->r);
 	path = c->path;
-	incref(path);
+	incref(&path->r);
 	mh = nil;
 
 	/*
@@ -1257,7 +1257,7 @@ namec(char *aname, int amode, int omode, int perm)
 	switch(name[0]){
 	case '/':
 		c = up->slash;
-		incref(c);
+		incref(&c->r);
 		break;
 
 	case '#':
@@ -1302,7 +1302,7 @@ namec(char *aname, int amode, int omode, int perm)
 
 	default:
 		c = up->dot;
-		incref(c);
+		incref(&c->r);
 		break;
 	}
 
@@ -1388,7 +1388,7 @@ namec(char *aname, int amode, int omode, int perm)
 	Open:
 		/* save&update the name; domount might change c */
 		path = c->path;
-		incref(path);
+		incref(&path->r);
 		mh = nil;
 		if(!nomount)
 			domount(&c, &mh, &path);
@@ -1524,7 +1524,7 @@ if(c->umh != nil){
 				cnew = createdir(cnew, mh);
 			else{
 				cnew = c;
-				incref(cnew);
+				incref(&cnew->r);
 			}
 
 			/*
@@ -1536,7 +1536,7 @@ if(c->umh != nil){
 			cnew = cunique(cnew);
 			pathclose(cnew->path);
 			cnew->path = c->path;
-			incref(cnew->path);
+			incref(&cnew->path->r);
 
 //create:						//XDYNX
 // like open regarding read/write?
@@ -1716,7 +1716,7 @@ isdir(Chan *c)
 void
 putmhead(Mhead *mh)
 {
-	if(mh && decref(mh) == 0){
+	if(mh && decref(&mh->r) == 0){
 		mh->mount = (Mount*)0xCafeBeef;
 		free(mh);
 	}

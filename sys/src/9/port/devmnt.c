@@ -171,17 +171,17 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	if(k == 0)
 		error("bad fversion conversion on send");
 
-	lock(c);
+	lock(&c->r.l);
 	oo = c->offset;
 	c->offset += k;
-	unlock(c);
+	unlock(&c->r.l);
 
 	l = c->dev->write(c, msg, k, oo);
 
 	if(l < k){
-		lock(c);
+		lock(&c->r.l);
 		c->offset -= k - l;
-		unlock(c);
+		unlock(&c->r.l);
 		error("short write in fversion");
 	}
 
@@ -190,9 +190,9 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	if(n <= 0)
 		error("EOF receiving fversion reply");
 
-	lock(c);
+	lock(&c->r.l);
 	c->offset += n;
-	unlock(c);
+	unlock(&c->r.l);
 
 	l = convM2S(msg, n, &f);
 	if(l != n)
@@ -240,14 +240,14 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	poperror();	/* msg */
 	free(msg);
 
-	lock(mnt);
+	lock(&mnt->l);
 	mnt->queue = 0;
 	mnt->rip = 0;
 
 	c->flag |= CMSG;
 	c->mux = mnt;
 	mnt->c = c;
-	unlock(mnt);
+	unlock(&mnt->l);
 
 	poperror();	/* c */
 	qunlock(&c->umqlock);
@@ -295,7 +295,7 @@ mntauth(Chan *c, char *spec)
 
 	c->qid = r->reply.aqid;
 	c->mchan = mnt->c;
-	incref(mnt->c);
+	incref(&mnt->c->r);
 	c->mqid = c->qid;
 	c->mode = ORDWR;
 
@@ -362,7 +362,7 @@ mntattach(char *muxattach)
 
 	c->qid = r->reply.qid;
 	c->mchan = mnt->c;
-	incref(mnt->c);
+	incref(&mnt->c->r);
 	c->mqid = c->qid;
 
 	poperror();	/* r */
@@ -458,7 +458,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 			//if(wq->clone->dev != nil)	//XDYNX
 			//	devtabincr(wq->clone->dev);
 			wq->clone->mchan = c->mchan;
-			incref(c->mchan);
+			incref(&c->mchan->r);
 		}
 		if(r->reply.nwqid > 0)
 			wq->clone->qid = r->reply.wqid[r->reply.nwqid-1];
@@ -791,11 +791,11 @@ xmitrpc(Mnt *mnt, Mntrpc *r)
 {
 	int n;
 
-	lock(mnt);
+	lock(&mnt->l);
 	r->m = mnt;
 	r->list = mnt->queue;
 	mnt->queue = r;
-	unlock(mnt);
+	unlock(&mnt->l);
 
 	/* Transmit a file system rpc */
 	if(mnt->msize == 0)
@@ -815,16 +815,16 @@ recvrpc(Mnt *mnt, Mntrpc *r)
 	Proc *up = externup();
 	/* Gate readers onto the mount point one at a time */
 	for(;;) {
-		lock(mnt);
+		lock(&mnt->l);
 		if(mnt->rip == 0)
 			break;
-		unlock(mnt);
+		unlock(&mnt->l);
 		sleep(&r->r, rpcattn, r);
 		if(r->done)
 			return;
 	}
 	mnt->rip = up;
-	unlock(mnt);
+	unlock(&mnt->l);
 	while(r->done == 0) {
 		if(mntrpcread(mnt, r) < 0)
 			error(Emountrpc);
@@ -994,14 +994,14 @@ mntgate(Mnt *mnt)
 {
 	Mntrpc *q;
 
-	lock(mnt);
+	lock(&mnt->l);
 	mnt->rip = 0;
 	for(q = mnt->queue; q; q = q->list) {
 		if(q->done == 0)
 		if(wakeup(&q->r))
 			break;
 	}
-	unlock(mnt);
+	unlock(&mnt->l);
 }
 
 void
@@ -1009,7 +1009,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 {
 	Mntrpc **l, *q;
 
-	lock(mnt);
+	lock(&mnt->l);
 	l = &mnt->queue;
 	for(q = *l; q; q = q->list) {
 		/* look for a reply to a message */
@@ -1025,7 +1025,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 				r->b = nil;
 			}
 			q->done = 1;
-			unlock(mnt);
+			unlock(&mnt->l);
 			if(mntstats != nil)
 				(*mntstats)(q->request.type,
 					mnt->c, q->stime,
@@ -1036,7 +1036,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 		}
 		l = &q->list;
 	}
-	unlock(mnt);
+	unlock(&mnt->l);
 	print("unexpected reply tag %ud; type %d\n", r->reply.tag, r->reply.type);
 }
 
@@ -1186,7 +1186,7 @@ mntqrm(Mnt *mnt, Mntrpc *r)
 {
 	Mntrpc **l, *f;
 
-	lock(mnt);
+	lock(&mnt->l);
 	r->done = 1;
 
 	l = &mnt->queue;
@@ -1197,7 +1197,7 @@ mntqrm(Mnt *mnt, Mntrpc *r)
 		}
 		l = &f->list;
 	}
-	unlock(mnt);
+	unlock(&mnt->l);
 }
 
 Mnt*

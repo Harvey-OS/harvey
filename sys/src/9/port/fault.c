@@ -200,7 +200,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 			}
 
 			/* delay copy if we are the only user (copy on write when it happens) */
-			if(conf.copymode == 0 && s->ref == 1) {
+			if(conf.copymode == 0 && s->r.ref == 1) {
 				mmuattr = PTERONLY|PTEVALID;
 				if((s->type & SG_EXEC) == 0)
 					mmuattr |= PTENOEXEC;
@@ -231,7 +231,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 					(s->type & SG_WRITE) != 0 ? 'w' : '-',
 					(s->type & SG_EXEC) != 0 ? 'x' : '-',
 					addr,
-					s->ref,
+					s->r.ref,
 					pgref
 				);
 				// No need to zero here as it is copied

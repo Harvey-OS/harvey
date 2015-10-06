@@ -224,7 +224,7 @@ getzkseg(void)
 	for(i = 0; i < NSEG; i++){
 		s = up->seg[i];
 		if(s != nil && (s->type&SG_KZIO) != 0){
-			incref(s);
+			incref(&s->r);
 			qunlock(&up->seglock);
 			DBG("getzkseg: %#p\n", s);
 			return s;
@@ -425,7 +425,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 			kio[i].seg = seg(up, PTR2UINT(io[i].data), 1);
 			if(kio[i].seg == nil)
 				error("invalid address in zio");
-			incref(kio[i].seg);
+			incref(&kio[i].seg->r);
 			qunlock(&kio[i].seg->lk);
 			validaddr(kio[i].data, kio[i].size, 1);
 			if((kio[i].seg->type&SG_ZIO) == 0){
@@ -463,10 +463,10 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	}
 	if(!isprw){
 		/* unlike in syswrite, we update offsets at the end */
-		lock(c);
+		lock(&c->r.l);
 		c->devoffset += tot;
 		c->offset += tot;
-		unlock(c);
+		unlock(&c->r.l);
 	}
 	poperror();
 	cclose(c);

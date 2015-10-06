@@ -362,7 +362,7 @@ closeegrp(Egrp *eg)
 	int i;
 	Evalue *e;
 
-	if(decref(eg) == 0){
+	if(decref(&eg->r) == 0){
 		for(i=0; i<eg->nent; i++){
 			e = eg->ent[i];
 			free(e->name);
