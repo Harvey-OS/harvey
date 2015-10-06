@@ -161,11 +161,11 @@ mmuptpalloc(void)
 	 * Could keep a cache and free excess.
 	 * Have to maintain any fiction for pexit?
 	 */
-	lock(&mmuptpfreelist);
+	lock(&mmuptpfreelist.l);
 	if((page = mmuptpfreelist.next) != nil){
 		mmuptpfreelist.next = page->next;
 		mmuptpfreelist.ref--;
-		unlock(&mmuptpfreelist);
+		unlock(&mmuptpfreelist.l);
 
 		if(page->ref++ != 0)
 			panic("mmuptpalloc ref\n");
@@ -176,7 +176,7 @@ mmuptpalloc(void)
 			panic("mmuptpalloc: free page with pa == 0");
 		return page;
 	}
-	unlock(&mmuptpfreelist);
+	unlock(&mmuptpfreelist.l);
 
 	if((page = malloc(sizeof(Page))) == nil){
 		print("mmuptpalloc Page\n");
@@ -246,12 +246,12 @@ mmurelease(Proc* proc)
 		next = page->next;
 		if(--page->ref)
 			panic("mmurelease: page->ref %d\n", page->ref);
-		lock(&mmuptpfreelist);
+		lock(&mmuptpfreelist.l);
 		page->next = mmuptpfreelist.next;
 		mmuptpfreelist.next = page;
 		mmuptpfreelist.ref++;
 		page->prev = nil;
-		unlock(&mmuptpfreelist);
+		unlock(&mmuptpfreelist.l);
 	}
 	if(proc->mmuptp[0] && pga.r.l.p)
 		wakeup(&pga.r);

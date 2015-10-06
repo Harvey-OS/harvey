@@ -215,13 +215,13 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 		if((s->type & SG_TYPE) != SG_SHARED){
 
 			lkp = *pg;
-			lock(lkp);
+			lock(&lkp->l);
 
 			ref = lkp->ref;
 
 			if(ref > 1) {	/* page is shared but segment is not: copy for write */
 				int pgref = lkp->ref;
-				unlock(lkp);
+				unlock(&lkp->l);
 
 				DBG("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
 					up->pid,
@@ -246,7 +246,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 				if(lkp->image != nil)
 					duppage(lkp);
 
-				unlock(lkp);
+				unlock(&lkp->l);
 			}
 		}
 		mmuattr = PTEVALID|PTEWRITE;

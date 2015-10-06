@@ -156,7 +156,7 @@ struct RWlock
 
 struct Alarms
 {
-	QLock;
+	QLock ql;
 	Proc	*_head;
 };
 
@@ -374,7 +374,7 @@ enum
 
 struct Page
 {
-	Lock;
+	Lock l;
 	uintmem	pa;			/* Physical address in memory */
 	uintptr_t	va;			/* Virtual address for user */
 	uint32_t	daddr;			/* Disc address on swap */
