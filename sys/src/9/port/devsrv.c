@@ -148,7 +148,7 @@ srvopen(Chan *c, int omode)
 	devpermcheck(sp->owner, sp->perm, omode);
 
 	cclose(c);
-	incref(sp->chan);
+	incref(&sp->chan->r);
 	qunlock(&srvlk);
 	poperror();
 	return sp->chan;

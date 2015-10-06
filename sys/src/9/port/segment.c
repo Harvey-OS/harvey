@@ -61,7 +61,7 @@ newseg(int type, uintptr_t base, uint64_t size)
 		pgsz = 1*GiB;
 	}
 	s = smalloc(sizeof(Segment));
-	s->ref = 1;
+	s->r.ref = 1;
 	s->type = type;
 	s->base = base;
 	s->ptepertab = PTEMAPMEM/pgsz;
@@ -125,21 +125,21 @@ putseg(Segment *s)
 
 	i = s->image;
 	if(i != 0) {
-		lock(i);
-		lock(s);
-		if(i->s == s && s->ref == 1)
+		lock(&i->r.l);
+		lock(&s->r.l);
+		if(i->s == s && s->r.ref == 1)
 			i->s = 0;
-		unlock(i);
+		unlock(&i->r.l);
 	}
 	else
-		lock(s);
+		lock(&s->r.l);
 
-	s->ref--;
-	if(s->ref != 0) {
-		unlock(s);
+	s->r.ref--;
+	if(s->r.ref != 0) {
+		unlock(&s->r.l);
 		return;
 	}
-	unlock(s);
+	unlock(&s->r.l);
 
 	qlock(&s->lk);
 	if(i)
@@ -227,7 +227,7 @@ dupseg(Segment **seg, int segno, int share)
 			goto sameseg;
 		n = newseg(s->type, s->base, s->size);
 
-		incref(s->image);
+		incref(&s->image->r);
 		n->image = s->image;
 		n->ldseg = s->ldseg;
 		n->pgszi = s->pgszi;
@@ -241,14 +241,14 @@ dupseg(Segment **seg, int segno, int share)
 			n->map[i] = ptecpy(n, pte);
 
 	n->flushme = s->flushme;
-	if(s->ref > 1)
+	if(s->r.ref > 1)
 		procflushseg(s);
 	poperror();
 	qunlock(&s->lk);
 	return n;
 
 sameseg:
-	incref(s);
+	incref(&s->r);
 	poperror();
 	qunlock(&s->lk);
 	return s;
@@ -343,7 +343,7 @@ mfreeseg(Segment *s, uintptr_t start, int pages)
 	}
 out:
 	/* flush this seg in all other processes */
-	if(s->ref > 1)
+	if(s->r.ref > 1)
 		procflushseg(s);
 
 	/* free the pages */

@@ -49,9 +49,9 @@ struct Mouseinfo
 	uint32_t	lastcounter;	/* value when /dev/mouse read */
 	uint32_t	lastresize;
 	uint32_t	resize;
-	Rendez	r;
-	Ref;
-	QLock;
+	Rendez	rend;
+	Ref r;
+	QLock ql;
 	int	open;
 	int	acceleration;
 	int	maxacc;
@@ -169,7 +169,7 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 	 */
 	wq = devwalk(c, nc, name, nname, mousedir, nelem(mousedir), devgen);
 	if(wq != nil && wq->clone != c && wq->clone != nil && (wq->clone->qid.type&QTDIR)==0)
-		incref(&mouse);
+		incref(&mouse.r);
 	return wq;
 }
 
@@ -188,22 +188,22 @@ mouseopen(Chan *c, int omode)
 			error(Eperm);
 		break;
 	case Qmouse:
-		lock(&mouse);
+		lock(&mouse.r.l);
 		if(mouse.open){
-			unlock(&mouse);
+			unlock(&mouse.r.l);
 			error(Einuse);
 		}
 		mouse.open = 1;
-		mouse.ref++;
+		mouse.r.ref++;
 		mouse.lastresize = mouse.resize;
-		unlock(&mouse);
+		unlock(&mouse.r.l);
 		break;
 	case Qmousein:
 		if(!iseve())
 			error(Eperm);
 		break;
 	default:
-		incref(&mouse);
+		incref(&mouse.r);
 	}
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -223,16 +223,16 @@ mouseclose(Chan *c)
 	if((c->qid.type&QTDIR)==0 && (c->flag&COPEN)){
 		if(c->qid.path == Qmousein)
 			return;
-		lock(&mouse);
+		lock(&mouse.r.l);
 		if(c->qid.path == Qmouse)
 			mouse.open = 0;
-		if(--mouse.ref == 0){
+		if(--mouse.r.ref == 0){
 			cursoroff(1);
 			curs = arrow;
 			Cursortocursor(&arrow);
 			cursoron(1);
 		}
-		unlock(&mouse);
+		unlock(&mouse.r.l);
 	}
 }
 
@@ -268,7 +268,7 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 
 	case Qmouse:
 		while(mousechanged(0) == 0)
-			sleep(&mouse.r, mousechanged, 0);
+			sleep(&mouse.rend, mousechanged, 0);
 
 		mouse.qfull = 0;
 		mousetime = seconds();
@@ -390,10 +390,10 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t r)
 			memmove(curs.set, p+40, 2*16);
 			Cursortocursor(&curs);
 		}
-		qlock(&mouse);
+		qlock(&mouse.ql);
 		mouse.redraw = 1;
 		mouseclock();
-		qunlock(&mouse);
+		qunlock(&mouse.ql);
 		cursoron(1);
 		return n;
 
@@ -464,14 +464,14 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t r)
 		if(p == 0)
 			error(Eshort);
 		pt.y = strtoul(p, 0, 0);
-		qlock(&mouse);
+		qlock(&mouse.ql);
 		if(ptinrect(pt, gscreen->r)){
 			mouse.xy = pt;
 			mouse.redraw = 1;
 			mouse.track = 1;
 			mouseclock();
 		}
-		qunlock(&mouse);
+		qunlock(&mouse.ql);
 		return n;
 	}
 
@@ -604,7 +604,7 @@ mousetrack(int dx, int dy, int b, int msec)
 		if(mouse.wi == mouse.ri)
 			mouse.qfull = 1;
 	}
-	wakeup(&mouse.r);
+	wakeup(&mouse.rend);
 	drawactive(1);
 }
 
@@ -773,6 +773,6 @@ void
 mouseresize(void)
 {
 	mouse.resize++;
-	wakeup(&mouse.r);
+	wakeup(&mouse.rend);
 }
 

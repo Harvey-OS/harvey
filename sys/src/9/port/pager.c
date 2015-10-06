@@ -62,14 +62,14 @@ canflush(Proc *p, Segment *s)
 {
 	int i, x;
 
-	lock(s);
-	if(s->ref == 1) {		/* Easy if we are the only user */
-		s->ref++;
-		unlock(s);
+	lock(&s->r.l);
+	if(s->r.ref == 1) {		/* Easy if we are the only user */
+		s->r.ref++;
+		unlock(&s->r.l);
 		return canpage(p);
 	}
-	s->ref++;
-	unlock(s);
+	s->r.ref++;
+	unlock(&s->r.l);
 
 	/* Now we must do hardwork to ensure all processes which have tlb
 	 * entries for this segment will be flushed if we succeed in paging it out
