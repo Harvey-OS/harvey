@@ -56,7 +56,7 @@ newpgrp(void)
 	Pgrp *p;
 
 	p = smalloc(sizeof(Pgrp));
-	p->ref = 1;
+	p->r.ref = 1;
 	p->pgrpid = incref(&pgrpid);
 	return p;
 }
@@ -67,14 +67,14 @@ newrgrp(void)
 	Rgrp *r;
 
 	r = smalloc(sizeof(Rgrp));
-	r->ref = 1;
+	r->r.ref = 1;
 	return r;
 }
 
 void
 closergrp(Rgrp *r)
 {
-	if(decref(r) == 0)
+	if(decref(&r->r) == 0)
 		free(r);
 }
 
@@ -83,7 +83,7 @@ closepgrp(Pgrp *p)
 {
 	Mhead **h, **e, *f, *next;
 
-	if(decref(p) != 0)
+	if(decref(&p->r) != 0)
 		return;
 
 	qlock(&p->debug);
@@ -162,10 +162,10 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	/*
 	 * Allocate mount ids in the same sequence as the parent group
 	 */
-	lock(&mountid);
+	lock(&mountid.l);
 	for(mount = order; mount != nil; mount = mount->order)
 		mount->copy->mountid = mountid.ref++;
-	unlock(&mountid);
+	unlock(&mountid.l);
 	wunlock(&from->ns);
 }
 
@@ -180,11 +180,11 @@ dupfgrp(Fgrp *f)
 	if(f == nil){
 		new->fd = smalloc(DELTAFD*sizeof(Chan*));
 		new->nfd = DELTAFD;
-		new->ref = 1;
+		new->r.ref = 1;
 		return new;
 	}
 
-	lock(f);
+	lock(&f->r.l);
 	/* Make new fd list shorter if possible, preserving quantization */
 	new->nfd = f->maxfd+1;
 	i = new->nfd%DELTAFD;
@@ -192,20 +192,20 @@ dupfgrp(Fgrp *f)
 		new->nfd += DELTAFD - i;
 	new->fd = malloc(new->nfd*sizeof(Chan*));
 	if(new->fd == nil){
-		unlock(f);
+		unlock(&f->r.l);
 		free(new);
 		error("no memory for fgrp");
 	}
-	new->ref = 1;
+	new->r.ref = 1;
 
 	new->maxfd = f->maxfd;
 	for(i = 0; i <= f->maxfd; i++) {
 		if(c = f->fd[i]){
-			incref(c);
+			incref(&c->r);
 			new->fd[i] = c;
 		}
 	}
-	unlock(f);
+	unlock(&f->r.l);
 
 	return new;
 }
@@ -220,7 +220,7 @@ closefgrp(Fgrp *f)
 	if(f == 0)
 		return;
 
-	if(decref(f) != 0)
+	if(decref(&f->r) != 0)
 		return;
 
 	/*
@@ -280,7 +280,7 @@ newmount(Mhead *mh, Chan *to, int flag, char *spec)
 	mount = smalloc(sizeof(Mount));
 	mount->to = to;
 	mount->head = mh;
-	incref(to);
+	incref(&to->r);
 	mount->mountid = incref(&mountid);
 	mount->mflag = flag;
 	if(spec != 0)

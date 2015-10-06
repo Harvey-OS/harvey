@@ -67,7 +67,7 @@ setupseg(int core)
 	p->slash = up->slash;
 	p->dot = up->dot;
 	if(p->dot)
-		incref(p->dot);
+		incref(&p->dot->r);
 
 	memmove(p->note, up->note, sizeof(p->note));
 	p->nnote = up->nnote;
@@ -81,7 +81,7 @@ setupseg(int core)
 	if(kpgrp == 0)
 		kpgrp = newpgrp();
 	p->pgrp = kpgrp;
-	incref(kpgrp);
+	incref(&kpgrp->r);
 
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = sys->ticks;

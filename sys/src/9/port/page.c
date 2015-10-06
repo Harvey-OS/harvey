@@ -539,7 +539,7 @@ cachepage(Page *p, Image *i)
 	if(p->image)
 		panic("cachepage");
 
-	incref(i);
+	incref(&i->r);
 	lock(&pga.hashlock);
 	p->image = i;
 	l = &pghash(p->daddr);

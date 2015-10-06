@@ -86,7 +86,7 @@ sysrfork(Ar0* ar0, ...)
 		if(flag & (RFENVG|RFCENVG)) {
 			oeg = up->egrp;
 			up->egrp = smalloc(sizeof(Egrp));
-			up->egrp->ref = 1;
+			up->egrp->r.ref = 1;
 			if(flag & RFENVG)
 				envcpy(up->egrp, oeg);
 			closeegrp(oeg);
@@ -129,7 +129,7 @@ sysrfork(Ar0* ar0, ...)
 	p->nerrlab = 0;
 	p->slash = up->slash;
 	p->dot = up->dot;
-	incref(p->dot);
+	incref(&p->dot->r);
 
 	memmove(p->note, up->note, sizeof(p->note));
 	p->privatemem = up->privatemem;
@@ -164,7 +164,7 @@ sysrfork(Ar0* ar0, ...)
 	}
 	else {
 		p->fgrp = up->fgrp;
-		incref(p->fgrp);
+		incref(&p->fgrp->r);
 	}
 
 	/* Process groups */
@@ -177,7 +177,7 @@ sysrfork(Ar0* ar0, ...)
 	}
 	else {
 		p->pgrp = up->pgrp;
-		incref(p->pgrp);
+		incref(&p->pgrp->r);
 	}
 	if(flag & RFNOMNT)
 		up->pgrp->noattach = 1;
@@ -185,20 +185,20 @@ sysrfork(Ar0* ar0, ...)
 	if(flag & RFREND)
 		p->rgrp = newrgrp();
 	else {
-		incref(up->rgrp);
+		incref(&up->rgrp->r);
 		p->rgrp = up->rgrp;
 	}
 
 	/* Environment group */
 	if(flag & (RFENVG|RFCENVG)) {
 		p->egrp = smalloc(sizeof(Egrp));
-		p->egrp->ref = 1;
+		p->egrp->r.ref = 1;
 		if(flag & RFENVG)
 			envcpy(p->egrp, up->egrp);
 	}
 	else {
 		p->egrp = up->egrp;
-		incref(p->egrp);
+		incref(&p->egrp->r);
 	}
 	p->hang = up->hang;
 	p->procmode = up->procmode;
@@ -370,7 +370,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		chan = namec(p, Aopen, OEXEC, 0);
 	}else{
 		chan = ichan;
-		incref(ichan);
+		incref(&ichan->r);
 	}
 	/* chan is the chan to use, initial or not. ichan is irrelevant now */
 	cclose(ichan);
@@ -587,11 +587,11 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 			s->flushme = 1;
 			if(img->color != up->color)
 				up->color = img->color;
-			unlock(img);
+			unlock(&img->r.l);
 		} else {
 			s = newseg(ldseg[i].type, ldseg[i].pg0vaddr, (ldseg[i].pg0off+ldseg[i].memsz+BIGPGSZ-1)/BIGPGSZ);
 			s->color = up->color;
-			incref(img);
+			incref(&img->r);
 			s->image = img;
 		}
 
@@ -1006,7 +1006,7 @@ sysrendezvous(Ar0* ar0, ...)
 	l = &REND(up->rgrp, tag);
 	up->rendval = ~0;
 
-	lock(up->rgrp);
+	lock(&up->rgrp->r.l);
 	for(p = *l; p; p = p->rendhash) {
 		if(p->rendtag == tag) {
 			*l = p->rendhash;
@@ -1016,7 +1016,7 @@ sysrendezvous(Ar0* ar0, ...)
 			while(p->mach != 0)
 				;
 			ready(p);
-			unlock(up->rgrp);
+			unlock(&up->rgrp->r.l);
 
 			ar0->v = UINT2PTR(val);
 			return;
@@ -1033,7 +1033,7 @@ sysrendezvous(Ar0* ar0, ...)
 	up->state = Rendezvous;
 	if(up->trace)
 		proctrace(up, SLock, 0);
-	unlock(up->rgrp);
+	unlock(&up->rgrp->r.l);
 
 	sched();
 

@@ -1390,7 +1390,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		return ret;
 	}
 	/* Try and pull out of a rendezvous */
-	lock(p->rgrp);
+	lock(&p->rgrp->r.l);
 	if(p->state == Rendezvous) {
 		p->rendval = ~0;
 		l = &REND(p->rgrp, p->rendtag);
@@ -1403,7 +1403,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		}
 		ready(p);
 	}
-	unlock(p->rgrp);
+	unlock(&p->rgrp->r.l);
 	return ret;
 }
 
@@ -1810,7 +1810,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->slash = up->slash;
 	p->dot = up->dot;
 	if(p->dot)
-		incref(p->dot);
+		incref(&p->dot->r);
 
 	memmove(p->note, up->note, sizeof(p->note));
 	p->nnote = up->nnote;
@@ -1829,7 +1829,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	if(kpgrp == 0)
 		kpgrp = newpgrp();
 	p->pgrp = kpgrp;
-	incref(kpgrp);
+	incref(&kpgrp->r);
 
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = sys->ticks;

@@ -25,7 +25,7 @@ unlockfgrp(Fgrp *f)
 
 	ex = f->exceed;
 	f->exceed = 0;
-	unlock(f);
+	unlock(&f->r.l);
 	if(ex)
 		pprint("warning: process exceeds %d file descriptors\n", ex);
 }
@@ -88,7 +88,7 @@ newfd(Chan *c)
 	Fgrp *f;
 
 	f = up->fgrp;
-	lock(f);
+	lock(&f->r.l);
 	fd = findfreefd(f, 0);
 	if(fd < 0){
 		unlockfgrp(f);
@@ -108,7 +108,7 @@ newfd2(int fd[2], Chan *c[2])
 	Fgrp *f;
 
 	f = up->fgrp;
-	lock(f);
+	lock(&f->r.l);
 	fd[0] = findfreefd(f, 0);
 	if(fd[0] < 0){
 		unlockfgrp(f);
@@ -138,14 +138,14 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 	c = nil;
 	f = up->fgrp;
 
-	lock(f);
+	lock(&f->r.l);
 	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
-		unlock(f);
+		unlock(&f->r.l);
 		error(Ebadfd);
 	}
 	if(iref)
-		incref(c);
-	unlock(f);
+		incref(&c->r);
+	unlock(&f->r.l);
 
 	if(chkmnt && (c->flag&CMSG)) {
 		if(iref)
@@ -278,7 +278,7 @@ sysdup(Ar0* ar0, ...)
 
 	if(nfd != -1){
 		f = up->fgrp;
-		lock(f);
+		lock(&f->r.l);
 		if(nfd < 0 || growfd(f, nfd) < 0) {
 			unlockfgrp(f);
 			cclose(oc);
@@ -361,16 +361,16 @@ fdclose(int fd, int flag)
 	Fgrp *f;
 
 	f = up->fgrp;
-	lock(f);
+	lock(&f->r.l);
 	c = f->fd[fd];
 	if(c == nil){
 		/* can happen for users with shared fd tables */
-		unlock(f);
+		unlock(&f->r.l);
 		return;
 	}
 	if(flag){
 		if(c == nil || !(c->flag&flag)){
-			unlock(f);
+			unlock(&f->r.l);
 			return;
 		}
 	}
@@ -379,7 +379,7 @@ fdclose(int fd, int flag)
 		for(i = fd; --i >= 0 && f->fd[i] == 0; )
 			f->maxfd = i;
 
-	unlock(f);
+	unlock(&f->r.l);
 	cclose(c);
 }
 
@@ -783,10 +783,10 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 		nnn = nn = c->dev->read(c, p, n, off);
 
 	if(!ispread){
-		lock(c);
+		lock(&c->r.l);
 		c->devoffset += nn;
 		c->offset += nnn;
-		unlock(c);
+		unlock(&c->r.l);
 	}
 
 	poperror();
@@ -848,9 +848,9 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	c = fdtochan(fd, OWRITE, 1, 1);
 	if(waserror()) {
 		if(!ispwrite){
-			lock(c);
+			lock(&c->r.l);
 			c->offset -= n;
-			unlock(c);
+			unlock(&c->r.l);
 		}
 		cclose(c);
 		nexterror();
@@ -862,18 +862,18 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	n = r;
 
 	if(off == ~0LL){	/* use and maintain channel's offset */
-		lock(c);
+		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
-		unlock(c);
+		unlock(&c->r.l);
 	}
 
 	r = c->dev->write(c, p, n, off);
 
 	if(!ispwrite && r < n){
-		lock(c);
+		lock(&c->r.l);
 		c->offset -= n - r;
-		unlock(c);
+		unlock(&c->r.l);
 	}
 
 	poperror();
@@ -941,10 +941,10 @@ sseek(int fd, int64_t offset, int whence)
 	case 1:
 		if(c->qid.type & QTDIR)
 			error(Eisdir);
-		lock(c);	/* lock for read/write update */
+		lock(&c->r.l);	/* lock for read/write update */
 		offset += c->offset;
 		c->offset = offset;
-		unlock(c);
+		unlock(&c->r.l);
 		break;
 
 	case 2:

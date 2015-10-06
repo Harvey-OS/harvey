@@ -546,7 +546,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		io.data = alloczio(s, nw);
 		memmove(io.data, cp + tot, nw);
 		io.seg = s;
-		incref(s);
+		incref(&s->r);
 		io.size = nw;
 		DBG("zpwrite: copy %Z %#p\n", &io, cp+tot);
 		zqwrite(q, &io, 1);
