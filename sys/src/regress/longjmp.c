@@ -36,11 +36,10 @@ main(void)
 
 	if(fail == 0){
 		print("PASS\n");
-		exits("PASS");
+		exits(nil);
 	}
 	print("FAIL\n");
 	exits("FAIL");
-	return 0;
 }
 
 void

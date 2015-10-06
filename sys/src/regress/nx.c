@@ -93,7 +93,7 @@ main(void)
 
 	if(success == cases){
 		print("PASS\n");
-		exits("PASS");
+		exits(nil);
 	}
 	print("FAIL\n");
 	exits("FAIL");

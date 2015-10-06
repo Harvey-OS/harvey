@@ -120,5 +120,6 @@ main(int argc, char *argv[])
 	for(i = 0; i < dim; i++)
 		if((id & (1<<i)) == 0)
 			waitpid();
+	print("PASS\n");
 	exits(nil);
 }
