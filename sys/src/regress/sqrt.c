@@ -71,13 +71,13 @@ main(void)
 		a = smprint("%f", sqrtC(v));
 		b = smprint("%f", sqrt(v));
 		if(strcmp(a, b)){
-			print("FAIL");
+			print("FAIL\n");
 			exits("FAIL");
 		}
 		free(a);
 		free(b);
 	}
 	
-	print("PASS");
-	exits("PASS");
+	print("PASS\n");
+	exits(0);
 }
