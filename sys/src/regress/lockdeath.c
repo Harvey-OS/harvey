@@ -12,10 +12,11 @@ int intr = 0;
 void
 handler(void *v, char *s)
 {
-	print("%d: %d iterations\n", id, i);
+	fprint(2, "%d: %d iterations\n", id, i);
 	if (intr++ < 16)
 		noted(NCONT);
-	exits("too many interrupts");
+	fprint(2, "FAIL: too many interrupts\n");
+	exits("FAIL");
 }
 
 void
@@ -25,7 +26,7 @@ main(int argc, char *argv[])
 	int fd;
 
 	if (notify(handler)){
-		sysfatal("notify: %r");
+		sysfatal("FAIL: notify: %r");
 	}
 
 	if (argc > 1)
@@ -38,7 +39,7 @@ main(int argc, char *argv[])
 
 	fd = open("#Z/qlock", ORDWR);
 	if (fd < 0)
-		sysfatal("qlock: %r");
+		sysfatal("FAIL: qlock: %r");
 
 	print("Running with %d kids %d times\n", np, niter);
 
@@ -47,13 +48,15 @@ main(int argc, char *argv[])
 		if (pid == 0)
 			break;
 		if (pid < 0)
-			sysfatal("fork");
+			sysfatal("FAIL: fork");
 	}
 
-	if (debug) print("Forked. pid %d\n", getpid());
+	if (debug) fprint(2, "Forked. pid %d\n", getpid());
 
 	for(i = 0; i < niter; i++) {
 		if (read(fd, data, 1) < 1)
-			print("%d: iter %d: %r", id, i);
+			fprint(2, "%d: iter %d: %r", id, i);
 	}
+	print("PASS\n");
+	exits(nil);
 }

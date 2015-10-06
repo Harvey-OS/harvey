@@ -10,13 +10,14 @@
 #include <u.h>
 #include <libc.h>
 
-int main()
+void
+main(void)
 {
 	static int c;
 	int pid;
 	pid = rfork(RFMEM|RFPROC);
 	if (pid < 0) {
-		print("FAIL\n");
+		print("FAIL: rfork\n");
 		exits("FAIL");
 	}
 	if (pid > 0) {
@@ -24,12 +25,12 @@ int main()
 	}
 	if (pid == 0) {
 		print("PASS\n");
-		exits("PASS");
+		exits(nil);
 	}
 
 	if (c > 1) {
 		print("FAIL\n");
 		exits("FAIL");
 	}
-	return 0;
+	exits(nil);
 }
