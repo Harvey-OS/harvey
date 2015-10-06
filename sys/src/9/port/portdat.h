@@ -88,7 +88,7 @@ struct Ref
 
 struct Rendez
 {
-	Lock;
+	Lock l;
 	Proc	*_p; // There is already a Proc *p into Lock
 };
 
@@ -487,7 +487,7 @@ struct Physseg
 
 struct Sema
 {
-	Rendez;
+	Rendez rend;
 	int*	addr;
 	int	waiting;
 	Sema*	next;
@@ -497,7 +497,7 @@ struct Sema
 /* NIX semaphores */
 struct Sem
 {
-	Lock;
+	Lock l;
 	int*	np;		/* user-level semaphore */
 	Proc**	q;
 	int	nq;
