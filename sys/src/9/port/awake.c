@@ -60,13 +60,13 @@ wakeupProc(Proc *p)
 			break;	/* no */
 
 		/* try for the second lock */
-		if(canlock(r)){
+		if(canlock(&r->l)){
 			if(p->state != Wakeme || r->_p != p)
 				panic("wakeup: state %d %d %d", r->_p != p, p->r != r, p->state);
 			p->r = nil;
 			r->_p = nil;
 			ready(p);
-			unlock(r);
+			unlock(&r->l);
 			break;
 		}
 

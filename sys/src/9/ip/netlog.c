@@ -101,7 +101,7 @@ netlogopen(Fs *f)
 		f->alog->end = f->alog->buf + Nlog;
 	}
 	f->alog->opens++;
-	unlock(f->alog);
+	unlock(&f->alog->l);
 	poperror();
 }
 
@@ -109,9 +109,9 @@ void
 netlogclose(Fs *f)
 {
 	Proc *up = externup();
-	lock(f->alog);
+	lock(&f->alog->l);
 	if(waserror()){
-		unlock(f->alog);
+		unlock(&f->alog->l);
 		nexterror();
 	}
 	f->alog->opens--;
@@ -119,7 +119,7 @@ netlogclose(Fs *f)
 		free(f->alog->buf);
 		f->alog->buf = nil;
 	}
-	unlock(f->alog);
+	unlock(&f->alog->l);
 	poperror();
 }
 

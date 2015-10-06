@@ -253,7 +253,7 @@ mmurelease(Proc* proc)
 		page->prev = nil;
 		unlock(&mmuptpfreelist);
 	}
-	if(proc->mmuptp[0] && pga.r.p)
+	if(proc->mmuptp[0] && pga.r.l.p)
 		wakeup(&pga.r);
 	proc->mmuptp[0] = nil;
 
