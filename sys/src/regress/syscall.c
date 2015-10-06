@@ -21,5 +21,5 @@ main(void)
 		close(fd);
 	}
 	print("PASS\n");
-	exits("PASS");
+	exits(0);
 }
