@@ -120,7 +120,7 @@ initimage(void)
 	ie = &imagealloc.mru[conf.nimage];
 	for(i = imagealloc.mru; i < ie; i++){
 		i->c = nil;
-		i->ref = 0;
+		i->r.ref = 0;
 		i->prev = i-1;
 		i->next = i+1;
 	}
@@ -152,20 +152,20 @@ imagereclaim(void)
 	}
 
 	for(i = imagealloc.lru; i != nil; i = i->prev){
-		if(canlock(i)){
-			i->ref++;	/* make sure it does not go away */
-			unlock(i);
+		if(canlock(&i->r.l)){
+			i->r.ref++;	/* make sure it does not go away */
+			unlock(&i->r.l);
 			pagereclaim(i);
-			lock(i);
-			DBG("imagereclaim: image %p(c%p, r%d)\n", i, i->c, i->ref);
-			if(i->ref == 1){	/* no pages referring to it, it's ours */
-				unlock(i);
+			lock(&i->r.l);
+			DBG("imagereclaim: image %p(c%p, r%d)\n", i, i->c, i->r.ref);
+			if(i->r.ref == 1){	/* no pages referring to it, it's ours */
+				unlock(&i->r.l);
 				unlock(&imagealloc);
 				putimage(i);
 				break;
 			}else
-				--i->ref;
-			unlock(i);
+				--i->r.ref;
+			unlock(&i->r.l);
 		}
 	}
 
@@ -230,7 +230,7 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 	 */
 	for(i = ihash(c->qid.path); i; i = i->hash) {
 		if(c->qid.path == i->qid.path) {
-			lock(i);
+			lock(&i->r.l);
 			if(eqqid(c->qid, i->qid) &&
 			   eqqid(c->mqid, i->mqid) &&
 			   c->mchan == i->mchan &&
@@ -238,7 +238,7 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 //subtype
 				goto found;
 			}
-			unlock(i);
+			unlock(&i->r.l);
 		}
 	}
 
@@ -253,8 +253,8 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 		lock(&imagealloc);
 	}
 
-	lock(i);
-	incref(c);
+	lock(&i->r.l);
+	incref(&c->r);
 	i->c = c;
 	i->dc = c->dev->dc;
 //subtype
@@ -272,17 +272,17 @@ found:
 	if(i->s == 0) {
 		/* Disaster after commit in exec */
 		if(waserror()) {
-			unlock(i);
+			unlock(&i->r.l);
 			pexit(Enovmem, 1);
 		}
 		i->s = newseg(type, base, len);
 		i->s->image = i;
 		i->s->color = color;
-		i->ref++;
+		i->r.ref++;
 		poperror();
 	}
 	else
-		incref(i->s);
+		incref(&i->s->r);
 
 	return i;
 }
@@ -296,11 +296,11 @@ putimage(Image *i)
 	if(i->notext)
 		return;
 
-	lock(i);
-	if(--i->ref == 0) {
+	lock(&i->r.l);
+	if(--i->r.ref == 0) {
 		l = &ihash(i->qid.path);
 		mkqid(&i->qid, ~0, ~0, QTFILE);
-		unlock(i);
+		unlock(&i->r.l);
 		c = i->c;
 
 		lock(&imagealloc);
@@ -328,5 +328,5 @@ putimage(Image *i)
 
 		return;
 	}
-	unlock(i);
+	unlock(&i->r.l);
 }

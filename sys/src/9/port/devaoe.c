@@ -1654,12 +1654,12 @@ newunit(void)
 {
 	int x;
 
-	lock(&units);
+	lock(&units.l);
 	if(units.ref == Maxunits)
 		x = -1;
 	else
 		x = units.ref++;
-	unlock(&units);
+	unlock(&units.l);
 	return x;
 }
 
@@ -1668,9 +1668,9 @@ dropunit(void)
 {
 	int x;
 
-	lock(&units);
+	lock(&units.l);
 	x = --units.ref;
-	unlock(&units);
+	unlock(&units.l);
 	return x;
 }
 
@@ -2040,9 +2040,9 @@ aoeidentify(Aoedev *d, uint16_t *id)
 static void
 newvers(Aoedev *d)
 {
-	lock(&drivevers);
+	lock(&drivevers.l);
 	d->vers = drivevers.ref++;
-	unlock(&drivevers);
+	unlock(&drivevers.l);
 }
 
 static int

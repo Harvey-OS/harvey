@@ -82,7 +82,7 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 struct Ref
 {
-	Lock;
+	Lock l;
 	int	ref;
 };
 
@@ -212,7 +212,7 @@ struct Block
 
 struct Chan
 {
-	Ref;				/* the Lock in this Ref is also Chan's lock */
+	Ref r;				/* the Lock in this Ref is also Chan's lock */
 	Chan*	next;			/* allocation */
 	Chan*	link;
 	int64_t	offset;			/* in fd */
@@ -248,7 +248,7 @@ struct Chan
 
 struct Path
 {
-	Ref;
+	Ref r;
 	char*	s;
 	Chan**	mtpt;			/* mtpt history */
 	int	len;			/* strlen(s) */
@@ -326,7 +326,7 @@ struct Mount
 
 struct Mhead
 {
-	Ref;
+	Ref r;
 	RWlock	lock;
 	Chan*	from;			/* channel mounted upon */
 	Mount*	mount;			/* what's mounted upon it */
@@ -335,7 +335,7 @@ struct Mhead
 
 struct Mnt
 {
-	Lock;
+	Lock l;
 	/* references are counted using c->ref; channels on this mount point incref(c->mchan) == Mnt.c */
 	Chan	*c;		/* Channel to file service */
 	Proc	*rip;		/* Reader in progress */
@@ -391,7 +391,7 @@ struct Page
 
 struct Image
 {
-	Ref;
+	Ref r;
 	Chan *c;
 	Qid 	qid;			/* Qid for page cache coherence */
 	Qid	mqid;
@@ -536,7 +536,7 @@ struct Ldseg {
 
 struct Segment
 {
-	Ref;
+	Ref r;
 	QLock	lk;
 	uint16_t	steal;		/* Page stealer lock */
 	uint16_t	type;		/* segment type */
@@ -585,7 +585,7 @@ enum
 
 struct Pgrp
 {
-	Ref;				/* also used as a lock when mounting */
+	Ref r;				/* also used as a lock when mounting */
 	int	noattach;
 	uint32_t	pgrpid;
 	QLock	debug;			/* single access via devproc.c */
@@ -595,13 +595,13 @@ struct Pgrp
 
 struct Rgrp
 {
-	Ref;				/* the Ref's lock is also the Rgrp's lock */
+	Ref r;				/* the Ref's lock is also the Rgrp's lock */
 	Proc	*rendhash[RENDHASH];	/* Rendezvous tag hash */
 };
 
 struct Egrp
 {
-	Ref;
+	Ref r;
 	RWlock;
 	Evalue	**ent;
 	int	nent;
@@ -621,7 +621,7 @@ struct Evalue
 
 struct Fgrp
 {
-	Ref;
+	Ref r;
 	Chan	**fd;
 	int	nfd;			/* number allocated */
 	int	maxfd;			/* highest fd in use */

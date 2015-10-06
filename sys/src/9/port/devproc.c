@@ -679,9 +679,9 @@ procfds(Proc *p, char *va, int count, int32_t offset)
 		qunlock(&p->debug);
 		return 0;
 	}
-	lock(f);
+	lock(&f->r.l);
 	if(waserror()){
-		unlock(f);
+		unlock(&f->r.l);
 		qunlock(&p->debug);
 		nexterror();
 	}
@@ -707,7 +707,7 @@ procfds(Proc *p, char *va, int count, int32_t offset)
 		offset = procoffset(offset, a, &n);
 	}
 	poperror();
-	unlock(f);
+	unlock(&f->r.l);
 	qunlock(&p->debug);
 
 	/* copy result to user space, now that locks are released */
@@ -1090,7 +1090,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 				(sg->type&SG_WRITE) != 0 ? 'w' : '-',
 				(sg->type&SG_EXEC) != 0 ? 'x' : '-',
 				sg->profile ? 'P' : ' ',
-				sg->base, sg->top, sg->ref);
+				sg->base, sg->top, sg->r.ref);
 		}
 		psdecref(p);
 		if(offset >= j){
@@ -1440,17 +1440,17 @@ proctext(Chan *c, Proc *p)
 	if(p->state==Dead)
 		error(Eprocdied);
 
-	lock(s);
+	lock(&s->r.l);
 	i = s->image;
 	if(i == 0) {
-		unlock(s);
+		unlock(&s->r.l);
 		error(Eprocdied);
 	}
-	unlock(s);
+	unlock(&s->r.l);
 
-	lock(i);
+	lock(&i->r.l);
 	if(waserror()) {
-		unlock(i);
+		unlock(&i->r.l);
 		nexterror();
 	}
 
@@ -1458,7 +1458,7 @@ proctext(Chan *c, Proc *p)
 	if(tc == 0)
 		error(Eprocdied);
 
-	if(incref(tc) == 1 || (tc->flag&COPEN) == 0 || tc->mode!=OREAD) {
+	if(incref(&tc->r) == 1 || (tc->flag&COPEN) == 0 || tc->mode!=OREAD) {
 		cclose(tc);
 		error(Eprocdied);
 	}
@@ -1469,7 +1469,7 @@ proctext(Chan *c, Proc *p)
 	}
 
 	poperror();
-	unlock(i);
+	unlock(&i->r.l);
 
 	return tc;
 }
@@ -1512,11 +1512,11 @@ procctlcloseone(Proc *p, Fgrp *f, int fd)
 	if(c == nil)
 		return;
 	f->fd[fd] = nil;
-	unlock(f);
+	unlock(&f->r.l);
 	qunlock(&p->debug);
 	cclose(c);
 	qlock(&p->debug);
-	lock(f);
+	lock(&f->r.l);
 }
 
 void
@@ -1529,14 +1529,14 @@ procctlclosefiles(Proc *p, int all, int fd)
 	if(f == nil)
 		error(Eprocdied);
 
-	lock(f);
-	f->ref++;
+	lock(&f->r.l);
+	f->r.ref++;
 	if(all)
 		for(i = 0; i < f->maxfd; i++)
 			procctlcloseone(p, f, i);
 	else
 		procctlcloseone(p, f, fd);
-	unlock(f);
+	unlock(&f->r.l);
 	closefgrp(f);
 }
 
@@ -1868,7 +1868,7 @@ txt2data(Proc *p, Segment *s)
 
 	ps = newseg(SG_DATA, s->base, s->size);
 	ps->image = s->image;
-	incref(ps->image);
+	incref(&ps->image->r);
 	ps->ldseg = s->ldseg;
 	ps->flushme = 1;
 
@@ -1895,7 +1895,7 @@ data2txt(Segment *s)
 
 	ps = newseg(SG_TEXT, s->base, s->size);
 	ps->image = s->image;
-	incref(ps->image);
+	incref(&ps->image->r);
 	ps->ldseg = s->ldseg;
 	ps->flushme = 1;
 

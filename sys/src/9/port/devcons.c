@@ -303,9 +303,9 @@ pprint(char *fmt, ...)
 	c->dev->write(c, buf, n, c->offset);
 	poperror();
 
-	lock(c);
+	lock(&c->r.l);
 	c->offset += n;
-	unlock(c);
+	unlock(&c->r.l);
 
 	return n;
 }
