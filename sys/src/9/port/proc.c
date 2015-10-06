@@ -1169,7 +1169,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	if(up->nlocks)
 		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
 			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc());
-	lock(r);
+	lock(&r->l);
 	lock(&up->rlock);
 	if(r->_p){
 		print("double sleep called from %#p, %d %d\n",
@@ -1192,7 +1192,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 */
 		r->_p = nil;
 		unlock(&up->rlock);
-		unlock(r);
+		unlock(&r->l);
 	} else {
 		/*
 		 *  now we are committed to
@@ -1219,7 +1219,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			 *  here to go to sleep (i.e. stop Running)
 			 */
 			unlock(&up->rlock);
-			unlock(r);
+			unlock(&r->l);
 			/*debug*/gotolabel(&machp()->sched);
 		}
 	}
@@ -1297,7 +1297,7 @@ wakeup(Rendez *r)
 
 	pl = splhi();
 
-	lock(r);
+	lock(&r->l);
 	p = r->_p;
 
 	if(p != nil){
@@ -1309,7 +1309,7 @@ wakeup(Rendez *r)
 		ready(p);
 		unlock(&p->rlock);
 	}
-	unlock(r);
+	unlock(&r->l);
 
 	splx(pl);
 
@@ -1369,13 +1369,13 @@ postnote(Proc *p, int dolock, char *n, int flag)
 			break;	/* no */
 
 		/* try for the second lock */
-		if(canlock(r)){
+		if(canlock(&r->l)){
 			if(p->state != Wakeme || r->_p != p)
 				panic("postnote: state %d %d %d", r->_p != p, p->r != r, p->state);
 			p->r = nil;
 			r->_p = nil;
 			ready(p);
-			unlock(r);
+			unlock(&r->l);
 			break;
 		}
 

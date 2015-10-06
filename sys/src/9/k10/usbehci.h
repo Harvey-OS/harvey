@@ -181,14 +181,14 @@ struct Poll
 {
 	// There is already a Lock in Rendez.
 	//Lock;
-	Rendez;
+	Rendez rend;
 	int	must;
 	int	does;
 };
 
 struct Ctlr
 {
-	Rendez;                 /* for waiting to async advance doorbell */
+	Rendez rend;                 /* for waiting to async advance doorbell */
 	// There is already a Lock in Rendez.
 	//Lock;			/* for ilock. qh lists and basic ctlr I/O */
 	QLock	portlck;	/* for port resets/enable... (and doorbell) */

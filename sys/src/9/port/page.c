@@ -354,7 +354,7 @@ putpage(Page *p)
 		else
 			pagechainhead(p);
 	}
-	if(pga.r.p != nil)
+	if(&pga.r.l != nil)
 		wakeup(&pga.r);
 	unlock(p);
 	if(rlse)
