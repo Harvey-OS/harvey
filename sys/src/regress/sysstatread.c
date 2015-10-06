@@ -15,7 +15,7 @@ main(void)
 
 	fd = open("/dev/sysstat", OREAD);
 	if(fd < 0){
-		print("couldn't open /dev/sysstat: %r\n");
+		print("FAIL: couldn't open /dev/sysstat: %r\n");
 		exits("FAIL");
 	}
 
@@ -29,6 +29,10 @@ main(void)
 	}
 	close(fd);
 
-	if(ret)
+	if(ret){
+		print("FAIL: %d bytes read from /dev/sysstat\n", n);
 		exits("FAIL");
+	}
+	print("PASS\n");
+	exits(nil);
 }
