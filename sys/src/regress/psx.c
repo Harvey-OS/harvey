@@ -10,7 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int main(int argc, char *argv[])
+void
+main(int argc, char *argv[])
 {
 	int iter = 1000, i;
 	Waitmsg *w;
@@ -40,6 +41,5 @@ int main(int argc, char *argv[])
 	}
 	// if we get here, we have survived. That's a miracle.
 	print("PASS\n");
-	exits("PASS");
-	return 0;
+	exits(0);
 }

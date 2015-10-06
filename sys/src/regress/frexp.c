@@ -27,8 +27,8 @@ decomp(double d, int *exp, char *s)
 	double m;
 
 	m = frexp(d, exp);
-	print("Expected decomposition: %s\n", s);
-	print("Actual decomposition: %g*2^%d\n", m, *exp);
+	fprint(2, "Expected decomposition: %s\n", s);
+	fprint(2, "Actual decomposition: %g*2^%d\n", m, *exp);
 
 	if(isNaN(d)){
 		if(*exp != 0 || !isNaN(m))
@@ -54,25 +54,29 @@ main(void)
 	notify(catcher);
 	setjmp(errj);
 	if(err){
-		fprint(2, "%s\n", err);
+		print("FAIL: %s\n", err);
 		exits("FAIL");
 	}
 
 	eps = ldexp(1, -1074);
 	neps = ldexp(-1, -1074);
 
-	print("Smallest Positive Double: %g\n", eps);
+	fprint(2, "Smallest Positive Double: %g\n", eps);
 	decomp(eps, &exp, DEEPS);
 
-	print("Largest Negative Double: %g\n", neps);
+	fprint(2, "Largest Negative Double: %g\n", neps);
 	decomp(neps, &exp, DENEPS);
 
-	print("Positive infinity: %g\n", Inf(1));
+	fprint(2, "Positive infinity: %g\n", Inf(1));
 	decomp(Inf(1), &exp, DEPINF);
 
-	print("NaN: %g\n", NaN());
+	fprint(2, "NaN: %g\n", NaN());
 	decomp(NaN(), &exp, DENAN);
 
-	if(fail)
+	if(fail){
+		print("FAIL\n");
 		exits("FAIL");
+	}
+	print("PASS\n");
+	exits(0);
 }

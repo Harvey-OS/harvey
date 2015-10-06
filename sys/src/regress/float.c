@@ -26,7 +26,7 @@ tstdiv(double p)
 	double r = 1.0;
 
 	r /= p;
-	print("1/%0.20g = %0.20g\n", p, r);
+	fprint(2, "1/%0.20g = %0.20g\n", p, r);
 } 
 
 void
@@ -42,16 +42,20 @@ main(void)
 	notify(catcher);
 	setjmp(errj);
 	if(err){
-		fprint(2, "%s\n", err);
+		fprint(2, "FAIL: %s\n", err);
 		exits("FAIL");
 	}
 
-	print("Double-precision test number: %s\n", DPRECSTR);
-	print("Expected internal representation: %ullx\n", dieee);
-	print("Actual internal representation: %ullx\n", q);
+	fprint(2, "Double-precision test number: %s\n", DPRECSTR);
+	fprint(2, "Expected internal representation: %ullx\n", dieee);
+	fprint(2, "Actual internal representation: %ullx\n", q);
 
-	if(q != dieee)
+	if(q != dieee) {
+		print("FAIL\n");
 		exits("FAIL");
+	}
 
 	tstdiv(p);
+	print("PASS\n");
+	exits(0);
 }
