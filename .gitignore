@@ -61,4 +61,6 @@ tools/share
 cfg/pxe/tftpboot
 util/third_party/bin
 util/third_party/src/golang.org
+util/third_party/src/github.com/kr
 util/preen
+util/runqemu
