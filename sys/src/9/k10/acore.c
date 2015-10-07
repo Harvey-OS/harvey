@@ -57,7 +57,7 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-	print("called: %s\n", ( char *)machp()->icc->data);
+	print("called: %s\n", ( char *)machp()->NIX.icc->data);
 }
 
 void
@@ -66,16 +66,16 @@ testicc(int i)
 	Mach *mp;
 
 	if((mp = sys->machptr[i]) != nil && mp->online != 0){
-		if(mp->nixtype != NIXAC){
+		if(mp->NIX.nixtype != NIXAC){
 			print("testicc: core %d is not an AC\n", i);
 			return;
 		}
 		print("calling core %d... ", i);
-		mp->icc->flushtlb = 0;
-		snprint(( char *)mp->icc->data, ICCLNSZ, "<%d>", i);
+		mp->NIX.icc->flushtlb = 0;
+		snprint(( char *)mp->NIX.icc->data, ICCLNSZ, "<%d>", i);
 		mfence();
-		mp->icc->fn = testiccfn;
-		mwait(&mp->icc->fn);
+		mp->NIX.icc->fn = testiccfn;
+		mwait(&mp->NIX.icc->fn);
 	}
 }
 
@@ -110,14 +110,14 @@ acsched(void)
 	acmmuswitch();
 	for(;;){
 		acstackok();
-		mwait(&machp()->icc->fn);
-		if(machp()->icc->flushtlb)
+		mwait(&machp()->NIX.icc->fn);
+		if(machp()->NIX.icc->flushtlb)
 			acmmuswitch();
-		DBG("acsched: cpu%d: fn %#p\n", machp()->machno, machp()->icc->fn);
-		machp()->icc->fn();
+		DBG("acsched: cpu%d: fn %#p\n", machp()->machno, machp()->NIX.icc->fn);
+		machp()->NIX.icc->fn();
 		DBG("acsched: cpu%d: idle\n", machp()->machno);
 		mfence();
-		machp()->icc->fn = nil;
+		machp()->NIX.icc->fn = nil;
 	}
 }
 
@@ -126,10 +126,10 @@ acmmuswitch(void)
 {
 	extern Page mach0pml4;
 
-	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
+	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->MMU.pml4->pa, mach0pml4.pa, sys->machptr[0]->MMU.pml4->pa);
 
 
-	cr3put(machp()->pml4->pa);
+	cr3put(machp()->MMU.pml4->pa);
 }
 
 /*
@@ -215,21 +215,21 @@ actrap(Ureg *u)
 		print("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
 	}
 Post:
-	m->icc->rc = ICCTRAP;
+	m->NIX.icc->rc = ICCTRAP;
 	m->cr2 = cr2get();
 	memmove(m->proc->dbgreg, u, sizeof *u);
-	m->icc->note = n;
+	m->NIX.icc->note = n;
 	fpuprocsave(m->proc);
 	_pmcupdate(m);
 	mfence();
-	m->icc->fn = nil;
+	m->NIX.icc->fn = nil;
 	ready(m->proc);
 
-	mwait(&m->icc->fn);
+	mwait(&m->NIX.icc->fn);
 
-	if(m->icc->flushtlb)
+	if(m->NIX.icc->flushtlb)
 		acmmuswitch();
-	if(m->icc->fn != actrapret)
+	if(m->NIX.icc->fn != actrapret)
 		acsched();
 	DBG("actrap: ret\n");
 	memmove(u, m->proc->dbgreg, sizeof *u);
@@ -256,12 +256,12 @@ acsyscall(void)
 	p = m->proc;
 	p->actime1 = fastticks(nil);
 	m->syscall++;	/* would also count it in the TS core */
-	m->icc->rc = ICCSYSCALL;
+	m->NIX.icc->rc = ICCSYSCALL;
 	m->cr2 = cr2get();
 	fpuprocsave(p);
 	_pmcupdate(m);
 	mfence();
-	m->icc->fn = nil;
+	m->NIX.icc->fn = nil;
 	ready(p);
 	/*
 	 * The next call is probably going to make us jmp
@@ -315,7 +315,7 @@ acmodeset(int mode)
 	default:
 		panic("acmodeset: bad mode %d", mode);
 	}
-	machp()->nixtype = mode;
+	machp()->NIX.nixtype = mode;
 }
 
 void

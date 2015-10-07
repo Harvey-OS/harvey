@@ -532,13 +532,13 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 
 	e = buf+sizeof buf;
 	s = seprint(buf, e, "%s %ud\n", "AMD64", machp()->cpumhz);
-	k = machp()->ncpuinfoe - machp()->ncpuinfos;
+	k = machp()->CPU.ncpuinfoe - machp()->CPU.ncpuinfos;
 	if(k > 4)
 		k = 4;
 	for(i = 0; i < k; i++)
 		s = seprint(s, e, "%#8.8ux %#8.8ux %#8.8ux %#8.8ux\n",
-			machp()->cpuinfo[i][0], machp()->cpuinfo[i][1],
-			machp()->cpuinfo[i][2], machp()->cpuinfo[i][3]);
+			machp()->CPU.cpuinfo[i][0], machp()->CPU.cpuinfo[i][1],
+			machp()->CPU.cpuinfo[i][2], machp()->CPU.cpuinfo[i][3]);
 	return readstr(off, a, n, buf);
 }
 
