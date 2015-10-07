@@ -205,14 +205,14 @@ freepages(int si, int once)
 		if(pa->freecount > 0){
 			DBG("kickpager() up %#p: releasing %udK pages\n",
 				up, sys->pgsz[si]/KiB);
-			lock(&pga);
+			lock(&pga.l);
 			if(pa->freecount == 0){
-				unlock(&pga);
+				unlock(&pga.l);
 				continue;
 			}
 			p = pa->head;
 			pageunchain(p);
-			unlock(&pga);
+			unlock(&pga.l);
 			if(p->ref != 0)
 				panic("freepages pa %#ullx", p->pa);
 			pgfree(p);
@@ -229,9 +229,9 @@ tryalloc(int pgszi, int color)
 
 	p = pgalloc(sys->pgsz[pgszi], color);
 	if(p != nil){
-		lock(&pga);
+		lock(&pga.l);
 		pagechainhead(p);
-		unlock(&pga);
+		unlock(&pga.l);
 		return 0;
 	}
 	return -1;
@@ -242,13 +242,13 @@ hascolor(Page *pl, int color)
 {
 	Page *p;
 
-	lock(&pga);
+	lock(&pga.l);
 	for(p = pl; p != nil; p = p->next)
 		if(color == NOCOLOR || p->color == color){
-			unlock(&pga);
+			unlock(&pga.l);
 			return 1;
 		}
-	unlock(&pga);
+	unlock(&pga.l);
 	return 0;
 }
 

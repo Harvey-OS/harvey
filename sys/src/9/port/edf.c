@@ -575,7 +575,7 @@ edfready(Proc *p)
 	sch = procsched(p);
 	rq = &sch->runq[PriEdf];
 	/* insert in queue in earliest deadline order */
-	lock(sch);
+	lock(&sch->l);
 	l = nil;
 	for(pp = rq->head; pp; pp = pp->rnext){
 		if(pp->edf->d > e->d)
@@ -595,7 +595,7 @@ edfready(Proc *p)
 	p->priority = PriEdf;
 	p->readytime = machp()->ticks;
 	p->state = Ready;
-	unlock(sch);
+	unlock(&sch->l);
 	if(p->trace)
 		proctrace(p, SReady, 0);
 	return 1;
