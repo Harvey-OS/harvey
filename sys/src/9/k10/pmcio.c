@@ -257,14 +257,14 @@ newpmcw(void)
 	PmcWait *w;
 
 	w = malloc(sizeof (PmcWait));
-	w->ref = 1;
+	w->r.ref = 1;
 	return w;
 }
 
 static void
 pmcwclose(PmcWait *w)
 {
-	if(decref(w))
+	if(decref(&w->r))
 		return;
 
 	free(w);
@@ -288,14 +288,14 @@ waitnotstale(Mach *mp, PmcCtr *p)
 	w = newpmcw();
 	w->next = p->wq;
 	p->wq = w;
-	incref(w);
+	incref(&w->r);
 	iunlock(&mp->pmclock);
 	apicipi(mp->apicno);
 	if(waserror()){
 		pmcwclose(w);
 		nexterror();
 	}
-	sleep(&w->r, notstale, p);
+	sleep(&w->rend, notstale, p);
 	poperror();
 	pmcwclose(w);
 }
@@ -320,7 +320,7 @@ shouldipi(Mach *mp)
 	if(!mp->online)
 		return 0;
 
-	if(mp->proc == nil && mp->nixtype == NIXAC)
+	if(mp->proc == nil && mp->NIX.nixtype == NIXAC)
 		return 0;
 
 	return 1;
@@ -459,9 +459,9 @@ pmcupdate(Mach *m)
 		if(p->ctrset & PmcSet)
 			setctr(p->ctr, i);
 		if(p->ctlset & PmcSet)
-			setctl(p, i);
+			setctl(&p->PmcCtl, i);
 		p->ctr = getctr(i);
-		getctl(p, i);
+		getctl(&p->PmcCtl, i);
 		p->ctrset = PmcIgn;
 		p->ctlset = PmcIgn;
 		wk = p->stale;
@@ -469,7 +469,7 @@ pmcupdate(Mach *m)
 		if(wk){
 			for(w = p->wq; w != nil; w = w->next){
 				p->wq = w->next;
-				wakeup(&w->r);
+				wakeup(&w->rend);
 				pmcwclose(w);
 			}
 		}

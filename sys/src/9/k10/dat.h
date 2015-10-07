@@ -208,7 +208,7 @@ struct ICC
  * hw perf counters
  */
 struct PmcCtl {
-	Ref;
+	Ref r;
 	uint32_t _coreno;
 	int enab;
 	int user;
@@ -219,8 +219,8 @@ struct PmcCtl {
 };
 
 struct PmcWait{
-	Ref;
-	Rendez r;
+	Ref r;
+	Rendez rend;
 	PmcWait*	next;
 };
 
@@ -229,7 +229,7 @@ struct PmcCtr{
 	PmcWait *wq;
 	uint64_t ctr;
 	int ctrset;
-	PmcCtl;
+	PmcCtl PmcCtl;
 	int ctlset;
 };
 
@@ -268,7 +268,7 @@ struct Mach
 	int	apicno;
 	int	online;
 
-	MMMU;
+	MMMU MMU;
 
 	unsigned char*	vsvm;
 	void*	gdt;
@@ -306,10 +306,10 @@ struct Mach
 	Lock	pmclock;
 	PmcCtr	pmc[PmcMaxCtrs];
 
-	MFPU;
-	MCPU;
+	MFPU FPU;
+	MCPU CPU;
 
-	NIX;
+	NIX NIX;
 };
 
 struct Stackframe

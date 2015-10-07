@@ -598,7 +598,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 				bp += NUMSIZE;
 				readnum(0, bp, NUMSIZE, 0, NUMSIZE); /* sched # */
 				bp += NUMSIZE;
-				bp = strecpy(bp, e, rolename[mp->nixtype]);
+				bp = strecpy(bp, e, rolename[mp->NIX.nixtype]);
 				*bp++ = '\n';
 			}
 		if(waserror()){

@@ -223,7 +223,7 @@ sched(void)
 		machp()->cs++;
 
 		procsave(up);
-		mmuflushtlb(machp()->pml4->pa);
+		mmuflushtlb(machp()->MMU.pml4->pa);
 		if(setlabel(&up->sched)){
 			procrestore(up);
 			spllo();
@@ -664,7 +664,7 @@ preemptfor(Proc *p)
 		for(i = 0; i < MACHMAX; i++){
 			/*j = pickcore(p->color, i);
 			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){*/
-			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXTC){
+			if((mp = sys->machptr[i]) != nil && mp->online && mp->NIX.nixtype == NIXTC){
 				if(mp == machp())
 					continue;
 				/*
@@ -1207,7 +1207,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		machp()->cs++;
 
 		procsave(up);
-		mmuflushtlb(machp()->pml4->pa);
+		mmuflushtlb(machp()->MMU.pml4->pa);
 		if(setlabel(&up->sched)) {
 			/*
 			 *  here when the process is awakened

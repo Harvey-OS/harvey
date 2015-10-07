@@ -127,7 +127,7 @@ pmcinit(void)
 		if((mp = sys->machptr[i]) != nil && mp->online){
 			ncores++;
 			for(j = 0; j < nr; j++)
-				pmcnull(&mp->pmc[j]);
+				pmcnull(&mp->pmc[j].PmcCtl);
 		}
 	topdirinit(ncores);
 	ctrdirinit();
@@ -311,9 +311,9 @@ acpmcsetctl(void)
 	Mach *mp;
 
 	mp = up->ac;
-	memmove(&p, mp->icc->data, sizeof(AcPmcArg));
+	memmove(&p, mp->NIX.icc->data, sizeof(AcPmcArg));
 
-	mp->icc->rc = pmcsetctl(p.coreno, &p, p.regno);
+	mp->NIX.icc->rc = pmcsetctl(p.coreno, &p, p.regno);
 	return;
 }
 
@@ -325,9 +325,9 @@ acpmcsetctr(void)
 	Mach *mp;
 
 	mp = up->ac;
-	memmove(&ctr, mp->icc->data, sizeof(AcCtrArg));
+	memmove(&ctr, mp->NIX.icc->data, sizeof(AcCtrArg));
 
-	mp->icc->rc = pmcsetctr(ctr.coreno, ctr.v, ctr.regno);
+	mp->NIX.icc->rc = pmcsetctr(ctr.coreno, ctr.v, ctr.regno);
 	return;
 }
 
