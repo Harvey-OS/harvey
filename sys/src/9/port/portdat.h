@@ -566,7 +566,7 @@ struct Segment
  */
 struct Kzio
 {
-	Zio;
+	Zio Zio;
 	Segment* seg;
 };
 
@@ -602,7 +602,7 @@ struct Rgrp
 struct Egrp
 {
 	Ref r;
-	RWlock;
+	RWlock rwl;
 	Evalue	**ent;
 	int	nent;
 	int	ment;
@@ -648,7 +648,7 @@ struct Pgalloc
 	Pgsza	pgsza[NPGSZ];	/* allocs for m->npgsz page sizes */
 	Page*	hash[PGHSIZE];	/* only used for user pages */
 	Lock	hashlock;
-	Rendez	r;		/* sleep for free mem */
+	Rendez	rend;		/* sleep for free mem */
 	QLock	pwait;		/* queue of procs waiting for this pgsz */
 };
 
