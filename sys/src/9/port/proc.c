@@ -1083,7 +1083,7 @@ newproc(void)
 	p->nfullq = 0;
 	p->req = nil;
 	p->resp = nil;
-	memset(&p->PMMU, 0, sizeof p->PMMU);
+	memset(&p->MMU, 0, sizeof p->MMU);
 	return p;
 }
 

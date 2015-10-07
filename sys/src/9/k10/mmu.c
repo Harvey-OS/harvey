@@ -60,7 +60,7 @@ mmuptpfree(Proc* proc, int clear)
 	Page **last, *page;
 
 	for(l = 1; l < 4; l++){
-		last = &proc->mmuptp[l];
+		last = &proc->MMU.mmuptp[l];
 		if(*last == nil)
 			continue;
 		for(page = *last; page != nil; page = page->next){
@@ -71,9 +71,9 @@ mmuptpfree(Proc* proc, int clear)
 			pte[page->daddr] = 0;
 			last = &page->next;
 		}
-		*last = proc->mmuptp[0];
-		proc->mmuptp[0] = proc->mmuptp[l];
-		proc->mmuptp[l] = nil;
+		*last = proc->MMU.mmuptp[0];
+		proc->MMU.mmuptp[0] = proc->MMU.mmuptp[l];
+		proc->MMU.mmuptp[l] = nil;
 	}
 
 	machp()->pml4->daddr = 0;
@@ -121,7 +121,7 @@ dumpmmu(Proc *p)
 	print("proc %#p\n", p);
 	for(i = 3; i > 0; i--){
 		print("mmuptp[%d]:\n", i);
-		for(pg = p->mmuptp[i]; pg != nil; pg = pg->next)
+		for(pg = p->MMU.mmuptp[i]; pg != nil; pg = pg->next)
 			print("\tpg %#p = va %#ullx pa %#ullx"
 				" daddr %#ulx next %#p prev %#p\n",
 				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
@@ -223,7 +223,7 @@ mmuswitch(Proc* proc)
 	}
 
 	pte = UINT2PTR(machp()->pml4->va);
-	for(page = proc->mmuptp[3]; page != nil; page = page->next){
+	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
 		pte[page->daddr] = PPN(page->pa)|PteU|PteRW|PteP;
 		if(page->daddr >= machp()->pml4->daddr)
 			machp()->pml4->daddr = page->daddr+1;
@@ -242,7 +242,7 @@ mmurelease(Proc* proc)
 
 	mmuptpfree(proc, 0);
 
-	for(page = proc->mmuptp[0]; page != nil; page = next){
+	for(page = proc->MMU.mmuptp[0]; page != nil; page = next){
 		next = page->next;
 		if(--page->ref)
 			panic("mmurelease: page->ref %d\n", page->ref);
@@ -253,9 +253,9 @@ mmurelease(Proc* proc)
 		page->prev = nil;
 		unlock(&mmuptpfreelist.l);
 	}
-	if(proc->mmuptp[0] && pga.r.l.p)
+	if(proc->MMU.mmuptp[0] && pga.r.l.p)
 		wakeup(&pga.r);
-	proc->mmuptp[0] = nil;
+	proc->MMU.mmuptp[0] = nil;
 
 	tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
 	cr3put(machp()->pml4->pa);
@@ -317,8 +317,8 @@ mmuptpcheck(Proc *proc)
 	lp = machp()->pml4;
 	for(lvl = 3; lvl >= 2; lvl--){
 		npgs = 0;
-		for(p = proc->mmuptp[lvl]; p != nil; p = p->next){
-			for(fp = proc->mmuptp[0]; fp != nil; fp = fp->next)
+		for(p = proc->MMU.mmuptp[lvl]; p != nil; p = p->next){
+			for(fp = proc->MMU.mmuptp[0]; fp != nil; fp = fp->next)
 				if(fp == p){
 					dumpmmu(proc);
 					panic("ptpcheck: using free page");
@@ -345,7 +345,7 @@ mmuptpcheck(Proc *proc)
 
 	}
 	npgs = 0;
-	for(fp = proc->mmuptp[0]; fp != nil; fp = fp->next){
+	for(fp = proc->MMU.mmuptp[0]; fp != nil; fp = fp->next){
 		for(i = 0; i < npgs; i++)
 			if(pgs[i] == fp)
 				panic("ptpcheck: dup free page");
@@ -424,7 +424,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			if(pgsz == 1ull*GiB && lvl == 2)	/* use 1G */
 				break;
 		}
-		for(page = up->mmuptp[lvl]; page != nil; page = page->next)
+		for(page = up->MMU.mmuptp[lvl]; page != nil; page = page->next)
 			if(page->prev == prev && page->daddr == x){
 				if(*pte == 0){
 					print("mmu: jmk and nemo had fun\n");
@@ -434,15 +434,15 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			}
 
 		if(page == nil){
-			if(up->mmuptp[0] == nil)
+			if(up->MMU.mmuptp[0] == nil)
 				page = mmuptpalloc();
 			else {
-				page = up->mmuptp[0];
-				up->mmuptp[0] = page->next;
+				page = up->MMU.mmuptp[0];
+				up->MMU.mmuptp[0] = page->next;
 			}
 			page->daddr = x;
-			page->next = up->mmuptp[lvl];
-			up->mmuptp[lvl] = page;
+			page->next = up->MMU.mmuptp[lvl];
+			up->MMU.mmuptp[lvl] = page;
 			page->prev = prev;
 			*pte = PPN(page->pa)|PteU|PteRW|PteP;
 			if(lvl == 3 && x >= machp()->pml4->daddr)
