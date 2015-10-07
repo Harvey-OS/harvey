@@ -161,7 +161,7 @@ schedinit(void)		/* never returns */
 			unlock(&pga.l);
 
 			psrelease(up);
-			unlock(&procalloc);
+			unlock(&procalloc.l);
 			break;
 		}
 		up->mach = nil;
@@ -209,7 +209,7 @@ sched(void)
 		if(up->state != Moribund)
 		if(up->delaysched < 20
 		|| pga.l.p == up
-		|| procalloc.Lock.p == up){
+		|| procalloc.l.p == up){
 			up->delaysched++;
  			run.delayedscheds++;
 			return;
@@ -1622,7 +1622,7 @@ pexit(char *exitstr, int freemem)
 	qunlock(&up->debug);
 
 	/* Sched must not loop for these locks */
-	lock(&procalloc);
+	lock(&procalloc.l);
 	lock(&pga.l);
 
 	stopac();
