@@ -129,22 +129,22 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 	i = 0;
 	for(tot = 0; ZQLEN(q) > 0 && i < nio && tot < count; tot += nr){
 		qio = q->rp;
-		nr = qio->size;
+		nr = qio->Zio.size;
 		if(tot + nr > count){
 			if(i > 0)
 				break;
 			io[i] = *qio;
 			nr = count - tot;
-			io[i].size = nr;
+			io[i].Zio.size = nr;
 			s = getzkseg();
 			if(s == nil){
 				DBG("zqread: bytes thrown away\n");
 				goto Consume; /* we drop bytes! */
 			}
-			qio->size -= nr;
-			qio->data = alloczio(s, qio->size);
-			p = io[i].data;
-			memmove(qio->data, p + io[i].size, qio->size);
+			qio->Zio.size -= nr;
+			qio->Zio.data = alloczio(s, qio->Zio.size);
+			p = io[i].Zio.data;
+			memmove(qio->Zio.data, p + io[i].Zio.size, qio->Zio.size);
 			DBG("zqread: copy %#Z %#Z\n", qio, io);
 			qio->seg = s;
 		}else
@@ -229,7 +229,7 @@ zqflush(Zq *q)
 	lock(q);
 	for(;q->rp < q->wp; q->rp++){
 		qlock(&q->rp->seg->lk);
-		zputaddr(q->rp->seg, PTR2UINT(q->rp->data));
+		zputaddr(q->rp->seg, PTR2UINT(q->rp->Zio.data));
 		qunlock(&q->rp->seg->lk);
 		putseg(q->rp->seg);
 	}
@@ -543,11 +543,11 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		nw = n;
 		if(nw > Maxatomic)
 			nw = Maxatomic;
-		io.data = alloczio(s, nw);
-		memmove(io.data, cp + tot, nw);
+		io.Zio.data = alloczio(s, nw);
+		memmove(io.Zio.data, cp + tot, nw);
 		io.seg = s;
 		incref(&s->r);
-		io.size = nw;
+		io.Zio.size = nw;
 		DBG("zpwrite: copy %Z %#p\n", &io, cp+tot);
 		zqwrite(q, &io, 1);
 	}
