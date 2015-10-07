@@ -468,8 +468,8 @@ xfpunm(Ureg* ureg, void* v)
 		_clts();
 		_fninit();
 		_fwait();
-		_fldcw(&machp()->fcw);
-		_ldmxcsr(&machp()->mxcsr);
+		_fldcw(&machp()->FPU.fcw);
+		_ldmxcsr(&machp()->FPU.mxcsr);
 		up->FPU.fpusave = (void*)((PTR2UINT(up->FPU.fxsave) + 15) & ~15);
 		up->FPU.fpustate = Busy;
 		break;
@@ -535,12 +535,12 @@ fpuinit(void)
 	fxsave = (Fxsave*)((PTR2UINT(buf) + 15) & ~15);
 	memset(fxsave, 0, sizeof(Fxsave));
 	_fxsave(fxsave);
-	machp()->fcw = RCn|PCd|P|U|D;
+	machp()->FPU.fcw = RCn|PCd|P|U|D;
 	if(fxsave->mxcsrmask == 0)
-		machp()->mxcsrmask = 0x0000FFBF;
+		machp()->FPU.mxcsrmask = 0x0000FFBF;
 	else
-		machp()->mxcsrmask = fxsave->mxcsrmask;
-	machp()->mxcsr = (Rn|Pm|Um|Dm) & machp()->mxcsrmask;
+		machp()->FPU.mxcsrmask = fxsave->mxcsrmask;
+	machp()->FPU.mxcsr = (Rn|Pm|Um|Dm) & machp()->FPU.mxcsrmask;
 	_stts();
 
 	if(machp()->machno != 0)

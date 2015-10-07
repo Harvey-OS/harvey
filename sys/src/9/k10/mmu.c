@@ -33,11 +33,11 @@ mmuflushtlb(uint64_t u)
 {
 
 	machp()->tlbpurge++;
-	if(machp()->pml4->daddr){
-		memset(UINT2PTR(machp()->pml4->va), 0, machp()->pml4->daddr*sizeof(PTE));
-		machp()->pml4->daddr = 0;
+	if(machp()->MMU.pml4->daddr){
+		memset(UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
+		machp()->MMU.pml4->daddr = 0;
 	}
-	cr3put(machp()->pml4->pa);
+	cr3put(machp()->MMU.pml4->pa);
 }
 
 void
@@ -76,7 +76,7 @@ mmuptpfree(Proc* proc, int clear)
 		proc->MMU.mmuptp[l] = nil;
 	}
 
-	machp()->pml4->daddr = 0;
+	machp()->MMU.pml4->daddr = 0;
 }
 
 static void
@@ -126,8 +126,8 @@ dumpmmu(Proc *p)
 				" daddr %#ulx next %#p prev %#p\n",
 				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
 	}
-	print("pml4 %#ullx\n", machp()->pml4->pa);
-	if(0)dumpptepg(4, machp()->pml4->pa);
+	print("pml4 %#ullx\n", machp()->MMU.pml4->pa);
+	if(0)dumpptepg(4, machp()->MMU.pml4->pa);
 }
 
 void
@@ -136,7 +136,7 @@ dumpmmuwalk(uint64_t addr)
 	int l;
 	PTE *pte, *pml4;
 
-	pml4 = UINT2PTR(machp()->pml4->va);
+	pml4 = UINT2PTR(machp()->MMU.pml4->va);
 	if((l = mmuwalk(pml4, addr, 3, &pte, nil)) >= 0)
 		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 2, &pte, nil)) >= 0)
@@ -217,21 +217,21 @@ mmuswitch(Proc* proc)
 		proc->newtlb = 0;
 	}
 
-	if(machp()->pml4->daddr){
-		memset(UINT2PTR(machp()->pml4->va), 0, machp()->pml4->daddr*sizeof(PTE));
-		machp()->pml4->daddr = 0;
+	if(machp()->MMU.pml4->daddr){
+		memset(UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
+		machp()->MMU.pml4->daddr = 0;
 	}
 
-	pte = UINT2PTR(machp()->pml4->va);
+	pte = UINT2PTR(machp()->MMU.pml4->va);
 	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
 		pte[page->daddr] = PPN(page->pa)|PteU|PteRW|PteP;
-		if(page->daddr >= machp()->pml4->daddr)
-			machp()->pml4->daddr = page->daddr+1;
-		page->prev = machp()->pml4;
+		if(page->daddr >= machp()->MMU.pml4->daddr)
+			machp()->MMU.pml4->daddr = page->daddr+1;
+		page->prev = machp()->MMU.pml4;
 	}
 
 	tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
-	cr3put(machp()->pml4->pa);
+	cr3put(machp()->MMU.pml4->pa);
 	splx(pl);
 }
 
@@ -258,7 +258,7 @@ mmurelease(Proc* proc)
 	proc->MMU.mmuptp[0] = nil;
 
 	tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
-	cr3put(machp()->pml4->pa);
+	cr3put(machp()->MMU.pml4->pa);
 }
 
 static void
@@ -270,7 +270,7 @@ checkpte(uintmem ppn, void *a)
 	char buf[240], *s;
 
 	addr = PTR2UINT(a);
-	pml4 = UINT2PTR(machp()->pml4->va);
+	pml4 = UINT2PTR(machp()->MMU.pml4->va);
 	pte = 0;
 	s = buf;
 	*s = 0;
@@ -314,7 +314,7 @@ mmuptpcheck(Proc *proc)
 
 	if(proc == nil)
 		return;
-	lp = machp()->pml4;
+	lp = machp()->MMU.pml4;
 	for(lvl = 3; lvl >= 2; lvl--){
 		npgs = 0;
 		for(p = proc->MMU.mmuptp[lvl]; p != nil; p = p->next){
@@ -413,9 +413,9 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	user = (va < KZERO);
 	x = PTLX(va, 3);
 
-	pte = UINT2PTR(machp()->pml4->va);
+	pte = UINT2PTR(machp()->MMU.pml4->va);
 	pte += x;
-	prev = machp()->pml4;
+	prev = machp()->MMU.pml4;
 
 	for(lvl = 3; lvl >= 0; lvl--){
 		if(user){
@@ -445,8 +445,8 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			up->MMU.mmuptp[lvl] = page;
 			page->prev = prev;
 			*pte = PPN(page->pa)|PteU|PteRW|PteP;
-			if(lvl == 3 && x >= machp()->pml4->daddr)
-				machp()->pml4->daddr = x+1;
+			if(lvl == 3 && x >= machp()->MMU.pml4->daddr)
+				machp()->MMU.pml4->daddr = x+1;
 		}
 		x = PTLX(va, lvl-1);
 
@@ -766,7 +766,7 @@ mmuphysaddr(uintptr_t va)
 	 * but will do as an experiment. Usual
 	 * question, should va be void* or uintptr?
 	 */
-	l = mmuwalk(UINT2PTR(machp()->pml4->va), va, 0, &pte, nil);
+	l = mmuwalk(UINT2PTR(machp()->MMU.pml4->va), va, 0, &pte, nil);
 	DBG("physaddr: va %#p l %d\n", va, l);
 	if(l < 0)
 		return ~0;
@@ -789,7 +789,7 @@ mmuinit(void)
 	uint64_t o, pa, r, sz;
 
 	archmmu();
-	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->pml4, sys->npgsz);
+	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
 
 	if(machp()->machno != 0){
 		/* NIX: KLUDGE: Has to go when each mach is using
@@ -799,16 +799,16 @@ mmuinit(void)
 		p += MACHSTKSZ;
 
 		memmove(p, UINT2PTR(mach0pml4.va), PTSZ);
-		machp()->pml4 = &machp()->pml4kludge;
-		machp()->pml4->va = PTR2UINT(p);
-		machp()->pml4->pa = PADDR(p);
-		machp()->pml4->daddr = mach0pml4.daddr;	/* # of user mappings in pml4 */
+		machp()->MMU.pml4 = &machp()->MMU.pml4kludge;
+		machp()->MMU.pml4->va = PTR2UINT(p);
+		machp()->MMU.pml4->pa = PADDR(p);
+		machp()->MMU.pml4->daddr = mach0pml4.daddr;	/* # of user mappings in pml4 */
 
 		r = rdmsr(Efer);
 		r |= Nxe;
 		wrmsr(Efer, r);
-		cr3put(machp()->pml4->pa);
-		DBG("m %#p pml4 %#p\n", machp(), machp()->pml4);
+		cr3put(machp()->MMU.pml4->pa);
+		DBG("m %#p pml4 %#p\n", machp(), machp()->MMU.pml4);
 		return;
 	}
 
@@ -816,7 +816,7 @@ mmuinit(void)
 	page->pa = cr3get();
 	page->va = PTR2UINT(KADDR(page->pa));
 
-	machp()->pml4 = page;
+	machp()->MMU.pml4 = page;
 
 	r = rdmsr(Efer);
 	r |= Nxe;

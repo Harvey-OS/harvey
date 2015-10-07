@@ -338,7 +338,7 @@ asmmeminit(void)
 
 	/* assume already 2MiB aligned*/
 	assert(ALIGNED(sys->vmunmapped, 2*MiB));
-	pml4 = UINT2PTR(machp()->pml4->va);
+	pml4 = UINT2PTR(machp()->MMU.pml4->va);
 	while(sys->vmunmapped < sys->vmend){
 		l = mmuwalk(pml4, sys->vmunmapped, 1, &pte, asmwalkalloc);
 		DBG("%#p l %d\n", sys->vmunmapped, l);

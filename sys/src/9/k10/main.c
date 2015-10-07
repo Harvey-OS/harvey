@@ -185,15 +185,15 @@ squidboy(int apicno, Mach *mach)
 	mach->cpumhz = 2000;
 	mach->perf.period = 1;
 
-	mach->nixtype = NIXAC;
+	mach->NIX.nixtype = NIXAC;
 	// no NIXAC for now.
-	mach->nixtype = NIXTC;
+	mach->NIX.nixtype = NIXTC;
 
 
 	// NOTE: you can't do ANYTHING here before vsvminit.
 	// PRINT WILL PANIC. So wait.
 
-	vsvminit(MACHSTKSZ, mach->nixtype, mach);
+	vsvminit(MACHSTKSZ, mach->NIX.nixtype, mach);
 
 	//DBG("Hello squidboy %d %d\n", apicno, machp()->machno);
 
@@ -214,7 +214,7 @@ squidboy(int apicno, Mach *mach)
 		ndnr();
 	fpuinit();
 
-	acmodeset(mach->nixtype);
+	acmodeset(mach->NIX.nixtype);
 	mach->splpc = 0;
 	mach->online = 1;
 
@@ -230,8 +230,8 @@ squidboy(int apicno, Mach *mach)
 	mach->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		mach->machno, corecolor(mach->machno), rolename[mach->nixtype], mach->rdtsc);
-	switch(mach->nixtype){
+		mach->machno, corecolor(mach->machno), rolename[mach->NIX.nixtype], mach->rdtsc);
+	switch(mach->NIX.nixtype){
 	case NIXAC:
 		acmmuswitch();
 		acinit();
@@ -264,7 +264,7 @@ squidboy(int apicno, Mach *mach)
 		schedinit();
 		break;
 	}
-	panic("squidboy returns (type %d)", mach->nixtype);
+	panic("squidboy returns (type %d)", mach->NIX.nixtype);
 }
 
 static void
@@ -276,7 +276,7 @@ testiccs(void)
 
 	/* setup arguments for all */
 	for(i = 0; i < MACHMAX; i++)
-		if((mach = sys->machptr[i]) != nil && mach->online && mach->nixtype == NIXAC)
+		if((mach = sys->machptr[i]) != nil && mach->online && mach->NIX.nixtype == NIXAC)
 			testicc(i);
 	print("bootcore: all cores done\n");
 }
@@ -303,11 +303,11 @@ nixsquids(void)
 			 * Inter-core calls. A ensure *mp->iccall and mp->icargs
 			 * go into different cache lines.
 			 */
-			mach->icc = mallocalign(sizeof *machp()->icc, ICCLNSZ, 0, 0);
-			mach->icc->fn = nil;
+			mach->NIX.icc = mallocalign(sizeof *machp()->NIX.icc, ICCLNSZ, 0, 0);
+			mach->NIX.icc->fn = nil;
 			if(i < numtcs){
 				sys->nmach++;
-				mach->nixtype = NIXTC;
+				mach->NIX.nixtype = NIXTC;
 				sys->nc[NIXTC]++;
 			}//else
 				//sys->nc[NIXAC]++;
@@ -422,10 +422,10 @@ void debugtouser(void *va)
 	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
-	pml4 = UINT2PTR(machp()->pml4->va);
+	pml4 = UINT2PTR(machp()->MMU.pml4->va);
 	mmuwalk(pml4, uva, 0, &pte, nil);
 	iprint("va %p m %p m>pml4 %p machp()->pml4->va %p pml4 %p PTE 0x%lx\n", va,
-			machp(), machp()->pml4, machp()->pml4->va, (void *)pml4, *pte);
+			machp(), machp()->MMU.pml4, machp()->MMU.pml4->va, (void *)pml4, *pte);
 }
 
 /*
@@ -458,7 +458,7 @@ teardownidmap(Mach *mach)
 	 * report if there were that many, as that is odd.
 	 */
 	for(i = 0; i < 512; i++, va += BIGPGSZ) {
-		if (mmuwalk(UINT2PTR(mach->pml4->va), va, 1, &p, nil) != 1)
+		if (mmuwalk(UINT2PTR(mach->MMU.pml4->va), va, 1, &p, nil) != 1)
 			break;
 		if (! *p)
 			break;
@@ -468,7 +468,7 @@ teardownidmap(Mach *mach)
 	iprint("Teardown: zapped %d PML1 entries\n", i);
 
 	for(i = 2; i < 4; i++) {
-		if (mmuwalk(UINT2PTR(mach->pml4->va), 0, i, &p, nil) != i) {
+		if (mmuwalk(UINT2PTR(mach->MMU.pml4->va), 0, i, &p, nil) != i) {
 			iprint("weird; 0 not mapped at %d\n", i);
 			continue;
 		}
@@ -519,7 +519,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	mach->self = (uintptr_t)mach;
 	mach->machno = 0;
 	mach->online = 1;
-	mach->nixtype = NIXTC;
+	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(sys->machstk);
 	*(uintptr_t*)mach->stack = STACKGUARD;
 	mach->vsvm = sys->vsvmpage;

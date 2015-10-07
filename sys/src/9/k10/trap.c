@@ -311,7 +311,7 @@ kexit(Ureg* u)
 	else
 		mp = machp();
 	tos->core = mp->machno;
-	tos->nixtype = mp->nixtype;
+	tos->nixtype = mp->NIX.nixtype;
 	//_pmcupdate(m);
 	/*
 	 * The process may change its core.
@@ -351,7 +351,7 @@ _trap(Ureg *ureg)
 	 * If we do this in trap(), we would overwrite that with our own cr2.
 	 */
 	if(ureg->type == VectorPF)
-		machp()->cr2 = cr2get();
+		machp()->MMU.cr2 = cr2get();
 	trap(ureg);
 }
 
@@ -395,7 +395,7 @@ trap(Ureg* ureg)
 	}
 	machp()->perf.intrts = perfticks();
 	user = userureg(ureg);
-	if(user && (machp()->nixtype == NIXTC)){
+	if(user && (machp()->NIX.nixtype == NIXTC)){
 		up->dbgreg = ureg;
 		cycles(&up->kentry);
 	}
@@ -561,7 +561,7 @@ dumpregs(Ureg* ureg)
 	 * check address and machine check type registers if RDMSR supported.
 	 */
 	iprint("cr0\t%#16.16llux\n", cr0get());
-	iprint("cr2\t%#16.16llux\n", machp()->cr2);
+	iprint("cr2\t%#16.16llux\n", machp()->MMU.cr2);
 	iprint("cr3\t%#16.16llux\n", cr3get());
 die("dumpregs");
 //	archdumpregs();
@@ -674,7 +674,7 @@ faultamd64(Ureg* ureg, void* v)
 	int ftype, user, insyscall;
 	char buf[ERRMAX];
 
-	addr = machp()->cr2;
+	addr = machp()->MMU.cr2;
 	user = userureg(ureg);
 	if(!user && mmukmapsync(addr))
 		return;

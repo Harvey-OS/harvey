@@ -229,7 +229,7 @@ apiconline(void)
 	 * These don't really matter in Physical mode;
 	 * set the defaults anyway.
 	 */
-	if(memcmp(machp()->cpuinfo, "AuthenticAMD", 12) == 0)
+	if(memcmp(machp()->CPU.cpuinfo, "AuthenticAMD", 12) == 0)
 		dfr = 0xf0000000;
 	else
 		dfr = 0xffffffff;

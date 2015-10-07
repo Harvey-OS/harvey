@@ -119,6 +119,6 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-	if(machp()->nixtype != NIXAC)
+	if(machp()->NIX.nixtype != NIXAC)
  		halt();
 }
