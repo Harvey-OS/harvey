@@ -158,7 +158,7 @@ schedinit(void)		/* never returns */
 			 *	pga
 			 */
 			mmurelease(up);
-			unlock(&pga);
+			unlock(&pga.l);
 
 			psrelease(up);
 			unlock(&procalloc);
@@ -208,7 +208,7 @@ sched(void)
 		if(up->nlocks)
 		if(up->state != Moribund)
 		if(up->delaysched < 20
-		|| pga.Lock.p == up
+		|| pga.l.p == up
 		|| procalloc.Lock.p == up){
 			up->delaysched++;
  			run.delayedscheds++;
@@ -483,8 +483,8 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 
 	pri = rq - sch->runq;
 	if(!locked)
-		lock(sch);
-	else if(canlock(sch))
+		lock(&sch->l);
+	else if(canlock(&sch->l))
 		panic("queueproc: locked and can lock");
 	p->priority = pri;
 	p->rnext = 0;
@@ -497,7 +497,7 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 	sch->nrdy++;
 	sch->runvec |= 1<<pri;
 	if(!locked)
-		unlock(sch);
+		unlock(&sch->l);
 }
 
 /*
@@ -508,7 +508,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 {
 	Proc *l, *p;
 
-	if(!canlock(sch))
+	if(!canlock(&sch->l))
 		return nil;
 
 	/*
@@ -527,7 +527,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	 */
 
 	if(p == 0 || p->mach){
-		unlock(sch);
+		unlock(&sch->l);
 		return nil;
 	}
 	if(p->rnext == 0)
@@ -543,7 +543,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	if(p->state != Ready)
 		print("dequeueproc %s %d %s\n", p->text, p->pid, statename[p->state]);
 
-	unlock(sch);
+	unlock(&sch->l);
 	return p;
 }
 
@@ -994,7 +994,7 @@ canpage(Proc *p)
 
 	splhi();
 	sch = procsched(p);
-	lock(sch);
+	lock(&sch->l);
 	/* Only reliable way to see if we are Running */
 	if(p->mach == 0) {
 		p->newtlb = 1;
@@ -1002,7 +1002,7 @@ canpage(Proc *p)
 	}
 	else
 		ok = 0;
-	unlock(sch);
+	unlock(&sch->l);
 	spllo();
 
 	return ok;
@@ -1623,7 +1623,7 @@ pexit(char *exitstr, int freemem)
 
 	/* Sched must not loop for these locks */
 	lock(&procalloc);
-	lock(&pga);
+	lock(&pga.l);
 
 	stopac();
 	edfstop(up);
