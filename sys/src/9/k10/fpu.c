@@ -67,7 +67,7 @@ enum {						/* MXCSR */
 	Fz		= 0x00008000,		/* Flush to Zero for Um */
 };
 
-enum {						/* PFPU.state */
+enum {						/* FPU.state */
 	Init		= 0,			/* The FPU has not been used */
 	Busy		= 1,			/* The FPU is being used */
 	Idle		= 2,			/* The FPU has been used */
@@ -99,7 +99,7 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 	 */
 	if(offset >= sizeof(Fxsave))
 		return 0;
-	if((p = proc->fpusave) == nil)
+	if((p = proc->FPU.fpusave) == nil)
 		return 0;
 	switch(write){
 	default:
@@ -128,12 +128,12 @@ fpunotify(Ureg* u)
 	 * the state is marked (after saving if necessary) and
 	 * checked in the Device Not Available handler.
 	 */
-	if(up->fpustate == Busy){
-		_fxsave(up->fpusave);
+	if(up->FPU.fpustate == Busy){
+		_fxsave(up->FPU.fpusave);
 		_stts();
-		up->fpustate = Idle;
+		up->FPU.fpustate = Idle;
 	}
-	up->fpustate |= Hold;
+	up->FPU.fpustate |= Hold;
 }
 
 void
@@ -145,7 +145,7 @@ fpunoted(void)
 	 * noted() routine.
 	 * Clear the flag set above in fpunotify().
 	 */
-	up->fpustate &= ~Hold;
+	up->FPU.fpustate &= ~Hold;
 }
 
 void
@@ -158,12 +158,12 @@ fpusysrfork(Ureg* u)
 	 * Save the state so that it can be easily copied
 	 * to the child process later.
 	 */
-	if(up->fpustate != Busy)
+	if(up->FPU.fpustate != Busy)
 		return;
 
-	_fxsave(up->fpusave);
+	_fxsave(up->FPU.fpusave);
 	_stts();
-	up->fpustate = Idle;
+	up->FPU.fpustate = Idle;
 }
 
 void
@@ -175,12 +175,12 @@ fpusysrforkchild(Proc* child, Proc* parent)
 	 * sysrforkchild() routine.
 	 * Copy the parent FPU state to the child.
 	 */
-	child->fpustate = parent->fpustate;
-	child->fpusave = (void*)((PTR2UINT(up->fxsave) + 15) & ~15);
-	if(child->fpustate == Init)
+	child->FPU.fpustate = parent->FPU.fpustate;
+	child->FPU.fpusave = (void*)((PTR2UINT(up->FPU.fxsave) + 15) & ~15);
+	if(child->FPU.fpustate == Init)
 		return;
 
-	memmove(child->fpusave, parent->fpusave, sizeof(Fxsave));
+	memmove(child->FPU.fpusave, parent->FPU.fpusave, sizeof(Fxsave));
 }
 
 void
@@ -193,7 +193,7 @@ fpuprocsave(Proc* p)
 	 * If the process wasn't using the FPU
 	 * there's nothing to do.
 	 */
-	if(p->fpustate != Busy)
+	if(p->FPU.fpustate != Busy)
 		return;
 
 	/*
@@ -205,7 +205,7 @@ fpuprocsave(Proc* p)
 		_clts();
 		_fnclex();
 		_stts();
-		p->fpustate = Init;
+		p->FPU.fpustate = Init;
 		return;
 	}
 
@@ -218,9 +218,9 @@ fpuprocsave(Proc* p)
 	 * Device Not Available exception fault to activate
 	 * the FPU.
 	 */
-	_fxsave(p->fpusave);
+	_fxsave(p->FPU.fpusave);
 	_stts();
-	p->fpustate = Idle;
+	p->FPU.fpustate = Idle;
 }
 
 void
@@ -243,22 +243,22 @@ fpusysprocsetup(Proc* p)
 	 * Called from sysexec() via sysprocsetup() to
 	 * set the FPU for the new process.
 	 */
-	if(p->fpustate != Init){
+	if(p->FPU.fpustate != Init){
 		_clts();
 		_fnclex();
 		_stts();
-		p->fpustate = Init;
+		p->FPU.fpustate = Init;
 	}
 }
 
 void
 acfpusysprocsetup(Proc *p)
 {
-	if(p->fpustate == Init){
+	if(p->FPU.fpustate == Init){
 		/* The FPU is initialized in the TC but we must initialize
 		 * it in the AC.
 		 */
-		p->fpustate = Idle;
+		p->FPU.fpustate = Idle;
 		fpusysprocsetup(p);
 	}
 }
@@ -276,7 +276,7 @@ fpunote(void)
 	 * cleared or there's no way to tell if the exception was an
 	 * invalid operation or a stack fault.
 	 */
-	fpusave = up->fpusave;
+	fpusave = up->FPU.fpusave;
 	fsw = (fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I);
 	if(fsw & I){
 		if(fsw & Sff){
@@ -322,10 +322,10 @@ xfpuxf(Ureg* ureg, void* v)
 	/*
 	 * Save FPU state to check out the error.
 	 */
-	fpusave = up->fpusave;
+	fpusave = up->FPU.fpusave;
 	_fxsave(fpusave);
 	_stts();
-	up->fpustate = Idle;
+	up->FPU.fpustate = Idle;
 
 	if(ureg->ip & KZERO)
 		panic("#MF: ip=%#p", ureg->ip);
@@ -387,10 +387,10 @@ xfpumf(Ureg* ureg, void* v)
 	/*
 	 * Save FPU state to check out the error.
 	 */
-	fpusave = up->fpusave;
+	fpusave = up->FPU.fpusave;
 	_fxsave(fpusave);
 	_stts();
-	up->fpustate = Idle;
+	up->FPU.fpustate = Idle;
 
 	if(ureg->ip & KZERO)
 		panic("#MF: ip=%#p rip=%#p", ureg->ip, fpusave->rip);
@@ -444,17 +444,17 @@ xfpunm(Ureg* ureg, void* v)
 	 * Someone tried to use the FPU in a note handler.
 	 * That's a no-no.
 	 */
-	if(up->fpustate & Hold)
+	if(up->FPU.fpustate & Hold)
 		return "sys: floating point in note handler";
 
 	if(ureg->ip & KZERO)
 		panic("#NM: proc %d %s state %d ip %#p\n",
-			up->pid, up->text, up->fpustate, ureg->ip);
+			up->pid, up->text, up->FPU.fpustate, ureg->ip);
 
-	switch(up->fpustate){
+	switch(up->FPU.fpustate){
 	case Busy:
 	default:
-		panic("#NM: state %d ip %#p\n", up->fpustate, ureg->ip);
+		panic("#NM: state %d ip %#p\n", up->FPU.fpustate, ureg->ip);
 		break;
 	case Init:
 		/*
@@ -470,8 +470,8 @@ xfpunm(Ureg* ureg, void* v)
 		_fwait();
 		_fldcw(&machp()->fcw);
 		_ldmxcsr(&machp()->mxcsr);
-		up->fpusave = (void*)((PTR2UINT(up->fxsave) + 15) & ~15);
-		up->fpustate = Busy;
+		up->FPU.fpusave = (void*)((PTR2UINT(up->FPU.fxsave) + 15) & ~15);
+		up->FPU.fpustate = Busy;
 		break;
 	case Idle:
 		/*
@@ -479,7 +479,7 @@ xfpunm(Ureg* ureg, void* v)
 		 * exceptions, there's no way to restore the state without
 		 * generating an unmasked exception.
 		 */
-		fpusave = up->fpusave;
+		fpusave = up->FPU.fpusave;
 		if((fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I))
 			return fpunote();
 
@@ -489,7 +489,7 @@ xfpunm(Ureg* ureg, void* v)
 		fpusave->fcw &= ~Sff;
 		_clts();
 		_fxrstor(fpusave);
-		up->fpustate = Busy;
+		up->FPU.fpustate = Busy;
 		break;
 	}
 	return nil;

@@ -955,9 +955,9 @@ struct Proc
 	/*
 	 *  machine specific fpu, mmu and notify
 	 */
-	PFPU;
-	PMMU;
-	PNOTIFY;
+	PFPU FPU;
+	PMMU MMU;
+	PNOTIFY NOTIFY;
 
 	/*
 	 * mmap support.
