@@ -253,8 +253,8 @@ mmurelease(Proc* proc)
 		page->prev = nil;
 		unlock(&mmuptpfreelist.l);
 	}
-	if(proc->MMU.mmuptp[0] && pga.r.l.p)
-		wakeup(&pga.r);
+	if(proc->MMU.mmuptp[0] && pga.rend.l.p)
+		wakeup(&pga.rend);
 	proc->MMU.mmuptp[0] = nil;
 
 	tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));

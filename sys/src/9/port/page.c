@@ -354,8 +354,8 @@ putpage(Page *p)
 		else
 			pagechainhead(p);
 	}
-	if(&pga.r.l != nil)
-		wakeup(&pga.r);
+	if(&pga.rend.l != nil)
+		wakeup(&pga.rend);
 	unlock(&p->l);
 	if(rlse)
 		pgfree(p);

@@ -69,7 +69,7 @@ ziofmt(Fmt *f)
 	Kzio *io;
 
 	io = va_arg(f->args, Kzio*);
-	return fmtprint(f, "%#p[%#ulx]", io->data, io->size);
+	return fmtprint(f, "%#p[%#ulx]", io->Zio.data, io->Zio.size);
 }
 
 static void
@@ -249,15 +249,15 @@ readzio(Kzio *io, int nio, void *a, int32_t count)
 	tot = 0;
 	while(nio-- > 0){
 		if(tot < count){
-			nr = io->size;
+			nr = io->Zio.size;
 			if(tot + nr > count)
 				nr = count - tot;
 			DBG("readzio: copy %#p %Z\n", p+tot, io);
-			memmove(p+tot, io->data, nr);
+			memmove(p+tot, io->Zio.data, nr);
 			tot += nr;
 		}
 		qlock(&io->seg->lk);
-		zputaddr(io->seg, PTR2UINT(io->data));
+		zputaddr(io->seg, PTR2UINT(io->Zio.data));
 		qunlock(&io->seg->lk);
 		putseg(io->seg);
 		io->seg = nil;
@@ -279,14 +279,14 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 		error("no kernel segment for zero-copy");
 	if(tot > Maxatomic)
 		tot = Maxatomic;
-	io[0].data = alloczio(s, tot);
+	io[0].Zio.data = alloczio(s, tot);
 	io[0].seg = s;
 	if(waserror()){
-		zputaddr(s, PTR2UINT(io[0].data));
+		zputaddr(s, PTR2UINT(io[0].Zio.data));
 		putseg(s);
 		nexterror();
 	}
-	io[0].size = c->dev->read(c, io[0].data, tot, offset);
+	io[0].Zio.size = c->dev->read(c, io[0].Zio.data, tot, offset);
 	poperror();
 	return 1;
 }
@@ -303,7 +303,7 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 
 	tot = 0;
 	for(i = 0; i < nio; i++)
-		tot += io[i].size;
+		tot += io[i].Zio.size;
 	bp = nil;
 	if(waserror()){
 		if(bp != nil)
@@ -311,17 +311,17 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 		nexterror();
 	}
 	if(nio == 1)
-		tot = c->dev->write(c, io[0].data, io[0].size, offset);
+		tot = c->dev->write(c, io[0].Zio.data, io[0].Zio.size, offset);
 	else{
 		bp = allocb(tot);
 		if(bp == nil)
 			error(Enomem);
 		for(i = 0; i < nio; i++){
 			DBG("devzwrite: copy %#p %Z\n", bp->wp, &io[i]);
-			memmove(bp->wp, io[i].data, io[i].size);
-			bp->wp += io[i].size;
+			memmove(bp->wp, io[i].Zio.data, io[i].Zio.size);
+			bp->wp += io[i].Zio.size;
 			qlock(&io[i].seg->lk);
-			if(zputaddr(io[i].seg, PTR2UINT(io[i].data)) < 0)
+			if(zputaddr(io[i].seg, PTR2UINT(io[i].Zio.data)) < 0)
 				panic("devzwrite: not a shared data segment");
 			qunlock(&io[i].seg->lk);
 		}
@@ -329,19 +329,19 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 	}
 	j = 0;
 	for(i = 0; i < nio; i++){
-		io[i].data = nil; /* safety */
+		io[i].Zio.data = nil; /* safety */
 		io[i].seg = nil;
 		putseg(io[i].seg);
 		if(tot > 0)
-			if(tot >= io[i].size)
-				tot -= io[i].size;
+			if(tot >= io[i].Zio.size)
+				tot -= io[i].Zio.size;
 			else
-				io[i].size = tot;
+				io[i].Zio.size = tot;
 		else{
 			j = i;
-			io[i].size = 0;
+			io[i].Zio.size = 0;
 		}
-		io[i].data = nil; /* safety */
+		io[i].Zio.data = nil; /* safety */
 		putseg(io[i].seg);
 		io[i].seg = nil;
 	}
@@ -361,9 +361,9 @@ kernzio(Kzio *io)
 	if(s == nil)
 		error("can't use zero copy in this segment");
 	uio = *io;
-	data = alloczio(s, io->size);
-	memmove(data, io->data, io->size);
-	io->data = data;
+	data = alloczio(s, io->Zio.size);
+	memmove(data, io->Zio.data, io->Zio.size);
+	io->Zio.data = data;
 	DBG("kernzio: copy %Z %Z\n", io, &uio);
 	putseg(io->seg);
 	io->seg = s;
@@ -427,7 +427,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 				error("invalid address in zio");
 			incref(&kio[i].seg->r);
 			qunlock(&kio[i].seg->lk);
-			validaddr(kio[i].data, kio[i].size, 1);
+			validaddr(kio[i].Zio.data, kio[i].Zio.size, 1);
 			if((kio[i].seg->type&SG_ZIO) == 0){
 				/*
 				 * It's not a segment where we can report
@@ -439,7 +439,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 			}
 			assert(kio[i].seg->type&SG_ZIO);
 		}else{
-			kio[i].data = nil;
+			kio[i].Zio.data = nil;
 			kio[i].seg = nil;
 		}
 	}
@@ -459,7 +459,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	tot = 0;
 	for(i = 0; i < n; i++){
 		io[i] = kio[i].Zio;
-		tot += kio[i].size;
+		tot += kio[i].Zio.size;
 	}
 	if(!isprw){
 		/* unlike in syswrite, we update offsets at the end */
