@@ -88,7 +88,7 @@ struct Ref
 
 struct Rendez
 {
-	Lock;
+	Lock l;
 	Proc	*_p; // There is already a Proc *p into Lock
 };
 
@@ -156,7 +156,7 @@ struct RWlock
 
 struct Alarms
 {
-	QLock;
+	QLock ql;
 	Proc	*_head;
 };
 
@@ -374,7 +374,7 @@ enum
 
 struct Page
 {
-	Lock;
+	Lock l;
 	uintmem	pa;			/* Physical address in memory */
 	uintptr_t	va;			/* Virtual address for user */
 	uint32_t	daddr;			/* Disc address on swap */
@@ -487,7 +487,7 @@ struct Physseg
 
 struct Sema
 {
-	Rendez;
+	Rendez rend;
 	int*	addr;
 	int	waiting;
 	Sema*	next;
@@ -497,7 +497,7 @@ struct Sema
 /* NIX semaphores */
 struct Sem
 {
-	Lock;
+	Lock l;
 	int*	np;		/* user-level semaphore */
 	Proc**	q;
 	int	nq;
@@ -643,7 +643,7 @@ struct Pgsza
 
 struct Pgalloc
 {
-	Lock;
+	Lock l;
 	int	userinit;	/* working in user init mode */
 	Pgsza	pgsza[NPGSZ];	/* allocs for m->npgsz page sizes */
 	Page*	hash[PGHSIZE];	/* only used for user pages */
@@ -675,7 +675,7 @@ struct Timer
 	void	(*tf)(Ureg*, Timer*);
 	void	*ta;
 	/* Internal */
-	Lock;
+	Lock l;
 	Timers	*tt;		/* Timers queue this timer runs on */
 	int64_t	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
@@ -772,7 +772,7 @@ struct Schedq
 
 struct Sched
 {
-	Lock;			/* runq */
+	Lock l;			/* runq */
 	int	nrdy;
 	uint32_t delayedscheds;	/* statistics */
 	int32_t skipscheds;
@@ -955,9 +955,9 @@ struct Proc
 	/*
 	 *  machine specific fpu, mmu and notify
 	 */
-	PFPU;
-	PMMU;
-	PNOTIFY;
+	PFPU FPU;
+	PMMU MMU;
+	PNOTIFY NOTIFY;
 
 	/*
 	 * mmap support.
@@ -971,7 +971,7 @@ struct Proc
 
 struct Procalloc
 {
-	Lock;
+	Lock l;
 	int	nproc;
 	Proc*	ht[128];
 	Proc*	arena;
@@ -1025,7 +1025,7 @@ enum
  *  action log
  */
 struct Log {
-	Lock;
+	Lock l;
 	int	opens;
 	char*	buf;
 	char	*end;
@@ -1112,7 +1112,7 @@ struct Uart
 	int	special;		/* internal kernel device */
 	Uart*	next;			/* list of allocated uarts */
 
-	QLock;
+	QLock ql;
 	int	type;			/* ?? */
 	int	dev;
 	int	opens;
@@ -1151,7 +1151,7 @@ struct Uart
 	int	hup_dsr, hup_dcd;	/* send hangup upstream? */
 	int	dohup;
 
-	Rendez	r;
+	Rendez	rend;
 };
 
 extern	Uart*	consuart;

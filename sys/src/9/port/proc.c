@@ -158,10 +158,10 @@ schedinit(void)		/* never returns */
 			 *	pga
 			 */
 			mmurelease(up);
-			unlock(&pga);
+			unlock(&pga.l);
 
 			psrelease(up);
-			unlock(&procalloc);
+			unlock(&procalloc.l);
 			break;
 		}
 		up->mach = nil;
@@ -208,8 +208,8 @@ sched(void)
 		if(up->nlocks)
 		if(up->state != Moribund)
 		if(up->delaysched < 20
-		|| pga.Lock.p == up
-		|| procalloc.Lock.p == up){
+		|| pga.l.p == up
+		|| procalloc.l.p == up){
 			up->delaysched++;
  			run.delayedscheds++;
 			return;
@@ -223,7 +223,7 @@ sched(void)
 		machp()->cs++;
 
 		procsave(up);
-		mmuflushtlb(machp()->pml4->pa);
+		mmuflushtlb(machp()->MMU.pml4->pa);
 		if(setlabel(&up->sched)){
 			procrestore(up);
 			spllo();
@@ -483,8 +483,8 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 
 	pri = rq - sch->runq;
 	if(!locked)
-		lock(sch);
-	else if(canlock(sch))
+		lock(&sch->l);
+	else if(canlock(&sch->l))
 		panic("queueproc: locked and can lock");
 	p->priority = pri;
 	p->rnext = 0;
@@ -497,7 +497,7 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 	sch->nrdy++;
 	sch->runvec |= 1<<pri;
 	if(!locked)
-		unlock(sch);
+		unlock(&sch->l);
 }
 
 /*
@@ -508,7 +508,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 {
 	Proc *l, *p;
 
-	if(!canlock(sch))
+	if(!canlock(&sch->l))
 		return nil;
 
 	/*
@@ -527,7 +527,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	 */
 
 	if(p == 0 || p->mach){
-		unlock(sch);
+		unlock(&sch->l);
 		return nil;
 	}
 	if(p->rnext == 0)
@@ -543,7 +543,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	if(p->state != Ready)
 		print("dequeueproc %s %d %s\n", p->text, p->pid, statename[p->state]);
 
-	unlock(sch);
+	unlock(&sch->l);
 	return p;
 }
 
@@ -664,7 +664,7 @@ preemptfor(Proc *p)
 		for(i = 0; i < MACHMAX; i++){
 			/*j = pickcore(p->color, i);
 			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){*/
-			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXTC){
+			if((mp = sys->machptr[i]) != nil && mp->online && mp->NIX.nixtype == NIXTC){
 				if(mp == machp())
 					continue;
 				/*
@@ -994,7 +994,7 @@ canpage(Proc *p)
 
 	splhi();
 	sch = procsched(p);
-	lock(sch);
+	lock(&sch->l);
 	/* Only reliable way to see if we are Running */
 	if(p->mach == 0) {
 		p->newtlb = 1;
@@ -1002,7 +1002,7 @@ canpage(Proc *p)
 	}
 	else
 		ok = 0;
-	unlock(sch);
+	unlock(&sch->l);
 	spllo();
 
 	return ok;
@@ -1083,7 +1083,7 @@ newproc(void)
 	p->nfullq = 0;
 	p->req = nil;
 	p->resp = nil;
-	memset(&p->PMMU, 0, sizeof p->PMMU);
+	memset(&p->MMU, 0, sizeof p->MMU);
 	return p;
 }
 
@@ -1169,7 +1169,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	if(up->nlocks)
 		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
 			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc());
-	lock(r);
+	lock(&r->l);
 	lock(&up->rlock);
 	if(r->_p){
 		print("double sleep called from %#p, %d %d\n",
@@ -1192,7 +1192,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 */
 		r->_p = nil;
 		unlock(&up->rlock);
-		unlock(r);
+		unlock(&r->l);
 	} else {
 		/*
 		 *  now we are committed to
@@ -1207,7 +1207,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		machp()->cs++;
 
 		procsave(up);
-		mmuflushtlb(machp()->pml4->pa);
+		mmuflushtlb(machp()->MMU.pml4->pa);
 		if(setlabel(&up->sched)) {
 			/*
 			 *  here when the process is awakened
@@ -1219,7 +1219,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			 *  here to go to sleep (i.e. stop Running)
 			 */
 			unlock(&up->rlock);
-			unlock(r);
+			unlock(&r->l);
 			/*debug*/gotolabel(&machp()->sched);
 		}
 	}
@@ -1297,7 +1297,7 @@ wakeup(Rendez *r)
 
 	pl = splhi();
 
-	lock(r);
+	lock(&r->l);
 	p = r->_p;
 
 	if(p != nil){
@@ -1309,7 +1309,7 @@ wakeup(Rendez *r)
 		ready(p);
 		unlock(&p->rlock);
 	}
-	unlock(r);
+	unlock(&r->l);
 
 	splx(pl);
 
@@ -1369,13 +1369,13 @@ postnote(Proc *p, int dolock, char *n, int flag)
 			break;	/* no */
 
 		/* try for the second lock */
-		if(canlock(r)){
+		if(canlock(&r->l)){
 			if(p->state != Wakeme || r->_p != p)
 				panic("postnote: state %d %d %d", r->_p != p, p->r != r, p->state);
 			p->r = nil;
 			r->_p = nil;
 			ready(p);
-			unlock(r);
+			unlock(&r->l);
 			break;
 		}
 
@@ -1622,8 +1622,8 @@ pexit(char *exitstr, int freemem)
 	qunlock(&up->debug);
 
 	/* Sched must not loop for these locks */
-	lock(&procalloc);
-	lock(&pga);
+	lock(&procalloc.l);
+	lock(&pga.l);
 
 	stopac();
 	edfstop(up);

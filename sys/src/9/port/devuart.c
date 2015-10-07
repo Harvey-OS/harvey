@@ -247,14 +247,14 @@ uartopen(Chan *c, int omode)
 	case Qctl:
 	case Qdata:
 		p = uart[UARTID(c->qid.path)];
-		qlock(p);
+		qlock(&p->ql);
 		if(p->opens == 0 && uartenable(p) == nil){
-			qunlock(p);
+			qunlock(&p->ql);
 			c->flag &= ~COPEN;
 			error(Enodev);
 		}
 		p->opens++;
-		qunlock(p);
+		qunlock(&p->ql);
 		break;
 	}
 
@@ -283,7 +283,7 @@ uartdrainoutput(Uart *p)
 		p->drain = 0;
 		nexterror();
 	}
-	sleep(&p->r, uartdrained, p);
+	sleep(&p->rend, uartdrained, p);
 	poperror();
 }
 
@@ -301,7 +301,7 @@ uartclose(Chan *c)
 	case Qdata:
 	case Qctl:
 		p = uart[UARTID(c->qid.path)];
-		qlock(p);
+		qlock(&p->ql);
 		if(--(p->opens) == 0){
 			qclose(p->iq);
 			ilock(&p->rlock);
@@ -319,7 +319,7 @@ uartclose(Chan *c)
 			uartdisable(p);
 			p->dcd = p->dsr = p->dohup = 0;
 		}
-		qunlock(p);
+		qunlock(&p->ql);
 		break;
 	}
 }
@@ -477,24 +477,24 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 
 	switch(UARTTYPE(c->qid.path)){
 	case Qdata:
-		qlock(p);
+		qlock(&p->ql);
 		if(waserror()){
-			qunlock(p);
+			qunlock(&p->ql);
 			nexterror();
 		}
 
 		n = qwrite(p->oq, buf, n);
 
-		qunlock(p);
+		qunlock(&p->ql);
 		poperror();
 		break;
 	case Qctl:
 		cmd = malloc(n+1);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
-		qlock(p);
+		qlock(&p->ql);
 		if(waserror()){
-			qunlock(p);
+			qunlock(&p->ql);
 			free(cmd);
 			nexterror();
 		}
@@ -503,7 +503,7 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 		if(uartctl(p, cmd) < 0)
 			error(Ebadarg);
 
-		qunlock(p);
+		qunlock(&p->ql);
 		poperror();
 		free(cmd);
 		break;
@@ -614,7 +614,7 @@ uartkick(void *v)
 
 	if(p->drain && uartdrained(p)){
 		p->drain = 0;
-		wakeup(&p->r);
+		wakeup(&p->rend);
 	}
 }
 

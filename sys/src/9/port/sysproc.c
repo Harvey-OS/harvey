@@ -1150,22 +1150,22 @@ semqueue(Segment* s, int* addr, Sema* p)
 	memset(p, 0, sizeof *p);
 	p->addr = addr;
 
-	lock(&s->sema);	/* uses s->sema.Rendez.Lock, but no one else is */
+	lock(&s->sema.rend.l);	/* uses s->sema.Rendez.Lock, but no one else is */
 	p->next = &s->sema;
 	p->prev = s->sema.prev;
 	p->next->prev = p;
 	p->prev->next = p;
-	unlock(&s->sema);
+	unlock(&s->sema.rend.l);
 }
 
 /* Remove semaphore p from list in seg. */
 static void
 semdequeue(Segment* s, Sema* p)
 {
-	lock(&s->sema);
+	lock(&s->sema.rend.l);
 	p->next->prev = p->prev;
 	p->prev->next = p->next;
-	unlock(&s->sema);
+	unlock(&s->sema.rend.l);
 }
 
 /* Wake up n waiters with addr on list in seg. */
@@ -1174,16 +1174,16 @@ semwakeup(Segment* s, int* addr, int n)
 {
 	Sema *p;
 
-	lock(&s->sema);
+	lock(&s->sema.rend.l);
 	for(p = s->sema.next; p != &s->sema && n > 0; p = p->next){
 		if(p->addr == addr && p->waiting){
 			p->waiting = 0;
 			coherence();
-			wakeup(p);
+			wakeup(&p->rend);
 			n--;
 		}
 	}
-	unlock(&s->sema);
+	unlock(&s->sema.rend.l);
 }
 
 /* Add delta to semaphore and wake up waiters as appropriate. */
@@ -1246,7 +1246,7 @@ semacquire(Segment* s, int* addr, int block)
 		}
 		if(waserror())
 			break;
-		sleep(&phore, semawoke, &phore);
+		sleep(&phore.rend, semawoke, &phore);
 		poperror();
 	}
 	semdequeue(s, &phore);
@@ -1285,7 +1285,7 @@ tsemacquire(Segment* s, int* addr, int64_t ms)
 		if(waserror())
 			break;
 		t = sys->ticks;
-		tsleep(&phore, semawoke, &phore, ms);
+		tsleep(&phore.rend, semawoke, &phore, ms);
 		ms -= TK2MS(sys->ticks-t);
 		poperror();
 		if(ms <= 0)

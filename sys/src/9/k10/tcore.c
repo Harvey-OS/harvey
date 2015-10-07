@@ -49,13 +49,13 @@ getac(Proc *p, int core)
 		mp = sys->machptr[core];
 		if(mp == nil || mp->online == 0 || mp->proc != nil)
 			error("core not online or busy");
-		if(mp->nixtype != NIXAC)
+		if(mp->NIX.nixtype != NIXAC)
 			error("core is not an AC");
 	Found:
 		mp->proc = p;
 	}else{
 		for(i = 0; i < MACHMAX; i++)
-			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXAC)
+			if((mp = sys->machptr[i]) != nil && mp->online && mp->NIX.nixtype == NIXAC)
 				if(mp->proc == nil)
 					goto Found;
 		error("not enough cores");
@@ -143,7 +143,7 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 	Proc *up = externup();
 	uint8_t *dpg, *spg;
 
-	if (n > sizeof(mp->icc->data))
+	if (n > sizeof(mp->NIX.icc->data))
 		panic("runac: args too long");
 
 	if(mp->online == 0)
@@ -151,22 +151,22 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 	if(mp->proc != nil && mp->proc != up)
 		panic("runapfunc: mach is busy with another proc?");
 
-	memmove(mp->icc->data, a, n);
+	memmove(mp->NIX.icc->data, a, n);
 	if(flushtlb){
-		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->pml4->pa, machp()->pml4->pa);
-		dpg = UINT2PTR(mp->pml4->va);
-		spg = UINT2PTR(machp()->pml4->va);
+		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->MMU.pml4->pa, machp()->MMU.pml4->pa);
+		dpg = UINT2PTR(mp->MMU.pml4->va);
+		spg = UINT2PTR(machp()->MMU.pml4->va);
 		/* We should copy less:
-		 *	memmove(dgp, spg, machp()->pml4->daddr * sizeof(PTE));
+		 *	memmove(dgp, spg, machp()->MMU.pml4->daddr * sizeof(PTE));
 		 */
 		memmove(dpg, spg, PTSZ);
 		if(0){
-			print("runac: upac pml4 %#p\n", up->ac->pml4->pa);
-			dumpptepg(4, up->ac->pml4->pa);
+			print("runac: upac pml4 %#p\n", up->ac->MMU.pml4->pa);
+			dumpptepg(4, up->ac->MMU.pml4->pa);
 		}
 	}
-	mp->icc->flushtlb = flushtlb;
-	mp->icc->rc = ICCOK;
+	mp->NIX.icc->flushtlb = flushtlb;
+	mp->NIX.icc->rc = ICCOK;
 
 	DBG("runac: exotic proc on cpu%d\n", mp->machno);
 	if(waserror()){
@@ -180,9 +180,9 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 	qunlock(&up->debug);
 	poperror();
 	mfence();
-	mp->icc->fn = func;
+	mp->NIX.icc->fn = func;
 	sched();
-	return mp->icc->rc;
+	return mp->NIX.icc->rc;
 }
 
 /*
@@ -259,9 +259,9 @@ runacore(void)
 		switch(rc){
 		case ICCTRAP:
 			s = splhi();
-			machp()->cr2 = up->ac->cr2;
+			machp()->MMU.cr2 = up->ac->MMU.cr2;
 			DBG("runacore: trap %ulld cr2 %#ullx ureg %#p\n",
-				ureg->type, machp()->cr2, ureg);
+				ureg->type, machp()->MMU.cr2, ureg);
 			switch(ureg->type){
 			case IdtIPI:
 				if(up->procctl || up->nnote)
@@ -274,23 +274,23 @@ runacore(void)
 			case IdtMF:
 			case IdtXF:
 				/* these are handled in the AC;
-				 * If we get here, they left in m->icc->data
+				 * If we get here, they left in m->NIX.icc->data
 				 * a note to be posted to the process.
 				 * Post it, and make the vector a NOP.
 				 */
-				n = up->ac->icc->note;
+				n = up->ac->NIX.icc->note;
 				if(n != nil)
 					postnote(up, 1, n, NDebug);
 				ureg->type = IdtIPI;		/* NOP */
 				break;
 			default:
-				cr3put(machp()->pml4->pa);
+				cr3put(machp()->MMU.pml4->pa);
 				if(0 && ureg->type == IdtPF){
 					print("before PF:\n");
 					print("AC:\n");
-					dumpptepg(4, up->ac->pml4->pa);
+					dumpptepg(4, up->ac->MMU.pml4->pa);
 					print("\n%s:\n", rolename[NIXTC]);
-					dumpptepg(4, machp()->pml4->pa);
+					dumpptepg(4, machp()->MMU.pml4->pa);
 				}
 				trap(ureg);
 			}
@@ -301,7 +301,7 @@ runacore(void)
 		case ICCSYSCALL:
 			DBG("runacore: syscall ax %#ullx ureg %#p\n",
 				ureg->ax, ureg);
-			cr3put(machp()->pml4->pa);
+			cr3put(machp()->MMU.pml4->pa);
 			//syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;

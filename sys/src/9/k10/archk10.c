@@ -26,23 +26,23 @@ cpuidinit(void)
 	 * Functions 0 and 1 will be needed multiple times
 	 * so cache the info now.
 	 */
-	if((machp()->ncpuinfos = cpuid(0, 0, machp()->cpuinfo[0])) == 0)
+	if((machp()->CPU.ncpuinfos = cpuid(0, 0, machp()->CPU.cpuinfo[0])) == 0)
 		return 0;
-	machp()->ncpuinfos++;
+	machp()->CPU.ncpuinfos++;
 
-	if(memcmp(&machp()->cpuinfo[0][1], "GenuntelineI", 12) == 0)
-		machp()->isintelcpu = 1;
-	cpuid(1, 0, machp()->cpuinfo[1]);
+	if(memcmp(&machp()->CPU.cpuinfo[0][1], "GenuntelineI", 12) == 0)
+		machp()->CPU.isintelcpu = 1;
+	cpuid(1, 0, machp()->CPU.cpuinfo[1]);
 
 	/*
 	 * Extended CPUID functions.
 	 */
 	if((eax = cpuid(0x80000000, 0, info)) >= 0x80000000)
-		machp()->ncpuinfoe = (eax & ~0x80000000) + 1;
+		machp()->CPU.ncpuinfoe = (eax & ~0x80000000) + 1;
 
 	/* is mnonitor supported? */
-	if (machp()->cpuinfo[1][2] & 8) {
-		cpuid(5, 0, machp()->cpuinfo[2]);
+	if (machp()->CPU.cpuinfo[1][2] & 8) {
+		cpuid(5, 0, machp()->CPU.cpuinfo[2]);
 		mwait = k10mwait;
 	}
 
@@ -52,14 +52,14 @@ cpuidinit(void)
 static int
 cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
-	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
+	if(machp()->CPU.ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
 
 	if(!(eax & 0x80000000)){
-		if(eax >= machp()->ncpuinfos)
+		if(eax >= machp()->CPU.ncpuinfos)
 			return 0;
 	}
-	else if(eax >= (0x80000000|machp()->ncpuinfoe))
+	else if(eax >= (0x80000000|machp()->CPU.ncpuinfoe))
 		return 0;
 
 	cpuid(eax, ecx, info);
@@ -235,15 +235,15 @@ cpuiddump(void)
 	if(!DBGFLG)
 		return;
 
-	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
+	if(machp()->CPU.ncpuinfos == 0 && cpuidinit() == 0)
 		return;
 
-	for(i = 0; i < machp()->ncpuinfos; i++){
+	for(i = 0; i < machp()->CPU.ncpuinfos; i++){
 		cpuid(i, 0, info);
 		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
 			i, info[0], info[1], info[2], info[3]);
 	}
-	for(i = 0; i < machp()->ncpuinfoe; i++){
+	for(i = 0; i < machp()->CPU.ncpuinfoe; i++){
 		cpuid(0x80000000|i, 0, info);
 		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
 			0x80000000|i, info[0], info[1], info[2], info[3]);
@@ -299,14 +299,14 @@ archmmu(void)
 	sys->pgszmask[0] = (1<<12)-1;
 	sys->pgsz[0] = 1<<12;
 	sys->npgsz = 1;
-	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
+	if(machp()->CPU.ncpuinfos == 0 && cpuidinit() == 0)
 		return 1;
 
 	/*
 	 * Check the Pse bit in function 1 DX for 2*MiB support;
 	 * if false, only 4*KiB is available.
 	 */
-	if(!(machp()->cpuinfo[1][3] & 0x00000008))
+	if(!(machp()->CPU.cpuinfo[1][3] & 0x00000008))
 		return 1;
 	sys->pgszlg2[1] = 21;
 	sys->pgszmask[1] = (1<<21)-1;
