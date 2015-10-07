@@ -971,7 +971,7 @@ struct Proc
 
 struct Procalloc
 {
-	Lock;
+	Lock l;
 	int	nproc;
 	Proc*	ht[128];
 	Proc*	arena;
@@ -1112,7 +1112,7 @@ struct Uart
 	int	special;		/* internal kernel device */
 	Uart*	next;			/* list of allocated uarts */
 
-	QLock;
+	QLock ql;
 	int	type;			/* ?? */
 	int	dev;
 	int	opens;
@@ -1151,7 +1151,7 @@ struct Uart
 	int	hup_dsr, hup_dcd;	/* send hangup upstream? */
 	int	dohup;
 
-	Rendez	r;
+	Rendez	rend;
 };
 
 extern	Uart*	consuart;
