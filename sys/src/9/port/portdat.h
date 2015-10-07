@@ -643,7 +643,7 @@ struct Pgsza
 
 struct Pgalloc
 {
-	Lock;
+	Lock l;
 	int	userinit;	/* working in user init mode */
 	Pgsza	pgsza[NPGSZ];	/* allocs for m->npgsz page sizes */
 	Page*	hash[PGHSIZE];	/* only used for user pages */
@@ -675,7 +675,7 @@ struct Timer
 	void	(*tf)(Ureg*, Timer*);
 	void	*ta;
 	/* Internal */
-	Lock;
+	Lock l;
 	Timers	*tt;		/* Timers queue this timer runs on */
 	int64_t	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
@@ -772,7 +772,7 @@ struct Schedq
 
 struct Sched
 {
-	Lock;			/* runq */
+	Lock l;			/* runq */
 	int	nrdy;
 	uint32_t delayedscheds;	/* statistics */
 	int32_t skipscheds;
@@ -1025,7 +1025,7 @@ enum
  *  action log
  */
 struct Log {
-	Lock;
+	Lock l;
 	int	opens;
 	char*	buf;
 	char	*end;
