@@ -63,7 +63,7 @@ enum {
 	Del=		0x7F,
 	Scroll=		KF|21,
 
-	Nscan=	128,
+	Nscan=	256,
 
 	Int=	0,			/* kbscans indices */
 	Ext,
@@ -74,7 +74,7 @@ enum {
  * The codes at 0x79 and 0x7b are produced by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
-Rune kbtab[Nscan] = 
+Rune kbtab[Nscan] =
 {
 [0x00]	No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
 [0x08]	'7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',

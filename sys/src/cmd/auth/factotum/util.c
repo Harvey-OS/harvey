@@ -569,7 +569,7 @@ matchattr(Attr *pat, Attr *a0, Attr *a1)
 			break;
 		}
 	}
-	return 1;		
+	return 1;
 }
 
 void
@@ -595,7 +595,7 @@ initcap(void)
 }
 
 /*
- *  create a change uid capability 
+ *  create a change uid capability
  */
 char*
 mkcap(char *from, char *to)
@@ -638,7 +638,7 @@ phaseerror(Fsstate *s, char *op)
 {
 	char tmp[32];
 
-	werrstr("protocol phase error: %s in state %s", op, phasename(s, s->phase, tmp));	
+	werrstr("protocol phase error: %s in state %s", op, phasename(s, s->phase, tmp));
 	return RpcPhase;
 }
 
@@ -780,7 +780,6 @@ readcons(char *prompt, char *def, int raw)
 				fprint(fdout, "\n%s[%s]: ", prompt, def);
 			else
 				fprint(fdout, "\n%s: ", prompt);
-			
 			s[0] = 0;
 		} else {
 			s = estrappend(s, "%c", line[0]);
@@ -890,7 +889,7 @@ setattrs(Attr *a, Attr *b)
 		}
 continue2:;
 	}
-	return a;		
+	return a;
 }
 
 void

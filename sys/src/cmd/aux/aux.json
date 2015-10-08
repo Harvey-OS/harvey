@@ -44,11 +44,10 @@
 		"stub.c",
 		"timesync.c",
 		"trampoline.c",
+		"tty.c",
 		"usage.c",
 		"watchdog.c",
 		"write.c",
-		"console.c",
-		"zerotrunc.c",
-		"tty.c"
+		"zerotrunc.c"
 	]
 }
