@@ -27,8 +27,6 @@ authentication(int cpuflag)
 		return;
 	}
 
-	print("HACK always run glenda even if we have factotum.. \n");
-	glenda();
 	/* start agent */
 	ac = 0;
 	av = argv;

@@ -343,7 +343,9 @@ readnvram(Nvrsafe *safep, int flag)
 		|| seek(loc.fd, loc.safeoff, 0) < 0
 		|| write(loc.fd, buf, loc.safelen) != loc.safelen){
 			fprint(2, "can't write key to nvram: %r\n");
-			err = 1;
+			//HACK, bypass writing nvram key
+			//err = 1;
+			err = 0;
 		}else
 			err = 0;
 	}
