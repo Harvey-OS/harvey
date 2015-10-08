@@ -161,7 +161,7 @@ findnvram(Nvrwhere *locp)
 		cputype = getenv("cputype");
 	if(cputype == nil)
 		cputype = strdup("mips");
-	if(strcmp(cputype, "386")==0 || strcmp(cputype, "alpha")==0) {
+	if(strcmp(cputype, "amd64")==0 || strcmp(cputype, "alpha")==0) {
 		free(cputype);
 		cputype = strdup("pc");
 	}
@@ -343,7 +343,9 @@ readnvram(Nvrsafe *safep, int flag)
 		|| seek(loc.fd, loc.safeoff, 0) < 0
 		|| write(loc.fd, buf, loc.safelen) != loc.safelen){
 			fprint(2, "can't write key to nvram: %r\n");
-			err = 1;
+			//HACK, bypass writing nvram key
+			//err = 1;
+			err = 0;
 		}else
 			err = 0;
 	}

@@ -742,7 +742,6 @@ PhysUart i8250physuart = {
 };
 
 
-extern void (*consuartputs)(char*, int);
 static Uart *i8250consuart;
 
 static void
@@ -753,7 +752,7 @@ i8250consputs(char *s, int n)
 		i8250putc(i8250consuart,  s[i]);
 }
 
-void
+Uart*
 i8250console(char* cfg)
 {
 	int i;
@@ -767,16 +766,17 @@ i8250console(char* cfg)
 	 * will be the same before and after that.
 	 */
 	if(/*(p = getconf("console")) == nil &&*/ (p = cfg) == nil)
-		return;
+		return nil;
 	i = strtoul(p, &cmd, 0);
 	if(p == cmd)
-		return;
-	if(consuartputs != nil){
-		return;
+		return nil;
+	if((uart = uartconsole(i, cmd)) != nil){
+		consuart = uart;
+		return uart;
 	}
 	switch(i){
 	default:
-		return;
+		return nil;
 	case 0:
 		uart = &i8250uart[0];
 		break;
@@ -793,14 +793,14 @@ i8250console(char* cfg)
 	ctlr = uart->regs;
 	csr8o(ctlr, Scr, 0x55);
 	if(csr8r(ctlr, Scr) != 0x55)
-		return;
+		return nil;
 
 	(*uart->phys->enable)(uart, 0);
 	uartctl(uart, "b9600 l8 pn s1 i1");
 	if(*cmd != '\0')
 		uartctl(uart, cmd);
-
-	i8250consuart = uart;
-	consuartputs = i8250consputs;
+	consuart = uart;
 	uart->console = 1;
+
+	return uart;
 }
