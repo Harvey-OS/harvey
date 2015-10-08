@@ -91,9 +91,7 @@
 			"mount": "/amd64/bin/mount",
 			"rc": "/amd64/bin/rc",
 			"rcmain": "/rc/lib/rcmain",
-			"srv": "/amd64/bin/srv",
-			"tty": "/amd64/bin/aux/tty",
-			"console": "/amd64/bin/aux/console"
+			"srv": "/amd64/bin/srv"
 		}
 	},
 	"Name": "k8cpu",

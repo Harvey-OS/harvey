@@ -43,6 +43,10 @@ boot(int argc, char *argv[])
 	fmtinstall('r', errfmt);
 
 	bind("#c", "/dev", MBEFORE);
+	open("/dev/cons", OREAD);
+	open("/dev/cons", OWRITE);
+	open("/dev/cons", OWRITE);
+
 	/*
 	 * init will reinitialize its namespace.
 	 * #ec gets us plan9.ini settings (*var variables).
