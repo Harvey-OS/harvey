@@ -33,6 +33,7 @@
 		"msexceltables.c",
 		"mswordstrings.c",
 		"mouse.c",
+		"nconsole.c",
 		"nfsmount.c",
 		"olefs.c",
 		"pcmcia.c",
@@ -48,6 +49,7 @@
 		"watchdog.c",
 		"write.c",
 		"console.c",
+
 		"zerotrunc.c",
 		"tty.c"
 	]
