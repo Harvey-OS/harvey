@@ -52,6 +52,7 @@ static struct {
 	"pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd10/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sd10/9fat", -1, sizeof(Nvrsafe),
+	"pc", "#r/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
 	"pc", "#f/fd1disk", -1, 512,
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
