@@ -48,6 +48,7 @@
 		"watchdog.c",
 		"write.c",
 		"console.c",
+		"nconsole.c",
 		"zerotrunc.c",
 		"tty.c"
 	]
