@@ -156,7 +156,7 @@ void
 main(void)
 {
 	int i;
-	int64_t average;
+	int64_t average, end;
 
 	rfork(RFNOTEG|RFREND);
 	rStart.l = &rl;
@@ -187,9 +187,12 @@ main(void)
 	rwakeupall(&rStart);
 	if(verbose)
 		print("main: got the afterAWhile: wakeup all waiters... done\n");
+	end = nsec() + 1000*1000*1000;
 	qunlock(&rl);
 
-	sleep(1000);
+	/* wait for ~1 sec */
+	do { sleep(100); } while(nsec() < end);
+
 	qunlock(&afterAWhile);
 	if(verbose)
 		print("main: released the afterAWhile\n");

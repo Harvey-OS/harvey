@@ -116,6 +116,7 @@ sleeper(int index)
 		if((end - start) / (1000*1000) > 1300)
 			postnote(PNGROUP, getpid(), smprint("fail: sleeper %d awakened after %lld ms", getpid(),  (end - start) / (1000*1000)));
 	} else {
+		end = nsec();
 		if(verbose)
 			print("sleeper %d failed: rsleept timedout in %lld ms\n", getpid(), (end - start) / (1000*1000));
 		postnote(PNGROUP, getpid(), smprint("fail: sleeper %d timedout", getpid()));
@@ -158,7 +159,7 @@ void
 main(void)
 {
 	int i, awakened;
-	int64_t average;
+	int64_t average, end;
 
 	rfork(RFNOTEG|RFREND);
 	rStart.l = &rl;
@@ -189,9 +190,12 @@ main(void)
 	rwakeupall(&rStart);
 	if(verbose)
 		print("main: wakeup all sleepers... done\n");
+	end = nsec() + 1000*1000*1000;
 	qunlock(&rl);
 
-	sleep(1000);
+	/* wait for ~1 sec */
+	do { sleep(100); } while(nsec() < end);
+
 	qlock(&l);
 	awakened = rwakeupall(&afterAWhile);
 	qunlock(&l);
@@ -221,6 +225,6 @@ main(void)
 		print("PASS\n");
 		exits("PASS");
 	}
-	print("FAIL: average timeout too long %lld ms\n", average / (1000*1000));
+	print("FAIL: average timeout too long %lld ms\n", average);
 	exits("FAIL");
 }
