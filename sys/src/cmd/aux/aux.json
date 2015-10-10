@@ -13,6 +13,7 @@
 		"vga/vga.json"
 	],
 	"SourceFilesCmd": [
+		"nconsole.c",
 		"9pcon.c",
 		"accupoint.c",
 		"acidleak.c",
@@ -48,6 +49,7 @@
 		"watchdog.c",
 		"write.c",
 		"console.c",
+
 		"zerotrunc.c",
 		"tty.c"
 	]
