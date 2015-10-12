@@ -114,6 +114,44 @@ i8042systemreset(void)
 	}
 }
 
+int
+mousecmd(int cmd)
+{
+	unsigned int c;
+	int tries;
+	static int badkbd;
+
+	if(badkbd)
+		return -1;
+	c = 0;
+	tries = 0;
+
+	ilock(&i8042lock);
+	do{
+		if(tries++ > 2)
+			break;
+		if(outready() < 0)
+			break;
+		outb(Cmd, 0xD4);
+		if(outready() < 0)
+			break;
+		outb(Data, cmd);
+		if(outready() < 0)
+			break;
+		if(inready() < 0)
+			break;
+		c = inb(Data);
+	} while(c == 0xFE || c == 0);
+	iunlock(&i8042lock);
+
+	if(c != 0xFA){
+		print("mousecmd: %2.2ux returned to the %2.2ux command\n", c, cmd);
+		badkbd = 1;	/* don't keep trying; there might not be one */
+		return -1;
+	}
+	return 0;
+}
+
 static int
 mousecmds(uint8_t *cmd, int ncmd)
 {
