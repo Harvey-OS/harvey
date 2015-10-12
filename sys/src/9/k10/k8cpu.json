@@ -106,7 +106,6 @@
 		"ether8139.c",
 		"ether82563.c",
 		"k8cpu.c",
-		"kbd.c",
 		"mouse.c",
 		"screen.c",
 		"sdata.c",
