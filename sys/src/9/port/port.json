@@ -20,7 +20,6 @@
 		"../port/devdraw.c",
 		"../port/devdup.c",
 		"../port/devenv.c",
-		"../port/devkbmap.c",
 		"../port/devkexec.c",
 		"../port/devkprof.c",
 		"../port/devmnt.c",
