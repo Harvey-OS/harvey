@@ -7,6 +7,7 @@
 	"Projects": [
 		"mnihongo/mnihongo.json",
 		"flashfs/flashfs.json",
+		"gconsole/gconsole.json",
 		"gps/gps.json",
 		"realemu/realemu.json",
 		"realemu/loadcom.json",
@@ -48,6 +49,7 @@
 		"watchdog.c",
 		"write.c",
 		"console.c",
+
 		"zerotrunc.c",
 		"tty.c"
 	]
