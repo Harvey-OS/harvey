@@ -1,0 +1,26 @@
+{
+	"Include": [
+		"/$ARCH/include/cflags.json"
+	],
+	"Install": "/$ARCH/bin/aux",
+	"Name": "GConsole",
+	"Program": "gconsole",
+	"Oflags": [
+		"-static",
+                "-e_main",
+		"-lc"
+	],
+	"Cflags": [
+		"-Werror"
+	],
+	"Post": [
+                "rm *.o"
+        ],
+	"SourceFiles": [
+		"cga.c",
+		"debug.c",
+		"gconsole.c",
+		"keyboard.c",
+		"serve9p.c"
+	]
+}
