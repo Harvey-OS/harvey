@@ -4,8 +4,13 @@ trap : 2
 $HARVEY/util/ufs -root=$HARVEY &
 ufspid=$!
 
-sudo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048  \
--enable-kvm \
+if [ "$(uname)" = "Linux" ] && ([ -O /dev/kvm ] || [ -G /dev/kvm ]); then
+	export kvmflag='-enable-kvm'
+	export kvmdo=sudo
+fi
+
+read -r cmd <<EOF
+$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
 -serial stdio \
 --machine pc \
 -net nic,model=rtl8139 \
@@ -15,6 +20,10 @@ sudo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048  \
 -redir tcp:17013::17013 \
 -append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 param" \
 -kernel 9k8cpu.32bit $*
+EOF
+
+echo $cmd
+eval $cmd
 
 kill $ufspid
 wait
