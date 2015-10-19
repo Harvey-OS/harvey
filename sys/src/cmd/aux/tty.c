@@ -1,14 +1,14 @@
 #include <u.h>
 #include <libc.h>
 
-int echo = 1;
+int echo;
 int raw;
 int ctrlp;
 
 void
 usage(void)
 {
-	fprint(2, "usage: aux/tty [-p] [-f comfile] cmd args...\n");
+	fprint(2, "usage: aux/tty [-e] [-p] [-f comfile] cmd args...\n");
 	exits("usage");
 }
 
@@ -26,6 +26,9 @@ main(int argc, char *argv[])
 	ARGBEGIN{
 	case 'p':
 		ctrlp++;
+		break;
+	case 'e':
+		echo++;
 		break;
 	case 'f':
 		file = EARGF(usage());
