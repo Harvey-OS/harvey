@@ -1,14 +1,12 @@
-#include <u.h>
+ #include <u.h>
 #include <libc.h>
 
-int echo = 1;
-int raw;
 int ctrlp;
 
 void
 usage(void)
 {
-	fprint(2, "usage: aux/tty [-p] [-f comfile] cmd args...\n");
+	fprint(2, "usage: aux/tty [-p] cmd args...\n");
 	exits("usage");
 }
 
@@ -19,28 +17,12 @@ main(int argc, char *argv[])
 	int tochld[2];
 	int pid;
 	int i, j;
-	char *file;
-
-	file = nil;
 
 	ARGBEGIN{
 	case 'p':
 		ctrlp++;
 		break;
-	case 'f':
-		file = EARGF(usage());
-		break;
 	}ARGEND
-
-	if(file != nil){
-		int fd;
-		if((fd = open(file, ORDWR)) == -1)
-			sysfatal("open %s", file);
-		dup(fd, 0);
-		dup(fd, 1);
-		dup(fd, 2);
-		close(fd);
-	}
 
 	pipe(frchld);
 	pipe(tochld);
@@ -107,15 +89,9 @@ main(int argc, char *argv[])
 				if(buf[i] == '\r' || buf[i] == '\n'){
 					obuf[j++] = '\n';
 					write(tochld[0], obuf, j);
-					if(echo){
-						obuf[j-1] = '\r';
-						obuf[j++] = '\n';
-						write(1, obuf+oldj, j-oldj);
-					}
 					j = 0;
 				} else if(ctrlp && buf[i] == '\x10'){ // ctrl-p
 					if(j > 0){
-						if(echo)write(1, obuf+oldj, j-oldj);
 						write(tochld[0], obuf, j);
 						j = 0;
 					}
@@ -131,7 +107,6 @@ main(int argc, char *argv[])
 					}
 				} else if(buf[i] == '\003'){ // ctrl-c
 					if(j > 0){
-						if(echo)write(1, obuf+oldj, j-oldj);
 						write(tochld[0], obuf, j);
 						j = 0;
 					}
@@ -140,7 +115,6 @@ main(int argc, char *argv[])
 					continue;
 				} else if(buf[i] == '\x1d' ){ // ctrl-]
 					if(j > 0){
-						if(echo)write(1, obuf+oldj, j-oldj);
 						write(tochld[0], obuf, j);
 						j = 0;
 					}
@@ -149,49 +123,20 @@ main(int argc, char *argv[])
 					continue;
 				} else if(buf[i] == '\004'){ // ctrl-d
 					if(j > 0){
-						if(echo)write(1, obuf+oldj, j-oldj);
 						write(tochld[0], obuf, j);
 						j = 0;
 					}
 					fprint(1, "aux/tty: sent eof to %d\n", pid);
 					write(tochld[0], obuf, 0); //eof
 					continue;
-				} else if(buf[i] == 0x15){ // ctrl-u
-					if(!raw){
-						while(j > 0){
-							j--;
-							if(echo)write(1, "\b \b", 3); // bs
-							else write(tochld[0], "\x15", 1); // bs
-						}
-					} else {
-						obuf[j++] = buf[i];
-					}
-					continue;
-				} else if(buf[i] == 0x7f || buf[i] == '\b'){ // backspace
-					if(!raw){
-						if(j > 0){
-							j--;
-							if(echo)write(1, "\b \b", 3); // bs
-							else write(tochld[0], "\b", 1); // bs
-						}
-					} else {
-						obuf[j++] = '\b';
-					}
-					continue;
 				} else {
 					obuf[j++] = buf[i];
 				}
 			}
 			if(j > 0){
-				if(raw){
-					if(echo)write(1, obuf, j);
-					write(tochld[0], obuf, j);
-					j = 0;
-				} else if(echo && j > oldj){
-					write(1, obuf+oldj, j-oldj);
-				}
-
+				write(1, obuf+oldj, j-oldj);
 			}
+
 		}
 		close(0);
 		close(1);
