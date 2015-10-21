@@ -93,6 +93,7 @@
 			"rcmain": "/rc/lib/rcmain",
 			"srv": "/amd64/bin/srv",
 			"tty": "/amd64/bin/aux/tty",
+			"hconsole": "/amd64/bin/aux/hconsole",
 			"console": "/amd64/bin/aux/console"
 		}
 	},

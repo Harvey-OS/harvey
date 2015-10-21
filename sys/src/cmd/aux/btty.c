@@ -121,14 +121,18 @@ main(int argc, char *argv[])
 					fprint(1, "aux/tty: sent interrupt to %d\n", pid);
 					postnote(PNGROUP, pid, "term");
 					continue;
+				} else if(buf[i] == '\004'){ // ctrl-d
+					if(j > 0){
+						write(tochld[0], obuf, j);
+						j = 0;
+					}
+					fprint(1, "aux/tty: sent eof to %d\n", pid);
+					write(tochld[0], obuf, 0); //eof
+					continue;
 				} else {
 					obuf[j++] = buf[i];
 				}
 			}
-			if(j > 0){
-				write(1, obuf+oldj, j-oldj);
-			}
-
 		}
 		close(0);
 		close(1);

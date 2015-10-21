@@ -7,6 +7,8 @@
 	"Projects": [
 		"mnihongo/mnihongo.json",
 		"flashfs/flashfs.json",
+		"console/console.json",
+		"console/hconsole.json",
 		"gps/gps.json",
 		"realemu/realemu.json",
 		"realemu/loadcom.json",
@@ -34,6 +36,7 @@
 		"mswordstrings.c",
 		"mouse.c",
 		"nfsmount.c",
+		"oldconsole.c",
 		"olefs.c",
 		"pcmcia.c",
 		"portmap.c",
@@ -47,7 +50,6 @@
 		"usage.c",
 		"watchdog.c",
 		"write.c",
-		"console.c",
 		"zerotrunc.c",
 		"tty.c"
 	]

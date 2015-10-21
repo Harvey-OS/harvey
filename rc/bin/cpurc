@@ -77,9 +77,9 @@ if(test -e /cfg/$sysname/cpustart)
 #dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
 
 # From bootfs
-/boot/listen1 -t -v tcp!*!1522  /boot/tty /boot/rc -m /boot/rcmain -i &
-/boot/tty -f'#t/eia0' /boot/rc -m/boot/rcmain -i &
-exec /boot/console /boot/tty /boot/rc -m/boot/rcmain -i
+/boot/listen1 -t -v tcp!*!1522 /bin/aux/console -d /sys/log/console.listen.log /boot/tty /boot/rc -m /boot/rcmain -i &
+/bin/aux/console -d /sys/log/console.com.log -f '#t/eia0' /boot/tty /boot/rc -m/boot/rcmain -i &
+exec /bin/aux/hconsole -d /sys/log/console.hardware.log /boot/tty /boot/rc -m/boot/rcmain -i
 
 # echo `{date} $sysname >>/sys/log/boot
 exit ''
