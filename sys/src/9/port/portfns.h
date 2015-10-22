@@ -363,7 +363,8 @@ char*		seprintpagestats(char*, char*);
 char*		seprintphysstats(char*, char*);
 int		setcolor(uint32_t, uint32_t, uint32_t, uint32_t);
 void		setkernur(Ureg*, Proc*);
-int		setlabel(Label*);
+// The horror. But, well, it does make a BIG performance difference. We're told.
+int		slim_setlabel(Label*);
 void		setregisters(Ureg*, char*, char*, int);
 char*		skipslash(char*);
 void		sleep(Rendez*, int (*)(void*), void*);
