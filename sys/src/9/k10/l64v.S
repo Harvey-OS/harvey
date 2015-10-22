@@ -435,20 +435,8 @@ gotolabel:
 	MOVQ	%rdi, %rax
 	MOVQ	0(%rdi), %rsp
 
-	MOVQ	(16+0*8)(%rdi), %rBX
-	MOVQ	(16+1*8)(%rdi), %rCX
-	MOVQ	(16+2*8)(%rdi), %rDX
-	MOVQ	(16+3*8)(%rdi), %rSI
+	// Can't kill this quite yet.
 	MOVQ	(16+5*8)(%rdi), %rBP
-	MOVQ	(16+6*8)(%rdi), %r8
-	MOVQ	(16+7*8)(%rdi), %r9
-	MOVQ	(16+8*8)(%rdi), %r10
-	MOVQ	(16+9*8)(%rdi), %r11
-	MOVQ	(16+10*8)(%rdi), %r12
-	MOVQ	(16+11*8)(%rdi), %r13
-	MOVQ	(16+12*8)(%rdi), %r14
-	MOVQ	(16+13*8)(%rdi), %r15
-	MOVQ	(16+4*8)(%rdi), %rDI
 
 	MOVQ	8(%rax), %rax			/* put return PC on the stack */
 						/* NOTE: replaces previous caller? */
@@ -459,26 +447,14 @@ gotolabel:
 	/* save all registers on this stack, the save stack
 	* in the label struct.
 	*/
-.global setlabel
-setlabel:
+.global slim_setlabel
+slim_setlabel:
 	// %rax is trashable.
 	MOVQ	0(%rSP), %rax			/* store return PC */
 	MOVQ	%rax, 8(%rdi)
 
-	MOVQ	%rBX, (16+0*8)(%rdi)
-	MOVQ	%rCX, (16+1*8)(%rdi)
-	MOVQ	%rDX, (16+2*8)(%rdi)
-	MOVQ	%rSI, (16+3*8)(%rdi)
-	MOVQ	%rDI, (16+4*8)(%rdi)
+	// Can't kill this quite yet.
 	MOVQ	%rBP, (16+5*8)(%rdi)
-	MOVQ	%r8, (16+6*8)(%rdi)
-	MOVQ	%r9, (16+7*8)(%rdi)
-	MOVQ	%r10, (16+8*8)(%rdi)
-	MOVQ	%r11, (16+9*8)(%rdi)
-	MOVQ	%r12, (16+10*8)(%rdi)
-	MOVQ	%r13, (16+11*8)(%rdi)
-	MOVQ	%r14, (16+12*8)(%rdi)
-	MOVQ	%r15, (16+13*8)(%rdi)
 
 	MOVQ	%rSP, 0(%rdi)	/* store SP */
 	MOVL	$0, %eax	/* return 0 */
