@@ -22,13 +22,11 @@ authentication(int cpuflag)
 	char *argv[16], **av;
 	int ac;
 
-	if(access("/boot/factotum", AEXEC) < 0){
+	if(access("/boot/factotum", AEXEC) < 0|| getenv("user") != nil){
 		glenda();
 		return;
 	}
 
-	print("HACK always run glenda even if we have factotum.. \n");
-	glenda();
 	/* start agent */
 	ac = 0;
 	av = argv;
