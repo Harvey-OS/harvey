@@ -42,6 +42,7 @@
 		"tsemacquire.c",
 		"va_copy.c",
 		"vseprint.c",
+		"waserror.c",
 		"wlockt0.c",
 		"wlockt1.c",
 		"wlockt2.c"
