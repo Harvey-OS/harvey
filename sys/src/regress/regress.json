@@ -30,6 +30,10 @@
 		"va_copy.c",
 		"vseprint.c",
 		"tls.c",
-		"hcube.c"
+		"hcube.c",
+		"waserror.c",
+		"wlockt0.c",
+		"wlockt1.c",
+		"wlockt2.c"
 	]
 }
