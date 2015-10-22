@@ -285,3 +285,21 @@ void dumpgpr(Ureg* ureg);
 
 /* debug support. */
 int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots);
+
+/* horror */
+static inline void __clobber_callee_regs(void)
+{
+	asm volatile ("" : : : "rbx", "r12", "r13", "r14", "r15");
+}
+
+int slim_setlabel(Label*) __attribute__((returns_twice));
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+
+#define setlabel(label) ({int err;                                                 \
+                    __clobber_callee_regs();                               \
+                    err = slim_setlabel(label);                                     \
+                    err;})
+
+#pragma GCC diagnostic pop
