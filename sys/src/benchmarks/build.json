@@ -1,0 +1,10 @@
+{
+	"Include": [
+		"/sys/src/cmd/cmd.json"
+	],
+	"Install": "/$ARCH/bin/bench",
+	"Name": "Bench",
+	"SourceFilesCmd": [
+		"error.c"
+	]
+}
