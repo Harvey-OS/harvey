@@ -93,7 +93,9 @@
 			"rcmain": "/rc/lib/rcmain",
 			"srv": "/amd64/bin/srv",
 			"tty": "/amd64/bin/aux/tty",
-			"console": "/amd64/bin/aux/console"
+			"screenconsole": "/amd64/bin/aux/screenconsole",
+			"pipeconsole": "/amd64/bin/aux/pipeconsole",
+			"comconsole": "/amd64/bin/aux/comconsole"
 		}
 	},
 	"Name": "k8cpu",
