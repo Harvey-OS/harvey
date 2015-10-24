@@ -9,72 +9,9 @@
 
 #include "all.h"
 
-enum { 
+enum {
 	ARgiveup = 100,
 };
-
-static uint8_t*
-gstring(uint8_t *p, uint8_t *ep, char **s)
-{
-	uint n;
-
-	if(p == nil)
-		return nil;
-	if(p+BIT16SZ > ep)
-		return nil;
-	n = GBIT16(p);
-	p += BIT16SZ;
-	if(p+n > ep)
-		return nil;
-	*s = malloc(n+1);
-	memmove((*s), p, n);
-	(*s)[n] = '\0';
-	p += n;
-	return p;
-}
-
-static uint8_t*
-gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
-{
-	uint n;
-
-	if(p == nil)
-		return nil;
-	if(p+BIT16SZ > ep)
-		return nil;
-	n = GBIT16(p);
-	p += BIT16SZ;
-	if(p+n > ep)
-		return nil;
-	*s = malloc(n);
-	if(*s == nil)
-		return nil;
-	memmove((*s), p, n);
-	*np = n;
-	p += n;
-	return p;
-}
-
-static uint8_t*
-convM2AI(uint8_t *p, int n, AuthInfo **aip)
-{
-	uint8_t *e = p+n;
-	AuthInfo *ai;
-
-	ai = mallocz(sizeof(*ai), 1);
-	if(ai == nil)
-		return nil;
-
-	p = gstring(p, e, &ai->cuid);
-	p = gstring(p, e, &ai->suid);
-	p = gstring(p, e, &ai->cap);
-	p = gcarray(p, e, &ai->secret, &ai->nsecret);
-	if(p == nil)
-		auth_freeAI(ai);
-	else
-		*aip = ai;
-	return p;
-}
 
 static int
 dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
