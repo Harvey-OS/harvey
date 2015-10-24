@@ -436,31 +436,6 @@ struct Namecache {
 Namecache *dnscache;
 
 static Namecache*
-domlookupl(void *name, int len)
-{
-	Namecache *n, **ln;
-
-	if(len >= sizeof(n->dom))
-		return nil;
-
-	for(ln=&dnscache, n=*ln; n; ln=&(*ln)->next, n=*ln) {
-		if(strncmp(n->dom, name, len) == 0 && n->dom[len] == 0) {
-			*ln = n->next;
-			n->next = dnscache;
-			dnscache = n;
-			return n;
-		}
-	}
-	return nil;
-}
-
-static Namecache*
-domlookup(void *name)
-{
-	return domlookupl(name, strlen(name));
-}
-
-static Namecache*
 iplookup(uint32_t ip)
 {
 	Namecache *n, **ln;
