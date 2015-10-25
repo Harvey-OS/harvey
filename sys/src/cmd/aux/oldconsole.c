@@ -253,7 +253,7 @@ keybscan(uint8_t code, char *out, int len)
 			 * to make the VM give up keyboard and mouse focus.
 			 * This has the unfortunate side effect that when you
 			 * come back into focus, Plan 9 thinks you want to type
-			 * a compose sequence (you just typed alt). 
+			 * a compose sequence (you just typed alt).
 			 *
 			 * As a clumsy hack around this, we look for ctl-alt
 			 * and don't treat it as the start of a compose sequence.
@@ -399,7 +399,7 @@ main(int argc, char *argv[])
 	pipe(frchld);
 	pipe(tochld);
 	// rfnameg to put command into a new pgid (in case we are init)
-	switch(pid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG)){ 
+	switch(pid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG)){
 	case -1:
 		exits("fork");
 	case 0:
