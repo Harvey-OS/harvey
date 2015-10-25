@@ -120,14 +120,11 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			break;
 		case 0x000006e0:		/* Core Duo */
 		case 0x000006f0:		/* Core 2 Duo/Quad/Extreme */
-		case 0x00010670:		/* Core 2 Extreme */
-		case 0x000106e0:		/* i5 7xx */
-		case 0x00020650:		/* i5 6xx, i3 5xx */
-		case 0x000306c0:		/* i5 4xxx */
+		case 0x00000660:		/* kvm over i5 */
+		case 0x00000670:		/* Core 2 Extreme */
+		case 0x00000650:		/* i5 6xx, i3 5xx */
+		case 0x000006c0:		/* i5 4xxx */
 		case 0x000006a0:		/* i7 paurea... */
-		case 0x000106a0:		/* i7 9xx */
-		case 0x000206a0:		/* i7 2xxx, i3 2xxx */
-		case 0x000306a0:		/* i7 3xxx, i5 3xxx, i3 4xxx */
 			/*
 			 * Get the FSB frequemcy.
 			 * If processor has Enhanced Intel Speedstep Technology
@@ -267,7 +264,7 @@ archhz(void)
 	}
 
 	hz = cpuidhz(info0, info1);
-	if(hz != 0 || machp()->machno != 0)
+	if(hz > 0 || machp()->machno != 0)
 		return hz;
 
 	iprint("archhz, cpuidhz failed, going to i8254hz\n");
