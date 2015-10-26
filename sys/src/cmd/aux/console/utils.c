@@ -125,7 +125,8 @@ servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
 	if(!debugging)
 		close(2);
 
-	rfork(RFNAMEG);
+	if(*argv)
+		rfork(RFNAMEG);
 
 	debug("%s %d: started, linecontrol = %d, blind = %d\n", argv0, pid, linecontrol, blind);
 
@@ -204,15 +205,19 @@ servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
 	if(mount(mnt, -1, "/dev", MBEFORE, "", devmnt) == -1)
 		sysfatal("mount (%s): %r", argv[0]);
 
-	debug("%s (%d): all services started, ready to exec(%s)\n", argv0, pid, argv[0]);
+	debug("%s (%d): all services started\n", argv0, pid);
 
-	/* become the requested program */
-	rfork(RFNOTEG|RFREND|RFCFDG);
+	if(*argv){
+		debug("%s (%d): ready to exec(%s)\n", argv0, pid, argv[0]);
 
-	input = open("/dev/cons", OREAD);
-	output = open("/dev/cons", OWRITE);
-	if(dup(output, 2) != 2)
-		sysfatal("bad FDs (%d, %d): %r", input, output);
+		/* become the requested program */
+		rfork(RFNOTEG|RFREND|RFCFDG);
 
-	exec(argv[0], argv);
+		input = open("/dev/cons", OREAD);
+		output = open("/dev/cons", OWRITE);
+		if(dup(output, 2) != 2)
+			sysfatal("bad FDs (%d, %d): %r", input, output);
+
+		exec(argv[0], argv);
+	}
 }

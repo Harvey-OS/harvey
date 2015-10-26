@@ -25,6 +25,7 @@ int	bargc;
 
 static Method	*rootserver(char*);
 static void	usbinit(void);
+static void	startconsole(void);
 static void	kbmap(void);
 
 void
@@ -92,6 +93,11 @@ boot(int argc, char *argv[])
 	 *  load keymap if it is there.
 	 */
 	kbmap();
+
+	/*
+	 *	start /dev/cons
+	 */
+	startconsole();
 
 	/*
  	 *  authentication agent
@@ -273,6 +279,40 @@ usbinit(void)
 	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0 &&
 	    access(usbd, AEXIST) >= 0)
 		run(usbd, nil);
+}
+
+static void
+startconsole(void)
+{
+	char *dbgfile, *argv[16], **av;
+	int ac;
+	if(access("/boot/screenconsole", AEXEC) < 0)
+		fatal("cannot access /boot/screenconsole");
+
+	/* start agent */
+	ac = 0;
+	av = argv;
+	av[ac++] = "screenconsole";
+	if(dbgfile = getenv("debugconsole")){
+		av[ac++] = "-d";
+		av[ac++] = dbgfile;
+	}
+	av[ac] = 0;
+	switch(fork()){
+	case -1:
+		fatal("starting screenconsole");
+	case 0:
+		exec("/boot/screenconsole", av);
+		fatal("execing /boot/screenconsole");
+	default:
+		break;
+	}
+
+	/* wait for agent to really be there */
+	while(access("/dev/cons", 0) < 0){
+		print("waiting for /dev/cons...\n");
+		sleep(250);
+	}
 }
 
 static void

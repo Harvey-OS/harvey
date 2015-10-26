@@ -27,7 +27,7 @@ int crnl;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-d dbgfile] program [args]\n", argv0);
+	fprint(2, "usage: %s [-d dbgfile] [program [args]]\n", argv0);
 	exits("usage");
 }
 void
@@ -46,9 +46,6 @@ main(int argc, char *argv[])
 		usage();
 		break;
 	}ARGEND;
-
-	if(argc == 0)
-		usage();
 
 	/* first try in /dev so that binding can work */
 	if((fd = open("/dev/ps2keyb", OREAD)) <= 0)
