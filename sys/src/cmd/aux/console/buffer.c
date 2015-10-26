@@ -101,14 +101,17 @@ breadln(Buffer *b, uint32_t *length)
 		data = b->data + b->read;
 		/* take up to the first \n... */
 		c = data;
-		while(*c != '\n' && c - data < len)
-			++c;
-		if(c < b->data + b->ctrld)
-			++c;	/* include \n, but not ^D */
-		len = c - data;
-		--b->newlines;
-		b->linewidth = 0;
+		do
+		{
+			if(*c++ == '\n')
+				len = c - data;
+		}
+		while(c - data < len);
 		b->read += len;
+		if(b->data[b->read - 1] == '\n'){
+			--b->newlines;
+			b->linewidth = 0;
+		}
 	}
 	if(b->read == b->ctrld)
 		b->ctrld = b->size;

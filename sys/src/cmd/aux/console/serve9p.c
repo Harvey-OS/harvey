@@ -308,9 +308,16 @@ syncCons(int connection, Fcall *rep)
 	char *d;
 
 	queue = &consreads;
-	if(qempty(queue) || !blineready(input))
+	if(qempty(queue) || bempty(input))
 		return 1;	/* continue */
 
+	/* here we have a pending queue and either (checked by fscons)
+	 *
+	 * - a full line verified by blineready, or
+	 * - a partial line with either rawmode active or linecontrol inactive
+	 *
+	 * in both case we have something to send and somebody ready to receive
+	 */
 	debug("syncCons(queue = %#p)\n", queue);
 	rep->type = Rread;
 
@@ -318,7 +325,10 @@ syncCons(int connection, Fcall *rep)
 	while(!qempty(queue) && !bempty(input)){
 		ar = queue->head;
 		l = ar->count;
-		d = breadln(input, &l);
+		if(rawmode)
+			d = bread(input, &l);
+		else
+			d = breadln(input, &l);
 
 		rep->tag = ar->tag;
 		rep->count = l;
@@ -450,6 +460,8 @@ lineprinter(char c, Buffer* b)
 static void
 linebuilder(char c, Buffer* b)
 {
+	if (b->ctrld < b->size)
+		return;	/* ignore everything after ^D, until it has been consumed */
 	if(b->written > 0 && b->data[b->written-1] == '\r'){
 		/* turn \r to \n */
 		b->data[b->written-1] = '\n';
@@ -990,7 +1002,7 @@ fsserve(int connection, char *owner)
 		if((status == Unmounted || ISCLOSED(inputfid)) && (w = closeConsReaders(connection, &rep)) <= 0){
 			debug("serve9p %d: closeConsReaders returns %d\n", fspid, w);
 			break;
-		} else if(!linecontrol || blineready(input)){
+		} else if(!linecontrol || rawmode || blineready(input)){
 			if((w = syncCons(connection, &rep)) <= 0){
 				debug("serve9p %d: syncCons(input) returns %d\n", fspid, w);
 				break;
