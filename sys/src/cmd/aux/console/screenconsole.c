@@ -27,13 +27,29 @@ int crnl;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-d dbgfile] program [args]\n", argv0);
+	fprint(2, "usage: %s [-d dbgfile] srvname\n", argv0);
 	exits("usage");
+}
+static void
+post(char *srv, int fd)
+{
+	int f;
+	char buf[128];
+
+	fprint(2, "post %s...\n", srv);
+	sprint(buf, "#s/%s", srv);
+	f = create(buf, OWRITE, 0666);
+	if(f < 0)
+		sysfatal("create(%s)", srv);
+	sprint(buf, "%d", fd);
+	if(write(f, buf, strlen(buf)) != strlen(buf))
+		sysfatal("write");
 }
 void
 main(int argc, char *argv[])
 {
-	int fd;
+	int fd, devmnt;
+	char *srv;
 
 	blind = 0;
 	linecontrol = 1;
@@ -47,8 +63,12 @@ main(int argc, char *argv[])
 		break;
 	}ARGEND;
 
-	if(argc == 0)
+	if(argc > 1)
 		usage();
+	if(argc)
+		srv = argv[0];
+	else
+		srv = "screenconsole";
 
 	/* first try in /dev so that binding can work */
 	if((fd = open("/dev/ps2keyb", OREAD)) <= 0)
@@ -62,5 +82,7 @@ main(int argc, char *argv[])
 	dup(fd, 1);
 	close(fd);
 
-	servecons(argv, readkeyboard, writecga);
+	fd = servecons(readkeyboard, writecga, &devmnt);
+	post(srv, fd);
+	exits(0);
 }
