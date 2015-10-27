@@ -1,6 +1,6 @@
 {
 	"Include": [
-		"/amd64/include/cflags.json"
+		"/$ARCH/include/cflags.json"
 	],
 	"Name": "Cmd",
 	"Oflags": [
