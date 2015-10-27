@@ -56,7 +56,7 @@ extern int blineready(Buffer *);
 #define bspace(b) (b->size - b->written)
 #define bpending(b) (b->written - b->read)
 
-extern void servecons(char *argv[], StreamFilter, StreamFilter);
+extern int servecons(StreamFilter, StreamFilter, int*);
 
 extern int fsinit(int *, int *);
 extern void fsserve(int, char*);

@@ -30,7 +30,6 @@
 		"bootcache.c",
 		"bootip.c",
 		"bootk8cpu.c",
-		"console.c",
 		"embed.c",
 		"local.c",
 		"paq.c",
