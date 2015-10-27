@@ -46,9 +46,9 @@ struct Rpc
 {
 	char	*name;
 	uint32_t	count;
-	vlong	time;
-	vlong	lo;
-	vlong	hi;
+	long long	time;
+	long long	lo;
+	long long	hi;
 	uint32_t	bin;
 	uint32_t	bout;
 };
@@ -69,7 +69,7 @@ struct Fsrpc
 	int	canint;			/* Interrupt gate */
 	int	flushtag;		/* Tag on which to reply to flush */
 	Fcall	work;			/* Plan 9 incoming Fcall */
-	uchar	buf[IOHDRSZ+Maxfdata];	/* Data buffer */
+	uint8_t	buf[IOHDRSZ+Maxfdata];	/* Data buffer */
 };
 
 struct Fid
@@ -83,7 +83,7 @@ struct Fid
 	uint32_t	nwrite;
 	uint32_t	bread;
 	uint32_t	bwrite;
-	vlong	offset;			/* for directories */
+	long long	offset;			/* for directories */
 };
 
 struct File
