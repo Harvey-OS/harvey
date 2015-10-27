@@ -109,11 +109,13 @@ gethostowner(void)
  *  - fd 0 can be read by inputFilter
  *  - fd 1 can be written by outputFilter
  *  - fd 2 can receive debug info (if debugging)
+ *
+ * returns the fd to mount
  */
-void
-servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
+int
+servecons(StreamFilter inputFilter, StreamFilter outputFilter, int *devmnt)
 {
-	int pid, input, output, fs, mnt, devmnt;
+	int pid, input, output, fs, mnt;
 	char *s;
 
 	s = gethostowner();
@@ -129,8 +131,7 @@ servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
 
 	debug("%s %d: started, linecontrol = %d, blind = %d\n", argv0, pid, linecontrol, blind);
 
-	fs = fsinit(&mnt, &devmnt);
-	debug("%s %d: fsinit: fs = %d, mnt = %d, devmnt = '%c'\n", argv0, pid, fs, mnt, devmnt);
+	fs = fsinit(&mnt, devmnt);
 
 	/* start the file system */
 	switch(rfork(RFPROC|RFMEM|RFNOWAIT|RFCENVG|RFNOTEG|RFCNAMEG|RFFDG)){
@@ -162,7 +163,7 @@ servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
 			sysfatal("rfork (output writer): %r");
 			break;
 		case 0:
-			if(mount(mnt, -1, "/dev", MBEFORE, "", devmnt) == -1)
+			if(mount(mnt, -1, "/dev", MBEFORE, "", *devmnt) == -1)
 				sysfatal("mount (output writer): %r");
 			if((output = open("/dev/gconsout", OREAD)) == -1)
 				sysfatal("open /dev/gconsout: %r");
@@ -182,7 +183,7 @@ servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
 			sysfatal("rfork (input reader): %r");
 			break;
 		case 0:
-			if(mount(mnt, -1, "/dev", MBEFORE, "", devmnt) == -1)
+			if(mount(mnt, -1, "/dev", MBEFORE, "", *devmnt) == -1)
 				sysfatal("mount (input reader): %r");
 			if((input = open("/dev/gconsin", OWRITE)) == -1)
 				sysfatal("open /dev/gconsin: %r");
@@ -200,19 +201,5 @@ servecons(char *argv[], StreamFilter inputFilter, StreamFilter outputFilter)
 	close(0);
 	close(1);
 
-	debug("%s %d: mounting mnt for %s\n", argv0, pid, argv[0]);
-	if(mount(mnt, -1, "/dev", MBEFORE, "", devmnt) == -1)
-		sysfatal("mount (%s): %r", argv[0]);
-
-	debug("%s (%d): all services started, ready to exec(%s)\n", argv0, pid, argv[0]);
-
-	/* become the requested program */
-	rfork(RFNOTEG|RFREND|RFCFDG);
-
-	input = open("/dev/cons", OREAD);
-	output = open("/dev/cons", OWRITE);
-	if(dup(output, 2) != 2)
-		sysfatal("bad FDs (%d, %d): %r", input, output);
-
-	exec(argv[0], argv);
+	return mnt;
 }

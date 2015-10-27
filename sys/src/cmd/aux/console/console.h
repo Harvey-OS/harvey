@@ -27,6 +27,10 @@ enum
 /* Read from the first fd, do its own work, and write to the second */
 typedef void (*StreamFilter)(int, int);
 
+extern int systemwide;	/* all the system depend on this console:
+						 * - allow multiple attach
+						 * - never end fsserve
+						 */
 extern int blind;	/* no feedback for input, disables rawmode */
 extern int linecontrol;
 extern int crnl;	/* turn \n into \r\n to output device */
@@ -56,7 +60,7 @@ extern int blineready(Buffer *);
 #define bspace(b) (b->size - b->written)
 #define bpending(b) (b->written - b->read)
 
-extern void servecons(char *argv[], StreamFilter, StreamFilter);
+extern int servecons(StreamFilter, StreamFilter, int*);
 
 extern int fsinit(int *, int *);
 extern void fsserve(int, char*);
