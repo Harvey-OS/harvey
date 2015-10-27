@@ -35,6 +35,8 @@ typedef enum
 	Unmounted,		/* fsserve() loop while status < Unmounted */
 } Status;
 
+int systemwide;
+
 static Status status;
 static int rawmode;
 
@@ -209,7 +211,6 @@ struct OpQueue
 
 static OpQueue consreads;
 static AsyncOp *outputread;		/* only one process can access Qoutput */
-static AsyncOp *inputwrite;		/* only one process can access Qinput */
 
 static void
 qinit(OpQueue *q)
@@ -567,8 +568,8 @@ rattach(Fcall *req, Fcall *rep)
 	if(spec && spec[0])
 		return rerror(rep, "bad attach specifier");
 
-	if(external != nil){
-		/* we expect 3 valid Tattach:
+	if(external != nil && !systemwide){
+		/* when not system wide (aka screenconsole), we expect 3 valid Tattach:
 		 * 1 for the process that will send us the input, writing Qinput
 		 * 1 for the process that will print our output, reading Qoutput
 		 * 1 for the rest of the children
@@ -581,7 +582,7 @@ rattach(Fcall *req, Fcall *rep)
 	if(f == nil)
 		return rerror(rep, "out of memory");
 
-	if(input != nil && output != nil){
+	if(external == nil && input != nil && output != nil){
 		external = f;
 		status = Mounted;
 	}
@@ -822,7 +823,9 @@ rwrite(Fcall *req, Fcall *rep)
 			rep->count = req->count;
 			break;
 		case Qinput:
-			if(rawmode || blind){
+			if(ISCLOSED(outputfid) || status == Unmounted){
+				rep->count = 0;
+			} else if(rawmode || blind){
 				rep->count = bwrite(input, req->data, req->count);
 			} else if(!linecontrol) {
 				/* life is easy:
@@ -853,13 +856,6 @@ rwrite(Fcall *req, Fcall *rep)
 
 					/* we knew we have enough space, abort if not */
 					assert(maxlength == rep->count);
-				} else if(input->ctrld < input->size){
-					/* if this Twrite(Qinput) contains a ^D it has to
-					 * wait for a reply until someone consumed it
-					 */
-					assert(inputwrite == nil);
-					inputwrite = opalloc(req->tag, req->count);
-					return 0;
 				} else {
 					/* sync visible output and input buffer
 					 *
@@ -1006,32 +1002,6 @@ fsserve(int connection, char *owner)
 				break;
 			}
 		}
-		/* finally, if a Twrite(Qinput) is waiting for a reply we serve it.
-		 *
-		 * Note that Twrite(Qinput) are syncronous unless they activate
-		 * a input->ctrld, in which case they have to wait for a
-		 * Tread(Qcons) that deactivate the flag.
-		 * Moreover if the queue of consreads is empty after such
-		 * deactivation, we send a zero length Rwrite, so that it will
-		 * release the input device.
-		 */
-		debug("serve9p %d: if a Twrite(Qinput) is waiting for a reply we serve it. \n", fspid);
-		if(inputwrite && input->ctrld == input->size){
-			rep.type = Rwrite;
-			rep.tag = inputwrite->tag;
-			if(qempty((&consreads)))
-				rep.count = 0;
-			else
-				rep.count = inputwrite->count;
-
-			if((w = sendmessage(connection, &rep)) <= 0){
-				debug("serve9p %d: sendmessage for inputwrite returns %d\n", fspid, w);
-				break;
-			}
-
-			free(inputwrite);
-			inputwrite = nil;
-		}
 
 		/* We can exit (properly) only when the following conditions hold
 		 *
@@ -1053,7 +1023,7 @@ fsserve(int connection, char *owner)
 		 * (AND obviously if an unexpected error occurred)
 		 */
 	}
-	while(status < Unmounted || !ISCLOSED(inputfid) || !ISCLOSED(outputfid));
+	while(systemwide || status < Unmounted || !ISCLOSED(inputfid) || !ISCLOSED(outputfid));
 
 
 	if(r < 0)

@@ -16,6 +16,9 @@ bind -a #κ /dev
 bind -a #u /dev
 bind -b #P /dev
 
+# screen console
+mount -b /srv/screenconsole /dev
+
 # mount points
 mount -a /srv/slashn /n
 mount -a /boot /bin
