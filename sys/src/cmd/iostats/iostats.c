@@ -53,7 +53,7 @@ main(int argc, char **argv)
 	Proc *m;
 	Frec *fr;
 	Fid *fid;
-	ulong ttime;
+	unsigned long ttime;
 	char *dbfile, *s;
 	char buf[128];
 	float brpsec, bwpsec, bppsec;
@@ -92,7 +92,7 @@ main(int argc, char **argv)
 			fatal("no working directory");
 
 		rfork(RFENVG|RFNAMEG|RFNOTEG);
-		if(mount(p[0], -1, "/", MREPL, "") < 0)
+		if(mount(p[0], -1, "/", MREPL, "", 'M') < 0)
 			fatal("mount /");
 
 		bind("#c/pid", "/dev/pid", MREPL);
