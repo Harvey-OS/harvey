@@ -2540,10 +2540,6 @@ reset(Hci *hp)
 	Pcidev *p;
 	static Lock resetlck;
 
-	/*
-	if(getconf("*nousbohci"))
-		return -1;
-	*/
 	ilock(&resetlck);
 	scanpci();
 

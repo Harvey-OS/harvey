@@ -734,10 +734,6 @@ usbreset(void)
 	int cardno, ctlrno;
 	Hci *hp;
 
-	/*
-	if(getconf("*nousbprobe"))
-		return;
-	*/
 	dprint("usbreset\n");
 
 	for(ctlrno = 0; ctlrno < Nhcis; ctlrno++)
