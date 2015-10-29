@@ -1,0 +1,42 @@
+# status
+
+should work, using it on local network.  see the manual page and
+the todo-list below for caveats.
+
+
+# intro
+
+this provides a plan 9 authentication service (auth/authsrv).  one
+version is for unix, written in c and not depending on external
+libraries.  the other version is for inferno, written in limbo.
+
+
+# install
+
+for the unix code:
+execute "make".  see the manual page authsrv9.8 for more information.
+
+for the inferno code:
+modify "mkconfig" if you don't have $ROOT set, execute "mk install".
+see the manual page authsrv9(8) for more information.
+
+when building from within inferno, insert SYSHOST=Inferno and ROOT=
+in the mk invocations to override the values in the mkconfig.
+
+
+# latest version
+
+get it from:
+
+	http://www.ueber.net/code/r/authsrv9
+
+
+# licence & author
+
+all files are in the public domain.  this code has been written by
+mechiel lukkien, reachable at mechiel@ueber.net.
+
+
+# todo
+
+- do a thorough security review

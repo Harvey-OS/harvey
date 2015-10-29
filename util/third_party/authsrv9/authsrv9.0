@@ -1,0 +1,53 @@
+authsrv9(8)               BSD System Manager's Manual              authsrv9(8)
+
+NNAAMMEE
+     aauutthhssrrvv99 — Plan 9 authentication server for unix
+
+SSYYNNOOPPSSIISS
+     aauutthhssrrvv99 [--dd]
+
+DDEESSCCRRIIPPTTIIOONN
+     AAuutthhssrrvv99 is a unix implementation of a part of the Plan 9 authentication
+     service.  See the bugs section for the limitations.  Authsrv9 issues
+     authentication tickets to clients.  These tickets can be used to authen‐
+     ticate to a server that is in the same authentication domain as the
+     authentication server.  For more information on the protocol and service,
+     read the Plan 9 manual pages authsrv(6) and authsrv(8).
+
+     The authentication id (often `bootes') is read from _/_a_u_t_h_/_a_u_t_h_i_d at
+     startup.  The authentication domain is read from _/_a_u_t_h_/_a_u_t_h_d_o_m.  The file
+     /auth/badusers contains a list (one user per line, newline required) of
+     users not allowed to authenticate to remote servers.  All other informa‐
+     tion about users is in the directory _/_a_u_t_h_/_u_s_e_r_s_/_u_s_e_r_n_a_m_e, with username
+     replaced by the name of the user.  This directory holds the following
+     files: _k_e_y (a 7-byte DES key), _e_x_p_i_r_e (either the string "never" or an
+     expiration timestamp (unix epoch timestamp in ascii, newline forbidden),
+     and _s_t_a_t_u_s (the string "ok" indicates an enabled user, the string "dis‐
+     abled" indicates a disabled user).  If a user has expired or is not
+     enabled, the authentication server hands out unusable tickets.
+
+     Authsrv is meant to be run from inetd(8).  Since users DES keys are
+     stored in plain files without protection other than standard file permis‐
+     sion checking, care should be taken to keep these files away from prying
+     eyes.
+
+     Successful and failed ticket requests and password change requests are
+     logged to syslog, under the authentication facility.  Authsrv9 can write
+     more debug messages there by setting the --dd flag.  NOTE: this will write
+     decrypted ticket requests (containing nonce keys) to syslog.
+
+SSEEEE AALLSSOO
+     The program `passtokey' to generate keys from passwords.  From Plan 9:
+     authsrv(6), authsrv(8).
+
+AAUUTTHHOORRSS
+     Mechiel Lukkien, <mechiel@xs4all.nl> or <mechiel@ueber.net>.  All files
+     are in the public domain.
+
+BBUUGGSS
+     Only regular ticket requests, and password change requests are imple‐
+     mented.  Other authentication methods (e.g. challenge/response (as used
+     by telnet), and those based on the "Inferno/APOP" secret) elicit a "not
+     implemented" error message.
+
+authsrv9                        March 14, 2009                        authsrv9
