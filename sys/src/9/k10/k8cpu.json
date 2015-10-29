@@ -95,7 +95,8 @@
 			"tty": "/amd64/bin/aux/tty",
 			"screenconsole": "/amd64/bin/aux/screenconsole",
 			"pipeconsole": "/amd64/bin/aux/pipeconsole",
-			"comconsole": "/amd64/bin/aux/comconsole"
+			"comconsole": "/amd64/bin/aux/comconsole",
+			"plan9_nvr": "/sys/lib/sysconfig/auth/boundary/plan9.nvr"
 		}
 	},
 	"Name": "k8cpu",

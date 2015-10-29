@@ -33,12 +33,10 @@ startboot(char *argv0, char **argv)
 
 	USED(argv0);
 	/*
-	 * open the console here so that /boot/boot,
-	 * which could be a shell script, can inherit the open fds.
+	 * In case /boot/boot was a shell script,
+	 * it must  mount #s/screenconsole.
 	 */
-	open(cons, OREAD);
-	open(cons, OWRITE);
-	open(cons, OWRITE);
+
 	bind(c, dev, MAFTER);
 	bind(ec, env, MAFTER);
 	bind(e, env, MCREATE|MAFTER);
