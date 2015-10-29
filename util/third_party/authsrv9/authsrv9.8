@@ -1,0 +1,66 @@
+.Dd March 14, 2009
+.Dt authsrv9 8
+.Os authsrv9 
+.Sh NAME
+.Nm authsrv9
+.Nd Plan 9 authentication server for unix
+.Sh SYNOPSIS
+.Nm
+.Op Fl d
+.Sh DESCRIPTION
+.Nm Authsrv9
+is a unix implementation of a part of the Plan 9 authentication
+service.  See the bugs section for the limitations.  Authsrv9 issues
+authentication tickets to clients.  These tickets can be used to
+authenticate to a server that is in the same authentication domain
+as the authentication server.  For more information on the protocol
+and service, read the Plan 9 manual pages
+.Xr authsrv 6
+and
+.Xr authsrv 8 .
+.Pp
+The authentication id (often `bootes') is read from
+.Pa /auth/authid
+at startup.  The authentication domain is read from
+.Pa /auth/authdom .
+The file /auth/badusers contains a list (one user per line, newline
+required) of users not allowed to authenticate to remote servers.
+All other information about users is in the directory
+.Pa /auth/users/username ,
+with username replaced by the name of the user.  This directory
+holds the following files:
+.Pa key
+(a 7-byte DES key),
+.Pa expire
+(either
+the string "never" or an expiration timestamp (unix epoch timestamp
+in ascii, newline forbidden), and
+.Pa status
+(the string "ok" indicates an
+enabled user, the string "disabled" indicates a disabled user).  If
+a user has expired or is not enabled, the authentication server
+hands out unusable tickets.
+.Pp
+Authsrv is meant to be run from
+.Xr inetd 8 .
+Since users DES keys are stored in plain files without protection other
+than standard file permission checking, care should be taken to
+keep these files away from prying eyes.
+.Pp
+Successful and failed ticket requests and password change requests
+are logged to syslog, under the authentication facility.  Authsrv9
+can write more debug messages there by setting the
+.Fl d
+flag.  NOTE: this will write decrypted ticket requests (containing nonce keys) to syslog.
+.Sh SEE ALSO
+The program `passtokey' to generate keys from passwords.  From Plan 9:
+.Xr authsrv(6) ,
+.Xr authsrv(8) .
+.Sh AUTHORS
+Mechiel Lukkien, <mechiel@xs4all.nl> or <mechiel@ueber.net>.
+All files are in the public domain.
+.Sh BUGS
+Only regular ticket requests, and password change requests are
+implemented.  Other authentication methods (e.g. challenge/response
+(as used by telnet), and those based on the "Inferno/APOP" secret)
+elicit a "not implemented" error message.

@@ -1,0 +1,6 @@
+<../../mkconfig
+
+DIRS=\
+	auth\
+
+<$ROOT/mkfiles/mksubdirs
