@@ -1,0 +1,13 @@
+There are two ways to run the auth server.
+
+One, if you have Plan 9 Port installed, you can simply use listen1:
+
+	sudo /usr/local/plan9/bin/listen1 tcp!*!567 chroot util/auth /bin/authsrv9
+
+(run that command from the harvey root)
+
+The second option is to add it to /etc/inetd.conf:
+
+	567	stream	tcp	nowait	root	/usr/sbin/chroot	chroot /path/to/harvey/util/auth /bin/authsrv9
+
+Once you've saved the file, do "pkill -HUP inetd" to restart it.
