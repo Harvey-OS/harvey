@@ -1,0 +1,6 @@
+<../mkconfig
+
+DIRS=\
+	cmd\
+
+<$ROOT/mkfiles/mksubdirs

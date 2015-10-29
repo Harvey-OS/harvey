@@ -1,0 +1,19 @@
+<../../../mkconfig
+
+TARG=\
+	authsrv9.dis\
+	passtokey.dis\
+
+SYSMODULES=\
+	arg.m\
+	auth9.m\
+	daytime.m\
+	draw.m\
+	keyring.m\
+	security.m\
+	string.m\
+	sys.m\
+
+DISBIN=$ROOT/dis/auth
+
+<$ROOT/mkfiles/mkdis

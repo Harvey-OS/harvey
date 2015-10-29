@@ -1,0 +1,72 @@
+.TH AUTHSRV9 8
+.SH NAME
+authsrv9 \- plan 9 authentication server
+.SH SYNOPSYS
+.B auth/authsrv9
+[
+.B -d
+]
+.br
+.B auth/passtokey
+.I password
+.SH DESCRIPTION
+.B Authsrv9
+implements the Plan 9 authentication service, issuing authentication
+tickets to clients.  Tickets can be used to authenticate to
+a server that is in the same authentication domain as the authentication
+server.
+.PP
+Files mentioned in the following text are relative to
+.IR /services/authsrv9 ,
+where all configuration files and user keys are stored.
+The authentication id (often `bootes') is read from
+.I /authid
+at start up.  The authentication domain is read from
+.IR /authdom .
+The file
+.I /badusers
+contains a list (one user per line, newline required) of users not
+allowed to authenticate to remote servers.  All other information
+about users is in the directory
+.IR /users/username ,
+with
+.I username
+the name of the user.  Each user directory holds the following files:
+.TP
+.I key
+A 7-byte DES key.
+.TP
+.I expire
+Either the string `never' or an expiration timestamp (unix epoch
+timestamp in ascii, newline forbidden).
+.TP
+.I status
+`ok' indicates an enabled user, `disabled'
+indicates a disabled user.  If a user has expired or is not enabled,
+the authentication server hands out unusable tickets.
+.PP
+Options:
+.TP
+.B -d
+For debugging.  Logs more information, e.g. decrypted ticket requests (which contain nonce keys!).
+.PP
+Logging information is written to
+.BR /services/logs/authsrv9 .
+.SH EXAMPLE
+Start authsrv9:
+.EX
+	listen -A 'net!*!ticket' auth/authsrv9
+.EE
+.SH SOURCE
+.B /appl/cmd/auth/authsrv9.b
+.br
+.B /appl/cmd/auth/passtokey.b
+.SH SEE ALSO
+.IR factotum (4)
+.br
+Authsrv in sections 6 and 8 of Plan 9's Programmer's Manual.
+.SH BUGS
+Only regular ticket requests, and password change requests are
+implemented.  Other authentication methods (e.g. challenge/response
+(as used by telnet), and those based on the `Inferno/APOP' secret)
+elicit a `not implemented' error message.

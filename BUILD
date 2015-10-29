@@ -29,6 +29,15 @@ build_kernel()
 	build "$KERNEL_CONF.json"
 ) }
 
+build_authsrv9()
+{ (
+	cd ${UTIL_DIR}/authsrv9
+	make
+	mkdir -p ${UTIL_DIR}/auth/bin
+	mkdir -p ${UTIL_DIR}/auth/dev
+	cp authsrv9 ${UTIL_DIR}/auth/bin
+) }
+
 build_go_utils()
 { (
 	export GOBIN="${UTIL_DIR}"
@@ -149,6 +158,7 @@ else
 					;;
 			"utils")
 					build_go_utils
+					build_authsrv9
 					;;
 			"cmd")
 					build_cmds
