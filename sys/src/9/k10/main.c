@@ -44,7 +44,7 @@ Mach *entrym;
 char *cputype = "amd64";
 static int64_t oargc;
 static char* oargv[20];
-static char oargb[128];
+static char oargb[1024];
 static int oargblen;
 
 static int maxcores = 1024;	/* max # of cores given as an argument */
