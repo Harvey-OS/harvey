@@ -114,6 +114,7 @@ options(int argc, char* argv[])
 	char *env[2];
 	int n, o;
 	char envcopy[256];
+	int argno = 0;
 
 	/*
 	 * Process flags.
@@ -124,6 +125,7 @@ options(int argc, char* argv[])
 	 */
 	while(--argc > 0){
 		char* next = *++argv;
+		print("Arg %d is %s\n", argno, next);
 		if(next[0] =='-' && next[1] != '-'){
 			while(o = *++argv[0]){
 				if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
@@ -137,13 +139,16 @@ options(int argc, char* argv[])
 		}else{
 			strncpy(envcopy, next, sizeof envcopy);
 			gettokens(envcopy, env, 2, "=");
+			print("Arg %d is an a value, %s = %s\n", argno, env[0], env[1]);
 			if(strcmp(env[0], "maxcores") == 0){
 				maxcores = strtol(env[1], 0, 0);
 			}
 			if(strcmp(env[0], "numtcs") == 0){
 				numtcs = strtol(env[1], 0, 0);
 			}
+			
 		}
+		argno++;
 	}
 	vflag = dbgflg['v'];
 	// hack.
@@ -154,19 +159,23 @@ void
 loadenv(int argc, char* argv[])
 {
 	char *env[2];
+	int argno = 0;
 
 	/*
 	 * Process command line env options
 	 */
 	while(--argc > 0){
 		char* next = *++argv;
+		print("LOADENV: Check arg %d, value %s\n", argno, next);
 		if(next[0] !='-'){
 			if (gettokens(next, env, 2, "=")  == 2){;
+				print("LOADENV: %d is %s = %s\n", argno, env[0], env[1]);
 				ksetenv(env[0], env[1], 0);
 			}else{
 				print("Ignoring parameter with no value: %s\n", env[0]);
 			}
 		}
+		argno++;
 	}
 }
 
