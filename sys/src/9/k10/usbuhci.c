@@ -2282,11 +2282,6 @@ reset(Hci *hp)
 	Ctlr *ctlr;
 	Pcidev *p;
 
-	/*
-	if(getconf("*nousbuhci"))
-		return -1;
-	*/
-
 	ilock(&resetlck);
 	scanpci();
 
