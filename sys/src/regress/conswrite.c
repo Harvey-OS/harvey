@@ -23,14 +23,13 @@ void
 main(void)
 {
 	int w;
-	char msg[BUFSZ+1];
+	char msg[BUFSZ];
 	print("This test write 32k 1 to stderr to test /dev/cons behaviour.\n");
 	print("The test pass if the everything get written, including 'PASS'.\n");
 
 	memset(msg, '1', BUFSZ);
-	msg[BUFSZ] = 0;
 
-	if((w = fprint(2, "%s", msg)) < BUFSZ){
+	if((w = write(2, msg, BUFSZ)) < BUFSZ){
 		print("\nFAIL, written %d instead of %d\n", w, BUFSZ);
 		exits("FAIL");
 	}

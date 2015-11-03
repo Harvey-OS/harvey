@@ -719,6 +719,7 @@ ropen(Fcall *req, Fcall *rep)
 	if((n & t->mode) != n)
 		return rpermission(req, rep);
 
+	rep->iounit = 0;
 	switch(f->qid.path)
 	{
 		case Qinput:
@@ -743,8 +744,10 @@ ropen(Fcall *req, Fcall *rep)
 		case Qcons:
 			if(ISCLOSED(inputfid) && (req->mode & OREAD) == OREAD)
 				return rerror(rep, "input device closed");
-			else if(ISCLOSED(outputfid) && (req->mode & OWRITE) == OWRITE)
+			if(ISCLOSED(outputfid) && (req->mode & OWRITE) == OWRITE)
 				return rerror(rep, "output device closed");
+			if((req->mode & OWRITE) == OWRITE)
+				rep->iounit = ScreenBufferSize;
 			break;
 		default:
 			break;
@@ -752,7 +755,6 @@ ropen(Fcall *req, Fcall *rep)
 	f->opened = req->mode;
 	rep->type = Ropen;
 	rep->qid = f->qid;
-	rep->iounit = 0;
 	return 1;
 }
 static int
@@ -826,6 +828,8 @@ rwrite(Fcall *req, Fcall *rep)
 			else {
 				while(output->linewidth > nextoutputcol)
 					bwrite(output, &backspace, 1);
+				if(req->count > ScreenBufferSize)
+					req->count = ScreenBufferSize;
 				rep->count = bwrite(output, req->data, req->count);
 				nextoutputcol = output->linewidth;
 				if(!bempty(input))
