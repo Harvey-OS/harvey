@@ -10,13 +10,19 @@
 #include <u.h>
 #include <libc.h>
 
+#define BUFSZ 8192
+
 void
 cat(int f, char *s)
 {
-	char buf[8192];
-	int32_t n;
+	char *buf[BUFSZ];
+	int32_t n, u;
 
-	while((n=read(f, buf, (int32_t)sizeof buf))>0)
+	u = iounit(1);
+	if(u == 0 || u > BUFSZ)
+		u = BUFSZ;
+
+	while((n=read(f, buf, u))>0)
 		if(write(1, buf, n)!=n)
 			sysfatal("write error copying %s: %r", s);
 	if(n < 0)
