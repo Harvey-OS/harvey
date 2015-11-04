@@ -88,6 +88,7 @@
 			"ipconfig": "/amd64/bin/ip/ipconfig",
 			"ls": "/amd64/bin/ls",
 			"mount": "/amd64/bin/mount",
+			"nvram": "/util/nvram",
 			"rc": "/amd64/bin/rc",
 			"rcmain": "/rc/lib/rcmain",
 			"screenconsole": "/amd64/bin/aux/screenconsole",
