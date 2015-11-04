@@ -29,6 +29,9 @@ eval $cmd
 kill $ufspid
 wait
 
+# TO ENABLE FACTOTUM replace append with this
+#-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0" \
+
 # -nographic \
 #-S -gdb tcp::1234 \
 # -nographic \
