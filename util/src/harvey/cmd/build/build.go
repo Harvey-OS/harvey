@@ -230,7 +230,7 @@ func compile(b *build) {
 	// /amd64/include, /sys/include, .
 	args := []string{"-c"}
 	args = append(args, adjust([]string{"-I", os.ExpandEnv("/$ARCH/include"), "-I", "/sys/include", "-I", "."})...)
-	args = append(args, b.Cflags...)
+	args = append(args, adjust(b.Cflags)...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
