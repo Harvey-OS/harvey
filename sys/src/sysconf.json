@@ -586,14 +586,6 @@
 			]
 		},
 		{
-			"#Id": 55,
-			"Id": 4151,
-			"Name": "semwakeup",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 56,
 			"Id": 4152,
 			"Name": "semalt",
