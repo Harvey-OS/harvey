@@ -68,12 +68,11 @@ syscallfmt(int syscallno, ...)
 	Proc *up = externup();
 	va_list list;
 	int32_t l;
-	uint32_t ul;
 	Fmt fmt;
 	void *v;
 	int64_t vl;
 	uintptr_t p;
-	int i[2], len, **ip;
+	int i[2], len;
 	char *a, **argv;
 	va_start(list, syscallno);
 iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
@@ -122,22 +121,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 	case ALARM:
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#lud ", l);
-		break;
-	case EXECAC:
-		i[0] = va_arg(list, int);
-		fmtprint(&fmt, "%d", i[0]);
-		a = va_arg(list, char*);
-		fmtuserstring(&fmt, a, " ");
-		argv = va_arg(list, char**);
-		evenaddr(PTR2UINT(argv));
-		for(;;){
-			a = *(char**)validaddr(argv, sizeof(char**), 0);
-			if(a == nil)
-				break;
-			fmtprint(&fmt, " ");
-			fmtuserstring(&fmt, a, "");
-			argv++;
-		}
 		break;
 	case EXEC:
 		a = va_arg(list, char*);
@@ -265,17 +248,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		l = va_arg(list, uint32_t);
 		fmtprint(&fmt, "%#p %ld", v, l);
 		break;
-	case SEMSLEEP:
-	case SEMWAKEUP:
-		v = va_arg(list, int*);
-		fmtprint(&fmt, "%#p", v);
-		break;
-	case SEMALT:
-		ip = va_arg(list, int**);
-		i[0] = va_arg(list, int);
-		validaddr(ip, sizeof(int*)*i[0], 0);
-		fmtprint(&fmt, "%#p %d", ip, i[0]);
-		break;
 	case SEEK:
 		v = va_arg(list, int64_t*);
 		i[0] = va_arg(list, int);
@@ -339,27 +311,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
-	case ZIOPREAD:
-		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		ul = va_arg(list, usize);
-		vl = va_arg(list, int64_t);
-		fmtprint(&fmt, "%d %#p %d %ld %ulld", i[0], v, i[1], ul, vl);
-		break;
-	case ZIOPWRITE:
-		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		vl = va_arg(list, int64_t);
-		fmtprint(&fmt, "%d %#p %d %ulld", i[0], v, i[1], vl);
-		break;
-	case ZIOFREE:
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		fmtprint(&fmt, "%#p %d", v, i[1]);
-	case NIXSYSCALL:
-		break;
 	}
 	up->syscalltrace = fmtstrflush(&fmt);
 }
@@ -398,7 +349,6 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		fmtprint(&fmt, " = %ld", ar0->l);
 		break;
 	case EXEC:
-	case EXECAC:
 	case SEGBRK:
 	case SEGATTACH:
 	case RENDEZVOUS:
