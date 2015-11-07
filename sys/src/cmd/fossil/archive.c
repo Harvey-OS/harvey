@@ -141,18 +141,6 @@ shaBlock(uint8_t score[VtScoreSize], Block *b, uint8_t *data, uint bsize)
 	vtSha1(score, data, vtZeroTruncate(vtType[b->l.type], data, bsize));
 }
 
-static uint
-etype(Entry *e)
-{
-	uint t;
-
-	if(e->flags&VtEntryDir)
-		t = BtDir;
-	else
-		t = BtData;
-	return t+e->depth;
-}
-
 static uint8_t*
 copyBlock(Block *b, uint32_t blockSize)
 {

@@ -765,7 +765,6 @@ _sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 	m = mode;
 	if(m == OOverWrite)
 		m = OReadWrite;
-
 	b = sourceLoad(r, &e);
 	if(b == nil)
 		return nil;

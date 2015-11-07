@@ -457,6 +457,7 @@ fileCreate(File *f, char *elem, uint32_t mode, char *uid)
 	r = sourceCreate(pr, pr->dsize, isdir, 0);
 	if(r == nil)
 		goto Err;
+
 	if(isdir){
 		mr = sourceCreate(pr, pr->dsize, 0, r->offset);
 		if(mr == nil)
