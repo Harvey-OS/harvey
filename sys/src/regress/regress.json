@@ -46,5 +46,8 @@
 		"wlockt0.c",
 		"wlockt1.c",
 		"wlockt2.c"
+	],
+	"Post": [
+		"cp *.rc $HARVEY/$ARCH/bin/regress/"
 	]
 }

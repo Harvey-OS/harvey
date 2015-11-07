@@ -1,0 +1,3 @@
+#!/bin/rc
+
+syscall read 0 0xdefff000 0x7fffffff < /dev/zero
