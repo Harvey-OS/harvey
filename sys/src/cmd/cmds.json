@@ -104,7 +104,6 @@
 		"pwd.c",
 		"ramfs.c",
 		"ratrace.c",
-		"rdbfs.c",
 		"read.c",
 		"resample.c",
 		"rm.c",
