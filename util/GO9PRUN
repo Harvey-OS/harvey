@@ -19,7 +19,7 @@ $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
 -redir tcp:9999::9 \
 -redir tcp:17010::17010 \
 -redir tcp:17013::17013 \
--append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 user=glenda" \
+-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 user=harvey" \
 -kernel 9k8cpu.32bit $*
 EOF
 
