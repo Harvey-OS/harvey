@@ -37,7 +37,6 @@
 		"mswordstrings.c",
 		"mouse.c",
 		"nfsmount.c",
-		"oldconsole.c",
 		"olefs.c",
 		"pcmcia.c",
 		"portmap.c",

@@ -35,6 +35,8 @@ typedef enum
 	Unmounted,		/* fsserve() loop while status < Unmounted */
 } Status;
 
+int systemwide;
+
 static Status status;
 static int rawmode;
 
@@ -208,8 +210,8 @@ struct OpQueue
 #define qempty(q) (q->tail == &q->head)
 
 static OpQueue consreads;
+static OpQueue conswrites;
 static AsyncOp *outputread;		/* only one process can access Qoutput */
-static AsyncOp *inputwrite;		/* only one process can access Qinput */
 
 static void
 qinit(OpQueue *q)
@@ -273,10 +275,13 @@ syncOutput(int connection, Fcall *rep)
 	uint32_t l; //, i;
 	int w;
 	char *d;
+	AsyncOp *aw;
+	OpQueue *queue;
 
 	if(outputread == nil || bempty(output))
 		return 1;	/* continue */
 
+	queue = &conswrites;
 	l = outputread->count;
 	d = bread(output, &l);
 
@@ -288,12 +293,35 @@ syncOutput(int connection, Fcall *rep)
 	w = sendmessage(connection, rep);
 	if(w <= 0){
 		/* we had an error on the connection: stop to fsserve() */
-		debug("serve9p %d: sync: %d bytes ready, but sendmessage returns %d\n", fspid, rep->count, w);
+		debug("serve9p %d: syncOutput: %d bytes ready, but sendmessage returns %d\n", fspid, rep->count, w);
 		return w;
 	}
 
 	free(outputread);
 	outputread = nil;
+
+	if(bempty(output)){
+		w = 0;
+		rep->type = Rwrite;
+		while(!qempty(queue)){
+			aw = queue->head;
+			rep->tag = aw->tag;
+			rep->count = aw->count;
+
+			w = sendmessage(connection, rep);
+			if(w <= 0){
+				/* we had an error on the connection: stop to fsserve() */
+				debug("serve9p %d: syncOutput: %d bytes written, but sendmessage returns %d\n", fspid, rep->count, w);
+				return w;
+			}
+
+			queue->head = aw->next;
+			if(queue->head == nil){
+				queue->tail = &queue->head;
+			}
+			free(aw);
+		}
+	}
 
 	return 1;
 }
@@ -337,7 +365,7 @@ syncCons(int connection, Fcall *rep)
 		w = sendmessage(connection, rep);
 		if(w <= 0){
 			/* we had an error on the connection: stop to fsserve() */
-			debug("serve9p %d: sync: %d bytes ready, but sendmessage returns %d\n", fspid, rep->count, w);
+			debug("serve9p %d: syncCons: %d bytes ready, but sendmessage returns %d\n", fspid, rep->count, w);
 			return w;
 		}
 
@@ -567,8 +595,8 @@ rattach(Fcall *req, Fcall *rep)
 	if(spec && spec[0])
 		return rerror(rep, "bad attach specifier");
 
-	if(external != nil){
-		/* we expect 3 valid Tattach:
+	if(external != nil && !systemwide){
+		/* when not system wide (aka screenconsole), we expect 3 valid Tattach:
 		 * 1 for the process that will send us the input, writing Qinput
 		 * 1 for the process that will print our output, reading Qoutput
 		 * 1 for the rest of the children
@@ -581,7 +609,7 @@ rattach(Fcall *req, Fcall *rep)
 	if(f == nil)
 		return rerror(rep, "out of memory");
 
-	if(input != nil && output != nil){
+	if(external == nil && input != nil && output != nil){
 		external = f;
 		status = Mounted;
 	}
@@ -593,7 +621,7 @@ rattach(Fcall *req, Fcall *rep)
 static int
 rauth(Fcall *req, Fcall *rep)
 {
-	return rerror(rep, "nconsole: authentication not required");
+	return rerror(rep, "authentication not required");
 }
 static int
 rversion(Fcall *req, Fcall *rep)
@@ -691,6 +719,7 @@ ropen(Fcall *req, Fcall *rep)
 	if((n & t->mode) != n)
 		return rpermission(req, rep);
 
+	rep->iounit = 0;
 	switch(f->qid.path)
 	{
 		case Qinput:
@@ -705,19 +734,20 @@ ropen(Fcall *req, Fcall *rep)
 			break;
 		case Qoutput:
 			outputfid = f;
+			output = balloc(Maxfdata*4);	/* space for multiple verbose writers */
 			if(linecontrol){
-				output = balloc(Maxfdata*2);	/* space for \b */
 				output->add = lineprinter;
 			} else {
-				output = balloc(Maxfdata);
 				output->add = rawappender;
 			}
 			break;
 		case Qcons:
 			if(ISCLOSED(inputfid) && (req->mode & OREAD) == OREAD)
 				return rerror(rep, "input device closed");
-			else if(ISCLOSED(outputfid) && (req->mode & OWRITE) == OWRITE)
+			if(ISCLOSED(outputfid) && (req->mode & OWRITE) == OWRITE)
 				return rerror(rep, "output device closed");
+			if((req->mode & OWRITE) == OWRITE)
+				rep->iounit = ScreenBufferSize;
 			break;
 		default:
 			break;
@@ -725,7 +755,6 @@ ropen(Fcall *req, Fcall *rep)
 	f->opened = req->mode;
 	rep->type = Ropen;
 	rep->qid = f->qid;
-	rep->iounit = 0;
 	return 1;
 }
 static int
@@ -794,13 +823,25 @@ rwrite(Fcall *req, Fcall *rep)
 		case Qcons:
 			if(ISCLOSED(outputfid))
 				rep->count = 0;
+			else if(bspace(output) < req->count * 2)
+				return rerror(rep, "device busy");
 			else {
 				while(output->linewidth > nextoutputcol)
 					bwrite(output, &backspace, 1);
+				if(req->count > ScreenBufferSize)
+					req->count = ScreenBufferSize;
 				rep->count = bwrite(output, req->data, req->count);
 				nextoutputcol = output->linewidth;
 				if(!bempty(input))
 					bwrite(output, input->data + input->read, input->written - input->read);
+				if(bpending(output) > ScreenBufferSize * 3){
+					/* the output buffer contains too much data:
+					 * slow down writers by deferring Rwrites
+					 */
+					if(!enqueue(&conswrites, req->tag, rep->count))
+						return rerror(rep, "out of memory");
+					return 0;
+				}
 			}
 			break;
 		case Qconsctl:
@@ -822,7 +863,9 @@ rwrite(Fcall *req, Fcall *rep)
 			rep->count = req->count;
 			break;
 		case Qinput:
-			if(rawmode || blind){
+			if(ISCLOSED(outputfid) || status == Unmounted){
+				rep->count = 0;
+			} else if(rawmode || blind){
 				rep->count = bwrite(input, req->data, req->count);
 			} else if(!linecontrol) {
 				/* life is easy:
@@ -853,13 +896,6 @@ rwrite(Fcall *req, Fcall *rep)
 
 					/* we knew we have enough space, abort if not */
 					assert(maxlength == rep->count);
-				} else if(input->ctrld < input->size){
-					/* if this Twrite(Qinput) contains a ^D it has to
-					 * wait for a reply until someone consumed it
-					 */
-					assert(inputwrite == nil);
-					inputwrite = opalloc(req->tag, req->count);
-					return 0;
 				} else {
 					/* sync visible output and input buffer
 					 *
@@ -962,6 +998,7 @@ fsserve(int connection, char *owner)
 
 	ftail = &fids;
 	qinit(&consreads);
+	qinit(&conswrites);
 
 	status = Initializing;
 
@@ -1006,32 +1043,6 @@ fsserve(int connection, char *owner)
 				break;
 			}
 		}
-		/* finally, if a Twrite(Qinput) is waiting for a reply we serve it.
-		 *
-		 * Note that Twrite(Qinput) are syncronous unless they activate
-		 * a input->ctrld, in which case they have to wait for a
-		 * Tread(Qcons) that deactivate the flag.
-		 * Moreover if the queue of consreads is empty after such
-		 * deactivation, we send a zero length Rwrite, so that it will
-		 * release the input device.
-		 */
-		debug("serve9p %d: if a Twrite(Qinput) is waiting for a reply we serve it. \n", fspid);
-		if(inputwrite && input->ctrld == input->size){
-			rep.type = Rwrite;
-			rep.tag = inputwrite->tag;
-			if(qempty((&consreads)))
-				rep.count = 0;
-			else
-				rep.count = inputwrite->count;
-
-			if((w = sendmessage(connection, &rep)) <= 0){
-				debug("serve9p %d: sendmessage for inputwrite returns %d\n", fspid, w);
-				break;
-			}
-
-			free(inputwrite);
-			inputwrite = nil;
-		}
 
 		/* We can exit (properly) only when the following conditions hold
 		 *
@@ -1053,7 +1064,7 @@ fsserve(int connection, char *owner)
 		 * (AND obviously if an unexpected error occurred)
 		 */
 	}
-	while(status < Unmounted || !ISCLOSED(inputfid) || !ISCLOSED(outputfid));
+	while(systemwide || status < Unmounted || !ISCLOSED(inputfid) || !ISCLOSED(outputfid));
 
 
 	if(r < 0)
