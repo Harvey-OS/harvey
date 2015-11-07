@@ -38,7 +38,7 @@ int	_wait(void*);
 
 struct{
 	char	*name;
-	int	(*func)(...);
+	int	(*func)();
 }tab[]={
 #include "tab.h"
 	0,		0
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 {
 	int i, j, c;
 	int oflag, xflag, sflag;
-	vlong r;
+	int64_t r;
 	Dir d;
 	char strs[1024];
 	char ebuf[1024];
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 				print("\n");
 			}
 			if(sflag && r > 0){
-				r = convM2D((uchar*)buf, r, &d, strs);
+				r = convM2D((uint8_t*)buf, r, &d, strs);
 				if(r <= BIT16SZ)
 					print("short stat message\n");
 				else{
@@ -192,7 +192,7 @@ parse(char *s)
 }
 
 void
-catch(void *, char *msg)
+catch(void *v, char *msg)
 {
 	fprint(2, "syscall: received note='%s'\n", msg);
 	noted(NDFLT);
