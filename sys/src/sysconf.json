@@ -586,19 +586,6 @@
 			]
 		},
 		{
-			"#Id": 57,
-			"Args": [
-				"uint32_t",
-				"char*",
-				"char**"
-			],
-			"Id": 4153,
-			"Name": "execac",
-			"Ret": [
-				"void*"
-			]
-		},
-		{
 			"#Id": 58,
 			"Id": 4154,
 			"Name": "nixsyscall",
