@@ -123,22 +123,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#lud ", l);
 		break;
-	case EXECAC:
-		i[0] = va_arg(list, int);
-		fmtprint(&fmt, "%d", i[0]);
-		a = va_arg(list, char*);
-		fmtuserstring(&fmt, a, " ");
-		argv = va_arg(list, char**);
-		evenaddr(PTR2UINT(argv));
-		for(;;){
-			a = *(char**)validaddr(argv, sizeof(char**), 0);
-			if(a == nil)
-				break;
-			fmtprint(&fmt, " ");
-			fmtuserstring(&fmt, a, "");
-			argv++;
-		}
-		break;
 	case EXEC:
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
@@ -387,7 +371,6 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		fmtprint(&fmt, " = %ld", ar0->l);
 		break;
 	case EXEC:
-	case EXECAC:
 	case SEGBRK:
 	case SEGATTACH:
 	case RENDEZVOUS:

@@ -70,7 +70,6 @@
 		"9syscall/dup.s",
 		"9syscall/_errstr.s",
 		"9syscall/errstr.s",
-		"9syscall/execac.s",
 		"9syscall/exec.s",
 		"9syscall/_exits.s",
 		"9syscall/fauth.s",
