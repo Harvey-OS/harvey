@@ -108,7 +108,6 @@
 		"9syscall/semacquire.s",
 		"9syscall/semalt.s",
 		"9syscall/semrelease.s",
-		"9syscall/semsleep.s",
 		"9syscall/semwakeup.s",
 		"9syscall/sleep.s",
 		"9syscall/_stat.s",
