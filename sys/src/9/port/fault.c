@@ -405,7 +405,7 @@ okaddr(uintptr_t addr, int32_t len, int write)
 	Proc *up = externup();
 	Segment *s;
 
-	if(len >= 0) {
+	if(len >= 0 && addr+len >= addr) {
 		for(;;) {
 			s = seg(up, addr, 0);
 			if(s == 0 || (write && (s->type&SG_WRITE) == 0))
