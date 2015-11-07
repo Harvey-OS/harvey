@@ -328,14 +328,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
-	case ZIOPREAD:
-		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		ul = va_arg(list, usize);
-		vl = va_arg(list, int64_t);
-		fmtprint(&fmt, "%d %#p %d %ld %ulld", i[0], v, i[1], ul, vl);
-		break;
 	case ZIOPWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
