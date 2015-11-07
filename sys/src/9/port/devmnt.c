@@ -730,8 +730,8 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 		r->request.offset = off;
 		r->request.data = uba;
 		nr = n;
-		if(nr > mnt->msize-IOHDRSZ)
-			nr = mnt->msize-IOHDRSZ;
+		if(nr > c->iounit)
+			nr = c->iounit;
 		r->request.count = nr;
 		mountrpc(mnt, r);
 		nreq = r->request.count;
