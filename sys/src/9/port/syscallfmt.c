@@ -331,7 +331,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		v = va_arg(list, void*);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%#p %d", v, i[1]);
-	case NIXSYSCALL:
 		break;
 	}
 	up->syscalltrace = fmtstrflush(&fmt);
