@@ -71,6 +71,7 @@ struct Voldesc {
 	uint8_t	fsvers;		/* file system version = 1 */
 };
 
+/* Not used?
 static void
 dumpbootvol(void *a)
 {
@@ -110,6 +111,7 @@ dumpbootvol(void *a)
 	print("effective date %.17s\n", v->edate);
 	print("fs version %d\n", v->fsvers);
 }
+*/
 
 typedef struct Cdir Cdir;
 struct Cdir {
@@ -146,6 +148,7 @@ Dfmt(Fmt *fmt)
 }
 
 char longc, shortc;
+/* Not used?
 static void
 bigend(void)
 {
@@ -157,6 +160,7 @@ littleend(void)
 {
 	longc = 'L';
 }
+*/ 
 
 static uint32_t
 big(void *a, int n)
@@ -251,6 +255,7 @@ ascii(void)
 	fmtinstall('T', asciiTfmt);
 }
 
+/*Not used?
 static int
 runeTfmt(Fmt *fmt)
 {
@@ -268,6 +273,7 @@ runeTfmt(Fmt *fmt)
 	fmt->flags &= ~FmtPrec;
 	return fmtprint(fmt, "%S", buf);
 }
+*/ 
 
 static void
 getsect(uint8_t *buf, int n)

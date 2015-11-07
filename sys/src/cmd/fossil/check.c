@@ -458,7 +458,7 @@ struct MetaChunk {
 static int
 offsetCmp(const void *s0, const void *s1)
 {
-	MetaChunk *mc0, *mc1;
+	const MetaChunk *mc0, *mc1;
 
 	mc0 = s0;
 	mc1 = s1;
@@ -761,7 +761,7 @@ error(Fsck *chk, char *fmt, ...)
 {
 	char buf[256];
 	va_list arg;
-	static int nerr;
+	//static int nerr;
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof buf, fmt, arg);
@@ -778,7 +778,7 @@ warn(Fsck *chk, char *fmt, ...)
 {
 	char buf[256];
 	va_list arg;
-	static int nerr;
+	//static int nerr;
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof buf, fmt, arg);
