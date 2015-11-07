@@ -265,10 +265,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		l = va_arg(list, uint32_t);
 		fmtprint(&fmt, "%#p %ld", v, l);
 		break;
-	case SEMWAKEUP:
-		v = va_arg(list, int*);
-		fmtprint(&fmt, "%#p", v);
-		break;
 	case SEMALT:
 		ip = va_arg(list, int**);
 		i[0] = va_arg(list, int);
