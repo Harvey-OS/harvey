@@ -111,8 +111,8 @@ globalToLocal(uint8_t score[VtScoreSize])
 
 	for(i=0; i<VtScoreSize-4; i++)
 		if(score[i] != 0)
-			return (int64_t)NilBlock;
-
+			return NilBlock;
+			//return (int64_t)NilBlock;
 	return U32GET(score+VtScoreSize-4);
 }
 
