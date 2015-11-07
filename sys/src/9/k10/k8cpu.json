@@ -86,16 +86,13 @@
 			"echo": "/amd64/bin/echo",
 			"factotum": "/amd64/bin/auth/factotum",
 			"ipconfig": "/amd64/bin/ip/ipconfig",
-			"listen1": "/amd64/bin/aux/listen1",
 			"ls": "/amd64/bin/ls",
 			"mount": "/amd64/bin/mount",
+			"nvram": "/util/nvram",
 			"rc": "/amd64/bin/rc",
 			"rcmain": "/rc/lib/rcmain",
-			"srv": "/amd64/bin/srv",
-			"tty": "/amd64/bin/aux/tty",
 			"screenconsole": "/amd64/bin/aux/screenconsole",
-			"pipeconsole": "/amd64/bin/aux/pipeconsole",
-			"comconsole": "/amd64/bin/aux/comconsole"
+			"srv": "/amd64/bin/srv"
 		}
 	},
 	"Name": "k8cpu",
