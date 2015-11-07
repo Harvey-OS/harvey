@@ -367,7 +367,7 @@ meCmpOld(MetaEntry *me, char *s)
 static int
 offsetCmp(const void *s0, const void *s1)
 {
-	MetaChunk *mc0, *mc1;
+	const MetaChunk *mc0, *mc1;
 
 	mc0 = s0;
 	mc1 = s1;
