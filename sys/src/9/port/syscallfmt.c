@@ -328,11 +328,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
-	case ZIOFREE:
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		fmtprint(&fmt, "%#p %d", v, i[1]);
-		break;
 	}
 	up->syscalltrace = fmtstrflush(&fmt);
 }
