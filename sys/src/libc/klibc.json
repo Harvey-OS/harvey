@@ -112,7 +112,6 @@
 		"9syscall/write.s",
 		"9syscall/_wstat.s",
 		"9syscall/wstat.s",
-		"9syscall/ziofree.s",
 		"fmt/dofmt.c",
 		"fmt/dorfmt.c",
 		"fmt/errfmt.c",
