@@ -586,14 +586,6 @@
 			]
 		},
 		{
-			"#Id": 58,
-			"Id": 4154,
-			"Name": "nixsyscall",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 59,
 			"Id": 4155,
 			"Name": "ziopread",
