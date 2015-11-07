@@ -586,14 +586,6 @@
 			]
 		},
 		{
-			"#Id": 60,
-			"Id": 4156,
-			"Name": "ziopwrite",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 61,
 			"Id": 4157,
 			"Name": "ziofree",
