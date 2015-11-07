@@ -46,7 +46,7 @@ enum {
 	Nowaitlock,
 	Waitlock,
 
-	NilBlock	= (~0UL),
+	NilBlock	= ((uint32_t)(~0UL)),
 	MaxBlock	= (1UL<<31),
 };
 
@@ -119,10 +119,10 @@ struct Fs {
  */
 struct Entry {
 	uint32_t	gen;			/* generation number */
-	uint8_t	psize;			/* pointer block size */
-	uint8_t	dsize;			/* data block size */
+	uint16_t	psize;			/* pointer block size */
+	uint16_t	dsize;			/* data block size */
 	unsigned char	depth;			/* unpacked from flags */
-	unsigned char	flags;
+	uint8_t	flags;
 	uint64_t	size;
 	unsigned char	score[VtScoreSize];
 	uint32_t	tag;	/* tag for local blocks: zero if stored on Venti */
@@ -167,8 +167,8 @@ struct Source {
 
 
 struct Header {
-	uint8_t version;
-	uint8_t blockSize;
+	uint16_t version;
+	uint16_t blockSize;
 	uint32_t super;	/* super blocks */
 	uint32_t label;	/* start of labels */
 	uint32_t data;	/* end of labels - start of data blocks */
@@ -229,8 +229,8 @@ enum {
 };
 
 struct Label {
-	unsigned char type;
-	unsigned char state;
+	uint8_t type;
+	uint8_t state;
 	uint32_t tag;
 	uint32_t epoch;
 	uint32_t epochClose;

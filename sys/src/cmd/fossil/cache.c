@@ -298,7 +298,7 @@ cacheCheck(Cache *c)
 {
 	uint32_t size, now;
 	int i, k, refed;
-	static uint8_t zero[VtScoreSize];
+	//static uint8_t zero[VtScoreSize];
 	Block *b;
 
 	size = c->size;
@@ -475,12 +475,14 @@ _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
 	}
 	/* NOT REACHED */
 }
+
+/* Not used?
 static Block*
 cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers)
 {
 	return _cacheLocalLookup(c, part, addr, vers, Waitlock, 0);
 }
-
+*/
 
 /*
  * fetch a local (on-disk) block from the memory cache.
@@ -736,6 +738,7 @@ cacheAllocBlock(Cache *c, int type, uint32_t tag, uint32_t epoch,
 
 	vtLock(fl->lk);
 	addr = fl->last;
+
 	b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
 	if(b == nil){
 		fprint(2, "%s: cacheAllocBlock: xxx %R\n", argv0);
@@ -998,9 +1001,9 @@ int
 blockSetLabel(Block *b, Label *l, int allocating)
 {
 	Block *lb;
-	Label oldl;
+	//Label oldl;
 
-	oldl = b->l;
+	//oldl = b->l;
 	lb = _blockSetLabel(b, l);
 	if(lb == nil)
 		return 0;
@@ -1872,6 +1875,7 @@ readLabel(Cache *c, Label *l, uint32_t addr)
 
 	lpb = c->size / LabelSize;
 	a = addr / lpb;
+
 	b = cacheLocal(c, PartLabel, a, OReadOnly);
 	if(b == nil){
 		blockPut(b);
@@ -1932,7 +1936,7 @@ unlinkThread(void *a)
 static int
 baddrCmp(const void *a0, const void *a1)
 {
-	BAddr *b0, *b1;
+	const BAddr *b0, *b1;
 	b0 = a0;
 	b1 = a1;
 
