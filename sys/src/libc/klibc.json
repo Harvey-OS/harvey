@@ -103,7 +103,6 @@
 		"9syscall/segflush.s",
 		"9syscall/segfree.s",
 		"9syscall/semacquire.s",
-		"9syscall/semalt.s",
 		"9syscall/semrelease.s",
 		"9syscall/sleep.s",
 		"9syscall/_stat.s",
