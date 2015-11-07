@@ -1,0 +1,21 @@
+{
+	"Include": [
+		"../cmd.json"
+	],
+	"Cflags": [
+		"-Wall",
+		"-I$HARVEY/sys/src/libc/9syscall"
+	],
+	"Name": "syscall",
+	"Program": "syscall",
+	"SourceFiles": [
+		"syscall.c"
+	],
+	"Pre": [
+		"cat $HARVEY/sys/src/libc/9syscall/sys.h|grep -v automatically|grep -v -e '^$'|sed '/#define._X[0-9_]/d;/#define.NSYSCALL/d;'|cut -f 2 -d ' '|xargs -n1 sh -c 'echo \\\"$0\\\", \"(int(*)())\" $0,'|tr A-Z a-z > tab.h"
+	],
+	"Post": [
+		"mv syscall $HARVEY/$ARCH/bin/",
+		"rm tab.h"
+	]
+}
