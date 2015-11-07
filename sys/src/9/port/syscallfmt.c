@@ -73,7 +73,7 @@ syscallfmt(int syscallno, ...)
 	void *v;
 	int64_t vl;
 	uintptr_t p;
-	int i[2], len, **ip;
+	int i[2], len;
 	char *a, **argv;
 	va_start(list, syscallno);
 iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
@@ -264,12 +264,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		v = va_arg(list, int*);
 		l = va_arg(list, uint32_t);
 		fmtprint(&fmt, "%#p %ld", v, l);
-		break;
-	case SEMALT:
-		ip = va_arg(list, int**);
-		i[0] = va_arg(list, int);
-		validaddr(ip, sizeof(int*)*i[0], 0);
-		fmtprint(&fmt, "%#p %d", ip, i[0]);
 		break;
 	case SEEK:
 		v = va_arg(list, int64_t*);
