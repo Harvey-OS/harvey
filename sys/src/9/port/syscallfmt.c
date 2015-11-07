@@ -387,7 +387,6 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		fmtprint(&fmt, " = %ld", ar0->l);
 		break;
 	case EXEC:
-	case EXECAC:
 	case SEGBRK:
 	case SEGATTACH:
 	case RENDEZVOUS:
