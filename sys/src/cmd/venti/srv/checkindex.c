@@ -236,8 +236,8 @@ threadmain(int argc, char *argv[])
 {
 	Bloom *oldbloom, *newbloom;
 	Part *part;
-	u64int clumps, base;
-	u32int bcmem;
+	uint64_t clumps, base;
+	uint32_t bcmem;
 	int fix, skipz, ok;
 
 	fix = 0;

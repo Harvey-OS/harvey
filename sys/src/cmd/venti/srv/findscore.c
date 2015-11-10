@@ -81,7 +81,7 @@ threadmain(int argc, char *argv[])
 	ArenaPart *ap;
 	Part *part;
 	char *file;
-	u8int score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	int i, found;
 
 	ventifmtinstall();

@@ -24,7 +24,7 @@ Config conf;
 void
 threadmain(int argc, char *argv[])
 {
-	u32int bcmem, icmem;
+	uint32_t bcmem, icmem;
 
 	bcmem = 0;
 	icmem = 0;

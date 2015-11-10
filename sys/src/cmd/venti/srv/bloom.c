@@ -87,7 +87,7 @@ resetbloom(Bloom *b)
 	
 	data = vtmallocz(b->size);
 	b->data = data;
-	if(b->size == MaxBloomSize)	/* 2^32 overflows ulong */
+	if(b->size == MaxBloomSize)	/* 2^32 overflows uint32_t */
 		addstat(StatBloomBits, b->size*8-1);
 	else
 		addstat(StatBloomBits, b->size*8);
@@ -117,7 +117,7 @@ loadbloom(Bloom *b)
 		ones += countbits(a[i]); 
 	addstat(StatBloomOnes, ones);
 
-	if(b->size == MaxBloomSize)	/* 2^32 overflows ulong */
+	if(b->size == MaxBloomSize)	/* 2^32 overflows uint32_t */
 		addstat(StatBloomBits, b->size*8-1);
 	else
 		addstat(StatBloomBits, b->size*8);

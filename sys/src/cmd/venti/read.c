@@ -24,8 +24,8 @@ void
 threadmain(int argc, char *argv[])
 {
 	int type, n;
-	uchar score[VtScoreSize];
-	uchar *buf;
+	unsigned char score[VtScoreSize];
+	unsigned char *buf;
 	VtConn *z;
 	char *host;
 
