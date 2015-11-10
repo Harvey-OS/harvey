@@ -414,7 +414,7 @@ diskarenatoc(HConnect *c, Arena *arena)
 	return 0;
 }
 
-#define	U32GET(p)	((u32int)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
+#define	U32GET(p)	((uint32_t)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
 static int
 diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 {

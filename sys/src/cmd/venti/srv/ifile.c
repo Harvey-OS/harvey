@@ -147,12 +147,12 @@ ifilename(IFile *f, char *dst)
 }
 
 int
-ifileu32int(IFile *f, uint32_t *r)
+ifileuint32_t(IFile *f, uint32_t *r)
 {
 	char *s;
 
 	s = ifileline(f);
 	if(s == nil)
 		return -1;
-	return stru32int(s, r);
+	return struint32_t(s, r);
 }

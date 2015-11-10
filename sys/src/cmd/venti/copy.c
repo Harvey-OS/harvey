@@ -175,7 +175,6 @@ walk(uint8_t score[VtScoreSize], uint type, int base)
 		abort();
 		sysfatal("not rewriting: wrote %V got %V", score, nscore);
 	}
-	
 	markvisited(score, type);
 	free(buf);
 }
@@ -184,8 +183,8 @@ void
 main(int argc, char *argv[])
 {
 	int type, n;
-	uchar score[VtScoreSize];
-	uchar *buf;
+	unsigned char score[VtScoreSize];
+	unsigned char *buf;
 	char *prefix;
 
 	fmtinstall('F', vtfcallfmt);

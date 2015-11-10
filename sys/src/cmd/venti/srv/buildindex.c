@@ -53,7 +53,7 @@ void
 threadmain(int argc, char *argv[])
 {
 	int fd, i, napart, nfinish, maxdisks;
-	u32int bcmem, imem;
+	uint32_t bcmem, imem;
 	Config conf;
 	Part *p;
 	
@@ -429,7 +429,7 @@ static int
 countsokay(IPool *p)
 {
 	int i;
-	u64int n;
+	uint64_t n;
 	
 	n = 0;
 	for(i=0; i<p->nmbuf; i++)

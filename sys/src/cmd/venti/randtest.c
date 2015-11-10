@@ -164,7 +164,7 @@ void
 threadmain(int argc, char *argv[])
 {
 	int i, max;
-	vlong t0;
+	int64_t t0;
 	double t;
 
 	blocksize = 8192;

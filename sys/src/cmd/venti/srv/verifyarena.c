@@ -183,7 +183,7 @@ threadmain(int argc, char *argv[])
 {
 	int i, nline;
 	char *p, *q, *table, *f[10], line[256];
-	vlong start, stop;
+	int64_t start, stop;
 	ArenaPart ap;
 	Part *part;
 
@@ -226,7 +226,7 @@ threadmain(int argc, char *argv[])
 	ap.tabbase = (PartBlank+HeadSize+ap.blocksize-1)&~(ap.blocksize-1);
 	ap.tabsize = ap.arenabase - ap.tabbase;
 	table = malloc(ap.tabsize+1);
-	if(preadblock((uchar*)table, ap.tabsize, ap.tabbase) < 0)
+	if(preadblock((unsigned char*)table, ap.tabsize, ap.tabbase) < 0)
 		sysfatal("reading arena part directory: %r");
 	table[ap.tabsize] = 0;
 	

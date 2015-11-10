@@ -30,10 +30,10 @@ enum
 
 struct Whack
 {
-	ushort		begin;			/* time of first byte in hash */
-	ushort		hash[HashSize];
-	ushort		next[WhackMaxOff];
-	uchar		*data;
+	uint16_t		begin;			/* time of first byte in hash */
+	uint16_t		hash[HashSize];
+	uint16_t		next[WhackMaxOff];
+	unsigned char		*data;
 };
 
 struct Unwhack
@@ -43,8 +43,8 @@ struct Unwhack
 
 void	whackinit(Whack*, int level);
 void	unwhackinit(Unwhack*);
-int	whack(Whack*, uchar *dst, uchar *src, int nsrc,
+int	whack(Whack*, unsigned char *dst, unsigned char *src, int nsrc,
 		 uint32_t stats[WhackStats]);
-int	unwhack(Unwhack*, uchar *dst, int ndst, uchar *src, int nsrc);
+int	unwhack(Unwhack*, unsigned char *dst, int ndst, unsigned char *src, int nsrc);
 
-int	whackblock(uchar *dst, uchar *src, int ssize);
+int	whackblock(unsigned char *dst, unsigned char *src, int ssize);

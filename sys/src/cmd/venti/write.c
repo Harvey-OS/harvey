@@ -25,7 +25,7 @@ threadmain(int argc, char *argv[])
 {
 	char *host;
 	int dotrunc, n, type;
-	uchar *p, score[VtScoreSize];
+	unsigned char *p, score[VtScoreSize];
 	VtConn *z;
 
 	fmtinstall('F', vtfcallfmt);
