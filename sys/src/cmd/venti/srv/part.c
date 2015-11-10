@@ -20,7 +20,7 @@ strtoullsuf(char *p, char **pp, int rad, uint64_t *u)
 {
 	uint64_t v;
 
-	if(!isdigit((uchar)*p))
+	if(!isdigit((unsigned char)*p))
 		return -1;
 	v = strtoull(p, &p, rad);
 	switch(*p){
@@ -176,8 +176,6 @@ partblocksize(Part *part, uint32_t blocksize)
 enum {
 	Maxxfer = 64*1024,	/* for NCR SCSI controllers; was 128K */
 };
-
-static int reopen(Part*);
 
 int
 rwpart(Part *part, int isread, uint64_t offset0, uint8_t *buf0,

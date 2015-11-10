@@ -20,64 +20,12 @@ usage(void)
 	threadexitsall("usage");
 }
 
-static void
-rdarena(Arena *arena, uint64_t offset)
-{
-	uint64_t a, aa, e;
-	uint32_t magic;
-	Clump cl;
-	uint8_t score[VtScoreSize];
-	ZBlock *lump;
-
-	printarena(2, arena);
-
-	a = arena->base;
-	e = arena->base + arena->size;
-	if(offset != ~(uint64_t)0) {
-		if(offset >= e-a)
-			sysfatal("bad offset %llud >= %llud",
-				offset, e-a);
-		aa = offset;
-	} else
-		aa = 0;
-
-	for(; aa < e; aa += ClumpSize+cl.info.size) {
-		magic = clumpmagic(arena, aa);
-		if(magic == ClumpFreeMagic)
-			break;
-		if(magic != arena->clumpmagic) {
-			fprint(2, "illegal clump magic number %#8.8ux offset %llud\n",
-				magic, aa);
-			break;
-		}
-		lump = loadclump(arena, aa, 0, &cl, score, 0);
-		if(lump == nil) {
-			fprint(2, "clump %llud failed to read: %r\n", aa);
-			break;
-		}
-		if(cl.info.type != VtCorruptType) {
-			scoremem(score, lump->data, cl.info.uncsize);
-			if(scorecmp(cl.info.score, score) != 0) {
-				fprint(2, "clump %llud has mismatched score\n", aa);
-				break;
-			}
-			if(vttypevalid(cl.info.type) < 0) {
-				fprint(2, "clump %llud has bad type %d\n", aa, cl.info.type);
-				break;
-			}
-		}
-		print("%22llud %V %3d %5d\n", aa, score, cl.info.type, cl.info.uncsize);
-		freezblock(lump);
-	}
-	print("end offset %llud\n", aa);
-}
-
 void
 threadmain(int argc, char *argv[])
 {
 	char *file, *p, *name;
 	char *table;
-	u64int offset;
+	uint64_t offset;
 	Part *part;
 	ArenaPart ap;
 	ArenaHead head;
@@ -116,7 +64,7 @@ threadmain(int argc, char *argv[])
 	ap.tabsize = ap.arenabase - ap.tabbase;
 
 	table = malloc(ap.tabsize+1);
-	if(readpart(part, ap.tabbase, (uchar*)table, ap.tabsize) < 0)
+	if(readpart(part, ap.tabbase, (unsigned char*)table, ap.tabsize) < 0)
 		sysfatal("read %s: %r", file);
 	table[ap.tabsize] = 0;
 

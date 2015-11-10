@@ -40,9 +40,9 @@ typedef struct Bloom	Bloom;
 
 #pragma incomplete IEStream
 
-#define	TWID32	((u32int)~(u32int)0)
-#define	TWID64	((u64int)~(u64int)0)
-#define	TWID8	((u8int)~(u8int)0)
+#define	TWID32	((uint32_t)~(uint32_t)0)
+#define	TWID64	((uint64_t)~(uint64_t)0)
+#define	TWID8	((uint8_t)~(uint8_t)0)
 
 enum
 {
@@ -184,9 +184,9 @@ struct Config
 	int		nsects;			/* index sections initialized */
 	ISect		**sects;
 	Bloom	*bloom;		/* bloom filter */
-	u32int	bcmem;
-	u32int	mem;
-	u32int	icmem;
+	uint32_t	bcmem;
+	uint32_t	mem;
+	uint32_t	icmem;
 	int		queuewrites;
 	char*	haddr;
 	char*	vaddr;
@@ -203,10 +203,10 @@ struct Part
 {
 	int		fd;			/* rock for accessing the disk */
 	int		mode;
-	u64int		offset;
-	u64int		size;			/* size of the partiton */
-	u32int		blocksize;		/* block size for reads and writes */
-	u32int		fsblocksize;	/* minimum file system block size */
+	uint64_t		offset;
+	uint64_t		size;			/* size of the partiton */
+	uint32_t		blocksize;		/* block size for reads and writes */
+	uint32_t		fsblocksize;	/* minimum file system block size */
 	char		*name;
 	char		*filename;
 	Channel		*writechan;		/* chan[dcache.nblock](DBlock*) */
@@ -219,20 +219,20 @@ struct Part
  */
 struct DBlock
 {
-	u8int	*data;
+	uint8_t	*data;
 
 	Part	*part;			/* partition in which cached */
-	u64int	addr;			/* base address on the partition */
-	u32int	size;			/* amount of data available, not amount allocated; should go away */
-	u32int	mode;
-	u32int	dirty;
-	u32int	dirtying;
+	uint64_t	addr;			/* base address on the partition */
+	uint32_t	size;			/* amount of data available, not amount allocated; should go away */
+	uint32_t	mode;
+	uint32_t	dirty;
+	uint32_t	dirtying;
 	DBlock	*next;			/* doubly linked hash chains */
 	DBlock	*prev;
-	u32int	heap;			/* index in heap table */
-	u32int	used;			/* last reference times */
-	u32int	used2;
-	u32int	ref;			/* reference count */
+	uint32_t	heap;			/* index in heap table */
+	uint32_t	used;			/* last reference times */
+	uint32_t	used2;
+	uint32_t	ref;			/* reference count */
 	RWLock	lock;			/* for access to data only */
 	Channel	*writedonechan;	
 	void*	chanbuf[1];		/* buffer for the chan! */
@@ -249,15 +249,15 @@ struct Lump
 	Packet	*data;
 
 	Part	*part;			/* partition in which cached */
-	u8int	score[VtScoreSize];	/* score of packet */
-	u8int	type;			/* type of packet */
-	u32int	size;			/* amount of data allocated to hold packet */
+	uint8_t	score[VtScoreSize];	/* score of packet */
+	uint8_t	type;			/* type of packet */
+	uint32_t	size;			/* amount of data allocated to hold packet */
 	Lump	*next;			/* doubly linked hash chains */
 	Lump	*prev;
-	u32int	heap;			/* index in heap table */
-	u32int	used;			/* last reference times */
-	u32int	used2;
-	u32int	ref;			/* reference count */
+	uint32_t	heap;			/* index in heap table */
+	uint32_t	used;			/* last reference times */
+	uint32_t	used2;
+	uint32_t	ref;			/* reference count */
 	QLock	lock;			/* for access to data only */
 };
 
@@ -266,8 +266,8 @@ struct Lump
  */
 struct AMap
 {
-	u64int		start;
-	u64int		stop;
+	uint64_t		start;
+	uint64_t		stop;
 	char		name[ANameSize];
 };
 
@@ -288,17 +288,17 @@ struct AMapN
 struct ArenaPart
 {
 	Part		*part;
-	u64int		size;			/* size of underlying partition, rounded down to blocks */
+	uint64_t		size;			/* size of underlying partition, rounded down to blocks */
 	Arena		**arenas;
-	u32int		tabbase;		/* base address of arena table on disk */
-	u32int		tabsize;		/* max. bytes in arena table */
+	uint32_t		tabbase;		/* base address of arena table on disk */
+	uint32_t		tabsize;		/* max. bytes in arena table */
 
 	/*
 	 * fields stored on disk
 	 */
-	u32int		version;
-	u32int		blocksize;		/* "optimal" block size for reads and writes */
-	u32int		arenabase;		/* base address of first arena */
+	uint32_t		version;
+	uint32_t		blocksize;		/* "optimal" block size for reads and writes */
+	uint32_t		arenabase;		/* base address of first arena */
 
 	/*
 	 * stored in the arena mapping table on disk
@@ -312,7 +312,7 @@ struct ArenaPart
  */
 struct CIBlock
 {
-	u32int		block;			/* blocks in the directory */
+	uint32_t		block;			/* blocks in the directory */
 	int		offset;			/* offsets of one clump in the data */
 	DBlock		*data;
 };
@@ -322,11 +322,11 @@ struct CIBlock
  */
 struct ATailStats
 {
-	u32int		clumps;		/* number of clumps */
-	u32int		cclumps;		/* number of compressed clumps */
-	u64int		used;
-	u64int		uncsize;
-	u8int		sealed;
+	uint32_t		clumps;		/* number of clumps */
+	uint32_t		cclumps;		/* number of compressed clumps */
+	uint64_t		used;
+	uint64_t		uncsize;
+	uint8_t		sealed;
 };
 
 /*
@@ -335,7 +335,7 @@ struct ATailStats
 struct AState
 {
 	Arena		*arena;
-	u64int		aa;			/* index address */
+	uint64_t		aa;			/* index address */
 	ATailStats		stats;
 };
 
@@ -367,9 +367,9 @@ struct Arena
 	QLock		lock;			/* lock for arena fields, writing to disk */
 	Part		*part;			/* partition in which arena lives */
 	int		blocksize;		/* size of block to read or write */
-	u64int		base;			/* base address on disk */
-	u64int		size;			/* total space in the arena */
-	u8int		score[VtScoreSize];	/* score of the entire sealed & summed arena */
+	uint64_t		base;			/* base address on disk */
+	uint64_t		size;			/* total space in the arena */
+	uint8_t		score[VtScoreSize];	/* score of the entire sealed & summed arena */
 
 	int		clumpmax;		/* ClumpInfos per block */
 	AState		mem;
@@ -378,13 +378,13 @@ struct Arena
 	/*
 	 * fields stored on disk
 	 */
-	u32int		version;
+	uint32_t		version;
 	char		name[ANameSize];	/* text label */
 	ATailStats		memstats;
 	ATailStats		diskstats;
-	u32int		ctime;			/* first time a block was written */
-	u32int		wtime;			/* last time a block was written */
-	u32int		clumpmagic;
+	uint32_t		ctime;			/* first time a block was written */
+	uint32_t		wtime;			/* last time a block was written */
+	uint32_t		clumpmagic;
 	
 	ArenaCIG	*cig;
 	int	ncig;
@@ -392,7 +392,7 @@ struct Arena
 
 struct ArenaCIG
 {
-	u64int	offset;  // from arena base
+	uint64_t	offset;  // from arena base
 };
 
 /*
@@ -400,11 +400,11 @@ struct ArenaCIG
  */
 struct ArenaHead
 {
-	u32int		version;
+	uint32_t		version;
 	char		name[ANameSize];
-	u32int		blocksize;
-	u64int		size;
-	u32int		clumpmagic;
+	uint32_t		blocksize;
+	uint64_t		size;
+	uint32_t		clumpmagic;
 };
 
 /*
@@ -414,10 +414,10 @@ struct ArenaHead
  */
 struct ClumpInfo
 {
-	u8int		type;
-	u16int		size;			/* size of disk data, not including header */
-	u16int		uncsize;		/* size of uncompressed data */
-	u8int		score[VtScoreSize];	/* score of the uncompressed data only */
+	uint8_t		type;
+	uint16_t		size;			/* size of disk data, not including header */
+	uint16_t		uncsize;		/* size of uncompressed data */
+	uint8_t		score[VtScoreSize];	/* score of the uncompressed data only */
 };
 
 /*
@@ -426,9 +426,9 @@ struct ClumpInfo
 struct Clump
 {
 	ClumpInfo	info;
-	u8int		encoding;
-	u32int		creator;		/* initial client which wrote the block */
-	u32int		time;			/* creation at gmt seconds since 1/1/1970 */
+	uint8_t		encoding;
+	uint32_t		creator;		/* initial client which wrote the block */
+	uint32_t		time;			/* creation at gmt seconds since 1/1/1970 */
 };
 
 /*
@@ -457,10 +457,10 @@ struct Clump
  */
 struct Index
 {
-	u32int		div;			/* divisor for mapping score to bucket */
-	u32int		buckets;		/* last bucket used in disk hash table */
-	u32int		blocksize;
-	u32int		tabsize;		/* max. bytes in index config */
+	uint32_t		div;			/* divisor for mapping score to bucket */
+	uint32_t		buckets;		/* last bucket used in disk hash table */
+	uint32_t		blocksize;
+	uint32_t		tabsize;		/* max. bytes in index config */
 
 	int		mapalloc;		/* first arena to check when adding a lump */
 	Arena		**arenas;		/* arenas in the mapping */
@@ -470,7 +470,7 @@ struct Index
 	/*
 	 * fields stored in config file 
 	 */
-	u32int		version;
+	uint32_t		version;
 	char		name[ANameSize];	/* text label */
 	int		nsects;
 	AMap		*smap;			/* mapping of buckets to index sections */
@@ -490,8 +490,8 @@ struct ISect
 	Part		*part;
 	int		blocklog;		/* log2(blocksize) */
 	int		buckmax;		/* max. entries in a index bucket */
-	u32int		tabbase;		/* base address of index config table on disk */
-	u32int		tabsize;		/* max. bytes in index config */
+	uint32_t		tabbase;		/* base address of index config table on disk */
+	uint32_t		tabsize;		/* max. bytes in index config */
 	Channel	*writechan;
 	Channel	*writedonechan;
 	void		*ig;		/* used by buildindex only */
@@ -500,15 +500,15 @@ struct ISect
 	/*
 	 * fields stored on disk
 	 */
-	u32int		version;
-	u32int		bucketmagic;
+	uint32_t		version;
+	uint32_t		bucketmagic;
 	char		name[ANameSize];	/* text label */
 	char		index[ANameSize];	/* index owning the section */
-	u32int		blocksize;		/* size of hash buckets in index */
-	u32int		blockbase;		/* address of start of on disk index table */
-	u32int		blocks;			/* total blocks on disk; some may be unused */
-	u32int		start;			/* first bucket in this section */
-	u32int		stop;			/* limit of buckets in this section */
+	uint32_t		blocksize;		/* size of hash buckets in index */
+	uint32_t		blockbase;		/* address of start of on disk index table */
+	uint32_t		blocks;			/* total blocks on disk; some may be unused */
+	uint32_t		start;			/* first bucket in this section */
+	uint32_t		stop;			/* limit of buckets in this section */
 };
 
 /*
@@ -516,10 +516,10 @@ struct ISect
  */
 struct IAddr
 {
-	u64int		addr;
-	u16int		size;			/* uncompressed size */
-	u8int		type;			/* type of block */
-	u8int		blocks;			/* arena io quanta for Clump + data */
+	uint64_t		addr;
+	uint16_t		size;			/* uncompressed size */
+	uint8_t		type;			/* type of block */
+	uint8_t		blocks;			/* arena io quanta for Clump + data */
 };
 
 /*
@@ -530,14 +530,14 @@ struct IAddr
 struct IEntry
 {
 	/* on disk data - 32 bytes*/
-	u8int	score[VtScoreSize];
+	uint8_t	score[VtScoreSize];
 	IAddr	ia;
 	
 	IEntry	*nexthash;
 	IEntry	*nextdirty;
 	IEntry	*next;
 	IEntry	*prev;
-	u8int	state;
+	uint8_t	state;
 };
 enum {
 	IEClean = 0,
@@ -550,9 +550,9 @@ enum {
  */
 struct IBucket
 {
-	u16int		n;			/* number of active indices */
-	u32int		buck;		/* used by buildindex/checkindex only */
-	u8int		*data;
+	uint16_t		n;			/* number of active indices */
+	uint32_t		buck;		/* used by buildindex/checkindex only */
+	uint8_t		*data;
 };
 
 /*
@@ -560,10 +560,10 @@ struct IBucket
  */
 struct ZBlock
 {
-	u32int		len;
-	u32int		_size;
-	u8int		*data;
-	u8int		*free;
+	uint32_t		len;
+	uint32_t		_size;
+	uint8_t		*data;
+	uint8_t		*free;
 };
 
 /*
@@ -573,7 +573,7 @@ struct IFile
 {
 	char		*name;				/* name of the file */
 	ZBlock		*b;				/* entire contents of file */
-	u32int		pos;				/* current position in the file */
+	uint32_t		pos;				/* current position in the file */
 };
 
 struct Statdesc
@@ -689,14 +689,14 @@ struct Statbin
 
 struct Graph
 {
-	long (*fn)(Stats*, Stats*, void*);
+	int32_t (*fn)(Stats*, Stats*, void*);
 	void *arg;
-	long t0;
-	long t1;
-	long min;
-	long max;
-	long wid;
-	long ht;
+	int32_t t0;
+	int32_t t1;
+	int32_t min;
+	int32_t max;
+	int32_t wid;
+	int32_t ht;
 	int fill;
 };
 
@@ -728,19 +728,19 @@ struct Bloom
 	int nhash;
 	uint32_t size;		/* bytes in tab */
 	uint32_t bitmask;		/* to produce bit index */
-	u8int *data;
+	uint8_t *data;
 	Part *part;
 	Channel *writechan;
 	Channel *writedonechan;
 };
 
 extern	Index		*mainindex;
-extern	u32int		maxblocksize;		/* max. block size used by any partition */
+extern	uint32_t		maxblocksize;		/* max. block size used by any partition */
 extern	int		paranoid;		/* should verify hashes on disk read */
 extern	int		queuewrites;		/* put all lump writes on a queue and finish later */
 extern	int		readonly;		/* only allowed to read the disk data */
 extern	Stats		stats;
-extern	u8int		zeroscore[VtScoreSize];
+extern	uint8_t		zeroscore[VtScoreSize];
 extern	int		compressblocks;
 extern	int		writestodevnull;	/* dangerous - for performance debugging */
 extern	int		collectstats;
@@ -761,7 +761,7 @@ extern	int	nstathist;
 extern	uint32_t	stattime;
 
 #ifndef PLAN9PORT
-#pragma varargck type "V" uchar*
+#pragma varargck type "V" unsigned char*
 #define ODIRECT 0
 #endif
 
