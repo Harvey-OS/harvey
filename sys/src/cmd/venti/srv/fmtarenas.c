@@ -25,7 +25,7 @@ threadmain(int argc, char *argv[])
 	ArenaPart *ap;
 	Part *part;
 	Arena *arena;
-	u64int addr, limit, asize, apsize;
+	uint64_t addr, limit, asize, apsize;
 	char *file, *name, aname[ANameSize];
 	int i, n, blocksize, tabsize, zero;
 

@@ -46,8 +46,8 @@ initicachewrite(void)
 	initround(&iwrite.round, "icache", 120*60*1000);
 	ix = mainindex;
 	for(i=0; i<ix->nsects; i++){
-		ix->sects[i]->writechan = chancreate(sizeof(ulong), 1);
-		ix->sects[i]->writedonechan = chancreate(sizeof(ulong), 1);
+		ix->sects[i]->writechan = chancreate(sizeof(uint32_t), 1);
+		ix->sects[i]->writedonechan = chancreate(sizeof(uint32_t), 1);
 		vtproc(icachewriteproc, ix->sects[i]);
 	}
 	vtproc(icachewritecoord, nil);

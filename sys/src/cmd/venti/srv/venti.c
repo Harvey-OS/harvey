@@ -168,7 +168,7 @@ void
 threadmain(int argc, char *argv[])
 {
 	char *configfile, *haddr, *vaddr, *webroot;
-	u32int mem, icmem, bcmem, minbcmem, mempcnt, stfree;
+	uint32_t mem, icmem, bcmem, minbcmem, mempcnt, stfree;
 	Allocs allocs;
 	Config config;
 
