@@ -43,10 +43,12 @@ if(~ $wflag yes){
 		echo 'config is empty; will not install' >[1=2]
 		exit emptyconfig
 	}
-	if(test `{ls -l /tmp/venticonf.$pid | awk '{print $6}'} -gt 8192){
-		echo 'config is too long; max is a little less than eight kilobytes' >[1=2]
-		exit toolong
-	}
+	echo "WE ARE ASSUMING YOUR CONFIG IS LESS THAN 8k. IF NOT, THINGS WILL GO BADLY"
+	#if(test `{ls -l /tmp/venticonf.$pid | awk '{print $6}'} -gt 8192){
+		#echo 'config is too long; max is a little less than eight kilobytes' >[1=2]
+		#exit toolong
+	#}
+
 	dd -quiet 1 -bs 1024 -count 8 -if $disk -iseek 248 \
 		>/tmp/_venticonf.old || exit backup
 	dd -quiet 1 -count 2 </dev/zero >> /tmp/venticonf.$pid || exit dd
