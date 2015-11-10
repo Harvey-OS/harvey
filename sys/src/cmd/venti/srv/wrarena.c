@@ -140,9 +140,9 @@ threadmain(int argc, char *argv[])
 	int i;
 	char *file;
 	Arena *arena;
-	u64int offset, aoffset;
+	uint64_t offset, aoffset;
 	Part *part;
-	uchar buf[8192];
+	unsigned char buf[8192];
 	ArenaHead head;
 	ZClump zerocl;
 
@@ -172,7 +172,7 @@ threadmain(int argc, char *argv[])
 		break;
 	}ARGEND
 
-	offset = ~(u64int)0;
+	offset = ~(uint64_t)0;
 	switch(argc) {
 	default:
 		usage();

@@ -25,7 +25,9 @@
 		"hoc/hoc.json",
 		"grep/grep.json",
 		"ndb/ndb.json",
-		"rio/rio.json"
+		"rio/rio.json",
+		"syscall/syscall.json",
+		"venti/venti.json"
 	],
 	"SourceFilesCmd": [
 		"aan.c",

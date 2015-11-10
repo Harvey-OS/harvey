@@ -24,8 +24,8 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	uchar score[VtScoreSize];
-	uchar buf[VtRootSize];
+	unsigned char score[VtScoreSize];
+	unsigned char buf[VtRootSize];
 	VtConn *z;
 	VtRoot root;
 

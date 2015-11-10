@@ -75,9 +75,9 @@ threadmain(int argc, char *argv[])
 {
 	char *file;
 	Arena *arena;
-	u64int offset, aoffset;
+	uint64_t offset, aoffset;
 	Part *part;
-	static uchar buf[8192];
+	static unsigned char buf[8192];
 	ArenaHead head;
 
 	readonly = 1;	/* for part.c */
@@ -91,7 +91,7 @@ threadmain(int argc, char *argv[])
 		break;
 	}ARGEND
 
-	offset = ~(u64int)0;
+	offset = ~(uint64_t)0;
 	switch(argc) {
 	default:
 		usage();

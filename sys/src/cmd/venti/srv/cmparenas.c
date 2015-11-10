@@ -243,7 +243,7 @@ threadmain(int argc, char *argv[])
 {
 	int i, nline;
 	char *p, *q, *table, *table1, *f[10], line[256];
-	vlong start, stop;
+	int64_t start, stop;
 	ArenaPart ap;
 	ArenaPart ap1;
 	

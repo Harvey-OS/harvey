@@ -40,7 +40,7 @@ nameok(char *name)
 }
 
 int
-stru32int(char *s, uint32_t *r)
+struint32_t(char *s, uint32_t *r)
 {
 	char *t;
 	uint32_t n, nn, m;
@@ -64,7 +64,7 @@ stru32int(char *s, uint32_t *r)
 }
 
 int
-stru64int(char *s, uint64_t *r)
+struint64_t(char *s, uint64_t *r)
 {
 	char *t;
 	uint64_t n, nn, m;

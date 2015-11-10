@@ -104,7 +104,7 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	u32int bcmem;
+	uint32_t bcmem;
 
 	bcmem = 0;
 
