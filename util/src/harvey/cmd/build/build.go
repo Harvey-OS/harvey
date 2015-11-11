@@ -92,8 +92,14 @@ var (
 	arch = map[string]bool{
 		"amd64": true,
 	}
-	which = flag.String("w", ".*", "Regexp defining which top level JSONs to process")
+	debugPrint = flag.Bool("debug", false, "Enable debug prints")
 )
+
+func debug(fmt string, s ...interface{}) {
+	if *debugPrint {
+		log.Printf(fmt, s...)
+	}
+}
 
 // fail with message, if err is not nil
 func failOn(err error) {
@@ -354,13 +360,7 @@ func run(b *build, cmd []string) {
 
 func projects(b *build) {
 	for _, v := range b.Projects {
-		wd := path.Dir(v)
-		f := path.Base(v)
-		cwd, err := os.Getwd()
-		failOn(err)
-		os.Chdir(wd)
-		project(f, ".*")
-		os.Chdir(cwd)
+		project(v, ".*")
 	}
 }
 
@@ -569,6 +569,27 @@ func buildkernel(b *build) {
 
 // assumes we are in the wd of the project.
 func project(root, which string) {
+	cwd, err := os.Getwd()
+	failOn(err)
+	debug("Start new project cwd is %v", cwd)
+	defer os.Chdir(cwd)
+	// root is allowed to be a directory or file name.
+	dir := root
+	if st, err := os.Stat(root); err != nil {
+		log.Fatalf("%v: %v", root, err)
+	} else {
+		if st.IsDir() {
+			root = "build.json"
+		} else {
+			dir = path.Dir(root)
+			root = path.Base(root)
+		}
+	}
+	debug("CD to %v and build using %v", dir, root)
+	if err := os.Chdir(dir); err != nil {
+		log.Fatalf("Can't cd to %v: %v", dir, err)
+	}
+	debug("Processing %v", root)
 	b := &build{}
 	b.jsons = map[string]bool{}
 	process(root, which, b)
@@ -623,11 +644,20 @@ func main() {
 	if badsetup {
 		os.Exit(1)
 	}
-	dir := path.Dir(flag.Arg(0))
-	file := path.Base(flag.Arg(0))
-	err = os.Chdir(dir)
-	failOn(err)
-	project(file, *which)
+
+	// If no args, assume '.'
+	// If 1 arg, that's a dir or file name.
+	// if two args, that's a dir and a regular expression.
+	// TODO: more than one RE.
+	dir := "."
+	if len(flag.Args()) > 0 {
+		dir = flag.Arg(0)
+	}
+	re := ".*"
+	if len(flag.Args()) > 1 {
+		re = flag.Arg(1)
+	}
+	project(dir, re)
 }
 
 func findTools(toolprefix string) (err error) {
