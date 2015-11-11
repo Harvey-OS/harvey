@@ -437,7 +437,6 @@ static void
 consinit(void)
 {
 	todinit();
-	randominit();
 }
 
 static Chan*
