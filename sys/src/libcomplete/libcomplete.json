@@ -1,11 +1,13 @@
-{
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libcomplete.a",
-	"Name": "libcomplete",
-	"SourceFiles": [
-		"complete.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libcomplete.a",
+		"Name": "libcomplete",
+		"SourceFiles": [
+			"complete.c"
+		]
+	}
+]

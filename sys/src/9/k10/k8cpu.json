@@ -1,117 +1,116 @@
-{
-	"Name": "k8cpu",
-	"Env": [
-		"CONF=k8cpu"
-	],
-	"Include": [
-		"core.json",
-		"../386/386.json",
-		"../ip/ip.json",
-		"../port/port.json"
-	],
-	"Kernel": {
-		"Config": {
-			"Code": [
-				"int cpuserver = 1;",
-				"uint32_t kerndate = 1;"
-			],
-			"Dev": [
-				"acpi",
-				"arch",
-				"cap",
-				"cons",
-				"draw",
-				"dup",
-				"env",
-				"ether",
-				"ip",
-				"kprof",
-				"mnt",
-				"mouse",
-				"pci",
-				"pipe",
-				"pmc",
-				"proc",
-				"regress",
-				"root",
-				"rtc",
-				"sd",
-				"segment",
-				"srv",
-				"ssl",
-				"uart",
-				"ws",
-				"usb",
-				"vga",
-				"zp"
-			],
-			"Ip": [
-				"tcp",
-				"udp",
-				"ipifc",
-				"icmp",
-				"icmp6",
-				"gre"
-			],
-			"Link": [
-				"ether8169",
-				"ether82557",
-				"ether82563",
-				"etherigbe",
-				"ether8139",
-				"ethermedium",
-				"loopbackmedium",
-				"netdevmedium",
-				"usbuhci",
-				"usbohci",
-				"usbehci"
-			],
-			"Sd": [
-				"sdiahci"
-			],
-			"Systab": "/sys/src/libc/9syscall/sys.h",
-			"Uart": [
-				"i8250",
-				"pci"
-			],
-			"VGA": [
-
-			]
+[
+	{
+		"Env": [
+			"CONF=k8cpu"
+		],
+		"Include": [
+			"core.json",
+			"../386/386.json",
+			"../ip/ip.json",
+			"../port/port.json"
+		],
+		"Kernel": {
+			"Config": {
+				"Code": [
+					"int cpuserver = 1;",
+					"uint32_t kerndate = 1;"
+				],
+				"Dev": [
+					"acpi",
+					"arch",
+					"cap",
+					"cons",
+					"draw",
+					"dup",
+					"env",
+					"ether",
+					"ip",
+					"kprof",
+					"mnt",
+					"mouse",
+					"pci",
+					"pipe",
+					"pmc",
+					"proc",
+					"regress",
+					"root",
+					"rtc",
+					"sd",
+					"segment",
+					"srv",
+					"ssl",
+					"uart",
+					"ws",
+					"usb",
+					"vga",
+					"zp"
+				],
+				"Ip": [
+					"tcp",
+					"udp",
+					"ipifc",
+					"icmp",
+					"icmp6",
+					"gre"
+				],
+				"Link": [
+					"ether8169",
+					"ether82557",
+					"ether82563",
+					"etherigbe",
+					"ether8139",
+					"ethermedium",
+					"loopbackmedium",
+					"netdevmedium",
+					"usbuhci",
+					"usbohci",
+					"usbehci"
+				],
+				"Sd": [
+					"sdiahci"
+				],
+				"Systab": "/sys/src/libc/9syscall/sys.h",
+				"Uart": [
+					"i8250",
+					"pci"
+				],
+				"VGA": []
+			},
+			"Ramfiles": {
+				"bind": "/amd64/bin/bind",
+				"boot": "/sys/src/9/boot/bootk8cpu.elf.out",
+				"cat": "/amd64/bin/cat",
+				"date": "/amd64/bin/date",
+				"echo": "/amd64/bin/echo",
+				"factotum": "/amd64/bin/auth/factotum",
+				"ipconfig": "/amd64/bin/ip/ipconfig",
+				"ls": "/amd64/bin/ls",
+				"mount": "/amd64/bin/mount",
+				"nvram": "/util/nvram",
+				"rc": "/amd64/bin/rc",
+				"rcmain": "/rc/lib/rcmain",
+				"screenconsole": "/amd64/bin/aux/screenconsole",
+				"srv": "/amd64/bin/srv"
+			}
 		},
-		"Ramfiles": {
-			"bind": "/amd64/bin/bind",
-			"boot": "/sys/src/9/boot/bootk8cpu.elf.out",
-			"cat": "/amd64/bin/cat",
-			"date": "/amd64/bin/date",
-			"echo": "/amd64/bin/echo",
-			"factotum": "/amd64/bin/auth/factotum",
-			"ipconfig": "/amd64/bin/ip/ipconfig",
-			"ls": "/amd64/bin/ls",
-			"mount": "/amd64/bin/mount",
-			"nvram": "/util/nvram",
-			"rc": "/amd64/bin/rc",
-			"rcmain": "/rc/lib/rcmain",
-			"screenconsole": "/amd64/bin/aux/screenconsole",
-			"srv": "/amd64/bin/srv"
-		}
-	},
-	"Name": "k8cpu",
-	"Program": "9k8cpu",
-	"SourceFiles": [
-		"cga.c",
-		"devacpi.c",
-		"devusb.c",
-		"devvga.c",
-		"ether8139.c",
-		"ether82563.c",
-		"k8cpu.c",
-		"mouse.c",
-		"screen.c",
-		"sdata.c",
-		"usbehcipc.c",
-		"usbohci.c",
-		"usbuhci.c",
-		"vga.c",
-		"vgax.c"
-	]
-}
+		"Name": "k8cpu",
+		"Program": "9k8cpu",
+		"SourceFiles": [
+			"cga.c",
+			"devacpi.c",
+			"devusb.c",
+			"devvga.c",
+			"ether8139.c",
+			"ether82563.c",
+			"k8cpu.c",
+			"mouse.c",
+			"screen.c",
+			"sdata.c",
+			"usbehcipc.c",
+			"usbohci.c",
+			"usbuhci.c",
+			"vga.c",
+			"vgax.c"
+		]
+	}
+]

@@ -1,18 +1,20 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/ip",
-	"Name": "ppp",
-	"Program": "ppp",
-	"SourceFiles": [
-		"ppp.c",
-		"compress.c",
-		"block.c",
-		"mppc.c",
-		"ipaux.c",
-		"thw.c",
-		"thwack.c",
-		"unthwack.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Name": "ppp",
+		"Program": "ppp",
+		"SourceFiles": [
+			"ppp.c",
+			"compress.c",
+			"block.c",
+			"mppc.c",
+			"ipaux.c",
+			"thw.c",
+			"thwack.c",
+			"unthwack.c"
+		]
+	}
+]

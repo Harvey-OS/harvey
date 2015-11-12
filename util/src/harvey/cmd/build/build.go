@@ -171,15 +171,9 @@ func process(f, which string, b *build) {
 	dec := json.NewDecoder(strings.NewReader(string(d)))
 	failOn(err)
 	var builds []build
-	for {
-		var b build
-		err := dec.Decode(&b)
-		if err == io.EOF {
-			break
-		}
-		failOn(err)
-		builds = append(builds, b)
-	}
+	err = dec.Decode(&builds)
+	failOn(err)
+
 	for _, build := range builds {
 		log.Printf("Do %v", b.Name)
 		if !r.MatchString(build.Name) {

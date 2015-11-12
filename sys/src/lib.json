@@ -1,17 +1,19 @@
-{
-	"Include": [
-		"/amd64/include/cflags.json"
-	],
-	"Name": "Libs",
-	"Oflags": [
-		"-static"
-	],
-	"Post": [
-		"rm *.o"
-	],
-	"Pre": [
-		"mkdir -p $HARVEY/amd64/bin",
-		"mkdir -p $HARVEY/amd64/lib",
-		"rm -f *.o *.tag.*"
-	]
-}
+[
+	{
+		"Include": [
+			"/amd64/include/cflags.json"
+		],
+		"Name": "Libs",
+		"Oflags": [
+			"-static"
+		],
+		"Post": [
+			"rm *.o"
+		],
+		"Pre": [
+			"mkdir -p $HARVEY/amd64/bin",
+			"mkdir -p $HARVEY/amd64/lib",
+			"rm -f *.o *.tag.*"
+		]
+	}
+]

@@ -1,13 +1,15 @@
-{
-	"Include": [
-		"/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin/ip",
-	"Name": "dhcpleases",
-	"Program": "dhcpleases",
-	"SourceFiles": [
-		"dhcpleases.c",
-		"db.c",
-		"ping.c"
-	]
-}
+[
+	{
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Name": "dhcpleases",
+		"Program": "dhcpleases",
+		"SourceFiles": [
+			"dhcpleases.c",
+			"db.c",
+			"ping.c"
+		]
+	}
+]

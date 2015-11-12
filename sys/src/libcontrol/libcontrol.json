@@ -1,26 +1,28 @@
-{
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libcontrol.a",
-	"Name": "libcontrol",
-	"SourceFiles": [
-		"box.c",
-		"button.c",
-		"cache.c",
-		"control.c",
-		"entry.c",
-		"group.c",
-		"keyboard.c",
-		"label.c",
-		"menu.c",
-		"radiobutton.c",
-		"scribble.c",
-		"slider.c",
-		"tabs.c",
-		"text.c",
-		"textbutton.c",
-		"textbutton3.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libcontrol.a",
+		"Name": "libcontrol",
+		"SourceFiles": [
+			"box.c",
+			"button.c",
+			"cache.c",
+			"control.c",
+			"entry.c",
+			"group.c",
+			"keyboard.c",
+			"label.c",
+			"menu.c",
+			"radiobutton.c",
+			"scribble.c",
+			"slider.c",
+			"tabs.c",
+			"text.c",
+			"textbutton.c",
+			"textbutton3.c"
+		]
+	}
+]

@@ -1,29 +1,31 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "cifs",
-	"Post": [
-		"mv cifs $HARVEY/amd64/bin/"
-	],
-	"Program": "cifs",
-	"SourceFiles": [
-		"main.c",
-		"transnt.c",
-		"trans2.c",
-		"trans.c",
-		"cifs.c",
-		"netbios.c",
-		"pack.c",
-		"info.c",
-		"fs.c",
-		"sid2name.c",
-		"misc.c",
-		"nterrstr.c",
-		"doserrstr.c",
-		"raperrstr.c",
-		"auth.c",
-		"dfs.c",
-		"ping.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Name": "cifs",
+		"Post": [
+			"mv cifs $HARVEY/amd64/bin/"
+		],
+		"Program": "cifs",
+		"SourceFiles": [
+			"main.c",
+			"transnt.c",
+			"trans2.c",
+			"trans.c",
+			"cifs.c",
+			"netbios.c",
+			"pack.c",
+			"info.c",
+			"fs.c",
+			"sid2name.c",
+			"misc.c",
+			"nterrstr.c",
+			"doserrstr.c",
+			"raperrstr.c",
+			"auth.c",
+			"dfs.c",
+			"ping.c"
+		]
+	}
+]

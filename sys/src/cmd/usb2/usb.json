@@ -1,12 +1,14 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/usb",
-	"Name": "usbugly",
-	"Program": "usbugly",
-	"SourceFiles": [
-		"usb.c",
-		"usbugly.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/usb",
+		"Name": "usbugly",
+		"Program": "usbugly",
+		"SourceFiles": [
+			"usb.c",
+			"usbugly.c"
+		]
+	}
+]

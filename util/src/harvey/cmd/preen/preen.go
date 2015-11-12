@@ -31,7 +31,7 @@ var config = struct {
 	Fail      bool
 }{
 	Harvey: os.Getenv("HARVEY"),
-	Except: map[string]bool{"cflags.json": true, "9": true, "libauthcmd.json": true, "awk.json": true, "bzip2": true, "klibc.json": true, "kcmds.json": true, "klib.json": true, "kernel.json": true},
+	Except: map[string]bool{"cflags.json": true, "9": true, "libauthcmd.json": true, "awk.json": true, "bzip2": true, "klibc.json": true, "kcmds.json": true, "klib.json": true, "kernel.json": true, "syscall.json": true},
 }
 
 type fixup func(string, map[string]interface{})
@@ -80,27 +80,37 @@ func one(n string, f ...fixup) error {
 		return err
 	}
 
-	var jsmap map[string]interface{}
+	var jsmap []map[string]interface{}
 	if err := json.Unmarshal(buf, &jsmap); err != nil {
-		return err
+		// It may be an unconverted non-array .json, 
+		// so try to read it in as a non-array.
+		var smap map[string]interface{}
+		if json.Unmarshal(buf, &smap) != nil {
+			return err
+		}
+		jsmap = append(jsmap, smap)
+
 	}
 	if config.Debug {
 		log.Printf("%v: %v", n, jsmap)
 	}
 
-	for _, d := range f {
-		d(n, jsmap)
+	for _, j := range jsmap {
+		log.Printf("Fixup %v\n", j)
+		for _, d := range f {
+			d(n, j)
+		}
+		log.Printf("Done Fixup %v\n", j)
 	}
-	buf, err = json.MarshalIndent(jsmap, "", "\t")
+	out, err := json.MarshalIndent(jsmap, "", "\t")
 	if err != nil {
 		return err
 	}
-	buf = append(buf, '\n')
-
+	out = append(out, '\n')
 	if config.Debug {
-		os.Stdout.Write(buf)
+		os.Stdout.Write(out)
 	} else {
-		ioutil.WriteFile(n, buf, 0666)
+		ioutil.WriteFile(n, out, 0666)
 	}
 	return nil
 }
@@ -150,7 +160,7 @@ func main() {
 		})
 
 		if err != nil {
-			log.Fatal("%v", err)
+			log.Fatalf("%v", err)
 
 		}
 	}

@@ -85,12 +85,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var sysconf Sysconf
-	err = json.Unmarshal(buf, &sysconf)
+	var s []Sysconf
+	err = json.Unmarshal(buf, &s)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	sysconf := s[0]
 	syscalls := sysconf.Syscalls
 	syserrors := sysconf.Syserrors
 	bootmethods := sysconf.Bootmethods

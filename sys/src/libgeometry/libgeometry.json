@@ -1,16 +1,18 @@
-{
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libgeometry.a",
-	"Name": "libgeometry",
-	"SourceFiles": [
-		"arith3.c",
-		"matrix.c",
-		"qball.c",
-		"quaternion.c",
-		"transform.c",
-		"tstack.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libgeometry.a",
+		"Name": "libgeometry",
+		"SourceFiles": [
+			"arith3.c",
+			"matrix.c",
+			"qball.c",
+			"quaternion.c",
+			"transform.c",
+			"tstack.c"
+		]
+	}
+]

@@ -1,16 +1,18 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "diff",
-	"Post": [
-		"mv diff $HARVEY/amd64/bin/"
-	],
-	"Program": "diff",
-	"SourceFiles": [
-		"diffdir.c",
-		"diffio.c",
-		"diffreg.c",
-		"main.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Name": "diff",
+		"Post": [
+			"mv diff $HARVEY/amd64/bin/"
+		],
+		"Program": "diff",
+		"SourceFiles": [
+			"diffdir.c",
+			"diffio.c",
+			"diffreg.c",
+			"main.c"
+		]
+	}
+]

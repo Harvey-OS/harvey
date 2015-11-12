@@ -1,19 +1,21 @@
-{
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libframe.a",
-	"Name": "libframe",
-	"SourceFiles": [
-		"frbox.c",
-		"frdraw.c",
-		"frdelete.c",
-		"frinit.c",
-		"frinsert.c",
-		"frptofchar.c",
-		"frselect.c",
-		"frstr.c",
-		"frutil.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libframe.a",
+		"Name": "libframe",
+		"SourceFiles": [
+			"frbox.c",
+			"frdraw.c",
+			"frdelete.c",
+			"frinit.c",
+			"frinsert.c",
+			"frptofchar.c",
+			"frselect.c",
+			"frstr.c",
+			"frutil.c"
+		]
+	}
+]

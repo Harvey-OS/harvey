@@ -1,18 +1,20 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "portmapper",
-	"Post": [
-		"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
-		"mv portmapper $HARVEY/amd64/bin/aux/"
-	],
-	"Program": "portmapper",
-	"SourceFiles": [
-		"portmapper.c",
-		"rpc.c",
-		"chat.c",
-		"server.c",
-		"string.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Name": "portmapper",
+		"Post": [
+			"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
+			"mv portmapper $HARVEY/amd64/bin/aux/"
+		],
+		"Program": "portmapper",
+		"SourceFiles": [
+			"portmapper.c",
+			"rpc.c",
+			"chat.c",
+			"server.c",
+			"string.c"
+		]
+	}
+]

@@ -1,21 +1,23 @@
-{
-	"Include": [
-		"../klib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "klibip.a",
-	"Name": "KernelLibip",
-	"SourceFiles": [
-		"eipfmt.c",
-		"equivip.c",
-		"parseip.c",
-		"parseether.c",
-		"myetheraddr.c",
-		"myipaddr.c",
-		"classmask.c",
-		"bo.c",
-		"readipifc.c",
-		"ipaux.c",
-		"ptclbsum.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../klib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "klibip.a",
+		"Name": "KernelLibip",
+		"SourceFiles": [
+			"eipfmt.c",
+			"equivip.c",
+			"parseip.c",
+			"parseether.c",
+			"myetheraddr.c",
+			"myipaddr.c",
+			"classmask.c",
+			"bo.c",
+			"readipifc.c",
+			"ipaux.c",
+			"ptclbsum.c"
+		]
+	}
+]

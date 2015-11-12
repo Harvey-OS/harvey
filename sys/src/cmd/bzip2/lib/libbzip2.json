@@ -1,3 +1,4 @@
+[
 {
 	"Cflags": [
 		"-DPLAN9"
@@ -26,3 +27,4 @@
 		"randtable.c"
 	]
 }
+]

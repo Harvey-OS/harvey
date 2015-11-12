@@ -1,22 +1,24 @@
-{
-	"Include": [
-		"../klib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "klibmemlayer.a",
-	"Name": "KernelLibmemlayer",
-	"SourceFiles": [
-		"draw.c",
-		"lalloc.c",
-		"layerop.c",
-		"ldelete.c",
-		"lhide.c",
-		"line.c",
-		"load.c",
-		"lorigin.c",
-		"lsetrefresh.c",
-		"ltofront.c",
-		"ltorear.c",
-		"unload.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../klib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "klibmemlayer.a",
+		"Name": "KernelLibmemlayer",
+		"SourceFiles": [
+			"draw.c",
+			"lalloc.c",
+			"layerop.c",
+			"ldelete.c",
+			"lhide.c",
+			"line.c",
+			"load.c",
+			"lorigin.c",
+			"lsetrefresh.c",
+			"ltofront.c",
+			"ltorear.c",
+			"unload.c"
+		]
+	}
+]

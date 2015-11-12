@@ -1,11 +1,13 @@
-{
-	"Name": "klibs",
-	"Projects": [
-		"/sys/src/libc/klibc.json",
-		"/sys/src/libip/klibip.json",
-		"/sys/src/libdraw/klibdraw.json",
-		"/sys/src/libmemdraw/klibmemdraw.json",
-		"/sys/src/libmemlayer/klibmemlayer.json",
-		"/sys/src/libsec/klibsec.json"
-	]
-}
+[
+	{
+		"Name": "klibs",
+		"Projects": [
+			"/sys/src/libc/klibc.json",
+			"/sys/src/libip/klibip.json",
+			"/sys/src/libdraw/klibdraw.json",
+			"/sys/src/libmemdraw/klibmemdraw.json",
+			"/sys/src/libmemlayer/klibmemlayer.json",
+			"/sys/src/libsec/klibsec.json"
+		]
+	}
+]

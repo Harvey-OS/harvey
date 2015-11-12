@@ -1,27 +1,29 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Name": "dump9660",
-	"Post": [
-		"mv dump9660 $HARVEY/amd64/bin/",
-		"cp mk9660.rc $HARVEY/amd64/bin/mk9660"
-	],
-	"Program": "dump9660",
-	"SourceFiles": [
-		"boot.c",
-		"cdrdwr.c",
-		"conform.c",
-		"direc.c",
-		"dump.c",
-		"dump9660.c",
-		"ichar.c",
-		"jchar.c",
-		"path.c",
-		"plan9.c",
-		"rune.c",
-		"sysuse.c",
-		"util.c",
-		"write.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Name": "dump9660",
+		"Post": [
+			"mv dump9660 $HARVEY/amd64/bin/",
+			"cp mk9660.rc $HARVEY/amd64/bin/mk9660"
+		],
+		"Program": "dump9660",
+		"SourceFiles": [
+			"boot.c",
+			"cdrdwr.c",
+			"conform.c",
+			"direc.c",
+			"dump.c",
+			"dump9660.c",
+			"ichar.c",
+			"jchar.c",
+			"path.c",
+			"plan9.c",
+			"rune.c",
+			"sysuse.c",
+			"util.c",
+			"write.c"
+		]
+	}
+]

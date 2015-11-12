@@ -1,28 +1,30 @@
-{
-	"Include": [
-		"/amd64/include/cflags.json"
-	],
-	"Libs": [
-		"libboot.a",
-		"/amd64/lib/libip.a",
-		"/amd64/lib/libauth.a",
-		"/amd64/lib/libc.a"
-	],
-	"Name": "bootk8cpu",
-	"Oflags": [
-		"-e_main",
-		"-static"
-	],
-	"Post": [
-		"rm *.o *.a",
-		"../../../../util/data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
-	],
-	"Program": "bootk8cpu.elf.out",
-	"Projects": [
-		"boot.json"
-	],
-	"SourceFiles": [
-		"printstub.c",
-		"bootk8cpu.c"
-	]
-}
+[
+	{
+		"Include": [
+			"/amd64/include/cflags.json"
+		],
+		"Libs": [
+			"libboot.a",
+			"/amd64/lib/libip.a",
+			"/amd64/lib/libauth.a",
+			"/amd64/lib/libc.a"
+		],
+		"Name": "bootk8cpu",
+		"Oflags": [
+			"-e_main",
+			"-static"
+		],
+		"Post": [
+			"rm *.o *.a",
+			"../../../../util/data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out \u003e\u003e ../k10/k8cpu.c"
+		],
+		"Program": "bootk8cpu.elf.out",
+		"Projects": [
+			"boot.json"
+		],
+		"SourceFiles": [
+			"printstub.c",
+			"bootk8cpu.c"
+		]
+	}
+]

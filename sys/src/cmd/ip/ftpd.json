@@ -1,12 +1,14 @@
-{
-	"Include": [
-		"/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin/ip",
-	"Name": "ftpd",
-	"Program": "ftpd",
-	"SourceFiles": [
-		"ftpd.c",
-		"glob.c"
-	]
-}
+[
+	{
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Name": "ftpd",
+		"Program": "ftpd",
+		"SourceFiles": [
+			"ftpd.c",
+			"glob.c"
+		]
+	}
+]
