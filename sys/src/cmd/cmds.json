@@ -60,6 +60,7 @@
 		"ed.c",
 		"factor.c",
 		"fcp.c",
+		"field.c",
 		"file.c",
 		"fmt.c",
 		"fortune.c",
