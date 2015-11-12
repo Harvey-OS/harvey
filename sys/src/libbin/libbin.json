@@ -1,11 +1,13 @@
-{
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libbin.a",
-	"Name": "libbin",
-	"SourceFiles": [
-		"bin.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libbin.a",
+		"Name": "libbin",
+		"SourceFiles": [
+			"bin.c"
+		]
+	}
+]

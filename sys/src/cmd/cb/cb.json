@@ -1,14 +1,16 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "cb",
-	"Post": [
-		"mv cb $HARVEY/amd64/bin/"
-	],
-	"Program": "cb",
-	"SourceFiles": [
-		"cb.c",
-		"cbtype.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Name": "cb",
+		"Post": [
+			"mv cb $HARVEY/amd64/bin/"
+		],
+		"Program": "cb",
+		"SourceFiles": [
+			"cb.c",
+			"cbtype.c"
+		]
+	}
+]

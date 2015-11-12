@@ -1,15 +1,17 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/aux",
-	"Name": "gpsfs",
-	"Program": "gpsfs",
-	"Projects": [
-		"gpsevermore.json"
-	],
-	"SourceFiles": [
-		"util.c",
-		"gpsfs.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Name": "gpsfs",
+		"Program": "gpsfs",
+		"Projects": [
+			"gpsevermore.json"
+		],
+		"SourceFiles": [
+			"util.c",
+			"gpsfs.c"
+		]
+	}
+]

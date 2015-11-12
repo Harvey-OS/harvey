@@ -1,19 +1,21 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/disk",
-	"Name": "prep",
-	"Post": [
-		"rm -f y.tab.[ch]"
-	],
-	"Pre": [
-		"yacc -d calc.y"
-	],
-	"Program": "prep",
-	"SourceFiles": [
-		"prep.c",
-		"edit.c",
-		"y.tab.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/disk",
+		"Name": "prep",
+		"Post": [
+			"rm -f y.tab.[ch]"
+		],
+		"Pre": [
+			"yacc -d calc.y"
+		],
+		"Program": "prep",
+		"SourceFiles": [
+			"prep.c",
+			"edit.c",
+			"y.tab.c"
+		]
+	}
+]

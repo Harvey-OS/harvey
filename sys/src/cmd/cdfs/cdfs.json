@@ -1,16 +1,18 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "cdfs",
-	"Post": [
-		"mv cdfs $HARVEY/amd64/bin/"
-	],
-	"Program": "cdfs",
-	"SourceFiles": [
-		"buf.c",
-		"main.c",
-		"mmc.c",
-		"scsi.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Name": "cdfs",
+		"Post": [
+			"mv cdfs $HARVEY/amd64/bin/"
+		],
+		"Program": "cdfs",
+		"SourceFiles": [
+			"buf.c",
+			"main.c",
+			"mmc.c",
+			"scsi.c"
+		]
+	}
+]

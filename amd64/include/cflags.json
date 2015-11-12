@@ -1,22 +1,24 @@
-{
-	"Name": "buildflags",
-	"Cflags": [
-		"-ffreestanding",
-		"-fno-builtin",
-		"-fno-omit-frame-pointer",
-		"-fplan9-extensions",
-		"-fvar-tracking",
-		"-fvar-tracking-assignments",
-		"-g",
-		"-gdwarf-2",
-		"-ggdb",
-		"-mcmodel=small",
-		"-mno-red-zone",
-		"-O0",
-		"-static",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas"
-	]
-}
+[
+	{
+		"Cflags": [
+			"-ffreestanding",
+			"-fno-builtin",
+			"-fno-omit-frame-pointer",
+			"-fplan9-extensions",
+			"-fvar-tracking",
+			"-fvar-tracking-assignments",
+			"-g",
+			"-gdwarf-2",
+			"-ggdb",
+			"-mcmodel=small",
+			"-mno-red-zone",
+			"-O0",
+			"-static",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas"
+		],
+		"Name": "buildflags"
+	}
+]

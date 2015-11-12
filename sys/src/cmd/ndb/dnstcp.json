@@ -1,18 +1,20 @@
-{
-	"Include": [
-		"/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin/ndb/",
-	"Name": "dnstcp",
-	"Program": "dnstcp",
-	"SourceFiles": [
-		"convDNS2M.c",
-		"convM2DNS.c",
-		"dblookup.c",
-		"dn.c",
-		"dnarea.c",
-		"dnresolve.c",
-		"dnserver.c",
-		"dnstcp.c"
-	]
-}
+[
+	{
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/ndb/",
+		"Name": "dnstcp",
+		"Program": "dnstcp",
+		"SourceFiles": [
+			"convDNS2M.c",
+			"convM2DNS.c",
+			"dblookup.c",
+			"dn.c",
+			"dnarea.c",
+			"dnresolve.c",
+			"dnserver.c",
+			"dnstcp.c"
+		]
+	}
+]

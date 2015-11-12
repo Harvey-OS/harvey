@@ -1,20 +1,22 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/auth/",
-	"Name": "secstore",
-	"Program": "secstore",
-	"Projects": [
-		"aescbc.json",
-		"secstored.json",
-		"secuser.json"
-	],
-	"SourceFiles": [
-		"pak.c",
-		"password.c",
-		"secstore.c",
-		"SConn.c",
-		"util.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/auth/",
+		"Name": "secstore",
+		"Program": "secstore",
+		"Projects": [
+			"aescbc.json",
+			"secstored.json",
+			"secuser.json"
+		],
+		"SourceFiles": [
+			"pak.c",
+			"password.c",
+			"secstore.c",
+			"SConn.c",
+			"util.c"
+		]
+	}
+]

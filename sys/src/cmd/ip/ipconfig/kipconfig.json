@@ -1,13 +1,15 @@
-{
-	"Include": [
-		"../../kernel.json"
-	],
-	"Install": "/$ARCH/bin/ip",
-	"Name": "ipconfig",
-	"Program": "ipconfig",
-	"SourceFiles": [
-		"ipv6.c",
-		"main.c",
-		"ppp.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../kernel.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Name": "ipconfig",
+		"Program": "ipconfig",
+		"SourceFiles": [
+			"ipv6.c",
+			"main.c",
+			"ppp.c"
+		]
+	}
+]

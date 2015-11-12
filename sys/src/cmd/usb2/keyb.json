@@ -1,11 +1,13 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/usb",
-	"Name": "keyb",
-	"Program": "keyb",
-	"SourceFiles": [
-		"keyb.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/usb",
+		"Name": "keyb",
+		"Program": "keyb",
+		"SourceFiles": [
+			"keyb.c"
+		]
+	}
+]

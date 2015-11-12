@@ -1,25 +1,27 @@
-{
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "lib9p.a",
-	"Name": "lib9p",
-	"SourceFiles": [
-		"auth.c",
-		"dirread.c",
-		"fid.c",
-		"file.c",
-		"intmap.c",
-		"listen.c",
-		"mem.c",
-		"req.c",
-		"parse.c",
-		"post.c",
-		"rfork.c",
-		"srv.c",
-		"thread.c",
-		"uid.c",
-		"util.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "lib9p.a",
+		"Name": "lib9p",
+		"SourceFiles": [
+			"auth.c",
+			"dirread.c",
+			"fid.c",
+			"file.c",
+			"intmap.c",
+			"listen.c",
+			"mem.c",
+			"req.c",
+			"parse.c",
+			"post.c",
+			"rfork.c",
+			"srv.c",
+			"thread.c",
+			"uid.c",
+			"util.c"
+		]
+	}
+]

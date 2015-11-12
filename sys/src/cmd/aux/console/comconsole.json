@@ -1,26 +1,28 @@
-{
-	"Include": [
-		"/$ARCH/include/cflags.json"
-	],
-	"Install": "/$ARCH/bin/aux",
-	"Name": "Console",
-	"Program": "comconsole",
-	"Oflags": [
-		"-static",
-                "-e_main",
-		"-lc"
-	],
-	"Cflags": [
-		"-Werror"
-	],
-	"Post": [
-                "rm *.o"
-        ],
-	"SourceFiles": [
-		"buffer.c",
-		"comconsole.c",
-		"passthrough.c",
-		"serve9p.c",
-		"utils.c"
-	]
-}
+[
+	{
+		"Cflags": [
+			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Name": "Console",
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lc"
+		],
+		"Post": [
+			"rm *.o"
+		],
+		"Program": "comconsole",
+		"SourceFiles": [
+			"buffer.c",
+			"comconsole.c",
+			"passthrough.c",
+			"serve9p.c",
+			"utils.c"
+		]
+	}
+]

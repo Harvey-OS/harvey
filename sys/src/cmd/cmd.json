@@ -1,49 +1,51 @@
-{
-	"Include": [
-		"/$ARCH/include/cflags.json"
-	],
-	"Name": "Cmd",
-	"Oflags": [
-		"-static",
-		"-e_main",
-		"-lavl",
-		"-lcomplete",
-		"-lcontrol",
-		"-ldisk",
-		"-lflate",
-		"-lframe",
-		"-lgeometry",
-		"-lhttpd",
-		"-lbin",
-		"-llex",
-		"-lmemdraw",
-		"-lmemlayer",
-		"-lmemdraw",
-		"-ldraw",
-		"-lplumb",
-		"-lregexp",
-		"-lstdio",
-		"-lString",
-		"-lsunrpc",
-		"-loventi",
-		"-l9p",
-		"-lauth",
-		"-lauthsrv",
-		"-lndb",
-		"-lip",
-		"-lventi",
-		"-lsec",
-		"-lauth",
-		"-lmp",
-		"-lthread",
-		"-lmach",
-		"-lbio",
-		"-lc"
-	],
-	"Post": [
-		"rm *.o"
-	],
-	"Pre": [
-		"rm -f *.tag.*"
-	]
-}
+[
+	{
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Name": "Cmd",
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lavl",
+			"-lcomplete",
+			"-lcontrol",
+			"-ldisk",
+			"-lflate",
+			"-lframe",
+			"-lgeometry",
+			"-lhttpd",
+			"-lbin",
+			"-llex",
+			"-lmemdraw",
+			"-lmemlayer",
+			"-lmemdraw",
+			"-ldraw",
+			"-lplumb",
+			"-lregexp",
+			"-lstdio",
+			"-lString",
+			"-lsunrpc",
+			"-loventi",
+			"-l9p",
+			"-lauth",
+			"-lauthsrv",
+			"-lndb",
+			"-lip",
+			"-lventi",
+			"-lsec",
+			"-lauth",
+			"-lmp",
+			"-lthread",
+			"-lmach",
+			"-lbio",
+			"-lc"
+		],
+		"Post": [
+			"rm *.o"
+		],
+		"Pre": [
+			"rm -f *.tag.*"
+		]
+	}
+]

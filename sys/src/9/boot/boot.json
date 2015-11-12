@@ -1,39 +1,28 @@
-{
-	"Cflags": [
-		"-g",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-O0",
-		"-static",
-		"-fplan9-extensions",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-mcmodel=small"
-	],
-        "Pre": [
-                "mksys -o bootk8cpu.c -mode=bootk8cpu.c $HARVEY/sys/src/sysconf.json",
-                "[ ! -f bootk8cpu.elf.out ] || rm *.elf.out"
-        ],
-	"Include": [
-		"/sys/src/lib.json"
-	],
-	"Install": "/sys/src/9/boot",
-	"Library": "libboot.a",
-	"Name": "libboot",
-	"SourceFiles": [
-		"aux.c",
-		"bootauth.c",
-		"boot.c",
-		"bootcache.c",
-		"bootip.c",
-		"bootk8cpu.c",
-		"embed.c",
-		"local.c",
-		"paq.c",
-		"sac.c",
-		"settime.c"
-	]
-}
+[
+	{
+		"Include": [
+			"/amd64/include/cflags.json",
+			"/sys/src/lib.json"
+		],
+		"Install": "/sys/src/9/boot",
+		"Library": "libboot.a",
+		"Name": "libboot",
+		"Pre": [
+			"mksys -o bootk8cpu.c -mode=bootk8cpu.c $HARVEY/sys/src/sysconf.json",
+			"[ ! -f bootk8cpu.elf.out ] || rm *.elf.out"
+		],
+		"SourceFiles": [
+			"aux.c",
+			"bootauth.c",
+			"boot.c",
+			"bootcache.c",
+			"bootip.c",
+			"bootk8cpu.c",
+			"embed.c",
+			"local.c",
+			"paq.c",
+			"sac.c",
+			"settime.c"
+		]
+	}
+]

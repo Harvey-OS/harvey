@@ -1,20 +1,22 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/ndb/",
-	"Name": "dns",
-	"Program": "dns",
-	"SourceFiles": [
-		"convDNS2M.c",
-		"convM2DNS.c",
-		"dblookup.c",
-		"dn.c",
-		"dnarea.c",
-		"dnnotify.c",
-		"dnresolve.c",
-		"dns.c",
-		"dnserver.c",
-		"dnudpserver.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/ndb/",
+		"Name": "dns",
+		"Program": "dns",
+		"SourceFiles": [
+			"convDNS2M.c",
+			"convM2DNS.c",
+			"dblookup.c",
+			"dn.c",
+			"dnarea.c",
+			"dnnotify.c",
+			"dnresolve.c",
+			"dns.c",
+			"dnserver.c",
+			"dnudpserver.c"
+		]
+	}
+]

@@ -1,12 +1,14 @@
-{
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/auth",
-	"Name": "aescbc",
-	"Program": "aescbc",
-	"SourceFiles": [
-		"aescbc.c",
-		"util.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/auth",
+		"Name": "aescbc",
+		"Program": "aescbc",
+		"SourceFiles": [
+			"aescbc.c",
+			"util.c"
+		]
+	}
+]

@@ -1,22 +1,24 @@
-{
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/venti",
-	"Name": "Venti",
-	"Projects": [
-		"srv/srv.json"
-	],
-	"SourceFilesCmd": [
-		"copy.c",
-		"read.c",
-		"ro.c",
-		"sync.c",
-		"write.c",
-		"devnull.c",
-		"mkroot.c",
-		"randtest.c",
-		"readlist.c",
-		"root.c"
-	]
-}
+[
+	{
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/venti",
+		"Name": "Venti",
+		"Projects": [
+			"srv/srv.json"
+		],
+		"SourceFilesCmd": [
+			"copy.c",
+			"read.c",
+			"ro.c",
+			"sync.c",
+			"write.c",
+			"devnull.c",
+			"mkroot.c",
+			"randtest.c",
+			"readlist.c",
+			"root.c"
+		]
+	}
+]

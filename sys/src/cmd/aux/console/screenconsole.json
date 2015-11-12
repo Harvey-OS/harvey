@@ -1,27 +1,29 @@
-{
-	"Include": [
-		"/$ARCH/include/cflags.json"
-	],
-	"Install": "/$ARCH/bin/aux",
-	"Name": "ScreenConsole",
-	"Program": "screenconsole",
-	"Oflags": [
-		"-static",
-                "-e_main",
-		"-lc"
-	],
-	"Cflags": [
-		"-Werror"
-	],
-	"Post": [
-                "rm *.o"
-        ],
-	"SourceFiles": [
-		"buffer.c",
-		"cga.c",
-		"screenconsole.c",
-		"keyboard.c",
-		"serve9p.c",
-		"utils.c"
-	]
-}
+[
+	{
+		"Cflags": [
+			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Name": "ScreenConsole",
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lc"
+		],
+		"Post": [
+			"rm *.o"
+		],
+		"Program": "screenconsole",
+		"SourceFiles": [
+			"buffer.c",
+			"cga.c",
+			"screenconsole.c",
+			"keyboard.c",
+			"serve9p.c",
+			"utils.c"
+		]
+	}
+]

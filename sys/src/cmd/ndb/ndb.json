@@ -1,23 +1,25 @@
-{
-	"Include": [
-		"/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin/ndb/",
-	"Name": "ndb",
-	"Projects": [
-		"dns.json",
-		"dnstcp.json",
-		"dnsdebug.json"
-	],
-	"SourceFilesCmd": [
-		"cs.c",
-		"csquery.c",
-		"dnsquery.c",
-		"ipquery.c",
-		"inform.c",
-		"mkdb.c",
-		"mkhash.c",
-		"mkhosts.c",
-		"query.c"
-	]
-}
+[
+	{
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/ndb/",
+		"Name": "ndb",
+		"Projects": [
+			"dns.json",
+			"dnstcp.json",
+			"dnsdebug.json"
+		],
+		"SourceFilesCmd": [
+			"cs.c",
+			"csquery.c",
+			"dnsquery.c",
+			"ipquery.c",
+			"inform.c",
+			"mkdb.c",
+			"mkhash.c",
+			"mkhosts.c",
+			"query.c"
+		]
+	}
+]

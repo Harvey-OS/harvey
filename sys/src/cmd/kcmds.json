@@ -1,27 +1,29 @@
-{
-	"Include": [
-		"kernel.json"
-	],
-	"Name": "Kcmds",
-	"Post": [
-		"[ -d $HARVEY/amd64/bin ] || mkdir $HARVEY/amd64/bin",
-		"mv bind $HARVEY/amd64/bin/",
-		"mv mount $HARVEY/amd64/bin/",
-		"mv date $HARVEY/amd64/bin/",
-		"mv srv $HARVEY/amd64/bin/",
-		"mv echo $HARVEY/amd64/bin/",
-		"mv ls $HARVEY/amd64/bin/"
-	],
-	"Projects": [
-		"/sys/src/cmd/rc/rc.json",
-		"/sys/src/cmd/ip/ipconfig/kipconfig.json"
-	],
-	"SourceFilesCmd": [
-		"bind.c",
-		"mount.c",
-		"date.c",
-		"srv.c",
-		"echo.c",
-		"ls.c"
-	]
-}
+[
+	{
+		"Include": [
+			"kernel.json"
+		],
+		"Name": "Kcmds",
+		"Post": [
+			"[ -d $HARVEY/amd64/bin ] || mkdir $HARVEY/amd64/bin",
+			"mv bind $HARVEY/amd64/bin/",
+			"mv mount $HARVEY/amd64/bin/",
+			"mv date $HARVEY/amd64/bin/",
+			"mv srv $HARVEY/amd64/bin/",
+			"mv echo $HARVEY/amd64/bin/",
+			"mv ls $HARVEY/amd64/bin/"
+		],
+		"Projects": [
+			"/sys/src/cmd/rc/rc.json",
+			"/sys/src/cmd/ip/ipconfig/kipconfig.json"
+		],
+		"SourceFilesCmd": [
+			"bind.c",
+			"mount.c",
+			"date.c",
+			"srv.c",
+			"echo.c",
+			"ls.c"
+		]
+	}
+]
