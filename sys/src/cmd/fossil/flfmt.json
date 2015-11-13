@@ -1,39 +1,40 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/fossil/",
-	"Name": "flfmt",
-	"Program": "flfmt",
-	"SourceFiles": [
-		"9p.c",
-		"9auth.c",
-		"9dir.c",
-		"9excl.c",
-		"9fid.c",
-		"9fsys.c",
-		"9lstn.c",
-		"9proc.c",
-		"9srv.c",
-		"9user.c",
-		"Ccmd.c",
-		"Ccli.c",
-		"Ccons.c",
-		"Clog.c",
-		"archive.c",
-		"nobwatch.c",
-		"cache.c",
-		"check.c",
-		"disk.c",
-		"error.c",
-		"file.c",
-		"flfmt9660.c",
-		"flfmt.c",
-		"fs.c",
-		"pack.c",
-		"periodic.c",
-		"source.c",
-		"vac.c",
-		"walk.c"
-	]
+	"flfmt": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/fossil/",
+		"Program": "flfmt",
+		"SourceFiles": [
+			"9p.c",
+			"9auth.c",
+			"9dir.c",
+			"9excl.c",
+			"9fid.c",
+			"9fsys.c",
+			"9lstn.c",
+			"9proc.c",
+			"9srv.c",
+			"9user.c",
+			"Ccmd.c",
+			"Ccli.c",
+			"Ccons.c",
+			"Clog.c",
+			"archive.c",
+			"nobwatch.c",
+			"cache.c",
+			"check.c",
+			"disk.c",
+			"error.c",
+			"file.c",
+			"flfmt9660.c",
+			"flfmt.c",
+			"fs.c",
+			"pack.c",
+			"periodic.c",
+			"source.c",
+			"vac.c",
+			"walk.c"
+		]
+	}
 }

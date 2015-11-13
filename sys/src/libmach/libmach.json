@@ -1,21 +1,22 @@
 {
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libmach.a",
-	"Name": "libmach",
-	"SourceFiles": [
-		"6.c",
-		"6obj.c",
-		"8db.c",
-		"access.c",
-		"executable.c",
-		"machdata.c",
-		"map.c",
-		"obj.c",
-		"setmach.c",
-		"swap.c",
-		"sym.c"
-	]
+	"libmach": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libmach.a",
+		"SourceFiles": [
+			"6.c",
+			"6obj.c",
+			"8db.c",
+			"access.c",
+			"executable.c",
+			"machdata.c",
+			"map.c",
+			"obj.c",
+			"setmach.c",
+			"swap.c",
+			"sym.c"
+		]
+	}
 }

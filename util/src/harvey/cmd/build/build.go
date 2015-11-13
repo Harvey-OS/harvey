@@ -53,7 +53,7 @@ type build struct {
 	// jsons is unexported so can not be set in a .json file
 	jsons map[string]bool
 	path  string
-	Name  string
+	name  string
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
 	Projects    []string
@@ -168,21 +168,15 @@ func process(f, which string, b *build) {
 	}
 	log.Printf("Processing %v", f)
 	d, err := ioutil.ReadFile(f)
-	dec := json.NewDecoder(strings.NewReader(string(d)))
 	failOn(err)
-	var builds []build
-	for {
-		var b build
-		err := dec.Decode(&b)
-		if err == io.EOF {
-			break
-		}
-		failOn(err)
-		builds = append(builds, b)
-	}
-	for _, build := range builds {
-		log.Printf("Do %v", b.Name)
-		if !r.MatchString(build.Name) {
+	var builds map[string]build
+	err = json.Unmarshal(d, &builds)
+	failOn(err)
+
+	for n, build := range builds {
+		build.name = n
+		log.Printf("Do %v", b.name)
+		if !r.MatchString(build.name) {
 			continue
 		}
 		b.jsons[f] = true
@@ -192,7 +186,7 @@ func process(f, which string, b *build) {
 			failOn(err)
 
 			b.path = path.Join(cwd, f)
-			b.Name = build.Name
+			b.name = build.name
 			b.Kernel = build.Kernel
 		}
 
@@ -562,8 +556,8 @@ func buildkernel(b *build) {
 
 	codebuf := confcode(b.path, b.Kernel)
 
-	if err := ioutil.WriteFile(b.Name+".c", codebuf, 0666); err != nil {
-		log.Fatalf("Writing %s.c: %v", b.Name, err)
+	if err := ioutil.WriteFile(b.name+".c", codebuf, 0666); err != nil {
+		log.Fatalf("Writing %s.c: %v", b.name, err)
 	}
 }
 

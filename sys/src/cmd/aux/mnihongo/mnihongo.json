@@ -1,11 +1,12 @@
 {
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/aux",
-	"Name": "mnihongo",
-	"Program": "mnihongo",
-	"SourceFiles": [
-		"mnihongo.c"
-	]
+	"mnihongo": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Program": "mnihongo",
+		"SourceFiles": [
+			"mnihongo.c"
+		]
+	}
 }
