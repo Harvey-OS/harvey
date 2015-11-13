@@ -88,10 +88,11 @@ func one(n string, f ...fixup) error {
 		log.Printf("%v: %v", n, jsmap)
 	}
 
-	for _, d := range f {
-		d(n, jsmap)
-	}
-	buf, err = json.MarshalIndent(jsmap, "", "\t")
+	mapname := jsmap["Name"].(string)
+	delete(jsmap, "Name")
+	var nmap = make(map[string]map[string]interface{})
+	nmap[mapname] = jsmap
+	buf, err = json.MarshalIndent(nmap, "", "\t")
 	if err != nil {
 		return err
 	}
