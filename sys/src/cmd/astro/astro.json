@@ -1,42 +1,43 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "astro",
-	"Post": [
-		"mv astro $HARVEY/amd64/bin/"
-	],
-	"Program": "astro",
-	"SourceFiles": [
-		"comet.c",
-		"cosadd.c",
-		"dist.c",
-		"geo.c",
-		"helio.c",
-		"init.c",
-		"jup.c",
-		"main.c",
-		"mars.c",
-		"merc.c",
-		"merct.c",
-		"moon.c",
-		"moont.c",
-		"nept.c",
-		"nutate.c",
-		"nutt.c",
-		"occ.c",
-		"output.c",
-		"pdate.c",
-		"plut.c",
-		"sat.c",
-		"satel.c",
-		"search.c",
-		"star.c",
-		"stars.c",
-		"sun.c",
-		"sunt.c",
-		"uran.c",
-		"venus.c",
-		"venust.c"
-	]
+	"astro": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Post": [
+			"mv astro $HARVEY/amd64/bin/"
+		],
+		"Program": "astro",
+		"SourceFiles": [
+			"comet.c",
+			"cosadd.c",
+			"dist.c",
+			"geo.c",
+			"helio.c",
+			"init.c",
+			"jup.c",
+			"main.c",
+			"mars.c",
+			"merc.c",
+			"merct.c",
+			"moon.c",
+			"moont.c",
+			"nept.c",
+			"nutate.c",
+			"nutt.c",
+			"occ.c",
+			"output.c",
+			"pdate.c",
+			"plut.c",
+			"sat.c",
+			"satel.c",
+			"search.c",
+			"star.c",
+			"stars.c",
+			"sun.c",
+			"sunt.c",
+			"uran.c",
+			"venus.c",
+			"venust.c"
+		]
+	}
 }

@@ -1,29 +1,30 @@
 {
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libndb.a",
-	"Name": "libndb",
-	"SourceFiles": [
-		"csgetval.c",
-		"csipinfo.c",
-		"dnsquery.c",
-		"ipattr.c",
-		"ndbaux.c",
-		"ndbcache.c",
-		"ndbcat.c",
-		"ndbconcatenate.c",
-		"ndbdiscard.c",
-		"ndbfree.c",
-		"ndbgetipaddr.c",
-		"ndbgetval.c",
-		"ndbhash.c",
-		"ndbipinfo.c",
-		"ndblookval.c",
-		"ndbopen.c",
-		"ndbparse.c",
-		"ndbreorder.c",
-		"ndbsubstitute.c"
-	]
+	"libndb": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libndb.a",
+		"SourceFiles": [
+			"csgetval.c",
+			"csipinfo.c",
+			"dnsquery.c",
+			"ipattr.c",
+			"ndbaux.c",
+			"ndbcache.c",
+			"ndbcat.c",
+			"ndbconcatenate.c",
+			"ndbdiscard.c",
+			"ndbfree.c",
+			"ndbgetipaddr.c",
+			"ndbgetval.c",
+			"ndbhash.c",
+			"ndbipinfo.c",
+			"ndblookval.c",
+			"ndbopen.c",
+			"ndbparse.c",
+			"ndbreorder.c",
+			"ndbsubstitute.c"
+		]
+	}
 }
