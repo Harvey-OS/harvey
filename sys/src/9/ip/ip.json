@@ -1,28 +1,29 @@
 {
-	"Name": "ip",
-	"SourceFiles": [
-		"../ip/arp.c",
-		"../ip/chandial.c",
-		"../ip/devip.c",
-		"../ip/ethermedium.c",
-		"../ip/gre.c",
-		"../ip/icmp6.c",
-		"../ip/icmp.c",
-		"../ip/inferno.c",
-		"../ip/ipaux.c",
-		"../ip/ip.c",
-		"../ip/ipifc.c",
-		"../ip/ipmux.c",
-		"../ip/iproute.c",
-		"../ip/ipv6.c",
-		"../ip/loopbackmedium.c",
-		"../ip/netdevmedium.c",
-		"../ip/netlog.c",
-		"../ip/nullmedium.c",
-		"../ip/pktmedium.c",
-		"../ip/ptclbsum.c",
-		"../ip/rudp.c",
-		"../ip/tcp.c",
-		"../ip/udp.c"
-	]
+	"ip": {
+		"SourceFiles": [
+			"../ip/arp.c",
+			"../ip/chandial.c",
+			"../ip/devip.c",
+			"../ip/ethermedium.c",
+			"../ip/gre.c",
+			"../ip/icmp6.c",
+			"../ip/icmp.c",
+			"../ip/inferno.c",
+			"../ip/ipaux.c",
+			"../ip/ip.c",
+			"../ip/ipifc.c",
+			"../ip/ipmux.c",
+			"../ip/iproute.c",
+			"../ip/ipv6.c",
+			"../ip/loopbackmedium.c",
+			"../ip/netdevmedium.c",
+			"../ip/netlog.c",
+			"../ip/nullmedium.c",
+			"../ip/pktmedium.c",
+			"../ip/ptclbsum.c",
+			"../ip/rudp.c",
+			"../ip/tcp.c",
+			"../ip/udp.c"
+		]
+	}
 }

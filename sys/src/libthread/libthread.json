@@ -1,36 +1,37 @@
 {
-	"Include": [
-		"/amd64/include/cflags.json",
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libthread.a",
-	"Name": "libthread",
-	"SourceFiles": [
-		"amd64.c",
-		"channel.c",
-		"chanprint.c",
-		"create.c",
-		"debug.c",
-		"dial.c",
-		"exec.c",
-		"exit.c",
-		"id.c",
-		"iocall.c",
-		"ioclose.c",
-		"iodial.c",
-		"ioopen.c",
-		"ioproc.c",
-		"ioread.c",
-		"ioreadn.c",
-		"iosleep.c",
-		"iowrite.c",
-		"kill.c",
-		"lib.c",
-		"main.c",
-		"note.c",
-		"ref.c",
-		"rendez.c",
-		"sched.c"
-	]
+	"libthread": {
+		"Include": [
+			"/amd64/include/cflags.json",
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libthread.a",
+		"SourceFiles": [
+			"amd64.c",
+			"channel.c",
+			"chanprint.c",
+			"create.c",
+			"debug.c",
+			"dial.c",
+			"exec.c",
+			"exit.c",
+			"id.c",
+			"iocall.c",
+			"ioclose.c",
+			"iodial.c",
+			"ioopen.c",
+			"ioproc.c",
+			"ioread.c",
+			"ioreadn.c",
+			"iosleep.c",
+			"iowrite.c",
+			"kill.c",
+			"lib.c",
+			"main.c",
+			"note.c",
+			"ref.c",
+			"rendez.c",
+			"sched.c"
+		]
+	}
 }

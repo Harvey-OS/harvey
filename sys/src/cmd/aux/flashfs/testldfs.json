@@ -1,17 +1,18 @@
 {
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/aux",
-	"Name": "testldfs",
-	"Program": "testldfs",
-	"SourceFiles": [
-		"testld.c",
-		"journal.c",
-		"entry.c",
-		"errors.c",
-		"devfs.c",
-		"conv.c",
-		"utils.c"
-	]
+	"testldfs": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Program": "testldfs",
+		"SourceFiles": [
+			"testld.c",
+			"journal.c",
+			"entry.c",
+			"errors.c",
+			"devfs.c",
+			"conv.c",
+			"utils.c"
+		]
+	}
 }

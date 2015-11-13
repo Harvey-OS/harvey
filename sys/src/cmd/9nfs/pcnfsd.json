@@ -1,22 +1,23 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "pcnfsd",
-	"Post": [
-		"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
-		"mv pcnfsd $HARVEY/amd64/bin/aux/"
-	],
-	"Program": "pcnfsd",
-	"SourceFiles": [
-		"pcnfsd.c",
-		"unixnames.c",
-		"chat.c",
-		"rpc.c",
-		"server.c",
-		"string.c",
-		"listalloc.c",
-		"strparse.c",
-		"system.c"
-	]
+	"pcnfsd": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Post": [
+			"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
+			"mv pcnfsd $HARVEY/amd64/bin/aux/"
+		],
+		"Program": "pcnfsd",
+		"SourceFiles": [
+			"pcnfsd.c",
+			"unixnames.c",
+			"chat.c",
+			"rpc.c",
+			"server.c",
+			"string.c",
+			"listalloc.c",
+			"strparse.c",
+			"system.c"
+		]
+	}
 }

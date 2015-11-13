@@ -1,13 +1,14 @@
 {
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libplumb.a",
-	"Name": "libplumb",
-	"SourceFiles": [
-		"event.c",
-		"mesg.c",
-		"plumbsendtext.c"
-	]
+	"libplumb": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libplumb.a",
+		"SourceFiles": [
+			"event.c",
+			"mesg.c",
+			"plumbsendtext.c"
+		]
+	}
 }

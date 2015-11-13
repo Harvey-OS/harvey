@@ -1,15 +1,16 @@
 {
-	"Include": [
-		"../../cmd.json"
-	],
-	"Name": "flashfs",
-	"Post": [
-		"touch dummy.o"
-	],
-	"Projects": [
-		"mkflashfs.json",
-		"testldfs.json",
-		"dummyfs.json",
-		"flashfsbin.json"
-	]
+	"flashfs": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Post": [
+			"touch dummy.o"
+		],
+		"Projects": [
+			"mkflashfs.json",
+			"testldfs.json",
+			"dummyfs.json",
+			"flashfsbin.json"
+		]
+	}
 }
