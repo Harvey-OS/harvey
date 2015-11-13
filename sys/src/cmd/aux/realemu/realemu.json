@@ -1,16 +1,17 @@
 {
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/aux/",
-	"Name": "realemu",
-	"Program": "realemu",
-	"SourceFiles": [
-		"arg.c",
-		"decode.c",
-		"fmt.c",
-		"main.c",
-		"pit.c",
-		"xec.c"
-	]
+	"realemu": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/aux/",
+		"Program": "realemu",
+		"SourceFiles": [
+			"arg.c",
+			"decode.c",
+			"fmt.c",
+			"main.c",
+			"pit.c",
+			"xec.c"
+		]
+	}
 }

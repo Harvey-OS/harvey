@@ -1,11 +1,12 @@
 {
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libavl.a",
-	"Name": "libavl",
-	"SourceFiles": [
-		"avl.c"
-	]
+	"libavl": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libavl.a",
+		"SourceFiles": [
+			"avl.c"
+		]
+	}
 }

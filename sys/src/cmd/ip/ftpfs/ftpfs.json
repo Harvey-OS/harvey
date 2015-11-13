@@ -1,13 +1,14 @@
 {
-	"Include": [
-		"/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin/ip",
-	"Name": "ftpfs",
-	"Program": "ftpfs",
-	"SourceFiles": [
-		"ftpfs.c",
-		"proto.c",
-		"file.c"
-	]
+	"ftpfs": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Program": "ftpfs",
+		"SourceFiles": [
+			"ftpfs.c",
+			"proto.c",
+			"file.c"
+		]
+	}
 }

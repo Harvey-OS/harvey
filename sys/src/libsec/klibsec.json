@@ -1,10 +1,10 @@
 {
-	"libsec": {
+	"Kernellibsec": {
 		"Include": [
-			"../lib.json"
+			"../klib.json"
 		],
 		"Install": "/$ARCH/lib/",
-		"Library": "libsec.a",
+		"Library": "klibsec.a",
 		"SourceFiles": [
 			"port/aes.c",
 			"port/blowfish.c",

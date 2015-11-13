@@ -1,18 +1,19 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "con",
-	"Post": [
-		"mv con $HARVEY/amd64/bin/",
-		"mv xms $HARVEY/amd64/bin/",
-		"mv xmr $HARVEY/amd64/bin/",
-		"mv hayes $HARVEY/amd64/bin/"
-	],
-	"SourceFilesCmd": [
-		"con.c",
-		"xms.c",
-		"xmr.c",
-		"hayes.c"
-	]
+	"con": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Post": [
+			"mv con $HARVEY/amd64/bin/",
+			"mv xms $HARVEY/amd64/bin/",
+			"mv xmr $HARVEY/amd64/bin/",
+			"mv hayes $HARVEY/amd64/bin/"
+		],
+		"SourceFilesCmd": [
+			"con.c",
+			"xms.c",
+			"xmr.c",
+			"hayes.c"
+		]
+	}
 }
