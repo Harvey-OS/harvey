@@ -1,19 +1,20 @@
 {
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/disk",
-	"Name": "fdisk",
-	"Post": [
-		"rm y.tab.[ch]"
-	],
-	"Pre": [
-		"yacc -d calc.y"
-	],
-	"Program": "fdisk",
-	"SourceFiles": [
-		"fdisk.c",
-		"edit.c",
-		"y.tab.c"
-	]
+	"fdisk": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/disk",
+		"Post": [
+			"rm y.tab.[ch]"
+		],
+		"Pre": [
+			"yacc -d calc.y"
+		],
+		"Program": "fdisk",
+		"SourceFiles": [
+			"fdisk.c",
+			"edit.c",
+			"y.tab.c"
+		]
+	}
 }
