@@ -1,12 +1,13 @@
 {
-	"Include": [
-		"/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin/",
-	"Name": "iostats",
-	"Program": "iostats",
-	"SourceFiles": [
-	    "iostats.c",
-	    "statsrv.c"
-    	]
+	"iostats": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "iostats",
+		"SourceFiles": [
+			"iostats.c",
+			"statsrv.c"
+		]
+	}
 }
