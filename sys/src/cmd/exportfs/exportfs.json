@@ -1,15 +1,16 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Name": "exportfs",
-	"Post": [
-		"mv exportfs $HARVEY/amd64/bin/"
-	],
-	"Program": "exportfs",
-	"SourceFiles": [
-		"exportfs.c",
-		"exportsrv.c",
-		"pattern.c"
-	]
+	"exportfs": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Post": [
+			"mv exportfs $HARVEY/amd64/bin/"
+		],
+		"Program": "exportfs",
+		"SourceFiles": [
+			"exportfs.c",
+			"exportsrv.c",
+			"pattern.c"
+		]
+	}
 }

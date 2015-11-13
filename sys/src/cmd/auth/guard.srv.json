@@ -1,15 +1,16 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/auth/",
-	"Name": "guard.srv",
-	"Oflags": [
-		"lib/libauthcmd.a"
-	],
-	"Program": "guard.srv",
-	"SourceFiles": [
-		"guard.srv.c",
-		"secureidcheck.c"
-	]
+	"guard.srv": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/auth/",
+		"Oflags": [
+			"lib/libauthcmd.a"
+		],
+		"Program": "guard.srv",
+		"SourceFiles": [
+			"guard.srv.c",
+			"secureidcheck.c"
+		]
+	}
 }

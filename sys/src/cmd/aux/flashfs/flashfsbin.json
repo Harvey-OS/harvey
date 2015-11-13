@@ -1,18 +1,19 @@
 {
-	"Include": [
-		"../../cmd.json"
-	],
-	"Install": "/$ARCH/bin/aux",
-	"Name": "flashfsbin",
-	"Program": "flashfs",
-	"SourceFiles": [
-		"flash.c",
-		"journal.c",
-		"entry.c",
-		"errors.c",
-		"request.c",
-		"devfs.c",
-		"conv.c",
-		"utils.c"
-	]
+	"flashfsbin": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Program": "flashfs",
+		"SourceFiles": [
+			"flash.c",
+			"journal.c",
+			"entry.c",
+			"errors.c",
+			"request.c",
+			"devfs.c",
+			"conv.c",
+			"utils.c"
+		]
+	}
 }

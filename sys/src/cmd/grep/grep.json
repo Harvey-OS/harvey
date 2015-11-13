@@ -1,20 +1,21 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/",
-	"Name": "grep",
-	"Post": [
-		"rm y.tab*"
-	],
-	"Pre": [
-		"yacc -d grep.y"
-	],
-	"Program": "grep",
-	"SourceFiles": [
-		"comp.c",
-		"main.c",
-		"sub.c",
-		"y.tab.c"
-	]
+	"grep": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Post": [
+			"rm y.tab*"
+		],
+		"Pre": [
+			"yacc -d grep.y"
+		],
+		"Program": "grep",
+		"SourceFiles": [
+			"comp.c",
+			"main.c",
+			"sub.c",
+			"y.tab.c"
+		]
+	}
 }

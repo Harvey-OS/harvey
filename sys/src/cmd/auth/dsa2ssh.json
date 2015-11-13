@@ -1,15 +1,16 @@
 {
-	"Include": [
-		"../cmd.json"
-	],
-	"Install": "/$ARCH/bin/auth/",
-	"Name": "dsa2ssh",
-	"Oflags": [
-		"lib/libauthcmd.a"
-	],
-	"Program": "dsa2ssh",
-	"SourceFiles": [
-		"dsa2ssh.c",
-		"rsa2any.c"
-	]
+	"dsa2ssh": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/auth/",
+		"Oflags": [
+			"lib/libauthcmd.a"
+		],
+		"Program": "dsa2ssh",
+		"SourceFiles": [
+			"dsa2ssh.c",
+			"rsa2any.c"
+		]
+	}
 }
