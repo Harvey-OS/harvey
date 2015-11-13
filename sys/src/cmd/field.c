@@ -366,18 +366,13 @@ process(Biobuf *b, int rc, Range *rv, Reprog *delim, char *outsep, int collapse)
 
 	memset(&ss, 0, sizeof(ss));
 	while ((line = Brdstr(b, '\n', nulldelim)) != 0) {
-		int printed, k;
-		uint nfields;
-
-		printed = 0;
-		nfields = split(line, delim, &ss, collapse);
+		int printed = 0;
+		uint nfields = split(line, delim, &ss, collapse);
 		s = ss.slices;
 		prefix = nil;
-		for (k = 0; k < rc; k++) {
-			int begin, end, f;
-
-			begin = rv[k].begin;
-			end = rv[k].end;
+		for (int k = 0; k < rc; k++) {
+			int begin = rv[k].begin;
+			int end = rv[k].end;
 			if (begin == 0) {
 				pprefix(prefix);
 				prefix = outsep;
@@ -394,7 +389,7 @@ process(Biobuf *b, int rc, Range *rv, Reprog *delim, char *outsep, int collapse)
 				end += nfields + 1;
 			if (begin < 0 || end < 0 || end < begin || nfields < begin)
 				continue;
-			for (f = begin; f < end && f < nfields; f++) {
+			for (int f = begin; f < end && f < nfields; f++) {
 				pprefix(prefix);
 				prefix = outsep;
 				Bprint(&bout, "%S", s[f]);
