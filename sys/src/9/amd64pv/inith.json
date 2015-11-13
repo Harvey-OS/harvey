@@ -11,6 +11,7 @@
 		"-mno-red-zone",
 		"-ffreestanding",
 		"-fno-builtin",
+		"-fasm",
 		"-mcmodel=small"
 	],
 	"Libs": [

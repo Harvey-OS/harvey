@@ -9,6 +9,7 @@
 		"rm 9syscall/*.s"
 	],
 	"Cflags": [
+		"-fasm",
 		"-Werror"
 	],
 	"Projects": [
