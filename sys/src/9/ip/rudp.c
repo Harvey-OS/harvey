@@ -111,7 +111,7 @@ struct Rudphdr
 typedef struct Reliable Reliable;
 struct Reliable
 {
-	Ref;
+	Ref	r;
 
 	Reliable *next;
 
@@ -805,20 +805,20 @@ relstate(Rudpcb *ucb, uint8_t *addr, uint16_t port, char *from)
 		r->acksent = 0;
 		r->xmits = 0;
 		r->timeout = 0;
-		r->ref = 0;
-		incref(r);	/* one reference for being in the list */
+		r->r.ref = 0;
+		incref(&r->r);	/* one reference for being in the list */
 
 		*l = r;
 	}
 
-	incref(r);
+	incref(&r->r);
 	return r;
 }
 
 void
 relput(Reliable *r)
 {
-	if(decref(r) == 0)
+	if(decref(&r->r) == 0)
 		free(r);
 }
 
