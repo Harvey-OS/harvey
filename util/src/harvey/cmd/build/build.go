@@ -231,10 +231,9 @@ func process(f, which string, b *build) {
 func compile(b *build) {
 	// N.B. Plan 9 has a very well defined include structure, just three things:
 	// /amd64/include, /sys/include, .
-	// TODO: replace amd64 with an arch variable. Later.
-	args := []string{"-c"}
-	args = append(args, adjust([]string{"-I", "/amd64/include", "-I", "/sys/include", "-I", "."})...)
-	args = append(args, b.Cflags...)
+	args := []string{"-std=c11", "-c"}
+	args = append(args, adjust([]string{"-I", os.ExpandEnv("/$ARCH/include"), "-I", "/sys/include", "-I", "."})...)
+	args = append(args, adjust(b.Cflags)...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
