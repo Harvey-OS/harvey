@@ -3,6 +3,9 @@
 		"../port/devcec.c"
 	],
 	"Name": "port",
+	"Cflags": [
+		"-fasm"
+	],
 	"Pre": [
 		"mksys -o ../port/error.h -mode=error.h $HARVEY/sys/src/sysconf.json"
 	],

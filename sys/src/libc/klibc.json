@@ -8,6 +8,10 @@
 	"Post": [
 		"rm 9syscall/*.s"
 	],
+	"Cflags": [
+		"-fasm",
+		"-Werror"
+	],
 	"Projects": [
 		"9syscall/9syscall.json"
 	],
