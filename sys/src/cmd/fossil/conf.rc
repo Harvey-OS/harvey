@@ -43,11 +43,10 @@ if(~ $wflag yes){
 		echo 'config is empty; will not install' >[1=2]
 		exit emptyconfig
 	}
-	echo "WE ASSUME YOUR FILE IS < 1024 bytes. If not, Bad Thing Will Happen"
-	#if(test `{ls -l /tmp/fossilconf.$pid | awk '{print $6}'} -gt 1024){
-		#echo 'config is too long; max is a little less than a kilobyte' >[1=2]
-		#exit toolong
-	#}
+	if(test `{ls -l /tmp/fossilconf.$pid | field 6} -gt 1024){
+		echo 'config is too long; max is a little less than a kilobyte' >[1=2]
+		exit toolong
+	}
 	dd -quiet 1 -bs 1024 -count 1 -if $disk -iseek 127 \
 		>/tmp/_fossilconf.old || exit backup
 	dd -quiet 1 -count 2 </dev/zero >>/tmp/fossilconf.$pid || exit dd
