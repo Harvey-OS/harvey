@@ -750,7 +750,7 @@ ahciconfigdrive(Drive *d)
 	}
 
 	if (d->unit)
-		name = d->unit->name;
+		name = d->unit->SDperm.name;
 	else
 		name = nil;
 	if(p->sstatus & (Devphycomm|Devpresent) && h->cap & Hsss){
@@ -937,8 +937,8 @@ updatedrive(Drive *d)
 	serr = p->serror;
 	p->isr = cause;
 	name = "??";
-	if(d->unit && d->unit->name)
-		name = d->unit->name;
+	if(d->unit && d->unit->SDperm.name)
+		name = d->unit->SDperm.name;
 
 	if(p->ci == 0){
 		d->portm.flag |= Fdone;
@@ -1088,7 +1088,7 @@ resetdisk(Drive *d)
 		setstate(d, Dmissing);
 		configdrive(d);
 	}
-	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->name: nil),
+	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->SDperm.name: nil),
 		diskstates[state], diskstates[d->state]);
 	qunlock(&d->portm.ql);
 }
@@ -1103,7 +1103,7 @@ newdrive(Drive *d)
 	c = &d->portc;
 	pm = &d->portm;
 
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	if(name == 0)
 		name = "??";
 
@@ -1126,13 +1126,13 @@ newdrive(Drive *d)
 	setstate(d, Dready);
 	qunlock(&c->pm->ql);
 
-	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
+	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->SDperm.name,
 		(pm->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
 		d->serial, d->mediachange? "[mediachange]": "");
 	return 0;
 
 lose:
-	idprint("%s: can't be initialized\n", d->unit->name);
+	idprint("%s: can't be initialized\n", d->unit->SDperm.name);
 	setstate(d, Dnull);
 	qunlock(&c->pm->ql);
 	return -1;
@@ -1144,7 +1144,7 @@ westerndigitalhung(Drive *d)
 	if((d->portm.feat&Datapi) == 0 && d->active &&
 	    TK2MS(sys->ticks - d->intick) > 5000){
 		dprint("%s: drive hung; resetting [%#lux] ci %#lx\n",
-			d->unit->name, d->port->task, d->port->ci);
+			d->unit->SDperm.name, d->port->task, d->port->ci);
 		d->state = Dreset;
 	}
 }
@@ -1204,7 +1204,7 @@ checkdrive(Drive *d, int i)
 		iunlock(d);
 		return;
 	}
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	s = d->port->sstatus;
 	if(s)
 		d->lastseen = sys->ticks;
@@ -1341,7 +1341,7 @@ isdrivejabbering(Drive *d)
 	}
 	if (++d->intrs > Maxintrspertick) {
 		iprint("sdiahci: %lud interrupts per tick for %s\n",
-			d->intrs, d->unit->name);
+			d->intrs, d->unit->SDperm.name);
 		d->intrs = 0;
 	}
 }
@@ -1398,7 +1398,7 @@ awaitspinup(Drive *d)
 		iunlock(d);
 		return;
 	}
-	name = (d->unit? d->unit->name: nil);
+	name = (d->unit? d->unit->SDperm.name: nil);
 	s = d->port->sstatus;
 	if(!(s & Devpresent)) {			/* never going to be ready */
 		dprint("awaitspinup: %s absent, not waiting\n", name);
@@ -1673,7 +1673,7 @@ waitready(Drive *d)
 			return 0;	/* ready, present & phy. comm. */
 		esleep(250);
 	}
-	print("%s: not responding; offline\n", d->unit->name);
+	print("%s: not responding; offline\n", d->unit->SDperm.name);
 	setstate(d, Doffline);
 	return -1;
 }
@@ -1715,7 +1715,7 @@ iariopkt(SDreq *r, Drive *d)
 	Asleep as;
 
 	cmd = r->cmd;
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	p = d->port;
 
 	aprint("ahci: iariopkt: %04#ux %04#ux %c %d %p\n",
@@ -1842,7 +1842,7 @@ iario(SDreq *r)
 	if(d->portm.feat & Datapi)
 		return iariopkt(r, d);
 	cmd = r->cmd;
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	p = d->port;
 
 	if(r->cmd[0] == 0x35 || r->cmd[0] == 0x91){
