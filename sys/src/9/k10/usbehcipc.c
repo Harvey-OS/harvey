@@ -134,7 +134,7 @@ shutdown(Hci *hp)
 	Ctlr *ctlr;
 	Eopio *opio;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->rend.l);
 	opio = ctlr->opio;
 	opio->cmd |= Chcreset;		/* controller reset */
@@ -246,7 +246,7 @@ reset(Hci *hp)
 		return -1;
 
 	p = ctlr->pcidev;
-	hp->aux = ctlr;
+	hp->Hciimpl.aux = ctlr;
 	hp->ISAConf.port = (uintptr)ctlr->capio;
 	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
@@ -268,8 +268,8 @@ reset(Hci *hp)
 	 * Linkage to the generic HCI driver.
 	 */
 	ehcilinkage(hp);
-	hp->shutdown = shutdown;
-	hp->debug = setdebug;
+	hp->Hciimpl.shutdown = shutdown;
+	hp->Hciimpl.debug = setdebug;
 	return 0;
 }
 

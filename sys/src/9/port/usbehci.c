@@ -1131,7 +1131,7 @@ dump(Hci *hp)
 	Isoio *iso;
 	Qh *qh;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	opio = ctlr->opio;
 	ilock(&ctlr->rend.l);
 	print("ehci port %#p frames %#p (%d fr.) nintr %d ntdintr %d",
@@ -1500,7 +1500,7 @@ ehciintr(Hci *hp)
 	Qh *qh;
 	int i, some;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	opio = ctlr->opio;
 
 	/*
@@ -1589,7 +1589,7 @@ portenable(Hci *hp, int port, int on)
 	Eopio *opio;
 	int s;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	opio = ctlr->opio;
 	s = opio->portsc[port-1];
 	qlock(&ctlr->portlck);
@@ -1652,7 +1652,7 @@ portreset(Hci *hp, int port, int on)
 	if(on == 0)
 		return 0;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	opio = ctlr->opio;
 	qlock(&ctlr->portlck);
 	if(waserror()){
@@ -1702,7 +1702,7 @@ portstatus(Hci *hp, int port)
 	Eopio *opio;
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	opio = ctlr->opio;
 	qlock(&ctlr->portlck);
 	if(waserror()){
@@ -1765,7 +1765,7 @@ seprintep(char *s, char *e, Ep *ep)
 	Ctlio *cio;
 	Ctlr *ctlr;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	ilock(&ctlr->rend.l);
 	if(ep->aux == nil){
 		*s = 0;
@@ -1925,7 +1925,7 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 	diprint("ehci: episoread: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
 	b = a;
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	qlock(iso);
 	if(waserror()){
 		qunlock(iso);
@@ -2028,7 +2028,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 	iso->debug = ep->debug;
 	diprint("ehci: episowrite: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	qlock(iso);
 	if(waserror()){
 		qunlock(iso);
@@ -2181,7 +2181,7 @@ ehcipoll(void* a)
 	int i;
 
 	hp = a;
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	poll = &ctlr->poll;
 	for(;;){
 		if(ctlr->nreqs == 0){
@@ -2205,7 +2205,7 @@ pollcheck(Hci *hp)
 	Ctlr *ctlr;
 	Poll *poll;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	poll = &ctlr->poll;
 
 	if(poll->must != 0 && poll->does == 0){
@@ -2236,7 +2236,7 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 	int timedout;
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	qh = io->qh;
 	ddqprint("ehci %#p: io %#p sleep on qh %#p state %s\n",
 		ctlr->capio, io, qh, qhsname[qh->state]);
@@ -2312,7 +2312,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	Td *td, *ltd, *td0, *ntd;
 
 	qh = io->qh;
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	io->debug = ep->debug;
 	tmout = ep->tmout;
 	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
@@ -2858,7 +2858,7 @@ epopen(Ep *ep)
 	Qio *io;
 	int usbid;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	deprint("ehci: epopen ep%d.%d\n", ep->dev->nb, ep->nb);
 	if(ep->aux != nil)
 		panic("ehci: epopen called with open ep");
@@ -3052,7 +3052,7 @@ epclose(Ep *ep)
 	Isoio *iso;
 	Ctlr *ctlr;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	deprint("ehci: epclose ep%d.%d\n", ep->dev->nb, ep->nb);
 
 	if(ep->aux == nil)
@@ -3208,7 +3208,7 @@ init(Hci *hp)
 	static int ctlrno;
 
 	hp->highspeed = 1;
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	opio = ctlr->opio;
 	dprint("ehci %#p init\n", ctlr->capio);
 
@@ -3243,18 +3243,18 @@ init(Hci *hp)
 void
 ehcilinkage(Hci *hp)
 {
-	hp->init = init;
-	hp->dump = dump;
-	hp->interrupt = interrupt;
-	hp->epopen = epopen;
-	hp->epclose = epclose;
-	hp->epread = epread;
-	hp->epwrite = epwrite;
-	hp->seprintep = seprintep;
-	hp->portenable = portenable;
-	hp->portreset = portreset;
-	hp->portstatus = portstatus;
-//	hp->shutdown = shutdown;
-//	hp->debug = setdebug;
+	hp->Hciimpl.init = init;
+	hp->Hciimpl.dump = dump;
+	hp->Hciimpl.interrupt = interrupt;
+	hp->Hciimpl.epopen = epopen;
+	hp->Hciimpl.epclose = epclose;
+	hp->Hciimpl.epread = epread;
+	hp->Hciimpl.epwrite = epwrite;
+	hp->Hciimpl.seprintep = seprintep;
+	hp->Hciimpl.portenable = portenable;
+	hp->Hciimpl.portreset = portreset;
+	hp->Hciimpl.portstatus = portstatus;
+//	hp->Hciimpl.shutdown = shutdown;
+//	hp->Hciimpl.debug = setdebug;
 	hp->ISAConf.type = "ehci";
 }

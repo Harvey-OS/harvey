@@ -137,7 +137,7 @@ struct Hci
 	int	ctlrno;				/* controller number */
 	int	nports;				/* number of ports in hub */
 	int	highspeed;
-	Hciimpl;					/* HCI driver  */
+	Hciimpl Hciimpl;					/* HCI driver  */
 };
 
 /*
