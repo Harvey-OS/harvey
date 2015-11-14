@@ -433,6 +433,9 @@ trap(Ureg* ureg)
 			if(ctl->irq == IrqCLOCK || ctl->irq == IrqTIMER)
 				clockintr = 1;
 
+			if (ctl->irq == IrqTIMER)
+				oprof_alarm_handler(ureg);
+
 			if(up && !clockintr)
 				preempted();
 		}
@@ -513,38 +516,38 @@ dumpgpr(Ureg* ureg)
 {
 	Proc *up = externup();
 	if(up != nil)
-		iprint("cpu%d: registers for %s %d\n",
+		print("cpu%d: registers for %s %d\n",
 			machp()->machno, up->text, up->pid);
 	else
-		iprint("cpu%d: registers for kernel\n", machp()->machno);
+		print("cpu%d: registers for kernel\n", machp()->machno);
 
-	iprint("ax\t%#16.16llux\n", ureg->ax);
-	iprint("bx\t%#16.16llux\n", ureg->bx);
-	iprint("cx\t%#16.16llux\n", ureg->cx);
-	iprint("dx\t%#16.16llux\n", ureg->dx);
-	iprint("di\t%#16.16llux\n", ureg->di);
-	iprint("si\t%#16.16llux\n", ureg->si);
-	iprint("bp\t%#16.16llux\n", ureg->bp);
-	iprint("r8\t%#16.16llux\n", ureg->r8);
-	iprint("r9\t%#16.16llux\n", ureg->r9);
-	iprint("r10\t%#16.16llux\n", ureg->r10);
-	iprint("r11\t%#16.16llux\n", ureg->r11);
-	iprint("r12\t%#16.16llux\n", ureg->r12);
-	iprint("r13\t%#16.16llux\n", ureg->r13);
-	iprint("r14\t%#16.16llux\n", ureg->r14);
-	iprint("r15\t%#16.16llux\n", ureg->r15);
-	iprint("type\t%#llux\n", ureg->type);
-	iprint("error\t%#llux\n", ureg->error);
-	iprint("pc\t%#llux\n", ureg->ip);
-	iprint("cs\t%#llux\n", ureg->cs);
-	iprint("flags\t%#llux\n", ureg->flags);
-	iprint("sp\t%#llux\n", ureg->sp);
-	iprint("ss\t%#llux\n", ureg->ss);
-	iprint("type\t%#llux\n", ureg->type);
-	iprint("FS\t%#llux\n", rdmsr(FSbase));
-	iprint("GS\t%#llux\n", rdmsr(GSbase));
+	print("ax\t%#16.16llux\n", ureg->ax);
+	print("bx\t%#16.16llux\n", ureg->bx);
+	print("cx\t%#16.16llux\n", ureg->cx);
+	print("dx\t%#16.16llux\n", ureg->dx);
+	print("di\t%#16.16llux\n", ureg->di);
+	print("si\t%#16.16llux\n", ureg->si);
+	print("bp\t%#16.16llux\n", ureg->bp);
+	print("r8\t%#16.16llux\n", ureg->r8);
+	print("r9\t%#16.16llux\n", ureg->r9);
+	print("r10\t%#16.16llux\n", ureg->r10);
+	print("r11\t%#16.16llux\n", ureg->r11);
+	print("r12\t%#16.16llux\n", ureg->r12);
+	print("r13\t%#16.16llux\n", ureg->r13);
+	print("r14\t%#16.16llux\n", ureg->r14);
+	print("r15\t%#16.16llux\n", ureg->r15);
+	print("type\t%#llux\n", ureg->type);
+	print("error\t%#llux\n", ureg->error);
+	print("pc\t%#llux\n", ureg->ip);
+	print("cs\t%#llux\n", ureg->cs);
+	print("flags\t%#llux\n", ureg->flags);
+	print("sp\t%#llux\n", ureg->sp);
+	print("ss\t%#llux\n", ureg->ss);
+	print("type\t%#llux\n", ureg->type);
+	print("FS\t%#llux\n", rdmsr(FSbase));
+	print("GS\t%#llux\n", rdmsr(GSbase));
 
-	iprint("m\t%#16.16p\nup\t%#16.16p\n", machp(), up);
+	print("m\t%#16.16p\nup\t%#16.16p\n", machp(), up);
 }
 
 void
@@ -560,9 +563,9 @@ dumpregs(Ureg* ureg)
 	 * CR4. If there is a CR4 and machine check extensions, read the machine
 	 * check address and machine check type registers if RDMSR supported.
 	 */
-	iprint("cr0\t%#16.16llux\n", cr0get());
-	iprint("cr2\t%#16.16llux\n", machp()->MMU.cr2);
-	iprint("cr3\t%#16.16llux\n", cr3get());
+	print("cr0\t%#16.16llux\n", cr0get());
+	print("cr2\t%#16.16llux\n", machp()->MMU.cr2);
+	print("cr3\t%#16.16llux\n", cr3get());
 die("dumpregs");
 //	archdumpregs();
 }
