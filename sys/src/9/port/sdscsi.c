@@ -404,7 +404,7 @@ again:
 			break;
 		case 0x01:		/* recovered error */
 			print("%s: recovered error at sector %llud\n",
-				unit->name, bno);
+				unit->SDperm.name, bno);
 			rlen = r->rlen;
 			break;
 		case 0x06:		/* check condition */

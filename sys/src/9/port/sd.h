@@ -27,7 +27,7 @@ struct SDperm {
 struct SDpart {
 	uint64_t	start;
 	uint64_t	end;
-	SDperm;
+	SDperm SDperm;
 	int	valid;
 	uint32_t	vers;
 };
@@ -37,7 +37,7 @@ struct SDunit {
 	int	subno;
 	unsigned char	inquiry[255];		/* format follows SCSI spec */
 	unsigned char	sense[18];		/* format follows SCSI spec */
-	SDperm;
+	SDperm SDperm;
 
 	QLock	ctl;
 	uint64_t	sectors;
@@ -65,7 +65,7 @@ struct SDev {
 	char	name[8];
 	SDev*	next;
 
-	QLock;				/* enable/disable */
+	QLock ql;				/* enable/disable */
 	int	enabled;
 	int	nunit;			/* Number of units */
 	QLock	unitlock;		/* `Loading' of units */
