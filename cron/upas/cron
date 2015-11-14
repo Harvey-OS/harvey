@@ -1,8 +1,0 @@
-# kick mail retries (replace mailserver with your system)
-0,10,20,30,40,50 * * * *	mailserver	/bin/upas/runq -a /mail/queue /mail/lib/remotemail
-
-# broadcast news
-11,26,43,56 * * * *	local	/mail/lib/mailnews
-
-# clean up after grey list
-47 4 * * *	mailserver	rm -rf /mail/grey/tmp/*/*
