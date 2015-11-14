@@ -1623,15 +1623,15 @@ m10gpnp(Ether *e)
 	for(c = ctlrs; c != nil; c = c->next)
 		if(c->active)
 			continue;
-		else if(e->port == 0 || e->port == c->port)
+		else if(e->ISAConf.port == 0 || e->ISAConf.port == c->port)
 			break;
 	if(c == nil)
 		return -1;
 	c->active = 1;
 
 	e->ctlr = c;
-	e->port = c->port;
-	e->irq = c->pcidev->intl;
+	e->ISAConf.port = c->port;
+	e->ISAConf.irq = c->pcidev->intl;
 	e->tbdf = c->pcidev->tbdf;
 	e->mbps = 10000;
 	memmove(e->ea, c->ra, Eaddrlen);
