@@ -152,7 +152,7 @@ struct Hci
  */
 struct Ep
 {
-	Ref;			/* one per fid (and per dev ep for ep0s) */
+	Ref r;			/* one per fid (and per dev ep for ep0s) */
 
 	/* const once inited. */
 	int	idx;		/* index in global eps array */
