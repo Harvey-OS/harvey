@@ -44,7 +44,7 @@ struct Edf {
 	Proc		*testnext;
 	/* other */
 	uint16_t		flags;
-	Timer;
+	Timer Timer;
 	/* Stats */
 	long		edfused;
 	long		extraused;
