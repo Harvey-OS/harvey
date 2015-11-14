@@ -810,9 +810,9 @@ reset(Ether *e, Ctlr *c)
 	maccmd(c, CSmac, c->ra);
 //	cmd(c, Cnopromisc, 0);
 	cmd(c, Cenablefc, 0);
-	e->maxmtu = Maxmtu;
-	cmd(c, CSmtu, e->maxmtu);
-	dprint("CSmtu %d...\n", e->maxmtu);
+	e->Netif.maxmtu = Maxmtu;
+	cmd(c, CSmtu, e->Netif.maxmtu);
+	dprint("CSmtu %d...\n", e->Netif.maxmtu);
 
 	poperror();
 	return 0;
@@ -1013,7 +1013,7 @@ open0(Ether *e, Ctlr *c)
 	c->sm.host = emalign(entries * sizeof *c->sm.host);
 
 	c->bg.pool = &bgpool;
-	c->bg.pool->size = nextpow(2 + e->maxmtu);  /* 2-byte alignment pad */
+	c->bg.pool->size = nextpow(2 + e->Netif.maxmtu);  /* 2-byte alignment pad */
 	cmd(c, CSbigsz, c->bg.pool->size);
 	c->bg.lanai = (uint32_t*)(c->ram + cmd(c, CGbigrxoff, 0));
 	c->bg.n = entries;
@@ -1286,7 +1286,7 @@ checkstats(Ether *e, Ctlr *c, Stats *s)
 
 	i = gbit32(s->linkstat);
 	if(c->linkstat != i){
-		e->link = i;
+		e->Netif.link = i;
 		if(c->linkstat = i)
 			dprint("m10g: link up\n");
 		else
@@ -1633,7 +1633,7 @@ m10gpnp(Ether *e)
 	e->ISAConf.port = c->port;
 	e->ISAConf.irq = c->pcidev->intl;
 	e->tbdf = c->pcidev->tbdf;
-	e->mbps = 10000;
+	e->Netif.mbps = 10000;
 	memmove(e->ea, c->ra, Eaddrlen);
 
 	e->attach = m10gattach;
@@ -1645,9 +1645,9 @@ m10gpnp(Ether *e)
 //	e->power = m10gpower;
 	e->shutdown = m10gshutdown;
 
-	e->arg = e;
-	e->promiscuous = m10gpromiscuous;
-	e->multicast = m10gmulticast;
+	e->Netif.arg = e;
+	e->Netif.promiscuous = m10gpromiscuous;
+	e->Netif.multicast = m10gmulticast;
 
 	return 0;
 }
