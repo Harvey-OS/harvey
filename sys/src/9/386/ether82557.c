@@ -434,11 +434,11 @@ ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 	while(ctlr->dump[16] == 0)
 		;
 
-	ether->oerrs = ctlr->dump[1]+ctlr->dump[2]+ctlr->dump[3];
-	ether->crcs = ctlr->dump[10];
-	ether->frames = ctlr->dump[11];
-	ether->buffs = ctlr->dump[12]+ctlr->dump[15];
-	ether->overflows = ctlr->dump[13];
+	ether->Netif.oerrs = ctlr->dump[1]+ctlr->dump[2]+ctlr->dump[3];
+	ether->Netif.crcs = ctlr->dump[10];
+	ether->Netif.frames = ctlr->dump[11];
+	ether->Netif.buffs = ctlr->dump[12]+ctlr->dump[15];
+	ether->Netif.overflows = ctlr->dump[13];
 
 	if(n == 0){
 		unlock(&ctlr->dlock);
@@ -1277,7 +1277,7 @@ reset(Ether* ether)
 		}
 
 		if(bmcr & 0x2000)
-			ether->mbps = 100;
+			ether->Netif.mbps = 100;
 
 		ctlr->configdata[8] = 1;
 		ctlr->configdata[15] &= ~0x80;
@@ -1294,7 +1294,7 @@ reset(Ether* ether)
 	 * code at the moment, only deactivate the workaround code in txstart
 	 * if the link is 100Mb/s.
 	 */
-	if(ether->mbps != 10)
+	if(ether->Netif.mbps != 10)
 		ctlr->nop = 0;
 
 	/*
@@ -1333,9 +1333,9 @@ reset(Ether* ether)
 	ether->ifstat = ifstat;
 	ether->shutdown = shutdown;
 
-	ether->promiscuous = promiscuous;
-	ether->multicast = multicast;
-	ether->arg = ether;
+	ether->Netif.promiscuous = promiscuous;
+	ether->Netif.multicast = multicast;
+	ether->Netif.arg = ether;
 
 	return 0;
 }
