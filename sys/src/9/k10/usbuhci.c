@@ -580,7 +580,7 @@ xdump(Ctlr *ctlr, int doilock)
 static void
 dump(Hci *hp)
 {
-	xdump(hp->aux, 1);
+	xdump(hp->Hciimpl.aux, 1);
 }
 
 static Td*
@@ -941,7 +941,7 @@ interrupt(Ureg *ureg, void *a)
 	int cmd;
 
 	hp = a;
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	ctlr->nintr++;
 	sts = INS(Status);
@@ -1021,7 +1021,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 	iso->debug = ep->debug;
 	diprint("uhci: episowrite: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	qlock(&iso->ql);
 	if(waserror()){
 		qunlock(&iso->ql);
@@ -1090,7 +1090,7 @@ episoread(Ep *ep, Isoio *iso, void *a, int count)
 	diprint("uhci: episoread: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
 	b = a;
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	qlock(&iso->ql);
 	if(waserror()){
 		qunlock(&iso->ql);
@@ -1282,7 +1282,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	char *err;
 
 	qh = io->qh;
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	io->debug = ep->debug;
 	tmout = ep->tmout;
 	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
@@ -1636,7 +1636,7 @@ isoopen(Ep *ep)
 
 	if(ep->mode == ORDWR)
 		error("iso i/o is half-duplex");
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	iso = ep->aux;
 	iso->debug = ep->debug;
 	iso->next = nil;			/* paranoia */
@@ -1737,7 +1737,7 @@ epopen(Ep *ep)
 	Ctlio *cio;
 	int usbid;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	deprint("uhci: epopen ep%d.%d\n", ep->dev->nb, ep->nb);
 	if(ep->aux != nil)
 		panic("uhci: epopen called with open ep");
@@ -1902,7 +1902,7 @@ epclose(Ep *ep)
 	Isoio *iso;
 	Qio *io;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	deprint("uhci: epclose ep%d.%d\n", ep->dev->nb, ep->nb);
 
 	if(ep->aux == nil)
@@ -1950,7 +1950,7 @@ seprintep(char *s, char *e, Ep *ep)
 	Isoio *iso;
 	Ctlr *ctlr;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	if(ep->aux == nil){
 		*s = 0;
@@ -1995,7 +1995,7 @@ portenable(Hci *hp, int port, int on)
 	int ioport;
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	dprint("uhci: %#x port %d enable=%d\n", ctlr->port, port, on);
 	ioport = PORT(port-1);
 	qlock(&ctlr->portlck);
@@ -2027,7 +2027,7 @@ portreset(Hci *hp, int port, int on)
 
 	if(on == 0)
 		return 0;
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	dprint("uhci: %#ux port %d reset\n", ctlr->port, port);
 	p = PORT(port-1);
 	ilock(&ctlr->l);
@@ -2054,7 +2054,7 @@ portstatus(Hci *hp, int port)
 	int ioport;
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	ioport = PORT(port-1);
 	qlock(&ctlr->portlck);
 	if(waserror()){
@@ -2198,7 +2198,7 @@ init(Hci *hp)
 	int sts;
 	int i;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	dprint("uhci %#ux init\n", ctlr->port);
 	coherence();
 	ilock(&ctlr->l);
@@ -2266,7 +2266,7 @@ shutdown(Hci *hp)
 {
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 
 	ilock(&ctlr->l);
 	uhcirun(ctlr, 0);
@@ -2303,7 +2303,7 @@ reset(Hci *hp)
 		return -1;
 
 	p = ctlr->pcidev;
-	hp->aux = ctlr;
+	hp->Hciimpl.aux = ctlr;
 	hp->ISAConf.port = ctlr->port;
 	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
@@ -2315,19 +2315,19 @@ reset(Hci *hp)
 	/*
 	 * Linkage to the generic HCI driver.
 	 */
-	hp->init = init;
-	hp->dump = dump;
-	hp->interrupt = interrupt;
-	hp->epopen = epopen;
-	hp->epclose = epclose;
-	hp->epread = epread;
-	hp->epwrite = epwrite;
-	hp->seprintep = seprintep;
-	hp->portenable = portenable;
-	hp->portreset = portreset;
-	hp->portstatus = portstatus;
-	hp->shutdown = shutdown;
-	hp->debug = setdebug;
+	hp->Hciimpl.init = init;
+	hp->Hciimpl.dump = dump;
+	hp->Hciimpl.interrupt = interrupt;
+	hp->Hciimpl.epopen = epopen;
+	hp->Hciimpl.epclose = epclose;
+	hp->Hciimpl.epread = epread;
+	hp->Hciimpl.epwrite = epwrite;
+	hp->Hciimpl.seprintep = seprintep;
+	hp->Hciimpl.portenable = portenable;
+	hp->Hciimpl.portreset = portreset;
+	hp->Hciimpl.portstatus = portstatus;
+	hp->Hciimpl.shutdown = shutdown;
+	hp->Hciimpl.debug = setdebug;
 	hp->ISAConf.type = "uhci";
 	return 0;
 }
