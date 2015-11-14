@@ -1259,27 +1259,27 @@ void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, int64_t ms)
 {
 	Proc *up = externup();
-	if (up->tt){
+	if (up->Timer.tt){
 		print("tsleep: timer active: mode %d, tf %#p\n",
-			up->tmode, up->tf);
-		timerdel(up);
+			up->Timer.tmode, up->Timer.tf);
+		timerdel(&up->Timer);
 	}
-	up->tns = MS2NS(ms);
-	up->tf = twakeup;
-	up->tmode = Trelative;
-	up->ta = up;
+	up->Timer.tns = MS2NS(ms);
+	up->Timer.tf = twakeup;
+	up->Timer.tmode = Trelative;
+	up->Timer.ta = up;
 	up->trend = r;
 	up->tfn = fn;
-	timeradd(up);
+	timeradd(&up->Timer);
 
 	if(waserror()){
-		timerdel(up);
+		timerdel(&up->Timer);
 		nexterror();
 	}
 	sleep(r, tfn, arg);
-	if (up->tt)
-		timerdel(up);
-	up->twhen = 0;
+	if (up->Timer.tt)
+		timerdel(&up->Timer);
+	up->Timer.twhen = 0;
 	poperror();
 }
 
@@ -1499,8 +1499,8 @@ pexit(char *exitstr, int freemem)
 	up->alarm = 0;
 	clearwakeups(up);
 
-	if (up->tt)
-		timerdel(up);
+	if (up->Timer.tt)
+		timerdel(&up->Timer);
 	if(up->trace)
 		proctrace(up, SDead, 0);
 

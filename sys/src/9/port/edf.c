@@ -411,10 +411,10 @@ edfadmit(Proc *p)
 			/* We're releasing another proc */
 			DPRINT("%lud edfadmit other %d[%s], release now: r=%lud d=%lud t=%lud\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
-			p->ta = p;
+			p->Timer.ta = p;
 			edfunlock();
 			qunlock(&edfschedlock);
-			releaseintr(nil, p);
+			releaseintr(nil, &p->Timer);
 			return nil;
 		}
 	}else{
@@ -489,18 +489,18 @@ edfyield(void)
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
-	if (up->tt == nil){
+	if (up->Timer.tt == nil){
 		n = e->t - now;
 		if(n < 20)
 			n = 20;
-		up->tns = 1000LL * n;
-		up->tf = releaseintr;
-		up->tmode = Trelative;
-		up->ta = up;
+		up->Timer.tns = 1000LL * n;
+		up->Timer.tf = releaseintr;
+		up->Timer.tmode = Trelative;
+		up->Timer.ta = up;
 		up->trend = &up->sleep;
-		timeradd(up);
-	}else if(up->tf != releaseintr)
-		print("edfyield: surprise! %#p\n", up->tf);
+		timeradd(&up->Timer);
+	}else if(up->Timer.tf != releaseintr)
+		print("edfyield: surprise! %#p\n", up->Timer.tf);
 	edfunlock();
 	sleep(&up->sleep, yfn, nil);
 }
