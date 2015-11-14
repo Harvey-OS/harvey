@@ -28,7 +28,7 @@
 #include <oprofile.h>
 
 #define OP_BUFFER_FLAGS	0
-int num_cpus = 8; // FIXME -- where do we get this.
+int num_cpus = 1;		// Probably this many cpus (will get increased by squidboy if > 1)
 
 /* we allocate an array of these and set the pointer in mach */
 struct oprofile_cpu_buffer *op_cpu_buffer;
@@ -437,7 +437,7 @@ void oprofile_control_trace(int onoff)
 		cpu_buf->tracing = onoff;
 
 		if (onoff) {
-			print("Enable tracing on %d\n", core);
+			print("Enable tracing on cpu %d\n", core);
 			continue;
 		}
 
@@ -738,12 +738,15 @@ int
 oprofread(void *va, int n)
 {
 	int len = qlen(opq);
+	if (!len)
+		return 0;
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
-	if (len == 0) {
-		if (cpu_buf->tracing == 0)
-			return 0;
+	if (cpu_buf->tracing == 1){
+		error("can't read profiling while trace is running");
+		return 0;
 	}
 
 	len = qread(opq, va, n);
+	print("oprofread len=%d\n", len);
 	return len;
 }
