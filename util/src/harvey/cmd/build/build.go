@@ -24,6 +24,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -57,6 +58,7 @@ type build struct {
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
 	Projects    []string
+	PreFetch    map[string]string
 	Pre         []string
 	Post        []string
 	Cflags      []string
@@ -190,6 +192,9 @@ func process(f, which string, b *build) {
 			b.Kernel = build.Kernel
 		}
 
+		for t, s := range(build.PreFetch) {
+			b.PreFetch[t] = s
+		}
 		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
@@ -342,6 +347,23 @@ func install(b *build) {
 		withPreloadTricks(cmd)
 	}
 
+}
+
+func fetchOne(source string, target string) {
+	out, err := os.Create(target)
+	failOn(err)
+	defer out.Close()
+	resp, err := http.Get(source)
+	failOn(err)
+	defer resp.Body.Close()
+	l, err := io.Copy(out, resp.Body)
+	failOn(err)
+	log.Printf("Fetched %v -> %v (%d bytes)\n", source, target, l)
+}
+func fetch(files map[string]string) {
+	for target, source := range(files){
+		fetchOne(source, target)
+	}
 }
 
 func run(b *build, cmd []string) {
@@ -586,8 +608,10 @@ func project(root, which string) {
 	debug("Processing %v", root)
 	b := &build{}
 	b.jsons = map[string]bool{}
+	b.PreFetch = map[string]string{}
 	process(root, which, b)
 	projects(b)
+	fetch(b.PreFetch)
 	run(b, b.Pre)
 	buildkernel(b)
 	if len(b.SourceFiles) > 0 {
