@@ -236,7 +236,7 @@ reset(Hci *hp)
 	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
 		ctlr = ctlrs[i];
 		if(ctlr->active == 0)
-		if(hp->port == 0 || hp->port == (uintptr)ctlr->capio){
+		if(hp->ISAConf.port == 0 || hp->ISAConf.port == (uintptr)ctlr->capio){
 			ctlr->active = 1;
 			break;
 		}
@@ -247,8 +247,8 @@ reset(Hci *hp)
 
 	p = ctlr->pcidev;
 	hp->aux = ctlr;
-	hp->port = (uintptr)ctlr->capio;
-	hp->irq = p->intl;
+	hp->ISAConf.port = (uintptr)ctlr->capio;
+	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
 
 	capio = ctlr->capio;
