@@ -179,8 +179,7 @@ struct Edbgio
 
 struct Poll
 {
-	// There is already a Lock in Rendez.
-	//Lock;
+	Lock l;
 	Rendez rend;
 	int	must;
 	int	does;
@@ -189,8 +188,7 @@ struct Poll
 struct Ctlr
 {
 	Rendez rend;                 /* for waiting to async advance doorbell */
-	// There is already a Lock in Rendez.
-	//Lock;			/* for ilock. qh lists and basic ctlr I/O */
+	Lock l;			/* for ilock. qh lists and basic ctlr I/O */
 	QLock	portlck;	/* for port resets/enable... (and doorbell) */
 	int	active;		/* in use or not */
 	Pcidev*	pcidev;

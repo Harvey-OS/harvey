@@ -3256,5 +3256,5 @@ ehcilinkage(Hci *hp)
 	hp->portstatus = portstatus;
 //	hp->shutdown = shutdown;
 //	hp->debug = setdebug;
-	hp->type = "ehci";
+	hp->ISAConf.type = "ehci";
 }
