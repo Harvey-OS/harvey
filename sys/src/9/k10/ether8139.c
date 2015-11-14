@@ -744,7 +744,7 @@ rtl8139match(Ether* edev, int id)
 		if(((p->did<<16)|p->vid) != id)
 			continue;
 		port = p->mem[0].bar & ~0x01;
-		if(edev->port != 0 && edev->port != port)
+		if(edev->ISAConf.port != 0 && edev->ISAConf.port != port)
 			continue;
 
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8139") < 0){
@@ -826,9 +826,9 @@ rtl8139pnp(Ether* edev)
 	 * specific controller only.
 	 */
 	id = 0;
-	for(i = 0; i < edev->nopt; i++){
-		if(cistrncmp(edev->opt[i], "id=", 3) == 0)
-			id = strtol(&edev->opt[i][3], nil, 0);
+	for(i = 0; i < edev->ISAConf.nopt; i++){
+		if(cistrncmp(edev->ISAConf.opt[i], "id=", 3) == 0)
+			id = strtol(&edev->ISAConf.opt[i][3], nil, 0);
 	}
 
 	ctlr = nil;
@@ -842,8 +842,8 @@ rtl8139pnp(Ether* edev)
 		return -1;
 
 	edev->ctlr = ctlr;
-	edev->port = ctlr->port;
-	edev->irq = ctlr->pcidev->intl;
+	edev->ISAConf.port = ctlr->port;
+	edev->ISAConf.irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
 
 	/*
