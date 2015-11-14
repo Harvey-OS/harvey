@@ -201,9 +201,9 @@ kprofwrite(Chan *c, void *a, int32_t n, int64_t m)
 		else if(strncmp(a, "stop", 4) == 0) {
 			print("kprof stopped. %d ms\n", kprof.buf[0]);
 			kprof.time = 0;
-		} else if (!strcmp(a, "opstart")) {
+		} else if (!strncmp(a, "opstart", 7)) {
 			oprofile_control_trace(1);
-		} else if (!strcmp(a, "opstop")) {
+		} else if (!strncmp(a, "opstop", 6)) {
 			oprofile_control_trace(0);
 		} else {
 			error("startclr|start|stop|opstart|opstop");

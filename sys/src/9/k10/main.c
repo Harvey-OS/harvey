@@ -170,6 +170,8 @@ loadenv(int argc, char* argv[])
 	}
 }
 
+extern int num_cpus;
+
 void
 squidboy(int apicno, Mach *mach)
 {
@@ -231,6 +233,9 @@ squidboy(int apicno, Mach *mach)
 
 	print("cpu%d color %d role %s tsc %lld\n",
 		mach->machno, corecolor(mach->machno), rolename[mach->NIX.nixtype], mach->rdtsc);
+	if (mach->machno + 1 > num_cpus){
+		num_cpus = mach->machno + 1;
+	}
 	switch(mach->NIX.nixtype){
 	case NIXAC:
 		acmmuswitch();
@@ -278,7 +283,7 @@ testiccs(void)
 	for(i = 0; i < MACHMAX; i++)
 		if((mach = sys->machptr[i]) != nil && mach->online && mach->NIX.nixtype == NIXAC)
 			testicc(i);
-	print("bootcore: all cores done\n");
+	print("bootcore: all cores done\n", i);
 }
 
 /*
@@ -618,6 +623,8 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 		nixsquids();
 		testiccs();
 	}
+
+	alloc_cpu_buffers();
 
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
