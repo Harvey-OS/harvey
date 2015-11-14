@@ -341,7 +341,7 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 		return;
 	}
 
-	ifc = r->ifc;
+	ifc = r->RouteTree.ifc;
 	type = ifc->medium;
 
 	qlock(&arp->ql);
@@ -465,7 +465,7 @@ arpwrite(Fs *fs, char *s, int len)
 				r = v6lookup(fs, ip, nil);
 			if(r == nil)
 				error("Destination unreachable");
-			medium = r->ifc->medium;
+			medium = r->RouteTree.ifc->medium;
 			n = parsemac(mac, f[2], medium->maclen);
 			break;
 		case 4:
