@@ -93,14 +93,14 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		goto free;
 	}
 
-	ifc = r->ifc;
-	if(r->type & (Rifc|Runi))
+	ifc = r->RouteTree.ifc;
+	if(r->RouteTree.type & (Rifc|Runi))
 		gate = eh->dst;
-	else if(r->type & (Rbcast|Rmulti)) {
+	else if(r->RouteTree.type & (Rbcast|Rmulti)) {
 		gate = eh->dst;
 		sr = v6lookup(f, eh->src, nil);
-		if(sr && (sr->type & Runi))
-			ifc = sr->ifc;
+		if(sr && (sr->RouteTree.type & Runi))
+			ifc = sr->RouteTree.ifc;
 	}
 	else
 		gate = r->v6.gate;
@@ -317,7 +317,7 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 		}
 
 		/* process headers & reassemble if the interface expects it */
-		bp = procxtns(ip, bp, r->ifc->reassemble);
+		bp = procxtns(ip, bp, r->RouteTree.ifc->reassemble);
 		if(bp == nil)
 			return;
 
