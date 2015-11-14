@@ -15,16 +15,6 @@ void start_cpu_work(void);
 void end_cpu_work(void);
 void flush_cpu_work(void);
 
-/* CPU buffer is composed of samples.
- * As these are extracted from the buffer, they are encapsulated
- * in entries, which include additional info.
- */
-struct op_sample {
-	unsigned long eip;
-	unsigned long event;
-	unsigned long data[0];
-};
-
 struct op_entry;
 
 struct oprofile_cpu_buffer {
