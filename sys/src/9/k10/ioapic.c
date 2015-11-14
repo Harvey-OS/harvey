@@ -322,7 +322,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 	v->type = "msi";
 	v->mask = msimask;
 
-	DBG("msiirq: %T: enabling %.16llux %s irq %d vno %d\n", p->tbdf, msivec, v->name, v->irq, vno);
+	DBG("msiirq: %T: enabling %.16llux %s irq %d vno %d\n", p->tbdf, msivec, v->name, v->Vkey.irq, vno);
 	return vno;
 }
 
@@ -346,12 +346,12 @@ ioapicintrenable(Vctl* v)
 	 * Bridge between old and unspecified new scheme,
 	 * the work in progress...
 	 */
-	if(v->tbdf == BUSUNKNOWN){
-		if(v->irq >= IrqLINT0 && v->irq <= MaxIrqLAPIC){
-			if(v->irq != IrqSPURIOUS)
+	if(v->Vkey.tbdf == BUSUNKNOWN){
+		if(v->Vkey.irq >= IrqLINT0 && v->Vkey.irq <= MaxIrqLAPIC){
+			if(v->Vkey.irq != IrqSPURIOUS)
 				v->isr = apiceoi;
 			v->type = "lapic";
-			return v->irq;
+			return v->Vkey.irq;
 		}
 		else{
 			/*
@@ -364,31 +364,31 @@ ioapicintrenable(Vctl* v)
 			if(mpisabusno == -1)
 				panic("no ISA bus allocated");
 			busno = mpisabusno;
-			devno = v->irq<<2;
+			devno = v->Vkey.irq<<2;
 		}
 	}
-	else if(BUSTYPE(v->tbdf) == BusPCI){
+	else if(BUSTYPE(v->Vkey.tbdf) == BusPCI){
 		/*
 		 * PCI.
 		 * Make a devno from BUSDNO(tbdf) and pcidev->intp.
 		 */
 		Pcidev *pcidev;
 
-		busno = BUSBNO(v->tbdf);
-		if((pcidev = pcimatchtbdf(v->tbdf)) == nil)
-			panic("no PCI dev for tbdf %#8.8ux\n", v->tbdf);
+		busno = BUSBNO(v->Vkey.tbdf);
+		if((pcidev = pcimatchtbdf(v->Vkey.tbdf)) == nil)
+			panic("no PCI dev for tbdf %#8.8ux\n", v->Vkey.tbdf);
 		if((vecno = intrenablemsi(v, pcidev)) != -1)
 			return vecno;
 		disablemsi(v, pcidev);
 		if((devno = pcicfgr8(pcidev, PciINTP)) == 0)
-			panic("no INTP for tbdf %#8.8ux\n", v->tbdf);
-		devno = BUSDNO(v->tbdf)<<2|(devno-1);
+			panic("no INTP for tbdf %#8.8ux\n", v->Vkey.tbdf);
+		devno = BUSDNO(v->Vkey.tbdf)<<2|(devno-1);
 		DBG("ioapicintrenable: tbdf %#8.8ux busno %d devno %d\n",
-			v->tbdf, busno, devno);
+			v->Vkey.tbdf, busno, devno);
 	}
 	else{
 		SET(busno); SET(devno);
-		panic("unknown tbdf %#8.8ux\n", v->tbdf);
+		panic("unknown tbdf %#8.8ux\n", v->Vkey.tbdf);
 	}
 
 	rdt = nil;
@@ -408,14 +408,14 @@ ioapicintrenable(Vctl* v)
 		 */
 		if((busno = mpisabusno) == -1)
 			return -1;
-		devno = v->irq<<2;
+		devno = v->Vkey.irq<<2;
 		for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
 			if(rbus->devno == devno){
 				rdt = rbus->rdt;
 				break;
 			}
 		DBG("isa: tbdf %#8.8ux busno %d devno %d %#p\n",
-			v->tbdf, busno, devno, rdt);
+			v->Vkey.tbdf, busno, devno, rdt);
 	}
 	if(rdt == nil)
 		return -1;
@@ -433,13 +433,13 @@ ioapicintrenable(Vctl* v)
 	 * rather than putting a Lock in each entry.
 	 */
 	lock(&rdt->apic->l);
-	DBG("%T: %ld/%d/%d (%d)\n", v->tbdf, rdt->apic - xioapic, rbus->devno, rdt->intin, devno);
+	DBG("%T: %ld/%d/%d (%d)\n", v->Vkey.tbdf, rdt->apic - xioapic, rbus->devno, rdt->intin, devno);
 	if((rdt->lo & 0xff) == 0){
 		vecno = nextvec();
 		rdt->lo |= vecno;
 		rdtvecno[vecno] = rdt;
 	}else
-		DBG("%T: mutiple irq bus %d dev %d\n", v->tbdf, busno, devno);
+		DBG("%T: mutiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
 
 	rdt->enabled++;
 	lo = (rdt->lo & ~Im);

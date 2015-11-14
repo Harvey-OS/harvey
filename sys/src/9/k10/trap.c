@@ -62,8 +62,8 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 
 	v = malloc(sizeof(Vctl));
 	v->isintr = 1;
-	v->irq = irq;
-	v->tbdf = tbdf;
+	v->Vkey.irq = irq;
+	v->Vkey.tbdf = tbdf;
 	v->f = f;
 	v->a = a;
 	strncpy(v->name, name, KNAMELEN-1);
@@ -90,7 +90,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	iunlock(&vctllock);
 
 	if(v->mask)
-		v->mask(v, 0);
+		v->mask(&v->Vkey, 0);
 
 	/*
 	 * Return the assigned vector so intrdisable can find
@@ -116,7 +116,7 @@ intrdisable(void* vector)
 	if(x != v)
 		panic("intrdisable: v %#p", v);
 	if(v->mask)
-		v->mask(v, 1);
+		v->mask(&v->Vkey, 1);
 	v->f(nil, v->a);
 	*ll = v->next;
 	ioapicintrdisable(v->vno);
@@ -144,7 +144,7 @@ irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 		for(v=vctl[vno]; v; v=v->next){
 			t = intrtimes + vno;
 			m = snprint(str, sizeof str, "%11d %11d %20llud %20llud %-*.*s %.*s\n",
-				vno, v->irq, t->count, t->cycles, 8, 8, v->type, KNAMELEN, v->name);
+				vno, v->Vkey.irq, t->count, t->cycles, 8, 8, v->type, KNAMELEN, v->name);
 			if(m <= offset)	/* if do not want this, skip entry */
 				offset -= m;
 			else{
@@ -177,7 +177,7 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 		panic("trapenable: vno %d\n", vno);
 	v = malloc(sizeof(Vctl));
 	v->type = "trap";
-	v->tbdf = BUSUNKNOWN;
+	v->Vkey.tbdf = BUSUNKNOWN;
 	v->f = f;
 	v->a = a;
 	strncpy(v->name, name, KNAMELEN);
@@ -408,7 +408,7 @@ trap(Ureg* ureg)
 		if(ctl->isintr){
 			machp()->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
-				machp()->lastintr = ctl->irq;
+				machp()->lastintr = ctl->Vkey.irq;
 		}else
 			if(up)
 				up->nqtrap++;
@@ -430,7 +430,7 @@ trap(Ureg* ureg)
 
 		intrtime(vno);
 		if(ctl->isintr){
-			if(ctl->irq == IrqCLOCK || ctl->irq == IrqTIMER)
+			if(ctl->Vkey.irq == IrqCLOCK || ctl->Vkey.irq == IrqTIMER)
 				clockintr = 1;
 
 			if(up && !clockintr)
