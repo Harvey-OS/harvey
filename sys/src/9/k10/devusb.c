@@ -309,7 +309,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		s = seprint(s, se, " idle");
 	if(all){
 		s = seprint(s, se, " load %uld", ep->load);
-		s = seprint(s, se, " ref %ld addr %#p", ep->ref, ep);
+		s = seprint(s, se, " ref %ld addr %#p", ep->r.ref, ep);
 		s = seprint(s, se, " idx %d", ep->idx);
 		if(ep->name != nil)
 			s = seprint(s, se, " name '%s'", ep->name);
@@ -339,7 +339,7 @@ epalloc(Hci *hp)
 	int i;
 
 	ep = smalloc(sizeof(Ep));
-	ep->ref = 1;
+	ep->r.ref = 1;
 	qlock(&epslck);
 	for(i = 0; i < Neps; i++)
 		if(eps[i] == nil)
@@ -372,7 +372,7 @@ getep(int i)
 	qlock(&epslck);
 	ep = eps[i];
 	if(ep != nil)
-		incref(ep);
+		incref(&ep->r);
 	qunlock(&epslck);
 	return ep;
 }
@@ -382,7 +382,7 @@ putep(Ep *ep)
 {
 	Udev *d;
 
-	if(ep != nil && decref(ep) == 0){
+	if(ep != nil && decref(&ep->r) == 0){
 		d = ep->dev;
 		deprint("usb: ep%d.%d %#p released\n", d->nb, ep->nb, ep);
 		qlock(&epslck);
@@ -500,7 +500,7 @@ newdevep(Ep *ep, int i, int tt, int mode)
 	if(d->eps[i] != nil)
 		error("endpoint already in use");
 	nep = epalloc(ep->hp);
-	incref(ep);
+	incref(&ep->r);
 	d->eps[i] = nep;
 	nep->nb = i;
 	nep->toggle[0] = nep->toggle[1] = 0;
@@ -916,7 +916,7 @@ usbclose(Chan *c)
 	ep = getep(qid2epidx(q));
 	if(ep == nil)
 		return;
-	deprint("usbclose q %#x fid %d ref %ld\n", q, c->fid, ep->ref);
+	deprint("usbclose q %#x fid %d ref %ld\n", q, c->fid, ep->r.ref);
 	if(waserror()){
 		putep(ep);
 		nexterror();
