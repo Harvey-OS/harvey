@@ -32,7 +32,7 @@ struct Ether {
 
 	Queue*	oq;
 
-	Netif;
+	Netif Netif;
 };
 
 extern Block* etheriq(Ether*, Block*, int);

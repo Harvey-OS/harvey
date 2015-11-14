@@ -2063,7 +2063,7 @@ igbepnp(Ether* edev)
 	edev->ISAConf.port = ctlr->port;
 	edev->ISAConf.irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
-	edev->mbps = 1000;
+	edev->Netif.mbps = 1000;
 	memmove(edev->ea, ctlr->ra, Eaddrlen);
 
 	/*
@@ -2075,10 +2075,10 @@ igbepnp(Ether* edev)
 	edev->ifstat = igbeifstat;
 	edev->ctl = igbectl;
 
-	edev->arg = edev;
-	edev->promiscuous = igbepromiscuous;
+	edev->Netif.arg = edev;
+	edev->Netif.promiscuous = igbepromiscuous;
 	edev->shutdown = igbeshutdown;
-	edev->multicast = igbemulticast;
+	edev->Netif.multicast = igbemulticast;
 
 	return 0;
 }

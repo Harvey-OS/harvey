@@ -104,7 +104,7 @@ struct VGAscr {
 
 	VGAcur*	cur;
 	uint32_t	storage;
-	Cursor;
+	Cursor Cursor;
 
 	int	useflush;
 
