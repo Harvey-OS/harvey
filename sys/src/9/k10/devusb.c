@@ -284,9 +284,9 @@ seprintep(char *s, char *se, Ep *ep, int all)
 
 	d = ep->dev;
 
-	qlock(ep);
+	qlock(&ep->ql);
 	if(waserror()){
-		qunlock(ep);
+		qunlock(&ep->ql);
 		nexterror();
 	}
 	di = ep->dev->nb;
@@ -327,7 +327,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->ISAConf.type);
 	else
 		s = seprint(s, se, "\n");
-	qunlock(ep);
+	qunlock(&ep->ql);
 	poperror();
 	return s;
 }
@@ -393,9 +393,9 @@ putep(Ep *ep)
 			usbidgen--;
 		qunlock(&epslck);
 		if(d != nil){
-			qlock(ep->ep0);
+			qlock(&ep->ep0->ql);
 			d->eps[ep->nb] = nil;
-			qunlock(ep->ep0);
+			qunlock(&ep->ep0->ql);
 		}
 		if(ep->ep0 != ep){
 			putep(ep->ep0);
@@ -852,13 +852,13 @@ usbopen(Chan *c, int omode)
 		putep(ep);
 		nexterror();
 	}
-	qlock(ep);
+	qlock(&ep->ql);
 	if(ep->inuse){
-		qunlock(ep);
+		qunlock(&ep->ql);
 		error(Einuse);
 	}
 	ep->inuse = 1;
-	qunlock(ep);
+	qunlock(&ep->ql);
 	if(waserror()){
 		ep->inuse = 0;
 		nexterror();
@@ -889,16 +889,16 @@ static void
 epclose(Ep *ep)
 {
 	Proc *up = externup();
-	qlock(ep);
+	qlock(&ep->ql);
 	if(waserror()){
-		qunlock(ep);
+		qunlock(&ep->ql);
 		nexterror();
 	}
 	if(ep->inuse){
 		ep->hp->Hciimpl.epclose(ep);
 		ep->inuse = 0;
 	}
-	qunlock(ep);
+	qunlock(&ep->ql);
 	poperror();
 }
 
@@ -1199,27 +1199,27 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l == Nospeed)
 			error("speed must be full|low|high");
-		qlock(ep->ep0);
+		qlock(&ep->ep0->ql);
 		d->speed = l;
-		qunlock(ep->ep0);
+		qunlock(&ep->ep0->ql);
 		break;
 	case CMmaxpkt:
 		l = strtoul(cb->f[1], nil, 0);
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l < 1 || l > 1024)
 			error("maxpkt not in [1:1024]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->maxpkt = l;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMntds:
 		l = strtoul(cb->f[1], nil, 0);
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l < 1 || l > 3)
 			error("ntds not in [1:3]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->ntds = l;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMpollival:
 		if(ep->ttype != Tintr && ep->ttype != Tiso)
@@ -1234,11 +1234,11 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		}else
 			if(l < 1 || l > 255)
 				error("pollival not in [1:255]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->pollival = l;
 		if(ep->ttype == Tiso)
 			setmaxpkt(ep, "pollival");
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMsamplesz:
 		if(ep->ttype != Tiso)
@@ -1247,10 +1247,10 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l <= 0 || l > 8)
 			error("samplesz not in [1:8]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->samplesz = l;
 		setmaxpkt(ep, "samplesz");
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMhz:
 		if(ep->ttype != Tiso)
@@ -1259,16 +1259,16 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l <= 0 || l > 100000)
 			error("hz not in [1:100000]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->hz = l;
 		setmaxpkt(ep, "hz");
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMclrhalt:
-		qlock(ep);
+		qlock(&ep->ql);
 		deprint("usb epctl %s\n", cb->f[0]);
 		ep->clrhalt = 1;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMinfo:
 		deprint("usb epctl %s\n", cb->f[0]);
@@ -1283,10 +1283,10 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		b[n-l] = 0;
 		if(b[n-l-1] == '\n')
 			b[n-l-1] = 0;
-		qlock(ep);
+		qlock(&ep->ql);
 		free(ep->info);
 		ep->info = b;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMaddress:
 		deprint("usb epctl %s\n", cb->f[0]);
