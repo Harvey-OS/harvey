@@ -402,23 +402,23 @@ etherprobe(int cardno, int ctlrno)
 	 * controllers together. A device set to IRQ2 will appear on
 	 * the second interrupt controller as IRQ9.
 	 */
-	if(ether->irq == 2)
-		ether->irq = 9;
+	if(ether->ISAConf.irq == 2)
+		ether->ISAConf.irq = 9;
 	snprint(name, sizeof(name), "ether%d", ctlrno);
 
 	/*
 	 * If ether->irq is <0, it is a hack to indicate no interrupt
 	 * used by ethersink.
 	 */
-	if(ether->irq >= 0)
-		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
+	if(ether->ISAConf.irq >= 0)
+		intrenable(ether->ISAConf.irq, ether->interrupt, ether, ether->tbdf, name);
 
 	i = sprint(buf, "#l%d: %s: %dMbps port %#p irq %d tu %d",
-		ctlrno, cards[cardno].type, ether->mbps, ether->port, ether->irq, ether->mtu);
-	if(ether->mem)
-		i += sprint(buf+i, " addr %#p", ether->mem);
-	if(ether->size)
-		i += sprint(buf+i, " size 0x%luX", ether->size);
+		ctlrno, cards[cardno].type, ether->mbps, ether->ISAConf.port, ether->ISAConf.irq, ether->mtu);
+	if(ether->ISAConf.mem)
+		i += sprint(buf+i, " addr %#p", ether->ISAConf.mem);
+	if(ether->ISAConf.size)
+		i += sprint(buf+i, " size 0x%luX", ether->ISAConf.size);
 	i += sprint(buf+i, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		ether->ea[0], ether->ea[1], ether->ea[2],
 		ether->ea[3], ether->ea[4], ether->ea[5]);
@@ -486,7 +486,7 @@ ethershutdown(void)
 			continue;
 		}
 		snprint(name, sizeof(name), "ether%d", i);
-		if(ether->irq >= 0){
+		if(ether->ISAConf.irq >= 0){
 		//	intrdisable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 		}
 		(*ether->shutdown)(ether);

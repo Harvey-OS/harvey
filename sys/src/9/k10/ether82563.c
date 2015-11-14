@@ -2012,7 +2012,7 @@ pnp(Ether* edev, int type)
 			continue;
 		if(type != Iany && ctlr->type != type)
 			continue;
-		if(edev->port == 0 || edev->port == ctlr->port){
+		if(edev->ISAConf.port == 0 || edev->ISAConf.port == ctlr->port){
 			ctlr->active = 1;
 			memmove(ctlr->ra, edev->ea, Eaddrlen);
 			if(setup(ctlr) == 0)
@@ -2022,8 +2022,8 @@ pnp(Ether* edev, int type)
 
 	edev->ctlr = ctlr;
 	ctlr->edev = edev;			/* point back to Ether* */
-	edev->port = ctlr->port;
-	edev->irq = ctlr->pcidev->intl;
+	edev->ISAConf.port = ctlr->port;
+	edev->ISAConf.irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
 	edev->mbps = 1000;
 	edev->maxmtu = ctlr->rbsz;

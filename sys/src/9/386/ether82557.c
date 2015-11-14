@@ -1065,7 +1065,7 @@ reset(Ether* ether)
 	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
 		if(ctlr->active)
 			continue;
-		if(ether->port == 0 || ether->port == ctlr->port){
+		if(ether->ISAConf.port == 0 || ether->ISAConf.port == ctlr->port){
 			ctlr->active = 1;
 			break;
 		}
@@ -1082,8 +1082,8 @@ reset(Ether* ether)
 	 * Load the RUB and CUB registers for linear addressing (0).
 	 */
 	ether->ctlr = ctlr;
-	ether->port = ctlr->port;
-	ether->irq = ctlr->pcidev->intl;
+	ether->ISAConf.port = ctlr->port;
+	ether->ISAConf.irq = ctlr->pcidev->intl;
 	ether->tbdf = ctlr->pcidev->tbdf;
 
 	ilock(&ctlr->rlock);
@@ -1178,8 +1178,8 @@ reset(Ether* ether)
 			 */
 			x = miir(ctlr, phyaddr, 0x17) & ~0x0520;
 			x |= 0x0420;
-			for(i = 0; i < ether->nopt; i++){
-				if(cistrcmp(ether->opt[i], "congestioncontrol"))
+			for(i = 0; i < ether->ISAConf.nopt; i++){
+				if(cistrcmp(ether->ISAConf.opt[i], "congestioncontrol"))
 					continue;
 				x |= 0x0100;
 				break;
@@ -1234,9 +1234,9 @@ reset(Ether* ether)
 		 */
 		if(anlpar == 0){
 			medium = -1;
-			for(i = 0; i < ether->nopt; i++){
+			for(i = 0; i < ether->ISAConf.nopt; i++){
 				for(k = 0; k < nelem(mediatable); k++){
-					if(cistrcmp(mediatable[k], ether->opt[i]))
+					if(cistrcmp(mediatable[k], ether->ISAConf.opt[i]))
 						continue;
 					medium = k;
 					break;
