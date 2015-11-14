@@ -328,18 +328,18 @@ edfrun(Proc *p, int edfpri)
 			tns = e->S;
 		if(tns < 20)
 			tns = 20;
-		e->tns = 1000LL * tns;	/* µs to ns */
-		if(e->tt == nil || e->tf != deadlineintr){
+		e->Timer.tns = 1000LL * tns;	/* µs to ns */
+		if(e->Timer.tt == nil || e->Timer.tf != deadlineintr){
 			DPRINT("%lud edfrun, deadline=%lud\n", now, tns);
 		}else{
 			DPRINT("v");
 		}
 		if(p->trace)
-			proctrace(p, SInte, todget(nil) + e->tns);
-		e->tmode = Trelative;
-		e->tf = deadlineintr;
-		e->ta = p;
-		timeradd(e);
+			proctrace(p, SInte, todget(nil) + e->Timer.tns);
+		e->Timer.tmode = Trelative;
+		e->Timer.tf = deadlineintr;
+		e->Timer.ta = p;
+		timeradd(&e->Timer);
 	}else{
 		DPRINT("<");
 	}
@@ -427,15 +427,15 @@ edfadmit(Proc *p)
 		}else{
 			DPRINT("%lud edfadmit other %d[%s], release at %lud\n",
 				now, p->pid, statename[p->state], e->t);
-			if(e->tt == nil){
-				e->tf = releaseintr;
-				e->ta = p;
+			if(e->Timer.tt == nil){
+				e->Timer.tf = releaseintr;
+				e->Timer.ta = p;
 				tns = e->t - now;
 				if(tns < 20)
 					tns = 20;
-				e->tns = 1000LL * tns;
-				e->tmode = Trelative;
-				timeradd(e);
+				e->Timer.tns = 1000LL * tns;
+				e->Timer.tmode = Trelative;
+				timeradd(&e->Timer);
 			}
 		}
 	}
@@ -454,8 +454,8 @@ edfstop(Proc *p)
 		if(p->trace)
 			proctrace(p, SExpel, 0);
 		e->flags &= ~Admitted;
-		if(e->tt)
-			timerdel(e);
+		if(e->Timer.tt)
+			timerdel(&e->Timer);
 		edfunlock();
 	}
 }
@@ -536,15 +536,15 @@ edfready(Proc *p)
 		}
 		if(now - e->t < 0){
 			/* Next release is in the future, schedule it */
-			if(e->tt == nil || e->tf != releaseintr){
+			if(e->Timer.tt == nil || e->Timer.tf != releaseintr){
 				n = e->t - now;
 				if(n < 20)
 					n = 20;
-				e->tns = 1000LL * n;
-				e->tmode = Trelative;
-				e->tf = releaseintr;
-				e->ta = p;
-				timeradd(e);
+				e->Timer.tns = 1000LL * n;
+				e->Timer.tmode = Trelative;
+				e->Timer.tf = releaseintr;
+				e->Timer.ta = p;
+				timeradd(&e->Timer);
 				DPRINT("%lud edfready %d[%s], release=%lud\n",
 					now, p->pid, statename[p->state], e->t);
 			}
