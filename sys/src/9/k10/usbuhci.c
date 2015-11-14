@@ -2293,7 +2293,7 @@ reset(Hci *hp)
 	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
 		ctlr = ctlrs[i];
 		if(ctlr->active == 0)
-		if(hp->port == 0 || hp->port == ctlr->port){
+		if(hp->ISAConf.port == 0 || hp->ISAConf.port == ctlr->port){
 			ctlr->active = 1;
 			break;
 		}
@@ -2304,8 +2304,8 @@ reset(Hci *hp)
 
 	p = ctlr->pcidev;
 	hp->aux = ctlr;
-	hp->port = ctlr->port;
-	hp->irq = p->intl;
+	hp->ISAConf.port = ctlr->port;
+	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
 	hp->nports = 2;			/* default */
 
@@ -2328,7 +2328,7 @@ reset(Hci *hp)
 	hp->portstatus = portstatus;
 	hp->shutdown = shutdown;
 	hp->debug = setdebug;
-	hp->type = "uhci";
+	hp->ISAConf.type = "uhci";
 	return 0;
 }
 

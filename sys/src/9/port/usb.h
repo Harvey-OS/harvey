@@ -132,7 +132,7 @@ struct Hciimpl
 
 struct Hci
 {
-	ISAConf;				/* hardware info */
+	ISAConf ISAConf;				/* hardware info */
 	int	tbdf;				/* type+busno+devno+funcno */
 	int	ctlrno;				/* controller number */
 	int	nports;				/* number of ports in hub */

@@ -324,7 +324,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		}
 	}
 	if(ep->info != nil)
-		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->type);
+		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->ISAConf.type);
 	else
 		s = seprint(s, se, "\n");
 	qunlock(ep);
@@ -690,7 +690,7 @@ hciprobe(int cardno, int ctlrno)
 		for(cardno = 0; cardno < Nhcis; cardno++){
 			if(hcitypes[cardno].type == nil)
 				break;
-			type = hp->type;
+			type = hp->ISAConf.type;
 			if(type==nil || *type==0)
 				type = "uhci";
 			if(cistrcmp(hcitypes[cardno].type, type) == 0)
@@ -713,17 +713,17 @@ hciprobe(int cardno, int ctlrno)
 	 * controllers together. A device set to IRQ2 will appear on
 	 * the second interrupt controller as IRQ9.
 	 */
-	if(hp->irq == 2)
-		hp->irq = 9;
+	if(hp->ISAConf.irq == 2)
+		hp->ISAConf.irq = 9;
 	snprint(name, sizeof(name), "usb%s", hcitypes[cardno].type);
-	intrenable(hp->irq, hp->interrupt, hp, hp->tbdf, name);
+	intrenable(hp->ISAConf.irq, hp->interrupt, hp, hp->tbdf, name);
 
 	/*
 	 * modern machines have too many usb controllers to list on
 	 * the console.
 	 */
 	dprint("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
-		epnb, hcitypes[cardno].type, hp->port, hp->irq);
+		epnb, hcitypes[cardno].type, hp->ISAConf.port, hp->ISAConf.irq);
 	epnb++;
 	return hp;
 }
@@ -1470,7 +1470,7 @@ usbshutdown(void)
 		if(hp == nil)
 			continue;
 		if(hp->shutdown == nil)
-			print("#u: no shutdown function for %s\n", hp->type);
+			print("#u: no shutdown function for %s\n", hp->ISAConf.type);
 		else
 			hp->shutdown(hp);
 	}
