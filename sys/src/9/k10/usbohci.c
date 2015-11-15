@@ -1017,7 +1017,7 @@ dump(Hci *hp)
 	Ed *ed;
 	char cs[20];
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	seprintctl(cs, cs+sizeof(cs), ctlr->ohci->control);
 	print("ohci ctlr %#p: frno %#ux ctl %#lux %s sts %#lux intr %#lux\n",
@@ -1279,7 +1279,7 @@ interrupt(Ureg *ureg, void *arg)
 	int i, frno;
 
 	hp = arg;
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	ctlr->ohci->intrdisable = Mie;
 	coherence();
@@ -1474,7 +1474,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	uint32_t load;
 
 	ed = io->ed;
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	io->debug = ep->debug;
 	tmout = ep->tmout;
 	ddeprint("ohci: %s ep%d.%d io %#p count %ld\n",
@@ -1804,7 +1804,7 @@ episowrite(Ep *ep, void *a, int32_t count)
 	Ctlr *ctlr;
 	Isoio *iso;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	iso = ep->aux;
 	iso->debug = ep->debug;
 
@@ -2033,7 +2033,7 @@ epopen(Ep *ep)
 	Ctlio *cio;
 	uint32_t usbid;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 	deprint("ohci: epopen ep%d.%d\n", ep->dev->nb, ep->nb);
 	if(ep->aux != nil)
 		panic("ohci: epopen called with open ep");
@@ -2101,7 +2101,7 @@ cancelio(Ep *ep, Qio *io)
 	Ed *ed;
 	Ctlr *ctlr;
 
-	ctlr = ep->hp->aux;
+	ctlr = ep->hp->Hciimpl.aux;
 
 	ilock(&ctlr->l);
 	if(io == nil || io->state == Qclose){
@@ -2198,7 +2198,7 @@ portreset(Hci *hp, int port, int on)
 	if(on == 0)
 		return 0;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	qlock(&ctlr->resetl);
 	if(waserror()){
 		qunlock(&ctlr->resetl);
@@ -2230,7 +2230,7 @@ portenable(Hci *hp, int port, int on)
 	Proc *up = externup();
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	dprint("ohci: %#p port %d enable=%d\n", ctlr->ohci, port, on);
 	qlock(&ctlr->resetl);
 	if(waserror()){
@@ -2260,7 +2260,7 @@ portstatus(Hci *hp, int port)
 	 * We must return status bits as a
 	 * get port status hub request would do.
 	 */
-	ub = hp->aux;
+	ub = hp->Hciimpl.aux;
 	ohcistatus = ub->ohci->rhportsts[port - 1];
 	v = 0;
 	if(ohcistatus & Ccs)
@@ -2311,7 +2311,7 @@ init(Hci *hp)
 	int i;
 	uint32_t ival, ctrl, fmi;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 	dprint("ohci %#p init\n", ctlr->ohci);
 	ohci = ctlr->ohci;
 
@@ -2522,7 +2522,7 @@ shutdown(Hci *hp)
 {
 	Ctlr *ctlr;
 
-	ctlr = hp->aux;
+	ctlr = hp->Hciimpl.aux;
 
 	ilock(&ctlr->l);
 	ctlr->ohci->intrdisable = Mie;
@@ -2551,7 +2551,7 @@ reset(Hci *hp)
 	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
 		ctlr = ctlrs[i];
 		if(ctlr->active == 0)
-		if(hp->port == 0 || hp->port == (uintptr)ctlr->ohci){
+		if(hp->ISAConf.port == 0 || hp->ISAConf.port == (uintptr)ctlr->ohci){
 			ctlr->active = 1;
 			break;
 		}
@@ -2564,9 +2564,9 @@ reset(Hci *hp)
 
 
 	p = ctlr->pcidev;
-	hp->aux = ctlr;
-	hp->port = (uintptr)ctlr->ohci;
-	hp->irq = p->intl;
+	hp->Hciimpl.aux = ctlr;
+	hp->ISAConf.port = (uintptr)ctlr->ohci;
+	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
 	ctlr->nports = hp->nports = ctlr->ohci->rhdesca & 0xff;
 
@@ -2576,20 +2576,20 @@ reset(Hci *hp)
 	/*
 	 * Linkage to the generic HCI driver.
 	 */
-	hp->init = init;
-	hp->dump = dump;
-	hp->interrupt = interrupt;
-	hp->epopen = epopen;
-	hp->epclose = epclose;
-	hp->epread = epread;
-	hp->epwrite = epwrite;
-	hp->seprintep = seprintep;
-	hp->portenable = portenable;
-	hp->portreset = portreset;
-	hp->portstatus = portstatus;
-	hp->shutdown = shutdown;
-	hp->debug = usbdebug;
-	hp->type = "ohci";
+	hp->Hciimpl.init = init;
+	hp->Hciimpl.dump = dump;
+	hp->Hciimpl.interrupt = interrupt;
+	hp->Hciimpl.epopen = epopen;
+	hp->Hciimpl.epclose = epclose;
+	hp->Hciimpl.epread = epread;
+	hp->Hciimpl.epwrite = epwrite;
+	hp->Hciimpl.seprintep = seprintep;
+	hp->Hciimpl.portenable = portenable;
+	hp->Hciimpl.portreset = portreset;
+	hp->Hciimpl.portstatus = portstatus;
+	hp->Hciimpl.shutdown = shutdown;
+	hp->Hciimpl.debug = usbdebug;
+	hp->ISAConf.type = "ohci";
 	return 0;
 }
 

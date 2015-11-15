@@ -14,7 +14,7 @@ enum {
 
 typedef struct Ether Ether;
 struct Ether {
-	ISAConf;			/* hardware info */
+	ISAConf ISAConf;			/* hardware info */
 
 	int	ctlrno;
 	int	tbdf;			/* type+busno+devno+funcno */
@@ -32,7 +32,7 @@ struct Ether {
 
 	Queue*	oq;
 
-	Netif;
+	Netif Netif;
 };
 
 extern Block* etheriq(Ether*, Block*, int);

@@ -284,9 +284,9 @@ seprintep(char *s, char *se, Ep *ep, int all)
 
 	d = ep->dev;
 
-	qlock(ep);
+	qlock(&ep->ql);
 	if(waserror()){
-		qunlock(ep);
+		qunlock(&ep->ql);
 		nexterror();
 	}
 	di = ep->dev->nb;
@@ -309,7 +309,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		s = seprint(s, se, " idle");
 	if(all){
 		s = seprint(s, se, " load %uld", ep->load);
-		s = seprint(s, se, " ref %ld addr %#p", ep->ref, ep);
+		s = seprint(s, se, " ref %ld addr %#p", ep->r.ref, ep);
 		s = seprint(s, se, " idx %d", ep->idx);
 		if(ep->name != nil)
 			s = seprint(s, se, " name '%s'", ep->name);
@@ -324,10 +324,10 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		}
 	}
 	if(ep->info != nil)
-		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->type);
+		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->ISAConf.type);
 	else
 		s = seprint(s, se, "\n");
-	qunlock(ep);
+	qunlock(&ep->ql);
 	poperror();
 	return s;
 }
@@ -339,7 +339,7 @@ epalloc(Hci *hp)
 	int i;
 
 	ep = smalloc(sizeof(Ep));
-	ep->ref = 1;
+	ep->r.ref = 1;
 	qlock(&epslck);
 	for(i = 0; i < Neps; i++)
 		if(eps[i] == nil)
@@ -372,7 +372,7 @@ getep(int i)
 	qlock(&epslck);
 	ep = eps[i];
 	if(ep != nil)
-		incref(ep);
+		incref(&ep->r);
 	qunlock(&epslck);
 	return ep;
 }
@@ -382,7 +382,7 @@ putep(Ep *ep)
 {
 	Udev *d;
 
-	if(ep != nil && decref(ep) == 0){
+	if(ep != nil && decref(&ep->r) == 0){
 		d = ep->dev;
 		deprint("usb: ep%d.%d %#p released\n", d->nb, ep->nb, ep);
 		qlock(&epslck);
@@ -393,9 +393,9 @@ putep(Ep *ep)
 			usbidgen--;
 		qunlock(&epslck);
 		if(d != nil){
-			qlock(ep->ep0);
+			qlock(&ep->ep0->ql);
 			d->eps[ep->nb] = nil;
-			qunlock(ep->ep0);
+			qunlock(&ep->ep0->ql);
 		}
 		if(ep->ep0 != ep){
 			putep(ep->ep0);
@@ -430,7 +430,7 @@ dumpeps(void)
 			s = seprint(s, e, "ep%d.%d ", ep->dev->nb, ep->nb);
 			seprintep(s, e, ep, 1);
 			print("%s", buf);
-			ep->hp->seprintep(buf, e, ep);
+			ep->hp->Hciimpl.seprintep(buf, e, ep);
 			print("%s", buf);
 			poperror();
 			putep(ep);
@@ -439,7 +439,7 @@ dumpeps(void)
 	print("usb dump hcis:\n");
 	for(i = 0; i < Nhcis; i++)
 		if(hcis[i] != nil)
-			hcis[i]->dump(hcis[i]);
+			hcis[i]->Hciimpl.dump(hcis[i]);
 }
 
 static int
@@ -500,7 +500,7 @@ newdevep(Ep *ep, int i, int tt, int mode)
 	if(d->eps[i] != nil)
 		error("endpoint already in use");
 	nep = epalloc(ep->hp);
-	incref(ep);
+	incref(&ep->r);
 	d->eps[i] = nep;
 	nep->nb = i;
 	nep->toggle[0] = nep->toggle[1] = 0;
@@ -690,7 +690,7 @@ hciprobe(int cardno, int ctlrno)
 		for(cardno = 0; cardno < Nhcis; cardno++){
 			if(hcitypes[cardno].type == nil)
 				break;
-			type = hp->type;
+			type = hp->ISAConf.type;
 			if(type==nil || *type==0)
 				type = "uhci";
 			if(cistrcmp(hcitypes[cardno].type, type) == 0)
@@ -713,17 +713,17 @@ hciprobe(int cardno, int ctlrno)
 	 * controllers together. A device set to IRQ2 will appear on
 	 * the second interrupt controller as IRQ9.
 	 */
-	if(hp->irq == 2)
-		hp->irq = 9;
+	if(hp->ISAConf.irq == 2)
+		hp->ISAConf.irq = 9;
 	snprint(name, sizeof(name), "usb%s", hcitypes[cardno].type);
-	intrenable(hp->irq, hp->interrupt, hp, hp->tbdf, name);
+	intrenable(hp->ISAConf.irq, hp->Hciimpl.interrupt, hp, hp->tbdf, name);
 
 	/*
 	 * modern machines have too many usb controllers to list on
 	 * the console.
 	 */
 	dprint("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
-		epnb, hcitypes[cardno].type, hp->port, hp->irq);
+		epnb, hcitypes[cardno].type, hp->ISAConf.port, hp->ISAConf.irq);
 	epnb++;
 	return hp;
 }
@@ -765,8 +765,8 @@ usbinit(void)
 	for(ctlrno = 0; ctlrno < Nhcis; ctlrno++){
 		hp = hcis[ctlrno];
 		if(hp != nil){
-			if(hp->init != nil)
-				hp->init(hp);
+			if(hp->Hciimpl.init != nil)
+				hp->Hciimpl.init(hp);
 			d = newdev(hp, 1, 1);		/* new root hub */
 			d->dev->state = Denabled;	/* although addr == 0 */
 			d->maxpkt = 64;
@@ -852,13 +852,13 @@ usbopen(Chan *c, int omode)
 		putep(ep);
 		nexterror();
 	}
-	qlock(ep);
+	qlock(&ep->ql);
 	if(ep->inuse){
-		qunlock(ep);
+		qunlock(&ep->ql);
 		error(Einuse);
 	}
 	ep->inuse = 1;
-	qunlock(ep);
+	qunlock(&ep->ql);
 	if(waserror()){
 		ep->inuse = 0;
 		nexterror();
@@ -873,7 +873,7 @@ usbopen(Chan *c, int omode)
 	ep->rhrepl = -1;
 	if(ep->load == 0)
 		ep->load = usbload(ep->dev->speed, ep->maxpkt);
-	ep->hp->epopen(ep);
+	ep->hp->Hciimpl.epopen(ep);
 
 	poperror();	/* ep->inuse */
 	poperror();	/* don't putep(): ref kept for fid using the ep. */
@@ -889,16 +889,16 @@ static void
 epclose(Ep *ep)
 {
 	Proc *up = externup();
-	qlock(ep);
+	qlock(&ep->ql);
 	if(waserror()){
-		qunlock(ep);
+		qunlock(&ep->ql);
 		nexterror();
 	}
 	if(ep->inuse){
-		ep->hp->epclose(ep);
+		ep->hp->Hciimpl.epclose(ep);
 		ep->inuse = 0;
 	}
-	qunlock(ep);
+	qunlock(&ep->ql);
 	poperror();
 }
 
@@ -916,7 +916,7 @@ usbclose(Chan *c)
 	ep = getep(qid2epidx(q));
 	if(ep == nil)
 		return;
-	deprint("usbclose q %#x fid %d ref %ld\n", q, c->fid, ep->ref);
+	deprint("usbclose q %#x fid %d ref %ld\n", q, c->fid, ep->r.ref);
 	if(waserror()){
 		putep(ep);
 		nexterror();
@@ -1035,13 +1035,13 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 		error("bad hub port number");
 	switch(feature){
 	case Rportenable:
-		ep->rhrepl = hp->portenable(hp, port, cmd == Rsetfeature);
+		ep->rhrepl = hp->Hciimpl.portenable(hp, port, cmd == Rsetfeature);
 		break;
 	case Rportreset:
-		ep->rhrepl = hp->portreset(hp, port, cmd == Rsetfeature);
+		ep->rhrepl = hp->Hciimpl.portreset(hp, port, cmd == Rsetfeature);
 		break;
 	case Rgetstatus:
-		ep->rhrepl = hp->portstatus(hp, port);
+		ep->rhrepl = hp->Hciimpl.portstatus(hp, port);
 		break;
 	default:
 		ep->rhrepl = 0;
@@ -1088,7 +1088,7 @@ usbread(Chan *c, void *a, int32_t n, int64_t offset)
 		/* else fall */
 	default:
 		ddeprint("\nusbread q %#x fid %d cnt %ld off %lld\n",q,c->fid,n,offset);
-		n = ep->hp->epread(ep, a, n);
+		n = ep->hp->Hciimpl.epread(ep, a, n);
 		break;
 	}
 	poperror();
@@ -1199,27 +1199,27 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l == Nospeed)
 			error("speed must be full|low|high");
-		qlock(ep->ep0);
+		qlock(&ep->ep0->ql);
 		d->speed = l;
-		qunlock(ep->ep0);
+		qunlock(&ep->ep0->ql);
 		break;
 	case CMmaxpkt:
 		l = strtoul(cb->f[1], nil, 0);
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l < 1 || l > 1024)
 			error("maxpkt not in [1:1024]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->maxpkt = l;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMntds:
 		l = strtoul(cb->f[1], nil, 0);
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l < 1 || l > 3)
 			error("ntds not in [1:3]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->ntds = l;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMpollival:
 		if(ep->ttype != Tintr && ep->ttype != Tiso)
@@ -1234,11 +1234,11 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		}else
 			if(l < 1 || l > 255)
 				error("pollival not in [1:255]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->pollival = l;
 		if(ep->ttype == Tiso)
 			setmaxpkt(ep, "pollival");
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMsamplesz:
 		if(ep->ttype != Tiso)
@@ -1247,10 +1247,10 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l <= 0 || l > 8)
 			error("samplesz not in [1:8]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->samplesz = l;
 		setmaxpkt(ep, "samplesz");
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMhz:
 		if(ep->ttype != Tiso)
@@ -1259,16 +1259,16 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(l <= 0 || l > 100000)
 			error("hz not in [1:100000]");
-		qlock(ep);
+		qlock(&ep->ql);
 		ep->hz = l;
 		setmaxpkt(ep, "hz");
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMclrhalt:
-		qlock(ep);
+		qlock(&ep->ql);
 		deprint("usb epctl %s\n", cb->f[0]);
 		ep->clrhalt = 1;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMinfo:
 		deprint("usb epctl %s\n", cb->f[0]);
@@ -1283,10 +1283,10 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		b[n-l] = 0;
 		if(b[n-l-1] == '\n')
 			b[n-l-1] = 0;
-		qlock(ep);
+		qlock(&ep->ql);
 		free(ep->info);
 		ep->info = b;
-		qunlock(ep);
+		qunlock(&ep->ql);
 		break;
 	case CMaddress:
 		deprint("usb epctl %s\n", cb->f[0]);
@@ -1368,7 +1368,7 @@ usbctl(void *a, int32_t n)
 		print("usb: debug %d\n", debug);
 		for(i = 0; i < epmax; i++)
 			if((ep = getep(i)) != nil){
-				ep->hp->debug(ep->hp, debug);
+				ep->hp->Hciimpl.debug(ep->hp, debug);
 				putep(ep);
 			}
 		break;
@@ -1452,7 +1452,7 @@ usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 		/* else fall */
 	default:
 		ddeprint("\nusbwrite q %#x fid %d cnt %ld off %lld\n",q, c->fid, n, off);
-		ep->hp->epwrite(ep, a, n);
+		ep->hp->Hciimpl.epwrite(ep, a, n);
 	}
 	putep(ep);
 	poperror();
@@ -1469,10 +1469,10 @@ usbshutdown(void)
 		hp = hcis[i];
 		if(hp == nil)
 			continue;
-		if(hp->shutdown == nil)
-			print("#u: no shutdown function for %s\n", hp->type);
+		if(hp->Hciimpl.shutdown == nil)
+			print("#u: no shutdown function for %s\n", hp->ISAConf.type);
 		else
-			hp->shutdown(hp);
+			hp->Hciimpl.shutdown(hp);
 	}
 }
 
