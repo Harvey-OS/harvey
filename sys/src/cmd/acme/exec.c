@@ -299,7 +299,7 @@ getbytearg(Text *argt, int doaddr, int dofile, char **bp)
 }
 
 void
-newcol(Text *et, Text*, Text*, int, int, Rune*, int)
+newcol(Text *et, Text*a, Text*b, int ic, int d, Rune*e, int f)
 {
 	Column *c;
 
@@ -309,7 +309,7 @@ newcol(Text *et, Text*, Text*, int, int, Rune*, int)
 }
 
 void
-delcol(Text *et, Text*, Text*, int, int, Rune*, int)
+delcol(Text *et, Text*a, Text*b, int ic, int d, Rune*e, int f)
 {
 	int i;
 	Column *c;
@@ -329,7 +329,7 @@ delcol(Text *et, Text*, Text*, int, int, Rune*, int)
 }
 
 void
-del(Text *et, Text*, Text *argt, int flag1, int, Rune *arg, int narg)
+del(Text *et, Text*a, Text *argt, int flag1, int b, Rune *arg, int narg)
 {
 	Window *w;
 	char *name, *p;
@@ -361,7 +361,7 @@ del(Text *et, Text*, Text *argt, int flag1, int, Rune *arg, int narg)
 }
 
 void
-sort(Text *et, Text*, Text*, int, int, Rune*, int)
+sort(Text *et, Text*a, Text*b, int c, int d, Rune*e, int f)
 {
 	if(et->col)
 		colsort(et->col);
@@ -378,7 +378,7 @@ seqof(Window *w, int isundo)
 }
 
 void
-undo(Text *et, Text*, Text*, int flag1, int, Rune*, int)
+undo(Text *et, Text*a, Text*b, int flag1, int ic, Rune*d, int e)
 {
 	int i, j;
 	Column *c;
@@ -477,7 +477,7 @@ getname(Text *t, Text *argt, Rune *arg, int narg, int isput)
 }
 
 void
-zeroxx(Text *et, Text *t, Text*, int, int, Rune*, int)
+zeroxx(Text *et, Text *t, Text*a, int b, int ic, Rune*d, int e)
 {
 	Window *nw;
 	int c, locked;
@@ -507,7 +507,7 @@ zeroxx(Text *et, Text *t, Text*, int, int, Rune*, int)
 }
 
 void
-get(Text *et, Text *t, Text *argt, int flag1, int, Rune *arg, int narg)
+get(Text *et, Text *t, Text *argt, int flag1, int a, Rune *arg, int narg)
 {
 	char *name;
 	Rune *r;
@@ -681,7 +681,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 }
 
 void
-put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+put(Text *et, Text*a, Text *argt, int b, int c, Rune *arg, int narg)
 {
 	int nname;
 	Rune  *namer;
@@ -704,7 +704,7 @@ put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-dump(Text *, Text *, Text *argt, int isdump, int, Rune *arg, int narg)
+dump(Text *a, Text *b, Text *argt, int isdump, int c, Rune *arg, int narg)
 {
 	char *name;
 
@@ -720,7 +720,7 @@ dump(Text *, Text *, Text *argt, int isdump, int, Rune *arg, int narg)
 }
 
 void
-cut(Text *et, Text *t, Text*, int dosnarf, int docut, Rune*, int)
+cut(Text *et, Text *t, Text*a, int dosnarf, int docut, Rune*b, int ic)
 {
 	uint q0, q1, n, locked, c;
 	Rune *r;
@@ -787,7 +787,7 @@ cut(Text *et, Text *t, Text*, int dosnarf, int docut, Rune*, int)
 }
 
 void
-paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
+paste(Text *et, Text *t, Text*a, int selectall, int tobody, Rune*b, int ic)
 {
 	int c;
 	uint q, q0, q1, n;
@@ -840,7 +840,7 @@ paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 }
 
 void
-look(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
+look(Text *et, Text *t, Text *argt, int a, int b, Rune *arg, int narg)
 {
 	Rune *r;
 	int n;
@@ -863,7 +863,7 @@ look(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-sendx(Text *et, Text *t, Text*, int, int, Rune*, int)
+sendx(Text *et, Text *t, Text*a, int b, int c, Rune*d, int f)
 {
 	if(et->w==nil)
 		return;
@@ -879,7 +879,7 @@ sendx(Text *et, Text *t, Text*, int, int, Rune*, int)
 }
 
 void
-edit(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+edit(Text *et, Text*a, Text *argt, int b, int c, Rune *arg, int narg)
 {
 	Rune *r;
 	int len;
@@ -896,7 +896,7 @@ edit(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-exit(Text*, Text*, Text*, int, int, Rune*, int)
+exit(Text*a, Text*b, Text*c, int d, int e, Rune*f, int g)
 {
 	if(rowclean(&row)){
 		sendul(cexit, 0);
@@ -905,7 +905,7 @@ exit(Text*, Text*, Text*, int, int, Rune*, int)
 }
 
 void
-putall(Text*, Text*, Text*, int, int, Rune*, int)
+putall(Text*ta, Text*b, Text*tc, int d, int ie, Rune*f, int g)
 {
 	int i, j, e;
 	Window *w;
@@ -936,14 +936,15 @@ putall(Text*, Text*, Text*, int, int, Rune*, int)
 
 
 void
-id(Text *et, Text*, Text*, int, int, Rune*, int)
+id(Text*et, Text*a, Text*b, int c, int d, Rune*e, int f)
+
 {
 	if(et && et->w)
 		warning(nil, "/mnt/acme/%d/\n", et->w->id);
 }
 
 void
-local(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+local(Text *et, Text*ta, Text*argt, int b, int c, Rune*arg, int narg)
 {
 	char *a, *aa;
 	Runestr dir;
@@ -960,7 +961,7 @@ local(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-kill(Text*, Text*, Text *argt, int, int, Rune *arg, int narg)
+kill(Text *ta, Text*b, Text *argt, int c, int d, Rune *arg, int narg)
 {
 	Rune *a, *cmd, *r;
 	int na;
@@ -981,7 +982,7 @@ kill(Text*, Text*, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-fontx(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
+fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 {
 	Rune *a, *r, *flag, *file;
 	int na, nf;
@@ -1060,7 +1061,7 @@ fontx(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-incl(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+incl(Text *et, Text*ta, Text *argt, int b, int c, Rune *arg, int narg)
 {
 	Rune *a, *r;
 	Window *w;
@@ -1119,13 +1120,13 @@ indentval(Rune *s, int n)
 }
 
 static void
-fixindent(Window *w, void*)
+fixindent(Window *w, void*v)
 {
 	w->autoindent = globalautoindent;
 }
 
 void
-indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+indent(Text *et, Text*ta, Text *argt, int b, int c, Rune *arg, int narg)
 {
 	Rune *a, *r;
 	Window *w;
@@ -1150,7 +1151,7 @@ indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 }
 
 void
-tab(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+tab(Text *et, Text*ta, Text *argt, int b, int c, Rune *arg, int narg)
 {
 	Rune *a, *r;
 	Window *w;
@@ -1205,7 +1206,7 @@ runproc(void *argvp)
 	int ac, w, inarg, i, n, fd, nincl, winid;
 	int pipechar;
 	char buf[512];
-	static void *parg[2];
+//	static void *parg[2];
 	void **argv;
 
 	argv = argvp;
@@ -1443,17 +1444,17 @@ run(Window *win, char *s, Rune *rdir, int ndir, int newns,
 
 	arg = emalloc(10*sizeof(void*));
 	c = emalloc(sizeof *c);
-	cpid = chancreate(sizeof(ulong), 0);
+	cpid = chancreate(sizeof(uint32_t), 0);
 	arg[0] = win;
 	arg[1] = s;
 	arg[2] = rdir;
-	arg[3] = (void*)ndir;
-	arg[4] = (void*)newns;
+	arg[3] = (void*)(uintptr_t)ndir;
+	arg[4] = (void*)(uintptr_t)newns;
 	arg[5] = argaddr;
 	arg[6] = xarg;
 	arg[7] = c;
 	arg[8] = cpid;
-	arg[9] = (void*)iseditcmd;
+	arg[9] = (void*)(uintptr_t)iseditcmd;
 	proccreate(runproc, arg, STACK);
 	/* mustn't block here because must be ready to answer mount() call in run() */
 	arg = emalloc(2*sizeof(void*));
