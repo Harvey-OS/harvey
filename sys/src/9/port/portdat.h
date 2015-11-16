@@ -876,7 +876,7 @@ struct Proc
 	uintptr	rendval;	/* Value for rendezvous */
 	Proc	*rendhash;	/* Hash list for tag values */
 
-	Timer;			/* For tsleep and real-time */
+	Timer Timer;			/* For tsleep and real-time */
 	Rendez	*trend;
 	int	(*tfn)(void*);
 	void	(*kpfun)(void*);

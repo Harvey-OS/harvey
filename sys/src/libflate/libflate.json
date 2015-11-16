@@ -1,21 +1,22 @@
 {
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libflate.a",
-	"Name": "libflate",
-	"SourceFiles": [
-		"deflate.c",
-		"deflatezlib.c",
-		"deflateblock.c",
-		"deflatezlibblock.c",
-		"inflate.c",
-		"inflatezlib.c",
-		"inflateblock.c",
-		"inflatezlibblock.c",
-		"flateerr.c",
-		"crc.c",
-		"adler.c"
-	]
+	"libflate": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libflate.a",
+		"SourceFiles": [
+			"deflate.c",
+			"deflatezlib.c",
+			"deflateblock.c",
+			"deflatezlibblock.c",
+			"inflate.c",
+			"inflatezlib.c",
+			"inflateblock.c",
+			"inflatezlibblock.c",
+			"flateerr.c",
+			"crc.c",
+			"adler.c"
+		]
+	}
 }

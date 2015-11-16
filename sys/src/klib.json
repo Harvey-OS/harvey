@@ -1,26 +1,27 @@
 {
-	"Cflags": [
-		"-mcmodel=kernel",
-		"-O0",
-		"-fplan9-extensions",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-Wuninitialized",
-		"-g"
-	],
-	"Name": "KernelLibs",
-	"Oflags": [
-		"-static"
-	],
-	"Post": [
-		"rm *.o"
-	],
-	"Pre": [
-		"rm -f *.o *.tag.*"
-	]
+	"KernelLibs": {
+		"Cflags": [
+			"-mcmodel=kernel",
+			"-O0",
+			"-fplan9-extensions",
+			"-mno-red-zone",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas",
+			"-Wuninitialized",
+			"-g"
+		],
+		"Oflags": [
+			"-static"
+		],
+		"Post": [
+			"rm *.o"
+		],
+		"Pre": [
+			"rm -f *.o *.tag.*"
+		]
+	}
 }

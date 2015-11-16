@@ -142,12 +142,15 @@ diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 	start = partStart(disk, part);
 	end = partEnd(disk, part);
 
+	//print("Inicio: %ud Fin: %ud\n", start, end);
+	//print("Diferencia: %ud >= %d\n", addr, end-start);
 	if(addr >= end-start){
 		vtSetError(EBadAddr);
 		return 0;
 	}
 
 	offset = ((uint64_t)(addr + start))*disk->h.blockSize;
+	//print("Offset: %ud Blocksize: %ud \n",offset, disk->h.blockSize);
 	n = disk->h.blockSize;
 	while(n > 0){
 		nn = pread(disk->fd, buf, n, offset);
@@ -316,7 +319,7 @@ diskThread(void *a)
 	uint8_t *buf, *p;
 	double t;
 	int nio;
-
+	
 	vtThreadSetName("disk");
 
 //fprint(2, "diskThread %d\n", getpid());

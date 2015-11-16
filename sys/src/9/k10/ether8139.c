@@ -577,11 +577,11 @@ rtl8139receive(Ether* edev)
 
 		if(!(status & Rcok)){
 			if(status & (Ise|Fae))
-				edev->frames++;
+				edev->Netif.frames++;
 			if(status & Crc)
-				edev->crcs++;
+				edev->Netif.crcs++;
 			if(status & (Runt|Long))
-				edev->buffs++;
+				edev->Netif.buffs++;
 
 			/*
 			 * Reset the receiver.
@@ -674,7 +674,7 @@ rtl8139interrupt(Ureg *ureg, void* arg)
 						if(ctlr->etxth < ETHERMAXTU/32)
 							ctlr->etxth++;
 					}
-					edev->oerrs++;
+					edev->Netif.oerrs++;
 				}
 
 				if(td->bp != nil){
@@ -696,12 +696,12 @@ rtl8139interrupt(Ureg *ureg, void* arg)
 			 */
 			msr = csr8r(ctlr, Msr);
 			if(!(msr & Linkb)){
-				if(!(msr & Speed10) && edev->mbps != 100){
-					edev->mbps = 100;
+				if(!(msr & Speed10) && edev->Netif.mbps != 100){
+					edev->Netif.mbps = 100;
 					qsetlimit(edev->oq, 256*1024);
 				}
-				else if((msr & Speed10) && edev->mbps != 10){
-					edev->mbps = 10;
+				else if((msr & Speed10) && edev->Netif.mbps != 10){
+					edev->Netif.mbps = 10;
 					qsetlimit(edev->oq, 65*1024);
 				}
 			}
@@ -744,7 +744,7 @@ rtl8139match(Ether* edev, int id)
 		if(((p->did<<16)|p->vid) != id)
 			continue;
 		port = p->mem[0].bar & ~0x01;
-		if(edev->port != 0 && edev->port != port)
+		if(edev->ISAConf.port != 0 && edev->ISAConf.port != port)
 			continue;
 
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8139") < 0){
@@ -826,9 +826,9 @@ rtl8139pnp(Ether* edev)
 	 * specific controller only.
 	 */
 	id = 0;
-	for(i = 0; i < edev->nopt; i++){
-		if(cistrncmp(edev->opt[i], "id=", 3) == 0)
-			id = strtol(&edev->opt[i][3], nil, 0);
+	for(i = 0; i < edev->ISAConf.nopt; i++){
+		if(cistrncmp(edev->ISAConf.opt[i], "id=", 3) == 0)
+			id = strtol(&edev->ISAConf.opt[i][3], nil, 0);
 	}
 
 	ctlr = nil;
@@ -842,8 +842,8 @@ rtl8139pnp(Ether* edev)
 		return -1;
 
 	edev->ctlr = ctlr;
-	edev->port = ctlr->port;
-	edev->irq = ctlr->pcidev->intl;
+	edev->ISAConf.port = ctlr->port;
+	edev->ISAConf.irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
 
 	/*
@@ -862,21 +862,21 @@ rtl8139pnp(Ether* edev)
 		edev->ea[5] = i>>8;
 	}
 
-	edev->arg = edev;
+	edev->Netif.arg = edev;
 	edev->attach = rtl8139attach;
 	edev->transmit = rtl8139transmit;
 	edev->interrupt = rtl8139interrupt;
 	edev->ifstat = rtl8139ifstat;
 
-	edev->promiscuous = rtl8139promiscuous;
-	edev->multicast = rtl8139multicast;
+	edev->Netif.promiscuous = rtl8139promiscuous;
+	edev->Netif.multicast = rtl8139multicast;
 	edev->shutdown = rtl8139shutdown;
 
 	/*
 	 * This should be much more dynamic but will do for now.
 	 */
 	if((csr8r(ctlr, Msr) & (Speed10|Linkb)) == 0)
-		edev->mbps = 100;
+		edev->Netif.mbps = 100;
 
 	return 0;
 }

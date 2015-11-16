@@ -750,7 +750,7 @@ ahciconfigdrive(Drive *d)
 	}
 
 	if (d->unit)
-		name = d->unit->name;
+		name = d->unit->SDperm.name;
 	else
 		name = nil;
 	if(p->sstatus & (Devphycomm|Devpresent) && h->cap & Hsss){
@@ -937,8 +937,8 @@ updatedrive(Drive *d)
 	serr = p->serror;
 	p->isr = cause;
 	name = "??";
-	if(d->unit && d->unit->name)
-		name = d->unit->name;
+	if(d->unit && d->unit->SDperm.name)
+		name = d->unit->SDperm.name;
 
 	if(p->ci == 0){
 		d->portm.flag |= Fdone;
@@ -1081,16 +1081,16 @@ resetdisk(Drive *d)
 	d->state = Derror;
 	iunlock(d);
 
-	qlock(&d->portm);
+	qlock(&d->portm.ql);
 	if(p->cmd&Ast && ahciswreset(&d->portc) == -1)
 		setstate(d, Dportreset);	/* get a bigger stick. */
 	else {
 		setstate(d, Dmissing);
 		configdrive(d);
 	}
-	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->name: nil),
+	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->SDperm.name: nil),
 		diskstates[state], diskstates[d->state]);
-	qunlock(&d->portm);
+	qunlock(&d->portm.ql);
 }
 
 static int
@@ -1103,13 +1103,13 @@ newdrive(Drive *d)
 	c = &d->portc;
 	pm = &d->portm;
 
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	if(name == 0)
 		name = "??";
 
 	if(d->port->task == 0x80)
 		return -1;
-	qlock(c->pm);
+	qlock(&c->pm->ql);
 	if(setudmamode(c, 5) == -1){
 		dprint("%s: can't set udma mode\n", name);
 		goto lose;
@@ -1124,17 +1124,17 @@ newdrive(Drive *d)
 			goto lose;
 	}
 	setstate(d, Dready);
-	qunlock(c->pm);
+	qunlock(&c->pm->ql);
 
-	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
+	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->SDperm.name,
 		(pm->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
 		d->serial, d->mediachange? "[mediachange]": "");
 	return 0;
 
 lose:
-	idprint("%s: can't be initialized\n", d->unit->name);
+	idprint("%s: can't be initialized\n", d->unit->SDperm.name);
 	setstate(d, Dnull);
-	qunlock(c->pm);
+	qunlock(&c->pm->ql);
 	return -1;
 }
 
@@ -1144,7 +1144,7 @@ westerndigitalhung(Drive *d)
 	if((d->portm.feat&Datapi) == 0 && d->active &&
 	    TK2MS(sys->ticks - d->intick) > 5000){
 		dprint("%s: drive hung; resetting [%#lux] ci %#lx\n",
-			d->unit->name, d->port->task, d->port->ci);
+			d->unit->SDperm.name, d->port->task, d->port->ci);
 		d->state = Dreset;
 	}
 }
@@ -1157,12 +1157,12 @@ doportreset(Drive *d)
 	int i;
 
 	i = -1;
-	qlock(&d->portm);
+	qlock(&d->portm.ql);
 	if(ahciportreset(&d->portc) == -1)
 		dprint("ahci: doportreset: fails\n");
 	else
 		i = 0;
-	qunlock(&d->portm);
+	qunlock(&d->portm.ql);
 	dprint("ahci: doportreset: portreset → %s  [task %#lux]\n",
 		diskstates[d->state], d->port->task);
 	return i;
@@ -1204,7 +1204,7 @@ checkdrive(Drive *d, int i)
 		iunlock(d);
 		return;
 	}
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	s = d->port->sstatus;
 	if(s)
 		d->lastseen = sys->ticks;
@@ -1341,7 +1341,7 @@ isdrivejabbering(Drive *d)
 	}
 	if (++d->intrs > Maxintrspertick) {
 		iprint("sdiahci: %lud interrupts per tick for %s\n",
-			d->intrs, d->unit->name);
+			d->intrs, d->unit->SDperm.name);
 		d->intrs = 0;
 	}
 }
@@ -1398,7 +1398,7 @@ awaitspinup(Drive *d)
 		iunlock(d);
 		return;
 	}
-	name = (d->unit? d->unit->name: nil);
+	name = (d->unit? d->unit->SDperm.name: nil);
 	s = d->port->sstatus;
 	if(!(s & Devpresent)) {			/* never going to be ready */
 		dprint("awaitspinup: %s absent, not waiting\n", name);
@@ -1550,7 +1550,7 @@ ahcibuild(Drive *d, unsigned char *cmd, void *data, int n, int64_t lba)
 	dir = *cmd != 0x28;
 	llba = pm->feat&Dllba? 1: 0;
 	acmd = tab[dir][llba];
-	qlock(pm);
+	qlock(&pm->ql);
 	l = pm->list;
 	t = pm->ctab;
 	c = t->cfis;
@@ -1605,7 +1605,7 @@ ahcibuildpkt(Aportm *pm, SDreq *r, void *data, int n)
 	Actab *t;
 	Aprdt *p;
 
-	qlock(pm);
+	qlock(&pm->ql);
 	l = pm->list;
 	t = pm->ctab;
 	c = t->cfis;
@@ -1673,7 +1673,7 @@ waitready(Drive *d)
 			return 0;	/* ready, present & phy. comm. */
 		esleep(250);
 	}
-	print("%s: not responding; offline\n", d->unit->name);
+	print("%s: not responding; offline\n", d->unit->SDperm.name);
 	setstate(d, Doffline);
 	return -1;
 }
@@ -1683,11 +1683,11 @@ lockready(Drive *d)
 {
 	int i;
 
-	qlock(&d->portm);
+	qlock(&d->portm.ql);
 	while ((i = waitready(d)) == 1) {	/* could wait forever? */
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		esleep(1);
-		qlock(&d->portm);
+		qlock(&d->portm.ql);
 	}
 	return i;
 }
@@ -1700,7 +1700,7 @@ flushcache(Drive *d)
 	i = -1;
 	if(lockready(d) == 0)
 		i = ahciflushcache(&d->portc);
-	qunlock(&d->portm);
+	qunlock(&d->portm.ql);
 	return i;
 }
 
@@ -1715,7 +1715,7 @@ iariopkt(SDreq *r, Drive *d)
 	Asleep as;
 
 	cmd = r->cmd;
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	p = d->port;
 
 	aprint("ahci: iariopkt: %04#ux %04#ux %c %d %p\n",
@@ -1735,10 +1735,10 @@ retry:
 	ahcibuildpkt(&d->portm, r, data, n);
 	switch(waitready(d)){
 	case -1:
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		return SDeio;
 	case 1:
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		esleep(1);
 		goto retry;
 	}
@@ -1760,7 +1760,7 @@ retry:
 	tsleep(&d->portm, ahciclear, &as, 3*1000);
 	poperror();
 	if(!ahciclear(&as)) {
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		print("%s: ahciclear not true after 3 seconds\n", name);
 		r->status = SDcheck;
 		return SDcheck;
@@ -1778,7 +1778,7 @@ retry:
 		task = d->port->task;
 		flag &= ~Fdone;		/* either an error or do-over */
 	}
-	qunlock(&d->portm);
+	qunlock(&d->portm.ql);
 	if(flag == 0){
 		if(++try == 10){
 			print("%s: bad disk\n", name);
@@ -1842,7 +1842,7 @@ iario(SDreq *r)
 	if(d->portm.feat & Datapi)
 		return iariopkt(r, d);
 	cmd = r->cmd;
-	name = d->unit->name;
+	name = d->unit->SDperm.name;
 	p = d->port;
 
 	if(r->cmd[0] == 0x35 || r->cmd[0] == 0x91){
@@ -1880,10 +1880,10 @@ retry:
 		ahcibuild(d, cmd, data, n, lba);
 		switch(waitready(d)){
 		case -1:
-			qunlock(&d->portm);
+			qunlock(&d->portm.ql);
 			return SDeio;
 		case 1:
-			qunlock(&d->portm);
+			qunlock(&d->portm.ql);
 			esleep(1);
 			goto retry;
 		}
@@ -1904,7 +1904,7 @@ retry:
 		tsleep(&d->portm, ahciclear, &as, 3*1000);
 		poperror();
 		if(!ahciclear(&as)) {
-			qunlock(&d->portm);
+			qunlock(&d->portm.ql);
 			print("%s: ahciclear not true after 3 seconds\n", name);
 			r->status = SDcheck;
 			return SDcheck;
@@ -1922,7 +1922,7 @@ retry:
 			ahcirecover(&d->portc);
 			task = d->port->task;
 		}
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		if(flag == 0){
 			if(++try == 10){
 				print("%s: bad disk\n", name);
@@ -2228,7 +2228,7 @@ runsmartable(Drive *d, int i)
 {
 	Proc *up = externup();
 	if(waserror()){
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		d->smartrs = 0;
 		nexterror();
 	}
@@ -2236,7 +2236,7 @@ runsmartable(Drive *d, int i)
 		error(Eio);
 	d->smartrs = smart(&d->portc, i);
 	d->portm.smart = 0;
-	qunlock(&d->portm);
+	qunlock(&d->portm.ql);
 	poperror();
 }
 
@@ -2301,13 +2301,13 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 			return -1;
 		}
 		if(waserror()){
-			qunlock(&d->portm);
+			qunlock(&d->portm.ql);
 			nexterror();
 		}
 		if(lockready(d) == -1)
 			error(Eio);
 		nop(&d->portc);
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		poperror();
 	}else if(strcmp(f[0], "reset") == 0)
 		forcestate(d, "reset");
@@ -2317,14 +2317,14 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 			return -1;
 		}
 		if(waserror()){
-			qunlock(&d->portm);
+			qunlock(&d->portm.ql);
 			d->smartrs = 0;
 			nexterror();
 		}
 		if(lockready(d) == -1)
 			error(Eio);
 		d->portm.smart = 2 + smartrs(&d->portc);
-		qunlock(&d->portm);
+		qunlock(&d->portm.ql);
 		poperror();
 	}else if(strcmp(f[0], "smartdisable") == 0)
 		runsmartable(d, 1);

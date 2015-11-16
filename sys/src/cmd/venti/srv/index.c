@@ -171,7 +171,7 @@ wbindex(Index *ix)
 
 /*
  * index: IndexMagic '\n' version '\n' name '\n' blocksize '\n' [V2: bitblocks '\n'] sections arenas
- * version, blocksize: u32int
+ * version, blocksize: uint32_t
  * name: max. ANameSize string
  * sections, arenas: AMap
  */
@@ -204,7 +204,7 @@ parseindex(IFile *f, Index *ix)
 	/*
 	 * version
 	 */
-	if(ifileu32int(f, &v) < 0){
+	if(ifileuint32_t(f, &v) < 0){
 		seterr(ECorrupt, "syntax error: bad version number in %s", f->name);
 		return -1;
 	}
@@ -225,7 +225,7 @@ parseindex(IFile *f, Index *ix)
 	/*
 	 * block size
 	 */
-	if(ifileu32int(f, &v) < 0){
+	if(ifileuint32_t(f, &v) < 0){
 		seterr(ECorrupt, "syntax error: bad block size number in %s", f->name);
 		return -1;
 	}

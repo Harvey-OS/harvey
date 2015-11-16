@@ -143,7 +143,7 @@ initarenapart(Part *part)
 	}
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	partblocksize(part, ap->blocksize);
-	ap->size = ap->part->size & ~(u64int)(ap->blocksize - 1);
+	ap->size = ap->part->size & ~(uint64_t)(ap->blocksize - 1);
 
 	if(readarenamap(&amn, part, ap->tabbase, ap->tabsize) < 0){
 		freearenapart(ap, 0);
@@ -214,7 +214,7 @@ newarenapart(Part *part, uint32_t blocksize, uint32_t tabsize)
 	ap->part = part;
 	ap->blocksize = blocksize;
 	partblocksize(part, blocksize);
-	ap->size = part->size & ~(u64int)(blocksize - 1);
+	ap->size = part->size & ~(uint64_t)(blocksize - 1);
 	ap->tabbase = (PartBlank + HeadSize + blocksize - 1) & ~(blocksize - 1);
 	ap->arenabase = (ap->tabbase + tabsize + blocksize - 1) & ~(blocksize - 1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
@@ -360,9 +360,9 @@ wbarenamap(AMap *am, int n, Part *part, uint64_t base, uint64_t size)
 
 /*
  * amap: n '\n' amapelem * n
- * n: u32int
+ * n: uint32_t
  * amapelem: name '\t' astart '\t' astop '\n'
- * astart, astop: u64int
+ * astart, astop: uint64_t
  */
 int
 parseamap(IFile *f, AMapN *amn)
@@ -376,7 +376,7 @@ parseamap(IFile *f, AMapN *amn)
 	/*
 	 * arenas
 	 */
-	if(ifileu32int(f, &v) < 0){
+	if(ifileuint32_t(f, &v) < 0){
 		seterr(ECorrupt, "syntax error: bad number of elements in %s", f->name);
 		return -1;
 	}
@@ -406,13 +406,13 @@ parseamap(IFile *f, AMapN *amn)
 		if(nameok(flds[0]) < 0)
 			return -1;
 		namecp(am[i].name, flds[0]);
-		if(stru64int(flds[1], &v64) < 0){
+		if(struint64_t(flds[1], &v64) < 0){
 			seterr(ECorrupt, "syntax error: bad arena base address in %s", f->name);
 			free(am);
 			return -1;
 		}
 		am[i].start = v64;
-		if(stru64int(flds[2], &v64) < 0){
+		if(struint64_t(flds[2], &v64) < 0){
 			seterr(ECorrupt, "syntax error: bad arena size in %s", f->name);
 			free(am);
 			return -1;

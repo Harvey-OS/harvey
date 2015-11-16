@@ -174,15 +174,15 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		goto free;
 	}
 
-	ifc = r->ifc;
-	if(r->type & (Rifc|Runi))
+	ifc = r->RouteTree.ifc;
+	if(r->RouteTree.type & (Rifc|Runi))
 		gate = eh->dst;
 	else
-	if(r->type & (Rbcast|Rmulti)) {
+	if(r->RouteTree.type & (Rbcast|Rmulti)) {
 		gate = eh->dst;
 		sr = v4lookup(f, eh->src, nil);
-		if(sr != nil && (sr->type & Runi))
-			ifc = sr->ifc;
+		if(sr != nil && (sr->RouteTree.type & Runi))
+			ifc = sr->RouteTree.ifc;
 	}
 	else
 		gate = r->v4.gate;
@@ -398,7 +398,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		memset(&conv, 0, sizeof conv);
 		conv.r = nil;
 		r = v4lookup(f, h->dst, &conv);
-		if(r == nil || r->ifc == ifc){
+		if(r == nil || r->RouteTree.ifc == ifc){
 			ip->stats[OutDiscards]++;
 			freeblist(bp);
 			return;
@@ -414,8 +414,8 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		}
 
 		/* reassemble if the interface expects it */
-if(r->ifc == nil) panic("nil route rfc");
-		if(r->ifc->reassemble){
+if(r->RouteTree.ifc == nil) panic("nil route rfc");
+		if(r->RouteTree.ifc->reassemble){
 			frag = nhgets(h->frag);
 			if(frag) {
 				h->tos = 0;

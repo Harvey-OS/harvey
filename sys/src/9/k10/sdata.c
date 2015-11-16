@@ -1737,7 +1737,7 @@ retry:
 	if(status == SDretry){
 		if(DbgDEBUG)
 			print("%s: retry: dma %8.8uX rwm %4.4uX\n",
-				unit->name, drive->dmactl, drive->rwmctl);
+				unit->SDperm.name, drive->dmactl, drive->rwmctl);
 		goto retry;
 	}
 	if(status == SDok){

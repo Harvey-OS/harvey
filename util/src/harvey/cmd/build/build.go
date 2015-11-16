@@ -24,6 +24,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -53,10 +54,11 @@ type build struct {
 	// jsons is unexported so can not be set in a .json file
 	jsons map[string]bool
 	path  string
-	Name  string
+	name  string
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
 	Projects    []string
+	PreFetch    map[string]string
 	Pre         []string
 	Post        []string
 	Cflags      []string
@@ -92,8 +94,14 @@ var (
 	arch = map[string]bool{
 		"amd64": true,
 	}
-	which = flag.String("w", ".*", "Regexp defining which top level JSONs to process")
+	debugPrint = flag.Bool("debug", false, "Enable debug prints")
 )
+
+func debug(fmt string, s ...interface{}) {
+	if *debugPrint {
+		log.Printf(fmt, s...)
+	}
+}
 
 // fail with message, if err is not nil
 func failOn(err error) {
@@ -162,21 +170,15 @@ func process(f, which string, b *build) {
 	}
 	log.Printf("Processing %v", f)
 	d, err := ioutil.ReadFile(f)
-	dec := json.NewDecoder(strings.NewReader(string(d)))
 	failOn(err)
-	var builds []build
-	for {
-		var b build
-		err := dec.Decode(&b)
-		if err == io.EOF {
-			break
-		}
-		failOn(err)
-		builds = append(builds, b)
-	}
-	for _, build := range builds {
-		log.Printf("Do %v", b.Name)
-		if !r.MatchString(build.Name) {
+	var builds map[string]build
+	err = json.Unmarshal(d, &builds)
+	failOn(err)
+
+	for n, build := range builds {
+		build.name = n
+		log.Printf("Do %v", b.name)
+		if !r.MatchString(build.name) {
 			continue
 		}
 		b.jsons[f] = true
@@ -186,10 +188,13 @@ func process(f, which string, b *build) {
 			failOn(err)
 
 			b.path = path.Join(cwd, f)
-			b.Name = build.Name
+			b.name = build.name
 			b.Kernel = build.Kernel
 		}
 
+		for t, s := range(build.PreFetch) {
+			b.PreFetch[t] = s
+		}
 		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
@@ -228,7 +233,7 @@ func process(f, which string, b *build) {
 func compile(b *build) {
 	// N.B. Plan 9 has a very well defined include structure, just three things:
 	// /amd64/include, /sys/include, .
-	args := []string{"-c"}
+	args := []string{"-std=c11", "-c"}
 	args = append(args, adjust([]string{"-I", os.ExpandEnv("/$ARCH/include"), "-I", "/sys/include", "-I", "."})...)
 	args = append(args, adjust(b.Cflags)...)
 	if len(b.SourceFilesCmd) > 0 {
@@ -344,6 +349,23 @@ func install(b *build) {
 
 }
 
+func fetchOne(source string, target string) {
+	out, err := os.Create(target)
+	failOn(err)
+	defer out.Close()
+	resp, err := http.Get(source)
+	failOn(err)
+	defer resp.Body.Close()
+	l, err := io.Copy(out, resp.Body)
+	failOn(err)
+	log.Printf("Fetched %v -> %v (%d bytes)\n", source, target, l)
+}
+func fetch(files map[string]string) {
+	for target, source := range(files){
+		fetchOne(source, target)
+	}
+}
+
 func run(b *build, cmd []string) {
 	for _, v := range cmd {
 		cmd := exec.Command(v)
@@ -354,13 +376,7 @@ func run(b *build, cmd []string) {
 
 func projects(b *build) {
 	for _, v := range b.Projects {
-		wd := path.Dir(v)
-		f := path.Base(v)
-		cwd, err := os.Getwd()
-		failOn(err)
-		os.Chdir(wd)
-		project(f, ".*")
-		os.Chdir(cwd)
+		project(v, ".*")
 	}
 }
 
@@ -562,17 +578,40 @@ func buildkernel(b *build) {
 
 	codebuf := confcode(b.path, b.Kernel)
 
-	if err := ioutil.WriteFile(b.Name+".c", codebuf, 0666); err != nil {
-		log.Fatalf("Writing %s.c: %v", b.Name, err)
+	if err := ioutil.WriteFile(b.name+".c", codebuf, 0666); err != nil {
+		log.Fatalf("Writing %s.c: %v", b.name, err)
 	}
 }
 
 // assumes we are in the wd of the project.
 func project(root, which string) {
+	cwd, err := os.Getwd()
+	failOn(err)
+	debug("Start new project cwd is %v", cwd)
+	defer os.Chdir(cwd)
+	// root is allowed to be a directory or file name.
+	dir := root
+	if st, err := os.Stat(root); err != nil {
+		log.Fatalf("%v: %v", root, err)
+	} else {
+		if st.IsDir() {
+			root = "build.json"
+		} else {
+			dir = path.Dir(root)
+			root = path.Base(root)
+		}
+	}
+	debug("CD to %v and build using %v", dir, root)
+	if err := os.Chdir(dir); err != nil {
+		log.Fatalf("Can't cd to %v: %v", dir, err)
+	}
+	debug("Processing %v", root)
 	b := &build{}
 	b.jsons = map[string]bool{}
+	b.PreFetch = map[string]string{}
 	process(root, which, b)
 	projects(b)
+	fetch(b.PreFetch)
 	run(b, b.Pre)
 	buildkernel(b)
 	if len(b.SourceFiles) > 0 {
@@ -623,11 +662,20 @@ func main() {
 	if badsetup {
 		os.Exit(1)
 	}
-	dir := path.Dir(flag.Arg(0))
-	file := path.Base(flag.Arg(0))
-	err = os.Chdir(dir)
-	failOn(err)
-	project(file, *which)
+
+	// If no args, assume '.'
+	// If 1 arg, that's a dir or file name.
+	// if two args, that's a dir and a regular expression.
+	// TODO: more than one RE.
+	dir := "."
+	if len(flag.Args()) > 0 {
+		dir = flag.Arg(0)
+	}
+	re := ".*"
+	if len(flag.Args()) > 1 {
+		re = flag.Arg(1)
+	}
+	project(dir, re)
 }
 
 func findTools(toolprefix string) (err error) {

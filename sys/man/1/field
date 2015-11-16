@@ -1,0 +1,83 @@
+.TH FIELD 1
+.SH NAME
+field \- extract fields from tabular data
+.SH SYNOPSIS
+.B field
+[
+.B -E
+|
+.B -e
+]
+[
+.BI -F regexp
+]
+[
+.B -0
+|
+.BI -O seperator
+]
+.I field list
+[
+.I file...
+]
+.SH DESCRIPTION
+.I Field
+extracts and reports fields from tabular data from files.  If no files are
+specified, data is read from the standard input.  The file name `-' also
+specifies the standard input.
+.PP
+The input field separator defaults to one or more whitespace
+characters and can be set by the
+.B -F
+option.  The output field separator defaults to a single space character
+and can be set to an arbitrary string by the
+.B -O
+option.  If the
+.B -0
+option is given, fields will be separated by a single NUL character
+(binary zero).
+.B -O
+and
+.B -0
+are mutually exclusive.
+.PP
+.B Field
+uses a heuristic to decide whether to include empty fields in the output:
+if the delimiter is a single character, or a single escaped character, empty
+fields will be included.  Otherwise, they will be collapsed and empty fields
+at the beginning and end of a line will be ignored.  This behavior can be
+overridden by the
+.B -e
+or
+.B -E
+options:
+.B -e
+will force eliding of empty fields and
+.B -E
+will force collapsing of empty fields.
+.B -E
+and
+.B -e
+are mutually exclusive.
+.PP
+Fields are selected by number, origin 1. Field 0 is the entire line.  Negative
+fields count from the end of the line; thus, -1 is the last field.  The literal string
+`NF' can also be given to specify the last field on the line.  Inclusive ranges of
+fields can be given by joining the beginning and ending fields with a single `-'
+character; if the second number is omitted it is assumed to be NF.
+.PP
+Multiple fields can be given, separated by whitespace, commas, or the
+pipe character.
+.PP
+Fields can be repeated, and can be specified in arbitrary order.  For example:
+.PP
+.EX
+	field -F: 2,1,-2-NF /adm/users
+.EE
+.SH SOURCE
+.B /sys/src/cmd/field.c
+.SH "SEE ALSO"
+.IR awk (1),
+.IR cut (1)
+.SH BUGS
+The range syntax only permits ascending ranges.

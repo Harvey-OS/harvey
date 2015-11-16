@@ -286,7 +286,7 @@ enum {
 };
 
 typedef struct {
-	QLock;
+	QLock ql;
 	Rendez;
 	unsigned char	flag;
 	unsigned char	feat;

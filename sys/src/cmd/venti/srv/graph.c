@@ -114,7 +114,7 @@ scalept(int val, int valmin, int valmax, int ptmin, int ptmax)
 		val = valmax;
 	if(valmax == valmin)
 		valmax++;
-	return ptmin + (vlong)(val-valmin)*(ptmax-ptmin)/(valmax-valmin);
+	return ptmin + (int64_t)(val-valmin)*(ptmax-ptmin)/(valmax-valmin);
 }
 
 Memimage*

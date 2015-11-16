@@ -4,5 +4,4 @@ chmod u+x .git/hooks/commit-msg
 git config remote.origin.push HEAD:refs/for/master
 git submodule init
 git submodule update
-
-
+git config remote.origin.receivepack "git receive-pack --reviewer rminnich --reviewer cross --reviewer elbing --reviewer anyrhine --reviewer 0intro --reviewer giacomo --reviewer john@jfloren.net --reviewer rafael.fernandez"

@@ -132,12 +132,12 @@ struct Hciimpl
 
 struct Hci
 {
-	ISAConf;				/* hardware info */
+	ISAConf ISAConf;				/* hardware info */
 	int	tbdf;				/* type+busno+devno+funcno */
 	int	ctlrno;				/* controller number */
 	int	nports;				/* number of ports in hub */
 	int	highspeed;
-	Hciimpl;					/* HCI driver  */
+	Hciimpl Hciimpl;					/* HCI driver  */
 };
 
 /*
@@ -152,7 +152,7 @@ struct Hci
  */
 struct Ep
 {
-	Ref;			/* one per fid (and per dev ep for ep0s) */
+	Ref r;			/* one per fid (and per dev ep for ep0s) */
 
 	/* const once inited. */
 	int	idx;		/* index in global eps array */
@@ -161,7 +161,7 @@ struct Ep
 	Udev*	dev;		/* device for the endpoint */
 	Ep*	ep0;		/* control endpoint for its device */
 
-	QLock;			/* protect fields below */
+	QLock ql;			/* protect fields below */
 	char*	name;		/* for ep file names at #u/ */
 	int	inuse;		/* endpoint is open */
 	int	mode;		/* OREAD, OWRITE, or ORDWR */

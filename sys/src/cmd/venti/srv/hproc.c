@@ -11,7 +11,7 @@
 #include <bio.h>
 #include <mach.h>
 #include <ureg.h>
-#include "/sys/src/libthread/threadimpl.h"
+#include "../../../libthread/threadimpl.h"
 #include "dat.h"
 #include "fns.h"
 

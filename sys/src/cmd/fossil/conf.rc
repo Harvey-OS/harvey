@@ -43,7 +43,7 @@ if(~ $wflag yes){
 		echo 'config is empty; will not install' >[1=2]
 		exit emptyconfig
 	}
-	if(test `{ls -l /tmp/fossilconf.$pid | awk '{print $6}'} -gt 1024){
+	if(test `{ls -l /tmp/fossilconf.$pid | field 6} -gt 1024){
 		echo 'config is too long; max is a little less than a kilobyte' >[1=2]
 		exit toolong
 	}

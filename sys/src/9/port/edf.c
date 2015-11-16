@@ -328,18 +328,18 @@ edfrun(Proc *p, int edfpri)
 			tns = e->S;
 		if(tns < 20)
 			tns = 20;
-		e->tns = 1000LL * tns;	/* µs to ns */
-		if(e->tt == nil || e->tf != deadlineintr){
+		e->Timer.tns = 1000LL * tns;	/* µs to ns */
+		if(e->Timer.tt == nil || e->Timer.tf != deadlineintr){
 			DPRINT("%lud edfrun, deadline=%lud\n", now, tns);
 		}else{
 			DPRINT("v");
 		}
 		if(p->trace)
-			proctrace(p, SInte, todget(nil) + e->tns);
-		e->tmode = Trelative;
-		e->tf = deadlineintr;
-		e->ta = p;
-		timeradd(e);
+			proctrace(p, SInte, todget(nil) + e->Timer.tns);
+		e->Timer.tmode = Trelative;
+		e->Timer.tf = deadlineintr;
+		e->Timer.ta = p;
+		timeradd(&e->Timer);
 	}else{
 		DPRINT("<");
 	}
@@ -411,10 +411,10 @@ edfadmit(Proc *p)
 			/* We're releasing another proc */
 			DPRINT("%lud edfadmit other %d[%s], release now: r=%lud d=%lud t=%lud\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
-			p->ta = p;
+			p->Timer.ta = p;
 			edfunlock();
 			qunlock(&edfschedlock);
-			releaseintr(nil, p);
+			releaseintr(nil, &p->Timer);
 			return nil;
 		}
 	}else{
@@ -427,15 +427,15 @@ edfadmit(Proc *p)
 		}else{
 			DPRINT("%lud edfadmit other %d[%s], release at %lud\n",
 				now, p->pid, statename[p->state], e->t);
-			if(e->tt == nil){
-				e->tf = releaseintr;
-				e->ta = p;
+			if(e->Timer.tt == nil){
+				e->Timer.tf = releaseintr;
+				e->Timer.ta = p;
 				tns = e->t - now;
 				if(tns < 20)
 					tns = 20;
-				e->tns = 1000LL * tns;
-				e->tmode = Trelative;
-				timeradd(e);
+				e->Timer.tns = 1000LL * tns;
+				e->Timer.tmode = Trelative;
+				timeradd(&e->Timer);
 			}
 		}
 	}
@@ -454,8 +454,8 @@ edfstop(Proc *p)
 		if(p->trace)
 			proctrace(p, SExpel, 0);
 		e->flags &= ~Admitted;
-		if(e->tt)
-			timerdel(e);
+		if(e->Timer.tt)
+			timerdel(&e->Timer);
 		edfunlock();
 	}
 }
@@ -489,18 +489,18 @@ edfyield(void)
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
-	if (up->tt == nil){
+	if (up->Timer.tt == nil){
 		n = e->t - now;
 		if(n < 20)
 			n = 20;
-		up->tns = 1000LL * n;
-		up->tf = releaseintr;
-		up->tmode = Trelative;
-		up->ta = up;
+		up->Timer.tns = 1000LL * n;
+		up->Timer.tf = releaseintr;
+		up->Timer.tmode = Trelative;
+		up->Timer.ta = up;
 		up->trend = &up->sleep;
-		timeradd(up);
-	}else if(up->tf != releaseintr)
-		print("edfyield: surprise! %#p\n", up->tf);
+		timeradd(&up->Timer);
+	}else if(up->Timer.tf != releaseintr)
+		print("edfyield: surprise! %#p\n", up->Timer.tf);
 	edfunlock();
 	sleep(&up->sleep, yfn, nil);
 }
@@ -536,15 +536,15 @@ edfready(Proc *p)
 		}
 		if(now - e->t < 0){
 			/* Next release is in the future, schedule it */
-			if(e->tt == nil || e->tf != releaseintr){
+			if(e->Timer.tt == nil || e->Timer.tf != releaseintr){
 				n = e->t - now;
 				if(n < 20)
 					n = 20;
-				e->tns = 1000LL * n;
-				e->tmode = Trelative;
-				e->tf = releaseintr;
-				e->ta = p;
-				timeradd(e);
+				e->Timer.tns = 1000LL * n;
+				e->Timer.tmode = Trelative;
+				e->Timer.tf = releaseintr;
+				e->Timer.ta = p;
+				timeradd(&e->Timer);
 				DPRINT("%lud edfready %d[%s], release=%lud\n",
 					now, p->pid, statename[p->state], e->t);
 			}

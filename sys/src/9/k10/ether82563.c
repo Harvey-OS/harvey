@@ -1259,7 +1259,7 @@ phywrite(Ctlr *c, uint phyno, uint reg, uint16_t v)
 static void
 phyerrata(Ether *e, Ctlr *c)
 {
-	if(e->mbps == 0){
+	if(e->Netif.mbps == 0){
 		if(c->phyerrata == 0){
 			c->phyerrata++;
 			phywrite(c, 1, Phyprst, Prst);	/* try a port reset */
@@ -1330,11 +1330,11 @@ phylproc(void *v)
 			r = phyread(c, phyno, Phyctl);
 			phywrite(c, phyno, Phyctl, r | Ran | Ean);
 		}
-		e->link = (phy & link) != 0;
-		if(e->link == 0)
+		e->Netif.link = (phy & link) != 0;
+		if(e->Netif.link == 0)
 			i = 3;
 		c->speeds[i]++;
-		e->mbps = speedtab[i];
+		e->Netif.mbps = speedtab[i];
 		if(c->type == i82563)
 			phyerrata(e, c);
 next:
@@ -1360,14 +1360,14 @@ pcslproc(void *v)
 
 	for(;;){
 		phy = csr32r(c, Pcsstat);
-		e->link = phy & Linkok;
+		e->Netif.link = phy & Linkok;
 		i = 3;
-		if(e->link)
+		if(e->Netif.link)
 			i = (phy & 6) >> 1;
 		else if(phy & Anbad)
 			csr32w(c, Pcsctl, csr32r(c, Pcsctl) | Pan | Prestart);
 		c->speeds[i]++;
-		e->mbps = speedtab[i];
+		e->Netif.mbps = speedtab[i];
 		c->lim = 0;
 		i82563im(c, Lsc);
 		c->lsleep++;
@@ -1392,13 +1392,13 @@ serdeslproc(void *v)
 		rx = csr32r(c, Rxcw);
 		tx = csr32r(c, Txcw);
 		USED(tx);
-		e->link = (rx & 1<<31) != 0;
-//		e->link = (csr32r(c, Status) & Lu) != 0;
+		e->Netif.link = (rx & 1<<31) != 0;
+//		e->Netif.link = (csr32r(c, Status) & Lu) != 0;
 		i = 3;
-		if(e->link)
+		if(e->Netif.link)
 			i = 2;
 		c->speeds[i]++;
-		e->mbps = speedtab[i];
+		e->Netif.mbps = speedtab[i];
 		c->lim = 0;
 		i82563im(c, Lsc);
 		c->lsleep++;
@@ -2012,7 +2012,7 @@ pnp(Ether* edev, int type)
 			continue;
 		if(type != Iany && ctlr->type != type)
 			continue;
-		if(edev->port == 0 || edev->port == ctlr->port){
+		if(edev->ISAConf.port == 0 || edev->ISAConf.port == ctlr->port){
 			ctlr->active = 1;
 			memmove(ctlr->ra, edev->ea, Eaddrlen);
 			if(setup(ctlr) == 0)
@@ -2022,11 +2022,11 @@ pnp(Ether* edev, int type)
 
 	edev->ctlr = ctlr;
 	ctlr->edev = edev;			/* point back to Ether* */
-	edev->port = ctlr->port;
-	edev->irq = ctlr->pcidev->intl;
+	edev->ISAConf.port = ctlr->port;
+	edev->ISAConf.irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
-	edev->mbps = 1000;
-	edev->maxmtu = ctlr->rbsz;
+	edev->Netif.mbps = 1000;
+	edev->Netif.maxmtu = ctlr->rbsz;
 	memmove(edev->ea, ctlr->ra, Eaddrlen);
 
 	/*
@@ -2039,10 +2039,10 @@ pnp(Ether* edev, int type)
 	edev->ifstat = i82563ifstat;
 	edev->ctl = i82563ctl;
 
-	edev->arg = edev;
-	edev->promiscuous = i82563promiscuous;
+	edev->Netif.arg = edev;
+	edev->Netif.promiscuous = i82563promiscuous;
 	edev->shutdown = i82563shutdown;
-	edev->multicast = i82563multicast;
+	edev->Netif.multicast = i82563multicast;
 
 	return 0;
 }

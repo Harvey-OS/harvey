@@ -31,13 +31,13 @@ freeroute(Route *r)
 {
 	Route **l;
 
-	r->left = nil;
-	r->right = nil;
-	if(r->type & Rv4)
+	r->RouteTree.left = nil;
+	r->RouteTree.right = nil;
+	if(r->RouteTree.type & Rv4)
 		l = &v4freelist;
 	else
 		l = &v6freelist;
-	r->mid = *l;
+	r->RouteTree.mid = *l;
 	*l = r;
 }
 
@@ -58,16 +58,16 @@ allocroute(int type)
 
 	r = *l;
 	if(r != nil){
-		*l = r->mid;
+		*l = r->RouteTree.mid;
 	} else {
 		r = malloc(n);
 		if(r == nil)
 			panic("out of routing nodes");
 	}
 	memset(r, 0, n);
-	r->type = type;
-	r->ifc = nil;
-	r->ref = 1;
+	r->RouteTree.type = type;
+	r->RouteTree.ifc = nil;
+	r->RouteTree.ref = 1;
 
 	return r;
 }
@@ -80,10 +80,10 @@ addqueue(Route **q, Route *r)
 	if(r == nil)
 		return;
 
-	l = allocroute(r->type);
-	l->mid = *q;
+	l = allocroute(r->RouteTree.type);
+	l->RouteTree.mid = *q;
 	*q = l;
-	l->left = r;
+	l->RouteTree.left = r;
 }
 
 /*
@@ -118,7 +118,7 @@ enum
 static int
 rangecompare(Route *a, Route *b)
 {
-	if(a->type & Rv4){
+	if(a->RouteTree.type & Rv4){
 		if(a->v4.endaddress < b->v4.address)
 			return Rpreceeds;
 
@@ -155,7 +155,7 @@ rangecompare(Route *a, Route *b)
 static void
 copygate(Route *old, Route *new)
 {
-	if(new->type & Rv4)
+	if(new->RouteTree.type & Rv4)
 		memmove(old->v4.gate, new->v4.gate, IPv4addrlen);
 	else
 		memmove(old->v6.gate, new->v6.gate, IPaddrlen);
@@ -169,10 +169,10 @@ walkadd(Fs *f, Route **root, Route *p)
 {
 	Route *l, *r;
 
-	l = p->left;
-	r = p->right;
-	p->left = 0;
-	p->right = 0;
+	l = p->RouteTree.left;
+	r = p->RouteTree.right;
+	p->RouteTree.left = 0;
+	p->RouteTree.right = 0;
 	addnode(f, root, p);
 	if(l)
 		walkadd(f, root, l);
@@ -191,16 +191,16 @@ calcd(Route *p)
 
 	if(p) {
 		d = 0;
-		q = p->left;
+		q = p->RouteTree.left;
 		if(q)
-			d = q->depth;
-		q = p->right;
-		if(q && q->depth > d)
-			d = q->depth;
-		q = p->mid;
-		if(q && q->depth > d)
-			d = q->depth;
-		p->depth = d+1;
+			d = q->RouteTree.depth;
+		q = p->RouteTree.right;
+		if(q && q->RouteTree.depth > d)
+			d = q->RouteTree.depth;
+		q = p->RouteTree.mid;
+		if(q && q->RouteTree.depth > d)
+			d = q->RouteTree.depth;
+		p->RouteTree.depth = d+1;
 	}
 }
 
@@ -219,19 +219,19 @@ balancetree(Route **cur)
 	 * rotate tree node
 	 */
 	p = *cur;
-	dl = 0; if(l = p->left) dl = l->depth;
-	dr = 0; if(r = p->right) dr = r->depth;
+	dl = 0; if(l = p->RouteTree.left) dl = l->RouteTree.depth;
+	dr = 0; if(r = p->RouteTree.right) dr = r->RouteTree.depth;
 
 	if(dl > dr+1) {
-		p->left = l->right;
-		l->right = p;
+		p->RouteTree.left = l->RouteTree.right;
+		l->RouteTree.right = p;
 		*cur = l;
 		calcd(p);
 		calcd(l);
 	} else
 	if(dr > dl+1) {
-		p->right = r->left;
-		r->left = p;
+		p->RouteTree.right = r->RouteTree.left;
+		r->RouteTree.left = p;
 		*cur = r;
 		calcd(p);
 		calcd(r);
@@ -250,16 +250,16 @@ addnode(Fs *f, Route **cur, Route *new)
 	p = *cur;
 	if(p == 0) {
 		*cur = new;
-		new->depth = 1;
+		new->RouteTree.depth = 1;
 		return;
 	}
 
 	switch(rangecompare(new, p)){
 	case Rpreceeds:
-		addnode(f, &p->left, new);
+		addnode(f, &p->RouteTree.left, new);
 		break;
 	case Rfollows:
-		addnode(f, &p->right, new);
+		addnode(f, &p->RouteTree.right, new);
 		break;
 	case Rcontains:
 		/*
@@ -270,7 +270,7 @@ addnode(Fs *f, Route **cur, Route *new)
 		 *  merged into root.
 		 */
 		*cur = new;
-		new->depth = 1;
+		new->RouteTree.depth = 1;
 		addqueue(&f->queue, p);
 		break;
 	case Requals:
@@ -278,16 +278,16 @@ addnode(Fs *f, Route **cur, Route *new)
 		 *  supercede the old entry if the old one isn't
 		 *  a local interface.
 		 */
-		if((p->type & Rifc) == 0){
-			p->type = new->type;
-			p->ifcid = -1;
+		if((p->RouteTree.type & Rifc) == 0){
+			p->RouteTree.type = new->RouteTree.type;
+			p->RouteTree.ifcid = -1;
 			copygate(p, new);
-		} else if(new->type & Rifc)
-			p->ref++;
+		} else if(new->RouteTree.type & Rifc)
+			p->RouteTree.ref++;
 		freeroute(new);
 		break;
 	case Rcontained:
-		addnode(f, &p->mid, new);
+		addnode(f, &p->RouteTree.mid, new);
 		break;
 	}
 
@@ -315,13 +315,13 @@ v4addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type)
 		p->v4.address = sa;
 		p->v4.endaddress = ea;
 		memmove(p->v4.gate, gate, sizeof(p->v4.gate));
-		memmove(p->tag, tag, sizeof(p->tag));
+		memmove(p->RouteTree.tag, tag, sizeof(p->RouteTree.tag));
 
 		wlock(&routelock);
 		addnode(f, &f->v4root[h], p);
 		while(p = f->queue) {
-			f->queue = p->mid;
-			walkadd(f, &f->v4root[h], p->left);
+			f->queue = p->RouteTree.mid;
+			walkadd(f, &f->v4root[h], p->RouteTree.left);
 			freeroute(p);
 		}
 		wunlock(&routelock);
@@ -361,13 +361,13 @@ v6addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type)
 		memmove(p->v6.address, sa, IPaddrlen);
 		memmove(p->v6.endaddress, ea, IPaddrlen);
 		memmove(p->v6.gate, gate, IPaddrlen);
-		memmove(p->tag, tag, sizeof(p->tag));
+		memmove(p->RouteTree.tag, tag, sizeof(p->RouteTree.tag));
 
 		wlock(&routelock);
 		addnode(f, &f->v6root[h], p);
 		while(p = f->queue) {
-			f->queue = p->mid;
-			walkadd(f, &f->v6root[h], p->left);
+			f->queue = p->RouteTree.mid;
+			walkadd(f, &f->v6root[h], p->RouteTree.left);
 			freeroute(p);
 		}
 		wunlock(&routelock);
@@ -391,13 +391,13 @@ looknode(Route **cur, Route *r)
 		case Rcontains:
 			return 0;
 		case Rpreceeds:
-			cur = &p->left;
+			cur = &p->RouteTree.left;
 			break;
 		case Rfollows:
-			cur = &p->right;
+			cur = &p->RouteTree.right;
 			break;
 		case Rcontained:
-			cur = &p->mid;
+			cur = &p->RouteTree.mid;
 			break;
 		case Requals:
 			return cur;
@@ -416,7 +416,7 @@ v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 	m = nhgetl(mask);
 	rt.v4.address = nhgetl(a) & m;
 	rt.v4.endaddress = rt.v4.address | ~m;
-	rt.type = Rv4;
+	rt.RouteTree.type = Rv4;
 
 	eh = V4H(rt.v4.endaddress);
 	for(h=V4H(rt.v4.address); h<=eh; h++) {
@@ -425,15 +425,15 @@ v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 		r = looknode(&f->v4root[h], &rt);
 		if(r) {
 			p = *r;
-			if(--(p->ref) == 0){
+			if(--(p->RouteTree.ref) == 0){
 				*r = 0;
-				addqueue(&f->queue, p->left);
-				addqueue(&f->queue, p->mid);
-				addqueue(&f->queue, p->right);
+				addqueue(&f->queue, p->RouteTree.left);
+				addqueue(&f->queue, p->RouteTree.mid);
+				addqueue(&f->queue, p->RouteTree.right);
 				freeroute(p);
 				while(p = f->queue) {
-					f->queue = p->mid;
-					walkadd(f, &f->v4root[h], p->left);
+					f->queue = p->RouteTree.mid;
+					walkadd(f, &f->v4root[h], p->RouteTree.left);
 					freeroute(p);
 				}
 			}
@@ -460,7 +460,7 @@ v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 		rt.v6.address[h] = x & y;
 		rt.v6.endaddress[h] = x | ~y;
 	}
-	rt.type = 0;
+	rt.RouteTree.type = 0;
 
 	eh = V6H(rt.v6.endaddress);
 	for(h=V6H(rt.v6.address); h<=eh; h++) {
@@ -469,15 +469,15 @@ v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 		r = looknode(&f->v6root[h], &rt);
 		if(r) {
 			p = *r;
-			if(--(p->ref) == 0){
+			if(--(p->RouteTree.ref) == 0){
 				*r = 0;
-				addqueue(&f->queue, p->left);
-				addqueue(&f->queue, p->mid);
-				addqueue(&f->queue, p->right);
+				addqueue(&f->queue, p->RouteTree.left);
+				addqueue(&f->queue, p->RouteTree.mid);
+				addqueue(&f->queue, p->RouteTree.right);
 				freeroute(p);
 				while(p = f->queue) {
-					f->queue = p->mid;
-					walkadd(f, &f->v6root[h], p->left);
+					f->queue = p->RouteTree.mid;
+					walkadd(f, &f->v6root[h], p->RouteTree.left);
 					freeroute(p);
 				}
 			}
@@ -498,7 +498,7 @@ v4lookup(Fs *f, uint8_t *a, Conv *c)
 	uint8_t gate[IPaddrlen];
 	Ipifc *ifc;
 
-	if(c != nil && c->r != nil && c->r->ifc != nil && c->rgen == v4routegeneration)
+	if(c != nil && c->r != nil && c->r->RouteTree.ifc != nil && c->rgen == v4routegeneration)
 		return c->r;
 
 	la = nhgetl(a);
@@ -507,23 +507,23 @@ v4lookup(Fs *f, uint8_t *a, Conv *c)
 		if(la >= p->v4.address) {
 			if(la <= p->v4.endaddress) {
 				q = p;
-				p = p->mid;
+				p = p->RouteTree.mid;
 			} else
-				p = p->right;
+				p = p->RouteTree.right;
 		} else
-			p = p->left;
+			p = p->RouteTree.left;
 
-	if(q && (q->ifc == nil || q->ifcid != q->ifc->ifcid)){
-		if(q->type & Rifc) {
+	if(q && (q->RouteTree.ifc == nil || q->RouteTree.ifcid != q->RouteTree.ifc->ifcid)){
+		if(q->RouteTree.type & Rifc) {
 			hnputl(gate+IPv4off, q->v4.address);
 			memmove(gate, v4prefix, IPv4off);
 		} else
 			v4tov6(gate, q->v4.gate);
-		ifc = findipifc(f, gate, q->type);
+		ifc = findipifc(f, gate, q->RouteTree.type);
 		if(ifc == nil)
 			return nil;
-		q->ifc = ifc;
-		q->ifcid = ifc->ifcid;
+		q->RouteTree.ifc = ifc;
+		q->RouteTree.ifcid = ifc->ifcid;
 	}
 
 	if(c != nil){
@@ -550,7 +550,7 @@ v6lookup(Fs *f, uint8_t *a, Conv *c)
 			return q;
 	}
 
-	if(c != nil && c->r != nil && c->r->ifc != nil && c->rgen == v6routegeneration)
+	if(c != nil && c->r != nil && c->r->RouteTree.ifc != nil && c->rgen == v6routegeneration)
 		return c->r;
 
 	for(h = 0; h < IPllen; h++)
@@ -564,7 +564,7 @@ v6lookup(Fs *f, uint8_t *a, Conv *c)
 			if(x == y)
 				continue;
 			if(x < y){
-				p = p->left;
+				p = p->RouteTree.left;
 				goto next;
 			}
 			break;
@@ -575,27 +575,27 @@ v6lookup(Fs *f, uint8_t *a, Conv *c)
 			if(x == y)
 				continue;
 			if(x > y){
-				p = p->right;
+				p = p->RouteTree.right;
 				goto next;
 			}
 			break;
 		}
 		q = p;
-		p = p->mid;
+		p = p->RouteTree.mid;
 next:		;
 	}
 
-	if(q && (q->ifc == nil || q->ifcid != q->ifc->ifcid)){
-		if(q->type & Rifc) {
+	if(q && (q->RouteTree.ifc == nil || q->RouteTree.ifcid != q->RouteTree.ifc->ifcid)){
+		if(q->RouteTree.type & Rifc) {
 			for(h = 0; h < IPllen; h++)
 				hnputl(gate+4*h, q->v6.address[h]);
-			ifc = findipifc(f, gate, q->type);
+			ifc = findipifc(f, gate, q->RouteTree.type);
 		} else
-			ifc = findipifc(f, q->v6.gate, q->type);
+			ifc = findipifc(f, q->v6.gate, q->RouteTree.type);
 		if(ifc == nil)
 			return nil;
-		q->ifc = ifc;
-		q->ifcid = ifc->ifcid;
+		q->RouteTree.ifc = ifc;
+		q->RouteTree.ifcid = ifc->ifcid;
 	}
 	if(c != nil){
 		c->r = q;
@@ -633,7 +633,7 @@ convroute(Route *r, uint8_t *addr, uint8_t *mask, uint8_t *gate, char *t, int *n
 {
 	int i;
 
-	if(r->type & Rv4){
+	if(r->RouteTree.type & Rv4){
 		memmove(addr, v4prefix, IPv4off);
 		hnputl(addr+IPv4off, r->v4.address);
 		memset(mask, 0xff, IPv4off);
@@ -648,10 +648,10 @@ convroute(Route *r, uint8_t *addr, uint8_t *mask, uint8_t *gate, char *t, int *n
 		memmove(gate, r->v6.gate, IPaddrlen);
 	}
 
-	routetype(r->type, t);
+	routetype(r->RouteTree.type, t);
 
-	if(r->ifc)
-		*nifc = r->ifc->conv->x;
+	if(r->RouteTree.ifc)
+		*nifc = r->RouteTree.ifc->conv->x;
 	else
 		*nifc = -1;
 }
@@ -673,7 +673,7 @@ sprintroute(Route *r, Routewalk *rw)
 		iname = ifbuf;
 		snprint(ifbuf, sizeof ifbuf, "%d", nifc);
 	}
-	p = seprint(rw->p, rw->e, rformat, addr, mask, gate, t, r->tag, iname);
+	p = seprint(rw->p, rw->e, rformat, addr, mask, gate, t, r->RouteTree.tag, iname);
 	if(rw->o < 0){
 		n = p - rw->p;
 		if(n > -rw->o){
@@ -698,10 +698,10 @@ rr(Route *r, Routewalk *rw)
 	if(r == nil)
 		return 1;
 
-	if(rr(r->left, rw) == 0)
+	if(rr(r->RouteTree.left, rw) == 0)
 		return 0;
 
-	if(r->type & Rv4)
+	if(r->RouteTree.type & Rv4)
 		h = V4H(r->v4.address);
 	else
 		h = V6H(r->v6.address);
@@ -709,10 +709,10 @@ rr(Route *r, Routewalk *rw)
 	if(h == rw->h)
 		rw->walk(r, rw);
 
-	if(rr(r->mid, rw) == 0)
+	if(rr(r->RouteTree.mid, rw) == 0)
 		return 0;
 
-	return rr(r->right, rw);
+	return rr(r->RouteTree.right, rw);
 }
 
 void
@@ -760,7 +760,7 @@ delroute(Fs *f, Route *r, int dolock)
 	int nifc;
 
 	convroute(r, addr, mask, gate, t, &nifc);
-	if(r->type & Rv4)
+	if(r->RouteTree.type & Rv4)
 		v4delroute(f, addr+IPv4off, mask+IPv4off, dolock);
 	else
 		v6delroute(f, addr, mask, dolock);
@@ -775,14 +775,14 @@ routeflush(Fs *f, Route *r, char *tag)
 {
 	if(r == nil)
 		return 0;
-	if(routeflush(f, r->mid, tag))
+	if(routeflush(f, r->RouteTree.mid, tag))
 		return 1;
-	if(routeflush(f, r->left, tag))
+	if(routeflush(f, r->RouteTree.left, tag))
 		return 1;
-	if(routeflush(f, r->right, tag))
+	if(routeflush(f, r->RouteTree.right, tag))
 		return 1;
-	if((r->type & Rifc) == 0){
-		if(tag == nil || strncmp(tag, r->tag, sizeof(r->tag)) == 0){
+	if((r->RouteTree.type & Rifc) == 0){
+		if(tag == nil || strncmp(tag, r->RouteTree.tag, sizeof(r->RouteTree.tag)) == 0){
 			delroute(f, r, 0);
 			return 1;
 		}
@@ -812,7 +812,7 @@ printroute(Route *r)
 		iname = ifbuf;
 		snprint(ifbuf, sizeof ifbuf, "%d", nifc);
 	}
-	print(rformat, addr, mask, gate, t, r->tag, iname);
+	print(rformat, addr, mask, gate, t, r->RouteTree.tag, iname);
 }
 
 int32_t
