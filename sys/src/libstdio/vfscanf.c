@@ -66,8 +66,11 @@ icvt_x,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
 static int nread, ncvt;
 static const char *fmtp;
 
-int vfscanf(FILE *f, const char *s, va_list args){
+int vfscanf(FILE *f, const char *s, va_list args_pointer){
 	int c, width, type, store;
+	va_list args;
+
+	va_copy(args, args_pointer);
 	nread=0;
 	ncvt=0;
 	fmtp=s;
@@ -77,15 +80,22 @@ int vfscanf(FILE *f, const char *s, va_list args){
 			do
 				c=ngetc(f);
 			while(isspace(c));
-			if(c==EOF) return ncvt?ncvt:EOF;
+			if(c==EOF) {
+				va_end(args);
+				return ncvt?ncvt:EOF;
+			}
 			nungetc(c, f);
 			break;
 		}
 	NonSpecial:
 		c=ngetc(f);
-		if(c==EOF) return ncvt?ncvt:EOF;
+		if(c==EOF) {
+			va_end(args);
+			return ncvt?ncvt:EOF;
+		}
 		if(c!=*fmtp){
 			nungetc(c, f);
+			va_end(args);
 			return ncvt;
 		}
 		break;
@@ -103,12 +113,15 @@ int vfscanf(FILE *f, const char *s, va_list args){
 		else
 			width=-1;
 		type=*fmtp=='h' || *fmtp=='l' || *fmtp=='L'?*fmtp++:'n';
-		if(!icvt[*fmtp]) goto NonSpecial;
-		if(!(*icvt[*fmtp])(f, &args, store, width, type))
+		if(!icvt[(uint8_t)(*fmtp)]) goto NonSpecial;
+		if(!(*icvt[(uint8_t)(*fmtp)])(f, &args, store, width, type)){
+			va_end(args);
 			return ncvt?ncvt:EOF;
+		}
 		if(*fmtp=='\0') break;
 		if(store) ncvt++;
 	}
+	va_end(args);
 	return ncvt;	
 }
 static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
