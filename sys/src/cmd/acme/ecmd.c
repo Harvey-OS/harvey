@@ -181,7 +181,7 @@ a_cmd(Text *t, Cmd *cp)
 }
 
 int
-b_cmd(Text*, Cmd *cp)
+b_cmd(Text*unused, Cmd *cp)
 {
 	File *f;
 
@@ -227,7 +227,7 @@ c_cmd(Text *t, Cmd *cp)
 }
 
 int
-d_cmd(Text *t, Cmd*)
+d_cmd(Text *t, Cmd*c)
 {
 	if(addr.r.q1 > addr.r.q0)
 		elogdelete(t->file, addr.r.q0, addr.r.q1);
@@ -443,7 +443,7 @@ m_cmd(Text *t, Cmd *cp)
 }
 
 int
-p_cmd(Text *t, Cmd*)
+p_cmd(Text *t, Cmd*unusedCmd)
 {
 	return pdisplay(t->file);
 }
@@ -584,7 +584,7 @@ x_cmd(Text *t, Cmd *cp)
 }
 
 int
-X_cmd(Text*, Cmd *cp)
+X_cmd(Text*unused, Cmd *cp)
 {
 	filelooper(cp, cp->cmdc=='X');
 	return TRUE;

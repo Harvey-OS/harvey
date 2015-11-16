@@ -84,7 +84,7 @@ int	editing = Inactive;
 String*	newstring(int);
 
 void
-editthread(void*)
+editthread(void*unusedV)
 {
 	Cmd *cmdp;
 
@@ -100,13 +100,13 @@ editthread(void*)
 }
 
 void
-allelogterm(Window *w, void*)
+allelogterm(Window *w, void*unusedv)
 {
 	elogterm(w->body.file);
 }
 
 void
-alleditinit(Window *w, void*)
+alleditinit(Window *w, void*unusedv)
 {
 	textcommit(&w->tag, TRUE);
 	textcommit(&w->body, TRUE);
@@ -114,7 +114,7 @@ alleditinit(Window *w, void*)
 }
 
 void
-allupdate(Window *w, void*)
+allupdate(Window *w, void*unusedv)
 {
 	Text *t;
 	int i;
@@ -354,9 +354,9 @@ freecmd(void)
 	int i;
 
 	while(cmdlist.nused > 0)
-		free(cmdlist.ucharptr[--cmdlist.nused]);
+		free(cmdlist.uint8_tptr[--cmdlist.nused]);
 	while(addrlist.nused > 0)
-		free(addrlist.ucharptr[--addrlist.nused]);
+		free(addrlist.uint8_tptr[--addrlist.nused]);
 	while(stringlist.nused>0){
 		i = --stringlist.nused;
 		freestring(stringlist.stringptr[i]);
