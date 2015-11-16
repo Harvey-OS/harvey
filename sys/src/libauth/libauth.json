@@ -1,5 +1,8 @@
 {
 	"libauth": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

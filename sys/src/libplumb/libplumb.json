@@ -1,5 +1,8 @@
 {
 	"libplumb": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

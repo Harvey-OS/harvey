@@ -1,5 +1,8 @@
 {
 	"libcomplete": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

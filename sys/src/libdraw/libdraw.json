@@ -1,5 +1,8 @@
 {
 	"Libdraw": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],
