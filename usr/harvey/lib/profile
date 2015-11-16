@@ -4,7 +4,6 @@ bind -c tmp /tmp
 if(! syscall create /tmp/xxx 1 0666 >[2]/dev/null)
 	ramfs	# in case we're running off a cd
 font = /lib/font/bit/pelm/euro.9.font
-upas/fs
 fn cd { builtin cd $* && awd }  # for acme
 switch($service){
 case terminal
@@ -25,12 +24,10 @@ case cpu
 	bind -a /mnt/term/dev /dev
 	prompt=('cpu% ' '	')
 	fn cpu%{ $* }
-	news
 	if (! test -e /mnt/term/mnt/wsys) {	# cpu call from drawterm
 		font=/lib/font/bit/pelm/latin1.8.font
 		exec rio
 	}
 case con
 	prompt=('cpu% ' '	')
-	news
 }
