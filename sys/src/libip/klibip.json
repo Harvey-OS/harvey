@@ -1,5 +1,8 @@
 {
 	"KernelLibip": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../klib.json"
 		],

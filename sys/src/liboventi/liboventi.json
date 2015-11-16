@@ -1,5 +1,8 @@
 {
 	"liboventi": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

@@ -1,5 +1,8 @@
 {
 	"KernelLibmemdraw": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../klib.json"
 		],

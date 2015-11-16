@@ -1,5 +1,8 @@
 {
 	"libmemdraw": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

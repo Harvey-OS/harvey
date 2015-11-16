@@ -1,5 +1,8 @@
 {
 	"libString": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

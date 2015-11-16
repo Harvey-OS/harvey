@@ -1,5 +1,8 @@
 {
 	"libcontrol": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

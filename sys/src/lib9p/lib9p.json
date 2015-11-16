@@ -1,5 +1,8 @@
 {
 	"lib9p": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],

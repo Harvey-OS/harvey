@@ -1,5 +1,8 @@
 {
 	"libventi": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],
