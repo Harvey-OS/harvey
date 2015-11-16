@@ -21,6 +21,7 @@ Channel *out;
 Channel *quit;
 Channel *forkc;
 int nread = 0;
+int debug = 0;
 
 typedef struct Str Str;
 struct Str {
@@ -62,24 +63,34 @@ newstr(void)
 void
 reader(void *v)
 {
-	int cfd, tfd, forking = 0, exiting, pid, newpid;
+	int cfd, tfd, forking = 0, exiting, pid;
+	uintptr_t newpid;
 	char *ctl, *truss;
 	Str *s;
 	static char start[] = "start";
 	static char waitstop[] = "waitstop";
 
 	pid = (int)(uintptr)v;
+	if (debug)
+		fprint(2, "DEBUG: -------------> reader starts with pid %d\n", pid);
 	ctl = smprint("/proc/%d/ctl", pid);
 	if ((cfd = open(ctl, OWRITE)) < 0)
 		die(smprint("%s: %r", ctl));
 	truss = smprint("/proc/%d/syscall", pid);
 	if ((tfd = open(truss, OREAD)) < 0)
 		die(smprint("%s: %r", truss));
-
+	if (debug)
+		fprint(2, "DEBUG: Send %s to pid %d ...", waitstop, pid);
 	/* child was stopped by hang msg earlier */
 	cwrite(cfd, ctl, waitstop, sizeof waitstop - 1);
+	if (debug)
+		fprint(2, "DEBUG: back for %d\n", pid);
 
+	if (debug)
+		fprint(2, "DEBUG: Send %s to pid %d\n", "startsyscall", pid);
 	cwrite(cfd, ctl, "startsyscall", 12);
+	if (debug)
+		fprint(2, "DEBUG: back for %d\n", pid);
 	s = newstr();
 	exiting = 0;
 	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) >= 0){
@@ -94,14 +105,22 @@ reader(void *v)
 		 * There are three tests here and they (I hope) guarantee
 		 * no false positives.
 		 */
+		/* BUG: when we update all the system call generation stuff, we broke rfork tracing.
+		 * The convention is the first letter of the system call in syscallfmt should be upper case.
+		 * This subtlety got lost. FIX ME but it will be tricky.
+		 * The reason to upcase is we need to be careful not to be fooled by random text.
 		if (strstr(s->buf, " Rfork") != nil) {
+		 */
+		if (strstr(s->buf, " rfork") != nil) {
 			char *a[8];
 			char *rf;
 
 			rf = strdup(s->buf);
-         		if (tokenize(rf, a, 8) == 5 &&
-			    strtoul(a[4], 0, 16) & RFPROC)
-				forking = 1;
+			if (tokenize(rf, a, 8) == 4 &&
+				strtoul(a[3], 0, 16) & RFPROC)
+					forking = 1;
+			if (debug)
+				fprint(2, "DEBUG:really forking? %d\n", forking);
 			free(rf);
 		} else if (strstr(s->buf, " Exits") != nil)
 			exiting = 1;
@@ -115,7 +134,11 @@ reader(void *v)
 		}
 
 		/* flush syscall trace buffer */
+		if (debug)
+			fprint(2, "DEBUG: Send %s to pid %d\n", "startsyscall", pid);
 		cwrite(cfd, ctl, "startsyscall", 12);
+		if (debug)
+			fprint(2, "DEBUG: back for %d\n", pid);
 		s = newstr();
 	}
 
@@ -188,7 +211,7 @@ hang(void)
 void
 threadmain(int argc, char **argv)
 {
-	int pid;
+	uintptr_t pid;
 	char *cmd = nil;
 	char **args = nil;
 
@@ -206,6 +229,9 @@ threadmain(int argc, char **argv)
 				usage();
 			cmd = strdup(argv[2]);
 			args = &argv[2];
+			break;
+		case 'd':
+			debug = 1;
 			break;
 		default:
 			usage();
