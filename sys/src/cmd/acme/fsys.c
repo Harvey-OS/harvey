@@ -146,7 +146,7 @@ fsysinit(void)
 }
 
 void
-fsysproc(void *)
+fsysproc(void *v)
 {
 	int n;
 	Xfid *x;
@@ -328,7 +328,7 @@ respond(Xfid *x, Fcall *t, char *err)
 
 static
 Xfid*
-fsysversion(Xfid *x, Fid*)
+fsysversion(Xfid *x, Fid*f)
 {
 	Fcall t;
 
@@ -345,7 +345,7 @@ fsysversion(Xfid *x, Fid*)
 
 static
 Xfid*
-fsysauth(Xfid *x, Fid*)
+fsysauth(Xfid *x, Fid*f)
 {
 	Fcall t;
 
@@ -354,7 +354,7 @@ fsysauth(Xfid *x, Fid*)
 
 static
 Xfid*
-fsysflush(Xfid *x, Fid*)
+fsysflush(Xfid *x, Fid*f)
 {
 	sendp(x->c, xfidflush);
 	return nil;
@@ -578,7 +578,7 @@ fsysopen(Xfid *x, Fid *f)
 
 static
 Xfid*
-fsyscreate(Xfid *x, Fid*)
+fsyscreate(Xfid *x, Fid*f)
 {
 	Fcall t;
 
@@ -672,7 +672,7 @@ fsysread(Xfid *x, Fid *f)
 
 static
 Xfid*
-fsyswrite(Xfid *x, Fid*)
+fsyswrite(Xfid *x, Fid*f)
 {
 	sendp(x->c, xfidwrite);
 	return nil;
@@ -689,7 +689,7 @@ fsysclunk(Xfid *x, Fid *f)
 
 static
 Xfid*
-fsysremove(Xfid *x, Fid*)
+fsysremove(Xfid *x, Fid*f)
 {
 	Fcall t;
 
@@ -711,7 +711,7 @@ fsysstat(Xfid *x, Fid *f)
 
 static
 Xfid*
-fsyswstat(Xfid *x, Fid*)
+fsyswstat(Xfid *x, Fid*f)
 {
 	Fcall t;
 

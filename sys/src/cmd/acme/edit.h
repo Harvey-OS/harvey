@@ -50,18 +50,18 @@ struct Cmd
 	};
 	Cmd	*next;			/* pointer to next element in {} */
 	short	num;
-	ushort	flag;			/* whatever */
-	ushort	cmdc;			/* command character; 'x' etc. */
+	uint16_t	flag;			/* whatever */
+	uint16_t	cmdc;			/* command character; 'x' etc. */
 };
 
 extern struct cmdtab{
-	ushort	cmdc;		/* command character */
-	uchar	text;		/* takes a textual argument? */
-	uchar	regexp;		/* takes a regular expression? */
-	uchar	addr;		/* takes an address (m or t)? */
-	uchar	defcmd;		/* default command; 0==>none */
-	uchar	defaddr;	/* default address */
-	uchar	count;		/* takes a count e.g. s2/// */
+	uint16_t	cmdc;		/* command character */
+	uint8_t	text;		/* takes a textual argument? */
+	uint8_t	regexp;		/* takes a regular expression? */
+	uint8_t	addr;		/* takes an address (m or t)? */
+	uint8_t	defcmd;		/* default command; 0==>none */
+	uint8_t	defaddr;	/* default address */
+	uint8_t	count;		/* takes a count e.g. s2/// */
 	char	*token;		/* takes text terminated by one of these */
 	int	(*fn)(Text*, Cmd*);	/* function to call with parse tree */
 }cmdtab[];
@@ -75,7 +75,7 @@ struct List
 	union{
 		void	*listptr;
 		void*	*ptr;
-		uchar*	*ucharptr;
+		uint8_t*	*uint8_tptr;
 		String*	*stringptr;
 	};
 };
