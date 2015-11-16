@@ -155,11 +155,14 @@ static int nprint;
 QLock _stdiolk;
 
 int
-vfprintf(FILE *f, const char *s, va_list args)
+vfprintf(FILE *f, const char *s, va_list args_pointer)
 {
 	int flags, width, precision;
+	va_list args;
 
 	qlock(&_stdiolk);
+
+	va_copy(args, args_pointer);
 
 	nprint = 0;
 	while(*s){
@@ -197,13 +200,15 @@ vfprintf(FILE *f, const char *s, va_list args)
 		else
 			precision = -1;
 		while(tflag[*s&_IO_CHMASK]) flags |= tflag[*s++&_IO_CHMASK];
-		if(ocvt[*s]) nprint += (*ocvt[*s++])(f, &args, flags, width, precision);
+		if(ocvt[(uint8_t)(*s)])
+			nprint += (*ocvt[(uint8_t)(*s++)])(f, &args, flags, width, precision);
 		else if(*s){
 			putc(*s++, f);
 			nprint++;
 		}
 	}
 
+	va_end(args);
 	qunlock(&_stdiolk);
 
 	if(ferror(f)){
@@ -297,13 +302,13 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	char digits[128];	/* no reasonable machine will ever overflow this */
 	char *sign;
 	char *dp;
-	int32_t snum;
+	uint64_t snum;
 	unsigned long num;
 	int nout, npad, nlzero;
 
 	if(sgned){
-		if(flags&PTR) snum = (int32_t)va_arg(*args, void *);
-		else if(flags&SHORT) snum = va_arg(*args, int16_t);
+		if(flags&PTR) snum = (uintptr_t)va_arg(*args, void *);
+		else if(flags&SHORT) snum = va_arg(*args, int);
 		else if(flags&LONG) snum = va_arg(*args, int32_t);
 		else snum = va_arg(*args, int);
 		if(snum < 0){
@@ -317,8 +322,8 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (int32_t)va_arg(*args, void *);
-		else if(flags&SHORT) num = va_arg(*args, unsigned short);
+		if(flags&PTR) num = (uintptr_t)va_arg(*args, void *);
+		else if(flags&SHORT) num = va_arg(*args, int);
 		else if(flags&LONG) num = va_arg(*args, unsigned long);
 		else num = va_arg(*args, unsigned int);
 	}
