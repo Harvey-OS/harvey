@@ -91,6 +91,7 @@
 			"look.c",
 			"ls.c",
 			"mc.c",
+			"mclock.c",
 			"md5sum.c",
 			"mkdir.c",
 			"mntgen.c",
