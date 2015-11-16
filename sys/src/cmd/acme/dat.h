@@ -77,10 +77,10 @@ struct Range
 
 struct Block
 {
-	uint		addr;	/* disk address in bytes */
+	unsigned int		addr;	/* disk address in bytes */
 	union
 	{
-		uint	n;		/* number of used runes in block */
+		unsigned int	n;		/* number of used runes in block */
 		Block	*next;	/* pointer to next in free list */
 	};
 };
@@ -88,41 +88,41 @@ struct Block
 struct Disk
 {
 	int		fd;
-	uint		addr;	/* length of temp file */
+	unsigned int		addr;	/* length of temp file */
 	Block	*free[Maxblock/Blockincr+1];
 };
 
 Disk*	diskinit(void);
-Block*	disknewblock(Disk*, uint);
+Block*	disknewblock(Disk*, unsigned int);
 void		diskrelease(Disk*, Block*);
-void		diskread(Disk*, Block*, Rune*, uint);
-void		diskwrite(Disk*, Block**, Rune*, uint);
+void		diskread(Disk*, Block*, Rune*, unsigned int);
+void		diskwrite(Disk*, Block**, Rune*, unsigned int);
 
 struct Buffer
 {
-	uint	nc;
+	unsigned int	nc;
 	Rune	*c;			/* cache */
-	uint	cnc;			/* bytes in cache */
-	uint	cmax;		/* size of allocated cache */
-	uint	cq;			/* position of cache */
+	unsigned int	cnc;			/* bytes in cache */
+	unsigned int	cmax;		/* size of allocated cache */
+	unsigned int	cq;			/* position of cache */
 	int		cdirty;	/* cache needs to be written */
-	uint	cbi;			/* index of cache Block */
+	unsigned int	cbi;			/* index of cache Block */
 	Block	**bl;		/* array of blocks */
-	uint	nbl;			/* number of blocks */
+	unsigned int	nbl;			/* number of blocks */
 };
-void		bufinsert(Buffer*, uint, Rune*, uint);
-void		bufdelete(Buffer*, uint, uint);
-uint		bufload(Buffer*, uint, int, int*);
-void		bufread(Buffer*, uint, Rune*, uint);
+void		bufinsert(Buffer*, unsigned int, Rune*, unsigned int);
+void		bufdelete(Buffer*, unsigned int, unsigned int);
+unsigned int		bufload(Buffer*, unsigned int, int, int*);
+void		bufread(Buffer*, unsigned int, Rune*, unsigned int);
 void		bufclose(Buffer*);
 void		bufreset(Buffer*);
 
 struct Elog
 {
 	short	type;		/* Delete, Insert, Filename */
-	uint		q0;		/* location of change (unused in f) */
-	uint		nd;		/* number of deleted characters */
-	uint		nr;		/* # runes in string or file name */
+	unsigned int		q0;		/* location of change (unused in f) */
+	unsigned int		nd;		/* number of deleted characters */
+	unsigned int		nr;		/* # runes in string or file name */
 	Rune		*r;
 };
 void	elogterm(File*);
@@ -141,8 +141,8 @@ struct File
 	Elog		elog;		/* current pending change */
 	Rune		*name;	/* name of associated file */
 	int		nname;	/* size of name */
-	uvlong	qidpath;	/* of file when read */
-	uint		mtime;	/* of file when read */
+	uint64_t	qidpath;	/* of file when read */
+	unsigned int		mtime;	/* of file when read */
 	int		dev;		/* of file when read */
 	int		unread;	/* file has not been read from disk */
 	int		editclean;	/* mark clean after edit command */
@@ -156,18 +156,18 @@ struct File
 };
 File*		fileaddtext(File*, Text*);
 void		fileclose(File*);
-void		filedelete(File*, uint, uint);
+void		filedelete(File*, unsigned int, unsigned int);
 void		filedeltext(File*, Text*);
-void		fileinsert(File*, uint, Rune*, uint);
-uint		fileload(File*, uint, int, int*);
+void		fileinsert(File*, unsigned int, Rune*, unsigned int);
+unsigned int		fileload(File*, unsigned int, int, int*);
 void		filemark(File*);
 void		filereset(File*);
 void		filesetname(File*, Rune*, int);
-void		fileundelete(File*, Buffer*, uint, uint);
-void		fileuninsert(File*, Buffer*, uint, uint);
+void		fileundelete(File*, Buffer*, unsigned int, unsigned int);
+void		fileuninsert(File*, Buffer*, unsigned int, unsigned int);
 void		fileunsetname(File*, Buffer*);
-void		fileundo(File*, int, uint*, uint*);
-uint		fileredoseq(File*);
+void		fileundo(File*, int, unsigned int*, unsigned int*);
+unsigned int		fileredoseq(File*);
 
 enum	/* Text.what */
 {
@@ -202,34 +202,38 @@ struct Text
 	int	nofill;
 };
 
-uint		textbacknl(Text*, uint, uint);
-uint		textbsinsert(Text*, uint, Rune*, uint, int, int*);
+unsigned int		textbacknl(Text*, unsigned int, unsigned int);
+unsigned int		textbsinsert(Text*, unsigned int, Rune*,
+					 unsigned int, int, int*);
 int		textbswidth(Text*, Rune);
-int		textclickmatch(Text*, int, int, int, uint*);
+int		textclickmatch(Text*, int, int, int, unsigned int*);
 void		textclose(Text*);
 void		textcolumnate(Text*, Dirlist**, int);
 void		textcommit(Text*, int);
-void		textconstrain(Text*, uint, uint, uint*, uint*);
-void		textdelete(Text*, uint, uint, int);
-void		textdoubleclick(Text*, uint*, uint*);
+void		textconstrain(Text*, unsigned int, unsigned int,
+				  unsigned int*, unsigned int*);
+void		textdelete(Text*, unsigned int, unsigned int, int);
+void		textdoubleclick(Text*, unsigned int*, unsigned int*);
 void		textfill(Text*);
 void		textframescroll(Text*, int);
 void		textinit(Text*, File*, Rectangle, Reffont*, Image**);
-void		textinsert(Text*, uint, Rune*, uint, int);
-uint		textload(Text*, uint, char*, int);
-Rune		textreadc(Text*, uint);
+void		textinsert(Text*, unsigned int, Rune*, unsigned int,
+			       int);
+unsigned int		textload(Text*, unsigned int, char*, int);
+Rune		textreadc(Text*, unsigned int);
 void		textredraw(Text*, Rectangle, Font*, Image*, int);
 void		textreset(Text*);
 int		textresize(Text*, Rectangle);
 void		textscrdraw(Text*);
 void		textscroll(Text*, int);
 void		textselect(Text*);
-int		textselect2(Text*, uint*, uint*, Text**);
-int		textselect23(Text*, uint*, uint*, Image*, int);
-int		textselect3(Text*, uint*, uint*);
-void		textsetorigin(Text*, uint, int);
-void		textsetselect(Text*, uint, uint);
-void		textshow(Text*, uint, uint, int);
+int		textselect2(Text*, unsigned int*, unsigned int*, Text**);
+int		textselect23(Text*, unsigned int*, unsigned int*, Image*,
+				int);
+int		textselect3(Text*, unsigned int*, unsigned int*);
+void		textsetorigin(Text*, unsigned int, int);
+void		textsetselect(Text*, unsigned int, unsigned int);
+void		textshow(Text*, unsigned int, unsigned int, int);
 void		texttype(Text*, Rune);
 
 struct Window
@@ -239,17 +243,17 @@ struct Window
 	Text		tag;
 	Text		body;
 	Rectangle	r;
-	uchar	isdir;
-	uchar	isscratch;
-	uchar	filemenu;
-	uchar	dirty;
-	uchar	autoindent;
+	uint8_t	isdir;
+	uint8_t	isscratch;
+	uint8_t	filemenu;
+	uint8_t	dirty;
+	uint8_t	autoindent;
 	int		id;
 	Range	addr;
 	Range	limit;
-	uchar	nopen[QMAX];
-	uchar	nomark;
-	uchar	noscroll;
+	uint8_t	nopen[QMAX];
+	uint8_t	nomark;
+	uint8_t	noscroll;
 	Range	wrselrange;
 	int		rdselfd;
 	Column	*col;
@@ -363,9 +367,9 @@ struct Command
 struct Dirtab
 {
 	char	*name;
-	uchar	type;
-	uint	qid;
-	uint	perm;
+	uint8_t	type;
+	unsigned int	qid;
+	unsigned int	perm;
 };
 
 struct Mntdir
@@ -390,7 +394,7 @@ struct Fid
 	Fid		*next;
 	Mntdir	*mntdir;
 	int		nrpart;
-	uchar	rpart[UTFmax];
+	uint8_t	rpart[UTFmax];
 };
 
 
@@ -401,7 +405,7 @@ struct Xfid
 	Xfid	*next;
 	Channel	*c;		/* chan(void(*)(Xfid*)) */
 	Fid	*f;
-	uchar	*buf;
+	uint8_t	*buf;
 	int	flushed;
 
 };
@@ -416,8 +420,8 @@ void		xfidctlwrite(Xfid*, Window*);
 void		xfideventread(Xfid*, Window*);
 void		xfideventwrite(Xfid*, Window*);
 void		xfidindexread(Xfid*);
-void		xfidutfread(Xfid*, Text*, uint, int);
-int		xfidruneread(Xfid*, Text*, uint, uint);
+void		xfidutfread(Xfid*, Text*, unsigned int, int);
+int		xfidruneread(Xfid*, Text*, unsigned int, unsigned int);
 
 struct Reffont
 {
@@ -442,8 +446,8 @@ struct Dirlist
 
 struct Expand
 {
-	uint	q0;
-	uint	q1;
+	unsigned int	q0;
+	unsigned int	q1;
 	Rune	*name;
 	int	nname;
 	char	*bname;
@@ -452,7 +456,7 @@ struct Expand
 		Text	*at;
 		Rune	*ar;
 	};
-	int	(*agetc)(void*, uint);
+	int	(*agetc)(void*, unsigned int);
 	int	a0;
 	int	a1;
 };
@@ -470,7 +474,7 @@ enum
 };
 
 #define	QID(w,q)	((w<<8)|(q))
-#define	WIN(q)	((((ulong)(q).path)>>8) & 0xFFFFFF)
+#define	WIN(q)	((((uint32_t)(q).path)>>8) & 0xFFFFFF)
 #define	FILE(q)	((q).path & 0xFF)
 
 enum
@@ -497,9 +501,9 @@ enum	/* editing */
 	Collecting,
 };
 
-uint		globalincref;
-uint		seq;
-uint		maxtab;	/* size of a tab, in units of the '0' character */
+unsigned int		globalincref;
+unsigned int		seq;
+unsigned int		maxtab;	/* size of a tab, in units of the '0' character */
 
 Display		*display;
 Image		*screen;
@@ -537,7 +541,7 @@ Image		*tagcols[NCOL];
 Image		*textcols[NCOL];
 int			plumbsendfd;
 int			plumbeditfd;
-char			wdir[];
+char			wdir[512];
 int			editing;
 int			messagesize;		/* negotiated in 9P version setup */
 int			globalautoindent;

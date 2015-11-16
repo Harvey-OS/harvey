@@ -45,7 +45,7 @@ timercancel(Timer *t)
 
 static
 void
-timerproc(void*)
+timerproc(void*v)
 {
 	int i, nt, na, dt, del;
 	Timer **t, *x;
