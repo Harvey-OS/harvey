@@ -57,7 +57,7 @@ void	readfile(Column*, char*);
 int	shutdown(void*, char*);
 
 void
-derror(Display*, char *errorstr)
+derror(Display*d, char *errorstr)
 {
 	error(errorstr);
 }
@@ -272,7 +272,7 @@ char *oknotes[] ={
 int	dumping;
 
 int
-shutdown(void*, char *msg)
+shutdown(void*v, char *msg)
 {
 	int i;
 
@@ -306,7 +306,7 @@ killprocs(void)
 static int errorfd;
 
 void
-acmeerrorproc(void *)
+acmeerrorproc(void *v)
 {
 	char *buf;
 	int n;
@@ -349,7 +349,7 @@ acmeerrorinit(void)
 }
 
 void
-plumbproc(void *)
+plumbproc(void *v)
 {
 	Plumbmsg *m;
 
@@ -363,7 +363,7 @@ plumbproc(void *)
 }
 
 void
-keyboardthread(void *)
+keyboardthread(void *v)
 {
 	Rune r;
 	Timer *timer;
@@ -424,7 +424,7 @@ keyboardthread(void *)
 }
 
 void
-mousethread(void *)
+mousethread(void *v)
 {
 	Text *t, *argt;
 	int but;
@@ -590,7 +590,7 @@ struct Pid
 };
 
 void
-waitthread(void *)
+waitthread(void *v)
 {
 	Waitmsg *w;
 	Command *c, *lc;
@@ -721,7 +721,7 @@ waitthread(void *)
 }
 
 void
-xfidallocthread(void*)
+xfidallocthread(void*v)
 {
 	Xfid *xfree, *x;
 	enum { Alloc, Free, N };
@@ -761,7 +761,7 @@ xfidallocthread(void*)
 
 /* this thread, in the main proc, allows fsysproc to get a window made without doing graphics */
 void
-newwindowthread(void*)
+newwindowthread(void*v)
 {
 	Window *w;
 
