@@ -41,7 +41,7 @@
 			"-lc"
 		],
 		"Post": [
-			"rm *.o"
+			"rm -f *.o"
 		],
 		"Pre": [
 			"rm -f *.tag.*"
