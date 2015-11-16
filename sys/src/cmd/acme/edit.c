@@ -354,9 +354,9 @@ freecmd(void)
 	int i;
 
 	while(cmdlist.nused > 0)
-		free(cmdlist.ucharptr[--cmdlist.nused]);
+		free(cmdlist.uint8_tptr[--cmdlist.nused]);
 	while(addrlist.nused > 0)
-		free(addrlist.ucharptr[--addrlist.nused]);
+		free(addrlist.uint8_tptr[--addrlist.nused]);
 	while(stringlist.nused>0){
 		i = --stringlist.nused;
 		freestring(stringlist.stringptr[i]);
