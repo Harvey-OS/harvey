@@ -185,34 +185,6 @@ multadd(Bigint *b, int m, int a)	/* multiply by m and add a */
 	return b;
 }
 
-static Bigint *
-s2b(const char *s, int nd0, int nd, unsigned int y9)
-{
-	Bigint * b;
-	int	i, k;
-	int x, y;
-
-	x = (nd + 8) / 9;
-	for (k = 0, y = 1; x > y; y <<= 1, k++) 
-		;
-	b = Balloc(k);
-	b->x[0] = y9;
-	b->wds = 1;
-
-	i = 9;
-	if (9 < nd0) {
-		s += 9;
-		do 
-			b = multadd(b, 10, *s++ - '0');
-		while (++i < nd0);
-		s++;
-	} else
-		s += 10;
-	for (; i < nd; i++)
-		b = multadd(b, 10, *s++ - '0');
-	return b;
-}
-
 static int	
 hi0bits(register unsigned int x)
 {
@@ -517,46 +489,6 @@ diff(Bigint *a, Bigint *b)
 	return c;
 }
 
-static double	
-ulp(double x)
-{
-	uint32_t L;
-	Ulongs uls;
-
-	uls = double2ulongs(x);
-	L = (uls.hi & Exp_mask) - (P - 1) * Exp_msk1;
-	return ulongs2double((Ulongs){L, 0});
-}
-
-static double	
-b2d(Bigint *a, int *e)
-{
-	unsigned *xa, *xa0, w, y, z;
-	int	k;
-	uint32_t d0, d1;
-
-	xa0 = a->x;
-	xa = xa0 + a->wds;
-	y = *--xa;
-	k = hi0bits(y);
-	*e = 32 - k;
-	if (k < Ebits) {
-		w = xa > xa0 ? *--xa : 0;
-		d1 = y << (32 - Ebits) + k | w >> Ebits - k;
-		return ulongs2double((Ulongs){Exp_1 | y >> Ebits - k, d1});
-	}
-	z = xa > xa0 ? *--xa : 0;
-	if (k -= Ebits) {
-		d0 = Exp_1 | y << k | z >> 32 - k;
-		y = xa > xa0 ? *--xa : 0;
-		d1 = z << k | y >> 32 - k;
-	} else {
-		d0 = Exp_1 | y;
-		d1 = z;
-	}
-	return ulongs2double((Ulongs){d0, d1});
-}
-
 static Bigint *
 d2b(double d, int *e, int *bits)
 {
@@ -592,29 +524,6 @@ d2b(double d, int *e, int *bits)
 	return b;
 }
 
-static double	
-ratio(Bigint *a, Bigint *b)
-{
-	double	da, db;
-	int	k, ka, kb;
-	Ulongs uls;
-
-	da = b2d(a, &ka);
-	db = b2d(b, &kb);
-	k = ka - kb + 32 * (a->wds - b->wds);
-	if (k > 0) {
-		uls = double2ulongs(da);
-		uls.hi += k * Exp_msk1;
-		da = ulongs2double(uls);
-	} else {
-		k = -k;
-		uls = double2ulongs(db);
-		uls.hi += k * Exp_msk1;
-		db = ulongs2double(uls);
-	}
-	return da / db;
-}
-
 static const double
 tens[] = {
 	1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
@@ -639,65 +548,6 @@ static const double tinytens[] = {
 #define NAN_WORD0 0x7ff80000
 
 #define NAN_WORD1 0
-
-static int	
-match(const char **sp, char *t)
-{
-	int	c, d;
-	const char * s = *sp;
-
-	while (d = *t++) {
-		if ((c = *++s) >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-		if (c != d)
-			return 0;
-	}
-	*sp = s + 1;
-	return 1;
-}
-
-static void	
-gethex(double *rvp, const char **sp)
-{
-	unsigned int c, x[2];
-	const char * s;
-	int	havedig, udx0, xshift;
-
-	x[0] = x[1] = 0;
-	havedig = xshift = 0;
-	udx0 = 1;
-	s = *sp;
-	while (c = *(const unsigned char * )++s) {
-		if (c >= '0' && c <= '9')
-			c -= '0';
-		else if (c >= 'a' && c <= 'f')
-			c += 10 - 'a';
-		else if (c >= 'A' && c <= 'F')
-			c += 10 - 'A';
-		else if (c <= ' ') {
-			if (udx0 && havedig) {
-				udx0 = 0;
-				xshift = 1;
-			}
-			continue;
-		} else if (/*(*/ c == ')') {
-			*sp = s + 1;
-			break;
-		} else
-			return;	/* invalid form: don't change *sp */
-		havedig = 1;
-		if (xshift) {
-			xshift = 0;
-			x[0] = x[1];
-			x[1] = 0;
-		}
-		if (udx0)
-			x[0] = (x[0] << 4) | (x[1] >> 28);
-		x[1] = (x[1] << 4) | c;
-	}
-	if ((x[0] &= 0xfffff) || x[1])
-		*rvp = ulongs2double((Ulongs){Exp_mask | x[0], x[1]});
-}
 
 static int	
 quorem(Bigint *b, Bigint *S)
