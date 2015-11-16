@@ -1,5 +1,5 @@
 {
-	"Cmds": {
+	"Dirs": {
 		"Include": [
 			"cmd.json"
 		],
@@ -29,7 +29,13 @@
 			"rio/rio.json",
 			"syscall/syscall.json",
 			"venti/venti.json"
+		]
+	},
+	"Cmd": {
+		"Include": [
+			"cmd.json"
 		],
+		"Install": "/$ARCH/bin/",
 		"SourceFilesCmd": [
 			"aan.c",
 			"archfs.c",
