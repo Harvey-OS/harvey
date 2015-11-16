@@ -136,7 +136,7 @@ rowresize(Row *row, Rectangle r)
 }
 
 void
-rowdragcol(Row *row, Column *c, int)
+rowdragcol(Row *row, Column *c, int a)
 {
 	Rectangle r;
 	int i, b, x;

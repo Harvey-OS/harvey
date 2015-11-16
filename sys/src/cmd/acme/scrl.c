@@ -83,7 +83,7 @@ textscrdraw(Text *t)
 		r2.min.x = r2.max.x-1;
 		draw(b, r2, t->cols[BORD], nil, ZP);
 		draw(t->b, r, b, nil, Pt(0, r1.min.y));
-/*flushimage(display, 1);/*BUG?*/
+/*flushimage(display, 1);/ *BUG?*/
 	}
 }
 
