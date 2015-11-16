@@ -1,5 +1,8 @@
 {
 	"KernelLibmemlayer": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../klib.json"
 		],

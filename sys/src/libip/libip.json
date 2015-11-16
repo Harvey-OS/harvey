@@ -1,5 +1,8 @@
 {
 	"Libip": {
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"../lib.json"
 		],
