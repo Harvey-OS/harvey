@@ -1,0 +1,52 @@
+{
+	"zlib": {
+		"Cflags": [
+			"-I ./build",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Oflags": [
+			"-nostdlib"
+		],
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libz.a",
+		"Pre": [
+			"cp upstream/*.[hc] build/",
+			"cp zconf.h build/",
+			"cp hacks.c build/",
+			"for f in patch/*.patch; do patch -p0 -i $f; done"
+		],
+		"Post": [
+			"touch build/u.h build/libc.h build/stdio.h",
+			"cat build/zlib.h | cpp -DHARVEY -DNO_FSEEKO -DNO_STRERROR -nostdinc -std=c11 -Werror -I ./build | grep '^[^#]' | sed '/uopen/D' > $HARVEY/sys/include/zlib.h",
+			"rm build/u.h build/libc.h build/stdio.h"
+		],
+		"SourceFiles": [
+			"build/hacks.c",
+			"build/adler32.c",
+			"build/compress.c",
+			"build/crc32.c",
+			"build/deflate.c",
+			"build/gzclose.c",
+			"build/gzlib.c",
+			"build/gzread.c",
+			"build/infback.c",
+			"build/inffast.c",
+			"build/inflate.c",
+			"build/inftrees.c",
+			"build/trees.c",
+			"build/uncompr.c",
+			"build/zutil.c"
+		]
+	}
+}

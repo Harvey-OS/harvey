@@ -14,6 +14,8 @@ amd64/lib
 
 sys/log
 
+sys/include/zlib.h
+
 sys/src/9/k10/9*
 sys/src/9/k10/init
 sys/src/libc/9syscall/sys.h
