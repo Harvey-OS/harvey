@@ -1,0 +1,38 @@
+--- upstream/gzwrite.c	2013-04-13 20:04:06.000000000 -0500
++++ build/gzwrite.c	2015-11-23 10:34:48.247449029 -0600
+@@ -218,7 +218,7 @@
+             memcpy(state->in + have, buf, copy);
+             strm->avail_in += copy;
+             state->x.pos += copy;
+-            buf = (const char *)buf + copy;
++            buf = buf + copy;
+             len -= copy;
+             if (len && gz_comp(state, Z_NO_FLUSH) == -1)
+                 return 0;
+@@ -299,7 +299,7 @@
+ 
+     /* write string */
+     len = (unsigned)strlen(str);
+-    ret = gzwrite(file, str, len);
++    ret = gzwrite(file, (voidpc)str, len);
+     return ret == 0 && len != 0 ? -1 : ret;
+ }
+ 
+@@ -369,7 +369,7 @@
+     return len;
+ }
+ 
+-int ZEXPORTVA gzprintf(gzFile file, const char *format, ...)
++int ZEXPORTVA gzprintf_(gzFile file, const char *format, ...)
+ {
+     va_list va;
+     int ret;
+@@ -383,7 +383,7 @@
+ #else /* !STDC && !Z_HAVE_STDARG_H */
+ 
+ /* -- see zlib.h -- */
+-int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
++int ZEXPORTVA gzprintf_ (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
+                        a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
+     gzFile file;
+     const char *format;
