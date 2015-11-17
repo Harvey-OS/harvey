@@ -1,0 +1,11 @@
+--- upstream/gzread.c	2013-03-25 00:47:59.000000000 -0500
++++ build/gzread.c	2015-11-23 10:20:25.736442360 -0600
+@@ -369,7 +369,7 @@
+ 
+         /* update progress */
+         len -= n;
+-        buf = (char *)buf + n;
++        buf = buf + n;
+         got += n;
+         state->x.pos += n;
+     } while (len);

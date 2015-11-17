@@ -1,0 +1,37 @@
+{
+	"Regress": {
+		"Cflags": [
+			"-lz",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lz",
+			"-lstdio",
+			"-lc"
+		],
+		"Pre": [
+			"tac upstream/test/example.c | sed -f fix-tests.sed | tac > build/example.c"
+		],
+		"Post": [
+			"rm -f *.o"
+		],
+		"Program": "example",
+		"Install": "/$ARCH/bin/regress/zlib",
+		"SourceFiles": [
+			"build/example.c"
+		]
+	}
+}

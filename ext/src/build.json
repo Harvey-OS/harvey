@@ -1,0 +1,12 @@
+{
+	"All": {
+		"Projects": [
+			"libz/build.json"
+		]
+	},
+	"Regress": {
+		"Projects": [
+			"libz/regress.json"
+		]
+	}
+}
