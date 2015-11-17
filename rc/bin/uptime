@@ -5,4 +5,4 @@ sec=$xx(1)
 days=$xx(2)
 cat /dev/sysname
 echo -n ' up '$days' days, '
-timezone='MDT -21600' date $sec |awk '{print $4}'
+timezone='MDT -21600' date $sec | field 4
