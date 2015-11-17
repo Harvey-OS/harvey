@@ -1,0 +1,12 @@
+--- upstream/zutil.c	2012-08-13 02:02:40.000000000 -0500
++++ build/zutil.c	2015-11-23 10:16:54.733578125 -0600
+@@ -296,9 +296,6 @@
+ #ifndef MY_ZCALLOC /* Any system without a special alloc function */
+ 
+ #ifndef STDC
+-extern voidp  malloc OF((uInt size));
+-extern voidp  calloc OF((uInt items, uInt size));
+-extern void   free   OF((voidpf ptr));
+ #endif
+ 
+ voidpf ZLIB_INTERNAL zcalloc (opaque, items, size)

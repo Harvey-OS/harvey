@@ -1,0 +1,11 @@
+--- upstream/gzlib.c	2013-03-25 00:47:59.000000000 -0500
++++ build/gzlib.c	2015-11-23 10:23:13.352362626 -0600
+@@ -242,7 +242,7 @@
+ #ifdef _WIN32
+         fd == -2 ? _wopen(path, oflag, 0666) :
+ #endif
+-        open((const char *)path, oflag, 0666));
++        uopen((const char *)path, oflag, 0666));
+     if (state->fd == -1) {
+         free(state->path);
+         free(state);
