@@ -1,0 +1,92 @@
+{
+	"zlib": {
+		"Cflags": [
+			"-I ./tmp",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Oflags": [
+			"-nostdlib"
+		],
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libz.a",
+		"PreFetch": {
+			"zlib.tar.gz": "http://zlib.net/zlib-1.2.8.tar.gz"
+		},
+		"Pre": [
+			"tar xf zlib.tar.gz -C zlib --strip-components 1",
+			"cp zlib/*.h tmp/",
+			"cp zlib/*.c tmp/",
+			"cp zconf.h tmp/",
+			"cp hacks.c tmp/",
+			"cat zlib/gzguts.h | sed -e '/#include <stdio.h>/D' -e '/extern voidp  malloc OF((uInt size));/D' -e '/extern void   free   OF((voidpf ptr));/D' > tmp/gzguts.h",
+			"cat zlib/zutil.c | sed -e '/extern voidp  malloc OF((uInt size));/D' -e '/extern void   free   OF((voidpf ptr));/D' -e '/extern voidp  calloc OF((uInt items, uInt size));/D' > tmp/zutil.c",
+			"cat zlib/gzread.c | sed 's/buf = (char \\*)/buf = /g' > tmp/gzread.c",
+			"cat zlib/gzwrite.c | sed -e 's/gzprintf/gzprintf_/g' -e 's/buf = (const char \\*)/buf = /g' -e 's/ret = gzwrite(file, str, len);/ret = gzwrite(file, (voidpc)str, len);/g' > tmp/gzwrite.c",
+			"cat zlib/gzlib.c | sed 's/open((/uopen((/g' > tmp/gzlib.c",
+			"#cat zlib/zlib.h | sed '/gzprintf/s/\\.\\.\\./int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15, int a16, int a17, int a18, int a19, int a20/' > tmp/zlib.h"
+		],
+		"Post": [
+			"cp tmp/zlib.h $HARVEY/sys/include",
+			"rm -fr zlib.tar.gz"
+		],
+		"SourceFiles": [
+			"tmp/hacks.c",
+			"tmp/adler32.c",
+			"tmp/compress.c",
+			"tmp/crc32.c",
+			"tmp/deflate.c",
+			"tmp/gzclose.c",
+			"tmp/gzlib.c",
+			"tmp/gzread.c",
+			"tmp/infback.c",
+			"tmp/inffast.c",
+			"tmp/inflate.c",
+			"tmp/inftrees.c",
+			"tmp/trees.c",
+			"tmp/uncompr.c",
+			"tmp/zutil.c"
+		]
+	},
+	"regress": {
+		"Cflags": [
+			"-lz",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Include": [
+			"/amd64/include/cflags.json"
+		],
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lz",
+			"-lstdio",
+			"-lc"
+		],
+		"Pre": [
+			"cat zlib/test/example.c | sed '/stdio.h/D' > tmp/example.c"
+		],
+		"Install": "/$ARCH/bin/regress/zlib",
+		"SourceFilesCmd": [
+			"tmp/example.c"
+		]
+	}
+}
