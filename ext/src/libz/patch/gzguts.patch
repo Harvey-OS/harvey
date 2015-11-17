@@ -1,0 +1,19 @@
+--- upstream/gzguts.h	2013-04-13 20:04:06.000000000 -0500
++++ build/gzguts.h	2015-11-23 10:11:34.281377864 -0600
+@@ -18,7 +18,6 @@
+ #  define ZLIB_INTERNAL
+ #endif
+ 
+-#include <stdio.h>
+ #include "zlib.h"
+ #ifdef STDC
+ #  include <string.h>
+@@ -110,8 +109,6 @@
+ 
+ /* gz* functions always use library allocation functions */
+ #ifndef STDC
+-  extern voidp  malloc OF((uInt size));
+-  extern void   free   OF((voidpf ptr));
+ #endif
+ 
+ /* get errno and strerror definition */
