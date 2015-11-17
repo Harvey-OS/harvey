@@ -1,0 +1,34 @@
+{
+	"regress": {
+		"Cflags": [
+			"-lz",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lz",
+			"-lstdio",
+			"-lc"
+		],
+		"Pre": [
+			"echo '2a0dd0894c35b8736ff2bee925aab35b473a6c6b432b25e56442bacb0e72bc3a  zlib.tar.gz'|sha256sum -c",
+			"tac zlib/test/example.c | sed -f fix-tests.sed | tac > tmp/example.c"
+		],
+		"Install": "/$ARCH/bin/regress/zlib",
+		"SourceFilesCmd": [
+			"tmp/example.c"
+		]
+	}
+}

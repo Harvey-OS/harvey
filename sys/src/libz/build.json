@@ -1,0 +1,11 @@
+{
+	"All": {
+		"PreFetch": {
+			"zlib.tar.gz": "http://zlib.net/zlib-1.2.8.tar.gz"
+		},
+		"Projects": [
+			"libz.json",
+			"regress.json"
+		]
+	}
+}

@@ -1,0 +1,61 @@
+{
+	"zlib": {
+		"Cflags": [
+			"-I ./tmp",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Oflags": [
+			"-nostdlib"
+		],
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libz.a",
+		"Pre": [
+			"echo '2a0dd0894c35b8736ff2bee925aab35b473a6c6b432b25e56442bacb0e72bc3a  zlib.tar.gz'|sha256sum -c",
+			"tar xf zlib.tar.gz -C zlib --strip-components 1",
+			"cp zlib/*.h tmp/",
+			"cp zlib/*.c tmp/",
+			"cp zconf.h tmp/",
+			"cp hacks.c tmp/",
+			"cat zlib/gzguts.h | sed -e '/#include <stdio.h>/D' -e '/extern voidp  malloc OF((uInt size));/D' -e '/extern void   free   OF((voidpf ptr));/D' > tmp/gzguts.h",
+			"cat zlib/zutil.c | sed -e '/extern voidp  malloc OF((uInt size));/D' -e '/extern void   free   OF((voidpf ptr));/D' -e '/extern voidp  calloc OF((uInt items, uInt size));/D' > tmp/zutil.c",
+			"cat zlib/gzread.c | sed 's/buf = (char \\*)/buf = /g' > tmp/gzread.c",
+			"cat zlib/gzwrite.c | sed -e 's/gzprintf/gzprintf_/g' -e 's/buf = (const char \\*)/buf = /g' -e 's/ret = gzwrite(file, str, len);/ret = gzwrite(file, (voidpc)str, len);/g' > tmp/gzwrite.c",
+			"cat zlib/gzlib.c | sed 's/open((/uopen((/g' > tmp/gzlib.c"
+		],
+		"Post": [
+			"echo > tmp/u.h",
+			"echo > tmp/libc.h",
+			"echo > tmp/stdio.h",
+			"cat tmp/zlib.h | cpp -DHARVEY -DNO_FSEEKO -DNO_STRERROR -nostdinc -std=c11 -Werror -I ./tmp | grep '^[^#]' | sed '/uopen/D' > $HARVEY/sys/include/zlib.h",
+			"rm tmp/u.h tmp/libc.h tmp/stdio.h"
+		],
+		"SourceFiles": [
+			"tmp/hacks.c",
+			"tmp/adler32.c",
+			"tmp/compress.c",
+			"tmp/crc32.c",
+			"tmp/deflate.c",
+			"tmp/gzclose.c",
+			"tmp/gzlib.c",
+			"tmp/gzread.c",
+			"tmp/infback.c",
+			"tmp/inffast.c",
+			"tmp/inflate.c",
+			"tmp/inftrees.c",
+			"tmp/trees.c",
+			"tmp/uncompr.c",
+			"tmp/zutil.c"
+		]
+	}
+}
