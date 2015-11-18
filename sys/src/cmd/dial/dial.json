@@ -3,12 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv at $HARVEY/amd64/bin/",
-			"mv drain $HARVEY/amd64/bin/",
-			"mv expect $HARVEY/amd64/bin/",
-			"mv pass $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"SourceFilesCmd": [
 			"at.c",
 			"drain.c",
