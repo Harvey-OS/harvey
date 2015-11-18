@@ -39,6 +39,7 @@
 					"segment",
 					"srv",
 					"ssl",
+					"tls",
 					"uart",
 					"ws",
 					"usb",
