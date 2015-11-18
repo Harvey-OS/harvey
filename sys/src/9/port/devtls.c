@@ -241,10 +241,10 @@ static void	sslPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq,
 static void	tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq,
 			      uint8_t *header, uint8_t *body, int len,
 			      uint8_t *mac);
-static void	put64(uint8_t *p, int64_t x);
-static void	put32(uint8_t *p, uint32_t);
-static void	put24(uint8_t *p, int);
-static void	put16(uint8_t *p, int);
+static void	tput64(uint8_t *p, int64_t x);
+static void	tput32(uint8_t *p, uint32_t);
+static void	tput24(uint8_t *p, int);
+static void	tput16(uint8_t *p, int);
 //static uint32_t	get32(uint8_t *p);
 static int	get16(uint8_t *p);
 static void	tlsSetState(TlsRec *tr, int new, int old);
@@ -425,6 +425,7 @@ tlsstat(Chan *c, uint8_t *db, int32_t n)
 static Chan*
 tlsopen(Chan *c, int omode)
 {
+	Proc *up = externup();
 	TlsRec *tr, **pp;
 	int t, perm;
 
@@ -512,6 +513,7 @@ tlsopen(Chan *c, int omode)
 static int32_t
 tlswstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Proc *up = externup();
 	Dir *d;
 	TlsRec *tr;
 	int rv;
@@ -536,7 +538,7 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 		error(Eshortstat);
 	if(!emptystr(d->uid))
 		kstrdup(&tr->user, d->uid);
-	if(d->mode != ~0UL)
+	if(d->mode != (uint32_t)~0UL)
 		tr->perm = d->mode;
 
 	free(d);
@@ -566,6 +568,7 @@ dechandq(TlsRec *tr)
 static void
 tlsclose(Chan *c)
 {
+	Proc *up = externup();
 	TlsRec *tr;
 	int t;
 
@@ -748,6 +751,7 @@ tlsclosed(TlsRec *tr, int new)
 static void
 tlsrecread(TlsRec *tr)
 {
+	Proc *up = externup();
 	OneWay *volatile in;
 	Block *volatile b;
 	uint8_t *p, seq[8], header[RecHdrLen], hmac[MD5dlen];
@@ -825,8 +829,8 @@ if(tr->debug) pprint("decrypted %d\n", unpad_len);
 if(tr->debug) pdump(unpad_len, p, "decrypted:");
 
 		/* update length */
-		put16(header+3, len);
-		put64(seq, in->seq);
+		tput16(header+3, len);
+		tput64(seq, in->seq);
 		in->seq++;
 		(*tr->packMac)(in->sec, in->sec->mackey, seq, header, p, len, hmac);
 		if(unpad_len < in->sec->maclen)
@@ -927,9 +931,9 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 			b = padblock(b, 8);
 			b->rp[0] = RHandshake;
 			b->rp[1] = HSSL2ClientHello;
-			put24(&b->rp[2], len+3);
+			tput24(&b->rp[2], len+3);
 			b->rp[5] = SSL2ClientHello;
-			put16(&b->rp[6], ver);
+			tput16(&b->rp[6], ver);
 			qbwrite(tr->handq, b);
 			b = nil;
 			poperror();
@@ -1007,6 +1011,7 @@ if(tr->debug) pprint("rcvError: %s\n", msg);
 static void
 alertHand(TlsRec *tr, char *msg)
 {
+	Proc *up = externup();
 	Block *b;
 	int n;
 
@@ -1064,6 +1069,7 @@ checkstate(TlsRec *tr, int ishand, int ok)
 static Block*
 tlsbread(Chan *c, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	int ty;
 	Block *b;
 	TlsRec *volatile tr;
@@ -1138,6 +1144,7 @@ if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 static int32_t
 tlsread(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Block *volatile b;
 	Block *nb;
 	uint8_t *va;
@@ -1228,6 +1235,7 @@ tlsread(Chan *c, void *a, int32_t n, int64_t off)
 static void
 tlsrecwrite(TlsRec *tr, int type, Block *b)
 {
+	Proc *up = externup();
 	Block *volatile bb;
 	Block *nb;
 	uint8_t *p, seq[8];
@@ -1289,11 +1297,11 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 
 		p = nb->rp;
 		p[0] = type;
-		put16(p+1, tr->version);
-		put16(p+3, n);
+		tput16(p+1, tr->version);
+		tput16(p+3, n);
 
 		if(out->sec != nil){
-			put64(seq, out->seq);
+			tput64(seq, out->seq);
 			out->seq++;
 			(*tr->packMac)(out->sec, out->sec->mackey, seq, p, p + RecHdrLen, n, p + RecHdrLen + n);
 			n += maclen;
@@ -1303,7 +1311,7 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 			nb->wp = p + RecHdrLen + n;
 
 			/* update length */
-			put16(p+3, n);
+			tput16(p+3, n);
 		}
 		if(type == RChangeCipherSpec){
 			if(out->new == nil)
@@ -1480,6 +1488,7 @@ parseencalg(char *p)
 static int32_t
 tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Encalg *ea;
 	Hashalg *ha;
 	TlsRec *volatile tr;
@@ -1795,6 +1804,7 @@ buftochan(char *p)
 static void
 sendAlert(TlsRec *tr, int err)
 {
+	Proc *up = externup();
 	Block *b;
 	int i, fatal;
 	char *msg;
@@ -1877,6 +1887,7 @@ tlshangup(TlsRec *tr)
 static TlsRec*
 newtls(Chan *ch)
 {
+	Proc *up = externup();
 	TlsRec **pp, **ep, **np;
 	char **nmp;
 	int t, newmax;
@@ -1927,6 +1938,7 @@ newtls(Chan *ch)
 static TlsRec *
 mktlsrec(void)
 {
+	Proc *up = externup();
 	TlsRec *tr;
 
 	tr = mallocz(sizeof(*tr), 1);
@@ -2133,7 +2145,7 @@ tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq, uint8_t *header,
 }
 
 static void
-put32(uint8_t *p, uint32_t x)
+tput32(uint8_t *p, uint32_t x)
 {
 	p[0] = x>>24;
 	p[1] = x>>16;
@@ -2142,14 +2154,14 @@ put32(uint8_t *p, uint32_t x)
 }
 
 static void
-put64(uint8_t *p, int64_t x)
+tput64(uint8_t *p, int64_t x)
 {
-	put32(p, (uint32_t)(x >> 32));
-	put32(p+4, (uint32_t)x);
+	tput32(p, (uint32_t)(x >> 32));
+	tput32(p+4, (uint32_t)x);
 }
 
 static void
-put24(uint8_t *p, int x)
+tput24(uint8_t *p, int x)
 {
 	p[0] = x>>16;
 	p[1] = x>>8;
@@ -2157,7 +2169,7 @@ put24(uint8_t *p, int x)
 }
 
 static void
-put16(uint8_t *p, int x)
+tput16(uint8_t *p, int x)
 {
 	p[0] = x>>8;
 	p[1] = x;
