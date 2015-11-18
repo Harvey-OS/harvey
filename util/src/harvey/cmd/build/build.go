@@ -8,30 +8,27 @@
 // Needed: HARVEY, ARCH
 //
 // Currently only "amd64" is a valid ARCH. HARVEY should point to a harvey root.
+// A best-effort to autodetect the harvey root is made if not explicitly set.
 //
-// Optional: CC, AR, LD, RANLIB, STRIP, TOOLPREFIX
+// Optional: CC, AR, LD, RANLIB, STRIP, SH, TOOLPREFIX
 //
 // These all control how the needed tools are found.
 //
 package main
 
 import (
-	"bytes"
-	"debug/elf"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"text/template"
 )
 
 type kernconfig struct {
@@ -58,7 +55,6 @@ type build struct {
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
 	Projects    []string
-	PreFetch    map[string]string
 	Pre         []string
 	Post        []string
 	Cflags      []string
@@ -77,9 +73,37 @@ type build struct {
 	Kernel  *kernel
 }
 
+type buildfile map[string]build
+
+// UnmarshalJSON works like the stdlib unmarshal would, except it adjusts all
+// paths.
+func (bf *buildfile) UnmarshalJSON(s []byte) error {
+	r := make(map[string]build)
+	if err := json.Unmarshal(s, &r); err != nil {
+		return err
+	}
+	for k, b := range r {
+		// we're getting a copy of the struct, remember.
+		b.jsons = make(map[string]bool)
+		b.Projects = adjust(b.Projects)
+		b.Libs = adjust(b.Libs)
+		b.Cflags = adjust(b.Cflags)
+		b.ObjectFiles = adjust(b.ObjectFiles)
+		b.Include = adjust(b.Include)
+		b.Install = fromRoot(b.Install)
+		for i, e := range b.Env {
+			b.Env[i] = os.ExpandEnv(e)
+		}
+		r[k] = b
+	}
+	*bf = r
+	return nil
+}
+
 var (
-	cwd    string
-	harvey string
+	cwd       string
+	harvey    string
+	regexpAll = []*regexp.Regexp{regexp.MustCompile(".")}
 
 	// findTools looks at all env vars and absolutizes these paths
 	// also respects TOOLPREFIX
@@ -89,12 +113,13 @@ var (
 		"ld":     "ld",
 		"ranlib": "ranlib",
 		"strip":  "strip",
-		"sh":     "bash",
+		"sh":     "sh",
 	}
 	arch = map[string]bool{
 		"amd64": true,
 	}
-	debugPrint = flag.Bool("debug", false, "Enable debug prints")
+	debugPrint = flag.Bool("debug", false, "enable debug prints")
+	shellhack  = flag.Bool("shellhack", false, "spawn every command in a shell (forced on if LD_PRELOAD is set)")
 )
 
 func debug(fmt string, s ...interface{}) {
@@ -110,26 +135,31 @@ func failOn(err error) {
 	}
 }
 
-func adjust1(s string) string {
-	s = os.ExpandEnv(s)
-	if path.IsAbs(s) {
-		return path.Join(harvey, s)
+func adjust(s []string) []string {
+	for i, v := range s {
+		s[i] = fromRoot(v)
 	}
 	return s
 }
 
-func adjust(s []string) (r []string) {
-	for _, v := range s {
-		r = append(r, adjust1(v))
+// return the given absolute path as an absolute path rooted at the harvey tree.
+func fromRoot(p string) string {
+	p = os.ExpandEnv(p)
+	if path.IsAbs(p) {
+		return path.Join(harvey, p)
 	}
-	return
+	return p
 }
 
-// send cmd to a shell
+// Sh sends cmd to a shell. It's needed to enable $LD_PRELOAD tricks,
+// see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
 func sh(cmd *exec.Cmd) {
 	shell := exec.Command(tools["sh"])
 	shell.Env = cmd.Env
 
+	if cmd.Args[0] == tools["sh"] && cmd.Args[1] == "-c" {
+		cmd.Args = cmd.Args[2:]
+	}
 	commandString := strings.Join(cmd.Args, " ")
 	if shStdin, e := shell.StdinPipe(); e == nil {
 		go func() {
@@ -142,614 +172,345 @@ func sh(cmd *exec.Cmd) {
 	shell.Stderr = os.Stderr
 	shell.Stdout = os.Stdout
 
-	log.Printf("[%v]", commandString)
-	err := shell.Run()
-	failOn(err)
-}
-
-// run cmd preserving $LD_PRELOAD tricks
-func withPreloadTricks(cmd *exec.Cmd) {
-	if os.Getenv("LD_PRELOAD") != "" {
-		// we need a shell to enable $LD_PRELOAD tricks,
-		// see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
-		sh(cmd)
-	} else {
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		failOn(err)
-	}
+	debug("%q | sh\n", commandString)
+	failOn(shell.Run())
 }
 
 func include(f string, b *build) {
 	if b.jsons[f] {
 		return
 	}
+	b.jsons[f] = true
 	log.Printf("Including %v", f)
 	d, err := ioutil.ReadFile(f)
 	failOn(err)
-	var builds map[string]build
-	err = json.Unmarshal(d, &builds)
-	failOn(err)
+	var builds buildfile
+	failOn(json.Unmarshal(d, &builds))
 
 	for n, build := range builds {
-		b.jsons[f] = true
 		log.Printf("Merging %v", n)
-		for t, s := range(build.PreFetch) {
-			if val, ok := b.PreFetch["foo"]; ok {
-				log.Panicf("In file %s (target %s) included by %s (target %s): redefined PreFetch[%s] as %s.", f, n, build.path, build.name, t, val)
-			} else {
-				if _, err := os.Stat(t); err == nil {
-					b.PreFetch[t] = s
-				} else {
-					log.Printf("In file %s (target %s) included by %s (target %s): PreFetch[%s] skipped: file already exists.", f, n, build.path, build.name, t)
-				}
-			}
-		}
 		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
 		b.Pre = append(b.Pre, build.Pre...)
 		b.Post = append(b.Post, build.Post...)
-		b.Libs = append(b.Libs, adjust(build.Libs)...)
-		b.Projects = append(b.Projects, adjust(build.Projects)...)
+		b.Libs = append(b.Libs, build.Libs...)
+		b.Projects = append(b.Projects, build.Projects...)
 		b.Env = append(b.Env, build.Env...)
 		b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
 		b.Program += build.Program
 		b.Library += build.Library
 		if build.Install != "" {
 			if b.Install != "" {
-				log.Panicf("In file %s (target %s) included by %s (target %s): redefined Install.", f, n, build.path, build.name)
-			} else {
-				b.Install = build.Install
+				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install.", f, n, build.path, build.name)
 			}
+			b.Install = build.Install
 		}
-		b.ObjectFiles = adjust(build.ObjectFiles)
+		b.ObjectFiles = append(b.ObjectFiles, build.ObjectFiles...)
+		// For each source file, assume we create an object file with the last char replaced
+		// with 'o'. We can get smarter later.
+		for _, v := range build.SourceFiles {
+			f := path.Base(v)
+			o := f[:len(f)-1] + "o"
+			b.ObjectFiles = append(b.ObjectFiles, o)
+		}
 
-		includes := adjust(build.Include)
-		for _, v := range includes {
+		for _, v := range build.Include {
 			if !path.IsAbs(v) {
 				wd := path.Dir(f)
 				v = path.Join(wd, v)
 			}
 			include(v, b)
 		}
-
-		// For each source file, assume we create an object file with the last char replaced
-		// with 'o'. We can get smarter later.
-
-		for _, v := range build.SourceFiles {
-			f := path.Base(v)
-			o := f[:len(f)-1] + "o"
-			b.ObjectFiles = append(b.ObjectFiles, o)
-		}
 	}
 }
+
 func appendIfMissing(s []string, v string) []string {
-    for _, a := range s {
-        if a == v {
-            return s
-        }
-    }
-    return append(s, v)
+	for _, a := range s {
+		if a == v {
+			return s
+		}
+	}
+	return append(s, v)
 }
-func process(f, which string) []build {
-	r := regexp.MustCompile(which)
+
+func process(f string, r []*regexp.Regexp) []build {
 	log.Printf("Processing %v", f)
+	var builds buildfile
+	var results []build
 	d, err := ioutil.ReadFile(f)
 	failOn(err)
-	builds := map[string]build{}
-	var results []build
-	err = json.Unmarshal(d, &builds)
-	failOn(err)
-
+	failOn(json.Unmarshal(d, &builds))
 	for n, build := range builds {
 		build.name = n
-		build.jsons = map[string]bool{}
-		if !r.MatchString(build.name) {
+		build.jsons = make(map[string]bool)
+		skip := true
+		for _, re := range r {
+			if re.MatchString(build.name) {
+				skip = false
+				break
+			}
+		}
+		if skip {
 			continue
 		}
 		log.Printf("Run %v", build.name)
 		build.jsons[f] = true
-
-		cwd, err := os.Getwd()
-		failOn(err)
-		build.path = path.Join(cwd, f)
-
-		toFetch := build.PreFetch
-		for t, s := range(toFetch) {
-			if _, err := os.Stat(t); err == nil {
-				log.Printf("PreFetch[%s] skipped: file already exists.", t)
-			} else {
-				build.PreFetch[t] = s
-			}
-		}
-		build.Libs = adjust(build.Libs)
-		build.Projects = adjust(build.Projects)
-		build.ObjectFiles = adjust(build.ObjectFiles)
-
-		includes := adjust(build.Include)
-		for _, v := range includes {
-			if !path.IsAbs(v) {
-				wd := path.Dir(f)
-				v = path.Join(wd, v)
-			}
-			include(v, &build)
-		}
+		build.path = path.Dir(f)
 
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
-
 		for _, v := range build.SourceFiles {
 			f := path.Base(v)
 			o := f[:len(f)-1] + "o"
 			build.ObjectFiles = appendIfMissing(build.ObjectFiles, o)
 		}
 
+		for _, v := range build.Include {
+			include(v, &build)
+		}
 		results = append(results, build)
 	}
 	return results
-}
-
-func compile(b *build) {
-	// N.B. Plan 9 has a very well defined include structure, just three things:
-	// /amd64/include, /sys/include, .
-	args := []string{"-std=c11", "-c"}
-	args = append(args, adjust([]string{"-I", os.ExpandEnv("/$ARCH/include"), "-I", "/sys/include", "-I", "."})...)
-	args = append(args, adjust(b.Cflags)...)
-	if len(b.SourceFilesCmd) > 0 {
-		for _, i := range b.SourceFilesCmd {
-			argscmd := append(args, []string{i}...)
-			cmd := exec.Command(tools["cc"], argscmd...)
-			cmd.Env = append(os.Environ(), b.Env...)
-			withPreloadTricks(cmd)
-			argscmd = args
-		}
-	} else {
-		args = append(args, b.SourceFiles...)
-		cmd := exec.Command(tools["cc"], args...)
-		cmd.Env = append(os.Environ(), b.Env...)
-
-		withPreloadTricks(cmd)
-	}
-}
-
-func link(b *build) {
-	if len(b.SourceFilesCmd) > 0 {
-		for _, n := range b.SourceFilesCmd {
-			// Split off the last element of the file
-			var ext = filepath.Ext(n)
-			if len(ext) == 0 {
-				log.Fatalf("refusing to overwrite extension-less source file %v", n)
-				continue
-			}
-			n = n[0 : len(n)-len(ext)]
-			args := []string{"-o", n}
-			f := path.Base(n)
-			o := f[:len(f)] + ".o"
-			args = append(args, []string{o}...)
-			args = append(args, b.Oflags...)
-			args = append(args, adjust([]string{"-L", os.ExpandEnv("/$ARCH/lib")})...)
-			args = append(args, b.Libs...)
-			cmd := exec.Command(tools["ld"], args...)
-			cmd.Env = append(os.Environ(), b.Env...)
-
-			withPreloadTricks(cmd)
-		}
-	} else {
-		args := []string{"-o", b.Program}
-		args = append(args, b.ObjectFiles...)
-		args = append(args, b.Oflags...)
-		args = append(args, adjust([]string{"-L", os.ExpandEnv("/$ARCH/lib")})...)
-		args = append(args, b.Libs...)
-		cmd := exec.Command(tools["ld"], args...)
-		cmd.Env = append(os.Environ(), b.Env...)
-
-		withPreloadTricks(cmd)
-	}
-}
-
-func install(b *build) {
-	if b.Install == "" {
-		return
-	}
-	installpath := adjust([]string{os.ExpandEnv(b.Install)})
-	// Make sure they're all there.
-	for _, v := range installpath {
-		err := os.MkdirAll(v, 0755)
-		failOn(err)
-	}
-
-	if len(b.SourceFilesCmd) > 0 {
-		for _, n := range b.SourceFilesCmd {
-			// Split off the last element of the file
-			var ext = filepath.Ext(n)
-			if len(ext) == 0 {
-				log.Fatalf("refusing to overwrite extension-less source file %v", n)
-				continue
-			}
-			n = n[0 : len(n)-len(ext)]
-			args := []string{n}
-			args = append(args, installpath...)
-
-			cmd := exec.Command("mv", args...)
-
-			withPreloadTricks(cmd)
-		}
-	} else if len(b.Program) > 0 {
-		args := []string{b.Program}
-		args = append(args, installpath...)
-		cmd := exec.Command("mv", args...)
-
-		withPreloadTricks(cmd)
-	} else if len(b.Library) > 0 {
-		args := []string{"-rvs"}
-		libpath := installpath[0] + "/" + b.Library
-		args = append(args, libpath)
-		for _, n := range b.SourceFiles {
-			// All .o files end up in the top-level directory
-			n = filepath.Base(n)
-			// Split off the last element of the file
-			var ext = filepath.Ext(n)
-			if len(ext) == 0 {
-				log.Fatalf("confused by extension-less file %v", n)
-				continue
-			}
-			n = n[0 : len(n)-len(ext)]
-			n = n + ".o"
-			args = append(args, n)
-		}
-		cmd := exec.Command(tools["ar"], args...)
-
-		log.Printf("*** Installing %v ***", b.Library)
-		withPreloadTricks(cmd)
-
-		cmd = exec.Command(tools["ranlib"], libpath)
-		withPreloadTricks(cmd)
-	}
-
-}
-
-func fetchOne(source string, target string) {
-	out, err := os.Create(target)
-	failOn(err)
-	defer out.Close()
-	resp, err := http.Get(source)
-	failOn(err)
-	defer resp.Body.Close()
-	l, err := io.Copy(out, resp.Body)
-	failOn(err)
-	log.Printf("Fetched %v -> %v (%d bytes)\n", source, target, l)
-}
-func fetch(files map[string]string) {
-	for target, source := range(files){
-		fetchOne(source, target)
-	}
-}
-
-func run(b *build, cmd []string) {
-	for _, v := range cmd {
-		cmd := exec.Command(v)
-		cmd.Env = append(os.Environ(), b.Env...)
-		sh(cmd) // we need a shell here
-	}
-}
-
-func projects(b *build) {
-	for _, v := range b.Projects {
-		project(v, ".*")
-	}
-}
-
-func data2c(name string, path string) (string, error) {
-	var out []byte
-	var in []byte
-
-	if elf, err := elf.Open(path); err == nil {
-		elf.Close()
-		cwd, err := os.Getwd()
-		tmpf, err := ioutil.TempFile(cwd, name)
-		failOn(err)
-
-		args := []string{"-o", tmpf.Name(), path}
-		cmd := exec.Command(tools["strip"], args...)
-		cmd.Env = os.Environ()
-		withPreloadTricks(cmd)
-
-		in, err = ioutil.ReadAll(tmpf)
-		failOn(err)
-
-		tmpf.Close()
-		os.Remove(tmpf.Name())
-	} else {
-		var file *os.File
-		var err error
-
-		file, err = os.Open(path)
-		failOn(err)
-
-		in, err = ioutil.ReadAll(file)
-		failOn(err)
-
-		file.Close()
-	}
-
-	total := len(in)
-
-	out = []byte(fmt.Sprintf("static unsigned char ramfs_%s_code[] = {\n", name))
-	for len(in) > 0 {
-		for j := 0; j < 16 && len(in) > 0; j++ {
-			out = append(out, []byte(fmt.Sprintf("0x%02x, ", in[0]))...)
-			in = in[1:]
-		}
-		out = append(out, '\n')
-	}
-
-	out = append(out, []byte(fmt.Sprintf("0,\n};\nint ramfs_%s_len = %v;\n", name, total))...)
-
-	return string(out), nil
-}
-
-func confcode(path string, kern *kernel) []byte {
-	var rootcodes []string
-	var rootnames []string
-	if kern.Ramfiles != nil {
-		for name, path := range kern.Ramfiles {
-			code, err := data2c(name, adjust1(path))
-			failOn(err)
-
-			rootcodes = append(rootcodes, code)
-			rootnames = append(rootnames, name)
-		}
-	}
-
-	vars := struct {
-		Path      string
-		Config    kernconfig
-		Rootnames []string
-		Rootcodes []string
-	}{
-		path,
-		kern.Config,
-		rootnames,
-		rootcodes,
-	}
-	tmpl, err := template.New("kernconf").Parse(`
-#include "u.h"
-#include "../port/lib.h"
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
-#include "../port/error.h"
-#include "io.h"
-
-void
-rdb(void)
-{
-	splhi();
-	iprint("rdb...not installed\n");
-	for(;;);
-}
-
-{{ range .Rootcodes }}
-{{ . }}
-{{ end }}
-
-{{ range .Config.Dev }}extern Dev {{ . }}devtab;
-{{ end }}
-Dev *devtab[] = {
-{{ range .Config.Dev }}
-	&{{ . }}devtab,
-{{ end }}
-	nil,
-};
-
-{{ range .Config.Link }}extern void {{ . }}link(void);
-{{ end }}
-void
-links(void)
-{
-{{ range .Rootnames }}addbootfile("{{ . }}", ramfs_{{ . }}_code, ramfs_{{ . }}_len);
-{{ end }}
-{{ range .Config.Link }}{{ . }}link();
-{{ end }}
-}
-
-#include "../ip/ip.h"
-{{ range .Config.Ip }}extern void {{ . }}init(Fs*);
-{{ end }}
-void (*ipprotoinit[])(Fs*) = {
-{{ range .Config.Ip }}	{{ . }}init,
-{{ end }}
-	nil,
-};
-
-#include "../port/sd.h"
-{{ range .Config.Sd }}extern SDifc {{ . }}ifc;
-{{ end }}
-SDifc* sdifc[] = {
-{{ range .Config.Sd }}	&{{ . }}ifc,
-{{ end }}
-	nil,
-};
-
-{{ range .Config.Uart }}extern PhysUart {{ . }}physuart;
-{{ end }}
-PhysUart* physuart[] = {
-{{ range .Config.Uart }}	&{{ . }}physuart,
-{{ end }}
-	nil,
-};
-
-#define	Image	IMAGE
-#include <draw.h>
-#include <memdraw.h>
-#include <cursor.h>
-#include "screen.h"
-{{ range .Config.VGA }}extern VGAdev {{ . }}dev;
-{{ end }}
-VGAdev* vgadev[] = {
-{{ range .Config.VGA }}	&{{ . }}dev,
-{{ end }}
-	nil,
-};
-
-{{ range .Config.VGA }}extern VGAcur {{ . }}cur;
-{{ end }}
-VGAcur* vgacur[] = {
-{{ range .Config.VGA }}	&{{ . }}cur,
-{{ end }}
-	nil,
-};
-
-Physseg physseg[8] = {
-	{
-		.attr = SG_SHARED,
-		.name = "shared",
-		.size = SEGMAXPG,
-	},
-	{
-		.attr = SG_BSS,
-		.name = "memory",
-		.size = SEGMAXPG,
-	},
-};
-int nphysseg = 8;
-
-{{ range .Config.Code }}{{ . }}
-{{ end }}
-
-char* conffile = "{{ .Path }}";
-
-`)
-
-	codebuf := bytes.NewBuffer(nil)
-	failOn(err)
-
-	err = tmpl.Execute(codebuf, vars)
-	failOn(err)
-
-	return codebuf.Bytes()
 }
 
 func buildkernel(b *build) {
 	if b.Kernel == nil {
 		return
 	}
-
 	codebuf := confcode(b.path, b.Kernel)
+	failOn(ioutil.WriteFile(b.name+".c", codebuf, 0666))
+}
 
-	if err := ioutil.WriteFile(b.name+".c", codebuf, 0666); err != nil {
-		log.Fatalf("Writing %s.c: %v", b.name, err)
+func compile(b *build) {
+	log.Printf("Building %s\n", b.name)
+	// N.B. Plan 9 has a very well defined include structure, just three things:
+	// /amd64/include, /sys/include, .
+	args := []string{
+		"-std=c11", "-c",
+		"-I", fromRoot("/$ARCH/include"),
+		"-I", fromRoot("/sys/include"),
+		"-I", ".",
+	}
+	args = append(args, b.Cflags...)
+	if len(b.SourceFilesCmd) > 0 {
+		for _, i := range b.SourceFilesCmd {
+			cmd := exec.Command(tools["cc"], append(args, i)...)
+			run(b, *shellhack, cmd)
+		}
+		return
+	}
+	args = append(args, b.SourceFiles...)
+	cmd := exec.Command(tools["cc"], args...)
+	run(b, *shellhack, cmd)
+}
+
+func link(b *build) {
+	log.Printf("Linking %s\n", b.name)
+	if len(b.SourceFilesCmd) > 0 {
+		for _, n := range b.SourceFilesCmd {
+			// Split off the last element of the file
+			var ext = filepath.Ext(n)
+			if len(ext) == 0 {
+				log.Fatalf("refusing to overwrite extension-less source file %v", n)
+				continue
+			}
+			n = n[:len(n)-len(ext)]
+			f := path.Base(n)
+			o := f[:len(f)] + ".o"
+			args := []string{"-o", n, o}
+			args = append(args, b.Oflags...)
+			args = append(args, "-L", fromRoot("/$ARCH/lib"))
+			args = append(args, b.Libs...)
+			run(b, *shellhack, exec.Command(tools["ld"], args...))
+		}
+		return
+	}
+	args := []string{"-o", b.Program}
+	args = append(args, b.ObjectFiles...)
+	args = append(args, b.Oflags...)
+	args = append(args, "-L", fromRoot("/$ARCH/lib"))
+	args = append(args, b.Libs...)
+	run(b, *shellhack, exec.Command(tools["ld"], args...))
+}
+
+func install(b *build) {
+	if b.Install == "" {
+		return
+	}
+
+	log.Printf("Installing %s\n", b.name)
+	failOn(os.MkdirAll(b.Install, 0755))
+
+	switch {
+	case len(b.SourceFilesCmd) > 0:
+		for _, n := range b.SourceFilesCmd {
+			ext := filepath.Ext(n)
+			exe := n[:len(n)-len(ext)]
+			move(exe, b.Install)
+		}
+	case len(b.Program) > 0:
+		move(b.Program, b.Install)
+	case len(b.Library) > 0:
+		libpath := path.Join(b.Install, b.Library)
+		args := append([]string{"-rs", libpath}, b.ObjectFiles...)
+		run(b, *shellhack, exec.Command(tools["ar"], args...))
+		run(b, *shellhack, exec.Command(tools["ranlib"], libpath))
+	}
+}
+
+func move(from, to string) {
+	final := path.Join(to, from)
+	log.Printf("move %s %s\n", from, final)
+	_ = os.Remove(final)
+	failOn(os.Link(from, final))
+	failOn(os.Remove(from))
+}
+
+func run(b *build, pipe bool, cmd *exec.Cmd) {
+	if b != nil {
+		cmd.Env = append(os.Environ(), b.Env...)
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if pipe {
+		// Sh sends cmd to a shell. It's needed to enable $LD_PRELOAD tricks, see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
+		shell := exec.Command(tools["sh"])
+		shell.Env = cmd.Env
+		shell.Stderr = os.Stderr
+		shell.Stdout = os.Stdout
+
+		commandString := strings.Join(cmd.Args, " ")
+		shStdin, err := shell.StdinPipe()
+		if err != nil {
+			log.Fatalf("cannot pipe [%v] to %s: %v", commandString, tools["sh"], err)
+		}
+		go func() {
+			defer shStdin.Close()
+			io.WriteString(shStdin, commandString)
+		}()
+
+		log.Printf("%q | sh\n", commandString)
+		failOn(shell.Run())
+		return
+	}
+	log.Println(strings.Join(cmd.Args, " "))
+	failOn(cmd.Run())
+}
+
+func projects(b *build, r []*regexp.Regexp) {
+	for _, v := range b.Projects {
+		log.Printf("Doing %s\n", strings.TrimSuffix(v, ".json"))
+		project(v, r)
 	}
 }
 
 // assumes we are in the wd of the project.
-func project(root, which string) {
+func project(bf string, which []*regexp.Regexp) {
 	cwd, err := os.Getwd()
 	failOn(err)
 	debug("Start new project cwd is %v", cwd)
 	defer os.Chdir(cwd)
-	// root is allowed to be a directory or file name.
-	dir := root
-	if st, err := os.Stat(root); err != nil {
-		log.Fatalf("%v: %v", root, err)
-	} else {
-		if st.IsDir() {
-			root = "build.json"
-		} else {
-			dir = path.Dir(root)
-			root = path.Base(root)
-		}
-	}
+	dir := path.Dir(bf)
+	root := path.Base(bf)
 	debug("CD to %v and build using %v", dir, root)
-	if err := os.Chdir(dir); err != nil {
-		log.Fatalf("Can't cd to %v: %v", dir, err)
-	}
+	failOn(os.Chdir(dir))
 	builds := process(root, which)
 	debug("Processing %v: %d target", root, len(builds))
-	for _, b := range(builds) {
+	for _, b := range builds {
 		debug("Processing %v: %v", b.name, b)
-		fetch(b.PreFetch)
-		projects(&b)
-		run(&b, b.Pre)
+		projects(&b, regexpAll)
+		for _, c := range b.Pre {
+			// this is a hack: we just pass the command through as an exec.Cmd
+			run(&b, true, exec.Command(c))
+		}
 		buildkernel(&b)
-		if len(b.SourceFiles) > 0 {
+		if len(b.SourceFiles) > 0 || len(b.SourceFilesCmd) > 0 {
 			compile(&b)
 		}
-		if len(b.SourceFilesCmd) > 0 {
-			compile(&b)
-		}
-		log.Printf("root %v program %v\n", root, b.Program)
-		if b.Program != "" {
-			link(&b)
-		}
-		if b.Library != "" {
-			//library(b)
-			log.Printf("\n\n*** Building %v ***\n\n", b.Library)
-		}
-		if len(b.SourceFilesCmd) > 0 {
+		if b.Program != "" || len(b.SourceFilesCmd) > 0 {
 			link(&b)
 		}
 		install(&b)
-		run(&b, b.Post)
+		for _, c := range b.Post {
+			run(&b, true, exec.Command(c))
+		}
 	}
 }
 
 func main() {
-	var badsetup bool
+	// A small amount of setup is done in the paths*.go files. They are
+	// OS-specific path setup/manipulation. "harvey" is set there and $PATH is
+	// adjusted.
 	var err error
+	findTools(os.Getenv("TOOLPREFIX"))
 	flag.Parse()
 	cwd, err = os.Getwd()
 	failOn(err)
-	harvey = os.Getenv("HARVEY")
 
-	err = findTools(os.Getenv("TOOLPREFIX"))
-	failOn(err)
-
-	if harvey == "" {
-		log.Printf("You need to set the HARVEY environment variable")
-		badsetup = true
-	}
 	a := os.Getenv("ARCH")
 	if a == "" || !arch[a] {
 		s := []string{}
 		for i := range arch {
 			s = append(s, i)
 		}
-		log.Printf("You need to set the ARCH environment variable from: %v", s)
-		badsetup = true
-	}
-	if badsetup {
-		os.Exit(1)
+		log.Fatalf("You need to set the ARCH environment variable from: %v", s)
 	}
 
-	// If no args, assume '.'
+	// ensure this is exported, in case we used a default value
+	os.Setenv("HARVEY", harvey)
+
+	if os.Getenv("LD_PRELOAD") != "" {
+		log.Println("Using shellhack")
+		*shellhack = true
+	}
+
+	// If no args, assume 'build.json'
 	// If 1 arg, that's a dir or file name.
 	// if two args, that's a dir and a regular expression.
-	// TODO: more than one RE.
-	dir := "."
+	f := "build.json"
 	if len(flag.Args()) > 0 {
-		dir = flag.Arg(0)
+		f = flag.Arg(0)
 	}
-	re := ".*"
+	bf, err := findBuildfile(f)
+	failOn(err)
+
+	re := []*regexp.Regexp{regexp.MustCompile(".")}
 	if len(flag.Args()) > 1 {
-		re = flag.Arg(1)
+		re = re[:0]
+		for _, r := range flag.Args()[1:] {
+			rx, err := regexp.Compile(r)
+			failOn(err)
+			re = append(re, rx)
+		}
 	}
-	project(dir, re)
+	project(bf, re)
 }
 
-func findTools(toolprefix string) (err error) {
+func findTools(toolprefix string) {
+	var err error
 	for k, v := range tools {
 		if x := os.Getenv(strings.ToUpper(k)); x != "" {
 			v = x
 		}
-		v = toolprefix + v
-		v, err = exec.LookPath(v)
+		v, err = exec.LookPath(toolprefix + v)
 		failOn(err)
 		tools[k] = v
 	}
-	return nil
+}
+
+// disambiguate the buildfile argument
+func findBuildfile(f string) (string, error) {
+	try := []string{
+		f,
+		path.Join(f, "build.json"),
+		fromRoot(path.Join("/sys/src", f+".json")),
+		fromRoot(path.Join("/sys/src", f, "build.json")),
+	}
+	for _, p := range try {
+		if fi, err := os.Stat(p); err == nil && !fi.IsDir() {
+			return p, nil
+		}
+	}
+	return "", fmt.Errorf("unable to find buildfile (tried %s)", strings.Join(try, ", "))
 }
