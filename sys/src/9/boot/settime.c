@@ -17,10 +17,29 @@ static int32_t lusertime(char*);
 
 char *timeserver = "#s/boot";
 
+static int
+setlocaltime(char* timebuf, int s){
+	int n, f, t;
+	t=0;
+	f = open("#r/rtc", ORDWR);
+	if(f >= 0){
+		if((n = read(f, timebuf, s-1)) > 0){
+			timebuf[n] = '\0';
+			t = 1;
+		}
+		close(f);
+	}else do{
+		strcpy(timebuf, "yymmddhhmm[ss]");
+		outin("\ndate/time ", timebuf, s);
+	}while((t=lusertime(timebuf)) <= 0);
+	return t;
+}
+
+
 void
 settime(int islocal, int afd, char *rp)
 {
-	int n, f;
+	int f;
 	int timeset;
 	Dir dir[2];
 	char timebuf[64];
@@ -31,17 +50,7 @@ settime(int islocal, int afd, char *rp)
 		/*
 		 *  set the time from the real time clock
 		 */
-		f = open("#r/rtc", ORDWR);
-		if(f >= 0){
-			if((n = read(f, timebuf, sizeof(timebuf)-1)) > 0){
-				timebuf[n] = '\0';
-				timeset = 1;
-			}
-			close(f);
-		}else do{
-			strcpy(timebuf, "yymmddhhmm[ss]");
-			outin("\ndate/time ", timebuf, sizeof(timebuf));
-		}while((timeset=lusertime(timebuf)) <= 0);
+		timeset=setlocaltime(timebuf, sizeof(timebuf));
 	}
 	if(timeset == 0){
 		/*
@@ -53,15 +62,20 @@ settime(int islocal, int afd, char *rp)
 		if(mount(f, afd, "/tmp", MREPL, rp, 'M') < 0){
 			warning("settime mount");
 			close(f);
-			return;
+			if((!islocal) && (setlocaltime(timebuf, sizeof(timebuf)) == 0))
+				return;
+		} else {
+			close(f);
+			if(stat("/tmp", statbuf, sizeof statbuf) < 0)
+				fatal("stat");
+			convM2D(statbuf, sizeof statbuf, &dir[0], (char*)&dir[1]);
+			sprint(timebuf, "%ld", dir[0].atime);
+			unmount(0, "/tmp");
 		}
-		close(f);
-		if(stat("/tmp", statbuf, sizeof statbuf) < 0)
-			fatal("stat");
-		convM2D(statbuf, sizeof statbuf, &dir[0], (char*)&dir[1]);
-		sprint(timebuf, "%ld", dir[0].atime);
-		unmount(0, "/tmp");
 	}
+
+	if((!islocal) && (strcmp(timebuf,"0")==0))
+		setlocaltime(timebuf, sizeof(timebuf));
 
 	f = open("#c/time", OWRITE);
 	if(write(f, timebuf, strlen(timebuf)) < 0)
