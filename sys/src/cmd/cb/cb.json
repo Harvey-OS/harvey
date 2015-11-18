@@ -3,9 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv cb $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"Program": "cb",
 		"SourceFiles": [
 			"cb.c",

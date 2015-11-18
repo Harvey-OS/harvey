@@ -3,9 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv exportfs $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"Program": "exportfs",
 		"SourceFiles": [
 			"exportfs.c",

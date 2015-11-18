@@ -3,15 +3,7 @@
 		"Include": [
 			"kernel.json"
 		],
-		"Post": [
-			"[ -d $HARVEY/amd64/bin ] || mkdir $HARVEY/amd64/bin",
-			"mv bind $HARVEY/amd64/bin/",
-			"mv mount $HARVEY/amd64/bin/",
-			"mv date $HARVEY/amd64/bin/",
-			"mv srv $HARVEY/amd64/bin/",
-			"mv echo $HARVEY/amd64/bin/",
-			"mv ls $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"Projects": [
 			"/sys/src/cmd/rc/rc.json",
 			"/sys/src/cmd/ip/ipconfig/kipconfig.json"
