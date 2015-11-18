@@ -163,9 +163,9 @@ func withPreloadTricks(cmd *exec.Cmd) {
 	}
 }
 
-func process(f, which string, b *build) {
+func process(f, which string, ab *build) {
 	r := regexp.MustCompile(which)
-	if b.jsons[f] {
+	if ab.jsons[f] {
 		return
 	}
 	log.Printf("Processing %v", f)
@@ -176,6 +176,7 @@ func process(f, which string, b *build) {
 	failOn(err)
 
 	for n, build := range builds {
+		b := ab
 		build.name = n
 		log.Printf("Do %v", b.name)
 		if !r.MatchString(build.name) {
