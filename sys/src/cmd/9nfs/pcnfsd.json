@@ -3,10 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
-			"mv pcnfsd $HARVEY/amd64/bin/aux/"
-		],
+		"Install": "/$ARCH/bin/aux",
 		"Program": "pcnfsd",
 		"SourceFiles": [
 			"pcnfsd.c",

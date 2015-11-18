@@ -3,9 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv astro $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"Program": "astro",
 		"SourceFiles": [
 			"comet.c",

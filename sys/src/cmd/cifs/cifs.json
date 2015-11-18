@@ -3,9 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv cifs $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"Program": "cifs",
 		"SourceFiles": [
 			"main.c",

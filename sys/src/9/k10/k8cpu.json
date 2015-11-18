@@ -71,13 +71,13 @@
 				"Sd": [
 					"sdiahci"
 				],
-				"Systab": "/sys/src/libc/9syscall/sys.h",
 				"Uart": [
 					"i8250",
 					"pci"
 				],
 				"VGA": []
 			},
+			"Systab": "/sys/src/libc/9syscall/sys.h",
 			"Ramfiles": {
 				"bind": "/amd64/bin/bind",
 				"boot": "/sys/src/9/boot/bootk8cpu.elf.out",
