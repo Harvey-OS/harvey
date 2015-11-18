@@ -3,9 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv dossrv $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin",
 		"Program": "dossrv",
 		"SourceFiles": [
 			"xfssrv.c",

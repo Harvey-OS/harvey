@@ -8,12 +8,12 @@
 			"../cmd.json"
 		],
 		"Post": [
-			"mv syscall $HARVEY/$ARCH/bin/",
 			"rm tab.h"
 		],
 		"Pre": [
 			"cat $HARVEY/sys/src/libc/9syscall/sys.h|grep -v automatically|grep -v -e '^$'|sed '/#define._X[0-9_]/d;/#define.NSYSCALL/d;'|cut -f 2 -d ' '|xargs -n1 sh -c 'echo \\\"$0\\\", \"(int(*)())\" $0,'|tr A-Z a-z \u003e tab.h"
 		],
+		"Install": "/$ARCH/bin",
 		"Program": "syscall",
 		"SourceFiles": [
 			"syscall.c"

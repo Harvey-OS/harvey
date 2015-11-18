@@ -1,11 +1,18 @@
 {
 	"All": {
+		"Pre": [
+			"cd $HARVEY/util/third_party/authsrv9 && make",
+			"mkdir -p $HARVEY/util/auth/bin",
+			"mkdir -p $HARVEY/util/auth/dev",
+			"cp $HARVEY/util/third_party/authsrv9/authsrv9 $HARVEY/util/auth/bin"
+		],
 		"Projects": [
 			"klibs.json",
 			"libs.json",
 			"cmd/kcmds.json",
 			"cmd/cmds.json",
-			"9/k10/k8cpu.json"
+			"9/k10/k8cpu.json",
+			"regress/regress.json"
 		]
 	}
 }
