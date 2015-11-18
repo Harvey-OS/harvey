@@ -3,9 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"mv 9660srv $HARVEY/amd64/bin/"
-		],
+		"Install": "/$ARCH/bin/",
 		"Program": "9660srv",
 		"SourceFiles": [
 			"9660srv.c",

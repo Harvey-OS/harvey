@@ -4,13 +4,13 @@
 			"../kernel.json"
 		],
 		"Post": [
-			"mv rc $HARVEY/amd64/bin/",
 			"rm y.tab* x.tab*"
 		],
 		"Pre": [
 			"yacc -d syn.y",
 			"cp y.tab.h x.tab.h"
 		],
+		"Install": "/$ARCH/bin",
 		"Program": "rc",
 		"SourceFiles": [
 			"code.c",
