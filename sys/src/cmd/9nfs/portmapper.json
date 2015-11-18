@@ -3,10 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Post": [
-			"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
-			"mv portmapper $HARVEY/amd64/bin/aux/"
-		],
+		"Install": "/$ARCH/bin/aux",
 		"Program": "portmapper",
 		"SourceFiles": [
 			"portmapper.c",

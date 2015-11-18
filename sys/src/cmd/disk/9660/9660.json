@@ -4,9 +4,9 @@
 			"../../cmd.json"
 		],
 		"Post": [
-			"mv dump9660 $HARVEY/amd64/bin/",
 			"cp mk9660.rc $HARVEY/amd64/bin/mk9660"
 		],
+		"Install": "/$ARCH/bin",
 		"Program": "dump9660",
 		"SourceFiles": [
 			"boot.c",
