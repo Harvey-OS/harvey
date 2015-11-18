@@ -390,31 +390,6 @@ void bmemset(void *p)
 {
 	__asm__ __volatile__("1: jmp 1b");
 }
-
-void put8(uint8_t c)
-{
-	char x[] = "0123456789abcdef";
-	wave(x[c>>4]);
-	wave(x[c&0xf]);
-}
-
-void put16(uint16_t s)
-{
-	put8(s>>8);
-	put8(s);
-}
-
-void put32(uint32_t u)
-{
-	put16(u>>16);
-	put16(u);
-}
-
-void put64(uint64_t v)
-{
-	put32(v>>32);
-	put32(v);
-}
 */
 
 void debugtouser(void *va)
