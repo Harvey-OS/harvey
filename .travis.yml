@@ -2,7 +2,6 @@ language: c
 script:
  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then git clean -x -d -f && ./BUILD all ; fi
 compiler: 
- - gcc
  - gcc-4.8
 
 env:
