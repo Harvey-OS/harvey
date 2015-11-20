@@ -36,6 +36,7 @@
 			"../port/devsegment.c",
 			"../port/devsrv.c",
 			"../port/devssl.c",
+			"../port/devtls.c",
 			"../port/devtab.c",
 			"../port/devtrace.c",
 			"../port/devuart.c",

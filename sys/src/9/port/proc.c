@@ -913,7 +913,6 @@ found:
 	p->state = Scheding;
 	if(0)hi("runproc, pm->mp = sys->machptr[machp()->machno]\n");
 	p->mp = sys->machptr[machp()->machno];
-	if(0){hi("runproc, sys->machptr[machp()->machno] = "); put64((uint64_t)p->mp); hi("\n");}
 
 	if(edflock(p)){
 		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
@@ -923,10 +922,6 @@ found:
 		proctrace(p, SRun, 0);
 	/* avoiding warnings, this will be removed */
 	USED(mach0sched); USED(smprunproc);
-	if(0){hi("runproc, returning p ");
-	put64((uint64_t)p);
-	hi("\n");}
-
 
 	return p;
 }

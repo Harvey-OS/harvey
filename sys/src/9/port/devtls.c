@@ -425,6 +425,7 @@ tlsstat(Chan *c, uint8_t *db, int32_t n)
 static Chan*
 tlsopen(Chan *c, int omode)
 {
+	Proc *up = externup();
 	TlsRec *tr, **pp;
 	int t, perm;
 
@@ -512,6 +513,7 @@ tlsopen(Chan *c, int omode)
 static int32_t
 tlswstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Proc *up = externup();
 	Dir *d;
 	TlsRec *tr;
 	int rv;
@@ -536,7 +538,7 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 		error(Eshortstat);
 	if(!emptystr(d->uid))
 		kstrdup(&tr->user, d->uid);
-	if(d->mode != ~0UL)
+	if(d->mode != (uint32_t)~0UL)
 		tr->perm = d->mode;
 
 	free(d);
@@ -566,6 +568,7 @@ dechandq(TlsRec *tr)
 static void
 tlsclose(Chan *c)
 {
+	Proc *up = externup();
 	TlsRec *tr;
 	int t;
 
@@ -748,6 +751,7 @@ tlsclosed(TlsRec *tr, int new)
 static void
 tlsrecread(TlsRec *tr)
 {
+	Proc *up = externup();
 	OneWay *volatile in;
 	Block *volatile b;
 	uint8_t *p, seq[8], header[RecHdrLen], hmac[MD5dlen];
@@ -1007,6 +1011,7 @@ if(tr->debug) pprint("rcvError: %s\n", msg);
 static void
 alertHand(TlsRec *tr, char *msg)
 {
+	Proc *up = externup();
 	Block *b;
 	int n;
 
@@ -1064,6 +1069,7 @@ checkstate(TlsRec *tr, int ishand, int ok)
 static Block*
 tlsbread(Chan *c, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	int ty;
 	Block *b;
 	TlsRec *volatile tr;
@@ -1138,6 +1144,7 @@ if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 static int32_t
 tlsread(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Block *volatile b;
 	Block *nb;
 	uint8_t *va;
@@ -1228,6 +1235,7 @@ tlsread(Chan *c, void *a, int32_t n, int64_t off)
 static void
 tlsrecwrite(TlsRec *tr, int type, Block *b)
 {
+	Proc *up = externup();
 	Block *volatile bb;
 	Block *nb;
 	uint8_t *p, seq[8];
@@ -1480,6 +1488,7 @@ parseencalg(char *p)
 static int32_t
 tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Encalg *ea;
 	Hashalg *ha;
 	TlsRec *volatile tr;
@@ -1795,6 +1804,7 @@ buftochan(char *p)
 static void
 sendAlert(TlsRec *tr, int err)
 {
+	Proc *up = externup();
 	Block *b;
 	int i, fatal;
 	char *msg;
@@ -1877,6 +1887,7 @@ tlshangup(TlsRec *tr)
 static TlsRec*
 newtls(Chan *ch)
 {
+	Proc *up = externup();
 	TlsRec **pp, **ep, **np;
 	char **nmp;
 	int t, newmax;
@@ -1927,6 +1938,7 @@ newtls(Chan *ch)
 static TlsRec *
 mktlsrec(void)
 {
+	Proc *up = externup();
 	TlsRec *tr;
 
 	tr = mallocz(sizeof(*tr), 1);
