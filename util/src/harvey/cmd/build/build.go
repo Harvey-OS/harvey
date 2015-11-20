@@ -163,12 +163,11 @@ func withPreloadTricks(cmd *exec.Cmd) {
 	}
 }
 
-func process(f, which string, b *build) {
-	r := regexp.MustCompile(which)
+func include(f string, b *build) {
 	if b.jsons[f] {
 		return
 	}
-	log.Printf("Processing %v", f)
+	log.Printf("Including %v", f)
 	d, err := ioutil.ReadFile(f)
 	failOn(err)
 	var builds map[string]build
@@ -176,24 +175,18 @@ func process(f, which string, b *build) {
 	failOn(err)
 
 	for n, build := range builds {
-		build.name = n
-		log.Printf("Do %v", b.name)
-		if !r.MatchString(build.name) {
-			continue
-		}
 		b.jsons[f] = true
-
-		if len(b.jsons) == 1 {
-			cwd, err := os.Getwd()
-			failOn(err)
-
-			b.path = path.Join(cwd, f)
-			b.name = build.name
-			b.Kernel = build.Kernel
-		}
-
+		log.Printf("Merging %v", n)
 		for t, s := range(build.PreFetch) {
-			b.PreFetch[t] = s
+			if val, ok := b.PreFetch["foo"]; ok {
+				log.Panicf("In file %s (target %s) included by %s (target %s): redefined PreFetch[%s] as %s.", f, n, build.path, build.name, t, val)
+			} else {
+				if _, err := os.Stat(t); err == nil {
+					b.PreFetch[t] = s
+				} else {
+					log.Printf("In file %s (target %s) included by %s (target %s): PreFetch[%s] skipped: file already exists.", f, n, build.path, build.name, t)
+				}
+			}
 		}
 		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
@@ -206,8 +199,14 @@ func process(f, which string, b *build) {
 		b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
 		b.Program += build.Program
 		b.Library += build.Library
-		b.Install += build.Install
-		b.ObjectFiles = append(b.ObjectFiles, adjust(build.ObjectFiles)...)
+		if build.Install != "" {
+			if b.Install != "" {
+				log.Panicf("In file %s (target %s) included by %s (target %s): redefined Install.", f, n, build.path, build.name)
+			} else {
+				b.Install = build.Install
+			}
+		}
+		b.ObjectFiles = adjust(build.ObjectFiles)
 
 		includes := adjust(build.Include)
 		for _, v := range includes {
@@ -215,7 +214,7 @@ func process(f, which string, b *build) {
 				wd := path.Dir(f)
 				v = path.Join(wd, v)
 			}
-			process(v, ".*", b)
+			include(v, b)
 		}
 
 		// For each source file, assume we create an object file with the last char replaced
@@ -227,7 +226,71 @@ func process(f, which string, b *build) {
 			b.ObjectFiles = append(b.ObjectFiles, o)
 		}
 	}
+}
+func appendIfMissing(s []string, v string) []string {
+    for _, a := range s {
+        if a == v {
+            return s
+        }
+    }
+    return append(s, v)
+}
+func process(f, which string) []build {
+	r := regexp.MustCompile(which)
+	log.Printf("Processing %v", f)
+	d, err := ioutil.ReadFile(f)
+	failOn(err)
+	builds := map[string]build{}
+	var results []build
+	err = json.Unmarshal(d, &builds)
+	failOn(err)
 
+	for n, build := range builds {
+		build.name = n
+		build.jsons = map[string]bool{}
+		if !r.MatchString(build.name) {
+			continue
+		}
+		log.Printf("Run %v", build.name)
+		build.jsons[f] = true
+
+		cwd, err := os.Getwd()
+		failOn(err)
+		build.path = path.Join(cwd, f)
+
+		toFetch := build.PreFetch
+		for t, s := range(toFetch) {
+			if _, err := os.Stat(t); err == nil {
+				log.Printf("PreFetch[%s] skipped: file already exists.", t)
+			} else {
+				build.PreFetch[t] = s
+			}
+		}
+		build.Libs = adjust(build.Libs)
+		build.Projects = adjust(build.Projects)
+		build.ObjectFiles = adjust(build.ObjectFiles)
+
+		includes := adjust(build.Include)
+		for _, v := range includes {
+			if !path.IsAbs(v) {
+				wd := path.Dir(f)
+				v = path.Join(wd, v)
+			}
+			include(v, &build)
+		}
+
+		// For each source file, assume we create an object file with the last char replaced
+		// with 'o'. We can get smarter later.
+
+		for _, v := range build.SourceFiles {
+			f := path.Base(v)
+			o := f[:len(f)-1] + "o"
+			build.ObjectFiles = appendIfMissing(build.ObjectFiles, o)
+		}
+
+		results = append(results, build)
+	}
+	return results
 }
 
 func compile(b *build) {
@@ -605,34 +668,34 @@ func project(root, which string) {
 	if err := os.Chdir(dir); err != nil {
 		log.Fatalf("Can't cd to %v: %v", dir, err)
 	}
-	debug("Processing %v", root)
-	b := &build{}
-	b.jsons = map[string]bool{}
-	b.PreFetch = map[string]string{}
-	process(root, which, b)
-	projects(b)
-	fetch(b.PreFetch)
-	run(b, b.Pre)
-	buildkernel(b)
-	if len(b.SourceFiles) > 0 {
-		compile(b)
+	builds := process(root, which)
+	debug("Processing %v: %d target", root, len(builds))
+	for _, b := range(builds) {
+		debug("Processing %v: %v", b.name, b)
+		fetch(b.PreFetch)
+		projects(&b)
+		run(&b, b.Pre)
+		buildkernel(&b)
+		if len(b.SourceFiles) > 0 {
+			compile(&b)
+		}
+		if len(b.SourceFilesCmd) > 0 {
+			compile(&b)
+		}
+		log.Printf("root %v program %v\n", root, b.Program)
+		if b.Program != "" {
+			link(&b)
+		}
+		if b.Library != "" {
+			//library(b)
+			log.Printf("\n\n*** Building %v ***\n\n", b.Library)
+		}
+		if len(b.SourceFilesCmd) > 0 {
+			link(&b)
+		}
+		install(&b)
+		run(&b, b.Post)
 	}
-	if len(b.SourceFilesCmd) > 0 {
-		compile(b)
-	}
-	log.Printf("root %v program %v\n", root, b.Program)
-	if b.Program != "" {
-		link(b)
-	}
-	if b.Library != "" {
-		//library(b)
-		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
-	}
-	if len(b.SourceFilesCmd) > 0 {
-		link(b)
-	}
-	install(b)
-	run(b, b.Post)
 }
 
 func main() {
