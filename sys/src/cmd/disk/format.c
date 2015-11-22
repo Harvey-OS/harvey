@@ -468,7 +468,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc,
 				fatal("read %s: %r", pbs);
 
 			if(npbs > secsize-2)
-				fatal("boot block too large");
+				fatal("boot block too large: boot block is %d bytes, max is %d", npbs, secsize-2);
 
 			close(sysfd);
 		}
