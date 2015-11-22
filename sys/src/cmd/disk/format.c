@@ -468,7 +468,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc,
 				fatal("read %s: %r", pbs);
 
 			if(npbs > secsize-2)
-				fatal("boot block too large");
+				fatal("boot block too large: boot block is %ld bytes, max is %ld", npbs, secsize-2);
 
 			close(sysfd);
 		}
@@ -477,7 +477,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc,
 			npbs = nbootprog;
 		}
 		if(npbs <= 0x3E)
-			fprint(2, "warning: pbs too small\n");
+			fprint(2, "warning: pbs too small: must be 0x3e, and is %ld\n", npbs);
 		else
 			memmove(buf+0x3E, pbsbuf+0x3E, npbs-0x3E);
 
