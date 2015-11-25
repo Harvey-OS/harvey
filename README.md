@@ -15,33 +15,6 @@ you should be able to get going with
 
 	sudo aptitude install git golang build-essential bison qemu-system
 
-
-GERRIT
-======
-
-We use gerrithub.io for code-review. If you want to submit changes, go to
-
-	https://review.gerrithub.io/#/admin/projects/Harvey-OS/harvey
-
-and check out the repository from gerrithub rather than github. The clone
-command will probably look something like this:
-
-	git clone https://USERNAME@review.gerrithub.io/Harvey-OS/harvey
-
-you'll need to run a few commands inside the top-level directory to get set
-up for code-review:
-
-	cd harvey
-	curl -Lo .git/hooks/commit-msg http://review.gerrithub.io/tools/hooks/commit-msg
-	chmod u+x .git/hooks/commit-msg
-	git config remote.origin.push HEAD:refs/for/master
-
-One last thing, we need to initialize any submodules:
-
-	git submodule init
-	git submodule update
-
-
 If you are on a Mac, you should install macports (https://www.macports.org/) and do
 
 	port install x86_64-elf-gcc
@@ -56,11 +29,28 @@ or if you use homebrew (https://http://brew.sh/)
 	brew install qemu
 	export TOOLPREFIX=x86_64-elf-
 
-and you're now all set, you can build the whole thing just by running
+GERRIT
+======
 
-	export HARVEY=$(pwd)
+We use gerrithub.io for code-review. If you want to submit changes, go to
+
+	https://review.gerrithub.io/#/admin/projects/Harvey-OS/harvey
+
+and check out the repository from gerrithub rather than github. The clone
+command will probably look something like this:
+
+	git clone https://USERNAME@review.gerrithub.io/Harvey-OS/harvey
+
+You'll need to bootstrap everything the first time:
+
+	./bootstrap.sh
+
+This will set up the git repo for code review and build the `build` tool.
+You should now be able to build everything by running
+
 	export ARCH=amd64
-	./BUILD all
+	export PATH="$(pwd)/util:$PATH"
+	build all
 
 Once building is complete, you can try booting the kernel with qemu
 
