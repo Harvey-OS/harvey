@@ -1,0 +1,12 @@
+{
+	"Util": {
+		"Env": [
+			"GOPATH=$HARVEY/util/third_party:$HARVEY/util",
+			"GOBIN=$HARVEY/util"
+		],
+		"Post": [
+			"go get -d harvey/...",
+			"go install github.com/rminnich/go9p/ufs harvey/cmd/..."
+		]
+	}
+}
