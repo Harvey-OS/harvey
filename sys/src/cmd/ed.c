@@ -130,14 +130,16 @@ void	setwide(void);
 void	squeeze(int);
 void	substitute(int);
 
-static Rune la[] = {'a'};
-static Rune lr[] = {'r'};
+static Rune la;
+static Rune lr;
 
 void
 main(int argc, char *argv[])
 {
 	char *p1, *p2;
 
+	chartorune(&la, "a");
+	chartorune(&lr, "r");
 	Binit(&bcons, 0, OREAD);
 	notify(notifyf);
 	ARGBEGIN {
@@ -146,7 +148,6 @@ main(int argc, char *argv[])
 		vflag = 0;
 		break;
 	} ARGEND
-
 	USED(argc);
 	if(*argv && (strcmp(*argv, "-") == 0)) {
 		argv++;
@@ -157,7 +158,7 @@ main(int argc, char *argv[])
 		p2 = savedfile;
 		while(*p2++ = *p1++)
 			;
-		globp = la;
+		globp = &la;
 	} else
 	if(*argv) {
 		p1 = *argv;
@@ -165,7 +166,7 @@ main(int argc, char *argv[])
 		while(*p2++ = *p1++)
 			if(p2 >= &savedfile[sizeof(savedfile)])
 				p2--;
-		globp = lr;
+		globp = &lr;
 	}
 	zero = malloc((nlall+5)*sizeof(int*));
 	tfname = mktemp("/tmp/eXXXXX");
@@ -181,7 +182,6 @@ commands(void)
 	int *a1, c, temp;
 	char lastsep;
 	Dir *d;
-
 	for(;;) {
 		if(pflag) {
 			pflag = 0;
@@ -1574,7 +1574,7 @@ mktemp(char *as)
 	int i;
 
 	pid = getpid();
-	s = strdup(as);
+	s = as = strdup(as);
 	while(*s++)
 		;
 	s--;
