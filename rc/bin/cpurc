@@ -81,5 +81,8 @@ if(test -e /cfg/$sysname/cpustart)
 /boot/tty -f'#t/eia0' /boot/rc -m/boot/rcmain -i &
 exec /boot/console /boot/tty /boot/rc -m/boot/rcmain -i
 
+echo 'key proto=p9sk1 dom=harvey user=harvey !password=harvey' >/mnt/factotum/ctl
+aux/listen1 -t tcp!*!6666 /bin/cpu -R &
+
 # echo `{date} $sysname >>/sys/log/boot
 exit ''
