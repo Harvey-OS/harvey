@@ -89,6 +89,7 @@
 			"lnfs.c",
 			"lock.c",
 			"look.c",
+			"ls.c",
 			"mc.c",
 			"md5sum.c",
 			"mkdir.c",
