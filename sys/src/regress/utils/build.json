@@ -1,0 +1,20 @@
+{
+	"utilities": {
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Install": "/$ARCH/bin/regress/util/",
+		"Oflags": [
+			"-static",
+			"--whole-archive",
+			"-e_main",
+			"-lc"
+		],
+		"Cflags": [
+			"-I ./alien"
+		],
+		"SourceFilesCmd": [
+			"build01.c"
+		]
+	}
+}
