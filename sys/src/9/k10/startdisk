@@ -1,0 +1,8 @@
+#!/boot/rc -m /boot/rcmain
+/boot/fdisk -p '#S/sdE0/data' > '#S/sdE0/ctl'
+/boot/prep -p '#S/sdE0/plan9' > '#S/sdE0/ctl'
+/boot/venti -c '#S/sdE0/arenas'
+venti=tcp!127.0.0.1!17034
+/boot/fossil -f '#S/sdE0/fossil'
+
+

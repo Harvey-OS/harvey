@@ -91,7 +91,12 @@
 				"rc": "/amd64/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
 				"screenconsole": "/amd64/bin/aux/screenconsole",
-				"srv": "/amd64/bin/srv"
+				"srv": "/amd64/bin/srv",
+				"fdisk": "/amd64/bin/disk/fdisk",
+				"prep": "/amd64/bin/disk/prep",
+				"venti": "/amd64/bin/venti/venti",
+				"fossil": "/amd64/bin/fossil/fossil",
+				"startdisk" : "startdisk"
 			}
 		},
 		"Program": "9k8cpu",
