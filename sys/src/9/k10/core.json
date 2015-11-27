@@ -66,6 +66,7 @@
 			"archk10.c",
 			"asm.c",
 			"backtrace.c",
+		        "coreboot.c",
 			"ctype.c",
 			"devarch.c",
 			"fpu.c",
