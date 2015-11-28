@@ -307,7 +307,7 @@ Method method[] = {
 
 int cpuflag = 1;
 char* rootdir = "/root";
-char* bootdisk = "#S/sdC0/";
+char* bootdisk = "#S/sdE0/";
 extern void boot(int, char**);
 
 void
