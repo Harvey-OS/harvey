@@ -14,6 +14,25 @@
 static char diskname[64];
 static char *disk;
 
+void shell(char *c, char *d)
+{
+	char *argv[] = {"rc", "-m", "/boot/rcmain", 0, 0, 0};
+	print("Shell: Run %s %s\n", c, d);
+	argv[3] = c;
+	argv[4] = d;
+	switch(fork()){
+	case -1:
+		print("configrc: fork failed: %r\n");
+	case 0:
+		exec("/boot/rc", argv);
+		fatal("can't exec rc");
+	default:
+		break;
+	}
+	while(waitpid() != -1)
+		;
+}
+
 void
 configlocal(Method *mp)
 {
@@ -48,11 +67,17 @@ configlocal(Method *mp)
 		 */
 		disk = bootdisk;
 	}
-
+print("configlocal: disk is %s\n", disk);
 	/* if we've decided on one, pass it on to all programs */
-	if(disk)
+	if(disk) {
 		setenv("bootdisk", disk);
+		setenv("nvram", smprint("%s/nvram", disk));
+	}
 
+
+	shell("-c", smprint("/boot/fdisk -p '%s/data' > '%s/ctl'", disk, disk));
+	shell("-c", smprint("/boot/prep -p '%s/plan9' > '%s/ctl'", disk, disk));
+	shell("-i", nil);
 	USED(mp);
 }
 
@@ -276,7 +301,6 @@ connectlocal(void)
 	bind("#S", "/dev", MAFTER);
 	bind("#k", "/dev", MAFTER);
 	bind("#æ", "/dev", MAFTER);
-
 	if((fd = connectlocalfossil()) < 0)
 	if((fd = connectlocalkfs()) < 0)
 		return -1;
