@@ -14,6 +14,25 @@
 static char diskname[64];
 static char *disk;
 
+void shell(char *c, char *d)
+{
+	char *argv[] = {"rc", "-m", "/boot/rcmain", 0, 0, 0};
+	print("Shell: Run %s %s\n", c, d);
+	argv[3] = c;
+	argv[4] = d;
+	switch(fork()){
+	case -1:
+		print("configrc: fork failed: %r\n");
+	case 0:
+		exec("/boot/rc", argv);
+		fatal("can't exec rc");
+	default:
+		break;
+	}
+	while(waitpid() != -1)
+		;
+}
+
 void
 configlocal(Method *mp)
 {
@@ -48,113 +67,21 @@ configlocal(Method *mp)
 		 */
 		disk = bootdisk;
 	}
-
+print("configlocal: disk is %s\n", disk);
 	/* if we've decided on one, pass it on to all programs */
-	if(disk)
+	if(disk) {
 		setenv("bootdisk", disk);
+		setenv("nvram", smprint("%s/nvram", disk));
+		setenv("venti", smprint("%s/arenas", disk));
+	}
 
+
+	shell("-c", smprint("/boot/fdisk -p '%s/data' > '%s/ctl'", disk, disk));
+	shell("-c", smprint("/boot/prep -p '%s/plan9' > '%s/ctl'", disk, disk));
+	shell("-i", nil);
 	USED(mp);
 }
 
-int
-connectlocalkfs(void)
-{
-	int i, pid, fd, p[2];
-	char partition[64];
-	char *dev;
-	char **arg, **argp;
-	Dir *d;
-
-	if(stat("/boot/kfs", statbuf, sizeof statbuf) < 0)
-		return -1;
-
-	dev = disk ? disk : bootdisk;
-	snprint(partition, sizeof partition, "%sfs", dev);
-	fd = open(partition, OREAD);
-	if(fd < 0){
-		strcpy(partition, dev);
-		fd = open(partition, OREAD);
-		if(fd < 0)
-			return -1;
-	}
-	/*
-	 * can't do this check -- might be some other server posing as kfs.
-	 *
-	memset(buf, 0, sizeof buf);
-	pread(fd, buf, 512, 0);
-	close(fd);
-	if(memcmp(buf+256, "kfs wren device\n", 16) != 0){
-		if(strstr(partition, "/fs"))
-			print("no kfs file system found on %s\n", partition);
-		return -1;
-	}
-	 *
-	 */
-	d = dirfstat(fd);
-	close(fd);
-	if(d == nil)
-		return -1;
-	if(d->mode&DMDIR){
-		free(d);
-		return -1;
-	}
-	free(d);
-
-	print("kfs...");
-	if(pipe(p)<0)
-		fatal("pipe");
-	switch(pid = fork()){
-	case -1:
-		fatal("fork");
-	case 0:
-		arg = malloc((bargc+5)*sizeof(char*));
-		argp = arg;
-		*argp++ = "kfs";
-		*argp++ = "-f";
-		*argp++ = partition;
-		*argp++ = "-s";
-		for(i=1; i<bargc; i++)
-			*argp++ = bargv[i];
-		*argp = 0;
-
-		dup(p[0], 0);
-		dup(p[1], 1);
-		close(p[0]);
-		close(p[1]);
-		exec("/boot/kfs", arg);
-		fatal("can't exec kfs");
-	default:
-		break;
-	}
-	for(;;){
-		if((i = waitpid()) == -1)
-			fatal("waitpid for kfs failed");
-		if(i == pid)
-			break;
-	}
-
-	close(p[1]);
-	return p[0];
-}
-
-void
-run(char *file, ...)
-{
-	int i, pid;
-
-	switch(pid = fork()){
-	case -1:
-		fatal("fork");
-	case 0:
-		exec(file, &file);
-		fatal(smprint("can't exec %s: %r", file));
-	default:
-		while ((i = waitpid()) != pid && i != -1)
-			;
-		if(i == -1)
-			fatal(smprint("wait failed running %s", file));
-	}
-}
 
 static int
 print1(int fd, char *s)
@@ -213,6 +140,7 @@ connectlocalfossil(void)
 
 	/* make venti available */
 	if((venti = getenv("venti")) && (nf = tokenize(venti, f, nelem(f)))){
+print("VENTI on %s\n", f[0]);
 		if((fd = open(f[0], OREAD)) >= 0){
 			print("venti...");
 			memset(buf, 0, sizeof buf);
@@ -233,7 +161,7 @@ connectlocalfossil(void)
 				f[2] = "tcp!127.1!8000";
 			}
 			configloopback();
-			run("/boot/venti", "-c", f[0], "-a", f[1], "-h", f[2], 0);
+			shell("-c", smprint("/boot/venti -c %s -a %s -h %s", f[0], f[1], f[2]));
 			/*
 			 * If the announce address is tcp!*!foo, then set
 			 * $venti to tcp!127.1!foo instead, which is actually dialable.
@@ -245,6 +173,7 @@ connectlocalfossil(void)
 			}
 			setenv("venti", f[1]);
 		}else{
+print("NO VENTI?\n");
 			/* set up the network so we can talk to the venti server */
 			/* this is such a crock. */
 			configip(nf, f, 0);
@@ -254,7 +183,7 @@ connectlocalfossil(void)
 
 	/* start fossil */
 	print("fossil(%s)...", partition);
-	run("/boot/fossil", "-f", partition, "-c", "srv -A fboot", "-c", "srv -p fscons", 0);
+	shell("-c", smprint("/boot/fossil -f %s -c \"srv -A fboot\" -c \"srv -p fscons\"", partition));
 	fd = open("#s/fboot", ORDWR);
 	if(fd < 0){
 		print("open #s/fboot: %r\n");
@@ -276,9 +205,9 @@ connectlocal(void)
 	bind("#S", "/dev", MAFTER);
 	bind("#k", "/dev", MAFTER);
 	bind("#æ", "/dev", MAFTER);
-
-	if((fd = connectlocalfossil()) < 0)
-	if((fd = connectlocalkfs()) < 0)
+	if((fd = connectlocalfossil()) < 0){
+		shell("-i", nil);
 		return -1;
+	}
 	return fd;
 }
