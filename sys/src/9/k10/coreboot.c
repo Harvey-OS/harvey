@@ -35,10 +35,8 @@
 #include "fns.h"
 #include "../port/error.h"
 #include "coreboot.h"
-/* coreboot table parsing. 
- */
 
-
+/* this implements the architecture-dependent call needed for port/devcoreboot.c */
 int get_coreboot_info(struct sysinfo_t *info)
 {
 	int ret;
@@ -52,7 +50,7 @@ int get_coreboot_info(struct sysinfo_t *info)
 	ret = cb_parse_header(KADDR(0x00000000), 0x1000, info);
 
 	if (ret != 1) {
-		print("Scan %p\n", KADDR(0xf0000);
+		print("Scan %p\n", KADDR(0xf0000));
 		ret = cb_parse_header(KADDR(0x000f0000), 0x1000, info);
 	}
 	print("get_coreboot_info: ret %d\n", ret);
