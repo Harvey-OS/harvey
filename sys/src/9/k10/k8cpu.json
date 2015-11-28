@@ -20,6 +20,7 @@
 					"arch",
 					"cap",
 					"cons",
+					"coreboot",
 					"draw",
 					"dup",
 					"env",

@@ -56,10 +56,6 @@ static int vflag = 1;
 
 int nosmp = 1;
 
-// TODO: convert naming to Plan 9 style
-struct sysinfo_t cbinfo;
-
-
 /*
  *	this may need improvement, but right now it's just for
  *	pretty printing below, so it doesn't need to be accurate
@@ -622,9 +618,6 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 		nixsquids();
 		testiccs();
 	}
-
-	/* coreboot stuff. Later, this becomes a device. */
-	get_coreboot_info(&cbinfo);
 
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 

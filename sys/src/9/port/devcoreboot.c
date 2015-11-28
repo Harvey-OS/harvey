@@ -321,3 +321,135 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 	return 1;
 }
 
+enum{
+	Qdir,
+	Qtable,
+};
+
+static Dirtab corebootdir[]={
+	".",	{Qdir, 0, QTDIR},	0,			DMDIR|0555,
+	"table",	{Qtable},	0,			0444,
+};
+
+static struct sysinfo_t cbinfo;
+
+static int
+corebootdevgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
+{
+	int rc;
+
+	rc = devgen(c, name, tab, ntab, i, dp);
+	return rc;
+}
+
+static void
+corebootinit(void)
+{
+	get_coreboot_info(&cbinfo);
+}
+
+static Chan*
+corebootattach(char *spec)
+{
+	return devattach('Y', spec);
+}
+
+static Walkqid*
+corebootwalk(Chan *c, Chan *nc, char **name, int nname)
+{
+	Walkqid *wq;
+
+	wq = devwalk(c, nc, name, nname, corebootdir, nelem(corebootdir), devgen);
+	/* todo: cover any cases that need locking. There are none yet. */
+	return wq;
+}
+
+static int
+corebootstat(Chan *c, unsigned char *db, int n)
+{
+	return devstat(c, db, n, corebootdir, nelem(corebootdir), corebootdevgen);
+}
+
+static Chan*
+corebootopen(Chan *c, int omode)
+{
+	switch((uint32_t)c->qid.path){
+	case Qdir:
+		if(omode != OREAD)
+			error(Eperm);
+		break;
+	/* default are tables, which are unchanging, and readonly, so no need to lock them.
+	 * They live in reserved memory.
+	 */
+	default:
+		break;
+	}
+	c->mode = openmode(omode);
+	c->flag |= COPEN;
+	c->offset = 0;
+	return c;
+}
+
+static void
+corebootcreate(Chan *c, char *j, int i, int u)
+{
+	error(Eperm);
+}
+
+static void
+corebootclose(Chan *c)
+{
+	/* anything to do? */
+}
+
+
+static int32_t
+corebootread(Chan *c, void *va, int32_t n, int64_t off)
+{
+	switch((uint32_t)c->qid.path){
+	case Qdir:
+		return devdirread(c, va, n, corebootdir, nelem(corebootdir), corebootdevgen);
+	case Qtable:
+		/* todo: do something */
+		break;
+	}
+	return 0;
+}
+
+static int32_t
+corebootwrite(Chan *c, void *va, int32_t n, int64_t r)
+{
+	switch((uint32_t)c->qid.path){
+	case Qdir:
+		error(Eisdir);
+		break;
+	default:
+		error(Eperm);
+		break;
+	}
+
+	error(Egreg);
+	return -1;
+}
+
+Dev corebootdevtab = {
+	'Y',
+	"coreboot",
+
+	devreset,
+	corebootinit,
+	devshutdown,
+	corebootattach,
+	corebootwalk,
+	corebootstat,
+	corebootopen,
+	corebootcreate,
+	corebootclose,
+	corebootread,
+	devbread,
+	corebootwrite,
+	devbwrite,
+	devremove,
+	devwstat,
+};
+
