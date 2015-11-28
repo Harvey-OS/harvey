@@ -934,6 +934,12 @@
 			"Config": "configrc",
 			"Connect": "connectrc",
 			"Arg": ""
+		},
+		{
+			"Name": "local",
+			"Config": "configlocal",
+			"Connect": "connectlocal",
+			"Arg": ""
 		}
 	]
 }
