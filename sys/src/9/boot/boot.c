@@ -274,10 +274,12 @@ static void
 usbinit(void)
 {
 	static char usbd[] = "/boot/usbd";
+	print("NOT RUNNING USBD -- run was broken (varargs problem\n");
+	return;
 
 	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0 &&
 	    access(usbd, AEXIST) >= 0)
-		run(usbd, nil);
+		shell("-c", "/boot/usbd");
 }
 
 static void
