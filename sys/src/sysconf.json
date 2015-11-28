@@ -870,6 +870,12 @@
 			"Config": "configtcp",
 			"Connect": "connecttcp",
 			"Arg": ""
+		},
+		{
+			"Name": "local",
+			"Config": "configlocal",
+			"Connect": "connectlocal",
+			"Arg": ""
 		}
 	]
 }
