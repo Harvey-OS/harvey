@@ -17,6 +17,7 @@
 #include "apic.h"
 #include "io.h"
 #include "amd64.h"
+#include "coreboot.h"
 
 #undef DBG
 #define DBG iprint
@@ -54,6 +55,9 @@ char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
+
+// TODO: convert naming to Plan 9 style
+struct sysinfo_t cbinfo;
 
 
 /*
@@ -618,6 +622,9 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 		nixsquids();
 		testiccs();
 	}
+
+	/* coreboot stuff. Later, this becomes a device. */
+	get_coreboot_info(&cbinfo);
 
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
