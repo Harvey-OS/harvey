@@ -47,11 +47,14 @@ int get_coreboot_info(struct sysinfo_t *info)
 	 * an invalid value. */
 	/* this may have no use on harvey.*/
 	//info->x86_rom_var_mtrr_index = -1;
+	print("Scan %p\n", KADDR(0));
 
 	ret = cb_parse_header(KADDR(0x00000000), 0x1000, info);
 
-	if (ret != 1)
+	if (ret != 1) {
+		print("Scan %p\n", KADDR(0xf0000);
 		ret = cb_parse_header(KADDR(0x000f0000), 0x1000, info);
+	}
 	print("get_coreboot_info: ret %d\n", ret);
 	return (ret == 1) ? 0 : -1;
 }
