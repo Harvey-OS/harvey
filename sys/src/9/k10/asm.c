@@ -351,8 +351,13 @@ asmmeminit(void)
 	cx = 0;
 #endif /* ConfCrap */
 	for(assem = asmlist; assem != nil; assem = assem->next){
-		if(assem->type != AsmMEMORY)
+		print("asm: addr %#P end %#P type %d size %P\n",
+			assem->addr, assem->addr+assem->size,
+			assem->type, assem->size);
+		if((assem->type != AsmMEMORY)&&(assem->type != AsmRESERVED)) {
+			print("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
+		}
 		va = KSEG2+assem->addr;
 		print("asm: addr %#P end %#P type %d size %P\n",
 			assem->addr, assem->addr+assem->size,
@@ -375,7 +380,11 @@ asmmeminit(void)
 				if((l = mmuwalk(pml4, va, i, &pte, asmwalkalloc)) < 0)
 					panic("asmmeminit 3");
 
-				*pte = mem|PteRW|PteP;
+				if (assem->type == AsmMEMORY)
+					*pte = mem|PteRW|PteP;
+				else
+					*pte = mem|PteP;
+
 				if(l > 0)
 					*pte |= PtePS;
 
