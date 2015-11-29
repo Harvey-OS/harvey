@@ -17,6 +17,7 @@
 #include "apic.h"
 #include "io.h"
 #include "amd64.h"
+#include "coreboot.h"
 
 #undef DBG
 #define DBG iprint
@@ -54,7 +55,6 @@ char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
-
 
 /*
  *	this may need improvement, but right now it's just for

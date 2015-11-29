@@ -43,9 +43,11 @@
 
 /* === Parsing code === */
 /* This is the generic parsing code. */
+#define I_AM_HERE print("Core 0 is in %s() at %s:%d\n", \
+                         __FUNCTION__, __FILE__, __LINE__);
 
 static void cb_parse_memory(void *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_memory *mem = ptr;
 	int count = MEM_RANGE_COUNT(mem);
 	int i;
@@ -76,13 +78,13 @@ static void cb_parse_memory(void *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_serial(void *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	info->serial = ((struct cb_serial *)ptr);
 }
 
 #ifdef CONFIG_LP_CHROMEOS
 static void cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_range *vbho = (struct cb_range *)ptr;
 
 	info->vboot_handoff = (void *)(uintptr_t)vbho->range_start;
@@ -90,7 +92,7 @@ static void cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_vbnv(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_range *vbnv = (struct cb_range *)ptr;
 
 	info->vbnv_start = vbnv->range_start;
@@ -98,7 +100,7 @@ static void cb_parse_vbnv(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_gpios(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	int i;
 	struct cb_gpios *gpios = (struct cb_gpios *)ptr;
 
@@ -110,7 +112,7 @@ static void cb_parse_gpios(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_vdat(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_range *vdat = (struct cb_range *) ptr;
 
 	info->vdat_addr = phys_to_virt(vdat->range_start);
@@ -119,38 +121,38 @@ static void cb_parse_vdat(unsigned char *ptr, struct sysinfo_t *info)
 #endif
 
 static void cb_parse_tstamp(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->tstamp_table = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_cbmem_cons(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->cbmem_cons = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_mrc_cache(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->mrc_cache = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_acpi_gnvs(unsigned char *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->acpi_gnvs = KADDR(cbmem->cbmem_tab);
 }
 
 #ifdef CONFIG_LP_NVRAM
 static void cb_parse_optiontable(void *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	/* ptr points to a coreboot table entry and is already virtual */
 	info->option_table = ptr;
 }
 
 static void cb_parse_checksum(void *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_cmos_checksum *cmos_cksum = ptr;
 	info->cmos_range_start = cmos_cksum->range_start;
 	info->cmos_range_end = cmos_cksum->range_end;
@@ -160,25 +162,25 @@ static void cb_parse_checksum(void *ptr, struct sysinfo_t *info)
 
 #ifdef CONFIG_LP_COREBOOT_VIDEO_CONSOLE
 static void cb_parse_framebuffer(void *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	/* ptr points to a coreboot table entry and is already virtual */
 	info->framebuffer = ptr;
 }
 #endif
 
 static void cb_parse_x86_rom_var_mtrr(void *ptr, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	//struct cb_x86_rom_mtrr *rom_mtrr = ptr;
 	//info->x86_rom_var_mtrr_index = rom_mtrr->index;
 }
 
 static void cb_parse_string(unsigned char *ptr, char **info)
-{
+{ print("%s\n", __func__);
 	*info = (char *)((struct cb_string *)ptr)->string;
 }
 
 int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
-{
+{ print("%s\n", __func__);
 	struct cb_header *header;
 	unsigned char *ptr = addr;
 	void *forward;
@@ -186,37 +188,47 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 
 	for (i = 0; i < len; i += 16, ptr += 16) {
 		header = (struct cb_header *)ptr;
+		if (0)
+		print("Check header %p sig %p val %02x %02x %02x %02x\n", header, header->signature, 
+				header->signature[0], 
+				header->signature[1], 
+				header->signature[2], 
+				header->signature[3]);
 		if (!strncmp((char *)header->signature, "LBIO", 4))
 			break;
 	}
 
+	print("found ? i %d len %d\n", i, len);
 	/* We walked the entire space and didn't find anything. */
 	if (i >= len)
 		return -1;
-
+	I_AM_HERE;
 	if (!header->table_bytes)
 		return 0;
-
+	I_AM_HERE;
 	/* Make sure the checksums match. */
 	if (ipchksum((uint8_t *) header, sizeof(*header)) != 0)
 		return -1;
-
+	I_AM_HERE;
 	if (ipchksum((uint8_t *) (ptr + sizeof(*header)),
 		     header->table_bytes) != header->table_checksum)
 		return -1;
-
+	I_AM_HERE;
 	info->header = header;
 
 	/* Now, walk the tables. */
 	ptr += header->header_bytes;
-
+	I_AM_HERE;
 	for (i = 0; i < header->table_entries; i++) {
 		struct cb_record *rec = (struct cb_record *)ptr;
-
+	I_AM_HERE;
+	print("rec %p tag %p\n", rec, rec->tag);
 		/* We only care about a few tags here (maybe more later). */
 		switch (rec->tag) {
 		case CB_TAG_FORWARD:
 			forward = KADDR((unsigned long)((struct cb_forward *)rec)->forward);
+			print("FORWARD: %p %p\n", (unsigned long)((struct cb_forward *)rec)->forward, 
+					forward);
 			return cb_parse_header(forward, len, info);
 			continue;
 		case CB_TAG_MEMORY:
@@ -308,4 +320,136 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 
 	return 1;
 }
+
+enum{
+	Qdir,
+	Qtable,
+};
+
+static Dirtab corebootdir[]={
+	".",	{Qdir, 0, QTDIR},	0,			DMDIR|0555,
+	"table",	{Qtable},	0,			0444,
+};
+
+static struct sysinfo_t cbinfo;
+
+static int
+corebootdevgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
+{
+	int rc;
+
+	rc = devgen(c, name, tab, ntab, i, dp);
+	return rc;
+}
+
+static void
+corebootinit(void)
+{
+	get_coreboot_info(&cbinfo);
+}
+
+static Chan*
+corebootattach(char *spec)
+{
+	return devattach('Y', spec);
+}
+
+static Walkqid*
+corebootwalk(Chan *c, Chan *nc, char **name, int nname)
+{
+	Walkqid *wq;
+
+	wq = devwalk(c, nc, name, nname, corebootdir, nelem(corebootdir), devgen);
+	/* todo: cover any cases that need locking. There are none yet. */
+	return wq;
+}
+
+static int
+corebootstat(Chan *c, unsigned char *db, int n)
+{
+	return devstat(c, db, n, corebootdir, nelem(corebootdir), corebootdevgen);
+}
+
+static Chan*
+corebootopen(Chan *c, int omode)
+{
+	switch((uint32_t)c->qid.path){
+	case Qdir:
+		if(omode != OREAD)
+			error(Eperm);
+		break;
+	/* default are tables, which are unchanging, and readonly, so no need to lock them.
+	 * They live in reserved memory.
+	 */
+	default:
+		break;
+	}
+	c->mode = openmode(omode);
+	c->flag |= COPEN;
+	c->offset = 0;
+	return c;
+}
+
+static void
+corebootcreate(Chan *c, char *j, int i, int u)
+{
+	error(Eperm);
+}
+
+static void
+corebootclose(Chan *c)
+{
+	/* anything to do? */
+}
+
+
+static int32_t
+corebootread(Chan *c, void *va, int32_t n, int64_t off)
+{
+	switch((uint32_t)c->qid.path){
+	case Qdir:
+		return devdirread(c, va, n, corebootdir, nelem(corebootdir), corebootdevgen);
+	case Qtable:
+		/* todo: do something */
+		break;
+	}
+	return 0;
+}
+
+static int32_t
+corebootwrite(Chan *c, void *va, int32_t n, int64_t r)
+{
+	switch((uint32_t)c->qid.path){
+	case Qdir:
+		error(Eisdir);
+		break;
+	default:
+		error(Eperm);
+		break;
+	}
+
+	error(Egreg);
+	return -1;
+}
+
+Dev corebootdevtab = {
+	'Y',
+	"coreboot",
+
+	devreset,
+	corebootinit,
+	devshutdown,
+	corebootattach,
+	corebootwalk,
+	corebootstat,
+	corebootopen,
+	corebootcreate,
+	corebootclose,
+	corebootread,
+	devbread,
+	corebootwrite,
+	devbwrite,
+	devremove,
+	devwstat,
+};
 
