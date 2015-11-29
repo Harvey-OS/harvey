@@ -20,6 +20,19 @@ configrc(Method* m)
 	configloopback();
 	bind("#S", "/dev", MAFTER);
 	char *argv[] = {"rc", "-m", "/boot/rcmain", "-i", 0,};
+	print("Step 1. Run an rc. Set things up.\n");
+	switch(fork()){
+	case -1:
+		print("configrc: fork failed: %r\n");
+	case 0:
+		exec("/boot/rc", argv);
+		fatal("can't exec rc");
+	default:
+		break;
+	}
+	while(waitpid() != -1)
+		;
+	print("Step 2. Run an rc. Verify that things are as you want them.\n");
 	switch(fork()){
 	case -1:
 		print("configrc: fork failed: %r\n");
