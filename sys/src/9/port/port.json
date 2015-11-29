@@ -15,6 +15,7 @@
 			"../port/awake.c",
 			"../port/cache.c",
 			"../port/chan.c",
+			"../port/corebootscreen.c",
 			"../port/cpu_buffer.c",
 			"../port/dev.c",
 			"../port/devcap.c",
