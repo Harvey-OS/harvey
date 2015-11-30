@@ -9,9 +9,8 @@
 		"Libs": [
 			"lib/libbzip2.a"
 		],
+		"Install": "/$ARCH/bin",
 		"Post": [
-			"mv bunzip2 $HARVEY/amd64/bin/",
-			"mv bzip2 $HARVEY/amd64/bin/",
 			"rm $HARVEY/sys/src/cmd/bzip2/lib/libbzip2.a"
 		],
 		"Projects": [
