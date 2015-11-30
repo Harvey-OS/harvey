@@ -61,8 +61,8 @@ func main() {
 		run("git", "rm", "-r", "-f", "upstream")
 	} else {
 		os.MkdirAll("patch", permissiveDir)
-		os.MkdirAll("build", permissiveDir)
-		ig, err := os.Create(path.Join("build", ".gitignore"))
+		os.MkdirAll("harvey", permissiveDir)
+		ig, err := os.Create(path.Join("harvey", ".gitignore"))
 		if err != nil {
 			log.Fatal(err)
 		}
