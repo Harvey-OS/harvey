@@ -60,11 +60,6 @@ static void cb_parse_memory(void *ptr, struct sysinfo_t *info)
 	for (i = 0; i < count; i++) {
 		struct cb_memory_range *range = MEM_RANGE_PTR(mem, i);
 
-#ifdef CONFIG_LP_MEMMAP_RAM_ONLY
-		if (range->type != CB_MEM_RAM)
-			continue;
-#endif
-
 		info->memrange[info->n_memranges].base =
 		    cb_unpack64(range->start);
 
@@ -82,7 +77,6 @@ static void cb_parse_serial(void *ptr, struct sysinfo_t *info)
 	info->serial = ((struct cb_serial *)ptr);
 }
 
-#ifdef CONFIG_LP_CHROMEOS
 static void cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
 { print("%s\n", __func__);
 	struct cb_range *vbho = (struct cb_range *)ptr;
@@ -115,10 +109,9 @@ static void cb_parse_vdat(unsigned char *ptr, struct sysinfo_t *info)
 { print("%s\n", __func__);
 	struct cb_range *vdat = (struct cb_range *) ptr;
 
-	info->vdat_addr = phys_to_virt(vdat->range_start);
+	info->vdat_addr = KADDR(vdat->range_start);
 	info->vdat_size = vdat->range_size;
 }
-#endif
 
 static void cb_parse_tstamp(unsigned char *ptr, struct sysinfo_t *info)
 { print("%s\n", __func__);
@@ -144,7 +137,6 @@ static void cb_parse_acpi_gnvs(unsigned char *ptr, struct sysinfo_t *info)
 	info->acpi_gnvs = KADDR(cbmem->cbmem_tab);
 }
 
-#ifdef CONFIG_LP_NVRAM
 static void cb_parse_optiontable(void *ptr, struct sysinfo_t *info)
 { print("%s\n", __func__);
 	/* ptr points to a coreboot table entry and is already virtual */
@@ -158,20 +150,15 @@ static void cb_parse_checksum(void *ptr, struct sysinfo_t *info)
 	info->cmos_range_end = cmos_cksum->range_end;
 	info->cmos_checksum_location = cmos_cksum->location;
 }
-#endif
-
-#ifdef CONFIG_LP_COREBOOT_VIDEO_CONSOLE
 static void cb_parse_framebuffer(void *ptr, struct sysinfo_t *info)
 { print("%s\n", __func__);
 	/* ptr points to a coreboot table entry and is already virtual */
 	info->framebuffer = ptr;
 }
-#endif
 
 static void cb_parse_x86_rom_var_mtrr(void *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
-	//struct cb_x86_rom_mtrr *rom_mtrr = ptr;
-	//info->x86_rom_var_mtrr_index = rom_mtrr->index;
+{ 
+	print("%s, ignoring MTRR information.\n", __func__);
 }
 
 static void cb_parse_string(unsigned char *ptr, char **info)
@@ -267,24 +254,19 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 		case CB_TAG_ASSEMBLER:
 			cb_parse_string(ptr, &info->assembler);
 			break;
-#ifdef CONFIG_LP_NVRAM
 		case CB_TAG_CMOS_OPTION_TABLE:
 			cb_parse_optiontable(ptr, info);
 			break;
 		case CB_TAG_OPTION_CHECKSUM:
 			cb_parse_checksum(ptr, info);
 			break;
-#endif
-#ifdef CONFIG_LP_COREBOOT_VIDEO_CONSOLE
 		// FIXME we should warn on serial if coreboot set up a
 		// framebuffer buf the payload does not know about it.
 		case CB_TAG_FRAMEBUFFER:
 			cb_parse_framebuffer(ptr, info);
 			break;
-#endif
 		case CB_TAG_MAINBOARD:
 			info->mainboard = (struct cb_mainboard *)ptr;
-#ifdef CONFIG_LP_CHROMEOS
 		case CB_TAG_GPIO:
 			cb_parse_gpios(ptr, info);
 			break;
@@ -297,7 +279,6 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 		case CB_TAG_VBOOT_HANDOFF:
 			cb_parse_vboot_handoff(ptr, info);
 			break;
-#endif
 		case CB_TAG_TIMESTAMPS:
 			cb_parse_tstamp(ptr, info);
 			break;
