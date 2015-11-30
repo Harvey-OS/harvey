@@ -5,6 +5,9 @@ It downloads a tarball, verifies it against supplied hashes, extracts it
 into "upstream", modifies all the files to be read-only, and then commits
 the results.
 
+When invoked with the flag `-check` it verify that the files present in
+a previously vendorized "upstream" folder match those in the downloaded tarball.
+
 Vendor is purposely unhelpful and un-customisable.
 
 VENDORFILE

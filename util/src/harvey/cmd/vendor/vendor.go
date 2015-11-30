@@ -41,7 +41,14 @@ type V struct {
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
+
+	justCheck := flag.Bool("check", false, "verify the code in upstream/")
+
 	flag.Parse()
+
+	if(*justCheck && !repositoryIsClean()){
+		log.Fatal("cannot verify upstream/ files: working directory not clean")
+	}
 
 	f, err := ioutil.ReadFile("vendor.json")
 	if err != nil {
@@ -58,8 +65,15 @@ func main() {
 		if err := filepath.Walk("upstream", readwrite); err != nil {
 			log.Fatal(err)
 		}
-		run("git", "rm", "-r", "-f", "upstream")
+		if(*justCheck){
+			run("rm", "-r", "-f", "upstream")
+		} else {
+			run("git", "rm", "-r", "-f", "upstream")
+		}
 	} else {
+		if(*justCheck){
+			log.Fatalf("Cannot verify upstream/ as it does not exists.")
+		}
 		os.MkdirAll("patch", permissiveDir)
 		os.MkdirAll("harvey", permissiveDir)
 		ig, err := os.Create(path.Join("harvey", ".gitignore"))
@@ -73,15 +87,34 @@ func main() {
 		run("git", "add", ig.Name())
 	}
 
-	if err := do(vendor); err != nil {
+	if err := do(vendor, *justCheck); err != nil {
 		log.Fatal(err)
 	}
 
-	run("git", "add", "vendor.json")
-	run("git", "commit", "-s", "-m", "vendor: pull in "+path.Base(vendor.Upstream))
+	if(*justCheck){
+		if(repositoryIsClean()){
+			log.Printf("the files in upstream/ matches those in "+path.Base(vendor.Upstream))
+		} else {
+			log.Fatalf("the files in upstream/ does not match those in "+path.Base(vendor.Upstream))
+		}
+	} else {
+		run("git", "add", "vendor.json")
+		run("git", "commit", "-s", "-m", "vendor: pull in "+path.Base(vendor.Upstream))
+	}
 }
 
-func do(v *V) error {
+func repositoryIsClean() bool {
+	out, err := exec.Command("git", "status", "--porcelain").Output()
+    if err != nil {
+        log.Fatal(err)
+    }
+	if(len(out) > 0){
+		return false
+	}
+	return true
+}
+
+func do(v *V, justCheck bool) error {
 	name := fetch(v)
 	f, err := os.Open(name)
 	if err != nil {
@@ -140,6 +173,9 @@ untar:
 		return err
 	}
 
+	if(justCheck){
+		return nil;
+	}
 	return run("git", "add", "upstream")
 }
 
