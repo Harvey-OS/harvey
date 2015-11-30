@@ -32,74 +32,6 @@
 /* Allow a maximum of 8 GPIOs */
 #define SYSINFO_MAX_GPIOS 8
 
-struct cb_serial;
-
-struct sysinfo_t {
-	unsigned int cpu_khz;
-	struct cb_serial *serial;
-	unsigned short ser_ioport;
-	unsigned long ser_base; // for mmapped serial
-
-	int n_memranges;
-
-	struct memrange {
-		unsigned long long base;
-		unsigned long long size;
-		unsigned int type;
-	} memrange[SYSINFO_MAX_MEM_RANGES];
-
-	struct cb_cmos_option_table *option_table;
-	uint32_t cmos_range_start;
-	uint32_t cmos_range_end;
-	uint32_t cmos_checksum_location;
-#ifdef CONFIG_CHROMEOS
-	uint32_t vbnv_start;
-	uint32_t vbnv_size;
-#endif
-
-	char *version;
-	char *extra_version;
-	char *build;
-	char *compile_time;
-	char *compile_by;
-	char *compile_host;
-	char *compile_domain;
-	char *compiler;
-	char *linker;
-	char *assembler;
-
-	char *cb_version;
-
-	struct cb_framebuffer *framebuffer;
-
-#ifdef CONFIG_CHROMEOS
-	int num_gpios;
-	struct cb_gpio gpios[SYSINFO_MAX_GPIOS];
-#endif
-
-	unsigned long *mbtable; /** Pointer to the multiboot table */
-
-	struct cb_header *header;
-	struct cb_mainboard *mainboard;
-
-	/* these are chromeos specific and may or may not be valid. */
-	void	*vboot_handoff;
-	uint32_t	vboot_handoff_size;
-	void	*vdat_addr;
-	uint32_t	vdat_size;
-
-#ifdef CONFIG_X86
-	int x86_rom_var_mtrr_index;
-#endif
-
-	void	*tstamp_table;
-	void	*cbmem_cons;
-	void	*mrc_cache;
-	void	*acpi_gnvs;
-};
-
-extern struct sysinfo_t lib_sysinfo;
-
 struct cbuint64 {
 	uint32_t lo;
 	uint32_t hi;
@@ -358,6 +290,64 @@ static inline const char *cb_mb_part_string(const struct cb_mainboard *cbm)
 {
 	return (char *)(cbm->strings + cbm->part_number_idx);
 }
+
+struct sysinfo_t {
+	unsigned int cpu_khz;
+	struct cb_serial *serial;
+	unsigned short ser_ioport;
+	unsigned long ser_base; // for mmapped serial
+
+	int n_memranges;
+
+	struct memrange {
+		unsigned long long base;
+		unsigned long long size;
+		unsigned int type;
+	} memrange[SYSINFO_MAX_MEM_RANGES];
+
+	struct cb_cmos_option_table *option_table;
+	uint32_t cmos_range_start;
+	uint32_t cmos_range_end;
+	uint32_t cmos_checksum_location;
+	uint32_t vbnv_start;
+	uint32_t vbnv_size;
+
+	char *version;
+	char *extra_version;
+	char *build;
+	char *compile_time;
+	char *compile_by;
+	char *compile_host;
+	char *compile_domain;
+	char *compiler;
+	char *linker;
+	char *assembler;
+
+	char *cb_version;
+
+	struct cb_framebuffer *framebuffer;
+
+	int num_gpios;
+	struct cb_gpio gpios[SYSINFO_MAX_GPIOS];
+
+	unsigned long *mbtable; /** Pointer to the multiboot table */
+
+	struct cb_header *header;
+	struct cb_mainboard *mainboard;
+
+	/* these are chromeos specific and may or may not be valid. */
+	void	*vboot_handoff;
+	uint32_t	vboot_handoff_size;
+	void	*vdat_addr;
+	uint32_t	vdat_size;
+
+	void	*tstamp_table;
+	void	*cbmem_cons;
+	void	*mrc_cache;
+	void	*acpi_gnvs;
+};
+
+extern struct sysinfo_t lib_sysinfo;
 
 /* Helpful macros */
 
