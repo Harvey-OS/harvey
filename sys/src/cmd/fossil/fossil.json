@@ -6,7 +6,7 @@
 		"Install": "/$ARCH/bin/fossil/",
 		"Post": [
 			"chmod +x conf",
-			"mv conf $HARVEY/amd64/bin/fossil/"
+			"mv conf $HARVEY/$ARCH/bin/fossil/"
 		],
 		"Pre": [
 			"echo '#!/bin/rc' \u003e\u003e conf",
