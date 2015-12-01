@@ -60,6 +60,8 @@ void
 main(int argc, char *argv[])
 {
 	int i;
+	char dot[] = {'.', 0};
+
 
 	Binit(&bin, 1, OWRITE);
 	ARGBEGIN{
@@ -87,7 +89,7 @@ main(int argc, char *argv[])
 	if(lflag)
 		clk = time(0);
 	if(argc == 0)
-		errs = ls(".", 0);
+		errs = ls(dot, 0);
 	else for(i=0; i<argc; i++)
 		errs |= ls(argv[i], 1);
 	output();
