@@ -254,16 +254,16 @@
 			"port/u16.c",
 			"port/u32.c",
 			"port/u64.c",
-			"amd64/seek.c",
-			"amd64/notejmp.c",
-			"amd64/cycles.c",
-			"amd64/argv0.c",
-			"amd64/rdpmc.c",
-			"amd64/setjmp.s",
-			"amd64/sqrt.s",
-			"amd64/tas.s",
-			"amd64/atom.S",
-			"amd64/main9.S"
+			"$ARCH/seek.c",
+			"$ARCH/notejmp.c",
+			"$ARCH/cycles.c",
+			"$ARCH/argv0.c",
+			"$ARCH/rdpmc.c",
+			"$ARCH/setjmp.s",
+			"$ARCH/sqrt.s",
+			"$ARCH/tas.s",
+			"$ARCH/atom.S",
+			"$ARCH/main9.S"
 		]
 	}
 }
