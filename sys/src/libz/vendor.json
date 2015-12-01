@@ -1,0 +1,20 @@
+{
+	"Upstream": "http://zlib.net/zlib-1.2.8.tar.gz",
+	"Digest": {
+		"sha384": "ce7147f4568e01922a5d3cb7db56427b54ea2e84a47aea2a999d2f3af2b1e034d90509b449643641bf4c8bfbc9ad0bc7",
+		"sha256": "36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d"
+	},
+	"Compress": "gzip",
+	"RemovePrefix": true,
+	"Exclude": [
+		"amiga",
+		"as400",
+		"contrib",
+		"msdos",
+		"nintendods",
+		"old",
+		"watcom",
+		"win32",
+		"qnx"
+	]
+}
