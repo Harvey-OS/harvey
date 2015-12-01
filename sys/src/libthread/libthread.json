@@ -1,13 +1,13 @@
 {
 	"libthread": {
 		"Include": [
-			"/amd64/include/cflags.json",
+			"/$ARCH/include/cflags.json",
 			"../lib.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "libthread.a",
 		"SourceFiles": [
-			"amd64.c",
+			"$ARCH.c",
 			"channel.c",
 			"chanprint.c",
 			"create.c",
