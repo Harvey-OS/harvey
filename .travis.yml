@@ -1,6 +1,6 @@
 language: c
 script:
- - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then git clean -x -d -f && ./BUILD all ; fi
+ - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
 compiler: 
  - gcc-4.8
 
