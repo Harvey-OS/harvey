@@ -22,12 +22,12 @@
 			"-Wno-unknown-pragmas"
 		],
 		"Libs": [
-			"/amd64/lib/klibmemlayer.a",
-			"/amd64/lib/klibmemdraw.a",
-			"/amd64/lib/klibc.a",
-			"/amd64/lib/klibdraw.a",
-			"/amd64/lib/klibip.a",
-			"/amd64/lib/klibsec.a"
+			"/$ARCH/lib/klibmemlayer.a",
+			"/$ARCH/lib/klibmemdraw.a",
+			"/$ARCH/lib/klibc.a",
+			"/$ARCH/lib/klibdraw.a",
+			"/$ARCH/lib/klibip.a",
+			"/$ARCH/lib/klibsec.a"
 		],
 		"Oflags": [
 			"-z",
@@ -56,7 +56,7 @@
 			"vsvm.c",
 			"l64v.S",
 			"l64fpu.S",
-			"cpuidamd64.S",
+			"cpuid$ARCH.S",
 			"l64acidt.S",
 			"l64idt.S",
 			"l64vsyscall.S",
