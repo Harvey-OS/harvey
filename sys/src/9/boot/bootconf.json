@@ -1,13 +1,13 @@
 {
 	"bootk8cpu": {
 		"Include": [
-			"/amd64/include/cflags.json"
+			"/$ARCH/include/cflags.json"
 		],
 		"Libs": [
 			"libboot.a",
-			"/amd64/lib/libip.a",
-			"/amd64/lib/libauth.a",
-			"/amd64/lib/libc.a"
+			"/$ARCH/lib/libip.a",
+			"/$ARCH/lib/libauth.a",
+			"/$ARCH/lib/libc.a"
 		],
 		"Oflags": [
 			"-e_main",
