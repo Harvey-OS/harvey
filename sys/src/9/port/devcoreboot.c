@@ -312,7 +312,7 @@ static Dirtab corebootdir[]={
 	"table",	{Qtable},	0,			0444,
 };
 
-static struct sysinfo_t cbinfo;
+struct sysinfo_t cbinfo;
 
 static int
 corebootdevgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
