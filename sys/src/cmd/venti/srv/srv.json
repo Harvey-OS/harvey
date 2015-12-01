@@ -9,7 +9,7 @@
 		],
 		"Post": [
 			"chmod +x conf",
-			"mv conf $HARVEY/amd64/bin/venti/"
+			"mv conf $HARVEY/$ARCH/bin/venti/"
 		],
 		"Pre": [
 			"echo '#!/bin/rc' \u003e\u003e conf",

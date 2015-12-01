@@ -4,7 +4,7 @@
 			"../../cmd.json"
 		],
 		"Post": [
-			"cp mk9660.rc $HARVEY/amd64/bin/mk9660"
+			"cp mk9660.rc $HARVEY/$ARCH/bin/mk9660"
 		],
 		"Install": "/$ARCH/bin",
 		"Program": "dump9660",
