@@ -273,13 +273,15 @@ HaveMethod:
 static void
 usbinit(void)
 {
-	static char usbd[] = "/boot/usbd";
 	print("NOT RUNNING USBD -- run was broken (varargs problem\n");
 	return;
-
+/*
+	static char usbd[] = "/boot/usbd";
+  verify that shell won't block until usbd exits ...
 	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0 &&
 	    access(usbd, AEXIST) >= 0)
 		shell("-c", "/boot/usbd");
+*/
 }
 
 static void
