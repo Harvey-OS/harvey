@@ -66,6 +66,8 @@ configlocal(Method *mp)
 		 *  is the last resort.
 		 */
 		disk = bootdisk;
+	} else {
+		disk = "#s/sdE0/";
 	}
 print("configlocal: disk is %s\n", disk);
 	/* if we've decided on one, pass it on to all programs */
@@ -78,7 +80,7 @@ print("configlocal: disk is %s\n", disk);
 
 	shell("-c", smprint("/boot/fdisk -p '%s/data' > '%s/ctl'", disk, disk));
 	shell("-c", smprint("/boot/prep -p '%s/plan9' > '%s/ctl'", disk, disk));
-	shell("-i", nil);
+	//shell("-i", nil);
 	USED(mp);
 }
 
