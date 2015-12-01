@@ -14,13 +14,13 @@
 			"-g"
 		],
 		"Libs": [
-			"/amd64/lib/libString.a",
-			"/amd64/lib/lib9p.a",
-			"/amd64/lib/libndb.a",
-			"/amd64/lib/libauth.a",
-			"/amd64/lib/libbio.a",
-			"/amd64/lib/libip.a",
-			"/amd64/lib/libc.a"
+			"/$ARCH/lib/libString.a",
+			"/$ARCH/lib/lib9p.a",
+			"/$ARCH/lib/libndb.a",
+			"/$ARCH/lib/libauth.a",
+			"/$ARCH/lib/libbio.a",
+			"/$ARCH/lib/libip.a",
+			"/$ARCH/lib/libc.a"
 		],
 		"Oflags": [
 			"-static",
