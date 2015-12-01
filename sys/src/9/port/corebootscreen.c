@@ -25,6 +25,7 @@
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
+#include <coreboot.h>
 #include "screen.h"
 #include "corebootscreen.h"
 
@@ -33,6 +34,7 @@ enum {
 	Scroll	= 8,		/* lines to scroll at one time */
 };
 
+extern struct sysinfo_t cbinfo;
 int	drawdebug = 1;
 Point	ZP = {0, 0};
 Cursor	arrow = {
@@ -61,7 +63,7 @@ static Memimage xgscreen =
 	nil,			/* cmap */
 	&xgdata,		/* data */
 	0,			/* zero */
-	1024*768*40, 	/* width in words of a single scan line */
+	1024*768, 	/* width in words of a single scan line */
 	0,			/* layer */
 	0,			/* flags */
 };
@@ -70,7 +72,7 @@ Memimage *gscreen;
 static CorebootScreen Cbscreen;
 static Memimage *conscol;
 static Memimage *back;
-static Corebootfb *framebuf;
+static Corebootfb framebuf;
 static Memsubfont *memdefont;
 
 //static Lock screenlock;
@@ -186,9 +188,9 @@ screentest(void)
 	int i;
 
 	print("%s\n", __func__);
-	for (i = sizeof(framebuf->pixel)/sizeof(framebuf->pixel[0]) - 1; i >= 0; i--)
-		framebuf->pixel[i] = 0x1f;			/* blue */
-//	memset(framebuf->pixel, ~0, sizeof framebuf->pixel);	/* white */
+	for (i = sizeof(framebuf.pixel)/sizeof(framebuf.pixel[0]) - 1; i >= 0; i--)
+		framebuf.pixel[i] = 0x1f;			/* blue */
+//	memset(framebuf.pixel, ~0, sizeof framebuf.pixel);	/* white */
 }
 
 void
@@ -377,20 +379,28 @@ swcursorinit(void)
 	memfillcolor(swimg1, DBlack);
 }
 
-/* called from main and possibly later from devdss to change resolution */
-void
+int
 screeninit(void)
 {
 	print("%s\n", __func__);
 	static int first = 1;
+	struct cb_framebuffer *fb;
+	print("%s: fb is %p\n", __func__, cbinfo.framebuffer);
+	if (!cbinfo.framebuffer)
+		return -1;
+	
+	fb = KADDR((uintptr_t)cbinfo.framebuffer);
+	framebuf.pixel =  KADDR(fb->physical_address);
+
+	/* should not happen but ...*/
+	if (!framebuf.pixel)
+		return -1;
+
+	print("%s: pixels are %p\n", __func__, fb->physical_address);
 
 	if (first) {
 		iprint("screeninit...");
 		lcdstop();
-		if (framebuf)
-			free(framebuf);
-		/* mode is 16*32 = 512 */
-		// ?? framebuf = xspanalloc(sizeof *framebuf, 16*32, 0);
 	}
 
 	lcdinit();
@@ -402,7 +412,7 @@ screeninit(void)
 	}
 
 	xgdata.ref = 1;
-	xgdata.bdata = (uint8_t *)framebuf->pixel;
+	xgdata.bdata = (uint8_t *)framebuf.pixel;
 
 	gscreen = &xgscreen;
 	gscreen->r = Rect(0, 0, Wid, Ht);
@@ -421,7 +431,7 @@ screeninit(void)
 		screenwin();		/* draw border & top orange bar */
 		// ? screenputs = corebootcreenputs;
 		iprint("screen: frame buffer at %#p for %dx%d\n",
-			framebuf, Cbscreen.wid, Cbscreen.ht);
+			framebuf.pixel, Cbscreen.wid, Cbscreen.ht);
 
 		swenabled = 1;
 		swcursorinit();		/* needs gscreen set */
@@ -429,6 +439,7 @@ screeninit(void)
 
 		first = 0;
 	}
+	return 0;
 }
 
 /* flushmemscreen should change buffer? */
@@ -448,8 +459,8 @@ flushmemscreen(Rectangle r)
 		r.max.y = Ht;
 	if (rectclip(&r, gscreen->r) == 0)
 		return;
-	start = (uintptr_t)&framebuf->pixel[r.min.y*Wid + r.min.x];
-	end   = (uintptr_t)&framebuf->pixel[(r.max.y - 1)*Wid + r.max.x -1];
+	start = (uintptr_t)&framebuf.pixel[r.min.y*Wid + r.min.x];
+	end   = (uintptr_t)&framebuf.pixel[(r.max.y - 1)*Wid + r.max.x -1];
 	print("Flushmemscreen %p %p\n", start, end);
 	// for now. Don't think we need it. cachedwbse((uint32_t *)start, end - start);
 	coherence();
@@ -462,6 +473,8 @@ uint8_t*
 attachscreen(Rectangle *r, uint32_t *chan, int *d, int *width, int *softscreen)
 {
 	print("%s\n", __func__);
+	if (screeninit() < 0)
+		return nil;
 	*r = gscreen->r;
 	*d = gscreen->depth;
 	*chan = gscreen->chan;

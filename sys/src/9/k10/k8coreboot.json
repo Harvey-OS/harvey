@@ -100,6 +100,7 @@
 		},
 		"Program": "9k8cpu",
 		"SourceFiles": [
+		        "../port/corebootscreen.c",
 			"cga.c",
 			"devacpi.c",
 			"devusb.c",
