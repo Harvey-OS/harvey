@@ -17,7 +17,7 @@ typedef struct DS DS;
 
 static int	call(char*, char*, DS*);
 static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
+static void	_dial_string_parse(const char*, DS*);
 
 enum
 {
@@ -49,7 +49,7 @@ _threaddial(const char *dest, const char *local, char *dir, int *cfdp)
 	int rv;
 	char err[ERRMAX], alterr[ERRMAX];
 
-	ds.local = local;
+	ds.local = (char*)local;
 	ds.dir = dir;
 	ds.cfdp = cfdp;
 
@@ -201,7 +201,7 @@ call(char *clone, char *dest, DS *ds)
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(const char *str, DS *ds)
 {
 	char *p, *p2;
 
