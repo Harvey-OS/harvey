@@ -9,3 +9,13 @@
 /telnet
 /ufs
 /vendor
+/preen
+/runqemu
+/convert
+/profile
+/auth/bin/
+/third_party/bin
+/third_party/src/golang.org
+/third_party/src/github.com/kr
+/third_party/authsrv9/authsrv9
+/third_party/authsrv9/passtokey

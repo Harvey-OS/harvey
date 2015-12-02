@@ -109,6 +109,8 @@ func repositoryIsClean() bool {
         log.Fatal(err)
     }
 	if(len(out) > 0){
+		log.Println("git status --porcelain");
+		log.Println(string(out))
 		return false
 	}
 	return true
