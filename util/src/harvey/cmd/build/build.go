@@ -402,8 +402,9 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 
 func projects(b *build, r []*regexp.Regexp) {
 	for _, v := range b.Projects {
-		log.Printf("Doing %s\n", strings.TrimSuffix(v, ".json"))
-		project(v, r)
+		f, _ := findBuildfile(v)
+		log.Printf("Doing %s\n", f)
+		project(f, r)
 	}
 }
 
