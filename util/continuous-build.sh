@@ -3,7 +3,7 @@ set -e
 
 if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
 	git clean -x -d -f
-	./BUILD utils
+	(cd $TRAVIS_BUILD_DIR && ./bootstrap.sh)
 
 	echo
 	echo "Vendorized code verification..."
@@ -12,6 +12,7 @@ if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
 		echo "cd `dirname $v`"
 		(cd `dirname $v`; vendor -check)
 	done
+	echo
 
-	./BUILD all
+	build all
 fi
