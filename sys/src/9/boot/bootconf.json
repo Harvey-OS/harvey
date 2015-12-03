@@ -15,7 +15,7 @@
 		],
 		"Post": [
 			"rm *.o *.a",
-			"../../../../util/data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
+			"data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
 		],
 		"Program": "bootk8cpu.elf.out",
 		"Projects": [
