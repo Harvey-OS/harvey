@@ -14,11 +14,10 @@ GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -d harve
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install github.com/rminnich/go9p/ufs harvey/cmd/...
 cat <<EOF
 
-Now just set ARCH, modify PATH, and build:
+Now just set your environment variables and build:
 
-	export ARCH=amd64
-	export PATH="$(pwd)/util:\$PATH"
-	build all
+	source envsetup
+	build
 
 See \`build -h' for more information on the build tool.
 EOF
