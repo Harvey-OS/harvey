@@ -350,6 +350,9 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			errstr = up->errstr;
 		fmtprint(&fmt, " = %lld", ar0->vl);
 		break;
+	case NSEC:
+		fmtprint(&fmt, " = %lld", ar0->vl);
+		break;
 	case ALARM:
 	case WRITE:
 	case PWRITE:
