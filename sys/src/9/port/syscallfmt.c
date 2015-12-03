@@ -348,6 +348,8 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	case AWAKE:
 		if(ar0->vl == 0)
 			errstr = up->errstr;
+		/*FALLTHROUGH*/
+	case NSEC:
 		fmtprint(&fmt, " = %lld", ar0->vl);
 		break;
 	case ALARM:
