@@ -1,12 +1,34 @@
 package main
 
 import (
+	"bytes"
 	"debug/elf"
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"sort"
 )
+
+type Header struct {
+	Sz   byte
+	_    byte
+	Core uint16
+	_    uint16
+	Ver  byte
+	Sig  byte
+	Time uint64
+}
+
+type pc uint64
+
+type Record struct {
+	Header
+	pcs []pc
+}
+
 
 type Symbol struct {
 	Addr uint64
@@ -22,17 +44,12 @@ type ByAddress struct{ Symbols }
 
 func (s ByAddress) Less(i, j int) bool { return s.Symbols[i].Addr < s.Symbols[j].Addr }
 
-var profile = flag.String("profile", "", "name of file containing profile data")
-var kernel = flag.String("kernel", "", "kernel to profile against")
-var symbolTable = []*Symbol{}
-
-func bytesToInt(array []byte, offset int) uint32 {
-	return uint32(array[offset]) | (uint32(array[offset+1]) << 8) | (uint32(array[offset+2]) << 16) | (uint32(array[offset+3]) << 24)
-}
-
-func bytesToLong(array []byte, offset int) uint64 {
-	return uint64(bytesToInt(array, offset)) | (uint64(bytesToInt(array, offset+4)) << 32)
-}
+var (
+	profile     = flag.String("profile", "", "name of file containing profile data")
+	debug       = flag.Bool("d", false, "Debug printing")
+	kernel      = flag.String("kernel", "", "kernel to profile against")
+	symbolTable []*Symbol
+)
 
 func loadSymbols(kernel *elf.File) {
 	syms, err := kernel.Symbols()
@@ -48,7 +65,8 @@ func loadSymbols(kernel *elf.File) {
 	sort.Sort(ByAddress{symbolTable})
 }
 
-func findFunction(addr uint64) string {
+func findFunction(pc pc) string {
+	addr := uint64(pc)
 	var prevSym *Symbol
 	for _, sym := range symbolTable {
 		if sym.Addr > addr && prevSym != nil {
@@ -74,22 +92,40 @@ func main() {
 		return
 	}
 
-	offset := 0
-	for offset < len(backtraces) {
-		topOfStack := true
-		header1 := bytesToInt(backtraces, offset)
-		//timestamp := bytesToLong(backtraces, offset+8)
-		//coreId := (header1 >> 16) & 0xffff
-		numTraces := header1 & 0xff
-		offset += 16
-		//fmt.Printf("timestamp: %d, core id: %d\n", timestamp, coreId)
-		traceEnd := offset + int(numTraces*8)
-		for ; offset < traceEnd; offset += 8 {
-			if topOfStack {
-				addr := bytesToLong(backtraces, offset)
-				fmt.Printf("stack: %x, method %s\n", addr, findFunction(addr))
+	b := bytes.NewBuffer(backtraces)
+	var numRecords int
+	var records []Record
+	for {
+		var h Header
+		if err := binary.Read(b, binary.LittleEndian, &h); err != nil {
+			if err == io.EOF {
+				break
 			}
-			topOfStack = true
+			fmt.Fprintf(os.Stderr, "header: %v\n", err)
+			os.Exit(1)
 		}
+		if *debug {
+			fmt.Fprintf(os.Stderr, "%d: %v\n", numRecords, h)
+		}
+
+		if h.Sig != 0xee {
+			fmt.Fprintf(os.Stderr, "Record %d: sig is 0x%x, not 0xee", numRecords, h.Sig)
+			os.Exit(1)
+		}
+		pcs := make([]pc, h.Sz)
+		if err := binary.Read(b, binary.LittleEndian, pcs); err != nil {
+			fmt.Fprintf(os.Stderr, "data: %v\n", err)
+			os.Exit(1)
+		}
+		numRecords++
+		records = append(records, Record{Header: h, pcs: pcs})
+	}
+
+	for _, r := range records {
+		fmt.Printf("0x%x: ", r.Time)
+		for _, pc := range r.pcs {
+			fmt.Printf("[0x%x, %s] ", pc, findFunction(pc))
+		}
+		fmt.Printf("\n")
 	}
 }
