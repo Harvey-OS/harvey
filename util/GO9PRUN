@@ -4,15 +4,17 @@ trap : 2
 $HARVEY/util/ufs -root=$HARVEY &
 ufspid=$!
 
+export machineflag=pc
 if [ "$(uname)" = "Linux" ] && ([ -O /dev/kvm ] || [ -G /dev/kvm ]); then
 	export kvmflag='-enable-kvm'
 	export kvmdo=sudo
+	export machineflag='pc,accel=kvm'
 fi
 
 read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
 -serial stdio \
---machine pc,accel=kvm \
+--machine $machineflag \
 -net nic,model=rtl8139 \
 -net user,hostfwd=tcp::5555-:1522 \
 -net dump,file=/tmp/vm0.pcap \
