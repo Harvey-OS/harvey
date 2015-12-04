@@ -284,6 +284,18 @@ func buildkernel(b *build) {
 	failOn(ioutil.WriteFile(b.name+".c", codebuf, 0666))
 }
 
+func wrapInQuote(args []string) []string {
+	var res []string
+	for _, a := range(args){
+		if strings.Contains(a, "=") {
+			res = append(res, "'" + a + "'")
+		} else {
+			res = append(res, a)
+		}
+	}
+	return res
+}
+
 func compile(b *build) {
 	log.Printf("Building %s\n", b.name)
 	// N.B. Plan 9 has a very well defined include structure, just three things:
@@ -382,7 +394,8 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 		shell.Stderr = os.Stderr
 		shell.Stdout = os.Stdout
 
-		commandString := strings.Join(cmd.Args, " ")
+		commandString := cmd.Args[0]
+		commandString += " " + strings.Join(wrapInQuote(cmd.Args[1:]), " ")
 		shStdin, err := shell.StdinPipe()
 		if err != nil {
 			log.Fatalf("cannot pipe [%v] to %s: %v", commandString, tools["sh"], err)
@@ -392,7 +405,7 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 			io.WriteString(shStdin, commandString)
 		}()
 
-		log.Printf("%q | sh\n", commandString)
+		log.Printf("%q | %s\n", commandString, tools["sh"])
 		failOn(shell.Run())
 		return
 	}
