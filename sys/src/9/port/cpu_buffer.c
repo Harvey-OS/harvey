@@ -221,10 +221,14 @@ static Block *op_cpu_buffer_write_reserve(struct oprofile_cpu_buffer *cpu_buf,
 
 	int totalsize = sizeof(struct op_sample) +
 		size * sizeof(entry->sample->data[0]);
+	if (totalsize > oprofile_cpu_buffer_size) {
+		print("%s: totalsize %d, oprofile_cpu_buffer_size %d\n", totalsize, oprofile_cpu_buffer_size);
+		panic("fix oprofile");
+	}
 
 	Block *b = cpu_buf->block;
 	/* we might have run out. */
-	if ((! b) || (b->lim - b->wp) < size) {
+	if ((! b) || (b->lim - b->wp) < totalsize) {
 		if (b){
 			qibwrite(opq, b);
 		}
