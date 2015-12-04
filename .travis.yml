@@ -16,6 +16,7 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages:
+    - rc
     - gcc-4.8
   coverity_scan:
     project:
