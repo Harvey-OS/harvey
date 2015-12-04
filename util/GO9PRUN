@@ -5,10 +5,13 @@ $HARVEY/util/ufs -root=$HARVEY &
 ufspid=$!
 
 export machineflag=pc
-if [ "$(uname)" = "Linux" ] && ([ -O /dev/kvm ] || [ -G /dev/kvm ]); then
+if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	export kvmflag='-enable-kvm'
-	export kvmdo=sudo
 	export machineflag='pc,accel=kvm'
+	if [ ! -w /dev/kvm ]; then
+		# we don't have access as a regular user
+		export kvmdo=sudo
+	fi
 fi
 
 read -r cmd <<EOF
@@ -21,7 +24,7 @@ $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
 -redir tcp:9999::9 \
 -redir tcp:17010::17010 \
 -redir tcp:17013::17013 \
--append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 user=harvey" \
+-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0" \
 -kernel 9k8cpu.32bit $*
 EOF
 
