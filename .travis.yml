@@ -22,7 +22,7 @@ addons:
       name: "elbing/harvey"
       description: "Build submitted via Travis CI"
     notification_email: harvey@googlegroups.com
-    build_command_prepend: "./BUILD utils"
-    build_command:   "./BUILD all"
+    build_command_prepend: "./bootstrap.sh"
+    build_command:   "build all"
     branch_pattern: coverity_scan
 
