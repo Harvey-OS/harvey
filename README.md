@@ -41,6 +41,9 @@ command will probably look something like this:
 
 	git clone https://USERNAME@review.gerrithub.io/Harvey-OS/harvey
 
+BUILD
+=====
+
 You'll need to bootstrap everything the first time:
 
 	./bootstrap.sh
@@ -48,9 +51,8 @@ You'll need to bootstrap everything the first time:
 This will set up the git repo for code review and build the `build` tool.
 You should now be able to build everything by running
 
-	export ARCH=amd64
-	export PATH="$(pwd)/util:$PATH"
-	build all
+	. envsetup
+	build
 
 Once building is complete, you can try booting the kernel with qemu
 
