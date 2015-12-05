@@ -27,6 +27,7 @@
 			"hoc/hoc.json",
 			"grep/grep.json",
 			"ndb/ndb.json",
+			"rc/rc.json",
 			"rio/rio.json",
 			"syscall/syscall.json",
 			"venti/venti.json"
