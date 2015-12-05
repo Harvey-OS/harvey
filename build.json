@@ -1,4 +1,9 @@
 {
+	"All": {
+		"Projects": [
+		    "/sys/src/all.json"
+		]
+	},
 	"k8cpu": {
 		"Projects": ["/sys/src/9/k10/k8cpu.json"]
 	},
