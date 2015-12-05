@@ -1,5 +1,5 @@
 #!/bin/bash
-./BUILD kernel && \
+build build.json k8cpu && \
 	cp sys/src/9/k10/9k8cpu.32bit /var/lib/tftpboot && \
 	echo "OK" &&  \
 	exit
