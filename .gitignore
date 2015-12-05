@@ -62,3 +62,4 @@ tools/share
 
 cfg/pxe/tftpboot
 usr/harvey/tmp
+sys/include/libz.h
