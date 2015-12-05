@@ -1,0 +1,89 @@
+{
+	"zlib": {
+		"Cflags": [
+			"-I./harvey",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Oflags": [
+			"-nostdlib"
+		],
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libz.a",
+		"Pre": [
+			"rm -fr harvey/*.[ch]",
+			"cp upstream/*.h harvey/",
+			"cp upstream/*.c harvey/",
+			"cp zconf.h harvey/",
+			"cp harvey.c harvey.h harvey/",
+			"echo > harvey/fcntl.h",
+			"cat upstream/gzguts.h | sed -f patch/port-gzguts.sed > harvey/gzguts.h",
+			"cat upstream/zutil.c | sed -f patch/port-zutils.sed > harvey/zutil.c",
+			"cat upstream/gzread.c | sed -f patch/port-gzread.sed  > harvey/gzread.c",
+			"cat upstream/gzwrite.c | sed -f patch/port-gzwrite.sed > harvey/gzwrite.c",
+			"cat upstream/gzlib.c | sed -f patch/use-uopen.sed > harvey/gzlib.c"
+		],
+		"SourceFiles": [
+			"harvey/adler32.c",
+			"harvey/compress.c",
+			"harvey/crc32.c",
+			"harvey/deflate.c",
+			"harvey/gzclose.c",
+			"harvey/gzlib.c",
+			"harvey/gzread.c",
+			"harvey/harvey.c",
+			"harvey/infback.c",
+			"harvey/inffast.c",
+			"harvey/inflate.c",
+			"harvey/inftrees.c",
+			"harvey/trees.c",
+			"harvey/uncompr.c",
+			"harvey/zutil.c"
+		]
+	},
+	"regress": {
+		"Cflags": [
+			"-lz",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lz",
+			"-lstdio",
+			"-lc"
+		],
+		"Pre": [
+			"cat upstream/test/example.c | sed -f patch/port-example.sed > harvey/example.c"
+		],
+		"Post": [
+			"mkdir -p $HARVEY/$ARCH/bin/regress/libz",
+			"mv harvey/example $HARVEY/$ARCH/bin/regress/libz",
+			"rm example.o"
+		],
+		"SourceFilesCmd": [
+			"harvey/example.c"
+		]
+	}
+}
