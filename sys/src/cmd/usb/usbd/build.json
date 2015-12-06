@@ -1,0 +1,24 @@
+{
+	"usbd": {
+		"Cflags": [
+			"-I", 
+			"../lib"
+		],
+	    "Oflags": [
+		"-lusb"
+		],
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/usb",
+	    "Pre": [
+		"go run ./m.go -o devtab.c usbdb.json"
+		],
+		"Program": "usbd",
+		"SourceFiles": [
+		    "usbd.c",
+		    "dev.c",
+		    "devtab.c"
+		]
+	}
+}
