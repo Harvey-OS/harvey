@@ -5,7 +5,7 @@ sudo fdisk /dev/nbd0
 [Create an ext2 partition]
 sudo extlinux -i /dev/nbd0p1
 sudo mount /dev/nbd0p1 disk/
-sudo cp ../sys/src/9/k10/9k.32bit disk/harvey
+sudo cp ../sys/src/9/amd64/harvey.32bit disk/harvey
 
 cd disk/
 
