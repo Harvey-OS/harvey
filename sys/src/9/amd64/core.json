@@ -38,9 +38,9 @@
 			"kernel.ld"
 		],
 		"Post": [
-			"OBJCOPY=objcopy; $TOOLPREFIX$OBJCOPY -I elf64-x86-64 -O elf32-i386 9$CONF 9$CONF.32bit",
-			"cp 9$CONF.32bit $HARVEY/cfg/pxe/tftpboot",
-			"OBJDUMP=objdump; $TOOLPREFIX$OBJDUMP -S 9$CONF > 9$CONF.asm"
+			"OBJCOPY=objcopy; $TOOLPREFIX$OBJCOPY -I elf64-x86-64 -O elf32-i386 harvey harvey.32bit",
+			"cp harvey.32bit $HARVEY/cfg/pxe/tftpboot",
+			"OBJDUMP=objdump; $TOOLPREFIX$OBJDUMP -S harvey > harvey.asm"
 		],
 		"Pre": [
 			"mksys -o systab.c '-mode=systab.c' $HARVEY/sys/src/sysconf.json",
@@ -63,7 +63,7 @@
 			"acore.c",
 			"apic.c",
 			"arch.c",
-			"archk10.c",
+			"archamd64.c",
 			"asm.c",
 			"backtrace.c",
 		        "coreboot.c",

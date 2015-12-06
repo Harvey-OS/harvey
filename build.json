@@ -5,7 +5,7 @@
 			"/sys/src/libs.json",
 			"/sys/src/cmd/kcmds.json",
 			"/sys/src/cmd/cmds.json",
-			"/sys/src/9/k10/k8cpu.json",
+			"/sys/src/9/amd64/amd64cpu.json",
 			"/sys/src/regress/regress.json"
 		]
 	}
