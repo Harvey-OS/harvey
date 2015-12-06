@@ -240,7 +240,7 @@ extern void ioapicintrinit(int, int, int, int, uint32_t);
 extern void ioapiconline(void);
 
 /*
- * archk10.c
+ * archamd64.c
  */
 extern void millidelay(int);
 extern void k10mwait(void*);

@@ -1,7 +1,7 @@
 {
-	"k8cpu": {
+	"amd64cpu": {
 		"Env": [
-			"CONF=k8cpu"
+			"CONF=amd64cpu"
 		],
 		"Include": [
 			"core.json",
@@ -44,6 +44,7 @@
 					"uart",
 					"ws",
 					"usb",
+					"vga",
 					"zp"
 				],
 				"Ip": [
@@ -70,48 +71,52 @@
 				"Sd": [
 					"sdiahci"
 				],
-				"Systab": "/sys/src/libc/9syscall/sys.h",
 				"Uart": [
 					"i8250",
 					"pci"
-				]
+				],
+				"VGA": []
 			},
+			"Systab": "/sys/src/libc/9syscall/sys.h",
 			"Ramfiles": {
-				"bind": "/amd64/bin/bind",
-				"boot": "/sys/src/9/boot/bootk8cpu.elf.out",
-				"cat": "/amd64/bin/cat",
-				"date": "/amd64/bin/date",
-				"echo": "/amd64/bin/echo",
-				"factotum": "/amd64/bin/auth/factotum",
-				"ipconfig": "/amd64/bin/ip/ipconfig",
-				"ls": "/amd64/bin/ls",
-				"mount": "/amd64/bin/mount",
+				"bind": "/$ARCH/bin/bind",
+				"boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
+				"cat": "/$ARCH/bin/cat",
+				"date": "/$ARCH/bin/date",
+				"echo": "/$ARCH/bin/echo",
+				"factotum": "/$ARCH/bin/auth/factotum",
+				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"ls": "/$ARCH/bin/ls",
+				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
-				"rc": "/amd64/bin/rc",
+				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
-				"screenconsole": "/amd64/bin/aux/screenconsole",
-				"srv": "/amd64/bin/srv",
-				"fdisk": "/amd64/bin/disk/fdisk",
-				"prep": "/amd64/bin/disk/prep",
-				"venti": "/amd64/bin/venti/venti",
-				"fossil": "/amd64/bin/fossil/fossil",
+				"screenconsole": "/$ARCH/bin/aux/screenconsole",
+				"srv": "/$ARCH/bin/srv",
+				"fdisk": "/$ARCH/bin/disk/fdisk",
+				"prep": "/$ARCH/bin/disk/prep",
+				"venti": "/$ARCH/bin/venti/venti",
+				"fossil": "/$ARCH/bin/fossil/fossil",
 				"startdisk" : "startdisk"
 			}
 		},
-		"Program": "9k8cpu",
+		"Program": "harvey",
 		"SourceFiles": [
-		        "../port/corebootscreen.c",
 			"cga.c",
 			"devacpi.c",
 			"devusb.c",
+			"devvga.c",
 			"ether8139.c",
 			"ether82563.c",
-			"k8cpu.c",
+			"amd64cpu.c",
 			"mouse.c",
+			"screen.c",
 			"sdata.c",
 			"usbehcipc.c",
 			"usbohci.c",
-			"usbuhci.c"
+			"usbuhci.c",
+			"vga.c",
+			"vgax.c"
 		]
 	}
 }

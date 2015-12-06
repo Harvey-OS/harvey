@@ -28,7 +28,11 @@ $kvmflag \
 --machine pc \
 -net nic,model=rtl8139 \
 -net user,hostfwd=tcp::5555-:1522 \
--kernel $HARVEY/sys/src/9/k10/9k8cpu.32bit $* 
+-net dump,file=/tmp/vm0.pcap \
+-redir tcp:17010::17010 \
+-redir tcp:17013::17013 \
+-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 param" \
+-kernel harvey.32bit $*
 
 kill $pids
 wait

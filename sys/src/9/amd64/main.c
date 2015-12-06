@@ -203,7 +203,7 @@ squidboy(int apicno, Mach *mach)
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
 	 */
 	hz = archhz();
-	/* Intel cpu's in archk10 must be reviewed */
+	/* Intel cpu's in archamd64.c must be reviewed */
 	if(hz == 0)
 		hz = 2000000000ll;
 	mach->cpuhz = hz;
