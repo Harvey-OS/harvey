@@ -1,5 +1,5 @@
 {
-	"bootk8cpu": {
+	"bootamd64cpu": {
 		"Include": [
 			"/$ARCH/include/cflags.json"
 		],
@@ -15,15 +15,15 @@
 		],
 		"Post": [
 			"rm *.o *.a",
-			"data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
+			"data2c ramfs_bootamd64cpu_ ../boot/bootamd64cpu.elf.out >> ../amd64/amd64cpu.c"
 		],
-		"Program": "bootk8cpu.elf.out",
+		"Program": "bootamd64cpu.elf.out",
 		"Projects": [
 			"boot.json"
 		],
 		"SourceFiles": [
 			"printstub.c",
-			"bootk8cpu.c"
+			"bootamd64cpu.c"
 		]
 	}
 }

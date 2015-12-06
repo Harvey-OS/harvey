@@ -1,0 +1,12 @@
+/init.h
+/systab.c
+/bootamd64cpu.c
+/tags
+/amd64l.h
+/harvey
+/harvey.32bit
+/harvey.asm
+/amd64cpu.c
+/errstr.h
+/ksyms.map
+/nvram

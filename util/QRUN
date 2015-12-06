@@ -3,7 +3,7 @@ sudo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 8 -m 2048  \
 --machine pc \
 -net nic,model=rtl8139 \
 -net user,hostfwd=tcp::5555-:1522 \
--kernel 9k8cpu.32bit $*
+-kernel harvey.32bit $*
 
 # -nographic \
 #-S -gdb tcp::1234 \
