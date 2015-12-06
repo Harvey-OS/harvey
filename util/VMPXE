@@ -1,6 +1,6 @@
 #!/bin/bash
 ./BUILD kernel && \
-	cp sys/src/9/k10/9k8cpu.32bit /var/lib/tftpboot && \
+	cp sys/src/9/amd64/harvey.32bit /var/lib/tftpboot && \
 	echo "OK" &&  \
 	exit
 

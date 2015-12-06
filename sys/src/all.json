@@ -5,7 +5,7 @@
 			"libs.json",
 			"cmd/kcmds.json",
 			"cmd/cmds.json",
-			"9/k10/k8cpu.json",
+			"9/amd64/amd64cpu.json",
 			"regress/regress.json"
 		]
 	}

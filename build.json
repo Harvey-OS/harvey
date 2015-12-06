@@ -1,17 +1,17 @@
 {
-	"k8cpu": {
-		"Projects": ["/sys/src/9/k10/k8cpu.json"]
+	"amd64cpu": {
+		"Projects": ["/sys/src/9/amd64/amd64cpu.json"]
 	},
 	"regress": {
 		"Projects": ["/sys/src/regress/regress.json"]
 	},
 	"kregress": {
 		"Projects": [
-			"/sys/src/9/k10/k8cpu.json",
+			"/sys/src/9/amd64/amd64cpu.json",
 			"/sys/src/regress/regress.json"
 		]
 	},
 	"kernels": {
-		"Projects": ["/sys/src/9/k10/k8cpu.json"]
+		"Projects": ["/sys/src/9/amd64/amd64cpu.json"]
 	}
 }

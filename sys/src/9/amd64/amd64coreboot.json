@@ -1,0 +1,117 @@
+{
+	"amd64cpu": {
+		"Env": [
+			"CONF=amd64cpu"
+		],
+		"Include": [
+			"core.json",
+			"../386/386.json",
+			"../ip/ip.json",
+			"../port/port.json"
+		],
+		"Kernel": {
+			"Config": {
+				"Code": [
+					"int cpuserver = 1;",
+					"uint32_t kerndate = 1;"
+				],
+				"Dev": [
+					"acpi",
+					"arch",
+					"cap",
+					"cons",
+					"coreboot",
+					"draw",
+					"dup",
+					"env",
+					"ether",
+					"ip",
+					"kprof",
+					"mnt",
+					"mouse",
+					"pci",
+					"pipe",
+					"pmc",
+					"proc",
+					"regress",
+					"root",
+					"rtc",
+					"sd",
+					"segment",
+					"srv",
+					"ssl",
+					"tls",
+					"uart",
+					"ws",
+					"usb",
+					"zp"
+				],
+				"Ip": [
+					"tcp",
+					"udp",
+					"ipifc",
+					"icmp",
+					"icmp6",
+					"gre"
+				],
+				"Link": [
+					"ether8169",
+					"ether82557",
+					"ether82563",
+					"etherigbe",
+					"ether8139",
+					"ethermedium",
+					"loopbackmedium",
+					"netdevmedium",
+					"usbuhci",
+					"usbohci",
+					"usbehci"
+				],
+				"Sd": [
+					"sdiahci"
+				],
+				"Systab": "/sys/src/libc/9syscall/sys.h",
+				"Uart": [
+					"i8250",
+					"pci"
+				]
+			},
+			"Ramfiles": {
+				"bind": "/$ARCH/bin/bind",
+				"boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
+				"cat": "/$ARCH/bin/cat",
+				"date": "/$ARCH/bin/date",
+				"echo": "/$ARCH/bin/echo",
+				"factotum": "/$ARCH/bin/auth/factotum",
+				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"ls": "/$ARCH/bin/ls",
+				"mount": "/$ARCH/bin/mount",
+				"nvram": "/util/nvram",
+				"rc": "/$ARCH/bin/rc",
+				"rcmain": "/rc/lib/rcmain",
+				"screenconsole": "/$ARCH/bin/aux/screenconsole",
+				"srv": "/$ARCH/bin/srv",
+				"fdisk": "/$ARCH/bin/disk/fdisk",
+				"prep": "/$ARCH/bin/disk/prep",
+				"venti": "/$ARCH/bin/venti/venti",
+				"fossil": "/$ARCH/bin/fossil/fossil",
+				"startdisk" : "startdisk"
+			}
+		},
+		"Program": "harvey",
+		"SourceFiles": [
+		        "../port/corebootscreen.c",
+			"cga.c",
+			"devacpi.c",
+			"devusb.c",
+			"ether8139.c",
+			"ether82563.c",
+			"amd64cpu.c",
+			"mouse.c",
+			"sdata.c",
+			"usbehcipc.c",
+			"usbohci.c",
+			"usbuhci.c"
+		]
+	}
+}
