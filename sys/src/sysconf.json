@@ -10,17 +10,6 @@
 			"Sysname": "sysr1"
 		},
 		{
-			"#Id": 1,
-			"Args": [
-				"char*"
-			],
-			"Id": 4097,
-			"Name": "_errstr",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 2,
 			"Args": [
 				"char*",

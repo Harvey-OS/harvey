@@ -949,25 +949,6 @@ syserrstr(Ar0* ar0, ...)
 }
 
 void
-sys_errstr(Ar0* ar0, ...)
-{
-	char *p;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int errstr(char* err);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	p = va_arg(list, char*);
-	va_end(list);
-	generrstr(p, 64);
-
-	ar0->i = 0;
-}
-
-void
 sysnotify(Ar0* ar0, ...)
 {
 	Proc *up = externup();
