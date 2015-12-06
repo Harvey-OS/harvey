@@ -9,7 +9,7 @@ for port in `seq 5550 5557`; do
 		--machine pc \
 		-net nic,model=rtl8139 \
 		-net user,hostfwd=tcp::"$port"-:1522 \
-		-kernel 9k8cpu.32bit $* </dev/null &
+		-kernel harvey.32bit $* </dev/null &
 	pids="$! $pids"
 done
 
