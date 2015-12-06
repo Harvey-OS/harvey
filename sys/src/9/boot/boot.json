@@ -20,7 +20,7 @@
 		"Install": "/sys/src/9/boot",
 		"Library": "libboot.a",
 		"Pre": [
-			"mksys -o bootk8cpu.c -mode=bootk8cpu.c $HARVEY/sys/src/sysconf.json",
+			"mksys -o bootk8cpu.c '-mode=bootk8cpu.c' $HARVEY/sys/src/sysconf.json",
 			"[ ! -f bootk8cpu.elf.out ] || rm *.elf.out"
 		],
 		"SourceFiles": [
