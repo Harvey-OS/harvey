@@ -135,7 +135,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			argv++;
 		}
 		break;
-	case _FSESSION:					/* deprecated */
 	case _FSTAT:					/* deprecated */
 	case _FWSTAT:					/* obsolete */
 		i[0] = va_arg(list, int);
