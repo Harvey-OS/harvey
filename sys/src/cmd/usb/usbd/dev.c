@@ -10,7 +10,7 @@
 /*
  * Framework for USB devices.
  * Some of them may be embedded into usbd and some of
- * them may exist as /bin/usb/* binaries on their own.
+ * them may exist as /bin/usb/ * binaries on their own.
  *
  * When embedded, devmain() is given a ref of an already
  * configured and open Dev. If devmain()
@@ -282,7 +282,7 @@ startdev(Port *pp)
 	sa = emallocz(sizeof(Sarg), 1);
 	sa->pp = pp;
 	sa->dt = dt;
-	rc = sa->rc = chancreate(sizeof(ulong), 1);
+	rc = sa->rc = chancreate(sizeof(uint32_t), 1);
 	procrfork(startdevproc, sa, Stack, RFNOTEG);
 	if(recvul(rc) != 0)
 		free(sa);
