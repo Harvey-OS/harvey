@@ -1,7 +1,7 @@
 {
-	"k8cpu": {
+	"amd64cpu": {
 		"Env": [
-			"CONF=k8cpu"
+			"CONF=amd64cpu"
 		],
 		"Include": [
 			"core.json",
@@ -80,7 +80,7 @@
 			"Systab": "/sys/src/libc/9syscall/sys.h",
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
-				"boot": "/sys/src/9/boot/bootk8cpu.elf.out",
+				"boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
@@ -100,7 +100,7 @@
 				"startdisk" : "startdisk"
 			}
 		},
-		"Program": "9k8cpu",
+		"Program": "harvey",
 		"SourceFiles": [
 			"cga.c",
 			"devacpi.c",
@@ -108,7 +108,7 @@
 			"devvga.c",
 			"ether8139.c",
 			"ether82563.c",
-			"k8cpu.c",
+			"amd64cpu.c",
 			"mouse.c",
 			"screen.c",
 			"sdata.c",
