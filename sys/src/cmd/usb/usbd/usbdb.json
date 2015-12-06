@@ -1,0 +1,19 @@
+{
+    "Comment": [
+	"only kb, disk, and ether are prepared for embedding.",
+	"others are not yet converted to sit in the usbd device driver library."
+    ],
+    "Embeds": [
+	],
+    "NotWorkingEmbeds": [
+	{"Name": "kb", "Class": "0", "CSP": ["0x010103", "0x020103", "0", "0"], "VID": "-1", "DID": "-1"},
+	{"Name": "ether", "Class": "255", "CSP": ["0x00ffff", "0", "0", "0"], "VID": "0x0b95", "DID": "0"},
+	{"Name": "ether", "Class": "255", "CSP": ["0xff00ff", "0", "0", "0"], "VID": "0x0424", "DID": "0xec00"},
+	{"Name": "serial", "Class": "255", "CSP": ["0xffffff", "0", "0", "0"], "VID": "0x9e88", "DID": "0x9e8f"},
+	{"Name": "serial", "Class": "255", "CSP": ["0xffffff", "0", "0", "0"], "VID": "0x0403", "DID": "0"},
+	{"Name": "serial", "Class": "255", "CSP": ["0x0000ff", "0", "0", "0"], "VID": "0x10c4", "DID": "0"}
+
+    ]
+    
+}
+
