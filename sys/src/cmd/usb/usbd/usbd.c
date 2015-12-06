@@ -16,8 +16,6 @@
 #include "usbd.h"
 
 static Channel *portc;
-static int win;
-static int verbose;
 
 int mainstacksize = Stack;
 static Hub *hubs;
@@ -25,7 +23,8 @@ static int nhubs;
 static int mustdump;
 static int pollms = Pollms;
 
-static char *dsname[] = { "disabled", "attached", "configed" };
+// Wow, did anyone really use this code?
+//static char *dsname[] = { "disabled", "attached", "configed" };
 
 static int
 hubfeature(Hub *h, int port, int f, int on)
@@ -39,6 +38,8 @@ hubfeature(Hub *h, int port, int f, int on)
 	return usbcmd(h->dev, Rh2d|Rclass|Rother, cmd, f, port, nil, 0);
 }
 
+// Never used, but too handy to remove just now?
+#if 0
 /*
  * This may be used to detect overcurrent on the hub
  */
@@ -57,6 +58,7 @@ checkhubstatus(Hub *h)
 	sts = GET2(buf);
 	dprint(2, "hub %s: status %#ux\n", h->dev->dir, sts);
 }
+#endif
 
 static int
 confighub(Hub *h)
@@ -692,20 +694,20 @@ Again:
 }
 
 static int
-cfswalk(Usbfs*, Fid *, char *)
+cfswalk(Usbfs*_1, Fid *_2, char *_3)
 {
 	werrstr(Enotfound);
 	return -1;
 }
 
 static int
-cfsopen(Usbfs*, Fid *, int)
+cfsopen(Usbfs*_1, Fid *_2, int _3)
 {
 	return 0;
 }
 
 static int32_t
-cfsread(Usbfs*, Fid *, void *, int32_t , int64_t )
+cfsread(Usbfs*_1, Fid *_2, void *_3, int32_t _4, int64_t _5)
 {
 	return 0;
 }
@@ -733,7 +735,7 @@ setdrvauto(char *name, int on)
 }
 
 static int32_t
-cfswrite(Usbfs*, Fid *, void *data, int32_t cnt, int64_t )
+cfswrite(Usbfs*_1, Fid *_2, void *data, int32_t cnt, int64_t _3)
 {
 	char *cmd, *arg;
 	char buf[80];

@@ -1,5 +1,4 @@
 #!/bin/rc
-rfork e
 
 DB=usbdb
 HDR=../lib/usb.h
