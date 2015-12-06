@@ -92,14 +92,6 @@
 			]
 		},
 		{
-			"#Id": 9,
-			"Id": 4105,
-			"Name": "_fsession",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 10,
 			"Id": 4106,
 			"Name": "fauth",

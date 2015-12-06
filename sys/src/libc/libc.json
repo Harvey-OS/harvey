@@ -77,7 +77,6 @@
 			"9syscall/_exits.s",
 			"9syscall/fauth.s",
 			"9syscall/fd2path.s",
-			"9syscall/_fsession.s",
 			"9syscall/_fstat.s",
 			"9syscall/fstat.s",
 			"9syscall/fversion.s",

@@ -69,30 +69,6 @@ sysfversion(Ar0* ar0, ...)
 }
 
 void
-sys_fsession(Ar0* ar0, ...)
-{
-	int fd;
-	char *trbuf;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int fsession(int fd, char trbuf[TICKREQLEN]);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	trbuf = va_arg(list, char*);
-	va_end(list);
-
-	USED(fd);
-	trbuf = validaddr(trbuf, 1, 1);
-	*trbuf = '\0';
-
-	ar0->i = 0;
-}
-
-void
 sysfauth(Ar0* ar0, ...)
 {
 	Proc *up = externup();
