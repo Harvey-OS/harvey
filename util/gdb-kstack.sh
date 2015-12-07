@@ -10,7 +10,7 @@ remote=$1
 (
 	cat <<-EOF
 		set arch i386:x86-64
-		file sys/src/9/k10/9k8cpu.32bit
+		file sys/src/9/amd64/harvey.32bit
 		target remote $remote
 		set \$off = 0
 	EOF

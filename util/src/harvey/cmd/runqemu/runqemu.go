@@ -33,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	qemuCmd := "cd $HARVEY/sys/src/9/k10 && sh $HARVEY/util/REGRESS\n"
+	qemuCmd := "cd $HARVEY/sys/src/9/amd64 && sh $HARVEY/util/REGRESS\n"
 	qemuCmd = os.ExpandEnv(qemuCmd)
 
 	sh := exec.Command("/bin/sh")
