@@ -209,10 +209,10 @@ struct Usbdev
 
 struct Ep
 {
-	uchar	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
-	uchar	dir;		/* direction, Ein/Eout */
-	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
-	uchar	isotype;		/* Eunknown, Easync, Eadapt, Esync */
+	uint8_t	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
+	uint8_t	dir;		/* direction, Ein/Eout */
+	uint8_t	type;		/* Econtrol, Eiso, Ebulk, Eintr */
+	uint8_t	isotype;		/* Eunknown, Easync, Eadapt, Esync */
 	int	id;
 	int	maxpkt;		/* max. packet size */
 	int	ntds;		/* nb. of Tds per µframe */
@@ -252,9 +252,9 @@ struct Conf
  */
 struct DDesc
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bbytes[1];
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bbytes[1];
 	/* extra bytes allocated here to keep the rest of it */
 };
 
@@ -272,55 +272,55 @@ struct Desc
  */
 struct DDev
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bcdUSB[2];
-	uchar	bDevClass;
-	uchar	bDevSubClass;
-	uchar	bDevProtocol;
-	uchar	bMaxPacketSize0;
-	uchar	idVendor[2];
-	uchar	idProduct[2];
-	uchar	bcdDev[2];
-	uchar	iManufacturer;
-	uchar	iProduct;
-	uchar	iSerialNumber;
-	uchar	bNumConfigurations;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bcdUSB[2];
+	uint8_t	bDevClass;
+	uint8_t	bDevSubClass;
+	uint8_t	bDevProtocol;
+	uint8_t	bMaxPacketSize0;
+	uint8_t	idVendor[2];
+	uint8_t	idProduct[2];
+	uint8_t	bcdDev[2];
+	uint8_t	iManufacturer;
+	uint8_t	iProduct;
+	uint8_t	iSerialNumber;
+	uint8_t	bNumConfigurations;
 };
 
 struct DConf
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	wTotalLength[2];
-	uchar	bNumInterfaces;
-	uchar	bConfigurationValue;
-	uchar	iConfiguration;
-	uchar	bmAttributes;
-	uchar	MaxPower;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	wTotalLength[2];
+	uint8_t	bNumInterfaces;
+	uint8_t	bConfigurationValue;
+	uint8_t	iConfiguration;
+	uint8_t	bmAttributes;
+	uint8_t	MaxPower;
 };
 
 struct DIface
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bInterfaceNumber;
-	uchar	bAlternateSetting;
-	uchar	bNumEndpoints;
-	uchar	bInterfaceClass;
-	uchar	bInterfaceSubClass;
-	uchar	bInterfaceProtocol;
-	uchar	iInterface;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bInterfaceNumber;
+	uint8_t	bAlternateSetting;
+	uint8_t	bNumEndpoints;
+	uint8_t	bInterfaceClass;
+	uint8_t	bInterfaceSubClass;
+	uint8_t	bInterfaceProtocol;
+	uint8_t	iInterface;
 };
 
 struct DEp
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bEndpointAddress;
-	uchar	bmAttributes;
-	uchar	wMaxPacketSize[2];
-	uchar	bInterval;
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bEndpointAddress;
+	uint8_t	bmAttributes;
+	uint8_t	wMaxPacketSize[2];
+	uint8_t	bInterval;
 };
 
 #define Class(csp)	((csp) & 0xff)
@@ -357,12 +357,12 @@ char*	loaddevstr(Dev *d, int sid);
 Dev*	opendev(char *fn);
 int	opendevdata(Dev *d, int mode);
 Dev*	openep(Dev *d, int id);
-int	parseconf(Usbdev *d, Conf *c, uchar *b, int n);
-int	parsedesc(Usbdev *d, Conf *c, uchar *b, int n);
-int	parsedev(Dev *xd, uchar *b, int n);
+int	parseconf(Usbdev *d, Conf *c, uint8_t *b, int n);
+int	parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n);
+int	parsedev(Dev *xd, uint8_t *b, int n);
 void	startdevs(char *args, char *argv[], int argc, int (*mf)(char*,void*), void*ma, int (*df)(Dev*,int,char**));
 int	unstall(Dev *dev, Dev *ep, int dir);
-int	usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count);
+int	usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data, int count);
 
 
 extern int usbdebug;	/* more messages for bigger values */
