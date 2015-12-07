@@ -89,7 +89,7 @@ static Usbfs* fsops;
 static void fsioproc(void*);
 
 static void
-schedproc(void*)
+schedproc(void*_1)
 {
 	Channel *proc[Nproc];
 	int nproc;
@@ -184,7 +184,10 @@ freerpc(Rpc *r)
 	r->next = freerpcs;
 	freerpcs = r;
 	r->t.type = 0;
-	r->t.tag = 0x77777777;
+	// This is really weird. The tag is 16 bits. Why did this work?
+	// Is something else missing?
+	//r->t.tag = 0x77777777U;
+	r->t.tag = 0x7777;
 	qunlock(&rpclck);
 }
 
@@ -545,7 +548,7 @@ Rpc* (*fscalls[])(Rpc*) = {
 };
 
 static void
-outproc(void*)
+outproc(void*_1)
 {
 	static uint8_t buf[Bufsize];
 	Rpc *rpc;
@@ -584,7 +587,7 @@ outproc(void*)
 }
 
 static void
-usbfs(void*)
+usbfs(void*_1)
 {
 	Rpc *rpc;
 	int nr;

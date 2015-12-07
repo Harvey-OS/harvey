@@ -1,0 +1,42 @@
+
+embed
+	kb	csp=0x010103 csp=0x020103	args=
+	disk	class=storage			args=
+	ether	class=255 csp=0x00ffff vid=0x0b95		args=
+	ether	class=255 csp=0xff00ff vid=0x0424 did=0xec00	args=
+	serial	class=255 csp=0xffffff vid=0x9e88 did=0x9e8f	args=
+	serial	class=255 csp=0xffffff vid=0x0403		args=
+	serial	class=255 csp=0x0000ff vid=0x10c4	args=
+#	wifi	class=0 csp=0 vid=0x0bda did=0x8192		args=
+#	wifi	class=0 csp=0 vid=0x148f did=0x2870		args=
+auto
+
+/* machine generated. do not edit */
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include "usb.h"
+#include "usbd.h"
+
+extern int kbmain(Dev*, int, char**);
+extern int diskmain(Dev*, int, char**);
+extern int ethermain(Dev*, int, char**);
+extern int ethermain(Dev*, int, char**);
+extern int serialmain(Dev*, int, char**);
+extern int serialmain(Dev*, int, char**);
+extern int serialmain(Dev*, int, char**);
+
+Devtab devtab[] = {
+	/* device, entrypoint, {csp, csp, csp csp}, vid, did */
+	{"kb",	kbmain,	{0x010103, 0x020103, 0, 0, }, -1, -1, ""},
+	{"disk",	diskmain,	{DCL|8, 0, 0, 0, }, -1, -1, ""},
+	{"ether",	ethermain,	{DCL|255, 0x00ffff, 0, 0, }, 0x0b95, -1, ""},
+	{"ether",	ethermain,	{DCL|255, 0xff00ff, 0, 0, }, 0x0424, 0xec00, ""},
+	{"serial",	serialmain,	{DCL|255, 0xffffff, 0, 0, }, 0x9e88, 0x9e8f, ""},
+	{"serial",	serialmain,	{DCL|255, 0xffffff, 0, 0, }, 0x0403, -1, ""},
+	{"serial",	serialmain,	{DCL|255, 0x0000ff, 0, 0, }, 0x10c4, -1, ""},
+	{nil, nil,	{0, 0, 0, 0, }, -1, -1, nil},
+};
+
+/* end of machine generated */
+]0;rminnich@akaros: ~/projects/harvey/harvey/sys/src/cmd/usb/usbdrminnich@akaros:~/projects/harvey/harvey/sys/src/cmd/usb/usbd$ exit
