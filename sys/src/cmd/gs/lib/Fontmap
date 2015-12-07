@@ -1,4 +1,0 @@
-%!
-% See Fontmap.GS for the syntax of real Fontmap files.
-%% Replace 1 (Fontmap.GS)
-(Fontmap.GS) .runlibfile
