@@ -1,4 +1,0 @@
-#include "windows.h"
-
-texticon ICON gswin.ico
-grpicon ICON gswin.ico
