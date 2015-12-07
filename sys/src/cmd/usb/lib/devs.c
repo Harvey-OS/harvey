@@ -138,7 +138,7 @@ startdevs(char *args, char *argv[], int argc, int (*mf)(char*, void*),
 			fprint(2, "%s: too many devices\n", argv0);
 	}
 	ndevs = 0;
-	rc = chancreate(sizeof(ulong), 0);
+	rc = chancreate(sizeof(uint32_t), 0);
 	if(rc == nil)
 		sysfatal("no memory");
 	for(i = 0; i < ndirs; i++){

@@ -136,7 +136,7 @@ usbfsdel(Usbfs *dfs)
 }
 
 static void
-fsend(Usbfs*)
+fsend(Usbfs*_1)
 {
 	dprint(2, "%s: fsend\n", argv0);
 	usbfsdel(nil);
@@ -157,7 +157,7 @@ usbfsgone(char *dir)
 }
 
 static void
-fsclone(Usbfs*, Fid *o, Fid *n)
+fsclone(Usbfs*_1, Fid *o, Fid *n)
 {
 	int qd;
 	Dev *dev;
@@ -182,7 +182,7 @@ fsclone(Usbfs*, Fid *o, Fid *n)
 }
 
 static int
-fswalk(Usbfs*, Fid *fid, char *name)
+fswalk(Usbfs*_1, Fid *fid, char *name)
 {
 	Qid q;
 	int qd, qf;
@@ -236,7 +236,7 @@ fswalk(Usbfs*, Fid *fid, char *name)
 }
 
 static int
-fsopen(Usbfs*, Fid *fid, int mode)
+fsopen(Usbfs*_1, Fid *fid, int mode)
 {
 	int qd;
 	int rc;
@@ -267,7 +267,7 @@ fsopen(Usbfs*, Fid *fid, int mode)
 }
 
 static int
-dirgen(Usbfs*, Qid, int n, Dir *d, void *)
+dirgen(Usbfs*_1, Qid _2, int n, Dir *d, void *_3)
 {
 	int i;
 	Dev *dev;
@@ -296,7 +296,7 @@ dirgen(Usbfs*, Qid, int n, Dir *d, void *)
 }
 
 static int32_t
-fsread(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
+fsread(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
 {
 	int qd;
 	int rc;
@@ -327,7 +327,7 @@ fsread(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
 }
 
 static int32_t
-fswrite(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
+fswrite(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
 {
 	int qd;
 	int rc;
@@ -357,7 +357,7 @@ fswrite(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
 
 
 static void
-fsclunk(Usbfs*, Fid* fid)
+fsclunk(Usbfs*_1, Fid* fid)
 {
 	int qd;
 	Dev *dev;
@@ -382,7 +382,7 @@ fsclunk(Usbfs*, Fid* fid)
 }
 
 static int
-fsstat(Usbfs*, Qid qid, Dir *d)
+fsstat(Usbfs*_1, Qid qid, Dir *d)
 {
 	int qd;
 	int rc;
