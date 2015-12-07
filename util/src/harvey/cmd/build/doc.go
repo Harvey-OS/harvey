@@ -10,6 +10,13 @@ buildfile. PATH is modified so that "$HARVEY/util" is included.
 Any key that takes a path or array of paths as its value has absolute paths
 re-rooted to the harvey tree and variables in the string expanded once.
 
+The shell commands in the "Pre" and "Post" steps must be in the subset of
+syntax that's accepted by both POSIX sh and rc. Practically, this means
+arguments with a "=" must be single-quoted, "test" must be called as
+"test" (not "["), "if" statements may not have an "else" clause, "swtich"
+statements may not be used, "for" statements may only have one body command,
+and redirection to a file descriptor cannont be used.
+
 BUILD OBJECT
 
 A build object has the following keys and types:
