@@ -32,7 +32,7 @@ struct Fid
 struct Usbfs
 {
 	char	name[Namesz];
-	uvlong	qid;
+	uint64_t	qid;
 	Dev*	dev;
 	void*	aux;
 
@@ -40,18 +40,18 @@ struct Usbfs
 	void	(*clone)(Usbfs *fs, Fid *of, Fid *nf);
 	void	(*clunk)(Usbfs *fs, Fid *f);
 	int	(*open)(Usbfs *fs, Fid *f, int mode);
-	long	(*read)(Usbfs *fs, Fid *f, void *data, long count, vlong offset);
-	long	(*write)(Usbfs *fs, Fid*f, void *data, long count, vlong offset);
+	int32_t	(*read)(Usbfs *fs, Fid *f, void *data, int32_t count, int64_t offset);
+	int32_t	(*write)(Usbfs *fs, Fid*f, void *data, int32_t count, int64_t offset);
 	int	(*stat)(Usbfs *fs, Qid q, Dir *d);
 	void	(*end)(Usbfs *fs);
 };
 
 typedef int (*Dirgen)(Usbfs*, Qid, int, Dir*, void*);
 
-long	usbreadbuf(void *data, long count, vlong offset, void *buf, long n);
+int32_t	usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n);
 void	usbfsadd(Usbfs *dfs);
 void	usbfsdel(Usbfs *dfs);
-int	usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *arg);
+int	usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off, Dirgen gen, void *arg);
 void	usbfsinit(char* srv, char *mnt, Usbfs *f, int flag);
 
 void	usbfsdirdump(void);
