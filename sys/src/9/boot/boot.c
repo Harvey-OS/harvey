@@ -275,18 +275,30 @@ usbinit(void)
 {
 	static char usbd[] = "/boot/usbd";
 	static char *argv[] = {"usbd"};
-	if(access("#u/usb/ctl", 0) >= 0 &&
-	   bind("#u", "/dev", MAFTER) >= 0 &&
-	   access(usbd, AEXIST) >= 0) {
-		switch(fork()){
-		case -1:
-			print("usbinit: fork failed: %r\n");
-		case 0:
-			exec(usbd, argv);
-			fatal("can't exec usbd");
-		default:
-			break;
-		}
+
+	if (access(usbd, AEXIST) < 0) {
+		print("usbinit: no %s\n", usbd);
+		return;
+	}
+
+	if(access("#u/usb/ctl", 0) < 0){
+		print("usbinit: no #u/usb/ctl\n");
+		return;
+	}
+
+	if (bind("#u", "/dev", MAFTER) < 0) {
+		print("usbinit: can't bind #u to /dev: %r\n");
+		return;
+	}
+
+	switch(fork()){
+	case -1:
+		print("usbinit: fork failed: %r\n");
+	case 0:
+		exec(usbd, argv);
+		fatal("can't exec usbd");
+	default:
+		break;
 	}
 }
 
