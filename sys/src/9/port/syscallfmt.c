@@ -93,7 +93,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		p = va_arg(list, uintptr_t);
 		fmtprint(&fmt, "%#p", p);
 		break;
-	case _ERRSTR:					/* deprecated */
 	case CHDIR:
 	case EXITS:
 	case REMOVE:
@@ -136,7 +135,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			argv++;
 		}
 		break;
-	case _FSESSION:					/* deprecated */
 	case _FSTAT:					/* deprecated */
 	case _FWSTAT:					/* obsolete */
 		i[0] = va_arg(list, int);
@@ -380,13 +378,9 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			errstr = up->errstr;
 		}
 		break;
-	case _ERRSTR:
 	case ERRSTR:
 		a = va_arg(list, char*);
-		if(syscallno == _ERRSTR)
-			l = 64;
-		else
-			l = va_arg(list, unsigned long);
+		l = va_arg(list, unsigned long);
 		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
 			fmtprint(&fmt, "%lud = %d", l, ar0->i);

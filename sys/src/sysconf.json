@@ -10,17 +10,6 @@
 			"Sysname": "sysr1"
 		},
 		{
-			"#Id": 1,
-			"Args": [
-				"char*"
-			],
-			"Id": 4097,
-			"Name": "_errstr",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 2,
 			"Args": [
 				"char*",
@@ -98,14 +87,6 @@
 			"Id": 4104,
 			"Libname": "_exits",
 			"Name": "exits",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
-			"#Id": 9,
-			"Id": 4105,
-			"Name": "_fsession",
 			"Ret": [
 				"int32_t"
 			]
