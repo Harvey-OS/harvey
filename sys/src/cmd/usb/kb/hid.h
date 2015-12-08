@@ -79,7 +79,7 @@ enum{
 struct Chain {
 	int	b;			/* offset start in bits, (first full) */
 	int	e;			/* offset end in bits (first empty) */
-	uchar	buf[MaxChLen];
+	uint8_t	buf[MaxChLen];
 };
 
 #define MSK(nbits)		((1UL << (nbits)) - 1)
@@ -98,7 +98,7 @@ enum {
 
 struct HidInterface {
 	uint32_t	v[MaxVals];	/* one ulong per val should be enough */
-	uchar	kind[MaxVals];
+	uint8_t	kind[MaxVals];
 	int	nbits;
 	int	count;
 };
@@ -138,4 +138,4 @@ enum {
 void	dumpreport(HidRepTempl *templ);
 int	hidifcval(HidRepTempl *templ, int kind, int n);
 int	parsereport(HidRepTempl *templ, Chain *rep);
-int	parsereportdesc(HidRepTempl *temp, uchar *repdesc, int repsz);
+int	parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz);
