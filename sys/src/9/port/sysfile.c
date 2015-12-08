@@ -1324,30 +1324,6 @@ sysmount(Ar0* ar0, ...)
 }
 
 void
-sys_mount(Ar0* ar0, ...)
-{
-	int fd, flag;
-	char *aname, *old;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int mount(int fd, char *old, int flag, char *aname);
-	 * should be
-	 * long mount(int fd, char *old, int flag, char *aname);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	old = va_arg(list, char*);
-	flag = va_arg(list, int);
-	aname = va_arg(list, char*);
-	va_end(list);
-
-	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
-}
-
-void
 sysunmount(Ar0* ar0, ...)
 {
 	Proc *up = externup();
