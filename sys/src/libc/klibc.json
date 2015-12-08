@@ -86,7 +86,6 @@
 			"9syscall/notify.s",
 			"9syscall/nsec.s",
 			"9syscall/open.s",
-			"9syscall/oseek.s",
 			"9syscall/pipe.s",
 			"9syscall/pread.s",
 			"9syscall/pwrite.s",

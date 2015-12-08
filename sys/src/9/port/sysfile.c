@@ -998,27 +998,6 @@ sysseek(Ar0* ar0, ...)
 }
 
 void
-sysoseek(Ar0* ar0, ...)
-{
-	int32_t offset;
-	int fd, whence;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * long oseek(int fd, long n, int type);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	offset = va_arg(list, int32_t);
-	whence = va_arg(list, int);
-	va_end(list);
-
-	ar0->l = sseek(fd, offset, whence);
-}
-
-void
 validstat(uint8_t *s, usize n)
 {
 	usize m;
