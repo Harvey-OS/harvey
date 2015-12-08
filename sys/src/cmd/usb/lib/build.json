@@ -15,7 +15,10 @@
 			"dump.c",
 			"parse.c",
 			"fs.c",
-			"fsdir.c"
+			"fsdir.c",
+			"../kb/hid.c",
+			"../kb/kb.c",
+			"../kb/main.c"
 		]
 	}
 }
