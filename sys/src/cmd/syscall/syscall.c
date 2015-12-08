@@ -30,7 +30,6 @@ int	_nfstat(int, void*, int);
 int	_nstat(char*, void*, int);
 int	_nfwstat(int, void*, int);
 int	_nwstat(char*, void*, int);
-int	_mount(int, char*, int, char*);
 int	_wait(void*);
 
 struct{

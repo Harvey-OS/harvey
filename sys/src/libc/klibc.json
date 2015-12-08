@@ -81,7 +81,6 @@
 			"9syscall/fversion.s",
 			"9syscall/_fwstat.s",
 			"9syscall/fwstat.s",
-			"9syscall/_mount.s",
 			"9syscall/mount.s",
 			"9syscall/noted.s",
 			"9syscall/notify.s",
