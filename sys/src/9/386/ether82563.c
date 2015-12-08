@@ -9,8 +9,7 @@
 
 /*
  * Intel Gigabit Ethernet PCI-Express Controllers.
- *	8256[36], 8257[12], 82573[ev]
- *	82575eb
+ *	8256[36], 8257[1-79]
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
  * is probably different. The reset/initialisation
@@ -22,6 +21,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
 #include "../port/error.h"
 
 #include "../port/netif.h"
@@ -40,6 +40,7 @@ enum {
 	Ctrl		= 0x0000,	/* Device Control */
 	Status		= 0x0008,	/* Device Status */
 	Eec		= 0x0010,	/* EEPROM/Flash Control/Data */
+	Fextnvm6	= 0x0010,	/* Future Extended NVM 6 */
 	Eerd		= 0x0014,	/* EEPROM Read */
 	Ctrlext		= 0x0018,	/* Extended Device Control */
 	Fla		= 0x001c,	/* Flash Access */
@@ -69,7 +70,7 @@ enum {
 	/* Receive */
 
 	Rctl		= 0x0100,	/* Control */
-	Ert		= 0x2008,	/* Early Receive Threshold (573[EVL] only) */
+	Ert		= 0x2008,	/* Early Receive Threshold (573[EVL], 579 only) */
 	Fcrtl		= 0x2160,	/* Flow Control RX Threshold Low */
 	Fcrth		= 0x2168,	/* Flow Control Rx Threshold High */
 	Psrctl		= 0x2170,	/* Packet Split Receive Control */
@@ -393,9 +394,10 @@ enum {					/* Tdesc status */
 };
 
 typedef struct {
-	uint16_t	*reg;
-	uint32_t	*reg32;
-	int	sz;
+	u16int	*reg;
+	u32int	*reg32;
+	u16int	base;
+	u16int	lim;
 } Flash;
 
 enum {
@@ -420,41 +422,61 @@ enum {
 };
 
 enum {
-	Nrd		= 256,		/* power of two */
-	Ntd		= 128,		/* power of two */
-	Nrb		= 512,		/* private receive buffers per Ctlr */
+	/* were 512, 1024 & 64, but 52, 253 and 9 are ample. */
+	Nrd		= 128,		/* power of two */
+	Nrb		= 1024,		/* private receive buffers per Ctlr */
+	Ntd		= 32,		/* power of two */
 };
 
 enum {
 	Iany,
 	i82563,
 	i82566,
+	i82567,
 	i82571,
 	i82572,
 	i82573,
+	i82574,
 	i82575,
 	i82576,
+	i82577,
+	i82579,
+	i210,
+	i217,
 };
 
 static int rbtab[] = {
 	0,
 	9014,
-	1514,
+	ETHERMAXTU,
+	ETHERMAXTU,
 	9234,
 	9234,
 	8192,				/* terrible performance above 8k */
-	1514,
+	ETHERMAXTU,
+	ETHERMAXTU,
+	ETHERMAXTU,
+	ETHERMAXTU,
+	9018,
+	9728,
+	9728,
 };
 
 static char *tname[] = {
 	"any",
 	"i82563",
 	"i82566",
+	"i82567",
 	"i82571",
 	"i82572",
 	"i82573",
+	"i82574",
 	"i82575",
 	"i82576",
+	"i82577",
+	"i82579",
+	"i210",
+	"i217",
 };
 
 typedef struct Ctlr Ctlr;
@@ -462,6 +484,7 @@ struct Ctlr {
 	int	port;
 	Pcidev	*pcidev;
 	Ctlr	*next;
+	Ether	*edev;
 	int	active;
 	int	type;
 	uint16_t	eeprom[0x40];
@@ -470,7 +493,7 @@ struct Ctlr {
 	int	attached;
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* how many this Ctlr has in the pool */
+	int	nrb;			/* # rcv bufs this Ctlr has in the pool */
 	unsigned rbsz;			/* unsigned for % and / by 1024 */
 
 	int	*nic;
@@ -479,6 +502,10 @@ struct Ctlr {
 
 	Rendez	lrendez;
 	int	lim;
+
+	Watermark wmrb;
+	Watermark wmrd;
+	Watermark wmtd;
 
 	QLock	slock;
 	uint	statistics[Nstatistics];
@@ -498,7 +525,7 @@ struct Ctlr {
 
 	Rendez	rrendez;
 	int	rim;
-	int	rdfree;
+	int	rdfree;			/* rx descriptors awaiting packets */
 	Rd	*rdba;			/* receive descriptor base address */
 	Block	**rb;			/* receive buffers */
 	int	rdh;			/* receive descriptor head */
@@ -508,7 +535,6 @@ struct Ctlr {
 
 	Rendez	trendez;
 	QLock	tlock;
-	int	tbusy;
 	Td	*tdba;			/* transmit descriptor base address */
 	Block	**tb;			/* transmit buffers */
 	int	tdh;			/* transmit descriptor head */
@@ -528,6 +554,7 @@ static Ctlr* i82563ctlrtail;
 
 static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
+static int nrbfull;	/* # of rcv Blocks with data awaiting processing */
 
 static char* statistics[] = {
 	"CRC Error",
@@ -615,8 +642,12 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
-	p = s = malloc(2*READSTR);
-	e = p + 2*READSTR;
+	p = s = malloc(READSTR);
+	if(p == nil) {
+		qunlock(&ctlr->slock);
+		error(Enomem);
+	}
+	e = p + READSTR;
 
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics + i*4);
@@ -628,7 +659,7 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 		case Torl:
 		case Totl:
 			ruvl = r;
-			ruvl += (uint64_t)csr32r(ctlr, Statistics+(i+1)*4) << 32;
+			ruvl += (uvlong)csr32r(ctlr, Statistics+(i+1)*4) << 32;
 			tuvl = ruvl;
 			tuvl += ctlr->statistics[i];
 			tuvl += (uint64_t)ctlr->statistics[i+1] << 32;
@@ -666,6 +697,7 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	p = seprint(p, e, "speeds: 10:%ud 100:%ud 1000:%ud ?:%ud\n",
 		ctlr->speeds[0], ctlr->speeds[1], ctlr->speeds[2], ctlr->speeds[3]);
 	p = seprint(p, e, "type: %s\n", tname[ctlr->type]);
+	p = seprint(p, e, "nrbfull (rcv blocks outstanding): %d\n", nrbfull);
 
 //	p = seprint(p, e, "eeprom:");
 //	for(i = 0; i < 0x40; i++){
@@ -674,6 +706,10 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 //		p = seprint(p, e, " %4.4ux", ctlr->eeprom[i]);
 //	}
 //	p = seprint(p, e, "\n");
+
+	p = seprintmark(p, e, &ctlr->wmrb);
+	p = seprintmark(p, e, &ctlr->wmrd);
+	p = seprintmark(p, e, &ctlr->wmtd);
 
 	USED(p);
 	n = readstr(offset, a, n, s);
@@ -764,8 +800,10 @@ i82563multicast(void* arg, uint8_t* addr, int on)
 	ctlr = edev->ctlr;
 
 	x = addr[5]>>1;
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		x &= 31;
+	if(ctlr->type == i210 || ctlr->type == i217)
+		x &= 15;
 	bit = ((addr[5] & 1)<<4)|(addr[4]>>4);
 	/*
 	 * multiple ether addresses can hash to the same filter bit,
@@ -791,7 +829,7 @@ i82563rballoc(void)
 	if((bp = i82563rbpool) != nil){
 		i82563rbpool = bp->next;
 		bp->next = nil;
-//		ainc(&bp->ref);
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&i82563rblock);
 
@@ -801,11 +839,12 @@ i82563rballoc(void)
 static void
 i82563rbfree(Block* b)
 {
-	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr_t)b->base, 4*KiB);
- 	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
+	b->rp = b->wp = (uchar*)PGROUND((uintptr)b->base);
+ 	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
 	i82563rbpool = b;
+	nrbfull--;
 	iunlock(&i82563rblock);
 }
 
@@ -824,7 +863,10 @@ i82563txinit(Ctlr* ctlr)
 	int i, r;
 	Block *bp;
 
-	csr32w(ctlr, Tctl, 0x0F<<CtSHIFT | Psp | 66<<ColdSHIFT | Mulr);
+	if(ctlr->type == i210)
+		csr32w(ctlr, Tctl, 0x0F<<CtSHIFT | Psp);
+	else
+		csr32w(ctlr, Tctl, 0x0F<<CtSHIFT | Psp | 66<<ColdSHIFT | Mulr);
 	csr32w(ctlr, Tipg, 6<<20 | 8<<10 | 8);		/* yb sez: 0x702008 */
 	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
 	csr32w(ctlr, Tdbah, 0);
@@ -842,9 +884,9 @@ i82563txinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Tidv, 128);
 	r = csr32r(ctlr, Txdctl);
-	r &= ~(WthreshMASK|PthreshSHIFT);
+	r &= ~(WthreshMASK|PthreshMASK);
 	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
-	if(ctlr->type == i82575 || ctlr->type == i82576)
+	if(ctlr->type == i82575 || ctlr->type == i82576 || ctlr->type == i210)
 		r |= Qenable;
 	csr32w(ctlr, Tadv, 64);
 	csr32w(ctlr, Txdctl, r);
@@ -858,24 +900,24 @@ i82563txinit(Ctlr* ctlr)
 #define Next(x, m)	(((x)+1) & (m))
 
 static int
-i82563cleanup(Ctlr *c)
+i82563cleanup(Ctlr *ctlr)
 {
 	Block *b;
 	int tdh, m, n;
 
-	tdh = c->tdh;
-	m = c->ntd-1;
-	while(c->tdba[n = Next(tdh, m)].status & Tdd){
+	tdh = ctlr->tdh;
+	m = ctlr->ntd-1;
+	while(ctlr->tdba[n = Next(tdh, m)].status & Tdd){
 		tdh = n;
-		if((b = c->tb[tdh]) != nil){
-			c->tb[tdh] = nil;
+		if((b = ctlr->tb[tdh]) != nil){
+			ctlr->tb[tdh] = nil;
 			freeb(b);
 		}else
 			iprint("82563 tx underrun!\n");
-		c->tdba[tdh].status = 0;
+		ctlr->tdba[tdh].status = 0;
 	}
 
-	return c->tdh = tdh;
+	return ctlr->tdh = tdh;
 }
 
 static void
@@ -912,6 +954,8 @@ i82563transmit(Ether* edev)
 		td->addr[0] = PCIWADDR(bp->rp);
 		td->control = Ide|Rs|Ifcs|Teop|BLEN(bp);
 		ctlr->tb[tdt] = bp;
+		/* note size of queue of tds awaiting transmission */
+		notemark(&ctlr->wmtd, (tdt + Ntd - tdh) % Ntd);
 		tdt = Next(tdt, m);
 	}
 	if(ctlr->tdt != tdt){
@@ -933,14 +977,18 @@ i82563replenish(Ctlr* ctlr)
 	while(Next(rdt, m) != ctlr->rdh){
 		rd = &ctlr->rdba[rdt];
 		if(ctlr->rb[rdt] != nil){
-			iprint("82563: tx overrun\n");
+			print("#l%d: 82563: rx overrun\n", ctlr->edev->ctlrno);
 			break;
 		}
 		bp = i82563rballoc();
-		if(bp == nil){
-			iprint("82563: no available buffers\n");
-			break;
-		}
+		if(bp == nil)
+			/*
+			 * this almost never gets better.  likely there's a bug
+			 * elsewhere in the kernel that is failing to free a
+			 * receive Block.
+			 */
+			panic("#l%d: 82563: all %d rx buffers in use, nrbfull %d",
+				ctlr->edev->ctlrno, ctlr->nrb, nrbfull);
 		ctlr->rb[rdt] = bp;
 		rd->addr[0] = PCIWADDR(bp->rp);
 //		rd->addr[1] = 0;
@@ -971,7 +1019,7 @@ i82563rxinit(Ctlr* ctlr)
 	else
 		rctl = Lpe|Dpf|Bsize16384|Bsex|Bam|RdtmsHALF|Secrc;
 
-	if(ctlr->type == i82575 || ctlr->type == i82576){
+	if(ctlr->type == i82575 || ctlr->type == i82576 || ctlr->type == i210){
 		/*
 		 * Setting Qenable in Rxdctl does not
 		 * appear to stick unless Ren is on.
@@ -983,10 +1031,11 @@ i82563rxinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Rctl, rctl);
 
-	if(ctlr->type == i82573)
+	if(ctlr->type == i82573 || ctlr->type == i82577 || ctlr->type == i82579 ||
+		ctlr->type == i210 || ctlr->type == i217)
 		csr32w(ctlr, Ert, 1024/8);
 
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		csr32w(ctlr, Pbs, 16);
 
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
@@ -996,8 +1045,10 @@ i82563rxinit(Ctlr* ctlr)
 	csr32w(ctlr, Rdh, 0);
 	ctlr->rdt = 0;
 	csr32w(ctlr, Rdt, 0);
-	ctlr->rdtr = 25;
-	ctlr->radv = 500;
+	/* to hell with interrupt moderation, we've got fast cpus */
+//	ctlr->rdtr = 25;		/* µs units? */
+//	ctlr->radv = 500;		/* µs units? */
+	ctlr->radv = ctlr->rdtr = 0;
 	csr32w(ctlr, Rdtr, ctlr->rdtr);
 	csr32w(ctlr, Radv, ctlr->radv);
 
@@ -1009,21 +1060,23 @@ i82563rxinit(Ctlr* ctlr)
 	}
 	i82563replenish(ctlr);
 
-	if(ctlr->type == i82575 || ctlr->type == i82576){
+	if(ctlr->type != i82575 || ctlr->type == i82576 || ctlr->type == i210){
 		/*
 		 * See comment above for Qenable.
 		 * Could shuffle the code?
 		 */
 		r = csr32r(ctlr, Rxdctl);
-		r &= ~(WthreshSHIFT|PthreshSHIFT);
+		r &= ~(WthreshMASK|PthreshMASK);
 		r |= (2<<WthreshSHIFT)|(2<<PthreshSHIFT);
 		csr32w(ctlr, Rxdctl, r);
 	}
 
 	/*
-	 * Enable checksum offload.
+	 * Don't enable checksum offload.  In practice, it interferes with
+	 * tftp booting on at least the 82575.
 	 */
-	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
+//	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
+	csr32w(ctlr, Rxcsum, 0);
 }
 
 static int
@@ -1038,7 +1091,7 @@ i82563rproc(void* arg)
 	Rd *rd;
 	Block *bp;
 	Ctlr *ctlr;
-	int r, m, rdh, rim;
+	int r, m, rdh, rim, passed;
 	Ether *edev;
 
 	edev = arg;
@@ -1050,17 +1103,21 @@ i82563rproc(void* arg)
 	csr32w(ctlr, Rctl, r);
 	m = ctlr->nrd-1;
 
+	if(ctlr->type == i210)
+		csr32w(ctlr, Rxdctl, csr32r(ctlr, Rxdctl) | Qenable);
+
 	for(;;){
+		i82563replenish(ctlr);
 		i82563im(ctlr, Rxt0|Rxo|Rxdmt0|Rxseq|Ack);
 		ctlr->rsleep++;
-//		coherence();
 		sleep(&ctlr->rrendez, i82563rim, ctlr);
 
 		rdh = ctlr->rdh;
+		passed = 0;
 		for(;;){
-			rd = &ctlr->rdba[rdh];
 			rim = ctlr->rim;
 			ctlr->rim = 0;
+			rd = &ctlr->rdba[rdh];
 			if(!(rd->status & Rdd))
 				break;
 
@@ -1096,24 +1153,40 @@ i82563rproc(void* arg)
 					bp->checksum = rd->checksum;
 					bp->flag |= Bpktck;
 				}
+				ilock(&i82563rblock);
+				nrbfull++;
+				iunlock(&i82563rblock);
+				notemark(&ctlr->wmrb, nrbfull);
 				etheriq(edev, bp, 1);
-			} else
+				passed++;
+			} else {
+				if (rd->status & Reop && rd->errors)
+					print("%s: input packet error %#ux\n",
+						tname[ctlr->type], rd->errors);
 				freeb(bp);
+			}
 			ctlr->rb[rdh] = nil;
 
+			/* rd needs to be replenished to accept another pkt */
 			rd->status = 0;
 			ctlr->rdfree--;
 			ctlr->rdh = rdh = Next(rdh, m);
-			if(ctlr->nrd-ctlr->rdfree >= 32 || (rim & Rxdmt0))
+			/*
+			 * if number of rds ready for packets is too low,
+			 * set up the unready ones.
+			 */
+			if(ctlr->rdfree <= ctlr->nrd - 32 || (rim & Rxdmt0))
 				i82563replenish(ctlr);
 		}
+		/* note how many rds had full buffers */
+		notemark(&ctlr->wmrd, passed);
 	}
 }
 
 static int
-i82563lim(void* c)
+i82563lim(void* ctlr)
 {
-	return ((Ctlr*)c)->lim != 0;
+	return ((Ctlr*)ctlr)->lim != 0;
 }
 
 static int speedtab[] = {
@@ -1121,14 +1194,14 @@ static int speedtab[] = {
 };
 
 static uint
-phyread(Ctlr *c, int reg)
+phyread(Ctlr *ctlr, int reg)
 {
 	uint phy, i;
 
-	csr32w(c, Mdic, MDIrop | 1<<MDIpSHIFT | reg<<MDIrSHIFT);
+	csr32w(ctlr, Mdic, MDIrop | 1<<MDIpSHIFT | reg<<MDIrSHIFT);
 	phy = 0;
 	for(i = 0; i < 64; i++){
-		phy = csr32r(c, Mdic);
+		phy = csr32r(ctlr, Mdic);
 		if(phy & (MDIe|MDIready))
 			break;
 		microdelay(1);
@@ -1139,14 +1212,14 @@ phyread(Ctlr *c, int reg)
 }
 
 static uint
-phywrite(Ctlr *c, int reg, uint16_t val)
+phywrite(Ctlr *ctlr, int reg, ushort val)
 {
 	uint phy, i;
 
-	csr32w(c, Mdic, MDIwop | 1<<MDIpSHIFT | reg<<MDIrSHIFT | val);
+	csr32w(ctlr, Mdic, MDIwop | 1<<MDIpSHIFT | reg<<MDIrSHIFT | val);
 	phy = 0;
 	for(i = 0; i < 64; i++){
-		phy = csr32r(c, Mdic);
+		phy = csr32r(ctlr, Mdic);
 		if(phy & (MDIe|MDIready))
 			break;
 		microdelay(1);
@@ -1156,6 +1229,122 @@ phywrite(Ctlr *c, int reg, uint16_t val)
 	return 0;
 }
 
+/* this kumeran stuff is borrowed from openbsd 5.8's if_em* driver. */
+
+#define STATUS_FD         0x00000001      /* Full duplex.0=half,1=full */
+#define STATUS_SPEED_100  0x00000040      /* Speed 100Mb/s */
+
+#define FEXTNVM6_REQ_PLL_CLK			0x00000100
+#define FEXTNVM6_ENABLE_K1_ENTRY_CONDITION	0x00000200
+
+#define NVM_K1_CONFIG 	0x1B		/* NVM K1 Config Word */
+#define NVM_K1_ENABLE 	0x1		/* NVM Enable K1 bit */
+
+/* Kumeran stuff */
+#define KUMCTRLSTA_MASK		0x0000FFFF
+#define KUMCTRLSTA_OFF		0x001F0000
+#define KUMCTRLSTA_OFF_SHIFT   16
+#define KUMCTRLSTA_REN		0x00200000
+
+#define KMRNCTRLSTA_OFF		KUMCTRLSTA_OFF
+#define KMRNCTRLSTA_OFF_SHIFT	KUMCTRLSTA_OFF_SHIFT
+#define KMRNCTRLSTA_REN		KUMCTRLSTA_REN
+#define KMRNCTRLSTA_DIAG_OFF		0x3    /* Diagnostic */
+#define KMRNCTRLSTA_TIMEOUTS		0x4    /* Timeouts */
+#define KMRNCTRLSTA_INBAND_PARAM	0x9    /* InBand Parameters */
+#define KMRNCTRLSTA_DIAG_NELPBK		0x1000 /* Loopback mode */
+#define KMRNCTRLSTA_K1_CONFIG		0x7
+#define KMRNCTRLSTA_K1_ENABLE		0x0002
+
+#define MAX_PHY_REG_ADDRESS        0x1F  /* 5 bit address bus (0-0x1F) */
+/*
+ * Bits 15-5: page
+ *	4-0: register offset
+ */
+#define PHY_PAGE_SHIFT 5
+#define PHY_REG(page, reg) (((page) << PHY_PAGE_SHIFT) | ((reg) & MAX_PHY_REG_ADDRESS))
+
+/* Inband Control */
+enum {
+	I217inbandctl = PHY_REG(770, 18),
+	/* link status transmit timeout stuff */
+	I217inbandctllstxtmoutmask = 0x3F00,
+	I217inbandctllstxtmoutshift = 8,
+};
+
+static void
+kmrnread(Ctlr *ctlr, uint reg_addr, ushort *data)
+{
+	/* Write register address */
+	csr32w(ctlr, Kumctrlsta, ((reg_addr << KUMCTRLSTA_OFF_SHIFT) & KUMCTRLSTA_OFF) | KUMCTRLSTA_REN);
+	microdelay(2);
+
+	/* Read the data returned */
+	*data = csr32r(ctlr, Kumctrlsta);
+}
+
+static void
+kmrnwrite(Ctlr *ctlr, uint reg_addr, ushort data)
+{
+	csr32w(ctlr, Kumctrlsta, ((reg_addr << KUMCTRLSTA_OFF_SHIFT) & KUMCTRLSTA_OFF) | data);
+	microdelay(2);
+}
+
+/*
+ *  K1 workaround on Lynxpoint-LP
+ *
+ *  When K1 is enabled for 1Gbps, the MAC can miss 2 DMA completion indications
+ *  preventing further DMA write requests.  Work around the issue by disabling
+ *  the de-assertion of the clock request when in 1Gbps mode.
+ *  Also, set appropriate Tx re-transmission timeouts for 10 and 100Half link
+ *  speeds in order to avoid Tx hangs.
+ */
+int
+i218_k1_workaround(Ctlr *ctlr)
+{
+	uint fextnvm6 = csr32r(ctlr, Fextnvm6);
+	uint status = csr32r(ctlr, Status);
+	int rv = 0;
+	ushort reg;
+	Ether *ether = ctlr->edev;
+
+	if (ether->link && ether->mbps == 1000) {
+		kmrnread(ctlr, KMRNCTRLSTA_K1_CONFIG, &reg);
+		kmrnwrite(ctlr, KMRNCTRLSTA_K1_CONFIG, reg & ~KMRNCTRLSTA_K1_ENABLE);
+		microdelay(10);
+
+		csr32w(ctlr, Fextnvm6, fextnvm6 | FEXTNVM6_REQ_PLL_CLK);
+		kmrnwrite(ctlr, KMRNCTRLSTA_K1_CONFIG, reg);
+	} else {
+		/* clear FEXTNVM6 bit 8 on link down or 10/100 */
+		fextnvm6 &= ~FEXTNVM6_REQ_PLL_CLK;
+
+		if (!ether->link || ((status & STATUS_SPEED_100) && (status & STATUS_FD)))
+			goto update_fextnvm6;
+
+		/* Clear link status transmit timeout */
+		reg = phyread(ctlr, I217inbandctl) & ~I217inbandctllstxtmoutmask;
+
+		if (status & STATUS_SPEED_100) {
+			/* Set inband Tx timeout to 5x10us for 100Half */
+			reg |= 5 << I217inbandctllstxtmoutshift;
+
+			/* Do not extend the K1 entry latency for 100Half */
+			fextnvm6 &= ~FEXTNVM6_ENABLE_K1_ENTRY_CONDITION;
+		} else {
+			/* Set inband Tx timeout to 50x10us for 10Full/Half */
+			reg |= 50 << I217inbandctllstxtmoutshift;
+
+			/* Extend the K1 entry latency for 10 Mbps */
+			fextnvm6 |= FEXTNVM6_ENABLE_K1_ENTRY_CONDITION;
+		}
+		phywrite(ctlr, I217inbandctl, reg);
+update_fextnvm6:
+		csr32w(ctlr, Fextnvm6, fextnvm6);
+	}
+	return rv;
+}
+
 /*
  * watch for changes of link state
  */
@@ -1163,45 +1352,53 @@ static void
 i82563lproc(void *v)
 {
 	uint phy, i, a;
-	Ctlr *c;
+	Ctlr *ctlr;
 	Ether *e;
 
 	e = v;
-	c = e->ctlr;
+	ctlr = e->ctlr;
 
-	if(c->type == i82573 && (phy = phyread(c, Phyier)) != ~0)
-		phywrite(c, Phyier, phy | Lscie | Ancie | Spdie | Panie);
+	if(ctlr->type == i82573 && (phy = phyread(ctlr, Phyier)) != ~0)
+		phywrite(ctlr, Phyier, phy | Lscie | Ancie | Spdie | Panie);
 	for(;;){
-		phy = phyread(c, Physsr);
+		phy = phyread(ctlr, Physsr);
 		if(phy == ~0)
 			goto next;
 		i = (phy>>14) & 3;
 
-		switch(c->type){
+		switch(ctlr->type){
 		case i82563:
-			a = phyread(c, Phyisr) & Ane;
+			a = phyread(ctlr, Phyisr) & Ane;
 			break;
 		case i82571:
 		case i82572:
-			a = phyread(c, Phylhr) & Anf;
+		case i82575:
+		case i82576:
+			a = phyread(ctlr, Phylhr) & Anf;
 			i = (i-1) & 3;
+			break;
+		case i210:
+		case i217:
+			a = phyread(ctlr, Phyisr) & Ane;
+			i218_k1_workaround(ctlr);
 			break;
 		default:
 			a = 0;
 			break;
 		}
 		if(a)
-			phywrite(c, Phyctl, phyread(c, Phyctl) | Ran | Ean);
+			phywrite(ctlr, Phyctl, phyread(ctlr, Phyctl) | Ran | Ean);
 		e->link = (phy & Rtlink) != 0;
 		if(e->link){
-			c->speeds[i]++;
-			e->mbps = speedtab[i];
+			ctlr->speeds[i]++;
+			if (speedtab[i])
+				e->mbps = speedtab[i];
 		}
 next:
-		c->lim = 0;
-		i82563im(c, Lsc);
-		c->lsleep++;
-		sleep(&c->lrendez, i82563lim, c);
+		ctlr->lim = 0;
+		i82563im(ctlr, Lsc);
+		ctlr->lsleep++;
+		sleep(&ctlr->lrendez, i82563lim, ctlr);
 	}
 }
 
@@ -1209,12 +1406,12 @@ static void
 i82563tproc(void *v)
 {
 	Ether *e;
-	Ctlr *c;
+	Ctlr *ctlr;
 
 	e = v;
-	c = e->ctlr;
+	ctlr = e->ctlr;
 	for(;;){
-		sleep(&c->trendez, return0, 0);
+		sleep(&ctlr->trendez, return0, 0);
 		i82563transmit(e);
 	}
 }
@@ -1256,23 +1453,25 @@ i82563attach(Ether* edev)
 		nexterror();
 	}
 
-	if((ctlr->rdba = mallocalign(ctlr->nrd*sizeof(Rd), 128, 0, 0)) == nil)
-		error(Enomem);
-	if((ctlr->tdba = mallocalign(ctlr->ntd*sizeof(Td), 128, 0, 0)) == nil)
-		error(Enomem);
-	if((ctlr->rb = malloc(ctlr->nrd*sizeof(Block*))) == nil)
-		error(Enomem);
-	if((ctlr->tb = malloc(ctlr->ntd*sizeof(Block*))) == nil)
+	if((ctlr->rdba = mallocalign(ctlr->nrd*sizeof(Rd), 128, 0, 0)) == nil ||
+	   (ctlr->tdba = mallocalign(ctlr->ntd*sizeof(Td), 128, 0, 0)) == nil ||
+	   (ctlr->rb = malloc(ctlr->nrd*sizeof(Block*))) == nil ||
+	   (ctlr->tb = malloc(ctlr->ntd*sizeof(Block*))) == nil)
 		error(Enomem);
 
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
-		if((bp = allocb(ctlr->rbsz + 4*KiB)) == nil)
-			break;
+		if((bp = allocb(ctlr->rbsz + BY2PG)) == nil)
+			error(Enomem);
 		bp->free = i82563rbfree;
 		freeb(bp);
 	}
+	nrbfull = 0;
 
+	ctlr->edev = edev;			/* point back to Ether* */
 	ctlr->attached = 1;
+	initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
+	initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
+	initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 
 	snprint(name, sizeof name, "#l%dl", edev->ctlrno);
 	kproc(name, i82563lproc, edev);
@@ -1294,7 +1493,7 @@ i82563interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	int icr, im;
+	int icr, im, i;
 
 	edev = arg;
 	ctlr = edev->ctlr;
@@ -1302,8 +1501,9 @@ i82563interrupt(Ureg* ureg, void* arg)
 	ilock(&ctlr->imlock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
-
-	for(icr = csr32r(ctlr, Icr); icr & ctlr->im; icr = csr32r(ctlr, Icr)){
+	i = Nrd;			/* don't livelock */
+	for(icr = csr32r(ctlr, Icr); icr & ctlr->im && i-- > 0;
+	    icr = csr32r(ctlr, Icr)){
 		if(icr & Lsc){
 			im &= ~Lsc;
 			ctlr->lim = icr & Lsc;
@@ -1322,14 +1522,24 @@ i82563interrupt(Ureg* ureg, void* arg)
 			wakeup(&ctlr->trendez);
 		}
 	}
-
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
 	iunlock(&ctlr->imlock);
 }
 
+/* assume misrouted interrupts and check all controllers */
+static void
+i82575interrupt(Ureg*, void *)
+{
+	Ctlr *ctlr;
+
+	for (ctlr = i82563ctlrhead; ctlr != nil && ctlr->edev != nil;
+	     ctlr = ctlr->next)
+		i82563interrupt(nil, ctlr->edev);
+}
+
 static int
-i82563detach(Ctlr* ctlr)
+i82563detach0(Ctlr* ctlr)
 {
 	int r, timeo;
 
@@ -1345,7 +1555,7 @@ i82563detach(Ctlr* ctlr)
 	delay(10);
 
 	r = csr32r(ctlr, Ctrl);
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567 || ctlr->type == i82579)
 		r |= Phyrst;
 	csr32w(ctlr, Ctrl, Devrst | r);
 	delay(1);
@@ -1391,7 +1601,7 @@ i82563detach(Ctlr* ctlr)
 		r += ctlr->pba & 0xffff;
 		r >>= 1;
 		csr32w(ctlr, Pba, r);
-	} else if(ctlr->type == i82573 && ctlr->rbsz > 1514)
+	} else if(ctlr->type == i82573 && ctlr->rbsz > ETHERMAXTU)
 		csr32w(ctlr, Pba, 14);
 	ctlr->pba = csr32r(ctlr, Pba);
 
@@ -1399,6 +1609,18 @@ i82563detach(Ctlr* ctlr)
 	csr32w(ctlr, Ctrl, Slu|r);
 
 	return 0;
+}
+
+static int
+i82563detach(Ctlr* ctlr)
+{
+	int r;
+	static Lock detlck;
+
+	ilock(&detlck);
+	r = i82563detach0(ctlr);
+	iunlock(&detlck);
+	return r;
 }
 
 static void
@@ -1410,9 +1632,13 @@ i82563shutdown(Ether* ether)
 static uint16_t
 eeread(Ctlr *ctlr, int adr)
 {
+	ulong n;
+
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
-	while ((csr32r(ctlr, Eerd) & EEdone) == 0)
+	for (n = 1000000; (csr32r(ctlr, Eerd) & EEdone) == 0 && n-- > 0; )
 		;
+	if (n == 0)
+		panic("i82563: eeread stuck");
 	return csr32r(ctlr, Eerd) >> 16;
 }
 
@@ -1450,12 +1676,13 @@ fcycle(Ctlr *ctlr, Flash *f)
 }
 
 static int
-fread(Ctlr *c, Flash *f, int ladr)
+fread(Ctlr *ctlr, Flash *f, int ladr)
 {
-	uint16_t s;
+	ushort s;
+	ulong n;
 
 	delay(1);
-	if(fcycle(c, f) == -1)
+	if(fcycle(ctlr, f) == -1)
 		return -1;
 	f->reg[Fsts] |= Fdone;
 	f->reg32[Faddr] = ladr;
@@ -1467,40 +1694,42 @@ fread(Ctlr *c, Flash *f, int ladr)
 	s &= ~(2*Flcycle);		/* read */
 	f->reg[Fctl] = s | Fgo;
 
-	while((f->reg[Fsts] & Fdone) == 0)
+	for (n = 1000000; (f->reg[Fsts] & Fdone) == 0 && n-- > 0; )
 		;
+	if (n == 0)
+		panic("i82563: fread stuck");
 	if(f->reg[Fsts] & (Fcerr|Ael))
 		return -1;
 	return f->reg32[Fdata] & 0xffff;
 }
 
 static int
-fload(Ctlr *c)
+fload(Ctlr *ctlr)
 {
 	uint32_t data, io, r, adr;
 	uint16_t sum;
 	Flash f;
 
-	io = c->pcidev->mem[1].bar & ~0x0f;
-	f.reg = vmap(io, c->pcidev->mem[1].size);
+	io = ctlr->pcidev->mem[1].bar & ~0x0f;
+	f.reg = vmap(io, ctlr->pcidev->mem[1].size);
 	if(f.reg == nil)
 		return -1;
 	f.reg32 = (void*)f.reg;
-	f.sz = f.reg32[Bfpr];
-	r = f.sz & 0x1fff;
-	if(csr32r(c, Eec) & (1<<22))
-		++r;
-	r <<= 12;
+	f.base = f.reg32[Bfpr] & FMASK(0, 13);
+	f.lim = (f.reg32[Bfpr]>>16) & FMASK(0, 13);
+	if(csr32r(ctlr, Eec) & (1<<22))
+		f.base += (f.lim + 1 - f.base) >> 1;
+	r = f.base << 12;
 
 	sum = 0;
 	for (adr = 0; adr < 0x40; adr++) {
-		data = fread(c, &f, r + adr*2);
+		data = fread(ctlr, &f, r + adr*2);
 		if(data == -1)
 			break;
-		c->eeprom[adr] = data;
+		ctlr->eeprom[adr] = data;
 		sum += data;
 	}
-	vunmap(f.reg, c->pcidev->mem[1].size);
+	vunmap(f.reg, ctlr->pcidev->mem[1].size);
 	return sum;
 }
 
@@ -1511,7 +1740,9 @@ i82563reset(Ctlr *ctlr)
 
 	if(i82563detach(ctlr))
 		return -1;
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567 ||
+	   ctlr->type == i82577 || ctlr->type == i82579 ||
+	   ctlr->type == i217)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
@@ -1544,13 +1775,17 @@ i82563reset(Ctlr *ctlr)
 	 * Does autonegotiation affect this manual setting?
 	 * The correct values here should depend on the PBA value
 	 * and maximum frame length, no?
-	 * ctlr->fcrt[lh] arenever set so default to 0.
+	 * ctlr->fcrt[lh] are never set, so default to 0.
 	 */
 	csr32w(ctlr, Fcal, 0x00C28001);
 	csr32w(ctlr, Fcah, 0x0100);
-	csr32w(ctlr, Fct, 0x8808);
+	if(ctlr->type != i82579 && ctlr->type != i210 && ctlr->type != i217)
+		csr32w(ctlr, Fct, 0x8808);
 	csr32w(ctlr, Fcttv, 0x0100);
 
+	ctlr->fcrtl = ctlr->fcrth = 0;
+	// ctlr->fcrtl = 0x00002000;
+	// ctlr->fcrth = 0x00004000;
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
 
@@ -1577,29 +1812,65 @@ i82563pci(void)
 			break;
 		case 0x1049:		/* mm */
 		case 0x104a:		/* dm */
-		case 0x104d:		/* v */
+		case 0x104b:		/* dc */
+		case 0x104d:		/* mc */
 		case 0x10bd:		/* dm */
+		case 0x294c:		/* dc-2 */
 			type = i82566;
+			break;
+		case 0x10cd:		/* lf */
+		case 0x10ce:		/* v-2 */
+		case 0x10de:		/* lm-3 */
+		case 0x10f5:		/* lm-2 */
+			type = i82567;
 			break;
 		case 0x10a4:
 		case 0x105e:
 			type = i82571;
 			break;
-		case 0x10b9:		/* sic, 82572 */
+		case 0x107d:		/* eb copper */
+		case 0x107e:		/* ei fiber */
+		case 0x107f:		/* ei */
+		case 0x10b9:		/* sic, 82572gi */
 			type = i82572;
 			break;
-		case 0x108b:		/*  e */
+		case 0x108b:		/*  v */
 		case 0x108c:		/*  e (iamt) */
 		case 0x109a:		/*  l */
 			type = i82573;
 			break;
-		case 0x10a7:		/* 82575eb */
+		case 0x10d3:		/* l */
+			type = i82574;
+			break;
+		case 0x10a7:	/* 82575eb: one of a pair of controllers */
 			type = i82575;
 			break;
 		case 0x10c9:		/* 82576 copper */
 		case 0x10e6:		/* 82576 fiber */
 		case 0x10e7:		/* 82576 serdes */
 			type = i82576;
+			break;
+		case 0x10ea:		/* 82577lm */
+			type = i82577;
+			break;
+		case 0x1502:		/* 82579lm */
+		case 0x1503:		/* 82579v */
+			type = i82579;
+			break;
+		case 0x1533:		/* i210-t1 */
+		case 0x1534:		/* i210 */
+		case 0x1536:		/* i210-fiber */
+		case 0x1537:		/* i210-backplane */
+		case 0x1538:
+		case 0x1539:		/* i211 */
+		case 0x157b:		/* i210 */
+		case 0x157c:		/* i210 */
+			type = i210;
+			break;
+		case 0x153a:		/* i217-lm */
+		case 0x153b:		/* i217-v */
+		case 0x15a3:
+			type = i217;
 			break;
 		}
 
@@ -1610,10 +1881,20 @@ i82563pci(void)
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil) {
+			vunmap(mem, p->mem[0].size);
+			error(Enomem);
+		}
 		ctlr->port = io;
 		ctlr->pcidev = p;
 		ctlr->type = type;
-		ctlr->rbsz = rbtab[type];
+		/*
+		 * on the assumption that allowing jumbo packets makes
+		 * the controller much slower (as is true of the 82579),
+		 * never allow jumbos.
+		 */
+		// ctlr->rbsz = rbtab[type];
+		ctlr->rbsz = ETHERMAXTU;
 		ctlr->nic = mem;
 
 		if(i82563reset(ctlr)){
@@ -1660,6 +1941,7 @@ pnp(Ether* edev, int type)
 		return -1;
 
 	edev->ctlr = ctlr;
+	ctlr->edev = edev;			/* point back to Ether* */
 	edev->port = ctlr->port;
 	edev->irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
@@ -1672,7 +1954,8 @@ pnp(Ether* edev, int type)
 	 */
 	edev->attach = i82563attach;
 	edev->transmit = i82563transmit;
-	edev->interrupt = i82563interrupt;
+	edev->interrupt = (ctlr->type == i82575?
+		i82575interrupt: i82563interrupt);
 	edev->ifstat = i82563ifstat;
 	edev->ctl = i82563ctl;
 
@@ -1727,9 +2010,21 @@ i82575pnp(Ether *e)
 }
 
 static int
-i82576pnp(Ether *e)
+i82579pnp(Ether *e)
 {
-	return pnp(e, i82576);
+	return pnp(e, i82579);
+}
+
+static int
+i210pnp(Ether *e)
+{
+	return pnp(e, i210);
+}
+
+static int
+i217pnp(Ether *e)
+{
+	return pnp(e, i217);
 }
 
 void
@@ -1742,6 +2037,8 @@ ether82563link(void)
 	addethercard("i82572", i82572pnp);
 	addethercard("i82573", i82573pnp);
 	addethercard("i82575", i82575pnp);
-	addethercard("i82576", i82576pnp);
+	addethercard("i82579", i82579pnp);
+	addethercard("i210", i210pnp);
+	addethercard("i217", i217pnp);
 	addethercard("igbepcie", anypnp);
 }
