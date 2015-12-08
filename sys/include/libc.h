@@ -701,7 +701,7 @@ extern	int	segflush(void*, uint32_t);
 extern	int	segfree(void*, uint32_t);
 extern	int	semacquire(int32_t*, int);
 extern	int32_t	semrelease(int32_t*, int32_t);
-extern	int	sleep(int32_t);
+extern	void	sleep(int32_t);
 extern	int	stat(const char*, uint8_t*, int);
 extern	int	tsemacquire(int32_t*, uint64_t);
 extern	Waitmsg*	wait(void);
