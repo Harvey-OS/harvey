@@ -863,7 +863,7 @@ struct Proc
 
 	Lock	rlock;		/* sync sleep/wakeup with postnote */
 	Rendez	*r;		/* rendezvous point slept on */
-	Rendez	sleep;		/* place for syssleep/debug */
+	Rendez	sleep;		/* place for tsleep */
 	int	notepending;	/* note issued but not acted on */
 	int	kp;		/* true if a kernel process */
 	Proc	*palarm;	/* Next alarm time */

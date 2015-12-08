@@ -73,7 +73,6 @@ main(void)
 	}
 
 	/* verify that sleeps are NOT interrupted */
-	/* MEMENTO: this will pass when sleep will be in libc
 	wkup = awake(700);
 	start = nsec();
 	sleep(1500);
@@ -84,7 +83,6 @@ main(void)
 		print("FAIL: sleep\n");
 		exits("FAIL");
 	}
-	*/
 
 	/* verify that semacquires are interrupted */
 	/* MEMENTO: this requires deeper modifications to semacquire() in

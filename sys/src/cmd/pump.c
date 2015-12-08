@@ -132,12 +132,10 @@ main(int argc, char *argv[])
 static int
 sleepunlocked(int32_t ms)
 {
-	int r;
-
 	unlock(&arithlock);
-	r = sleep(ms);
+	sleep(ms);
 	lock(&arithlock);
-	return r;
+	return 0;
 }
 
 void
