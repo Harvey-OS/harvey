@@ -135,7 +135,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			argv++;
 		}
 		break;
-	case _FSTAT:					/* deprecated */
 	case _FWSTAT:					/* obsolete */
 		i[0] = va_arg(list, int);
 		a = va_arg(list, char*);
@@ -153,16 +152,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		fmtprint(&fmt, "%#p ", v);
 		v = va_arg(list, void*);
 		fmtprint(&fmt, "%#p", v);
-		break;
-	case _MOUNT:					/* deprecated */
-		i[0] = va_arg(list, int);
-		fmtprint(&fmt, "%d ", i[0]);
-		a = va_arg(list, char*);
-		fmtuserstring(&fmt, a, " ");
-		i[0] = va_arg(list, int);
-		fmtprint(&fmt, "%#ux ", i[0]);
-		a = va_arg(list, char*);
-		fmtuserstring(&fmt, a, "");
 		break;
 	case OPEN:
 		a = va_arg(list, char*);

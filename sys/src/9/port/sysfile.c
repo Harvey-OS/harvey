@@ -1324,30 +1324,6 @@ sysmount(Ar0* ar0, ...)
 }
 
 void
-sys_mount(Ar0* ar0, ...)
-{
-	int fd, flag;
-	char *aname, *old;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int mount(int fd, char *old, int flag, char *aname);
-	 * should be
-	 * long mount(int fd, char *old, int flag, char *aname);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	old = va_arg(list, char*);
-	flag = va_arg(list, int);
-	aname = va_arg(list, char*);
-	va_end(list);
-
-	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
-}
-
-void
 sysunmount(Ar0* ar0, ...)
 {
 	Proc *up = externup();
@@ -1627,65 +1603,6 @@ sys_stat(Ar0* ar0, ...)
 	p = validaddr(p, 116, 1);
 
 	c = namec(validaddr(aname, 1, 0), Aaccess, 0, 0);
-	if(waserror()){
-		cclose(c);
-		nexterror();
-	}
-	l = c->dev->stat(c, buf, sizeof buf);
-
-	/*
-	 * Buf contains a new stat buf; convert to old.
-	 * Yuck.
-	 * If buffer too small, time to face reality.
-	 */
-	if(l <= BIT16SZ)
-		error(old);
-	name = pathlast(c->path);
-	if(name)
-		l = dirsetname(name, strlen(name), buf, l, sizeof buf);
-	l = convM2D(buf, l, &d, strs);
-	if(l == 0)
-		error(old);
-	packoldstat(p, &d);
-
-	poperror();
-	cclose(c);
-
-	ar0->i = 0;
-}
-
-void
-sys_fstat(Ar0* ar0, ...)
-{
-	Proc *up = externup();
-	Chan *c;
-	char *name;
-	int32_t l;
-	uint8_t buf[128], *p;
-	char strs[128];
-	Dir d;
-	int fd;
-	char old[] = "old fstat system call - recompile";
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int fstat(int fd, char* edir);
-	 * should have been
-	 * usize fstat(int fd, uchar* edir));
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t*);
-	va_end(list);
-
-	/*
-	 * Old DIRLEN (116) plus a little should be plenty
-	 * for the buffer sizes.
-	 */
-	p = validaddr(p, 116, 1);
-	c = fdtochan(fd, -1, 0, 1);
 	if(waserror()){
 		cclose(c);
 		nexterror();

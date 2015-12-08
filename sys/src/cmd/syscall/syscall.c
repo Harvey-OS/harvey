@@ -19,7 +19,6 @@ uintptr	arg[NARG];
 /* system calls not defined in libc.h */
 int	sysr1(void);
 int	_stat(char*, char*);
-int	_fstat(int, char*);
 int	_wstat(char*, char*);
 int	_fwstat(int, char*);
 int	_read(int, void*, int);
@@ -31,7 +30,6 @@ int	_nfstat(int, void*, int);
 int	_nstat(char*, void*, int);
 int	_nfwstat(int, void*, int);
 int	_nwstat(char*, void*, int);
-int	_mount(int, char*, int, char*);
 int	_wait(void*);
 
 struct{

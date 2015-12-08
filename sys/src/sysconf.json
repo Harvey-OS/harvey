@@ -100,37 +100,11 @@
 			]
 		},
 		{
-			"#Id": 11,
-			"Args": [
-				"int32_t",
-				"uint8_t*"
-			],
-			"Id": 4107,
-			"Name": "_fstat",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 12,
 			"Id": 4108,
 			"Name": "segbrk",
 			"Ret": [
 				"void*"
-			]
-		},
-		{
-			"#Id": 13,
-			"Args": [
-				"int32_t",
-				"char*",
-				"int32_t",
-				"char*"
-			],
-			"Id": 4109,
-			"Name": "_mount",
-			"Ret": [
-				"int32_t"
 			]
 		},
 		{
