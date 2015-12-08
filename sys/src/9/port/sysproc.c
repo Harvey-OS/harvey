@@ -728,32 +728,6 @@ return0(void* v)
 	return 0;
 }
 
-void
-syssleep(Ar0* ar0, ...)
-{
-	Proc *up = externup();
-	int64_t ms;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int sleep(long millisecs);
-	 */
-	ms = va_arg(list, int64_t);
-	va_end(list);
-
-	ar0->i = 0;
-	if(ms <= 0) {
-		if (up->edf && (up->edf->flags & Admitted))
-			edfyield();
-		else
-			yield();
-		return;
-	}
-	if(ms < TK2MS(1))
-		ms = TK2MS(1);
-	tsleep(&up->sleep, return0, 0, ms);
-}
 
 void
 sysalarm(Ar0* ar0, ...)

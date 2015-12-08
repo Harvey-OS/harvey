@@ -159,10 +159,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux", i[0]);
 		break;
-	case SLEEP:
-		l = va_arg(list, int32_t);
-		fmtprint(&fmt, "%ld", l);
-		break;
 	case _STAT:					/* obsolete */
 	case _WSTAT:					/* obsolete */
 		a = va_arg(list, char*);

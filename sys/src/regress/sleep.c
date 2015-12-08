@@ -18,10 +18,9 @@
 #include <u.h>
 #include <libc.h>
 
-/* Test alarm(2):
- * - alarms replace each other (the last one wins)
- * - alarms are received as notes
- * - alarms are received (more or less) on time
+/* Test sleep(2):
+ * - sleep cannot be interrupted
+ * - sleep give back the control (more or less) on time
  *
  * Given we have two clocks at work here, we can use one to
  * check the other:
@@ -30,16 +29,13 @@
  * - sys->ticks incremented by hzclock (in portclock.c) that
  *   is used by alarm (and sleep and the kernel scheduler)
  */
-
 int verbose = 0;
-int64_t alarmReceived;
 
 int
 printFirst(void *v, char *s)
 {
 	/* just not exit, please */
 	if(strcmp(s, "alarm") == 0){
-		alarmReceived = nsec();
 		if(verbose)
 			fprint(2, "%d: noted: %s at %lld\n", getpid(), s, nsec());
 		atnotify(printFirst, 0);
@@ -62,7 +58,7 @@ failOnSecond(void *v, char *s)
 void
 main(void)
 {
-	int64_t a2000, a500;
+	int64_t a2000, a500, tStart, tEnd;
 	if (!atnotify(printFirst, 1) || !atnotify(failOnSecond, 1)){
 		fprint(2, "%r\n");
 		exits("atnotify fails");
@@ -72,17 +68,23 @@ main(void)
 	a2000 = nsec();
 	alarm(500);
 	a500 = nsec();
-
-	rendezvous(&a500, (void*)0x123);
+	tStart = nsec();
+	sleep(1000);
+	tEnd = nsec();
 
 	if(verbose)
-		fprint(2, "%d: set alarm(2000)@%lld then alarm(500)@%lld; received after %lld nanosecond\n", getpid(), a2000, a500, alarmReceived-a500);
+		fprint(2, "%d: set alarm(2000)@%lld then alarm(500)@%lld; elapsed in sleep() %lld nanosecond\n", getpid(), a2000, a500, tEnd-tStart);
 
-	if(alarmReceived-a500 > 700 * 1000 * 1000){
-		print("FAIL\n");
+	if(tEnd-tStart > 1200 * 1000 * 1000){
+		print("FAIL: should sleep less\n");
 		exits("FAIL");
 	}
-	
+
+	if(tEnd-tStart < 800 * 1000 * 1000){
+		print("FAIL: should sleep more\n");
+		exits("FAIL");
+	}
+
 	print("PASS\n");
 	exits("PASS");
 }
