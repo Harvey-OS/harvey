@@ -18,7 +18,9 @@ _iosleep(va_list *arg)
 	int32_t n;
 
 	n = va_arg(*arg, int32_t);
-	return sleep(n);
+	sleep(n);
+
+	return 0;
 }
 
 int
