@@ -1,0 +1,37 @@
+{
+	"regress": {
+		"Cflags": [
+			"-lz",
+			"-lstdio",
+			"-lc",
+			"-fPIC",
+			"-DHARVEY",
+			"-DNO_FSEEKO",
+			"-DNO_STRERROR",
+			"-nostdinc",
+			"-nostdlib",
+			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/cflags.json"
+		],
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lz",
+			"-lstdio",
+			"-lc"
+		],
+		"Pre": [
+			"cat upstream/test/example.c | sed -f patch/port-example.sed > harvey/example.c"
+		],
+		"Post": [
+			"mkdir -p $HARVEY/$ARCH/bin/regress/libz",
+			"mv harvey/example $HARVEY/$ARCH/bin/regress/libz",
+			"rm example.o"
+		],
+		"SourceFilesCmd": [
+			"harvey/example.c"
+		]
+	}
+}
