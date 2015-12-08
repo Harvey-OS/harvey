@@ -100,18 +100,6 @@
 			]
 		},
 		{
-			"#Id": 11,
-			"Args": [
-				"int32_t",
-				"uint8_t*"
-			],
-			"Id": 4107,
-			"Name": "_fstat",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 12,
 			"Id": 4108,
 			"Name": "segbrk",
