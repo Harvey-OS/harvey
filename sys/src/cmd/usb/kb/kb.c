@@ -132,7 +132,7 @@ static int ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
 static int ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
 
 static int
-setbootproto(KDev* f, int eid, uint8_t *, int)
+setbootproto(KDev* f, int eid, uint8_t *_1, int _2)
 {
 	int nr, r, id;
 
