@@ -11,7 +11,8 @@
 		"SourceFiles": [
 			"disk.c",
 			"proto.c",
-			"scsi.c"
+			"scsi.c",
+			"scsierrs.c"
 		]
 	}
 }
