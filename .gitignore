@@ -14,15 +14,8 @@ amd64/lib
 
 sys/log
 
-sys/src/9/k10/9*
-sys/src/9/k10/init
-sys/src/libc/9syscall/sys.h
-sys/src/9/k10/errstr.h
-sys/src/9/k10/sipi.h
 sys/src/9/port/error.h
-sys/src/9/k10/systab.c
 sys/src/9/root/nvram
-sys/src/9/boot/bootk8cpu.c
 
 *.orig
 *_orig
