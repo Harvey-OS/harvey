@@ -97,7 +97,6 @@
 				"prep": "/$ARCH/bin/disk/prep",
 				"venti": "/$ARCH/bin/venti/venti",
 				"fossil": "/$ARCH/bin/fossil/fossil",
-				"usbd": "/$ARCH/bin/usb/usbd",
 				"startdisk" : "startdisk"
 			}
 		},
