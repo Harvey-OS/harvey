@@ -17,7 +17,12 @@
 			"lib/fs.c",
 			"lib/fsdir.c",
 			"kb/hid.c",
-			"kb/kb.c"
+			"kb/kb.c",
+			"serial/ftdi.c",
+			"serial/prolific.c",
+			"serial/serial.c",
+			"serial/silabs.c",
+			"serial/ucons.c"
 		]
 	}
 }
