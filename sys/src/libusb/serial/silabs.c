@@ -38,6 +38,7 @@ enum {
 		Stop2		= 0x0002,
 };
 
+int
 slmatch(char *info)
 {
 	Cinfo *ip;
