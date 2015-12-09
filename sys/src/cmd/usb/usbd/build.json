@@ -1,9 +1,5 @@
 {
 	"usbd": {
-		"Cflags": [
-			"-I", 
-			"../lib"
-		],
 	    "Oflags": [
 		"-lusb"
 		],
