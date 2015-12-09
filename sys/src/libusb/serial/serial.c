@@ -46,7 +46,7 @@ static Dirtab dirtab[] = {
 	[Qctl]	"%sctl",	0664,
 };
 
-static int sdebug;
+/* someday? static int sdebug; */
 
 static void
 serialfatal(Serial *ser)
@@ -425,7 +425,7 @@ dstat(Usbfs *fs, Qid qid, Dir *d)
 }
 
 static int
-dopen(Usbfs *fs, Fid *fid, int)
+dopen(Usbfs *fs, Fid *fid, int _1)
 {
 	uint32_t path;
 	Serialport *p;
@@ -463,7 +463,7 @@ filldir(Usbfs *fs, Dir *d, Dirtab *tab, int i, void *v)
 }
 
 static int
-dirgen(Usbfs *fs, Qid, int i, Dir *d, void *p)
+dirgen(Usbfs *fs, Qid _1, int i, Dir *d, void *p)
 {
 	i++;				/* skip root */
 	if(i >= nelem(dirtab))
@@ -603,7 +603,7 @@ altwrite(Serialport *p, uint8_t *buf, int32_t count)
 }
 
 static int32_t
-dwrite(Usbfs *fs, Fid *fid, void *buf, int32_t count, int64_t)
+dwrite(Usbfs *fs, Fid *fid, void *buf, int32_t count, int64_t _1)
 {
 	uint32_t path;
 	char *cmd;
@@ -870,8 +870,8 @@ serialmain(Dev *dev, int argc, char* argv[])
 			werrstr("serial: no endpoints found for ifc %d", i);
 			return -1;
 		}
-		p->w4data  = chancreate(sizeof(ulong), 0);
-		p->gotdata = chancreate(sizeof(ulong), 0);
+		p->w4data  = chancreate(sizeof(uint32_t), 0);
+		p->gotdata = chancreate(sizeof(uint32_t), 0);
 	}
 
 	qlock(ser);
