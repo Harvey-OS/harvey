@@ -97,7 +97,8 @@
 				"prep": "/$ARCH/bin/disk/prep",
 				"venti": "/$ARCH/bin/venti/venti",
 				"fossil": "/$ARCH/bin/fossil/fossil",
-				"startdisk" : "startdisk"
+				"startdisk" : "startdisk",
+				"usbd" : "/$ARCH/bin/usb/usbd"
 			}
 		},
 		"Program": "harvey",
