@@ -16,6 +16,8 @@
 			"lib/parse.c",
 			"lib/fs.c",
 			"lib/fsdir.c",
+			"disk/disk.c",
+			"disk/scsireq.c",
 			"kb/hid.c",
 			"kb/kb.c",
 			"serial/ftdi.c",
