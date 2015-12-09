@@ -19,16 +19,12 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 )
 
 const (
 	ignore          = "*\n!.gitignore\n"
-	permissiveDir   = 0755
-	permissiveFile  = 0644
-	restrictiveDir  = 0555
-	restrictiveFile = 0444
+	dirPermissions   = 0755
 )
 
 type V struct {
@@ -62,9 +58,6 @@ func main() {
 
 	if _, err := os.Stat("upstream"); err == nil {
 		log.Println("recreating upstream")
-		if err := filepath.Walk("upstream", readwrite); err != nil {
-			log.Fatal(err)
-		}
 		if(*justCheck){
 			run("rm", "-r", "-f", "upstream")
 		} else {
@@ -74,8 +67,8 @@ func main() {
 		if(*justCheck){
 			log.Fatalf("Cannot verify upstream/ as it does not exists.")
 		}
-		os.MkdirAll("patch", permissiveDir)
-		os.MkdirAll("harvey", permissiveDir)
+		os.MkdirAll("patch", dirPermissions)
+		os.MkdirAll("harvey", dirPermissions)
 		ig, err := os.Create(path.Join("harvey", ".gitignore"))
 		if err != nil {
 			log.Fatal(err)
@@ -152,10 +145,10 @@ untar:
 		}
 		n = path.Join("upstream", n)
 		if h.FileInfo().IsDir() {
-			os.MkdirAll(n, permissiveDir)
+			os.MkdirAll(n, dirPermissions)
 			continue
 		}
-		os.MkdirAll(path.Dir(n), permissiveDir)
+		os.MkdirAll(path.Dir(n), dirPermissions)
 		out, err := os.Create(n)
 		if err != nil {
 			log.Println(err)
@@ -168,10 +161,6 @@ untar:
 		out.Close()
 	}
 	if err != io.EOF {
-		return err
-	}
-
-	if err := filepath.Walk("upstream", readonly); err != nil {
 		return err
 	}
 
@@ -189,26 +178,6 @@ type match struct {
 
 func (m match) OK() bool {
 	return bytes.Equal(m.Good, m.Hash.Sum(nil))
-}
-
-func readonly(path string, fi os.FileInfo, err error) error {
-	if err != nil {
-		return err
-	}
-	if fi.IsDir() {
-		return os.Chmod(path, restrictiveDir)
-	}
-	return os.Chmod(path, restrictiveFile)
-}
-
-func readwrite(path string, fi os.FileInfo, err error) error {
-	if err != nil {
-		return err
-	}
-	if fi.IsDir() {
-		return os.Chmod(path, permissiveDir)
-	}
-	return os.Chmod(path, permissiveFile)
 }
 
 func fetch(v *V) string {
