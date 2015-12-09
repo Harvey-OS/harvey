@@ -55,14 +55,6 @@ int exabyte, force6bytecmds;
 
 int diskdebug;
 
-static void
-ding(void *, char *msg)
-{
-	if(strstr(msg, "alarm") != nil)
-		noted(NCONT);
-	noted(NDFLT);
-}
-
 static int
 getmaxlun(Dev *dev)
 {
@@ -382,7 +374,7 @@ dostat(Usbfs *fs, int path, Dir *d)
 }
 
 static int
-dirgen(Usbfs *fs, Qid, int i, Dir *d, void*)
+dirgen(Usbfs *fs, Qid _1, int i, Dir *d, void*_2)
 {
 	i++;	/* skip dir */
 	if(i >= Qmax)
@@ -406,7 +398,7 @@ dstat(Usbfs *fs, Qid qid, Dir *d)
 }
 
 static int
-dopen(Usbfs *fs, Fid *fid, int)
+dopen(Usbfs *fs, Fid *fid, int _1)
 {
 	uint32_t path;
 	Umsc *lun;
