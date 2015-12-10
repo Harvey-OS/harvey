@@ -155,7 +155,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		fmtprint(&fmt, "%#ux", i[0]);
 		break;
 	case _STAT:					/* obsolete */
-	case _WSTAT:					/* obsolete */
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		a = va_arg(list, char*);

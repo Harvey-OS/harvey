@@ -19,7 +19,6 @@ uintptr	arg[NARG];
 /* system calls not defined in libc.h */
 int	sysr1(void);
 int	_stat(char*, char*);
-int	_wstat(char*, char*);
 int	_read(int, void*, int);
 int	_write(int, void*, int);
 int	_read9p(int, void*, int);
