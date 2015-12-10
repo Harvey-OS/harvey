@@ -710,12 +710,6 @@ sysexec(Ar0* ar0, ...)
 	execac(ar0, EXTC, file, argv);
 }
 
-void
-sysnixsyscall(Ar0* ar, ...)
-{
-	print("nixsyscall() called. recompile your binary\n");
-}
-
 int
 return0(void* v)
 {
