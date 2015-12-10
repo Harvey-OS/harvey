@@ -18,15 +18,7 @@ uintptr	arg[NARG];
 
 /* system calls not defined in libc.h */
 int	sysr1(void);
-int	_read(int, void*, int);
-int	_write(int, void*, int);
-int	_read9p(int, void*, int);
-int	_write9p(int, void*, int);
 int	brk_(void*);
-int	_nfstat(int, void*, int);
-int	_nstat(char*, void*, int);
-int	_nfwstat(int, void*, int);
-int	_nwstat(char*, void*, int);
 
 struct{
 	char	*name;
