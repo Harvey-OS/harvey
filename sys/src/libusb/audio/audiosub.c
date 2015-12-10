@@ -32,10 +32,10 @@ Namelist terminal_types[] = {
 	{	0, nil }
 };
 
-units[2][8];	/* rec and play units */
-nunits[2];		/* number in use */
+int units[2][8];	/* rec and play units */
+int nunits[2];		/* number in use */
 
-int8_t *
+char*
 namefor(Namelist *list, int item)
 {
 	while(list->name){
@@ -58,7 +58,7 @@ findunit(int nr)
 }
 
 void
-audio_interface(Dev *, Desc *dd)
+audio_interface(Dev *_1, Desc *dd)
 {
 	byte *b = (uint8_t*)&dd->data;
 	byte *bb = b;

@@ -332,7 +332,7 @@ smscbwrite(Ether *e, Buf *bp)
 static int
 smscpromiscuous(Ether *e, int on)
 {
-	USED(on, e);
+
 #ifdef TODO		/* copied from asix */
 	int rxctl;
 
@@ -350,7 +350,6 @@ smscpromiscuous(Ether *e, int on)
 static int
 smscmulticast(Ether *e, uint8_t *addr, int on)
 {
-	USED(addr, on, e);
 #ifdef TODO		/* needed for ipv6; copied from asix */
 	int rxctl;
 
