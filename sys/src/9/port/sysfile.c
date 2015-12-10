@@ -972,29 +972,19 @@ void
 sysseek(Ar0* ar0, ...)
 {
 	int fd, whence;
-	int64_t offset, *rv;
+	int64_t offset;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
 	 * int64_t seek(int fd, int64_t n, int type);
-	 *
-	 * The system call actually has 4 arguments,
-	 *	int _seek(int64_t*, int, int64_t, int);
-	 * and the first argument is where the offset
-	 * is returned. The C library arranges the
-	 * argument/return munging if necessary.
 	 */
-	rv = va_arg(list, int64_t*);
-	rv = validaddr(rv, sizeof(int64_t), 1);
-
 	fd = va_arg(list, int);
 	offset = va_arg(list, int64_t);
 	whence = va_arg(list, int);
 	va_end(list);
-	*rv = sseek(fd, offset, whence);
 
-	ar0->i = 0;
+	ar0->vl = sseek(fd, offset, whence);
 }
 
 void

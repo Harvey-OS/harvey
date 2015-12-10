@@ -325,10 +325,9 @@
 				"int32_t"
 			],
 			"Id": 4135,
-			"Libname": "_seek",
 			"Name": "seek",
 			"Ret": [
-				"int32_t"
+				"int64_t"
 			]
 		},
 		{
