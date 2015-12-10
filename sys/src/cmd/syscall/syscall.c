@@ -17,7 +17,6 @@ char	buf[1048576];
 uintptr	arg[NARG];
 
 /* system calls not defined in libc.h */
-int	sysr1(void);
 int	brk_(void*);
 
 struct{

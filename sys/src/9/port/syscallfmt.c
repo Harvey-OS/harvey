@@ -89,10 +89,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 	up->syscalltrace = nil;
 
 	switch(syscallno){
-	case SYSR1:
-		p = va_arg(list, uintptr_t);
-		fmtprint(&fmt, "%#p", p);
-		break;
 	case CHDIR:
 	case EXITS:
 	case REMOVE:

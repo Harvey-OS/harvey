@@ -711,12 +711,6 @@ sysexec(Ar0* ar0, ...)
 }
 
 void
-sysr1(Ar0* ar, ...)
-{
-	print("sysr1() called. recompile your binary\n");
-}
-
-void
 sysnixsyscall(Ar0* ar, ...)
 {
 	print("nixsyscall() called. recompile your binary\n");
