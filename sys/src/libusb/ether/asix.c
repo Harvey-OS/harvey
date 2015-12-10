@@ -51,7 +51,7 @@ enum
 	Riprl		= 0x20,
 	Rippd		= 0x40,
 
-	Gpiogpo1en	= 0x04,	/* gpio1 enable */,
+	Gpiogpo1en	= 0x04,	/* gpio1 enable */
 	Gpiogpo1		= 0x08,	/* gpio1 value */
 	Gpiogpo2en	= 0x10,	/* gpio2 enable */
 	Gpiogpo2		= 0x20,	/* gpio2 value */

@@ -351,7 +351,7 @@ filldir(Usbfs *fs, Dir *d, Dirtab *tab, int cn)
 }
 
 static int
-rootdirgen(Usbfs *fs, Qid, int i, Dir *d, void *)
+rootdirgen(Usbfs *fs, Qid _1, int i, Dir *d, void *_2)
 {
 	Ether *e;
 	Dirtab *tab;
@@ -374,7 +374,7 @@ rootdirgen(Usbfs *fs, Qid, int i, Dir *d, void *)
 }
 
 static int
-conndirgen(Usbfs *fs, Qid q, int i, Dir *d, void *)
+conndirgen(Usbfs *fs, Qid q, int i, Dir *d, void *_1)
 {
 	Dirtab *tab;
 
@@ -681,7 +681,7 @@ typeinuse(Ether *e, int t)
 }
 
 static int
-isloopback(Ether *e, Buf *)
+isloopback(Ether *e, Buf *_1)
 {
 	return e->prom.ref > 0; /* BUG: also loopbacks and broadcasts */
 }
@@ -780,7 +780,7 @@ etherbwrite(Ether *e, Buf *bp)
 }
 
 static int32_t
-fswrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t)
+fswrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t _1)
 {
 	int cn, qt;
 	char buf[128];
@@ -1184,7 +1184,7 @@ ethermain(Dev *dev, int argc, char **argv)
 {
 	int epin, epout, i, devid;
 	Ether *e;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 
 	devid = dev->id;
 	memset(ea, 0, Eaddrlen);
