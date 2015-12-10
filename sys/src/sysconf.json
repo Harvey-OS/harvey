@@ -1,15 +1,6 @@
 {
 	"Syscalls": [
 		{
-			"#Id": 0,
-			"Id": 4096,
-			"Name": "sysr1",
-			"Ret": [
-				"int32_t"
-			],
-			"Sysname": "sysr1"
-		},
-		{
 			"#Id": 2,
 			"Args": [
 				"char*",
