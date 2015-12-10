@@ -135,11 +135,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			argv++;
 		}
 		break;
-	case _FWSTAT:					/* obsolete */
-		i[0] = va_arg(list, int);
-		a = va_arg(list, char*);
-		fmtprint(&fmt, "%d %#p", i[0], a);
-		break;
 	case FAUTH:
 		i[0] = va_arg(list, int);
 		a = va_arg(list, char*);

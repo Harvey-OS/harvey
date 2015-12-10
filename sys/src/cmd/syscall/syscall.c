@@ -20,7 +20,6 @@ uintptr	arg[NARG];
 int	sysr1(void);
 int	_stat(char*, char*);
 int	_wstat(char*, char*);
-int	_fwstat(int, char*);
 int	_read(int, void*, int);
 int	_write(int, void*, int);
 int	_read9p(int, void*, int);

@@ -80,7 +80,6 @@
 			"9syscall/fd2path.s",
 			"9syscall/fstat.s",
 			"9syscall/fversion.s",
-			"9syscall/_fwstat.s",
 			"9syscall/fwstat.s",
 			"9syscall/mount.s",
 			"9syscall/noted.s",
