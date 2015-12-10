@@ -31,6 +31,7 @@
 			"/sys/src/libstdio/libstdio.json",
 			"/sys/src/libsunrpc/libsunrpc.json",
 			"/sys/src/libthread/libthread.json",
+			"/sys/src/libusb",
 			"/sys/src/libventi/libventi.json",
 			"/sys/src/libz/"
 		]
