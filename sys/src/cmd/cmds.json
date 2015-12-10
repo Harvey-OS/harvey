@@ -30,7 +30,6 @@
 			"rc/rc.json",
 			"rio/rio.json",
 			"syscall/syscall.json",
-			"usb/lib",
 			"usb/usbd",
 			"venti/venti.json"
 		]
