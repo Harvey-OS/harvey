@@ -222,7 +222,6 @@ extern	void	qsort(void*, int32_t, int32_t,
 
 typedef struct Qid	Qid;
 typedef struct Dir	Dir;
-typedef struct OWaitmsg	OWaitmsg;
 typedef struct Waitmsg	Waitmsg;
 
 #define ERRMAX		128		/* max length of error string */
@@ -268,18 +267,11 @@ struct Dir {
 	char	*muid;	/* last modifier name */
 };
 
-struct OWaitmsg
-{
-	char	pid[12];	/* of loved one */
-	char	time[3*12];	/* of loved one and descendants */
-	char	msg[64];	/* compatibility BUG */
-};
-
 struct Waitmsg
 {
-	int	pid;		/* of loved one */
-	uint32_t	time[3];	/* of loved one and descendants */
-	char	msg[ERRMAX];	/* actually variable-size in user mode */
+	int			pid;			/* of loved one */
+	uint32_t	time[3];		/* of loved one and descendants */
+	char		msg[ERRMAX];	/* actually variable-size in user mode */
 };
 
 /*

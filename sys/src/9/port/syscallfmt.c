@@ -192,7 +192,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		break;
 	case NOTIFY:
 	case SEGDETACH:
-	case _WAIT:					/* deprecated */
 		v = va_arg(list, void*);
 		fmtprint(&fmt, "%#p", v);
 		break;
