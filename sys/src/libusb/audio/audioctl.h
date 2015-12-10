@@ -17,11 +17,11 @@ typedef struct Audiocontrol Audiocontrol;
 
 struct Audiocontrol {
 	char	*name;
-	uchar	readable;
-	uchar	settable;
-	uchar	chans;		/* 0 is master, non-zero is bitmap */
-	long	value[8];	/* 0 is master; value[0] == Undef -> all values Undef */
-	long	min, max, step;
+	uint8_t	readable;
+	uint8_t	settable;
+	uint8_t	chans;		/* 0 is master, non-zero is bitmap */
+	int32_t	value[8];	/* 0 is master; value[0] == Undef -> all values Undef */
+	int32_t	min, max, step;
 };
 
 extern Audiocontrol controls[2][Ncontrol];
@@ -32,7 +32,7 @@ extern int selectorid[2];
 extern int mixerid[2];
 extern int buttonendpt;
 
-int	ctlparse(char *s, Audiocontrol *c, long *v);
+int	ctlparse(char *s, Audiocontrol *c, int32_t *v);
 void	ctlevent(void);
 
 #pragma	varargck	type	"A"	Audiocontrol*

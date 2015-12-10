@@ -39,7 +39,7 @@ Dev *buttondev;
 Dev *epdev[2];
 
 static void
-audio_endpoint(Dev *, Desc *dd)
+audio_endpoint(Dev *_1, Desc *dd)
 {
 	byte *b = (uint8_t*)&dd->data;
 	int n = dd->data.bLength;
@@ -99,7 +99,7 @@ enum {
 };
 
 void
-controlproc(void *)
+controlproc(void *_1)
 {
 	/* Proc that looks after /dev/usb/%d/ctl */
 	int i, nf;
@@ -114,7 +114,7 @@ controlproc(void *)
 		nf = tokenize(req, args, nelem(args));
 		if(nf < 3)
 			sysfatal("controlproc: not enough arguments");
-		replchan = (Channel*)strtol(args[0], nil, 0);
+		replchan = (Channel*)strtoll(args[0], nil, 0);
 		if(strcmp(args[2], "playback") == 0)
 			rec = Play;
 		else if(strcmp(args[2], "record") == 0)
@@ -163,7 +163,7 @@ controlproc(void *)
 }
 
 void
-buttonproc(void *)
+buttonproc(void *_1)
 {
 	int	i, fd, b;
 	char err[32];
@@ -223,7 +223,7 @@ threadmain(int argc, char **argv)
 {
 	char *devdir;
 	int i;
-	long value[8], volume[8];
+	int32_t value[8], volume[8];
 	Audiocontrol *c;
 	char *p;
 	extern int attachok;

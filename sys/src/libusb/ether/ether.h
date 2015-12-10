@@ -43,8 +43,8 @@ struct Buf
 {
 	int	type;
 	int	ndata;
-	uchar*	rp;
-	uchar	data[Hdrsize+Maxpkt];
+	uint8_t*	rp;
+	uint8_t	data[Hdrsize+Maxpkt];
 };
 
 struct Conn
@@ -60,11 +60,11 @@ struct Conn
 struct Etherops
 {
 	int	(*init)(Ether*, int *epin, int *epout);
-	long	(*bread)(Ether*, Buf*);
-	long	(*bwrite)(Ether*, Buf*);
+	int32_t	(*bread)(Ether*, Buf*);
+	int32_t	(*bwrite)(Ether*, Buf*);
 	int	(*ctl)(Ether*, char*);
 	int	(*promiscuous)(Ether*, int);
-	int	(*multicast)(Ether*, uchar*, int);
+	int	(*multicast)(Ether*, uint8_t*, int);
 	char*	(*seprintstats)(char*, char*, Ether*);
 	void	(*free)(Ether*);
 	int	bufsize;
@@ -86,16 +86,16 @@ struct Ether
 	Ref	prom;			/* nb. of promiscuous conns */
 	int	exiting;			/* shutting down */
 	int	wrexited;			/* write process died */
-	uchar	addr[Eaddrlen];		/* mac */
+	uint8_t	addr[Eaddrlen];		/* mac */
 	int	nconns;			/* nb. of entries used in... */
 	Conn*	conns[Nconns];		/* connections */
 	int	nabufs;			/* nb. of allocated buffers */
 	int	nbufs;			/* nb. of buffers in use */
 	int	nblock;			/* nonblocking (output)? */
-	long	nin;
-	long	nout;
-	long	nierrs;
-	long	noerrs;
+	int	nin;
+	int	nout;
+	int	nierrs;
+	int	noerrs;
 	int	mbps;
 	int	nmcasts;
 	Channel*rc;			/* read channel (of Buf*) */
@@ -114,17 +114,17 @@ struct Cinfo
 
 struct Etherpkt
 {
-	uchar d[Eaddrlen];
-	uchar s[Eaddrlen];
-	uchar type[2];
-	uchar data[1500];
+	uint8_t d[Eaddrlen];
+	uint8_t s[Eaddrlen];
+	uint8_t type[2];
+	uint8_t data[1500];
 };
 
 int	ethermain(Dev *dev, int argc, char **argv);
 int	asixreset(Ether*);
 int smscreset(Ether*);
 int	cdcreset(Ether*);
-int	parseaddr(uchar *m, char *s);
+int	parseaddr(uint8_t *m, char *s);
 void	dumpframe(char *tag, void *p, int n);
 
 extern Cinfo cinfo[];
