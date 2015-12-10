@@ -4,7 +4,8 @@
 	"others are not yet converted to sit in the usbd device driver library."
     ],
     "Embeds": [
-	{"Name": "kb", "Class": "0", "CSP": ["0x010103", "0x020103", "0", "0"], "VID": "-1", "DID": "-1"}
+	{"Name": "kb", "Class": "0", "CSP": ["0x010103", "0x020103", "0", "0"], "VID": "-1", "DID": "-1"},
+	{"Name": "disk", "Class": "8", "CSP": [	"DCL", "0", "0", "0" ], "VID": "-1", "DID": "-1"}
 	],
     "NotWorkingEmbeds": [
 	{"Name": "ether", "Class": "255", "CSP": ["0x00ffff", "0", "0", "0"], "VID": "0x0b95", "DID": "0"},
