@@ -107,7 +107,6 @@
 			"9syscall/tsemacquire.s",
 			"9syscall/unmount.s",
 			"9syscall/write.s",
-			"9syscall/_wstat.s",
 			"9syscall/wstat.s",
 			"fmt/dofmt.c",
 			"fmt/dorfmt.c",

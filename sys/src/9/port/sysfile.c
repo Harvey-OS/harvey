@@ -1608,12 +1608,3 @@ sys_stat(Ar0* ar0, ...)
 
 	ar0->i = 0;
 }
-
-void
-sys_wstat(Ar0* ar0, ...)
-{
-	va_list list;
-	va_start(list, ar0);
-	va_end(list);
-	error("old wstat system call - recompile");
-}
