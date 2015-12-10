@@ -329,19 +329,6 @@ syscall(int badscallnr, Ureg *ureg)
 	if (0) hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
 	if (0) hi("it returned!\n");
-		if(scallnr == SYSR1){
-			/*
-			 * BUG: must go when ron binaries go.
-			 * NIX: Returning from execac().
-			 * This means that the process is back to the
-			 * time sharing core. However, the process did
-			 * already return from the system call, when dispatching
-			 * the user code to the AC. The only thing left is to
-			 * return. The user registers should be ok, because
-			 * up->dbgreg has been the user context for the process.
-			 */
-			return;
-		}
 		poperror();
 	}
 	else{

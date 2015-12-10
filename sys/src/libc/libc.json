@@ -102,7 +102,6 @@
 			"9syscall/semacquire.s",
 			"9syscall/semrelease.s",
 			"9syscall/stat.s",
-			"9syscall/sysr1.s",
 			"9syscall/tsemacquire.s",
 			"9syscall/unmount.s",
 			"9syscall/write.s",
