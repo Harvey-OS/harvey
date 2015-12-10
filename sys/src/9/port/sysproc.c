@@ -797,42 +797,6 @@ sysexits(Ar0* ar0, ...)
 }
 
 void
-sys_wait(Ar0* ar0, ...)
-{
-	int pid;
-	Waitmsg w;
-	OWaitmsg *ow;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int wait(Waitmsg* w);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	ow = va_arg(list, OWaitmsg*);
-	va_end(list);
-	if(ow == nil){
-		ar0->i = pwait(nil);
-		return;
-	}
-
-	ow = validaddr(ow, sizeof(OWaitmsg), 1);
-	evenaddr(PTR2UINT(ow));
-	pid = pwait(&w);
-	if(pid >= 0){
-		readnum(0, ow->pid, NUMSIZE, w.pid, NUMSIZE);
-		readnum(0, ow->time+TUser*NUMSIZE, NUMSIZE, w.time[TUser], NUMSIZE);
-		readnum(0, ow->time+TSys*NUMSIZE, NUMSIZE, w.time[TSys], NUMSIZE);
-		readnum(0, ow->time+TReal*NUMSIZE, NUMSIZE, w.time[TReal], NUMSIZE);
-		strncpy(ow->msg, w.msg, sizeof(ow->msg));
-		ow->msg[sizeof(ow->msg)-1] = '\0';
-	}
-
-	ar0->i = pid;
-}
-
-void
 sysawait(Ar0* ar0, ...)
 {
 	int i;
