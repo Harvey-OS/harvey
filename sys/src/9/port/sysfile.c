@@ -1617,12 +1617,3 @@ sys_wstat(Ar0* ar0, ...)
 	va_end(list);
 	error("old wstat system call - recompile");
 }
-
-void
-sys_fwstat(Ar0* ar0, ...)
-{
-	va_list list;
-	va_start(list, ar0);
-	va_end(list);
-	error("old fwstat system call - recompile");
-}
