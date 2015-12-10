@@ -217,11 +217,10 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		fmtprint(&fmt, "%lld", vl);
 		break;
 	case SEEK:
-		v = va_arg(list, int64_t*);
 		i[0] = va_arg(list, int);
 		vl = va_arg(list, int64_t);
 		i[1] = va_arg(list, int);
-		fmtprint(&fmt, "%#p %d %#llux %d", v, i[0], vl, i[1]);
+		fmtprint(&fmt, "%d %#llux %d", i[0], vl, i[1]);
 		break;
 	case FVERSION:
 		i[0] = va_arg(list, int);
@@ -311,6 +310,11 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		break;
 	case AWAKE:
 		if(ar0->vl == 0)
+			errstr = up->errstr;
+		fmtprint(&fmt, " = %lld", ar0->vl);
+		break;
+	case SEEK:
+		if(ar0->vl == -1)
 			errstr = up->errstr;
 		fmtprint(&fmt, " = %lld", ar0->vl);
 		break;
