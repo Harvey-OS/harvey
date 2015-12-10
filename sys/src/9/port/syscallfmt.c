@@ -154,12 +154,6 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux", i[0]);
 		break;
-	case _STAT:					/* obsolete */
-		a = va_arg(list, char*);
-		fmtuserstring(&fmt, a, " ");
-		a = va_arg(list, char*);
-		fmtprint(&fmt, "%#p", a);
-		break;
 	case RFORK:
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux", i[0]);
