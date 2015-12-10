@@ -332,14 +332,20 @@ struct DEp
 #define	PUT2(p,v)	{(p)[0] = (v); (p)[1] = (v)>>8;}
 #define	GET4(p)		(((p)[3]&0xFF)<<24 | ((p)[2]&0xFF)<<16 | \
 			 ((p)[1]&0xFF)<<8  | ((p)[0]&0xFF))
-#define	PUT4(p,v)	{(p)[0] = (v);     (p)[1] = (v)>>8; \
-			 (p)[2] = (v)>>16; (p)[3] = (v)>>24;}
+/* These were macros. Let's start making them type safe with inline includes. 
+ * The use of macros is a puzzle given the Ken C toolchain's inlining at link time
+ * abilities, but ...
+ */
+static inline void PUT4(uint8_t *p, uint32_t v)
+{
+	(p)[0] = (v);
+	(p)[1] = (v)>>8;
+	(p)[2] = (v)>>16; 
+	(p)[3] = (v)>>24;
+}
 
 #define dprint if(usbdebug)fprint
 #define ddprint if(usbdebug > 1)fprint
-
-#pragma	varargck	type  "U"	Dev*
-#pragma	varargck	argpos	devctl	2
 
 int	Ufmt(Fmt *f);
 char*	classname(int c);

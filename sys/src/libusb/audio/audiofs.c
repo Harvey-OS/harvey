@@ -49,8 +49,8 @@ struct Fid
 	QLock;
 	int	fid;
 	Dir	*dir;
-	ushort	flags;
-	short	readers;
+	uint16_t	flags;
+	int16_t	readers;
 	void	*fiddata;  /* file specific per-fid data (used for audioctl) */
 	Fid	*next;
 };
@@ -147,7 +147,7 @@ char	Ename[] = 	"illegal name";
 char	Ebadctl[] =	"unknown control message";
 
 int
-notifyf(void *, char *s)
+notifyf(void *_1, char *s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		return 1;
@@ -179,7 +179,7 @@ post(char *name, char *envname, int srvfd)
  * play/record audio (unlike now).
  */
 void
-serve(void *)
+serve(void *_)
 {
 	int i;
 	uint32_t t;
@@ -225,7 +225,7 @@ serve(void *)
 }
 
 char*
-rversion(Fid*)
+rversion(Fid*_)
 {
 	Fid *f;
 
@@ -245,13 +245,13 @@ rversion(Fid*)
 }
 
 char*
-rauth(Fid*)
+rauth(Fid*_)
 {
 	return "usbaudio: no authentication required";
 }
 
 char*
-rflush(Fid *)
+rflush(Fid *_)
 {
 	Worker *w;
 	int waitflush;
@@ -398,13 +398,13 @@ ropen(Fid *f)
 }
 
 char *
-rcreate(Fid*)
+rcreate(Fid*_)
 {
 	return Eperm;
 }
 
 int
-readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
+readtopdir(Fid*_, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	int i, m, n;
 	int32_t pos;
@@ -814,7 +814,7 @@ rclunk(Fid *f)
 }
 
 char *
-rremove(Fid *)
+rremove(Fid *_)
 {
 	return Eperm;
 }
@@ -840,7 +840,7 @@ rstat(Fid *f)
 }
 
 char *
-rwstat(Fid*)
+rwstat(Fid*_)
 {
 	return Eperm;
 }
@@ -868,7 +868,7 @@ newfid(int fid)
 }
 
 void
-io(void *)
+io(void *_)
 {
 	char *err, e[32];
 	int n;
