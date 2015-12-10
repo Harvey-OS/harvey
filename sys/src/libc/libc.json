@@ -101,7 +101,6 @@
 			"9syscall/segfree.s",
 			"9syscall/semacquire.s",
 			"9syscall/semrelease.s",
-			"9syscall/_stat.s",
 			"9syscall/stat.s",
 			"9syscall/sysr1.s",
 			"9syscall/tsemacquire.s",
