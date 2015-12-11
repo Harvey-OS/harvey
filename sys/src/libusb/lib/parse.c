@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <thread.h>
 #include <bio.h>
-#include "usb.h"
+#include <usb/usb.h>
 
 int
 parsedev(Dev *xd, uint8_t *b, int n)

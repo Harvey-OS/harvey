@@ -11,8 +11,8 @@
 #include <libc.h>
 #include <thread.h>
 #include <fcall.h>
-#include "usb.h"
-#include "usbfs.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
 
 typedef struct Rpc Rpc;
 

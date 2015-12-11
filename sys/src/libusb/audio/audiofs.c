@@ -13,9 +13,9 @@
 #include <auth.h>
 #include <fcall.h>
 #include <libsec.h>
-#include "usb.h"
-#include "audio.h"
-#include "audioctl.h"
+#include <usb/usb.h>
+#include <usb/audio.h>
+#include <usb/audioctl.h>
 
 int attachok;
 

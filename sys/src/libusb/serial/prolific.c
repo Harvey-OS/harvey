@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "serial.h"
-#include "prolific.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/serial.h>
+#include <usb/prolific.h>
 
 Cinfo plinfo[] = {
 	{ PL2303Vid,	PL2303Did },
