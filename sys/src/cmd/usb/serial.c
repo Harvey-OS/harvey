@@ -10,13 +10,13 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "serial.h"
-#include "ucons.h"
-#include "prolific.h"
-#include "ftdi.h"
-#include "silabs.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/serial.h>
+#include <usb/ucons.h>
+#include <usb/prolific.h>
+#include <usb/ftdi.h>
+#include <usb/silabs.h>
 
 enum {
 	Arglen = 80,
@@ -33,7 +33,7 @@ usage(void)
 }
 
 static int
-matchserial(char *info, void*)
+matchserial(char *info, void*_)
 {
 	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
 	    ftmatch(nil, info) == 0 || slmatch(info) == 0)
