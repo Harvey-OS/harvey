@@ -9,6 +9,7 @@
 	    ],
 	    "SourceFilesCmd": [
 		"disk.c",
+		"kb.c",
 		"ether.c",
 		"serial.c"
 	    ]
