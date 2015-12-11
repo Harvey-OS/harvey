@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "serial.h"
-#include "silabs.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/serial.h>
+#include <usb/silabs.h>
 
 static Cinfo slinfo[] = {
 	{ 0x10c4, 0xea60, },		/* CP210x */
