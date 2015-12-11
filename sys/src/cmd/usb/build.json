@@ -8,6 +8,7 @@
 		"-lusb"
 	    ],
 	    "SourceFilesCmd": [
+		"audio.c",
 		"disk.c",
 		"kb.c",
 		"ether.c",
