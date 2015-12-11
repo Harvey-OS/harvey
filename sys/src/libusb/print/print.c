@@ -18,7 +18,7 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
+#include <usb/usb.h>
 
 enum
 {

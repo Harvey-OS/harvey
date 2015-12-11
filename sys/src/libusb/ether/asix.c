@@ -18,9 +18,9 @@
 #include <libc.h>
 #include <fcall.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "ether.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/ether.h>
 
 enum
 {
