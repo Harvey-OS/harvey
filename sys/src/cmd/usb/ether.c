@@ -16,9 +16,9 @@
 #include <libc.h>
 #include <fcall.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "ether.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/ether.h>
 
 enum
 {
@@ -39,7 +39,7 @@ usage(void)
  * that we know are ethernets.
  */
 static int
-matchether(char *info, void*)
+matchether(char *info, void*_)
 {
 	Cinfo *ip;
 	char buf[50];
