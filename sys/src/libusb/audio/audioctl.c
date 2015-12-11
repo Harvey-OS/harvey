@@ -10,9 +10,9 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "audio.h"
-#include "audioctl.h"
+#include <usb/usb.h>
+#include <usb/audio.h>
+#include <usb/audioctl.h>
 
 int endpt[2] =		{-1, -1};
 int interface[2] =	{-1, -1};

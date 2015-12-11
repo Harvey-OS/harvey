@@ -7,50 +7,52 @@
  * in the LICENSE file.
  */
 
-/*
- * usb/disk - usb mass storage file server
- */
 #include <u.h>
 #include <libc.h>
-#include <fcall.h>
 #include <thread.h>
-#include <disk.h>
-#include "scsireq.h"
-#include "usb.h"
-#include "usbfs.h"
-#include "ums.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/serial.h>
+#include <usb/ucons.h>
+#include <usb/prolific.h>
+#include <usb/ftdi.h>
+#include <usb/silabs.h>
 
-enum
-{
+enum {
 	Arglen = 80,
 };
 
+typedef struct Parg Parg;
+
+/* keep in sync with serial.c */
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dd] [-N nb] [-m mnt] [-s srv] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-dD] [-N nb] [-m mtpt] [-s srv] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
-static int csps[] = {
-	CSP(Clstorage,Subatapi,Protobulk),
-	CSP(Clstorage,Sub8070,Protobulk),
-	CSP(Clstorage,Subscsi,Protobulk),
-	0,
-};
+static int
+matchserial(char *info, void*_)
+{
+	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
+	    ftmatch(nil, info) == 0 || slmatch(info) == 0)
+		return 0;
+	return -1;
+}
 
 void
 threadmain(int argc, char **argv)
 {
+	char *mnt, *srv, *as, *ae;
 	char args[Arglen];
-	char *as, *ae, *srv, *mnt;
 
+	mnt = "/dev";
 	srv = nil;
-	mnt = "/n/disk";
 
 	quotefmtinstall();
-	ae = args+sizeof(args);
-	as = seprint(args, ae, "disk");
+	ae = args + sizeof args;
+	as = seprint(args, ae, "serial");
 	ARGBEGIN{
 	case 'D':
 		usbfsdebug++;
@@ -70,12 +72,14 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+		break;
+	}ARGEND;
 
 	rfork(RFNOTEG);
-	threadsetgrp(threadid());
 	fmtinstall('U', Ufmt);
-	usbfsinit(srv, mnt, &usbdirfs, MBEFORE);
-	startdevs(args, argv, argc, matchdevcsp, csps, diskmain);
+	threadsetgrp(threadid());
+
+	usbfsinit(srv, mnt, &usbdirfs, MAFTER|MCREATE);
+	startdevs(args, argv, argc, matchserial, nil, serialmain);
 	threadexits(nil);
 }

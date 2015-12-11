@@ -23,8 +23,8 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "hid.h"
+#include <usb/usb.h>
+#include <usb/hid.h>
 
 enum
 {

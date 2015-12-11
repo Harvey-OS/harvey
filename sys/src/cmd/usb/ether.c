@@ -7,53 +7,72 @@
  * in the LICENSE file.
  */
 
+/*
+ * usb/ether - usb ethernet adapter.
+ * BUG: This should use /dev/etherfile to
+ * use the kernel ether device code.
+ */
 #include <u.h>
 #include <libc.h>
+#include <fcall.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "serial.h"
-#include "ucons.h"
-#include "prolific.h"
-#include "ftdi.h"
-#include "silabs.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/ether.h>
 
-enum {
+enum
+{
 	Arglen = 80,
 };
 
-typedef struct Parg Parg;
-
-/* keep in sync with serial.c */
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dD] [-N nb] [-m mtpt] [-s srv] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-a addr] [-Dd] [-N nb] [-m mnt] [-s srv] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
+/*
+ * Ether devices may be weird.
+ * Be optimistic and try to use any communication
+ * device or one of the `vendor specific class' devices
+ * that we know are ethernets.
+ */
 static int
-matchserial(char *info, void*)
+matchether(char *info, void*_)
 {
-	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
-	    ftmatch(nil, info) == 0 || slmatch(info) == 0)
+	Cinfo *ip;
+	char buf[50];
+
+	/*
+	 * I have an ether reporting comms.0.0
+	 */
+	if(strstr(info, "comms") != nil)
 		return 0;
+	for(ip = cinfo; ip->vid != 0; ip++){
+		snprint(buf, sizeof(buf), "vid %#06x did %#06x", ip->vid, ip->did);
+		if(strstr(info, buf) != nil)
+			return 0;
+	}
 	return -1;
 }
 
 void
 threadmain(int argc, char **argv)
 {
-	char *mnt, *srv, *as, *ae;
 	char args[Arglen];
+	char *as, *ae, *srv, *mnt;
 
-	mnt = "/dev";
 	srv = nil;
+	mnt = "/net";
 
 	quotefmtinstall();
-	ae = args + sizeof args;
-	as = seprint(args, ae, "serial");
+	ae = args+sizeof(args);
+	as = seprint(args, ae, "ether");
 	ARGBEGIN{
+	case 'a':
+		as = seprint(as, ae, " -a %s", EARGF(usage()));
+		break;
 	case 'D':
 		usbfsdebug++;
 		break;
@@ -72,14 +91,12 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-		break;
-	}ARGEND;
+	}ARGEND
 
 	rfork(RFNOTEG);
-	fmtinstall('U', Ufmt);
 	threadsetgrp(threadid());
-
+	fmtinstall('U', Ufmt);
 	usbfsinit(srv, mnt, &usbdirfs, MAFTER|MCREATE);
-	startdevs(args, argv, argc, matchserial, nil, serialmain);
+	startdevs(args, argv, argc, matchether, nil, ethermain);
 	threadexits(nil);
 }

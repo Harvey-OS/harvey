@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "serial.h"
-#include "ucons.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/serial.h>
+#include <usb/ucons.h>
 
 Cinfo uconsinfo[] = {
 	{ Net20DCVid,	Net20DCDid },

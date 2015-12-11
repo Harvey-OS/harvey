@@ -16,13 +16,13 @@
 #include <libc.h>
 #include <ctype.h>
 #include <thread.h>
-#include "usb.h"
-#include "usbfs.h"
-#include "serial.h"
-#include "prolific.h"
-#include "ucons.h"
-#include "ftdi.h"
-#include "silabs.h"
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/serial.h>
+#include <usb/prolific.h>
+#include <usb/ucons.h>
+#include <usb/ftdi.h>
+#include <usb/silabs.h>
 
 int serialdebug;
 

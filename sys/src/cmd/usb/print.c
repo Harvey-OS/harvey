@@ -7,73 +7,54 @@
  * in the LICENSE file.
  */
 
+/*
+ * usb/print - usb printer
+ */
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
-#include "hid.h"
-
-typedef struct Parg Parg;
+#include <usb/usb.h>
 
 enum
 {
-	Ndevs = 10,
 	Arglen = 80,
-	Nargs = 10,
 };
 
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-bdkm] [-a n] [-N nb] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-d] [-N nb] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
+
+static int csps[] = { 0x020107, 0 };
+
+extern int printmain(Dev*, int, char**);
 
 void
 threadmain(int argc, char **argv)
 {
 	char args[Arglen];
-	char *as, *ae;
-	int accel, pena, devid;
-	int csps[] = { KbdCSP, PtrCSP, 0 };
+	char *as;
+	char *ae;
 
 	quotefmtinstall();
-	pena = 1;
 	ae = args+sizeof(args);
-	as = seprint(args, ae, "kb");
+	as = seprint(args, ae, "print");
 	ARGBEGIN{
-	case 'a':
-		accel = strtol(EARGF(usage()), nil, 0);
-		as = seprint(as, ae, " -a %d", accel);
-		break;
 	case 'd':
 		usbdebug++;
-		as = seprint(as, ae, " -d");
-		break;
-	case 'k':
-		as = seprint(as, ae, " -k");
-		pena = 0;
-		break;
-	case 'm':
-		as = seprint(as, ae, " -m");
-		pena = 1;
 		break;
 	case 'N':
-		devid = atoi(EARGF(usage()));		/* ignore dev number */
-		USED(devid);
-		break;
-	case 'b':
-		as = seprint(as, ae, " -b");
+		as = seprint(as, ae, " -N %s", EARGF(usage()));
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}ARGEND
 
 	rfork(RFNOTEG);
-	fmtinstall('U', Ufmt);
 	threadsetgrp(threadid());
-	if(pena == 0)
-		csps[1] = 0;
-	startdevs(args, argv, argc, matchdevcsp, csps, kbmain);
+	fmtinstall('U', Ufmt);
+	startdevs(args, argv, argc, matchdevcsp, csps, printmain);
 	threadexits(nil);
 }

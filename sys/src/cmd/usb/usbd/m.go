@@ -73,7 +73,7 @@ func main() {
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usb.h"
+#include <usb/usb.h>
 #include "usbd.h"
 
 {{ range . }}	int {{ .Name }}main(Dev*, int, char**);
