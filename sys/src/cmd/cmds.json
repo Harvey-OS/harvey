@@ -157,7 +157,6 @@
 			"rio/rio.json",
 			"syscall/syscall.json",
 			"usb/build.json",
-			"usb/usbd/build.json",
 			"venti/venti.json"
 		]
 	}
