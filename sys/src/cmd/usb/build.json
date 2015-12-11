@@ -1,19 +1,22 @@
 {
 	"USB": {
-	    "Include": [
-		"/sys/src/cmd/cmd.json"
-	    ],
-	    "Install": "/$ARCH/bin/usb",
-	    "Oflags": [
-		"-lusb"
-	    ],
-	    "SourceFilesCmd": [
-		"audio.c",
-		"disk.c",
-		"kb.c",
-		"ether.c",
-		"print.c",
-		"serial.c"
-	    ]
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/usb",
+		"Oflags": [
+			"-lusb"
+		],
+		"Projects": [
+			"usbd/build.json"
+		],
+		"SourceFilesCmd": [
+			"audio.c",
+			"disk.c",
+			"kb.c",
+			"ether.c",
+			"print.c",
+			"serial.c"
+		]
 	}
 }
