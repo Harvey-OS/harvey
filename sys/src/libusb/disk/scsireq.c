@@ -26,7 +26,7 @@
 #include <libc.h>
 #include <fcall.h>
 #include <disk.h>
-#include "scsireq.h"
+#include <usb/scsireq.h>
 
 enum {
 	Debug = 0,
