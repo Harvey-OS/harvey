@@ -11,6 +11,7 @@
 		"disk.c",
 		"kb.c",
 		"ether.c",
+		"print.c",
 		"serial.c"
 	    ]
 	}
