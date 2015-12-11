@@ -15,10 +15,10 @@
 #include <fcall.h>
 #include <thread.h>
 #include <disk.h>
-#include "scsireq.h"
-#include "usb.h"
-#include "usbfs.h"
-#include "ums.h"
+#include <usb/scsireq.h>
+#include <usb/usb.h>
+#include <usb/usbfs.h>
+#include <usb/ums.h>
 
 enum
 {

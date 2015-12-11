@@ -8,6 +8,7 @@
 		"-lusb"
 	    ],
 	    "SourceFilesCmd": [
+		"disk.c",
 		"serial.c"
 	    ]
 	}
