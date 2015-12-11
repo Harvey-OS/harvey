@@ -1,0 +1,14 @@
+{
+	"USB": {
+	    "Include": [
+		"/sys/src/cmd/cmd.json"
+	    ],
+	    "Install": "/$ARCH/bin/usb",
+	    "Oflags": [
+		"-lusb"
+	    ],
+	    "SourceFilesCmd": [
+		"serial.c"
+	    ]
+	}
+}
