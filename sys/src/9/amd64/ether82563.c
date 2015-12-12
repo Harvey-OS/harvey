@@ -1,11 +1,18 @@
 /*
- * Intel Gigabit Ethernet PCI-Express Controllers.
- *	8256[36], 8257[1-79]
- * Pretty basic, does not use many of the chip smarts.
- * The interrupt mitigation tuning for each chip variant
- * is probably different. The reset/initialisation
- * sequence needs straightened out. Doubt the PHY code
- * for the 82575eb is right.
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+ /*
+ * Intel 8256[367], 8257[1-9], 82573[ev],
+ * 82575eb, 82576, 82577, 82579, 8258[03]
+ *	Gigabit Ethernet PCI-Express Controllers
+ * Coraid EtherDrive® hba
+ * This rewrite has only been tested on 82579
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -19,8 +26,9 @@
 #include "etherif.h"
 
 /*
- * these are in the order they appear in the manual, not numeric order.
- * It was too hard to find them in the book. Ref 21489, rev 2.6
+ * note: the 82575, 82576 and 82580 are operated using registers aliased
+ * to the 82563-style architecture.  many features seen in the 82598
+ * are also seen in the 82575 part.
  */
 
 enum {
@@ -29,16 +37,15 @@ enum {
 	Ctrl		= 0x0000,	/* Device Control */
 	Status		= 0x0008,	/* Device Status */
 	Eec		= 0x0010,	/* EEPROM/Flash Control/Data */
-	Fextnvm6	= 0x0010,	/* Future Extended NVM 6 */
 	Eerd		= 0x0014,	/* EEPROM Read */
 	Ctrlext		= 0x0018,	/* Extended Device Control */
-	Fla		= 0x001c,	/* Flash Access */
+	Fla		= 0x001C,	/* Flash Access */
 	Mdic		= 0x0020,	/* MDI Control */
 	Seresctl	= 0x0024,	/* Serdes ana */
 	Fcal		= 0x0028,	/* Flow Control Address Low */
 	Fcah		= 0x002C,	/* Flow Control Address High */
 	Fct		= 0x0030,	/* Flow Control Type */
-	Kumctrlsta	= 0x0034,	/* MAC-PHY Interface */
+	Kumctrlsta	= 0x0034,	/* Kumeran Control and Status Register */
 	Vet		= 0x0038,	/* VLAN EtherType */
 	Fcttv		= 0x0170,	/* Flow Control Transmit Timer Value */
 	Txcw		= 0x0178,	/* Transmit Configuration Word */
@@ -50,22 +57,25 @@ enum {
 	/* Interrupt */
 
 	Icr		= 0x00C0,	/* Interrupt Cause Read */
-	Itr		= 0x00c4,	/* Interrupt Throttling Rate */
+	Itr		= 0x00C4,	/* Interrupt Throttling Rate */
 	Ics		= 0x00C8,	/* Interrupt Cause Set */
 	Ims		= 0x00D0,	/* Interrupt Mask Set/Read */
 	Imc		= 0x00D8,	/* Interrupt mask Clear */
 	Iam		= 0x00E0,	/* Interrupt acknowledge Auto Mask */
+	Eitr		= 0x1680,	/* Extended itr; 82575/6 80 only */
 
 	/* Receive */
 
 	Rctl		= 0x0100,	/* Control */
-	Ert		= 0x2008,	/* Early Receive Threshold (573[EVL], 579 only) */
+	Ert		= 0x2008,	/* Early Receive Threshold (573[EVL], 82578 only) */
 	Fcrtl		= 0x2160,	/* Flow Control RX Threshold Low */
 	Fcrth		= 0x2168,	/* Flow Control Rx Threshold High */
 	Psrctl		= 0x2170,	/* Packet Split Receive Control */
+	Drxmxod		= 0x2540,	/* dma max outstanding bytes (82575) */
 	Rdbal		= 0x2800,	/* Rdesc Base Address Low Queue 0 */
 	Rdbah		= 0x2804,	/* Rdesc Base Address High Queue 0 */
 	Rdlen		= 0x2808,	/* Descriptor Length Queue 0 */
+	Srrctl		= 0x280C,	/* split and replication rx control (82575) */
 	Rdh		= 0x2810,	/* Descriptor Head Queue 0 */
 	Rdt		= 0x2818,	/* Descriptor Tail Queue 0 */
 	Rdtr		= 0x2820,	/* Descriptor Timer Ring */
@@ -77,10 +87,11 @@ enum {
 	Rdh1		= 0x2910,	/* Descriptor Head Queue 1 */
 	Rdt1		= 0x2918,	/* Descriptor Tail Queue 1 */
 	Rxdctl1		= 0x2928,	/* Descriptor Control Queue 1 */
-	Rsrpd		= 0x2c00,	/* Small Packet Detect */
-	Raid		= 0x2c08,	/* ACK interrupt delay */
-	Cpuvec		= 0x2c10,	/* CPU Vector */
+	Rsrpd		= 0x2C00,	/* Small Packet Detect */
+	Raid		= 0x2C08,	/* ACK interrupt delay */
+	Cpuvec		= 0x2C10,	/* CPU Vector */
 	Rxcsum		= 0x5000,	/* Checksum Control */
+	Rmpl		= 0x5004,	/* rx maximum packet length (82575) */
 	Rfctl		= 0x5008,	/* Filter Control */
 	Mta		= 0x5200,	/* Multicast Table Array */
 	Ral		= 0x5400,	/* Receive Address Low */
@@ -164,6 +175,8 @@ enum {					/* Ctrlext */
 	Asdchk		= 1<<12,	/* ASD Check */
 	Eerst		= 1<<13,	/* EEPROM Reset */
 	Spdbyps		= 1<<15,	/* Speed Select Bypass */
+	Linkmode	= 3<<23,	/* linkmode */
+	Serdes		= 3<<23,	/* " serdes */
 };
 
 enum {					/* EEPROM content offsets */
@@ -198,12 +211,19 @@ enum {					/* phy interface registers */
 	Phyisr		= 19,		/* 82563 phy interrupt status */
 	Phylhr		= 19,		/* 8257[12] link health */
 
+	Phyprst		= 193<<8 | 17,	/* 8256[34] phy port reset */
+	Phypage		= 22,		/* 8256[34] page register */
+	Phystat		= 26,		/* 82580 phy status */
+	Phyapage	= 29,
 	Rtlink		= 1<<10,	/* realtime link status */
 	Phyan		= 1<<11,	/* phy has auto-negotiated */
 
 	/* Phyctl bits */
 	Ran		= 1<<9,		/* restart auto-negotiation */
 	Ean		= 1<<12,	/* enable auto-negotiation */
+
+	/* Phyprst bits */
+	Prst		= 1<<0,	/* reset the port */
 
 	/* 82573 Phyier bits */
 	Lscie		= 1<<10,	/* link status changed ie */
@@ -214,6 +234,36 @@ enum {					/* phy interface registers */
 	/* Phylhr/Phyisr bits */
 	Anf		= 1<<6,		/* lhr: auto-negotiation fault */
 	Ane		= 1<<15,	/* isr: auto-negotiation error */
+
+	/* 82580 Phystat bits */
+	Ans	= 1<<14 | 1<<15,	/* 82580 auto-negotiation status */
+	Link	= 1<<6,		/* 82580 Link */
+
+	/* Rxcw builtin serdes */
+	Anc		= 1<<31,
+	Rxsynch		= 1<<30,
+	Rxcfg		= 1<<29,
+	Rxcfgch		= 1<<28,
+	Rxcfgbad	= 1<<27,
+	Rxnc		= 1<<26,
+
+	/* Txcw */
+	Txane		= 1<<31,
+	Txcfg		= 1<<30,
+};
+
+enum {					/* fiber (pcs) interface */
+	Pcsctl	= 0x4208,		/* pcs control */
+	Pcsstat	= 0x420c,		/* pcs status */
+
+	/* Pcsctl bits */
+	Pan	= 1<<16,		/* auto-negotiate */
+	Prestart	= 1<<17,		/* restart an (self clearing) */
+
+	/* Pcsstat bits */
+	Linkok	= 1<<0,		/* link is okay */
+	Andone	= 1<<16,		/* an phase is done see below for success */
+	Anbad	= 1<<19 | 1<<20,	/* Anerror | Anremfault */
 };
 
 enum {					/* Icr, Ics, Ims, Imc */
@@ -223,9 +273,10 @@ enum {					/* Icr, Ics, Ims, Imc */
 	Rxseq		= 0x00000008,	/* Receive Sequence Error */
 	Rxdmt0		= 0x00000010,	/* Rdesc Minimum Threshold Reached */
 	Rxo		= 0x00000040,	/* Receiver Overrun */
-	Rxt0		= 0x00000080,	/* Receiver Timer Interrupt */
+	Rxt0		= 0x00000080,	/* Receiver Timer Interrupt; !82575/6/80 only */
+	Rxdw		= 0x00000080,	/* Rdesc write back; 82575/6/80 only */
 	Mdac		= 0x00000200,	/* MDIO Access Completed */
-	Rxcfg		= 0x00000400,	/* Receiving /C/ ordered sets */
+	Rxcfgsets		= 0x00000400,	/* Receiving /C/ ordered sets */
 	Gpi0		= 0x00000800,	/* General Purpose Interrupts */
 	Gpi1		= 0x00001000,
 	Gpi2		= 0x00002000,
@@ -259,10 +310,10 @@ enum {					/* Rctl */
 	LbmTBI		= 0x00000040,	/* TBI Loopback */
 	LbmMII		= 0x00000080,	/* GMII/MII Loopback */
 	LbmXCVR		= 0x000000C0,	/* Transceiver Loopback */
-	RdtmsMASK	= 0x00000300,	/* Rdesc Minimum Threshold Size */
 	RdtmsHALF	= 0x00000000,	/* Threshold is 1/2 Rdlen */
 	RdtmsQUARTER	= 0x00000100,	/* Threshold is 1/4 Rdlen */
 	RdtmsEIGHTH	= 0x00000200,	/* Threshold is 1/8 Rdlen */
+	RdtmsMASK	= 0x00000300,	/* Rdesc Minimum Threshold Size */
 	MoMASK		= 0x00003000,	/* Multicast Offset */
 	Bam		= 0x00008000,	/* Broadcast Accept Mode */
 	BsizeMASK	= 0x00030000,	/* Receive Buffer Size */
@@ -280,6 +331,10 @@ enum {					/* Rctl */
 	Pmcf		= 0x00800000,	/* Pass MAC Control Frames */
 	Bsex		= 0x02000000,	/* Buffer Size Extension */
 	Secrc		= 0x04000000,	/* Strip CRC from incoming packet */
+};
+
+enum {					/* Srrctl */
+	Dropen		= 1<<31,
 };
 
 enum {					/* Tctl */
@@ -304,7 +359,7 @@ enum {					/* [RT]xdctl */
 	HthreshSHIFT	= 8,
 	WthreshMASK	= 0x003F0000,	/* Writeback Threshold */
 	WthreshSHIFT	= 16,
-	Gran		= 0x01000000,	/* Granularity */
+	Gran		= 0x01000000,	/* Granularity; not 82575 */
 	Qenable		= 0x02000000,	/* Queue Enable (82575) */
 };
 
@@ -321,18 +376,14 @@ enum {					/* Receive Delay Timer Ring */
 	Fpd		= 0x80000000,	/* Flush partial Descriptor Block */
 };
 
-typedef struct Ctlr Ctlr;
-typedef struct Rd Rd;
-typedef struct Td Td;
-
-struct Rd {				/* Receive Descriptor */
-	int32_t	addr[2];
+typedef struct Rd {			/* Receive Descriptor */
+	uint32_t	addr[2];
 	uint16_t	length;
 	uint16_t	checksum;
 	uint8_t	status;
 	uint8_t	errors;
 	uint16_t	special;
-};
+} Rd;
 
 enum {					/* Rd status */
 	Rdd		= 0x01,		/* Descriptor Done */
@@ -354,11 +405,11 @@ enum {					/* Rd errors */
 	Rxe		= 0x80,		/* RX Data Error */
 };
 
-struct Td {				/* Transmit Descriptor */
-	int32_t	addr[2];		/* Data */
-	int32_t	control;
-	int32_t	status;
-};
+typedef struct {			/* Transmit Descriptor */
+	uint32_t	addr[2];		/* Data */
+	uint32_t	control;
+	uint32_t	status;
+} Td;
 
 enum {					/* Tdesc control */
 	LenMASK		= 0x000FFFFF,	/* Data/Packet Length Field */
@@ -388,9 +439,8 @@ enum {					/* Tdesc status */
 
 typedef struct {
 	uint16_t	*reg;
-	int32_t	*reg32;
-	uint16_t	base;
-	uint16_t	lim;
+	uint32_t	*reg32;
+	int	sz;
 } Flash;
 
 
@@ -416,17 +466,21 @@ enum {
 };
 
 enum {
-	/* were 512, 1024 & 64, but 52, 253 and 9 are ample. */
-	Nrd		= 128,		/* power of two */
-	Nrb		= 1024,		/* private receive buffers per Ctlr */
-	Ntd		= 32,		/* power of two */
+	Nrd		= 256,		/* power of two */
+	Ntd		= 128,		/* power of two */
+	Nrb		= 512,	/* private receive buffers per Ctlr  */
 };
 
+/*
+ * cavet emptor: 82577/78 have been entered speculatively.
+ * awating datasheet from intel.
+ */
 enum {
-	Iany,
+	Iany = -1,
 	i82563,
 	i82566,
 	i82567,
+	i82567m,
 	i82571,
 	i82572,
 	i82573,
@@ -434,49 +488,55 @@ enum {
 	i82575,
 	i82576,
 	i82577,
+	i82577m,
+	i82578,
+	i82578m,
 	i82579,
-	i210,
-	i217,
+	i82580,
+	i82583,
+	Nctlrtype,
 };
 
-#if 0
-static int rbtab[] = {
-	0,
-	9014,
-	ETHERMAXTU,
-	ETHERMAXTU,
-	9234,
-	9234,
-	8192,				/* terrible performance above 8k */
-	ETHERMAXTU,
-	ETHERMAXTU,
-	ETHERMAXTU,
-	ETHERMAXTU,
-	9018,
-	9728,
-	9728,
-};
-#endif
-
-static char *tname[] = {
-	"any",
-	"i82563",
-	"i82566",
-	"i82567",
-	"i82571",
-	"i82572",
-	"i82573",
-	"i82574",
-	"i82575",
-	"i82576",
-	"i82577",
-	"i82579",
-	"i210",
-	"i217",
+enum {
+	Fload	= 1<<0,
+	Fert	= 1<<1,
+	F75	= 1<<2,
+	Fpba	= 1<<3,
+	Fflashea	= 1<<4,
 };
 
+typedef struct Ctlrtype Ctlrtype;
+struct Ctlrtype {
+	int	type;
+	int	mtu;
+	int	flag;
+	char	*name;
+};
+
+static Ctlrtype cttab[Nctlrtype] = {
+	i82563,		9014,	Fpba,		"i82563",
+	i82566,		1514,	Fload,		"i82566",
+	i82567,		9234,	Fload,		"i82567",
+	i82567m,		1514,	0,		"i82567m",
+	i82571,		9234,	Fpba,		"i82571",
+	i82572,		9234,	Fpba,		"i82572",
+	i82573,		8192,	Fert,		"i82573",		/* terrible perf above 8k */
+	i82574,		9018,	0,		"i82574",
+	i82575,		9728,	F75|Fflashea,	"i82575",
+	i82576,		9728,	F75,		"i82576",
+	i82577,		4096,	Fload|Fert,	"i82577",
+	i82577m,		1514,	Fload|Fert,	"i82577",
+	i82578,		4096,	Fload|Fert,	"i82578",
+	i82578m,		1514,	Fload|Fert,	"i82578",
+	i82579,		9018,	Fload|Fert,	"i82579",
+	i82580,		9728,	F75,		"i82580",
+	i82583,		1514,	0,		"i82583",
+};
+
+
+typedef struct Ctlr Ctlr;
 struct Ctlr {
-	int	port;
+	uintmem	port;
 	Pcidev	*pcidev;
 	Ctlr	*next;
 	Ether	*edev;
@@ -488,8 +548,8 @@ struct Ctlr {
 	int	attached;
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* # rcv bufs this Ctlr has in the pool */
-	unsigned rbsz;			/* unsigned for % and / by 1024 */
+	int	nrb;			/* how many this Ctlr has in the pool */
+	uint	rbsz;
 
 	int	*nic;
 	Lock	imlock;
@@ -497,10 +557,6 @@ struct Ctlr {
 
 	Rendez	lrendez;
 	int	lim;
-
-	Watermark wmrb;
-	Watermark wmrd;
-	Watermark wmtd;
 
 	QLock	slock;
 	uint	statistics[Nstatistics];
@@ -514,13 +570,14 @@ struct Ctlr {
 	uint	ipcs;
 	uint	tcpcs;
 	uint	speeds[4];
+	uint	phyerrata;
 
 	uint8_t	ra[Eaddrlen];		/* receive address */
 	uint32_t	mta[128];		/* multicast table array */
 
 	Rendez	rrendez;
 	int	rim;
-	int	rdfree;			/* rx descriptors awaiting packets */
+	int	rdfree;
 	Rd	*rdba;			/* receive descriptor base address */
 	Block	**rb;			/* receive buffers */
 	int	rdh;			/* receive descriptor head */
@@ -530,6 +587,7 @@ struct Ctlr {
 
 	Rendez	trendez;
 	QLock	tlock;
+	int	tbusy;
 	Td	*tdba;			/* transmit descriptor base address */
 	Block	**tb;			/* transmit buffers */
 	int	tdh;			/* transmit descriptor head */
@@ -549,9 +607,9 @@ static Ctlr* i82563ctlrtail;
 
 static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
-static int nrbfull;	/* # of rcv Blocks with data awaiting processing */
 
-static char* statistics[] = {
+
+static char *statistics[Nstatistics] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -627,6 +685,14 @@ static char* statistics[] = {
 	"Interrupt Rx Overrun",
 };
 
+static char*
+cname(Ctlr* c)
+{
+	if (c->type == Iany)
+		return "any";
+	return cttab[c->type].name;
+}
+
 static int32_t
 i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 {
@@ -691,8 +757,7 @@ i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 
 	p = seprint(p, e, "speeds: 10:%ud 100:%ud 1000:%ud ?:%ud\n",
 		ctlr->speeds[0], ctlr->speeds[1], ctlr->speeds[2], ctlr->speeds[3]);
-	p = seprint(p, e, "type: %s\n", tname[ctlr->type]);
-	p = seprint(p, e, "nrbfull (rcv blocks outstanding): %d\n", nrbfull);
+	p = seprint(p, e, "type: %s\n", cname(ctlr));
 
 //	p = seprint(p, e, "eeprom:");
 //	for(i = 0; i < 0x40; i++){
@@ -702,65 +767,10 @@ i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 //	}
 //	p = seprint(p, e, "\n");
 
-	p = seprintmark(p, e, &ctlr->wmrb);
-	p = seprintmark(p, e, &ctlr->wmrd);
-	p = seprintmark(p, e, &ctlr->wmtd);
-
 	USED(p);
 	n = readstr(offset, a, n, s);
 	free(s);
 	qunlock(&ctlr->slock);
-
-	return n;
-}
-
-enum {
-	CMrdtr,
-	CMradv,
-};
-
-static Cmdtab i82563ctlmsg[] = {
-	CMrdtr,	"rdtr",	2,
-	CMradv,	"radv",	2,
-};
-
-static int32_t
-i82563ctl(Ether* edev, void* buf, int32_t n)
-{
-	Proc *up = externup();
-	uint32_t v;
-	char *p;
-	Ctlr *ctlr;
-	Cmdbuf *cb;
-	Cmdtab *ct;
-
-	if((ctlr = edev->ctlr) == nil)
-		error(Enonexist);
-
-	cb = parsecmd(buf, n);
-	if(waserror()){
-		free(cb);
-		nexterror();
-	}
-
-	ct = lookupcmd(cb, i82563ctlmsg, nelem(i82563ctlmsg));
-	switch(ct->index){
-	case CMrdtr:
-		v = strtoul(cb->f[1], &p, 0);
-		if(p == cb->f[1] || v > 0xFFFF)
-			error(Ebadarg);
-		ctlr->rdtr = v;
-		csr32w(ctlr, Rdtr, v);
-		break;
-	case CMradv:
-		v = strtoul(cb->f[1], &p, 0);
-		if(p == cb->f[1] || v > 0xFFFF)
-			error(Ebadarg);
-		ctlr->radv = v;
-		csr32w(ctlr, Radv, v);
-	}
-	free(cb);
-	poperror();
 
 	return n;
 }
@@ -797,8 +807,6 @@ i82563multicast(void* arg, uint8_t* addr, int on)
 	x = addr[5]>>1;
 	if(ctlr->type == i82566 || ctlr->type == i82567)
 		x &= 31;
-	if(ctlr->type == i210 || ctlr->type == i217)
-		x &= 15;
 	bit = ((addr[5] & 1)<<4)|(addr[4]>>4);
 	/*
 	 * multiple ether addresses can hash to the same filter bit,
@@ -824,7 +832,7 @@ i82563rballoc(void)
 	if((bp = i82563rbpool) != nil){
 		i82563rbpool = bp->next;
 		bp->next = nil;
-		ainc(&bp->ref);	/* prevent bp from being freed */
+		/*ainc(&bp->ref);	 prevent bp from being freed */
 	}
 	iunlock(&i82563rblock);
 
@@ -839,7 +847,6 @@ i82563rbfree(Block* b)
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
 	i82563rbpool = b;
-	nrbfull--;
 	iunlock(&i82563rblock);
 }
 
@@ -858,7 +865,7 @@ i82563txinit(Ctlr* ctlr)
 	int i, r;
 	Block *bp;
 
-	if(ctlr->type == i210)
+	if(cttab[ctlr->type].flag & F75)
 		csr32w(ctlr, Tctl, 0x0F<<CtSHIFT | Psp);
 	else
 		csr32w(ctlr, Tctl, 0x0F<<CtSHIFT | Psp | 66<<ColdSHIFT | Mulr);
@@ -878,42 +885,51 @@ i82563txinit(Ctlr* ctlr)
 		memset(&ctlr->tdba[i], 0, sizeof(Td));
 	}
 	csr32w(ctlr, Tidv, 128);
-	r = csr32r(ctlr, Txdctl);
-	r &= ~(WthreshMASK|PthreshMASK);
-	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
-	if(ctlr->type == i82575 || ctlr->type == i82576 || ctlr->type == i210)
-		r |= Qenable;
 	csr32w(ctlr, Tadv, 64);
-	csr32w(ctlr, Txdctl, r);
 	r = csr32r(ctlr, Tctl);
 	r |= Ten;
 	csr32w(ctlr, Tctl, r);
-//	if(ctlr->type == i82671)
-//		csr32w(ctlr, Tarc0, csr32r(ctlr, Tarc0) | 7<<24); /* yb sez? */
+	r = csr32r(ctlr, Txdctl);
+	r &= ~(WthreshMASK|PthreshMASK);
+	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
+	if(cttab[ctlr->type].flag & F75)
+		r |= Qenable;
+	csr32w(ctlr, Txdctl, r);
 }
 
 #define Next(x, m)	(((x)+1) & (m))
 
 static int
-i82563cleanup(Ctlr *ctlr)
+i82563cleanup(Ctlr *c)
 {
-	Block *b;
+	Block *bp;
 	int tdh, m, n;
 
-	tdh = ctlr->tdh;
-	m = ctlr->ntd-1;
-	while(ctlr->tdba[n = Next(tdh, m)].status & Tdd){
+	tdh = c->tdh;
+	m = c->ntd-1;
+	while(c->tdba[n = Next(tdh, m)].status & Tdd){
 		tdh = n;
-		if((b = ctlr->tb[tdh]) != nil){
-			ctlr->tb[tdh] = nil;
-			freeb(b);
+		if((bp = c->tb[tdh]) != nil){
+			c->tb[tdh] = nil;
+			freeb(bp);
 		}else
 			iprint("82563 tx underrun!\n");
-		ctlr->tdba[tdh].status = 0;
+		c->tdba[tdh].status = 0;
 	}
 
-	return ctlr->tdh = tdh;
+	return c->tdh = tdh;
 }
+
+#if 0
+static int
+notrim(void *v)
+{
+	Ctlr *c;
+
+	c = v;
+	return (c->im & Txdw) == 0;
+}
+#endif
 
 static void
 i82563transmit(Ether* edev)
@@ -949,8 +965,6 @@ i82563transmit(Ether* edev)
 		td->addr[0] = PCIWADDR(bp->rp);
 		td->control = Ide|Rs|Ifcs|Teop|BLEN(bp);
 		ctlr->tb[tdt] = bp;
-		/* note size of queue of tds awaiting transmission */
-		notemark(&ctlr->wmtd, (tdt + Ntd - tdh) % Ntd);
 		tdt = Next(tdt, m);
 	}
 	if(ctlr->tdt != tdt){
@@ -972,18 +986,22 @@ i82563replenish(Ctlr* ctlr)
 	while(Next(rdt, m) != ctlr->rdh){
 		rd = &ctlr->rdba[rdt];
 		if(ctlr->rb[rdt] != nil){
-			print("#l%d: 82563: rx overrun\n", ctlr->edev->ctlrno);
+			iprint("82563: tx overrun\n");
 			break;
 		}
 		bp = i82563rballoc();
-		if(bp == nil)
-			/*
-			 * this almost never gets better.  likely there's a bug
-			 * elsewhere in the kernel that is failing to free a
-			 * receive Block.
-			 */
-			panic("#l%d: 82563: all %d rx buffers in use, nrbfull %d",
-				ctlr->edev->ctlrno, ctlr->nrb, nrbfull);
+		if(bp == nil){
+			int64_t now;
+			static int64_t lasttime;
+
+			/* don't flood the console */
+			now = tk2ms(sys->ticks);
+			if (now - lasttime > 2000)
+				iprint("#l%d: 82563: all %d rx buffers in use\n",
+					ctlr->edev->ctlrno, ctlr->nrb);
+			lasttime = now;
+			break;
+		}
 		ctlr->rb[rdt] = bp;
 		rd->addr[0] = PCIWADDR(bp->rp);
 //		rd->addr[1] = 0;
@@ -1001,20 +1019,26 @@ i82563rxinit(Ctlr* ctlr)
 	Block *bp;
 	int i, r, rctl;
 
-	if(ctlr->rbsz <= 2048)
+	i = ctlr->rbsz / 1024;
+	if(ctlr->rbsz % 1024)
+		i++;
+
+	if(ctlr->rbsz <= 2048 || (cttab[ctlr->type].flag & F75)){
+		if(ctlr->rbsz > 2048){
+			if(ctlr->type != i82575)
+				i |= (ctlr->nrd/2>>4)<<20;		/* RdmsHalf */
+			csr32w(ctlr, Srrctl, i | Dropen);
+			csr32w(ctlr, Rmpl, ctlr->rbsz);
+//			csr32w(ctlr, Drxmxod, 0x7ff);
+		}
 		rctl = Dpf|Bsize2048|Bam|RdtmsHALF;
-	else if(ctlr->rbsz <= 8192)
+	}else if(ctlr->rbsz <= 8192){
 		rctl = Lpe|Dpf|Bsize8192|Bsex|Bam|RdtmsHALF|Secrc;
-	else if(ctlr->rbsz <= 12*1024){
-		i = ctlr->rbsz / 1024;
-		if(ctlr->rbsz % 1024)
-			i++;
+	}else{
 		rctl = Lpe|Dpf|BsizeFlex*i|Bam|RdtmsHALF|Secrc;
 	}
-	else
-		rctl = Lpe|Dpf|Bsize16384|Bsex|Bam|RdtmsHALF|Secrc;
 
-	if(ctlr->type == i82575 || ctlr->type == i82576 || ctlr->type == i210){
+	if(ctlr->type == i82575 || ctlr->type == i82576){
 		/*
 		 * Setting Qenable in Rxdctl does not
 		 * appear to stick unless Ren is on.
@@ -1026,8 +1050,7 @@ i82563rxinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Rctl, rctl);
 
-	if(ctlr->type == i82573 || ctlr->type == i82577 || ctlr->type == i82579 ||
-		ctlr->type == i210 || ctlr->type == i217)
+	if(cttab[ctlr->type].flag & Fert)
 		csr32w(ctlr, Ert, 1024/8);
 
 	if(ctlr->type == i82566 || ctlr->type == i82567)
@@ -1040,35 +1063,28 @@ i82563rxinit(Ctlr* ctlr)
 	csr32w(ctlr, Rdh, 0);
 	ctlr->rdt = 0;
 	csr32w(ctlr, Rdt, 0);
-	/* to hell with interrupt moderation, we've got fast cpus */
-//	ctlr->rdtr = 25;		/* µs units? */
-//	ctlr->radv = 500;		/* µs units? */
-	ctlr->radv = ctlr->rdtr = 0;
+	/* keep interrupt moderation, our network is just crazy */
+	ctlr->rdtr = 25;		/* µs */
+	ctlr->radv = 500;		/* µs */
 	csr32w(ctlr, Rdtr, ctlr->rdtr);
 	csr32w(ctlr, Radv, ctlr->radv);
 
-	for(i = 0; i < ctlr->nrd; i++){
+	for(i = 0; i < ctlr->nrd; i++)
 		if((bp = ctlr->rb[i]) != nil){
 			ctlr->rb[i] = nil;
 			freeb(bp);
 		}
-	}
+
 	i82563replenish(ctlr);
 
-	if(ctlr->type != i82575 || ctlr->type == i82576 || ctlr->type == i210){
-		/*
-		 * See comment above for Qenable.
-		 * Could shuffle the code?
-		 */
-		r = csr32r(ctlr, Rxdctl);
-		r &= ~(WthreshMASK|PthreshMASK);
-		r |= (2<<WthreshSHIFT)|(2<<PthreshSHIFT);
-		csr32w(ctlr, Rxdctl, r);
-	}
+	if(cttab[ctlr->type].flag & F75)
+		csr32w(ctlr, Rxdctl, 1<<WthreshSHIFT | 8<<PthreshSHIFT | 1<<HthreshSHIFT | Qenable);
+	else
+		csr32w(ctlr, Rxdctl, 2<<WthreshSHIFT | 2<<PthreshSHIFT);
 
 	/*
 	 * Don't enable checksum offload.  In practice, it interferes with
-	 * tftp booting on at least the 82575.
+	 * tftp booting on at least in the 82575.
 	 */
 //	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
 	csr32w(ctlr, Rxcsum, 0);
@@ -1086,7 +1102,7 @@ i82563rproc(void* arg)
 	Rd *rd;
 	Block *bp;
 	Ctlr *ctlr;
-	int r, m, rdh, rim, passed;
+	int r, m, rdh, rim, im;
 	Ether *edev;
 
 	edev = arg;
@@ -1096,23 +1112,25 @@ i82563rproc(void* arg)
 	r = csr32r(ctlr, Rctl);
 	r |= Ren;
 	csr32w(ctlr, Rctl, r);
+	if(cttab[ctlr->type].flag & F75){
+		r = csr32r(ctlr, Rxdctl);
+		r |= Qenable;
+		csr32w(ctlr, Rxdctl, r);
+	}
 	m = ctlr->nrd-1;
 
-	if(ctlr->type == i210)
-		csr32w(ctlr, Rxdctl, csr32r(ctlr, Rxdctl) | Qenable);
-
+	im = Rxt0|Rxo|Rxdmt0|Rxseq|Ack;
 	for(;;){
-		i82563replenish(ctlr);
-		i82563im(ctlr, Rxt0|Rxo|Rxdmt0|Rxseq|Ack);
+		i82563im(ctlr, im);
 		ctlr->rsleep++;
+//		coherence();
 		sleep(&ctlr->rrendez, i82563rim, ctlr);
 
 		rdh = ctlr->rdh;
-		passed = 0;
 		for(;;){
+			rd = &ctlr->rdba[rdh];
 			rim = ctlr->rim;
 			ctlr->rim = 0;
-			rd = &ctlr->rdba[rdh];
 			if(!(rd->status & Rdd))
 				break;
 
@@ -1126,7 +1144,7 @@ i82563rproc(void* arg)
 			bp = ctlr->rb[rdh];
 			if((rd->status & Reop) && rd->errors == 0){
 				bp->wp += rd->length;
-				bp->lim = bp->wp;	/* lie like a dog. */
+				/* bp->lim = bp->wp;	lie like a dog.  avoid packblock. */
 				if(!(rd->status & Ixsm)){
 					ctlr->ixsm++;
 					if(rd->status & Ipcs){
@@ -1148,73 +1166,61 @@ i82563rproc(void* arg)
 					bp->checksum = rd->checksum;
 					bp->flag |= Bpktck;
 				}
-				ilock(&i82563rblock);
-				nrbfull++;
-				iunlock(&i82563rblock);
-				notemark(&ctlr->wmrb, nrbfull);
 				etheriq(edev, bp, 1);
-				passed++;
 			} else {
 				if (rd->status & Reop && rd->errors)
 					print("%s: input packet error %#ux\n",
-						tname[ctlr->type], rd->errors);
+						cname(ctlr), rd->errors);
 				freeb(bp);
 			}
 			ctlr->rb[rdh] = nil;
-
-			/* rd needs to be replenished to accept another pkt */
 			rd->status = 0;
 			ctlr->rdfree--;
 			ctlr->rdh = rdh = Next(rdh, m);
-			/*
-			 * if number of rds ready for packets is too low,
-			 * set up the unready ones.
-			 */
-			if(ctlr->rdfree <= ctlr->nrd - 32 || (rim & Rxdmt0))
+			if(ctlr->nrd-ctlr->rdfree >= 32 || (rim & Rxdmt0))
 				i82563replenish(ctlr);
 		}
-		/* note how many rds had full buffers */
-		notemark(&ctlr->wmrd, passed);
 	}
 }
 
 static int
-i82563lim(void* ctlr)
+i82563lim(void* ctrl)
 {
-	return ((Ctlr*)ctlr)->lim != 0;
+	return ((Ctlr*)ctrl)->lim != 0;
 }
-
 static int speedtab[] = {
 	10, 100, 1000, 0
 };
 
 static uint
-phyread(Ctlr *ctlr, int reg)
+phyread(Ctlr *c, int phyno, int reg)
 {
 	uint phy, i;
 
-	csr32w(ctlr, Mdic, MDIrop | 1<<MDIpSHIFT | reg<<MDIrSHIFT);
+	csr32w(c, Mdic, MDIrop | phyno<<MDIpSHIFT | reg<<MDIrSHIFT);
 	phy = 0;
 	for(i = 0; i < 64; i++){
-		phy = csr32r(ctlr, Mdic);
+		phy = csr32r(c, Mdic);
 		if(phy & (MDIe|MDIready))
 			break;
 		microdelay(1);
 	}
-	if((phy & (MDIe|MDIready)) != MDIready)
+	if((phy & (MDIe|MDIready)) != MDIready){
+		print("%s: phy %d wedged %.8ux\n", cname(c), phyno, phy);
 		return ~0;
+	}
 	return phy & 0xffff;
 }
 
 static uint
-phywrite(Ctlr *ctlr, int reg, uint16_t val)
+phywrite0(Ctlr *c, int phyno, int reg, uint16_t val)
 {
 	uint phy, i;
 
-	csr32w(ctlr, Mdic, MDIwop | 1<<MDIpSHIFT | reg<<MDIrSHIFT | val);
+	csr32w(c, Mdic, MDIwop | phyno<<MDIpSHIFT | reg<<MDIrSHIFT | val);
 	phy = 0;
 	for(i = 0; i < 64; i++){
-		phy = csr32r(ctlr, Mdic);
+		phy = csr32r(c, Mdic);
 		if(phy & (MDIe|MDIready))
 			break;
 		microdelay(1);
@@ -1224,176 +1230,179 @@ phywrite(Ctlr *ctlr, int reg, uint16_t val)
 	return 0;
 }
 
-/* this kumeran stuff is borrowed from openbsd 5.8's if_em* driver. */
-
-#define STATUS_FD         0x00000001      /* Full duplex.0=half,1=full */
-#define STATUS_SPEED_100  0x00000040      /* Speed 100Mb/s */
-
-#define FEXTNVM6_REQ_PLL_CLK			0x00000100
-#define FEXTNVM6_ENABLE_K1_ENTRY_CONDITION	0x00000200
-
-#define NVM_K1_CONFIG 	0x1B		/* NVM K1 Config Word */
-#define NVM_K1_ENABLE 	0x1		/* NVM Enable K1 bit */
-
-/* Kumeran stuff */
-#define KUMCTRLSTA_MASK		0x0000FFFF
-#define KUMCTRLSTA_OFF		0x001F0000
-#define KUMCTRLSTA_OFF_SHIFT   16
-#define KUMCTRLSTA_REN		0x00200000
-
-#define KMRNCTRLSTA_OFF		KUMCTRLSTA_OFF
-#define KMRNCTRLSTA_OFF_SHIFT	KUMCTRLSTA_OFF_SHIFT
-#define KMRNCTRLSTA_REN		KUMCTRLSTA_REN
-#define KMRNCTRLSTA_DIAG_OFF		0x3    /* Diagnostic */
-#define KMRNCTRLSTA_TIMEOUTS		0x4    /* Timeouts */
-#define KMRNCTRLSTA_INBAND_PARAM	0x9    /* InBand Parameters */
-#define KMRNCTRLSTA_DIAG_NELPBK		0x1000 /* Loopback mode */
-#define KMRNCTRLSTA_K1_CONFIG		0x7
-#define KMRNCTRLSTA_K1_ENABLE		0x0002
-
-#define MAX_PHY_REG_ADDRESS        0x1F  /* 5 bit address bus (0-0x1F) */
-/*
- * Bits 15-5: page
- *	4-0: register offset
- */
-#define PHY_PAGE_SHIFT 5
-#define PHY_REG(page, reg) (((page) << PHY_PAGE_SHIFT) | ((reg) & MAX_PHY_REG_ADDRESS))
-
-/* Inband Control */
-enum {
-	I217inbandctl = PHY_REG(770, 18),
-	/* link status transmit timeout stuff */
-	I217inbandctllstxtmoutmask = 0x3F00,
-	I217inbandctllstxtmoutshift = 8,
-};
-
-static void
-kmrnread(Ctlr *ctlr, uint reg_addr, uint16_t *data)
+static uint
+setpage(Ctlr *c, uint phyno, uint p, uint r)
 {
-	/* Write register address */
-	csr32w(ctlr, Kumctrlsta, ((reg_addr << KUMCTRLSTA_OFF_SHIFT) & KUMCTRLSTA_OFF) | KUMCTRLSTA_REN);
-	microdelay(2);
+	uint pr;
 
-	/* Read the data returned */
-	*data = csr32r(ctlr, Kumctrlsta);
+	if(c->type == i82563){
+		if(r >= 16 && r <= 28 && r != 22)
+			pr = Phypage;
+		else if(r == 30 || r == 31)
+			pr = Phyapage;
+		else
+			return 0;
+		return phywrite0(c, phyno, pr, p);
+	}else if(p == 0)
+		return 0;
+	return ~0;
+}
+
+static uint
+phywrite(Ctlr *c, uint phyno, uint reg, uint16_t v)
+{
+	if(setpage(c, phyno, reg>>8, reg & 0xff) == ~0)
+		panic("%s: bad phy reg %.4ux", cname(c), reg);
+	return phywrite0(c, phyno, reg & 0xff, v);
 }
 
 static void
-kmrnwrite(Ctlr *ctlr, uint reg_addr, uint16_t data)
+phyerrata(Ether *e, Ctlr *c)
 {
-	csr32w(ctlr, Kumctrlsta, ((reg_addr << KUMCTRLSTA_OFF_SHIFT) & KUMCTRLSTA_OFF) | data);
-	microdelay(2);
-}
-
-/*
- *  K1 workaround on Lynxpoint-LP
- *
- *  When K1 is enabled for 1Gbps, the MAC can miss 2 DMA completion indications
- *  preventing further DMA write requests.  Work around the issue by disabling
- *  the de-assertion of the clock request when in 1Gbps mode.
- *  Also, set appropriate Tx re-transmission timeouts for 10 and 100Half link
- *  speeds in order to avoid Tx hangs.
- */
-int
-i218_k1_workaround(Ctlr *ctlr)
-{
-	uint fextnvm6 = csr32r(ctlr, Fextnvm6);
-	uint status = csr32r(ctlr, Status);
-	int rv = 0;
-	uint16_t reg;
-	Ether *ether = ctlr->edev;
-
-	if (ether->Netif.link && ether->Netif.mbps == 1000) {
-		kmrnread(ctlr, KMRNCTRLSTA_K1_CONFIG, &reg);
-		kmrnwrite(ctlr, KMRNCTRLSTA_K1_CONFIG, reg & ~KMRNCTRLSTA_K1_ENABLE);
-		microdelay(10);
-
-		csr32w(ctlr, Fextnvm6, fextnvm6 | FEXTNVM6_REQ_PLL_CLK);
-		kmrnwrite(ctlr, KMRNCTRLSTA_K1_CONFIG, reg);
-	} else {
-		/* clear FEXTNVM6 bit 8 on link down or 10/100 */
-		fextnvm6 &= ~FEXTNVM6_REQ_PLL_CLK;
-
-		if (!ether->Netif.link || ((status & STATUS_SPEED_100) && (status & STATUS_FD)))
-			goto update_fextnvm6;
-
-		/* Clear link status transmit timeout */
-		reg = phyread(ctlr, I217inbandctl) & ~I217inbandctllstxtmoutmask;
-
-		if (status & STATUS_SPEED_100) {
-			/* Set inband Tx timeout to 5x10us for 100Half */
-			reg |= 5 << I217inbandctllstxtmoutshift;
-
-			/* Do not extend the K1 entry latency for 100Half */
-			fextnvm6 &= ~FEXTNVM6_ENABLE_K1_ENTRY_CONDITION;
-		} else {
-			/* Set inband Tx timeout to 50x10us for 10Full/Half */
-			reg |= 50 << I217inbandctllstxtmoutshift;
-
-			/* Extend the K1 entry latency for 10 Mbps */
-			fextnvm6 |= FEXTNVM6_ENABLE_K1_ENTRY_CONDITION;
+	if(e->Netif.mbps == 0){
+		if(c->phyerrata == 0){
+			c->phyerrata++;
+			phywrite(c, 1, Phyprst, Prst);	/* try a port reset */
+			print("%s: phy port reset\n", cname(c));
 		}
-		phywrite(ctlr, I217inbandctl, reg);
-update_fextnvm6:
-		csr32w(ctlr, Fextnvm6, fextnvm6);
-	}
-	return rv;
+	}else
+		c->phyerrata = 0;
 }
 
 /*
  * watch for changes of link state
  */
 static void
-i82563lproc(void *v)
+phylproc(void *v)
 {
-	uint phy, i, a;
-	Ctlr *ctlr;
+	uint a, i, phy, r, phyno, phystat, link;
+	Ctlr *c;
 	Ether *e;
 
 	e = v;
-	ctlr = e->ctlr;
+	c = e->ctlr;
+	link = Rtlink;
 
-	if(ctlr->type == i82573 && (phy = phyread(ctlr, Phyier)) != ~0)
-		phywrite(ctlr, Phyier, phy | Lscie | Ancie | Spdie | Panie);
+	if(c->type == i82573 && (phy = phyread(c, 1, Phyier)) != ~0)
+		phywrite(c, 1, Phyier, phy | Lscie | Ancie | Spdie | Panie);
+
+	phyno = 1;
+	if(c->type == i82579)
+		phyno = 2;
+
+	phystat = Physsr;
+	if(c->type == i82579 || c->type == i82580){
+		phystat = Phystat;
+		link = Link;
+	}
+
 	for(;;){
-		phy = phyread(ctlr, Physsr);
+		phy = phyread(c, phyno, phystat);
 		if(phy == ~0)
 			goto next;
-		i = (phy>>14) & 3;
-
-		switch(ctlr->type){
+		if(c->type == i82579 || c->type == i82580)
+			i = (phy>>8) & 3;
+		else
+			i = (phy>>14) & 3;
+		switch(c->type){
+		default:
+			a = 0;
+			break;
+		case i82579:
+		case i82580:
+			a = phy & Ans;
+			break;
 		case i82563:
-			a = phyread(ctlr, Phyisr) & Ane;
+		case i82578:
+		case i82578m:
+		case i82583:
+			a = phyread(c, phyno, Phyisr) & Ane;
 			break;
 		case i82571:
 		case i82572:
 		case i82575:
 		case i82576:
-			a = phyread(ctlr, Phylhr) & Anf;
+			a = phyread(c, phyno, Phylhr) & Anf;
 			i = (i-1) & 3;
 			break;
-		case i210:
-		case i217:
-			a = phyread(ctlr, Phyisr) & Ane;
-			i218_k1_workaround(ctlr);
-			break;
-		default:
-			a = 0;
-			break;
 		}
-		if(a)
-			phywrite(ctlr, Phyctl, phyread(ctlr, Phyctl) | Ran | Ean);
-		e->Netif.link = (phy & Rtlink) != 0;
-		if(e->Netif.link){
-			ctlr->speeds[i]++;
-			if (speedtab[i])
-				e->Netif.mbps = speedtab[i];
+		if(a){
+			r = phyread(c, phyno, Phyctl);
+			phywrite(c, phyno, Phyctl, r | Ran | Ean);
 		}
+		e->Netif.link = (phy & link) != 0;
+		if(e->Netif.link == 0)
+			i = 3;
+		c->speeds[i]++;
+		e->Netif.mbps = speedtab[i];
+		if(c->type == i82563)
+			phyerrata(e, c);
 next:
-		ctlr->lim = 0;
-		i82563im(ctlr, Lsc);
-		ctlr->lsleep++;
-		sleep(&ctlr->lrendez, i82563lim, ctlr);
+		c->lim = 0;
+		i82563im(c, Lsc);
+		c->lsleep++;
+		sleep(&c->lrendez, i82563lim, c);
+	}
+}
+
+/*
+ * watch for changes of link state, pcs version
+ */
+static void
+pcslproc(void *v)
+{
+	uint i, phy;
+	Ctlr *c;
+	Ether *e;
+
+	e = v;
+	c = e->ctlr;
+
+	for(;;){
+		phy = csr32r(c, Pcsstat);
+		e->Netif.link = phy & Linkok;
+		i = 3;
+		if(e->Netif.link)
+			i = (phy & 6) >> 1;
+		else if(phy & Anbad)
+			csr32w(c, Pcsctl, csr32r(c, Pcsctl) | Pan | Prestart);
+		c->speeds[i]++;
+		e->Netif.mbps = speedtab[i];
+		c->lim = 0;
+		i82563im(c, Lsc);
+		c->lsleep++;
+		sleep(&c->lrendez, i82563lim, c);
+	}
+}
+
+/*
+ * watch for changes of link state, serdes version
+ */
+static void
+serdeslproc(void *v)
+{
+	uint i, tx, rx;
+	Ctlr *c;
+	Ether *e;
+
+	e = v;
+	c = e->ctlr;
+
+	for(;;){
+		rx = csr32r(c, Rxcw);
+		tx = csr32r(c, Txcw);
+		USED(tx);
+		e->Netif.link = (rx & 1<<31) != 0;
+//		e->Netif.link = (csr32r(c, Status) & Lu) != 0;
+		i = 3;
+		if(e->Netif.link)
+			i = 2;
+		c->speeds[i]++;
+		e->Netif.mbps = speedtab[i];
+		c->lim = 0;
+		i82563im(c, Lsc);
+		c->lsleep++;
+		sleep(&c->lrendez, i82563lim, c);
 	}
 }
 
@@ -1401,12 +1410,12 @@ static void
 i82563tproc(void *v)
 {
 	Ether *e;
-	Ctlr *ctlr;
+	Ctlr *c;
 
 	e = v;
-	ctlr = e->ctlr;
+	c = e->ctlr;
 	for(;;){
-		sleep(&ctlr->trendez, return0, 0);
+		sleep(&c->trendez, return0, 0);
 		i82563transmit(e);
 	}
 }
@@ -1456,20 +1465,20 @@ i82563attach(Ether* edev)
 
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
 		if((bp = allocb(ctlr->rbsz + PGSZ)) == nil)
-			error(Enomem);
+			break;
 		bp->free = i82563rbfree;
 		freeb(bp);
 	}
-	nrbfull = 0;
 
-	ctlr->edev = edev;			/* point back to Ether* */
 	ctlr->attached = 1;
-	initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
-	initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
-	initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 
 	snprint(name, sizeof name, "#l%dl", edev->ctlrno);
-	kproc(name, i82563lproc, edev);
+	if((csr32r(ctlr, Ctrlext) & Linkmode) == Serdes)
+		kproc(name, pcslproc, edev);		/* phy based serdes */
+	else if(csr32r(ctlr, Status) & Tbimode)
+		kproc(name, serdeslproc, edev);		/* mac based serdes */
+	else if(ctlr->type == i82579 || ctlr->type == i82580)
+		kproc(name, phylproc, edev);
 
 	snprint(name, sizeof name, "#l%dr", edev->ctlrno);
 	kproc(name, i82563rproc, edev);
@@ -1484,11 +1493,11 @@ i82563attach(Ether* edev)
 }
 
 static void
-i82563interrupt(Ureg*_, void* arg)
+i82563interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	int icr, im, i;
+	int icr, im;
 
 	edev = arg;
 	ctlr = edev->ctlr;
@@ -1496,9 +1505,8 @@ i82563interrupt(Ureg*_, void* arg)
 	ilock(&ctlr->imlock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
-	i = Nrd;			/* don't livelock */
-	for(icr = csr32r(ctlr, Icr); icr & ctlr->im && i-- > 0;
-	    icr = csr32r(ctlr, Icr)){
+
+	while(icr = csr32r(ctlr, Icr) & ctlr->im){
 		if(icr & Lsc){
 			im &= ~Lsc;
 			ctlr->lim = icr & Lsc;
@@ -1517,6 +1525,7 @@ i82563interrupt(Ureg*_, void* arg)
 			wakeup(&ctlr->trendez);
 		}
 	}
+
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
 	iunlock(&ctlr->imlock);
@@ -1524,17 +1533,16 @@ i82563interrupt(Ureg*_, void* arg)
 
 /* assume misrouted interrupts and check all controllers */
 static void
-i82575interrupt(Ureg*_, void *__)
+i82575interrupt(Ureg* ureg, void *v)
 {
 	Ctlr *ctlr;
 
-	for (ctlr = i82563ctlrhead; ctlr != nil && ctlr->edev != nil;
-	     ctlr = ctlr->next)
+	for (ctlr = i82563ctlrhead; ctlr != nil; ctlr = ctlr->next)
 		i82563interrupt(nil, ctlr->edev);
 }
 
 static int
-i82563detach0(Ctlr* ctlr)
+i82563detach(Ctlr* ctlr)
 {
 	int r, timeo;
 
@@ -1545,7 +1553,7 @@ i82563detach0(Ctlr* ctlr)
 	 */
 	csr32w(ctlr, Imc, ~0);
 	csr32w(ctlr, Rctl, 0);
-	csr32w(ctlr, Tctl, 0);
+	csr32w(ctlr, Tctl, csr32r(ctlr, Tctl) & ~Ten);
 
 	delay(10);
 
@@ -1554,12 +1562,14 @@ i82563detach0(Ctlr* ctlr)
 		r |= Phyrst;
 	csr32w(ctlr, Ctrl, Devrst | r);
 	delay(1);
-	for(timeo = 0; timeo < 1000; timeo++){
-		if(!(csr32r(ctlr, Ctrl) & Devrst))
+	for(timeo = 0;; timeo++){
+		if((csr32r(ctlr, Ctrl) & (Devrst|Phyrst)) == 0)
+			break;
+		if(timeo >= 1000)
 			break;
 		delay(1);
 	}
-	if(csr32r(ctlr, Ctrl) & Devrst)
+	if(csr32r(ctlr, Ctrl) & (Devrst|Phyrst))
 		return -1;
 
 	r = csr32r(ctlr, Ctrlext);
@@ -1576,46 +1586,26 @@ i82563detach0(Ctlr* ctlr)
 	csr32w(ctlr, Imc, ~0);
 	delay(1);
 	for(timeo = 0; timeo < 1000; timeo++){
-		if(!csr32r(ctlr, Icr))
+		if((csr32r(ctlr, Icr) & ~Rxcfg) == 0)
 			break;
 		delay(1);
 	}
-	if(csr32r(ctlr, Icr))
+	if(csr32r(ctlr, Icr) & ~Rxcfg)
 		return -1;
-
-	/*
-	 * Balance Rx/Tx packet buffer.
-	 * No need to set PBA register unless using jumbo, defaults to 32KB
-	 * for receive. If it is changed, then have to do a MAC reset,
-	 * and need to do that at the the right time as it will wipe stuff.
-	 */
-	if(ctlr->rbsz > 8192 && (ctlr->type == i82563 || ctlr->type == i82571 ||
-	    ctlr->type == i82572)){
+	/* balance rx/tx packet buffer; survives reset */
+	if(ctlr->rbsz > 8192 && cttab[ctlr->type].flag & Fpba){
 		ctlr->pba = csr32r(ctlr, Pba);
 		r = ctlr->pba >> 16;
 		r += ctlr->pba & 0xffff;
 		r >>= 1;
 		csr32w(ctlr, Pba, r);
-	} else if(ctlr->type == i82573 && ctlr->rbsz > ETHERMAXTU)
+	}else if(ctlr->type == i82573 && ctlr->rbsz > 1514)
 		csr32w(ctlr, Pba, 14);
 	ctlr->pba = csr32r(ctlr, Pba);
 
 	r = csr32r(ctlr, Ctrl);
 	csr32w(ctlr, Ctrl, Slu|r);
-
 	return 0;
-}
-
-static int
-i82563detach(Ctlr* ctlr)
-{
-	int r;
-	static Lock detlck;
-
-	ilock(&detlck);
-	r = i82563detach0(ctlr);
-	iunlock(&detlck);
-	return r;
 }
 
 static void
@@ -1627,13 +1617,9 @@ i82563shutdown(Ether* ether)
 static uint16_t
 eeread(Ctlr *ctlr, int adr)
 {
-	uint32_t n;
-
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
-	for (n = 1000000; (csr32r(ctlr, Eerd) & EEdone) == 0 && n-- > 0; )
+	while ((csr32r(ctlr, Eerd) & EEdone) == 0)
 		;
-	if (n == 0)
-		panic("i82563: eeread stuck");
 	return csr32r(ctlr, Eerd) >> 16;
 }
 
@@ -1653,7 +1639,7 @@ eeload(Ctlr *ctlr)
 }
 
 static int
-fcycle(Ctlr *_, Flash *f)
+fcycle(Ctlr *ctlr, Flash *f)
 {
 	uint16_t s, i;
 
@@ -1671,13 +1657,12 @@ fcycle(Ctlr *_, Flash *f)
 }
 
 static int
-fread(Ctlr *ctlr, Flash *f, int ladr)
+fread(Ctlr *c, Flash *f, int ladr)
 {
 	uint16_t s;
-	uint32_t n;
 
 	delay(1);
-	if(fcycle(ctlr, f) == -1)
+	if(fcycle(c, f) == -1)
 		return -1;
 	f->reg[Fsts] |= Fdone;
 	f->reg32[Faddr] = ladr;
@@ -1689,71 +1674,91 @@ fread(Ctlr *ctlr, Flash *f, int ladr)
 	s &= ~(2*Flcycle);		/* read */
 	f->reg[Fctl] = s | Fgo;
 
-	for (n = 1000000; (f->reg[Fsts] & Fdone) == 0 && n-- > 0; )
+	while((f->reg[Fsts] & Fdone) == 0)
 		;
-	if (n == 0)
-		panic("i82563: fread stuck");
 	if(f->reg[Fsts] & (Fcerr|Ael))
 		return -1;
 	return f->reg32[Fdata] & 0xffff;
 }
 
 static int
-fload(Ctlr *ctlr)
+fload(Ctlr *c)
 {
 	uint32_t data, io, r, adr;
 	uint16_t sum;
 	Flash f;
 
-	io = ctlr->pcidev->mem[1].bar & ~0x0f;
-	f.reg = vmap(io, ctlr->pcidev->mem[1].size);
+	io = c->pcidev->mem[1].bar & ~0x0f;
+	f.reg = vmap(io, c->pcidev->mem[1].size);
 	if(f.reg == nil)
 		return -1;
 	f.reg32 = (void*)f.reg;
-	f.base = f.reg32[Bfpr] & FMASK(0, 13);
-	f.lim = (f.reg32[Bfpr]>>16) & FMASK(0, 13);
-	if(csr32r(ctlr, Eec) & (1<<22))
-		f.base += (f.lim + 1 - f.base) >> 1;
-	r = f.base << 12;
-
+	f.sz = f.reg32[Bfpr];
+	r = f.sz & 0x1fff;
+	if(csr32r(c, Eec) & 1<<22){
+		if(c->type == i82579)
+			r += 16;		/* sector size: 64k */
+		else
+			r  += 1;		/* sector size: 4k */
+	}
+	r <<= 12;
 	sum = 0;
 	for (adr = 0; adr < 0x40; adr++) {
-		data = fread(ctlr, &f, r + adr*2);
+		data = fread(c, &f, r + adr*2);
 		if(data == -1)
-			break;
-		ctlr->eeprom[adr] = data;
+			return -1;
+		c->eeprom[adr] = data;
 		sum += data;
 	}
-	vunmap(f.reg, ctlr->pcidev->mem[1].size);
+	vunmap(f.reg, c->pcidev->mem[1].size);
 	return sum;
+}
+
+static void
+defaultea(Ctlr *ctlr, uint8_t *ra)
+{
+	uint i, r;
+	uint64_t u;
+	static uint8_t nilea[Eaddrlen];
+
+	if(memcmp(ra, nilea, Eaddrlen) != 0)
+		return;
+	if(cttab[ctlr->type].flag & Fflashea){
+		/* intel mb bug */
+		u = (uint64_t)csr32r(ctlr, Rah)<<32u | (uint32_t)csr32r(ctlr, Ral);
+		for(i = 0; i < Eaddrlen; i++)
+			ra[i] = u >> 8*i;
+	}
+	if(memcmp(ra, nilea, Eaddrlen) != 0)
+		return;
+	for(i = 0; i < Eaddrlen/2; i++){
+		ra[2*i] = ctlr->eeprom[Ea+i];
+		ra[2*i+1] = ctlr->eeprom[Ea+i] >> 8;
+	}
+	r = (csr32r(ctlr, Status) & Lanid) >> 2;
+	ra[5] += r;				/* ea ctlr[n] = ea ctlr[0]+n */
 }
 
 static int
 i82563reset(Ctlr *ctlr)
 {
+	uint8_t *ra;
 	int i, r;
 
 	if(i82563detach(ctlr))
 		return -1;
-	if(ctlr->type == i82566 || ctlr->type == i82567 ||
-	   ctlr->type == i82577 || ctlr->type == i82579 ||
-	   ctlr->type == i217)
+	if(cttab[ctlr->type].flag & Fload)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
-	if (r != 0 && r != 0xBABA){
+	if(r != 0 && r != 0xBABA){
 		print("%s: bad EEPROM checksum - %#.4ux\n",
-			tname[ctlr->type], r);
+			cname(ctlr), r);
 		return -1;
 	}
 
-	for(i = 0; i < Eaddrlen/2; i++){
-		ctlr->ra[2*i]   = ctlr->eeprom[Ea+i];
-		ctlr->ra[2*i+1] = ctlr->eeprom[Ea+i] >> 8;
-	}
-	r = (csr32r(ctlr, Status) & Lanid) >> 2;
-	ctlr->ra[5] += r;		/* ea ctlr[1] = ea ctlr[0]+1 */
-
+	ra = ctlr->ra;
+	defaultea(ctlr, ra);
 	r = ctlr->ra[3]<<24 | ctlr->ra[2]<<16 | ctlr->ra[1]<<8 | ctlr->ra[0];
 	csr32w(ctlr, Ral, r);
 	r = 0x80000000 | ctlr->ra[5]<<8 | ctlr->ra[4];
@@ -1765,7 +1770,6 @@ i82563reset(Ctlr *ctlr)
 	memset(ctlr->mta, 0, sizeof(ctlr->mta));
 	for(i = 0; i < 128; i++)
 		csr32w(ctlr, Mta + i*4, 0);
-
 	/*
 	 * Does autonegotiation affect this manual setting?
 	 * The correct values here should depend on the PBA value
@@ -1774,7 +1778,7 @@ i82563reset(Ctlr *ctlr)
 	 */
 	csr32w(ctlr, Fcal, 0x00C28001);
 	csr32w(ctlr, Fcah, 0x0100);
-	if(ctlr->type != i82579 && ctlr->type != i210 && ctlr->type != i217)
+	if(ctlr->type != i82579)
 		csr32w(ctlr, Fct, 0x8808);
 	csr32w(ctlr, Fcttv, 0x0100);
 
@@ -1783,7 +1787,176 @@ i82563reset(Ctlr *ctlr)
 	// ctlr->fcrth = 0x00004000;
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
+	if(cttab[ctlr->type].flag & F75)
+		csr32w(ctlr, Eitr, 128<<2);		/* 128 ¼ microsecond intervals */
+	return 0;
+}
 
+enum {
+	CMrdtr,
+	CMradv,
+	CMpause,
+	CMan,
+};
+
+static Cmdtab i82563ctlmsg[] = {
+	CMrdtr,	"rdtr",	2,
+	CMradv,	"radv",	2,
+	CMpause, "pause", 1,
+	CMan,	"an",	1,
+};
+
+static int32_t
+i82563ctl(Ether *edev, void *buf, int32_t n)
+{
+	Proc *up = externup();
+	char *p;
+	uint32_t v;
+	Ctlr *ctlr;
+	Cmdbuf *cb;
+	Cmdtab *ct;
+
+	if((ctlr = edev->ctlr) == nil)
+		error(Enonexist);
+
+	cb = parsecmd(buf, n);
+	if(waserror()){
+		free(cb);
+		nexterror();
+	}
+
+	ct = lookupcmd(cb, i82563ctlmsg, nelem(i82563ctlmsg));
+	switch(ct->index){
+	case CMrdtr:
+		v = strtoul(cb->f[1], &p, 0);
+		if(*p || v > 0xffff)
+			error(Ebadarg);
+		ctlr->rdtr = v;
+		csr32w(ctlr, Rdtr, v);
+		break;
+	case CMradv:
+		v = strtoul(cb->f[1], &p, 0);
+		if(*p || v > 0xffff)
+			error(Ebadarg);
+		ctlr->radv = v;
+		csr32w(ctlr, Radv, v);
+		break;
+	case CMpause:
+		csr32w(ctlr, Ctrl, csr32r(ctlr, Ctrl) ^ (1<<27 | 1<<28));
+		break;
+	case CMan:
+		csr32w(ctlr, Ctrl, csr32r(ctlr, Ctrl) | Lrst | Phyrst);
+		break;
+	}
+	free(cb);
+	poperror();
+
+	return n;
+}
+
+static int
+didtype(int d)
+{
+	switch(d){
+	case 0x1096:
+	case 0x10ba:		/* “gilgal” */
+	// case 0x1098:		/* serdes; not seen */
+	// case 0x10bb:		/* serdes */
+		return i82563;
+	case 0x1049:		/* mm */
+	case 0x104a:		/* dm */
+	case 0x104b:		/* dc */
+	case 0x104d:		/* v “ninevah” */
+	case 0x10bd:		/* dm-2 */
+	case 0x294c:		/* ich 9 */
+		return i82566;
+	case 0x10de:		/* lm ich10d */
+	case 0x10df:		/* lf ich10 */
+	case 0x10e5:		/* lm ich9 */
+	case 0x10f5:		/* lm ich9m; “boazman” */
+		return i82567;
+	case 0x10bf:		/* lf ich9m */
+	case 0x10cb:		/* v ich9m */
+	case 0x10cd:		/* lf ich10 */
+	case 0x10ce:		/* v ich10 */
+	case 0x10cc:		/* lm ich10 */
+		return i82567m;
+	case 0x105e:		/* eb */
+	case 0x105f:		/* eb */
+	case 0x1060:		/* eb */
+	case 0x10a4:		/* eb */
+	case 0x10a5:		/* eb  fiber */
+	case 0x10bc:		/* eb */
+	case 0x10d9:		/* eb serdes */
+	case 0x10da:		/* eb serdes “ophir” */
+		return i82571;
+	case 0x107d:		/* eb copper */
+	case 0x107e:		/* ei fiber */
+	case 0x107f:		/* ei */
+	case 0x10b9:		/* ei “rimon” */
+		return i82572;
+	case 0x108b:		/*  e “vidalia” */
+	case 0x108c:		/*  e (iamt) */
+	case 0x109a:		/*  l “tekoa” */
+		return i82573;
+	case 0x10d3:		/* l or it; “hartwell” */
+		return i82574;
+	case 0x10a7:
+	case 0x10a9:		/* fiber/serdes */
+		return i82575;
+	case 0x10c9:		/* copper */
+	case 0x10e6:		/* fiber */
+	case 0x10e7:		/* serdes; “kawela” */
+		return i82576;
+	case 0x10ea:		/* lc “calpella”; aka pch lan */
+		return i82577;
+	case 0x10eb:		/* lm “calpella” */
+		return i82577m;
+	case 0x10ef:		/* dc “piketon” */
+		return i82578;
+	case 0x1502:		/* lm */
+	case 0x1503:		/* v */
+		return i82579;
+	case 0x10f0:		/* dm “king's creek” */
+		return i82578m;
+	case 0x150e:		/* “barton hills” */
+	case 0x150f:		/* fiber */
+	case 0x1510:		/* backplane */
+	case 0x1511:		/* sfp */
+	case 0x1516:
+		return i82580;
+	case 0x1506:		/* v */
+		return i82583;
+	}
+	return -1;
+}
+
+static void
+hbafixup(Pcidev *p)
+{
+	uint i;
+
+	i = pcicfgr32(p, PciSVID);
+	if((i & 0xffff) == 0x1b52 && p->did == 1)
+		p->did = i>>16;
+}
+
+static int
+setup(Ctlr *ctlr)
+{
+	Pcidev *p;
+
+	p = ctlr->pcidev;
+	ctlr->nic = vmap(ctlr->port, p->mem[0].size);
+	if(ctlr->nic == nil){
+		print("%s: can't map %#llud\n", cname(ctlr), ctlr->port);
+		return -1;
+	}
+	if(i82563reset(ctlr)){
+		vunmap(ctlr->nic, p->mem[0].size);
+		return -1;
+	}
+	pcisetbme(ctlr->pcidev);
 	return 0;
 }
 
@@ -1794,111 +1967,20 @@ i82563pci(void)
 	uint32_t io;
 	Ctlr *ctlr;
 	Pcidev *p;
-	void *mem;
 
 	p = nil;
 	while(p = pcimatch(p, 0x8086, 0)){
-		switch(p->did){
-		default:
+		hbafixup(p);
+		if((type = didtype(p->did)) == -1)
 			continue;
-		case 0x1096:
-		case 0x10ba:
-			type = i82563;
-			break;
-		case 0x1049:		/* mm */
-		case 0x104a:		/* dm */
-		case 0x104b:		/* dc */
-		case 0x104d:		/* mc */
-		case 0x10bd:		/* dm */
-		case 0x294c:		/* dc-2 */
-			type = i82566;
-			break;
-		case 0x10cd:		/* lf */
-		case 0x10ce:		/* v-2 */
-		case 0x10de:		/* lm-3 */
-		case 0x10f5:		/* lm-2 */
-			type = i82567;
-			break;
-		case 0x10a4:
-		case 0x105e:
-			type = i82571;
-			break;
-		case 0x107d:		/* eb copper */
-		case 0x107e:		/* ei fiber */
-		case 0x107f:		/* ei */
-		case 0x10b9:		/* sic, 82572gi */
-			type = i82572;
-			break;
-		case 0x108b:		/*  v */
-		case 0x108c:		/*  e (iamt) */
-		case 0x109a:		/*  l */
-			type = i82573;
-			break;
-		case 0x10d3:		/* l */
-			type = i82574;
-			break;
-		case 0x10a7:	/* 82575eb: one of a pair of controllers */
-			type = i82575;
-			break;
-		case 0x10c9:		/* 82576 copper */
-		case 0x10e6:		/* 82576 fiber */
-		case 0x10e7:		/* 82576 serdes */
-			type = i82576;
-			break;
-		case 0x10ea:		/* 82577lm */
-			type = i82577;
-			break;
-		case 0x1502:		/* 82579lm */
-		case 0x1503:		/* 82579v */
-			type = i82579;
-			break;
-		case 0x1533:		/* i210-t1 */
-		case 0x1534:		/* i210 */
-		case 0x1536:		/* i210-fiber */
-		case 0x1537:		/* i210-backplane */
-		case 0x1538:
-		case 0x1539:		/* i211 */
-		case 0x157b:		/* i210 */
-		case 0x157c:		/* i210 */
-			type = i210;
-			break;
-		case 0x153a:		/* i217-lm */
-		case 0x153b:		/* i217-v */
-		case 0x15a3:
-			type = i217;
-			break;
-		}
-
-		io = p->mem[0].bar & ~0x0F;
-		mem = vmap(io, p->mem[0].size);
-		if(mem == nil){
-			print("%s: can't map %.8lux\n", tname[type], io);
-			continue;
-		}
 		ctlr = malloc(sizeof(Ctlr));
-		if(ctlr == nil) {
-			vunmap(mem, p->mem[0].size);
+		if(ctlr == nil)
 			error(Enomem);
-		}
-		ctlr->port = io;
-		ctlr->pcidev = p;
 		ctlr->type = type;
-		/*
-		 * on the assumption that allowing jumbo packets makes
-		 * the controller much slower (as is true of the 82579),
-		 * never allow jumbos.
-		 */
-		// ctlr->rbsz = rbtab[type];
-		ctlr->rbsz = ETHERMAXTU;
-		ctlr->nic = mem;
-
-		if(i82563reset(ctlr)){
-			vunmap(mem, p->mem[0].size);
-			free(ctlr);
-			continue;
-		}
-		pcisetbme(p);
-
+		ctlr->pcidev = p;
+		ctlr->rbsz = cttab[type].mtu;
+		io = p->mem[0].bar & ~0x0F;
+		ctlr->port = io;
 		if(i82563ctlrhead != nil)
 			i82563ctlrtail->next = ctlr;
 		else
@@ -1906,6 +1988,7 @@ i82563pci(void)
 		i82563ctlrtail = ctlr;
 	}
 }
+
 
 static int
 pnp(Ether* edev, int type)
@@ -1922,18 +2005,20 @@ pnp(Ether* edev, int type)
 	 * Any adapter matches if no edev->port is supplied,
 	 * otherwise the ports must match.
 	 */
-	for(ctlr = i82563ctlrhead; ctlr != nil; ctlr = ctlr->next){
+	for(ctlr = i82563ctlrhead; ; ctlr = ctlr->next){
+		if(ctlr == nil)
+			return -1;
 		if(ctlr->active)
 			continue;
 		if(type != Iany && ctlr->type != type)
 			continue;
 		if(edev->ISAConf.port == 0 || edev->ISAConf.port == ctlr->port){
 			ctlr->active = 1;
-			break;
+			memmove(ctlr->ra, edev->ea, Eaddrlen);
+			if(setup(ctlr) == 0)
+				break;
 		}
 	}
-	if(ctlr == nil)
-		return -1;
 
 	edev->ctlr = ctlr;
 	ctlr->edev = edev;			/* point back to Ether* */
@@ -1949,7 +2034,7 @@ pnp(Ether* edev, int type)
 	 */
 	edev->attach = i82563attach;
 	edev->transmit = i82563transmit;
-	edev->interrupt = (ctlr->type == i82575?
+	edev->interrupt =  (ctlr->type == i82575?
 		i82575interrupt: i82563interrupt);
 	edev->ifstat = i82563ifstat;
 	edev->ctl = i82563ctl;
@@ -1981,6 +2066,12 @@ i82566pnp(Ether *e)
 }
 
 static int
+i82567pnp(Ether *e)
+{
+	return pnp(e, i82567m) & pnp(e, i82567);
+}
+
+static int
 i82571pnp(Ether *e)
 {
 	return pnp(e, i82571);
@@ -1999,9 +2090,33 @@ i82573pnp(Ether *e)
 }
 
 static int
+i82574pnp(Ether *e)
+{
+	return pnp(e, i82574);
+}
+
+static int
 i82575pnp(Ether *e)
 {
 	return pnp(e, i82575);
+}
+
+static int
+i82576pnp(Ether *e)
+{
+	return pnp(e, i82576);
+}
+
+static int
+i82577pnp(Ether *e)
+{
+	return pnp(e, i82577m) & pnp(e, i82577);
+}
+
+static int
+i82578pnp(Ether *e)
+{
+	return pnp(e, i82578m) & pnp(e, i82578);
 }
 
 static int
@@ -2011,29 +2126,39 @@ i82579pnp(Ether *e)
 }
 
 static int
-i210pnp(Ether *e)
+i82580pnp(Ether *e)
 {
-	return pnp(e, i210);
+	return pnp(e, i82580);
 }
 
 static int
-i217pnp(Ether *e)
+i82583pnp(Ether *e)
 {
-	return pnp(e, i217);
+	return pnp(e, i82583);
 }
 
 void
 ether82563link(void)
 {
-	/* recognise lots of model numbers for debugging assistance */
+	/*
+	 * recognise lots of model numbers for debugging
+	 * also good for forcing onboard nic(s) as ether0
+	 * try to make that unnecessary by listing lom first.
+	 */
 	addethercard("i82563", i82563pnp);
 	addethercard("i82566", i82566pnp);
+	addethercard("i82574", i82574pnp);
+	addethercard("i82576", i82576pnp);
+	addethercard("i82567", i82567pnp);
+	addethercard("i82573", i82573pnp);
+
 	addethercard("i82571", i82571pnp);
 	addethercard("i82572", i82572pnp);
-	addethercard("i82573", i82573pnp);
 	addethercard("i82575", i82575pnp);
+	addethercard("i82577", i82577pnp);
+	addethercard("i82578", i82578pnp);
 	addethercard("i82579", i82579pnp);
-	addethercard("i210", i210pnp);
-	addethercard("i217", i217pnp);
+	addethercard("i82580", i82580pnp);
+	addethercard("i82583", i82583pnp);
 	addethercard("igbepcie", anypnp);
 }
