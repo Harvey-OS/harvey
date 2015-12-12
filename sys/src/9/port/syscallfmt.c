@@ -72,8 +72,7 @@ syscallfmt(int syscallno, ...)
 	Fmt fmt;
 	void *v;
 	int64_t vl;
-	uintptr_t p;
-	int i[2], len, **ip;
+	int i[2], len;
 	char *a, **argv;
 	va_start(list, syscallno);
 	fmtstrinit(&fmt);
