@@ -3,6 +3,9 @@
 		"Env": [
 			"CONF=amd64cpu"
 		],
+		"Cflags": [
+			"-Werror"
+		],
 		"Include": [
 			"core.json",
 			"../386/386.json",
