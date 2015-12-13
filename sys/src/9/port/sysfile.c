@@ -815,10 +815,11 @@ syspread(Ar0* ar0, ...)
 }
 
 static int32_t
-write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
+write(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t r;
+	int sequential;
 	Chan *c;
 
 	r = n;
@@ -826,8 +827,14 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	p = validaddr(p, n, 0);
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
+
+	if(off == ~0LL)
+		sequential = 1;
+	else
+		sequential = 0;
+
 	if(waserror()) {
-		if(!ispwrite){
+		if(sequential){
 			lock(&c->r.l);
 			c->offset -= n;
 			unlock(&c->r.l);
@@ -841,7 +848,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	n = r;
 
-	if(off == ~0LL){	/* use and maintain channel's offset */
+	if(sequential){	/* use and maintain channel's offset */
 		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
@@ -850,7 +857,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(!ispwrite && r < n){
+	if(sequential && r < n){
 		lock(&c->r.l);
 		c->offset -= n - r;
 		unlock(&c->r.l);
@@ -860,22 +867,6 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	cclose(c);
 
 	return r;
-}
-
-void
-syswrite(Ar0* ar0, ...)
-{
-	va_list list;
-	va_start(list, ar0);
-	int fd = va_arg(list, int);
-	void *buf = va_arg(list, void *);
-	long nbytes = va_arg(list, long);
-	int64_t offset = -1ULL;
-	va_end(list);
-	/*
-	 * long write(int fd, void* buf, long nbytes);
-	 */
-	ar0->l = write(fd, buf, nbytes, offset, 0);
 }
 
 void
@@ -891,7 +882,7 @@ syspwrite(Ar0* ar0, ...)
 	/*
 	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = write(fd, buf, nbytes, offset, 1);
+	ar0->l = write(fd, buf, nbytes, offset);
 }
 
 static int64_t

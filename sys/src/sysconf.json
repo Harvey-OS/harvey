@@ -122,19 +122,6 @@
 			]
 		},
 		{
-			"#Id": 20,
-			"Args": [
-				"int32_t",
-				"void*",
-				"int32_t"
-			],
-			"Id": 1,
-			"Name": "write",
-			"Ret": [
-				"int32_t"
-			]
-		},
-		{
 			"#Id": 21,
 			"Args": [
 				"int32_t*"
