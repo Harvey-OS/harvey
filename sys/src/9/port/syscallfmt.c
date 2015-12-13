@@ -254,19 +254,15 @@ syscallfmt(int syscallno, ...)
 		vl = va_arg(list, int64_t);
 		fmtprint(&fmt, "%d %#p %ld %lld", i[0], v, l, vl);
 		break;
-	case WRITE:					/* deprecated */
 	case PWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
+		vl = va_arg(list, int64_t);
 		fmtprint(&fmt, "%d ", i[0]);
 		len = MIN(l, 64);
 		fmtrwdata(&fmt, v, len, " ");
-		fmtprint(&fmt, "%ld", l);
-		if(syscallno == PWRITE){
-			vl = va_arg(list, int64_t);
-			fmtprint(&fmt, " %lld", vl);
-		}
+		fmtprint(&fmt, "%ld %lld", l, vl);
 		break;
 	}
 	up->syscalltrace = fmtstrflush(&fmt);
@@ -312,7 +308,6 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		fmtprint(&fmt, " = %lld", ar0->vl);
 		break;
 	case ALARM:
-	case WRITE:
 	case PWRITE:
 		if(ar0->l == -1)
 			errstr = up->errstr;
