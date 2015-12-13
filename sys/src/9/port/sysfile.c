@@ -718,10 +718,11 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 }
 
 static int32_t
-read(int ispread, int fd, void *p, int32_t n, int64_t off)
+read(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t nn, nnn;
+	int sequential;
 	Chan *c;
 
 	p = validaddr(p, n, 1);
@@ -742,23 +743,21 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-	if(ispread){
-		if(off == ~0LL){	/* use and maintain channel's offset */
-			off = c->offset;
-			ispread = 0;
-		}
-	}
-	else
+	if(off == ~0LL){	/* use and maintain channel's offset */
 		off = c->offset;
+		sequential = 1;
+	} else {
+		sequential = 0;
+	}
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
-		 * clear ispread to always maintain the Chan offset.
+		 * set sequential to always maintain the Chan offset.
 		 */
 		if(off == 0LL){
-			if(!ispread){
+			if(sequential){
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -777,12 +776,12 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 		}
 		nnn = mountfix(c, p, nn, n);
 
-		ispread = 0;
+		sequential = 1;
 	}
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(!ispread){
+	if(sequential){
 		lock(&c->r.l);
 		c->devoffset += nn;
 		c->offset += nnn;
@@ -793,25 +792,6 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	cclose(c);
 
 	return nnn;
-}
-
-void
-sysread(Ar0* ar0, ...)
-{
-	int fd;
-	void *p;
-	int32_t n;
-	int64_t off = ~0ULL;
-	va_list list;
-	va_start(list, ar0);
-	fd = va_arg(list, int);
-	p = va_arg(list, void*);
-	n = va_arg(list, int32_t);
-	va_end(list);
-	/*
-	 * long read(int fd, void* buf, long nbytes);
-	 */
-	ar0->l = read(0, fd, p, n, off);
 }
 
 void
@@ -831,7 +811,7 @@ syspread(Ar0* ar0, ...)
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = read(1, fd, p, n, off);
+	ar0->l = read(fd, p, n, off);
 }
 
 static int32_t
