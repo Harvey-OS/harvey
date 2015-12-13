@@ -249,16 +249,12 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
-	case READ:					/* deprecated */
 	case PREAD:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
-		fmtprint(&fmt, "%d %#p %ld", i[0], v, l);
-		if(syscallno == PREAD){
-			vl = va_arg(list, int64_t);
-			fmtprint(&fmt, " %lld", vl);
-		}
+		vl = va_arg(list, int64_t);
+		fmtprint(&fmt, "%d %#p %ld %lld", i[0], v, l, vl);
 		break;
 	case WRITE:					/* deprecated */
 	case PWRITE:
@@ -370,12 +366,12 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			errstr = up->errstr;
 		}
 		break;
-	case READ:
 	case PREAD:
 		i = va_arg(list, int);
 		USED(i);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
+		vl = va_arg(list, int64_t);
 		if(ar0->l > 0){
 			len = MIN(ar0->l, 64);
 			fmtrwdata(&fmt, v, len, "");
@@ -384,12 +380,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			fmtprint(&fmt, "/\"\"");
 			errstr = up->errstr;
 		}
-		fmtprint(&fmt, " %ld", l);
-		if(syscallno == PREAD){
-			vl = va_arg(list, int64_t);
-			fmtprint(&fmt, " %lld", vl);
-		}
-		fmtprint(&fmt, " = %d", ar0->i);
+		fmtprint(&fmt, " %ld %lld = %d", l, vl, ar0->i);
 		break;
 	}
 	fmtprint(&fmt, " %s %#llud %#llud\n", errstr, start, stop);
