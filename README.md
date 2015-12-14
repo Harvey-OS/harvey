@@ -56,7 +56,7 @@ You should now be able to build everything by running
 
 Once building is complete, you can try booting the kernel with qemu
 
-	(cd sys/src/9/k10 && sh ../../../../util/QRUN)
+	(cd sys/src/9/amd64 && sh ../../../../util/QRUN)
 
 Next you should find a bug somewhere in harvey and fix it. In general, the
 util/build tool "just works" in any subdirectory, so you can also build just
@@ -101,7 +101,7 @@ and should be automatically compiled & copied to util/ when you run
 
 Once it's built, you can run this:
 
-	(export HARVEY=$(pwd) && cd sys/src/9/k10 && sh ../../../../util/GO9PRUN)
+	(export HARVEY=$(pwd) && cd sys/src/9/amd64 && sh ../../../../util/GO9PRUN)
 
 to boot with ufs serving the harvey directory for your harvey instance. Once
 harvey is up, you can telnet onto it with
