@@ -730,14 +730,14 @@ void
 syssleep(Ar0* ar0, ...)
 {
 	Proc *up = externup();
-	int32_t ms;
+	int64_t ms;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
 	 * int sleep(long millisecs);
 	 */
-	ms = va_arg(list, int32_t);
+	ms = va_arg(list, int64_t);
 	va_end(list);
 
 	ar0->i = 0;

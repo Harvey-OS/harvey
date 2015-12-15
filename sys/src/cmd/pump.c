@@ -134,9 +134,9 @@ sleepunlocked(int32_t ms)
 {
 	int r;
 
-	unlock(&arithlock);
+ 	unlock(&arithlock);
 	r = sleep(ms);
-	lock(&arithlock);
+ 	lock(&arithlock);
 	return r;
 }
 

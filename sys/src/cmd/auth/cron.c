@@ -89,8 +89,8 @@ sleepuntil(uint32_t tm)
 	
 	if (now < tm)
 		return sleep((tm - now)*1000);
-	else
-		return 0;
+
+	return 0;
 }
 
 #pragma varargck	argpos clog 1

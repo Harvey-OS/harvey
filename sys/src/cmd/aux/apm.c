@@ -995,7 +995,7 @@ eventwatch(void *v)
 		}
 		if(s)
 			sendul(cevent, -1);
-		if(sleep(750) < 0)
+		if (sleep(750) < 0)
 			break;
 	}
 }
