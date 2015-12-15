@@ -87,9 +87,9 @@ sleepuntil(uint32_t tm)
 {
 	uint32_t now = time(0);
 
-	if (now < tm) {
-		sleep((tm - now)*1000);
-	}
+	
+	if (now < tm)
+		return sleep((tm - now)*1000);
 
 	return 0;
 }
