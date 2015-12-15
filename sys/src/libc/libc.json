@@ -102,6 +102,7 @@
 			"9syscall/segfree.s",
 			"9syscall/semacquire.s",
 			"9syscall/semrelease.s",
+			"9syscall/sleep.s",
 			"9syscall/stat.s",
 			"9syscall/tsemacquire.s",
 			"9syscall/unmount.s",

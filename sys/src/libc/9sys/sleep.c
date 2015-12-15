@@ -20,7 +20,7 @@
 #include <libc.h>
 
 void
-sleep(int32_t millisecs)
+badsleep(int32_t millisecs)
 {
 	int64_t wakeup;
 
