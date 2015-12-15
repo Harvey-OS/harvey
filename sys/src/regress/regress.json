@@ -10,7 +10,6 @@
 		"SourceFilesCmd": [
 			"alarm.c",
 			"args.c",
-			"awake.c",
 			"conswrite.c",
 			"execl.c",
 			"float.c",
@@ -28,15 +27,6 @@
 			"pipering.c",
 			"privates.c",
 			"psx.c",
-			"qlockt0.c",
-			"qlockt1.c",
-			"qlockt2.c",
-			"rlockt0.c",
-			"rlockt1.c",
-			"rlockt2.c",
-			"rsleept0.c",
-			"rsleept1.c",
-			"rsleept2.c",
 			"sqrt.c",
 			"syscall.c",
 			"sysfatal.c",
@@ -46,10 +36,7 @@
 			"tsemacquire.c",
 			"va_copy.c",
 			"vseprint.c",
-			"waserror.c",
-			"wlockt0.c",
-			"wlockt1.c",
-			"wlockt2.c"
+			"waserror.c"
 		]
 	}
 }

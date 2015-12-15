@@ -12,7 +12,6 @@
 		"SourceFiles": [
 			"../port/alarm.c",
 			"../port/allocb.c",
-			"../port/awake.c",
 			"../port/cache.c",
 			"../port/chan.c",
 			"../port/cpu_buffer.c",

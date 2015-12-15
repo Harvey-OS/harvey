@@ -189,7 +189,6 @@ hzclock(Ureg *ur)
 
 	if(machp()->machno == 0) {
 		/* since sys->ticks is only updated if machp()->machno == 0 */
-		checkwakeups();
 		checkalarms();
 	}
 
