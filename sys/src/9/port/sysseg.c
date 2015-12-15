@@ -157,8 +157,6 @@ syssegbrk(Ar0* ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int segbrk(void*, void*);
-	 * should be
 	 * void* segbrk(void* saddr, void* addr);
 	 */
 	addr = PTR2UINT(va_arg(list, void*));

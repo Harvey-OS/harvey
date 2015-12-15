@@ -153,7 +153,6 @@ syscallfmt(int syscallno, ...)
 		fmtprint(&fmt, "%#ux", i[0]);
 		break;
 	case PIPE:
-	case BRK_:
 		v = va_arg(list, int*);
 		fmtprint(&fmt, "%#p", v);
 		break;

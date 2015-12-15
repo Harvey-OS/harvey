@@ -94,6 +94,10 @@
 			"#Id": 12,
 			"Id": 4108,
 			"Name": "segbrk",
+			"Args": [
+				"void*",
+				"void*"
+			],
 			"Ret": [
 				"void*"
 			]
@@ -156,17 +160,6 @@
 			"Name": "fd2path",
 			"Ret": [
 				"int32_t"
-			]
-		},
-		{
-			"#Id": 24,
-			"Args": [
-				"void*"
-			],
-			"Id": 4120,
-			"Name": "brk_",
-			"Ret": [
-				"void*"
 			]
 		},
 		{

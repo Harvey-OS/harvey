@@ -70,7 +70,6 @@
 			"9syscall/await.s",
 			"9syscall/awake.s",
 			"9syscall/bind.s",
-			"9syscall/brk_.s",
 			"9syscall/chdir.s",
 			"9syscall/close.s",
 			"9syscall/create.s",
