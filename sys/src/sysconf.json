@@ -451,17 +451,6 @@
 			"Ret": [
 				"int64_t"
 			]
-		},
-		{
-			"#Id": 62,
-			"Args": [
-				"int64_t"
-			],
-			"Id": 4158,
-			"Name": "awake",
-			"Ret": [
-				"int64_t"
-			]
 		}
 	],
 	"Syserrors": [
