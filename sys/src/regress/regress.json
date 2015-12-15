@@ -37,7 +37,6 @@
 			"rsleept0.c",
 			"rsleept1.c",
 			"rsleept2.c",
-			"sleep.c",
 			"sqrt.c",
 			"syscall.c",
 			"sysfatal.c",
