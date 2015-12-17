@@ -103,6 +103,7 @@ syscallfmt(int syscallno, ...)
 		break;
 	case CLOSE:
 	case NOTED:
+	case SLEEP:
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d", i[0]);
 		break;
