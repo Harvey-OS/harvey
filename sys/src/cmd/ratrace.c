@@ -152,6 +152,7 @@ writer(void *v)
 	int newpid;
 	Alt a[4];
 	Str *s;
+	int printedresult = 1;
 
 	a[0].op = CHANRCV;
 	a[0].c = quit;
@@ -173,7 +174,13 @@ writer(void *v)
 			break;
 		case 1:			/* out */
 			/* it's a nice null terminated thing */
+			/* If we have not printed a result, and this is not a result,
+			 * we need to print a newline.
+			 */
+			if (s->buf[1] != '=' && ! printedresult)
+				fprint(2, "\n");
 			fprint(2, "%s", s->buf);
+			printedresult = s->buf[1] == '=';
 			free(s);
 			break;
 		case 2:			/* forkc */
