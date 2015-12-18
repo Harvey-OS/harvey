@@ -45,7 +45,7 @@ Article *mlist;
 Window *root;
 
 int
-cistrncmp(char *a, char *b, int n)
+cistrncmp(const char *a, const char *b, int n)
 {
 	while(n-- > 0){
 		if(tolower(*a++) != tolower(*b++))
@@ -55,7 +55,7 @@ cistrncmp(char *a, char *b, int n)
 }
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(const char *a, const char *b)
 {
 	for(;;){
 		if(tolower(*a) != tolower(*b++))
@@ -304,7 +304,7 @@ acmetimer(Article *m, Window *w)
 }
 
 int
-acmeload(Article*, Window*, char *s)
+acmeload(Article* _1, Window* _2, char *s)
 {
 	int nopen;
 
