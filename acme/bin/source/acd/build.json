@@ -1,0 +1,18 @@
+{
+	"acd": {
+		"Include": [
+			"../../../cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"Program": "acd",
+		"SourceFiles": [
+			"acme.c",
+			"cddb.c",
+			"main.c",
+			"mmc.c",
+			"toc.c",
+			"util.c",
+			"win.c"
+		]
+	}
+}

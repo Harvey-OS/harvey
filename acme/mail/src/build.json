@@ -1,0 +1,17 @@
+{
+	"Mail": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"Program": "Mail",
+		"SourceFiles": [
+			"html.c",
+			"mail.c",
+			"mesg.c",
+			"reply.c",
+			"util.c",
+			"win.c"
+		]
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"News": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"Program": "News",
+		"SourceFiles": [
+			"news.c",
+			"util.c",
+			"win.c"
+		]
+	}
+}
