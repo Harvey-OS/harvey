@@ -45,10 +45,22 @@ static Cmdtab iigctlmsg[] = {
 	CMblank,  "blank", 1,
 	CMunblank,  "unblank", 1,
 };
+typedef struct Iig Iig;
+
+struct Iig {
+	Pcidev *dev;
+};
+
+static Iig iig;
 
 static void
 iigreset(void)
 {
+	iig.dev = pcimatch(nil, 0x8086, 0x0116);
+	if (iig.dev)
+		print("Found sandybridge at 0x%x\n", iig.dev->tbdf);
+	else
+		print("NO sandybridge found\n");
 }
 
 static Chan*
