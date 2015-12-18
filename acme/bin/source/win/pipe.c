@@ -167,7 +167,7 @@ pipectl(void *v)
 }
 
 void
-newpipethread(void*)
+newpipethread(void* _)
 {
 	Window *w;
 

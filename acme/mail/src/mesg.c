@@ -467,7 +467,7 @@ mesgmenumarkdel(Window *w, Message *mbox, Message *m, int writeback)
 }
 
 void
-mesgmenumarkundel(Window *w, Message*, Message *m)
+mesgmenumarkundel(Window *w, Message* _, Message *m)
 {
 	char *buf;
 
@@ -708,7 +708,7 @@ mesgtagpost(Message *m)
 /* need to expand selection more than default word */
 #pragma varargck argpos eval 2
 
-long
+int32_t
 eval(Window *w, char *s, ...)
 {
 	char buf[64];
@@ -745,7 +745,7 @@ char*
 expandaddr(Window *w, Event *e)
 {
 	char *s;
-	long q0, q1;
+	int32_t q0, q1;
 
 	if(e->q0 != e->q1)	/* cannot happen */
 		return nil;
