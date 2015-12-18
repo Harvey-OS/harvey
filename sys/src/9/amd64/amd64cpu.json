@@ -25,6 +25,7 @@
 					"dup",
 					"env",
 					"ether",
+					"iig",
 					"ip",
 					"kprof",
 					"mnt",
@@ -77,7 +78,6 @@
 				],
 				"VGA": []
 			},
-			"Systab": "/sys/src/libc/9syscall/sys.h",
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
@@ -85,26 +85,28 @@
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
 				"factotum": "/$ARCH/bin/auth/factotum",
+				"fdisk": "/$ARCH/bin/disk/fdisk",
+				"fossil": "/$ARCH/bin/fossil/fossil",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
+				"prep": "/$ARCH/bin/disk/prep",
 				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
 				"screenconsole": "/$ARCH/bin/aux/screenconsole",
 				"srv": "/$ARCH/bin/srv",
-				"fdisk": "/$ARCH/bin/disk/fdisk",
-				"prep": "/$ARCH/bin/disk/prep",
-				"venti": "/$ARCH/bin/venti/venti",
-				"fossil": "/$ARCH/bin/fossil/fossil",
-				"startdisk" : "startdisk",
-				"usbd" : "/$ARCH/bin/usb/usbd"
-			}
+				"startdisk": "startdisk",
+				"usbd": "/$ARCH/bin/usb/usbd",
+				"venti": "/$ARCH/bin/venti/venti"
+			},
+			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},
 		"Program": "harvey",
 		"SourceFiles": [
 			"cga.c",
 			"devacpi.c",
+			"deviig.c",
 			"devusb.c",
 			"devvga.c",
 			"ether8139.c",
