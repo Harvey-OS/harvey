@@ -31,16 +31,6 @@ mkalt(Channel *c, void *v, int op)
 }
 
 void
-freetoc(Toc *t)
-{
-	int i;
-
-	free(t->title);
-	for(i=0; i<t->ntrack; i++)
-		free(t->track[i].title);
-}
-
-void
 eventwatcher(Drive *d)
 {
 	enum { STATUS, WEVENT, TOCDISP, DBREQ, DBREPLY, NALT };
