@@ -1,0 +1,13 @@
+{
+	"all": {
+		"Include": [
+			"cmd.json"
+		],
+		"Projects": [
+			"mail/src/build.json",
+			"news/src/build.json",
+			"wiki/src/build.json",
+			"bin/source/build.json"
+		]
+	}
+}

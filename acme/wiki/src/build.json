@@ -1,0 +1,15 @@
+{
+	"Wiki": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"Program": "Wiki",
+		"SourceFiles": [
+			"main.c",
+			"util.c",
+			"wiki.c",
+			"win.c"
+		]
+	}
+}

@@ -21,7 +21,7 @@ tocthread(void *v)
 	DPRINT(2, "recv ctocdisp?...");
 	while(recv(d->ctocdisp, &thetoc) == 1) {
 		DPRINT(2, "recv ctocdisp!...");
-		drawtoc(d->w, &thetoc);
+		drawtoc(d->w, d, &thetoc);
 		DPRINT(2, "send dbreq...\n");
 		send(d->ctocdbreq, &thetoc);
 	}

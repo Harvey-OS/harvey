@@ -1,0 +1,13 @@
+{
+	"adict": {
+		"Include": [
+			"../../../cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"Program": "adict",
+		"SourceFiles": [
+			"adict.c",
+			"win.c"
+		]
+	}
+}
