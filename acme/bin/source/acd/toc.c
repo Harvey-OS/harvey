@@ -21,9 +21,9 @@ tocthread(void *v)
 	DPRINT(2, "recv ctocdisp?...");
 	while(recv(d->ctocdisp, &thetoc) == 1) {
 		DPRINT(2, "recv ctocdisp!...");
-		drawtoc(d->w, &thetoc);
+		drawtoc(d->w, d, &thetoc);
 		DPRINT(2, "send dbreq...\n");
-		send(d->ctocdbreq, &thetoc);
+		send(d->cdbreq, &thetoc);
 	}
 }
 
@@ -45,7 +45,7 @@ cddbthread(void *v)
 
 	threadsetname("cddbthread");
 	d = v;
-	while(recv(d->ctocdbreply, &t) == 1) {
+	while(recv(d->cdbreply, &t) == 1) {
 		if(thetoc.nchange == t.nchange) {
 			freetoc(&thetoc);
 			thetoc = t;
@@ -63,6 +63,6 @@ cdstatusthread(void *v)
 	d = v;
 	
 	for(;;)
-		recv(d->cstat, &s);
+		recv(d->cstatus, &s);
 
 }

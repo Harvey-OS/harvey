@@ -61,7 +61,7 @@ spout(int fd, char *name)
 		w = s;
 		t = s;
 		do{
-			c = *(uchar*)t;
+			c = *(uint8_t*)t;
 			if(c < Runeself)
 				wid = 1;
 			else{
