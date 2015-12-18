@@ -267,7 +267,7 @@ sendinput(Window *w, uint32_t q0, uint32_t *q1)
 
 Event esendinput;
 void
-fsloop(void*)
+fsloop(void* _)
 {
 	Fsevent e;
 	Req **l, *r;

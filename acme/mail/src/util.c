@@ -23,7 +23,7 @@ emalloc(uint n)
 	if(p == nil)
 		error("can't malloc: %r");
 	memset(p, 0, n);
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -33,7 +33,7 @@ erealloc(void *p, uint n)
 	p = realloc(p, n);
 	if(p == nil)
 		error("can't realloc: %r");
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 

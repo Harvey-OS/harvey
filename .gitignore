@@ -12,6 +12,8 @@ amd64/bin
 amd64/init
 amd64/lib
 
+acme/bin/amd64
+
 sys/log
 
 sys/src/9/port/error.h
