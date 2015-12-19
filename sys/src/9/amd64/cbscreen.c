@@ -72,6 +72,7 @@ screensize(int x, int y, int z, uint32_t chan)
 		int width = (x*z)/BI2WD;
 		void *p;
 
+		error("Can't do this");
 		p = malloc(width*BY2WD*y);
 		if(p == nil)
 			error("no memory for vga soft screen");
@@ -125,6 +126,7 @@ screenaperture(int size, int align)
 	if(scr->paddr)	/* set up during enable */
 		return 0;
 
+	error("can't do this");
 	if(size == 0)
 		return 0;
 
@@ -273,19 +275,14 @@ int
 setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
 {
 	VGAscr *scr;
-	int d;
 
+	error("can't do this");
 	scr = &vgascreen[0];
-	d = scr->palettedepth;
 
 	lock(&cursor.l);
 	scr->colormap[p][0] = r;
 	scr->colormap[p][1] = g;
 	scr->colormap[p][2] = b;
-	vgao(PaddrW, p);
-	vgao(Pdata, r>>(32-d));
-	vgao(Pdata, g>>(32-d));
-	vgao(Pdata, b>>(32-d));
 	unlock(&cursor.l);
 
 	return ~0;
@@ -359,7 +356,7 @@ setcursor(Cursor* curs)
 	scr->cur->load(scr, curs);
 }
 
-int hwaccel = 1;
+int hwaccel = 0;
 int hwblank = 0;	/* turned on by drivers that are known good */
 int panning = 0;
 
@@ -444,70 +441,6 @@ blankscreen(int blank)
 }
 
 void
-vgalinearpciid(VGAscr *scr, int vid, int did)
-{
-	Pcidev *p;
-
-	p = nil;
-	while((p = pcimatch(p, vid, 0)) != nil){
-		if(p->ccrb != 3)	/* video card */
-			continue;
-		if(did != 0 && p->did != did)
-			continue;
-		break;
-	}
-	if(p == nil)
-		error("pci video card not found");
-
-	scr->pci = p;
-	vgalinearpci(scr);
-}
-
-void
-vgalinearpci(VGAscr *scr)
-{
-	uint32_t paddr;
-	int i, size, best;
-	Pcidev *p;
-	
-	p = scr->pci;
-	if(p == nil)
-		return;
-
-	/*
-	 * Scan for largest memory region on card.
-	 * Some S3 cards (e.g. Savage) have enormous
-	 * mmio regions (but even larger frame buffers).
-	 * Some 3dfx cards (e.g., Voodoo3) have mmio
-	 * buffers the same size as the frame buffer,
-	 * but only the frame buffer is marked as
-	 * prefetchable (bar&8).  If a card doesn't fit
-	 * into these heuristics, its driver will have to
-	 * call vgalinearaddr directly.
-	 */
-	best = -1;
-	for(i=0; i<nelem(p->mem); i++){
-		if(p->mem[i].bar&1)	/* not memory */
-			continue;
-		if(p->mem[i].size < 640*480)	/* not big enough */
-			continue;
-		if(best==-1 
-		|| p->mem[i].size > p->mem[best].size 
-		|| (p->mem[i].size == p->mem[best].size 
-		  && (p->mem[i].bar&8)
-		  && !(p->mem[best].bar&8)))
-			best = i;
-	}
-	if(best >= 0){
-		paddr = p->mem[best].bar & ~0x0F;
-		size = p->mem[best].size;
-		vgalinearaddr(scr, paddr, size);
-		return;
-	}
-	error("no video memory found on pci card");
-}
-
-void
 vgalinearaddr(VGAscr *scr, uint32_t paddr, int size)
 {
 	int x, nsize;
@@ -522,6 +455,7 @@ vgalinearaddr(VGAscr *scr, uint32_t paddr, int size)
 	if(scr->paddr == paddr && size <= scr->apsize)
 		return;
 
+	error("Can't do vgalinearaddr");
 	if(scr->paddr){
 		/*
 		 * could call vunmap and vmap,
