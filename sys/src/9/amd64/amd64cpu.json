@@ -25,7 +25,6 @@
 					"dup",
 					"env",
 					"ether",
-					"iig",
 					"ip",
 					"kprof",
 					"mnt",
@@ -106,7 +105,6 @@
 		"SourceFiles": [
 			"cga.c",
 			"devacpi.c",
-			"deviig.c",
 			"devusb.c",
 			"devvga.c",
 			"ether8139.c",
