@@ -48,19 +48,31 @@ static Cmdtab iigctlmsg[] = {
 typedef struct Iig Iig;
 
 struct Iig {
-	Pcidev *dev;
+	struct VGAscr scr;
 };
-
 static Iig iig;
 
 static void
 iigreset(void)
 {
-	iig.dev = pcimatch(nil, 0x8086, 0x0116);
-	if (iig.dev)
-		print("Found sandybridge at 0x%x\n", iig.dev->tbdf);
-	else
+	iig.scr.pci = pcimatch(nil, 0x8086, 0x0116);
+	if (iig.scr.pci)
+		print("Found sandybridge at 0x%x\n", iig.scr.pci->tbdf);
+	else {
 		print("NO sandybridge found\n");
+		return;
+	}
+	/* on coreboot systems, which is what this is mainly for, the graphics memory is allocated and
+	 * reserved. This little hack won't be permanent but we might as well see if we can get to that
+	 * memory.
+	 */
+	void *x = vmap(iig.scr.pci->mem[1].bar, iig.scr.pci->mem[1].size);
+	print("x is THIS! %p\n", x);
+	if (x) {
+		iig.scr.vaddr = x;
+		iig.scr.paddr = iig.scr.pci->mem[1].bar;
+		iig.scr.apsize = iig.scr.pci->mem[1].size;
+	}
 }
 
 static Chan*
