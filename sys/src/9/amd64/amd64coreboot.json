@@ -25,6 +25,7 @@
 					"dup",
 					"env",
 					"ether",
+					"iig",
 					"ip",
 					"kprof",
 					"mnt",
@@ -44,6 +45,7 @@
 					"uart",
 					"ws",
 					"usb",
+					"vga",
 					"zp"
 				],
 				"Ip": [
@@ -70,11 +72,11 @@
 				"Sd": [
 					"sdiahci"
 				],
-				"Systab": "/sys/src/libc/9syscall/sys.h",
 				"Uart": [
 					"i8250",
 					"pci"
-				]
+				],
+				"VGA": []
 			},
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
@@ -83,35 +85,41 @@
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
 				"factotum": "/$ARCH/bin/auth/factotum",
+				"fdisk": "/$ARCH/bin/disk/fdisk",
+				"fossil": "/$ARCH/bin/fossil/fossil",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
+				"prep": "/$ARCH/bin/disk/prep",
 				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
 				"screenconsole": "/$ARCH/bin/aux/screenconsole",
 				"srv": "/$ARCH/bin/srv",
-				"fdisk": "/$ARCH/bin/disk/fdisk",
-				"prep": "/$ARCH/bin/disk/prep",
-				"venti": "/$ARCH/bin/venti/venti",
-				"fossil": "/$ARCH/bin/fossil/fossil",
-				"startdisk" : "startdisk"
-			}
+				"startdisk": "startdisk",
+				"usbd": "/$ARCH/bin/usb/usbd",
+				"venti": "/$ARCH/bin/venti/venti"
+			},
+			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},
 		"Program": "harvey",
 		"SourceFiles": [
-		        "../port/corebootscreen.c",
 			"cga.c",
 			"devacpi.c",
+			"deviig.c",
 			"devusb.c",
+			"devvga.c",
 			"ether8139.c",
 			"ether82563.c",
 			"amd64cpu.c",
 			"mouse.c",
+			"cbscreen.c",
 			"sdata.c",
 			"usbehcipc.c",
 			"usbohci.c",
-			"usbuhci.c"
+			"usbuhci.c",
+			"vga.c",
+			"vgax.c"
 		]
 	}
 }
