@@ -45,7 +45,6 @@
 					"uart",
 					"ws",
 					"usb",
-					"vga",
 					"zp"
 				],
 				"Ip": [
@@ -108,7 +107,6 @@
 			"devacpi.c",
 			"deviig.c",
 			"devusb.c",
-			"devvga.c",
 			"ether8139.c",
 			"ether82563.c",
 			"amd64cpu.c",
@@ -118,8 +116,7 @@
 			"usbehcipc.c",
 			"usbohci.c",
 			"usbuhci.c",
-			"vga.c",
-			"vgax.c"
+		    "cbvga.c"
 		]
 	}
 }
