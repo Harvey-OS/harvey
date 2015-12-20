@@ -57,14 +57,17 @@ screensize(int x, int y, int z, uint32_t chan)
 	Proc *up = externup();
 	VGAscr *scr;
 	void *oldsoft;
+//static int i = 0;
 
+print("%s\n", __func__);
 	lock(&vgascreenlock);
 	if(waserror()){
 		unlock(&vgascreenlock);
 		nexterror();
 	}
-
+print("=================================================== init\n");
 	memimageinit();
+//if (i++<2) error("done memimageinit");
 	scr = &vgascreen[0];
 	oldsoft = softscreen;
 
@@ -72,7 +75,7 @@ screensize(int x, int y, int z, uint32_t chan)
 		int width = (x*z)/BI2WD;
 		void *p;
 
-		error("Can't do this");
+		error("Can't do this -- paddr is nil");
 		p = malloc(width*BY2WD*y);
 		if(p == nil)
 			error("no memory for vga soft screen");
@@ -126,7 +129,7 @@ screenaperture(int size, int align)
 	if(scr->paddr)	/* set up during enable */
 		return 0;
 
-	error("can't do this");
+	error("can't do this -- scr->paddr is nil in screenaperture");
 	if(size == 0)
 		return 0;
 
@@ -276,7 +279,7 @@ setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
 {
 	VGAscr *scr;
 
-	error("can't do this");
+	print("set pallete? who knows?\n");
 	scr = &vgascreen[0];
 
 	lock(&cursor.l);

@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#define I_AM_HERE print("Core 0 is in %s() at %s:%d\n", \
+                         __FUNCTION__, __FILE__, __LINE__);
 /*
  * VGA controller
  */
@@ -47,17 +49,16 @@ static Cmdtab iigctlmsg[] = {
 };
 typedef struct Iig Iig;
 
-struct Iig {
-	struct VGAscr scr;
-};
-static Iig iig;
+extern VGAscr vgascreen[];
 
 static void
 iigreset(void)
 {
-	iig.scr.pci = pcimatch(nil, 0x8086, 0x0116);
-	if (iig.scr.pci)
-		print("Found sandybridge at 0x%x\n", iig.scr.pci->tbdf);
+	uintptr_t p, s;
+	void *v;
+	vgascreen[0].pci = pcimatch(nil, 0x8086, 0x0116);
+	if (vgascreen[0].pci)
+		print("Found sandybridge at 0x%x\n", vgascreen[0].pci->tbdf);
 	else {
 		print("NO sandybridge found\n");
 		return;
@@ -66,12 +67,19 @@ iigreset(void)
 	 * reserved. This little hack won't be permanent but we might as well see if we can get to that
 	 * memory.
 	 */
-	void *x = vmap(iig.scr.pci->mem[1].bar, iig.scr.pci->mem[1].size);
-	print("x is THIS! %p\n", x);
-	if (x) {
-		iig.scr.vaddr = x;
-		iig.scr.paddr = iig.scr.pci->mem[1].bar;
-		iig.scr.apsize = iig.scr.pci->mem[1].size;
+	p = vgascreen[0].pci->mem[2].bar & ~0xfULL;
+	if (! p) {
+		print("NO PHYSADDR at BAR 0\n");
+		return;
+	}
+	s = 4 * 1048576; //vgascreen[0].pci->mem[2].size;
+	print("paddr is %x size %x\n", p, s); 
+	v = vmap(p, s);
+	print("p is 0x%x, s is 0x%x, v is THIS! %p\n", p, s, v);
+	if (v) {
+		vgascreen[0].vaddr = v;
+		vgascreen[0].paddr = p;
+		vgascreen[0].apsize = s;
 	}
 }
 
@@ -109,11 +117,67 @@ iigclose(Chan* c)
 static int32_t
 iigread(Chan* c, void* a, int32_t n, int64_t off)
 {
+	VGAscr *scr;
+	Proc *up = externup();
+	int len;
+	char *p, *s;
+	uint32_t offset = off;
+	char chbuf[30];
+	int i;
 
 	switch((uint32_t)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, iigdir, nelem(iigdir), devgen);
+
+	case Qiigctl:
+		scr = &vgascreen[0];
+
+		p = malloc(READSTR);
+		if(p == nil)
+			error(Enomem);
+		if(waserror()){
+			free(p);
+			nexterror();
+		}
+
+		len = 0;
+
+		if(scr->dev)
+			s = scr->dev->name;
+		else
+			s = "cga";
+		len += snprint(p+len, READSTR-len, "type %s, paddr %x\n", s, scr->paddr);
+
+		if(scr->gscreen) {
+			len += snprint(p+len, READSTR-len, "size %dx%dx%d %s\n",
+				scr->gscreen->r.max.x, scr->gscreen->r.max.y,
+				scr->gscreen->depth, chantostr(chbuf, scr->gscreen->chan));
+
+			if(Dx(scr->gscreen->r) != Dx(physgscreenr) 
+			|| Dy(scr->gscreen->r) != Dy(physgscreenr))
+				len += snprint(p+len, READSTR-len, "actualsize %dx%d\n",
+					physgscreenr.max.x, physgscreenr.max.y);
+		}
+
+		len += snprint(p+len, READSTR-len, "blank time %lud idle %d state %s\n",
+			blanktime, drawidletime(), scr->isblank ? "off" : "on");
+		len += snprint(p+len, READSTR-len, "hwaccel %s\n", hwaccel ? "on" : "off");
+		len += snprint(p+len, READSTR-len, "hwblank %s\n", hwblank ? "on" : "off");
+		len += snprint(p+len, READSTR-len, "panning %s\n", panning ? "on" : "off");
+		len += snprint(p+len, READSTR-len, "addr p 0x%lux v 0x%p size 0x%ux\n", scr->paddr, scr->vaddr, scr->apsize);
+		for(i = 0; i < 6; i++)
+			len += snprint(p+len, READSTR-len, "bar 0x%lx s 0x%lx\n", 
+				vgascreen[0].pci->mem[i].bar, vgascreen[0].pci->mem[i].size);
+		USED(len);
+
+		n = readstr(offset, a, n, p);
+		poperror();
+		free(p);
+
+		return n;
+
+		break;
 
 	default:
 		error(Egreg);
@@ -127,11 +191,36 @@ static void
 iigctl(Cmdbuf *cb)
 {
 	Cmdtab *ct;
+	uint32_t chan;
+	char *chanstr = "r8g8b8";
 
 	ct = lookupcmd(cb, iigctlmsg, nelem(iigctlmsg));
 	switch(ct->index){
 	case CMsize:
-		error("nope");
+		if((chan = strtochan(chanstr)) == 0)
+			error("bad channel");
+
+		if(chantodepth(chan) != 24) {
+			print("depth, channel do not match: chan %d chanstr %d chantodepth() %d\n", 
+			      chan, chanstr, chantodepth(chan));
+			error("depth, channel do not match");
+		}
+		
+		
+I_AM_HERE;
+		if(screensize(1280, 850, 24, chan)) {
+I_AM_HERE;
+	  		print("SHIT: screen setup failed\n");
+				error(Egreg);
+		}
+		print("base %x\n", vgascreen[0].paddr);
+I_AM_HERE;
+		vgascreenwin(&vgascreen[0]);
+I_AM_HERE;
+		resetscreenimage();
+I_AM_HERE;
+		cursoron(1);
+I_AM_HERE;
 		return;
 
 	case CMblank:

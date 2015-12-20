@@ -234,7 +234,8 @@ panic(char *fmt, ...)
 	Mpl pl;
 	va_list arg;
 	char buf[PRINTSIZE];
-
+	pl = splhi();
+print("panic\n"); while (1);
 	consdevs[1].q = nil;	/* don't try to write to /dev/kprint */
 
 	if(panicking)
@@ -246,7 +247,6 @@ panic(char *fmt, ...)
 	va_start(arg, fmt);
 	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
-	iprint("%s\n", buf);
 	if(consdebug)
 		(*consdebug)();
 	splx(pl);
@@ -254,7 +254,8 @@ panic(char *fmt, ...)
 	buf[n] = '\n';
 	putstrn(buf, n+1);
 	//dumpstack();
-	delay(1000);	/* give time to consoles */
+	while (1);
+	delay(100000);	/* give time to consoles */
 	die("wait forever");
 	exit(1);
 }
@@ -275,6 +276,8 @@ sysfatal(char *fmt, ...)
 void
 _assert(char *fmt)
 {
+	print("_assert: %s\n", fmt);
+	while (1);
 	panic("assert failed at %#p: %s", getcallerpc(), fmt);
 }
 

@@ -86,5 +86,6 @@ chantodepth(uint32_t c)
 	}
 	if(n==0 || (n>8 && n%8) || (n<8 && 8%n))
 		return 0;
+print("chantodepth: c 0x%x, n %d\n", c, n);
 	return n;
 }

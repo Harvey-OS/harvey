@@ -1,7 +1,7 @@
 {
-	"amd64cpu": {
+	"amd64coreboot": {
 		"Env": [
-			"CONF=amd64cpu"
+			"CONF=amd64coreboot"
 		],
 		"Include": [
 			"core.json",
@@ -82,6 +82,7 @@
 				"boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
 				"date": "/$ARCH/bin/date",
+				"ed": "/$ARCH/bin/ed",
 				"echo": "/$ARCH/bin/echo",
 				"factotum": "/$ARCH/bin/auth/factotum",
 				"fdisk": "/$ARCH/bin/disk/fdisk",
@@ -109,7 +110,7 @@
 			"devusb.c",
 			"ether8139.c",
 			"ether82563.c",
-			"amd64cpu.c",
+			"amd64coreboot.c",
 			"mouse.c",
 			"cbscreen.c",
 			"sdata.c",

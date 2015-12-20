@@ -991,7 +991,7 @@ initscreenimage(void)
 	if(screendimage == nil)
 		return 0;
 	screenimage = screendimage->image;
-// iprint("initscreenimage %p %p\n", screendimage, screenimage);
+ iprint("initscreenimage %p %p\n", screendimage, screenimage);
 	mouseresize();
 	return 1;
 }

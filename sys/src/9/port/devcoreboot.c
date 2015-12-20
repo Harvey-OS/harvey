@@ -47,7 +47,7 @@
                          __FUNCTION__, __FILE__, __LINE__);
 
 static void cb_parse_memory(void *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_memory *mem = ptr;
 	int count = MEM_RANGE_COUNT(mem);
 	int i;
@@ -73,12 +73,12 @@ static void cb_parse_memory(void *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_serial(void *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	info->serial = ((struct cb_serial *)ptr);
 }
 
 static void cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_range *vbho = (struct cb_range *)ptr;
 
 	info->vboot_handoff = (void *)(uintptr_t)vbho->range_start;
@@ -86,7 +86,7 @@ static void cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_vbnv(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_range *vbnv = (struct cb_range *)ptr;
 
 	info->vbnv_start = vbnv->range_start;
@@ -94,7 +94,7 @@ static void cb_parse_vbnv(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_gpios(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	int i;
 	struct cb_gpios *gpios = (struct cb_gpios *)ptr;
 
@@ -106,7 +106,7 @@ static void cb_parse_gpios(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_vdat(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_range *vdat = (struct cb_range *) ptr;
 
 	info->vdat_addr = KADDR(vdat->range_start);
@@ -114,44 +114,44 @@ static void cb_parse_vdat(unsigned char *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_tstamp(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->tstamp_table = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_cbmem_cons(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->cbmem_cons = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_mrc_cache(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->mrc_cache = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_acpi_gnvs(unsigned char *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_cbmem_tab *const cbmem = (struct cb_cbmem_tab *)ptr;
 	info->acpi_gnvs = KADDR(cbmem->cbmem_tab);
 }
 
 static void cb_parse_optiontable(void *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	/* ptr points to a coreboot table entry and is already virtual */
 	info->option_table = ptr;
 }
 
 static void cb_parse_checksum(void *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_cmos_checksum *cmos_cksum = ptr;
 	info->cmos_range_start = cmos_cksum->range_start;
 	info->cmos_range_end = cmos_cksum->range_end;
 	info->cmos_checksum_location = cmos_cksum->location;
 }
 static void cb_parse_framebuffer(void *ptr, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	/* ptr points to a coreboot table entry and is already virtual */
 	info->framebuffer = ptr;
 }
@@ -162,12 +162,12 @@ static void cb_parse_x86_rom_var_mtrr(void *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_string(unsigned char *ptr, char **info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	*info = (char *)((struct cb_string *)ptr)->string;
 }
 
 int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
-{ print("%s\n", __func__);
+{ //print("%s\n", __func__);
 	struct cb_header *header;
 	unsigned char *ptr = addr;
 	void *forward;
@@ -185,31 +185,32 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 			break;
 	}
 
+	if (0)
 	print("found ? i %d len %d\n", i, len);
 	/* We walked the entire space and didn't find anything. */
 	if (i >= len)
 		return -1;
-	I_AM_HERE;
+	//I_AM_HERE;
 	if (!header->table_bytes)
 		return 0;
-	I_AM_HERE;
+	//I_AM_HERE;
 	/* Make sure the checksums match. */
 	if (ipchksum((uint8_t *) header, sizeof(*header)) != 0)
 		return -1;
-	I_AM_HERE;
+	//I_AM_HERE;
 	if (ipchksum((uint8_t *) (ptr + sizeof(*header)),
 		     header->table_bytes) != header->table_checksum)
 		return -1;
-	I_AM_HERE;
+	//I_AM_HERE;
 	info->header = header;
 
 	/* Now, walk the tables. */
 	ptr += header->header_bytes;
-	I_AM_HERE;
+	//I_AM_HERE;
 	for (i = 0; i < header->table_entries; i++) {
 		struct cb_record *rec = (struct cb_record *)ptr;
-	I_AM_HERE;
-	print("rec %p tag %p\n", rec, rec->tag);
+	//I_AM_HERE;
+	//print("rec %p tag %p\n", rec, rec->tag);
 		/* We only care about a few tags here (maybe more later). */
 		switch (rec->tag) {
 		case CB_TAG_FORWARD:

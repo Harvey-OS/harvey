@@ -295,8 +295,12 @@ struct Pcidev
 	unsigned char	cls;
 	unsigned char	ltr;
 
+	/* N.B. The bar used to be 32 bits. That's just plain wrong for the
+	 * world we live in today. We make it 64 bits and hope not to break
+	 * too many things.
+	 */
 	struct {
-		uint32_t	bar;		/* base address */
+		/*uint64_t*/uint32_t	bar;		/* base address */
 		int	size;
 	} mem[6];
 

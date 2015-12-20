@@ -38,9 +38,11 @@ allocmemimaged(Rectangle r, uint32_t chan, Memdata *md)
 
 	if(Dx(r) <= 0 || Dy(r) <= 0){
 		werrstr("bad rectangle %R", r);
+		print("bad rectangle %R", r);
 		return nil;
 	}
 	if((d = chantodepth(chan)) == 0) {
+		print("bad channel descriptor %.8lux", chan);
 		werrstr("bad channel descriptor %.8lux", chan);
 		return nil;
 	}
@@ -66,6 +68,8 @@ allocmemimaged(Rectangle r, uint32_t chan, Memdata *md)
 	i->layer = nil;
 	i->cmap = memdefcmap;
 	if(memsetchan(i, chan) < 0){
+		print("memsetchan failed\n");
+		werrstr("memsetchan failed\n");
 		free(i);
 		return nil;
 	}
@@ -80,8 +84,8 @@ allocmemimage(Rectangle r, uint32_t chan)
 	uint32_t l, nw;
 	Memdata *md;
 	Memimage *i;
-
 	if((d = chantodepth(chan)) == 0) {
+		print("FUCK\n"); while (1);
 		werrstr("bad channel descriptor %.8lux", chan);
 		return nil;
 	}
@@ -93,9 +97,10 @@ allocmemimage(Rectangle r, uint32_t chan)
 		return nil;
 
 	md->ref = 1;
-	md->base = poolalloc(imagmem,
-			     sizeof(Memdata*)+(1+nw)*sizeof(uint32_t));
+	md->base = //poolalloc(imagmem,
+			     malloc(sizeof(Memdata*)+(1+nw)*sizeof(uint32_t));
 	if(md->base == nil){
+		print("FUCK2\n"); while (1);
 		free(md);
 		return nil;
 	}
