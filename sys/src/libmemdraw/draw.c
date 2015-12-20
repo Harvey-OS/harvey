@@ -60,7 +60,6 @@ memimageinit(void)
 		return;
 
 	didinit = 1;
-
 	if(strcmp(imagmem->name, "Image") == 0 || strcmp(imagmem->name, "image") == 0)
 		imagmem->move = memimagemove;
 
@@ -72,17 +71,18 @@ memimageinit(void)
 	fmtinstall('b', _ifmt);
 
 	memones = allocmemimage(Rect(0,0,1,1), GREY1);
+	memzeros = allocmemimage(Rect(0,0,1,1), GREY1);
+	if(memones == nil || memzeros == nil) {
+		print("WTF? \n"); while (1);
+		assert(0 /*cannot initialize memimage library */);	/* RSC BUG */
+	}
 	memones->flags |= Frepl;
 	memones->clipr = Rect(-0x3FFFFFF, -0x3FFFFFF, 0x3FFFFFF, 0x3FFFFFF);
 	*byteaddr(memones, ZP) = ~0;
 
-	memzeros = allocmemimage(Rect(0,0,1,1), GREY1);
 	memzeros->flags |= Frepl;
 	memzeros->clipr = Rect(-0x3FFFFFF, -0x3FFFFFF, 0x3FFFFFF, 0x3FFFFFF);
 	*byteaddr(memzeros, ZP) = 0;
-
-	if(memones == nil || memzeros == nil)
-		assert(0 /*cannot initialize memimage library */);	/* RSC BUG */
 
 	memwhite = memones;
 	memblack = memzeros;
