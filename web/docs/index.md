@@ -12,6 +12,7 @@ Our aim is to provide a modern, distributed, 64 bit operating system that does a
 
 ## News & events
 
+* [Things you can do now in Harvey](news#things-you-can-do-now-in-harvey)
 * [Using gdb to debug Harvey](news#debugging-harvey-gdb)
 * [APE is ready](news#ape-is-ready)
 * [Broken scheduler, working scheduler](news#broken-scheduler)
