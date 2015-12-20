@@ -1,6 +1,6 @@
-# About 
+# About
 
-### Features 
+### Features
 
 - AMD 64 bit
 - Modern, simplified syscall system
@@ -9,6 +9,8 @@
 - Fast compilation of the whole system
 - All Plan9 userland apps available
 - Plans to add X11 with rio-like multiplexing, tty driver, new fileserver, native toolchain and more
+- Build binaries that will run on Linux and Harvey with no changes.
+- Go programming language port in progress.
 
 ### About the Name
 
@@ -18,10 +20,15 @@ So, why "Harvey"? Mostly because we liked it, but there are at least 3 other goo
 1. Harvey is a rabbit, Glenda is a bunny.
 1. Most importantly: in the movie, those who believed in Harvey were thought to be insane, but eventually found not to be.
 
-## Team 
+## Team
 
-- David du Colombier 
-- Rafael Fernández 
-- John Floren 
 - Álvaro Jurado
-- Ron Minnich 
+- Aki Nyrhinen
+- Dan Cross
+- David du Colombier
+- Hank Donnay
+- John Floren
+- Keith Poole
+- Rafael Fernández
+- Ron Minnich
+- Sevki Hasirci
