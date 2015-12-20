@@ -1,7 +1,7 @@
 {
-	"amd64cpu": {
+	"amd64coreboot": {
 		"Env": [
-			"CONF=amd64cpu"
+			"CONF=amd64coreboot"
 		],
 		"Include": [
 			"core.json",
@@ -109,7 +109,7 @@
 			"devusb.c",
 			"ether8139.c",
 			"ether82563.c",
-			"amd64cpu.c",
+			"amd64coreboot.c",
 			"mouse.c",
 			"cbscreen.c",
 			"sdata.c",
