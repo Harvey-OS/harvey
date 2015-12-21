@@ -136,7 +136,11 @@
 #define PMAPADDR        (0xffffffffffe00000)
 #endif
 
-
+// YUCK. 
+/* stuff we did not want to bring in but ... */
+ /* buffer for user space -- known to vga */
+#define RMBUF ((void*)(KZERO + 0x9000))
+#define LORMBUF (0x9000)
 
 /*
  * Hierarchical Page Tables.
