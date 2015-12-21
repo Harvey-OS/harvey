@@ -28,37 +28,49 @@
 #include <cursor.h>
 #include "screen.h"
 
+// YUCK. 
+/* stuff we did not want to bring in but ... */
+ /* buffer for user space -- known to vga */
+#define RMBUF ((void*)(KZERO + 0x9000))
+
 enum {
 	Usesoftscreen = 1,
 };
 
 static void *hardscreen;
-static uchar modebuf[0x1000];
+static uint8_t modebuf[0x1000];
 
 #define WORD(p) ((p)[0] | ((p)[1]<<8))
 #define LONG(p) ((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
 #define PWORD(p, v) (p)[0] = (v); (p)[1] = (v)>>8
 #define PLONG(p, v) (p)[0] = (v); (p)[1] = (v)>>8; (p)[2] = (v)>>16; (p)[3] = (v)>>24
 
-static uchar*
+static uint8_t*
 vbesetup(Ureg *u, int ax)
 {
-	ulong pa;
+	// Yes, it's a PA, but it's a real mode PA, and 32 bits are fine.
+	uint32_t pa;
 
 	pa = PADDR(RMBUF);
 	memset(modebuf, 0, sizeof modebuf);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
-	u->es = (pa>>4)&0xF000;
-	u->di = pa&0xFFFF;
+	/* here's the trick to avoid es. We know the real mode
+	 * ip is 16 bits. So we'll drop the segment in the high order 16 bits of the low 32 bits.
+	 * We can fix it up in the external emulator. 
+	 */
+	//u->es = (pa>>4)&0xF000;
+	//u->di = pa&0xFFFF;
+	u->di = pa;
 	return modebuf;
 }
 
 static void
 vbecall(Ureg *u)
 {
+	Proc *up = externup();
 	Chan *creg, *cmem;
-	ulong pa;
+	uint32_t pa;
 
 	cmem = namec("/dev/realmodemem", Aopen, ORDWR, 0);
 	if(waserror()){
@@ -71,14 +83,14 @@ vbecall(Ureg *u)
 		nexterror();
 	}
 	pa = PADDR(RMBUF);
-	devtab[cmem->type]->write(cmem, modebuf, sizeof modebuf, pa);
-	u->trap = 0x10;
-	devtab[creg->type]->write(creg, u, sizeof *u, 0);
+	cmem->dev->write(cmem, modebuf, sizeof modebuf, pa);
+	u->type = 0x10;
+	creg->dev->write(creg, u, sizeof *u, 0);
 
-	devtab[creg->type]->read(creg, u, sizeof *u, 0);
+	creg->dev->read(creg, u, sizeof *u, 0);
 	if((u->ax&0xFFFF) != 0x004F)
 		error("vesa bios error");
-	devtab[cmem->type]->read(cmem, modebuf, sizeof modebuf, pa);
+	cmem->dev->read(cmem, modebuf, sizeof modebuf, pa);
 
 	poperror();
 	cclose(creg);
@@ -90,7 +102,7 @@ static void
 vbecheck(void)
 {
 	Ureg u;
-	uchar *p;
+	uint8_t *p;
 
 	p = vbesetup(&u, 0x4F00);
 	strcpy((char*)p, "VBE2");
@@ -111,10 +123,10 @@ vbegetmode(void)
 	return u.bx;
 }
 
-static uchar*
+static uint8_t*
 vbemodeinfo(int mode)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 
 	p = vbesetup(&u, 0x4F01);
@@ -124,11 +136,11 @@ vbemodeinfo(int mode)
 }
 
 static void
-vesalinear(VGAscr *scr, int, int)
+vesalinear(VGAscr *scr, int _1, int _2)
 {
 	int i, mode, size, havesize;
-	uchar *p;
-	ulong paddr;
+	uint8_t *p;
+	uint32_t paddr;
 	Pcidev *pci;
 
 	if(hardscreen) {
@@ -153,7 +165,7 @@ vesalinear(VGAscr *scr, int, int)
 
 	paddr = LONG(p+40);
 	size = WORD(p+20)*WORD(p+16);
-	size = PGROUND(size);
+	size = ROUNDUP(size, PGSZ);
 
 	/*
 	 * figure out max size of memory so that we have
@@ -197,13 +209,13 @@ static void
 vesaflush(VGAscr *scr, Rectangle r)
 {
 	int t, w, wid, off;
-	ulong *hp, *sp, *esp;
+	uint32_t *hp, *sp, *esp;
 
 	if(hardscreen == nil)
 		return;
 	if(rectclip(&r, scr->gscreen->r) == 0)
 		return;
-	sp = (ulong*)(scr->gscreendata->bdata + scr->gscreen->zero);
+	sp = (uint32_t*)(scr->gscreendata->bdata + scr->gscreen->zero);
 	t = (r.max.x * scr->gscreen->depth + 2*BI2WD-1) / BI2WD;
 	w = (r.min.x * scr->gscreen->depth) / BI2WD;
 	w = (t - w) * BY2WD;

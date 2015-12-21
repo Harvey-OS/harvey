@@ -11,7 +11,8 @@
 			"../386/pci.c",
 			"../386/sdiahci.c",
 			"../386/uarti8250.c",
-			"../386/uartpci.c"
+			"../386/uartpci.c",
+			"../386/vgavesa.c"
 		]
 	}
 }
