@@ -45,6 +45,7 @@ vbesetup(Ureg *u, int ax)
 {
 	// Yes, it's a PA, but it's a real mode PA, and 32 bits are fine.
 	uint32_t pa;
+	uint16_t es;
 
 	pa = PADDR(RMBUF);
 	memset(modebuf, 0, sizeof modebuf);
@@ -54,9 +55,9 @@ vbesetup(Ureg *u, int ax)
 	 * ip is 16 bits. So we'll drop the segment in the high order 16 bits of the low 32 bits.
 	 * We can fix it up in the external emulator. 
 	 */
-	//u->es = (pa>>4)&0xF000;
-	//u->di = pa&0xFFFF;
-	u->di = pa;
+	es = (pa>>4)&0xF000;
+	u->di = pa&0xFFFF;
+	u->di |= es<<16;
 	return modebuf;
 }
 
