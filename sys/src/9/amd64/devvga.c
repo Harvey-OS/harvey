@@ -74,6 +74,48 @@ static Cmdtab vgactlmsg[] = {
 	CMunblank,	"unblank",	1,
 };
 
+static long
+rmemrw(int isr, void *a, long n, int64_t off)
+{
+	if(off < 0 || n < 0)
+		error("bad offset/count");
+	if(isr){
+		if(off >= MB)
+			return 0;
+		if(off+n >= MB)
+			n = MB - off;
+		memmove(a, KADDR((uintptr_t)off), n);
+	}else{
+		/* realmode buf page ok, allow vga framebuf's access */
+		if(off >= MB)
+			error("Offset > MB");
+		if (off+n > MB)
+			error("off+n > MB");
+		if (off < LORMBUF)
+			error("off < LORMBUF");
+		if (off+n > LORMBUF+PGSZ)
+			error("off+n > LORMBUF+BY2PG");
+		if (off < 0xA0000)
+			error("off < 0xa0000");
+		if (off+n > 0xB0000+0x10000)
+			error("off+n > 0xb0000+0x10000");
+		memmove(KADDR((uintptr_t)off), a, n);
+	}
+	return n;
+}
+
+static int32_t
+rmemread(Chan*_, void *a, int32_t n, int64_t off)
+{
+	return rmemrw(1, a, n, off);
+}
+
+static int32_t
+rmemwrite(Chan*_, void *a, int32_t n, int64_t off)
+{
+	return rmemrw(0, a, n, off);
+}
+
 static void
 vgareset(void)
 {
@@ -82,6 +124,7 @@ vgareset(void)
 		panic("vga ports already allocated"); 
 	if(ioalloc(0x3c0, 0x3da-0x3c0+1, 0, "vga") < 0)
 		panic("vga ports already allocated"); 
+	addarchfile("realmodemem", 0660, rmemread, rmemwrite);
 }
 
 static Chan*
