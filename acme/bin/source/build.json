@@ -1,0 +1,19 @@
+{
+	"Cmd": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"SourceFilesCmd": [
+			"mkwnew.c",
+			"spout.c"
+		]
+	},
+	"Dirs": {
+		"Projects": [
+			"acd/build.json",
+			"adict/build.json",
+			"win/build.json"
+		]
+	}
+}

@@ -233,7 +233,7 @@ threadmain(int argc, char *argv[])
 }
 
 void
-plumbproc(void*)
+plumbproc(void* _)
 {
 	Plumbmsg *m;
 
@@ -247,7 +247,7 @@ plumbproc(void*)
 }
 
 void
-plumbshowproc(void*)
+plumbshowproc(void* _)
 {
 	Plumbmsg *m;
 
@@ -261,7 +261,7 @@ plumbshowproc(void*)
 }
 
 void
-plumbsendproc(void*)
+plumbsendproc(void* _)
 {
 	Plumbmsg *m;
 
@@ -344,7 +344,7 @@ plumbthread(void)
 }
 
 void
-plumbshowthread(void*)
+plumbshowthread(void* _)
 {
 	Plumbmsg *m;
 
@@ -357,7 +357,7 @@ plumbshowthread(void*)
 }
 
 void
-plumbsendthread(void*)
+plumbsendthread(void* _)
 {
 	Plumbmsg *m;
 
