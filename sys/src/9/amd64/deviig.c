@@ -55,10 +55,11 @@ static void
 iigreset(void)
 {
 	uintptr_t p, s;
+	int ix = 2;
 	void *v;
 	vgascreen[0].pci = pcimatch(nil, 0x8086, 0x0116);
 	if (vgascreen[0].pci)
-		print("Found sandybridge at 0x%x\n", vgascreen[0].pci->tbdf);
+		print("Found sandybridge at 0x%p\n", vgascreen[0].pci->tbdf);
 	else {
 		print("NO sandybridge found\n");
 		return;
@@ -67,15 +68,15 @@ iigreset(void)
 	 * reserved. This little hack won't be permanent but we might as well see if we can get to that
 	 * memory.
 	 */
-	p = vgascreen[0].pci->mem[2].bar & ~0xfULL;
+	p = vgascreen[0].pci->mem[ix].bar & ~0xfULL;
 	if (! p) {
 		print("NO PHYSADDR at BAR 0\n");
 		return;
 	}
-	s = 4 * 1048576; //vgascreen[0].pci->mem[2].size;
-	print("paddr is %x size %x\n", p, s); 
+	s = 4 * 1048576; //vgascreen[0].pci->mem[ix].size;
+	print("paddr is %p size %x\n", p, s); 
 	v = vmap(p, s);
-	print("p is 0x%x, s is 0x%x, v is THIS! %p\n", p, s, v);
+	print("p is 0x%p, s is 0x%p, v is THIS! %p\n", p, s, v);
 	if (v) {
 		vgascreen[0].vaddr = v;
 		vgascreen[0].paddr = p;
@@ -147,7 +148,7 @@ iigread(Chan* c, void* a, int32_t n, int64_t off)
 			s = scr->dev->name;
 		else
 			s = "cga";
-		len += snprint(p+len, READSTR-len, "type %s, paddr %x\n", s, scr->paddr);
+		len += snprint(p+len, READSTR-len, "type %s, paddr %p\n", s, scr->paddr);
 
 		if(scr->gscreen) {
 			len += snprint(p+len, READSTR-len, "size %dx%dx%d %s\n",
@@ -167,7 +168,7 @@ iigread(Chan* c, void* a, int32_t n, int64_t off)
 		len += snprint(p+len, READSTR-len, "panning %s\n", panning ? "on" : "off");
 		len += snprint(p+len, READSTR-len, "addr p 0x%lux v 0x%p size 0x%ux\n", scr->paddr, scr->vaddr, scr->apsize);
 		for(i = 0; i < 6; i++)
-			len += snprint(p+len, READSTR-len, "bar 0x%lx s 0x%lx\n", 
+			len += snprint(p+len, READSTR-len, "bar 0x%p 0x%lx\n", 
 				vgascreen[0].pci->mem[i].bar, vgascreen[0].pci->mem[i].size);
 		USED(len);
 
@@ -207,6 +208,8 @@ iigctl(Cmdbuf *cb)
 		}
 		
 		
+		{ uint32_t *v = vgascreen[0].vaddr; int i; for(i = 0; i < 512*1024; i++) v[i] = 0xff00;}
+		return;
 I_AM_HERE;
 		if(screensize(1280, 850, 24, chan)) {
 I_AM_HERE;
@@ -214,6 +217,8 @@ I_AM_HERE;
 				error(Egreg);
 		}
 		print("base %x\n", vgascreen[0].paddr);
+		{ uint32_t *v = vgascreen[0].vaddr; int i; for(i = 0; i < 512*1024; i++) v[i] = 0xff00;}
+		return;
 I_AM_HERE;
 		vgascreenwin(&vgascreen[0]);
 I_AM_HERE;
