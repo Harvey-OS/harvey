@@ -384,7 +384,8 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 	char *err;
 	int i;
 
-	cpu->reg[RDI] = GETUREG(di);
+	/* N.B. it wasy always 16 bits in the kernel. */
+	cpu->reg[RDI] = GETUREG(di) & 0xffff;
 	cpu->reg[RSI] = GETUREG(si);
 	cpu->reg[RBP] = GETUREG(bp);
 	cpu->reg[RBX] = GETUREG(bx);
@@ -394,7 +395,7 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 
 //	cpu->reg[RGS] = GETUREG(gs);
 //	cpu->reg[RFS] = GETUREG(fs);
-//	cpu->reg[RES] = GETUREG(es);
+	cpu->reg[RES] = GETUREG(di) >> 16;
 //	cpu->reg[RDS] = GETUREG(ds);
 
 	cpu->reg[RFL] = GETUREG(flags);
