@@ -46,6 +46,7 @@ vbesetup(Ureg *u, int ax)
 {
 	// Yes, it's a PA, but it's a real mode PA, and 32 bits are fine.
 	uint32_t pa;
+	uint16_t es;
 
 	pa = PADDR(RMBUF);
 	memset(modebuf, 0, sizeof modebuf);
