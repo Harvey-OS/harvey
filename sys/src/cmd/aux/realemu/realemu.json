@@ -1,5 +1,8 @@
 {
 	"realemu": {
+		"Cflags": [
+			"-I", "/"
+		],
 		"Include": [
 			"../../cmd.json"
 		],
