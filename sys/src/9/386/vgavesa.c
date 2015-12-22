@@ -46,7 +46,6 @@ vbesetup(Ureg *u, int ax)
 {
 	// Yes, it's a PA, but it's a real mode PA, and 32 bits are fine.
 	uint32_t pa;
-	uint16_t es;
 
 	pa = PADDR(RMBUF);
 	memset(modebuf, 0, sizeof modebuf);
@@ -77,6 +76,7 @@ vbecall(Ureg *u)
 	pa = PADDR(RMBUF);
 	cmem->dev->write(cmem, modebuf, sizeof modebuf, pa);
 	u->trap = 0x10;
+	print("vbecall: sizeof u is %d\n", sizeof *u);
 	creg->dev->write(creg, u, sizeof *u, 0);
 
 	creg->dev->read(creg, u, sizeof *u, 0);
