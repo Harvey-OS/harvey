@@ -9,7 +9,7 @@
 #include <thread.h>
 #include <9p.h>
 
-#include <ureg.h>
+#include <386/include/ureg.h>
 
 enum {
 	MEMSIZE = 0x100000,
@@ -448,7 +448,7 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 		cpu->reg[RSS] = GETUREG(ss);
 		cpu->reg[RSP] = GETUREG(sp);
 		cpu->reg[RCS] = GETUREG(cs);
-		cpu->reg[RIP] = GETUREG(ip);
+		cpu->reg[RIP] = GETUREG(pc);
 //	}
 
 	startclock();
@@ -518,14 +518,14 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 	PUTUREG(cx, cpu->reg[RCX]);
 	PUTUREG(ax, cpu->reg[RAX]);
 
-//	PUTUREG(gs, cpu->reg[RGS]);
-//	PUTUREG(fs, cpu->reg[RFS]);
-//	PUTUREG(es, cpu->reg[RES]);
-//	PUTUREG(ds, cpu->reg[RDS]);
+	PUTUREG(gs, cpu->reg[RGS]);
+	PUTUREG(fs, cpu->reg[RFS]);
+	PUTUREG(es, cpu->reg[RES]);
+	PUTUREG(ds, cpu->reg[RDS]);
 
 	PUTUREG(flags, cpu->reg[RFL]);
 
-	PUTUREG(ip, cpu->reg[RIP]);
+	PUTUREG(pc, cpu->reg[RIP]);
 	PUTUREG(cs, cpu->reg[RCS]);
 	PUTUREG(sp, cpu->reg[RSP]);
 	PUTUREG(ss, cpu->reg[RSS]);
@@ -740,6 +740,7 @@ cpuproc(void *data)
 
 		case (Twrite<<8) | Qcall:
 			if(n != sizeof rmu){
+				fprint(2, "n is %d, sizeof(rmu) %d: %s\n", n, sizeof(rmu), Ebadureg);
 				respond(r, Ebadureg);
 				break;
 			}
