@@ -13,9 +13,6 @@
 
 #include "boot.h"
 
-// TODO: Fix later
-char* DEFAULT_IP = "10.0.2.2";
-
 static	uint8_t	fsip[IPaddrlen];
 	uint8_t	auip[IPaddrlen];
 static	char	mpoint[32];
@@ -106,7 +103,6 @@ print("ipconfig...");
 	if(!isvalidip(fsip))
 		netenv("fs", fsip);
 	while(!isvalidip(fsip)){
-		strcpy(buf, DEFAULT_IP);
 		outin("filesystem IP address", buf, sizeof(buf));
 		if (parseip(fsip, buf) == -1)
 			fprint(2, "configip: can't parse fs ip %s\n", buf);
@@ -116,7 +112,6 @@ print("ipconfig...");
 	if(!isvalidip(auip))
 		netenv("auth", auip);
 	while(!isvalidip(auip)){
-		strcpy(buf, DEFAULT_IP);
 		outin("authentication server IP address", buf, sizeof(buf));
 		if (parseip(auip, buf) == -1)
 			fprint(2, "configip: can't parse auth ip %s\n", buf);
