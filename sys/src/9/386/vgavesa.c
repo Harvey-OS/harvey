@@ -13,6 +13,7 @@
  * note that setting hwaccel to zero will cause cursor ghosts to be
  * left behind.  hwaccel set non-zero repairs this.
  */
+/* ensure an error here if there is a problem. */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -20,7 +21,7 @@
 #include "fns.h"
 #include "io.h"
 #include "../port/error.h"
-#include "ureg.h"
+#include "../../386/include/ureg.h"
 
 #define	Image	IMAGE
 #include <draw.h>
@@ -55,13 +56,8 @@ vbesetup(Ureg *u, int ax)
 	memset(modebuf, 0, sizeof modebuf);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
-	/* here's the trick to avoid es. We know the real mode
-	 * ip is 16 bits. So we'll drop the segment in the high order 16 bits of the low 32 bits.
-	 * We can fix it up in the external emulator. 
-	 */
-	//u->es = (pa>>4)&0xF000;
-	//u->di = pa&0xFFFF;
-	u->di = pa;
+	u->es = (pa>>4)&0xF000;
+	u->di = pa&0xFFFF;
 	return modebuf;
 }
 
@@ -84,7 +80,7 @@ vbecall(Ureg *u)
 	}
 	pa = PADDR(RMBUF);
 	cmem->dev->write(cmem, modebuf, sizeof modebuf, pa);
-	u->type = 0x10;
+	u->trap = 0x10;
 	creg->dev->write(creg, u, sizeof *u, 0);
 
 	creg->dev->read(creg, u, sizeof *u, 0);
