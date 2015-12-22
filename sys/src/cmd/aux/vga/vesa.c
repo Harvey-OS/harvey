@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <ureg.h>
+#include <386/include/ureg.h>
 typedef struct Ureg Ureg;
 
 #include "pci.h"
