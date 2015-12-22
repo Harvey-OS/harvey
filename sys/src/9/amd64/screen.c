@@ -751,3 +751,13 @@ VGAcur swcursor =
 	swmove,
 };
 
+// A bit hokey but it saves dumbness in the build tool and other code.
+VGAcur vgavesacur =
+{
+	"vesa",
+	swenable,
+	swdisable,
+	swload,
+	swmove,
+};
+

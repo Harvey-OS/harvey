@@ -75,7 +75,9 @@
 					"i8250",
 					"pci"
 				],
-				"VGA": []
+				"VGA": [
+					"vgavesa"
+				]
 			},
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
