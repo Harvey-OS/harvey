@@ -35,20 +35,27 @@ enum {
 static void
 latchstatus(Pit *ch)
 {
-	if(ch->rlatched)
+	print_func_entry();
+	if(ch->rlatched) {
+		print_func_exit();
 		return;
+	}
 	ch->rlatch[0] = ch->bcd | ch->omode<<1 | ch->amode<<4 | ch->count0<<6 | ch->out<<7;
 	ch->rcount = 0;
 	ch->rlatched = 1;
+	print_func_exit();
 }
 
 static void
 latchcount(Pit *ch)
 {
+	print_func_entry();
 	unsigned long w;
 
-	if(ch->rlatched)
+	if(ch->rlatched) {
+		print_func_exit();
 		return;
+	}
 	w = ch->count & 0xFFFF;
 	if(ch->bcd)
 		w = (w % 10) + ((w/10) % 10)<<4 + ((w/100) % 10)<<8 + ((w/1000) % 10)<<12;
@@ -64,11 +71,13 @@ latchcount(Pit *ch)
 		ch->rlatched++;
 		break;
 	}
+	print_func_exit();
 }
 
 static void
 setcount(Pit *ch)
 {
+	print_func_entry();
 	unsigned long w;
 
 	w = (unsigned long)ch->wlatch[0] | (unsigned long)ch->wlatch[1] << 8;
@@ -76,13 +85,16 @@ setcount(Pit *ch)
 		w = (w & 0xF) + 10*((w >> 4)&0xF) + 100*((w >> 8)&0xF) + 1000*((w >> 12)&0xF);
 	ch->count = w;
 	ch->count0 = 0;
+	print_func_exit();
 }
 
 static int
 deccount(Pit *ch, long long *cycles)
 {
+	print_func_entry();
 	if(ch->count0){
 		*cycles = 0;
+		print_func_exit();
 		return 0;
 	} else {
 		long long passed, remain;
@@ -100,6 +112,7 @@ deccount(Pit *ch, long long *cycles)
 			ch->count = 0;
 		}
 		*cycles = remain;
+		print_func_exit();
 		return ch->count == 0;
 	}
 }
@@ -107,14 +120,17 @@ deccount(Pit *ch, long long *cycles)
 void
 setgate(Pit *ch, unsigned char gate)
 {
+	print_func_entry();
 	if(ch->gate == 0 && gate)
 		ch->gateraised = 1;
 	ch->gate = gate;
+	print_func_exit();
 }
 
 static void
 clockpit1(Pit *ch, long long *cycles)
 {
+	print_func_entry();
 	switch(ch->omode){
 	case OM0:	/* Interrupt On Terminal Count */
 		if(ch->count0){
@@ -122,10 +138,12 @@ clockpit1(Pit *ch, long long *cycles)
 			ch->out = 0;
 		Next:
 			--*cycles;
+			print_func_exit();
 			return;
 		}
 		if(ch->gate && deccount(ch, cycles)){
 			ch->out = 1;
+			print_func_exit();
 			return;
 		}
 		break;
@@ -139,6 +157,7 @@ clockpit1(Pit *ch, long long *cycles)
 		}
 		if(deccount(ch, cycles) && ch->out == 0){
 			ch->out = 1;
+			print_func_exit();
 			return;
 		}
 		break;
@@ -160,6 +179,7 @@ clockpit1(Pit *ch, long long *cycles)
 		if(deccount(ch, cycles)){
 			setcount(ch);
 			ch->out = 0;
+			print_func_exit();
 			return;
 		}
 		break;
@@ -180,6 +200,7 @@ clockpit1(Pit *ch, long long *cycles)
 		if(deccount(ch, cycles)){
 			setcount(ch);
 			ch->out ^= 1;
+			print_func_exit();
 			return;
 		}
 		break;
@@ -192,6 +213,7 @@ clockpit1(Pit *ch, long long *cycles)
 		}
 		if(ch->gate && deccount(ch, cycles)){
 			ch->out = 0;
+			print_func_exit();
 			return;
 		}
 		break;
@@ -205,21 +227,26 @@ clockpit1(Pit *ch, long long *cycles)
 		}
 		if(deccount(ch, cycles)){
 			ch->out = 0;
+			print_func_exit();
 			return;
 		}
 		break;
 	}
 	*cycles = 0;
+	print_func_exit();
 }
 
 void
 clockpit(Pit *pit, long long cycles)
 {
+	print_func_entry();
 	Pit *ch;
 	int i;
 
-	if(cycles <= 0)
+	if(cycles <= 0) {
+		print_func_exit();
 		return;
+	}
 	for(i = 0; i<Actl; i++){
 		ch = pit + i;
 		if(ch->wlatched){
@@ -238,16 +265,20 @@ clockpit(Pit *pit, long long cycles)
 		}
 		ch->gateraised = 0;
 	}
+	print_func_exit();
 }
 
 unsigned char
 rpit(Pit *pit, unsigned char addr)
 {
+	print_func_entry();
 	Pit *ch;
 	unsigned char data;
 
-	if(addr >= Actl)
+	if(addr >= Actl) {
+		print_func_exit();
 		return 0;
+	}
 	ch = pit + addr;
 	if(ch->rlatched){
 		data = ch->rlatch[ch->rcount & 1];
@@ -268,17 +299,21 @@ rpit(Pit *pit, unsigned char addr)
 	}
 	ch->rcount++;
 	if(0) fprint(2, "rpit %p: %.2x %.2x\n", pit, (int)addr, (int)data);
+	print_func_exit();
 	return data;
 }
 
 void
 wpit(Pit *pit, unsigned char addr, unsigned char data)
 {
+	print_func_entry();
 	Pit *ch;
 
 	if(0) fprint(2, "wpit %p: %.2x %.2x\n", pit, (int)addr, (int)data);
-	if(addr > Actl)
+	if(addr > Actl) {
+		print_func_exit();
 		return;
+	}
 	if(addr == Actl){
 		unsigned char sc, amode, omode, bcd;
 
@@ -304,18 +339,22 @@ wpit(Pit *pit, unsigned char addr, unsigned char data)
 				}
 				break;
 			}
-			if(ch == nil)
+			if(ch == nil) {
+				print_func_exit();
 				return;
+			}
 			if((data & RBlatchcount) == 0)
 				latchcount(ch);
 			if((data & RBlatchstatus) == 0)
 				latchstatus(ch);
+			print_func_exit();
 			return;
 		}
 
 		ch = pit + sc;
 		if(amode == AMlatchcount){
 			latchcount(ch);
+			print_func_exit();
 			return;
 		}
 		ch->bcd = bcd;
@@ -335,6 +374,7 @@ wpit(Pit *pit, unsigned char addr, unsigned char data)
 
 		ch->count0 = 1;
 		ch->out = !!omode;
+		print_func_exit();
 		return;
 	}
 
@@ -347,11 +387,14 @@ wpit(Pit *pit, unsigned char addr, unsigned char data)
 		break;
 	case AMlohi:
 		ch->wlatch[ch->wcount++ & 1] = data;
-		if(ch->wcount < 2)
-			return;
+		if(ch->wcount < 2) {
+		print_func_exit();
+		return;
+		}
 		break;
 	}
 	ch->wlatched = ch->wcount;
 	ch->wcount = 0;
 	ch->count0 = 1;
+	print_func_exit();
 }

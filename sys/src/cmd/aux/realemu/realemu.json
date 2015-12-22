@@ -7,6 +7,7 @@
 		"Program": "realemu",
 		"SourceFiles": [
 			"arg.c",
+			"debug.c",
 			"decode.c",
 			"fmt.c",
 			"main.c",

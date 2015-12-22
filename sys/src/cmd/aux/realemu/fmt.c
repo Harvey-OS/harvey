@@ -134,6 +134,7 @@ static char *memstr32[] = {
 static int
 argconv(char *p, Inst *i, Iarg *a)
 {
+	print_func_entry();
 	jmp_buf jmp;
 	char *s;
 
@@ -143,11 +144,13 @@ argconv(char *p, Inst *i, Iarg *a)
 		abort();
 
 	case TCON:
+		print_func_exit();
 		return sprint(p, "%lud", a->val);
 	case TREG:
 	case TREG|TH:
 		switch(a->len){
 		case 1:
+			print_func_exit();
 			return sprint(p, "%c%c", "ACDB"[a->reg], "LH"[(a->tag & TH) != 0]);
 		case 4:
 			*p++ = 'E';
@@ -155,6 +158,7 @@ argconv(char *p, Inst *i, Iarg *a)
 			p += sprint(p, "%c%c", 
 				"ACDBSBSDECSDFGIF"[a->reg],
 				"XXXXPPIISSSSSSPL"[a->reg]);
+			print_func_exit();
 			return p - s;
 		}
 	case TMEM:
@@ -249,6 +253,7 @@ argconv(char *p, Inst *i, Iarg *a)
 out:
 	memmove(a->cpu->jmp, jmp, sizeof jmp);
 	*p = 0;
+	print_func_exit();
 	return p - s;
 }
 
@@ -260,6 +265,7 @@ static char *jmpstr[] = {
 int
 instfmt(Fmt *fmt)
 {
+	print_func_entry();
 	Inst *i;
 	char *p, buf[256];
 
@@ -313,12 +319,14 @@ instfmt(Fmt *fmt)
 	}
 	*p = 0;
 	fmtstrcpy(fmt, buf);
+	print_func_exit();
 	return 0;
 }
 
 int
 flagfmt(Fmt *fmt)
 {
+	print_func_entry();
 	char buf[16];
 	unsigned long f;
 
@@ -332,12 +340,14 @@ flagfmt(Fmt *fmt)
 		(f & DF) ? 'D' : 'd',
 		(f & IF) ? 'I' : 'i');
 	fmtstrcpy(fmt, buf);
+	print_func_exit();
 	return 0;
 }
 
 int
 cpufmt(Fmt *fmt)
 {
+	print_func_entry();
 	char buf[512];
 	jmp_buf jmp;
 	Cpu *cpu;
@@ -381,5 +391,6 @@ cpufmt(Fmt *fmt)
 		&i);
 
 	fmtstrcpy(fmt, buf);
+	print_func_exit();
 	return 0;
 }
