@@ -429,27 +429,27 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 	cpu->reg[RCX] = GETUREG(cx);
 	cpu->reg[RAX] = GETUREG(ax);
 
-//	cpu->reg[RGS] = GETUREG(gs);
-//	cpu->reg[RFS] = GETUREG(fs);
+	cpu->reg[RGS] = GETUREG(gs);
+	cpu->reg[RFS] = GETUREG(fs);
 	cpu->reg[RES] = GETUREG(di) >> 16;
-//	cpu->reg[RDS] = GETUREG(ds);
+	cpu->reg[RDS] = GETUREG(ds);
 
 	cpu->reg[RFL] = GETUREG(flags);
 
-//	if(i = GETUREG(trap)){
-//		cpu->reg[RSS] = 0x0000;
-//		cpu->reg[RSP] = 0x7C00;
-//		cpu->reg[RCS] = (RMCODE>>4)&0xF000;
-//		cpu->reg[RIP] = RMCODE & 0xFFFF;
-//		memory[RMCODE] = 0xf4;	/* HLT instruction */
-//		if(intr(cpu, i) < 0)
-//			return Ebadtrap;
-//	} else {
+	if(i = GETUREG(trap)){
+		cpu->reg[RSS] = 0x0000;
+		cpu->reg[RSP] = 0x7C00;
+		cpu->reg[RCS] = (RMCODE>>4)&0xF000;
+		cpu->reg[RIP] = RMCODE & 0xFFFF;
+		memory[RMCODE] = 0xf4;	/* HLT instruction */
+		if(intr(cpu, i) < 0)
+			return Ebadtrap;
+	} else {
 		cpu->reg[RSS] = GETUREG(ss);
 		cpu->reg[RSP] = GETUREG(sp);
 		cpu->reg[RCS] = GETUREG(cs);
 		cpu->reg[RIP] = GETUREG(pc);
-//	}
+	}
 
 	startclock();
 	for(;;){
@@ -499,7 +499,7 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 		case ESTACK:
 		case EGPF:
 		case EPF:
-			//PUTUREG(trap, i);
+			PUTUREG(trap, i);
 			err = trapstr[i];
 			break;
 		}
