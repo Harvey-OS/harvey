@@ -36,12 +36,15 @@ static long long pitclock;
 static void
 startclock(void)
 {
+	print_func_entry();
 	pitclock = nsec();
+	print_func_exit();
 }
 
 static void
 runclock(void)
 {
+	print_func_entry();
 	long long now, dt;
 
 	now = nsec();
@@ -50,21 +53,28 @@ runclock(void)
 		clockpit(pit, dt/PITNS);
 		pitclock = now;
 	}
+	print_func_exit();
 }
 
 static unsigned long
 gw1(unsigned char *p)
 {
+	print_func_entry();
+	print_func_exit();
 	return p[0];
 }
 static unsigned long
 gw2(unsigned char *p)
 {
+	print_func_entry();
+	print_func_exit();
 	return (unsigned long)p[0] | (unsigned long)p[1]<<8;
 }
 static unsigned long
 gw4(unsigned char *p)
 {
+	print_func_entry();
+	print_func_exit();
 	return (unsigned long)p[0] | (unsigned long)p[1]<<8 | (unsigned long)p[2]<<16 | (unsigned long)p[3]<<24;
 }
 static unsigned long (*gw[5])(unsigned char *p) = {
@@ -76,21 +86,27 @@ static unsigned long (*gw[5])(unsigned char *p) = {
 static void
 pw1(unsigned char *p, unsigned long w)
 {
+	print_func_entry();
 	p[0] = w & 0xFF;
+	print_func_exit();
 }
 static void
 pw2(unsigned char *p, unsigned long w)
 {
+	print_func_entry();
 	p[0] = w & 0xFF;
 	p[1] = (w>>8) & 0xFF;
+	print_func_exit();
 }
 static void
 pw4(unsigned char *p, unsigned long w)
 {
+	print_func_entry();
 	p[0] = w & 0xFF;
 	p[1] = (w>>8) & 0xFF;
 	p[2] = (w>>16) & 0xFF;
 	p[3] = (w>>24) & 0xFF;
+	print_func_exit();
 }
 static void (*pw[5])(unsigned char *p, unsigned long w) = {
 	[1] pw1,
@@ -101,47 +117,58 @@ static void (*pw[5])(unsigned char *p, unsigned long w) = {
 static unsigned long
 rbad(void *aux, unsigned long off, int len)
 {
+	print_func_entry();
 	fprint(2, "bad mem read %.5lux\n", off);
 	trap(&cpu, EMEM);
 
 	/* not reached */
+	print_func_exit();
 	return 0;
 }
 
 static void
 wbad(void *aux, unsigned long off, unsigned long w, int len)
 {
+	print_func_entry();
 	fprint(2, "bad mem write %.5lux\n", off);
 	trap(&cpu, EMEM);
+	print_func_exit();
 }
 
 static unsigned long
 rmem(void *aux, unsigned long off, int len)
 {
+	print_func_entry();
+	print_func_exit();
 	return gw[len](memory + off);
 }
 
 static void
 wmem(void *aux, unsigned long off, unsigned long w, int len)
 {
+	print_func_entry();
 	pw[len](memory + off, w);
+	print_func_exit();
 }
 
 static unsigned long
 rrealmem(void *aux, unsigned long off, int len)
 {
+	print_func_entry();
 	unsigned char data[4];
 
 	if(pread(realmemfd, data, len, off) != len){
 		fprint(2, "bad real mem read %.5lux: %r\n", off);
 		trap(&cpu, EMEM);
 	}
+	print_func_exit();
 	return gw[len](data);
 }
 
 static void
 wrealmem(void *aux, unsigned long off, unsigned long w, int len)
 {
+	print_func_entry();
 	unsigned char data[4];
 
 	pw[len](data, w);
@@ -149,12 +176,14 @@ wrealmem(void *aux, unsigned long off, unsigned long w, int len)
 		fprint(2, "bad real mem write %.5lux: %r\n", off);
 		trap(&cpu, EMEM);
 	}
+	print_func_exit();
 }
 
 
 static unsigned long
 rport(void *aux, unsigned long p, int len)
 {
+	print_func_entry();
 	unsigned char data[4];
 	unsigned long w;
 
@@ -219,12 +248,14 @@ rport(void *aux, unsigned long p, int len)
 	}
 	if(porttrace)
 		fprint(2, "rport %.4lux %.*lux\n", p, len<<1, w);
+	print_func_exit();
 	return w;
 }
 
 static void
 wport(void *aux, unsigned long p, unsigned long w, int len)
 {
+	print_func_entry();
 	unsigned char data[4];
 
 	if(porttrace)
@@ -281,6 +312,7 @@ wport(void *aux, unsigned long p, unsigned long w, int len)
 			trap(&cpu, EIO);
 		}
 	}
+	print_func_exit();
 }
 
 static Bus memio[] = {
@@ -309,6 +341,7 @@ static Bus portio = {
 static void
 cpuinit(void)
 {
+	print_func_entry();
 	int i;
 
 	fmtinstall('I', instfmt);
@@ -341,6 +374,7 @@ cpuinit(void)
 	cpu.mem = memio;
 	cpu.port = &portio;
 	cpu.alen = cpu.olen = cpu.slen = 2;
+	print_func_exit();
 }
 
 static char Ebusy[] = "device is busy";
@@ -381,6 +415,7 @@ static int flushed(void *);
 static char*
 realmode(Cpu *cpu, struct Ureg *u, void *r)
 {
+	print_func_entry();
 	char *err;
 	int i;
 
@@ -494,6 +529,7 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 	PUTUREG(sp, cpu->reg[RSP]);
 	PUTUREG(ss, cpu->reg[RSS]);
 
+	print_func_exit();
 	return err;
 }
 
@@ -529,6 +565,7 @@ static struct Qtab {
 static int
 fillstat(unsigned long qid, Dir *d)
 {
+	print_func_entry();
 	struct Qtab *t;
 
 	memset(d, 0, sizeof(Dir));
@@ -542,38 +579,45 @@ fillstat(unsigned long qid, Dir *d)
 	d->qid.type = t->type;
 	d->mode = t->mode;
 	d->length = t->length;
+	print_func_exit();
 	return 1;
 }
 
 static void
 fsattach(Req *r)
 {
+	print_func_entry();
 	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){
 		respond(r, Ebadspec);
+		print_func_exit();
 		return;
 	}
 	r->fid->qid = (Qid){Qroot, 0, QTDIR};
 	r->ofcall.qid = r->fid->qid;
 	respond(r, nil);
+	print_func_exit();
 }
 
 static void
 fsstat(Req *r)
 {
+	print_func_entry();
 	fillstat((unsigned long)r->fid->qid.path, &r->d);
 	r->d.name = estrdup9p(r->d.name);
 	r->d.uid = estrdup9p(r->d.uid);
 	r->d.gid = estrdup9p(r->d.gid);
 	r->d.muid = estrdup9p(r->d.muid);
 	respond(r, nil);
+	print_func_exit();
 }
 
 static char*
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
+	print_func_entry();
 	int i;
 	unsigned long path;
 
@@ -583,6 +627,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		if (strcmp(name, "..") == 0) {
 			*qid = (Qid){Qroot, 0, QTDIR};
 			fid->qid = *qid;
+			print_func_exit();
 			return nil;
 		}
 		for(i = fid->qid.path; i<Nqid; i++){
@@ -590,11 +635,14 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 				continue;
 			*qid = (Qid){i, 0, 0};
 			fid->qid = *qid;
+			print_func_exit();
 			return nil;
 		}
+		print_func_exit();
 		return Enonexist;
 		
 	default:
+		print_func_exit();
 		return Ewalk;
 	}
 }
@@ -602,6 +650,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 static void
 fsopen(Req *r)
 {
+	print_func_entry();
 	static int need[4] = { 4, 2, 6, 1 };
 	struct Qtab *t;
 	int n;
@@ -612,11 +661,13 @@ fsopen(Req *r)
 		respond(r, Eperm);
 	else
 		respond(r, nil);
+		print_func_exit();
 }
 
 static int
 readtopdir(Fid *fid, unsigned char *buf, long off, int cnt, int blen)
 {
+	print_func_entry();
 	int i, m, n;
 	long pos;
 	Dir d;
@@ -634,6 +685,7 @@ readtopdir(Fid *fid, unsigned char *buf, long off, int cnt, int blen)
 		}
 		pos += m;
 	}
+	print_func_exit();
 	return n;
 }
 
@@ -642,6 +694,7 @@ static Channel *reqchan;
 static void
 cpuproc(void *data)
 {
+	print_func_entry();
 	static struct Ureg rmu;
 	unsigned long path;
 	long long o;
@@ -699,6 +752,7 @@ cpuproc(void *data)
 			break;
 		}
 	}
+	print_func_exit();
 }
 
 static Channel *flushchan;
@@ -706,26 +760,33 @@ static Channel *flushchan;
 static int
 flushed(void *r)
 {
+	print_func_entry();
+	print_func_exit();
 	return nbrecvp(flushchan) == r;
 }
 
 static void
 fsflush(Req *r)
 {
+	print_func_entry();
 	nbsendp(flushchan, r->oldreq);
 	respond(r, nil);
+	print_func_exit();
 }
 
 static void
 dispatch(Req *r)
 {
+	print_func_entry();
 	if(!nbsendp(reqchan, r))
 		respond(r, Ebusy);
+		print_func_exit();
 }
 
 static void
 fsread(Req *r)
 {
+	print_func_entry();
 	switch((unsigned long)r->fid->qid.path){
 	case Qroot:
 		r->ofcall.count = readtopdir(r->fid, (void*)r->ofcall.data, r->ifcall.offset,
@@ -735,12 +796,15 @@ fsread(Req *r)
 	default:
 		dispatch(r);
 	}
+	print_func_exit();
 }
 
 static void
 fsend(Srv* srv)
 {
+	print_func_entry();
 	threadexitsall(nil);
+	print_func_exit();
 }
 
 static Srv fs = {
@@ -757,8 +821,10 @@ static Srv fs = {
 static void
 usage(void)
 {
+	print_func_entry();
 	fprint(2, "usgae:\t%s [-Dpt] [-s srvname] [-m mountpoint]\n", argv0);
 	exits("usage");
+	print_func_exit();
 }
 
 void
@@ -776,6 +842,9 @@ threadmain(int argc, char *argv[])
 		break;
 	case 't':
 		cputrace = 1;
+		break;
+	case 'x':
+		set_printx(1);
 		break;
 	case 's':
 		srv = EARGF(usage());
