@@ -5,7 +5,7 @@ if [ -n "$(git remote -v | awk '$1=="origin"{print $2}' | grep gerrithub)" ]; th
 	chmod u+x .git/hooks/commit-msg
 	# this is apparently the preferred method and might even work over HTTP
 	# https://gerrit-review.googlesource.com/Documentation/cmd-receive-pack.html
-	git config remote.origin.push HEAD:refs/for/master%r=rminnich@gmail.com,r=crossd@gmail.com,r=elbingmiss@gmail.com,r=anyrhine@gmail.com,r=0intro@gmail.com,r=giacomo@tesio.it,r=john@jfloren.net,r=rafael.fernandez@taisis.com
+	git config remote.origin.push HEAD:refs/for/master%r=rminnich@gmail.com,r=crossd@gmail.com,r=elbingmiss@gmail.com,r=anyrhine@gmail.com,r=0intro@gmail.com,r=hdonnay@gmail.com,r=john@jfloren.net,r=rafael.fernandez@taisis.com,r=keith.poole@gmail.com,r=s@sevki.org
 fi
 git submodule init
 git submodule update
