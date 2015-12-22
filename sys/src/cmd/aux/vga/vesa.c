@@ -376,7 +376,7 @@ vbesetup(Vbe *vbe, Ureg *u, int ax)
 	memset(vbe->buf, 0, PageSize);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
-	//u->es = (RealModeBuf>>4)&0xF000;
+	u->es = (RealModeBuf>>4)&0xF000;
 	u->di = RealModeBuf&0xFFFF;
 	return vbe->buf;
 }
@@ -384,7 +384,7 @@ vbesetup(Vbe *vbe, Ureg *u, int ax)
 int
 vbecall(Vbe *vbe, Ureg *u)
 {
-	//u->trap = 0x10;
+	u->trap = 0x10;
 	if(pwrite(vbe->memfd, vbe->buf, PageSize, RealModeBuf) != PageSize)
 		error("write /dev/realmodemem: %r\n");
 	if(pwrite(vbe->rmfd, u, sizeof *u, 0) != sizeof *u)
