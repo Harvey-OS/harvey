@@ -263,6 +263,7 @@ static unsigned char modrmarg[NATYPE] = {
 static void
 getmodrm16(Iarg *ip, Inst *i)
 {
+	print_func_entry();
 	Iarg *p;
 	unsigned char b;
 
@@ -272,8 +273,10 @@ getmodrm16(Iarg *ip, Inst *i)
 	i->reg = (b>>3)&7;
 	i->rm = b&7;
 
-	if(i->mod == 3)
-		return;
+	if(i->mod == 3) {
+	print_func_exit();
+	return;
+	}
 
 	switch(i->rm){
 	case 0:
@@ -305,6 +308,7 @@ getmodrm16(Iarg *ip, Inst *i)
 			p = adup(ip); ip->off += 2;
 			p->len = 2;
 			i->off = ar(p);
+			print_func_exit();
 			return;
 		}
 		i->dsreg = RSS;
@@ -326,11 +330,13 @@ getmodrm16(Iarg *ip, Inst *i)
 		i->off &= 0xFFFF;
 		break;
 	}
+	print_func_exit();
 }
 
 static void
 getmodrm32(Iarg *ip, Inst *i)
 {
+	print_func_entry();
 	static unsigned char scaler[] = {1, 2, 4, 8};
 	Iarg *p;
 	unsigned char b;
@@ -341,8 +347,10 @@ getmodrm32(Iarg *ip, Inst *i)
 	i->reg = (b>>3)&7;
 	i->rm = b&7;
 
-	if(i->mod == 3)
-		return;
+	if(i->mod == 3) {
+	print_func_exit();
+	return;
+	}
 
 	switch(i->rm){
 	case 0:
@@ -388,11 +396,13 @@ getmodrm32(Iarg *ip, Inst *i)
 		i->off += (i->disp = ars(p));
 		break;
 	}
+	print_func_exit();
 }
 
 static Iarg*
 getarg(Iarg *ip, Inst *i, unsigned char atype)
 {
+	print_func_entry();
 	Iarg *a;
 	unsigned char len, reg;
 
@@ -544,23 +554,31 @@ getarg(Iarg *ip, Inst *i, unsigned char atype)
 		goto SREG;
 	}
 	a->atype = atype;
+	print_func_exit();
 	return a;
 }
 
 static int
 otherlen(int a)
 {
-	if(a == 2)
+	print_func_entry();
+	if(a == 2) {
+		print_func_exit();
 		return 4;
-	else if(a == 4)
+	}
+	else if(a == 4) {
+		print_func_exit();
 		return 2;
+	}
 	abort();
+	print_func_exit();
 	return 0;
 }
 
 void
 decode(Iarg *ip, Inst *i)
 {
+	print_func_entry();
 	Optab *t, *t2;
 	Cpu *cpu;
 
@@ -622,4 +640,5 @@ decode(Iarg *ip, Inst *i)
 		t2 = nil;
 	}
 	i->op = t->op;
+	print_func_exit();
 }

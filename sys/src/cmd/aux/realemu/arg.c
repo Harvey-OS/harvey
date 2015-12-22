@@ -8,16 +8,19 @@
 Iarg*
 adup(Iarg *x)
 {
+	print_func_entry();
 	Iarg *a;
 
 	a = ause(x->cpu);
 	*a = *x;
+	print_func_exit();
 	return a;
 }
 
 Iarg*
 areg(Cpu *cpu, unsigned char len, unsigned char reg)
 {
+	print_func_entry();
 	Iarg *a;
 
 	a = ause(cpu);
@@ -25,12 +28,14 @@ areg(Cpu *cpu, unsigned char len, unsigned char reg)
 	a->tag = TREG;
 	a->len = len;
 	a->reg = reg;
+	print_func_exit();
 	return a;
 }
 
 Iarg*
 amem(Cpu *cpu, unsigned char len, unsigned char sreg, unsigned long off)
 {
+	print_func_entry();
 	Iarg *a;
 
 	a = ause(cpu);
@@ -40,12 +45,14 @@ amem(Cpu *cpu, unsigned char len, unsigned char sreg, unsigned long off)
 	a->sreg = sreg;
 	a->seg = cpu->reg[sreg];
 	a->off = off;
+	print_func_exit();
 	return a;
 }
 
 Iarg*
 afar(Iarg *mem, unsigned char len, unsigned char alen)
 {
+	print_func_entry();
 	Iarg *a, *p;
 
 	p = adup(mem);
@@ -54,12 +61,14 @@ afar(Iarg *mem, unsigned char len, unsigned char alen)
 	p->off += alen;
 	p->len = 2;
 	a->seg = ar(p);
+	print_func_exit();
 	return a;
 }
 
 Iarg*
 acon(Cpu *cpu, unsigned char len, unsigned long val)
 {
+	print_func_entry();
 	Iarg *a;
 
 	a = ause(cpu);
@@ -67,12 +76,14 @@ acon(Cpu *cpu, unsigned char len, unsigned long val)
 	a->tag = TCON;
 	a->len = len;
 	a->val = val;
+	print_func_exit();
 	return a;
 }
 
 unsigned long
 ar(Iarg *a)
 {
+	print_func_entry();
 	unsigned long w, o;
 	Bus *io;
 
@@ -106,21 +117,26 @@ ar(Iarg *a)
 	case 4:
 		break;
 	}
+	print_func_exit();
 	return w;
 }
 
 long
 ars(Iarg *a)
 {
+	print_func_entry();
 	unsigned long w = ar(a);
 	switch(a->len){
 	default:
 		abort();
 	case 1:
+		print_func_exit();
 		return (char)w;
 	case 2:
+		print_func_exit();
 		return (short)w;
 	case 4:
+		print_func_exit();
 		return (long)w;
 	}
 }
@@ -128,6 +144,7 @@ ars(Iarg *a)
 void
 aw(Iarg *a, unsigned long w)
 {
+	print_func_entry();
 	unsigned long *p, o;
 	Cpu *cpu;
 	Bus *io;
@@ -160,4 +177,5 @@ aw(Iarg *a, unsigned long w)
 		*p = (*p & ~0xFF00) | (w & 0xFF)<<8;
 		break;
 	}
+	print_func_exit();
 }
