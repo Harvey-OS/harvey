@@ -722,15 +722,15 @@
 	],
 	"Bootmethods": [
 		{
-			"Name": "tcp",
-			"Config": "configtcp",
-			"Connect": "connecttcp",
-			"Arg": ""
-		},
-		{
 			"Name": "rc",
 			"Config": "configrc",
 			"Connect": "connectrc",
+			"Arg": ""
+		},
+		{
+			"Name": "tcp",
+			"Config": "configtcp",
+			"Connect": "connecttcp",
 			"Arg": ""
 		},
 		{
