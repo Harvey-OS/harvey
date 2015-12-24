@@ -355,6 +355,7 @@ vgactl(Cmdbuf *cb)
 		deletescreenimage();
 		if(screensize(x, y, z, chan))
 			error(Egreg);
+		error("did we get here");
 		vgascreenwin(scr);
 		resetscreenimage();
 		cursoron(1);
