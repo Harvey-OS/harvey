@@ -198,8 +198,20 @@ vgascreenwin(VGAscr* scr)
 {
 	int h, w;
 
+	if (! scr->memdefont->info)
+		error("no memdefont info");
 	h = scr->memdefont->height;
+
+	if (h == 0){
+		print("vgascreenwin: height is 0");
+		error("vgascreenwin: height is 0");
+	}
+
 	w = scr->memdefont->info[' '].width;
+	if (w == 0){
+		error("vgascreenwin: width is 0");
+		print("vgascreenwin: width is 0");
+	}
 
 	window = insetrect(scr->gscreen->r, 48);
 	window.max.x = window.min.x+((window.max.x-window.min.x)/w)*w;
