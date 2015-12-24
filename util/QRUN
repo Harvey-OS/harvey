@@ -1,4 +1,4 @@
-sudo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 8 -m 2048  \
+sudo qemu-system-x86_64 -s -cpu Haswell -smp 8 -m 2048  \
 -serial stdio \
 --machine pc \
 -net nic,model=rtl8139 \
