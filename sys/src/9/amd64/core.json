@@ -50,7 +50,9 @@
 		"Projects": [
 			"clean.json",
 			"../boot/bootconf.json",
-			"inith.json"
+			"inith.json",
+			"/sys/src/libmemdraw/klibmemdraw.json",
+			"/sys/src/libdraw/klibdraw.json"
 		],
 		"SourceFiles": [
 			"entry.S",
