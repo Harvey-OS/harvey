@@ -14,6 +14,8 @@
 #include "pci.h"
 #include "vga.h"
 
+static char x[1];
+#define W {print("@%d: hit return to go one", __LINE__); read(0, x, 1);}
 Biobuf stdout;
 
 static int iflag, lflag, pflag, rflag;
@@ -384,6 +386,7 @@ main(int argc, char** argv)
 		if(iflag || pflag)
 			dump(vga);
 
+W
 		if(lflag){
 			trace("main->load\n");
 			if(vga->vmz && (vga->virtx*vga->virty*vga->mode->z)/8 > vga->vmz)
@@ -399,12 +402,14 @@ main(int argc, char** argv)
 			}
 			else
 				vtype = vga->ctlr->name;
+W
 			vgactlw("type", vtype);
 
 			/*
 			 * VESA must be set up before linear.
 			 * Set type to vesa for linear.
 			 */
+W
 			if(vga->vesa){
 				vesa.load(vga, vga->vesa);
 				if(vga->vesa->flag&Ferror)
@@ -416,18 +421,23 @@ main(int argc, char** argv)
 			 * The new draw device needs linear mode set
 			 * before size.
 			 */
+W
 			linear(vga);
 
 			/*
 			 * Linear is over so switch to other driver for
 			 * acceleration.
 			 */
+W
 			if(vga->vesa)
 				vgactlw("type", vtype);
 
+W
 			sprint(buf, "%ludx%ludx%d %s",
 				vga->virtx, vga->virty,
 				vga->mode->z, vga->mode->chan);
+print("buf is %s\n", buf);
+W
 			if(rflag){
 				vgactlr("size", sizeb);
 				if(rflag < 2 && strcmp(buf, sizeb) != 0)
@@ -437,6 +447,7 @@ main(int argc, char** argv)
 			else
 				vgactlw("size", buf);
 
+W
 			/*
 			 * No fiddling with registers if VESA set 
 			 * things up already.  Sorry.
@@ -457,7 +468,9 @@ main(int argc, char** argv)
 				sequencer(vga, 1);
 			}
 
+W
 			vgactlw("drawinit", "");
+W
 
 			if(vga->hwgc == 0 || cflag)
 				vgactlw("hwgc", "soft");

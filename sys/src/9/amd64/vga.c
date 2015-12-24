@@ -152,6 +152,7 @@ vgascreenputs(char* s, int n)
 	VGAscr *scr;
 	Rectangle flushr;
 
+return;
 	scr = &vgascreen[0];
 
 	if(!islo()){
@@ -198,8 +199,15 @@ vgascreenwin(VGAscr* scr)
 {
 	int h, w;
 
+	if (! scr)
+		error("vgascreenwin: no scr");
+
+	if (! scr->memdefont)
+		error("vgascreenwin: no scr->memdefont");
+
 	if (! scr->memdefont->info)
-		error("no memdefont info");
+		error("vgascreenwin: no memdefont info");
+
 	h = scr->memdefont->height;
 
 	if (h == 0){

@@ -215,6 +215,7 @@ swcursorhide(void)
 	if(swback == nil)
 		return;
 	swvisible = 0;
+iprint("fuck the draw\n"); return;
 	memimagedraw(gscreen, swrect, swback, ZP, memopaque, ZP, S);
 	flushmemscreen(swrect);
 }
