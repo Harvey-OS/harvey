@@ -677,6 +677,8 @@ drawfreedimage(DImage *dimage)
 	int i;
 	Memimage *l;
 	DScreen *ds;
+// fuck it.
+return;
 
 	dimage->ref--;
 	if(dimage->ref < 0)
