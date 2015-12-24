@@ -700,11 +700,10 @@ swcursorinit(void)
 {
 	static int init, warned;
 	VGAscr *scr;
-
 	didswcursorinit = 1;
 	if(!init){
 		init = 1;
-		addclock0link(swcursorclock, 10);
+		//addclock0link(swcursorclock, 10);
 	}
 	scr = &vgascreen[0];
 	if(scr==nil || scr->gscreen==nil)

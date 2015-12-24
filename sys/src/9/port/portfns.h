@@ -427,3 +427,7 @@ void oprof_alarm_handler(Ureg *u);
 void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp);
 void oprofile_add_userpc(uintptr_t pc);
 int alloc_cpu_buffers(void);
+
+#define I_AM_HERE print("Core 0 is in %s() at %s:%d\n", \
+                         __FUNCTION__, __FILE__, __LINE__);
+
