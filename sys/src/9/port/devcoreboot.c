@@ -43,9 +43,6 @@
 
 /* === Parsing code === */
 /* This is the generic parsing code. */
-#define I_AM_HERE print("Core 0 is in %s() at %s:%d\n", \
-                         __FUNCTION__, __FILE__, __LINE__);
-
 static void cb_parse_memory(void *ptr, struct sysinfo_t *info)
 { print("%s\n", __func__);
 	struct cb_memory *mem = ptr;
