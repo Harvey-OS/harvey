@@ -677,6 +677,8 @@ drawfreedimage(DImage *dimage)
 	int i;
 	Memimage *l;
 	DScreen *ds;
+	print("WARNING: NOT FREEING IMAGE. IF WE DO WE GET A DOUBLE FREE PANIC\n");
+return;
 
 	dimage->ref--;
 	if(dimage->ref < 0)
