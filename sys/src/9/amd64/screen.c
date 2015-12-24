@@ -58,6 +58,7 @@ screensize(int x, int y, int z, uint32_t chan)
 	VGAscr *scr;
 	void *oldsoft;
 
+I_AM_HERE;
 	lock(&vgascreenlock);
 	if(waserror()){
 		unlock(&vgascreenlock);
@@ -65,6 +66,7 @@ screensize(int x, int y, int z, uint32_t chan)
 	}
 
 	memimageinit();
+I_AM_HERE;
 	scr = &vgascreen[0];
 	oldsoft = softscreen;
 
@@ -577,6 +579,7 @@ int	swvisvers;	/* the version on the screen */
 void
 swcursorhide(void)
 {
+return;
 	if(swvisible == 0)
 		return;
 	if(swback == nil)
@@ -589,6 +592,7 @@ swcursorhide(void)
 void
 swcursoravoid(Rectangle r)
 {
+return;
 	if(swvisible && rectXrect(r, swrect))
 		swcursorhide();
 }
@@ -596,6 +600,7 @@ swcursoravoid(Rectangle r)
 void
 swcursordraw(void)
 {
+return;
 	if(swvisible)
 		return;
 	if(swenabled == 0)
@@ -619,6 +624,7 @@ void
 swenable(VGAscr *v)
 {
 	swenabled = 1;
+return;
 	if(canqlock(&drawlock)){
 		swcursordraw();
 		qunlock(&drawlock);
@@ -629,6 +635,7 @@ void
 swdisable(VGAscr *v)
 {
 	swenabled = 0;
+return;
 	if(canqlock(&drawlock)){
 		swcursorhide();
 		qunlock(&drawlock);
@@ -640,6 +647,7 @@ swload(VGAscr *v, Cursor *curs)
 {
 	unsigned char *ip, *mp;
 	int i, j, set, clr;
+return;
 
 	if(!swimg || !swmask || !swimg1 || !swmask1)
 		return;
@@ -670,7 +678,7 @@ swload(VGAscr *v, Cursor *curs)
 int
 swmove(VGAscr *v, Point p)
 {
-	swpt = addpt(p, swoffset);
+	if (0) swpt = addpt(p, swoffset);
 	return 0;
 }
 
@@ -678,6 +686,7 @@ void
 swcursorclock(void)
 {
 	int x;
+return;
 
 	if(!swenabled)
 		return;
@@ -700,11 +709,11 @@ swcursorinit(void)
 {
 	static int init, warned;
 	VGAscr *scr;
-
+return;
 	didswcursorinit = 1;
 	if(!init){
 		init = 1;
-		addclock0link(swcursorclock, 10);
+		//addclock0link(swcursorclock, 10);
 	}
 	scr = &vgascreen[0];
 	if(scr==nil || scr->gscreen==nil)
