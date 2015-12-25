@@ -678,7 +678,6 @@ void
 swcursorclock(void)
 {
 	int x;
-
 	if(!swenabled)
 		return;
 	if(swvisible && eqpt(swpt, swvispt) && swvers==swvisvers)
@@ -701,10 +700,6 @@ swcursorinit(void)
 	static int init, warned;
 	VGAscr *scr;
 	didswcursorinit = 1;
-	if(!init){
-		init = 1;
-		//addclock0link(swcursorclock, 10);
-	}
 	scr = &vgascreen[0];
 	if(scr==nil || scr->gscreen==nil)
 		return;
@@ -739,6 +734,10 @@ swcursorinit(void)
 	memfillcolor(swmask1, DOpaque);
 	memfillcolor(swimg, DBlack);
 	memfillcolor(swimg1, DBlack);
+	if(!init){
+		init = 1;
+		addclock0link(swcursorclock, 10);
+	}
 }
 
 VGAcur swcursor =
