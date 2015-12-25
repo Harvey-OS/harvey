@@ -77,13 +77,13 @@ main(int argc, char *argv[])
 			sysfatal("open keyboard: %r");
 	dup(fd, 0);
 	close(fd);
-	if((fd = open("/dev/cgamem", OWRITE)) <= 0)
-		if((fd = open("#P/cgamem", OWRITE)) <= 0)
+	if((fd = open("/dev/cons", OWRITE)) <= 0)
+		if((fd = open("#c/cons", OWRITE)) <= 0)
 			sysfatal("open screen: %r");
 	dup(fd, 1);
 	close(fd);
 
-	fd = servecons(readkeyboard, writecga, &devmnt);
+	fd = servecons(readkeyboard, passthrough, &devmnt);
 	post(srv, fd);
 	exits(0);
 }
