@@ -21,6 +21,7 @@
 			"cga.c",
 			"screenconsole.c",
 			"keyboard.c",
+			"passthrough.c",
 			"serve9p.c",
 			"utils.c"
 		]
