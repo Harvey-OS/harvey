@@ -226,6 +226,7 @@ vgascreenwin(VGAscr* scr)
 	curpos = window.min;
 
 	consputs = vgascreenputs;
+	{ int i; for(i = 0; i < 1024; i++) consputs("hi\n", 3);}
 }
 
 /*

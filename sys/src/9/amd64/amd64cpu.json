@@ -102,7 +102,6 @@
 				"vga": "/$ARCH/bin/aux/vga",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
-				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
