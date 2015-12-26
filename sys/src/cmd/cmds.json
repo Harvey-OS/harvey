@@ -122,7 +122,8 @@
 			"webfsget.c",
 			"winwatch.c",
 			"xd.c",
-			"yacc.c"
+			"yacc.c",
+			"ms.c"
 		]
 	},
 	"Dirs": {
