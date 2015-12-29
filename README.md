@@ -26,7 +26,7 @@ or if you use homebrew (https://http://brew.sh/)
 
  	brew tap sevki/gcc_cross_compilers
 	brew install sevki/gcc_cross_compilers/x86_64-elf-gcc
-	brew install qemu
+	brew install qemu go
 	export TOOLPREFIX=x86_64-elf-
 
 GERRIT
