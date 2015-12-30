@@ -122,8 +122,6 @@ static void ppanic(Pool*, char*, ...);
 static void plock(Pool*);
 static void punlock(Pool*);
 
-extern	void*	sbrk(uint32_t);
-
 typedef struct Private	Private;
 struct Private {
 	Lock		lk;
@@ -177,6 +175,8 @@ Pool*	imagmem = &pimagmem;
 static void*
 sbrkalloc(uint32_t n)
 {
+	panic("sbrkalloc: not implemented");
+#if 0
 	uint32_t *x;
 
 	n += 2*sizeof(uint32_t);	/* two longs for us */
@@ -186,6 +186,8 @@ sbrkalloc(uint32_t n)
 	x[0] = (n+7)&~7;	/* sbrk rounds size up to mult. of 8 */
 	x[1] = 0xDeadBeef;
 	return x+2;
+#endif
+	return nil;
 }
 
 static int
