@@ -66,7 +66,7 @@ extern	char*	utfrune(char*, int32_t);
 /*
  * malloc
  */
-extern	void*	malloc(uint32_t);
+extern	void*	malloc(size_t);
 extern	void*	mallocz(uint32_t, int);
 extern	void	free(void*);
 extern	uint32_t	msize(void*);
@@ -75,7 +75,7 @@ extern	void	setmalloctag(void*, uint32_t);
 extern	void	setrealloctag(void*, uint32_t);
 extern	uint32_t	getmalloctag(void*);
 extern	uint32_t	getrealloctag(void*);
-extern	void*	realloc(void *, uint32_t);
+extern	void*	realloc(void *, size_t);
 
 /*
  * print routines
