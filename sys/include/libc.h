@@ -113,11 +113,11 @@ extern	uint32_t	msize(void*);
 extern	void*	mallocalign(uint32_t, uint32_t, int32_t, uint32_t);
 extern	void*	calloc(uint32_t, size_t);
 extern	void*	realloc(void*, size_t);
-void	setmalloctag(void*, uintptr_t);
-void	setrealloctag(void*, uintptr_t);
-uintptr_t	getmalloctag(void*);
-uintptr_t	getrealloctag(void*);
-void*	malloctopoolblock(void*);
+extern	void	setmalloctag(void*, uintptr_t);
+extern 	void	setrealloctag(void*, uintptr_t);
+extern	uintptr_t	getmalloctag(void*);
+extern	uintptr_t	getrealloctag(void*);
+extern	void*	malloctopoolblock(void*);
 
 /*
  * print routines
