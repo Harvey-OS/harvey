@@ -93,8 +93,7 @@ allocmemimage(Rectangle r, uint32_t chan)
 		return nil;
 
 	md->ref = 1;
-	md->base = //poolalloc(imagmem,
-		malloc(	     sizeof(Memdata*)+(1+nw)*sizeof(uint32_t));
+	md->base = poolalloc(imagmem, sizeof(Memdata*)+(1+nw)*sizeof(uint32_t));
 	if(md->base == nil){
 		free(md);
 		return nil;
