@@ -269,7 +269,7 @@ realloc(void *v, size_t size)
 		setrealloctag(nv, getcallerpc());
 		if(v == nil)
 			setmalloctag(nv, getcallerpc());
-	}		
+	}
 	return nv;
 }
 

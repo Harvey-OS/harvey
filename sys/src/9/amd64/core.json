@@ -69,7 +69,7 @@
 			"archamd64.c",
 			"asm.c",
 			"backtrace.c",
-		        "coreboot.c",
+			"coreboot.c",
 			"ctype.c",
 			"devarch.c",
 			"fpu.c",
