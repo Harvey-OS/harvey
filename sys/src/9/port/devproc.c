@@ -43,8 +43,8 @@ enum
 	Qprofile,
 	Qsyscall,
 	Qcore,
-	Qmmap,
 	Qtls,
+	Qpager,
 };
 
 enum
@@ -113,8 +113,8 @@ Dirtab procdir[] =
 	"profile",	{Qprofile},	0,			0400,
 	"syscall",	{Qsyscall},	0,			0400,
 	"core",		{Qcore},	0,			0444,
-	"mmap",		{Qmmap},	0,			0600,
-	"tls",		{Qtls},	0,			0600,
+	"tls",		{Qtls},		0,			0600,
+	"pager",	{Qpager},	0,			0600|DMEXCL,
 
 };
 
@@ -514,12 +514,9 @@ procopen(Chan *c, int omode)
 		nonone(p);
 		break;
 
-	case Qmmap:
-		//nonone(p);
-		if (! p->resp) { /* XXX need to do single reader/writer but that's later. */
-			p->resp = qopen(1024, Qmsg, nil, 0);
-			p->req = qopen(1024, Qmsg, nil, 0);
-		}
+	case Qpager:
+		p->resp = qopen(1024, Qmsg, nil, 0);
+		p->req = qopen(1024, Qmsg, nil, 0);
 		print("p %d sets resp %p req %p\n", p->pid, p->resp, p->req);
 		c->aux = p;
 		break;
@@ -727,8 +724,8 @@ procclose(Chan * c)
 			proctrace = notrace;
 		unlock(&tlock);
 	}
-	if(QID(c->qid) == Qmmap){
-		// fix me. Find proc for this file. p->mmap = nil;
+	if(QID(c->qid) == Qpager){
+		print("leaking queueus for pager\n");
 	}
 	if(QID(c->qid) == Qns && c->aux != 0)
 		free(c->aux);
@@ -876,12 +873,6 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		n = readstr(offset, va, n, statbuf);
 		free(statbuf);
 		return n;
-
-	case Qmmap:
-		p = c->aux;
-		n = qread(p->req, va, n);
-		print("read mmap: %p\n", n);
-		break;
 
 	case Qmem:
 		if(offset < KZERO || (offset >= USTKTOP-USTKSIZE && offset < USTKTOP)){
@@ -1063,7 +1054,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		readnum(0, statbuf+j+NUMSIZE*14, NUMSIZE, p->nacsyscall, NUMSIZE);
 
 		/*
-		 * mmap support, random stuff.
+		 * external pager support, random stuff.
 		 */
 		if (0) print("qstatus p %p pid %d req %p\n", p, p->pid, p->req);
 		readnum(0,statbuf+j+NUMSIZE*15, NUMSIZE, p->req ? 1 : 0, NUMSIZE);
@@ -1208,6 +1199,12 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		memmove(va, statbuf+offset, n);
 		free(statbuf);
 		return n;
+
+	case Qpager:
+		p = c->aux;
+		n = qread(p->req, va, n);
+		print("read pager: %p\n", n);
+		break;
 	}
 	error(Egreg);
 	return 0;			/* not reached */
@@ -1362,11 +1359,6 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			error(Ebadarg);
 		break;
 
-	case Qmmap:
-		p = c->aux;
-		n = qwrite(p->resp, va, n);
-		break;
-
 	case Qtls:
 		if(n >= sizeof buf)
 			error(Etoobig);
@@ -1385,6 +1377,12 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			}
 		}
 		error(Ebadarg);
+
+	case Qpager:
+		p = c->aux;
+		if (p && p->resp)
+			n = qwrite(p->resp, va, n);
+		break;
 
 	default:
 		poperror();
