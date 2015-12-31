@@ -45,6 +45,7 @@ enum
 	Qcore,
 	Qmmap,
 	Qtls,
+	Qpager,
 };
 
 enum
@@ -114,7 +115,8 @@ Dirtab procdir[] =
 	"syscall",	{Qsyscall},	0,			0400,
 	"core",		{Qcore},	0,			0444,
 	"mmap",		{Qmmap},	0,			0600,
-	"tls",		{Qtls},	0,			0600,
+	"tls",		{Qtls},		0,			0600,
+	"pager",	{Qpager},	0,			0600,
 
 };
 
@@ -1208,6 +1210,8 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		memmove(va, statbuf+offset, n);
 		free(statbuf);
 		return n;
+	case Qpager:
+		break;
 	}
 	error(Egreg);
 	return 0;			/* not reached */
@@ -1385,6 +1389,9 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			}
 		}
 		error(Ebadarg);
+
+	case Qpager:
+		error(Egreg);
 
 	default:
 		poperror();
