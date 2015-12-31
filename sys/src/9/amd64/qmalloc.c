@@ -115,7 +115,6 @@ static	Lock		mainlock;
  * From libc malloc.c to *draw devices
  */
 
-static void*	sbrkalloc(uint32_t);
 static int		sbrkmerge(void*, void*);
 static void poolprint(Pool*, char*, ...);
 static void ppanic(Pool*, char*, ...);
@@ -129,31 +128,13 @@ struct Private {
 	char		msg[256];	/* a rock for messages to be printed at unlock */
 };
 
-static Private pmainpriv;
-static Pool pmainmem = {
-	.name=		"Main",
-	.maxsize=	4*1024*1024,
-	.minarena=	128*1024,
-	.quantum=	32,
-	.alloc=		sbrkalloc,
-	.merge=		sbrkmerge,
-	.flags=		/*POOL_TOLERANCE|POOL_ANTAGONISM|POOL_PARANOIA|*/0,
-
-	.lock=		plock,
-	.unlock=	punlock,
-	.print=		poolprint,
-	.panic=		ppanic,
-
-	.private=	&pmainpriv,
-};
-
 static Private pimagpriv;
 static Pool pimagmem = {
 	.name=		"Image",
 	.maxsize=	16*1024*1024,
 	.minarena=	2*1024*1024,
 	.quantum=	32,
-	.alloc=		sbrkalloc,
+	.alloc=		malloc,
 	.merge=		sbrkmerge,
 	.flags=		0,
 
@@ -165,30 +146,7 @@ static Pool pimagmem = {
 	.private=	&pimagpriv,
 };
 
-Pool*	mainmem = &pmainmem;
 Pool*	imagmem = &pimagmem;
-
-/*
- * we do minimal bookkeeping so we can tell pool
- * whether two blocks are adjacent and thus mergeable.
- */
-static void*
-sbrkalloc(uint32_t n)
-{
-	panic("sbrkalloc: not implemented");
-#if 0
-	uint32_t *x;
-
-	n += 2*sizeof(uint32_t);	/* two longs for us */
-	x = sbrk(n);
-	if(x == (void*)-1)
-		return nil;
-	x[0] = (n+7)&~7;	/* sbrk rounds size up to mult. of 8 */
-	x[1] = 0xDeadBeef;
-	return x+2;
-#endif
-	return nil;
-}
 
 static int
 sbrkmerge(void *x, void *y)
