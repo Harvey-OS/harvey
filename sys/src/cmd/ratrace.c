@@ -177,10 +177,10 @@ writer(void *v)
 			/* If we have not printed a result, and this is not a result,
 			 * we need to print a newline.
 			 */
-			if (s->buf[1] != '=' && ! printedresult)
+			if ((s->buf[1] != '=' && s->buf[0] != ' ') && ! printedresult)
 				fprint(2, "\n");
 			fprint(2, "%s", s->buf);
-			printedresult = s->buf[1] == '=';
+			printedresult = s->buf[1] == '=' || s->buf[0] == ' ';
 			free(s);
 			break;
 		case 2:			/* forkc */
