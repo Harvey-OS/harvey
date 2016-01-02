@@ -246,10 +246,7 @@ syscallfmt(int syscallno, ...)
 		break;
 	case PREAD:
 		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		l = va_arg(list, int32_t);
-		vl = va_arg(list, int64_t);
-		fmtprint(&fmt, "%d %#p %ld %lld", i[0], v, l, vl);
+		fmtprint(&fmt, "%d", i[0]);
 		break;
 	case PWRITE:
 		i[0] = va_arg(list, int);
@@ -357,12 +354,12 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
 		vl = va_arg(list, int64_t);
-		if(ar0->l > 0){
+		if(ar0->l >= 0){
 			len = MIN(ar0->l, 64);
 			fmtrwdata(&fmt, v, len, "");
 		}
 		else{
-			fmtprint(&fmt, "/\"\"");
+			fmtprint(&fmt, " %#p/\"\"", v);
 			errstr = up->errstr;
 		}
 		fmtprint(&fmt, " %ld %lld = %d", l, vl, ar0->i);
