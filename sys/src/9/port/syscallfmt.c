@@ -316,13 +316,7 @@ syscallfmt(int syscallno, ...)
 	case READ:					/* deprecated */
 	case PREAD:
 		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		l = va_arg(list, int32_t);
-		fmtprint(&fmt, "%d %#p %ld", i[0], v, l);
-		if(syscallno == PREAD){
-			vl = va_arg(list, int64_t);
-			fmtprint(&fmt, " %lld", vl);
-		}
+		fmtprint(&fmt, "%d", i[0]);
 		break;
 	case WRITE:					/* deprecated */
 	case PWRITE:
@@ -453,12 +447,13 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		USED(i);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
-		if(ar0->l > 0){
+		vl = va_arg(list, int64_t);
+		if(ar0->l >= 0){
 			len = MIN(ar0->l, 64);
 			fmtrwdata(&fmt, v, len, "");
 		}
 		else{
-			fmtprint(&fmt, "/\"\"");
+			fmtprint(&fmt, " %#p/\"\"", v);
 			errstr = up->errstr;
 		}
 		fmtprint(&fmt, " %ld", l);
