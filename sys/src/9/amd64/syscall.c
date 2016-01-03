@@ -274,10 +274,10 @@ syscall(int badscallnr, Ureg *ureg)
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
 	sp = ureg->sp;
-	startns = 0;
+	startns = stopns = 0;
 	if (0) hi("so far syscall!\n");
 	if (printallsyscalls) {
-		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
+		syscallfmt('E', scallnr, nil, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
 			print("E %s\n", up->syscalltrace);
 			free(up->syscalltrace);
@@ -296,7 +296,7 @@ syscall(int badscallnr, Ureg *ureg)
 		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
 			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
 
-		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
+		syscallfmt('E', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		up->procctl = Proc_stopme;
 		procctl(up);
 		if(up->syscalltrace)
@@ -357,7 +357,7 @@ syscall(int badscallnr, Ureg *ureg)
 
 	if (printallsyscalls) {
 		stopns = todget(nil);
-		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
+		syscallfmt('X', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
 			print("X %s\n", up->syscalltrace);
 			free(up->syscalltrace);
@@ -366,9 +366,12 @@ syscall(int badscallnr, Ureg *ureg)
 	}
 
 	if(up->procctl == Proc_tracesyscall){
+		uint8_t what = 'X';
 		stopns = todget(nil);
 		up->procctl = Proc_stopme;
-		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
+		if (scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
+			what = 'F';
+		syscallfmt(what, scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		s = splhi();
 		procctl(up);
 		splx(s);
