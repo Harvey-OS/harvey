@@ -94,35 +94,16 @@ reader(void *v)
 	s = newstr();
 	exiting = 0;
 	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) >= 0){
-		if (forking && s->buf[1] == '=' && s->buf[3] != '-') {
-			forking = 0;
-			newpid = strtol(&s->buf[3], 0, 0);
-			sendp(forkc, (void*)newpid);
-			procrfork(reader, (void*)newpid, Stacksize, 0);
+		if (s->buf[0] == 'F') {
+			char *val = strstr(s->buf, "= ");
+			if (val) {
+				newpid = strtol(&val[2], 0, 0);
+				sendp(forkc, (void*)newpid);
+				procrfork(reader, (void*)newpid, Stacksize, 0);
+			}
 		}
 
-		/*
-		 * There are three tests here and they (I hope) guarantee
-		 * no false positives.
-		 */
-		/* BUG: when we update all the system call generation stuff, we broke rfork tracing.
-		 * The convention is the first letter of the system call in syscallfmt should be upper case.
-		 * This subtlety got lost. FIX ME but it will be tricky.
-		 * The reason to upcase is we need to be careful not to be fooled by random text.
-		if (strstr(s->buf, " Rfork") != nil) {
-		 */
-		if (strstr(s->buf, " rfork") != nil) {
-			char *a[8];
-			char *rf;
-
-			rf = strdup(s->buf);
-			if (tokenize(rf, a, 8) == 4 &&
-				strtoul(a[3], 0, 16) & RFPROC)
-					forking = 1;
-			if (debug)
-				fprint(2, "DEBUG:really forking? %d\n", forking);
-			free(rf);
-		} else if (strstr(s->buf, " Exits") != nil)
+		if (strstr(s->buf, " Exits") != nil)
 			exiting = 1;
 
 		sendp(out, s);	/* print line from /proc/$child/syscall */
@@ -152,7 +133,6 @@ writer(void *v)
 	int newpid;
 	Alt a[4];
 	Str *s;
-	int printedresult = 1;
 
 	a[0].op = CHANRCV;
 	a[0].c = quit;
@@ -173,14 +153,7 @@ writer(void *v)
 				goto done;
 			break;
 		case 1:			/* out */
-			/* it's a nice null terminated thing */
-			/* If we have not printed a result, and this is not a result,
-			 * we need to print a newline.
-			 */
-			if ((s->buf[1] != '=' && s->buf[0] != ' ') && ! printedresult)
-				fprint(2, "\n");
 			fprint(2, "%s", s->buf);
-			printedresult = s->buf[1] == '=' || s->buf[0] == ' ';
 			free(s);
 			break;
 		case 2:			/* forkc */
