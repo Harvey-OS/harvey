@@ -610,6 +610,18 @@ xfidread(Xfid *x)
 	qid = FILE(x->f->qid);
 	off = x->offset;
 	cnt = x->count;
+	/* for now, a zero length read of anything, even invalid things,
+	 * just returns immediately.
+	 */
+	if (cnt == 0){
+		qlock(&x->active);
+		x->flushtag = -1;
+		fc.data = nil;
+		fc.count = 0;
+		filsysrespond(x->fs, x, &fc, nil);
+		qunlock(&x->active);
+		return;
+	}
 	switch(qid){
 	case Qcons:
 		x->flushtag = x->tag;
