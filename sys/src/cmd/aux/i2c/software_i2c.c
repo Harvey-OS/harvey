@@ -13,21 +13,23 @@
  * GNU General Public License for more details.
  */
 
-#include <assert.h>
-#include <timer.h>
-#include <console/console.h>
-#include <device/i2c.h>
+#include <u.h>
+#include <libc.h>
+#include "dat.h"
+#include "fns.h"
+#include "i2c.h"
 
 /*
  * The implementation is based on Wikipedia.
  */
 
 #define DEBUG 0		/* Set to 1 for per-byte output */
-#define SPEW 0		/* Set to 1 for verbose bitwise/line-state output */
+
 #define DELAY_US 5	/* Default setup delay: 4us (+1 for timer inaccuracy) */
 #define TIMEOUT_US 50000 /* Maximum clock stretching time we want to allow */
 
-#define spew(...) do { if (SPEW) printk(BIOS_SPEW, ##__VA_ARGS__); } while (0)
+extern int porttrace;
+#define spew(...) do { if (porttrace) fprint(2, ##__VA_ARGS__); } while (0)
 
 struct software_i2c_ops *software_i2c[SOFTWARE_I2C_MAX_BUS];
 
@@ -37,39 +39,39 @@ struct software_i2c_ops *software_i2c[SOFTWARE_I2C_MAX_BUS];
  */
 static int __wait(unsigned bus, int timeout_us, int for_scl)
 {
-	int us;
 	int sda = software_i2c[bus]->get_sda(bus);
 	int scl = software_i2c[bus]->get_scl(bus);
-	struct stopwatch sw;
+	uint64_t start, end;
 
-	stopwatch_init_usecs_expire(&sw, timeout_us);
-
+	start = nsec();
+	end = start + timeout_us * 1000;
+	
 	do {
 		int old_sda = sda;
 		int old_scl = scl;
 
-		us = stopwatch_duration_usecs(&sw);
-
 		if (old_sda != (sda = software_i2c[bus]->get_sda(bus)))
-			spew("[SDA transitioned to %d after %dus] ", sda, us);
+			spew("[SDA transitioned to %d after %dus] ", sda, (nsec()-start)/1000);
 		if (old_scl != (scl = software_i2c[bus]->get_scl(bus)))
-			spew("[SCL transitioned to %d after %dus] ", scl, us);
-	} while (!stopwatch_expired(&sw) && (!for_scl || !scl));
+			spew("[SCL transitioned to %d after %dus] ", scl, (nsec()-start)/1000);
+	} while ((nsec() < end) && (!for_scl || !scl));
 
 	return scl;
 }
 
 /* Waits the default DELAY_US to allow line state to stabilize. */
-static void wait(unsigned bus)
+static void i2cwait(unsigned bus)
 {
-	__wait(bus, DELAY_US, 0);
+	uint64_t end = nsec() + DELAY_US * 1000;
+	while (nsec() < end)
+		;
 }
 
 /* Waits until SCL goes high. Prints a contextual error message on timeout. */
 static int wait_for_scl(unsigned bus, const char *error_context)
 {
 	if (!__wait(bus, TIMEOUT_US, 1)) {
-		printk(BIOS_ERR, "software_i2c(%d): ERROR: Clock stretching "
+		fprint(2, "software_i2c(%d): ERROR: Clock stretching "
 				 "timeout %s!\n", bus, error_context);
 		return -1;
 	}
@@ -83,23 +85,23 @@ static int start_cond(unsigned bus)
 
 	/* SDA might not yet be high if repeated start. */
 	software_i2c[bus]->set_sda(bus, 1);
-	wait(bus);
+	i2cwait(bus);
 
 	/* Might need to wait for clock stretching if repeated start. */
 	software_i2c[bus]->set_scl(bus, 1);
 	if (wait_for_scl(bus, "before start condition"))
 		return -1;
-	wait(bus);	/* Repeated start setup time, minimum 4.7us */
+	i2cwait(bus);	/* Repeated start setup time, minimum 4.7us */
 
 	if (!software_i2c[bus]->get_sda(bus)) {
-		printk(BIOS_ERR, "software_i2c(%d): Arbitration lost trying "
+		fprint(2, "software_i2c(%d): Arbitration lost trying "
 			"to send start condition!\n", bus);
 		return -1;
 	}
 
 	/* SCL is high, transition SDA low as first part of start condition. */
 	software_i2c[bus]->set_sda(bus, 0);
-	wait(bus);
+	i2cwait(bus);
 	assert(software_i2c[bus]->get_scl(bus));
 
 	/* Pull SCL low to finish start condition (next pulse will be data). */
@@ -115,20 +117,20 @@ static int stop_cond(unsigned bus)
 
 	/* SDA is unknown, set it to low. SCL must be low. */
 	software_i2c[bus]->set_sda(bus, 0);
-	wait(bus);
+	i2cwait(bus);
 
 	/* Clock stretching */
 	assert(!software_i2c[bus]->get_scl(bus));
 	software_i2c[bus]->set_scl(bus, 1);
 	if (wait_for_scl(bus, "before stop condition"))
 		return -1;
-	wait(bus);	/* Stop bit setup time, minimum 4us */
+	i2cwait(bus);	/* Stop bit setup time, minimum 4us */
 
 	/* SCL is high, transition SDA high to signal stop condition. */
 	software_i2c[bus]->set_sda(bus, 1);
-	wait(bus);
+	i2cwait(bus);
 	if (!software_i2c[bus]->get_sda(bus)) {
-		printk(BIOS_WARNING, "software_i2c(%d): WARNING: SDA low after "
+		fprint(2, "software_i2c(%d): WARNING: SDA low after "
 			"stop condition... access by another master or line "
 			"stuck from faulty slave?\n", bus);
 		/* Could theoretically happen with multi-master, so no -1. */
@@ -143,10 +145,10 @@ static int out_bit(unsigned bus, int bit)
 	spew("software_i2c(%d): Sending a %d bit... ", bus, bit);
 
 	software_i2c[bus]->set_sda(bus, bit);
-	wait(bus);
+	i2cwait(bus);
 
 	if (bit && !software_i2c[bus]->get_sda(bus)) {
-		printk(BIOS_ERR, "software_i2c(%d): ERROR: SDA wedged low "
+		fprint(2,  "software_i2c(%d): ERROR: SDA wedged low "
 			"by slave before clock pulse on transmit!\n", bus);
 		return -1;
 	}
@@ -156,10 +158,10 @@ static int out_bit(unsigned bus, int bit)
 	software_i2c[bus]->set_scl(bus, 1);
 	if (wait_for_scl(bus, "on transmit"))
 		return -1;
-	wait(bus);
+	i2cwait(bus);
 
 	if (bit && !software_i2c[bus]->get_sda(bus)) {
-		printk(BIOS_ERR, "software_i2c(%d): ERROR: SDA wedged low "
+		fprint(2,  "software_i2c(%d): ERROR: SDA wedged low "
 			"by slave after clock pulse on transmit!\n", bus);
 		return -1;
 	}
@@ -179,7 +181,7 @@ static int in_bit(unsigned bus)
 
 	/* Let the slave drive data */
 	software_i2c[bus]->set_sda(bus, 1);
-	wait(bus);
+	i2cwait(bus);
 
 	/* Clock stretching */
 	assert(!software_i2c[bus]->get_scl(bus));
@@ -189,7 +191,7 @@ static int in_bit(unsigned bus)
 
 	/* SCL is high, now data is valid */
 	bit = software_i2c[bus]->get_sda(bus);
-	wait(bus);
+	i2cwait(bus);
 	assert(software_i2c[bus]->get_scl(bus));
 	software_i2c[bus]->set_scl(bus, 0);
 
@@ -199,7 +201,7 @@ static int in_bit(unsigned bus)
 }
 
 /* Write a byte to I2C bus. Return 0 if ack by the slave. */
-static int out_byte(unsigned bus, u8 byte)
+static int out_byte(unsigned bus, uint8_t byte)
 {
 	unsigned bit;
 	int nack;
@@ -210,8 +212,8 @@ static int out_byte(unsigned bus, u8 byte)
 
 	nack = in_bit(bus);
 
-	if (DEBUG && nack >= 0)
-		printk(BIOS_DEBUG, "software_i2c(%d): wrote byte 0x%02x, "
+	if (porttrace && nack >= 0)
+		fprint(2, "software_i2c(%d): wrote byte 0x%02x, "
 			"received %s\n", bus, byte, nack ? "NAK" : "ACK");
 
 	return nack;
@@ -219,7 +221,7 @@ static int out_byte(unsigned bus, u8 byte)
 
 static int in_byte(unsigned bus, int ack)
 {
-	u8 byte = 0;
+	uint8_t byte = 0;
 	int i;
 	for (i = 0; i < 8; ++i) {
 		int bit = in_bit(bus);
@@ -231,8 +233,8 @@ static int in_byte(unsigned bus, int ack)
 	if (out_bit(bus, !ack) < 0)
 		return -1;
 
-	if (DEBUG)
-		printk(BIOS_DEBUG, "software_i2c(%d): read byte 0x%02x, "
+	if (porttrace)
+		fprint(2, "software_i2c(%d): read byte 0x%02x, "
 			"sent %s\n", bus, byte, ack ? "ACK" : "NAK");
 
 	return byte;
@@ -252,7 +254,7 @@ int software_i2c_transfer(unsigned bus, struct i2c_seg *segments, int count)
 			int ret;
 			if (seg->read) {
 				ret = in_byte(bus, i < seg->len - 1);
-				seg->buf[i] = (u8)ret;
+				seg->buf[i] = (uint8_t)ret;
 			} else {
 				ret = out_byte(bus, seg->buf[i]);
 			}
@@ -266,7 +268,7 @@ int software_i2c_transfer(unsigned bus, struct i2c_seg *segments, int count)
 	return 0;
 }
 
-void software_i2c_wedge_ack(unsigned bus, u8 chip)
+void software_i2c_wedge_ack(unsigned bus, uint8_t chip)
 {
 	int i;
 
@@ -280,16 +282,16 @@ void software_i2c_wedge_ack(unsigned bus, u8 chip)
 
 	/* Let the slave drive it's ACK but keep the clock high forever. */
 	software_i2c[bus]->set_sda(bus, 1);
-	wait(bus);
+	i2cwait(bus);
 	software_i2c[bus]->set_scl(bus, 1);
 	wait_for_scl(bus, "on wedge_ack()");
 
-	printk(BIOS_INFO, "software_i2c(%d): wedged address write on slave "
+	fprint(2, "software_i2c(%d): wedged address write on slave "
 		"ACK. SDA %d, SCL %d\n", bus, software_i2c[bus]->get_sda(bus),
 		software_i2c[bus]->get_scl(bus));
 }
 
-void software_i2c_wedge_read(unsigned bus, u8 chip, u8 reg, int bits)
+void software_i2c_wedge_read(unsigned bus, uint8_t chip, uint8_t reg, int bits)
 {
 	int i;
 
@@ -309,16 +311,16 @@ void software_i2c_wedge_read(unsigned bus, u8 chip, u8 reg, int bits)
 
 	/* Let the slave drive SDA but keep the clock high forever. */
 	software_i2c[bus]->set_sda(bus, 1);
-	wait(bus);
+	i2cwait(bus);
 	software_i2c[bus]->set_scl(bus, 1);
 	wait_for_scl(bus, "on wedge_read()");
 
-	printk(BIOS_INFO, "software_i2c(%d): wedged data read after %d bits. "
+	fprint(2, "software_i2c(%d): wedged data read after %d bits. "
 		"SDA %d, SCL %d\n", bus, bits, software_i2c[bus]->get_sda(bus),
 		software_i2c[bus]->get_scl(bus));
 }
 
-void software_i2c_wedge_write(unsigned bus, u8 chip, u8 reg, int bits)
+void software_i2c_wedge_write(unsigned bus, uint8_t chip, uint8_t reg, int bits)
 {
 	int i;
 
@@ -332,11 +334,11 @@ void software_i2c_wedge_write(unsigned bus, u8 chip, u8 reg, int bits)
 
 	/* Pretend to write another 1 bit but keep the clock high forever. */
 	software_i2c[bus]->set_sda(bus, 1);
-	wait(bus);
+	i2cwait(bus);
 	software_i2c[bus]->set_scl(bus, 1);
 	wait_for_scl(bus, "on wedge_write()");
 
-	printk(BIOS_INFO, "software_i2c(%d): wedged data write after %d bits. "
+	fprint(2, "software_i2c(%d): wedged data write after %d bits. "
 		"SDA %d, SCL %d\n", bus, bits, software_i2c[bus]->get_sda(bus),
 		software_i2c[bus]->get_scl(bus));
 }

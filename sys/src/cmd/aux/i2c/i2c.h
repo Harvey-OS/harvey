@@ -13,12 +13,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef _DEVICE_I2C_H_
-#define _DEVICE_I2C_H_
-
-#include <stdint.h>
-#include <stdlib.h>
-
 struct i2c_seg
 {
 	int read;
@@ -41,9 +35,9 @@ struct software_i2c_ops {
 extern struct software_i2c_ops *software_i2c[];
 
 int software_i2c_transfer(unsigned bus, struct i2c_seg *segments, int count);
-void software_i2c_wedge_ack(unsigned bus, u8 chip);
-void software_i2c_wedge_read(unsigned bus, u8 chip, u8 reg, int bit_count);
-void software_i2c_wedge_write(unsigned bus, u8 chip, u8 reg, int bit_count);
+void software_i2c_wedge_ack(unsigned bus, uint8_t chip);
+void software_i2c_wedge_read(unsigned bus, uint8_t chip, uint8_t reg, int bit_count);
+void software_i2c_wedge_write(unsigned bus, uint8_t chip, uint8_t reg, int bit_count);
 
 /*
  * software_i2c is supposed to be a debug feature. It's usually not compiled in,
@@ -54,9 +48,8 @@ void software_i2c_wedge_write(unsigned bus, u8 chip, u8 reg, int bit_count);
 static inline int i2c_transfer(unsigned bus, struct i2c_seg *segments,
 			       int count)
 {
-	if (CONFIG_SOFTWARE_I2C)
-		if (bus < SOFTWARE_I2C_MAX_BUS && software_i2c[bus])
-			return software_i2c_transfer(bus, segments, count);
+	if (bus < SOFTWARE_I2C_MAX_BUS && software_i2c[bus])
+		return software_i2c_transfer(bus, segments, count);
 
 	return platform_i2c_transfer(bus, segments, count);
 }
@@ -106,7 +99,7 @@ static inline int i2c_readb(unsigned bus, uint8_t chip, uint8_t reg,
 	seg[1].buf = data;
 	seg[1].len = 1;
 
-	return i2c_transfer(bus, seg, ARRAY_SIZE(seg));
+	return i2c_transfer(bus, seg, nelem(seg));
 }
 
 /**
@@ -123,9 +116,7 @@ static inline int i2c_writeb(unsigned bus, uint8_t chip, uint8_t reg,
 	seg.read = 0;
 	seg.chip = chip;
 	seg.buf = buf;
-	seg.len = ARRAY_SIZE(buf);
+	seg.len = nelem(buf);
 
 	return i2c_transfer(bus, &seg, 1);
 }
-
-#endif	/* _DEVICE_I2C_H_ */
