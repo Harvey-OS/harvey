@@ -1,0 +1,79 @@
+load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+
+cc_binary(
+    name="consoles",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=[
+        "comconsole",
+        "pipeconsole",
+        "screenconsole",
+    ],
+)
+cc_binary(
+    name="console",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=[
+        "static",
+        "e_main",
+        "lc",
+    ],
+    srcs=[
+        "buffer.c",
+        "comconsole.c",
+        "passthrough.c",
+        "serve9p.c",
+        "utils.c",
+    ],
+)
+cc_binary(
+    name="pipeconsole",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    srcs=[
+        "buffer.c",
+        "pipeconsole.c",
+        "passthrough.c",
+        "serve9p.c",
+        "utils.c",
+    ],
+    linkopts=[
+        "static",
+        "e_main",
+        "lc",
+    ],
+)
+cc_binary(
+    name="screenconsole",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=[
+        "//sys/src/libc:libc",
+    ],
+    linkopts=[
+        "static",
+        "-e_main",
+    ],
+    srcs=[
+        "buffer.c",
+        "cga.c",
+        "screenconsole.c",
+        "keyboard.c",
+        "passthrough.c",
+        "serve9p.c",
+        "utils.c",
+    ],
+)

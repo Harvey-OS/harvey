@@ -12,7 +12,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include	<error.h>
 
 /*
  * Generous estimate of number of fields, including terminal nil pointer
