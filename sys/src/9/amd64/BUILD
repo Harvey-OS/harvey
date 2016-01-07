@@ -1,0 +1,137 @@
+load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+
+CORE_SRCS = [
+    "entry.S",
+    "vsvm.c",
+    "l64v.S",
+    "l64fpu.S",
+    "cpuidamd64.S",
+    "l64acidt.S",
+    "l64idt.S",
+    "l64vsyscall.S",
+    "acore.c",
+    "apic.c",
+    "arch.c",
+    "archamd64.c",
+    "asm.c",
+    "backtrace.c",
+    "coreboot.c",
+    "ctype.c",
+    "devarch.c",
+    "fpu.c",
+    "i8254.c",
+    "i8259.c",
+    "ioapic.c",
+    "main.c",
+    "map.c",
+    "memory.c",
+    "mmu.c",
+    "mp.c",
+    "msi.c",
+    "multiboot.c",
+    "physalloc.c",
+    "pmcio.c",
+    "qmalloc.c",
+    "sipi.c",
+    "syscall.c",
+    "systab.c",
+    "tcore.c",
+    "trap.c"
+]
+
+PORT_SRCS = glob(["../port/*.c"])
+IP_SRCS = glob(["../ip/*.c"])
+# don't want to start with a number
+I386_SRCS = glob(["../386/*.c"])
+
+AMD64SRCS = CORE_SRCS + IP_SRCS + I386_SRCS
+
+cc_binary(
+    name="amd64cpu",
+    copts=[
+        "-mcmodel=kernel",
+        "-O0",
+        "-static",
+        "-fplan9-extensions",
+        "-mno-red-zone",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-DKERNDATE=1433623937",
+        "-g",
+        "-fvar-tracking",
+        "-fvar-tracking-assignments",
+        "-Wall",
+        "-W",
+        "-Wno-sign-compare",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-parameter",
+        "-Wno-missing-braces",
+        "-Wno-parentheses",
+        "-Wno-unknown-pragmas",
+        "-Werror"
+    ],
+    srcs=CORE_SRCS,
+    includes=[
+        "//sys/include"
+        "//amd64/include"
+    ],
+    deps=[
+        "//sys/src/9/boot:amd64cpu",
+        ":inith",
+        "//sys/src/libmemdraw:libkmemdraw",
+        "//sys/src/libdraw:libkdraw",
+        "//sys/src/libc:libkc",
+        "//sys/src/libdraw:libkdraw",
+        "//sys/src/libip:libkip"
+        "//sys/src/libsec:libksec"
+    ],
+    ld="kernel.ld"
+    linkopts=[
+        "-z",
+        "-max-page-size=0x1000",
+        "-nostdlib",
+        "-g",
+        "-T"
+    ]
+)
+elf_to_c(
+    name="inith",
+    deps=[
+        ":init"
+    ],
+    elf="bin/init"
+)
+cc_binary(
+    name="init",
+    copts=[
+        "-c"
+        "-g",
+        "-Wall",
+        "-Wno-missing-braces",
+        "-Wno-parentheses",
+        "-Wno-unknown-pragmas",
+        "-O0",
+        "-static",
+        "-fplan9-extensions",
+        "-mno-red-zone",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-mcmodel=small"
+    ],
+    deps=[
+        "//sys/src/libc:libc"
+    ]
+    includes=[
+        "//sys/include"
+        "//amd64/include"
+    ],
+    linkopts=[
+        "-e_main",
+        "-static",
+        "-Ttext=0x200020"
+    ],
+    srcs=[
+        "init9.c",
+        "//sys/src/9/port/initcode.c"
+    ]
+)
