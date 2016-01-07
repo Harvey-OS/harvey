@@ -18,7 +18,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-#include "../port/error.h"
+#include <error.h>
 #include "../port/sd.h"
 #include "ahci.h"
 

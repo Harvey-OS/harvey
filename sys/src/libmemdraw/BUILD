@@ -1,0 +1,62 @@
+load('//sys/src/FLAGS', "KLIB_COMPILER_FLAGS", "LIB_COMPILER_FLAGS")
+
+cc_library(
+    name="libkmemdraw",
+    copts=KLIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    srcs=[
+        "alloc.c",
+        "arc.c",
+        "cload.c",
+        "cmap.c",
+        "cread.c",
+        "defont.c",
+        "draw.c",
+        "ellipse.c",
+        "fillpoly.c",
+        "hwdraw.c",
+        "iprint.c",
+        "line.c",
+        "load.c",
+        "openmemsubfont.c",
+        "poly.c",
+        "read.c",
+        "string.c",
+        "subfont.c",
+        "unload.c",
+        "write.c"
+    ]
+)
+cc_library(
+    name="libmemdraw",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    srcs=[
+        "alloc.c",
+        "arc.c",
+        "cload.c",
+        "cmap.c",
+        "cread.c",
+        "defont.c",
+        "draw.c",
+        "ellipse.c",
+        "fillpoly.c",
+        "hwdraw.c",
+        "iprint.c",
+        "line.c",
+        "load.c",
+        "openmemsubfont.c",
+        "poly.c",
+        "read.c",
+        "string.c",
+        "subfont.c",
+        "unload.c",
+        "write.c"
+    ]
+)
