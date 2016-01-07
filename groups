@@ -1,12 +1,4 @@
-# UUID          	Group Name
+# UUID       	Group Name
 #
-user:0intro     	user/David du Colombier (0intro)
-user:aki5       	user/Aki Nyrhinen (aki5)
-user:dancrossnyc	user/Dan Cross (dancrossnyc)
-user:elbing     	user/Álvaro Jurado (elbing)
-user:floren     	user/John Floren (floren)
-user:fuchicar   	user/Rafa (fuchicar)
-user:hdonnay    	user/Henry Donnay (hdonnay)
-user:keedon     	user/Keith Poole (keedon)
-user:rminnich   	user/ron minnich (rminnich)
-user:sevki      	user/Sevki (sevki)
+user:elbing  	user/Álvaro Jurado (elbing)
+user:rminnich	user/ron minnich (rminnich)
