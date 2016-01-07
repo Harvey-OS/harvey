@@ -78,6 +78,7 @@
 #define BIGPGSZ         (1<<BIGPGSHFT)
 #endif
 #define	BIGPGROUND(x)	ROUNDUP((x), BIGPGSZ)
+#define	PGROUND(x)	ROUNDUP((x), PGSZ)
 #define	PGSPERBIG	(BIGPGSZ/PGSZ)
 
 /*
