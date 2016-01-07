@@ -1,0 +1,463 @@
+load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+
+CORE_SRCS = [
+    "entry.S",
+    "vsvm.c",
+    "l64v.S",
+    "l64fpu.S",
+    "cpuidamd64.S",
+    "l64acidt.S",
+    "l64idt.S",
+    "l64vsyscall.S",
+    "acore.c",
+    "apic.c",
+    "arch.c",
+    "archamd64.c",
+    "asm.c",
+    "backtrace.c",
+    "coreboot.c",
+    "ctype.c",
+    "devarch.c",
+    "fpu.c",
+    "i8254.c",
+    "i8259.c",
+    "ioapic.c",
+    "main.c",
+    "map.c",
+    "memory.c",
+    "mmu.c",
+    "mp.c",
+    "msi.c",
+    "multiboot.c",
+    "physalloc.c",
+    "pmcio.c",
+    "qmalloc.c",
+    "sipi.c",
+    "syscall.c",
+    "systab.c",
+    "tcore.c",
+    "trap.c"
+]
+
+PORT_SRCS = [
+    "//sys/src/9/port/alarm.c",
+    "//sys/src/9/port/allocb.c",
+    "//sys/src/9/port/cache.c",
+    "//sys/src/9/port/chan.c",
+    "//sys/src/9/port/cpu_buffer.c",
+    "//sys/src/9/port/dev.c",
+    "//sys/src/9/port/devcap.c",
+    "//sys/src/9/port/devcons.c",
+    "//sys/src/9/port/devcoreboot.c",
+    "//sys/src/9/port/devdraw.c",
+    "//sys/src/9/port/devdup.c",
+    "//sys/src/9/port/devenv.c",
+    "//sys/src/9/port/devkexec.c",
+    "//sys/src/9/port/devkprof.c",
+    "//sys/src/9/port/devmnt.c",
+    "//sys/src/9/port/devmouse.c",
+    "//sys/src/9/port/devpci.c",
+    "//sys/src/9/port/devpipe.c",
+    "//sys/src/9/port/devpmc.c",
+    "//sys/src/9/port/devproc.c",
+    "//sys/src/9/port/devregress.c",
+    "//sys/src/9/port/devroot.c",
+    "//sys/src/9/port/devsd.c",
+    "//sys/src/9/port/devsegment.c",
+    "//sys/src/9/port/devsrv.c",
+    "//sys/src/9/port/devssl.c",
+    "//sys/src/9/port/devtls.c",
+    "//sys/src/9/port/devtab.c",
+    "//sys/src/9/port/devtrace.c",
+    "//sys/src/9/port/devuart.c",
+    "//sys/src/9/port/devwd.c",
+    "//sys/src/9/port/devws.c",
+    "//sys/src/9/port/devzp.c",
+    "//sys/src/9/port/edf.c",
+    "//sys/src/9/port/elf64.c",
+    "//sys/src/9/port/ethermii.c",
+    "//sys/src/9/port/fault.c",
+    "//sys/src/9/port/fortuna.c",
+    "//sys/src/9/port/getput.c",
+    "//sys/src/9/port/hexdump.c",
+    "//sys/src/9/port/image.c",
+    "//sys/src/9/port/kdebug.c",
+    "//sys/src/9/port/kexec.c",
+    "//sys/src/9/port/ipchecksum.c",
+    "//sys/src/9/port/mul64fract.c",
+    "//sys/src/9/port/netif.c",
+    "//sys/src/9/port/page.c",
+    "//sys/src/9/port/pager.c",
+    "//sys/src/9/port/parse.c",
+    "//sys/src/9/port/pgrp.c",
+    "//sys/src/9/port/portclock.c",
+    "//sys/src/9/port/print.c",
+    "//sys/src/9/port/proc.c",
+    "//sys/src/9/port/ps.c",
+    "//sys/src/9/port/qio.c",
+    "//sys/src/9/port/qlock.c",
+    "//sys/src/9/port/random.c",
+    "//sys/src/9/port/rebootcmd.c",
+    "//sys/src/9/port/rmap.c",
+    "//sys/src/9/port/sdscsi.c",
+    "//sys/src/9/port/segment.c",
+    "//sys/src/9/port/sysauth.c",
+    "//sys/src/9/port/syscallfmt.c",
+    "//sys/src/9/port/sysfile.c",
+    "//sys/src/9/port/sysproc.c",
+    "//sys/src/9/port/sysseg.c",
+    "//sys/src/9/port/syssem.c",
+    "//sys/src/9/port/syszio.c",
+    "//sys/src/9/port/taslock.c",
+    "//sys/src/9/port/tod.c",
+    "//sys/src/9/port/usbehci.c",
+    "//sys/src/9/port/watermarks.c",
+]
+IP_SRCS = [
+    "//sys/src/9/ip/arp.c",
+    "//sys/src/9/ip/chandial.c",
+    "//sys/src/9/ip/devip.c",
+    "//sys/src/9/ip/ethermedium.c",
+    "//sys/src/9/ip/gre.c",
+    "//sys/src/9/ip/icmp6.c",
+    "//sys/src/9/ip/icmp.c",
+    "//sys/src/9/ip/inferno.c",
+    "//sys/src/9/ip/ipaux.c",
+    "//sys/src/9/ip/ip.c",
+    "//sys/src/9/ip/ipifc.c",
+    "//sys/src/9/ip/ipmux.c",
+    "//sys/src/9/ip/iproute.c",
+    "//sys/src/9/ip/ipv6.c",
+    "//sys/src/9/ip/loopbackmedium.c",
+    "//sys/src/9/ip/netdevmedium.c",
+    "//sys/src/9/ip/netlog.c",
+    "//sys/src/9/ip/nullmedium.c",
+    "//sys/src/9/ip/pktmedium.c",
+    "//sys/src/9/ip/ptclbsum.c",
+    "//sys/src/9/ip/rudp.c",
+    "//sys/src/9/ip/tcp.c",
+    "//sys/src/9/ip/udp.c"
+]
+AMD64_SRCS = [
+    "cga.c",
+    "devacpi.c",
+    "devusb.c",
+    "devvga.c",
+    "ether8139.c",
+    "ether82563.c",
+    "amd64cpu.c",
+    "mouse.c",
+    "screen.c",
+    "sdata.c",
+    "usbehcipc.c",
+    "usbohci.c",
+    "usbuhci.c",
+    "vga.c",
+    "vgax.c",
+]
+# don't want to start with a number
+I386_SRCS = [
+    "//sys/src/9/386/devether.c",
+    "//sys/src/9/386/devrtc.c",
+    "//sys/src/9/386/ether8169.c",
+    "//sys/src/9/386/ether82557.c",
+    "//sys/src/9/386/etherigbe.c",
+    "//sys/src/9/386/etherm10g.c",
+    "//sys/src/9/386/i8042.c",
+    "//sys/src/9/386/pci.c",
+    "//sys/src/9/386/sdiahci.c",
+    "//sys/src/9/386/uarti8250.c",
+    "//sys/src/9/386/uartpci.c",
+    "//sys/src/9/386/vgavesa.c"
+]
+
+AMD64SRCS = AMD64_SRCS + CORE_SRCS + I386_SRCS + IP_SRCS + PORT_SRCS
+
+#     "bind": "/$ARCH/bin/bind",
+#     "boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
+#     "cat": "/$ARCH/bin/cat",
+#     "date": "/$ARCH/bin/date",
+#     "echo": "/$ARCH/bin/echo",
+#     "factotum": "/$ARCH/bin/auth/factotum",
+#     "fdisk": "/$ARCH/bin/disk/fdisk",
+#     "fossil": "/$ARCH/bin/fossil/fossil",
+#     "ipconfig": "/$ARCH/bin/ip/ipconfig",
+#     "ls": "/$ARCH/bin/ls",
+#     "mount": "/$ARCH/bin/mount",
+#     "nvram": "/util/nvram",
+#     "prep": "/$ARCH/bin/disk/prep",
+#     "rc": "/$ARCH/bin/rc",
+#     "ps": "/$ARCH/bin/ps",
+#     "ed": "/$ARCH/bin/ed",
+#     "rcmain": "/rc/lib/rcmain",
+#     "screenconsole": "/$ARCH/bin/aux/screenconsole",
+#     "realemu": "/$ARCH/bin/aux/realemu",
+#     "vga": "/$ARCH/bin/aux/vga",
+#     "srv": "/$ARCH/bin/srv",
+#     "startdisk": "startdisk",
+#     "usbd": "/$ARCH/bin/usb/usbd",
+#     "venti": "/$ARCH/bin/venti/venti"
+
+
+strip(
+    name="bind",
+    deps=[
+        "//sys/src/cmd:bind",
+    ],
+)
+strip(
+    name="boot",
+    deps=[
+        "//sys/src/9/boot:bootamd64cpu",
+    ],
+)
+strip(
+    name="cat",
+    deps=[
+        "//sys/src/cmd:cat",
+    ],
+)
+strip(
+    name="date",
+    deps=[
+        "//sys/src/cmd:date",
+    ],
+)
+strip(
+    name="echo",
+    deps=[
+        "//sys/src/cmd:echo",
+    ],
+)
+strip(
+    name="factotum",
+    deps=[
+        "//sys/src/cmd/auth/factotum:factotum",
+    ],
+)
+strip(
+    name="fdisk",
+    deps=[
+        "//sys/src/cmd/disk/prep:fdisk",
+    ],
+)
+strip(
+    name="ipconfig",
+    deps=[
+        "//sys/src/cmd/ip/ipconfig:ipconfig",
+    ],
+)
+strip(
+    name="screenconsole",
+    deps=[
+        "//sys/src/cmd/aux/console:screenconsole",
+    ],
+)
+RAMFILES = [
+    ":bind",
+    ":boot",
+    ":cat",
+    ":date",
+    ":echo",
+    ":factotum",
+    ":fdisk",
+    ":ipconfig",
+    ":screenconsole",
+]
+mk_sys(
+    name="error",
+    mode="error.h",
+    arch="amd64",
+    sysconf="//sys/src/sysconf.json",
+)
+
+mk_sys(
+    name="sys",
+    mode="sys.h",
+    arch="amd64",
+    sysconf="//sys/src/sysconf.json",
+)
+
+mk_sys(
+    name="systab",
+    mode="systab.c",
+    arch="amd64",
+    sysconf="//sys/src/sysconf.json",
+)
+
+mk_sys(
+    name="errstr",
+    mode="errstr.h",
+    arch="amd64",
+    sysconf="//sys/src/sysconf.json",
+)
+cc_binary(
+    name="harvey",
+    copts=[
+        "-c",
+        "-mcmodel=kernel",
+        "-O0",
+        "-static",
+        "-fplan9-extensions",
+        "-mno-red-zone",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-DKERNDATE=1433623937",
+        "-g",
+        "-fvar-tracking",
+        "-fvar-tracking-assignments",
+        "-Wall",
+        "-W",
+        "-Wno-sign-compare",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-parameter",
+        "-Wno-missing-braces",
+        "-Wno-parentheses",
+        "-Wno-unknown-pragmas",
+        "-Werror",
+        "-fasm",
+    ],
+    srcs=AMD64SRCS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+        "//sys/src/9/amd64",
+    ],
+    deps=[
+        ":amd64cpu",
+        ":error",
+        ":errstr",
+        ":systab",
+        ":sys",
+        "//sys/src/9/boot:amd64cpu",
+        ":inith",
+        "//sys/src/libmemlayer:libkmemlayer",
+        "//sys/src/libmemdraw:libkmemdraw",
+        "//sys/src/libdraw:libkdraw",
+        "//sys/src/libc:libkc",
+        "//sys/src/libip:libkip",
+        "//sys/src/libsec:libksec",
+    ],
+    ld="kernel.ld",
+    linkopts=[
+        "-z",
+        "max-page-size=0x1000",
+        "-nostdlib",
+        "-g",
+        "-T",
+    ]
+)
+kernel(
+    name="amd64cpu",
+    deps=RAMFILES,
+    code=[
+        "int cpuserver = 1;",
+        "uint32_t kerndate = 1;",
+    ],
+    dev=[
+        "acpi",
+        "arch",
+        "cap",
+        "cons",
+        "coreboot",
+        "draw",
+        "dup",
+        "env",
+        "ether",
+        "ip",
+        "kprof",
+        "mnt",
+        "mouse",
+        "pci",
+        "pipe",
+        "pmc",
+        "proc",
+        "regress",
+        "root",
+        "rtc",
+        "sd",
+        "segment",
+        "srv",
+        "ssl",
+        "tls",
+        "uart",
+        "ws",
+        "usb",
+        "vga",
+        "zp",
+    ],
+    ip=[
+        "tcp",
+        "udp",
+        "ipifc",
+        "icmp",
+        "icmp6",
+        "gre",
+    ],
+    link=[
+        "ether8169",
+        "ether82557",
+        "ether82563",
+        "etherigbe",
+        "ether8139",
+        "ethermedium",
+        "loopbackmedium",
+        "netdevmedium",
+        "usbuhci",
+        "usbohci",
+        "usbehci",
+    ],
+    sd=[
+        "sdiahci",
+    ],
+    uart=[
+        "i8250",
+        "pci",
+    ],
+    vga=[
+        "vgavesa",
+    ],
+)
+
+elf_to_c(
+    name="inith",
+    deps=[
+        ":init",
+    ],
+    elf="bin/init",
+)
+
+cc_binary(
+    name="init",
+    copts=[
+        "-c",
+        "-g",
+        "-Wall",
+        "-Wno-missing-braces",
+        "-Wno-parentheses",
+        "-Wno-unknown-pragmas",
+        "-O0",
+        "-static",
+        "-fplan9-extensions",
+        "-mno-red-zone",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-mcmodel=small",
+    ],
+    deps=[
+        "//sys/src/libc:libc"
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=[
+        "-e_main",
+        "-static",
+        "-Ttext=0x200020",
+    ],
+    srcs=[
+        "init9.c",
+        "//sys/src/9/port/initcode.c",
+    ]
+)
