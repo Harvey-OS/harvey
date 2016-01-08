@@ -712,7 +712,7 @@ timerproc(void *v)
 }
 
 void
-suspproc(void *)
+suspproc(void *v)
 {
 	Mouse mouse;
 	Rune r;

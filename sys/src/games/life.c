@@ -88,10 +88,8 @@ setrules(char *r)
 }
 
 static void
-g9err(Display *, char *err)
+g9err(Display *d, char *err)
 {
-	static int entered = 0;
-
 	fprint(2, "%s: %s (%r)\n", argv0, err);
 	exits(err);
 }
@@ -188,7 +186,7 @@ interest(int rc[NLIFE], int i)
  * Generate returns 0 if there was no change from the last generation,
  * and 1 if there were changes.
  */
-#define	neighbour(di, dj, op) lp[(di)*NLIFE+(dj)] op= 2
+#define	neighbour(di, dj, op) lp[(di)*NLIFE+(dj)] op 2
 #define	neighbours(op)\
 	neighbour(-1, -1, op);\
 	neighbour(-1,  0, op);\
@@ -221,7 +219,7 @@ generate(void)
 	for (i = 1; i != NLIFE - 1; i++)
 		if (interest(row, i)) {
 			for (j = j0, lp = &life[i][j0]; j <= j1; j++, lp++)
-				switch (action[*lp]) {
+				switch (action[(int)*lp]) {
 				case 'b':
 					++*lp;
 					++drow[i];
@@ -245,12 +243,12 @@ generate(void)
 	p = adjust;
 	while (p != addp) {
 		lp = *p++;
-		neighbours(+);
+		neighbours(+=);
 	}
 	p = delp;
 	while (p != &adjust[NADJUST]) {
 		lp = *p++;
-		neighbours(-);
+		neighbours(-=);
 	}
 	for (i = 1; i != NLIFE - 1; i++) {
 		row[i] += drow[i];
@@ -276,7 +274,7 @@ birth(int i, int j)
 	++*lp;
 	++row[i];
 	++col[j];
-	neighbours(+);
+	neighbours(+=);
 	setbox(i, j);
 }
 
@@ -295,7 +293,7 @@ death(int i, int j)
 	--*lp;
 	--row[i];
 	--col[j];
-	neighbours(-);
+	neighbours(-=);
 	clrbox(i, j);
 }
 

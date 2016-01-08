@@ -794,8 +794,8 @@ root(void) {
 	return CHOOSE(root);
 }
 
-prob(f)
-	double          f;
+int
+prob(double f)
 {
 	return (R) < (f * 32767.0);
 }
@@ -1438,7 +1438,7 @@ main(int argc, char *argv[]) {
 	X               tree;
 	int             i, j = 0, k = 0;
 	int             lim = 0;
-	long            t = 0;
+	int32_t            t = 0;
 	char            c, **str;
 	int		junk, junk2;
 
