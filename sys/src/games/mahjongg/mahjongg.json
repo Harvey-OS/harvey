@@ -1,0 +1,15 @@
+{
+	"mahjongg": {
+		"Include": [
+			"../../cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "mahjongg",
+		"SourceFiles": [
+			"graphics.c",
+			"level.c",
+			"logic.c",
+			"mahjongg.c"
+		]
+	}
+}

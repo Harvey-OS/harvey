@@ -1,0 +1,27 @@
+{
+	"Cmd": {
+		"Include": [
+			"../cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFilesCmd": [
+			"ana.c",
+			"catclock.c",
+			"festoon.c",
+			"life.c",
+			"memo.c",
+			"juggle.c"
+		]
+	},
+	"Dirs": {
+                "Include": [
+                        "../cmd/cmd.json"
+                ],               
+                "Install": "/$ARCH/bin/",
+                "Projects": [           
+			"sokoban/sokoban.json",
+			"sudoku/sudoku.json",
+			"mahjongg/mahjongg.json"
+		]
+	}
+}
