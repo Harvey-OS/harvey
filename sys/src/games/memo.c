@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 {
 	Mouse m;
 	int i, j;
-	ushort ran, score, attempt, prev, br[2];
+	unsigned short ran, score, attempt, prev, br[2];
 	Image *c[2];
 	char *fmt;
 
