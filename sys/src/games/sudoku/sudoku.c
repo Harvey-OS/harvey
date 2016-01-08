@@ -309,7 +309,8 @@ main(int argc, char *argv[])
 	Point p;
 	int last1 = 0;	/* was the button clicked last time? */
 
-	USED(argc, argv);
+	USED(argc);
+	USED(argv);
 
 	if(initdraw(nil, nil, "sudoku") < 0)
 		sysfatal("initdraw failed: %r");

@@ -1,0 +1,14 @@
+{
+	"sudoku": {
+		"Include": [
+			"../../cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "sudoku",
+		"SourceFiles": [
+			"game.c",
+			"levels.c",
+			"sudoku.c"
+		]
+	}
+}
