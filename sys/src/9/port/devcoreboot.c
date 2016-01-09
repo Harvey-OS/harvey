@@ -323,7 +323,7 @@ corebootdevgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 static void
 corebootinit(void)
 {
-	get_coreboot_info(&cbinfo);
+	//get_coreboot_info(&cbinfo);
 }
 
 static Chan*
