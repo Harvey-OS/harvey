@@ -790,6 +790,7 @@ userinit(void)
 	/* This depends on init having a text segment < 2M. */
 	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)), init_data_out, sizeof(init_data_out));
 	kunmap(k);
+	procwired(p, 0);
 	ready(p);
 }
 
