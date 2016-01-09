@@ -704,10 +704,6 @@ hi("addr "); put64(addr); hi("\n");
 
 	if(fault(addr, ureg->ip, ftype) < 0){
 iprint("could not %s fault %p\n", faulttypes[ftype], addr);
-	if (! user)
-		panic("fault went bad in kernel\n");
-	else
-
 		/*
 		 * It is possible to get here with !user if, for example,
 		 * a process was in a system call accessing a shared
