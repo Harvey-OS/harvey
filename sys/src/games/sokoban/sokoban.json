@@ -1,0 +1,17 @@
+{
+	"sokoban": {
+		"Include": [
+			"../../cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "sokoban",
+		"SourceFiles": [
+			"animation.c",
+			"graphics.c",
+			"level.c",
+			"move.c",
+			"route.c",
+			"sokoban.c"
+		]
+	}
+}
