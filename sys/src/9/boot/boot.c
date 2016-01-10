@@ -329,9 +329,16 @@ startconsole(void)
 		break;
 	}
 
-	sleep(2500);
+	/* NOTE: this sleep and the access loop below are crap.
+	 * this parent should wait on a pipe from screenconsole to get
+	 * an 'OK' and then just go on to the open. Somebody should fix it.
+	 * This nonsense is only needed on qemu because it is taking FOREVER
+	 * to start processes on qemu, for reasons we don't understand.
+	 */
+	sleep(250);
 	/* wait for agent to really be there */
 	while(access("#s/screenconsole", AEXIST) < 0){
+		print("Screenconsole is STILL NOT READY\n");
 		sleep(250);
 	}
 	/* replace 0, 1 and 2 */
