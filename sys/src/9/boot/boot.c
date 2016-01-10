@@ -329,6 +329,7 @@ startconsole(void)
 		break;
 	}
 
+	sleep(2500);
 	/* wait for agent to really be there */
 	while(access("#s/screenconsole", AEXIST) < 0){
 		sleep(250);
