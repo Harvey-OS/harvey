@@ -34,7 +34,6 @@
 			"embed.c",
 			"local.c",
 			"paq.c",
-			"sac.c",
 			"settime.c"
 		]
 	}

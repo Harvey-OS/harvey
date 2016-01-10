@@ -14,6 +14,7 @@
 #include "../boot/boot.h"
 
 char	cputype[64];
+char	service[64];
 char	sys[2*64];
 int	printcol;
 int	mflag;
@@ -31,7 +32,7 @@ static void	kbmap(void);
 void
 boot(int argc, char *argv[])
 {
-	int fd, afd;
+	int fd, afd, srvt;
 	Method *mp;
 	char *cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
@@ -76,6 +77,7 @@ boot(int argc, char *argv[])
 		break;
 	}ARGEND
 	readfile("#e/cputype", cputype, sizeof(cputype));
+	readfile("#e/service", service, sizeof(service));
 
 	/*
 	 *  set up usb keyboard, mouse and disk, if any.
@@ -169,10 +171,17 @@ print("\n");
 		close(afd);
 
 	cmd = getenv("init");
+	srvt = strcmp(service, "terminal");
 	if(cmd == nil){
-		sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
-			cpuflag ? "c" : "t", mflag ? "m" : "");
-		cmd = cmdbuf;
+		if(srvt) {
+			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
+				"t", mflag ? "m" : "");
+			cmd = cmdbuf;
+		} else {
+			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
+				"c", mflag ? "m" : "");
+			cmd = cmdbuf;
+		}
 	}
 	iargc = tokenize(cmd, iargv, nelem(iargv)-1);
 	cmd = iargv[0];
