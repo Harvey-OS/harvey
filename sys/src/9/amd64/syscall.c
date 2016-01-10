@@ -276,7 +276,7 @@ syscall(int badscallnr, Ureg *ureg)
 	sp = ureg->sp;
 	startns = stopns = 0;
 	if (0) hi("so far syscall!\n");
-	if (printallsyscalls) {
+	if (up->pid == 0 || printallsyscalls) {
 		syscallfmt('E', scallnr, nil, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
 			print("E %s\n", up->syscalltrace);
@@ -355,7 +355,7 @@ syscall(int badscallnr, Ureg *ureg)
 	 */
 	ureg->ax = ar0.p;
 
-	if (printallsyscalls) {
+	if (up->pid == 0 || printallsyscalls) {
 		stopns = todget(nil);
 		syscallfmt('X', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
