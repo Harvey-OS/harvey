@@ -3,20 +3,31 @@
 TIMESYNCARGS=(-rLa1000000)
 NDBFILE=/lib/ndb/local
 
+# Hack
+terminal = "go9p"
+
 mntgen -s slashn && chmod 666 /srv/slashn
 
 # bind all likely devices (#S was bound in boot)
 for(i in f t m v L P u U '$' Σ κ)
 	/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
 
-# set up any partitions
-diskparts
+# ONLY FOR LOCAL DISK! We need better hack checking
+# some variable to distinguish if file server is remote
+# or local disk.
 
-# start up local swapping
-disk=`{ls /dev/sd*/swap >[2]/dev/null}
-if (! ~ $#disk 0)
-	swap $disk(1) >/dev/null >[2=1]
-rm /env/disk
+if (! ~ $terminal *go9p*) {
+	# set up any partitions
+	 diskparts
+
+	# start up local swapping
+	disk=`{ls /dev/sd*/swap >[2]/dev/null}
+	if (! ~ $#disk 0)
+		swap $disk(1) >/dev/null >[2=1]
+	rm /env/disk
+}
+
+# END OF ONLY LOCAL
 
 # we do this before we have a name.  we may need to do network
 # setup so that we can get a name.
@@ -28,7 +39,7 @@ if(! test -e /srv/cs && ! test -e /net/cs)
 	ndb/cs -f $NDBFILE
 sysname=`{cat /dev/sysname}
 if (~ $#sysname 0 || ~ $sysname '') {
-	sysname = gnot			# default
+	sysname = harvey			# default
 	echo -n $sysname >/dev/sysname
 }
 
@@ -51,7 +62,7 @@ if(test -e /cfg/$sysname/termrc)
 if(test -e /net/ipifc/0/ctl && ! test -e /srv/dns)
 	ndb/dns -r
 
-if(! ~ $terminal *vx32*){
+if(! ~ $terminal *vx32* && ! ~ $terminal *go9p*){
 	# start timesync if it isn't running and we weren't told not to
 	if(! ps|grep -s timesync)
 		if(! ~ $TIMESYNCARGS '')
@@ -90,10 +101,12 @@ if(test -f /dev/mousectl){
 	switch($mouseport){
 	case ps2 ps2intellimouse 0 1 2
 		aux/mouse $mouseport
+		ms& #soft mouse
 		# parse vgasize into fields
 		vgasize=`{echo $vgasize}
 		if(! ~ $"monitor '' && ! ~ `{cat /dev/user} none)
-			aux/vga -l $vgasize
+			aux/realemu
+			aux/vga -m $monitor -l $vgasize
 		if(~ $accupoint 1)
 			pipefile -dr /bin/aux/accupoint /dev/mouse
 	}
