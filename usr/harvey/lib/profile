@@ -7,12 +7,12 @@ font = /lib/font/bit/pelm/euro.9.font
 fn cd { builtin cd $* && awd }  # for acme
 switch($service){
 case terminal
-	plumber
+	# plumber
 	echo -n accelerated > '#m/mousectl'
 	echo -n 'res 3' > '#m/mousectl'
 	prompt=('term% ' '	')
 	fn term%{ $* }
-	exec rio -i riostart
+	exec rio -s #-i riostart
 case cpu
 	if (test -e /mnt/term/mnt/wsys) { # rio already running
 		bind -a /mnt/term/mnt/wsys /dev
