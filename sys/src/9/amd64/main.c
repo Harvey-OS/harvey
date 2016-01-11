@@ -637,6 +637,7 @@ void
 init0(void)
 {
 	Proc *up = externup();
+print("%s up %p\n", __func__, up);
 	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
@@ -672,7 +673,7 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	//debugtouser((void *)UTZERO);
+	debugtouser((void *)UTZERO);
 	touser(sp);
 }
 
