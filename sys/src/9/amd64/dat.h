@@ -310,6 +310,9 @@ struct Mach
 	MCPU CPU;
 
 	NIX NIX;
+
+	/* for restoring pre-AMP scheduler */
+	Sched *sch;
 };
 
 struct Stackframe
