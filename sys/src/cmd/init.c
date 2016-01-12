@@ -72,8 +72,9 @@ main(int argc, char *argv[])
 	newns(user, 0);
 	iscpu = strcmp(service, "cpu")==0;
 
-	if(iscpu && manual == 0)
+	if(iscpu && manual == 0){
 		fexec(cpustart);
+	}
 
 	for(;;){
 		print("\ninit: starting /bin/rc\n");
