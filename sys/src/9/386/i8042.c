@@ -193,6 +193,11 @@ i8042intr(Ureg* u, void* v)
 	}
 }
 
+void kbdputsc(int data, int _)
+{
+	qiwrite(keybq, &data, 1);
+}
+
 static int
 outbyte(int port, int c)
 {
