@@ -24,6 +24,7 @@
 			"../port/devenv.c",
 			"../port/devkexec.c",
 			"../port/devkprof.c",
+			"../port/devkbin.c",
 			"../port/devmnt.c",
 			"../port/devmouse.c",
 			"../port/devpci.c",

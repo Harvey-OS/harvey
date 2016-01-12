@@ -295,6 +295,11 @@ usbinit(void)
 		return;
 	}
 
+	if (bind("#I", "/dev", MAFTER) < 0) {
+		print("usbinit: can't bind #I to /dev: %r\n");
+		return;
+	}
+
 	if (bind("#u", "/dev", MAFTER) < 0) {
 		print("usbinit: can't bind #u to /dev: %r\n");
 		return;
