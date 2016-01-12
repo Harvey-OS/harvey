@@ -173,7 +173,7 @@ print("\n");
 	cmd = getenv("init");
 	srvt = strcmp(service, "terminal");
 	if(cmd == nil){
-		if(srvt) {
+		if(!srvt) {
 			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
 				"t", mflag ? "m" : "");
 			cmd = cmdbuf;
