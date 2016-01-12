@@ -663,10 +663,6 @@ init0(void)
 		loadenv(oargc, oargv);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", cputype, 0);
-		if(cpuserver)
-			ksetenv("service", "cpu", 0);
-		else
-			ksetenv("service", "terminal", 0);
 		ksetenv("pgsz", "2097152", 0);
 		// no longer. 	confsetenv();
 		poperror();
