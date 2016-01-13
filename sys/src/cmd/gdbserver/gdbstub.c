@@ -28,63 +28,116 @@
  * kind, whether express or implied.
  */
 
-#include <linux/kernel.h>
-#include <linux/kgdb.h>
-#include <linux/kdb.h>
-#include <linux/reboot.h>
-#include <linux/uaccess.h>
-#include <asm/cacheflush.h>
-#include <asm/unaligned.h>
+#include <u.h>
+#include <libc.h>
 #include "debug_core.h"
 
 #define KGDB_MAX_THREAD_QUERY 17
+#define BUFMAX 1024
+#define BUF_THREAD_ID_SIZE	8
+#define NUMREGBYTES 512
+
+#define NO_POLL_CHAR '$'
+
+// Everything always does EINVAL.
+#define EINVAL 22
 
 /* Our I/O buffers. */
 static char			remcom_in_buffer[BUFMAX];
 static char			remcom_out_buffer[BUFMAX];
 static int			gdbstub_use_prev_in_buf;
 static int			gdbstub_prev_in_buf_pos;
+static int kgdb_connected;
 
 /* Storage for the registers, in GDB format. */
 static unsigned long		gdb_regs[(NUMREGBYTES +
 					sizeof(unsigned long) - 1) /
 					sizeof(unsigned long)];
 
+/* support crap */
 /*
  * GDB remote protocol parser:
  */
 
-#ifdef CONFIG_KGDB_KDB
-static int gdbstub_read_wait(void)
+static char *hex_asc = "0123456789abcdef";
+
+static uint8_t hex_asc_lo(int x)
 {
-	int ret = -1;
-	int i;
-
-	if (unlikely(gdbstub_use_prev_in_buf)) {
-		if (gdbstub_prev_in_buf_pos < gdbstub_use_prev_in_buf)
-			return remcom_in_buffer[gdbstub_prev_in_buf_pos++];
-		else
-			gdbstub_use_prev_in_buf = 0;
-	}
-
-	/* poll any additional I/O interfaces that are defined */
-	while (ret < 0)
-		for (i = 0; kdb_poll_funcs[i] != NULL; i++) {
-			ret = kdb_poll_funcs[i]();
-			if (ret > 0)
-				break;
-		}
-	return ret;
+	return hex_asc[x&0xf];
 }
-#else
+
+static uint8_t hex_asc_hi(int x)
+{
+	return hex_asc_lo(x>>4);
+}
+
+static void *hex_byte_pack(char *dest, int val)
+{
+	*dest++ = hex_asc_hi(val);
+	*dest++ = hex_asc_lo(val);
+	return dest;
+}
+
+static int hex_to_bin(int c)
+{
+	c &= 0xf;
+	if ((c >= '0') && (c <= '9'))
+		return c - '0';
+	if ((c >= 'a') && (c <= 'f'))
+		return c + 10 - 'a';
+	if ((c >= 'A') && (c <= 'F'))
+		return c + 10 - 'A';
+	return 0;
+}
+
+char *p8(char *dest, int c)
+{
+	*dest++ = hex_to_bin(c);
+	*dest++ = hex_to_bin(c>>4);
+	return dest;
+}
+
+char *p16(char *dest, int c)
+{
+	dest = p8(dest, c);
+	dest = p8(dest, c>>4);
+	return dest;
+}
+
+char *p32(char *dest, uint32_t c)
+{
+	dest = p16(dest, c);
+	dest = p16(dest, c>>16);
+	return dest;
+}
+
+char *p64(char *dest, uint64_t c)
+{
+	dest = p32(dest, c);
+	dest = p32(dest, c>>32);
+	return dest;
+}
+	
+static void write_char(uint8_t c)
+{
+	write(1, &c, 1);
+}
+
+static int read_char()
+{
+	uint8_t c;
+	read(0, &c, 1);
+	return c;
+}
+
 static int gdbstub_read_wait(void)
 {
-	int ret = dbg_io_ops->read_char();
+	int ret = read_char();
 	while (ret == NO_POLL_CHAR)
-		ret = dbg_io_ops->read_char();
+		ret = read_char();
 	return ret;
 }
-#endif
+
 /* scan for the sequence $<data>#<checksum> */
 static void get_packet(char *buffer)
 {
@@ -101,7 +154,6 @@ static void get_packet(char *buffer)
 		while ((ch = (gdbstub_read_wait())) != '$')
 			/* nothing */;
 
-		kgdb_connected = 1;
 		checksum = 0;
 		xmitcsum = -1;
 
@@ -125,12 +177,10 @@ static void get_packet(char *buffer)
 
 			if (checksum != xmitcsum)
 				/* failed checksum */
-				dbg_io_ops->write_char('-');
+				write_char('-');
 			else
 				/* successful transfer */
-				dbg_io_ops->write_char('+');
-			if (dbg_io_ops->flush)
-				dbg_io_ops->flush();
+				write_char('+');
 		}
 		buffer[count] = 0;
 	} while (checksum != xmitcsum);
@@ -150,21 +200,19 @@ static void put_packet(char *buffer)
 	 * $<packet info>#<checksum>.
 	 */
 	while (1) {
-		dbg_io_ops->write_char('$');
+		write_char('$');
 		checksum = 0;
 		count = 0;
 
 		while ((ch = buffer[count])) {
-			dbg_io_ops->write_char(ch);
+			write_char(ch);
 			checksum += ch;
 			count++;
 		}
 
-		dbg_io_ops->write_char('#');
-		dbg_io_ops->write_char(hex_asc_hi(checksum));
-		dbg_io_ops->write_char(hex_asc_lo(checksum));
-		if (dbg_io_ops->flush)
-			dbg_io_ops->flush();
+		write_char('#');
+		write_char(hex_asc_hi(checksum));
+		write_char(hex_asc_lo(checksum));
 
 		/* Now see what we get in reply. */
 		ch = gdbstub_read_wait();
@@ -183,9 +231,7 @@ static void put_packet(char *buffer)
 		 * packet.
 		 */
 		if (ch == '$') {
-			dbg_io_ops->write_char('-');
-			if (dbg_io_ops->flush)
-				dbg_io_ops->flush();
+			write_char('-');
 			return;
 		}
 	}
@@ -245,9 +291,9 @@ char *kgdb_mem2hex(char *mem, char *buf, int count)
 	 */
 	tmp = buf + count;
 
-	err = probe_kernel_read(tmp, mem, count);
+//	err = proc_mem_read(tmp, pid, mem, count);
 	if (err)
-		return NULL;
+		return nil;
 	while (count > 0) {
 		buf = hex_byte_pack(buf, *tmp);
 		tmp++;
@@ -281,7 +327,7 @@ int kgdb_hex2mem(char *buf, char *mem, int count)
 		*tmp_raw |= hex_to_bin(*tmp_hex--) << 4;
 	}
 
-	return probe_kernel_write(mem, tmp_raw, count);
+	return 0; //proc_mem_write(mem, pid, tmp_raw, count);
 }
 
 /*
@@ -333,7 +379,7 @@ static int kgdb_ebin2mem(char *buf, char *mem, int count)
 		size++;
 	}
 
-	return probe_kernel_write(mem, c, size);
+	return 0; //proc_mem_write(mem, c, size);
 }
 
 #if DBG_MAX_REG_NUM > 0
@@ -378,12 +424,10 @@ static int write_mem_msg(int binary)
 			err = kgdb_hex2mem(ptr, (char *)addr, length);
 		if (err)
 			return err;
-		if (CACHE_FLUSH_IS_SAFE)
-			flush_icache_range(addr, addr + length);
 		return 0;
 	}
 
-	return -EINVAL;
+	return -1; // -EINVAL;
 }
 
 static void error_packet(char *pkt, int error)
@@ -401,7 +445,6 @@ static void error_packet(char *pkt, int error)
  * remapped to negative TIDs.
  */
 
-#define BUF_THREAD_ID_SIZE	8
 
 static char *pack_threadid(char *pkt, unsigned char *id)
 {
@@ -425,47 +468,8 @@ static char *pack_threadid(char *pkt, unsigned char *id)
 
 static void int_to_threadref(unsigned char *id, int value)
 {
-	put_unaligned_be32(value, id);
-}
-
-static struct task_struct *getthread(struct pt_regs *regs, int tid)
-{
-	/*
-	 * Non-positive TIDs are remapped to the cpu shadow information
-	 */
-	if (tid == 0 || tid == -1)
-		tid = -atomic_read(&kgdb_active) - 2;
-	if (tid < -1 && tid > -NR_CPUS - 2) {
-		if (kgdb_info[-tid - 2].task)
-			return kgdb_info[-tid - 2].task;
-		else
-			return idle_task(-tid - 2);
-	}
-	if (tid <= 0) {
-		printk(KERN_ERR "KGDB: Internal thread select error\n");
-		dump_stack();
-		return NULL;
-	}
-
-	/*
-	 * find_task_by_pid_ns() does not take the tasklist lock anymore
-	 * but is nicely RCU locked - hence is a pretty resilient
-	 * thing to use:
-	 */
-	return find_task_by_pid_ns(tid, &init_pid_ns);
-}
-
-
-/*
- * Remap normal tasks to their real PID,
- * CPU shadow threads are mapped to -CPU - 2
- */
-static inline int shadow_pid(int realpid)
-{
-	if (realpid)
-		return realpid;
-
-	return -raw_smp_processor_id() - 2;
+	print("%s: panic\n", __func__); exits("fuck");
+//	put_unaligned_be32(value, id);
 }
 
 /*
@@ -491,45 +495,11 @@ static void gdb_cmd_status(struct kgdb_state *ks)
 
 static void gdb_get_regs_helper(struct kgdb_state *ks)
 {
-	struct task_struct *thread;
-	void *local_debuggerinfo;
-	int i;
 
-	thread = kgdb_usethread;
-	if (!thread) {
-		thread = kgdb_info[ks->cpu].task;
-		local_debuggerinfo = kgdb_info[ks->cpu].debuggerinfo;
-	} else {
-		local_debuggerinfo = NULL;
-		for_each_online_cpu(i) {
-			/*
-			 * Try to find the task on some other
-			 * or possibly this node if we do not
-			 * find the matching task then we try
-			 * to approximate the results.
-			 */
-			if (thread == kgdb_info[i].task)
-				local_debuggerinfo = kgdb_info[i].debuggerinfo;
-		}
-	}
-
-	/*
-	 * All threads that don't have debuggerinfo should be
-	 * in schedule() sleeping, since all other CPUs
-	 * are in kgdb_wait, and thus have debuggerinfo.
-	 */
-	if (local_debuggerinfo) {
-		pt_regs_to_gdb_regs(gdb_regs, local_debuggerinfo);
-	} else {
-		/*
-		 * Pull stuff saved during switch_to; nothing
-		 * else is accessible (or even particularly
-		 * relevant).
-		 *
-		 * This should be enough for a stack trace.
-		 */
-		sleeping_thread_to_gdb_regs(gdb_regs, thread);
-	}
+	/* Plan 9 registers can be read whether the proc is stopped or not. */
+	// opnen /proc/s->pid/regs
+	// read them. 
+	// convert them.
 }
 
 /* Handle the 'g' get registers request */
@@ -544,12 +514,10 @@ static void gdb_cmd_setregs(struct kgdb_state *ks)
 {
 	kgdb_hex2mem(&remcom_in_buffer[1], (char *)gdb_regs, NUMREGBYTES);
 
-	if (kgdb_usethread && kgdb_usethread != current) {
-		error_packet(remcom_out_buffer, -EINVAL);
-	} else {
-		gdb_regs_to_pt_regs(gdb_regs, ks->linux_regs);
-		strcpy(remcom_out_buffer, "OK");
-	}
+	error_packet(remcom_out_buffer, -EINVAL);
+
+	//gdb_regs_to_pt_regs(gdb_regs, ks->linux_regs);
+//		strcpy(remcom_out_buffer, "OK");
 }
 
 /* Handle the 'm' memory read bytes */
@@ -658,7 +626,7 @@ static void gdb_cmd_detachkill(struct kgdb_state *ks)
 			error_packet(remcom_out_buffer, error);
 		} else {
 			strcpy(remcom_out_buffer, "OK");
-			kgdb_connected = 0;
+			//kgdb_connected = 0;
 		}
 		put_packet(remcom_out_buffer);
 	} else {
@@ -676,7 +644,7 @@ static int gdb_cmd_reboot(struct kgdb_state *ks)
 {
 	/* For now, only honor R0 */
 	if (strcmp(remcom_in_buffer, "R0") == 0) {
-		printk(KERN_CRIT "Executing emergency reboot\n");
+		print(" NOT Executing emergency reboot\n");
 		strcpy(remcom_out_buffer, "OK");
 		put_packet(remcom_out_buffer);
 
@@ -684,7 +652,6 @@ static int gdb_cmd_reboot(struct kgdb_state *ks)
 		 * Execution should not return from
 		 * machine_emergency_restart()
 		 */
-		machine_emergency_restart();
 		kgdb_connected = 0;
 
 		return 1;
@@ -695,13 +662,11 @@ static int gdb_cmd_reboot(struct kgdb_state *ks)
 /* Handle the 'q' query packets */
 static void gdb_cmd_query(struct kgdb_state *ks)
 {
-	struct task_struct *g;
-	struct task_struct *p;
 	unsigned char thref[BUF_THREAD_ID_SIZE];
 	char *ptr;
-	int i;
-	int cpu;
-	int finished = 0;
+//	int i;
+	//int cpu;
+	//int finished = 0;
 
 	switch (remcom_in_buffer[1]) {
 	case 's':
@@ -709,11 +674,13 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 		if (memcmp(remcom_in_buffer + 2, "ThreadInfo", 10))
 			break;
 
-		i = 0;
+
 		remcom_out_buffer[0] = 'm';
 		ptr = remcom_out_buffer + 1;
 		if (remcom_in_buffer[1] == 'f') {
 			/* Each cpu is a shadow thread */
+			// iterate over /proc and return the IDS.
+#if 0
 			for_each_online_cpu(cpu) {
 				ks->thr_query = 0;
 				int_to_threadref(thref, -cpu - 2);
@@ -721,8 +688,9 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 				*(ptr++) = ',';
 				i++;
 			}
+#endif
 		}
-
+#if 0
 		do_each_thread(g, p) {
 			if (i >= ks->thr_query && !finished) {
 				int_to_threadref(thref, p->pid);
@@ -734,16 +702,14 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 			}
 			i++;
 		} while_each_thread(g, p);
-
+#endif
 		*(--ptr) = '\0';
 		break;
 
 	case 'C':
 		/* Current thread id */
 		strcpy(remcom_out_buffer, "QC");
-		ks->threadid = shadow_pid(current->pid);
-		int_to_threadref(thref, ks->threadid);
-		pack_threadid(remcom_out_buffer + 2, thref);
+		pack_threadid(remcom_out_buffer + 2, (uint8_t*)&ks->threadid);
 		break;
 	case 'T':
 		if (memcmp(remcom_in_buffer + 1, "ThreadExtraInfo,", 16))
@@ -752,10 +718,11 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 		ks->threadid = 0;
 		ptr = remcom_in_buffer + 17;
 		kgdb_hex2long(&ptr, &ks->threadid);
-		if (!getthread(ks->linux_regs, ks->threadid)) {
-			error_packet(remcom_out_buffer, -EINVAL);
-			break;
-		}
+		//if (!getthread(ks->linux_regs, ks->threadid)) {
+		error_packet(remcom_out_buffer, -EINVAL);
+		//break;
+		//}
+#if 0
 		if ((int)ks->threadid > 0) {
 			kgdb_mem2hex(getthread(ks->linux_regs,
 					ks->threadid)->comm,
@@ -767,61 +734,32 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 					(int)(-ks->threadid - 2));
 			kgdb_mem2hex(tmpstr, remcom_out_buffer, strlen(tmpstr));
 		}
-		break;
-#ifdef CONFIG_KGDB_KDB
-	case 'R':
-		if (strncmp(remcom_in_buffer, "qRcmd,", 6) == 0) {
-			int len = strlen(remcom_in_buffer + 6);
-
-			if ((len % 2) != 0) {
-				strcpy(remcom_out_buffer, "E01");
-				break;
-			}
-			kgdb_hex2mem(remcom_in_buffer + 6,
-				     remcom_out_buffer, len);
-			len = len / 2;
-			remcom_out_buffer[len++] = 0;
-
-			kdb_parse(remcom_out_buffer);
-			strcpy(remcom_out_buffer, "OK");
-		}
-		break;
 #endif
+		break;
 	}
 }
 
 /* Handle the 'H' task query packets */
 static void gdb_cmd_task(struct kgdb_state *ks)
 {
-	struct task_struct *thread;
 	char *ptr;
 
 	switch (remcom_in_buffer[1]) {
 	case 'g':
 		ptr = &remcom_in_buffer[2];
 		kgdb_hex2long(&ptr, &ks->threadid);
-		thread = getthread(ks->linux_regs, ks->threadid);
-		if (!thread && ks->threadid > 0) {
+		//thread = getthread(ks->linux_regs, ks->threadid);
+		//if (!thread && ks->threadid > 0) {
 			error_packet(remcom_out_buffer, -EINVAL);
-			break;
-		}
-		kgdb_usethread = thread;
-		ks->kgdb_usethreadid = ks->threadid;
-		strcpy(remcom_out_buffer, "OK");
+//			break;
+//		}
+//		kgdb_usethread = thread;
+//		ks->kgdb_usethreadid = ks->threadid;
+//		strcpy(remcom_out_buffer, "OK");
 		break;
 	case 'c':
 		ptr = &remcom_in_buffer[2];
 		kgdb_hex2long(&ptr, &ks->threadid);
-		if (!ks->threadid) {
-			kgdb_contthread = NULL;
-		} else {
-			thread = getthread(ks->linux_regs, ks->threadid);
-			if (!thread && ks->threadid > 0) {
-				error_packet(remcom_out_buffer, -EINVAL);
-				break;
-			}
-			kgdb_contthread = thread;
-		}
 		strcpy(remcom_out_buffer, "OK");
 		break;
 	}
@@ -831,11 +769,12 @@ static void gdb_cmd_task(struct kgdb_state *ks)
 static void gdb_cmd_thread(struct kgdb_state *ks)
 {
 	char *ptr = &remcom_in_buffer[1];
-	struct task_struct *thread;
-
+	int ok;
+	
 	kgdb_hex2long(&ptr, &ks->threadid);
-	thread = getthread(ks->linux_regs, ks->threadid);
-	if (thread)
+	
+	ok = gpr(ks->gpr, ks->threadid);
+	if (ok)
 		strcpy(remcom_out_buffer, "OK");
 	else
 		error_packet(remcom_out_buffer, -EINVAL);
@@ -854,23 +793,9 @@ static void gdb_cmd_break(struct kgdb_state *ks)
 	unsigned long length;
 	int error = 0;
 
-	if (arch_kgdb_ops.set_hw_breakpoint && *bpt_type >= '1') {
-		/* Unsupported */
-		if (*bpt_type > '4')
-			return;
-	} else {
-		if (*bpt_type != '0' && *bpt_type != '1')
-			/* Unsupported. */
-			return;
-	}
-
-	/*
-	 * Test if this is a hardware breakpoint, and
-	 * if we support it:
-	 */
-	if (*bpt_type == '1' && !(arch_kgdb_ops.flags & KGDB_HW_BREAKPOINT))
-		/* Unsupported. */
+	if (*bpt_type >= '0') {
 		return;
+	}
 
 	if (*(ptr++) != ',') {
 		error_packet(remcom_out_buffer, -EINVAL);
@@ -890,12 +815,6 @@ static void gdb_cmd_break(struct kgdb_state *ks)
 		error = dbg_set_sw_break(addr);
 	else if (remcom_in_buffer[0] == 'z' && *bpt_type == '0')
 		error = dbg_remove_sw_break(addr);
-	else if (remcom_in_buffer[0] == 'Z')
-		error = arch_kgdb_ops.set_hw_breakpoint(addr,
-			(int)length, *bpt_type - '0');
-	else if (remcom_in_buffer[0] == 'z')
-		error = arch_kgdb_ops.remove_hw_breakpoint(addr,
-			(int) length, *bpt_type - '0');
 
 	if (error == 0)
 		strcpy(remcom_out_buffer, "OK");
@@ -943,9 +862,6 @@ int gdb_serial_stub(struct kgdb_state *ks)
 
 	/* Initialize comm buffer and globals. */
 	memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
-	kgdb_usethread = kgdb_info[ks->cpu].task;
-	ks->kgdb_usethreadid = shadow_pid(kgdb_info[ks->cpu].task->pid);
-	ks->pass_exception = 0;
 
 	if (kgdb_connected) {
 		unsigned char thref[BUF_THREAD_ID_SIZE];
@@ -956,7 +872,7 @@ int gdb_serial_stub(struct kgdb_state *ks)
 		*ptr++ = 'T';
 		ptr = hex_byte_pack(ptr, ks->signo);
 		ptr += strlen(strcpy(ptr, "thread:"));
-		int_to_threadref(thref, shadow_pid(current->pid));
+		int_to_threadref(thref, 1);
 		ptr = pack_threadid(ptr, thref);
 		*ptr++ = ';';
 		put_packet(remcom_out_buffer);
@@ -1037,22 +953,12 @@ int gdb_serial_stub(struct kgdb_state *ks)
 			/* Fall through on tmp < 0 */
 		case 'c': /* Continue packet */
 		case 's': /* Single step packet */
-			if (kgdb_contthread && kgdb_contthread != current) {
-				/* Can't switch threads in kgdb */
-				error_packet(remcom_out_buffer, -EINVAL);
-				break;
-			}
 			dbg_activate_sw_breakpoints();
 			/* Fall through to default processing */
 		default:
 default_handle:
-			error = kgdb_arch_handle_exception(ks->ex_vector,
-						ks->signo,
-						ks->err_code,
-						remcom_in_buffer,
-						remcom_out_buffer,
-						ks->linux_regs);
 			/*
+			 * I have no idea what to do.
 			 * Leave cmd processing on error, detach,
 			 * kill, continue, or single step.
 			 */
@@ -1080,12 +986,14 @@ int gdbstub_state(struct kgdb_state *ks, char *cmd)
 
 	switch (cmd[0]) {
 	case 'e':
+#if 0
 		error = kgdb_arch_handle_exception(ks->ex_vector,
 						   ks->signo,
 						   ks->err_code,
 						   remcom_in_buffer,
 						   remcom_out_buffer,
 						   ks->linux_regs);
+#endif
 		return error;
 	case 's':
 	case 'c':
@@ -1097,7 +1005,7 @@ int gdbstub_state(struct kgdb_state *ks, char *cmd)
 		gdbstub_prev_in_buf_pos = 0;
 		return 0;
 	}
-	dbg_io_ops->write_char('+');
+	write_char('+');
 	put_packet(remcom_out_buffer);
 	return 0;
 }
@@ -1115,27 +1023,39 @@ void gdbstub_exit(int status)
 		return;
 	kgdb_connected = 0;
 
-	if (!dbg_io_ops || dbg_kdb_mode)
-		return;
-
 	buffer[0] = 'W';
 	buffer[1] = hex_asc_hi(status);
 	buffer[2] = hex_asc_lo(status);
 
-	dbg_io_ops->write_char('$');
+	write_char('$');
 	checksum = 0;
 
 	for (loop = 0; loop < 3; loop++) {
 		ch = buffer[loop];
 		checksum += ch;
-		dbg_io_ops->write_char(ch);
+		write_char(ch);
 	}
 
-	dbg_io_ops->write_char('#');
-	dbg_io_ops->write_char(hex_asc_hi(checksum));
-	dbg_io_ops->write_char(hex_asc_lo(checksum));
+	write_char('#');
+	write_char(hex_asc_hi(checksum));
+	write_char(hex_asc_lo(checksum));
+}
 
-	/* make sure the output is flushed, lest the bootloader clobber it */
-	if (dbg_io_ops->flush)
-		dbg_io_ops->flush();
+int gpr(uint64_t *regs, int pid)
+{
+	int i;
+	char aregs[176]; /* 176? 8 * 16 is 128. It's 64 more. Hmm. */
+	char *cp = aregs;
+	char *regname = smprint("/proc/%d/regs", pid);
+	int fd = open(regname, 0);
+
+	if (pread(fd, aregs, sizeof(aregs), 0) < sizeof(aregs)) {
+		return -1;
+	}
+	close(fd);
+	for(i = 0; i < 16; i++) {
+		cp = p8((void *)&regs[i], *cp);
+	}
+	return 0;
+	
 }
