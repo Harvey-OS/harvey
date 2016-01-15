@@ -12,7 +12,6 @@
  * These are the private implementation headers between the kernel
  * debugger core and the debugger front end code.
  */
-typedef struct Ureg Ureg;
 
 /* kernel debug core data structures */
 struct state {
@@ -25,7 +24,8 @@ struct state {
 	unsigned long threadid;
 	char *pidname;
 	long			usethreadid;
-	Ureg ureg;
+	void *gdbregs;
+	int gdbregsize; // determined by the amount read from /proc/pid/gdbregs
 };
 
 #define DCPU_SSTEP       0x8 /* CPU is single stepping */
@@ -57,15 +57,27 @@ extern int dbg_io_get_char(void);
 #define DBG_SWITCH_CPU_EVENT -123456
 extern int dbg_switch_cpu;
 
+/* there's lots of ambiguity about unsigned vs. signed characters in packets.
+ * put simply, it's quite a mess. Further, standard library stuff all assumes signed
+ * characters. We're going to assume IO packets are signed, and build on that.
+ * but it's still going to be cast hell.
+ */
+extern char remcom_out_buffer[];
+extern char remcom_in_buffer[];
 /* gdbstub interface functions */
 extern int gdb_serial_stub(struct state *ks);
 extern void gdbstub_msg_write(const char *s, int len);
+
+// And, yeah, since packets are signed, this takes a signed. 
+void error_packet(char *pkt, char *error);
+char *errstring(char *prefix);
+
 
 /* gdbstub functions used for kdb <-> gdbstub transition */
 extern char *gdbstub_state(struct state *ks, char *cmd);
 extern int dbg_kdb_mode;
 
-char *gpr(Ureg*regs, int pid);
+char *gpr(struct state *ks, int pid);
 char *rmem(void *dest, int pid, uint64_t addr, int size);
 char *wmem(uint64_t dest, int pid, void *addr, int size);
 #define MAX_BREAKPOINTS 32768
