@@ -19,6 +19,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
+#include "ureg.h"
 
 /* the rules are different for different compilers. We need to define up. */
 // Initialize it to force it into data.
@@ -121,4 +122,67 @@ idlehands(void)
 {
 	if(machp()->NIX.nixtype != NIXAC)
  		halt();
+}
+
+void
+ureg2gdb(Ureg *u, uintptr_t *g)
+{
+	g[GDB_AX] = u->ax;
+	g[GDB_BX] = u->bx;
+	g[GDB_CX] = u->cx;
+	g[GDB_DX] = u->dx;
+	g[GDB_SI] = u->si;
+	g[GDB_DI] = u->di;
+	g[GDB_BP] = u->bp;
+	g[GDB_SP] = u->sp;
+	g[GDB_R8] = u->r8;
+	g[GDB_R9] = u->r9;
+	g[GDB_R10] = u->r10;
+	g[GDB_R11] = u->r11;
+	g[GDB_R12] = u->r12;
+	g[GDB_R13] = u->r13;
+	g[GDB_R14] = u->r14;
+	g[GDB_R15] = u->r15;
+	g[GDB_PC] = u->ip;
+
+	/* it's weird, docs say 5 32-bit fields
+	 * but I count 4 if we pack these. Fix me
+	 */
+	g[GDB_PS] = 0; // u->PS;
+	g[GDB_CS] = 0; // u->CS;
+	g[GDB_SS] = 0; // u->SS;
+	g[GDB_DS] = 0; // u->DS;
+	g[GDB_ES] = 0; // u->ES;
+	g[GDB_FS] = 0; // u->FS;
+	g[GDB_GS] = 0; // u->GS;
+}
+
+void
+gdb2ureg(uintptr_t *g, Ureg *u)
+{
+	u->ax = g[GDB_AX];
+	u->bx = g[GDB_BX];
+	u->cx = g[GDB_CX];
+	u->dx = g[GDB_DX];
+	u->si = g[GDB_SI];
+	u->di = g[GDB_DI];
+	u->bp = g[GDB_BP];
+	u->sp = g[GDB_SP];
+	u->r8 = g[GDB_R8];
+	u->r9 = g[GDB_R9];
+	u->r10 = g[GDB_R10];
+	u->r11 = g[GDB_R11];
+	u->r12 = g[GDB_R12];
+	u->r13 = g[GDB_R13];
+	u->r14 = g[GDB_R14];
+	u->r15 = g[GDB_R15];
+	u->ip = g[GDB_PC];
+
+	/* it's weird but gdb seems to have no way to
+	 * express the sp. Hmm.
+	 */
+	u->flags = g[GDB_PS];
+	/* is there any point to this? */
+	u->cs = g[GDB_CS];
+	u->ss = g[GDB_SS];
 }
