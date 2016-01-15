@@ -31,6 +31,7 @@
 #include <u.h>
 #include <libc.h>
 #include <ureg.h>
+#include <ctype.h>
 
 #include "debug_core.h"
 #include "gdb.h"
@@ -717,8 +718,10 @@ gdb_cmd_reboot(struct state *ks)
 static void
 gdb_cmd_query(struct state *ks)
 {
+	Dir *db;
 /// unsigned char thref[BUF_THREAD_ID_SIZE];
 	char *ptr;
+	int fd, n;
 //  int i;
 	//int cpu;
 	//int finished = 0;
@@ -729,35 +732,33 @@ gdb_cmd_query(struct state *ks)
 			if (memcmp(remcom_in_buffer + 2, "ThreadInfo", 10))
 				break;
 
+			fd = open("/proc", 0);
+			if(fd == -1){
+				error_packet(remcom_out_buffer, Einval);
+				return;
+			}
+			n = dirreadall(fd, &db);
+			if(n < 0) {
+				error_packet(remcom_out_buffer, Eio);
+				return;
+			}
+			
+			close(fd);
+
 			remcom_out_buffer[0] = 'm';
 			ptr = remcom_out_buffer + 1;
 			if (remcom_in_buffer[1] == 'f') {
-				/* Each cpu is a shadow thread */
-				// iterate over /proc and return the IDS.
-#if 0
-				for_each_online_cpu(cpu) {
-					ks->thr_query = 0;
-					int_to_threadref(thref, -cpu - 2);
-					ptr = pack_threadid(ptr, thref);
-					*(ptr++) = ',';
-					i++;
-				}
-#endif
-			}
-#if 0
-			do_each_thread(g, p) {
-				if (i >= ks->thr_query && !finished) {
-					int_to_threadref(thref, p->pid);
-					ptr = pack_threadid(ptr, thref);
+				
+				for(int i = 0; i < n; i++) {
+					if (! isdigit(db[i].name[0]))
+						continue;
+					ptr = pack_threadid(ptr, (unsigned char *)db[i].name);
 					*(ptr++) = ',';
 					ks->thr_query++;
 					if (ks->thr_query % MAX_THREAD_QUERY == 0)
-						finished = 1;
+						break;
 				}
-				i++;
 			}
-			while_each_thread(g, p);
-#endif
 			*(--ptr) = '\0';
 			break;
 
