@@ -28,6 +28,7 @@ enum
 	Qctl,
 	Qfd,
 	Qfpregs,
+	Qgdbregs,
 	Qkregs,
 	Qmem,
 	Qnote,
@@ -800,6 +801,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	char flag[10], *sps, *srv, *statbuf;
 	uintptr_t offset, profoff, u;
 	int tesz;
+	uintptr_t gdbregs[GDB_NUMREGBYTES];
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, va, n, 0, 0, procgen);
@@ -990,6 +992,26 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		}
 		if(offset+n > rsize)
 			n = rsize - offset;
+		memmove(va, rptr+offset, n);
+		psdecref(p);
+		return n;
+
+		/* Sorry about the code duplication. TODO: clean this up? */
+	case Qgdbregs:
+		rptr = (uint8_t*)gdbregs;
+		rsize = sizeof(gdbregs);
+
+		if(rptr == 0){
+			psdecref(p);
+			error(Enoreg);
+		}
+		if(offset >= rsize){
+			psdecref(p);
+			return 0;
+		}
+		if(offset+n > rsize)
+			n = rsize - offset;
+		ureg2gdb(p->dbgreg, gdbregs);
 		memmove(va, rptr+offset, n);
 		psdecref(p);
 		return n;
