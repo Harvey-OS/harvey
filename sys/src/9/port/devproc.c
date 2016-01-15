@@ -28,6 +28,7 @@ enum
 	Qctl,
 	Qfd,
 	Qfpregs,
+	Qgdbregs,
 	Qkregs,
 	Qmem,
 	Qnote,
@@ -105,6 +106,7 @@ Dirtab procdir[] =
 	"notepg",	{Qnotepg},	0,			0000,
 	"ns",		{Qns},		0,			0444,
 	"proc",		{Qproc},	0,			0400,
+	"gdbregs",	{Qgdbregs},	GDB_NUMREGBYTES,	0000,
 	"regs",		{Qregs},	sizeof(Ureg),		0000,
 	"segment",	{Qsegment},	0,			0444,
 	"status",	{Qstatus},	STATSIZE,		0444,
@@ -507,6 +509,7 @@ procopen(Chan *c, int omode)
 	case Qnoteid:
 	case Qstatus:
 	case Qwait:
+	case Qgdbregs:
 	case Qregs:
 	case Qfpregs:
 	case Qsyscall:
@@ -800,6 +803,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	char flag[10], *sps, *srv, *statbuf;
 	uintptr_t offset, profoff, u;
 	int tesz;
+	uintptr_t gdbregs[DBG_MAX_REG_NUM];
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, va, n, 0, 0, procgen);
@@ -990,6 +994,28 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		}
 		if(offset+n > rsize)
 			n = rsize - offset;
+		memmove(va, rptr+offset, n);
+		psdecref(p);
+		return n;
+
+		/* Sorry about the code duplication. TODO: clean this up? */
+	case Qgdbregs:
+		rptr = (uint8_t*)&gdbregs[0];
+		// not sizeof; it's an odd number of 32-bit words ... yuck.
+		rsize = GDB_NUMREGBYTES;
+
+		if(rptr == 0){
+			psdecref(p);
+			error(Enoreg);
+		}
+		if(offset >= rsize){
+			psdecref(p);
+			return 0;
+		}
+		if(offset+n > rsize)
+			n = rsize - offset;
+		ureg2gdb(p->dbgreg, gdbregs);
+print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 		memmove(va, rptr+offset, n);
 		psdecref(p);
 		return n;
