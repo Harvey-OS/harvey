@@ -5,6 +5,7 @@
  * Author: Amit Kale <amitkale@linsyssoft.com> and
  *         Tom Rini <trini@kernel.crashing.org>
  *
+ * Copyright (C) 2008 Wind River Systems, Inc. *
  * 2001-2004 (c) Amit S. Kale and 2003-2005 (c) MontaVista Software, Inc.
  * This file is licensed under the terms of the GNU General Public License
  * version 2. This program is licensed "as is" without any warranty of any
@@ -24,7 +25,7 @@ extern int			cpu_doing_single_step;
 extern struct task_struct	*usethread;
 extern struct task_struct	*contthread;
 extern char breakpoint[], ebreakpoint[];
-static int bpsize;
+extern int bpsize;
 
 enum bptype {
 	BP_BREAKPOINT = 0,
@@ -42,6 +43,62 @@ enum bpstate {
 	BP_ACTIVE
 };
 
+/*
+ * Copyright (C) 2001-2004 Amit S. Kale
+
+ */
+
+/*
+ * BUFMAX defines the maximum number of characters in inbound/outbound
+ * buffers at least NUMREGBYTES*2 are needed for register packets
+ * Longer buffer is needed to list all threads
+ */
+#define BUFMAX			1024
+
+/*
+ *  Note that this register image is in a different order than
+ *  the register image that Linux produces at interrupt time.
+ *
+ *  Linux's register image is defined by struct pt_regs in ptrace.h.
+ *  Just why GDB uses a different order is a historical mystery.
+ */
+
+/* this is very x86_64 specific. Later, all code that messes with such things
+ * needs to be in amd64.c
+ * Please don't add an #ifdef here. Please
+ */
+enum regnames {
+	GDB_AX,			/* 0 */
+	GDB_BX,			/* 1 */
+	GDB_CX,			/* 2 */
+	GDB_DX,			/* 3 */
+	GDB_SI,			/* 4 */
+	GDB_DI,			/* 5 */
+	GDB_BP,			/* 6 */
+	GDB_SP,			/* 7 */
+	GDB_R8,			/* 8 */
+	GDB_R9,			/* 9 */
+	GDB_R10,		/* 10 */
+	GDB_R11,		/* 11 */
+	GDB_R12,		/* 12 */
+	GDB_R13,		/* 13 */
+	GDB_R14,		/* 14 */
+	GDB_R15,		/* 15 */
+	GDB_PC,			/* 16 */
+	GDB_PS,			/* 17 */
+	GDB_CS,			/* 18 */
+	GDB_SS,			/* 19 */
+	GDB_DS,			/* 20 */
+	GDB_ES,			/* 21 */
+	GDB_FS,			/* 22 */
+	GDB_GS,			/* 23 */
+};
+
+#define GDB_ORIG_AX		57
+#define DBG_MAX_REG_NUM		24
+/* 17 64 bit regs and 5 32 bit regs */
+#define NUMREGBYTES		((17 * 8) + (5 * 4))
+
 struct bkpt {
 	unsigned long		bpt_addr;
 	unsigned char		saved_instr[16];
@@ -49,14 +106,8 @@ struct bkpt {
 	enum bpstate	state;
 };
 
-struct dbg_reg_def_t {
-	char *name;
-	int size;
-	int offset;
-};
-
-extern char *dbg_get_reg(int regno, void *mem, Ureg *regs);
-extern int dbg_set_reg(int regno, void *mem, Ureg *regs);
+extern char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
+extern int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
 
 
 /**
@@ -79,7 +130,7 @@ extern int
 arch_handle_exception(int vector, int signo, int err_code,
 			   char *remcom_in_buffer,
 			   char *remcom_out_buffer,
-		      Ureg *regs);
+		      uintptr_t*regs);
 
 /**
  *	arch_set_pc - Generic call back to the program counter
@@ -89,7 +140,7 @@ arch_handle_exception(int vector, int signo, int err_code,
  *	This function handles updating the program counter and requires an
  *	architecture specific implementation.
  */
-extern void arch_set_pc(Ureg *regs, unsigned long pc);
+extern void arch_set_pc(uintptr_t *regs, unsigned long pc);
 
 
 /* Optional functions. */
@@ -127,7 +178,7 @@ struct arch {
 	int	(*remove_breakpoint)(unsigned long, char *);
 	int	(*set_hw_breakpoint)(unsigned long, int, enum bptype);
 	int	(*remove_hw_breakpoint)(unsigned long, int, enum bptype);
-	void	(*disable_hw_break)(Ureg *regs);
+	void	(*disable_hw_break)(uintptr_t *regs);
 	void	(*remove_all_hw_break)(void);
 	void	(*correct_hw_break)(void);
 
@@ -161,15 +212,18 @@ struct io {
 };
 
 int hex2long(char **ptr, unsigned long *long_val);
-char *mem2hex(char *mem, char *buf, int count);
-char *hex2mem(char *buf, char *mem, int count);
+char *mem2hex(unsigned char *mem, char *buf, int count);
+char *hex2mem(char *buf, unsigned char *mem, int count);
+void gdb_cmd_reg_get(struct state *ks);
+void gdb_cmd_reg_set(struct state *ks);
+
 
 extern int isremovedbreak(unsigned long addr);
 extern void schedule_breakpoint(void);
 
 extern int
 handle_exception(int ex_vector, int signo, int err_code,
-		      Ureg *regs);
+		      uintptr_t *regs);
 
 extern int			single_step;
 extern int			active;

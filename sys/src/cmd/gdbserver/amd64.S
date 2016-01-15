@@ -11,6 +11,6 @@
 .text
 .global breakpoint
 breakpoint:
-	ret
+	int $3
 .global ebreakpoint
 ebreakpoint:

@@ -39,21 +39,16 @@
 #define MAX_THREAD_QUERY 17
 #define BUFMAX 1024
 #define BUF_THREAD_ID_SIZE	8
-#define NUMREGBYTES ((17*8)+(5*4))
 
 // Everything always does EINVAL.
 #define EINVAL 22
 
 /* Our I/O buffers. */
-static char remcom_in_buffer[BUFMAX];
-static char remcom_out_buffer[BUFMAX];
+char remcom_in_buffer[BUFMAX];
+char remcom_out_buffer[BUFMAX];
 static int gdbstub_use_prev_in_buf;
 static int gdbstub_prev_in_buf_pos;
-
-/* Storage for the registers, in GDB format. */
-static unsigned long gdb_regs[(NUMREGBYTES +
-							   sizeof(unsigned long) - 1) /
-							  sizeof(unsigned long)];
+int bpsize;
 
 /* support crap */
 /*
@@ -310,26 +305,17 @@ gdbstub_msg_write(const char *s, int len)
  * return an error.
  */
 char *
-mem2hex(char *mem, char *buf, int count)
+mem2hex(unsigned char *mem, char *buf, int count)
 {
 	char *tmp;
 
-	/*
-	 * We use the upper half of buf as an intermediate buffer for the
-	 * raw memory copy.  Hex conversion will work against this one.
-	 * (ron) I can't believe they do this.
-	 */
-	tmp = buf + count;
-
-	memmove(buf, mem, count);
-	while (count > 0) {
-		buf = hex_byte_pack(buf, *tmp);
-		tmp++;
-		count--;
+	for(tmp = buf; count; tmp += 2, count--, mem++){
+		syslog(0, "gdbserver", "%02x", *mem);
+		sprint(tmp, "%02x", *mem);
 	}
-	*buf = 0;
 
-	return buf;
+	*tmp = 0;
+	return tmp;
 }
 
 /*
@@ -338,7 +324,7 @@ mem2hex(char *mem, char *buf, int count)
  * written.  May return an error.
  */
 char *
-hex2mem(char *buf, char *mem, int count)
+hex2mem(char *buf, unsigned char *mem, int count)
 {
 	char *tmp_raw;
 	char *tmp_hex;
@@ -397,10 +383,10 @@ hex2long(char **ptr, unsigned long *long_val)
  * The input buf is overwitten with the result to write to mem.
  */
 static  void
-ebin2mem(char *buf, char *mem, int count)
+ebin2mem(unsigned char *buf, unsigned char *mem, int count)
 {
 	int size = 0;
-	char *c = buf;
+	unsigned char *c = buf;
 
 	while (count-- > 0) {
 		c[size] = *buf++;
@@ -411,50 +397,23 @@ ebin2mem(char *buf, char *mem, int count)
 
 }
 
-#if DBG_MAX_REG_NUM > 0
-void
-pt_regs_to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *regs)
-{
-	int i;
-	int idx = 0;
-	char *ptr = (char *)gdb_regs;
-
-	for (i = 0; i < DBG_MAX_REG_NUM; i++) {
-		dbg_get_reg(i, ptr + idx, regs);
-		idx += dbg_reg_def[i].size;
-	}
-}
-
-void
-gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs)
-{
-	int i;
-	int idx = 0;
-	char *ptr = (char *)gdb_regs;
-
-	for (i = 0; i < DBG_MAX_REG_NUM; i++) {
-		dbg_set_reg(i, ptr + idx, regs);
-		idx += dbg_reg_def[i].size;
-	}
-}
-#endif /* DBG_MAX_REG_NUM > 0 */
-
 /* Write memory due to an 'M' or 'X' packet. */
 static char *
 write_mem_msg(struct state *ks, int binary)
 {
-	char *ptr = &remcom_in_buffer[1];
+	char *cp = (char *)&remcom_in_buffer[1];
+
 	unsigned long addr;
 	unsigned long length;
 	char *err;
 
-	if (hex2long(&ptr, &addr) > 0 && *(ptr++) == ',' &&
-		hex2long(&ptr, &length) > 0 && *(ptr++) == ':') {
-		char *data = malloc(length);
+	if (hex2long(&cp, &addr) > 0 && *(cp++) == ',' &&
+		hex2long(&cp, &length) > 0 && *(cp++) == ':') {
+		unsigned char *data = malloc(length);
 		if (binary)
-			ebin2mem(ptr, data, length);
+			ebin2mem((unsigned char *)cp, data, length);
 		else
-			hex2mem(ptr, data, length);
+			hex2mem(cp, data, length);
 		err = wmem(addr, ks->threadid, data, length);
 		free(data);
 		return err;
@@ -464,7 +423,7 @@ write_mem_msg(struct state *ks, int binary)
 }
 
 // Yep, the protocol really is this shitty: errors are numbers. Assholes.
-static void
+void
 error_packet(char *pkt, char *error)
 {
 	pkt[0] = 'E';
@@ -472,12 +431,6 @@ error_packet(char *pkt, char *error)
 	pkt[2] = error[1];
 	pkt[3] = '\0';
 }
-
-/*
- * Thread ID accessors. We represent a flat TID space to GDB, where
- * the per CPU idle threads (which under Linux all have PID 0) are
- * remapped to negative TIDs.
- */
 
 static char *
 pack_threadid(char *pkt, unsigned char *id)
@@ -527,32 +480,27 @@ gdb_cmd_status(struct state *ks)
 	dbg_remove_all_break(ks);
 
 	remcom_out_buffer[0] = 'S';
-	hex_byte_pack(&remcom_out_buffer[1], ks->signo);
-}
-
-static void
-gdb_get_regs_helper(struct state *ks)
-{
-
-	/* Plan 9 registers can be read whether the proc is stopped or not. */
-	// opnen /proc/s->pid/regs
-	// read them. 
-	// convert them.
+	hex_byte_pack((char *)&remcom_out_buffer[1], ks->signo);
 }
 
 /* Handle the 'g' get registers request */
 static void
 gdb_cmd_getregs(struct state *ks)
 {
-	gdb_get_regs_helper(ks);
-	mem2hex((char *)gdb_regs, remcom_out_buffer, NUMREGBYTES);
+I_AM_HERE;
+	if (ks->threadid <= 0) {
+		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1\n", __func__);
+		ks->threadid = 1;
+	}
+	gpr(ks, ks->threadid);
+	mem2hex(ks->gdbregs, (char *)remcom_out_buffer, NUMREGBYTES);
 }
 
 /* Handle the 'G' set registers request */
 static void
 gdb_cmd_setregs(struct state *ks)
 {
-	hex2mem(&remcom_in_buffer[1], (char *)gdb_regs, NUMREGBYTES);
+	hex2mem((char *)&remcom_in_buffer[1], ks->gdbregs, NUMREGBYTES);
 
 	error_packet(remcom_out_buffer, Einval);
 
@@ -564,7 +512,7 @@ gdb_cmd_setregs(struct state *ks)
 static void
 gdb_cmd_memread(struct state *ks)
 {
-	char *ptr = &remcom_in_buffer[1];
+	char *ptr = (char *)&remcom_in_buffer[1];
 	unsigned long length;
 	unsigned long addr;
 	char *err;
@@ -578,7 +526,7 @@ gdb_cmd_memread(struct state *ks)
 			free(data);
 			return;
 		}
-		err = mem2hex(data, remcom_out_buffer, length);
+		err = mem2hex((unsigned char *)data, (char *)remcom_out_buffer, length);
 		free(data);
 		if (!err)
 			error_packet(remcom_out_buffer, Einval);
@@ -596,64 +544,8 @@ gdb_cmd_memwrite(struct state *ks)
 	if (err)
 		error_packet(remcom_out_buffer, err);
 	else
-		strcpy(remcom_out_buffer, "OK");
+		strcpy((char *)remcom_out_buffer, "OK");
 }
-
-#if DBG_MAX_REG_NUM > 0
-static char *
-gdb_hex_reg_helper(int regnum, char *out)
-{
-	int i;
-	int offset = 0;
-
-	for (i = 0; i < regnum; i++)
-		offset += dbg_reg_def[i].size;
-	return mem2hex((char *)gdb_regs + offset, out, dbg_reg_def[i].size);
-}
-
-/* Handle the 'p' individual regster get */
-static void
-gdb_cmd_reg_get(struct state *ks)
-{
-	unsigned long regnum;
-	char *ptr = &remcom_in_buffer[1];
-
-	hex2long(&ptr, &regnum);
-	if (regnum >= DBG_MAX_REG_NUM) {
-		error_packet(remcom_out_buffer, -EINVAL);
-		return;
-	}
-	gdb_get_regs_helper(ks);
-	gdb_hex_reg_helper(regnum, remcom_out_buffer);
-}
-
-/* Handle the 'P' individual regster set */
-static void
-gdb_cmd_reg_set(struct state *ks)
-{
-	unsigned long regnum;
-	char *ptr = &remcom_in_buffer[1];
-	int i = 0;
-
-	hex2long(&ptr, &regnum);
-	if (*ptr++ != '=' ||
-		!(!usethread || usethread == current) ||
-		!dbg_get_reg(regnum, gdb_regs, ks->linux_regs)) {
-		error_packet(remcom_out_buffer, -EINVAL);
-		return;
-	}
-	memset(gdb_regs, 0, sizeof(gdb_regs));
-	while (i < sizeof(gdb_regs) * 2)
-		if (hex_to_bin(ptr[i]) >= 0)
-			i++;
-		else
-			break;
-	i = i / 2;
-	hex2mem(ptr, (char *)gdb_regs, i);
-	dbg_set_reg(regnum, gdb_regs, ks->linux_regs);
-	strcpy(remcom_out_buffer, "OK");
-}
-#endif /* DBG_MAX_REG_NUM > 0 */
 
 /* Handle the 'X' memory binary write bytes */
 static void
@@ -664,7 +556,7 @@ gdb_cmd_binwrite(struct state *ks)
 	if (err)
 		error_packet(remcom_out_buffer, err);
 	else
-		strcpy(remcom_out_buffer, "OK");
+		strcpy((char *)remcom_out_buffer, "OK");
 }
 
 /* Handle the 'D' or 'k', detach or kill packets */
@@ -679,7 +571,7 @@ gdb_cmd_detachkill(struct state *ks)
 		if (error < 0) {
 			error_packet(remcom_out_buffer, error);
 		} else {
-			strcpy(remcom_out_buffer, "OK");
+			strcpy((char *)remcom_out_buffer, "OK");
 			//connected = 0;
 		}
 		put_packet(remcom_out_buffer);
@@ -698,9 +590,9 @@ static int
 gdb_cmd_reboot(struct state *ks)
 {
 	/* For now, only honor R0 */
-	if (strcmp(remcom_in_buffer, "R0") == 0) {
+	if (strcmp((char *)remcom_in_buffer, "R0") == 0) {
 		print(" NOT Executing emergency reboot\n");
-		strcpy(remcom_out_buffer, "OK");
+		strcpy((char *)remcom_out_buffer, "OK");
 		put_packet(remcom_out_buffer);
 
 		/*
@@ -727,6 +619,14 @@ gdb_cmd_query(struct state *ks)
 	//int finished = 0;
 
 	switch (remcom_in_buffer[1]) {
+		case 'S':
+			if (memcmp(remcom_in_buffer + 2, "upported", 8))
+				break;
+			// this code sucks.
+			// We don't really have procs and threads for now. Just use the
+			// thread id as the pid. i.e. no multiprocess.
+			strcpy((char *)remcom_out_buffer, ""); // "multiprocess+");
+			break;
 		case 's':
 		case 'f':
 			if (memcmp(remcom_in_buffer + 2, "ThreadInfo", 10))
@@ -746,7 +646,7 @@ gdb_cmd_query(struct state *ks)
 			close(fd);
 
 			remcom_out_buffer[0] = 'm';
-			ptr = remcom_out_buffer + 1;
+			ptr = (char *)remcom_out_buffer + 1;
 			if (remcom_in_buffer[1] == 'f') {
 				
 				for(int i = 0; i < n; i++) {
@@ -764,16 +664,17 @@ gdb_cmd_query(struct state *ks)
 
 		case 'C':
 			/* Current thread id */
-			strcpy(remcom_out_buffer, "QC");
-			pack_threadid(remcom_out_buffer + 2, (uint8_t *) & ks->threadid);
+			strcpy((char *)remcom_out_buffer, "QC");
+			pack_threadid((char *)remcom_out_buffer + 2, (uint8_t *) & ks->threadid);
 			break;
 		case 'T':
 			if (memcmp(remcom_in_buffer + 1, "ThreadExtraInfo,", 16))
 				break;
 
 			ks->threadid = 0;
-			ptr = remcom_in_buffer + 17;
+			ptr = (char *)remcom_in_buffer + 17;
 			hex2long(&ptr, &ks->threadid);
+fprint(2, "SHIT: extra\n");
 			//if (!getthread(ks->linux_regs, ks->threadid)) {
 			error_packet(remcom_out_buffer, Einval);
 			//break;
@@ -799,24 +700,29 @@ gdb_cmd_task(struct state *ks)
 {
 	char *ptr;
 	char *err;
+	unsigned long id;
 
 	switch (remcom_in_buffer[1]) {
 		case 'g':
-			ptr = &remcom_in_buffer[2];
+			ptr = (char *)&remcom_in_buffer[2];
 			hex2long(&ptr, &ks->threadid);
-			err = gpr(&ks->ureg, ks->threadid);
-			syslog(0, "gdbserver", "Try to use thread %d: %s\n", &ks->threadid, err);
+			if (ks->threadid <=  0) {
+				syslog(0, "gdbserver", "Warning: using 1 instead of 0\n");
+				ks->threadid = 1;
+			}
+			err = gpr(ks, ks->threadid);
+			syslog(0, "gdbserver", "Try to use thread %d: %s\n", ks->threadid, err);
 			if (err){
 				ks->threadid = -1;
 				error_packet(remcom_out_buffer, err);
 			} else {
-				strcpy(remcom_out_buffer, "OK");
+				strcpy((char *)remcom_out_buffer, "OK");
 			}
 			break;
 		case 'c':
-			ptr = &remcom_in_buffer[2];
-			hex2long(&ptr, &ks->threadid);
-			strcpy(remcom_out_buffer, "OK");
+			ptr = (char *)&remcom_in_buffer[2];
+			hex2long(&ptr, &id);
+			strcpy((char *)remcom_out_buffer, "OK");
 			break;
 	}
 }
@@ -825,14 +731,18 @@ gdb_cmd_task(struct state *ks)
 static void
 gdb_cmd_thread(struct state *ks)
 {
-	char *ptr = &remcom_in_buffer[1];
+	char *ptr = (char *)&remcom_in_buffer[1];
 	char *err;
 
 	hex2long(&ptr, &ks->threadid);
 
-	err = gpr(&ks->ureg, ks->threadid);
+	if (ks->threadid <= 0) {
+		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1\n", __func__);
+		ks->threadid = 1;
+	}
+	err = gpr(ks, ks->threadid);
 	if (!err)
-		strcpy(remcom_out_buffer, "OK");
+		strcpy((char *)remcom_out_buffer, "OK");
 	else
 		error_packet(remcom_out_buffer, Einval);
 }
@@ -845,8 +755,8 @@ gdb_cmd_break(struct state *ks)
 	 * Since GDB-5.3, it's been drafted that '0' is a software
 	 * breakpoint, '1' is a hardware breakpoint, so let's do that.
 	 */
-	char *bpt_type = &remcom_in_buffer[1];
-	char *ptr = &remcom_in_buffer[2];
+	char *bpt_type = (char *)&remcom_in_buffer[1];
+	char *ptr = (char *)&remcom_in_buffer[2];
 	unsigned long addr;
 	unsigned long length;
 	char *error = nil;
@@ -874,7 +784,7 @@ gdb_cmd_break(struct state *ks)
 		error = dbg_remove_sw_break(ks, addr);
 
 	if (error == 0)
-		strcpy(remcom_out_buffer, "OK");
+		strcpy((char *)remcom_out_buffer, "OK");
 	else
 		error_packet(remcom_out_buffer, error);
 }
@@ -927,7 +837,7 @@ gdb_serial_stub(struct state *ks)
 		char *ptr;
 
 		/* Reply to host that an exception has occurred */
-		ptr = remcom_out_buffer;
+		ptr = (char *)remcom_out_buffer;
 		*ptr++ = 'T';
 		ptr = hex_byte_pack(ptr, ks->signo);
 		ptr += strlen(strcpy(ptr, "thread:"));
@@ -962,14 +872,12 @@ syslog(0, "gdbserver", "packet :%s:\n", remcom_in_buffer);
 			case 'M':	/* MAA..AA,LLLL: Write LLLL bytes at address AA..AA */
 				gdb_cmd_memwrite(ks);
 				break;
-#if DBG_MAX_REG_NUM > 0
 			case 'p':	/* pXX Return gdb register XX (in hex) */
 				gdb_cmd_reg_get(ks);
 				break;
 			case 'P':	/* PXX=aaaa Set gdb register XX to aaaa (in hex) */
 				gdb_cmd_reg_set(ks);
 				break;
-#endif /* DBG_MAX_REG_NUM > 0 */
 			case 'X':	/* XAA..AA,LLLL: Write LLLL bytes at address AA..AA */
 				gdb_cmd_binwrite(ks);
 				break;
@@ -1101,32 +1009,6 @@ gdbstub_exit(int status)
 	write_char('#');
 	write_char(hex_asc_hi(checksum));
 	write_char(hex_asc_lo(checksum));
-}
-
-char *
-gpr(Ureg * regs, int pid)
-{
-	int i;
-	char aregs[176];			/* 176? 8 * 16 is 128. It's 64 more. Hmm. */
-	char *cp = aregs;
-	char *regname = smprint("/proc/%d/regs", pid);
-	int fd = open(regname, 0);
-	if (fd < 0) {
-		syslog(0, "gdbserver", "open(%s, 0): %r\n", regname);
-		return errstring(Enoent);
-	}
-
-	if (pread(fd, aregs, sizeof(aregs), 0) < sizeof(aregs)) {
-		close(fd);
-		return errstring(Eio);
-	}
-	close(fd);
-	for (i = 0; i < 16; i++) {
-		*cp = 0;
-		//  cp = p8((void *)&regs[i], *cp);
-	}
-	return nil;
-
 }
 
 char *
