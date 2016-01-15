@@ -7,6 +7,7 @@
 		"Program": "gdbserver",
 	"SourceFiles": [
 	    "$ARCH.S",
+	    "regs$ARCH.c",
 	    "debug_core.c",
 	    "gdbstub.c"
 	]
