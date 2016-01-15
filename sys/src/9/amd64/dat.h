@@ -38,7 +38,40 @@ typedef uint64_t uintmem;				/* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 
-#pragma incomplete Ureg
+/*
+ * Conversion for Ureg to gdb reg. This avoids a lot of nonsense
+ * in the outside world.
+ */
+enum regnames {
+	GDB_AX,			/* 0 */
+	GDB_BX,			/* 1 */
+	GDB_CX,			/* 2 */
+	GDB_DX,			/* 3 */
+	GDB_SI,			/* 4 */
+	GDB_DI,			/* 5 */
+	GDB_BP,			/* 6 */
+	GDB_SP,			/* 7 */
+	GDB_R8,			/* 8 */
+	GDB_R9,			/* 9 */
+	GDB_R10,		/* 10 */
+	GDB_R11,		/* 11 */
+	GDB_R12,		/* 12 */
+	GDB_R13,		/* 13 */
+	GDB_R14,		/* 14 */
+	GDB_R15,		/* 15 */
+	GDB_PC,			/* 16 */
+	GDB_PS,			/* 17 */
+	GDB_CS,			/* 18 */
+	GDB_SS,			/* 19 */
+	GDB_DS,			/* 20 */
+	GDB_ES,			/* 21 */
+	GDB_FS,			/* 22 */
+	GDB_GS,			/* 23 */
+};
+#define GDB_ORIG_AX		57
+#define DBG_MAX_REG_NUM		24
+/* 17 64 bit regs and 5 32 bit regs */
+#define GDB_NUMREGBYTES		((17 * 8) + (5 * 4))
 
 #define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
 
