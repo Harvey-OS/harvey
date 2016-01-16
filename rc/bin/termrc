@@ -116,4 +116,5 @@ usbstart
 if (test -f /dev/apm)
 	aux/apm
 
-dontkill '^(ipconfig|factotum|mntgen|fossil|cs|dns|listen|reboot)$'
+echo Please fix this script when we get awk again
+#dontkill '^(ipconfig|factotum|mntgen|fossil|cs|dns|listen|reboot)$'
