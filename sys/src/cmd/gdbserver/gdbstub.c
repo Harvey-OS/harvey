@@ -95,7 +95,7 @@ hex_to_bin(int c)
 		return c + 10 - 'a';
 	if ((c >= 'A') && (c <= 'F'))
 		return c + 10 - 'A';
-	return 0;
+	return -1;
 }
 
 char *
@@ -354,7 +354,6 @@ hex2long(char **ptr, unsigned long *long_val)
 	int hex_val;
 	int num = 0;
 	int negate = 0;
-
 	*long_val = 0;
 
 	if (**ptr == '-') {
@@ -365,7 +364,6 @@ hex2long(char **ptr, unsigned long *long_val)
 		hex_val = hex_to_bin(**ptr);
 		if (hex_val < 0)
 			break;
-
 		*long_val = (*long_val << 4) | hex_val;
 		num++;
 		(*ptr)++;
@@ -522,15 +520,15 @@ gdb_cmd_memread(struct state *ks)
 		hex2long(&ptr, &length) > 0) {
 		char *data = malloc(length);
 		if (err = rmem(data, ks->threadid, addr, length)) {
+			syslog(0, "gdbserver", "%s: %r", __func__);
 			error_packet(remcom_out_buffer, err);
 			free(data);
 			return;
 		}
-		err = mem2hex((unsigned char *)data, (char *)remcom_out_buffer, length);
+		mem2hex((unsigned char *)data, (char *)remcom_out_buffer, length);
 		free(data);
-		if (!err)
-			error_packet(remcom_out_buffer, Einval);
 	} else {
+		syslog(0, "gdbserver", "%s failed: %s : no good", __func__, remcom_in_buffer);
 		error_packet(remcom_out_buffer, Einval);
 	}
 }
@@ -1027,6 +1025,7 @@ rmem(void *dest, int pid, uint64_t addr, int size)
 		return errstring(Eio);
 	}
 	close(fd);
+	syslog(0, "gdbserver", "%s: read 0x%x for %d bytes\n", __func__, addr, size);
 	return nil;
 }
 
