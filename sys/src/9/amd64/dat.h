@@ -343,10 +343,6 @@ struct Mach
 	MCPU CPU;
 
 	NIX NIX;
-
-	/* for restoring pre-AMP scheduler */
-	Sched *sch;
-	int load;
 };
 
 struct Stackframe
@@ -418,7 +414,7 @@ struct Sys {
 };
 
 extern Sys *sys;
-#define MACHP(x) (sys->machptr[(x)])
+
 /*
  * KMap
  */
