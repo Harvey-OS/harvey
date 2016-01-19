@@ -7,7 +7,7 @@
 		"SourceFilesCmd": [
 			"alarm.c",
 			"args.c",
-			"awake.c",
+			"chdir.c",
 			"conswrite.c",
 			"execl.c",
 			"float.c",
