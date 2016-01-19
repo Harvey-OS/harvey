@@ -10,6 +10,7 @@
 		"SourceFilesCmd": [
 			"alarm.c",
 			"args.c",
+			"chdir.c",
 			"conswrite.c",
 			"execl.c",
 			"float.c",
