@@ -4,7 +4,7 @@ TIMESYNCARGS=(-rLa1000000)
 NDBFILE=/lib/ndb/local
 
 # Hack
-terminal = "go9p"
+terminal = "ninep"
 
 mntgen -s slashn && chmod 666 /srv/slashn
 
@@ -16,7 +16,7 @@ for(i in f t m v L P u U '$' Σ κ)
 # some variable to distinguish if file server is remote
 # or local disk.
 
-if (! ~ $terminal *go9p*) {
+if (! ~ $terminal *ninep*) {
 	# set up any partitions
 	 diskparts
 
@@ -62,7 +62,7 @@ if(test -e /cfg/$sysname/termrc)
 if(test -e /net/ipifc/0/ctl && ! test -e /srv/dns)
 	ndb/dns -r
 
-if(! ~ $terminal *vx32* && ! ~ $terminal *go9p*){
+if(! ~ $terminal *vx32* && ! ~ $terminal *ninep*){
 	# start timesync if it isn't running and we weren't told not to
 	if(! ps|grep -s timesync)
 		if(! ~ $TIMESYNCARGS '')

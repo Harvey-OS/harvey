@@ -91,10 +91,10 @@ amend the change list as follows
 More information on using Gerrit can be found on the gerrithub.io website.
 
 
-Getting go9p to serve your files
+Getting ninep to serve your files
 ================================
 
-The currently recommended way of doing this is to run go9p/ufs as the
+The currently recommended way of doing this is to run ninep/ufs as the
 file server for harvey. It is provided as a submodule in util/third_party
 and should be automatically compiled & copied to util/ when you run
 'BUILD utils'.
