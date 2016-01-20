@@ -78,20 +78,20 @@ amend the change list as follows
 More information on using Gerrit can be found on the gerrithub.io website.
 
 
-Getting go9p to serve your files
+Getting ninep to serve your files
 ================================
 
-The currently recommended way of doing this is to run go9p/ufs as the file
-server for harvey. You can get go9p/ufs in the following way
+The currently recommended way of doing this is to run ninep/ufs as the file
+server for harvey. You can get ninep/ufs in the following way
 
 	cd util
 	mkdir go
 	cd go
 	export GOPATH=$(pwd)
-	go get github.com/rminnich/go9p
-	go get github.com/rminnich/go9p/ufs
-	go get github.com/rminnich/go9p
-	go install github.com/rminnich/go9p/ufs
+	go get github.com/rminnich/ninep
+	go get github.com/rminnich/ninep/ufs
+	go get github.com/rminnich/ninep
+	go install github.com/rminnich/ninep/ufs
 	cp bin/ufs ..
 
 After these, you have util/ufs, and you can use
