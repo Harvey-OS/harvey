@@ -6,7 +6,7 @@
 		],
 		"Post": [
 			"go get -d harvey/...",
-			"go install github.com/rminnich/go9p/ufs harvey/cmd/..."
+			"go install github.com/rminnich/ninep/ufs harvey/cmd/..."
 		]
 	}
 }
