@@ -301,8 +301,8 @@ nixsquids(void)
 	uint64_t now, start;
 
 	/* Not AC for now :-) */
-	for(i = 1; i <= MACHMAX; i++)
-	//for(i = 1; i < MACHMAX; i++)
+	numtcs = MACHMAX;
+	for(i = 1; i < MACHMAX; i++)
 		if((mach = sys->machptr[i]) != nil && mach->online){
 			/*
 			 * Inter-core calls. A ensure *mp->iccall and mp->icargs
@@ -314,8 +314,8 @@ nixsquids(void)
 				sys->nmach++;
 				mach->NIX.nixtype = NIXTC;
 				sys->nc[NIXTC]++;
-			}//else
-				//sys->nc[NIXAC]++;
+			} else
+				sys->nc[NIXAC]++;
 			ainc(&active.nbooting);
 		}
 	sys->epoch = rdtsc();
