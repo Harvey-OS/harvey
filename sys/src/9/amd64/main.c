@@ -13,7 +13,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "init.h"
+#include <init.h>
 #include "apic.h"
 #include "io.h"
 #include "amd64.h"
