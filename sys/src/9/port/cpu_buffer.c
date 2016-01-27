@@ -23,7 +23,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include	<error.h>
 #include        "cpu_buffer.h"
 #include <oprofile.h>
 
