@@ -1,0 +1,140 @@
+load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS", "CMD_LINK_OPTS")
+
+# Order of libs
+# "/$ARCH/lib/libString.a",
+# "/$ARCH/lib/lib9p.a",
+# "/$ARCH/lib/libndb.a",
+# "/$ARCH/lib/libauth.a",
+# "/$ARCH/lib/libbio.a",
+# "/$ARCH/lib/libip.a",
+# "/$ARCH/lib/libc.a"
+
+group(
+    name="cmds",
+    deps=[
+        "//sys/src/cmd/acme:acme",
+        "//sys/src/cmd/rc:rc",
+        "//sys/src/cmd/ip/ipconfig:ipconfig",
+        ":echo",
+        ":mount",
+        ":date",
+        ":srv",
+        ":ls",
+        ":bind",
+    ]
+)
+
+cc_binary(
+    name="echo",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "echo.c"
+    ],
+    deps=[
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
+
+cc_binary(
+    name="mount",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "mount.c"
+    ],
+    deps=[
+        "//sys/src/libauth:libauth",
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
+
+cc_binary(
+    name="date",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "date.c"
+    ],
+    deps=[
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
+
+cc_binary(
+    name="cat",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "cat.c"
+    ],
+    deps=[
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
+
+cc_binary(
+    name="bind",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "bind.c"
+    ],
+    deps=[
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
+
+cc_binary(
+    name="srv",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "srv.c"
+    ],
+    deps=[
+        "//sys/src/libauth:libauth",
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
+
+cc_binary(
+    name="ls",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "ls.c"
+    ],
+    deps=[
+        "//sys/src/libbio:libbio",
+        "//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
