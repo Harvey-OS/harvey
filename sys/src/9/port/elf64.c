@@ -4,7 +4,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include	<error.h>
 #include	"getput.h"
 
 typedef struct Elf64_Ehdr Elf64_Ehdr;

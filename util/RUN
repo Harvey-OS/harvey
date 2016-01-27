@@ -1,0 +1,16 @@
+#!/bin/sh
+
+qemu-system-x86_64 -s \
+	-m 2048 \
+	-monitor stdio \
+	--machine pc \
+	-net nic,model=rtl8139 \
+	-net user,hostfwd=tcp::1522-:1522 \
+	-redir tcp:17010::17010 \
+	-redir tcp:17013::17013 \
+	-device ahci,id=ahci \
+	-drive id=disk,file=/Users/sevki/Downloads/harvey.qcow2,index=0,cache=writeback,if=none \
+	-device ide-drive,drive=disk,bus=ahci.0 \
+	-append "service=terminal nobootprompt=tcp fs=10.0.2.2 auth=127.0.0.1 user=harvey nvram=/boot/nvram nvrlen=512 nvroff=0 mouseport=ps2 vgasize=1024x768x8 monitor=vesa" \
+	-kernel /Users/sevki/Code/harvey/build_out/amd64/harvey \
+	-vga vmware

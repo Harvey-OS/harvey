@@ -1,0 +1,82 @@
+load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+
+data_to_c(
+    name="amd64cpu",
+    bin="bin/bootamd64cpu",
+    prefix="ramfs_bootamd64cpu_",
+    deps=[
+        ":bootamd64cpu"
+    ]
+)
+
+cc_library(
+    name="libboot",
+    copts=[
+        "-g",
+        "-Wall",
+        "-Wno-missing-braces",
+        "-Wno-parentheses",
+        "-Wno-unknown-pragmas",
+        "-O0",
+        "-static",
+        "-fplan9-extensions",
+        "-mno-red-zone",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-mcmodel=small"
+    ],
+    includes=[
+        "//sys/include",
+        "//sys/src/9/boot",
+        "//amd64/include",
+    ],
+    deps=[
+        ":bootamd64cpuc",
+    ],
+    srcs=[
+        "aux.c",
+        "bootauth.c",
+        "boot.c",
+        "bootcache.c",
+        "bootip.c",
+        "bootamd64cpu.c",
+        "bootrc.c",
+        "embed.c",
+        "local.c",
+        "paq.c",
+        "sac.c",
+        "settime.c"
+    ]
+)
+
+cc_binary(
+    name="bootamd64cpu",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//sys/src/9/boot",
+        "//amd64/include",
+    ],
+    srcs=[
+        "printstub.c",
+        "bootamd64cpu.c"
+    ],
+    deps=[
+        ":libboot",
+        ":bootamd64cpuc",
+        "//sys/src/libip:libip",
+        "//sys/src/libauth:libauth",
+        "//sys/src/libc:libc"
+    ],
+    linkopts=[
+        "-e_main",
+        "-static"
+    ]
+)
+
+mk_sys(
+    name="bootamd64cpuc",
+    mode="bootamd64cpu.c",
+    arch="amd64",
+    sysconf="//sys/src/sysconf.json",
+)

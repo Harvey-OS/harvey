@@ -13,9 +13,9 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "../port/error.h"
+#include <error.h>
 
-#include "../../libc/9syscall/sys.h"
+#include <sys.h>
 
 #include <tos.h>
 
