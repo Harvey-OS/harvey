@@ -32,7 +32,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include	<error.h>
 #include        "coreboot.h"
 /*
  * Some of this is x86 specific, and the rest of it is generic. Right now,

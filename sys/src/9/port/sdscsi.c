@@ -14,7 +14,7 @@
 #include "fns.h"
 #include "io.h"
 #include "ureg.h"
-#include "../port/error.h"
+#include <error.h>
 
 #include "../port/sd.h"
 
