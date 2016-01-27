@@ -12,7 +12,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
+#include <error.h>
 #include "io.h"
 
 #define	Image	IMAGE

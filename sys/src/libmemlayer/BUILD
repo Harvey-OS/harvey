@@ -1,0 +1,47 @@
+load('//sys/src/FLAGS', "KLIB_COMPILER_FLAGS", "LIB_COMPILER_FLAGS")
+
+cc_library(
+    name="libkmemlayer",
+    copts=KLIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    srcs=[
+        "draw.c",
+        "lalloc.c",
+        "layerop.c",
+        "ldelete.c",
+        "lhide.c",
+        "line.c",
+        "load.c",
+        "lorigin.c",
+        "lsetrefresh.c",
+        "ltofront.c",
+        "ltorear.c",
+        "unload.c"
+    ]
+)
+
+cc_library(
+    name="libmemlayer",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    srcs=[
+	"draw.c",
+	"lalloc.c",
+	"layerop.c",
+	"ldelete.c",
+	"lhide.c",
+	"line.c",
+	"load.c",
+	"lorigin.c",
+	"lsetrefresh.c",
+	"ltofront.c",
+	"ltorear.c",
+	"unload.c",
+    ],
+)
