@@ -15,14 +15,6 @@
 #include <plumb.h>
 #include "plumber.h"
 
-static char*
-nonnil(char *s)
-{
-	if(s == nil)
-		return "";
-	return s;
-}
-
 int
 verbis(int obj, Plumbmsg *m, Rule *r)
 {

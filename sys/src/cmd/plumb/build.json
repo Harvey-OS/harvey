@@ -1,0 +1,15 @@
+{
+	"plumb": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Projects": [
+			"plumber.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "plumb",
+		"SourceFiles": [
+			"plumb.c"
+		]
+	}
+}
