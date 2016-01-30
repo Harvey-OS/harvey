@@ -1,0 +1,15 @@
+{
+	"plumber": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "plumber",
+		"SourceFiles": [
+                        "fsys.c",
+                        "match.c",
+                        "plumber.c",
+                        "rules.c"
+		]
+	}
+}

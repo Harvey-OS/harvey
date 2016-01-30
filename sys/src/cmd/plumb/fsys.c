@@ -231,7 +231,7 @@ startfsys(void)
 }
 
 static void
-fsysproc(void*)
+fsysproc(void *v)
 {
 	int n;
 	Fcall *t;
@@ -564,7 +564,7 @@ dispose(Fcall *t, uint8_t *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 }
 
 static Fcall*
-fsysversion(Fcall *t, uint8_t *buf, Fid*)
+fsysversion(Fcall *t, uint8_t *buf, Fid *f)
 {
 	if(t->msize < 256){
 		fsysrespond(t, buf, "version: message size too small");
@@ -583,7 +583,7 @@ fsysversion(Fcall *t, uint8_t *buf, Fid*)
 }
 
 static Fcall*
-fsysauth(Fcall *t, uint8_t *buf, Fid*)
+fsysauth(Fcall *t, uint8_t *buf, Fid *f)
 {
 	fsysrespond(t, buf, "plumber: authentication not required");
 	return t;
@@ -614,7 +614,7 @@ fsysattach(Fcall *t, uint8_t *buf, Fid *f)
 }
 
 static Fcall*
-fsysflush(Fcall *t, uint8_t *buf, Fid*)
+fsysflush(Fcall *t, uint8_t *buf, Fid *f)
 {
 	int i;
 
@@ -770,7 +770,7 @@ fsysopen(Fcall *t, uint8_t *buf, Fid *f)
 }
 
 static Fcall*
-fsyscreate(Fcall *t, uint8_t *buf, Fid*)
+fsyscreate(Fcall *t, uint8_t *buf, Fid *f)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
@@ -925,14 +925,14 @@ fsysstat(Fcall *t, uint8_t *buf, Fid *f)
 }
 
 static Fcall*
-fsyswstat(Fcall *t, uint8_t *buf, Fid*)
+fsyswstat(Fcall *t, uint8_t *buf, Fid *f)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysremove(Fcall *t, uint8_t *buf, Fid*)
+fsysremove(Fcall *t, uint8_t *buf, Fid *f)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
