@@ -238,11 +238,11 @@ noerrorsleft(void)
 }
 
 int printallsyscalls;
-/* it should be unsigned. FIXME */
+
 void
-syscall(int badscallnr, Ureg *ureg)
+syscall(unsigned int scallnr, Ureg *ureg)
 {
-	// can only handle 4 args right now.
+	// can only handle 6 args right now.
 	uintptr_t a0, a1, a2, a3;
 	uintptr_t a4, a5;
 
@@ -253,7 +253,6 @@ syscall(int badscallnr, Ureg *ureg)
 	a4 = ureg->r8;
 	a5 = ureg->r9;
 	Proc *up = externup();
-	unsigned int scallnr = (unsigned int) badscallnr;
 	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
 	uintptr_t	sp;

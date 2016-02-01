@@ -155,7 +155,7 @@ Stackframe	*stackframe(void); /* l64v.S */
 void	stacksnippet(void);
 void	stopac(void);
 void	syncclock(void);
-void	syscall(int scallnr, Ureg *ureg);
+void	syscall(unsigned int scallnr, Ureg *ureg);
 void*	sysexecregs(uintptr_t, uint32_t, void*);
 uintptr_t	sysexecstack(uintptr_t, int);
 void	sysprocsetup(Proc*);
