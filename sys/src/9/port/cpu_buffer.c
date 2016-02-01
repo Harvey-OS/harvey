@@ -751,6 +751,5 @@ oprofread(void *va, int n)
 	}
 
 	len = qread(opq, va, n);
-	print("oprofread len=%d\n", len);
 	return len;
 }

@@ -49,12 +49,12 @@ void *
 memmove(
 	void *dst0,
 	const void *src0,
-	register size_t length
+	size_t length
 	)
 {
-	register char *dst = dst0;
-	register const char *src = src0;
-	register size_t t;
+	char *dst = dst0;
+	const char *src = src0;
+	size_t t;
 
 	if (length == 0 || dst == src)		/* nothing to do */
 	    goto done;
