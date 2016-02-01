@@ -523,7 +523,7 @@ dir_create(int x)
 	  ret = create(buf, OREAD, DMDIR | 0777);
 	  if(ret < 0)
 	  {
-	      print("Mkdir failed\n");
+	      print("Mkdir %s failed %r\n", buf);
 	      exits("mkdir");
 	  }
 	  close(ret);
