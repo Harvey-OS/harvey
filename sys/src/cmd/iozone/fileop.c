@@ -545,7 +545,7 @@ dir_create(int x)
 	    stats[statDirCreate].starttime=time_so_far();
 	    ret = create(buf, OREAD, DMDIR | 0777);
 		if(ret < 0){
-			print("Mkdir failed\n");
+			print("Mkdir %s failed %r\n", buf);
 			exits("mkdir");
 		}
 		close(ret);
@@ -565,7 +565,7 @@ dir_create(int x)
 			stats[statDirCreate].starttime=time_so_far();
 			ret = create(buf, OREAD, DMDIR | 0777);
 			if(ret < 0){
-				print("Mkdir failed\n");
+				print("Mkdir %s failed %r\n", buf);
 				exits("mkdir");
 		}
 		close(ret);
@@ -668,7 +668,7 @@ file_create(int x){
 		sprint(buf,"fileop_L1_%d",i);
 		ret = create(buf, OREAD, DMDIR | 0777);
 		if(ret < 0){
-			print("Mkdir failed\n");
+			print("Mkdir %s failed %r\n", buf);
 			exits("mkdir");
 		}
 		close(ret);
@@ -677,7 +677,7 @@ file_create(int x){
 			sprint(buf,"fileop_L1_%d_L2_%d",i,j);
 			ret = create(buf, OREAD, DMDIR | 0777);
 			if(ret < 0){
-				print("Mkdir failed\n");
+				print("Mkdir %s failed %r\n", buf);
 				exits("mkdir");
 			}
 			close(ret);
