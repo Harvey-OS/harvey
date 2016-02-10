@@ -79,7 +79,7 @@ void	mountio(Mnt*, Mntrpc*);
 void	mountmux(Mnt*, Mntrpc*);
 void	mountrpc(Mnt*, Mntrpc*);
 int	rpcattn(void*);
-Chan*	mntchan(void);
+Chan*	mntchann(void);
 
 extern char	Esbadstat[];
 extern char	Enoversion[];
@@ -127,7 +127,7 @@ mntattach(char *muxattach)
 			error(Enoversion);
 	}
 
-	c = mntchan();
+	c = mntchann();
 	if(waserror()) {
 		/* Close must not be called since it will
 		 * call mnt recursively
@@ -313,6 +313,9 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 	c->offset = 0;
 	c->mode = openmode(omode);
 	c->iounit = r->reply.iounit;
+	c->writeoffset = 0;
+	c->buffend = 0;
+	c->writebuff = nil;
 	if(c->iounit == 0 || c->iounit > mnt->msize-IOHDRSZ)
 		c->iounit = mnt->msize-IOHDRSZ;
 	c->flag |= COPEN;
@@ -361,6 +364,12 @@ mntclunk(Chan *c, int t)
 static void
 mntclose(Chan *c)
 {
+	if (c->buffend > 0) {
+		mntrdwr(Twrite, c, c->writebuff, c->buffend, c->writeoffset);
+	}
+	c->buffend = 0;
+	free(c->writebuff);
+	c->writebuff = nil;
 	mntclunk(c, Tclunk);
 }
 
@@ -422,6 +431,12 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 		return n + nc;
 	}
 
+	// Flush if we're reading this file.  Would be nice to see if
+	// read could be satisfied from buffer.
+	if (c->buffend > 0) {
+		mntrdwr(Twrite, c, c->writebuff, c->buffend, c->writeoffset);
+	}
+
 	n = mntrdwr(Tread, c, buf, n, off);
 	if(isdir) {
 		for(e = &p[n]; p+BIT16SZ < e; p += dirlen){
@@ -440,7 +455,42 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	return mntrdwr(Twrite, c, buf, n, off);
+	int result = n;
+	int offset = 0;
+	if (c->writebuff == nil){
+		c->writebuff = (unsigned char*)malloc(WRITE_BUF_SIZE);
+	}
+	if(off != c->writeoffset + c->buffend){
+		// non-continuous write - flush cached data
+		mntrdwr(Twrite, c, c->writebuff, c->buffend, c->writeoffset);
+		c->buffend = 0;
+		c->writeoffset = off;
+	}
+	while (n + c->buffend >= WRITE_BUF_SIZE){
+		offset = WRITE_BUF_SIZE - c->buffend;
+		n -= offset;
+		memmove(&c->writebuff[c->buffend], buf, offset);
+		mntrdwr(Twrite, c, c->writebuff, WRITE_BUF_SIZE, c->writeoffset);
+		c->writeoffset += offset;
+	}
+	memmove(&c->writebuff[c->buffend], buf + offset, n);
+	c->buffend += n;
+	return result;
+}
+
+Chan*
+mntchann(void)
+{
+        Chan *c;
+
+        c = devattach('N', 0);
+        lock(&mntalloc);
+        c->devno = mntalloc.id++;
+        unlock(&mntalloc);
+
+        if(c->mchan)
+                panic("mntchan non-zero %#p", c->mchan);
+        return c;
 }
 
 Dev mntndevtab = {

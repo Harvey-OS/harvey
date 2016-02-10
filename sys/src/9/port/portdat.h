@@ -209,6 +209,7 @@ struct Block
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
+#define WRITE_BUF_SIZE 4096
 
 struct Chan
 {
@@ -244,6 +245,9 @@ struct Chan
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
 	Path*	path;
+	unsigned char *writebuff;
+	int	buffend;
+	int	writeoffset;
 };
 
 struct Path
