@@ -244,6 +244,10 @@ struct Chan
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
 	Path*	path;
+	unsigned char *writebuff;
+	int	buffend;
+	int	writeoffset;
+	int	buffsize;
 };
 
 struct Path
