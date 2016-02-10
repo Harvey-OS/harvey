@@ -22,6 +22,7 @@
 			"lockt.c",
 			"longjmp.c",
 			"mixedfloat.c",
+			"mntn.c",
 			"nanotime.c",
 			"notify.c",
 			"nx.c",
