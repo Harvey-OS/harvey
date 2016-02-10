@@ -8,3 +8,8 @@
 ## Wiki 
 
 * <a href="https://github.com/Harvey-OS/harvey/wiki">Harvey wiki</a>
+
+## Harvey-OS Man Pages
+
+* <a href="https://sevki.io/harvey/sys/man/1/0intro">Harvey OS manual</a>
+
