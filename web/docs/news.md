@@ -1,5 +1,23 @@
 # News & events
 
+<a name="FOSDEM 2016"></a>
+
+## Harvey at FOSDEM 2016
+January 30/31, 2016
+
+European members of core team were at FOSDEM2016.
+Changing impressions, suggestions, debating mainlines, drinking beer, meeting people...
+We assisted to some devrooms and lightning talks, all of them interesting.
+
+Here there are a couple of pictures trying to show Harvey as it was at that moment.
+
+![Preparing Harvey](img/fosdem2016/photo_2016-02-11_00-27-30.jpg)
+Building and preparing the system
+
+![Harvey at big screen](img/fosdem2016/photo_2016-02-11_00-27-40.jpg)
+Running Harvey! (Left to right: Keith, Sevkih, Álvaro and Rafael)
+
+
 <a name="Factotum, Fossil disk, Go and drawterming Harvey"></a>
 
 ## Things you can do now in Harvey
