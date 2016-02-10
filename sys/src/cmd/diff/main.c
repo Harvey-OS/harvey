@@ -13,7 +13,7 @@
 #include "diff.h"
 
 #define	DIRECTORY(s)		((s)->qid.type&QTDIR)
-#define	REGULAR_FILE(s)		((s)->type == 'M' && !DIRECTORY(s))
+#define	REGULAR_FILE(s)		(((s)->type == 'M' || (s)->type == 'N') && !DIRECTORY(s))
 
 Biobuf	stdout;
 
