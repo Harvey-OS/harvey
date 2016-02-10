@@ -26,6 +26,7 @@
        -d <dir>  Specify starting directory.
        -U <dir>  Mount point to remount between tests.
        -t        Verbose output option.
+       -n        Single byte writes
        -v        Version information.
        -h        Help text.
  *
@@ -76,6 +77,7 @@ int verbose = 0;
 int sz = 1;
 char *mbuffer;
 int incr = 1;
+int tinywrite = 0;
 
 
 
@@ -179,6 +181,9 @@ int main(int argc, char **argv)
 				--dirlen;
 			strncpy(thedir, aux, dirlen);
 			thedir[dirlen] = 0;
+			break;
+		case 'n':
+			tinywrite = 1;
 			break;
 		case 'U':
 			mountname = ARGF();
@@ -653,7 +658,7 @@ dir_traverse(int x){
 
 void
 file_create(int x){
-	int i,j,k;
+	int i,j,k,l;
 	int fd;
 	int ret;
 	char buf[100];
@@ -703,7 +708,13 @@ file_create(int x){
 				if(stats[statCreate].speed > stats[statCreate].worst)
 					stats[statCreate].worst=stats[statCreate].speed;
 				stats[statWrite].starttime=time_so_far();
-				junk=write(fd,mbuffer,sz);
+				if(tinywrite){
+					for(l=0;l<sz;l++){
+						junk=write(fd,&mbuffer[l],1);
+					}
+				}else{
+					junk=write(fd,mbuffer,sz);
+				}
 				stats[statWrite].endtime=time_so_far();
 				stats[statWrite].counter++;
 				stats[statWrite].speed=stats[statWrite].endtime-stats[statWrite].starttime;
@@ -1145,6 +1156,7 @@ usage(void)
   print("     -d <dir>  Specify starting directory.\n");
   print("     -U <dir>  Mount point to remount between tests.\n");
   print("     -t        Verbose output option.\n");
+  print("     -n        Single byte writes\n");
   print("     -v        Version information.\n");
   print("     -h        Help text.\n");
   print("\n");
