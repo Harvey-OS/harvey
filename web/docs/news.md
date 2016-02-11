@@ -15,7 +15,7 @@ Here there are a couple of pictures trying to show Harvey as it was at that mome
 Building and preparing the system
 
 ![Harvey at big screen](img/fosdem2016/photo_2016-02-11_00-27-40.jpg)
-Running Harvey! (Left to right: Keith, Sevkih, Álvaro and Rafael)
+Running Harvey! (Left to right: Keith, Sevki, Álvaro and Rafael)
 
 
 <a name="Factotum, Fossil disk, Go and drawterming Harvey"></a>
