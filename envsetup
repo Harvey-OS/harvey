@@ -1,3 +1,5 @@
 export HARVEY=$(pwd)
 export ARCH=amd64
 export PATH=$(pwd)/util:$PATH
+export CC=gcc
+
