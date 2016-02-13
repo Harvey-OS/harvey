@@ -7,5 +7,7 @@ if (! ~ $#* 1) {
 }
 cd /proc
 # see /sys/src/9/port/proc.c:/^killbig
-pids=`{psu | awk '$NF ~ /'$1'/ {print $2}'}
+#pids=`{psu | awk '$NF ~ /'$1'/ {print $2}'}
+pattern=`{echo $1  | sed 's/^^/ /'}
+pids=`{psu | grep $pattern | field 2}
 ~ $#pids 0 || chmod -w $pids^/ctl >[2]/dev/null
