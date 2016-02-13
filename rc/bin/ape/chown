@@ -1,4 +1,0 @@
-#!/bin/rc
-
-echo 'Permission denied'
-exit 1
