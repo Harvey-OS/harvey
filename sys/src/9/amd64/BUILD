@@ -305,6 +305,12 @@ strip(
     ],
 )
 
+strip(
+    name="ratrace",
+    deps=[
+        "//sys/src/cmd:ratrace",
+    ],
+)
 mk_sys(
     name="error",
     mode="error.h",
@@ -414,6 +420,7 @@ KERNEL_DEPS = [
 # startdisk FILE ADDED
 	":usbd",
 	":venti",
+	":ratrace",
 ]
 
 config(

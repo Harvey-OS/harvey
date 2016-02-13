@@ -174,3 +174,20 @@ cc_binary(
     ],
     linkopts=CMD_LINK_OPTS
 )
+
+cc_binary(
+    name="ratrace",
+    copts=LIB_COMPILER_FLAGS,
+    srcs=[
+        "ratrace.c"
+    ],
+    deps=[
+	"//sys/src/libthread:libthread",
+	"//sys/src/libc:libc",
+    ],
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    linkopts=CMD_LINK_OPTS
+)
