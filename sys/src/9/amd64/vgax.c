@@ -13,7 +13,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-#include <error.h>
+#include "../port/error.h"
 
 #define	Image	IMAGE
 #include <draw.h>

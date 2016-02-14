@@ -13,7 +13,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#include <sys.h>
+#include "../../libc/9syscall/sys.h"
 
 /*
  * Print functions for system call tracing.

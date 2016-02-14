@@ -16,7 +16,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include <error.h>
+#include	"../port/error.h"
 #include	"amd64.h"
 #include	"../port/pmc.h"
 
