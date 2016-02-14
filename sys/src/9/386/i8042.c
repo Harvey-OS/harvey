@@ -14,7 +14,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"io.h"
+#include <io.h>
 
 enum {
 	Data=		0x60,		/* data port */

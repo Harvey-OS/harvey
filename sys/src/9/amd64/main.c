@@ -15,7 +15,7 @@
 
 #include "init.h"
 #include "apic.h"
-#include "io.h"
+#include <io.h>
 #include "amd64.h"
 #include "coreboot.h"
 

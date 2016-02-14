@@ -13,7 +13,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "io.h"
+#include <io.h>
 
 /*
  * 8259 Interrupt Controller and compatibles.

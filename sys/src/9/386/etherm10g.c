@@ -25,7 +25,7 @@
 #include "../port/netif.h"
 
 #include "etherif.h"
-#include "io.h"
+#include <io.h>
 
 #ifndef KiB
 #define KiB		1024u			/* Kibi 0x0000000000000400 */

@@ -13,7 +13,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "io.h"
+#include <io.h>
 
 extern PhysUart i8250physuart;
 extern PhysUart pciphysuart;

@@ -26,7 +26,7 @@
 #include "../port/netif.h"
 
 #include "etherif.h"
-#include "io.h"
+#include <io.h>
 
 enum {
 	Nrfd		= 64,		/* receive frame area */

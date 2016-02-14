@@ -17,7 +17,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "io.h"
+#include <io.h>
 
 enum
 {
