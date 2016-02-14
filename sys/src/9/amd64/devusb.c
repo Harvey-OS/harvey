@@ -53,7 +53,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#include	<error.h>
+#include	"../port/error.h"
 #include	"../port/usb.h"
 
 typedef struct Hcitype Hcitype;
