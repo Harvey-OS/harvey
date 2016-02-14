@@ -19,7 +19,7 @@
 #include "fns.h"
 #include "io.h"
 #include "ureg.h"
-#include <error.h>
+#include "../port/error.h"
 
 #define	Image	IMAGE
 #include <draw.h>
