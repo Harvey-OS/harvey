@@ -14,8 +14,6 @@ amd64/lib
 
 acme/bin/amd64
 
-build_out
-
 sys/log
 
 sys/src/9/port/error.h

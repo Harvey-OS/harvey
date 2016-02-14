@@ -12,7 +12,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	<error.h>
+#include	"../port/error.h"
 
 static uint32_t padblockcnt;
 static uint32_t concatblockcnt;
