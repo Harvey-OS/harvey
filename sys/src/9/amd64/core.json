@@ -19,7 +19,10 @@
 			"-Wno-unused-parameter",
 			"-Wno-missing-braces",
 			"-Wno-parentheses",
-			"-Wno-unknown-pragmas"
+			"-Wno-unknown-pragmas",
+			"-Werror",
+			"-I", "/sys/src/9/amd64",
+			"-I", "/sys/src/9/port"
 		],
 		"Libs": [
 			"/amd64/lib/klibmemlayer.a",
