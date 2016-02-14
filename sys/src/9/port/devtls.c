@@ -11,11 +11,11 @@
  *  devtls - record layer for transport layer security 1.0 and secure sockets layer 3.0
  */
 #include	"u.h"
-#include	"../port/lib.h"
+#include <lib.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include <error.h>
 
 #include	<libsec.h>
 

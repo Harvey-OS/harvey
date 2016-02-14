@@ -15,7 +15,7 @@
  * restoring the state and allocating the storage needed.
  */
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"

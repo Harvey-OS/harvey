@@ -13,13 +13,13 @@
  * Note that in the coreboot case, this is architecture-independent code.
  */
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 #include <io.h>
 #include "ureg.h"
-#include "../port/error.h"
+#include <error.h>
 
 #define	Image	IMAGE
 #include <draw.h>

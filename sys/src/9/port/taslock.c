@@ -8,12 +8,12 @@
  */
 
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 
-#include "../port/edf.h"
+#include <edf.h>
 
 /*
  * measure max lock cycles and max lock waiting time.

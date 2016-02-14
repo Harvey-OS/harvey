@@ -9,13 +9,13 @@
 
 #include	"u.h"
 #include	"tos.h"
-#include	"../port/lib.h"
+#include <lib.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include <error.h>
 
-#include	"../port/edf.h"
+#include <edf.h>
 #include	<a.out.h>
 #include "kexec.h"
 

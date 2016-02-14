@@ -8,11 +8,11 @@
  */
 
 #include	"u.h"
-#include	"../port/lib.h"
+#include <lib.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include <error.h>
 
 /* Qid is (2*fd + (file is ctl))+1 */
 

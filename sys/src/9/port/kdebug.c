@@ -5,11 +5,11 @@
  * Arch-independent kernel debugging */
 
 #include	"u.h"
-#include	"../port/lib.h"
+#include <lib.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include <error.h>
 
 int printx_on = 1;
 static int tab_depth = 0;

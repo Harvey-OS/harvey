@@ -13,11 +13,11 @@
  *  It could be done over UDP if need be.
  */
 #include	"u.h"
-#include	"../port/lib.h"
+#include <lib.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
+#include <error.h>
 
 #include	"ip.h"
 

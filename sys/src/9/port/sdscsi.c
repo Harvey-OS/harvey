@@ -8,15 +8,15 @@
  */
 
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 #include <io.h>
 #include "ureg.h"
-#include "../port/error.h"
+#include <error.h>
 
-#include "../port/sd.h"
+#include <sd.h>
 
 static int
 scsitest(SDreq* r)

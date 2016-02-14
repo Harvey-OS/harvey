@@ -18,12 +18,12 @@
  *	detach for PCI reset problems (also towards loadable drivers).
  */
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 
-#include "../port/netif.h"
+#include <netif.h>
 
 #include "etherif.h"
 #include <io.h>

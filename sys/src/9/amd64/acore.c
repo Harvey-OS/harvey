@@ -8,7 +8,7 @@
  */
 
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
@@ -18,7 +18,7 @@
 #include "amd64.h"
 #include "ureg.h"
 #include <io.h>
-#include "../port/pmc.h"
+#include <pmc.h>
 
 /*
  * NIX code run at the AC.

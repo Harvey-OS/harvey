@@ -16,13 +16,13 @@
  * we don't get "warning: stupid shift" on 32-bit architectures.
  */
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
+#include <error.h>
 
-#include "../port/netif.h"
+#include <netif.h>
 
 #include "etherif.h"
 #include <io.h>

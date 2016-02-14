@@ -11,13 +11,13 @@
  * much slower (as is true of the 82579), never allow jumbos.
  */
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 #include <io.h>
-#include "../port/error.h"
-#include "../port/netif.h"
+#include <error.h>
+#include <netif.h>
 #include "etherif.h"
 
 #define now() TK2MS(MACHP(0)->ticks)

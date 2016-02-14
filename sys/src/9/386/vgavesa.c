@@ -15,12 +15,12 @@
  */
 /* ensure an error here if there is a problem. */
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 #include <io.h>
-#include "../port/error.h"
+#include <error.h>
 #include "../../386/include/ureg.h"
 
 #define	Image	IMAGE

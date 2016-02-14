@@ -8,13 +8,13 @@
  */
 
 #include "u.h"
-#include "../port/lib.h"
+#include <lib.h>
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
+#include <error.h>
 
-#include "../port/netif.h"
+#include <netif.h>
 #include "ip.h"
 #include "ipv6.h"
 

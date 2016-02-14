@@ -14,14 +14,14 @@
  */
 
 #include	"u.h"
-#include	"../port/lib.h"
+#include <lib.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
 #include <io.h>
-#include	"../port/error.h"
-#include	"../port/usb.h"
-#include	"../port/portusbehci.h"
+#include <error.h>
+#include <usb.h>
+#include <portusbehci.h>
 #include	"usbehci.h"
 
 static Ctlr* ctlrs[Nhcis];
