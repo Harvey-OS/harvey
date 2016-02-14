@@ -18,7 +18,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include <error.h>
+#include "../port/error.h"
 #include "ureg.h"
 
 /* the rules are different for different compilers. We need to define up. */
