@@ -14,7 +14,7 @@
 #include "fns.h"
 
 #include "apic.h"
-#include "io.h"
+#include <io.h>
 
 enum {						/* Local APIC registers */
 	Id		= 0x0020,		/* Identification */

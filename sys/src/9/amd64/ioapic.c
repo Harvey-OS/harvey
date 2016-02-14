@@ -14,7 +14,7 @@
 #include "fns.h"
 
 #include "apic.h"
-#include "io.h"
+#include <io.h>
 
 typedef struct Rbus Rbus;
 typedef struct Rdt Rdt;

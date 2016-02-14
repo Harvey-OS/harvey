@@ -17,7 +17,7 @@
 #include <pool.h>
 #include "amd64.h"
 #include "ureg.h"
-#include "io.h"
+#include <io.h>
 #include "../port/pmc.h"
 
 /*

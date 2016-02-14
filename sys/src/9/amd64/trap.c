@@ -18,7 +18,7 @@
 #include	"ureg.h"
 #include	"../port/pmc.h"
 
-#include	"io.h"
+#include <io.h>
 #include	"amd64.h"
 
 
