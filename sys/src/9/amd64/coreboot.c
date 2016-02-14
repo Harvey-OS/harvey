@@ -33,7 +33,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include <error.h>
+#include "../port/error.h"
 #include "coreboot.h"
 
 /* this implements the architecture-dependent call needed for port/devcoreboot.c */

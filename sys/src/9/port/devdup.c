@@ -12,7 +12,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	<error.h>
+#include	"../port/error.h"
 
 /* Qid is (2*fd + (file is ctl))+1 */
 
