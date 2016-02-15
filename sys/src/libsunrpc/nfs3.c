@@ -129,7 +129,7 @@ nfs3Errstr(Nfs3Status status)
 	int i;
 
 	for(i=0; i<nelem(etab); i++){
-		if(etab[i].status == status){
+		if((int)etab[i].status == (int)status){
 			werrstr(etab[i].msg);
 			return;
 		}
@@ -550,22 +550,18 @@ nfs3SetAttrPrint(Fmt *fmt, Nfs3SetAttr *x)
 	fmtprint(fmt, "\t%s=", "setAtime");
 	fmtprint(fmt, "%s", nfs3SetTimeStr(x->setAtime));
 	fmtprint(fmt, "\n");
-	switch(x->setAtime){
-	case Nfs3SetTimeClient:
+	if(x->setAtime == Nfs3SetTimeClient){
 		fmtprint(fmt, "\t%s=", "atime");
 		nfs3TimePrint(fmt, &x->atime);
 		fmtprint(fmt, "\n");
-		break;
 	}
 	fmtprint(fmt, "\t%s=", "setMtime");
 	fmtprint(fmt, "%s", nfs3SetTimeStr(x->setMtime));
 	fmtprint(fmt, "\n");
-	switch(x->setMtime){
-	case Nfs3SetTimeClient:
+	if(x->setMtime == Nfs3SetTimeClient){
 		fmtprint(fmt, "\t%s=", "mtime");
 		nfs3TimePrint(fmt, &x->mtime);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -598,16 +594,12 @@ nfs3SetAttrSize(Nfs3SetAttr *x)
 		break;
 	}
 	a = a + 4;
-	switch(x->setAtime){
-	case Nfs3SetTimeClient:
+	if(x->setAtime == Nfs3SetTimeClient){
 		a = a + nfs3TimeSize(&x->atime);
-		break;
 	}
 	a = a + 4;
-	switch(x->setMtime){
-	case Nfs3SetTimeClient:
+	if(x->setMtime == Nfs3SetTimeClient){
 		a = a + nfs3TimeSize(&x->mtime);
-		break;
 	}
 	return a;
 }
@@ -641,16 +633,12 @@ nfs3SetAttrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3SetAttr *x)
 		break;
 	}
 	if(i=x->setAtime, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->setAtime){
-	case Nfs3SetTimeClient:
+	if(x->setAtime == Nfs3SetTimeClient){
 		if(nfs3TimePack(a, ea, &a, &x->atime) < 0) goto Err;
-		break;
 	}
 	if(i=x->setMtime, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->setMtime){
-	case Nfs3SetTimeClient:
+	if(x->setMtime == Nfs3SetTimeClient){
 		if(nfs3TimePack(a, ea, &a, &x->mtime) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -688,16 +676,12 @@ nfs3SetAttrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3SetAttr *x)
 		break;
 	}
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->setAtime = i;
-	switch(x->setAtime){
-	case Nfs3SetTimeClient:
+	if(x->setAtime == Nfs3SetTimeClient){
 		if(nfs3TimeUnpack(a, ea, &a, &x->atime) < 0) goto Err;
-		break;
 	}
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->setMtime = i;
-	switch(x->setMtime){
-	case Nfs3SetTimeClient:
+	if(x->setMtime == Nfs3SetTimeClient){
 		if(nfs3TimeUnpack(a, ea, &a, &x->mtime) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -808,12 +792,10 @@ nfs3RGetattrPrint(Fmt *fmt, Nfs3RGetattr *x)
 	fmtprint(fmt, "\t%s=", "status");
 	fmtprint(fmt, "%s", nfs3StatusStr(x->status));
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "attr");
 		nfs3AttrPrint(fmt, &x->attr);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -822,10 +804,8 @@ nfs3RGetattrSize(Nfs3RGetattr *x)
 	uint a;
 	USED(x);
 	a = 0 + 4;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + nfs3AttrSize(&x->attr);
-		break;
 	}
 	return a;
 }
@@ -835,10 +815,8 @@ nfs3RGetattrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RGetattr *x)
 	int i;
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -852,10 +830,8 @@ nfs3RGetattrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RGetattr *x)
 	int i;
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1024,8 +1000,7 @@ nfs3RLookupPrint(Fmt *fmt, Nfs3RLookup *x)
 	fmtprint(fmt, "\t%s=", "status");
 	fmtprint(fmt, "%s", nfs3StatusStr(x->status));
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "handle");
 		nfs3HandlePrint(fmt, &x->handle);
 		fmtprint(fmt, "\n");
@@ -1039,7 +1014,6 @@ nfs3RLookupPrint(Fmt *fmt, Nfs3RLookup *x)
 			fmtprint(fmt, "\n");
 			break;
 		}
-		break;
 	}
 	fmtprint(fmt, "\t%s=", "haveDirAttr");
 	fmtprint(fmt, "%d", x->haveDirAttr);
@@ -1058,15 +1032,13 @@ nfs3RLookupSize(Nfs3RLookup *x)
 	uint a;
 	USED(x);
 	a = 0 + 4;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + nfs3HandleSize(&x->handle) + 4;
 		switch(x->haveAttr){
 		case 1:
 			a = a + nfs3AttrSize(&x->attr);
 			break;
 		}
-			break;
 	}
 	a = a + 4;
 	switch(x->haveDirAttr){
@@ -1082,8 +1054,7 @@ nfs3RLookupPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLookup *x)
 	int i;
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->haveAttr) < 0) goto Err;
 		switch(x->haveAttr){
@@ -1091,7 +1062,6 @@ nfs3RLookupPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLookup *x)
 			if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(sunUint1Pack(a, ea, &a, &x->haveDirAttr) < 0) goto Err;
 	switch(x->haveDirAttr){
@@ -1111,8 +1081,7 @@ nfs3RLookupUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLookup *x)
 	int i;
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 		if(sunUint1Unpack(a, ea, &a, &x->haveAttr) < 0) goto Err;
 		switch(x->haveAttr){
@@ -1120,7 +1089,6 @@ nfs3RLookupUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLookup *x)
 			if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(sunUint1Unpack(a, ea, &a, &x->haveDirAttr) < 0) goto Err;
 	switch(x->haveDirAttr){
@@ -1192,12 +1160,10 @@ nfs3RAccessPrint(Fmt *fmt, Nfs3RAccess *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "access");
 		fmtprint(fmt, "%ud", x->access);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -1211,10 +1177,8 @@ nfs3RAccessSize(Nfs3RAccess *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4;
-		break;
 	}
 	return a;
 }
@@ -1230,10 +1194,8 @@ nfs3RAccessPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RAccess *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Pack(a, ea, &a, &x->access) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1253,10 +1215,8 @@ nfs3RAccessUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RAccess *x)
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Unpack(a, ea, &a, &x->access) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1317,12 +1277,10 @@ nfs3RReadlinkPrint(Fmt *fmt, Nfs3RReadlink *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "data");
 		fmtprint(fmt, "\"%s\"", x->data);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -1336,10 +1294,8 @@ nfs3RReadlinkSize(Nfs3RReadlink *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + sunStringSize(x->data);
-		break;
 	}
 	return a;
 }
@@ -1355,10 +1311,8 @@ nfs3RReadlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadlink *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunStringPack(a, ea, &a, &x->data, -1) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1378,10 +1332,8 @@ nfs3RReadlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadlink *x)
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunStringUnpack(a, ea, &a, &x->data, -1) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1452,8 +1404,7 @@ nfs3RReadPrint(Fmt *fmt, Nfs3RRead *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "count");
 		fmtprint(fmt, "%ud", x->count);
 		fmtprint(fmt, "\n");
@@ -1466,7 +1417,6 @@ nfs3RReadPrint(Fmt *fmt, Nfs3RRead *x)
 		else
 			fmtprint(fmt, "%.32H...", x->data);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -1480,10 +1430,8 @@ nfs3RReadSize(Nfs3RRead *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4 + 4 + sunVarOpaqueSize(x->ndata);
-		break;
 	}
 	return a;
 }
@@ -1499,12 +1447,10 @@ nfs3RReadPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRead *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Pack(a, ea, &a, &x->count) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->eof) < 0) goto Err;
 		if(sunVarOpaquePack(a, ea, &a, &x->data, &x->ndata, x->count) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1524,12 +1470,10 @@ nfs3RReadUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRead *x)
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Unpack(a, ea, &a, &x->count) < 0) goto Err;
 		if(sunUint1Unpack(a, ea, &a, &x->eof) < 0) goto Err;
 		if(sunVarOpaqueUnpack(a, ea, &a, &x->data, &x->ndata, x->count) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1625,8 +1569,7 @@ nfs3RWritePrint(Fmt *fmt, Nfs3RWrite *x)
 	fmtprint(fmt, "\t%s=", "wcc");
 	nfs3WccPrint(fmt, &x->wcc);
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "count");
 		fmtprint(fmt, "%ud", x->count);
 		fmtprint(fmt, "\n");
@@ -1636,7 +1579,6 @@ nfs3RWritePrint(Fmt *fmt, Nfs3RWrite *x)
 		fmtprint(fmt, "\t%s=", "verf");
 		fmtprint(fmt, "%.*H", Nfs3WriteVerfSize, x->verf);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -1645,10 +1587,8 @@ nfs3RWriteSize(Nfs3RWrite *x)
 	uint a;
 	USED(x);
 	a = 0 + 4 + nfs3WccSize(&x->wcc);
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4 + 4 + Nfs3WriteVerfSize;
-		break;
 	}
 	return a;
 }
@@ -1659,12 +1599,10 @@ nfs3RWritePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RWrite *x)
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
 	if(nfs3WccPack(a, ea, &a, &x->wcc) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Pack(a, ea, &a, &x->count) < 0) goto Err;
 		if(i=x->committed, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
 		if(sunFixedOpaquePack(a, ea, &a, x->verf, Nfs3WriteVerfSize) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1679,12 +1617,10 @@ nfs3RWriteUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RWrite *x)
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
 	if(nfs3WccUnpack(a, ea, &a, &x->wcc) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Unpack(a, ea, &a, &x->count) < 0) goto Err;
 		if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->committed = i;
 		if(sunFixedOpaqueUnpack(a, ea, &a, x->verf, Nfs3WriteVerfSize) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -1804,8 +1740,7 @@ nfs3RCreatePrint(Fmt *fmt, Nfs3RCreate *x)
 	fmtprint(fmt, "\t%s=", "status");
 	fmtprint(fmt, "%s", nfs3StatusStr(x->status));
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "haveHandle");
 		fmtprint(fmt, "%d", x->haveHandle);
 		fmtprint(fmt, "\n");
@@ -1826,7 +1761,6 @@ nfs3RCreatePrint(Fmt *fmt, Nfs3RCreate *x)
 			fmtprint(fmt, "\n");
 			break;
 		}
-		break;
 	}
 	fmtprint(fmt, "\t%s=", "dirWcc");
 	nfs3WccPrint(fmt, &x->dirWcc);
@@ -1838,8 +1772,7 @@ nfs3RCreateSize(Nfs3RCreate *x)
 	uint a;
 	USED(x);
 	a = 0 + 4;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4;
 		switch(x->haveHandle){
 		case 1:
@@ -1852,7 +1785,6 @@ nfs3RCreateSize(Nfs3RCreate *x)
 			a = a + nfs3AttrSize(&x->attr);
 			break;
 		}
-			break;
 	}
 	a = a + nfs3WccSize(&x->dirWcc);
 	return a;
@@ -1863,8 +1795,7 @@ nfs3RCreatePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCreate *x)
 	int i;
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Pack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -1877,7 +1808,6 @@ nfs3RCreatePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCreate *x)
 			if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccPack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -1892,8 +1822,7 @@ nfs3RCreateUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCreate *x)
 	int i;
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Unpack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -1906,7 +1835,6 @@ nfs3RCreateUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCreate *x)
 			if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccUnpack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -1968,8 +1896,7 @@ nfs3RMkdirPrint(Fmt *fmt, Nfs3RMkdir *x)
 	fmtprint(fmt, "\t%s=", "status");
 	fmtprint(fmt, "%s", nfs3StatusStr(x->status));
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "haveHandle");
 		fmtprint(fmt, "%d", x->haveHandle);
 		fmtprint(fmt, "\n");
@@ -1990,7 +1917,6 @@ nfs3RMkdirPrint(Fmt *fmt, Nfs3RMkdir *x)
 			fmtprint(fmt, "\n");
 			break;
 		}
-		break;
 	}
 	fmtprint(fmt, "\t%s=", "dirWcc");
 	nfs3WccPrint(fmt, &x->dirWcc);
@@ -2002,8 +1928,7 @@ nfs3RMkdirSize(Nfs3RMkdir *x)
 	uint a;
 	USED(x);
 	a = 0 + 4;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4;
 		switch(x->haveHandle){
 		case 1:
@@ -2016,7 +1941,6 @@ nfs3RMkdirSize(Nfs3RMkdir *x)
 			a = a + nfs3AttrSize(&x->attr);
 			break;
 		}
-			break;
 	}
 	a = a + nfs3WccSize(&x->dirWcc);
 	return a;
@@ -2027,8 +1951,7 @@ nfs3RMkdirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMkdir *x)
 	int i;
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Pack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -2041,7 +1964,6 @@ nfs3RMkdirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMkdir *x)
 			if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccPack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -2056,8 +1978,7 @@ nfs3RMkdirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMkdir *x)
 	int i;
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Unpack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -2070,7 +1991,6 @@ nfs3RMkdirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMkdir *x)
 			if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccUnpack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -2137,8 +2057,7 @@ nfs3RSymlinkPrint(Fmt *fmt, Nfs3RSymlink *x)
 	fmtprint(fmt, "\t%s=", "status");
 	fmtprint(fmt, "%s", nfs3StatusStr(x->status));
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "haveHandle");
 		fmtprint(fmt, "%d", x->haveHandle);
 		fmtprint(fmt, "\n");
@@ -2159,7 +2078,6 @@ nfs3RSymlinkPrint(Fmt *fmt, Nfs3RSymlink *x)
 			fmtprint(fmt, "\n");
 			break;
 		}
-		break;
 	}
 	fmtprint(fmt, "\t%s=", "dirWcc");
 	nfs3WccPrint(fmt, &x->dirWcc);
@@ -2171,8 +2089,7 @@ nfs3RSymlinkSize(Nfs3RSymlink *x)
 	uint a;
 	USED(x);
 	a = 0 + 4;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4;
 		switch(x->haveHandle){
 		case 1:
@@ -2185,7 +2102,6 @@ nfs3RSymlinkSize(Nfs3RSymlink *x)
 			a = a + nfs3AttrSize(&x->attr);
 			break;
 		}
-			break;
 	}
 	a = a + nfs3WccSize(&x->dirWcc);
 	return a;
@@ -2196,8 +2112,7 @@ nfs3RSymlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSymlink *x)
 	int i;
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Pack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -2210,7 +2125,6 @@ nfs3RSymlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSymlink *x)
 			if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccPack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -2225,8 +2139,7 @@ nfs3RSymlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSymlink *x)
 	int i;
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Unpack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -2239,7 +2152,6 @@ nfs3RSymlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSymlink *x)
 			if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccUnpack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -2280,6 +2192,8 @@ nfs3TMknodPrint(Fmt *fmt, Nfs3TMknod *x)
 		nfs3SetAttrPrint(fmt, &x->attr);
 		fmtprint(fmt, "\n");
 		break;
+	default:
+		break;
 	}
 }
 uint
@@ -2296,6 +2210,8 @@ nfs3TMknodSize(Nfs3TMknod *x)
 	case Nfs3FileSocket:
 	case Nfs3FileFifo:
 		a = a + nfs3SetAttrSize(&x->attr);
+		break;
+	default:
 		break;
 	}
 	return a;
@@ -2318,6 +2234,8 @@ nfs3TMknodPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TMknod *x)
 	case Nfs3FileSocket:
 	case Nfs3FileFifo:
 		if(nfs3SetAttrPack(a, ea, &a, &x->attr) < 0) goto Err;
+		break;
+	default:
 		break;
 	}
 	*pa = a;
@@ -2345,6 +2263,8 @@ nfs3TMknodUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TMknod *x)
 	case Nfs3FileFifo:
 		if(nfs3SetAttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
+	default:
+		break;
 	}
 	*pa = a;
 	return 0;
@@ -2359,8 +2279,7 @@ nfs3RMknodPrint(Fmt *fmt, Nfs3RMknod *x)
 	fmtprint(fmt, "\t%s=", "status");
 	fmtprint(fmt, "%s", nfs3StatusStr(x->status));
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "haveHandle");
 		fmtprint(fmt, "%d", x->haveHandle);
 		fmtprint(fmt, "\n");
@@ -2381,7 +2300,6 @@ nfs3RMknodPrint(Fmt *fmt, Nfs3RMknod *x)
 			fmtprint(fmt, "\n");
 			break;
 		}
-		break;
 	}
 	fmtprint(fmt, "\t%s=", "dirWcc");
 	nfs3WccPrint(fmt, &x->dirWcc);
@@ -2393,8 +2311,7 @@ nfs3RMknodSize(Nfs3RMknod *x)
 	uint a;
 	USED(x);
 	a = 0 + 4;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4;
 		switch(x->haveHandle){
 		case 1:
@@ -2407,7 +2324,6 @@ nfs3RMknodSize(Nfs3RMknod *x)
 			a = a + nfs3AttrSize(&x->attr);
 			break;
 		}
-			break;
 	}
 	a = a + nfs3WccSize(&x->dirWcc);
 	return a;
@@ -2418,8 +2334,7 @@ nfs3RMknodPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMknod *x)
 	int i;
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Pack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -2432,7 +2347,6 @@ nfs3RMknodPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMknod *x)
 			if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccPack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -2447,8 +2361,7 @@ nfs3RMknodUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMknod *x)
 	int i;
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint1Unpack(a, ea, &a, &x->haveHandle) < 0) goto Err;
 		switch(x->haveHandle){
 		case 1:
@@ -2461,7 +2374,6 @@ nfs3RMknodUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMknod *x)
 			if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 			break;
 		}
-		break;
 	}
 	if(nfs3WccUnpack(a, ea, &a, &x->dirWcc) < 0) goto Err;
 	*pa = a;
@@ -2996,8 +2908,7 @@ nfs3RReadDirPrint(Fmt *fmt, Nfs3RReadDir *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "verf");
 		fmtprint(fmt, "%.*H", Nfs3CookieVerfSize, x->verf);
 		fmtprint(fmt, "\n");
@@ -3005,7 +2916,6 @@ nfs3RReadDirPrint(Fmt *fmt, Nfs3RReadDir *x)
 		fmtprint(fmt, "\t%s=", "eof");
 		fmtprint(fmt, "%d", x->eof);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -3019,12 +2929,10 @@ nfs3RReadDirSize(Nfs3RReadDir *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + Nfs3CookieVerfSize;
 		a += x->count;
 		a += 4 + 4;
-		break;
 	}
 	return a;
 }
@@ -3041,14 +2949,12 @@ nfs3RReadDirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadDir *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunFixedOpaquePack(a, ea, &a, x->verf, Nfs3CookieVerfSize) < 0) goto Err;
 		if(sunFixedOpaquePack(a, ea, &a, x->data, x->count) < 0) goto Err;
 		zero = 0;
 		if(sunUint1Pack(a, ea, &a, &zero) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->eof) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3289,8 +3195,7 @@ nfs3RReadDirPlusPrint(Fmt *fmt, Nfs3RReadDirPlus *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "verf");
 		fmtprint(fmt, "%.*H", Nfs3CookieVerfSize, x->verf);
 		fmtprint(fmt, "\n");
@@ -3298,7 +3203,6 @@ nfs3RReadDirPlusPrint(Fmt *fmt, Nfs3RReadDirPlus *x)
 		fmtprint(fmt, "\t%s=", "eof");
 		fmtprint(fmt, "%d", x->eof);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -3312,12 +3216,10 @@ nfs3RReadDirPlusSize(Nfs3RReadDirPlus *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + Nfs3CookieVerfSize;
 		a += x->count;
 		a += 4 + 4;
-		break;
 	}
 	return a;
 }
@@ -3335,14 +3237,12 @@ nfs3RReadDirPlusPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunFixedOpaquePack(a, ea, &a, x->verf, Nfs3CookieVerfSize) < 0) goto Err;
 		if(sunFixedOpaquePack(a, ea, &a, x->data, x->count) < 0) goto Err;
 		zero = 0;
 		if(sunUint1Pack(a, ea, &a, &zero) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->eof) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3462,8 +3362,7 @@ nfs3RFsStatPrint(Fmt *fmt, Nfs3RFsStat *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "totalBytes");
 		fmtprint(fmt, "%llud", x->totalBytes);
 		fmtprint(fmt, "\n");
@@ -3485,7 +3384,6 @@ nfs3RFsStatPrint(Fmt *fmt, Nfs3RFsStat *x)
 		fmtprint(fmt, "\t%s=", "invarSec");
 		fmtprint(fmt, "%ud", x->invarSec);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -3499,10 +3397,8 @@ nfs3RFsStatSize(Nfs3RFsStat *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 8 + 8 + 8 + 8 + 8 + 8 + 4;
-		break;
 	}
 	return a;
 }
@@ -3518,8 +3414,7 @@ nfs3RFsStatPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsStat *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint64Pack(a, ea, &a, &x->totalBytes) < 0) goto Err;
 		if(sunUint64Pack(a, ea, &a, &x->freeBytes) < 0) goto Err;
 		if(sunUint64Pack(a, ea, &a, &x->availBytes) < 0) goto Err;
@@ -3527,7 +3422,6 @@ nfs3RFsStatPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsStat *x)
 		if(sunUint64Pack(a, ea, &a, &x->freeFiles) < 0) goto Err;
 		if(sunUint64Pack(a, ea, &a, &x->availFiles) < 0) goto Err;
 		if(sunUint32Pack(a, ea, &a, &x->invarSec) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3547,8 +3441,7 @@ nfs3RFsStatUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsStat *x)
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint64Unpack(a, ea, &a, &x->totalBytes) < 0) goto Err;
 		if(sunUint64Unpack(a, ea, &a, &x->freeBytes) < 0) goto Err;
 		if(sunUint64Unpack(a, ea, &a, &x->availBytes) < 0) goto Err;
@@ -3556,7 +3449,6 @@ nfs3RFsStatUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsStat *x)
 		if(sunUint64Unpack(a, ea, &a, &x->freeFiles) < 0) goto Err;
 		if(sunUint64Unpack(a, ea, &a, &x->availFiles) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->invarSec) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3617,8 +3509,7 @@ nfs3RFsInfoPrint(Fmt *fmt, Nfs3RFsInfo *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "readMax");
 		fmtprint(fmt, "%ud", x->readMax);
 		fmtprint(fmt, "\n");
@@ -3649,7 +3540,6 @@ nfs3RFsInfoPrint(Fmt *fmt, Nfs3RFsInfo *x)
 		fmtprint(fmt, "\t%s=", "flags");
 		fmtprint(fmt, "%ud", x->flags);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -3663,10 +3553,8 @@ nfs3RFsInfoSize(Nfs3RFsInfo *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + nfs3TimeSize(&x->timePrec) + 4;
-		break;
 	}
 	return a;
 }
@@ -3682,8 +3570,7 @@ nfs3RFsInfoPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsInfo *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Pack(a, ea, &a, &x->readMax) < 0) goto Err;
 		if(sunUint32Pack(a, ea, &a, &x->readPref) < 0) goto Err;
 		if(sunUint32Pack(a, ea, &a, &x->readMult) < 0) goto Err;
@@ -3694,7 +3581,6 @@ nfs3RFsInfoPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsInfo *x)
 		if(sunUint64Pack(a, ea, &a, &x->maxFileSize) < 0) goto Err;
 		if(nfs3TimePack(a, ea, &a, &x->timePrec) < 0) goto Err;
 		if(sunUint32Pack(a, ea, &a, &x->flags) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3714,8 +3600,7 @@ nfs3RFsInfoUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsInfo *x)
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Unpack(a, ea, &a, &x->readMax) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->readPref) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->readMult) < 0) goto Err;
@@ -3726,7 +3611,6 @@ nfs3RFsInfoUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsInfo *x)
 		if(sunUint64Unpack(a, ea, &a, &x->maxFileSize) < 0) goto Err;
 		if(nfs3TimeUnpack(a, ea, &a, &x->timePrec) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->flags) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3787,8 +3671,7 @@ nfs3RPathconfPrint(Fmt *fmt, Nfs3RPathconf *x)
 		fmtprint(fmt, "\n");
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "maxLink");
 		fmtprint(fmt, "%ud", x->maxLink);
 		fmtprint(fmt, "\n");
@@ -3807,7 +3690,6 @@ nfs3RPathconfPrint(Fmt *fmt, Nfs3RPathconf *x)
 		fmtprint(fmt, "\t%s=", "casePreserving");
 		fmtprint(fmt, "%d", x->casePreserving);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -3821,10 +3703,8 @@ nfs3RPathconfSize(Nfs3RPathconf *x)
 		a = a + nfs3AttrSize(&x->attr);
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + 4 + 4 + 4 + 4 + 4 + 4;
-		break;
 	}
 	return a;
 }
@@ -3840,15 +3720,13 @@ nfs3RPathconfPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RPathconf *x)
 		if(nfs3AttrPack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Pack(a, ea, &a, &x->maxLink) < 0) goto Err;
 		if(sunUint32Pack(a, ea, &a, &x->maxName) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->noTrunc) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->chownRestricted) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->caseInsensitive) < 0) goto Err;
 		if(sunUint1Pack(a, ea, &a, &x->casePreserving) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3868,15 +3746,13 @@ nfs3RPathconfUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RPathconf *x)
 		if(nfs3AttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
 		break;
 	}
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunUint32Unpack(a, ea, &a, &x->maxLink) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->maxName) < 0) goto Err;
 		if(sunUint1Unpack(a, ea, &a, &x->noTrunc) < 0) goto Err;
 		if(sunUint1Unpack(a, ea, &a, &x->chownRestricted) < 0) goto Err;
 		if(sunUint1Unpack(a, ea, &a, &x->caseInsensitive) < 0) goto Err;
 		if(sunUint1Unpack(a, ea, &a, &x->casePreserving) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3940,12 +3816,10 @@ nfs3RCommitPrint(Fmt *fmt, Nfs3RCommit *x)
 	fmtprint(fmt, "\t%s=", "wcc");
 	nfs3WccPrint(fmt, &x->wcc);
 	fmtprint(fmt, "\n");
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		fmtprint(fmt, "\t%s=", "verf");
 		fmtprint(fmt, "%.*H", Nfs3WriteVerfSize, x->verf);
 		fmtprint(fmt, "\n");
-		break;
 	}
 }
 uint
@@ -3954,10 +3828,8 @@ nfs3RCommitSize(Nfs3RCommit *x)
 	uint a;
 	USED(x);
 	a = 0 + 4 + nfs3WccSize(&x->wcc);
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		a = a + Nfs3WriteVerfSize;
-		break;
 	}
 	return a;
 }
@@ -3968,10 +3840,8 @@ nfs3RCommitPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCommit *x)
 
 	if(i=x->status, sunEnumPack(a, ea, &a, &i) < 0) goto Err;
 	if(nfs3WccPack(a, ea, &a, &x->wcc) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunFixedOpaquePack(a, ea, &a, x->verf, Nfs3WriteVerfSize) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;
@@ -3986,10 +3856,8 @@ nfs3RCommitUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCommit *x)
 
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->status = i;
 	if(nfs3WccUnpack(a, ea, &a, &x->wcc) < 0) goto Err;
-	switch(x->status){
-	case Nfs3Ok:
+	if(x->status == Nfs3Ok){
 		if(sunFixedOpaqueUnpack(a, ea, &a, x->verf, Nfs3WriteVerfSize) < 0) goto Err;
-		break;
 	}
 	*pa = a;
 	return 0;

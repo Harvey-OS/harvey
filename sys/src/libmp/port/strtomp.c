@@ -25,15 +25,15 @@ enum {
 	INVAL=	255
 };
 
-static char set64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static char set32[] = "23456789abcdefghijkmnpqrstuvwxyz";
-static char set16[] = "0123456789ABCDEF0123456789abcdef";
-static char set10[] = "0123456789";
+static unsigned char set64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static unsigned char set32[] = "23456789abcdefghijkmnpqrstuvwxyz";
+static unsigned char set16[] = "0123456789ABCDEF0123456789abcdef";
+static unsigned char set10[] = "0123456789";
 
 static void
 init(void)
 {
-	char *p;
+	unsigned char *p;
 
 	memset(tab.t64, INVAL, sizeof(tab.t64));
 	memset(tab.t32, INVAL, sizeof(tab.t32));
