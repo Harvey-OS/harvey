@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
 #include <netif.h>
 
-#include "etherif.h"
-#include "ethermii.h"
+#include <etherif.h>
+#include <ethermii.h>
 
 int
 mii(Mii* mii, int mask)

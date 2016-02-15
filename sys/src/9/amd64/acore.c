@@ -7,16 +7,16 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
 #include <tos.h>
 #include <pool.h>
-#include "amd64.h"
-#include "ureg.h"
+#include <amd64.h>
+#include <ureg.h>
 #include <io.h>
 #include <pmc.h>
 

@@ -1,11 +1,11 @@
-#include	"u.h"
-#include	"tos.h"
+#include <u.h>
+#include <tos.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
-#include	"getput.h"
+#include <getput.h>
 
 typedef struct Elf64_Ehdr Elf64_Ehdr;
 typedef struct Elf64_Phdr Elf64_Phdr;

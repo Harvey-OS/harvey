@@ -10,11 +10,11 @@
 /*
  * VGA controller
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
 
@@ -22,7 +22,7 @@
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
-#include "screen.h"
+#include <screen.h>
 
 enum {
 	Qdir,

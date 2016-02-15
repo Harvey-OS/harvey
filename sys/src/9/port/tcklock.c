@@ -21,11 +21,11 @@
  * (because taslocks are known to be robust and don't have bugs).
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
 #include <edf.h>
 

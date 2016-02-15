@@ -13,16 +13,16 @@
  * High speed USB 2.0.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
 #include <usb.h>
 #include <portusbehci.h>
-#include	"usbehci.h"
+#include <usbehci.h>
 
 static Ctlr* ctlrs[Nhcis];
 

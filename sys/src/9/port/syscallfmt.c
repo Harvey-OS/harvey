@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
-#include "../../libc/9syscall/sys.h"
+#include <../../libc/9syscall/sys.h>
 
 /*
  * Print functions for system call tracing.

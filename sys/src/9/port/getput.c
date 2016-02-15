@@ -1,4 +1,4 @@
-#include	"u.h"
+#include <u.h>
 
 void
 put64be(uint8_t *p, uint64_t x)

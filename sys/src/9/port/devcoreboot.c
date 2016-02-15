@@ -27,13 +27,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
-#include        "coreboot.h"
+#include <coreboot.h>
 /*
  * Some of this is x86 specific, and the rest of it is generic. Right now,
  * since we only support x86, we'll avoid trying to make lots of infrastructure

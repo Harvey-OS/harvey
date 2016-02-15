@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 
 /* mul64fract(uint64_t*r, uint64_t a, uint64_t b)
  *

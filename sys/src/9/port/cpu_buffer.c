@@ -18,13 +18,13 @@
  * would lead to catastrophic global synchronisation if
  * a global buffer was used.
  */
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
-#include        "cpu_buffer.h"
+#include <cpu_buffer.h>
 #include <oprofile.h>
 
 #define OP_BUFFER_FLAGS	0

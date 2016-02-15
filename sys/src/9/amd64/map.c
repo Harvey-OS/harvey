@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
 #define _KADDR(pa)	UINT2PTR(kseg0+((uintptr)(pa)))
 #define _PADDR(va)	PTR2UINT(((uintptr)(va)) - kseg0)

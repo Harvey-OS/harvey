@@ -11,13 +11,13 @@
  * To do:
  *	find a purpose for this...
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
-#include "amd64.h"
+#include <amd64.h>
 
 /*
  * Address Space Map.

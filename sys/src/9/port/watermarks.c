@@ -10,11 +10,11 @@
 /*
  * high-watermark measurements
  */
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
 void
 initmark(Watermark *wp, int max, char *name)

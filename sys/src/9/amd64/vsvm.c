@@ -14,14 +14,14 @@
  *	IST should perhaps point to a different handler;
  *	user-level descriptors (if not dynamic).
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
-#include "amd64.h"
-#include "ureg.h"
+#include <amd64.h>
+#include <ureg.h>
 
 typedef struct Gd Gd;
 typedef uint64_t Sd;

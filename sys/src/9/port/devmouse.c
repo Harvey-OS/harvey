@@ -7,18 +7,18 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
 
 #define	Image	IMAGE
 #include	<draw.h>
 #include	<memdraw.h>
 #include	<cursor.h>
-#include	"screen.h"
+#include <screen.h>
 
 enum {
 	ScrollUp = 0x08,

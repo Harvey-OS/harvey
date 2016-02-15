@@ -4,11 +4,11 @@
  *
  * Arch-independent kernel debugging */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
 
 int printx_on = 1;

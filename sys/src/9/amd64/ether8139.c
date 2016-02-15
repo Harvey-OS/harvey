@@ -12,16 +12,16 @@
  * Error recovery for the various over/under -flow conditions
  * may need work.
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
 #include <netif.h>
 
-#include "etherif.h"
+#include <etherif.h>
 
 enum {					/* registers */
 	Idr0		= 0x0000,	/* MAC address */

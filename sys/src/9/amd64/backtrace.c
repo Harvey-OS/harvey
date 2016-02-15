@@ -1,12 +1,12 @@
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
-#include "apic.h"
+#include <apic.h>
 #include <io.h>
-#include "amd64.h"
+#include <amd64.h>
 
 int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
 {

@@ -47,11 +47,11 @@
  * get in the way. Thus, code is probably easier the way it is.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
 #include <usb.h>

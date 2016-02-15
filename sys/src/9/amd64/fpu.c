@@ -14,14 +14,14 @@
  * There are opportunities to be lazier about saving and
  * restoring the state and allocating the storage needed.
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
-#include "amd64.h"
-#include "ureg.h"
+#include <amd64.h>
+#include <ureg.h>
 
 enum {						/* FCW, FSW and MXCSR */
 	I		= 0x00000001,		/* Invalid-Operation */

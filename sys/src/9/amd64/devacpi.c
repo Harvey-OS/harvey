@@ -7,15 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
-#include "mp.h"
-#include "acpi.h"
+#include <mp.h>
+#include <acpi.h>
 
 /*
  * ACPI 4.0 Support.

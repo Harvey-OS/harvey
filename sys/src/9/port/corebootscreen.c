@@ -12,13 +12,13 @@
  * coreboot gives us an x by y screen with 24 bpp, 8 of rgb, always.
  * Note that in the coreboot case, this is architecture-independent code.
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
-#include "ureg.h"
+#include <ureg.h>
 #include <error.h>
 
 #define	Image	IMAGE
@@ -26,8 +26,8 @@
 #include <memdraw.h>
 #include <cursor.h>
 #include <coreboot.h>
-#include "screen.h"
-#include "corebootscreen.h"
+#include <screen.h>
+#include <corebootscreen.h>
 
 enum {
 	Tabstop	= 4,		/* should be 8 */

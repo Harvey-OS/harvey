@@ -13,12 +13,12 @@
  * NUMA location.
  *
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
-#include "acpi.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
+#include <acpi.h>
 
 #define ISPOWEROF2(x)	(((x) != 0) && !((x) & ((x)-1)))
 #define UNO		((uintmem)1)

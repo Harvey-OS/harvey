@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
-#include	"kexec.h"
+#include <kexec.h>
 
 enum
 {

@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 
-#include "init.h"
-#include "apic.h"
+#include <init.h>
+#include <apic.h>
 #include <io.h>
-#include "amd64.h"
-#include "coreboot.h"
+#include <amd64.h>
+#include <coreboot.h>
 
 #undef DBG
 #define DBG iprint

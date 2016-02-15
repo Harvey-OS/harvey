@@ -13,13 +13,13 @@
  * NO. 1
  * THE LARCH
  */
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
-#include "ureg.h"
+#include <ureg.h>
 
 /* the rules are different for different compilers. We need to define up. */
 // Initialize it to force it into data.

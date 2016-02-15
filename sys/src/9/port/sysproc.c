@@ -9,12 +9,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"tos.h"
+#include <u.h>
+#include <tos.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
 
 #include <edf.h>

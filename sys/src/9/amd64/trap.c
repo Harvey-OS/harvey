@@ -7,19 +7,19 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <error.h>
 
 #include	<tos.h>
-#include	"ureg.h"
+#include <ureg.h>
 #include <pmc.h>
 
 #include <io.h>
-#include	"amd64.h"
+#include <amd64.h>
 
 
 // counters. Set by assembly code.

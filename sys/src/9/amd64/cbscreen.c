@@ -7,20 +7,20 @@
  * in the LICENSE file.
  */
 
-#include "u.h"
+#include <u.h>
 #include <lib.h>
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
-#include "ureg.h"
+#include <ureg.h>
 #include <error.h>
 
 #define	Image	IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
-#include "screen.h"
+#include <screen.h>
 
 #define RGB2K(r,g,b)	((156763*(r)+307758*(g)+59769*(b))>>19)
 

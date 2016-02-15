@@ -20,17 +20,17 @@
  * - must warn of power overruns.
  */
 
-#include	"u.h"
+#include <u.h>
 #include <lib.h>
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include <mem.h>
+#include <dat.h>
+#include <fns.h>
 #include <io.h>
 #include <error.h>
 #include <usb.h>
 #include <portusbehci.h>
-#include	"usbehci.h"
-#include	"uncached.h"
+#include <usbehci.h>
+#include <uncached.h>
 
 #define diprint		if(ehcidebug || iso->debug)print
 #define ddiprint	if(ehcidebug>1 || iso->debug>1)print
