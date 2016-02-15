@@ -7,7 +7,6 @@
 		"Library": "libsunrpc.a",
 		"SourceFiles": [
 			"mount3.c",
-			"nfs3.c",
 			"portmap.c",
 			"authunix.c",
 			"client.c",
