@@ -1,3 +1,5 @@
-export HARVEY=$(pwd)
-export ARCH=amd64
-export PATH=$(pwd)/util:$PATH
+echo Starting $SHELL with environment set up as follows:
+echo HARVEY=$(pwd)
+echo ARCH=amd64
+echo PATH=$(pwd)/util:$PATH
+HARVEY=$(pwd) ARCH=amd64 PATH=$(pwd)/util:$PATH $SHELL
