@@ -1,0 +1,82 @@
+{
+	"samterm": {
+		"Cflags": [
+			"-ffreestanding",
+			"-fno-builtin",
+			"-fno-omit-frame-pointer",
+			"-fplan9-extensions",
+			"-fvar-tracking",
+			"-fvar-tracking-assignments",
+			"-g",
+			"-gdwarf-2",
+			"-ggdb",
+			"-mcmodel=small",
+			"-mno-red-zone",
+			"-O2",
+			"-I../sam",
+			"-static",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+		    "-Wno-pointer-sign",
+			"-Wno-unknown-pragmas"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Post": [
+			"rm *.o",
+			"OBJDUMP=objdump; $TOOLPREFIX$OBJDUMP -S $HARVEY/$ARCH/bin/samterm > samterm.asm" 
+		],
+		"Oflags": [
+			"-static",
+			"-e_main",
+			"-lavl",
+			"-lcomplete",
+			"-lcontrol",
+			"-ldisk",
+			"-lflate",
+			"-lframe",
+			"-lgeometry",
+			"-lhttpd",
+			"-lbin",
+			"-llex",
+			"-lmemdraw",
+			"-lmemlayer",
+			"-lmemdraw",
+			"-ldraw",
+			"-lplumb",
+			"-lregexp",
+			"-lstdio",
+			"-lString",
+			"-lsunrpc",
+			"-loventi",
+			"-l9p",
+			"-lauth",
+			"-lauthsrv",
+			"-lndb",
+			"-lip",
+			"-lventi",
+			"-lsec",
+			"-lauth",
+			"-lmp",
+			"-lthread",
+			"-lmach",
+			"-lbio",
+			"-lc"
+		],
+		"Pre": [
+			"rm -f *.tag.*"
+		],
+		"Program": "samterm",
+	 	"SourceFiles": [
+			"flayer.c",
+			"icons.c",
+			"io.c",
+			"main.c",
+			"menu.c",
+			"mesg.c",
+			"plan9.c",
+			"rasp.c",
+			"scroll.c"
+		]
+	}
+}

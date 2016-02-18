@@ -156,6 +156,8 @@
 			"ndb/ndb.json",
 			"rc/rc.json",
 			"rio/rio.json",
+			"sam/build.json",
+			"samterm/build.json",
 			"syscall/syscall.json",
 			"usb/build.json",
 			"venti/venti.json"
