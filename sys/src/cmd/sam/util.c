@@ -12,7 +12,7 @@
 void
 cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 {
-	uint8_t *q;
+	uchar *q;
 	Rune *s;
 	int j, w;
 
@@ -23,7 +23,7 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 * knows this.  If n is a firm limit, the caller should
 	 * set p[n] = 0.
 	 */
-	q = (uint8_t*)p;
+	q = (uchar*)p;
 	s = r;
 	for(j=0; j<n; j+=w){
 		if(*q < Runeself){

@@ -10,11 +10,11 @@
 #include "sam.h"
 
 Header	h;
-uint8_t	indata[DATASIZE];
-uint8_t	outdata[2*DATASIZE+3];	/* room for overflow message */
-uint8_t	*inp;
-uint8_t	*outp;
-uint8_t	*outmsg = outdata;
+uchar	indata[DATASIZE];
+uchar	outdata[2*DATASIZE+3];	/* room for overflow message */
+uchar	*inp;
+uchar	*outp;
+uchar	*outmsg = outdata;
 Posn	cmdpt;
 Posn	cmdptadv;
 Buffer	snarfbuf;
@@ -23,13 +23,13 @@ int	outbuffered;
 int	tversion;
 
 int	inshort(void);
-int32_t	inlong(void);
-int64_t	invlong(void);
+long	inlong(void);
+vlong	invlong(void);
 int	inmesg(Tmesg);
 
 void	outshort(int);
-void	outlong(int32_t);
-void	outvlong(int64_t);
+void	outlong(long);
+void	outvlong(vlong);
 void	outcopy(int, void*);
 void	outsend(void);
 void	outstart(Hmesg);
@@ -103,7 +103,7 @@ journal(int out, char *s)
 }
 
 void
-journaln(int out, int32_t n)
+journaln(int out, long n)
 {
 	char buf[32];
 
@@ -112,7 +112,7 @@ journaln(int out, int32_t n)
 }
 
 void
-journalv(int out, int64_t v)
+journalv(int out, vlong v)
 {
 	char buf[32];
 
@@ -127,8 +127,8 @@ journalv(int out, int64_t v)
 
 int
 rcvchar(void){
-	static uint8_t buf[64];
-	static i, nleft = 0;
+	static uchar buf[64];
+	static int i, nleft = 0;
 
 	if(nleft <= 0){
 		nleft = read(0, (char *)buf, sizeof buf);
@@ -143,9 +143,9 @@ rcvchar(void){
 int
 rcv(void){
 	int c;
-	static state = 0;
-	static count = 0;
-	static i = 0;
+	static int state = 0;
+	static int count = 0;
+	static int i = 0;
 
 	while((c=rcvchar()) != -1)
 		switch(state){
@@ -201,9 +201,9 @@ inmesg(Tmesg type)
 	Rune buf[1025];
 	char cbuf[64];
 	int i, m;
-	int16_t s;
-	int32_t l, l1;
-	int64_t v;
+	short s;
+	long l, l1;
+	vlong v;
 	File *f;
 	Posn p0, p1, p;
 	Range r;
@@ -219,9 +219,6 @@ inmesg(Tmesg type)
 
 	inp = indata;
 	switch(type){
-	case -1:
-		panic("rcv error");
-
 	default:
 		fprint(2, "unknown type %d\n", type);
 		panic("rcv unknown");
@@ -604,27 +601,27 @@ snarf(File *f, Posn p1, Posn p2, Buffer *buf, int emptyok)
 int
 inshort(void)
 {
-	uint16_t n;
+	ushort n;
 
 	n = inp[0] | (inp[1]<<8);
 	inp += 2;
 	return n;
 }
 
-int32_t
+long
 inlong(void)
 {
-	uint32_t n;
+	ulong n;
 
 	n = inp[0] | (inp[1]<<8) | (inp[2]<<16) | (inp[3]<<24);
 	inp += 4;
 	return n;
 }
 
-int64_t
+vlong
 invlong(void)
 {
-	int64_t v;
+	vlong v;
 	
 	v = (inp[7]<<24) | (inp[6]<<16) | (inp[5]<<8) | inp[4];
 	v = (v<<16) | (inp[3]<<8) | inp[2];
@@ -663,7 +660,7 @@ outT0(Hmesg type)
 }
 
 void
-outTl(Hmesg type, int32_t l)
+outTl(Hmesg type, long l)
 {
 	outstart(type);
 	outlong(l);
@@ -760,7 +757,7 @@ outTsl(Hmesg type, int s, Posn l)
 }
 
 void
-outTsv(Hmesg type, int s, int64_t v)
+outTsv(Hmesg type, int s, vlong v)
 {
 	outstart(type);
 	outshort(s);
@@ -792,7 +789,7 @@ outshort(int s)
 }
 
 void
-outlong(int32_t l)
+outlong(long l)
 {
 	*outp++ = l;
 	*outp++ = l>>8;
@@ -801,7 +798,7 @@ outlong(int32_t l)
 }
 
 void
-outvlong(int64_t v)
+outvlong(vlong v)
 {
 	int i;
 

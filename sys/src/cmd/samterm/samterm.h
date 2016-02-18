@@ -96,8 +96,8 @@ extern int	plumbfd;
 extern int	exiting;
 extern int	autoindent;
 
-Rune	*gettext(Flayer*, long, uint32_t*);
-void	*alloc(uint32_t n);
+Rune	*gettext(Flayer*, long, ulong*);
+void	*alloc(ulong n);
 
 void	iconinit(void);
 void	getscreen(int, char**);
@@ -148,14 +148,14 @@ void	horigin(int, long);
 void	hgrow(int, long, long, int);
 int	hdata(int, long, uchar*, int);
 int	hdatarune(int, long, Rune*, int);
-Rune	*rload(Rasp*, uint32_t, uint32_t, uint32_t*);
+Rune	*rload(Rasp*, ulong, ulong, ulong*);
 void	menuins(int, uchar*, Text*, int, int);
 void	menudel(int);
 Text	*sweeptext(int, int);
 void	setpat(char*);
 void	scrdraw(Flayer*, long tot);
-int	rcontig(Rasp*, uint32_t, uint32_t, int);
-int	rmissing(Rasp*, uint32_t, uint32_t);
+int	rcontig(Rasp*, ulong, ulong, int);
+int	rmissing(Rasp*, ulong, ulong);
 void	rresize(Rasp *, long, long, long);
 void	rdata(Rasp*, long, long, Rune*);
 void	rclean(Rasp*);

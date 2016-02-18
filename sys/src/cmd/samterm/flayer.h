@@ -7,6 +7,14 @@
  * in the LICENSE file.
  */
 
+// Plan9 types
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef uint64_t uvlong;
+typedef uint32_t ulong;
+typedef int64_t vlong;
+
+
 typedef enum Vis{
 	None=0,
 	Some,
@@ -25,7 +33,7 @@ struct Flayer
 	long		origin;	/* offset of first char in flayer */
 	long		p0, p1;
 	long		click;	/* time at which selection click occurred, in HZ */
-	Rune		*(*textfn)(Flayer*, long, uint32_t*);
+	Rune		*(*textfn)(Flayer*, long, ulong*);
 	int		user0;
 	void		*user1;
 	Rectangle	entire;
@@ -37,11 +45,10 @@ struct Flayer
 void	flborder(Flayer*, int);
 void	flclose(Flayer*);
 void	fldelete(Flayer*, long, long);
-void	flfp0p1(Flayer*, uint32_t*, uint32_t*);
+void	flfp0p1(Flayer*, ulong*, ulong*);
 void	flinit(Flayer*, Rectangle, Font*, Image**);
 void	flinsert(Flayer*, Rune*, Rune*, long);
-void	flnew(Flayer*, Rune *(*fn)(Flayer*, long, uint32_t*), int,
-		  void*);
+void	flnew(Flayer*, Rune *(*fn)(Flayer*, long, ulong*), int, void*);
 int	flprepare(Flayer*);
 Rectangle flrect(Flayer*, Rectangle);
 void	flrefresh(Flayer*, Rectangle, int);

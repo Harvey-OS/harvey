@@ -29,6 +29,13 @@
 #define	INCR		25
 #define	STRSIZE		(2*BLOCKSIZE)
 
+// Plan9 types
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef uint64_t uvlong;
+typedef uint32_t ulong;
+typedef int64_t vlong;
+
 typedef long		Posn;		/* file position or address */
 typedef	ushort		Mod;		/* modification number */
 
@@ -254,7 +261,7 @@ void	doubleclick(File*, Posn);
 void	dprint(char*, ...);
 void	edit(File*, int);
 void	*emalloc(ulong);
-void	*erealloc(void*, uint32_t);
+void	*erealloc(void*, ulong);
 void	error(Err);
 void	error_c(Err, int);
 void	error_r(Err, char*);
@@ -301,8 +308,8 @@ void	snarf(File*, Posn, Posn, Buffer*, int);
 void	sortname(File*);
 void	startup(char*, int, char**, char**);
 void	state(File*, int);
-int	statfd(int, uint32_t*, uvlong*, long*, long*, long*);
-int	statfile(char*, uint32_t*, uvlong*, long*, long*, long*);
+int	statfd(int, ulong*, uvlong*, long*, long*, long*);
+int	statfile(char*, ulong*, uvlong*, long*, long*, long*);
 void	Straddc(String*, int);
 void	Strclose(String*);
 int	Strcmp(String*, String*);
@@ -312,7 +319,7 @@ void	Strduplstr(String*, String*);
 void	Strinit(String*);
 void	Strinit0(String*);
 void	Strinsert(String*, String*, Posn);
-void	Strinsure(String*, uint32_t);
+void	Strinsure(String*, ulong);
 int	Strispre(String*, String*);
 void	Strzero(String*);
 int	Strlen(Rune*);
@@ -340,7 +347,7 @@ void	writef(File*);
 Posn	writeio(File*);
 Discdesc *Dstart(void);
 
-extern Rune	samname[];	/* compiler dependent */
+extern Rune	*samname;	/* compiler dependent */
 extern Rune	*left[];
 extern Rune	*right[];
 

@@ -20,7 +20,7 @@ void	checkerrs(void);
 int
 plan9(File *f, int type, String *s, int nest)
 {
-	int32_t l;
+	long l;
 	int m;
 	int pid, fd;
 	int retcode;
@@ -142,7 +142,7 @@ checkerrs(void)
 	char buf[256];
 	int f, n, nl;
 	char *p;
-	int32_t l;
+	long l;
 
 	if(statfile(errfile, 0, 0, 0, &l, 0) > 0 && l != 0){
 		if((f=open((char *)errfile, 0)) != -1){

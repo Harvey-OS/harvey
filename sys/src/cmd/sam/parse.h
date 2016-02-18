@@ -54,7 +54,9 @@ struct Cmdtab
 	uchar	count;		/* takes a count e.g. s2/// */
 	char	*token;		/* takes text terminated by one of these */
 	int	(*fn)(File*, Cmd*);	/* function to call with parse tree */
-}cmdtab[];
+};
+
+extern Cmdtab cmdtab[];
 
 enum Defaddr{	/* default addresses */
 	aNo,

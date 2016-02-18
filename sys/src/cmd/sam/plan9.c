@@ -9,7 +9,7 @@
 
 #include "sam.h"
 
-Rune	samname[] = L"~~sam~~";
+Rune	*samname = L"~~sam~~";
 
 Rune *left[]= {
 	L"{[(<«",
@@ -59,9 +59,7 @@ print_s(char *s, String *a)
 }
 
 int
-statfile(char *name, uint32_t *dev, uint64_t *id, int32_t *time,
-	 int32_t *length,
-	 int32_t *appendonly)
+statfile(char *name, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
 {
 	Dir *dirb;
 
@@ -83,8 +81,7 @@ statfile(char *name, uint32_t *dev, uint64_t *id, int32_t *time,
 }
 
 int
-statfd(int fd, uint32_t *dev, uint64_t *id, int32_t *time, int32_t *length,
-       int32_t *appendonly)
+statfd(int fd, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
 {
 	Dir *dirb;
 
@@ -144,7 +141,7 @@ samerr(char *buf)
 }
 
 void*
-emalloc(uint32_t n)
+emalloc(ulong n)
 {
 	void *p;
 
@@ -156,7 +153,7 @@ emalloc(uint32_t n)
 }
 
 void*
-erealloc(void *p, uint32_t n)
+erealloc(void *p, ulong n)
 {
 	p = realloc(p, n);
 	if(p == 0)

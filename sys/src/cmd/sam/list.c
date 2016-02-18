@@ -15,7 +15,7 @@
 static void
 growlist(List *l, int esize)
 {
-	uint8_t *p;
+	uchar *p;
 
 	if(l->listptr == nil || l->nalloc == 0){
 		l->nalloc = INCR;

@@ -24,17 +24,24 @@ int	got;
 int	block;
 int	kbdc;
 int	resized;
-uint8_t	*hostp;
-uint8_t	*hoststop;
-uint8_t	*plumbbase;
-uint8_t	*plumbp;
-uint8_t	*plumbstop;
+uchar	*hostp;
+uchar	*hoststop;
+uchar	*plumbbase;
+uchar	*plumbp;
+uchar	*plumbstop;
 Channel	*plumbc;
 Channel	*hostc;
 Mousectl	*mousectl;
 Mouse	*mousep;
 Keyboardctl *keyboardctl;
 void	panic(char*);
+
+void
+closeio(void)
+{
+	closekeyboard(keyboardctl);
+	closemouse(mousectl);
+}
 
 void
 initio(void)
@@ -51,6 +58,7 @@ initio(void)
 		fprint(2, "samterm: keyboard init failed: %r\n");
 		threadexitsall("kbd");
 	}
+	atexit(closeio);
 	hoststart();
 	if(plumbstart() < 0)
 		extstart();
@@ -100,7 +108,7 @@ waitforio(void)
 	Alt alts[NRes+1];
 	Rune r;
 	int i;
-	uint32_t type;
+	ulong type;
 
 again:
 

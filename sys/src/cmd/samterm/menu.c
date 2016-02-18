@@ -18,9 +18,9 @@
 #include "flayer.h"
 #include "samterm.h"
 
-uint8_t	**name;	/* first byte is ' ' or '\'': modified state */
+uchar	**name;	/* first byte is ' ' or '\'': modified state */
 Text	**text;	/* pointer to Text associated with file */
-uint16_t	*tag;		/* text[i].tag, even if text[i] not defined */
+ushort	*tag;		/* text[i].tag, even if text[i] not defined */
 int	nname;
 int	mname;
 int	mw;
@@ -245,7 +245,7 @@ whichmenu(int tg)
 }
 
 void
-menuins(int n, uint8_t *s, Text *t, int m, int tg)
+menuins(int n, uchar *s, Text *t, int m, int tg)
 {
 	int i;
 
@@ -295,12 +295,12 @@ setpat(char *s)
 }
 
 #define	NBUF	64
-static uint8_t buf[NBUF*UTFmax]={' ', ' ', ' ', ' '};
+static uchar buf[NBUF*UTFmax]={' ', ' ', ' ', ' '};
 
 char *
 paren(char *s)
 {
-	uint8_t *t = buf;
+	uchar *t = buf;
 
 	*t++ = '(';
 	do; while(*t++ = *s++);
