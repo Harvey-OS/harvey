@@ -13,3 +13,7 @@
 
 * <a href="https://sevki.io/harvey/sys/man/1/0intro">Harvey OS manual</a>
 
+## Blog
+
+* <a href="https://blog.harvey-os.org">Harvey official blog</a>
+
