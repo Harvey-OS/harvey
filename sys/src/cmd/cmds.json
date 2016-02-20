@@ -68,7 +68,6 @@
 			"mv.c",
 			"netstat.c",
 			"news.c",
-			"nfs.c",
 			"nm.c",
 			"nntpfs.c",
 			"ns.c",

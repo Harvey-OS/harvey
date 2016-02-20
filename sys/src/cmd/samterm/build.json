@@ -18,13 +18,12 @@
 			"-Wall",
 			"-Wno-missing-braces",
 			"-Wno-parentheses",
-		    "-Wno-pointer-sign",
+			"-Wno-pointer-sign",
 			"-Wno-unknown-pragmas"
 		],
 		"Install": "/$ARCH/bin/aux",
 		"Post": [
-			"rm *.o",
-			"OBJDUMP=objdump; $TOOLPREFIX$OBJDUMP -S $HARVEY/$ARCH/bin/samterm > samterm.asm" 
+			"rm *.o"
 		],
 		"Oflags": [
 			"-static",
