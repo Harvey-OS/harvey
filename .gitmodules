@@ -1,3 +1,4 @@
 [submodule "util/third_party/src/github.com/rminnich/ninep"]
 	path = util/third_party/src/github.com/rminnich/ninep
 	url = https://github.com/rminnich/ninep.git
+	branch = master
