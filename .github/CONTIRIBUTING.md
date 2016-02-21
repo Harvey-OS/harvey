@@ -47,8 +47,7 @@ open a pull request for the topic branch you've just pushed
 $ hub pull-request
 → (opens a text editor for your pull request message)
 ```
-
-
+and someone from the core team will review it. 
 
 When you send a pull request, we will love you forever if you include qemu outputs and more tests. We can always use more test coverage. Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
 
