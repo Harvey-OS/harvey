@@ -36,7 +36,6 @@
 			"msexceltables.c",
 			"mswordstrings.c",
 			"mouse.c",
-			"nfsmount.c",
 			"olefs.c",
 			"pcmcia.c",
 			"portmap.c",
