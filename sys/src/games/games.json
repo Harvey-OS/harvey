@@ -14,11 +14,11 @@
 		]
 	},
 	"Dirs": {
-                "Include": [
-                        "../cmd/cmd.json"
-                ],               
-                "Install": "/$ARCH/bin/",
-                "Projects": [           
+		"Include": [
+			"../cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Projects": [
 			"sokoban/sokoban.json",
 			"sudoku/sudoku.json",
 			"mahjongg/mahjongg.json"
