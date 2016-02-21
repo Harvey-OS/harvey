@@ -1,16 +1,14 @@
 language: c
 script:
- - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
-compiler: 
- - gcc-4.8
-
+- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
+compiler:
+- gcc-4.8
 env:
   global:
-   - secure: "tARd2A5pHaoxooEXFhjnbLcPCp5cKPZTH4f+tMajMrSAkSmuNpL+GxUsa3wGhTRm0S3LOHtstqB0w8aRkdmwoytj64D9idX6121Ui9NuA47YL+NFRs76Oh3JcEzvdTu2ZhfTlvOwpDR1zjXhBBSVhFB8Tr2+N9Ywz95SjIgybx8V8B6jk946lPMK5dm1MBJ9iKy9Xngv49DNy5A3g7nalzK3+gL8yeKLdgu10KqZkLFXcdxoU2Nq5A/T8mrufxEe7tYmmGRpN9YqXn4rRnKg3BrEPXWcYfD8nkyUeaCRXIx9autWpGFU8HmxvWvOKrcDR6FjzrD7uWSlVGh9WGoomwSCgRb9pJSYOnORGrlTUkO/badEZHXBCAlCV6RgL2CFENxr55p2Ddb+iXxTM+iP5sJ1bhVQVbIL590lNqMkxvhT46g+meE6xIil+05OC5PR2B/SqhQ0jqcvjKRsK232KobseKQ1h7+jm2kZMfl45nPq1q+dlsN1IvKKN5XgyIhAje1eudvAeBzFbl0I7k0ZUnikKGW0AB1pjTDcFLIQFuzTZOix1uYrahI25oo1FgE1iLCbhgXQKtAW++sgxdb31fX7Rzi+YZCBprJ8PbJ4vUiUIhKfb5ORT71cmew7GVlFmKclVgDMaNOeGiJjUsHgPXx0sDsHsGT4RLwvxzpg+Cw="
-   - ARCH=amd64
-   - HARVEY=$TRAVIS_BUILD_DIR
-   - PATH=$PATH:$HARVEY/util
-
+  - secure: tARd2A5pHaoxooEXFhjnbLcPCp5cKPZTH4f+tMajMrSAkSmuNpL+GxUsa3wGhTRm0S3LOHtstqB0w8aRkdmwoytj64D9idX6121Ui9NuA47YL+NFRs76Oh3JcEzvdTu2ZhfTlvOwpDR1zjXhBBSVhFB8Tr2+N9Ywz95SjIgybx8V8B6jk946lPMK5dm1MBJ9iKy9Xngv49DNy5A3g7nalzK3+gL8yeKLdgu10KqZkLFXcdxoU2Nq5A/T8mrufxEe7tYmmGRpN9YqXn4rRnKg3BrEPXWcYfD8nkyUeaCRXIx9autWpGFU8HmxvWvOKrcDR6FjzrD7uWSlVGh9WGoomwSCgRb9pJSYOnORGrlTUkO/badEZHXBCAlCV6RgL2CFENxr55p2Ddb+iXxTM+iP5sJ1bhVQVbIL590lNqMkxvhT46g+meE6xIil+05OC5PR2B/SqhQ0jqcvjKRsK232KobseKQ1h7+jm2kZMfl45nPq1q+dlsN1IvKKN5XgyIhAje1eudvAeBzFbl0I7k0ZUnikKGW0AB1pjTDcFLIQFuzTZOix1uYrahI25oo1FgE1iLCbhgXQKtAW++sgxdb31fX7Rzi+YZCBprJ8PbJ4vUiUIhKfb5ORT71cmew7GVlFmKclVgDMaNOeGiJjUsHgPXx0sDsHsGT4RLwvxzpg+Cw=
+  - ARCH=amd64
+  - HARVEY=$TRAVIS_BUILD_DIR
+  - PATH=$PATH:$HARVEY/util
 addons:
   apt:
     sources:
@@ -20,10 +18,12 @@ addons:
     - gcc-4.8
   coverity_scan:
     project:
-      name: "elbing/harvey"
-      description: "Build submitted via Travis CI"
+      name: elbing/harvey
+      description: Build submitted via Travis CI
     notification_email: harvey@googlegroups.com
-    build_command_prepend: "./bootstrap.sh"
-    build_command:   "build all"
+    build_command_prepend: ./bootstrap.sh
+    build_command: build all
     branch_pattern: coverity_scan
-
+notifications:
+  slack:
+    secure: jyOsEs7e7HPmT+4zo6wtLQc0XIopWfZjUaTTlgcnR5M/QA+SrhU5izXjroKH03D8hXWXrCSss2P4JobfPnReshn9GQh7RNIYzDRUTygx/SYRY8/QotP5oQwIPP3W/8OcEg7coFsHGh1EIhEU9mwOqLUYSFcnEmvK9pcCNoIg9Ys+4LuYz05EsqkLm/IkriYC9gN2zTbsBOQiABSUPa5utFwLKRtqMzWIfIB6D7U1H7HRBEZ1d2McQQdsdhEe5XbSgdtZ44BwWO0EgaQX2vfL7PXWIy0xzlba+PFt3AvCJeN+v6Dtd2l8LnGN39gxbk5Cyl3X8uLmfva9wkVbDSl4H7qykcFbasem5bc8M619RKEueUhKKanVSHKYRmd8qvpSeOETUm00P2Wu1YWZuxdZuNR4HIMR3SYetS+dkkWHO75rx/yYhjf4pKjyoZ7F3ui8AGQ5KQG5G4QRtEYLS4AFNCMrkrv4dON3Gy/h+0U4vIILaZZ1zM/EFvIOPvr/pQaQJeY7M4eePGlr6K9GVVxCT9a2sqd4jfYikgoQvDRMeG1LNESl2T4AKB3Q14GKJvLscScn08ORBwRtNS+iDTI2KpAvw2Tqk8Iqu3lsUmLzDScJx4yhDwnDSjyOCq/8S7qliuIxzPxtW05Gc07Qw5+6jXjTepHBA0xHgJPN8u6l/VU=
