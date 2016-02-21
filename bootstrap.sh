@@ -18,10 +18,11 @@ mkdir -p tmp
 
 cat <<EOF
 
-Now just set your environment variables and build:
+For now, we have on architecture:
+export ARCH=amd64
 
-	source envsetup
-	build
+And build:
+./util/build
 
 See \`build -h' for more information on the build tool.
 EOF
