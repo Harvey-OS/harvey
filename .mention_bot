@@ -1,0 +1,4 @@
+{
+	"requiredOrgs": ["Harvey-OS"], // mention-bot will only mention user who are a member of one of these organizations
+	"actions": ["opened"] // List of PR actions that mention-bot will listen to, default is "opened"
+}
