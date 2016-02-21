@@ -132,7 +132,6 @@
 		"Install": "/$ARCH/bin/",
 		"Projects": [
 			"9660srv/9660srv.json",
-			"9nfs/9nfs.json",
 			"acme/build.json",
 			"astro/astro.json",
 			"auth/auth.json",
