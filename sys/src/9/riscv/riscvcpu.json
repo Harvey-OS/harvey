@@ -1,0 +1,79 @@
+{
+	"riscvcpu": {
+		"Env": [
+			"CONF=riscvcpu"
+		],
+		"Include": [
+			"core.json",
+			"../ip/ip.json",
+			"../port/port.json"
+		],
+		"Kernel": {
+			"Config": {
+				"Code": [
+					"int cpuserver = 1;",
+					"uint32_t kerndate = 1;"
+				],
+				"Dev": [
+					"arch",
+					"cap",
+					"cons",
+					"coreboot",
+					"dup",
+					"env",
+					"ip",
+					"kbin",
+					"kprof",
+					"mnt",
+					"mntn",
+					"pipe",
+					"proc",
+					"regress",
+					"root",
+					"segment",
+					"srv",
+					"ssl",
+					"tls",
+					"uart",
+					"ws",
+					"zp"
+				],
+				"Ip": [
+					"tcp",
+					"udp",
+					"ipifc",
+					"icmp",
+					"icmp6",
+					"gre"
+				],
+				"Uart": [
+					"pci"
+				]
+			},
+			"Ramfiles": {
+				"bind": "/$ARCH/bin/bind",
+				"boot": "/sys/src/9/boot/bootriscvcpu.elf.out",
+				"cat": "/$ARCH/bin/cat",
+				"date": "/$ARCH/bin/date",
+				"echo": "/$ARCH/bin/echo",
+				"factotum": "/$ARCH/bin/auth/factotum",
+				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"ls": "/$ARCH/bin/ls",
+				"mount": "/$ARCH/bin/mount",
+				"nvram": "/util/nvram",
+				"rc": "/$ARCH/bin/rc",
+				"ps": "/$ARCH/bin/ps",
+				"ed": "/$ARCH/bin/ed",
+				"rcmain": "/rc/lib/rcmain",
+				"screenconsole": "/$ARCH/bin/aux/screenconsole",
+				"srv": "/$ARCH/bin/srv",
+				"startdisk": "startdisk"
+			},
+			"Systab": "/sys/src/libc/9syscall/sys.h"
+		},
+		"Program": "harvey",
+		"SourceFiles": [
+			"riscvcpu.c"
+		]
+	}
+}
