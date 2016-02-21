@@ -1,0 +1,66 @@
+{
+	"core": {
+		"Cflags": [
+			"-O0",
+			"-static",
+			"-fplan9-extensions",
+			"-mno-red-zone",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-DKERNDATE=1433623937",
+			"-g",
+			"-fvar-tracking",
+			"-fvar-tracking-assignments",
+			"-Wall",
+			"-W",
+			"-Wno-sign-compare",
+			"-Wno-missing-field-initializers",
+			"-Wno-unused-parameter",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas",
+			"-Werror",
+			"-I", "/sys/src/9/riscv",
+			"-I", "/sys/src/9/port"
+		],
+		"Libs": [
+			"/$ARCH/lib/klibc.a"
+		],
+		"Oflags": [
+			"-z",
+			"max-page-size=0x1000",
+			"-nostdlib",
+			"-g",
+			"-T",
+			"kernel.ld"
+		],
+		"Pre": [
+			"mksys -o systab.c '-mode=systab.c' $HARVEY/sys/src/sysconf.json",
+			"mksys -o errstr.h '-mode=errstr.h' $HARVEY/sys/src/sysconf.json"
+		],
+		"Projects": [
+			"clean.json",
+			"../boot/bootconf.json",
+			"inith.json",
+			"/sys/src/libmemdraw/klibmemdraw.json",
+			"/sys/src/libdraw/klibdraw.json"
+		],
+		"SourceFiles": [
+			"arch.c",
+			"archriscv.c",
+			"asm.c",
+		        "coreboot.c",
+			"ctype.c",
+			"devarch.c",
+			"main.c",
+			"map.c",
+			"memory.c",
+			"mmu.c",
+			"mp.c",
+			"physalloc.c",
+			"systab.c",
+			"tcore.c",
+			"trap.c"
+		]
+	}
+}
