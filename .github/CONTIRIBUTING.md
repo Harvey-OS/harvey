@@ -4,6 +4,8 @@ I'm really glad you're reading this, because we need volunteer developers to hel
 
 If you haven't already, come find us on our [mailing list](https://groups.google.com/forum/#!forum/harvey). We want you working on things you're excited about.
 
+Harvey, like most other open source projects, has a [Code of Conduct](https://github.com/Harvey-OS/harvey/wiki/Code-of-Conduct) that it expects its contributors and core team members to adhere to.
+
 Here are some important resources:
 
   * [Mailing list](https://groups.google.com/forum/#!forum/harvey) is where the development discussion happens.
@@ -13,7 +15,7 @@ Here are some important resources:
 
 ## Testing
 
-We have a travis-ci running against all pull-requests before we can accept your contributions.
+ We make sure Travis-CI can build your pull-requests before we can accept your contributions.
 
 ## Submitting changes
 
