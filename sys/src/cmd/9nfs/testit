@@ -1,8 +1,0 @@
-#!/bin/rc
-9fs nslocum
-Kill 8.portmapper|rc
-Kill 8.nfsserver|rc
-rm -f /srv/nfsserver.chat /srv/portmapper.chat
-8.nfsserver -a il!emelie -c /lib/ndb/nfs >[2] /tmp/nfsserver
-8.portmapper >[2] /tmp/portmapper
-# on unix: mount -t nfs -o nfsv2 edith:/ /mnt
