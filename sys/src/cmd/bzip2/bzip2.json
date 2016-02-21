@@ -7,7 +7,7 @@
 			"../cmd.json"
 		],
 		"Libs": [
-			"lib/libbzip2.a"
+			"/sys/src/cmd/bzip2/lib/libbzip2.a"
 		],
 		"Install": "/$ARCH/bin",
 		"Post": [

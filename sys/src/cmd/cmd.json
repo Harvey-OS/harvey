@@ -24,7 +24,6 @@
 			"-lregexp",
 			"-lstdio",
 			"-lString",
-			"-lsunrpc",
 			"-loventi",
 			"-l9p",
 			"-lauth",
