@@ -29,7 +29,6 @@
 			"/sys/src/libregexp/libregexp.json",
 			"/sys/src/libsec/libsec.json",
 			"/sys/src/libstdio/libstdio.json",
-			"/sys/src/libsunrpc/libsunrpc.json",
 			"/sys/src/libthread/libthread.json",
 			"/sys/src/libusb",
 			"/sys/src/libventi/libventi.json",
