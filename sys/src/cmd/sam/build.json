@@ -23,8 +23,7 @@
 		],
 		"Install": "/$ARCH/bin",
 		"Post": [
-			"rm *.o",
-			"OBJDUMP=objdump; $TOOLPREFIX$OBJDUMP -S $HARVEY/$ARCH/bin/sam > sam.asm" 
+			"rm *.o"
 		],
 		"Oflags": [
 			"-static",
