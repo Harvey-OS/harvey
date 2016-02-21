@@ -19,7 +19,38 @@ Here are some important resources:
 
 ## Submitting changes
 
-Please send a [GitHub Pull Request to Harvey OS](https://github.com/Harvey-OS/harvey/pull/new/master) with a clear list of what you've done (read more about [pull requests](http://help.github.com/pull-requests/)). When you send a pull request, we will love you forever if you include qemu outputs and tests. We can always use more test coverage. Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
+Please send a [Pull Request to Harvey OS](https://github.com/Harvey-OS/harvey/pull/new/master) with a clear list of what you've done (read more about [pull requests](http://help.github.com/pull-requests/) and [Github Flow](https://guides.github.com/introduction/flow/)).
+
+Some of our contributors like using [hub](http://hub.github.com) for sending pull requests from the command line, an example workflow for contributing to harvey would look like (after you've [installed hub](http://hub.github.com))
+``` 
+$ git clone git@github.com:Harvey-OS/harvey.git
+$ cd harvey
+```
+create a topic branch
+``` 
+$ git checkout -b feature
+  ( making changes ... )
+$ git commit -m "some descriptive thing about what you have done"
+``` 
+It's time to fork the repo!
+``` 
+$ hub fork
+→ (forking repo on GitHub...)
+→ git remote add YOUR_USER git://github.com/YOUR_USER/harvey.git
+```
+push the changes to your new remote
+``` 
+$ git push YOUR_USER feature
+```
+open a pull request for the topic branch you've just pushed
+``` 
+$ hub pull-request
+→ (opens a text editor for your pull request message)
+```
+
+
+
+When you send a pull request, we will love you forever if you include qemu outputs and more tests. We can always use more test coverage. Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
 
 Always write a clear log message for your commits. One-line messages are fine for small changes, but bigger changes should look like this:
 
