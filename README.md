@@ -1,116 +1,17 @@
+![Harvey](https://harvey-os.org/img/harvey-os-logo.png)
+Harvey: A Fresh Take on Plan 9
+=====
 [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
 [![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
 
-This is Plan 9 for amd64 built with gcc (and soon, I hope, clang).
+Welcome to Harvey, we are delighted that you are interested in the project.
 
-This file is a quick list of instructions to get you started quickly.
-
-
-Prerequisites
-=============
-
-To build harvey and play with it, you need to have git, golang, qemu, gcc,
-binutils and bison installed. On a Debian, Ubuntu or other .deb system,
-you should be able to get going with
-
-	sudo aptitude install git golang build-essential bison qemu-system
-
-If you are on a Mac, you should install macports (https://www.macports.org/) and do
-
-	port install x86_64-elf-gcc
-	port install x86_64-elf-binutils
-	port install qemu
-	export TOOLPREFIX=x86_64-elf-
-
-or if you use homebrew (https://http://brew.sh/)
-
- 	brew tap sevki/gcc_cross_compilers
-	brew install sevki/gcc_cross_compilers/x86_64-elf-gcc
-	brew install qemu go
-	export TOOLPREFIX=x86_64-elf-
-
-GERRIT
-======
-
-We use gerrithub.io for code-review. If you want to submit changes, go to
-
-	https://review.gerrithub.io/#/admin/projects/Harvey-OS/harvey
-
-and check out the repository from gerrithub rather than github. The clone
-command will probably look something like this:
-
-	git clone https://USERNAME@review.gerrithub.io/Harvey-OS/harvey
-
-BUILD
-=====
-
-You'll need to bootstrap everything the first time:
-
-	./bootstrap.sh
-
-This will set up the git repo for code review and build the `build` tool.
-You should now be able to build everything by running
-
-	. envsetup
-	build
-
-Once building is complete, you can try booting the kernel with qemu
-
-	(cd sys/src/9/amd64 && sh ../../../../util/QRUN)
-
-Next you should find a bug somewhere in harvey and fix it. In general, the
-util/build tool "just works" in any subdirectory, so you can also build just
-the stuff you are looking at, too, eg.
-
-	cd sys/src/cmd/aux
-	build aux.json
-
-Let's say you found a bug and the files you needed to change were
-sys/src/9/ip/tcp.c and sys/src/9/ip/ipaux.c. To submit this for review, you do
-
-	git add sys/src/9/ip/tcp.c
-	git add sys/src/9/ip/ipaux.c
-	git diff --staged # to check that the patch still makes sense
-	git commit -m 'your description of the patch'
-	git push
-
-Note the lack of qualifiers in the last push command. It is important,
-because it needs to be pushed to "origin HEAD:refs/for/master" for review
-(and not to master). This will generate a code-review change request, others
-will review it, and if it looks good we will merge it to the mainline repo
-using gerrithub.io.
-
-If your patch needs further work (you notice something wrong with it yourself,
-or someone suggests changes), you can just edit the affected files and then
-amend the change list as follows
-
-	git add sys/src/9/ip/tcp.c
-	git commit --amend
-	git push
-
-More information on using Gerrit can be found on the gerrithub.io website.
-
-
-Getting ninep to serve your files
-================================
-
-The currently recommended way of doing this is to run ninep/ufs as the
-file server for harvey. It is provided as a submodule in util/third_party
-and should be automatically compiled & copied to util/ when you run
-'BUILD utils'.
-
-Once it's built, you can run this:
-
-	(export HARVEY=$(pwd) && cd sys/src/9/amd64 && sh ../../../../util/GO9PRUN)
-
-to boot with ufs serving the harvey directory for your harvey instance. Once
-harvey is up, you can telnet onto it with
-
-	util/telnet localhost:5555
-
-Where 5555 is forwarded to the harvey instance. This gives you a prompt
-without any security. Once you have the prompt, you can mount the harvey
-directory as your root like this (10.0.2.2 is what qemu has as the host)
-
-	srv tcp!10.0.2.2!5640 k
-	mount -a /srv/k /
+- Take a look at the [Getting started](https://github.com/Harvey-OS/harvey/wiki/Getting-Started) guide on how to get Harvey and how to play around with it.
+- You enjoyed playing with Harvey and you want to help out? Great! Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob/master/.github/CONTIRIBUTING.md) where we cover Harvey standards for contributions to ensure Harvey codebase stays in good shape.
+- We also cover a wide variety of topics on our [wiki](https://github.com/Harvey-OS/harvey/wiki) and [apex's wiki](https://github.com/Harvey-OS/apex/wiki).
+- If the information you are looking for doesn't exist on the wiki, ask the [Mailing list](https://groups.google.com/forum/#!forum/harvey) for help, it's where most of the conversation for development happens.
+- [Man Pages](https://sevki.io/harvey/sys/man/1/0intro) are where you can read man pages from head of the repo.
+- We also have a [blog](https://blog.harvey-os.org) where we share news and stuff we are excited about.
+- Other resources
+	- [Code of Conduct](https://github.com/Harvey-OS/harvey/wiki/Code-of-Conduct)
+	- [License](https://github.com/Harvey-OS/harvey/blob/master/LICENSE.gpl)
