@@ -1,0 +1,61 @@
+load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS")
+
+cc_binary(
+    name="rc",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+        "//sys/src/cmd/rc"
+    ],
+    deps=[
+        ":syn",
+        "//sys/src/libip:libkip",
+        "//sys/src/libbio:libbio",
+        "//sys/src/libauth:libauth",
+        "//sys/src/libndb:libndb",
+        "//sys/src/libString:libString",
+        "//sys/src/lib9p:lib9p",
+        "//sys/src/libc:libc",
+    ],
+    linkopts=[
+        "-static",
+        "-e_main"
+    ],
+    srcs=[
+        "code.c",
+        "exec.c",
+        "getflags.c",
+        "glob.c",
+        "havefork.c",
+        "here.c",
+        "io.c",
+        "lex.c",
+        "pcmd.c",
+        "pfnc.c",
+        "plan9.c",
+        "simple.c",
+        "subr.c",
+        "trap.c",
+        "tree.c",
+        "var.c",
+        "x.tab.c",
+    ]
+)
+
+yacc(
+    name="syn",
+    yaccopts=[
+        "-d",
+        "--file-prefix=x"
+    ],
+    srcs=[
+        "syn.y"
+    ],
+    hdrs=[
+        "x.tab.h"
+    ],
+    exports=[
+        "x.tab.c"
+    ]
+)

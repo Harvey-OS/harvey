@@ -1,0 +1,85 @@
+load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS", "CMD_DEPS", "CMD_LINK_OPTS")
+
+cc_binary(
+    name="format",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=CMD_DEPS,
+    linkopts=CMD_LINK_OPTS,
+    srcs=[
+        "format.c",
+    ],
+)
+
+cc_binary(
+    name="exsort",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=CMD_DEPS,
+    linkopts=CMD_LINK_OPTS,
+    srcs=[
+        "exsort.c",
+    ],
+)
+
+cc_binary(
+    name="mbr",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=CMD_DEPS,
+    linkopts=CMD_LINK_OPTS,
+    srcs=[
+        "mbr.c",
+    ],
+)
+
+cc_binary(
+    name="mkext",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=CMD_DEPS,
+    linkopts=CMD_LINK_OPTS,
+    srcs=[
+        "mkext.c",
+    ],
+)
+
+cc_binary(
+    name="mkfs",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=CMD_DEPS,
+    linkopts=CMD_LINK_OPTS,
+    srcs=[
+        "mkfs.c",
+    ],
+)
+
+cc_binary(
+    name="partfs",
+    copts=LIB_COMPILER_FLAGS,
+    includes=[
+        "//sys/include",
+        "//amd64/include",
+    ],
+    deps=CMD_DEPS,
+    linkopts=CMD_LINK_OPTS,
+    srcs=[
+        "partfs.c",
+    ],
+)
