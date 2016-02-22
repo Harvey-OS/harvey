@@ -1,0 +1,5 @@
+CC = gcc
+[darwin]
+TOOLPREFIX = x86_64-elf-
+[harvey]
+TOOLPREFIX = x86_64-harvey-elf-
