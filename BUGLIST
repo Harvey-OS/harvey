@@ -1,4 +1,0 @@
-Kernel malloc corruption while printing system call traces
-Workaround: just grow the size of the allocated buffer
-commit 1d1a20f88fdbc1e1c2e3a32816b7c298b8fa22ef
-
