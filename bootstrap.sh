@@ -8,7 +8,7 @@ if [ -n "$(git remote -v | awk '$1=="origin"{print $2}' | grep gerrithub)" ]; th
 	git config remote.origin.push HEAD:refs/for/master%r=rminnich@gmail.com,r=crossd@gmail.com,r=elbingmiss@gmail.com,r=anyrhine@gmail.com,r=0intro@gmail.com,r=hdonnay@gmail.com,r=john@jfloren.net,r=rafael.fernandez@taisis.com,r=keith.poole@gmail.com,r=s@sevki.org
 fi
 git submodule init
-git submodule update
+git submodule update --remote
 echo Building the build tool...
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -d harvey/cmd/... # should really vendor these bits
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install github.com/rminnich/ninep harvey/cmd/...
