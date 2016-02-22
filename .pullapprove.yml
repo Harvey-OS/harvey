@@ -1,0 +1,17 @@
+approve_by_comment: true
+approve_regex: '^(LGTM|:\+1:|\+1)'
+approve_regex: '^(:-1:|-1)'
+reset_on_push: false
+reviewers:
+  members:
+  - 0intro
+  - aki5
+  - elbing
+  - floren
+  - fuchicar
+  - hdonnay
+  - keedon
+  - rminnich
+  - sevki
+  name: Harvey-OS/core
+  required: 1
