@@ -1,6 +1,7 @@
 {
 	"libmach": {
 		"Cflags": [
+			"-I", "/",
 			"-Werror"
 		],
 		"Include": [
