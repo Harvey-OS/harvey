@@ -1,0 +1,34 @@
+{
+	"inith": {
+		"Cflags": [
+			"-g",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas",
+			"-O0",
+			"-static",
+			"-fplan9-extensions",
+			"-mno-red-zone",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-mcmodel=small"
+		],
+		"Libs": [
+			"/$ARCH/lib/libc.a"
+		],
+		"Oflags": [
+			"-e_main",
+			"-static",
+			"-Ttext=0x200000"
+		],
+		"Post": [
+			"elf2c init > init.h"
+		],
+		"Program": "init",
+		"SourceFiles": [
+			"init9.c",
+			"../port/initcode.c"
+		]
+	}
+}

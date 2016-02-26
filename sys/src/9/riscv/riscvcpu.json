@@ -1,11 +1,10 @@
 {
-	"cpu": {
+	"riscvcpu": {
 		"Env": [
-			"CONF=cpu"
+			"CONF=riscvcpu"
 		],
 		"Include": [
 			"core.json",
-			"../386/386.json",
 			"../ip/ip.json",
 			"../port/port.json"
 		],
@@ -16,37 +15,27 @@
 					"uint32_t kerndate = 1;"
 				],
 				"Dev": [
-					"acpi",
 					"arch",
 					"cap",
 					"cons",
 					"coreboot",
-					"draw",
 					"dup",
 					"env",
-					"ether",
 					"ip",
 					"kbin",
 					"kprof",
 					"mnt",
 					"mntn",
-					"mouse",
-					"pci",
 					"pipe",
-					"pmc",
 					"proc",
 					"regress",
 					"root",
-					"rtc",
-					"sd",
 					"segment",
 					"srv",
 					"ssl",
 					"tls",
 					"uart",
 					"ws",
-					"usb",
-					"vga",
 					"zp"
 				],
 				"Ip": [
@@ -57,75 +46,34 @@
 					"icmp6",
 					"gre"
 				],
-				"Link": [
-					"ether8169",
-					"ether82557",
-					"ether82563",
-					"etherigbe",
-					"ether8139",
-					"ethermedium",
-					"loopbackmedium",
-					"netdevmedium",
-					"usbuhci",
-					"usbohci",
-					"usbehci"
-				],
-				"Sd": [
-					"sdiahci"
-				],
 				"Uart": [
-					"i8250",
 					"pci"
-				],
-				"VGA": [
-					"vgavesa"
 				]
 			},
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
-				"boot": "/sys/src/9/boot/bootcpu.elf.out",
+				"boot": "/sys/src/9/boot/bootriscvcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
 				"factotum": "/$ARCH/bin/auth/factotum",
-				"fdisk": "/$ARCH/bin/disk/fdisk",
-				"fossil": "/$ARCH/bin/fossil/fossil",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
-				"prep": "/$ARCH/bin/disk/prep",
 				"rc": "/$ARCH/bin/rc",
 				"ps": "/$ARCH/bin/ps",
 				"ed": "/$ARCH/bin/ed",
 				"rcmain": "/rc/lib/rcmain",
 				"screenconsole": "/$ARCH/bin/aux/screenconsole",
-				"realemu": "/$ARCH/bin/aux/realemu",
-				"vga": "/$ARCH/bin/aux/vga",
 				"srv": "/$ARCH/bin/srv",
-				"startdisk": "startdisk",
-				"usbd": "/$ARCH/bin/usb/usbd",
-				"venti": "/$ARCH/bin/venti/venti"
+				"startdisk": "startdisk"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},
 		"Program": "harvey",
 		"SourceFiles": [
-			"cga.c",
-			"devacpi.c",
-			"devusb.c",
-			"devvga.c",
-			"ether8139.c",
-			"ether82563.c",
-			"cpu.c",
-			"mouse.c",
-			"screen.c",
-			"sdata.c",
-			"usbehcipc.c",
-			"usbohci.c",
-			"usbuhci.c",
-			"vga.c",
-			"vgax.c"
+			"riscvcpu.c"
 		]
 	}
 }
