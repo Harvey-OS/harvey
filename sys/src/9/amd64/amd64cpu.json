@@ -1,7 +1,7 @@
 {
-	"amd64cpu": {
+	"cpu": {
 		"Env": [
-			"CONF=amd64cpu"
+			"CONF=cpu"
 		],
 		"Include": [
 			"core.json",
@@ -83,7 +83,7 @@
 			},
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
-				"boot": "/sys/src/9/boot/bootamd64cpu.elf.out",
+				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
@@ -117,7 +117,7 @@
 			"devvga.c",
 			"ether8139.c",
 			"ether82563.c",
-			"amd64cpu.c",
+			"cpu.c",
 			"mouse.c",
 			"screen.c",
 			"sdata.c",
