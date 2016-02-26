@@ -20,8 +20,8 @@
 		"Install": "/sys/src/9/boot",
 		"Library": "libboot.a",
 		"Pre": [
-			"mksys -o bootamd64cpu.c '-mode=bootamd64cpu.c' $HARVEY/sys/src/sysconf.json",
-			"[ ! -f bootamd64cpu.elf.out ] || rm *.elf.out"
+			"mksys -o bootcpu.c '-mode=bootcpu.c' $HARVEY/sys/src/sysconf.json",
+			"[ ! -f bootcpu.elf.out ] || rm *.elf.out"
 		],
 		"SourceFiles": [
 			"aux.c",
@@ -29,7 +29,7 @@
 			"boot.c",
 			"bootcache.c",
 			"bootip.c",
-			"bootamd64cpu.c",
+			"bootcpu.c",
 			"bootrc.c",
 			"embed.c",
 			"local.c",
