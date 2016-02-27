@@ -1,0 +1,7 @@
+{
+    "archfiles": {
+	"SourceFiles": [
+	    "$ARCH/notejmp.c"
+	]
+    }
+}
