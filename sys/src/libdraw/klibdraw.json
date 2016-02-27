@@ -1,7 +1,7 @@
 {
 	"KernelLibdraw": {
 		"Include": [
-			"../klib.json"
+			"/$ARCH/include/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "klibdraw.a",
