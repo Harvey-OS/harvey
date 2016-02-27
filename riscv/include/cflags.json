@@ -1,0 +1,22 @@
+{
+	"buildflags": {
+		"Cflags": [
+			"-ffreestanding",
+			"-fno-builtin",
+			"-fno-omit-frame-pointer",
+			"-fplan9-extensions",
+			"-fvar-tracking",
+			"-fvar-tracking-assignments",
+			"-g",
+			"-gdwarf-2",
+			"-ggdb",
+			"-mno-red-zone",
+			"-O0",
+			"-static",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas"
+		]
+	}
+}
