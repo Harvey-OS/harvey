@@ -468,7 +468,6 @@ keylist(int i, char *a, uint n, Fsstate *fss)
 	int wb;
 	Keyinfo ki;
 	Key *k;
-	static char zero[Nearend];
 
 	k = nil;
 	mkkeyinfo(&ki, fss, nil);

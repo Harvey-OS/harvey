@@ -27,11 +27,6 @@ enum
 	Maxphase,
 };
 
-static char *phasenames[Maxphase] =
-{
-[HavePass]	"HavePass",
-};
-
 static int
 passinit(Proto *p, Fsstate *fss)
 {
