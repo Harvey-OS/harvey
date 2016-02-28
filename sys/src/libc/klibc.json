@@ -5,7 +5,7 @@
 			"-Werror"
 		],
 		"Include": [
-			"../klib.json"
+			"/$ARCH/include/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "klibc.a",
