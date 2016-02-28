@@ -10,7 +10,6 @@
 			"-g",
 			"-gdwarf-2",
 			"-ggdb",
-			"-mno-red-zone",
 			"-O0",
 			"-static",
 			"-Wall",
