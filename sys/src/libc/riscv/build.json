@@ -1,9 +1,10 @@
 {
     "archfiles": {
 	"SourceFiles": [
+	    "$ARCH/notejmp.c",
 	    "$ARCH/argv0.c",
-	    "$ARCH/main9.S",
-	    "$ARCH/notejmp.c"
+	    "$ARCH/atomic.S",
+	    "$ARCH/main9.S"
 	]
     }
 }
