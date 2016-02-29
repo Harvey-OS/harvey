@@ -2,7 +2,7 @@
 double sqrt (double y) {
 	double x, z, tempf;
 	unsigned long *tfptr = ((unsigned long *)&tempf) + 1;
-	
+
 	tempf = y;
 	*tfptr = (0xbfcdd90a - *tfptr)>>1; /* estimate of 1/sqrt(y) */
 	x =  tempf;

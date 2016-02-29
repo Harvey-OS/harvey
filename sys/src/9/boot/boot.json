@@ -9,10 +9,8 @@
 			"-O0",
 			"-static",
 			"-fplan9-extensions",
-			"-mno-red-zone",
 			"-ffreestanding",
-			"-fno-builtin",
-			"-mcmodel=small"
+			"-fno-builtin"
 		],
 		"Include": [
 			"/sys/src/lib.json"
