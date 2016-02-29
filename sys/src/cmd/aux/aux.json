@@ -19,7 +19,6 @@
 			"9pcon.c",
 			"accupoint.c",
 			"acidleak.c",
-			"apm.c",
 			"astarld.c",
 			"cddb.c",
 			"clog.c",
