@@ -1,7 +1,7 @@
 {
 	"rc": {
 		"Include": [
-			"../kernel.json"
+			"../cmd.json"
 		],
 		"Post": [
 			"rm y.tab* x.tab*"

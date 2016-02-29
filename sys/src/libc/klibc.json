@@ -5,7 +5,8 @@
 			"-Werror"
 		],
 		"Include": [
-			"/$ARCH/include/klib.json"
+			"/$ARCH/include/klib.json",
+			"$ARCH/build.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "klibc.a",
@@ -195,16 +196,7 @@
 			"port/utfutf.c",
 			"port/u16.c",
 			"port/u32.c",
-			"port/u64.c",
-			"$ARCH/notejmp.c",
-			"$ARCH/cycles.c",
-			"$ARCH/argv0.c",
-			"$ARCH/rdpmc.c",
-			"$ARCH/setjmp.s",
-			"$ARCH/sqrt.s",
-			"$ARCH/tas.s",
-			"$ARCH/atom.S",
-			"$ARCH/main9.S"
+			"port/u64.c"
 		]
 	}
 }

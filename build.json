@@ -3,7 +3,6 @@
 		"Projects": [
 			"/sys/src/klibs.json",
 			"/sys/src/libs.json",
-			"/sys/src/cmd/kcmds.json",
 			"/sys/src/cmd/cmds.json",
 			"/sys/src/games/games.json",
 			"/acme/build.json",
