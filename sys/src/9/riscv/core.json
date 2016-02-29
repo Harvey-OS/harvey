@@ -4,7 +4,6 @@
 			"-O0",
 			"-static",
 			"-fplan9-extensions",
-			"-mno-red-zone",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-DKERNDATE=1433623937",
