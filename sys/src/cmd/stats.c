@@ -133,7 +133,7 @@ enum Menu2
 	Nmenu2,
 };
 
-char	*menu2str[Nmenu2+1] = {
+char	*menu2strsource[Nmenu2+1] = {
 	"add  battery ",
 	"add  context ",
 	"add  ether   ",
@@ -154,6 +154,8 @@ char	*menu2str[Nmenu2+1] = {
 	"add  temp    ",
 	nil,
 };
+
+char	*menu2str[Nmenu2+1];
 
 
 void	contextval(Machine*, uint64_t*, uint64_t*, int),
@@ -1417,6 +1419,11 @@ main(int argc, char *argv[])
 	case 'z':
 		addgraph(Mtemp);
 		break;
+	}
+
+	for(i=0; i<Nmenu2; i++){
+		menu2str[i] = emalloc(strlen(menu2strsource[i]) + 1);
+		strcpy(menu2str[i], menu2strsource[i]);
 	}
 
 	if(ngraph == 0)
