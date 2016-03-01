@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ureg.h>
+#include <amd64/include/ureg.h>
 
 static unsigned char buf[0xFF01];
 

@@ -13,20 +13,10 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include 	<elf.h>
 
-#include	<a.out.h>
-
-static uint32_t
-l2be(int32_t l)
-{
-	uint8_t *cp;
-
-	cp = (uint8_t*)&l;
-	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
-}
-
-
-static void
+/* some day we will want these.
+void
 readn(Chan *c, void *vp, int32_t n)
 {
 	char *p;
@@ -43,7 +33,7 @@ readn(Chan *c, void *vp, int32_t n)
 	}
 }
 
-static void
+void
 setbootcmd(int argc, char *argv[])
 {
 	char *buf, *p, *ep;
@@ -61,53 +51,12 @@ setbootcmd(int argc, char *argv[])
 	free(buf);
 }
 
+*/
 void
 rebootcmd(int argc, char *argv[])
 {
-	Proc *up = externup();
-	Chan *c;
-	Exec exec;
-	uintptr_t magic, text, rtext, entry, data, size;
-	uint8_t *p;
-
-	if(argc == 0)
+	if (argc == 0)
 		exit(0);
 
-	panic("Reboot with a file is not supported yet");
-	c = namec(argv[0], Aopen, OEXEC, 0);
-	if(waserror()){
-		cclose(c);
-		nexterror();
-	}
-
-	readn(c, &exec, sizeof(Exec));
-	magic = l2be(exec.magic);
-	entry = l2be(exec.entry);
-	text = l2be(exec.text);
-	data = l2be(exec.data);
-	if(magic != AOUT_MAGIC /*|| magic != ELF_MAGIC*/)
-		error(Ebadexec);
-
-	/* round text out to page boundary */
-	rtext = BIGPGROUND(entry+text)-entry;
-	size = rtext + data;
-	p = malloc(size);
-	if(p == nil)
-		error(Enomem);
-
-	if(waserror()){
-		free(p);
-		nexterror();
-	}
-
-	memset(p, 0, size);
-	readn(c, p, text);
-	readn(c, p + rtext, data);
-
-	ksetenv("bootfile", argv[0], 1);
-	setbootcmd(argc-1, argv+1);
-
-	reboot((void*)entry, p, size);
-
-	panic("return from reboot!");
+	error("Reboot with a file is not supported yet");
 }

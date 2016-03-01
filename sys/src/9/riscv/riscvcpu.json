@@ -18,7 +18,6 @@
 					"arch",
 					"cap",
 					"cons",
-					"coreboot",
 					"dup",
 					"env",
 					"ip",
@@ -52,7 +51,7 @@
 			},
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
-				"boot": "/sys/src/9/boot/bootriscvcpu.elf.out",
+				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
@@ -66,8 +65,7 @@
 				"ed": "/$ARCH/bin/ed",
 				"rcmain": "/rc/lib/rcmain",
 				"screenconsole": "/$ARCH/bin/aux/screenconsole",
-				"srv": "/$ARCH/bin/srv",
-				"startdisk": "startdisk"
+				"srv": "/$ARCH/bin/srv"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},

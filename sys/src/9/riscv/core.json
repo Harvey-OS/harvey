@@ -4,7 +4,6 @@
 			"-O0",
 			"-static",
 			"-fplan9-extensions",
-			"-mno-red-zone",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-DKERNDATE=1433623937",
@@ -41,11 +40,9 @@
 		"Projects": [
 			"clean.json",
 			"../boot/bootconf.json",
-			"inith.json",
-			"/sys/src/libmemdraw/klibmemdraw.json",
-			"/sys/src/libdraw/klibdraw.json"
+			"inith.json"
 		],
-		"SourceFiles": [
+	    "MissingSourceFiles": [
 			"arch.c",
 			"archriscv.c",
 			"asm.c",
@@ -58,9 +55,11 @@
 			"mmu.c",
 			"mp.c",
 			"physalloc.c",
-			"systab.c",
 			"tcore.c",
 			"trap.c"
+		],
+		"SourceFiles": [
+			"systab.c"
 		]
 	}
 }
