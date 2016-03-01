@@ -44,7 +44,7 @@
 			"/sys/src/libmemdraw/klibmemdraw.json",
 			"/sys/src/libdraw/klibdraw.json"
 		],
-		"SourceFiles": [
+	    "MissingSourceFiles": [
 			"arch.c",
 			"archriscv.c",
 			"asm.c",
@@ -57,9 +57,11 @@
 			"mmu.c",
 			"mp.c",
 			"physalloc.c",
-			"systab.c",
 			"tcore.c",
 			"trap.c"
+		],
+		"SourceFiles": [
+			"systab.c"
 		]
 	}
 }
