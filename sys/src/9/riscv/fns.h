@@ -122,23 +122,7 @@ void	outs(int, uint16_t);
 void	outss(int, void*, int);
 void	outl(int, uint32_t);
 void	outsl(int, void*, int);
-int	pcicap(Pcidev*, int);
-int	pcicfgr8(Pcidev*, int);
-int	pcicfgr16(Pcidev*, int);
-int	pcicfgr32(Pcidev*, int);
-void	pcicfgw8(Pcidev*, int, int);
-void	pcicfgw16(Pcidev*, int, int);
-void	pcicfgw32(Pcidev*, int, int);
-void	pciclrbme(Pcidev*);
-void	pciclrmwi(Pcidev*);
-int	pcigetpms(Pcidev*);
-void	pcihinv(Pcidev*);
-Pcidev*	pcimatch(Pcidev*, int, int);
-Pcidev*	pcimatchtbdf(int);
 void	pcireset(void);
-void	pcisetbme(Pcidev*);
-void	pcisetmwi(Pcidev*);
-int	pcisetpms(Pcidev*, int);
 int	pickcore(int, int);
 void	printcpufreq(void);
 void	putac(Mach*);
@@ -287,7 +271,8 @@ int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots);
 /* horror */
 static inline void __clobber_callee_regs(void)
 {
-	asm volatile ("" : : : "rbx", "r12", "r13", "r14", "r15");
+	panic("FIX ME!");
+	//asm volatile ("" : : : "rbx", "r12", "r13", "r14", "r15");
 }
 
 int slim_setlabel(Label*) __attribute__((returns_twice));
