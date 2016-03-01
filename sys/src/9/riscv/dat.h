@@ -12,6 +12,7 @@ typedef struct Confmem Confmem;
 typedef struct Fxsave Fxsave;
 typedef struct ICC ICC;
 typedef struct ICCparms ICCparms;
+typedef struct ISAConf ISAConf;
 typedef struct Label Label;
 typedef struct Lock Lock;
 typedef struct MCPU MCPU;
@@ -46,6 +47,13 @@ typedef struct Vctl Vctl;
  *  machine dependent definitions used by ../port/portdat.h
  */
 
+
+/* Crap. */
+struct ISAConf {
+	int _;
+};
+
+/* End Crap. */
 
 struct Lock
 {
@@ -151,7 +159,7 @@ struct NIX
 struct MMMU
 {
 	uintptr_t FaultingAddress;
-	Page*	Root;			/* root for this processor */
+	Page*	pml4;			/* root for this processor */
 	PTE*	pmap;			/* unused as of yet */
 
 	Page	pml4kludge;		/* NIX KLUDGE: we need a page */

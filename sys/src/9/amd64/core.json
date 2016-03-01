@@ -74,6 +74,7 @@
 		        "coreboot.c",
 			"ctype.c",
 			"devarch.c",
+			"../port/devpci.c",
 			"fpu.c",
 			"i8254.c",
 			"i8259.c",

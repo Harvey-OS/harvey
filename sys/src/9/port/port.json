@@ -28,7 +28,6 @@
 			"../port/devmnt.c",
 			"../port/devmntn.c",
 			"../port/devmouse.c",
-			"../port/devpci.c",
 			"../port/devpipe.c",
 			"../port/devpmc.c",
 			"../port/devproc.c",
