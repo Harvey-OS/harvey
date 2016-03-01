@@ -25,6 +25,16 @@ Some of our contributors like using [hub](http://hub.github.com) for sending pul
 ``` 
 $ git clone git@github.com:Harvey-OS/harvey.git
 $ cd harvey
+
+It's time to fork the repo!
+``` 
+$ hub fork
+→ (forking repo on GitHub...)
+→ git remote add YOUR_USER git://github.com/YOUR_USER/harvey.git
+```
+
+Note that forking is a one time operation. From now you can work on your forked repo.
+
 ```
 create a topic branch
 ``` 
@@ -32,12 +42,6 @@ $ git checkout -b feature
   ( making changes ... )
 $ git commit -m "some descriptive thing about what you have done"
 ``` 
-It's time to fork the repo!
-``` 
-$ hub fork
-→ (forking repo on GitHub...)
-→ git remote add YOUR_USER git://github.com/YOUR_USER/harvey.git
-```
 push the changes to your new remote
 ``` 
 $ git push YOUR_USER feature
@@ -65,5 +69,8 @@ We have also automated the process via [clang-format](http://clang.llvm.org/docs
 
 [How to clang-format a diff](http://clang.llvm.org/docs/ClangFormat.html#script-for-patch-reformatting)
 
+## Keeping up to date with the master branch
+
+If you're working in a branch that is outdated with respect to the master branch, just do a `git pull --rebase`. This will put your changes after the pull. In the case that there would be conflicts, you will have to solve them manually, but they are marked with something like ">>>>>HEAD" and git will tell you about which files are conflicting.
 
 _Adopted from [Open Government Contribution Guidelines](https://github.com/opengovernment/opengovernment/blob/master/CONTRIBUTING.md)_
