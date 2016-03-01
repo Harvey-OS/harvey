@@ -16,6 +16,7 @@ addons:
     packages:
     - rc
     - gcc-4.8
+    - golang
   coverity_scan:
     project:
       name: elbing/harvey
