@@ -19,7 +19,6 @@
 			"../port/devcap.c",
 			"../port/devcons.c",
 			"../port/devcoreboot.c",
-			"../port/devdraw.c",
 			"../port/devdup.c",
 			"../port/devenv.c",
 			"../port/devkexec.c",
@@ -28,7 +27,6 @@
 			"../port/devmnt.c",
 			"../port/devmntn.c",
 			"../port/devmouse.c",
-			"../port/devpci.c",
 			"../port/devpipe.c",
 			"../port/devpmc.c",
 			"../port/devproc.c",
@@ -82,7 +80,6 @@
 			"../port/syszio.c",
 			"../port/taslock.c",
 			"../port/tod.c",
-			"../port/usbehci.c",
 			"../port/watermarks.c"
 		]
 	}

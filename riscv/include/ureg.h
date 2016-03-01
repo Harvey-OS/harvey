@@ -8,7 +8,7 @@
  */
 
 struct Ureg {
-	uintptr_t sepc;
+	uintptr_t ip;
 	uintptr_t ra;
 	uintptr_t sp;
 	uintptr_t gp;
