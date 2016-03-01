@@ -1,7 +1,6 @@
 language: c
 script:
-- cd $TRAVIS_BUILD_DIR && go get sevki.org/build/cmd/build
-- build -v //.:kernel
+- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
 compiler:
 - gcc-4.8
 env:
@@ -17,7 +16,7 @@ addons:
     packages:
     - rc
     - gcc-4.8
-    - golang
+    - golang-go
   coverity_scan:
     project:
       name: elbing/harvey
