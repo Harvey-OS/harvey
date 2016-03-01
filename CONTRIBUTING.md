@@ -32,6 +32,7 @@ $ hub fork
 → (forking repo on GitHub...)
 → git remote add YOUR_USER git://github.com/YOUR_USER/harvey.git
 ```
+
 Note that forking is a one time operation. From now you can work on your forked repo.
 
 ```
