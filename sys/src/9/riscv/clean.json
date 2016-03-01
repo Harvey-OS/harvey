@@ -1,0 +1,7 @@
+{
+	"clean": {
+		"Pre": [
+			"rm -f *.o *.root.c *.out errstr.h init.h init ../boot/libboot.a ../boot/*.o boot*.c"
+		]
+	}
+}
