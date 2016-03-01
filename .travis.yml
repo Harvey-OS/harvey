@@ -1,6 +1,7 @@
 language: c
 script:
-- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
+- cd $TRAVIS_BUILD_DIR && ./bootstrap.sh
+- build -v //.:kernel
 compiler:
 - gcc-4.8
 env:
