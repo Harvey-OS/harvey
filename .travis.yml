@@ -1,6 +1,6 @@
 language: c
 script:
-- cd $TRAVIS_BUILD_DIR && ./bootstrap.sh
+- cd $TRAVIS_BUILD_DIR && go get sevki.org/build/cmd/build
 - build -v //.:kernel
 compiler:
 - gcc-4.8
