@@ -15,5 +15,5 @@ if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
 	done
 	echo
 
-	build all
+	build -v //.:kernel
 fi
