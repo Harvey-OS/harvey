@@ -19,14 +19,6 @@ const kernconfTmpl = `
 #include "../port/error.h"
 #include "io.h"
 
-void
-rdb(void)
-{
-	splhi();
-	iprint("rdb...not installed\n");
-	for(;;);
-}
-
 {{ range .Rootcodes }}
 {{ . }}
 {{ end }}
