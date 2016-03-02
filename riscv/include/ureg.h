@@ -44,5 +44,6 @@ struct Ureg {
 	uintptr_t sstatus;
 	uintptr_t sbadaddr;
 	uintptr_t scause;
+	uintptr_t bp; // BOGUS: need a real frame pointer here. 
 };
 

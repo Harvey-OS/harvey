@@ -36,6 +36,16 @@ typedef uint64_t uintmem;				/* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 
+/*
+ * Conversion for Ureg to gdb reg. This avoids a lot of nonsense
+ * in the outside world. TODO. 
+ */
+enum regnames {
+	GDB_IP,
+};
+#define DBG_MAX_REG_NUM		(0)
+#define GDB_NUMREGBYTES		(0)
+
 #define MAXSYSARG	6	/* for mount(fd, afd, mpt, flag, arg, mntname) */
 
 /*
