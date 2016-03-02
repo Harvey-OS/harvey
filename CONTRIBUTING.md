@@ -20,9 +20,13 @@ We make sure Travis-CI can build your pull-requests before we can accept your co
 ## Submitting a patch
 
 Harvey uses Github Pull Requests to accept contributions.
+
 1.  Clone the repo `git clone https://github.com/Harvey-OS/harvey.git`. It is also possible to use git instead of https when you have an SSH public key stored in Github. Then you clone the repo with `git clone git@github.com/Harvey-OS/harvey.git`. This makes later submissions easier. For the rest of this manual we assume to use https.
+
 2.  Check out a feature branch you will work on by `git checkout -b feature-name` for instance for issue #70, @keedon selected the branch name `statscrash`.
+
 3.  Make changes
+
 4.  Commit with a descriptive message, like so
     ```
     $ git commit -m "A brief summary of the commit
@@ -31,8 +35,10 @@ Harvey uses Github Pull Requests to accept contributions.
     ```
     take a look at @keedon's [commit message](https://github.com/keedon/harvey/commit/09fe3a21fa8b42088bc8ad83287928e9e7cc96ef) for the same issue for a good example of a descriptive commit message.
     You can also use graphical git tools such as `git cola` which make commiting changes easier.
+
 5.  Fork the repo (only once).
     ![harvey-os_harvey__a_fresh_take_on_plan_9](https://cloud.githubusercontent.com/assets/429977/13457174/099fb5cc-e067-11e5-83ce-f65aa966a4a9.png)
+
 6.  Add the repo as a remote (every time you clone the repo)
     `git remote add yourname https://github.com/yourusername/harvey.git`
     where "yourname" is the name of your github login.
@@ -44,9 +50,12 @@ Harvey uses Github Pull Requests to accept contributions.
     origin https://github.com/Harvey-OS/harvey.git (fetch)
     origin https://github.com/Harvey-OS/harvey.git (push)
     ```
+
 7.  Push your branch to your forked repo like so `git push yourname feature-name`
+
 8.  Create a pull request by going to `https://github.com/yourname/harvey/pull/new/feature-name` or clicking the PR button
     ![sevki_harvey__a_64_bit_operating_system_based_on_plan_9_from_bell_labs_and_nix__under_gpl](https://cloud.githubusercontent.com/assets/429977/13457635/79359350-e069-11e5-987b-1b4fccc45372.png)
+
 9.  Add details of what you have worked on and what your intentions are.
     ![comparing_harvey-os_master___sevki_travis-trials_ _harvey-os_harvey](https://cloud.githubusercontent.com/assets/429977/13457683/aa2a423a-e069-11e5-84cc-1173e33264cb.png)
     When you send a pull request, we will love you forever if you include qemu outputs and more tests. We can always use more test coverage. Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
