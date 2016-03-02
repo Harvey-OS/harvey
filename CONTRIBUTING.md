@@ -40,8 +40,11 @@ Harvey uses Github Pull Requests to accept contributions.
     ![harvey-os_harvey__a_fresh_take_on_plan_9](https://cloud.githubusercontent.com/assets/429977/13457174/099fb5cc-e067-11e5-83ce-f65aa966a4a9.png)
 
 6.  Add the repo as a remote (every time you clone the repo)
+
     `git remote add yourname https://github.com/yourusername/harvey.git`
+
     where "yourname" is the name of your github login.
+
     `git remote -v` should look like this:
     ```
     $ git remote -v
