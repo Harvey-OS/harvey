@@ -75,6 +75,7 @@
 			"ctype.c",
 			"devarch.c",
 			"../port/devdraw.c",
+			"../port/devmouse.c",
 			"../port/devpci.c",
 			"devpmc.c",
 			"fpu.c",
