@@ -27,7 +27,6 @@
 			"../port/devkbin.c",
 			"../port/devmnt.c",
 			"../port/devmntn.c",
-			"../port/devmouse.c",
 			"../port/devpipe.c",
 			"../port/devproc.c",
 			"../port/devregress.c",
