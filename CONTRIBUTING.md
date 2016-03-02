@@ -34,7 +34,7 @@ Harvey uses Github Pull Requests to accept contributions.
     > A paragraph describing what changed and its impact."
     ```
     take a look at @keedon's [commit message](https://github.com/keedon/harvey/commit/09fe3a21fa8b42088bc8ad83287928e9e7cc96ef) for the same issue for a good example of a descriptive commit message.
-    You can also use graphical git tools such as `git cola` which make commiting changes easier.
+    You can also use graphical git tools such as `git gui` which make commiting changes easier.
 
 5.  Fork the repo (only once).
     ![harvey-os_harvey__a_fresh_take_on_plan_9](https://cloud.githubusercontent.com/assets/429977/13457174/099fb5cc-e067-11e5-83ce-f65aa966a4a9.png)
@@ -72,13 +72,9 @@ Harvey uses Github Pull Requests to accept contributions.
 - When you click that button, GitHub will update your branch, at which point you will have to `git pull yourname feature-name` and update your local repo before committing more changes.
 - If your changes are conflicting with something that was merged into the branch, you will have to resolve the changes manually and submit the changes.
 
-#### More information
+### Keeping up to date with the master branch
 
-- [How to use Pull Requests](http://help.github.com/pull-requests/)
-- [GitHub Flow](https://guides.github.com/introduction/flow/)
-- [Hub: A command line application for GH Flow](https://hub.github.com)
-- [Video: Pull Requests](https://www.youtube.com/watch?v=81uKcXZoQ2A)
-- [Video: Workflows](https://www.youtube.com/watch?v=EwWZbyjDs9c)
+If you're working in a branch that is outdated with respect to the master branch, just do a `git pull --rebase`. This will put your changes after the pull. In the case that there would be conflicts, you will have to solve them manually, but they are marked with something like ">>>>>HEAD" and git will tell you about which files are conflicting.
 
 ## Coding conventions
 
@@ -87,5 +83,16 @@ If you read the code you should get a hang of it but a loose listing of our [Sty
 We have also automated the process via [clang-format](http://clang.llvm.org/docs/ClangFormat.html) so before you submit a change please format your diff.
 
 [How to clang-format a diff](http://clang.llvm.org/docs/ClangFormat.html#script-for-patch-reformatting)
+
+#### More information
+
+- [How to use Pull Requests](http://help.github.com/pull-requests/)
+- [GitHub Flow](https://guides.github.com/introduction/flow/)
+- [Hub: A command line application for GH Flow](https://hub.github.com)
+- [Video: Pull Requests](https://www.youtube.com/watch?v=81uKcXZoQ2A)
+- [Video: Workflows](https://www.youtube.com/watch?v=EwWZbyjDs9c)
+- [Github Desktop Client](https://desktop.github.com/)
+- [Video: Undo, Redo & Rebase Your Git History](https://www.youtube.com/watch?v=W39CfI3-JFc)
+- [Video: Git Rebase](https://www.youtube.com/watch?v=SxzjZtJwOgo)
 
 _Adopted from [Open Government Contribution Guidelines](https://github.com/opengovernment/opengovernment/blob/master/CONTRIBUTING.md)_
