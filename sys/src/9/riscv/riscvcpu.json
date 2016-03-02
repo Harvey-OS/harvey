@@ -4,7 +4,9 @@
 			"CONF=riscvcpu"
 		],
 		"Include": [
-			"core.json",
+			"core.json"
+		],
+		"IncludeSomeday": [
 			"../ip/ip.json",
 			"../port/port.json"
 		],
