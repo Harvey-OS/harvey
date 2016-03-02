@@ -15,7 +15,7 @@ Here are some important resources:
 
 ## Testing
 
- We make sure Travis-CI can build your pull-requests before we can accept your contributions.
+We make sure Travis-CI can build your pull-requests before we can accept your contributions.
 
 ## Submitting changes
 
