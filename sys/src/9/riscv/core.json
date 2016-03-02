@@ -47,19 +47,19 @@
 			"archriscv.c",
 			"asm.c",
 		        "coreboot.c",
-			"ctype.c",
 			"devarch.c",
-			"main.c",
 			"map.c",
 			"memory.c",
 			"mmu.c",
 			"mp.c",
 			"physalloc.c",
+			"systab.c",
 			"tcore.c",
 			"trap.c"
 		],
 		"SourceFiles": [
-			"systab.c"
+			"ctype.c",
+			"main.c"
 		]
 	}
 }
