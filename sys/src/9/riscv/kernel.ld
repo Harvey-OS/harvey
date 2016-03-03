@@ -7,7 +7,7 @@
 
 OUTPUT_ARCH("riscv")
 /*OUTPUT_FORMAT("elf64-littleriscv", "elf64-x86-64", "elf64-x86-64") */
-ENTRY(_start)
+ENTRY(main)
 /* start the kernel at 0x110000. 
  * That way we can use lower ram for critical structures
  */

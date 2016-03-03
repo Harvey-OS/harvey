@@ -1,0 +1,1 @@
+ARCH=riscv STRIP=/home/rminnich/projects/riscv/riscv-tools/bin/riscv64-unknown-elf-strip CC=/home/rminnich/projects/riscv/riscv-tools/bin/riscv64-unknown-elf-gcc LD=/home/rminnich/projects/riscv/riscv-tools/bin/riscv64-unknown-elf-ld ../../../../util/build riscvcpu.json

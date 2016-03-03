@@ -16,7 +16,7 @@
 					"int cpuserver = 1;",
 					"uint32_t kerndate = 1;"
 				],
-				"Dev": [
+				"NoDev": [
 					"arch",
 					"cap",
 					"cons",
@@ -39,7 +39,7 @@
 					"ws",
 					"zp"
 				],
-				"Ip": [
+				"NoIp": [
 					"tcp",
 					"udp",
 					"ipifc",
@@ -47,11 +47,11 @@
 					"icmp6",
 					"gre"
 				],
-				"Uart": [
+				"NoUart": [
 					"pci"
 				]
 			},
-			"Ramfiles": {
+			"NoRamfiles": {
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
