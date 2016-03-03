@@ -59,7 +59,8 @@
 		],
 		"SourceFiles": [
 			"ctype.c",
-			"main.c"
+			"main.c",
+			"spike_util.c"
 		]
 	}
 }
