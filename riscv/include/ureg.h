@@ -16,7 +16,7 @@ struct Ureg {
 	uintptr_t t0;
 	uintptr_t t1;
 	uintptr_t t2;
-	uintptr_t s0;
+	uintptr_t s0; // NOTE: this is the bp in gcc with -fno-omit-frame-pointer
 	uintptr_t s1;
 	uintptr_t a0;
 	uintptr_t a1;
