@@ -952,8 +952,8 @@ dircomp(const void *va, const void *vb)
 	int rv;
 	Dir *a, *b;
 
-	a = va;
-	b = vb;
+	a = (Dir*)va;
+	b = (Dir*)vb;
 
 	if(tflag)
 		rv = b->mtime - a->mtime;
