@@ -51,7 +51,7 @@ typedef struct {
 } hls_t;
 
 #define MACHINE_STACK_TOP() ({ \
-  register uintptr_t sp asm ("sp"); \
+  register uintptr_t sp __asm__ ("sp"); \
   (void*)((sp + RISCV_PGSIZE) & -RISCV_PGSIZE); })
 
 // hart-local storage, at top of stack

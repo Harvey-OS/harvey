@@ -19,5 +19,8 @@
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
-	while (1);
+	void testPrint(void);
+	
+	while (1)
+		testPrint();
 }
