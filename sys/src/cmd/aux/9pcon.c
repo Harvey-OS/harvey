@@ -185,7 +185,7 @@ uint32_t
 xstrtoul(char *s)
 {
 	if(strcmp(s, "~0") == 0)
-		return ~0L;
+		return ~0U;
 	return strtoul(s, 0, 0);
 }
 
