@@ -31,7 +31,6 @@ static void checktoc(Drive*);
 int vflag;
 
 static Drive *drive;
-static int nchange;
 
 enum {
 	Qdir = 0,

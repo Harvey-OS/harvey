@@ -17,7 +17,6 @@
 
 static	int	nextfnum;
 static	Intmap*	map;
-static	Dir	dirproto;
 
 static	char	user[]	= "flash";
 

@@ -21,7 +21,6 @@
 
 #define PATH 128
 
-static	int	baud;
 static	int	nocompress;
 static 	int	pppframing = 1;
 static	int	noipcompress;
