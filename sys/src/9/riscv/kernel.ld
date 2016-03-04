@@ -8,15 +8,12 @@
 OUTPUT_ARCH("riscv")
 /*OUTPUT_FORMAT("elf64-littleriscv", "elf64-x86-64", "elf64-x86-64") */
 ENTRY(main)
-/* start the kernel at 0x110000. 
- * That way we can use lower ram for critical structures
- */
 KERN_LOAD_ADDR = 0xffffffff80000000;
 
 SECTIONS
 {
-	/* Entry Linked and loaded at 0x00100000 (includes multiboot) */
-	. = 0x00110000;
+	/* Entry Linked and loaded at 0x00810000 */
+	. = 0x00810000;
 
 	.bootstrap : {
 		*(.boottext .bootdata)
