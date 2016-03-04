@@ -160,8 +160,8 @@ cmp(const void *vs, const void *vt)
 {
 	Sym **s, **t;
 
-	s = vs;
-	t = vt;
+	s = (Sym**)vs;
+	t = (Sym**)vt;
 	if(nflag)
 		if((*s)->value < (*t)->value)
 			return -1;
