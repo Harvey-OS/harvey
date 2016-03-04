@@ -21,7 +21,7 @@ We make sure Travis-CI can build your pull-requests before we can accept your co
 
 Harvey uses Github Pull Requests to accept contributions.
 
-1.  Clone the repo `git clone https://github.com/Harvey-OS/harvey.git`. It is also possible to use git instead of https when you have an SSH public key stored in Github. Then you clone the repo with `git clone git@github.com/Harvey-OS/harvey.git`. This makes later submissions easier. For the rest of this manual we assume to use https.
+1.  Clone the repo `git clone https://github.com/Harvey-OS/harvey.git`. It is also possible to use git instead of https when you have an SSH public key stored in Github. Then you clone the repo with `git clone git@github.com:Harvey-OS/harvey.git`. This makes later submissions easier. For the rest of this manual we assume to use https.
 
 2.  Check out a feature branch you will work on by `git checkout -b feature-name` for instance for issue #70, @keedon selected the branch name `statscrash`.
 
