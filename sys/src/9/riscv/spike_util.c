@@ -31,6 +31,8 @@
 #include "dat.h"
 #include "fns.h"
 
+#include "encoding.h"
+#include "atomic.h"
 #include "spike_util.h"
 
 uintptr_t translate_address(uintptr_t vAddr) {
@@ -55,6 +57,7 @@ uintptr_t mcall_query_memory(uintptr_t id, memory_block_info *p)
 	return -1;
 }
 
+#if 0
 uintptr_t mcall_send_ipi(uintptr_t recipient)
 {
 	//if (recipient >= num_harts)
@@ -79,6 +82,8 @@ uintptr_t mcall_clear_ipi(void)
 	return atomic_swap(&HLS()->ipi_pending, 0);
 }
 
+#endif
+
 uintptr_t mcall_shutdown(void)
 {
 	while (1) write_csr(mtohost, 1);
@@ -93,6 +98,7 @@ uintptr_t mcall_set_timer(unsigned long long when)
 	return 0;
 }
 
+#if 0
 uintptr_t mcall_dev_req(sbi_device_message *m)
 {
 	if ((m->dev > 0xFFU) | (m->cmd > 0xFFU) | (m->data > 0x0000FFFFFFFFFFFFU)) return -EINVAL;
@@ -105,7 +111,7 @@ uintptr_t mcall_dev_req(sbi_device_message *m)
 
 	return 0;
 }
-
+#endif
 uintptr_t mcall_dev_resp(void)
 {
 	htif_interrupt(0, 0);

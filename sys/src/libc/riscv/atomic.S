@@ -16,3 +16,8 @@ _tas:
 	amoswap.w.aq a0, a1, 0(a0)
 	ret
 
+.globl aswap				/* int aswap(int *, int); */
+aswap:
+	amoswap.w.aq a0, a1, 0(a0)
+	ret
+
