@@ -27,7 +27,7 @@ hinit(Hio *h, int fd, int mode)
 	h->start = h->buf + 16;		/* leave space for chunk length */
 	h->stop = h->pos = h->start;
 	if(mode == Hread){
-		h->bodylen = ~0UL;
+		h->bodylen = ~0L;
 		*h->pos = '\0';
 	}else
 		h->stop = h->start + Hsize;

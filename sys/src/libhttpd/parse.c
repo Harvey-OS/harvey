@@ -453,7 +453,7 @@ mimeranges(Hlex *h, HRange *head)
 				return head;
 		}
 		w++;
-		stop = ~0UL;
+		stop = ~0L;
 		if(w[0] != '\0'){
 			stop = digtoul(w, &w);
 			if(w[0] != '\0')
