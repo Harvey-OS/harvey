@@ -8,7 +8,7 @@ enum {
 
 void foo(void);
 
-int
+void
 main(void)
 {
 	int i, njmp;
