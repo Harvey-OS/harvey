@@ -302,7 +302,7 @@ thick_color* parse_color_chars(const char* c0, const char* fin,
 			if (++c==fin)
 				return tc_default(tc);
 			else tc[i].thick=1;
-		j = (*c&~127) ? -1 : nam1_idx[*c];
+		j = (*c&~127) ? -1 : nam1_idx[(uint8_t)*c];
 		if (j < 0)
 			return tc_default(tc);
 		tc[i].clr = clrtab[j].im;
