@@ -13,15 +13,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef _SPIKE_UTIL_H
-#define _SPIKE_UTIL_H
-
-#include <stdint.h>
-//#include <string.h>
-//#include <errno.h>
-#include <arch/encoding.h>
-#include <atomic.h>
-
 #define LOG_REGBYTES 3
 #define REGBYTES (1 << LOG_REGBYTES)
 #define STORE    sd
@@ -60,7 +51,7 @@ typedef struct {
 } hls_t;
 
 #define MACHINE_STACK_TOP() ({ \
-  register uintptr_t sp asm ("sp"); \
+  register uintptr_t sp __asm__ ("sp"); \
   (void*)((sp + RISCV_PGSIZE) & -RISCV_PGSIZE); })
 
 // hart-local storage, at top of stack
@@ -82,5 +73,3 @@ uintptr_t mcall_clear_ipi(void);
 uintptr_t mcall_send_ipi(uintptr_t recipient);
 uintptr_t mcall_shutdown(void);
 void hls_init(uint32_t hart_id); // need to call this before launching linux
-
-#endif
