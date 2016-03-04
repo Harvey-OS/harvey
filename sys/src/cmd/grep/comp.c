@@ -77,8 +77,8 @@ fcmp(const void *va, const void *vb)
 	Re **aa, **bb;
 	Re *a, *b;
 
-	aa = va;
-	bb = vb;
+	aa = (Re**)va;
+	bb = (Re**)vb;
 	a = *aa;
 	b = *bb;
 	if (a > b)
@@ -201,8 +201,8 @@ pcmp(const void *va, const void *vb)
 	int n;
 	Rune *a, *b;
 
-	a = va;
-	b = vb;
+	a = (Rune*)va;
+	b = (Rune*)vb;
 
 	n = a[0] - b[0];
 	if (n)
