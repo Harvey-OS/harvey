@@ -9,7 +9,7 @@ void
 main(void)
 {
 	char buf[1];
-	int i, fail;
+	int i;
 	// Just to be sure.
 	if (close(3) >= 0) {
 		print("waserror: close of 3 did not get an error\n");

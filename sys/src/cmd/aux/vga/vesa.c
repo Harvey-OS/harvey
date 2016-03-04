@@ -282,35 +282,6 @@ static Flag capabilityflag[] = {
 	0
 };
 
-static Flag modeattributesflags[] = {
-	1<<0, "supported",
-	1<<2, "tty",
-	1<<3, "color",
-	1<<4, "graphics",
-	1<<5, "not-vga",
-	1<<6, "no-windowed-vga",
-	1<<7, "linear",
-	1<<8, "double-scan",
-	1<<9, "interlace",
-	1<<10, "triple-buffer",
-	1<<11, "stereoscopic",
-	1<<12, "dual-start-addr",
-	0
-};
-
-static Flag winattributesflags[] = {
-	1<<0, "relocatable",
-	1<<1, "readable",
-	1<<2, "writeable",
-	0
-};
-
-static Flag directcolorflags[] = {
-	1<<0, "programmable-color-ramp",
-	1<<1, "x-usable",
-	0
-};
-
 static char *modelstr[] = {
 	"text", "cga", "hercules", "planar", "packed", "non-chain4", "direct", "YUV"
 };

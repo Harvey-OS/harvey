@@ -15,8 +15,6 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	char*	file;
-static	int	fd;
 static	uint8_t	*ones;
 
 static	int	isdev;
