@@ -25,18 +25,20 @@
  * MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include <spike_util.h>
-#include <arch/errno.h>
-#include <atomic.h>
-#include <string.h>
-#include <console/console.h>
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+
+#include "spike_util.h"
 
 uintptr_t translate_address(uintptr_t vAddr) {
 	// TODO: implement the page table translation algorithm
 	//uintptr_t pageTableRoot = read_csr(sptbr);
 	uintptr_t physAddrMask = 0xfffffff;
 	uintptr_t translationResult = vAddr & physAddrMask;
-	printk(BIOS_DEBUG, "Translated virtual address 0x%llx to physical address 0x%llx\n", vAddr, translationResult);
+	print("Translated virtual address 0x%llx to physical address 0x%llx\n", vAddr, translationResult);
 	return translationResult;
 }
 
