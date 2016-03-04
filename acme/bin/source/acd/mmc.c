@@ -152,7 +152,7 @@ Again:
 	cmd[0] = 0x43;
 	cmd[1] = 0x02;
 	cmd[7] = sizeof(resp)>>8;
-	cmd[8] = sizeof(resp);
+	cmd[8] = sizeof(resp)&0xFF;
 
 	s->changetime = 1;
 	/* scsi sets nchange, changetime */
@@ -193,7 +193,7 @@ DPRINT(2, "%d %d\n", resp[3], resp[2]);
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x43;
 	cmd[7] = sizeof(resp)>>8;
-	cmd[8] = sizeof(resp);
+	cmd[8] = sizeof(resp)&0xFF;
 	if(scsi(s, cmd, sizeof cmd, resp, sizeof(resp), Sread) < 4)
 		return -1;
 
