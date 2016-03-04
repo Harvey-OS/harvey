@@ -32,7 +32,6 @@ redraw(Image *screen)
 	static Rectangle r;
 	static Point c;
 	static int rad;
-	static Image *im;
 	int i;
 	int anghr, angmin;
 	static Tm tms;
