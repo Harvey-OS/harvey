@@ -14,7 +14,8 @@
 #include <u.h>
 #include <libc.h>
 static int packetsize = 3;
-int
+
+void
 main(int argc, char *argv[])
 {
 	int intellimouse = 0;
