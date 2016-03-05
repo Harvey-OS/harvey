@@ -116,10 +116,8 @@ main(int argc, char *argv[])
 int
 ulcmp(const void *va, const void *vb)
 {
-	uint32_t *a, *b;
-
-	a = (uint32_t*)va;
-	b = (uint32_t*)vb;
+	const uint32_t *a = (const uint32_t*)va;
+	const uint32_t *b = (const uint32_t*)vb;
 
 	if(*a > *b)
 		return 1;
