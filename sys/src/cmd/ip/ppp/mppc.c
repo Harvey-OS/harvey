@@ -116,9 +116,7 @@ static	void		complit(Cstate*, int);
 static	void		compcopy(Cstate*, int, int);
 static	void		compout(Cstate*, uint32_t, int);
 static	void		compfront(Cstate*);
-static	void		hashcheck(Cstate*);
 static	void		compreset(Cstate*);
-static	int		hashit(uint8_t*);
 
 
 static	void		*uncinit(PPP*);
@@ -126,8 +124,6 @@ static	Block*		uncomp(PPP*, Block*, int *protop, Block**);
 static	Block		*uncomp2(Uncstate *s, Block*, uint16_t);
 static	void		uncfini(void*);
 static	void		uncresetack(void*, Block*);
-static  int		ipcheck(uint8_t*, int);
-static  void		hischeck(Uncstate*);
 
 static	void		setkey(uint8_t *key, uint8_t *startkey);
 
@@ -523,12 +519,6 @@ uncomp(PPP *ppp, Block *b, int *protop, Block **r)
 	proto = nhgets(b->rptr);
 	b->rptr += 2;
 
-/*
-	if(proto == 0x21)
-		if(!ipcheck(b->rptr, BLEN(b)))
-			hischeck(s);
-*/
-
 	*protop = proto;
 	return b;
 }
@@ -843,97 +833,3 @@ struct TCPhdr
 	uint8_t	tcpopt[2];
 	uint8_t	tcpmss[2];
 };
-
-static void
-hischeck(Uncstate *s)
-{
-	uint8_t *p;
-	Iphdr *iph;
-	int len;
-
-	p = s->his;
-
-netlog("***** history check\n");
-	while(p < s->his+s->size) {
-		if(p[0] != 0 || p[1] != 0x21) {
-netlog("***** unknown protocol\n");
-			return;
-		}
-		p += 2;
-netlog("off = %ld ", p-s->his);
-		iph = (Iphdr*)p;
-		len = nhgets(iph->length);
-		ipcheck(p, len);
-		p += len;
-	}
-}
-
-
-static int
-ipcheck(uint8_t *p, int len)
-{
-	Iphdr *iph;
-	TCPhdr *tcph;
-	uint16_t length;
-	UDPhdr *uh;
-	Block *bp;
-	uint16_t cksum;
-	int good;
-
-	bp = allocb(len);
-	memmove(bp->wptr, p, len);
-	bp->wptr += len;
-
-	good = 1;
-
-	iph = (Iphdr *)(bp->rptr);
-/* netlog("ppp: mppc: ipcheck %I %I len %d proto %d\n", iph->src, iph->dst, BLEN(bp), iph->proto); */
-
-	if(len != nhgets(iph->length)) {
-		netlog("***** bad length! %d %d\n", len, nhgets(iph->length));
-		good = 0;
-	}
-
-	cksum = ipcsum(&iph->vihl);
-	if(cksum) {
-		netlog("***** IP proto cksum!!! %I %ux\n", iph->src, cksum);
-		good = 0;
-	}
-
-	switch(iph->proto) {
-	default:
-		break;
-	case IP_TCPPROTO:
-
-		tcph = (TCPhdr*)(bp->rptr);
-
-		length = nhgets(tcph->length);
-
-		tcph->Unused = 0;
-		hnputs(tcph->tcplen, length-TCP_PKT);
-		cksum = ptclcsum(bp, TCP_IPLEN, length-TCP_IPLEN);
-		if(cksum) {
-			netlog("***** bad tcp proto cksum %ux!!!\n", cksum);
-			good = 0;
-		}
-		break;
-	case IP_UDPPROTO:
-		uh = (UDPhdr*)(bp->rptr);
-
-		/* Put back pseudo header for checksum */
-		uh->Unused = 0;
-		len = nhgets(uh->udplen);
-		hnputs(uh->udpplen, len);
-
-		if(nhgets(uh->udpcksum)) {
-			cksum = ptclcsum(bp, UDP_IPHDR, len+UDP_PHDRSIZE);
-			if(cksum) {
-				netlog("***** udp: proto cksum!!! %I %ux\n", uh->udpsrc, cksum);
-				good = 0;
-			}
-		}
-		break;
-	}
-	freeb(bp);
-	return good;
-}

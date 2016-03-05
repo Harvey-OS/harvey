@@ -92,7 +92,6 @@ static	char	*atomString(char *disallowed, char *initial);
 static	char	*atom(void);
 static	void	badsyn(void);
 static	void	clearcmd(void);
-static	char	*command(void);
 static	void	crnl(void);
 static	Fetch	*fetchAtt(char *s, Fetch *f);
 static	Fetch	*fetchWhat(void);

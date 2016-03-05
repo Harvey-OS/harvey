@@ -50,7 +50,6 @@ enum
 static	void		*compinit(PPP*);
 static	Block*		comp(PPP*, uint16_t, Block*, int*);
 static	Block		*compresetreq(void*, Block*);
-static	void		compcompack(void*, Block*);
 static	void		compfini(void*);
 
 static	void		*uncinit(PPP*);

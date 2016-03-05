@@ -25,10 +25,7 @@ struct Suffix
 
 Suffix	*suffixes = nil;
 
-static	Suffix*			parsesuffix(char*, Suffix*);
-static	char*			skipwhite(char*);
-static	HContents		suffixclass(char*);
-static	char*			towhite(char*);
+static	Suffix* parsesuffix(char*, Suffix*);
 
 int
 updateQid(int fd, Qid *q)

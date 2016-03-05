@@ -92,8 +92,6 @@ static char *snames[] =
 static	void		authtimer(PPP*);
 static	void		chapinit(PPP*);
 static	void		config(PPP*, Pstate*, int);
-static	uint8_t*		escapeuint8_t(PPP*, uint32_t, uint8_t*,
-						uint16_t*);
 static	void		getchap(PPP*, Block*);
 static	Block*		getframe(PPP*, int*);
 static	void		getlqm(PPP*, Block*);
@@ -117,7 +115,6 @@ static	void		putndb(PPP*, char*);
 static	void		putpaprequest(PPP*);
 static	void		rcv(PPP*, Pstate*, Block*);
 static	void		rejopts(PPP*, Pstate*, Block*, int);
-static	void		sendechoreq(PPP*, Pstate*);
 static	void		sendtermreq(PPP*, Pstate*);
 static	void		setphase(PPP*, int);
 static	void		terminate(PPP*, int);
@@ -2476,19 +2473,6 @@ sendtermreq(PPP *ppp, Pstate *p)
 	putframe(ppp, p->proto, b);
 	freeb(b);
 	newstate(ppp, p, Sclosing);
-}
-
-static void
-sendechoreq(PPP *ppp, Pstate *p)
-{
-	Block *b;
-	Lcpmsg *m;
-
-	p->termid = ++(p->id);
-	b = alloclcp(Lechoreq, p->id, 4, &m);
-	hnputs(m->len, 4);
-	putframe(ppp, p->proto, b);
-	freeb(b);
 }
 
 enum

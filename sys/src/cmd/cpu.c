@@ -57,8 +57,6 @@ static int	netkeyauth(int);
 static int	netkeysrvauth(int, char*);
 static int	p9auth(int);
 static int	srvp9auth(int, char*);
-static int	noauth(int);
-static int	srvnoauth(int, char*);
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
@@ -69,7 +67,6 @@ struct AuthMethod {
 {
 	{ "p9",		p9auth,		srvp9auth,},
 	{ "netkey",	netkeyauth,	netkeysrvauth,},
-//	{ "none",	noauth,		srvnoauth,},
 	{ nil,	nil}
 };
 AuthMethod *am = authmethod;	/* default is p9 */
@@ -627,22 +624,6 @@ p9auth(int fd)
 	if(i < 0)
 		werrstr("can't establish ssl connection: %r");
 	return i;
-}
-
-static int
-noauth(int fd)
-{
-	ealgs = nil;
-	return fd;
-}
-
-static int
-srvnoauth(int fd, char *user)
-{
-	strecpy(user, user+MaxStr, getuser());
-	ealgs = nil;
-	newns(user, nil);
-	return fd;
 }
 
 void
