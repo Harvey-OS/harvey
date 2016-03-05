@@ -22,7 +22,7 @@
 			"-I", "/sys/src/9/riscv",
 			"-I", "/sys/src/9/port"
 		],
-		"Libs": [
+		"NoLibs": [
 			"/$ARCH/lib/klibc.a"
 		],
 		"Oflags": [
