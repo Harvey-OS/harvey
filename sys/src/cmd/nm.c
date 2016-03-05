@@ -158,10 +158,9 @@ dofile(Biobuf *bp)
 int
 cmp(const void *vs, const void *vt)
 {
-	Sym **s, **t;
+	const Sym **s = (const Sym**)vs;
+	const Sym **t = (const Sym**)vt;
 
-	s = (Sym**)vs;
-	t = (Sym**)vt;
 	if(nflag)
 		if((*s)->value < (*t)->value)
 			return -1;

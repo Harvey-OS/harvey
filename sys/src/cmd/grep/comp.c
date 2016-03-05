@@ -74,13 +74,11 @@ cont:	;
 int
 fcmp(const void *va, const void *vb)
 {
-	Re **aa, **bb;
-	Re *a, *b;
+	const Re **aa = (const Re**)va;
+	const Re **bb = (const Re**)vb;
+	const Re *a = *aa;
+	const Re *b = *bb;
 
-	aa = (Re**)va;
-	bb = (Re**)vb;
-	a = *aa;
-	b = *bb;
 	if (a > b)
 		return 1;
 	if (a < b)
@@ -199,10 +197,9 @@ int
 pcmp(const void *va, const void *vb)
 {
 	int n;
-	Rune *a, *b;
 
-	a = (Rune*)va;
-	b = (Rune*)vb;
+	const Rune *a = (const Rune*)va;
+	const Rune *b = (const Rune*)vb;
 
 	n = a[0] - b[0];
 	if (n)
