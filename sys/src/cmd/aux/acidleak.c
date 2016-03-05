@@ -76,10 +76,9 @@ uint adata;
 int
 addrcmp(const void *va, const void *vb)
 {
-	uint32_t *a, *b;
+	const uint32_t *a = (const uint32_t*)va;
+	const uint32_t *b = (const uint32_t*)vb;
 
-	a = (uint32_t*)va;
-	b = (uint32_t*)vb;
 	if(*a < *b)
 		return -1;
 	if(*a > *b)

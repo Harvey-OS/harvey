@@ -1864,7 +1864,7 @@ void init_e_menu(void)
 		case Edelete: u="undelete"; break;
 		case Emove: u="unmove"; break;
 		case Erotate: u="unrotate"; break;
-		default:;
+		default: break;
 		}
 	e_items[Eundo] = u;
 }
@@ -1964,7 +1964,8 @@ e_action* do_undo(e_action* a0)		/* pop off an e_action and (un)do it */
 		rotate_fp(a->fp, a->pt, -a->amt);
 		eresized(0);
 		break;
-	default:;
+	default:
+		break;
 	}
 	a0 = a->link;
 	free(a);
