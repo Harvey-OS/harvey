@@ -295,6 +295,7 @@ static int	tlsSecSecretc(TlsSec *sec, uint8_t *sid, int nsid,
 static int	tlsSecFinished(TlsSec *sec, MD5state md5, SHAstate sha1,
 				 uint8_t *fin, int nfin, int isclient);
 static void	tlsSecOk(TlsSec *sec);
+static void	tlsSecKill(TlsSec *sec);
 static void	tlsSecClose(TlsSec *sec);
 static void	setMasterSecret(TlsSec *sec, Bytes *pm);
 static void	serverMasterSecret(TlsSec *sec, uint8_t *epm, int nepm);
@@ -322,12 +323,14 @@ static void* erealloc(void*, int);
 static void put32(uint8_t *p, uint32_t);
 static void put24(uint8_t *p, int);
 static void put16(uint8_t *p, int);
+static uint32_t get32(uint8_t *p);
 static int get24(uint8_t *p);
 static int get16(uint8_t *p);
 static Bytes* newbytes(int len);
 static Bytes* makebytes(uint8_t* buf, int len);
 static void freebytes(Bytes* b);
 static Ints* newints(int len);
+static Ints* makeints(int* buf, int len);
 static void freeints(Ints* b);
 
 //================= client/server ========================
@@ -1891,6 +1894,15 @@ tlsSecOk(TlsSec *sec)
 }
 
 static void
+tlsSecKill(TlsSec *sec)
+{
+	if(!sec)
+		return;
+	factotum_rsa_close(sec->rpc);
+	sec->ok = -1;
+}
+
+static void
 tlsSecClose(TlsSec *sec)
 {
 	if(!sec)
@@ -2268,6 +2280,12 @@ put16(uint8_t *p, int x)
 	p[1] = x;
 }
 
+static uint32_t
+get32(uint8_t *p)
+{
+	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
+}
+
 static int
 get24(uint8_t *p)
 {
@@ -2325,6 +2343,17 @@ newints(int len)
 
 	ans = (Ints*)malloc(OFFSET(data[0], Ints) + len*sizeof(int));
 	ans->len = len;
+	return ans;
+}
+
+static Ints*
+makeints(int* buf, int len)
+{
+	Ints* ans;
+
+	ans = newints(len);
+	if(len > 0)
+		memmove(ans->data, buf, len*sizeof(int));
 	return ans;
 }
 

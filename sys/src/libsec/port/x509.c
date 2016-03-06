@@ -144,6 +144,9 @@ static int	is_oid(Elem* pe, Ints** poid);
 static int	is_string(Elem* pe, char** pstring);
 static int	is_time(Elem* pe, char** ptime);
 static int	decode(uint8_t* a, int alen, Elem* pelem);
+static int	decode_seq(uint8_t* a, int alen, Elist** pelist);
+static int	decode_value(uint8_t* a, int alen, int kind, int isconstr,
+			       Value* pval);
 static int	encode(Elem e, Bytes** pbytes);
 static int	oid_lookup(Ints* o, Ints** tab);
 static void	freevalfields(Value* v);
@@ -215,6 +218,35 @@ decode(uint8_t* a, int alen, Elem* pelem)
 	uint8_t* p = a;
 
 	return  ber_decode(&p, &a[alen], pelem);
+}
+
+/*
+ * Like decode, but continue decoding after first element
+ * of array ends.
+ */
+static int
+decode_seq(uint8_t* a, int alen, Elist** pelist)
+{
+	uint8_t* p = a;
+
+	return seq_decode(&p, &a[alen], -1, 1, pelist);
+}
+
+/*
+ * Decode the whole array as a BER encoding of an ASN1 value,
+ * (i.e., the part after the tag and length).
+ * Assume the value is encoded as universal tag "kind".
+ * The constr arg is 1 if the value is constructed, 0 if primitive.
+ * If there's an error, the return string will contain the error.
+ * Depending on the error, the returned value may or may not
+ * be nil.
+ */
+static int
+decode_value(uint8_t* a, int alen, int kind, int isconstr, Value* pval)
+{
+	uint8_t* p = a;
+
+	return value_decode(&p, &a[alen], alen, kind, isconstr, pval);
 }
 
 /*

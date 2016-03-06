@@ -71,6 +71,9 @@ static uint8_t basekey[3][16] = {
 static int aes_setupEnc(uint32_t rk[/*4*(Nr + 1)*/],
 			const uint8_t cipherKey[],
 		int keyBits);
+static int aes_setupDec(uint32_t rk[/*4*(Nr + 1)*/],
+			const uint8_t cipherKey[],
+		int keyBits);
 static int aes_setup(uint32_t erk[/*4*(Nr + 1)*/],
 		     uint32_t drk[/*4*(Nr + 1)*/],
 		const uint8_t cipherKey[], int keyBits);
@@ -1252,6 +1255,57 @@ aes_setupEnc(uint32_t rk[/*4*(Nr + 1)*/], const uint8_t cipherKey[],
 	        }
 	}
 	return 0;
+}
+
+/**
+ * Expand the cipher key into the decryption key schedule.
+ *
+ * @return	the number of rounds for the given cipher key size.
+ */
+static int
+aes_setupDec(uint32_t rk[/* 4*(Nr + 1) */], const uint8_t cipherKey[],
+	     int keyBits)
+{
+	int Nr, i, j;
+	uint32_t temp;
+
+	/* expand the cipher key: */
+	Nr = aes_setupEnc(rk, cipherKey, keyBits);
+	/* invert the order of the round keys: */
+	for (i = 0, j = 4*Nr; i < j; i += 4, j -= 4) {
+		temp = rk[i    ]; rk[i    ] = rk[j    ]; rk[j    ] = temp;
+		temp = rk[i + 1]; rk[i + 1] = rk[j + 1]; rk[j + 1] = temp;
+		temp = rk[i + 2]; rk[i + 2] = rk[j + 2]; rk[j + 2] = temp;
+		temp = rk[i + 3]; rk[i + 3] = rk[j + 3]; rk[j + 3] = temp;
+	}
+	/*
+	 * apply the inverse MixColumn transform to all round keys
+	 * but the first and the last:
+	 */
+	for (i = 1; i < Nr; i++) {
+		rk += 4;
+		rk[0] =
+			Td0[Te4[(rk[0] >> 24)       ]] ^
+			Td1[Te4[(rk[0] >> 16) & 0xff]] ^
+			Td2[Te4[(rk[0] >>  8) & 0xff]] ^
+			Td3[Te4[(rk[0]      ) & 0xff]];
+		rk[1] =
+			Td0[Te4[(rk[1] >> 24)       ]] ^
+			Td1[Te4[(rk[1] >> 16) & 0xff]] ^
+			Td2[Te4[(rk[1] >>  8) & 0xff]] ^
+			Td3[Te4[(rk[1]      ) & 0xff]];
+		rk[2] =
+			Td0[Te4[(rk[2] >> 24)       ]] ^
+			Td1[Te4[(rk[2] >> 16) & 0xff]] ^
+			Td2[Te4[(rk[2] >>  8) & 0xff]] ^
+			Td3[Te4[(rk[2]      ) & 0xff]];
+		rk[3] =
+			Td0[Te4[(rk[3] >> 24)       ]] ^
+			Td1[Te4[(rk[3] >> 16) & 0xff]] ^
+			Td2[Te4[(rk[3] >>  8) & 0xff]] ^
+			Td3[Te4[(rk[3]      ) & 0xff]];
+	}
+	return Nr;
 }
 
 /* using round keys in rk, perform Nr rounds of encrypting pt into ct */
