@@ -3,8 +3,6 @@
 echo Downloading the build tool...
 
 curl -L http://sevki.co/get-build -o util/build
-
-cat util/build
 chmod +x util/build
 
 # this will make booting a VM easier
