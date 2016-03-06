@@ -8,7 +8,7 @@
  */
 
 struct Ureg {
-	uintptr_t sepc;
+	uintptr_t ip;
 	uintptr_t ra;
 	uintptr_t sp;
 	uintptr_t gp;
@@ -16,7 +16,7 @@ struct Ureg {
 	uintptr_t t0;
 	uintptr_t t1;
 	uintptr_t t2;
-	uintptr_t s0;
+	uintptr_t s0; // NOTE: this is the bp in gcc with -fno-omit-frame-pointer
 	uintptr_t s1;
 	uintptr_t a0;
 	uintptr_t a1;
@@ -44,5 +44,6 @@ struct Ureg {
 	uintptr_t sstatus;
 	uintptr_t sbadaddr;
 	uintptr_t scause;
+	uintptr_t bp; // BOGUS: need a real frame pointer here. 
 };
 

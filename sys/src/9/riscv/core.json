@@ -22,7 +22,7 @@
 			"-I", "/sys/src/9/riscv",
 			"-I", "/sys/src/9/port"
 		],
-		"Libs": [
+		"NoLibs": [
 			"/$ARCH/lib/klibc.a"
 		],
 		"Oflags": [
@@ -40,28 +40,27 @@
 		"Projects": [
 			"clean.json",
 			"../boot/bootconf.json",
-			"inith.json",
-			"/sys/src/libmemdraw/klibmemdraw.json",
-			"/sys/src/libdraw/klibdraw.json"
+			"inith.json"
 		],
 	    "MissingSourceFiles": [
 			"arch.c",
 			"archriscv.c",
 			"asm.c",
 		        "coreboot.c",
-			"ctype.c",
 			"devarch.c",
-			"main.c",
 			"map.c",
 			"memory.c",
 			"mmu.c",
 			"mp.c",
 			"physalloc.c",
+			"systab.c",
 			"tcore.c",
 			"trap.c"
 		],
 		"SourceFiles": [
-			"systab.c"
+			"ctype.c",
+			"main.c",
+			"spike_util.c"
 		]
 	}
 }

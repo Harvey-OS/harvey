@@ -63,11 +63,10 @@ newstr(void)
 void
 reader(void *v)
 {
-	int cfd, tfd, forking = 0, exiting, pid;
+	int cfd, tfd, exiting, pid;
 	uintptr_t newpid;
 	char *ctl, *truss;
 	Str *s;
-	static char start[] = "start";
 	static char waitstop[] = "waitstop";
 
 	pid = (int)(uintptr)v;

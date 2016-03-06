@@ -19,14 +19,6 @@ const kernconfTmpl = `
 #include "../port/error.h"
 #include "io.h"
 
-void
-rdb(void)
-{
-	splhi();
-	iprint("rdb...not installed\n");
-	for(;;);
-}
-
 {{ range .Rootcodes }}
 {{ . }}
 {{ end }}
@@ -75,8 +67,9 @@ PhysUart* physuart[] = {
 {{ range .Config.Uart }}	&{{ . }}physuart,
 {{ end }}
 	nil,
-};
+};`
 
+const vgaconfTmpl = `
 #define	Image	IMAGE
 #include <draw.h>
 #include <memdraw.h>
@@ -192,5 +185,12 @@ func confcode(path string, kern *kernel) []byte {
 	tmpl := template.Must(template.New("kernconf").Parse(kernconfTmpl))
 	codebuf := &bytes.Buffer{}
 	failOn(tmpl.Execute(codebuf, vars))
+fmt.Printf("VGA IS %v len %d\n", vars.Config.VGA, len(vars.Config.VGA))
+	if len(vars.Config.VGA) > 0 {
+		tmpl = template.Must(template.New("vgaconf").Parse(vgaconfTmpl ))
+		vgabuf := &bytes.Buffer{}
+		failOn(tmpl.Execute(codebuf, vars))
+		codebuf.Write(vgabuf.Bytes())
+	}
 	return codebuf.Bytes()
 }

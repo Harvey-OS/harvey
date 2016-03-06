@@ -74,6 +74,10 @@
 		        "coreboot.c",
 			"ctype.c",
 			"devarch.c",
+			"../port/devdraw.c",
+			"../port/devmouse.c",
+			"../port/devpci.c",
+			"devpmc.c",
 			"fpu.c",
 			"i8254.c",
 			"i8259.c",
@@ -92,7 +96,9 @@
 			"syscall.c",
 			"systab.c",
 			"tcore.c",
-			"trap.c"
+			"trap.c",
+			"../port/usbehci.c"
+
 		]
 	}
 }
