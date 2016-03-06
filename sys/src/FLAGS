@@ -17,7 +17,6 @@ CMD_DEPS = [
     "//sys/src/libregexp:libregexp",
     "//sys/src/libstdio:libstdio",
     "//sys/src/libString:libString",
-    "//sys/src/libsunrpc:libsunrpc",
     "//sys/src/liboventi:liboventi",
     "//sys/src/lib9p:lib9p",
     "//sys/src/libauth:libauth",
