@@ -39,7 +39,6 @@ group(
         "//sys/src/libregexp:libregexp",
         "//sys/src/libsec:libsec",
         "//sys/src/libstdio:libstdio",
-        "//sys/src/libsunrpc:libsunrpc",
         "//sys/src/libthread:libthread",
         "//sys/src/libusb:libusb",
         "//sys/src/libventi:libventi",
