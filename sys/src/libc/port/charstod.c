@@ -86,5 +86,5 @@ charstod(int(*f)(void*), void *vp)
 		USED(c);
 	}
 	*s = 0;
-	return strtod(str, (const char **)&s);
+	return strtod((const char*)str, &s);
 }

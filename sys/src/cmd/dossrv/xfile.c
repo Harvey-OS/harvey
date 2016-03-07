@@ -56,7 +56,7 @@ getxfs(char *user, char *name)
 	offset = 0;
 	if(p = strrchr(name, ':')){
 		*p++ = 0;
-		offset = strtol(p, (const char **)&q, 0);
+		offset = strtol((const char *)p, &q, 0);
 		chat("name %s, offset %ld\n", p, offset);
 		if(offset < 0 || p == q){
 			errno = Enofilsys;
