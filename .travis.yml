@@ -9,6 +9,9 @@ env:
   - ARCH=amd64
   - HARVEY=$TRAVIS_BUILD_DIR
   - PATH=$PATH:$HARVEY/util
+  matrix:
+  - OLD_BUILD=true
+  - OLD_BUILD=false
 addons:
   apt:
     sources:
