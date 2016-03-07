@@ -18,6 +18,7 @@ CORE_SRCS = [
     "coreboot.c",
     "ctype.c",
     "devarch.c",
+    "devpmc.c", # moved from port
     "fpu.c",
     "i8254.c",
     "i8259.c",
@@ -58,7 +59,6 @@ PORT_SRCS = [
     "//sys/src/9/port/devmouse.c",
     "//sys/src/9/port/devpci.c",
     "//sys/src/9/port/devpipe.c",
-    "//sys/src/9/port/devpmc.c",
     "//sys/src/9/port/devproc.c",
     "//sys/src/9/port/devregress.c",
     "//sys/src/9/port/devroot.c",
