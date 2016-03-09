@@ -1,0 +1,27 @@
+{
+	"imap4d": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Program": "imap4d",
+		"SourceFiles": [
+			"auth.c",
+			"copy.c",
+			"csquery.c",
+			"date.c",
+			"fetch.c",
+			"imap4d.c",
+			"list.c",
+			"mbox.c",
+			"msg.c",
+			"mutf7.c",
+			"nodes.c",
+			"folder.c",
+			"search.c",
+			"store.c",
+			"utils.c",
+			"debug.c"
+		]
+	}
+}

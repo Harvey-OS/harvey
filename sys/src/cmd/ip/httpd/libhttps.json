@@ -1,0 +1,20 @@
+{
+	"libhttps": {
+		"Include": [
+			"../../../lib.json"
+		],
+		"Install": "/sys/src/cmd/ip/httpd/",
+		"Library": "libhttps.a",
+		"SourceFiles": [
+			"anonymous.c",
+			"content.c",
+			"emem.c",
+			"hints.c",
+			"init.c",
+			"log.c",
+			"redirect.c",
+			"sendfd.c",
+			"authorize.c"
+		]
+	}
+}
