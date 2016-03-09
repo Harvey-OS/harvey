@@ -40,7 +40,7 @@ uintptr_t translate_address(uintptr_t vAddr) {
 	//uintptr_t pageTableRoot = read_csr(sptbr);
 	uintptr_t physAddrMask = 0xfffffff;
 	uintptr_t translationResult = vAddr & physAddrMask;
-	print("Translated virtual address 0x%llx to physical address 0x%llx\n", vAddr, translationResult);
+	//print("Translated virtual address 0x%llx to physical address 0x%llx\n", vAddr, translationResult);
 	return translationResult;
 }
 
@@ -140,7 +140,7 @@ uintptr_t mcall_hart_id(void)
 
 void hls_init(uint32_t hart_id)
 {
-	memset(HLS(), 0, sizeof(*HLS()));
+	//memset(HLS(), 0, sizeof(*HLS()));
 	HLS()->hart_id = hart_id;
 }
 
