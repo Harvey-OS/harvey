@@ -65,7 +65,7 @@ struct	Tab
 };
 
 double
-strtod(const char *as, const char **aas)
+strtod(const char *as, char **aas)
 {
 	int na, ona, ex, dp, bp, c, i, flag, state;
 	uint32_t low[Prec], hig[Prec], mid[Prec], num, den;
@@ -162,23 +162,23 @@ strtod(const char *as, const char **aas)
 	case S0:
 		if(xcmp(s, "nan") == 0) {
 			if(aas != nil)
-				*aas = s+3;
+				*aas = (char *)s+3;
 			goto retnan;
 		}
 	case S1:
 		if(xcmp(s, "infinity") == 0) {
 			if(aas != nil)
-				*aas = s+8;
+				*aas = (char *)s+8;
 			goto retinf;
 		}
 		if(xcmp(s, "inf") == 0) {
 			if(aas != nil)
-				*aas = s+3;
+				*aas = (char *)s+3;
 			goto retinf;
 		}
 	case S3:
 		if(aas != nil)
-			*aas = as;
+			*aas = (char *)as;
 		goto ret0;	// no digits found
 	case S6:
 		s--;		// back over +-
@@ -187,7 +187,7 @@ strtod(const char *as, const char **aas)
 		break;
 	}
 	if(aas != nil)
-		*aas = s;
+		*aas = (char *)s;
 
 	if(flag & Fdpoint)
 	while(na > 0 && a[na-1] == '0')

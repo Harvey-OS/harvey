@@ -1226,7 +1226,7 @@ depthof(char *s, int *newp)
 	d = 0;
 	while(s<es && *s!=' '){
 		s++;			/* skip letter */
-		d += strtoul(s, (const char **)&s, 10);
+		d += strtoul((const char *)s, &s, 10);
 	}
 
 	if(d % 8 == 0 || 8 % d == 0)
@@ -1383,7 +1383,7 @@ getfontnum(uint8_t *cp, uint8_t **rp)
 		cp++;
 	if (*cp < '0' || *cp > '9')
 		return 0;
-	strtoul((const char *)cp, (const char **)rp, 0);
+	strtoul((const char *)cp, (char **)rp, 0);
 	if (!WHITESPACE(**rp)) {
 		*rp = cp;
 		return 0;
@@ -1498,7 +1498,7 @@ isface(void)
 				ldepth = l;
 			if(l != ldepth)
 				return 0;
-			strtoul(p, (const char **)&p, 16);
+			strtoul((const char *)p, &p, 16);
 			if(*p++ != ',')
 				return 0;
 			while(*p == ' ' || *p == '\t')
