@@ -95,43 +95,6 @@ use these tools and
 to provide TLS network tunnels, allowing legacy
 application to take advantage of TLS encryption.
 .SH EXAMPLES
-Listen for TLS-encrypted IMAP by creating a server certificate
-.B /sys/lib/tls/imap.pem
-and a listener script
-.B /bin/service.auth/tcp993
-containing:
-.IP
-.EX
-#!/bin/rc
-exec tlssrv -c/sys/lib/tls/imap.pem -limap4d -r`{cat $3/remote} \e
-    /bin/ip/imap4d -p -dyourdomain -r`{cat $3/remote} \e
-    >[2]/sys/log/imap4d
-.EE
-.PP
-Interact with the server, putting the appropriate hash into
-.B /sys/lib/tls/mail
-and running:
-.IP
-.EX
-tlsclient -t /sys/lib/tls/mail tcp!server!imaps
-.EE
-.PP
-Create a TLS-encrypted VNC connection from a client on
-.B kremvax
-to a server on
-.BR moscvax :
-.IP
-.EX
-mosc% vncs -d :3
-mosc% tlssrvtunnel tcp!moscvax!5903 tcp!*!12345 \e
-        /usr/you/lib/cert.pem
-krem% tlsclienttunnel tcp!moscvax!12345 tcp!*!5905 \e
-        /usr/you/lib/cert.thumb
-krem% vncv kremvax:5
-.EE
-.LP
-(The port numbers passed to the VNC tools are offset by 5900 from the
-actual TCP port numbers.)
 .SH FILES
 .TP
 .B /sys/lib/tls
