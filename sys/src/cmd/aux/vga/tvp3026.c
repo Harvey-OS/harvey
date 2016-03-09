@@ -66,15 +66,6 @@ tvp3026xi(uint8_t index)
 	return r;
 }
 
-static void
-tvp3026o(uint8_t reg, uint8_t data)
-{
-	uint8_t crt55;
-
-	crt55 = tvp3026io(reg, data);
-	vgaxo(Crtx, 0x55, crt55);
-}
-
 void
 tvp3026xo(uint8_t index, uint8_t data)
 {
@@ -123,29 +114,6 @@ init(Vga* vga, Ctlr* ctlr)
 		resyncinit(vga, ctlr, Uclk2, 0);
 
 	ctlr->flag |= Finit;
-}
-
-static void
-load(Vga* vga, Ctlr* ctlr)
-{
-	uint8_t x;
-
-	/*
-	 * General Control:
-	 *	output sync polarity
-	 * It's important to set this properly and to turn off the
-	 * VGA controller H and V syncs. Can't be set in VGA mode.
-	 */
-	x = 0x00;
-	if((vga->misc & 0x40) == 0)
-		x |= 0x01;
-	if((vga->misc & 0x80) == 0)
-		x |= 0x02;
-	tvp3026xo(0x1D, x);
-	vga->misc |= 0xC0;
-	vgao(MiscW, vga->misc);
-
-	ctlr->flag |= Fload;
 }
 
 static void

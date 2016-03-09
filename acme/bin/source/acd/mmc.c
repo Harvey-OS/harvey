@@ -20,16 +20,6 @@ msfconv(Fmt *fp)
 }
 
 static int
-status(Drive *d)
-{
-	uint8_t cmd[12];
-
-	memset(cmd, 0, sizeof cmd);
-	cmd[0] = 0xBD;
-	return scsi(d->scsi, cmd, sizeof cmd, nil, 0, Snone);
-}
-
-static int
 playmsf(Drive *d, Msf start, Msf end)
 {
 	uint8_t cmd[12];

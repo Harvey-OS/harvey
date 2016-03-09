@@ -22,7 +22,7 @@ TARG = 	6in4\
 	udpecho\
 	wol\
 
-DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
+DIRS=ftpfs dhcpd ipconfig snoopy
 
 BIN=/$objtype/bin/ip
 HFILES=dhcp.h arp.h glob.h icmp.h telnet.h
