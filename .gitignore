@@ -16,8 +16,7 @@ acme/bin/amd64
 
 sys/log
 
-sys/src/9/port/error.h
-sys/src/9/k10/systab.c
+#sys/src/9/port/error.h
 sys/src/9/root/nvram
 sys/src/9/boot/bootk8cpu.c
 
