@@ -15,7 +15,8 @@
 static int
 itemcmp(const void *v1, const void *v2)
 {
-	char **d1 = v1, **d2 = v2;
+	const char **d1 = (const char**)v1;
+	const char **d2 = (const char**)v2;
 
 	return strcmp(*d1, *d2);
 }
