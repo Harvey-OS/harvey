@@ -370,6 +370,7 @@ cc_binary(
         "//sys/include",
         "//amd64/include",
         "//sys/src/9/amd64",
+	"//sys/src/9/port",
     ],
     deps=[
         ":amd64cpu",
