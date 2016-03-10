@@ -233,6 +233,8 @@ typedef struct Waitmsg	Waitmsg;
 #define QTEXCL		0x20		/* type bit for exclusive use files */
 #define QTMOUNT		0x10		/* type bit for mounted channel */
 #define QTAUTH		0x08		/* type bit for authentication file */
+#define QTTMP		0x04		/* type bit for not-backed-up file */
+#define QTSYMLINK	0x02		/* type bit for symlink */
 #define QTFILE		0x00		/* plain file */
 
 /* bits in Dir.mode */
@@ -240,6 +242,7 @@ typedef struct Waitmsg	Waitmsg;
 #define DMAPPEND	0x40000000	/* mode bit for append only files */
 #define DMEXCL		0x20000000	/* mode bit for exclusive use files */
 #define DMMOUNT		0x10000000	/* mode bit for mounted channel */
+#define DMSYMLINK	0x02000000	/* mode bit for symlnk */
 #define DMREAD		0x4		/* mode bit for read permission */
 #define DMWRITE		0x2		/* mode bit for write permission */
 #define DMEXEC		0x1		/* mode bit for execute permission */
