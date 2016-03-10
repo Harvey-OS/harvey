@@ -302,7 +302,7 @@ thick_color* parse_color_chars(const char* c0, const char* fin,
 			if (++c==fin)
 				return tc_default(tc);
 			else tc[i].thick=1;
-		j = (*c&~127) ? -1 : nam1_idx[*c];
+		j = (*c&~127) ? -1 : nam1_idx[(uint8_t)*c];
 		if (j < 0)
 			return tc_default(tc);
 		tc[i].clr = clrtab[j].im;
@@ -561,7 +561,7 @@ transform cur_trans(void)
 }
 
 
-double u_slant_amt(fpolygons *u)
+double u_slant_amt(const fpolygons *u)
 {
 	double sh=u->slant_ht, dy=u->disp.max.y - u->disp.min.y;
 	double dx = u->disp.max.x - u->disp.min.x;
@@ -572,7 +572,7 @@ double u_slant_amt(fpolygons *u)
 /* Set *y0 and *y1 to the lower and upper bounds of the set of y-sl*x values that
    *u says to display, where sl is the amount of slant.
 */
-double set_unslanted_y(fpolygons *u, double *y0, double *y1)
+double set_unslanted_y(const fpolygons *u, double *y0, double *y1)
 {
 	double yy1, sl=u_slant_amt(u);
 	if (u->slant_ht > 0) {
@@ -1864,6 +1864,7 @@ void init_e_menu(void)
 		case Edelete: u="undelete"; break;
 		case Emove: u="unmove"; break;
 		case Erotate: u="unrotate"; break;
+		default: break;
 		}
 	e_items[Eundo] = u;
 }
@@ -1962,6 +1963,8 @@ e_action* do_undo(e_action* a0)		/* pop off an e_action and (un)do it */
 		unselect(0);
 		rotate_fp(a->fp, a->pt, -a->amt);
 		eresized(0);
+		break;
+	default:
 		break;
 	}
 	a0 = a->link;

@@ -1157,17 +1157,17 @@ isenglish(void)
 
 	vow = 0;
 	for(p="AEIOU"; *p; p++) {
-		vow += cfreq[*p];
+		vow += cfreq[(uint8_t)*p];
 		vow += cfreq[tolower(*p)];
 	}
 	comm = 0;
 	for(p="ETAION"; *p; p++) {
-		comm += cfreq[*p];
+		comm += cfreq[(uint8_t)*p];
 		comm += cfreq[tolower(*p)];
 	}
 	rare = 0;
 	for(p="VJKQXZ"; *p; p++) {
-		rare += cfreq[*p];
+		rare += cfreq[(uint8_t)*p];
 		rare += cfreq[tolower(*p)];
 	}
 	if(vow*5 >= nbuf-cfreq[' '] && comm >= 10*rare) {
