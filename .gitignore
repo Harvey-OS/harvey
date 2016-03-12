@@ -16,7 +16,7 @@ acme/bin/amd64
 
 sys/log
 
-sys/src/9/port/error.h
+#sys/src/9/port/error.h
 sys/src/9/root/nvram
 
 *.orig

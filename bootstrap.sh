@@ -10,12 +10,9 @@ GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install gith
 mkdir -p tmp
 
 cat <<EOF
-
 For now, we have on architecture:
 export ARCH=amd64
-
 And build:
 ./util/build
-
 See \`build -h' for more information on the build tool.
 EOF

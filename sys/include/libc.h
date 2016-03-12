@@ -400,7 +400,7 @@ extern	int	putenv(const char*, const char*);
 extern	void	qsort(void*, int32_t, int32_t,
 				int (*)(const void*, const void*));
 extern	int	setjmp(jmp_buf);
-extern	double	strtod(const char*, const char**);
+extern	double	strtod(const char*, char**);
 extern	int32_t	strtol(const char*, char**, int);
 extern	uint32_t	strtoul(const char*, char**, int);
 extern	int64_t	strtoll(const char*, char**, int);
@@ -577,6 +577,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 #define QTMOUNT		0x10		/* type bit for mounted channel */
 #define QTAUTH		0x08		/* type bit for authentication file */
 #define QTTMP		0x04		/* type bit for not-backed-up file */
+#define QTSYMLINK	0x02		/* type bit for symlink */
 #define QTFILE		0x00		/* plain file */
 
 /* bits in Dir.mode */
@@ -586,6 +587,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 #define DMMOUNT		0x10000000	/* mode bit for mounted channel */
 #define DMAUTH		0x08000000	/* mode bit for authentication file */
 #define DMTMP		0x04000000	/* mode bit for non-backed-up files */
+#define DMSYMLINK	0x02000000	/* mode bit for symlnk */
 #define DMREAD		0x4		/* mode bit for read permission */
 #define DMWRITE		0x2		/* mode bit for write permission */
 #define DMEXEC		0x1		/* mode bit for execute permission */

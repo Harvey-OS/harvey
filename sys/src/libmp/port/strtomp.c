@@ -41,13 +41,13 @@ init(void)
 	memset(tab.t10, INVAL, sizeof(tab.t10));
 
 	for(p = set64; *p; p++)
-		tab.t64[*p] = p-set64;
+		tab.t64[(uint8_t)*p] = p-set64;
 	for(p = set32; *p; p++)
-		tab.t32[*p] = p-set32;
+		tab.t32[(uint8_t)*p] = p-set32;
 	for(p = set16; *p; p++)
-		tab.t16[*p] = (p-set16)%16;
+		tab.t16[(uint8_t)*p] = (p-set16)%16;
 	for(p = set10; *p; p++)
-		tab.t10[*p] = (p-set10);
+		tab.t10[(uint8_t)*p] = (p-set10);
 
 	tab.inited = 1;
 }

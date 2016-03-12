@@ -1078,7 +1078,7 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 		}else
 			mimedisplay(m, m->name, rootdir, w, 0);
 	}else{
-		/* multi-part message, either multipart/* or message/rfc822 */
+		/* multi-part message, either multipart or message/rfc822 */
 		thisone = nil;
 		if(strcmp(m->type, "multipart/alternative") == 0){
 			thisone = bestalt(m, dir);
