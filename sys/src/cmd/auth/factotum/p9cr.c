@@ -235,12 +235,6 @@ vncaddkey(Key *k, int before)
 	return replacekey(k, before);
 }
 
-static void
-vncclosekey(Key *k)
-{
-	free(k->priv);
-}
-
 static int
 vncresponse(Fsstate* f, State *s)
 {

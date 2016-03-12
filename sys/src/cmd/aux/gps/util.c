@@ -151,6 +151,7 @@ strtopos(char *p, char **ep)
 	return pl;
 }
 
+#if 0
 static void
 rtcset(int32_t t)		/* We may use this some day */
 {
@@ -181,3 +182,4 @@ rtcset(int32_t t)		/* We may use this some day */
 	}
 	seek(fd, 0, 0);
 }
+#endif

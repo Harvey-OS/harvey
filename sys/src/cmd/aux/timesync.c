@@ -667,19 +667,6 @@ int64_t2be(uint8_t *t, int64_t from)
 static int32_t order = 0x00010203;
 
 static uint8_t*
-be2long(int32_t *to, uint8_t *f)
-{
-	uint8_t *t, *o;
-	int i;
-
-	t = (uint8_t*)to;
-	o = (uint8_t*)&order;
-	for(i = 0; i < sizeof(int32_t); i++)
-		t[o[i]] = f[i];
-	return f+sizeof(int32_t);
-}
-
-static uint8_t*
 long2be(uint8_t *t, int32_t from)
 {
 	uint8_t *f, *o;
