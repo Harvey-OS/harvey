@@ -44,7 +44,6 @@ static char 	*cmdadd(Edit*, char*, int64_t, int64_t);
 static char 	*cmddel(Edit*, Part*);
 static char 	*cmdokname(Edit*, char*);
 static char 	*cmdwrite(Edit*);
-static char	*cmdctlprint(Edit*, int, char**);
 
 Edit edit = {
 	.add=	cmdadd,
@@ -346,14 +345,6 @@ rdpart(Edit *edit)
 			exits("partition");
 		}
 	}
-}
-
-static int64_t
-min(int64_t a, int64_t b)
-{
-	if(a < b)
-		return a;
-	return b;
 }
 
 static void

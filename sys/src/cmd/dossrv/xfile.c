@@ -19,15 +19,6 @@ static Xfs	*xhead;
 static Xfile	*xfiles[FIDMOD], *freelist;
 static MLock	xlock, xlocks[FIDMOD], freelock;
 
-static int
-okmode(int omode, int fmode)
-{
-	if(omode == OREAD)
-		return fmode & 4;
-	/* else ORDWR */
-	return (fmode & 6) == 6;
-}
-
 Xfs *
 getxfs(char *user, char *name)
 {
