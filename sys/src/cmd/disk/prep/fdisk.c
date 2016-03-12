@@ -28,7 +28,6 @@ static void findmbr(Edit*);
 static void autopart(Edit*);
 static void wrpart(Edit*);
 static void blankpart(Edit*);
-static void cmdnamectl(Edit*);
 static void recover(Edit*);
 static int Dfmt(Fmt*);
 static int blank;
