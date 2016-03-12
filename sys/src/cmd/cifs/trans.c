@@ -112,13 +112,6 @@ gtparam(Pkt *p)
 	p->pos = p->tparam;
 }
 
-static void
-gtdata(Pkt *p)
-{
-	p->pos = p->tdata;
-}
-
-
 int
 RAPshareenum(Session *s, Share *sp, Share **ent)
 {

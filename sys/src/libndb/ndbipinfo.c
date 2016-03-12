@@ -23,7 +23,6 @@ enum
 static Ndbtuple*	filter(Ndb *db, Ndbtuple *t, Ndbtuple *f);
 static Ndbtuple*	mkfilter(int argc, char **argv);
 static int		filtercomplete(Ndbtuple *f);
-static Ndbtuple*	toipaddr(Ndb *db, Ndbtuple *t);
 static int		prefixlen(uint8_t *ip);
 static Ndbtuple*	subnet(Ndb *db, uint8_t *net, Ndbtuple *f,
 			       int prefix);

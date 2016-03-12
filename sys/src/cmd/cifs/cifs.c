@@ -129,20 +129,6 @@ pbytes(Pkt *p)
 	p->bytebase = pl16(p, 0);	/* filled in by cifsrpc() */
 }
 
-static void
-dmp(int seq, uint8_t *buf)
-{
-	int i;
-
-	if(seq == 99)
-		print("\n   ");
-	else
-		print("%+2d ", seq);
-	for(i = 0; i < 8; i++)
-		print("%02x ", buf[i] & 0xff);
-	print("\n");
-}
-
 int
 cifsrpc(Pkt *p)
 {
