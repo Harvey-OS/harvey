@@ -77,19 +77,6 @@ Gmem(uint8_t **p, void *v, int n)
 		*str++ = *(*p)++;
 }
 
-
-static uint32_t
-GB32(uint8_t **p)
-{
-	uint32_t n;
-
-	n  = *(*p)++ << 24;
-	n |= *(*p)++ << 16;
-	n |= *(*p)++ << 8;
-	n |= *(*p)++;
-	return n;
-}
-
 static uint16_t
 GB16(uint8_t **p)
 {
