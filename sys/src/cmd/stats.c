@@ -1038,7 +1038,7 @@ addgraph(int n)
 	for(i=0; i<nmach; i++){
 		g = &graph[i*ngraph+(ngraph-1)];
 		memset(g, 0, sizeof(Graph));
-		g->label = menu2str[n]+Opwid;
+		g->label = menu2strsource[n]+Opwid;
 		g->newvalue = newvaluefn[n];
 		g->update = update1;	/* no other update functions yet */
 		g->mach = &mach[i];
