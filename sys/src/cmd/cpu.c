@@ -57,8 +57,8 @@ static int	netkeyauth(int);
 static int	netkeysrvauth(int, char*);
 static int	p9auth(int);
 static int	srvp9auth(int, char*);
-static int	noauth(int);
-static int	srvnoauth(int, char*);
+// static int	noauth(int);
+// static int	srvnoauth(int, char*);
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
@@ -629,6 +629,12 @@ p9auth(int fd)
 	return i;
 }
 
+/*
+ * these two functions may lead to a security hole and should only be enabled
+ * for new ports.
+ */
+
+#if 0
 static int
 noauth(int fd)
 {
@@ -644,6 +650,7 @@ srvnoauth(int fd, char *user)
 	newns(user, nil);
 	return fd;
 }
+#endif
 
 void
 loghex(uint8_t *p, int n)

@@ -202,12 +202,6 @@ options(Vga* vga, Ctlr* ctlr)
 
 
 static void
-clock(Vga* vga, Ctlr* ctlr)
-{
-	/* BEST CLOCK ROUTINE EVER! */
-}
-
-static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Vmware *vm;
