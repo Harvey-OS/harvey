@@ -57,3 +57,5 @@ tools/share
 
 cfg/pxe/tftpboot
 usr/harvey/tmp
+
+build_out
