@@ -1,8 +1,0 @@
-#!/bin/rc
-if(! test -e /net.alt/tcp)
-	bind -a '#I1' /net.alt
-if(! test -e /net.alt2/tcp)
-	bind -a '#I2' /net.alt2
-kill 8.out|rc
-kill testppp|rc
-testppp
