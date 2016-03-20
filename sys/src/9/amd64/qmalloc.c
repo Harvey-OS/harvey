@@ -115,7 +115,7 @@ static	Lock		mainlock;
  * From libc malloc.c to *draw devices
  */
 
-static int		sbrkmerge(void*, void*);
+static int  sbrkmerge(void*, void*);
 static void poolprint(Pool*, char*, ...);
 static void ppanic(Pool*, char*, ...);
 static void plock(Pool*);
@@ -136,7 +136,7 @@ static Pool pimagmem = {
 	.quantum=	32,
 	.alloc=		malloc,
 	.merge=		sbrkmerge,
-	.flags=		0,
+	.flags=		POOL_PARANOIA | POOL_VERBOSITY | POOL_DEBUGGING | POOL_LOGGING,
 
 	.lock=		plock,
 	.unlock=	punlock,
@@ -154,8 +154,11 @@ sbrkmerge(void *x, void *y)
 	uint32_t *lx, *ly;
 
 	lx = x;
-	if(lx[-1] != 0xDeadBeef)
+	if(lx[-1] != 0xDeadBeef){
+		print("sbrk arena at %x corrupted [%x], ", &lx[-1], lx[-1]);
+		stacksnippet();
 		abort();
+	}
 
 	if((uint8_t*)lx+lx[-2] == (uint8_t*)y) {
 		ly = y;
