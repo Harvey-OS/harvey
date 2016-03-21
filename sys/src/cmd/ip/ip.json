@@ -10,7 +10,8 @@
 			"dhcpd/dhcpleases.json",
 			"ftpfs/ftpfs.json",
 			"httpd/httpd.json",
-			"ipconfig/ipconfig.json"
+			"ipconfig/ipconfig.json",
+			"ppp/ppp.json"
 		],
 		"SourceFilesCmd": [
 			"ping.c",
