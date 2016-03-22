@@ -58,6 +58,8 @@ typedef	struct	Stringpair Stringpair;
 typedef	struct	Dirtab Dirtab;
 typedef	struct	Fid Fid;
 typedef	struct	Filsys Filsys;
+typedef struct  Mouse Mouse;
+typedef struct  Mousectl Mousectl;
 typedef	struct	Mouseinfo	Mouseinfo;
 typedef	struct	Mousereadmesg Mousereadmesg;
 typedef	struct	Mousestate	Mousestate;
@@ -66,6 +68,7 @@ typedef	struct	Timer Timer;
 typedef	struct	Wctlmesg Wctlmesg;
 typedef	struct	Window Window;
 typedef	struct	Xfid Xfid;
+typedef void *Image;
 
 enum
 {
@@ -100,7 +103,6 @@ enum	/* control messages */
 struct Wctlmesg
 {
 	int		type;
-	Rectangle	r;
 };
 
 struct Conswritemesg
@@ -112,6 +114,25 @@ struct Consreadmesg
 {
 	Channel	*c1;		/* chan(tuple(char*, int) == Stringpair) */
 	Channel	*c2;		/* chan(tuple(char*, int) == Stringpair) */
+};
+
+struct	Mouse
+{
+	int	buttons;	/* bit array: LMR=124 */
+	uint32_t	msec;
+};
+
+struct Mousectl
+{
+	Mouse;
+	Channel	*c;	/* chan(Mouse) */
+	Channel	*resizec;	/* chan(int)[2] */
+
+	char		*file;
+	int		mfd;		/* to mouse file */
+	int		cfd;		/* to cursor file */
+	int		pid;		/* of slave proc */
+	Image*	image;	/* of associated window/display */
 };
 
 struct Mousereadmesg
@@ -166,20 +187,15 @@ struct Window
 	int			id;
 	char			name[32];
 	uint			namecount;
-	Rectangle		scrollr;
 	/*
 	 * Rio once used originwindow, so screenr could be different from i->r.
 	 * Now they're always the same but the code doesn't assume so.
 	*/
-	Rectangle		screenr;	/* screen coordinates of window */
 	int			resized;
 	int			wctlready;
-	Rectangle		lastsr;
 	int			topped;
 	int			notefd;
 	unsigned char		scrolling;
-	Cursor		cursor;
-	Cursor		*cursorp;
 	unsigned char		holding;
 	unsigned char		rawing;
 	unsigned char		ctlopen;
@@ -189,23 +205,22 @@ struct Window
 	char			*label;
 	int			pid;
 	char			*dir;
+
+	int nchars;
 };
 
-int		winborder(Window*, Point);
 void		winctl(void*);
 void		winshell(void*);
 Window*	wlookid(int);
-Window*	wmk(Image*, Mousectl*, Channel*, Channel*, int);
-Window*	wpointto(Point);
-Window*	wtop(Point);
+//Window*	wmk(Image*, Mousectl*, Channel*, Channel*, int);
 void		wtopme(Window*);
 void		wbottomme(Window*);
 char*	wcontents(Window*, int*);
 int		wbswidth(Window*, Rune);
 int		wclickmatch(Window*, int, int, int, uint*);
 int		wclose(Window*);
-int		wctlmesg(Window*, int, Rectangle, Image*);
-int		wctlmesg(Window*, int, Rectangle, Image*);
+//int		wctlmesg(Window*, int, Rectangle, Image*);
+//int		wctlmesg(Window*, int, Rectangle, Image*);
 uint		wbacknl(Window*, uint, uint);
 uint		winsert(Window*, Rune*, int, uint);
 void		waddraw(Window*, Rune*, int);
@@ -219,16 +234,16 @@ void		wfill(Window*);
 void		wframescroll(Window*, int);
 void		wkeyctl(Window*, Rune);
 void		wmousectl(Window*);
-void		wmovemouse(Window*, Point);
+//void		wmovemouse(Window*, Point);
 void		wpaste(Window*);
 void		wplumb(Window*);
-void		wrefresh(Window*, Rectangle);
+//void		wrefresh(Window*, Rectangle);
 void		wrepaint(Window*);
 void		wresize(Window*, Image*, int);
 void		wscrdraw(Window*);
 void		wscroll(Window*, int);
 void		wselect(Window*);
-void		wsendctlmesg(Window*, int, Rectangle, Image*);
+//void		wsendctlmesg(Window*, int, Rectangle, Image*);
 void		wsetcursor(Window*, int);
 void		wsetname(Window*);
 void		wsetorigin(Window*, uint, int);
