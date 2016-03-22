@@ -10,7 +10,6 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include <mouse.h>
 #include <keyboard.h>
 #include <fcall.h>
 #include <plumb.h>
@@ -37,7 +36,7 @@ Image	*bandsize(Window*);
 void		resized(void);
 Channel	*exitchan;	/* chan(int) */
 Channel	*winclosechan; /* chan(Window*); */
-Rectangle	viewr;
+
 int		threadrforkflag = 0;	/* should be RFENVG but that hides rio from plumber */
 
 void	mousethread(void*);
@@ -78,39 +77,21 @@ char *kbdargv[] = { "rc", "-c", nil, nil };
 int errorshouldabort = 0;
 
 void
-derror(Display* d, char *errorstr)
-{
-	error(errorstr);
-}
-
-void
 usage(void)
 {
-	fprint(2, "usage: rio [-f font] [-i initcmd] [-k kbdcmd] [-s]\n");
+	fprint(2, "usage: cmux [-k kbdcmd]\n");
 	exits("usage");
 }
 
 void
 threadmain(int argc, char *argv[])
 {
-	char *initstr, *kbdin, *s;
+	char *kbdin, *s;
 	char buf[256];
-	Image *i;
-	Rectangle r;
 
-	if(strstr(argv[0], ".out") == nil){
-		menu3str[Exit] = nil;
-		Hidden--;
-	}
-	initstr = nil;
 	kbdin = nil;
 	maxtab = 0;
 	ARGBEGIN{
-	case 'i':
-		initstr = ARGF();
-		if(initstr == nil)
-			usage();
-		break;
 	case 'k':
 		if(kbdin != nil)
 			usage();
@@ -135,10 +116,12 @@ threadmain(int argc, char *argv[])
 
 	snarffd = open("/dev/snarf", OREAD|OCEXEC);
 
-	mousectl = initmouse(nil, screen);
-	if(mousectl == nil)
-		error("can't find mouse");
-	mouse = mousectl;
+	if (0) {
+//		mousectl = initmouse(nil, screen);
+		if(mousectl == nil)
+			error("can't find mouse");
+		mouse = mousectl;
+	}
 	keyboardctl = initkeyboard(nil);
 	if(keyboardctl == nil)
 		error("can't find keyboard");
@@ -149,15 +132,14 @@ threadmain(int argc, char *argv[])
 
 	timerinit();
 	threadcreate(keyboardthread, nil, STACK);
-	threadcreate(mousethread, nil, STACK);
+	//threadcreate(mousethread, nil, STACK);
 	filsys = filsysinit(xfidinit());
 
 	if(filsys == nil)
-		fprint(2, "rio: can't create file system server: %r\n");
+		fprint(2, "cmux: can't create file system server: %r\n");
 	else{
 		errorshouldabort = 1;	/* suicide if there's trouble after this */
-		if(initstr)
-			proccreate(initcmd, initstr, STACK);
+		proccreate(initcmd, nil, STACK);
 		if(kbdin){
 			kbdargv[2] = kbdin;
 			//i = allocwindow(wscreen, r, Refbackup, DWhite);
@@ -224,12 +206,10 @@ getsnarf(void)
 void
 initcmd(void *arg)
 {
-	char *cmd;
 
-	cmd = arg;
 	rfork(RFENVG|RFFDG|RFNOTEG|RFNAMEG);
-	procexecl(nil, "/bin/rc", "rc", "-c", cmd, nil);
-	fprint(2, "rio: exec failed: %r\n");
+	procexecl(nil, "/bin/rc", "rc", "-i", nil);
+	fprint(2, "cmux: exec failed: %r\n");
 	exits("exec");
 }
 
@@ -254,7 +234,7 @@ shutdown(void * vacio, char *msg)
 			lock(&shutdownlk);	/* only one can threadexitsall */
 			threadexitsall(msg);
 		}
-	fprint(2, "rio %d: abort: %s\n", getpid(), msg);
+	fprint(2, "cmux %d: abort: %s\n", getpid(), msg);
 	abort();
 	exits(msg);
 	return 0;
@@ -337,13 +317,13 @@ void
 deletethread(void* v)
 {
 	char *s;
-	Image *i;
+
 
 	threadsetname("deletethread");
 	for(;;){
 		s = recvp(deletechan);
-		i = namedimage(display, s);
-		freeimage(i);
+//		i = namedimage(display, s);
+//		freeimage(i);
 		free(s);
 	}
 }
@@ -359,101 +339,17 @@ deletetimeoutproc(void *v)
 }
 
 void
-mousethread(void* v)
-{
-	int sending, inside, scrolling, moving, band;
-	Window *oin, *w, *winput;
-	Mouse tmp;
-	enum {
-		MReshape,
-		MMouse,
-		NALT
-	};
-	static Alt alts[NALT+1];
-
-	threadsetname("mousethread");
-	sending = FALSE;
-	scrolling = FALSE;
-	moving = FALSE;
-
-	alts[MReshape].c = mousectl->resizec;
-	alts[MReshape].v = nil;
-	alts[MReshape].op = CHANRCV;
-	alts[MMouse].c = mousectl->c;
-	alts[MMouse].v = &mousectl->Mouse;
-	alts[MMouse].op = CHANRCV;
-	alts[NALT].op = CHANEND;
-
-	for(;;)
-	    switch(alt(alts)){
-		Again:
-			winput = input;
-			/* override everything for the keyboard window */
-			if(wkeyboard!=nil && ptinrect(mouse->xy, wkeyboard->screenr)){
-				/* make sure it's on top; this call is free if it is */
-				winput = wkeyboard;
-			}
-			if(winput!=nil && winput->i!=nil){
-
-				/* the up and down scroll buttons are not subject to the usual rules */
-				if((mouse->buttons&(8|16)) && !winput->mouseopen)
-					goto Sending;
-
-			}else
-				sending = FALSE;
-			if(sending){
-			Sending:
-				if(mouse->buttons == 0){
-					sending = FALSE;
-				}
-				tmp = mousectl->Mouse;
-				send(winput->mc.c, &tmp);
-				continue;
-			}
-			if(moving && (mouse->buttons&7)){
-				oin = winput;
-				band = mouse->buttons & 3;
-				sweeping = 1;
-			}
-			/* we're not sending the event, but if button is down maybe we should */
-			if(mouse->buttons){
-				/* w->topped will be zero or less if window has been bottomed */
-				if(w==nil || (w==winput && w->topped>0)){
-					if(mouse->buttons & 1){
-						;
-					}else if(mouse->buttons & 2){
-					}else if(mouse->buttons & 4)
-				}else{
-					/* if button 1 event in the window, top the window and wait for button up. */
-					/* otherwise, top the window and pass the event on */
-					if(wtop(mouse->xy) && (mouse->buttons!=1 || winborder(w, mouse->xy)))
-						goto Again;
-					goto Drain;
-				}
-			}
-			moving = FALSE;
-			break;
-
-		Drain:
-			do
-				readmouse(mousectl);
-			while(mousectl->buttons);
-			goto Again;	/* recalculate mouse position, cursor */
-		}
-}
-
-void
 delete(void)
 {
-	Window *w;
-
-	w = pointto(TRUE);
-	if(w)
-		wsendctlmesg(w, Deleted, ZR, nil);
+//	Window *w;
+	fprint(2, "can't delete!\n");
+//	w = nil; //pointto(TRUE);
+//	if(w)
+//		wsendctlmesg(w, Deleted, ZR, nil);
 }
 
 Window*
-new(int pid, char *dir, char *cmd, char **argv)
+new(Image *i, int pid, char *dir, char *cmd, char **argv)
 {
 	Window *w;
 	Mousectl *mc;
@@ -471,7 +367,8 @@ new(int pid, char *dir, char *cmd, char **argv)
 	mc = emalloc(sizeof(Mousectl));
 	*mc = *mousectl;
 	mc->c = cm;
-	w = wmk(i, mc, ck, cctl, scrollit);
+	//w = wmk(i, mc, ck, cctl, scrollit);
+	w = nil;
 	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
 	window[nwindow-1] = w;
@@ -492,7 +389,7 @@ new(int pid, char *dir, char *cmd, char **argv)
 	}
 	if(pid == 0){
 		/* window creation failed */
-		wsendctlmesg(w, Deleted, ZR, nil);
+		fprint(2, "not killing it\n"); //wsendctlmesg(w, Deleted, ZR, nil);
 		chanfree(cpid);
 		return nil;
 	}
