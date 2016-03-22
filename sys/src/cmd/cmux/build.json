@@ -1,15 +1,13 @@
 {
-	"rio": {
+	"cmux": {
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
-		"Program": "rio",
+		"Program": "cmux",
 		"SourceFiles": [
 			"rio.c",
-			"data.c",
 			"fsys.c",
-			"scrl.c",
 			"time.c",
 			"util.c",
 			"wctl.c",
