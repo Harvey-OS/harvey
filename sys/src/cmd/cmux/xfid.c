@@ -10,7 +10,6 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include <mouse.h>
 #include <keyboard.h>
 #include <fcall.h>
 #include <plumb.h>
@@ -154,53 +153,26 @@ void
 xfidattach(Xfid *x)
 {
 	Fcall t;
-	int id, hideit, scrollit;
+	int id;
 	Window *w;
-	char *err, *n, *dir, errbuf[ERRMAX];
-	int pid, newlymade;
-	Rectangle r;
-	Image *i;
+	char *err;
+	int pid = -1, newlymade;
+	Image *i = nil;
 
 	t.qid = x->f->qid;
 	qlock(&all);
 	w = nil;
 	err = Eunkid;
 	newlymade = FALSE;
-	hideit = 0;
 
-	if(x->aname[0] == 'N'){	/* N 100,100, 200, 200 - old syntax */
-		n = x->aname+1;
-		pid = strtoul(n, &n, 0);
-		if(*n == ',')
-			n++;
-		r.min.x = strtoul(n, &n, 0);
-		if(*n == ',')
-			n++;
-		r.min.y = strtoul(n, &n, 0);
-		if(*n == ',')
-			n++;
-		r.max.x = strtoul(n, &n, 0);
-		if(*n == ',')
-			n++;
-		r.max.y = strtoul(n, &n, 0);
-  Allocate:
-		if(!goodrect(r))
-			err = Ebadrect;
-		else{
-			if(i){
-				if(pid == 0)
-					pid = -1;	/* make sure we don't pop a shell! - UGH */
-				w = new(pid, nil, nil, nil);
-				newlymade = TRUE;
-			}else
-				err = Ewindow;
-		}
-	}else if(strncmp(x->aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
-		pid = 0;
-		if(parsewctl(&pid, nil, &dir, x->aname, errbuf) < 0)
-			err = errbuf;
-		else
-			goto Allocate;
+	if(x->aname[0] == 'N'){	/* N  */
+		if(i){
+			if(pid == 0)
+				pid = -1;	/* make sure we don't pop a shell! - UGH */
+			w = new(i, pid, nil, nil, nil);
+			newlymade = TRUE;
+		}else
+			err = Ewindow;
 	}else{
 		id = atoi(x->aname);
 		w = wlookid(id);
@@ -283,7 +255,7 @@ xfidopen(Xfid *x)
 			}
 			w->wctlopen = TRUE;
 			w->wctlready = 1;
-			wsendctlmesg(w, Wakeup, ZR, nil);
+			wsendctlmesg(w, Wakeup, nil);
 		}
 		break;
 	}
@@ -306,20 +278,22 @@ xfidclose(Xfid *x)
 	case Qconsctl:
 		if(w->rawing){
 			w->rawing = FALSE;
-			wsendctlmesg(w, Rawoff, ZR, nil);
+			wsendctlmesg(w, Rawoff, nil);
 		}
 		if(w->holding){
 			w->holding = FALSE;
-			wsendctlmesg(w, Holdoff, ZR, nil);
+			wsendctlmesg(w, Holdoff, nil);
 		}
 		w->ctlopen = FALSE;
 		break;
+#if 0
 	case Qmouse:
 		w->resized = FALSE;
 		w->mouseopen = FALSE;
 		if(w->i != nil)
-			wsendctlmesg(w, Refresh, w->i->r, nil);
+			wsendctlmesg(w, Refresh, nil);
 		break;
+#endif
 	/* odd behavior but really ok: replace snarf buffer when /dev/snarf is closed */
 	case Qsnarf:
 		if(x->f->mode==ORDWR || x->f->mode==OWRITE){
@@ -345,7 +319,6 @@ xfidwrite(Xfid *x)
 	Fcall fc;
 	int c, cnt, qid, nb, off, nr;
 	char buf[256], *p;
-	Point pt;
 	Window *w;
 	Rune *r;
 	Conswritemesg cwm;
@@ -424,26 +397,26 @@ xfidwrite(Xfid *x)
 	case Qconsctl:
 		if(strncmp(x->data, "holdon", 6)==0){
 			if(w->holding++ == 0)
-				wsendctlmesg(w, Holdon, ZR, nil);
+				wsendctlmesg(w, Holdon, nil);
 			break;
 		}
 		if(strncmp(x->data, "holdoff", 7)==0 && w->holding){
 			if(--w->holding == FALSE)
-				wsendctlmesg(w, Holdoff, ZR, nil);
+				wsendctlmesg(w, Holdoff, nil);
 			break;
 		}
 		if(strncmp(x->data, "rawon", 5)==0){
 			if(w->holding){
 				w->holding = FALSE;
-				wsendctlmesg(w, Holdoff, ZR, nil);
+				wsendctlmesg(w, Holdoff, nil);
 			}
 			if(w->rawing++ == 0)
-				wsendctlmesg(w, Rawon, ZR, nil);
+				wsendctlmesg(w, Rawon, nil);
 			break;
 		}
 		if(strncmp(x->data, "rawoff", 6)==0 && w->rawing){
 			if(--w->rawing == 0)
-				wsendctlmesg(w, Rawoff, ZR, nil);
+				wsendctlmesg(w, Rawoff, nil);
 			break;
 		}
 		filsysrespond(x->fs, x, &fc, "unknown control message");
@@ -461,19 +434,17 @@ xfidwrite(Xfid *x)
 		break;
 
 	case Qmouse:
-		if(w!=input || Dx(w->screenr)<=0)
+		if(w!=input)
 			break;
 		if(x->data[0] != 'm'){
 			filsysrespond(x->fs, x, &fc, Ebadmouse);
 			return;
 		}
 		p = nil;
-		pt.x = strtoul(x->data+1, &p, 0);
 		if(p == nil){
 			filsysrespond(x->fs, x, &fc, Eshort);
 			return;
 		}
-		pt.y = strtoul(p, nil, 0);
 		break;
 
 	case Qsnarf:
@@ -522,7 +493,6 @@ xfidwrite(Xfid *x)
 			filsysrespond(x->fs, x, &fc, buf);
 			return;
 		}
-		flushimage(display, 1);
 		break;
 
 	default:
@@ -542,13 +512,12 @@ xfidread(Xfid *x)
 	int n, off, cnt, c;
 	uint qid;
 	char buf[128], *t;
-	char cbuf[30];
 	Window *w;
 	Mouse ms;
 	Channel *c1, *c2;	/* chan (tuple(char*, int)) */
 	Consreadmesg crm;
 	Mousereadmesg mrm;
-	Consreadmesg cwrm;
+
 	Stringpair pair;
 	enum { CRdata, CRflush, NCR };
 	enum { MRdata, MRflush, NMR };
@@ -662,7 +631,7 @@ xfidread(Xfid *x)
 		c = 'm';
 		if(w->resized)
 			c = 'r';
-		n = sprint(buf, "%c%11d %11d %11d %11ld ", c, ms.xy.x, ms.xy.y, ms.buttons, ms.msec);
+		n = sprint(buf, "%c%d%d", c, ms.buttons, ms.msec);
 		w->resized = 0;
 		fc.data = buf;
 		fc.count = min(n, cnt);
@@ -684,6 +653,19 @@ xfidread(Xfid *x)
 			n = 0;
 		}
 		goto Text;
+
+	Text:
+		if(off > n){
+			off = n;
+			cnt = 0;
+		}
+		if(off+cnt > n)
+			cnt = n-off;
+		fc.data = t+off;
+		fc.count = cnt;
+		filsysrespond(x->fs, x, &fc, nil);
+		free(t);
+		break;
 
 	case Qwdir:
 		t = estrdup(w->dir);

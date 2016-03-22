@@ -9,12 +9,8 @@
 
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
 #include <thread.h>
-#include <cursor.h>
-#include <mouse.h>
 #include <keyboard.h>
-#include <frame.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -155,25 +151,19 @@ riostrtol(char *s, char **t)
 
 
 int
-parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
-	  int *hiddenp, int *scrollingp, char **cdp, char *s,
+parsewctl(char **argp, int *pidp, int *idp,
+	  char **cdp, char *s,
 	  char *err)
 {
-	int cmd, param, xy, sign;
-	char *t;
+	int cmd, param, xy = 0;
 
 	*pidp = 0;
-	*hiddenp = 0;
-	*scrollingp = scrolling;
 	*cdp = nil;
 	cmd = word(&s, cmds);
 	if(cmd < 0){
 		strcpy(err, "unrecognized wctl command");
 		return -1;
 	}
-	if(cmd == New)
-		r = newrect();
-
 	strcpy(err, "missing or bad wctl parameter");
 	while((param = word(&s, params)) >= 0){
 		switch(param){	/* special cases */
@@ -201,10 +191,11 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 	return cmd;
 }
 
+int
 wctlnew(char *arg, int pid, char *dir, char *err)
 {
 	char **argv;
-	Image *i;
+	Image *i = nil;
 
 	argv = emalloc(4*sizeof(char*));
 	argv[0] = "rc";
@@ -231,8 +222,7 @@ wctlnew(char *arg, int pid, char *dir, char *err)
 int
 writewctl(Xfid *x, char *err)
 {
-	int cnt, cmd, j, id, hideit, scrollit, pid;
-	Image *i;
+	int cnt, cmd, j, id, pid;
 	char *arg, *dir;
 	Window *w;
 
@@ -241,7 +231,7 @@ writewctl(Xfid *x, char *err)
 	x->data[cnt] = '\0';
 	id = 0;
 
-	cmd = parsewctl(&arg, rect, &rect, &pid, &id, &hideit, &scrollit, &dir, x->data, err);
+	cmd = parsewctl(&arg, &pid, &id, &dir, x->data, err);
 	if(cmd < 0)
 		return -1;
 
@@ -254,7 +244,7 @@ writewctl(Xfid *x, char *err)
 			return -1;
 		}
 		w = window[j];
-		if(w->deleted || w->i==nil){
+		if(w->deleted){
 			strcpy(err, "window deleted");
 			return -1;
 		}
@@ -262,22 +252,16 @@ writewctl(Xfid *x, char *err)
 
 	switch(cmd){
 	case New:
-		return wctlnew(rect, arg, pid, hideit, scrollit, dir, err);
+		return wctlnew(arg, pid, dir, err);
 	case Set:
 		if(pid > 0)
 			wsetpid(w, pid, 0);
-		return 1;
-	case Top:
-		wtopme(w);
-		return 1;
-	case Bottom:
-		wbottomme(w);
 		return 1;
 	case Current:
 		wcurrent(w);
 		return 1;
 	case Delete:
-		wsendctlmesg(w, Deleted, ZR, nil);
+		//wsendctlmesg(w, Deleted, ZR, nil);
 		return 1;
 	}
 	strcpy(err, "invalid wctl message");
@@ -288,8 +272,7 @@ void
 wctlthread(void *v)
 {
 	char *buf, *arg, *dir;
-	int cmd, id, pid, hideit, scrollit;
-	Rectangle rect;
+	int cmd, id, pid;
 	char err[ERRMAX];
 	Channel *c;
 
@@ -299,7 +282,7 @@ wctlthread(void *v)
 
 	for(;;){
 		buf = recvp(c);
-		cmd = parsewctl(&arg, ZR, &rect, &pid, &id, &hideit, &scrollit, &dir, buf, err);
+		cmd = parsewctl(&arg, &pid, &id, &dir, buf, err);
 
 		switch(cmd){
 		case New:
