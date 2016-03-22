@@ -7,10 +7,20 @@
  * in the LICENSE file.
  */
 
+// cmux will server a tty file system structured as
+// /s/cmux
+// /dev/cmuxctl
+// /dev/cmuxsnarf
+// /dev/pty*
+// /dev/tty*
+// pty0 and tty0 will be the session leaders for stuff like ^Z
+// all half-baked theories.
 void	keyboardsend(char*, int);
+// whide/unhide will probably become console switching?
 int	whide(Window*);
 int	wunhide(int);
 void	freescrtemps(void);
+// /dev/ttyfs/ctl
 int	parsewctl(char**, Rectangle, Rectangle*, int*, int*, int*, int*, char**, char*, char*);
 int	writewctl(Xfid*, char*);
 Window *new(Image*, int, int, int, char*, char*, char**);
@@ -25,20 +35,12 @@ Timer*	timerstart(int);
 void	error(char*);
 void	killprocs(void);
 int	shutdown(void*, char*);
-void	iconinit(void);
 void	*erealloc(void*, uint);
 void *emalloc(uint);
 char *estrdup(char*);
-void	button3menu(void);
-void	button2menu(Window*);
-void	cvttorunes(char*, int, Rune*, int*, int*, int*);
-/* was (byte*,int)	runetobyte(Rune*, int); */
-char* runetobyte(Rune*, int, int*);
+// snarf buffer? Sure, why not? 
+// /dev/snarf can hold items to be pasted between consoles.
 void	putsnarf(void);
 void	getsnarf(void);
 void	timerinit(void);
-int	goodrect(Rectangle);
 
-#define	runemalloc(n)		malloc((n)*sizeof(Rune))
-#define	runerealloc(a, n)	realloc(a, (n)*sizeof(Rune))
-#define	runemove(a, b, n)	memmove(a, b, (n)*sizeof(Rune))

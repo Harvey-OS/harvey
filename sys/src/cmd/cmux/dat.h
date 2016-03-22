@@ -7,6 +7,19 @@
  * in the LICENSE file.
  */
 
+/* Things learned the hard way. Change very little. Don't delete stuff. Add new things.
+ * Change as little as you can get away with to start.
+ * Especially when you have no idea what you're doing. That's me.
+ * We're going to have a snarf file for snarfing between consoles; why not?
+ * hierarchy
+ * cmuxctl
+ * cmuxclone
+ * cmuxsnarf
+ * ptyx
+ * ttyx
+ * pty0 and tty0 are special
+ * The Window struct will be redefined; Image structs go away.
+ */
 enum
 {
 	Qdir,			/* /dev for this window */
@@ -88,7 +101,6 @@ struct Wctlmesg
 {
 	int		type;
 	Rectangle	r;
-	Image	*image;
 };
 
 struct Conswritemesg
@@ -134,8 +146,6 @@ struct Window
 {
 	Ref;
 	QLock;
-	Frame;
-	Image		*i;
 	Mousectl		mc;
 	Mouseinfo	mouse;
 	Channel		*ck;			/* chan(Rune[10]) */
@@ -309,22 +319,9 @@ struct Timer
 	Timer	*next;
 };
 
-Font		*font;
 Mousectl	*mousectl;
 Mouse	*mouse;
 Keyboardctl	*keyboardctl;
-Display	*display;
-Image	*view;
-Screen	*wscreen;
-Cursor	boxcursor;
-Cursor	crosscursor;
-Cursor	sightcursor;
-Cursor	whitearrow;
-Cursor	query;
-Cursor	*corners[9];
-Image	*background;
-Image	*lightgrey;
-Image	*red;
 Window	**window;
 Window	*wkeyboard;	/* window of simulated keyboard */
 int		nwindow;
