@@ -91,27 +91,6 @@ static char *params[] = {
 	nil
 };
 
-/*
- * Check that newly created window will be of manageable size
- */
-int
-goodrect(Rectangle r)
-{
-	if(!eqrect(canonrect(r), r))
-		return 0;
-	if(Dx(r)<100 || Dy(r)<3*font->height)
-		return 0;
-	/* must have some screen and border visible so we can move it out of the way */
-	if(Dx(r) >= Dx(screen->r) && Dy(r) >= Dy(screen->r))
-		return 0;
-	/* reasonable sizes only please */
-	if(Dx(r) > BIG*Dx(screen->r))
-		return 0;
-	if(Dy(r) > BIG*Dx(screen->r))
-		return 0;
-	return 1;
-}
-
 static
 int
 word(char **sp, char *tab[])
@@ -143,22 +122,6 @@ set(int sign, int neg, int abs, int pos)
 	return abs;
 }
 
-Rectangle
-newrect(void)
-{
-	static int i = 0;
-	int minx, miny, dx, dy;
-
-	dx = min(600, Dx(screen->r) - 2*Borderwidth);
-	dy = min(400, Dy(screen->r) - 2*Borderwidth);
-	minx = 32 + 16*i;
-	miny = 32 + 16*i;
-	i++;
-	i %= 10;
-
-	return Rect(minx, miny, minx+dx, miny+dy);
-}
-
 void
 shift(int *minp, int *maxp, int min, int max)
 {
@@ -172,13 +135,6 @@ shift(int *minp, int *maxp, int min, int max)
 	}
 }
 
-Rectangle
-rectonscreen(Rectangle r)
-{
-	shift(&r.min.x, &r.max.x, screen->r.min.x, screen->r.max.x);
-	shift(&r.min.y, &r.max.y, screen->r.min.y, screen->r.max.y);
-	return r;
-}
 
 /* permit square brackets, in the manner of %R */
 int
@@ -221,77 +177,6 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 	strcpy(err, "missing or bad wctl parameter");
 	while((param = word(&s, params)) >= 0){
 		switch(param){	/* special cases */
-		case Hidden:
-			*hiddenp = 1;
-			continue;
-		case Scrolling:
-			*scrollingp = 1;
-			continue;
-		case Noscrolling:
-			*scrollingp = 0;
-			continue;
-		case R:
-			r.min.x = riostrtol(s, &t);
-			if(t == s)
-				return -1;
-			s = t;
-			r.min.y = riostrtol(s, &t);
-			if(t == s)
-				return -1;
-			s = t;
-			r.max.x = riostrtol(s, &t);
-			if(t == s)
-				return -1;
-			s = t;
-			r.max.y = riostrtol(s, &t);
-			if(t == s)
-				return -1;
-			s = t;
-			continue;
-		}
-		while(isspace(*s))
-			s++;
-		if(param == Cd){
-			*cdp = s;
-			while(*s && !isspace(*s))
-				s++;
-			if(*s != '\0')
-				*s++ = '\0';
-			continue;
-		}
-		sign = 0;
-		if(*s == '-'){
-			sign = -1;
-			s++;
-		}else if(*s == '+'){
-			sign = +1;
-			s++;
-		}
-		if(!isdigit(*s))
-			return -1;
-		xy = riostrtol(s, &s);
-		switch(param){
-		case -1:
-			strcpy(err, "unrecognized wctl parameter");
-			return -1;
-		case Minx:
-			r.min.x = set(sign, r.min.x-xy, xy, r.min.x+xy);
-			break;
-		case Miny:
-			r.min.y = set(sign, r.min.y-xy, xy, r.min.y+xy);
-			break;
-		case Maxx:
-			r.max.x = set(sign, r.max.x-xy, xy, r.max.x+xy);
-			break;
-		case Maxy:
-			r.max.y = set(sign, r.max.y-xy, xy, r.max.y+xy);
-			break;
-		case Deltax:
-			r.max.x = set(sign, r.max.x-xy, r.min.x+xy, r.max.x+xy);
-			break;
-		case Deltay:
-			r.max.y = set(sign, r.max.y-xy, r.min.y+xy, r.max.y+xy);
-			break;
 		case Id:
 			if(idp != nil)
 				*idp = xy;
@@ -302,8 +187,6 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 			break;
 		}
 	}
-
-	*rp = rectonscreen(rectaddpt(r, screen->r.min));
 
 	while(isspace(*s))
 		s++;
@@ -318,17 +201,11 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 	return cmd;
 }
 
-int
-wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
-	char *dir, char *err)
+wctlnew(char *arg, int pid, char *dir, char *err)
 {
 	char **argv;
 	Image *i;
 
-	if(!goodrect(rect)){
-		strcpy(err, Ebadwr);
-		return -1;
-	}
 	argv = emalloc(4*sizeof(char*));
 	argv[0] = "rc";
 	argv[1] = "-c";
@@ -341,17 +218,11 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
 		argv[2] = arg;
 		argv[3] = nil;
 	}
-	if(hideit)
-		i = allocimage(display, rect, screen->chan, 0, DWhite);
-	else
-		i = allocwindow(wscreen, rect, Refbackup, DWhite);
 	if(i == nil){
 		strcpy(err, Ewalloc);
 		return -1;
 	}
-	border(i, rect, Selborder, red, ZP);
-
-	new(i, hideit, scrollit, pid, dir, "/bin/rc", argv);
+	//new(i, hideit, scrollit, pid, dir, "/bin/rc", argv);
 
 	free(argv);	/* when new() returns, argv and args have been copied */
 	return 1;
@@ -363,7 +234,6 @@ writewctl(Xfid *x, char *err)
 	int cnt, cmd, j, id, hideit, scrollit, pid;
 	Image *i;
 	char *arg, *dir;
-	Rectangle rect;
 	Window *w;
 
 	w = x->f->w;
@@ -371,15 +241,9 @@ writewctl(Xfid *x, char *err)
 	x->data[cnt] = '\0';
 	id = 0;
 
-	rect = rectsubpt(w->screenr, screen->r.min);
 	cmd = parsewctl(&arg, rect, &rect, &pid, &id, &hideit, &scrollit, &dir, x->data, err);
 	if(cmd < 0)
 		return -1;
-
-	if(mouse->buttons!=0 && cmd>=Top){
-		strcpy(err, "action disallowed when mouse active");
-		return -1;
-	}
 
 	if(id != 0){
 		for(j=0; j<nwindow; j++)
@@ -403,34 +267,6 @@ writewctl(Xfid *x, char *err)
 		if(pid > 0)
 			wsetpid(w, pid, 0);
 		return 1;
-	case Move:
-		rect = Rect(rect.min.x, rect.min.y, rect.min.x+Dx(w->screenr), rect.min.y+Dy(w->screenr));
-		rect = rectonscreen(rect);
-		/* fall through */
-	case Resize:
-		if(!goodrect(rect)){
-			strcpy(err, Ebadwr);
-			return -1;
-		}
-		if(eqrect(rect, w->screenr))
-			return 1;
-		i = allocwindow(wscreen, rect, Refbackup, DWhite);
-		if(i == nil){
-			strcpy(err, Ewalloc);
-			return -1;
-		}
-		border(i, rect, Selborder, red, ZP);
-		wsendctlmesg(w, Reshaped, i->r, i);
-		return 1;
-	case Scroll:
-		w->scrolling = 1;
-		wshow(w, w->nr);
-		wsendctlmesg(w, Wakeup, ZR, nil);
-		return 1;
-	case Noscroll:
-		w->scrolling = 0;
-		wsendctlmesg(w, Wakeup, ZR, nil);
-		return 1;
 	case Top:
 		wtopme(w);
 		return 1;
@@ -439,31 +275,6 @@ writewctl(Xfid *x, char *err)
 		return 1;
 	case Current:
 		wcurrent(w);
-		return 1;
-	case Hide:
-		switch(whide(w)){
-		case -1:
-			strcpy(err, "window already hidden");
-			return -1;
-		case 0:
-			strcpy(err, "hide failed");
-			return -1;
-		default:
-			break;
-		}
-		return 1;
-	case Unhide:
-		for(j=0; j<nhidden; j++)
-			if(hidden[j] == w)
-				break;
-		if(j == nhidden){
-			strcpy(err, "window not hidden");
-			return -1;
-		}
-		if(wunhide(j) == 0){
-			strcpy(err, "hide failed");
-			return -1;
-		}
 		return 1;
 	case Delete:
 		wsendctlmesg(w, Deleted, ZR, nil);
@@ -492,7 +303,7 @@ wctlthread(void *v)
 
 		switch(cmd){
 		case New:
-			wctlnew(rect, arg, pid, hideit, scrollit, dir, err);
+			wctlnew(arg, pid, dir, err);
 		}
 		free(buf);
 	}
