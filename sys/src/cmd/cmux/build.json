@@ -6,7 +6,7 @@
 		"Install": "/$ARCH/bin/",
 		"Program": "cmux",
 		"SourceFiles": [
-			"rio.c",
+			"cmux.c",
 			"fsys.c",
 			"time.c",
 			"util.c",

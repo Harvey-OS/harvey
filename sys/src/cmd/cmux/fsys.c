@@ -10,7 +10,6 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include <mouse.h>
 #include <keyboard.h>
 #include <fcall.h>
 #include "dat.h"

@@ -10,7 +10,6 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include <mouse.h>
 #include <keyboard.h>
 #include <fcall.h>
 #include <plumb.h>
@@ -26,7 +25,7 @@ enum
 	MinWater	= 20000,	/* room to leave available when reallocating */
 };
 
-static	int		topped;
+//static	int		topped;
 static	int		id;
 
 Window*
@@ -42,7 +41,6 @@ wmk(Mousectl *mc, Channel *ck, Channel *cctl)
 	w->consread =  chancreate(sizeof(Consreadmesg), 0);
 	w->mouseread =  chancreate(sizeof(Mousereadmesg), 0);
 	w->wctlread =  chancreate(sizeof(Consreadmesg), 0);
-	w->maxtab = maxtab*stringwidth(font, "0");
 	w->id = ++id;
 	w->notefd = -1;
 	w->dir = estrdup(startdir);
@@ -59,8 +57,8 @@ wsetname(Window *w)
 	
 	n = sprint(w->name, "window.%d.%d", w->id, w->namecount++);
 	for(i='A'; i<='Z'; i++){
-		if(nameimage(w->i, w->name, 1) > 0)
-			return;
+		//	if(nameimage(w->i, w->name, 1) > 0)
+//			return;
 		errstr(err, sizeof err);
 		if(strcmp(err, "image name in use") != 0)
 			break;
@@ -83,7 +81,7 @@ wclose(Window *w)
 		error("negative ref count");
 	if(!w->deleted)
 		wclosewin(w);
-	wsendctlmesg(w, Exited, ZR, nil);
+	wsendctlmesg(w, Exited, nil);
 	return 1;
 }
 
@@ -155,7 +153,7 @@ winctl(void *arg)
 			alts[WWread].op = CHANSND;
 		/* this code depends on NL and EOT fitting in a single byte */
 		/* kind of expensive for each loop; worth precomputing? */
-		else{
+		{
 			alts[WCread].op = CHANNOP;
 			for(i=w->qh; i<w->nr; i++){
 				c = w->run[i];
@@ -167,8 +165,8 @@ winctl(void *arg)
 		}
 		switch(alt(alts)){
 		case WKey:
-			for(i=0; kbdr[i]!=L'\0'; i++)
-				wkeyctl(w, kbdr[i]);
+//			for(i=0; kbdr[i]!=L'\0'; i++)
+//				wkeyctl(w, kbdr[i]);
 //			wkeyctl(w, r);
 ///			while(nbrecv(w->ck, &r))
 //				wkeyctl(w, r);
@@ -189,7 +187,7 @@ winctl(void *arg)
 					lastb = w->mc.buttons;
 				}
 			} else
-				wmousectl(w);
+				fprint(2, "MOUSECTL\n"); //wmousectl(w);
 			break;
 		case WMouseread:
 			/* send a queued event or, if the queue is empty, the current state */
@@ -207,6 +205,8 @@ winctl(void *arg)
 			send(mrm.cm, &m.Mouse);
 			continue;
 		case WCtl:
+			exits("WCtl can't do");
+#if 0
 			if(wctlmesg(w, wcm.type, wcm.r, wcm.image) == Exited){
 				chanfree(crm.c1);
 				chanfree(crm.c2);
@@ -216,6 +216,7 @@ winctl(void *arg)
 				chanfree(cwrm.c2);
 				threadexits(nil);
 			}
+			#endif
 			continue;
 		case WCwrite:
 			recv(cwm.cw, &pair);
@@ -243,7 +244,8 @@ winctl(void *arg)
 						if(initial > w->qh)
 							initial = w->qh;
 						qh = w->qh-initial;
-						wdelete(w, qh, qh+initial);
+						fprint(2, "WDELETE\n");
+						//wdelete(w, qh, qh+initial);
 						w->qh = qh;
 					}
 					free(rp);
@@ -252,8 +254,9 @@ winctl(void *arg)
 					rp[nr] = 0;
 					break;
 				}
-			w->qh = winsert(w, rp, nr, w->qh)+nr;
-			wsetselect(w, w->q0, w->q1);
+			fprint(2, "winsert!\n");
+//			w->qh = winsert(w, rp, nr, w->qh)+nr;
+//			wsetselect(w, w->q0, w->q1);
 			free(rp);
 			break;
 		case WCread:
@@ -293,7 +296,7 @@ winctl(void *arg)
 		case WWread:
 			w->wctlready = 0;
 			recv(cwrm.c1, &pair);
-			if(w->deleted || w->i==nil)
+			if(w->deleted)
 				pair.ns = sprint(pair.s, "");
 			else{
 				s = "visible";
@@ -305,14 +308,11 @@ winctl(void *arg)
 				t = "notcurrent";
 				if(w == input)
 					t = "current";
-				pair.ns = snprint(pair.s, pair.ns, "%11d %11d %11d %11d %s %s ",
-					w->i->r.min.x, w->i->r.min.y, w->i->r.max.x, w->i->r.max.y, t, s);
+				pair.ns = snprint(pair.s, pair.ns, "%s %s ",t, s);
 			}
 			send(cwrm.c2, &pair);
 			continue;
 		}
-		if(!w->deleted)
-			flushimage(display, 1);
 	}
 }
 
@@ -338,131 +338,24 @@ interruptproc(void *v)
 	free(notefd);
 }
 
-void
-wdelete(Window *w, uint q0, uint q1)
-{
-	uint n, p0, p1;
 
-	n = q1-q0;
-	if(n == 0)
-		return;
-	runemove(w->run+q0, w->run+q1, w->nr-q1);
-	w->nr -= n;
-	if(q0 < w->q0)
-		w->q0 -= min(n, w->q0-q0);
-	if(q0 < w->q1)
-		w->q1 -= min(n, w->q1-q0);
-	if(q1 < w->qh)
-		w->qh -= n;
-	else if(q0 < w->qh)
-		w->qh = q0;
-	if(q1 <= w->org)
-		w->org -= n;
-	else if(q0 < w->org+w->nchars){
-		p1 = q1 - w->org;
-		if(p1 > w->nchars)
-			p1 = w->nchars;
-		if(q0 < w->org){
-			w->org = q0;
-			p0 = 0;
-		}else
-			p0 = q0 - w->org;
-		frdelete(w, p0, p1);
-		wfill(w);
-	}
-}
-
-
-static Window	*clickwin;
-static uint	clickmsec;
-static Window	*selectwin;
-static uint	selectq;
+//static Window	*clickwin;
+//static uint	clickmsec;
+//static Window	*selectwin;
+//static uint	selectq;
 
 void
-wselect(Window *w)
-{
-	uint q0, q1;
-	int b, x, y, first;
-
-	first = 1;
-	selectwin = w;
-	/*
-	 * Double-click immediately if it might make sense.
-	 */
-	b = w->mc.buttons;
-	q0 = w->q0;
-	q1 = w->q1;
-	selectq = w->org+frcharofpt(w, w->mc.xy);
-	if(clickwin==w && w->mc.msec-clickmsec<500)
-	if(q0==q1 && selectq==w->q0){
-		wdoubleclick(w, &q0, &q1);
-		wsetselect(w, q0, q1);
-		q0 = w->q0;	/* may have changed */
-		q1 = w->q1;
-		selectq = q0;
-	}
-	if(w->mc.buttons == b){
-		w->scroll = framescroll;
-		/* horrible botch: while asleep, may have lost selection altogether */
-		if(selectq > w->nr)
-			selectq = w->org + w->p0;
-		if(selectq < w->org)
-			q0 = selectq;
-		else
-			q0 = w->org + w->p0;
-		if(selectq > w->org+w->nchars)
-			q1 = selectq;
-		else
-			q1 = w->org+w->p1;
-	}
-	if(q0 == q1){
-		if(q0==w->q0 && clickwin==w && w->mc.msec-clickmsec<500){
-			wdoubleclick(w, &q0, &q1);
-			clickwin = nil;
-		}else{
-			clickwin = w;
-			clickmsec = w->mc.msec;
-		}
-	}else
-		clickwin = nil;
-	wsetselect(w, q0, q1);
-	while(w->mc.buttons){
-		w->mc.msec = 0;
-		b = w->mc.buttons;
-		if(b & 6){
-			if(b & 2){
-				wsnarf(w);
-				wcut(w);
-			}else{
-				if(first){
-					first = 0;
-					getsnarf();
-				}
-				wpaste(w);
-			}
-		}
-		while(w->mc.buttons == b)
-			readmouse(&w->mc);
-		clickwin = nil;
-	}
-}
-
-void
-wsendctlmesg(Window *w, int type, Rectangle r, Image *image)
+wsendctlmesg(Window *w, int type, Image *image)
 {
 	Wctlmesg wcm;
 
 	wcm.type = type;
-	wcm.r = r;
-	wcm.image = image;
 	send(w->cctl, &wcm);
 }
 
 int
-wctlmesg(Window *w, int m, Rectangle r, Image *i)
+wctlmesg(Window *w, int m, Image *i)
 {
-	char buf[64];
-
 	switch(m){
 	default:
 		error("unknown control message");
@@ -475,7 +368,7 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 		if(w->deleted)
 			break;
 		while(w->nraw > 0){
-			wkeyctl(w, w->raw[0]);
+			//wkeyctl(w, w->raw[0]);
 			--w->nraw;
 			runemove(w->raw, w->raw+1, w->nraw);
 		}
@@ -493,7 +386,6 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 		wclosewin(w);
 		break;
 	case Exited:
-		frclear(w, TRUE);
 		close(w->notefd);
 		chanfree(w->mc.c);
 		chanfree(w->ck);
@@ -524,18 +416,20 @@ wcurrent(Window *w)
 	if(w != oi){
 		if(oi){
 			oi->wctlready = 1;
-			wsendctlmesg(oi, Wakeup, ZR, nil);
+			wsendctlmesg(oi, Wakeup, nil);
 		}
 		if(w){
 			w->wctlready = 1;
-			wsendctlmesg(w, Wakeup, ZR, nil);
+			wsendctlmesg(w, Wakeup, nil);
 		}
 	}
 }
 
 Window*
-wtop(Point pt)
+wtop(void)
 {
+	exits("wtop!");
+#if 0
 	Window *w;
 
 	w = wpointto(pt);
@@ -546,26 +440,10 @@ wtop(Point pt)
 		wcurrent(w);
 		w->topped = ++topped;
 	}
-	return w;
+#endif
+	return nil;
 }
 
-void
-wtopme(Window *w)
-{
-	if(w!=nil && w->i!=nil && !w->deleted && w->topped!=topped){
-		topwindow(w->i);
-		w->topped = ++ topped;
-	}
-}
-
-void
-wbottomme(Window *w)
-{
-	if(w!=nil && w->i!=nil && !w->deleted){
-		bottomwindow(w->i);
-		w->topped = - ++topped;
-	}
-}
 
 Window*
 wlookid(int id)
@@ -581,7 +459,6 @@ wlookid(int id)
 void
 wclosewin(Window *w)
 {
-	Rectangle r;
 	int i;
 
 	w->deleted = TRUE;
@@ -602,11 +479,6 @@ wclosewin(Window *w)
 			--nwindow;
 			memmove(window+i, window+i+1, (nwindow-i)*sizeof(Window*));
 			w->deleted = TRUE;
-			r = w->i->r;
-			/* move it off-screen to hide it, in case client is slow in letting it go */
-			MOVEIT originwindow(w->i, r.min, view->r.max);
-			freeimage(w->i);
-			w->i = nil;
 			return;
 		}
 	error("unknown window in closewin");

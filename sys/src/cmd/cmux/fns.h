@@ -21,10 +21,10 @@ int	whide(Window*);
 int	wunhide(int);
 void	freescrtemps(void);
 // /dev/ttyfs/ctl
-int	parsewctl(char**, Rectangle, Rectangle*, int*, int*, int*, int*, char**, char*, char*);
+int	parsewctl(char**, int*, int*, char**, char*, char*);
 int	writewctl(Xfid*, char*);
-Window *new(Image*, int, int, int, char*, char*, char**);
-void	riosetcursor(Cursor*, int);
+Window *new(Image*, int, char*, char*, char**);
+
 int	min(int, int);
 int	max(int, int);
 Rune*	strrune(Rune*, Rune);
@@ -44,3 +44,13 @@ void	putsnarf(void);
 void	getsnarf(void);
 void	timerinit(void);
 
+void	cvttorunes(char*, int, Rune*, int*, int*, int*);
+#define	runemalloc(n)		malloc((n)*sizeof(Rune))
+#define	runerealloc(a, n)	realloc(a, (n)*sizeof(Rune))
+#define	runemove(a, b, n)	memmove(a, b, (n)*sizeof(Rune))
+
+// ??
+void
+wsendctlmesg(Window *w, int m, Image *i);
+char*
+runetobyte(Rune *r, int n, int *ip);
