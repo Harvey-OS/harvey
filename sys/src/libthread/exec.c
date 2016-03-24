@@ -84,10 +84,14 @@ procexec(Channel *pidc, char *prog, char *args[])
 void
 procexecl(Channel *pidc, char *f, ...)
 {
-	/* we'll be very dumb about this, because the cost of doing this
-	 * is nothing compared the cost of an exec, and realloc
-	 * allocates extra space anyway -- often realloc just returns with nothing changed.
-	 * And, finally, usually the number of args is very small.
+	/*
+	 * The cost of realloc is trivial compared the cost of an exec,
+	 * and realloc doesn't necessarily allocate more space anyway;
+	 * often realloc just returns its argument doing no further work.
+	 * Finally, the number of args is usually small.
+	 *
+	 * There is always at least one element in the argument vector
+	 * passed to procexec(), and argv[argc] == nil.
 	 */
 	va_list a;
 	char **args = nil;
@@ -95,14 +99,12 @@ procexecl(Channel *pidc, char *f, ...)
 	int argc = 0;
 
 	va_start(a, f);
-	for(;;){
+	do {
 		arg = va_arg(a, char *);
 		argc++;
 		args = realloc(args, argc * sizeof(char *));
 		args[argc-1] = arg;
-		if (arg == nil)
-			break;
-	}
+	} while(arg != nil);
 	va_end(a);
 
 	procexec(pidc, f, args);
