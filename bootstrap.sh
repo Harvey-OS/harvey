@@ -10,9 +10,9 @@ GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install gith
 mkdir -p tmp
 
 cat <<EOF
-For now, we have on architecture:
+# We support RISC-V, but the default is x86_64 (which we call amd64 for historical reasons):
 export ARCH=amd64
-And build:
+# And build:
 ./util/build
-See \`build -h' for more information on the build tool.
+# See \`build -h' for more information on the build tool.
 EOF
