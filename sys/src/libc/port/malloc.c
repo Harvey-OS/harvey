@@ -44,7 +44,6 @@ static Pool sbrkmem = {
 	.private=		&sbrkmempriv,
 };
 Pool *mainmem = &sbrkmem;
-Pool *imagmem = &sbrkmem;
 
 /*
  * we do minimal bookkeeping so we can tell pool
