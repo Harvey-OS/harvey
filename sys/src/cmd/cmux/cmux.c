@@ -162,6 +162,7 @@ threadmain(int argc, char *argv[])
 		wkeyboard = new(&HardwareConsole, 0, nil, "/bin/rc", nil);
 		if(wkeyboard == nil)
 			error("can't create session leader console");
+		wcurrent(wkeyboard);
 		threadnotify(shutdown, 1);
 		recv(exitchan, nil);
 	}
@@ -293,12 +294,15 @@ keyboardthread(void* v)
 		rp = buf[n];
 		n = 1-n;
 		recv(keyboardctl->c, rp);
+fprint(2, "GOT SOMETHING FROM KE :%c:\n", *rp);
 		for(i=1; i<nelem(buf[0])-1; i++)
 			if(nbrecv(keyboardctl->c, rp+i) <= 0)
 				break;
 		rp[i] = L'\0';
+		fprint(2, "input is %p input->ck %p\n", input, input ? input -> ck :  nil);
 		if(input != nil)
 			sendp(input->ck, rp);
+		fprint(2, "done kb sent\n");
 	}
 	print_func_exit();
 }
