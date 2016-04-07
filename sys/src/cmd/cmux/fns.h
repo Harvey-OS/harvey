@@ -23,7 +23,7 @@ void	freescrtemps(void);
 // /dev/ttyfs/ctl
 int	parsewctl(char**, int*, int*, char**, char*, char*);
 int	writewctl(Xfid*, char*);
-Window *new(Image*, int, char*, char*, char**);
+Window *new(Console*, int, char*, char*, char**);
 
 int	min(int, int);
 int	max(int, int);
@@ -51,6 +51,6 @@ void	cvttorunes(char*, int, Rune*, int*, int*, int*);
 
 // ??
 void
-wsendctlmesg(Window *w, int m, Image *i);
+wsendctlmesg(Window *w, int m, Console *i);
 char*
 runetobyte(Rune *r, int n, int *ip);

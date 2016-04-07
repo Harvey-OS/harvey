@@ -45,6 +45,7 @@ static	int	ntsnarf;
 void
 xfidallocthread(void* vacio)
 {
+	print_func_entry();
 	Xfid *x;
 	enum { Alloc, Free, N };
 	static Alt alts[N+1];
@@ -92,20 +93,24 @@ xfidallocthread(void* vacio)
 			break;
 		}
 	}
+	print_func_exit();
 }
 
 Channel*
 xfidinit(void)
 {
+	print_func_entry();
 	cxfidalloc = chancreate(sizeof(Xfid*), 0);
 	cxfidfree = chancreate(sizeof(Xfid*), 0);
 	threadcreate(xfidallocthread, nil, STACK);
+	print_func_exit();
 	return cxfidalloc;
 }
 
 void
 xfidctl(void *arg)
 {
+	print_func_entry();
 	Xfid *x;
 	void (*f)(Xfid*);
 	char buf[64];
@@ -119,11 +124,13 @@ xfidctl(void *arg)
 		if(decref(x) == 0)
 			sendp(cxfidfree, x);
 	}
+	print_func_exit();
 }
 
 void
 xfidflush(Xfid *x)
 {
+	print_func_entry();
 	Fcall t;
 	Xfid *xf;
 
@@ -147,17 +154,19 @@ xfidflush(Xfid *x)
 			break;
 		}
 	filsysrespond(x->fs, x, &t, nil);
+	print_func_exit();
 }
 
 void
 xfidattach(Xfid *x)
 {
+	extern Console HardwareConsole;
+	print_func_entry();
 	Fcall t;
 	int id;
 	Window *w;
 	char *err = nil;
 	int pid = -1, newlymade;
-	Image *i = (void *)1;
 
 	t.qid = x->f->qid;
 	qlock(&all);
@@ -166,13 +175,10 @@ xfidattach(Xfid *x)
 	newlymade = FALSE;
 
 	if(x->aname[0] == 'N'){	/* N  */
-		if(i){
-			if(pid == 0)
-				pid = -1;	/* make sure we don't pop a shell! - UGH */
-			w = new(i, pid, nil, nil, nil);
-			newlymade = TRUE;
-		}else
-			err = Ewindow;
+		if(pid == 0)
+			pid = -1;	/* make sure we don't pop a shell! - UGH */
+		w = new(&HardwareConsole, pid, nil, nil, nil);
+		newlymade = TRUE;
 	}else{
 		id = atoi(x->aname);
 		w = wlookid(id);
@@ -182,29 +188,34 @@ xfidattach(Xfid *x)
 		qunlock(&all);
 		x->f->busy = FALSE;
 		filsysrespond(x->fs, x, &t, err);
+		print_func_exit();
 		return;
 	}
 	if(!newlymade)	/* counteract dec() in winshell() */
 		incref(w);
 	qunlock(&all);
 	filsysrespond(x->fs, x, &t, nil);
+	print_func_exit();
 }
 
 void
 xfidopen(Xfid *x)
 {
+	print_func_entry();
 	Fcall t;
 	Window *w;
 
 	w = x->f->w;
 	if(w->deleted){
 		filsysrespond(x->fs, x, &t, Edeleted);
+		print_func_exit();
 		return;
 	}
 	switch(FILE(x->f->qid)){
 	case Qconsctl:
 		if(w->ctlopen){
 			filsysrespond(x->fs, x, &t, Einuse);
+			print_func_exit();
 			return;
 		}
 		w->ctlopen = TRUE;
@@ -212,12 +223,14 @@ xfidopen(Xfid *x)
 	case Qkbdin:
 		if(w !=  wkeyboard){
 			filsysrespond(x->fs, x, &t, Eperm);
+			print_func_exit();
 			return;
 		}
 		break;
 	case Qmouse:
 		if(w->mouseopen){
 			filsysrespond(x->fs, x, &t, Einuse);
+			print_func_exit();
 			return;
 		}
 		/*
@@ -251,6 +264,7 @@ xfidopen(Xfid *x)
 			 */
 			if(w->wctlopen){
 				filsysrespond(x->fs, x, &t, Einuse);
+				print_func_exit();
 				return;
 			}
 			w->wctlopen = TRUE;
@@ -264,11 +278,13 @@ xfidopen(Xfid *x)
 	x->f->open = TRUE;
 	x->f->mode = x->mode;
 	filsysrespond(x->fs, x, &t, nil);
+	print_func_exit();
 }
 
 void
 xfidclose(Xfid *x)
 {
+	print_func_entry();
 	Fcall t;
 	Window *w;
 	int nb, nulls;
@@ -311,11 +327,13 @@ xfidclose(Xfid *x)
 	}
 	wclose(w);
 	filsysrespond(x->fs, x, &t, nil);
+	print_func_exit();
 }
 
 void
 xfidwrite(Xfid *x)
 {
+	print_func_entry();
 	Fcall fc;
 	int c, cnt, qid, nb, off, nr;
 	char buf[256], *p;
@@ -329,6 +347,7 @@ xfidwrite(Xfid *x)
 	w = x->f->w;
 	if(w->deleted){
 		filsysrespond(x->fs, x, &fc, Edeleted);
+		print_func_exit();
 		return;
 	}
 	qid = FILE(x->f->qid);
@@ -337,6 +356,7 @@ xfidwrite(Xfid *x)
 	x->data[cnt] = 0;
 	switch(qid){
 	case Qcons:
+fprint(2, "Qcons wirte\n");
 		nr = x->f->nrpart;
 		if(nr > 0){
 			memmove(x->data+nr, x->data, cnt);	/* there's room: see malloc in filsysproc */
@@ -372,6 +392,7 @@ xfidwrite(Xfid *x)
 			break;
 		case CWflush:
 			filsyscancel(x);
+			print_func_exit();
 			return;
 		}
 
@@ -383,15 +404,20 @@ xfidwrite(Xfid *x)
 			pair.ns = 0;
 			send(cwm.cw, &pair);		/* wake up window with empty data */
 			filsyscancel(x);
+			print_func_exit();
 			return;
 		}
+fprint(2, "OK send\n");
 		qlock(&x->active);
+fprint(2, "locked send\n");
 		pair.s = r;
 		pair.ns = nr;
 		send(cwm.cw, &pair);
 		fc.count = x->count;
+fprint(2, "POK send done\n");
 		filsysrespond(x->fs, x, &fc, nil);
 		qunlock(&x->active);
+		print_func_exit();
 		return;
 
 	case Qconsctl:
@@ -420,11 +446,13 @@ xfidwrite(Xfid *x)
 			break;
 		}
 		filsysrespond(x->fs, x, &fc, "unknown control message");
+		print_func_exit();
 		return;
 
 	case Qlabel:
 		if(off != 0){
 			filsysrespond(x->fs, x, &fc, "non-zero offset writing label");
+			print_func_exit();
 			return;
 		}
 		free(w->label);
@@ -438,11 +466,13 @@ xfidwrite(Xfid *x)
 			break;
 		if(x->data[0] != 'm'){
 			filsysrespond(x->fs, x, &fc, Ebadmouse);
+			print_func_exit();
 			return;
 		}
 		p = nil;
 		if(p == nil){
 			filsysrespond(x->fs, x, &fc, Eshort);
+			print_func_exit();
 			return;
 		}
 		break;
@@ -451,6 +481,7 @@ xfidwrite(Xfid *x)
 		/* always append only */
 		if(ntsnarf > MAXSNARF){	/* avoid thrashing when people cut huge text */
 			filsysrespond(x->fs, x, &fc, Elong);
+			print_func_exit();
 			return;
 		}
 		tsnarf = erealloc(tsnarf, ntsnarf+cnt+1);	/* room for NUL */
@@ -491,6 +522,7 @@ xfidwrite(Xfid *x)
 	case Qwctl:
 		if(writewctl(x, buf) < 0){
 			filsysrespond(x->fs, x, &fc, buf);
+			print_func_exit();
 			return;
 		}
 		break;
@@ -499,15 +531,18 @@ xfidwrite(Xfid *x)
 		fprint(2, buf, "unknown qid %d in write\n", qid);
 		sprint(buf, "unknown qid in write");
 		filsysrespond(x->fs, x, &fc, buf);
+		print_func_exit();
 		return;
 	}
 	fc.count = cnt;
 	filsysrespond(x->fs, x, &fc, nil);
+	print_func_exit();
 }
 
 void
 xfidread(Xfid *x)
 {
+	print_func_entry();
 	Fcall fc;
 	int n, off, cnt, c;
 	uint qid;
@@ -527,6 +562,7 @@ xfidread(Xfid *x)
 	w = x->f->w;
 	if(w->deleted){
 		filsysrespond(x->fs, x, &fc, Edeleted);
+		print_func_exit();
 		return;
 	}
 	qid = FILE(x->f->qid);
@@ -542,6 +578,7 @@ xfidread(Xfid *x)
 		fc.count = 0;
 		filsysrespond(x->fs, x, &fc, nil);
 		qunlock(&x->active);
+		print_func_exit();
 		return;
 	}
 	switch(qid){
@@ -561,6 +598,7 @@ xfidread(Xfid *x)
 			break;
 		case CRflush:
 			filsyscancel(x);
+			print_func_exit();
 			return;
 		}
 
@@ -577,6 +615,7 @@ xfidread(Xfid *x)
 			recv(c2, nil);			/* wake up window and toss data */
 			free(t);
 			filsyscancel(x);
+			print_func_exit();
 			return;
 		}
 		qlock(&x->active);
@@ -615,6 +654,7 @@ xfidread(Xfid *x)
 			break;
 		case MRflush:
 			filsyscancel(x);
+			print_func_exit();
 			return;
 		}
 
@@ -624,6 +664,7 @@ xfidread(Xfid *x)
 			recv(x->flushc, nil);		/* wake up flushing xfid */
 			recv(mrm.cm, nil);			/* wake up window and toss data */
 			filsyscancel(x);
+			print_func_exit();
 			return;
 		}
 		qlock(&x->active);
@@ -693,4 +734,5 @@ xfidread(Xfid *x)
 		filsysrespond(x->fs, x, &fc, buf);
 		break;
 	}
+	print_func_exit();
 }

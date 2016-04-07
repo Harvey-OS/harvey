@@ -22,26 +22,33 @@ static
 uint
 msec(void)
 {
+	print_func_entry();
+	print_func_exit();
 	return nsec()/1000000;
 }
 
 void
 timerstop(Timer *t)
 {
+	print_func_entry();
 	t->next = timer;
 	timer = t;
+	print_func_exit();
 }
 
 void
 timercancel(Timer *t)
 {
+	print_func_entry();
 	t->cancel = TRUE;
+	print_func_exit();
 }
 
 static
 void
 timerproc(void* vacio)
 {
+	print_func_entry();
 	int i, nt, na, dt, del;
 	Timer **t, *x;
 	uint old, new;
@@ -95,13 +102,16 @@ timerproc(void* vacio)
 		if(nbrecv(ctimer, &x) > 0)
 			goto gotit;
 	}
+	print_func_exit();
 }
 
 void
 timerinit(void)
 {
+	print_func_entry();
 	ctimer = chancreate(sizeof(Timer*), 100);
 	proccreate(timerproc, nil, STACK);
+	print_func_exit();
 }
 
 /*
@@ -112,6 +122,7 @@ timerinit(void)
 Timer*
 timerstart(int dt)
 {
+	print_func_entry();
 	Timer *t;
 
 	t = timer;
@@ -125,5 +136,6 @@ timerstart(int dt)
 	t->dt = dt;
 	t->cancel = FALSE;
 	sendp(ctimer, t);
+	print_func_exit();
 	return t;
 }

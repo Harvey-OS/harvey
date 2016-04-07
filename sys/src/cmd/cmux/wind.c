@@ -31,10 +31,11 @@ static	int		id;
 Window*
 wmk(Mousectl *mc, Channel *ck, Channel *cctl)
 {
+	print_func_entry();
 	Window *w;
 
 	w = emalloc(sizeof(Window));
-	w->mc = *mc;
+	// NO. w->mc = nil; // *mc;
 	w->ck = ck;
 	w->cctl = cctl;
 	w->conswrite = chancreate(sizeof(Conswritemesg), 0);
@@ -46,12 +47,14 @@ wmk(Mousectl *mc, Channel *ck, Channel *cctl)
 	w->dir = estrdup(startdir);
 	w->label = estrdup("<unnamed>");
 	incref(w);	/* ref will be removed after mounting; avoids delete before ready to be deleted */
+	print_func_exit();
 	return w;
 }
 
 void
 wsetname(Window *w)
 {
+	print_func_entry();
 	int i, n;
 	char err[ERRMAX];
 	
@@ -67,21 +70,26 @@ wsetname(Window *w)
 	}
 	w->name[0] = 0;
 	fprint(2, "rio: setname failed: %s\n", err);
+	print_func_exit();
 }
 
 int
 wclose(Window *w)
 {
+	print_func_entry();
 	int i;
 
 	i = decref(w);
-	if(i > 0)
+	if(i > 0) {
+		print_func_exit();
 		return 0;
+	}
 	if(i < 0)
 		error("negative ref count");
 	if(!w->deleted)
 		wclosewin(w);
 	wsendctlmesg(w, Exited, nil);
+	print_func_exit();
 	return 1;
 }
 
@@ -89,13 +97,14 @@ wclose(Window *w)
 void
 winctl(void *arg)
 {
+	print_func_entry();
 	Rune *rp, *bp, *tp, *up, *kbdr;
 	uint qh;
 	int nr, nb, c, wid, i, npart, initial, lastb;
 	char *s, *t, part[3];
 	Window *w;
 	Mousestate *mp, m;
-	enum { WKey, WMouse, WMouseread, WCtl, WCwrite, WCread, WWread, NWALT };
+	enum { WKey, /*WMouse, WMouseread, */WCtl, WCwrite, WCread, WWread, NWALT };
 	Alt alts[NWALT+1];
 	Mousereadmesg mrm;
 	Conswritemesg cwm;
@@ -104,7 +113,6 @@ winctl(void *arg)
 	Stringpair pair;
 	Wctlmesg wcm;
 	char buf[4*12+1];
-
 	w = arg;
 	snprint(buf, sizeof buf, "winctl-id%d", w->id);
 	threadsetname(buf);
@@ -120,12 +128,14 @@ winctl(void *arg)
 	alts[WKey].c = w->ck;
 	alts[WKey].v = &kbdr;
 	alts[WKey].op = CHANRCV;
+#if 0
 	alts[WMouse].c = w->mc.c;
 	alts[WMouse].v = &w->mc.Mouse;
 	alts[WMouse].op = CHANRCV;
 	alts[WMouseread].c = w->mouseread;
 	alts[WMouseread].v = &mrm;
 	alts[WMouseread].op = CHANSND;
+#endif
 	alts[WCtl].c = w->cctl;
 	alts[WCtl].v = &wcm;
 	alts[WCtl].op = CHANRCV;
@@ -143,10 +153,12 @@ winctl(void *arg)
 	npart = 0;
 	lastb = -1;
 	for(;;){
+#if 0
 		if(w->mouseopen && w->mouse.counter != w->mouse.lastcounter)
 			alts[WMouseread].op = CHANSND;
 		else
 			alts[WMouseread].op = CHANNOP;
+#endif
 		if(w->deleted || !w->wctlready)
 			alts[WWread].op = CHANNOP;
 		else
@@ -171,6 +183,7 @@ winctl(void *arg)
 ///			while(nbrecv(w->ck, &r))
 //				wkeyctl(w, r);
 			break;
+#if 0
 		case WMouse:
 			if(w->mouseopen) {
 				w->mouse.counter++;
@@ -204,6 +217,7 @@ winctl(void *arg)
 			w->mouse.lastcounter = m.counter;
 			send(mrm.cm, &m.Mouse);
 			continue;
+#endif
 		case WCtl:
 			exits("WCtl can't do");
 #if 0
@@ -223,43 +237,15 @@ winctl(void *arg)
 			rp = pair.s;
 			nr = pair.ns;
 			bp = rp;
-			for(i=0; i<nr; i++)
-				if(*bp++ == '\b'){
-					--bp;
-					initial = 0;
-					tp = runemalloc(nr);
-					runemove(tp, rp, i);
-					up = tp+i;
-					for(; i<nr; i++){
-						*up = *bp++;
-						if(*up == '\b')
-							if(up == tp)
-								initial++;
-							else
-								--up;
-						else
-							up++;
-					}
-					if(initial){
-						if(initial > w->qh)
-							initial = w->qh;
-						qh = w->qh-initial;
-						fprint(2, "WDELETE\n");
-						//wdelete(w, qh, qh+initial);
-						w->qh = qh;
-					}
-					free(rp);
-					rp = tp;
-					nr = up-tp;
-					rp[nr] = 0;
-					break;
-				}
-			fprint(2, "winsert!\n");
-//			w->qh = winsert(w, rp, nr, w->qh)+nr;
-//			wsetselect(w, w->q0, w->q1);
+			for(i=0; i<nr; i++) {
+				// See rio for the run conversion crap. For now, I'm not going to
+				// worry about it. This is designed to target Akaros too.
+				fprint(/*w->Console->out*/1, "%c", *bp++);
+			}
 			free(rp);
 			break;
 		case WCread:
+fprint(2, "Console read\n");
 			recv(crm.c1, &pair);
 			t = pair.s;
 			nb = pair.ns;
@@ -314,14 +300,17 @@ winctl(void *arg)
 			continue;
 		}
 	}
+	print_func_exit();
 }
 
 void
 waddraw(Window *w, Rune *r, int nr)
 {
+	print_func_entry();
 	w->raw = runerealloc(w->raw, w->nraw+nr);
 	runemove(w->raw+w->nraw, r, nr);
 	w->nraw += nr;
+	print_func_exit();
 }
 
 /*
@@ -331,11 +320,13 @@ waddraw(Window *w, Rune *r, int nr)
 void
 interruptproc(void *v)
 {
+	print_func_entry();
 	int *notefd;
 
 	notefd = v;
 	write(*notefd, "interrupt", 9);
 	free(notefd);
+	print_func_exit();
 }
 
 
@@ -345,17 +336,20 @@ interruptproc(void *v)
 //static uint	selectq;
 
 void
-wsendctlmesg(Window *w, int type, Image *image)
+wsendctlmesg(Window *w, int type, Console *image)
 {
+	print_func_entry();
 	Wctlmesg wcm;
 
 	wcm.type = type;
 	send(w->cctl, &wcm);
+	print_func_exit();
 }
 
 int
-wctlmesg(Window *w, int m, Image *i)
+wctlmesg(Window *w, int m, Console *i)
 {
+	print_func_entry();
 	switch(m){
 	default:
 		error("unknown control message");
@@ -401,16 +395,20 @@ wctlmesg(Window *w, int m, Image *i)
 		free(w);
 		break;
 	}
+	print_func_exit();
 	return m;
 }
 
 void
 wcurrent(Window *w)
 {
+	print_func_entry();
 	Window *oi;
 
-	if(wkeyboard!=nil && w==wkeyboard)
+	if(wkeyboard!=nil && w==wkeyboard) {
+		print_func_exit();
 		return;
+	}
 	oi = input;
 	input = w;
 	if(w != oi){
@@ -423,11 +421,13 @@ wcurrent(Window *w)
 			wsendctlmesg(w, Wakeup, nil);
 		}
 	}
+	print_func_exit();
 }
 
 Window*
 wtop(void)
 {
+	print_func_entry();
 	exits("wtop!");
 #if 0
 	Window *w;
@@ -441,6 +441,7 @@ wtop(void)
 		w->topped = ++topped;
 	}
 #endif
+	print_func_exit();
 	return nil;
 }
 
@@ -448,17 +449,25 @@ wtop(void)
 Window*
 wlookid(int id)
 {
+	print_func_entry();
 	int i;
 
+	fprint(2, "%d:", id);
 	for(i=0; i<nwindow; i++)
-		if(window[i]->id == id)
+		if(window[i]->id == id) {
+			fprint(2, "FOUND @%p", window[i]);
+			print_func_exit();
 			return window[i];
+		}
+	fprint(2, "NOT FOUND;");
+	print_func_exit();
 	return nil;
 }
 
 void
 wclosewin(Window *w)
 {
+	print_func_entry();
 	int i;
 
 	w->deleted = TRUE;
@@ -479,14 +488,17 @@ wclosewin(Window *w)
 			--nwindow;
 			memmove(window+i, window+i+1, (nwindow-i)*sizeof(Window*));
 			w->deleted = TRUE;
+			print_func_exit();
 			return;
 		}
 	error("unknown window in closewin");
+	print_func_exit();
 }
 
 void
 wsetpid(Window *w, int pid, int dolabel)
 {
+	print_func_entry();
 	char buf[128];
 	int fd;
 
@@ -501,11 +513,13 @@ wsetpid(Window *w, int pid, int dolabel)
 	if(w->notefd > 0)
 		close(w->notefd);
 	w->notefd = fd;
+	print_func_exit();
 }
 
 void
 winshell(void *args)
 {
+	print_func_entry();
 	Window *w;
 	Channel *pidc;
 	void **arg;
@@ -544,5 +558,16 @@ winshell(void *args)
 		procexec(pidc, cmd, argv);
 		_exits("exec failed");
 	}
+	print_func_exit();
 }
 
+int
+winfmt(Fmt *f)
+{
+	Window *w;
+
+	w = va_arg(f->args, Window*);
+	if (w < (void *)4096)
+		return fmtprint(f, "BOGUS w!: %p", w);
+	return fmtprint(f, "%p: %s", w, w->label);
+}
