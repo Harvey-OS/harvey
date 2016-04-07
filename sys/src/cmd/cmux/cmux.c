@@ -31,8 +31,6 @@ void		delete(void);
 void		hide(void);
 void		unhide(int);
 void		newtile(int);
-Image	*sweep(void);
-Image	*bandsize(Window*);
 void		resized(void);
 Channel	*exitchan;	/* chan(int) */
 Channel	*winclosechan; /* chan(Window*); */
@@ -76,11 +74,18 @@ char *kbdargv[] = { "rc", "-c", nil, nil };
 
 int errorshouldabort = 0;
 
+Console HardwareConsole = {
+	.in = 0,
+	.out = 1,
+};
+
 void
 usage(void)
 {
+	print_func_entry();
 	fprint(2, "usage: cmux [-k kbdcmd]\n");
 	exits("usage");
+	print_func_exit();
 }
 
 void
@@ -100,8 +105,9 @@ threadmain(int argc, char *argv[])
 			usage();
 		break;
 		break;
-	}ARGEND
-
+	}ARGEND;
+	fmtinstall('W', winfmt);
+	fmtinstall('f', fidfmt);
 	mainpid = getpid();
 	if(getwd(buf, sizeof buf) == nil)
 		startdir = estrdup(".");
@@ -143,7 +149,8 @@ threadmain(int argc, char *argv[])
 		fprint(2, "cmux: can't create file system server: %r\n");
 	else{
 		errorshouldabort = 1;	/* suicide if there's trouble after this */
-		proccreate(initcmd, nil, STACK);
+#if 0
+//		proccreate(initcmd, nil, STACK);
 		if(kbdin){
 			kbdargv[2] = kbdin;
 			//i = allocwindow(wscreen, r, Refbackup, DWhite);
@@ -151,6 +158,10 @@ threadmain(int argc, char *argv[])
 			if(wkeyboard == nil)
 				error("can't create keyboard window");
 		}
+#endif
+		wkeyboard = new(&HardwareConsole, 0, nil, "/bin/rc", nil);
+		if(wkeyboard == nil)
+			error("can't create session leader console");
 		threadnotify(shutdown, 1);
 		recv(exitchan, nil);
 	}
@@ -165,13 +176,18 @@ threadmain(int argc, char *argv[])
 void
 putsnarf(void)
 {
+	print_func_entry();
 	int fd, i, n;
 
-	if(snarffd<0 || nsnarf==0)
+	if(snarffd<0 || nsnarf==0) {
+		print_func_exit();
 		return;
+	}
 	fd = open("/dev/snarf", OWRITE);
-	if(fd < 0)
+	if(fd < 0) {
+		print_func_exit();
 		return;
+	}
 	/* snarf buffer could be huge, so fprint will truncate; do it in blocks */
 	for(i=0; i<nsnarf; i+=n){
 		n = nsnarf-i;
@@ -181,16 +197,20 @@ putsnarf(void)
 			break;
 	}
 	close(fd);
+	print_func_exit();
 }
 
 void
 getsnarf(void)
 {
+	print_func_entry();
 	int i, n, nb, nulls;
 	char *sn, buf[1024];
 
-	if(snarffd < 0)
+	if(snarffd < 0) {
+		print_func_exit();
 		return;
+	}
 	sn = nil;
 	i = 0;
 	seek(snarffd, 0, 0);
@@ -205,16 +225,19 @@ getsnarf(void)
 		cvttorunes(sn, i, snarf, &nb, &nsnarf, &nulls);
 		free(sn);
 	}
+	print_func_exit();
 }
 
 void
 initcmd(void *arg)
 {
+	print_func_entry();
 
 	rfork(RFENVG|RFFDG|RFNOTEG|RFNAMEG);
 	procexecl(nil, "/bin/rc", "rc", "-i", nil);
 	fprint(2, "cmux: exec failed: %r\n");
 	exits("exec");
+	print_func_exit();
 }
 
 char *oknotes[] =
@@ -229,6 +252,7 @@ char *oknotes[] =
 int
 shutdown(void * vacio, char *msg)
 {
+	print_func_entry();
 	int i;
 	static Lock shutdownlk;
 	
@@ -241,21 +265,25 @@ shutdown(void * vacio, char *msg)
 	fprint(2, "cmux %d: abort: %s\n", getpid(), msg);
 	abort();
 	exits(msg);
+	print_func_exit();
 	return 0;
 }
 
 void
 killprocs(void)
 {
+	print_func_entry();
 	int i;
 
 	for(i=0; i<nwindow; i++)
 		postnote(PNGROUP, window[i]->pid, "hangup");
+		print_func_exit();
 }
 
 void
 keyboardthread(void* v)
 {
+	print_func_entry();
 	Rune buf[2][20], *rp;
 	int n, i;
 
@@ -272,6 +300,7 @@ keyboardthread(void* v)
 		if(input != nil)
 			sendp(input->ck, rp);
 	}
+	print_func_exit();
 }
 
 /*
@@ -280,6 +309,7 @@ keyboardthread(void* v)
 void
 keyboardsend(char *s, int cnt)
 {
+	print_func_entry();
 	Rune *r;
 	int i, nb, nr;
 
@@ -289,17 +319,24 @@ keyboardsend(char *s, int cnt)
 	for(i=0; i<nr; i++)
 		send(keyboardctl->c, &r[i]);
 	free(r);
+	print_func_exit();
 }
 
 int
 portion(int x, int lo, int hi)
 {
+	print_func_entry();
 	x -= lo;
 	hi -= lo;
-	if(x < 20)
+	if(x < 20) {
+		print_func_exit();
 		return 0;
-	if(x > hi-20)
+	}
+	if(x > hi-20) {
+		print_func_exit();
 		return 2;
+	}
+	print_func_exit();
 	return 1;
 }
 
@@ -307,6 +344,7 @@ portion(int x, int lo, int hi)
 void
 winclosethread(void* v)
 {
+	print_func_entry();
 	Window *w;
 
 	threadsetname("winclosethread");
@@ -314,12 +352,14 @@ winclosethread(void* v)
 		w = recvp(winclosechan);
 		wclose(w);
 	}
+	print_func_exit();
 }
 
 /* thread to make Deleted windows that the client still holds disappear offscreen after an interval */
 void
 deletethread(void* v)
 {
+	print_func_entry();
 	char *s;
 
 
@@ -330,38 +370,46 @@ deletethread(void* v)
 //		freeimage(i);
 		free(s);
 	}
+	print_func_exit();
 }
 
 void
 deletetimeoutproc(void *v)
 {
+	print_func_entry();
 	char *s;
 
 	s = v;
 	sleep(750);	/* remove window from screen after 3/4 of a second */
 	sendp(deletechan, s);
+	print_func_exit();
 }
 
 void
 delete(void)
 {
+	print_func_entry();
 //	Window *w;
 	fprint(2, "can't delete!\n");
 //	w = nil; //pointto(TRUE);
 //	if(w)
 //		wsendctlmesg(w, Deleted, ZR, nil);
+	print_func_exit();
 }
 
 Window*
-new(Image *i, int pid, char *dir, char *cmd, char **argv)
+new(Console *i, int pid, char *dir, char *cmd, char **argv)
 {
+	print_func_entry();
 	Window *w;
 	Mousectl *mc = nil; // someday.
 	Channel *cm, *ck, *cctl, *cpid;
 	void **arg;
 
-	if(i == nil)
+	if(i == nil) {
+		print_func_exit();
 		return nil;
+	}
 	cm = chancreate(sizeof(Mouse), 0);
 	ck = chancreate(sizeof(Rune*), 0);
 	cctl = chancreate(sizeof(Wctlmesg), 4);
@@ -369,12 +417,12 @@ new(Image *i, int pid, char *dir, char *cmd, char **argv)
 	if(cm==nil || ck==nil || cctl==nil)
 		error("new: channel alloc failed");
 	mc = emalloc(sizeof(Mousectl));
-	*mc = *mousectl;
-	mc->c = cm;
+	// NO. *mc = *mousectl;
+	// NO. mc->c = cm;
 	w = wmk(mc, ck, cctl);
-	w = nil;
 	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
+fprint(2, "-----------> Set Window  %d to %p\n", nwindow-1, w);
 	window[nwindow-1] = w;
 	threadcreate(winctl, w, 8192);
 	if(pid == 0){
@@ -395,6 +443,7 @@ new(Image *i, int pid, char *dir, char *cmd, char **argv)
 		/* window creation failed */
 		fprint(2, "not killing it\n"); //wsendctlmesg(w, Deleted, ZR, nil);
 		chanfree(cpid);
+		print_func_exit();
 		return nil;
 	}
 	wsetpid(w, pid, 1);
@@ -402,5 +451,6 @@ new(Image *i, int pid, char *dir, char *cmd, char **argv)
 	if(dir)
 		w->dir = estrdup(dir);
 	chanfree(cpid);
+	print_func_exit();
 	return w;
 }

@@ -8,6 +8,7 @@
 		"SourceFiles": [
 			"cmux.c",
 			"fsys.c",
+			"kdebug.c",
 			"time.c",
 			"util.c",
 			"wctl.c",
