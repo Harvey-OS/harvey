@@ -212,7 +212,7 @@ struct Window
 void		winctl(void*);
 void		winshell(void*);
 Window*	wlookid(int);
-//Window*	wmk(Image*, Mousectl*, Channel*, Channel*, int);
+Window*	wmk(Mousectl*, Channel*, Channel*);
 void		wtopme(Window*);
 void		wbottomme(Window*);
 char*	wcontents(Window*, int*);

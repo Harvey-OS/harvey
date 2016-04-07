@@ -24,7 +24,7 @@ char	Eoffset[] = "illegal offset";
 int	messagesize = 8192+IOHDRSZ;	/* good start */
 
 enum{
-	DEBUG = 0
+	DEBUG = 1
 };
 
 Dirtab dirtab[]=

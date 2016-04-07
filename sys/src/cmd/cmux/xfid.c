@@ -155,14 +155,14 @@ xfidattach(Xfid *x)
 	Fcall t;
 	int id;
 	Window *w;
-	char *err;
+	char *err = nil;
 	int pid = -1, newlymade;
-	Image *i = nil;
+	Image *i = (void *)1;
 
 	t.qid = x->f->qid;
 	qlock(&all);
 	w = nil;
-	err = Eunkid;
+	//err = Eunkid;
 	newlymade = FALSE;
 
 	if(x->aname[0] == 'N'){	/* N  */
