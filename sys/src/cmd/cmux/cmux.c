@@ -114,7 +114,11 @@ threadmain(int argc, char *argv[])
 		maxtab = 4;
 	free(s);
 
-	snarffd = open("/dev/snarf", OREAD|OCEXEC);
+	if (0) {
+		snarffd = open("/dev/snarf", OREAD|OCEXEC);
+	} else {
+		snarffd = -1;
+	}
 
 	if (0) {
 //		mousectl = initmouse(nil, screen);
@@ -352,7 +356,7 @@ Window*
 new(Image *i, int pid, char *dir, char *cmd, char **argv)
 {
 	Window *w;
-	Mousectl *mc;
+	Mousectl *mc = nil; // someday.
 	Channel *cm, *ck, *cctl, *cpid;
 	void **arg;
 
@@ -367,7 +371,7 @@ new(Image *i, int pid, char *dir, char *cmd, char **argv)
 	mc = emalloc(sizeof(Mousectl));
 	*mc = *mousectl;
 	mc->c = cm;
-	//w = wmk(i, mc, ck, cctl, scrollit);
+	w = wmk(mc, ck, cctl);
 	w = nil;
 	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
