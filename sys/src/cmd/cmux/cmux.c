@@ -294,15 +294,12 @@ keyboardthread(void* v)
 		rp = buf[n];
 		n = 1-n;
 		recv(keyboardctl->c, rp);
-fprint(2, "GOT SOMETHING FROM KE :%c:\n", *rp);
 		for(i=1; i<nelem(buf[0])-1; i++)
 			if(nbrecv(keyboardctl->c, rp+i) <= 0)
 				break;
 		rp[i] = L'\0';
-		fprint(2, "input is %p input->ck %p\n", input, input ? input -> ck :  nil);
 		if(input != nil)
 			sendp(input->ck, rp);
-		fprint(2, "done kb sent\n");
 	}
 	print_func_exit();
 }
@@ -426,7 +423,7 @@ new(Console *i, int pid, char *dir, char *cmd, char **argv)
 	w = wmk(mc, ck, cctl);
 	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
-fprint(2, "-----------> Set Window  %d to %p\n", nwindow-1, w);
+
 	window[nwindow-1] = w;
 	threadcreate(winctl, w, 8192);
 	if(pid == 0){

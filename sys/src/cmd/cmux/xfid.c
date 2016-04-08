@@ -356,7 +356,7 @@ xfidwrite(Xfid *x)
 	x->data[cnt] = 0;
 	switch(qid){
 	case Qcons:
-fprint(2, "Qcons wirte\n");
+
 		nr = x->f->nrpart;
 		if(nr > 0){
 			memmove(x->data+nr, x->data, cnt);	/* there's room: see malloc in filsysproc */
@@ -407,14 +407,11 @@ fprint(2, "Qcons wirte\n");
 			print_func_exit();
 			return;
 		}
-fprint(2, "OK send\n");
 		qlock(&x->active);
-fprint(2, "locked send\n");
 		pair.s = r;
 		pair.ns = nr;
 		send(cwm.cw, &pair);
 		fc.count = x->count;
-fprint(2, "POK send done\n");
 		filsysrespond(x->fs, x, &fc, nil);
 		qunlock(&x->active);
 		print_func_exit();
@@ -584,7 +581,6 @@ xfidread(Xfid *x)
 	switch(qid){
 	case Qcons:
 		x->flushtag = x->tag;
-
 		alts[CRdata].c = w->consread;
 		alts[CRdata].v = &crm;
 		alts[CRdata].op = CHANRCV;

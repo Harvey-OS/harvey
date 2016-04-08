@@ -177,12 +177,11 @@ winctl(void *arg)
 				}
 			}
 		}
-fprint(2, "--------> call alts:");
+
 		walt = alt(alts);
-fprint(2, "GETS %d\n", walt);
+
 		switch(walt){
 		case WKey:
-fprint(2, "WKEY! \n");
 			for(i=0; kbdr[i]!=L'\0'; i++)
 				wkeyctl(w, kbdr[i]);
 			//wkeyctl(w, r);
@@ -249,7 +248,6 @@ fprint(2, "WKEY! \n");
 			free(rp);
 			break;
 		case WCread:
-fprint(2, "------------------>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Console read\n");
 			recv(crm.c1, &pair);
 			t = pair.s;
 			nb = pair.ns;
@@ -307,10 +305,64 @@ fprint(2, "------------------>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Co
 	print_func_exit();
 }
 
+uint
+winsert(Window *w, Rune *r, int n, uint q0)
+{
+	uint m;
+
+	if(n == 0)
+		return q0;
+	if(w->nr+n>HiWater && q0>=w->org && q0>=w->qh){
+		m = min(HiWater-LoWater, min(w->org, w->qh));
+		w->org -= m;
+		w->qh -= m;
+		if(w->q0 > m)
+			w->q0 -= m;
+		else
+			w->q0 = 0;
+		if(w->q1 > m)
+			w->q1 -= m;
+		else
+			w->q1 = 0;
+		w->nr -= m;
+		runemove(w->run, w->run+m, w->nr);
+		q0 -= m;
+	}
+	if(w->nr+n > w->maxr){
+		/*
+		 * Minimize realloc breakage:
+		 *	Allocate at least MinWater
+		 * 	Double allocation size each time
+		 *	But don't go much above HiWater
+		 */
+		m = max(min(2*(w->nr+n), HiWater), w->nr+n)+MinWater;
+		if(m > HiWater)
+			m = max(HiWater+MinWater, w->nr+n);
+		if(m > w->maxr){
+			w->run = runerealloc(w->run, m);
+			w->maxr = m;
+		}
+	}
+	runemove(w->run+q0+n, w->run+q0, w->nr-q0);
+	runemove(w->run+q0, r, n);
+	w->nr += n;
+	/* if output touches, advance selection, not qh; works best for keyboard and output */
+	// TODO don't know if we might want this for displaying text.
+	if(q0 <= w->q1)
+		w->q1 += n;
+	if(q0 <= w->q0)
+		w->q0 += n;
+	if(q0 < w->qh)
+		w->qh += n;
+	if(q0 < w->org)
+		w->org += n;
+	return q0;
+}
 void
 wkeyctl(Window *w, Rune r)
 {
 
+	uint q0;
 
 	if(r == 0)
 		return;
@@ -444,11 +496,11 @@ wkeyctl(Window *w, Rune r)
 		return;
 	}
 
+	wshow(w, q0+1);
+#endif
 	/* otherwise ordinary character; just insert */
 	q0 = w->q0;
 	q0 = winsert(w, &r, 1, q0);
-	wshow(w, q0+1);
-#endif
 }
 
 void
