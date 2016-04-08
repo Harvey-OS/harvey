@@ -221,6 +221,7 @@ threadmain(int argc, char *argv[])
 		fprint(2, "rio: can't create file system server: %r\n");
 	else{
 		errorshouldabort = 1;	/* suicide if there's trouble after this */
+#if 0
 		if(initstr)
 			proccreate(initcmd, initstr, STACK);
 		if(kbdin){
@@ -233,6 +234,7 @@ threadmain(int argc, char *argv[])
 			if(wkeyboard == nil)
 				error("can't create keyboard window");
 		}
+#endif
 		threadnotify(shutdown, 1);
 		recv(exitchan, nil);
 	}

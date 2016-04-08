@@ -18,7 +18,7 @@
  * ptyx
  * ttyx
  * pty0 and tty0 are special
- * The Window struct will be redefined; Image structs go away.
+ * The Window struct will be redefined
  */
 enum
 {
@@ -68,7 +68,7 @@ typedef	struct	Timer Timer;
 typedef	struct	Wctlmesg Wctlmesg;
 typedef	struct	Window Window;
 typedef	struct	Xfid Xfid;
-typedef void *Image;
+typedef struct  Console Console;
 
 enum
 {
@@ -98,6 +98,14 @@ enum	/* control messages */
 	Holdoff,
 	Deleted,
 	Exited,
+};
+
+/* The Console contains info about the physical console, i.e. the /dev/console we open
+ * on startup.
+ */
+struct Console {
+	int in;
+	int out;
 };
 
 struct Wctlmesg
@@ -132,7 +140,7 @@ struct Mousectl
 	int		mfd;		/* to mouse file */
 	int		cfd;		/* to cursor file */
 	int		pid;		/* of slave proc */
-	Image*	image;	/* of associated window/display */
+	Console*	image;	/* of associated window/display */
 };
 
 struct Mousereadmesg
@@ -212,15 +220,15 @@ struct Window
 void		winctl(void*);
 void		winshell(void*);
 Window*	wlookid(int);
-//Window*	wmk(Image*, Mousectl*, Channel*, Channel*, int);
+Window*	wmk(Mousectl*, Channel*, Channel*);
 void		wtopme(Window*);
 void		wbottomme(Window*);
 char*	wcontents(Window*, int*);
 int		wbswidth(Window*, Rune);
 int		wclickmatch(Window*, int, int, int, uint*);
 int		wclose(Window*);
-//int		wctlmesg(Window*, int, Rectangle, Image*);
-//int		wctlmesg(Window*, int, Rectangle, Image*);
+//int		wctlmesg(Window*, int, Rectangle, Console*);
+//int		wctlmesg(Window*, int, Rectangle, Console*);
 uint		wbacknl(Window*, uint, uint);
 uint		winsert(Window*, Rune*, int, uint);
 void		waddraw(Window*, Rune*, int);
@@ -239,11 +247,11 @@ void		wpaste(Window*);
 void		wplumb(Window*);
 //void		wrefresh(Window*, Rectangle);
 void		wrepaint(Window*);
-void		wresize(Window*, Image*, int);
+void		wresize(Window*, Console*, int);
 void		wscrdraw(Window*);
 void		wscroll(Window*, int);
 void		wselect(Window*);
-//void		wsendctlmesg(Window*, int, Rectangle, Image*);
+//void		wsendctlmesg(Window*, int, Rectangle, Console*);
 void		wsetcursor(Window*, int);
 void		wsetname(Window*);
 void		wsetorigin(Window*, uint, int);
@@ -361,3 +369,13 @@ int		errorshouldabort;
 int		menuing;		/* menu action is pending; waiting for window to be indicated */
 int		snarfversion;	/* updated each time it is written */
 int		messagesize;		/* negotiated in 9P version setup */
+
+/* special formats.  */
+int fidfmt(Fmt *f);
+int winfmt(Fmt *f);
+
+/* For a poor-mans function tracer (can add these with spatch) */
+void __print_func_entry(const char *func, const char *file);
+void __print_func_exit(const char *func, const char *file);
+#define print_func_entry() __print_func_entry(__FUNCTION__, __FILE__)
+#define print_func_exit() __print_func_exit(__FUNCTION__, __FILE__)
