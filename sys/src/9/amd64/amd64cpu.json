@@ -24,6 +24,7 @@
 					"draw",
 					"dup",
 					"env",
+					"fdmux",
 					"ether",
 					"ip",
 					"kbin",
