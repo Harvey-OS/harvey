@@ -13,6 +13,7 @@
 			"chdir.c",
 			"conswrite.c",
 			"execl.c",
+			"fdmux.c",
 			"float.c",
 			"fork.c",
 			"frexp.c",
