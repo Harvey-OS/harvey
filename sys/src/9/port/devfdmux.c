@@ -29,6 +29,7 @@ struct Fdmux
 	int	qref[2];
 	int	owner; // pid of owner.
 	int	pgrpid; // id of processes allowed to read/write fd[1]. If they do not match, they slep
+	int	slpid;	// session leader. If > 0, we send them a note if anyone blocks on read/write.
 	Rendez r;
 };
 
