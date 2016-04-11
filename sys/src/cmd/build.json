@@ -152,6 +152,7 @@
 			"dossrv/dossrv.json",
 			"exportfs/exportfs.json",
 			"fossil/fossil.json",
+			"gdbserver/build.json",
 			"iostats/build.json",
 			"ip/ip.json",
 			"hoc/hoc.json",
