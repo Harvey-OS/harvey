@@ -1259,24 +1259,24 @@ sslinit(void)
 }
 
 Dev ssldevtab = {
-	'D',
-	"ssl",
+	.dc = 'D',
+	.name = "ssl",
 
-	devreset,
-	sslinit,
-	devshutdown,
-	sslattach,
-	sslwalk,
-	sslstat,
-	sslopen,
-	devcreate,
-	sslclose,
-	sslread,
-	sslbread,
-	sslwrite,
-	sslbwrite,
-	devremove,
-	sslwstat,
+	.reset = devreset,
+	.init = sslinit,
+	.shutdown = devshutdown,
+	.attach = sslattach,
+	.walk = sslwalk,
+	.stat = sslstat,
+	.open = sslopen,
+	.create = devcreate,
+	.close = sslclose,
+	.read = sslread,
+	.bread = sslbread,
+	.write = sslwrite,
+	.bwrite = sslbwrite,
+	.remove = devremove,
+	.wstat = sslwstat,
 };
 
 static Block*

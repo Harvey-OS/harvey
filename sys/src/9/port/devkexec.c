@@ -345,24 +345,24 @@ kexecwrite(Chan *c, void *a, int32_t n, int64_t off)
 }
 
 Dev kexecdevtab = {
-	L'§',
-	"kexec",
+	.dc = L'§',
+	.name = "kexec",
 
-	devreset,
-	devinit,
-	devshutdown,
-	kexecattach,
-	kexecwalk,
-	kexecstat,
-	kexecopen,
-	kexeccreate,
-	kexecclose,
-	kexecread,
-	devbread,
-	kexecwrite,
-	devbwrite,
-	kexecremove,
-	devwstat,
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = kexecattach,
+	.walk = kexecwalk,
+	.stat = kexecstat,
+	.open = kexecopen,
+	.create = kexeccreate,
+	.close = kexecclose,
+	.read = kexecread,
+	.bread = devbread,
+	.write = kexecwrite,
+	.bwrite = devbwrite,
+	.remove = kexecremove,
+	.wstat = devwstat,
 };
 
 void
@@ -415,4 +415,3 @@ kexecwriteable(Chan *c)
 {
 	return iseve() || c->aux == nil;
 }
-

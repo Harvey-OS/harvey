@@ -1525,26 +1525,26 @@ sdconfig(int on, char* spec, DevConf* cf)
 }
 
 Dev sddevtab = {
-	'S',
-	"sd",
+	.dc = 'S',
+	.name = "sd",
 
-	sdreset,
-	devinit,
-	devshutdown,
-	sdattach,
-	sdwalk,
-	sdstat,
-	sdopen,
-	devcreate,
-	sdclose,
-	sdread,
-	devbread,
-	sdwrite,
-	devbwrite,
-	devremove,
-	sdwstat,
-	devpower,
-	sdconfig,	/* probe; only called for pcmcia-like devices */
+	.reset = sdreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = sdattach,
+	.walk = sdwalk,
+	.stat = sdstat,
+	.open = sdopen,
+	.create = devcreate,
+	.close = sdclose,
+	.read = sdread,
+	.bread = devbread,
+	.write = sdwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = sdwstat,
+	.power = devpower,
+	.config = sdconfig,	/* probe; only called for pcmcia-like devices */
 };
 
 /*
