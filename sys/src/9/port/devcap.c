@@ -274,22 +274,22 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 Dev capdevtab = {
-	L'¤',
-	"cap",
+	.dc = L'¤',
+	.name = "cap",
 
-	devreset,
-	devinit,
-	devshutdown,
-	capattach,
-	capwalk,
-	capstat,
-	capopen,
-	devcreate,
-	capclose,
-	capread,
-	devbread,
-	capwrite,
-	devbwrite,
-	capremove,
-	devwstat
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = capattach,
+	.walk = capwalk,
+	.stat = capstat,
+	.open = capopen,
+	.create = devcreate,
+	.close = capclose,
+	.read = capread,
+	.bread = devbread,
+	.write = capwrite,
+	.bwrite = devbwrite,
+	.remove = capremove,
+	.wstat = devwstat
 };
