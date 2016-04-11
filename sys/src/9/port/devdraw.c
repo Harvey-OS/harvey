@@ -2121,24 +2121,24 @@ drawmesg(Client *client, void *av, int n)
 }
 
 Dev drawdevtab = {
-	'i',
-	"draw",
+	.dc = 'i',
+	.name = "draw",
 
-	devreset,
-	devinit,
-	devshutdown,
-	drawattach,
-	drawwalk,
-	drawstat,
-	drawopen,
-	devcreate,
-	drawclose,
-	drawread,
-	devbread,
-	drawwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = drawattach,
+	.walk = drawwalk,
+	.stat = drawstat,
+	.open = drawopen,
+	.create = devcreate,
+	.close = drawclose,
+	.read = drawread,
+	.bread = devbread,
+	.write = drawwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
 
 /*

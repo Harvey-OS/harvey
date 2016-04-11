@@ -480,24 +480,24 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t r)
 }
 
 Dev mousedevtab = {
-	'm',
-	"mouse",
+	.dc = 'm',
+	.name = "mouse",
 
-	mousereset,
-	mouseinit,
-	devshutdown,
-	mouseattach,
-	mousewalk,
-	mousestat,
-	mouseopen,
-	mousecreate,
-	mouseclose,
-	mouseread,
-	devbread,
-	mousewrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = mousereset,
+	.init = mouseinit,
+	.shutdown = devshutdown,
+	.attach = mouseattach,
+	.walk = mousewalk,
+	.stat = mousestat,
+	.open = mouseopen,
+	.create = mousecreate,
+	.close = mouseclose,
+	.read = mouseread,
+	.bread = devbread,
+	.write = mousewrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
 
 void
@@ -775,4 +775,3 @@ mouseresize(void)
 	mouse.resize++;
 	wakeup(&mouse.rend);
 }
-

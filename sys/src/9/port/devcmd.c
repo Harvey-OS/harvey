@@ -730,22 +730,22 @@ cmdproc(void *a)
 #endif
 
 Dev cmddevtab = {
-	'C',
-	"cmd",
+	.dc = 'C',
+	.name = "cmd",
 
-	devreset,
-	cmdinit,
-	devshutdown,
-	cmdattach,
-	cmdwalk,
-	cmdstat,
-	cmdopen,
-	devcreate,
-	cmdclose,
-	cmdread,
-	devbread,
-	cmdwrite,
-	devbwrite,
-	devremove,
-	cmdwstat
+	.reset = devreset,
+	.init = cmdinit,
+	.shutdown = devshutdown,
+	.attach = cmdattach,
+	.walk = cmdwalk,
+	.stat = cmdstat,
+	.open = cmdopen,
+	.create = devcreate,
+	.close = cmdclose,
+	.read = cmdread,
+	.bread = devbread,
+	.write = cmdwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = cmdwstat
 };
