@@ -10,6 +10,7 @@
 /* fdmux is a way to mediate access to a read/write fd to a set of processes.
  * The owner of the mux reads and writes fd[0]. The children read and write fd[1].
  * Access to fd[1] is controlled by which process group a process is in.
+ * We are not fooling with SIGHUP yet. Need to think on that.
  */
 #include	"u.h"
 #include	"../port/lib.h"
@@ -27,9 +28,12 @@ struct Fdmux
 	uint32_t	path;
 	Queue	*q[2];
 	int	qref[2];
-	int	owner; // pid of owner.
+	int	owner; // pid of owner, e.g. regress/fdmux.
 	int	pgrpid; // id of processes allowed to read/write fd[1]. If they do not match, they slep
 	int	slpid;	// session leader. If > 0, we send them a note if anyone blocks on read/write.
+	int	active; // The active pid. Useful for interrupt.
+	int 	dead;
+	int	debug;
 	Rendez r;
 };
 
@@ -252,6 +256,13 @@ fdmuxclose(Chan *c)
 	Fdmux *p;
 
 	p = c->aux;
+	/* Any close by the session leader kills the fdmux.
+	 * Problem: how do we detect this? Because session leaders
+	 * can do thinks like dup and close. Most annoying.
+	if (up->pid == p->slpid)
+		p->dead = 1;
+	 */
+
 	qlock(p);
 
 	if(c->flag & COPEN){
@@ -278,15 +289,6 @@ fdmuxclose(Chan *c)
 		}
 	}
 
-
-	/*
-	 *  if both sides are closed, they are reusable
-	 */
-	if(p->qref[0] == 0 && p->qref[1] == 0){
-		qreopen(p->q[0]);
-		qreopen(p->q[1]);
-	}
-
 	/*
 	 *  free the structure on last close
 	 */
@@ -305,7 +307,7 @@ fdmuxread(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Proc *up = externup();
 	Fdmux *p;
-	char buf[8];
+	char buf[32];
 
 	p = c->aux;
 
@@ -313,15 +315,24 @@ fdmuxread(Chan *c, void *va, int32_t n, int64_t m)
 	case Qdir:
 		return devdirread(c, va, n, fdmuxdir, NFDMUXDIR, fdmuxgen);
 	case Qctl:
-		snprint(buf, sizeof(buf), "%d", p->pgrpid);
+		snprint(buf, sizeof(buf), "{pgripid: %d, pid: %d}", p->pgrpid, p->slpid);
 		n = readstr(m, va, n, buf);
 		return n;
 	case Qdata0:
+		if (p->debug)
+			print("pid %d reads m\n", up->pid);
+		if (p->dead)
+			return -1;
 		return qread(p->q[0], va, n);
 	case Qdata1:
 		/* TODO: proper locking */
+		if (p->dead)
+			return -1;
 		if (up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
+		p->active = up->pid;
+		if (p->debug)
+			print("pid %d reads s\n", up->pid);
 		return qread(p->q[1], va, n);
 	default:
 		panic("fdmuxread");
@@ -347,8 +358,12 @@ fdmuxbread(Chan *c, int32_t n, int64_t offset)
 		return b;
 
 	case Qdata0:
+		if (p->dead)
+			return nil;
 		return qbread(p->q[0], n);
 	case Qdata1:
+		if (p->dead)
+			return nil;
 		/* TODO: proper locking */
 		if (up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
@@ -367,8 +382,12 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
 	Proc *up = externup();
 	Fdmux *p;
-	char buf[8];
+	char buf[32];
+	char notename[32];
 	int id;
+	int l;
+	char *signal = "interrupt";
+	int siglen = 9;
 
 	if(0)if(!islo())
 		print("fdmuxwrite hi %#p\n", getcallerpc()); // devmnt?
@@ -383,23 +402,93 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 	p = c->aux;
 
 	switch(FDMUXTYPE(c->qid.path)){
+	/* single letter command a number. */
 	case Qctl:
 		if(n >= sizeof(buf))
 			n = sizeof(buf)-1;
 		strncpy(buf, va, n);
 		buf[n] = 0;
-		id = strtoul(buf, 0, 0);
-		// NO checking. How would we know?
-		p->pgrpid = id;
+		id = strtoul(&buf[1], 0, 0);
+		switch(buf[0]) {
+			case 'k':
+				break;
+			case 'p':
+			case 'l':
+				break;
+			case 'n':
+				if (id == 0)
+					id = p->active;
+				break;
+			case 's':
+				signal = "stop";
+				siglen = 4;
+				if (id == 0)
+					id = p->slpid;
+			break;
+			default:
+				error("usage: k (kill) or d (debug) or [lnps][optional number]");
+		}
+		if (p->debug)
+			print("pid %d writes cmd :%s:\n", up->pid, buf);
+		switch(buf[0]) {
+			case 'd':
+				p->debug++;
+			case 'k':
+				p->dead++;
+			case 'p':
+				// NO checking. How would we know?
+				if (p->debug)
+					print("Set pgrpid to %d\n", id);
+				p->pgrpid = id;
+				break;
+			case 'l':
+				if (p->debug)
+					print("Set sleader to %d\n", id);
+				p->slpid = id;
+				break;
+			case 'n':
+				l = snprint(notename, sizeof(notename), "#p/%d/note"/*pg"*/, id);
+				if (p->debug)
+					print("send note to %s c %p\n", notename, c);
+				c = namec(notename, Aopen, ORDWR, 0);
+				if (p->debug)
+					print("send note to %s c %p\n", notename, c);
+				if (! c)
+					error(notename);
+				if (waserror()) {
+					cclose(c);
+					nexterror();
+				}
+				n = c->dev->write(c, signal, siglen, 0);
+				poperror();
+				if (p->debug)
+					print("Wrote %s len %d res %d\n", notename, l, n);
+				cclose(c);
+				p->pgrpid = up->pgrp->pgrpid;
+				break;
+		}
 		break;
 	case Qdata0:
+		if (p->debug)
+			print("pid %d writes m\n", up->pid);
+		if (p->dead) {
+			n = -1;
+			break;
+		}
 		n = qwrite(p->q[1], va, n);
 		break;
 
 	case Qdata1:
 		/* TODO: proper locking */
+		if (p->dead) {
+			n = -1;
+			break;
+		}
 		if (up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
+		p->active = up->pid;
+		if (p->debug)
+			print("pid %d writes s\n", up->pid);
 		n = qwrite(p->q[0], va, n);
 		break;
 
@@ -428,10 +517,18 @@ fdmuxbwrite(Chan *c, Block *bp, int64_t mm)
 	p = c->aux;
 	switch(FDMUXTYPE(c->qid.path)){
 	case Qdata0:
+		if (p->dead) {
+			n = -1;
+			break;
+		}
 		n = qbwrite(p->q[1], bp);
 		break;
 
 	case Qdata1:
+		if (p->dead) {
+			n = -1;
+			break;
+		}
 		/* TODO: proper locking */
 		if (up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
