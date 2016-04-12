@@ -51,12 +51,15 @@ enum
 	Qctl,
 };
 
+/* this is intended to be mounted in /dev with MBEFORE. That way programs that open
+ * /dev/cons* will get our version.
+ */
 Dirtab fdmuxdir[] =
 {
 	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"data",		{Qdata0},	0,		0600,
-	"data1",	{Qdata1},	0,		0600,
-	"ctl",		{Qctl},	0,		0600,
+	"m",		{Qdata0},	0,		0600,
+	"cons",	{Qdata1},	0,		0600,
+	"consctl",		{Qctl},	0,		0600,
 };
 #define NFDMUXDIR 4
 
@@ -410,6 +413,8 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		buf[n] = 0;
 		id = strtoul(&buf[1], 0, 0);
 		switch(buf[0]) {
+			case 'd':
+				break;
 			case 'k':
 				break;
 			case 'p':
@@ -426,15 +431,18 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 					id = p->slpid;
 			break;
 			default:
-				error("usage: k (kill) or d (debug) or [lnps][optional number]");
+				print("usage: k (kill) or d (debug) or [lnps][optional number]");
+				break;
 		}
 		if (p->debug)
 			print("pid %d writes cmd :%s:\n", up->pid, buf);
 		switch(buf[0]) {
 			case 'd':
 				p->debug++;
+				break;
 			case 'k':
 				p->dead++;
+				break;
 			case 'p':
 				// NO checking. How would we know?
 				if (p->debug)
@@ -447,12 +455,10 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 				p->slpid = id;
 				break;
 			case 'n':
-				l = snprint(notename, sizeof(notename), "#p/%d/note"/*pg"*/, id);
-				if (p->debug)
-					print("send note to %s c %p\n", notename, c);
+				l = snprint(notename, sizeof(notename), "#p/%d/note", id);
 				c = namec(notename, Aopen, ORDWR, 0);
 				if (p->debug)
-					print("send note to %s c %p\n", notename, c);
+					print("send note %s to %d c %p\n", notename, id, c);
 				if (! c)
 					error(notename);
 				if (waserror()) {
@@ -464,7 +470,9 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 				if (p->debug)
 					print("Wrote %s len %d res %d\n", notename, l, n);
 				cclose(c);
-				p->pgrpid = up->pgrp->pgrpid;
+				break;
+			default:
+				print("ignoring unsupported command :%s:\n", buf);
 				break;
 		}
 		break;

@@ -22,6 +22,9 @@ main(void)
 	int pid, ctl, m, s;
 	char c[1];
 
+	if (rfork(RFNAMEG) < 0)
+		sysfatal(smprint("RFNAMEG: %r"));
+
 	cons = open("/dev/consctl", OWRITE);
 	if (cons < 0)
 		sysfatal(smprint("%r"));
@@ -29,17 +32,17 @@ main(void)
 		sysfatal(smprint("%r"));
 	atexit(unraw);
 
-	if (bind("#<", "/tmp", MAFTER) < 0)
+	if (bind("#<", "/dev", MBEFORE) < 0)
 		sysfatal(smprint("%r"));
 
-	if ((ctl = open("/tmp/ctl", ORDWR)) < 0)
+	if ((ctl = open("/dev/consctl", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
-	if ((m = open("/tmp/data", ORDWR)) < 0)
+	if ((m = open("/dev/m", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
-	if ((s = open("/tmp/data1", ORDWR)) < 0)
+	if ((s = open("/dev/cons", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
 
-	pid = fork();
+	pid = rfork(RFFDG|RFNOTEG|RFPROC);
 	if (pid < 0)
 		sysfatal(smprint("%r"));
 
