@@ -22,6 +22,9 @@ main(void)
 	int pid, ctl, m, s;
 	char c[1];
 
+	if (rfork(RFNAMEG) < 0)
+		sysfatal(smprint("RFNAMEG: %r"));
+
 	cons = open("/dev/consctl", OWRITE);
 	if (cons < 0)
 		sysfatal(smprint("%r"));
@@ -39,7 +42,7 @@ main(void)
 	if ((s = open("/dev/cons", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
 
-	pid = fork();
+	pid = rfork(RFFDG|RFNOTEG|RFPROC);
 	if (pid < 0)
 		sysfatal(smprint("%r"));
 
