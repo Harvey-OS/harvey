@@ -51,12 +51,15 @@ enum
 	Qctl,
 };
 
+/* this is intended to be mounted in /dev with MBEFORE. That way programs that open
+ * /dev/cons* will get our version.
+ */
 Dirtab fdmuxdir[] =
 {
 	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"data",		{Qdata0},	0,		0600,
-	"data1",	{Qdata1},	0,		0600,
-	"ctl",		{Qctl},	0,		0600,
+	"m",		{Qdata0},	0,		0600,
+	"cons",	{Qdata1},	0,		0600,
+	"consctl",		{Qctl},	0,		0600,
 };
 #define NFDMUXDIR 4
 
@@ -426,7 +429,8 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 					id = p->slpid;
 			break;
 			default:
-				error("usage: k (kill) or d (debug) or [lnps][optional number]");
+				print("usage: k (kill) or d (debug) or [lnps][optional number]");
+				break;
 		}
 		if (p->debug)
 			print("pid %d writes cmd :%s:\n", up->pid, buf);
@@ -465,6 +469,9 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 					print("Wrote %s len %d res %d\n", notename, l, n);
 				cclose(c);
 				p->pgrpid = up->pgrp->pgrpid;
+				break;
+			default:
+				print("ignoring unsupported command :%s:\n", buf);
 				break;
 		}
 		break;
