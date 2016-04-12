@@ -310,24 +310,24 @@ envwrite(Chan *c, void *a, int32_t n, int64_t off)
 }
 
 Dev envdevtab = {
-	'e',
-	"env",
+	.dc = 'e',
+	.name = "env",
 
-	devreset,
-	devinit,
-	devshutdown,
-	envattach,
-	envwalk,
-	envstat,
-	envopen,
-	envcreate,
-	envclose,
-	envread,
-	devbread,
-	envwrite,
-	devbwrite,
-	envremove,
-	devwstat,
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = envattach,
+	.walk = envwalk,
+	.stat = envstat,
+	.open = envopen,
+	.create = envcreate,
+	.close = envclose,
+	.read = envread,
+	.bread = devbread,
+	.write = envwrite,
+	.bwrite = devbwrite,
+	.remove = envremove,
+	.wstat = devwstat,
 };
 
 void
