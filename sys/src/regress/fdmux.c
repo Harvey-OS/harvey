@@ -29,14 +29,14 @@ main(void)
 		sysfatal(smprint("%r"));
 	atexit(unraw);
 
-	if (bind("#<", "/tmp", MAFTER) < 0)
+	if (bind("#<", "/dev", MBEFORE) < 0)
 		sysfatal(smprint("%r"));
 
-	if ((ctl = open("/tmp/ctl", ORDWR)) < 0)
+	if ((ctl = open("/dev/consctl", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
-	if ((m = open("/tmp/data", ORDWR)) < 0)
+	if ((m = open("/dev/m", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
-	if ((s = open("/tmp/data1", ORDWR)) < 0)
+	if ((s = open("/dev/cons", ORDWR)) < 0)
 		sysfatal(smprint("%r"));
 
 	pid = fork();
