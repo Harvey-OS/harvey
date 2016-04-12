@@ -1424,24 +1424,24 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 }
 
 Dev procdevtab = {
-	'p',
-	"proc",
+	.dc = 'p',
+	.name = "proc",
 
-	devreset,
-	procinit,
-	devshutdown,
-	procattach,
-	procwalk,
-	procstat,
-	procopen,
-	devcreate,
-	procclose,
-	procread,
-	devbread,
-	procwrite,
-	devbwrite,
-	devremove,
-	procwstat,
+	.reset = devreset,
+	.init = procinit,
+	.shutdown = devshutdown,
+	.attach = procattach,
+	.walk = procwalk,
+	.stat = procstat,
+	.open = procopen,
+	.create = devcreate,
+	.close = procclose,
+	.read = procread,
+	.bread = devbread,
+	.write = procwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = procwstat,
 };
 
 static Chan*

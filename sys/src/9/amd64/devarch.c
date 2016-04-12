@@ -495,24 +495,24 @@ archwrite(Chan *c, void *a, int32_t n, int64_t offset)
 }
 
 Dev archdevtab = {
-	'P',
-	"arch",
+	.dc = 'P',
+	.name = "arch",
 
-	devreset,
-	devinit,
-	devshutdown,
-	archattach,
-	archwalk,
-	archstat,
-	archopen,
-	devcreate,
-	archclose,
-	archread,
-	devbread,
-	archwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = archattach,
+	.walk = archwalk,
+	.stat = archstat,
+	.open = archopen,
+	.create = devcreate,
+	.close = archclose,
+	.read = archread,
+	.bread = devbread,
+	.write = archwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
 
 /*
