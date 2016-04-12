@@ -413,6 +413,8 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		buf[n] = 0;
 		id = strtoul(&buf[1], 0, 0);
 		switch(buf[0]) {
+			case 'd':
+				break;
 			case 'k':
 				break;
 			case 'p':
@@ -437,8 +439,10 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		switch(buf[0]) {
 			case 'd':
 				p->debug++;
+				break;
 			case 'k':
 				p->dead++;
+				break;
 			case 'p':
 				// NO checking. How would we know?
 				if (p->debug)
@@ -451,12 +455,10 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 				p->slpid = id;
 				break;
 			case 'n':
-				l = snprint(notename, sizeof(notename), "#p/%d/note"/*pg"*/, id);
-				if (p->debug)
-					print("send note to %s c %p\n", notename, c);
+				l = snprint(notename, sizeof(notename), "#p/%d/note", id);
 				c = namec(notename, Aopen, ORDWR, 0);
 				if (p->debug)
-					print("send note to %s c %p\n", notename, c);
+					print("send note %s to %d c %p\n", notename, id, c);
 				if (! c)
 					error(notename);
 				if (waserror()) {
@@ -468,7 +470,6 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 				if (p->debug)
 					print("Wrote %s len %d res %d\n", notename, l, n);
 				cclose(c);
-				p->pgrpid = up->pgrp->pgrpid;
 				break;
 			default:
 				print("ignoring unsupported command :%s:\n", buf);
