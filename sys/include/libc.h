@@ -27,17 +27,19 @@ extern	void*	memchr(const void*, int, uint32_t);
 /*
  * string routines
  */
-extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, int);
-extern	int	strcmp(char*, char*);
-extern	char*	strcpy(char*, char*);
-extern	char*	strecpy(char*, char*, char*);
-extern	char*	strdup(char*);
-extern	char*	strncat(char*, char*, int32_t);
-extern	char*	strncpy(char*, char*, uint32_t);
-extern	int	strncmp(char*, char*, int32_t);
-extern	char*	strpbrk(char*, char*);
-extern	char*	strrchr(char*, int);
+extern	char*	strcat(char*, const char*);
+extern	char*	strchr(const char*, int);
+extern	int	strcmp(const char*, const char*);
+extern	char*	strcpy(char*, const char*);
+extern	char*	strecpy(char*, char *, const char*);
+extern	char*	strdup(const char*);
+extern	size_t	strlcat(char *, const char *, size_t);
+extern	size_t	strlcpy(char *, const char *, size_t);
+extern	char*	strncat(char*, const char*, int32_t);
+extern	char*	strncpy(char*, const char*, uint32_t);
+extern	int	strncmp(const char*, const char*, int32_t);
+extern	char*	strpbrk(const char*, const char*);
+extern	char*	strrchr(const char*, int);
 extern	char*	strtok(char*, char*);
 extern	int32_t	strlen(char*);
 extern	int32_t	strspn(char*, char*);
