@@ -4,7 +4,6 @@
 			"-mcmodel=kernel",
 			"-O0",
 			"-static",
-			"-fplan9-extensions",
 			"-mno-red-zone",
 			"-ffreestanding",
 			"-fno-builtin",

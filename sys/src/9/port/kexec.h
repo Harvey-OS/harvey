@@ -24,8 +24,8 @@ struct Kvalue
 
 struct Kexecgrp
 {
-	Ref;
-	RWlock;
+	Ref Ref;
+	RWlock RWlock;
 	Kvalue	**ent;
 	int	nent;
 	int	ment;
