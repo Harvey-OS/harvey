@@ -22,7 +22,7 @@
 typedef struct Fdmux	Fdmux;
 struct Fdmux
 {
-	QLock;
+	QLock QLock;
 	Fdmux	*next;
 	int	ref;
 	uint32_t	path;
@@ -39,7 +39,7 @@ struct Fdmux
 
 struct
 {
-	Lock;
+	Lock Lock;
 	uint32_t	path;
 } fdmuxalloc;
 
@@ -119,9 +119,9 @@ fdmuxattach(char *spec)
 		exhausted("memory");
 	}
 
-	lock(&fdmuxalloc);
+	lock(&fdmuxalloc.Lock);
 	p->path = ++fdmuxalloc.path;
-	unlock(&fdmuxalloc);
+	unlock(&fdmuxalloc.Lock);
 
 	mkqid(&c->qid, FDMUXQID(2*p->path, Qdir), 0, QTDIR);
 	c->aux = p;
@@ -172,7 +172,7 @@ fdmuxwalk(Chan *c, Chan *nc, char **name, int nname)
 	wq = devwalk(c, nc, name, nname, fdmuxdir, NFDMUXDIR, fdmuxgen);
 	if(wq != nil && wq->clone != nil && wq->clone != c){
 		p = c->aux;
-		qlock(p);
+		qlock(&p->QLock);
 		p->ref++;
 		if(c->flag & COPEN){
 			print("channel open in fdmuxwalk\n");
@@ -185,7 +185,7 @@ fdmuxwalk(Chan *c, Chan *nc, char **name, int nname)
 				break;
 			}
 		}
-		qunlock(p);
+		qunlock(&p->QLock);
 	}
 	return wq;
 }
@@ -235,7 +235,7 @@ fdmuxopen(Chan *c, int omode)
 	}
 
 	p = c->aux;
-	qlock(p);
+	qlock(&p->QLock);
 	switch(FDMUXTYPE(c->qid.path)){
 	case Qdata0:
 		p->qref[0]++;
@@ -244,7 +244,7 @@ fdmuxopen(Chan *c, int omode)
 		p->qref[1]++;
 		break;
 	}
-	qunlock(p);
+	qunlock(&p->QLock);
 
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -266,7 +266,7 @@ fdmuxclose(Chan *c)
 		p->dead = 1;
 	 */
 
-	qlock(p);
+	qlock(&p->QLock);
 
 	if(c->flag & COPEN){
 		/*
@@ -297,12 +297,12 @@ fdmuxclose(Chan *c)
 	 */
 	p->ref--;
 	if(p->ref == 0){
-		qunlock(p);
+		qunlock(&p->QLock);
 		free(p->q[0]);
 		free(p->q[1]);
 		free(p);
 	} else
-		qunlock(p);
+		qunlock(&p->QLock);
 }
 
 static int32_t

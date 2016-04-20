@@ -51,7 +51,7 @@ static	Consdev	consdevs[Nconsdevs] =			/* keep this order */
 
 static struct
 {
-	QLock;
+	QLock QLock;
 
 	int	raw;		/* true if we shouldn't process input */
 	Ref	ctl;		/* number of opens to the control file */
