@@ -46,7 +46,7 @@ struct Map {
 
 struct ZMap {
 	Map*	map;
-	Lock;
+	Lock Lock;
 };
 
 static int inited;
@@ -585,9 +585,9 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 	Proc *up = externup();
 	Map *mp, *prev, *next;
 
-	lock(rmap);
+	lock(&rmap->Lock);
 	if(waserror()){
-		unlock(rmap);
+		unlock(&rmap->Lock);
 		nexterror();
 	}
 	prev = nil;
@@ -614,7 +614,7 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 		free(next);
 	}
 	poperror();
-	unlock(rmap);
+	unlock(&rmap->Lock);
 	if(DBGFLG > 1){
 		DBG("zmapfree %#ullx:\n", addr);
 		dumpzmap(rmap);
@@ -627,16 +627,16 @@ zmapalloc(ZMap* rmap, usize size)
 	Proc *up = externup();
 	Map *mp, *nmp;
 
-	lock(rmap);
+	lock(&rmap->Lock);
 	if(waserror()){
-		unlock(rmap);
+		unlock(&rmap->Lock);
 		nexterror();
 	}
 	for(mp = rmap->map; mp->free == 0 || mp->size < size; mp = mp->next)
 		;
 	if(mp == nil){
 		poperror();
-		unlock(rmap);
+		unlock(&rmap->Lock);
 		return 0ULL;
 	}
 	if(mp->free == 0)
@@ -652,7 +652,7 @@ zmapalloc(ZMap* rmap, usize size)
 	}
 	mp->free = 0;
 	poperror();
-	unlock(rmap);
+	unlock(&rmap->Lock);
 	if(DBGFLG > 1){
 		DBG("zmapalloc %#ullx:\n", mp->addr);
 		dumpzmap(rmap);

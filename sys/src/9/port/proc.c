@@ -1174,7 +1174,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 #define	NBROKEN 4
 struct
 {
-	QLock;
+	QLock QLock;
 	int	n;
 	Proc	*p[NBROKEN];
 }broken;
@@ -1183,14 +1183,14 @@ void
 addbroken(Proc *p)
 {
 	Proc *up = externup();
-	qlock(&broken);
+	qlock(&broken.QLock);
 	if(broken.n == NBROKEN) {
 		ready(broken.p[0]);
 		memmove(&broken.p[0], &broken.p[1], sizeof(Proc*)*(NBROKEN-1));
 		--broken.n;
 	}
 	broken.p[broken.n++] = p;
-	qunlock(&broken);
+	qunlock(&broken.QLock);
 
 	stopac();
 	edfstop(up);
@@ -1204,7 +1204,7 @@ unbreak(Proc *p)
 {
 	int b;
 
-	qlock(&broken);
+	qlock(&broken.QLock);
 	for(b=0; b < broken.n; b++)
 		if(broken.p[b] == p) {
 			broken.n--;
@@ -1213,7 +1213,7 @@ unbreak(Proc *p)
 			ready(p);
 			break;
 		}
-	qunlock(&broken);
+	qunlock(&broken.QLock);
 }
 
 int
@@ -1221,14 +1221,14 @@ freebroken(void)
 {
 	int i, n;
 
-	qlock(&broken);
+	qlock(&broken.QLock);
 	n = broken.n;
 	for(i=0; i<n; i++) {
 		ready(broken.p[i]);
 		broken.p[i] = 0;
 	}
 	broken.n = 0;
-	qunlock(&broken);
+	qunlock(&broken.QLock);
 	return n;
 }
 

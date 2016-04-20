@@ -1,5 +1,8 @@
 {
 	"cpu": {
+		"Cflags": [
+			"-fplan9-extensions"
+		],
 		"Env": [
 			"CONF=cpu"
 		],
@@ -47,8 +50,7 @@
 					"uart",
 					"ws",
 					"usb",
-					"vga",
-					"zp"
+					"vga"
 				],
 				"Ip": [
 					"tcp",
