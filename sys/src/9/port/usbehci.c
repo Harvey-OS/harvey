@@ -192,7 +192,7 @@ struct Qtree
 struct Qio
 {
 	QLock QLock;			/* for the entire I/O process */
-	Rendez;			/* wait for completion */
+	Rendez Rendez;			/* wait for completion */
 	Qh*	qh;		/* Td list (field const after init) */
 	int	usbid;		/* usb address for endpoint/device */
 	int	toggle;		/* Tddata0/Tddata1 */
@@ -214,7 +214,7 @@ struct Ctlio
 struct Isoio
 {
 	QLock QLock;
-	Rendez;			/* wait for space/completion/errors */
+	Rendez Rendez;			/* wait for space/completion/errors */
 	int	usbid;		/* address used for device/endpoint */
 	int	tok;		/* Tdtokin or Tdtokout */
 	int	state;		/* Qrun -> Qdone -> Qrun... -> Qclose */
@@ -1374,7 +1374,7 @@ isohsinterrupt(Ctlr *ctlr, Isoio *iso)
 	if(isocanwrite(iso) || isocanread(iso)){
 		diprint("wakeup iso %#p tdi %#p tdu %#p\n", iso,
 			iso->tdi, iso->tdu);
-		wakeup(iso);
+		wakeup(&iso->Rendez);
 	}
 	return 1;
 }
@@ -1441,7 +1441,7 @@ isofsinterrupt(Ctlr *ctlr, Isoio *iso)
 	if(isocanwrite(iso) || isocanread(iso)){
 		diprint("wakeup iso %#p tdi %#p tdu %#p\n", iso,
 			iso->stdi, iso->stdu);
-		wakeup(iso);
+		wakeup(&iso->Rendez);
 	}
 	return 1;
 }
@@ -1486,7 +1486,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 	coherence();
 	qh->state = Qdone;
 	coherence();
-	wakeup(qh->io);
+	wakeup(&qh->io->Rendez);
 	return 1;
 }
 
@@ -1949,7 +1949,7 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 			ilock(&ctlr->l);
 			break;
 		}
-		tsleep(iso, isocanread, iso, ep->tmout);
+		tsleep(&iso->Rendez, isocanread, iso, ep->tmout);
 		poperror();
 		ilock(&ctlr->l);
 	}
@@ -2052,7 +2052,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 				ilock(&ctlr->l);
 				break;
 			}
-			tsleep(iso, isocanwrite, iso, ep->tmout);
+			tsleep(&iso->Rendez, isocanwrite, iso, ep->tmout);
 			poperror();
 			ilock(&ctlr->l);
 		}
@@ -2247,9 +2247,9 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 		timedout++;
 	}else{
 		if(tmout == 0)
-			sleep(io, epiodone, qh);
+			sleep(&io->Rendez, epiodone, qh);
 		else
-			tsleep(io, epiodone, qh, tmout);
+			tsleep(&io->Rendez, epiodone, qh, tmout);
 		poperror();
 	}
 
@@ -2941,7 +2941,7 @@ cancelio(Ctlr *ctlr, Qio *io)
 		tsleep(&up->sleep, return0, 0, Abortdelay);
 		poperror();
 	}
-	wakeup(io);
+	wakeup(&io->Rendez);
 	qlock(&io->QLock);
 	/* wait for epio if running */
 	qunlock(&io->QLock);
@@ -3021,7 +3021,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 	 * wait to be sure no I/O is in progress in the controller.
 	 * and then wait to be sure episo* is no int32_ter running.
 	 */
-	wakeup(iso);
+	wakeup(&iso->Rendez);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);
 	tsleep(&up->sleep, return0, 0, 5);
 	qlock(&iso->QLock);
