@@ -52,7 +52,7 @@ sipi(void)
 	 */
 	for(apicno = 0; apicno < Napic; apicno++){
 		apic = &xlapic[apicno];
-		if(!apic->useable || apic->addr || apic->machno == 0)
+		if(!apic->useable || apic->Ioapic.addr || apic->Lapic.machno == 0)
 			continue;
 
 		/*
@@ -78,7 +78,7 @@ sipi(void)
 		 * back into the INIT state?
 		 */
 		mach = (Mach*)p;
-		mach->machno = apic->machno;		/* NOT one-to-one... */
+		mach->machno = apic->Lapic.machno;		/* NOT one-to-one... */
 		mach->splpc = PTR2UINT(squidboy);
 		mach->apicno = apicno;
 		mach->stack = PTR2UINT(alloc);

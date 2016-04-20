@@ -169,7 +169,7 @@ struct Ctlr
 struct Qio
 {
 	QLock ql;			/* for the entire I/O process */
-	Rendez;			/* wait for completion */
+	Rendez Rendez;			/* wait for completion */
 	Qh*	qh;		/* Td list (field const after init) */
 	int	usbid;		/* usb address for endpoint/device */
 	int	toggle;		/* Tddata0/Tddata1 */
@@ -181,7 +181,7 @@ struct Qio
 
 struct Ctlio
 {
-	Qio;			/* a single Qio for each RPC */
+	Qio Qio;			/* a single Qio for each RPC */
 	unsigned char*	data;		/* read from last ctl req. */
 	int	ndata;		/* number of bytes read */
 };
@@ -189,7 +189,7 @@ struct Ctlio
 struct Isoio
 {
 	QLock ql;
-	Rendez;			/* wait for space/completion/errors */
+	Rendez Rendez;			/* wait for space/completion/errors */
 	int	usbid;		/* address used for device/endpoint */
 	int	tok;		/* Tdtokin or Tdtokout */
 	int	state;		/* Qrun -> Qdone -> Qrun... -> Qclose */
@@ -859,7 +859,7 @@ isointerrupt(Ctlr *ctlr, Isoio* iso)
 	if(isocanwrite(iso) || isocanread(iso)){
 		diprint("wakeup iso %#p tdi %#p tdu %#p\n", iso,
 			iso->tdi, iso->tdu);
-		wakeup(iso);
+		wakeup(&iso->Rendez);
 	}
 
 }
@@ -925,7 +925,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 	for(; td != nil; td = td->next)
 		td->ndata = 0;
 	qh->state = Qdone;
-	wakeup(qh->io);
+	wakeup(&qh->io->Rendez);
 }
 
 static void
@@ -1044,7 +1044,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 				ilock(&ctlr->l);
 				break;
 			}
-			tsleep(iso, isocanwrite, iso, ep->tmout);
+			tsleep(&iso->Rendez, isocanwrite, iso, ep->tmout);
 			poperror();
 			ilock(&ctlr->l);
 		}
@@ -1113,7 +1113,7 @@ episoread(Ep *ep, Isoio *iso, void *a, int count)
 			ilock(&ctlr->l);
 			break;
 		}
-		tsleep(iso, isocanread, iso, ep->tmout);
+		tsleep(&iso->Rendez, isocanread, iso, ep->tmout);
 		poperror();
 		ilock(&ctlr->l);
 	}
@@ -1235,9 +1235,9 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t load)
 		timedout++;
 	}else{
 		if(tmout == 0)
-			sleep(io, epiodone, qh);
+			sleep(&io->Rendez, epiodone, qh);
 		else
-			tsleep(io, epiodone, qh, tmout);
+	 		tsleep(&io->Rendez, epiodone, qh, tmout);
 		poperror();
 	}
 	ilock(&ctlr->l);
@@ -1433,9 +1433,9 @@ epread(Ep *ep, void *a, int32_t count)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		qlock(&cio->ql);
+		qlock(&cio->Qio.ql);
 		if(waserror()){
-			qunlock(&cio->ql);
+			qunlock(&cio->Qio.ql);
 			nexterror();
 		}
 		ddeprint("epread ctl ndata %d\n", cio->ndata);
@@ -1454,7 +1454,7 @@ epread(Ep *ep, void *a, int32_t count)
 			cio->data = nil;
 			cio->ndata = 0;	/* signal EOF next time */
 		}
-		qunlock(&cio->ql);
+		qunlock(&cio->Qio.ql);
 		poperror();
 		if(debug>1 || ep->debug){
 			seprintdata(buf, buf+sizeof(buf), a, count);
@@ -1507,12 +1507,12 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		cio, ep->dev->nb, ep->nb, count);
 	if(count < Rsetuplen)
 		error("short usb comand");
-	qlock(&cio->ql);
+	qlock(&cio->Qio.ql);
 	free(cio->data);
 	cio->data = nil;
 	cio->ndata = 0;
 	if(waserror()){
-		qunlock(&cio->ql);
+		qunlock(&cio->Qio.ql);
 		free(cio->data);
 		cio->data = nil;
 		cio->ndata = 0;
@@ -1521,19 +1521,19 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 
 	/* set the address if unset and out of configuration state */
 	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
-		if(cio->usbid == 0)
-			cio->usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
+		if(cio->Qio.usbid == 0)
+			cio->Qio.usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
 	c = a;
-	cio->tok = Tdtoksetup;
-	cio->toggle = Tddata0;
-	if(epio(ep, cio, a, Rsetuplen, 0) < Rsetuplen)
+	cio->Qio.tok = Tdtoksetup;
+	cio->Qio.toggle = Tddata0;
+	if(epio(ep, &cio->Qio, a, Rsetuplen, 0) < Rsetuplen)
 		error(Eio);
 	a = c + Rsetuplen;
 	count -= Rsetuplen;
 
-	cio->toggle = Tddata1;
+	cio->Qio.toggle = Tddata1;
 	if(c[Rtype] & Rd2h){
-		cio->tok = Tdtokin;
+		cio->Qio.tok = Tdtokin;
 		len = GET2(c+Rcount);
 		if(len <= 0)
 			error("bad length in d2h request");
@@ -1541,30 +1541,30 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 			error("d2h data too large to fit in uhci");
 		a = cio->data = smalloc(len+1);
 	}else{
-		cio->tok = Tdtokout;
+		cio->Qio.tok = Tdtokout;
 		len = count;
 	}
 	if(len > 0)
 		if(waserror())
 			len = -1;
 		else{
-			len = epio(ep, cio, a, len, 0);
+			len = epio(ep, &cio->Qio, a, len, 0);
 			poperror();
 		}
 	if(c[Rtype] & Rd2h){
 		count = Rsetuplen;
 		cio->ndata = len;
-		cio->tok = Tdtokout;
+		cio->Qio.tok = Tdtokout;
 	}else{
 		if(len < 0)
 			count = -1;
 		else
 			count = Rsetuplen + len;
-		cio->tok = Tdtokin;
+		cio->Qio.tok = Tdtokin;
 	}
-	cio->toggle = Tddata1;
-	epio(ep, cio, nil, 0, 0);
-	qunlock(&cio->ql);
+	cio->Qio.toggle = Tddata1;
+	epio(ep, &cio->Qio, nil, 0, 0);
+	qunlock(&cio->Qio.ql);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
 	return count;
@@ -1760,12 +1760,12 @@ epopen(Ep *ep)
 		break;
 	case Tctl:
 		cio = ep->aux = smalloc(sizeof(Ctlio));
-		cio->debug = ep->debug;
+		cio->Qio.debug = ep->debug;
 		cio->ndata = -1;
 		cio->data = nil;
 		if(ep->dev->isroot != 0 && ep->nb == 0)	/* root hub */
 			break;
-		cio->qh = qhalloc(ctlr, cqh, cio, "epc");
+		cio->Qio.qh = qhalloc(ctlr, cqh, &cio->Qio, "epc");
 		break;
 	case Tbulk:
 	case Tintr:
@@ -1820,7 +1820,7 @@ cancelio(Ctlr *ctlr, Qio *io)
 		poperror();
 	}
 
-	wakeup(io);
+	wakeup(&io->Rendez);
 	qlock(&io->ql);
 	/* wait for epio if running */
 	qunlock(&io->ql);
@@ -1877,7 +1877,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 	 * wait to be sure no I/O is in progress in the controller.
 	 * and then wait to be sure episo-io is no int32_ter running.
 	 */
-	wakeup(iso);
+	wakeup(&iso->Rendez);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);
 	tsleep(&up->sleep, return0, 0, 5);
 	qlock(&iso->ql);
@@ -1910,7 +1910,7 @@ epclose(Ep *ep)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		cancelio(ctlr, cio);
+		cancelio(ctlr, &cio->Qio);
 		free(cio->data);
 		cio->data = nil;
 		break;
@@ -1962,8 +1962,8 @@ seprintep(char *s, char *e, Ep *ep)
 		cio = ep->aux;
 		s = seprint(s,e,"cio %#p qh %#p"
 			" id %#x tog %#x tok %#x err %s\n",
-			cio, cio->qh, cio->usbid, cio->toggle,
-			cio->tok, cio->err);
+			cio, cio->Qio.qh, cio->Qio.usbid, cio->Qio.toggle,
+			cio->Qio.tok, cio->Qio.err);
 		break;
 	case Tbulk:
 	case Tintr:

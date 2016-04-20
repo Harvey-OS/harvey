@@ -191,7 +191,7 @@ struct Qtree
  */
 struct Qio
 {
-	QLock;			/* for the entire I/O process */
+	QLock QLock;			/* for the entire I/O process */
 	Rendez;			/* wait for completion */
 	Qh*	qh;		/* Td list (field const after init) */
 	int	usbid;		/* usb address for endpoint/device */
@@ -206,14 +206,14 @@ struct Qio
 
 struct Ctlio
 {
-	Qio;			/* a single Qio for each RPC */
+	Qio Qio;			/* a single Qio for each RPC */
 	unsigned char*	data;		/* read from last ctl req. */
 	int	ndata;		/* number of bytes read */
 };
 
 struct Isoio
 {
-	QLock;
+	QLock QLock;
 	Rendez;			/* wait for space/completion/errors */
 	int	usbid;		/* address used for device/endpoint */
 	int	tok;		/* Tdtokin or Tdtokout */
@@ -1775,7 +1775,7 @@ seprintep(char *s, char *e, Ep *ep)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		s = seprintio(s, e, cio, "c");
+		s = seprintio(s, e, &cio->Qio, "c");
 		s = seprint(s, e, "\trepl %d ndata %d\n", ep->rhrepl, cio->ndata);
 		break;
 	case Tbulk:
@@ -1809,16 +1809,16 @@ clrhalt(Ep *ep)
 	case Tbulk:
 		io = ep->aux;
 		if(ep->mode != OREAD){
-			qlock(&io[OWRITE]);
+			qlock(&io[OWRITE].QLock);
 			io[OWRITE].toggle = Tddata0;
 			deprint("ep clrhalt for io %#p\n", io+OWRITE);
-			qunlock(&io[OWRITE]);
+			qunlock(&io[OWRITE].QLock);
 		}
 		if(ep->mode != OWRITE){
-			qlock(&io[OREAD]);
+			qlock(&io[OREAD].QLock);
 			io[OREAD].toggle = Tddata0;
 			deprint("ep clrhalt for io %#p\n", io+OREAD);
-			qunlock(&io[OREAD]);
+			qunlock(&io[OREAD].QLock);
 		}
 		break;
 	}
@@ -1926,9 +1926,9 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 
 	b = a;
 	ctlr = ep->hp->Hciimpl.aux;
-	qlock(iso);
+	qlock(&iso->QLock);
 	if(waserror()){
-		qunlock(iso);
+		qunlock(&iso->QLock);
 		nexterror();
 	}
 	iso->err = nil;
@@ -1966,7 +1966,7 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 	else
 		tot = episofscpy(ctlr, ep, iso, b, count);
 	iunlock(&ctlr->l);
-	qunlock(iso);
+	qunlock(&iso->QLock);
 	poperror();
 	diprint("uhci: episoread: %#p %uld bytes err '%s'\n", iso, tot, iso->err);
 	if(iso->err != nil)
@@ -2029,9 +2029,9 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 	diprint("ehci: episowrite: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
 	ctlr = ep->hp->Hciimpl.aux;
-	qlock(iso);
+	qlock(&iso->QLock);
 	if(waserror()){
-		qunlock(iso);
+		qunlock(&iso->QLock);
 		nexterror();
 	}
 	ilock(&ctlr->l);
@@ -2073,7 +2073,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 	iunlock(&ctlr->l);
 	err = iso->err;		/* in case it failed early */
 	iso->err = nil;
-	qunlock(iso);
+	qunlock(&iso->QLock);
 	poperror();
 	if(err != nil)
 		error(err);
@@ -2323,9 +2323,9 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 		print("echi epio: user data: %s\n", buf);
 	}
 	if(mustlock){
-		qlock(io);
+		qlock(&io->QLock);
 		if(waserror()){
-			qunlock(io);
+			qunlock(&io->QLock);
 			nexterror();
 		}
 	}
@@ -2420,7 +2420,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	}
 	err = io->err;
 	if(mustlock){
-		qunlock(io);
+		qunlock(&io->QLock);
 		poperror();
 	}
 	ddeprint("epio: io %#p: %d tds: return %ld err '%s'\n",
@@ -2453,9 +2453,9 @@ epread(Ep *ep, void *a, int32_t count)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		qlock(cio);
+		qlock(&cio->Qio.QLock);
 		if(waserror()){
-			qunlock(cio);
+			qunlock(&cio->Qio.QLock);
 			nexterror();
 		}
 		ddeprint("epread ctl ndata %d\n", cio->ndata);
@@ -2474,7 +2474,7 @@ epread(Ep *ep, void *a, int32_t count)
 			cio->data = nil;
 			cio->ndata = 0;	/* signal EOF next time */
 		}
-		qunlock(cio);
+		qunlock(&cio->Qio.QLock);
 		poperror();
 		if(ehcidebug>1 || ep->debug){
 			seprintdata(buf, buf+sizeof(buf), a, count);
@@ -2525,7 +2525,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		cio, ep->dev->nb, ep->nb, count);
 	if(count < Rsetuplen)
 		error("short usb comand");
-	qlock(cio);
+	qlock(&cio->Qio.QLock);
 	free(cio->data);
 	cio->data = nil;
 	cio->ndata = 0;
@@ -2533,32 +2533,32 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		free(cio->data);
 		cio->data = nil;
 		cio->ndata = 0;
-		qunlock(cio);
+		qunlock(&cio->Qio.QLock);
 		nexterror();
 	}
 
 	/* set the address if unset and out of configuration state */
 	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
-		if(cio->usbid == 0){
-			cio->usbid = (ep->nb&Epmax) << 7 | ep->dev->nb&Devmax;
+		if(cio->Qio.usbid == 0){
+			cio->Qio.usbid = (ep->nb&Epmax) << 7 | ep->dev->nb&Devmax;
 			coherence();
-			qhsetaddr(cio->qh, cio->usbid);
+			qhsetaddr(cio->Qio.qh, cio->Qio.usbid);
 		}
 	/* adjust maxpkt if the user has learned a different one */
-	if(qhmaxpkt(cio->qh) != ep->maxpkt)
-		qhsetmaxpkt(cio->qh, ep->maxpkt);
+	if(qhmaxpkt(cio->Qio.qh) != ep->maxpkt)
+		qhsetmaxpkt(cio->Qio.qh, ep->maxpkt);
 	c = a;
-	cio->tok = Tdtoksetup;
-	cio->toggle = Tddata0;
+	cio->Qio.tok = Tdtoksetup;
+	cio->Qio.toggle = Tddata0;
 	coherence();
-	if(epio(ep, cio, a, Rsetuplen, 0) < Rsetuplen)
+	if(epio(ep, &cio->Qio, a, Rsetuplen, 0) < Rsetuplen)
 		error(Eio);
 	a = c + Rsetuplen;
 	count -= Rsetuplen;
 
-	cio->toggle = Tddata1;
+	cio->Qio.toggle = Tddata1;
 	if(c[Rtype] & Rd2h){
-		cio->tok = Tdtokin;
+		cio->Qio.tok = Tdtokin;
 		len = GET2(c+Rcount);
 		if(len <= 0)
 			error("bad length in d2h request");
@@ -2566,7 +2566,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 			error("d2h data too large to fit in ehci");
 		a = cio->data = smalloc(len+1);
 	}else{
-		cio->tok = Tdtokout;
+		cio->Qio.tok = Tdtokout;
 		len = count;
 	}
 	coherence();
@@ -2574,24 +2574,24 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		if(waserror())
 			len = -1;
 		else{
-			len = epio(ep, cio, a, len, 0);
+			len = epio(ep, &cio->Qio, a, len, 0);
 			poperror();
 		}
 	if(c[Rtype] & Rd2h){
 		count = Rsetuplen;
 		cio->ndata = len;
-		cio->tok = Tdtokout;
+		cio->Qio.tok = Tdtokout;
 	}else{
 		if(len < 0)
 			count = -1;
 		else
 			count = Rsetuplen + len;
-		cio->tok = Tdtokin;
+		cio->Qio.tok = Tdtokin;
 	}
-	cio->toggle = Tddata1;
+	cio->Qio.toggle = Tddata1;
 	coherence();
-	epio(ep, cio, nil, 0, 0);
-	qunlock(cio);
+	epio(ep, &cio->Qio, nil, 0, 0);
+	qunlock(&cio->Qio.QLock);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
 	return count;
@@ -2876,12 +2876,12 @@ epopen(Ep *ep)
 		break;
 	case Tctl:
 		cio = ep->aux = smalloc(sizeof(Ctlio));
-		cio->debug = ep->debug;
+		cio->Qio.debug = ep->debug;
 		cio->ndata = -1;
 		cio->data = nil;
 		if(ep->dev->isroot != 0 && ep->nb == 0)	/* root hub */
 			break;
-		cio->qh = qhalloc(ctlr, ep, cio, "epc");
+		cio->Qio.qh = qhalloc(ctlr, ep, &cio->Qio, "epc");
 		break;
 	case Tbulk:
 		ep->pollival = 1;	/* assume this; doesn't really matter */
@@ -2942,9 +2942,9 @@ cancelio(Ctlr *ctlr, Qio *io)
 		poperror();
 	}
 	wakeup(io);
-	qlock(io);
+	qlock(&io->QLock);
 	/* wait for epio if running */
-	qunlock(io);
+	qunlock(&io->QLock);
 
 	qhfree(ctlr, qh);
 	io->qh = nil;
@@ -3024,8 +3024,8 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 	wakeup(iso);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);
 	tsleep(&up->sleep, return0, 0, 5);
-	qlock(iso);
-	qunlock(iso);
+	qlock(&iso->QLock);
+	qunlock(&iso->QLock);
 	diprint("cancelisoio iso %#p releasing iso\n", iso);
 
 	frno = iso->td0frno;
@@ -3060,7 +3060,7 @@ epclose(Ep *ep)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		cancelio(ctlr, cio);
+		cancelio(ctlr, &cio->Qio);
 		free(cio->data);
 		cio->data = nil;
 		break;
