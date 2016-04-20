@@ -40,8 +40,8 @@ struct Lapic {
 
 struct Apic {
 	int	useable;			/* en */
-	Ioapic;
-	Lapic;
+	Ioapic Ioapic;
+	Lapic Lapic;
 };
 
 enum {
