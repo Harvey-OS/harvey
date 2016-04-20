@@ -152,20 +152,20 @@ apicinit(int apicno, uintmem pa, int isbp)
 	 * Machno 0 is always the bootstrap processor.
 	 */
 	if(isbp){
-		apic->machno = 0;
+		apic->Lapic.machno = 0;
 		machp()->apicno = apicno;
 	}
 	else
-		apic->machno = apmachno++;
+		apic->Lapic.machno = apmachno++;
 }
 
 static void
 apicdump0(Apic *apic, int i)
 {
-	if(!apic->useable || apic->addr != 0)
+	if(!apic->useable || apic->Ioapic.addr != 0)
 		return;
 	DBG("apic%d: machno %d lint0 %#8.8ux lint1 %#8.8ux\n",
-		i, apic->machno, apic->lvt[0], apic->lvt[1]);
+		i, apic->Lapic.machno, apic->Lapic.lvt[0], apic->Lapic.lvt[1]);
 	DBG(" tslvt %#8.8ux pclvt %#8.8ux elvt %#8.8ux\n",
 		apicrget(Tslvt), apicrget(Pclvt), apicrget(Elvt));
 	DBG(" tlvt %#8.8ux lint0 %#8.8ux lint1 %#8.8ux siv %#8.8ux\n",
@@ -207,7 +207,7 @@ apiconline(void)
 	if((apicno = ((apicrget(Id)>>24) & 0xff)) >= Napic)
 		return 0;
 	apic = &xlapic[apicno];
-	if(!apic->useable || apic->addr != nil)
+	if(!apic->useable || apic->Ioapic.addr != nil)
 		return 0;
 
 	/*
@@ -217,13 +217,13 @@ apiconline(void)
 	 */
 	ver = apicrget(Ver);
 	nlvt = ((ver>>16) & 0xff) + 1;
-	if(nlvt > nelem(apic->lvt)){
+	if(nlvt > nelem(apic->Lapic.lvt)){
 		print("apicinit%d: nlvt %d > max (%d)\n",
-			apicno, nlvt, nelem(apic->lvt));
-		nlvt = nelem(apic->lvt);
+			apicno, nlvt, nelem(apic->Lapic.lvt));
+		nlvt = nelem(apic->Lapic.lvt);
 	}
-	apic->nlvt = nlvt;
-	apic->ver = ver & 0xff;
+	apic->Lapic.nlvt = nlvt;
+	apic->Lapic.ver = ver & 0xff;
 
 	/*
 	 * These don't really matter in Physical mode;
@@ -268,14 +268,14 @@ apiconline(void)
 	while(rdtsc() < tsc)
 		;
 
-	apic->hz = (0xffffffff-apicrget(Tcc))*10;
-	apic->max = apic->hz/HZ;
-	apic->min = apic->hz/(100*HZ);
-	apic->div = ((machp()->cpuhz/apic->max)+HZ/2)/HZ;
+	apic->Lapic.hz = (0xffffffff-apicrget(Tcc))*10;
+	apic->Lapic.max = apic->Lapic.hz/HZ;
+	apic->Lapic.min = apic->Lapic.hz/(100*HZ);
+	apic->Lapic.div = ((machp()->cpuhz/apic->Lapic.max)+HZ/2)/HZ;
 
 	if(machp()->machno == 0 || DBGFLG){
 		print("apic%d: hz %lld max %lld min %lld div %lld\n", apicno,
-			apic->hz, apic->max, apic->min, apic->div);
+			apic->Lapic.hz, apic->Lapic.max, apic->Lapic.min, apic->Lapic.div);
 	}
 
 	/*
@@ -285,7 +285,7 @@ apiconline(void)
 	 * Clear any Error Status (write followed by read) and enable
 	 * the Error interrupt.
 	 */
-	switch(apic->nlvt){
+	switch(apic->Lapic.nlvt){
 	case 6:
 		apicrput(Tslvt, Im);
 		/*FALLTHROUGH*/
@@ -295,8 +295,8 @@ apiconline(void)
 	default:
 		break;
 	}
-	apicrput(Lint1, apic->lvt[1]|Im|IdtLINT1);
-	apicrput(Lint0, apic->lvt[0]|Im|IdtLINT0);
+	apicrput(Lint1, apic->Lapic.lvt[1]|Im|IdtLINT1);
+	apicrput(Lint0, apic->Lapic.lvt[0]|Im|IdtLINT0);
 
 	apicrput(Es, 0);
 	apicrget(Es);
@@ -319,8 +319,8 @@ apiconline(void)
 	 */
 	microdelay((TK2MS(1)*1000/apmachno) * machp()->machno);
 
-	if(apic->machno == 0){
-		apicrput(Tic, apic->max);
+	if(apic->Lapic.machno == 0){
+		apicrput(Tic, apic->Lapic.max);
 		intrenable(IdtTIMER, apictimer, 0, -1, "APIC timer");
 		apicrput(Tlvt, Periodic|IrqTIMER);
 	}
@@ -342,7 +342,7 @@ apictimerenab(void)
 	apic = &xlapic[(apicrget(Id)>>24) & 0xff];
 
 	apiceoi(IdtTIMER);
-	apicrput(Tic, apic->max);
+	apicrput(Tic, apic->Lapic.max);
 	apicrput(Tlvt, Periodic|IrqTIMER);
 
 }
@@ -359,15 +359,15 @@ apictimerset(uint64_t next)
 	pl = splhi();
 	lock(&machp()->apictimerlock);
 
-	period = apic->max;
+	period = apic->Lapic.max;
 	if(next != 0){
 		period = next - fastticks(nil);	/* fastticks is just rdtsc() */
-		period /= apic->div;
+		period /= apic->Lapic.div;
 
-		if(period < apic->min)
-			period = apic->min;
-		else if(period > apic->max - apic->min)
-			period = apic->max;
+		if(period < apic->Lapic.min)
+			period = apic->Lapic.min;
+		else if(period > apic->Lapic.max - apic->Lapic.min)
+			period = apic->Lapic.max;
 	}
 	apicrput(Tic, period);
 
