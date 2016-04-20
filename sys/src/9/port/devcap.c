@@ -36,7 +36,7 @@ struct Caphash
 
 struct
 {
-	QLock;
+	QLock QLock;
 	Caphash	*first;
 	int	nhash;
 } capalloc;
@@ -132,7 +132,7 @@ remcap(uint8_t *hash)
 {
 	Caphash *t, **l;
 
-	qlock(&capalloc);
+	qlock(&capalloc.QLock);
 
 	/* find the matching capability */
 	for(l = &capalloc.first; *l != nil;){
@@ -146,7 +146,7 @@ remcap(uint8_t *hash)
 		capalloc.nhash--;
 		*l = t->next;
 	}
-	qunlock(&capalloc);
+	qunlock(&capalloc.QLock);
 
 	return t;
 }
@@ -162,7 +162,7 @@ addcap(uint8_t *hash)
 	p->next = nil;
 	p->ticks = machp()->ticks;
 
-	qlock(&capalloc);
+	qlock(&capalloc.QLock);
 
 	/* trim extras */
 	while(capalloc.nhash >= Maxhash){
@@ -180,7 +180,7 @@ addcap(uint8_t *hash)
 	*l = p;
 	capalloc.nhash++;
 
-	qunlock(&capalloc);
+	qunlock(&capalloc.QLock);
 }
 
 static void
