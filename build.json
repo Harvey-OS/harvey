@@ -6,7 +6,7 @@
 			"/sys/src/cmd",
 			"/sys/src/games/games.json",
 			"/acme/build.json",
-			"/sys/src/9/amd64/amd64cpu.json",
+			"/sys/src/9/amd64",
 			"/sys/src/regress"
 		]
 	}
