@@ -92,7 +92,7 @@ enum {					/* Esr */
 };
 
 typedef struct Mii {
-	Lock;
+	Lock Lock;
 	int	nphy;
 	int	mask;
 	MiiPhy*	phy[NMiiPhy];

@@ -63,10 +63,10 @@ rtblget(Apic* apic, int sel, uint32_t* hi, uint32_t* lo)
 {
 	sel = Ioredtbl + 2*sel;
 
-	*(apic->addr+Ioregsel) = sel+1;
-	*hi = *(apic->addr+Iowin);
-	*(apic->addr+Ioregsel) = sel;
-	*lo = *(apic->addr+Iowin);
+	*(apic->Ioapic.addr+Ioregsel) = sel+1;
+	*hi = *(apic->Ioapic.addr+Iowin);
+	*(apic->Ioapic.addr+Ioregsel) = sel;
+	*lo = *(apic->Ioapic.addr+Iowin);
 }
 
 static void
@@ -74,10 +74,10 @@ rtblput(Apic* apic, int sel, uint32_t hi, uint32_t lo)
 {
 	sel = Ioredtbl + 2*sel;
 
-	*(apic->addr+Ioregsel) = sel+1;
-	*(apic->addr+Iowin) = hi;
-	*(apic->addr+Ioregsel) = sel;
-	*(apic->addr+Iowin) = lo;
+	*(apic->Ioapic.addr+Ioregsel) = sel+1;
+	*(apic->Ioapic.addr+Iowin) = hi;
+	*(apic->Ioapic.addr+Ioregsel) = sel;
+	*(apic->Ioapic.addr+Iowin) = lo;
 }
 
 Rdt*
@@ -104,7 +104,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 	if(busno >= Nbus || apicno >= Napic || nrdtarray >= Nrdt)
 		return;
 	apic = &xioapic[apicno];
-	if(!apic->useable || intin >= apic->nrdt)
+	if(!apic->useable || intin >= apic->Ioapic.nrdt)
 		return;
 
 	rdt = rdtlookup(apic, intin);
@@ -142,7 +142,7 @@ ioapicinit(int id, uintptr_t pa)
 		return;
 
 	apic = &xioapic[id];
-	if(apic->useable || (apic->addr = vmap(pa, 1024)) == nil)
+	if(apic->useable || (apic->Ioapic.addr = vmap(pa, 1024)) == nil)
 		return;
 	apic->useable = 1;
 
@@ -151,15 +151,15 @@ ioapicinit(int id, uintptr_t pa)
 	 * The MultiProcessor Specification says it is the
 	 * responsibility of the O/S to set the APIC ID.
 	 */
-	lock(&apic->l);
-	*(apic->addr+Ioregsel) = Ioapicver;
-	apic->nrdt = ((*(apic->addr+Iowin)>>16) & 0xff) + 1;
-	apic->gsib = gsib;
-	gsib += apic->nrdt;
+	lock(&apic->Ioapic.l);
+	*(apic->Ioapic.addr+Ioregsel) = Ioapicver;
+	apic->Ioapic.nrdt = ((*(apic->Ioapic.addr+Iowin)>>16) & 0xff) + 1;
+	apic->Ioapic.gsib = gsib;
+	gsib += apic->Ioapic.nrdt;
 
-	*(apic->addr+Ioregsel) = Ioapicid;
-	*(apic->addr+Iowin) = id<<24;
-	unlock(&apic->l);
+	*(apic->Ioapic.addr+Ioregsel) = Ioapicid;
+	*(apic->Ioapic.addr+Iowin) = id<<24;
+	unlock(&apic->Ioapic.l);
 }
 
 void
@@ -175,14 +175,14 @@ ioapicdump(void)
 		return;
 	for(i = 0; i < Napic; i++){
 		apic = &xioapic[i];
-		if(!apic->useable || apic->addr == 0)
+		if(!apic->useable || apic->Ioapic.addr == 0)
 			continue;
 		print("ioapic %d addr %#p nrdt %d gsib %d\n",
-			i, apic->addr, apic->nrdt, apic->gsib);
-		for(n = 0; n < apic->nrdt; n++){
-			lock(&apic->l);
+			i, apic->Ioapic.addr, apic->Ioapic.nrdt, apic->Ioapic.gsib);
+		for(n = 0; n < apic->Ioapic.nrdt; n++){
+			lock(&apic->Ioapic.l);
 			rtblget(apic, n, &hi, &lo);
-			unlock(&apic->l);
+			unlock(&apic->Ioapic.l);
 			print(" rdt %2.2d %#8.8ux %#8.8ux\n", n, hi, lo);
 		}
 	}
@@ -206,12 +206,12 @@ ioapiconline(void)
 	Apic *apic;
 
 	for(apic = xioapic; apic < &xioapic[Napic]; apic++){
-		if(!apic->useable || apic->addr == nil)
+		if(!apic->useable || apic->Ioapic.addr == nil)
 			continue;
-		for(i = 0; i < apic->nrdt; i++){
-			lock(&apic->l);
+		for(i = 0; i < apic->Ioapic.nrdt; i++){
+			lock(&apic->Ioapic.l);
 			rtblput(apic, i, 0, Im);
-			unlock(&apic->l);
+			unlock(&apic->Ioapic.l);
 		}
 	}
 	ioapicdump();
@@ -262,7 +262,7 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 			if(sys->machptr[i] == nil || !sys->machptr[i]->online)
 				continue;
 			i = sys->machptr[i]->apicno;
-			if(xlapic[i].useable && xlapic[i].addr == 0)
+			if(xlapic[i].useable && xlapic[i].Ioapic.addr == 0)
 				break;
 		}
 		unlock(&dflock);
@@ -432,7 +432,7 @@ ioapicintrenable(Vctl* v)
 	 * the whole IOAPIC to initialise the RDT entry
 	 * rather than putting a Lock in each entry.
 	 */
-	lock(&rdt->apic->l);
+	lock(&rdt->apic->Ioapic.l);
 	DBG("%T: %ld/%d/%d (%d)\n", v->Vkey.tbdf, rdt->apic - xioapic, rbus->devno, rdt->intin, devno);
 	if((rdt->lo & 0xff) == 0){
 		vecno = nextvec();
@@ -446,7 +446,7 @@ ioapicintrenable(Vctl* v)
 	ioapicintrdd(&hi, &lo);
 	rtblput(rdt->apic, rdt->intin, hi, lo);
 	vecno = lo & 0xff;
-	unlock(&rdt->apic->l);
+	unlock(&rdt->apic->Ioapic.l);
 
 	DBG("busno %d devno %d hi %#8.8ux lo %#8.8ux vecno %d\n",
 		busno, devno, hi, lo, vecno);
@@ -480,11 +480,11 @@ ioapicintrdisable(int vecno)
 		return -1;
 	}
 
-	lock(&rdt->apic->l);
+	lock(&rdt->apic->Ioapic.l);
 	rdt->enabled--;
 	if(rdt->enabled == 0)
 		rtblput(rdt->apic, rdt->intin, 0, rdt->lo);
-	unlock(&rdt->apic->l);
+	unlock(&rdt->apic->Ioapic.l);
 
 	return 0;
 }

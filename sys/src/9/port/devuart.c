@@ -44,7 +44,7 @@ static int uartndir;
 static Timer *uarttimer;
 
 struct Uartalloc {
-	Lock;
+	Lock Lock;
 	Uart *elist;	/* list of enabled interfaces */
 } uartalloc;
 
@@ -98,7 +98,7 @@ uartenable(Uart *p)
 		uartctl(p, "b9600");
 	(*p->phys->enable)(p, 1);
 
-	lock(&uartalloc);
+	lock(&uartalloc.Lock);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
 			break;
@@ -108,7 +108,7 @@ uartenable(Uart *p)
 		uartalloc.elist = p;
 	}
 	p->enabled = 1;
-	unlock(&uartalloc);
+	unlock(&uartalloc.Lock);
 
 	return p;
 }
@@ -120,7 +120,7 @@ uartdisable(Uart *p)
 
 	(*p->phys->disable)(p);
 
-	lock(&uartalloc);
+	lock(&uartalloc.Lock);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p){
 			*l = p->elist;
@@ -128,7 +128,7 @@ uartdisable(Uart *p)
 		}
 	}
 	p->enabled = 0;
-	unlock(&uartalloc);
+	unlock(&uartalloc.Lock);
 }
 
 static void
@@ -692,7 +692,7 @@ uartclock(void)
 {
 	Uart *p;
 
-	lock(&uartalloc);
+	lock(&uartalloc.Lock);
 	for(p = uartalloc.elist; p; p = p->elist){
 
 		if(p->phys->poll != nil)
@@ -722,5 +722,5 @@ uartclock(void)
 			iunlock(&p->tlock);
 		}
 	}
-	unlock(&uartalloc);
+	unlock(&uartalloc.Lock);
 }

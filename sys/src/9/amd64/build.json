@@ -34,7 +34,6 @@
 					"mouse",
 					"pci",
 					"pipe",
-					"pmc",
 					"proc",
 					"regress",
 					"root",
@@ -47,8 +46,7 @@
 					"uart",
 					"ws",
 					"usb",
-					"vga",
-					"zp"
+					"vga"
 				],
 				"Ip": [
 					"tcp",

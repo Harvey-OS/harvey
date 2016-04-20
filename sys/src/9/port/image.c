@@ -20,7 +20,7 @@
 
 static struct Imagealloc
 {
-	Lock;
+	Lock Lock;
 	Image	*mru;			/* head of LRU list */
 	Image	*lru;			/* tail of LRU list */
 	Image	*hash[IHASHSIZE];
@@ -145,7 +145,7 @@ imagereclaim(void)
 	DBG("imagereclaim maxt %ulld noluck %d nolock %d\n",
 		irstats.maxt, irstats.noluck, irstats.nolock);
 	ticks0 = fastticks(nil);
-	if(!canlock(&imagealloc)){
+	if(!canlock(&imagealloc.Lock)){
 		/* never happen in the experiments I made */
 		qunlock(&imagealloc.ireclaim);
 		return;
@@ -160,7 +160,7 @@ imagereclaim(void)
 			DBG("imagereclaim: image %p(c%p, r%d)\n", i, i->c, i->r.ref);
 			if(i->r.ref == 1){	/* no pages referring to it, it's ours */
 				unlock(&i->r.l);
-				unlock(&imagealloc);
+				unlock(&imagealloc.Lock);
 				putimage(i);
 				break;
 			}else
@@ -171,7 +171,7 @@ imagereclaim(void)
 
 	if(i == nil){
 		irstats.noluck++;
-		unlock(&imagealloc);
+		unlock(&imagealloc.Lock);
 	}
 	irstats.loops++;
 	ticks = fastticks(nil) - ticks0;
@@ -202,10 +202,10 @@ imagechanreclaim(void)
 	 * one of us thanks to the qlock above.
 	 */
 	while(imagealloc.nfreechan > 0){
-		lock(&imagealloc);
+		lock(&imagealloc.Lock);
 		imagealloc.nfreechan--;
 		c = imagealloc.freechan[imagealloc.nfreechan];
-		unlock(&imagealloc);
+		unlock(&imagealloc.Lock);
 		cclose(c);
 	}
 
@@ -222,7 +222,7 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 	if(imagealloc.nfreechan)
 		imagechanreclaim();
 
-	lock(&imagealloc);
+	lock(&imagealloc.Lock);
 
 	/*
 	 * Search the image cache for remains of the text from a previous
@@ -247,10 +247,10 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 	 * structures. This should free some image structures.
 	 */
 	while(!(i = lruimage())) {
-		unlock(&imagealloc);
+		unlock(&imagealloc.Lock);
 		imagereclaim();
 		sched();
-		lock(&imagealloc);
+		lock(&imagealloc.Lock);
 	}
 
 	lock(&i->r.l);
@@ -267,7 +267,7 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 	*l = i;
 found:
 	imageused(i);
-	unlock(&imagealloc);
+	unlock(&imagealloc.Lock);
 
 	if(i->s == 0) {
 		/* Disaster after commit in exec */
@@ -303,7 +303,7 @@ putimage(Image *i)
 		unlock(&i->r.l);
 		c = i->c;
 
-		lock(&imagealloc);
+		lock(&imagealloc.Lock);
 		for(f = *l; f; f = f->hash) {
 			if(f == i) {
 				*l = i->hash;
@@ -324,7 +324,7 @@ putimage(Image *i)
 		}
 		imagealloc.freechan[imagealloc.nfreechan++] = c;
 		i->c = nil;		/* flag as unused in lru list */
-		unlock(&imagealloc);
+		unlock(&imagealloc.Lock);
 
 		return;
 	}

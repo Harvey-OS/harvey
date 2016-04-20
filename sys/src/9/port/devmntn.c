@@ -54,7 +54,7 @@ enum
 
 struct Mntalloc
 {
-	Lock;
+	Lock Lock;
 	Mnt*	list;		/* Mount devices in use */
 	Mnt*	mntfree;	/* Free list */
 	Mntrpc*	rpcfree;
@@ -489,9 +489,9 @@ mntchann(void)
         Chan *c;
 
         c = devattach('N', 0);
-        lock(&mntalloc);
+        lock(&mntalloc.Lock);
         c->devno = mntalloc.id++;
-        unlock(&mntalloc);
+        unlock(&mntalloc.Lock);
 
         if(c->mchan)
                 panic("mntchan non-zero %#p", c->mchan);

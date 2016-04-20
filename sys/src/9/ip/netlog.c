@@ -35,7 +35,7 @@ struct Netlog {
 	int	iponlyset;
 
 	QLock ql;
-	Rendez;
+	Rendez Rendez;
 };
 
 typedef struct Netlogflag {
@@ -101,7 +101,7 @@ netlogopen(Fs *f)
 		f->alog->end = f->alog->buf + Nlog;
 	}
 	f->alog->opens++;
-	unlock(&f->alog->l);
+	unlock(&f->alog->Rendez.l);
 	poperror();
 }
 
@@ -109,9 +109,9 @@ void
 netlogclose(Fs *f)
 {
 	Proc *up = externup();
-	lock(&f->alog->l);
+	lock(&f->alog->Rendez.l);
 	if(waserror()){
-		unlock(&f->alog->l);
+		unlock(&f->alog->Rendez.l);
 		nexterror();
 	}
 	f->alog->opens--;
@@ -119,7 +119,7 @@ netlogclose(Fs *f)
 		free(f->alog->buf);
 		f->alog->buf = nil;
 	}
-	unlock(&f->alog->l);
+	unlock(&f->alog->Rendez.l);
 	poperror();
 }
 
@@ -168,7 +168,7 @@ netlogread(Fs *f, void *a, uint32_t u, int32_t n)
 		else
 			unlock(&f->alog->_lock);
 
-		sleep(f->alog, netlogready, f);
+		sleep(&f->alog->Rendez, netlogready, f);
 	}
 
 	qunlock(&f->alog->ql);
@@ -272,5 +272,5 @@ netlog(Fs *f, int mask, char *fmt, ...)
 		*t++ = *fp++;
 	}
 	unlock(&f->alog->_lock);
-	wakeup(f->alog);
+	wakeup(&f->alog->Rendez);
 }
