@@ -1,7 +1,6 @@
 CFLAGS=-nostdinc \
 	-mcmodel=small \
 	-O0 \
-	-fplan9-extensions \
 	-mno-red-zone \
 	-ffreestanding \
 	-fno-builtin \

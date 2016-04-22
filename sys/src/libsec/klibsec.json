@@ -1,5 +1,8 @@
 {
 	"Kernellibsec": {
+		"CFlags": [
+			"-fplan9-extensions"
+		],
 		"Include": [
 			"/$ARCH/include/klib.json"
 		],
