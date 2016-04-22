@@ -1,5 +1,8 @@
 {
 	"diff": {
+	"CFlags": [
+		"-fplan9-extensions"
+	],
 		"Include": [
 			"../cmd.json"
 		],

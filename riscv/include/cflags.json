@@ -4,7 +4,6 @@
 			"-ffreestanding",
 			"-fno-builtin",
 			"-fno-omit-frame-pointer",
-			"-fplan9-extensions",
 			"-fvar-tracking",
 			"-fvar-tracking-assignments",
 			"-g",

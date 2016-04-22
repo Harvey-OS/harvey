@@ -1,5 +1,8 @@
 {
 	"Cmd": {
+		"CFlags": [
+			"-fplan9-extensions"
+		],
 		"Include": [
 			"cmd.json"
 		],
@@ -135,6 +138,10 @@
 			"cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
+		"WhoCares": [
+			"cdfs/cdfs.json",
+			"cifs/cifs.json"
+		],
 		"Projects": [
 			"9660srv/9660srv.json",
 			"acme/build.json",
@@ -143,8 +150,6 @@
 			"aux/aux.json",
 			"bzip2/bzip2.json",
 			"cb/cb.json",
-			"cdfs/cdfs.json",
-			"cifs/cifs.json",
 			"con/con.json",
 			"dial/dial.json",
 			"diff/diff.json",

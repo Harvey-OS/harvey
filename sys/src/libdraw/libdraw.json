@@ -1,6 +1,7 @@
 {
 	"Libdraw": {
 		"Cflags": [
+			"-fplan9-extensions",
 			"-Werror"
 		],
 		"Include": [
