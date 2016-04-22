@@ -1,5 +1,8 @@
 {
 	"dump9660": {
+		"CFlags": [
+		"-fplan9-extensions"
+		],
 		"Include": [
 			"../../cmd.json"
 		],
