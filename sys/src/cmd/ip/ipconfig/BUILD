@@ -17,7 +17,6 @@ cc_binary(
 		"-std=c11",
 		"-mcmodel=small",
 		"-O0",
-		"-fplan9-extensions",
 		"-mno-red-zone",
 		"-ffreestanding",
 		"-fno-builtin",

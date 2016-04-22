@@ -40,7 +40,6 @@ CMD_LINK_OPTS = [
 KLIB_COMPILER_FLAGS = [
 	"-mcmodel=kernel",
 	"-O0",
-	"-fplan9-extensions",
 	"-mno-red-zone",
 	"-ffreestanding",
 	"-fno-builtin",
@@ -59,7 +58,6 @@ LIB_COMPILER_FLAGS = [
     "-ffreestanding",
     "-fno-builtin",
     "-fno-omit-frame-pointer",
-    "-fplan9-extensions",
     "-fvar-tracking",
     "-fvar-tracking-assignments",
     "-g",

@@ -1,11 +1,15 @@
 {
 	"libs.json": {
+		"WhoCares": [
+			"/sys/src/libmach/libmach.json",
+			"/sys/src/libString/libString.json",
+			"/sys/src/libstdio/libstdio.json",
+			"/sys/src/lib9p/lib9p.json"
+		],
 		"Projects": [
 			"/sys/src/libc/libc.json",
 			"/sys/src/libip/libip.json",
 			"/sys/src/libdraw/libdraw.json",
-			"/sys/src/lib9p/lib9p.json",
-			"/sys/src/libString/libString.json",
 			"/sys/src/libauth/libauth.json",
 			"/sys/src/libauthsrv/libauthsrv.json",
 			"/sys/src/libavl/libavl.json",
@@ -19,7 +23,6 @@
 			"/sys/src/libgeometry/libgeometry.json",
 			"/sys/src/libhttpd/libhttpd.json",
 			"/sys/src/liblex/liblex.json",
-			"/sys/src/libmach/libmach.json",
 			"/sys/src/libmemdraw/libmemdraw.json",
 			"/sys/src/libmemlayer/libmemlayer.json",
 			"/sys/src/libmp/libmp.json",
@@ -28,7 +31,6 @@
 			"/sys/src/libplumb/libplumb.json",
 			"/sys/src/libregexp/libregexp.json",
 			"/sys/src/libsec/libsec.json",
-			"/sys/src/libstdio/libstdio.json",
 			"/sys/src/libthread/libthread.json",
 			"/sys/src/libusb",
 			"/sys/src/libventi/libventi.json",
