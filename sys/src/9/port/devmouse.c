@@ -679,7 +679,7 @@ m3mouseputc(Queue *queue, int c)
 int
 m5mouseputc(Queue *queue, int c)
 {
-	static unsigned char msg[3];
+	static unsigned char msg[8];
 	static int nb;
 	static uint32_t lasttick;
 	uint32_t m;

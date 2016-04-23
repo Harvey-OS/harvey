@@ -217,10 +217,11 @@ static	int	debug;
 static	int	prid = 1;
 static	int	datapi;
 
+// TODO: does this get initialized correctly? 
 static char stab[] = {
-[0]	'i', 'm',
-[8]	't', 'c', 'p', 'e',
-[16]	'N', 'I', 'W', 'B', 'D', 'C', 'H', 'S', 'T', 'F', 'X'
+[0]	= 'i', 'm',
+[8]	= 't', 'c', 'p', 'e',
+[16]	= 'N', 'I', 'W', 'B', 'D', 'C', 'H', 'S', 'T', 'F', 'X'
 };
 
 static void
