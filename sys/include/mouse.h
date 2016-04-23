@@ -14,6 +14,9 @@ typedef struct	Cursor Cursor;
 typedef struct	Menu Menu;
 typedef struct 	Mousectl Mousectl;
 
+/* as a way to get sort-of anon structs, we make the Mouse and Mousectl structs
+ * interchangeable.
+ */
 struct	Mouse
 {
 	int	buttons;	/* bit array: LMR=124 */
@@ -23,7 +26,10 @@ struct	Mouse
 
 struct Mousectl
 {
-	Mouse;
+	//Mouse;
+	int	buttons;	/* bit array: LMR=124 */
+	Point	xy;
+	uint32_t	msec;
 	Channel	*c;	/* chan(Mouse) */
 	Channel	*resizec;	/* chan(int)[2] */
 			/* buffered in case client is waiting for a mouse action before handling resize */
