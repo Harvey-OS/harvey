@@ -18,12 +18,12 @@ s_free(String *sp)
 {
 	if (sp == nil)
 		return;
-	lock(sp);
+	lock((Lock *)sp);
 	if(--(sp->ref) != 0){
-		unlock(sp);
+		unlock((Lock *)sp);
 		return;
 	}
-	unlock(sp);
+	unlock((Lock *)sp);
 
 	if(sp->fixed == 0 && sp->base != nil)
 		free(sp->base);
@@ -34,9 +34,9 @@ s_free(String *sp)
 extern String *
 s_incref(String *sp)
 {
-	lock(sp);
+	lock((Lock *)sp);
 	sp->ref++;
-	unlock(sp);
+	unlock((Lock *)sp);
 
 	return sp;
 }
