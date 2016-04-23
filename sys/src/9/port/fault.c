@@ -18,9 +18,9 @@
 #define DBG if(0)print
 
 char *faulttypes[] = {
-	[FT_WRITE] "write",
-	[FT_READ] "read",
-	[FT_EXEC] "exec"
+	[FT_WRITE] = "write",
+	[FT_READ] = "read",
+	[FT_EXEC] = "exec"
 };
 
 
