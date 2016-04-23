@@ -360,9 +360,9 @@ incoming(void* arg)
 }
 
 static int m2p[] = {
-	[OREAD]		4,
-	[OWRITE]	2,
-	[ORDWR]		6
+	[OREAD] =		4,
+	[OWRITE] =	2,
+	[ORDWR]	=	6
 };
 
 static Chan*
