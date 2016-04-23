@@ -3,7 +3,6 @@
 		"Cflags": [
 			"-O0",
 			"-static",
-			"-fplan9-extensions",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-DKERNDATE=1433623937",

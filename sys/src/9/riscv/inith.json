@@ -8,7 +8,6 @@
 			"-Wno-unknown-pragmas",
 			"-O0",
 			"-static",
-			"-fplan9-extensions",
 			"-ffreestanding",
 			"-fno-builtin"
 		],

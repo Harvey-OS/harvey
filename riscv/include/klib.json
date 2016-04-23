@@ -2,7 +2,6 @@
 	"KernelLibs": {
 		"Cflags": [
 			"-O0",
-			"-fplan9-extensions",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-Wall",

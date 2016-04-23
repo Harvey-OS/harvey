@@ -19,7 +19,6 @@ cc_library(
         "-Wno-unknown-pragmas",
         "-O0",
         "-static",
-        "-fplan9-extensions",
         "-mno-red-zone",
         "-ffreestanding",
         "-fno-builtin",
