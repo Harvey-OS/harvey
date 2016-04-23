@@ -11,7 +11,7 @@
 #pragma	lib	"libbio.a"
 
 typedef	struct	Biobuf	Biobuf;
-typedef	struct	Biobufhdr	Biobufhdr;
+typedef	struct	Biobuf	Biobufhdr;
 
 enum
 {
@@ -27,7 +27,7 @@ enum
 	Bracteof,
 };
 
-struct	Biobufhdr
+struct	Biobuf
 {
 	int	icount;		/* neg num of bytes at eob */
 	int	ocount;		/* num of bytes at bob */
@@ -41,11 +41,6 @@ struct	Biobufhdr
 	uint8_t*	bbuf;		/* pointer to beginning of buffer */
 	uint8_t*	ebuf;		/* pointer to end of buffer */
 	uint8_t*	gbuf;		/* pointer to good data in buf */
-};
-
-struct	Biobuf
-{
-	Biobufhdr;
 	uint8_t	b[Bungetsize+Bsize];
 };
 
