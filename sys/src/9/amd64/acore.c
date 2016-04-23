@@ -297,10 +297,10 @@ dumpreg(void *u)
 
 char *rolename[] =
 {
-	[NIXAC]	"AC",
-	[NIXTC]	"TC",
-	[NIXKC]	"KC",
-	[NIXXC]	"XC",
+	[NIXAC] = "AC",
+	[NIXTC] = "TC",
+	[NIXKC] = "KC",
+	[NIXXC] = "XC",
 };
 
 void

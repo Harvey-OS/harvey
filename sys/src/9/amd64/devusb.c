@@ -151,26 +151,26 @@ static Dirtab usbdir[] =
 
 char *usbmodename[] =
 {
-	[OREAD]	"r",
-	[OWRITE]	"w",
-	[ORDWR]	"rw",
+	[OREAD] = "r",
+	[OWRITE] = "w",
+	[ORDWR] = "rw",
 };
 
 static char *ttname[] =
 {
-	[Tnone]	"none",
-	[Tctl]	"control",
-	[Tiso]	"iso",
-	[Tintr]	"interrupt",
-	[Tbulk]	"bulk",
+	[Tnone] = "none",
+	[Tctl] = "control",
+	[Tiso] = "iso",
+	[Tintr] = "interrupt",
+	[Tbulk] = "bulk",
 };
 
 static char *spname[] =
 {
-	[Fullspeed]	"full",
-	[Lowspeed]	"low",
-	[Highspeed]	"high",
-	[Nospeed]	"no",
+	[Fullspeed] = "full",
+	[Lowspeed] = "low",
+	[Highspeed] = "high",
+	[Nospeed] = "no",
 };
 
 static int	debug;

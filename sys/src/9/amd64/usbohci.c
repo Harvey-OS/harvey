@@ -390,18 +390,18 @@ static int32_t	qtd(Ctlr*, Ep*, int, Block*, unsigned char*, unsigned char*, int,
 
 static char* errmsgs[] =
 {
-[Tdcrc]		"crc error",
-[Tdbitstuff]	"bit stuffing error",
-[Tdbadtog]	"bad toggle",
+[Tdcrc] = "crc error",
+[Tdbitstuff] = "bit stuffing error",
+[Tdbadtog] = "bad toggle",
 [Tdstalled]	Estalled,
-[Tdtmout]	"timeout error",
-[Tdpidchk]	"pid check error",
-[Tdbadpid]	"bad pid",
-[Tddataovr]	"data overrun",
-[Tddataund]	"data underrun",
-[Tdbufovr]	"buffer overrun",
-[Tdbufund]	"buffer underrun",
-[Tdnotacc]	"not accessed"
+[Tdtmout] = "timeout error",
+[Tdpidchk] = "pid check error",
+[Tdbadpid] = "bad pid",
+[Tddataovr] = "data overrun",
+[Tddataund] = "data underrun",
+[Tdbufovr] = "buffer overrun",
+[Tdbufund] = "buffer underrun",
+[Tdnotacc] = "not accessed"
 };
 
 static void*
