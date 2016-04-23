@@ -178,7 +178,7 @@ threadmain(int argc, char *argv[])
 		fprint(2, "acme: can't initialize mouse: %r\n");
 		exits("mouse");
 	}
-	mouse = mousectl;
+	mouse = (Mouse *)mousectl;
 	keyboardctl = initkeyboard(nil);
 	if(keyboardctl == nil){
 		fprint(2, "acme: can't initialize keyboard: %r\n");
@@ -441,7 +441,7 @@ mousethread(void *v)
 	alts[MResize].v = nil;
 	alts[MResize].op = CHANRCV;
 	alts[MMouse].c = mousectl->c;
-	alts[MMouse].v = &mousectl->Mouse;
+	alts[MMouse].v = (Mouse *)mousectl;
 	alts[MMouse].op = CHANRCV;
 	alts[MPlumb].c = cplumb;
 	alts[MPlumb].v = &pm;
@@ -483,7 +483,7 @@ mousethread(void *v)
 			 * underfoot.  Can't just receive into m because this introduces
 			 * another race; see /sys/src/libdraw/mouse.c.
 			 */
-			m = mousectl->Mouse;
+			m = *(Mouse *)mousectl;
 			qlock(&row);
 			t = rowwhich(&row, m.xy);
 			if(t!=mousetext && mousetext!=nil && mousetext->w!=nil){
