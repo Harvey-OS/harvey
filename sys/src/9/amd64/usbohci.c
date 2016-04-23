@@ -393,7 +393,7 @@ static char* errmsgs[] =
 [Tdcrc] = "crc error",
 [Tdbitstuff] = "bit stuffing error",
 [Tdbadtog] = "bad toggle",
-[Tdstalled]	Estalled,
+[Tdstalled] = 	Estalled,
 [Tdtmout] = "timeout error",
 [Tdpidchk] = "pid check error",
 [Tdbadpid] = "bad pid",

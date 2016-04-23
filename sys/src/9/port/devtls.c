@@ -264,14 +264,14 @@ static void	pdump(int, void*, char*);
 #pragma	varargck	argpos	rcvError	3
 
 static char *tlsnames[] = {
-[Qclonus]		"clone",
-[Qencalgs]	"encalgs",
-[Qhashalgs]	"hashalgs",
-[Qdata]		"data",
-[Qctl]		"ctl",
-[Qhand]		"hand",
-[Qstatus]		"status",
-[Qstats]		"stats",
+[Qclonus] = "clone",
+[Qencalgs] = "encalgs",
+[Qhashalgs] = "hashalgs",
+[Qdata] = "data",
+[Qctl] = "ctl",
+[Qhand] = "hand",
+[Qstatus] = "status",
+[Qstats] = "stats",
 };
 
 static int convdir[] = { Qctl, Qdata, Qhand, Qstatus, Qstats };

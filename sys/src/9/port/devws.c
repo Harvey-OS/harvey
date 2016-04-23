@@ -50,9 +50,9 @@ collect(void)
 	char *buf, *s;
 	int i, n;
 	static char *wname[] = {
-	[WSlock] "lock",
-	[WSqlock] "qlock",
-	[WSslock] "slock",
+	[WSlock] = "lock",
+	[WSqlock] = "qlock",
+	[WSslock] = "slock",
 	};
 
 	n = waitstats.npcs * (strlen("slock") + 1 + 19 * 3 + 1) + 1;
