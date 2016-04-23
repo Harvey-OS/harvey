@@ -16,14 +16,14 @@
 
 /* Segment type from portdat.h */
 char *segtypes[SG_TYPE]={
-	[SG_BAD0] "Bad0",
-	[SG_TEXT] "Text",
-	[SG_DATA] "Data",
-	[SG_BSS] "Bss",
-	[SG_STACK] "Stack",
-	[SG_SHARED] "Shared",
-	[SG_PHYSICAL] "Phys",
-	[SG_LOAD] "Load"
+	[SG_BAD0] = "Bad0",
+	[SG_TEXT] = "Text",
+	[SG_DATA] = "Data",
+	[SG_BSS] = "Bss",
+	[SG_STACK] = "Stack",
+	[SG_SHARED] = "Shared",
+	[SG_PHYSICAL] = "Phys",
+	[SG_LOAD] = "Load"
 };
 
 
