@@ -1,8 +1,5 @@
 {
 	"ndb": {
-	"CFlags": [
-		"-fplan9-extensions"
-	],
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
