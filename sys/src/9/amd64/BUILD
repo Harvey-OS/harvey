@@ -352,8 +352,6 @@ cc_binary(
         "-fno-builtin",
         "-DKERNDATE=1433623937",
         "-g",
-        "-fvar-tracking",
-        "-fvar-tracking-assignments",
         "-Wall",
         "-W",
         "-Wno-sign-compare",
