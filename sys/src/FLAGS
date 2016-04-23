@@ -58,8 +58,6 @@ LIB_COMPILER_FLAGS = [
     "-ffreestanding",
     "-fno-builtin",
     "-fno-omit-frame-pointer",
-    "-fvar-tracking",
-    "-fvar-tracking-assignments",
     "-g",
     "-gdwarf-2",
     "-ggdb",
