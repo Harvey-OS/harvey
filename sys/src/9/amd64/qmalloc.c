@@ -81,21 +81,21 @@ enum
 static	void	qfreeinternal(void*);
 static	int	qstats[QSmax];
 static	char*	qstatstr[QSmax] = {
-[QSmalign]		"malign",
-[QSmalignquick]	"malignquick",
-[QSmalignrover]	"malignrover",
-[QSmalignfront]	"malignfront",
-[QSmalignback]	"malignback",
-[QSmaligntail]	"maligntail",
-[QSmalignnottail]	"malignnottail",
-[QSmalloc]		"malloc",
-[QSmallocrover]	"mallocrover",
-[QSmalloctail]	"malloctail",
-[QSfree]		"free",
-[QSfreetail]	"freetail",
-[QSfreequick]	"freequick",
-[QSfreenext]	"freenext",
-[QSfreeprev]	"freeprev",
+[QSmalign] = "malign",
+[QSmalignquick] = "malignquick",
+[QSmalignrover] = "malignrover",
+[QSmalignfront] = "malignfront",
+[QSmalignback] = "malignback",
+[QSmaligntail] = "maligntail",
+[QSmalignnottail] = "malignnottail",
+[QSmalloc] = "malloc",
+[QSmallocrover] = "mallocrover",
+[QSmalloctail] = "malloctail",
+[QSfree] = "free",
+[QSfreetail] = "freetail",
+[QSfreequick] = "freequick",
+[QSfreenext] = "freenext",
+[QSfreeprev] = "freeprev",
 };
 
 static	Lock		mainlock;
