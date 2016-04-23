@@ -63,12 +63,12 @@ enum
 
 char *ftname[] =
 {
-[Tproto]	"proto",
-[Tdata]		"data",
-[Tiph]	 	"iph",
-[Tdst]		"dst",
-[Tsrc]		"src",
-[Tifc]		"ifc",
+[Tproto] = "proto",
+[Tdata] = "data",
+[Tiph] = "iph",
+[Tdst] = "dst",
+[Tsrc] = "src",
+[Tifc] = "ifc",
 };
 
 /*

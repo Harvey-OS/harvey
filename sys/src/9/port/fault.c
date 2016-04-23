@@ -299,7 +299,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	int n, ask;
 	uintmem pgsz;
 	char *kaddr;
-	uint32_t daddr, doff;
+	uint32_t daddr, doff = 0;
 	Page *loadrec;
 
 	loadrec = *p;
