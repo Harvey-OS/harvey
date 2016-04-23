@@ -29,7 +29,7 @@ closemouse(Mousectl *mc)
 
 	postnote(PNPROC, mc->pid, "kill");
 
-	do; while(nbrecv(mc->c, &mc->Mouse) > 0);
+	do; while(nbrecv(mc->c, (Mouse *)mc) > 0);
 
 	close(mc->mfd);
 	close(mc->cfd);
@@ -44,7 +44,7 @@ readmouse(Mousectl *mc)
 {
 	if(mc->image)
 		flushimage(mc->image->display, 1);
-	if(recv(mc->c, &mc->Mouse) < 0){
+	if(recv(mc->c, (Mouse *)mc) < 0){
 		fprint(2, "readmouse: %r\n");
 		return -1;
 	}
@@ -90,8 +90,9 @@ _ioproc(void *arg)
 			 * mc->Mouse is updated after send so it doesn't have wrong value if we block during send.
 			 * This means that programs should receive into mc->Mouse (see readmouse() above) if
 			 * they want full synchrony.
-			 */
 			mc->Mouse = m;
+			 */
+			*(Mouse *)mc = m;
 			break;
 		}
 	}
