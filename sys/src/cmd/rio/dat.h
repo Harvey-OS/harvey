@@ -115,7 +115,7 @@ struct Stringpair	/* rune and nrune or byte and nbyte */
 
 struct Mousestate
 {
-	Mouse;
+	Mouse mouse;
 	uint32_t	counter;	/* serial no. of mouse event */
 };
 
