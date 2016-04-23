@@ -1,8 +1,5 @@
 {
 	"libsec": {
-		"CFlags": [
-			"-fplan9-extensions"
-		],
 		"Include": [
 			"../lib.json"
 		],
