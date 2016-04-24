@@ -79,7 +79,7 @@ struct Edid {
 
 struct Modelist
 {
-	Mode;
+	Mode Mode;
 	Modelist *next;
 };
 
@@ -658,9 +658,9 @@ printedid(Edid *e)
 	printflags(edidflags, e->flags);
 	
 	for(l=e->modelist; l; l=l->next){
-		printitem("edid", l->name);
+		printitem("edid", l->Mode.name);
 		Bprint(&stdout, "\n\t\tclock=%g\n\t\tshb=%d ehb=%d ht=%d\n\t\tvrs=%d vre=%d vt=%d\n\t\thsync=%c vsync=%c %s\n",
-			l->frequency/1.e6, l->shb, l->ehb, l->ht, l->vrs, l->vre, l->vt, l->hsync?l->hsync:'?', l->vsync?l->vsync:'?', l->interlace?"interlace=v" : "");
+			l->Mode.frequency/1.e6, l->Mode.shb, l->Mode.ehb, l->Mode.ht, l->Mode.vrs, l->Mode.vre, l->Mode.vt, l->Mode.hsync?l->Mode.hsync:'?', l->Mode.vsync?l->Mode.vsync:'?', l->Mode.interlace?"interlace=v" : "");
 	}
 }
 
@@ -684,7 +684,7 @@ addmode(Modelist *l, Mode m)
 		m.vbe = m.vbs+1;
 
 	for(lp=&l; *lp; lp=&(*lp)->next){
-		if(strcmp((*lp)->name, m.name) == 0){
+		if(strcmp((*lp)->Mode.name, m.name) == 0){
 			(*lp)->Mode = m;
 			return l;
 		}
