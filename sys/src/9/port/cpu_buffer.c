@@ -50,6 +50,8 @@ static int work_enabled;
  * reset these to invalid values; the next sample collected will
  * populate the buffer with proper values to initialize the buffer
  */
+// TODO. We hate #if 0. Sorry.
+#if 0
 static inline void op_cpu_buffer_reset(int cpu)
 {
 	//print_func_entry();
@@ -59,6 +61,7 @@ static inline void op_cpu_buffer_reset(int cpu)
 	cpu_buf->last_proc = nil;
 	//print_func_exit();
 }
+#endif
 
 /* returns the remaining free size of data in the entry */
 static inline
@@ -85,6 +88,7 @@ static inline int op_cpu_buffer_get_size(struct op_entry *entry)
 }
 
 /* returns 0 if empty or the size of data including the current value */
+#if 0
 static inline
 	int op_cpu_buffer_get_data(struct op_entry *entry, unsigned long *val)
 {
@@ -100,6 +104,7 @@ static inline
 	//print_func_exit();
 	return size;
 }
+#endif
 
 unsigned long oprofile_get_cpu_buffer_size(void)
 {
@@ -386,6 +391,7 @@ fail:
 	return 0;
 }
 
+#if 0
 static inline void oprofile_begin_trace(struct oprofile_cpu_buffer *cpu_buf)
 {
 	//print_func_entry();
@@ -399,6 +405,7 @@ static inline void oprofile_end_trace(struct oprofile_cpu_buffer *cpu_buf)
 	cpu_buf->tracing = 0;
 	//print_func_exit();
 }
+#endif
 
 void oprofile_cpubuf_flushone(int core, int newbuf)
 {
