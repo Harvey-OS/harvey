@@ -1,7 +1,6 @@
 {
 	"KernelLibc": {
 		"Cflags": [
-			"-fplan9-extensions",
 			"-fasm",
 			"-Werror"
 		],
