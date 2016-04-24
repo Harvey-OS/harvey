@@ -1,7 +1,6 @@
 {
 	"libmach": {
 		"Cflags": [
-			"-fplan9-extensions",
 			"-I", "/",
 			"-Werror"
 		],
