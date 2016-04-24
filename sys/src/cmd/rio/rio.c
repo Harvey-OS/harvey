@@ -129,8 +129,8 @@ threadmain(int argc, char *argv[])
 {
 	char *initstr, *kbdin, *s;
 	char buf[256];
-	Image *i;
-	Rectangle r;
+	//Image *i;
+	//Rectangle r;
 
 	if(strstr(argv[0], ".out") == nil){
 		menu3str[Exit] = nil;
@@ -196,7 +196,7 @@ threadmain(int argc, char *argv[])
 	mousectl = initmouse(nil, screen);
 	if(mousectl == nil)
 		error("can't find mouse");
-	mouse = mousectl;
+	mouse = (Mouse *)mousectl;
 	keyboardctl = initkeyboard(nil);
 	if(keyboardctl == nil)
 		error("can't find keyboard");
@@ -492,7 +492,7 @@ mousethread(void* v)
 	alts[MReshape].v = nil;
 	alts[MReshape].op = CHANRCV;
 	alts[MMouse].c = mousectl->c;
-	alts[MMouse].v = &mousectl->Mouse;
+	alts[MMouse].v = (Mouse *)mousectl;
 	alts[MMouse].op = CHANRCV;
 	alts[NALT].op = CHANEND;
 
@@ -544,7 +544,7 @@ mousethread(void* v)
 					sending = FALSE;
 				}else
 					wsetcursor(winput, 0);
-				tmp = mousectl->Mouse;
+				tmp = *(Mouse *)mousectl;
 				tmp.xy = xy;
 				send(winput->mc.c, &tmp);
 				continue;
