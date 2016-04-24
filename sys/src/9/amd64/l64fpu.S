@@ -27,12 +27,15 @@ _fninit:
 
 .globl _fxrstor
 _fxrstor:
-	FXRSTOR64 0(%rdi)
+	// Damn. clang lags on assembly, badly.
+	//FXRSTOR64 0(%rdi)
+	.byte 0x48, 0x0f, 0xae, 0x0f //          	fxrstor64 (%rdi)
 	ret
 
 .globl _fxsave
 _fxsave:
-	FXSAVE64 0(%rdi)
+	//FXSAVE64 0(%rdi)
+	.byte 0x48, 0x0f, 0xae, 0x07 //          	fxsave64 (%rdi)
 	ret
 
 .globl _fwait
