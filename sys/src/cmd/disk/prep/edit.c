@@ -289,10 +289,7 @@ editwrite(Edit *edit, int argc, char **c)
 static char*
 editquit(Edit *edit, int argc, char **c)
 {
-	static int warned;
-
 	if(argc != 1) {
-		warned = 0;
 		return "args";
 	}
 
