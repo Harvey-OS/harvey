@@ -13,7 +13,7 @@
 /* SCSI interface */
 typedef struct Scsi Scsi;
 struct Scsi {
-	QLock;
+	QLock QLock;
 	char*	inquire;
 	int	rawfd;
 	int	nchange;
