@@ -31,7 +31,7 @@ typedef struct {
 			int32_t	spsz;		/* size of pc/sp offset table */
 			int32_t	pcsz;		/* size of pc/line number table */
 		};
-		E64hdr;
+		E64hdr E64hdr;
 	} e;
 	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
@@ -191,7 +191,7 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	int i, it, id, is, phsz;
 	uint64_t uvl;
 
-	ep = &hp->e;
+	ep = &hp->e.E64hdr;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
 		swab = leswab;
 		swal = leswal;
@@ -299,7 +299,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	E64hdr *ep;
 
 	/* bitswap the header according to the DATA format */
-	ep = &hp->e;
+	ep = &hp->e.E64hdr;
 //	if(ep->ident[CLASS] == ELFCLASS32)
 //		return elf32dotout(fd, fp, hp);
 //	else if(ep->ident[CLASS] == ELFCLASS64)
