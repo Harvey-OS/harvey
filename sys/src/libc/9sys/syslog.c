@@ -17,7 +17,7 @@ static struct
 	char	*name;
 	Dir	*d;
 	Dir	*consd;
-	Lock;
+	Lock	Lock;
 } sl =
 {
 	-1, -1,
@@ -60,7 +60,7 @@ syslog(int cons, const char *logname, const char *fmt, ...)
 
 	err[0] = '\0';
 	errstr(err, sizeof err);
-	lock(&sl);
+	lock(&sl.Lock);
 
 	/*
 	 *  paranoia makes us stat to make sure a fork+close
@@ -97,7 +97,7 @@ syslog(int cons, const char *logname, const char *fmt, ...)
 	}
 
 	if(fmt == nil){
-		unlock(&sl);
+		unlock(&sl.Lock);
 		return;
 	}
 
@@ -121,5 +121,5 @@ syslog(int cons, const char *logname, const char *fmt, ...)
 	if(cons && sl.consfd >=0)
 		write(sl.consfd, buf, n);
 
-	unlock(&sl);
+	unlock(&sl.Lock);
 }
