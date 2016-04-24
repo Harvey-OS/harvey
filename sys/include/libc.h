@@ -751,7 +751,7 @@ extern char *argv0;
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
-				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), argc = *(int*)0, (char*)0)))
+				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), argc = *(volatile int*)0, (char*)0)))
 
 #define	ARGC()		_argc
 
