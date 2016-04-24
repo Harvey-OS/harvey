@@ -14,11 +14,7 @@
 #define VLONG_MIN	(1LL<<63)
 
 int64_t
-<<<<<<< HEAD
-strtoll(char *nptr, char **endptr, int base)
-=======
 strtoll(const char *nptr, char **endptr, int base)
->>>>>>> 064e99309... Changed strto[l|ul|ull] functions to have correct signature
 {
 	char *p;
 	int64_t n, nn, m;
