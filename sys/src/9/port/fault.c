@@ -18,9 +18,9 @@
 #define DBG if(0)print
 
 char *faulttypes[] = {
-	[FT_WRITE] "write",
-	[FT_READ] "read",
-	[FT_EXEC] "exec"
+	[FT_WRITE] = "write",
+	[FT_READ] = "read",
+	[FT_EXEC] = "exec"
 };
 
 
@@ -299,7 +299,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	int n, ask;
 	uintmem pgsz;
 	char *kaddr;
-	uint32_t daddr, doff;
+	uint32_t daddr, doff = 0;
 	Page *loadrec;
 
 	loadrec = *p;

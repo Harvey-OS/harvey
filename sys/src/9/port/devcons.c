@@ -757,7 +757,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 			rebootcmd(cb->nf-1, cb->f+1);
 			break;
 		case CMpanic:
-			*(uint32_t*)0=0;
+			*(volatile uint32_t*)0=0;
 			panic("/dev/reboot");
 		}
 		poperror();

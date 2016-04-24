@@ -1370,14 +1370,14 @@ atapktio(Drive* drive, uint8_t* cmd, int clen)
 }
 
 static uint8_t cmd48[256] = {
-	[Crs]	Crs48,
-	[Crd]	Crd48,
-	[Crdq]	Crdq48,
-	[Crsm]	Crsm48,
-	[Cws]	Cws48,
-	[Cwd]	Cwd48,
-	[Cwdq]	Cwdq48,
-	[Cwsm]	Cwsm48,
+	[Crs] =	Crs48,
+	[Crd] =	Crd48,
+	[Crdq] =	Crdq48,
+	[Crsm] =	Crsm48,
+	[Cws] =	Cws48,
+	[Cwd] =	Cwd48,
+	[Cwdq] =	Cwdq48,
+	[Cwsm] =	Cwsm48,
 };
 
 static int

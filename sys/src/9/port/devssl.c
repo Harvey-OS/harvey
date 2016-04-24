@@ -123,13 +123,13 @@ static void	dsnew(Chan *c, Dstate **);
 static int32_t	sslput(Dstate *s, Block * volatile b);
 
 char *sslnames[] = {
-[Qclonus]	"clone",
-[Qdata]		"data",
-[Qctl]		"ctl",
-[Qsecretin]	"secretin",
-[Qsecretout]	"secretout",
-[Qencalgs]	"encalgs",
-[Qhashalgs]	"hashalgs",
+[Qclonus] = "clone",
+[Qdata] = "data",
+[Qctl] = "ctl",
+[Qsecretin] = "secretin",
+[Qsecretout] = "secretout",
+[Qencalgs] = "encalgs",
+[Qhashalgs] = "hashalgs",
 };
 
 static int

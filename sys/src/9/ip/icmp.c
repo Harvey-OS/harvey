@@ -60,19 +60,19 @@ enum
 
 char *icmpnames[Maxtype+1] =
 {
-[EchoReply]		"EchoReply",
-[Unreachable]		"Unreachable",
-[SrcQuench]		"SrcQuench",
-[Redirect]		"Redirect",
-[EchoRequest]		"EchoRequest",
-[TimeExceed]		"TimeExceed",
-[InParmProblem]		"InParmProblem",
-[Timestamp]		"Timestamp",
-[TimestampReply]	"TimestampReply",
-[InfoRequest]		"InfoRequest",
-[InfoReply]		"InfoReply",
-[AddrMaskRequest]	"AddrMaskRequest",
-[AddrMaskReply  ]	"AddrMaskReply  ",
+[EchoReply] = "EchoReply",
+[Unreachable] = "Unreachable",
+[SrcQuench] = "SrcQuench",
+[Redirect] = "Redirect",
+[EchoRequest] = "EchoRequest",
+[TimeExceed] = "TimeExceed",
+[InParmProblem] = "InParmProblem",
+[Timestamp] = "Timestamp",
+[TimestampReply] = "TimestampReply",
+[InfoRequest] = "InfoRequest",
+[InfoReply] = "InfoReply",
+[AddrMaskRequest] = "AddrMaskRequest",
+[AddrMaskReply  ] = "AddrMaskReply  ",
 };
 
 enum {
@@ -95,12 +95,12 @@ enum
 
 static char *statnames[Nstats] =
 {
-[InMsgs]	"InMsgs",
-[InErrors]	"InErrors",
-[OutMsgs]	"OutMsgs",
-[CsumErrs]	"CsumErrs",
-[LenErrs]	"LenErrs",
-[HlenErrs]	"HlenErrs",
+[InMsgs] = "InMsgs",
+[InErrors] = "InErrors",
+[OutMsgs] = "OutMsgs",
+[CsumErrs] = "CsumErrs",
+[LenErrs] = "LenErrs",
+[HlenErrs] = "HlenErrs",
 };
 
 typedef struct Icmppriv Icmppriv;
@@ -321,12 +321,12 @@ mkechoreply(Block *bp)
 
 static char *unreachcode[] =
 {
-[0]	"net unreachable",
-[1]	"host unreachable",
-[2]	"protocol unreachable",
-[3]	"port unreachable",
-[4]	"fragmentation needed and DF set",
-[5]	"source route failed",
+[0] = "net unreachable",
+[1] = "host unreachable",
+[2] = "protocol unreachable",
+[3] = "port unreachable",
+[4] = "fragmentation needed and DF set",
+[5] = "source route failed",
 };
 
 static void
