@@ -385,7 +385,7 @@ _dnr:
  * inter-segment jump to the protected mode code.
  */
 	.align 4096
-.code16
+.code32
 .globl b1978
 b1978:
 _sipistartofheader:
@@ -394,23 +394,24 @@ _sipistartofheader:
 // real mode gdt located in low 64k
 // GOT TO THIS LOOP
 //1: jmp 1b
-	cli
-	xorl	%eax, %eax
-	movl	%eax, %cr3 // invalidate tlb
-	movw	%ax, %ds
-	movw	%cs, %ax
-	//movw	%ax, %ds
-	//jshlw	$4, %ax
-	// this needs to be relative to the data segment, ... which is 0x3000
-	movw	$0x3080, %bx
-	data32 lgdt (%ebx)
+	// clang stupidity. Or smartness. It can't do .code16!
+	.byte 0xfa //cli
+	.byte 0x66, 0x31, 0xc0 //xorl	%eax, %eax
+	.byte 0x0f, 0x22, 0xd8 // movl	%eax, %cr3 // invalidate tlb
+	.byte 0x8e, 0xd8 //movw	%ax, %ds
+	.byte 0x8c, 0xc8 // movw	%cs, %ax
+	.byte 0xbb, 0x80, 0x30 //movw	$0x3080, %bx
+	.byte 0x67, 0x66, 0x0f, 0x01, 0x13 // data32 lgdt (%ebx)
 
-	movl	%cr0, %eax
-	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
-	orl	$0x60000001, %eax /* CD, NW, PE = 1 */
-	movl	%eax, %cr0
+	.byte 0x0f, 0x20, 0xc0 //movl	%cr0, %eax
+	.byte 0x66, 0x25, 0xd1, 0xff, 0xfa, 0x7f // andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
+	.byte 0x66, 0x0d, 0x01, 0x00, 0x00, 0x60 // orl	$0x60000001, %eax /* CD, NW, PE = 1 */
+	.byte 0x0f, 0x22, 0xc0 // movl	%eax, %cr0
 
-	ljmpl $8, $0x3040
+	//ljmpl $8, $0x3040
+	.byte 0x66, 0xea // ljmpl, 066 prefix since we're 16 bits
+	.byte 0x40, 0x30, 0x00, 0x00 // 32 bit offset
+	.byte 0x08, 0x00 // 16 bit segment
 .align 32
 
 .code32

@@ -1,11 +1,10 @@
 {
 	"libs.json": {
 		"Projects": [
+			"/sys/src/lib9p/lib9p.json",
 			"/sys/src/libc/libc.json",
 			"/sys/src/libip/libip.json",
 			"/sys/src/libdraw/libdraw.json",
-			"/sys/src/lib9p/lib9p.json",
-			"/sys/src/libString/libString.json",
 			"/sys/src/libauth/libauth.json",
 			"/sys/src/libauthsrv/libauthsrv.json",
 			"/sys/src/libavl/libavl.json",
@@ -27,6 +26,7 @@
 			"/sys/src/liboventi/liboventi.json",
 			"/sys/src/libplumb/libplumb.json",
 			"/sys/src/libregexp/libregexp.json",
+			"/sys/src/libString/libString.json",
 			"/sys/src/libsec/libsec.json",
 			"/sys/src/libstdio/libstdio.json",
 			"/sys/src/libthread/libthread.json",

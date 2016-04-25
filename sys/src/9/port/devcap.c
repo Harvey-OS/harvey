@@ -35,7 +35,7 @@ struct Caphash
 
 struct
 {
-	QLock;
+	QLock QLock;
 	Caphash	*first;
 	int	nhash;
 } capalloc;
@@ -131,7 +131,7 @@ remcap(uint8_t *hash)
 {
 	Caphash *t, **l;
 
-	qlock(&capalloc);
+	qlock(&capalloc.QLock);
 
 	/* find the matching capability */
 	for(l = &capalloc.first; *l != nil;){
@@ -145,7 +145,7 @@ remcap(uint8_t *hash)
 		capalloc.nhash--;
 		*l = t->next;
 	}
-	qunlock(&capalloc);
+	qunlock(&capalloc.QLock);
 
 	return t;
 }
@@ -160,7 +160,7 @@ addcap(uint8_t *hash)
 	memmove(p->hash, hash, Hashlen);
 	p->next = nil;
 
-	qlock(&capalloc);
+	qlock(&capalloc.QLock);
 
 	/* trim extras */
 	while(capalloc.nhash >= Maxhash){
@@ -178,7 +178,7 @@ addcap(uint8_t *hash)
 	*l = p;
 	capalloc.nhash++;
 
-	qunlock(&capalloc);
+	qunlock(&capalloc.QLock);
 }
 
 static void
@@ -274,22 +274,22 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 Dev capdevtab = {
-	L'¤',
-	"cap",
+	.dc = L'¤',
+	.name = "cap",
 
-	devreset,
-	devinit,
-	devshutdown,
-	capattach,
-	capwalk,
-	capstat,
-	capopen,
-	devcreate,
-	capclose,
-	capread,
-	devbread,
-	capwrite,
-	devbwrite,
-	capremove,
-	devwstat
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = capattach,
+	.walk = capwalk,
+	.stat = capstat,
+	.open = capopen,
+	.create = devcreate,
+	.close = capclose,
+	.read = capread,
+	.bread = devbread,
+	.write = capwrite,
+	.bwrite = devbwrite,
+	.remove = capremove,
+	.wstat = devwstat
 };

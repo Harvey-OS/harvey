@@ -581,26 +581,26 @@ zpzwrite(Chan *c, Kzio io[], int nio, int64_t mm)
 
 
 Dev zpdevtab = {
-	L'∏',
-	"zp",
+	.dc = L'∏',
+	.name = "zp",
 
-	devreset,
-	devinit,
-	devshutdown,
-	zpattach,
-	zpwalk,
-	zpstat,
-	zpopen,
-	devcreate,
-	zpclose,
-	zpread,
-	devbread,
-	zpwrite,
-	devbwrite,
-	devremove,
-	devwstat,
-	nil,		/* power */
-	nil,		/* config */
-	zpzread,
-	zpzwrite,
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = zpattach,
+	.walk = zpwalk,
+	.stat = zpstat,
+	.open = zpopen,
+	.create = devcreate,
+	.close = zpclose,
+	.read = zpread,
+	.bread = devbread,
+	.write = zpwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
+	.power = nil,		/* power */
+	.config = nil,		/* config */
+	.zread = zpzread,
+	.zwrite = zpzwrite,
 };

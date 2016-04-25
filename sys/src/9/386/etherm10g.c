@@ -130,7 +130,7 @@ typedef struct {
 } Send;
 
 typedef struct {
-	QLock;
+	QLock QLock;
 	Send	*lanai;		/* tx ring (cksum+len in lanai memory) */
 	Send	*host;		/* tx ring (data in our memory) */
 	Block	**bring;
@@ -147,7 +147,7 @@ typedef struct {
 } Tx;
 
 typedef struct {
-	Lock;
+	Lock Lock;
 	Block	*head;
 	uint	size;		/* buffer size of each block */
 	uint	n;		/* n free buffers */
@@ -202,7 +202,7 @@ typedef struct {
 
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
-	QLock;
+	QLock QLock;
 	int	state;
 	int	kprocs;
 	uint64_t	port;
@@ -885,13 +885,13 @@ balloc(Rx* rx)
 {
 	Block *b;
 
-	ilock(rx->pool);
+	ilock(&rx->pool->Lock);
 	if((b = rx->pool->head) != nil){
 		rx->pool->head = b->next;
 		b->next = nil;
 		rx->pool->n--;
 	}
-	iunlock(rx->pool);
+	iunlock(&rx->pool->Lock);
 	return b;
 }
 
@@ -904,12 +904,12 @@ smbfree(Block *b)
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &smpool;
-	ilock(p);
+	ilock(&p->Lock);
 	b->next = p->head;
 	p->head = b;
 	p->n++;
 	p->cnt++;
-	iunlock(p);
+	iunlock(&p->Lock);
 }
 
 static void
@@ -921,12 +921,12 @@ bgbfree(Block *b)
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &bgpool;
-	ilock(p);
+	ilock(&p->Lock);
 	b->next = p->head;
 	p->head = b;
 	p->n++;
 	p->cnt++;
-	iunlock(p);
+	iunlock(&p->Lock);
 }
 
 static void
@@ -1232,7 +1232,7 @@ m10gtransmit(Ether *e)
 	tx = &c->tx;
 	segsz = tx->segsz;
 
-	qlock(tx);
+	qlock(&tx->QLock);
 	count = 0;
 	s = tx->host + (tx->i & tx->m);
 	cnt = tx->cnt;
@@ -1273,7 +1273,7 @@ m10gtransmit(Ether *e)
 			s0m8 = tx->host + ((cnt - 8) & tx->m);
 		}
 	}
-	qunlock(tx);
+	qunlock(&tx->QLock);
 }
 
 static void
@@ -1345,15 +1345,20 @@ m10gattach(Ether *e)
 
 	dprint("m10gattach\n");
 
-	qlock(e->ctlr);
+	/* the original code use the anon struct to lock; qlock came before
+	 * the c = c->ctrl deref. I think what we're doing here is really equivalent,
+	 * but I wanted you to know.
+	 */
 	c = e->ctlr;
+	qlock(&c->QLock);
+
 	if(c->state != Detached){
-		qunlock(c);
+		qunlock(&c->QLock);
 		return;
 	}
 	if(waserror()){
 		c->state = Detached;
-		qunlock(c);
+		qunlock(&c->QLock);
 		nexterror();
 	}
 	reset(e, c);
@@ -1367,7 +1372,7 @@ m10gattach(Ether *e)
 		kproc(name, txproc, e);
 	}
 	c->state = Runed;
-	qunlock(c);
+	qunlock(&c->QLock);
 	poperror();
 }
 

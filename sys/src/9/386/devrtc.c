@@ -314,24 +314,24 @@ rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 }
 
 Dev rtcdevtab = {
-	'r',
-	"rtc",
+	.dc = 'r',
+	.name = "rtc",
 
-	devreset,
-	rtcinit,
-	devshutdown,
-	rtcattach,
-	rtcwalk,
-	rtcstat,
-	rtcopen,
-	devcreate,
-	rtcclose,
-	rtcread,
-	devbread,
-	rtcwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = devreset,
+	.init = rtcinit,
+	.shutdown = devshutdown,
+	.attach = rtcattach,
+	.walk = rtcwalk,
+	.stat = rtcstat,
+	.open = rtcopen,
+	.create = devcreate,
+	.close = rtcclose,
+	.read = rtcread,
+	.bread = devbread,
+	.write = rtcwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
 
 #define SEC2MIN 60L

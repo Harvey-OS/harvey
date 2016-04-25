@@ -225,7 +225,7 @@ winctl(void *arg)
 	alts[WKey].v = &kbdr;
 	alts[WKey].op = CHANRCV;
 	alts[WMouse].c = w->mc.c;
-	alts[WMouse].v = &w->mc.Mouse;
+	alts[WMouse].v = (Mouse *)&w->mc;
 	alts[WMouse].op = CHANRCV;
 	alts[WMouseread].c = w->mouseread;
 	alts[WMouseread].v = &mrm;
@@ -294,7 +294,7 @@ winctl(void *arg)
 						w->mouse.wi = 0;
 					if(w->mouse.wi == w->mouse.ri)
 						w->mouse.qfull = TRUE;
-					mp->Mouse = w->mc.Mouse;
+					*(Mouse *)mp = *(Mouse *)&w->mc;
 					mp->counter = w->mouse.counter;
 					lastb = w->mc.buttons;
 				}
@@ -311,10 +311,10 @@ winctl(void *arg)
 				if(++w->mouse.ri == nelem(w->mouse.queue))
 					w->mouse.ri = 0;
 			} else
-				m = (Mousestate){w->mc.Mouse, w->mouse.counter};
+				m = (Mousestate){*(Mouse *)&w->mc, w->mouse.counter};
 
 			w->mouse.lastcounter = m.counter;
-			send(mrm.cm, &m.Mouse);
+			send(mrm.cm, (Mouse *)&m);
 			continue;
 		case WCtl:
 			if(wctlmesg(w, wcm.type, wcm.r, wcm.image) == Exited){

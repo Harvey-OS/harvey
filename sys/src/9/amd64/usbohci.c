@@ -199,8 +199,8 @@ struct Ed {
  */
 struct Qio
 {
-	QLock ql;			/* for the entire I/O process */
-	Rendez;			/* wait for completion */
+	QLock ql;		/* for the entire I/O process */
+	Rendez Rendez;		/* wait for completion */
 	Ed*	ed;		/* to place Tds on it */
 	int	sched;		/* queue number (intr/iso) */
 	int	toggle;		/* Tddata0/Tddata1 */
@@ -215,14 +215,14 @@ struct Qio
 
 struct Ctlio
 {
-	Qio;			/* single Ed for all transfers */
-	unsigned char*	data;		/* read from last ctl req. */
+	Qio Qio;		/* single Ed for all transfers */
+	unsigned char*	data;	/* read from last ctl req. */
 	int	ndata;		/* number of bytes read */
 };
 
 struct Isoio
 {
-	Qio;
+	Qio Qio;
 	int	nframes;	/* number of frames for a full second */
 	Td*	atds;		/* Tds avail for further I/O */
 	int	navail;		/* number of avail Tds */
@@ -363,8 +363,8 @@ struct Ctlr
 
 #define dqprint		if(debug || io && io->debug)print
 #define ddqprint		if(debug>1 || (io && io->debug>1))print
-#define diprint		if(debug || iso && iso->debug)print
-#define ddiprint		if(debug>1 || (iso && iso->debug>1))print
+#define diprint		if(debug || iso && iso->Qio.debug)print
+#define ddiprint		if(debug>1 || (iso && iso->Qio.debug>1))print
 #define TRUNC(x, sz)	((x) & ((sz)-1))
 
 static int ohciinterrupts[Nttypes];
@@ -390,18 +390,18 @@ static int32_t	qtd(Ctlr*, Ep*, int, Block*, unsigned char*, unsigned char*, int,
 
 static char* errmsgs[] =
 {
-[Tdcrc]		"crc error",
-[Tdbitstuff]	"bit stuffing error",
-[Tdbadtog]	"bad toggle",
-[Tdstalled]	Estalled,
-[Tdtmout]	"timeout error",
-[Tdpidchk]	"pid check error",
-[Tdbadpid]	"bad pid",
-[Tddataovr]	"data overrun",
-[Tddataund]	"data underrun",
-[Tdbufovr]	"buffer overrun",
-[Tdbufund]	"buffer underrun",
-[Tdnotacc]	"not accessed"
+[Tdcrc] = "crc error",
+[Tdbitstuff] = "bit stuffing error",
+[Tdbadtog] = "bad toggle",
+[Tdstalled] = 	Estalled,
+[Tdtmout] = "timeout error",
+[Tdpidchk] = "pid check error",
+[Tdbadpid] = "bad pid",
+[Tddataovr] = "data overrun",
+[Tddataund] = "data underrun",
+[Tdbufovr] = "buffer overrun",
+[Tdbufund] = "buffer underrun",
+[Tdnotacc] = "not accessed"
 };
 
 static void*
@@ -963,7 +963,7 @@ seprintep(char* s, char* e, Ep *ep)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		s = seprintio(s, e, cio, "c");
+		s = seprintio(s, e, &cio->Qio, "c");
 		s = seprint(s, e, "\trepl %d ndata %d\n", ep->rhrepl, cio->ndata);
 		break;
 	case Tbulk:
@@ -976,7 +976,7 @@ seprintep(char* s, char* e, Ep *ep)
 		break;
 	case Tiso:
 		iso = ep->aux;
-		s = seprintio(s, e, iso, "w");
+		s = seprintio(s, e, &iso->Qio, "w");
 		s = seprint(s, e, "\tntds %d avail %d frno %uld left %uld next avail %#p\n",
 			iso->nframes, iso->navail, iso->frno, iso->left, iso->atds);
 		break;
@@ -1108,7 +1108,7 @@ isoadvance(Ep *ep, Isoio *iso, Td *td)
 	dtd->nexttd = 0;
 	td->nexttd = ptr2pa(dtd);
 	isodtdinit(ep, iso, dtd);
-	iso->ed->tail = ptr2pa(dtd);
+	iso->Qio.ed->tail = ptr2pa(dtd);
 }
 
 static int
@@ -1117,7 +1117,7 @@ isocanwrite(void *a)
 	Isoio *iso;
 
 	iso = a;
-	return iso->state == Qclose || iso->err != nil ||
+	return iso->Qio.state == Qclose || iso->Qio.err != nil ||
 		iso->navail > iso->nframes / 2;
 }
 
@@ -1207,7 +1207,7 @@ qhinterrupt(Ctlr *ctrl, Ep *ep, Qio *io, Td *td, int n)
 		ed->head = (ed->head & Edtoggle) | ed->tail;
 		ed->tds = pa2ptr(ed->tail);
 		io->state = Qdone;
-		wakeup(io);
+		wakeup(&io->Rendez);
 	}
 }
 
@@ -1260,13 +1260,13 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int n)
 	 * If almost all Tds are avail the user is not doing I/O at the
 	 * required rate. We put another Td in place to keep the polling rate.
 	 */
-	if(iso->err == nil && iso->navail > iso->nframes - 10)
-		isoadvance(ep, iso, pa2ptr(iso->ed->tail));
+	if(iso->Qio.err == nil && iso->navail > iso->nframes - 10)
+		isoadvance(ep, iso, pa2ptr(iso->Qio.ed->tail));
 	/*
 	 * If there's enough buffering futher I/O can be done.
 	 */
 	if(isocanwrite(iso))
-		wakeup(iso);
+		wakeup(&iso->Qio.Rendez);
 }
 
 static void
@@ -1429,9 +1429,9 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
 		timedout++;
 	}else{
 		if(tmout == 0)
-			sleep(io, epiodone, io);
+			sleep(&io->Rendez, epiodone, io);
 		else
-			tsleep(io, epiodone, io, tmout);
+			tsleep(&io->Rendez, epiodone, io, tmout);
 		poperror();
 	}
 	ilock(&ctlr->l);
@@ -1626,9 +1626,9 @@ epread(Ep *ep, void *a, int32_t count)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		qlock(&cio->ql);
+		qlock(&cio->Qio.ql);
 		if(waserror()){
-			qunlock(&cio->ql);
+			qunlock(&cio->Qio.ql);
 			nexterror();
 		}
 		ddeprint("epread ctl ndata %d\n", cio->ndata);
@@ -1647,7 +1647,7 @@ epread(Ep *ep, void *a, int32_t count)
 			cio->data = nil;
 			cio->ndata = 0;	/* signal EOF next time */
 		}
-		qunlock(&cio->ql);
+		qunlock(&cio->Qio.ql);
 		poperror();
 		if(debug>1 || ep->debug){
 			seprintdata(buf, buf+sizeof(buf), a, count);
@@ -1700,12 +1700,12 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		cio, ep->dev->nb, ep->nb, count);
 	if(count < Rsetuplen)
 		error("short usb command");
-	qlock(&cio->ql);
+	qlock(&cio->Qio.ql);
 	free(cio->data);
 	cio->data = nil;
 	cio->ndata = 0;
 	if(waserror()){
-		qunlock(&cio->ql);
+		qunlock(&cio->Qio.ql);
 		free(cio->data);
 		cio->data = nil;
 		cio->ndata = 0;
@@ -1714,25 +1714,25 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 
 	/* set the address if unset and out of configuration state */
 	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
-		if(cio->usbid == 0){
-			cio->usbid = (ep->nb<<7)|(ep->dev->nb & Devmax);
-			edsetaddr(cio->ed, cio->usbid);
+		if(cio->Qio.usbid == 0){
+			cio->Qio.usbid = (ep->nb<<7)|(ep->dev->nb & Devmax);
+			edsetaddr(cio->Qio.ed, cio->Qio.usbid);
 		}
 	/* adjust maxpkt if the user has learned a different one */
-	if(edmaxpkt(cio->ed) != ep->maxpkt)
-		edsetmaxpkt(cio->ed, ep->maxpkt);
+	if(edmaxpkt(cio->Qio.ed) != ep->maxpkt)
+		edsetmaxpkt(cio->Qio.ed, ep->maxpkt);
 	c = a;
-	cio->tok = Tdtoksetup;
-	cio->toggle = Tddata0;
-	if(epio(ep, cio, a, Rsetuplen, 0) < Rsetuplen)
+	cio->Qio.tok = Tdtoksetup;
+	cio->Qio.toggle = Tddata0;
+	if(epio(ep, &cio->Qio, a, Rsetuplen, 0) < Rsetuplen)
 		error(Eio);
 
 	a = c + Rsetuplen;
 	count -= Rsetuplen;
 
-	cio->toggle = Tddata1;
+	cio->Qio.toggle = Tddata1;
 	if(c[Rtype] & Rd2h){
-		cio->tok = Tdtokin;
+		cio->Qio.tok = Tdtokin;
 		len = GET2(c+Rcount);
 		if(len <= 0)
 			error("bad length in d2h request");
@@ -1740,30 +1740,30 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 			error("d2h data too large to fit in ohci");
 		a = cio->data = smalloc(len+1);
 	}else{
-		cio->tok = Tdtokout;
+		cio->Qio.tok = Tdtokout;
 		len = count;
 	}
 	if(len > 0)
 		if(waserror())
 			len = -1;
 		else{
-			len = epio(ep, cio, a, len, 0);
+			len = epio(ep, &cio->Qio, a, len, 0);
 			poperror();
 		}
 	if(c[Rtype] & Rd2h){
 		count = Rsetuplen;
 		cio->ndata = len;
-		cio->tok = Tdtokout;
+		cio->Qio.tok = Tdtokout;
 	}else{
 		if(len < 0)
 			count = -1;
 		else
 			count = Rsetuplen + len;
-		cio->tok = Tdtokin;
+		cio->Qio.tok = Tdtokin;
 	}
-	cio->toggle = Tddata1;
-	epio(ep, cio, nil, 0, 0);
-	qunlock(&cio->ql);
+	cio->Qio.toggle = Tddata1;
+	epio(ep, &cio->Qio, nil, 0, 0);
+	qunlock(&cio->Qio.ql);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
 	return count;
@@ -1779,7 +1779,7 @@ putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
 	Td *td;
 	uint32_t n;
 
-	td = pa2ptr(iso->ed->tail);
+	td = pa2ptr(iso->Qio.ed->tail);
 	n = count;
 	if(n > td->nbytes - BLEN(td->bp))
 		n = td->nbytes - BLEN(td->bp);
@@ -1806,53 +1806,53 @@ episowrite(Ep *ep, void *a, int32_t count)
 
 	ctlr = ep->hp->Hciimpl.aux;
 	iso = ep->aux;
-	iso->debug = ep->debug;
+	iso->Qio.debug = ep->debug;
 
-	qlock(&iso->ql);
+	qlock(&iso->Qio.ql);
 	if(waserror()){
-		qunlock(&iso->ql);
+		qunlock(&iso->Qio.ql);
 		nexterror();
 	}
 	diprint("ohci: episowrite: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 	ilock(&ctlr->l);
-	if(iso->state == Qclose){
+	if(iso->Qio.state == Qclose){
 		iunlock(&ctlr->l);
-		error(iso->err ? iso->err : Eio);
+		error(iso->Qio.err ? iso->Qio.err : Eio);
 	}
-	iso->state = Qrun;
+	iso->Qio.state = Qrun;
 	b = a;
 	for(tot = 0; tot < count; tot += nw){
 		while(isocanwrite(iso) == 0){
 			iunlock(&ctlr->l);
 			diprint("ohci: episowrite: %#p sleep\n", iso);
 			if(waserror()){
-				if(iso->err == nil)
-					iso->err = "I/O timed out";
+				if(iso->Qio.err == nil)
+					iso->Qio.err = "I/O timed out";
 				ilock(&ctlr->l);
 				break;
 			}
-			tsleep(iso, isocanwrite, iso, ep->tmout);
+			tsleep(&iso->Qio.Rendez, isocanwrite, iso, ep->tmout);
 			poperror();
 			ilock(&ctlr->l);
 		}
-		err = iso->err;
-		iso->err = nil;
-		if(iso->state == Qclose || err != nil){
+		err = iso->Qio.err;
+		iso->Qio.err = nil;
+		if(iso->Qio.state == Qclose || err != nil){
 			iunlock(&ctlr->l);
 			error(err ? err : Eio);
 		}
-		if(iso->state != Qrun)
+		if(iso->Qio.state != Qrun)
 			panic("episowrite: iso not running");
 		iunlock(&ctlr->l);		/* We could page fault here */
 		nw = putsamples(ctlr, ep, iso, b+tot, count-tot);
 		ilock(&ctlr->l);
 	}
-	if(iso->state != Qclose)
-		iso->state = Qdone;
+	if(iso->Qio.state != Qclose)
+		iso->Qio.state = Qdone;
 	iunlock(&ctlr->l);
-	err = iso->err;		/* in case it failed early */
-	iso->err = nil;
-	qunlock(&iso->ql);
+	err = iso->Qio.err;		/* in case it failed early */
+	iso->Qio.err = nil;
+	qunlock(&iso->Qio.ql);
 	poperror();
 	if(err != nil)
 		error(err);
@@ -1983,13 +1983,13 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	int i;
 
 	iso = ep->aux;
-	iso->usbid = (ep->nb<<7)|(ep->dev->nb & Devmax);
-	iso->bw = ep->hz * ep->samplesz;	/* bytes/sec */
+	iso->Qio.usbid = (ep->nb<<7)|(ep->dev->nb & Devmax);
+	iso->Qio.bw = ep->hz * ep->samplesz;	/* bytes/sec */
 	if(ep->mode != OWRITE){
 		print("ohci: bug: iso input streams not implemented\n");
 		error("ohci iso input streams not implemented");
 	}else
-		iso->tok = Tdtokout;
+		iso->Qio.tok = Tdtokout;
 
 	iso->left = 0;
 	iso->nerrs = 0;
@@ -2004,17 +2004,17 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	for(i = 0; i < iso->nframes-1; i++){	/* -1 for dummy */
 		td = tdalloc();
 		td->ep = ep;
-		td->io = iso;
+		td->io = &iso->Qio;
 		td->bp = allocb(ep->maxpkt);
 		td->anext = iso->atds;		/* link as avail */
 		iso->atds = td;
 		td->next = edtds;
 		edtds = td;
 	}
-	newed(ctlr, ep, iso, "iso");		/* allocates a dummy td */
-	iso->ed->tds->bp = allocb(ep->maxpkt);	/* but not its block */
-	iso->ed->tds->next = edtds;
-	isodtdinit(ep, iso, iso->ed->tds);
+	newed(ctlr, ep, &iso->Qio, "iso");		/* allocates a dummy td */
+	iso->Qio.ed->tds->bp = allocb(ep->maxpkt);	/* but not its block */
+	iso->Qio.ed->tds->next = edtds;
+	isodtdinit(ep, iso, iso->Qio.ed->tds);
 }
 
 /*
@@ -2051,13 +2051,13 @@ epopen(Ep *ep)
 		break;
 	case Tctl:
 		cio = ep->aux = smalloc(sizeof(Ctlio));
-		cio->debug = ep->debug;
+		cio->Qio.debug = ep->debug;
 		cio->ndata = -1;
 		cio->data = nil;
-		cio->tok = -1;	/* invalid; Tds will say */
+		cio->Qio.tok = -1;	/* invalid; Tds will say */
 		if(ep->dev->isroot != 0 && ep->nb == 0)	/* root hub */
 			break;
-		newed(ctlr, ep, cio, "epc");
+		newed(ctlr, ep, &cio->Qio, "epc");
 		break;
 	case Tbulk:
 		ep->pollival = 1;	/* assume this; doesn't really matter */
@@ -2119,7 +2119,7 @@ cancelio(Ep *ep, Qio *io)
 		poperror();
 	}
 
-	wakeup(io);
+	wakeup(&io->Rendez);
 	qlock(&io->ql);
 	/* wait for epio if running */
 	qunlock(&io->ql);
@@ -2157,7 +2157,7 @@ epclose(Ep *ep)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		cancelio(ep, cio);
+		cancelio(ep, &cio->Qio);
 		free(cio->data);
 		cio->data = nil;
 		break;
@@ -2177,7 +2177,7 @@ epclose(Ep *ep)
 		break;
 	case Tiso:
 		iso = ep->aux;
-		cancelio(ep, iso);
+		cancelio(ep, &iso->Qio);
 		break;
 	default:
 		panic("epclose: bad ttype %d", ep->ttype);

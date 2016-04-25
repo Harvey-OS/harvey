@@ -449,12 +449,6 @@ etherreset(void)
 	Ether *ether;
 	int cardno, ctlrno;
 
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
-		if((ether = etherprobe(-1, ctlrno)) == nil)
-			continue;
-		etherxx[ctlrno] = ether;
-	}
-
 	cardno = ctlrno = 0;
 	while(cards[cardno].type != nil && ctlrno < MaxEther){
 		if(etherxx[ctlrno] != nil){
@@ -515,22 +509,22 @@ ethercrc(uint8_t *p, int len)
 }
 
 Dev etherdevtab = {
-	'l',
-	"ether",
+	.dc = 'l',
+	.name = "ether",
 
-	etherreset,
-	devinit,
-	ethershutdown,
-	etherattach,
-	etherwalk,
-	etherstat,
-	etheropen,
-	ethercreate,
-	etherclose,
-	etherread,
-	etherbread,
-	etherwrite,
-	etherbwrite,
-	devremove,
-	etherwstat,
+	.reset = etherreset,
+	.init = devinit,
+	.shutdown = ethershutdown,
+	.attach = etherattach,
+	.walk = etherwalk,
+	.stat = etherstat,
+	.open = etheropen,
+	.create = ethercreate,
+	.close = etherclose,
+	.read = etherread,
+	.bread = etherbread,
+	.write = etherwrite,
+	.bwrite = etherbwrite,
+	.remove = devremove,
+	.wstat = etherwstat,
 };

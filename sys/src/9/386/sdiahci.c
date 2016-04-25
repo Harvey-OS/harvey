@@ -135,7 +135,7 @@ typedef struct Ctlr Ctlr;
 typedef struct Drive Drive;
 
 struct Drive {
-	Lock;
+	Lock Lock;
 
 	Ctlr	*ctlr;
 	SDunit	*unit;
@@ -173,7 +173,7 @@ struct Drive {
 };
 
 struct Ctlr {
-	Lock;
+	Lock Lock;
 
 	int	type;
 	int	enabled;
@@ -217,10 +217,11 @@ static	int	debug;
 static	int	prid = 1;
 static	int	datapi;
 
+// TODO: does this get initialized correctly? 
 static char stab[] = {
-[0]	'i', 'm',
-[8]	't', 'c', 'p', 'e',
-[16]	'N', 'I', 'W', 'B', 'D', 'C', 'H', 'S', 'T', 'F', 'X'
+[0]	= 'i', 'm',
+[8]	= 't', 'c', 'p', 'e',
+[16]	= 'N', 'I', 'W', 'B', 'D', 'C', 'H', 'S', 'T', 'F', 'X'
 };
 
 static void
@@ -289,7 +290,7 @@ aesleep(Aportm *pm, Asleep *a, int ms)
 	Proc *up = externup();
 	if(waserror())
 		return;
-	tsleep(pm, ahciclear, a, ms);
+	tsleep(&pm->Rendez, ahciclear, a, ms);
 	poperror();
 }
 
@@ -942,7 +943,7 @@ updatedrive(Drive *d)
 
 	if(p->ci == 0){
 		d->portm.flag |= Fdone;
-		wakeup(&d->portm);
+		wakeup(&d->portm.Rendez);
 		pr = 0;
 	}else if(cause & Adps)
 		pr = 0;
@@ -999,7 +1000,7 @@ updatedrive(Drive *d)
 	p->serror = serr;
 	if(ewake){
 		clearci(p);
-		wakeup(&d->portm);
+		wakeup(&d->portm.Rendez);
 	}
 	last = cause;
 }
@@ -1040,18 +1041,18 @@ configdrive(Drive *d)
 {
 	if(ahciconfigdrive(d) == -1)
 		return -1;
-	ilock(d);
+	ilock(&d->Lock);
 	pstatus(d, d->port->sstatus & Devdet);
-	iunlock(d);
+	iunlock(&d->Lock);
 	return 0;
 }
 
 static void
 setstate(Drive *d, int state)
 {
-	ilock(d);
+	ilock(&d->Lock);
 	d->state = state;
-	iunlock(d);
+	iunlock(&d->Lock);
 }
 
 static void
@@ -1066,20 +1067,20 @@ resetdisk(Drive *d)
 	state = (p->cmd>>28) & 0xf;
 	dprint("ahci: resetdisk: icc %#ux  det %d sdet %d\n", state, det, stat);
 
-	ilock(d);
+	ilock(&d->Lock);
 	state = d->state;
 	if(d->state != Dready || d->state != Dnew)
 		d->portm.flag |= Ferror;
 	clearci(p);			/* satisfy sleep condition. */
-	wakeup(&d->portm);
+	wakeup(&d->portm.Rendez);
 	if(stat != (Devpresent|Devphycomm)){
 		/* device absent or phy not communicating */
 		d->state = Dportreset;
-		iunlock(d);
+		iunlock(&d->Lock);
 		return;
 	}
 	d->state = Derror;
-	iunlock(d);
+	iunlock(&d->Lock);
 
 	qlock(&d->portm.ql);
 	if(p->cmd&Ast && ahciswreset(&d->portc) == -1)
@@ -1196,12 +1197,12 @@ checkdrive(Drive *d, int i)
 		print("checkdrive: nil d\n");
 		return;
 	}
-	ilock(d);
+	ilock(&d->Lock);
 	if(d->unit == nil || d->port == nil) {
 		if(0)
 			print("checkdrive: nil d->%s\n",
 				d->unit == nil? "unit": "port");
-		iunlock(d);
+		iunlock(&d->Lock);
 		return;
 	}
 	name = d->unit->SDperm.name;
@@ -1243,9 +1244,9 @@ reset:
 			}
 			dprint("%s: reset; new mode %s\n", name,
 				modename[d->mode]);
-			iunlock(d);
+			iunlock(&d->Lock);
 			resetdisk(d);
-			ilock(d);
+			ilock(&d->Lock);
 			break;
 		case Intactive|Devphycomm|Devpresent:
 			if((++d->wait&Midwait) == 0){
@@ -1257,9 +1258,9 @@ reset:
 			if(s == 0x7f || ((d->port->sig >> 16) != 0xeb14 &&
 			    (s & ~0x17) != (1<<6)))
 				break;
-			iunlock(d);
+			iunlock(&d->Lock);
 			newdrive(d);
-			ilock(d);
+			ilock(&d->Lock);
 			break;
 		}
 		break;
@@ -1271,9 +1272,9 @@ reset:
 	case Dreset:
 		dprint("%s: reset [%s]: mode %d; status %06#ux\n",
 			name, diskstates[d->state], d->mode, s);
-		iunlock(d);
+		iunlock(&d->Lock);
 		resetdisk(d);
-		ilock(d);
+		ilock(&d->Lock);
 		break;
 	case Dportreset:
 portreset:
@@ -1284,18 +1285,18 @@ portreset:
 			name, diskstates[d->state], d->mode, s);
 		d->portm.flag |= Ferror;
 		clearci(d->port);
-		wakeup(&d->portm);
+		wakeup(&d->portm.Rendez);
 		if((s & Devdet) == 0){	/* no device */
 			d->state = Dmissing;
 			break;
 		}
-		iunlock(d);
+		iunlock(&d->Lock);
 		doportreset(d);
-		ilock(d);
+		ilock(&d->Lock);
 		break;
 	}
 	statechange(d);
-	iunlock(d);
+	iunlock(&d->Lock);
 }
 
 static void
@@ -1355,12 +1356,12 @@ iainterrupt(Ureg *u, void *a)
 	Drive *d;
 
 	c = a;
-	ilock(c);
+	ilock(&c->Lock);
 	cause = c->hba->isr;
 	if (cause == 0) {
 		isctlrjabbering(c, cause);
 		// iprint("sdiahci: interrupt for no drive\n");
-		iunlock(c);
+		iunlock(&c->Lock);
 		return;
 	}
 	for(i = 0; cause && i <= c->mport; i++){
@@ -1368,12 +1369,12 @@ iainterrupt(Ureg *u, void *a)
 		if((cause & mask) == 0)
 			continue;
 		d = c->rawdrive + i;
-		ilock(d);
+		ilock(&d->Lock);
 		isdrivejabbering(d);
 		if(d->port->isr && c->hba->pi & mask)
 			updatedrive(d);
 		c->hba->isr = mask;
-		iunlock(d);
+		iunlock(&d->Lock);
 
 		cause &= ~mask;
 	}
@@ -1381,7 +1382,7 @@ iainterrupt(Ureg *u, void *a)
 		isctlrjabbering(c, cause);
 		iprint("sdiachi: intr cause unserviced: %#lux\n", cause);
 	}
-	iunlock(c);
+	iunlock(&c->Lock);
 }
 
 /* checkdrive, called from satakproc, will prod the drive while we wait */
@@ -1392,17 +1393,17 @@ awaitspinup(Drive *d)
 	uint16_t s;
 	char *name;
 
-	ilock(d);
+	ilock(&d->Lock);
 	if(d->unit == nil || d->port == nil) {
 		panic("awaitspinup: nil d->unit or d->port");
-		iunlock(d);
+		iunlock(&d->Lock);
 		return;
 	}
 	name = (d->unit? d->unit->SDperm.name: nil);
 	s = d->port->sstatus;
 	if(!(s & Devpresent)) {			/* never going to be ready */
 		dprint("awaitspinup: %s absent, not waiting\n", name);
-		iunlock(d);
+		iunlock(&d->Lock);
 		return;
 	}
 
@@ -1410,14 +1411,14 @@ awaitspinup(Drive *d)
 		switch(d->state){
 		case Dnull:
 			/* absent; done */
-			iunlock(d);
+			iunlock(&d->Lock);
 			dprint("awaitspinup: %s in null state\n", name);
 			return;
 		case Dready:
 		case Dnew:
 			if(d->sectors || d->mediachange) {
 				/* ready to use; done */
-				iunlock(d);
+				iunlock(&d->Lock);
 				dprint("awaitspinup: %s ready!\n", name);
 				return;
 			}
@@ -1428,13 +1429,13 @@ awaitspinup(Drive *d)
 		case Doffline:			/* transitional states */
 		case Derror:
 		case Dportreset:
-			iunlock(d);
+			iunlock(&d->Lock);
 			asleep(50);
-			ilock(d);
+			ilock(&d->Lock);
 			break;
 		}
 	print("awaitspinup: %s didn't spin up after 20 seconds\n", name);
-	iunlock(d);
+	iunlock(&d->Lock);
 }
 
 static int
@@ -1445,11 +1446,11 @@ iaverify(SDunit *u)
 
 	c = u->dev->ctlr;
 	d = c->drive[u->subno];
-	ilock(c);
-	ilock(d);
+	ilock(&c->Lock);
+	ilock(&d->Lock);
 	d->unit = u;
-	iunlock(d);
-	iunlock(c);
+	iunlock(&d->Lock);
+	iunlock(&c->Lock);
 	checkdrive(d, d->driveno);		/* c->d0 + d->driveno */
 
 	/*
@@ -1469,7 +1470,7 @@ iaenable(SDev *s)
 	static int once;
 
 	c = s->ctlr;
-	ilock(c);
+	ilock(&c->Lock);
 	if(!c->enabled) {
 		if(once == 0) {
 			once = 1;
@@ -1484,7 +1485,7 @@ iaenable(SDev *s)
 		ahcienable(c->hba);
 		c->enabled = 1;
 	}
-	iunlock(c);
+	iunlock(&c->Lock);
 	return 1;
 }
 
@@ -1495,12 +1496,12 @@ iadisable(SDev *s)
 	Ctlr *c;
 
 	c = s->ctlr;
-	ilock(c);
+	ilock(&c->Lock);
 	ahcidisable(c->hba);
 	snprint(name, sizeof name, "%s (%s)", s->name, s->ifc->name);
 	intrdisable(c->vector);
 	c->enabled = 0;
-	iunlock(c);
+	iunlock(&c->Lock);
 	return 1;
 }
 
@@ -1522,7 +1523,7 @@ iaonline(SDunit *unit)
 		return r;
 	}
 
-	ilock(d);
+	ilock(&d->Lock);
 	if(d->mediachange){
 		r = 2;
 		d->mediachange = 0;
@@ -1531,7 +1532,7 @@ iaonline(SDunit *unit)
 		unit->secsize = 512;		/* default size */
 	} else if(d->state == Dready)
 		r = 1;
-	iunlock(d);
+	iunlock(&d->Lock);
 	return r;
 }
 
@@ -1663,9 +1664,9 @@ waitready(Drive *d)
 		delta = sys->ticks - d->lastseen;
 		if(d->state == Dnull || delta > 10*1000)
 			return -1;
-		ilock(d);
+		ilock(&d->Lock);
 		s = d->port->sstatus;
-		iunlock(d);
+		iunlock(&d->Lock);
 		if((s & Intpm) == 0 && delta > 1500)
 			return -1;	/* no detect */
 		if(d->state == Dready &&
@@ -1744,9 +1745,9 @@ retry:
 	}
 	/* d->portm qlock held here */
 
-	ilock(d);
+	ilock(&d->Lock);
 	d->portm.flag = 0;
-	iunlock(d);
+	iunlock(&d->Lock);
 	p->ci = 1;
 
 	as.p = p;
@@ -1757,7 +1758,7 @@ retry:
 	while(waserror())
 		;
 	/* don't sleep here forever */
-	tsleep(&d->portm, ahciclear, &as, 3*1000);
+	tsleep(&d->portm.Rendez, ahciclear, &as, 3*1000);
 	poperror();
 	if(!ahciclear(&as)) {
 		qunlock(&d->portm.ql);
@@ -1767,10 +1768,10 @@ retry:
 	}
 
 	d->active--;
-	ilock(d);
+	ilock(&d->Lock);
 	flag = d->portm.flag;
 	task = d->port->task;
-	iunlock(d);
+	iunlock(&d->Lock);
 
 	if(task & (Efatal<<8) || task & (ASbsy|ASdrq) && d->state == Dready){
 		d->port->ci = 0;
@@ -1888,9 +1889,9 @@ retry:
 			goto retry;
 		}
 		/* d->portm qlock held here */
-		ilock(d);
+		ilock(&d->Lock);
 		d->portm.flag = 0;
-		iunlock(d);
+		iunlock(&d->Lock);
 		p->ci = 1;
 
 		as.p = p;
@@ -1901,7 +1902,7 @@ retry:
 		while(waserror())
 			;
 		/* don't sleep here forever */
-		tsleep(&d->portm, ahciclear, &as, 3*1000);
+		tsleep(&d->portm.Rendez, ahciclear, &as, 3*1000);
 		poperror();
 		if(!ahciclear(&as)) {
 			qunlock(&d->portm.ql);
@@ -1911,10 +1912,10 @@ retry:
 		}
 
 		d->active--;
-		ilock(d);
+		ilock(&d->Lock);
 		flag = d->portm.flag;
 		task = d->port->task;
-		iunlock(d);
+		iunlock(&d->Lock);
 
 		if(task & (Efatal<<8) ||
 		    task & (ASbsy|ASdrq) && d->state == Dready){
@@ -2218,9 +2219,9 @@ forcemode(Drive *d, char *mode)
 			break;
 	if(i == nelem(modename))
 		i = 0;
-	ilock(d);
+	ilock(&d->Lock);
 	d->mode = i;
-	iunlock(d);
+	iunlock(&d->Lock);
 }
 
 static void
@@ -2265,10 +2266,10 @@ changemedia(SDunit *u)
 
 	c = u->dev->ctlr;
 	d = c->drive[u->subno];
-	ilock(d);
+	ilock(&d->Lock);
 	d->mediachange = 1;
 	u->sectors = 0;
-	iunlock(d);
+	iunlock(&d->Lock);
 }
 
 static int

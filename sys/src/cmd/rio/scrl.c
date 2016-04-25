@@ -113,7 +113,7 @@ wscrsleep(Window *w, uint dt)
 	alts[0].v = nil;
 	alts[0].op = CHANRCV;
 	alts[1].c = w->mc.c;
-	alts[1].v = &w->mc.Mouse;
+	alts[1].v = (Mouse *)&w->mc;
 	alts[1].op = CHANRCV;
 	alts[2].op = CHANEND;
 	for(;;)
@@ -181,7 +181,8 @@ wscroll(Window *w, int but)
 			if(first){
 				flushimage(display, 1);
 				sleep(200);
-				nbrecv(w->mc.c, &w->mc.Mouse);
+				nbrecv(w->mc.c, (Mouse *)&w->mc);
+				nbrecv(w->mc.c, (Mouse *)&w->mc);
 				first = FALSE;
 			}
 			wscrsleep(w, 100);

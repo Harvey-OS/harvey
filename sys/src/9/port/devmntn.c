@@ -54,7 +54,7 @@ enum
 
 struct Mntalloc
 {
-	Lock;
+	Lock Lock;
 	Mnt*	list;		/* Mount devices in use */
 	Mnt*	mntfree;	/* Free list */
 	Mntrpc*	rpcfree;
@@ -489,9 +489,9 @@ mntchann(void)
         Chan *c;
 
         c = devattach('N', 0);
-        lock(&mntalloc);
+        lock(&mntalloc.Lock);
         c->devno = mntalloc.id++;
-        unlock(&mntalloc);
+        unlock(&mntalloc.Lock);
 
         if(c->mchan)
                 panic("mntchan non-zero %#p", c->mchan);
@@ -499,22 +499,22 @@ mntchann(void)
 }
 
 Dev mntndevtab = {
-	'N',
-	"mntn",
+	.dc = 'N',
+	.name = "mntn",
 
-	mntreset,
-	devinit,
-	devshutdown,
-	mntattach,
-	mntwalk,
-	mntstat,
-	mntopen,
-	mntcreate,
-	mntclose,
-	mntread,
-	devbread,
-	mntwrite,
-	devbwrite,
-	mntremove,
-	mntwstat,
+	.reset = mntreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = mntattach,
+	.walk = mntwalk,
+	.stat = mntstat,
+	.open = mntopen,
+	.create = mntcreate,
+	.close = mntclose,
+	.read = mntread,
+	.bread = devbread,
+	.write = mntwrite,
+	.bwrite = devbwrite,
+	.remove = mntremove,
+	.wstat = mntwstat,
 };

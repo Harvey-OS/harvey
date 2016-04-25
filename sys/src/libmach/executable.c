@@ -10,7 +10,6 @@
 #include	<u.h>
 #include	<libc.h>
 #include	<bio.h>
-#include	<bootexec.h>
 #include	<mach.h>
 #include	"elf.h"
 
@@ -22,14 +21,17 @@
 typedef struct {
 	union{
 		struct {
-			Exec;		/* a.out.h */
-			uint64_t hdr[1];
+			/* this will die soon. For now, just include it here. */
+			int32_t	magic;		/* magic number */
+			int32_t	text;	 	/* size of text segment */
+			int32_t	data;	 	/* size of initialized data */
+			int32_t	bss;	  	/* size of uninitialized data */
+			int32_t	syms;	 	/* size of symbol table */
+			int32_t	entry;	 	/* entry point */
+			int32_t	spsz;		/* size of pc/sp offset table */
+			int32_t	pcsz;		/* size of pc/line number table */
 		};
-		E64hdr;
-		struct mipsexec;	/* bootexec.h */
-		struct mips4kexec;	/* bootexec.h */
-		struct sparcexec;	/* bootexec.h */
-		struct nextexec;	/* bootexec.h */
+		E64hdr E64hdr;
 	} e;
 	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
@@ -189,7 +191,7 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	int i, it, id, is, phsz;
 	uint64_t uvl;
 
-	ep = &hp->e;
+	ep = &hp->e.E64hdr;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
 		swab = leswab;
 		swal = leswal;
@@ -297,7 +299,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	E64hdr *ep;
 
 	/* bitswap the header according to the DATA format */
-	ep = &hp->e;
+	ep = &hp->e.E64hdr;
 //	if(ep->ident[CLASS] == ELFCLASS32)
 //		return elf32dotout(fd, fp, hp);
 //	else if(ep->ident[CLASS] == ELFCLASS64)

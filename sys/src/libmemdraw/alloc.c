@@ -11,7 +11,6 @@
 #include <libc.h>
 #include <draw.h>
 #include <memdraw.h>
-#include <pool.h>
 
 void
 memimagemove(void *from, void *to)
@@ -93,7 +92,7 @@ allocmemimage(Rectangle r, uint32_t chan)
 		return nil;
 
 	md->ref = 1;
-	md->base = poolalloc(imagmem, sizeof(Memdata*)+(1+nw)*sizeof(uint32_t));
+	md->base = malloc(sizeof(Memdata*)+(1+nw)*sizeof(uint32_t));
 	if(md->base == nil){
 		free(md);
 		return nil;
@@ -112,7 +111,7 @@ allocmemimage(Rectangle r, uint32_t chan)
 
 	i = allocmemimaged(r, chan, md);
 	if(i == nil){
-		poolfree(imagmem, md->base);
+		free(md->base);
 		free(md);
 		return nil;
 	}
@@ -127,7 +126,7 @@ freememimage(Memimage *i)
 		return;
 	if(i->data->ref-- == 1 && i->data->allocd){
 		if(i->data->base)
-			poolfree(imagmem, i->data->base);
+			free(i->data->base);
 		free(i->data);
 	}
 	free(i);

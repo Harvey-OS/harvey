@@ -41,7 +41,7 @@ struct Mousestate
 struct Mouseinfo
 {
 	Lock _lock;
-	Mousestate;
+	Mousestate Mousestate;
 	int	dx;
 	int	dy;
 	int	track;		/* dx & dy updated */
@@ -466,7 +466,7 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t r)
 		pt.y = strtoul(p, 0, 0);
 		qlock(&mouse.ql);
 		if(ptinrect(pt, gscreen->r)){
-			mouse.xy = pt;
+			mouse.Mousestate.xy = pt;
 			mouse.redraw = 1;
 			mouse.track = 1;
 			mouseclock();
@@ -480,24 +480,24 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t r)
 }
 
 Dev mousedevtab = {
-	'm',
-	"mouse",
+	.dc = 'm',
+	.name = "mouse",
 
-	mousereset,
-	mouseinit,
-	devshutdown,
-	mouseattach,
-	mousewalk,
-	mousestat,
-	mouseopen,
-	mousecreate,
-	mouseclose,
-	mouseread,
-	devbread,
-	mousewrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = mousereset,
+	.init = mouseinit,
+	.shutdown = devshutdown,
+	.attach = mouseattach,
+	.walk = mousewalk,
+	.stat = mousestat,
+	.open = mouseopen,
+	.create = mousecreate,
+	.close = mouseclose,
+	.read = mouseread,
+	.bread = devbread,
+	.write = mousewrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
 
 void
@@ -517,7 +517,7 @@ static void
 mouseclock(void)
 {
 	if(mouse.track){
-		mousetrack(mouse.dx, mouse.dy, mouse.buttons, TK2MS(machp()->ticks));
+		mousetrack(mouse.dx, mouse.dy, mouse.Mousestate.buttons, TK2MS(machp()->ticks));
 		mouse.track = 0;
 		mouse.dx = 0;
 		mouse.dy = 0;
@@ -575,23 +575,23 @@ mousetrack(int dx, int dy, int b, int msec)
 		dx = scale(dx);
 		dy = scale(dy);
 	}
-	x = mouse.xy.x + dx;
+	x = mouse.Mousestate.xy.x + dx;
 	if(x < gscreen->clipr.min.x)
 		x = gscreen->clipr.min.x;
 	if(x >= gscreen->clipr.max.x)
 		x = gscreen->clipr.max.x;
-	y = mouse.xy.y + dy;
+	y = mouse.Mousestate.xy.y + dy;
 	if(y < gscreen->clipr.min.y)
 		y = gscreen->clipr.min.y;
 	if(y >= gscreen->clipr.max.y)
 		y = gscreen->clipr.max.y;
 
-	lastb = mouse.buttons;
-	mouse.xy = Pt(x, y);
-	mouse.buttons = b|kbdbuttons;
+	lastb = mouse.Mousestate.buttons;
+	mouse.Mousestate.xy = Pt(x, y);
+	mouse.Mousestate.buttons = b|kbdbuttons;
 	mouse.redraw = 1;
-	mouse.counter++;
-	mouse.msec = msec;
+	mouse.Mousestate.counter++;
+	mouse.Mousestate.msec = msec;
 
 	/*
 	 * if the queue fills, we discard the entire queue and don't
@@ -644,7 +644,7 @@ m3mouseputc(Queue *queue, int c)
 		if(c == 0x00 || c == 0x20){
 			/* an extra byte gets sent for the middle button */
 			middle = (c&0x20) ? 2 : 0;
-			newbuttons = (mouse.buttons & ~2) | middle;
+			newbuttons = (mouse.Mousestate.buttons & ~2) | middle;
 			mousetrack(0, 0, newbuttons, TK2MS(machp()->ticks));
 			return 0;
 		}
@@ -679,7 +679,7 @@ m3mouseputc(Queue *queue, int c)
 int
 m5mouseputc(Queue *queue, int c)
 {
-	static unsigned char msg[3];
+	static unsigned char msg[8];
 	static int nb;
 	static uint64_t lasttick;
 	uint64_t m;
@@ -746,14 +746,14 @@ mouseputc(Queue *queue, int c)
 int
 mousechanged(void *v)
 {
-	return mouse.lastcounter != mouse.counter ||
+	return mouse.lastcounter != mouse.Mousestate.counter ||
 		mouse.lastresize != mouse.resize;
 }
 
 Point
 mousexy(void)
 {
-	return mouse.xy;
+	return mouse.Mousestate.xy;
 }
 
 void
@@ -775,4 +775,3 @@ mouseresize(void)
 	mouse.resize++;
 	wakeup(&mouse.rend);
 }
-

@@ -51,7 +51,7 @@ static	Consdev	consdevs[Nconsdevs] =			/* keep this order */
 
 static struct
 {
-	QLock;
+	QLock QLock;
 
 	int	raw;		/* true if we shouldn't process input */
 	Ref	ctl;		/* number of opens to the control file */
@@ -757,7 +757,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 			rebootcmd(cb->nf-1, cb->f+1);
 			break;
 		case CMpanic:
-			*(uint32_t*)0=0;
+			*(volatile uint32_t*)0=0;
 			panic("/dev/reboot");
 		}
 		poperror();
@@ -842,24 +842,24 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 }
 
 Dev consdevtab = {
-	'c',
-	"cons",
+	.dc = 'c',
+	.name = "cons",
 
-	devreset,
-	consinit,
-	devshutdown,
-	consattach,
-	conswalk,
-	consstat,
-	consopen,
-	devcreate,
-	consclose,
-	consread,
-	devbread,
-	conswrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = devreset,
+	.init = consinit,
+	.shutdown = devshutdown,
+	.attach = consattach,
+	.walk = conswalk,
+	.stat = consstat,
+	.open = consopen,
+	.create = devcreate,
+	.close = consclose,
+	.read = consread,
+	.bread = devbread,
+	.write = conswrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
 
 static	uint32_t	randn;

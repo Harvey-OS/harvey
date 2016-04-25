@@ -50,9 +50,9 @@ collect(void)
 	char *buf, *s;
 	int i, n;
 	static char *wname[] = {
-	[WSlock] "lock",
-	[WSqlock] "qlock",
-	[WSslock] "slock",
+	[WSlock] = "lock",
+	[WSqlock] = "qlock",
+	[WSslock] = "slock",
 	};
 
 	n = waitstats.npcs * (strlen("slock") + 1 + 19 * 3 + 1) + 1;
@@ -161,22 +161,22 @@ wswrite(Chan *c, void *a, int32_t n, int64_t m)
 }
 
 Dev wsdevtab = {
-	'W',
-	"waitstats",
+	.dc = 'W',
+	.name = "waitstats",
 
-	devreset,
-	devinit,
-	devshutdown,
-	wsattach,
-	wswalk,
-	wsstat,
-	wsopen,
-	devcreate,
-	wsclose,
-	wsread,
-	devbread,
-	wswrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = wsattach,
+	.walk = wswalk,
+	.stat = wsstat,
+	.open = wsopen,
+	.create = devcreate,
+	.close = wsclose,
+	.read = wsread,
+	.bread = devbread,
+	.write = wswrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };

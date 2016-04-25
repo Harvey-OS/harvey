@@ -22,7 +22,7 @@ enum
 
 struct
 {
-	Lock;
+	Lock Lock;
 	int	fid;
 	Chan	*free;
 	Chan	*list;
@@ -133,19 +133,19 @@ newchan(void)
 {
 	Chan *c;
 
-	lock(&chanalloc);
+	lock(&chanalloc.Lock);
 	c = chanalloc.free;
 	if(c != 0)
 		chanalloc.free = c->next;
-	unlock(&chanalloc);
+	unlock(&chanalloc.Lock);
 
 	if(c == nil){
 		c = smalloc(sizeof(Chan));
-		lock(&chanalloc);
+		lock(&chanalloc.Lock);
 		c->fid = ++chanalloc.fid;
 		c->link = chanalloc.list;
 		chanalloc.list = c;
-		unlock(&chanalloc);
+		unlock(&chanalloc.Lock);
 	}
 
 	c->dev = nil;
@@ -378,10 +378,10 @@ chanfree(Chan *c)
 	pathclose(c->path);
 	c->path = nil;
 
-	lock(&chanalloc);
+	lock(&chanalloc.Lock);
 	c->next = chanalloc.free;
 	chanalloc.free = c;
-	unlock(&chanalloc);
+	unlock(&chanalloc.Lock);
 }
 
 void
@@ -1607,8 +1607,8 @@ char isfrog[256]={
 	/*BKS*/	1, 1, 1, 1, 1, 1, 1, 1,
 	/*DLE*/	1, 1, 1, 1, 1, 1, 1, 1,
 	/*CAN*/	1, 1, 1, 1, 1, 1, 1, 1,
-	['/']	1,
-	[0x7f]	1,
+	['/']	= 1,
+	[0x7f]	= 1,
 };
 
 /*

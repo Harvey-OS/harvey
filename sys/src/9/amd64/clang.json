@@ -1,5 +1,8 @@
 {
 	"cpu": {
+		"CFlags": [
+			"-mno-implicit-float"
+		],
 		"Env": [
 			"CONF=cpu"
 		],
@@ -24,6 +27,7 @@
 					"draw",
 					"dup",
 					"env",
+					"fdmux",
 					"ether",
 					"ip",
 					"kbin",
@@ -33,7 +37,6 @@
 					"mouse",
 					"pci",
 					"pipe",
-					"pmc",
 					"proc",
 					"regress",
 					"root",
@@ -46,8 +49,7 @@
 					"uart",
 					"ws",
 					"usb",
-					"vga",
-					"zp"
+					"vga"
 				],
 				"Ip": [
 					"tcp",

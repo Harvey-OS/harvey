@@ -122,7 +122,7 @@ typedef struct Ctlr {
 
 	unsigned char	sticky[8];
 
-	Lock;
+	Lock Lock;
 	int	hasfifo;
 	int	checkfifo;
 	int	fena;
@@ -224,7 +224,7 @@ i8250fifo(Uart* uart, int level)
 	 * the receive side, but it's possible to wait until
 	 * the transmitter is really empty.
 	 */
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	while(!(csr8r(ctlr, Lsr) & Temt))
 		;
 
@@ -253,7 +253,7 @@ i8250fifo(Uart* uart, int level)
 	}
 	csr8w(ctlr, Fcr, level);
 	csr8w(ctlr, Fcr, level);
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 }
 
 static void
@@ -578,7 +578,7 @@ i8250enable(Uart* uart, int ie)
 	 * can be dangerous, but this should only happen
 	 * once, before interrupts are enabled.
 	 */
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	if(!ctlr->checkfifo){
 		/*
 		 * Wait until the transmitter is really empty.
@@ -591,7 +591,7 @@ i8250enable(Uart* uart, int ie)
 		csr8w(ctlr, Fcr, 0);
 		ctlr->checkfifo = 1;
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 
 	/*
  	 * Enable interrupts and turn on DTR and RTS.

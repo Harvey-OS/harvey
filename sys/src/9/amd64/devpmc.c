@@ -293,7 +293,7 @@ typedef struct AcPmcArg AcPmcArg;
 struct AcPmcArg {
 	int regno;
 	int coreno;
-	PmcCtl;
+	PmcCtl PmcCtl;
 };
 
 typedef struct AcCtrArg AcCtrArg;
@@ -313,7 +313,7 @@ acpmcsetctl(void)
 	mp = up->ac;
 	memmove(&p, mp->NIX.icc->data, sizeof(AcPmcArg));
 
-	mp->NIX.icc->rc = pmcsetctl(p.coreno, &p, p.regno);
+	mp->NIX.icc->rc = pmcsetctl(p.coreno, &p.PmcCtl, p.regno);
 	return;
 }
 
@@ -352,7 +352,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 	if (n >= sizeof(str))
 		error(Ebadctl);
 
-	pmcnull(&p);
+	pmcnull(&p.PmcCtl);
 	coreno = (uint64_t)c->aux;
 	p.coreno = coreno;
 	type = PMCTYPE(c->qid.path);
@@ -378,9 +378,9 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 
 	/* TODO: should iterate through multiple lines */
 	if (strncmp(str, "set ", 4) == 0){
-		memmove(p.descstr, (char *)str + 4, n - 4);
-		p.descstr[n - 4] = '\0';
-		p.nodesc = 0;
+		memmove(p.PmcCtl.descstr, (char *)str + 4, n - 4);
+		p.PmcCtl.descstr[n - 4] = '\0';
+		p.PmcCtl.nodesc = 0;
 	} else {
 		cb = parsecmd(a, n);
 		if(waserror()){
@@ -390,25 +390,25 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 		ct = lookupcmd(cb, pmcctlmsg, nelem(pmcctlmsg));
 		switch(ct->index){
 		case Enable:
-			p.enab = 1;
+			p.PmcCtl.enab = 1;
 			break;
 		case Disable:
-			p.enab = 0;
+			p.PmcCtl.enab = 0;
 			break;
 		case User:
-			p.user = 1;
+			p.PmcCtl.user = 1;
 			break;
 		case Os:
-			p.os = 1;
+			p.PmcCtl.os = 1;
 			break;
 		case NoUser:
-			p.user = 0;
+			p.PmcCtl.user = 0;
 			break;
 		case NoOs:
-			p.os = 0;
+			p.PmcCtl.os = 0;
 			break;
 		case Reset:
-			p.reset = 1;
+			p.PmcCtl.reset = 1;
 			break;
 		case Debug:
 			pmcdebug = ~pmcdebug;
@@ -425,7 +425,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 		if (runac(mp, acpmcsetctl, 0, &p, sizeof(AcPmcArg)) < 0)
 			n = -1;
 	} else {
-		if (pmcsetctl(coreno, &p, p.regno) < 0)
+		if (pmcsetctl(coreno, &p.PmcCtl, p.regno) < 0)
 			n = -1;
 	}
 	return n;
@@ -433,22 +433,22 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 
 
 Dev pmcdevtab = {
-	L'ε',
-	"pmc",
+	.dc = L'ε',
+	.name = "pmc",
 
-	pmcinit,
-	devinit,
-	devshutdown,
-	pmcattach,
-	pmcwalk,
-	pmcstat,
-	pmcopen,
-	devcreate,
-	pmcclose,
-	pmcread,
-	devbread,
-	pmcwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+	.reset = pmcinit,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = pmcattach,
+	.walk = pmcwalk,
+	.stat = pmcstat,
+	.open = pmcopen,
+	.create = devcreate,
+	.close = pmcclose,
+	.read = pmcread,
+	.bread = devbread,
+	.write = pmcwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };

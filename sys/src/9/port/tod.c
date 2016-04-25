@@ -45,7 +45,7 @@
 struct {
 	int	init;		/* true if initialized */
 	uint32_t	cnt;
-	Lock;
+	Lock Lock;
 	uint64_t	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
 	uint64_t	divider;	/* ticks = (divider*(ns-off))>>31 */
 	uint64_t	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
@@ -66,9 +66,9 @@ todinit(void)
 {
 	if(tod.init)
 		return;
-	ilock(&tod);
+	ilock(&tod.Lock);
 	tod.last = fastticks((uint64_t *)&tod.hz);
-	iunlock(&tod);
+	iunlock(&tod.Lock);
 	todsetfreq(tod.hz);
 	tod.init = 1;
 	addclock0link(todfix, 100);
@@ -80,7 +80,7 @@ todinit(void)
 void
 todsetfreq(int64_t f)
 {
-	ilock(&tod);
+	ilock(&tod.Lock);
 	tod.hz = f;
 
 	/* calculate multiplier for time conversion */
@@ -88,7 +88,7 @@ todsetfreq(int64_t f)
 	tod.divider = mk64fract(f, TODFREQ) + 1;
 	tod.umultiplier = mk64fract(MicroFREQ, f);
 	tod.udivider = mk64fract(f, MicroFREQ) + 1;
-	iunlock(&tod);
+	iunlock(&tod.Lock);
 }
 
 /*
@@ -100,7 +100,7 @@ todset(int64_t t, int64_t delta, int n)
 	if(!tod.init)
 		todinit();
 
-	ilock(&tod);
+	ilock(&tod.Lock);
 	if(t >= 0){
 		tod.off = t;
 		tod.last = fastticks(nil);
@@ -120,7 +120,7 @@ todset(int64_t t, int64_t delta, int n)
 		tod.send = tod.sstart + n;
 		tod.delta = delta;
 	}
-	iunlock(&tod);
+	iunlock(&tod.Lock);
 }
 
 /*
@@ -141,7 +141,7 @@ todget(int64_t *ticksp)
 	 * and grabbing tod.last.  Also none of the int64_ts are atomic so
 	 * we have to look at them inside the lock.
 	 */
-	ilock(&tod);
+	ilock(&tod.Lock);
 	tod.cnt++;
 	ticks = fastticks(nil);
 
@@ -167,7 +167,7 @@ todget(int64_t *ticksp)
 	else
 		tod.lasttime = x;
 
-	iunlock(&tod);
+	iunlock(&tod.Lock);
 
 	if(ticksp != nil)
 		*ticksp = ticks;
@@ -183,10 +183,10 @@ tod2fastticks(int64_t ns)
 {
 	uint64_t x;
 
-	ilock(&tod);
+	ilock(&tod.Lock);
 	mul64fract(&x, ns-tod.off, tod.divider);
 	x += tod.last;
-	iunlock(&tod);
+	iunlock(&tod.Lock);
 	return x;
 }
 
@@ -203,7 +203,7 @@ todfix(void)
 
 	diff = ticks - tod.last;
 	if(diff > tod.hz){
-		ilock(&tod);
+		ilock(&tod.Lock);
 
 		/* convert to epoch */
 		mul64fract(&x, diff, tod.multiplier);
@@ -214,7 +214,7 @@ if(x > 30000000000ULL) print("todfix %llud\n", x);
 		tod.last = ticks;
 		tod.off = x;
 
-		iunlock(&tod);
+		iunlock(&tod.Lock);
 	}
 }
 

@@ -1,0 +1,19 @@
+{
+	"cmux": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "cmux",
+		"SourceFiles": [
+			"cmux.c",
+			"fsys.c",
+			"kdebug.c",
+			"time.c",
+			"util.c",
+			"wctl.c",
+			"wind.c",
+			"xfid.c"
+		]
+	}
+}

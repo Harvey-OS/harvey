@@ -98,7 +98,7 @@ scrsleep(uint dt)
 	alts[0].v = nil;
 	alts[0].op = CHANRCV;
 	alts[1].c = mousectl->c;
-	alts[1].v = &mousectl->Mouse;
+	alts[1].v = (Mouse *)mousectl;
 	alts[1].op = CHANRCV;
 	alts[2].op = CHANEND;
 	for(;;)
@@ -157,7 +157,7 @@ textscroll(Text *t, int but)
 		if(first){
 			flushimage(display, 1);
 			sleep(200);
-			nbrecv(mousectl->c, &mousectl->Mouse);
+			nbrecv(mousectl->c, (Mouse *)mousectl);
 			first = FALSE;
 		}
 		scrsleep(80);

@@ -360,9 +360,9 @@ incoming(void* arg)
 }
 
 static int m2p[] = {
-	[OREAD]		4,
-	[OWRITE]	2,
-	[ORDWR]		6
+	[OREAD] =		4,
+	[OWRITE] =	2,
+	[ORDWR]	=	6
 };
 
 static Chan*
@@ -1232,24 +1232,24 @@ ipbwrite(Chan* ch, Block* bp, int64_t offset)
 }
 
 Dev ipdevtab = {
-	'I',
-	"ip",
+	.dc = 'I',
+	.name = "ip",
 
-	ipreset,
-	devinit,
-	devshutdown,
-	ipattach,
-	ipwalk,
-	ipstat,
-	ipopen,
-	ipcreate,
-	ipclose,
-	ipread,
-	ipbread,
-	ipwrite,
-	ipbwrite,
-	ipremove,
-	ipwstat,
+	.reset = ipreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = ipattach,
+	.walk = ipwalk,
+	.stat = ipstat,
+	.open = ipopen,
+	.create = ipcreate,
+	.close = ipclose,
+	.read = ipread,
+	.bread = ipbread,
+	.write = ipwrite,
+	.bwrite = ipbwrite,
+	.remove = ipremove,
+	.wstat = ipwstat,
 };
 
 int

@@ -17,7 +17,7 @@
 #define	assert(x)	if(x){}else _assert(#x)
 
 extern void (*_abort)(void);
-#define abort() if(_abort){_abort();}else{while(*(int*)0);}
+#define abort() if(_abort){_abort();}else{while(*(volatile int*)0);}
 
 /*
  * mem routines
@@ -38,6 +38,8 @@ extern	int	strcmp(const char*, const char*);
 extern	char*	strcpy(char*, const char*);
 extern	char*	strecpy(char*, char *, const char*);
 extern	char*	strdup(const char*);
+extern	size_t	strlcat(char *, const char *, size_t);
+extern	size_t	strlcpy(char *, const char *, size_t);
 extern	char*	strncat(char*, const char*, int32_t);
 extern	char*	strncpy(char*, const char*, uint32_t);
 extern	int	strncmp(const char*, const char*, int32_t);
@@ -749,7 +751,7 @@ extern char *argv0;
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
-				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), argc = *(int*)0, (char*)0)))
+				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), argc = *(volatile int*)0, (char*)0)))
 
 #define	ARGC()		_argc
 

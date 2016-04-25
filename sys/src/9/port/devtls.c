@@ -264,14 +264,14 @@ static void	pdump(int, void*, char*);
 #pragma	varargck	argpos	rcvError	3
 
 static char *tlsnames[] = {
-[Qclonus]		"clone",
-[Qencalgs]	"encalgs",
-[Qhashalgs]	"hashalgs",
-[Qdata]		"data",
-[Qctl]		"ctl",
-[Qhand]		"hand",
-[Qstatus]		"status",
-[Qstats]		"stats",
+[Qclonus] = "clone",
+[Qencalgs] = "encalgs",
+[Qhashalgs] = "hashalgs",
+[Qdata] = "data",
+[Qctl] = "ctl",
+[Qhand] = "hand",
+[Qstatus] = "status",
+[Qstats] = "stats",
 };
 
 static int convdir[] = { Qctl, Qdata, Qhand, Qstatus, Qstats };
@@ -1765,24 +1765,24 @@ tlsinit(void)
 }
 
 Dev tlsdevtab = {
-	'a',
-	"tls",
+	.dc = 'a',
+	.name = "tls",
 
-	devreset,
-	tlsinit,
-	devshutdown,
-	tlsattach,
-	tlswalk,
-	tlsstat,
-	tlsopen,
-	devcreate,
-	tlsclose,
-	tlsread,
-	tlsbread,
-	tlswrite,
-	tlsbwrite,
-	devremove,
-	tlswstat,
+	.reset = devreset,
+	.init = tlsinit,
+	.shutdown = devshutdown,
+	.attach = tlsattach,
+	.walk = tlswalk,
+	.stat = tlsstat,
+	.open = tlsopen,
+	.create = devcreate,
+	.close = tlsclose,
+	.read = tlsread,
+	.bread = tlsbread,
+	.write = tlswrite,
+	.bwrite = tlsbwrite,
+	.remove = devremove,
+	.wstat = tlswstat,
 };
 
 /* get channel associated with an fd */

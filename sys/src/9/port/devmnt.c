@@ -54,7 +54,7 @@ enum
 
 struct Mntalloc
 {
-	Lock;
+	Lock Lock;
 	Mnt*	list;		/* Mount devices in use */
 	Mnt*	mntfree;	/* Free list */
 	Mntrpc*	rpcfree;
@@ -211,14 +211,14 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 		error("bad 9P version returned from server");
 
 	/* now build Mnt associated with this connection */
-	lock(&mntalloc);
+	lock(&mntalloc.Lock);
 	mnt = mntalloc.mntfree;
 	if(mnt != nil)
 		mntalloc.mntfree = mnt->list;
 	else {
 		mnt = malloc(sizeof(Mnt));
 		if(mnt == nil) {
-			unlock(&mntalloc);
+			unlock(&mntalloc.Lock);
 			exhausted("mount devices");
 		}
 	}
@@ -229,7 +229,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	mnt->id = mntalloc.id++;
 	mnt->q = qopen(10*MAXRPC, 0, nil, nil);
 	mnt->msize = f.msize;
-	unlock(&mntalloc);
+	unlock(&mntalloc.Lock);
 
 	if(returnlen != 0){
 		if(returnlen < k)
@@ -381,9 +381,9 @@ mntchan(void)
 	Chan *c;
 
 	c = devattach('M', 0);
-	lock(&mntalloc);
+	lock(&mntalloc.Lock);
 	c->devno = mntalloc.id++;
-	unlock(&mntalloc);
+	unlock(&mntalloc.Lock);
 
 	if(c->mchan)
 		panic("mntchan non-zero %#p", c->mchan);
@@ -601,7 +601,7 @@ mntpntfree(Mnt *mnt)
 	Mnt *f, **l;
 	Queue *q;
 
-	lock(&mntalloc);
+	lock(&mntalloc.Lock);
 	l = &mntalloc.list;
 	for(f = *l; f; f = f->list) {
 		if(f == mnt) {
@@ -613,7 +613,7 @@ mntpntfree(Mnt *mnt)
 	mnt->list = mntalloc.mntfree;
 	mntalloc.mntfree = mnt;
 	q = mnt->q;
-	unlock(&mntalloc);
+	unlock(&mntalloc.Lock);
 
 	qfree(q);
 }
@@ -1116,12 +1116,12 @@ mntralloc(Chan *c, uint32_t msize)
 {
 	Mntrpc *new;
 
-	lock(&mntalloc);
+	lock(&mntalloc.Lock);
 	new = mntalloc.rpcfree;
 	if(new == nil){
 		new = malloc(sizeof(Mntrpc));
 		if(new == nil) {
-			unlock(&mntalloc);
+			unlock(&mntalloc.Lock);
 			exhausted("mount rpc header");
 		}
 		/*
@@ -1131,7 +1131,7 @@ mntralloc(Chan *c, uint32_t msize)
 		new->rpc = mallocz(msize, 0);
 		if(new->rpc == nil){
 			free(new);
-			unlock(&mntalloc);
+			unlock(&mntalloc.Lock);
 			exhausted("mount rpc buffer");
 		}
 		new->rpclen = msize;
@@ -1146,14 +1146,14 @@ mntralloc(Chan *c, uint32_t msize)
 			if(new->rpc == nil){
 				free(new);
 				mntalloc.nrpcused--;
-				unlock(&mntalloc);
+				unlock(&mntalloc.Lock);
 				exhausted("mount rpc buffer");
 			}
 			new->rpclen = msize;
 		}
 	}
 	mntalloc.nrpcused++;
-	unlock(&mntalloc);
+	unlock(&mntalloc.Lock);
 	new->c = c;
 	new->done = 0;
 	new->flushed = nil;
@@ -1166,7 +1166,7 @@ mntfree(Mntrpc *r)
 {
 	if(r->b != nil)
 		freeblist(r->b);
-	lock(&mntalloc);
+	lock(&mntalloc.Lock);
 	if(mntalloc.nrpcfree >= 10){
 		free(r->rpc);
 		freetag(r->request.tag);
@@ -1178,7 +1178,7 @@ mntfree(Mntrpc *r)
 		mntalloc.nrpcfree++;
 	}
 	mntalloc.nrpcused--;
-	unlock(&mntalloc);
+	unlock(&mntalloc.Lock);
 }
 
 void
@@ -1251,22 +1251,22 @@ rpcattn(void *v)
 }
 
 Dev mntdevtab = {
-	'M',
-	"mnt",
+	.dc = 'M',
+	.name = "mnt",
 
-	mntreset,
-	devinit,
-	devshutdown,
-	mntattach,
-	mntwalk,
-	mntstat,
-	mntopen,
-	mntcreate,
-	mntclose,
-	mntread,
-	devbread,
-	mntwrite,
-	devbwrite,
-	mntremove,
-	mntwstat,
+	.reset = mntreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = mntattach,
+	.walk = mntwalk,
+	.stat = mntstat,
+	.open = mntopen,
+	.create = mntcreate,
+	.close = mntclose,
+	.read = mntread,
+	.bread = devbread,
+	.write = mntwrite,
+	.bwrite = devbwrite,
+	.remove = mntremove,
+	.wstat = mntwstat,
 };
