@@ -1,7 +1,6 @@
 {
 	"vga": {
 		"Cflags": [
-		    "-fplan9-extensions",
 			"-I", "/"
 		],
 		"Include": [
