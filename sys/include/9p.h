@@ -120,13 +120,13 @@ void		dirread9p(Req*, Dirgen*, void*);
  * File trees.
  */
 struct File {
-	Ref;
-	Dir;
+	Ref ref;
+	Dir dir;
 	File *parent;
 	void *aux;
 
 /* below is implementation-specific; don't use */
-	RWLock;
+	RWLock lock;
 	Filelist *filelist;
 	Tree *tree;
 	int nchild;
