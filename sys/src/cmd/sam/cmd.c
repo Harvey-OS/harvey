@@ -207,14 +207,14 @@ termcommand(void)
 {
 	Posn p;
 
-	for(p=cmdpt; p<cmd->nc; p++){
+	for(p=cmdpt; p<cmd->Buffer.nc; p++){
 		if(terminp >= termline+nelem(termline)){
-			cmdpt = cmd->nc;
+			cmdpt = cmd->Buffer.nc;
 			error(Etoolong);
 		}
 		*terminp++ = filereadc(cmd, p);
 	}
-	cmdpt = cmd->nc;
+	cmdpt = cmd->Buffer.nc;
 }
 
 void

@@ -123,7 +123,7 @@ mergeextend(File *f, uint p0)
 
 	mp0n = merge.p0+merge.n;
 	if(mp0n != p0){
-		bufread(f, mp0n, merge.buf+merge.nbuf, p0-mp0n);
+		bufread(&f->Buffer, mp0n, merge.buf+merge.nbuf, p0-mp0n);
 		merge.nbuf += p0-mp0n;
 		merge.n = p0-merge.p0;
 	}
@@ -306,7 +306,7 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 		n = p1 - i;
 		if(n > RBUFSIZE)
 			n = RBUFSIZE;
-		bufread(f, i, buf, n);
+		bufread(&f->Buffer, i, buf, n);
 		bufinsert(delta, delta->nc, buf, n);
 	}
 	fbuffree(buf);
@@ -319,9 +319,9 @@ filereadc(File *f, uint q)
 {
 	Rune r;
 
-	if(q >= f->nc)
+	if(q >= f->Buffer.nc)
 		return -1;
-	bufread(f, q, &r, 1);
+	bufread(&f->Buffer, q, &r, 1);
 	return r;
 }
 
@@ -387,7 +387,7 @@ fileload(File *f, uint p0, int fd, int *nulls)
 {
 	if(f->seq > 0)
 		panic("undo in file.load unimplemented");
-	return bufload(f, p0, fd, nulls);
+	return bufload(&f->Buffer, p0, fd, nulls);
 }
 
 int
@@ -513,7 +513,7 @@ fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
 			if(canredo)
 				fileundelete(f, epsilon, u.p0, u.p0+u.n);
 			f->mod = u.mod;
-			bufdelete(f, u.p0, u.p0+u.n);
+			bufdelete(&f->Buffer, u.p0, u.p0+u.n);
 			raspdelete(f, u.p0, u.p0+u.n, flag);
 			*q0p = u.p0;
 			*q1p = u.p0;
@@ -531,7 +531,7 @@ fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
 				bufread(delta, up+i, buf, n);
-				bufinsert(f, u.p0+i, buf, n);
+				bufinsert(&f->Buffer, u.p0+i, buf, n);
 				raspinsert(f, u.p0+i, buf, n, flag);
 			}
 			fbuffree(buf);
@@ -589,7 +589,7 @@ void
 fileclose(File *f)
 {
 	Strclose(&f->name);
-	bufclose(f);
+	bufclose(&f->Buffer);
 	bufclose(&f->delta);
 	bufclose(&f->epsilon);
 	if(f->rasp)
