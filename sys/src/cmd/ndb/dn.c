@@ -42,7 +42,7 @@ enum {
 DN *ht[HTLEN];
 
 static struct {
-	Lock;
+	Lock Lock;
 	uint32_t	names;		/* names allocated */
 	uint32_t	oldest;		/* longest we'll leave a name around */
 	int	active;
@@ -53,100 +53,100 @@ static struct {
 /* names of RR types */
 char *rrtname[] =
 {
-[Ta]		"ip",
-[Tns]		"ns",
-[Tmd]		"md",
-[Tmf]		"mf",
-[Tcname]	"cname",
-[Tsoa]		"soa",
-[Tmb]		"mb",
-[Tmg]		"mg",
-[Tmr]		"mr",
-[Tnull]		"null",
-[Twks]		"wks",
-[Tptr]		"ptr",
-[Thinfo]	"hinfo",
-[Tminfo]	"minfo",
-[Tmx]		"mx",
-[Ttxt]		"txt",
-[Trp]		"rp",
-[Tafsdb]	"afsdb",
-[Tx25]		"x.25",
-[Tisdn]		"isdn",
-[Trt]		"rt",
-[Tnsap]		"nsap",
-[Tnsapptr]	"nsap-ptr",
-[Tsig]		"sig",
-[Tkey]		"key",
-[Tpx]		"px",
-[Tgpos]		"gpos",
-[Taaaa]		"ipv6",
-[Tloc]		"loc",
-[Tnxt]		"nxt",
-[Teid]		"eid",
-[Tnimloc]	"nimrod",
-[Tsrv]		"srv",
-[Tatma]		"atma",
-[Tnaptr]	"naptr",
-[Tkx]		"kx",
-[Tcert]		"cert",
-[Ta6]		"a6",
-[Tdname]	"dname",
-[Tsink]		"sink",
-[Topt]		"opt",
-[Tapl]		"apl",
-[Tds]		"ds",
-[Tsshfp]	"sshfp",
-[Tipseckey]	"ipseckey",
-[Trrsig]	"rrsig",
-[Tnsec]		"nsec",
-[Tdnskey]	"dnskey",
-[Tspf]		"spf",
-[Tuinfo]	"uinfo",
-[Tuid]		"uid",
-[Tgid]		"gid",
-[Tunspec]	"unspec",
-[Ttkey]		"tkey",
-[Ttsig]		"tsig",
-[Tixfr]		"ixfr",
-[Taxfr]		"axfr",
-[Tmailb]	"mailb",
-[Tmaila]	"maila",
-[Tall]		"all",
+[Ta] =		"ip",
+[Tns] =		"ns",
+[Tmd] =		"md",
+[Tmf] =		"mf",
+[Tcname] =	"cname",
+[Tsoa] =		"soa",
+[Tmb] =		"mb",
+[Tmg] =		"mg",
+[Tmr] =		"mr",
+[Tnull] =		"null",
+[Twks] =		"wks",
+[Tptr] =		"ptr",
+[Thinfo] =	"hinfo",
+[Tminfo] =	"minfo",
+[Tmx] =		"mx",
+[Ttxt] =		"txt",
+[Trp] =		"rp",
+[Tafsdb] =	"afsdb",
+[Tx25] =		"x.25",
+[Tisdn] =		"isdn",
+[Trt] =		"rt",
+[Tnsap] =		"nsap",
+[Tnsapptr] =	"nsap-ptr",
+[Tsig] =		"sig",
+[Tkey] =		"key",
+[Tpx] =		"px",
+[Tgpos] =		"gpos",
+[Taaaa] =		"ipv6",
+[Tloc] =		"loc",
+[Tnxt] =		"nxt",
+[Teid] =		"eid",
+[Tnimloc] =	"nimrod",
+[Tsrv] =		"srv",
+[Tatma] =		"atma",
+[Tnaptr] =	"naptr",
+[Tkx] =		"kx",
+[Tcert] =		"cert",
+[Ta6] =		"a6",
+[Tdname] =	"dname",
+[Tsink] =		"sink",
+[Topt] =		"opt",
+[Tapl] =		"apl",
+[Tds] =		"ds",
+[Tsshfp] =	"sshfp",
+[Tipseckey] =	"ipseckey",
+[Trrsig] =	"rrsig",
+[Tnsec] =		"nsec",
+[Tdnskey] =	"dnskey",
+[Tspf] =		"spf",
+[Tuinfo] =	"uinfo",
+[Tuid] =		"uid",
+[Tgid] =		"gid",
+[Tunspec] =	"unspec",
+[Ttkey] =		"tkey",
+[Ttsig] =		"tsig",
+[Tixfr] =		"ixfr",
+[Taxfr] =		"axfr",
+[Tmailb] =	"mailb",
+[Tmaila] =	"maila",
+[Tall] =		"all",
 		0,
 };
 
 /* names of response codes */
 char *rname[Rmask+1] =
 {
-[Rok]			"ok",
-[Rformat]		"format error",
-[Rserver]		"server failure",
-[Rname]			"bad name",
-[Runimplimented]	"unimplemented",
-[Rrefused]		"we don't like you",
-[Ryxdomain]		"name should not exist",
-[Ryxrrset]		"rr set should not exist",
-[Rnxrrset]		"rr set should exist",
-[Rnotauth]		"not authorative",
-[Rnotzone]		"not in zone",
-[Rbadvers]		"bad opt version",
-/* [Rbadsig]		"bad signature", */
-[Rbadkey]		"bad key",
-[Rbadtime]		"bad signature time",
-[Rbadmode]		"bad mode",
-[Rbadname]		"duplicate key name",
-[Rbadalg]		"bad algorithm",
+[Rok] =			"ok",
+[Rformat] =		"format error",
+[Rserver] =		"server failure",
+[Rname] =			"bad name",
+[Runimplimented] =	"unimplemented",
+[Rrefused] =		"we don't like you",
+[Ryxdomain] =		"name should not exist",
+[Ryxrrset] =		"rr set should not exist",
+[Rnxrrset] =		"rr set should exist",
+[Rnotauth] =		"not authorative",
+[Rnotzone] =		"not in zone",
+[Rbadvers] =		"bad opt version",
+/* [Rbadsig] =		"bad signature", */
+[Rbadkey] =		"bad key",
+[Rbadtime] =		"bad signature time",
+[Rbadmode] =		"bad mode",
+[Rbadname] =		"duplicate key name",
+[Rbadalg] =		"bad algorithm",
 };
 unsigned nrname = nelem(rname);
 
 /* names of op codes */
 char *opname[] =
 {
-[Oquery]	"query",
-[Oinverse]	"inverse query (retired)",
-[Ostatus]	"status",
-[Oupdate]	"update",
+[Oquery] =	"query",
+[Oinverse] =	"inverse query (retired)",
+[Ostatus] =	"status",
+[Oupdate] =	"update",
 };
 
 uint32_t target = Deftarget;
@@ -269,7 +269,7 @@ dnstats(char *file)
 	if(fd < 0)
 		return;
 
-	qlock(&stats);
+	qlock(&stats.QLock);
 	fprint(fd, "# system %s\n", sysname());
 	fprint(fd, "# slave procs high-water mark\t%lud\n", stats.slavehiwat);
 	fprint(fd, "# queries received by 9p\t%lud\n", stats.qrecvd9p);
@@ -291,7 +291,7 @@ dnstats(char *file)
 		stats.negbdnoans);
 	fprint(fd, "# negative answers w no Rname set\t%lud\n", stats.negnorname);
 	fprint(fd, "# negative answers cached\t%lud\n", stats.negcached);
-	qunlock(&stats);
+	qunlock(&stats.QLock);
 
 	lock(&dnlock);
 	fprint(fd, "\n# domain names %lud target %lud\n", dnvars.names, target);
@@ -677,33 +677,31 @@ getactivity(Request *req, int recursive)
 	if(traceactivity)
 		dnslog("get: %d active by pid %d from %p",
 			dnvars.active, getpid(), getcallerpc());
-	lock(&dnvars);
+	lock(&dnvars.Lock);
 	/*
 	 * can't block here if we're already holding one
 	 * of the dnvars.active (recursive).  will deadlock.
 	 */
 	while(!recursive && dnvars.mutex){
-		unlock(&dnvars);
+		unlock(&dnvars.Lock);
 		sleep(100);			/* tune; was 200 */
-		lock(&dnvars);
+		lock(&dnvars.Lock);
 	}
 	rv = ++dnvars.active;
 	now = time(nil);
 	nowns = nsec();
 	req->id = ++dnvars.id;
-	unlock(&dnvars);
+	unlock(&dnvars.Lock);
 
 	return rv;
 }
 void
 putactivity(int recursive)
 {
-	static uint32_t lastclean;
-
 	if(traceactivity)
 		dnslog("put: %d active by pid %d",
 			dnvars.active, getpid());
-	lock(&dnvars);
+	lock(&dnvars.Lock);
 	dnvars.active--;
 	assert(dnvars.active >= 0); /* "dnvars.active %d", dnvars.active */
 
@@ -714,18 +712,18 @@ putactivity(int recursive)
 	 */
 	if (recursive || dnvars.mutex ||
 	    (needrefresh == 0 && dnvars.active > 0)){
-		unlock(&dnvars);
+		unlock(&dnvars.Lock);
 		return;
 	}
 
 	/* wait till we're alone */
 	dnvars.mutex = 1;
 	while(dnvars.active > 0){
-		unlock(&dnvars);
+		unlock(&dnvars.Lock);
 		sleep(100);		/* tune; was 100 */
-		lock(&dnvars);
+		lock(&dnvars.Lock);
 	}
-	unlock(&dnvars);
+	unlock(&dnvars.Lock);
 
 	db2cache(needrefresh);
 
@@ -742,7 +740,6 @@ putactivity(int recursive)
 	dnageall(0);
 
 	/* let others back in */
-	lastclean = now;
 	needrefresh = 0;
 	dnvars.mutex = 0;
 }
@@ -951,32 +948,32 @@ rrcopy(RR *rp, RR **last)
 		*nrp = *rp;
 		nrp->key = key;
 		*key = *rp->key;
-		key->data = emalloc(key->dlen);
-		memmove(key->data, rp->key->data, rp->key->dlen);
+		key->Block.data = emalloc(key->Block.dlen);
+		memmove(key->Block.data, rp->key->Block.data, rp->key->Block.dlen);
 		break;
 	case Tsig:
 		sig = nrp->sig;
 		*nrp = *rp;
 		nrp->sig = sig;
 		*sig = *rp->sig;
-		sig->data = emalloc(sig->dlen);
-		memmove(sig->data, rp->sig->data, rp->sig->dlen);
+		sig->Cert.Block.data = emalloc(sig->Cert.Block.dlen);
+		memmove(sig->Cert.Block.data, rp->sig->Cert.Block.data, rp->sig->Cert.Block.dlen);
 		break;
 	case Tcert:
 		cert = nrp->cert;
 		*nrp = *rp;
 		nrp->cert = cert;
 		*cert = *rp->cert;
-		cert->data = emalloc(cert->dlen);
-		memmove(cert->data, rp->cert->data, rp->cert->dlen);
+		cert->Block.data = emalloc(cert->Block.dlen);
+		memmove(cert->Block.data, rp->cert->Block.data, rp->cert->Block.dlen);
 		break;
 	case Tnull:
 		null = nrp->null;
 		*nrp = *rp;
 		nrp->null = null;
 		*null = *rp->null;
-		null->data = emalloc(null->dlen);
-		memmove(null->data, rp->null->data, rp->null->dlen);
+		null->Block.data = emalloc(null->Block.dlen);
+		memmove(null->Block.data, rp->null->Block.data, rp->null->Block.dlen);
 		break;
 	default:
 		*nrp = *rp;
@@ -1289,8 +1286,8 @@ rrfmt(Fmt *f)
 		if (rp->null == nil)
 			fmtprint(&fstr, "\t<null>");
 		else
-			fmtprint(&fstr, "\t%.*H", rp->null->dlen,
-				rp->null->data);
+			fmtprint(&fstr, "\t%.*H", rp->null->Block.dlen,
+				rp->null->Block.data);
 		break;
 	case Ttxt:
 		fmtprint(&fstr, "\t");
@@ -1313,9 +1310,9 @@ rrfmt(Fmt *f)
 		   "\t<null> <null> <null> <null> <null> <null> <null> <null>");
 		else
 			fmtprint(&fstr, "\t%d %d %d %lud %lud %lud %d %s",
-				rp->sig->type, rp->sig->alg, rp->sig->labels,
+				rp->sig->Cert.type, rp->sig->Cert.alg, rp->sig->labels,
 				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
-				rp->sig->tag, dnname(rp->sig->signer));
+				rp->sig->Cert.tag, dnname(rp->sig->signer));
 		break;
 	case Tcert:
 		if (rp->cert == nil)
@@ -1415,8 +1412,8 @@ rravfmt(Fmt *f)
 		if (rp->null == nil)
 			fmtprint(&fstr, " null=<null>");
 		else
-			fmtprint(&fstr, " null=%.*H", rp->null->dlen,
-				rp->null->data);
+			fmtprint(&fstr, " null=%.*H", rp->null->Block.dlen,
+				rp->null->Block.data);
 		break;
 	case Ttxt:
 		fmtprint(&fstr, " txt=");
@@ -1449,9 +1446,9 @@ rravfmt(Fmt *f)
 		else
 			fmtprint(&fstr,
 " type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
-				rp->sig->type, rp->sig->alg, rp->sig->labels,
+				rp->sig->Cert.type, rp->sig->Cert.alg, rp->sig->labels,
 				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
-				rp->sig->tag, dnname(rp->sig->signer));
+				rp->sig->Cert.tag, dnname(rp->sig->signer));
 		break;
 	case Tcert:
 		if (rp->cert == nil)
@@ -2058,22 +2055,22 @@ rrfree(RR *rp)
 		free(rp->srv);
 		break;
 	case Tkey:
-		free(rp->key->data);
+		free(rp->key->Block.data);
 		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
 		free(rp->key);
 		break;
 	case Tcert:
-		free(rp->cert->data);
+		free(rp->cert->Block.data);
 		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
 		free(rp->cert);
 		break;
 	case Tsig:
-		free(rp->sig->data);
+		free(rp->sig->Cert.Block.data);
 		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
 		free(rp->sig);
 		break;
 	case Tnull:
-		free(rp->null->data);
+		free(rp->null->Block.data);
 		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
 		free(rp->null);
 		break;
