@@ -63,6 +63,7 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
+	ToolOpts    map[string][]string
 	// cmd's
 	SourceFilesCmd []string
 	// Targets.
@@ -81,6 +82,7 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 	if err := json.Unmarshal(s, &r); err != nil {
 		return err
 	}
+
 	for k, b := range r {
 		// we're getting a copy of the struct, remember.
 		b.jsons = make(map[string]bool)
@@ -190,6 +192,9 @@ func process(f, which string, b *build) {
 
 	for n, build := range builds {
 		log.Printf("Merging %v", n)
+		for t,v := range build.ToolOpts {
+			b.ToolOpts[t] = v
+		}
 		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
@@ -245,6 +250,7 @@ func process(f string, r []*regexp.Regexp) []build {
 	for n, build := range builds {
 		build.name = n
 		build.jsons = make(map[string]bool)
+		build.ToolOpts = make(map[string][]string)
 		skip := true
 		for _, re := range r {
 			if re.MatchString(build.name) {
@@ -293,6 +299,9 @@ func compile(b *build) {
 		"-I", fromRoot("/sys/include"),
 		"-I", ".",
 	}
+	if toolOpts, ok := b.ToolOpts[tools["cc"]]; ok {
+		args = append(args, toolOpts...)
+	}
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
@@ -321,6 +330,9 @@ func link(b *build) {
 			o := f[:len(f)] + ".o"
 			args := []string{"-o", n, o}
 			args = append(args, b.Oflags...)
+			if toolOpts, ok := b.ToolOpts[tools["ld"]]; ok {
+				args = append(args, toolOpts...)
+			}
 			args = append(args, "-L", fromRoot("/$ARCH/lib"))
 			args = append(args, b.Libs...)
 			run(b, *shellhack, exec.Command(tools["ld"], args...))
@@ -328,6 +340,9 @@ func link(b *build) {
 		return
 	}
 	args := []string{"-o", b.Program}
+	if toolOpts, ok := b.ToolOpts[tools["ld"]]; ok {
+		args = append(args, toolOpts...)
+	}
 	args = append(args, b.ObjectFiles...)
 	args = append(args, b.Oflags...)
 	args = append(args, "-L", fromRoot("/$ARCH/lib"))
