@@ -198,7 +198,7 @@ prettyrrfmt(Fmt *f)
 			rp->srv->pri, rp->srv->weight, rp->port, rp->host->name);
 		break;
 	case Tnull:
-		seprint(p, e, "\t%.*H", rp->null->dlen, rp->null->data);
+		seprint(p, e, "\t%.*H", rp->null->Block.dlen, rp->null->Block.data);
 		break;
 	case Ttxt:
 		p = seprint(p, e, "\t");
@@ -214,13 +214,13 @@ prettyrrfmt(Fmt *f)
 		break;
 	case Tsig:
 		seprint(p, e, "\t%d %d %d %lud %lud %lud %d %s",
-			rp->sig->type, rp->sig->alg, rp->sig->labels,
+			rp->sig->Cert.type, rp->sig->Cert.alg, rp->sig->labels,
 			rp->sig->ttl, rp->sig->exp, rp->sig->incep,
-			rp->sig->tag, rp->sig->signer->name);
+			rp->sig->Cert.tag, rp->sig->signer->name);
 		break;
 	case Tcert:
 		seprint(p, e, "\t%d %d %d",
-			rp->sig->type, rp->sig->tag, rp->sig->alg);
+			rp->sig->Cert.type, rp->sig->Cert.tag, rp->sig->Cert.alg);
 		break;
 	}
 out:
