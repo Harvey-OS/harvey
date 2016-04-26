@@ -206,9 +206,9 @@ struct Request
 typedef struct Querylck Querylck;
 struct Querylck
 {
-	QLock;
+	QLock QLock;
 //	Rendez;
-	Ref;
+	Ref Ref;
 };
 
 /*
@@ -246,18 +246,18 @@ struct Key
 	int	flags;
 	int	proto;
 	int	alg;
-	Block;
+	Block Block;
 };
 struct Cert
 {
 	int	type;
 	int	tag;
 	int	alg;
-	Block;
+	Block Block;
 };
 struct Sig
 {
-	Cert;
+	Cert Cert;
 	int	labels;
 	uint32_t	ttl;
 	uint32_t	exp;
@@ -266,7 +266,7 @@ struct Sig
 };
 struct Null
 {
-	Block;
+	Block Block;
 };
 
 /*
@@ -409,7 +409,7 @@ struct Cfg {
 
 /* (udp) query stats */
 typedef struct {
-	QLock;
+	QLock QLock;
 	uint32_t	slavehiwat;	/* procs */
 	uint32_t	qrecvd9p;	/* query counts */
 	uint32_t	qrecvdudp;

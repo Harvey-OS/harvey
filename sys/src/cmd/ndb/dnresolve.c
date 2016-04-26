@@ -97,17 +97,17 @@ struct Query {
 
 /* estimated % probability of such a record existing at all */
 int likely[] = {
-	[Ta]		95,
-	[Taaaa]		10,
-	[Tcname]	15,
-	[Tmx]		60,
-	[Tns]		90,
-	[Tnull]		5,
-	[Tptr]		35,
-	[Tsoa]		90,
-	[Tsrv]		60,
-	[Ttxt]		15,
-	[Tall]		95,
+	[Ta] =		95,
+	[Taaaa] =		10,
+	[Tcname] =	15,
+	[Tmx] =		60,
+	[Tns] =		90,
+	[Tnull] =		5,
+	[Tptr] =		35,
+	[Tsoa] =		90,
+	[Tsrv] =		60,
+	[Ttxt] =		15,
+	[Tall] =		95,
 };
 
 static RR*	dnresolve1(char*, int, int, Request*, int, int);
@@ -310,7 +310,7 @@ destck(Dest *p)
 static void
 notestats(int64_t start, int tmout, int type)
 {
-	qlock(&stats);
+	qlock(&stats.QLock);
 	if (tmout) {
 		stats.tmout++;
 		if (type == Taaaa)
@@ -327,15 +327,15 @@ notestats(int64_t start, int tmout, int type)
 		else
 			stats.under10ths[wait10ths]++;
 	}
-	qunlock(&stats);
+	qunlock(&stats.QLock);
 }
 
 static void
 noteinmem(void)
 {
-	qlock(&stats);
+	qlock(&stats.QLock);
 	stats.answinmem++;
-	qunlock(&stats);
+	qunlock(&stats.QLock);
 }
 
 /* netquery with given name servers, free ns rrs when done */
@@ -1642,9 +1642,9 @@ netquery(Query *qp, int depth)
 		 * causing us to query other nameservers.
 		 */
 		qlp = &dp->querylck[qtype2lck(qp->type)];
-		qlock(qlp);
+		qlock(&qlp->QLock);
 		if (qlp->Ref.ref > Maxoutstanding) {
-			qunlock(qlp);
+			qunlock(&qlp->QLock);
 			if (!whined) {
 				whined = 1;
 				dnslog("too many outstanding queries for %s;"
@@ -1654,7 +1654,7 @@ netquery(Query *qp, int depth)
 			return 0;
 		}
 		++qlp->Ref.ref;
-		qunlock(qlp);
+		qunlock(&qlp->QLock);
 	}
 	procsetname("netquery: %s", dp->name);
 
@@ -1696,10 +1696,10 @@ netquery(Query *qp, int depth)
 //		askoutdns(dp, qp->type);
 
 	if(lock && qlp) {
-		qlock(qlp);
+		qlock(&qlp->QLock);
 		assert(qlp->Ref.ref > 0);
-		qunlock(qlp);
-		decref(qlp);
+		qunlock(&qlp->QLock);
+		decref(&qlp->Ref);
 	}
 	return rv;
 }

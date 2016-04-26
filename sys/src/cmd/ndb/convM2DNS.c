@@ -460,7 +460,7 @@ retry:
 		}
 		break;
 	case Tnull:
-		BYTES(rp->null->data, rp->null->dlen);
+		BYTES(rp->null->Block.data, rp->null->Block.dlen);
 		break;
 	case Trp:
 		rp->rmb = dnlookup(NAME(dname), Cin, 1);
@@ -470,24 +470,24 @@ retry:
 		USHORT(rp->key->flags);
 		UCHAR(rp->key->proto);
 		UCHAR(rp->key->alg);
-		BYTES(rp->key->data, rp->key->dlen);
+		BYTES(rp->key->Block.data, rp->key->Block.dlen);
 		break;
 	case Tsig:
-		USHORT(rp->sig->type);
-		UCHAR(rp->sig->alg);
+		USHORT(rp->sig->Cert.type);
+		UCHAR(rp->sig->Cert.alg);
 		UCHAR(rp->sig->labels);
 		ULONG(rp->sig->ttl);
 		ULONG(rp->sig->exp);
 		ULONG(rp->sig->incep);
-		USHORT(rp->sig->tag);
+		USHORT(rp->sig->Cert.tag);
 		rp->sig->signer = dnlookup(NAME(dname), Cin, 1);
-		BYTES(rp->sig->data, rp->sig->dlen);
+		BYTES(rp->sig->Cert.Block.data, rp->sig->Cert.Block.dlen);
 		break;
 	case Tcert:
 		USHORT(rp->cert->type);
 		USHORT(rp->cert->tag);
 		UCHAR(rp->cert->alg);
-		BYTES(rp->cert->data, rp->cert->dlen);
+		BYTES(rp->cert->Block.data, rp->cert->Block.dlen);
 		break;
 	}
 	if(sp->p - data != len) {
