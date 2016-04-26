@@ -9,18 +9,18 @@
 
 #include "sam.h"
 
-Rune	*samname = L"~~sam~~";
+Rune	*samname = (Rune *)L"~~sam~~";
 
 Rune *left[]= {
-	L"{[(<«",
-	L"\n",
-	L"'\"`",
+	(Rune *)L"{[(<«",
+	(Rune *)L"\n",
+	(Rune *)L"'\"`",
 	0
 };
 Rune *right[]= {
-	L"}])>»",
-	L"\n",
-	L"'\"`",
+	(Rune *)L"}])>»",
+	(Rune *)L"\n",
+	(Rune *)L"'\"`",
 	0
 };
 

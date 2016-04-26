@@ -133,7 +133,7 @@ rescue(void)
 	io = -1;
 	for(i=0; i<file.nused; i++){
 		f = file.filepptr[i];
-		if(f==cmd || f->nc==0 || !fileisdirty(f))
+		if(f==cmd || f->Buffer.nc==0 || !fileisdirty(f))
 			continue;
 		if(io == -1){
 			sprint(buf, "%s/sam.save", home);
@@ -149,7 +149,7 @@ rescue(void)
 		}else
 			sprint(buf, "nameless.%d", nblank++);
 		fprint(io, "#!%s '%s' $* <<'---%s'\n", SAMSAVECMD, buf, buf);
-		addr.r.p1 = 0, addr.r.p2 = f->nc;
+		addr.r.p1 = 0, addr.r.p2 = f->Buffer.nc;
 		writeio(f);
 		fprint(io, "\n---%s\n", (char *)buf);
 	}
@@ -284,7 +284,7 @@ cmdupdate(void)
 {
 	if(cmd && cmd->seq!=0){
 		fileupdate(cmd, FALSE, downloaded);
-		cmd->dot.r.p1 = cmd->dot.r.p2 = cmd->nc;
+		cmd->dot.r.p1 = cmd->dot.r.p2 = cmd->Buffer.nc;
 		telldot(cmd);
 	}
 }
@@ -339,9 +339,9 @@ edit(File *f, int cmd)
 	if(cmd == 'r')
 		logdelete(f, addr.r.p1, addr.r.p2);
 	if(cmd=='e' || cmd=='I'){
-		logdelete(f, (Posn)0, f->nc);
-		addr.r.p2 = f->nc;
-	}else if(f->nc!=0 || (f->name.s[0] && Strcmp(&genstr, &f->name)!=0))
+		logdelete(f, (Posn)0, f->Buffer.nc);
+		addr.r.p2 = f->Buffer.nc;
+	}else if(f->Buffer.nc!=0 || (f->name.s[0] && Strcmp(&genstr, &f->name)!=0))
 		empty = FALSE;
 	if((io = open(genc, OREAD))<0) {
 		if (curfile && curfile->unread)
@@ -470,17 +470,17 @@ readcmd(String *s)
 		fileclose(flist);
 	flist = fileopen();
 
-	addr.r.p1 = 0, addr.r.p2 = flist->nc;
+	addr.r.p1 = 0, addr.r.p2 = flist->Buffer.nc;
 	retcode = plan9(flist, '<', s, FALSE);
 	fileupdate(flist, FALSE, FALSE);
 	flist->seq = 0;
-	if (flist->nc > BLOCKSIZE)
+	if (flist->Buffer.nc > BLOCKSIZE)
 		error(Etoolong);
 	Strzero(&genstr);
-	Strinsure(&genstr, flist->nc);
-	bufread(flist, (Posn)0, genbuf, flist->nc);
-	memmove(genstr.s, genbuf, flist->nc*RUNESIZE);
-	genstr.n = flist->nc;
+	Strinsure(&genstr, flist->Buffer.nc);
+	bufread(&flist->Buffer, (Posn)0, genbuf, flist->Buffer.nc);
+	memmove(genstr.s, genbuf, flist->Buffer.nc*RUNESIZE);
+	genstr.n = flist->Buffer.nc;
 	Straddc(&genstr, '\0');
 	return retcode;
 }
@@ -658,7 +658,7 @@ copy(File *f, Address addr2)
 		ni = addr.r.p2-p;
 		if(ni > BLOCKSIZE)
 			ni = BLOCKSIZE;
-		bufread(f, p, genbuf, ni);
+		bufread(&f->Buffer, p, genbuf, ni);
 		loginsert(addr2.f, addr2.r.p2, tmprstr(genbuf, ni)->s, ni);
 	}
 	addr2.f->ndot.r.p2 = addr2.r.p2+(f->dot.r.p2-f->dot.r.p1);
