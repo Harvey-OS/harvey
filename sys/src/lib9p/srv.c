@@ -120,17 +120,17 @@ filewalk(Req *r)
 	f = r->fid->file;
 	assert(f != nil);
 
-	incref(f);
+	incref(&f->Ref);
 	for(i=0; i<r->ifcall.nwname; i++)
 		if(f = walkfile(f, r->ifcall.wname[i]))
-			r->ofcall.wqid[i] = f->qid;
+			r->ofcall.wqid[i] = f->Dir.qid;
 		else
 			break;
 
 	r->ofcall.nwqid = i;
 	if(f){
 		r->newfid->file = f;
-		r->newfid->qid = r->newfid->file->qid;
+		r->newfid->qid = r->newfid->file->Dir.qid;
 	}
 	respond(r, nil);
 }
@@ -227,8 +227,8 @@ sattach(Srv *srv, Req *r)
 	r->fid->uid = estrdup9p(r->ifcall.uname);
 	if(srv->tree){
 		r->fid->file = srv->tree->root;
-		incref(r->fid->file);
-		r->ofcall.qid = r->fid->file->qid;
+		incref(&r->fid->file->Ref);
+		r->ofcall.qid = r->fid->file->Dir.qid;
 		r->fid->qid = r->ofcall.qid;
 	}
 	if(srv->attach)
@@ -410,7 +410,7 @@ sopen(Srv *srv, Req *r)
 			respond(r, Eperm);
 			return;
 		}
-		r->ofcall.qid = r->fid->file->qid;
+		r->ofcall.qid = r->fid->file->Dir.qid;
 		if((r->ofcall.qid.type&QTDIR)
 		&& (r->fid->rdir = opendirfile(r->fid->file)) == nil){
 			respond(r, "opendirfile failed");
@@ -545,7 +545,7 @@ rwrite(Req *r, char *error)
 	if(error)
 		return;
 	if(r->fid->file)
-		r->fid->file->qid.vers++;
+		r->fid->file->Dir.qid.vers++;
 }
 
 static void
@@ -586,7 +586,7 @@ rremove(Req *r, char *error, char *errbuf)
 	if(r->fid->file){
 		if(removefile(r->fid->file) < 0){
 			snprint(errbuf, ERRMAX, "remove %s: %r", 
-				r->fid->file->name);
+				r->fid->file->Dir.name);
 			r->error = errbuf;
 		}
 		r->fid->file = nil;
