@@ -463,7 +463,7 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 		if(nt == nil)
 			sysfatal("nt nil: create %s: %r", buf);
 		nt->aux = copydir(&d);
-		nt->length = d.size;
+		nt->Dir.length = d.size;
 	} else /* make directory */
 		nt = createfile(t, buf, nil, DMDIR|0777, nil);
 
