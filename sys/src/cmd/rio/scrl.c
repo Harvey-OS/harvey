@@ -85,16 +85,16 @@ wscrdraw(Window *w)
 	r1 = r;
 	r1.min.x = 0;
 	r1.max.x = Dx(r);
-	r2 = scrpos(r1, w->org, w->org+w->nchars, w->nr);
+	r2 = scrpos(r1, w->org, w->org+w->Frame.nchars, w->nr);
 	if(!eqrect(r2, w->lastsr)){
 		w->lastsr = r2;
 		/* move r1, r2 to (0,0) to avoid clipping */
 		r2 = rectsubpt(r2, r1.min);
 		r1 = rectsubpt(r1, r1.min);
-		draw(b, r1, w->cols[BORD], nil, ZP);
-		draw(b, r2, w->cols[BACK], nil, ZP);
+		draw(b, r1, w->Frame.cols[BORD], nil, ZP);
+		draw(b, r2, w->Frame.cols[BACK], nil, ZP);
 		r2.min.x = r2.max.x-1;
-		draw(b, r2, w->cols[BORD], nil, ZP);
+		draw(b, r2, w->Frame.cols[BORD], nil, ZP);
 		draw(w->i, r, b, nil, Pt(0, r1.min.y));
 	}
 }
@@ -171,9 +171,9 @@ wscroll(Window *w, int but)
 				continue;
 			}
 			if(but == 1)
-				p0 = wbacknl(w, w->org, (my-s.min.y)/w->font->height);
+				p0 = wbacknl(w, w->org, (my-s.min.y)/w->Frame.font->height);
 			else
-				p0 = w->org+frcharofpt(w, Pt(s.max.x, my));
+				p0 = w->org+frcharofpt(&w->Frame, Pt(s.max.x, my));
 			if(oldp0 != p0)
 				wsetorigin(w, p0, TRUE);
 			oldp0 = p0;
