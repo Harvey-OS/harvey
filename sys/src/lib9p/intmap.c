@@ -28,7 +28,7 @@ struct Intlist
 
 struct Intmap
 {
-	RWLock;
+	RWLock RWLock;
 	Intlist*	hash[NHASH];
 	void (*inc)(void*);
 };
@@ -98,13 +98,13 @@ lookupkey(Intmap *map, uint32_t id)
 	Intlist *f;
 	void *v;
 
-	rlock(map);
+	rlock(&map->RWLock);
 	if(f = *llookup(map, id)){
 		v = f->aux;
 		map->inc(v);
 	}else
 		v = nil;
-	runlock(map);
+	runlock(&map->RWLock);
 	return v;
 }
 
@@ -115,7 +115,7 @@ insertkey(Intmap *map, uint32_t id, void *v)
 	void *ov;
 	uint32_t h;
 
-	wlock(map);
+	wlock(&map->RWLock);
 	if(f = *llookup(map, id)){
 		/* no decrement for ov because we're returning it */
 		ov = f->aux;
@@ -129,7 +129,7 @@ insertkey(Intmap *map, uint32_t id, void *v)
 		map->hash[h] = f;
 		ov = nil;
 	}
-	wunlock(map);
+	wunlock(&map->RWLock);
 	return ov;	
 }
 
@@ -140,7 +140,7 @@ caninsertkey(Intmap *map, uint32_t id, void *v)
 	int rv;
 	uint32_t h;
 
-	wlock(map);
+	wlock(&map->RWLock);
 	if(*llookup(map, id))
 		rv = 0;
 	else{
@@ -152,7 +152,7 @@ caninsertkey(Intmap *map, uint32_t id, void *v)
 		map->hash[h] = f;
 		rv = 1;
 	}
-	wunlock(map);
+	wunlock(&map->RWLock);
 	return rv;	
 }
 
@@ -162,13 +162,13 @@ deletekey(Intmap *map, uint32_t id)
 	Intlist **lf, *f;
 	void *ov;
 
-	wlock(map);
+	wlock(&map->RWLock);
 	if(f = *(lf = llookup(map, id))){
 		ov = f->aux;
 		*lf = f->link;
 		free(f);
 	}else
 		ov = nil;
-	wunlock(map);
+	wunlock(&map->RWLock);
 	return ov;
 }
