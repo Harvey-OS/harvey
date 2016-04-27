@@ -72,12 +72,12 @@ freefile(File *f)
 		free(fl);
 	}
 
-	free(f->name);
-	free(f->uid);
-	free(f->gid);
-	free(f->muid);
+	free(f->Dir.name);
+	free(f->Dir.uid);
+	free(f->Dir.gid);
+	free(f->Dir.muid);
 	qlock(&filelk);
-	assert(f->ref == 0);
+	assert(f->Ref.ref == 0);
 	f->aux = freefilelist;
 	freefilelist = f;
 	qunlock(&filelk);
@@ -119,7 +119,7 @@ cleanfilelist(File *f)
 void
 closefile(File *f)
 {
-	if(decref(f) == 0){
+	if(decref(&f->Ref) == 0){
 		f->tree->destroy(f);
 		freefile(f);
 	}
@@ -149,20 +149,20 @@ removefile(File *f)
 		return -1;
 	}
 
-	wlock(f);
-	wlock(fp);
+	wlock(&f->RWLock);
+	wlock(&fp->RWLock);
 	if(f->nchild != 0){
 		werrstr("has children");
-		wunlock(fp);
-		wunlock(f);
+		wunlock(&fp->RWLock);
+		wunlock(&f->RWLock);
 		closefile(f);
 		return -1;
 	}
 
 	if(f->parent != fp){
 		werrstr("parent changed underfoot");
-		wunlock(fp);
-		wunlock(f);
+		wunlock(&fp->RWLock);
+		wunlock(&f->RWLock);
 		closefile(f);
 		return -1;
 	}
@@ -176,10 +176,10 @@ removefile(File *f)
 	fp->nchild--;
 	fp->nxchild++;
 	f->parent = nil;
-	wunlock(f);
+	wunlock(&f->RWLock);
 
 	cleanfilelist(fp);
-	wunlock(fp);
+	wunlock(&fp->RWLock);
 
 	closefile(fp);	/* reference from child */
 	closefile(f);	/* reference from tree */
@@ -194,12 +194,12 @@ createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 	Filelist **l, *fl;
 	Tree *t;
 
-	if((fp->qid.type&QTDIR) == 0){
+	if((fp->Dir.qid.type&QTDIR) == 0){
 		werrstr("create in non-directory");
 		return nil;
 	}
 
-	wlock(fp);
+	wlock(&fp->RWLock);
 	/*
 	 * We might encounter blank spots along the
 	 * way due to deleted files that have not yet
@@ -209,8 +209,8 @@ createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 	 * Always create at the end of the list.
 	 */
 	for(l=&fp->filelist; fl=*l; l=&fl->link){
-		if(fl->f && strcmp(fl->f->name, name) == 0){
-			wunlock(fp);
+		if(fl->f && strcmp(fl->f->Dir.name, name) == 0){
+			wunlock(&fp->RWLock);
 			werrstr("file already exists");
 			return nil;
 		}
@@ -220,36 +220,36 @@ createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 	*l = fl;
 
 	f = allocfile();
-	f->name = estrdup9p(name);
-	f->uid = estrdup9p(uid ? uid : fp->uid);
-	f->gid = estrdup9p(fp->gid);
-	f->muid = estrdup9p(uid ? uid : "unknown");
+	f->Dir.name = estrdup9p(name);
+	f->Dir.uid = estrdup9p(uid ? uid : fp->Dir.uid);
+	f->Dir.gid = estrdup9p(fp->Dir.gid);
+	f->Dir.muid = estrdup9p(uid ? uid : "unknown");
 	f->aux = aux;
-	f->mode = perm;
+	f->Dir.mode = perm;
 
 	t = fp->tree;
 	lock(&t->genlock);
-	f->qid.path = t->qidgen++;
+	f->Dir.qid.path = t->qidgen++;
 	unlock(&t->genlock);
 	if(perm & DMDIR)
-		f->qid.type |= QTDIR;
+		f->Dir.qid.type |= QTDIR;
 	if(perm & DMAPPEND)
-		f->qid.type |= QTAPPEND;
+		f->Dir.qid.type |= QTAPPEND;
 	if(perm & DMEXCL)
-		f->qid.type |= QTEXCL;
+		f->Dir.qid.type |= QTEXCL;
 
-	f->mode = perm;
-	f->atime = f->mtime = time(0);
-	f->length = 0;
+	f->Dir.mode = perm;
+	f->Dir.atime = f->Dir.mtime = time(0);
+	f->Dir.length = 0;
 	f->parent = fp;
-	incref(fp);
+	incref(&fp->Ref);
 	f->tree = fp->tree;
 
-	incref(f);	/* being returned */
-	incref(f);	/* for the tree */
+	incref(&f->Ref);	/* being returned */
+	incref(&f->Ref);	/* for the tree */
 	fl->f = f;
 	fp->nchild++;
-	wunlock(fp);
+	wunlock(&fp->RWLock);
 
 	return f;
 }
@@ -260,24 +260,24 @@ walkfile1(File *dir, char *elem)
 	File *fp;
 	Filelist *fl;
 
-	rlock(dir);
+	rlock(&dir->RWLock);
 	if(strcmp(elem, "..") == 0){
 		fp = dir->parent;
-		incref(fp);
-		runlock(dir);
+		incref(&fp->Ref);
+		runlock(&dir->RWLock);
 		closefile(dir);
 		return fp;
 	}
 
 	fp = nil;
 	for(fl=dir->filelist; fl; fl=fl->link)
-		if(fl->f && strcmp(fl->f->name, elem)==0){
+		if(fl->f && strcmp(fl->f->Dir.name, elem)==0){
 			fp = fl->f;
-			incref(fp);
+			incref(&fp->Ref);
 			break;
 		}
 
-	runlock(dir);
+	runlock(&dir->RWLock);
 	closefile(dir);
 	return fp;
 }
@@ -313,7 +313,7 @@ alloctree(char *uid, char *gid, uint32_t mode, void (*destroy)(File*))
 
 	t = emalloc9p(sizeof *t);
 	f = allocfile();
-	f->name = estrdup9p("/");
+	f->Dir.name = estrdup9p("/");
 	if(uid == nil){
 		uid = getuser();
 		if(uid == nil)
@@ -328,17 +328,17 @@ alloctree(char *uid, char *gid, uint32_t mode, void (*destroy)(File*))
 
 	muid = estrdup9p(uid);
 
-	f->qid = (Qid){0, 0, QTDIR};
-	f->length = 0;
-	f->atime = f->mtime = time(0);
-	f->mode = DMDIR | mode;
+	f->Dir.qid = (Qid){0, 0, QTDIR};
+	f->Dir.length = 0;
+	f->Dir.atime = f->Dir.mtime = time(0);
+	f->Dir.mode = DMDIR | mode;
 	f->tree = t;
 	f->parent = f;
-	f->uid = uid;
-	f->gid = gid;
-	f->muid = muid;
+	f->Dir.uid = uid;
+	f->Dir.gid = gid;
+	f->Dir.muid = muid;
 
-	incref(f);
+	incref(&f->Ref);
 	t->root = f;
 	t->qidgen = 0;
 	t->dirqidgen = 1;
@@ -376,9 +376,9 @@ opendirfile(File *dir)
 {
 	Readdir *r;
 
-	rlock(dir);
-	if((dir->mode & DMDIR)==0){
-		runlock(dir);
+	rlock(&dir->RWLock);
+	if((dir->Dir.mode & DMDIR)==0){
+		runlock(&dir->RWLock);
 		return nil;
 	}
 	r = emalloc9p(sizeof(*r));
@@ -392,7 +392,7 @@ opendirfile(File *dir)
 	r->fl = dir->filelist;
 	r->dir = dir;
 	incref(&dir->readers);
-	runlock(dir);
+	runlock(&dir->RWLock);
 	return r;
 }
 
@@ -405,7 +405,7 @@ readdirfile(Readdir *r, uint8_t *buf, int32_t n)
 	for(fl=r->fl, m=0; fl && m+2<=n; fl=fl->link, m+=x){
 		if(fl->f == nil)
 			x = 0;
-		else if((x=convD2M(fl->f, buf+m, n-m)) <= BIT16SZ)
+		else if((x=convD2M(&fl->f->Dir, buf+m, n-m)) <= BIT16SZ)
 			break;
 	}
 	r->fl = fl;
@@ -416,9 +416,9 @@ void
 closedirfile(Readdir *r)
 {
 	if(decref(&r->dir->readers) == 0){
-		wlock(r->dir);
+		wlock(&r->dir->RWLock);
 		cleanfilelist(r->dir);
-		wunlock(r->dir);
+		wunlock(&r->dir->RWLock);
 	}
 	free(r);
 }
