@@ -132,9 +132,9 @@ struct Mouseinfo
 
 struct Window
 {
-	Ref;
-	QLock;
-	Frame;
+	Ref Ref;
+	QLock QLock;
+	Frame Frame;
 	Image		*i;
 	Mousectl		mc;
 	Mouseinfo	mouse;
@@ -253,10 +253,10 @@ struct Fid
 
 struct Xfid
 {
-		Ref;
+		Ref Ref;
 		Xfid		*next;
 		Xfid		*free;
-		Fcall;
+		Fcall Fcall;
 		Channel	*c;	/* chan(void(*)(Xfid*)) */
 		Fid		*f;
 		unsigned char	*buf;

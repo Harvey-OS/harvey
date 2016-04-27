@@ -75,12 +75,12 @@ enum
 };
 
 char		*menu2str[] = {
- [Cut]		"cut",
- [Paste]		"paste",
- [Snarf]		"snarf",
- [Plumb]		"plumb",
- [Send]		"send",
- [Scroll]		"scroll",
+ [Cut] =		"cut",
+ [Paste] =		"paste",
+ [Snarf] =		"snarf",
+ [Plumb] =		"plumb",
+ [Send] =		"send",
+ [Scroll] =		"scroll",
 			nil
 };
 
@@ -92,12 +92,12 @@ Menu menu2 =
 int	Hidden = Exit+1;
 
 char		*menu3str[100] = {
- [New]		"New",
- [Reshape]	"Resize",
- [Move]		"Move",
- [Delete]		"Delete",
- [Hide]		"Hide",
- [Exit]		"Exit",
+ [New] =		"New",
+ [Reshape] =	"Resize",
+ [Move] =		"Move",
+ [Delete] =		"Delete",
+ [Hide] =		"Hide",
+ [Exit] =		"Exit",
 			nil
 };
 
@@ -702,7 +702,7 @@ button2menu(Window *w)
 {
 	if(w->deleted)
 		return;
-	incref(w);
+	incref(&w->Ref);
 	if(w->scrolling)
 		menu2str[Scroll] = "noscroll";
 	else
