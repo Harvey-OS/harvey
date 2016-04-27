@@ -70,7 +70,7 @@ Lock	joblock;
 Job	*joblist;
 
 struct {
-	Lock;
+	Lock Lock;
 	Mfile	*inuse;		/* active mfile's */
 } mfalloc;
 
@@ -355,10 +355,10 @@ newfid(int fid, int needunused)
 {
 	Mfile *mf;
 
-	lock(&mfalloc);
+	lock(&mfalloc.Lock);
 	for(mf = mfalloc.inuse; mf != nil; mf = mf->next)
 		if(mf->fid == fid){
-			unlock(&mfalloc);
+			unlock(&mfalloc.Lock);
 			if(needunused)
 				return nil;
 			return mf;
@@ -368,7 +368,7 @@ newfid(int fid, int needunused)
 	mf->user = estrdup("dummy");
 	mf->next = mfalloc.inuse;
 	mfalloc.inuse = mf;
-	unlock(&mfalloc);
+	unlock(&mfalloc.Lock);
 	return mf;
 }
 
@@ -377,7 +377,7 @@ freefid(Mfile *mf)
 {
 	Mfile **l;
 
-	lock(&mfalloc);
+	lock(&mfalloc.Lock);
 	for(l = &mfalloc.inuse; *l != nil; l = &(*l)->next)
 		if(*l == mf){
 			*l = mf->next;
@@ -385,10 +385,10 @@ freefid(Mfile *mf)
 				free(mf->user);
 			memset(mf, 0, sizeof *mf);	/* cause trouble */
 			free(mf);
-			unlock(&mfalloc);
+			unlock(&mfalloc.Lock);
 			return;
 		}
-	unlock(&mfalloc);
+	unlock(&mfalloc.Lock);
 	sysfatal("freeing unused fid");
 }
 

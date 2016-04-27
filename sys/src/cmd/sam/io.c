@@ -62,7 +62,7 @@ writef(File *f)
 		error(Eappend);
 	n = writeio(f);
 	if(f->name.s[0]==0 || samename){
-		if(addr.r.p1==0 && addr.r.p2==f->nc)
+		if(addr.r.p1==0 && addr.r.p2==f->Buffer.nc)
 			f->cleanseq = f->seq;
 		state(f, f->cleanseq==f->seq? Clean : Dirty);
 	}
@@ -96,7 +96,7 @@ readio(File *f, int *nulls, int setdate, int toterm)
 	*nulls = FALSE;
 	b = 0;
 	if(f->unread){
-		nt = bufload(f, 0, io, nulls);
+		nt = bufload(&f->Buffer, 0, io, nulls);
 		if(toterm)
 			raspload(f);
 	}else
@@ -158,7 +158,7 @@ writeio(File *f)
 			n = BLOCKSIZE;
 		else
 			n = addr.r.p2-p;
-		bufread(f, p, genbuf, n);
+		bufread(&f->Buffer, p, genbuf, n);
 		c = Strtoc(tmprstr(genbuf, n));
 		m = strlen(c);
 		if(Write(io, c, m) != m){

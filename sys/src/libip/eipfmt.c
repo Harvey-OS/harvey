@@ -18,15 +18,15 @@ enum
 
 unsigned char prefixvals[256] =
 {
-[0x00] 0 | Isprefix,
-[0x80] 1 | Isprefix,
-[0xC0] 2 | Isprefix,
-[0xE0] 3 | Isprefix,
-[0xF0] 4 | Isprefix,
-[0xF8] 5 | Isprefix,
-[0xFC] 6 | Isprefix,
-[0xFE] 7 | Isprefix,
-[0xFF] 8 | Isprefix,
+[0x00]	= 0 | Isprefix,
+[0x80]	= 1 | Isprefix,
+[0xC0]	= 2 | Isprefix,
+[0xE0]	= 3 | Isprefix,
+[0xF0]	= 4 | Isprefix,
+[0xF8]	= 5 | Isprefix,
+[0xFC]	= 6 | Isprefix,
+[0xFE]	= 7 | Isprefix,
+[0xFF]	= 8 | Isprefix,
 };
 
 int

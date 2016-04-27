@@ -713,7 +713,7 @@ bexecute(File *f, Posn startp)
 			case 3:
 					goto Return;
 				list[0][0].inst = list[1][0].inst = 0;
-				p = f->nc;
+				p = f->Buffer.nc;
 				goto doloop;
 			default:
 				goto Return;
@@ -771,7 +771,7 @@ bexecute(File *f, Posn startp)
 				}
 				break;
 			case EOL:
-				if(p==f->nc || filereadc(f, p)=='\n')
+				if(p==f->Buffer.nc || filereadc(f, p)=='\n')
 					goto Step;
 				break;
 			case CCLASS:

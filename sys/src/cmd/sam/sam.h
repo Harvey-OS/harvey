@@ -164,7 +164,7 @@ void		bufreset(Buffer*);
 
 struct File
 {
-	Buffer;				/* the data */
+	Buffer Buffer;				/* the data */
 	Buffer		delta;		/* transcript of changes */
 	Buffer		epsilon;	/* inversion of delta for redo */
 	String		name;		/* name of associated file */

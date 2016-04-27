@@ -47,16 +47,16 @@ static RR*	txtrr(Ndbtuple*, Ndbtuple*);
 
 static int	implemented[Tall] =
 {
-	[Ta]		1,
-	[Taaaa]		1,
-	[Tcname]	1,
-	[Tmx]		1,
-	[Tns]		1,
-	[Tnull]		1,
-	[Tptr]		1,
-	[Tsoa]		1,
-	[Tsrv]		1,
-	[Ttxt]		1,
+	[Ta]	=		1,
+	[Taaaa]	=		1,
+	[Tcname]	=	1,
+	[Tmx]	=		1,
+	[Tns]	=		1,
+	[Tnull]	=		1,
+	[Tptr]	=		1,
+	[Tsoa]	=		1,
+	[Tsrv]	=		1,
+	[Ttxt]	=		1,
 };
 
 /* straddle server configuration */
@@ -364,8 +364,8 @@ nullrr(Ndbtuple *entry, Ndbtuple *pair)
 
 	USED(entry);
 	rp = rralloc(Tnull);
-	rp->null->data = (uint8_t*)estrdup(pair->val);
-	rp->null->dlen = strlen((char*)rp->null->data);
+	rp->null->Block.data = (uint8_t*)estrdup(pair->val);
+	rp->null->Block.dlen = strlen((char*)rp->null->Block.data);
 	return rp;
 }
 /*
