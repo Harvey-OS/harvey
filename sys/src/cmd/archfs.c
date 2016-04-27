@@ -120,15 +120,15 @@ createpath(File *f, char *name, char *u, uint32_t m)
 
 	if(verbose)
 		fprint(2, "createpath %s\n", name);
-	incref(f);
+	incref(&f->Ref);
 	while(f && (p = strchr(name, '/'))) {
 		*p = '\0';
 		if(strcmp(name, "") != 0 && strcmp(name, ".") != 0){
 			/* this would be a race if we were multithreaded */
-			incref(f);	/* so walk doesn't kill it immediately on failure */
+			incref(&f->Ref);	/* so walk doesn't kill it immediately on failure */
 			if((nf = walkfile(f, name)) == nil)
 				nf = createfile(f, name, u, DMDIR|0777, nil);
-			decref(f);
+			decref(&f->Ref);
 			f = nf;
 		}
 		*p = '/';
@@ -137,10 +137,10 @@ createpath(File *f, char *name, char *u, uint32_t m)
 	if(f == nil)
 		return nil;
 
-	incref(f);
+	incref(&f->Ref);
 	if((nf = walkfile(f, name)) == nil)
 		nf = createfile(f, name, u, m, nil);
-	decref(f);
+	decref(&f->Ref);
 	return nf;
 }
 
@@ -151,12 +151,12 @@ archcreatefile(char *name, Arch *arch, Dir *d)
 	f = createpath(archtree->root, name, d->uid, d->mode);
 	if(f == nil)
 		sysfatal("creating %s: %r", name);
-	free(f->gid);
-	f->gid = estrdup9p(d->gid);
+	free(f->Dir.gid);
+	f->Dir.gid = estrdup9p(d->gid);
 	f->aux = arch;
-	f->mtime = d->mtime;
-	f->length = d->length;
-	decref(f);
+	f->Dir.mtime = d->mtime;
+	f->Dir.length = d->length;
+	decref(&f->Ref);
 }
 
 static void

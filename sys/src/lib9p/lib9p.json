@@ -1,7 +1,6 @@
 {
 	"lib9p": {
 		"Cflags": [
-			"-fplan9-extensions",
 			"-Werror"
 		],
 		"Include": [
