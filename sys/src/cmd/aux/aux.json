@@ -9,13 +9,13 @@
 		"Install": "/$ARCH/bin/aux",
 	    "WhoCares": [
 			"mnihongo/mnihongo.json",
+			"gps/gps.json",
 			"flashfs/flashfs.json"
 		],
 		"Projects": [
 			"console/screenconsole.json",
 			"console/comconsole.json",
 			"console/pipeconsole.json",
-			"gps/gps.json",
 			"realemu/realemu.json",
 			"realemu/loadcom.json",
 			"vga/vga.json"

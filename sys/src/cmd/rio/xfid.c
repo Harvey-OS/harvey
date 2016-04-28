@@ -75,18 +75,18 @@ xfidallocthread(void* vacio)
 				xfid = x;
 				threadcreate(xfidctl, x, 16384);
 			}
-			if(x->ref != 0){
-				fprint(2, "%p incref %ld\n", x, x->ref);
+			if(x->Ref.ref != 0){
+				fprint(2, "%p incref %ld\n", x, x->Ref.ref);
 				error("incref");
 			}
 			if(x->flushtag != -1)
 				error("flushtag in allocate");
-			incref(x);
+			incref(&x->Ref);
 			sendp(cxfidalloc, x);
 			break;
 		case Free:
-			if(x->ref != 0){
-				fprint(2, "%p decref %ld\n", x, x->ref);
+			if(x->Ref.ref != 0){
+				fprint(2, "%p decref %ld\n", x, x->Ref.ref);
 				error("decref");
 			}
 			if(x->flushtag != -1)
@@ -120,7 +120,7 @@ xfidctl(void *arg)
 	for(;;){
 		f = recvp(x->c);
 		(*f)(x);
-		if(decref(x) == 0)
+		if(decref(&x->Ref) == 0)
 			sendp(cxfidfree, x);
 	}
 }
@@ -132,11 +132,11 @@ xfidflush(Xfid *x)
 	Xfid *xf;
 
 	for(xf=xfid; xf; xf=xf->next)
-		if(xf->flushtag == x->oldtag){
+		if(xf->flushtag == x->Fcall.oldtag){
 			xf->flushtag = -1;
 			xf->flushing = TRUE;
-			incref(xf);	/* to hold data structures up at tail of synchronization */
-			if(xf->ref == 1)
+			incref(&xf->Ref);	/* to hold data structures up at tail of synchronization */
+			if(xf->Ref.ref == 1)
 				error("ref 1 in flush");
 			if(canqlock(&xf->active)){
 				qunlock(&xf->active);
@@ -146,7 +146,7 @@ xfidflush(Xfid *x)
 				qunlock(&xf->active);
 			}
 			xf->flushing = FALSE;
-			if(decref(xf) == 0)
+			if(decref(&xf->Ref) == 0)
 				sendp(cxfidfree, xf);
 			break;
 		}
@@ -171,8 +171,8 @@ xfidattach(Xfid *x)
 	newlymade = FALSE;
 	hideit = 0;
 
-	if(x->aname[0] == 'N'){	/* N 100,100, 200, 200 - old syntax */
-		n = x->aname+1;
+	if(x->Fcall.aname[0] == 'N'){	/* N 100,100, 200, 200 - old syntax */
+		n = x->Fcall.aname+1;
 		pid = strtoul(n, &n, 0);
 		if(*n == ',')
 			n++;
@@ -204,14 +204,14 @@ xfidattach(Xfid *x)
 			}else
 				err = Ewindow;
 		}
-	}else if(strncmp(x->aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
+	}else if(strncmp(x->Fcall.aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
 		pid = 0;
-		if(parsewctl(nil, ZR, &r, &pid, nil, &hideit, &scrollit, &dir, x->aname, errbuf) < 0)
+		if(parsewctl(nil, ZR, &r, &pid, nil, &hideit, &scrollit, &dir, x->Fcall.aname, errbuf) < 0)
 			err = errbuf;
 		else
 			goto Allocate;
 	}else{
-		id = atoi(x->aname);
+		id = atoi(x->Fcall.aname);
 		w = wlookid(id);
 	}
 	x->f->w = w;
@@ -222,7 +222,7 @@ xfidattach(Xfid *x)
 		return;
 	}
 	if(!newlymade)	/* counteract dec() in winshell() */
-		incref(w);
+		incref(&w->Ref);
 	qunlock(&all);
 	filsysrespond(x->fs, x, &t, nil);
 }
@@ -269,7 +269,7 @@ xfidopen(Xfid *x)
 		w->mouseopen = TRUE;
 		break;
 	case Qsnarf:
-		if(x->mode==ORDWR || x->mode==OWRITE){
+		if(x->Fcall.mode==ORDWR || x->Fcall.mode==OWRITE){
 			if(tsnarf)
 				free(tsnarf);	/* collision, but OK */
 			ntsnarf = 0;
@@ -277,7 +277,7 @@ xfidopen(Xfid *x)
 		}
 		break;
 	case Qwctl:
-		if(x->mode==OREAD || x->mode==ORDWR){
+		if(x->Fcall.mode==OREAD || x->Fcall.mode==ORDWR){
 			/*
 			 * It would be much nicer to implement fan-out for wctl reads,
 			 * so multiple people can see the resizings, but rio just isn't
@@ -299,7 +299,7 @@ xfidopen(Xfid *x)
 	t.qid = x->f->qid;
 	t.iounit = messagesize-IOHDRSZ;
 	x->f->open = TRUE;
-	x->f->mode = x->mode;
+	x->f->mode = x->Fcall.mode;
 	filsysrespond(x->fs, x, &t, nil);
 }
 
@@ -372,32 +372,32 @@ xfidwrite(Xfid *x)
 		return;
 	}
 	qid = FILE(x->f->qid);
-	cnt = x->count;
-	off = x->offset;
-	x->data[cnt] = 0;
+	cnt = x->Fcall.count;
+	off = x->Fcall.offset;
+	x->Fcall.data[cnt] = 0;
 	switch(qid){
 	case Qcons:
 		nr = x->f->nrpart;
 		if(nr > 0){
-			memmove(x->data+nr, x->data, cnt);	/* there's room: see malloc in filsysproc */
-			memmove(x->data, x->f->rpart, nr);
+			memmove(x->Fcall.data+nr, x->Fcall.data, cnt);	/* there's room: see malloc in filsysproc */
+			memmove(x->Fcall.data, x->f->rpart, nr);
 			cnt += nr;
 			x->f->nrpart = 0;
 		}
 		r = runemalloc(cnt);
-		cvttorunes(x->data, cnt-UTFmax, r, &nb, &nr, nil);
+		cvttorunes(x->Fcall.data, cnt-UTFmax, r, &nb, &nr, nil);
 		/* approach end of buffer */
-		while(fullrune(x->data+nb, cnt-nb)){
+		while(fullrune(x->Fcall.data+nb, cnt-nb)){
 			c = nb;
-			nb += chartorune(&r[nr], x->data+c);
+			nb += chartorune(&r[nr], x->Fcall.data+c);
 			if(r[nr])
 				nr++;
 		}
 		if(nb < cnt){
-			memmove(x->f->rpart, x->data+nb, cnt-nb);
+			memmove(x->f->rpart, x->Fcall.data+nb, cnt-nb);
 			x->f->nrpart = cnt-nb;
 		}
-		x->flushtag = x->tag;
+		x->flushtag = x->Fcall.tag;
 
 		alts[CWdata].c = w->conswrite;
 		alts[CWdata].v = &cwm;
@@ -429,23 +429,23 @@ xfidwrite(Xfid *x)
 		pair.s = r;
 		pair.ns = nr;
 		send(cwm.cw, &pair);
-		fc.count = x->count;
+		fc.count = x->Fcall.count;
 		filsysrespond(x->fs, x, &fc, nil);
 		qunlock(&x->active);
 		return;
 
 	case Qconsctl:
-		if(strncmp(x->data, "holdon", 6)==0){
+		if(strncmp(x->Fcall.data, "holdon", 6)==0){
 			if(w->holding++ == 0)
 				wsendctlmesg(w, Holdon, ZR, nil);
 			break;
 		}
-		if(strncmp(x->data, "holdoff", 7)==0 && w->holding){
+		if(strncmp(x->Fcall.data, "holdoff", 7)==0 && w->holding){
 			if(--w->holding == FALSE)
 				wsendctlmesg(w, Holdoff, ZR, nil);
 			break;
 		}
-		if(strncmp(x->data, "rawon", 5)==0){
+		if(strncmp(x->Fcall.data, "rawon", 5)==0){
 			if(w->holding){
 				w->holding = FALSE;
 				wsendctlmesg(w, Holdoff, ZR, nil);
@@ -454,7 +454,7 @@ xfidwrite(Xfid *x)
 				wsendctlmesg(w, Rawon, ZR, nil);
 			break;
 		}
-		if(strncmp(x->data, "rawoff", 6)==0 && w->rawing){
+		if(strncmp(x->Fcall.data, "rawoff", 6)==0 && w->rawing){
 			if(--w->rawing == 0)
 				wsendctlmesg(w, Rawoff, ZR, nil);
 			break;
@@ -466,9 +466,9 @@ xfidwrite(Xfid *x)
 		if(cnt < 2*4+2*2*16)
 			w->cursorp = nil;
 		else{
-			w->cursor.offset.x = BGLONG(x->data+0*4);
-			w->cursor.offset.y = BGLONG(x->data+1*4);
-			memmove(w->cursor.clr, x->data+2*4, 2*2*16);
+			w->cursor.offset.x = BGLONG(x->Fcall.data+0*4);
+			w->cursor.offset.y = BGLONG(x->Fcall.data+1*4);
+			memmove(w->cursor.clr, x->Fcall.data+2*4, 2*2*16);
 			w->cursorp = &w->cursor;
 		}
 		wsetcursor(w, !sweeping);
@@ -481,19 +481,19 @@ xfidwrite(Xfid *x)
 		}
 		free(w->label);
 		w->label = emalloc(cnt+1);
-		memmove(w->label, x->data, cnt);
+		memmove(w->label, x->Fcall.data, cnt);
 		w->label[cnt] = 0;
 		break;
 
 	case Qmouse:
 		if(w!=input || Dx(w->screenr)<=0)
 			break;
-		if(x->data[0] != 'm'){
+		if(x->Fcall.data[0] != 'm'){
 			filsysrespond(x->fs, x, &fc, Ebadmouse);
 			return;
 		}
 		p = nil;
-		pt.x = strtoul(x->data+1, &p, 0);
+		pt.x = strtoul(x->Fcall.data+1, &p, 0);
 		if(p == nil){
 			filsysrespond(x->fs, x, &fc, Eshort);
 			return;
@@ -510,7 +510,7 @@ xfidwrite(Xfid *x)
 			return;
 		}
 		tsnarf = erealloc(tsnarf, ntsnarf+cnt+1);	/* room for NUL */
-		memmove(tsnarf+ntsnarf, x->data, cnt);
+		memmove(tsnarf+ntsnarf, x->Fcall.data, cnt);
 		ntsnarf += cnt;
 		snarfversion++;
 		break;
@@ -518,17 +518,17 @@ xfidwrite(Xfid *x)
 	case Qwdir:
 		if(cnt == 0)
 			break;
-		if(x->data[cnt-1] == '\n'){
+		if(x->Fcall.data[cnt-1] == '\n'){
 			if(cnt == 1)
 				break;
-			x->data[cnt-1] = '\0';
+			x->Fcall.data[cnt-1] = '\0';
 		}
 		/* assume data comes in a single write */
 		/*
 		  * Problem: programs like dossrv, ftp produce illegal UTF;
 		  * we must cope by converting it first.
 		  */
-		snprint(buf, sizeof buf, "%.*s", cnt, x->data);
+		snprint(buf, sizeof buf, "%.*s", cnt, x->Fcall.data);
 		if(buf[0] == '/'){
 			free(w->dir);
 			w->dir = estrdup(buf);
@@ -541,7 +541,7 @@ xfidwrite(Xfid *x)
 		break;
 
 	case Qkbdin:
-		keyboardsend(x->data, cnt);
+		keyboardsend(x->Fcall.data, cnt);
 		break;
 
 	case Qwctl:
@@ -608,8 +608,8 @@ xfidread(Xfid *x)
 		return;
 	}
 	qid = FILE(x->f->qid);
-	off = x->offset;
-	cnt = x->count;
+	off = x->Fcall.offset;
+	cnt = x->Fcall.count;
 	/* for now, a zero length read of anything, even invalid things,
 	 * just returns immediately.
 	 */
@@ -624,7 +624,7 @@ xfidread(Xfid *x)
 	}
 	switch(qid){
 	case Qcons:
-		x->flushtag = x->tag;
+		x->flushtag = x->Fcall.tag;
 
 		alts[CRdata].c = w->consread;
 		alts[CRdata].v = &crm;
@@ -678,7 +678,7 @@ xfidread(Xfid *x)
 		break;
 
 	case Qmouse:
-		x->flushtag = x->tag;
+		x->flushtag = x->Fcall.tag;
 
 		alts[MRdata].c = w->mouseread;
 		alts[MRdata].v = &mrm;
@@ -814,7 +814,7 @@ xfidread(Xfid *x)
 			filsysrespond(x->fs, x, &fc, Etooshort);
 			break;
 		}
-		x->flushtag = x->tag;
+		x->flushtag = x->Fcall.tag;
 
 		alts[WCRdata].c = w->wctlread;
 		alts[WCRdata].v = &cwrm;
