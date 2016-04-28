@@ -827,7 +827,7 @@ struct Fid
 Fid fids[Nfid];
 
 struct {
-	Lock;
+	Lock Lock;
 	Note *nfirst, *nlast;
 	Request *rfirst, *rlast;
 } nfs;
@@ -859,16 +859,16 @@ kick(int fd)
 	int rv;
 
 	for(;;){
-		lock(&nfs);
+		lock(&nfs.Lock);
 		rp = nfs.rfirst;
 		np = nfs.nfirst;
 		if(rp == nil || np == nil){
-			unlock(&nfs);
+			unlock(&nfs.Lock);
 			break;
 		}
 		nfs.rfirst = rp->next;
 		nfs.nfirst = np->next;
-		unlock(&nfs);
+		unlock(&nfs.Lock);
 
 		rp->f.type = Rread;
 		rp->f.count = strlen(np->msg);
@@ -887,17 +887,17 @@ flushreq(int tag)
 {
 	Request **l, *rp;
 
-	lock(&nfs);
+	lock(&nfs.Lock);
 	for(l = &nfs.rfirst; *l != nil; l = &(*l)->next){
 		rp = *l;
 		if(rp->f.tag == tag){
 			*l = rp->next;
-			unlock(&nfs);
+			unlock(&nfs.Lock);
 			free(rp);
 			return;
 		}
 	}
-	unlock(&nfs);
+	unlock(&nfs.Lock);
 }
 
 Fid*
@@ -968,13 +968,13 @@ fsread(int fd, Fid *fid, Fcall *f)
 		if(rp == nil)
 			return -1;
 		rp->f = *f;
-		lock(&nfs);
+		lock(&nfs.Lock);
 		if(nfs.rfirst == nil)
 			nfs.rfirst = rp;
 		else
 			nfs.rlast->next = rp;
 		nfs.rlast = rp;
-		unlock(&nfs);
+		unlock(&nfs.Lock);
 		return kick(fd);;
 	}
 }
@@ -1205,16 +1205,16 @@ lclnoteproc(int netfd)
 			np = mallocz(sizeof(Note), 1);
 			if(np != nil){
 				strcpy(np->msg, notebuf);
-				lock(&nfs);
+				lock(&nfs.Lock);
 				if(nfs.nfirst == nil)
 					nfs.nfirst = np;
 				else
 					nfs.nlast->next = np;
 				nfs.nlast = np;
-				unlock(&nfs);
+				unlock(&nfs.Lock);
 				kick(pfd[0]);
 			}
-			unlock(&nfs);
+			unlock(&nfs.Lock);
 		} else if(w->pid == exportpid)
 			break;
 	}

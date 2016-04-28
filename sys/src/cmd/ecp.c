@@ -263,7 +263,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 	 * unless reblocking input and this is a read.
 	 */
 
-	if (rdwr == write)
+	if ((void *)rdwr == (void *)write)
 		return Eio;
 	if (!reblock) {
 		memset(buff+xfered, '\0', bytes-xfered);
