@@ -38,7 +38,7 @@ enum {
 typedef struct Event	Event;
 typedef struct Task	Task;
 struct Event {
-	Traceevent;
+	Traceevent Traceevent;
 	int64_t	etime;	/* length of block to draw */
 };
 
@@ -304,7 +304,7 @@ redraw(int scaleno)
 			Endsquare, Endsquare, 0, cols[n % Ncolor][1], ZP);
 
 		for (i = 0; i < t->nevents-1; i++)
-			if (prevts < t->events[i + 1].time)
+			if (prevts < t->events[i + 1].Traceevent.time)
 				break;
 			
 		if (i > 0) {
@@ -316,34 +316,34 @@ redraw(int scaleno)
 			Event *e = &t->events[i], *_e;
 			int sx, ex;
 
-			switch (e->etype & 0xffff) {
+			switch (e->Traceevent.etype & 0xffff) {
 			case SAdmit:
-				if (e->time > prevts && e->time <= newestts) {
-					sx = time2x(e->time);
+				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
+					sx = time2x(e->Traceevent.time);
 					line(screen, addpt(p, Pt(sx, topmargin)), 
 						addpt(p, Pt(sx, Height - bottommargin)), 
 						Endarrow, Endsquare, 1, green, ZP);
 				}
 				break;
 			case SExpel:
-				if (e->time > prevts && e->time <= newestts) {
-					sx = time2x(e->time);
+				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
+					sx = time2x(e->Traceevent.time);
 					line(screen, addpt(p, Pt(sx, topmargin)), 
 						addpt(p, Pt(sx, Height - bottommargin)), 
 						Endsquare, Endarrow, 1, red, ZP);
 				}
 				break;
 			case SRelease:
-				if (e->time > prevts && e->time <= newestts) {
-					sx = time2x(e->time);
+				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
+					sx = time2x(e->Traceevent.time);
 					line(screen, addpt(p, Pt(sx, topmargin)), 
 						addpt(p, Pt(sx, Height - bottommargin)), 
 						Endarrow, Endsquare, 1, fg, ZP);
 				}
 				break;
 			case SDeadline:
-				if (e->time > prevts && e->time <= newestts) {
-					sx = time2x(e->time);
+				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
+					sx = time2x(e->Traceevent.time);
 					line(screen, addpt(p, Pt(sx, topmargin)), 
 						addpt(p, Pt(sx, Height - bottommargin)), 
 						Endsquare, Endarrow, 1, fg, ZP);
@@ -352,17 +352,17 @@ redraw(int scaleno)
 
 			case SYield:
 			case SUser:
-				if (e->time > prevts && e->time <= newestts) {
-					sx = time2x(e->time);
+				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
+					sx = time2x(e->Traceevent.time);
 					line(screen, addpt(p, Pt(sx, topmargin)), 
 						addpt(p, Pt(sx, Height - bottommargin)), 
 						Endsquare, Endarrow, 0, 
-						(e->etype == SYield)? green: blue, ZP);
+						(e->Traceevent.etype == SYield)? green: blue, ZP);
 				}
 				break;
 			case SSlice:
-				if (e->time > prevts && e->time <= newestts) {
-					sx = time2x(e->time);
+				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
+					sx = time2x(e->Traceevent.time);
 					line(screen, addpt(p, Pt(sx, topmargin)), 
 						addpt(p, Pt(sx, Height - bottommargin)), 
 						Endsquare, Endarrow, 0, red, ZP);
@@ -371,7 +371,7 @@ redraw(int scaleno)
 
 			case SRun:
 			case SEdf:
-				sx = time2x(e->time);
+				sx = time2x(e->Traceevent.time);
 				ex = time2x(e->etime);
 				if(ex == sx)
 					ex++;
@@ -379,17 +379,17 @@ redraw(int scaleno)
 				r = Rect(sx, topmargin + 8, ex, Height - lineht);
 				r = rectaddpt(r, p);
 
-				draw(screen, r, cols[n % Ncolor][e->etype==SRun?1:3], nil, ZP);
+				draw(screen, r, cols[n % Ncolor][e->Traceevent.etype==SRun?1:3], nil, ZP);
 
 				if(t->pid == triggerproc && ex < Width)
 					paused ^= 1;
 
 				for(j = 0; j < t->nevents; j++){
 					_e = &t->events[j];
-					switch(_e->etype & 0xffff){
+					switch(_e->Traceevent.etype & 0xffff){
 					case SInts:
-						if (_e->time > prevts && _e->time <= newestts){
-							sx = time2x(_e->time);
+						if (_e->Traceevent.time > prevts && _e->Traceevent.time <= newestts){
+							sx = time2x(_e->Traceevent.time);
 							line(screen, addpt(p, Pt(sx, topmargin)), 
 												addpt(p, Pt(sx, Height / 2 - bottommargin)), 	
 												Endsquare, Endsquare, 0, 
@@ -397,8 +397,8 @@ redraw(int scaleno)
 						}
 						break;
 					case SInte:
-						if (_e->time > prevts && _e->time <= newestts) {
-							sx = time2x(_e->time);
+						if (_e->Traceevent.time > prevts && _e->Traceevent.time <= newestts) {
+							sx = time2x(_e->Traceevent.time);
 							line(screen, addpt(p, Pt(sx, Height / 2 - bottommargin)), 
 												addpt(p, Pt(sx, Height - bottommargin)), 
 												Endsquare, Endsquare, 0, 
@@ -520,7 +520,7 @@ doevent(Task *t, Traceevent *ep)
 	memmove(event, ep, sizeof(Traceevent));
 	event->etime = 0;
 
-	switch(event->etype & 0xffff){
+	switch(event->Traceevent.etype & 0xffff){
 	case SRelease:
 		if (t->runthis > t->runmax)
 			t->runmax = t->runthis;
@@ -532,14 +532,14 @@ doevent(Task *t, Traceevent *ep)
 	case SReady:
 	case SSlice:
 		for(i = n-1; i >= 0; i--)
-			if (t->events[i].etype == SRun || 
-				t->events[i].etype == SEdf)
+			if (t->events[i].Traceevent.etype == SRun || 
+				t->events[i].Traceevent.etype == SEdf)
 				break;
 		if(i < 0 || t->events[i].etime != 0)
 			break;
-		runt = event->time - t->events[i].time;
+		runt = event->Traceevent.time - t->events[i].Traceevent.time;
 		if(runt > 0){
-			t->events[i].etime = event->time;
+			t->events[i].etime = event->Traceevent.time;
 			t->runtime += runt;
 			t->total += runt;
 			t->runthis += runt;
@@ -547,7 +547,7 @@ doevent(Task *t, Traceevent *ep)
 		}
 		break;
 	case SDead:
-print("task died %ld %t %s\n", event->pid, event->time, schedstatename[event->etype & 0xffff]);
+print("task died %ld %t %s\n", event->Traceevent.pid, event->Traceevent.time, schedstatename[event->Traceevent.etype & 0xffff]);
 		free(t->events);
 		free(t->name);
 		ntasks--;

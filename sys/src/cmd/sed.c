@@ -122,7 +122,7 @@ struct {				/* Sed program input control block */
 	union PCTL {			/* Pointer to data */
 		Biobuf	*bp;
 		char	*curr;
-	};
+	} PCTL;
 } prog;
 
 Rune	genbuf[LBSIZE];			/* Miscellaneous buffer */
@@ -694,8 +694,8 @@ void
 newfile(enum PTYPE type, char *name)
 {
 	if (type == P_ARG)
-		prog.curr = name;
-	else if ((prog.bp = Bopen(name, OREAD)) == 0)
+		prog.PCTL.curr = name;
+	else if ((prog.PCTL.bp = Bopen(name, OREAD)) == 0)
 		quit("Cannot open pattern-file: %s\n", name);
 	prog.type = type;
 }
@@ -733,18 +733,18 @@ getrune(void)
 	char *p;
 
 	if (prog.type == P_ARG) {
-		if ((p = prog.curr) != 0) {
+		if ((p = prog.PCTL.curr) != 0) {
 			if (*p) {
-				prog.curr += chartorune(&r, p);
+				prog.PCTL.curr += chartorune(&r, p);
 				c = r;
 			} else {
 				c = '\n';	/* fake an end-of-line */
-				prog.curr = 0;
+				prog.PCTL.curr = 0;
 			}
 		} else
 			c = -1;
-	} else if ((c = Bgetrune(prog.bp)) < 0)
-		Bterm(prog.bp);
+	} else if ((c = Bgetrune(prog.PCTL.bp)) < 0)
+		Bterm(prog.PCTL.bp);
 	return c;
 }
 

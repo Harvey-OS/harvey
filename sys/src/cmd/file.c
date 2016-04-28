@@ -592,7 +592,7 @@ long0(void)
 typedef struct Fileoffmag Fileoffmag;
 struct Fileoffmag {
 	uint32_t	off;
-	Filemagic;
+	Filemagic Filemagic;
 };
 
 /*
@@ -604,10 +604,10 @@ Fileoffmag longofftab[] = {
 	 * these magic numbers are stored big-endian on disk,
 	 * thus the numbers appear reversed in this table.
 	 */
-	256*1024, 0xe7a5e4a9, 0xFFFFFFFF, "venti arenas partition\n", OCTET,
-	256*1024, 0xc75e5cd1, 0xFFFFFFFF, "venti index section\n", OCTET,
-	128*1024, 0x89ae7637, 0xFFFFFFFF, "fossil write buffer\n", OCTET,
-	4,	  0x31647542, 0xFFFFFFFF, "OS X finder properties\n", OCTET,
+	256*1024, { 0xe7a5e4a9, 0xFFFFFFFF, "venti arenas partition\n", OCTET },
+	256*1024, { 0xc75e5cd1, 0xFFFFFFFF, "venti index section\n", OCTET },
+	128*1024, { 0x89ae7637, 0xFFFFFFFF, "fossil write buffer\n", OCTET },
+	4,	  { 0x31647542, 0xFFFFFFFF, "OS X finder properties\n", OCTET },
 };
 
 int
@@ -624,8 +624,8 @@ fileoffmagic(Fileoffmag *tab, int ntab)
 		if (readn(fd, buf, sizeof buf) != sizeof buf)
 			continue;
 		x = LENDIAN(buf);
-		if((x&tp->mask) == tp->x){
-			print(mime? tp->mime: tp->desc);
+		if((x&tp->Filemagic.mask) == tp->Filemagic.x){
+			print(mime? tp->Filemagic.mime: tp->Filemagic.desc);
 			return 1;
 		}
 	}
@@ -825,10 +825,10 @@ istring(void)
 struct offstr
 {
 	uint32_t	off;
-	struct FILE_STRING;
+	struct FILE_STRING FILE_STRING;
 } offstrs[] = {
-	32*1024, "\001CD001\001",	"ISO9660 CD image",	7,	OCTET,
-	0, 0, 0, 0, 0
+	32*1024, { "\001CD001\001",	"ISO9660 CD image",	7,	OCTET },
+	0, { 0, 0, 0, 0 }
 };
 
 int
@@ -838,18 +838,18 @@ isoffstr(void)
 	char buf[256];
 	struct offstr *p;
 
-	for(p = offstrs; p->key; p++) {
+	for(p = offstrs; p->FILE_STRING.key; p++) {
 		seek(fd, p->off, 0);
-		n = p->length;
+		n = p->FILE_STRING.length;
 		if (n > sizeof buf)
 			n = sizeof buf;
 		if (readn(fd, buf, n) != n)
 			continue;
-		if(memcmp(buf, p->key, n) == 0) {
+		if(memcmp(buf, p->FILE_STRING.key, n) == 0) {
 			if(mime)
-				print("%s\n", p->mime);
+				print("%s\n", p->FILE_STRING.mime);
 			else
-				print("%s\n", p->filetype);
+				print("%s\n", p->FILE_STRING.filetype);
 			return 1;
 		}
 	}
@@ -1444,7 +1444,7 @@ iself(void)
 	[4]	"core dump",
 	};
 
-	if (memcmp(buf, "\x7fELF", 4) == 0){
+	if (memcmp(buf, "\x7f""ELF", 4) == 0){
 		if (!mime){
 			int isdifend = 0;
 			int n = (buf[19] << 8) | buf[18];
