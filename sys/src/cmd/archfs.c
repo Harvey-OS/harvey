@@ -26,7 +26,7 @@ int verbose;
 typedef struct Ahdr Ahdr;
 struct Ahdr {
 	char *_name;
-	Dir;
+	Dir Dir;
 };
 
 typedef struct Arch Arch;
@@ -87,11 +87,11 @@ gethdr(Biobuf *b)
 
 	a = emalloc(sizeof(*a));
 	a->_name = estrdup(f[0]);
-	a->mode = strtoul(f[1], 0, 8);
-	a->uid = estrdup(f[2]);
-	a->gid = estrdup(f[3]);
-	a->mtime = strtoll(f[4], 0, 10);
-	a->length = strtoll(f[5], 0, 10);
+	a->Dir.mode = strtoul(f[1], 0, 8);
+	a->Dir.uid = estrdup(f[2]);
+	a->Dir.gid = estrdup(f[3]);
+	a->Dir.mtime = strtoll(f[4], 0, 10);
+	a->Dir.length = strtoll(f[5], 0, 10);
 	return a;
 }
 
@@ -237,8 +237,8 @@ main(int argc, char **argv)
 
 	archtree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
 	while(a = gethdr(b)) {
-		archcreatefile(a->_name, newarch(Boffset(b), a->length), a);
-		Bseek(b, a->length, 1);
+		archcreatefile(a->_name, newarch(Boffset(b), a->Dir.length), &a->Dir);
+		Bseek(b, a->Dir.length, 1);
 	}
 
 	err[0] = '\0';
