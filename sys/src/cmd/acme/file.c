@@ -82,11 +82,11 @@ filedeltext(File *f, Text *t)
 void
 fileinsert(File *f, uint p0, Rune *s, uint ns)
 {
-	if(p0 > f->nc)
+	if(p0 > f->Buffer.nc)
 		error("internal error: fileinsert");
 	if(f->seq > 0)
 		fileuninsert(f, &f->delta, p0, ns);
-	bufinsert(f, p0, s, ns);
+	bufinsert(&f->Buffer, p0, s, ns);
 	if(ns)
 		f->mod = TRUE;
 }
@@ -108,11 +108,11 @@ fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
 void
 filedelete(File *f, uint p0, uint p1)
 {
-	if(!(p0<=p1 && p0<=f->nc && p1<=f->nc))
+	if(!(p0<=p1 && p0<=f->Buffer.nc && p1<=f->Buffer.nc))
 		error("internal error: filedelete");
 	if(f->seq > 0)
 		fileundelete(f, &f->delta, p0, p1);
-	bufdelete(f, p0, p1);
+	bufdelete(&f->Buffer, p0, p1);
 	if(p1 > p0)
 		f->mod = TRUE;
 }
@@ -135,7 +135,7 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 		n = p1 - i;
 		if(n > RBUFSIZE)
 			n = RBUFSIZE;
-		bufread(f, i, buf, n);
+		bufread(&f->Buffer, i, buf, n);
 		bufinsert(delta, delta->nc, buf, n);
 	}
 	fbuffree(buf);
@@ -176,7 +176,7 @@ fileload(File *f, uint p0, int fd, int *nulls)
 {
 	if(f->seq > 0)
 		error("undo in file.load unimplemented");
-	return bufload(f, p0, fd, nulls);
+	return bufload(&f->Buffer, p0, fd, nulls);
 }
 
 /* return sequence number of pending redo */
@@ -239,7 +239,7 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 			f->seq = u.seq;
 			fileundelete(f, epsilon, u.p0, u.p0+u.n);
 			f->mod = u.mod;
-			bufdelete(f, u.p0, u.p0+u.n);
+			bufdelete(&f->Buffer, u.p0, u.p0+u.n);
 			for(j=0; j<f->ntext; j++)
 				textdelete(f->text[j], u.p0, u.p0+u.n, FALSE);
 			*q0p = u.p0;
@@ -256,7 +256,7 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
 				bufread(delta, up+i, buf, n);
-				bufinsert(f, u.p0+i, buf, n);
+				bufinsert(&f->Buffer, u.p0+i, buf, n);
 				for(j=0; j<f->ntext; j++)
 					textinsert(f->text[j], u.p0+i, buf, n, FALSE);
 			}
@@ -303,7 +303,7 @@ fileclose(File *f)
 	free(f->text);
 	f->ntext = 0;
 	f->text = nil;
-	bufclose(f);
+	bufclose(&f->Buffer);
 	bufclose(&f->delta);
 	bufclose(&f->epsilon);
 	elogclose(f);

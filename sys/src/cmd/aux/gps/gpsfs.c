@@ -39,7 +39,7 @@ struct Satellite {
 
 struct Fix {
 	int		messages;	/* bitmap of types seen */
-	Place;
+	Place		Place;
 	/*
 	 * The following are in Plan 9 time format:
 	 * seconds or nanoseconds since the epoch.
@@ -269,8 +269,8 @@ gpstrack(void *v)
 
 	setline();
 	fix.messages = 0;
-	fix.lon = 181.0;
-	fix.lat = 91.0;
+	fix.Place.lon = 181.0;
+	fix.Place.lat = 91.0;
 	fix.zulu = 0;
 	fix.date = 0;
 	fix.valid = 0;
@@ -452,14 +452,14 @@ printfix(int f, Fix *fix){
 	fprint(f, "%gm - %gm = %gm, ", fix->altitude, fix->sealevel, fix->altitude - fix->sealevel);
 	fprint(f, "%06dZ(%g)-", (int)fix->zulu, fix->zulu);
 	fprint(f, "%06d\n", fix->date);
-	if(fix->lat >= 0)
-		fprint(f, "%11.8fN, ", fix->lat);
+	if(fix->Place.lat >= 0)
+		fprint(f, "%11.8fN, ", fix->Place.lat);
 	else
-		fprint(f, "%11.8fS, ", -fix->lat);		
-	if(fix->lon >= 0)
-		fprint(f, "%12.8fE, ", fix->lon);
+		fprint(f, "%11.8fS, ", -fix->Place.lat);		
+	if(fix->Place.lon >= 0)
+		fprint(f, "%12.8fE, ", fix->Place.lon);
 	else
-		fprint(f, "%12.8fW, ", -fix->lon);
+		fprint(f, "%12.8fW, ", -fix->Place.lon);
 	fprint(f, "%g@%g, ", fix->course, fix->groundspeed);
 	fprint(f, "(%c, %ds)\n", fix->valid, fix->satellites);
 	for(i = 0; i < nelem(fix->s); i++){
@@ -480,7 +480,7 @@ readposn(Req *r)
 	memmove(&f, &curfix, sizeof f);
 	unlock(&fixlock);
 	snprint(buf, sizeof buf, "%x	%06dZ	%lud	%g	%g	%g	%g	%g	%g",
-		gpsplayback|f.quality, (int)f.zulu, f.time, f.lon, f.lat, f.altitude - f.sealevel,
+		gpsplayback|f.quality, (int)f.zulu, f.time, f.Place.lon, f.Place.lat, f.altitude - f.sealevel,
 		f.course, f.groundspeed, f.magvar);
 	readstr(r, buf);
 	return nil;
@@ -789,12 +789,12 @@ getlat(char *s1, char *s2, Fix *f){
 	case 'N':
 		break;
 	}
-	if(f->lat <= 90.0 && count < 3 && fabs(f->lat - lat) > 10.0){
+	if(f->Place.lat <= 90.0 && count < 3 && fabs(f->Place.lat - lat) > 10.0){
 		count++;
 		suspectlat++;
 		return -1;
 	}
-	f->lat = lat;
+	f->Place.lat = lat;
 	count = 0;
 	goodlat++;
 	return 0;
@@ -829,12 +829,12 @@ getlon(char *s1, char *s2, Fix *f){
 	case 'E':
 		break;
 	}
-	if(f->lon <= 180.0 && count < 3 && fabs(f->lon - lon) > 10.0){
+	if(f->Place.lon <= 180.0 && count < 3 && fabs(f->Place.lon - lon) > 10.0){
 		count++;
 		suspectlon++;
 		return -1;
 	}
-	f->lon = lon;
+	f->Place.lon = lon;
 	goodlon++;
 	count = 0;
 	return 0;

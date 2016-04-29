@@ -120,7 +120,7 @@ cmdexec(Text *t, Cmd *cp)
 		if(cp->addr != nil)
 			dot = cmdaddress(cp->addr, dot, 0);
 		for(cp = cp->cmd; cp; cp = cp->next){
-			if(dot.r.q1 > t->file->nc)
+			if(dot.r.q1 > t->file->Buffer.nc)
 				editerror("dot extends past end of buffer during { command");
 			t->q0 = dot.r.q0;
 			t->q1 = dot.r.q1;
@@ -316,9 +316,9 @@ e_cmd(Text *t, Cmd *cp)
 		if(winclean(t->w, TRUE)==FALSE)
 			editerror("");	/* winclean generated message already */
 		q0 = 0;
-		q1 = f->nc;
+		q1 = f->Buffer.nc;
 	}
-	allreplaced = (q0==0 && q1==f->nc);
+	allreplaced = (q0==0 && q1==f->Buffer.nc);
 	name = cmdname(f, cp->text, cp->cmdc=='e');
 	if(name == nil)
 		editerror(Enoname);
@@ -407,7 +407,7 @@ copy(File *f, Address addr2)
 		ni = addr.r.q1-p;
 		if(ni > RBUFSIZE)
 			ni = RBUFSIZE;
-		bufread(f, p, buf, ni);
+		bufread(&f->Buffer, p, buf, ni);
 		eloginsert(addr2.f, addr2.r.q1, buf, ni);
 	}
 	fbuffree(buf);
@@ -497,7 +497,7 @@ s_cmd(Text *t, Cmd *cp)
 						err = "replacement string too long";
 						goto Err;
 					}
-					bufread(t->file, sel.r[j].q0, rbuf, sel.r[j].q1-sel.r[j].q0);
+					bufread(&t->file->Buffer, sel.r[j].q0, rbuf, sel.r[j].q1-sel.r[j].q0);
 					for(k=0; k<sel.r[j].q1-sel.r[j].q0; k++)
 						Straddc(buf, rbuf[k]);
 				}else
@@ -509,7 +509,7 @@ s_cmd(Text *t, Cmd *cp)
 					err = "right hand side too long in substitution";
 					goto Err;
 				}
-				bufread(t->file, sel.r[0].q0, rbuf, sel.r[0].q1-sel.r[0].q0);
+				bufread(&t->file->Buffer, sel.r[0].q0, rbuf, sel.r[0].q1-sel.r[0].q0);
 				for(k=0; k<sel.r[0].q1-sel.r[0].q0; k++)
 					Straddc(buf, rbuf[k]);
 			}
@@ -624,14 +624,14 @@ runpipe(Text *t, int cmd, Rune *cr, int ncr, int state)
 	}
 	editing = state;
 	if(t!=nil && t->w!=nil)
-		incref(t->w);	/* run will decref */
+		incref(&t->w->Ref);	/* run will decref */
 	run(w, runetobyte(s, n), dir.r, dir.nr, TRUE, nil, nil, TRUE);
 	free(s);
 	if(t!=nil && t->w!=nil)
 		winunlock(t->w);
-	qunlock(&row);
+	qunlock(&row.QLock);
 	recvul(cedit);
-	qlock(&row);
+	qlock(&row.QLock);
 	editing = Inactive;
 	if(t!=nil && t->w!=nil)
 		winlock(t->w, 'M');
@@ -659,7 +659,7 @@ nlcount(Text *t, int32_t q0, int32_t q1)
 			nbuf = q1-q0;
 			if(nbuf > RBUFSIZE)
 				nbuf = RBUFSIZE;
-			bufread(t->file, q0, buf, nbuf);
+			bufread(&t->file->Buffer, q0, buf, nbuf);
 			i = 0;
 		}
 		if(buf[i++] == '\n')
@@ -758,14 +758,14 @@ pdisplay(File *f)
 
 	p1 = addr.r.q0;
 	p2 = addr.r.q1;
-	if(p2 > f->nc)
-		p2 = f->nc;
+	if(p2 > f->Buffer.nc)
+		p2 = f->Buffer.nc;
 	buf = fbufalloc();
 	while(p1 < p2){
 		np = p2-p1;
 		if(np>RBUFSIZE-1)
 			np = RBUFSIZE-1;
-		bufread(f, p1, buf, np);
+		bufread(&f->Buffer, p1, buf, np);
 		buf[np] = L'\0';
 		warning(nil, "%S", buf);
 		p1 += np;
@@ -924,7 +924,7 @@ void
 alllocker(Window *w, void *v)
 {
 	if(v)
-		incref(w);
+		incref(&w->Ref);
 	else
 		winclose(w);
 }
@@ -973,7 +973,7 @@ nextmatch(File *f, String *r, int32_t p, int sign)
 		if(!rxexecute(f->curtext, nil, p, 0x7FFFFFFFL, &sel))
 			editerror("no match for regexp");
 		if(sel.r[0].q0==sel.r[0].q1 && sel.r[0].q0==p){
-			if(++p>f->nc)
+			if(++p>f->Buffer.nc)
 				p = 0;
 			if(!rxexecute(f->curtext, nil, p, 0x7FFFFFFFL, &sel))
 				editerror("address");
@@ -983,7 +983,7 @@ nextmatch(File *f, String *r, int32_t p, int sign)
 			editerror("no match for regexp");
 		if(sel.r[0].q0==sel.r[0].q1 && sel.r[0].q1==p){
 			if(--p<0)
-				p = f->nc;
+				p = f->Buffer.nc;
 			if(!rxbexecute(f->curtext, p, &sel))
 				editerror("address");
 		}
@@ -1012,7 +1012,7 @@ cmdaddress(Addr *ap, Address a, int sign)
 			break;
 
 		case '$':
-			a.r.q0 = a.r.q1 = f->nc;
+			a.r.q0 = a.r.q1 = f->Buffer.nc;
 			break;
 
 		case '\'':
@@ -1036,7 +1036,7 @@ editerror("can't handle '");
 			break;
 
 		case '*':
-			a.r.q0 = 0, a.r.q1 = f->nc;
+			a.r.q0 = 0, a.r.q1 = f->Buffer.nc;
 			return a;
 
 		case ',':
@@ -1054,7 +1054,7 @@ editerror("can't handle '");
 			if(ap->next)
 				a2 = cmdaddress(ap->next, a, 0);
 			else
-				a2.f = a.f, a2.r.q0 = a2.r.q1 = f->nc;
+				a2.f = a.f, a2.r.q0 = a2.r.q1 = f->Buffer.nc;
 			if(a1.f != a2.f)
 				editerror("addresses in different files");
 			a.f = a1.f, a.r.q0 = a1.r.q0, a.r.q1 = a2.r.q1;
@@ -1189,7 +1189,7 @@ charaddr(int32_t l, Address addr, int sign)
 		addr.r.q1 = addr.r.q0 -= l;
 	else if(sign > 0)
 		addr.r.q0 = addr.r.q1 += l;
-	if(addr.r.q0<0 || addr.r.q1>addr.f->nc)
+	if(addr.r.q0<0 || addr.r.q1>addr.f->Buffer.nc)
 		editerror("address out of range");
 	return addr;
 }
@@ -1221,14 +1221,14 @@ lineaddr(int32_t l, Address addr, int sign)
 				n = textreadc(f->curtext, p++)=='\n';
 			}
 			while(n < l){
-				if(p >= f->nc)
+				if(p >= f->Buffer.nc)
 					editerror("address out of range");
 				if(textreadc(f->curtext, p++) == '\n')
 					n++;
 			}
 			a.r.q0 = p;
 		}
-		while(p < f->nc && textreadc(f->curtext, p++)!='\n')
+		while(p < f->Buffer.nc && textreadc(f->curtext, p++)!='\n')
 			;
 		a.r.q1 = p;
 	}else{
