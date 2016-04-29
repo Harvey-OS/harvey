@@ -583,7 +583,7 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 	list[0][0].inst = list[1][0].inst = nil;
 	sel.r[0].q0 = -1;
 	if(t != nil)
-		nc = t->file->nc;
+		nc = t->file->Buffer.nc;
 	else
 		nc = runestrlen(r);
 	/* Execute machine once for each character */
@@ -737,7 +737,7 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 				if(sel.r[0].q0>=0)
 					goto Return;
 				list[0][0].inst = list[1][0].inst = nil;
-				p = t->file->nc;
+				p = t->file->Buffer.nc;
 				goto doloop;
 			case 3:
 			default:
@@ -803,7 +803,7 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 				}
 				break;
 			case EOL:
-				if(p<t->file->nc && textreadc(t, p)=='\n')
+				if(p<t->file->Buffer.nc && textreadc(t, p)=='\n')
 					goto Step;
 				break;
 			case CCLASS:

@@ -219,15 +219,15 @@ flushwarnings(void)
 		 * place), to avoid a big memory footprint.
 		 */
 		r = fbufalloc();
-		q0 = t->file->nc;
+		q0 = t->file->Buffer.nc;
 		for(n = 0; n < warn->buf.nc; n += nr){
 			nr = warn->buf.nc - n;
 			if(nr > RBUFSIZE)
 				nr = RBUFSIZE;
 			bufread(&warn->buf, n, r, nr);
-			textbsinsert(t, t->file->nc, r, nr, TRUE, &nr);
+			textbsinsert(t, t->file->Buffer.nc, r, nr, TRUE, &nr);
 		}
-		textshow(t, q0, t->file->nc, 1);
+		textshow(t, q0, t->file->Buffer.nc, 1);
 		free(r);
 		winsettag(t->w);
 		textscrdraw(t);
@@ -341,7 +341,7 @@ tgetc(void *a, uint n)
 	Text *t;
 
 	t = a;
-	if(n >= t->file->nc)
+	if(n >= t->file->Buffer.nc)
 		return 0;
 	return textreadc(t, n);
 }
@@ -462,16 +462,17 @@ makenewwindow(Text *t)
 	for(i=1; i<c->nw; i++){
 		w = c->w[i];
 		/* use >= to choose one near bottom of screen */
-		if(w->body.maxlines >= bigw->body.maxlines)
+		if(w->body.Frame.maxlines >= bigw->body.Frame.maxlines)
 			bigw = w;
-		if(w->body.maxlines-w->body.nlines >= emptyw->body.maxlines-emptyw->body.nlines)
+		if(w->body.Frame.maxlines-w->body.Frame.nlines >=
+			       emptyw->body.Frame.maxlines-emptyw->body.Frame.nlines)
 			emptyw = w;
 	}
 	emptyb = &emptyw->body;
-	el = emptyb->maxlines-emptyb->nlines;
+	el = emptyb->Frame.maxlines-emptyb->Frame.nlines;
 	/* if empty space is big, use it */
-	if(el>15 || (el>3 && el>(bigw->body.maxlines-1)/2))
-		y = emptyb->r.min.y+emptyb->nlines*font->height;
+	if(el>15 || (el>3 && el>(bigw->body.Frame.maxlines-1)/2))
+		y = emptyb->Frame.r.min.y+emptyb->Frame.nlines*font->height;
 	else{
 		/* if this window is in column and isn't much smaller, split it */
 		if(t->col==c && Dy(t->w->r)>2*Dy(bigw->r)/3)
@@ -479,7 +480,7 @@ makenewwindow(Text *t)
 		y = (bigw->r.min.y + bigw->r.max.y)/2;
 	}
 	w = coladd(c, nil, nil, y);
-	if(w->body.maxlines < 2)
+	if(w->body.Frame.maxlines < 2)
 		colgrow(w->col, w, 1);
 	return w;
 }

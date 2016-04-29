@@ -134,7 +134,7 @@ void	elogapply(File*);
 
 struct File
 {
-	Buffer;			/* the data */
+	Buffer	Buffer;		/* the data */
 	Buffer	delta;	/* transcript of changes */
 	Buffer	epsilon;	/* inversion of delta for redo */
 	Buffer	*elogbuf;	/* log of pending editor changes */
@@ -179,8 +179,8 @@ enum	/* Text.what */
 
 struct Text
 {
-	File		*file;
-	Frame;
+	File	*file;
+	Frame	Frame;
 	Reffont	*reffont;
 	uint	org;
 	uint	q0;
@@ -191,7 +191,7 @@ struct Text
 	Rectangle scrollr;
 	Rectangle lastsr;
 	Rectangle all;
-	Row		*row;
+	Row	*row;
 	Column	*col;
 
 	uint	eq0;	/* start of typing for ESC */
@@ -238,8 +238,8 @@ void		texttype(Text*, Rune);
 
 struct Window
 {
-		QLock;
-		Ref;
+	QLock	QLock;
+	Ref	Ref;
 	Text		tag;
 	Text		body;
 	Rectangle	r;
@@ -323,11 +323,11 @@ void		colmousebut(Column*);
 
 struct Row
 {
-	QLock;
+	QLock	QLock;
 	Rectangle r;
 	Text	tag;
 	Column	**col;
-	int		ncol;
+	int	ncol;
 
 };
 
@@ -400,10 +400,10 @@ struct Fid
 
 struct Xfid
 {
-	void		*arg;	/* args to xfidinit */
-	Fcall;
+	void	*arg;	/* args to xfidinit */
+	Fcall	Fcall;
 	Xfid	*next;
-	Channel	*c;		/* chan(void(*)(Xfid*)) */
+	Channel	*c;	/* chan(void(*)(Xfid*)) */
 	Fid	*f;
 	uint8_t	*buf;
 	int	flushed;
@@ -425,8 +425,8 @@ int		xfidruneread(Xfid*, Text*, unsigned int, unsigned int);
 
 struct Reffont
 {
-	Ref;
-	Font		*f;
+	Ref	Ref;
+	Font	*f;
 
 };
 Reffont	*rfget(int, int, int, char*);
