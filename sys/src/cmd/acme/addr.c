@@ -67,10 +67,10 @@ number(Mntdir *md, Text *t, Range r, int line, int dir, int size, int *evalp)
 			line = r.q1+line;
 		else if(dir == Back){
 			if(r.q0==0 && line>0)
-				r.q0 = t->file->nc;
+				r.q0 = t->file->Buffer.nc;
 			line = r.q0 - line;
 		}
-		if(line<0 || line>t->file->nc)
+		if(line<0 || line>t->file->Buffer.nc)
 			goto Rescue;
 		*evalp = TRUE;
 		return (Range){line, line};
@@ -82,8 +82,8 @@ number(Mntdir *md, Text *t, Range r, int line, int dir, int size, int *evalp)
 		q0 = 0;
 		q1 = 0;
 	Forward:
-		while(line>0 && q1<t->file->nc)
-			if(textreadc(t, q1++) == '\n' || q1==t->file->nc)
+		while(line>0 && q1<t->file->Buffer.nc)
+			if(textreadc(t, q1++) == '\n' || q1==t->file->Buffer.nc)
 				if(--line > 0)
 					q0 = q1;
 		if(line > 0)
@@ -91,12 +91,12 @@ number(Mntdir *md, Text *t, Range r, int line, int dir, int size, int *evalp)
 		break;
 	case Fore:
 		if(q1 > 0)
-			while(q1<t->file->nc && textreadc(t, q1-1) != '\n')
+			while(q1<t->file->Buffer.nc && textreadc(t, q1-1) != '\n')
 				q1++;
 		q0 = q1;
 		goto Forward;
 	case Back:
-		if(q0 < t->file->nc)
+		if(q0 < t->file->Buffer.nc)
 			while(q0>0 && textreadc(t, q0-1)!='\n')
 				q0--;
 		q1 = q0;
@@ -183,7 +183,7 @@ address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int
 			if(prevc == 0)	/* lhs defaults to 0 */
 				r.q0 = 0;
 			if(q>=q1 && t!=nil && t->file!=nil)	/* rhs defaults to $ */
-				r.q1 = t->file->nc;
+				r.q1 = t->file->Buffer.nc;
 			else{
 				nr = address(md, t, lim, ar, a, q, q1, getc, evalp, &q);
 				r.q1 = nr.q1;
@@ -207,7 +207,7 @@ address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int
 				if(c == '.')
 					r = ar;
 				else
-					r = (Range){t->file->nc, t->file->nc};
+					r = (Range){t->file->Buffer.nc, t->file->Buffer.nc};
 			if(q < q1)
 				dir = Fore;
 			else

@@ -148,8 +148,8 @@ threadmain(int argc, char *argv[])
 
 	reffont.f = font;
 	reffonts[0] = &reffont;
-	incref(&reffont);	/* one to hold up 'font' variable */
-	incref(&reffont);	/* one to hold up reffonts[0] */
+	incref(&reffont.Ref);	/* one to hold up 'font' variable */
+	incref(&reffont.Ref);	/* one to hold up reffonts[0] */
 	fontcache = emalloc(sizeof(Reffont*));
 	nfontcache = 1;
 	fontcache[0] = &reffont;
@@ -258,7 +258,7 @@ readfile(Column *c, char *s)
 	w->dirty = FALSE;
 	winsettag(w);
 	textscrdraw(&w->body);
-	textsetselect(&w->tag, w->tag.file->nc, w->tag.file->nc);
+	textsetselect(&w->tag, w->tag.file->Buffer.nc, w->tag.file->Buffer.nc);
 }
 
 char *oknotes[] ={
@@ -454,9 +454,9 @@ mousethread(void *v)
 	alts[NMALT].op = CHANEND;
 	
 	for(;;){
-		qlock(&row);
+		qlock(&row.QLock);
 		flushwarnings();
-		qunlock(&row);
+		qunlock(&row.QLock);
 		flushimage(display, 1);
 		switch(alt(alts)){
 		case MResize:
@@ -484,7 +484,7 @@ mousethread(void *v)
 			 * another race; see /sys/src/libdraw/mouse.c.
 			 */
 			m = *(Mouse *)mousectl;
-			qlock(&row);
+			qlock(&row.QLock);
 			t = rowwhich(&row, m.xy);
 			if(t!=mousetext && mousetext!=nil && mousetext->w!=nil){
 				winlock(mousetext->w, 'M');
@@ -571,7 +571,7 @@ mousethread(void *v)
 				goto Continue;
 			}
     Continue:
-			qunlock(&row);
+			qunlock(&row.QLock);
 			break;
 		}
 	}
@@ -623,11 +623,11 @@ waitthread(void *v)
 	for(;;){
 		switch(alt(alts)){
 		case WErr:
-			qlock(&row);
+			qlock(&row.QLock);
 			warning(nil, "%s", err);
 			free(err);
 			flushimage(display, 1);
-			qunlock(&row);
+			qunlock(&row.QLock);
 			break;
 		case WKill:
 			found = FALSE;
@@ -657,7 +657,7 @@ waitthread(void *v)
 				}
 				lc = c;
 			}
-			qlock(&row);
+			qlock(&row.QLock);
 			t = &row.tag;
 			textcommit(t, TRUE);
 			if(c == nil){
@@ -678,7 +678,7 @@ waitthread(void *v)
 					warning(c->md, "%s\n", w->msg);
 				flushimage(display, 1);
 			}
-			qunlock(&row);
+			qunlock(&row.QLock);
 			free(w);
     Freecmd:
 			if(c){
@@ -708,13 +708,13 @@ waitthread(void *v)
 			}
 			c->next = command;
 			command = c;
-			qlock(&row);
+			qlock(&row.QLock);
 			t = &row.tag;
 			textcommit(t, TRUE);
 			textinsert(t, 0, c->name, c->nname, TRUE);
 			textsetselect(t, 0, 0);
 			flushimage(display, 1);
-			qunlock(&row);
+			qunlock(&row.QLock);
 			break;
 		}
 	}
@@ -806,7 +806,7 @@ rfget(int fix, int save, int setfont, char *name)
 	}
     Found:
 	if(save){
-		incref(r);
+		incref(&r->Ref);
 		if(reffonts[fix])
 			rfclose(reffonts[fix]);
 		reffonts[fix] = r;
@@ -817,14 +817,14 @@ rfget(int fix, int save, int setfont, char *name)
 	}
 	if(setfont){
 		reffont.f = r->f;
-		incref(r);
+		incref(&r->Ref);
 		rfclose(reffonts[0]);
 		font = r->f;
 		reffonts[0] = r;
-		incref(r);
+		incref(&r->Ref);
 		iconinit();
 	}
-	incref(r);
+	incref(&r->Ref);
 	return r;
 }
 
@@ -833,7 +833,7 @@ rfclose(Reffont *r)
 {
 	int i;
 
-	if(decref(r) == 0){
+	if(decref(&r->Ref) == 0){
 		for(i=0; i<nfontcache; i++)
 			if(r == fontcache[i])
 				break;

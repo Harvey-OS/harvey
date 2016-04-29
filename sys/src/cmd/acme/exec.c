@@ -145,7 +145,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 			q0 = t->q0;
 			q1 = t->q1;
 		}else{
-			while(q1<t->file->nc && isexecc(c=textreadc(t, q1)) && c!=':')
+			while(q1<t->file->Buffer.nc && isexecc(c=textreadc(t, q1)) && c!=':')
 				q1++;
 			while(q0>0 && isexecc(c=textreadc(t, q0-1)) && c!=':')
 				q0--;
@@ -154,14 +154,14 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 		}
 	}
 	r = runemalloc(q1-q0);
-	bufread(t->file, q0, r, q1-q0);
+	bufread(&t->file->Buffer, q0, r, q1-q0);
 	e = lookup(r, q1-q0);
 	if(!external && t->w!=nil && t->w->nopen[QWevent]>0){
 		f = 0;
 		if(e)
 			f |= 1;
 		if(q0!=aq0 || q1!=aq1){
-			bufread(t->file, aq0, r, aq1-aq0);
+			bufread(&t->file->Buffer, aq0, r, aq1-aq0);
 			f |= 2;
 		}
 		aa = getbytearg(argt, TRUE, TRUE, &a);
@@ -184,7 +184,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 			winevent(t->w, "%c%d %d %d 0 \n", c, aq0, aq1, f, n);
 		if(q0!=aq0 || q1!=aq1){
 			n = q1-q0;
-			bufread(t->file, q0, r, n);
+			bufread(&t->file->Buffer, q0, r, n);
 			if(n <= EVENTSIZE)
 				winevent(t->w, "%c%d %d 0 %d %.*S\n", c, q0, q1, n, n, r);
 			else
@@ -226,7 +226,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 	}
 	aa = getbytearg(argt, TRUE, TRUE, &a);
 	if(t->w)
-		incref(t->w);
+		incref(&t->w->Ref);
 	run(t->w, b, dir.r, dir.nr, TRUE, aa, a, FALSE);
 }
 
@@ -275,7 +275,7 @@ getarg(Text *argt, int doaddr, int dofile, Rune **rp, int *nrp)
 	}
 	n = e.q1 - e.q0;
 	*rp = runemalloc(n+1);
-	bufread(argt->file, e.q0, *rp, n);
+	bufread(&argt->file->Buffer, e.q0, *rp, n);
 	if(doaddr)
 		a = printarg(argt, e.q0, e.q1);
 	*nrp = n;
@@ -519,7 +519,7 @@ get(Text *et, Text *t, Text *argt, int flag1, int a, Rune *arg, int narg)
 	if(flag1)
 		if(et==nil || et->w==nil)
 			return;
-	if(!et->w->isdir && (et->w->body.file->nc>0 && !winclean(et->w, TRUE)))
+	if(!et->w->isdir && (et->w->body.file->Buffer.nc>0 && !winclean(et->w, TRUE)))
 		return;
 	w = et->w;
 	t = &w->body;
@@ -561,7 +561,7 @@ get(Text *et, Text *t, Text *argt, int flag1, int a, Rune *arg, int narg)
 	t->file->unread = FALSE;
 	for(i=0; i<t->file->ntext; i++){
 		u = t->file->text[i];
-		textsetselect(&u->w->tag, u->w->tag.file->nc, u->w->tag.file->nc);
+		textsetselect(&u->w->tag, u->w->tag.file->Buffer.nc, u->w->tag.file->Buffer.nc);
 		textscrdraw(u);
 	}
 }
@@ -613,7 +613,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 		n = q1 - q;
 		if(n > BUFSIZE/UTFmax)
 			n = BUFSIZE/UTFmax;
-		bufread(f, q, r, n);
+		bufread(&f->Buffer, q, r, n);
 		m = snprint(s, BUFSIZE+1, "%.*S", n, r);
 		if(write(fd, s, m) != m){
 			warning(nil, "can't write file %s: %r\n", name);
@@ -621,7 +621,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 		}
 	}
 	if(runeeq(namer, nname, f->name, f->nname)){
-		if(q0!=0 || q1!=f->nc){
+		if(q0!=0 || q1!=f->Buffer.nc){
 			f->mod = TRUE;
 			w->dirty = TRUE;
 			f->unread = TRUE;
@@ -699,7 +699,7 @@ put(Text *et, Text*a, Text *argt, int b, int c, Rune *arg, int narg)
 		return;
 	}
 	namer = bytetorune(name, &nname);
-	putfile(f, 0, f->nc, namer, nname);
+	putfile(f, 0, f->Buffer.nc, namer, nname);
 	free(name);
 }
 
@@ -766,7 +766,7 @@ cut(Text *et, Text *t, Text*a, int dosnarf, int docut, Rune*b, int ic)
 			n = q1 - q0;
 			if(n > RBUFSIZE)
 				n = RBUFSIZE;
-			bufread(t->file, q0, r, n);
+			bufread(&t->file->Buffer, q0, r, n);
 			bufinsert(&snarfbuf, snarfbuf.nc, r, n);
 			q0 += n;
 		}
@@ -855,7 +855,7 @@ look(Text *et, Text *t, Text *argt, int a, int b, Rune *arg, int narg)
 		if(r == nil){
 			n = t->q1-t->q0;
 			r = runemalloc(n);
-			bufread(t->file, t->q0, r, n);
+			bufread(&t->file->Buffer, t->q0, r, n);
 		}
 		search(t, r, n);
 		free(r);
@@ -870,11 +870,11 @@ sendx(Text *et, Text *t, Text*a, int b, int c, Rune*d, int f)
 	t = &et->w->body;
 	if(t->q0 != t->q1)
 		cut(t, t, nil, TRUE, FALSE, nil, 0);
-	textsetselect(t, t->file->nc, t->file->nc);
+	textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 	paste(t, t, nil, TRUE, TRUE, nil, 0);
-	if(textreadc(t, t->file->nc-1) != '\n'){
-		textinsert(t, t->file->nc, L"\n", 1, TRUE);
-		textsetselect(t, t->file->nc, t->file->nc);
+	if(textreadc(t, t->file->Buffer.nc-1) != '\n'){
+		textinsert(t, t->file->Buffer.nc, L"\n", 1, TRUE);
+		textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 	}
 }
 
@@ -1030,7 +1030,7 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 	else if(file == nil){
 		newfont = rfget(FALSE, FALSE, FALSE, nil);
 		if(newfont)
-			fix = strcmp(newfont->f->name, t->font->name)==0;
+			fix = strcmp(newfont->f->name, t->Frame.font->name)==0;
 	}
 	if(file){
 		aa = runetobyte(file, nf);
@@ -1042,8 +1042,8 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 		draw(screen, t->w->r, textcols[BACK], nil, ZP);
 		rfclose(t->reffont);
 		t->reffont = newfont;
-		t->font = newfont->f;
-		frinittick(t);
+		t->Frame.font = newfont->f;
+		frinittick(&t->Frame);
 		if(t->w->isdir){
 			t->all.min.x++;	/* force recolumnation; disgusting! */
 			for(i=0; i<t->w->ndl; i++){
