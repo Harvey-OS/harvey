@@ -58,7 +58,7 @@ look3(Text *t, uint q0, uint q1, int external)
 		n = q1-q0;
 		if(n <= EVENTSIZE){
 			r = runemalloc(n);
-			bufread(t->file, q0, r, n);
+			bufread(&t->file->Buffer, q0, r, n);
 			winevent(t->w, "%c%d %d %d %d %.*S\n", c, q0, q1, f, n, n, r);
 			free(r);
 		}else
@@ -73,12 +73,12 @@ look3(Text *t, uint q0, uint q1, int external)
 			runemove(r, e.name, e.nname);
 			if(e.a1 > e.a0){
 				r[e.nname] = ':';
-				bufread(e.at->file, e.a0, r+e.nname+1, e.a1-e.a0);
+				bufread(&e.at->file->Buffer, e.a0, r+e.nname+1, e.a1-e.a0);
 			}
 		}else{
 			n = e.q1 - e.q0;
 			r = runemalloc(n);
-			bufread(t->file, e.q0, r, n);
+			bufread(&t->file->Buffer, e.q0, r, n);
 		}
 		f &= ~2;
 		if(n <= EVENTSIZE)
@@ -115,7 +115,7 @@ look3(Text *t, uint q0, uint q1, int external)
 				p = q0;
 				while(q0>0 && (c=tgetc(t, q0-1))!=' ' && c!='\t' && c!='\n')
 					q0--;
-				while(q1<t->file->nc && (c=tgetc(t, q1))!=' ' && c!='\t' && c!='\n')
+				while(q1<t->file->Buffer.nc && (c=tgetc(t, q1))!=' ' && c!='\t' && c!='\n')
 					q1++;
 				if(q1 == q0){
 					plumbfree(m);
@@ -126,7 +126,7 @@ look3(Text *t, uint q0, uint q1, int external)
 			}
 		}
 		r = runemalloc(q1-q0);
-		bufread(t->file, q0, r, q1-q0);
+		bufread(&t->file->Buffer, q0, r, q1-q0);
 		m->data = runetobyte(r, q1-q0);
 		m->ndata = strlen(m->data);
 		free(r);
@@ -153,9 +153,9 @@ look3(Text *t, uint q0, uint q1, int external)
 			textsetselect(ct, e.q1, e.q1);
 		n = e.q1 - e.q0;
 		r = runemalloc(n);
-		bufread(t->file, e.q0, r, n);
+		bufread(&t->file->Buffer, e.q0, r, n);
 		if(search(ct, r, n) && e.jump)
-			moveto(mousectl, addpt(frptofchar(ct, ct->p0), Pt(4, ct->font->height-4)));
+			moveto(mousectl, addpt(frptofchar(&ct->Frame, ct->Frame.p0), Pt(4, ct->Frame.font->height-4)));
 		if(t->w != ct->w)
 			winunlock(ct->w);
 		free(r);
@@ -242,7 +242,7 @@ plumbshow(Plumbmsg *m)
 	w->dirty = FALSE;
 	winsettag(w);
 	textscrdraw(&w->body);
-	textsetselect(&w->tag, w->tag.file->nc, w->tag.file->nc);
+	textsetselect(&w->tag, w->tag.file->Buffer.nc, w->tag.file->Buffer.nc);
 }
 
 int
@@ -252,7 +252,7 @@ search(Text *ct, Rune *r, uint n)
 	int around;
 	Rune *s, *b, *c;
 
-	if(n==0 || n>ct->file->nc)
+	if(n==0 || n>ct->file->Buffer.nc)
 		return FALSE;
 	if(2*n > RBUFSIZE){
 		warning(nil, "string too long\n");
@@ -266,7 +266,7 @@ search(Text *ct, Rune *r, uint n)
 	around = 0;
 	q = ct->q1;
 	for(;;){
-		if(q >= ct->file->nc){
+		if(q >= ct->file->Buffer.nc){
 			q = 0;
 			around = 1;
 			nb = 0;
@@ -287,11 +287,11 @@ search(Text *ct, Rune *r, uint n)
 			b = c;
 		}
 		/* reload if buffer covers neither string nor rest of file */
-		if(nb<n && nb!=ct->file->nc-q){
-			nb = ct->file->nc-q;
+		if(nb<n && nb!=ct->file->Buffer.nc-q){
+			nb = ct->file->Buffer.nc-q;
 			if(nb >= maxn)
 				nb = maxn-1;
-			bufread(ct->file, q, s, nb);
+			bufread(&ct->file->Buffer, q, s, nb);
 			b = s;
 			b[nb] = '\0';
 		}
@@ -414,13 +414,13 @@ dirname(Text *t, Rune *r, int n)
 	b = nil;
 	if(t==nil || t->w==nil)
 		goto Rescue;
-	nt = t->w->tag.file->nc;
+	nt = t->w->tag.file->Buffer.nc;
 	if(nt == 0)
 		goto Rescue;
 	if(n>=1 && r[0]=='/')
 		goto Rescue;
 	b = runemalloc(nt+n+1);
-	bufread(t->w->tag.file, 0, b, nt);
+	bufread(&t->w->tag.file->Buffer, 0, b, nt);
 	slash = -1;
 	for(m=0; m<nt; m++){
 		c = b[m];
@@ -455,7 +455,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	amax = q1;
 	if(q1 == q0){
 		colon = -1;
-		while(q1<t->file->nc && isfilec(c=textreadc(t, q1))){
+		while(q1<t->file->Buffer.nc && isfilec(c=textreadc(t, q1))){
 			if(c == ':'){
 				colon = q1;
 				break;
@@ -473,19 +473,19 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 		 */
 		if(colon >= 0){
 			q1 = colon;
-			if(colon<t->file->nc-1 && isaddrc(textreadc(t, colon+1))){
+			if(colon<t->file->Buffer.nc-1 && isaddrc(textreadc(t, colon+1))){
 				q1 = colon+1;
-				while(q1<t->file->nc && isaddrc(textreadc(t, q1)))
+				while(q1<t->file->Buffer.nc && isaddrc(textreadc(t, q1)))
 					q1++;
 			}
 		}
 		if(q1 > q0)
 			if(colon >= 0){	/* stop at white space */
-				for(amax=colon+1; amax<t->file->nc; amax++)
+				for(amax=colon+1; amax<t->file->Buffer.nc; amax++)
 					if((c=textreadc(t, amax))==' ' || c=='\t' || c=='\n')
 						break;
 			}else
-				amax = t->file->nc;
+				amax = t->file->Buffer.nc;
 	}
 	amin = amax;
 	e->q0 = q0;
@@ -495,13 +495,13 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 		return FALSE;
 	/* see if it's a file name */
 	r = runemalloc(n);
-	bufread(t->file, q0, r, n);
+	bufread(&t->file->Buffer, q0, r, n);
 	/* first, does it have bad chars? */
 	nname = -1;
 	for(i=0; i<n; i++){
 		c = r[i];
 		if(c==':' && nname<0){
-			if(q0+i+1<t->file->nc && (i==n-1 || isaddrc(textreadc(t, q0+i+1))))
+			if(q0+i+1<t->file->Buffer.nc && (i==n-1 || isaddrc(textreadc(t, q0+i+1))))
 				amin = q0+i;
 			else
 				goto Isntfile;
@@ -519,7 +519,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	 * restrictive enough syntax and checking for a #include earlier on the
 	 * line would be silly.
 	 */
-	if(q0>0 && textreadc(t, q0-1)=='<' && q1<t->file->nc && textreadc(t, q1)=='>'){
+	if(q0>0 && textreadc(t, q0-1)=='<' && q1<t->file->Buffer.nc && textreadc(t, q1)=='>'){
 		rs = includename(t, r, nname);
 		r = rs.r;
 		nname = rs.nr;
@@ -575,7 +575,7 @@ expand(Text *t, uint q0, uint q1, Expand *e)
 		return TRUE;
 
 	if(q0 == q1){
-		while(q1<t->file->nc && isalnum(textreadc(t, q1)))
+		while(q1<t->file->Buffer.nc && isalnum(textreadc(t, q1)))
 			q1++;
 		while(q0>0 && isalnum(textreadc(t, q0-1)))
 			q0--;
@@ -652,7 +652,7 @@ openfile(Text *t, Expand *e)
 		w = lookfile(e->name, e->nname);
 	if(w){
 		t = &w->body;
-		if(!t->col->safe && t->maxlines==0) /* window is obscured by full-column window */
+		if(!t->col->safe && t->Frame.maxlines==0) /* window is obscured by full-column window */
 			colgrow(t->col, t->col->w[0], 1);
 	}else{
 		ow = nil;
@@ -665,7 +665,7 @@ openfile(Text *t, Expand *e)
 		t->file->mod = FALSE;
 		t->w->dirty = FALSE;
 		winsettag(t->w);
-		textsetselect(&t->w->tag, t->w->tag.file->nc, t->w->tag.file->nc);
+		textsetselect(&t->w->tag, t->w->tag.file->Buffer.nc, t->w->tag.file->Buffer.nc);
 		if(ow != nil){
 			for(i=ow->nincl; --i>=0; ){
 				n = runestrlen(ow->incl[i]);
@@ -693,7 +693,7 @@ openfile(Text *t, Expand *e)
 	winsettag(t->w);
 	seltext = t;
 	if(e->jump)
-		moveto(mousectl, addpt(frptofchar(t, t->p0), Pt(4, font->height-4)));
+		moveto(mousectl, addpt(frptofchar(&t->Frame, t->Frame.p0), Pt(4, font->height-4)));
 	return w;
 }
 

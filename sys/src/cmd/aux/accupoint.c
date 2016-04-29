@@ -25,7 +25,7 @@ typedef struct M M;
 
 struct M
 {
-	Mouse;
+	Mouse Mouse;
 	int	byte;
 };
 
@@ -44,10 +44,10 @@ readmouse(M *m)
 	if(n != sizeof buf)
 		return 0;
 	m->byte = buf[0];
-	m->xy.x =  atoi(buf+1+0*12);
-	m->xy.y =  atoi(buf+1+1*12);
-	m->buttons =  atoi(buf+1+2*12);
-	m->msec =  atoi(buf+1+3*12);
+	m->Mouse.xy.x =  atoi(buf+1+0*12);
+	m->Mouse.xy.y =  atoi(buf+1+1*12);
+	m->Mouse.buttons =  atoi(buf+1+2*12);
+	m->Mouse.msec =  atoi(buf+1+3*12);
 	return 1;
 }
 
@@ -56,10 +56,10 @@ writemouse(M *m)
 {
 	print("%c%11d %11d %11d %11ld ",
 		m->byte,
-		m->xy.x,
-		m->xy.y,
-		m->buttons&7,
-		m->msec);
+		m->Mouse.xy.x,
+		m->Mouse.xy.y,
+		m->Mouse.buttons&7,
+		m->Mouse.msec);
 }
 
 void
@@ -89,7 +89,7 @@ main(void)
 			alarm(0);
 		if(interrupted){
 			/* timed out; clear button 2 */
-			om.buttons &= ~2;
+			om.Mouse.buttons &= ~2;
 			button2 = 0;
 			writemouse(&om);
 			continue;
@@ -97,29 +97,29 @@ main(void)
 		if(n <= 0)
 			break;
 		/* avoid bounce caused by button 5 click */
-		if((om.buttons&16) && (m.buttons&16)){
-			om.buttons &= ~16;
+		if((om.Mouse.buttons&16) && (m.Mouse.buttons&16)){
+			om.Mouse.buttons &= ~16;
 			continue;
 		}
-		if(m.buttons & 2)
+		if(m.Mouse.buttons & 2)
 			button2 = 0;
 		else{
 			/* only check 4 and 5 if 2 isn't down of its own accord */
-			if(m.buttons & 16){
+			if(m.Mouse.buttons & 16){
 				/* generate quick button 2 click */
 				button2 = 0;
-				m.buttons |= 2;
+				m.Mouse.buttons |= 2;
 				writemouse(&m);
-				m.buttons &= ~2;
+				m.Mouse.buttons &= ~2;
 				/* fall through to generate up event */
-			}else if(m.buttons & 8){
+			}else if(m.Mouse.buttons & 8){
 				/* press and hold button 2 */
 				button2 = 1;
 			}
 		}
 		if(button2)
-			m.buttons |= 2;
-		if(m.byte!=om.byte || m.buttons!=om.buttons || !eqpt(m.xy, om.xy))
+			m.Mouse.buttons |= 2;
+		if(m.byte!=om.byte || m.Mouse.buttons!=om.Mouse.buttons || !eqpt(m.Mouse.xy, om.Mouse.xy))
 			writemouse(&m);
 		om = m;
 	}
