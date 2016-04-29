@@ -51,10 +51,10 @@ textredraw(Text *t, Rectangle r, Font *f, Image *b, int odx)
 	int maxt;
 	Rectangle rr;
 
-	frinit(t, r, f, b, t->Frame.cols);
-	rr = t->r;
+	frinit(&t->Frame, r, f, b, t->Frame.cols);
+	rr = t->Frame.r;
 	rr.min.x -= Scrollwid+Scrollgap;	/* back fill to scroll bar */
-	draw(t->b, rr, t->cols[BACK], nil, ZP);
+	draw(t->Frame.b, rr, t->Frame.cols[BACK], nil, ZP);
 	/* use no wider than 3-space tabs in a directory */
 	maxt = maxtab;
 	if(t->what == Body){
@@ -63,9 +63,9 @@ textredraw(Text *t, Rectangle r, Font *f, Image *b, int odx)
 		else
 			maxt = t->tabstop;
 	}
-	t->maxtab = maxt*stringwidth(f, "0");
+	t->Frame.maxtab = maxt*stringwidth(f, "0");
 	if(t->what==Body && t->w->isdir && odx!=Dx(t->all)){
-		if(t->maxlines > 0){
+		if(t->Frame.maxlines > 0){
 			textreset(t);
 			textcolumnate(t, t->w->dlp,  t->w->ndl);
 			textshow(t, 0, 0, 1);
@@ -82,7 +82,7 @@ textresize(Text *t, Rectangle r)
 	int odx;
 
 	if(Dy(r) > 0)
-		r.max.y -= Dy(r)%t->font->height;
+		r.max.y -= Dy(r)%t->Frame.font->height;
 	else
 		r.max.y = r.min.y;
 	odx = Dx(t->all);
@@ -91,8 +91,8 @@ textresize(Text *t, Rectangle r)
 	t->scrollr.max.x = r.min.x+Scrollwid;
 	t->lastsr = nullrect;
 	r.min.x += Scrollwid+Scrollgap;
-	frclear(t, 0);
-	textredraw(t, r, t->font, t->b, odx);
+	frclear(&t->Frame, 0);
+	textredraw(t, r, t->Frame.font, t->Frame.b, odx);
 	return r.max.y;
 }
 
@@ -100,7 +100,7 @@ void
 textclose(Text *t)
 {
 	free(t->cache);
-	frclear(t, 1);
+	frclear(&t->Frame, 1);
 	filedeltext(t->file, t);
 	t->file = nil;
 	rfclose(t->reffont);
@@ -140,10 +140,10 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 
 	if(t->file->ntext > 1)
 		return;
-	mint = stringwidth(t->font, "0");
+	mint = stringwidth(t->Frame.font, "0");
 	/* go for narrower tabs if set more than 3 wide */
-	t->maxtab = min(maxtab, TABDIR)*mint;
-	maxt = t->maxtab;
+	t->Frame.maxtab = min(maxtab, TABDIR)*mint;
+	maxt = t->Frame.maxtab;
 	colw = 0;
 	for(i=0; i<ndl; i++){
 		dl = dlp[i];
@@ -158,7 +158,7 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 	if(colw == 0)
 		ncol = 1;
 	else
-		ncol = max(1, Dx(t->r)/colw);
+		ncol = max(1, Dx(t->Frame.r)/colw);
 	nrow = (ndl+ncol-1)/ncol;
 
 	q1 = 0;
@@ -197,7 +197,7 @@ textload(Text *t, uint q0, char *file, int setqid)
 	char *tmp;
 	Text *u;
 
-	if(t->ncache!=0 || t->file->nc || t->w==nil || t!=&t->w->body)
+	if(t->ncache!=0 || t->file->Buffer.nc || t->w==nil || t!=&t->w->body)
 		error("text.load");
 	if(t->w->isdir && t->file->nname==0){
 		warning(nil, "empty directory name\n");
@@ -242,7 +242,7 @@ textload(Text *t, uint q0, char *file, int setqid)
 					tmp[j++] = '/';
 				tmp[j] = '\0';
 				dl->r = bytetorune(tmp, &dl->nr);
-				dl->wid = stringwidth(t->font, tmp);
+				dl->wid = stringwidth(t->Frame.font, tmp);
 				free(tmp);
 				ndl++;
 				dlp = realloc(dlp, ndl*sizeof(Dirlist*));
@@ -254,7 +254,7 @@ textload(Text *t, uint q0, char *file, int setqid)
 		t->w->dlp = dlp;
 		t->w->ndl = ndl;
 		textcolumnate(t, dlp, ndl);
-		q1 = t->file->nc;
+		q1 = t->file->Buffer.nc;
 	}else{
 		t->w->isdir = FALSE;
 		t->w->filemenu = TRUE;
@@ -271,19 +271,19 @@ textload(Text *t, uint q0, char *file, int setqid)
 		n = q1-q;
 		if(n > RBUFSIZE)
 			n = RBUFSIZE;
-		bufread(t->file, q, rp, n);
+		bufread(&t->file->Buffer, q, rp, n);
 		if(q < t->org)
 			t->org += n;
-		else if(q <= t->org+t->nchars)
-			frinsert(t, rp, rp+n, q-t->org);
-		if(t->lastlinefull)
+		else if(q <= t->org+t->Frame.nchars)
+			frinsert(&t->Frame, rp, rp+n, q-t->org);
+		if(t->Frame.lastlinefull)
 			break;
 	}
 	fbuffree(rp);
 	for(i=0; i<t->file->ntext; i++){
 		u = t->file->text[i];
 		if(u != t){
-			if(u->org > u->file->nc)	/* will be 0 because of reset(), but safety first */
+			if(u->org > u->file->Buffer.nc)	/* will be 0 because of reset(), but safety first */
 				u->org = 0;
 			textresize(u, u->all);
 			textbacknl(u, u->org, 0);	/* go to beginning of line */
@@ -379,8 +379,8 @@ textinsert(Text *t, uint q0, Rune *r, uint n, int tofile)
 		t->q0 += n;
 	if(q0 < t->org)
 		t->org += n;
-	else if(q0 <= t->org+t->nchars)
-		frinsert(t, r, r+n, q0-t->org);
+	else if(q0 <= t->org+t->Frame.nchars)
+		frinsert(&t->Frame, r, r+n, q0-t->org);
 	if(t->w){
 		c = 'i';
 		if(t->what == Body)
@@ -407,23 +407,23 @@ textfill(Text *t)
 	Rune *rp;
 	int i, n, m, nl;
 
-	if(t->lastlinefull || t->nofill)
+	if(t->Frame.lastlinefull || t->nofill)
 		return;
 	if(t->ncache > 0)
 		typecommit(t);
 	rp = fbufalloc();
 	do{
-		n = t->file->nc-(t->org+t->nchars);
+		n = t->file->Buffer.nc-(t->org+t->Frame.nchars);
 		if(n == 0)
 			break;
 		if(n > 2000)	/* educated guess at reasonable amount */
 			n = 2000;
-		bufread(t->file, t->org+t->nchars, rp, n);
+		bufread(&t->file->Buffer, t->org+t->Frame.nchars, rp, n);
 		/*
 		 * it's expensive to frinsert more than we need, so
 		 * count newlines.
 		 */
-		nl = t->maxlines-t->nlines;
+		nl = t->Frame.maxlines-t->Frame.nlines;
 		m = 0;
 		for(i=0; i<n; ){
 			if(rp[i++] == '\n'){
@@ -432,8 +432,8 @@ textfill(Text *t)
 					break;
 			}
 		}
-		frinsert(t, rp, rp+i, t->nchars);
-	}while(t->lastlinefull == FALSE);
+		frinsert(&t->Frame, rp, rp+i, t->Frame.nchars);
+	}while(t->Frame.lastlinefull == FALSE);
 	fbuffree(rp);
 }
 
@@ -472,16 +472,16 @@ textdelete(Text *t, uint q0, uint q1, int tofile)
 		t->q1 -= min(n, t->q1-q0);
 	if(q1 <= t->org)
 		t->org -= n;
-	else if(q0 < t->org+t->nchars){
+	else if(q0 < t->org+t->Frame.nchars){
 		p1 = q1 - t->org;
-		if(p1 > t->nchars)
-			p1 = t->nchars;
+		if(p1 > t->Frame.nchars)
+			p1 = t->Frame.nchars;
 		if(q0 < t->org){
 			t->org = q0;
 			p0 = 0;
 		}else
 			p0 = q0 - t->org;
-		frdelete(t, p0, p1);
+		frdelete(&t->Frame, p0, p1);
 		textfill(t);
 	}
 	if(t->w){
@@ -495,8 +495,8 @@ textdelete(Text *t, uint q0, uint q1, int tofile)
 void
 textconstrain(Text *t, uint q0, uint q1, uint *p0, uint *p1)
 {
-	*p0 = min(q0, t->file->nc);
-	*p1 = min(q1, t->file->nc);
+	*p0 = min(q0, t->file->Buffer.nc);
+	*p1 = min(q1, t->file->Buffer.nc);
 }
 
 Rune
@@ -507,7 +507,7 @@ textreadc(Text *t, uint q)
 	if(t->cq0<=q && q<t->cq0+t->ncache)
 		r = t->cache[q-t->cq0];
 	else
-		bufread(t->file, q, &r, 1);
+		bufread(&t->file->Buffer, q, &r, 1);
 	return r;
 }
 
@@ -573,7 +573,7 @@ textcomplete(Text *t)
 	Runestr dir;
 
 	/* control-f: filename completion; works back to white space or / */
-	if(t->q0<t->file->nc && textreadc(t, t->q0)>' ')	/* must be at end of word */
+	if(t->q0<t->file->Buffer.nc && textreadc(t, t->q0)>' ')	/* must be at end of word */
 		return nil;
 	nstr = textfilewidth(t, t->q0, TRUE);
 	str = runemalloc(nstr);
@@ -664,33 +664,33 @@ texttype(Text *t, Rune r)
 		}
 		return;
 	case Kright:
-		if(t->q1 < t->file->nc){
+		if(t->q1 < t->file->Buffer.nc){
 			typecommit(t);
 			textshow(t, t->q1+1, t->q1+1, TRUE);
 		}
 		return;
 	case Kdown:
-		n = t->maxlines/3;
+		n = t->Frame.maxlines/3;
 		goto case_Down;
 	case Kscrollonedown:
-		n = mousescrollsize(t->maxlines);
+		n = mousescrollsize(t->Frame.maxlines);
 		if(n <= 0)
 			n = 1;
 		goto case_Down;
 	case Kpgdown:
-		n = 2*t->maxlines/3;
+		n = 2*t->Frame.maxlines/3;
 	case_Down:
-		q0 = t->org+frcharofpt(t, Pt(t->r.min.x, t->r.min.y+n*t->font->height));
+		q0 = t->org+frcharofpt(&t->Frame, Pt(t->Frame.r.min.x, t->Frame.r.min.y+n*t->Frame.font->height));
 		textsetorigin(t, q0, TRUE);
 		return;
 	case Kup:
-		n = t->maxlines/3;
+		n = t->Frame.maxlines/3;
 		goto case_Up;
 	case Kscrolloneup:
-		n = mousescrollsize(t->maxlines);
+		n = mousescrollsize(t->Frame.maxlines);
 		goto case_Up;
 	case Kpgup:
-		n = 2*t->maxlines/3;
+		n = 2*t->Frame.maxlines/3;
 	case_Up:
 		q0 = textbacknl(t, t->org, n);
 		textsetorigin(t, q0, TRUE);
@@ -701,7 +701,7 @@ texttype(Text *t, Rune r)
 		return;
 	case Kend:
 		typecommit(t);
-		textshow(t, t->file->nc, t->file->nc, FALSE);
+		textshow(t, t->file->Buffer.nc, t->file->Buffer.nc, FALSE);
 		return;
 	case 0x01:	/* ^A: beginning of line */
 		typecommit(t);
@@ -714,7 +714,7 @@ texttype(Text *t, Rune r)
 	case 0x05:	/* ^E: end of line */
 		typecommit(t);
 		q0 = t->q0;
-		while(q0<t->file->nc && textreadc(t, q0)!='\n')
+		while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
 			q0++;
 		textshow(t, q0, q0, TRUE);
 		return;
@@ -869,18 +869,18 @@ textframescroll(Text *t, int dl)
 	}
 	if(dl < 0){
 		q0 = textbacknl(t, t->org, -dl);
-		if(selectq > t->org+t->p0)
-			textsetselect(t, t->org+t->p0, selectq);
+		if(selectq > t->org+t->Frame.p0)
+			textsetselect(t, t->org+t->Frame.p0, selectq);
 		else
-			textsetselect(t, selectq, t->org+t->p0);
+			textsetselect(t, selectq, t->org+t->Frame.p0);
 	}else{
-		if(t->org+t->nchars == t->file->nc)
+		if(t->org+t->Frame.nchars == t->file->Buffer.nc)
 			return;
-		q0 = t->org+frcharofpt(t, Pt(t->r.min.x, t->r.min.y+dl*t->font->height));
-		if(selectq > t->org+t->p1)
-			textsetselect(t, t->org+t->p1, selectq);
+		q0 = t->org+frcharofpt(&t->Frame, Pt(t->Frame.r.min.x, t->Frame.r.min.y+dl*t->Frame.font->height));
+		if(selectq > t->org+t->Frame.p1)
+			textsetselect(t, t->org+t->Frame.p1, selectq);
 		else
-			textsetselect(t, selectq, t->org+t->p1);
+			textsetselect(t, selectq, t->org+t->Frame.p1);
 	}
 	textsetorigin(t, q0, TRUE);
 }
@@ -901,7 +901,7 @@ textselect(Text *t)
 	b = mouse->buttons;
 	q0 = t->q0;
 	q1 = t->q1;
-	selectq = t->org+frcharofpt(t, mouse->xy);
+	selectq = t->org+frcharofpt(&t->Frame, mouse->xy);
 	if(clicktext==t && mouse->msec-clickmsec<500)
 	if(q0==q1 && selectq==q0){
 		textdoubleclick(t, &q0, &q1);
@@ -921,19 +921,19 @@ textselect(Text *t)
 	}
 	if(mouse->buttons == b){
 		t->Frame.scroll = framescroll;
-		frselect(t, mousectl);
+		frselect(&t->Frame, mousectl);
 		/* horrible botch: while asleep, may have lost selection altogether */
-		if(selectq > t->file->nc)
-			selectq = t->org + t->p0;
+		if(selectq > t->file->Buffer.nc)
+			selectq = t->org + t->Frame.p0;
 		t->Frame.scroll = nil;
 		if(selectq < t->org)
 			q0 = selectq;
 		else
-			q0 = t->org + t->p0;
-		if(selectq > t->org+t->nchars)
+			q0 = t->org + t->Frame.p0;
+		if(selectq > t->org+t->Frame.nchars)
 			q1 = selectq;
 		else
-			q1 = t->org+t->p1;
+			q1 = t->org+t->Frame.p1;
 	}
 	if(q0 == q1){
 		if(q0==t->q0 && clicktext==t && mouse->msec-clickmsec<500){
@@ -997,23 +997,23 @@ textshow(Text *t, uint q0, uint q1, int doselect)
 			textsetselect(t, q0, q1);
 		return;
 	}
-	if(t->w!=nil && t->maxlines==0)
+	if(t->w!=nil && t->Frame.maxlines==0)
 		colgrow(t->col, t->w, 1);
 	if(doselect)
 		textsetselect(t, q0, q1);
-	qe = t->org+t->nchars;
-	if(t->org<=q0 && (q0<qe || (q0==qe && qe==t->file->nc+t->ncache)))
+	qe = t->org+t->Frame.nchars;
+	if(t->org<=q0 && (q0<qe || (q0==qe && qe==t->file->Buffer.nc+t->ncache)))
 		textscrdraw(t);
 	else{
 		if(t->w->nopen[QWevent] > 0)
-			nl = 3*t->maxlines/4;
+			nl = 3*t->Frame.maxlines/4;
 		else
-			nl = t->maxlines/4;
+			nl = t->Frame.maxlines/4;
 		q = textbacknl(t, q0, nl);
 		/* avoid going backwards if trying to go forwards - long lines! */
 		if(!(q0>t->org && q<t->org))
 			textsetorigin(t, q, TRUE);
-		while(q0 > t->org+t->nchars)
+		while(q0 > t->org+t->Frame.nchars)
 			textsetorigin(t, t->org+1, FALSE);
 	}
 }
@@ -1075,38 +1075,38 @@ textsetselect(Text *t, uint q0, uint q1)
 		p0 = 0;
 	if(p1 < 0)
 		p1 = 0;
-	if(p0 > t->nchars)
-		p0 = t->nchars;
-	if(p1 > t->nchars)
-		p1 = t->nchars;
-	if(p0==t->p0 && p1==t->p1)
+	if(p0 > t->Frame.nchars)
+		p0 = t->Frame.nchars;
+	if(p1 > t->Frame.nchars)
+		p1 = t->Frame.nchars;
+	if(p0==t->Frame.p0 && p1==t->Frame.p1)
 		return;
 	/* screen disagrees with desired selection */
-	if(t->p1<=p0 || p1<=t->p0 || p0==p1 || t->p1==t->p0){
+	if(t->Frame.p1<=p0 || p1<=t->Frame.p0 || p0==p1 || t->Frame.p1==t->Frame.p0){
 		/* no overlap or too easy to bother trying */
-		frdrawsel(t, frptofchar(t, t->p0), t->p0, t->p1, 0);
-		frdrawsel(t, frptofchar(t, p0), p0, p1, 1);
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, t->Frame.p0), t->Frame.p0, t->Frame.p1, 0);
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, p0), p0, p1, 1);
 		goto Return;
 	}
 	/* overlap; avoid unnecessary painting */
-	if(p0 < t->p0){
+	if(p0 < t->Frame.p0){
 		/* extend selection backwards */
-		frdrawsel(t, frptofchar(t, p0), p0, t->p0, 1);
-	}else if(p0 > t->p0){
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, p0), p0, t->Frame.p0, 1);
+	}else if(p0 > t->Frame.p0){
 		/* trim first part of selection */
-		frdrawsel(t, frptofchar(t, t->p0), t->p0, p0, 0);
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, t->Frame.p0), t->Frame.p0, p0, 0);
 	}
-	if(p1 > t->p1){
+	if(p1 > t->Frame.p1){
 		/* extend selection forwards */
-		frdrawsel(t, frptofchar(t, t->p1), t->p1, p1, 1);
-	}else if(p1 < t->p1){
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, t->Frame.p1), t->Frame.p1, p1, 1);
+	}else if(p1 < t->Frame.p1){
 		/* trim last part of selection */
-		frdrawsel(t, frptofchar(t, p1), p1, t->p1, 0);
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, p1), p1, t->Frame.p1, 0);
 	}
 
     Return:
-	t->p0 = p0;
-	t->p1 = p1;
+	t->Frame.p0 = p0;
+	t->Frame.p1 = p1;
 }
 
 /*
@@ -1207,7 +1207,7 @@ textselect23(Text *t, uint *q0, uint *q1, Image *high, int mask)
 	uint p0, p1;
 	int buts;
 	
-	p0 = xselect(t, mousectl, high, &p1);
+	p0 = xselect(&t->Frame, mousectl, high, &p1);
 	buts = mousectl->buttons;
 	if((buts & mask) == 0){
 		*q0 = p0+t->org;
@@ -1287,14 +1287,14 @@ textdoubleclick(Text *t, uint *q0, uint *q1)
 			return;
 		}
 		/* try matching character to right, looking left */
-		if(q == t->file->nc)
+		if(q == t->file->Buffer.nc)
 			c = '\n';
 		else
 			c = textreadc(t, q);
 		p = runestrchr(r, c);
 		if(p != nil){
 			if(textclickmatch(t, c, l[p-r], -1, &q)){
-				*q1 = *q0+(*q0<t->file->nc && c=='\n');
+				*q1 = *q0+(*q0<t->file->Buffer.nc && c=='\n');
 				*q0 = q;
 				if(c!='\n' || q!=0 || textreadc(t, 0)=='\n')
 					(*q0)++;
@@ -1303,7 +1303,7 @@ textdoubleclick(Text *t, uint *q0, uint *q1)
 		}
 	}
 	/* try filling out word to right */
-	while(*q1<t->file->nc && isalnum(textreadc(t, *q1)))
+	while(*q1<t->file->Buffer.nc && isalnum(textreadc(t, *q1)))
 		(*q1)++;
 	/* try filling out word to left */
 	while(*q0>0 && isalnum(textreadc(t, *q0-1)))
@@ -1319,7 +1319,7 @@ textclickmatch(Text *t, int cl, int cr, int dir, uint *q)
 	nest = 1;
 	for(;;){
 		if(dir > 0){
-			if(*q == t->file->nc)
+			if(*q == t->file->Buffer.nc)
 				break;
 			c = textreadc(t, *q);
 			(*q)++;
@@ -1369,7 +1369,7 @@ textsetorigin(Text *t, uint org, int exact)
 	if(org>0 && !exact){
 		/* org is an estimate of the char posn; find a newline */
 		/* don't try harder than 256 chars */
-		for(i=0; i<256 && org<t->file->nc; i++){
+		for(i=0; i<256 && org<t->file->Buffer.nc; i++){
 			if(textreadc(t, org) == '\n'){
 				org++;
 				break;
@@ -1379,24 +1379,24 @@ textsetorigin(Text *t, uint org, int exact)
 	}
 	a = org-t->org;
 	fixup = 0;
-	if(a>=0 && a<t->nchars){
-		frdelete(t, 0, a);
+	if(a>=0 && a<t->Frame.nchars){
+		frdelete(&t->Frame, 0, a);
 		fixup = 1;	/* frdelete can leave end of last line in wrong selection mode; it doesn't know what follows */
 	}
-	else if(a<0 && -a<t->nchars){
+	else if(a<0 && -a<t->Frame.nchars){
 		n = t->org - org;
 		r = runemalloc(n);
-		bufread(t->file, org, r, n);
-		frinsert(t, r, r+n, 0);
+		bufread(&t->file->Buffer, org, r, n);
+		frinsert(&t->Frame, r, r+n, 1);
 		free(r);
 	}else
-		frdelete(t, 0, t->nchars);
+		frdelete(&t->Frame, 0, t->Frame.nchars);
 	t->org = org;
 	textfill(t);
 	textscrdraw(t);
 	textsetselect(t, t->q0, t->q1);
-	if(fixup && t->p1 > t->p0)
-		frdrawsel(t, frptofchar(t, t->p1-1), t->p1-1, t->p1, 1);
+	if(fixup && t->Frame.p1 > t->Frame.p0)
+		frdrawsel(&t->Frame, frptofchar(&t->Frame, t->Frame.p1-1), t->Frame.p1-1, t->Frame.p1, 1);
 }
 
 void
@@ -1406,10 +1406,10 @@ textreset(Text *t)
 	t->eq0 = ~0;
 	/* do t->delete(0, t->nc, TRUE) without building backup stuff */
 	textsetselect(t, t->org, t->org);
-	frdelete(t, 0, t->nchars);
+	frdelete(&t->Frame, 0, t->Frame.nchars);
 	t->org = 0;
 	t->q0 = 0;
 	t->q1 = 0;
 	filereset(t->file);
-	bufreset(t->file);
+	bufreset(&t->file->Buffer);
 }

@@ -102,8 +102,8 @@ Dirtab dirtabw[]=
 typedef struct Mnt Mnt;
 struct Mnt
 {
-	QLock;
-	int		id;
+	QLock	QLock;
+	int	id;
 	Mntdir	*md;
 };
 
@@ -170,24 +170,24 @@ fsysproc(void *v)
 			x = recvp(cxfidalloc);
 		}
 		x->buf = buf;
-		if(convM2S(buf, n, x) != n)
+		if(convM2S(buf, n, &x->Fcall) != n)
 			error("convert error in convM2S");
 		if(DEBUG)
 			fprint(2, "%F\n", &x->Fcall);
-		if(fcall[x->type] == nil)
+		if(fcall[x->Fcall.type] == nil)
 			x = respond(x, &t, "bad fcall type");
 		else{
-			switch(x->type){
+			switch(x->Fcall.type){
 			case Tversion:
 			case Tauth:
 			case Tflush:
 				f = nil;
 				break;
 			case Tattach:
-				f = newfid(x->fid);
+				f = newfid(x->Fcall.fid);
 				break;
 			default:
-				f = newfid(x->fid);
+				f = newfid(x->Fcall.fid);
 				if(!f->busy){
 					x->f = f;
 					x = respond(x, &t, "fid not in use");
@@ -196,7 +196,7 @@ fsysproc(void *v)
 				break;
 			}
 			x->f = f;
-			x  = (*fcall[x->type])(x, f);
+			x  = (*fcall[x->Fcall.type])(x, f);
 		}
 	}
 }
@@ -207,7 +207,7 @@ fsysaddid(Rune *dir, int ndir, Rune **incl, int nincl)
 	Mntdir *m;
 	int id;
 
-	qlock(&mnt);
+	qlock(&mnt.QLock);
 	id = ++mnt.id;
 	m = emalloc(sizeof *m);
 	m->id = id;
@@ -218,16 +218,16 @@ fsysaddid(Rune *dir, int ndir, Rune **incl, int nincl)
 	m->incl = incl;
 	m->nincl = nincl;
 	mnt.md = m;
-	qunlock(&mnt);
+	qunlock(&mnt.QLock);
 	return m;
 }
 
 void
 fsysincid(Mntdir *m)
 {
-	qlock(&mnt);
+	qlock(&mnt.QLock);
 	m->ref++;
-	qunlock(&mnt);
+	qunlock(&mnt.QLock);
 }
 
 void
@@ -239,9 +239,9 @@ fsysdelid(Mntdir *idm)
 
 	if(idm == nil)
 		return;
-	qlock(&mnt);
+	qlock(&mnt.QLock);
 	if(--idm->ref > 0){
-		qunlock(&mnt);
+		qunlock(&mnt.QLock);
 		return;
 	}
 	prev = nil;
@@ -256,12 +256,12 @@ fsysdelid(Mntdir *idm)
 			free(m->incl);
 			free(m->dir);
 			free(m);
-			qunlock(&mnt);
+			qunlock(&mnt.QLock);
 			return;
 		}
 		prev = m;
 	}
-	qunlock(&mnt);
+	qunlock(&mnt.QLock);
 	sprint(buf, "fsysdelid: can't find id %d\n", idm->id);
 	sendp(cerr, estrdup(buf));
 }
@@ -309,9 +309,9 @@ respond(Xfid *x, Fcall *t, char *err)
 		t->type = Rerror;
 		t->ename = err;
 	}else
-		t->type = x->type+1;
-	t->fid = x->fid;
-	t->tag = x->tag;
+		t->type = x->Fcall.type+1;
+	t->fid = x->Fcall.fid;
+	t->tag = x->Fcall.tag;
 	if(x->buf == nil)
 		x->buf = emalloc(messagesize);
 	n = convS2M(t, x->buf, messagesize);
@@ -332,12 +332,12 @@ fsysversion(Xfid *x, Fid*f)
 {
 	Fcall t;
 
-	if(x->msize < 256)
+	if(x->Fcall.msize < 256)
 		return respond(x, &t, "version: message size too small");
-	if(x->msize < messagesize)
-		messagesize = x->msize;
+	if(x->Fcall.msize < messagesize)
+		messagesize = x->Fcall.msize;
 	t.msize = messagesize;
-	if(strncmp(x->version, "9P2000", 6) != 0)
+	if(strncmp(x->Fcall.version, "9P2000", 6) != 0)
 		return respond(x, &t, "unrecognized 9P version");
 	t.version = "9P2000";
 	return respond(x, &t, nil);
@@ -368,7 +368,7 @@ fsysattach(Xfid *x, Fid *f)
 	int id;
 	Mntdir *m;
 
-	if(strcmp(x->uname, user) != 0)
+	if(strcmp(x->Fcall.uname, user) != 0)
 		return respond(x, &t, Eperm);
 	f->busy = TRUE;
 	f->open = FALSE;
@@ -380,8 +380,8 @@ fsysattach(Xfid *x, Fid *f)
 	f->w = nil;
 	t.qid = f->qid;
 	f->mntdir = nil;
-	id = atoi(x->aname);
-	qlock(&mnt);
+	id = atoi(x->Fcall.aname);
+	qlock(&mnt.QLock);
 	for(m=mnt.md; m; m=m->next)
 		if(m->id == id){
 			f->mntdir = m;
@@ -390,7 +390,7 @@ fsysattach(Xfid *x, Fid *f)
 		}
 	if(m == nil)
 		sendp(cerr, estrdup("unknown id in attach"));
-	qunlock(&mnt);
+	qunlock(&mnt.QLock);
 	return respond(x, &t, nil);
 }
 
@@ -412,8 +412,8 @@ fsyswalk(Xfid *x, Fid *f)
 	w = nil;
 	if(f->open)
 		return respond(x, &t, "walk of open file");
-	if(x->fid != x->newfid){
-		nf = newfid(x->newfid);
+	if(x->Fcall.fid != x->Fcall.newfid){
+		nf = newfid(x->Fcall.newfid);
 		if(nf->busy)
 			return respond(x, &t, "newfid already in use");
 		nf->busy = TRUE;
@@ -426,7 +426,7 @@ fsyswalk(Xfid *x, Fid *f)
 		nf->w = f->w;
 		nf->nrpart = 0;	/* not open, so must be zero */
 		if(nf->w)
-			incref(nf->w);
+			incref(&nf->w->Ref);
 		f = nf;	/* walk f */
 	}
 
@@ -436,14 +436,14 @@ fsyswalk(Xfid *x, Fid *f)
 	id = WIN(f->qid);
 	q = f->qid;
 
-	if(x->nwname > 0){
-		for(i=0; i<x->nwname; i++){
+	if(x->Fcall.nwname > 0){
+		for(i=0; i<x->Fcall.nwname; i++){
 			if((q.type & QTDIR) == 0){
 				err = Enotdir;
 				break;
 			}
 
-			if(strcmp(x->wname[i], "..") == 0){
+			if(strcmp(x->Fcall.wname[i], "..") == 0){
 				type = QTDIR;
 				path = Qdir;
 				id = 0;
@@ -464,35 +464,35 @@ fsyswalk(Xfid *x, Fid *f)
 			}
 
 			/* is it a numeric name? */
-			for(j=0; (c=x->wname[i][j]); j++)
+			for(j=0; (c=x->Fcall.wname[i][j]); j++)
 				if(c<'0' || '9'<c)
 					goto Regular;
 			/* yes: it's a directory */
 			if(w)	/* name has form 27/23; get out before losing w */
 				break;
-			id = atoi(x->wname[i]);
-			qlock(&row);
+			id = atoi(x->Fcall.wname[i]);
+			qlock(&row.QLock);
 			w = lookid(id, FALSE);
 			if(w == nil){
-				qunlock(&row);
+				qunlock(&row.QLock);
 				break;
 			}
-			incref(w);	/* we'll drop reference at end if there's an error */
+			incref(&w->Ref);	/* we'll drop reference at end if there's an error */
 			path = Qdir;
 			type = QTDIR;
-			qunlock(&row);
+			qunlock(&row.QLock);
 			dir = dirtabw;
 			goto Accept;
 	
     Regular:
 //			if(FILE(f->qid) == Qacme)	/* empty directory */
 //				break;
-			if(strcmp(x->wname[i], "new") == 0){
+			if(strcmp(x->Fcall.wname[i], "new") == 0){
 				if(w)
 					error("w set in walk to new");
 				sendp(cnewwindow, nil);	/* signal newwindowthread */
 				w = recvp(cnewwindow);	/* receive new window */
-				incref(w);
+				incref(&w->Ref);
 				type = QTDIR;
 				path = QID(w->id, Qdir);
 				id = w->id;
@@ -506,7 +506,7 @@ fsyswalk(Xfid *x, Fid *f)
 				d = dirtabw;
 			d++;	/* skip '.' */
 			for(; d->name; d++)
-				if(strcmp(x->wname[i], d->name) == 0){
+				if(strcmp(x->Fcall.wname[i], d->name) == 0){
 					path = d->qid;
 					type = d->type;
 					dir = d;
@@ -520,12 +520,12 @@ fsyswalk(Xfid *x, Fid *f)
 			err = Eexist;
 	}
 
-	if(err!=nil || t.nwqid<x->nwname){
+	if(err!=nil || t.nwqid<x->Fcall.nwname){
 		if(nf){
 			nf->busy = FALSE;
 			fsysdelid(nf->mntdir);
 		}
-	}else if(t.nwqid  == x->nwname){
+	}else if(t.nwqid  == x->Fcall.nwname){
 		if(w){
 			f->w = w;
 			w = nil;	/* don't drop the reference */
@@ -549,11 +549,11 @@ fsysopen(Xfid *x, Fid *f)
 	int m;
 
 	/* can't truncate anything, so just disregard */
-	x->mode &= ~(OTRUNC|OCEXEC);
+	x->Fcall.mode &= ~(OTRUNC|OCEXEC);
 	/* can't execute or remove anything */
-	if(x->mode==OEXEC || (x->mode&ORCLOSE))
+	if(x->Fcall.mode==OEXEC || (x->Fcall.mode&ORCLOSE))
 		goto Deny;
-	switch(x->mode){
+	switch(x->Fcall.mode){
 	default:
 		goto Deny;
 	case OREAD:
@@ -611,8 +611,8 @@ fsysread(Xfid *x, Fid *f)
 			respond(x, &t, nil);
 			return x;
 		}
-		o = x->offset;
-		e = x->offset+x->count;
+		o = x->Fcall.offset;
+		e = x->Fcall.offset+x->Fcall.count;
 		clock = getclock();
 		b = emalloc(messagesize);
 		id = WIN(f->qid);
@@ -623,7 +623,7 @@ fsysread(Xfid *x, Fid *f)
 			d = dirtab;
 		d++;	/* first entry is '.' */
 		for(i=0; d->name!=nil && i<e; i+=len){
-			len = dostat(WIN(x->f->qid), d, b+n, x->count-n, clock);
+			len = dostat(WIN(x->f->qid), d, b+n, x->Fcall.count-n, clock);
 			if(len <= BIT16SZ)
 				break;
 			if(i >= o)
@@ -631,7 +631,7 @@ fsysread(Xfid *x, Fid *f)
 			d++;
 		}
 		if(id == 0){
-			qlock(&row);
+			qlock(&row.QLock);
 			nids = 0;
 			ids = nil;
 			for(j=0; j<row.ncol; j++){
@@ -641,7 +641,7 @@ fsysread(Xfid *x, Fid *f)
 					ids[nids++] = c->w[k]->id;
 				}
 			}
-			qunlock(&row);
+			qunlock(&row.QLock);
 			qsort(ids, nids, sizeof ids[0], idcmp);
 			j = 0;
 			dt.name = buf;
@@ -651,7 +651,7 @@ fsysread(Xfid *x, Fid *f)
 				dt.qid = QID(k, Qdir);
 				dt.type = QTDIR;
 				dt.perm = DMDIR|0700;
-				len = dostat(k, &dt, b+n, x->count-n, clock);
+				len = dostat(k, &dt, b+n, x->Fcall.count-n, clock);
 				if(len == 0)
 					break;
 				if(i >= o)

@@ -43,7 +43,7 @@ rowinit(Row *row, Rectangle r)
 	r1.max.y += Border;
 	draw(screen, r1, display->black, nil, ZP);
 	textinsert(t, 0, L"Newcol Kill Putall Dump Exit ", 29, TRUE);
-	textsetselect(t, t->file->nc, t->file->nc);
+	textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 }
 
 Column*
@@ -55,7 +55,7 @@ rowadd(Row *row, Column *c, int x)
 
 	d = nil;
 	r = row->r;
-	r.min.y = row->tag.r.max.y+Border;
+	r.min.y = row->tag.Frame.r.max.y+Border;
 	if(x<r.min.x && row->ncol>0){	/*steal 40% of last column by default */
 		d = row->col[row->ncol-1];
 		x = d->r.min.x + 3*Dx(d->r)/5;
@@ -86,7 +86,7 @@ rowadd(Row *row, Column *c, int x)
 	if(c == nil){
 		c = emalloc(sizeof(Column));
 		colinit(c, r);
-		incref(&reffont);
+		incref(&reffont.Ref);
 	}else
 		colresize(c, r);
 	c->row = row;
@@ -268,7 +268,7 @@ rowtype(Row *row, Rune r, Point p)
 	Text *t;
 
 	clearmouse();
-	qlock(row);
+	qlock(&row->QLock);
 	if(bartflag)
 		t = barttext;
 	else
@@ -283,7 +283,7 @@ rowtype(Row *row, Rune r, Point p)
 			winunlock(w);
 		}
 	}
-	qunlock(row);
+	qunlock(&row->QLock);
 	return t;
 }
 
@@ -397,13 +397,13 @@ rowdump(Row *row, char *file)
 				Bprint(b, "F%11d %11d %11d %11d %11d %11d %s\n", i, j,
 					w->body.q0, w->body.q1,
 					100*(w->r.min.y-c->r.min.y)/Dy(c->r),
-					w->body.file->nc, fontname);
+					w->body.file->Buffer.nc, fontname);
 			}
 			free(a);
 			winctlprint(w, buf, 0);
 			Bwrite(b, buf, strlen(buf));
-			m = min(RBUFSIZE, w->tag.file->nc);
-			bufread(w->tag.file, 0, r, m);
+			m = min(RBUFSIZE, w->tag.file->Buffer.nc);
+			bufread(&w->tag.file->Buffer, 0, r, m);
 			n = 0;
 			while(n<m && r[n]!='\n')
 				n++;
@@ -411,12 +411,12 @@ rowdump(Row *row, char *file)
 			Bprint(b, "%.*S", n, r);
 			if(dumped){
 				q0 = 0;
-				q1 = t->file->nc;
+				q1 = t->file->Buffer.nc;
 				while(q0 < q1){
 					n = q1 - q0;
 					if(n > BUFSIZE/UTFmax)
 						n = BUFSIZE/UTFmax;
-					bufread(t->file, q0, r, n);
+					bufread(&t->file->Buffer, q0, r, n);
 					Bprint(b, "%.*S", n, r);
 					q0 += n;
 				}
@@ -662,7 +662,7 @@ rowload(Row *row, char *file, int initing)
 			if(r[n] == '|')
 				break;
 		wincleartag(w);
-		textinsert(&w->tag, w->tag.file->nc, r+n+1, nr-(n+1), TRUE);
+		textinsert(&w->tag, w->tag.file->Buffer.nc, r+n+1, nr-(n+1), TRUE);
 		if(ndumped >= 0){
 			/* simplest thing is to put it in a file and load that */
 			sprint(buf, "/tmp/d%d.%.4sacme", getpid(), getuser());
@@ -702,10 +702,10 @@ rowload(Row *row, char *file, int initing)
 			free(fontr);
 		}
 		free(r);
-		if(q0>w->body.file->nc || q1>w->body.file->nc || q0>q1)
+		if(q0>w->body.file->Buffer.nc || q1>w->body.file->Buffer.nc || q0>q1)
 			q0 = q1 = 0;
 		textshow(&w->body, q0, q1, 1);
-		w->maxlines = min(w->body.nlines, max(w->maxlines, w->body.maxlines));
+		w->maxlines = min(w->body.Frame.nlines, max(w->maxlines, w->body.Frame.maxlines));
 	}
 	Bterm(b);
 	fbuffree(buf);

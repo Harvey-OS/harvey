@@ -34,23 +34,23 @@ wininit(Window *w, Window *clone, Rectangle r)
 	w->tag.w = w;
 	w->body.w = w;
 	w->id = ++winid;
-	incref(w);
+	incref(&w->Ref);
 	if(globalincref)
-		incref(w);
+		incref(&w->Ref);
 	w->ctlfid = ~0;
 	w->utflastqid = -1;
 	r1 = r;
 	r1.max.y = r1.min.y + font->height;
-	incref(&reffont);
+	incref(&reffont.Ref);
 	f = fileaddtext(nil, &w->tag);
 	textinit(&w->tag, f, r1, &reffont, tagcols);
 	w->tag.what = Tag;
 	/* tag is a copy of the contents, not a tracked image */
 	if(clone){
-		textdelete(&w->tag, 0, w->tag.file->nc, TRUE);
-		nc = clone->tag.file->nc;
+		textdelete(&w->tag, 0, w->tag.file->Buffer.nc, TRUE);
+		nc = clone->tag.file->Buffer.nc;
 		rp = runemalloc(nc);
-		bufread(clone->tag.file, 0, rp, nc);
+		bufread(&clone->tag.file->Buffer, 0, rp, nc);
 		textinsert(&w->tag, 0, rp, nc, TRUE);
 		free(rp);
 		filereset(w->tag.file);
@@ -76,13 +76,13 @@ wininit(Window *w, Window *clone, Rectangle r)
 	draw(screen, r1, tagcols[BORD], nil, ZP);
 	textscrdraw(&w->body);
 	w->r = r;
-	w->r.max.y = w->body.r.max.y;
+	w->r.max.y = w->body.Frame.r.max.y;
 	br.min = w->tag.scrollr.min;
 	br.max.x = br.min.x + Dx(button->r);
 	br.max.y = br.min.y + Dy(button->r);
 	draw(screen, br, button, nil, button->r.min);
 	w->filemenu = TRUE;
-	w->maxlines = w->body.maxlines;
+	w->maxlines = w->body.Frame.maxlines;
 	w->autoindent = globalautoindent;
 	if(clone){
 		w->dirty = clone->dirty;
@@ -98,13 +98,13 @@ delrunepos(Window *w)
 	int n;
 	Rune rune;
 	
-	for(n=0; n<w->tag.file->nc; n++) {
-		bufread(w->tag.file, n, &rune, 1);
+	for(n=0; n<w->tag.file->Buffer.nc; n++) {
+		bufread(&w->tag.file->Buffer, n, &rune, 1);
 		if(rune == ' ')
 			break;
 	}
 	n += 2;
-	if(n >= w->tag.file->nc)
+	if(n >= w->tag.file->Buffer.nc)
 		return -1;
 	return n;
 }
@@ -117,7 +117,7 @@ movetodel(Window *w)
 	n = delrunepos(w);
 	if(n < 0)
 		return;
-	moveto(mousectl, addpt(frptofchar(&w->tag, n), Pt(4, w->tag.font->height-4)));
+	moveto(mousectl, addpt(frptofchar(&w->tag.Frame, n), Pt(4, w->tag.Frame.font->height-4)));
 }
 
 int
@@ -131,7 +131,7 @@ winresize(Window *w, Rectangle r, int safe)
 	r1 = r;
 	r1.max.y = r1.min.y + font->height;
 	y = r1.max.y;
-	if(!safe || !eqrect(w->tag.r, r1)){
+	if(!safe || !eqrect(w->tag.Frame.r, r1)){
 		y = textresize(&w->tag, r1);
 		b = button;
 		if(w->body.file->mod && !w->isdir && !w->isscratch)
@@ -141,7 +141,7 @@ winresize(Window *w, Rectangle r, int safe)
 		br.max.y = br.min.y + Dy(b->r);
 		draw(screen, br, b, nil, b->r.min);
 	}
-	if(!safe || !eqrect(w->body.r, r1)){
+	if(!safe || !eqrect(w->body.Frame.r, r1)){
 		if(y+1+font->height > r.max.y){		/* no body */
 			r1.min.y = y;
 			r1.max.y = y;
@@ -161,15 +161,15 @@ winresize(Window *w, Rectangle r, int safe)
 		w->r.max.y = y;
 		textscrdraw(&w->body);
 	}
-	w->maxlines = min(w->body.nlines, max(w->maxlines, w->body.maxlines));
+	w->maxlines = min(w->body.Frame.nlines, max(w->maxlines, w->body.Frame.maxlines));
 	return w->r.max.y;
 }
 
 void
 winlock1(Window *w, int owner)
 {
-	incref(w);
-	qlock(w);
+	incref(&w->Ref);
+	qlock(&w->QLock);
 	w->owner = owner;
 }
 
@@ -199,7 +199,7 @@ winunlock(Window *w)
 	for(i=f->ntext-1; i>=0; i--){
 		w = f->text[i]->w;
 		w->owner = 0;
-		qunlock(w);
+		qunlock(&w->QLock);
 		winclose(w);
 	}
 }
@@ -233,7 +233,7 @@ winclose(Window *w)
 {
 	int i;
 
-	if(decref(w) == 0){
+	if(decref(&w->Ref) == 0){
 		windirfree(w);
 		textclose(&w->tag);
 		textclose(&w->body);
@@ -279,8 +279,8 @@ winundo(Window *w, int isundo)
 		v = f->text[i]->w;
 		v->dirty = (f->seq != v->putseq);
 		if(v != w){
-			v->body.q0 = v->body.p0+v->body.org;
-			v->body.q1 = v->body.p1+v->body.org;
+			v->body.q0 = v->body.Frame.p0+v->body.org;
+			v->body.q1 = v->body.Frame.p1+v->body.org;
 		}
 	}
 	winsettag(w);
@@ -328,9 +328,9 @@ wincleartag(Window *w)
 	Rune *r;
 
 	/* w must be committed */
-	n = w->tag.file->nc;
+	n = w->tag.file->Buffer.nc;
 	r = runemalloc(n);
-	bufread(w->tag.file, 0, r, n);
+	bufread(&w->tag.file->Buffer, 0, r, n);
 	for(i=0; i<n; i++)
 		if(r[i]==' ' || r[i]=='\t')
 			break;
@@ -362,19 +362,19 @@ winsettag1(Window *w)
 	/* there are races that get us here with stuff in the tag cache, so we take extra care to sync it */
 	if(w->tag.ncache!=0 || w->tag.file->mod)
 		wincommit(w, &w->tag);	/* check file name; also guarantees we can modify tag contents */
-	old = runemalloc(w->tag.file->nc+1);
-	bufread(w->tag.file, 0, old, w->tag.file->nc);
-	old[w->tag.file->nc] = '\0';
-	for(i=0; i<w->tag.file->nc; i++)
+	old = runemalloc(w->tag.file->Buffer.nc+1);
+	bufread(&w->tag.file->Buffer, 0, old, w->tag.file->Buffer.nc);
+	old[w->tag.file->Buffer.nc] = '\0';
+	for(i=0; i<w->tag.file->Buffer.nc; i++)
 		if(old[i]==' ' || old[i]=='\t')
 			break;
 	if(runeeq(old, i, w->body.file->name, w->body.file->nname) == FALSE){
 		textdelete(&w->tag, 0, i, TRUE);
 		textinsert(&w->tag, 0, w->body.file->name, w->body.file->nname, TRUE);
 		free(old);
-		old = runemalloc(w->tag.file->nc+1);
-		bufread(w->tag.file, 0, old, w->tag.file->nc);
-		old[w->tag.file->nc] = '\0';
+		old = runemalloc(w->tag.file->Buffer.nc+1);
+		bufread(&w->tag.file->Buffer, 0, old, w->tag.file->Buffer.nc);
+		old[w->tag.file->Buffer.nc] = '\0';
 	}
 	new = runemalloc(w->body.file->nname+100);
 	i = 0;
@@ -407,7 +407,7 @@ winsettag1(Window *w)
 	if(r)
 		k = r-old+1;
 	else{
-		k = w->tag.file->nc;
+		k = w->tag.file->Buffer.nc;
 		if(w->body.file->seq == 0){
 			runemove(new+i, L" Look ", 6);
 			i += 6;
@@ -438,7 +438,7 @@ winsettag1(Window *w)
 	free(old);
 	free(new);
 	w->tag.file->mod = FALSE;
-	n = w->tag.file->nc+w->tag.ncache;
+	n = w->tag.file->Buffer.nc+w->tag.ncache;
 	if(w->tag.q0 > n)
 		w->tag.q0 = n;
 	if(w->tag.q1 > n)
@@ -463,7 +463,7 @@ winsettag(Window *w)
 	f = w->body.file;
 	for(i=0; i<f->ntext; i++){
 		v = f->text[i]->w;
-		if(v->col->safe || v->body.maxlines>0)
+		if(v->col->safe || v->body.Frame.maxlines>0)
 			winsettag1(v);
 	}
 }
@@ -482,9 +482,9 @@ wincommit(Window *w, Text *t)
 			textcommit(f->text[i], FALSE);	/* no-op for t */
 	if(t->what == Body)
 		return;
-	r = runemalloc(w->tag.file->nc);
-	bufread(w->tag.file, 0, r, w->tag.file->nc);
-	for(i=0; i<w->tag.file->nc; i++)
+	r = runemalloc(w->tag.file->Buffer.nc);
+	bufread(&w->tag.file->Buffer, 0, r, w->tag.file->Buffer.nc);
+	for(i=0; i<w->tag.file->Buffer.nc; i++)
 		if(r[i]==' ' || r[i]=='\t')
 			break;
 	if(runeeq(r, i, w->body.file->name, w->body.file->nname) == FALSE){
@@ -555,7 +555,7 @@ winclean(Window *w, int conservative)	/* as it stands, conservative is always TR
 		if(w->body.file->nname)
 			warning(nil, "%.*S modified\n", w->body.file->nname, w->body.file->name);
 		else{
-			if(w->body.file->nc < 100)	/* don't whine if it's too small */
+			if(w->body.file->Buffer.nc < 100)	/* don't whine if it's too small */
 				return TRUE;
 			warning(nil, "unnamed file modified\n");
 		}
@@ -568,11 +568,11 @@ winclean(Window *w, int conservative)	/* as it stands, conservative is always TR
 char*
 winctlprint(Window *w, char *buf, int fonts)
 {
-	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
-		w->body.file->nc, w->isdir, w->dirty);
+	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->Buffer.nc,
+		w->body.file->Buffer.nc, w->isdir, w->dirty);
 	if(fonts)
-		return smprint("%s%11d %q %11d " , buf, Dx(w->body.r), 
-			w->body.reffont->f->name, w->body.maxtab);
+		return smprint("%s%11d %q %11d " , buf, Dx(w->body.Frame.r), 
+			w->body.reffont->f->name, w->body.Frame.maxtab);
 	return buf;
 }
 

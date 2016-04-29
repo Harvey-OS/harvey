@@ -41,10 +41,10 @@ clampaddr(Window *w)
 		w->addr.q0 = 0;
 	if(w->addr.q1 < 0)
 		w->addr.q1 = 0;
-	if(w->addr.q0 > w->body.file->nc)
-		w->addr.q0 = w->body.file->nc;
-	if(w->addr.q1 > w->body.file->nc)
-		w->addr.q1 = w->body.file->nc;
+	if(w->addr.q0 > w->body.file->Buffer.nc)
+		w->addr.q0 = w->body.file->Buffer.nc;
+	if(w->addr.q1 > w->body.file->Buffer.nc)
+		w->addr.q1 = w->body.file->Buffer.nc;
 }
 
 void
@@ -73,14 +73,14 @@ xfidflush(Xfid *x)
 	Xfid *wx;
 
 	/* search windows for matching tag */
-	qlock(&row);
+	qlock(&row.QLock);
 	for(j=0; j<row.ncol; j++){
 		c = row.col[j];
 		for(i=0; i<c->nw; i++){
 			w = c->w[i];
 			winlock(w, 'E');
 			wx = w->eventx;
-			if(wx!=nil && wx->tag==x->oldtag){
+			if(wx!=nil && wx->Fcall.tag==x->Fcall.oldtag){
 				w->eventx = nil;
 				wx->flushed = TRUE;
 				sendp(wx->c, nil);
@@ -91,7 +91,7 @@ xfidflush(Xfid *x)
 		}
 	}
 out:
-	qunlock(&row);
+	qunlock(&row.QLock);
 	respond(x, &fc, nil);
 }
 
@@ -158,7 +158,7 @@ xfidopen(Xfid *x)
 				n = q1 - q0;
 				if(n > BUFSIZE/UTFmax)
 					n = BUFSIZE/UTFmax;
-				bufread(t->file, q0, r, n);
+				bufread(&t->file->Buffer, q0, r, n);
 				m = snprint(s, BUFSIZE+1, "%.*S", n, r);
 				if(write(w->rdselfd, s, m) != m){
 					warning(nil, "can't write temp file for pipe command %r\n");
@@ -251,8 +251,8 @@ xfidclose(Xfid *x)
 			w->nomark = FALSE;
 			t = &w->body;
 			/* before: only did this if !w->noscroll, but that didn't seem right in practice */
-			textshow(t, min(w->wrselrange.q0, t->file->nc),
-				min(w->wrselrange.q1, t->file->nc), 1);
+			textshow(t, min(w->wrselrange.q0, t->file->Buffer.nc),
+				min(w->wrselrange.q1, t->file->Buffer.nc), 1);
 			textscrdraw(t);
 			break;
 		}
@@ -296,7 +296,7 @@ xfidread(Xfid *x)
 		respond(x, &fc, Edel);
 		return;
 	}
-	off = x->offset;
+	off = x->Fcall.offset;
 	switch(q){
 	case QWaddr:
 		textcommit(&w->body, TRUE);
@@ -305,7 +305,7 @@ xfidread(Xfid *x)
 		goto Readbuf;
 
 	case QWbody:
-		xfidutfread(x, &w->body, w->body.file->nc, QWbody);
+		xfidutfread(x, &w->body, w->body.file->Buffer.nc, QWbody);
 		break;
 
 	case QWctl:
@@ -318,9 +318,9 @@ xfidread(Xfid *x)
 		n = strlen(b);
 		if(off > n)
 			off = n;
-		if(off+x->count > n)
-			x->count = n-off;
-		fc.count = x->count;
+		if(off+x->Fcall.count > n)
+			x->Fcall.count = n-off;
+		fc.count = x->Fcall.count;
 		fc.data = b+off;
 		respond(x, &fc, nil);
 		if(b != buf)
@@ -333,17 +333,17 @@ xfidread(Xfid *x)
 
 	case QWdata:
 		/* BUG: what should happen if q1 > q0? */
-		if(w->addr.q0 > w->body.file->nc){
+		if(w->addr.q0 > w->body.file->Buffer.nc){
 			respond(x, &fc, Eaddr);
 			break;
 		}
-		w->addr.q0 += xfidruneread(x, &w->body, w->addr.q0, w->body.file->nc);
+		w->addr.q0 += xfidruneread(x, &w->body, w->addr.q0, w->body.file->Buffer.nc);
 		w->addr.q1 = w->addr.q0;
 		break;
 
 	case QWxdata:
 		/* BUG: what should happen if q1 > q0? */
-		if(w->addr.q0 > w->body.file->nc){
+		if(w->addr.q0 > w->body.file->Buffer.nc){
 			respond(x, &fc, Eaddr);
 			break;
 		}
@@ -351,12 +351,12 @@ xfidread(Xfid *x)
 		break;
 
 	case QWtag:
-		xfidutfread(x, &w->tag, w->tag.file->nc, QWtag);
+		xfidutfread(x, &w->tag, w->tag.file->Buffer.nc, QWtag);
 		break;
 
 	case QWrdsel:
 		seek(w->rdselfd, off, 0);
-		n = x->count;
+		n = x->Fcall.count;
 		if(n > BUFSIZE)
 			n = BUFSIZE;
 		b = fbufalloc();
@@ -385,24 +385,24 @@ fullrunewrite(Xfid *x, int *inr)
 	Rune *r;
 
 	q = x->f->nrpart;
-	cnt = x->count;
+	cnt = x->Fcall.count;
 	if(q > 0){
-		memmove(x->data+q, x->data, cnt);	/* there's room; see fsysproc */
-		memmove(x->data, x->f->rpart, q);
+		memmove(x->Fcall.data+q, x->Fcall.data, cnt);	/* there's room; see fsysproc */
+		memmove(x->Fcall.data, x->f->rpart, q);
 		cnt += q;
 		x->f->nrpart = 0;
 	}
 	r = runemalloc(cnt);
-	cvttorunes(x->data, cnt-UTFmax, r, &nb, &nr, nil);
+	cvttorunes(x->Fcall.data, cnt-UTFmax, r, &nb, &nr, nil);
 	/* approach end of buffer */
-	while(fullrune(x->data+nb, cnt-nb)){
+	while(fullrune(x->Fcall.data+nb, cnt-nb)){
 		c = nb;
-		nb += chartorune(&r[nr], x->data+c);
+		nb += chartorune(&r[nr], x->Fcall.data+c);
 		if(r[nr])
 			nr++;
 	}
 	if(nb < cnt){
-		memmove(x->f->rpart, x->data+nb, cnt-nb);
+		memmove(x->f->rpart, x->Fcall.data+nb, cnt-nb);
 		x->f->nrpart = cnt-nb;
 	}
 	*inr = nr;
@@ -434,7 +434,7 @@ xfidwrite(Xfid *x)
 			return;
 		}
 	}
-	x->data[x->count] = 0;
+	x->Fcall.data[x->Fcall.count] = 0;
 	switch(qid){
 	case Qcons:
 		w = errorwin(x->f->mntdir, 'X');
@@ -442,13 +442,13 @@ xfidwrite(Xfid *x)
 		goto BodyTag;
 
 	case Qlabel:
-		fc.count = x->count;
+		fc.count = x->Fcall.count;
 		respond(x, &fc, nil);
 		break;
 
 	case QWaddr:
-		x->data[x->count] = 0;
-		r = bytetorune(x->data, &nr);
+		x->Fcall.data[x->Fcall.count] = 0;
+		r = bytetorune(x->Fcall.data, &nr);
 		t = &w->body;
 		wincommit(w, t);
 		eval = TRUE;
@@ -463,7 +463,7 @@ xfidwrite(Xfid *x)
 			break;
 		}
 		w->addr = a;
-		fc.count = x->count;
+		fc.count = x->Fcall.count;
 		respond(x, &fc, nil);
 		break;
 
@@ -479,7 +479,7 @@ xfidwrite(Xfid *x)
 			respond(x, &fc, err);
 			break;
 		}
-		fc.count = x->count;
+		fc.count = x->Fcall.count;
 		respond(x, &fc, nil);
 		break;
 
@@ -501,12 +501,12 @@ xfidwrite(Xfid *x)
 		a = w->addr;
 		t = &w->body;
 		wincommit(w, t);
-		if(a.q0>t->file->nc || a.q1>t->file->nc){
+		if(a.q0>t->file->Buffer.nc || a.q1>t->file->Buffer.nc){
 			respond(x, &fc, Eaddr);
 			break;
 		}
-		r = runemalloc(x->count);
-		cvttorunes(x->data, x->count, r, &nb, &nr, nil);
+		r = runemalloc(x->Fcall.count);
+		cvttorunes(x->Fcall.data, x->Fcall.count, r, &nb, &nr, nil);
 		if(w->nomark == FALSE){
 			seq++;
 			filemark(t->file);
@@ -531,7 +531,7 @@ xfidwrite(Xfid *x)
 		free(r);
 		w->addr.q0 += nr;
 		w->addr.q1 = w->addr.q0;
-		fc.count = x->count;
+		fc.count = x->Fcall.count;
 		respond(x, &fc, nil);
 		break;
 
@@ -549,10 +549,10 @@ xfidwrite(Xfid *x)
 			wincommit(w, t);
 			if(qid == QWwrsel){
 				q0 = w->wrselrange.q1;
-				if(q0 > t->file->nc)
-					q0 = t->file->nc;
+				if(q0 > t->file->Buffer.nc)
+					q0 = t->file->Buffer.nc;
 			}else
-				q0 = t->file->nc;
+				q0 = t->file->Buffer.nc;
 			if(qid == QWtag)
 				textinsert(t, q0, r, nr, TRUE);
 			else{
@@ -571,7 +571,7 @@ xfidwrite(Xfid *x)
 				w->wrselrange.q1 += nr;
 			free(r);
 		}
-		fc.count = x->count;
+		fc.count = x->Fcall.count;
 		respond(x, &fc, nil);
 		break;
 
@@ -595,20 +595,20 @@ xfidctlwrite(Xfid *x, Window *w)
 	Text *t;
 
 	err = nil;
-	e = x->data+x->count;
+	e = x->Fcall.data+x->Fcall.count;
 	scrdraw = FALSE;
 	settag = FALSE;
 	isfbuf = TRUE;
-	if(x->count < RBUFSIZE)
+	if(x->Fcall.count < RBUFSIZE)
 		r = fbufalloc();
 	else{
 		isfbuf = FALSE;
-		r = emalloc(x->count*UTFmax+1);
+		r = emalloc(x->Fcall.count*UTFmax+1);
 	}
-	x->data[x->count] = 0;
+	x->Fcall.data[x->Fcall.count] = 0;
 	textcommit(&w->tag, TRUE);
-	for(n=0; n<x->count; n+=m){
-		p = x->data+n;
+	for(n=0; n<x->Fcall.count; n+=m){
+		p = x->Fcall.data+n;
 		if(strncmp(p, "lock", 4) == 0){	/* make window exclusive use */
 			qlock(&w->ctllock);
 			w->ctlfid = x->f->fid;
@@ -810,14 +810,14 @@ xfideventwrite(Xfid *x, Window *w)
 
 	err = nil;
 	isfbuf = TRUE;
-	if(x->count < RBUFSIZE)
+	if(x->Fcall.count < RBUFSIZE)
 		r = fbufalloc();
 	else{
 		isfbuf = FALSE;
-		r = emalloc(x->count*UTFmax+1);
+		r = emalloc(x->Fcall.count*UTFmax+1);
 	}
-	for(n=0; n<x->count; n+=m){
-		p = x->data+n;
+	for(n=0; n<x->Fcall.count; n+=m){
+		p = x->Fcall.data+n;
 		w->owner = *p++;	/* disgusting */
 		c = *p++;
 		while(*p == ' ')
@@ -836,17 +836,17 @@ xfideventwrite(Xfid *x, Window *w)
 			p++;
 		if(*p++ != '\n')
 			goto Rescue;
-		m = p-(x->data+n);
+		m = p-(x->Fcall.data+n);
 		if('a'<=c && c<='z')
 			t = &w->tag;
 		else if('A'<=c && c<='Z')
 			t = &w->body;
 		else
 			goto Rescue;
-		if(q0>t->file->nc || q1>t->file->nc || q0>q1)
+		if(q0>t->file->Buffer.nc || q1>t->file->Buffer.nc || q0>q1)
 			goto Rescue;
 
-		qlock(&row);	/* just like mousethread */
+		qlock(&row.QLock);	/* just like mousethread */
 		switch(c){
 		case 'x':
 		case 'X':
@@ -857,10 +857,10 @@ xfideventwrite(Xfid *x, Window *w)
 			look3(t, q0, q1, TRUE);
 			break;
 		default:
-			qunlock(&row);
+			qunlock(&row.QLock);
 			goto Rescue;
 		}
-		qunlock(&row);
+		qunlock(&row.QLock);
 
 	}
 
@@ -892,7 +892,7 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 
 	w = t->w;
 	wincommit(w, t);
-	off = x->offset;
+	off = x->Fcall.offset;
 	r = fbufalloc();
 	b = fbufalloc();
 	b1 = fbufalloc();
@@ -906,7 +906,7 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 		q = 0;
 	}
 	w->utflastqid = qid;
-	while(q<q1 && n<x->count){
+	while(q<q1 && n<x->Fcall.count){
 		/*
 		 * Updating here avoids partial rune problem: we're always on a
 		 * char boundary. The cost is we will usually do one more read
@@ -917,20 +917,20 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 		nr = q1-q;
 		if(nr > BUFSIZE/UTFmax)
 			nr = BUFSIZE/UTFmax;
-		bufread(t->file, q, r, nr);
+		bufread(&t->file->Buffer, q, r, nr);
 		nb = snprint(b, BUFSIZE+1, "%.*S", nr, r);
 		if(boff >= off){
 			m = nb;
-			if(boff+m > off+x->count)
-				m = off+x->count - boff;
+			if(boff+m > off+x->Fcall.count)
+				m = off+x->Fcall.count - boff;
 			memmove(b1+n, b, m);
 			n += m;
 		}else if(boff+nb > off){
 			if(n != 0)
 				error("bad count in utfrune");
 			m = nb - (off-boff);
-			if(m > x->count)
-				m = x->count;
+			if(m > x->Fcall.count)
+				m = x->Fcall.count;
 			memmove(b1, b+(off-boff), m);
 			n += m;
 		}
@@ -963,15 +963,15 @@ xfidruneread(Xfid *x, Text *t, uint q0, uint q1)
 	n = 0;
 	q = q0;
 	boff = 0;
-	while(q<q1 && n<x->count){
+	while(q<q1 && n<x->Fcall.count){
 		nr = q1-q;
 		if(nr > BUFSIZE/UTFmax)
 			nr = BUFSIZE/UTFmax;
-		bufread(t->file, q, r, nr);
+		bufread(&t->file->Buffer, q, r, nr);
 		nb = snprint(b, BUFSIZE+1, "%.*S", nr, r);
 		m = nb;
-		if(boff+m > x->count){
-			i = x->count - boff;
+		if(boff+m > x->Fcall.count){
+			i = x->Fcall.count - boff;
 			/* copy whole runes only */
 			m = 0;
 			nr = 0;
@@ -1022,8 +1022,8 @@ xfideventread(Xfid *x, Window *w)
 	}
 
 	n = w->nevents;
-	if(n > x->count)
-		n = x->count;
+	if(n > x->Fcall.count)
+		n = x->Fcall.count;
 	fc.count = n;
 	fc.data = w->events;
 	respond(x, &fc, nil);
@@ -1043,13 +1043,13 @@ xfidindexread(Xfid *x)
 	Rune *r;
 	Column *c;
 
-	qlock(&row);
+	qlock(&row.QLock);
 	nmax = 0;
 	for(j=0; j<row.ncol; j++){
 		c = row.col[j];
 		for(i=0; i<c->nw; i++){
 			w = c->w[i];
-			nmax += Ctlsize + w->tag.file->nc*UTFmax + 1;
+			nmax += Ctlsize + w->tag.file->Buffer.nc*UTFmax + 1;
 		}
 	}
 	nmax++;
@@ -1069,17 +1069,17 @@ xfidindexread(Xfid *x)
 				continue;
 			winctlprint(w, b+n, 0);
 			n += Ctlsize;
-			m = min(RBUFSIZE, w->tag.file->nc);
-			bufread(w->tag.file, 0, r, m);
+			m = min(RBUFSIZE, w->tag.file->Buffer.nc);
+			bufread(&w->tag.file->Buffer, 0, r, m);
 			m = n + snprint(b+n, nmax-n-1, "%.*S", m, r);
 			while(n<m && b[n]!='\n')
 				n++;
 			b[n++] = '\n';
 		}
 	}
-	qunlock(&row);
-	off = x->offset;
-	cnt = x->count;
+	qunlock(&row.QLock);
+	off = x->Fcall.offset;
+	cnt = x->Fcall.count;
 	if(off > n)
 		off = n;
 	if(off+cnt > n)

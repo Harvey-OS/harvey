@@ -41,7 +41,7 @@ colinit(Column *c, Rectangle r)
 	r1.max.y += Border;
 	draw(screen, r1, display->black, nil, ZP);
 	textinsert(t, 0, L"New Cut Paste Snarf Sort Zerox Delcol ", 38, TRUE);
-	textsetselect(t, t->file->nc, t->file->nc);
+	textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 	draw(screen, t->scrollr, colbutton, nil, colbutton->r.min);
 	c->safe = TRUE;
 }
@@ -55,10 +55,10 @@ coladd(Column *c, Window *w, Window *clone, int y)
 
 	v = nil;
 	r = c->r;
-	r.min.y = c->tag.r.max.y+Border;
+	r.min.y = c->tag.Frame.r.max.y+Border;
 	if(y<r.min.y && c->nw>0){	/* steal half of last window by default */
 		v = c->w[c->nw-1];
-		y = v->body.r.min.y+Dy(v->body.r)/2;
+		y = v->body.Frame.r.min.y+Dy(v->body.Frame.r)/2;
 	}
 	/* look for window we'll land on */
 	for(i=0; i<c->nw; i++){
@@ -72,9 +72,9 @@ coladd(Column *c, Window *w, Window *clone, int y)
 		/*
 		 * if v's too small, grow it first.
 		 */
-		if(!c->safe || v->body.maxlines<=3){
+		if(!c->safe || v->body.Frame.maxlines<=3){
 			colgrow(c, v, 1);
-			y = v->body.r.min.y+Dy(v->body.r)/2;
+			y = v->body.Frame.r.min.y+Dy(v->body.Frame.r)/2;
 		}
 		r = v->r;
 		if(i == c->nw)
@@ -84,8 +84,8 @@ coladd(Column *c, Window *w, Window *clone, int y)
 		r.max.y = t;
 		draw(screen, r, textcols[BACK], nil, ZP);
 		r1 = r;
-		y = min(y, t-(v->tag.font->height+v->body.font->height+Border+1));
-		r1.max.y = min(y, v->body.r.min.y+v->body.nlines*v->body.font->height);
+		y = min(y, t-(v->tag.Frame.font->height+v->body.Frame.font->height+Border+1));
+		r1.max.y = min(y, v->body.Frame.r.min.y+v->body.Frame.nlines*v->body.Frame.font->height);
 		r1.min.y = winresize(v, r1, FALSE);
 		r1.max.y = r1.min.y+Border;
 		draw(screen, r1, display->black, nil, ZP);
@@ -199,7 +199,7 @@ colresize(Column *c, Rectangle r)
 
 	clearmouse();
 	r1 = r;
-	r1.max.y = r1.min.y + c->tag.font->height;
+	r1.max.y = r1.min.y + c->tag.Frame.font->height;
 	textresize(&c->tag, r1);
 	draw(screen, c->tag.scrollr, colbutton, nil, colbutton->r.min);
 	r1.min.y = r1.max.y;
@@ -259,7 +259,7 @@ colsort(Column *c)
 	for(i=0; i<c->nw; i++)
 		rp[i] = wp[i]->r;
 	r = c->r;
-	r.min.y = c->tag.r.max.y;
+	r.min.y = c->tag.Frame.r.max.y;
 	draw(screen, r, textcols[BACK], nil, ZP);
 	y = r.min.y;
 	for(i=0; i<c->nw; i++){
@@ -313,17 +313,17 @@ colgrow(Column *c, Window *w, int but)
 		draw(screen, cr, textcols[BACK], nil, ZP);
 		winresize(w, cr, FALSE);
 		for(i=1; i<c->nw; i++)
-			c->w[i]->body.maxlines = 0;
+			c->w[i]->body.Frame.maxlines = 0;
 		c->safe = FALSE;
 		return;
 	}
 	/* store old #lines for each window */
-	onl = w->body.maxlines;
+	onl = w->body.Frame.maxlines;
 	nl = emalloc(c->nw * sizeof(int));
 	ny = emalloc(c->nw * sizeof(int));
 	tot = 0;
 	for(j=0; j<c->nw; j++){
-		l = c->w[j]->body.maxlines;
+		l = c->w[j]->body.Frame.maxlines;
 		nl[j] = l;
 		tot += l;
 	}
@@ -366,7 +366,7 @@ colgrow(Column *c, Window *w, int but)
 		r.min.y = y1;
 		r.max.y = y1+Dy(v->tag.all);
 		if(nl[j])
-			r.max.y += 1 + nl[j]*v->body.font->height;
+			r.max.y += 1 + nl[j]*v->body.Frame.font->height;
 		if(!c->safe || !eqrect(v->r, r)){
 			draw(screen, r, textcols[BACK], nil, ZP);
 			winresize(v, r, c->safe);
@@ -383,7 +383,7 @@ colgrow(Column *c, Window *w, int but)
 		r = v->r;
 		r.min.y = y2-Dy(v->tag.all);
 		if(nl[j])
-			r.min.y -= 1 + nl[j]*v->body.font->height;
+			r.min.y -= 1 + nl[j]*v->body.Frame.font->height;
 		r.min.y -= Border;
 		ny[j] = r.min.y;
 		y2 = r.min.y;
@@ -392,7 +392,7 @@ colgrow(Column *c, Window *w, int but)
 	r = w->r;
 	r.min.y = y1;
 	r.max.y = r.min.y+Dy(w->tag.all);
-	h = w->body.font->height;
+	h = w->body.Frame.font->height;
 	if(y2-r.max.y >= 1+h+Border){
 		r.max.y += 1;
 		r.max.y += h*((y2-r.max.y)/h);
@@ -417,7 +417,7 @@ colgrow(Column *c, Window *w, int but)
 		r.min.y = y1;
 		r.max.y = y1+Dy(v->tag.all);
 		if(nl[j])
-			r.max.y += 1 + nl[j]*v->body.font->height;
+			r.max.y += 1 + nl[j]*v->body.Frame.font->height;
 		if(!c->safe || !eqrect(v->r, r)){
 			draw(screen, r, textcols[BACK], nil, ZP);
 			winresize(v, r, c->safe);
@@ -502,9 +502,9 @@ coldragwin(Column *c, Window *w, int but)
 		p.y = w->r.max.y-Dy(w->tag.all)-Border;
 	r = v->r;
 	r.max.y = p.y;
-	if(r.max.y > v->body.r.min.y){
-		r.max.y -= (r.max.y-v->body.r.min.y)%v->body.font->height;
-		if(v->body.r.min.y == v->body.r.max.y)
+	if(r.max.y > v->body.Frame.r.min.y){
+		r.max.y -= (r.max.y-v->body.Frame.r.min.y)%v->body.Frame.font->height;
+		if(v->body.Frame.r.min.y == v->body.Frame.r.max.y)
 			r.max.y++;
 	}
 	if(!eqrect(v->r, r)){
