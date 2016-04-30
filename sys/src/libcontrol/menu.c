@@ -225,50 +225,50 @@ menuctl(Control *c, CParse *cp)
 		ctlerror("%q: unrecognized message '%s'", m->Control.name, cp->str);
 		break;
 	case EAdd:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
 		m->line = ctlrealloc(m->line, (m->nline+1)*sizeof(char*));
 		m->line[m->nline++] = ctlstrdup(cp->args[1]);
 		menushow(m);
 		break;
 	case EAlign:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
 		m->align = _ctlalignment(cp->args[1]);
 		menushow(m);
 		break;
 	case EBorder:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
 		m->border = cp->iargs[1];
 		menushow(m);
 		break;
 	case EBordercolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->bordercolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
+		_setctlimage(_setctlimage(mm->Control, &m->bordercolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EFocus:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
 		if(atoi(cp->args[1]) == 0)
 			menuhide(m);
 		break;
 	case EFont:
-		_ctlargcount(m, cp, 2);
-		_setctlfont(m, &m->font, cp->args[1]);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
+		_setctlfont(_setctlfont(_setctlfont(mm->Controlm->Control, &m->font, cp->args[1]);
 		break;
 	case EFormat:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
 		m->Control.format = ctlstrdup(cp->args[1]);
 		break;
 	case EHide:
-		_ctlargcount(m, cp, 1);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 1);
 		m->Control.hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->image, cp->args[1]);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
+		_setctlimage(_setctlimage(mm->Control, &m->image, cp->args[1]);
 		menushow(m);
 		break;
 	case ERect:
-		_ctlargcount(m, cp, 5);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
@@ -279,29 +279,29 @@ menuctl(Control *c, CParse *cp)
 		menushow(m);
 		break;
 	case EReveal:
-		_ctlargcount(m, cp, 1);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 1);
 		m->Control.hidden = 0;
 		menushow(m);
 		break;
 	case ESelectcolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->selectcolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
+		_setctlimage(_setctlimage(mm->Control, &m->selectcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case ESelecttextcolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->selecttextcolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
+		_setctlimage(_setctlimage(mm->Control, &m->selecttextcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EShow:
-		_ctlargcount(m, cp, 1);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 1);
 		menushow(m);
 		break;
 	case ESize:
 		if (cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
 		else{
-			_ctlargcount(m, cp, 5);
+			_ctlargcount(_ctlargcount(mm->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
@@ -313,8 +313,8 @@ menuctl(Control *c, CParse *cp)
 		m->Control.size.max = r.max;
 		break;
 	case ETextcolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->textcolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(mm->Control, cp, 2);
+		_setctlimage(_setctlimage(mm->Control, &m->textcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EWindow:

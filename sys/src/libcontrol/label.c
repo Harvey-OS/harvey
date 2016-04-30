@@ -114,36 +114,36 @@ labelctl(Control *c, CParse *cp)
 		ctlerror("%q: unrecognized message '%s'", l->name, cp->str);
 		break;
 	case EAlign:
-		_ctlargcount(l, cp, 2);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
 		l->align = _ctlalignment(cp->args[1]);
 		break;
 	case EBorder:
-		_ctlargcount(l, cp, 2);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
 		if(cp->iargs[1] < 0)
 			ctlerror("%q: bad border: %c", l->name, cp->str);
 		l->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(l, cp, 2);
-		_setctlimage(l, &l->bordercolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
+		_setctlimage(_setctlimage(ll->Control, &l->bordercolor, cp->args[1]);
 		break;
 	case EFocus:
 		/* ignore focus change */
 		break;
 	case EFont:
-		_ctlargcount(l, cp, 2);
-		_setctlfont(l, &l->font, cp->args[1]);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
+		_setctlfont(_setctlfont(_setctlfont(ll->Controll->Control, &l->font, cp->args[1]);
 		break;
 	case EHide:
-		_ctlargcount(l, cp, 1);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 1);
 		l->hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(l, cp, 2);
-		_setctlimage(l, &l->image, cp->args[1]);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
+		_setctlimage(_setctlimage(ll->Control, &l->image, cp->args[1]);
 		break;
 	case ERect:
-		_ctlargcount(l, cp, 5);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
@@ -153,23 +153,23 @@ labelctl(Control *c, CParse *cp)
 		l->rect = r;
 		break;
 	case EReveal:
-		_ctlargcount(l, cp, 1);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 1);
 		l->hidden = 0;
 		labelshow(l);
 		break;
 	case EShow:
-		_ctlargcount(l, cp, 1);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 1);
 		labelshow(l);
 		/*
-		_ctlargcount(l, cp, 2);
-		_setctlimage(l, &l->textcolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
+		_setctlimage(_setctlimage(ll->Control, &l->textcolor, cp->args[1]);
 		*/
 		break;
 	case ESize:
 		if (cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
 		else{
-			_ctlargcount(l, cp, 5);
+			_ctlargcount(_ctlargcount(ll->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
@@ -181,11 +181,11 @@ labelctl(Control *c, CParse *cp)
 		l->size.max = r.max;
 		break;
 	case ETextcolor:
-		_ctlargcount(l, cp, 2);
-		_setctlimage(l, &l->textcolor, cp->args[1]);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
+		_setctlimage(_setctlimage(ll->Control, &l->textcolor, cp->args[1]);
 		break;
 	case EValue:
-		_ctlargcount(l, cp, 2);
+		_ctlargcount(_ctlargcount(ll->Control, cp, 2);
 		if(strcmp(cp->args[1], l->text) != 0){
 			free(l->text);
 			l->text = ctlstrdup(cp->args[1]);

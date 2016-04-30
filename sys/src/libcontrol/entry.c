@@ -89,7 +89,7 @@ entrypoint(Entry *e, int c)
 	Point p;
 	Rectangle r;
 
-	r = e->rect;
+	r = e->Control.rect;
 	if(e->border > 0)
 		r = insetrect(r, e->border);
 	p = _ctlalignpoint(r,
@@ -107,17 +107,17 @@ entryshow(Entry *e)
 	Rectangle r, dr;
 	Point p;
 
-	if (e->hidden)
+	if (e->Control.hidden)
 		return;
-	r = e->rect;
-	draw(e->screen, r, e->image->image, nil, e->image->image->r.min);
+	r = e->Control.rect;
+	draw(e->Control.screen, r, e->image->image, nil, e->image->image->r.min);
 	if(e->border > 0){
-		border(e->screen, r, e->border, e->bordercolor->image, e->bordercolor->image->r.min);
+		border(e->Control.screen, r, e->border, e->bordercolor->image, e->bordercolor->image->r.min);
 		dr = insetrect(r, e->border);
 	}else
 		dr = r;
 	p = entrypoint(e, 0);
-	_string(e->screen, p, e->textcolor->image,
+	_string(e->Control.screen, p, e->textcolor->image,
 		ZP, e->font->font, nil, e->text, e->ntext,
 		dr, nil, ZP, SoverD);
 	if(e->hasfocus){
@@ -126,7 +126,7 @@ entryshow(Entry *e)
 		r.max.x = p.x+1;
 		r.max.y = p.y+e->font->font->height;
 		if(rectclip(&r, dr))
-			draw(e->screen, r, e->textcolor->image, nil, ZP);
+			draw(e->Control.screen, r, e->textcolor->image, nil, ZP);
 	}
 	flushimage(display, 1);
 }
@@ -137,7 +137,7 @@ entrysetpoint(Entry *e, Point cp)
 	Point p;
 	int i;
 
-	if(!ptinrect(cp, insetrect(e->rect, e->border)))
+	if(!ptinrect(cp, insetrect(e->Control.rect, e->border)))
 		return;
 	p = entrypoint(e, 0);
 	for(i=0; i<e->ntext; i++){
@@ -172,7 +172,7 @@ entryctl(Control *c, CParse *cp)
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", e->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", e->Control.name, cp->str);
 		break;
 	case EAlign:
 		_ctlargcount(e, cp, 2);
@@ -181,7 +181,7 @@ entryctl(Control *c, CParse *cp)
 	case EBorder:
 		_ctlargcount(e, cp, 2);
 		if(cp->iargs[1] < 0)
-			ctlerror("%q: bad border: %c", e->name, cp->str);
+			ctlerror("%q: bad border: %c", e->Control.name, cp->str);
 		e->border = cp->iargs[1];
 		break;
 	case EBordercolor:
@@ -204,11 +204,11 @@ entryctl(Control *c, CParse *cp)
 		break;
 	case EFormat:
 		_ctlargcount(e, cp, 2);
-		e->format = ctlstrdup(cp->args[1]);
+		e->Control.format = ctlstrdup(cp->args[1]);
 		break;
 	case EHide:
 		_ctlargcount(e, cp, 1);
-		e->hidden = 1;
+		e->Control.hidden = 1;
 		break;
 	case EImage:
 		_ctlargcount(e, cp, 2);
@@ -221,12 +221,12 @@ entryctl(Control *c, CParse *cp)
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<=0 || Dy(r)<=0)
-			ctlerror("%q: bad rectangle: %s", e->name, cp->str);
-		e->rect = r;
+			ctlerror("%q: bad rectangle: %s", e->Control.name, cp->str);
+		e->Control.rect = r;
 		break;
 	case EReveal:
 		_ctlargcount(e, cp, 1);
-		e->hidden = 0;
+		e->Control.hidden = 0;
 		entryshow(e);
 		break;
 	case EShow:
@@ -244,9 +244,9 @@ entryctl(Control *c, CParse *cp)
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
-			ctlerror("%q: bad sizes: %s", e->name, cp->str);
-		e->size.min = r.min;
-		e->size.max = r.max;
+			ctlerror("%q: bad sizes: %s", e->Control.name, cp->str);
+		e->Control.size.min = r.min;
+		e->Control.size.max = r.max;
 		break;
 	case ETextcolor:
 		_ctlargcount(e, cp, 2);
@@ -284,7 +284,7 @@ entrykey(Entry *e, Rune r)
 		break;
 	case L'\n':	/* newline: return value */
 		p = _ctlstrrune(e->text);
-		chanprint(e->event, e->format, e->name, p);
+		chanprint(e->Control.event, e->Control.format, e->Control.name, p);
 		free(p);
 		return;
 	case L'\b':
@@ -353,11 +353,11 @@ createentry(Controlset *cs, char *name)
 	e->textcolor = _getctlimage("black");
 	e->bordercolor = _getctlimage("black");
 	e->font = _getctlfont("font");
-	e->format = ctlstrdup("%q: value %q");
+	e->Control.format = ctlstrdup("%q: value %q");
 	e->border = 0;
-	e->ctl = entryctl;
-	e->mouse = entrymouse;
+	e->Control.ctl = entryctl;
+	e->Control.mouse = entrymouse;
 	e->key = entrykeys;
-	e->exit = entryfree;
+	e->Control.exit = entryfree;
 	return (Control *)e;
 }
