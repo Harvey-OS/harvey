@@ -19,7 +19,7 @@
 typedef struct Tab Tab;
 
 struct Tab {
-	Control;
+	Control Control;
 	int		border;
 	int		selected;
 	int		separation;
@@ -129,7 +129,7 @@ tabctl(Control *c, CParse *cp)
 			_ctladdgroup(t->tabrow, cbut);
 			_ctlprint(t->tabstack, "add %q", cp->args[i+1]);
 			_ctlprint(cbut, "format '%%s: %q button %%d'", t->Control.name);
-			controlwire(cbut, "event", t->controlset->ctl);
+			controlwire(cbut, "event", t->controlset->Control.ctl);
 			t->buttons = ctlrealloc(t->buttons, (t->nbuttons+1)*sizeof(Control*));
 			t->buttons[t->nbuttons] = cbut;
 			t->nbuttons++;
@@ -259,7 +259,7 @@ createtab(Controlset *cs, char *name)
 	ctlprint(t->tabcolumn, "add %q %q", t->tabrow->name, t->tabstack->name);
 	t->bordercolor = _getctlimage("black");
 	t->image = _getctlimage("white");
-	t->setsize = tabsize;
+	t->Control.setsize = tabsize;
 	t->activate = activatetab;
 	return (Control*)t;
 }
