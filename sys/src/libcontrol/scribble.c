@@ -20,7 +20,7 @@ typedef struct Scrib Scrib;
 
 struct Scrib
 {
-	Control;
+	Control Control;
 	int		border;
 	CImage	*image;
 	CImage	*color;

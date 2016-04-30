@@ -19,7 +19,7 @@ typedef struct Radio Radio;
 
 struct Radio
 {
-	Control;
+	Control Control;
 	int		value;
 	int		lastbut;
 	Control	**buttons;
