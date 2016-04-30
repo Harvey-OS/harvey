@@ -89,18 +89,18 @@ buttonshow(Button *b)
 {
 	Rectangle r;
 
-	if (b->hidden)
+	if (b->Control.hidden)
 		return;
-	r = b->rect;
+	r = b->Control.rect;
 	if(b->border > 0){
-		border(b->screen, r, b->border, b->bordercolor->image, ZP);
-		r = insetrect(b->rect, b->border);
+		border(b->Control.screen, r, b->border, b->bordercolor->image, ZP);
+		r = insetrect(b->Control.rect, b->border);
 	}
-	draw(b->screen, r, b->image->image, nil, b->image->image->r.min);
+	draw(b->Control.screen, r, b->image->image, nil, b->image->image->r.min);
 	if(b->off)
-		draw(b->screen, r, b->pale->image, b->mask->image, b->mask->image->r.min);
+		draw(b->Control.screen, r, b->pale->image, b->mask->image, b->mask->image->r.min);
 	else if(b->pressed)
-		draw(b->screen, r, b->light->image, b->mask->image, b->mask->image->r.min);
+		draw(b->Control.screen, r, b->light->image, b->mask->image, b->mask->image->r.min);
 	b->lastshow = b->pressed;
 	flushimage(display, 1);
 }
@@ -113,7 +113,7 @@ buttonmouse(Control *c, Mouse *m)
 	b = (Button*)c;
 
 	if(m->buttons&7) {
-		if (ptinrect(m->xy,b->rect)) {
+		if (ptinrect(m->xy,b->Control.rect)) {
 			if (b->off) {
 				b->off = 0;
 				buttonshow(b);
@@ -134,8 +134,8 @@ buttonmouse(Control *c, Mouse *m)
 				b->pressed = m->buttons & 7;
 			buttonshow(b);
 		}else	/* generate event on button up */
-			if (ptinrect(m->xy,b->rect))
-				chanprint(b->event, b->format, b->name, b->pressed);
+			if (ptinrect(m->xy,b->Control.rect))
+				chanprint(b->Control.event, b->Control.format, b->Control.name, b->pressed);
 			else {
 				b->off = 0;
 				b->pressed = b->prepress;
@@ -156,91 +156,91 @@ buttonctl(Control *c, CParse *cp)
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", b->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", b->Control.name, cp->str);
 		break;
 	case EAlign:
-		_ctlargcount(b, cp, 2);
+		_ctlargcount(&b->Control, cp, 2);
 		b->align = _ctlalignment(cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case EBorder:
-		_ctlargcount(b, cp, 2);
+		_ctlargcount(&b->Control, cp, 2);
 		b->border = cp->iargs[1];
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case EBordercolor:
-		_ctlargcount(b, cp, 2);
-		_setctlimage(b, &b->bordercolor, cp->args[1]);
+		_ctlargcount(&b->Control, cp, 2);
+		_setctlimage(&b->Control, &b->bordercolor, cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case EFocus:
 		/* ignore focus change */
 		break;
 	case EFormat:
-		_ctlargcount(b, cp, 2);
-		b->format = ctlstrdup(cp->args[1]);
+		_ctlargcount(&b->Control, cp, 2);
+		b->Control.format = ctlstrdup(cp->args[1]);
 		break;
 	case EHide:
-		_ctlargcount(b, cp, 1);
-		b->hidden = 1;
+		_ctlargcount(&b->Control, cp, 1);
+		b->Control.hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(b, cp, 2);
-		_setctlimage(b, &b->image, cp->args[1]);
+		_ctlargcount(&b->Control, cp, 2);
+		_setctlimage(&b->Control, &b->image, cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case ELight:
-		_ctlargcount(b, cp, 2);
-		_setctlimage(b, &b->light, cp->args[1]);
+		_ctlargcount(&b->Control, cp, 2);
+		_setctlimage(&b->Control, &b->light, cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case EMask:
-		_ctlargcount(b, cp, 2);
-		_setctlimage(b, &b->mask, cp->args[1]);
+		_ctlargcount(&b->Control, cp, 2);
+		_setctlimage(&b->Control, &b->mask, cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case EPale:
-		_ctlargcount(b, cp, 2);
-		_setctlimage(b, &b->pale, cp->args[1]);
+		_ctlargcount(&b->Control, cp, 2);
+		_setctlimage(&b->Control, &b->pale, cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case ERect:
-		_ctlargcount(b, cp, 5);
+		_ctlargcount(&b->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<0 || Dy(r)<0)
-			ctlerror("%q: bad rectangle: %s", b->name, cp->str);
-		b->rect = r;
+			ctlerror("%q: bad rectangle: %s", b->Control.name, cp->str);
+		b->Control.rect = r;
 		b->lastshow = -1;	/* force redraw */
 		break;
 	case EReveal:
-		_ctlargcount(b, cp, 1);
-		b->hidden = 0;
+		_ctlargcount(&b->Control, cp, 1);
+		b->Control.hidden = 0;
 		buttonshow(b);
 		break;
 	case EShow:
-		_ctlargcount(b, cp, 1);
+		_ctlargcount(&b->Control, cp, 1);
 		buttonshow(b);
 		break;
 	case ESize:
 		if (cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
 		else{
-			_ctlargcount(b, cp, 5);
+			_ctlargcount(&b->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
-			ctlerror("%q: bad sizes: %s", b->name, cp->str);
-		b->size.min = r.min;
-		b->size.max = r.max;
+			ctlerror("%q: bad sizes: %s", b->Control.name, cp->str);
+		b->Control.size.min = r.min;
+		b->Control.size.max = r.max;
 		break;
 	case EValue:
-		_ctlargcount(b, cp, 2);
+		_ctlargcount(&b->Control, cp, 2);
 		if((cp->iargs[1]!=0) != b->pressed){
 			b->pressed ^= 1;
 			buttonshow(b);
@@ -259,14 +259,14 @@ createbutton(Controlset *cs, char *name)
 	b->light = _getctlimage("yellow");
 	b->pale = _getctlimage("paleyellow");
 	b->bordercolor = _getctlimage("black");
-	b->format = ctlstrdup("%q: value %d");
+	b->Control.format = ctlstrdup("%q: value %d");
 	b->lastshow = -1;
 	b->border = 0;
 	b->align = Aupperleft;
-	b->ctl = buttonctl;
-	b->mouse = buttonmouse;
+	b->Control.ctl = buttonctl;
+	b->Control.mouse = buttonmouse;
 	b->key = nil;
-	b->exit = buttonfree;
+	b->Control.exit = buttonfree;
 	b->off = 0;
 	b->prepress = 0;
 	return (Control*)b;
