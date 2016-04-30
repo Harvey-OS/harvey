@@ -182,7 +182,7 @@ createbox(Controlset *cs, char *name)
 	b->image = _getctlimage("white");
 	b->bordercolor = _getctlimage("black");
 	b->align = Aupperleft;
-	b->key = boxkey;
+	b->Control.key = boxkey;
 	b->Control.mouse = boxmouse;
 	b->Control.ctl = boxctl;
 	b->Control.exit = boxfree;
