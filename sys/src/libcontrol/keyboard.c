@@ -28,7 +28,7 @@ enum{
 
 struct Keyboard
 {
-	Control;
+	Control Control;
 	CImage	*image;
 	CImage	*mask;
 	CImage	*light;
@@ -410,9 +410,9 @@ keyup(Keyboard *k, Point p)
 	if(strcmp(s, "Alt") == 0)
 		{;}
 	if(strcmp(s, "Ctrl") == 0){
-		k->state ^= SControl;
+		k->state ^= SControl Control;
 	}else
-		k->state &= ~SControl;
+		k->state &= ~SControl Control;
 	if(strcmp(s, "Shift")==0 || strcmp(s, "Caps")==0){
 		if(strcmp(s, "Shift") == 0)
 			k->state ^= SShift;

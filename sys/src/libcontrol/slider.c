@@ -19,7 +19,7 @@ typedef struct Slider Slider;
 
 struct Slider
 {
-	Control;
+	Control Control;
 	int		border;
 	CImage	*image;
 	CImage	*textcolor;

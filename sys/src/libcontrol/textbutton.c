@@ -19,7 +19,7 @@ typedef struct Textbutton Textbutton;
 
 struct Textbutton
 {
-	Control;
+	Control Control;
 	CFont	*font;
 	CImage	*image;
 	CImage	*mask;

@@ -19,7 +19,7 @@ typedef struct Entry Entry;
 
 struct Entry
 {
-	Control;
+	Control Control;
 	int		border;
 	CFont	*font;
 	CImage	*image;

@@ -19,7 +19,7 @@ typedef struct Label Label;
 
 struct Label
 {
-	Control;
+	Control Control;
 	int		border;
 	CFont	*font;
 	CImage	*image;

@@ -19,7 +19,7 @@ typedef struct Menu0 Menu0;	/* Menu is taken by mouse.h */
 
 struct Menu0
 {
-	Control;
+	Control Control;
 	CImage	*image;
 	CImage	*bordercolor;
 	CImage	*textcolor;

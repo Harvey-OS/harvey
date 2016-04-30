@@ -21,7 +21,7 @@ typedef struct Text Text;
 
 struct Text
 {
-	Control;
+	Control Control;
 	int		border;
 	int		topline;
 	int		scroll;
