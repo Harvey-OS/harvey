@@ -19,7 +19,7 @@ typedef struct Button Button;
 
 struct Button
 {
-	Control;
+	Control Control;
 	CImage	*image;
 	CImage	*mask;
 	CImage	*light;
