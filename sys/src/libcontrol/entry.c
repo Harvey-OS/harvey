@@ -357,7 +357,7 @@ createentry(Controlset *cs, char *name)
 	e->border = 0;
 	e->Control.ctl = entryctl;
 	e->Control.mouse = entrymouse;
-	e->key = entrykeys;
+	e->Control.key = entrykeys;
 	e->Control.exit = entryfree;
 	return (Control *)e;
 }
