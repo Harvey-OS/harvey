@@ -74,9 +74,9 @@ groupinit(Group *g)
 	g->separators = nil;
 	g->nkids = 0;
 	g->nseparators = 0;
-	g->ctl = groupctl;
-	g->mouse = groupmouse;
-	g->exit = groupfree;
+	g->Control.ctl = groupctl;
+	g->Control.mouse = groupmouse;
+	g->Control.exit = groupfree;
 }
 
 static void
@@ -94,49 +94,49 @@ groupctl(Control *c, CParse *cp)
 		for (i = 1; i < cp->nargs; i++){
 			c = controlcalled(cp->args[i]);
 			if (c == nil)
-				ctlerror("%q: no such control: %s", g->name, cp->args[i]);
-			_ctladdgroup(g, c);
+				ctlerror("%q: no such control: %s", g->Control.name, cp->args[i]);
+			_ctladdgroup(&g->Control, c);
 		}
-		if (g->setsize)
-			g->setsize((Control*)g);
+		if (g->Control.setsize)
+			g->Control.setsize((Control*)g);
 		break;
 	case EBorder:
-		_ctlargcount(g, cp, 2);
+		_ctlargcount(&g->Control, cp, 2);
 		if(cp->iargs[1] < 0)
-			ctlerror("%q: bad border: %c", g->name, cp->str);
+			ctlerror("%q: bad border: %c", g->Control.name, cp->str);
 		g->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(g, cp, 2);
-		_setctlimage(g, &g->bordercolor, cp->args[1]);
+		_ctlargcount(&g->Control, cp, 2);
+		_setctlimage(&g->Control, &g->bordercolor, cp->args[1]);
 		break;
 	case EFocus:
 		/* ignore focus change */
 		break;
 	case EHide:
-		_ctlargcount(g, cp, 1);
+		_ctlargcount(&g->Control, cp, 1);
 		for (i = 0; i < g->nkids; i++)
 			if (g->kids[i]->ctl)
 				_ctlprint(g->kids[i], "hide");
-		g->hidden = 1;
+		g->Control.hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(g, cp, 2);
-		_setctlimage(g, &g->image, cp->args[1]);
+		_ctlargcount(&g->Control, cp, 2);
+		_setctlimage(&g->Control, &g->image, cp->args[1]);
 		break;
 	case ERect:
-		_ctlargcount(g, cp, 5);
+		_ctlargcount(&g->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<=0 || Dy(r)<=0)
-			ctlerror("%q: bad rectangle: %s", g->name, cp->str);
-		g->rect = r;
+			ctlerror("%q: bad rectangle: %s", g->Control.name, cp->str);
+		g->Control.rect = r;
 		r = insetrect(r, g->border);
 		if (g->nkids == 0)
 			return;
-		switch(g->type){
+		switch(g->Control.type){
 		case Ctlboxbox:
 			boxboxresize(g, r);
 			break;
@@ -152,80 +152,80 @@ groupctl(Control *c, CParse *cp)
 		}
 		break;
 	case ERemove:
-		_ctlargcount(g, cp, 2);
+		_ctlargcount(&g->Control, cp, 2);
 		for (n = 0; n < g->nkids; n++)
 			if (strcmp(cp->args[1], g->kids[n]->name) == 0)
 				break;
 		if (n == g->nkids)
-			ctlerror("%s: remove nonexistent control: %q", g->name, cp->args[1]);
+			ctlerror("%s: remove nonexistent control: %q", g->Control.name, cp->args[1]);
 		removegroup(g, n);
-		if (g->setsize)
-			g->setsize((Control*)g);
+		if (g->Control.setsize)
+			g->Control.setsize((Control*)g);
 		break;
 	case EReveal:
-		g->hidden = 0;
-		if (debugr) fprint(2, "reveal %s\n", g->name);
-		if (g->type == Ctlstack){
+		g->Control.hidden = 0;
+		if (debugr) fprint(2, "reveal %s\n", g->Control.name);
+		if (g->Control.type == Ctlstack){
 			if (cp->nargs == 2){
 				if (cp->iargs[1] < 0 || cp->iargs[1] >= g->nkids)
-					ctlerror("%s: control out of range: %q", g->name, cp->str);
+					ctlerror("%s: control out of range: %q", g->Control.name, cp->str);
 				g->selected = cp->iargs[1];
 			}else
-				_ctlargcount(g, cp, 1);
+				_ctlargcount(&g->Control, cp, 1);
 			for (i = 0; i < g->nkids; i++)
 				if (g->kids[i]->ctl){
 					if (g->selected == i){
-						if (debugr) fprint(2, "reveal %s: reveal kid %s\n", g->name, g->kids[i]->name);
+						if (debugr) fprint(2, "reveal %s: reveal kid %s\n", g->Control.name, g->kids[i]->name);
 						_ctlprint(g->kids[i], "reveal");
 					}else{
-						if (debugr) fprint(2, "reveal %s: hide kid %s\n", g->name, g->kids[i]->name);
+						if (debugr) fprint(2, "reveal %s: hide kid %s\n", g->Control.name, g->kids[i]->name);
 						_ctlprint(g->kids[i], "hide");
 					}
 				}
 			break;
 		}
-		_ctlargcount(g, cp, 1);
-		if (debug) fprint(2, "reveal %s: border %R/%d\n", g->name, g->rect, g->border);
-		border(g->screen, g->rect, g->border, g->bordercolor->image, g->bordercolor->image->r.min);
-		r = insetrect(g->rect, g->border);
-		if (debug) fprint(2, "reveal %s: draw %R\n", g->name, r);
-		draw(g->screen, r, g->image->image, nil, g->image->image->r.min);
+		_ctlargcount(&g->Control, cp, 1);
+		if (debug) fprint(2, "reveal %s: border %R/%d\n", g->Control.name, g->Control.rect, g->border);
+		border(g->Control.screen, g->Control.rect, g->border, g->bordercolor->image, g->bordercolor->image->r.min);
+		r = insetrect(g->Control.rect, g->border);
+		if (debug) fprint(2, "reveal %s: draw %R\n", g->Control.name, r);
+		draw(g->Control.screen, r, g->image->image, nil, g->image->image->r.min);
 		for (i = 0; i < g->nkids; i++)
 			if (g->kids[i]->ctl)
 				_ctlprint(g->kids[i], "reveal");
 		break;
 	case EShow:
-		_ctlargcount(g, cp, 1);
-		if (g->hidden)
+		_ctlargcount(&g->Control, cp, 1);
+		if (g->Control.hidden)
 			break;
 		// pass it on to the kiddies
-		if (debug) fprint(2, "show %s: border %R/%d\n", g->name, g->rect, g->border);
-		border(g->screen, g->rect, g->border, g->bordercolor->image, g->bordercolor->image->r.min);
-		r = insetrect(g->rect, g->border);
-		if (debug) fprint(2, "show %s: draw %R\n", g->name, r);
-		draw(g->screen, r, g->image->image, nil, g->image->image->r.min);
+		if (debug) fprint(2, "show %s: border %R/%d\n", g->Control.name, g->Control.rect, g->border);
+		border(g->Control.screen, g->Control.rect, g->border, g->bordercolor->image, g->bordercolor->image->r.min);
+		r = insetrect(g->Control.rect, g->border);
+		if (debug) fprint(2, "show %s: draw %R\n", g->Control.name, r);
+		draw(g->Control.screen, r, g->image->image, nil, g->image->image->r.min);
 		for (i = 0; i < g->nkids; i++)
 			if (g->kids[i]->ctl){
-				if (debug) fprint(2, "show %s: kid %s: %q\n", g->name, g->kids[i]->name, cp->str);
+				if (debug) fprint(2, "show %s: kid %s: %q\n", g->Control.name, g->kids[i]->name, cp->str);
 				_ctlprint(g->kids[i], "show");
 			}
 		flushimage(display, 1);
 		break;
 	case ESize:
 		r.max = Pt(_Ctlmaxsize, _Ctlmaxsize);
-		if (g->type == Ctlboxbox)
-			_ctlargcount(g, cp, 5);
+		if (g->Control.type == Ctlboxbox)
+			_ctlargcount(&g->Control, cp, 5);
 		switch(cp->nargs){
 		default:
-			ctlerror("%s: args of %q", g->name, cp->str);
+			ctlerror("%s: args of %q", g->Control.name, cp->str);
 		case 1:
 			/* recursively set size */
 			g->mansize = 0;
-			if (g->setsize)
-				g->setsize((Control*)g);
+			if (g->Control.setsize)
+				g->Control.setsize((Control*)g);
 			break;
 		case 5:
-			_ctlargcount(g, cp, 5);
+			_ctlargcount(&g->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 			/* fall through */
@@ -233,23 +233,23 @@ groupctl(Control *c, CParse *cp)
 			r.min.x = cp->iargs[1];
 			r.min.y = cp->iargs[2];
 			if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
-			ctlerror("%q: bad sizes: %s", g->name, cp->str);
-			g->size = r;
+			ctlerror("%q: bad sizes: %s", g->Control.name, cp->str);
+			g->Control.size = r;
 			g->mansize = 1;
 			break;
 		}
 		break;
 	case ESeparation:
-		if (g->type != Ctlstack){
-			_ctlargcount(g, cp, 2);
+		if (g->Control.type != Ctlstack){
+			_ctlargcount(&g->Control, cp, 2);
 			if(cp->iargs[1] < 0)
-				ctlerror("%q: illegal value: %c", g->name, cp->str);
+				ctlerror("%q: illegal value: %c", g->Control.name, cp->str);
 			g->separation = cp->iargs[1];
 			break;
 		}
 		// fall through for Ctlstack
 	default:
-		ctlerror("%q: unrecognized message '%s'", g->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", g->Control.name, cp->str);
 		break;
 	}
 }
@@ -271,7 +271,7 @@ groupmouse(Control *c, Mouse *m)
 	int i, lastkid;
 
 	g = (Group*)c;
-	if (g->type == Ctlstack){
+	if (g->Control.type == Ctlstack){
 		i = g->selected;
 		if (i >= 0 && g->kids[i]->mouse &&
                         ( ( ((m->buttons == 0) || (g->lastbut == 0)) &&
@@ -279,14 +279,14 @@ groupmouse(Control *c, Mouse *m)
                          ( ((m->buttons != 0) || (g->lastbut != 0)) &&
 		         (g->lastkid == i) ) ) ) {
 			if (debugm) fprint(2, "groupmouse %s mouse kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
-						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						g->Control.name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
 						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 			(g->kids[i]->mouse)(g->kids[i], m);
 			g->lastkid = i;
 			g->lastbut = m->buttons;
 		} else {
 			if (debugm) fprint(2, "groupmouse %s skip kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
-						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						g->Control.name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
 						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 		}
 		return;
@@ -300,13 +300,13 @@ groupmouse(Control *c, Mouse *m)
                         ( ((m->buttons != 0) || (g->lastbut != 0)) &&
 		         (g->lastkid == i) ) ) ) {
 			if (debugm) fprint(2, "groupmouse %s mouse kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
-						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						g->Control.name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
 						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 			(g->kids[i]->mouse)(g->kids[i], m);
 			lastkid = i;
 		} else {
 			if (debugm) fprint(2, "groupmouse %s skip kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
-						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						g->Control.name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
 						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 		}
 	}
@@ -448,18 +448,18 @@ groupsize(Control *c)
 	Group *g;
 
 	g = (Group*)c;
-	assert(g->type == Ctlcolumn || g->type == Ctlrow || g->type == Ctlstack);
+	assert(g->Control.type == Ctlcolumn || g->Control.type == Ctlrow || g->Control.type == Ctlstack);
 	if (g->mansize) return;
 	r = Rect(1, 1, 1, 1);
-	if (debug) fprint(2, "groupsize %q\n", g->name);
+	if (debug) fprint(2, "groupsize %q\n", g->Control.name);
 	for (i = 0; i < g->nkids; i++){
 		q = g->kids[i];
 		if (q->setsize)
 			q->setsize(q);
 		if (q->size.min.x == 0 || q->size.min.y == 0 || q->size.max.x == 0 || q->size.max.y == 0)
 			ctlerror("%q: bad size %R", q->name, q->size);
-		if (debug) fprint(2, "groupsize %q: [%d %q]: %R\n", g->name, i, q->name, q->size);
-		switch(g->type){
+		if (debug) fprint(2, "groupsize %q: [%d %q]: %R\n", g->Control.name, i, q->name, q->size);
+		switch(g->Control.type){
 		case Ctlrow:
 			if (i)
 				r.min.x += q->size.min.x + g->border;
@@ -492,8 +492,8 @@ groupsize(Control *c)
 			break;
 		}
 	}
-	g->size = rectaddpt(r, Pt(g->border, g->border));
-	if (debug) fprint(2, "groupsize %q: %R\n", g->name, g->size);
+	g->Control.size = rectaddpt(r, Pt(g->border, g->border));
+	if (debug) fprint(2, "groupsize %q: %R\n", g->Control.name, g->Control.size);
 }
 
 static void
@@ -502,7 +502,7 @@ boxboxresize(Group *g, Rectangle r)
 	int rows, cols, ht, wid, i, hpad, wpad;
 	Rectangle rr;
 
-	if(debug) fprint(2, "boxboxresize %q %R (%d×%d) min/max %R separation %d\n", g->name, r, Dx(r), Dy(r), g->size, g->separation);
+	if(debug) fprint(2, "boxboxresize %q %R (%d×%d) min/max %R separation %d\n", g->Control.name, r, Dx(r), Dy(r), g->Control.size, g->separation);
 	ht = 0;
 	for(i=0; i<g->nkids; i++){
 		if (g->kids[i]->size.min.y > ht)
@@ -557,14 +557,14 @@ columnresize(Group *g, Rectangle r)
 
 	x = Dx(r);
 	y = Dy(r);
-	if(debug) fprint(2, "columnresize %q %R (%d×%d) min/max %R separation %d\n", g->name, r, Dx(r), Dy(r), g->size, g->separation);
-	if (x < g->size.min.x) {
-		werrstr("resize %s: too narrow: need %d, have %d", g->name, g->size.min.x, x);
-		r.max.x = r.min.x + g->size.min.x;
+	if(debug) fprint(2, "columnresize %q %R (%d×%d) min/max %R separation %d\n", g->Control.name, r, Dx(r), Dy(r), g->Control.size, g->separation);
+	if (x < g->Control.size.min.x) {
+		werrstr("resize %s: too narrow: need %d, have %d", g->Control.name, g->Control.size.min.x, x);
+		r.max.x = r.min.x + g->Control.size.min.x;
 	}
-	if (y < g->size.min.y) {
-		werrstr("resize %s: too short: need %d, have %d", g->name, g->size.min.y, y);
-		r.max.y = r.min.y + g->size.min.y;
+	if (y < g->Control.size.min.y) {
+		werrstr("resize %s: too short: need %d, have %d", g->Control.name, g->Control.size.min.y, y);
+		r.max.y = r.min.y + g->Control.size.min.y;
 		y = Dy(r);
 	}
 	d = ctlmalloc(g->nkids*sizeof(int));
@@ -583,16 +583,16 @@ columnresize(Group *g, Rectangle r)
 		if (debug) fprint(2, "columnresize: y == %d\n", y);
 		y = 0;
 	}
-	if (y >= g->size.max.y - g->size.min.y) {
+	if (y >= g->Control.size.max.y - g->Control.size.min.y) {
 		// all rects can be maximum width
 		for (i = 0; i < g->nkids; i++)
 			d[i] += p[i];
-		y -= g->size.max.y - g->size.min.y;
+		y -= g->Control.size.max.y - g->Control.size.min.y;
 	} else {
 		// rects can't be max width, divide up the rest
 		j = y;
 		for (i = 0; i < g->nkids; i++) {
-			t = p[i] * y/(g->size.max.y - g->size.min.y);
+			t = p[i] * y/(g->Control.size.max.y - g->Control.size.min.y);
 			d[i] += t;
 			j -= t;
 		}
@@ -636,15 +636,15 @@ rowresize(Group *g, Rectangle r)
 
 	x = Dx(r);
 	y = Dy(r);
-	if(debug) fprint(2, "rowresize %q %R (%d×%d), separation %d\n", g->name, r, Dx(r), Dy(r), g->separation);
-	if (x < g->size.min.x) {
-		werrstr("resize %s: too narrow: need %d, have %d", g->name, g->size.min.x, x);
-		r.max.x = r.min.x + g->size.min.x;
+	if(debug) fprint(2, "rowresize %q %R (%d×%d), separation %d\n", g->Control.name, r, Dx(r), Dy(r), g->separation);
+	if (x < g->Control.size.min.x) {
+		werrstr("resize %s: too narrow: need %d, have %d", g->Control.name, g->Control.size.min.x, x);
+		r.max.x = r.min.x + g->Control.size.min.x;
 		x = Dx(r);
 	}
-	if (y < g->size.min.y) {
-		werrstr("resize %s: too short: need %d, have %d", g->name, g->size.min.y, y);
-		r.max.y = r.min.y + g->size.min.y;
+	if (y < g->Control.size.min.y) {
+		werrstr("resize %s: too short: need %d, have %d", g->Control.name, g->Control.size.min.y, y);
+		r.max.y = r.min.y + g->Control.size.min.y;
 	}
 	d = ctlmalloc(g->nkids*sizeof(int));
 	p = ctlmalloc(g->nkids*sizeof(int));
@@ -662,18 +662,18 @@ rowresize(Group *g, Rectangle r)
 		if (debug) fprint(2, "rowresize: x == %d\n", x);
 		x = 0;
 	}
-	if (x >= g->size.max.x - g->size.min.x) {
-		if (debug) fprint(2, "max: %d > %d - %d", x, g->size.max.x, g->size.min.x);
+	if (x >= g->Control.size.max.x - g->Control.size.min.x) {
+		if (debug) fprint(2, "max: %d > %d - %d", x, g->Control.size.max.x, g->Control.size.min.x);
 		// all rects can be maximum width
 		for (i = 0; i < g->nkids; i++)
 			d[i] += p[i];
-		x -= g->size.max.x - g->size.min.x;
+		x -= g->Control.size.max.x - g->Control.size.min.x;
 	} else {
-		if (debug) fprint(2, "divvie up: %d < %d - %d", x, g->size.max.x, g->size.min.x);
+		if (debug) fprint(2, "divvie up: %d < %d - %d", x, g->Control.size.max.x, g->Control.size.min.x);
 		// rects can't be max width, divide up the rest
 		j = x;
 		for (i = 0; i < g->nkids; i++) {
-			t = p[i] * x/(g->size.max.x - g->size.min.x);
+			t = p[i] * x/(g->Control.size.max.x - g->Control.size.min.x);
 			d[i] += t;
 			j -= t;
 		}
@@ -716,22 +716,22 @@ stackresize(Group *g, Rectangle r)
 
 	x = Dx(r);
 	y = Dy(r);
-	if(debug) fprint(2, "stackresize %q %R (%d×%d)\n", g->name, r, Dx(r), Dy(r));
-	if (x < g->size.min.x){
-		werrstr("resize %s: too narrow: need %d, have %d", g->name, g->size.min.x, x);
+	if(debug) fprint(2, "stackresize %q %R (%d×%d)\n", g->Control.name, r, Dx(r), Dy(r));
+	if (x < g->Control.size.min.x){
+		werrstr("resize %s: too narrow: need %d, have %d", g->Control.name, g->Control.size.min.x, x);
 		return;
 	}
-	if (y < g->size.min.y){
-		werrstr("resize %s: too short: need %d, have %d", g->name, g->size.min.y, y);
+	if (y < g->Control.size.min.y){
+		werrstr("resize %s: too short: need %d, have %d", g->Control.name, g->Control.size.min.y, y);
 		return;
 	}
-	if (x > g->size.max.x) {
-		x = (x - g->size.max.x)/2;
+	if (x > g->Control.size.max.x) {
+		x = (x - g->Control.size.max.x)/2;
 		r.min.x += x;
 		r.max.x -= x;
 	}
-	if (y > g->size.max.y) {
-		y = (y - g->size.max.y)/2;
+	if (y > g->Control.size.max.y) {
+		y = (y - g->Control.size.max.y)/2;
 		r.min.y += y;
 		r.max.y -= y;
 	}
