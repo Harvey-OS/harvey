@@ -226,7 +226,7 @@ textbuttonctl(Control *c, CParse *cp)
 		break;
 	case EFont:
 		_ctlargcount(&t->Control, cp, 2);
-		_setctlfont(t, &t->font, cp->args[1]);
+		_setctlfont(&t->Control, &t->font, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EFormat:

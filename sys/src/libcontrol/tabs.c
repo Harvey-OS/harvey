@@ -260,6 +260,6 @@ createtab(Controlset *cs, char *name)
 	t->bordercolor = _getctlimage("black");
 	t->image = _getctlimage("white");
 	t->Control.setsize = tabsize;
-	t->activate = activatetab;
+	&t->Control.activate = activatetab;
 	return (Control*)t;
 }

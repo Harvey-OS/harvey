@@ -140,7 +140,7 @@ _newcontrol(Controlset *cs, uint n, char *name, char *type)
 			return nil;
 		}
 	c = ctlmalloc(n);
-	c->screen = cs->screen;
+	c->screen = cs->Control.screen;
 	c->name = ctlstrdup(name);
 	c->type = _ctllookup(type, ctltypenames, Ntypes);
 	if (c->type < 0)
@@ -179,10 +179,10 @@ controlsetthread(void *v)
 	alts[AKey].c = cs->kbdc;
 	alts[AKey].v = &rp;
 	alts[AKey].op = CHANRCV;
-	alts[AMouse].c = cs->mousec;
+	alts[AMouse].c = cs->Control.mousec;
 	alts[AMouse].v = &mouse;
 	alts[AMouse].op = CHANRCV;
-	alts[ACtl].c = cs->ctl;
+	alts[ACtl].c = cs->Control.ctl;
 	alts[ACtl].v = &str;
 	alts[ACtl].op = CHANRCV;
 	alts[AExit].c = cs->csexitc;
@@ -213,7 +213,7 @@ controlsetthread(void *v)
 			/* is this a focus change? */
 			if(prevbut)	/* don't change focus if button was down */
 				goto Send;
-			if(cs->focus!=nil && cs->focus->hidden == 0 && ptinrect(mouse.xy, cs->focus->rect))
+			if(cs->focus!=nil && cs->focus->Control.hidden == 0 && ptinrect(mouse.xy, cs->focus->Control.rect))
 				goto Send;
 			if(cs->clicktotype == 0)
 				goto Change;
@@ -236,9 +236,9 @@ controlsetthread(void *v)
 					break;
 				}
 		Send:
-			if(cs->focus && cs->focus->mouse) {
-				if (debug) fprint(2, "cs->focus->mouse %s\n", cs->focus->name);
-				cs->focus->mouse(cs->focus, &mouse);
+			if(cs->focus && cs->focus->Control.mouse) {
+				if (debug) fprint(2, "cs->focus->Control.mouse %s\n", cs->focus->Control.name);
+				cs->focus->Control.mouse(cs->focus, &mouse);
 			}
 			prevbut=mouse.buttons;
 			break;
@@ -758,7 +758,7 @@ newcontrolset(Image *im, Channel *kbdc, Channel *mousec, Channel *resizec)
 		ctlerror("must specify either or both of mouse and resize channels");
 
 	cs = ctlmalloc(sizeof(Controlset));
-	cs->screen = im;
+	cs->Control.screen = im;
 
 	if(kbdc == nil){
 		cs->keyboardctl = initkeyboard(nil);
@@ -769,15 +769,15 @@ newcontrolset(Image *im, Channel *kbdc, Channel *mousec, Channel *resizec)
 	cs ->kbdc = kbdc;
 
 	if(mousec == nil){
-		cs->mousectl = initmouse(nil, im);
-		if(cs->mousectl == nil)
+		cs->Control.mousectl = initmouse(nil, im);
+		if(cs->Control.mousectl == nil)
 			ctlerror("can't initialize mouse: %r");
-		mousec = cs->mousectl->c;
-		resizec = cs->mousectl->resizec;
+		mousec = cs->Control.mousectl->c;
+		resizec = cs->Control.mousectl->resizec;
 	}
-	cs->mousec = mousec;
+	cs->Control.mousec = mousec;
 	cs->resizec = resizec;
-	cs->ctl = chancreate(sizeof(char*), 64);	/* buffer to prevent deadlock */
+	cs->Control.ctl = chancreate(sizeof(char*), 64);	/* buffer to prevent deadlock */
 	cs->data = chancreate(sizeof(char*), 0);
 	cs->resizeexitc = chancreate(sizeof(int), 0);
 	cs->csexitc = chancreate(sizeof(int), 0);
@@ -799,7 +799,7 @@ closecontrolset(Controlset *cs)
 	chanfree(cs->resizeexitc);
 	sendul(cs->csexitc, 0);
 	chanfree(cs->csexitc);
-	chanfree(cs->ctl);
+	chanfree(cs->Control.ctl);
 	chanfree(cs->data);
 
 	for(i=0; i<ncontrolset; i++)

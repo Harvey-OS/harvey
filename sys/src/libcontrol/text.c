@@ -303,7 +303,7 @@ textctl(Control *c, CParse *cp)
 		break;
 	case EFont:
 		_ctlargcount(&t->Control, cp, 2);
-		_setctlfont(t, &t->font, cp->args[1]);
+		_setctlfont(&t->Control, &t->font, cp->args[1]);
 		break;
 	case EHide:
 		_ctlargcount(&t->Control, cp, 1);
