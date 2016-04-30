@@ -155,7 +155,7 @@ sliderctl(Control *c, CParse *cp)
 		break;
 	case EBordercolor:
 		_ctlargcount(&s->Control, cp, 2);
-		_setctlimage(s, &s->bordercolor, cp->args[1]);
+		_setctlimage(&s->Control, &s->bordercolor, cp->args[1]);
 		break;
 	case EClamp:
 		_ctlargcount(&s->Control, cp, 3);
@@ -179,11 +179,11 @@ sliderctl(Control *c, CParse *cp)
 		break;
 	case EImage:
 		_ctlargcount(&s->Control, cp, 2);
-		_setctlimage(s, &s->image, cp->args[1]);
+		_setctlimage(&s->Control, &s->image, cp->args[1]);
 		break;
 	case EIndicatorcolor:
 		_ctlargcount(&s->Control, cp, 2);
-		_setctlimage(s, &s->indicatorcolor, cp->args[1]);
+		_setctlimage(&s->Control, &s->indicatorcolor, cp->args[1]);
 		break;
 	case EMax:
 		_ctlargcount(&s->Control, cp, 2);
