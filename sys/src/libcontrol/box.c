@@ -19,7 +19,7 @@ typedef struct Box Box;
 
 struct Box
 {
-	Control;
+	Control Control;
 	int		border;
 	CImage	*bordercolor;
 	CImage	*image;
