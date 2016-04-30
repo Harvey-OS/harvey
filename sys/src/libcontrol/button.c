@@ -265,7 +265,7 @@ createbutton(Controlset *cs, char *name)
 	b->align = Aupperleft;
 	b->Control.ctl = buttonctl;
 	b->Control.mouse = buttonmouse;
-	b->key = nil;
+	b->Control.key = nil;
 	b->Control.exit = buttonfree;
 	b->off = 0;
 	b->prepress = 0;
