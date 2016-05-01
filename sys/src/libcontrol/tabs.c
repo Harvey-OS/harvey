@@ -19,7 +19,7 @@
 typedef struct Tab Tab;
 
 struct Tab {
-	Control;
+	Control Control;
 	int		border;
 	int		selected;
 	int		separation;
@@ -77,7 +77,7 @@ tabshow(Tab *t)
 	Rectangle r;
 	Group *g;
 
-	if (t->hidden)
+	if (t->Control.hidden)
 		return;
 	for(i=0; i<t->nbuttons; i++){
 		_ctlprint(t->buttons[i], "value %d", (t->selected==i));
@@ -93,7 +93,7 @@ tabshow(Tab *t)
 	r = g->separators[0];
 	r.min.x = t->buttons[t->selected]->rect.min.x;
 	r.max.x = t->buttons[t->selected]->rect.max.x;
-	draw(t->screen, r, t->image->image, nil, t->image->image->r.min);
+	draw(t->Control.screen, r, t->image->image, nil, t->image->image->r.min);
 	flushimage(display, 1);
 }
 
@@ -118,53 +118,53 @@ tabctl(Control *c, CParse *cp)
 	switch(cmd){
 	case EAdd:
 		if ((cp->nargs & 1) == 0)
-			ctlerror("%q: arg count: %s", t->name, cp->args[1]);
+			ctlerror("%q: arg count: %s", t->Control.name, cp->args[1]);
 		for (i = 1; i < cp->nargs; i += 2){
 			cbut = controlcalled(cp->args[i]);
 			if (cbut == nil)
-				ctlerror("%q: no such control: %s", t->name, cp->args[i]);
+				ctlerror("%q: no such control: %s", t->Control.name, cp->args[i]);
 			cwin = controlcalled(cp->args[i+1]);
 			if (cwin == nil)
-				ctlerror("%q: no such control: %s", t->name, cp->args[i+1]);
+				ctlerror("%q: no such control: %s", t->Control.name, cp->args[i+1]);
 			_ctladdgroup(t->tabrow, cbut);
 			_ctlprint(t->tabstack, "add %q", cp->args[i+1]);
-			_ctlprint(cbut, "format '%%s: %q button %%d'", t->name);
-			controlwire(cbut, "event", t->controlset->ctl);
+			_ctlprint(cbut, "format '%%s: %q button %%d'", t->Control.name);
+			controlwire(cbut, "event", t->Control.controlset->ctl);
 			t->buttons = ctlrealloc(t->buttons, (t->nbuttons+1)*sizeof(Control*));
 			t->buttons[t->nbuttons] = cbut;
 			t->nbuttons++;
 			t->selected = -1;
 		}
 		_ctlprint(t->tabcolumn, "size");
-		t->size = t->tabcolumn->size;
+		t->Control.size = t->tabcolumn->size;
 		break;
 	case EBorder:
-		_ctlargcount(t, cp, 2);
+		_ctlargcount(&t->Control, cp, 2);
 		if(cp->iargs[1] < 0)
-			ctlerror("%q: bad border: %c", t->name, cp->str);
+			ctlerror("%q: bad border: %c", t->Control.name, cp->str);
 		t->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(t, cp, 2);
-		_setctlimage(t, &t->bordercolor, cp->args[1]);
+		_ctlargcount(&t->Control, cp, 2);
+		_setctlimage(&t->Control, &t->bordercolor, cp->args[1]);
 		break;
 	case EButton:
-		_ctlargcount(t, cp, 2);
+		_ctlargcount(&t->Control, cp, 2);
 		if (cp->sender == nil)
-			ctlerror("%q: senderless buttonevent: %q", t->name, cp->str);
+			ctlerror("%q: senderless buttonevent: %q", t->Control.name, cp->str);
 		cbut = controlcalled(cp->sender);
 		for(i=0; i<t->nbuttons; i++)
 			if (cbut == t->buttons[i])
 				break;
 		if (i == t->nbuttons)
-			ctlerror("%q: not my event: %q", t->name, cp->str);
+			ctlerror("%q: not my event: %q", t->Control.name, cp->str);
 		if(cp->iargs[1] == 0){
 			/* button was turned off; turn it back on */
 			_ctlprint(cbut, "value 1");
 		}else{
 			t->selected = i;
 			if (t->_format)
-				chanprint(t->event, t->_format, t->name, i);
+				chanprint(t->Control.event, t->_format, t->Control.name, i);
 			tabshow(t);
 		}
 		break;
@@ -172,31 +172,31 @@ tabctl(Control *c, CParse *cp)
 		/* ignore focus change */
 		break;
 	case EFormat:
-		_ctlargcount(t, cp, 2);
+		_ctlargcount(&t->Control, cp, 2);
 		t->_format = ctlstrdup(cp->args[1]);
 		break;
 	case EImage:
-		_ctlargcount(t, cp, 2);
-		_setctlimage(t, &t->image, cp->args[1]);
+		_ctlargcount(&t->Control, cp, 2);
+		_setctlimage(&t->Control, &t->image, cp->args[1]);
 		break;
 	case ESeparation:
 		t->tabrow->ctl(t->tabrow, cp);
 		t->tabcolumn->ctl(t->tabcolumn, cp);
 		break;
 	case ERect:
-		_ctlargcount(t, cp, 5);
+		_ctlargcount(&t->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<=0 || Dy(r)<=0)
-			ctlerror("%q: bad rectangle: %s", t->name, cp->str);
-		t->rect = r;
+			ctlerror("%q: bad rectangle: %s", t->Control.name, cp->str);
+		t->Control.rect = r;
 		r = insetrect(r, t->border);
 		_ctlprint(t->tabcolumn, "rect %R", r);
 		break;
 	case EReveal:
-		_ctlargcount(t, cp, 1);
+		_ctlargcount(&t->Control, cp, 1);
 	case EHide:
 	case ESize:
 		t->tabcolumn->ctl(t->tabcolumn, cp);
@@ -205,14 +205,14 @@ tabctl(Control *c, CParse *cp)
 		tabshow(t);
 		break;
 	case EValue:
-		_ctlargcount(t, cp, 2);
+		_ctlargcount(&t->Control, cp, 2);
 		if (cp->iargs[1] < 0 || cp->iargs[1] >= t->nbuttons)
-			ctlerror("%q: illegal value '%s'", t->name, cp->str);
+			ctlerror("%q: illegal value '%s'", t->Control.name, cp->str);
 		t->selected = cp->iargs[1];
 		tabshow(t);
 		break;
 	default:
-		ctlerror("%q: unrecognized message '%s'", t->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", t->Control.name, cp->str);
 		break;
 	}
 }
@@ -247,9 +247,9 @@ createtab(Controlset *cs, char *name)
 	t = (Tab*)_createctl(cs, "tab", sizeof(Tab), name);
 	t->selected = -1;
 	t->nbuttons = 0;
-	t->ctl = tabctl;
-	t->mouse = nil;
-	t->exit = tabfree;
+	t->Control.ctl = tabctl;
+	t->Control.mouse = nil;
+	t->Control.exit = tabfree;
 	snprint(s, sizeof s, "_%s-row", name);
 	t->tabrow = createrow(cs, s);
 	snprint(s, sizeof s, "_%s-stack", name);
@@ -259,7 +259,7 @@ createtab(Controlset *cs, char *name)
 	ctlprint(t->tabcolumn, "add %q %q", t->tabrow->name, t->tabstack->name);
 	t->bordercolor = _getctlimage("black");
 	t->image = _getctlimage("white");
-	t->setsize = tabsize;
-	t->activate = activatetab;
+	t->Control.setsize = tabsize;
+	t->Control.activate = activatetab;
 	return (Control*)t;
 }

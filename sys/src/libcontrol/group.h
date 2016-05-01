@@ -11,7 +11,7 @@
 typedef struct Group Group;
 
 struct Group {
-	Control;
+	Control Control;
 	int		lastbut;
 	int		border;
 	int		mansize;		/* size was set manually */
