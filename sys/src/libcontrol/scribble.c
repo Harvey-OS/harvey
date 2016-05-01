@@ -264,7 +264,7 @@ displaylast(Scrib *w)
 	npt = s->ps.npts;
 	if (npt > 2)
 		npt = 2;
-	poly(w->screen, s->pt + (s->ps.npts - npt), npt, Endsquare, Endsquare,
+	poly(w->Control.screen, s->pt + (s->ps.npts - npt), npt, Endsquare, Endsquare,
 		0, w->color->image, ZP);
 	flushimage(display, 1);
 }
