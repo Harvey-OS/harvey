@@ -280,7 +280,7 @@ smscbread(Ether *e, Buf *bp)
 	int n, m;
 	Buf *rbp;
 
-	rbp = e->aux;
+	rbp = e->Etherops.aux;
 	if(rbp->ndata < 4){
 		rbp->rp = rbp->data;
 		rbp->ndata = read(e->epin->dfd, rbp->rp, Doburst? Hsburst*512:
@@ -368,8 +368,8 @@ smscmulticast(Ether *e, uint8_t *addr, int on)
 static void
 smscfree(Ether *ether)
 {
-	free(ether->aux);
-	ether->aux = nil;
+	free(ether->Etherops.aux);
+	ether->Etherops.aux = nil;
 }
 
 int
@@ -387,20 +387,20 @@ smscreset(Ether *ether)
 				return -1;
 			}
 			deprint(2, "%s: smsc reset done\n", argv0);
-			ether->name = "smsc";
+			ether->Etherops.name = "smsc";
 			if(Doburst){
-				ether->bufsize = Hsburst*512;
-				ether->aux = emallocz(sizeof(Buf) +
-					ether->bufsize - Maxpkt, 1);
+				ether->Etherops.bufsize = Hsburst*512;
+				ether->Etherops.aux = emallocz(sizeof(Buf) +
+					ether->Etherops.bufsize - Maxpkt, 1);
 			}else{
-				ether->bufsize = Maxpkt;
-				ether->aux = emallocz(sizeof(Buf), 1);
+				ether->Etherops.bufsize = Maxpkt;
+				ether->Etherops.aux = emallocz(sizeof(Buf), 1);
 			}
-			ether->free = smscfree;
-			ether->bread = smscbread;
-			ether->bwrite = smscbwrite;
-			ether->promiscuous = smscpromiscuous;
-			ether->multicast = smscmulticast;
+			ether->Etherops.free = smscfree;
+			ether->Etherops.bread = smscbread;
+			ether->Etherops.bwrite = smscbwrite;
+			ether->Etherops.promiscuous = smscpromiscuous;
+			ether->Etherops.multicast = smscmulticast;
 			ether->mbps = 100;	/* BUG */
 			return 0;
 		}

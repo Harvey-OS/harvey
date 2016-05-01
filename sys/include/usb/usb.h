@@ -173,7 +173,7 @@ enum {
  */
 struct Dev
 {
-	Ref;
+	Ref	Ref;
 	char*	dir;		/* path for the endpoint dir */
 	int	id;		/* usb id for device or ep. number */
 	int	dfd;		/* descriptor for the data file */

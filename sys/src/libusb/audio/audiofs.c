@@ -46,7 +46,7 @@ enum {
 
 struct Fid
 {
-	QLock;
+	QLock	QLock;
 	int	fid;
 	Dir	*dir;
 	uint16_t	flags;
@@ -387,10 +387,10 @@ ropen(Fid *f)
 
 	if(thdr.mode != OREAD && (f->dir->mode & 0x2) == 0)
 		return Eperm;
-	qlock(f);
+	qlock(&f->QLock);
 	if(f->dir == &dirs[Qaudioctl] && f->fiddata == nil)
 		f->fiddata = allocaudioctldata();
-	qunlock(f);
+	qunlock(&f->QLock);
 	rhdr.iounit = 0;
 	rhdr.qid = f->dir->qid;
 	f->flags |= Open;
@@ -497,9 +497,9 @@ readproc(void *x)
 		assert(a->offoff == off);
 		/* f is already locked */
 		for(;;){
-			qunlock(f);
+			qunlock(&f->QLock);
 			event = recvul(w->eventc);
-			qlock(f);
+			qlock(&f->QLock);
 			ddprint(2, "readproc unblocked fid %d %lld\n",
 					f->fid, f->dir->qid.path);
 			switch (event & 0xffff){
@@ -538,7 +538,7 @@ flush:
 		assert(f->readers == 0);
 		free(rhdr);
 		w->rhdr = nil;
-		qunlock(f);
+		qunlock(&f->QLock);
 		sendp(procchan, w);
 	}
 	threadexits(nil);
@@ -627,7 +627,7 @@ rread(Fid *f)
 	if(f->dir == &dirs[Qaudioctl]){
 		Fcall *hdr;
 
-		qlock(f);
+		qlock(&f->QLock);
 		a = f->fiddata;
 		if(off - a->offoff < 0){
 			/* there was a seek */
@@ -640,14 +640,14 @@ rread(Fid *f)
 				rhdr.count = a->ns - (off - a->offoff);
 				if(rhdr.count > cnt)
 					rhdr.count = cnt;
-				qunlock(f);
+				qunlock(&f->QLock);
 				return nil;
 			}
 			if(a->offoff != off){
 				a->ns = 0;
 				a->offoff = off;
 				rhdr.count = 0;
-				qunlock(f);
+				qunlock(&f->QLock);
 				return nil;
 			}
 		} while(makeaudioctldata(f) != 0);
@@ -799,7 +799,7 @@ rclunk(Fid *f)
 {
 	Audioctldata *a;
 
-	qlock(f);
+	qlock(&f->QLock);
 	f->flags &= ~(Open|Busy);
 	assert(f->readers ==0);
 	if(f->fiddata){
@@ -809,7 +809,7 @@ rclunk(Fid *f)
 		free(a);
 		f->fiddata = nil;
 	}
-	qunlock(f);
+	qunlock(&f->QLock);
 	return 0;
 }
 
@@ -825,14 +825,14 @@ rstat(Fid *f)
 	Audioctldata *a;
 
 	if(f->dir == &dirs[Qaudioctl]){
-		qlock(f);
+		qlock(&f->QLock);
 		if(f->fiddata == nil)
 			f->fiddata = allocaudioctldata();
 		a = f->fiddata;
 		if(a->ns == 0)
 			makeaudioctldata(f);
 		f->dir->length = a->offoff + a->ns;
-		qunlock(f);
+		qunlock(&f->QLock);
 	}
 	rhdr.nstat = convD2M(f->dir, mbuf, messagesize - IOHDRSZ);
 	rhdr.stat = mbuf;

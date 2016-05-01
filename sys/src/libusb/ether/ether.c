@@ -159,9 +159,9 @@ freebuf(Ether *e, Buf *bp)
 {
 	if(0)deprint(2, "%s: freebuf %#p\n", argv0, bp);
 	if(bp != nil){
-		qlock(e);
+		qlock(&e->QLock);
 		e->nbufs--;
-		qunlock(e);
+		qunlock(&e->QLock);
 		sendp(e->bc, bp);
 	}
 }
@@ -173,14 +173,14 @@ allocbuf(Ether *e)
 
 	bp = nbrecvp(e->bc);
 	if(bp == nil){
-		qlock(e);
+		qlock(&e->QLock);
 		if(e->nabufs < Nbufs){
 			bp = emallocz(sizeof(Buf), 1);
 			e->nabufs++;
 			setmalloctag(bp, getcallerpc());
 			deprint(2, "%s: %d buffers\n", argv0, e->nabufs);
 		}
-		qunlock(e);
+		qunlock(&e->QLock);
 	}
 	if(bp == nil){
 		deprint(2, "%s: blocked waiting for allocbuf\n", argv0);
@@ -189,9 +189,9 @@ allocbuf(Ether *e)
 	bp->rp = bp->data + Hdrsize;
 	bp->ndata = 0;
 	if(0)deprint(2, "%s: allocbuf %#p\n", argv0, bp);
-	qlock(e);
+	qlock(&e->QLock);
 	e->nbufs++;
-	qunlock(e);
+	qunlock(&e->QLock);
 	return bp;
 }
 
@@ -201,25 +201,25 @@ newconn(Ether *e)
 	int i;
 	Conn *c;
 
-	qlock(e);
+	qlock(&e->QLock);
 	for(i = 0; i < nelem(e->conns); i++){
 		c = e->conns[i];
-		if(c == nil || c->ref == 0){
+		if(c == nil || c->Ref.ref == 0){
 			if(c == nil){
 				c = emallocz(sizeof(Conn), 1);
 				c->rc = chancreate(sizeof(Buf*), 16);
 				c->nb = i;
 			}
-			c->ref = 1;
+			c->Ref.ref = 1;
 			if(i == e->nconns)
 				e->nconns++;
 			e->conns[i] = c;
 			deprint(2, "%s: newconn %d\n", argv0, i);
-			qunlock(e);
+			qunlock(&e->QLock);
 			return c;
 		}
 	}
-	qunlock(e);
+	qunlock(&e->QLock);
 	return nil;
 }
 
@@ -264,7 +264,7 @@ dumpframe(char *tag, void *p, int n)
 static char*
 seprintstats(char *s, char *se, Ether *e)
 {
-	qlock(e);
+	qlock(&e->QLock);
 	s = seprint(s, se, "in: %ld\n", e->nin);
 	s = seprint(s, se, "out: %ld\n", e->nout);
 	s = seprint(s, se, "input errs: %ld\n", e->nierrs);
@@ -274,7 +274,7 @@ seprintstats(char *s, char *se, Ether *e)
 	s = seprint(s, se, "addr: ");
 	s = seprintaddr(s, se, e->addr);
 	s = seprint(s, se, "\n");
-	qunlock(e);
+	qunlock(&e->QLock);
 	return s;
 }
 
@@ -284,7 +284,7 @@ seprintifstats(char *s, char *se, Ether *e)
 	int i;
 	Conn *c;
 
-	qlock(e);
+	qlock(&e->QLock);
 	s = seprint(s, se, "ctlr id: %#x\n", e->cid);
 	s = seprint(s, se, "phy: %#x\n", e->phy);
 	s = seprint(s, se, "exiting: %s\n", e->exiting ? "y" : "n");
@@ -295,14 +295,14 @@ seprintifstats(char *s, char *se, Ether *e)
 		c = e->conns[i];
 		if(c == nil)
 			continue;
-		if(c->ref == 0)
+		if(c->Ref.ref == 0)
 			s = seprint(s, se, "c[%d]: free\n", i);
 		else{
 			s = seprint(s, se, "c[%d]: refs %ld t %#x h %d p %d\n",
-				c->nb, c->ref, c->type, c->headersonly, c->prom);
+				c->nb, c->Ref.ref, c->type, c->headersonly, c->prom);
 		}
 	}
-	qunlock(e);
+	qunlock(&e->QLock);
 	return s;
 }
 
@@ -322,15 +322,15 @@ getconn(Ether *e, int i, int idleok)
 {
 	Conn *c;
 
-	qlock(e);
+	qlock(&e->QLock);
 	if(i < 0 || i >= e->nconns)
 		c = nil;
 	else{
 		c = e->conns[i];
-		if(idleok == 0 && c != nil && c->ref == 0)
+		if(idleok == 0 && c != nil && c->Ref.ref == 0)
 			c = nil;
 	}
-	qunlock(e);
+	qunlock(&e->QLock);
 	return c;
 }
 
@@ -510,7 +510,7 @@ fsopen(Usbfs *fs, Fid *fid, int omode)
 		c = getconn(e, qnum(qid), 1);
 		if(c == nil)
 			sysfatal("usb: ether: fsopen bug");
-		incref(c);
+		incref(&c->Ref);
 		break;
 	}
 	etherdump(e);
@@ -520,8 +520,8 @@ fsopen(Usbfs *fs, Fid *fid, int omode)
 static int
 prom(Ether *e, int set)
 {
-	if(e->promiscuous != nil)
-		return e->promiscuous(e, set);
+	if(e->Etherops.promiscuous != nil)
+		return e->Etherops.promiscuous(e, set);
 	return 0;
 }
 
@@ -547,15 +547,15 @@ fsclunk(Usbfs *fs, Fid *fid)
 			c = getconn(e, qnum(qid), 0);
 			if(c == nil)
 				sysfatal("usb: ether: fsopen bug");
-			if(decref(c) == 0){
+			if(decref(&c->Ref) == 0){
 				while((bp = nbrecvp(c->rc)) != nil)
 					freebuf(e, bp);
-				qlock(e);
+				qlock(&e->QLock);
 				if(c->prom != 0)
 					if(decref(&e->prom) == 0)
 						prom(e, 0);
 				c->prom = c->type = 0;
-				qunlock(e);
+				qunlock(&e->QLock);
 			}
 		}
 		break;
@@ -623,8 +623,8 @@ fsread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		/* BUG */
 	case Qifstats:
 		s = seprintifstats(s, se, e);
-		if(e->seprintstats != nil)
-			s = e->seprintstats(s, se, e);
+		if(e->Etherops.seprintstats != nil)
+			s = e->Etherops.seprintstats(s, se, e);
 		count = usbreadbuf(data, count, offset, buf, s - buf);
 		break;
 	case Qnstats:
@@ -675,7 +675,7 @@ typeinuse(Ether *e, int t)
 	int i;
 
 	for(i = 0; i < e->nconns; i++)
-		if(e->conns[i]->ref > 0 && e->conns[i]->type == t)
+		if(e->conns[i]->Ref.ref > 0 && e->conns[i]->type == t)
 			return 1;
 	return 0;
 }
@@ -695,14 +695,14 @@ etherctl(Ether *e, Conn *c, char *buf)
 	deprint(2, "%s: etherctl: %s\n", argv0, buf);
 	if(strncmp(buf, "connect ", 8) == 0){
 		t = atoi(buf+8);
-		qlock(e);
+		qlock(&e->QLock);
 		if(typeinuse(e, t)){
 			werrstr("type already in use");
-			qunlock(e);
+			qunlock(&e->QLock);
 			return -1;
 		}
 		c->type = atoi(buf+8);
-		qunlock(e);
+		qunlock(&e->QLock);
 		return 0;
 	}
 	if(strncmp(buf, "nonblocking", 11) == 0){
@@ -728,19 +728,19 @@ etherctl(Ether *e, Conn *c, char *buf)
 			werrstr("bad address");
 			return -1;
 		}
-		if(e->multicast == nil)
+		if(e->Etherops.multicast == nil)
 			return 0;
 		if(strncmp(buf, "add", 3) == 0){
 			e->nmcasts++;
-			return e->multicast(e, addr, 1);
+			return e->Etherops.multicast(e, addr, 1);
 		}else{
 			e->nmcasts--;
-			return e->multicast(e, addr, 0);
+			return e->Etherops.multicast(e, addr, 0);
 		}
 	}
 
-	if(e->ctl != nil)
-		return e->ctl(e, buf);
+	if(e->Etherops.ctl != nil)
+		return e->Etherops.ctl(e, buf);
 	werrstr(Ebadctl);
 	return -1;
 }
@@ -844,7 +844,7 @@ openeps(Ether *e, int epin, int epout)
 		return -1;
 	}
 	if(epout == epin){
-		incref(e->epin);
+		incref(&e->epin->Ref);
 		e->epout = e->epin;
 	}else
 		e->epout = openep(e->dev, epout);
@@ -911,8 +911,8 @@ etherfree(Ether *e)
 	int i;
 	Buf *bp;
 
-	if(e->free != nil)
-		e->free(e);
+	if(e->Etherops.free != nil)
+		e->Etherops.free(e);
 	closedev(e->epin);
 	closedev(e->epout);
 	if(e->rc == nil){	/* not really started */
@@ -947,7 +947,7 @@ etherdevfree(void *a)
 static int
 cwantsbp(Conn *c, Buf *bp)
 {
-	if(c->ref != 0 && (c->prom != 0 || c->type < 0 || c->type == bp->type))
+	if(c->Ref.ref != 0 && (c->prom != 0 || c->type < 0 || c->type == bp->type))
 		return 1;
 	return 0;
 }
@@ -968,7 +968,7 @@ etherwriteproc(void *a)
 			break;
 		}
 		e->nout++;
-		if(e->bwrite(e, bp) < 0)
+		if(e->Etherops.bwrite(e, bp) < 0)
 			e->noerrs++;
 		if(isloopback(e, bp) && e->exiting == 0)
 			sendp(e->rc, bp); /* send to input queue */
@@ -1015,7 +1015,7 @@ etherreadproc(void *a)
 		bp = nbrecvp(e->rc);
 		if(bp == nil){
 			bp = allocbuf(e);	/* leak() may think we leak */
-			if(e->bread(e, bp) < 0){
+			if(e->Etherops.bread(e, bp) < 0){
 				freebuf(e, bp);
 				break;
 			}
@@ -1166,8 +1166,8 @@ kernelproxy(Ether *e)
 	close(e->epout->dfd);
 	seprintaddr(eaddr, eaddr+sizeof(eaddr), e->addr);
 	n = fprint(ctlfd, "bind %s #u/usb/ep%d.%d/data #u/usb/ep%d.%d/data %s %d %d",
-		e->name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
-		eaddr, e->bufsize, e->epout->maxpkt);
+		e->Etherops.name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
+		eaddr, e->Etherops.bufsize, e->epout->maxpkt);
 	if(n < 0){
 		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
 		opendevdata(e->epin, OREAD);
@@ -1211,23 +1211,23 @@ ethermain(Dev *dev, int argc, char **argv)
 	e->dev = dev;
 	dev->free = etherdevfree;
 	memmove(e->addr, ea, Eaddrlen);
-	e->name = "cdc";
+	e->Etherops.name = "cdc";
 
 	for(i = 0; i < nelem(ethers); i++)
 		if(ethers[i](e) == 0)
 			break;
 	if(i == nelem(ethers))
 		return -1;
-	if(e->init == nil)
-		e->init = etherinit;
-	if(e->init(e, &epin, &epout) < 0)
+	if(e->Etherops.init == nil)
+		e->Etherops.init = etherinit;
+	if(e->Etherops.init(e, &epin, &epout) < 0)
 		return -1;
-	if(e->bwrite == nil)
-		e->bwrite = etherbwrite;
-	if(e->bread == nil)
-		e->bread = etherbread;
-	if(e->bufsize == 0)
-		e->bufsize = Maxpkt;
+	if(e->Etherops.bwrite == nil)
+		e->Etherops.bwrite = etherbwrite;
+	if(e->Etherops.bread == nil)
+		e->Etherops.bread = etherbread;
+	if(e->Etherops.bufsize == 0)
+		e->Etherops.bufsize = Maxpkt;
 
 	if(openeps(e, epin, epout) < 0)
 		return -1;
@@ -1240,12 +1240,12 @@ ethermain(Dev *dev, int argc, char **argv)
 	e->bc = chancreate(sizeof(Buf*), Nbufs);
 	e->rc = chancreate(sizeof(Buf*), Nconns/2);
 	e->wc = chancreate(sizeof(Buf*), Nconns*2);
-	incref(e->dev);
+	incref(&e->dev->Ref);
 	proccreate(etherwriteproc, e, 16*1024);
-	incref(e->dev);
+	incref(&e->dev->Ref);
 	proccreate(etherreadproc, e, 16*1024);
-	deprint(2, "%s: dev ref %ld\n", argv0, dev->ref);
-	incref(e->dev);
+	deprint(2, "%s: dev ref %ld\n", argv0, dev->Ref.ref);
+	incref(&e->dev->Ref);
 	usbfsadd(&e->fs);
 	return 0;
 }

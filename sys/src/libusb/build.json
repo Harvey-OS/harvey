@@ -1,7 +1,6 @@
 {
 	"Libusb": {
 		"Cflags": [
-		    "-fplan9-extensions",
 			"-fasm",
 			"-Werror"
 		],

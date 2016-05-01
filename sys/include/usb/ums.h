@@ -59,7 +59,7 @@ enum
  */
 struct Umsc
 {
-	ScsiReq;
+	ScsiReq	ScsiReq;
 	uint64_t	blocks;
 	int64_t	capacity;
 
@@ -78,7 +78,7 @@ struct Umsc
 
 struct Ums
 {
-	QLock;
+	QLock	QLock;
 	Dev	*dev;
 	Dev	*epin;
 	Dev	*epout;
