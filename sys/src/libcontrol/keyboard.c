@@ -28,7 +28,7 @@ enum{
 
 struct Keyboard
 {
-	Control;
+	Control Control;
 	CImage	*image;
 	CImage	*mask;
 	CImage	*light;
@@ -180,7 +180,7 @@ keyboardfree(Control *c)
 	_putctlfont(k->ctlfont);
 	for(i=0; i<nelem(k->im); i++)
 		freeimage(k->im[i]);
-	free(k->format);
+	free(k->Control.format);
 }
 
 static int
@@ -189,9 +189,9 @@ keyboardy(Keyboard *k, int row)
 	int dy;
 
 	if(row >= Nrow)
-		return k->rect.max.y-k->border;
-	dy = Dy(k->rect)-2*k->border;
-	return k->rect.min.y+k->border+(row*dy+Nrow-1)/Nrow;
+		return k->Control.rect.max.y-k->border;
+	dy = Dy(k->Control.rect)-2*k->border;
+	return k->Control.rect.min.y+k->border+(row*dy+Nrow-1)/Nrow;
 }
 
 static char*
@@ -202,7 +202,7 @@ whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 	int row, col, dx, dy, x, n, maxx;
 	Rectangle r;
 
-	r = insetrect(k->rect, k->border);
+	r = insetrect(k->Control.rect, k->border);
 	if(!ptinrect(p, r))
 		return nil;
 	maxx = r.max.x;
@@ -241,7 +241,7 @@ keyrect(Keyboard *k, int row, int col)
 	Rectangle r;
 	Point p;
 
-	r = insetrect(k->rect, k->border);
+	r = insetrect(k->Control.rect, k->border);
 	p = r.min;
 	dx = Dx(r);
 	r.min.y = keyboardy(k, row);
@@ -275,16 +275,16 @@ keydraw(Keyboard *k, int state)
 
 	freeimage(k->im[state]);
 	k->im[state] = nil;
-	if(Dx(k->rect)-2*k->border <= 0)
+	if(Dx(k->Control.rect)-2*k->border <= 0)
 		return;
 
-	im = allocimage(display, k->rect, screen->chan, 0, ~0);
+	im = allocimage(display, k->Control.rect, screen->chan, 0, ~0);
 	if(im == nil)
 		return;
 	k->im[state] = im;
 
-	r = insetrect(k->rect, k->border);
-	border(im, k->rect, k->border, k->bordercolor->image, ZP);
+	r = insetrect(k->Control.rect, k->border);
+	border(im, k->Control.rect, k->border, k->bordercolor->image, ZP);
 	draw(im, r, k->image->image, nil, ZP);
 	dx = Dx(r);
 	dy = Dy(r);
@@ -340,26 +340,26 @@ keyboardshow(Keyboard *k)
 {
 	Rectangle r;
 
-	if (k->hidden)
+	if (k->Control.hidden)
 		return;
-	if(k->im[0]==nil || !eqrect(k->im[0]->r, k->rect))
+	if(k->im[0]==nil || !eqrect(k->im[0]->r, k->Control.rect))
 		keyresize(k);
 	if(k->im[k->state&SMask] == nil)
 		return;
-	draw(k->screen, k->rect, k->im[k->state&SMask], nil, k->rect.min);
+	draw(k->Control.screen, k->Control.rect, k->im[k->state&SMask], nil, k->Control.rect.min);
 	if(k->state & SShift){
 		r = keyrect(k, 3, 0);
-		draw(k->screen, r, k->light->image, k->mask->image, ZP);
+		draw(k->Control.screen, r, k->light->image, k->mask->image, ZP);
 		r = keyrect(k, 3, 11);
-		draw(k->screen, r, k->light->image, k->mask->image, ZP);
+		draw(k->Control.screen, r, k->light->image, k->mask->image, ZP);
 	}
 	if(k->state & SCaps){
 		r = keyrect(k, 2, 0);
-		draw(k->screen, r, k->light->image, k->mask->image, ZP);
+		draw(k->Control.screen, r, k->light->image, k->mask->image, ZP);
 	}
 	if(k->state & SControl){
 		r = keyrect(k, 4, 0);
-		draw(k->screen, r, k->light->image, k->mask->image, ZP);
+		draw(k->Control.screen, r, k->light->image, k->mask->image, ZP);
 	}
 	flushimage(display, 1);
 }
@@ -376,7 +376,7 @@ keydown(Keyboard *k, Point p)
 		return;
 	keyboardshow(k);
 	if(s != nil)
-		draw(k->screen, r, k->light->image, k->mask->image, ZP);
+		draw(k->Control.screen, r, k->light->image, k->mask->image, ZP);
 	flushimage(display, 1);
 	k->_key = s;
 }
@@ -422,8 +422,8 @@ keyup(Keyboard *k, Point p)
 		k->state &= ~SShift;
 	keyboardshow(k);
 	if(val)
-		chanprint(k->event, k->format, k->name, val);
-	k->key = nil;
+		chanprint(k->Control.event, k->Control.format, k->Control.name, val);
+	k->Control.key = nil;
 }
 
 static void
@@ -437,84 +437,84 @@ keyboardctl(Control *c, CParse *cp)
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", k->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", k->Control.name, cp->str);
 		break;
 	case EBorder:
-		_ctlargcount(k, cp, 2);
+		_ctlargcount(&k->Control, cp, 2);
 		if(cp->iargs[1] < 0)
-			ctlerror("%q: bad border: %c", k->name, cp->str);
+			ctlerror("%q: bad border: %c", k->Control.name, cp->str);
 		k->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(k, cp, 2);
-		_setctlimage(k, &k->bordercolor, cp->args[1]);
+		_ctlargcount(&k->Control, cp, 2);
+		_setctlimage(&k->Control, &k->bordercolor, cp->args[1]);
 		break;
 	case EFocus:
 		/* ignore focus change */
 		break;
 	case EFont:
 		if(cp->nargs!=2 && cp->nargs!=3)
-			ctlerror("%q: bad font message '%s'", k->name, cp->str);
-		_setctlfont(k, &k->font, cp->args[1]);
+			ctlerror("%q: bad font message '%s'", k->Control.name, cp->str);
+		_setctlfont(&k->Control, &k->font, cp->args[1]);
 		if(cp->nargs == 3)
-			_setctlfont(k, &k->ctlfont, cp->args[2]);
+			_setctlfont(&k->Control, &k->ctlfont, cp->args[2]);
 		else
-			_setctlfont(k, &k->ctlfont, cp->args[1]);
+			_setctlfont(&k->Control, &k->ctlfont, cp->args[1]);
 		break;
 	case EFormat:
-		_ctlargcount(k, cp, 2);
-		k->format = ctlstrdup(cp->args[1]);
+		_ctlargcount(&k->Control, cp, 2);
+		k->Control.format = ctlstrdup(cp->args[1]);
 		break;
 	case EHide:
-		_ctlargcount(k, cp, 1);
-		k->hidden = 1;
+		_ctlargcount(&k->Control, cp, 1);
+		k->Control.hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(k, cp, 2);
-		_setctlimage(k, &k->image, cp->args[1]);
+		_ctlargcount(&k->Control, cp, 2);
+		_setctlimage(&k->Control, &k->image, cp->args[1]);
 		break;
 	case ELight:
-		_ctlargcount(k, cp, 2);
-		_setctlimage(k, &k->light, cp->args[1]);
+		_ctlargcount(&k->Control, cp, 2);
+		_setctlimage(&k->Control, &k->light, cp->args[1]);
 		break;
 	case EMask:
-		_ctlargcount(k, cp, 2);
-		_setctlimage(k, &k->mask, cp->args[1]);
+		_ctlargcount(&k->Control, cp, 2);
+		_setctlimage(&k->Control, &k->mask, cp->args[1]);
 		break;
 	case ERect:
-		_ctlargcount(k, cp, 5);
+		_ctlargcount(&k->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<0 || Dy(r)<0)
-			ctlerror("%q: bad rectangle: %s", k->name, cp->str);
-		k->rect = r;
+			ctlerror("%q: bad rectangle: %s", k->Control.name, cp->str);
+		k->Control.rect = r;
 		keyboardshow(k);
 		break;
 	case EReveal:
-		_ctlargcount(k, cp, 1);
-		k->hidden = 0;
+		_ctlargcount(&k->Control, cp, 1);
+		k->Control.hidden = 0;
 		keyboardshow(k);
 		break;
 	case EShow:
-		_ctlargcount(k, cp, 1);
+		_ctlargcount(&k->Control, cp, 1);
 		keyboardshow(k);
 		break;
 	case ESize:
 		if (cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
 		else{
-			_ctlargcount(k, cp, 5);
+			_ctlargcount(&k->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
-			ctlerror("%q: bad sizes: %s", k->name, cp->str);
-		k->size.min = r.min;
-		k->size.max = r.max;
+			ctlerror("%q: bad sizes: %s", k->Control.name, cp->str);
+		k->Control.size.min = r.min;
+		k->Control.size.max = r.max;
 		break;
 	}
 }
@@ -532,14 +532,14 @@ createkeyboard(Controlset *cs, char *name)
 	k->textcolor = _getctlimage("black");
 	k->font = _getctlfont("font");
 	k->ctlfont = _getctlfont("font");
-	k->format = ctlstrdup("%q: value 0x%x");
+	k->Control.format = ctlstrdup("%q: value 0x%x");
 	k->border = 0;
 	k->lastbut = 0;
-	k->key = nil;
+	k->Control.key = nil;
 	k->state = SRegular;
-	k->ctl = keyboardctl;
-	k->mouse = keyboardmouse;
-	k->exit = keyboardfree;
-	k->size = Rect(246, 2 + 5 * (k->font->font->height + 1), 512, 256);
-	return k;
+	k->Control.ctl = keyboardctl;
+	k->Control.mouse = keyboardmouse;
+	k->Control.exit = keyboardfree;
+	k->Control.size = Rect(246, 2 + 5 * (k->font->font->height + 1), 512, 256);
+	return &k->Control;
 }

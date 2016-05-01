@@ -19,7 +19,7 @@ typedef struct Entry Entry;
 
 struct Entry
 {
-	Control;
+	Control Control;
 	int		border;
 	CFont	*font;
 	CImage	*image;
@@ -89,7 +89,7 @@ entrypoint(Entry *e, int c)
 	Point p;
 	Rectangle r;
 
-	r = e->rect;
+	r = e->Control.rect;
 	if(e->border > 0)
 		r = insetrect(r, e->border);
 	p = _ctlalignpoint(r,
@@ -107,17 +107,17 @@ entryshow(Entry *e)
 	Rectangle r, dr;
 	Point p;
 
-	if (e->hidden)
+	if (e->Control.hidden)
 		return;
-	r = e->rect;
-	draw(e->screen, r, e->image->image, nil, e->image->image->r.min);
+	r = e->Control.rect;
+	draw(e->Control.screen, r, e->image->image, nil, e->image->image->r.min);
 	if(e->border > 0){
-		border(e->screen, r, e->border, e->bordercolor->image, e->bordercolor->image->r.min);
+		border(e->Control.screen, r, e->border, e->bordercolor->image, e->bordercolor->image->r.min);
 		dr = insetrect(r, e->border);
 	}else
 		dr = r;
 	p = entrypoint(e, 0);
-	_string(e->screen, p, e->textcolor->image,
+	_string(e->Control.screen, p, e->textcolor->image,
 		ZP, e->font->font, nil, e->text, e->ntext,
 		dr, nil, ZP, SoverD);
 	if(e->hasfocus){
@@ -126,7 +126,7 @@ entryshow(Entry *e)
 		r.max.x = p.x+1;
 		r.max.y = p.y+e->font->font->height;
 		if(rectclip(&r, dr))
-			draw(e->screen, r, e->textcolor->image, nil, ZP);
+			draw(e->Control.screen, r, e->textcolor->image, nil, ZP);
 	}
 	flushimage(display, 1);
 }
@@ -137,7 +137,7 @@ entrysetpoint(Entry *e, Point cp)
 	Point p;
 	int i;
 
-	if(!ptinrect(cp, insetrect(e->rect, e->border)))
+	if(!ptinrect(cp, insetrect(e->Control.rect, e->border)))
 		return;
 	p = entrypoint(e, 0);
 	for(i=0; i<e->ntext; i++){
@@ -172,88 +172,88 @@ entryctl(Control *c, CParse *cp)
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", e->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", e->Control.name, cp->str);
 		break;
 	case EAlign:
-		_ctlargcount(e, cp, 2);
+		_ctlargcount(&e->Control, cp, 2);
 		e->align = _ctlalignment(cp->args[1]);
 		break;
 	case EBorder:
-		_ctlargcount(e, cp, 2);
+		_ctlargcount(&e->Control, cp, 2);
 		if(cp->iargs[1] < 0)
-			ctlerror("%q: bad border: %c", e->name, cp->str);
+			ctlerror("%q: bad border: %c", e->Control.name, cp->str);
 		e->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(e, cp, 2);
-		_setctlimage(e, &e->bordercolor, cp->args[1]);
+		_ctlargcount(&e->Control, cp, 2);
+		_setctlimage(&e->Control, &e->bordercolor, cp->args[1]);
 		break;
 	case EData:
-		_ctlargcount(e, cp, 1);
-		chanprint(e->data, "%S", e->text);
+		_ctlargcount(&e->Control, cp, 1);
+		chanprint(e->Control.data, "%S", e->text);
 		break;
 	case EFocus:
-		_ctlargcount(e, cp, 2);
+		_ctlargcount(&e->Control, cp, 2);
 		e->hasfocus = cp->iargs[1];
 		e->lastbut = 0;
 		entryshow(e);
 		break;
 	case EFont:
-		_ctlargcount(e, cp, 2);
-		_setctlfont(e, &e->font, cp->args[1]);
+		_ctlargcount(&e->Control, cp, 2);
+		_setctlfont(&e->Control, &e->font, cp->args[1]);
 		break;
 	case EFormat:
-		_ctlargcount(e, cp, 2);
-		e->format = ctlstrdup(cp->args[1]);
+		_ctlargcount(&e->Control, cp, 2);
+		e->Control.format = ctlstrdup(cp->args[1]);
 		break;
 	case EHide:
-		_ctlargcount(e, cp, 1);
-		e->hidden = 1;
+		_ctlargcount(&e->Control, cp, 1);
+		e->Control.hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(e, cp, 2);
-		_setctlimage(e, &e->image, cp->args[1]);
+		_ctlargcount(&e->Control, cp, 2);
+		_setctlimage(&e->Control, &e->image, cp->args[1]);
 		break;
 	case ERect:
-		_ctlargcount(e, cp, 5);
+		_ctlargcount(&e->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<=0 || Dy(r)<=0)
-			ctlerror("%q: bad rectangle: %s", e->name, cp->str);
-		e->rect = r;
+			ctlerror("%q: bad rectangle: %s", e->Control.name, cp->str);
+		e->Control.rect = r;
 		break;
 	case EReveal:
-		_ctlargcount(e, cp, 1);
-		e->hidden = 0;
+		_ctlargcount(&e->Control, cp, 1);
+		e->Control.hidden = 0;
 		entryshow(e);
 		break;
 	case EShow:
-		_ctlargcount(e, cp, 1);
+		_ctlargcount(&e->Control, cp, 1);
 		entryshow(e);
 		break;
 	case ESize:
 		if (cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
 		else{
-			_ctlargcount(e, cp, 5);
+			_ctlargcount(&e->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
-			ctlerror("%q: bad sizes: %s", e->name, cp->str);
-		e->size.min = r.min;
-		e->size.max = r.max;
+			ctlerror("%q: bad sizes: %s", e->Control.name, cp->str);
+		e->Control.size.min = r.min;
+		e->Control.size.max = r.max;
 		break;
 	case ETextcolor:
-		_ctlargcount(e, cp, 2);
-		_setctlimage(e, &e->textcolor, cp->args[1]);
+		_ctlargcount(&e->Control, cp, 2);
+		_setctlimage(&e->Control, &e->textcolor, cp->args[1]);
 		break;
 	case EValue:
-		_ctlargcount(e, cp, 2);
+		_ctlargcount(&e->Control, cp, 2);
 		rp = _ctlrunestr(cp->args[1]);
 		if(runestrcmp(rp, e->text) != 0){
 			free(e->text);
@@ -284,7 +284,7 @@ entrykey(Entry *e, Rune r)
 		break;
 	case L'\n':	/* newline: return value */
 		p = _ctlstrrune(e->text);
-		chanprint(e->event, e->format, e->name, p);
+		chanprint(e->Control.event, e->Control.format, e->Control.name, p);
 		free(p);
 		return;
 	case L'\b':
@@ -353,11 +353,11 @@ createentry(Controlset *cs, char *name)
 	e->textcolor = _getctlimage("black");
 	e->bordercolor = _getctlimage("black");
 	e->font = _getctlfont("font");
-	e->format = ctlstrdup("%q: value %q");
+	e->Control.format = ctlstrdup("%q: value %q");
 	e->border = 0;
-	e->ctl = entryctl;
-	e->mouse = entrymouse;
-	e->key = entrykeys;
-	e->exit = entryfree;
+	e->Control.ctl = entryctl;
+	e->Control.mouse = entrymouse;
+	e->Control.key = entrykeys;
+	e->Control.exit = entryfree;
 	return (Control *)e;
 }

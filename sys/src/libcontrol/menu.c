@@ -19,7 +19,7 @@ typedef struct Menu0 Menu0;	/* Menu is taken by mouse.h */
 
 struct Menu0
 {
-	Control;
+	Control Control;
 	CImage	*image;
 	CImage	*bordercolor;
 	CImage	*textcolor;
@@ -104,14 +104,14 @@ menushow(Menu0 *m)
 	Point p, q;
 	Image *im, *c;
 
-	if(m->hidden || m->window == nil)
+	if(m->Control.hidden || m->window == nil)
 		return;
 
 	m->visible = 1;
 	f = m->font->font;
-	draw(m->window, m->rect, m->image->image, nil, m->image->image->r.min);
+	draw(m->window, m->Control.rect, m->image->image, nil, m->image->image->r.min);
 	if(m->border > 0)
-		border(m->window, m->rect, m->border, m->bordercolor->image, ZP);
+		border(m->window, m->Control.rect, m->border, m->bordercolor->image, ZP);
 	/* text goes here */
 	dx = 0;
 	for(i=0; i<m->nline; i++){
@@ -120,7 +120,7 @@ menushow(Menu0 *m)
 			dx = w;
 	}
 	dy = m->nline*f->height;
-	clipr = insetrect(m->rect, m->border);
+	clipr = insetrect(m->Control.rect, m->border);
 	p = _ctlalignpoint(clipr, dx, dy, m->align);
 	im = m->textcolor->image;
 //	if(m->pressed)
@@ -141,7 +141,7 @@ menushow(Menu0 *m)
 		p.y += f->height;
 	}
 //	if(m->pressed)
-//		draw(m->screen, m->rect, m->lighm->image, m->mask->image, m->mask->image->r.min);
+//		draw(m->Control.screen, m->Control.rect, m->lighm->image, m->mask->image, m->mask->image->r.min);
 	flushimage(display, 1);
 }
 
@@ -171,13 +171,13 @@ menuhide(Menu0 *m)
 {
 	freeimage(m->window);
 	m->window = nil;
-	m->rect.max.y = m->rect.min.y;	/* go to zero size */
+	m->Control.rect.max.y = m->Control.rect.min.y;	/* go to zero size */
 	m->lastbut = 0;
 	m->visible = 0;
 	if(m->selection >= 0)
 		m->prevsel = m->selection;
 	m->selection = -1;
-	_ctlfocus(m, 0);
+	_ctlfocus(&m->Control, 0);
 }
 
 static void
@@ -191,12 +191,12 @@ menutrack(Control *c, Mouse *ms)
 	if(m->window == nil)
 		return;
 	if(m->lastbut && ms->buttons==0){	/* menu was released */
-		chanprint(m->event, "%q: value %d", m->name, m->selection);
+		chanprint(m->Control.event, "%q: value %d", m->Control.name, m->selection);
 		menuhide(m);
 		return;
 	}
 	m->lastbut = ms->buttons;
-	r = insetrect(m->rect, m->border);
+	r = insetrect(m->Control.rect, m->border);
 	if(!ptinrect(ms->xy, r))
 		s = -1;
 	else{
@@ -222,99 +222,99 @@ menuctl(Control *c, CParse *cp)
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", m->name, cp->str);
+		ctlerror("%q: unrecognized message '%s'", m->Control.name, cp->str);
 		break;
 	case EAdd:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(&m->Control, cp, 2);
 		m->line = ctlrealloc(m->line, (m->nline+1)*sizeof(char*));
 		m->line[m->nline++] = ctlstrdup(cp->args[1]);
 		menushow(m);
 		break;
 	case EAlign:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(&m->Control, cp, 2);
 		m->align = _ctlalignment(cp->args[1]);
 		menushow(m);
 		break;
 	case EBorder:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(&m->Control, cp, 2);
 		m->border = cp->iargs[1];
 		menushow(m);
 		break;
 	case EBordercolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->bordercolor, cp->args[1]);
+		_ctlargcount(&m->Control, cp, 2);
+		_setctlimage(&m->Control, &m->bordercolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EFocus:
-		_ctlargcount(m, cp, 2);
+		_ctlargcount(&m->Control, cp, 2);
 		if(atoi(cp->args[1]) == 0)
 			menuhide(m);
 		break;
 	case EFont:
-		_ctlargcount(m, cp, 2);
-		_setctlfont(m, &m->font, cp->args[1]);
+		_ctlargcount(&m->Control, cp, 2);
+		_setctlfont(&m->Control, &m->font, cp->args[1]);
 		break;
 	case EFormat:
-		_ctlargcount(m, cp, 2);
-		m->format = ctlstrdup(cp->args[1]);
+		_ctlargcount(&m->Control, cp, 2);
+		m->Control.format = ctlstrdup(cp->args[1]);
 		break;
 	case EHide:
-		_ctlargcount(m, cp, 1);
-		m->hidden = 1;
+		_ctlargcount(&m->Control, cp, 1);
+		m->Control.hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->image, cp->args[1]);
+		_ctlargcount(&m->Control, cp, 2);
+		_setctlimage(&m->Control, &m->image, cp->args[1]);
 		menushow(m);
 		break;
 	case ERect:
-		_ctlargcount(m, cp, 5);
+		_ctlargcount(&m->Control, cp, 5);
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
 		if(Dx(r)<0 || Dy(r)<0)
-			ctlerror("%q: bad rectangle: %s", m->name, cp->str);
-		m->rect = r;
+			ctlerror("%q: bad rectangle: %s", m->Control.name, cp->str);
+		m->Control.rect = r;
 		menushow(m);
 		break;
 	case EReveal:
-		_ctlargcount(m, cp, 1);
-		m->hidden = 0;
+		_ctlargcount(&m->Control, cp, 1);
+		m->Control.hidden = 0;
 		menushow(m);
 		break;
 	case ESelectcolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->selectcolor, cp->args[1]);
+		_ctlargcount(&m->Control, cp, 2);
+		_setctlimage(&m->Control, &m->selectcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case ESelecttextcolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->selecttextcolor, cp->args[1]);
+		_ctlargcount(&m->Control, cp, 2);
+		_setctlimage(&m->Control, &m->selecttextcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EShow:
-		_ctlargcount(m, cp, 1);
+		_ctlargcount(&m->Control, cp, 1);
 		menushow(m);
 		break;
 	case ESize:
 		if (cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
 		else{
-			_ctlargcount(m, cp, 5);
+			_ctlargcount(&m->Control, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
 		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
-			ctlerror("%q: bad sizes: %s", m->name, cp->str);
-		m->size.min = r.min;
-		m->size.max = r.max;
+			ctlerror("%q: bad sizes: %s", m->Control.name, cp->str);
+		m->Control.size.min = r.min;
+		m->Control.size.max = r.max;
 		break;
 	case ETextcolor:
-		_ctlargcount(m, cp, 2);
-		_setctlimage(m, &m->textcolor, cp->args[1]);
+			     _ctlargcount(&m->Control, cp, 2);
+			     _setctlimage(&m->Control, &m->textcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EWindow:
@@ -331,19 +331,19 @@ menuctl(Control *c, CParse *cp)
 		if(m->window != nil)
 			break;
 		diag = menusize(m);
-		m->rect.max.x = m->rect.min.x + diag.x;
-		m->rect.max.y = m->rect.min.y + diag.y;
-		m->window = allocwindow(_screen, m->rect, Refbackup, DWhite);
+		m->Control.rect.max.x = m->Control.rect.min.x + diag.x;
+		m->Control.rect.max.y = m->Control.rect.min.y + diag.y;
+		m->window = allocwindow(_screen, m->Control.rect, Refbackup, DWhite);
 		if(m->window == nil)
-			m->window = m->screen;
+			m->window = m->Control.screen;
 		up = m->prevsel;
 		if(up<0 || up>=m->nline)
 			up = 0;
 		m->selection = up;
 		menushow(m);
 		h = m->font->font->height;
-		moveto(m->controlset->mousectl,
-			Pt(m->rect.min.x+Dx(m->rect)/2, m->rect.min.y+up*h+h/2));
+		moveto(m->Control.controlset->mousectl,
+			Pt(m->Control.rect.min.x+Dx(m->Control.rect)/2, m->Control.rect.min.y+up*h+h/2));
 //		_ctlfocus(m, 1);
 		break;
 	}
@@ -361,15 +361,15 @@ createmenu(Controlset *cs, char *name)
 	m->selectcolor = _getctlimage("yellow");
 	m->selecttextcolor = _getctlimage("black");
 	m->bordercolor = _getctlimage("black");
-	m->format = ctlstrdup("%q: value %d");
+	m->Control.format = ctlstrdup("%q: value %d");
 	m->border = 0;
 	m->align = Aupperleft;
 	m->visible = 0;
 	m->window = nil;
 	m->lastbut = 0;
 	m->selection = -1;
-	m->mouse = menutrack;
-	m->ctl = menuctl;
-	m->exit = menufree;
+	m->Control.mouse = menutrack;
+	m->Control.ctl = menuctl;
+	m->Control.exit = menufree;
 	return (Control *)m;
 }

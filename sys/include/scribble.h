@@ -16,7 +16,7 @@ typedef struct Scribble Scribble;
 typedef struct graffiti Graffiti;
 
 typedef struct pen_point {
-	Point;
+	Point Point;
 	long	chaincode;
 } pen_point;
 
