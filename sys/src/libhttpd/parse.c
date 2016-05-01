@@ -701,7 +701,7 @@ mimecontlen(Hlex *h, char *name)
 		return;
 	e = h->wordval;
 	v = digtoul(e, &e);
-	if(v == ~0UL || *e != '\0')
+	if(v == ~0U || *e != '\0')
 		return;
 	h->c->head.contlen = v;
 }

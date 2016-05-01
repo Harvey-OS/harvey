@@ -359,9 +359,9 @@ Have:
 }
 
 void*
-evommem(void *a, void *b, uint32_t n)
+evommem(void *a, const void *b, size_t n)
 {
-	return memmove(b, a, n);
+	return memmove((void *)b, a, n);
 }
 
 int
@@ -385,7 +385,7 @@ rdwrpart(Req *r)
 	int64_t offset;
 	int32_t count, tot, n, o;
 	uint8_t *blk, *dat;
-	void *(*move)(void*, void*, uint32_t);
+	void *(*move)(void*, const void*, size_t);
 
 	q = r->fid->qid.path-Qpart;
 	if(q < 0 || q > nelem(tab) || !tab[q].inuse || tab[q].vers != r->fid->qid.vers){

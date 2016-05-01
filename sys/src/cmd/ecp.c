@@ -483,7 +483,7 @@ copysects(File *src, File *dest, Daddr stsect, Daddr nsects, int mustseek)
 	bigxfer(src,  read,  buf, stsect, xfrsects, mustseek);
 	if (swizzle)
 		swizzlebits(buf, xfrsects);
-	bigxfer(dest, write, buf, stsect, xfrsects, mustseek);
+	bigxfer(dest, (const void*)write, buf, stsect, xfrsects, mustseek);
 	/* give a few reassurances at the start, then every 10MB */
 	if (progress &&
 	    (stsect < blksects*10 || stsect%(10*1024*1024/sectsz) == 0))

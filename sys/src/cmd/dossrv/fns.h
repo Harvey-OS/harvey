@@ -77,3 +77,4 @@ int32_t	writefile(Xfile*, void*, int32_t, int32_t);
 char	*xerrstr(int);
 Xfile	*xfile(int, int);
 int	xfspurge(void);
+int putlongname(Xfs *xf, Dosptr *ndp, char *name, char sname[13]);

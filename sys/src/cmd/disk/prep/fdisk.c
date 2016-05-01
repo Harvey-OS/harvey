@@ -339,8 +339,6 @@ static Type types[256] = {
 	[Type9] =			{ "PLAN9", "plan9" },
 };
 
-/* wow. never used. oh well. */
-static Dospart	part[Mpart];
 static int		npart;
 
 static char*
