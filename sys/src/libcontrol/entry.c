@@ -190,7 +190,7 @@ entryctl(Control *c, CParse *cp)
 		break;
 	case EData:
 		_ctlargcount(&e->Control, cp, 1);
-		chanprint(e->data, "%S", e->text);
+		chanprint(e->Control.data, "%S", e->text);
 		break;
 	case EFocus:
 		_ctlargcount(&e->Control, cp, 2);

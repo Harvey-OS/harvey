@@ -177,7 +177,7 @@ menuhide(Menu0 *m)
 	if(m->selection >= 0)
 		m->prevsel = m->selection;
 	m->selection = -1;
-	_ctlfocus(m, 0);
+	_ctlfocus(&m->Control, 0);
 }
 
 static void
@@ -242,7 +242,7 @@ menuctl(Control *c, CParse *cp)
 		break;
 	case EBordercolor:
 		_ctlargcount(&m->Control, cp, 2);
-		_setctlimage(_setctlimage(mm->Control, &m->bordercolor, cp->args[1]);
+		_setctlimage(&m->Control, &m->bordercolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EFocus:
@@ -252,7 +252,7 @@ menuctl(Control *c, CParse *cp)
 		break;
 	case EFont:
 		_ctlargcount(&m->Control, cp, 2);
-		_setctlfont(_setctlfont(_setctlfont(mm->Controlm->Control, &m->font, cp->args[1]);
+		_setctlfont(&m->Control, &m->font, cp->args[1]);
 		break;
 	case EFormat:
 		_ctlargcount(&m->Control, cp, 2);
@@ -264,7 +264,7 @@ menuctl(Control *c, CParse *cp)
 		break;
 	case EImage:
 		_ctlargcount(&m->Control, cp, 2);
-		_setctlimage(_setctlimage(mm->Control, &m->image, cp->args[1]);
+		_setctlimage(&m->Control, &m->image, cp->args[1]);
 		menushow(m);
 		break;
 	case ERect:
@@ -285,12 +285,12 @@ menuctl(Control *c, CParse *cp)
 		break;
 	case ESelectcolor:
 		_ctlargcount(&m->Control, cp, 2);
-		_setctlimage(_setctlimage(mm->Control, &m->selectcolor, cp->args[1]);
+		_setctlimage(&m->Control, &m->selectcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case ESelecttextcolor:
 		_ctlargcount(&m->Control, cp, 2);
-		_setctlimage(_setctlimage(mm->Control, &m->selecttextcolor, cp->args[1]);
+		_setctlimage(&m->Control, &m->selecttextcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EShow:
@@ -314,7 +314,7 @@ menuctl(Control *c, CParse *cp)
 		break;
 	case ETextcolor:
 			     _ctlargcount(&m->Control, cp, 2);
-			     _setctlimage(_setctlimage(mm->Control, &m->textcolor, cp->args[1]);
+			     _setctlimage(&m->Control, &m->textcolor, cp->args[1]);
 		menushow(m);
 		break;
 	case EWindow:
@@ -342,7 +342,7 @@ menuctl(Control *c, CParse *cp)
 		m->selection = up;
 		menushow(m);
 		h = m->font->font->height;
-		moveto(m->controlset->mousectl,
+		moveto(m->Control.controlset->mousectl,
 			Pt(m->Control.rect.min.x+Dx(m->Control.rect)/2, m->Control.rect.min.y+up*h+h/2));
 //		_ctlfocus(m, 1);
 		break;

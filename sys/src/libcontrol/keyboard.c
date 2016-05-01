@@ -535,7 +535,7 @@ createkeyboard(Controlset *cs, char *name)
 	k->Control.format = ctlstrdup("%q: value 0x%x");
 	k->border = 0;
 	k->lastbut = 0;
-	k->Controlkey = nil;
+	k->Control.key = nil;
 	k->state = SRegular;
 	k->Control.ctl = keyboardctl;
 	k->Control.mouse = keyboardmouse;

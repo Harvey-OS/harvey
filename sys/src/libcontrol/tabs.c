@@ -129,7 +129,7 @@ tabctl(Control *c, CParse *cp)
 			_ctladdgroup(t->tabrow, cbut);
 			_ctlprint(t->tabstack, "add %q", cp->args[i+1]);
 			_ctlprint(cbut, "format '%%s: %q button %%d'", t->Control.name);
-			controlwire(cbut, "event", t->controlset->Control.ctl);
+			controlwire(cbut, "event", t->Control.controlset->ctl);
 			t->buttons = ctlrealloc(t->buttons, (t->nbuttons+1)*sizeof(Control*));
 			t->buttons[t->nbuttons] = cbut;
 			t->nbuttons++;
@@ -260,6 +260,6 @@ createtab(Controlset *cs, char *name)
 	t->bordercolor = _getctlimage("black");
 	t->image = _getctlimage("white");
 	t->Control.setsize = tabsize;
-	&t->Control.activate = activatetab;
+	t->Control.activate = activatetab;
 	return (Control*)t;
 }
