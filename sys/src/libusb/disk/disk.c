@@ -135,28 +135,28 @@ umscapacity(Umsc *lun)
 
 	lun->blocks = 0;
 	lun->capacity = 0;
-	lun->lbsize = 0;
+	lun->ScsiReq.lbsize = 0;
 	memset(data, 0, sizeof data);
-	if(SRrcapacity(lun, data) < 0 && SRrcapacity(lun, data)  < 0)
+	if(SRrcapacity(&lun->ScsiReq, data) < 0 && SRrcapacity(&lun->ScsiReq, data)  < 0)
 		return -1;
 	lun->blocks = GETBELONG(data);
-	lun->lbsize = GETBELONG(data+4);
+	lun->ScsiReq.lbsize = GETBELONG(data+4);
 	if(lun->blocks == 0xFFFFFFFF){
-		if(SRrcapacity16(lun, data) < 0){
-			lun->lbsize = 0;
+		if(SRrcapacity16(&lun->ScsiReq, data) < 0){
+			lun->ScsiReq.lbsize = 0;
 			lun->blocks = 0;
 			return -1;
 		}else{
-			lun->lbsize = GETBELONG(data + 8);
+			lun->ScsiReq.lbsize = GETBELONG(data + 8);
 			lun->blocks = (uint64_t)GETBELONG(data)<<32 |
 				GETBELONG(data + 4);
 		}
 	}
 	lun->blocks++; /* SRcapacity returns LBA of last block */
-	lun->capacity = (int64_t)lun->blocks * lun->lbsize;
+	lun->capacity = (int64_t)lun->blocks * lun->ScsiReq.lbsize;
 	if(diskdebug)
 		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
-			lun->lbsize, lun->blocks);
+			lun->ScsiReq.lbsize, lun->blocks);
 	return 0;
 }
 
@@ -174,14 +174,14 @@ umsinit(Ums *ums)
 	for(i = 0; i <= ums->maxlun; i++){
 		lun = &ums->lun[i];
 		lun->ums = ums;
-		lun->umsc = lun;
-		lun->lun = i;
-		lun->flags = Fopen | Fusb | Frw10;
-		if(SRinquiry(lun) < 0 && SRinquiry(lun) < 0){
+		lun->ScsiReq.umsc = lun;
+		lun->ScsiReq.lun = i;
+		lun->ScsiReq.flags = Fopen | Fusb | Frw10;
+		if(SRinquiry(&lun->ScsiReq) < 0 && SRinquiry(&lun->ScsiReq) < 0){
 			dprint(2, "disk: lun %d inquiry failed\n", i);
 			continue;
 		}
-		switch(lun->inquiry[0]){
+		switch(lun->ScsiReq.inquiry[0]){
 		case Devdir:
 		case Devworm:		/* a little different than the others */
 		case Devcd:
@@ -189,16 +189,16 @@ umsinit(Ums *ums)
 			break;
 		default:
 			fprint(2, "disk: lun %d is not a disk (type %#02x)\n",
-				i, lun->inquiry[0]);
+				i, lun->ScsiReq.inquiry[0]);
 			continue;
 		}
-		SRstart(lun, 1);
+		SRstart(&lun->ScsiReq, 1);
 		/*
 		 * we ignore the device type reported by inquiry.
 		 * Some devices return a wrong value but would still work.
 		 */
 		some++;
-		lun->inq = smprint("%.48s", (char *)lun->inquiry+8);
+		lun->inq = smprint("%.48s", (char *)lun->ScsiReq.inquiry+8);
 		umscapacity(lun);
 	}
 	if(some == 0){
@@ -227,7 +227,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	cbw.tag = ++ums->seq;
 	cbw.datalen = data->count;
 	cbw.flags = data->write? CbwDataOut: CbwDataIn;
-	cbw.lun = umsc->lun;
+	cbw.lun = umsc->ScsiReq.lun;
 	if(cmd->count < 1 || cmd->count > 16)
 		fprint(2, "disk: umsrequest: bad cmd count: %ld\n", cmd->count);
 
@@ -424,10 +424,10 @@ setup(Umsc *lun, char *data, int count, int64_t offset)
 	int32_t nb, lbsize, lbshift, lbmask;
 	uint64_t bno;
 
-	if(count < 0 || lun->lbsize <= 0 && umscapacity(lun) < 0 ||
-	    lun->lbsize == 0)
+	if(count < 0 || lun->ScsiReq.lbsize <= 0 && umscapacity(lun) < 0 ||
+	    lun->ScsiReq.lbsize == 0)
 		return -1;
-	lbsize = lun->lbsize;
+	lbsize = lun->ScsiReq.lbsize;
 	assert(ispow2(lbsize));
 	lbshift = log2(lbsize);
 	lbmask = lbsize - 1;
@@ -443,7 +443,7 @@ setup(Umsc *lun, char *data, int count, int64_t offset)
 	if(bno >= lun->blocks || nb == 0)
 		return 0;
 
-	lun->offset = bno;
+	lun->ScsiReq.offset = bno;
 	lun->off = offset & lbmask;		/* offset % lbsize */
 	if(lun->off == 0 && (count & lbmask) == 0)
 		lun->bufp = data;
@@ -477,7 +477,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 	ums = fs->dev->aux;
 	lun = fs->aux;
 
-	qlock(ums);
+	qlock(&ums->QLock);
 	switch(path){
 	case Qdir:
 		count = usbdirread(fs, q, data, count, offset, dirgen, nil);
@@ -487,40 +487,40 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		 * Some usb disks need an extra opportunity to divulge their
 		 * capacity (e.g. M-Systems/SanDisk 1GB flash drive).
 		 */
-		if(lun->lbsize <= 0)
+		if(lun->ScsiReq.lbsize <= 0)
 			umscapacity(lun);
 
 		s = buf;
 		e = buf + sizeof(buf);
-		if(lun->flags & Finqok)
+		if(lun->ScsiReq.flags & Finqok)
 			s = seprint(s, e, "inquiry %s lun %ld: %s\n",
 				fs->dev->dir, lun - &ums->lun[0], lun->inq);
 		if(lun->blocks > 0)
 			s = seprint(s, e, "geometry %llud %ld\n",
-				lun->blocks, lun->lbsize);
+				lun->blocks, lun->ScsiReq.lbsize);
 		count = usbreadbuf(data, count, offset, buf, s - buf);
 		break;
 	case Qraw:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
+		if(lun->ScsiReq.lbsize <= 0 && umscapacity(lun) < 0){
 			count = -1;
 			break;
 		}
 		switch(lun->phase){
 		case Pcmd:
-			qunlock(ums);
+			qunlock(&ums->QLock);
 			werrstr("phase error");
 			return -1;
 		case Pdata:
-			lun->data.p = data;
-			lun->data.count = count;
-			lun->data.write = 0;
-			count = umsrequest(lun,&lun->cmd,&lun->data,&lun->status);
+			lun->ScsiReq.data.p = data;
+			lun->ScsiReq.data.count = count;
+			lun->ScsiReq.data.write = 0;
+			count = umsrequest(lun,&lun->ScsiReq.cmd,&lun->ScsiReq.data,&lun->ScsiReq.status);
 			lun->phase = Pstatus;
 			if(count < 0)
-				lun->lbsize = 0;  /* medium may have changed */
+				lun->ScsiReq.lbsize = 0;  /* medium may have changed */
 			break;
 		case Pstatus:
-			n = snprint(buf, sizeof buf, "%11.0ud ", lun->status);
+			n = snprint(buf, sizeof buf, "%11.0ud ", lun->ScsiReq.status);
 			count = usbreadbuf(data, count, 0LL, buf, n);
 			lun->phase = Pcmd;
 			break;
@@ -530,9 +530,9 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		count = setup(lun, data, count, offset);
 		if (count <= 0)
 			break;
-		n = SRread(lun, lun->bufp, lun->nb * lun->lbsize);
+		n = SRread(&lun->ScsiReq, lun->bufp, lun->nb * lun->ScsiReq.lbsize);
 		if(n < 0){
-			lun->lbsize = 0;	/* medium may have changed */
+			lun->ScsiReq.lbsize = 0;	/* medium may have changed */
 			count = -1;
 		} else if (lun->bufp == data)
 			count = n;
@@ -548,7 +548,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		}
 		break;
 	}
-	qunlock(ums);
+	qunlock(&ums->QLock);
 	return count;
 }
 
@@ -565,7 +565,7 @@ dwrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 	lun = fs->aux;
 	path = fid->qid.path & ~fs->qid;
 
-	qlock(ums);
+	qlock(&ums->QLock);
 	switch(path){
 	default:
 		werrstr(Eperm);
@@ -575,31 +575,31 @@ dwrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		dprint(2, "usb/disk: ctl ignored\n");
 		break;
 	case Qraw:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
+		if(lun->ScsiReq.lbsize <= 0 && umscapacity(lun) < 0){
 			count = -1;
 			break;
 		}
 		switch(lun->phase){
 		case Pcmd:
 			if(count != 6 && count != 10){
-				qunlock(ums);
+				qunlock(&ums->QLock);
 				werrstr("bad command length");
 				return -1;
 			}
 			memmove(lun->rawcmd, data, count);
-			lun->cmd.p = lun->rawcmd;
-			lun->cmd.count = count;
-			lun->cmd.write = 1;
+			lun->ScsiReq.cmd.p = lun->rawcmd;
+			lun->ScsiReq.cmd.count = count;
+			lun->ScsiReq.cmd.write = 1;
 			lun->phase = Pdata;
 			break;
 		case Pdata:
-			lun->data.p = data;
-			lun->data.count = count;
-			lun->data.write = 1;
-			count = umsrequest(lun,&lun->cmd,&lun->data,&lun->status);
+			lun->ScsiReq.data.p = data;
+			lun->ScsiReq.data.count = count;
+			lun->ScsiReq.data.write = 1;
+			count = umsrequest(lun,&lun->ScsiReq.cmd,&lun->ScsiReq.data,&lun->ScsiReq.status);
 			lun->phase = Pstatus;
 			if(count < 0)
-				lun->lbsize = 0;  /* medium may have changed */
+				lun->ScsiReq.lbsize = 0;  /* medium may have changed */
 			break;
 		case Pstatus:
 			lun->phase = Pcmd;
@@ -613,11 +613,11 @@ dwrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		count = setup(lun, data, count, offset);
 		if (count <= 0)
 			break;
-		bno = lun->offset;
+		bno = lun->ScsiReq.offset;
 		if (lun->bufp == lun->buf) {
-			count = SRread(lun, lun->bufp, lun->nb * lun->lbsize);
+			count = SRread(&lun->ScsiReq, lun->bufp, lun->nb * lun->ScsiReq.lbsize);
 			if(count < 0) {
-				lun->lbsize = 0;  /* medium may have changed */
+				lun->ScsiReq.lbsize = 0;  /* medium may have changed */
 				break;
 			}
 			/*
@@ -630,10 +630,10 @@ dwrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 				memmove(lun->bufp + lun->off, data, len);
 		}
 
-		lun->offset = bno;
-		count = SRwrite(lun, lun->bufp, lun->nb * lun->lbsize);
+		lun->ScsiReq.offset = bno;
+		count = SRwrite(&lun->ScsiReq, lun->bufp, lun->nb * lun->ScsiReq.lbsize);
 		if(count < 0)
-			lun->lbsize = 0;	/* medium may have changed */
+			lun->ScsiReq.lbsize = 0;	/* medium may have changed */
 		else{
 			if(lun->off + len > count)
 				count -= lun->off; /* short write */
@@ -645,7 +645,7 @@ dwrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 		}
 		break;
 	}
-	qunlock(ums);
+	qunlock(&ums->QLock);
 	return count;
 }
 
@@ -686,7 +686,7 @@ findendpoints(Ums *ums)
 		return -1;
 	}
 	if(epout == epin){
-		incref(ums->epin);
+		incref(&ums->epin->Ref);
 		ums->epout = ums->epin;
 	}else
 		ums->epout = openep(ums->dev, epout);
@@ -798,7 +798,7 @@ diskmain(Dev *dev, int argc, char **argv)
 		lun->fs = diskfs;
 		snprint(lun->fs.name, sizeof(lun->fs.name), "sdU%d.%d", devid, i);
 		lun->fs.dev = dev;
-		incref(dev);
+		incref(&dev->Ref);
 		lun->fs.aux = lun;
 		usbfsadd(&lun->fs);
 	}

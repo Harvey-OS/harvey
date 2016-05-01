@@ -279,16 +279,16 @@ plinit(Serialport *p)
 		vendorwrite(p, Dcr2Idx|DcrSet, Dcr2InitH);
 
 	plgetparam(p);
-	qunlock(ser);
+	qunlock(&ser->QLock);
 	free(buf);
 	st = emallocz(255, 1);
-	qlock(ser);
+	qlock(&ser->QLock);
 	if(serialdebug)
 		serdumpst(p, st, 255);
 	dsprint(2, st);
 	free(st);
 	/* p gets freed by closedev, the process has a reference */
-	incref(ser->dev);
+	incref(&ser->dev->Ref);
 	proccreate(statusreader, p, 8*1024);
 	return 0;
 }
@@ -369,20 +369,20 @@ plreadstatus(Serialport *p)
 
 	ser = p->s;
 
-	qlock(ser);
+	qlock(&ser->QLock);
 	dsprint(2, "serial: reading from interrupt\n");
 	dfd = p->epintr->dfd;
 
-	qunlock(ser);
+	qunlock(&ser->QLock);
 	nr = read(dfd, buf, sizeof buf);
-	qlock(ser);
+	qlock(&ser->QLock);
 	snprint(err, sizeof err, "%r");
 	dsprint(2, "serial: interrupt read %d %r\n", nr);
 
 	if(nr < 0 && strstr(err, "timed out") == nil){
 		dsprint(2, "serial: need to recover, status read %d %r\n", nr);
 		if(serialrecover(ser, nil, nil, err) < 0){
-			qunlock(ser);
+			qunlock(&ser->QLock);
 			return -1;
 		}
 	}
@@ -403,7 +403,7 @@ plreadstatus(Serialport *p)
 	} else
 		dsprint(2, "serial: bad status read %d\n", nr);
 	dsprint(2, "serial: finished read from interrupt %d\n", nr);
-	qunlock(ser);
+	qunlock(&ser->QLock);
 	return 0;
 }
 
