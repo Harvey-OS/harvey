@@ -238,7 +238,7 @@ textshow(Text *t)
 			Point p2;
 			 p2.x = p.x + 0.5*runestringnwidth(f, text, ntext);
 			 p2.y = p.y + 0.5*f->height;
-			moveto(t->controlset->mousectl, p2);
+			moveto(t->Control.controlset->mousectl, p2);
 			t->warp = -1;
 		}
 		_string(t->Control.screen, p, t->textcolor->image,
