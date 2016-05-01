@@ -143,11 +143,11 @@ Ufmt(Fmt *f)
 	s = seprint(s, e, "%s", d->dir);
 	ud = d->usb;
 	if(ud == nil)
-		return fmtprint(f, "%s %ld refs\n", buf, d->ref);
+		return fmtprint(f, "%s %ld refs\n", buf, d->Ref.ref);
 	s = seprint(s, e, " csp %s.%uld.%uld",
 		classname(Class(ud->csp)), Subclass(ud->csp), Proto(ud->csp));
 	s = seprint(s, e, " vid %#ux did %#ux", ud->vid, ud->did);
-	s = seprint(s, e, " refs %ld\n", d->ref);
+	s = seprint(s, e, " refs %ld\n", d->Ref.ref);
 	s = seprint(s, e, "\t%s %s %s\n", ud->vendor, ud->product, ud->serial);
 	for(i = 0; i < Nconf; i++){
 		if(ud->conf[i] == nil)

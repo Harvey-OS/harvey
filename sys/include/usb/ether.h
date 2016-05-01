@@ -49,7 +49,7 @@ struct Buf
 
 struct Conn
 {
-	Ref;			/* one per file in use */
+	Ref	Ref;			/* one per file in use */
 	int	nb;
 	int	type;
 	int	headersonly;
@@ -74,7 +74,7 @@ struct Etherops
 
 struct Ether
 {
-	QLock;
+	QLock	QLock;
 	QLock	wlck;			/* write one at a time */
 	int	epinid;			/* epin address */
 	int	epoutid;			/* epout address */
@@ -101,7 +101,7 @@ struct Ether
 	Channel*rc;			/* read channel (of Buf*) */
 	Channel*wc;			/* write channel (of Buf*) */
 	Channel*bc;			/* free buf. chan. (of Buf*) */
-	Etherops;
+	Etherops	Etherops;
 	Usbfs	fs;
 };
 
