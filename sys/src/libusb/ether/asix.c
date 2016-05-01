@@ -364,7 +364,7 @@ asixbread(Ether *e, Buf *bp)
 	uint32_t hd;
 	Buf *rbp;
 
-	rbp = e->aux;
+	rbp = e->Etherops.aux;
 	if(rbp == nil || rbp->ndata < 4){
 		rbp->rp = rbp->data;
 		rbp->ndata = read(e->epin->dfd, rbp->rp, sizeof(bp->data));
@@ -464,8 +464,8 @@ static void
 asixfree(Ether *ether)
 {
 	deprint(2, "%s: aixfree %#p\n", argv0, ether);
-	free(ether->aux);
-	ether->aux = nil;
+	free(ether->Etherops.aux);
+	ether->Etherops.aux = nil;
 }
 
 int
@@ -483,14 +483,14 @@ asixreset(Ether *ether)
 				return -1;
 			}
 			deprint(2, "%s: asix reset done\n", argv0);
-			ether->name = "asix";
-			ether->aux = emallocz(sizeof(Buf), 1);
-			ether->bufsize = Hdrsize+Maxpkt;
-			ether->bread = asixbread;
-			ether->bwrite = asixbwrite;
-			ether->free = asixfree;
-			ether->promiscuous = asixpromiscuous;
-			ether->multicast = asixmulticast;
+			ether->Etherops.name = "asix";
+			ether->Etherops.aux = emallocz(sizeof(Buf), 1);
+			ether->Etherops.bufsize = Hdrsize+Maxpkt;
+			ether->Etherops.bread = asixbread;
+			ether->Etherops.bwrite = asixbwrite;
+			ether->Etherops.free = asixfree;
+			ether->Etherops.promiscuous = asixpromiscuous;
+			ether->Etherops.multicast = asixmulticast;
 			ether->mbps = 100;	/* BUG */
 			return 0;
 		}

@@ -79,12 +79,12 @@ struct Serialport {
 };
 
 struct Serial {
-	QLock;
+	QLock	QLock;
 	Dev	*dev;		/* usb device*/
 
 	int	type;		/* serial model subtype */
 	int	recover;	/* # of non-fatal recovery tries */
-	Serialops;
+	Serialops	Serialops;
 
 	int	hasepintr;
 

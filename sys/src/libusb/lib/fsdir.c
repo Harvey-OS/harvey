@@ -64,7 +64,7 @@ usbfsdirdump(void)
 		if(fs[i] != nil)
 			if(fs[i]->dev != nil)
 				fprint(2, "%s\t%s dev %#p refs %ld\n",
-					argv0, fs[i]->name, fs[i]->dev, fs[i]->dev->ref);
+					argv0, fs[i]->name, fs[i]->dev, fs[i]->dev->Ref.ref);
 			else
 				fprint(2, "%s:\t%s\n", argv0, fs[i]->name);
 	qunlock(&fslck);
@@ -105,7 +105,7 @@ usbfsdelnth(int i)
 		dprint(2, "%s: fsdel %s", argv0, fs[i]->name);
 		if(fs[i]->dev != nil){
 			dprint(2, " dev %#p ref %ld\n",
-				fs[i]->dev, fs[i]->dev->ref);
+				fs[i]->dev, fs[i]->dev->Ref.ref);
 		}else
 			dprint(2, "no dev\n");
 		if(fs[i]->end != nil)
@@ -170,7 +170,7 @@ fsclone(Usbfs*_1, Fid *o, Fid *n)
 	if(qd != Dtop && fs[qd] != nil && fs[qd]->clone != nil){
 		dev = fs[qd]->dev;
 		if(dev != nil)
-			incref(dev);
+			incref(&dev->Ref);
 		xfsclone = fs[qd]->clone;
 	}
 	qunlock(&fslck);
@@ -213,7 +213,7 @@ fswalk(Usbfs*_1, Fid *fid, char *name)
 		}
 		dev = fs[qd]->dev;
 		if(dev != nil)
-			incref(dev);
+			incref(&dev->Ref);
 		xfswalk = fs[qd]->walk;
 		qunlock(&fslck);
 		rc = xfswalk(fs[qd], fid, name);
@@ -254,7 +254,7 @@ fsopen(Usbfs*_1, Fid *fid, int mode)
 	}
 	dev = fs[qd]->dev;
 	if(dev != nil)
-		incref(dev);
+		incref(&dev->Ref);
 	xfsopen = fs[qd]->open;
 	qunlock(&fslck);
 	if(xfsopen != nil)
@@ -281,7 +281,7 @@ dirgen(Usbfs*_1, Qid _2, int n, Dir *d, void *_3)
 			d->qid.vers = 0;
 			dev = fs[i]->dev;
 			if(dev != nil)
-				incref(dev);
+				incref(&dev->Ref);
 			nm = d->name;
 			fs[i]->stat(fs[i], d->qid, d);
 			d->name = nm;
@@ -317,7 +317,7 @@ fsread(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
 	}
 	dev = fs[qd]->dev;
 	if(dev != nil)
-		incref(dev);
+		incref(&dev->Ref);
 	xfsread = fs[qd]->read;
 	qunlock(&fslck);
 	rc = xfsread(fs[qd], fid, data, cnt, off);
@@ -346,7 +346,7 @@ fswrite(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
 	}
 	dev = fs[qd]->dev;
 	if(dev != nil)
-		incref(dev);
+		incref(&dev->Ref);
 	xfswrite = fs[qd]->write;
 	qunlock(&fslck);
 	rc = xfswrite(fs[qd], fid, data, cnt, off);
@@ -369,7 +369,7 @@ fsclunk(Usbfs*_1, Fid* fid)
 	if(qd != Dtop && fs[qd] != nil){
 		dev=fs[qd]->dev;
 		if(dev != nil)
-			incref(dev);
+			incref(&dev->Ref);
 		xfsclunk = fs[qd]->clunk;
 	}else
 		xfsclunk = nil;
@@ -406,7 +406,7 @@ fsstat(Usbfs*_1, Qid qid, Dir *d)
 	xfsstat = fs[qd]->stat;
 	dev = fs[qd]->dev;
 	if(dev != nil)
-		incref(dev);
+		incref(&dev->Ref);
 	qunlock(&fslck);
 	rc = xfsstat(fs[qd], qid, d);
 	if(dev != nil)

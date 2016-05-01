@@ -550,9 +550,9 @@ ftmatch(Serial *ser, char *info)
 		dsprint(2, "serial: %s %s\n", buf, info);
 		if(strstr(info, buf) != nil){
 			if(ser != nil){
-				qlock(ser);
+				qlock(&ser->QLock);
 				ftgettype(ser);
-				qunlock(ser);
+				qunlock(&ser->QLock);
 			}
 			return 0;
 		}
@@ -607,9 +607,9 @@ wait4data(Serialport *p, uint8_t *data, int count)
 
 	ser = p->s;
 
-	qunlock(ser);
+	qunlock(&ser->QLock);
 	d = sendul(p->w4data, 1);
-	qlock(ser);
+	qlock(&ser->QLock);
 	if(d <= 0)
 		return -1;
 	if(p->ndata >= count)
@@ -642,9 +642,9 @@ wait4write(Serialport *p, uint8_t *data, int count)
 	memmove(b+off, data, count);
 
 	fd = p->epout->dfd;
-	qunlock(ser);
+	qunlock(&ser->QLock);
 	count = write(fd, b, count+off);
-	qlock(ser);
+	qlock(&ser->QLock);
 	free(b);
 	return count;
 }
@@ -710,9 +710,9 @@ epreader(void *u)
 	c = a->c;
 	free(a);
 
-	qlock(ser);	/* this makes the reader wait end of initialization too */
+	qlock(&ser->QLock);	/* this makes the reader wait end of initialization too */
 	dfd = p->epin->dfd;
-	qunlock(ser);
+	qunlock(&ser->QLock);
 
 	ntries = 0;
 	pk = nil;
@@ -728,9 +728,9 @@ Eagain:
 		if(rcount < 0){
 			if(ntries++ > 100)
 				break;
-			qlock(ser);
+			qlock(&ser->QLock);
 			recov = serialrecover(ser, p, nil, "epreader: bulkin error");
-			qunlock(ser);
+			qunlock(&ser->QLock);
 			if(recov >= 0)
 				goto Eagain;
 		}
@@ -751,9 +751,9 @@ Eagain:
 				}
 			}else
 				free(pk);
-			qlock(ser);
+			qlock(&ser->QLock);
 			ser->recover = 0;
-			qunlock(ser);
+			qunlock(&ser->QLock);
 			ntries = 0;
 			pk = nil;
 		}
@@ -790,7 +790,7 @@ statusreader(void *u)
 	a = emallocz(sizeof(Areader), 1);
 	a->p = p;
 	a->c = c;
-	incref(ser->dev);
+	incref(&ser->dev->Ref);
 	proccreate(epreader, a, 16*1024);
 
 	while((pk = recvp(c)) != nil){
@@ -864,7 +864,7 @@ ftinit(Serialport *p)
 		/* 0xb is the mask for lines. plug dependant? */
 		ftdiwrite(p, BMMPSSE|0x0b, 0, FTSETBITMODE);
 	}
-	incref(ser->dev);
+	incref(&ser->dev->Ref);
 	threadcreate(statusreader, p, 8*1024);
 	return 0;
 }

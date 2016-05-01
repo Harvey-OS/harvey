@@ -96,7 +96,7 @@ slinit(Serialport *p)
 	slops.getparam(p);
 
 	/* p gets freed by closedev, the process has a reference */
-	incref(ser->dev);
+	incref(&ser->dev->Ref);
 	return 0;
 }
 
@@ -140,10 +140,10 @@ wait4data(Serialport *p, uint8_t *data, int count)
 {
 	int n;
 
-	qunlock(p->s);
+	qunlock(&p->s->QLock);
 	while ((n = read(p->epin->dfd, data, count)) == 0)
 		;
-	qlock(p->s);
+	qlock(&p->s->QLock);
 	return n;
 }
 
