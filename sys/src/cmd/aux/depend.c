@@ -29,7 +29,7 @@ typedef struct Request Request;
 typedef struct Symbol Symbol;
 typedef struct Tardir Tardir;
 
-extern int threadrforkflag = RFNAMEG;
+int threadrforkflag = RFNAMEG;
 
 enum{
 	Nstat = 1024,	/* plenty for this application */
@@ -69,7 +69,7 @@ struct Symbol
 /* source file */
 struct File
 {
-	QLock;
+	QLock	QLock;
 
 	char	*name;
 	Symbol	*ref;
@@ -86,7 +86,7 @@ struct File
 /* .depend file */
 struct Dfile
 {
-	Lock;
+	Lock	Lock;
 	int	use;		/* use count */
 	int	old;		/* true if this is an superceded dfile */
 
@@ -149,7 +149,7 @@ struct Tardir
 
 struct Fs
 {
-	Lock;
+	Lock	Lock;
 
 	int	fd;		/* to kernel mount point */
 	Fid	*hash[Nfidhash];
@@ -417,11 +417,11 @@ fsgetfid(Fs *fs, int fid)
 {
 	Fid *f, *nf;
 
-	lock(fs);
+	lock(&fs->Lock);
 	for(f = fs->hash[fid%Nfidhash]; f; f = f->next){
 		if(f->fid == fid){
 			f->ref++;
-			unlock(fs);
+			unlock(&fs->Lock);
 			return f;
 		}
 	}
@@ -432,7 +432,7 @@ fsgetfid(Fs *fs, int fid)
 	nf->fid = fid;
 	nf->ref = 1;
 	nf->fd = -1;
-	unlock(fs);
+	unlock(&fs->Lock);
 	return nf;
 }
 
@@ -441,9 +441,9 @@ fsputfid(Fs *fs, Fid *f)
 {
 	Fid **l, *nf;
 
-	lock(fs);
+	lock(&fs->Lock);
 	if(--f->ref > 0){
-		unlock(fs);
+		unlock(&fs->Lock);
 		return;
 	}
 	for(l = &fs->hash[f->fid%Nfidhash]; nf = *l; l = &nf->next)
@@ -451,7 +451,7 @@ fsputfid(Fs *fs, Fid *f)
 			*l = f->next;
 			break;
 		}
-	unlock(fs);
+	unlock(&fs->Lock);
 	free(f);
 }
 
@@ -509,9 +509,9 @@ fsattach(Fs *fs, Request *r, Fid *f)
 
 	/* hold down the fid till the clunk */
 	f->attached = 1;
-	lock(fs);
+	lock(&fs->Lock);
 	f->ref++;
-	unlock(fs);
+	unlock(&fs->Lock);
 
 	r->f.qid = f->qid;
 	fsreply(fs, r, nil);
@@ -549,9 +549,9 @@ fswalk(Fs *fs, Request *r, Fid *f)
 		nf->fd = f->fd;
 		nf->df = f->df;
 		if(nf->df){
-			lock(nf->df);
+			lock(&nf->df->Lock);
 			nf->df->use++;
-			unlock(nf->df);
+			unlock(&nf->df->Lock);
 		}
 		if(r->f.nwname == 0){
 			r->f.nwqid = 0;
@@ -998,14 +998,14 @@ freedf(Dfile *df)
 	int i;
 	Symbol *dp, *next;
 
-	lock(df);
+	lock(&df->Lock);
 	df->old = 1;
 	if(df->use){
-		unlock(df);
+		unlock(&df->Lock);
 		return;
 	}
 
-	unlock(df);	/* we're no longer referenced */
+	unlock(&df->Lock);	/* we're no longer referenced */
 	for(i = 0; i < df->nfile; i++)
 		free(df->file[i].name);
 	free(df->file[i].refvec);
@@ -1200,9 +1200,9 @@ getdf(char *path)
 	if(df){
 		if(d!=nil && d->qid.type == df->qid.type && d->qid.vers == df->qid.vers && d->qid.vers == df->qid.vers){
 			free(path);
-			lock(df);
+			lock(&df->Lock);
 			df->use++;
-			unlock(df);
+			unlock(&df->Lock);
 			goto Return;
 		}
 		*l = df->next;
@@ -1253,10 +1253,10 @@ releasedf(Dfile *df)
 	l = &dfhash[i];
 	lk = &dfhlock[i];
 	qlock(lk);
-	lock(df);
+	lock(&df->Lock);
 	df->use--;
 	if(df->old == 0 || df->use > 0){
-		unlock(df);
+		unlock(&df->Lock);
 		qunlock(lk);
 		return;
 	}
@@ -1267,7 +1267,7 @@ releasedf(Dfile *df)
 		}
 		l = &d->next;
 	}
-	unlock(df);
+	unlock(&df->Lock);
 	qunlock(lk);
 
 	/* now we know it is unreferenced, remove it */
@@ -1388,7 +1388,7 @@ getfile(Dfile *df, File *f)
 	int n;
 	char path[512], *name;
 
-	qlock(f);
+	qlock(&f->QLock);
 	f->use++;
 	if(f->fd < 0){
 		name = strrchr(df->path, '/') + 1;
@@ -1408,17 +1408,17 @@ void
 releasefile(File *f)
 {
 	--f->use;
-	qunlock(f);
+	qunlock(&f->QLock);
 }
 void
 closefile(File *f)
 {
-	qlock(f);
+	qlock(&f->QLock);
 	if(f->use == 0){
 		close(f->fd);
 		f->fd = -1;
 	}
-	qunlock(f);
+	qunlock(&f->QLock);
 }
 
 /*

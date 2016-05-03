@@ -23,7 +23,7 @@ yyless(uintptr_t x)
 	char *lastch, *ptr;
 
 	lastch = yytext+yyleng;
-	if(x>=0 && x <= yyleng)
+	if(x <= yyleng)
 		ptr = x + yytext;
 	else
 		ptr = (char*)x;

@@ -59,7 +59,7 @@ enum {
 
 
 struct Event {
-	QLock;
+	QLock	QLock;
 	QLock waitlk;
 	int	wait;
 	int ready;
@@ -1209,33 +1209,33 @@ ipaddralloc(Call *c)
 void
 esignal(Event *e)
 {	
-	qlock(e);
+	qlock(&e->Qlock);
 	if(e->wait == 0) {
 		e->ready = 1;
-		qunlock(e);
+		qunlock(&e->QLock);
 		return;
 	}
 	assert(e->ready == 0);
 	e->wait = 0;
 	rendezvous(e, (void*)1);
-	qunlock(e);
+	qunlock(&e->QLock);
 }
 
 void
 ewait(Event *e)
 {
 	qlock(&e->waitlk);
-	qlock(e);
+	qlock(&e->QLock);
 	assert(e->wait == 0);
 	if(e->ready) {
 		e->ready = 0;
 	} else {	
 		e->wait = 1;
-		qunlock(e);
+		qunlock(&e->QLock);
 		rendezvous(e, (void*)2);
-		qlock(e);
+		qlock(&e->QLock);
 	}
-	qunlock(e);
+	qunlock(&e->QLock);
 	qunlock(&e->waitlk);
 }
 
