@@ -799,8 +799,8 @@ struct {
 	uint32_t	perm;
 } fstab[] =
 {
-	[Qdir]		{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
-	[Qcpunote]	{ "cpunote",	{Qcpunote, 0},		0444		},
+	[Qdir] =		{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
+	[Qcpunote] =	{ "cpunote",	{Qcpunote, 0},		0444		},
 };
 
 typedef struct Note Note;
