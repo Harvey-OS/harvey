@@ -62,8 +62,7 @@ struct	Obj		/* functions to handle each intermediate (.$O) file */
 
 static Obj	obj[] =
 {			/* functions to identify and parse each type of obj */
-	[ObjAmd64]	"amd64 .6",	_is6, _read6,
-	[Maxobjtype]	0, 0
+	[Maxobjtype ]=	0, 0
 };
 
 struct	Symtab
