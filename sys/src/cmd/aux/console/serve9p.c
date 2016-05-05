@@ -528,7 +528,7 @@ linebuilder(char c, Buffer* b)
 static char *
 invalidioreq(Fcall *req)
 {
-	if(req->count > messagesize || req->count < 0)
+	if(req->count > messagesize)
 		return "bad read/write count";
 	return nil;
 }
@@ -950,19 +950,19 @@ rstat(Fcall *req, Fcall *rep)
 }
 
 static int (*fcalls[])(Fcall *, Fcall *) = {
-	[Tversion]	rversion,
-	[Tauth]		rauth,
-	[Tattach]	rattach,
-	[Tflush]	rflush,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rpermission,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rpermission,
-	[Tstat]		rstat,
-	[Twstat]	rpermission,
+	[Tversion] =	rversion,
+	[Tauth] =		rauth,
+	[Tattach] =	rattach,
+	[Tflush] =	rflush,
+	[Twalk] =		rwalk,
+	[Topen] =		ropen,
+	[Tcreate] =	rpermission,
+	[Tread] =		rread,
+	[Twrite] =	rwrite,
+	[Tclunk] =	rclunk,
+	[Tremove] =	rpermission,
+	[Tstat] =		rstat,
+	[Twstat] =	rpermission,
 };
 
 int
