@@ -22,6 +22,7 @@ Channel *quit;
 Channel *forkc;
 int nread = 0;
 int debug = 0;
+int outf = 2;
 
 typedef struct Str Str;
 struct Str {
@@ -32,7 +33,7 @@ struct Str {
 void
 die(char *s)
 {
-	fprint(2, "%s\n", s);
+	fprint(outf, "%s\n", s);
 	exits(s);
 }
 
@@ -41,7 +42,7 @@ cwrite(int fd, char *path, char *cmd, int len)
 {
 	werrstr("");
 	if (write(fd, cmd, len) < len) {
-		fprint(2, "cwrite: %s: failed writing %d bytes: %r\n",
+		fprint(outf, "cwrite: %s: failed writing %d bytes: %r\n",
 			path, len);
 		sendp(quit, nil);
 		threadexits(nil);
@@ -71,7 +72,7 @@ reader(void *v)
 
 	pid = (int)(uintptr)v;
 	if (debug)
-		fprint(2, "DEBUG: -------------> reader starts with pid %d\n", pid);
+		fprint(outf, "DEBUG: -------------> reader starts with pid %d\n", pid);
 	ctl = smprint("/proc/%d/ctl", pid);
 	if ((cfd = open(ctl, OWRITE)) < 0)
 		die(smprint("%s: %r", ctl));
@@ -79,17 +80,17 @@ reader(void *v)
 	if ((tfd = open(truss, OREAD)) < 0)
 		die(smprint("%s: %r", truss));
 	if (debug)
-		fprint(2, "DEBUG: Send %s to pid %d ...", waitstop, pid);
+		fprint(outf, "DEBUG: Send %s to pid %d ...", waitstop, pid);
 	/* child was stopped by hang msg earlier */
 	cwrite(cfd, ctl, waitstop, sizeof waitstop - 1);
 	if (debug)
-		fprint(2, "DEBUG: back for %d\n", pid);
+		fprint(outf, "DEBUG: back for %d\n", pid);
 
 	if (debug)
-		fprint(2, "DEBUG: Send %s to pid %d\n", "startsyscall", pid);
+		fprint(outf, "DEBUG: Send %s to pid %d\n", "startsyscall", pid);
 	cwrite(cfd, ctl, "startsyscall", 12);
 	if (debug)
-		fprint(2, "DEBUG: back for %d\n", pid);
+		fprint(outf, "DEBUG: back for %d\n", pid);
 	s = newstr();
 	exiting = 0;
 	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) >= 0){
@@ -115,10 +116,10 @@ reader(void *v)
 
 		/* flush syscall trace buffer */
 		if (debug)
-			fprint(2, "DEBUG: Send %s to pid %d\n", "startsyscall", pid);
+			fprint(outf, "DEBUG: Send %s to pid %d\n", "startsyscall", pid);
 		cwrite(cfd, ctl, "startsyscall", 12);
 		if (debug)
-			fprint(2, "DEBUG: back for %d\n", pid);
+			fprint(outf, "DEBUG: back for %d\n", pid);
 		s = newstr();
 	}
 
@@ -152,7 +153,7 @@ writer(void *v)
 				goto done;
 			break;
 		case 1:			/* out */
-			fprint(2, "%s", s->buf);
+			fprint(outf, "%s", s->buf);
 			free(s);
 			break;
 		case 2:			/* forkc */
@@ -167,7 +168,7 @@ done:
 void
 usage(void)
 {
-	fprint(2, "Usage: ratrace [-c cmd [arg...]] | [pid]\n");
+	fprint(2, "Usage: ratrace [-o file] [-d] [-c cmd [arg...]] | [pid]\n");
 	exits("usage");
 }
 
@@ -199,18 +200,27 @@ threadmain(int argc, char **argv)
 	 * for the command you are starting.  Just check for -c as argv[1]
 	 * and then take it from there.
 	 */
-	if (argc < 2)
-		usage();
-	while (argv[1][0] == '-') {
-		switch(argv[1][1]) {
+	++argv;
+	--argc;
+	while (argv[0][0] == '-') {
+		switch(argv[0][1]) {
 		case 'c':
-			if (argc < 3)
+			if (argc < 2)
 				usage();
-			cmd = strdup(argv[2]);
-			args = &argv[2];
+			cmd = strdup(argv[1]);
+			args = &argv[1];
 			break;
 		case 'd':
 			debug = 1;
+			break;
+		case 'o':
+			if (argc < 2)
+				usage();
+			outf = create(argv[1], OWRITE, 0666);
+			if (outf < 0)
+				sysfatal(smprint("%s: %r", argv[1]));
+			++argv;
+			--argc;
 			break;
 		default:
 			usage();
@@ -232,9 +242,9 @@ threadmain(int argc, char **argv)
 			sysfatal("exec %s failed: %r", cmd);
 		}
 	} else {
-		if(argc != 2)
+		if(argc != 1)
 			usage();
-		pid = atoi(argv[1]);
+		pid = atoi(argv[0]);
 	}
 
 	out   = chancreate(sizeof(char*), 0);
