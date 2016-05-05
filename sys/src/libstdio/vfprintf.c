@@ -297,7 +297,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	char digits[128];	/* no reasonable machine will ever overflow this */
 	char *sign;
 	char *dp;
-	int32_t snum;
+	int64_t snum;
 	unsigned long num;
 	int nout, npad, nlzero;
 
