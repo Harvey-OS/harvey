@@ -41,9 +41,9 @@ struct Dirtab {
 };
 
 static Dirtab dirtab[] = {
-	[Qroot]	"/",		DMDIR|0555,
-	[Qdata]	"%s",		0660,
-	[Qctl]	"%sctl",	0664,
+	[Qroot] =	"/",		DMDIR|0555,
+	[Qdata] =	"%s",		0660,
+	[Qctl] =	"%sctl",	0664,
 };
 
 /* someday? static int sdebug; */

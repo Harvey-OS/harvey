@@ -2,8 +2,6 @@
 	"zlib": {
 		"Cflags": [
 			"-I./harvey",
-			"-lstdio",
-			"-lc",
 			"-fPIC",
 			"-DHARVEY",
 			"-DNO_FSEEKO",

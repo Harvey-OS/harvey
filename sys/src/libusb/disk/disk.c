@@ -42,10 +42,10 @@ struct Dirtab
 
 static Dirtab dirtab[] =
 {
-	[Qdir]	"/",	DMDIR|0555,
-	[Qctl]	"ctl",	0664,		/* nothing secret here */
-	[Qraw]	"raw",	0640,
-	[Qdata]	"data",	0640,
+	[Qdir] =	"/",	DMDIR|0555,
+	[Qctl] =	"ctl",	0664,		/* nothing secret here */
+	[Qraw] =	"raw",	0640,
+	[Qdata] =	"data",	0640,
 };
 
 /*
