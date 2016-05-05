@@ -532,19 +532,19 @@ fsflush(Rpc *r)
 }
 
 Rpc* (*fscalls[])(Rpc*) = {
-	[Tversion]	fsversion,
-	[Tauth]		fsno,
-	[Tattach]	fsattach,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fsno,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsno,
-	[Tstat]		fsstat,
-	[Twstat]	fsno,
-	[Tflush]	fsflush,
+	[Tversion] =	fsversion,
+	[Tauth] =		fsno,
+	[Tattach] =	fsattach,
+	[Twalk] =		fswalk,
+	[Topen] =		fsopen,
+	[Tcreate] =	fsno,
+	[Tread] =		fsread,
+	[Twrite] =	fswrite,
+	[Tclunk] =	fsclunk,
+	[Tremove] =	fsno,
+	[Tstat] =		fsstat,
+	[Twstat] =	fsno,
+	[Tflush] =	fsflush,
 };
 
 static void

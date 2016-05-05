@@ -3,9 +3,6 @@
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
-		"Projects": [
-			"/sys/src/libz/regress.json"
-		],
 		"Install": "/$ARCH/bin/regress",
 		"SourceFilesCmd": [
 			"alarm.c",

@@ -535,13 +535,6 @@ static const double
 bigtens[] = { 
 	1e16, 1e32, 1e64, 1e128, 1e256 };
 
-static const double tinytens[] = { 
-	1e-16, 1e-32, 1e-64, 1e-128,
-	9007199254740992.e-256
-};
-
-/* The factor of 2^53 in tinytens[4] helps us avoid setting the underflow */
-/* flag unnecessarily.  It leads to a song and dance at the end of strtod. */
 #define Scale_Bit 0x10
 #define n_bigtens 5
 

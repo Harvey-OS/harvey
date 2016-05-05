@@ -695,7 +695,7 @@ static void
 mimecontlen(Hlex *h, char *name)
 {
 	char *e;
-	uint32_t v;
+	unsigned long v;
 
 	if(lex(h) != Word)
 		return;
