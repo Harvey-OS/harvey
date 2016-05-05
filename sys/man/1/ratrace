@@ -4,6 +4,8 @@ ratrace \- trace process system calls
 .SH SYNOPSIS
 .B ratrace
 [
+.I -o outputfile
+] | [
 .I pid
 ] | [
 .I -c command
