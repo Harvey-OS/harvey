@@ -54,11 +54,11 @@ enum
 
 static char *phasenames[Maxphase] =
 {
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+[CNeedChal] =	"CNeedChal",
+[CHaveResp] =	"CHaveResp",
 
-[SHaveChal]	"SHaveChal",
-[SNeedResp]	"SNeedResp",
+[SHaveChal] =	"SHaveChal",
+[SNeedResp] =	"SNeedResp",
 };
 
 static void

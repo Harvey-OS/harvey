@@ -108,7 +108,7 @@ fsstat(Req *r)
 		dirgen(-1, &r->d, nil);
 	else{
 		if((t = findtab(qid)) == nil){
-			respond(r, "path not found (???)");
+			respond(r, "path not found (? ? ?)");
 			return;
 		}
 		dirgen(t-tab, &r->d, nil);

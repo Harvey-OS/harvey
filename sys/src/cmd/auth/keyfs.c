@@ -74,19 +74,19 @@ struct User {
 };
 
 char	*qinfo[Qmax] = {
-	[Qroot]		"keys",
-	[Quser]		".",
-	[Qkey]		"key",
-	[Qsecret]	"secret",
-	[Qlog]		"log",
-	[Qexpire]	"expire",
-	[Qstatus]	"status",
-	[Qwarnings]	"warnings",
+	[Qroot] =		"keys",
+	[Quser] =		".",
+	[Qkey] =		"key",
+	[Qsecret] =	"secret",
+	[Qlog] =		"log",
+	[Qexpire] =	"expire",
+	[Qstatus] =	"status",
+	[Qwarnings] =	"warnings",
 };
 
 char	*status[Smax] = {
-	[Sok]		"ok",
-	[Sdisabled]	"disabled",
+	[Sok] =		"ok",
+	[Sdisabled] =	"disabled",
 };
 
 Fid	*fids;
@@ -123,19 +123,19 @@ char	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
 	*Read(Fid *), *Write(Fid*), *Clunk(Fid*),
 	*Remove(Fid *), *Stat(Fid*), *Wstat(Fid*);
 char 	*(*fcalls[])(Fid*) = {
-	[Tattach]	Attach,
-	[Tauth]	Auth,
-	[Tclunk]	Clunk,
-	[Tcreate]	Create,
-	[Tflush]	Flush,
-	[Topen]		Open,
-	[Tread]		Read,
-	[Tremove]	Remove,
-	[Tstat]		Stat,
-	[Tversion]	Version,
-	[Twalk]		Walk,
-	[Twrite]	Write,
-	[Twstat]	Wstat,
+	[Tattach] =	Attach,
+	[Tauth] =	Auth,
+	[Tclunk] =	Clunk,
+	[Tcreate] =	Create,
+	[Tflush] =	Flush,
+	[Topen] =		Open,
+	[Tread] =		Read,
+	[Tremove] =	Remove,
+	[Tstat] =		Stat,
+	[Tversion] =	Version,
+	[Twalk] =		Walk,
+	[Twrite] =	Write,
+	[Twstat] =	Wstat,
 };
 
 static void
