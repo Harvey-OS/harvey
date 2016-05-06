@@ -38,11 +38,11 @@ enum {
 
 
 static char *NBerr[] = {
-	[0]	"not listening on called name",
-	[1]	"not listening for calling name",
-	[2]	"called name not present",
-	[3]	"insufficient resources",
-	[15]	"unspecified error"
+	[0] =	"not listening on called name",
+	[1] =	"not listening for calling name",
+	[2] =	"called name not present",
+	[3] =	"insufficient resources",
+	[15] =	"unspecified error"
 };
 
 

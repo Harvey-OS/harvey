@@ -52,14 +52,14 @@ enum
 
 static char *phasenames[Maxphase] =
 {
-[CNeedProtos]	"CNeedProtos",
-[CHaveProto]	"CHaveProto",
-[CNeedOK]	"CNeedOK",
-[CRelay]	"CRelay",
-[SHaveProtos]	"SHaveProtos",
-[SNeedProto]	"SNeedProto",
-[SHaveOK]	"SHaveOK",
-[SRelay]	"SRelay",
+[CNeedProtos] =	"CNeedProtos",
+[CHaveProto] =	"CHaveProto",
+[CNeedOK] =	"CNeedOK",
+[CRelay] =	"CRelay",
+[SHaveProtos] =	"SHaveProtos",
+[SNeedProto] =	"SNeedProto",
+[SHaveOK] =	"SHaveOK",
+[SRelay] =	"SRelay",
 };
 
 static int

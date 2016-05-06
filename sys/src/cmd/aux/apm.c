@@ -99,17 +99,17 @@ enum {
 };
 
 static char* eventstr[] = {
-[NotifyStandbyRequest]	"system standby request",
-[NotifySuspendRequest]	"system suspend request",
-[NotifyNormalResume]	"normal resume",
-[NotifyCriticalResume]	"critical resume",
-[NotifyBatteryLow]		"battery low",
-[NotifyPowerStatusChange]	"power status change",
-[NotifyUpdateTime]		"update time",
-[NotifyCriticalSuspend]	"critical suspend",
-[NotifyUserStandbyRequest]	"user standby request",
-[NotifyUserSuspendRequest]	"user suspend request",
-[NotifyCapabilitiesChange]	"capabilities change",
+[NotifyStandbyRequest] =	"system standby request",
+[NotifySuspendRequest] =	"system suspend request",
+[NotifyNormalResume] =	"normal resume",
+[NotifyCriticalResume] =	"critical resume",
+[NotifyBatteryLow] =		"battery low",
+[NotifyPowerStatusChange] =	"power status change",
+[NotifyUpdateTime] =		"update time",
+[NotifyCriticalSuspend] =	"critical suspend",
+[NotifyUserStandbyRequest] =	"user standby request",
+[NotifyUserSuspendRequest] =	"user suspend request",
+[NotifyCapabilitiesChange] =	"capabilities change",
 };
 
 static char*
@@ -125,21 +125,21 @@ apmevent(int e)
 }
 
 static char *error[256] = {
-[0x01]	"power mgmt disabled",
-[0x02]	"real mode connection already established",
-[0x03]	"interface not connected",
-[0x05]	"16-bit protected mode connection already established",
-[0x06]	"16-bit protected mode interface not supported",
-[0x07]	"32-bit protected mode interface already established",
-[0x08]	"32-bit protected mode interface not supported",
-[0x09]	"unrecognized device id",
-[0x0A]	"parameter value out of range",
-[0x0B]	"interface not engaged",
-[0x0C]	"function not supported",
-[0x0D]	"resume timer disabled",
-[0x60]	"unable to enter requested state",
-[0x80]	"no power mgmt events pending",
-[0x86]	"apm not present",
+[0x01] =	"power mgmt disabled",
+[0x02] =	"real mode connection already established",
+[0x03] =	"interface not connected",
+[0x05] =	"16-bit protected mode connection already established",
+[0x06] =	"16-bit protected mode interface not supported",
+[0x07] =	"32-bit protected mode interface already established",
+[0x08] =	"32-bit protected mode interface not supported",
+[0x09] =	"unrecognized device id",
+[0x0A] =	"parameter value out of range",
+[0x0B] =	"interface not engaged",
+[0x0C] =	"function not supported",
+[0x0D] =	"resume timer disabled",
+[0x60] =	"unable to enter requested state",
+[0x80] =	"no power mgmt events pending",
+[0x86] =	"apm not present",
 };
 
 static char*
@@ -233,27 +233,27 @@ enum {
 
 static char*
 acstatusstr[] = {
-[AcUnknown]	"unknown",
-[AcOffline]	"offline",
-[AcOnline]	"online",
-[AcBackup]	"backup",
+[AcUnknown] =	"unknown",
+[AcOffline] =	"offline",
+[AcOnline] =	"online",
+[AcBackup] =	"backup",
 };
 
 static char*
 batterystatusstr[] = {
-[BatteryUnknown] "unknown",
-[BatteryHigh]	"high",
-[BatteryLow]	"low",
-[BatteryCritical]	"critical",
-[BatteryCharging]	"charging",
+[BatteryUnknown] = "unknown",
+[BatteryHigh] =	"high",
+[BatteryLow] =	"low",
+[BatteryCritical] =	"critical",
+[BatteryCharging] =	"charging",
 };
 
 static char*
 powerstatestr[] = {
-[PowerOff]	"off",
-[PowerSuspend]	"suspend",
-[PowerStandby]	"standby",
-[PowerEnabled]	"on",
+[PowerOff] =	"off",
+[PowerSuspend] =	"suspend",
+[PowerStandby] =	"standby",
+[PowerEnabled] =	"on",
 };
 
 static char*
