@@ -78,10 +78,10 @@ gw4(unsigned char *p)
 	return (unsigned long)p[0] | (unsigned long)p[1]<<8 | (unsigned long)p[2]<<16 | (unsigned long)p[3]<<24;
 }
 static unsigned long (*gw[9])(unsigned char *p) = {
-	[1] gw1,
-	[2] gw2,
-	[4] gw4,
-	[8] gw4,
+	[1] = gw1,
+	[2] = gw2,
+	[4] = gw4,
+	[8] = gw4,
 };
 
 static void

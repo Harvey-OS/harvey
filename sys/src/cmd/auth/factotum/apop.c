@@ -49,12 +49,12 @@ enum
 };
 
 static char *phasenames[Maxphase] = {
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+[CNeedChal] =	"CNeedChal",
+[CHaveResp] =	"CHaveResp",
 
-[SHaveChal]	"SHaveChal",
-[SNeedUser]	"SNeedUser",
-[SNeedResp]	"SNeedResp",
+[SHaveChal] =	"SHaveChal",
+[SNeedUser] =	"SNeedUser",
+[SNeedResp] =	"SNeedResp",
 };
 
 static int dochal(State*);

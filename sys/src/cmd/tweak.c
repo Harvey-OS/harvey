@@ -67,14 +67,14 @@ enum
 };
 
 char	*menu3str[] = {
-	[Mopen]	"open",
-	[Mread]	"read",
-	[Mwrite]	"write",
-	[Mcopy]	"copy",
-	[Mchar]	"char",
-	[Mpixels]	"pixels",
-	[Mclose]	"close",
-	[Mexit]	"exit",
+	[Mopen] =	"open",
+	[Mread] =	"read",
+	[Mwrite] =	"write",
+	[Mcopy] =	"copy",
+	[Mchar] =	"char",
+	[Mpixels] =	"pixels",
+	[Mclose] =	"close",
+	[Mexit] =	"exit",
 	0,
 };
 
