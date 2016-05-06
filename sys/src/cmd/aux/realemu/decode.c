@@ -234,30 +234,30 @@ static Optab optabgp12[8] = {
  */
 
 static Optab *optabgp[NUMOP] = {
-	[OGP1]	optabgp1,
-	[OGP2]	optabgp2,
-	[OGP3b]	optabgp3b,
-	[OGP3v]	optabgp3v,
-	[OGP4]	optabgp4,
-	[OGP5]	optabgp5,
-	[OGP8]	optabgp8,
-	[OGP10]	optabgp10,
-	[OGP12] optabgp12,
+	[OGP1] =	optabgp1,
+	[OGP2] =	optabgp2,
+	[OGP3b] =	optabgp3b,
+	[OGP3v] =	optabgp3v,
+	[OGP4] =	optabgp4,
+	[OGP5] =	optabgp5,
+	[OGP8] =	optabgp8,
+	[OGP10] =	optabgp10,
+	[OGP12] = optabgp12,
 };
 
 static unsigned char modrmarg[NATYPE] = {
-	[AEb] 1,
-	[AEw] 1,
-	[AEv] 1,
-	[AGb] 1,
-	[AGw] 1,
-	[AGv] 1,
-	[AM]  1,
-	[AMp] 1,
-	[AMa] 1,
-	[AMa2] 1,
-	[ASw] 1,
-	[AJr] 1,
+	[AEb] = 1,
+	[AEw] = 1,
+	[AEv] = 1,
+	[AGb] = 1,
+	[AGw] = 1,
+	[AGv] = 1,
+	[AM] =  1,
+	[AMp] = 1,
+	[AMa] = 1,
+	[AMa2] = 1,
+	[ASw] = 1,
+	[AJr] = 1,
 };
 
 static void

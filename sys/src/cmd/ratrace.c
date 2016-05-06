@@ -191,7 +191,7 @@ hang(void)
 void
 threadmain(int argc, char **argv)
 {
-	uintptr_t pid;
+	int pid;
 	char *cmd = nil;
 	char **args = nil;
 

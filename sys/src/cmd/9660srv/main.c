@@ -65,19 +65,19 @@ int	noplan9;
 int norock;
 
 void	(*fcalls[])(void) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+	[Tversion] =	rversion,
+	[Tflush] =	rflush,
+	[Tauth] =	rauth,
+	[Tattach] =	rattach,
+	[Twalk] =		rwalk,
+	[Topen] =		ropen,
+	[Tcreate] =	rcreate,
+	[Tread] =		rread,
+	[Twrite] =	rwrite,
+	[Tclunk] =	rclunk,
+	[Tremove] =	rremove,
+	[Tstat] =		rstat,
+	[Twstat] =	rwstat,
 };
 
 void

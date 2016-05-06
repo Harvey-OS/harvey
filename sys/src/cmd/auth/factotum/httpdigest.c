@@ -28,8 +28,8 @@ enum
 };
 
 static char *phasenames[Maxphase] = {
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+[CNeedChal] =	"CNeedChal",
+[CHaveResp] =	"CHaveResp",
 };
 
 struct State
