@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+TARG=acid
+UOFILES=	main.$O\
+	lex.$O\
+	util.$O\
+	exec.$O\
+	expr.$O\
+	list.$O\
+	builtin.$O\
+	proc.$O\
+	dot.$O\
+	print.$O\
+
+OFILES=$UOFILES y.tab.$O
+
+YFILES=dbg.y
+HFILES=acid.h
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${UOFILES:%.$O=%.c}\
+	$YFILES\
+
+</sys/src/cmd/mkone
+
+lex.$O:		y.tab.h
+util.$O:	y.tab.h
+builtin.$O:	y.tab.h
+main.$O:	y.tab.h
