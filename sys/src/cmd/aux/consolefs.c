@@ -146,19 +146,19 @@ extern	void	fswstat(Fs*, Request*, Fid*);
 
 void 	(*fcall[])(Fs*, Request*, Fid*) =
 {
-	[Tflush]	fsflush,
-	[Tversion]	fsversion,
-	[Tauth]	fsauth,
-	[Tattach]	fsattach,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fscreate,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsremove,
-	[Tstat]		fsstat,
-	[Twstat]	fswstat
+	[Tflush] =	fsflush,
+	[Tversion] =	fsversion,
+	[Tauth] =	fsauth,
+	[Tattach] =	fsattach,
+	[Twalk] =		fswalk,
+	[Topen] =		fsopen,
+	[Tcreate] =	fscreate,
+	[Tread] =		fsread,
+	[Twrite] =	fswrite,
+	[Tclunk] =	fsclunk,
+	[Tremove] =	fsremove,
+	[Tstat] =		fsstat,
+	[Twstat] =	fswstat
 };
 
 char Eperm[] = "permission denied";
