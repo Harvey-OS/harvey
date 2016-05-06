@@ -42,13 +42,13 @@ enum {
 };
 
 static char *phasenames[] = {
-[CHavePub]	"CHavePub",
-[CHaveResp]	"CHaveResp",
-[VNeedHash]	"VNeedHash",
-[VNeedSig]	"VNeedSig",
-[VHaveResp]	"VHaveResp",
-[SNeedHash]	"SNeedHash",
-[SHaveResp]	"SHaveResp",
+[CHavePub] =	"CHavePub",
+[CHaveResp] =	"CHaveResp",
+[VNeedHash] =	"VNeedHash",
+[VNeedSig] =	"VNeedSig",
+[VHaveResp] =	"VHaveResp",
+[SNeedHash] =	"SNeedHash",
+[SHaveResp] =	"SHaveResp",
 };
 
 struct State
@@ -163,8 +163,7 @@ rsaread(Fsstate *fss, void *va, uint *n)
 		return RpcOk;
 	case CHaveResp:
 		*n = snprint(va, *n, "%B", s->resp);
-		fss->phase = Established;
-		return RpcOk;
+		fss->phase = Established;		return RpcOk;
 	case SHaveResp:
 		priv = s->key->priv;
 		len = (mpsignif(priv->pub.n)+7)/8;

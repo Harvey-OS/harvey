@@ -58,15 +58,15 @@ enum
 
 static char *phasenames[Maxphase] =
 {
-[CHaveChal]		"CHaveChal",
-[CNeedTreq]		"CNeedTreq",
-[CHaveTicket]		"CHaveTicket",
-[CNeedAuth]		"CNeedAuth",
+[CHaveChal] =		"CHaveChal",
+[CNeedTreq] =		"CNeedTreq",
+[CHaveTicket] =		"CHaveTicket",
+[CNeedAuth] =		"CNeedAuth",
 
-[SNeedChal]		"SNeedChal",
-[SHaveTreq]		"SHaveTreq",
-[SNeedTicket]		"SNeedTicket",
-[SHaveAuth]		"SHaveAuth",
+[SNeedChal] =		"SNeedChal",
+[SHaveTreq] =		"SHaveTreq",
+[SNeedTicket] =		"SNeedTicket",
+[SHaveAuth] =		"SHaveAuth",
 };
 
 static int gettickets(State*, char*, char*);
