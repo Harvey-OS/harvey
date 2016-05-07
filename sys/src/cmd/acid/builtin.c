@@ -129,14 +129,15 @@ installbuiltin(void)
 }
 
 void
-dosysr1(Node *r, Node*)
+dosysr1(Node *r, Node*_)
 {
 	extern int sysr1(void);
 	
 	r->op = OCONST;
 	r->type = TINT;
 	r->fmt = 'D';
-	r->ival = sysr1();
+	fprint(2, "Thank Giacomo -- no sysr1 -- we'll bring it back\n");
+	//r->ival = sysr1();
 }
 
 void
@@ -976,7 +977,7 @@ fmt(Node *r, Node *args)
 }
 
 void
-patom(char type, Store *res)
+patom(uint8_t type, Store *res)
 {
 	int i;
 	char buf[512];
@@ -1315,7 +1316,7 @@ void dofmtsize(Node *r, Node *args)
 
 	v.type = res.type ;
 	s = &v.Store ;
-	*s = res ;
+	*s = res.Store ;
 
 	r->op = OCONST;
 	r->type = TINT ;
