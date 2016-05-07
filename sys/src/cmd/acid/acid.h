@@ -204,7 +204,7 @@ void	fatal(char*, ...);
 void	flatten(Node**, Node*);
 void	gc(void);
 char*	getstatus(int);
-void*	gmalloc(long);
+void*	gmalloc(unsigned long);
 void	indir(Map*, uintptr_t, char, Node*);
 void	installbuiltin(void);
 void	kinit(void);
