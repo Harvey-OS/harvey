@@ -80,7 +80,7 @@ struct Type
 {
 	Type*	next;
 	int	offset;
-	char	fmt;
+	uint8_t	fmt;
 	char	depth;
 	Lsym*	type;
 	Lsym*	tag;
@@ -118,10 +118,10 @@ struct Gc
 
 struct Store
 {
-	char	fmt;
+	uint8_t	fmt;
 	Type*	comt;
 	union {
-		vlong	ival;
+		long long	ival;
 		double	fval;
 		String*	string;
 		List*	l;
@@ -162,7 +162,7 @@ struct Lsym
 struct Node
 {
 	Gc;
-	char	op;
+	uint8_t	op;
 	char	type;
 	Node*	left;
 	Node*	right;
@@ -189,7 +189,7 @@ void	call(char*, Node*, Node*, Node*, Node*);
 void	catcher(void*, char*);
 void	checkqid(int, int);
 void	cmd(void);
-Node*	con(vlong);
+Node*	con(long long);
 List*	construct(Node*);
 void	ctrace(int);
 void	decl(Node*);
@@ -205,13 +205,13 @@ void	flatten(Node**, Node*);
 void	gc(void);
 char*	getstatus(int);
 void*	gmalloc(long);
-void	indir(Map*, uvlong, char, Node*);
+void	indir(Map*, uintptr_t, char, Node*);
 void	installbuiltin(void);
 void	kinit(void);
 int	Lfmt(Fmt*);
 int	listcmp(List*, List*);
 int	listlen(List*);
-List*	listvar(char*, vlong);
+List*	listvar(char*, long long);
 void	loadmodule(char*);
 void	loadvars(void);
 Lsym*	look(char*);
@@ -232,7 +232,7 @@ void	pushfile(char*);
 void	pushstr(Node*);
 void	readtext(char*);
 void	restartio(void);
-uvlong	rget(Map*, char*);
+uintptr_t rget(Map*, char*);
 String	*runenode(Rune*);
 int	scmp(String*, String*);
 void	sproc(int);
@@ -241,7 +241,7 @@ String*	straddrune(String*, Rune);
 String*	strnode(char*);
 String*	strnodlen(char*, int);
 char*	system(void);
-void	trlist(Map*, uvlong, uvlong, Symbol*);
+void	trlist(Map*, uintptr_t, uintptr_t, Symbol*);
 void	unwind(void);
 void	userinit(void);
 void	varreg(void);

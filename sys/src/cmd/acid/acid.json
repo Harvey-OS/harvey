@@ -1,0 +1,24 @@
+{
+	"acid": {
+		"CFlags": [
+			"-fplan9-extensions"
+		],
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/acid",
+		"Program": "acid",
+		"SourceFiles": [
+			"builtin.c",
+			"dot.c",
+			"exec.c",
+			"expr.c",
+			"lex.c",
+			"list.c",
+			"main.c",
+			"print.c",
+			"proc.c",
+			"util.c"
+		]
+	}
+}
