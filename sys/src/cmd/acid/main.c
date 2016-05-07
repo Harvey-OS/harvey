@@ -267,7 +267,6 @@ readtext(char *s)
 	Value *v;
 	uint64_t length;
 	Symbol sym;
-	extern Machdata mipsmach;
 
 	if(mtype != 0){
 		symmap = newmap(0, 1);
@@ -283,7 +282,7 @@ readtext(char *s)
 		return;
 	}
 
-	machdata = &mipsmach;
+	machdata = nil;
 
 	if(!crackhdr(text, &fhdr)) {
 		print("can't decode file header\n");
@@ -495,7 +494,7 @@ gc(void)
 }
 
 void*
-gmalloc(int32_t l)
+gmalloc(unsigned long l)
 {
 	void *p;
 
