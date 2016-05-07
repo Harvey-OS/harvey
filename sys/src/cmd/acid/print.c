@@ -51,10 +51,11 @@ char *typenames[] =
 int
 cmp(const void *va, const void *vb)
 {
-	char **a = va;
-	char **b = vb;
+	/* what a mess. */
+	char **a = (char **)va;
+	char **b = (char **)vb;
 
-	return strcmp(*a, *b);
+	return strcmp((const char *)*a, (const char *)*b);
 }
 
 void
