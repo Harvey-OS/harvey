@@ -6,7 +6,10 @@
 		"Include": [
 			"../cmd.json"
 		],
-		"Install": "/$ARCH/bin/acid",
+		"Install": "/$ARCH/bin",
+		"Pre": [
+			"yacc -d dbg.y"
+		],
 		"Program": "acid",
 		"SourceFiles": [
 			"builtin.c",
@@ -18,7 +21,8 @@
 			"main.c",
 			"print.c",
 			"proc.c",
-			"util.c"
+			"util.c",
+			"y.tab.c"
 		]
 	}
 }
