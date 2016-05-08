@@ -186,15 +186,7 @@ igfxcurregs(VGAscr* scr, int pipe)
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
 	switch(scr->pci->did){
-	case 0x0412:	/* Haswell HD Graphics 4600 */
-	case 0x0a16:	/* Haswell HD Graphics 4400 */
-		if(pipe > 3)
-			return nil;
-		if(pipe == 3)
-			o = 0;
-		break;
 	case 0x0166:	/* Ivy Bridge */
-	case 0x0152:	/* Core-i3 */
 		if(pipe > 2)
 			return nil;
 		break;
