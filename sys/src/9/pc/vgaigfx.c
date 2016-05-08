@@ -128,7 +128,7 @@ igfxcurregs(VGAscr* scr, int pipe)
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
 	switch(scr->pci->did){
-	case 0x0116:	/* Ivy Bridge */
+	case 0x0166:	/* Ivy Bridge */
 		if(pipe > 2)
 			return nil;
 		break;
