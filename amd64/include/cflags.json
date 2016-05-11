@@ -1,5 +1,10 @@
 {
 	"buildflags": {
+		"ToolOpts": {
+			"/usr/bin/clang": [
+				"-mno-implicit-float"
+			]
+		},
 		"Cflags": [
 			"-ffreestanding",
 			"-fno-builtin",
