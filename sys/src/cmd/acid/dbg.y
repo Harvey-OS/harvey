@@ -5,13 +5,15 @@
 #include <mach.h>
 #define Extern extern
 #include "acid.h"
+
+#define YYSIZE_T size_t
 %}
 
 %union
 {
 	Node	*node;
 	Lsym	*sym;
-	uvlong	ival;
+	uint64_t	ival;
 	float	fval;
 	String	*string;
 }
