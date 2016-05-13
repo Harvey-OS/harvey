@@ -10,7 +10,7 @@
 // HARVEY should point to a harvey root.
 // A best-effort to autodetect the harvey root is made if not explicitly set.
 //
-// Optional: CC, AR, LD, RANLIB, STRIP, SH, TOOLPREFIX
+// Optional: HARVEYCC, AR, LD, RANLIB, STRIP, SH, TOOLPREFIX
 //
 // These all control how the needed tools are found.
 //
@@ -112,7 +112,7 @@ var (
 	// findTools looks at all env vars and absolutizes these paths
 	// also respects TOOLPREFIX
 	tools = map[string]string{
-		"cc":     "gcc",
+		"harveycc":     "gcc",
 		"ar":     "ar",
 		"ld":     "ld",
 		"ranlib": "ranlib",
@@ -313,19 +313,19 @@ func compile(b *build) {
 		"-I", fromRoot("/sys/include"),
 		"-I", ".",
 	}
-	if toolOpts, ok := b.ToolOpts[tools["cc"]]; ok {
+	if toolOpts, ok := b.ToolOpts[tools["harveycc"]]; ok {
 		args = append(args, toolOpts...)
 	}
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
-			cmd := exec.Command(tools["cc"], append(args, i)...)
+			cmd := exec.Command(tools["harveycc"], append(args, i)...)
 			run(b, *shellhack, cmd)
 		}
 		return
 	}
 	args = append(args, b.SourceFiles...)
-	cmd := exec.Command(tools["cc"], args...)
+	cmd := exec.Command(tools["harveycc"], args...)
 	run(b, *shellhack, cmd)
 }
 
