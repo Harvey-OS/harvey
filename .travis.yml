@@ -10,6 +10,8 @@ env:
   - HARVEY=$TRAVIS_BUILD_DIR
   - PATH=$PATH:$HARVEY/util
   matrix:
+  - CC=clang
+  - CC=gcc
   - OLD_BUILD=true
   - OLD_BUILD=false
 addons:
