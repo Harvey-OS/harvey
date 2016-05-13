@@ -11,6 +11,7 @@ env:
   - PATH=$PATH:$HARVEY/util
   matrix:
   - OLD_BUILD=true
+  - OLD_BUILD=false
 addons:
   apt:
     sources:
