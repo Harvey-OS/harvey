@@ -300,9 +300,9 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 		if(start == 0){
 			if(!cflag)
 				return -1;
-			mlock(bp);
+			mlock(&bp->MLock);
 			start = falloc(f->xf);
-			unmlock(bp);
+			unmlock(&bp->MLock);
 			if(start <= 0)
 				return -1;
 			puttime(d, 0);
@@ -323,7 +323,7 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 	if(clust <= 0)
 		return -1;
 	if(nskip > 0){
-		mlock(bp);
+		mlock(&bp->MLock);
 		while(--nskip >= 0){
 			next = getfat(f->xf, clust);
 			if(chatty > 1)
@@ -346,7 +346,7 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 			}
 			clust = next;
 		}
-		unmlock(bp);
+		unmlock(&bp->MLock);
 		if(next <= 0)
 			return -1;
 		dp->clust = clust;
@@ -895,9 +895,9 @@ walkup(Xfile *f, Dosptr *ndp)
 		}
 		if(ppclust){
 			if(so%bp->clustsize == 0){
-				mlock(bp);
+				mlock(&bp->MLock);
 				ppclust = getfat(f->xf, ppclust);
-				unmlock(bp);
+				unmlock(&bp->MLock);
 				if(ppclust < 0){
 					chat("getfat %ld failed\n", ppclust);
 					goto error;
@@ -1033,7 +1033,7 @@ truncfile(Xfile *f, int32_t length)
 	Dosdir *d = dp->d;
 	int32_t clust, next, n;
 
-	mlock(bp);
+	mlock(&bp->MLock);
 	clust = getstart(f->xf, d);
 	n = length;
 	if(n <= 0)
@@ -1048,7 +1048,7 @@ truncfile(Xfile *f, int32_t length)
 			n -= bp->clustsize*bp->sectsize;
 		clust = next;
 	}
-	unmlock(bp);
+	unmlock(&bp->MLock);
 	PLONG(d->length, length);
 	dp->iclust = 0;
 	dp->clust = 0;

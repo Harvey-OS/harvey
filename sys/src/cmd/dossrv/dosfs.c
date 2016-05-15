@@ -426,9 +426,9 @@ badperm:
 	bp = nil;
 	if(req->perm & DMDIR){
 		bp = f->xf->ptr;
-		mlock(bp);
+		mlock(&bp->MLock);
 		start = falloc(f->xf);
-		unmlock(bp);
+		unmlock(&bp->MLock);
 		if(start <= 0){
 			free(ndp);
 			putfile(f);
