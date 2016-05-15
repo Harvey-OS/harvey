@@ -126,7 +126,7 @@ struct Fatinfo
  * BIOS paramater block
  */
 struct Dosbpb{
-	MLock;				/* access to fat */
+	MLock MLock;				/* access to fat */
 	int	sectsize;		/* in bytes */
 	int	clustsize;		/* in sectors */
 	int	nresrv;			/* sectors */
