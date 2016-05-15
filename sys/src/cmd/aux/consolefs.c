@@ -55,14 +55,14 @@ struct Request
 
 struct Reqlist
 {
-	Lock;
+	Lock Lock;
 	Request	*first;
 	Request *last;
 };
 
 struct Fid
 {
-	Lock;
+	Lock Lock;
 	Fid	*next;			/* hash list */
 	Fid	*cnext;			/* list of Fid's on a console */
 	int	fid;
@@ -87,7 +87,7 @@ struct Fid
 
 struct Console
 {
-	Lock;
+	Lock Lock;
 
 	char	*name;
 	char	*dev;
@@ -107,7 +107,7 @@ struct Console
 
 struct Fs
 {
-	Lock;
+	Lock Lock;
 
 	int	fd;			/* to kernel mount point */
 	int	messagesize;
@@ -224,14 +224,14 @@ allocreq(Fs *fs, int bufsize)
 void
 addreq(Reqlist *l, Request *r)
 {
-	lock(l);
+	lock(&l->Lock);
 	if(l->first == nil)
 		l->first = r;
 	else
 		l->last->next = r;
 	l->last = r;
 	r->next = nil;
-	unlock(l);
+	unlock(&l->Lock);
 }
 
 /*
@@ -242,11 +242,11 @@ remreq(Reqlist *l)
 {
 	Request *r;
 
-	lock(l);
+	lock(&l->Lock);
 	r = l->first;
 	if(r != nil)
 		l->first = r->next;
-	unlock(l);
+	unlock(&l->Lock);
 	return r;
 }
 
@@ -258,17 +258,17 @@ remtag(Reqlist *l, int tag)
 {
 	Request *or, **ll;
 
-	lock(l);
+	lock(&l->Lock);
 	ll = &l->first;
 	for(or = *ll; or; or = or->next){
 		if(or->f.tag == tag){
 			*ll = or->next;
-			unlock(l);
+			unlock(&l->Lock);
 			return or;
 		}
 		ll = &or->next;
 	}
-	unlock(l);
+	unlock(&l->Lock);
 	return nil;
 }
 
@@ -434,7 +434,7 @@ fsreopen(Fs* fs, Console *c)
 void
 change(Fs *fs, Console *c, int doreopen, int speed, int cronly, int ondemand)
 {
-	lock(c);
+	lock(&c->Lock);
 
 	if(speed != c->speed){
 		c->speed = speed;
@@ -448,7 +448,7 @@ change(Fs *fs, Console *c, int doreopen, int speed, int cronly, int ondemand)
 	if(doreopen)
 		fsreopen(fs, c);
 
-	unlock(c);
+	unlock(&c->Lock);
 }
 
 /*
@@ -531,7 +531,7 @@ fromconsole(Fid *f, char *p, int n)
 	char *rp, *wp, *ep;
 	int pass;
 
-	lock(f);
+	lock(&f->Lock);
 	rp = f->rp;
 	wp = f->wp;
 	ep = f->buf + sizeof(f->buf);
@@ -555,7 +555,7 @@ fromconsole(Fid *f, char *p, int n)
 		else
 			f->rp = wp;
 	}
-	unlock(f);
+	unlock(&f->Lock);
 }
 
 /*
@@ -617,12 +617,12 @@ fsreader(void *v)
 		n = read(c->fd, buf, sizeof(buf));
 		if(n < 0)
 			break;
-		lock(c);
+		lock(&c->Lock);
 		for(fl = c->flist; fl; fl = fl->cnext){
 			fromconsole(fl, buf, n);
 			fskick(fs, fl);
 		}
-		unlock(c);
+		unlock(&c->Lock);
 	}
 }
 
@@ -719,11 +719,11 @@ fsgetfid(Fs *fs, int fid)
 {
 	Fid *f, *nf;
 
-	lock(fs);
+	lock(&fs->Lock);
 	for(f = fs->hash[fid%Nhash]; f; f = f->next){
 		if(f->fid == fid){
 			f->ref++;
-			unlock(fs);
+			unlock(&fs->Lock);
 			return f;
 		}
 	}
@@ -735,7 +735,7 @@ fsgetfid(Fs *fs, int fid)
 	nf->ref = 1;
 	nf->wp = nf->buf;
 	nf->rp = nf->wp;
-	unlock(fs);
+	unlock(&fs->Lock);
 	return nf;
 }
 
@@ -744,9 +744,9 @@ fsputfid(Fs *fs, Fid *f)
 {
 	Fid **l, *nf;
 
-	lock(fs);
+	lock(&fs->Lock);
 	if(--f->ref > 0){
-		unlock(fs);
+		unlock(&fs->Lock);
 		return;
 	}
 	for(l = &fs->hash[f->fid%Nhash]; nf = *l; l = &nf->next)
@@ -754,7 +754,7 @@ fsputfid(Fs *fs, Fid *f)
 			*l = f->next;
 			break;
 		}
-	unlock(fs);
+	unlock(&fs->Lock);
 	free(f->user);
 	free(f);
 }
@@ -813,9 +813,9 @@ fsattach(Fs *fs, Request *r, Fid *f)
 
 	/* hold down the fid till the clunk */
 	f->attached = 1;
-	lock(fs);
+	lock(&fs->Lock);
 	f->ref++;
-	unlock(fs);
+	unlock(&fs->Lock);
 
 	r->f.qid = f->qid;
 	fsreply(fs, r, nil);
@@ -982,7 +982,7 @@ fsopen(Fs *fs, Request *r, Fid *f)
 		f->rp = f->buf;
 		f->wp = f->buf;
 		f->c = c;
-		lock(c);
+		lock(&c->Lock);
 		sprint(f->mbuf, "[%s] ", f->user);
 		f->bufn = strlen(f->mbuf);
 		f->used = 0;
@@ -991,7 +991,7 @@ fsopen(Fs *fs, Request *r, Fid *f)
 		bcastmembers(fs, c, "+", f);
 		if(c->pid == 0)
 			fsreopen(fs, c);
-		unlock(c);
+		unlock(&c->Lock);
 		break;
 	case Qctl:
 		c = fs->cons[CONS(f->qid)];
@@ -1161,7 +1161,7 @@ fsclunk(Fs *fs, Request *r, Fid *f)
 			free(nr);
 		}
 
-		lock(f->c);
+		lock(&f->c->Lock);
 		for(l = &f->c->flist; *l; l = &fl->cnext){
 			fl = *l;
 			if(fl == f){
@@ -1172,7 +1172,7 @@ fsclunk(Fs *fs, Request *r, Fid *f)
 		bcastmembers(fs, f->c, "-", f);
 		if(f->c->ondemand && f->c->flist == nil)
 			fsreopen(fs, f->c);
-		unlock(f->c);
+		unlock(&f->c->Lock);
 	}
 	fsreply(fs, r, nil);
 	fsputfid(fs, f);
@@ -1241,7 +1241,7 @@ fskick(Fs *fs, Fid *f)
 	char *p, *rp, *wp, *ep;
 	int i;
 
-	lock(f);
+	lock(&f->Lock);
 	while(f->rp != f->wp){
 		r = remreq(&f->r);
 		if(r == nil)
@@ -1260,7 +1260,7 @@ fskick(Fs *fs, Fid *f)
 		r->f.count = p - (char*)r->buf;
 		fsreply(fs, r, nil);
 	}
-	unlock(f);
+	unlock(&f->Lock);
 }
 
 void
