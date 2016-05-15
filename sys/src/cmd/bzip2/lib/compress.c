@@ -295,7 +295,7 @@ void sendMTFValues ( EState* s )
 {
    Int32 v, t, i, j, gs, ge, totc, bt, bc, iter;
    Int32 nSelectors, alphaSize, minLen, maxLen, selCtr;
-   Int32 nGroups, nBytes;
+   Int32 nGroups;
 
    /*--
    UChar  len [BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
@@ -555,7 +555,6 @@ void sendMTFValues ( EState* s )
              if (s->inUse[i * 16 + j]) inUse16[i] = True;
       }
      
-      nBytes = s->numZ;
       for (i = 0; i < 16; i++)
          if (inUse16[i]) bsW(s,1,1); else bsW(s,1,0);
 
@@ -570,7 +569,6 @@ void sendMTFValues ( EState* s )
    }
 
    /*--- Now the selectors. ---*/
-   nBytes = s->numZ;
    bsW ( s, 3, nGroups );
    bsW ( s, 15, nSelectors );
    for (i = 0; i < nSelectors; i++) { 
@@ -581,7 +579,6 @@ void sendMTFValues ( EState* s )
       VPrintf1( "selectors %d, ", s->numZ-nBytes );
 
    /*--- Now the coding tables. ---*/
-   nBytes = s->numZ;
 
    for (t = 0; t < nGroups; t++) {
       Int32 curr = s->len[t][0];
@@ -597,7 +594,6 @@ void sendMTFValues ( EState* s )
       VPrintf1 ( "code lengths %d, ", s->numZ-nBytes );
 
    /*--- And finally, the block data proper ---*/
-   nBytes = s->numZ;
    selCtr = 0;
    gs = 0;
    while (True) {
