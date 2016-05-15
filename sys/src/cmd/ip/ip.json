@@ -20,8 +20,6 @@
 			"httpfile.c",
 			"linklocal.c",
 			"pppoe.c",
-			"pptp.c",
-			"pptpd.c",
 			"rarpd.c",
 			"rexexec.c",
 			"rip.c",
