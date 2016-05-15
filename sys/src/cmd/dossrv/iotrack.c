@@ -154,10 +154,10 @@ loop:
 	p->flags = BSTALE;
 out:
 	mlock(&hp->lock);
-	HTOFRONT(hp, p);
+	(void)HTOFRONT(hp, p);
 	unmlock(&hp->lock);
 	mlock(&mp->lock);
-	TOFRONT(mp, p);
+	(void)TOFRONT(mp, p);
 	unmlock(&mp->lock);
 	return p;
 }
@@ -291,7 +291,7 @@ iotrack_init(void)
 	for (p=&iobuf[0]; p<&iobuf[NIOBUF]; p++) {
 		p->hprev = p->hnext = p;
 		p->prev = p->next = p;
-		TOFRONT(mp, p);
+		(void)TOFRONT(mp, p);
 		p->tp = sbrk(sizeof(Track));
 		memset(p->tp->p, 0, sizeof p->tp->p);
 	}
