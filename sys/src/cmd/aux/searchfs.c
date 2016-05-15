@@ -76,7 +76,7 @@ extern void	searchfree(Search*);
 
 struct Fid
 {
-	Lock;
+	Lock Lock;
 	Fid	*next;
 	Fid	**last;
 	uint	fid;
@@ -107,7 +107,7 @@ void			usage(void);
 
 struct Fs
 {
-	Lock;			/* for fids */
+	Lock Lock;			/* for fids */
 
 	Fid	*hash[Nfidhash];
 	unsigned char	statbuf[1024];	/* plenty big enough */
