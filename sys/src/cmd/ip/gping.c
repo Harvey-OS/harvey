@@ -63,7 +63,7 @@ struct Req
 
 struct Machine
 {
-	Lock;
+	Lock Lock;
 	char	*name;
 	int	pingfd;
 	int	nproc;
@@ -511,7 +511,7 @@ pingsend(Machine *m)
 	ip->seq[1] = m->seq>>8;
 	r->seq = m->seq;
 	r->next = nil;
-	lock(m);
+	lock(&m->Lock);
 	pingclean(m, -1, nsec(), 0);
 	if(m->first == nil)
 		m->first = r;
@@ -519,7 +519,7 @@ pingsend(Machine *m)
 		m->last->next = r;
 	m->last = r;
 	r->time = nsec();
-	unlock(m);
+	unlock(&m->Lock);
 	if(write(m->pingfd, buf, MSGLEN) < MSGLEN){
 		errstr(err, sizeof err);
 		if(strstr(err, "unreach")||strstr(err, "exceed"))
@@ -558,9 +558,9 @@ pingrcv(void *arg)
 		x = (ip->seq[1]<<8) | ip->seq[0];
 		if(ip->type != EchoReply || ip->code != 0)
 			continue;
-		lock(m);
+		lock(&m->Lock);
 		pingclean(m, x, now, ip4->ttl);
-		unlock(m);
+		unlock(&m->Lock);
 	}
 }
 
