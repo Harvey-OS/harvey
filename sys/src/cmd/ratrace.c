@@ -252,5 +252,5 @@ threadmain(int argc, char **argv)
 	forkc = chancreate(sizeof(uint32_t *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);
-	reader((void*)pid);
+	reader((void*)(uintptr_t)pid);
 }
