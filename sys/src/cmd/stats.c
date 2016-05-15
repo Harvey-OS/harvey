@@ -468,36 +468,6 @@ readnums(Machine *m, int n, uint64_t *a, int spanlines)
 	return i == n;
 }
 
-/* Network on fd1, mount driver on fd0 */
-static int
-filter(int fd)
-{
-	int p[2];
-
-	if(pipe(p) < 0){
-		fprint(2, "stats: can't pipe: %r\n");
-		killall("pipe");
-	}
-
-	switch(rfork(RFNOWAIT|RFPROC|RFFDG)) {
-	case -1:
-		sysfatal("rfork record module");
-	case 0:
-		dup(fd, 1);
-		close(fd);
-		dup(p[0], 0);
-		close(p[0]);
-		close(p[1]);
-		execl("/bin/aux/fcall", "fcall", nil);
-		fprint(2, "stats: can't exec fcall: %r\n");
-		killall("fcall");
-	default:
-		close(fd);
-		close(p[0]);
-	}
-	return p[1];
-}
-
 /*
  * 9fs
  */
