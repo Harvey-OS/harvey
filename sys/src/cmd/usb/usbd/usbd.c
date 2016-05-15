@@ -203,7 +203,7 @@ newhub(char *fn, Dev *d)
 	dprint(2, " ports %d pwrms %d max curr %d pwrm %d cmp %d leds %d\n",
 		h->nport, h->pwrms, h->maxcurrent,
 		h->pwrmode, h->compound, h->leds);
-	incref(h->dev);
+	incref(&h->dev->Ref);
 	return h;
 Fail:
 	if(d != nil)
