@@ -361,7 +361,6 @@ cc_binary(
 		"-Wno-missing-braces",
 		"-Wno-parentheses",
 		"-Wno-unknown-pragmas",
-		"-Werror",
 		"-fasm",
 	],
 	srcs=AMD64SRCS,
