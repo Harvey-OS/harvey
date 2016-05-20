@@ -5,11 +5,12 @@ git submodule update
 
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -d harvey/cmd/... # should really vendor these bits
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install github.com/rminnich/ninep/srv/examples/ufs harvey/cmd/...
- 
-echo Downloading the build tool...
-curl -L http://sevki.co/get-build -o util/build
-chmod +x util/build
- 
+
+if [ $OLD_BUILD != true ]; then
+	echo Downloading the build tool...
+	curl -L http://sevki.co/get-build -o util/build
+	chmod +x util/build
+fi
 
 # this will make booting a VM easier
 mkdir -p tmp
