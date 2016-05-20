@@ -1,4 +1,9 @@
 language: c
+sudo: required
+dist: trusty
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y gcc-4.8 clang rc
 script:
 - ./util/continuous-build.sh; 
 compiler:
@@ -14,13 +19,6 @@ env:
   - OLD_BUILD=true
   - OLD_BUILD=false
 addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - rc
-    - gcc-4.8
-    - scan-build
   coverity_scan:
     project:
       name: elbing/harvey
