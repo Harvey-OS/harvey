@@ -1,6 +1,6 @@
 language: c
 script:
-- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
+- ./util/continuous-build.sh; 
 compiler:
 - gcc-4.8
 - clang
@@ -20,6 +20,7 @@ addons:
     packages:
     - rc
     - gcc-4.8
+    - scan-build
   coverity_scan:
     project:
       name: elbing/harvey
