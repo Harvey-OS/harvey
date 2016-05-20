@@ -28,7 +28,7 @@ else
 			chmod +x util/scanscan
 
 			#scanscan finds and uploads scan-build files
-			./util/scanscan t
+			./util/scanscan
  	else 
 		./util/build -v //.:kernel
 
