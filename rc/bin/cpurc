@@ -39,7 +39,7 @@ if(! test -e /srv/dns)
 # If you are on an auth server, start these before listening:
 #
 # auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
-# auth/cron >>/sys/log/cron >[2=1] &
+auth/cron >>/sys/log/cron >[2=1] &
 
 # keep other bootes processes from creating capabilities
 rm -f '#¤/caphash'
