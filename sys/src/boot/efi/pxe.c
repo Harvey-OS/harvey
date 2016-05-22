@@ -306,7 +306,8 @@ tftpopen(Tftp *t, char *path)
 static void*
 pxeopen(char *name)
 {
-	static Tftp t[1];
+	static uchar buf[sizeof(Tftp)+8];
+	Tftp *t = (Tftp*)((uintptr)(buf+7)&~7);
 
 	memset(t, 0, sizeof(Tftp));
 
