@@ -73,6 +73,7 @@ static EFI_BLOCK_IO_PROTOCOL *bio;
 static int
 readsect(ulong lba, void *buf)
 {
+	lba *= Sectsz/bio->Media->BlockSize;
 	return eficall(bio->ReadBlocks, bio, (UINTN)bio->Media->MediaId, (UINT64)lba, (UINTN)Sectsz, buf);
 }
 
@@ -117,11 +118,15 @@ isowalk(Extend *ex, char *path)
 	for(i=0x10; i<0x1000; i++){
 		if(readsect(i, ex->buf))
 			return -1;
-		if(*ex->buf == 1)
-			break;
+		if(memcmp(ex->buf, "\001CD001\001", 7) == 0)
+			goto Foundpvd;
 	}
+	return -1;
+Foundpvd:
 	ex->lba = *((ulong*)(ex->buf + 156 + 2));
 	ex->len = *((ulong*)(ex->buf + 156 + 10));
+	if(*path == 0)
+		return 0;
 
 	for(;;){
 		if(readn(ex, &d, Dirsz) != Dirsz)
@@ -197,9 +202,9 @@ isoinit(void **fp)
 		media = bio->Media;
 		if(media != nil
 		&& media->MediaPresent
-		&& media->RemovableMedia
 		&& media->LogicalPartition == 0
-		&& media->BlockSize == Sectsz)
+		&& media->BlockSize != 0
+		&& isoopen("") != nil)
 			goto Found;
 	}
 	return -1;
