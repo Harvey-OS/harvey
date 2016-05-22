@@ -171,9 +171,10 @@ Foundpvd:
 static void*
 isoopen(char *path)
 {
-	static Extend ex[1];
+	static uchar buf[sizeof(Extend)+8];
+	Extend *ex = (Extend*)((uintptr)(buf+7)&~7);
 
-	if(isowalk(ex,  path))
+	if(isowalk(ex, path))
 		return nil;
 	return ex;
 }
