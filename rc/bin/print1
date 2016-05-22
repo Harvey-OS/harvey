@@ -1,4 +1,0 @@
-#!/bin/rc
-
-line=`{read $1}
-echo $line(1)

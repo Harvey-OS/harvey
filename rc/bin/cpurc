@@ -63,7 +63,7 @@ if(! ps|grep -s timesync) {
 	aux/timesync -n pool.ntp.org
 	if (test -e '#r/rtc') @ {
 		sleep 10			# let timesync correct the time
-		print1 <{cat /dev/time} >'#r/rtc'	# fix hw clock
+		field 1 /dev/time >'#r/rtc'	# fix hw clock
 	} &
 }
 
