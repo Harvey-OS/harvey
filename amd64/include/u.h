@@ -20,7 +20,7 @@ typedef	long long	int64_t;
 typedef uint64_t uintptr;
 typedef uint64_t uintptr_t;
 typedef uint32_t	usize;
-typedef int64_t size_t;
+typedef unsigned long size_t;
 typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uintptr		jmp_buf[10]; // for registers.
