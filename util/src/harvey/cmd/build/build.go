@@ -437,16 +437,25 @@ func projects(b *build, r []*regexp.Regexp) {
 	}
 }
 
+func dirPop(s string) {
+	fmt.Printf("Leaving directory `%v'\n", s)
+	failOn(os.Chdir(s))
+}
+
+func dirPush(s string) {
+	fmt.Printf("Entering directory `%v'\n", s)
+	failOn(os.Chdir(s))
+}
 // assumes we are in the wd of the project.
 func project(bf string, which []*regexp.Regexp) {
 	cwd, err := os.Getwd()
 	failOn(err)
 	debug("Start new project cwd is %v", cwd)
-	defer os.Chdir(cwd)
+	defer dirPop(cwd)
 	dir := path.Dir(bf)
 	root := path.Base(bf)
 	debug("CD to %v and build using %v", dir, root)
-	failOn(os.Chdir(dir))
+	dirPush(dir)
 	builds := process(root, which)
 	debug("Processing %v: %d target", root, len(builds))
 	for _, b := range builds {
