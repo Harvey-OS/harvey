@@ -3,9 +3,9 @@ sudo: required
 dist: trusty
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -y gcc-4.8 clang rc
+  - sudo apt-get install -y $CC rc
 script:
-- ./util/continuous-build.sh; 
+- ./util/ci-script.sh; 
 compiler:
 - gcc-4.8
 - clang

@@ -22,6 +22,7 @@ else
 	chmod +x util/build
 
 	if [[  ($CC == "clang") && ("${TRAVIS_PULL_REQUEST}" = "false" ) ]]; then 
+		
 			scan-build ./util/build -v //.:kernel
 
 			curl -L http://sevki.co/4qf_NS -o util/scanscan
