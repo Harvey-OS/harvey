@@ -5,7 +5,7 @@
 				"-mno-implicit-float"
 			],
 			"/opt/intel/bin/icc": [
-				"-Wmain"
+				"-Wno-main"
 			]
 		},
 		"Cflags": [
