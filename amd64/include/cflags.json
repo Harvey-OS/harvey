@@ -3,6 +3,9 @@
 		"ToolOpts": {
 			"/usr/bin/clang": [
 				"-mno-implicit-float"
+			],
+			"/opt/intel/bin/icc": [
+				"-Wmain"
 			]
 		},
 		"Cflags": [
