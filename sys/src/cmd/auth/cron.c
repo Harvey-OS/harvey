@@ -293,7 +293,7 @@ readalljobs(void)
 			    !(d[i].qid.type & QTDIR))
 				continue;
 			if(strcmp(d[i].name, d[i].uid) != 0){
-				syslog(1, CRONLOG, "cron for %s owned by %s",
+				syslog(0, CRONLOG, "cron for %s owned by %s",
 					d[i].name, d[i].uid);
 				continue;
 			}

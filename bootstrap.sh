@@ -21,4 +21,9 @@ export ARCH=amd64
 # And build:
 ./util/build -v //:kernel
 # See \`build -h' for more information on the build tool.
+To enable access to files, create a harvey and none user:
+sudo useradd harvey
+sudo useradd none
+
+none is only required for drawterm/cpu access
 EOF
