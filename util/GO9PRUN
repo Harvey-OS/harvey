@@ -1,7 +1,7 @@
 
 trap : 2
 
-$HARVEY/util/ufs -root=$HARVEY &
+ufs -root=build_out -user=harvey &
 ufspid=$!
 
 export machineflag=pc
@@ -15,7 +15,7 @@ if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 fi
 
 read -r cmd <<EOF
-$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
+$kvmdo qemu-system-x86_64 -s -cpu Opteron_G4 -smp 8 -m 2048 $kvmflag \
 -serial stdio \
 --machine $machineflag \
 -net nic,model=rtl8139 \
@@ -24,8 +24,8 @@ $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
 -redir tcp:9999::9 \
 -redir tcp:17010::17010 \
 -redir tcp:17013::17013 \
--append "service=cpu nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0" \
--kernel harvey.32bit $*
+-append "service=cpu nobootprompt=terminal maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 -user=harvey" \
+-kernel build_out/amd64/harvey $*
 EOF
 
 echo $cmd
