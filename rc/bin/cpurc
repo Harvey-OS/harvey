@@ -39,7 +39,7 @@ if(! test -e /srv/dns)
 # If you are on an auth server, start these before listening:
 #
 # auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
-# auth/cron >>/sys/log/cron >[2=1] &
+auth/cron >>/sys/log/cron >[2=1] &
 
 # keep other bootes processes from creating capabilities
 rm -f '#¤/caphash'
@@ -59,14 +59,13 @@ rm -f '#¤/caphash'
 if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
 	aux/listen -q tcp
 
-# TODO: Removed until awk works
-#if(! ps|grep -s timesync) {
-#	aux/timesync -n pool.ntp.org
-#	if (test -e '#r/rtc') @ {
-#		sleep 10			# let timesync correct the time
-#		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
-#	} &
-#}
+if(! ps|grep -s timesync) {
+	aux/timesync -n pool.ntp.org
+	if (test -e '#r/rtc') @ {
+		sleep 10			# let timesync correct the time
+		field 1 /dev/time >'#r/rtc'	# fix hw clock
+	} &
+}
 
 # cpu-specific late startup
 if(test -e /cfg/$sysname/cpustart)

@@ -4,6 +4,6 @@
 void
 rdpmc (int counter, int low, int high)
 {
-     asm __volatile__("rdpmc" : "=a" (low), "=d" (high) : "c" (counter)) ;
+     __asm__ __volatile__("rdpmc" : "=a" (low), "=d" (high) : "c" (counter)) ;
 }
 
