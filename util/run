@@ -24,7 +24,7 @@ $kvmdo qemu-system-x86_64 -s -cpu Opteron_G4 -smp 8 -m 2048 $kvmflag \
 -redir tcp:9999::9 \
 -redir tcp:17010::17010 \
 -redir tcp:17013::17013 \
--append "service=cpu nobootprompt=terminal maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 -user=harvey" \
+-append "service=cpu nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 -user=harvey" \
 -kernel build_out/amd64/harvey $*
 EOF
 
