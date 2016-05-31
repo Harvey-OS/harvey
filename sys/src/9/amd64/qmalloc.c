@@ -317,7 +317,7 @@ sbrkmerge(void *x, void *y)
 
         lx = x;
         if(lx[-1] != 0xDeadBeef)
-               abort();
+               panic("invalid memory area in sbrkmerge %x %x", x, y);
 
         if((uint8_t*)lx+lx[-2] == (uint8_t*)y) {
                 ly = y;
