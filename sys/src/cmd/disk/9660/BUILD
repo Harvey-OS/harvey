@@ -1,14 +1,7 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS", "CMD_DEPS", "CMD_LINK_OPTS")
+load("//sys/src/harvey.BUILD","LIB_COMPILER_FLAGS","harvey_binary")
 
-cc_binary(
+harvey_binary(
     name="dump9660",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
     srcs=[
         "boot.c",
         "cdrdwr.c",

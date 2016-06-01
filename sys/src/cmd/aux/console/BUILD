@@ -1,30 +1,7 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//sys/src/harvey.BUILD", "harvey_binary")
 
-cc_binary(
-    name="consoles",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=[
-        "comconsole",
-        "pipeconsole",
-        "screenconsole",
-    ],
-)
-cc_binary(
+harvey_binary(
     name="console",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    linkopts=[
-        "static",
-        "e_main",
-        "lc",
-    ],
     srcs=[
         "buffer.c",
         "comconsole.c",
@@ -33,13 +10,8 @@ cc_binary(
         "utils.c",
     ],
 )
-cc_binary(
+harvey_binary(
     name="pipeconsole",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
     srcs=[
         "buffer.c",
         "pipeconsole.c",
@@ -47,25 +19,11 @@ cc_binary(
         "serve9p.c",
         "utils.c",
     ],
-    linkopts=[
-        "static",
-        "e_main",
-        "lc",
-    ],
 )
-cc_binary(
+harvey_binary(
     name="screenconsole",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
     deps=[
         "//sys/src/libc:libc",
-    ],
-    linkopts=[
-        "-static",
-        "-e_main",
     ],
     srcs=[
         "buffer.c",

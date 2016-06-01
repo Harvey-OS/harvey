@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS", "CMD_DEPS", "CMD_LINK_OPTS")
+load("//sys/src/harvey.BUILD","LIB_COMPILER_FLAGS","CMD_DEPS","harvey_binary")
 
 cc_library(
 	name = "libvs",
@@ -53,16 +53,10 @@ DEPS = [
 
 VENTI_DEPS =DEPS +CMD_DEPS 
 
-cc_binary(
+harvey_binary(
 	name = "venti",
-	copts = LIB_COMPILER_FLAGS,
-	includes=[
-		"//sys/include",
-		"//amd64/include",
-	],
 	srcs=[
 		"venti.c"
 	],
-	linkopts = CMD_LINK_OPTS,
 	deps =VENTI_DEPS,
 )

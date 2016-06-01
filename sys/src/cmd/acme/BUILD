@@ -1,12 +1,7 @@
-load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS", "CMD_LINK_OPTS")
+load("//sys/src/harvey.BUILD", "harvey_binary")
 
-cc_binary(
+harvey_binary(
     name="acme",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
     deps=[
         "//sys/src/libcomplete:libcomplete",
         "//sys/src/libframe:libframe",
@@ -38,5 +33,4 @@ cc_binary(
         "wind.c",
         "xfid.c"
     ],
-    linkopts=CMD_LINK_OPTS
 )
