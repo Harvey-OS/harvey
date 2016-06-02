@@ -1,6 +1,6 @@
 
 trap : 2
-
+mkdir -p build_out/tmp
 ufs -root=build_out -user=harvey &
 ufspid=$!
 
