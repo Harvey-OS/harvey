@@ -62,3 +62,5 @@ util/third_party/src/golang.org
 usr/harvey/tmp
 
 build_out
+
+cron/lock
