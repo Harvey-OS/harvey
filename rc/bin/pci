@@ -88,7 +88,7 @@ builtin cd '#$/pci' && grep . *ctl | {
 		sed /:06/d
 	if not
 		cat
-	} | tee /tmp/aaa |
+	} |
 	sed '
 	s/ctl:/:	/
 	t noop
