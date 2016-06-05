@@ -21,7 +21,8 @@ project.
   [wiki](https://github.com/Harvey-OS/harvey/wiki) and
   [apex's wiki](https://github.com/Harvey-OS/apex/wiki).
 - If the information you are looking for is not on the wiki, ask the
-  [Mailing list](https://groups.google.com/forum/#!forum/harvey) for
+  [Mailing list](https://groups.google.com/forum/#!forum/harvey) or 
+  [Slack](https://harvey-slack.herokuapp.com/) for
   help. It is where most of the development conversation happens.
 - [Man Pages](https://sevki.io/harvey/sys/man/1/0intro) are where you
   can read man pages from the head of the repository.
