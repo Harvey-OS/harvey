@@ -1,12 +1,12 @@
 {
-	"acme": {
+	"zenith": {
 		"CFlags": [
 		],
 		"Include": [
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin",
-		"Program": "acme",
+		"Program": "zenith",
 	 	"SourceFiles": [
 			"acme.c",
 			"addr.c",

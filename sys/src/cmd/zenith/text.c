@@ -659,6 +659,7 @@ texttype(Text *t, Rune r)
 	rp = &r;
 	switch(r){
 	case Kleft:
+	case_Back:
 		if(t->q0 > 0){
 			typecommit(t);
 			textshow(t, t->q0-1, t->q0-1, TRUE);
@@ -671,13 +672,18 @@ texttype(Text *t, Rune r)
 		}
 		return;
 	case Kdown:
-		typecommit(t);
-                q0 = t->q0;
-		nnb = textbswidth(t, 0x15); 
-                while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
-                        q0++;
-		textshow(t, q0 + nnb, q0+nnb, TRUE);
-		return;
+	        typecommit(t);
+	        q0 = t->q0;
+	        nnb = textbswidth(t, 0x15) + 1;
+	        while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
+			q0++;
+		if (q0 + nnb > t->file->Buffer.nc){
+			q0 = t->file->Buffer.nc;
+		} else {
+			q0 = q0 + nnb;
+		}
+	        textshow(t, q0, q0, TRUE);
+	        return;
 	case Kscrollonedown:
 		n = mousescrollsize(t->Frame.maxlines);
 		if(n <= 0)
@@ -697,8 +703,11 @@ texttype(Text *t, Rune r)
 		if( t->q0-nnb > 1  && textreadc(t, t->q0-nnb-1)=='\n' ) nnb++; 
 		textshow(t, t->q0-nnb, t->q0-nnb, TRUE); 
 		linelen = textbswidth(t, 0x15);
+		if(t->q0 - (linelen - nnb) <= 0){
+			goto case_Back;
+		}
 		if (linelen > nnb){
-			textshow(t, t->q0 - (linelen - nnb), t->q0 - (linelen - nnb), TRUE);
+			textshow(t, t->q0 - (linelen - nnb)-1, t->q0 - (linelen - nnb)-1, TRUE);
 		}
 		return; 
 	case Kscrolloneup:
