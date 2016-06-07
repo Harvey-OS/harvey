@@ -69,6 +69,20 @@ while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
 if (! ~ $#* 0)
 	usage $0
 
+# DMG 06/02/2016 Make pci(8) recognize virtio devices
+# source: http://git.qemu.org/?p=qemu.git;a=blob;f=include/hw/pci/pci.h
+# devices with vendor code 0x1af4 are QEMU own virtio devices.
+# useful device codes below:
+# 0x1000: virtio network card
+# 0x1001: virtio block device
+# 0x1002: virtio balloon
+# 0x1003: virtio console
+# 0x1004: virtio SCSI
+# 0x1005: virtio RNG (random numbers generator)
+# 0x1009: virtio 9P transport
+# based on this information, the translation table below is amended
+# to show these devices in the pci (8) output.
+
 builtin cd '#$/pci' && grep . *ctl | {
 	if (~ $bridges no)
 		sed /:06/d
@@ -79,13 +93,20 @@ builtin cd '#$/pci' && grep . *ctl | {
 	s/ctl:/:	/
 	t noop
 : noop
-	s/:	01/:	disk 01/
-	s/:	02/:	net  02/
-	s/:	03/:	vid  03/
-	s/:	04/:	aud  04/
-	s/:	05/:	mem  05/
-	s/:	06/:	brg  06/
-	s/:	07/:	ser  07/
+	s/:	(02\..*\ 1af4\/1000)/:	virtio-net     \1/
+	s/:	(01\..*\ 1af4\/1001)/:	virtio-disk    \1/
+	s/:	(00\..*\ 1af4\/1002)/:	virtio-balloon \1/
+	s/:	(07\..*\ 1af4\/1003)/:	virtio-console \1/
+	s/:	(01\..*\ 1af4\/1004)/:	virtio-scsi    \1/
+	s/:	(00\..*\ 1af4\/1005)/:	virtio-rng     \1/
+	s/:	(00\..*\ 1af4\/1009)/:	virtio-9p      \1/
+	s/:	01/:	disk  01/
+	s/:	02/:	net   02/
+	s/:	03/:	vid   03/
+	s/:	04/:	aud   04/
+	s/:	05/:	mem   05/
+	s/:	06/:	brg   06/
+	s/:	07/:	ser   07/
 	s/:	0c\.03/:	usb  0c.03/
 	s/:	0c\.05/:	smb  0c.05/
 	s/:	0d/:	rad  0d/

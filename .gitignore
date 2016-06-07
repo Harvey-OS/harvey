@@ -59,3 +59,5 @@ cfg/pxe/tftpboot
 usr/harvey/tmp
 
 build_out
+
+cron/lock
