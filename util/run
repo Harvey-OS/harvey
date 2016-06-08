@@ -1,0 +1,48 @@
+
+trap : 2
+mkdir -p build_out/tmp
+ln -s usr build_out/usr
+ufs -root=build_out -user=harvey &
+ufspid=$!
+
+export machineflag=pc
+if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
+	export kvmflag='-enable-kvm'
+	export machineflag='pc,accel=kvm'
+	if [ ! -w /dev/kvm ]; then
+		# we don't have access as a regular user
+		export kvmdo=sudo
+	fi
+fi
+
+read -r cmd <<EOF
+$kvmdo qemu-system-x86_64 -s -m 2048 -monitor stdio -serial /dev/pts/2 -machine pc -net nic,model=rtl8139 -net user,hostfwd=tcp::1522-:1522 -redir tcp:17010::17010 -redir tcp:17013::17013 -device ahci,id=ahci -drive id=disk,file=/home/sevki/Downloads/harvey.qcow2,index=0,cache=writeback,if=none -device ide-drive,drive=disk,bus=ahci.0 -append "service=terminal nobootprompt=tcp fs=10.0.2.2 auth=127.0.0.1 user=harvey nvram=/boot/nvram nvrlen=512 nvroff=0 mouseport=ps2 vgasize=1024x768x8 monitor=vesa" -kernel build_out/amd64/harvey -vga vmware
+EOF
+
+echo $cmd
+eval $cmd
+
+kill $ufspid
+wait
+
+# TO ENABLE FACTOTUM replace append with this
+#-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0" \
+
+# -nographic \
+#-S -gdb tcp::1234 \
+# -nographic \
+#-kernel mnt/hdd/kernel $*
+
+# if you need the dump.
+#-net dump,file=/tmp/vm0.pcap \
+
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 4096 -nographic  \
+#-net nic,model=rtl8139 mnt/hdd268mb.img \
+#-net user,hostfwd=tcp::5555-:23 \
+#-net dump,file=/tmp/vm0.pcap \
+#-kernel mnt/hdd/kernel $*
+#
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0 -kernel mnt/hdd/kernel $*
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0,net=192.168.76.0/24,dhcpstart=192.168.76.9 -kernel mnt/hdd/kernel $*
+
+# 
