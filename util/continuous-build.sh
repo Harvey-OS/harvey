@@ -2,7 +2,7 @@
 set -e
 
 if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
-	if [ "$OLD_BUILD" == true ]; then
+	if [ "$OLD_BUILD" = "true" ]; then
 		export SH=`which rc`
 		git clean -x -d -f
 		(cd "$TRAVIS_BUILD_DIR" && ./bootstrap.sh)
