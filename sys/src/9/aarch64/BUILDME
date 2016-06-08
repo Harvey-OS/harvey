@@ -1,0 +1,5 @@
+ARCH=aarch64  \
+STRIP=aarch64-linux-gnu-strip \
+CC=aarch64-linux-gnu-gcc \
+LD=aarch64-linux-gnu-ld \
+../../../../util/build cpu.json
