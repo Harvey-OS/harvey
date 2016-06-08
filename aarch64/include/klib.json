@@ -1,0 +1,24 @@
+{
+	"KernelLibs": {
+		"Cflags": [
+			"-O0",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas",
+			"-Wuninitialized",
+			"-g"
+		],
+		"Oflags": [
+			"-static"
+		],
+		"Post": [
+			"rm *.o"
+		],
+		"Pre": [
+			"rm -f *.o *.tag.*"
+		]
+	}
+}
