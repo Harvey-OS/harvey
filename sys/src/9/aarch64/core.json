@@ -1,0 +1,59 @@
+{
+	"core": {
+		"Cflags": [
+			"-O0",
+			"-static",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-DKERNDATE=1433623937",
+			"-g",
+			"-Wall",
+			"-W",
+			"-Wno-sign-compare",
+			"-Wno-missing-field-initializers",
+			"-Wno-unused-parameter",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas",
+			"-Werror",
+			"-I", "/sys/src/9/aarch64",
+			"-I", "/sys/src/9/port"
+		],
+		"NoLibs": [
+			"/$ARCH/lib/klibc.a"
+		],
+		"Oflags": [
+			"-z",
+			"max-page-size=0x1000",
+			"-nostdlib",
+			"-g",
+			"-T",
+			"kernel.ld"
+		],
+		"Pre": [
+			"mksys -o systab.c '-mode=systab.c' $HARVEY/sys/src/sysconf.json",
+			"mksys -o errstr.h '-mode=errstr.h' $HARVEY/sys/src/sysconf.json"
+		],
+		"Projects": [
+			"clean.json",
+			"../boot/bootconf.json",
+			"inith.json"
+		],
+	    "MissingSourceFiles": [
+			"arch.c",
+			"asm.c",
+			"devarch.c",
+			"map.c",
+			"memory.c",
+			"mmu.c",
+			"mp.c",
+			"physalloc.c",
+			"systab.c",
+			"tcore.c",
+			"trap.c"
+		],
+		"SourceFiles": [
+			"main.c"
+		]
+	}
+}
