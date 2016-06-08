@@ -5,7 +5,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y $CC rc
 script:
-- ./util/ci-script.sh; 
+- ./util/ci.sh; 
 compiler:
 - gcc-4.8
 - clang
