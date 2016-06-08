@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
