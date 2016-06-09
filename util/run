@@ -2,7 +2,7 @@
 trap : 2
 mkdir -p build_out/tmp
 ln -s usr build_out/usr
-ufs -root=build_out -user=harvey &
+ufs -root=build_out &
 ufspid=$!
 
 export machineflag=pc
@@ -45,4 +45,4 @@ wait
 #sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0 -kernel mnt/hdd/kernel $*
 #sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0,net=192.168.76.0/24,dhcpstart=192.168.76.9 -kernel mnt/hdd/kernel $*
 
-# 
+#
