@@ -643,7 +643,8 @@ atadrive(int cmdport, int ctlport, int dev)
 {
 	Drive *drive;
 	int as, i, pkt;
-	uint8_t buf[512], *p;
+	static uint8_t buf[512];
+	uint8_t *p;
 	uint16_t iconfig, *sp;
 
 	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
