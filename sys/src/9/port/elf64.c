@@ -267,7 +267,7 @@ static struct {
 	int e_machine;
 } elfmachs[] = {
 	{"amd64", EM_X86_64},
-	{"arm64", EM_AARCH64},
+	{"aarch64", EM_AARCH64},
 	{"power64", EM_PPC64},
 };
 
