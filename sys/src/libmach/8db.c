@@ -1480,7 +1480,7 @@ badop:
 					return 0;
 				ip->imm64 = ip->imm;
 				if(ip->rex&REXW && (ip->imm & (1<<31)) != 0)
-					ip->imm64 |= (int64_t)~0 << 32;
+					ip->imm64 |= (uint64_t)~0 << 32;
 			} else {
 				if (igets(map, ip, &s)< 0)
 					return 0;
