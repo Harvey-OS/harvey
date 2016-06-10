@@ -441,7 +441,7 @@ KLIBC_SRCS = [
 
 
 cc_library(
-    name="libkc",
+    name = "all",
     copts=KLIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
@@ -452,7 +452,7 @@ cc_library(
 )
 
 cc_library(
-    name="libc",
+    name = "all",
     copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
@@ -467,14 +467,14 @@ cc_library(
 )
 
 mk_sys(
-    name="syscallheader",
+    name = "all",
     mode="sys.h",
     arch="amd64",
     sysconf="//sys/src/sysconf.json",
 )
 
 mk_sys(
-    name="9syscall",
+    name = "all",
     mode="syscallfiles",
     arch="amd64",
     sysconf="//sys/src/sysconf.json",
