@@ -9,9 +9,7 @@ load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS", "CMD_LINK_OPTS")
 # "/$ARCH/lib/libip.a",
 # "/$ARCH/lib/libc.a"
 
-group(
-    name="cmds",
-    deps=[
+CMDS=[
         "//sys/src/cmd/acme:acme",
         "//sys/src/cmd/rc:rc",
         "//sys/src/cmd/ip/ipconfig:ipconfig",
@@ -22,6 +20,10 @@ group(
         ":ls",
         ":bind",
     ]
+
+group(
+    name="cmds",
+    deps=CMDS
 )
 
 cc_binary(
