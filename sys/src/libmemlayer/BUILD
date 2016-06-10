@@ -19,7 +19,7 @@ cc_library(
         "lsetrefresh.c",
         "ltofront.c",
         "ltorear.c",
-        "unload.c"
+        "unload.c",
     ]
 )
 

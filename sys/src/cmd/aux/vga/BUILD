@@ -1,15 +1,12 @@
-load("//sys/src/FLAGS", "CMD_LINK_OPTS", "CMD_DEPS", "LIB_COMPILER_FLAGS")
+load("//sys/src/harvey.BUILD", "harvey_binary")
 
-cc_binary(
+harvey_binary(
 	name = "vga",
-	copts = LIB_COMPILER_FLAGS,
     	includes=[
 		"//amd64/include",
 		"//sys/include",
 		"//.",
 	],
-	deps=CMD_DEPS,
-	linkopts=CMD_LINK_OPTS,
 	srcs = [
 		"error.c",
 		"ics534x.c",

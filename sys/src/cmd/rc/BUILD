@@ -1,8 +1,7 @@
-load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS")
+load("//sys/src/harvey.BUILD", "harvey_binary")
 
-cc_binary(
+harvey_binary(
     name="rc",
-    copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
         "//amd64/include",
@@ -17,10 +16,6 @@ cc_binary(
         "//sys/src/libString:libString",
         "//sys/src/lib9p:lib9p",
         "//sys/src/libc:libc",
-    ],
-    linkopts=[
-        "-static",
-        "-e_main"
     ],
     srcs=[
         "code.c",

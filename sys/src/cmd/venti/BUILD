@@ -1,138 +1,18 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS", "CMD_DEPS", "CMD_LINK_OPTS")
-
-cc_binary(
-    name="copy",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
+load("//sys/src/harvey.BUILD", "harvey_binary")
+CMDS = [
         "copy.c",
-    ],
-)
-cc_binary(
-    name="read",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "read.c",
-    ],
-)
-
-cc_binary(
-    name="ro",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "ro.c",
-    ],
-)
-
-cc_binary(
-    name="sync",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "sync.c",
-    ],
-)
-
-cc_binary(
-    name="write",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "write.c",
-    ],
-)
-
-cc_binary(
-    name="devnull",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "devnull.c",
-    ],
-)
-
-cc_binary(
-    name="mkroot",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "mkroot.c",
-    ],
-)
-
-cc_binary(
-    name="randtest",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "randtest.c",
-    ],
-)
-cc_binary(
-    name="readlist",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "readlist.c",
-    ],
-)
-cc_binary(
-    name="root",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
         "root.c",
-    ],
-)
+]
+
+[harvey_binary(
+    name=c[:-2],
+    srcs=[c],
+) for c in CMDS]

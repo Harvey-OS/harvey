@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "CMD_LINK_OPTS", "LIB_COMPILER_FLAGS")
+load("//sys/src/harvey.BUILD", "harvey_binary")
 
 CMD_DEPS = [
     "//sys/src/libString:libString",
@@ -10,7 +10,7 @@ CMD_DEPS = [
     "//sys/src/libc:libc"
 ]
 
-cc_binary(
+harvey_binary(
 	name="ipconfig",
 	copts=[
 		"-c",
@@ -32,10 +32,6 @@ cc_binary(
 		"//sys/src/cmd/ip/ipconfig",
 	],
 	deps=CMD_DEPS,
-	linkopts=[
-		"-static",
-		"-e_main",
-	],
 	srcs=[
 		"ipv6.c",
 		"main.c",

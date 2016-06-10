@@ -1,0 +1,70 @@
+cc_library(
+	name = "libz",
+	copts = [
+		"-fPIC",
+		"-DHARVEY",
+		"-DNO_FSEEKO",
+		"-DNO_STRERROR",
+		"-nostdinc",
+		"-nostdlib",
+		"-Werror",
+	],
+	deps=[
+		":gzlib.c",
+		":gzguts.h",
+		":zutil.c",
+		":gzread.c",
+		":gzwrite.c",
+	],
+	linkopts=[
+		"-nostdlib",
+		"-static",
+
+	],
+	includes=[
+		"//sys/src/libz",
+		"//sys/src/libz/upstream",
+	],
+	srcs = [
+		"upstream/adler32.c",
+		"upstream/compress.c",
+		"upstream/crc32.c",
+		"upstream/deflate.c",
+		"upstream/gzclose.c",
+		"harvey.c",
+		"upstream/infback.c",
+		"upstream/inffast.c",
+		"upstream/inflate.c",
+		"upstream/inftrees.c",
+		"upstream/trees.c",
+		"upstream/uncompr.c",
+		"gzread.c",
+		"zutil.c",
+		"gzlib.c",
+	]
+)
+sed(
+	name="gzlib.c",
+	script="patch/use-uopen.sed",
+	file="upstream/gzlib.c"
+)
+sed(
+	name="zutil.c",
+	script="patch/port-zutils.sed",
+	file="upstream/zutil.c"
+)
+sed(
+	name="gzread.c",
+	script="patch/port-gzread.sed",
+	file="upstream/gzread.c"
+)
+sed(
+	name="gzwrite.c",
+	script="patch/port-gzwrite.sed",
+	file="upstream/gzwrite.c"
+)
+sed(
+	name="gzguts.h",
+	script="patch/port-gzguts.sed",
+	file="upstream/gzguts.h"
+)

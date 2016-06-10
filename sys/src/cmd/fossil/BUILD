@@ -1,12 +1,7 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS", "CMD_DEPS", "CMD_LINK_OPTS")
+load("//sys/src/harvey.BUILD","LIB_COMPILER_FLAGS","harvey_binary")
 
-cc_binary(
+harvey_binary(
 	name = "flchk",
-        copts = LIB_COMPILER_FLAGS,
-        includes=[
-            "//sys/include",
-            "//amd64/include",
-        ],
 	srcs = [
 		"9p.c",
 		"9auth.c",
@@ -38,13 +33,8 @@ cc_binary(
 		"walk.c",
 	],
 )
-cc_binary(
+harvey_binary(
 	name = "flfmt",
-        copts = LIB_COMPILER_FLAGS,
-        includes=[
-            "//sys/include",
-            "//amd64/include",
-        ],
 	srcs = [
 		"9p.c",
 		"9auth.c",
@@ -77,15 +67,8 @@ cc_binary(
 		"walk.c",
 	],
 )
-cc_binary(
+harvey_binary(
 	name = "fossil",
-        copts = LIB_COMPILER_FLAGS,
-        includes=[
-            "//sys/include",
-            "//amd64/include",
-        ],
-	linkopts=CMD_LINK_OPTS,
-	deps=CMD_DEPS,
 	srcs = [
 		"9p.c",
 		"9auth.c",
@@ -117,13 +100,8 @@ cc_binary(
 		"walk.c",
 	],
 )
-cc_binary(
+harvey_binary(
 	name = "last",
-        copts = LIB_COMPILER_FLAGS,
-        includes=[
-            "//sys/include",
-            "//amd64/include",
-        ],
 	srcs = [
 		"9p.c",
 		"9auth.c",

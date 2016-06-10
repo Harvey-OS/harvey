@@ -2,9 +2,14 @@
 
 git submodule init
 git submodule update
-echo Building the build tool...
+
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -d harvey/cmd/... # should really vendor these bits
-GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install github.com/rminnich/ninep/srv/examples/ufs harvey/cmd/...
+GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install github.com/Harvey-OS/ninep/cmd/ufs harvey/cmd/...
+
+echo Downloading the blaze tool...
+curl -L http://sevki.co/get-build -o util/blaze
+chmod +x util/blaze
+
 
 # this will make booting a VM easier
 mkdir -p tmp
@@ -15,6 +20,10 @@ export ARCH=amd64
 # And build:
 ./util/build
 # See \`build -h' for more information on the build tool.
+
+or try the experimental build 
+./util/blaze -v //:kernel
+
 To enable access to files, create a harvey and none user:
 sudo useradd harvey
 sudo useradd none

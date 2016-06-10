@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//sys/src/harvey.BUILD","LIB_COMPILER_FLAGS","harvey_binary")
 
 data_to_c(
     name="amd64cpu",
@@ -11,19 +11,7 @@ data_to_c(
 
 cc_library(
     name="libboot",
-    copts=[
-        "-g",
-        "-Wall",
-        "-Wno-missing-braces",
-        "-Wno-parentheses",
-        "-Wno-unknown-pragmas",
-        "-O0",
-        "-static",
-        "-mno-red-zone",
-        "-ffreestanding",
-        "-fno-builtin",
-        "-mcmodel=small"
-    ],
+    copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
         "//sys/src/9/boot",
@@ -48,9 +36,8 @@ cc_library(
     ]
 )
 
-cc_binary(
+harvey_binary(
     name="bootamd64cpu",
-    copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
         "//sys/src/9/boot",
@@ -67,10 +54,6 @@ cc_binary(
         "//sys/src/libauth:libauth",
         "//sys/src/libc:libc"
     ],
-    linkopts=[
-        "-e_main",
-        "-static"
-    ]
 )
 
 mk_sys(

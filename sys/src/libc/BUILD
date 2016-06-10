@@ -374,6 +374,7 @@ KLIBC_SRCS = [
     "port/quote.c",
     "port/rand.c",
     "port/readn.c",
+    "port/reallocarray.c",
     "port/rijndael.c",
     "port/rune.c",
     "port/runebase.c",
@@ -401,6 +402,8 @@ KLIBC_SRCS = [
     "port/strecpy.c",
     "port/strcspn.c",
     "port/strdup.c",
+    "port/strlcat.c",
+    "port/strlcpy.c",
     "port/strlen.c",
     "port/strncat.c",
     "port/strncmp.c",
@@ -428,6 +431,8 @@ KLIBC_SRCS = [
     "port/u16.c",
     "port/u32.c",
     "port/u64.c",
+]
+amd64 = [
     "amd64/notejmp.c",
     "amd64/cycles.c",
     "amd64/argv0.c",
@@ -436,7 +441,7 @@ KLIBC_SRCS = [
     "amd64/sqrt.s",
     "amd64/tas.s",
     "amd64/atom.S",
-    "amd64/main9.S"
+    "amd64/main9.S",
 ]
 
 
@@ -444,25 +449,25 @@ cc_library(
     name="libkc",
     copts=KLIB_COMPILER_FLAGS,
     includes=[
-        "//sys/include",
-        "//amd64/include",
-        "//sys/src/libc"
+    "//sys/include",
+    "//amd64/include",
+    "//sys/src/libc"
     ],
-    srcs=KLIBC_SRCS,
+    srcs=amd64+KLIBC_SRCS,
 )
 
 cc_library(
     name="libc",
     copts=LIB_COMPILER_FLAGS,
     includes=[
-        "//sys/include",
-        "//amd64/include",
-        "//sys/src/libc"
+    "//sys/include",
+    "//amd64/include",
+    "//sys/src/libc"
     ],
     srcs=LIBC_SRCS,
     deps=[
-        ":9syscall",
-        ":syscallheader"
+    ":9syscall",
+    ":syscallheader"
     ]
 )
 
