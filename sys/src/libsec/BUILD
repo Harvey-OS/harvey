@@ -1,7 +1,7 @@
 load('//sys/src/FLAGS', "KLIB_COMPILER_FLAGS", "LIB_COMPILER_FLAGS")
 
 cc_library(
-    name="libksec",
+    name = "all",
     copts=KLIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
@@ -67,7 +67,7 @@ cc_library(
     ]
 )
 cc_library(
-    name="libsec",
+    name = "all",
     copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",

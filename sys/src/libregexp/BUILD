@@ -1,7 +1,7 @@
 load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS")
 
 cc_library(
-	name = "libregexp",
+	name = "all",
         copts = LIB_COMPILER_FLAGS,
         includes=[
             "//sys/include",
