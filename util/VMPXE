@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 build sys/src/9/amd64 && \
 	cp sys/src/9/amd64/harvey.32bit /var/lib/tftpboot && \
 	echo "OK" &&  \
