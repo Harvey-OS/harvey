@@ -1,6 +1,4 @@
-group(
-    name="klibs",
-    deps=[
+KLIBS=[
         "//sys/src/libc:libkc",
         "//sys/src/libip:libkip",
         "//sys/src/libdraw:libkdraw",
@@ -8,10 +6,12 @@ group(
         "//sys/src/libmemlayer:libkmemlayer",
         "//sys/src/libsec:libksec",
     ]
-)
 group(
-    name="libs",
-    deps=[
+    name="klibs",
+    deps=KLIBS
+)
+
+LIBS=[
         "//sys/src/libc:libc",
         "//sys/src/libip:libip",
         "//sys/src/libdraw:libdraw",
@@ -43,6 +43,9 @@ group(
         "//sys/src/libusb:libusb",
         "//sys/src/libventi:libventi",
     ]
+group(
+    name="libs",
+    deps=LIBS
 )
 
 

@@ -1,4 +1,6 @@
 load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//sys/src/cmd/BUILD", "CMDS")
+load("//sys/src/BUILD", "LIBS", "KLIBS")
 
 CORE_SRCS = [
     "entry.S",
@@ -54,7 +56,6 @@ PORT_SRCS = [
     "//sys/src/9/port/devdup.c",
     "//sys/src/9/port/devenv.c",
     "//sys/src/9/port/devfdmux.c",
-    "//sys/src/9/port/devkexec.c",
     "//sys/src/9/port/devkprof.c",
     "//sys/src/9/port/devmnt.c",
     "//sys/src/9/port/devmouse.c",
@@ -73,7 +74,6 @@ PORT_SRCS = [
     "//sys/src/9/port/devuart.c",
     "//sys/src/9/port/devwd.c",
     "//sys/src/9/port/devws.c",
-    "//sys/src/9/port/devzp.c",
     "//sys/src/9/port/edf.c",
     "//sys/src/9/port/elf64.c",
     "//sys/src/9/port/ethermii.c",
@@ -83,7 +83,6 @@ PORT_SRCS = [
     "//sys/src/9/port/hexdump.c",
     "//sys/src/9/port/image.c",
     "//sys/src/9/port/kdebug.c",
-    "//sys/src/9/port/kexec.c",
     "//sys/src/9/port/ipchecksum.c",
     "//sys/src/9/port/mul64fract.c",
     "//sys/src/9/port/netif.c",
@@ -377,12 +376,7 @@ cc_binary(
         ":systab",
         ":sys",
         ":inith",
-        "//sys/src/libmemlayer:libkmemlayer",
-        "//sys/src/libmemdraw:libkmemdraw",
-        "//sys/src/libdraw:libkdraw",
-        "//sys/src/libc:libkc",
-        "//sys/src/libip:libkip",
-        "//sys/src/libsec:libksec",
+        "//sys/src:klibs",
     ],
     ld="kernel.ld",
     linkopts=[
@@ -394,37 +388,9 @@ cc_binary(
     ]
 )
 
-KERNEL_DEPS = [
-	":bind",
-	":boot",
-	":cat",
-	":date",
-	":echo",
-	":factotum",
-	":fdisk",
-	":fossil",
-	":ipconfig", 
-	":ls",
-	":mount",
-# nvram FILE ADDED
-	":prep",
-	":rc",
-	":ps",
-	":ed",
-# rcmain FILE ADDED
-	":screenconsole",
-	":realemu",
-	":vga",
-	":srv",
-# startdisk FILE ADDED
-	":usbd",
-	":venti",
-	":ratrace",
-]
-
 config(
     name="amd64cpu",
-    deps=KERNEL_DEPS,
+    deps=CMDS,
     code=[
         "int cpuserver = 1;",
         "uint32_t kerndate = 1;",
@@ -525,7 +491,8 @@ cc_binary(
         "-mcmodel=small",
     ],
     deps=[
-        "//sys/src/libc:libc"
+	LIBS,
+	KLIBS,
     ],
     includes=[
         "//sys/include",
