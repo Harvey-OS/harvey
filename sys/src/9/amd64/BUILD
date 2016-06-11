@@ -338,7 +338,14 @@ mk_sys(
     sysconf="//sys/src/sysconf.json",
 )
 
-
+HRVYDEPS =[
+        ":amd64cpu",
+        ":error",
+        ":errstr",
+        ":systab",
+        ":sys",
+        ":inith",
+]
 cc_binary(
     name="harvey",
     copts=[
@@ -369,15 +376,7 @@ cc_binary(
         "//sys/src/9/amd64",
 	"//sys/src/9/port",
     ],
-    deps=[
-        ":amd64cpu",
-        ":error",
-        ":errstr",
-        ":systab",
-        ":sys",
-        ":inith",
-        "//sys/src:klibs",
-    ],
+    deps= HRVYDEPS + KLIBS,
     ld="kernel.ld",
     linkopts=[
         "-z",
@@ -490,10 +489,7 @@ cc_binary(
         "-fno-builtin",
         "-mcmodel=small",
     ],
-    deps=[
-	LIBS,
-	KLIBS,
-    ],
+    deps=LIBS + KLIBS,
     includes=[
         "//sys/include",
         "//amd64/include",
