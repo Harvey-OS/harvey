@@ -107,10 +107,10 @@ builtin cd '#$/pci' && grep . *ctl | {
 	s/:	05/:	mem   05/
 	s/:	06/:	brg   06/
 	s/:	07/:	ser   07/
-	s/:	0c\.03/:	usb  0c.03/
-	s/:	0c\.05/:	smb  0c.05/
-	s/:	0d/:	rad  0d/
-	s/:	10/:	cryp 10/
+	s/:	0c\.03/:	usb   0c.03/
+	s/:	0c\.05/:	smb   0c.05/
+	s/:	0d/:	rad   0d/
+	s/:	10/:	cryp  10/
 	t
 	s/	/	---  /
 ' | $filter

@@ -279,6 +279,51 @@ struct Pcisiz
 	int	bar;
 };
 
+/*
+ * DMG 06/11/2016 Add the definitions for generic PCI capability structure
+ * based on the VIRTIO spec 1.0. Below is the layout of a capability in the PCI
+ * device config space. The structure visible to the kernel repeats this, but
+ * adds fields to build the linked list of capabilities per device.
+ *
+ * struct virtio_pci_cap {
+ *   u8 cap_vndr; // Generic PCI field: PCI_CAP_ID_VNDR 
+ *   u8 cap_next; // Generic PCI field: next ptr. 
+ *   u8 cap_len; // Generic PCI field: capability length 
+ *   u8 cfg_type; // Identifies the structure. 
+ *   u8 bar; // Where to find it. 
+ *   u8 padding[3]; // Pad to full dword. 
+ *   le32 offset; // Offset within bar. 
+ *   le32 length; // Length of the structure, in bytes. 
+ * };
+ * 
+ * Add the linked list of capabilities to the PCI device descriptor structure.
+ * 
+ */
+
+enum {
+	PciCapVndr 	= 0x00,
+	PciCapNext 	= 0x01,
+	PciCapLen 	= 0x02,
+	PciCapType	= 0x03,
+	PciCapBar	= 0x04,
+	PciCapOff	= 0x08,
+	PciCapLength	= 0x0C
+};
+
+struct Pcidev;
+
+typedef struct Pcicap Pcicap;
+struct Pcicap {
+	struct Pcidev *dev;				/* link to the device structure */
+	Pcicap *link;				/* next capability or NULL */
+	uint8_t vndr;				/* vendor code */
+	uint8_t caplen;				/* length in the config area */
+	uint8_t type;				/* capability config type */
+	uint8_t bar;				/* BAR index in the device structure 0 - 5 */
+	uint32_t offset;			/* offset within BAR */
+	uint32_t length;			/* length in the memory or IO space */
+};
+
 typedef struct Pcidev Pcidev;
 struct Pcidev
 {
@@ -314,6 +359,9 @@ struct Pcidev
 		uint32_t	bar;
 		int	size;
 	} ioa, mema;
+	Pcicap *caplist;
+	uint32_t capcnt;
+	Pcicap **capidx;
 };
 
 #define PCIWINDOW	0
