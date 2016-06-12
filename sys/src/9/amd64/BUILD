@@ -1,4 +1,6 @@
 load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//sys/src/cmd/BUILD", "CMDS")
+load("//sys/src/BUILD", "LIBS", "KLIBS")
 
 CORE_SRCS = [
     "entry.S",
@@ -54,7 +56,6 @@ PORT_SRCS = [
     "//sys/src/9/port/devdup.c",
     "//sys/src/9/port/devenv.c",
     "//sys/src/9/port/devfdmux.c",
-    "//sys/src/9/port/devkexec.c",
     "//sys/src/9/port/devkprof.c",
     "//sys/src/9/port/devmnt.c",
     "//sys/src/9/port/devmouse.c",
@@ -73,7 +74,6 @@ PORT_SRCS = [
     "//sys/src/9/port/devuart.c",
     "//sys/src/9/port/devwd.c",
     "//sys/src/9/port/devws.c",
-    "//sys/src/9/port/devzp.c",
     "//sys/src/9/port/edf.c",
     "//sys/src/9/port/elf64.c",
     "//sys/src/9/port/ethermii.c",
@@ -83,7 +83,6 @@ PORT_SRCS = [
     "//sys/src/9/port/hexdump.c",
     "//sys/src/9/port/image.c",
     "//sys/src/9/port/kdebug.c",
-    "//sys/src/9/port/kexec.c",
     "//sys/src/9/port/ipchecksum.c",
     "//sys/src/9/port/mul64fract.c",
     "//sys/src/9/port/netif.c",
@@ -339,7 +338,14 @@ mk_sys(
     sysconf="//sys/src/sysconf.json",
 )
 
-
+HRVYDEPS =[
+        ":amd64cpu",
+        ":error",
+        ":errstr",
+        ":systab",
+        ":sys",
+        ":inith",
+]
 cc_binary(
     name="harvey",
     copts=[
@@ -370,20 +376,7 @@ cc_binary(
         "//sys/src/9/amd64",
 	"//sys/src/9/port",
     ],
-    deps=[
-        ":amd64cpu",
-        ":error",
-        ":errstr",
-        ":systab",
-        ":sys",
-        ":inith",
-        "//sys/src/libmemlayer:libkmemlayer",
-        "//sys/src/libmemdraw:libkmemdraw",
-        "//sys/src/libdraw:libkdraw",
-        "//sys/src/libc:libkc",
-        "//sys/src/libip:libkip",
-        "//sys/src/libsec:libksec",
-    ],
+    deps= HRVYDEPS + KLIBS,
     ld="kernel.ld",
     linkopts=[
         "-z",
@@ -394,37 +387,9 @@ cc_binary(
     ]
 )
 
-KERNEL_DEPS = [
-	":bind",
-	":boot",
-	":cat",
-	":date",
-	":echo",
-	":factotum",
-	":fdisk",
-	":fossil",
-	":ipconfig", 
-	":ls",
-	":mount",
-# nvram FILE ADDED
-	":prep",
-	":rc",
-	":ps",
-	":ed",
-# rcmain FILE ADDED
-	":screenconsole",
-	":realemu",
-	":vga",
-	":srv",
-# startdisk FILE ADDED
-	":usbd",
-	":venti",
-	":ratrace",
-]
-
 config(
     name="amd64cpu",
-    deps=KERNEL_DEPS,
+    deps=CMDS,
     code=[
         "int cpuserver = 1;",
         "uint32_t kerndate = 1;",
@@ -524,9 +489,7 @@ cc_binary(
         "-fno-builtin",
         "-mcmodel=small",
     ],
-    deps=[
-        "//sys/src/libc:libc"
-    ],
+    deps=LIBS + KLIBS,
     includes=[
         "//sys/include",
         "//amd64/include",
