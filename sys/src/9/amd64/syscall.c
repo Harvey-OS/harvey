@@ -15,7 +15,7 @@
 
 #include "../port/error.h"
 
-#include "../../libc/9syscall/sys.h"
+#include "sys.h"
 
 #include <tos.h>
 
