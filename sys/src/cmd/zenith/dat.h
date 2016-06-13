@@ -13,6 +13,7 @@ enum
 	Qacme,
 	Qcons,
 	Qconsctl,
+	Qctl,
 	Qdraw,
 	Qeditout,
 	Qindex,
@@ -200,6 +201,7 @@ struct Text
 	int		ncachealloc;
 	Rune	*cache;
 	int	nofill;
+	int extended;
 };
 
 unsigned int		textbacknl(Text*, unsigned int, unsigned int);
