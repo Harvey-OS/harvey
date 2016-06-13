@@ -1,0 +1,35 @@
+#!/bin/rc
+# Default zenith key mappings (with ctrl key)
+#
+echo keymap a start_of_line >/mnt/acme/ctl
+echo keymap w delete_word_before_cursor >/mnt/acme/ctl
+echo keymap u delete_to_start_of_line >/mnt/acme/ctl
+echo keymap h backspace >/mnt/acme/ctl
+echo keymap e end_of_line >/mnt/acme/ctl
+echo keymap left left >/mnt/acme/ctl
+echo keymap right right >/mnt/acme/ctl
+echo keymap down down >/mnt/acme/ctl
+echo keymap up up >/mnt/acme/ctl
+echo keymap pgup pgup >/mnt/acme/ctl
+echo keymap pgdown pgdown >/mnt/acme/ctl
+echo keymap home home >/mnt/acme/ctl
+echo keymap end end >/mnt/acme/ctl
+echo keymap ins ins >/mnt/acme/ctl
+echo keymap esc select >/mnt/acme/ctl
+echo keymap nl nl >/mnt/acme/ctl
+echo keymap wheelup wheelup >/mnt/acme/ctl
+echo keymap wheeldown wheeldown >/mnt/acme/ctl
+
+# Define extended key as ^s
+echo keymap s extend >/mnt/acme/ctl
+
+#
+# Extended key mappings (press ^s first)
+#
+echo extendedkeymap x execute_line >/mnt/acme/ctl
+echo extendedkeymap f /bin/fortune >/mnt/acme/ctl
+echo extendedkeymap l ls -l >/mnt/acme/ctl
+
+# Can cancel extended mode by pressing ^s
+echo extendedkeymap s extend >/mnt/acme/ctl
+

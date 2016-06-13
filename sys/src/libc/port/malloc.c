@@ -170,7 +170,14 @@ ppanic(Pool *p, char *fmt, ...)
 		write(pv->printfd, "\n", 1);
 	}
 	va_end(v);
-//	unlock(&pv->lk);
+	n = seprint(msg, msg+sizeof(panicbuf), "stack: %x, %x, %x %x, %x, %x\n",
+	    __builtin_return_address(1), __builtin_return_address(2), __builtin_return_address(3),
+	    __builtin_return_address(4), __builtin_return_address(5), __builtin_return_address(6)
+	    ) - msg;
+	write(2, msg, n);
+	if(pv->printfd != 2){
+	    write(pv->printfd, msg, n);
+	}
 	abort();
 }
 

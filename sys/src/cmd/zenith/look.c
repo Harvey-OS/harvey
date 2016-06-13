@@ -323,7 +323,7 @@ isfilec(Rune r)
 {
 	if(isalnum(r))
 		return TRUE;
-	if(runestrchr(L".-+/:", r))
+	if(runestrchr((Rune *)L".-+/:", r))
 		return TRUE;
 	return FALSE;
 }
@@ -392,7 +392,7 @@ includename(Text *t, Rune *r, int n)
 		file = includefile(w->incl[i], r, n);
 
 	if(file.r == nil)
-		file = includefile(L"/sys/include", r, n);
+		file = includefile((Rune *)L"/sys/include", r, n);
 	if(file.r==nil && objdir!=nil)
 		file = includefile(objdir, r, n);
 	if(file.r == nil)
