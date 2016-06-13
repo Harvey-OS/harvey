@@ -24,7 +24,8 @@
 			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/amd64",
-			"-I", "/sys/src/9/port"
+			"-I", "/sys/src/9/port",
+			"-I", "/sys/src/libc/9syscall"
 		],
 		"Libs": [
 			"/$ARCH/lib/klibmemlayer.a",
