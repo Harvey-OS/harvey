@@ -25,12 +25,15 @@ enum
 	Ctlsize	= 5*12
 };
 
+void xfidglobalctlwrite(Xfid *x);
+
 char	Edel[]		= "deleted window";
-char	Ebadctl[]		= "ill-formed control message";
+char	Ebadctl[]	= "ill-formed control message";
 char	Ebadaddr[]	= "bad address syntax";
 char	Eaddr[]		= "address out of range";
-char	Einuse[]		= "already in use";
+char	Einuse[]	= "already in use";
 char	Ebadevent[]	= "bad event syntax";
+char	Ebadkeymap[] 	= "bad keymapping";
 extern char Eperm[];
 
 static
@@ -493,6 +496,10 @@ xfidwrite(Xfid *x)
 		t = &w->body;
 		goto BodyTag;
 
+	case Qctl:
+		xfidglobalctlwrite(x);
+		break;
+
 	case QWctl:
 		xfidctlwrite(x, w);
 		break;
@@ -582,6 +589,56 @@ xfidwrite(Xfid *x)
 	}
 	if(w)
 		winunlock(w);
+}
+
+void
+xfidglobalctlwrite(Xfid *x)
+{
+	Fcall fc;
+	int n;
+	int isfbuf;
+	Rune *r;
+	char *err, *p;
+
+	err = nil;
+	if(x->Fcall.count < RBUFSIZE)
+		r = fbufalloc();
+	else{
+		isfbuf = FALSE;
+		r = emalloc(x->Fcall.count*UTFmax+1);
+	}
+	x->Fcall.data[x->Fcall.count] = 0;
+	p = strtok(x->Fcall.data, "\n");
+	while(p != nil){
+		char *token = strtok(p, " ");
+		if(strncmp(token, "keymap", 6) == 0){	// Add ctrl-? key mapping
+			char* key = strtok(0, " ");
+			char* mapping = strtok(0, " ");
+			if (keymap(key, mapping)) {
+				err = Ebadkeymap;
+				break;
+			}
+		} else if(strncmp(token, "extendedkeymap", 14) == 0){	// Add esc/ctrl-? key mapping
+			char* key = strtok(0, " ");
+			char* mapping = strtok(0, "\n");
+			if(extendedkeymap(key, mapping)){
+				err = Ebadkeymap;
+			        break;
+			}
+		} else {
+		        err = Ebadctl;
+		        break;
+		}
+		p = strtok(0, "\n");
+	}
+	if(isfbuf)
+		fbuffree(r);
+	else
+		free(r);
+        if(err)
+                n = 0;
+        fc.count = n;
+        respond(x, &fc, err);
 }
 
 void

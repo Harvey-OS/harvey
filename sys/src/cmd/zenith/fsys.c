@@ -73,9 +73,10 @@ Dirtab dirtab[]=
 	{ ".",			QTDIR,	Qdir,		0500|DMDIR },
 	{ "acme",		QTDIR,	Qacme,	0500|DMDIR },
 	{ "cons",		QTFILE,	Qcons,	0600 },
-	{ "consctl",	QTFILE,	Qconsctl,	0000 },
+	{ "consctl",		QTFILE,	Qconsctl,	0000 },
+	{ "ctl",		QTFILE,	Qctl,	0600 },
 	{ "draw",		QTDIR,	Qdraw,	0000|DMDIR },	/* to suppress graphics progs started in acme */
-	{ "editout",	QTFILE,	Qeditout,	0200 },
+	{ "editout",		QTFILE,	Qeditout,	0200 },
 	{ "index",		QTFILE,	Qindex,	0400 },
 	{ "label",		QTFILE,	Qlabel,	0600 },
 	{ "new",		QTDIR,	Qnew,	0500|DMDIR },
@@ -89,7 +90,7 @@ Dirtab dirtabw[]=
 	{ "body",		QTAPPEND,	QWbody,		0600|DMAPPEND },
 	{ "ctl",		QTFILE,		QWctl,		0600 },
 	{ "data",		QTFILE,		QWdata,		0600 },
-	{ "editout",	QTFILE,		QWeditout,	0200 },
+	{ "editout",		QTFILE,		QWeditout,	0200 },
 	{ "errors",		QTFILE,		QWerrors,		0200 },
 	{ "event",		QTFILE,		QWevent,		0600 },
 	{ "rdsel",		QTFILE,		QWrdsel,		0400 },
@@ -121,7 +122,7 @@ int	messagesize = Maxblock+IOHDRSZ;	/* good start */
 void	fsysproc(void *);
 
 void
-fsysinit(void)
+fsysinit()
 {
 	int p[2];
 	int n, fd;
