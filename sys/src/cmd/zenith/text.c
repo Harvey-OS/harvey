@@ -28,6 +28,193 @@ enum{
 	TABDIR = 3	/* width of tabs in directory windows */
 };
 
+typedef void (*keyhandler)(Text *t, Rune r);
+
+struct Builtin {
+    char* name;
+    keyhandler handler;
+};
+
+struct Mapping {
+    struct Mapping* next;
+    int extended;
+    int key;
+    keyhandler handler;
+    char* external;
+};
+
+void worddeletehandler(Text *t, Rune r);
+void deletetostartoflinehandler(Text *t, Rune r);
+void backspacehandler(Text *t, Rune r);
+void pguphandler(Text *t, Rune r);
+void pgdownhandler(Text *t, Rune r);
+void executelinehandler(Text *t, Rune r);
+void inshandler(Text *t, Rune r);
+void selecthandler(Text *t, Rune r);
+void nlhandler(Text *t, Rune r);
+void beginline(Text *t, Rune r);
+void goend(Text *t, Rune r);
+void executeline(Text *t, Rune r);
+void goleft(Text *t, Rune r);
+void goright(Text *t, Rune r);
+void godown(Text *t, Rune r);
+void goup(Text *t, Rune r);
+void gohome(Text *t, Rune r);
+void endline(Text *t, Rune r);
+void extendedhandler(Text *t, Rune r);
+
+void wheeluphandler(Text *t, Rune r);
+void wheeldownhandler(Text *t, Rune r);
+
+struct Builtin builtins[] = {
+    {"start_of_line", beginline},
+    {"delete_word_before_cursor", worddeletehandler},
+    {"delete_to_start_of_line", deletetostartoflinehandler},
+    {"backspace", backspacehandler},
+    {"end_of_line", endline},
+    {"execute_line", executeline},
+    {"left", goleft},
+    {"right", goright},
+    {"down", godown},
+    {"up", goup},
+    {"pgup", pguphandler},
+    {"pgdown", pgdownhandler},
+    {"home", gohome},
+    {"end", goend},
+    {"ins", inshandler},
+    {"select", selecthandler},
+    {"nl", nlhandler},
+    {"extend", extendedhandler},
+    {"wheelup", wheeluphandler},
+	{"wheeldown", wheeldownhandler}};
+
+struct Mapping* mappings;
+
+struct Keynames {
+    char* name;
+    int value;
+};
+
+struct Keynames keynames[] = {
+    {"F1", KF|1},
+    {"F2", KF|2},
+    {"F3", KF|3},
+    {"F4", KF|4},
+    {"F5", KF|5},
+    {"F6", KF|6},
+    {"F7", KF|7},
+    {"F8", KF|8},
+    {"F9", KF|9},
+ 	{"F10", KF|10},
+    {"F11", KF|11},
+    {"F12", KF|12},
+    {"home", Khome},
+    {"up", Kup},
+    {"pgup", Kpgup},
+    {"print", Kprint},
+    {"left", Kleft},
+    {"right", Kright},
+    {"down", Kdown},
+    {"view", Kview},
+    {"pgdown", Kpgdown},
+    {"ins", Kins},
+    {"end", Kend},
+    {"bs", Kbs},
+    {"del", Kdel},
+    {"esc", Kesc},
+	{"wheelup", Kscrolloneup},
+	{"wheeldown", Kscrollonedown},
+    {"nl", (int)'\n'}
+};
+
+int numkeys = sizeof(keynames) / sizeof(struct Keynames);
+
+struct Mapping*
+findmapping(int k, int extended)
+{
+    struct Mapping* m = mappings;
+    while (m != nil) {
+        if (k == m->key && extended == m->extended) {
+            return m;
+        }
+        m = m->next;
+    }
+    return nil;
+}
+
+struct Builtin *
+findhandler(char * name)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(builtins)/sizeof(struct Builtin)); i++){
+        if(strcmp(name, builtins[i].name) == 0){
+            return &builtins[i];
+        }
+    }
+    return nil;
+}
+
+
+int
+stringtokey(char *key)
+{
+    int i;
+
+    if(strlen(key) == 1){
+        return (int)key[0] & 0x1f;
+    }
+    for(i=0; i<numkeys; i++){
+        if(cistrcmp(keynames[i].name, key) == 0){
+            return keynames[i].value;
+        }
+    }
+    return -1;
+}
+
+int
+addmapping(char* key, char* mappingname, int extended)
+{
+    int k;
+	if(key == nil || mappingname == nil){
+		return 1;
+	}
+	k = stringtokey(key);
+	if (k == -1){
+	    return 1;
+	}
+	struct Mapping* mapping = findmapping(k, extended);
+	if (mapping == nil){
+	    mapping = malloc(sizeof(struct Mapping));
+        mapping->next = mappings;
+        mappings = mapping;
+	}
+	mapping->key = k;
+	mapping->extended = extended;
+    struct Builtin *builtin = findhandler(mappingname);
+    if(builtin == nil){
+        mapping->external = malloc(strlen(mappingname));
+        strcpy(mapping->external, mappingname);
+        mapping->handler = nil;
+    } else {
+        mapping->external = nil;
+        mapping->handler = builtin->handler;
+    }
+    return 0;
+}
+
+int
+keymap(char* key, char* mapping)
+{
+	return addmapping(key, mapping, FALSE);
+}
+
+int
+extendedkeymap(char* key, char* mapping)
+{
+    return addmapping(key, mapping, TRUE);
+}
+
 void
 textinit(Text *t, File *f, Rectangle r, Reffont *rf, Image *cols[NCOL])
 {
@@ -43,6 +230,43 @@ textinit(Text *t, File *f, Rectangle r, Reffont *rf, Image *cols[NCOL])
 	t->tabstop = maxtab;
 	memmove(t->Frame.cols, cols, sizeof t->Frame.cols);
 	textredraw(t, r, rf->f, screen, -1);
+}
+
+void
+runexternal(char* command, char* where)
+{
+    int wherelen;
+	Rune* whereRune;
+
+	wherelen = utflen(where)*sizeof(Rune);
+	whereRune = runemalloc(wherelen);
+	runesnprint(whereRune, wherelen, "%s", where);
+	run(nil, command, whereRune, runestrlen(whereRune), TRUE, nil, nil, FALSE);
+}
+
+void
+loadinitscript(const char* initscript)
+{
+	char *path;
+	char *home = getenv("home");
+	Dir  *initfile;
+
+	if(initscript[0] == '/'){
+		path = malloc(strlen(initscript)+1);
+		strcpy(path, initscript);
+	} else {
+		path = malloc(strlen(home) + strlen(initscript) + 6);
+		strcpy(path, home);
+		strcat(path, "/lib/");
+		strcat(path, initscript);
+	}
+	initfile = dirstat(path);
+	if (initfile != nil){
+		runexternal(path, home);
+	}else{
+		free(path);
+	}
+	free(initfile);
 }
 
 void
@@ -171,17 +395,17 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 				break;
 			w = dl->wid;
 			if(maxt-w%maxt < mint){
-				fileinsert(t->file, q1, L"\t", 1);
+				fileinsert(t->file, q1, (Rune *)L"\t", 1);
 				q1++;
 				w += mint;
 			}
 			do{
-				fileinsert(t->file, q1, L"\t", 1);
+				fileinsert(t->file, q1, (Rune *)L"\t", 1);
 				q1++;
 				w += maxt-(w%maxt);
 			}while(w < colw);
 		}
-		fileinsert(t->file, q1, L"\n", 1);
+		fileinsert(t->file, q1, (Rune *)L"\n", 1);
 		q1++;
 	}
 }
@@ -601,7 +825,7 @@ textcomplete(Text *t)
 		}
 		if(dir.nr == 0){
 			dir.nr = 1;
-			dir.r = runestrdup(L".");
+			dir.r = runestrdup((Rune *)L".");
 		}
 		runemove(tmp, dir.r, dir.nr);
 		tmp[dir.nr] = '/';
@@ -644,105 +868,45 @@ textcomplete(Text *t)
 }
 
 void
-texttype(Text *t, Rune r)
+goleft(Text *t, Rune r)
 {
-	uint q0, q1;
-	int nnb, nb, n, i;
-	int nr;
-	int linelen;
-	Rune *rp;
-	Text *u;
+	if(t->q0 > 0){
+		typecommit(t);
+                textshow(t, t->q0-1, t->q0-1, TRUE);
+        }
+}
 
-	if(t->what!=Body && r=='\n')
-		return;
-	nr = 1;
-	rp = &r;
-	switch(r){
-	case Kleft:
-	case_Back:
-		if(t->q0 > 0){
-			typecommit(t);
-			textshow(t, t->q0-1, t->q0-1, TRUE);
-		}
-		return;
-	case Kright:
-		if(t->q1 < t->file->Buffer.nc){
-			typecommit(t);
-			textshow(t, t->q1+1, t->q1+1, TRUE);
-		}
-		return;
-	case Kdown:
-	        typecommit(t);
-	        q0 = t->q0;
-	        nnb = textbswidth(t, 0x15) + 1;
-	        while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
-			q0++;
-		if (q0 + nnb > t->file->Buffer.nc){
-			q0 = t->file->Buffer.nc;
-		} else {
-			q0 = q0 + nnb;
-		}
-	        textshow(t, q0, q0, TRUE);
-	        return;
-	case Kscrollonedown:
-		n = mousescrollsize(t->Frame.maxlines);
-		if(n <= 0)
-			n = 1;
-		goto case_Down;
-	case Kpgdown:
-		n = 2*t->Frame.maxlines/3;
-	case_Down:
-		q0 = t->org+frcharofpt(&t->Frame, Pt(t->Frame.r.min.x, t->Frame.r.min.y+n*t->Frame.font->height));
-		textsetorigin(t, q0, TRUE);
-		return;
-	case Kup:
-		typecommit(t);
-		nnb = 0;
-		if(t->q0>0 && textreadc(t, t->q0-1)!='\n')
-			nnb = textbswidth(t, 0x15); 
-		if( t->q0-nnb > 1  && textreadc(t, t->q0-nnb-1)=='\n' ) nnb++; 
-		textshow(t, t->q0-nnb, t->q0-nnb, TRUE); 
-		linelen = textbswidth(t, 0x15);
-		if(t->q0 - (linelen - nnb) <= 0){
-			goto case_Back;
-		}
-		if (linelen > nnb){
-			textshow(t, t->q0 - (linelen - nnb)-1, t->q0 - (linelen - nnb)-1, TRUE);
-		}
-		return; 
-	case Kscrolloneup:
-		n = mousescrollsize(t->Frame.maxlines);
-		goto case_Up;
-	case Kpgup:
-		n = 2*t->Frame.maxlines/3;
-	case_Up:
-		q0 = textbacknl(t, t->org, n);
-		textsetorigin(t, q0, TRUE);
-		return;
-	case Khome:
-		typecommit(t);
-		textshow(t, 0, 0, FALSE);
-		return;
-	case Kend:
-		typecommit(t);
-		textshow(t, t->file->Buffer.nc, t->file->Buffer.nc, FALSE);
-		return;
-	case 0x01:	/* ^A: beginning of line */
-		typecommit(t);
-		/* go to where ^U would erase, if not already at BOL */
-		nnb = 0;
-		if(t->q0>0 && textreadc(t, t->q0-1)!='\n')
-			nnb = textbswidth(t, 0x15);
-		textshow(t, t->q0-nnb, t->q0-nnb, TRUE);
-		return;
-	case 0x05:	/* ^E: end of line */
-		typecommit(t);
-		q0 = t->q0;
-		while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
-			q0++;
-		textshow(t, q0, q0, TRUE);
-		return;
-	}
+void
+goright(Text* t, Rune r)
+{
+    if(t->q1 < t->file->Buffer.nc){
+        typecommit(t);
+        textshow(t, t->q1+1, t->q1+1, TRUE);
+    }
+}
+
+void
+godown(Text* t, Rune r)
+{
+    uint q0;
+    int nnb;
+
+    typecommit(t);
+    q0 = t->q0;
+    nnb = textbswidth(t, 0x15) + 1;
+    while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
+        q0++;
+    if (q0 + nnb > t->file->Buffer.nc){
+        q0 = t->file->Buffer.nc;
+    } else {
+        q0 = q0 + nnb;
+    }
+    textshow(t, q0, q0, TRUE);
+}
+
+void
+updatebody(Text* t)
+{
 	if(t->what == Body){
 		seq++;
 		filemark(t->file);
@@ -754,79 +918,14 @@ texttype(Text *t, Rune r)
 		t->eq0 = ~0;
 	}
 	textshow(t, t->q0, t->q0, 1);
-	switch(r){
-	case 0x06:
-	case Kins:
-		rp = textcomplete(t);
-		if(rp == nil)
-			return;
-		nr = runestrlen(rp);
-		break;	/* fall through to normal insertion case */
-	case 0x1B:
-		if(t->eq0 != ~0)
-			textsetselect(t, t->eq0, t->q0);
-		if(t->ncache > 0)
-			typecommit(t);
-		return;
-	case 0x08:	/* ^H: erase character */
-	case 0x15:	/* ^U: erase line */
-	case 0x17:	/* ^W: erase word */
-		if(t->q0 == 0)	/* nothing to erase */
-			return;
-		nnb = textbswidth(t, r);
-		q1 = t->q0;
-		q0 = q1-nnb;
-		/* if selection is at beginning of window, avoid deleting invisible text */
-		if(q0 < t->org){
-			q0 = t->org;
-			nnb = q1-q0;
-		}
-		if(nnb <= 0)
-			return;
-		for(i=0; i<t->file->ntext; i++){
-			u = t->file->text[i];
-			u->nofill = TRUE;
-			nb = nnb;
-			n = u->ncache;
-			if(n > 0){
-				if(q1 != u->cq0+n)
-					error("text.type backspace");
-				if(n > nb)
-					n = nb;
-				u->ncache -= n;
-				textdelete(u, q1-n, q1, FALSE);
-				nb -= n;
-			}
-			if(u->eq0==q1 || u->eq0==~0)
-				u->eq0 = q0;
-			if(nb && u==t)
-				textdelete(u, q0, q0+nb, TRUE);
-			if(u != t)
-				textsetselect(u, u->q0, u->q1);
-			else
-				textsetselect(t, q0, q0);
-			u->nofill = FALSE;
-		}
-		for(i=0; i<t->file->ntext; i++)
-			textfill(t->file->text[i]);
-		return;
-	case '\n':
-		if(t->w->autoindent){
-			/* find beginning of previous line using backspace code */
-			nnb = textbswidth(t, 0x15); /* ^U case */
-			rp = runemalloc(nnb + 1);
-			nr = 0;
-			rp[nr++] = r;
-			for(i=0; i<nnb; i++){
-				r = textreadc(t, t->q0-nnb+i);
-				if(r != ' ' && r != '\t')
-					break;
-				rp[nr++] = r;
-			}
-		}
-		break; /* fall through to normal code */
-	}
-	/* otherwise ordinary character; just insert, typically in caches of all texts */
+}
+
+void
+insertcharacter(Text *t, int nr, Rune *rp, Rune r)
+{
+    Text *u;
+    int i;
+
 	for(i=0; i<t->file->ntext; i++){
 		u = t->file->text[i];
 		if(u->eq0 == ~0)
@@ -845,11 +944,282 @@ texttype(Text *t, Rune r)
 		runemove(u->cache+u->ncache, rp, nr);
 		u->ncache += nr;
 	}
-	if(rp != &r)
-		free(rp);
 	textsetselect(t, t->q0+nr, t->q0+nr);
 	if(r=='\n' && t->w!=nil)
 		wincommit(t->w, t);
+}
+
+void
+erase(Text * t, Rune r)
+{
+    int n, nb, i;
+    Text *u;
+
+    updatebody(t);
+    if(t->q0 == 0)	/* nothing to erase */
+        return;
+    int nnb = textbswidth(t, r);
+    uint q1 = t->q0;
+    uint q0 = q1-nnb;
+    /* if selection is at beginning of window, avoid deleting invisible text */
+    if(q0 < t->org){
+        q0 = t->org;
+        nnb = q1-q0;
+    }
+    if(nnb <= 0)
+        return;
+    for(i=0; i<t->file->ntext; i++){
+        u = t->file->text[i];
+        u->nofill = TRUE;
+        nb = nnb;
+        n = u->ncache;
+        if(n > 0){
+            if(q1 != u->cq0+n)
+                error("text.type backspace");
+            if(n > nb)
+                n = nb;
+            u->ncache -= n;
+            textdelete(u, q1-n, q1, FALSE);
+            nb -= n;
+        }
+        if(u->eq0==q1 || u->eq0==~0)
+            u->eq0 = q0;
+        if(nb && u==t)
+            textdelete(u, q0, q0+nb, TRUE);
+        if(u != t)
+            textsetselect(u, u->q0, u->q1);
+        else
+            textsetselect(t, q0, q0);
+        u->nofill = FALSE;
+    }
+    for(i=0; i<t->file->ntext; i++)
+        textfill(t->file->text[i]);
+}
+
+void
+scrolldown(Text* t, int n)
+{
+    uint q0 = t->org+frcharofpt(&t->Frame, Pt(t->Frame.r.min.x, t->Frame.r.min.y+n*t->Frame.font->height));
+    textsetorigin(t, q0, TRUE);
+}
+
+void
+scrollonedown(Text *t, Rune r)
+{
+    int n = mousescrollsize(t->Frame.maxlines);
+	if(n <= 0)
+		n = 1;
+	scrolldown(t, n);
+}
+
+void
+goup(Text* t, Rune r)
+{
+    int nnb;
+
+    typecommit(t);
+    nnb = 0;
+    if(t->q0>0 && textreadc(t, t->q0-1)!='\n')
+        nnb = textbswidth(t, 0x15);
+    if( t->q0-nnb > 1  && textreadc(t, t->q0-nnb-1)=='\n' ) nnb++;
+    textshow(t, t->q0-nnb, t->q0-nnb, TRUE);
+    int linelen = textbswidth(t, 0x15);
+    if(t->q0 - (linelen - nnb) <= 0){
+        goleft(t, r);
+        return;
+    }
+    if (linelen > nnb){
+        textshow(t, t->q0 - (linelen - nnb)-1, t->q0 - (linelen - nnb)-1, TRUE);
+    }
+}
+
+void
+caseup(Text* t, int n)
+{
+    uint q0 = textbacknl(t, t->org, n);
+    textsetorigin(t, q0, TRUE);
+}
+
+void
+gohome(Text* t, Rune r)
+{
+    typecommit(t);
+    textshow(t, 0, 0, FALSE);
+}
+
+void
+goend(Text *t, Rune r)
+{
+    typecommit(t);
+    textshow(t, t->file->Buffer.nc, t->file->Buffer.nc, FALSE);
+}
+
+void
+beginline(Text* t, Rune r)
+{
+    int nnb;
+
+    typecommit(t);
+    /* go to where ^U would erase, if not already at BOL */
+    nnb = 0;
+    if(t->q0>0 && textreadc(t, t->q0-1)!='\n')
+        nnb = textbswidth(t, 0x15);
+    textshow(t, t->q0-nnb, t->q0-nnb, TRUE);
+}
+
+void
+endline(Text *t, Rune r)
+{
+    uint q0;
+
+    typecommit(t);
+    q0 = t->q0;
+    while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
+        q0++;
+    textshow(t, q0, q0, TRUE);
+}
+
+void
+executeline(Text *t, Rune r)
+{
+    uint q0, q1;
+    typecommit(t);
+    q0 = t->q0 - textbswidth(t, 0x15);
+    q1 = t->q0;
+    while(q1<t->file->Buffer.nc && textreadc(t, q1)!='\n')
+            q1++;
+    execute(t, q0, q1, TRUE, nil);
+}
+
+void
+worddeletehandler(Text *t, Rune r)
+{
+    erase(t, 0x17);
+}
+
+void
+deletetostartoflinehandler(Text *t, Rune r)
+{
+    erase(t, 0x15);
+}
+
+void
+backspacehandler(Text *t, Rune r)
+{
+    erase(t, 0x8);
+}
+
+void
+pguphandler(Text *t, Rune r)
+{
+    caseup(t, 2*t->Frame.maxlines/3);
+}
+
+void
+pgdownhandler(Text *t, Rune r)
+{
+    scrolldown(t, 2*t->Frame.maxlines/3);
+}
+
+void
+inshandler(Text *t, Rune r)
+{
+    Rune* rp;
+    int nr;
+
+    updatebody(t);
+    rp = textcomplete(t);
+    if(rp == nil)
+        return;
+    nr = runestrlen(rp);
+    insertcharacter(t, nr, rp, r);
+}
+
+void
+selecthandler(Text *t, Rune r)
+{
+    if(t->eq0 != ~0)
+        textsetselect(t, t->eq0, t->q0);
+    if(t->ncache > 0)
+        typecommit(t);
+}
+
+void
+nlhandler(Text *t, Rune r)
+{
+    int nnb, nr = 1, i;
+    Rune* rp = &r;
+
+    if(t->w->autoindent){
+        /* find beginning of previous line using backspace code */
+        nnb = textbswidth(t, 0x15); /* ^U case */
+        rp = runemalloc(nnb + 1);
+        nr = 0;
+        rp[nr++] = r;
+        for(i=0; i<nnb; i++){
+            r = textreadc(t, t->q0-nnb+i);
+            if(r != ' ' && r != '\t')
+                break;
+            rp[nr++] = r;
+        }
+    }
+    typecommit(t);
+    insertcharacter(t, nr, rp, r);
+    if (rp != &r){
+        free(rp);
+    }
+}
+
+void
+extendedhandler(Text *t, Rune r)
+{
+    t->extended = t->extended ? FALSE : TRUE;
+}
+
+void
+wheeluphandler(Text *t, Rune r)
+{
+	caseup(t, mousescrollsize(t->Frame.maxlines));
+}
+
+void
+wheeldownhandler(Text *t, Rune r)
+{
+	int n = mousescrollsize(t->Frame.maxlines);
+	uint q0 = t->org+frcharofpt(&t->Frame, Pt(t->Frame.r.min.x, t->Frame.r.min.y+n*t->Frame.font->height));
+	textsetorigin(t, q0, TRUE);
+	return;
+}
+
+void
+texttype(Text *t, Rune r)
+{
+	int nr = 1, prevextended = t->extended;
+	Rune *rp;
+	Runestr dir;
+	char *aa;
+
+	if(t->what!=Body && r=='\n')
+		return;
+	nr = 1;
+	rp = &r;
+	struct Mapping *handler = findmapping((int)r, t->extended);
+	if (handler != nil) {
+	    if (handler->handler != nil){
+	        handler->handler(t, r);
+	    } else {
+	    	dir = dirname(t, nil, 0);
+        	aa = malloc(strlen(handler->external) + 1);
+        	strcpy(aa, handler->external);
+        	run(nil, aa, dir.r, dir.nr, TRUE, nil, nil, FALSE);
+	    }
+	} else {
+	    typecommit(t);
+	    insertcharacter(t, nr, rp, r);
+	}
+	if (prevextended){
+	    t->extended = FALSE;
+	}
 }
 
 void
