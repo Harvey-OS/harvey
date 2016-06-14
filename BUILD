@@ -1,3 +1,4 @@
+load("//sys/src/cmd/BUILD", "CMDS")
 objcopy(
 	name="harvey",
 	deps=[
@@ -8,15 +9,9 @@ objcopy(
 )
 kernel(
 	name="kernel",
-	deps=[
+	deps=
 		":harvey",
-		"//sys/src/9/amd64:init",
-		"//sys/src/9/amd64:echo",
-		"//sys/src/9/amd64:ls",
-		"//sys/src/9/amd64:cat",
-		"//sys/src/9/amd64:date",
-		"//sys/src/9/amd64:ipconfig",
-		"//sys/src/cmd/acme:acme",
+		CMDS
 	],
 	installs={
 		"amd64/harvey": "bin/harvey",
