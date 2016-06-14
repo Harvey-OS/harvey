@@ -430,7 +430,6 @@ config(
         "ws",
         "usb",
         "vga",
-        "zp",
     ],
     ip=[
         "tcp",
