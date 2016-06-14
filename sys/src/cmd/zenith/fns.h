@@ -74,7 +74,7 @@ Window*	lookfile(Rune*, int);
 Window*	lookid(int, int);
 char*	runetobyte(Rune*, int);
 Rune*	bytetorune(char*, int*);
-void	fsysinit(void);
+void	fsysinit();
 Mntdir*	fsysmount(Rune*, int, Rune**, int);
 void		fsysincid(Mntdir*);
 void		fsysdelid(Mntdir*);
@@ -96,6 +96,9 @@ Rune*	skipbl(Rune*, int, int*);
 Rune*	findbl(Rune*, int, int*);
 char*	edittext(Window*, int, Rune*, int);
 void		flushwarnings(void);
+void	loadinitscript(const char* initscript);
+int	keymap(char* key, char* mapping);
+int	extendedkeymap(char* key, char* mapping);
 
 #define	runemalloc(a)		(Rune*)emalloc((a)*sizeof(Rune))
 #define	runerealloc(a, b)	(Rune*)erealloc((a), (b)*sizeof(Rune))

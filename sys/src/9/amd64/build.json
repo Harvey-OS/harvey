@@ -18,6 +18,7 @@
 				"Dev": [
 					"acpi",
 					"arch",
+					"bridge",
 					"cap",
 					"cons",
 					"coreboot",

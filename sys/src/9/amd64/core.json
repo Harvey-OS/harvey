@@ -24,7 +24,8 @@
 			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/amd64",
-			"-I", "/sys/src/9/port"
+			"-I", "/sys/src/9/port",
+			"-I", "/sys/src/libc/9syscall"
 		],
 		"Libs": [
 			"/$ARCH/lib/klibmemlayer.a",
@@ -73,6 +74,7 @@
 			"archamd64.c",
 			"asm.c",
 			"backtrace.c",
+			"../port/devbridge.c",
 		        "coreboot.c",
 			"ctype.c",
 			"devarch.c",
@@ -84,6 +86,7 @@
 			"i8254.c",
 			"i8259.c",
 			"ioapic.c",
+			"../port/log.c",
 			"main.c",
 			"map.c",
 			"memory.c",

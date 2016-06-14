@@ -362,7 +362,7 @@ f_cmd(Text *t, Cmd *cp)
 
 	if(cp->text == nil){
 		empty.n = 0;
-		empty.r = L"";
+		empty.r = (Rune*)L"";
 		str = &empty;
 	}else
 		str = cp->text;
