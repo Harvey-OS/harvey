@@ -68,10 +68,10 @@ threadmain(int argc, char *argv[])
 	int i;
 	char *p, *loadfile;
 	char buf[256];
-	Column *c;
+	char* initscript  = "zenith.init"
+;	Column *c;
 	int ncol;
 	Display *d;
-//
 
 	rfork(RFENVG|RFNAMEG);
 
@@ -106,6 +106,11 @@ threadmain(int argc, char *argv[])
 	case 'l':
 		loadfile = ARGF();
 		if(loadfile == nil)
+			goto Usage;
+		break;
+	case 'i':
+		initscript = ARGF();
+		if(initscript == nil)
 			goto Usage;
 		break;
 	default:
@@ -234,6 +239,8 @@ threadmain(int argc, char *argv[])
 	threadcreate(waitthread, nil, STACK);
 	threadcreate(xfidallocthread, nil, STACK);
 	threadcreate(newwindowthread, nil, STACK);
+	loadinitscript("/bin/zenith.init");
+	loadinitscript(initscript);
 
 	threadnotify(shutdown, 1);
 	recvul(cexit);

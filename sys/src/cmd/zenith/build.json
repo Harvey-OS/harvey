@@ -30,7 +30,8 @@
 			"xfid.c"
 		],
 	        "Post": [
-	                "mkdir -p $HARVEY/mnt/acme"
+	                "mkdir -p $HARVEY/mnt/acme",
+			"cp zenith.init $HARVEY/$ARCH/bin"
 	        ]
 	}
 }
