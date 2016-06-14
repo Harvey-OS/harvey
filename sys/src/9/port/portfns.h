@@ -181,7 +181,7 @@ void		logclose(Log*);
 char*		logctl(Log*, int, char**, Logflag*);
 void		logn(Log*, int, void*, int);
 void		logopen(Log*);
-int32_t		logread(Log*, void*, uint32_t, int32_t);
+int32_t		logread(Log*, void*, int32_t, int64_t);
 Page*		lookpage(Image*, uint32_t);
 Cmdtab*		lookupcmd(Cmdbuf*, Cmdtab*, int);
 void		mallocinit(void);
