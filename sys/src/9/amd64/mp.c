@@ -419,8 +419,9 @@ mpsinit(int maxcores)
 	_MP_ *mp;
 	PCMP *pcmp;
 
-	if((mp = sigsearch("_MP_")) == nil)
-		return;
+	if((mp = sigsearch("_MP_")) == nil) {
+		panic("NO _MP_ table");
+	}
 	if(DBGFLG){
 		DBG("_MP_ @ %#p, addr %#ux length %ud rev %d",
 			mp, l32get(mp->addr), mp->length, mp->revision);
