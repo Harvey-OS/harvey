@@ -218,8 +218,9 @@
 #elif defined(__HAIKU__)
 #include "achaiku.h"
 
+#elif defined(__HARVEY__)
+#include "acharvey.h"
 #else
-
 /* Unknown environment */
 
 #error Unknown target environment
