@@ -97,7 +97,7 @@ typedef struct ACVctl {
 } ACVctl;
 
 enum {
-	BusCBUS		= 0,		/* Corollary CBUS */
+	BusCBUS		= 0,	/* Corollary CBUS */
 	BusCBUSII,			/* Corollary CBUS II */
 	BusEISA,			/* Extended ISA */
 	BusFUTURE,			/* IEEE Futurebus */
@@ -166,12 +166,12 @@ enum {
 	Pcibcmem	= 5,		/* memory */
 	Pcibcbridge	= 6,		/* bridge */
 	Pcibccomm	= 7,		/* simple comms (e.g., serial) */
-	Pcibcbasesys	= 8,		/* base system */
+	Pcibcbasesys	= 8,	/* base system */
 	Pcibcinput	= 9,		/* input */
 	Pcibcdock	= 0xa,		/* docking stations */
 	Pcibcproc	= 0xb,		/* processors */
 	Pcibcserial	= 0xc,		/* serial bus (e.g., USB) */
-	Pcibcwireless	= 0xd,		/* wireless */
+	Pcibcwireless	= 0xd,	/* wireless */
 	Pcibcintell	= 0xe,		/* intelligent i/o */
 	Pcibcsatcom	= 0xf,		/* satellite comms */
 	Pcibccrypto	= 0x10,		/* encryption/decryption */
@@ -194,12 +194,12 @@ enum {
 	Pcisc3d		= 2,		/* 3D */
 
 	/* bridges */
-	Pcischostpci	= 0,		/* host/pci */
-	Pciscpcicpci	= 1,		/* pci/pci */
+	Pcischostpci	= 0,	/* host/pci */
+	Pciscpcicpci	= 1,	/* pci/pci */
 
 	/* simple comms */
 	Pciscserial	= 0,		/* 16450, etc. */
-	Pciscmultiser	= 1,		/* multiport serial */
+	Pciscmultiser	= 1,	/* multiport serial */
 
 	/* serial bus */
 	Pciscusb	= 3,		/* USB */
@@ -279,11 +279,10 @@ struct Pcisiz
 	int	bar;
 };
 
-/*
- * DMG 06/11/2016 Add the definitions for generic PCI capability structure
- * based on the VIRTIO spec 1.0. Below is the layout of a capability in the PCI
- * device config space. The structure visible to the kernel repeats this, but
- * adds fields to build the linked list of capabilities per device.
+/* Definitions for generic PCI capability structure based on the
+ * VIRTIO spec 1.0. Below is the layout of a capability in the PCI
+ * device config space. The structure visible to the kernel repeats this,
+ * but adds fields to build the linked list of capabilities per device.
  *
  * struct virtio_pci_cap {
  *   u8 cap_vndr; // Generic PCI field: PCI_CAP_ID_VNDR 
@@ -295,11 +294,8 @@ struct Pcisiz
  *   le32 offset; // Offset within bar. 
  *   le32 length; // Length of the structure, in bytes. 
  * };
- * 
- * Add the linked list of capabilities to the PCI device descriptor structure.
- * 
  */
-
+ 
 enum {
 	PciCapVndr 	= 0x00,
 	PciCapNext 	= 0x01,
@@ -314,7 +310,7 @@ struct Pcidev;
 
 typedef struct Pcicap Pcicap;
 struct Pcicap {
-	struct Pcidev *dev;				/* link to the device structure */
+	struct Pcidev *dev;			/* link to the device structure */
 	Pcicap *link;				/* next capability or NULL */
 	uint8_t vndr;				/* vendor code */
 	uint8_t caplen;				/* length in the config area */
@@ -324,10 +320,16 @@ struct Pcicap {
 	uint32_t length;			/* length in the memory or IO space */
 };
 
+/* Linked list of capabilities is added to the PCI device descriptor
+ * structure. Also, an index array of pointers to the capabilities
+ * descriptiors is added. The index will be used to simplify generation
+ * of the capabilities directory in devpci.c.
+ */
+
 typedef struct Pcidev Pcidev;
 struct Pcidev
 {
-	int	tbdf;			/* type+bus+device+function */
+	int	tbdf;					/* type+bus+device+function */
 	uint16_t	vid;			/* vendor ID */
 	uint16_t	did;			/* device ID */
 
@@ -349,12 +351,12 @@ struct Pcidev
 		uint32_t	bar;
 		int	size;
 	} rom;
-	unsigned char	intl;			/* interrupt line */
+	unsigned char	intl;		/* interrupt line */
 
 	Pcidev*	list;
-	Pcidev*	link;			/* next device on this bno */
+	Pcidev*	link;				/* next device on this bno */
 
-	Pcidev*	bridge;			/* down a bus */
+	Pcidev*	bridge;				/* down a bus */
 	struct {
 		uint32_t	bar;
 		int	size;
