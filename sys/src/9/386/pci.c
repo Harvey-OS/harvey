@@ -19,7 +19,8 @@
 
 #include "io.h"
 
-int pcicapoff(Pcidev *p);
+int
+pcicapoff(Pcidev *p);
 
 enum
 {
@@ -70,7 +71,8 @@ static char* bustypes[] = {
 	"XPRESS",
 };
 
-static	int	pcicfgrw(int, int, int, int, int);
+static int
+pcicfgrw(int, int, int, int, int);
 
 static int
 tbdffmt(Fmt* fmt)
