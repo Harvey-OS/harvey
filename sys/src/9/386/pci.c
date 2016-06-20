@@ -176,9 +176,8 @@ pcilscan(int bno, Pcidev** list)
 				maxfno = Maxfn;
 
 			/*
-			 * DMG 06/08/2016 Some virtio-pci devices (e. g. 9p)
-			 * have ccrb = 0x00, their BARs and sizes also shouldbe
-			 * picked up here.
+			 * Some virtio-pci devices (e. g. 9p) have ccrb = 0x00, 
+			 * their BARs and sizes also should be picked up here.
 			 */
 
 			/*
@@ -369,14 +368,14 @@ struct Slot {
 
 typedef struct Router Router;
 struct Router {
-	uint8_t	signature[4];		// Routing table signature
+	uint8_t	signature[4];	// Routing table signature
 	uint8_t	version[2];		// Version number
 	uint8_t	size[2];		// Total table size
 	uint8_t	bus;			// Interrupt router bus number
 	uint8_t	devfn;			// Router's devfunc
 	uint8_t	pciirqs[2];		// Exclusive PCI irqs
 	uint8_t	compat[4];		// Compatible PCI interrupt router
-	uint8_t	miniport[4];		// Miniport data
+	uint8_t	miniport[4];	// Miniport data
 	uint8_t	reserved[11];
 	uint8_t	checksum;
 };
@@ -733,12 +732,10 @@ pciclrmwi(Pcidev* p)
 	pcicfgw16(p, PciPCR, p->pcr);
 }
 
-/*
- * DMG 06/11/2016. Move the capability offset finding in a separate function
- * as this code will be common between the pcicap function below and the new
- * function to build the capability descriptor in the memory while scanning
- * the PCI bus.
- */
+// Find the capability offset in a PCI device configuration space.
+// It depends of whether a device is a bridge, or a regular PCI device.
+// Return a positive number (offset) if capabilities are present, or -1
+// if the device does not have capabilities.
 
 int
 pcicapoff(Pcidev *p)
@@ -760,6 +757,10 @@ pcicapoff(Pcidev *p)
 	}
 	return off;
 }
+
+// Obtain the offset to the needed capability (by its cap_vndr value)
+// in the device configuration space. Return a positive number (offset)
+// if the capability exists, or -1 otherwise.
 
 int
 pcicap(Pcidev *p, int cap)
