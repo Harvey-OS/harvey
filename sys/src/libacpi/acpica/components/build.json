@@ -1,0 +1,7 @@
+{
+	"acpica" : {
+		"Projects": [
+			"hardware/build.json"
+		]
+	}
+}

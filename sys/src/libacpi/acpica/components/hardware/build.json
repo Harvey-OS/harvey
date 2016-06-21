@@ -1,7 +1,7 @@
 {
 	"Libacpi": {
 		"Include": [
-			"/sys/src/libacpi/acpica/libacpi.json"
+			"../../acpiflags.json"
 		],
 		"SourceFiles": [
 			"hwacpi.c",
