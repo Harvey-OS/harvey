@@ -1,7 +1,17 @@
 {
 	"acpica" : {
 		"Projects": [
-			"hardware/build.json"
+			"debugger/build.json",
+			"disassembler/build.json",
+			"dispatcher/build.json",
+			"events/build.json",
+			"executer/build.json",
+			"hardware/build.json",
+			"namespace/build.json",
+			"parser/build.json",
+			"resources/build.json",
+			"tables/build.json",
+			"utilities/build.json"
 		]
 	}
 }
