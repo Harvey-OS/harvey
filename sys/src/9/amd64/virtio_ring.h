@@ -42,7 +42,6 @@
  */
 
 /* 
- * DMG 06/08/2016
  * To make the compiler happy about types le16, le32 etc.
  * These typedefs replace inclusion of <stdint.h>
  * as it conflicts with Plan 9 definitions

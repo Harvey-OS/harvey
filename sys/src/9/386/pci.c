@@ -19,6 +19,9 @@
 
 #include "io.h"
 
+int
+pcicapoff(Pcidev *p);
+
 enum
 {
 	PciADDR		= 0xCF8,	/* CONFIG_ADDRESS */
@@ -68,7 +71,8 @@ static char* bustypes[] = {
 	"XPRESS",
 };
 
-static	int	pcicfgrw(int, int, int, int, int);
+static int
+pcicfgrw(int, int, int, int, int);
 
 static int
 tbdffmt(Fmt* fmt)
@@ -121,7 +125,7 @@ static int
 pcilscan(int bno, Pcidev** list)
 {
 	Pcidev *p, *head, *tail;
-	int dno, fno, i, hdt, l, maxfno, maxubn, sbn, tbdf, ubn;
+	int dno, fno, i, hdt, l, maxfno, maxubn, sbn, tbdf, ubn, capoff;
 
 	maxubn = bno;
 	head = nil;
@@ -142,6 +146,9 @@ pcilscan(int bno, Pcidev** list)
 			if(l == 0xFFFFFFFF || l == 0)
 				continue;
 			p = malloc(sizeof(*p));
+			p->caplist = nil;
+			p->capidx = nil;
+			p->capcnt = 0;
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;
@@ -171,9 +178,8 @@ pcilscan(int bno, Pcidev** list)
 				maxfno = Maxfn;
 
 			/*
-			 * DMG 06/08/2016 Some virtio-pci devices (e. g. 9p)
-			 * have ccrb = 0x00, their BARs and sizes also shouldbe
-			 * picked up here.
+			 * Some virtio-pci devices (e. g. 9p) have ccrb = 0x00, 
+			 * their BARs and sizes also should be picked up here.
 			 */
 
 			/*
@@ -195,6 +201,44 @@ pcilscan(int bno, Pcidev** list)
 				break;
 			}
 
+			/*
+			 * Try to gather PCI capabilities. If the offset of capabilities
+			 * in the config area cannot be found, skip this step. For simplicity,
+			 * capabilities will be linked in a LIFO so we don't deal with list
+			 * heads and tails.
+			 */
+
+			capoff = pcicapoff(p);
+			int off = capoff;
+			while(capoff != -1) {
+				off = pcicfgr8(p, off);
+				if((off < 0x40) || (off & 3))
+					break;
+				off &= ~3;
+				Pcicap *c = malloc(sizeof(*c));
+				c->dev = p;
+				c->link = p->caplist;
+				p->caplist = c;
+				p->capcnt++;
+				c->vndr = pcicfgr8(p, off + PciCapVndr);
+				c->caplen = pcicfgr8(p, off + PciCapLen);
+				c->type = pcicfgr8(p, off + PciCapType);
+				c->bar = pcicfgr8(p, off + PciCapBar);
+				c->offset = pcicfgr32(p, off + PciCapOff);
+				c->length = pcicfgr32(p, off + PciCapLength);
+				off++;
+			}
+
+			if(p->capcnt > 0) {
+				p->capidx = malloc(p->capcnt * sizeof(Pcicap *));
+				Pcicap *pcp = p->caplist;
+				for(int pix = 0; ; pix++) {
+					p->capidx[pix] = pcp;
+					pcp = pcp->link;
+					if(pcp == nil)
+						break;
+				}
+			}			
 			if(head != nil)
 				tail->link = p;
 			else
@@ -204,7 +248,7 @@ pcilscan(int bno, Pcidev** list)
 	}
 
 	*list = head;
-	for(p = head; p != nil; p = p->link){
+	for(p = head; p != nil; p = p->link) {
 		/*
 		 * Find PCI-PCI bridges and recursively descend the tree.
 		 */
@@ -326,14 +370,14 @@ struct Slot {
 
 typedef struct Router Router;
 struct Router {
-	uint8_t	signature[4];		// Routing table signature
+	uint8_t	signature[4];	// Routing table signature
 	uint8_t	version[2];		// Version number
 	uint8_t	size[2];		// Total table size
 	uint8_t	bus;			// Interrupt router bus number
 	uint8_t	devfn;			// Router's devfunc
 	uint8_t	pciirqs[2];		// Exclusive PCI irqs
 	uint8_t	compat[4];		// Compatible PCI interrupt router
-	uint8_t	miniport[4];		// Miniport data
+	uint8_t	miniport[4];	// Miniport data
 	uint8_t	reserved[11];
 	uint8_t	checksum;
 };
@@ -690,11 +734,15 @@ pciclrmwi(Pcidev* p)
 	pcicfgw16(p, PciPCR, p->pcr);
 }
 
-int
-pcicap(Pcidev *p, int cap)
-{
-	int i, c, off;
+// Find the capability offset in a PCI device configuration space.
+// It depends of whether a device is a bridge, or a regular PCI device.
+// Return a positive number (offset) if capabilities are present, or -1
+// if the device does not have capabilities.
 
+int
+pcicapoff(Pcidev *p)
+{
+	int off;
 	/* status register bit 4 has capabilities */
 	if((pcicfgr16(p, PciPSR) & 1<<4) == 0)
 		return -1;
@@ -709,6 +757,22 @@ pcicap(Pcidev *p, int cap)
 		off = 0x14;
 		break;
 	}
+	return off;
+}
+
+// Obtain the offset to the needed capability (by its cap_vndr value)
+// in the device configuration space. Return a positive number (offset)
+// if the capability exists, or -1 otherwise.
+
+int
+pcicap(Pcidev *p, int cap)
+{
+	int i, c, off;
+
+	off = pcicapoff(p);
+	if(off == -1)
+		return -1;
+
 	for(i = 48; i--;){
 		off = pcicfgr8(p, off);
 		if(off < 0x40 || (off & 3))
