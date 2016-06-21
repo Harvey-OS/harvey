@@ -1,0 +1,24 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../acpiflags.json"
+		],
+		"SourceFiles": [
+			"dbcmds.c",
+			"dbconvert.c",
+			"dbdisply.c",
+			"dbexec.c",
+			"dbfileio.c",
+			"dbhistry.c",
+			"dbinput.c",
+			"dbmethod.c",
+			"dbnames.c",
+			"dbobject.c",
+			"dbstats.c",
+			"dbtest.c",
+			"dbutils.c",
+			"dbxface.c"
+		]
+		}
+}
+	

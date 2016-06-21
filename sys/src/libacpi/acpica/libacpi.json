@@ -1,7 +1,7 @@
 {
 	"Libacpi": {
 		"Projects": [
-			"components/build.json"
+			"components/build.json",
 			"tables/build.json"
 		],
 		"NInstall": "/$ARCH/lib/",

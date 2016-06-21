@@ -1,0 +1,25 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../acpiflags.json"
+		],
+		"SourceFiles": [
+			"dsargs.c",
+			"dscontrol.c",
+			"dsdebug.c",
+			"dsfield.c",
+			"dsinit.c",
+			"dsmethod.c",
+			"dsmthdat.c",
+			"dsobject.c",
+			"dsopcode.c",
+			"dsutils.c",
+			"dswexec.c",
+			"dswload2.c",
+			"dswload.c",
+			"dswscope.c",
+			"dswstate.c"
+		]
+		}
+}
+	
