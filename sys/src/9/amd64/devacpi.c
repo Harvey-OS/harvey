@@ -77,7 +77,6 @@ pickcore(int mycolor, int index)
 {
 	return 0;
 }
-#if 0
 static void*
 rsdscan(uint8_t* addr, int len, char* signature)
 {
@@ -182,7 +181,7 @@ acpirsdptr(void)
 	/* xsdt is kept and not unmapped */
 #endif
 }
-#endif
+
 static int
 acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
@@ -204,11 +203,17 @@ acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 	return 1;
 }
 
+ACPI_STATUS
+AcpiOsInitialize(void)
+{
+	acpirsdptr();
+	return AE_OK;
+}
+
 int
 acpiinit(void)
 {
 	AcpiOsInitialize();
-	//acpirsdptr();
 	return 0;
 }
 

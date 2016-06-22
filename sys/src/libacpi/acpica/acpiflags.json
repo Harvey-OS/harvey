@@ -7,6 +7,8 @@
 		        "-D__HARVEY__",
 		        "-U_LINUX",
 		        "-U__linux__",
+			"-Wno-unused-function",
+			"-Wno-unused-variable",
 			"-nostdlib",
 		    "-fno-builtin",
 			"-include", "u.h",
