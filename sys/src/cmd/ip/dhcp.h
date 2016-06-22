@@ -137,8 +137,8 @@ enum
 /*	OP9dns=			135,*/	/* dns servers */
 };
 
-/* a lease that never expires */
-#define Lforever	~0UL
+/* a lease that never expires. DHCP specifies that it is 32 bits of seconds. */
+#define Lforever	((uint32_t)~0)
 
 /* dhcp states */
 enum {
