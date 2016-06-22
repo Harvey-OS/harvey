@@ -22,6 +22,8 @@
 			"-Wno-missing-braces",
 			"-Wno-parentheses",
 			"-Wno-unknown-pragmas",
+			"-D__HARVEY__",
+			"-U_LINUX", "-U__linux__",
 			"-I", "/sys/src/9/amd64",
 			"-I", "/sys/src/9/port",
 			"-I", "/sys/src/libc/9syscall"

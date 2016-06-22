@@ -7,8 +7,7 @@
 			"core.json",
 			"../386/386.json",
 			"../ip/ip.json",
-			"../port/port.json",
-		    "../../libacpi/acpica/kacpiflags.json"
+			"../port/port.json"
 		],
 		"Kernel": {
 			"Config": {
