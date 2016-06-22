@@ -28,6 +28,7 @@
 			"-I", "/sys/src/libc/9syscall"
 		],
 		"Libs": [
+			"/$ARCH/lib/klibacpi.a",
 			"/$ARCH/lib/klibmemlayer.a",
 			"/$ARCH/lib/klibmemdraw.a",
 			"/$ARCH/lib/klibc.a",

@@ -15,7 +15,7 @@
 #include	"io.h"
 #include	"../port/error.h"
 #include "mp.h"
-#include "acpi.h"
+#include <acpi/acpica/acpi.h>
 
 
 #if 0
@@ -196,7 +196,8 @@ acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 int
 acpiinit(void)
 {
-	acpirsdptr();
+	AcpiOsInitialize();
+	//acpirsdptr();
 	return 0;
 }
 

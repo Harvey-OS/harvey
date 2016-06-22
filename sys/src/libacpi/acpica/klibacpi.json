@@ -1,29 +1,10 @@
 {
-	"KernelLibacpi": {
-		"Cflags": [
-			"-mcmodel=kernel",
-			"-O0",
-			"-mno-red-zone",
-			"-ffreestanding",
-			"-fno-builtin",
-			"-Wall",
-			"-Wno-missing-braces",
-			"-Wno-parentheses",
-			"-Wno-unknown-pragmas",
-			"-Wuninitialized",
-			"-g"
-		],
-		"NoCflags": [
-			"-Werror"
-		],
+	"Libacpi": {
 		"Projects": [
-			"components/build.json"
+			"components/kbuild.json"
 		],
-		"NoInclude": [
-			"/$ARCH/include/klib.json"
-		],
-		"Install": "/$ARCH/lib/",
-		"Library": "klibacpi.a"
+		"NInstall": "/$ARCH/lib/",
+		"NLibrary": "klibacpi.a"
 		}
 }
 	

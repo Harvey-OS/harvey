@@ -1,10 +1,8 @@
 {
 	"Libacpi": {
 		"Include": [
-			"../../acpiflags.json"
+			"../../kacpiflags.json"
 		],
-		"Install": "/$ARCH/lib/",
-		"Library": "libacpi.a",
 		"SourceFiles": [
 			"dbcmds.c",
 			"dbconvert.c",

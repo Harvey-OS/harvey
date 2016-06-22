@@ -1,0 +1,35 @@
+{
+	"kacpiflags": {
+		"Cflags": [
+		        "-DACPI_DEBUGGER",
+		        "-DACPI_DISASSEMBLER",
+		        "-DACPI_DEBUG_OUTPUT",
+		        "-D__HARVEY__",
+		        "-U_LINUX",
+		        "-U__linux__",
+			"-include", "u.h",
+			"-include", "/$ARCH/include/mach_acpi.h",
+			"-I", "/sys/include/acpi/acpica",
+			"-mcmodel=kernel",
+			"-O0",
+			"-mno-red-zone",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-Wall",
+			"-Wno-missing-braces",
+			"-Wno-parentheses",
+			"-Wno-unknown-pragmas",
+			"-Wuninitialized",
+			"-g"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "klibacpi.a",
+		"NoCflags": [
+			"-include", "libc.h",
+			"-Werror"
+		],
+		"IncludeCanNotUsedWUnusedYet": [
+			"../../lib.json"
+		]
+		}
+}
