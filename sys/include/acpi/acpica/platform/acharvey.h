@@ -45,6 +45,8 @@
 #define __ACHARVEY_H__
 
 /* Host-dependent types and defines for user-space ACPICA */
+#define ACPI_USE_SYSTEM_CLIBRARY
+#undef ACPI_USE_STANDARD_HEADERS
 
 #ifdef __KERNEL__
 #else

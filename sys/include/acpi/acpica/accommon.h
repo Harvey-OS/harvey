@@ -132,6 +132,7 @@
 #include "achware.h"            /* Hardware defines and interfaces */
 #include "acutils.h"            /* Utility interfaces */
 #ifndef ACPI_USE_SYSTEM_CLIBRARY
+fuck
 #include "acclib.h"             /* C library interfaces */
 #endif /* !ACPI_USE_SYSTEM_CLIBRARY */
 

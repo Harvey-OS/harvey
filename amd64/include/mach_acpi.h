@@ -4,6 +4,7 @@
 /* ACPI redefines things found in libc, but this one thing we need.
  */
 
+#if 0
 typedef
 struct Lock {
 	int32_t	key;
@@ -27,6 +28,7 @@ struct QLock
 	QLp 	*tail;
 } QLock;
 
+#endif
 typedef QLock ACPI_MUTEX;
 typedef uint32_t UINT32;
 typedef uint16_t UINT16;

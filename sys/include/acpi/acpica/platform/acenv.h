@@ -417,7 +417,7 @@
 /* Use the standard C library headers. We want to keep these to a minimum. */
 
 #ifdef ACPI_USE_STANDARD_HEADERS
-
+FUCK
 /* Use the standard headers from the standard locations */
 
 #include <stdarg.h>

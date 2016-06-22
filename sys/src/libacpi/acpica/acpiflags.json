@@ -8,6 +8,7 @@
 		        "-U_LINUX",
 		        "-U__linux__",
 			"-include", "u.h",
+			"-include", "libc.h",
 			"-include", "/$ARCH/include/mach_acpi.h",
 			"-I", "/sys/include/acpi/acpica"
 		],

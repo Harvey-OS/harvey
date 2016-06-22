@@ -17,6 +17,15 @@
 #include "mp.h"
 #include <acpi/acpica/acpi.h>
 
+enum
+{
+
+	Sdthdrsz	= 36,	/* size of SDT header */
+	Qdir = 0,
+	Qctl,
+	Qtbl,
+	Qio,
+};
 
 #if 0
 static Cmdtab ctls[] =
@@ -68,7 +77,7 @@ pickcore(int mycolor, int index)
 {
 	return 0;
 }
-
+#if 0
 static void*
 rsdscan(uint8_t* addr, int len, char* signature)
 {
@@ -85,6 +94,7 @@ rsdscan(uint8_t* addr, int len, char* signature)
 
 	return nil;
 }
+
 
 static void*
 rsdsearch(char* signature)
@@ -107,6 +117,7 @@ rsdsearch(char* signature)
 	}
 	return rsdscan(BIOSSEG(0xE000), 0x20000, signature);
 }
+
 
 static void
 acpirsdptr(void)
@@ -171,7 +182,7 @@ acpirsdptr(void)
 	/* xsdt is kept and not unmapped */
 #endif
 }
-
+#endif
 static int
 acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
