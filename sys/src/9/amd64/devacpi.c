@@ -213,7 +213,8 @@ AcpiOsInitialize(void)
 int
 acpiinit(void)
 {
-	AcpiOsInitialize();
+	AcpiInitializeSubsystem();
+	//AcpiOsInitialize();
 	return 0;
 }
 
