@@ -363,3 +363,100 @@ Dev acpidevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+/* Shims. We'll leave these here for now until we find a better way. */
+
+void ACPI_INTERNAL_VAR_XFACE
+AcpiOsPrintf (
+    const char              *Format,
+    ...)
+{
+	panic("printf");
+}
+
+void
+AcpiOsFree (
+    void *                  Memory)
+{
+	free(Memory);
+}
+
+void *
+AcpiOsAllocate (
+    ACPI_SIZE               Size)
+{
+	return malloc(Size);
+}
+
+ACPI_STATUS
+AcpiOsCreateSemaphore (
+    UINT32                  MaxUnits,
+    UINT32                  InitialUnits,
+    ACPI_SEMAPHORE          *OutHandle)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsDeleteSemaphore (
+    ACPI_SEMAPHORE          Handle)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsWaitSemaphore (
+    ACPI_SEMAPHORE          Handle,
+    UINT32                  Units,
+    UINT16                  Timeout)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsSignalSemaphore (
+    ACPI_SEMAPHORE          Handle,
+    UINT32                  Units)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsCreateLock (
+    ACPI_SPINLOCK           *OutHandle)
+{
+	ACPI_SPINLOCK l = mallocz(sizeof(ACPI_SPINLOCK), 1);
+	if (l == nil)
+		return AE_NO_MEMORY;
+	*OutHandle = l;
+	return AE_OK;
+}
+
+void
+AcpiOsDeleteLock (
+    ACPI_SPINLOCK           Handle)
+{
+	free(Handle);
+}
+
+ACPI_CPU_FLAGS
+AcpiOsAcquireLock (
+    ACPI_SPINLOCK           Handle)
+{
+	panic("figure out flags");
+	ilock(Handle);
+	return 0;
+}
+
+void
+AcpiOsReleaseLock (
+    ACPI_SPINLOCK           Handle,
+    ACPI_CPU_FLAGS          Flags)
+{
+	panic("figure out flags");
+	iunlock(Handle);
+}

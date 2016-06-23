@@ -72,4 +72,9 @@
 
 #endif				/* __KERNEL__ */
 
+/* ACPI uses #defines instead of typedefs. We use a typedef to avoid any weirdness with
+ * cpp expansion. */
+typedef Lock* Lock_t;
+#define ACPI_SPINLOCK Lock_t
+
 #endif				/* __ACHARVEY_H__ */
