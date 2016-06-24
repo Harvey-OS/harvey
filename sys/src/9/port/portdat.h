@@ -55,9 +55,7 @@ typedef struct RWlock	RWlock;
 typedef struct Sched	Sched;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
-typedef struct Sem	Sem;
 typedef struct Sema	Sema;
-typedef struct Sems	Sems;
 typedef struct Timer	Timer;
 typedef struct Timers	Timers;
 typedef struct Uart	Uart;
@@ -498,23 +496,6 @@ struct Sema
 	Sema*	prev;
 };
 
-/* NIX semaphores */
-struct Sem
-{
-	Lock l;
-	int*	np;		/* user-level semaphore */
-	Proc**	q;
-	int	nq;
-	Sem*	next;		/* in list of semaphores for this Segment */
-};
-
-/* NIX semaphores */
-struct Sems
-{
-	Sem**	s;
-	int	ns;
-};
-
 /* Zero copy per-segment information (locked using Segment.lk) */
 struct Zseg
 {
@@ -560,7 +541,6 @@ struct Segment
 	Pte	*ssegmap[SSEGMAPSIZE];
 	Lock	semalock;
 	Sema	sema;
-	Sems	sems;
 	Zseg	zseg;
 };
 
@@ -938,7 +918,6 @@ struct Proc
 	/* NIX */
 	Mach	*ac;
 	Page	*acpml4;
-	Sem	*waitsem;
 	int	prepagemem;
 	Nixpctl *nixpctl;	/* NIX queue based system calls */
 
