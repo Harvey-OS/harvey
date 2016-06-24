@@ -1,0 +1,23 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../acpiflags.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libacpi.a",
+		"SourceFiles": [
+			"psargs.c",
+			"psloop.c",
+			"psobject.c",
+			"psopcode.c",
+			"psopinfo.c",
+			"psparse.c",
+			"psscope.c",
+			"pstree.c",
+			"psutils.c",
+			"pswalk.c",
+			"psxface.c"
+		]
+		}
+}
+	

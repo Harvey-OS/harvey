@@ -1,0 +1,24 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../kacpiflags.json"
+		],
+		"SourceFiles": [
+			"rsaddr.c",
+			"rscalc.c",
+			"rscreate.c",
+			"rsdump.c",
+			"rsdumpinfo.c",
+			"rsinfo.c",
+			"rsio.c",
+			"rsirq.c",
+			"rslist.c",
+			"rsmemory.c",
+			"rsmisc.c",
+			"rsserial.c",
+			"rsutils.c",
+			"rsxface.c"
+		]
+		}
+}
+	
