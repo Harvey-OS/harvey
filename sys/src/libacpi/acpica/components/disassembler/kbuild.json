@@ -1,0 +1,21 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../kacpiflags.json"
+		],
+		"SourceFiles": [
+			"dmbuffer.c",
+			"dmcstyle.c",
+			"dmdeferred.c",
+			"dmnames.c",
+			"dmopcode.c",
+			"dmresrc.c",
+			"dmresrcl2.c",
+			"dmresrcl.c",
+			"dmresrcs.c",
+			"dmutils.c",
+			"dmwalk.c"
+		]
+		}
+}
+	
