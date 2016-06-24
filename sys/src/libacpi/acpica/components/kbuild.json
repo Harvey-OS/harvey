@@ -2,7 +2,6 @@
 	"kacpica" : {
 		"Projects": [
 			"debugger/kbuild.json",
-			"disassembler/kbuild.json",
 			"dispatcher/kbuild.json",
 			"events/kbuild.json",
 			"executer/kbuild.json",

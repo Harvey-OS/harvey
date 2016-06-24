@@ -755,3 +755,16 @@ AcpiOsReleaseObject (
 }
 
 
+/*
+ * Debug input
+ */
+ACPI_STATUS
+AcpiOsGetLine (
+    char                    *Buffer,
+    UINT32                  BufferLength,
+    UINT32                  *BytesRead)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+

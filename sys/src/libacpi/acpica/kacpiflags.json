@@ -2,7 +2,6 @@
 	"kacpiflags": {
 		"Cflags": [
 		        "-DACPI_DEBUGGER",
-		        "-DACPI_DISASSEMBLER",
 		        "-DACPI_DEBUG_OUTPUT",
 		        "-D__HARVEY__",
 		        "-U_LINUX",
