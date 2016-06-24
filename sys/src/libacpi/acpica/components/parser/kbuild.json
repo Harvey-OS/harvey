@@ -1,0 +1,21 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../kacpiflags.json"
+		],
+		"SourceFiles": [
+			"psargs.c",
+			"psloop.c",
+			"psobject.c",
+			"psopcode.c",
+			"psopinfo.c",
+			"psparse.c",
+			"psscope.c",
+			"pstree.c",
+			"psutils.c",
+			"pswalk.c",
+			"psxface.c"
+		]
+		}
+}
+	
