@@ -90,29 +90,6 @@ newseg(int type, uintptr_t base, uint64_t size)
 	return s;
 }
 
-#define	NHASH 101
-#define SHASH(np)	(PTR2UINT(np)%NHASH)
-
-Sem*
-segmksem(Segment *sg, int *np)
-{
-	Sem *s, **l;
-
-	qlock(&sg->lk);
-	if(sg->sems.s == nil)
-		sg->sems.s = mallocz(NHASH * sizeof(Sem*), 1);
-	for(l = &sg->sems.s[SHASH(np)]; (s = *l) != nil; l = &s->next)
-		if(s->np == np){
-			qunlock(&sg->lk);
-			return s;
-		}
-	s = mallocz(sizeof *s, 1);
-	s->np = np;
-	*l = s;
-	qunlock(&sg->lk);
-	return s;
-}
-
 void
 putseg(Segment *s)
 {
@@ -155,8 +132,6 @@ putseg(Segment *s)
 		free(s->map);
 	if(s->profile != 0)
 		free(s->profile);
-	if(s->sems.s != nil)
-		free(s->sems.s);
 	if(s->type&SG_ZIO)
 		freezseg(s);
 	free(s);
