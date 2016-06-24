@@ -349,7 +349,6 @@ void		schedinit(void);
 int32_t		seconds(void);
 Segment*	seg(Proc*, uintptr_t, int);
 void		segclock(uintptr_t);
-Sem*		segmksem(Segment*, int*);
 void		segpage(Segment*, Page*);
 char*		seprintmark(char *, char *, Watermark *);
 uintmem		segppn(Segment*, uintmem);
