@@ -497,13 +497,15 @@ AcpiOsGetPhysicalAddress (
 	return AE_OK;
 }
 
+/* This is the single threaded version of
+ * these functions. This is now NetBSD does it. */
 ACPI_STATUS
 AcpiOsCreateSemaphore (
     UINT32                  MaxUnits,
     UINT32                  InitialUnits,
     ACPI_SEMAPHORE          *OutHandle)
 {
-	panic("%s", __func__);
+	*OutHandle = (ACPI_SEMAPHORE) 1;
 	return AE_OK;
 }
 
@@ -511,7 +513,6 @@ ACPI_STATUS
 AcpiOsDeleteSemaphore (
     ACPI_SEMAPHORE          Handle)
 {
-	panic("%s", __func__);
 	return AE_OK;
 }
 
@@ -521,7 +522,6 @@ AcpiOsWaitSemaphore (
     UINT32                  Units,
     UINT16                  Timeout)
 {
-	panic("%s", __func__);
 	return AE_OK;
 }
 
@@ -530,18 +530,15 @@ AcpiOsSignalSemaphore (
     ACPI_SEMAPHORE          Handle,
     UINT32                  Units)
 {
-	panic("%s", __func__);
 	return AE_OK;
 }
 
+/* this is the single threaded case and as minix shows there is nothing to do. */
 ACPI_STATUS
 AcpiOsCreateLock (
     ACPI_SPINLOCK           *OutHandle)
 {
-	ACPI_SPINLOCK l = mallocz(sizeof(ACPI_SPINLOCK), 1);
-	if (l == nil)
-		return AE_NO_MEMORY;
-	*OutHandle = l;
+	*OutHandle = nil;
 	return AE_OK;
 }
 
@@ -549,15 +546,12 @@ void
 AcpiOsDeleteLock (
     ACPI_SPINLOCK           Handle)
 {
-	free(Handle);
 }
 
 ACPI_CPU_FLAGS
 AcpiOsAcquireLock (
     ACPI_SPINLOCK           Handle)
 {
-	panic("figure out flags");
-	ilock(Handle);
 	return 0;
 }
 
@@ -566,8 +560,6 @@ AcpiOsReleaseLock (
     ACPI_SPINLOCK           Handle,
     ACPI_CPU_FLAGS          Flags)
 {
-	panic("figure out flags");
-	iunlock(Handle);
 }
 
 ACPI_STATUS
@@ -687,7 +679,7 @@ AcpiOsPredefinedOverride (
     const ACPI_PREDEFINED_NAMES *InitVal,
     ACPI_STRING                 *NewVal)
 {
-	panic("%s", __func__);
+	*NewVal = nil;
 	return AE_OK;
 }
 
@@ -696,7 +688,7 @@ AcpiOsTableOverride (
     ACPI_TABLE_HEADER       *ExistingTable,
     ACPI_TABLE_HEADER       **NewTable)
 {
-	panic("%s", __func__);
+	*NewTable = nil;
 	return AE_OK;
 }
 
@@ -706,7 +698,7 @@ AcpiOsPhysicalTableOverride (
     ACPI_PHYSICAL_ADDRESS   *NewAddress,
     UINT32                  *NewTableLength)
 {
-	panic("%s", __func__);
+	*NewAddress = (ACPI_PHYSICAL_ADDRESS)nil;
 	return AE_OK;
 }
 
