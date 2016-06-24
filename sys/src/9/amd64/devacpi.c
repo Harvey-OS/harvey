@@ -210,6 +210,14 @@ AcpiOsInitialize(void)
 	return AE_OK;
 }
 
+ACPI_STATUS
+AcpiOsTerminate (
+	void)
+{
+	print("%s\n", __func__);
+	return AE_OK;
+}
+
 int
 acpiinit(void)
 {
@@ -365,6 +373,69 @@ Dev acpidevtab = {
 };
 
 /* Shims. We'll leave these here for now until we find a better way. */
+ACPI_STATUS
+AcpiOsReadPciConfiguration (
+    ACPI_PCI_ID             *PciId,
+    UINT32                  Reg,
+    UINT64                  *Value,
+    UINT32                  Width)
+{
+	panic("%s", __func__);
+	return AE_OK;
+
+}
+
+ACPI_STATUS
+AcpiOsWritePciConfiguration (
+    ACPI_PCI_ID             *PciId,
+    UINT32                  Reg,
+    UINT64                  Value,
+    UINT32                  Width)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+/*
+ * Miscellaneous
+ */
+BOOLEAN
+AcpiOsReadable (
+    void                    *Pointer,
+    ACPI_SIZE               Length)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+
+BOOLEAN
+AcpiOsWritable (
+    void                    *Pointer,
+    ACPI_SIZE               Length)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+
+UINT64
+AcpiOsGetTimer (
+    void)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+
+ACPI_STATUS
+AcpiOsSignal (
+    UINT32                  Function,
+    void                    *Info)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
 
 void ACPI_INTERNAL_VAR_XFACE
 AcpiOsPrintf (
@@ -372,6 +443,14 @@ AcpiOsPrintf (
     ...)
 {
 	panic("printf");
+}
+
+void
+AcpiOsVprintf (
+    const char              *Format,
+    va_list                 Args)
+{
+	panic("%s", __func__);
 }
 
 void
@@ -386,6 +465,32 @@ AcpiOsAllocate (
     ACPI_SIZE               Size)
 {
 	return malloc(Size);
+}
+
+void *
+AcpiOsMapMemory (
+    ACPI_PHYSICAL_ADDRESS   Where,
+    ACPI_SIZE               Length)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+void
+AcpiOsUnmapMemory (
+    void                    *LogicalAddress,
+    ACPI_SIZE               Size)
+{
+	panic("%s", __func__);
+}
+
+ACPI_STATUS
+AcpiOsGetPhysicalAddress (
+    void                    *LogicalAddress,
+    ACPI_PHYSICAL_ADDRESS   *PhysicalAddress)
+{
+	panic("%s", __func__);
+	return AE_OK;
 }
 
 ACPI_STATUS
@@ -460,3 +565,193 @@ AcpiOsReleaseLock (
 	panic("figure out flags");
 	iunlock(Handle);
 }
+
+ACPI_STATUS
+AcpiOsInstallInterruptHandler (
+    UINT32                  InterruptNumber,
+    ACPI_OSD_HANDLER        ServiceRoutine,
+    void                    *Context)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsRemoveInterruptHandler (
+    UINT32                  InterruptNumber,
+    ACPI_OSD_HANDLER        ServiceRoutine)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+void
+AcpiOsWaitEventsComplete (
+	void)
+{
+	panic("%s", __func__);
+}
+
+void
+AcpiOsSleep (
+    UINT64                  Milliseconds)
+{
+	panic("%s", __func__);
+}
+
+void
+AcpiOsStall(
+    UINT32                  Microseconds)
+{
+	panic("%s", __func__);
+}
+
+ACPI_THREAD_ID
+AcpiOsGetThreadId (
+    void)
+{
+	Proc *up = externup();
+	return up->pid;
+}
+
+ACPI_STATUS
+AcpiOsExecute (
+    ACPI_EXECUTE_TYPE       Type,
+    ACPI_OSD_EXEC_CALLBACK  Function,
+    void                    *Context)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsReadPort (
+    ACPI_IO_ADDRESS         Address,
+    UINT32                  *Value,
+    UINT32                  Width)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsWritePort (
+    ACPI_IO_ADDRESS         Address,
+    UINT32                  Value,
+    UINT32                  Width)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+/*
+ * Platform and hardware-independent physical memory interfaces
+ */
+ACPI_STATUS
+AcpiOsReadMemory (
+    ACPI_PHYSICAL_ADDRESS   Address,
+    UINT64                  *Value,
+    UINT32                  Width)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsWriteMemory (
+    ACPI_PHYSICAL_ADDRESS   Address,
+    UINT64                  Value,
+    UINT32                  Width)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+/*
+ * ACPI Table interfaces
+ */
+ACPI_PHYSICAL_ADDRESS
+AcpiOsGetRootPointer (
+    void)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsPredefinedOverride (
+    const ACPI_PREDEFINED_NAMES *InitVal,
+    ACPI_STRING                 *NewVal)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsTableOverride (
+    ACPI_TABLE_HEADER       *ExistingTable,
+    ACPI_TABLE_HEADER       **NewTable)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsPhysicalTableOverride (
+    ACPI_TABLE_HEADER       *ExistingTable,
+    ACPI_PHYSICAL_ADDRESS   *NewAddress,
+    UINT32                  *NewTableLength)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+
+/*
+ * Memory/Object Cache
+ */
+ACPI_STATUS
+AcpiOsCreateCache (
+    char                    *CacheName,
+    UINT16                  ObjectSize,
+    UINT16                  MaxDepth,
+    ACPI_CACHE_T            **ReturnCache)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsDeleteCache (
+    ACPI_CACHE_T            *Cache)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsPurgeCache (
+    ACPI_CACHE_T            *Cache)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+void *
+AcpiOsAcquireObject (
+    ACPI_CACHE_T            *Cache)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+ACPI_STATUS
+AcpiOsReleaseObject (
+    ACPI_CACHE_T            *Cache,
+    void                    *Object)
+{
+	panic("%s", __func__);
+	return AE_OK;
+}
+
+
