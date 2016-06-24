@@ -442,7 +442,11 @@ AcpiOsPrintf (
     const char              *Format,
     ...)
 {
-	panic("printf");
+	va_list args;
+
+	va_start(args, Format);
+	print((char *)Format, args);
+	va_end(args);
 }
 
 void
@@ -450,7 +454,7 @@ AcpiOsVprintf (
     const char              *Format,
     va_list                 Args)
 {
-	panic("%s", __func__);
+	print((char *)Format, Args);
 }
 
 void
@@ -705,55 +709,6 @@ AcpiOsPhysicalTableOverride (
 	panic("%s", __func__);
 	return AE_OK;
 }
-
-
-/*
- * Memory/Object Cache
- */
-ACPI_STATUS
-AcpiOsCreateCache (
-    char                    *CacheName,
-    UINT16                  ObjectSize,
-    UINT16                  MaxDepth,
-    ACPI_CACHE_T            **ReturnCache)
-{
-	panic("%s", __func__);
-	return AE_OK;
-}
-
-ACPI_STATUS
-AcpiOsDeleteCache (
-    ACPI_CACHE_T            *Cache)
-{
-	panic("%s", __func__);
-	return AE_OK;
-}
-
-ACPI_STATUS
-AcpiOsPurgeCache (
-    ACPI_CACHE_T            *Cache)
-{
-	panic("%s", __func__);
-	return AE_OK;
-}
-
-void *
-AcpiOsAcquireObject (
-    ACPI_CACHE_T            *Cache)
-{
-	panic("%s", __func__);
-	return AE_OK;
-}
-
-ACPI_STATUS
-AcpiOsReleaseObject (
-    ACPI_CACHE_T            *Cache,
-    void                    *Object)
-{
-	panic("%s", __func__);
-	return AE_OK;
-}
-
 
 /*
  * Debug input
