@@ -1,5 +1,5 @@
 {
-	"Libacpi": {
+	"Klibacpi": {
 		"Projects": [
 			"components/kbuild.json"
 		],

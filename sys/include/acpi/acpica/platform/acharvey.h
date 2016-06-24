@@ -49,7 +49,9 @@
 #undef ACPI_USE_STANDARD_HEADERS
 
 #ifdef __KERNEL__
+/* TODO: multithreaded ACPI. But single thread is fine for now. */
 #else
+#endif				/* __KERNEL__ */
 
 #define ACPI_FLUSH_CPU_CACHE()
 #define ACPI_CAST_PTHREAD_T(pthread) ((acpi_thread_id) (pthread))
@@ -70,11 +72,5 @@
 #define __cdecl
 #endif
 
-#endif				/* __KERNEL__ */
-
-/* ACPI uses #defines instead of typedefs. We use a typedef to avoid any weirdness with
- * cpp expansion. */
-typedef Lock* Lock_t;
-#define ACPI_SPINLOCK Lock_t
 
 #endif				/* __ACHARVEY_H__ */
