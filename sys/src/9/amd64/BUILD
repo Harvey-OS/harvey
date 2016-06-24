@@ -108,7 +108,6 @@ PORT_SRCS = [
 	"//sys/src/9/port/sysfile.c",
 	"//sys/src/9/port/sysproc.c",
 	"//sys/src/9/port/sysseg.c",
-	"//sys/src/9/port/syssem.c",
 	"//sys/src/9/port/syszio.c",
 	"//sys/src/9/port/taslock.c",
 	"//sys/src/9/port/tod.c",
