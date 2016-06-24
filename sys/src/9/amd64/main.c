@@ -54,7 +54,7 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
-int nosmp = 1;
+int nosmp = 0;
 
 /*
  *	this may need improvement, but right now it's just for
