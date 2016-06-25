@@ -94,9 +94,9 @@ pw4(unsigned char *p, unsigned long w)
 	p[3] = (w>>24) & 0xFF;
 }
 static void (*pw[5])(unsigned char *p, unsigned long w) = {
-	[1] pw1,
-	[2] pw2,
-	[4] pw4,
+	[1] = pw1,
+	[2] = pw2,
+	[4] = pw4,
 };
 
 static unsigned long
@@ -357,21 +357,21 @@ static char Ebadoff[] = "invalid offset";
 static char Ebadtrap[] = "bad trap";
 
 static char *trapstr[] = {
-	[EDIV0] "division by zero",
-	[EDEBUG] "debug exception",
-	[ENMI] "not maskable interrupt",
-	[EBRK] "breakpoint",
-	[EINTO] "into overflow",
-	[EBOUND] "bounds check",
-	[EBADOP] "bad opcode",
-	[ENOFPU] "no fpu installed",
-	[EDBLF] "double fault",
-	[EFPUSEG] "fpu segment overflow",
-	[EBADTSS] "invalid task state segment",
-	[ENP] "segment not present",
-	[ESTACK] "stack fault",
-	[EGPF] "general protection fault",
-	[EPF] "page fault",
+	[EDIV0] = "division by zero",
+	[EDEBUG] = "debug exception",
+	[ENMI] = "not maskable interrupt",
+	[EBRK] = "breakpoint",
+	[EINTO] = "into overflow",
+	[EBOUND] = "bounds check",
+	[EBADOP] = "bad opcode",
+	[ENOFPU] = "no fpu installed",
+	[EDBLF] = "double fault",
+	[EFPUSEG] = "fpu segment overflow",
+	[EBADTSS] = "invalid task state segment",
+	[ENP] = "segment not present",
+	[ESTACK] = "stack fault",
+	[EGPF] = "general protection fault",
+	[EPF] = "page fault",
 };
 
 static int flushed(void *);
