@@ -49,6 +49,7 @@ static char* regnames[] = {
 };
 #endif
 
+static void *rsd;
 /*
  * we use mp->machno (or index in Mach array) as the identifier,
  * but ACPI relies on the apic identifier.
@@ -121,7 +122,6 @@ rsdsearch(char* signature)
 static void
 acpirsdptr(void)
 {
-	void *rsd;
 	rsd = rsdsearch("RSD PTR ");
 	if (rsd == nil) {
 		print("NO RSD PTR found\n");
@@ -206,6 +206,7 @@ acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 ACPI_STATUS
 AcpiOsInitialize(void)
 {
+	print("%s\n", __func__);
 	acpirsdptr();
 	return AE_OK;
 }
@@ -221,8 +222,28 @@ AcpiOsTerminate (
 int
 acpiinit(void)
 {
-	AcpiInitializeSubsystem();
-	//AcpiOsInitialize();
+	int status;
+	status = AcpiInitializeSubsystem();
+        if (ACPI_FAILURE(status))
+		panic("can't start acpi");
+
+
+        status = AcpiInitializeTables(NULL, 16, FALSE);
+        if (ACPI_FAILURE(status))
+		panic("can't set up acpi tables");
+
+        status = AcpiLoadTables();
+        if (ACPI_FAILURE(status))
+		panic("Can't load ACPI tables");
+
+        status = AcpiEnableSubsystem(0);
+        if (ACPI_FAILURE(status))
+		panic("Can't enable ACPI subsystem");
+
+        status = AcpiInitializeObjects(0);
+        if (ACPI_FAILURE(status))
+		panic("Can't Initialize ACPI objects");
+
 	return 0;
 }
 
@@ -372,7 +393,11 @@ Dev acpidevtab = {
 	.wstat = devwstat,
 };
 
-/* Shims. We'll leave these here for now until we find a better way. */
+static int tbdf(ACPI_PCI_ID *p)
+{
+	return (p->Bus << 8) | (p->Device << 3) | (p->Function);
+}
+
 ACPI_STATUS
 AcpiOsReadPciConfiguration (
     ACPI_PCI_ID             *PciId,
@@ -380,7 +405,23 @@ AcpiOsReadPciConfiguration (
     UINT64                  *Value,
     UINT32                  Width)
 {
-	panic("%s", __func__);
+	Pcidev p;
+	p.tbdf = tbdf(PciId);
+	print("%s\n", __func__);
+	switch(Width) {
+	case 32:
+		*Value = pcicfgr32(&p, Reg);
+		break;
+	case 16:
+		*Value = pcicfgr16(&p, Reg);
+		break;
+	case 8:
+		*Value = pcicfgr8(&p, Reg);
+		break;
+	default:
+		panic("Can't read pci: bad width %d\n", Width);	
+	}
+
 	return AE_OK;
 
 }
@@ -392,7 +433,23 @@ AcpiOsWritePciConfiguration (
     UINT64                  Value,
     UINT32                  Width)
 {
-	panic("%s", __func__);
+	Pcidev p;
+	p.tbdf = tbdf(PciId);
+	print("%s\n", __func__);
+	switch(Width) {
+	case 32:
+		pcicfgw32(&p, Reg, Value);
+		break;
+	case 16:
+		pcicfgw16(&p, Reg, Value);
+		break;
+	case 8:
+		pcicfgw8(&p, Reg, Value);
+		break;
+	default:
+		panic("Can't read pci: bad width %d\n", Width);	
+	}
+
 	return AE_OK;
 }
 
@@ -404,6 +461,7 @@ AcpiOsReadable (
     void                    *Pointer,
     ACPI_SIZE               Length)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -414,6 +472,7 @@ AcpiOsWritable (
     void                    *Pointer,
     ACPI_SIZE               Length)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -423,6 +482,7 @@ UINT64
 AcpiOsGetTimer (
     void)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -433,6 +493,7 @@ AcpiOsSignal (
     UINT32                  Function,
     void                    *Info)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -461,6 +522,7 @@ void
 AcpiOsFree (
     void *                  Memory)
 {
+	print("%s\n", __func__);
 	free(Memory);
 }
 
@@ -468,6 +530,7 @@ void *
 AcpiOsAllocate (
     ACPI_SIZE               Size)
 {
+	print("%s\n", __func__);
 	return malloc(Size);
 }
 
@@ -476,8 +539,10 @@ AcpiOsMapMemory (
     ACPI_PHYSICAL_ADDRESS   Where,
     ACPI_SIZE               Length)
 {
-	panic("%s", __func__);
-	return AE_OK;
+	void *v = vmap(Where, Length);
+	print("%s %p = vmap(%p,0x%x)\n", __func__, v, (void*)Where, Length);
+	print("Val @ %p is 0x%x\n", v, *(int *)v);
+	return v;
 }
 
 void
@@ -485,7 +550,8 @@ AcpiOsUnmapMemory (
     void                    *LogicalAddress,
     ACPI_SIZE               Size)
 {
-	panic("%s", __func__);
+	print("%s %p %d \n", __func__, LogicalAddress, Size);
+	vunmap(LogicalAddress, Size);
 }
 
 ACPI_STATUS
@@ -493,7 +559,9 @@ AcpiOsGetPhysicalAddress (
     void                    *LogicalAddress,
     ACPI_PHYSICAL_ADDRESS   *PhysicalAddress)
 {
-	panic("%s", __func__);
+	ACPI_PHYSICAL_ADDRESS ret = mmuphysaddr((uintptr_t)LogicalAddress);
+	print("%s %p = mmyphysaddr(%p)", __func__, (void *)ret, LogicalAddress);
+	*PhysicalAddress = ret;
 	return AE_OK;
 }
 
@@ -505,6 +573,7 @@ AcpiOsCreateSemaphore (
     UINT32                  InitialUnits,
     ACPI_SEMAPHORE          *OutHandle)
 {
+	//print("%s\n", __func__);
 	*OutHandle = (ACPI_SEMAPHORE) 1;
 	return AE_OK;
 }
@@ -513,6 +582,7 @@ ACPI_STATUS
 AcpiOsDeleteSemaphore (
     ACPI_SEMAPHORE          Handle)
 {
+	//print("%s\n", __func__);
 	return AE_OK;
 }
 
@@ -522,6 +592,7 @@ AcpiOsWaitSemaphore (
     UINT32                  Units,
     UINT16                  Timeout)
 {
+	//print("%s\n", __func__);
 	return AE_OK;
 }
 
@@ -530,6 +601,7 @@ AcpiOsSignalSemaphore (
     ACPI_SEMAPHORE          Handle,
     UINT32                  Units)
 {
+	//print("%s\n", __func__);
 	return AE_OK;
 }
 
@@ -538,6 +610,7 @@ ACPI_STATUS
 AcpiOsCreateLock (
     ACPI_SPINLOCK           *OutHandle)
 {
+	//print("%s\n", __func__);
 	*OutHandle = nil;
 	return AE_OK;
 }
@@ -546,12 +619,14 @@ void
 AcpiOsDeleteLock (
     ACPI_SPINLOCK           Handle)
 {
+	//print("%s\n", __func__);
 }
 
 ACPI_CPU_FLAGS
 AcpiOsAcquireLock (
     ACPI_SPINLOCK           Handle)
 {
+	//print("%s\n", __func__);
 	return 0;
 }
 
@@ -560,6 +635,20 @@ AcpiOsReleaseLock (
     ACPI_SPINLOCK           Handle,
     ACPI_CPU_FLAGS          Flags)
 {
+	//print("%s\n", __func__);
+}
+
+struct handler {
+	ACPI_OSD_HANDLER        ServiceRoutine;
+	void                    *Context;
+};
+
+/* The ACPI interrupt signature and the Harvey one are not compatible. So, we pass an arg to
+ * intrenable that can in turn be used to this function to call the ACPI handler. */
+static void acpihandler(Ureg *_, void *arg)
+{
+	struct handler *h = arg;
+	h->ServiceRoutine(h->Context);
 }
 
 ACPI_STATUS
@@ -568,7 +657,16 @@ AcpiOsInstallInterruptHandler (
     ACPI_OSD_HANDLER        ServiceRoutine,
     void                    *Context)
 {
-	panic("%s", __func__);
+	/* minix says "don't do it". So we don't, yet. */
+	return AE_OK;
+	struct handler *h = malloc(sizeof(*h));
+	if (! h)
+		return AE_NO_MEMORY;
+	h->ServiceRoutine = ServiceRoutine;
+	h->Context = Context;
+	print("%s %d %p %p \n", __func__, InterruptNumber, ServiceRoutine, Context);
+	/* once enabled, can't be disabled; ignore the return value unless it's nil. */
+	intrenable(InterruptNumber, acpihandler, h, 0x5, "ACPI interrupt handler");
 	return AE_OK;
 }
 
@@ -577,6 +675,7 @@ AcpiOsRemoveInterruptHandler (
     UINT32                  InterruptNumber,
     ACPI_OSD_HANDLER        ServiceRoutine)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -585,6 +684,7 @@ void
 AcpiOsWaitEventsComplete (
 	void)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 }
 
@@ -592,6 +692,7 @@ void
 AcpiOsSleep (
     UINT64                  Milliseconds)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 }
 
@@ -599,6 +700,7 @@ void
 AcpiOsStall(
     UINT32                  Microseconds)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 }
 
@@ -606,6 +708,7 @@ ACPI_THREAD_ID
 AcpiOsGetThreadId (
     void)
 {
+	//print("%s\n", __func__);
 	Proc *up = externup();
 	return up->pid;
 }
@@ -616,6 +719,7 @@ AcpiOsExecute (
     ACPI_OSD_EXEC_CALLBACK  Function,
     void                    *Context)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -626,7 +730,22 @@ AcpiOsReadPort (
     UINT32                  *Value,
     UINT32                  Width)
 {
-	panic("%s", __func__);
+	/* Ooooooookay ... ACPI specifies the IO width in *bits*. */
+	switch(Width) {
+	case 4*8:
+		*Value = inl(Address);
+		break;
+	case 2*8:
+		*Value = ins(Address);
+		break;
+	case 1*8:
+		*Value = inb(Address);
+		break;
+	default:
+		panic("%s, bad width %d", __func__, Width);
+		break;
+	}
+	print("%s 0x%x 0x%x\n", __func__, Address, *Value);
 	return AE_OK;
 }
 
@@ -636,7 +755,21 @@ AcpiOsWritePort (
     UINT32                  Value,
     UINT32                  Width)
 {
-	panic("%s", __func__);
+	switch(Width) {
+	case 4*8:
+		outl(Address, Value);
+		break;
+	case 2*8:
+		outs(Address, Value);
+		break;
+	case 1*8:
+		outb(Address, Value);
+		break;
+	default:
+		panic("%s, bad width %d", __func__, Width);
+		break;
+	}
+	print("%s 0x%x 0x%x\n", __func__, Address, Value);
 	return AE_OK;
 }
 
@@ -649,6 +782,7 @@ AcpiOsReadMemory (
     UINT64                  *Value,
     UINT32                  Width)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -659,6 +793,7 @@ AcpiOsWriteMemory (
     UINT64                  Value,
     UINT32                  Width)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
@@ -670,8 +805,8 @@ ACPI_PHYSICAL_ADDRESS
 AcpiOsGetRootPointer (
     void)
 {
-	panic("%s", __func__);
-	return AE_OK;
+	print("%s returns %p\n", __func__, rsd);
+	return (ACPI_PHYSICAL_ADDRESS) PADDR(rsd);
 }
 
 ACPI_STATUS
@@ -679,6 +814,7 @@ AcpiOsPredefinedOverride (
     const ACPI_PREDEFINED_NAMES *InitVal,
     ACPI_STRING                 *NewVal)
 {
+	print("%s\n", __func__);
 	*NewVal = nil;
 	return AE_OK;
 }
@@ -688,6 +824,7 @@ AcpiOsTableOverride (
     ACPI_TABLE_HEADER       *ExistingTable,
     ACPI_TABLE_HEADER       **NewTable)
 {
+	print("%s\n", __func__);
 	*NewTable = nil;
 	return AE_OK;
 }
@@ -698,6 +835,7 @@ AcpiOsPhysicalTableOverride (
     ACPI_PHYSICAL_ADDRESS   *NewAddress,
     UINT32                  *NewTableLength)
 {
+	print("%s\n", __func__);
 	*NewAddress = (ACPI_PHYSICAL_ADDRESS)nil;
 	return AE_OK;
 }
@@ -711,6 +849,7 @@ AcpiOsGetLine (
     UINT32                  BufferLength,
     UINT32                  *BytesRead)
 {
+	print("%s\n", __func__);
 	panic("%s", __func__);
 	return AE_OK;
 }
