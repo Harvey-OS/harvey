@@ -1,10 +1,10 @@
 KLIBS=[
-	"//sys/src/libmemlayer:libkmemlayer",
-	"//sys/src/libmemdraw:libkmemdraw",
-	"//sys/src/libdraw:libkdraw",
-	"//sys/src/libc:libkc",
-	"//sys/src/libip:libkip",
-	"//sys/src/libsec:libksec",
+	"//sys/src/libmemlayer:klibmemlayer",
+	"//sys/src/libmemdraw:klibmemdraw",
+	"//sys/src/libdraw:klibdraw",
+	"//sys/src/libc:klibc",
+	"//sys/src/libip:klibip",
+	"//sys/src/libsec:klibsec",
 ]
 group(
     name="klibs",

@@ -441,7 +441,7 @@ KLIBC_SRCS = [
 
 
 cc_library(
-    name="libkc",
+    name="klibc",
     copts=KLIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
