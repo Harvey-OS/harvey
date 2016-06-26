@@ -1,7 +1,7 @@
 load("//sys/src/FLAGS", "KLIB_COMPILER_FLAGS", "LIB_COMPILER_FLAGS")
 
 cc_library(
-    name="libkip",
+    name="klibip",
     copts=KLIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
