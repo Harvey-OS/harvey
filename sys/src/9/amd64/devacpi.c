@@ -222,6 +222,7 @@ AcpiOsTerminate (
 int
 acpiinit(void)
 {
+	ACPI_TABLE_HEADER *h;
 	int status;
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
@@ -243,6 +244,10 @@ acpiinit(void)
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		panic("Can't Initialize ACPI objects");
+
+	status = AcpiGetTable(ACPI_SIG_MADT, 1, &h);
+        if (ACPI_FAILURE(status))
+		panic("Can't find a MADT");
 
 	return 0;
 }
@@ -522,7 +527,7 @@ void
 AcpiOsFree (
     void *                  Memory)
 {
-	print("%s\n", __func__);
+	//print("%s\n", __func__);
 	free(Memory);
 }
 
@@ -530,7 +535,7 @@ void *
 AcpiOsAllocate (
     ACPI_SIZE               Size)
 {
-	print("%s\n", __func__);
+	//print("%s\n", __func__);
 	return malloc(Size);
 }
 
@@ -708,6 +713,9 @@ ACPI_THREAD_ID
 AcpiOsGetThreadId (
     void)
 {
+	/* What to do here? ACPI won't take 0 for an answer.
+	 * I guess tell it we're 1? What do we do? */
+	return 1;
 	//print("%s\n", __func__);
 	Proc *up = externup();
 	return up->pid;
