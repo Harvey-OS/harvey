@@ -224,7 +224,7 @@ acpiinit(void)
 {
 	ACPI_TABLE_HEADER *h;
 	int status;
-	int apiccnt;
+	int apiccnt = 0;
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
 		panic("can't start acpi");
@@ -246,24 +246,59 @@ acpiinit(void)
         if (ACPI_FAILURE(status))
 		panic("Can't Initialize ACPI objects");
 
-	for(apiccnt = 1; ;apiccnt++) {
-		extern uint8_t *apicbase;
-		ACPI_TABLE_MADT *m;
-		status = AcpiGetTable(ACPI_SIG_MADT, apiccnt, &h);
-		if (ACPI_FAILURE(status))
-			break;
-		m = (ACPI_TABLE_MADT *)h;
-		print("APIC %d: %p 0x%x\n", apiccnt, (void *)(uint64_t)m->Address, m->Flags);
-		if(apicbase == nil){
-			if((apicbase = vmap((uintptr_t)m->Address, 1024)) == nil){
-				panic("%s: can't map apicbase\n", __func__);
-			}
-			print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
+	int sublen;
+	uint8_t *p;
+	extern uint8_t *apicbase;
+	ACPI_TABLE_MADT *m;
+	status = AcpiGetTable(ACPI_SIG_MADT, apiccnt, &h);
+	if (ACPI_FAILURE(status))
+		panic("Can't find a MADT");
+	m = (ACPI_TABLE_MADT *)h;
+	print("APIC %d: %p 0x%x\n", apiccnt, (void *)(uint64_t)m->Address, m->Flags);
+	if(apicbase == nil){
+		if((apicbase = vmap((uintptr_t)m->Address, 1024)) == nil){
+			panic("%s: can't map apicbase\n", __func__);
 		}
-
+		print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
 	}
-	if ((apiccnt == 1) && ACPI_FAILURE(status))
-			panic("Can't find a MADT");
+
+	p = (void*)&m[1];
+	sublen = m->Header.Length;
+	/* we only process the ones we're certain we need to. */
+	while (sublen > 0) {
+		switch(p[0]){
+		case ACPI_MADT_TYPE_LOCAL_APIC:
+		{
+			ACPI_MADT_LOCAL_APIC *l = (void *)p;
+			if (!l->LapicFlags)
+				break;
+			apicinit(l->Id, m->Address, apiccnt == 1);
+			apiccnt++;
+		}
+			break;
+		case ACPI_MADT_TYPE_IO_APIC:
+		{
+			ACPI_MADT_IO_APIC *io = (void *)p;
+			print("IOapic %d @ %p\n", io->Id, io->Address);
+			ioapicinit(io->Id, io->Address);
+		}
+			break;
+		case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE:
+		{
+			ACPI_MADT_INTERRUPT_OVERRIDE *e = (void *)p;
+			print("What an eyesore. Bus %d, SourceIrq %d, GlobalIrq %d, InitFlags 0x%x\n",
+			      e->Bus, e->SourceIrq, e->GlobalIrq, e->IntiFlags);
+		}
+		break;
+		case ACPI_MADT_TYPE_LOCAL_APIC_NMI:
+			break;
+		default:
+			print("%s: can't handle subtable type %d\n", __func__, p[0]);
+			break;
+		}
+		sublen -= p[1];
+		p += p[1];
+	}
 
 	return 0;
 }
