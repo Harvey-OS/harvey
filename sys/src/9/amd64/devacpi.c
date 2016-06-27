@@ -247,12 +247,20 @@ acpiinit(void)
 		panic("Can't Initialize ACPI objects");
 
 	for(apiccnt = 1; ;apiccnt++) {
+		extern uint8_t *apicbase;
 		ACPI_TABLE_MADT *m;
 		status = AcpiGetTable(ACPI_SIG_MADT, apiccnt, &h);
 		if (ACPI_FAILURE(status))
 			break;
 		m = (ACPI_TABLE_MADT *)h;
 		print("APIC %d: %p 0x%x\n", apiccnt, (void *)(uint64_t)m->Address, m->Flags);
+		if(apicbase == nil){
+			if((apicbase = vmap((uintptr_t)m->Address, 1024)) == nil){
+				panic("%s: can't map apicbase\n", __func__);
+			}
+			print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
+		}
+
 	}
 	if ((apiccnt == 1) && ACPI_FAILURE(status))
 			panic("Can't find a MADT");
