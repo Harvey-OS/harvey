@@ -224,6 +224,7 @@ acpiinit(void)
 {
 	ACPI_TABLE_HEADER *h;
 	int status;
+	int apiccnt;
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
 		panic("can't start acpi");
@@ -245,9 +246,16 @@ acpiinit(void)
         if (ACPI_FAILURE(status))
 		panic("Can't Initialize ACPI objects");
 
-	status = AcpiGetTable(ACPI_SIG_MADT, 1, &h);
-        if (ACPI_FAILURE(status))
-		panic("Can't find a MADT");
+	for(apiccnt = 1; ;apiccnt++) {
+		ACPI_TABLE_MADT *m;
+		status = AcpiGetTable(ACPI_SIG_MADT, apiccnt, &h);
+		if (ACPI_FAILURE(status))
+			break;
+		m = (ACPI_TABLE_MADT *)h;
+		print("APIC %d: %p 0x%x\n", apiccnt, (void *)(uint64_t)m->Address, m->Flags);
+	}
+	if ((apiccnt == 1) && ACPI_FAILURE(status))
+			panic("Can't find a MADT");
 
 	return 0;
 }
