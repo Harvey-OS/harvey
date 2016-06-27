@@ -79,7 +79,7 @@ enum {						/* Tdc */
 	DivX1		= 0x0000000b,		/* Divide by 1 */
 };
 
-static uint8_t* apicbase;
+uint8_t* apicbase;
 static int apmachno = 1;
 
 Apic	xlapic[Napic];
