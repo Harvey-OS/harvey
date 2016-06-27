@@ -553,6 +553,7 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
+die("dumpregs");
 
 	dumpgpr(ureg);
 

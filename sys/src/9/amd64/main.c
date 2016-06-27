@@ -420,7 +420,8 @@ void badcall(uint64_t where, uint64_t what)
 */
 
 void errstr(char *s, int i) {
-	panic("errstr");
+	print("errstr has :%s:, %d: what to do?\n", s, i);
+	//panic("errstr");
 }
 
 static int x = 0x123456;

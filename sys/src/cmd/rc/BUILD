@@ -10,7 +10,7 @@ cc_binary(
     ],
     deps=[
         ":syn",
-        "//sys/src/libip:libkip",
+        "//sys/src/libip:klibip",
         "//sys/src/libbio:libbio",
         "//sys/src/libauth:libauth",
         "//sys/src/libndb:libndb",
