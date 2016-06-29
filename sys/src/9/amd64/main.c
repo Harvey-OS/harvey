@@ -54,7 +54,7 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
-int nosmp = 0;
+int nosmp = 1;
 int enableacpi = 0;
 
 /*
@@ -586,7 +586,6 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 */
 	if (enableacpi){
 		acpiinit();
-		print("acpiinit();\n");
 	}
 
 	umeminit();
@@ -602,8 +601,14 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 
 	procinit0();
-	mpsinit(maxcores);
+	if (! enableacpi)
+		mpsinit(maxcores);
+	print("CODE: apiconline();\n");
 	apiconline();
+	print("CODE: if(! nosmp) sipi();\n");
+	if (enableacpi){
+		die("ACPI after apiconline\n");
+	}
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();

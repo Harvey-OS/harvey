@@ -361,8 +361,10 @@ ioapicintrenable(Vctl* v)
 			 */
 			extern int mpisabusno;
 
-			if(mpisabusno == -1)
-				panic("no ISA bus allocated");
+			if(mpisabusno == -1) {
+				print("no ISA bus allocated");
+				return -1;
+			}
 			busno = mpisabusno;
 			devno = v->Vkey.irq<<2;
 		}
@@ -392,11 +394,13 @@ ioapicintrenable(Vctl* v)
 	}
 
 	rdt = nil;
-	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
+	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next) {
+print("IOAPIC: find it, rbus->devno %d devno %d\n", rbus->devno, devno);
 		if(rbus->devno == devno){
 			rdt = rbus->rdt;
 			break;
 		}
+	}
 	if(rdt == nil){
 		extern int mpisabusno;
 
@@ -406,6 +410,7 @@ ioapicintrenable(Vctl* v)
 		 * just defaulted to ISA.
 		 * Rewrite this to be cleaner.
 		 */
+print("TRY 2!\n");
 		if((busno = mpisabusno) == -1)
 			return -1;
 		devno = v->Vkey.irq<<2;
