@@ -224,7 +224,7 @@ acpiinit(void)
 {
 	ACPI_TABLE_HEADER *h;
 	int status;
-	int apiccnt = 0;
+	int apiccnt = 1;
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
 		panic("can't start acpi");
@@ -273,6 +273,7 @@ acpiinit(void)
 			if (!l->LapicFlags)
 				break;
 			apicinit(l->Id, m->Address, apiccnt == 1);
+print("CODE: apicinit(%d, %p, %d\n", l->Id, m->Address, apiccnt == 1);
 			apiccnt++;
 		}
 			break;
@@ -281,6 +282,7 @@ acpiinit(void)
 			ACPI_MADT_IO_APIC *io = (void *)p;
 			print("IOapic %d @ %p\n", io->Id, io->Address);
 			ioapicinit(io->Id, io->Address);
+print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 		}
 			break;
 		case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE:
@@ -291,6 +293,10 @@ acpiinit(void)
 		}
 		break;
 		case ACPI_MADT_TYPE_LOCAL_APIC_NMI:
+		{
+			ACPI_MADT_LOCAL_APIC_NMI *nmi = (void *)p;
+			apicnmi(nmi->ProcessorId, nmi->Lint, nmi->IntiFlags);
+		}
 			break;
 		default:
 			print("%s: can't handle subtable type %d\n", __func__, p[0]);
