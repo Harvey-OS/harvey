@@ -236,6 +236,7 @@ extern int apicisr(int);
 extern int apiconline(void);
 extern void apicpri(int);
 extern void apicsipi(int, uintmem);
+extern void apicnmi(int, int, int);
 
 extern void ioapicinit(int, uintmem);
 extern void ioapicintrinit(int, int, int, int, uint32_t);

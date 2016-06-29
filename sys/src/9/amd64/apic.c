@@ -194,6 +194,33 @@ apictimer(Ureg* ureg, void* v)
 	timerintr(ureg, 0);
 }
 
+/* this supports the ACPI NMI subtable in the MADT table. */
+void
+apicnmi(int id, int lint, int flags)
+{
+	static char fail[128];
+	int i;
+	for(i = 0; i < Napic; i++) {
+		if (!xlapic[i].useable)
+			continue;
+		if (xlapic[i].Lapic.machno != id)
+			continue;
+		print("CODE: xlapic[%d].Lapic.lvt[%d] = 0x%x\n", i, lint, 0x10400);
+		print("CODE: xlapic[%d].Lapic.lvt[0] = 0x%x\n", i, 0x10700);
+		/* Nothing much changes. The NMI is always lint1, and we need an extint
+		 * on lint0. So just do it. */
+		/* TODO: pay attention to the flags, but they'll never change.
+		 * TODO: the _MP_ always had Im set, which seems wrong. But do what it did. */
+		snprint(fail, sizeof(fail), "%s wants lint to be 1; it's %d\n", lint);
+		if (lint != 1)
+			panic(fail);
+		/* Im, NMI, vector 0 */
+		xlapic[i].Lapic.lvt[lint] = 0x10400;
+		/* Im, ExtINT, vector 0 */
+		xlapic[i].Lapic.lvt[0] = 0x10700;
+	}
+}
+
 int
 apiconline(void)
 {
