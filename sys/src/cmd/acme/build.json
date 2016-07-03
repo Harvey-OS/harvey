@@ -1,6 +1,6 @@
 {
 	"acme": {
-	    "CFlags": [
+		"CFlags": [
 		],
 		"Include": [
 			"../cmd.json"
@@ -28,6 +28,9 @@
 			"util.c",
 			"wind.c",
 			"xfid.c"
-		]
+		],
+	        "Post": [
+	                "mkdir -p $HARVEY/mnt/acme"
+	        ]
 	}
 }

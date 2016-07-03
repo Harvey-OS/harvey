@@ -54,7 +54,8 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
-int nosmp = 1;
+int nosmp = 0;
+int enableacpi = 0;
 
 /*
  *	this may need improvement, but right now it's just for
@@ -148,6 +149,7 @@ options(int argc, char* argv[])
 	vflag = dbgflg['v'];
 	// hack.
 	nosmp = dbgflg['n'];
+	enableacpi = dbgflg['a'];
 }
 
 void
@@ -418,7 +420,8 @@ void badcall(uint64_t where, uint64_t what)
 */
 
 void errstr(char *s, int i) {
-	panic("errstr");
+	print("errstr has :%s:, %d: what to do?\n", s, i);
+	//panic("errstr");
 }
 
 static int x = 0x123456;
@@ -581,7 +584,10 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-if (0){	acpiinit(); hi("	acpiinit();\n");}
+	if (enableacpi){
+		acpiinit();
+		print("acpiinit();\n");
+	}
 
 	umeminit();
 	trapinit();

@@ -1,0 +1,19 @@
+{
+	"Libacpi": {
+		"Include": [
+			"../../kacpiflags.json"
+		],
+		"SourceFiles": [
+			"tbdata.c",
+			"tbfadt.c",
+			"tbfind.c",
+			"tbinstal.c",
+			"tbprint.c",
+			"tbutils.c",
+			"tbxface.c",
+			"tbxfload.c",
+			"tbxfroot.c"
+			]
+		}
+}
+	

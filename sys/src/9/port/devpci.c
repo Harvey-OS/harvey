@@ -15,12 +15,18 @@
 #include	"io.h"
 #include	"../port/error.h"
 
+// Include the definitions from VIRTIO spec v1.0
+// http://docs.oasis-open.org/virtio/virtio/v1.0/csprd02/listings/virtio_ring.h
+
+#include	"virtio_ring.h"
+
 enum {
 	Qtopdir = 0,
 
 	Qpcidir,
 	Qpcictl,
 	Qpciraw,
+	Qpcicap,
 };
 
 #define TYPE(q)		((uint32_t)(q).path & 0x0F)
@@ -36,6 +42,7 @@ extern Dev pcidevtab;
 static int
 pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 {
+	Pcidev *p;
 	Proc *up = externup();
 	Qid q;
 
@@ -50,6 +57,19 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%draw",
 			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
 		devdir(c, q, up->genbuf, 128, eve, 0664, dp);
+		return 1;
+
+	// Display device capabilities as a directory, 
+	// each capability has an entry as a file.
+
+	case Qpcicap:
+		p = pcimatchtbdf(tbdf);
+		if((p == nil) || (p->capcnt == 0))
+			return 0;
+		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%dcap",
+			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
+		q.type = QTDIR;
+		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 		return 1;
 	}
 	return -1;
@@ -80,20 +100,44 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 			return 1;
 		}
 		p = pcimatch(nil, 0, 0);
-		while(s >= 2 && p != nil) {
+		while(s >= 3 && p != nil) {
 			p = pcimatch(p, 0, 0);
-			s -= 2;
+			s -= 3;
 		}
 		if(p == nil)
 			return -1;
 		return pcidirgen(c, s+Qpcictl, p->tbdf, dp);
+	case Qpcicap:
 	case Qpcictl:
 	case Qpciraw:
 		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			return -1;
-		return pcidirgen(c, TYPE(c->qid), tbdf, dp);
+		
+		// Generate a directory entry for each PCI device capability
+		// gathered during the PCI bus scan.
+		// Each capability is displayed as a file of length equal to the length
+		// of the capability in the memory, and the file name is formatted as
+		// capN.vV.lL.tT.bB.oO where N is capability index as collected during
+		// the PCI bus scan, V is capability vendor code (cap_vndr), L is
+		// capability length in the PCI config space (cap_len), T is capability
+		// config type (cfg_type), B is BAR number, and O is offset within BAR.
+		// The capabilities files cannot be read or written. They are displayed
+		// for exploratory purposes only.
+			
+		if(TYPE(c->qid) == Qpcicap) {
+			if(s >= p->capcnt)
+				return -1;
+			q = (Qid){BUSBDF(tbdf)|(Qpcicap + s + 1), 0, 0};
+			Pcicap *pcp = p->capidx[s];
+			snprint(up->genbuf, sizeof up->genbuf, "cap%d.v%d.l%d.t%d.b%d.o%d", 
+				s, pcp->vndr, pcp->caplen, pcp->type, pcp->bar, pcp->offset);
+			devdir(c, q, up->genbuf, pcp->length, eve, 0444, dp);
+			return 1;
+		} else {
+			return pcidirgen(c, TYPE(c->qid), tbdf, dp);
+		}
 	default:
 		break;
 	}
@@ -146,6 +190,7 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 	switch(TYPE(c->qid)){
 	case Qtopdir:
 	case Qpcidir:
+	case Qpcicap:
 		return devdirread(c, a, n, (Dirtab *)0, 0L, pcigen);
 	case Qpcictl:
 		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);

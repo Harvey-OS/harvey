@@ -73,7 +73,6 @@
 			"../port/sysfile.c",
 			"../port/sysproc.c",
 			"../port/sysseg.c",
-			"../port/syssem.c",
 			"../port/syszio.c",
 			"../port/taslock.c",
 			"../port/tod.c",

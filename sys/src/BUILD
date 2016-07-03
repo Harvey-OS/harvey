@@ -1,17 +1,17 @@
+KLIBS=[
+	"//sys/src/libmemlayer:klibmemlayer",
+	"//sys/src/libmemdraw:klibmemdraw",
+	"//sys/src/libdraw:klibdraw",
+	"//sys/src/libc:klibc",
+	"//sys/src/libip:klibip",
+	"//sys/src/libsec:klibsec",
+]
 group(
     name="klibs",
-    deps=[
-        "//sys/src/libc:libkc",
-        "//sys/src/libip:libkip",
-        "//sys/src/libdraw:libkdraw",
-        "//sys/src/libmemdraw:libkmemdraw",
-        "//sys/src/libmemlayer:libkmemlayer",
-        "//sys/src/libsec:libksec",
-    ]
+    deps=KLIBS
 )
-group(
-    name="libs",
-    deps=[
+
+LIBS=[
         "//sys/src/libc:libc",
         "//sys/src/libip:libip",
         "//sys/src/libdraw:libdraw",
@@ -42,7 +42,10 @@ group(
         "//sys/src/libthread:libthread",
         "//sys/src/libusb:libusb",
         "//sys/src/libventi:libventi",
-    ]
+]
+group(
+    name="libs",
+    deps=LIBS
 )
 
 

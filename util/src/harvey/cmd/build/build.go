@@ -122,6 +122,7 @@ var (
 	arch = map[string]bool{
 		"amd64": true,
 		"riscv": true,
+		"aarch64": true,
 	}
 	debugPrint = flag.Bool("debug", false, "enable debug prints")
 	shellhack  = flag.Bool("shellhack", false, "spawn every command in a shell (forced on if LD_PRELOAD is set)")
@@ -343,12 +344,12 @@ func link(b *build) {
 			f := path.Base(n)
 			o := f[:len(f)] + ".o"
 			args := []string{"-o", n, o}
+			args = append(args, "-L", fromRoot("/$ARCH/lib"))
+			args = append(args, b.Libs...)
 			args = append(args, b.Oflags...)
 			if toolOpts, ok := b.ToolOpts[tools["ld"]]; ok {
 				args = append(args, toolOpts...)
 			}
-			args = append(args, "-L", fromRoot("/$ARCH/lib"))
-			args = append(args, b.Libs...)
 			run(b, *shellhack, exec.Command(tools["ld"], args...))
 		}
 		return
@@ -358,9 +359,9 @@ func link(b *build) {
 		args = append(args, toolOpts...)
 	}
 	args = append(args, b.ObjectFiles...)
-	args = append(args, b.Oflags...)
 	args = append(args, "-L", fromRoot("/$ARCH/lib"))
 	args = append(args, b.Libs...)
+	args = append(args, b.Oflags...)
 	run(b, *shellhack, exec.Command(tools["ld"], args...))
 }
 

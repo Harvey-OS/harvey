@@ -649,6 +649,7 @@ texttype(Text *t, Rune r)
 	uint q0, q1;
 	int nnb, nb, n, i;
 	int nr;
+	int linelen;
 	Rune *rp;
 	Text *u;
 
@@ -670,8 +671,13 @@ texttype(Text *t, Rune r)
 		}
 		return;
 	case Kdown:
-		n = t->Frame.maxlines/3;
-		goto case_Down;
+		typecommit(t);
+                q0 = t->q0;
+		nnb = textbswidth(t, 0x15); 
+                while(q0<t->file->Buffer.nc && textreadc(t, q0)!='\n')
+                        q0++;
+		textshow(t, q0 + nnb, q0+nnb, TRUE);
+		return;
 	case Kscrollonedown:
 		n = mousescrollsize(t->Frame.maxlines);
 		if(n <= 0)
@@ -684,8 +690,17 @@ texttype(Text *t, Rune r)
 		textsetorigin(t, q0, TRUE);
 		return;
 	case Kup:
-		n = t->Frame.maxlines/3;
-		goto case_Up;
+		typecommit(t);
+		nnb = 0;
+		if(t->q0>0 && textreadc(t, t->q0-1)!='\n')
+			nnb = textbswidth(t, 0x15); 
+		if( t->q0-nnb > 1  && textreadc(t, t->q0-nnb-1)=='\n' ) nnb++; 
+		textshow(t, t->q0-nnb, t->q0-nnb, TRUE); 
+		linelen = textbswidth(t, 0x15);
+		if (linelen > nnb){
+			textshow(t, t->q0 - (linelen - nnb), t->q0 - (linelen - nnb), TRUE);
+		}
+		return; 
 	case Kscrolloneup:
 		n = mousescrollsize(t->Frame.maxlines);
 		goto case_Up;

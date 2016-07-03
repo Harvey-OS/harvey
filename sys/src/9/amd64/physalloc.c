@@ -482,7 +482,7 @@ physinit(uintmem a, uint64_t size)
 
 	for(addr = a; addr < a+size; addr += len){
 		dom = 0;
-		len = acpimblocksize(addr, &dom);
+		len = 0; // acpimblocksize(addr, &dom);
 		/* len can be zero if there's no acpi information about addr */
 		if(len == 0 || addr + len > a + size)
 			len = a + size - addr;

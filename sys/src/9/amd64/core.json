@@ -19,14 +19,21 @@
 			"-Wno-sign-compare",
 			"-Wno-missing-field-initializers",
 			"-Wno-unused-parameter",
+			"-Wno-unused-function",
 			"-Wno-missing-braces",
 			"-Wno-parentheses",
 			"-Wno-unknown-pragmas",
-			"-Werror",
+			"-D__HARVEY__",
+			"-U_LINUX", "-U__linux__",
 			"-I", "/sys/src/9/amd64",
-			"-I", "/sys/src/9/port"
+			"-I", "/sys/src/9/port",
+			"-I", "/sys/src/libc/9syscall"
+		],
+	    "NoCFlags": [
+			"-Werror"
 		],
 		"Libs": [
+			"/$ARCH/lib/klibacpi.a",
 			"/$ARCH/lib/klibmemlayer.a",
 			"/$ARCH/lib/klibmemdraw.a",
 			"/$ARCH/lib/klibc.a",
@@ -73,6 +80,7 @@
 			"archamd64.c",
 			"asm.c",
 			"backtrace.c",
+			"../port/devbridge.c",
 		        "coreboot.c",
 			"ctype.c",
 			"devarch.c",
@@ -84,6 +92,7 @@
 			"i8254.c",
 			"i8259.c",
 			"ioapic.c",
+			"../port/log.c",
 			"main.c",
 			"map.c",
 			"memory.c",
