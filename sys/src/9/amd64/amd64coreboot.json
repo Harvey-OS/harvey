@@ -35,6 +35,7 @@
 					"pipe",
 					"pmc",
 					"proc",
+					"ram",
 					"regress",
 					"root",
 					"rtc",

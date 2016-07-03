@@ -35,6 +35,7 @@
 					"pci",
 					"pipe",
 					"proc",
+					"ram",
 					"regress",
 					"root",
 					"rtc",
