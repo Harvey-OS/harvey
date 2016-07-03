@@ -112,13 +112,20 @@ struct virtq_used {
         /* Only if VIRTIO_F_EVENT_IDX: le16 avail_event; */
 };
 
-struct virtq {
+/* few fields added comparing with the original spec */
+typedef struct virtq {
+		Lock l;
         unsigned int num;
+        unsigned int free;
+        unsigned int nfree;
+        
+        void *pdev;					// use this to reference the virtio device control structure which is per-driver
+        int idx;					// driver use only, index of the queue per device
 
         struct virtq_desc *desc;
         struct virtq_avail *avail;
         struct virtq_used *used;
-};
+} Virtq;
 
 static inline int virtq_need_event(uint16_t event_idx, uint16_t new_idx, uint16_t old_idx)
 {
