@@ -8,6 +8,8 @@
 - 
 
 #### QEMU output
+<details>
 ```
-
+<your output here>
 ```
+</details>
