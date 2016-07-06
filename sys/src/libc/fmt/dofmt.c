@@ -383,16 +383,20 @@ _ifmt(Fmt *f)
 		break;
 	case 'x':
 		base = 16;
+		f->flags |= FmtUnsigned;
 		break;
 	case 'X':
 		base = 16;
+		f->flags |= FmtUnsigned;
 		conv = "0123456789ABCDEF";
 		break;
 	case 'b':
 		base = 2;
+		f->flags |= FmtUnsigned;
 		break;
 	case 'o':
 		base = 8;
+		f->flags |= FmtUnsigned;
 		break;
 	default:
 		return -1;
