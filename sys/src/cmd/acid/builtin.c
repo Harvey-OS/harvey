@@ -1025,7 +1025,7 @@ patom(uint8_t type, Store *res)
 		Bprint(bout, "%d", (int)res->ival&0xffff);
 		break;
 	case 'U':
-		Bprint(bout, "%lud", (uint32_t)res->ival);
+		Bprint(bout, "%lu", (uint32_t)res->ival);
 		break;
 	case 'Z':
 		Bprint(bout, "%llud", res->ival);

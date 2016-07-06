@@ -214,10 +214,10 @@ main(int argc, char **argv)
 
 	bppsec = (float)stats->nproto / ((ttime/1e9)+.000001);
 
-	fprint(2, "\nread      %lud bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
-	fprint(2, "write     %lud bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
-	fprint(2, "protocol  %lud bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
-	fprint(2, "rpc       %lud count\n\n", stats->nrpc);
+	fprint(2, "\nread      %lu bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
+	fprint(2, "write     %lu bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
+	fprint(2, "protocol  %lu bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
+	fprint(2, "rpc       %lu count\n\n", stats->nrpc);
 
 	fprint(2, "%-10s %5s %5s %5s %5s %5s          T       R\n", 
 	      "Message", "Count", "Low", "High", "Time", "Averg");

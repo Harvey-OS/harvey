@@ -160,7 +160,7 @@ rtsched(void)
 	int fd;
 	char *ctl;
 
-	ctl = smprint("/proc/%ud/ctl", getpid());
+	ctl = smprint("/proc/%u/ctl", getpid());
 	if((fd = open(ctl, ORDWR)) < 0) 
 		sysfatal("%s: %r", ctl);
 	if(fprint(fd, "period 20ms") < 0)
@@ -433,6 +433,6 @@ getplaystat(char *p, char *e)
 	p = seprint(p, e, "full buffers %d of %d\n", full->n, full->s);
 	p = seprint(p, e, "playout buffers %d of %d\n", playout->n, playout->s);
 	p = seprint(p, e, "spare buffers %d of %d\n", spare->n, spare->s);
-	p = seprint(p, e, "bytes %lud / buffers %lud played\n", totbytes, totbuffers);
+	p = seprint(p, e, "bytes %lu / buffers %lu played\n", totbytes, totbuffers);
 	return p;
 }

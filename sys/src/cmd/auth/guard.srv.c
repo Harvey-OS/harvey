@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	 * challenge-response
 	 */
 	chal = lnrand(MAXNETCHAL);
-	snprint(buf, sizeof buf, "challenge: %lud\nresponse: ", chal);
+	snprint(buf, sizeof buf, "challenge: %lu\nresponse: ", chal);
 	n = strlen(buf) + 1;
 	if(write(1, buf, n) != n){
 		if(debug)
@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 				r = smprint("%.*s%s", Pinlen,
 					"******************", resp + Pinlen);
 			syslog(0, AUTHLOG,
-				"g-fail %s@%s: %s: resp %s to chal %lud",
+				"g-fail %s@%s: %s: resp %s to chal %lu",
 				user, raddr, err, r, chal);
 			free(r);
 		}

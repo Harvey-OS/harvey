@@ -1047,7 +1047,7 @@ static point_list *lialg_compute_dominant_points(point_list *points) {
 				int j;
 				fprint(2, "After interpolation:  %d ipts\n", ipts->npts);
 				for (j = 0; j < ipts->npts; j++) {
-					fprint(2, "  (%P), %lud\n", ipts->pts[j].Point, ipts->pts[j].chaincode);
+					fprint(2, "  (%P), %lu\n", ipts->pts[j].Point, ipts->pts[j].chaincode);
 				}
 				fflush(stderr);
 	}
@@ -1062,7 +1062,7 @@ static point_list *lialg_compute_dominant_points(point_list *points) {
 				int j;
 				fprint(2, "Dominant points:  ");
 				for (j = 0; j < dpts->npts; j++) {
-					fprint(2, "%P (%lud)  ", dpts->pts[j].Point, dpts->pts[j].chaincode);
+					fprint(2, "%P (%lu)  ", dpts->pts[j].Point, dpts->pts[j].chaincode);
 				}
 				fprint(2, "\n");
 				fflush(stderr);
@@ -1287,7 +1287,7 @@ static region_list *lialg_compute_regions(point_list *pts) {
 	/* Debugging. */
 	if (lidebug > 1) {
 				for (i = 0; i < pts->npts; i++) {
-					fprint(2, "%3d:  (%P)  %lud  ",
+					fprint(2, "%3d:  (%P)  %lu  ",
 								i, pts->pts[i].Point, pts->pts[i].chaincode);
 					for (j = 0; j < 2 + LP_FILTER_ITERS; j++)
 						fprint(2, "%d  ", R[j][i]);

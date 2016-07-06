@@ -352,12 +352,12 @@ map(Rune rp[], int font)	/* figure out mapping for char in this font */
 	Rune r;
 
 	if((unsigned)font >= NFONT) {
-		dprint(2, "map: font %ud >= NFONT (%d)\n", font, NFONT);
+		dprint(2, "map: font %u >= NFONT (%d)\n", font, NFONT);
 		return 0;
 	}
 	m = fmap[font];
 	if(m >= nelem(charmap)) {
-		dprint(2, "map: fmap[font] %ud >= nelem(charmap) (%d)\n",
+		dprint(2, "map: fmap[font] %u >= nelem(charmap) (%d)\n",
 			m, nelem(charmap));
 		return 0;
 	}

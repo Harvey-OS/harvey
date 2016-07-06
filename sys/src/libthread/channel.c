@@ -606,7 +606,7 @@ altexec(Alt *a, int spl)
 		_threaddebug(DBGCHAN, "unlocking the chanlock");
 		unlock(&chanlock);
 		_procsplx(spl);
-		_threaddebug(DBGCHAN, "chanlock is %lud",
+		_threaddebug(DBGCHAN, "chanlock is %lu",
 			     *(uint32_t*)&chanlock);
 		while(_threadrendezvous(b->tag, 0) == Intred)
 			;

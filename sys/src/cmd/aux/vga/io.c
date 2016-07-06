@@ -295,7 +295,7 @@ alloc(uint32_t nbytes)
 	void *v;
 
 	if((v = malloc(nbytes)) == 0)
-		error("alloc: %lud bytes - %r\n", nbytes);
+		error("alloc: %lu bytes - %r\n", nbytes);
 
 	return memset(v, 0, nbytes);
 }

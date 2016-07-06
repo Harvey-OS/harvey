@@ -423,7 +423,7 @@ mpsinit(int maxcores)
 		panic("NO _MP_ table");
 	}
 	if(DBGFLG){
-		DBG("_MP_ @ %#p, addr %#ux length %ud rev %d",
+		DBG("_MP_ @ %#p, addr %#ux length %u rev %d",
 			mp, l32get(mp->addr), mp->length, mp->revision);
 		for(i = 0; i < sizeof(mp->feature); i++)
 			DBG(" %2.2#ux", mp->feature[i]);

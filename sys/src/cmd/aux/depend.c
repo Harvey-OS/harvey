@@ -380,7 +380,7 @@ fsrun(void *a)
 			fatal("read9pmsg error: %r");
 
 		if(convM2S(r->buf, n, &r->f) == 0){
-			fprint(2, "can't convert %ux %ux %ux\n", r->buf[0],
+			fprint(2, "can't convert %x %x %x\n", r->buf[0],
 				r->buf[1], r->buf[2]);
 			free(r);
 			continue;

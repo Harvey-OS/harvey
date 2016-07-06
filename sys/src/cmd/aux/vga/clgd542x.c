@@ -231,7 +231,7 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vga->f[0] == 0)
 		vga->f[0] = vga->mode->frequency;
 	if(vga->f[0] > gd542x->vclk)
-		error("%s: pclk %lud too high (> %lud)\n",
+		error("%s: pclk %lu too high (> %lu)\n",
 			ctlr->name, vga->f[0], gd542x->vclk);
 
 	if(mode->z > 8)

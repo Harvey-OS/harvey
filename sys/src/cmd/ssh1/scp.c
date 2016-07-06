@@ -589,7 +589,7 @@ send(char *file)
 	}
 
 	if(pflag){
-		fprint(remotefd1, "T%lud 0 %lud 0\n", d->mtime, d->atime);
+		fprint(remotefd1, "T%lu 0 %lu 0\n", d->mtime, d->atime);
 		if(getresponse() < 0)
 			goto Return;
 	}
@@ -677,7 +677,7 @@ senddir(char *name, int fd, Dir *dirp)
 	char file[256];
 
 	if(pflag){
-		fprint(remotefd1, "T%lud 0 %lud 0\n", dirp->mtime, dirp->atime);
+		fprint(remotefd1, "T%lu 0 %lu 0\n", dirp->mtime, dirp->atime);
 		if(getresponse() < 0)
 			return;
 	}

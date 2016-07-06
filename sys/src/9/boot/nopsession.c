@@ -40,7 +40,7 @@ rpc(int fd, int type)
 		l += n;
 	}
 	if(convM2S(buf, &hdr, n) == 0){
-		print("%ux %ux %ux\n", buf[0], buf[1], buf[2]);
+		print("%x %x %x\n", buf[0], buf[1], buf[2]);
 		fatal("rpc format");
 	}
 	if(hdr.tag != NOTAG)

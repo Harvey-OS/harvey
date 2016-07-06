@@ -175,7 +175,7 @@ cmdopen(SmbClient *c, int argc, char *argv[])
 		}
 		return (errclass << 16) | error;
 	}
-	print("fid 0x%.4ux attr 0x%.4ux time %ld size %lud accessallowed %ud\n",
+	print("fid 0x%.4ux attr 0x%.4ux time %ld size %lu accessallowed %u\n",
 		fid, attr, mtime, size, accessallowed);
 	return 0;
 }

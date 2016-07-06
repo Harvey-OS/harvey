@@ -39,13 +39,13 @@ flprint(char *fmt, ...)
 static void
 flclre(Fsck *f, Block *b, int o)
 {
-	Bprint(&bout, "# clre 0x%ux %d\n", b->addr, o);
+	Bprint(&bout, "# clre 0x%x %d\n", b->addr, o);
 }
 
 static void
 flclrp(Fsck *f, Block *b, int o)
 {
-	Bprint(&bout, "# clrp 0x%ux %d\n", b->addr, o);
+	Bprint(&bout, "# clrp 0x%x %d\n", b->addr, o);
 }
 
 static void
@@ -57,7 +57,7 @@ flclri(Fsck *f, char *name, MetaBlock *m, int i, Block *b)
 static void
 flclose(Fsck *f, Block *b, uint32_t epoch)
 {
-	Bprint(&bout, "# bclose 0x%ux %ud\n", b->addr, epoch);
+	Bprint(&bout, "# bclose 0x%x %u\n", b->addr, epoch);
 }
 
 void

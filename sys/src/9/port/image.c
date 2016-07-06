@@ -113,7 +113,7 @@ initimage(void)
 {
 	Image *i, *ie;
 
-	DBG("initimage: %uld images\n", conf.nimage);
+	DBG("initimage: %lu images\n", conf.nimage);
 	imagealloc.mru = malloc(conf.nimage*sizeof(Image));
 	if(imagealloc.mru == nil)
 		panic("imagealloc: no memory");
@@ -142,7 +142,7 @@ imagereclaim(void)
 	/* Somebody is already cleaning the page cache */
 	if(!canqlock(&imagealloc.ireclaim))
 		return;
-	DBG("imagereclaim maxt %ulld noluck %d nolock %d\n",
+	DBG("imagereclaim maxt %llu noluck %d nolock %d\n",
 		irstats.maxt, irstats.noluck, irstats.nolock);
 	ticks0 = fastticks(nil);
 	if(!canlock(&imagealloc.Lock)){

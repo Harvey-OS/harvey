@@ -186,7 +186,7 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 			if(pp[i] == nil)
 				panic("bad page reference in snapshot");
 			if(debug)
-				fprint(2, "0x%.8llux same as %s pid %lud 0x%.8llux\n", s->offset+i*Pagesize, t=='m'?"mem":"text", pid, off);
+				fprint(2, "0x%.8llux same as %s pid %lu 0x%.8llux\n", s->offset+i*Pagesize, t=='m'?"mem":"text", pid, off);
 			break;
 		case 'r':
 			if((n=Bread(b, buf, len)) != len)

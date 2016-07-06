@@ -21,7 +21,7 @@ nbdgramdump(NbDgram *s)
 	case NbDgramDirectUnique:
 	case NbDgramDirectGroup:
 	case NbDgramBroadcast:
-		print("\tlength %ud offset %ud srcname %B dstname %B\n",
+		print("\tlength %u offset %u srcname %B dstname %B\n",
 			s->datagram.length, s->datagram.offset, s->datagram.srcname, s->datagram.dstname);
 		break;
 	}

@@ -156,7 +156,7 @@ emalloc(uint32_t n)
 	if(p == nil){
 		if(abortonmem)
 			abort();
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %lu", n);
 	}
 	memset(p, 0xa5, n);
 	setmalloctag(p, getcallerpc());
@@ -173,7 +173,7 @@ ezmalloc(uint32_t n)
 	if(p == nil){
 		if(abortonmem)
 			abort();
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %lu", n);
 	}
 	memset(p, 0, n);
 	setmalloctag(p, getcallerpc());
@@ -188,7 +188,7 @@ erealloc(void *p, uint32_t n)
 	if(p == nil){
 		if(abortonmem)
 			abort();
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %lu", n);
 	}
 	setrealloctag(p, getcallerpc());
 if(0)print("erealloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc());

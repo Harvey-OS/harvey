@@ -321,7 +321,7 @@ main(int argc, char** argv)
 			vga->panning = 0;
 		}
 
-		trace("vmf %d vmdf %d vf1 %lud vbw %lud\n",
+		trace("vmf %d vmdf %d vf1 %lu vbw %lu\n",
 			vga->mode->frequency, vga->mode->deffrequency,
 			vga->f[1], vga->mode->videobw);
 		if(vga->mode->frequency == 0 && vga->mode->videobw != 0 && vga->f[1] != 0){
@@ -350,7 +350,7 @@ main(int argc, char** argv)
 			freq = rr*(vga->mode->ht*vga->mode->vt);
 			vga->mode->frequency = freq;
 
-			trace("using frequency %lud rr %.2f membw %lud\n",
+			trace("using frequency %lu rr %.2f membw %lu\n",
 				freq, rr, membw);
 		}
 		else if(vga->mode->frequency == 0)
@@ -387,7 +387,7 @@ main(int argc, char** argv)
 		if(lflag){
 			trace("main->load\n");
 			if(vga->vmz && (vga->virtx*vga->virty*vga->mode->z)/8 > vga->vmz)
-				error("%s: not enough video memory - %lud\n",
+				error("%s: not enough video memory - %lu\n",
 					vga->ctlr->name, vga->vmz);
 
 			if(vga->ctlr->type)
@@ -425,7 +425,7 @@ main(int argc, char** argv)
 			if(vga->vesa)
 				vgactlw("type", vtype);
 
-			sprint(buf, "%ludx%ludx%d %s",
+			sprint(buf, "%lux%lux%d %s",
 				vga->virtx, vga->virty,
 				vga->mode->z, vga->mode->chan);
 			if(rflag){

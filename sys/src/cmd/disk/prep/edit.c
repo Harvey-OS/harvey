@@ -541,7 +541,7 @@ emalloc(uint32_t sz)
 
 	v = malloc(sz);
 	if(v == nil)
-		sysfatal("malloc %lud fails", sz);
+		sysfatal("malloc %lu fails", sz);
 	memset(v, 0, sz);
 	return v;
 }

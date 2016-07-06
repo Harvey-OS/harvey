@@ -1970,7 +1970,7 @@ prinstr(Instr *ip, char *fmt)
 				bprint(ip, "CBW");
 			break;
 		case 'd':
-			bprint(ip,"%ux:%lux",ip->seg,ip->disp);
+			bprint(ip,"%x:%lux",ip->seg,ip->disp);
 			break;
 		case 'm':
 			if (ip->mod == 3 && ip->osize != 'B') {

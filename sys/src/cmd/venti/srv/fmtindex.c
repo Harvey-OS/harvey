@@ -75,7 +75,7 @@ threadmain(int argc, char *argv[])
 		for(i = 0; i < ix->nsects; i++)
 			n += ix->sects[i]->blocks;
 
-		if(0) fprint(2, "using %ud buckets of %ud; div=%d\n", ix->buckets, n, ix->div);
+		if(0) fprint(2, "using %u buckets of %u; div=%d\n", ix->buckets, n, ix->div);
 	}
 	amap = MKNZ(AMap, narenas);
 	arenas = MKNZ(Arena*, narenas);

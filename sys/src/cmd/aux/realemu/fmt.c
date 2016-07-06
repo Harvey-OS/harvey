@@ -145,7 +145,7 @@ argconv(char *p, Inst *i, Iarg *a)
 
 	case TCON:
 		print_func_exit();
-		return sprint(p, "%lud", a->val);
+		return sprint(p, "%lu", a->val);
 	case TREG:
 	case TREG|TH:
 		switch(a->len){

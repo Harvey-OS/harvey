@@ -465,7 +465,7 @@ clock(Vga* vga, Ctlr* ctlr)
 		}
 	}
 	if (vga->d[0] > vga->f[0])
-		error("%s: vclk %lud out of range\n", ctlr->name, vga->f[0]);
+		error("%s: vclk %lu out of range\n", ctlr->name, vga->f[0]);
 }
 
 
@@ -1175,31 +1175,31 @@ dump(Vga* vga, Ctlr* ctlr)
 	printitem(ctlr->name, "did");
 	Bprint(&stdout, " %.4ux\n", nv->did);
 	printitem(ctlr->name, "repaint0");
-	Bprint(&stdout, " %ux\n", nv->repaint0);
+	Bprint(&stdout, " %x\n", nv->repaint0);
 	printitem(ctlr->name, "repaint1");
-	Bprint(&stdout, " %ux\n", nv->repaint1);
+	Bprint(&stdout, " %x\n", nv->repaint1);
 	printitem(ctlr->name, "screen");
-	Bprint(&stdout, " %ux\n", nv->screen);
+	Bprint(&stdout, " %x\n", nv->screen);
 	printitem(ctlr->name, "pixel");
-	Bprint(&stdout, " %ux\n", nv->pixel);
+	Bprint(&stdout, " %x\n", nv->pixel);
 	printitem(ctlr->name, "horiz");
-	Bprint(&stdout, " %ux\n", nv->horiz);
+	Bprint(&stdout, " %x\n", nv->horiz);
 	printitem(ctlr->name, "cursor0");
-	Bprint(&stdout, " %ux\n", nv->cursor0);
+	Bprint(&stdout, " %x\n", nv->cursor0);
 	printitem(ctlr->name, "cursor1");
-	Bprint(&stdout, " %ux\n", nv->cursor1);
+	Bprint(&stdout, " %x\n", nv->cursor1);
 	printitem(ctlr->name, "cursor2");
-	Bprint(&stdout, " %ux\n", nv->cursor2);
+	Bprint(&stdout, " %x\n", nv->cursor2);
 	printitem(ctlr->name, "interlace");
-	Bprint(&stdout, " %ux\n", nv->interlace);
+	Bprint(&stdout, " %x\n", nv->interlace);
 	printitem(ctlr->name, "extra");
-	Bprint(&stdout, " %ux\n", nv->extra);
+	Bprint(&stdout, " %x\n", nv->extra);
 	printitem(ctlr->name, "crtcowner");
-	Bprint(&stdout, " %ux\n", nv->crtcowner);
+	Bprint(&stdout, " %x\n", nv->crtcowner);
 	printitem(ctlr->name, "timingH");
-	Bprint(&stdout, " %ux\n", nv->timingH);
+	Bprint(&stdout, " %x\n", nv->timingH);
 	printitem(ctlr->name, "timingV");
-	Bprint(&stdout, " %ux\n", nv->timingV);
+	Bprint(&stdout, " %x\n", nv->timingV);
 	printitem(ctlr->name, "vpll");
 	Bprint(&stdout, " %lux\n", nv->vpll);
 	printitem(ctlr->name, "vpllB");

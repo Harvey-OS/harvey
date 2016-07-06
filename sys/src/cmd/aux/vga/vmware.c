@@ -210,7 +210,7 @@ init(Vga* vga, Ctlr* ctlr)
 
 	vmwr(vm, Rid, (0x900000<<8)|2);
 	if(vmrd(vm, Rid)&0xFF != 2)
-		error("old vmware svga version %lud; need version 2\n",
+		error("old vmware svga version %lu; need version 2\n",
 			vmrd(vm,Rid)&0xFF);
 
 	ctlr->flag |= Ulinear;
@@ -250,7 +250,7 @@ load(Vga* vga, Ctlr *ctlr)
 	x = vmrd(vm, Rbpl)/(vm->depth/8);
 	if(x != vga->mode->x){
 		vga->virtx = x;
-		sprint(buf, "%ludx%ludx%d %s", vga->virtx, vga->virty,
+		sprint(buf, "%lux%lux%d %s", vga->virtx, vga->virty,
 			vga->mode->z, vga->mode->chan);
 		vgactlw("size", buf);
 	}

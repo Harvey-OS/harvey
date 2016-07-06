@@ -110,7 +110,7 @@ snarfswap(char *fromsam, int nc, char **tosam)
 void
 dumperrmsg(int count, int type, int count0, int c)
 {
-	fprint(2, "samterm: host mesg: count %d %ux %ux %ux %s...ignored\n",
+	fprint(2, "samterm: host mesg: count %d %x %x %x %s...ignored\n",
 		count, type, count0, c, rcvstring());
 }
 

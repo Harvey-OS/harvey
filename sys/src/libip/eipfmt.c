@@ -77,7 +77,7 @@ common:
 			} else if(i != 0)
 				n += sprint(buf+n, ":");
 			s = (p[i]<<8) + p[i+1];
-			n += sprint(buf+n, "%ux", s);
+			n += sprint(buf+n, "%x", s);
 		}
 		return fmtstrcpy(f, buf);
 

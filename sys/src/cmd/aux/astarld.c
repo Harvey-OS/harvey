@@ -87,11 +87,11 @@ loadhex(char* file, int mfd)
 			if(addr + c.dlen > Memsize)
 				sysfatal("addr out of range: %lux-%lux", addr, addr+c.dlen);
 			if(seek(mfd, addr, 0) < 0)
-				sysfatal("seeking to %lud: %r", addr);
+				sysfatal("seeking to %lu: %r", addr);
 			if(write(mfd, c.bytes+Doff, c.dlen) != c.dlen)
 				sysfatal("writing: %r");
 			if(seek(mfd, addr, 0) < 0)
-				sysfatal("seeking to %lud: %r", addr);
+				sysfatal("seeking to %lu: %r", addr);
 			if(read(mfd, buf, c.dlen) != c.dlen)
 				sysfatal("reading: %r");
 			if(memcmp(buf, c.bytes+Doff, c.dlen) != 0)
@@ -202,17 +202,17 @@ clearmem(int fd)
 	memset(buf, 0, sizeof buf);
 	for(i = 0; i < Memsize; i += n){
 		if(seek(fd, i, 0) < 0)
-			sysfatal("seeking to %ux: %r", i);
+			sysfatal("seeking to %x: %r", i);
 		n = write(fd, buf, sizeof buf);
 		if(n <= 0)
 			break;
 		if(seek(fd, i, 0) < 0)
-			sysfatal("seeking to %ux: %r", i);
+			sysfatal("seeking to %x: %r", i);
 		n = read(fd, buf2, sizeof buf2);
 		if(n <= 0)
 			break;
 		if(memcmp(buf, buf2, sizeof buf) != 0)
-			print("error zeroing mem at %ux\n", i);
+			print("error zeroing mem at %x\n", i);
 	}
 	print("zero'd %d bytes\n", i);
 }
@@ -258,7 +258,7 @@ rdcpline(Biobuf *b, Cpline *cpl)
 
 	cpl->csum = csum;
 	if(csum != 0){
-		fprint(2, "checksum %ux\n", csum);
+		fprint(2, "checksum %x\n", csum);
 		return "bad checksum";
 	}
 

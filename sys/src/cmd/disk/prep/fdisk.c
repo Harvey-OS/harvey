@@ -380,10 +380,10 @@ static void
 diskread(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 {
 	if(seek(disk->fd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
-		sysfatal("diskread seek %lud.%lud: %r", (uint32_t)sec,
+		sysfatal("diskread seek %lu.%lu: %r", (uint32_t)sec,
 		         (uint32_t)off);
 	if(readn(disk->fd, data, ndata) != ndata)
-		sysfatal("diskread %lud at %lud.%lud: %r", (uint32_t)ndata,
+		sysfatal("diskread %lu at %lu.%lu: %r", (uint32_t)ndata,
 		         (uint32_t)sec, (uint32_t)off);
 }
 
@@ -398,7 +398,7 @@ diskwrite(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 	return 0;
 
 Error:
-	fprint(2, "write %d bytes at %lud.%lud failed: %r\n", ndata,
+	fprint(2, "write %d bytes at %lu.%lu failed: %r\n", ndata,
 	       (uint32_t)sec, (uint32_t)off);
 	return -1;
 }

@@ -303,5 +303,5 @@ prusage(void)
 
 	usage();
 	for(i = 0; i <= nevents; i++)
-		fprint(1, "%d: %lud\n", i, tslot[i]);
+		fprint(1, "%d: %lu\n", i, tslot[i]);
 }

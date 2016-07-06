@@ -231,7 +231,7 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 		}
 		switch(u.type){
 		default:
-			fprint(2, "undo: 0x%ux\n", u.type);
+			fprint(2, "undo: 0x%x\n", u.type);
 			abort();
 			break;
 

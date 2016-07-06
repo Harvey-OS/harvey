@@ -137,7 +137,7 @@ fillstat(Dir *d, uint64_t path, uint32_t length, char *ext)
 	else if(t->name)
 		d->name = estrdup(t->name);
 	else{	/* client directory */
-		snprint(buf, sizeof buf, "%ud", NUM(path));
+		snprint(buf, sizeof buf, "%u", NUM(path));
 		d->name = estrdup(buf);
 	}
 	d->qid.type = t->mode>>24;

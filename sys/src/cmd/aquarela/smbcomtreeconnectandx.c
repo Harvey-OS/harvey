@@ -76,13 +76,13 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	flags = smbnhgets(pdata); pdata += 2;
 	passwordlength = smbnhgets(pdata); //pdata += 2;
 //	bytecount = smbnhgets(pdata); pdata += 2;
-smblogprint(h->command, "passwordlength: %ud\n", passwordlength);
+smblogprint(h->command, "passwordlength: %u\n", passwordlength);
 smblogprint(h->command, "flags: 0x%.4ux\n", flags);
 	if (!smbbuffergetbytes(b, nil, passwordlength)) {
 		smblogprint(h->command, "smbcomtreeconnectandx: not enough bytes for password\n");
 		goto fmtfail;
 	}
-smblogprint(h->command, "offset %lud limit %lud\n", smbbufferreadoffset(b), smbbufferwriteoffset(b));
+smblogprint(h->command, "offset %lu limit %lu\n", smbbufferreadoffset(b), smbbufferwriteoffset(b));
 	if (!smbbuffergetstring(b, h, SMB_STRING_PATH, &path)
 		|| !smbbuffergetstr(b, 0, &service)) {
 		smblogprint(h->command, "smbcomtreeconnectandx: not enough bytes for strings\n");

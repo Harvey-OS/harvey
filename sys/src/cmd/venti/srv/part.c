@@ -186,10 +186,10 @@ rwpart(Part *part, int isread, uint64_t offset0, uint8_t *buf0,
 	uint8_t *buf;
 	uint64_t offset;
 
-	trace(TraceDisk, "%s %s %ud at 0x%llx", 
+	trace(TraceDisk, "%s %s %u at 0x%llx", 
 		isread ? "read" : "write", part->name, count0, offset0);
 	if(offset0 >= part->size || offset0+count0 > part->size){
-		seterr(EStrange, "out of bounds %s offset 0x%llux count %ud to partition %s size 0x%llux",
+		seterr(EStrange, "out of bounds %s offset 0x%llux count %u to partition %s size 0x%llux",
 			isread ? "read" : "write", offset0, count0, part->name,
 			part->size);
 		return -1;
@@ -207,7 +207,7 @@ rwpart(Part *part, int isread, uint64_t offset0, uint8_t *buf0,
 		else
 			n = pwrite(part->fd, buf, opsize, offset);
 		if(n <= 0){
-			seterr(EAdmin, "%s %s offset 0x%llux count %ud buf %p returned %d: %r",
+			seterr(EAdmin, "%s %s offset 0x%llux count %u buf %p returned %d: %r",
 				isread ? "read" : "write", part->filename, offset, opsize, buf, n);
 			return -1;
 		}

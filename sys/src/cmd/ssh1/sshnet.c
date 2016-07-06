@@ -345,7 +345,7 @@ fillstat(Dir *d, uint64_t path)
 	if(t->name)
 		d->name = estrdup9p(t->name);
 	else{
-		d->name = smprint("%ud", NUM(path));
+		d->name = smprint("%u", NUM(path));
 		if(d->name == nil)
 			sysfatal("out of memory");
 	}
