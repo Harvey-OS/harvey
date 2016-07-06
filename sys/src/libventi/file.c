@@ -77,7 +77,7 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 	}
 
 	if(DEPTH(e.type) < sizetodepth(e.size, e.psize, e.dsize)){
-		fprint(2, "depth %u size %llud psize %u dsize %u\n",
+		fprint(2, "depth %u size %llu psize %u dsize %u\n",
 			DEPTH(e.type), e.size, e.psize, e.dsize);
 		werrstr("bad depth");
 		return nil;

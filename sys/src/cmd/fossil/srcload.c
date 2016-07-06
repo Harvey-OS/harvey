@@ -220,7 +220,7 @@ dump(Source *s, int ident, uint32_t entry)
 	Bprint(bout, "%4lud: gen %4ud depth %d tag=%x score=%V",
 		entry, e.gen, e.depth, e.tag, e.score);
 	if(!s->dir){
-		Bprint(bout, " data size: %llud\n", e.size);
+		Bprint(bout, " data size: %llu\n", e.size);
 		return;
 	}
 	n = sourceGetDirSize(s);

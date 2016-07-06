@@ -108,7 +108,7 @@ icachewritesect(Index *ix, ISect *is, uint8_t *buf)
 	else
 		hi = is->stop * ix->div - 1;
 
-	trace(TraceProc, "icachewritesect enter %u %u %llud",
+	trace(TraceProc, "icachewritesect enter %u %u %llu",
 		lo, hi, iwrite.as.aa);
 
 	iedirty = icachedirty(lo, hi, iwrite.as.aa);

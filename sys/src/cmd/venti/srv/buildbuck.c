@@ -70,7 +70,7 @@ peekientry(IEStream *ies)
 		nn -= n;
 		if(nn == 0)
 			return nil;
-//fprint(2, "peek %d from %llud into %p\n", nn, ies->off, ies->epos);
+//fprint(2, "peek %d from %llu into %p\n", nn, ies->off, ies->epos);
 		if(readpart(ies->part, ies->off, ies->epos, nn) < 0){
 			seterr(EOk, "can't read sorted index entries: %r");
 			return nil;

@@ -392,7 +392,7 @@ number(int64_t big)
 
 	case '\0':
 		if(n > big) {
-			fprint(2, "dd: argument %llud out of range\n", n);
+			fprint(2, "dd: argument %llu out of range\n", n);
 			exits("range");
 		}
 		return n;

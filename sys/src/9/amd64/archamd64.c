@@ -333,7 +333,7 @@ fmtP(Fmt* f)
 	if(f->flags & FmtSharp)
 		return fmtprint(f, "%#16.16llux", pa);
 
-	return fmtprint(f, "%llud", pa);
+	return fmtprint(f, "%llu", pa);
 }
 
 static int

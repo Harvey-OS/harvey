@@ -237,9 +237,9 @@ cmd_check(int argc, char *argv[])
 	print("nbad   = %lld\n", (Wideoff)nbad);
 	print("nqbad  = %lld\n", (Wideoff)nqbad);
 	print("maxq   = %lld\n", (Wideoff)maxq);
-	print("base stack=%llud\n", (int64_t)startstack);
+	print("base stack=%llu\n", (int64_t)startstack);
 	/* high-water mark of stack usage */
-	print("high stack=%llud\n", (int64_t)lowstack);
+	print("high stack=%llu\n", (int64_t)lowstack);
 	print("deepest recursion=%d\n", maxdepth-1);	/* one-origin */
 	if(!cwflag)
 		missing();
