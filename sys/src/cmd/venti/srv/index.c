@@ -178,7 +178,7 @@ wbindex(Index *ix)
 int
 outputindex(Fmt *f, Index *ix)
 {
-	if(fmtprint(f, "%s\n%ud\n%s\n%ud\n", IndexMagic, ix->version, ix->name, ix->blocksize) < 0
+	if(fmtprint(f, "%s\n%u\n%s\n%u\n", IndexMagic, ix->version, ix->name, ix->blocksize) < 0
 	|| outputamap(f, ix->smap, ix->nsects) < 0
 	|| outputamap(f, ix->amap, ix->narenas) < 0)
 		return -1;
@@ -716,7 +716,7 @@ okibucket(IBucket *ib, ISect *is)
 	if(ib->n <= is->buckmax)
 		return 0;
 
-	seterr(EICorrupt, "corrupted disk index bucket: n=%ud max=%ud, range=[%lud,%lud)",
+	seterr(EICorrupt, "corrupted disk index bucket: n=%u max=%u, range=[%lu,%lu)",
 		ib->n, is->buckmax, is->start, is->stop);
 	return -1;
 }
@@ -828,7 +828,7 @@ loadibucket0(Index *ix, uint32_t buck, ISect **pis, uint32_t *pbuck,
 
 	is = ix->sects[indexsect0(ix, buck)];
 	if(buck < is->start || is->stop <= buck){
-		seterr(EAdmin, "index lookup out of range: %ud not found in index\n", buck);
+		seterr(EAdmin, "index lookup out of range: %u not found in index\n", buck);
 		return nil;
 	}
 

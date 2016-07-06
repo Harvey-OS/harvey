@@ -1002,7 +1002,7 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname,
 			else
 				total += p[i].length;
 		}
-		Bprint(b, "total %ulld\r\n", total/512);
+		Bprint(b, "total %llu\r\n", total/512);
 	}
 
 	qsort(p, n, sizeof(Dir), dircomp);

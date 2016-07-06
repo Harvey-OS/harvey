@@ -271,30 +271,30 @@ dnstats(char *file)
 
 	qlock(&stats.QLock);
 	fprint(fd, "# system %s\n", sysname());
-	fprint(fd, "# slave procs high-water mark\t%lud\n", stats.slavehiwat);
-	fprint(fd, "# queries received by 9p\t%lud\n", stats.qrecvd9p);
-	fprint(fd, "# queries received by udp\t%lud\n", stats.qrecvdudp);
-	fprint(fd, "# queries answered from memory\t%lud\n", stats.answinmem);
-	fprint(fd, "# queries sent by udp\t%lud\n", stats.qsent);
+	fprint(fd, "# slave procs high-water mark\t%lu\n", stats.slavehiwat);
+	fprint(fd, "# queries received by 9p\t%lu\n", stats.qrecvd9p);
+	fprint(fd, "# queries received by udp\t%lu\n", stats.qrecvdudp);
+	fprint(fd, "# queries answered from memory\t%lu\n", stats.answinmem);
+	fprint(fd, "# queries sent by udp\t%lu\n", stats.qsent);
 	for (i = 0; i < nelem(stats.under10ths); i++)
 		if (stats.under10ths[i] || i == nelem(stats.under10ths) - 1)
-			fprint(fd, "# responses arriving within %.1f s.\t%lud\n",
+			fprint(fd, "# responses arriving within %.1f s.\t%lu\n",
 				(double)(i+1)/10, stats.under10ths[i]);
-	fprint(fd, "\n# queries sent & timed-out\t%lud\n", stats.tmout);
-	fprint(fd, "# cname queries timed-out\t%lud\n", stats.tmoutcname);
-	fprint(fd, "# ipv6  queries timed-out\t%lud\n", stats.tmoutv6);
-	fprint(fd, "\n# negative answers received\t%lud\n", stats.negans);
-	fprint(fd, "# negative answers w Rserver set\t%lud\n", stats.negserver);
-	fprint(fd, "# negative answers w bad delegation\t%lud\n",
+	fprint(fd, "\n# queries sent & timed-out\t%lu\n", stats.tmout);
+	fprint(fd, "# cname queries timed-out\t%lu\n", stats.tmoutcname);
+	fprint(fd, "# ipv6  queries timed-out\t%lu\n", stats.tmoutv6);
+	fprint(fd, "\n# negative answers received\t%lu\n", stats.negans);
+	fprint(fd, "# negative answers w Rserver set\t%lu\n", stats.negserver);
+	fprint(fd, "# negative answers w bad delegation\t%lu\n",
 		stats.negbaddeleg);
-	fprint(fd, "# negative answers w bad delegation & no answers\t%lud\n",
+	fprint(fd, "# negative answers w bad delegation & no answers\t%lu\n",
 		stats.negbdnoans);
-	fprint(fd, "# negative answers w no Rname set\t%lud\n", stats.negnorname);
-	fprint(fd, "# negative answers cached\t%lud\n", stats.negcached);
+	fprint(fd, "# negative answers w no Rname set\t%lu\n", stats.negnorname);
+	fprint(fd, "# negative answers cached\t%lu\n", stats.negcached);
 	qunlock(&stats.QLock);
 
 	lock(&dnlock);
-	fprint(fd, "\n# domain names %lud target %lud\n", dnvars.names, target);
+	fprint(fd, "\n# domain names %lu target %lu\n", dnvars.names, target);
 	unlock(&dnlock);
 	close(fd);
 }
@@ -318,7 +318,7 @@ dndump(char *file)
 		for(dp = ht[i]; dp; dp = dp->next){
 			fprint(fd, "%s\n", dp->name);
 			for(rp = dp->rr; rp; rp = rp->next) {
-				fprint(fd, "\t%R %c%c %lud/%lud\n",
+				fprint(fd, "\t%R %c%c %lu/%lu\n",
 					rp, rp->auth? 'A': 'U',
 					rp->db? 'D': 'N', rp->expire, rp->ttl);
 				if (rronlist(rp, rp->next))
@@ -509,7 +509,7 @@ dnageall(int doit)
 	}
 
 	if(dnvars.names >= target) {
-		dnslog("more names (%lud) than target (%lud)", dnvars.names,
+		dnslog("more names (%lu) than target (%lu)", dnvars.names,
 			target);
 		dnvars.oldest /= 2;
 		if (dnvars.oldest < Minage)
@@ -1254,20 +1254,20 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%s %s", dnname(rp->mb), dnname(rp->rmb));
 		break;
 	case Tmx:
-		fmtprint(&fstr, "\t%lud %s", rp->pref, dnname(rp->host));
+		fmtprint(&fstr, "\t%lu %s", rp->pref, dnname(rp->host));
 		break;
 	case Ta:
 	case Taaaa:
 		fmtprint(&fstr, "\t%s", dnname(rp->ip));
 		break;
 	case Tptr:
-//		fmtprint(&fstr, "\t%s(%lud)", dnname(rp->ptr),
+//		fmtprint(&fstr, "\t%s(%lu)", dnname(rp->ptr),
 //			rp->ptr? rp->ptr->ordinal: "<null>");
 		fmtprint(&fstr, "\t%s", dnname(rp->ptr));
 		break;
 	case Tsoa:
 		soa = rp->soa;
-		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud",
+		fmtprint(&fstr, "\t%s %s %lu %lu %lu %lu %lu",
 			dnname(rp->host), dnname(rp->rmb),
 			(soa? soa->serial: 0),
 			(soa? soa->refresh: 0), (soa? soa->retry: 0),
@@ -1278,7 +1278,7 @@ rrfmt(Fmt *f)
 		break;
 	case Tsrv:
 		srv = rp->srv;
-		fmtprint(&fstr, "\t%ud %ud %ud %s",
+		fmtprint(&fstr, "\t%u %u %u %s",
 			(srv? srv->pri: 0), (srv? srv->weight: 0),
 			rp->port, dnname(rp->host));
 		break;
@@ -1309,7 +1309,7 @@ rrfmt(Fmt *f)
 			fmtprint(&fstr,
 		   "\t<null> <null> <null> <null> <null> <null> <null> <null>");
 		else
-			fmtprint(&fstr, "\t%d %d %d %lud %lud %lud %d %s",
+			fmtprint(&fstr, "\t%d %d %d %lu %lu %lu %d %s",
 				rp->sig->Cert.type, rp->sig->Cert.alg, rp->sig->labels,
 				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
 				rp->sig->Cert.tag, dnname(rp->sig->signer));
@@ -1382,7 +1382,7 @@ rravfmt(Fmt *f)
 			dnname(rp->mb), dnname(rp->rmb));
 		break;
 	case Tmx:
-		fmtprint(&fstr, " pref=%lud mx=%s", rp->pref, dnname(rp->host));
+		fmtprint(&fstr, " pref=%lu mx=%s", rp->pref, dnname(rp->host));
 		break;
 	case Ta:
 	case Taaaa:
@@ -1394,7 +1394,7 @@ rravfmt(Fmt *f)
 	case Tsoa:
 		soa = rp->soa;
 		fmtprint(&fstr,
-" ns=%s mbox=%s serial=%lud refresh=%lud retry=%lud expire=%lud ttl=%lud",
+" ns=%s mbox=%s serial=%lu refresh=%lu retry=%lu expire=%lu ttl=%lu",
 			dnname(rp->host), dnname(rp->rmb),
 			(soa? soa->serial: 0),
 			(soa? soa->refresh: 0), (soa? soa->retry: 0),
@@ -1404,7 +1404,7 @@ rravfmt(Fmt *f)
 		break;
 	case Tsrv:
 		srv = rp->srv;
-		fmtprint(&fstr, " pri=%ud weight=%ud port=%ud target=%s",
+		fmtprint(&fstr, " pri=%u weight=%u port=%u target=%s",
 			(srv? srv->pri: 0), (srv? srv->weight: 0),
 			rp->port, dnname(rp->host));
 		break;
@@ -1445,7 +1445,7 @@ rravfmt(Fmt *f)
 " type=<null> alg=<null> labels=<null> ttl=<null> exp=<null> incep=<null> tag=<null> signer=<null>");
 		else
 			fmtprint(&fstr,
-" type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
+" type=%d alg=%d labels=%d ttl=%lu exp=%lu incep=%lu tag=%d signer=%s",
 				rp->sig->Cert.type, rp->sig->Cert.alg, rp->sig->labels,
 				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
 				rp->sig->Cert.tag, dnname(rp->sig->signer));

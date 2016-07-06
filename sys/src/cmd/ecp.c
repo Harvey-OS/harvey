@@ -238,7 +238,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 		repos(fp, stsect);
 	}
 	if ((int32_t)blocksize != blocksize || (int32_t)bytes != bytes)
-		sysfatal("i/o count too big: %lud", bytes);
+		sysfatal("i/o count too big: %lu", bytes);
 
 	SET(tail);
 	if (rdwr == read)
@@ -348,7 +348,7 @@ bigxfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 			badsects++;
 			fp->harderrs++;
 			if (toomanyerrs(fp, stsect+i))
-				sysfatal("more than %lud consecutive I/O errors",
+				sysfatal("more than %lu consecutive I/O errors",
 					fp->maxconerrs);
 		} else {
 			ckendrange(fp);

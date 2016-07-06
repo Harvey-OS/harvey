@@ -388,7 +388,7 @@ fsEpochLow(Fs *fs, uint32_t low)
 
 	vtLock(fs->elk);
 	if(low > fs->ehi){
-		vtSetError("bad low epoch (must be <= %ud)", fs->ehi);
+		vtSetError("bad low epoch (must be <= %u)", fs->ehi);
 		vtUnlock(fs->elk);
 		return 0;
 	}

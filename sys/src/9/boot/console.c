@@ -176,7 +176,7 @@ keybscan(uint8_t code, char *out, int len)
 	if(c > sizeof kbtab){
 		c |= keyup;
 		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
-			fprint(2, "unknown key %ux\n", c);
+			debug("unknown key %x\n", c);
 		return off;
 	}
 

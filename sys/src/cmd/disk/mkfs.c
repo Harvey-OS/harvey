@@ -483,7 +483,7 @@ mkdir(Dir *d)
 void
 arch(Dir *d)
 {
-	Bprint(&bout, "%q %luo %q %q %lud %lld\n",
+	Bprint(&bout, "%q %luo %q %q %lu %lld\n",
 		newfile, d->mode, d->uid, d->gid, d->mtime, d->length);
 }
 

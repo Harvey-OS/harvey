@@ -58,7 +58,7 @@ rmapfree(RMap* rmap, uintptr_t addr, uint size)
 		}else{
 			do{
 				if(mp >= rmap->mapend){
-					print("mapfree: %s: losing 0x%luX, %ud\n", rmap->name, addr, size);
+					print("mapfree: %s: losing 0x%luX, %u\n", rmap->name, addr, size);
 					break;
 				}
 				t = mp->addr;

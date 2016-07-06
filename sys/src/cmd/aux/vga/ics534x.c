@@ -94,7 +94,7 @@ clock(Vga* vga, Ctlr* ctlr)
 				vga->r[0] = r;
 		}
 		if(vga->r[0] > 3)
-			error("%s: pclk %lud out of range\n",
+			error("%s: pclk %lu out of range\n",
 				ctlr->name, vga->f[0]);
 	}
 
@@ -127,7 +127,7 @@ clock(Vga* vga, Ctlr* ctlr)
 	}
 
 	if(tok == 0.0)
-		error("%s: pclk %lud out of range\n", ctlr->name, vga->f[0]);
+		error("%s: pclk %lu out of range\n", ctlr->name, vga->f[0]);
 }
 
 static void

@@ -1852,9 +1852,9 @@ bootsecdump32(int fd, Xfs *xf, Dosboot32 *b32)
 			fi = (Fatinfo*)p1->iobuf;
 			fprint(fd, "sig1: 0x%lux sb 0x%lux\n", GLONG(fi->sig1), FATINFOSIG1);
 			fprint(fd, "sig: 0x%lux sb 0x%lux\n", GLONG(fi->sig), FATINFOSIG);
-			fprint(fd, "freeclust: %lud\n", GLONG(fi->freeclust));
-			fprint(fd, "nextfree: %lud\n", GLONG(fi->nextfree));
-			fprint(fd, "reserved: %lud %lud %lud\n", GLONG(fi->resrv), GLONG(fi->resrv+4), GLONG(fi->resrv+8));
+			fprint(fd, "freeclust: %lu\n", GLONG(fi->freeclust));
+			fprint(fd, "nextfree: %lu\n", GLONG(fi->nextfree));
+			fprint(fd, "reserved: %lu %lu %lu\n", GLONG(fi->resrv), GLONG(fi->resrv+4), GLONG(fi->resrv+8));
 			putsect(p1);
 		}
 	}else if(fisec != 0xffff)

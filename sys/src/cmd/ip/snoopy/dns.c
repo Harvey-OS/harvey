@@ -101,7 +101,7 @@ fmtrr(Msg *m, RR **rrp, int quest)
 		return;
 	*rrp = rr->next;
 
-	m->p = seprint(m->p, m->e, "%s name=%s ttl=%lud",
+	m->p = seprint(m->p, m->e, "%s name=%s ttl=%lu",
 		rrtypestr(rr->type),
 		rr->owner->name, rr->ttl);
 	if(!quest)
@@ -128,7 +128,7 @@ fmtrr(Msg *m, RR **rrp, int quest)
 		m->p = seprint(m->p, m->e, " mb=%s", rr->mb->name);
 		break;
 	case Tmx:
-		m->p = seprint(m->p, m->e, " pref=%lud", rr->pref);
+		m->p = seprint(m->p, m->e, " pref=%lu", rr->pref);
 		m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
 		break;
 	case Ta:
@@ -141,11 +141,11 @@ fmtrr(Msg *m, RR **rrp, int quest)
 	case Tsoa:
 		m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
 		m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
-		m->p = seprint(m->p, m->e, " soa.serial=%lud", rr->soa->serial);
-		m->p = seprint(m->p, m->e, " soa.refresh=%lud", rr->soa->refresh);
-		m->p = seprint(m->p, m->e, " soa.retry=%lud", rr->soa->retry);
-		m->p = seprint(m->p, m->e, " soa.expire=%lud", rr->soa->expire);
-		m->p = seprint(m->p, m->e, " soa.minttl=%lud", rr->soa->minttl);
+		m->p = seprint(m->p, m->e, " soa.serial=%lu", rr->soa->serial);
+		m->p = seprint(m->p, m->e, " soa.refresh=%lu", rr->soa->refresh);
+		m->p = seprint(m->p, m->e, " soa.retry=%lu", rr->soa->retry);
+		m->p = seprint(m->p, m->e, " soa.expire=%lu", rr->soa->expire);
+		m->p = seprint(m->p, m->e, " soa.minttl=%lu", rr->soa->minttl);
 		break;
 	case Ttxt:
 		for(t=rr->txt; t; t=t->next)
@@ -166,7 +166,7 @@ fmtrr(Msg *m, RR **rrp, int quest)
 		break;
 	case Tsig:
 		m->p = seprint(m->p, m->e,
-" type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s data=%.*H",
+" type=%d alg=%d labels=%d ttl=%lu exp=%lu incep=%lu tag=%d signer=%s data=%.*H",
 			rr->sig->type, rr->sig->alg, rr->sig->labels,
 			rr->sig->ttl, rr->sig->exp, rr->sig->incep, rr->sig->tag,
 			rr->sig->signer->name, rr->sig->dlen, rr->sig->data);

@@ -683,9 +683,9 @@ printposn(Text *t, int charsonly)
 		/* check if addr ends with '\n' */
 		if(addr.r.q1>0 && addr.r.q1>addr.r.q0 && textreadc(t, addr.r.q1-1)=='\n')
 			--l2;
-		warning(nil, "%lud", l1);
+		warning(nil, "%lu", l1);
 		if(l2 != l1)
-			warning(nil, ",%lud", l2);
+			warning(nil, ",%lu", l2);
 		warning(nil, "\n");
 		return;
 	}

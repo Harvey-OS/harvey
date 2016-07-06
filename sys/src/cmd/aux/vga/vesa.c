@@ -434,7 +434,7 @@ vbeprintinfo(Vbe *vbe)
 	printflags(capabilityflag, p[10]);
 
 	printitem("vesa", "mem");
-	Bprint(&stdout, "%lud\n", WORD(p+18)*0x10000UL);
+	Bprint(&stdout, "%lu\n", WORD(p+18)*0x10000UL);
 }
 
 uint8_t*
@@ -530,11 +530,11 @@ vbeprintmodeinfo(Vbe *vbe, int id, char *suffix)
 	Vmode m;
 
 	if(vbemodeinfo(vbe, id, &m) < 0){
-	//	Bprint(&stdout, "vesa: cannot get mode 0x%ux: %r\n", id);
+	//	Bprint(&stdout, "vesa: cannot get mode 0x%x: %r\n", id);
 		return;
 	}
 	printitem("vesa", "mode");
-	Bprint(&stdout, "0x%ux %s %s %s%s\n",
+	Bprint(&stdout, "0x%x %s %s %s%s\n",
 		m.id, m.name, m.chan, m.model, suffix);
 }
 
@@ -639,7 +639,7 @@ printedid(Edid *e)
 	printitem("edid", "product");
 	Bprint(&stdout, "%d\n", e->product);
 	printitem("edid", "serial");
-	Bprint(&stdout, "%lud\n", e->serial);
+	Bprint(&stdout, "%lu\n", e->serial);
 	printitem("edid", "version");
 	Bprint(&stdout, "%d.%d\n", e->version, e->revision);
 	printitem("edid", "mfrdate");
@@ -653,7 +653,7 @@ printedid(Edid *e)
 	printitem("edid", "horz (Hz)");
 	Bprint(&stdout, "%d-%d\n", e->hrmin, e->hrmax);
 	printitem("edid", "pclkmax");
-	Bprint(&stdout, "%lud\n", e->pclkmax);
+	Bprint(&stdout, "%lu\n", e->pclkmax);
 	printitem("edid", "flags");
 	printflags(edidflags, e->flags);
 	

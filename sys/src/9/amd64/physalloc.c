@@ -81,7 +81,7 @@ seprintphysstats(char *s,  char *e)
 	for(i = 0; i < Ndoms; i++){
 		b = &bal[i];
 		if(b->size > 0)
-			s = seprint(s, e, "%uld/%uld %ulldK color %d blocks avail\n",
+			s = seprint(s, e, "%lu/%lu %lluK color %d blocks avail\n",
 				b->nfree, b->nblocks, b->bminsz/KiB, i);
 	}
 	unlock(&budlock);
@@ -114,7 +114,7 @@ S1:
 	 */
 	l = &blocks[BLOCK(b,i)];
 	l->p = nil;
-	DBG("\tbsl: BLOCK(b,i) %d index %ulld kval %d\n",
+	DBG("\tbsl: BLOCK(b,i) %d index %llu kval %d\n",
 		BLOCK(b,i), BLOCK(b,i)/((1<<l->kval)/b->bminsz), l->kval);
 	if((BLOCK(b,i)/((1<<l->kval)/b->bminsz)) & 1)	/* simpler test? */
 		p = l - (1<<l->kval)/b->bminsz;
@@ -514,7 +514,7 @@ physinit(uintmem a, uint64_t size)
 			if(!ISPOWEROF2(sys->pmend))
 				b->kspan++;
 			dtsz = sizeof(Buddy)*(UNO<<(b->kspan-b->kmin+1));
-			DBG("kspan %ud (arrysz = %llud)\n", b->kspan, dtsz);
+			DBG("kspan %u (arrysz = %llud)\n", b->kspan, dtsz);
 			b->blocks = malloc(dtsz);
 			if(b->blocks == nil)
 				panic("physinit: no blocks");

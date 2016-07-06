@@ -491,7 +491,7 @@ main(int argc, char **argv)
 			continue;
 		}
 		if(debug)
-			fprint(2, "w %ud h %ud ncolor %ud bits %ud len %lud offset %lud\n",
+			fprint(2, "w %u h %u ncolor %u bits %u len %lu offset %lu\n",
 			   icon->w, icon->h, icon->ncolor, icon->bits, icon->len, icon->offset);
 		r.max = addpt(r.min, Pt(icon->w, icon->h));
 		icon->r = r;

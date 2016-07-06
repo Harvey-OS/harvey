@@ -102,14 +102,14 @@ addfile(Cdimg *cd, Dump *d, char *name, Direc *dir)
 	if(*lblock != nil) {
 		if((*lblock)->length == dir->length)
 			return;
-		fprint(2, "block %lud length %lud %s %lud %s\n", dir->block, (*lblock)->length, (*lblock)->name,
+		fprint(2, "block %lu length %lu %s %lu %s\n", dir->block, (*lblock)->length, (*lblock)->name,
 			dir->length, dir->name);
 		assert(0);
 	}
 
 	md5cd(cd, dir->block, dir->length, md5);
 	if(chatty > 1)
-		fprint(2, "note file %.16H %lud (%s)\n", md5, dir->length, dir->name);
+		fprint(2, "note file %.16H %lu (%s)\n", md5, dir->length, dir->name);
 	insertmd5(d, name, md5, dir->block, dir->length);
 }
 
@@ -124,7 +124,7 @@ insertmd5(Dump *d, char *name, uint8_t *md5, uint32_t block,
 	if(*lblock != nil) {
 		if((*lblock)->length == length)
 			return;
-		fprint(2, "block %lud length %lud %lud\n", block, (*lblock)->length, length);
+		fprint(2, "block %lu length %lu %lu\n", block, (*lblock)->length, length);
 		assert(0);
 	}
 
@@ -446,7 +446,7 @@ readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t*, int))
 		nf = tokenize(p, f, nelem(f));
 		i = 5;
 		if(nf < i || (cvt==jolietstring && nf < i+2))
-			sysfatal("error in dump block %lud: nf=%d; p='%s'", db, nf, p);
+			sysfatal("error in dump block %lu: nf=%d; p='%s'", db, nf, p);
 		nr = createdumpdir(&root, &xd, f[0]);
 		t = strtoul(f[1], 0, 0);
 		xd.mtime = xd.ctime = xd.atime = t;
@@ -498,7 +498,7 @@ readdumpconform(Cdimg *cd)
 
 		nf = tokenize(p, f, nelem(f));
 		if(nf < 5)
-			sysfatal("error0 in dump block %lud", db);
+			sysfatal("error0 in dump block %lu", db);
 
 		db = strtoul(f[2], 0, 0);
 		cb = strtoul(f[3], 0, 0);

@@ -583,10 +583,10 @@ stats(void)
 {
 	if(quiet)
 		return;
-	fprint(2, "%lud+%lud records in\n", nifr, nipr);
-	fprint(2, "%lud+%lud records out\n", nofr, nopr);
+	fprint(2, "%lu+%lu records in\n", nifr, nipr);
+	fprint(2, "%lu+%lu records out\n", nofr, nopr);
 	if(ntrunc)
-		fprint(2, "%lud truncated records\n", ntrunc);
+		fprint(2, "%lu truncated records\n", ntrunc);
 }
 
 uint8_t	etoa[] =

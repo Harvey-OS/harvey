@@ -190,7 +190,7 @@ doserrstr(uint err)
 	if(match != -1)
 		snprint(buf, sizeof(buf), "%s, %s", class, DOSerrs[match].msg);
 	else
-		snprint(buf, sizeof(buf), "%s, %ud/0x%ux - unknown error",
+		snprint(buf, sizeof(buf), "%s, %u/0x%x - unknown error",
 			class, err >> 16, err >> 16);
 	return buf;
 }

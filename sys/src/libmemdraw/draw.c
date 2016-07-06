@@ -679,7 +679,7 @@ alphadraw(Memdrawparam *par)
 	 * but it avoids a fair amount of code duplication to make this a case here
 	 * rather than have a separate booldraw.
 	 */
-//if(drawdebug) iprint("flag %lud mchan %lux=?%x dd %d\n", src->flags&Falpha, mask->chan, GREY1, dst->depth);
+	DBG print("flag %lu mchan %lux=?%x dd %d\n", src->flags&Falpha, mask->chan, GREY1, dst->depth);
 	if(!(src->flags&Falpha) && mask->chan == GREY1 && dst->depth >= 8 && op == SoverD){
 //if(drawdebug) iprint("boolcopy...");
 		rdsrc = convfn(dst, &z->dpar, src, &z->spar, &ndrawbuf);
@@ -2115,7 +2115,7 @@ DBG print("memopt, dst %p, dst->data->bdata %p\n", dst, dst->data->bdata);
 		dwid = dst->width*sizeof(uint32_t);
 		dp = byteaddr(dst, par->r.min);
 		v = par->sdval;
-DBG print("sdval %lud, depth %d\n", v, dst->depth);
+		DBG print("sdval %lu, depth %d\n", v, dst->depth);
 		switch(dst->depth){
 		case 1:
 		case 2:
@@ -2129,14 +2129,14 @@ DBG print("sdval %lud, depth %d\n", v, dst->depth);
 			dx -= (ppb-np);
 			nb = 8 - np * dst->depth;		/* no. bits used on right side of word */
 			lm = (1<<nb)-1;
-DBG print("np %d x %d nb %d lm %ux ppb %d m %ux\n", np, par->r.min.x, nb, lm, ppb, m);	
+			DBG print("np %d x %d nb %d lm %x ppb %d m %x\n", np, par->r.min.x, nb, lm, ppb, m);	
 
 			/* right edge */
 			np = par->r.max.x&m;	/* no. pixels used on left side of word */
 			dx -= np;
 			nb = 8 - np * dst->depth;		/* no. bits unused on right side of word */
 			rm = ~((1<<nb)-1);
-DBG print("np %d x %d nb %d rm %ux ppb %d m %ux\n", np, par->r.max.x, nb, rm, ppb, m);	
+			DBG print("np %d x %d nb %d rm %x ppb %d m %x\n", np, par->r.max.x, nb, rm, ppb, m);	
 
 DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 			/* lm, rm are masks that are 1 where we should touch the bits */
@@ -2150,7 +2150,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 
 				for(y=0; y<dy; y++, dp+=dwid){
 					if(lm){
-DBG print("dp %p v %lux lm %ux (v ^ *dp) & lm %lux\n", dp, v, lm, (v^*dp)&lm);
+						DBG print("dp %p v %lux lm %x (v ^ *dp) & lm %lux\n", dp, v, lm, (v^*dp)&lm);
 						*dp ^= (v ^ *dp) & lm;
 						dp++;
 					}

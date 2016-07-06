@@ -277,7 +277,7 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 	/* Check header version */
 	if(BLKIPVER(bp) != IP_VER6) {
 		ip->stats[InHdrErrors]++;
-		netlog(f, Logip, "ip: bad version %ux\n", (h->vcf[0]&0xF0)>>2);
+		netlog(f, Logip, "ip: bad version %x\n", (h->vcf[0]&0xF0)>>2);
 		freeblist(bp);
 		return;
 	}

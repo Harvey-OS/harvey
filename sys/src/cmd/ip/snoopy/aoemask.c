@@ -125,7 +125,7 @@ Proto aoemask = {
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer,
 };

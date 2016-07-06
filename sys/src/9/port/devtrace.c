@@ -543,7 +543,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 		i = 0;
 		qlock(&traceslock);
 		buf = malloc(READSTR);
-		i += snprint(buf + i, READSTR - i, "logsize %lud\n", logsize);
+		i += snprint(buf + i, READSTR - i, "logsize %lu\n", logsize);
 		for(p = traces; p != nil; p = p->next)
 			i += snprint(buf + i, READSTR - i, "trace %p %p new %s\n",
 				p->start, p->end, p->name);

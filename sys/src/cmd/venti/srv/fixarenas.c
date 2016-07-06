@@ -1834,7 +1834,7 @@ checkmap(void)
 
 	an = buildamap();
 	fmtstrinit(&fmt);
-	fmtprint(&fmt, "%ud\n", an->n);
+	fmtprint(&fmt, "%u\n", an->n);
 	for(i=0; i<an->n; i++)
 		fmtprint(&fmt, "%s\t%lld\t%lld\n",
 			an->map[i].name, an->map[i].start, an->map[i].stop);

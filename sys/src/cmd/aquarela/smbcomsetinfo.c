@@ -100,7 +100,7 @@ smbcomsetinformation(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	if (!smbbuffergetstring(b, h, SMB_STRING_PATH, &name))
 		return SmbProcessResultFormat;
 	smblogprint(h->command,
-		"smbcomsetinformation: attr 0x%.4ux utime %lud path %s\n",
+		"smbcomsetinformation: attr 0x%.4ux utime %lu path %s\n",
 		attr, utime, name);
 	if (utime) {
 		Dir d;

@@ -187,7 +187,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 	RR *rp;
 
 	if(debug){
-		dnslog("%d: reply (%s) %s %s %ux",
+		dnslog("%d: reply (%s) %s %s %x",
 			req->id, caller,
 			rep->qd->owner->name,
 			rrname(rep->qd->type, tname, sizeof tname),

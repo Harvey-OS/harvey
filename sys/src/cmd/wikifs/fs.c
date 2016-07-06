@@ -438,7 +438,7 @@ fillstat(Dir *d, uint64_t path, uint32_t tm, uint32_t length)
 		break;
 
 	case D2nd:
-		snprint(tmp, sizeof tmp, "%lud", tm);
+		snprint(tmp, sizeof tmp, "%lu", tm);
 		d->name = estrdup(tmp);
 		d->mode = DMDIR|0555;
 		break;
@@ -771,7 +771,7 @@ fswrite(Req *r)
 		w->ndoc = 1;
 		if((n = allocnum(w->title, 0)) < 0)
 			goto Error;
-		sprint(tmp, "D%lud\n", w->doc->time);
+		sprint(tmp, "D%lu\n", w->doc->time);
 		a->s = s_reset(a->s);
 		a->s = doctext(a->s, w->doc);
 		rv = writepage(n, t, a->s, w->title);

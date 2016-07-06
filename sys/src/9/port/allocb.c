@@ -88,7 +88,7 @@ iallocb(int size)
 				active.exiting = 1;
 				exit(0);
 			}
-			iprint("iallocb: limited %lud/%lud\n",
+			iprint("iallocb: limited %lu/%lu\n",
 				ialloc.bytes, conf.ialloc);
 		}
 		return nil;
@@ -100,7 +100,7 @@ iallocb(int size)
 				active.exiting = 1;
 				exit(0);
 			}
-			iprint("iallocb: no memory %lud/%lud\n",
+			iprint("iallocb: no memory %lu/%lu\n",
 				ialloc.bytes, conf.ialloc);
 		}
 		return nil;
@@ -179,5 +179,5 @@ checkb(Block *b, char *msg)
 void
 iallocsummary(void)
 {
-	print("ialloc %lud/%lud\n", ialloc.bytes, conf.ialloc);
+	print("ialloc %lu/%lu\n", ialloc.bytes, conf.ialloc);
 }

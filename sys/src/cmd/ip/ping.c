@@ -99,7 +99,7 @@ prlost4(uint16_t seq, void *v)
 {
 	Ip4hdr *ip4 = v;
 
-	print("lost %ud: %V -> %V\n", seq, ip4->src, ip4->dst);
+	print("lost %u: %V -> %V\n", seq, ip4->src, ip4->dst);
 }
 
 static void
@@ -107,7 +107,7 @@ prlost6(uint16_t seq, void *v)
 {
 	Ip6hdr *ip6 = v;
 
-	print("lost %ud: %I -> %I\n", seq, ip6->src, ip6->dst);
+	print("lost %u: %I -> %I\n", seq, ip6->src, ip6->dst);
 }
 
 static void
@@ -115,7 +115,7 @@ prreply4(Req *r, void *v)
 {
 	Ip4hdr *ip4 = v;
 
-	print("%ud: %V -> %V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
+	print("%u: %V -> %V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 		r->seq - firstseq, ip4->src, ip4->dst, r->rtt, sum/rcvdmsgs,
 		r->ttl);
 }
@@ -125,7 +125,7 @@ prreply6(Req *r, void *v)
 {
 	Ip6hdr *ip6 = v;
 
-	print("%ud: %I -> %I rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
+	print("%u: %I -> %I rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 		r->seq - firstseq, ip6->src, ip6->dst, r->rtt, sum/rcvdmsgs,
 		r->ttl);
 }
@@ -605,7 +605,7 @@ reply(Req *r, void *v)
 		if(addresses)
 			(*proto->prreply)(r, v);
 		else
-			print("%ud: rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
+			print("%u: rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 				r->seq - firstseq, r->rtt, sum/rcvdmsgs, r->ttl);
 	r->replied = 1;
 }
@@ -617,6 +617,6 @@ lost(Req *r, void *v)
 		if(addresses && v != nil)
 			(*proto->prlost)(r->seq - firstseq, v);
 		else
-			print("lost %ud\n", r->seq - firstseq);
+			print("lost %u\n", r->seq - firstseq);
 	lostmsgs++;
 }

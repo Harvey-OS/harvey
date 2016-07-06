@@ -65,7 +65,7 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	timeout = smbnhgetl(pdata); pdata += 4;
 	numberofunlocks = smbnhgets(pdata); pdata += 2;
 	numberoflocks = smbnhgets(pdata);
-	smblogprint(h->command, "smbcomlockingandx: fid 0x%.4ux locktype 0x%.2ux oplocklevel 0x%.2ux timeout %lud numberofunlocks %d numberoflocks %ud\n",
+	smblogprint(h->command, "smbcomlockingandx: fid 0x%.4ux locktype 0x%.2ux oplocklevel 0x%.2ux timeout %lu numberofunlocks %d numberoflocks %u\n",
 		fid, locktype, oplocklevel, timeout, numberofunlocks, numberoflocks);
 	large = locktype & 0x10;
 	locktype &= ~0x10;

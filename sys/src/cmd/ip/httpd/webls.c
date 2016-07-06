@@ -168,7 +168,7 @@ maxwidths(Dir *dp, int32_t n)
 	char	scratch[64];
 
 	for (i = 0; i < n; i++) {
-		if (snprint(scratch, sizeof scratch, "%ud", dp[i].dev) > devwidth)
+		if (snprint(scratch, sizeof scratch, "%u", dp[i].dev) > devwidth)
 			devwidth = strlen(scratch);
 		if (strlen(dp[i].uid) > uidwidth)
 			uidwidth = strlen(dp[i].uid);

@@ -107,11 +107,11 @@ ps(char *s)
 
 	if(rflag){
 		if(rtime >= 86400)
-			sprint(rbuf, " %lud:%02lud:%02lud:%02lud", rtime/86400, (rtime/3600)%24, (rtime/60)%60, rtime%60);
+			sprint(rbuf, " %lu:%02lud:%02lud:%02lud", rtime/86400, (rtime/3600)%24, (rtime/60)%60, rtime%60);
 		else if(rtime >= 3600)
-			sprint(rbuf, " %lud:%02lud:%02lud", rtime/3600, (rtime/60)%60, rtime%60);
+			sprint(rbuf, " %lu:%02lud:%02lud", rtime/3600, (rtime/60)%60, rtime%60);
 		else
-			sprint(rbuf, " %lud:%02lud", rtime/60, rtime%60);
+			sprint(rbuf, " %lu:%02lud", rtime/60, rtime%60);
 		sprint(rbuf1, "%12s", rbuf);
 	}else
 		rbuf1[0] = 0;

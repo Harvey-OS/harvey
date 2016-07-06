@@ -273,7 +273,7 @@ fromnet(Conn *c)
 			ex = getlong(m);
 			if(ex==0)
 				exits(0);
-			sprint(buf, "%lud", ex);
+			sprint(buf, "%lu", ex);
 			exits(buf);
 
 		case SSH_MSG_DISCONNECT:

@@ -129,7 +129,7 @@ xfer9p(int from, int to)
 	nbuf = 256;
 	buf = malloc(nbuf);
 	if(buf == nil)
-		sysfatal("xfer: malloc %ud: %r", nbuf);
+		sysfatal("xfer: malloc %u: %r", nbuf);
 
 	for(;;){
 		if(readn(from, buf, 4) != 4)
@@ -139,7 +139,7 @@ xfer9p(int from, int to)
 			nbuf = n+8192;
 			buf = realloc(buf, nbuf);
 			if(buf == nil)
-				sysfatal("xfer: realloc %ud: %r", nbuf);
+				sysfatal("xfer: realloc %u: %r", nbuf);
 		}
 		if(readn(from, buf+4, n-4) != n-4)
 			break;

@@ -103,7 +103,7 @@ seprintospfhello(char *p, char *e, void *a)
 {
 	Ospfhello *h = a;
 
-	return seprint(p, e, "%s(mask %V interval %d opt %ux pri %ux deadt %d designated %V bdesignated %V)",
+	return seprint(p, e, "%s(mask %V interval %d opt %x pri %x deadt %d designated %V bdesignated %V)",
 		ospftype[OSPFhello],
 		h->mask, NetS(h->interval), h->options, h->pri,
 		NetL(h->deadint), h->designated, h->bdesignated);
@@ -220,7 +220,7 @@ struct OspfLSupdpkt {
 char*
 seprintospflsaheader(char *p, char *e, struct OspfLSAhdr *h)
 {
-	return seprint(p, e, "age %d opt %ux type %ux lsid %V adv_rt %V seqno %ux c %4.4ux l %d",
+	return seprint(p, e, "age %d opt %x type %x lsid %V adv_rt %V seqno %x c %4.4ux l %d",
 		NetS(h->lsage), h->options&0xff, h->lstype,
 		h->lsid, h->advtrt, NetL(h->lsseqno), NetS(h->lscksum),
 		NetS(h->lsalen));
@@ -305,7 +305,7 @@ seprintospflsupdate(char *p, char *e, void *a, int len)
 				h = &(g->as[i]);
 				p = seprint(p, e, " lsa%d(", i);
 				p = seprintospflsaheader(p, e, &(h->hdr));
-				p = seprint(p, e, " mask %V extflg %1.1ux met %d fwdaddr %V extrtflg %ux)",
+				p = seprint(p, e, " mask %V extflg %1.1ux met %d fwdaddr %V extrtflg %x)",
 					h->netmask, h->lsa.flag, Net3(h->lsa.metric),
 					h->lsa.fwdaddr, NetL(h->lsa.exrttag));
 			}

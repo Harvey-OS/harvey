@@ -153,7 +153,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 	if (s->fidmap == nil)
 		s->fidmap = smbidmapnew();
 	*fidp = smbidmapadd(s->fidmap, f);
-//smblogprint(h->command, "REPLY:\n t->id=0x%ux fid=%d path=%s\n", t->id, *fidp, path);
+//smblogprint(h->command, "REPLY:\n t->id=0x%x fid=%d path=%s\n", t->id, *fidp, path);
 	smblogprintif(smbglobals.log.fids, "openfile: 0x%.4ux/0x%.4ux %s\n", t->id, *fidp, path);
 	if (actionp)
 		*actionp = action;
@@ -582,7 +582,7 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 
 	smblogprint(h->command, "namelength %d\n", namelength);
 	smblogprint(h->command, "flags 0x%.8lux\n", flags);
-	smblogprint(h->command, "rootdirectoryfid %lud\n", rootdirectoryfid);
+	smblogprint(h->command, "rootdirectoryfid %lu\n", rootdirectoryfid);
 	smblogprint(h->command, "desiredaccess 0x%.8lux", desiredaccess);
 	smbsblutlogprint(h->command, dasblut, desiredaccess);
 	smblogprint(h->command, "\n");

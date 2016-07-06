@@ -241,7 +241,7 @@ netshareenum(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 	if (!smbbuffergets(inparam, &level))
 		return SmbProcessResultFormat;
 	
-	smblogprintif(smbglobals.log.rap2, "netshareenum(%lud, %lud)\n",
+	smblogprintif(smbglobals.log.rap2, "netshareenum(%lu, %lu)\n",
 		level, smbbufferwritespace(outdata));
 
 	if (level != 1)
@@ -275,7 +275,7 @@ netserverenum2(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 		goto done;
 	}
 	
-	smblogprintif(smbglobals.log.rap2, "netserverenum2(%lud, %lud, 0x%.8lux, %s)\n",
+	smblogprintif(smbglobals.log.rap2, "netserverenum2(%lu, %lu, 0x%.8lux, %s)\n",
 		level, smbbufferwritespace(outdata), servertype, domain);
 
 	if (level > 1)
@@ -330,7 +330,7 @@ netsharegetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 		goto done;
 	}
 	
-	smblogprintif(smbglobals.log.rap2, "netsharegetinfo(%s, %lud, %lud)\n",
+	smblogprintif(smbglobals.log.rap2, "netsharegetinfo(%s, %lu, %lu)\n",
 		netname, level, smbbufferwritespace(outdata));
 
 	if (level > 2)
@@ -368,7 +368,7 @@ netservergetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 		goto done;
 	}
 	
-	smblogprintif(smbglobals.log.rap2, "netservergetinfo(%lud, %lud)\n",
+	smblogprintif(smbglobals.log.rap2, "netservergetinfo(%lu, %lu)\n",
 		level, smbbufferwritespace(outdata));
 
 	if (level > 1)
@@ -398,7 +398,7 @@ netwkstagetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 		goto done;
 	}
 	
-	smblogprintif(smbglobals.log.rap2, "netwkstagetinfo(%lud, %lud)\n",
+	smblogprintif(smbglobals.log.rap2, "netwkstagetinfo(%lu, %lu)\n",
 		level, smbbufferwritespace(outdata));
 
 	if (level != 10)
@@ -467,7 +467,7 @@ smbrap2(SmbSession *s)
 		goto done;
 	}
 	if (pno > nelem(raptable) || raptable[pno].name == nil) {
-		smblogprint(-1, "smbrap2: unsupported procedure %ud\n", pno);
+		smblogprint(-1, "smbrap2: unsupported procedure %u\n", pno);
 		pr = SmbProcessResultUnimp;
 		goto done;
 	}
