@@ -212,7 +212,7 @@ timestamp(char *tag)
 	uint64_t t;
 
 	t = nsec()/1000;
-	syslog(0, blog, "%s %lludµs", tag, t - start);
+	syslog(0, blog, "%s %lluµs", tag, t - start);
 }
 
 void

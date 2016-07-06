@@ -638,7 +638,7 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 				continue;
 			ctlr->statistics[i] = tuvl;
 			ctlr->statistics[i+1] = tuvl>>32;
-			l += snprint(p+l, READSTR-l, "%s: %llud %llud\n",
+			l += snprint(p+l, READSTR-l, "%s: %llu %llu\n",
 				s, tuvl, ruvl);
 			i++;
 			break;

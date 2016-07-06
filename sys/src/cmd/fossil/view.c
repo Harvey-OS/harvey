@@ -724,7 +724,7 @@ initxdirentry(MetaEntry *me)
 	if(!deUnpack(&dir, me))
 		return stringnode("deUnpack: %R");
 
-	t = stringnode("dirEntry elem=%s size=%llud data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
+	t = stringnode("dirEntry elem=%s size=%llu data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
 	t->nkid = 1;
 	t->kid = mallocz(sizeof(t->kid[0])*1, 1);
 	t->kid[0] = stringnode(

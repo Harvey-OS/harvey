@@ -514,7 +514,7 @@ physinit(uintmem a, uint64_t size)
 			if(!ISPOWEROF2(sys->pmend))
 				b->kspan++;
 			dtsz = sizeof(Buddy)*(UNO<<(b->kspan-b->kmin+1));
-			DBG("kspan %u (arrysz = %llud)\n", b->kspan, dtsz);
+			DBG("kspan %u (arrysz = %llu)\n", b->kspan, dtsz);
 			b->blocks = malloc(dtsz);
 			if(b->blocks == nil)
 				panic("physinit: no blocks");

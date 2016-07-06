@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	}
 
 	totsz = exech.txtsz + exech.datsz + exech.bsssz;
-	fprint(2, "%s: %lu+%lu+%lu=%llud\n",
+	fprint(2, "%s: %lu+%lu+%lu=%llu\n",
 		exech.name, exech.txtsz, exech.datsz, exech.bsssz, totsz);
 
 	if(dsegonly)

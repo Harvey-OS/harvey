@@ -1177,7 +1177,7 @@ fsysPrintStat(char *prefix, char *file, DirEntry *de)
 
 	if(prefix == nil)
 		prefix = "";
-	consPrint("%sstat %q %q %q %q %s %llud\n", prefix,
+	consPrint("%sstat %q %q %q %q %s %llu\n", prefix,
 		file, de->elem, de->uid, de->gid, fsysModeString(de->mode, buf), de->size);
 }
 

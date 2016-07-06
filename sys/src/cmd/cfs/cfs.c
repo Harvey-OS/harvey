@@ -582,7 +582,7 @@ rread(Mfile *mf)
 			if(n == 0){
 				/* end of file */
 				if(b->inode.length > off){
-					DPRINT(2, "file %llud.%ld, length %lld\n",
+					DPRINT(2, "file %llu.%ld, length %lld\n",
 						b->inode.qid.path,
 						b->inode.qid.vers, off);
 					b->inode.length = off;

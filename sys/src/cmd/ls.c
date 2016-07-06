@@ -174,7 +174,7 @@ dowidths(Dir *db)
 	int n;
 
 	if(sflag) {
-		n = sprint(buf, "%llud", (db->length+1023)/1024);
+		n = sprint(buf, "%llu", (db->length+1023)/1024);
 		if(n > swidth)
 			swidth = n;
 	}
@@ -198,7 +198,7 @@ dowidths(Dir *db)
 		n = sprint(buf, "%q", db->gid);
 		if(n > gwidth)
 			gwidth = n;
-		n = sprint(buf, "%llud", db->length);
+		n = sprint(buf, "%llu", db->length);
 		if(n > lwidth)
 			lwidth = n;
 	}

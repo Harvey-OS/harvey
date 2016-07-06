@@ -80,7 +80,7 @@ writetar(int outf, char *buffer, uint32_t size)
 {
 	if (write(outf, buffer, size) < size) {
 		fprint(2, "%s: archive write error: %r\n", argv0);
-		fprint(2, "%s: archive seek offset: %llud\n", argv0, outoff);
+		fprint(2, "%s: archive seek offset: %llu\n", argv0, outoff);
 		exits("write");
 	}
 	outoff += size;

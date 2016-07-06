@@ -317,7 +317,7 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 
 	if(dowrite) {
 		if(Cwoffset(cd) != o+co.len-initlen)
-			fprint(2, "offset %llud o+co.len-initlen %llud\n",
+			fprint(2, "offset %llu o+co.len-initlen %llu\n",
 				Cwoffset(cd), o+co.len-initlen);
 		assert(Cwoffset(cd) == o+co.len-initlen);
 	} else
