@@ -492,7 +492,7 @@ addfree(Device dev, int32_t addr, Superb *sb)
 	Iobuf *p;
 
 	if(addr >= sb->fsize){
-		print("addfree: bad addr %lux\n", addr);
+		print("addfree: bad addr %lx\n", addr);
 		return;
 	}
 	n = sb->fbuf.nfree;

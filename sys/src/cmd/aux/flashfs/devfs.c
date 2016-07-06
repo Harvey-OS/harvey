@@ -98,9 +98,9 @@ readdata(int sect, void *buff, uint32_t count, uint32_t off)
 	m = sect * sectsize + off;
 	n = pread(flash.dfd, buff, count, m);
 	if(n < 0)
-		sysfatal("error reading at %lux: %r", m);
+		sysfatal("error reading at %lx: %r", m);
 	if(n != count)
-		sysfatal("short read at %lux, %ld instead of %lu", m, n, count);
+		sysfatal("short read at %lx, %ld instead of %lu", m, n, count);
 }
 
 int
@@ -114,7 +114,7 @@ writedata(int err, int sect, void *buff, uint32_t count, uint32_t off)
 	if(n < 0){
 		if(err)
 			return 0;
-		sysfatal("error writing at %lux: %r", m);
+		sysfatal("error writing at %lx: %r", m);
 	}
 	if(n != count){
 		if(err)

@@ -46,7 +46,7 @@ applyrules(char *target, char *cnt)
 	char stem[NAMEBLOCK], buf[NAMEBLOCK];
 	Resub rmatch[NREGEXP];
 
-/*	print("applyrules(%lux='%s')\n", target, target);/**/
+/*	print("applyrules(%lx='%s')\n", target, target);/**/
 	sym = symlook(target, S_NODE, 0);
 	if(sym)
 		return sym->u.ptr;

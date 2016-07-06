@@ -223,7 +223,7 @@ checktag(Iobuf *p, int tag, int32_t qpath)
 			if(qpath == (t->path&~QPDIR))	/* old bug */
 				return 0;
 			if(1 || CHAT(0))
-				print("	tag/path = %lux; expected %G/%lux\n",
+				print("	tag/path = %lx; expected %G/%lx\n",
 					t->path, tag, qpath);
 			return 1;
 		}
