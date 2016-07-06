@@ -404,7 +404,7 @@ apop(Ticketreq *tr, int type)
 	 */
 	randombytes((uint8_t*)rb, sizeof(rb));
 	p = chal;
-	p += snprint(p, sizeof(chal), "<%lux%lux.%lux%lux@%s>",
+	p += snprint(p, sizeof(chal), "<%lx%lx.%lx%lx@%s>",
 		rb[0], rb[1], rb[2], rb[3], domainname());
 	challen = p - chal;
 	print("%c%-5d%s", AuthOKvar, challen, chal);

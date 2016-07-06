@@ -1745,7 +1745,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 
 		/* we're assuming no data with the initial SYN */
 		if(segp->seq != lp->irs+1 || segp->ack != lp->iss+1){
-			netlog(s->p->f, Logtcp, "tcpincoming s %lux/%lux a %lux %lux\n",
+			netlog(s->p->f, Logtcp, "tcpincoming s %lx/%lx a %lx %lx\n",
 				segp->seq, lp->irs+1, segp->ack, lp->iss+1);
 			lp = nil;
 		} else {
@@ -2304,7 +2304,7 @@ reset:
 	if(tcb->state != Syn_received && (seg.flags & RST) == 0){
 		if(tcpporthogdefense
 		&& seq_within(seg.ack, tcb->snd.una-(1<<31), tcb->snd.una-(1<<29))){
-			print("stateless hog %I.%d->%I.%d f %x %lux - %lux - %lux\n",
+			print("stateless hog %I.%d->%I.%d f %x %lx - %lx - %lx\n",
 				source, seg.source, dest, seg.dest, seg.flags,
 				tcb->snd.una-(1<<31), seg.ack, tcb->snd.una-(1<<29));
 			localclose(s, "stateless hog");
@@ -2370,7 +2370,7 @@ reset:
 				if(tcb->rcv.nxt != seg.seq)
 					netlog(f, Logtcp, "out of order RST "
 						"rcvd: %I.%d -> %I.%d, rcv.nxt "
-						"%lux seq %lux\n",
+						"%lx seq %lx\n",
 						s->raddr, s->rport, s->laddr,
 						s->lport, tcb->rcv.nxt, seg.seq);
 			}

@@ -85,7 +85,7 @@ loadhex(char* file, int mfd)
 		case 0: /* data */
 			addr = seg + c.addr;
 			if(addr + c.dlen > Memsize)
-				sysfatal("addr out of range: %lux-%lux", addr, addr+c.dlen);
+				sysfatal("addr out of range: %lx-%lx", addr, addr+c.dlen);
 			if(seek(mfd, addr, 0) < 0)
 				sysfatal("seeking to %lu: %r", addr);
 			if(write(mfd, c.bytes+Doff, c.dlen) != c.dlen)
@@ -95,7 +95,7 @@ loadhex(char* file, int mfd)
 			if(read(mfd, buf, c.dlen) != c.dlen)
 				sysfatal("reading: %r");
 			if(memcmp(buf, c.bytes+Doff, c.dlen) != 0)
-				print("readback error at %lux\n", addr);
+				print("readback error at %lx\n", addr);
 			if(dump)
 				print("%8.8lux: %d\n", addr, c.dlen);
 			break;
@@ -105,7 +105,7 @@ loadhex(char* file, int mfd)
 		case 2: /* segment */
 			seg = ((c.bytes[Doff]<<8) | c.bytes[Doff+1]) <<4;
 			if(seg >= Memsize)
-				sysfatal("seg out of range: %lux", seg);
+				sysfatal("seg out of range: %lx", seg);
 			if(dump)
 				print("seg %8.8lux\n", seg);
 			break;

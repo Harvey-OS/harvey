@@ -239,11 +239,11 @@ readbios(int32_t len, int32_t offset)
 		return bios+(offset - biosoffset);
 
 	if(len > sizeof(bios))
-		error("enormous bios len %ld at %lux\n", len, offset);
+		error("enormous bios len %ld at %lx\n", len, offset);
 
 	n = doreadbios(bios, sizeof(bios), offset);
 	if(n < len)
-		error("short bios read %ld at %lux got %d\n", len,offset, n);
+		error("short bios read %ld at %lx got %d\n", len,offset, n);
 
 	biosoffset = offset;
 	bioslen = n;
@@ -274,7 +274,7 @@ dumpbios(int32_t size)
 	}
 
 	for(i = 0; i < size; i += 16){
-		Bprint(&stdout, "0x%luX", offset+i);
+		Bprint(&stdout, "0x%lX", offset+i);
 		for(n = 0; n < 16; n++)
 			Bprint(&stdout, " %2.2uX", buf[i+n]);
 		Bprint(&stdout, "  ");

@@ -1608,7 +1608,7 @@ makecontig(Xfile *f, int nextra)
 	for(i=0; i<nclust+nextra; i++)
 		assert(getfat(xf, start+i) == 0);
 
-	chat("relocate chain %lux -> 0x%lux len %d\n", fileclust(f, 0, 0), start, nclust);
+	chat("relocate chain %lx -> 0x%lx len %d\n", fileclust(f, 0, 0), start, nclust);
 
 	wclust = start;
 	for(rclust = fileclust(f, 0, 0); rclust > 0; rclust = next){
@@ -1632,7 +1632,7 @@ makecontig(Xfile *f, int nextra)
 	}
 
 	/* now wclust points at the first new cluster; chain it in */
-	chat("wclust 0x%lux start 0x%lux (fat->0x%lux) nclust %d\n", wclust, start, getfat(xf, start), nclust);
+	chat("wclust 0x%lx start 0x%lx (fat->0x%lx) nclust %d\n", wclust, start, getfat(xf, start), nclust);
 	assert(wclust == start+nclust);
 	putfat(xf, wclust, 0xffffffff);	/* end of file */
 
@@ -1850,8 +1850,8 @@ bootsecdump32(int fd, Xfs *xf, Dosboot32 *b32)
 		else{
 			fprint(fd, "\nfat info %d\n", fisec);
 			fi = (Fatinfo*)p1->iobuf;
-			fprint(fd, "sig1: 0x%lux sb 0x%lux\n", GLONG(fi->sig1), FATINFOSIG1);
-			fprint(fd, "sig: 0x%lux sb 0x%lux\n", GLONG(fi->sig), FATINFOSIG);
+			fprint(fd, "sig1: 0x%lx sb 0x%lx\n", GLONG(fi->sig1), FATINFOSIG1);
+			fprint(fd, "sig: 0x%lx sb 0x%lx\n", GLONG(fi->sig), FATINFOSIG);
 			fprint(fd, "freeclust: %lu\n", GLONG(fi->freeclust));
 			fprint(fd, "nextfree: %lu\n", GLONG(fi->nextfree));
 			fprint(fd, "reserved: %lu %lu %lu\n", GLONG(fi->resrv), GLONG(fi->resrv+4), GLONG(fi->resrv+8));

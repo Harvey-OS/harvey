@@ -1271,14 +1271,14 @@ cmdtrackinfo(ScsiReq *rp, int argc, char *argv[])
 	Bprint(&bout, "buffer length: 0x%X\n", d[0]);
 	Bprint(&bout, "number of tracks: 0x%X\n", d[1]);
 	ul = (d[2]<<24)|(d[3]<<16)|(d[4]<<8)|d[5];
-	Bprint(&bout, "start address: 0x%luX\n", ul);
+	Bprint(&bout, "start address: 0x%lX\n", ul);
 	ul = (d[6]<<24)|(d[7]<<16)|(d[8]<<8)|d[9];
-	Bprint(&bout, "track length: 0x%luX\n", ul);
+	Bprint(&bout, "track length: 0x%lX\n", ul);
 	Bprint(&bout, "track mode: 0x%X\n", d[0x0A] & 0x0F);
 	Bprint(&bout, "track status: 0x%X\n", (d[0x0A]>>4) & 0x0F);
 	Bprint(&bout, "data mode: 0x%X\n", d[0x0B] & 0x0F);
 	ul = (d[0x0C]<<24)|(d[0x0D]<<16)|(d[0x0E]<<8)|d[0x0F];
-	Bprint(&bout, "free blocks: 0x%luX\n", ul);
+	Bprint(&bout, "free blocks: 0x%lX\n", ul);
 	return n;
 }
 

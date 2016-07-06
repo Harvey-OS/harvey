@@ -181,7 +181,7 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 	if(status == 0)
 		return n;
 
-	werrstr("cmd %2.2uX: status %luX dcount %d n %d", cmd[0], status, dcount, n);
+	werrstr("cmd %2.2uX: status %lX dcount %d n %d", cmd[0], status, dcount, n);
 	return -1;
 }
 
