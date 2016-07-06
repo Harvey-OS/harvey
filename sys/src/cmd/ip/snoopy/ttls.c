@@ -99,7 +99,7 @@ Proto ttls =
 	nil,
 	p_seprint,
 	p_mux, /* we need this to get the dump printed */
-	"%lud",
+	"%lu",
 	nil,
 	defaultframer,
 };

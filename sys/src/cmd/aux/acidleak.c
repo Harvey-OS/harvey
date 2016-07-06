@@ -18,7 +18,7 @@ emalloc(uint32_t sz)
 
 	v = malloc(sz);
 	if(v == nil)
-		sysfatal("malloc %lud fails", sz);
+		sysfatal("malloc %lu fails", sz);
 	memset(v, 0, sz);
 	return v;
 }
@@ -28,7 +28,7 @@ erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
 	if(v == nil)
-		sysfatal("realloc %lud fails", sz);
+		sysfatal("realloc %lu fails", sz);
 	return v;
 }
 

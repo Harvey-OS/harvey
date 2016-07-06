@@ -494,7 +494,7 @@ parse(uint8_t *p, int n)
 	}
 
 	if(dhcp.xid != nhgetl(bp->xid)) {
-		fprint(2, "dhcpclient: parse: bad xid: got %ux expected %lux\n",
+		fprint(2, "dhcpclient: parse: bad xid: got %x expected %lux\n",
 			nhgetl(bp->xid), dhcp.xid);
 		return 0;
 	}
@@ -512,7 +512,7 @@ parse(uint8_t *p, int n)
 		return 0;
 	}
 	if(memcmp(optmagic, p, 4) != 0) {
-		fprint(2, "dhcpclient: parse: bad opt magic %ux %ux %ux %ux\n",
+		fprint(2, "dhcpclient: parse: bad opt magic %x %x %x %x\n",
 			p[0], p[1], p[2], p[3]);
 		return 0;
 	}
@@ -565,13 +565,13 @@ bootpdump(uint8_t *p, int n)
 		nhgets(up->lport), up->raddr, nhgets(up->rport));
 	fprint(2, "op=%d htype=%d hlen=%d hops=%d\n", bp->op, bp->htype,
 		bp->hlen, bp->hops);
-	fprint(2, "xid=%ux secs=%d flags=%ux\n", nhgetl(bp->xid),
+	fprint(2, "xid=%x secs=%d flags=%x\n", nhgetl(bp->xid),
 		nhgets(bp->secs), nhgets(bp->flags));
 	fprint(2, "ciaddr=%V yiaddr=%V siaddr=%V giaddr=%V\n",
 		bp->ciaddr, bp->yiaddr, bp->siaddr, bp->giaddr);
 	fprint(2, "chaddr=");
 	for(i=0; i<16; i++)
-		fprint(2, "%ux ", bp->chaddr[i]);
+		fprint(2, "%x ", bp->chaddr[i]);
 	fprint(2, "\n");
 	fprint(2, "sname=%s\n", bp->sname);
 	fprint(2, "file = %s\n", bp->file);
@@ -582,7 +582,7 @@ bootpdump(uint8_t *p, int n)
 	if(n < 4)
 		return;
 	if(memcmp(optmagic, p, 4) != 0)
-		fprint(2, "dhcpclient: bad opt magic %ux %ux %ux %ux\n",
+		fprint(2, "dhcpclient: bad opt magic %x %x %x %x\n",
 			p[0], p[1], p[2], p[3]);
 	p += 4;
 	n -= 4;
@@ -608,14 +608,14 @@ bootpdump(uint8_t *p, int n)
 		default:
 			fprint(2, "unknown option %d\n", code);
 			for(i = 0; i<len; i++)
-				fprint(2, "%ux ", p[i]);
+				fprint(2, "%x ", p[i]);
 		case ODtype:
 			fprint(2, "DHCP type %d\n", p[0]);
 			break;
 		case ODclientid:
 			fprint(2, "client id=");
 			for(i = 0; i<len; i++)
-				fprint(2, "%ux ", p[i]);
+				fprint(2, "%x ", p[i]);
 			fprint(2, "\n");
 			break;
 		case ODlease:

@@ -19,7 +19,7 @@ int
 smbcheckwordcount(char *name, SmbHeader *h, uint16_t wordcount)
 {
 	if (h->wordcount != wordcount) {
-		smblogprint(-1, "smb%s: word count not %ud\n", name, wordcount);
+		smblogprint(-1, "smb%s: word count not %u\n", name, wordcount);
 		return 0;
 	}
 	return 1;
@@ -32,7 +32,7 @@ smbcheckwordandbytecount(char *name, SmbHeader *h, uint16_t wordcount,
 	uint16_t bytecount;
 	uint8_t *bdata;
 	if (h->wordcount != wordcount) {
-		smblogprint(-1, "smb%s: word count not %ud\n", name, wordcount);
+		smblogprint(-1, "smb%s: word count not %u\n", name, wordcount);
 		return 0;
 	}
 	bdata = *bdatap;

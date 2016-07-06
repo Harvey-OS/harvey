@@ -179,7 +179,7 @@ dowidths(Dir *db)
 			swidth = n;
 	}
 	if(qflag) {
-		n = sprint(buf, "%lud", db->qid.vers);
+		n = sprint(buf, "%lu", db->qid.vers);
 		if(n > qwidth)
 			qwidth = n;
 	}
@@ -189,7 +189,7 @@ dowidths(Dir *db)
 			mwidth = n;
 	}
 	if(lflag) {
-		n = sprint(buf, "%ud", db->dev);
+		n = sprint(buf, "%u", db->dev);
 		if(n > vwidth)
 			vwidth = n;
 		n = sprint(buf, "%q", db->uid);

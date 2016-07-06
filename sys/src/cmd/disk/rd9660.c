@@ -287,7 +287,7 @@ void
 getsect(uint8_t *buf, int n)
 {
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
-		sysfatal("reading block %ux", n);
+		sysfatal("reading block %x", n);
 }
 
 void

@@ -955,16 +955,16 @@ blockRead(uint8_t *data, uint32_t addr, int type)
 	uint8_t *cdat;
 
 	if(Bseek(bin, addr, 0) != addr){
-		fprint(2, "paqfs: seek %lud: %r\n", addr);
+		fprint(2, "paqfs: seek %lu: %r\n", addr);
 		return 0;
 	}
 	if(Bread(bin, buf, BlockSize) != BlockSize){
-		fprint(2, "paqfs: read %d at %lud: %r\n", BlockSize, addr);
+		fprint(2, "paqfs: read %d at %lu: %r\n", BlockSize, addr);
 		return 0;
 	}
 	getBlock(buf, &b);
 	if(b.magic != BlockMagic || b.size > blocksize || b.type != type){
-		fprint(2, "paqfs: bad block: magic %.8lux (want %.8ux) size %lud (max %d) type %ud (want %ud)\n",
+		fprint(2, "paqfs: bad block: magic %.8lux (want %.8ux) size %lu (max %d) type %u (want %u)\n",
 			b.magic, BlockMagic, b.size, blocksize, b.type, type);
 		return 0;
 	}
@@ -1035,7 +1035,7 @@ readBlocks(char *name, DigestState *ds)
 		getBlock(buf, &b);
 
 		if(b.size > blocksize)
-			sysfatal("bad block size: %lud: %s", b.size, name);
+			sysfatal("bad block size: %lu: %s", b.size, name);
 		if(ds) {
 			if(Bread(bin, buf, b.size) < b.size)
 				sysfatal("sysfatal reading block: %s: %r", name);

@@ -563,7 +563,7 @@ if(chatty) print("try %d fatbits => %d clusters of %d\n", fatbits, clusters, clu
 			b->driveno = getdriveno(disk);
 		else
 			b->driveno = 0;
-if(chatty) print("driveno = %ux\n", b->driveno);
+if(chatty) print("driveno = %x\n", b->driveno);
 	
 		b->bootsig = 0x29;
 		x = disk->offset + b->nfats*fatsecs + nresrv;

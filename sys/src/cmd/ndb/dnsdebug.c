@@ -177,7 +177,7 @@ prettyrrfmt(Fmt *f)
 			(rp->rmb? rp->rmb->name: ""));
 		break;
 	case Tmx:
-		seprint(p, e, "\t%lud %s", rp->pref,
+		seprint(p, e, "\t%lu %s", rp->pref,
 			(rp->host? rp->host->name: ""));
 		break;
 	case Ta:
@@ -188,13 +188,13 @@ prettyrrfmt(Fmt *f)
 		seprint(p, e, "\t%s", (rp->ptr? rp->ptr->name: ""));
 		break;
 	case Tsoa:
-		seprint(p, e, "\t%s %s %lud %lud %lud %lud %lud",
+		seprint(p, e, "\t%s %s %lu %lu %lu %lu %lu",
 			rp->host->name, rp->rmb->name, rp->soa->serial,
 			rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
 		break;
 	case Tsrv:
-		seprint(p, e, "\t%ud %ud %ud %s",
+		seprint(p, e, "\t%u %u %u %s",
 			rp->srv->pri, rp->srv->weight, rp->port, rp->host->name);
 		break;
 	case Tnull:
@@ -213,7 +213,7 @@ prettyrrfmt(Fmt *f)
 			rp->key->alg);
 		break;
 	case Tsig:
-		seprint(p, e, "\t%d %d %d %lud %lud %lud %d %s",
+		seprint(p, e, "\t%d %d %d %lu %lu %lu %d %s",
 			rp->sig->Cert.type, rp->sig->Cert.alg, rp->sig->labels,
 			rp->sig->ttl, rp->sig->exp, rp->sig->incep,
 			rp->sig->Cert.tag, rp->sig->signer->name);

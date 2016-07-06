@@ -646,7 +646,7 @@ vmap(uintptr_t pa, usize size)
 	uintptr_t va;
 	usize o, sz;
 
-	DBG("vmap(%#p, %lud) pc=%#p\n", pa, size, getcallerpc());
+	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
 
 	if(machp()->machno != 0)
 		print("vmap: machp()->machno != 0");
@@ -677,7 +677,7 @@ vmap(uintptr_t pa, usize size)
 	sz = ROUNDUP(size+o, PGSZ);
 
 	if(pa == 0){
-		print("vmap(0, %lud) pc=%#p\n", size, getcallerpc());
+		print("vmap(0, %lu) pc=%#p\n", size, getcallerpc());
 		return nil;
 	}
 	ilock(&vmaplock);
@@ -687,7 +687,7 @@ vmap(uintptr_t pa, usize size)
 	}
 	iunlock(&vmaplock);
 
-	DBG("vmap(%#p, %lud) => %#p\n", pa+o, size, va+o);
+	DBG("vmap(%#p, %lu) => %#p\n", pa+o, size, va+o);
 
 	return UINT2PTR(va + o);
 }
@@ -697,7 +697,7 @@ vunmap(void* v, usize size)
 {
 	uintptr_t va;
 
-	DBG("vunmap(%#p, %lud)\n", v, size);
+	DBG("vunmap(%#p, %lu)\n", v, size);
 
 	if(machp()->machno != 0)
 		print("vmap: machp()->machno != 0");
@@ -714,7 +714,7 @@ vunmap(void* v, usize size)
 	 * resources used for the allocation (e.g. page table
 	 * pages).
 	 */
-	DBG("vunmap(%#p, %lud)\n", v, size);
+	DBG("vunmap(%#p, %lu)\n", v, size);
 }
 
 int

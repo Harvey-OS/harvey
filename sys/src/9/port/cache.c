@@ -524,7 +524,7 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 			len -= o;
 			offset += o;
 			if(len <= 0) {
-if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->start=%uld\n", p->start, p->len, f->start);
+if(f && p->start + p->len > f->start) print("CACHE: p->start=%lu p->len=%d f->start=%lu\n", p->start, p->len, f->start);
 				qunlock(&mc->QLock);
 				return;
 			}

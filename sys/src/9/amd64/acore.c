@@ -185,7 +185,7 @@ actrap(Ureg *u)
 	if(u->type < nelem(acvctl)){
 		v = acvctl[u->type];
 		if(v != nil){
-			DBG("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
+			DBG("actrap: cpu%d: %llu\n", machp()->machno, u->type);
 			n = v->f(u, v->a);
 			if(n != nil)
 				goto Post;
@@ -212,7 +212,7 @@ actrap(Ureg *u)
 		DBG("actrap: cpu%d: PF cr2 %#ullx\n", machp()->machno, cr2get());
 		break;
 	default:
-		print("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
+		print("actrap: cpu%d: %llu\n", machp()->machno, u->type);
 	}
 Post:
 	m->NIX.icc->rc = ICCTRAP;

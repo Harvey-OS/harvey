@@ -361,7 +361,7 @@ stext(Thing *t, char *l0, char *l1)
 			fc->x, fc->top, fc->bottom, fc->left,
 			fc->width, Dx(t->b->r));
 	}else if(t->s)
-		sprint(l1, "offset(hex): %ux n:%d  height:%d  ascent:%d",
+		sprint(l1, "offset(hex): %x n:%d  height:%d  ascent:%d",
 			t->off, t->s->n, t->s->height, t->s->ascent);
 }
 
@@ -1667,7 +1667,7 @@ tpixels(void)
 					if(!eqpt(p, lastp)){
 						if(p.y != lastp.y)
 							unloadimage(t->b, Rect(t->b->r.min.x, p.y, t->b->r.max.x, p.y+1), data, sizeof data);
-						mesg("[%d,%d] = %d=0x%ux", p.x, p.y, value(t->b, p.x), value(t->b, p.x));
+						mesg("[%d,%d] = %d=0x%x", p.x, p.y, value(t->b, p.x), value(t->b, p.x));
 						lastp = p;
 					}
 					mouse = emouse();

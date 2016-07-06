@@ -43,7 +43,7 @@ checkbucket(Index *ix, uint32_t buck, IBucket *ib)
 
 	is = ix->sects[indexsect0(ix, buck)];
 	if(buck < is->start || buck >= is->stop){
-		seterr(EAdmin, "cannot find index section for bucket %lud\n",
+		seterr(EAdmin, "cannot find index section for bucket %lu\n",
 		       (uint32_t)buck);
 		return -1;
 	}

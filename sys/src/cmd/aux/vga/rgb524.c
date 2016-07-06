@@ -93,7 +93,7 @@ clock(Vga* vga, Ctlr* ctlr)
 		vga->d[0] = 0xC0|((vga->f[0]/2)/1000000 - 65);
 	}
 	else
-		error("%s: pclk %lud out of range\n",
+		error("%s: pclk %lu out of range\n",
 			ctlr->name, vga->f[0]);
 }
 

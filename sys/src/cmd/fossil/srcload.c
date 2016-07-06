@@ -224,7 +224,7 @@ dump(Source *s, int ident, uint32_t entry)
 		return;
 	}
 	n = sourceGetDirSize(s);
-	Bprint(bout, " dir size: %lud\n", n);
+	Bprint(bout, " dir size: %lu\n", n);
 	for(i=0; i<n; i++){
 		ss = sourceOpen(s, i, 1);
 		if(ss == nil)

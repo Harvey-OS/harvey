@@ -892,7 +892,7 @@ threadmain(int argc, char *argv[])
 	redraw(0);
 	if(play()){
 		endtime = time(0);
-		fprint(scores, "%ld\t%s\t%lud\t%ld\n",
+		fprint(scores, "%ld\t%s\t%lu\t%ld\n",
 			points, getuser(), starttime, endtime-starttime);
 	}
 	threadexitsall(nil);

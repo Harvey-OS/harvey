@@ -187,9 +187,9 @@ unztable(Biobuf *bin, char *file)
 				print("\tmod time %d\n", zh.modtime);
 				print("\tmod date %d\n", zh.moddate);
 				print("\tcrc %lux\n", zh.crc);
-				print("\tcompressed size %lud\n", zh.csize);
-				print("\tuncompressed size %lud\n", zh.uncsize);
-				print("\tinternal attributes %ux\n", zh.iattr);
+				print("\tcompressed size %lu\n", zh.csize);
+				print("\tuncompressed size %lu\n", zh.uncsize);
+				print("\tinternal attributes %x\n", zh.iattr);
 				print("\texternal attributes %lux\n", zh.eattr);
 				print("\tstarts at %ld\n", zh.off);
 			}
@@ -260,12 +260,12 @@ sunztable(Biobuf *bin)
 				print("\tmod time %d\n", zh.modtime);
 				print("\tmod date %d\n", zh.moddate);
 				print("\tcrc %lux\n", zh.crc);
-				print("\tcompressed size %lud\n", zh.csize);
-				print("\tuncompressed size %lud\n", zh.uncsize);
+				print("\tcompressed size %lu\n", zh.csize);
+				print("\tuncompressed size %lu\n", zh.uncsize);
 				if((zh.flags & ZTrailInfo) && (hcrc || hcsize || huncsize)){
 					print("\theader crc %lux\n", zh.crc);
-					print("\theader compressed size %lud\n", zh.csize);
-					print("\theader uncompressed size %lud\n", zh.uncsize);
+					print("\theader compressed size %lu\n", zh.csize);
+					print("\theader uncompressed size %lu\n", zh.uncsize);
 				}
 			}
 		}

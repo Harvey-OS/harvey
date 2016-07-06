@@ -456,7 +456,7 @@ initxvacroot(uint8_t score[VtScoreSize])
 		return stringnode("unpack %d-byte root: %R", n);
 
 	h.blockSize = vac.blockSize;
-	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%ud score=%V prev=%V",
+	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%u score=%V prev=%V",
 		vac.version, vac.name, vac.type, vac.blockSize, vac.score, vac.prev);
 	t->expand = xvacrootexpand;
 	return t;
@@ -730,9 +730,9 @@ initxdirentry(MetaEntry *me)
 	t->kid[0] = stringnode(
 		"qid=%#llux\n"
 		"uid=%s gid=%s mid=%s\n"
-		"mtime=%lud mcount=%lud ctime=%lud atime=%lud\n"
+		"mtime=%lu mcount=%lu ctime=%lu atime=%lu\n"
 		"mode=%luo\n"
-		"plan9 %d p9path %#llux p9version %lud\n"
+		"plan9 %d p9path %#llux p9version %lu\n"
 		"qidSpace %d offset %#llux max %#llux",
 		dir.qid,
 		dir.uid, dir.gid, dir.mid,

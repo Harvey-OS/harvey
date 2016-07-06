@@ -202,7 +202,7 @@ p_seprint(Msg *m)
 	if((proto&1) == 0)
 		proto = (proto<<8) | *m->ps++;
 	
-	m->p = seprint(m->p, m->e, "pr=%ud len=%d", proto, len);
+	m->p = seprint(m->p, m->e, "pr=%u len=%d", proto, len);
 	demux(p_mux, proto, proto, m, &dump);
 
 	return 0;
@@ -283,7 +283,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 			p = seprint(p, e, " mtu=%d", NetS(o->data));
 			break;
 		case Octlmap:
-			p = seprint(p, e, " ctlmap=%ux", NetL(o->data));
+			p = seprint(p, e, " ctlmap=%x", NetL(o->data));
 			break;
 		case Oauth:
 			proto = NetS(o->data);
@@ -312,7 +312,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 				break;
 			}
 		case Omagic:
-			p = seprint(p, e, " magic=%ux", NetL(o->data));
+			p = seprint(p, e, " magic=%x", NetL(o->data));
 			break;
 		case Opc:
 			p = seprint(p, e, " protocol-compress");
@@ -385,7 +385,7 @@ seprintipcpopt(char *p, char *e, void *a, int len)
 	for(; cp < ecp; cp += o->len){
 		o = (Lcpopt*)cp;
 		if(cp + o->len > ecp){
-			p = seprint(p, e, " bad opt len %ux", o->type);
+			p = seprint(p, e, " bad opt len %x", o->type);
 			return p;
 		}
 
@@ -473,7 +473,7 @@ seprintccpopt(char *p, char *e, void *a, int len)
 	for(; cp < ecp; cp += o->len){
 		o = (Lcpopt*)cp;
 		if(cp + o->len > ecp){
-			p = seprint(p, e, " bad opt len %ux", o->type);
+			p = seprint(p, e, " bad opt len %x", o->type);
 			return p;
 		}
 		
@@ -489,7 +489,7 @@ seprintccpopt(char *p, char *e, void *a, int len)
 			p = seprint(p, e, " Stac-LZS");
 			break;
 		case 18:
-			p = seprint(p, e, " Microsoft-PPC=%ux", NetL(o->data));
+			p = seprint(p, e, " Microsoft-PPC=%x", NetL(o->data));
 			break;
 		}
 	}

@@ -848,10 +848,10 @@ seprinttd(char *s, char *e, Td *td, int iso)
 			s = seprint(s, e, " d%d", (td->ctrl & Tddata1) ? 1 : 0);
 		else
 			s = seprint(s, e, " d-");
-		s = seprint(s, e, " ec=%uld", (td->ctrl >> Tderrshift) & Tderrmask);
+		s = seprint(s, e, " ec=%lu", (td->ctrl >> Tderrshift) & Tderrmask);
 	}else{
-		s = seprint(s, e, " fc=%uld", (td->ctrl >> Tdfcshift) & Tdfcmask);
-		s = seprint(s, e, " sf=%uld", td->ctrl & Tdsfmask);
+		s = seprint(s, e, " fc=%lu", (td->ctrl >> Tdfcshift) & Tdfcmask);
+		s = seprint(s, e, " sf=%lu", td->ctrl & Tdsfmask);
 	}
 	s = seprint(s, e, " cbp0 %#p cbp %#p next %#p be %#p %s",
 		td->cbp0, td->cbp, td->nexttd, td->be, td->last ? "last" : "");
@@ -866,7 +866,7 @@ seprinttd(char *s, char *e, Td *td, int iso)
 	s = seprint(s, e, "\n\t\t");
 	/* we use only offsets[0] */
 	i = 0;
-	s = seprint(s, e, "[%d] %#ux cc=%#ux sz=%ud\n", i, td->offsets[i],
+	s = seprint(s, e, "[%d] %#ux cc=%#ux sz=%u\n", i, td->offsets[i],
 		(td->offsets[i] >> Tdiccshift) & Tdiccmask,
 		td->offsets[i] & 0x7FF);
 	return s;
@@ -929,8 +929,8 @@ dumped(Ed *ed)
 		s = seprint(s, e, " out");
 	if(edhalted(ed))
 		s = seprint(s, e, " hlt");
-	s = seprint(s, e, " ep%uld.%uld", (ed->ctrl>>7)&Epmax, ed->ctrl&0x7f);
-	s = seprint(s, e, " maxpkt %uld", (ed->ctrl>>Edmpsshift)&Edmpsmask);
+	s = seprint(s, e, " ep%lu.%lu", (ed->ctrl>>7)&Epmax, ed->ctrl&0x7f);
+	s = seprint(s, e, " maxpkt %lu", (ed->ctrl>>Edmpsshift)&Edmpsmask);
 	seprint(s, e, " tail %#p head %#p next %#p\n",ed->tail,ed->head,ed->nexted);
 	print("%s", buf);
 	free(buf);
@@ -977,7 +977,7 @@ seprintep(char* s, char* e, Ep *ep)
 	case Tiso:
 		iso = ep->aux;
 		s = seprintio(s, e, &iso->Qio, "w");
-		s = seprint(s, e, "\tntds %d avail %d frno %uld left %uld next avail %#p\n",
+		s = seprint(s, e, "\tntds %d avail %d frno %lu left %lu next avail %#p\n",
 			iso->nframes, iso->navail, iso->frno, iso->left, iso->atds);
 		break;
 	}
@@ -1074,7 +1074,7 @@ isodtdinit(Ep *ep, Isoio *iso, Td *td)
 	if(size > ep->maxpkt){
 		print("ohci: ep%d.%d: size > maxpkt\n",
 			ep->dev->nb, ep->nb);
-		print("size = %uld max = %ld\n", size, ep->maxpkt);
+		print("size = %lu max = %ld\n", size, ep->maxpkt);
 		size = ep->maxpkt;
 	}
 	td->nbytes = size;
@@ -1197,7 +1197,7 @@ qhinterrupt(Ctlr *ctrl, Ep *ep, Qio *io, Td *td, int n)
 		td->last = 1;
 		break;
 	default:
-		panic("ohci: td cc %ud unknown", err);
+		panic("ohci: td cc %u unknown", err);
 	}
 
 	if(td->last != 0){

@@ -204,7 +204,7 @@ iget(Icache *ic, Qid qid)
 				/*
 				 *  our info is old, forget it
 				 */
-				DPRINT(2, "updating old file %llud.%lud\n",
+				DPRINT(2, "updating old file %llud.%lu\n",
 					qid.path, qid.vers);
 				m->qid = qid;
 				iupdate(ic, m - ic->map, qid);

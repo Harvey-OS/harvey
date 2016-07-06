@@ -827,7 +827,7 @@ dumpctlpkt(uint8_t *pkt)
 		break;
 
 	case Alinkinfo:
-		fprint(2, "\tAlinkinfo peerid %d sendaccm 0x%ux recvaccm 0x%ux\n",
+		fprint(2, "\tAlinkinfo peerid %d sendaccm 0x%x recvaccm 0x%x\n",
 			nhgets(pkt+12), nhgetl(pkt+16),
 			nhgetl(pkt+20));
 		break;

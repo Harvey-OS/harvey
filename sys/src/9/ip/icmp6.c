@@ -849,13 +849,13 @@ icmpstats6(Proto *icmp6, char *buf, int len)
 	p = buf;
 	e = p+len;
 	for(i = 0; i < Nstats6; i++)
-		p = seprint(p, e, "%s: %lud\n", statnames6[i], priv->stats[i]);
+		p = seprint(p, e, "%s: %lu\n", statnames6[i], priv->stats[i]);
 	for(i = 0; i <= Maxtype6; i++)
 		if(icmpnames6[i])
-			p = seprint(p, e, "%s: %lud %lud\n", icmpnames6[i],
+			p = seprint(p, e, "%s: %lu %lu\n", icmpnames6[i],
 				priv->in[i], priv->out[i]);
 		else if (0)
-			p = seprint(p, e, "%d: %lud %lud\n", i, priv->in[i],
+			p = seprint(p, e, "%d: %lu %lu\n", i, priv->in[i],
 				priv->out[i]);
 	return p - buf;
 }

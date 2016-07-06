@@ -112,7 +112,7 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 			switch(mmap->type){
 			default:
 				if(vflag)
-					print("type %ud", mmap->type);
+					print("type %u", mmap->type);
 				break;
 			case 1:
 				if(vflag)

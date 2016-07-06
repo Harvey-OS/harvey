@@ -87,7 +87,7 @@ deliver(void *, NbDgram *s)
 		goto done;
 	}
 */
-	print("%s: period %ludms version %d.%d type 0x%.8lux browserversion %d.%d comment %s\n",
+	print("%s: period %lums version %d.%d type 0x%.8lux browserversion %d.%d comment %s\n",
 		servername, periodicity, versionmajor, versionminor, type, (signature >> 8) & 0xff, signature & 0xff, comment);
 done:
 	free(errmsg);

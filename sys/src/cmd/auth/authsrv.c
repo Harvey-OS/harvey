@@ -199,7 +199,7 @@ challengebox(Ticketreq *tr)
 	memset(buf, 0, sizeof(buf));
 	buf[0] = AuthOK;
 	chal = lnrand(MAXNETCHAL);
-	snprint(buf+1, sizeof buf - 1, "%lud", chal);
+	snprint(buf+1, sizeof buf - 1, "%lu", chal);
 	if(write(1, buf, NETCHLEN+1) < 0)
 		exits(0);
 	if(readn(0, buf, NETCHLEN) < 0)
@@ -717,7 +717,7 @@ mschap(Ticketreq *tr)
 		exits(0);
 
 	if(debug)
-		replyerror("mschap-ok %s/%s(%s) %ux",
+		replyerror("mschap-ok %s/%s(%s) %x",
 			tr->uid, tr->hostid, raddr);
 
 	nthash(hash, secret);

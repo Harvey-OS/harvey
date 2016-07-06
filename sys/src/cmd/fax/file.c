@@ -20,7 +20,7 @@ static int32_t wd[5] = {
 void
 setpageid(char *pageid, char *spool, int32_t time, int pid, int pageno)
 {
-	sprint(pageid, "%s/%lud.%d.%3.3d", spool, time, pid, pageno);
+	sprint(pageid, "%s/%lu.%d.%3.3d", spool, time, pid, pageno);
 }
 
 int
@@ -35,7 +35,7 @@ createfaxfile(Modem *m, char *spool)
 	fprint(m->pagefd, "WINDOW=0 0 %ld -1\n", wd[m->fdcs[2]]);
 	if(m->valid & Vftsi)
 		fprint(m->pagefd, "FTSI=%s\n", m->ftsi);
-	fprint(m->pagefd, "FDCS=%lud,%lud,%lud,%lud,%lud,%lud,%lud,%lud\n",
+	fprint(m->pagefd, "FDCS=%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",
 		m->fdcs[0], m->fdcs[1], m->fdcs[2], m->fdcs[3],
 		m->fdcs[4], m->fdcs[5], m->fdcs[6], m->fdcs[7]);
 	fprint(m->pagefd, "\n");

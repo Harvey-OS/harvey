@@ -108,7 +108,7 @@ icachewritesect(Index *ix, ISect *is, uint8_t *buf)
 	else
 		hi = is->stop * ix->div - 1;
 
-	trace(TraceProc, "icachewritesect enter %ud %ud %llud",
+	trace(TraceProc, "icachewritesect enter %u %u %llud",
 		lo, hi, iwrite.as.aa);
 
 	iedirty = icachedirty(lo, hi, iwrite.as.aa);
@@ -129,7 +129,7 @@ icachewritesect(Index *ix, ISect *is, uint8_t *buf)
 		trace(TraceProc, "icachewritesect nextchunk");
 		chunk = nextchunk(ix, is, &iedirty, &addr, &nbuf);
 
-		trace(TraceProc, "icachewritesect readpart 0x%llux+0x%ux",
+		trace(TraceProc, "icachewritesect readpart 0x%llux+0x%x",
 			addr, nbuf);
 		if(readpart(is->part, addr, buf, nbuf) < 0){
 			fprint(2, "%s: part %s addr 0x%llux: icachewritesect "
@@ -146,7 +146,7 @@ again:
 			naddr = ie2diskaddr(ix, is, ie);
 			off = naddr - addr;
 			if(off+bsize > nbuf){
-				fprint(2, "%s: whoops! addr=0x%llux nbuf=%ud "
+				fprint(2, "%s: whoops! addr=0x%llux nbuf=%u "
 					"addr+nbuf=0x%llux naddr=0x%llux\n",
 					argv0, addr, nbuf, addr+nbuf, naddr);
 				assert(off+bsize <= nbuf);

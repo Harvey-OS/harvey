@@ -56,7 +56,7 @@ emalloc(uint32_t sz)
 
 	v = mallocz(sz, 1);
 	if(v == nil)
-		sysfatal("malloc %lud fails", sz);
+		sysfatal("malloc %lu fails", sz);
 	return v;
 }
 
@@ -392,7 +392,7 @@ readctl(Req *r)
 			if (nwa == ~0ul)
 				p = seprint(p, e, "none; disc full");
 			else
-				p = seprint(p, e, "%lud", nwa);
+				p = seprint(p, e, "%lu", nwa);
 		}
 		seprint(p, e, "\n");
 	}

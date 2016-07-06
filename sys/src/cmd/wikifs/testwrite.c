@@ -51,7 +51,7 @@ main(int argc, char **argv)
 	if((doc = Brdwhist(b)) == nil)
 		sysfatal("Brdwtxt: %r");
 
-	sprint(tmp, "D%lud\n", time(0));
+	sprint(tmp, "D%lu\n", time(0));
 	if((h = pagetext(s_copy(tmp), (doc->doc+doc->ndoc-1)->wtxt, 1))==nil)
 		sysfatal("wiki2text: %r");
 

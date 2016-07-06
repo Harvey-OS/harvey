@@ -287,7 +287,7 @@ cacheDump(Cache *c)
 
 	for(i = 0; i < c->nblocks; i++){
 		b = &c->blocks[i];
-		fprint(2, "%d. p=%d a=%ud %V t=%d ref=%d state=%s io=%s pc=%#p\n",
+		fprint(2, "%d. p=%d a=%u %V t=%d ref=%d state=%s io=%s pc=%#p\n",
 			i, b->part, b->addr, b->score, b->l.type, b->ref,
 			bsStr(b->l.state), bioStr(b->iostate), b->pc);
 	}
@@ -335,7 +335,7 @@ cacheDump(c);
 	for(i = 0; i < c->nblocks; i++){
 		b = &c->blocks[i];
 		if(b->ref){
-if(1)fprint(2, "%s: p=%d a=%ud %V ref=%d %L\n", argv0, b->part, b->addr, b->score, b->ref, &b->l);
+if(1)fprint(2, "%s: p=%d a=%u %V ref=%d %L\n", argv0, b->part, b->addr, b->score, b->ref, &b->l);
 			refed++;
 		}
 	}
@@ -506,7 +506,7 @@ _cacheLocal(Cache *c, int part, uint32_t addr, int mode, uint32_t epoch)
 		if(b->part != part || b->addr != addr)
 			continue;
 		if(epoch && b->l.epoch != epoch){
-fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
+fprint(2, "%s: _cacheLocal want epoch %u got %u\n", argv0, epoch, b->l.epoch);
 			vtUnlock(c->lk);
 			vtSetError(ELabelMismatch);
 			return nil;
@@ -557,7 +557,7 @@ if(0)fprint(2, "%s: cacheLocal: %d: %d %x\n", argv0, getpid(), b->part, b->addr)
 	}
 	if(epoch && b->l.epoch != epoch){
 		blockPut(b);
-fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
+fprint(2, "%s: _cacheLocal want epoch %u got %u\n", argv0, epoch, b->l.epoch);
 		vtSetError(ELabelMismatch);
 		return nil;
 	}
@@ -617,7 +617,7 @@ cacheLocalData(Cache *c, uint32_t addr, int type, uint32_t tag, int mode,
 	if(b == nil)
 		return nil;
 	if(b->l.type != type || b->l.tag != tag){
-		fprint(2, "%s: cacheLocalData: addr=%d type got %d exp %d: tag got %ux exp %ux\n",
+		fprint(2, "%s: cacheLocalData: addr=%d type got %d exp %d: tag got %x exp %x\n",
 			argv0, addr, b->l.type, type, b->l.tag, tag);
 		vtSetError(ELabelMismatch);
 		blockPut(b);
@@ -804,7 +804,7 @@ assert(b->iostate == BioLabel || b->iostate == BioClean);
 	vtZeroExtend(vtType[type], b->data, 0, c->size);
 if(0)diskWrite(c->disk, b);
 
-if(0)fprint(2, "%s: fsAlloc %ud type=%d tag = %ux\n", argv0, addr, type, tag);
+if(0)fprint(2, "%s: fsAlloc %u type=%d tag = %x\n", argv0, addr, type, tag);
 	lastAlloc = addr;
 	fl->nused++;
 	vtUnlock(fl->lk);
@@ -845,7 +845,7 @@ cacheCountUsed(Cache *c, uint32_t epochLow, uint32_t *used, uint32_t *total,
 			blockPut(b);
 			b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
 			if(b == nil){
-				fprint(2, "%s: flCountUsed: loading %ux: %R\n",
+				fprint(2, "%s: flCountUsed: loading %x: %R\n",
 					argv0, addr/n);
 				break;
 			}
@@ -1412,7 +1412,7 @@ blockCopy(Block *b, uint32_t tag, uint32_t ehi, uint32_t elo)
 	Label l;
 
 	if((b->l.state&BsClosed) || b->l.epoch >= ehi)
-		fprint(2, "%s: blockCopy %#ux %L but fs is [%ud,%ud]\n",
+		fprint(2, "%s: blockCopy %#ux %L but fs is [%u,%u]\n",
 			argv0, b->addr, &b->l, elo, ehi);
 
 	bb = cacheAllocBlock(b->c, b->l.type, tag, ehi, elo);
@@ -1543,7 +1543,7 @@ doRemoveLink(Cache *c, BList *p)
 
 	/* sanity check */
 	if(b->l.epoch > p->epoch){
-		fprint(2, "%s: doRemoveLink: strange epoch %ud > %ud\n",
+		fprint(2, "%s: doRemoveLink: strange epoch %u > %u\n",
 			argv0, b->l.epoch, p->epoch);
 		blockPut(b);
 		return;
@@ -1751,7 +1751,7 @@ labelFmt(Fmt *f)
 	Label *l;
 
 	l = va_arg(f->args, Label*);
-	return fmtprint(f, "%s,%s,e=%ud,%d,tag=%#ux",
+	return fmtprint(f, "%s,%s,e=%u,%d,tag=%#ux",
 		btStr(l->type), bsStr(l->state), l->epoch, (int)l->epochClose, l->tag);
 }
 

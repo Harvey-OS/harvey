@@ -308,7 +308,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 	else
 		s = seprint(s, se, " idle");
 	if(all){
-		s = seprint(s, se, " load %uld", ep->load);
+		s = seprint(s, se, " load %lu", ep->load);
 		s = seprint(s, se, " ref %ld addr %#p", ep->r.ref, ep);
 		s = seprint(s, se, " idx %d", ep->idx);
 		if(ep->name != nil)

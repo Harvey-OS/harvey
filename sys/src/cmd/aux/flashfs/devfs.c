@@ -71,9 +71,9 @@ initdata(char *f, int i)
 		nsects = atoi(fld[5]);
 		sectsize = atoi(fld[6]);
 		if(nsects < 8)
-			sysfatal("unreasonable value for nsects: %lud", nsects);
+			sysfatal("unreasonable value for nsects: %lu", nsects);
 		if(sectsize < 512)
-			sysfatal("unreasonable value for sectsize: %lud", sectsize);
+			sysfatal("unreasonable value for sectsize: %lu", sectsize);
 	}
 }
 
@@ -84,7 +84,7 @@ clearsect(int sect)
 		if(pwrite(flash.dfd, ones, sectsize, sect*sectsize) != sectsize)
 			sysfatal("couldn't erase sector %d: %r", sect);
 	}else{
-		if(fprint(flash.cfd, "erase %lud", sect * sectsize) < 0)
+		if(fprint(flash.cfd, "erase %lu", sect * sectsize) < 0)
 			sysfatal("couldn't erase sector %d: %r", sect);
 	}
 }
@@ -100,7 +100,7 @@ readdata(int sect, void *buff, uint32_t count, uint32_t off)
 	if(n < 0)
 		sysfatal("error reading at %lux: %r", m);
 	if(n != count)
-		sysfatal("short read at %lux, %ld instead of %lud", m, n, count);
+		sysfatal("short read at %lux, %ld instead of %lu", m, n, count);
 }
 
 int
@@ -119,7 +119,7 @@ writedata(int err, int sect, void *buff, uint32_t count, uint32_t off)
 	if(n != count){
 		if(err)
 			return 0;
-		sysfatal("short write at %lud, %ld instead of %lud", m, n, count);
+		sysfatal("short write at %lu, %ld instead of %lu", m, n, count);
 	}
 	return 1;
 }
