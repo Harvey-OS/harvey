@@ -246,7 +246,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 
 		if((p = psincref(s)) == nil || (pid = p->pid) == 0)
 			return 0;
-		snprint(up->genbuf, sizeof up->genbuf, "%ud", pid);
+		snprint(up->genbuf, sizeof up->genbuf, "%u", pid);
 		/*
 		 * String comparison is done in devwalk so
 		 * name must match its formatted pid.
@@ -639,7 +639,7 @@ procqidwidth(Chan *c)
 {
 	char buf[32];
 
-	return sprint(buf, "%lud", c->qid.vers);
+	return sprint(buf, "%lu", c->qid.vers);
 }
 
 int
@@ -1157,7 +1157,7 @@ print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 		poperror();
 		qunlock(&p->qwaitr);
 		psdecref(p);
-		n = snprint(va, n, "%d %lud %lud %lud %q",
+		n = snprint(va, n, "%d %lu %lu %lu %q",
 			wq->w.pid,
 			wq->w.time[TUser], wq->w.time[TSys], wq->w.time[TReal],
 			wq->w.msg);

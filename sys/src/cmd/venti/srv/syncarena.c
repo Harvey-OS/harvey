@@ -145,7 +145,7 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 	|| cclumps != arena->memstats.cclumps
 	|| uncsize != arena->memstats.uncsize){
 		err |= SyncHeader;
-		fprint(2, "arena %s: fix=%d flush=%d %lld->%lld %ud->%ud %ud->%ud %lld->%lld\n",
+		fprint(2, "arena %s: fix=%d flush=%d %lld->%lld %u->%u %u->%u %lld->%lld\n",
 			arena->name,
 			fix,
 			flush,

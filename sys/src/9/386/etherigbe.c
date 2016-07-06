@@ -647,21 +647,21 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 			ctlr->statistics[i] += r;
 			if(ctlr->statistics[i] == 0)
 				continue;
-			l += snprint(p+l, READSTR-l, "%s: %ud %ud\n",
+			l += snprint(p+l, READSTR-l, "%s: %u %u\n",
 				s, ctlr->statistics[i], r);
 			break;
 		}
 	}
 
-	l += snprint(p+l, READSTR-l, "lintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "lintr: %u %u\n",
 		ctlr->lintr, ctlr->lsleep);
-	l += snprint(p+l, READSTR-l, "rintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "rintr: %u %u\n",
 		ctlr->rintr, ctlr->rsleep);
-	l += snprint(p+l, READSTR-l, "tintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "tintr: %u %u\n",
 		ctlr->tintr, ctlr->txdw);
-	l += snprint(p+l, READSTR-l, "ixcs: %ud %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "ixcs: %u %u %u\n",
 		ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
-	l += snprint(p+l, READSTR-l, "rdtr: %ud\n", ctlr->rdtr);
+	l += snprint(p+l, READSTR-l, "rdtr: %u\n", ctlr->rdtr);
 	l += snprint(p+l, READSTR-l, "Ctrlext: %08x\n", csr32r(ctlr, Ctrlext));
 
 	l += snprint(p+l, READSTR-l, "eeprom:");

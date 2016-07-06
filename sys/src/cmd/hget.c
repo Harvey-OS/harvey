@@ -1055,7 +1055,7 @@ ftprestart(int ctl, Out *out, URL *u, Range *r, int32_t mtime)
 
 	/* seek to restart point */
 	if(r->start > 0){
-		ftpcmd(ctl, "REST %lud", r->start);
+		ftpcmd(ctl, "REST %lu", r->start);
 		if(ftprcode(ctl, msg, sizeof(msg)) == Incomplete){
 			setoffset(out, r->start);
 		}else

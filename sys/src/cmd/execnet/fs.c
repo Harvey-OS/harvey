@@ -93,7 +93,7 @@ fillstat(Dir *d, uint32_t path)
 	if(t->name)
 		d->name = estrdup(t->name);
 	else{
-		snprint(buf, sizeof buf, "%ud", NUM(path));
+		snprint(buf, sizeof buf, "%u", NUM(path));
 		d->name = estrdup(buf);
 	}
 	d->qid.type = t->mode>>24;
@@ -184,7 +184,7 @@ fsread(Req *r)
 		break;
 
 	case Qctl:
-		snprint(e, sizeof e, "%ud", NUM(path));
+		snprint(e, sizeof e, "%u", NUM(path));
 		readstr(r, e);
 		respond(r, nil);
 		break;

@@ -338,7 +338,7 @@ iso9660init(int xfd, Header *xh, char *xfile9660, int xoff9660)
 	getsect(sect, startoff/Blocksize);
 	if(seek(fd, startoff-off9660, 0) < 0)
 		vtFatal("cannot seek to first data sector on cd via fossil");
-fprint(2, "look for %lud at %lud\n", startoff, startoff-off9660);
+fprint(2, "look for %lu at %lu\n", startoff, startoff-off9660);
 	if(readn(fd, sect2, Blocksize) != Blocksize)
 		vtFatal("cannot read first data sector on cd via fossil");
 	if(memcmp(sect, sect2, Blocksize) != 0)

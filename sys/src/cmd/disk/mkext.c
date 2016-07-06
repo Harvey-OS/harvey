@@ -104,7 +104,7 @@ main(int argc, char **argv)
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%q %luo %q %q %lud %llud\n",
+			Bprint(&bout, "%q %luo %q %q %lu %llud\n",
 				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
@@ -203,7 +203,7 @@ mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
 			return;
 		}
 		if(Tflag && d->mtime != mtime)
-			warn("%q: time mismatch %lud %lud\n", name, mtime, d->mtime);
+			warn("%q: time mismatch %lu %lu\n", name, mtime, d->mtime);
 		if(uflag && strcmp(uid, d->uid))
 			warn("%q: uid mismatch %q %q", name, uid, d->uid);
 		if(uflag && strcmp(gid, d->gid))
@@ -265,7 +265,7 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
 			warn("can't reread modes for %q: %r", name);
 		else{
 			if(Tflag && nd->mtime != mtime)
-				warn("%q: time mismatch %lud %lud\n",
+				warn("%q: time mismatch %lu %lu\n",
 					name, mtime, nd->mtime);
 			if(uflag && strcmp(uid, nd->uid))
 				warn("%q: uid mismatch %q %q",

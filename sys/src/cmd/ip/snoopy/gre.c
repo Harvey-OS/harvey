@@ -199,7 +199,7 @@ p_seprint(Msg *m)
 	if(h.flags&GRE_routing)
 		m->p = seprint(m->p, m->e, " offset=%#ux haverouting", h.offset);
 	if(h.version == 0)
-		m->p = seprint(m->p, m->e, " recursion=%ud", (h.flags&GRE_recur)>>8);
+		m->p = seprint(m->p, m->e, " recursion=%u", (h.flags&GRE_recur)>>8);
 	
 	return 0;
 }

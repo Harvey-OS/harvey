@@ -129,7 +129,7 @@ p_seprintdisc(Msg *m)
 
 	m->pr = nil;
 
-	m->p = seprint(m->p, m->e, "v=%d t=%d c=0x%x s=0x%ux, len=%d",
+	m->p = seprint(m->p, m->e, "v=%d t=%d c=0x%x s=0x%x, len=%d",
 		h->verstype>>4, h->verstype&0xF, h->code, NetS(h->sessid), NetS(h->length));
 
 	return 0;
@@ -151,7 +151,7 @@ p_seprintsess(Msg *m)
 	/* this will call ppp for me */
 	demux(p_mux, 0, 0, m, &dump);
 
-	m->p = seprint(m->p, m->e, "v=%d t=%d c=0x%x s=0x%ux, len=%d",
+	m->p = seprint(m->p, m->e, "v=%d t=%d c=0x%x s=0x%x, len=%d",
 		h->verstype>>4, h->verstype&0xF, h->code, NetS(h->sessid), NetS(h->length));
 
 	return 0;
@@ -164,7 +164,7 @@ Proto pppoe_disc =
 	p_filter,
 	p_seprintdisc,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer
 };
@@ -176,7 +176,7 @@ Proto pppoe_sess =
 	p_filter,
 	p_seprintsess,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer
 };

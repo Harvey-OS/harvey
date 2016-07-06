@@ -96,16 +96,16 @@ delaykickroundproc(void *v)
 		n = r->next;
 		qunlock(&r->lock);
 
-		trace(TraceProc, "waitround 0x%ux", (uint)n);
+		trace(TraceProc, "waitround 0x%x", (uint)n);
 		sleep(r->delaytime);
 
 		qlock(&r->lock);
 		if(n == r->next){
-			trace(TraceProc, "kickround 0x%ux", (uint)n);
+			trace(TraceProc, "kickround 0x%x", (uint)n);
 			_kickround(r, 1);
 		}
 
-		trace(TraceProc, "finishround 0x%ux", (uint)n);
+		trace(TraceProc, "finishround 0x%x", (uint)n);
 	}
 }
 

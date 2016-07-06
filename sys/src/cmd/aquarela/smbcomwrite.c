@@ -49,7 +49,7 @@ smbtruncatefile(SmbSession *s, SmbFile *f, int64_t offset)
 		int nfd;
 		char *fullpath;
 		if (offset > INMEMORYTRUNCTHRESH) {
-			smblogprint(-1, "smbcomwrite: truncation beyond %lud not supported\n", offset);
+			smblogprint(-1, "smbcomwrite: truncation beyond %lu not supported\n", offset);
 			pr = SmbProcessResultUnimp;
 			goto done;
 		}

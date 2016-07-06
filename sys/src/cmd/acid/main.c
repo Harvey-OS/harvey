@@ -534,7 +534,7 @@ checkqid(int f1, int pid)
 	close(fd);
 
 	if(d1->qid.path != d2->qid.path || d1->qid.vers != d2->qid.vers || d1->qid.type != d2->qid.type){
-		print("path %llux %llux vers %lud %lud type %d %d\n",
+		print("path %llux %llux vers %lu %lu type %d %d\n",
 			d1->qid.path, d2->qid.path, d1->qid.vers, d2->qid.vers, d1->qid.type, d2->qid.type);
 		print("warning: image does not match text for pid %d\n", pid);
 	}

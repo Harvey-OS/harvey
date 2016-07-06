@@ -57,7 +57,7 @@ dumpbuf(char *buf, int nbytes, char *s)
 {
 	print(s);
 	while(nbytes-- > 0)
-		print("#%ux ", *buf++ & 0xFF);
+		print("#%x ", *buf++ & 0xFF);
 	print("\n");
 }
 

@@ -769,7 +769,7 @@ static char *Code2a[] = { /* the tail of procedure run() */
 	"	d_hash((uchar *) v, n); /* sets j3, j4, K1, K2 */",
 	"	x = K1; y = j3;",	/* was K2 before 5.1.1 */
 	"	for (;;)",
-	"	{	if (!(SS[x%%udmem]&(1<<y))) break;",	/* take the hit in speed */
+	"	{	if (!(SS[x%%umem]&(1<<y))) break;",	/* take the hit in speed */
 	"		if (i == hfns) {",
 				"#ifdef DEBUG",
 	"			printf(\"Old bitstate\\n\");",
@@ -784,7 +784,7 @@ static char *Code2a[] = { /* the tail of procedure run() */
 	"	if (rand()%%100 > RANDSTOR) return 0;",
 		"#endif",
 	"	for (;;)",
-	"	{	SS[x%%udmem] |= (1<<y);",
+	"	{	SS[x%%umem] |= (1<<y);",
 	"		if (i == hfns) break;",	/* done */
 	"		x = (x + K2 + i);",	/* no mask - was K1 before 5.1.1 */
 	"		y = (y + j4) & 7;",

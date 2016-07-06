@@ -349,7 +349,7 @@ raperrstr(uint err)
 	if(match != -1)
 		snprint(buf, sizeof buf, "rap: %s", RAPerrs[match].msg);
 	else
-		snprint(buf, sizeof buf, "rap: %ud/0x%ux - unknown error",
+		snprint(buf, sizeof buf, "rap: %u/0x%x - unknown error",
 			err, err);
 	return buf;
 }

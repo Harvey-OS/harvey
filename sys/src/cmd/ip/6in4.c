@@ -89,7 +89,7 @@ defv6addr(void)
 {
 	uint8_t *ipv4 = &myip[IPaddrlen - IPv4addrlen];
 
-	return smprint("%ux:%2.2x%2.2x:%2.2x%2.2x::1/48", V6to4pfx,
+	return smprint("%x:%2.2x%2.2x:%2.2x%2.2x::1/48", V6to4pfx,
 		ipv4[0], ipv4[1], ipv4[2], ipv4[3]);
 }
 

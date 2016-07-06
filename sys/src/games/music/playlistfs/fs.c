@@ -394,7 +394,7 @@ rread(Worker *w)
 	}else if(f->file == files + Qplayctl){
 		f->flags &= ~Eof;
 		if(m.cmd == Error){
-			snprint(r->ofcall.data, sizeof r->indata, "%s %ud %q",
+			snprint(r->ofcall.data, sizeof r->indata, "%s %u %q",
 				statetxt[m.cmd], m.off, m.arg);
 			free(m.arg);
 		}else if(f->vers == f->file->dir.qid.vers){
@@ -403,7 +403,7 @@ rread(Worker *w)
 			f->flags |= Eof;
 			return nil;
 		}else{
-			snprint(r->ofcall.data, sizeof r->indata, "%s %ud",
+			snprint(r->ofcall.data, sizeof r->indata, "%s %u",
 				statetxt[playstate.cmd], playstate.off);
 			f->vers = f->file->dir.qid.vers;
 		}
@@ -506,7 +506,7 @@ rwrite(Worker *w)
 			newstate.off = playlist.nlines;
 		}
 		if (debug & DbgPlayer)
-			fprint(2, "new state %s-%ud\n",
+			fprint(2, "new state %s-%u\n",
 				statetxt[newstate.cmd], newstate.off);
 		if (newstate.m != playstate.m)
 			sendul(playc, newstate.m);
@@ -565,7 +565,7 @@ rwrite(Worker *w)
 			if (q == nil)
 				break;
 			if(debug & DbgPlayer)
-				fprint(2, "[%lud]: ", playlist.nlines);
+				fprint(2, "[%lu]: ", playlist.nlines);
 			playlist.nlines++;
 			q++;
 			if(debug & DbgPlayer)

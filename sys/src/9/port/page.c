@@ -45,7 +45,7 @@ seprintpagestats(char *s, char *e)
 	lock(&pga.l);
 	for(i = 0; i < sys->npgsz; i++)
 		if(sys->pgsz[i] != 0)
-			s = seprint(s, e, "%uld/%d %dK user pages avail\n",
+			s = seprint(s, e, "%lu/%d %dK user pages avail\n",
 				pga.pgsza[i].freecount,
 				pga.pgsza[i].npages.ref, sys->pgsz[i]/KiB);
 	unlock(&pga.l);

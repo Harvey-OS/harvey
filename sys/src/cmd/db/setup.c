@@ -201,10 +201,10 @@ attachprocess(void)
 		return;
 	}
 	sym = dirfstat(fsym);
-	sprint(buf, "/proc/%lud/mem", adrval);
+	sprint(buf, "/proc/%lu/mem", adrval);
 	corfil = buf;
 	setcor();
-	sprint(buf, "/proc/%lud/text", adrval);
+	sprint(buf, "/proc/%lu/text", adrval);
 	fd = open(buf, OREAD);
 	mem = nil;
 	if (sym==nil || fd < 0 || (mem=dirfstat(fd))==nil

@@ -77,7 +77,7 @@ dirls(char *path)
 	for(nmwid=lenwid=i=0; i<ndir; i++){
 		if((m = strlen(dirbuf[i].name)) > nmwid)
 			nmwid = m;
-		snprint(buf, sizeof(buf), "%ulld", dirbuf[i].length);
+		snprint(buf, sizeof(buf), "%llu", dirbuf[i].length);
 		if((m = strlen(buf)) > lenwid)
 			lenwid = m;
 	}

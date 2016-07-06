@@ -268,7 +268,7 @@ system call, which includes a set of integers (pids and times) and a string (the
 This information is formatted free-form; here is the statement in the kernel that
 generates the message:
 .P1
-n = snprint(a, n, "%d %lud %lud %lud %q",
+n = snprint(a, n, "%d %lu %lu %lu %q",
 	wq->w.pid,
 	wq->w.time[TUser], wq->w.time[TSys], wq->w.time[TReal],
 	wq->w.msg);

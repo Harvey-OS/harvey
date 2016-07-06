@@ -48,7 +48,7 @@ p_seprint(Msg *m)
 	ts = NetL(h->ts);
 	ssrc = NetL(h->ssrc);
 
-	m->p = seprint(m->p, m->e, "version=%d x=%d cc=%d seq=%d ts=%ld ssrc=%ulx",
+	m->p = seprint(m->p, m->e, "version=%d x=%d cc=%d seq=%d ts=%ld ssrc=%lx",
 		(h->hdr >> 6) & 3, (h->hdr >> 4) & 1, cc, seq, ts, ssrc);
 	for(i = 0; i < cc; i++){
 		m->p = seprint(m->p, m->e, " csrc[%d]=%d", i, NetL(m->ps));

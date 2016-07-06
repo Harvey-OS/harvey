@@ -175,7 +175,7 @@ p_seprint(Msg *m)
 	sport = NetS(h->sport);
 	demux(p_mux, sport, dport, m, &dump);
 
-	m->p = seprint(m->p, m->e, "s=%d d=%d seq=%lud ack=%lud fl=%s win=%d ck=%4.4ux",
+	m->p = seprint(m->p, m->e, "s=%d d=%d seq=%lu ack=%lu fl=%s win=%d ck=%4.4ux",
 			NetS(h->sport), dport,
 			(uint32_t)NetL(h->seq), (uint32_t)NetL(h->ack),
 			flags(flag), NetS(h->win),
@@ -200,15 +200,15 @@ p_seprint(Msg *m)
 			break;
 		switch(*optr) {
 		case MSSOPT:
-			m->p = seprint(m->p, m->e, " opt%d=(mss %ud)",
+			m->p = seprint(m->p, m->e, " opt%d=(mss %u)",
 				optlen, nhgets(optr+2));
 			break;
 		case WSOPT:
-			m->p = seprint(m->p, m->e, " opt%d=(wscale %ud)",
+			m->p = seprint(m->p, m->e, " opt%d=(wscale %u)",
 				optlen, *(optr+2));
 			break;
 		default:
-			m->p = seprint(m->p, m->e, " opt%d=(%ud %.*H)",
+			m->p = seprint(m->p, m->e, " opt%d=(%u %.*H)",
 				optlen, *optr, optlen-2, optr+2);
 		}
 		len -= optlen;
@@ -224,7 +224,7 @@ Proto tcp =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer,
 };

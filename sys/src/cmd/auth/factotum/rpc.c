@@ -224,7 +224,7 @@ rpcrdwrlog(Fsstate *fss, char *rdwr, uint n, int ophase, int ret)
 
 	if(!debug)
 		return;
-	snprint(pre, sizeof pre, "%d: %s %ud in phase %s yields phase %s",
+	snprint(pre, sizeof pre, "%d: %s %u in phase %s yields phase %s",
 		fss->seqnum, rdwr, n, phasename(fss, ophase, buf0), phasename(fss, fss->phase, buf1));
 	logret(pre, fss, ret);
 }

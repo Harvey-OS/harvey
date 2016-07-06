@@ -855,7 +855,7 @@ getpixel(Memimage *img, Point pt)
 			case CIgnore:
 				break;
 			default:
-				fprint(2, "unknown channel type %lud\n", TYPE(c));
+				fprint(2, "unknown channel type %lu\n", TYPE(c));
 				abort();
 			}
 		}
@@ -961,7 +961,7 @@ DBG print("(%lux & %lux) | (%lux & %lux)", v, ~mask, bits, mask);
 				break;
 			default:
 				SET(bits);
-				fprint(2, "unknown channel type %lud\n", TYPE(c));
+				fprint(2, "unknown channel type %lu\n", TYPE(c));
 				abort();
 			}
 
