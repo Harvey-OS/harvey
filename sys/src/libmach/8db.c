@@ -1770,7 +1770,7 @@ plocal(Instr *ip)
 
 	offset = ip->disp;
 	if (!findsym(ip->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s)) {
-		bprint(ip, "%lux(SP)", offset);
+		bprint(ip, "%lx(SP)", offset);
 		return;
 	}
 
@@ -1786,7 +1786,7 @@ plocal(Instr *ip)
 		bprint(ip, "%s+", s.name);
 	else
 		offset = ip->disp;
-	bprint(ip, "%lux%s", offset, reg);
+	bprint(ip, "%lx%s", offset, reg);
 }
 
 static int
@@ -1860,7 +1860,7 @@ immediate(Instr *ip, int64_t val)
 			w = -w;
 		if (issymref(ip, &s, w, val)) {
 			if (w)
-				bprint(ip, "%s+%lux(SB)", s.name, w);
+				bprint(ip, "%s+%lx(SB)", s.name, w);
 			else
 				bprint(ip, "%s(SB)", s.name);
 			return;
@@ -1871,14 +1871,14 @@ immediate(Instr *ip, int64_t val)
 			if (w < 0)
 				w = -w;
 			if (w < 4096) {
-				bprint(ip, "%s-%lux(SB)", s.name, w);
+				bprint(ip, "%s-%lx(SB)", s.name, w);
 				return;
 			}
 		}
 */
 	}
 	if((ip->rex & REXW) == 0)
-		bprint(ip, "%lux", (int32_t)val);
+		bprint(ip, "%lx", (int32_t)val);
 	else
 		bprint(ip, "%llux", val);
 }
@@ -1903,7 +1903,7 @@ pea(Instr *ip)
 		if (ip->base < 0)
 			immediate(ip, ip->disp);
 		else {
-			bprint(ip, "%lux", ip->disp);
+			bprint(ip, "%lx", ip->disp);
 			if(ip->rip)
 				bprint(ip, "(RIP)");
 			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->rex&REXB? ip->base+8: ip->base]);
@@ -1989,7 +1989,7 @@ prinstr(Instr *ip, char *fmt)
 				bprint(ip, "CBW");
 			break;
 		case 'd':
-			bprint(ip,"%x:%lux",ip->seg,ip->disp);
+			bprint(ip,"%x:%lx",ip->seg,ip->disp);
 			break;
 		case 'm':
 			if (ip->mod == 3 && ip->osize != 'B') {

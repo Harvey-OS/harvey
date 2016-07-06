@@ -123,7 +123,7 @@ linear(Vga* vga)
 		 */
 		vgactlr("addr", buf);
 		if(atoi(buf)==0 && (buf[0]!='p' || buf[1]!=' ' || atoi(buf+2)==0)){
-			sprint(buf, "0x%lux 0x%lux", vga->apz ? vga->apz : vga->vmz, vga->vma);
+			sprint(buf, "0x%lx 0x%lx", vga->apz ? vga->apz : vga->vmz, vga->vma);
 			vgactlw("linear", buf);
 			vgactlr("addr", buf);
 		}
@@ -425,7 +425,7 @@ main(int argc, char** argv)
 			if(vga->vesa)
 				vgactlw("type", vtype);
 
-			sprint(buf, "%lux%lux%d %s",
+			sprint(buf, "%lx%lx%d %s",
 				vga->virtx, vga->virty,
 				vga->mode->z, vga->mode->chan);
 			if(rflag){

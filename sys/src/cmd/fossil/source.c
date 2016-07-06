@@ -640,7 +640,7 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 		bb = cacheAllocBlock(r->fs->cache, type+1, tag, r->fs->ehi, r->fs->elo);
 		if(bb == nil)
 			break;
-//fprint(2, "alloc %lux grow %V\n", bb->addr, b->score);
+//fprint(2, "alloc %lx grow %V\n", bb->addr, b->score);
 		memmove(bb->data, b->score, VtScoreSize);
 		memmove(e->score, bb->score, VtScoreSize);
 		e->depth++;

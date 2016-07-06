@@ -843,7 +843,7 @@ mbfree(Msgbuf *mb)
 		return;
 	assert(mb->magic == Mbmagic);
 	if (mb->magic != Mbmagic)
-		panic("mbfree: bad magic 0x%lux", mb->magic);
+		panic("mbfree: bad magic 0x%lx", mb->magic);
 	if(mb->flags & BTRACE)
 		print("mbfree: BTRACE cat=%d flags=%x, caller %#p\n",
 			mb->category, mb->flags, getcallerpc());
