@@ -425,7 +425,7 @@ autoxpart(Edit *edit)
 
 	for(i=0; i<nelem(autox); i++)
 		if(autox[i].alloc)
-			print("%s %llud\n", autox[i].name, autox[i].size);
+			print("%s %llu\n", autox[i].name, autox[i].size);
 
 	s = 0;
 	for(i=0; i<nelem(autox); i++){

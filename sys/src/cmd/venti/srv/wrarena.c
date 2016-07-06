@@ -47,7 +47,7 @@ vtsendthread(void *v)
 		if(zcl.lump == nil)
 			break;
 		if(vtwrite(z, zcl.cl.info.score, zcl.cl.info.type, zcl.lump->data, zcl.cl.info.uncsize) < 0)
-			sysfatal("failed writing clump %llud: %r", zcl.aa);
+			sysfatal("failed writing clump %llu: %r", zcl.aa);
 		if(verbose)
 			print("%V\n", zcl.cl.info.score);
 		freezblock(zcl.lump);
@@ -197,7 +197,7 @@ threadmain(int argc, char *argv[])
 		sysfatal("corrupted arena header: %r");
 
 	if(aoffset+head.size > part->size)
-		sysfatal("arena is truncated: want %llud bytes have %llud",
+		sysfatal("arena is truncated: want %llu bytes have %llu",
 			head.size, part->size);
 
 	partblocksize(part, head.blocksize);

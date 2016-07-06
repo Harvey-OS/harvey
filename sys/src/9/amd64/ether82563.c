@@ -695,7 +695,7 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 				continue;
 			ctlr->statistics[i] = tuvl;
 			ctlr->statistics[i+1] = tuvl >> 32;
-			p = seprint(p, e, "%s: %llud %llud\n", stat, tuvl, ruvl);
+			p = seprint(p, e, "%s: %llu %llu\n", stat, tuvl, ruvl);
 			i++;
 			break;
 

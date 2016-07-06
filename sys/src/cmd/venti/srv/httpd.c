@@ -1132,7 +1132,7 @@ xmlu32int(Hio *hout, uint32_t v, char *tag)
 void
 xmlu64int(Hio *hout, uint64_t v, char *tag)
 {
-	hprint(hout, " %s=\"%llud\"", tag, v);
+	hprint(hout, " %s=\"%llu\"", tag, v);
 }
 
 void

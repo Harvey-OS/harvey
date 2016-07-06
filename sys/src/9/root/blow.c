@@ -241,7 +241,7 @@ main(int argc, char* argv[])
 	r *= mhz;
 	r /= stop - start;
 
-	print("%d writes of %d in %llud cycles @ %dMHz = %llud MB/s\n",
+	print("%d writes of %d in %llu cycles @ %dMHz = %llu MB/s\n",
 		count, length, stop - start, mhz, r);
 
 	exits(0);

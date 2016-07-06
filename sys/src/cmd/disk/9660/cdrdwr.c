@@ -408,14 +408,14 @@ Cputnl(Cdimg *cd, uint64_t val, int size)
 		sysfatal("bad size %d in Cputnl", size);
 	case 2:
 		if(val >= (1<<16))
-			sysfatal("value %llud too big for size %d in Cputnl",
+			sysfatal("value %llu too big for size %d in Cputnl",
 				val, size);
 		Cputc(cd, val);
 		Cputc(cd, val>>8);
 		break;
 	case 4:
 		if(val >= (1ULL<<32))
-			sysfatal("value %llud too big for size %d in Cputnl",
+			sysfatal("value %llu too big for size %d in Cputnl",
 				val, size);
 		Cputc(cd, val);
 		Cputc(cd, val>>8);
@@ -443,14 +443,14 @@ Cputnm(Cdimg *cd, uint64_t val, int size)
 		sysfatal("bad size %d in Cputnm", size);
 	case 2:
 		if(val >= (1<<16))
-			sysfatal("value %llud too big for size %d in Cputnl",
+			sysfatal("value %llu too big for size %d in Cputnl",
 				val, size);
 		Cputc(cd, val>>8);
 		Cputc(cd, val);
 		break;
 	case 4:
 		if(val >= (1ULL<<32))
-			sysfatal("value %llud too big for size %d in Cputnl",
+			sysfatal("value %llu too big for size %d in Cputnl",
 				val, size);
 		Cputc(cd, val>>24);
 		Cputc(cd, val>>16);
@@ -651,7 +651,7 @@ Cgetc(Cdimg *cd)
 
 	Cwflush(cd);
 	if((c = Bgetc(&cd->brd)) == Beof) {
-		fprint(2, "getc at %llud\n", Croffset(cd));
+		fprint(2, "getc at %llu\n", Croffset(cd));
 		assert(0);
 		//sysfatal("Bgetc: %r");
 	}

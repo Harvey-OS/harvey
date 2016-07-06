@@ -767,7 +767,7 @@ settime(int64_t now, uint64_t hz, int64_t delta, int n)
 	uint8_t b[1+sizeof(int64_t)+sizeof(int32_t)], *p;
 
 	if(debug)
-		fprint(2, "settime(now=%lld, hz=%llud, delta=%lld, period=%d)\n",
+		fprint(2, "settime(now=%lld, hz=%llu, delta=%lld, period=%d)\n",
 			now, hz, delta, n);
 	if(impotent)
 		return;

@@ -33,7 +33,7 @@ rdarena(Arena *arena, uint64_t offset)
 	e = arena->base + arena->size;
 	if(offset != ~(uint64_t)0) {
 		if(offset >= e-a)
-			sysfatal("bad offset %llud >= %llud",
+			sysfatal("bad offset %llu >= %llu",
 				offset, e-a);
 		aa = offset;
 	} else
@@ -44,30 +44,30 @@ rdarena(Arena *arena, uint64_t offset)
 		if(magic == ClumpFreeMagic)
 			break;
 		if(magic != arena->clumpmagic) {
-			fprint(2, "illegal clump magic number %#8.8ux offset %llud\n",
+			fprint(2, "illegal clump magic number %#8.8ux offset %llu\n",
 				magic, aa);
 			break;
 		}
 		lump = loadclump(arena, aa, 0, &cl, score, 0);
 		if(lump == nil) {
-			fprint(2, "clump %llud failed to read: %r\n", aa);
+			fprint(2, "clump %llu failed to read: %r\n", aa);
 			break;
 		}
 		if(cl.info.type != VtCorruptType) {
 			scoremem(score, lump->data, cl.info.uncsize);
 			if(scorecmp(cl.info.score, score) != 0) {
-				fprint(2, "clump %llud has mismatched score\n", aa);
+				fprint(2, "clump %llu has mismatched score\n", aa);
 				break;
 			}
 			if(vttypevalid(cl.info.type) < 0) {
-				fprint(2, "clump %llud has bad type %d\n", aa, cl.info.type);
+				fprint(2, "clump %llu has bad type %d\n", aa, cl.info.type);
 				break;
 			}
 		}
 		print("%22llud %V %3d %5d\n", aa, score, cl.info.type, cl.info.uncsize);
 		freezblock(lump);
 	}
-	print("end offset %llud\n", aa);
+	print("end offset %llu\n", aa);
 }
 
 void
@@ -120,7 +120,7 @@ threadmain(int argc, char *argv[])
 		head.size, head.clumpmagic);
 
 	if(aoffset+head.size > part->size)
-		sysfatal("arena is truncated: want %llud bytes have %llud",
+		sysfatal("arena is truncated: want %llu bytes have %llu",
 			head.size, part->size);
 
 	partblocksize(part, head.blocksize);

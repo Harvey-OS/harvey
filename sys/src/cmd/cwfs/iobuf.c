@@ -217,14 +217,14 @@ checktag(Iobuf *p, int tag, Off qpath)
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
 		if(p->flags & Bmod) {
-			print("\ttag = %d/%llud; expected %lld/%d -- not flushed\n",
+			print("\ttag = %d/%llu; expected %lld/%d -- not flushed\n",
 				t->tag, (Wideoff)t->path, (Wideoff)qpath, tag);
 			return 2;
 		}
 		if(p->dev != nil && p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
 		if(p->addr != lastaddr)
-			print("\ttag = %G/%llud; expected %G/%lld -- flushed (%lld)\n",
+			print("\ttag = %G/%llu; expected %G/%lld -- flushed (%lld)\n",
 				t->tag, (Wideoff)t->path, tag, (Wideoff)qpath,
 				(Wideoff)p->addr);
 		lastaddr = p->addr;
@@ -236,7 +236,7 @@ checktag(Iobuf *p, int tag, Off qpath)
 	if(qpath != QPNONE) {
 		if((qpath ^ t->path) & ~QPDIR) {
 			if(1 || CHAT(0))
-				print("\ttag/path = %llud; expected %d/%llux\n",
+				print("\ttag/path = %llu; expected %d/%llux\n",
 					(Wideoff)t->path, tag, (Wideoff)qpath);
 			return 0;
 		}

@@ -586,7 +586,7 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	smblogprint(h->command, "desiredaccess 0x%.8lux", desiredaccess);
 	smbsblutlogprint(h->command, dasblut, desiredaccess);
 	smblogprint(h->command, "\n");
-	smblogprint(h->command, "allocationsize %llud\n", allocationsize);
+	smblogprint(h->command, "allocationsize %llu\n", allocationsize);
 	smblogprint(h->command, "extfileattributes 0x%.8lux", extfileattributes);
 	smbsblutlogprint(h->command, efasblut, extfileattributes);
 	smblogprint(h->command, "\n");

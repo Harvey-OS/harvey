@@ -248,7 +248,7 @@ printnode(Node *np)
 	if(np->d.qid.type&QTDIR)
 		fprint(debugfd, " QTDIR");
 	fprint(debugfd, "\n");
-	fprint(debugfd,"\tQID: %llud.%lu Mode: %lo Type: %d\n", np->d.qid.path,
+	fprint(debugfd,"\tQID: %llu.%lu Mode: %lo Type: %d\n", np->d.qid.path,
 			np->d.qid.vers, np->d.mode, np->d.type);
 	fprint(debugfd, "\tMod: %.15s  Acc: %.15s Count: %d\n", ctime(np->d.mtime)+4,
 			ctime(np->d.atime)+4, np->count);
