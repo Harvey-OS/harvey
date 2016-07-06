@@ -48,7 +48,7 @@ smbcomdelete(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	if (!smbbuffergetb(b, &fmt) || fmt != 0x04
 		|| !smbbuffergetstring(b, h, SMB_STRING_PATH, &pattern))
 		return SmbProcessResultFormat;
-	smblogprint(SMB_COM_DELETE, "searchattributes: 0x%.4ux\npattern:%s\n", sattr, pattern);
+	smblogprint(SMB_COM_DELETE, "searchattributes: 0x%.4x\npattern:%s\n", sattr, pattern);
 	smbpathsplit(pattern, &dir, &name);
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {

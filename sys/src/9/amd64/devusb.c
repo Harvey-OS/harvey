@@ -194,7 +194,7 @@ seprintdata(char *s, char *se, unsigned char *d, int n)
 	if(l > 10)
 		l = 10;
 	for(i=0; i<l; i++)
-		s = seprint(s, se, " %2.2ux", d[i]);
+		s = seprint(s, se, " %2.2x", d[i]);
 	if(l < n)
 		s = seprint(s, se, "...");
 	return s;

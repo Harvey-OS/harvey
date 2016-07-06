@@ -645,7 +645,7 @@ getresponse(void)
 
 	i = 0;
 	if(first > FATAL){
-		fprint(2, "scp: unexpected response character 0x%.2ux\n", first);
+		fprint(2, "scp: unexpected response character 0x%.2x\n", first);
 		buf[i++] = first;
 	}
 

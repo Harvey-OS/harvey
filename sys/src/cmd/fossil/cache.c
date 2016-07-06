@@ -465,11 +465,11 @@ _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
 			break;
 		case BioVentiError:
 			blockPut(b);
-			vtSetError("venti i/o error block 0x%.8ux", addr);
+			vtSetError("venti i/o error block 0x%.8x", addr);
 			return nil;
 		case BioReadError:
 			blockPut(b);
-			vtSetError("error reading block 0x%.8ux", addr);
+			vtSetError("error reading block 0x%.8x", addr);
 			return nil;
 		}
 	}
@@ -589,7 +589,7 @@ fprint(2, "%s: _cacheLocal want epoch %u got %u\n", argv0, epoch, b->l.epoch);
 		case BioReadError:
 			blockSetIOState(b, BioEmpty);
 			blockPut(b);
-			vtSetError("error reading block 0x%.8ux", addr);
+			vtSetError("error reading block 0x%.8x", addr);
 			return nil;
 		}
 	}
@@ -1766,10 +1766,10 @@ scoreFmt(Fmt *f)
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)
-		fmtprint(f, "0x%.8ux", addr);
+		fmtprint(f, "0x%.8x", addr);
 	else{
 		for(i = 0; i < VtScoreSize; i++)
-			fmtprint(f, "%2.2ux", v[i]);
+			fmtprint(f, "%2.2x", v[i]);
 	}
 
 	return 0;

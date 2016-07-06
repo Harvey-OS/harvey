@@ -105,9 +105,9 @@ smblogdata(int cmd, int (*print)(int cmd, char *fmt, ...), void *ap,
 		int b;
 		(*print)(cmd, "0x%.4lux  ", i);
 		for (b = 0; b < l; b += 2) {
-			(*print)(cmd, " %.2ux", p[i + b]);
+			(*print)(cmd, " %.2x", p[i + b]);
 			if (b < l - 1)
-				(*print)(cmd, "%.2ux", p[i + b + 1]);
+				(*print)(cmd, "%.2x", p[i + b + 1]);
 			else
 				(*print)(cmd, "  ");
 		}
@@ -125,5 +125,5 @@ smblogdata(int cmd, int (*print)(int cmd, char *fmt, ...), void *ap,
 		i += l;
 	}
 	if (saven > limit)
-		(*print)(cmd, "0x%.4ux   ...\n0x%.4ux\n", limit, saven);
+		(*print)(cmd, "0x%.4x   ...\n0x%.4x\n", limit, saven);
 }

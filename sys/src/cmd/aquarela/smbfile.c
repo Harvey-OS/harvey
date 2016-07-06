@@ -27,7 +27,7 @@ smbfilefree(SmbFile **fp)
 void
 smbfileclose(SmbSession *s, SmbFile *f)
 {
-	smblogprintif(smbglobals.log.fids, "smbfileclose: 0x%.4ux/0x%.4ux %s%s\n",
+	smblogprintif(smbglobals.log.fids, "smbfileclose: 0x%.4x/0x%.4x %s%s\n",
 		f->t->id, f->id, f->t->serv->path, f->name);
 	smbidmapremove(s->fidmap, f);
 	smbfilefree(&f);

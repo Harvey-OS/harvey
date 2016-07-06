@@ -250,7 +250,7 @@ authfutz(char *dom, char *user)
 	}
 	convM2T(tbuf, &t, key);
 	if(t.num != AuthTc){
-		print("\tcannot decrypt ticket1 from auth server (bad t.num=0x%.2ux)\n", t.num);
+		print("\tcannot decrypt ticket1 from auth server (bad t.num=0x%.2x)\n", t.num);
 		print("\tauth server and you do not agree on key for %s@%s\n", user, dom);
 		return;
 	}
@@ -263,7 +263,7 @@ authfutz(char *dom, char *user)
 
 	convM2T(tbuf+TICKETLEN, &t, key);
 	if(t.num != AuthTs){
-		print("\tcannot decrypt ticket2 from auth server (bad t.num=0x%.2ux)\n", t.num);
+		print("\tcannot decrypt ticket2 from auth server (bad t.num=0x%.2x)\n", t.num);
 		print("\tauth server and you do not agree on key for %s@%s\n", user, dom);
 		return;
 	}
@@ -286,7 +286,7 @@ authfutz(char *dom, char *user)
 	}
 	convM2T(tbuf, &t, key);
 	if(t.num != AuthTc){
-		print("\tcannot decrypt ticket1 from auth server (bad t.num=0x%.2ux)\n", t.num);
+		print("\tcannot decrypt ticket1 from auth server (bad t.num=0x%.2x)\n", t.num);
 		print("\tauth server and you do not agree on key for %s@%s\n", user, dom);
 		return;
 	}
@@ -308,7 +308,7 @@ authfutz(char *dom, char *user)
 
 	convM2T(tbuf+TICKETLEN, &t, booteskey);
 	if(t.num != AuthTs){
-		print("\tcannot decrypt ticket2 from auth server (bad t.num=0x%.2ux)\n", t.num);
+		print("\tcannot decrypt ticket2 from auth server (bad t.num=0x%.2x)\n", t.num);
 		print("\tauth server and you do not agree on key for %s@%s\n", tr.authid, dom);
 		return;
 	}

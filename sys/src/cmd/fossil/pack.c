@@ -85,8 +85,8 @@ labelUnpack(Label *l, uint8_t *p, int i)
 	if(l->type > BtMax){
 Bad:
 		vtSetError(EBadLabel);
-		fprint(2, "%s: labelUnpack: bad label: 0x%.2ux 0x%.2ux 0x%.8ux "
-			"0x%.8ux 0x%.8ux\n", argv0, l->state, l->type, l->epoch,
+		fprint(2, "%s: labelUnpack: bad label: 0x%.2x 0x%.2x 0x%.8x "
+			"0x%.8x 0x%.8x\n", argv0, l->state, l->type, l->epoch,
 			l->epochClose, l->tag);
 		return 0;
 	}

@@ -649,7 +649,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 
 	if(w == 0)
 		w = procqidwidth(c);
-	n = snprint(s, ns, "%3d %.2s %C %4ud (%.16llux %*lud %.2ux) %5ld %8lld %s\n",
+	n = snprint(s, ns, "%3d %.2s %C %4ud (%.16llux %*lud %.2x) %5ld %8lld %s\n",
 		fd,
 		&"r w rw"[(c->mode&3)<<1],
 		c->dev->dc, c->devno,

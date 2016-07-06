@@ -164,7 +164,7 @@ sha1fmt(Fmt *f)
 	}
 	else{
 		for(i = 0; i < SHA1dlen; i++)
-			fmtprint(f, "%2.2ux", v[i]);
+			fmtprint(f, "%2.2x", v[i]);
 	}
 
 	return 0;
@@ -964,7 +964,7 @@ blockRead(uint8_t *data, uint32_t addr, int type)
 	}
 	getBlock(buf, &b);
 	if(b.magic != BlockMagic || b.size > blocksize || b.type != type){
-		fprint(2, "paqfs: bad block: magic %.8lux (want %.8ux) size %lu (max %d) type %u (want %u)\n",
+		fprint(2, "paqfs: bad block: magic %.8lux (want %.8x) size %lu (max %d) type %u (want %u)\n",
 			b.magic, BlockMagic, b.size, blocksize, b.type, type);
 		return 0;
 	}

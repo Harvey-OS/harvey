@@ -165,7 +165,7 @@ robertprintentry(Entry *def, Entry *etym, int cmd)
 		case ITOFF:
 		case NONE:
 			if(debug)
-				outprint("\\%.2ux", c);
+				outprint("\\%.2x", c);
 			baseline = 0;
 			break;
 
@@ -282,7 +282,7 @@ robertflexentry(Entry e, int cmd)
 			continue;
 		if(r > MULTIE){
 			if(debug)
-				Bprint(bout, "\\%.2ux", c);
+				Bprint(bout, "\\%.2x", c);
 			continue;
 		}
 		if(r < Runeself)

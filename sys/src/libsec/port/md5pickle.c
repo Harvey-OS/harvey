@@ -20,7 +20,7 @@ md5pickle(MD5state *s)
 	p = malloc(m);
 	if(p == nil)
 		return p;
-	n = sprint(p, "%16.16llux %8.8ux %8.8ux %8.8ux %8.8ux ",
+	n = sprint(p, "%16.16llux %8.8x %8.8x %8.8x %8.8x ",
 		s->len,
 		s->state[0], s->state[1], s->state[2],
 		s->state[3]);

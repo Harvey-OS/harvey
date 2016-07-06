@@ -75,7 +75,7 @@ smblogdata(h.command, smblogprint, p, n, 0x1000);
 smblogunlock();
 	ote = smboptable + h.command;
 	if (ote->name == nil) {
-		smblogprint(-1, "smb: illegal opcode 0x%.2ux\n", h.command);
+		smblogprint(-1, "smb: illegal opcode 0x%.2x\n", h.command);
 		goto unimp;
 	}
 	if (ote->process == nil) {
@@ -84,7 +84,7 @@ smblogunlock();
 	}
 	if (smbs->nextcommand != SMB_COM_NO_ANDX_COMMAND
 		&& smbs->nextcommand != h.command) {
-		smblogprint(-1, "smb: wrong command - expected %.2ux\n", smbs->nextcommand);
+		smblogprint(-1, "smb: wrong command - expected %.2x\n", smbs->nextcommand);
 		goto misc;
 	}
 	smbs->nextcommand = SMB_COM_NO_ANDX_COMMAND;
@@ -96,7 +96,7 @@ smblogunlock();
 		break;
 	default:
 		if (smbs->state != SmbSessionEstablished) {
-			smblogprint(-1, "aquarela: command %.2ux unexpected\n", h.command);
+			smblogprint(-1, "aquarela: command %.2x unexpected\n", h.command);
 			goto unimp;
 		}
 	}

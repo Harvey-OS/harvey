@@ -364,7 +364,7 @@ cpufmt(Fmt *fmt)
 		"%.6lux "
 		"%.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux "
 		"%.4lux %.4lux %.4lux %.4lux "
-		"%J %.4lux %.2ux %I",
+		"%J %.4lux %.2x %I",
 
 		cpu->ic,
 

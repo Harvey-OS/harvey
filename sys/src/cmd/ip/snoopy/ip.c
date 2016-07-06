@@ -222,7 +222,7 @@ p_seprint(Msg *m)
 	/* next header */
 	hl = (h->vihl  &0xf) << 2;
 
-	m->p = seprint(m->p, m->e, "s=%V d=%V id=%4.4ux frag=%4.4ux ttl=%3d pr=%d ln=%d hl=%d",
+	m->p = seprint(m->p, m->e, "s=%V d=%V id=%4.4x frag=%4.4x ttl=%3d pr=%d ln=%d hl=%d",
 		h->src, h->dst, NetS(h->id), NetS(h->frag), h->ttl, h->proto,
 		NetS(h->length),
 		(h->vihl & 0xf) << 2);
@@ -232,7 +232,7 @@ p_seprint(Msg *m)
 	if(p < m->ps){
 		m->p = seprint(m->p, m->e, " opts=(");
 		while(p < m->ps)
-			m->p = seprint(m->p, m->e, "%.2ux", *p++);
+			m->p = seprint(m->p, m->e, "%.2x", *p++);
 		m->p = seprint(m->p, m->e, ")");
 	}
 

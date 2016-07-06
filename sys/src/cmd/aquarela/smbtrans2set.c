@@ -100,7 +100,7 @@ smbtrans2setfileinformation(SmbSession *s, SmbHeader *h)
 		break;
 
 	default:
-		smblogprint(-1, "smbtrans2setfileinformation: infolevel 0x%.4ux not implemented\n", infolevel);
+		smblogprint(-1, "smbtrans2setfileinformation: infolevel 0x%.4x not implemented\n", infolevel);
 		smbseterror(s, ERRDOS, ERRunknownlevel);
 		pr = SmbProcessResultError;
 		break;
@@ -143,7 +143,7 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
 
 	translogprint(s->transaction.in.setup[0], "path %s\n", path);
-	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4ux\n", infolevel);
+	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4x\n", infolevel);
 	translogprint(s->transaction.in.setup[0], "fullpath %s\n", fullpath);
 
 	switch (infolevel) {
@@ -199,7 +199,7 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 		break;
 
 	default:
-		smblogprint(-1, "smbtrans2setpathinformation: infolevel 0x%.4ux not implemented\n", infolevel);
+		smblogprint(-1, "smbtrans2setpathinformation: infolevel 0x%.4x not implemented\n", infolevel);
 		smbseterror(s, ERRDOS, ERRunknownlevel);
 		pr = SmbProcessResultError;
 		break;

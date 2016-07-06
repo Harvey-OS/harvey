@@ -635,7 +635,7 @@ printresp(uint8_t resp[MSresplen])
 
 	p = buf;
 	for(i=0; i<MSresplen; i++)
-		p += sprint(p, "%.2ux ", resp[i]);
+		p += sprint(p, "%.2x ", resp[i]);
 	syslog(0, AUTHLOG, "resp = %s", buf);
 }
 

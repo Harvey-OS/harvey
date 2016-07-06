@@ -237,12 +237,12 @@ cpuiddump(void)
 
 	for(i = 0; i < machp()->CPU.ncpuinfos; i++){
 		cpuid(i, 0, info);
-		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
+		DBG("eax = %#8.8ux: %8.8x %8.8x %8.8x %8.8x\n",
 			i, info[0], info[1], info[2], info[3]);
 	}
 	for(i = 0; i < machp()->CPU.ncpuinfoe; i++){
 		cpuid(0x80000000|i, 0, info);
-		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
+		DBG("eax = %#8.8ux: %8.8x %8.8x %8.8x %8.8x\n",
 			0x80000000|i, info[0], info[1], info[2], info[3]);
 	}
 }

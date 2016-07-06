@@ -69,7 +69,7 @@ main(int argc, char **argv)
 	for(i=0; i<sizeof(c->cmap2rgb); ){
 		print("\t");
 		for(j=0; j<16; j++, i++)
-			print("0x%2.2ux,", c->cmap2rgb[i]);
+			print("0x%2.2x,", c->cmap2rgb[i]);
 		print("\n");
 	}
 	print("},\n");
@@ -77,7 +77,7 @@ main(int argc, char **argv)
 	for(i=0; i<sizeof(c->rgb2cmap);){
 		print("\t");
 		for(j=0; j<16; j++, i++)
-			print("0x%2.2ux,", c->rgb2cmap[i]);
+			print("0x%2.2x,", c->rgb2cmap[i]);
 		print("\n");
 	}
 	print("}\n");
