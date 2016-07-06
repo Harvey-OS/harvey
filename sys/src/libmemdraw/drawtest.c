@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 	stmp = allocmemimage(Rect(0, 0, Xrange, Yrange), strtochan(schan));
 	mtmp = allocmemimage(Rect(0, 0, Xrange, Yrange), strtochan(mchan));
 	ones = allocmemimage(Rect(0, 0, Xrange, Yrange), strtochan(mchan));
-//	print("chan %lux %lux %lux %lux %lux %lux\n", dst->chan, src->chan, mask->chan, stmp->chan, mtmp->chan, ones->chan);
+//	print("chan %lx %lx %lx %lx %lx %lx\n", dst->chan, src->chan, mask->chan, stmp->chan, mtmp->chan, ones->chan);
 	if(dst==0 || src==0 || mask==0 || mtmp==0 || ones==0) {
 	Alloc:
 		fprint(2, "dtest: allocation failed: %r\n");
@@ -921,13 +921,13 @@ DBG print("v %.8lux...", v);
 		npack = 8/bpp;
 		sh = bpp*(npack - pt.x%npack - 1);
 		bits = RGB2K(r,g,b);
-DBG print("repl %lux 8 %d = %lux...", bits, bpp, replbits(bits, 8, bpp));
+DBG print("repl %lx 8 %d = %lx...", bits, bpp, replbits(bits, 8, bpp));
 		bits = replbits(bits, 8, bpp);
 		mask = (1<<bpp)-1;
-DBG print("bits %lux mask %lux sh %d...", bits, mask, sh);
+DBG print("bits %lx mask %lx sh %d...", bits, mask, sh);
 		mask <<= sh;
 		bits <<= sh;
-DBG print("(%lux & %lux) | (%lux & %lux)", v, ~mask, bits, mask);
+DBG print("(%lx & %lx) | (%lx & %lx)", v, ~mask, bits, mask);
 		v = (v & ~mask) | (bits & mask);
 	} else {
 		/*
@@ -965,11 +965,11 @@ DBG print("(%lux & %lux) | (%lux & %lux)", v, ~mask, bits, mask);
 				abort();
 			}
 
-DBG print("repl %lux 8 %d = %lux...", bits, nbits, replbits(bits, 8, nbits));
+DBG print("repl %lx 8 %d = %lx...", bits, nbits, replbits(bits, 8, nbits));
 			if(TYPE(c) != CMap)
 				bits = replbits(bits, 8, nbits);
 			mask = (1<<nbits)-1;
-DBG print("bits %lux mask %lux sh %d...", bits, mask, sh);
+DBG print("bits %lx mask %lx sh %d...", bits, mask, sh);
 			bits <<= sh;
 			mask <<= sh;
 			v = (v & ~mask) | (bits & mask);

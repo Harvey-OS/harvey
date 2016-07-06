@@ -127,7 +127,7 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
 	bit = 1<<x;
 	if(x < 0 || x > 31 || (bit&aip->idvec)){
 		unlock(&aip->idlock);
-		print("9p1: id out of range: idoff %ld idvec %lux id %ld\n",
+		print("9p1: id out of range: idoff %ld idvec %lx id %ld\n",
 		   aip->idoffset, aip->idvec, a.id);
 		return 0;
 	}

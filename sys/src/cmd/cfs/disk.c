@@ -55,7 +55,7 @@ dinit(Disk *d, int f, int psize, char *expname)
 	}
 	ba = (Dalloc*)buf;
 	if(ba->bsize <= 0){
-		fprint(2, "dinit: bsize 0x%lux<= 0\n", ba->bsize);
+		fprint(2, "dinit: bsize 0x%lx<= 0\n", ba->bsize);
 		return -1;
 	}
 	if((ba->bsize % psize) != 0){

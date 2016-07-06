@@ -250,7 +250,7 @@ load(Vga* vga, Ctlr *ctlr)
 	x = vmrd(vm, Rbpl)/(vm->depth/8);
 	if(x != vga->mode->x){
 		vga->virtx = x;
-		sprint(buf, "%lux%lux%d %s", vga->virtx, vga->virty,
+		sprint(buf, "%lx%lx%d %s", vga->virtx, vga->virty,
 			vga->mode->z, vga->mode->chan);
 		vgactlw("size", buf);
 	}

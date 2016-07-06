@@ -94,7 +94,7 @@ symoff(char *buf, int n, uint64_t v, int space)
 	if (s.type != 't' && s.type != 'T' && delta >= 4096)
 		return snprint(buf, n, "%llux", v);
 	else if (delta)
-		return snprint(buf, n, "%s+%lux", s.name, delta);
+		return snprint(buf, n, "%s+%lx", s.name, delta);
 	else
 		return snprint(buf, n, "%s", s.name);
 }
@@ -120,7 +120,7 @@ fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 	case 'X':
 		if (get4(map, rp->roffs, &r) < 0)
 			return -1;
-		snprint(buf, n, "%lux", r);
+		snprint(buf, n, "%lx", r);
 		break;
 	case 'F':	/* first reg of double reg pair */
 		if (modif == 'F')

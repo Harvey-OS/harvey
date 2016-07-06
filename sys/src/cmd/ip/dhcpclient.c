@@ -494,7 +494,7 @@ parse(uint8_t *p, int n)
 	}
 
 	if(dhcp.xid != nhgetl(bp->xid)) {
-		fprint(2, "dhcpclient: parse: bad xid: got %x expected %lux\n",
+		fprint(2, "dhcpclient: parse: bad xid: got %x expected %lx\n",
 			nhgetl(bp->xid), dhcp.xid);
 		return 0;
 	}

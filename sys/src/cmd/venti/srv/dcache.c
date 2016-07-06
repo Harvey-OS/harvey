@@ -317,7 +317,7 @@ dirtydblock(DBlock *b, int dirty)
 {
 	int odirty;
 
-	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lux",
+	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lx",
 		b->part->name, b->addr, dirty, getcallerpc());
 	assert(b->ref != 0);
 	assert(b->mode==ORDWR || b->mode==OWRITE);

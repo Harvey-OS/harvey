@@ -93,7 +93,7 @@ qtostr(q)
 {
 	complex Queue q;
 
-	return "queue("+itoa(q, "%lux")+") ["+itoa(q.len, "%d")+","+itoa(q.dlen, "%d")+","+itoa(qblocks(q), "%d")+"]";
+	return "queue("+itoa(q, "%lx")+") ["+itoa(q.len, "%d")+","+itoa(q.dlen, "%d")+","+itoa(qblocks(q), "%d")+"]";
 }
 
 defn

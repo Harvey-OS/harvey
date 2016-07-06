@@ -1006,7 +1006,7 @@ readHeader(PaqHeader *hdr, char *name, DigestState *ds)
 		sha1(buf, HeaderSize, 0, ds);
 	getHeader(buf, hdr);
 	if(hdr->magic != HeaderMagic)
-		sysfatal("bad header magic 0x%lux: %s", hdr->magic, name);
+		sysfatal("bad header magic 0x%lx: %s", hdr->magic, name);
 	if(hdr->version != Version)
 		sysfatal("unknown file version: %s", name);
 }
