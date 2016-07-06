@@ -219,6 +219,33 @@ AcpiOsTerminate (
 	return AE_OK;
 }
 
+/* run AML with one integer arg. */
+static int
+run_aml_arg(char *name, int val)
+{
+	ACPI_STATUS as;
+	ACPI_OBJECT arg[] = {
+		{
+			.Type = ACPI_TYPE_INTEGER,
+			.Integer.Value = val
+		}
+	};
+	ACPI_OBJECT_LIST args = {
+		.Count = 1,
+		.Pointer = arg
+	};
+	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, name, &args, NULL);
+	print("run_aml_arg(%s, %d) returns %d\n", name, val, as);
+	return as;
+}
+
+static int
+set_machine_mode(void)
+{
+	/* we always enabled the APIC. */
+	return run_aml_arg("_PIC", 1);
+}
+
 int
 acpiinit(void)
 {
@@ -246,6 +273,9 @@ acpiinit(void)
         if (ACPI_FAILURE(status))
 		panic("Can't Initialize ACPI objects");
 
+	/* Set PIC mode. This actually executes AML. */
+
+
 	int sublen;
 	uint8_t *p;
 	extern uint8_t *apicbase;
@@ -261,6 +291,8 @@ acpiinit(void)
 		}
 		print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
 	}
+	if (! set_machine_mode())
+		return 0;
 
 	p = (void*)&m[1];
 	sublen = m->Header.Length;
