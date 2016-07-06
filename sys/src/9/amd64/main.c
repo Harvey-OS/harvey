@@ -585,7 +585,9 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * things like that completely broken).
 	 */
 	if (enableacpi){
-		acpiinit();
+		/* If acpiinit succeeds, we leave enableacpi enabled.
+		 * This means we can always boot. */
+		enableacpi = acpiinit();
 	}
 
 	umeminit();
