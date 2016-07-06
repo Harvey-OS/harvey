@@ -55,7 +55,7 @@ udplistener(void *)
 			if (n) {
 				switch (s.type) {
 				case NbDgramError:
-					print("nbdgramlisten: error: ip %I port %d code 0x%.2ux\n", s.srcip, s.srcport, s.error.code);
+					print("nbdgramlisten: error: ip %I port %d code 0x%.2x\n", s.srcip, s.srcport, s.error.code);
 					break;
 				case NbDgramDirectUnique:
 				case NbDgramDirectGroup:

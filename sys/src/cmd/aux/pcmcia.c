@@ -62,7 +62,7 @@ readc(void *x)
 	pos++;
 	rv = read(fd, x, 1);
 	if(hex)
-		print("%2.2ux ", *(uint8_t*)x);
+		print("%2.2x ", *(uint8_t*)x);
 	return rv;
 }
 

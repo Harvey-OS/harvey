@@ -33,7 +33,7 @@ int
 eipfmt(Fmt *f)
 {
 	char buf[5*8];
-	static char *efmt = "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux";
+	static char *efmt = "%.2x%.2x%.2x%.2x%.2x%.2x";
 	static char *ifmt = "%d.%d.%d.%d";
 	uint8_t *p, ip[16];
 	uint32_t *lp;

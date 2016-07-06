@@ -67,7 +67,7 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	case SMB_COM_COPY:
 		break;
 	default:
-		smblogprint(h->command, "smbcomtreeconnectandx: invalid andxcommand %s (0x%.2ux)\n",
+		smblogprint(h->command, "smbcomtreeconnectandx: invalid andxcommand %s (0x%.2x)\n",
 			smboptable[andxcommand].name, andxcommand);
 		goto fmtfail;
 	}
@@ -77,7 +77,7 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	passwordlength = smbnhgets(pdata); //pdata += 2;
 //	bytecount = smbnhgets(pdata); pdata += 2;
 smblogprint(h->command, "passwordlength: %u\n", passwordlength);
-smblogprint(h->command, "flags: 0x%.4ux\n", flags);
+smblogprint(h->command, "flags: 0x%.4x\n", flags);
 	if (!smbbuffergetbytes(b, nil, passwordlength)) {
 		smblogprint(h->command, "smbcomtreeconnectandx: not enough bytes for password\n");
 		goto fmtfail;

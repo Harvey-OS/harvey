@@ -283,7 +283,7 @@ hexdump(void *a, int n)
 	ep = p+n;
 
 	for(; p<ep; p++) 
-		print("%.2ux ", *p);
+		print("%.2x ", *p);
 	print("\n");
 }
 

@@ -306,10 +306,10 @@ p_seprint(Msg *m)
 
 	tn = icmpmsg6[h->type];
 	if(tn == nil)
-		p = seprint(p, e, "t=%u c=%d ck=%4.4ux", h->type,
+		p = seprint(p, e, "t=%u c=%d ck=%4.4x", h->type,
 			h->code, (uint16_t)NetS(h->cksum));
 	else
-		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
+		p = seprint(p, e, "t=%s c=%d ck=%4.4x", tn,
 			h->code, (uint16_t)NetS(h->cksum));
 
 /*
@@ -319,7 +319,7 @@ p_seprint(Msg *m)
 		h->cksum[1] = 0;
 		cksum2 = ~ptclbsum((uchar*)h, m->pe - m->ps + ICMP6LEN) & 0xffff;
 		if(cksum != cksum2)
-			p = seprint(p,e, " !ck=%4.4ux", cksum2);
+			p = seprint(p,e, " !ck=%4.4x", cksum2);
 	}
  */
 
@@ -360,7 +360,7 @@ p_seprint(Msg *m)
 			i = nelem(parpcode)-1;
 		else
 			i = h->code;
-		p = seprint(p, e, " code=%s ptr=%2.2ux", parpcode[i], h->data[0]);
+		p = seprint(p, e, " code=%s ptr=%2.2x", parpcode[i], h->data[0]);
 		break;
 
 	case EchoReplyV6:

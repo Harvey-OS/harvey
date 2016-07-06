@@ -12,11 +12,11 @@
 void
 nbdgramdump(NbDgram *s)
 {
-	print("type 0x%.2ux flags 0x%.2ux id 0x%.4ux srcip %I port %d\n",
+	print("type 0x%.2x flags 0x%.2x id 0x%.4x srcip %I port %d\n",
 		s->type, s->flags, s->id, s->srcip, s->srcport);
 	switch (s->type) {
 	case NbDgramError:
-		print("\terror.code 0x%.2ux\n", s->error.code);
+		print("\terror.code 0x%.2x\n", s->error.code);
 		break;
 	case NbDgramDirectUnique:
 	case NbDgramDirectGroup:

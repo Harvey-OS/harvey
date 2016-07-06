@@ -288,10 +288,10 @@ pkt2str(uint8_t *ps, uint8_t *pe, char *sps, char *spe)
 
 	tn = icmpmsg6[h->type];
 	if(tn == nil)
-		p = seprint(p, e, "t=%u c=%d ck=%4.4ux", h->type,
+		p = seprint(p, e, "t=%u c=%d ck=%4.4x", h->type,
 			h->code, (uint16_t)NetS(h->cksum));
 	else
-		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
+		p = seprint(p, e, "t=%s c=%d ck=%4.4x", tn,
 			h->code, (uint16_t)NetS(h->cksum));
 
 	switch(h->type){

@@ -34,7 +34,7 @@ main(void)
 		p = (uint8_t*)*pp;
 		md4(p, strlen(*pp), digest, 0);
 		for(i = 0; i < MD5dlen; i++)
-			print("%2.2ux", digest[i]);
+			print("%2.2x", digest[i]);
 		print("\n");
 	}
 }

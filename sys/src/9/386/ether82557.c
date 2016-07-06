@@ -476,7 +476,7 @@ ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 	for(i = 0; i < (1<<ctlr->eepromsz); i++){
 		if(i && ((i & 0x07) == 0))
 			len += snprint(p+len, READSTR-len, "\n       ");
-		len += snprint(p+len, READSTR-len, " %4.4ux", ctlr->eeprom[i]);
+		len += snprint(p+len, READSTR-len, " %4.4x", ctlr->eeprom[i]);
 	}
 
 	if((ctlr->eeprom[6] & 0x1F00) && !(ctlr->eeprom[6] & 0x8000)){
@@ -485,7 +485,7 @@ ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 		for(i = 0; i < 6; i++){
 			//static int miir(Ctlr*, int, int);
 
-			len += snprint(p+len, READSTR-len, " %4.4ux",
+			len += snprint(p+len, READSTR-len, " %4.4x",
 				miir(ctlr, phyaddr, i));
 		}
 	}

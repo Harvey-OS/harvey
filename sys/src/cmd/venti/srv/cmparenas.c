@@ -183,14 +183,14 @@ cmparena(char *name, int64_t len)
 					snprint(buf, sizeof buf, "%llx", n+i);
 					print("%s ", buf);
 					for(j=0; j<16; j++){
-						print(" %.2ux", data[i+j]);
+						print(" %.2x", data[i+j]);
 						if(j == 7)
 							print(" -");
 					}
 					print("\n");
 					print("%*s ", (int)strlen(buf), "");
 					for(j=0; j<16; j++){
-						print(" %.2ux", data1[i+j]);
+						print(" %.2x", data1[i+j]);
 						if(j == 7)
 							print(" -");
 					}

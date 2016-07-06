@@ -40,7 +40,7 @@ isdosfs(uint8_t *buf)
 	if(buf[0] == 0xEB && buf[2] == 0x90 /* && buf[1] >= 0x30 */)
 		return 1;
 	if(chatty)
-		fprint(2, "bad sig %.2ux %.2ux %.2uxn", buf[0], buf[1], buf[2]);
+		fprint(2, "bad sig %.2x %.2x %.2xn", buf[0], buf[1], buf[2]);
 
 	return 0;
 }
@@ -1882,7 +1882,7 @@ dirdump(void *vdbuf)
 		name = namebuf + DOSNAMELEN;
 		*--name = '\0';
 		name = getnamerunes(name, dbuf, 1);
-		seprint(buf, ebuf, "\"%s\" %2.2x %2.2ux %2.2ux %d", name, dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
+		seprint(buf, ebuf, "\"%s\" %2.2x %2.2x %2.2x %d", name, dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
 	}else{
 		s = seprint(buf, ebuf, "\"%.8s.%.3s\" ", (char*)d->name,
 				(char*)d->ext);

@@ -157,7 +157,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		break;
 
 	default:
-		error("%s: unrecognized chipset %.4ux\n", ctlr->name, p->did);
+		error("%s: unrecognized chipset %.4x\n", ctlr->name, p->did);
 	}
 
 	for(i=0; i<Nreg; i++)

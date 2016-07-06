@@ -175,7 +175,7 @@ p_seprint(Msg *m)
 	sport = NetS(h->sport);
 	demux(p_mux, sport, dport, m, &dump);
 
-	m->p = seprint(m->p, m->e, "s=%d d=%d seq=%lu ack=%lu fl=%s win=%d ck=%4.4ux",
+	m->p = seprint(m->p, m->e, "s=%d d=%d seq=%lu ack=%lu fl=%s win=%d ck=%4.4x",
 			NetS(h->sport), dport,
 			(uint32_t)NetL(h->seq), (uint32_t)NetL(h->ack),
 			flags(flag), NetS(h->win),

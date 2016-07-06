@@ -587,7 +587,7 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 			if(i && ((i & 0x07) == 0))
 				l += snprint(p+l, READSTR-l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, READSTR-l, " %4.4ux", r);
+			l += snprint(p+l, READSTR-l, " %4.4x", r);
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
@@ -1177,7 +1177,7 @@ rtl8169pci(void)
 		if(vetmacv(ctlr, &macv) == -1){
 			iofree(port);
 			free(ctlr);
-			print("rtl8169: unknown mac %.4ux %.8ux\n", p->did, macv);
+			print("rtl8169: unknown mac %.4x %.8x\n", p->did, macv);
 			continue;
 		}
 

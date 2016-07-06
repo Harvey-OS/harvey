@@ -713,11 +713,11 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	p = seprint(p, e, "rintr: %u %u\n", ctlr->rintr, ctlr->rsleep);
 	p = seprint(p, e, "tintr: %u %u\n", ctlr->tintr, ctlr->txdw);
 	p = seprint(p, e, "ixcs: %u %u %u\n", ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
-	p = seprint(p, e, "ctrl: %.8ux\n", csr32r(ctlr, Ctrl));
-	p = seprint(p, e, "ctrlext: %.8ux\n", csr32r(ctlr, Ctrlext));
-	p = seprint(p, e, "status: %.8ux\n", csr32r(ctlr, Status));
-	p = seprint(p, e, "txcw: %.8ux\n", csr32r(ctlr, Txcw));
-	p = seprint(p, e, "txdctl: %.8ux\n", csr32r(ctlr, Txdctl));
+	p = seprint(p, e, "ctrl: %.8x\n", csr32r(ctlr, Ctrl));
+	p = seprint(p, e, "ctrlext: %.8x\n", csr32r(ctlr, Ctrlext));
+	p = seprint(p, e, "status: %.8x\n", csr32r(ctlr, Status));
+	p = seprint(p, e, "txcw: %.8x\n", csr32r(ctlr, Txcw));
+	p = seprint(p, e, "txdctl: %.8x\n", csr32r(ctlr, Txdctl));
 	p = seprint(p, e, "pbs: %dKB\n", ctlr->pbs);
 	p = seprint(p, e, "pba: %#.8ux\n", ctlr->pba);
 
@@ -730,7 +730,7 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 //	for(i = 0; i < 0x40; i++){
 //		if(i && ((i & 7) == 0))
 //			p = seprint(p, e, "\n       ");
-//		p = seprint(p, e, " %4.4ux", ctlr->eeprom[i]);
+//		p = seprint(p, e, " %4.4x", ctlr->eeprom[i]);
 //	}
 //	p = seprint(p, e, "\n");
 

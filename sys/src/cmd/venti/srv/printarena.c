@@ -115,7 +115,7 @@ threadmain(int argc, char *argv[])
 	if(unpackarenahead(&head, buf) < 0)
 		sysfatal("corrupted arena header: %r");
 
-	print("# arena head version=%d name=%.*s blocksize=%d size=%lld clumpmagic=0x%.8ux\n",
+	print("# arena head version=%d name=%.*s blocksize=%d size=%lld clumpmagic=0x%.8x\n",
 		head.version, ANameSize, head.name, head.blocksize,
 		head.size, head.clumpmagic);
 

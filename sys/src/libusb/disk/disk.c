@@ -295,7 +295,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	if(csw.dataresidue == 0 || ums->wrongresidues)
 		csw.dataresidue = data->count - nio;
 	if(diskdebug){
-		fprint(2, "disk: status: %2.2ux residue: %ld\n",
+		fprint(2, "disk: status: %2.2x residue: %ld\n",
 			csw.status, csw.dataresidue);
 		if(cbw.command[0] == ScmdRsense){
 			fprint(2, "sense data:");

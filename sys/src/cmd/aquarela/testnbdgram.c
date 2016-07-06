@@ -47,7 +47,7 @@ deliver(void *, NbDgram *s)
 	print("name: %s\n", transaction.in.name);
 	print("setup:");
 	for (x = 0; x < transaction.in.scount; x++)
-		print(" 0x%.4ux", transaction.in.setup[x]);
+		print(" 0x%.4x", transaction.in.setup[x]);
 	print("\n");
 	print("parameters:\n");
 	nbdumpdata(transaction.in.parameters, transaction.in.tpcount);
