@@ -295,7 +295,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 				p = seprint(p, e, " auth=passwd");
 				break;
 			case PPP_chap:
-				p = seprint(p, e, " (auth=chap data=%2.2ux)", o->data[2]);
+				p = seprint(p, e, " (auth=chap data=%2.2x)", o->data[2]);
 				break;
 			}
 			break;
@@ -482,7 +482,7 @@ seprintccpopt(char *p, char *e, void *a, int len)
 			p = seprint(p, e, " type=%d ", o->type);
 			break;
 		case 0:
-			p = seprint(p, e, " OUI=(%d %.2ux%.2ux%.2ux) ", o->type, 
+			p = seprint(p, e, " OUI=(%d %.2x%.2x%.2x) ", o->type, 
 				o->data[0], o->data[1], o->data[2]);
 			break;
 		case 17:
@@ -565,7 +565,7 @@ p_seprintcomp(Msg *m)
 	if(x & (1<<12))
 		compflag[i++] = 'e';
 	compflag[i] = 0;
-	m->p = seprint(m->p, m->e, "flag=%s count=%.3ux", compflag, x&0xfff);
+	m->p = seprint(m->p, m->e, "flag=%s count=%.3x", compflag, x&0xfff);
 	m->p = seprint(m->p, m->e, " data=%.*H", len>64?64:len, m->ps);
 	m->pr = nil;
 	return 0;

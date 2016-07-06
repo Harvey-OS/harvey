@@ -146,7 +146,7 @@ printtrie(Biobuf *b, Trie *t)
 			Bprint(b, "{");
 			for(i=0; i<256; i++)
 				if(t->r[i])
-					Bprint(b, " 0x%.4ux,", t->r[i]);
+					Bprint(b, " 0x%.4x,", t->r[i]);
 			Bprint(b, " }");
 		} else {
 			Bprint(b, "L\"");

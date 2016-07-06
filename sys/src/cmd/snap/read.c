@@ -90,7 +90,7 @@ Breadnumber(Biobuf *b, char *buf)
 				break;
 			}
 		}else{
-			werrstr("bad character %.2ux", c);
+			werrstr("bad character %.2x", c);
 			return -1;
 		}
 	}

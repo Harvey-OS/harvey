@@ -915,7 +915,7 @@ hexdump(void *a, int n)
 	p = a;
 	s1[0] = 0;
 	for(i = 0; i < n; i++) {
-		sprint(s2, " %.2ux", p[i]);
+		sprint(s2, " %.2x", p[i]);
 		strcat(s1, s2);
 		if((i&7) == 7) {
 			print("%s\n", s1);

@@ -1173,7 +1173,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	printitem(ctlr->name, "arch");
 	Bprint(&stdout, " %d\n", nv->arch);
 	printitem(ctlr->name, "did");
-	Bprint(&stdout, " %.4ux\n", nv->did);
+	Bprint(&stdout, " %.4x\n", nv->did);
 	printitem(ctlr->name, "repaint0");
 	Bprint(&stdout, " %x\n", nv->repaint0);
 	printitem(ctlr->name, "repaint1");

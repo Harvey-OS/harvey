@@ -26,7 +26,7 @@ netcrypt(void *key, void *chal)
 		;
 	*p = '\0';
 	encrypt(key, buf, 8);
-	sprint(chal, "%.2ux%.2ux%.2ux%.2ux", buf[0], buf[1], buf[2], buf[3]);
+	sprint(chal, "%.2x%.2x%.2x%.2x", buf[0], buf[1], buf[2], buf[3]);
 	return 1;
 }
 

@@ -115,7 +115,7 @@ smbcomwrite(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	count = smbnhgets(pdata); pdata += 2;
 	offset = smbnhgetl(pdata);
 
-	smblogprint(SMB_COM_WRITE, "smbcomwrite: fid 0x%.4ux count 0x%.4ux offset 0x%.8lux\n",
+	smblogprint(SMB_COM_WRITE, "smbcomwrite: fid 0x%.4x count 0x%.4x offset 0x%.8lux\n",
 		fid, count, offset);
 
 	if (!smbbuffergetb(b, &fmt)
@@ -194,7 +194,7 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	if(h->wordcount == 14)
 		offset |= (int64_t)smbnhgetl(pdata)<<32;
 
-	smblogprint(SMB_COM_WRITE_ANDX, "smbcomwriteandx: fid 0x%.4ux count 0x%.4ux offset 0x%.llux\n",
+	smblogprint(SMB_COM_WRITE_ANDX, "smbcomwriteandx: fid 0x%.4x count 0x%.4x offset 0x%.llux\n",
 		fid, count, offset);
 
 

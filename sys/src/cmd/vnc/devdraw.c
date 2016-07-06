@@ -1309,7 +1309,7 @@ printmesg(char *fmt, uint8_t *a, int plsprnt)
 			a += 2;
 			break;
 		case 'S':
-			q += sprint(q, " %.4ux", BGSHORT(a));
+			q += sprint(q, " %.4x", BGSHORT(a));
 			a += 2;
 			break;
 		}

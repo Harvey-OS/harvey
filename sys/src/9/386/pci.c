@@ -420,7 +420,7 @@ pcirouting(void)
 			break;
 
 	if(i == nelem(southbridges)) {
-		print("pcirouting: ignoring south bridge %T %.4ux/%.4ux\n", tbdf, sbpci->vid, sbpci->did);
+		print("pcirouting: ignoring south bridge %T %.4x/%.4x\n", tbdf, sbpci->vid, sbpci->did);
 		return;
 	}
 	southbridge = &southbridges[i];
@@ -430,10 +430,10 @@ pcirouting(void)
 	size = (r->size[1] << 8)|r->size[0];
 	for(e = (Slot *)&r[1]; (uint8_t *)e < p + size; e++) {
 		if(0){
-			print("%.2ux/%.2ux %.2ux: ", e->bus, e->dev, e->slot);
+			print("%.2x/%.2x %.2x: ", e->bus, e->dev, e->slot);
 			for (i = 0; i != 4; i++) {
 				uint8_t *m = &e->maps[i * 3];
-				print("[%d] %.2ux %.4ux ",
+				print("[%d] %.2x %.4x ",
 					i, m[0], (m[2] << 8)|m[1]);
 			}
 			print("\n");
@@ -660,7 +660,7 @@ pcilhinv(Pcidev* p)
 	Pcidev *t;
 
 	for(t = p; t != nil; t = t->link) {
-		print("%d  %2d/%d %.2ux %.2ux %.2ux %.4ux %.4ux %3d  ",
+		print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %3d  ",
 			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
 			t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
 

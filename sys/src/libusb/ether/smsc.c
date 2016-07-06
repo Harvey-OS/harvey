@@ -303,7 +303,7 @@ smscbread(Ether *e, Buf *bp)
 		return 0;
 	}
 	if(hd & Rxerror){
-		fprint(2, "smsc rx error %8.8ux\n", hd);
+		fprint(2, "smsc rx error %8.8x\n", hd);
 		n = 0;
 	}else{
 		bp->rp = bp->data + Hdrsize;

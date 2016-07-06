@@ -250,7 +250,7 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 		j += snprint(p+j, READSTR-j, "mbps: %d\n", nif->mbps);
 		j += snprint(p+j, READSTR-j, "addr: ");
 		for(i = 0; i < nif->alen; i++)
-			j += snprint(p+j, READSTR-j, "%2.2ux", nif->addr[i]);
+			j += snprint(p+j, READSTR-j, "%2.2x", nif->addr[i]);
 		snprint(p+j, READSTR-j, "\n");
 		n = readstr(offset, a, n, p);
 		free(p);
@@ -259,7 +259,7 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 		p = malloc(READSTR);
 		j = 0;
 		for(i = 0; i < nif->alen; i++)
-			j += snprint(p+j, READSTR-j, "%2.2ux", nif->addr[i]);
+			j += snprint(p+j, READSTR-j, "%2.2x", nif->addr[i]);
 		n = readstr(offset, a, n, p);
 		free(p);
 		return n;
