@@ -69,7 +69,7 @@ Req*
 lookupreq(Reqpool *pool, uint32_t tag)
 {
 if(chatty9p > 1)
-	fprint(2, "lookupreq %lud\n", tag);
+	fprint(2, "lookupreq %lu\n", tag);
 	return lookupkey(pool->map, tag);
 }
 
@@ -117,6 +117,6 @@ Req*
 removereq(Reqpool *pool, uint32_t tag)
 {
 if(chatty9p > 1)
-	fprint(2, "removereq %lud\n", tag);
+	fprint(2, "removereq %lu\n", tag);
 	return deletekey(pool->map, tag);
 }

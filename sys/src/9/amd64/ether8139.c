@@ -323,7 +323,7 @@ rtl8139ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	if(p == nil)
 		error(Enomem);
 	l = snprint(p, READSTR, "rcr %#8.8ux\n", ctlr->rcr);
-	l += snprint(p+l, READSTR-l, "multicast %ud\n", ctlr->mcast);
+	l += snprint(p+l, READSTR-l, "multicast %u\n", ctlr->mcast);
 	l += snprint(p+l, READSTR-l, "ierrs %d\n", ctlr->ierrs);
 	l += snprint(p+l, READSTR-l, "etxth %d\n", ctlr->etxth);
 	l += snprint(p+l, READSTR-l, "taligned %d\n", ctlr->taligned);

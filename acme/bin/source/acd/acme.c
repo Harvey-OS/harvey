@@ -76,7 +76,7 @@ return 1;
 		return 0;
 
 	q1--;	/* > */
-	sprint(buf, "#%lud,#%lud", q0, q1);
+	sprint(buf, "#%lu,#%lu", q0, q1);
 	DPRINT(2, "setaddr %s\n", buf);
 	if(!winsetaddr(w, buf, 1))
 		return 0;
@@ -129,7 +129,7 @@ markplay(Window *w, uint32_t q0)
 	if(w->data < 0)
 		w->data = winopenfile(w, "data");
 
-	sprint(buf, "#%lud", q0);
+	sprint(buf, "#%lu", q0);
 	DPRINT(2, "addr %s\n", buf);
 	if(!winsetaddr(w, buf, 1) || !winsetaddr(w, "-0", 1))
 		return 0;

@@ -83,7 +83,7 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 			vga->r[0] = r;
 	}
 	if(vga->r[0] > vga->r[1])
-		error("%s: pclk %lud out of range\n", ctlr->name, vga->f[0]);
+		error("%s: pclk %lu out of range\n", ctlr->name, vga->f[0]);
 
 	/*
 	 * Now find the closest match for M and N.
@@ -118,7 +118,7 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 	trouble /= (vga->n[0]+2)*(1<<vga->r[0]);
 	f = trouble+0.5;
 	if(fmin >= f || f >= fmax)
-		error("%s: pclk %lud out of range\n", ctlr->name, vga->f[0]);
+		error("%s: pclk %lu out of range\n", ctlr->name, vga->f[0]);
 }
 
 static void
@@ -159,7 +159,7 @@ init(Vga* vga, Ctlr* ctlr)
 		else
 			pclk = 80000000;
 		if(vga->f[0] > pclk)
-			error("%s: invalid pclk - %lud\n",
+			error("%s: invalid pclk - %lu\n",
 				ctlr->name, vga->f[0]);
 
 		vga->f[1] = 135000000;

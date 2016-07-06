@@ -644,7 +644,7 @@ rwrite(Mfile *mf)
 		b->inode.length = c.thdr.offset + s.rhdr.count;
 	mf->qid.vers++;
 	if (s.rhdr.count != c.thdr.count)
-		syslog(0, "cfslog", "rhdr.count %ud, thdr.count %ud\n",
+		syslog(0, "cfslog", "rhdr.count %u, thdr.count %u\n",
 			s.rhdr.count, c.thdr.count);
 	if(fwrite(&ic, b, buf, c.thdr.offset, s.rhdr.count) == s.rhdr.count){
 		iinc(&ic, b);

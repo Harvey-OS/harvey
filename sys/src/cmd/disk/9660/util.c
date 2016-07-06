@@ -67,7 +67,7 @@ emalloc(uint32_t n)
 	void *p;
 
 	if((p = malloc(n)) == nil)
-		sysfatal("malloc(%lud): out of memory", n);
+		sysfatal("malloc(%lu): out of memory", n);
 	memset(p, 0, n);
 	return p;
 }
@@ -76,7 +76,7 @@ void*
 erealloc(void *v, uint32_t n)
 {
 	if((v = realloc(v, n)) == nil)
-		sysfatal("realloc(%p, %lud): out of memory", v, n);
+		sysfatal("realloc(%p, %lu): out of memory", v, n);
 	return v;
 }
 

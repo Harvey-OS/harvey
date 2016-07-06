@@ -283,7 +283,7 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 		goto done;
 	}
 	smblogprintif(debug,
-		"smbtrans2findnext2: sid %d scount %d infolevel 0x%.4ux resumekey %lud flags 0x%.4ux filename %s\n",
+		"smbtrans2findnext2: sid %d scount %d infolevel 0x%.4ux resumekey %lu flags 0x%.4ux filename %s\n",
 		sid, scount, infolevel, resumekey, flags, filename);
 
 	if (infolevel != SMB_INFO_STANDARD && infolevel != SMB_FIND_FILE_BOTH_DIRECTORY_INFO) {

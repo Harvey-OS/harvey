@@ -531,7 +531,7 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	int i, k;
 
 	e = buf+sizeof buf;
-	s = seprint(buf, e, "%s %ud\n", "AMD64", machp()->cpumhz);
+	s = seprint(buf, e, "%s %u\n", "AMD64", machp()->cpumhz);
 	k = machp()->CPU.ncpuinfoe - machp()->CPU.ncpuinfos;
 	if(k > 4)
 		k = 4;

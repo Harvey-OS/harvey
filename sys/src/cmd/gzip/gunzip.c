@@ -295,7 +295,7 @@ trailer(Biobuf *bin, int32_t wlen)
 	len = get4(bin);
 
 	if(len != wlen)
-		error("bad output length: expected %lud got %lud", wlen, len);
+		error("bad output length: expected %lu got %lu", wlen, len);
 }
 
 static uint32_t

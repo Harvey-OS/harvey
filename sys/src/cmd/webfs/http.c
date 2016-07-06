@@ -333,10 +333,10 @@ httpopen(Client *c, Url *url)
 	}
 	if(c->havepostbody){
 		ioprint(io, fd, "Content-type: %s\r\n", PostContentType);
-		ioprint(io, fd, "Content-length: %ud\r\n", c->npostbody);
+		ioprint(io, fd, "Content-length: %u\r\n", c->npostbody);
 		if(httpdebug){
 			fprint(2, "<- Content-type: %s\n", PostContentType);
-			fprint(2, "<- Content-length: %ud\n", c->npostbody);
+			fprint(2, "<- Content-length: %u\n", c->npostbody);
 		}
 	}
 	if(c->authenticate){

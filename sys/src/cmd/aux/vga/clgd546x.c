@@ -163,7 +163,7 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vga->f[0] == 0)
 		vga->f[0] = vga->mode->frequency;
 	if(vga->f[0] > vga->f[1])
-		error("%s: invalid pclk - %lud\n", ctlr->name, vga->f[0]);
+		error("%s: invalid pclk - %lu\n", ctlr->name, vga->f[0]);
 
 	if(mode->z > 8)
 		error("%s: depth %d not supported\n", ctlr->name, mode->z);
@@ -350,13 +350,13 @@ dump(Vga* vga, Ctlr* ctlr)
 	laguna = vga->private;
 	Bprint(&stdout, "\n");
 	Bprint(&stdout, "%s mem\t\t%d\n", ctlr->name, laguna->mem*1024*1024);
-	Bprint(&stdout, "%s Format\t\t%uX\n", ctlr->name, laguna->format);
-	Bprint(&stdout, "%s Threshold\t\t\t%uX\n",
+	Bprint(&stdout, "%s Format\t\t%X\n", ctlr->name, laguna->format);
+	Bprint(&stdout, "%s Threshold\t\t\t%X\n",
 		ctlr->name, laguna->threshold);
-	Bprint(&stdout, "%s TileCtrl\t\t\t%uX\n", ctlr->name, laguna->tilectrl);
-	Bprint(&stdout, "%s Vsc\t\t%uX\n", ctlr->name, laguna->vsc);
-	Bprint(&stdout, "%s Control\t\t%uX\n", ctlr->name, laguna->control);
-	Bprint(&stdout, "%s TileCtrlC2D3D\t\t%uX\n",
+	Bprint(&stdout, "%s TileCtrl\t\t\t%X\n", ctlr->name, laguna->tilectrl);
+	Bprint(&stdout, "%s Vsc\t\t%X\n", ctlr->name, laguna->vsc);
+	Bprint(&stdout, "%s Control\t\t%X\n", ctlr->name, laguna->control);
+	Bprint(&stdout, "%s TileCtrlC2D3D\t\t%X\n",
 		ctlr->name, laguna->tilectrl2D3D);
 }
 

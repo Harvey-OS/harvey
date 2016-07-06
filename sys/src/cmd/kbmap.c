@@ -37,7 +37,7 @@ erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
-		sysfatal("out of memory reallocating %lud", n);
+		sysfatal("out of memory reallocating %lu", n);
 	return v;
 }
 
@@ -48,7 +48,7 @@ emalloc(uint32_t n)
 
 	v = malloc(n);
 	if(v == nil)
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %lu", n);
 	memset(v, 0, n);
 	return v;
 }

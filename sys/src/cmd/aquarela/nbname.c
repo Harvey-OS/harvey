@@ -303,7 +303,7 @@ nbremotenametableadd(NbName name, uint8_t *ipaddr, uint32_t ttl)
 	}
 	ipmove(p->ipaddr, ipaddr);
 	p->expire = time(nil) + ttl;
-//print("nbremotenametableadd: %B ttl %lud expire %ld\n", p->name, ttl, p->expire);
+//print("nbremotenametableadd: %B ttl %lu expire %ld\n", p->name, ttl, p->expire);
 	qunlock(&nbremotenametable);
 	return 1;
 }

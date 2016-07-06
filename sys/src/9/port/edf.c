@@ -129,7 +129,7 @@ edfinit(Proc*p)
 		edfinited++;
 	}
 	now = ms();
-	DPRINT("%lud edfinit %d[%s]\n", now, p->pid, statename[p->state]);
+	DPRINT("%lu edfinit %d[%s]\n", now, p->pid, statename[p->state]);
 	p->edf = malloc(sizeof(Edf));
 	if(p->edf == nil)
 		error(Enomem);
@@ -150,7 +150,7 @@ deadlineintr(Ureg* ureg, Timer *t)
 
 	p = t->ta;
 	now = ms();
-	DPRINT("%lud deadlineintr %d[%s]\n", now, p->pid, statename[p->state]);
+	DPRINT("%lu deadlineintr %d[%s]\n", now, p->pid, statename[p->state]);
 	/* If we're interrupting something other than the proc pointed to by t->a,
 	 * we've already achieved recheduling, so we need not do anything
 	 * Otherwise, we must cause a reschedule, but if we call sched()
@@ -200,7 +200,7 @@ release(Proc *p)
 		}
 		e->d = e->r + e->D;
 		e->S = e->C;
-		DPRINT("%lud release %d[%s], r=%lud, d=%lud, t=%lud, S=%lud\n",
+		DPRINT("%lu release %d[%s], r=%lu, d=%lu, t=%lu, S=%lu\n",
 			now, p->pid, statename[p->state], e->r, e->d, e->t, e->S);
 		if(p->trace){
 			nowns = todget(nil);
@@ -208,7 +208,7 @@ release(Proc *p)
 			proctrace(p, SDeadline, nowns + 1000LL*e->D);
 		}
 	}else{
-		DPRINT("%lud release %d[%s], too late t=%lud, called from %#p\n",
+		DPRINT("%lu release %d[%s], too late t=%lu, called from %#p\n",
 			now, p->pid, statename[p->state], e->t, getcallerpc());
 	}
 }
@@ -229,7 +229,7 @@ releaseintr(Ureg* ureg, Timer *t)
 	if((edflock(p)) == nil)
 		return;
 	sch = procsched(p);
-	DPRINT("%lud releaseintr %d[%s]\n", now, p->pid, statename[p->state]);
+	DPRINT("%lu releaseintr %d[%s]\n", now, p->pid, statename[p->state]);
 	switch(p->state){
 	default:
 		edfunlock();
@@ -293,7 +293,7 @@ edfrecord(Proc *p)
 		if(e->S <= used){
 			if(p->trace)
 				proctrace(p, SSlice, 0);
-			DPRINT("%lud edfrecord slice used up\n", now);
+			DPRINT("%lu edfrecord slice used up\n", now);
 			e->d = now;
 			e->S = 0;
 		}else
@@ -330,7 +330,7 @@ edfrun(Proc *p, int edfpri)
 			tns = 20;
 		e->Timer.tns = 1000LL * tns;	/* µs to ns */
 		if(e->Timer.tt == nil || e->Timer.tf != deadlineintr){
-			DPRINT("%lud edfrun, deadline=%lud\n", now, tns);
+			DPRINT("%lu edfrun, deadline=%lu\n", now, tns);
 		}else{
 			DPRINT("v");
 		}
@@ -403,13 +403,13 @@ edfadmit(Proc *p)
 		e->d = 0;
 		release(p);
 		if (p == up){
-			DPRINT("%lud edfadmit self %d[%s], release now: r=%lud d=%lud t=%lud\n",
+			DPRINT("%lu edfadmit self %d[%s], release now: r=%lu d=%lu t=%lu\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			/* We're already running */
 			edfrun(p, 1);
 		}else{
 			/* We're releasing another proc */
-			DPRINT("%lud edfadmit other %d[%s], release now: r=%lud d=%lud t=%lud\n",
+			DPRINT("%lu edfadmit other %d[%s], release now: r=%lu d=%lu t=%lu\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			p->Timer.ta = p;
 			edfunlock();
@@ -422,10 +422,10 @@ edfadmit(Proc *p)
 		e->t = r->edf->t;
 		psdecref(r);
 		if (p == up){
-			DPRINT("%lud edfadmit self %d[%s], release at %lud\n",
+			DPRINT("%lu edfadmit self %d[%s], release at %lu\n",
 				now, p->pid, statename[p->state], e->t);
 		}else{
-			DPRINT("%lud edfadmit other %d[%s], release at %lud\n",
+			DPRINT("%lu edfadmit other %d[%s], release at %lu\n",
 				now, p->pid, statename[p->state], e->t);
 			if(e->Timer.tt == nil){
 				e->Timer.tf = releaseintr;
@@ -450,7 +450,7 @@ edfstop(Proc *p)
 	Edf *e;
 
 	if(e = edflock(p)){
-		DPRINT("%lud edfstop %d[%s]\n", now, p->pid, statename[p->state]);
+		DPRINT("%lu edfstop %d[%s]\n", now, p->pid, statename[p->state]);
 		if(p->trace)
 			proctrace(p, SExpel, 0);
 		e->flags &= ~Admitted;
@@ -545,7 +545,7 @@ edfready(Proc *p)
 				e->Timer.tf = releaseintr;
 				e->Timer.ta = p;
 				timeradd(&e->Timer);
-				DPRINT("%lud edfready %d[%s], release=%lud\n",
+				DPRINT("%lu edfready %d[%s], release=%lu\n",
 					now, p->pid, statename[p->state], e->t);
 			}
 			if(p->state == Running && (e->flags & (Yield|Yieldonblock)) == 0 && (e->flags & Extratime)){
@@ -560,13 +560,13 @@ edfready(Proc *p)
 				edfunlock();
 				return 0;	/* Stick on runq[PriExtra] */
 			}
-			DPRINT("%lud edfready %d[%s] wait release at %lud\n",
+			DPRINT("%lu edfready %d[%s] wait release at %lu\n",
 				now, p->pid, statename[p->state], e->t);
 			p->state = Waitrelease;
 			edfunlock();
 			return 1;	/* Make runnable later */
 		}
-		DPRINT("%lud edfready %d %s release now\n", now, p->pid, statename[p->state]);
+		DPRINT("%lu edfready %d %s release now\n", now, p->pid, statename[p->state]);
 		/* release now */
 		release(p);
 	}
@@ -663,7 +663,7 @@ testschedulability(Proc *theproc)
 		case Dl:
 			H += p->edf->C;
 			Cb = 0;
-			DPRINT("\tStep %3d, Ticks %lud, pid %d, deadline, H += %lud → %lud, Cb = %lud\n",
+			DPRINT("\tStep %3d, Ticks %lu, pid %d, deadline, H += %lu → %lu, Cb = %lu\n",
 				steps, ticks, p->pid, p->edf->C, H, Cb);
 			if (H+Cb>ticks){
 				DPRINT("not schedulable\n");
@@ -674,7 +674,7 @@ testschedulability(Proc *theproc)
 			testenq(p);
 			break;
 		case Rl:
-			DPRINT("\tStep %3d, Ticks %lud, pid %d, release, G  %lud, C%lud\n",
+			DPRINT("\tStep %3d, Ticks %lu, pid %d, release, G  %lu, C%lu\n",
 				steps, ticks, p->pid, p->edf->C, G);
 			if(ticks && G <= ticks){
 				DPRINT("schedulable\n");

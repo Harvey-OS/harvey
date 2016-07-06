@@ -214,7 +214,7 @@ dumptoc(Toc *t)
 
 	fprint(1, "%d tracks\n", t->ntrack);
 	for(i=0; i<t->ntrack; i++)
-		print("%d. %M-%M (%lud-%lud)\n", i+1,
+		print("%d. %M-%M (%lu-%lu)\n", i+1,
 			t->track[i].start, t->track[i].end,
 			t->track[i].bstart, t->track[i].bend);
 }

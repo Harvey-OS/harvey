@@ -295,7 +295,7 @@ score2bucket(ISect *is, uint8_t *score)
 	
 	b = hashbits(score, 32)/ix->div;
 	if(b < is->start || b >= is->stop){
-		fprint(2, "score2bucket: score=%V div=%d b=%ud start=%ud stop=%ud\n",
+		fprint(2, "score2bucket: score=%V div=%d b=%u start=%u stop=%u\n",
 			score, ix->div, b, is->start, is->stop);
 	}
 	assert(is->start <= b && b < is->stop);
@@ -436,10 +436,10 @@ countsokay(IPool *p)
 		n += p->mcount[i];
 	n += p->nfree;
 	if(n != p->nentry){
-		print("free %ud:", p->nfree);
+		print("free %u:", p->nfree);
 		for(i=0; i<p->nmbuf; i++)
-			print(" %ud", p->mcount[i]);
-		print(" = %lld nentry: %ud\n", n, p->nentry);
+			print(" %u", p->mcount[i]);
+		print(" = %lld nentry: %u\n", n, p->nentry);
 	}
 	return n == p->nentry;
 }
@@ -500,7 +500,7 @@ ipoolinsert(IPool *p, uint8_t *ie)
 	buck = score2bucket(p->isect, ie);
 	x = (buck-p->buck0) / p->mbufbuckets;
 	if(x >= p->nmbuf){
-		fprint(2, "buck=%ud mbufbucket=%ud x=%ud\n",
+		fprint(2, "buck=%u mbufbucket=%u x=%u\n",
 			buck, p->mbufbuckets, x);
 	}
 	assert(x < p->nmbuf);
@@ -746,7 +746,7 @@ sortminibuffer(ISect *is, Minibuf *mb, uint8_t *buf, uint32_t nbuf,
 		zerorange(part, bucket2offset(is, lastb+1), bucket2offset(is, is->stop - is->start));
 
 	if(n != mb->nwentry)
-		fprint(2, "sortminibuffer bug: n=%ud nwentry=%ud have=%ld\n", n, mb->nwentry, (ep-buf)/IEntrySize);
+		fprint(2, "sortminibuffer bug: n=%u nwentry=%u have=%ld\n", n, mb->nwentry, (ep-buf)/IEntrySize);
 
 	free(buckdata);
 }
@@ -880,7 +880,7 @@ isectproc(void *v)
 		nn += buf[i].nentry;
 	}
 	if(n != nn)
-		fprint(2, "isectproc bug: n=%ud nn=%ud\n", n, nn);
+		fprint(2, "isectproc bug: n=%u nn=%u\n", n, nn);
 		
 	free(data);
 
@@ -922,7 +922,7 @@ isectproc(void *v)
 			nn += mb->nentry;
 		}
 		if(n != nn)
-			fprint(2, "isectproc bug2: n=%ud nn=%ud (i=%d)\n", n, nn, i);;
+			fprint(2, "isectproc bug2: n=%u nn=%u (i=%d)\n", n, nn, i);;
 		/*
 		 * Rearrange.
 		 */
@@ -949,7 +949,7 @@ isectproc(void *v)
 			for(j=0; j<nminibuf; j++)
 				nn += mbuf[j].nwentry;
 			if(n != nn)
-				fprint(2, "isectproc bug3: n=%ud nn=%ud (i=%d)\n", n, nn, i);
+				fprint(2, "isectproc bug3: n=%u nn=%u (i=%d)\n", n, nn, i);
 			free(ipool);
 		}
 

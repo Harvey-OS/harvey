@@ -354,7 +354,7 @@ bridgeread(Chan *c, void *a, int32_t n, int64_t off)
 		n = readstr(off, a, n, c->aux);
 		return n;
 	case Qstats:
-		snprint(buf, sizeof(buf), "hit=%uld miss=%uld copy=%uld\n",
+		snprint(buf, sizeof(buf), "hit=%lu miss=%lu copy=%lu\n",
 			b->hit, b->miss, b->copy);
 		n = readstr(off, a, n, buf);
 		return n;
@@ -467,7 +467,7 @@ bridgegen(Chan *c, char *_, Dirtab*__, int ___, int s, Dir *dp)
 			return -1;
 		dt = dirtab[TYPE(c->qid)];
 		if(dt == nil)
-			panic("bridgegen: unknown type: %lud", TYPE(c->qid));
+			panic("bridgegen: unknown type: %lu", TYPE(c->qid));
 		devdir(c, c->qid, dt->name, dt->length, eve, dt->perm, dp);
 		return 1;
 	case Qtopdir:
@@ -597,7 +597,7 @@ portbind(Bridge *b, int argc, char *argv[])
 		// get directory name
 		n = devtab[ctl->qid.type]->read(ctl, buf, sizeof(buf)-1, 0);
 		buf[n] = 0;
-		snprint(path, sizeof(path), "%s/%lud/data", dev, strtoul(buf, 0, 0));
+		snprint(path, sizeof(path), "%s/%lu/data", dev, strtoul(buf, 0, 0));
 
 		// setup connection to be promiscuous
 		snprint(buf, sizeof(buf), "connect -1");

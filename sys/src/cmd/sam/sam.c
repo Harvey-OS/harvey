@@ -700,14 +700,14 @@ printposn(File *f, int charsonly)
 		/* check if addr ends with '\n' */
 		if(addr.r.p2>0 && addr.r.p2>addr.r.p1 && filereadc(f, addr.r.p2-1)=='\n')
 			--l2;
-		dprint("%lud", l1);
+		dprint("%lu", l1);
 		if(l2 != l1)
-			dprint(",%lud", l2);
+			dprint(",%lu", l2);
 		dprint("; ");
 	}
-	dprint("#%lud", addr.r.p1);
+	dprint("#%lu", addr.r.p1);
 	if(addr.r.p2 != addr.r.p1)
-		dprint(",#%lud", addr.r.p2);
+		dprint(",#%lu", addr.r.p2);
 	dprint("\n");
 }
 

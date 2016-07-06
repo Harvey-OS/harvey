@@ -120,7 +120,7 @@ apmevent(int e)
 	if(0 <= e && e < nelem(eventstr) && eventstr[e])
 		return eventstr[e];
 	
-	sprint(buf, "event 0x%ux", (uint)e);
+	sprint(buf, "event 0x%x", (uint)e);
 	return buf;
 }
 
@@ -551,7 +551,7 @@ erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
-		sysfatal("out of memory reallocating %lud", n);
+		sysfatal("out of memory reallocating %lu", n);
 	setmalloctag(v, getcallerpc());
 	return v;
 }
@@ -563,7 +563,7 @@ emalloc(uint32_t n)
 
 	v = malloc(n);
 	if(v == nil)
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %lu", n);
 	memset(v, 0, n);
 	setmalloctag(v, getcallerpc());
 	return v;

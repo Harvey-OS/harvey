@@ -322,7 +322,7 @@ vtcachelocal(VtCache *c, uint32_t addr, int type)
 	if(addr == 0)
 		sysfatal("vtcachelocal: asked for nonexistent block 0");
 	if(addr > c->nblock)
-		sysfatal("vtcachelocal: asked for block #%ud; only %d blocks",
+		sysfatal("vtcachelocal: asked for block #%u; only %d blocks",
 			addr, c->nblock);
 
 	b = &c->block[addr-1];

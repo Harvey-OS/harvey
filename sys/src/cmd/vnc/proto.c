@@ -175,7 +175,7 @@ vncrdstringx(Vnc *v)
 	s = malloc(len+1);
 	assert(s != nil);
 	if(readn(v->datafd, s, len) != len){
-		fprint(2, "cannot rdstringx len %lud: %r", len);
+		fprint(2, "cannot rdstringx len %lu: %r", len);
 		vnchungup(v);
 	}
 	s[len] = '\0';

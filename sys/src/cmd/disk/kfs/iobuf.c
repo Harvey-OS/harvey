@@ -213,7 +213,7 @@ checktag(Iobuf *p, int tag, int32_t qpath)
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
 		if(1 || CHAT(0))
-			print("	tag = %G; expected %G; addr = %lud\n",
+			print("	tag = %G; expected %G; addr = %lu\n",
 				t->tag, tag, p->addr);
 		return 2;
 	}

@@ -455,7 +455,7 @@ diffhtml(String *s, Whist *h)
 		if(i==h->current)
 			sprint(tmp, "index.html");
 		else
-			sprint(tmp, "%lud", h->doc[i].time);
+			sprint(tmp, "%lu", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
 		atime[strlen(atime)-1] = '\0';
 		s = s_appendlist(s, 
@@ -487,7 +487,7 @@ historyhtml(String *s, Whist *h)
 		if(i==h->current)
 			sprint(tmp, "index.html");
 		else
-			sprint(tmp, "%lud", h->doc[i].time);
+			sprint(tmp, "%lu", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
 		atime[strlen(atime)-1] = '\0';
 		s = s_appendlist(s, 
@@ -528,7 +528,7 @@ tohtml(Whist *h, Wdoc *d, int ty)
 		nsub++;
 	}
 	if(d){
-		sprint(ver, "%lud", d->time);
+		sprint(ver, "%lu", d->time);
 		sub[nsub] = (Sub){ "VERSION", ver };
 		nsub++;
 		atime = ctime(d->time);
@@ -744,7 +744,7 @@ historytext(String *s, Whist *h)
 		if(i==h->current)
 			sprint(tmp, "[current]");
 		else
-			sprint(tmp, "[%lud/]", h->doc[i].time);
+			sprint(tmp, "[%lu/]", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
 		atime[strlen(atime)-1] = '\0';
 		s = s_appendlist(s, " * ", tmp, " ", atime, nil);
@@ -782,7 +782,7 @@ totext(Whist *h, Wdoc *d, int ty)
 		nsub++;
 	}
 	if(d){
-		sprint(ver, "%lud", d->time);
+		sprint(ver, "%lu", d->time);
 		sub[nsub] = (Sub){ "VERSION", ver };
 		nsub++;
 		atime = ctime(d->time);
@@ -816,7 +816,7 @@ doctext(String *s, Wdoc *d)
 {
 	char tmp[40];
 
-	sprint(tmp, "D%lud", d->time);
+	sprint(tmp, "D%lu", d->time);
 	s = s_append(s, tmp);
 	if(d->comment){
 		s = s_append(s, "\nC");

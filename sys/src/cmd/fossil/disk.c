@@ -142,15 +142,15 @@ diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 	start = partStart(disk, part);
 	end = partEnd(disk, part);
 
-	//print("Inicio: %ud Fin: %ud\n", start, end);
-	//print("Diferencia: %ud >= %d\n", addr, end-start);
+	//print("Inicio: %u Fin: %u\n", start, end);
+	//print("Diferencia: %u >= %d\n", addr, end-start);
 	if(addr >= end-start){
 		vtSetError(EBadAddr);
 		return 0;
 	}
 
 	offset = ((uint64_t)(addr + start))*disk->h.blockSize;
-	//print("Offset: %ud Blocksize: %ud \n",offset, disk->h.blockSize);
+	//print("Offset: %u Blocksize: %u \n",offset, disk->h.blockSize);
 	n = disk->h.blockSize;
 	while(n > 0){
 		nn = pread(disk->fd, buf, n, offset);
@@ -374,7 +374,7 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 		case BioReading:
 			if(!diskReadRaw(disk, b->part, b->addr, b->data)){
 				fprint(2, "fossil: diskReadRaw failed: %s: "
-					"score %V: part=%s block %ud: %r\n",
+					"score %V: part=%s block %u: %r\n",
 					disk2file(disk), b->score,
 					partname[b->part], b->addr);
 				blockSetIOState(b, BioReadError);
@@ -386,7 +386,7 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			/* NB: ctime result ends with a newline */
 			if(!diskWriteRaw(disk, b->part, b->addr, p)){
 				fprint(2, "fossil: diskWriteRaw failed: %s: "
-				    "score %V: date %s part=%s block %ud: %r\n",
+				    "score %V: date %s part=%s block %u: %r\n",
 					disk2file(disk), b->score,
 					ctime(time(0)),
 					partname[b->part], b->addr);

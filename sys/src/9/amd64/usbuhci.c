@@ -415,7 +415,7 @@ seprinttd(char *s, char *se, Td *td)
 		s = seprint(s, se, " BADPID");
 	}
 	s = seprint(s, se, "\n\t  buffer %#ulx data %#p", td->buffer, td->data);
-	s = seprint(s, se, " ndata %uld sbuff %#p buff %#p",
+	s = seprint(s, se, " ndata %lu sbuff %#p buff %#p",
 		td->ndata, td->sbuff, td->buff);
 	if(td->ndata > 0)
 		s = seprintdata(s, se, td->data, td->ndata);
@@ -838,7 +838,7 @@ isointerrupt(Ctlr *ctlr, Isoio* iso)
 				iso->err = errmsg(err);
 				diprint("isointerrupt: tdi %#p error %#ux %s\n",
 					tdi, err, iso->err);
-				diprint("ctlr load %uld\n", ctlr->load);
+				diprint("ctlr load %lu\n", ctlr->load);
 			}
 			tdi->ndata = 0;
 		}else
@@ -902,7 +902,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 				qh->io->err = errmsg(td->csw & Tderrors);
 				dqprint("qhinterrupt: td %#p error %#ux %s\n",
 					td, err, qh->io->err);
-				dqprint("ctlr load %uld\n", ctlr->load);
+				dqprint("ctlr load %lu\n", ctlr->load);
 			}
 			break;
 		}
@@ -1228,7 +1228,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t load)
 	int timedout;
 
 	qh = io->qh;
-	ddqprint("uhci io %#p sleep on qh %#p state %uld\n", io, qh, qh->state);
+	ddqprint("uhci io %#p sleep on qh %#p state %lu\n", io, qh, qh->state);
 	timedout = 0;
 	if(waserror()){
 		dqprint("uhci io %#p qh %#p timed out\n", io, qh);
@@ -1285,7 +1285,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	ctlr = ep->hp->Hciimpl.aux;
 	io->debug = ep->debug;
 	tmout = ep->tmout;
-	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
+	ddeprint("epio: %s ep%d.%d io %#p count %ld load %lu\n",
 		io->tok == Tdtokin ? "in" : "out",
 		ep->dev->nb, ep->nb, io, count, ctlr->load);
 	if((debug > 1 || ep->debug > 1) && io->tok != Tdtokin){
@@ -1333,7 +1333,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 		panic("epio: no td");
 
 	ltd->csw |= Tdioc;	/* the last one interrupts */
-	ddeprint("uhci: load %uld ctlr load %uld\n", load, ctlr->load);
+	ddeprint("uhci: load %lu ctlr load %lu\n", load, ctlr->load);
 	ilock(&ctlr->l);
 	if(qh->state != Qclose){
 		io->iotime = TK2MS(machp()->ticks);
@@ -1655,7 +1655,7 @@ isoopen(Ep *ep)
 		print("usb: uhci: bandwidth may be exceeded\n");
 	ctlr->load += ep->load;
 	ctlr->isoload += ep->load;
-	dprint("uhci: load %uld isoload %uld\n", ctlr->load, ctlr->isoload);
+	dprint("uhci: load %lu isoload %lu\n", ctlr->load, ctlr->isoload);
 	iunlock(&ctlr->l);
 
 	/*

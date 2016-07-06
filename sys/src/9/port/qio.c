@@ -70,9 +70,9 @@ ixsummary(void)
 {
 	debugging ^= 1;
 	iallocsummary();
-	print("pad %lud, concat %lud, pullup %lud, copy %lud\n",
+	print("pad %lu, concat %lu, pullup %lu, copy %lu\n",
 		padblockcnt, concatblockcnt, pullupblockcnt, copyblockcnt);
-	print("consume %lud, produce %lud, qcopy %lud\n",
+	print("consume %lu, produce %lu, qcopy %lu\n",
 		consumecnt, producecnt, qcopycnt);
 }
 

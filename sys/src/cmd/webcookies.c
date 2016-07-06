@@ -136,7 +136,7 @@ cookiefmt(Fmt *fmt)
 			first = 0;
 		else
 			fmtprint(fmt, " ");
-		fmtprint(fmt, "%s=%ud", itab[j].s, k);
+		fmtprint(fmt, "%s=%u", itab[j].s, k);
 	}
 	return 0;
 }

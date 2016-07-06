@@ -135,7 +135,7 @@ p_seprint(Msg *m)
 	sport = NetS(h->sport);
 	demux(p_mux, sport, dport, m, &dump);
 
-	m->p = seprint(m->p, m->e, "s=%d d=%d t=%s id=%lud ack=%lud spec=%d ck=%4.4ux ln=%d",
+	m->p = seprint(m->p, m->e, "s=%d d=%d t=%s id=%lu ack=%lu spec=%d ck=%4.4ux ln=%d",
 			sport, dport, pkttype(h->type),
 			(uint32_t)NetL(h->id), (uint32_t)NetL(h->ack),
 			h->spec,
@@ -150,7 +150,7 @@ Proto il =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer,
 };

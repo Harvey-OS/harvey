@@ -248,7 +248,7 @@ printnode(Node *np)
 	if(np->d.qid.type&QTDIR)
 		fprint(debugfd, " QTDIR");
 	fprint(debugfd, "\n");
-	fprint(debugfd,"\tQID: %llud.%lud Mode: %lo Type: %d\n", np->d.qid.path,
+	fprint(debugfd,"\tQID: %llud.%lu Mode: %lo Type: %d\n", np->d.qid.path,
 			np->d.qid.vers, np->d.mode, np->d.type);
 	fprint(debugfd, "\tMod: %.15s  Acc: %.15s Count: %d\n", ctime(np->d.mtime)+4,
 			ctime(np->d.atime)+4, np->count);
@@ -261,11 +261,11 @@ printnode(Node *np)
 		fprint(debugfd, "\tAddrdir Child: %p", np->children);
 		break;
 	case IPaddr:
-		fprint(debugfd, "\tIPaddr Base: %p Alloc: %d BaseQid %lud", np->addrs,
+		fprint(debugfd, "\tIPaddr Base: %p Alloc: %d BaseQid %lu", np->addrs,
 			np->allocated, np->baseqid);
 		break;
 	case Acctaddr:
-		fprint(debugfd, "\tAcctaddr Base: %p Alloc: %d BaseQid %lud", np->addrs,
+		fprint(debugfd, "\tAcctaddr Base: %p Alloc: %d BaseQid %lu", np->addrs,
 			np->allocated, np->baseqid);
 		break;
 	case Trusted:

@@ -155,7 +155,7 @@ umscapacity(Umsc *lun)
 	lun->blocks++; /* SRcapacity returns LBA of last block */
 	lun->capacity = (int64_t)lun->blocks * lun->ScsiReq.lbsize;
 	if(diskdebug)
-		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
+		fprint(2, "disk: logical block size %lu, # blocks %llud\n",
 			lun->ScsiReq.lbsize, lun->blocks);
 	return 0;
 }

@@ -674,7 +674,7 @@ OpenSndFile(lame_global_flags * gfp, char *inPath)
 
         if( -1 == lame_set_num_channels( gfp, mp3input_data.stereo ) ) {
             fprintf( stderr,
-                     "Unsupported number of channels: %ud\n",
+                     "Unsupported number of channels: %u\n",
                      mp3input_data.stereo );
             exit( 1 );
         }
@@ -827,7 +827,7 @@ OpenSndFile(lame_global_flags * gfp, char *inPath)
         (void) lame_set_num_samples( gfp, gs_wfInfo.samples );
         if( -1 == lame_set_num_channels( gfp, gs_wfInfo.channels ) ) {
             fprintf( stderr,
-                     "Unsupported number of channels: %ud\n",
+                     "Unsupported number of channels: %u\n",
                      gs_wfInfo.channels );
             exit( 1 );
         }
@@ -1088,7 +1088,7 @@ parse_wave_header(lame_global_flags * gfp, FILE * sf)
         /* make sure the header is sane */
         if( -1 == lame_set_num_channels( gfp, channels ) ) {
             fprintf( stderr,
-                     "Unsupported number of channels: %ud\n",
+                     "Unsupported number of channels: %u\n",
                      channels );
             exit( 1 );
         }
@@ -1220,7 +1220,7 @@ parse_aiff_header(lame_global_flags * gfp, FILE * sf)
             return 0;
         if( -1 == lame_set_num_channels( gfp, aiff_info.numChannels ) ) {
             fprintf( stderr,
-                     "Unsupported number of channels: %ud\n",
+                     "Unsupported number of channels: %u\n",
                      aiff_info.numChannels );
             exit( 1 );
         }
@@ -1339,7 +1339,7 @@ OpenSndFile(lame_global_flags * gfp, char *inPath)
 #endif
         if( -1 == lame_set_num_channels( gfp, mp3input_data.stereo ) ) {
             fprintf( stderr,
-                     "Unsupported number of channels: %ud\n",
+                     "Unsupported number of channels: %u\n",
                      mp3input_data.stereo );
             exit( 1 );
         }
@@ -1357,7 +1357,7 @@ OpenSndFile(lame_global_flags * gfp, char *inPath)
         }
         if( -1 == lame_set_num_channels( gfp, mp3input_data.stereo ) ) {
             fprintf( stderr,
-                     "Unsupported number of channels: %ud\n",
+                     "Unsupported number of channels: %u\n",
                      mp3input_data.stereo );
             exit( 1 );
         }

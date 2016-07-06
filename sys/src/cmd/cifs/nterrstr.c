@@ -1022,7 +1022,7 @@ nterrstr(uint err)
 		snprint(buf, sizeof buf, "%s%s%s", why, facility,
 			NTerrs[match].msg);
 	else
-		snprint(buf, sizeof buf, "%s%s%d/0x%ux - unknown NT error",
+		snprint(buf, sizeof buf, "%s%s%d/0x%x - unknown NT error",
 			why, facility, err, err);
 	return buf;
 }

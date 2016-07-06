@@ -36,7 +36,7 @@ writecolmap(Display *d, RGB *m)
 		r = m[i].red>>24;
 		g = m[i].green>>24;
 		b = m[i].blue>>24;
-		n += sprint(t+n, "%d %lud %lud %lud\n", 255-i, r, g, b);
+		n += sprint(t+n, "%d %lu %lu %lu\n", 255-i, r, g, b);
 	}
 	i = write(fd, t, n);
 	free(t);

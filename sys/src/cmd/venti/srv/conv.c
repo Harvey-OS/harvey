@@ -720,7 +720,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 	
 	m = U32GET(p);
 	if(m != BloomVersion){
-		seterr(ECorrupt, "bloom filter has wrong version %ud expected %ud", (uint)m, (uint)BloomVersion);
+		seterr(ECorrupt, "bloom filter has wrong version %u expected %u", (uint)m, (uint)BloomVersion);
 		return -1;
 	}
 	p += U32Size;

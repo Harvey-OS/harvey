@@ -73,7 +73,7 @@ nbnsdumpmessageresource(NbnsMessageResource *r, char *name)
 	case NbnsResourceClassIn: print(" IN"); break;
 	default: print(" ???");
 	}
-	print(" ttl: %lud", r->ttl);
+	print(" ttl: %lu", r->ttl);
 	if (r->rdlength) {
 		int i;
 		print(" rdata: ");

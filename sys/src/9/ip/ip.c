@@ -371,7 +371,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		hl = (h->vihl&0xF)<<2;
 		if(hl < (IP_HLEN4<<2)) {
 			ip->stats[InHdrErrors]++;
-			netlog(f, Logip, "ip: %V bad hivl %ux\n", h->src, h->vihl);
+			netlog(f, Logip, "ip: %V bad hivl %x\n", h->src, h->vihl);
 			freeblist(bp);
 			return;
 		}

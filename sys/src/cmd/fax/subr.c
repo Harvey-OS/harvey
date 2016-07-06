@@ -73,7 +73,7 @@ faxrlog(Modem *m, int ok)
 	char buf[1024];
 	int n;
 
-	n = sprint(buf, "receive %lud %c %d", m->time, ok == Eok ? 'Y': 'N', m->pageno-1);
+	n = sprint(buf, "receive %lu %c %d", m->time, ok == Eok ? 'Y': 'N', m->pageno-1);
 	if(ok == Eok && (m->valid & Vftsi))
 		sprint(buf+n, " %s", m->ftsi);
 	syslog(0, "fax", buf);

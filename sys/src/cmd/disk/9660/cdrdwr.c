@@ -196,9 +196,9 @@ Creadblock(Cdimg *cd, void *buf, uint32_t block, uint32_t len)
 	Bflush(&cd->bwr);
 	if(Bseek(&cd->brd, (int64_t)block * Blocksize, 0) !=
 	    (int64_t)block * Blocksize)
-		sysfatal("error seeking to block %lud", block);
+		sysfatal("error seeking to block %lu", block);
 	if(Bread(&cd->brd, buf, len) != len)
-		sysfatal("error reading %lud bytes at block %lud: %r %lld",
+		sysfatal("error reading %lu bytes at block %lu: %r %lld",
 			len, block, Bseek(&cd->brd, 0, 2));
 }
 

@@ -102,7 +102,7 @@ p_seprint(Msg *m)
 
 	demux(p_mux, h->cmd, h->cmd, m, &dump);
 
-	m->p = seprint(m->p, m->e, "ver=%d flag=%4b err=%d %d.%d cmd=%ux tag=%ux",
+	m->p = seprint(m->p, m->e, "ver=%d flag=%4b err=%d %d.%d cmd=%x tag=%x",
 		h->verflags >> 4, h->verflags & 0xf, h->error, NetS(h->major),
 		h->minor, h->cmd, NetL(h->tag));
 	return 0;
@@ -115,7 +115,7 @@ Proto aoe =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer,
 };

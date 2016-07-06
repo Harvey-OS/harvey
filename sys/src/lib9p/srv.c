@@ -433,7 +433,7 @@ ropen(Req *r, char *error)
 	if(error)
 		return;
 	if(chatty9p){
-		snprint(errbuf, sizeof errbuf, "fid mode is 0x%ux\n", r->ifcall.mode);
+		snprint(errbuf, sizeof errbuf, "fid mode is 0x%x\n", r->ifcall.mode);
 		write(2, errbuf, strlen(errbuf));
 	}
 	r->fid->omode = r->ifcall.mode;
@@ -534,7 +534,7 @@ swrite(Srv *srv, Req *r)
 		r->ifcall.count = srv->msize - IOHDRSZ;
 	o = r->fid->omode & 3;
 	if(o != OWRITE && o != ORDWR){
-		snprint(e, sizeof e, "write on fid with open mode 0x%ux", r->fid->omode);
+		snprint(e, sizeof e, "write on fid with open mode 0x%x", r->fid->omode);
 		respond(r, e);
 		return;
 	}

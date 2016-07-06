@@ -447,7 +447,7 @@ rudpkick(void *x)
 
 	upriv->ustats.rudpOutDatagrams++;
 
-	DPRINT("sent: %lud/%lud, %lud/%lud\n",
+	DPRINT("sent: %lu/%lu, %lu/%lu\n",
 		r->sndseq, r->sndgen, r->rcvseq, r->rcvgen);
 
 	doipoput(c, f, bp, 0, c->ttl, c->tos);
@@ -673,7 +673,7 @@ rudpstats(Proto *rudp, char *buf, int len)
 	Rudppriv *upriv;
 
 	upriv = rudp->priv;
-	return snprint(buf, len, "%lud %lud %lud %lud %lud %lud\n",
+	return snprint(buf, len, "%lu %lu %lu %lu %lu %lu\n",
 		upriv->ustats.rudpInDatagrams,
 		upriv->ustats.rudpNoPorts,
 		upriv->ustats.rudpInErrors,
@@ -788,7 +788,7 @@ relstate(Rudpcb *ucb, uint8_t *addr, uint16_t port, char *from)
 		while(generation == 0)
 			generation = rand();
 
-		DPRINT("from %s new state %lud for %I!%ud\n",
+		DPRINT("from %s new state %lu for %I!%u\n",
 		        from, generation, addr, port);
 
 		r = smalloc(sizeof(Reliable));
@@ -877,7 +877,7 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 	ucb = (Rudpcb*)c->ptcl;
 	r = relstate(ucb, addr, port, "input");
 
-	DPRINT("rcvd %lud/%lud, %lud/%lud, r->sndgen = %lud\n",
+	DPRINT("rcvd %lu/%lu, %lu/%lu, r->sndgen = %lu\n",
 		seq, sgen, ack, agen, r->sndgen);
 
 	/* if acking an incorrect generation, ignore */
@@ -898,7 +898,7 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 
 		/* new connection */
 		if(r->rcvgen != 0){
-			DPRINT("new con r->rcvgen = %lud, sgen = %lud\n", r->rcvgen, sgen);
+			DPRINT("new con r->rcvgen = %lu, sgen = %lu\n", r->rcvgen, sgen);
 			relhangup(c, r);
 		}
 		r->rcvgen = sgen;
@@ -910,7 +910,7 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 		while(r->unacked != nil && INSEQ(ack, r->ackrcvd, r->sndseq)){
 			nbp = r->unacked;
 			r->unacked = nbp->list;
-			DPRINT("%lud/%lud acked, r->sndgen = %lud\n",
+			DPRINT("%lu/%lu acked, r->sndgen = %lu\n",
 			       ack, agen, r->sndgen);
 			freeb(nbp);
 			r->ackrcvd = NEXTSEQ(r->ackrcvd);
@@ -943,7 +943,7 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 	if(seq != NEXTSEQ(r->rcvseq)){
 		relsendack(c, r, 0);	/* tell him we got it already */
 		upriv->orders++;
-		DPRINT("out of sequence %lud not %lud\n", seq, NEXTSEQ(r->rcvseq));
+		DPRINT("out of sequence %lu not %lu\n", seq, NEXTSEQ(r->rcvseq));
 		goto out;
 	}
 	r->rcvseq = seq;
@@ -1002,7 +1002,7 @@ relsendack(Conv *c, Reliable *r, int hangup)
 	uh->udpcksum[1] = 0;
 	hnputs(uh->udpcksum, ptclcsum(bp, UDP_IPHDR, UDP_RHDRSIZE));
 
-	DPRINT("sendack: %lud/%lud, %lud/%lud\n", 0L, r->sndgen, r->rcvseq, r->rcvgen);
+	DPRINT("sendack: %lu/%lu, %lu/%lu\n", 0L, r->sndgen, r->rcvseq, r->rcvgen);
 	doipoput(c, f, bp, 0, c->ttl, c->tos);
 }
 
@@ -1062,6 +1062,6 @@ relrexmit(Conv *c, Reliable *r)
 
 	upriv->rxmits++;
 	np = copyblock(r->unacked, blocklen(r->unacked));
-	DPRINT("rxmit r->ackrvcd+1 = %lud\n", r->ackrcvd+1);
+	DPRINT("rxmit r->ackrvcd+1 = %lu\n", r->ackrcvd+1);
 	doipoput(c, f, np, 0, c->ttl, c->tos);
 }

@@ -45,7 +45,7 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	if(a == nil)
 		return;
 
-	dnslog("serial old %lud new %lud", a->soarr->soa->serial,
+	dnslog("serial old %lu new %lu", a->soarr->soa->serial,
 		repp->qd->soa->serial);
 
 	/* do nothing if it didn't change */

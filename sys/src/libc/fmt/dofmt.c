@@ -377,6 +377,10 @@ _ifmt(Fmt *f)
 	case 'd':
 		base = 10;
 		break;
+	case 'u':
+		base = 10;
+		f->flags |= FmtUnsigned;
+		break;
 	case 'x':
 		base = 16;
 		break;
@@ -506,9 +510,6 @@ _flagfmt(Fmt *f)
 		break;
 	case ' ':
 		f->flags |= FmtSpace;
-		break;
-	case 'u':
-		f->flags |= FmtUnsigned;
 		break;
 	case 'h':
 		if(f->flags & FmtShort)

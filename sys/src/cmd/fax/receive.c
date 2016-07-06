@@ -34,7 +34,7 @@ receivedone(Modem *m, int ok)
 		argv[argc++] = p+1;
 	else
 		argv[argc++] = receiverc;
-	sprint(time, "%lud.%d", m->time, m->pid);
+	sprint(time, "%lu.%d", m->time, m->pid);
 	argv[argc++] = time;
 	argv[argc++] = "Y";
 	sprint(pages, "%d", m->pageno-1);

@@ -50,13 +50,13 @@ int main()
 	sa[IPaddrlen - 1] = 0x80;
 	ohash = oldiphash(sa, sp, da, dp);
 	if (ohash > Nipht)
-		fprint(2, "oldiphash returns bad value: 0x%ulx, should be < 0x%ulx\n",
+		fprint(2, "oldiphash returns bad value: 0x%lx, should be < 0x%lx\n",
 			   ohash, Nipht);
 	nhash = newiphash(sa, sp, da, dp);
 	if (nhash > Nipht)
-		fprint(2, "newiphash returns bad value: 0x%ulx, should be < 0x%ulx\n",
+		fprint(2, "newiphash returns bad value: 0x%lx, should be < 0x%lx\n",
 			   ohash, Nipht);
-	fprint(2, "ohash is 0x%ulx, nhash is 0x%ulx\n", ohash, nhash);
+	fprint(2, "ohash is 0x%lx, nhash is 0x%lx\n", ohash, nhash);
 	if (ohash == nhash) {
 		exits("FAIL:iphash failed. ohash and nhash should differ\n");
 	}

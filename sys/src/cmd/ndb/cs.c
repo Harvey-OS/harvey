@@ -451,7 +451,7 @@ io(void)
 			error("mount read");
 		job = newjob();
 		if(convM2S(mdata, n, &job->request) != n){
-			syslog(1, logfile, "format error %ux %ux %ux %ux %ux",
+			syslog(1, logfile, "format error %x %x %x %x %x",
 				mdata[0], mdata[1], mdata[2], mdata[3], mdata[4]);
 			freejob(job);
 			continue;
