@@ -186,26 +186,26 @@ described below.
 .PP
 The numeric verbs
 .BR d ,
+.BR u ,
 .BR o ,
 .BR b ,
 .BR x ,
 and
 .B X
-format their arguments in decimal,
-octal, binary, hexadecimal, and upper case hexadecimal.
+format their arguments in decimal, unsigned decimal,
+unsigned octal, unsigned binary, unsigned hexadecimal, and unsigned upper case hexadecimal.
 Each interprets the flags
 .BR 0 ,
 .BR h ,
 .BR hh ,
 .BR l ,
-.BR u ,
 .BR + ,
 .BR - ,
 .BR , ,
 and
 .B #
 to mean pad with zeros,
-short, byte, long, unsigned, always print a sign, left justified, commas every three digits,
+short, byte, long, always print a sign, left justified, commas every three digits,
 and alternate format.
 Also, a space character in the flag
 position is like
@@ -215,9 +215,6 @@ If neither
 short nor long is specified,
 then the argument is an
 .BR int .
-If unsigned is specified,
-then the argument is interpreted as a
-positive number and no sign is output.
 If two
 .B l
 flags are given,
