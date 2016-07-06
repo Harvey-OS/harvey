@@ -649,14 +649,14 @@ qmark(int32_t qpath)
 	if(i < 0 || i >= sizqbits) {
 		nqbad++;
 		if(nqbad < 20)
-			cprint("check: \"%s\": qid out of range %lux\n",
+			cprint("check: \"%s\": qid out of range %lx\n",
 				name, qpath);
 		return;
 	}
 	if((qbits[i] & b) && !ronly) {
 		nqbad++;
 		if(nqbad < 20)
-			cprint("check: \"%s\": qid dup %lux\n",
+			cprint("check: \"%s\": qid dup %lx\n",
 				name, qpath);
 	}
 	qbits[i] |= b;

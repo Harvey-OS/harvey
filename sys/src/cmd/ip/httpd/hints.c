@@ -291,7 +291,7 @@ hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
 			continue;
 		}
 		close(fd);
-		snprint(etag, sizeof(etag), "\"%lluxv%lux\"", dir->qid.path, dir->qid.vers);
+		snprint(etag, sizeof(etag), "\"%lluxv%lx\"", dir->qid.path, dir->qid.vers);
 		siz = (int)( log((double)dir->length) * RECIPLOG2 + 0.9999);
 		free(dir);
 		if(strncmp(uri,sf,prefix)==0 && strchr(sf+prefix,'/')==0 && sf[prefix]!=0)

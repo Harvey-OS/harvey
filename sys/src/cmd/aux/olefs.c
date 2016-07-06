@@ -123,7 +123,7 @@ oreadblock(Ofile *f, int block, uint32_t off, char *buf, int nbuf)
 	int n;
 
 	if(block < 0 || block >= f->nblock) {
-		werrstr("attempt to read %x/%lux\n", block, f->nblock);
+		werrstr("attempt to read %x/%lx\n", block, f->nblock);
 		return -1;
 	}
 
@@ -219,7 +219,7 @@ dumpdir(Ofile *f, uint32_t dnum)
 	Odir d;
 
 	if(oreaddir(f, dnum, &d) != 1) {
-		fprint(2, "dumpdir %lux failed\n", dnum);
+		fprint(2, "dumpdir %lx failed\n", dnum);
 		return;
 	}
 

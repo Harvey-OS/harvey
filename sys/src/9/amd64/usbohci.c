@@ -1245,7 +1245,7 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int n)
 		bp->wp = bp->rp;
 		io->err = errmsg(err);
 		if(debug || ep->debug){
-			print("ohci: isointerrupt: ep%d.%d: err %d (%s) frnum 0x%lux\n",
+			print("ohci: isointerrupt: ep%d.%d: err %d (%s) frnum 0x%lx\n",
 				ep->dev->nb, ep->nb,
 				err, errmsg(err), ctlr->ohci->fmnumber);
 			dumptd(td, "failed", ed->ctrl & Ediso);
@@ -2390,7 +2390,7 @@ scanpci(void)
 		    p->ccrp != 0x10)
 			continue;
 		mem = p->mem[0].bar & ~0x0F;
-		dprint("ohci: %x/%x port 0x%lux size 0x%x irq %d\n",
+		dprint("ohci: %x/%x port 0x%lx size 0x%x irq %d\n",
 			p->vid, p->did, mem, p->mem[0].size, p->intl);
 		if(mem == 0){
 			print("ohci: failed to map registers\n");

@@ -219,7 +219,7 @@ io(int srvfd)
 		if(write(srvfd, mdata, n) != n)
 			panic(1, "mount write");
 		if(nerr_lab != 0)
-			panic(0, "err stack %d: %lux %lux %lux %lux %lux %lux", nerr_lab,
+			panic(0, "err stack %d: %lx %lx %lx %lx %lx %lx", nerr_lab,
 			err_lab[0][JMPBUFPC], err_lab[1][JMPBUFPC],
 			err_lab[2][JMPBUFPC], err_lab[3][JMPBUFPC],
 			err_lab[4][JMPBUFPC], err_lab[5][JMPBUFPC]);

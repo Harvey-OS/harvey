@@ -673,7 +673,7 @@ mkindices(VtEntry *e, uint32_t bn, int *index)
 	np = e->psize/VtScoreSize;
 	for(i=0; bn > 0; i++){
 		if(i >= VtPointerDepth){
-			werrstr("bad address 0x%lux", (uint32_t)bn);
+			werrstr("bad address 0x%lx", (uint32_t)bn);
 			return -1;
 		}
 		index[i] = bn % np;
@@ -703,7 +703,7 @@ vtfileblock(VtFile *r, uint32_t bn, int mode)
 		goto Err;
 	if(i > DEPTH(e.type)){
 		if(mode == VtOREAD){
-			werrstr("bad address 0x%lux", (uint32_t)bn);
+			werrstr("bad address 0x%lx", (uint32_t)bn);
 			goto Err;
 		}
 		index[i] = 0;

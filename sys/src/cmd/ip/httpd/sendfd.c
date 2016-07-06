@@ -74,7 +74,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		if(type == nil)
 			type = hmkcontent(c, "application", "octet-stream", nil);
 
-		snprint(etag, sizeof(etag), "\"%lluxv%lux\"", qid.path, qid.vers);
+		snprint(etag, sizeof(etag), "\"%lluxv%lx\"", qid.path, qid.vers);
 		ok = checkreq(c, type, enc, mtime, etag);
 		if(ok <= 0){
 			close(fd);

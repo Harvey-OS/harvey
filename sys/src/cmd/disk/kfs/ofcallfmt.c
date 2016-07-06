@@ -52,7 +52,7 @@ ofcallfmt(Fmt *f1)
 			tag, f->fid, f->uname, f->aname, f->auth);
 		break;
 	case Rattach9p1:
-		sprint(buf, "Rattach9p1 tag %u fid %d qid 0x%lux|0x%lux",
+		sprint(buf, "Rattach9p1 tag %u fid %d qid 0x%lx|0x%lx",
 			tag, fid, f->qid.path, f->qid.version);
 		break;
 	case Tclone9p1:	/* 60 */
@@ -65,22 +65,22 @@ ofcallfmt(Fmt *f1)
 		sprint(buf, "Twalk9p1 tag %u fid %d name %.28s", tag, fid, f->name);
 		break;
 	case Rwalk9p1:
-		sprint(buf, "Rwalk9p1 tag %u fid %d qid 0x%lux|0x%lux",
+		sprint(buf, "Rwalk9p1 tag %u fid %d qid 0x%lx|0x%lx",
 			tag, fid, f->qid.path, f->qid.version);
 		break;
 	case Topen9p1:	/* 64 */
 		sprint(buf, "Topen9p1 tag %u fid %d mode %d", tag, fid, f->mode);
 		break;
 	case Ropen9p1:
-		sprint(buf, "Ropen9p1 tag %u fid %d qid 0x%lux|0x%lux",
+		sprint(buf, "Ropen9p1 tag %u fid %d qid 0x%lx|0x%lx",
 			tag, fid, f->qid.path, f->qid.version);
 		break;
 	case Tcreate9p1:	/* 66 */
-		sprint(buf, "Tcreate9p1 tag %u fid %d name %.28s perm 0x%lux mode %d",
+		sprint(buf, "Tcreate9p1 tag %u fid %d name %.28s perm 0x%lx mode %d",
 			tag, fid, f->name, f->perm, f->mode);
 		break;
 	case Rcreate9p1:
-		sprint(buf, "Rcreate9p1 tag %u fid %d qid 0x%lux|0x%lux",
+		sprint(buf, "Rcreate9p1 tag %u fid %d qid 0x%lx|0x%lx",
 			tag, fid, f->qid.path, f->qid.version);
 		break;
 	case Tread9p1:	/* 68 */
@@ -133,7 +133,7 @@ ofcallfmt(Fmt *f1)
 			tag, fid, f->newfid, f->name);
 		break;
 	case Rclwalk9p1:
-		sprint(buf, "Rclwalk9p1 tag %u fid %d qid 0x%lux|0x%lux",
+		sprint(buf, "Rclwalk9p1 tag %u fid %d qid 0x%lx|0x%lx",
 			tag, fid, f->qid.path, f->qid.version);
 		break;
 	default:
@@ -146,7 +146,7 @@ static void
 fdirconv(char *buf, Dentry *d)
 {
 	sprint(buf, "'%s' uid=%d gid=%d "
-		"q %lux|%lux m %uo "
+		"q %lx|%lx m %uo "
 		"at %ld mt %ld l %ld ",
 			d->name, d->uid, d->gid,
 			d->qid.path, d->qid.version, d->mode,

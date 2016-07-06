@@ -350,7 +350,7 @@ tcfig(int ttype, int len)
 	print("configuration registers at");
 	for(i = 0; i < 16; i++)
 		if((1<<i) & cregs)
-			print(" (%d)0x%lux", i, caddr + i*2);
+			print(" (%d)0x%lx", i, caddr + i*2);
 	print("\n");
 }
 
@@ -488,7 +488,7 @@ range(int asize, int lsize)
 
 	address = getlong(asize);
 	len = getlong(lsize);
-	print("\t\t%lux - %lux\n", address, address+len);
+	print("\t\t%lx - %lx\n", address, address+len);
 }
 
 char *ioaccess[4] =
@@ -560,10 +560,10 @@ memspace(int asize, int lsize, int host)
 	address = getlong(asize)*256;
 	if(host){
 		haddress = getlong(asize)*256;
-		print("\tmemory address range 0x%lux - 0x%lux hostaddr 0x%lux\n",
+		print("\tmemory address range 0x%lx - 0x%lx hostaddr 0x%lx\n",
 			address, address+len, haddress);
 	} else
-		print("\tmemory address range 0x%lux - 0x%lux\n", address, address+len);
+		print("\tmemory address range 0x%lx - 0x%lx\n", address, address+len);
 }
 
 void

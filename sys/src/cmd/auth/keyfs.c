@@ -1065,7 +1065,7 @@ io(int in, int out)
 
 		now = time(0);
 		if(warnarg && (now - lastwarning > 24*60*60)){
-			syslog(0, "auth", "keyfs starting warnings: %lux %lux",
+			syslog(0, "auth", "keyfs starting warnings: %lx %lx",
 				now, lastwarning);
 			warning();
 			lastwarning = now;
