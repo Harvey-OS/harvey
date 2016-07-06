@@ -119,7 +119,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 				busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
-		DBG("dup rdt %d %d %d %d %.8ux\n", busno, apicno, intin, devno, lo);
+		DBG("dup rdt %d %d %d %d %.8x\n", busno, apicno, intin, devno, lo);
 	}
 	rdt->ref++;
 	rbus = malloc(sizeof *rbus);

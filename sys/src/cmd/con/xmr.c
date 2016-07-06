@@ -145,7 +145,7 @@ receive(int fd, uint8_t seqno)
 		/* If invalid block, resynchronize */
 		if(buf[0] != Soh || buf[2] != (255-buf[1]) || sum != buf[131]){
 			if(debug){
-				fprint(dfd, "resync %2.2ux %d %d %x %x\n", buf[0],
+				fprint(dfd, "resync %2.2x %d %d %x %x\n", buf[0],
 					buf[1], buf[2], sum, buf[131]);
 				write(dfd, (char*)buf+3, 128);
 				fprint(dfd, "\n");

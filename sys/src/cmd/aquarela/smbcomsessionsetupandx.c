@@ -60,7 +60,7 @@ smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	case SMB_COM_OPEN_PRINT_FILE:
 		break;
 	default:
-		smblogprint(h->command, "smbcomsessionsetupandx: invalid andxcommand %s (0x%.2ux)\n",
+		smblogprint(h->command, "smbcomsessionsetupandx: invalid andxcommand %s (0x%.2x)\n",
 			smboptable[andxcommand].name, andxcommand);
 		goto fmtfail;
 	}

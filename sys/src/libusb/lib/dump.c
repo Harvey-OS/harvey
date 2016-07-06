@@ -53,7 +53,7 @@ hexstr(void *a, int n)
 	*s = 0;
 	e = s + 1024;
 	for(i = 0; i < n; i++)
-		s = seprint(s, e, " %.2ux", b[i]);
+		s = seprint(s, e, " %.2x", b[i]);
 	if(s == e)
 		fprint(2, "%s: usb/lib: hexdump: bug: small buffer\n", argv0);
 	return dbuff;

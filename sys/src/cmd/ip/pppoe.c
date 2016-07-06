@@ -612,7 +612,7 @@ dumptags(uint8_t *tagdat, int ntagdat)
 			fprint(2, "nonce ");
 		Hex:
 			for(i=0; i<len; i++)
-				fprint(2, "%.2ux", v[i]);
+				fprint(2, "%.2x", v[i]);
 			fprint(2, "\n");
 			break;
 		case TagAcCookie:
@@ -693,7 +693,7 @@ hexdump(uint8_t *a, int na)
 
 	buf[0] = '\0';
 	for(i=0; i<na; i++){
-		sprint(buf+strlen(buf), " %.2ux", a[i]);
+		sprint(buf+strlen(buf), " %.2x", a[i]);
 		if(i%16 == 7)
 			sprint(buf+strlen(buf), " --");
 		if(i%16==15){

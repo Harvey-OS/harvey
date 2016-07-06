@@ -600,7 +600,7 @@ wrblock(LZstate *out, int litoff, uint16_t *soff, uint16_t *eoff,
 				for(i = 0; i < run; i++){
 					lit = out->hist[litoff & (HistBlock - 1)];
 					litoff++;
-					fprint(2, "\tlit %.2ux %c\n", lit, lit);
+					fprint(2, "\tlit %.2x %c\n", lit, lit);
 				}
 				if(!(offset & LenFlag))
 					continue;

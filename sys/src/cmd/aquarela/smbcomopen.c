@@ -105,7 +105,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 			smbseterror(s, ERRDOS, ERRunsup);
 			goto done;
 		}
-//smblogprint(-1, "creating: attr 0x%.4ux co 0x%.8lux\n", attr, createoptions);
+//smblogprint(-1, "creating: attr 0x%.4x co 0x%.8lux\n", attr, createoptions);
 		if (createoptions & SMB_CO_FILE) {
 			attr &= SMB_ATTR_DIRECTORY;
 			if (attr == 0)
@@ -116,7 +116,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 			attr |= SMB_ATTR_DIRECTORY;
 			p9mode = OREAD;
 		}
-//smblogprint(-1, "creating: before conversion attr 0x%.4ux\n", attr);
+//smblogprint(-1, "creating: before conversion attr 0x%.4x\n", attr);
 		p9attr = smbdosattr2plan9mode(attr);
 //smblogprint(-1, "creating: after conversion p9attr 0%.uo\n", p9attr);
 		fd = create(fullpath, p9mode, p9attr);
@@ -154,7 +154,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 		s->fidmap = smbidmapnew();
 	*fidp = smbidmapadd(s->fidmap, f);
 //smblogprint(h->command, "REPLY:\n t->id=0x%x fid=%d path=%s\n", t->id, *fidp, path);
-	smblogprintif(smbglobals.log.fids, "openfile: 0x%.4ux/0x%.4ux %s\n", t->id, *fidp, path);
+	smblogprintif(smbglobals.log.fids, "openfile: 0x%.4x/0x%.4x %s\n", t->id, *fidp, path);
 	if (actionp)
 		*actionp = action;
 	if (dp) {
@@ -208,7 +208,7 @@ smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	}
 
 	smbloglock();
-	smblogprint(h->command, "flags 0x%.4ux", flags);
+	smblogprint(h->command, "flags 0x%.4x", flags);
 	if (flags & SMB_OPEN_FLAGS_ADDITIONAL)
 		smblogprint(h->command, " additional");
 	if (flags & SMB_OPEN_FLAGS_OPLOCK)
@@ -216,7 +216,7 @@ smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	if (flags & SMB_OPEN_FLAGS_OPBATCH)
 		smblogprint(h->command, " opbatch");
 	smblogprint(h->command, "\n");
-	smblogprint(h->command, "mode 0x%.4ux", mode);
+	smblogprint(h->command, "mode 0x%.4x", mode);
 	switch ((mode >> SMB_OPEN_MODE_ACCESS_SHIFT) & SMB_OPEN_MODE_ACCESS_MASK) {
 	case OREAD:
 		smblogprint(h->command, " OREAD");
@@ -251,14 +251,14 @@ smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	if (mode & SMB_OPEN_MODE_WRITE_THROUGH)
 		smblogprint(h->command, " write through");
 	smblogprint(h->command, "\n");
-	smblogprint(h->command, "sattr 0x%.4ux", sattr);
+	smblogprint(h->command, "sattr 0x%.4x", sattr);
 	smblogprintattr(h->command, sattr);
 	smblogprint(h->command, "\n");
-	smblogprint(h->command, "attr 0x%.4ux", attr);
+	smblogprint(h->command, "attr 0x%.4x", attr);
 	smblogprintattr(h->command, attr);
 	smblogprint(h->command, "\n");
 	smblogprint(h->command, "createtime 0x%.8lux\n", createtime);
-	smblogprint(h->command, "ofun 0x%.4ux", ofun);
+	smblogprint(h->command, "ofun 0x%.4x", ofun);
 	if (ofun & SMB_OFUN_NOEXIST_CREATE)
 		smblogprint(h->command, " noexistscreate");
 	else
@@ -411,7 +411,7 @@ smbcomcreate(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 
 	smbloglock();
 	smblogprint(h->command, "path %s\n", path);
-	smblogprint(h->command, "attr 0x%.4ux", attr);
+	smblogprint(h->command, "attr 0x%.4x", attr);
 	smblogprintattr(h->command, attr);
 	smblogprint(h->command, "\n");
 	smblogprint(h->command, "createtime 0x%.8lux\n", createtime);
@@ -599,7 +599,7 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	smbsblutlogprint(h->command, cosblut, createoptions);
 	smblogprint(h->command, "\n");
 	smblogprint(h->command, "impersonationlevel 0x%.8lux\n", impersonationlevel);
-	smblogprint(h->command, "securityflags 0x%.2ux\n", securityflags);
+	smblogprint(h->command, "securityflags 0x%.2x\n", securityflags);
 	smblogprint(h->command, "path %s\n", path);
 
 	if (rootdirectoryfid != 0) {

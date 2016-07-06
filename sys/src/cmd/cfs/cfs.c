@@ -806,7 +806,7 @@ dump(uint8_t *p, int len)
 {
 	fprint(2, "%d bytes", len);
 	while(len-- > 0)
-		fprint(2, " %.2ux", *p++);
+		fprint(2, " %.2x", *p++);
 	fprint(2, "\n");
 }
 

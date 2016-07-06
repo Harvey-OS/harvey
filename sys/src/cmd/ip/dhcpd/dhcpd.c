@@ -394,7 +394,7 @@ proto(Req *rp, int n)
 			warning(0, "no chaddr");
 			return;
 		}
-		sprint(buf, "hwa%2.2ux_", rp->bp->htype);
+		sprint(buf, "hwa%2.2x_", rp->bp->htype);
 		rp->id = tohex(buf, rp->bp->chaddr, rp->bp->hlen);
 	}
 

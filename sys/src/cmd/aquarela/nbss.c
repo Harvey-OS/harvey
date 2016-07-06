@@ -95,7 +95,7 @@ tcpreader(void *a)
 		if (n != length)
 			goto die;
 		if (flags & 0xfe) {
-			print("nbss: invalid flags field 0x%.2ux\n", flags);
+			print("nbss: invalid flags field 0x%.2x\n", flags);
 			goto die;
 		}
 		switch (buf[0]) {
@@ -181,7 +181,7 @@ tcpreader(void *a)
 		case 0x85: /* keep awake */
 			break;
 		default:
-			print("nbss: opcode 0x%.2ux unexpected\n", buf[0]);
+			print("nbss: opcode 0x%.2x unexpected\n", buf[0]);
 			goto die;
 		}
 	}
@@ -328,7 +328,7 @@ nbssconnect(NbName to, NbName from)
 	switch (msg[0]) {
 	default:
 		close(fd);
-		werrstr("unexpected session message code 0x%.2ux", msg[0]);
+		werrstr("unexpected session message code 0x%.2x", msg[0]);
 		return nil;
 	case 0x82:
 		if (length != 0) {
@@ -348,7 +348,7 @@ nbssconnect(NbName to, NbName from)
 			return nil;
 		}
 		close(fd);
-		werrstr("negative session response 0x%.2ux", msg[4]);
+		werrstr("negative session response 0x%.2x", msg[4]);
 		return nil;
 	}
 	s = nbemalloc(sizeof(Session));
@@ -382,7 +382,7 @@ again:
 	}
 	flags = hdr[1];
 	length = nhgets(hdr + 2) | ((flags & 1) << 16);
-//print("%.2ux: %d\n", hdr[0], length);
+//print("%.2x: %d\n", hdr[0], length);
 	switch (hdr[0]) {
 	case 0x85:
 		if (length != 0) {
@@ -393,7 +393,7 @@ again:
 	case 0x00:
 		break;
 	default:
-		werrstr("unexpected session message code 0x%.2ux", hdr[0]);
+		werrstr("unexpected session message code 0x%.2x", hdr[0]);
 		goto dead;
 	}
 	if (length > l) {

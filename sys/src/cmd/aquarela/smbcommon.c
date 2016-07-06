@@ -61,7 +61,7 @@ smbchaincommand(SmbSession *s, SmbHeader *h, uint32_t andxoffsetfixup,
 	h->command = cmd;
 	ote = smboptable + cmd;
 	if (ote->process == nil) {
-		smblogprint(-1, "smbchaincommand: %s (0x%.2ux) not implemented\n", ote->name, cmd);
+		smblogprint(-1, "smbchaincommand: %s (0x%.2x) not implemented\n", ote->name, cmd);
 		return SmbProcessResultUnimp;
 	}
 	if (!smbresponsealignl2(s, 2)
@@ -111,7 +111,7 @@ smbbuffergetheader(SmbBuffer *b, SmbHeader *h, uint8_t **parametersp,
 	h->command = rh->command;
 	ote = smboptable + h->command;
 	if (ote->name == nil) {
-		smblogprint(-1, "smbgetheader: illegal opcode 0x%.2ux\n", h->command);
+		smblogprint(-1, "smbgetheader: illegal opcode 0x%.2x\n", h->command);
 		return 0;
 	}
 	h->errclass = rh->status[0];
@@ -119,7 +119,7 @@ smbbuffergetheader(SmbBuffer *b, SmbHeader *h, uint8_t **parametersp,
 	h->flags = rh->flags;
 	h->flags2 = smbnhgets(rh->flags2);
 	if (h->flags & ~(SmbHeaderFlagCaseless | SMB_FLAGS_SERVER_TO_REDIR | SmbHeaderFlagReserved | SmbHeaderFlagServerIgnore))
-		smblogprint(-1, "smbgetheader: warning: unexpected flags 0x%.2ux\n", h->flags);
+		smblogprint(-1, "smbgetheader: warning: unexpected flags 0x%.2x\n", h->flags);
 	h->wordcount = rh->wordcount;
 	if (parametersp)
 		*parametersp = smbbufferreadpointer(b);
@@ -136,7 +136,7 @@ smbbuffergetheader(SmbBuffer *b, SmbHeader *h, uint8_t **parametersp,
 	if (!smbbufferpushreadlimit(b, smbbufferreadoffset(b) + *bytecountp))
 		return 0;
 
-smblogprint(h->command, "%s %s: tid 0x%.4ux pid 0x%.4ux uid 0x%.4ux mid 0x%.4ux\n", ote->name,
+smblogprint(h->command, "%s %s: tid 0x%.4x pid 0x%.4x uid 0x%.4x mid 0x%.4x\n", ote->name,
 	(h->flags & SMB_FLAGS_SERVER_TO_REDIR) ? "response" : "request", h->tid, h->pid, h->uid, h->mid);
 	return 1;
 }
@@ -155,7 +155,7 @@ int
 smbcheckheader(SmbHeader *h, uint8_t command, int response, char **errmsgp)
 {
 	if (response && h->command != command) {
-		smbstringprint(errmsgp, "sent %.2uc request, got %.2ux response", command, h->command);
+		smbstringprint(errmsgp, "sent %.2uc request, got %.2x response", command, h->command);
 		return 0;
 	}
 	if (!smbcheckheaderdirection(h, response, errmsgp))

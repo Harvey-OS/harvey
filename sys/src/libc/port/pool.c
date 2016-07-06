@@ -730,9 +730,9 @@ dumpblock(Pool *p, Bhdr *b)
 
 		cp = (uint8_t*)_B2D(b)+dsize;
 		p->print(p, "user data ");
-		p->print(p, "%.2ux %.2ux %.2ux %.2ux  %.2ux %.2ux %.2ux %.2ux",
+		p->print(p, "%.2x %.2x %.2x %.2x  %.2x %.2x %.2x %.2x",
 			cp[-8], cp[-7], cp[-6], cp[-5], cp[-4], cp[-3], cp[-2], cp[-1]);
-		p->print(p, " | %.2ux %.2ux %.2ux %.2ux  %.2ux %.2ux %.2ux %.2ux\n",
+		p->print(p, " | %.2x %.2x %.2x %.2x  %.2x %.2x %.2x %.2x\n",
 			cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]);
 	}
 }

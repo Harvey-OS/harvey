@@ -104,7 +104,7 @@ scsierror(int asc, int ascq)
 	getcodes();
 
 	if(codes) {
-		snprint(search, sizeof search, "\n%.2ux%.2ux ", asc, ascq);
+		snprint(search, sizeof search, "\n%.2x%.2x ", asc, ascq);
 		if(p = strstr(codes, search)) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
@@ -113,17 +113,17 @@ scsierror(int asc, int ascq)
 			return buf;
 		}
 
-		snprint(search, sizeof search, "\n%.2ux00", asc);
+		snprint(search, sizeof search, "\n%.2x00", asc);
 		if(p = strstr(codes, search)) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
 				q = p+strlen(p);
-			snprint(buf, sizeof buf, "(ascq #%.2ux) %.*s", ascq, (int)(q-p), p);
+			snprint(buf, sizeof buf, "(ascq #%.2x) %.*s", ascq, (int)(q-p), p);
 			return buf;
 		}
 	}
 
-	snprint(buf, sizeof buf, "scsi #%.2ux %.2ux", asc, ascq);
+	snprint(buf, sizeof buf, "scsi #%.2x %.2x", asc, ascq);
 	return buf;
 }
 
@@ -308,10 +308,10 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 
 	p = scsierror(code, sense[13]);
 
-	werrstr("cmd #%.2ux: %s", cmd[0], p);
+	werrstr("cmd #%.2x: %s", cmd[0], p);
 
 	if(scsiverbose)
-		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n",
+		fprint(2, "scsi cmd #%.2x: %.2x %.2x %.2x: %s\n",
 			cmd[0], key, code, sense[13], p);
 
 //	if(key == Sensenone)

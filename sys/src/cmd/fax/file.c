@@ -151,7 +151,7 @@ picopen(Modem *m)
 		}
 	}
 
-	verbose("openfaxfile: valid #%4.4ux", m->valid);
+	verbose("openfaxfile: valid #%4.4x", m->valid);
 	if((m->valid & (Vtype|Vwd)) != (Vtype|Vwd)){
 		Bterm(m->bp);
 		return seterror(m, Eproto);
