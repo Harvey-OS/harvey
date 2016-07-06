@@ -393,7 +393,7 @@ testgcd(void)
 	mpfree(t2);
 
 	if(loops > 1)
-		print("binary %llud\n", etime);
+		print("binary %llu\n", etime);
 }
 
 extern int _unnormalizedwarning = 1;

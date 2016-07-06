@@ -426,7 +426,7 @@ asmmeminit(void)
 	conf.upages = conf.npage;
 	i = (sys->vmend - sys->vmstart)/PGSZ;		/* close enough */
 	conf.ialloc = (i/2)*PGSZ;
-	print("npage %llud upage %lu kpage %d\n",
+	print("npage %llu upage %lu kpage %d\n",
 		conf.npage, conf.upages, i);
 
 #endif /* ConfCrap */

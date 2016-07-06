@@ -143,7 +143,7 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 	}
 	trace(TraceLump, "loadclump unpack");
 	if(unpackclump(cl, cb->data, arena->clumpmagic) < 0){
-		seterr(ECorrupt, "loadclump %s %llud: %r", arena->name, aa);
+		seterr(ECorrupt, "loadclump %s %llu: %r", arena->name, aa);
 		freezblock(cb);
 		return nil;
 	}
@@ -182,9 +182,9 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 		nunc = unwhack(&uw, zb->data, cl->info.uncsize, buf, cl->info.size);
 		if(nunc != cl->info.uncsize){
 			if(nunc < 0)
-				seterr(ECorrupt, "decompression of %llud failed: %s", aa, uw.err);
+				seterr(ECorrupt, "decompression of %llu failed: %s", aa, uw.err);
 			else
-				seterr(ECorrupt, "decompression of %llud gave partial block: %d/%d\n", aa, nunc, cl->info.uncsize);
+				seterr(ECorrupt, "decompression of %llu gave partial block: %d/%d\n", aa, nunc, cl->info.uncsize);
 			freezblock(cb);
 			freezblock(zb);
 			return nil;
@@ -192,18 +192,18 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 		break;
 	case ClumpENone:
 		if(cl->info.size != cl->info.uncsize){
-			seterr(ECorrupt, "loading clump: bad uncompressed size for uncompressed block %llud", aa);
+			seterr(ECorrupt, "loading clump: bad uncompressed size for uncompressed block %llu", aa);
 			freezblock(cb);
 			freezblock(zb);
 			return nil;
 		}
 		scoremem(bh, buf, cl->info.uncsize);
 		if(scorecmp(cl->info.score, bh) != 0)
-			seterr(ECorrupt, "pre-copy sha1 wrong at %s %llud: expected=%V got=%V", arena->name, aa, cl->info.score, bh);
+			seterr(ECorrupt, "pre-copy sha1 wrong at %s %llu: expected=%V got=%V", arena->name, aa, cl->info.score, bh);
 		memmove(zb->data, buf, cl->info.uncsize);
 		break;
 	default:
-		seterr(ECorrupt, "unknown encoding in loadlump %llud", aa);
+		seterr(ECorrupt, "unknown encoding in loadlump %llu", aa);
 		freezblock(cb);
 		freezblock(zb);
 		return nil;
@@ -214,12 +214,12 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 		trace(TraceLump, "loadclump verify");
 		scoremem(bh, zb->data, cl->info.uncsize);
 		if(scorecmp(cl->info.score, bh) != 0){
-			seterr(ECorrupt, "loading clump: corrupted at %s %llud; expected=%V got=%V", arena->name, aa, cl->info.score, bh);
+			seterr(ECorrupt, "loading clump: corrupted at %s %llu; expected=%V got=%V", arena->name, aa, cl->info.score, bh);
 			freezblock(zb);
 			return nil;
 		}
 		if(vttypevalid(cl->info.type) < 0){
-			seterr(ECorrupt, "loading lump at %s %llud: invalid lump type %d", arena->name, aa, cl->info.type);
+			seterr(ECorrupt, "loading lump at %s %llu: invalid lump type %d", arena->name, aa, cl->info.type);
 			freezblock(zb);
 			return nil;
 		}

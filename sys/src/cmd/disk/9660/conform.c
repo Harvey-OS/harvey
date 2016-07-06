@@ -145,6 +145,6 @@ wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
 	}
 	qsort(c->t, c->nt, sizeof(c->t[0]), badatomcmp);
 	*plength = Cwoffset(cd) - (int64_t)*pblock * Blocksize;
-	chat("write _conform.map at %lu+%llud\n", *pblock, *plength);
+	chat("write _conform.map at %lu+%llu\n", *pblock, *plength);
 	Cpadblock(cd);
 }

@@ -149,7 +149,7 @@ TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 		fmtstrinit(f);
 		fmtprint(f, "S-%u", g8(p));	/* revision */
 		n = g8(p);			/* num auth */
-		fmtprint(f, "-%llud", gb48(p));	/* authority */
+		fmtprint(f, "-%llu", gb48(p));	/* authority */
 		for(i = 0; i < n; i++)
 			fmtprint(f, "-%u", gl32(p));	/* sub-authorities */
 		*usid = fmtstrflush(f);
@@ -160,7 +160,7 @@ TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 		fmtstrinit(f);
 		fmtprint(f, "S-%u", g8(p));	/* revision */
 		n = g8(p);			/* num auth */
-		fmtprint(f, "-%llud", gb48(p));	/* authority */
+		fmtprint(f, "-%llu", gb48(p));	/* authority */
 		for(i = 0; i < n; i++)
 			fmtprint(f, "-%u", gl32(p));	/* sub-authorities */
 		*gsid = fmtstrflush(f);

@@ -834,7 +834,7 @@ dirdevopen(ScsiReq *rp)
 	blocks =     GETBELONG(data);
 	if(debug)
 		fprint(2, "disk: dirdevopen: 10-byte logical block size %lu, "
-			"# blocks %llud\n", rp->lbsize, blocks);
+			"# blocks %llu\n", rp->lbsize, blocks);
 	if(blocks == 0xffffffff){
 		if(SRrcapacity16(rp, data) == -1)
 			return -1;
@@ -842,7 +842,7 @@ dirdevopen(ScsiReq *rp)
 		blocks = (int64_t)GETBELONG(data)<<32 | GETBELONG(data + 4);
 		if(debug)
 			fprint(2, "disk: dirdevopen: 16-byte logical block size"
-				" %lu, # blocks %llud\n", rp->lbsize, blocks);
+				" %lu, # blocks %llu\n", rp->lbsize, blocks);
 	}
 	/* some newer dev's don't support 6-byte commands */
 	if(blocks > Max24off && !force6bytecmds)

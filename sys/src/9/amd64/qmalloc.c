@@ -404,9 +404,9 @@ mallocreadfmt(char* s, char* e)
 	Qlist *qlist;
 
 	p = seprint(s, e,
-		"%llud memory\n"
+		"%llu memory\n"
 		"%d pagesize\n"
-		"%llud kernel\n",
+		"%llu kernel\n",
 		(uint64_t)conf.npage*PGSZ,
 		PGSZ,
 		(uint64_t)conf.npage-conf.upages);

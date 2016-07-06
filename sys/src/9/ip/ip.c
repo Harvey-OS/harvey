@@ -475,7 +475,7 @@ ipstats(Fs *f, char *buf, int len)
 	p = buf;
 	e = p+len;
 	for(i = 0; i < Nipstats; i++)
-		p = seprint(p, e, "%s: %llud\n", statnames[i], ip->stats[i]);
+		p = seprint(p, e, "%s: %llu\n", statnames[i], ip->stats[i]);
 	return p - buf;
 }
 

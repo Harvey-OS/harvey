@@ -140,7 +140,7 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 				break;
 			}
 			if(vflag)
-				print("\n\t%#16.16llux %#16.16llux (%llud)\n",
+				print("\n\t%#16.16llux %#16.16llux (%llu)\n",
 					addr, addr+len, len);
 
 			n += mmap->size+sizeof(mmap->size);

@@ -69,7 +69,7 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 
 	if(e.depth < sizeToDepth(e.size, e.psize, e.dsize)){
 		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: depth %u size %llud "
+		consPrint("%s: %s %V: sourceAlloc: depth %u size %llu "
 			"psize %u dsize %u\n", fs->name, pname,
 			e.score, e.depth, e.size, e.psize, e.dsize);
 		goto Bad;

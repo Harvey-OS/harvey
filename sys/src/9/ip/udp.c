@@ -596,8 +596,8 @@ udpstats(Proto *udp, char *buf, int len)
 	Udppriv *upriv;
 
 	upriv = udp->priv;
-	return snprint(buf, len, "InDatagrams: %llud\nNoPorts: %lu\n"
-		"InErrors: %lu\nOutDatagrams: %llud\n",
+	return snprint(buf, len, "InDatagrams: %llu\nNoPorts: %lu\n"
+		"InErrors: %lu\nOutDatagrams: %llu\n",
 		upriv->ustats.udpInDatagrams,
 		upriv->ustats.udpNoPorts,
 		upriv->ustats.udpInErrors,

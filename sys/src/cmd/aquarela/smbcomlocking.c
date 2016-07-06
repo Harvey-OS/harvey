@@ -97,7 +97,7 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 			pr = SmbProcessResultFormat;
 			goto done;
 		}
-		smblogprint(h->command, "smbcomlockingandx: unlock pid 0x%.4x offset %llud length %llud\n",
+		smblogprint(h->command, "smbcomlockingandx: unlock pid 0x%.4x offset %llu length %llu\n",
 			pid, offset, length);
 		smbsharedfileunlock(f->sf, s, h->pid, offset, offset + length);
 	}
@@ -109,7 +109,7 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 			pr = SmbProcessResultFormat;
 			goto done;
 		}
-		smblogprint(h->command, "smbcomlockingandx: lock pid 0x%.4x offset %llud length %llud\n",
+		smblogprint(h->command, "smbcomlockingandx: lock pid 0x%.4x offset %llu length %llu\n",
 			pid, offset, length);
 		if (!smbsharedfilelock(f->sf, s, h->pid, offset, offset + length))
 			break;

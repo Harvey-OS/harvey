@@ -2194,7 +2194,7 @@ print("iarctl: nil u->dev->ctlr\n");
 		o->ci, o->isr, o->sig, o->sstatus);
 	if(d->unit == nil)
 		panic("iarctl: nil d->unit");
-	p = seprint(p, e, "geometry %llud %lu\n", d->sectors, d->unit->secsize);
+	p = seprint(p, e, "geometry %llu %lu\n", d->sectors, d->unit->secsize);
 	return p - op;
 }
 
