@@ -397,7 +397,7 @@ Dofix:
 		if(cd->nulldump){
 			Cwseek(cd, (int64_t)cd->nulldump * Blocksize);
 			sprint(buf, "plan 9 dump cd\n");
-			sprint(buf+strlen(buf), "%s %lu %lu %lu %llud %lu %lu",
+			sprint(buf+strlen(buf), "%s %lu %lu %lu %llu %lu %lu",
 				dumpname, now, newnull, cblock, clength,
 				iroot.block, iroot.length);
 			if(cd->flags & CDjoliet)

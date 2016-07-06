@@ -552,16 +552,16 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 		error(Enomem);
 	e = p + READSTR;
 
-	l = snprint(p, READSTR, "TxOk: %llud\n", dtcc->txok);
-	l += snprint(p+l, READSTR-l, "RxOk: %llud\n", dtcc->rxok);
-	l += snprint(p+l, READSTR-l, "TxEr: %llud\n", dtcc->txer);
+	l = snprint(p, READSTR, "TxOk: %llu\n", dtcc->txok);
+	l += snprint(p+l, READSTR-l, "RxOk: %llu\n", dtcc->rxok);
+	l += snprint(p+l, READSTR-l, "TxEr: %llu\n", dtcc->txer);
 	l += snprint(p+l, READSTR-l, "RxEr: %u\n", dtcc->rxer);
 	l += snprint(p+l, READSTR-l, "MissPkt: %u\n", dtcc->misspkt);
 	l += snprint(p+l, READSTR-l, "FAE: %u\n", dtcc->fae);
 	l += snprint(p+l, READSTR-l, "Tx1Col: %u\n", dtcc->tx1col);
 	l += snprint(p+l, READSTR-l, "TxMCol: %u\n", dtcc->txmcol);
-	l += snprint(p+l, READSTR-l, "RxOkPh: %llud\n", dtcc->rxokph);
-	l += snprint(p+l, READSTR-l, "RxOkBrd: %llud\n", dtcc->rxokbrd);
+	l += snprint(p+l, READSTR-l, "RxOkPh: %llu\n", dtcc->rxokph);
+	l += snprint(p+l, READSTR-l, "RxOkBrd: %llu\n", dtcc->rxokbrd);
 	l += snprint(p+l, READSTR-l, "RxOkMu: %u\n", dtcc->rxokmu);
 	l += snprint(p+l, READSTR-l, "TxAbt: %u\n", dtcc->txabt);
 	l += snprint(p+l, READSTR-l, "TxUndrn: %u\n", dtcc->txundrn);

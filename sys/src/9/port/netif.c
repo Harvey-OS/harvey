@@ -237,15 +237,15 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 		p = malloc(READSTR);
 		if(p == nil)
 			error(Enomem);
-		j = snprint(p, READSTR, "in: %llud\n", nif->inpackets);
+		j = snprint(p, READSTR, "in: %llu\n", nif->inpackets);
 		j += snprint(p+j, READSTR-j, "link: %d\n", nif->link);
-		j += snprint(p+j, READSTR-j, "out: %llud\n", nif->outpackets);
-		j += snprint(p+j, READSTR-j, "crc errs: %llud\n", nif->crcs);
-		j += snprint(p+j, READSTR-j, "overflows: %llud\n", nif->overflows);
-		j += snprint(p+j, READSTR-j, "soft overflows: %llud\n", nif->soverflows);
-		j += snprint(p+j, READSTR-j, "framing errs: %llud\n", nif->frames);
-		j += snprint(p+j, READSTR-j, "buffer errs: %llud\n", nif->buffs);
-		j += snprint(p+j, READSTR-j, "output errs: %llud\n", nif->oerrs);
+		j += snprint(p+j, READSTR-j, "out: %llu\n", nif->outpackets);
+		j += snprint(p+j, READSTR-j, "crc errs: %llu\n", nif->crcs);
+		j += snprint(p+j, READSTR-j, "overflows: %llu\n", nif->overflows);
+		j += snprint(p+j, READSTR-j, "soft overflows: %llu\n", nif->soverflows);
+		j += snprint(p+j, READSTR-j, "framing errs: %llu\n", nif->frames);
+		j += snprint(p+j, READSTR-j, "buffer errs: %llu\n", nif->buffs);
+		j += snprint(p+j, READSTR-j, "output errs: %llu\n", nif->oerrs);
 		j += snprint(p+j, READSTR-j, "prom: %d\n", nif->prom);
 		j += snprint(p+j, READSTR-j, "mbps: %d\n", nif->mbps);
 		j += snprint(p+j, READSTR-j, "addr: ");

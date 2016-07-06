@@ -104,7 +104,7 @@ main(int argc, char **argv)
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%q %luo %q %q %lu %llud\n",
+			Bprint(&bout, "%q %luo %q %q %lu %llu\n",
 				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
@@ -224,7 +224,7 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
 	uint64_t tot;
 
 	if(vflag)
-		print("x %q %llud bytes\n", name, bytes);
+		print("x %q %llu bytes\n", name, bytes);
 
 	b = Bopen(name, OWRITE);
 	if(!b){

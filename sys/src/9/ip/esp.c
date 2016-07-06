@@ -623,7 +623,7 @@ espstats(Proto *esp, char *buf, int len)
 	Esppriv *upriv;
 
 	upriv = esp->priv;
-	return snprint(buf, len, "%llud %lu\n",
+	return snprint(buf, len, "%llu %lu\n",
 		upriv->in,
 		upriv->inerrors);
 }

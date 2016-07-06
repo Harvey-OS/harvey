@@ -288,7 +288,7 @@ main(int argc, char* argv[])
 	r *= mhz;
 	r /= stop - start;
 
-	print("%d reads in %llud cycles @ %dMHz = %llud MB/s\n",
+	print("%d reads in %llu cycles @ %dMHz = %llu MB/s\n",
 		i, stop - start, mhz, r);
 
 	exits(0);

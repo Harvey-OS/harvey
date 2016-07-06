@@ -433,7 +433,7 @@ outputamap(Fmt *f, AMap *am, int n)
 	if(fmtprint(f, "%u\n", n) < 0)
 		return -1;
 	for(i = 0; i < n; i++)
-		if(fmtprint(f, "%s\t%llud\t%llud\n", am[i].name, am[i].start, am[i].stop) < 0)
+		if(fmtprint(f, "%s\t%llu\t%llu\n", am[i].name, am[i].start, am[i].stop) < 0)
 			return -1;
 	return 0;
 }

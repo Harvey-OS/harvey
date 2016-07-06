@@ -178,7 +178,7 @@ imagereclaim(void)
 	irstats.ticks += ticks;
 	if(ticks > irstats.maxt)
 		irstats.maxt = ticks;
-	//print("T%llud+", ticks);
+	//print("T%llu+", ticks);
 	qunlock(&imagealloc.ireclaim);
 }
 

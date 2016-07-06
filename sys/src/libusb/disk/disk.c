@@ -155,7 +155,7 @@ umscapacity(Umsc *lun)
 	lun->blocks++; /* SRcapacity returns LBA of last block */
 	lun->capacity = (int64_t)lun->blocks * lun->ScsiReq.lbsize;
 	if(diskdebug)
-		fprint(2, "disk: logical block size %lu, # blocks %llud\n",
+		fprint(2, "disk: logical block size %lu, # blocks %llu\n",
 			lun->ScsiReq.lbsize, lun->blocks);
 	return 0;
 }
@@ -496,7 +496,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 			s = seprint(s, e, "inquiry %s lun %ld: %s\n",
 				fs->dev->dir, lun - &ums->lun[0], lun->inq);
 		if(lun->blocks > 0)
-			s = seprint(s, e, "geometry %llud %ld\n",
+			s = seprint(s, e, "geometry %llu %ld\n",
 				lun->blocks, lun->ScsiReq.lbsize);
 		count = usbreadbuf(data, count, offset, buf, s - buf);
 		break;
