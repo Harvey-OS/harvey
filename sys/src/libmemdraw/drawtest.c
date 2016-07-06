@@ -209,11 +209,11 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 	case 2:
 	case 4:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.1ux";
+		arg = "%.1x";
 		break;
 	case 8:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.2ux";
+		arg = "%.2x";
 		break;
 	case 16:
 		arg = nil;
@@ -221,7 +221,7 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 			fmt = Bprintr5g6b5;
 		else{
 			fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-			arg = "%.4ux";
+			arg = "%.4x";
 		}
 		break;
 	case 24:
@@ -297,7 +297,7 @@ checkone(Point p, Point sp, Point mp)
 
 	if(memcmp(dp, sdp, (dst->depth+7)/8) != 0) {
 		fprint(2, "dtest: one bad pixel drawing at dst %P from source %P mask %P\n", p, sp, mp);
-		fprint(2, " %.2ux %.2ux %.2ux %.2ux should be %.2ux %.2ux %.2ux %.2ux\n",
+		fprint(2, " %.2x %.2x %.2x %.2x should be %.2x %.2x %.2x %.2x\n",
 			dp[0], dp[1], dp[2], dp[3], sdp[0], sdp[1], sdp[2], sdp[3]);
 		fprint(2, "addresses dst %p src %p mask %p\n", dp, byteaddr(src, sp), byteaddr(mask, mp));
 		dumpimage("src", src, src->data->bdata, sp);

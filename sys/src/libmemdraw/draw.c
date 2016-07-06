@@ -1321,7 +1321,7 @@ DBG print("throwaway %d...", i);
 	}
 	for(i=0; i<n; i++){
 		if(nbits == 0){
-DBG print("(%.2ux)...", *r);
+			DBG print("(%.2x)...", *r);
 			bits = *r++;
 			nbits = 8;
 		}

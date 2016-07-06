@@ -13,7 +13,6 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-
 void
 usage(void)
 {

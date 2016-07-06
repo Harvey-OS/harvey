@@ -290,13 +290,13 @@ scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
 buggery:
 	if(quiet == 0){
 		s = key[sense[2]&0x0F];
-		print("%s: reqsense: '%s' code #%2.2ux #%2.2ux\n",
+		print("%s: reqsense: '%s' code #%2.2x #%2.2x\n",
 			tp->id, s, sense[12], sense[13]);
-		print("%s: byte 2: #%2.2ux, bytes 15-17: #%2.2ux #%2.2ux #%2.2ux\n",
+		print("%s: byte 2: #%2.2x, bytes 15-17: #%2.2x #%2.2x #%2.2x\n",
 			tp->id, sense[2], sense[15], sense[16], sense[17]);
 		print("lastcmd (%d): ", lastcmdsz);
 		for(n = 0; n < lastcmdsz; n++)
-			print(" #%2.2ux", lastcmd[n]);
+			print(" #%2.2x", lastcmd[n]);
 		print("\n");
 	}
 

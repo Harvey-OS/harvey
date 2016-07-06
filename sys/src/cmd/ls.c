@@ -230,7 +230,7 @@ format(Dir *db, char *name)
 			Bprint(&bin, " ");
 	}
 	if(qflag)
-		Bprint(&bin, "(%.16llux %*lud %.2ux) ",
+		Bprint(&bin, "(%.16llux %*lud %.2x) ",
 			db->qid.path,
 			qwidth, db->qid.vers,
 			db->qid.type);

@@ -123,7 +123,7 @@ p_seprint(Msg *m)
 	demux(p_mux, sport, dport, m, defproto);
 	defproto = &dump;
 
-	m->p = seprint(m->p, m->e, "s=%d d=%d ck=%4.4ux ln=%4d",
+	m->p = seprint(m->p, m->e, "s=%d d=%d ck=%4.4x ln=%4d",
 			NetS(h->sport), dport,
 			NetS(h->cksum), NetS(h->len));
 	return 0;

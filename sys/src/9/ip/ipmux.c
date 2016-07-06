@@ -794,12 +794,12 @@ ipmuxsprint(Ipmux *mux, int level, char *buf, int len)
                mux->off+((int)mux->skiphdr)*((int64_t)ipoff->data),
                mux->off+(((int)mux->skiphdr)*((int64_t)ipoff->data))+mux->len-1);
 	for(i = 0; i < mux->len; i++)
-		n += snprint(buf+n, len - n, "%2.2ux", mux->mask[i]);
+		n += snprint(buf+n, len - n, "%2.2x", mux->mask[i]);
 	n += snprint(buf+n, len-n, "=");
 	v = mux->val;
 	for(j = 0; j < mux->n; j++){
 		for(i = 0; i < mux->len; i++)
-			n += snprint(buf+n, len - n, "%2.2ux", *v++);
+			n += snprint(buf+n, len - n, "%2.2x", *v++);
 		n += snprint(buf+n, len-n, "|");
 	}
 	n += snprint(buf+n, len-n, "\n");

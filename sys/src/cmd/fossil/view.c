@@ -177,7 +177,7 @@ readBlock(int part, uint32_t addr)
 	start = partStart(part);
 	end = partEnd(part);
 	if(addr >= end-start){
-		werrstr("bad addr 0x%.8ux; wanted 0x%.8ux - 0x%.8ux", addr, start, end);
+		werrstr("bad addr 0x%.8x; wanted 0x%.8x - 0x%.8x", addr, start, end);
 		return nil;
 	}
 
@@ -275,7 +275,7 @@ dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 		return nil;
 	}
 	if(tag && l.tag != tag){
-		werrstr("tag mismatch; got 0x%.8ux wanted 0x%.8ux",
+		werrstr("tag mismatch; got 0x%.8x wanted 0x%.8x",
 			l.tag, tag);
 		return nil;
 	}
@@ -840,10 +840,10 @@ scoreFmt(Fmt *f)
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)
-		fmtprint(f, "0x%.8ux", addr);
+		fmtprint(f, "0x%.8x", addr);
 	else{
 		for(i = 0; i < VtScoreSize; i++)
-			fmtprint(f, "%2.2ux", v[i]);
+			fmtprint(f, "%2.2x", v[i]);
 	}
 
 	return 0;

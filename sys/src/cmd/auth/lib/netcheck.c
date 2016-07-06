@@ -21,7 +21,7 @@ checksum(char key[], char csum[]) {
 
 	memset(buf, 0, 8);
 	encrypt(key, buf, 8);
-	sprint(csum, "C %.2ux%.2ux%.2ux%.2ux", buf[0], buf[1], buf[2], buf[3]);
+	sprint(csum, "C %.2x%.2x%.2x%.2x", buf[0], buf[1], buf[2], buf[3]);
 }
 
 /*

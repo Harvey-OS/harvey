@@ -50,7 +50,7 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 					name = f->name;
 				else
 					name = "unnamed font";
-				fprint(2, "stringwidth: bad character set for rune 0x%.4ux in %s\n", rune, name);
+				fprint(2, "stringwidth: bad character set for rune 0x%.4x in %s\n", rune, name);
 				return twid;
 			}
 			if(subfontname){

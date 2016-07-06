@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 					if('!'<=c && c<='~')
 						print(" %c ", c);
 					else
-						print("%.2ux ", c);
+						print("%.2x ", c);
 					if(j%16 == 15)
 						print("\n");
 				}
@@ -160,7 +160,7 @@ main(int argc, char *argv[])
 					print("short stat message\n");
 				else{
 					print("[%s] ", d.muid);
-					print("(%.16llux %lu %.2ux) ", d.qid.path, d.qid.vers, d.qid.type);
+					print("(%.16llux %lu %.2x) ", d.qid.path, d.qid.vers, d.qid.type);
 					print("%M (%luo) ", d.mode, d.mode);
 					print("%c %d ", d.type, d.dev);
 					print("%s %s ", d.uid, d.gid);

@@ -52,9 +52,9 @@ threadmain(int argc, char *argv[])
 		rv = smbclienttrans2findfirst2(c, nelem(ip), "\\LICENSE",
 			&sid, &searchcount, &endofsearch, ip, &errmsg);
 		if (rv) {
-			print("sid 0x%.4ux\n", sid);
-			print("searchcount 0x%.4ux\n", searchcount);
-			print("endofsearch 0x%.4ux\n", endofsearch);
+			print("sid 0x%.4x\n", sid);
+			print("searchcount 0x%.4x\n", searchcount);
+			print("endofsearch 0x%.4x\n", endofsearch);
 		}
 		else
 			print("search failed %s\n", errmsg);

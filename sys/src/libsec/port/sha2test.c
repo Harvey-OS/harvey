@@ -39,7 +39,7 @@ main(void)
 		p = (uint8_t*)*pp;
 		sha2_224(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_224dlen; i++)
-			print("%2.2ux", digest[i]);
+			print("%2.2x", digest[i]);
 		print("\n");
 	}
 
@@ -48,7 +48,7 @@ main(void)
 		p = (uint8_t*)*pp;
 		sha2_256(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_256dlen; i++)
-			print("%2.2ux", digest[i]);
+			print("%2.2x", digest[i]);
 		print("\n");
 	}
 
@@ -57,7 +57,7 @@ main(void)
 		p = (uint8_t*)*pp;
 		sha2_384(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_384dlen; i++)
-			print("%2.2ux", digest[i]);
+			print("%2.2x", digest[i]);
 		print("\n");
 	}
 
@@ -66,7 +66,7 @@ main(void)
 		p = (uint8_t*)*pp;
 		sha2_512(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_512dlen; i++)
-			print("%2.2ux", digest[i]);
+			print("%2.2x", digest[i]);
 		print("\n");
 	}
 }

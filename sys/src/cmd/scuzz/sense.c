@@ -48,6 +48,6 @@ makesense(ScsiReq *rp)
 		Bprint(&bout, ": %s", s);
 	Bprint(&bout, "\n\t");
 	for(i = 0; i < 8+rp->sense[7]; i++)
-		Bprint(&bout, " %2.2ux", rp->sense[i]);
+		Bprint(&bout, " %2.2x", rp->sense[i]);
 	Bprint(&bout, "\n");
 }
