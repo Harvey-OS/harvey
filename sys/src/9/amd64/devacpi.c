@@ -248,45 +248,26 @@ run_aml_arg(char *name, int val)
     */
 	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, name, &args, NULL);
 	print("run_aml_arg(%s, %d) returns %d\n", name, val, as);
-	return as;
-}
-
-static int
-mset_machine_mode(void)
-{
-    ACPI_OBJECT arg1;
-    ACPI_OBJECT_LIST args;
-    ACPI_STATUS as;
-
-    arg1.Type = ACPI_TYPE_INTEGER;
-    arg1.Integer.Value = 1;
-    args.Count = 1;
-    args.Pointer = &arg1;
-
-    as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, "_PIC", &args, NULL);
-    print("I did it? %d\n", as);
-    /*
-     * We can silently ignore failure as it may not be implemented, ACPI should
-     * provide us with correct information anyway
-     */
-    if (ACPI_SUCCESS(as))
-	    print("ACPI: machine set to PIC mode\n");
-    return 0;
+	return ACPI_SUCCESS(as);
 }
 
 static int
 set_machine_mode(void)
 {
-	/* we always enabled the APIC. */
+	/* we always enable the APIC. */
 	return run_aml_arg("_PIC", 1);
 }
 
 int
 acpiinit(void)
 {
+	ACPI_STATUS as;
 	ACPI_TABLE_HEADER *h;
+	ACPI_BUFFER out;
 	int status;
 	int apiccnt = 1;
+	out.Length = 16384;
+	out.Pointer = malloc(16384);
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
 		panic("can't start acpi");
@@ -308,9 +289,6 @@ acpiinit(void)
         if (ACPI_FAILURE(status))
 		panic("Can't Initialize ACPI objects");
 
-	/* Set PIC mode. This actually executes AML. */
-
-
 	int sublen;
 	uint8_t *p;
 	extern uint8_t *apicbase;
@@ -326,8 +304,10 @@ acpiinit(void)
 		}
 		print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
 	}
-	if (! set_machine_mode())
+	if (! set_machine_mode()){
+		print("Set machine mode failed\n");
 		return 0;
+	}
 
 	p = (void*)&m[1];
 	sublen = m->Header.Length;
@@ -373,6 +353,11 @@ print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 		p += p[1];
 	}
 
+	/* Get the _PRT */
+	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, "\\_SB.PCI0._PRT", NULL, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	hexdump(out.Pointer, out.Length);
 	return 0;
 }
 
