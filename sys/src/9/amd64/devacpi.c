@@ -609,7 +609,11 @@ AcpiOsVprintf (
     const char              *Format,
     va_list                 Args)
 {
-	print((char *)Format, Args);
+	/* This is a leaf function, and this function is required to implement
+	 * the va_list argument. I couldn't find any other way to do this. */
+	static char buf[1024];
+	vseprint(buf, &buf[1023], Format, Args);
+	print(buf);
 }
 
 void
