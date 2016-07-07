@@ -47,8 +47,8 @@ main(void)
 	}
 
 	fprint(2, "Double-precision test number: %s\n", DPRECSTR);
-	fprint(2, "Expected internal representation: %ullx\n", dieee);
-	fprint(2, "Actual internal representation: %ullx\n", q);
+	fprint(2, "Expected internal representation: %llx\n", dieee);
+	fprint(2, "Actual internal representation: %llx\n", q);
 
 	if(q != dieee) {
 		print("FAIL\n");
