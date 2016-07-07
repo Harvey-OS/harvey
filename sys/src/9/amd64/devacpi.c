@@ -223,6 +223,17 @@ AcpiOsTerminate (
 static int
 run_aml_arg(char *name, int val)
 {
+    ACPI_OBJECT arg1;
+    ACPI_OBJECT_LIST args;
+    ACPI_STATUS as;
+
+    arg1.Type = ACPI_TYPE_INTEGER;
+    arg1.Integer.Value = 1;
+    args.Count = 1;
+    args.Pointer = &arg1;
+
+    /* This does not work. Just leaving it here in case someone
+     * else thinks it will.
 	ACPI_STATUS as;
 	ACPI_OBJECT arg[] = {
 		{
@@ -234,9 +245,33 @@ run_aml_arg(char *name, int val)
 		.Count = 1,
 		.Pointer = arg
 	};
+    */
 	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, name, &args, NULL);
 	print("run_aml_arg(%s, %d) returns %d\n", name, val, as);
 	return as;
+}
+
+static int
+mset_machine_mode(void)
+{
+    ACPI_OBJECT arg1;
+    ACPI_OBJECT_LIST args;
+    ACPI_STATUS as;
+
+    arg1.Type = ACPI_TYPE_INTEGER;
+    arg1.Integer.Value = 1;
+    args.Count = 1;
+    args.Pointer = &arg1;
+
+    as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, "_PIC", &args, NULL);
+    print("I did it? %d\n", as);
+    /*
+     * We can silently ignore failure as it may not be implemented, ACPI should
+     * provide us with correct information anyway
+     */
+    if (ACPI_SUCCESS(as))
+	    print("ACPI: machine set to PIC mode\n");
+    return 0;
 }
 
 static int
@@ -612,7 +647,7 @@ AcpiOsVprintf (
 	/* This is a leaf function, and this function is required to implement
 	 * the va_list argument. I couldn't find any other way to do this. */
 	static char buf[1024];
-	vseprint(buf, &buf[1023], Format, Args);
+	vseprint(buf, &buf[1023], (char *)Format, Args);
 	print(buf);
 }
 
