@@ -63,6 +63,7 @@
 			"clean.json",
 			"../boot/bootconf.json",
 			"inith.json",
+			"/sys/src/libacpi/acpica/klibacpi.json",
 			"/sys/src/libmemdraw/klibmemdraw.json",
 			"/sys/src/libdraw/klibdraw.json"
 		],
