@@ -1,3 +1,5 @@
+
+
 cc_library(
     name="klibacpi",
     includes=[
@@ -6,7 +8,7 @@ cc_library(
         "//sys/include",
         "//amd64/include",
     ],
-    srcs=glob(["acpica/components/*/*.c"]),
+    srcs=glob(["acpica/components/*/*.c"], exclude=["acpica/components/disassembler"]),
     copts=[
         "-DACPI_DEBUGGER",
         "-DACPI_DEBUG_OUTPUT",
