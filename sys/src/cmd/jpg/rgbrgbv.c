@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 		r = (rgb>>16) & 0xFF;
 		g = (rgb>>8) & 0xFF;
 		b = (rgb>>0) & 0xFF;
-		print("0x%.6ulX, ", (r<<16) | (g<<8) | b);
+		print("0x%.6lX, ", (r<<16) | (g<<8) | b);
 		if(i%8 == 7)
 			print("\n");
 	}
