@@ -231,7 +231,7 @@ grestate(Conv *c, char *state, int n)
 	p    = state;
 	ep   = p + n;
 	p    = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %lx "
-	 "pending %lu  %lu buffered dl %lu %lu ul %lu %lu ulkey %.8ulx\n",
+	 "pending %lu  %lu buffered dl %lu %lu ul %lu %lu ulkey %.8lx\n",
 			c->inuse? "Open ": "Closed ",
 			grec->raw? "raw ": "",
 			grec->dlsusp? "DL suspended ": "",
