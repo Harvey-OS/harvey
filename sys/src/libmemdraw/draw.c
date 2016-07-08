@@ -561,24 +561,24 @@ dumpbuf(char *s, Buffer b, int n)
 	for(i=0; i<n; i++){
 		print(" ");
 		if(p=b.grey){
-			print(" k%.2uX", *p);
+			print(" k%.2X", *p);
 			b.grey += b.delta;
 		}else{	
 			if(p=b.red){
-				print(" r%.2uX", *p);
+				print(" r%.2X", *p);
 				b.red += b.delta;
 			}
 			if(p=b.grn){
-				print(" g%.2uX", *p);
+				print(" g%.2X", *p);
 				b.grn += b.delta;
 			}
 			if(p=b.blu){
-				print(" b%.2uX", *p);
+				print(" b%.2X", *p);
 				b.blu += b.delta;
 			}
 		}
 		if((p=b.alpha) != &ones){
-			print(" α%.2uX", *p);
+			print(" α%.2X", *p);
 			b.alpha += b.delta;
 		}
 	}

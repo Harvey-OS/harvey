@@ -532,7 +532,7 @@ i8250interrupt(Ureg* ureg, void* arg)
 			break;
 
 		default:
-			iprint("weird uart interrupt 0x%2.2uX\n", iir);
+			iprint("weird uart interrupt 0x%2.2X\n", iir);
 			break;
 		}
 	}
