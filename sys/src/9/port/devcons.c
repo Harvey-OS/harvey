@@ -82,7 +82,7 @@ Cmdtab rebootmsg[] =
  */
 struct {
 	Lock lk;
-	char buf[16384];
+	char buf[1048576];
 	uint n;
 } kmesg;
 
