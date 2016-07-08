@@ -614,7 +614,7 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 		buf[r] = '\0';
 	*status = atoi(buf);
 	if(n < 0 && (exabyte || *status != STcheck))
-		fprint(2, "scsireq: status 0x%2.2uX: data transfer: %r\n",
+		fprint(2, "scsireq: status 0x%2.2X: data transfer: %r\n",
 			*status);
 	return n;
 }

@@ -668,7 +668,7 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	for(i = 0; i < 0x40; i++){
 		if(i && ((i & 0x07) == 0))
 			l += snprint(p+l, READSTR-l, "\n       ");
-		l += snprint(p+l, READSTR-l, " %4.4uX", ctlr->eeprom[i]);
+		l += snprint(p+l, READSTR-l, " %4.4X", ctlr->eeprom[i]);
 	}
 	l += snprint(p+l, READSTR-l, "\n");
 
@@ -678,7 +678,7 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 			if(i && ((i & 0x07) == 0))
 				l += snprint(p+l, READSTR-l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, READSTR-l, " %4.4uX", r);
+			l += snprint(p+l, READSTR-l, " %4.4X", r);
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
@@ -1844,7 +1844,7 @@ igbereset(Ctlr* ctlr)
 	 * then get the device back to a power-on state.
 	 */
 	if((r = at93c46r(ctlr)) != 0xBABA){
-		print("igbe: bad EEPROM checksum - 0x%4.4uX\n", r);
+		print("igbe: bad EEPROM checksum - 0x%4.4X\n", r);
 		return -1;
 	}
 

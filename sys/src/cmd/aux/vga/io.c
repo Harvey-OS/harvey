@@ -66,7 +66,7 @@ outportb(int32_t port, uint8_t data)
 		iobfd = devopen("#P/iob", ORDWR);
 
 	if(pwrite(iobfd, &data, sizeof(data), port) != sizeof(data))
-		error("outportb(0x%4.4lx, 0x%2.2uX): %r\n", port, data);
+		error("outportb(0x%4.4lx, 0x%2.2X): %r\n", port, data);
 }
 
 uint16_t
@@ -89,7 +89,7 @@ outportw(int32_t port, uint16_t data)
 		iowfd = devopen("#P/iow", ORDWR);
 
 	if(pwrite(iowfd, &data, sizeof(data), port) != sizeof(data))
-		error("outportw(0x%4.4lx, 0x%2.2uX): %r\n", port, data);
+		error("outportw(0x%4.4lx, 0x%2.2X): %r\n", port, data);
 }
 
 uint32_t
@@ -276,7 +276,7 @@ dumpbios(int32_t size)
 	for(i = 0; i < size; i += 16){
 		Bprint(&stdout, "0x%lX", offset+i);
 		for(n = 0; n < 16; n++)
-			Bprint(&stdout, " %2.2uX", buf[i+n]);
+			Bprint(&stdout, " %2.2X", buf[i+n]);
 		Bprint(&stdout, "  ");
 		for(n = 0; n < 16; n++){
 			c = buf[i+n];

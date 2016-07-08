@@ -1040,10 +1040,10 @@ patom(uint8_t type, Store *res)
 		Bprint(bout, "%.16llux", res->ival);
 		break;
 	case 'o':
-		Bprint(bout, "0%.11uo", (int)res->ival&0xffff);
+		Bprint(bout, "0%.11o", (int)res->ival&0xffff);
 		break;
 	case 'O':
-		Bprint(bout, "0%.6uo", (int)res->ival);
+		Bprint(bout, "0%.6o", (int)res->ival);
 		break;
 	case 'q':
 		Bprint(bout, "0%.11o", (int16_t)(res->ival&0xffff));

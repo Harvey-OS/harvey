@@ -118,7 +118,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 		}
 //smblogprint(-1, "creating: before conversion attr 0x%.4x\n", attr);
 		p9attr = smbdosattr2plan9mode(attr);
-//smblogprint(-1, "creating: after conversion p9attr 0%.uo\n", p9attr);
+//smblogprint(-1, "creating: after conversion p9attr 0%.o\n", p9attr);
 		fd = create(fullpath, p9mode, p9attr);
 		if (fd >= 0) {
 			d = dirfstat(fd);
