@@ -77,10 +77,10 @@ tuple(int next, int expect)
 		return -1;
 	if(type == 0xff)
 		return -1;
-print("type %.2uX\n", type & 0xff);
+print("type %.2X\n", type & 0xff);
 
 	if(expect && expect != type){
-		print("expected %.2uX found %.2uX\n", 
+		print("expected %.2X found %.2X\n", 
 			expect, type);
 		return -1;
 	}
