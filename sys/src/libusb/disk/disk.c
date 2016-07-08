@@ -520,7 +520,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 				lun->ScsiReq.lbsize = 0;  /* medium may have changed */
 			break;
 		case Pstatus:
-			n = snprint(buf, sizeof buf, "%11.0ud ", lun->ScsiReq.status);
+			n = snprint(buf, sizeof buf, "%11.0u ", lun->ScsiReq.status);
 			count = usbreadbuf(data, count, 0LL, buf, n);
 			lun->phase = Pcmd;
 			break;

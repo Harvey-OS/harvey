@@ -269,7 +269,7 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 	case Nifstatqid:
 		return 0;
 	case Nmtuqid:
-		snprint(up->genbuf, sizeof up->genbuf, "%11.ud %11.ud %11.ud\n", nif->minmtu, nif->mtu, nif->maxmtu);
+		snprint(up->genbuf, sizeof up->genbuf, "%11.u %11.u %11.u\n", nif->minmtu, nif->mtu, nif->maxmtu);
 		return readstr(offset, a, n, up->genbuf);
 	}
 	error(Ebadarg);

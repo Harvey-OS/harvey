@@ -151,18 +151,18 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 		/* read toc errors are frequent and not very interesting */
 		if(n < 0 && (scsiverbose == 1 ||
 		    scsiverbose == 2 && cmd[0] != Readtoc))
-			fprint(2, "dat read: %r: cmd 0x%2.2uX\n", cmd[0]);
+			fprint(2, "dat read: %r: cmd 0x%2.2X\n", cmd[0]);
 		break;
 	case Swrite:
 		n = write(s->rawfd, data, dcount);
 		if(n != dcount && scsiverbose)
-			fprint(2, "dat write: %r: cmd 0x%2.2uX\n", cmd[0]);
+			fprint(2, "dat write: %r: cmd 0x%2.2X\n", cmd[0]);
 		break;
 	default:
 	case Snone:
 		n = write(s->rawfd, resp, 0);
 		if(n != 0 && scsiverbose)
-			fprint(2, "none write: %r: cmd 0x%2.2uX\n", cmd[0]);
+			fprint(2, "none write: %r: cmd 0x%2.2X\n", cmd[0]);
 		break;
 	}
 
@@ -181,7 +181,7 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 	if(status == 0)
 		return n;
 
-	werrstr("cmd %2.2uX: status %lX dcount %d n %d", cmd[0], status, dcount, n);
+	werrstr("cmd %2.2X: status %lX dcount %d n %d", cmd[0], status, dcount, n);
 	return -1;
 }
 

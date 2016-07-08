@@ -43,7 +43,7 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
 			continue;
 
 		uart->regs = ctlr;
-		snprint(buf, sizeof(buf), "%s.%8.8uX", name, p->tbdf);
+		snprint(buf, sizeof(buf), "%s.%8.8X", name, p->tbdf);
 		kstrdup(&uart->name, buf);
 		uart->freq = freq;
 		uart->phys = &i8250physuart;
