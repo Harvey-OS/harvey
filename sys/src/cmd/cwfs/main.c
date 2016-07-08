@@ -444,7 +444,7 @@ serve(void *)
 			if(cp->protocol == nil){
 				print("no protocol for message\n");
 				for(i = 0; i < 12; i++)
-					print(" %2.2uX", mb->data[i]);
+					print(" %2.2X", mb->data[i]);
 				print("\n");
 			}
 		} else

@@ -86,7 +86,7 @@ vgaxi(int32_t port, uint8_t index)
 		break;
 
 	default:
-		error("vgaxi(0x%4.4lx, 0x%2.2uX): unknown port\n", port, index);
+		error("vgaxi(0x%4.4lx, 0x%2.2X): unknown port\n", port, index);
 		/*NOTREACHED*/
 		data = 0xFF;
 		break;
@@ -109,7 +109,7 @@ vgao(int32_t port, uint8_t data)
 		break;
 
 	default:
-		error("vgao(0x%4.4lX, 0x%2.2uX): unknown port\n", port, data);
+		error("vgao(0x%4.4lX, 0x%2.2X): unknown port\n", port, data);
 		/*NOTREACHED*/
 		break;
 	}
@@ -147,7 +147,7 @@ vgaxo(int32_t port, uint8_t index, uint8_t data)
 		break;
 
 	default:
-		error("vgaxo(0x%4.4lX, 0x%2.2uX, 0x%2.2uX): unknown port\n",
+		error("vgaxo(0x%4.4lX, 0x%2.2X, 0x%2.2X): unknown port\n",
 			port, index, data);
 		break;
 	}
