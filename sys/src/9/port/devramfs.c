@@ -36,14 +36,12 @@ static void
 raminit(void)
 {
 	ramroot = (struct RamFile *)smalloc(sizeof(struct RamFile));
-	print("ramroot %x\n", ramroot);
 	strcpy(ramroot->name, ".");
 	ramroot->length = 0;
 	ramroot->directory = 1;
 	ramroot->perm = DMDIR|0777;
 
 	struct RamFile* file = (struct RamFile*)smalloc(sizeof(struct RamFile));
-	print("file %x\n", file);
 	file->length = strlen(readme);
 	file->data = (unsigned char*)readme;
 	strcpy(file->name, "README");
@@ -94,7 +92,7 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 		        return 1;
 		}
 	}
-	for(i = 0; i <= pos; i++){
+	for(i = 0; i < pos; i++){
 		current = current->sibling;
 		if (current == nil){
 			return -1;
@@ -112,27 +110,27 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 static Walkqid*
 ramwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	qlock(&ramlock);
+	//qlock(&ramlock);
 	Walkqid* wqid =  devwalk(c, nc, name, nname, 0, 0, ramgen);
-	qunlock(&ramlock);
+	//qunlock(&ramlock);
 	return wqid;
 }
 
 static int32_t
 ramstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	qlock(&ramlock);
+	//qlock(&ramlock);
 	int32_t ret = devstat(c, dp, n, nil, 0, ramgen);
-	qunlock(&ramlock);
+	//qunlock(&ramlock);
 	return ret;
 }
 
 static Chan*
 ramopen(Chan *c, int omode)
 {
-	qlock(&ramlock);
+	//qlock(&ramlock);
 	Chan* ret = devopen(c, omode, nil, 0, ramgen);
-	qunlock(&ramlock);
+	//qunlock(&ramlock);
 	return ret;
 }
 
@@ -147,33 +145,33 @@ ramclose(Chan* c)
 static int32_t
 ramread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	qlock(&ramlock);
+	//qlock(&ramlock);
 	if (c->qid.type == QTDIR){
 		int32_t len =  devdirread(c, buf, n, nil, 0, ramgen);
-		qunlock(&ramlock);
+	//	qunlock(&ramlock);
 		return len;
 	}
 	// Read file
 	struct RamFile *file = (void*)c->qid.path;
 	int filelen = file->length;
 	if (off > filelen){
-		qunlock(&ramlock);
+	//	qunlock(&ramlock);
 		return 0;
 	}
 	if (off + n > filelen){
 		n = filelen - off;
 	}
 	memcpy(buf, file->data, n);
-	qunlock(&ramlock);
+//	qunlock(&ramlock);
 	return n;
 }
 
 static int32_t
 ramwrite(Chan* c, void* v, int32_t n, int64_t m)
 {
-	qlock(&ramlock);
+//	qlock(&ramlock);
 	error(Egreg);		// TODO
-	qunlock(&ramlock);
+//	qunlock(&ramlock);
 	return 0;
 }
 
