@@ -122,7 +122,6 @@
 			"port/lock.c",
 			"port/log.c",
 			"port/lrand.c",
-			"port/malloc.c",
 			"port/memccpy.c",
 			"port/memchr.c",
 			"port/memcmp.c",
