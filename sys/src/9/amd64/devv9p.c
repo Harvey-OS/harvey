@@ -30,7 +30,38 @@
 
 #define BY2PG PGSZ
 
+enum {
+	Qtopdir = 0,			// top directory
+	Qvirtqs,				// virtqs directory under the top
+	Qdevtop,				// toplevel for each device, based on the PCI device number
+	Qdevcfg,				// device config area read as a file
+};
+
+
+static Dirtab topdir[] = {
+	".",		{ Qtopdir, 0, QTDIR },	0,	DMDIR|0555,
+	"virtqs",	{ Qvirtqs, 0, QTDIR },	0,	DMDIR|0555,
+};
+
 extern Dev v9pdevtab;
+
+// Map device identifiers to descriptive strings to display as virtio device names.
+
+typedef struct
+{
+	uint16_t did;
+	char *desc;
+} didmap;
+
+static didmap dmtab[] = {
+	PCI_DEVICE_ID_VIRTIO_NET, "net",
+	PCI_DEVICE_ID_VIRTIO_BLOCK, "block",
+	PCI_DEVICE_ID_VIRTIO_BALLOON, "balloon",
+	PCI_DEVICE_ID_VIRTIO_CONSOLE, "console",
+	PCI_DEVICE_ID_VIRTIO_SCSI, "scsi",
+	PCI_DEVICE_ID_VIRTIO_RNG, "rng",
+	PCI_DEVICE_ID_VIRTIO_9P, "9p",
+};
 
 // Specific device control structures. They are preallocated during the driver
 // initialization and remain mainly constant during the kernel uptime.
@@ -44,7 +75,8 @@ typedef struct V9pctl		// per-device control structure
 	uint32_t feat;			// host features
 	uint32_t nqs;			// virt queues count
 	Virtq **vqs;			// virt queues descriptors
-	char *mount_tag;		// mount tag obtained from the device configuration
+	uint32_t dcfglen;		// device config area length
+	uint32_t dcfgoff;		// device config area offset (20 or 24)
 } V9pctl;
 
 static V9pctl **cv9p;		// array of device control structure pointers, length = nv9p
@@ -52,6 +84,43 @@ static V9pctl **cv9p;		// array of device control structure pointers, length = n
 static int
 v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Proc *up = externup();
+	Qid q;
+	int t = TYPE(c->qid);
+	
+//print("\nv9pgen: type %d, s %d\n", t, s);
+	switch(t){
+	case Qtopdir:
+		if(s == DEVDOTDOT){
+			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", v9pdevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+			return 1;
+		}
+		return devgen(c, nil, topdir, nelem(topdir), s, dp);
+	case Qvirtqs:
+		if(s == DEVDOTDOT){
+			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", v9pdevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+			return 1;
+		}
+		if(s >= nv9p)
+			return -1;
+		char *dmap = nil;
+		for(int i = 0; i < nelem(dmtab) ; i++) {
+			if(cv9p[s]->pci->did == dmtab[i].did) {
+				dmap = dmtab[i].desc;
+				break;
+			}
+		}
+		snprint(up->genbuf, sizeof up->genbuf, "%s-%d", dmap?dmap:"virtio", s);
+		q = (Qid) {QID(s, Qdevtop), 0, QTDIR};
+		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+		return 1;
+	default:
+		return -1;
+	}
 	return -1;
 }
 
@@ -59,6 +128,7 @@ v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 static Chan*
 v9pattach(char *spec)
 {
+print("v9pattach %s\n", spec);
 	return devattach(v9pdevtab.dc, spec);
 }
 
@@ -66,12 +136,14 @@ v9pattach(char *spec)
 Walkqid*
 v9pwalk(Chan* c, Chan *nc, char** name, int nname)
 {
+//print("v9pwalk %d -> %d\n", c?TYPE(c->qid):-1, nc?TYPE(nc->qid):-1);
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, v9pgen);
 }
 
 static int32_t
 v9pstat(Chan* c, uint8_t* dp, int32_t n)
 {
+//print("v9pstat %d\n", TYPE(c->qid));
 	return devstat(c, dp, n, (Dirtab *)0, 0L, v9pgen);
 }
 
@@ -79,6 +151,7 @@ v9pstat(Chan* c, uint8_t* dp, int32_t n)
 static Chan*
 v9popen(Chan *c, int omode)
 {
+//print("v9open %d\n", TYPE(c->qid));
 	c = devopen(c, omode, (Dirtab*)0, 0, v9pgen);
 	switch(TYPE(c->qid)){
 	default:
@@ -90,17 +163,26 @@ v9popen(Chan *c, int omode)
 static void
 v9pclose(Chan* c)
 {
+//print("v9pclose %d\n", TYPE(c->qid));
 }
 
 static int32_t
 v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	return -1;
+//print("v9pread %d %d %d\n", TYPE(c->qid), n, offset);
+	switch(TYPE(c->qid)) {
+	case Qtopdir:
+	case Qvirtqs:
+		return devdirread(c, va, n, (Dirtab *)0, 0L, v9pgen);
+	default:
+		return -1;
+	}
 }
 
 static int32_t
 v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
+print("v9pwrite %d %d %d\n", TYPE(c->qid), n, offset);
 	return -1;
 }
 
@@ -120,7 +202,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 		outs(port + VIRTIO_PCI_QUEUE_SEL, cnt);
 		int qs = ins(port + VIRTIO_PCI_QUEUE_NUM);
 		print("\nv9p queue %d size %d\n", cnt, qs);
-		if(qs == 0 || (qs & (qs-1)) != 0)
+		if(cnt >= 64 || qs == 0 || (qs & (qs-1)) != 0)
 			break;
 		if(vqs != nil) {
 			// Allocate vq's descriptor space, used and available spaces, all page-aligned.
@@ -161,8 +243,6 @@ find9p(V9pctl **vcs)
 	Pcidev *p;
 	// Scan the collected PCI devices info, find possible 9p devices
 	for(p = nil; p = pcimatch(p, PCI_VENDOR_ID_REDHAT_QUMRANET, 0);) {
-		if(p->did != PCI_DEVICE_ID_VIRTIO_9P)
-			continue;
 		if(vcs != nil) {
 			vcs[cnt] = malloc(sizeof(V9pctl));
 			if(vcs[cnt] == nil) {
@@ -201,17 +281,9 @@ find9p(V9pctl **vcs)
 					outl(vc->port + VIRTIO_PCI_QUEUE_PFN, PADDR(q->desc)/BY2PG);
 				}
 			}
-			// Device config space contains mount tag supposedly in consecutive 8bit input ports
-			// Read the tag length from the 0-offset word (16bit) of the config space
-			int taglen = ins(vc->port + VIRTIO_PCI_CONFIG_OFF(msix_enabled));
-			print("\nv9p: taglen %d\n", taglen);
-			// Allocate the space for mount tag, read byte by byte, 0-terminate
-			vc->mount_tag = malloc(taglen + 1);
-			memset(vc->mount_tag, 0, taglen + 1);
-			for(int i = 0; i <= taglen; i++) {
-				vc->mount_tag[i] = inb(vc->port + VIRTIO_PCI_CONFIG_OFF(msix_enabled) + 2 + i);
-			}
-			print("\nv9p: mount tag %s\n", vc->mount_tag);
+			// Device config space contains data in consecutive 8bit input ports
+			vc->dcfgoff = VIRTIO_PCI_CONFIG_OFF(msix_enabled);
+			vc->dcfglen = vc->pci->mem[0].size - vc->dcfgoff;
 		}
 		cnt++;
 	}
