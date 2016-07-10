@@ -25,8 +25,10 @@
 #include	"virtio_config.h"
 #include	"virtio_pci.h"
 
-#define TYPE(q)		((uint32_t)(q).path & 0x0F)
-#define QID(c, t)	(((c)<<4)|(t))
+#define TYPE(q)			((uint32_t)(q).path & 0x0F)
+#define DEV(q)			((uint32_t)(((q).path >> 4) & 0x0FFF))
+#define QID(c, t)		((((c) & 0x0FFF)<<4) | ((t) & 0x0F))
+#define VQQID(q, c, t)	((((q) & 0x0FFFF)<<16) | (((c) & 0x0FFF)<<4) | (t & 0x0F))
 
 #define BY2PG PGSZ
 
@@ -87,6 +89,7 @@ v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 	Proc *up = externup();
 	Qid q;
 	int t = TYPE(c->qid);
+	int vdidx = DEV(c->qid);
 	
 //print("\nv9pgen: type %d, s %d\n", t, s);
 	switch(t){
@@ -118,6 +121,18 @@ v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		q = (Qid) {QID(s, Qdevtop), 0, QTDIR};
 		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 		return 1;
+	case Qdevtop:
+		vdidx = DEV(c->qid);
+		if(vdidx >= nv9p)
+			return -1;
+		if(s == 0) {					// device configuration area, report as a read-only file
+			snprint(up->genbuf, sizeof up->genbuf, "%s", "devcfg");
+			q = (Qid) {QID(vdidx, Qdevcfg), 0, 0};
+			devdir(c, q, up->genbuf, cv9p[vdidx]->dcfglen, eve, 0444, dp);
+			return 1;
+		} else {						// virtqueues
+			return -1;
+		}
 	default:
 		return -1;
 	}
@@ -166,14 +181,34 @@ v9pclose(Chan* c)
 //print("v9pclose %d\n", TYPE(c->qid));
 }
 
+// Reading from the device configuration area is byte-by-byte (8bit ports) to avoid dealing with
+// endianness.
+
 static int32_t
 v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 {
 //print("v9pread %d %d %d\n", TYPE(c->qid), n, offset);
+	int vdidx = DEV(c->qid);
+	int8_t *a;
+	uint32_t r;
 	switch(TYPE(c->qid)) {
 	case Qtopdir:
 	case Qvirtqs:
+	case Qdevtop:
 		return devdirread(c, va, n, (Dirtab *)0, 0L, v9pgen);
+	case Qdevcfg:
+		if(vdidx >= nv9p)
+			error(Ebadarg);
+		a = va;
+		r = offset;
+		int i;
+		for(i = 0; i < n; a++, i++) {
+			if(i + r >= cv9p[vdidx]->dcfglen)
+				break;
+			uint8_t b = inb(cv9p[vdidx]->port + cv9p[vdidx]->dcfgoff + i + r);
+			PBIT8(a, b);
+		}
+		return i;
 	default:
 		return -1;
 	}
