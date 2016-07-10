@@ -72,7 +72,6 @@
 					"usbehci"
 				],
 				"Sd": [
-					"sdata",
 					"sdiahci"
 				],
 				"Uart": [
