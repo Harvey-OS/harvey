@@ -1,4 +1,5 @@
 KLIBS=[
+	"//sys/src/libacpi:klibacpi",
 	"//sys/src/libmemlayer:klibmemlayer",
 	"//sys/src/libmemdraw:klibmemdraw",
 	"//sys/src/libdraw:klibdraw",
@@ -7,53 +8,53 @@ KLIBS=[
 	"//sys/src/libsec:klibsec",
 ]
 group(
-    name="klibs",
-    deps=KLIBS
+	name="klibs",
+	deps=KLIBS
 )
 
 LIBS=[
-        "//sys/src/libc:libc",
-        "//sys/src/libip:libip",
-        "//sys/src/libdraw:libdraw",
-        "//sys/src/lib9p:lib9p",
-        "//sys/src/libString:libString",
-        "//sys/src/libauth:libauth",
-        "//sys/src/libauthsrv:libauthsrv",
-        "//sys/src/libbin:libbin",
-        "//sys/src/libbio:libbio",
-        "//sys/src/libcomplete:libcomplete",
-        "//sys/src/libcontrol:libcontrol",
-        "//sys/src/libdisk:libdisk",
-        "//sys/src/libflate:libflate",
-        "//sys/src/libframe:libframe",
-        "//sys/src/libgeometry:libgeometry",
-        "//sys/src/libhttpd:libhttpd",
-        "//sys/src/liblex:liblex",
-        "//sys/src/libmach:libmach",
-        "//sys/src/libmemdraw:libmemdraw",
-        "//sys/src/libmemlayer:libmemlayer",
-        "//sys/src/libmp:libmp",
-        "//sys/src/libndb:libndb",
-        "//sys/src/liboventi:liboventi",
-        "//sys/src/libplumb:libplumb",
-        "//sys/src/libregexp:libregexp",
-        "//sys/src/libsec:libsec",
-        "//sys/src/libstdio:libstdio",
-        "//sys/src/libthread:libthread",
-        "//sys/src/libusb:libusb",
-        "//sys/src/libventi:libventi",
+	"//sys/src/libc:libc",
+	"//sys/src/libip:libip",
+	"//sys/src/libdraw:libdraw",
+	"//sys/src/lib9p:lib9p",
+	"//sys/src/libString:libString",
+	"//sys/src/libauth:libauth",
+	"//sys/src/libauthsrv:libauthsrv",
+	"//sys/src/libbin:libbin",
+	"//sys/src/libbio:libbio",
+	"//sys/src/libcomplete:libcomplete",
+	"//sys/src/libcontrol:libcontrol",
+	"//sys/src/libdisk:libdisk",
+	"//sys/src/libflate:libflate",
+	"//sys/src/libframe:libframe",
+	"//sys/src/libgeometry:libgeometry",
+	"//sys/src/libhttpd:libhttpd",
+	"//sys/src/liblex:liblex",
+	"//sys/src/libmach:libmach",
+	"//sys/src/libmemdraw:libmemdraw",
+	"//sys/src/libmemlayer:libmemlayer",
+	"//sys/src/libmp:libmp",
+	"//sys/src/libndb:libndb",
+	"//sys/src/liboventi:liboventi",
+	"//sys/src/libplumb:libplumb",
+	"//sys/src/libregexp:libregexp",
+	"//sys/src/libsec:libsec",
+	"//sys/src/libstdio:libstdio",
+	"//sys/src/libthread:libthread",
+	"//sys/src/libusb:libusb",
+	"//sys/src/libventi:libventi",
 ]
 group(
-    name="libs",
-    deps=LIBS
+	name="libs",
+	deps=LIBS
 )
 
 
 group(
-    name="all",
-    deps=[
-        ":klibs",
-        ":libs",
-        "//sys/src/cmd:cmds",
-    ]
+	name="all",
+	deps=[
+		":klibs",
+		":libs",
+		"//sys/src/cmd:cmds",
+	]
 )
