@@ -49,7 +49,7 @@
 					"ws",
 					"usb",
 					"vga",
-					"v9p"
+					"vq"
 				],
 				"Ip": [
 					"tcp",
@@ -118,7 +118,7 @@
 			"devacpi.c",
 			"devusb.c",
 			"devvga.c",
-			"devv9p.c",
+			"devvq.c",
 			"ether8139.c",
 			"ether82563.c",
 			"cpu.c",

@@ -8,6 +8,8 @@
  * contained in the LICENSE.gpl file.
  */
 
+// devvq.c ('#Q'): a generic virtqueue driver.
+
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -27,8 +29,9 @@
 
 #define TYPE(q)			((uint32_t)(q).path & 0x0F)
 #define DEV(q)			((uint32_t)(((q).path >> 4) & 0x0FFF))
+#define VQ(q)			((uint32_t)(((q).path >> 16) & 0x0FFFF))
 #define QID(c, t)		((((c) & 0x0FFF)<<4) | ((t) & 0x0F))
-#define VQQID(q, c, t)	((((q) & 0x0FFFF)<<16) | (((c) & 0x0FFF)<<4) | (t & 0x0F))
+#define VQQID(q, c, t)	((((q) & 0x0FFFF)<<16) | (((c) & 0x0FFF)<<4) | ((t) & 0x0F))
 
 #define BY2PG PGSZ
 
@@ -37,6 +40,8 @@ enum {
 	Qvirtqs,				// virtqs directory under the top
 	Qdevtop,				// toplevel for each device, based on the PCI device number
 	Qdevcfg,				// device config area read as a file
+	Qvqdata,				// virtqueue file entry for reading-writing messages
+	Qvqctl,					// virtqueue file entry for control operations, write-only
 };
 
 
@@ -45,7 +50,7 @@ static Dirtab topdir[] = {
 	"virtqs",	{ Qvirtqs, 0, QTDIR },	0,	DMDIR|0555,
 };
 
-extern Dev v9pdevtab;
+extern Dev vqdevtab;
 
 // Map device identifiers to descriptive strings to display as virtio device names.
 
@@ -68,9 +73,9 @@ static didmap dmtab[] = {
 // Specific device control structures. They are preallocated during the driver
 // initialization and remain mainly constant during the kernel uptime.
 
-static int nv9p;			// number of the detected virtio9p devices
+static int nvq;			// number of the detected virtio9p devices
 
-typedef struct V9pctl		// per-device control structure
+typedef struct vqctl		// per-device control structure
 {
 	Pcidev *pci;			// PCI device descriptor
 	uint32_t port;			// base I/O port for the legacy port-based interface
@@ -79,24 +84,41 @@ typedef struct V9pctl		// per-device control structure
 	Virtq **vqs;			// virt queues descriptors
 	uint32_t dcfglen;		// device config area length
 	uint32_t dcfgoff;		// device config area offset (20 or 24)
-} V9pctl;
+} vqctl;
 
-static V9pctl **cv9p;		// array of device control structure pointers, length = nv9p
+static vqctl **cvq;		// array of device control structure pointers, length = nvq
+
+// Get the virtqueue reference from a QID. Returns a valid VQ reference, or nil
+// if the QID does not correspond to an existing VQ.
+
+static Virtq *
+qid2vq(Qid q)
+{
+	int vdidx = DEV(q);
+	int vqidx = VQ(q);
+	if(vdidx >= nvq)
+		return nil;
+	vqctl *vc = cvq[vdidx];
+	if(vqidx >= vc->nqs)
+		return nil;
+	return vc->vqs[vqidx];
+}
+
 
 static int
-v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
+vqgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
 	Proc *up = externup();
 	Qid q;
 	int t = TYPE(c->qid);
 	int vdidx = DEV(c->qid);
 	
-//print("\nv9pgen: type %d, s %d\n", t, s);
+//print("\nvqgen: type %d, s %d\n", t, s);
 	switch(t){
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			snprint(up->genbuf, sizeof up->genbuf, "#%C", v9pdevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", vqdevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 			return 1;
 		}
@@ -104,15 +126,15 @@ v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 	case Qvirtqs:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			snprint(up->genbuf, sizeof up->genbuf, "#%C", v9pdevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", vqdevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 			return 1;
 		}
-		if(s >= nv9p)
+		if(s >= nvq)
 			return -1;
 		char *dmap = nil;
 		for(int i = 0; i < nelem(dmtab) ; i++) {
-			if(cv9p[s]->pci->did == dmtab[i].did) {
+			if(cvq[s]->pci->did == dmtab[i].did) {
 				dmap = dmtab[i].desc;
 				break;
 			}
@@ -123,15 +145,22 @@ v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		return 1;
 	case Qdevtop:
 		vdidx = DEV(c->qid);
-		if(vdidx >= nv9p)
+		if(vdidx >= nvq)
 			return -1;
 		if(s == 0) {					// device configuration area, report as a read-only file
-			snprint(up->genbuf, sizeof up->genbuf, "%s", "devcfg");
+			snprint(up->genbuf, sizeof up->genbuf, "devcfg");
 			q = (Qid) {QID(vdidx, Qdevcfg), 0, 0};
-			devdir(c, q, up->genbuf, cv9p[vdidx]->dcfglen, eve, 0444, dp);
+			devdir(c, q, up->genbuf, cvq[vdidx]->dcfglen, eve, 0444, dp);
 			return 1;
-		} else {						// virtqueues
-			return -1;
+		} else {						// virtqueues: odd s yield data entries, even s yield control entries
+			int t = s - 1;
+			if(t >= cvq[vdidx]->nqs * 2)
+				return -1;
+			int nq = (t & ~1) >> 1;
+			q = (Qid) {VQQID(nq, vdidx, (t&1)?Qvqctl:Qvqdata), 0, 0};
+			snprint(up->genbuf, sizeof up->genbuf, "vq%03d.%s", nq, (t&1)?"ctl":"data");
+			devdir(c, q, up->genbuf, (t&1)?0:cvq[vdidx]->vqs[nq]->num, eve, (t&1)?0222:0666, dp);
+			return 1;
 		}
 	default:
 		return -1;
@@ -141,33 +170,33 @@ v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 
 
 static Chan*
-v9pattach(char *spec)
+vqattach(char *spec)
 {
-print("v9pattach %s\n", spec);
-	return devattach(v9pdevtab.dc, spec);
+print("vqattach %s\n", spec);
+	return devattach(vqdevtab.dc, spec);
 }
 
 
 Walkqid*
-v9pwalk(Chan* c, Chan *nc, char** name, int nname)
+vqwalk(Chan* c, Chan *nc, char** name, int nname)
 {
-//print("v9pwalk %d -> %d\n", c?TYPE(c->qid):-1, nc?TYPE(nc->qid):-1);
-	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, v9pgen);
+//print("vqwalk %d -> %d\n", c?TYPE(c->qid):-1, nc?TYPE(nc->qid):-1);
+	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, vqgen);
 }
 
 static int32_t
-v9pstat(Chan* c, uint8_t* dp, int32_t n)
+vqstat(Chan* c, uint8_t* dp, int32_t n)
 {
-//print("v9pstat %d\n", TYPE(c->qid));
-	return devstat(c, dp, n, (Dirtab *)0, 0L, v9pgen);
+//print("vqstat %d\n", TYPE(c->qid));
+	return devstat(c, dp, n, (Dirtab *)0, 0L, vqgen);
 }
 
 
 static Chan*
-v9popen(Chan *c, int omode)
+vqopen(Chan *c, int omode)
 {
 //print("v9open %d\n", TYPE(c->qid));
-	c = devopen(c, omode, (Dirtab*)0, 0, v9pgen);
+	c = devopen(c, omode, (Dirtab*)0, 0, vqgen);
 	switch(TYPE(c->qid)){
 	default:
 		break;
@@ -176,18 +205,20 @@ v9popen(Chan *c, int omode)
 }
 
 static void
-v9pclose(Chan* c)
+vqclose(Chan* c)
 {
-//print("v9pclose %d\n", TYPE(c->qid));
+//print("vqclose %d\n", TYPE(c->qid));
 }
+
+
 
 // Reading from the device configuration area is byte-by-byte (8bit ports) to avoid dealing with
 // endianness.
 
 static int32_t
-v9pread(Chan *c, void *va, int32_t n, int64_t offset)
+vqread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-//print("v9pread %d %d %d\n", TYPE(c->qid), n, offset);
+//print("vqread %d %d %d\n", TYPE(c->qid), n, offset);
 	int vdidx = DEV(c->qid);
 	int8_t *a;
 	uint32_t r;
@@ -195,17 +226,17 @@ v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 	case Qtopdir:
 	case Qvirtqs:
 	case Qdevtop:
-		return devdirread(c, va, n, (Dirtab *)0, 0L, v9pgen);
+		return devdirread(c, va, n, (Dirtab *)0, 0L, vqgen);
 	case Qdevcfg:
-		if(vdidx >= nv9p)
+		if(vdidx >= nvq)
 			error(Ebadarg);
 		a = va;
 		r = offset;
 		int i;
 		for(i = 0; i < n; a++, i++) {
-			if(i + r >= cv9p[vdidx]->dcfglen)
+			if(i + r >= cvq[vdidx]->dcfglen)
 				break;
-			uint8_t b = inb(cv9p[vdidx]->port + cv9p[vdidx]->dcfgoff + i + r);
+			uint8_t b = inb(cvq[vdidx]->port + cvq[vdidx]->dcfgoff + i + r);
 			PBIT8(a, b);
 		}
 		return i;
@@ -215,9 +246,9 @@ v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 }
 
 static int32_t
-v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
+vqwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-print("v9pwrite %d %d %d\n", TYPE(c->qid), n, offset);
+print("vqwrite %d %d %d\n", TYPE(c->qid), n, offset);
 	return -1;
 }
 
@@ -236,7 +267,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 	while(1) {
 		outs(port + VIRTIO_PCI_QUEUE_SEL, cnt);
 		int qs = ins(port + VIRTIO_PCI_QUEUE_NUM);
-		print("\nv9p queue %d size %d\n", cnt, qs);
+		print("\nvq queue %d size %d\n", cnt, qs);
 		if(cnt >= 64 || qs == 0 || (qs & (qs-1)) != 0)
 			break;
 		if(vqs != nil) {
@@ -269,7 +300,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 // drivers.
 
 static int
-find9p(V9pctl **vcs)
+find9p(vqctl **vcs)
 {
 	int cnt = 0;
 	// TODO: this seems to work as if MSI-X is not enabled (device conf space starts at 20).
@@ -279,19 +310,19 @@ find9p(V9pctl **vcs)
 	// Scan the collected PCI devices info, find possible 9p devices
 	for(p = nil; p = pcimatch(p, PCI_VENDOR_ID_REDHAT_QUMRANET, 0);) {
 		if(vcs != nil) {
-			vcs[cnt] = malloc(sizeof(V9pctl));
+			vcs[cnt] = malloc(sizeof(vqctl));
 			if(vcs[cnt] == nil) {
-				print("\nv9p: failed to allocate device control structure for device %d\n", cnt);
+				print("\nvq: failed to allocate device control structure for device %d\n", cnt);
 				return cnt;
 			}
 			// Use the legacy interface
 			// Allocate the BAR0 I/O space to the driver
-			V9pctl *vc = vcs[cnt];
+			vqctl *vc = vcs[cnt];
 			vc->pci = p;
 			vc->port = p->mem[0].bar & ~0x1;
-			print("\nv9p: device[%d] port %lux\n", cnt, vc->port);
+			print("\nvq: device[%d] port %lux\n", cnt, vc->port);
 			if(ioalloc(vc->port, p->mem[0].size, 0, "virtio9p") < 0) {
-				print("\nv9p: port %lux in use\n", vc->port);
+				print("\nvq: port %lux in use\n", vc->port);
 				free(vc);
 				vcs[cnt] = nil;
 				return cnt;
@@ -299,10 +330,10 @@ find9p(V9pctl **vcs)
 			// Device reset
 			outb(vc->port + VIRTIO_PCI_STATUS, 0);
 			vc->feat = inl(vc->port + VIRTIO_PCI_HOST_FEATURES);
-			print("\nv9p: features %08x\n");
+			print("\nvq: features %08x\n");
 			outb(vc->port + VIRTIO_PCI_STATUS, VIRTIO_CONFIG_S_ACKNOWLEDGE|VIRTIO_CONFIG_S_DRIVER);
 			int nqs = findvqs(vc->port, 0, nil);
-			print("\nv9p: found %d queues\n", nqs);
+			print("\nvq: found %d queues\n", nqs);
 			// For each vq allocate and populate its descriptor
 			if(nqs > 0) {
 				vc->vqs = malloc(nqs * sizeof(Virtq *));
@@ -330,39 +361,39 @@ find9p(V9pctl **vcs)
 // virtio9p devices do not appear or disappear between reboots.
 
 void
-v9pinit(void)
+vqinit(void)
 {
 	print_func_entry();
-	print("\nv9p initializing\n");
-	nv9p = find9p(nil);
-	print("\nv9p: found %d devices\n", nv9p);
-	if(nv9p == 0) {
+	print("\nvq initializing\n");
+	nvq = find9p(nil);
+	print("\nvq: found %d devices\n", nvq);
+	if(nvq == 0) {
 		return;
 	}
-	cv9p = malloc(nv9p * sizeof(V9pctl *));
-	if(cv9p == nil) {
-		print("\nv9p: failed to allocate control structures\n");
+	cvq = malloc(nvq * sizeof(vqctl *));
+	if(cvq == nil) {
+		print("\nvq: failed to allocate control structures\n");
 		return;
 	}
-	find9p(cv9p);
+	find9p(cvq);
 }
 
-Dev v9pdevtab = {
-	.dc = 'J',
-	.name = "v9p",
+Dev vqdevtab = {
+	.dc = 'Q',
+	.name = "vq",
 
 	.reset = devreset,
-	.init = v9pinit,
+	.init = vqinit,
 	.shutdown = devshutdown,
-	.attach = v9pattach,
-	.walk = v9pwalk,
-	.stat = v9pstat,
-	.open = v9popen,
+	.attach = vqattach,
+	.walk = vqwalk,
+	.stat = vqstat,
+	.open = vqopen,
 	.create = devcreate,
-	.close = v9pclose,
-	.read = v9pread,
+	.close = vqclose,
+	.read = vqread,
 	.bread = devbread,
-	.write = v9pwrite,
+	.write = vqwrite,
 	.bwrite = devbwrite,
 	.remove = devremove,
 	.wstat = devwstat,
