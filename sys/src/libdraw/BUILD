@@ -64,7 +64,8 @@ cc_library(
         "writecolmap.c",
         "writeimage.c",
         "writesubfont.c"
-    ]
+    ],
+    alwayslink=true,
 )
 cc_library(
     name="libdraw",
