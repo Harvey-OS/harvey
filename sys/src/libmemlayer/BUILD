@@ -20,7 +20,8 @@ cc_library(
         "ltofront.c",
         "ltorear.c",
         "unload.c"
-    ]
+    ],
+    alwayslink=true,
 )
 
 cc_library(

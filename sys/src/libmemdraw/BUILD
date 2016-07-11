@@ -28,7 +28,8 @@ cc_library(
         "subfont.c",
         "unload.c",
         "write.c"
-    ]
+    ],
+    alwayslink=true,
 )
 
 cc_library(

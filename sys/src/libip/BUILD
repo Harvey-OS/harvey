@@ -20,6 +20,7 @@ cc_library(
         "ipaux.c",
         "ptclbsum.c",
     ],
+    alwayslink=true,
 )
 
 cc_library(
