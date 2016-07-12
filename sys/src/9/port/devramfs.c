@@ -23,6 +23,8 @@ struct RamFile {
 	struct RamFile *sibling;
 	uint64_t length;
 	int perm;
+	int opencount;
+	int deleteonclose;
 	uint8_t	*data;
 };
 
@@ -134,12 +136,32 @@ ramopen(Chan *c, int omode)
 	return ret;
 }
 
-/*
- * sysremove() knows this is a nop
- */
+static void
+delete(struct RamFile* file)
+{
+	struct RamFile* prev;
+	// Find previous file
+	qlock(&ramlock);
+	for(prev = file->parent; prev != nil && prev->sibling != file; prev = prev->sibling)
+		;
+	if(prev == nil){
+	qunlock(&ramlock);
+		error(Eperm);
+	} else {
+		prev->sibling = file->sibling;
+		qunlock(&ramlock);
+		free(file->data);
+		free(file);
+	}
+}
+
 static void
 ramclose(Chan* c)
 {
+        struct RamFile* file = (struct RamFile *)c->qid.path;
+        if(file->deleteonclose){
+               delete(file);
+        }
 }
 
 static int32_t
@@ -223,13 +245,30 @@ ramcreate(Chan* c, char *name, int omode, int i)
         c->flag |= COPEN;
 }
 
+void
+ramshutdown(void)
+{
+	
+
+}
+
+void
+ramremove(Chan* c)
+{
+	struct RamFile* doomed = (struct RamFile *)c->qid.path;
+	if(doomed->opencount == 0){
+		delete(doomed);
+	}
+	doomed->deleteonclose =1;
+}
+
 Dev ramdevtab = {
 	.dc = '@',
 	.name = "ram",
 
 	.reset = ramreset,
 	.init = raminit,
-	.shutdown = devshutdown,
+	.shutdown = ramshutdown,
 	.attach = ramattach,
 	.walk = ramwalk,
 	.stat = ramstat,
@@ -240,6 +279,6 @@ Dev ramdevtab = {
 	.bread = devbread,
 	.write = ramwrite,
 	.bwrite = devbwrite,
-	.remove = devremove,
+	.remove = ramremove,
 	.wstat = devwstat,
 };
