@@ -600,7 +600,7 @@ realloc(void* ap, uint32_t size)
 	if((ounits = p->s.size) == 0 || p->s.next != &checkval)
 		panic("realloc: corrupt allocation arena\n");
 
-	if((nunits = NUNITS(size)) == ounits)
+	if((nunits = NUNITS(size)) <= ounits)
 		return ap;
 
 	/*
