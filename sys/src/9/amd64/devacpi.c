@@ -258,6 +258,88 @@ set_machine_mode(void)
 	return run_aml_arg("_PIC", 1);
 }
 
+void pi(int indent)
+{
+	int i;
+	for(i = 0; i < indent; i++)
+		print(" ");
+}
+
+/* walk the whatever. Limited, right now. */
+static void
+objwalk(ACPI_OBJECT *p)
+{
+	static int indent;
+	int cnt;
+	ACPI_OBJECT *e;
+	pi(indent);
+	switch(p->Type) {
+	case 4: // ACPI_DESC_TYPE_STATE_PACKAGE:
+		print("Package:\n");
+		indent += 2;
+		e = p->Package.Elements;
+		for(cnt = 0; cnt < p->Package.Count; cnt++, e++){
+			objwalk(e);
+		}
+			
+		indent -= 2;
+		print("\n");
+		break;
+	case 1:
+		print("Integer:0x%llx", p->Integer.Value);
+		break;
+	default:
+		print("Can't handle type %d\n", p->Type);
+		break;
+	}
+			
+}
+
+ACPI_STATUS
+device(ACPI_HANDLE                     Object,
+    UINT32                          NestingLevel,
+    void                            *Context,
+    void                            **ReturnValue)
+
+{
+	ACPI_STATUS as;
+	ACPI_DEVICE_INFO *info;
+	as = AcpiGetObjectInfo(Object, &info);
+	print("as is %d\n", as);
+	if (!ACPI_SUCCESS(as))
+		return 0;
+	ACPI_BUFFER out;
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
+	char n[5];
+	memmove(n, &info->Name, sizeof(info->Name));
+	n[4] = 0;
+	print("%s\n", n);
+	as = AcpiGetIrqRoutingTable(Object, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	if (ACPI_SUCCESS(as)) {
+		void *p = (void *)out.Pointer;
+		while(((ACPI_PCI_ROUTING_TABLE*)p)->Length > 0) {
+			ACPI_PCI_ROUTING_TABLE *t = p;
+			print("%s: ", t->Source);
+			print("Pin 0x%x, Address 0x%llx, SourceIndex 0x%x\n", 
+			      t->Address, t->SourceIndex);
+			p += t->Length;
+		}
+	}
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
+	as = AcpiGetPossibleResources(Object, &out);
+	print("get the possible resources: %d\n", as);
+	if (ACPI_SUCCESS(as)) {
+		print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	}
+	print("hi\n");
+	
+	return 0;
+}
+
 int
 acpiinit(void)
 {
@@ -266,8 +348,8 @@ acpiinit(void)
 	ACPI_BUFFER out;
 	int status;
 	int apiccnt = 1;
-	out.Length = 16384;
-	out.Pointer = malloc(16384);
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
 		panic("can't start acpi");
@@ -358,6 +440,18 @@ print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 	print("get the PRT: %d\n", as);
 	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
 	hexdump(out.Pointer, out.Length);
+	objwalk(out.Pointer);
+
+	as = AcpiGetDevices (nil, device, nil, nil);
+	print("acpigetdevices %d\n", as);
+
+/* per device code. Not useful yet.
+
+	as = AcpiGetIrqRoutingTable(some device, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	hexdump(out.Pointer, out.Length);
+*/
 	return 0;
 }
 
