@@ -55,6 +55,7 @@ static Mpbus mpbusdef[] = {
 	{ "ISA   ", IPhigh, TMedge, },
 };
 static Mpbus* mpbus[Nbus];
+static int hackisabusno = -1;
 int mpisabusno = -1;
 
 static void
@@ -88,6 +89,7 @@ mpmkintr(uint8_t* p)
 	 * to imagine routing a signal to all IOAPICs, the
 	 * usual case is routing NMI and ExtINT to all LAPICs.
 	 */
+	if (p[4] == hackisabusno) p[4] = mpisabusno;
 	if(mpbus[p[4]] == nil){
 		mpintrprint("no source bus", p);
 		return 0;
@@ -222,6 +224,8 @@ print("MP: add an apic, # %d\n", p[1]);
 		break;
 	case 1:					/* bus */
 		print("CODE: /* case 1, bus */\n");
+		if (p[1] == hackisabusno)
+				p[1] = 0xff;
 		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
 print("MP: adda  bus %d\n", p[1]);
 		if(mpbus[p[1]] != nil){
@@ -238,6 +242,8 @@ print("MP: adda  bus %d\n", p[1]);
 						p[1], mpisabusno);
 					continue;
 				}
+				hackisabusno = p[1];
+				p[1] = 0xff;
 				mpisabusno = p[1];
 print("CODE: mpisabusno = %d\n", p[1]);
 			}
@@ -296,7 +302,8 @@ print("CODE: ioapicinit(%d, %p);\n", p[i], l32get(p+4));
 		devno = p[5];
 		if(memcmp(mpbus[p[4]]->type, "PCI   ", 6) != 0)
 			devno <<= 2;
-print("CODE: ioapicintrinit(0x%x, 0x%x, 0x%x, 0x%x, 0x%d\n", p[4], p[6], p[7], devno, lo);
+print("CODE: ioapicintrinit(0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n", p[4], p[6], p[7], devno, lo);
+		if (p[4] == hackisabusno) p[4] = mpisabusno;
 		ioapicintrinit(p[4], p[6], p[7], devno, lo);
 
 		p += 8;
