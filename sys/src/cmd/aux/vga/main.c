@@ -54,7 +54,7 @@ resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
 {
 	Ctlr *link;
 
-	trace("%s->resyncinit on 0x%8.8luX off 0x%8.8luX\n",
+	trace("%s->resyncinit on 0x%8.8lX off 0x%8.8lX\n",
 		ctlr->name, on, off);
 
 	for(link = vga->link; link; link = link->link){
@@ -66,7 +66,7 @@ resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
 		if(link->init == 0 || (link->flag & Finit) == 0)
 			continue;
 		link->flag &= ~Finit;
-		trace("%s->init 0x%8.8luX\n", link->name, link->flag);
+		trace("%s->init 0x%8.8lX\n", link->name, link->flag);
 		(*link->init)(vga, link);
 	}
 }
@@ -425,7 +425,7 @@ main(int argc, char** argv)
 			if(vga->vesa)
 				vgactlw("type", vtype);
 
-			sprint(buf, "%lx%lx%d %s",
+			sprint(buf, "%lux%lux%d %s",
 				vga->virtx, vga->virty,
 				vga->mode->z, vga->mode->chan);
 			if(rflag){

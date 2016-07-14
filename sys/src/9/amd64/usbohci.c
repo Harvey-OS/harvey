@@ -866,7 +866,7 @@ seprinttd(char *s, char *e, Td *td, int iso)
 	s = seprint(s, e, "\n\t\t");
 	/* we use only offsets[0] */
 	i = 0;
-	s = seprint(s, e, "[%d] %#ux cc=%#ux sz=%u\n", i, td->offsets[i],
+	s = seprint(s, e, "[%d] %#x cc=%#x sz=%u\n", i, td->offsets[i],
 		(td->offsets[i] >> Tdiccshift) & Tdiccmask,
 		td->offsets[i] & 0x7FF);
 	return s;
@@ -942,7 +942,7 @@ static char*
 seprintio(char *s, char *e, Qio *io, char *pref)
 {
 	s = seprint(s, e, "%s qio %#p ed %#p", pref, io, io->ed);
-	s = seprint(s, e, " tog %d iot %ld err %s id %#ulx",
+	s = seprint(s, e, " tog %d iot %ld err %s id %#lx",
 		io->toggle, io->iotime, io->err, io->usbid);
 	s = seprinttdtok(s, e, io->tok);
 	s = seprint(s, e, " %s\n", iosname[io->state]);
@@ -1020,10 +1020,10 @@ dump(Hci *hp)
 	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	seprintctl(cs, cs+sizeof(cs), ctlr->ohci->control);
-	print("ohci ctlr %#p: frno %#ux ctl %#lux %s sts %#lux intr %#lux\n",
+	print("ohci ctlr %#p: frno %#x ctl %#lx %s sts %#lx intr %#lx\n",
 		ctlr, ctlr->hcca->framenumber, ctlr->ohci->control, cs,
 		ctlr->ohci->cmdsts, ctlr->ohci->intrsts);
-	print("ctlhd %#ulx cur %#ulx bulkhd %#ulx cur %#ulx done %#ulx\n",
+	print("ctlhd %#lx cur %#lx bulkhd %#lx cur %#lx done %#lx\n",
 		ctlr->ohci->ctlheaded, ctlr->ohci->ctlcurred,
 		ctlr->ohci->bulkheaded, ctlr->ohci->bulkcurred,
 		ctlr->ohci->donehead);
@@ -1319,7 +1319,7 @@ interrupt(Ureg *ureg, void *arg)
 	}
 	if((status & Ue) != 0){
 		curred = ctlr->ohci->periodcurred;
-		print("ohci: unrecoverable error frame 0x%.8lux ed 0x%.8lux, "
+		print("ohci: unrecoverable error frame 0x%.8lx ed 0x%.8lx, "
 			"ints %d %d %d %d\n",
 			ctlr->ohci->fmnumber, curred,
 			ohciinterrupts[Tctl], ohciinterrupts[Tintr],
@@ -1329,7 +1329,7 @@ interrupt(Ureg *ureg, void *arg)
 		status &= ~Ue;
 	}
 	if(status != 0)
-		print("ohci interrupt: unhandled sts 0x%.8lux\n", status);
+		print("ohci interrupt: unhandled sts 0x%.8lx\n", status);
 	ctlr->ohci->intrenable = Mie | Wdh | Ue;
 	iunlock(&ctlr->l);
 }
@@ -2285,7 +2285,7 @@ portstatus(Hci *hp, int port)
 	if(ohcistatus & Lsda)
 		v |= HPslow;
 	if(v & (HPstatuschg|HPchange))
-		ddprint("ohci port %d sts %#ulx hub sts %#x\n", port, ohcistatus, v);
+		ddprint("ohci port %d sts %#lx hub sts %#x\n", port, ohcistatus, v);
 	return v;
 }
 
@@ -2299,7 +2299,7 @@ dumpohci(Ctlr *ctlr)
 	print("ohci registers: \n");
 	for(i = 0; i < sizeof(Ohci)/sizeof(uint32_t); i++)
 		if(i < 3 || ohci[i] != 0)
-			print("\t[%#2.2x]\t%#8.8ulx\n", i * 4, ohci[i]);
+			print("\t[%#2.2x]\t%#8.8lx\n", i * 4, ohci[i]);
 	print("\n");
 }
 
@@ -2397,7 +2397,7 @@ scanpci(void)
 			continue;
 		}
 		if(p->intl == 0xFF || p->intl == 0) {
-			print("ohci: no irq assigned for port %#lux\n", mem);
+			print("ohci: no irq assigned for port %#lx\n", mem);
 			continue;
 		}
 

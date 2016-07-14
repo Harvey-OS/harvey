@@ -251,7 +251,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 			 * nc->dev should be nil here.
 			 */
 			if((*gen)(nc, nil, tab, ntab, DEVDOTDOT, &dir) != 1){
-				print("devgen walk .. in dev%s %#llux broken\n",
+				print("devgen walk .. in dev%s %#llx broken\n",
 					c->dev->name, nc->qid.path);
 				error("broken devgen");
 			}

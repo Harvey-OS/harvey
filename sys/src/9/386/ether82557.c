@@ -299,7 +299,7 @@ command(Ctlr* ctlr, int c, int v)
 	if(timeo >= 100){
 		ctlr->command = -1;
 		iunlock(&ctlr->rlock);
-		iprint("i82557: command %#ux %#ux timeout\n", c, v);
+		iprint("i82557: command %#x %#x timeout\n", c, v);
 		return;
 	}
 
@@ -537,7 +537,7 @@ txstart(Ether* ether)
 			ctlr->action = 0;
 		}
 		else{
-			print("#l%d: action %#ux\n", ether->ctlrno, ctlr->action);
+			print("#l%d: action %#x\n", ether->ctlrno, ctlr->action);
 			ctlr->action = 0;
 			break;
 		}
@@ -768,7 +768,7 @@ interrupt(Ureg* ureg, void* arg)
 		}
 
 		if(status & (StatCX|StatFR|StatCNA|StatRNR|StatMDI|StatSWI))
-			panic("#l%d: status %#ux\n", ether->ctlrno, status);
+			panic("#l%d: status %#x\n", ether->ctlrno, status);
 	}
 }
 
@@ -978,7 +978,7 @@ i82557pci(void)
 		 */
 		port = p->mem[1].bar & ~0x01;
 		if(ioalloc(port, p->mem[1].size, 0, "i82557") < 0){
-			print("i82557: port %#ux in use\n", port);
+			print("i82557: port %#x in use\n", port);
 			continue;
 		}
 
@@ -1115,7 +1115,7 @@ reset(Ether* ether)
 		sum += x;
 	}
 	if(sum != 0xBABA)
-		print("#l%d: EEPROM checksum - %#4.4ux\n", ether->ctlrno, sum);
+		print("#l%d: EEPROM checksum - %#4.4x\n", ether->ctlrno, sum);
 
 	/*
 	 * Eeprom[6] indicates whether there is a PHY and whether

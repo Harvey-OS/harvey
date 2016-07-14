@@ -754,9 +754,9 @@ chkfw(Ctlr *c)
 	uint32_t type;
 
 	off = gbit32(c->ram+0x3c);
-	dprint("firmware %llux\n", (uint64_t)off);
+	dprint("firmware %llx\n", (uint64_t)off);
 	if((off&3) || off + sizeof *h > c->ramsz){
-		print("!m10g: bad firmware %llux\n", (uint64_t)off);
+		print("!m10g: bad firmware %llx\n", (uint64_t)off);
 		return -1;
 	}
 	h = (Fwhdr*)(c->ram + off);
@@ -847,10 +847,10 @@ setmem(Pcidev *p, Ctlr *c)
 	raddr = p->mem[0].bar & ~0x0F;
 	mem = vmap(raddr, p->mem[0].size);
 	if(mem == nil){
-		print("m10g: can't map %8.8lux\n", p->mem[0].bar);
+		print("m10g: can't map %8.8lx\n", p->mem[0].bar);
 		return -1;
 	}
-	dprint("%llux <- vmap(mem[0].size = %x)\n", raddr, p->mem[0].size);
+	dprint("%llx <- vmap(mem[0].size = %x)\n", raddr, p->mem[0].size);
 	c->port = raddr;
 	c->ram = mem;
 	c->cmd = malign(sizeof *c->cmd);
