@@ -1996,13 +1996,13 @@ igbepci(void)
 
 		mem = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
 		if(mem == nil){
-			print("igbe: can't map %8.8luX\n", p->mem[0].bar);
+			print("igbe: can't map %8.8lX\n", p->mem[0].bar);
 			continue;
 		}
 		cls = pcicfgr8(p, PciCLS);
 		switch(cls){
 		default:
-			print("igbe: p->cls %#ux, setting to 0x10\n", p->cls);
+			print("igbe: p->cls %#x, setting to 0x10\n", p->cls);
 			p->cls = 0x10;
 			pcicfgw8(p, PciCLS, p->cls);
 			break;

@@ -365,7 +365,7 @@ vbecall(Vbe *vbe, Ureg *u)
 	if(pread(vbe->memfd, vbe->buf, PageSize, RealModeBuf) != PageSize)
 		error("read /dev/realmodemem: %r\n");
 	if((u->ax&0xFFFF) != 0x004F){
-		werrstr("VBE error %#.4lux", u->ax&0xFFFF);
+		werrstr("VBE error %#.4lx", u->ax&0xFFFF);
 		return -1;
 	}
 	memset(vbe->isvalid, 0, MemSize/PageSize);
