@@ -84,9 +84,10 @@ typedef struct vqctl		// per-device control structure
 	Virtq **vqs;			// virt queues descriptors
 	uint32_t dcfglen;		// device config area length
 	uint32_t dcfgoff;		// device config area offset (20 or 24)
+	int ownpid;				// PID of the process owning the device
 } vqctl;
 
-static vqctl **cvq;		// array of device control structure pointers, length = nvq
+static vqctl **cvq;			// array of device control structure pointers, length = nvq
 
 // Get the virtqueue reference from a QID. Returns a valid VQ reference, or nil
 // if the QID does not correspond to an existing VQ.
@@ -191,13 +192,35 @@ vqstat(Chan* c, uint8_t* dp, int32_t n)
 	return devstat(c, dp, n, (Dirtab *)0, 0L, vqgen);
 }
 
+// A process holding open the device configuration area has access to its virtqueues.
+// Other processes will be denied any access. PID of the claiming process is stored
+// in the ownpid field of the device descriptor. An unclaimed device has -1 in it.
 
 static Chan*
 vqopen(Chan *c, int omode)
 {
 //print("v9open %d\n", TYPE(c->qid));
+	Proc *up = externup();
+	uint t = TYPE(c->qid);
+	uint vdidx = DEV(c->qid);
+	if(vdidx >= nvq)
+		error(Ebadarg);
+	vqctl *vc = cvq[vdidx];
+	switch(t) {
+		case Qdevcfg:
+			if(vc->ownpid != -1)
+				error(Eperm);
+			vc->ownpid = up->pid;
+		case Qvqdata:
+		case Qvqctl:
+			if(vc->ownpid != up->pid)
+				error(Eperm);
+			break;
+		default:
+			break;
+	}
 	c = devopen(c, omode, (Dirtab*)0, 0, vqgen);
-	switch(TYPE(c->qid)){
+	switch(t) {
 	default:
 		break;
 	}
@@ -208,6 +231,21 @@ static void
 vqclose(Chan* c)
 {
 //print("vqclose %d\n", TYPE(c->qid));
+	Proc *up = externup();
+	uint t = TYPE(c->qid);
+	uint vdidx = DEV(c->qid);
+	if(vdidx >= nvq)
+		return;
+	vqctl *vc = cvq[vdidx];
+	if (vc->ownpid != up->pid)
+		return;
+	switch(t) {
+		case Qdevcfg:
+			vc->ownpid = -1;
+			break;
+		default:
+			break;
+	}
 }
 
 
@@ -228,8 +266,9 @@ vqread(Chan *c, void *va, int32_t n, int64_t offset)
 	case Qdevtop:
 		return devdirread(c, va, n, (Dirtab *)0, 0L, vqgen);
 	case Qdevcfg:
-		if(vdidx >= nvq)
+		if(vdidx >= nvq) {
 			error(Ebadarg);
+		}
 		a = va;
 		r = offset;
 		int i;
@@ -248,7 +287,7 @@ vqread(Chan *c, void *va, int32_t n, int64_t offset)
 static int32_t
 vqwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-print("vqwrite %d %d %d\n", TYPE(c->qid), n, offset);
+//print("vqwrite %d %d %d\n", TYPE(c->qid), n, offset);
 	return -1;
 }
 
@@ -267,7 +306,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 	while(1) {
 		outs(port + VIRTIO_PCI_QUEUE_SEL, cnt);
 		int qs = ins(port + VIRTIO_PCI_QUEUE_NUM);
-		print("\nvq queue %d size %d\n", cnt, qs);
+//print("\nvq queue %d size %d\n", cnt, qs);
 		if(cnt >= 64 || qs == 0 || (qs & (qs-1)) != 0)
 			break;
 		if(vqs != nil) {
@@ -291,7 +330,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 	return cnt;
 }
 
-// Scan the PCI devices list for possible virtio9p devices. If the vcs argument
+// Scan the PCI devices list for possible virtio devices. If the vcs argument
 // is not nil then populate the array of control structures, otherwise just return
 // the number of devices found. This function is intended to be called twice,
 // once with vcs = nil just to count the devices, and the second time to populate
@@ -350,6 +389,8 @@ find9p(vqctl **vcs)
 			// Device config space contains data in consecutive 8bit input ports
 			vc->dcfgoff = VIRTIO_PCI_CONFIG_OFF(msix_enabled);
 			vc->dcfglen = vc->pci->mem[0].size - vc->dcfgoff;
+			// No process has claimed the device yet
+			vc->ownpid = -1;
 		}
 		cnt++;
 	}
