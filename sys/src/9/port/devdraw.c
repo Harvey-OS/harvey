@@ -246,7 +246,7 @@ drawgen(Chan *c, char *cc, Dirtab *dt, int i, int s, Dir *dp)
 			devdir(c, q, up->genbuf, 0, eve, 0500, dp);
 			break;
 		default:
-			panic("drawwalk %llux", c->qid.path);
+			panic("drawwalk %llx", c->qid.path);
 		}
 		return 1;
 	}
@@ -1415,7 +1415,7 @@ printmesg(char *fmt, unsigned char *a, int plsprnt)
 			a += 4;
 			break;
 		case 'L':
-			q += snprint(q, left, " %.8lux", (uint32_t)BGLONG(a));
+			q += snprint(q, left, " %.8lx", (uint32_t)BGLONG(a));
 			a += 4;
 			break;
 		case 'R':

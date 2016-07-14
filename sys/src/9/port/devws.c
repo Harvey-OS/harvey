@@ -61,7 +61,7 @@ collect(void)
 	lock(&waitstatslk);
 	for(i = 0; i < NWstats; i++)
 		if(waitstats.pcs[i] != 0)
-			s = seprint(s, buf+n, "%s %#llux %d %#llud %#llud\n",
+			s = seprint(s, buf+n, "%s %#llx %d %#llud %#llud\n",
 				wname[waitstats.type[i]],
 				waitstats.pcs[i], waitstats.ns[i], waitstats.wait[i],
 				waitstats.total[i]);

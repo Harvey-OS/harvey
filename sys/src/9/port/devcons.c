@@ -662,7 +662,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return readstr(offset, buf, n, tmp);
 		break;
 	default:
-		print("consread %#llux\n", c->qid.path);
+		print("consread %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 	return -1;		/* never reached */
@@ -835,7 +835,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		error("#c/syscall: can only write on or off");
 		break;
 	default:
-		print("conswrite: %#llux\n", c->qid.path);
+		print("conswrite: %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 	return n;
