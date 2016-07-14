@@ -1196,7 +1196,7 @@ tlsread(Chan *c, void *a, int32_t n, int64_t off)
 		return n;
 	case Qctl:
 		buf = smalloc(Statlen);
-		snprint(buf, Statlen, "%llud", CONV(c->qid));
+		snprint(buf, Statlen, "%llu", CONV(c->qid));
 		n = readstr(offset, a, n, buf);
 		free(buf);
 		return n;

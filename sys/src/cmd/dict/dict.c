@@ -242,7 +242,7 @@ execcmd(int cmd)
 		}
 		switch(cmd) {
 		case 'a':
-			Bprint(bout, "#%lud\n", dot->doff[cur]);
+			Bprint(bout, "#%lu\n", dot->doff[cur]);
 			break;
 		case 'h':
 		case 'p':

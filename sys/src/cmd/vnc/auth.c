@@ -164,9 +164,9 @@ vncauth(Vnc *v, char *keypattern)
 	auth = vncrdlong(v);
 	switch(auth){
 	default:
-		werrstr("unknown auth type 0x%lux", auth);
+		werrstr("unknown auth type 0x%lx", auth);
 		if(verbose)
-			fprint(2, "unknown auth type 0x%lux", auth);
+			fprint(2, "unknown auth type 0x%lx", auth);
 		return -1;
 
 	case AFailed:
@@ -201,7 +201,7 @@ vncauth(Vnc *v, char *keypattern)
 		auth = vncrdlong(v);
 		switch(auth){
 		default:
-			werrstr("unknown server response 0x%lux", auth);
+			werrstr("unknown server response 0x%lx", auth);
 			return -1;
 		case VncAuthFailed:
 			werrstr("server says authentication failed");

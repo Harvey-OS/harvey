@@ -94,9 +94,9 @@ print("netbios session established\n");
 	peerinfo.utc =  (int64_t)secssince1970 * (int64_t)1000000000 + (utcintenthsofaus % 10000000) * 100;
 	peerinfo.tzoff = -smbnhgets(pdata) * 60; pdata += 2;
 	peerinfo.encryptionkeylength = *pdata++;
-	print("securitymode: 0x%.2ux\n", peerinfo.securitymode);
-	print("maxmpxcount: 0x%.4ux\n", peerinfo.maxmpxcount);
-	print("maxnumbervcs: 0x%.4ux\n", peerinfo.maxnumbervcs);
+	print("securitymode: 0x%.2x\n", peerinfo.securitymode);
+	print("maxmpxcount: 0x%.4x\n", peerinfo.maxmpxcount);
+	print("maxnumbervcs: 0x%.4x\n", peerinfo.maxnumbervcs);
 	print("maxbuffersize: 0x%.8lux\n", peerinfo.maxbuffersize);
 	print("maxrawsize: 0x%.8lux\n", peerinfo.maxrawsize);
 	print("sessionkey: 0x%.8lux\n", peerinfo.sessionkey);
@@ -111,7 +111,7 @@ print("netbios session established\n");
 	}
 	print("encryptionkey: ");
 	for (x = 0; x < peerinfo.encryptionkeylength; x++)
-		print("%.2ux", peerinfo.encryptionkey[x]);
+		print("%.2x", peerinfo.encryptionkey[x]);
 	print("\n");
 	if (!smbbuffergetucs2(b, 0, &peerinfo.oemdomainname)) {
 		smbstringprint(errmsgp, "not enough data for oemdomainname");

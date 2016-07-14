@@ -389,8 +389,8 @@ atadumpstate(Drive* drive, uint8_t* cmd, int64_t lba, int count)
 	}
 
 	ctlr = drive->ctlr;
-	print("sdata: command %2.2uX\n", ctlr->command);
-	print("data %8.8p limit %8.8p dlen %d status %uX error %uX\n",
+	print("sdata: command %2.2X\n", ctlr->command);
+	print("data %8.8p limit %8.8p dlen %d status %X error %X\n",
 		drive->data, drive->limit, drive->dlen,
 		drive->status, drive->error);
 	if(cmd != nil){
@@ -400,16 +400,16 @@ atadumpstate(Drive* drive, uint8_t* cmd, int64_t lba, int count)
 	}
 	if(!(inb(ctlr->ctlport+As) & Bsy)){
 		for(i = 1; i < 7; i++)
-			print(" 0x%2.2uX", inb(ctlr->cmdport+i));
-		print(" 0x%2.2uX\n", inb(ctlr->ctlport+As));
+			print(" 0x%2.2X", inb(ctlr->cmdport+i));
+		print(" 0x%2.2X\n", inb(ctlr->ctlport+As));
 	}
 	if(drive->command == Cwd || drive->command == Crd){
 		bmiba = ctlr->bmiba;
 		prd = ctlr->prdt;
-		print("bmicx %2.2uX bmisx %2.2uX prdt %8.8p\n",
+		print("bmicx %2.2X bmisx %2.2X prdt %8.8p\n",
 			inb(bmiba+Bmicx), inb(bmiba+Bmisx), prd);
 		for(;;){
-			print("pa 0x%8.8luX count %8.8uX\n",
+			print("pa 0x%8.8luX count %8.8X\n",
 				prd->pa, prd->count);
 			if(prd->count & PrdEOT)
 				break;
@@ -418,10 +418,10 @@ atadumpstate(Drive* drive, uint8_t* cmd, int64_t lba, int count)
 	}
 	if(ctlr->pcidev && ctlr->pcidev->vid == 0x8086){
 		p = ctlr->pcidev;
-		print("0x40: %4.4uX 0x42: %4.4uX",
+		print("0x40: %4.4X 0x42: %4.4X",
 			pcicfgr16(p, 0x40), pcicfgr16(p, 0x42));
-		print("0x48: %2.2uX\n", pcicfgr8(p, 0x48));
-		print("0x4A: %4.4uX\n", pcicfgr16(p, 0x4A));
+		print("0x48: %2.2X\n", pcicfgr8(p, 0x48));
+		print("0x4A: %4.4X\n", pcicfgr16(p, 0x4A));
 	}
 }
 
@@ -444,13 +444,13 @@ atadebug(int cmdport, int ctlport, char* fmt, ...)
 	if(cmdport){
 		if(buf[n-1] == '\n')
 			n--;
-		n += snprint(buf+n, PRINTSIZE-n, " ataregs 0x%uX:",
+		n += snprint(buf+n, PRINTSIZE-n, " ataregs 0x%X:",
 			cmdport);
 		for(i = Features; i < Command; i++)
-			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2uX",
+			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2X",
 				inb(cmdport+i));
 		if(ctlport)
-			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2uX",
+			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2X",
 				inb(ctlport+As));
 		n += snprint(buf+n, PRINTSIZE-n, "\n");
 	}
@@ -464,7 +464,7 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 {
 	int as;
 
-	atadebug(cmdport, ctlport, "ataready: dev %uX reset %uX ready %uX",
+	atadebug(cmdport, ctlport, "ataready: dev %X reset %X ready %X",
 		dev, reset, ready);
 
 	for(;;){
@@ -485,12 +485,12 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 			dev = 0;
 		}
 		else if(ready == 0 || (as & ready)){
-			atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
+			atadebug(0, 0, "ataready: %d 0x%2.2X\n", micro, as);
 			return as;
 		}
 
 		if(micro-- <= 0){
-			atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
+			atadebug(0, 0, "ataready: %d 0x%2.2X\n", micro, as);
 			break;
 		}
 		microdelay(1);
@@ -629,7 +629,7 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 		for(i = 0; i < 256; i++){
 			if(i && (i%16) == 0)
 				print("\n");
-			print(" %4.4uX", *sp);
+			print(" %4.4X", *sp);
 			sp++;
 		}
 		print("\n");
@@ -647,7 +647,7 @@ atadrive(int cmdport, int ctlport, int dev)
 	uint8_t *p;
 	uint16_t iconfig, *sp;
 
-	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
+	atadebug(0, 0, "identify: port 0x%X dev 0x%2.2X\n", cmdport, dev);
 	pkt = 1;
 retry:
 	as = ataidentify(cmdport, ctlport, dev, pkt, buf);
@@ -725,12 +725,12 @@ retry:
 	atadmamode(drive);
 
 	if(DEBUG & DbgCONFIG){
-		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
+		print("dev %2.2X port %X config %4.4X capabilities %4.4X",
 			dev, cmdport, iconfig, drive->info[Icapabilities]);
-		print(" mwdma %4.4uX", drive->info[Imwdma]);
+		print(" mwdma %4.4X", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
-			print(" udma %4.4uX", drive->info[Iudma]);
-		print(" dma %8.8uX rwm %ud", drive->dma, drive->rwm);
+			print(" udma %4.4X", drive->info[Iudma]);
+		print(" dma %8.8X rwm %u", drive->dma, drive->rwm);
 		if(drive->flags&Lba48)
 			print("\tLLBA sectors %lld", drive->sectors);
 		print("\n");
@@ -852,7 +852,7 @@ tryedd1:
 	 * exist and the EDD won't take, so try again with Dev1.
 	 */
 	error = inb(cmdport+Error);
-	atadebug(cmdport, ctlport, "ataprobe: dev %uX", dev);
+	atadebug(cmdport, ctlport, "ataprobe: dev %X", dev);
 	if((error & ~0x80) != 0x01){
 		if(dev == Dev1)
 			goto release;
@@ -961,7 +961,7 @@ atastat(SDev *sdev, char *p, char *e)
 	Ctlr *ctlr = sdev->ctlr;
 
 	return seprint(p, e, "%s ata port %X ctl %X irq %d "
-		"intr-ok %lud intr-busy %lud intr-nil-drive %lud\n",
+		"intr-ok %lu intr-busy %lu intr-nil-drive %lu\n",
 		sdev->name, ctlr->cmdport, ctlr->ctlport, ctlr->irq,
 		ctlr->intok, ctlr->intbusy, ctlr->intnil);
 }
@@ -1737,7 +1737,7 @@ retry:
 		status = atagenio(drive, cmdp, clen);
 	if(status == SDretry){
 		if(DbgDEBUG)
-			print("%s: retry: dma %8.8uX rwm %4.4uX\n",
+			print("%s: retry: dma %8.8X rwm %4.4X\n",
 				unit->SDperm.name, drive->dmactl, drive->rwmctl);
 		goto retry;
 	}
@@ -1830,7 +1830,7 @@ atainterrupt(Ureg *ureg, void* arg)
 			ctlr->irqack(ctlr);
 		iunlock(&ctlr->l);
 		if((DEBUG & DbgINL) && ctlr->command != Cedd)
-			print("Inil%2.2uX+", ctlr->command);
+			print("Inil%2.2X+", ctlr->command);
 		return;
 	}
 
@@ -2256,19 +2256,19 @@ atarctl(SDunit* unit, char* p, int l)
 	drive = ctlr->drive[unit->subno];
 
 	qlock(&drive->ql);
-	n = snprint(p, l, "config %4.4uX capabilities %4.4uX",
+	n = snprint(p, l, "config %4.4X capabilities %4.4X",
 		drive->info[Iconfig], drive->info[Icapabilities]);
 	if(drive->dma)
-		n += snprint(p+n, l-n, " dma %8.8uX dmactl %8.8uX",
+		n += snprint(p+n, l-n, " dma %8.8X dmactl %8.8X",
 			drive->dma, drive->dmactl);
 	if(drive->rwm)
-		n += snprint(p+n, l-n, " rwm %ud rwmctl %ud",
+		n += snprint(p+n, l-n, " rwm %u rwmctl %u",
 			drive->rwm, drive->rwmctl);
 	if(drive->flags&Lba48)
 		n += snprint(p+n, l-n, " lba48always %s",
 			(drive->flags&Lba48always) ? "on" : "off");
 	n += snprint(p+n, l-n, "\n");
-	n += snprint(p+n, l-n, "interrupts read %lud write %lud cmds %lud\n",
+	n += snprint(p+n, l-n, "interrupts read %lu write %lu cmds %lu\n",
 		drive->intrd, drive->intwr, drive->intcmd);
 	if(drive->sectors){
 		n += snprint(p+n, l-n, "geometry %lld %d",

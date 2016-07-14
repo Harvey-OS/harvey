@@ -435,7 +435,7 @@ update1(Graph *g, uint64_t v, uint64_t vmax)
 	if(overflow && g->overtmp!=nil){
 		g->overflow = 1;
 		draw(g->overtmp, g->overtmp->r, screen, nil, g->overtmp->r.min);
-		sprint(buf, "%llud", v);
+		sprint(buf, "%llu", v);
 		string(screen, g->overtmp->r.min, display->black, ZP, mediumfont, buf);
 	}
 }

@@ -145,7 +145,7 @@ mousecmd(int cmd)
 	iunlock(&i8042lock);
 
 	if(c != 0xFA){
-		print("mousecmd: %2.2ux returned to the %2.2ux command\n", c, cmd);
+		print("mousecmd: %2.2x returned to the %2.2x command\n", c, cmd);
 		badkbd = 1;	/* don't keep trying; there might not be one */
 		return -1;
 	}

@@ -332,7 +332,7 @@ handlefullmsg(Conn *c, Achan *a)
 		chal = getmpint(m);
 		memmove(sessid, getbytes(m, 16), 16);
 		rt = getlong(m);
-		debug(DBG_AUTH, "agent challenge %B %B %B %ud (%p %p)\n",
+		debug(DBG_AUTH, "agent challenge %B %B %B %u (%p %p)\n",
 			ek, mod, chal, rt, m->rp, m->ep);
 		if(rt != 1 || dorsa(mod, ek, chal, chalbuf) < 0){
 			mpfree(ek);

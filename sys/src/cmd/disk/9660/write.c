@@ -128,7 +128,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 	} else {
 		direc->block = start;
 		if(chatty > 1)
-			fprint(2, "lookup %.16H %lud (%s) failed\n", digest, length, direc->name);
+			fprint(2, "lookup %.16H %lu (%s) failed\n", digest, length, direc->name);
 		insertmd5(d, atom(direc->name), digest, start, length);
 	}
 }
@@ -213,13 +213,13 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 		for(i=0; i<d->nchild; i++)
 			if(d->child[i].mode & DMDIR)
 				_writedumpdirs(cd, &d->child[i], put, level+1);
-		chat("write dump root dir at %lud\n", cd->nextblock);
+		chat("write dump root dir at %lu\n", cd->nextblock);
 		goto Writedir;
 
 	case 1:	/* write year, list of days */
 		for(i=0; i<d->nchild; i++)
 			_writedumpdirs(cd, &d->child[i], put, level+1);
-		chat("write dump %s dir at %lud\n", d->name, cd->nextblock);
+		chat("write dump %s dir at %lu\n", d->name, cd->nextblock);
 		goto Writedir;
 
 	Writedir:

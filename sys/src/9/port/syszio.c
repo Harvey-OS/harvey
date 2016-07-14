@@ -77,7 +77,7 @@ dumpzmap(ZMap *map)
 {
 	Map *mp;
 	for(mp = map->map; mp != nil; mp = mp->next)
-		print("\tmap %#ullx[%#ullx] %c\n", mp->addr, mp->size,
+		print("\tmap %#llx[%#llx] %c\n", mp->addr, mp->size,
 			mp->free ? 'f' : 'a');
 }
 
@@ -95,11 +95,11 @@ dumpzseg(Segment *s)
 		return;
 
 	zs = &s->zseg;
-	print("zseg %#ullx type %#ux map %#p naddr %d end %d\n",
+	print("zseg %#llx type %#x map %#p naddr %d end %d\n",
 		s->base, s->type, zs->map, zs->naddr, zs->end);
 	if(zs->addr != nil)
 		for(i = 0; i < zs->end; i++)
-			print("\taddr %#ullx\n", zs->addr[i]);
+			print("\taddr %#llx\n", zs->addr[i]);
 	map = zs->map;
 	if(map == nil)
 		return;
@@ -163,7 +163,7 @@ zgetaddr(Segment *s)
 	zs->end--;
 	if(zs->end > 0)
 		zs->addr[0] = zs->addr[zs->end];
-	DBG("zgetaddr: %#ullx\n", va);
+	DBG("zgetaddr: %#llx\n", va);
 	dumpzseg(s);
 	return va;
 }
@@ -181,7 +181,7 @@ zputaddr(Segment *s, uintptr_t va)
 	if((s->type&SG_ZIO) == 0)
 		return -1;
 	if((s->type&SG_KZIO) != 0){
-		DBG("zputaddr: zmapfree %#ullx\n", va);
+		DBG("zputaddr: zmapfree %#llx\n", va);
 		zmapfree(s->zseg.map, va);
 		dumpzseg(s);
 		return 0;
@@ -191,7 +191,7 @@ zputaddr(Segment *s, uintptr_t va)
 	zs->addr[zs->end++] = va;
 	if(zs->end == 1)
 		wakeup(&zs->rr);	/* in case anyone was waiting */
-	DBG("zputaddr %#ullx\n", va);
+	DBG("zputaddr %#llx\n", va);
 	dumpzseg(s);
 	return 0;
 }
@@ -391,7 +391,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	kio = nil;
 
 	io = validaddr(io, sizeof io[0] * nio, 1);
-	DBG("ziorw %d io%#p[%d] %uld %lld\n", fd, io, nio, count, offset);
+	DBG("ziorw %d io%#p[%d] %lu %lld\n", fd, io, nio, count, offset);
 	if(DBGFLG)
 		for(i = 0; i < nio; i++)
 			print("\tio%#p[%d] = %Z %s\n",
@@ -616,7 +616,7 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 	poperror();
 	unlock(&rmap->Lock);
 	if(DBGFLG > 1){
-		DBG("zmapfree %#ullx:\n", addr);
+		DBG("zmapfree %#llx:\n", addr);
 		dumpzmap(rmap);
 	}
 }
@@ -654,7 +654,7 @@ zmapalloc(ZMap* rmap, usize size)
 	poperror();
 	unlock(&rmap->Lock);
 	if(DBGFLG > 1){
-		DBG("zmapalloc %#ullx:\n", mp->addr);
+		DBG("zmapalloc %#llx:\n", mp->addr);
 		dumpzmap(rmap);
 	}
 	return mp->addr;

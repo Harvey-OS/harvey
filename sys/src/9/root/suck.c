@@ -175,7 +175,7 @@ dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 #else
 		t = (uint8_t*)tpkt;
 		for(i = 0; i < 8; i++)
-			p = seprint(p, e, " %2.2ux", t[i]);
+			p = seprint(p, e, " %2.2x", t[i]);
 		p = seprint(p, e, "\n");
 #endif /* notdef */
 
@@ -192,9 +192,9 @@ dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 
 	n -= sizeof(Tpkt);
 	for(i = 0; i < n; i += 16){
-		p = seprint(buf, e, "%4.4ux:", i);
+		p = seprint(buf, e, "%4.4x:", i);
 		for(j = 0; j < 16; j++)
-			seprint(p, e, " %2.2ux", tpkt->payload[i+j]);
+			seprint(p, e, " %2.2x", tpkt->payload[i+j]);
 		print("%s\n", buf);
 	}
 }
@@ -288,7 +288,7 @@ main(int argc, char* argv[])
 	r *= mhz;
 	r /= stop - start;
 
-	print("%d reads in %llud cycles @ %dMHz = %llud MB/s\n",
+	print("%d reads in %llu cycles @ %dMHz = %llu MB/s\n",
 		i, stop - start, mhz, r);
 
 	exits(0);

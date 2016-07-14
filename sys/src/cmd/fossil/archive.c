@@ -199,7 +199,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 
 	b = cacheLocalData(p->c, addr, type, tag, OReadWrite,0);
 	if(b == nil){
-		fprint(2, "archive(%ud, %#ux): cannot find block: %R\n", p->snapEpoch, addr);
+		fprint(2, "archive(%u, %#ux): cannot find block: %R\n", p->snapEpoch, addr);
 		if(strcmp(vtGetError(), ELabelMismatch) == 0){
 			/* might as well plod on so we write _something_ to Venti */
 			memmove(p->score, vtZeroScore, VtScoreSize);
@@ -208,7 +208,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 		return ArchFailure;
 	}
 
-	if(DEBUG) fprint(2, "%*sarchive(%ud, %#ux): block label %L\n",
+	if(DEBUG) fprint(2, "%*sarchive(%u, %#ux): block label %L\n",
 		p->depth*2, "",  p->snapEpoch, b->addr, &b->l);
 	p->depth++;
 	if(p->depth > p->maxdepth)
@@ -415,13 +415,13 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 			break;
 		}
 
-		if(0) fprint(2, "archiveSnapshot 0x%#ux: maxdepth %ud nfixed %ud"
-			" send %ud nfailsend %ud nvisit %ud"
-			" nreclaim %ud nfake %ud nreal %ud\n",
+		if(0) fprint(2, "archiveSnapshot 0x%#ux: maxdepth %u nfixed %u"
+			" send %u nfailsend %u nvisit %u"
+			" nreclaim %u nfake %u nreal %u\n",
 			addr, p.maxdepth, p.nfixed,
 			p.nsend, p.nfailsend, p.nvisit,
 			p.nreclaim, p.nfake, p.nreal);
-		if(0) fprint(2, "archiveBlock %V (%ud)\n", p.score, p.blockSize);
+		if(0) fprint(2, "archiveBlock %V (%u)\n", p.score, p.blockSize);
 
 		/* tie up vac root */
 		memset(&root, 0, sizeof root);

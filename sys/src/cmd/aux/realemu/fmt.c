@@ -145,7 +145,7 @@ argconv(char *p, Inst *i, Iarg *a)
 
 	case TCON:
 		print_func_exit();
-		return sprint(p, "%lud", a->val);
+		return sprint(p, "%lu", a->val);
 	case TREG:
 	case TREG|TH:
 		switch(a->len){
@@ -364,7 +364,7 @@ cpufmt(Fmt *fmt)
 		"%.6lux "
 		"%.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux "
 		"%.4lux %.4lux %.4lux %.4lux "
-		"%J %.4lux %.2ux %I",
+		"%J %.4lux %.2x %I",
 
 		cpu->ic,
 

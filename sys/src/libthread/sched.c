@@ -98,9 +98,9 @@ needstack(int n)
 	t = p->thread;
 	
 	if((uint8_t*)&x - n < (uint8_t*)t->stk){
-		fprint(2, "%s %lud: &x=%p n=%d t->stk=%p\n",
+		fprint(2, "%s %lu: &x=%p n=%d t->stk=%p\n",
 			argv0, _tos->pid, &x, n, t->stk);
-		fprint(2, "%s %lud: stack overflow\n", argv0, _tos->pid);
+		fprint(2, "%s %lu: stack overflow\n", argv0, _tos->pid);
 		abort();
 	}
 }

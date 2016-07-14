@@ -52,7 +52,7 @@ smbcomtransaction(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		}
 		goto done;
 	}
-	smblogprint(h->command, "smbcomtransaction: %s scount %ud tpcount %lud tdcount %lud maxscount %lud maxpcount %lud maxdcount %lud\n",
+	smblogprint(h->command, "smbcomtransaction: %s scount %u tpcount %lu tdcount %lu maxscount %lu maxpcount %lu maxdcount %lu\n",
 		s->transaction.in.name, s->transaction.in.scount, s->transaction.in.tpcount, s->transaction.in.tdcount,
 		s->transaction.in.maxscount, s->transaction.in.maxpcount, s->transaction.in.maxdcount);
 	smbbufferfree(&s->transaction.out.parameters);
@@ -105,7 +105,7 @@ smbcomtransaction2(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		}
 		goto done;
 	}
-	smblogprint(h->command, "smbcomtransaction2: scount %ud tpcount %lud tdcount %lud maxscount %lud maxpcount %lud maxdcount %lud\n",
+	smblogprint(h->command, "smbcomtransaction2: scount %u tpcount %lu tdcount %lu maxscount %lu maxpcount %lu maxdcount %lu\n",
 		s->transaction.in.scount, s->transaction.in.tpcount, s->transaction.in.tdcount,
 		s->transaction.in.maxscount, s->transaction.in.maxpcount, s->transaction.in.maxdcount);
 	smbbufferfree(&s->transaction.out.parameters);

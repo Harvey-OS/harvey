@@ -1121,7 +1121,7 @@ if(0)fprint(2, "old size %d new size %d\n", me.size, n);
 		blockDirty(b);
 		goto Err;
 	}
-fprint(2, "fileMetaFlush moving entry from %ud -> %ud\n", f->boff, boff);
+fprint(2, "fileMetaFlush moving entry from %u -> %u\n", f->boff, boff);
 	f->boff = boff;
 
 	/* make sure deletion goes to disk after new entry */

@@ -238,7 +238,7 @@ Proto eap =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	nil,
 	defaultframer,
 };

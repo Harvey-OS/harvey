@@ -26,7 +26,7 @@ void
 smbsearchclose(SmbSession *s, SmbSearch *search)
 {
 	if (search) {
-		smblogprintif(smbglobals.log.sids, "smbsearchclose: tid 0x%.4ux sid 0x%.4ux\n", search->t->id, search->id);
+		smblogprintif(smbglobals.log.sids, "smbsearchclose: tid 0x%.4x sid 0x%.4x\n", search->t->id, search->id);
 		smbidmapremove(s->sidmap, search);
 		smbsearchfree(&search);
 	}
@@ -49,7 +49,7 @@ smbsearchnew(SmbSession *s, SmbDirCache *dc, Reprog *r, SmbTree *t)
 	search->dc = dc;
 	search->rep = r;
 	search->t = t;
-	smblogprintif(smbglobals.log.sids, "smbsearchnew: 0x%.4ux\n", search->id);
+	smblogprintif(smbglobals.log.sids, "smbsearchnew: 0x%.4x\n", search->id);
 	return search;
 }
 
@@ -193,16 +193,16 @@ poolcheck(mainmem);
 		goto done;
 	}
 	smbloglock();
-	smblogprintif(debug, "searchattributes: 0x%.4ux\n", searchattributes);
-	smblogprintif(debug, "searchcount: 0x%.4ux\n", searchcount);
-	smblogprintif(debug, "flags: 0x%.4ux\n", flags);
-	smblogprintif(debug, "informationlevel: 0x%.4ux\n", informationlevel);
+	smblogprintif(debug, "searchattributes: 0x%.4x\n", searchattributes);
+	smblogprintif(debug, "searchcount: 0x%.4x\n", searchcount);
+	smblogprintif(debug, "flags: 0x%.4x\n", flags);
+	smblogprintif(debug, "informationlevel: 0x%.4x\n", informationlevel);
 	smblogprintif(debug, "searchstoragetype: 0x%.8lux\n", searchstoragetype);
 	smblogprintif(debug, "pattern: %s\n", pattern);
 	smblogunlock();
 	smbpathsplit(pattern, &dir, &name);
 	if (informationlevel != SMB_INFO_STANDARD && informationlevel != SMB_FIND_FILE_BOTH_DIRECTORY_INFO) {
-		smblogprint(-1, "smbtrans2findfirst2: infolevel 0x%.4ux not implemented\n", informationlevel);
+		smblogprint(-1, "smbtrans2findfirst2: infolevel 0x%.4x not implemented\n", informationlevel);
 		smbseterror(s, ERRDOS, ERRunknownlevel);
 		pr = SmbProcessResultError;
 		goto done;
@@ -283,11 +283,11 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 		goto done;
 	}
 	smblogprintif(debug,
-		"smbtrans2findnext2: sid %d scount %d infolevel 0x%.4ux resumekey %lud flags 0x%.4ux filename %s\n",
+		"smbtrans2findnext2: sid %d scount %d infolevel 0x%.4x resumekey %lu flags 0x%.4x filename %s\n",
 		sid, scount, infolevel, resumekey, flags, filename);
 
 	if (infolevel != SMB_INFO_STANDARD && infolevel != SMB_FIND_FILE_BOTH_DIRECTORY_INFO) {
-		smblogprint(-1, "smbtrans2findnext2: infolevel 0x%.4ux not implemented\n", infolevel);
+		smblogprint(-1, "smbtrans2findnext2: infolevel 0x%.4x not implemented\n", infolevel);
 		smbseterror(s, ERRDOS, ERRunknownlevel);
 		pr = SmbProcessResultError;
 		goto done;

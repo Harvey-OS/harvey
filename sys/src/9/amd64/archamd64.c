@@ -180,7 +180,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			hz = ((hz/100)+5)/10;
 			break;
 		}
-		DBG("cpuidhz: 0x2a: %#llux hz %lld\n", rdmsr(0x2a), hz);
+		DBG("cpuidhz: 0x2a: %#llx hz %lld\n", rdmsr(0x2a), hz);
 	}
 	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
 		switch(info1[0] & 0x0fff0ff0){
@@ -215,7 +215,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
 			break;
 		}
-		DBG("cpuidhz: %#llux hz %lld\n", msr, hz);
+		DBG("cpuidhz: %#llx hz %lld\n", msr, hz);
 	}
 	else
 		return 0;
@@ -237,12 +237,12 @@ cpuiddump(void)
 
 	for(i = 0; i < machp()->CPU.ncpuinfos; i++){
 		cpuid(i, 0, info);
-		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
+		DBG("eax = %#8.8x: %8.8x %8.8x %8.8x %8.8x\n",
 			i, info[0], info[1], info[2], info[3]);
 	}
 	for(i = 0; i < machp()->CPU.ncpuinfoe; i++){
 		cpuid(0x80000000|i, 0, info);
-		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
+		DBG("eax = %#8.8x: %8.8x %8.8x %8.8x %8.8x\n",
 			0x80000000|i, info[0], info[1], info[2], info[3]);
 	}
 }
@@ -331,9 +331,9 @@ fmtP(Fmt* f)
 	pa = va_arg(f->args, uintmem);
 
 	if(f->flags & FmtSharp)
-		return fmtprint(f, "%#16.16llux", pa);
+		return fmtprint(f, "%#16.16llx", pa);
 
-	return fmtprint(f, "%llud", pa);
+	return fmtprint(f, "%llu", pa);
 }
 
 static int
@@ -343,7 +343,7 @@ fmtL(Fmt* f)
 
 	pl = va_arg(f->args, Mpl);
 
-	return fmtprint(f, "%#16.16llux", pl);
+	return fmtprint(f, "%#16.16llx", pl);
 }
 
 static int
@@ -353,7 +353,7 @@ fmtR(Fmt* f)
 
 	r = va_arg(f->args, uint64_t);
 
-	return fmtprint(f, "%#16.16llux", r);
+	return fmtprint(f, "%#16.16llx", r);
 }
 
 /* virtual address fmt */
@@ -363,7 +363,7 @@ fmtW(Fmt *f)
 	uint64_t va;
 
 	va = va_arg(f->args, uint64_t);
-	return fmtprint(f, "%#ullx=0x[%ullx][%ullx][%ullx][%ullx][%ullx]", va,
+	return fmtprint(f, "%#llx=0x[%llx][%llx][%llx][%llx][%llx]", va,
 		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 		va & ((1<<PGSHFT)-1));
 

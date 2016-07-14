@@ -163,7 +163,7 @@ rootgen(Chan *c, char *name, Dirtab* dir, int j, int s, Dir *dp)
 		if(t >= l->ndir)
 			return -1;
 if(t < 0){
-print("rootgen %#llux %d %d\n", c->qid.path, s, t);
+print("rootgen %#llx %d %d\n", c->qid.path, s, t);
 panic("whoops");
 }
 		d = &l->dir[t];

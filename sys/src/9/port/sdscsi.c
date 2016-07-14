@@ -403,7 +403,7 @@ again:
 		default:
 			break;
 		case 0x01:		/* recovered error */
-			print("%s: recovered error at sector %llud\n",
+			print("%s: recovered error at sector %llu\n",
 				unit->SDperm.name, bno);
 			rlen = r->rlen;
 			break;

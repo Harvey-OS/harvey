@@ -649,11 +649,11 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return n;
 
 	case Qdebug:
-		s = seprint(tmp, tmp + sizeof tmp, "locks %uld\n", lockstats.locks);
-		s = seprint(s, tmp + sizeof tmp, "glare %uld\n", lockstats.glare);
-		s = seprint(s, tmp + sizeof tmp, "inglare %uld\n", lockstats.inglare);
-		s = seprint(s, tmp + sizeof tmp, "qlock %uld\n", qlockstats.qlock);
-		seprint(s, tmp + sizeof tmp, "qlockq %uld\n", qlockstats.qlockq);
+		s = seprint(tmp, tmp + sizeof tmp, "locks %lu\n", lockstats.locks);
+		s = seprint(s, tmp + sizeof tmp, "glare %lu\n", lockstats.glare);
+		s = seprint(s, tmp + sizeof tmp, "inglare %lu\n", lockstats.inglare);
+		s = seprint(s, tmp + sizeof tmp, "qlock %lu\n", qlockstats.qlock);
+		seprint(s, tmp + sizeof tmp, "qlockq %lu\n", qlockstats.qlockq);
 		return readstr(offset, buf, n, tmp);
 		break;
 
@@ -662,7 +662,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return readstr(offset, buf, n, tmp);
 		break;
 	default:
-		print("consread %#llux\n", c->qid.path);
+		print("consread %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 	return -1;		/* never reached */
@@ -835,7 +835,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		error("#c/syscall: can only write on or off");
 		break;
 	default:
-		print("conswrite: %#llux\n", c->qid.path);
+		print("conswrite: %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 	return n;

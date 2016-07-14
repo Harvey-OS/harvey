@@ -20,7 +20,7 @@ main(int argc, char *argv[])
 	if (argc > 1)
 		num = strtoul(argv[1], 0, 0);
 	size = num * 0x200000ULL;
-	print("Try to malloc %ulld bytes\n", size);
+	print("Try to malloc %llu bytes\n", size);
 	c = mallocz(size, 1);
 	print("Did it\n");
 	while(1);

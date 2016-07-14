@@ -302,11 +302,11 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	Bprint(&stdout, "\n");
 	for(i = 0; i < nelem(t2r4->g); i++)
-		Bprint(&stdout, "%s g reg0x%2.2uX\t\t%8.8luX\n",
+		Bprint(&stdout, "%s g reg0x%2.2X\t\t%8.8luX\n",
 			ctlr->name, i*4, t2r4->g[i]);
 	Bprint(&stdout, "\n");
 	for(i = 0; i < nelem(t2r4->w); i++)
-		Bprint(&stdout, "%s w reg0x%2.2uX\t\t%8.8luX\n",
+		Bprint(&stdout, "%s w reg0x%2.2X\t\t%8.8luX\n",
 			ctlr->name, i*4, t2r4->w[i]);
 }
 

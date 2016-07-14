@@ -58,7 +58,7 @@ p_seprint(Msg *m)
 	rc = h->hdr & 0x1f;
 	m->ps += RTCPLEN;
 	m->p = seprint(m->p, m->e, "version=%d rc=%d tp=%d ssrc=%8ux "
-		"ntp=%d.%.10ud rtp=%d pktc=%d octc=%d hlen=%d",
+		"ntp=%d.%.10u rtp=%d pktc=%d octc=%d hlen=%d",
 		(h->hdr >> 6) & 3, rc, h->pt, NetL(h->ssrc), NetL(h->ntp),
 		(uint)NetL(&h->ntp[4]), NetL(h->rtp), NetL(h->pktc),
 		NetL(h->octc), (NetS(h->len) + 1) * 4);

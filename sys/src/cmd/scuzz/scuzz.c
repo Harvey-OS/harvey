@@ -91,7 +91,7 @@ cmdrblimits(ScsiReq *rp, int argc, char *argv[])
 	USED(argc, argv);
 	if((n = SRrblimits(rp, l)) == -1)
 		return -1;
-	Bprint(&bout, " %2.2uX %2.2uX %2.2uX %2.2uX %2.2uX %2.2uX\n",
+	Bprint(&bout, " %2.2X %2.2X %2.2X %2.2X %2.2X %2.2X\n",
 		l[0], l[1], l[2], l[3], l[4], l[5]);
 	return n;
 }
@@ -187,7 +187,7 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 		}
 		break;
 	}
-	print("device native block size=%lud\n", rp->lbsize);
+	print("device native block size=%lu\n", rp->lbsize);
 	total = 0;
 	while(nbytes){
 		n = vlmin(nbytes, iosize);
@@ -379,7 +379,7 @@ cmdinquiry(ScsiReq *rp, int argc, char *argv[])
 	if((status = SRinquiry(rp)) != -1){
 		n = rp->inquiry[4]+4;
 		for(i = 0; i < MIN(8, n); i++)
-			Bprint(&bout, " %2.2uX", rp->inquiry[i]);
+			Bprint(&bout, " %2.2X", rp->inquiry[i]);
 		p = &rp->inquiry[8];
 		n = MIN(n, sizeof(rp->inquiry)-8);
 		while(n && (*p == ' ' || *p == '\t' || *p == '\n')){
@@ -471,7 +471,7 @@ cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 	nbytes = list[0];
 	Bprint(&bout, " Header\n   ");
 	for(i = 0; i < 4; i++){				/* header */
-		Bprint(&bout, " %2.2uX", *lp);
+		Bprint(&bout, " %2.2X", *lp);
 		lp++;
 	}
 	Bputc(&bout, '\n');
@@ -480,8 +480,8 @@ cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 		for(n = 0; n < list[3]/8; n++){
 			Bprint(&bout, " Block %ld\n   ", n);
 			for(i = 0; i < 8; i++)
-				Bprint(&bout, " %2.2uX", lp[i]);
-			Bprint(&bout, "    (density %2.2uX", lp[0]);
+				Bprint(&bout, " %2.2X", lp[i]);
+			Bprint(&bout, "    (density %2.2X", lp[0]);
 			Bprint(&bout, " blocks %d", (lp[1]<<16)|(lp[2]<<8)|lp[3]);
 			Bprint(&bout, " length %d)", (lp[5]<<16)|(lp[6]<<8)|lp[7]);
 			lp += 8;
@@ -493,12 +493,12 @@ cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 	while(nbytes > 0){				/* pages */
 		i = *(lp+1);
 		nbytes -= i+2;
-		Bprint(&bout, " Page %2.2uX %d\n   ", *lp & 0x3F, *(lp+1));
+		Bprint(&bout, " Page %2.2X %d\n   ", *lp & 0x3F, *(lp+1));
 		lp += 2;
 		for(n = 0; n < i; n++){
 			if(n && ((n & 0x0F) == 0))
 				Bprint(&bout, "\n   ");
-			Bprint(&bout, " %2.2uX", *lp);
+			Bprint(&bout, " %2.2X", *lp);
 			lp++;
 		}
 		if(n && (n & 0x0F))
@@ -548,7 +548,7 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 	nbytes = ((list[0]<<8)|list[1]);
 	Bprint(&bout, " Header\n   ");
 	for(i = 0; i < 8; i++){				/* header */
-		Bprint(&bout, " %2.2uX", *lp);
+		Bprint(&bout, " %2.2X", *lp);
 		lp++;
 	}
 	Bputc(&bout, '\n');
@@ -558,8 +558,8 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 		for(n = 0; n < blen/8; n++){
 			Bprint(&bout, " Block %ld\n   ", n);
 			for(i = 0; i < 8; i++)
-				Bprint(&bout, " %2.2uX", lp[i]);
-			Bprint(&bout, "    (density %2.2uX", lp[0]);
+				Bprint(&bout, " %2.2X", lp[i]);
+			Bprint(&bout, "    (density %2.2X", lp[0]);
 			Bprint(&bout, " blocks %d", (lp[1]<<16)|(lp[2]<<8)|lp[3]);
 			Bprint(&bout, " length %d)", (lp[5]<<16)|(lp[6]<<8)|lp[7]);
 			lp += 8;
@@ -576,7 +576,7 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 		for(n = 0; n < nbytes; n += 2){
 			if(n && ((n & 0x1F) == 0))
 				Bprint(&bout, "\n");
-			Bprint(&bout, " %4.4uX", (*(lp+1)<<8)|*lp);
+			Bprint(&bout, " %4.4X", (*(lp+1)<<8)|*lp);
 			lp += 2;
 		}
 		Bputc(&bout, '\n');
@@ -585,12 +585,12 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 		while(nbytes > 0){				/* pages */
 			i = *(lp+1);
 			nbytes -= i+2;
-			Bprint(&bout, " Page %2.2uX %d\n   ", *lp & 0x3F, lp[1]);
+			Bprint(&bout, " Page %2.2X %d\n   ", *lp & 0x3F, lp[1]);
 			lp += 2;
 			for(n = 0; n < i; n++){
 				if(n && ((n & 0x0F) == 0))
 					Bprint(&bout, "\n   ");
-				Bprint(&bout, " %2.2uX", *lp);
+				Bprint(&bout, " %2.2X", *lp);
 				lp++;
 			}
 			if(n && (n & 0x0F))
@@ -645,7 +645,7 @@ cmdcapacity(ScsiReq *rp, int argc, char *argv[])
 	USED(argc, argv);
 	if((n = SRrcapacity(rp, d)) == -1)
 		return -1;
-	Bprint(&bout, " %ud %ud\n",
+	Bprint(&bout, " %u %u\n",
 		d[0]<<24|d[1]<<16|d[2]<<8|d[3],
 		d[4]<<24|d[5]<<16|d[6]<<8|d[7]);
 	return n;
@@ -740,75 +740,75 @@ cmdrtoc(ScsiReq *rp, int argc, char *argv[])
 	switch(format){
 
 	case 0:
-		Bprint(&bout, "\ttoc/pma data length: 0x%uX\n", tdl);
+		Bprint(&bout, "\ttoc/pma data length: 0x%X\n", tdl);
 		Bprint(&bout, "\tfirst track number: %d\n", d[2]);
 		Bprint(&bout, "\tlast track number: %d\n", d[3]);
 		for(p = &d[4], n = tdl-2; n; n -= 8, p += 8){
-			Bprint(&bout, "\ttrack number: 0x%2.2uX\n", p[2]);
-			Bprint(&bout, "\t\tcontrol: 0x%2.2uX\n", p[1] & 0x0F);
-			Bprint(&bout, "\t\tblock address: 0x%uX\n",
+			Bprint(&bout, "\ttrack number: 0x%2.2X\n", p[2]);
+			Bprint(&bout, "\t\tcontrol: 0x%2.2X\n", p[1] & 0x0F);
+			Bprint(&bout, "\t\tblock address: 0x%X\n",
 				(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 		}
 		break;
 
 	case 1:
-		Bprint(&bout, "\tsessions data length: 0x%uX\n", tdl);
+		Bprint(&bout, "\tsessions data length: 0x%X\n", tdl);
 		Bprint(&bout, "\tnumber of finished sessions: %d\n", d[2]);
 		Bprint(&bout, "\tunfinished session number: %d\n", d[3]);
 		for(p = &d[4], n = tdl-2; n; n -= 8, p += 8){
-			Bprint(&bout, "\tsession number: 0x%2.2uX\n", p[0]);
-			Bprint(&bout, "\t\tfirst track number in session: 0x%2.2uX\n",
+			Bprint(&bout, "\tsession number: 0x%2.2X\n", p[0]);
+			Bprint(&bout, "\t\tfirst track number in session: 0x%2.2X\n",
 				p[2]);
-			Bprint(&bout, "\t\tlogical start address: 0x%uX\n",
+			Bprint(&bout, "\t\tlogical start address: 0x%X\n",
 				(p[5]<<16)|(p[6]<<8)|p[7]);
 		}
 		break;
 
 	case 2:
-		Bprint(&bout, "\tfull TOC data length: 0x%uX\n", tdl);
+		Bprint(&bout, "\tfull TOC data length: 0x%X\n", tdl);
 		Bprint(&bout, "\tnumber of finished sessions: %d\n", d[2]);
 		Bprint(&bout, "\tunfinished session number: %d\n", d[3]);
 		for(p = &d[4], n = tdl-2; n > 0; n -= 11, p += 11){
-			Bprint(&bout, "\tsession number: 0x%2.2uX\n", p[0]);
-			Bprint(&bout, "\t\tcontrol: 0x%2.2uX\n", p[1] & 0x0F);
-			Bprint(&bout, "\t\tADR: 0x%2.2uX\n", (p[1]>>4) & 0x0F);
-			Bprint(&bout, "\t\tTNO: 0x%2.2uX\n", p[2]);
-			Bprint(&bout, "\t\tPOINT: 0x%2.2uX\n", p[3]);
-			Bprint(&bout, "\t\tMin: 0x%2.2uX\n", p[4]);
-			Bprint(&bout, "\t\tSec: 0x%2.2uX\n", p[5]);
-			Bprint(&bout, "\t\tFrame: 0x%2.2uX\n", p[6]);
-			Bprint(&bout, "\t\tZero: 0x%2.2uX\n", p[7]);
-			Bprint(&bout, "\t\tPMIN: 0x%2.2uX\n", p[8]);
-			Bprint(&bout, "\t\tPSEC: 0x%2.2uX\n", p[9]);
-			Bprint(&bout, "\t\tPFRAME: 0x%2.2uX\n", p[10]);
+			Bprint(&bout, "\tsession number: 0x%2.2X\n", p[0]);
+			Bprint(&bout, "\t\tcontrol: 0x%2.2X\n", p[1] & 0x0F);
+			Bprint(&bout, "\t\tADR: 0x%2.2X\n", (p[1]>>4) & 0x0F);
+			Bprint(&bout, "\t\tTNO: 0x%2.2X\n", p[2]);
+			Bprint(&bout, "\t\tPOINT: 0x%2.2X\n", p[3]);
+			Bprint(&bout, "\t\tMin: 0x%2.2X\n", p[4]);
+			Bprint(&bout, "\t\tSec: 0x%2.2X\n", p[5]);
+			Bprint(&bout, "\t\tFrame: 0x%2.2X\n", p[6]);
+			Bprint(&bout, "\t\tZero: 0x%2.2X\n", p[7]);
+			Bprint(&bout, "\t\tPMIN: 0x%2.2X\n", p[8]);
+			Bprint(&bout, "\t\tPSEC: 0x%2.2X\n", p[9]);
+			Bprint(&bout, "\t\tPFRAME: 0x%2.2X\n", p[10]);
 		}
 		break;
 	case 3:
-		Bprint(&bout, "\tPMA data length: 0x%uX\n", tdl);
+		Bprint(&bout, "\tPMA data length: 0x%X\n", tdl);
 		for(p = &d[4], n = tdl-2; n > 0; n -= 11, p += 11){
-			Bprint(&bout, "\t\tcontrol: 0x%2.2uX\n", p[1] & 0x0F);
-			Bprint(&bout, "\t\tADR: 0x%2.2uX\n", (p[1]>>4) & 0x0F);
-			Bprint(&bout, "\t\tTNO: 0x%2.2uX\n", p[2]);
-			Bprint(&bout, "\t\tPOINT: 0x%2.2uX\n", p[3]);
-			Bprint(&bout, "\t\tMin: 0x%2.2uX\n", p[4]);
-			Bprint(&bout, "\t\tSec: 0x%2.2uX\n", p[5]);
-			Bprint(&bout, "\t\tFrame: 0x%2.2uX\n", p[6]);
-			Bprint(&bout, "\t\tZero: 0x%2.2uX\n", p[7]);
-			Bprint(&bout, "\t\tPMIN: 0x%2.2uX\n", p[8]);
-			Bprint(&bout, "\t\tPSEC: 0x%2.2uX\n", p[9]);
-			Bprint(&bout, "\t\tPFRAME: 0x%2.2uX\n", p[10]);
+			Bprint(&bout, "\t\tcontrol: 0x%2.2X\n", p[1] & 0x0F);
+			Bprint(&bout, "\t\tADR: 0x%2.2X\n", (p[1]>>4) & 0x0F);
+			Bprint(&bout, "\t\tTNO: 0x%2.2X\n", p[2]);
+			Bprint(&bout, "\t\tPOINT: 0x%2.2X\n", p[3]);
+			Bprint(&bout, "\t\tMin: 0x%2.2X\n", p[4]);
+			Bprint(&bout, "\t\tSec: 0x%2.2X\n", p[5]);
+			Bprint(&bout, "\t\tFrame: 0x%2.2X\n", p[6]);
+			Bprint(&bout, "\t\tZero: 0x%2.2X\n", p[7]);
+			Bprint(&bout, "\t\tPMIN: 0x%2.2X\n", p[8]);
+			Bprint(&bout, "\t\tPSEC: 0x%2.2X\n", p[9]);
+			Bprint(&bout, "\t\tPFRAME: 0x%2.2X\n", p[10]);
 		}
 		break;
 
 	case 4:
-		Bprint(&bout, "\tATIP data length: 0x%uX\n", tdl);
+		Bprint(&bout, "\tATIP data length: 0x%X\n", tdl);
 		break;
 
 	}
 	for(n = 0; n < nbytes; n++){
 		if(n && ((n & 0x0F) == 0))
 			Bprint(&bout, "\n");
-		Bprint(&bout, " %2.2uX", d[n]);
+		Bprint(&bout, " %2.2X", d[n]);
 	}
 	if(n && (n & 0x0F))
 		Bputc(&bout, '\n');
@@ -835,8 +835,8 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char*[])
 		return -1;
 
 	dl = (d[0]<<8)|d[1];
-	Bprint(&bout, "\tdata length: 0x%uX\n", dl);
-	Bprint(&bout, "\tinfo[2] 0x%2.2uX\n", d[2]);
+	Bprint(&bout, "\tdata length: 0x%X\n", dl);
+	Bprint(&bout, "\tinfo[2] 0x%2.2X\n", d[2]);
 	switch(d[2] & 0x03){
 
 	case 0:
@@ -875,18 +875,18 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char*[])
 	}
 	if(d[2] & 0x10)
 		Bprint(&bout, "\t\tErasable\n");
-	Bprint(&bout, "\tNumber of First Track on Disc %ud\n", d[3]);
-	Bprint(&bout, "\tNumber of Sessions %ud\n", d[4]);
-	Bprint(&bout, "\tFirst Track Number in Last Session %ud\n", d[5]);
-	Bprint(&bout, "\tLast Track Number in Last Session %ud\n", d[6]);
-	Bprint(&bout, "\tinfo[7] 0x%2.2uX\n", d[7]);
+	Bprint(&bout, "\tNumber of First Track on Disc %u\n", d[3]);
+	Bprint(&bout, "\tNumber of Sessions %u\n", d[4]);
+	Bprint(&bout, "\tFirst Track Number in Last Session %u\n", d[5]);
+	Bprint(&bout, "\tLast Track Number in Last Session %u\n", d[6]);
+	Bprint(&bout, "\tinfo[7] 0x%2.2X\n", d[7]);
 	if(d[7] & 0x20)
 		Bprint(&bout, "\t\tUnrestricted Use Disc\n");
 	if(d[7] & 0x40)
 		Bprint(&bout, "\t\tDisc Bar Code Valid\n");
 	if(d[7] & 0x80)
 		Bprint(&bout, "\t\tDisc ID Valid\n");
-	Bprint(&bout, "\tinfo[8] 0x%2.2uX\n", d[8]);
+	Bprint(&bout, "\tinfo[8] 0x%2.2X\n", d[8]);
 	switch(d[8]){
 
 	case 0x00:
@@ -909,15 +909,15 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char*[])
 		Bprint(&bout, "\t\tReserved\n");
 		break;
 	}
-	Bprint(&bout, "\tLast Session lead-in Start Time M/S/F: 0x%2.2uX/0x%2.2uX/0x%2.2uX\n",
+	Bprint(&bout, "\tLast Session lead-in Start Time M/S/F: 0x%2.2X/0x%2.2X/0x%2.2X\n",
 		d[17], d[18], d[19]);
-	Bprint(&bout, "\tLast Possible Start Time for Start of lead-out M/S/F: 0x%2.2uX/0x%2.2uX/0x%2.2uX\n",
+	Bprint(&bout, "\tLast Possible Start Time for Start of lead-out M/S/F: 0x%2.2X/0x%2.2X/0x%2.2X\n",
 		d[21], d[22], d[23]);
 
 	for(n = 0; n < nbytes; n++){
 		if(n && ((n & 0x0F) == 0))
 			Bprint(&bout, "\n");
-		Bprint(&bout, " %2.2uX", d[n]);
+		Bprint(&bout, " %2.2X", d[n]);
 	}
 	if(n && (n & 0x0F))
 		Bputc(&bout, '\n');
@@ -954,11 +954,11 @@ cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
 		return -1;
 
 	dl = (d[0]<<8)|d[1];
-	Bprint(&bout, "\tdata length: 0x%uX\n", dl);
+	Bprint(&bout, "\tdata length: 0x%X\n", dl);
 	Bprint(&bout, "\Track Number %d\n", d[2]);
 	Bprint(&bout, "\Session Number %d\n", d[3]);
-	Bprint(&bout, "\tinfo[4] 0x%2.2uX\n", d[5]);
-	Bprint(&bout, "\t\tTrack Mode 0x%2.2uX: ", d[5] & 0x0F);
+	Bprint(&bout, "\tinfo[4] 0x%2.2X\n", d[5]);
+	Bprint(&bout, "\t\tTrack Mode 0x%2.2X: ", d[5] & 0x0F);
 	switch(d[5] & 0x0F){
 	case 0x00:
 	case 0x02:
@@ -992,8 +992,8 @@ cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
 		Bprint(&bout, "\t\tCopy\n");
 	if(d[5] & 0x20)
 		Bprint(&bout, "\t\tDamage\n");
-	Bprint(&bout, "\tinfo[6] 0x%2.2uX\n", d[6]);
-	Bprint(&bout, "\t\tData Mode 0x%2.2uX: ", d[6] & 0x0F);
+	Bprint(&bout, "\tinfo[6] 0x%2.2X\n", d[6]);
+	Bprint(&bout, "\t\tData Mode 0x%2.2X: ", d[6] & 0x0F);
 	switch(d[6] & 0x0F){
 	case 0x01:
 		Bprint(&bout, "Mode 1 (ISO/IEC 10149)\n");
@@ -1016,23 +1016,23 @@ cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
 		Bprint(&bout, "\t\tBlank\n");
 	if(d[6] & 0x80)
 		Bprint(&bout, "\t\tRT\n");
-	Bprint(&bout, "\tTrack Start Address 0x%8.8uX\n",
+	Bprint(&bout, "\tTrack Start Address 0x%8.8X\n",
 		(d[8]<<24)|(d[9]<<16)|(d[10]<<8)|d[11]);
 	if(d[7] & 0x01)
-		Bprint(&bout, "\tNext Writeable Address 0x%8.8uX\n",
+		Bprint(&bout, "\tNext Writeable Address 0x%8.8X\n",
 			(d[12]<<24)|(d[13]<<16)|(d[14]<<8)|d[15]);
-	Bprint(&bout, "\tFree Blocks 0x%8.8uX\n",
+	Bprint(&bout, "\tFree Blocks 0x%8.8X\n",
 		(d[16]<<24)|(d[17]<<16)|(d[18]<<8)|d[19]);
 	if((d[6] & 0x30) == 0x30)
-		Bprint(&bout, "\tFixed Packet Size 0x%8.8uX\n",
+		Bprint(&bout, "\tFixed Packet Size 0x%8.8X\n",
 			(d[20]<<24)|(d[21]<<16)|(d[22]<<8)|d[23]);
-	Bprint(&bout, "\tTrack Size 0x%8.8uX\n",
+	Bprint(&bout, "\tTrack Size 0x%8.8X\n",
 		(d[24]<<24)|(d[25]<<16)|(d[26]<<8)|d[27]);
 
 	for(n = 0; n < nbytes; n++){
 		if(n && ((n & 0x0F) == 0))
 			Bprint(&bout, "\n");
-		Bprint(&bout, " %2.2uX", d[n]);
+		Bprint(&bout, " %2.2X", d[n]);
 	}
 	if(n && (n & 0x0F))
 		Bputc(&bout, '\n');
@@ -1155,7 +1155,7 @@ cmdcdstatus(ScsiReq *rp, int argc, char *argv[])
 	lp = list;
 	Bprint(&bout, " Header\n   ");
 	for(i = 0; i < 8; i++){				/* header */
-		Bprint(&bout, " %2.2uX", *lp);
+		Bprint(&bout, " %2.2X", *lp);
 		lp++;
 	}
 	Bputc(&bout, '\n');
@@ -1163,7 +1163,7 @@ cmdcdstatus(ScsiReq *rp, int argc, char *argv[])
 	slots = ((list[6]<<8)|list[7])/4;
 	Bprint(&bout, " Slots\n   ");
 	while(slots--){
-		Bprint(&bout, " %2.2uX %2.2uX %2.2uX %2.2uX\n   ",
+		Bprint(&bout, " %2.2X %2.2X %2.2X %2.2X\n   ",
 			*lp, *(lp+1), *(lp+2), *(lp+3));
 		lp += 4;
 	}
@@ -1236,7 +1236,7 @@ cmdfwaddr(ScsiReq *rp, int argc, char *argv[])
 	}
 	if((n = SRfwaddr(rp, track, mode, npa, d)) == -1)
 		return -1;
-	Bprint(&bout, "%ud %ud\n", d[0], (d[1]<<24)|(d[2]<<16)|(d[3]<<8)|d[4]);
+	Bprint(&bout, "%u %u\n", d[0], (d[1]<<24)|(d[2]<<16)|(d[3]<<8)|d[4]);
 	return n;
 }
 
@@ -1268,17 +1268,17 @@ cmdtrackinfo(ScsiReq *rp, int argc, char *argv[])
 	}
 	if((n = SRtinfo(rp, track, d)) == -1)
 		return -1;
-	Bprint(&bout, "buffer length: 0x%uX\n", d[0]);
-	Bprint(&bout, "number of tracks: 0x%uX\n", d[1]);
+	Bprint(&bout, "buffer length: 0x%X\n", d[0]);
+	Bprint(&bout, "number of tracks: 0x%X\n", d[1]);
 	ul = (d[2]<<24)|(d[3]<<16)|(d[4]<<8)|d[5];
-	Bprint(&bout, "start address: 0x%luX\n", ul);
+	Bprint(&bout, "start address: 0x%lX\n", ul);
 	ul = (d[6]<<24)|(d[7]<<16)|(d[8]<<8)|d[9];
-	Bprint(&bout, "track length: 0x%luX\n", ul);
-	Bprint(&bout, "track mode: 0x%uX\n", d[0x0A] & 0x0F);
-	Bprint(&bout, "track status: 0x%uX\n", (d[0x0A]>>4) & 0x0F);
-	Bprint(&bout, "data mode: 0x%uX\n", d[0x0B] & 0x0F);
+	Bprint(&bout, "track length: 0x%lX\n", ul);
+	Bprint(&bout, "track mode: 0x%X\n", d[0x0A] & 0x0F);
+	Bprint(&bout, "track status: 0x%X\n", (d[0x0A]>>4) & 0x0F);
+	Bprint(&bout, "data mode: 0x%X\n", d[0x0B] & 0x0F);
 	ul = (d[0x0C]<<24)|(d[0x0D]<<16)|(d[0x0E]<<8)|d[0x0F];
-	Bprint(&bout, "free blocks: 0x%luX\n", ul);
+	Bprint(&bout, "free blocks: 0x%lX\n", ul);
 	return n;
 }
 
@@ -1488,7 +1488,7 @@ cmdestatus(ScsiReq *rp, int argc, char *argv[])
 	nbytes = ((lp[5]<<16)|(lp[6]<<8)|lp[7])-8;
 	Bprint(&bout, " Header\n   ");
 	for(i = 0; i < 8; i++){				/* header */
-		Bprint(&bout, " %2.2uX", *lp);
+		Bprint(&bout, " %2.2X", *lp);
 		lp++;
 	}
 	Bputc(&bout, '\n');
@@ -1498,14 +1498,14 @@ cmdestatus(ScsiReq *rp, int argc, char *argv[])
 		nbytes -= i+8;
 		Bprint(&bout, " Type");
 		for(n = 0; n < 8; n++)			/* header */
-			Bprint(&bout, " %2.2uX", lp[n]);
+			Bprint(&bout, " %2.2X", lp[n]);
 		Bprint(&bout, "\n   ");
 		d = (lp[2]<<8)|lp[3];
 		lp += 8;
 		for(n = 0; n < i; n++){
 			if(n && (n % d) == 0)
 				Bprint(&bout, "\n   ");
-			Bprint(&bout, " %2.2uX", *lp);
+			Bprint(&bout, " %2.2X", *lp);
 			lp++;
 		}
 		if(n && (n % d))

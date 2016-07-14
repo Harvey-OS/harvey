@@ -369,7 +369,7 @@ fsioproc(void* a)
 			rc = fsops->read(fsops, fid, r->data, t->count, t->offset);
 			if(rc >= 0){
 				if(rc > t->count)
-					print("%s: bug: read %ld bytes > %ud wanted\n",
+					print("%s: bug: read %ld bytes > %u wanted\n",
 						argv0, rc, t->count);
 				r->count = rc;
 			}
