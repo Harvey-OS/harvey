@@ -203,7 +203,7 @@ opt_seprint(Msg *m)
 		otype = *a;
 		opt = icmp6opts[otype];
 		if(opt == nil){
-			sprint(optbuf, "0x%ux", otype);
+			sprint(optbuf, "0x%x", otype);
 			opt = optbuf;
 		}
 		osz = (*(a+1)) * 8;
@@ -306,10 +306,10 @@ p_seprint(Msg *m)
 
 	tn = icmpmsg6[h->type];
 	if(tn == nil)
-		p = seprint(p, e, "t=%ud c=%d ck=%4.4ux", h->type,
+		p = seprint(p, e, "t=%u c=%d ck=%4.4x", h->type,
 			h->code, (uint16_t)NetS(h->cksum));
 	else
-		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
+		p = seprint(p, e, "t=%s c=%d ck=%4.4x", tn,
 			h->code, (uint16_t)NetS(h->cksum));
 
 /*
@@ -319,7 +319,7 @@ p_seprint(Msg *m)
 		h->cksum[1] = 0;
 		cksum2 = ~ptclbsum((uchar*)h, m->pe - m->ps + ICMP6LEN) & 0xffff;
 		if(cksum != cksum2)
-			p = seprint(p,e, " !ck=%4.4ux", cksum2);
+			p = seprint(p,e, " !ck=%4.4x", cksum2);
 	}
  */
 
@@ -360,13 +360,13 @@ p_seprint(Msg *m)
 			i = nelem(parpcode)-1;
 		else
 			i = h->code;
-		p = seprint(p, e, " code=%s ptr=%2.2ux", parpcode[i], h->data[0]);
+		p = seprint(p, e, " code=%s ptr=%2.2x", parpcode[i], h->data[0]);
 		break;
 
 	case EchoReplyV6:
 	case EchoRequestV6:
 		m->ps += 4;
-		p = seprint(p, e, " id=%ux seq=%ux",
+		p = seprint(p, e, " id=%x seq=%x",
 			NetS(h->data), NetS(h->data+2));
 		break;
 
@@ -421,7 +421,7 @@ p_seprint(Msg *m)
 	case Timestamp:
 	case TimestampReply:
 		m->ps += 12;
-		p = seprint(p, e, " orig=%ud rcv=%ux xmt=%ux",
+		p = seprint(p, e, " orig=%u rcv=%x xmt=%x",
 			NetL(h->data), NetL(h->data+4), NetL(h->data+8));
 		m->pr = nil;
 		break;
@@ -442,7 +442,7 @@ Proto icmp6 =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer,
 };

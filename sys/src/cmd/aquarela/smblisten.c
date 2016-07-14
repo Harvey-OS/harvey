@@ -76,7 +76,7 @@ tcpreader(void *a)
 		flags = buf[1];
 		length = nhgets(buf + 2) | ((flags & 1) << 16);
 		if (length > buflen - 4) {
-			print("nbss: too much data (%ud)\n", length);
+			print("nbss: too much data (%u)\n", length);
 			goto die;
 		}
 		n = readn(s->fd, buf + 4, length);

@@ -36,7 +36,7 @@ nbnsdumpname(NbName name)
 			break;
 		print("%c", tolower(name[x]));
 	}
-	print("\\x%.2ux", name[NbNameLen - 1]);
+	print("\\x%.2x", name[NbNameLen - 1]);
 }
 
 void
@@ -73,12 +73,12 @@ nbnsdumpmessageresource(NbnsMessageResource *r, char *name)
 	case NbnsResourceClassIn: print(" IN"); break;
 	default: print(" ???");
 	}
-	print(" ttl: %lud", r->ttl);
+	print(" ttl: %lu", r->ttl);
 	if (r->rdlength) {
 		int i;
 		print(" rdata: ");
 		for (i = 0; i < r->rdlength; i++)
-			print("%.2ux", r->rdata[i]);
+			print("%.2x", r->rdata[i]);
 	}
 	print("\n");
 }
@@ -88,7 +88,7 @@ nbnsdumpmessage(NbnsMessage *s)
 {
 	NbnsMessageQuestion *q;
 	NbnsMessageResource *r;
-	print("0x%.4ux %s %s (%d)",
+	print("0x%.4x %s %s (%d)",
 		s->id, opname(s->opcode), s->response ? "response" : "request", s->opcode);
 	if (s->broadcast)
 		print(" B");
@@ -124,9 +124,9 @@ nbdumpdata(void *ap, int32_t n)
 		int b;
 		print("0x%.4lux  ", i);
 		for (b = 0; b < l; b += 2) {
-			print(" %.2ux", p[i + b]);
+			print(" %.2x", p[i + b]);
 			if (b < l - 1)
-				print("%.2ux", p[i + b + 1]);
+				print("%.2x", p[i + b + 1]);
 			else
 				print("  ");
 		}

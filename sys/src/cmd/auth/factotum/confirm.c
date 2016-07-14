@@ -118,7 +118,7 @@ confirmqueue(Req *r, Fsstate *fss)
 	for(i=0; i<fss->nconf; i++)
 		if(fss->conf[i].canuse == -1){
 			n++;
-			snprint(msg, sizeof msg, "confirm tag=%lud %A", fss->conf[i].tag, fss->conf[i].key->attr);
+			snprint(msg, sizeof msg, "confirm tag=%lu %A", fss->conf[i].tag, fss->conf[i].key->attr);
 			logbufappend(&confbuf, msg);
 		}
 	if(n == 0){
@@ -203,7 +203,7 @@ needkeyqueue(Req *r, Fsstate *fss)
 	if(*needkeyinuse == 0)
 		return -1;
 
-	snprint(msg, sizeof msg, "needkey tag=%lud %s", r->tag, fss->keyinfo);
+	snprint(msg, sizeof msg, "needkey tag=%lu %s", r->tag, fss->keyinfo);
 	logbufappend(&needkeybuf, msg);
 	*needlast = r;
 	r->aux = nil;

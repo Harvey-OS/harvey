@@ -65,16 +65,16 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	timeout = smbnhgetl(pdata); pdata += 4;
 	numberofunlocks = smbnhgets(pdata); pdata += 2;
 	numberoflocks = smbnhgets(pdata);
-	smblogprint(h->command, "smbcomlockingandx: fid 0x%.4ux locktype 0x%.2ux oplocklevel 0x%.2ux timeout %lud numberofunlocks %d numberoflocks %ud\n",
+	smblogprint(h->command, "smbcomlockingandx: fid 0x%.4x locktype 0x%.2x oplocklevel 0x%.2x timeout %lu numberofunlocks %d numberoflocks %u\n",
 		fid, locktype, oplocklevel, timeout, numberofunlocks, numberoflocks);
 	large = locktype & 0x10;
 	locktype &= ~0x10;
 	if (locktype != 0 || oplocklevel != 0) {
-		smblogprint(-1, "smbcomlockingandx: locktype 0x%.2ux unimplemented\n", locktype);
+		smblogprint(-1, "smbcomlockingandx: locktype 0x%.2x unimplemented\n", locktype);
 		return SmbProcessResultUnimp;
 	}
 	if (oplocklevel != 0) {
-		smblogprint(-1, "smbcomlockingandx: oplocklevel 0x%.2ux unimplemented\n", oplocklevel);
+		smblogprint(-1, "smbcomlockingandx: oplocklevel 0x%.2x unimplemented\n", oplocklevel);
 		return SmbProcessResultUnimp;
 	}
 	t = smbidmapfind(s->tidmap, h->tid);
@@ -97,7 +97,7 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 			pr = SmbProcessResultFormat;
 			goto done;
 		}
-		smblogprint(h->command, "smbcomlockingandx: unlock pid 0x%.4ux offset %llud length %llud\n",
+		smblogprint(h->command, "smbcomlockingandx: unlock pid 0x%.4x offset %llu length %llu\n",
 			pid, offset, length);
 		smbsharedfileunlock(f->sf, s, h->pid, offset, offset + length);
 	}
@@ -109,7 +109,7 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 			pr = SmbProcessResultFormat;
 			goto done;
 		}
-		smblogprint(h->command, "smbcomlockingandx: lock pid 0x%.4ux offset %llud length %llud\n",
+		smblogprint(h->command, "smbcomlockingandx: lock pid 0x%.4x offset %llu length %llu\n",
 			pid, offset, length);
 		if (!smbsharedfilelock(f->sf, s, h->pid, offset, offset + length))
 			break;

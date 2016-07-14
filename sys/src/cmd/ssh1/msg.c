@@ -163,7 +163,7 @@ recvmsg0(Conn *c)
 	p = m->bp + pad+len-4;
 	crc0 = LONG(p);
 	if(crc != crc0){
-		werrstr("bad crc %#lux != %#lux (packet length %lud)", crc, crc0, len);
+		werrstr("bad crc %#lux != %#lux (packet length %lu)", crc, crc0, len);
 		free(m);
 		return nil;
 	}
@@ -214,7 +214,7 @@ sendmsg(Msg *m)
 	len = datalen + 5;
 	pad = 8 - len%8;
 
-	debug(DBG_PROTO, "sending %s len %lud\n", msgnames[m->type], datalen);
+	debug(DBG_PROTO, "sending %s len %lu\n", msgnames[m->type], datalen);
 
 	p = m->bp;
 	memmove(m->bp+4+pad+1, m->bp, datalen);	/* slide data to correct position */

@@ -582,7 +582,7 @@ rread(Mfile *mf)
 			if(n == 0){
 				/* end of file */
 				if(b->inode.length > off){
-					DPRINT(2, "file %llud.%ld, length %lld\n",
+					DPRINT(2, "file %llu.%ld, length %lld\n",
 						b->inode.qid.path,
 						b->inode.qid.vers, off);
 					b->inode.length = off;
@@ -644,7 +644,7 @@ rwrite(Mfile *mf)
 		b->inode.length = c.thdr.offset + s.rhdr.count;
 	mf->qid.vers++;
 	if (s.rhdr.count != c.thdr.count)
-		syslog(0, "cfslog", "rhdr.count %ud, thdr.count %ud\n",
+		syslog(0, "cfslog", "rhdr.count %u, thdr.count %u\n",
 			s.rhdr.count, c.thdr.count);
 	if(fwrite(&ic, b, buf, c.thdr.offset, s.rhdr.count) == s.rhdr.count){
 		iinc(&ic, b);
@@ -806,7 +806,7 @@ dump(uint8_t *p, int len)
 {
 	fprint(2, "%d bytes", len);
 	while(len-- > 0)
-		fprint(2, " %.2ux", *p++);
+		fprint(2, " %.2x", *p++);
 	fprint(2, "\n");
 }
 

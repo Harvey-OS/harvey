@@ -141,10 +141,10 @@ p_seprint(Msg *m)
 
 	tn = icmpmsg[h->type];
 	if(tn == nil)
-		p = seprint(p, e, "t=%ud c=%d ck=%4.4ux", h->type,
+		p = seprint(p, e, "t=%u c=%d ck=%4.4x", h->type,
 			h->code, (uint16_t)NetS(h->cksum));
 	else
-		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
+		p = seprint(p, e, "t=%s c=%d ck=%4.4x", tn,
 			h->code, (uint16_t)NetS(h->cksum));
 	if(Cflag){
 		cksum = NetS(h->cksum);
@@ -152,19 +152,19 @@ p_seprint(Msg *m)
 		h->cksum[1] = 0;
 		cksum2 = ~ptclbsum((uint8_t*)h, m->pe - m->ps + ICMPLEN) & 0xffff;
 		if(cksum != cksum2)
-			p = seprint(p,e, " !ck=%4.4ux", cksum2);
+			p = seprint(p,e, " !ck=%4.4x", cksum2);
 	}
 	switch(h->type){
 	case EchoRep:
 	case EchoReq:
 		m->ps += 4;
-		p = seprint(p, e, " id=%ux seq=%ux",
+		p = seprint(p, e, " id=%x seq=%x",
 			NetS(h->data), NetS(h->data+2));
 		break;
 	case TSreq:
 	case TSrep:
 		m->ps += 12;
-		p = seprint(p, e, " orig=%ud rcv=%ux xmt=%ux",
+		p = seprint(p, e, " orig=%u rcv=%x xmt=%x",
 			NetL(h->data), NetL(h->data+4),
 			NetL(h->data+8));
 		m->pr = nil;
@@ -186,7 +186,7 @@ p_seprint(Msg *m)
 	case ParamProb:
 		m->ps += 4;
 		m->pr = &ip;
-		p = seprint(p, e, "ptr=%2.2ux", h->data[0]);
+		p = seprint(p, e, "ptr=%2.2x", h->data[0]);
 		break;
 	}
 	m->p = p;
@@ -200,7 +200,7 @@ Proto icmp =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%lud",
+	"%lu",
 	p_fields,
 	defaultframer,
 };

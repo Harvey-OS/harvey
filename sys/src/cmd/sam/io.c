@@ -178,7 +178,7 @@ closeio(Posn p)
 	close(io);
 	io = 0;
 	if(p >= 0)
-		dprint("#%lud\n", p);
+		dprint("#%lu\n", p);
 }
 
 int	remotefd0 = 0;

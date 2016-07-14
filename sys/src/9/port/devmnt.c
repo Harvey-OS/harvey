@@ -1037,7 +1037,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 		l = &q->list;
 	}
 	unlock(&mnt->l);
-	print("unexpected reply tag %ud; type %d\n", r->reply.tag, r->reply.type);
+	print("unexpected reply tag %u; type %d\n", r->reply.tag, r->reply.type);
 }
 
 /*

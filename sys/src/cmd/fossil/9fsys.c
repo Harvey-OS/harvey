@@ -503,7 +503,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 	else
 		sprint(buf+strlen(buf), " -s none");
 	if(life != ~(uint32_t)0)
-		sprint(buf+strlen(buf), " -t %ud", life);
+		sprint(buf+strlen(buf), " -t %u", life);
 	else
 		sprint(buf+strlen(buf), " -t none");
 	consPrint("\tsnaptime %s\n", buf);
@@ -648,7 +648,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 		goto Out0;
 
 	l = b->l;
-	consPrint("%slabel %#ux %ud %ud %ud %ud %#x\n",
+	consPrint("%slabel %#ux %u %u %u %u %#x\n",
 		argc==6 ? "old: " : "", addr, l.type, l.state,
 		l.epoch, l.epochClose, l.tag);
 
@@ -664,7 +664,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 		if(strcmp(argv[5], "-") != 0)
 			l.tag = strtoul(argv[5], 0, 0);
 
-		consPrint("new: label %#ux %ud %ud %ud %ud %#x\n",
+		consPrint("new: label %#ux %u %u %u %u %#x\n",
 			addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
 		bb = _blockSetLabel(b, &l);
 		if(bb == nil)
@@ -740,7 +740,7 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 		return 0;
 	}
 
-	consPrint("\t%sblock %#ux %ud %ud %.*H\n",
+	consPrint("\t%sblock %#ux %u %u %.*H\n",
 		argc==4 ? "old: " : "", addr, offset, count, count, b->data+offset);
 
 	if(argc == 4){
@@ -767,7 +767,7 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 			buf[i>>1] |= c;
 		}
 		memmove(b->data+offset, buf, count);
-		consPrint("\tnew: block %#ux %ud %ud %.*H\n",
+		consPrint("\tnew: block %#ux %u %u %.*H\n",
 			addr, offset, count, count, b->data+offset);
 		blockDirty(b);
 	}
@@ -804,7 +804,7 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 	while(argc > 0){
 		addr = strtoul(argv[0], &p, 0);
 		if(*p != '\0'){
-			consPrint("bad address - '%ud'\n", addr);
+			consPrint("bad address - '%u'\n", addr);
 			/* syntax error; let's stop */
 			vtRUnlock(fs->elk);
 			return 0;
@@ -818,7 +818,7 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 		if(l.state == BsFree)
 			consPrint("%#ux is already free\n", addr);
 		else{
-			consPrint("label %#ux %ud %ud %ud %ud %#x\n",
+			consPrint("label %#ux %u %u %u %u %#x\n",
 				addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
 			l.state = BsFree;
 			l.type = BtMax;
@@ -974,7 +974,7 @@ fsysEsearch1(File* f, char* s, uint32_t elo)
 				if(!fileGetSources(ff, &e, &ee))
 					consPrint("\tcannot get sources for %s/%s: %R\n", s, de.elem);
 				else if(e.snap != 0 && e.snap < elo){
-					consPrint("\t%ud\tclri %s/%s\n", e.snap, s, de.elem);
+					consPrint("\t%u\tclri %s/%s\n", e.snap, s, de.elem);
 					n++;
 				}
 				fileDecRef(ff);
@@ -1058,14 +1058,14 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	fs = fsys->fs;
 
 	vtRLock(fs->elk);
-	consPrint("\tlow %ud hi %ud\n", fs->elo, fs->ehi);
+	consPrint("\tlow %u hi %u\n", fs->elo, fs->ehi);
 	if(low == ~(uint32_t)0){
 		vtRUnlock(fs->elk);
 		return 1;
 	}
 	n = fsysEsearch(fsys->fs, "/archive", low);
 	n += fsysEsearch(fsys->fs, "/snapshot", low);
-	consPrint("\t%d snapshot%s found with epoch < %ud\n", n, n==1 ? "" : "s", low);
+	consPrint("\t%d snapshot%s found with epoch < %u\n", n, n==1 ? "" : "s", low);
 	vtRUnlock(fs->elk);
 
 	/*
@@ -1083,8 +1083,8 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	if(!fsEpochLow(fs, low))
 		consPrint("\tfsEpochLow: %R\n");
 	else{
-		consPrint("\told: epoch%s %ud\n", force ? " -y" : "", old);
-		consPrint("\tnew: epoch%s %ud\n", force ? " -y" : "", fs->elo);
+		consPrint("\told: epoch%s %u\n", force ? " -y" : "", old);
+		consPrint("\tnew: epoch%s %u\n", force ? " -y" : "", fs->elo);
 		if(fs->elo < low)
 			consPrint("\twarning: new low epoch < old low epoch\n");
 		if(force && remove)
@@ -1177,7 +1177,7 @@ fsysPrintStat(char *prefix, char *file, DirEntry *de)
 
 	if(prefix == nil)
 		prefix = "";
-	consPrint("%sstat %q %q %q %q %s %llud\n", prefix,
+	consPrint("%sstat %q %q %q %q %s %llu\n", prefix,
 		file, de->elem, de->uid, de->gid, fsysModeString(de->mode, buf), de->size);
 }
 

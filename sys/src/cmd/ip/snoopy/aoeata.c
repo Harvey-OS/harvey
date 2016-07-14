@@ -118,7 +118,7 @@ p_seprint(Msg *m)
 	/* no next protocol */
 	m->pr = nil;
 
-	m->p = seprint(m->p, m->e, "aflag=%ux errfeat=%ux sectors=%ux cmdstat=%ux lba=%lld",
+	m->p = seprint(m->p, m->e, "aflag=%x errfeat=%x sectors=%x cmdstat=%x lba=%lld",
 		h->aflag, h->feat, h->sectors, h->cmd, llba(h->lba));
 	return 0;
 }

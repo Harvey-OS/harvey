@@ -235,12 +235,12 @@ vgaread(Chan* c, void* a, int32_t n, int64_t off)
 					physgscreenr.max.x, physgscreenr.max.y);
 		}
 
-		len += snprint(p+len, READSTR-len, "blank time %lud idle %d state %s\n",
+		len += snprint(p+len, READSTR-len, "blank time %lu idle %d state %s\n",
 			blanktime, drawidletime(), scr->isblank ? "off" : "on");
 		len += snprint(p+len, READSTR-len, "hwaccel %s\n", hwaccel ? "on" : "off");
 		len += snprint(p+len, READSTR-len, "hwblank %s\n", hwblank ? "on" : "off");
 		len += snprint(p+len, READSTR-len, "panning %s\n", panning ? "on" : "off");
-		len += snprint(p+len, READSTR-len, "addr p 0x%lux v 0x%p size 0x%ux\n", scr->paddr, scr->vaddr, scr->apsize);
+		len += snprint(p+len, READSTR-len, "addr p 0x%lx v 0x%p size 0x%x\n", scr->paddr, scr->vaddr, scr->apsize);
 		USED(len);
 
 		n = readstr(offset, a, n, p);

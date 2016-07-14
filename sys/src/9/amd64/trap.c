@@ -662,7 +662,7 @@ doublefault(Ureg* ureg, void* v)
 static void
 unexpected(Ureg* ureg, void* v)
 {
-	iprint("unexpected trap %llud; ignoring\n", ureg->type);
+	iprint("unexpected trap %llu; ignoring\n", ureg->type);
 }
 
 static void

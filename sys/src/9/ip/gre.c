@@ -230,8 +230,8 @@ grestate(Conv *c, char *state, int n)
 	grec = c->ptcl;
 	p    = state;
 	ep   = p + n;
-	p    = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %ulx "
-	 "pending %uld  %uld buffered dl %uld %uld ul %uld %uld ulkey %.8ulx\n",
+	p    = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %lx "
+	 "pending %lu  %lu buffered dl %lu %lu ul %lu %lu ulkey %.8lx\n",
 			c->inuse? "Open ": "Closed ",
 			grec->raw? "raw ": "",
 			grec->dlsusp? "DL suspended ": "",
@@ -683,7 +683,7 @@ grestats(Proto *gre, char *buf, int len)
 
 	gpriv = gre->priv;
 	return snprint(buf, len,
-		"gre: %lud %lud %lud %lud %lud %lud %lud %lud, lenerrs %lud\n",
+		"gre: %lu %lu %lu %lu %lu %lu %lu %lu, lenerrs %lu\n",
 		grepdin, grepdout, grepuin, grepuout,
 		grebdin, grebdout, grebuin, grebuout, gpriv->lenerr);
 }

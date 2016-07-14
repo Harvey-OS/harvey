@@ -60,7 +60,7 @@ smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	case SMB_COM_OPEN_PRINT_FILE:
 		break;
 	default:
-		smblogprint(h->command, "smbcomsessionsetupandx: invalid andxcommand %s (0x%.2ux)\n",
+		smblogprint(h->command, "smbcomsessionsetupandx: invalid andxcommand %s (0x%.2x)\n",
 			smboptable[andxcommand].name, andxcommand);
 		goto fmtfail;
 	}
@@ -76,13 +76,13 @@ smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	pdata += 4;
 	s->peerinfo.capabilities = smbnhgetl(pdata); /*pdata += 4;*/
 smbloglock();
-smblogprint(h->command, "andxcommand: %s offset %ud\n", smboptable[andxcommand].name, andxoffset);
-smblogprint(h->command, "client.maxbuffersize: %ud\n", s->peerinfo.maxlen);
-smblogprint(h->command, "client.maxmpxcount: %ud\n", s->client.maxmpxcount);
-smblogprint(h->command, "vcnumber: %ud\n", vcnumber);
+smblogprint(h->command, "andxcommand: %s offset %u\n", smboptable[andxcommand].name, andxoffset);
+smblogprint(h->command, "client.maxbuffersize: %u\n", s->peerinfo.maxlen);
+smblogprint(h->command, "client.maxmpxcount: %u\n", s->client.maxmpxcount);
+smblogprint(h->command, "vcnumber: %u\n", vcnumber);
 smblogprint(h->command, "sessionkey: 0x%.8lux\n", sessionkey);
-smblogprint(h->command, "caseinsensitivepasswordlength: %ud\n", caseinsensitivepasswordlength);
-smblogprint(h->command, "casesensitivepasswordlength: %ud\n", casesensitivepasswordlength);
+smblogprint(h->command, "caseinsensitivepasswordlength: %u\n", caseinsensitivepasswordlength);
+smblogprint(h->command, "casesensitivepasswordlength: %u\n", casesensitivepasswordlength);
 smblogprint(h->command, "clientcapabilities: 0x%.8lux\n", s->peerinfo.capabilities);
 smblogunlock();
 

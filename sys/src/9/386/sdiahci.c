@@ -1323,7 +1323,7 @@ isctlrjabbering(Ctlr *c, uint32_t cause)
 		c->lastintr0 = now;
 	}
 	if (++c->intrs > Maxintrspertick) {
-		iprint("sdiahci: %lud intrs per tick for no serviced "
+		iprint("sdiahci: %lu intrs per tick for no serviced "
 			"drive; cause %#lux mport %d\n",
 			c->intrs, cause, c->mport);
 		c->intrs = 0;
@@ -1341,7 +1341,7 @@ isdrivejabbering(Drive *d)
 		d->lastintr0 = now;
 	}
 	if (++d->intrs > Maxintrspertick) {
-		iprint("sdiahci: %lud interrupts per tick for %s\n",
+		iprint("sdiahci: %lu interrupts per tick for %s\n",
 			d->intrs, d->unit->SDperm.name);
 		d->intrs = 0;
 	}
@@ -2194,7 +2194,7 @@ print("iarctl: nil u->dev->ctlr\n");
 		o->ci, o->isr, o->sig, o->sstatus);
 	if(d->unit == nil)
 		panic("iarctl: nil d->unit");
-	p = seprint(p, e, "geometry %llud %lud\n", d->sectors, d->unit->secsize);
+	p = seprint(p, e, "geometry %llu %lu\n", d->sectors, d->unit->secsize);
 	return p - op;
 }
 

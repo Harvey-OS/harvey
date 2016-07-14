@@ -62,15 +62,15 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 	}
 	if(e.psize < 256 || e.dsize < 256){
 		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: psize %ud or dsize %ud < 256\n",
+		consPrint("%s: %s %V: sourceAlloc: psize %u or dsize %u < 256\n",
 			fs->name, pname, e.score, e.psize, e.dsize);
 		goto Bad;
 	}
 
 	if(e.depth < sizeToDepth(e.size, e.psize, e.dsize)){
 		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: depth %ud size %llud "
-			"psize %ud dsize %ud\n", fs->name, pname,
+		consPrint("%s: %s %V: sourceAlloc: depth %u size %llu "
+			"psize %u dsize %u\n", fs->name, pname,
 			e.score, e.depth, e.size, e.psize, e.dsize);
 		goto Bad;
 	}
@@ -84,8 +84,8 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 
 	if(e.dsize > fs->blockSize || e.psize > fs->blockSize){
 		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: psize %ud or dsize %ud "
-			"> blocksize %ud\n", fs->name, pname, e.score,
+		consPrint("%s: %s %V: sourceAlloc: psize %u or dsize %u "
+			"> blocksize %u\n", fs->name, pname, e.score,
 			e.psize, e.dsize, fs->blockSize);
 		goto Bad;
 	}
@@ -151,7 +151,7 @@ sourceRoot(Fs *fs, uint32_t addr, int mode)
 		return nil;
 
 	if(mode == OReadWrite && b->l.epoch != fs->ehi){
-		consPrint("sourceRoot: fs->ehi = %ud, b->l = %L\n",
+		consPrint("sourceRoot: fs->ehi = %u, b->l = %L\n",
 			fs->ehi, &b->l);
 		blockPut(b);
 		vtSetError(EBadRoot);
@@ -640,7 +640,7 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 		bb = cacheAllocBlock(r->fs->cache, type+1, tag, r->fs->ehi, r->fs->elo);
 		if(bb == nil)
 			break;
-//fprint(2, "alloc %lux grow %V\n", bb->addr, b->score);
+//fprint(2, "alloc %lx grow %V\n", bb->addr, b->score);
 		memmove(bb->data, b->score, VtScoreSize);
 		memmove(e->score, bb->score, VtScoreSize);
 		e->depth++;

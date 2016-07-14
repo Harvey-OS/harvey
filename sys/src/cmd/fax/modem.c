@@ -118,7 +118,7 @@ getmchar(Modem *m, char *buf, int32_t timeout)
 			return r;
 		}
 	}
-	verbose("getmchar: time %ud, timeout %ud", t, timeout);
+	verbose("getmchar: time %u, timeout %u", t, timeout);
 
 	return seterror(m, Enoresponse);
 }
@@ -175,7 +175,7 @@ getmline(Modem *m, char *buf, int len, int32_t timeout)
 			return r;
 		}
 	}
-	verbose("getmline: time %ud, timeout %ud", t, timeout);
+	verbose("getmline: time %u, timeout %u", t, timeout);
 
 	return seterror(m, Enoresponse);
 }

@@ -559,7 +559,7 @@ fsread(Req *r)
 		sendp(reqchan, r);
 		break;
 	default:
-		snprint(e, sizeof(e), "bug in fsread path=%lux", path);
+		snprint(e, sizeof(e), "bug in fsread path=%lx", path);
 		respond(r, e);
 		break;
 	}

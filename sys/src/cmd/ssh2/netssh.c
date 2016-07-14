@@ -599,7 +599,7 @@ getdata(Conn *c, SSHChan *sc, Req *r)
 	}
 	if (sc->rwindow < 16*1024) {		/* magic.  half-way, maybe? */
 		sc->rwindow += Maxpayload;
-		sshdebug(c, "increasing receive window to %lud, inq %lud\n",
+		sshdebug(c, "increasing receive window to %lu, inq %lu\n",
 			argv0, sc->rwindow, sc->inrqueue);
 		p = new_packet(c);
 		add_byte(p, SSH_MSG_CHANNEL_WINDOW_ADJUST);
@@ -1352,7 +1352,7 @@ writereqremproc(void *a)
 		add_uint32(p, ch->otherid);
 		add_string(p, "shell");
 		add_byte(p, 0);
-		sshdebug(c, "sending shell request: rlength=%lud twindow=%lud",
+		sshdebug(c, "sending shell request: rlength=%lu twindow=%lu",
 			p->rlength, ch->twindow);
 	} else if (strcmp(toks[0], "exec") == 0) {
 		ch->state = Established;
@@ -2347,7 +2347,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		cnum = nhgetl(p->payload + 1);
 		ch = c->chans[cnum];
 		ch->twindow += nhgetl(p->payload + 5);
-		sshdebug(c, "new twindow for channel: %d: %lud", cnum, ch->twindow);
+		sshdebug(c, "new twindow for channel: %d: %lu", cnum, ch->twindow);
 		qlock(&ch->xmtlock);
 		rwakeup(&ch->xmtrendez);
 		qunlock(&ch->xmtlock);
@@ -2493,7 +2493,7 @@ reader0(Conn *c, Packet *p, Packet *p2)
 		if (p->payload[0] > SSH_MSG_CHANNEL_OPEN) {
 			i = nhgetl(p->payload+1);
 			if (c->chans[i])
-				sshdebug(c, " for channel %d win %lud",
+				sshdebug(c, " for channel %d win %lu",
 					i, c->chans[i]->rwindow);
 			else
 				sshdebug(c, " for invalid channel %d", i);

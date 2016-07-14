@@ -404,9 +404,9 @@ mallocreadfmt(char* s, char* e)
 	Qlist *qlist;
 
 	p = seprint(s, e,
-		"%llud memory\n"
+		"%llu memory\n"
 		"%d pagesize\n"
-		"%llud kernel\n",
+		"%llu kernel\n",
 		(uint64_t)conf.npage*PGSZ,
 		PGSZ,
 		(uint64_t)conf.npage-conf.upages);
@@ -418,7 +418,7 @@ mallocreadfmt(char* s, char* e)
 		QLOCK(&qlist->lk);
 		for(q = qlist->first; q != nil; q = q->s.next){
 //			if(q->s.size != i)
-//				p = seprint(p, e, "q%d\t%#p\t%ud\n",
+//				p = seprint(p, e, "q%d\t%#p\t%u\n",
 //					i, q, q->s.size);
 			n++;
 		}
@@ -428,7 +428,7 @@ mallocreadfmt(char* s, char* e)
 //			p = seprint(p, e, "q%d %d\n", i, n);
 		t += n * i*sizeof(Header);
 	}
-	p = seprint(p, e, "quick: %ud bytes total\n", t);
+	p = seprint(p, e, "quick: %u bytes total\n", t);
 
 	MLOCK;
 	if((q = rover) != nil){
@@ -439,16 +439,16 @@ mallocreadfmt(char* s, char* e)
 //			p = seprint(p, e, "m%d\t%#p\n", q->s.size, q);
 		} while((q = q->s.next) != rover);
 
-		p = seprint(p, e, "rover: %d blocks %ud bytes total\n",
+		p = seprint(p, e, "rover: %d blocks %u bytes total\n",
 			i, t*sizeof(Header));
 	}
-	p = seprint(p, e, "total allocated %lud, %ud remaining\n",
+	p = seprint(p, e, "total allocated %lu, %u remaining\n",
 		(tailptr-tailbase)*sizeof(Header), tailnunits*sizeof(Header));
 
 	for(i = 0; i < nelem(qstats); i++){
 		if(qstats[i] == 0)
 			continue;
-		p = seprint(p, e, "%s %ud\n", qstatstr[i], qstats[i]);
+		p = seprint(p, e, "%s %u\n", qstatstr[i], qstats[i]);
 	}
 	MUNLOCK;
 }
@@ -480,14 +480,14 @@ mallocsummary(void)
 		QLOCK(&qlist->lk);
 		for(q = qlist->first; q != nil; q = q->s.next){
 			if(q->s.size != i)
-				DBG("q%d\t%#p\t%ud\n", i, q, q->s.size);
+				DBG("q%d\t%#p\t%u\n", i, q, q->s.size);
 			n++;
 		}
 		QUNLOCK(&qlist->lk);
 
 		t += n * i*sizeof(Header);
 	}
-	print("quick: %ud bytes total\n", t);
+	print("quick: %u bytes total\n", t);
 
 	MLOCK;
 	if((q = rover) != nil){
@@ -500,16 +500,16 @@ mallocsummary(void)
 	MUNLOCK;
 
 	if(i != 0){
-		print("rover: %d blocks %ud bytes total\n",
+		print("rover: %d blocks %u bytes total\n",
 			i, t*sizeof(Header));
 	}
-	print("total allocated %lud, %ud remaining\n",
+	print("total allocated %lu, %u remaining\n",
 		(tailptr-tailbase)*sizeof(Header), tailnunits*sizeof(Header));
 
 	for(i = 0; i < nelem(qstats); i++){
 		if(qstats[i] == 0)
 			continue;
-		print("%s %ud\n", qstatstr[i], qstats[i]);
+		print("%s %u\n", qstatstr[i], qstats[i]);
 	}
 }
 
@@ -664,7 +664,7 @@ mallocinit(void)
 	tailbase = UINT2PTR(sys->vmunused);
 	tailptr = tailbase;
 	tailnunits = NUNITS(sys->vmend - sys->vmunused);
-	print("base %#p ptr %#p nunits %ud\n", tailbase, tailptr, tailnunits);
+	print("base %#p ptr %#p nunits %u\n", tailbase, tailptr, tailnunits);
 }
 
 static int

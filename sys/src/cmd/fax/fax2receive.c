@@ -58,7 +58,7 @@ page(Modem *m, char *spool)
 			if(c == '\003')
 				break;
 			if(c != '\020'){
-				verbose("B%2.2ux", c);
+				verbose("B%2.2x", c);
 				continue;
 			}
 		}
@@ -107,7 +107,7 @@ receive(Modem *m, char *spool)
 		 * Check we have a valid page reponse.
 		 */
 		if((m->valid & Vfhng) == 0 && (m->valid & (Vfet|Vfpts)) != (Vfet|Vfpts)){
-			verbose("receive: invalid page reponse: #%4.4ux", m->valid);
+			verbose("receive: invalid page reponse: #%4.4x", m->valid);
 			return seterror(m, Eproto);
 		}
 

@@ -254,7 +254,7 @@ reset(Hci *hp)
 	capio = ctlr->capio;
 	hp->nports = capio->parms & Cnports;
 
-	ddprint("echi: %s, ncc %lud npcc %lud\n",
+	ddprint("echi: %s, ncc %lu npcc %lu\n",
 		capio->parms & 0x10000 ? "leds" : "no leds",
 		(capio->parms >> 12) & 0xf, (capio->parms >> 8) & 0xf);
 	ddprint("ehci: routing %s, %sport power ctl, %d ports\n",

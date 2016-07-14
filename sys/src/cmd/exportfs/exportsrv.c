@@ -598,7 +598,7 @@ openmount(int sfd)
 	arg[0] = "exportfs";
 	snprint(fdbuf, sizeof fdbuf, "-S/fd/%d", sfd);
 	arg[1] = fdbuf;
-	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize-IOHDRSZ);
+	snprint(mbuf, sizeof mbuf, "-m%lu", messagesize-IOHDRSZ);
 	arg[2] = mbuf;
 	arg[3] = nil;
 

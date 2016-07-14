@@ -46,7 +46,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 	switch(id){
 
 	default:
-		trace("Unknown ViRGE/Trio64+ - 0x%4.4uX\n",
+		trace("Unknown ViRGE/Trio64+ - 0x%4.4X\n",
 			(vga->crt[0x2D]<<8)|vga->crt[0x2E]);
 		/*FALLTHROUGH*/
 
@@ -515,7 +515,7 @@ init(Vga* vga, Ctlr* ctlr)
 	}
 	else{
 		if(vga->f[0] > pclk)
-			error("%s: invalid pclk - %lud\n",
+			error("%s: invalid pclk - %lu\n",
 				ctlr->name, vga->f[0]);
 
 		trio64clock(vga, ctlr);

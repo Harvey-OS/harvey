@@ -1435,7 +1435,7 @@ printmesg(char *fmt, unsigned char *a, int plsprnt)
 			a += 2;
 			break;
 		case 'S':
-			q += snprint(q, left, " %.4ux", BGSHORT(a));
+			q += snprint(q, left, " %.4x", BGSHORT(a));
 			a += 2;
 			break;
 		}

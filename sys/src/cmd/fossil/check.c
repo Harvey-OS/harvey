@@ -121,7 +121,7 @@ checkEpoch(Fsck *chk, uint32_t epoch)
 	Entry e;
 	Label l;
 
-	chk->print("checking epoch %ud...\n", epoch);
+	chk->print("checking epoch %u...\n", epoch);
 
 	for(a=0; a<chk->nblocks; a++){
 		if(!readLabel(chk->cache, &l, (a+chk->hint)%chk->nblocks)){
@@ -133,7 +133,7 @@ checkEpoch(Fsck *chk, uint32_t epoch)
 	}
 
 	if(a == chk->nblocks){
-		chk->print("could not find root block for epoch %ud", epoch);
+		chk->print("could not find root block for epoch %u", epoch);
 		return;
 	}
 
@@ -196,7 +196,7 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 
 	bb = cacheGlobal(chk->cache, score, type, tag, OReadOnly);
 	if(bb == nil){
-		error(chk, "could not load block %V type %d tag %ux: %R",
+		error(chk, "could not load block %V type %d tag %x: %R",
 			score, type, tag);
 		chk->walkdepth--;
 		return 0;
@@ -215,7 +215,7 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 	if(b){
 		/* (i) */
 		if(b->l.epoch < bb->l.epoch || bb->l.epochClose <= b->l.epoch){
-			error(chk, "walk: block %#ux [%ud, %ud) points at %#ux [%ud, %ud)",
+			error(chk, "walk: block %#ux [%u, %u) points at %#ux [%u, %u)",
 				b->addr, b->l.epoch, b->l.epochClose,
 				bb->addr, bb->l.epoch, bb->l.epochClose);
 			goto Exit;
@@ -294,7 +294,7 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 	case BtDir:
 		for(i = 0; i < chk->bsize/VtEntrySize; i++){
 			if(!entryUnpack(&e, bb->data, i)){
-				// error(chk, "walk: could not unpack entry: %ux[%d]: %R",
+				// error(chk, "walk: could not unpack entry: %x[%d]: %R",
 				//	addr, i);
 				setBit(chk->errmap, bb->addr);
 				chk->clre(chk, bb, i);
@@ -308,7 +308,7 @@ if(0)			fprint(2, "%x[%d] tag=%x snap=%d score=%V\n",
 			ep = epoch;
 			if(e.snap != 0){
 				if(e.snap >= epoch){
-					// error(chk, "bad snap in entry: %ux[%d] snap = %ud: epoch = %ud",
+					// error(chk, "bad snap in entry: %x[%d] snap = %u: epoch = %u",
 					//	addr, i, e.snap, epoch);
 					setBit(chk->errmap, bb->addr);
 					chk->clre(chk, bb, i);
@@ -320,7 +320,7 @@ if(0)			fprint(2, "%x[%d] tag=%x snap=%d score=%V\n",
 			if(e.flags & VtEntryLocal){
 				if(e.tag < UserTag)
 				if(e.tag != RootTag || tag != RootTag || i != 1){
-					// error(chk, "bad tag in entry: %ux[%d] tag = %ux",
+					// error(chk, "bad tag in entry: %x[%d] tag = %x",
 					//	addr, i, e.tag);
 					setBit(chk->errmap, bb->addr);
 					chk->clre(chk, bb, i);
@@ -329,7 +329,7 @@ if(0)			fprint(2, "%x[%d] tag=%x snap=%d score=%V\n",
 				}
 			}else
 				if(e.tag != 0){
-					// error(chk, "bad tag in entry: %ux[%d] tag = %ux",
+					// error(chk, "bad tag in entry: %x[%d] tag = %x",
 					//	addr, i, e.tag);
 					setBit(chk->errmap, bb->addr);
 					chk->clre(chk, bb, i);
@@ -370,7 +370,7 @@ checkLeak(Fsck *chk)
 
 	for(a = 0; a < chk->nblocks; a++){
 		if(!readLabel(chk->cache, &l, a)){
-			error(chk, "could not read label: addr 0x%ux %d %d: %R",
+			error(chk, "could not read label: addr 0x%x %d %d: %R",
 				a, l.type, l.state);
 			continue;
 		}
@@ -385,8 +385,8 @@ checkLeak(Fsck *chk)
 		if(l.state&BsClosed)
 			continue;
 		nlost++;
-//		warn(chk, "unreachable block: addr 0x%ux type %d tag 0x%ux "
-//			"state %s epoch %ud close %ud", a, l.type, l.tag,
+//		warn(chk, "unreachable block: addr 0x%x type %d tag 0x%x "
+//			"state %s epoch %u close %u", a, l.type, l.tag,
 //			bsStr(l.state), l.epoch, l.epochClose);
 		b = cacheLocal(chk->cache, PartData, a, OReadOnly);
 		if(b == nil){
@@ -398,7 +398,7 @@ checkLeak(Fsck *chk)
 		setBit(chk->amap, a);
 		blockPut(b);
 	}
-	chk->print("fsys blocks: total=%ud used=%ud(%.1f%%) free=%ud(%.1f%%) lost=%ud(%.1f%%)\n",
+	chk->print("fsys blocks: total=%u used=%u(%.1f%%) free=%u(%.1f%%) lost=%u(%.1f%%)\n",
 		chk->nblocks,
 		chk->nblocks - nfree-nlost,
 		100.*(chk->nblocks - nfree - nlost)/chk->nblocks,
@@ -551,7 +551,7 @@ scanSource(Fsck *chk, char *name, Source *r)
 			continue;
 		}
 		if(b->addr != NilBlock && getBit(chk->errmap, b->addr)){
-			warn(chk, "previously reported error in block %ux is in file %s",
+			warn(chk, "previously reported error in block %x is in file %s",
 				b->addr, name);
 		}
 		blockPut(b);
@@ -605,24 +605,24 @@ chkDir(Fsck *chk, char *name, Source *source, Source *meta)
 	for(o = 0; o < nb; o++){
 		b = sourceBlock(meta, o, OReadOnly);
 		if(b == nil){
-			error(chk, "could not read block in meta file: %s[%ud]: %R",
+			error(chk, "could not read block in meta file: %s[%u]: %R",
 				name, o);
 			continue;
 		}
 if(0)		fprint(2, "source %V:%d block %d addr %d\n", source->score,
 			source->offset, o, b->addr);
 		if(b->addr != NilBlock && getBit(chk->errmap, b->addr))
-			warn(chk, "previously reported error in block %ux is in %s",
+			warn(chk, "previously reported error in block %x is in %s",
 				b->addr, name);
 
 		if(!mbUnpack(&mb, b->data, meta->dsize)){
-			error(chk, "could not unpack meta block: %s[%ud]: %R",
+			error(chk, "could not unpack meta block: %s[%u]: %R",
 				name, o);
 			blockPut(b);
 			continue;
 		}
 		if(!chkMetaBlock(&mb)){
-			error(chk, "bad meta block: %s[%ud]: %R", name, o);
+			error(chk, "bad meta block: %s[%u]: %R", name, o);
 			blockPut(b);
 			continue;
 		}
@@ -631,13 +631,13 @@ if(0)		fprint(2, "source %V:%d block %d addr %d\n", source->score,
 			meUnpack(&me, &mb, i);
 			if(!deUnpack(&de, &me)){
 				error(chk,
-				  "could not unpack dir entry: %s[%ud][%d]: %R",
+				  "could not unpack dir entry: %s[%u][%d]: %R",
 					name, o, i);
 				continue;
 			}
 			if(s && strcmp(s, de.elem) <= 0)
 				error(chk,
-			   "dir entry out of order: %s[%ud][%d] = %s last = %s",
+			   "dir entry out of order: %s[%u][%d] = %s last = %s",
 					name, o, i, de.elem, s);
 			vtMemFree(s);
 			s = vtStrDup(de.elem);

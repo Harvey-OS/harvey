@@ -1126,13 +1126,13 @@ xmlsealed(Hio *hout, int v, char *tag)
 void
 xmlu32int(Hio *hout, uint32_t v, char *tag)
 {
-	hprint(hout, " %s=\"%ud\"", tag, v);
+	hprint(hout, " %s=\"%u\"", tag, v);
 }
 
 void
 xmlu64int(Hio *hout, uint64_t v, char *tag)
 {
-	hprint(hout, " %s=\"%llud\"", tag, v);
+	hprint(hout, " %s=\"%llu\"", tag, v);
 }
 
 void

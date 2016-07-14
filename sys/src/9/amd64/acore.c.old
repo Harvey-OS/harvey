@@ -109,7 +109,7 @@ actrap(Ureg *u)
 		print("actrap: cpu%d: PF\n", machp()->machno);
 		break;
 	default:
-		print("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
+		print("actrap: cpu%d: %llu\n", machp()->machno, u->type);
 	}
 	m->icc->rc = ICCTRAP;
 	m->cr2 = cr2get();
@@ -311,7 +311,7 @@ kproc("testproc", testproc, up);
 		switch(rc){
 		case ICCTRAP:
 			m->cr2 = up->ac->cr2;
-			DBG("runacore: trap %ulld cr2 %#ullx ureg %#p\n",
+			DBG("runacore: trap %llu cr2 %#ullx ureg %#p\n",
 				ureg->type, m->cr2, ureg);
 			if(ureg->type == IdtIPI){
 				if(up->procctl || up->nnote)

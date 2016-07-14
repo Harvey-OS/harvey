@@ -43,7 +43,7 @@ checkbucket(Index *ix, uint32_t buck, IBucket *ib)
 
 	is = ix->sects[indexsect0(ix, buck)];
 	if(buck < is->start || buck >= is->stop){
-		seterr(EAdmin, "cannot find index section for bucket %lud\n",
+		seterr(EAdmin, "cannot find index section for bucket %lu\n",
 		       (uint32_t)buck);
 		return -1;
 	}
@@ -200,7 +200,7 @@ checkbloom(Bloom *b1, Bloom *b2, int fix)
 	missing = 0;
 	for(i=BloomHeadSize/4; i<n; i++){
 		if(a1[i] != a2[i]){
-// print("%.8ux/%.8ux.", a1[i], a2[i]);
+// print("%.8x/%.8x.", a1[i], a2[i]);
 			extra   += countbits(a1[i] & ~a2[i]);
 			missing += countbits(a2[i] & ~a1[i]);
 		}

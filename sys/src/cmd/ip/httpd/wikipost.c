@@ -172,7 +172,7 @@ int i;
 	}
 
 i=0;
-	if((i++,fprint(fd, "%s\nD%lud\nA%s (%s)\n", title, version, author, hp->remotesys) < 0)
+	if((i++,fprint(fd, "%s\nD%lu\nA%s (%s)\n", title, version, author, hp->remotesys) < 0)
 	|| (i++,(comment && comment[0] && fprint(fd, "C%s\n", comment) < 0))
 	|| (i++,fprint(fd, "\n") < 0)
 	|| (i++,(text[0] && write(fd, text, strlen(text)) != strlen(text)))){

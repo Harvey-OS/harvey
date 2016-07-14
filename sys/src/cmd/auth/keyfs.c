@@ -484,7 +484,7 @@ Read(Fid *f)
 		if(!f->user->expire)
 			strcpy(data, "never\n");
 		else
-			sprint(data, "%lud\n", f->user->expire);
+			sprint(data, "%lu\n", f->user->expire);
 		if(n > strlen(data))
 			n = strlen(data);
 		thdr.count = n;
@@ -494,7 +494,7 @@ Read(Fid *f)
 			thdr.count = 0;
 			return 0;
 		}
-		sprint(data, "%lud\n", f->user->bad);
+		sprint(data, "%lu\n", f->user->bad);
 		if(n > strlen(data))
 			n = strlen(data);
 		thdr.count = n;
@@ -504,7 +504,7 @@ Read(Fid *f)
 			thdr.count = 0;
 			return 0;
 		}
-		sprint(data, "%ud\n", f->user->warnings);
+		sprint(data, "%u\n", f->user->warnings);
 		if(n > strlen(data))
 			n = strlen(data);
 		thdr.count = n;
@@ -1065,7 +1065,7 @@ io(int in, int out)
 
 		now = time(0);
 		if(warnarg && (now - lastwarning > 24*60*60)){
-			syslog(0, "auth", "keyfs starting warnings: %lux %lux",
+			syslog(0, "auth", "keyfs starting warnings: %lx %lx",
 				now, lastwarning);
 			warning();
 			lastwarning = now;

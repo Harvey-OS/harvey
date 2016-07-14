@@ -186,7 +186,7 @@ Jconv(Fmt *fp)
 	case FT_FCREATE1:
 	case FT_DCREATE0:
 	case FT_DCREATE1:
-		return fmtprint(fp, "create f %ld p %ld t %lud m %ulo %s",
+		return fmtprint(fp, "create f %ld p %ld t %lu m %ulo %s",
 			j->fnum, j->parent, j->mtime, j->mode, j->name);
 	case FT_chmod:
 	case FT_CHMOD0:
@@ -196,7 +196,7 @@ Jconv(Fmt *fp)
 	case FT_REMOVE:
 		return fmtprint(fp, "remove f %ld", j->fnum);
 	case FT_WRITE:
-		return fmtprint(fp, "write f %ld z %ld o %ld t %uld",
+		return fmtprint(fp, "write f %ld z %ld o %ld t %lu",
 			j->fnum, j->size, j->offset, j->mtime);
 	case FT_AWRITE:
 		return fmtprint(fp, "awrite f %ld z %ld o %ld",

@@ -786,7 +786,7 @@ nstr(uint8_t *p, int n)
 		if(' ' <= *p && *p <= '~')
 			*q++ = *p++;
 		else
-			q += sprint(q, "\\%2.2ux", *p++);
+			q += sprint(q, "\\%2.2x", *p++);
 	}
 	*q = 0;
 	return buf;

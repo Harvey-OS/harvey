@@ -62,7 +62,7 @@ dumpbootvol(void *a)
 	Voldesc *v;
 
 	v = a;
-	print("magic %.2ux %.5s %.2ux %2ux\n",
+	print("magic %.2x %.5s %.2x %2ux\n",
 		v->magic[0], v->magic+1, v->magic[6], v->magic[7]);
 	if(v->magic[0] == 0xFF)
 		return;
@@ -70,7 +70,7 @@ dumpbootvol(void *a)
 	print("system %.32T\n", v->systemid);
 	print("volume %.32T\n", v->volumeid);
 	print("volume size %.4N\n", v->volsize);
-	print("charset %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
+	print("charset %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x\n",
 		v->charset[0], v->charset[1], v->charset[2], v->charset[3],
 		v->charset[4], v->charset[5], v->charset[6], v->charset[7]);
 	print("volume set size %.2N\n", v->volsetsize);
@@ -287,7 +287,7 @@ void
 getsect(uint8_t *buf, int n)
 {
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
-		sysfatal("reading block %ux", n);
+		sysfatal("reading block %x", n);
 }
 
 void
