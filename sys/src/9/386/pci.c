@@ -404,7 +404,7 @@ pcirouting(void)
 	r = (Router *)p;
 
 	if(0)
-		print("PCI interrupt routing table version %d.%d at %.6llux\n",
+		print("PCI interrupt routing table version %d.%d at %.6llx\n",
 			r->version[0], r->version[1], (uintptr_t)r & 0xfffff);
 
 	tbdf = (BusPCI << 24)|(r->bus << 16)|(r->devfn << 8);
@@ -667,12 +667,12 @@ pcilhinv(Pcidev* p)
 		for(i = 0; i < nelem(p->mem); i++) {
 			if(t->mem[i].size == 0)
 				continue;
-			print("%d:%.8lux %d ", i, t->mem[i].bar, t->mem[i].size);
+			print("%d:%.8lx %d ", i, t->mem[i].bar, t->mem[i].size);
 		}
 		if(t->ioa.bar || t->ioa.size)
-			print("ioa:%.8lux %d ", t->ioa.bar, t->ioa.size);
+			print("ioa:%.8lx %d ", t->ioa.bar, t->ioa.size);
 		if(t->mema.bar || t->mema.size)
-			print("mema:%.8lux %d ", t->mema.bar, t->mema.size);
+			print("mema:%.8lx %d ", t->mema.bar, t->mema.size);
 		if(t->bridge)
 			print("->%d", BUSBNO(t->bridge->tbdf));
 		print("\n");

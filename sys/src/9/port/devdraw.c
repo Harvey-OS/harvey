@@ -246,7 +246,7 @@ drawgen(Chan *c, char *cc, Dirtab *dt, int i, int s, Dir *dp)
 			devdir(c, q, up->genbuf, 0, eve, 0500, dp);
 			break;
 		default:
-			panic("drawwalk %llux", c->qid.path);
+			panic("drawwalk %llx", c->qid.path);
 		}
 		return 1;
 	}
@@ -1227,7 +1227,7 @@ drawread(Chan *c, void *a, int32_t n, int64_t off)
 		for(index = 0; index < 256; index++){
 			getcolor(index, &red, &green, &blue);
 			m += snprint((char*)p+m, 4*12*256+1 - m,
-				"%11d %11lud %11lud %11lud\n", index,
+				"%11d %11lu %11lu %11lu\n", index,
 				red>>24, green>>24, blue>>24);
 		}
 		n = readstr(offset, a, n, (char*)p);
@@ -1415,7 +1415,7 @@ printmesg(char *fmt, unsigned char *a, int plsprnt)
 			a += 4;
 			break;
 		case 'L':
-			q += snprint(q, left, " %.8lux", (uint32_t)BGLONG(a));
+			q += snprint(q, left, " %.8lx", (uint32_t)BGLONG(a));
 			a += 4;
 			break;
 		case 'R':

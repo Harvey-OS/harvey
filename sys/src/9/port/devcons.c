@@ -409,7 +409,7 @@ readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
 {
 	char tmp[64];
 
-	snprint(tmp, sizeof(tmp), "%*lud", size-1, val);
+	snprint(tmp, sizeof(tmp), "%*lu", size-1, val);
 	tmp[size-1] = ' ';
 	if(off >= size)
 		return 0;
@@ -662,7 +662,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return readstr(offset, buf, n, tmp);
 		break;
 	default:
-		print("consread %#llux\n", c->qid.path);
+		print("consread %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 	return -1;		/* never reached */
@@ -835,7 +835,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		error("#c/syscall: can only write on or off");
 		break;
 	default:
-		print("conswrite: %#llux\n", c->qid.path);
+		print("conswrite: %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 	return n;
@@ -966,7 +966,7 @@ readtime(uint32_t off, char *buf, int n)
 	if(fasthz == 0LL)
 		fastticks((uint64_t*)&fasthz);
 	sec = nsec/1000000000ULL;
-	snprint(str, sizeof(str), "%*lud %*llud %*llud %*llud ",
+	snprint(str, sizeof(str), "%*lu %*llu %*llu %*llu ",
 		NUMSIZE-1, sec,
 		VLNUMSIZE-1, nsec,
 		VLNUMSIZE-1, ticks,

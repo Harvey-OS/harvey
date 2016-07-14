@@ -230,7 +230,7 @@ char sfixedformat[] = "device %s maxtu %d sendra %d recvra %d mflag %d oflag"
 " %d maxraint %d minraint %d linkmtu %d reachtime %d rxmitra %d ttl %d routerlt"
 " %d pktin %lu pktout %lu errin %lu errout %lu\n";
 
-char slineformat[] = "	%-40I %-10M %-40I %-12lud %-12lud\n";
+char slineformat[] = "	%-40I %-10M %-40I %-12lu %-12lu\n";
 
 static int
 ipifcstate(Conv *c, char *state, int n)

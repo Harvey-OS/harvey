@@ -472,14 +472,14 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	if(vga->vma || vga->vmb){
 		printitem(ctlr->name, "vm a b");
-		Bprint(&stdout, "%9lud %8lud\n", vga->vma, vga->vmb);
+		Bprint(&stdout, "%9lu %8lu\n", vga->vma, vga->vmb);
 	}
 	if(vga->vmz){
 		printitem(ctlr->name, "vmz");
-		Bprint(&stdout, "%9lud\n", vga->vmz);
+		Bprint(&stdout, "%9lu\n", vga->vmz);
 	}
 	printitem(ctlr->name, "apz");
-	Bprint(&stdout, "%9lud\n", vga->apz);
+	Bprint(&stdout, "%9lu\n", vga->apz);
 
 	printitem(ctlr->name, "linear");
 	Bprint(&stdout, "%9d\n", vga->linear);

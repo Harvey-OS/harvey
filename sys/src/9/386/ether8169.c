@@ -416,7 +416,7 @@ rtl8169mii(Ctlr* ctlr)
 		ctlr->mii = nil;
 		return -1;
 	}
-	print("oui %#ux phyno %d, macv = %#8.8ux phyv = %#4.4ux\n",
+	print("oui %#x phyno %d, macv = %#8.8x phyv = %#4.4x\n",
 		phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
 
 	miiane(ctlr->mii, ~0, ~0, ~0);
@@ -577,8 +577,8 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	l += snprint(p+l, READSTR-l, "punlc: %u\n", ctlr->punlc);
 	l += snprint(p+l, READSTR-l, "fovw: %u\n", ctlr->fovw);
 
-	l += snprint(p+l, READSTR-l, "tcr: %#8.8ux\n", ctlr->tcr);
-	l += snprint(p+l, READSTR-l, "rcr: %#8.8ux\n", ctlr->rcr);
+	l += snprint(p+l, READSTR-l, "tcr: %#8.8x\n", ctlr->tcr);
+	l += snprint(p+l, READSTR-l, "rcr: %#8.8x\n", ctlr->rcr);
 	l += snprint(p+l, READSTR-l, "multicast: %u\n", ctlr->mcast);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
@@ -721,7 +721,7 @@ rtl8169init(Ether* edev)
 	cplusc |= /*Rxchksum|*/Mulrw;
 	switch(ctlr->macv){
 	default:
-		panic("ether8169: unknown macv %#08ux for vid %#ux did %#ux",
+		panic("ether8169: unknown macv %#08x for vid %#x did %#x",
 			ctlr->macv, ctlr->pcidev->vid, ctlr->pcidev->did);
 	case Macv01:
 		break;
@@ -1098,7 +1098,7 @@ rtl8169interrupt(Ureg *u, void* arg)
 		 * Some of the reserved bits get set sometimes...
 		 */
 		if(isr & (Serr|Timeout|Tdu|Fovw|Punlc|Rdu|Ter|Tok|Rer|Rok))
-			panic("rtl8169interrupt: imr %#4.4ux isr %#4.4ux",
+			panic("rtl8169interrupt: imr %#4.4x isr %#4.4x",
 				csr16r(ctlr, Imr), isr);
 	}
 }
@@ -1163,7 +1163,7 @@ rtl8169pci(void)
 
 		port = p->mem[0].bar & ~0x01;
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8169") < 0){
-			print("rtl8169: port %#ux in use\n", port);
+			print("rtl8169: port %#x in use\n", port);
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));

@@ -301,7 +301,7 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 				b = 16;
 			else if (b == 16)
 				b = 8;
-		snprint(buf, sizeof buf, "m%11d %11d %11d %11lud ",
+		snprint(buf, sizeof buf, "m%11d %11d %11d %11lu ",
 			m.xy.x, m.xy.y,
 			b,
 			m.msec);
