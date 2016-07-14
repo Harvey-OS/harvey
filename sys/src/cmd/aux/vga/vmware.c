@@ -250,7 +250,7 @@ load(Vga* vga, Ctlr *ctlr)
 	x = vmrd(vm, Rbpl)/(vm->depth/8);
 	if(x != vga->mode->x){
 		vga->virtx = x;
-		sprint(buf, "%lx%lx%d %s", vga->virtx, vga->virty,
+		sprint(buf, "%lux%lux%d %s", vga->virtx, vga->virty,
 			vga->mode->z, vga->mode->chan);
 		vgactlw("size", buf);
 	}
@@ -267,7 +267,7 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	for(i=0; i<Nreg; i++){
 		printitem(ctlr->name, rname[i]);
-		Bprint(&stdout, " %.8lux\n", vm->r[i]);
+		Bprint(&stdout, " %.8lx\n", vm->r[i]);
 	}
 
 	printitem(ctlr->name, "chan");

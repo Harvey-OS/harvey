@@ -404,7 +404,7 @@ ehcirun(Ctlr *ctlr, int on)
 	if(i == 100)
 		print("ehci %#p %s cmd timed out\n",
 			ctlr->capio, on ? "run" : "halt");
-	ddprint("ehci %#p cmd %#lux sts %#lux\n",
+	ddprint("ehci %#p cmd %#lx sts %#lx\n",
 		ctlr->capio, opio->cmd, opio->sts);
 }
 
@@ -882,7 +882,7 @@ seprintitd(char *s, char *se, Itd *td)
 	}
 	s = seprint(s, se, "\tbuffs:");
 	for(i = 0; i < nelem(td->buffer); i++)
-		s = seprint(s, se, " %#lux", td->buffer[i] >> 12);
+		s = seprint(s, se, " %#lx", td->buffer[i] >> 12);
 	return seprint(s, se, "\n");
 }
 
@@ -921,11 +921,11 @@ seprintsitd(char *s, char *se, Sitd *td)
 	ss = (td->csw & Stddcs) ? 'c' : 's';
 	pg = (td->csw & Stdpg) ? '1' : '0';
 	s = seprint(s, se, "\t%s %cs pg%c", flags, ss, pg);
-	s = seprint(s, se, " b0 %#lux b1 %#lux off %lu\n",
+	s = seprint(s, se, " b0 %#lx b1 %#lx off %lu\n",
 		td->buffer[0] >> 12, td->buffer[1] >> 12, td->buffer[0] & 0xfff);
 	s = seprint(s, se, "\ttpos %c tcnt %lu",
 		pc[(td->buffer[0]>>3)&3], td->buffer[1] & 7);
-	s = seprint(s, se, " ssm %#lux csm %#lux cspm %#lux",
+	s = seprint(s, se, " ssm %#lx csm %#lx cspm %#lx",
 		td->mfs & 0xff, (td->mfs>>8) & 0xff, (td->csw>>8) & 0xff);
 	s = seprintlink(s, se, " link", td->link, 1);
 	s = seprintlink(s, se, " blink", td->blink, 0);
@@ -984,11 +984,11 @@ seprinttd(char *s, char *se, Td *td, char *tag)
 	ss = (td->csw & Tddcs) ? 'c' : 's';
 	s = seprint(s, se, "\n\td%c %s %cs", t, flags, ss);
 	s = seprint(s, se, " max %lu", maxtdlen(td));
-	s = seprint(s, se, " pg %lu off %#lux\n",
+	s = seprint(s, se, " pg %lu off %#lx\n",
 		(td->csw >> Tdpgshift) & Tdpgmask, td->buffer[0] & 0xFFF);
 	s = seprint(s, se, "\tbuffs:");
 	for(i = 0; i < nelem(td->buffer); i++)
-		s = seprint(s, se, " %#lux", td->buffer[i]>>12);
+		s = seprint(s, se, " %#lx", td->buffer[i]>>12);
 	if(td->data != nil)
 		s = seprintdata(s, se, td->data, td->ndata);
 	return seprint(s, se, "\n");
@@ -1036,7 +1036,7 @@ qhdump(Qh *qh)
 	s = seprint(s, se, " hub %lu", (qh->eps1 >> 16) & 0x7f);
 	s = seprint(s, se, " port %lu", (qh->eps1 >> 23) & 0x7f);
 	s = seprintlink(s, se, " link", qh->link, 1);
-	seprint(s, se, "  clink %#lux", qh->tclink);
+	seprint(s, se, "  clink %#lx", qh->tclink);
 	print("%s\n", buf);
 	s = seprint(buf, se, "\tnrld %lu", (qh->eps0 >> Qhrlcshift) & Qhrlcmask);
 	s = seprint(s, se, " nak %lu", (qh->alink >> 1) & 0xf);
@@ -1051,7 +1051,7 @@ qhdump(Qh *qh)
 		s = seprint(s, se, "i");
 	s = seprint(s, se, " %s", speed[(qh->eps0 >> 12) & 3]);
 	s = seprint(s, se, " mult %lu", (qh->eps1 >> Qhmultshift) & Qhmultmask);
-	seprint(s, se, " scm %#lux ism %#lux\n",
+	seprint(s, se, " scm %#lx ism %#lx\n",
 		(qh->eps1 >> 8 & 0xff), qh->eps1 & 0xff);
 	print("%s\n", buf);
 	memset(&td, 0, sizeof(td));
@@ -1138,14 +1138,14 @@ dump(Hci *hp)
 		ctlr->capio, ctlr->frames, ctlr->nframes,
 		ctlr->nintr, ctlr->ntdintr);
 	print(" nqhintr %d nisointr %d\n", ctlr->nqhintr, ctlr->nisointr);
-	print("\tcmd %#lux sts %#lux intr %#lux frno %lu",
+	print("\tcmd %#lx sts %#lx intr %#lx frno %lu",
 		opio->cmd, opio->sts, opio->intr, opio->frno);
-	print(" base %#lux link %#lux fr0 %#lux\n",
+	print(" base %#lx link %#lx fr0 %#lx\n",
 		opio->frbase, opio->link, ctlr->frames[0]);
 	se = buf+sizeof(buf);
 	s = seprint(buf, se, "\t");
 	for(i = 0; i < hp->nports; i++){
-		s = seprint(s, se, "p%d %#lux ", i, opio->portsc[i]);
+		s = seprint(s, se, "p%d %#lx ", i, opio->portsc[i]);
 		if(hp->nports > 4 && i == hp->nports/2 - 1)
 			s = seprint(s, se, "\n\t");
 	}
@@ -1348,7 +1348,7 @@ isohsinterrupt(Ctlr *ctlr, Isoio *iso)
 		else if(iso->nerrs++ > iso->nframes/2){
 			if(iso->err == nil){
 				iso->err = ierrmsg(err);
-				diprint("isohsintr: tdi %#p error %#ux %s\n",
+				diprint("isohsintr: tdi %#p error %#x %s\n",
 					tdi, err, iso->err);
 				diprint("ctlr load %lu\n", ctlr->load);
 			}
@@ -1413,7 +1413,7 @@ isofsinterrupt(Ctlr *ctlr, Isoio *iso)
 		}else if(iso->nerrs++ > iso->nframes/2){
 			if(iso->err == nil){
 				iso->err = serrmsg(err);
-				diprint("isofsintr: tdi %#p error %#ux %s\n",
+				diprint("isofsintr: tdi %#p error %#x %s\n",
 					stdi, err, iso->err);
 				diprint("ctlr load %lu\n", ctlr->load);
 			}
@@ -1466,7 +1466,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 		if(err != 0){
 			if(qh->io->err == nil){
 				qh->io->err = errmsg(err);
-				dqprint("qhintr: td %#p csw %#lux error %#ux %s\n",
+				dqprint("qhintr: td %#p csw %#lx error %#x %s\n",
 					td, td->csw, err, qh->io->err);
 			}
 			break;
@@ -1539,7 +1539,7 @@ ehciintr(Hci *hp)
 				ctlr->nintr, ctlr->ntdintr);
 			print(" nqhintr %d nisointr %d\n",
 				ctlr->nqhintr, ctlr->nisointr);
-			print("\tcmd %#lux sts %#lux intr %#lux frno %lu",
+			print("\tcmd %#lx sts %#lx intr %#lx frno %lu",
 				opio->cmd, opio->sts, opio->intr, opio->frno);
 		}
 
@@ -1610,7 +1610,7 @@ portenable(Hci *hp, int port, int on)
 	microdelay(64);
 	iunlock(&ctlr->l);
 	tsleep(&up->sleep, return0, 0, Enabledelay);
-	dprint("ehci %#p port %d enable=%d: sts %#lux\n",
+	dprint("ehci %#p port %d enable=%d: sts %#lx\n",
 		ctlr->capio, port, on, opio->portsc[port-1]);
 	qunlock(&ctlr->portlck);
 	poperror();
@@ -1661,7 +1661,7 @@ portreset(Hci *hp, int port, int on)
 		nexterror();
 	}
 	portscp = &opio->portsc[port-1];
-	dprint("ehci %#p port %d reset; sts %#lux\n", ctlr->capio, port, *portscp);
+	dprint("ehci %#p port %d reset; sts %#lx\n", ctlr->capio, port, *portscp);
 	ilock(&ctlr->l);
 	/* Shalted must be zero, else Psreset will stay set */
 	if (opio->sts & Shalted)
@@ -1677,7 +1677,7 @@ portreset(Hci *hp, int port, int on)
 	for(i = 0; *portscp & Psreset && i < 50; i++)
 		delay(10);
 	if (*portscp & Psreset)
-		iprint("ehci %#p: port %d didn't reset within %d ms; sts %#lux\n",
+		iprint("ehci %#p: port %d didn't reset within %d ms; sts %#lx\n",
 			ctlr->capio, port, i * 10, *portscp);
 	*portscp &= ~Psreset;		/* force appearance of reset done */
 	coherence();
@@ -1687,7 +1687,7 @@ portreset(Hci *hp, int port, int on)
 		portlend(ctlr, port, "full");
 
 	iunlock(&ctlr->l);
-	dprint("ehci %#p after port %d reset; sts %#lux\n",
+	dprint("ehci %#p after port %d reset; sts %#lx\n",
 		ctlr->capio, port, *portscp);
 	qunlock(&ctlr->portlck);
 	poperror();
@@ -3189,7 +3189,7 @@ ehcimeminit(Ctlr *ctlr)
 	mkqhtree(ctlr);			/* init sync list */
 	edfree(edalloc());		/* try to get some ones pre-allocated */
 
-	dprint("ehci %#p flb %#lux frno %#lux\n",
+	dprint("ehci %#p flb %#lx frno %#lx\n",
 		ctlr->capio, opio->frbase, opio->frno);
 
 	print("sizeof(Itd) %d\n", sizeof(Itd));

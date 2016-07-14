@@ -75,13 +75,13 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 	uint64_t addr, len;
 
 	if(vflag)
-		print("magic %#ux pmbi %#ux\n", magic, pmbi);
+		print("magic %#x pmbi %#x\n", magic, pmbi);
 	if(magic != 0x2badb002)
 		print("no magic in multiboot\n");//return -1;
 
 	mbi = KADDR(pmbi);
 	if(vflag)
-		print("flags %#ux\n", mbi->flags);
+		print("flags %#x\n", mbi->flags);
 	if(mbi->flags & Fcmdline){
 		p = KADDR(mbi->cmdline);
 		if(vflag)
@@ -97,7 +97,7 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 			else
 				p = "";
 			if(vflag)
-				print("mod %#ux %#ux <%s>\n",
+				print("mod %#x %#x <%s>\n",
 					mod->modstart, mod->modend, p);
 			else
 				asmmodinit(mod->modstart, mod->modend, p);
@@ -140,7 +140,7 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 				break;
 			}
 			if(vflag)
-				print("\n\t%#16.16llux %#16.16llux (%llu)\n",
+				print("\n\t%#16.16llx %#16.16llx (%llu)\n",
 					addr, addr+len, len);
 
 			n += mmap->size+sizeof(mmap->size);
