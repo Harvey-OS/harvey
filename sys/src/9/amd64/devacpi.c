@@ -14,6 +14,7 @@
 #include	"fns.h"
 #include	"io.h"
 #include	"../port/error.h"
+#include "apic.h"
 #include "mp.h"
 #include <acpi/acpica/acpi.h>
 
@@ -295,6 +296,51 @@ objwalk(ACPI_OBJECT *p)
 			
 }
 
+static ACPI_STATUS
+resource(ACPI_RESOURCE *r, void *Context)
+{
+	ACPI_RESOURCE_IRQ *i = &r->Data.Irq;
+	print("\tACPI_RESOURCE_TYPE_%d: Length %d\n", r->Type, r->Length);
+	if (r->Type != ACPI_RESOURCE_TYPE_IRQ)
+		return 0;
+	print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ", 
+	      i->Triggering, i->Polarity, i->Sharable, i->InterruptCount);
+	for(int j = 0; j < i->InterruptCount; j++)
+		print("%d,", i->Interrupts[j]);
+	print("\n");
+	/* assumptions: we assume apic 0 for now. This will need to be fixed.
+	 * We also just take the first interrupt. 
+	 */
+	uint32_t low = Im;
+	switch (i->Polarity){
+	case ACPI_ACTIVE_HIGH:
+		low |= IPhigh;
+		break;
+	case ACPI_ACTIVE_LOW:
+		low |= IPlow;
+		break;
+	case ACPI_ACTIVE_BOTH:
+		low |= IPlow | IPhigh;
+		break;
+	default:
+		print("BOTCH! i->Polarity is 0x%x and I don't do that\n", i->Polarity);
+		break;
+	}
+
+	switch (i->Triggering) {
+	case ACPI_LEVEL_SENSITIVE:
+		low |= TMlevel;
+		break;
+	case ACPI_EDGE_SENSITIVE:
+		low |= TMedge;
+		break;
+	default:
+		print("BOTCH! i->Triggering is 0x%x and I don't do that\n", i->Triggering);
+		break;
+	}
+	print("CODE: ioapicintrinit(0xff, 0x%x, 0x%x, 0x%x, 0x%x\n", 0, i->Interrupts[0], 0, 0x10700);
+	return 0;
+}
 ACPI_STATUS
 device(ACPI_HANDLE                     Object,
     UINT32                          NestingLevel,
@@ -328,13 +374,35 @@ device(ACPI_HANDLE                     Object,
 			p += t->Length;
 		}
 	}
+	as = AcpiWalkResources(Object, "_CRS", resource, nil);
+	print("Walk resources: as is %d\n", as);
+#if 0
 	out.Length = ACPI_ALLOCATE_BUFFER;
 	out.Pointer = nil;
 	as = AcpiGetPossibleResources(Object, &out);
 	print("get the possible resources: %d\n", as);
 	if (ACPI_SUCCESS(as)) {
+		void *p = (void *)out.Pointer;
+		hexdump(out.Pointer, out.Length);
+		while(((ACPI_RESOURCE*)p)->Type != ACPI_RESOURCE_TYPE_END_TAG) {
+			ACPI_RESOURCE *r = p;
+			ACPI_RESOURCE_IRQ *i = p + sizeof(r->Type);
+			print("\tACPI_RESOURCE_TYPE_%d: Length %d\n", r->Type, r->Length);
+			p += r->Length;
+			if (r->Type != ACPI_RESOURCE_TYPE_IRQ)
+				continue;
+			print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ", 
+			      i->Triggering, i->Polarity, i->Sharable, i->InterruptCount);
+			for(int j = 0; j < i->InterruptCount; j++)
+				print("%d,", i->Interrupts[j]);
+			print("\n");
+			
+
+		}
 		print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+		
 	}
+#endif
 	print("hi\n");
 	
 	return 0;
