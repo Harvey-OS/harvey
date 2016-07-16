@@ -137,7 +137,7 @@ fillstat(Dir *d, uint64_t path, uint32_t length, char *ext)
 	else if(t->name)
 		d->name = estrdup(t->name);
 	else{	/* client directory */
-		snprint(buf, sizeof buf, "%ud", NUM(path));
+		snprint(buf, sizeof buf, "%u", NUM(path));
 		d->name = estrdup(buf);
 	}
 	d->qid.type = t->mode>>24;
@@ -211,7 +211,7 @@ fsread(Req *r)
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
 	default:
-		snprint(e, sizeof e, "bug in webfs path=%lux\n", path);
+		snprint(e, sizeof e, "bug in webfs path=%lx\n", path);
 		respond(r, e);
 		break;
 
@@ -300,7 +300,7 @@ fswrite(Req *r)
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
 	default:
-		snprint(e, sizeof e, "bug in webfs path=%lux\n", path);
+		snprint(e, sizeof e, "bug in webfs path=%lx\n", path);
 		respond(r, e);
 		break;
 
@@ -411,7 +411,7 @@ fsopen(Req *r)
 		r->fid->qid.path = path;
 		r->ofcall.qid.path = path;
 		if(fsdebug)
-			fprint(2, "open clone => path=%lux\n", path);
+			fprint(2, "open clone => path=%lx\n", path);
 		t = &tab[Qctl];
 		/* fall through */
 	default:

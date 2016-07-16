@@ -203,7 +203,7 @@ freepages(int si, int once)
 	for(; si < sys->npgsz; si++){
 		pa = &pga.pgsza[si];
 		if(pa->freecount > 0){
-			DBG("kickpager() up %#p: releasing %udK pages\n",
+			DBG("kickpager() up %#p: releasing %uK pages\n",
 				up, sys->pgsz[si]/KiB);
 			lock(&pga.l);
 			if(pa->freecount == 0){
@@ -294,7 +294,7 @@ kickpager(int pgszi, int color)
 		pageouttext(pgszi, color);
 		tryalloc(pgszi, color);
 		if(hascolor(pa->head, color)){
-			DBG("kickpager() found %uld free\n", pa->freecount);
+			DBG("kickpager() found %lu free\n", pa->freecount);
 			goto Done;
 		}
 	}
@@ -306,7 +306,7 @@ kickpager(int pgszi, int color)
 	freepages(pgszi+1, 1);
 	tryalloc(pgszi, color);
 	if(hascolor(pa->head, color)){
-		DBG("kickpager() found %uld free\n", pa->freecount);
+		DBG("kickpager() found %lu free\n", pa->freecount);
 		goto Done;
 	}
 
@@ -318,7 +318,7 @@ kickpager(int pgszi, int color)
 	freepages(0, 0);
 	tryalloc(pgszi, color);
 	if(pa->freecount > 0){
-		DBG("kickpager() found %uld free\n", pa->freecount);
+		DBG("kickpager() found %lu free\n", pa->freecount);
 		goto Done;
 	}
 
@@ -341,7 +341,7 @@ Done:
 void
 pagersummary(void)
 {
-	print("ntext %uld nbig %uld nall %uld\n",
+	print("ntext %lu nbig %lu nall %lu\n",
 		pstats.ntext, pstats.nbig, pstats.nall);
 	print("no swap\n");
 }

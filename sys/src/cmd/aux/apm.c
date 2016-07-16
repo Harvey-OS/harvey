@@ -120,7 +120,7 @@ apmevent(int e)
 	if(0 <= e && e < nelem(eventstr) && eventstr[e])
 		return eventstr[e];
 	
-	sprint(buf, "event 0x%ux", (uint)e);
+	sprint(buf, "event 0x%x", (uint)e);
 	return buf;
 }
 
@@ -161,7 +161,7 @@ int apmdebug;
 static int
 _apmcall(int fd, Ureg *u)
 {
-if(apmdebug) fprint(2, "call ax 0x%lux bx 0x%lux cx 0x%lux\n",
+if(apmdebug) fprint(2, "call ax 0x%lx bx 0x%lx cx 0x%lx\n",
 	u->ax&0xFFFF, u->bx&0xFFFF, u->cx&0xFFFF);
 
 	seek(fd, 0, 0);
@@ -172,7 +172,7 @@ if(apmdebug) fprint(2, "call ax 0x%lux bx 0x%lux cx 0x%lux\n",
 	if(read(fd, u, sizeof *u) != sizeof *u)
 		return -1;
 
-if(apmdebug) fprint(2, "flags 0x%lux ax 0x%lux bx 0x%lux cx 0x%lux\n",
+if(apmdebug) fprint(2, "flags 0x%lx ax 0x%lx bx 0x%lx cx 0x%lx\n",
 	u->flags&0xFFFF, u->ax&0xFFFF, u->bx&0xFFFF, u->cx&0xFFFF);
 
 	if(u->flags & 1) {	/* carry flag */
@@ -551,7 +551,7 @@ erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
-		sysfatal("out of memory reallocating %lud", n);
+		sysfatal("out of memory reallocating %lu", n);
 	setmalloctag(v, getcallerpc());
 	return v;
 }
@@ -563,7 +563,7 @@ emalloc(uint32_t n)
 
 	v = malloc(n);
 	if(v == nil)
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %lu", n);
 	memset(v, 0, n);
 	setmalloctag(v, getcallerpc());
 	return v;

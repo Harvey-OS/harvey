@@ -93,7 +93,7 @@ fillstat(Dir *d, uint32_t path)
 	if(t->name)
 		d->name = estrdup(t->name);
 	else{
-		snprint(buf, sizeof buf, "%ud", NUM(path));
+		snprint(buf, sizeof buf, "%u", NUM(path));
 		d->name = estrdup(buf);
 	}
 	d->qid.type = t->mode>>24;
@@ -164,7 +164,7 @@ fsread(Req *r)
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
 	default:
-		snprint(e, sizeof e, "bug in execnet path=%lux", path);
+		snprint(e, sizeof e, "bug in execnet path=%lx", path);
 		respond(r, e);
 		break;
 
@@ -184,7 +184,7 @@ fsread(Req *r)
 		break;
 
 	case Qctl:
-		snprint(e, sizeof e, "%ud", NUM(path));
+		snprint(e, sizeof e, "%u", NUM(path));
 		readstr(r, e);
 		respond(r, nil);
 		break;
@@ -224,7 +224,7 @@ fswrite(Req *r)
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
 	default:
-		snprint(e, sizeof e, "bug in execnet path=%lux", path);
+		snprint(e, sizeof e, "bug in execnet path=%lx", path);
 		respond(r, e);
 		break;
 
@@ -350,7 +350,7 @@ fsopen(Req *r)
 		r->fid->qid.path = path;
 		r->ofcall.qid.path = path;
 		if(fsdebug)
-			fprint(2, "open clone => path=%lux\n", path);
+			fprint(2, "open clone => path=%lx\n", path);
 		t = &tab[Qctl];
 		/* fall through */
 	default:

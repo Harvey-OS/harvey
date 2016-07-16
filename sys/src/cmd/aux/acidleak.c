@@ -18,7 +18,7 @@ emalloc(uint32_t sz)
 
 	v = malloc(sz);
 	if(v == nil)
-		sysfatal("malloc %lud fails", sz);
+		sysfatal("malloc %lu fails", sz);
 	memset(v, 0, sz);
 	return v;
 }
@@ -28,7 +28,7 @@ erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
 	if(v == nil)
-		sysfatal("realloc %lud fails", sz);
+		sysfatal("realloc %lu fails", sz);
 	return v;
 }
 
@@ -286,15 +286,15 @@ main(int argc, char **argv)
 		y = (len+x-1)/x;
 		Bprint(&bio, "%11s %11d %11d %11d %11d ", "m8", 0, 0, x, y);
 
-//fprint(2, "alloc %lux %lux x %d y %d res %d\n", allocstart, allocend, x, y, resolution);
+//fprint(2, "alloc %lx %lx x %d y %d res %d\n", allocstart, allocend, x, y, resolution);
 
 		b = block;
 		eb = block+nblock;
 		for(u = allocstart; u<allocend; u+=resolution){
-//fprint(2, "u %lux %lux baddr %lux\n", u, u+resolution, b->addr);
+//fprint(2, "u %lx %lx baddr %lx\n", u, u+resolution, b->addr);
 			while(b->addr+b->size <= u && b < eb)
 //{
-//fprint(2, "\tskip %lux %lux\n", b->addr, b->addr+b->size);
+//fprint(2, "\tskip %lx %lx\n", b->addr, b->addr+b->size);
 				b++;
 //}
 			nhdr = 0;
@@ -305,7 +305,7 @@ main(int argc, char **argv)
 				b--;
 
 			for(; b->addr < u+resolution && b < eb; b++){
-//fprint(2, "\tblock %lux %lux %d\n", b->addr, b->addr+b->size, b->mark);
+//fprint(2, "\tblock %lx %lx %d\n", b->addr, b->addr+b->size, b->mark);
 				if(rXr(b->addr, b->addr+hdr, u, u+resolution)
 				|| rXr(b->addr+b->size-8, b->addr+b->size, u, u+resolution)){
 					if(b->mark == 0 && !b->free)

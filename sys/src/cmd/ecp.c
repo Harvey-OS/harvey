@@ -140,11 +140,11 @@ sectid(File *fp, Daddr sect)
 	static char sectname[256];
 
 	if (fp->startsect == 0)
-		snprint(sectname, sizeof sectname, "%s sector %llud",
+		snprint(sectname, sizeof sectname, "%s sector %llu",
 			fp->name, sect);
 	else
 		snprint(sectname, sizeof sectname,
-			"%s sector %llud (relative %llud)",
+			"%s sector %llu (relative %llu)",
 			fp->name, sect + fp->startsect, sect);
 	return sectname;
 }
@@ -238,7 +238,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 		repos(fp, stsect);
 	}
 	if ((int32_t)blocksize != blocksize || (int32_t)bytes != bytes)
-		sysfatal("i/o count too big: %lud", bytes);
+		sysfatal("i/o count too big: %lu", bytes);
 
 	SET(tail);
 	if (rdwr == read)
@@ -348,7 +348,7 @@ bigxfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 			badsects++;
 			fp->harderrs++;
 			if (toomanyerrs(fp, stsect+i))
-				sysfatal("more than %lud consecutive I/O errors",
+				sysfatal("more than %lu consecutive I/O errors",
 					fp->maxconerrs);
 		} else {
 			ckendrange(fp);
@@ -487,7 +487,7 @@ copysects(File *src, File *dest, Daddr stsect, Daddr nsects, int mustseek)
 	/* give a few reassurances at the start, then every 10MB */
 	if (progress &&
 	    (stsect < blksects*10 || stsect%(10*1024*1024/sectsz) == 0))
-		fprint(2, "%s: copied%s to relative sector %llud\n", argv0,
+		fprint(2, "%s: copied%s to relative sector %llu\n", argv0,
 			(swizzle? " swizzled": ""), stsect + xfrsects - 1);
 	return 0;
 }
@@ -564,7 +564,7 @@ copyfile(File *src, File *dest, Daddr nsects, int plsverify)
 		if (vererrs <= 0)
 			fprint(2, "%s: no", argv0);
 		else
-			fprint(2, "%s: %llud", argv0, vererrs);
+			fprint(2, "%s: %llu", argv0, vererrs);
 		fprint(2, " error%s during verification\n",
 			(vererrs != 1? "s": ""));
 	}

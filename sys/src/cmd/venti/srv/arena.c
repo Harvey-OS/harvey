@@ -694,7 +694,7 @@ loadarena(Arena *arena)
 			logerr(ECorrupt, "arena tail name %s head %s", 
 				arena->name, head.name);
 		else if(arena->clumpmagic != head.clumpmagic)
-			logerr(ECorrupt, "arena %d tail clumpmagic 0x%lux head 0x%lux",
+			logerr(ECorrupt, "arena %d tail clumpmagic 0x%lx head 0x%lx",
 				debugarena, (uint32_t)arena->clumpmagic,
 				(uint32_t)head.clumpmagic);
 		else if(arena->version != head.version)
@@ -704,7 +704,7 @@ loadarena(Arena *arena)
 			logerr(ECorrupt, "arena tail block size %d head %d",
 				arena->blocksize, head.blocksize);
 		else if(arena->size+2*arena->blocksize != head.size)
-			logerr(ECorrupt, "arena tail size %lud head %lud",
+			logerr(ECorrupt, "arena tail size %lu head %lu",
 				(uint32_t)arena->size+2*arena->blocksize,
 			       head.size);
 		else
@@ -843,7 +843,7 @@ loadcig(Arena *arena)
 				vtfree(ci);
 				vtfree(cig);
 				arena->ncig = -1;
-				fprint(2, "loadcig %s: got %ud cigs, expected %ud\n", arena->name, i+1, ncig);
+				fprint(2, "loadcig %s: got %u cigs, expected %u\n", arena->name, i+1, ncig);
 				goto out;
 			}
 		}

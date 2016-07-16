@@ -47,7 +47,7 @@ deliver(void *, NbDgram *s)
 	print("name: %s\n", transaction.in.name);
 	print("setup:");
 	for (x = 0; x < transaction.in.scount; x++)
-		print(" 0x%.4ux", transaction.in.setup[x]);
+		print(" 0x%.4x", transaction.in.setup[x]);
 	print("\n");
 	print("parameters:\n");
 	nbdumpdata(transaction.in.parameters, transaction.in.tpcount);
@@ -87,7 +87,7 @@ deliver(void *, NbDgram *s)
 		goto done;
 	}
 */
-	print("%s: period %ludms version %d.%d type 0x%.8lux browserversion %d.%d comment %s\n",
+	print("%s: period %lums version %d.%d type 0x%.8lux browserversion %d.%d comment %s\n",
 		servername, periodicity, versionmajor, versionminor, type, (signature >> 8) & 0xff, signature & 0xff, comment);
 done:
 	free(errmsg);

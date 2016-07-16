@@ -638,7 +638,7 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 				continue;
 			ctlr->statistics[i] = tuvl;
 			ctlr->statistics[i+1] = tuvl>>32;
-			l += snprint(p+l, READSTR-l, "%s: %llud %llud\n",
+			l += snprint(p+l, READSTR-l, "%s: %llu %llu\n",
 				s, tuvl, ruvl);
 			i++;
 			break;
@@ -647,28 +647,28 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 			ctlr->statistics[i] += r;
 			if(ctlr->statistics[i] == 0)
 				continue;
-			l += snprint(p+l, READSTR-l, "%s: %ud %ud\n",
+			l += snprint(p+l, READSTR-l, "%s: %u %u\n",
 				s, ctlr->statistics[i], r);
 			break;
 		}
 	}
 
-	l += snprint(p+l, READSTR-l, "lintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "lintr: %u %u\n",
 		ctlr->lintr, ctlr->lsleep);
-	l += snprint(p+l, READSTR-l, "rintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "rintr: %u %u\n",
 		ctlr->rintr, ctlr->rsleep);
-	l += snprint(p+l, READSTR-l, "tintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "tintr: %u %u\n",
 		ctlr->tintr, ctlr->txdw);
-	l += snprint(p+l, READSTR-l, "ixcs: %ud %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "ixcs: %u %u %u\n",
 		ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
-	l += snprint(p+l, READSTR-l, "rdtr: %ud\n", ctlr->rdtr);
+	l += snprint(p+l, READSTR-l, "rdtr: %u\n", ctlr->rdtr);
 	l += snprint(p+l, READSTR-l, "Ctrlext: %08x\n", csr32r(ctlr, Ctrlext));
 
 	l += snprint(p+l, READSTR-l, "eeprom:");
 	for(i = 0; i < 0x40; i++){
 		if(i && ((i & 0x07) == 0))
 			l += snprint(p+l, READSTR-l, "\n       ");
-		l += snprint(p+l, READSTR-l, " %4.4uX", ctlr->eeprom[i]);
+		l += snprint(p+l, READSTR-l, " %4.4X", ctlr->eeprom[i]);
 	}
 	l += snprint(p+l, READSTR-l, "\n");
 
@@ -678,7 +678,7 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 			if(i && ((i & 0x07) == 0))
 				l += snprint(p+l, READSTR-l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, READSTR-l, " %4.4uX", r);
+			l += snprint(p+l, READSTR-l, " %4.4X", r);
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
@@ -1844,7 +1844,7 @@ igbereset(Ctlr* ctlr)
 	 * then get the device back to a power-on state.
 	 */
 	if((r = at93c46r(ctlr)) != 0xBABA){
-		print("igbe: bad EEPROM checksum - 0x%4.4uX\n", r);
+		print("igbe: bad EEPROM checksum - 0x%4.4X\n", r);
 		return -1;
 	}
 
@@ -1996,13 +1996,13 @@ igbepci(void)
 
 		mem = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
 		if(mem == nil){
-			print("igbe: can't map %8.8luX\n", p->mem[0].bar);
+			print("igbe: can't map %8.8lX\n", p->mem[0].bar);
 			continue;
 		}
 		cls = pcicfgr8(p, PciCLS);
 		switch(cls){
 		default:
-			print("igbe: p->cls %#ux, setting to 0x10\n", p->cls);
+			print("igbe: p->cls %#x, setting to 0x10\n", p->cls);
 			p->cls = 0x10;
 			pcicfgw8(p, PciCLS, p->cls);
 			break;

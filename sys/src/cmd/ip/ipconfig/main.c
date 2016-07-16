@@ -1193,10 +1193,10 @@ dhcprecv(void)
 			 * The All_Aboard NAT package from Internet Share
 			 * doesn't give a lease time, so we have to assume one.
 			 */
-			warning("Offer with %lud lease, using %d", lease, MinLease);
+			warning("Offer with %lu lease, using %d", lease, MinLease);
 			lease = MinLease;
 		}
-		DEBUG("lease=%lud ", lease);
+		DEBUG("lease=%lu ", lease);
 		if(!optgetaddr(bp->optdata, ODserverid, conf.server)) {
 			warning("Offer from server with invalid serverid");
 			break;
@@ -1225,10 +1225,10 @@ dhcprecv(void)
 			 * The All_Aboard NAT package from Internet Share
 			 * doesn't give a lease time, so we have to assume one.
 			 */
-			warning("Ack with %lud lease, using %d", lease, MinLease);
+			warning("Ack with %lu lease, using %d", lease, MinLease);
 			lease = MinLease;
 		}
-		DEBUG("lease=%lud ", lease);
+		DEBUG("lease=%lu ", lease);
 
 		/* address and mask */
 		if(!validip(conf.laddr) || !Oflag)
@@ -1586,7 +1586,7 @@ parseoptions(uint8_t *p, int n)
 		if(code == OBpad)
 			continue;
 		if(n == 0) {
-			warning("parseoptions: bad option: 0x%ux: truncated: "
+			warning("parseoptions: bad option: 0x%x: truncated: "
 				"opt length = %d", code, nin);
 			return -1;
 		}
@@ -1596,7 +1596,7 @@ parseoptions(uint8_t *p, int n)
 		DEBUG("parseoptions: %s(%d) len %d, bytes left %d",
 			option[code].name, code, len, n);
 		if(len > n) {
-			warning("parseoptions: bad option: 0x%ux: %d > %d: "
+			warning("parseoptions: bad option: 0x%x: %d > %d: "
 				"opt length = %d", code, len, n, nin);
 			return -1;
 		}
@@ -1642,7 +1642,7 @@ parsebootp(uint8_t *p, int n)
 		return nil;
 	}
 	if(memcmp(optmagic, p, 4) != 0) {
-		warning("parsebootp: bad opt magic %ux %ux %ux %ux",
+		warning("parsebootp: bad opt magic %x %x %x %x",
 			p[0], p[1], p[2], p[3]);
 		return nil;
 	}
@@ -1920,12 +1920,12 @@ optgetx(uint8_t *p, uint8_t opt)
 	case Tulong:
 		x = optgetulong(p, opt);
 		if(x != 0)
-			s = smprint("%s=%lud", o->name, x);
+			s = smprint("%s=%lu", o->name, x);
 		break;
 	case Tbyte:
 		x = optgetbyte(p, opt);
 		if(x != 0)
-			s = smprint("%s=%lud", o->name, x);
+			s = smprint("%s=%lu", o->name, x);
 		break;
 	case Tstr:
 		if(optgetstr(p, opt, str, sizeof str))

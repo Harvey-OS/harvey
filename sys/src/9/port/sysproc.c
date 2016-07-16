@@ -819,7 +819,7 @@ sysawait(Ar0* ar0, ...)
 		ar0->i = -1;
 		return;
 	}
-	i = snprint(p, n, "%d %lud %lud %lud %q",
+	i = snprint(p, n, "%d %lu %lu %lu %q",
 		w.pid,
 		w.time[TUser], w.time[TSys], w.time[TReal],
 		w.msg);

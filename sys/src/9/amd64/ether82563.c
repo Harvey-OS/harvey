@@ -695,7 +695,7 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 				continue;
 			ctlr->statistics[i] = tuvl;
 			ctlr->statistics[i+1] = tuvl >> 32;
-			p = seprint(p, e, "%s: %llud %llud\n", stat, tuvl, ruvl);
+			p = seprint(p, e, "%s: %llu %llu\n", stat, tuvl, ruvl);
 			i++;
 			break;
 
@@ -703,25 +703,25 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 			ctlr->statistics[i] += r;
 			if(ctlr->statistics[i] == 0)
 				continue;
-			p = seprint(p, e, "%s: %ud %ud\n", stat,
+			p = seprint(p, e, "%s: %u %u\n", stat,
 				ctlr->statistics[i], r);
 			break;
 		}
 	}
 
-	p = seprint(p, e, "lintr: %ud %ud\n", ctlr->lintr, ctlr->lsleep);
-	p = seprint(p, e, "rintr: %ud %ud\n", ctlr->rintr, ctlr->rsleep);
-	p = seprint(p, e, "tintr: %ud %ud\n", ctlr->tintr, ctlr->txdw);
-	p = seprint(p, e, "ixcs: %ud %ud %ud\n", ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
-	p = seprint(p, e, "ctrl: %.8ux\n", csr32r(ctlr, Ctrl));
-	p = seprint(p, e, "ctrlext: %.8ux\n", csr32r(ctlr, Ctrlext));
-	p = seprint(p, e, "status: %.8ux\n", csr32r(ctlr, Status));
-	p = seprint(p, e, "txcw: %.8ux\n", csr32r(ctlr, Txcw));
-	p = seprint(p, e, "txdctl: %.8ux\n", csr32r(ctlr, Txdctl));
+	p = seprint(p, e, "lintr: %u %u\n", ctlr->lintr, ctlr->lsleep);
+	p = seprint(p, e, "rintr: %u %u\n", ctlr->rintr, ctlr->rsleep);
+	p = seprint(p, e, "tintr: %u %u\n", ctlr->tintr, ctlr->txdw);
+	p = seprint(p, e, "ixcs: %u %u %u\n", ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
+	p = seprint(p, e, "ctrl: %.8x\n", csr32r(ctlr, Ctrl));
+	p = seprint(p, e, "ctrlext: %.8x\n", csr32r(ctlr, Ctrlext));
+	p = seprint(p, e, "status: %.8x\n", csr32r(ctlr, Status));
+	p = seprint(p, e, "txcw: %.8x\n", csr32r(ctlr, Txcw));
+	p = seprint(p, e, "txdctl: %.8x\n", csr32r(ctlr, Txdctl));
 	p = seprint(p, e, "pbs: %dKB\n", ctlr->pbs);
 	p = seprint(p, e, "pba: %#.8ux\n", ctlr->pba);
 
-	p = seprint(p, e, "speeds: 10:%ud 100:%ud 1000:%ud ?:%ud\n",
+	p = seprint(p, e, "speeds: 10:%u 100:%u 1000:%u ?:%u\n",
 		ctlr->speeds[0], ctlr->speeds[1], ctlr->speeds[2], ctlr->speeds[3]);
 	p = seprint(p, e, "type: %s\n", tname[ctlr->type]);
 	p = seprint(p, e, "nrbfull (rcv blocks outstanding): %d\n", nrbfull);
@@ -730,7 +730,7 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 //	for(i = 0; i < 0x40; i++){
 //		if(i && ((i & 7) == 0))
 //			p = seprint(p, e, "\n       ");
-//		p = seprint(p, e, " %4.4ux", ctlr->eeprom[i]);
+//		p = seprint(p, e, " %4.4x", ctlr->eeprom[i]);
 //	}
 //	p = seprint(p, e, "\n");
 

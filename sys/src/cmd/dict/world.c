@@ -156,7 +156,7 @@ putchar(int c, int *state)
 					break;
 				/* fall through */
 			default:
-				outprint("\\%.2ux", c);
+				outprint("\\%.2x", c);
 			}
 		}else if(state[2] == 0)
 			outrune(r);
@@ -179,7 +179,7 @@ putchar(int c, int *state)
 		else
 			r = NONE;
 		if(r == NONE)
-			outprint("\\%.2ux\\%.2ux", state[1], c);
+			outprint("\\%.2x\\%.2x", state[1], c);
 		else
 			outrune(r);
 		break;

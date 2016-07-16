@@ -418,8 +418,8 @@ etherprobe(int cardno, int ctlrno)
 	if(ether->ISAConf.mem)
 		i += sprint(buf+i, " addr %#p", ether->ISAConf.mem);
 	if(ether->ISAConf.size)
-		i += sprint(buf+i, " size 0x%luX", ether->ISAConf.size);
-	i += sprint(buf+i, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+		i += sprint(buf+i, " size 0x%lX", ether->ISAConf.size);
+	i += sprint(buf+i, ": %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		ether->ea[0], ether->ea[1], ether->ea[2],
 		ether->ea[3], ether->ea[4], ether->ea[5]);
 	sprint(buf+i, "\n");

@@ -317,7 +317,7 @@ dirtydblock(DBlock *b, int dirty)
 {
 	int odirty;
 
-	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lux",
+	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lx",
 		b->part->name, b->addr, dirty, getcallerpc());
 	assert(b->ref != 0);
 	assert(b->mode==ORDWR || b->mode==OWRITE);
@@ -637,7 +637,7 @@ flushproc(void *v)
 
 		trace(TraceWork, "start");
 		t0 = nsec()/1000;
-		trace(TraceProc, "build t=%lud", (uint32_t)(nsec()/1000)-t0);
+		trace(TraceProc, "build t=%lu", (uint32_t)(nsec()/1000)-t0);
 
 		write = dcache.write;
 		n = 0;
@@ -650,11 +650,11 @@ flushproc(void *v)
 		qsort(write, n, sizeof(write[0]), writeblockcmp);
 
 		/* Write each stage of blocks out. */
-		trace(TraceProc, "writeblocks t=%lud",
+		trace(TraceProc, "writeblocks t=%lu",
 		      (uint32_t)(nsec()/1000)-t0);
 		i = 0;
 		for(j=1; j<DirtyMax; j++){
-			trace(TraceProc, "writeblocks.%d t=%lud",
+			trace(TraceProc, "writeblocks.%d t=%lu",
 				j, (uint32_t)(nsec()/1000)-t0);
 			i += parallelwrites(write+i, write+n, j);
 		}
@@ -674,7 +674,7 @@ flushproc(void *v)
 		 * the write.  That's okay, it just means that ndirty may be
 		 * one too high until we catch up and do the decrement.
 		 */
-		trace(TraceProc, "undirty.%d t=%lud", j,
+		trace(TraceProc, "undirty.%d t=%lu", j,
 		      (uint32_t)(nsec()/1000)-t0);
 		qlock(&dcache.lock);
 		for(i=0; i<n; i++){

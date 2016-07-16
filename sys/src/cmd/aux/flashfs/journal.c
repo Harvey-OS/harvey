@@ -618,7 +618,7 @@ loadfs(int ro)
 		if(u < ltime) {
 			delta = ltime - u;
 			if(diags)
-				fprint(2, "%s: check clock: delta = %lud\n", argv0, delta);
+				fprint(2, "%s: check clock: delta = %lu\n", argv0, delta);
 		}
 	}
 

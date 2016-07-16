@@ -117,7 +117,7 @@ p_seprint(Msg *m)
 	t = NetS(h->type);
 	demux(p_mux, t, t, m, &dump);
 
-	m->p = seprint(m->p, m->e, "s=%E d=%E pr=%4.4ux ln=%d", h->s, h->d,
+	m->p = seprint(m->p, m->e, "s=%E d=%E pr=%4.4x ln=%d", h->s, h->d,
 		t, len);
 	return 0;
 }

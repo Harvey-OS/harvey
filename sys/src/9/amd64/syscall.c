@@ -262,7 +262,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	static Ar0 zar0;
 
 	if(!userureg(ureg))
-		panic("syscall: cs %#llux\n", ureg->cs);
+		panic("syscall: cs %#llx\n", ureg->cs);
 
 	cycles(&up->kentry);
 
@@ -314,7 +314,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	ar0 = zar0;
 	if(!waserror()){
 		if(scallnr >= nsyscall || systab[scallnr].f == nil){
-			pprint("bad sys call number %d pc %#llux\n",
+			pprint("bad sys call number %d pc %#llx\n",
 				scallnr, ureg->ip);
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);

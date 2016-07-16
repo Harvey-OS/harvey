@@ -20,7 +20,7 @@ emalloc9p(uint32_t sz)
 	void *v;
 
 	if((v = malloc(sz)) == nil) {
-		fprint(2, "out of memory allocating %lud\n", sz);
+		fprint(2, "out of memory allocating %lu\n", sz);
 		exits("mem");
 	}
 	memset(v, 0, sz);
@@ -32,7 +32,7 @@ void*
 erealloc9p(void *v, uint32_t sz)
 {
 	if((v = realloc(v, sz)) == nil) {
-		fprint(2, "out of memory allocating %lud\n", sz);
+		fprint(2, "out of memory allocating %lu\n", sz);
 		exits("mem");
 	}
 	setrealloctag(v, getcallerpc());

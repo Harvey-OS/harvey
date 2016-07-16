@@ -542,7 +542,7 @@ bcminterrupt(Ureg*u, void *arg)
 	if(status & LinkStateChange)
 		checklink(edev);
 	if(0)
-		iprint("bcm: interrupt %.8ux %.8ux\n", ctlr->status[2], ctlr->status[4]);
+		iprint("bcm: interrupt %.8x %.8x\n", ctlr->status[2], ctlr->status[4]);
 	bcmreceive(edev);
 	bcmtransclean(edev);
 	bcmtransmit(edev);

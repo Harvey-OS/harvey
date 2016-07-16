@@ -123,7 +123,7 @@ oreadblock(Ofile *f, int block, uint32_t off, char *buf, int nbuf)
 	int n;
 
 	if(block < 0 || block >= f->nblock) {
-		werrstr("attempt to read %x/%lux\n", block, f->nblock);
+		werrstr("attempt to read %x/%lx\n", block, f->nblock);
 		return -1;
 	}
 
@@ -219,11 +219,11 @@ dumpdir(Ofile *f, uint32_t dnum)
 	Odir d;
 
 	if(oreaddir(f, dnum, &d) != 1) {
-		fprint(2, "dumpdir %lux failed\n", dnum);
+		fprint(2, "dumpdir %lx failed\n", dnum);
 		return;
 	}
 
-	fprint(2, "%.8lux type %d size %lud l %.8lux r %.8lux d %.8lux (%S)\n", dnum, d.type, d.size, d.left, d.right, d.dir, d.name);
+	fprint(2, "%.8lux type %d size %lu l %.8lux r %.8lux d %.8lux (%S)\n", dnum, d.type, d.size, d.left, d.right, d.dir, d.name);
 	if(d.left != (uint32_t)-1) 
 		dumpdir(f, d.left);
 	if(d.right != (uint32_t)-1)
@@ -279,7 +279,7 @@ oleopen(char *fn)
 
 	ndepot = LONG(buf+0x2C);
 	f->nblock = ndepot*(Blocksize/4);
-//	fprint(2, "ndepot = %d f->nblock = %lud\n", ndepot, f->nblock);
+//	fprint(2, "ndepot = %d f->nblock = %lu\n", ndepot, f->nblock);
 	f->rootblock = LONG(buf+0x30);
 	f->smapblock = LONG(buf+0x3C);
 	f->blockmap = emalloc(sizeof(f->blockmap[0])*f->nblock);

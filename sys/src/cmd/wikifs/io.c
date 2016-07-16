@@ -655,7 +655,7 @@ writepage(int num, uint32_t t, String *s, char *title)
 				return 0;
 			}
 			s_free(os);
-			snprint(err, sizeof err, "update conflict %lud != %s", t, p+1);
+			snprint(err, sizeof err, "update conflict %lu != %s", t, p+1);
 			conflict = 1;
 		}
 		Bterm(b);

@@ -848,10 +848,10 @@ seprinttd(char *s, char *e, Td *td, int iso)
 			s = seprint(s, e, " d%d", (td->ctrl & Tddata1) ? 1 : 0);
 		else
 			s = seprint(s, e, " d-");
-		s = seprint(s, e, " ec=%uld", (td->ctrl >> Tderrshift) & Tderrmask);
+		s = seprint(s, e, " ec=%lu", (td->ctrl >> Tderrshift) & Tderrmask);
 	}else{
-		s = seprint(s, e, " fc=%uld", (td->ctrl >> Tdfcshift) & Tdfcmask);
-		s = seprint(s, e, " sf=%uld", td->ctrl & Tdsfmask);
+		s = seprint(s, e, " fc=%lu", (td->ctrl >> Tdfcshift) & Tdfcmask);
+		s = seprint(s, e, " sf=%lu", td->ctrl & Tdsfmask);
 	}
 	s = seprint(s, e, " cbp0 %#p cbp %#p next %#p be %#p %s",
 		td->cbp0, td->cbp, td->nexttd, td->be, td->last ? "last" : "");
@@ -866,7 +866,7 @@ seprinttd(char *s, char *e, Td *td, int iso)
 	s = seprint(s, e, "\n\t\t");
 	/* we use only offsets[0] */
 	i = 0;
-	s = seprint(s, e, "[%d] %#ux cc=%#ux sz=%ud\n", i, td->offsets[i],
+	s = seprint(s, e, "[%d] %#x cc=%#x sz=%u\n", i, td->offsets[i],
 		(td->offsets[i] >> Tdiccshift) & Tdiccmask,
 		td->offsets[i] & 0x7FF);
 	return s;
@@ -929,8 +929,8 @@ dumped(Ed *ed)
 		s = seprint(s, e, " out");
 	if(edhalted(ed))
 		s = seprint(s, e, " hlt");
-	s = seprint(s, e, " ep%uld.%uld", (ed->ctrl>>7)&Epmax, ed->ctrl&0x7f);
-	s = seprint(s, e, " maxpkt %uld", (ed->ctrl>>Edmpsshift)&Edmpsmask);
+	s = seprint(s, e, " ep%lu.%lu", (ed->ctrl>>7)&Epmax, ed->ctrl&0x7f);
+	s = seprint(s, e, " maxpkt %lu", (ed->ctrl>>Edmpsshift)&Edmpsmask);
 	seprint(s, e, " tail %#p head %#p next %#p\n",ed->tail,ed->head,ed->nexted);
 	print("%s", buf);
 	free(buf);
@@ -942,7 +942,7 @@ static char*
 seprintio(char *s, char *e, Qio *io, char *pref)
 {
 	s = seprint(s, e, "%s qio %#p ed %#p", pref, io, io->ed);
-	s = seprint(s, e, " tog %d iot %ld err %s id %#ulx",
+	s = seprint(s, e, " tog %d iot %ld err %s id %#lx",
 		io->toggle, io->iotime, io->err, io->usbid);
 	s = seprinttdtok(s, e, io->tok);
 	s = seprint(s, e, " %s\n", iosname[io->state]);
@@ -977,7 +977,7 @@ seprintep(char* s, char* e, Ep *ep)
 	case Tiso:
 		iso = ep->aux;
 		s = seprintio(s, e, &iso->Qio, "w");
-		s = seprint(s, e, "\tntds %d avail %d frno %uld left %uld next avail %#p\n",
+		s = seprint(s, e, "\tntds %d avail %d frno %lu left %lu next avail %#p\n",
 			iso->nframes, iso->navail, iso->frno, iso->left, iso->atds);
 		break;
 	}
@@ -1020,10 +1020,10 @@ dump(Hci *hp)
 	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	seprintctl(cs, cs+sizeof(cs), ctlr->ohci->control);
-	print("ohci ctlr %#p: frno %#ux ctl %#lux %s sts %#lux intr %#lux\n",
+	print("ohci ctlr %#p: frno %#x ctl %#lx %s sts %#lx intr %#lx\n",
 		ctlr, ctlr->hcca->framenumber, ctlr->ohci->control, cs,
 		ctlr->ohci->cmdsts, ctlr->ohci->intrsts);
-	print("ctlhd %#ulx cur %#ulx bulkhd %#ulx cur %#ulx done %#ulx\n",
+	print("ctlhd %#lx cur %#lx bulkhd %#lx cur %#lx done %#lx\n",
 		ctlr->ohci->ctlheaded, ctlr->ohci->ctlcurred,
 		ctlr->ohci->bulkheaded, ctlr->ohci->bulkcurred,
 		ctlr->ohci->donehead);
@@ -1074,7 +1074,7 @@ isodtdinit(Ep *ep, Isoio *iso, Td *td)
 	if(size > ep->maxpkt){
 		print("ohci: ep%d.%d: size > maxpkt\n",
 			ep->dev->nb, ep->nb);
-		print("size = %uld max = %ld\n", size, ep->maxpkt);
+		print("size = %lu max = %ld\n", size, ep->maxpkt);
 		size = ep->maxpkt;
 	}
 	td->nbytes = size;
@@ -1197,7 +1197,7 @@ qhinterrupt(Ctlr *ctrl, Ep *ep, Qio *io, Td *td, int n)
 		td->last = 1;
 		break;
 	default:
-		panic("ohci: td cc %ud unknown", err);
+		panic("ohci: td cc %u unknown", err);
 	}
 
 	if(td->last != 0){
@@ -1245,7 +1245,7 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int n)
 		bp->wp = bp->rp;
 		io->err = errmsg(err);
 		if(debug || ep->debug){
-			print("ohci: isointerrupt: ep%d.%d: err %d (%s) frnum 0x%lux\n",
+			print("ohci: isointerrupt: ep%d.%d: err %d (%s) frnum 0x%lx\n",
 				ep->dev->nb, ep->nb,
 				err, errmsg(err), ctlr->ohci->fmnumber);
 			dumptd(td, "failed", ed->ctrl & Ediso);
@@ -1319,7 +1319,7 @@ interrupt(Ureg *ureg, void *arg)
 	}
 	if((status & Ue) != 0){
 		curred = ctlr->ohci->periodcurred;
-		print("ohci: unrecoverable error frame 0x%.8lux ed 0x%.8lux, "
+		print("ohci: unrecoverable error frame 0x%.8lx ed 0x%.8lx, "
 			"ints %d %d %d %d\n",
 			ctlr->ohci->fmnumber, curred,
 			ohciinterrupts[Tctl], ohciinterrupts[Tintr],
@@ -1329,7 +1329,7 @@ interrupt(Ureg *ureg, void *arg)
 		status &= ~Ue;
 	}
 	if(status != 0)
-		print("ohci interrupt: unhandled sts 0x%.8lux\n", status);
+		print("ohci interrupt: unhandled sts 0x%.8lx\n", status);
 	ctlr->ohci->intrenable = Mie | Wdh | Ue;
 	iunlock(&ctlr->l);
 }
@@ -2285,7 +2285,7 @@ portstatus(Hci *hp, int port)
 	if(ohcistatus & Lsda)
 		v |= HPslow;
 	if(v & (HPstatuschg|HPchange))
-		ddprint("ohci port %d sts %#ulx hub sts %#x\n", port, ohcistatus, v);
+		ddprint("ohci port %d sts %#lx hub sts %#x\n", port, ohcistatus, v);
 	return v;
 }
 
@@ -2299,7 +2299,7 @@ dumpohci(Ctlr *ctlr)
 	print("ohci registers: \n");
 	for(i = 0; i < sizeof(Ohci)/sizeof(uint32_t); i++)
 		if(i < 3 || ohci[i] != 0)
-			print("\t[%#2.2x]\t%#8.8ulx\n", i * 4, ohci[i]);
+			print("\t[%#2.2x]\t%#8.8lx\n", i * 4, ohci[i]);
 	print("\n");
 }
 
@@ -2390,14 +2390,14 @@ scanpci(void)
 		    p->ccrp != 0x10)
 			continue;
 		mem = p->mem[0].bar & ~0x0F;
-		dprint("ohci: %x/%x port 0x%lux size 0x%x irq %d\n",
+		dprint("ohci: %x/%x port 0x%lx size 0x%x irq %d\n",
 			p->vid, p->did, mem, p->mem[0].size, p->intl);
 		if(mem == 0){
 			print("ohci: failed to map registers\n");
 			continue;
 		}
 		if(p->intl == 0xFF || p->intl == 0) {
-			print("ohci: no irq assigned for port %#lux\n", mem);
+			print("ohci: no irq assigned for port %#lx\n", mem);
 			continue;
 		}
 

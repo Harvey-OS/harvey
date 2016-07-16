@@ -130,7 +130,7 @@ testvecdigmuladd(char *str, mpdigit d)
 	if(loops > 1)
 		print("%lld ns for a %d*%d vecdigmul\n", (nsec()-now)/loops, b->top*Dbits, Dbits);
 	mpnorm(b2);
-	print("0 + %B * %ux = %B\n", b, d, b2);
+	print("0 + %B * %x = %B\n", b, d, b2);
 
 	mpfree(b);
 	mpfree(b2);
@@ -155,7 +155,7 @@ testvecdigmulsub(char *str, mpdigit d)
 	if(loops > 1)
 		print("%lld ns for a %d*%d vecdigmul\n", (nsec()-now)/loops, b->top*Dbits, Dbits);
 	mpnorm(b2);
-	print("0 - %B * %ux = %B\n", b, d, b2);
+	print("0 - %B * %x = %B\n", b, d, b2);
 
 	mpfree(b);
 	mpfree(b2);
@@ -220,7 +220,7 @@ testdigdiv(char *str, mpdigit d)
 		mpdigdiv(b->p, d, &q);
 	if(loops > 1)
 		print("%lld ns for a %d / %d div\n", (nsec()-now)/loops, 2*Dbits, Dbits);
-	print("%B / %ux = %ux\n", b, d, q);
+	print("%B / %x = %x\n", b, d, q);
 	mpfree(b);
 }
 
@@ -332,7 +332,7 @@ testexp(char *base, char *exp, char *mod)
 	for(i = 0; i < loops; i++)
 		mpexp(b, e, m, res);
 	if(loops > 1)
-		print("%ulldµs for a %d to the %d bit exp\n", (nsec()-now)/(loops*1000),
+		print("%lluµs for a %d to the %d bit exp\n", (nsec()-now)/(loops*1000),
 			b->top*Dbits, e->top*Dbits);
 	if(m != nil)
 		print("%B ^ %B mod %B == %B\n", b, e, m, res);
@@ -393,7 +393,7 @@ testgcd(void)
 	mpfree(t2);
 
 	if(loops > 1)
-		print("binary %llud\n", etime);
+		print("binary %llu\n", etime);
 }
 
 extern int _unnormalizedwarning = 1;

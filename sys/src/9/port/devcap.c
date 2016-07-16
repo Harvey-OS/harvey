@@ -120,7 +120,7 @@ hashstr(uchar *hash)
 	int i;
 
 	for(i = 0; i < Hashlen; i++)
-		sprint(buf+2*i, "%2.2ux", hash[i]);
+		sprint(buf+2*i, "%2.2x", hash[i]);
 	buf[2*Hashlen] = 0;
 	return buf;
 }

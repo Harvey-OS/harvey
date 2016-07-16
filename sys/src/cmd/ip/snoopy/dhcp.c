@@ -166,7 +166,7 @@ puint(char *p, char *e, char *tag, uint8_t *o, int n)
 	x = *o++;
 	for(; n > 1; n--)
 		x = x<<8 | *o++;
-	return seprint(p, e, "%s=%ud", tag, x);
+	return seprint(p, e, "%s=%u", tag, x);
 }
 
 static char*
@@ -263,7 +263,7 @@ p_seprint(Msg *m)
 			for(i = 0; i < n; i++){
 				if(i != 0)
 					p = seprint(p, e, " ");
-				p = seprint(p, e, "%ud", o[i]);
+				p = seprint(p, e, "%u", o[i]);
 			}
 			p = seprint(p, e, ")");
 			break;
@@ -452,7 +452,7 @@ p_seprint(Msg *m)
 		case OBend:
 			goto out;
 		default:
-			snprint(msg, sizeof msg, " T%ud", code);
+			snprint(msg, sizeof msg, " T%u", code);
 			p = phex(p, e, msg, o, n);
 			break;
 		}

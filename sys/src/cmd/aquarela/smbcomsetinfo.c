@@ -26,7 +26,7 @@ smbcomsetinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	mdate = smbnhgets(pdata + 10);
 	mtime = smbnhgets(pdata + 12);
 	smblogprint(h->command,
-		"smbcomsetinformation2: fid 0x%.4ux adate 0x%.4ux atime 0x%.4ux mdate 0x%.4ux mtime 0x%.4ux\n",
+		"smbcomsetinformation2: fid 0x%.4x adate 0x%.4x atime 0x%.4x mdate 0x%.4x mtime 0x%.4x\n",
 		fid, adate, atime, mdate, mtime);
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
@@ -100,7 +100,7 @@ smbcomsetinformation(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	if (!smbbuffergetstring(b, h, SMB_STRING_PATH, &name))
 		return SmbProcessResultFormat;
 	smblogprint(h->command,
-		"smbcomsetinformation: attr 0x%.4ux utime %lud path %s\n",
+		"smbcomsetinformation: attr 0x%.4x utime %lu path %s\n",
 		attr, utime, name);
 	if (utime) {
 		Dir d;

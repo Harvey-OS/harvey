@@ -54,7 +54,7 @@ resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
 {
 	Ctlr *link;
 
-	trace("%s->resyncinit on 0x%8.8luX off 0x%8.8luX\n",
+	trace("%s->resyncinit on 0x%8.8lX off 0x%8.8lX\n",
 		ctlr->name, on, off);
 
 	for(link = vga->link; link; link = link->link){
@@ -66,7 +66,7 @@ resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
 		if(link->init == 0 || (link->flag & Finit) == 0)
 			continue;
 		link->flag &= ~Finit;
-		trace("%s->init 0x%8.8luX\n", link->name, link->flag);
+		trace("%s->init 0x%8.8lX\n", link->name, link->flag);
 		(*link->init)(vga, link);
 	}
 }
@@ -123,7 +123,7 @@ linear(Vga* vga)
 		 */
 		vgactlr("addr", buf);
 		if(atoi(buf)==0 && (buf[0]!='p' || buf[1]!=' ' || atoi(buf+2)==0)){
-			sprint(buf, "0x%lux 0x%lux", vga->apz ? vga->apz : vga->vmz, vga->vma);
+			sprint(buf, "0x%lx 0x%lx", vga->apz ? vga->apz : vga->vmz, vga->vma);
 			vgactlw("linear", buf);
 			vgactlr("addr", buf);
 		}
@@ -321,7 +321,7 @@ main(int argc, char** argv)
 			vga->panning = 0;
 		}
 
-		trace("vmf %d vmdf %d vf1 %lud vbw %lud\n",
+		trace("vmf %d vmdf %d vf1 %lu vbw %lu\n",
 			vga->mode->frequency, vga->mode->deffrequency,
 			vga->f[1], vga->mode->videobw);
 		if(vga->mode->frequency == 0 && vga->mode->videobw != 0 && vga->f[1] != 0){
@@ -350,7 +350,7 @@ main(int argc, char** argv)
 			freq = rr*(vga->mode->ht*vga->mode->vt);
 			vga->mode->frequency = freq;
 
-			trace("using frequency %lud rr %.2f membw %lud\n",
+			trace("using frequency %lu rr %.2f membw %lu\n",
 				freq, rr, membw);
 		}
 		else if(vga->mode->frequency == 0)
@@ -387,7 +387,7 @@ main(int argc, char** argv)
 		if(lflag){
 			trace("main->load\n");
 			if(vga->vmz && (vga->virtx*vga->virty*vga->mode->z)/8 > vga->vmz)
-				error("%s: not enough video memory - %lud\n",
+				error("%s: not enough video memory - %lu\n",
 					vga->ctlr->name, vga->vmz);
 
 			if(vga->ctlr->type)
@@ -425,7 +425,7 @@ main(int argc, char** argv)
 			if(vga->vesa)
 				vgactlw("type", vtype);
 
-			sprint(buf, "%ludx%ludx%d %s",
+			sprint(buf, "%lux%lux%d %s",
 				vga->virtx, vga->virty,
 				vga->mode->z, vga->mode->chan);
 			if(rflag){

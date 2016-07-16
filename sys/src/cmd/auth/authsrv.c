@@ -199,7 +199,7 @@ challengebox(Ticketreq *tr)
 	memset(buf, 0, sizeof(buf));
 	buf[0] = AuthOK;
 	chal = lnrand(MAXNETCHAL);
-	snprint(buf+1, sizeof buf - 1, "%lud", chal);
+	snprint(buf+1, sizeof buf - 1, "%lu", chal);
 	if(write(1, buf, NETCHLEN+1) < 0)
 		exits(0);
 	if(readn(0, buf, NETCHLEN) < 0)
@@ -404,7 +404,7 @@ apop(Ticketreq *tr, int type)
 	 */
 	randombytes((uint8_t*)rb, sizeof(rb));
 	p = chal;
-	p += snprint(p, sizeof(chal), "<%lux%lux.%lux%lux@%s>",
+	p += snprint(p, sizeof(chal), "<%lx%lx.%lx%lx@%s>",
 		rb[0], rb[1], rb[2], rb[3], domainname());
 	challen = p - chal;
 	print("%c%-5d%s", AuthOKvar, challen, chal);
@@ -635,7 +635,7 @@ printresp(uint8_t resp[MSresplen])
 
 	p = buf;
 	for(i=0; i<MSresplen; i++)
-		p += sprint(p, "%.2ux ", resp[i]);
+		p += sprint(p, "%.2x ", resp[i]);
 	syslog(0, AUTHLOG, "resp = %s", buf);
 }
 
@@ -717,7 +717,7 @@ mschap(Ticketreq *tr)
 		exits(0);
 
 	if(debug)
-		replyerror("mschap-ok %s/%s(%s) %ux",
+		replyerror("mschap-ok %s/%s(%s) %x",
 			tr->uid, tr->hostid, raddr);
 
 	nthash(hash, secret);

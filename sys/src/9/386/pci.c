@@ -404,7 +404,7 @@ pcirouting(void)
 	r = (Router *)p;
 
 	if(0)
-		print("PCI interrupt routing table version %d.%d at %.6llux\n",
+		print("PCI interrupt routing table version %d.%d at %.6llx\n",
 			r->version[0], r->version[1], (uintptr_t)r & 0xfffff);
 
 	tbdf = (BusPCI << 24)|(r->bus << 16)|(r->devfn << 8);
@@ -420,7 +420,7 @@ pcirouting(void)
 			break;
 
 	if(i == nelem(southbridges)) {
-		print("pcirouting: ignoring south bridge %T %.4ux/%.4ux\n", tbdf, sbpci->vid, sbpci->did);
+		print("pcirouting: ignoring south bridge %T %.4x/%.4x\n", tbdf, sbpci->vid, sbpci->did);
 		return;
 	}
 	southbridge = &southbridges[i];
@@ -430,10 +430,10 @@ pcirouting(void)
 	size = (r->size[1] << 8)|r->size[0];
 	for(e = (Slot *)&r[1]; (uint8_t *)e < p + size; e++) {
 		if(0){
-			print("%.2ux/%.2ux %.2ux: ", e->bus, e->dev, e->slot);
+			print("%.2x/%.2x %.2x: ", e->bus, e->dev, e->slot);
 			for (i = 0; i != 4; i++) {
 				uint8_t *m = &e->maps[i * 3];
-				print("[%d] %.2ux %.4ux ",
+				print("[%d] %.2x %.4x ",
 					i, m[0], (m[2] << 8)|m[1]);
 			}
 			print("\n");
@@ -660,19 +660,19 @@ pcilhinv(Pcidev* p)
 	Pcidev *t;
 
 	for(t = p; t != nil; t = t->link) {
-		print("%d  %2d/%d %.2ux %.2ux %.2ux %.4ux %.4ux %3d  ",
+		print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %3d  ",
 			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
 			t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
 
 		for(i = 0; i < nelem(p->mem); i++) {
 			if(t->mem[i].size == 0)
 				continue;
-			print("%d:%.8lux %d ", i, t->mem[i].bar, t->mem[i].size);
+			print("%d:%.8lx %d ", i, t->mem[i].bar, t->mem[i].size);
 		}
 		if(t->ioa.bar || t->ioa.size)
-			print("ioa:%.8lux %d ", t->ioa.bar, t->ioa.size);
+			print("ioa:%.8lx %d ", t->ioa.bar, t->ioa.size);
 		if(t->mema.bar || t->mema.size)
-			print("mema:%.8lux %d ", t->mema.bar, t->mema.size);
+			print("mema:%.8lx %d ", t->mema.bar, t->mema.size);
 		if(t->bridge)
 			print("->%d", BUSBNO(t->bridge->tbdf));
 		print("\n");

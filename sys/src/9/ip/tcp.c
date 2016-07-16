@@ -506,8 +506,8 @@ tcpstate(Conv *c, char *state, int n)
 	s = (Tcpctl*)(c->ptcl);
 
 	return snprint(state, n,
-		"%s qin %d qout %d rq %d.%d srtt %d mdev %d sst %lud cwin %lud "
-		"swin %lud>>%d rwin %lud>>%d qscale %d timer.start %d "
+		"%s qin %d qout %d rq %d.%d srtt %d mdev %d sst %lu cwin %lu "
+		"swin %lu>>%d rwin %lu>>%d qscale %d timer.start %d "
 		"timer.count %d rerecv %d katimer.start %d katimer.count %d\n",
 		tcpstates[s->state],
 		c->rq ? qlen(c->rq) : 0,
@@ -644,7 +644,7 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 	if(w != tcb->rcv.wnd)
 	if(w>>tcb->rcv.scale == 0 || tcb->window > 4*tcb->mss && w < tcb->mss/4){
 		tcb->rcv.blocked = 1;
-		netlog(s->p->f, Logtcp, "tcprcvwin: window %lud qlen %d ws %ud lport %d\n",
+		netlog(s->p->f, Logtcp, "tcprcvwin: window %lu qlen %d ws %u lport %d\n",
 			tcb->window, qlen(s->rq), tcb->rcv.scale, s->lport);
 	}
 	tcb->rcv.wnd = w;
@@ -1730,7 +1730,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 	/* find a call in limbo */
 	h = hashipa(src, segp->source);
 	for(l = &tpriv->lht[h]; (lp = *l) != nil; l = &lp->next){
-		netlog(s->p->f, Logtcp, "tcpincoming s %I!%ud/%I!%ud d %I!%ud/%I!%ud v %d/%d\n",
+		netlog(s->p->f, Logtcp, "tcpincoming s %I!%u/%I!%u d %I!%u/%I!%u v %d/%d\n",
 			src, segp->source, lp->raddr, lp->rport,
 			dst, segp->dest, lp->laddr, lp->lport,
 			version, lp->version
@@ -1745,7 +1745,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 
 		/* we're assuming no data with the initial SYN */
 		if(segp->seq != lp->irs+1 || segp->ack != lp->iss+1){
-			netlog(s->p->f, Logtcp, "tcpincoming s %lux/%lux a %lux %lux\n",
+			netlog(s->p->f, Logtcp, "tcpincoming s %lx/%lx a %lx %lx\n",
 				segp->seq, lp->irs+1, segp->ack, lp->iss+1);
 			lp = nil;
 		} else {
@@ -1920,7 +1920,7 @@ update(Conv *s, Tcp *seg)
 	/* catch zero-window updates, update window & recover */
 	if(tcb->snd.wnd == 0 && seg->wnd > 0 &&
 	    seq_lt(seg->ack, tcb->snd.ptr)){
-		netlog(s->p->f, Logtcp, "tcp: zwu ack %lud una %lud ptr %lud win %lud\n",
+		netlog(s->p->f, Logtcp, "tcp: zwu ack %lu una %lu ptr %lu win %lu\n",
 			seg->ack,  tcb->snd.una, tcb->snd.ptr, seg->wnd);
 		tcb->snd.wnd = seg->wnd;
 		goto recovery;
@@ -1941,12 +1941,12 @@ recovery:
 			tcb->snd.rxt = tcb->snd.nxt;
 			tcpcongestion(tcb);
 			tcb->cwind = tcb->ssthresh + 3*tcb->mss;
-			netlog(s->p->f, Logtcpwin, "recovery inflate %ld ss %ld @%lud\n",
+			netlog(s->p->f, Logtcpwin, "recovery inflate %ld ss %ld @%lu\n",
 				tcb->cwind, tcb->ssthresh, tcb->snd.rxt);
 			tcprxmit(s);
 		}else{
 			tpriv->stats[RecoveryNoSeq]++;
-			netlog(s->p->f, Logtcpwin, "!recov %lud not ≤ %lud %ld\n",
+			netlog(s->p->f, Logtcpwin, "!recov %lu not ≤ %lu %ld\n",
 				tcb->snd.rxt, seg->ack, tcb->snd.rxt - seg->ack);
 			/* don't enter fast retransmit, don't change ssthresh */
 		}
@@ -2304,7 +2304,7 @@ reset:
 	if(tcb->state != Syn_received && (seg.flags & RST) == 0){
 		if(tcpporthogdefense
 		&& seq_within(seg.ack, tcb->snd.una-(1<<31), tcb->snd.una-(1<<29))){
-			print("stateless hog %I.%d->%I.%d f %ux %lux - %lux - %lux\n",
+			print("stateless hog %I.%d->%I.%d f %x %lx - %lx - %lx\n",
 				source, seg.source, dest, seg.dest, seg.flags,
 				tcb->snd.una-(1<<31), seg.ack, tcb->snd.una-(1<<29));
 			localclose(s, "stateless hog");
@@ -2315,8 +2315,8 @@ reset:
 	tcprcvwin(s);
 	if(tcptrim(tcb, &seg, &bp, &length) == -1) {
 		if(seg.seq+1 != tcb->rcv.nxt || length != 1)
-		netlog(f, Logtcp, "tcp: trim: !inwind: seq %lud-%lud win "
-			"%lud-%lud l %d from %I\n", seg.seq,
+		netlog(f, Logtcp, "tcp: trim: !inwind: seq %lu-%lu win "
+			"%lu-%lu l %d from %I\n", seg.seq,
 			seg.seq + length - 1, tcb->rcv.nxt,
 			tcb->rcv.nxt + tcb->rcv.wnd-1, length, s->raddr);
 		update(s, &seg);
@@ -2370,7 +2370,7 @@ reset:
 				if(tcb->rcv.nxt != seg.seq)
 					netlog(f, Logtcp, "out of order RST "
 						"rcvd: %I.%d -> %I.%d, rcv.nxt "
-						"%lux seq %lux\n",
+						"%lx seq %lx\n",
 						s->raddr, s->rport, s->laddr,
 						s->lport, tcb->rcv.nxt, seg.seq);
 			}
@@ -2993,7 +2993,7 @@ tcptimeout(void *arg)
 			localclose(s, Etimedout);
 			break;
 		}
-		netlog(s->p->f, Logtcprxmt, "rxm %d/%d %ldms %lud rto %d %lud %s\n",
+		netlog(s->p->f, Logtcprxmt, "rxm %d/%d %ldms %lu rto %d %lu %s\n",
 			tcb->srtt, tcb->mdev, NOW - tcb->time,
 			tcb->snd.una - tcb->timeuna, tcb->snd.rto, tcb->snd.ptr,
 			tcpstates[s->state]);
@@ -3012,7 +3012,7 @@ tcptimeout(void *arg)
 			tpriv->stats[RecoveryRTO]++;
 			tcb->snd.rxt = tcb->snd.nxt;
 			netlog(s->p->f, Logtcpwin,
-				"rto recovery rxt @%lud\n", tcb->snd.nxt);
+				"rto recovery rxt @%lu\n", tcb->snd.nxt);
 		}
 
 		tcb->abcbytes = 0;
@@ -3092,7 +3092,7 @@ logreseq(Fs *f, Reseq *r, uint32_t n)
 		else if(r->seg.seq != n)
 			s = "hole";
 		if(s != nil)
-			netlog(f, Logtcp, "%s %lud-%lud (%ld) %#ux\n", s,
+			netlog(f, Logtcp, "%s %lu-%lu (%ld) %#ux\n", s,
 				n, r->seg.seq, r->seg.seq - n, r->seg.flags);
 		n = r->seg.seq + r->seg.len;
 	}
@@ -3330,7 +3330,7 @@ tcpstats(Proto *tcp, char *buf, int len)
 	p = buf;
 	e = p+len;
 	for(i = 0; i < Nstats; i++)
-		p = seprint(p, e, "%s: %llud\n", statnames[i], priv->stats[i]);
+		p = seprint(p, e, "%s: %llu\n", statnames[i], priv->stats[i]);
 	return p - buf;
 }
 
@@ -3442,8 +3442,8 @@ tcpsetscale(Conv *s, Tcpctl *tcb, uint16_t rcvscale, uint16_t sndscale)
 		tcb->qscale = Maxqscale;
 
 	if(rcvscale != tcb->rcv.scale)
-		netlog(s->p->f, Logtcp, "tcpsetscale: window %lud "
-			"qlen %d >> window %ud lport %d\n",
+		netlog(s->p->f, Logtcp, "tcpsetscale: window %lu "
+			"qlen %d >> window %u lport %d\n",
 			tcb->window, qlen(s->rq), QMAX<<tcb->qscale, s->lport);
 	tcb->window = QMAX << tcb->qscale;
 	tcb->ssthresh = tcb->window;

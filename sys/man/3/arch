@@ -140,7 +140,7 @@ inportb(unsigned port)
 
     seek(iobfd, port, 0);
     if(read(iobfd, &data, sizeof(data)) != sizeof(data))
-        sysfatal("inportb(0x%4.4ux): %r", port);
+        sysfatal("inportb(0x%4.4x): %r", port);
     return data;
 }
 .EE

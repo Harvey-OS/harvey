@@ -53,7 +53,7 @@ hexstr(void *a, int n)
 	*s = 0;
 	e = s + 1024;
 	for(i = 0; i < n; i++)
-		s = seprint(s, e, " %.2ux", b[i]);
+		s = seprint(s, e, " %.2x", b[i]);
 	if(s == e)
 		fprint(2, "%s: usb/lib: hexdump: bug: small buffer\n", argv0);
 	return dbuff;
@@ -67,7 +67,7 @@ seprintiface(char *s, char *e, Iface *i)
 	Ep	*ep;
 	char	*eds, *ets;
 
-	s = seprint(s, e, "\t\tiface csp %s.%uld.%uld\n",
+	s = seprint(s, e, "\t\tiface csp %s.%lu.%lu\n",
 		classname(Class(i->csp)), Subclass(i->csp), Proto(i->csp));
 	for(j = 0; j < Naltc; j++){
 		a=i->altc[j];
@@ -144,7 +144,7 @@ Ufmt(Fmt *f)
 	ud = d->usb;
 	if(ud == nil)
 		return fmtprint(f, "%s %ld refs\n", buf, d->Ref.ref);
-	s = seprint(s, e, " csp %s.%uld.%uld",
+	s = seprint(s, e, " csp %s.%lu.%lu",
 		classname(Class(ud->csp)), Subclass(ud->csp), Proto(ud->csp));
 	s = seprint(s, e, " vid %#ux did %#ux", ud->vid, ud->did);
 	s = seprint(s, e, " refs %ld\n", d->Ref.ref);

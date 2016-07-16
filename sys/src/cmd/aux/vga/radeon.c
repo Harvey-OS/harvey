@@ -186,13 +186,13 @@ radeon_getbiosparams(Radeon*radeon)
 	radeon->max_pll_freq	 = BIOS32(radeon, pib + 0x16);
 	radeon->xclk		 = BIOS16(radeon, pib + 0x08);
 
-	DBGPRINT("radeon: bios=0x%08ulx offset=0x%ux\n", addr, offset);
-	DBGPRINT("radeon: pll_info_block: 0x%ux\n", pib);
-	DBGPRINT("radeon: reference_freq: %ud\n", radeon->reference_freq);
-	DBGPRINT("radeon: reference_div:  %ud\n", radeon->reference_div);
-	DBGPRINT("radeon: min_pll_freq:   %uld\n", radeon->min_pll_freq);
-	DBGPRINT("radeon: max_pll_freq:   %uld\n", radeon->max_pll_freq);
-	DBGPRINT("radeon: xclk:           %ud\n", radeon->xclk);
+	DBGPRINT("radeon: bios=0x%08ulx offset=0x%x\n", addr, offset);
+	DBGPRINT("radeon: pll_info_block: 0x%x\n", pib);
+	DBGPRINT("radeon: reference_freq: %u\n", radeon->reference_freq);
+	DBGPRINT("radeon: reference_div:  %u\n", radeon->reference_div);
+	DBGPRINT("radeon: min_pll_freq:   %lu\n", radeon->min_pll_freq);
+	DBGPRINT("radeon: max_pll_freq:   %lu\n", radeon->max_pll_freq);
+	DBGPRINT("radeon: xclk:           %u\n", radeon->xclk);
 }
 
 static Pcidev *
@@ -263,7 +263,7 @@ snarf(Vga *vga, Ctlr *ctlr)
 	radeon = vga->private;
 	radeon->fbsize = INREG(radeon, CONFIG_MEMSIZE);
 	vga->vmz = radeon->fbsize;
-	DBGPRINT("radeon: frame buffer size=%uld [%uldMB]\n",
+	DBGPRINT("radeon: frame buffer size=%lu [%luMB]\n",
 		radeon->fbsize, radeon->fbsize / Mega);
 
 	tmp = INREG(radeon, FP_GEN_CNTL);
@@ -420,7 +420,7 @@ radeon_init_pll_registers(Radeon*radeon, uint32_t freq)
 		{ 0, 0 }
 	};
 
-	DBGPRINT("radeon: initpll: freq=%uld\n", freq);
+	DBGPRINT("radeon: initpll: freq=%lu\n", freq);
 
 	if (freq > radeon->max_pll_freq)
 		freq = radeon->max_pll_freq;
@@ -439,7 +439,7 @@ radeon_init_pll_registers(Radeon*radeon, uint32_t freq)
 		radeon->pll_output_freq, radeon->reference_freq);
 	radeon->post_div = post_div->divider;
 
-	DBGPRINT("dc=%uld, of=%uld, fd=%uld, pd=%uld\n", radeon->dot_clock_freq,
+	DBGPRINT("dc=%lu, of=%lu, fd=%lu, pd=%lu\n", radeon->dot_clock_freq,
 		radeon->pll_output_freq, radeon->feedback_div, radeon->post_div);
 
 	radeon->ppll_ref_div = radeon->reference_div;
@@ -582,7 +582,7 @@ radeon_load_pll_registers(Radeon*radeon)
 		Bprint(&stdout, "Wrote: 0x%08ulx 0x%08ulx 0x%08ulx (0x%08ulx)\n",
 			radeon->ppll_ref_div, radeon->ppll_div_3,
 			radeon->htotal_cntl, INPLL(radeon, PPLL_CNTL));
-		Bprint(&stdout, "Wrote: rd=%uld, fd=%uld, pd=%uld\n",
+		Bprint(&stdout, "Wrote: rd=%lu, fd=%lu, pd=%lu\n",
 			radeon->ppll_ref_div & PPLL_REF_DIV_MASK,
 			radeon->ppll_div_3 & PPLL_FB3_DIV_MASK,
 			(radeon->ppll_div_3 & PPLL_POST3_DIV_MASK) >> 16);

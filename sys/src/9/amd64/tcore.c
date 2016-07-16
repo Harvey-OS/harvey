@@ -260,7 +260,7 @@ runacore(void)
 		case ICCTRAP:
 			s = splhi();
 			machp()->MMU.cr2 = up->ac->MMU.cr2;
-			DBG("runacore: trap %ulld cr2 %#ullx ureg %#p\n",
+			DBG("runacore: trap %llu cr2 %#ullx ureg %#p\n",
 				ureg->type, machp()->MMU.cr2, ureg);
 			switch(ureg->type){
 			case IdtIPI:
