@@ -36,6 +36,16 @@ static Cmdtab ctls[] =
 };
 #endif
 
+
+/* 
+ * This is the array of eyesores.
+ * An Eyesore is an Interrupt Source Over Ride, which maps from
+ * what they want to what it needs to be. You are not expected
+ * to understand this.
+ */
+static ACPI_MADT_INTERRUPT_OVERRIDE *eyesore;
+static int numeyesore;
+
 static Dirtab acpidir[]={
 	".",		{Qdir, 0, QTDIR},	0,	DMDIR|0555,
 	"acpictl",	{Qctl},			0,	0666,
@@ -338,7 +348,7 @@ resource(ACPI_RESOURCE *r, void *Context)
 		print("BOTCH! i->Triggering is 0x%x and I don't do that\n", i->Triggering);
 		break;
 	}
-	print("CODE: ioapicintrinit(0xff, 0x%x, 0x%x, 0x%x, 0x%x\n", 0, i->Interrupts[0], 0, 0x10700);
+	print("CODE: ioapicintrinit(0xff, 0x%x, 0x%x, 0x%x, 0x%x\n", 1, i->Interrupts[0], i->Interrupts[0]<<2, low);
 	return 0;
 }
 ACPI_STATUS
@@ -487,6 +497,11 @@ print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 			ACPI_MADT_INTERRUPT_OVERRIDE *e = (void *)p;
 			print("What an eyesore. Bus %d, SourceIrq %d, GlobalIrq %d, InitFlags 0x%x\n",
 			      e->Bus, e->SourceIrq, e->GlobalIrq, e->IntiFlags);
+			eyesore = realloc(eyesore, numeyesore+1);
+			if (! eyesore)
+				panic("Ran out of eyesores");
+			eyesore[numeyesore] = *e;
+			numeyesore++;
 		}
 		break;
 		case ACPI_MADT_TYPE_LOCAL_APIC_NMI:
@@ -520,6 +535,7 @@ print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
 	hexdump(out.Pointer, out.Length);
 */
+	print("CODE: ioapicintrinit(0xff, DONE\n");
 	return 0;
 }
 
