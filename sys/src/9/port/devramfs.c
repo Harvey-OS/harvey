@@ -25,7 +25,7 @@ struct RamFile {
 	union {
 		uint8_t	*data;		// List of children if directory
 		struct RamFile* firstchild;
-	}
+	};
 };
 
 static struct RamFile *ramroot;
