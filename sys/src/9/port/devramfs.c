@@ -14,25 +14,22 @@
 #include       "fns.h"
 #include	"../port/error.h"
 
-#define DIR_EXTEND_SIZE 10
-
 struct RamFile {
 	char    name[KNAMELEN];
-	uint8_t directory;	// 1 = dir, 0 = file
 	struct RamFile *parent;
 	struct RamFile *sibling;
 	uint64_t length;
 	int perm;
 	int opencount;
 	int deleteonclose;
-	uint8_t	*data;
+	union {
+		uint8_t	*data;		// List of children if directory
+		struct RamFile* firstchild;
+	}
 };
 
 static struct RamFile *ramroot;
 static QLock ramlock;
-
-static char* readme = "This is the kernel ramdisk.\n";
-
 
 static void
 raminit(void)
@@ -40,16 +37,8 @@ raminit(void)
 	ramroot = (struct RamFile *)smalloc(sizeof(struct RamFile));
 	strcpy(ramroot->name, ".");
 	ramroot->length = 0;
-	ramroot->directory = 1;
 	ramroot->perm = DMDIR|0777;
-
-	struct RamFile* file = (struct RamFile*)smalloc(sizeof(struct RamFile));
-	file->length = strlen(readme);
-	file->data = (unsigned char*)readme;
-	strcpy(file->name, "README");
-	file->perm = 0444;
-	file->parent = ramroot;
-	ramroot->sibling = file;
+	ramroot->firstchild = nil;
 }
 
 static void
@@ -94,6 +83,12 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 		        return 1;
 		}
 	}
+	if(current->perm & QTDIR){
+		current = current->firstchild;
+		if(current == nil){
+			return -1;
+		}
+	}
 	for(i = 0; i < pos; i++){
 		current = current->sibling;
 		if (current == nil){
@@ -101,28 +96,41 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 		}
 
 	}
-	mkqid(&qid, (uintptr_t)current, 0, current->directory ? QTDIR : 0);
+	mkqid(&qid, (uintptr_t)current, 0, current->perm & DMDIR ? QTDIR : 0);
 	devdir(c, qid, current->name, current->length, "harvey", current->perm, dp);
-	if(name == nil || strcmp(current->name, name) == 0)
+	if(name == nil || strcmp(current->name, name) == 0){
 		return 1;
-	else
+	} else {
 		return 0;
+	}
 }
 
 static Walkqid*
 ramwalk(Chan *c, Chan *nc, char **name, int nname)
 {
+	Proc *up = externup();
 	qlock(&ramlock);
+	if(waserror()){
+		qunlock(&ramlock);
+		nexterror();
+	}
 	Walkqid* wqid =  devwalk(c, nc, name, nname, 0, 0, ramgen);
 	qunlock(&ramlock);
+	poperror();
 	return wqid;
 }
 
 static int32_t
 ramstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Dir dir;
+	Qid qid;
+	struct RamFile* current = (struct RamFile*)c->qid.path;
+
 	qlock(&ramlock);
-	int32_t ret = devstat(c, dp, n, nil, 0, ramgen);
+	mkqid(&qid, c->qid.path, 0, current->perm & DMDIR ? QTDIR : 0);
+	devdir(c, qid, current->name, 0, "harvey", 0555, &dir);
+	int32_t ret = convD2M(&dir, dp, n);
 	qunlock(&ramlock);
 	return ret;
 }
@@ -130,29 +138,41 @@ ramstat(Chan *c, uint8_t *dp, int32_t n)
 static Chan*
 ramopen(Chan *c, int omode)
 {
+	Proc *up = externup();
 	qlock(&ramlock);
+	if(waserror()){
+		qunlock(&ramlock);
+		nexterror();
+	}
 	Chan* ret = devopen(c, omode, nil, 0, ramgen);
 	qunlock(&ramlock);
+	poperror();
 	return ret;
 }
 
 static void
 delete(struct RamFile* file)
 {
-	struct RamFile* prev;
-	// Find previous file
 	qlock(&ramlock);
-	for(prev = file->parent; prev != nil && prev->sibling != file; prev = prev->sibling)
-		;
-	if(prev == nil){
-	qunlock(&ramlock);
-		error(Eperm);
+	struct RamFile* prev = file->parent->firstchild;
+	if(prev == file) {
+		file->parent->firstchild = file->sibling;
 	} else {
-		prev->sibling = file->sibling;
-		qunlock(&ramlock);
-		free(file->data);
-		free(file);
+		// Find previous file
+		for(; prev != nil && prev->sibling != file; prev = prev->sibling)
+			;
+		if(prev == nil){
+			qunlock(&ramlock);
+			error(Eperm);
+		} else {
+			prev->sibling = file->sibling;
+		}
 	}
+	if(file->perm & DMDIR){
+		free(file->data);
+	}
+	free(file);
+	qunlock(&ramlock);
 }
 
 static void
@@ -207,7 +227,7 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 }
 
 void
-ramcreate(Chan* c, char *name, int omode, int i)
+ramcreate(Chan* c, char *name, int omode, int perm)
 {
         Proc *up = externup();
 
@@ -219,9 +239,8 @@ ramcreate(Chan* c, char *name, int omode, int i)
         omode = openmode(omode);
         struct RamFile* file = (struct RamFile*)smalloc(sizeof(struct RamFile));
         file->length = 0;
-        file->data = smalloc(4096);
         strcpy(file->name, name);
-        file->perm = c->mode;
+        file->perm = perm;
         file->parent = parent;
 
 	qlock(&ramlock);
@@ -232,11 +251,11 @@ ramcreate(Chan* c, char *name, int omode, int i)
                 nexterror();
         }
 
-	file->sibling = parent->sibling;
-	parent->sibling = file;
+	file->sibling = parent->firstchild;
+	parent->firstchild = file;
 	qunlock(&ramlock);
 
-	mkqid(&c->qid, (uintptr_t)file, 0, file->directory ? QTDIR : 0);
+	mkqid(&c->qid, (uintptr_t)file, 0, file->perm & DMDIR ? QTDIR : 0);
 
         poperror();
 
@@ -248,8 +267,6 @@ ramcreate(Chan* c, char *name, int omode, int i)
 void
 ramshutdown(void)
 {
-	
-
 }
 
 void
