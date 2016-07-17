@@ -44,7 +44,7 @@ rdarena(Arena *arena, uint64_t offset)
 		if(magic == ClumpFreeMagic)
 			break;
 		if(magic != arena->clumpmagic) {
-			fprint(2, "illegal clump magic number %#8.8ux offset %llu\n",
+			fprint(2, "illegal clump magic number %#8.8x offset %llu\n",
 				magic, aa);
 			break;
 		}
@@ -64,7 +64,7 @@ rdarena(Arena *arena, uint64_t offset)
 				break;
 			}
 		}
-		print("%22llud %V %3d %5d\n", aa, score, cl.info.type, cl.info.uncsize);
+		print("%22llu %V %3d %5d\n", aa, score, cl.info.type, cl.info.uncsize);
 		freezblock(lump);
 	}
 	print("end offset %llu\n", aa);

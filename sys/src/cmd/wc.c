@@ -67,15 +67,15 @@ report(uint64_t nline, uint64_t nword, uint64_t nrune, uint64_t nbadr,
 	e = line + sizeof line;
 	line[0] = 0;
 	if(pline)
-		s = seprint(s, e, " %7llud", nline);
+		s = seprint(s, e, " %7llu", nline);
 	if(pword)
-		s = seprint(s, e, " %7llud", nword);
+		s = seprint(s, e, " %7llu", nword);
 	if(prune)
-		s = seprint(s, e, " %7llud", nrune);
+		s = seprint(s, e, " %7llu", nrune);
 	if(pbadr)
-		s = seprint(s, e, " %7llud", nbadr);
+		s = seprint(s, e, " %7llu", nbadr);
 	if(pchar)
-		s = seprint(s, e, " %7llud", nchar);
+		s = seprint(s, e, " %7llu", nchar);
 	if(fname != nil)
 		seprint(s, e, " %s",   fname);
 	print("%s\n", line+1);

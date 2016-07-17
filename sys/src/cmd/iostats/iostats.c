@@ -226,7 +226,7 @@ main(int argc, char **argv)
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
-		fprint(2, "%-10s %5lud %5llud %5llud %5llud %5llud ms %8lud %8lud bytes\n", 
+		fprint(2, "%-10s %5lu %5llu %5llu %5llu %5llu ms %8lu %8lu bytes\n", 
 			rpc->name, 
 			rpc->count,
 			rpc->lo/1000000,
@@ -260,7 +260,7 @@ main(int argc, char **argv)
 		else
 			s = "/.";
 
-		fprint(2, "%5lud %8lud %8lud %8lud %8lud %s\n", fr->opens, fr->nread, fr->bread,
+		fprint(2, "%5lu %8lu %8lu %8lu %8lu %s\n", fr->opens, fr->nread, fr->bread,
 							fr->nwrite, fr->bwrite, s);
 	}
 

@@ -222,7 +222,7 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 		b = buttonmap[m.buttons&7];
 		/* put buttons 4 and 5 back in */
 		b |= m.buttons & (3<<3);
-		sprint(buf, "m%11d %11d %11d %11lud",
+		sprint(buf, "m%11d %11d %11d %11lu",
 			m.xy.x, m.xy.y,
 			b,
 			m.msec);

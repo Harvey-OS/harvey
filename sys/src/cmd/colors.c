@@ -97,12 +97,12 @@ main(int argc, char *argv[])
 
 	ramp = 0;
 
-	fmt = "index %3d r %3lud g %3lud b %3lud 0x%.8luX        ";
+	fmt = "index %3d r %3lu g %3lu b %3lu 0x%.8lX        ";
 	ARGBEGIN{
 	default:
 		goto Usage;
 	case 'x':
-		fmt = "index %2luX r %3luX g %3luX b %3luX 0x%.8luX       ";
+		fmt = "index %2lX r %3lX g %3lX b %3lX 0x%.8lX       ";
 		break;
 	case 'r':
 		ramp = 1;
