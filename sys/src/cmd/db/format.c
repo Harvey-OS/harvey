@@ -136,13 +136,13 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 			w = sh;
 			dotinc = 2;
 			if (c == 'u')
-				dprint("%-8lud", w);
+				dprint("%-8lu", w);
 			else if (c == 'x')
-				dprint("%-8#lux", w);
+				dprint("%-8#lx", w);
 			else if (c == 'd')
 				dprint("%-8ld", w);
 			else if (c == 'o')
-				dprint("%-8#luo", w);
+				dprint("%-8#lo", w);
 			else if (c == 'q')
 				dprint("%-8#lo", w);
 			break;
@@ -158,13 +158,13 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 				error("%r");
 			dotinc = 4;
 			if (c == 'U')
-				dprint("%-16lud", w);
+				dprint("%-16lu", w);
 			else if (c == 'X')
-				dprint("%-16#lux", w);
+				dprint("%-16#lx", w);
 			else if (c == 'D')
 				dprint("%-16ld", w);
 			else if (c == 'O')
-				dprint("%-#16luo", w);
+				dprint("%-#16lo", w);
 			else if (c == 'Q')
 				dprint("%-#16lo", w);
 			break;
@@ -177,11 +177,11 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 				error("%r");
 			dotinc = 8;
 			if (c == 'Y')
-				dprint("%-20#llux", v);
+				dprint("%-20#llx", v);
 			else if (c == 'V')
 				dprint("%-20lld", v);
 			else if (c == 'Z')
-				dprint("%-20llud", v);
+				dprint("%-20llu", v);
 			break;
 		case 'B':
 		case 'b':

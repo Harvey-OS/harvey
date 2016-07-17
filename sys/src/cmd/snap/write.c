@@ -32,7 +32,7 @@ writeseg(Biobuf *b, Proc *proc, Seg *s)
 	int type;
 
 	if(s == nil){
-		Bprint(b, "%-11ud %-11ud ", 0, 0);
+		Bprint(b, "%-11u %-11u ", 0, 0);
 		return;
 	}
 
@@ -41,7 +41,7 @@ writeseg(Biobuf *b, Proc *proc, Seg *s)
 	if(npg != s->npg)
 		abort();
 
-	Bprint(b, "%-11llud %-11llud ", s->offset, s->len);
+	Bprint(b, "%-11llu %-11llu ", s->offset, s->len);
 	if(s->len == 0)
 		return;
 
@@ -51,7 +51,7 @@ writeseg(Biobuf *b, Proc *proc, Seg *s)
 				Bprint(b, "z");
 				continue;
 			}
-			Bprint(b, "%c%-11ld %-11llud ", p->type, p->pid, p->offset);
+			Bprint(b, "%c%-11ld %-11llu ", p->type, p->pid, p->offset);
 		} else {
 			Bprint(b, "r");
 			Bwrite(b, p->data, p->len);
@@ -74,7 +74,7 @@ writesnap(Biobuf *b, Proc *p)
 
 	for(i=0; i<Npfile; i++)
 		if(d = p->d[i]) {
-			Bprint(b, "%-11ld %s\n%-11lud ", p->pid, pfile[i], d->len);
+			Bprint(b, "%-11ld %s\n%-11lu ", p->pid, pfile[i], d->len);
 			Bwrite(b, d->data, d->len);
 		}
 

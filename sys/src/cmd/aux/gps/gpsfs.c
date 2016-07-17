@@ -495,7 +495,7 @@ readtime(Req *r)
 	lock(&fixlock);
 	memmove(&f, &curfix, sizeof f);
 	unlock(&fixlock);
-	seprint(buf, buf + sizeof buf, "%*.0lud %*.0llud %*.0llud %c",
+	seprint(buf, buf + sizeof buf, "%*.0lu %*.0llu %*.0llu %c",
 		Numsize-1, f.time,
 		Vlnumsize-1, f.gpstime,
 		Vlnumsize-1, f.localtime, f.valid + (gpsplayback?1:0));

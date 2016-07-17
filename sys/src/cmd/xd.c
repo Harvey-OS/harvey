@@ -54,8 +54,8 @@ fmtfn *fmt[4] = {
 char *dfmt[4][3] = {
 	" %.3o",	" %.3u",	" %.2x",
 	" %.6o",	" %.5u",	" %.4x",
-	" %.11luo",	" %.10lud",	" %.8lux",
-	" %.22lluo",	" %.20llud",	" %.16llux",
+	" %.11luo",	" %.10lu",	" %.8lx",
+	" %.22lluo",	" %.20llu",	" %.16llx",
 };
 
 char *cfmt[3][3] = {
@@ -69,8 +69,8 @@ char *rfmt[1][1] = {
 };
 
 char *afmt[2][3] = {
-	"%.7luo ",	"%.7lud ",	"%.7lux ",
-	"%7luo ",	"%7lud ",	"%7lux ",
+	"%.7luo ",	"%.7lu ",	"%.7lx ",
+	"%7luo ",	"%7lu ",	"%7lx ",
 };
 
 Biobuf	bin;
