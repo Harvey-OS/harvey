@@ -121,7 +121,7 @@ freq(int f, char *s)
 			else
 				Bprint(&bout, "%C ", (int)i);
 		}
-		Bprint(&bout, "%8llud\n", count[i]);
+		Bprint(&bout, "%8llu\n", count[i]);
 	}
 	Bflush(&bout);
 }
