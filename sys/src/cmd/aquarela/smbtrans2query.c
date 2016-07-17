@@ -106,7 +106,7 @@ query(SmbSession *s, char *cmdname, char *filename, uint16_t infolevel,
 		/* don't do it, never will */
 		goto unknownlevel;
 	default:
-		smblogprint(-1, "smbtrans2query%sinformation: infolevel 0x%.4ux not implemented\n", cmdname, infolevel);
+		smblogprint(-1, "smbtrans2query%sinformation: infolevel 0x%.4x not implemented\n", cmdname, infolevel);
 	unknownlevel:
 		translogprint(s->transaction.in.setup[0], "[not supported]\n");
 		smbseterror(s, ERRDOS, ERRunknownlevel);
@@ -138,7 +138,7 @@ smbtrans2querypathinformation(SmbSession *s, SmbHeader *h)
 		pr = SmbProcessResultMisc;
 		goto done;
 	}
-	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4ux\n", infolevel);
+	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4x\n", infolevel);
 	translogprint(s->transaction.in.setup[0], "path %s\n", path);
 	fullpath = nil;
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
@@ -176,8 +176,8 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 		pr = SmbProcessResultMisc;
 		goto done;
 	}
-	translogprint(s->transaction.in.setup[0], "fid 0x%.4ux\n", fid);
-	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4ux\n", infolevel);
+	translogprint(s->transaction.in.setup[0], "fid 0x%.4x\n", fid);
+	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4x\n", infolevel);
 	f = smbidmapfind(s->fidmap, fid);
 	if (f == nil) {
 		smbseterror(s, ERRDOS, ERRbadfid);
@@ -276,7 +276,7 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 			goto misc;
 		break;
 	default:
-		smblogprint(-1, "smbtrans2queryfsinformation: infolevel 0x%.4ux not implemented\n", infolevel);
+		smblogprint(-1, "smbtrans2queryfsinformation: infolevel 0x%.4x not implemented\n", infolevel);
 		smbseterror(s, ERRDOS, ERRunknownlevel);
 		pr = SmbProcessResultError;
 	}

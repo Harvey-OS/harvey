@@ -62,12 +62,12 @@ main(int argc, char **argv)
 		usage();
 
 	if(nsects < 8) {
-		fprint(2, "%s: unreasonable value for nsects: %lud\n", prog, nsects);
+		fprint(2, "%s: unreasonable value for nsects: %lu\n", prog, nsects);
 		exits("nsects");
 	}
 
 	if(sectsize < 512) {
-		fprint(2, "%s: unreasonable value for sectsize: %lud\n", prog, sectsize);
+		fprint(2, "%s: unreasonable value for sectsize: %lu\n", prog, sectsize);
 		exits("sectsize");
 	}
 

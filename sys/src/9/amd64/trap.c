@@ -55,7 +55,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	Vctl *v;
 	extern int ioapicintrenable(Vctl*);
 	if(f == nil){
-		print("intrenable: nil handler for %d, tbdf %#ux for %s\n",
+		print("intrenable: nil handler for %d, tbdf %#x for %s\n",
 			irq, tbdf, name);
 		return nil;
 	}
@@ -73,7 +73,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	vno = ioapicintrenable(v);
 	if(vno == -1){
 		iunlock(&vctllock);
-		print("intrenable: couldn't enable irq %d, tbdf %#ux for %s\n",
+		print("intrenable: couldn't enable irq %d, tbdf %#x for %s\n",
 			irq, tbdf, v->name);
 		free(v);
 		return nil;
@@ -143,7 +143,7 @@ irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 	for(vno=0; vno<nelem(vctl); vno++){
 		for(v=vctl[vno]; v; v=v->next){
 			t = intrtimes + vno;
-			m = snprint(str, sizeof str, "%11d %11d %20llud %20llud %-*.*s %.*s\n",
+			m = snprint(str, sizeof str, "%11d %11d %20llu %20llu %-*.*s %.*s\n",
 				vno, v->Vkey.irq, t->count, t->cycles, 8, 8, v->type, KNAMELEN, v->name);
 			if(m <= offset)	/* if do not want this, skip entry */
 				offset -= m;
@@ -469,7 +469,7 @@ trap(Ureg* ureg)
 		if(vno == VectorNMI){
 			nmienable();
 			if(machp()->machno != 0){
-				iprint("cpu%d: PC %#llux\n",
+				iprint("cpu%d: PC %#llx\n",
 					machp()->machno, ureg->ip);
 				for(;;);
 			}
@@ -521,31 +521,31 @@ dumpgpr(Ureg* ureg)
 	else
 		print("cpu%d: registers for kernel\n", machp()->machno);
 
-	print("ax\t%#16.16llux\n", ureg->ax);
-	print("bx\t%#16.16llux\n", ureg->bx);
-	print("cx\t%#16.16llux\n", ureg->cx);
-	print("dx\t%#16.16llux\n", ureg->dx);
-	print("di\t%#16.16llux\n", ureg->di);
-	print("si\t%#16.16llux\n", ureg->si);
-	print("bp\t%#16.16llux\n", ureg->bp);
-	print("r8\t%#16.16llux\n", ureg->r8);
-	print("r9\t%#16.16llux\n", ureg->r9);
-	print("r10\t%#16.16llux\n", ureg->r10);
-	print("r11\t%#16.16llux\n", ureg->r11);
-	print("r12\t%#16.16llux\n", ureg->r12);
-	print("r13\t%#16.16llux\n", ureg->r13);
-	print("r14\t%#16.16llux\n", ureg->r14);
-	print("r15\t%#16.16llux\n", ureg->r15);
-	print("type\t%#llux\n", ureg->type);
-	print("error\t%#llux\n", ureg->error);
-	print("pc\t%#llux\n", ureg->ip);
-	print("cs\t%#llux\n", ureg->cs);
-	print("flags\t%#llux\n", ureg->flags);
-	print("sp\t%#llux\n", ureg->sp);
-	print("ss\t%#llux\n", ureg->ss);
-	print("type\t%#llux\n", ureg->type);
-	print("FS\t%#llux\n", rdmsr(FSbase));
-	print("GS\t%#llux\n", rdmsr(GSbase));
+	print("ax\t%#16.16llx\n", ureg->ax);
+	print("bx\t%#16.16llx\n", ureg->bx);
+	print("cx\t%#16.16llx\n", ureg->cx);
+	print("dx\t%#16.16llx\n", ureg->dx);
+	print("di\t%#16.16llx\n", ureg->di);
+	print("si\t%#16.16llx\n", ureg->si);
+	print("bp\t%#16.16llx\n", ureg->bp);
+	print("r8\t%#16.16llx\n", ureg->r8);
+	print("r9\t%#16.16llx\n", ureg->r9);
+	print("r10\t%#16.16llx\n", ureg->r10);
+	print("r11\t%#16.16llx\n", ureg->r11);
+	print("r12\t%#16.16llx\n", ureg->r12);
+	print("r13\t%#16.16llx\n", ureg->r13);
+	print("r14\t%#16.16llx\n", ureg->r14);
+	print("r15\t%#16.16llx\n", ureg->r15);
+	print("type\t%#llx\n", ureg->type);
+	print("error\t%#llx\n", ureg->error);
+	print("pc\t%#llx\n", ureg->ip);
+	print("cs\t%#llx\n", ureg->cs);
+	print("flags\t%#llx\n", ureg->flags);
+	print("sp\t%#llx\n", ureg->sp);
+	print("ss\t%#llx\n", ureg->ss);
+	print("type\t%#llx\n", ureg->type);
+	print("FS\t%#llx\n", rdmsr(FSbase));
+	print("GS\t%#llx\n", rdmsr(GSbase));
 
 	print("m\t%#16.16p\nup\t%#16.16p\n", machp(), up);
 }
@@ -564,9 +564,9 @@ die("dumpregs");
 	 * CR4. If there is a CR4 and machine check extensions, read the machine
 	 * check address and machine check type registers if RDMSR supported.
 	 */
-	print("cr0\t%#16.16llux\n", cr0get());
-	print("cr2\t%#16.16llux\n", machp()->MMU.cr2);
-	print("cr3\t%#16.16llux\n", cr3get());
+	print("cr0\t%#16.16llx\n", cr0get());
+	print("cr2\t%#16.16llx\n", machp()->MMU.cr2);
+	print("cr3\t%#16.16llx\n", cr3get());
 die("dumpregs");
 //	archdumpregs();
 }
@@ -662,7 +662,7 @@ doublefault(Ureg* ureg, void* v)
 static void
 unexpected(Ureg* ureg, void* v)
 {
-	iprint("unexpected trap %llud; ignoring\n", ureg->type);
+	iprint("unexpected trap %llu; ignoring\n", ureg->type);
 }
 
 static void
@@ -689,7 +689,7 @@ faultamd64(Ureg* ureg, void* v)
 	 * initialisation before the system is fully up.
 	 */
 	if(up == nil){
-		panic("fault with up == nil; pc %#llux addr %#llux\n",
+		panic("fault with up == nil; pc %#llx addr %#llx\n",
 			ureg->ip, addr);
 	}
 
@@ -717,8 +717,8 @@ iprint("could not %s fault %p\n", faulttypes[ftype], addr);
 		 * the game's a bogey.
 		 */
 		if(!user && (!insyscall || up->nerrlab == 0))
-			panic("fault: %#llux\n", addr);
-		sprint(buf, "sys: trap: fault %s addr=%#llux",
+			panic("fault: %#llx\n", addr);
+		sprint(buf, "sys: trap: fault %s addr=%#llx",
 			faulttypes[ftype], addr);
 		postnote(up, 1, buf, NDebug);
 		if(insyscall)

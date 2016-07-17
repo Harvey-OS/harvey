@@ -579,7 +579,7 @@ netkeysrvauth(int fd, char *user)
 static void
 mksecret(char *t, uint8_t *f)
 {
-	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+	sprint(t, "%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
 }
 
@@ -659,7 +659,7 @@ loghex(uint8_t *p, int n)
 	int i;
 
 	for(i = 0; i < n; i++)
-		sprint(buf+2*i, "%2.2ux", p[i]);
+		sprint(buf+2*i, "%2.2x", p[i]);
 	syslog(0, "cpu", buf);
 }
 

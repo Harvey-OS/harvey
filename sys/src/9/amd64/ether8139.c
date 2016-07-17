@@ -322,8 +322,8 @@ rtl8139ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	p = malloc(READSTR);
 	if(p == nil)
 		error(Enomem);
-	l = snprint(p, READSTR, "rcr %#8.8ux\n", ctlr->rcr);
-	l += snprint(p+l, READSTR-l, "multicast %ud\n", ctlr->mcast);
+	l = snprint(p, READSTR, "rcr %#8.8x\n", ctlr->rcr);
+	l += snprint(p+l, READSTR-l, "multicast %u\n", ctlr->mcast);
 	l += snprint(p+l, READSTR-l, "ierrs %d\n", ctlr->ierrs);
 	l += snprint(p+l, READSTR-l, "etxth %d\n", ctlr->etxth);
 	l += snprint(p+l, READSTR-l, "taligned %d\n", ctlr->taligned);
@@ -335,20 +335,20 @@ rtl8139ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	ctlr->rec += csr16r(ctlr, Rec);
 	l += snprint(p+l, READSTR-l, "rec %d\n", ctlr->rec);
 
-	l += snprint(p+l, READSTR-l, "Tcr %#8.8lux\n", csr32r(ctlr, Tcr));
-	l += snprint(p+l, READSTR-l, "Config0 %#2.2ux\n", csr8r(ctlr, Config0));
-	l += snprint(p+l, READSTR-l, "Config1 %#2.2ux\n", csr8r(ctlr, Config1));
-	l += snprint(p+l, READSTR-l, "Msr %#2.2ux\n", csr8r(ctlr, Msr));
-	l += snprint(p+l, READSTR-l, "Config3 %#2.2ux\n", csr8r(ctlr, Config3));
-	l += snprint(p+l, READSTR-l, "Config4 %#2.2ux\n", csr8r(ctlr, Config4));
+	l += snprint(p+l, READSTR-l, "Tcr %#8.8lx\n", csr32r(ctlr, Tcr));
+	l += snprint(p+l, READSTR-l, "Config0 %#2.2x\n", csr8r(ctlr, Config0));
+	l += snprint(p+l, READSTR-l, "Config1 %#2.2x\n", csr8r(ctlr, Config1));
+	l += snprint(p+l, READSTR-l, "Msr %#2.2x\n", csr8r(ctlr, Msr));
+	l += snprint(p+l, READSTR-l, "Config3 %#2.2x\n", csr8r(ctlr, Config3));
+	l += snprint(p+l, READSTR-l, "Config4 %#2.2x\n", csr8r(ctlr, Config4));
 
-	l += snprint(p+l, READSTR-l, "Bmcr %#4.4ux\n", csr16r(ctlr, Bmcr));
-	l += snprint(p+l, READSTR-l, "Bmsr %#4.4ux\n", csr16r(ctlr, Bmsr));
-	l += snprint(p+l, READSTR-l, "Anar %#4.4ux\n", csr16r(ctlr, Anar));
-	l += snprint(p+l, READSTR-l, "Anlpar %#4.4ux\n", csr16r(ctlr, Anlpar));
-	l += snprint(p+l, READSTR-l, "Aner %#4.4ux\n", csr16r(ctlr, Aner));
-	l += snprint(p+l, READSTR-l, "Nwaytr %#4.4ux\n", csr16r(ctlr, Nwaytr));
-	snprint(p+l, READSTR-l, "Cscr %#4.4ux\n", csr16r(ctlr, Cscr));
+	l += snprint(p+l, READSTR-l, "Bmcr %#4.4x\n", csr16r(ctlr, Bmcr));
+	l += snprint(p+l, READSTR-l, "Bmsr %#4.4x\n", csr16r(ctlr, Bmsr));
+	l += snprint(p+l, READSTR-l, "Anar %#4.4x\n", csr16r(ctlr, Anar));
+	l += snprint(p+l, READSTR-l, "Anlpar %#4.4x\n", csr16r(ctlr, Anlpar));
+	l += snprint(p+l, READSTR-l, "Aner %#4.4x\n", csr16r(ctlr, Aner));
+	l += snprint(p+l, READSTR-l, "Nwaytr %#4.4x\n", csr16r(ctlr, Nwaytr));
+	snprint(p+l, READSTR-l, "Cscr %#4.4x\n", csr16r(ctlr, Cscr));
 	n = readstr(offset, a, n, p);
 	free(p);
 
@@ -716,7 +716,7 @@ rtl8139interrupt(Ureg *ureg, void* arg)
 		 * other than try to reinitialise the chip?
 		 */
 		if((isr & (Serr|Timerbit)) != 0){
-			iprint("rtl8139interrupt: imr %#4.4ux isr %#4.4ux\n",
+			iprint("rtl8139interrupt: imr %#4.4x isr %#4.4x\n",
 				csr16r(ctlr, Imr), isr);
 			if(isr & Timerbit)
 				csr32w(ctlr, TimerInt, 0);
@@ -748,7 +748,7 @@ rtl8139match(Ether* edev, int id)
 			continue;
 
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8139") < 0){
-			print("rtl8139: port %#ux in use\n", port);
+			print("rtl8139: port %#x in use\n", port);
 			continue;
 		}
 

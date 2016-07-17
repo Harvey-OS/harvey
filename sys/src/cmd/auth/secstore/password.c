@@ -128,7 +128,7 @@ putPW(PW *pw)
 		werrstr("can't open PW file for %s", pw->id);
 		return -1;
 	}
-	Bprint(bout, "exp	%lud\n", pw->expire);
+	Bprint(bout, "exp	%lu\n", pw->expire);
 	if(!(pw->status & Enabled))
 		Bprint(bout, "DISABLED\n");
 	if(pw->status & STA)

@@ -99,7 +99,7 @@ dumpptepg(int lvl, uintptr_t pa)
 	for(i = 0; i < PTSZ/sizeof(PTE); i++)
 		if(pte[i] & PteP){
 			tabs(tab);
-			print("l%d %#p[%#05x]: %#ullx\n", lvl, pa, i, pte[i]);
+			print("l%d %#p[%#05x]: %#llx\n", lvl, pa, i, pte[i]);
 
 			/* skip kernel mappings */
 			if((pte[i]&PteU) == 0){
@@ -122,11 +122,11 @@ dumpmmu(Proc *p)
 	for(i = 3; i > 0; i--){
 		print("mmuptp[%d]:\n", i);
 		for(pg = p->MMU.mmuptp[i]; pg != nil; pg = pg->next)
-			print("\tpg %#p = va %#ullx pa %#ullx"
-				" daddr %#ulx next %#p prev %#p\n",
+			print("\tpg %#p = va %#llx pa %#llx"
+				" daddr %#lx next %#p prev %#p\n",
 				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
 	}
-	print("pml4 %#ullx\n", machp()->MMU.pml4->pa);
+	print("pml4 %#llx\n", machp()->MMU.pml4->pa);
 	if(0)dumpptepg(4, machp()->MMU.pml4->pa);
 }
 
@@ -138,13 +138,13 @@ dumpmmuwalk(uint64_t addr)
 
 	pml4 = UINT2PTR(machp()->MMU.pml4->va);
 	if((l = mmuwalk(pml4, addr, 3, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 2, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 1, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 0, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
 }
 
 static Page mmuptpfreelist;
@@ -277,29 +277,29 @@ checkpte(uintmem ppn, void *a)
 	if((l = mmuwalk(pml4, addr, 3, &pte, nil)) < 0 || (*pte&PteP) == 0)
 		goto Panic;
 	s = seprint(buf, buf+sizeof buf,
-		"check3: l%d pte %#p = %llux\n",
+		"check3: l%d pte %#p = %llx\n",
 		l, pte, pte?*pte:~0);
 	if((l = mmuwalk(pml4, addr, 2, &pte, nil)) < 0 || (*pte&PteP) == 0)
 		goto Panic;
 	s = seprint(s, buf+sizeof buf,
-		"check2: l%d  pte %#p = %llux\n",
+		"check2: l%d  pte %#p = %llx\n",
 		l, pte, pte?*pte:~0);
 	if(*pte&PtePS)
 		return;
 	if((l = mmuwalk(pml4, addr, 1, &pte, nil)) < 0 || (*pte&PteP) == 0)
 		goto Panic;
 	seprint(s, buf+sizeof buf,
-		"check1: l%d  pte %#p = %llux\n",
+		"check1: l%d  pte %#p = %llx\n",
 		l, pte, pte?*pte:~0);
 	return;
 Panic:
 
 	seprint(s, buf+sizeof buf,
-		"checkpte: l%d addr %#p ppn %#ullx kaddr %#p pte %#p = %llux",
+		"checkpte: l%d addr %#p ppn %#llx kaddr %#p pte %#p = %llx",
 		l, a, ppn, KADDR(ppn), pte, pte?*pte:~0);
 	print("%s\n", buf);
-	seprint(buf, buf+sizeof buf, "start %#ullx unused %#ullx"
-		" unmap %#ullx end %#ullx\n",
+	seprint(buf, buf+sizeof buf, "start %#llx unused %#llx"
+		" unmap %#llx end %#llx\n",
 		sys->vmstart, sys->vmunused, sys->vmunmapped, sys->vmend);
 	panic("%s", buf);
 }
@@ -360,7 +360,7 @@ pteflags(uint attr)
 
 	flags = 0;
 	if(attr & ~(PTEVALID|PTEWRITE|PTERONLY|PTEUSER|PTEUNCACHED|PTENOEXEC))
-		panic("mmuput: wrong attr bits: %#ux\n", attr);
+		panic("mmuput: wrong attr bits: %#x\n", attr);
 	if(attr&PTEVALID)
 		flags |= PteP;
 	if(attr&PTEWRITE)
@@ -397,14 +397,14 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		panic("mmuput: zero pa");
 
 	if(DBGFLG){
-		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#ux\n",
+		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#x\n",
 			machp()->machno, up, va, pa, attr);
 		print("%s", buf);
 	}
 	assert(pg->pgszi >= 0);
 	pgsz = sys->pgsz[pg->pgszi];
 	if(pa & (pgsz-1))
-		panic("mmuput: pa offset non zero: %#ullx\n", pa);
+		panic("mmuput: pa offset non zero: %#llx\n", pa);
 	pa |= pteflags(attr);
 
 	pl = splhi();
@@ -475,7 +475,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	splx(pl);
 
 	if(DBGFLG){
-		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llux\n",
+		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llx\n",
 			machp()->machno, up, pte, pte?*pte:~0);
 		print("%s", buf);
 	}
@@ -646,7 +646,7 @@ vmap(uintptr_t pa, usize size)
 	uintptr_t va;
 	usize o, sz;
 
-	DBG("vmap(%#p, %lud) pc=%#p\n", pa, size, getcallerpc());
+	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
 
 	if(machp()->machno != 0)
 		print("vmap: machp()->machno != 0");
@@ -677,7 +677,7 @@ vmap(uintptr_t pa, usize size)
 	sz = ROUNDUP(size+o, PGSZ);
 
 	if(pa == 0){
-		print("vmap(0, %lud) pc=%#p\n", size, getcallerpc());
+		print("vmap(0, %lu) pc=%#p\n", size, getcallerpc());
 		return nil;
 	}
 	ilock(&vmaplock);
@@ -687,7 +687,7 @@ vmap(uintptr_t pa, usize size)
 	}
 	iunlock(&vmaplock);
 
-	DBG("vmap(%#p, %lud) => %#p\n", pa+o, size, va+o);
+	DBG("vmap(%#p, %lu) => %#p\n", pa+o, size, va+o);
 
 	return UINT2PTR(va + o);
 }
@@ -697,7 +697,7 @@ vunmap(void* v, usize size)
 {
 	uintptr_t va;
 
-	DBG("vunmap(%#p, %lud)\n", v, size);
+	DBG("vunmap(%#p, %lu)\n", v, size);
 
 	if(machp()->machno != 0)
 		print("vmap: machp()->machno != 0");
@@ -714,7 +714,7 @@ vunmap(void* v, usize size)
 	 * resources used for the allocation (e.g. page table
 	 * pages).
 	 */
-	DBG("vunmap(%#p, %lud)\n", v, size);
+	DBG("vunmap(%#p, %lu)\n", v, size);
 }
 
 int
@@ -774,7 +774,7 @@ mmuphysaddr(uintptr_t va)
 	mask = PGLSZ(l)-1;
 	pa = (*pte & ~mask) + (va & mask);
 
-	DBG("physaddr: l %d va %#p pa %#llux\n", l, va, pa);
+	DBG("physaddr: l %d va %#p pa %#llx\n", l, va, pa);
 
 	return pa;
 }
@@ -840,7 +840,7 @@ mmuinit(void)
 	sz = ROUNDUP(o, 4*MiB) - o;
 	pa = asmalloc(0, sz, 1, 0);
 	if(pa != o)
-		panic("mmuinit: pa %#llux memstart %#llux\n", pa, o);
+		panic("mmuinit: pa %#llx memstart %#llx\n", pa, o);
 	sys->pmstart += sz;
 
 	sys->vmstart = KSEG0;

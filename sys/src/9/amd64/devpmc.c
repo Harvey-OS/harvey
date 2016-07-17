@@ -62,7 +62,7 @@ topdirinit(int ncores)
 	d->perm = 0444;
 	for (i = 2; i < ncores + 2; i++) {
 		d = &toptab[i];
-		snprint(d->name, KNAMELEN, "core%4.4ud", i - 2);
+		snprint(d->name, KNAMELEN, "core%4.4u", i - 2);
 		mkqid(&d->qid, PMCQID(i - 2, Qcore), 0, QTDIR);
 		d->perm = DMDIR|0555;
 	}
@@ -91,12 +91,12 @@ ctrdirinit(void)
 	d->perm = DMDIR|0555;
 	for (i = 1; i < nr + 1; i++) {
 		d = &pmctab[i];
-		snprint(d->name, KNAMELEN, "ctr%2.2ud", i - 1);
+		snprint(d->name, KNAMELEN, "ctr%2.2u", i - 1);
 		mkqid(&d->qid, PMCQID(i - 1, Qdata), 0, 0);
 		d->perm = 0600;
 
 		d = &pmctab[nr + i];
-		snprint(d->name, KNAMELEN, "ctr%2.2udctl", i - 1);
+		snprint(d->name, KNAMELEN, "ctr%2.2uctl", i - 1);
 		mkqid(&d->qid, PMCQID(i - 1, Qctl), 0, 0);
 		d->perm = 0600;
 	}

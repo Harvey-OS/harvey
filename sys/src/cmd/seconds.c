@@ -243,7 +243,7 @@ convert(char *timestr)
 		fprint(2, "%s: `%s' not a valid date\n", argv0, timestr);
 		return 1;
 	}
-	print("%lud\n", tstime);
+	print("%lu\n", tstime);
 	return 0;
 }
 

@@ -33,7 +33,7 @@ int
 eipfmt(Fmt *f)
 {
 	char buf[5*8];
-	static char *efmt = "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux";
+	static char *efmt = "%.2x%.2x%.2x%.2x%.2x%.2x";
 	static char *ifmt = "%d.%d.%d.%d";
 	uint8_t *p, ip[16];
 	uint32_t *lp;
@@ -77,7 +77,7 @@ common:
 			} else if(i != 0)
 				n += sprint(buf+n, ":");
 			s = (p[i]<<8) + p[i+1];
-			n += sprint(buf+n, "%ux", s);
+			n += sprint(buf+n, "%x", s);
 		}
 		return fmtstrcpy(f, buf);
 

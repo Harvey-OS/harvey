@@ -527,7 +527,7 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 		buf[r] = '\0';
 	*status = atoi(buf);
 	if(n < 0 && (exabyte || *status != STcheck))
-		fprint(2, "scsireq: status 0x%2.2uX: data transfer: %r\n",
+		fprint(2, "scsireq: status 0x%2.2X: data transfer: %r\n",
 			*status);
 	return n;
 }
@@ -561,7 +561,7 @@ retry:
 		goto retry;
 
 	default:
-		fprint(2, "status 0x%2.2uX\n", status);
+		fprint(2, "status 0x%2.2X\n", status);
 		return -1;
 	}
 	return n;
@@ -610,8 +610,8 @@ dirdevopen(ScsiReq *rp)
 	rp->lbsize = GETBELONG(data+4);
 	blocks =     GETBELONG(data);
 	if(debug)
-		fprint(2, "scuzz: dirdevopen: logical block size %lud, "
-			"# blocks %lud\n", rp->lbsize, blocks);
+		fprint(2, "scuzz: dirdevopen: logical block size %lu, "
+			"# blocks %lu\n", rp->lbsize, blocks);
 	/* some newer dev's don't support 6-byte commands */
 	if(blocks > Max24off && !force6bytecmds)
 		rp->flags |= Frw10;
@@ -629,7 +629,7 @@ seqdevopen(ScsiReq *rp)
 		rp->flags |= Fbfixed;
 		rp->lbsize = limits[4]<<8 | limits[5];
 		if(debug)
-			fprint(2, "scuzz: seqdevopen: logical block size %lud\n",
+			fprint(2, "scuzz: seqdevopen: logical block size %lu\n",
 				rp->lbsize);
 		return 0;
 	}
@@ -689,7 +689,7 @@ wormdevopen(ScsiReq *rp)
 		/* last 3 bytes of block 0 descriptor */
 		rp->lbsize = GETBE24(list+13);
 	if(debug)
-		fprint(2, "scuzz: wormdevopen: logical block size %lud\n",
+		fprint(2, "scuzz: wormdevopen: logical block size %lu\n",
 			rp->lbsize);
 	return status;
 }

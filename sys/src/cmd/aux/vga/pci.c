@@ -416,7 +416,7 @@ pcihinv(Pcidev* p)
 		Bprint(&stdout, "bus dev type vid  did intl memory\n");
 	}
 	for(t = p; t != nil; t = t->link) {
-		Bprint(&stdout, "%d  %2d/%d %.4ux %.4ux %.4ux %2d  ",
+		Bprint(&stdout, "%d  %2d/%d %.4x %.4x %.4x %2d  ",
 			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
 			t->ccru, t->vid, t->did, t->intl);
 

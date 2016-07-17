@@ -236,7 +236,7 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 	case ArenaVersion4:
 		sz = ArenaSize4;
 		if(arena->clumpmagic != _ClumpMagic)
-			fprint(2, "warning: writing old arena tail loses clump magic 0x%lux != 0x%lux\n",
+			fprint(2, "warning: writing old arena tail loses clump magic 0x%lx != 0x%lx\n",
 				(uint32_t)arena->clumpmagic,
 			       (uint32_t)_ClumpMagic);
 		break;
@@ -372,7 +372,7 @@ packarenahead(ArenaHead *head, uint8_t *buf)
 	case ArenaVersion4:
 		sz = ArenaHeadSize4;
 		if(head->clumpmagic != _ClumpMagic)
-			fprint(2, "warning: writing old arena header loses clump magic 0x%lux != 0x%lux\n",
+			fprint(2, "warning: writing old arena header loses clump magic 0x%lx != 0x%lx\n",
 				(uint32_t)head->clumpmagic,
 			       (uint32_t)_ClumpMagic);
 		break;
@@ -720,7 +720,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 	
 	m = U32GET(p);
 	if(m != BloomVersion){
-		seterr(ECorrupt, "bloom filter has wrong version %ud expected %ud", (uint)m, (uint)BloomVersion);
+		seterr(ECorrupt, "bloom filter has wrong version %u expected %u", (uint)m, (uint)BloomVersion);
 		return -1;
 	}
 	p += U32Size;

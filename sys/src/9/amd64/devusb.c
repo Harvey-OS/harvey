@@ -194,7 +194,7 @@ seprintdata(char *s, char *se, unsigned char *d, int n)
 	if(l > 10)
 		l = 10;
 	for(i=0; i<l; i++)
-		s = seprint(s, se, " %2.2ux", d[i]);
+		s = seprint(s, se, " %2.2x", d[i]);
 	if(l < n)
 		s = seprint(s, se, "...");
 	return s;
@@ -308,7 +308,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 	else
 		s = seprint(s, se, " idle");
 	if(all){
-		s = seprint(s, se, " load %uld", ep->load);
+		s = seprint(s, se, " load %lu", ep->load);
 		s = seprint(s, se, " ref %ld addr %#p", ep->r.ref, ep);
 		s = seprint(s, se, " idx %d", ep->idx);
 		if(ep->name != nil)
@@ -722,7 +722,7 @@ hciprobe(int cardno, int ctlrno)
 	 * modern machines have too many usb controllers to list on
 	 * the console.
 	 */
-	dprint("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
+	dprint("#u/usb/ep%d.0: %s: port 0x%lX irq %d\n",
 		epnb, hcitypes[cardno].type, hp->ISAConf.port, hp->ISAConf.irq);
 	epnb++;
 	return hp;

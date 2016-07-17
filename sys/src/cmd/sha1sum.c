@@ -44,7 +44,7 @@ digestfmt(Fmt *fmt)
 
 	p = va_arg(fmt->args, uint8_t*);
 	for(i = 0; i < shadlen; i++)
-		sprint(buf + 2*i, "%.2ux", p[i]);
+		sprint(buf + 2*i, "%.2x", p[i]);
 	return fmtstrcpy(fmt, buf);
 }
 

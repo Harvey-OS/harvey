@@ -48,7 +48,7 @@ smbtreedisconnect(SmbSession *s, SmbTree *t)
 {
 	if (t) {
 		DisconnectData data;
-		smblogprintif(smbglobals.log.tids, "smbtreedisconnect: 0x%.4ux\n", t->id);
+		smblogprintif(smbglobals.log.tids, "smbtreedisconnect: 0x%.4x\n", t->id);
 		data.s = s;
 		data.t = t;
 		smbserviceput(t->serv);
@@ -77,6 +77,6 @@ smbtreeconnect(SmbSession *s, SmbService *serv)
 	smbidmapadd(s->tidmap, t);
 	t->serv = serv;
 	smbserviceget(serv);
-	smblogprintif(smbglobals.log.tids, "smbtreeconnect: 0x%.4ux\n", t->id);
+	smblogprintif(smbglobals.log.tids, "smbtreeconnect: 0x%.4x\n", t->id);
 	return t;
 }

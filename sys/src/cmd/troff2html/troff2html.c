@@ -755,7 +755,7 @@ process(Biobuf *b, char *name)
 			vp = setnum(b, "vpos", 0, 10000);
 			break;
 		default:
-			fprint(2, "dhtml: unknown directive %c(0x%.2ux) at %s:#%d\n", c, c, filename, cno);
+			fprint(2, "dhtml: unknown directive %c(0x%.2x) at %s:#%d\n", c, c, filename, cno);
 			return;
 		}
 	}

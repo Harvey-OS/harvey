@@ -397,60 +397,60 @@ xd(char *str, void *buf, int n)
 		sum += *p++;
 	p = buf;
 
-	fprint(2, "%s : len=%ud sum=%d\n", str, n, sum);
+	fprint(2, "%s : len=%u sum=%d\n", str, n, sum);
 
-	fprint(2, "mag=0x%ulx ", GL32(&p));
-	fprint(2, "cmd=0x%ux ", cmd = G8(&p));
-	fprint(2, "err=0x%ulx ", err=GL32(&p));
+	fprint(2, "mag=0x%lx ", GL32(&p));
+	fprint(2, "cmd=0x%x ", cmd = G8(&p));
+	fprint(2, "err=0x%lx ", err=GL32(&p));
 	fprint(2, "flg=0x%02ux ", flg = G8(&p));
 	fprint(2, "flg2=0x%04ux\n", flags2= GL16(&p));
 	fprint(2, "dfs=%s\n", (flags2 & FL2_DFS)? "y": "n");
 
-	fprint(2, "pidl=%ud ", GL16(&p));
-	fprint(2, "res=%uld ", GL32(&p));
-	fprint(2, "sid=%ud ", GL16(&p));
-	fprint(2, "seq=0x%ux ", GL16(&p));
-	fprint(2, "pad=%ud ", GL16(&p));
+	fprint(2, "pidl=%u ", GL16(&p));
+	fprint(2, "res=%lu ", GL32(&p));
+	fprint(2, "sid=%u ", GL16(&p));
+	fprint(2, "seq=0x%x ", GL16(&p));
+	fprint(2, "pad=%u ", GL16(&p));
 
-	fprint(2, "tid=%ud ", GL16(&p));
-	fprint(2, "pid=%ud ", GL16(&p));
-	fprint(2, "uid=%ud ", GL16(&p));
-	fprint(2, "mid=%ud\n", GL16(&p));
+	fprint(2, "tid=%u ", GL16(&p));
+	fprint(2, "pid=%u ", GL16(&p));
+	fprint(2, "uid=%u ", GL16(&p));
+	fprint(2, "mid=%u\n", GL16(&p));
 
 	if(cmd == 0x32 && (flg & 0x80) == 0){		/* TRANS 2, TX */
-		fprint(2, "words=%ud ", G8(&p));
-		fprint(2, "totparams=%ud ", GL16(&p));
-		fprint(2, "totdata=%ud ", GL16(&p));
-		fprint(2, "maxparam=%ud ", GL16(&p));
-		fprint(2, "maxdata=%ud\n", GL16(&p));
-		fprint(2, "maxsetup=%ud ", G8(&p));
-		fprint(2, "reserved=%ud ", G8(&p));
-		fprint(2, "flags=%ud ", GL16(&p));
-		fprint(2, "timeout=%uld\n", GL32(&p));
-		fprint(2, "reserved=%ud ", GL16(&p));
-		fprint(2, "paramcnt=%ud ", GL16(&p));
-		fprint(2, "paramoff=%ud ", GL16(&p));
-		fprint(2, "datacnt=%ud ", GL16(&p));
-		fprint(2, "dataoff=%ud ", GL16(&p));
-		fprint(2, "setupcnt=%ud ", G8(&p));
-		fprint(2, "reserved=%ud\n", G8(&p));
+		fprint(2, "words=%u ", G8(&p));
+		fprint(2, "totparams=%u ", GL16(&p));
+		fprint(2, "totdata=%u ", GL16(&p));
+		fprint(2, "maxparam=%u ", GL16(&p));
+		fprint(2, "maxdata=%u\n", GL16(&p));
+		fprint(2, "maxsetup=%u ", G8(&p));
+		fprint(2, "reserved=%u ", G8(&p));
+		fprint(2, "flags=%u ", GL16(&p));
+		fprint(2, "timeout=%lu\n", GL32(&p));
+		fprint(2, "reserved=%u ", GL16(&p));
+		fprint(2, "paramcnt=%u ", GL16(&p));
+		fprint(2, "paramoff=%u ", GL16(&p));
+		fprint(2, "datacnt=%u ", GL16(&p));
+		fprint(2, "dataoff=%u ", GL16(&p));
+		fprint(2, "setupcnt=%u ", G8(&p));
+		fprint(2, "reserved=%u\n", G8(&p));
 		fprint(2, "trans2=0x%02x ", GL16(&p));
 		fprint(2, "data-words=%d ", G8(&p));
 		fprint(2, "padding=%d\n", G8(&p));
 	}
 	if(cmd == 0x32 && (flg & 0x80) == 0x80){	/* TRANS 2, RX */
-		fprint(2, "words=%ud ", G8(&p));
-		fprint(2, "totparams=%ud ", GL16(&p));
-		fprint(2, "totdata=%ud ", GL16(&p));
-		fprint(2, "reserved=%ud ", GL16(&p));
-		fprint(2, "paramcnt=%ud\n", GL16(&p));
-		fprint(2, "paramoff=%ud ", GL16(&p));
-		fprint(2, "paramdisp=%ud ", GL16(&p));
-		fprint(2, "datacnt=%ud\n", GL16(&p));
-		fprint(2, "dataoff=%ud ", GL16(&p));
-		fprint(2, "datadisp=%ud ", GL16(&p));
-		fprint(2, "setupcnt=%ud ", G8(&p));
-		fprint(2, "reserved=%ud\n", G8(&p));
+		fprint(2, "words=%u ", G8(&p));
+		fprint(2, "totparams=%u ", GL16(&p));
+		fprint(2, "totdata=%u ", GL16(&p));
+		fprint(2, "reserved=%u ", GL16(&p));
+		fprint(2, "paramcnt=%u\n", GL16(&p));
+		fprint(2, "paramoff=%u ", GL16(&p));
+		fprint(2, "paramdisp=%u ", GL16(&p));
+		fprint(2, "datacnt=%u\n", GL16(&p));
+		fprint(2, "dataoff=%u ", GL16(&p));
+		fprint(2, "datadisp=%u ", GL16(&p));
+		fprint(2, "setupcnt=%u ", G8(&p));
+		fprint(2, "reserved=%u\n", G8(&p));
 	}
 	if(err)
 		if(flags2 & FL2_NT_ERRCODES)

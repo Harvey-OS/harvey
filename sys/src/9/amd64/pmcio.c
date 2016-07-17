@@ -188,7 +188,7 @@ setctl(PmcCtl *p, int regno)
 	pmcuserenab(pmcanyenab());
 	if (pmcdebug) {
 		v = rdmsr(regno+ PerfEvtbase);
-		print("conf pmc[%#ux]: %#llux\n", regno, v);
+		print("conf pmc[%#x]: %#llx\n", regno, v);
 	}
 	return 0;
 }
@@ -336,7 +336,7 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 	if(coreno == machp()->machno){
 		v = getctr(regno);
 		if (pmcdebug) {
-			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
+			print("int getctr[%#x, %#x] = %#llx\n", regno, coreno, v);
 		}
 		return v;
 	}
@@ -352,7 +352,7 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 	v = p->ctr;
 	iunlock(&mp->pmclock);
 	if (pmcdebug) {
-		print("ext getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
+		print("ext getctr[%#x, %#x] = %#llx\n", regno, coreno, v);
 	}
 	return v;
 }
@@ -365,7 +365,7 @@ pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 
 	if(coreno == machp()->machno){
 		if (pmcdebug) {
-			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
+			print("int getctr[%#x, %#x] = %#llx\n", regno, coreno, v);
 		}
 		return setctr(v, regno);
 	}
@@ -373,7 +373,7 @@ pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 	mp = sys->machptr[coreno];
 	p = &mp->pmc[regno];
 	if (pmcdebug) {
-		print("ext setctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
+		print("ext setctr[%#x, %#x] = %#llx\n", regno, coreno, v);
 	}
 	ilock(&mp->pmclock);
 	p->ctr = v;

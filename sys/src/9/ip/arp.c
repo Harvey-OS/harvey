@@ -536,7 +536,7 @@ static void
 convmac(char *p, char *ep, uint8_t *mac, int n)
 {
 	while(n-- > 0)
-		p = seprint(p, ep, "%2.2ux", *mac++);
+		p = seprint(p, ep, "%2.2x", *mac++);
 }
 
 int

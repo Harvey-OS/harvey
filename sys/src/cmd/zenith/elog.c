@@ -112,7 +112,7 @@ elogflush(File *f)
 	b.nr = f->elog.nr;
 	switch(f->elog.type){
 	default:
-		warning(nil, "unknown elog type 0x%ux\n", f->elog.type);
+		warning(nil, "unknown elog type 0x%x\n", f->elog.type);
 		break;
 	case Null:
 		break;
@@ -267,7 +267,7 @@ elogapply(File *f)
 		bufread(log, up, (Rune*)&b, Buflogsize);
 		switch(b.type){
 		default:
-			fprint(2, "elogapply: 0x%ux\n", b.type);
+			fprint(2, "elogapply: 0x%x\n", b.type);
 			abort();
 			break;
 

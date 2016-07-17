@@ -212,7 +212,7 @@ timestamp(char *tag)
 	uint64_t t;
 
 	t = nsec()/1000;
-	syslog(0, blog, "%s %lludµs", tag, t - start);
+	syslog(0, blog, "%s %lluµs", tag, t - start);
 }
 
 void
@@ -394,7 +394,7 @@ proto(Req *rp, int n)
 			warning(0, "no chaddr");
 			return;
 		}
-		sprint(buf, "hwa%2.2ux_", rp->bp->htype);
+		sprint(buf, "hwa%2.2x_", rp->bp->htype);
 		rp->id = tohex(buf, rp->bp->chaddr, rp->bp->hlen);
 	}
 
@@ -1046,7 +1046,7 @@ bootp(Req *rp)
 	if(!ismuted(rp) && write(rp->fd, rp->buf, n) != n)
 		warning(0, "bootp: write failed: %r");
 
-	warning(0, "bootp via %I: file %s xid(%ux)flag(%ux)ci(%V)gi(%V)yi(%V)si(%V) %s",
+	warning(0, "bootp via %I: file %s xid(%x)flag(%x)ci(%V)gi(%V)yi(%V)si(%V) %s",
 			up->raddr, bp->file, nhgetl(bp->xid), nhgets(bp->flags),
 			bp->ciaddr, bp->giaddr, bp->yiaddr, bp->siaddr,
 			optbuf);
@@ -1560,9 +1560,9 @@ vectoropt(Req *rp, int t, uint8_t *v, int n)
 
 	op = seprint(op, oe, "%s(", optname[t]);
 	if(n > 0)
-		op = seprint(op, oe, "%ud", v[0]);
+		op = seprint(op, oe, "%u", v[0]);
 	for(i = 1; i < n; i++)
-		op = seprint(op, oe, " %ud", v[i]);
+		op = seprint(op, oe, " %u", v[i]);
 	op = seprint(op, oe, ")");
 }
 
@@ -1636,7 +1636,7 @@ logdhcp(Req *rp)
 		p = seprint(p, e, "%s(", dhcpmsgname[rp->dhcptype]);
 	else
 		p = seprint(p, e, "%d(", rp->dhcptype);
-	p = seprint(p, e, "%I->%I) xid(%ux)flag(%ux)", rp->up->raddr, rp->up->laddr,
+	p = seprint(p, e, "%I->%I) xid(%x)flag(%x)", rp->up->raddr, rp->up->laddr,
 		nhgetl(rp->bp->xid), nhgets(rp->bp->flags));
 	if(rp->bp->htype == 1)
 		p = seprint(p, e, "ea(%E)", rp->bp->chaddr);

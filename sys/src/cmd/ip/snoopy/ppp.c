@@ -202,7 +202,7 @@ p_seprint(Msg *m)
 	if((proto&1) == 0)
 		proto = (proto<<8) | *m->ps++;
 	
-	m->p = seprint(m->p, m->e, "pr=%ud len=%d", proto, len);
+	m->p = seprint(m->p, m->e, "pr=%u len=%d", proto, len);
 	demux(p_mux, proto, proto, m, &dump);
 
 	return 0;
@@ -283,7 +283,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 			p = seprint(p, e, " mtu=%d", NetS(o->data));
 			break;
 		case Octlmap:
-			p = seprint(p, e, " ctlmap=%ux", NetL(o->data));
+			p = seprint(p, e, " ctlmap=%x", NetL(o->data));
 			break;
 		case Oauth:
 			proto = NetS(o->data);
@@ -295,7 +295,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 				p = seprint(p, e, " auth=passwd");
 				break;
 			case PPP_chap:
-				p = seprint(p, e, " (auth=chap data=%2.2ux)", o->data[2]);
+				p = seprint(p, e, " (auth=chap data=%2.2x)", o->data[2]);
 				break;
 			}
 			break;
@@ -312,7 +312,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 				break;
 			}
 		case Omagic:
-			p = seprint(p, e, " magic=%ux", NetL(o->data));
+			p = seprint(p, e, " magic=%x", NetL(o->data));
 			break;
 		case Opc:
 			p = seprint(p, e, " protocol-compress");
@@ -385,7 +385,7 @@ seprintipcpopt(char *p, char *e, void *a, int len)
 	for(; cp < ecp; cp += o->len){
 		o = (Lcpopt*)cp;
 		if(cp + o->len > ecp){
-			p = seprint(p, e, " bad opt len %ux", o->type);
+			p = seprint(p, e, " bad opt len %x", o->type);
 			return p;
 		}
 
@@ -473,7 +473,7 @@ seprintccpopt(char *p, char *e, void *a, int len)
 	for(; cp < ecp; cp += o->len){
 		o = (Lcpopt*)cp;
 		if(cp + o->len > ecp){
-			p = seprint(p, e, " bad opt len %ux", o->type);
+			p = seprint(p, e, " bad opt len %x", o->type);
 			return p;
 		}
 		
@@ -482,14 +482,14 @@ seprintccpopt(char *p, char *e, void *a, int len)
 			p = seprint(p, e, " type=%d ", o->type);
 			break;
 		case 0:
-			p = seprint(p, e, " OUI=(%d %.2ux%.2ux%.2ux) ", o->type, 
+			p = seprint(p, e, " OUI=(%d %.2x%.2x%.2x) ", o->type, 
 				o->data[0], o->data[1], o->data[2]);
 			break;
 		case 17:
 			p = seprint(p, e, " Stac-LZS");
 			break;
 		case 18:
-			p = seprint(p, e, " Microsoft-PPC=%ux", NetL(o->data));
+			p = seprint(p, e, " Microsoft-PPC=%x", NetL(o->data));
 			break;
 		}
 	}
@@ -565,7 +565,7 @@ p_seprintcomp(Msg *m)
 	if(x & (1<<12))
 		compflag[i++] = 'e';
 	compflag[i] = 0;
-	m->p = seprint(m->p, m->e, "flag=%s count=%.3ux", compflag, x&0xfff);
+	m->p = seprint(m->p, m->e, "flag=%s count=%.3x", compflag, x&0xfff);
 	m->p = seprint(m->p, m->e, " data=%.*H", len>64?64:len, m->ps);
 	m->pr = nil;
 	return 0;

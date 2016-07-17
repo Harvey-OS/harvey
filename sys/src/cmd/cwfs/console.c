@@ -233,7 +233,7 @@ f_fstat(Chan *cp, Fcall *in, Fcall *ou)
 
 	print("name = %.*s\n", NAMELEN, d->name);
 	print("uid = %d; gid = %d; muid = %d\n", d->uid, d->gid, d->muid);
-	print("size = %lld; qid = %llux/%lux\n", (Wideoff)d->size,
+	print("size = %lld; qid = %llux/%lx\n", (Wideoff)d->size,
 		(Wideoff)d->qid.path, d->qid.version);
 	print("atime = %ld; mtime = %ld\n", d->atime, d->mtime);
 	print("dblock =");

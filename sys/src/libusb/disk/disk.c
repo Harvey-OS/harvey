@@ -155,7 +155,7 @@ umscapacity(Umsc *lun)
 	lun->blocks++; /* SRcapacity returns LBA of last block */
 	lun->capacity = (int64_t)lun->blocks * lun->ScsiReq.lbsize;
 	if(diskdebug)
-		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
+		fprint(2, "disk: logical block size %lu, # blocks %llu\n",
 			lun->ScsiReq.lbsize, lun->blocks);
 	return 0;
 }
@@ -295,7 +295,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	if(csw.dataresidue == 0 || ums->wrongresidues)
 		csw.dataresidue = data->count - nio;
 	if(diskdebug){
-		fprint(2, "disk: status: %2.2ux residue: %ld\n",
+		fprint(2, "disk: status: %2.2x residue: %ld\n",
 			csw.status, csw.dataresidue);
 		if(cbw.command[0] == ScmdRsense){
 			fprint(2, "sense data:");
@@ -496,7 +496,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 			s = seprint(s, e, "inquiry %s lun %ld: %s\n",
 				fs->dev->dir, lun - &ums->lun[0], lun->inq);
 		if(lun->blocks > 0)
-			s = seprint(s, e, "geometry %llud %ld\n",
+			s = seprint(s, e, "geometry %llu %ld\n",
 				lun->blocks, lun->ScsiReq.lbsize);
 		count = usbreadbuf(data, count, offset, buf, s - buf);
 		break;
@@ -520,7 +520,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 				lun->ScsiReq.lbsize = 0;  /* medium may have changed */
 			break;
 		case Pstatus:
-			n = snprint(buf, sizeof buf, "%11.0ud ", lun->ScsiReq.status);
+			n = snprint(buf, sizeof buf, "%11.0u ", lun->ScsiReq.status);
 			count = usbreadbuf(data, count, 0LL, buf, n);
 			lun->phase = Pcmd;
 			break;

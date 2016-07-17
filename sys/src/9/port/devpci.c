@@ -203,7 +203,7 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 		for(i=0; i<nelem(p->mem); i++){
 			if(p->mem[i].size == 0)
 				continue;
-			w = seprint(w, ebuf, " %d:%.8lux %d", i, p->mem[i].bar, p->mem[i].size);
+			w = seprint(w, ebuf, " %d:%.8lx %d", i, p->mem[i].bar, p->mem[i].size);
 		}
 		*w++ = '\n';
 		*w = '\0';

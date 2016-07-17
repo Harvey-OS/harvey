@@ -319,11 +319,11 @@ pciecap(Pcidev *p, int cap)
 	off = 0x100;
 	while(((i = pcicfgr32(p, off))&0xffff) != cap){
 		off = i >> 20;
-		print("pciecap offset = %ud\n",  off);
+		print("pciecap offset = %u\n",  off);
 		if(off < 0x100 || off >= 4*KiB - 1)
 			return 0;
 	}
-	print("pciecap found = %ud\n",  off);
+	print("pciecap found = %u\n",  off);
 	return off;
 }
 
@@ -363,7 +363,7 @@ whichfw(Pcidev *p)
 	if(off != 0){
 		off += AercCCR;
 		cap = pcicfgr32(p, off);
-		print("%ud cap\n", cap);
+		print("%u cap\n", cap);
 	}
 	ecrc = (cap>>4) & 0xf;
 	/* if we don't like the aerc, kick it here. */
@@ -510,13 +510,13 @@ cmd(Ctlr *c, int type, uint64_t data)
 			i = gbit32(cmd->c);
 			qunlock(&c->cmdl);
 			if(cmd->i[1] != 0)
-				dprint("[%ux]", i);
+				dprint("[%x]", i);
 			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
 	qunlock(&c->cmdl);
-	iprint("m10g: cmd timeout [%ux %ux] cmd=%d\n",
+	iprint("m10g: cmd timeout [%x %x] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
 	return ~0;			/* silence! */
@@ -550,13 +550,13 @@ maccmd(Ctlr *c, int type, uint8_t *mac)
 			i = gbit32(cmd->c);
 			qunlock(&c->cmdl);
 			if(cmd->i[1] != 0)
-				dprint("[%ux]", i);
+				dprint("[%x]", i);
 			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
 	qunlock(&c->cmdl);
-	iprint("m10g: maccmd timeout [%ux %ux] cmd=%d\n",
+	iprint("m10g: maccmd timeout [%x %x] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
 	return ~0;			/* silence! */
@@ -685,7 +685,7 @@ bootfw(Ctlr *c)
 			break;
 		delay(1);
 	}
-	dprint("[%ux %ux]", gbit32(cmd->c), gbit32(cmd->c+4));
+	dprint("[%x %x]", gbit32(cmd->c), gbit32(cmd->c+4));
 	if(i == 20){
 		print("m10g: cannot load fw\n");
 		return -1;
@@ -706,7 +706,7 @@ kickthebaby(Pcidev *p, Ctlr *c)
 	pcicfgw32(p, 0x18 + c->boot, 0xfffffff0);
 	code = pcicfgr32(p, 0x14 + c->boot);
 
-	dprint("reboot status = %ux\n", code);
+	dprint("reboot status = %x\n", code);
 	if(code != 0xfffffff0)
 		return -1;
 	return 0;
@@ -754,16 +754,16 @@ chkfw(Ctlr *c)
 	uint32_t type;
 
 	off = gbit32(c->ram+0x3c);
-	dprint("firmware %llux\n", (uint64_t)off);
+	dprint("firmware %llx\n", (uint64_t)off);
 	if((off&3) || off + sizeof *h > c->ramsz){
-		print("!m10g: bad firmware %llux\n", (uint64_t)off);
+		print("!m10g: bad firmware %llx\n", (uint64_t)off);
 		return -1;
 	}
 	h = (Fwhdr*)(c->ram + off);
 	type = gbit32(h->type);
 	dprint("\t" "type	%s\n", fwtype(type));
 	dprint("\t" "vers	%s\n", h->version);
-	dprint("\t" "ramsz	%ux\n", gbit32(h->ramsz));
+	dprint("\t" "ramsz	%x\n", gbit32(h->ramsz));
 	if(type != Teth){
 		print("!m10g: bad card type %s\n", fwtype(type));
 		return -1;
@@ -800,11 +800,11 @@ reset(Ether *e, Ctlr *c)
 	rdmacmd(c, 1);
 	sz = c->tx.segsz;
 	i = dmatestcmd(c, DMAread, c->done.busaddr, sz);
-	print("\t" "read: %ud MB/s\n", ((i>>16)*sz*2)/(i&0xffff));
+	print("\t" "read: %u MB/s\n", ((i>>16)*sz*2)/(i&0xffff));
 	i = dmatestcmd(c, DMAwrite, c->done.busaddr, sz);
-	print("\t" "write: %ud MB/s\n", ((i>>16)*sz*2)/(i&0xffff));
+	print("\t" "write: %u MB/s\n", ((i>>16)*sz*2)/(i&0xffff));
 	i = dmatestcmd(c, DMAwrite|DMAread, c->done.busaddr, sz);
-	print("\t" "r/w: %ud MB/s\n", ((i>>16)*sz*2*2)/(i&0xffff));
+	print("\t" "r/w: %u MB/s\n", ((i>>16)*sz*2*2)/(i&0xffff));
 	memset(c->done.entry, 0, c->done.n * sizeof *c->done.entry);
 
 	maccmd(c, CSmac, c->ra);
@@ -847,10 +847,10 @@ setmem(Pcidev *p, Ctlr *c)
 	raddr = p->mem[0].bar & ~0x0F;
 	mem = vmap(raddr, p->mem[0].size);
 	if(mem == nil){
-		print("m10g: can't map %8.8lux\n", p->mem[0].bar);
+		print("m10g: can't map %8.8lx\n", p->mem[0].bar);
 		return -1;
 	}
-	dprint("%llux <- vmap(mem[0].size = %ux)\n", raddr, p->mem[0].size);
+	dprint("%llx <- vmap(mem[0].size = %x)\n", raddr, p->mem[0].size);
 	c->port = raddr;
 	c->ram = mem;
 	c->cmd = malign(sizeof *c->cmd);
@@ -1149,7 +1149,7 @@ txcleanup(Tx *tx, uint32_t n)
 		if(tx->cnt == tx->i)
 			return;
 		if(l++ == m){
-			iprint("tx ovrun: %ud %uld\n", n, tx->npkt);
+			iprint("tx ovrun: %u %lu\n", n, tx->npkt);
 			return;
 		}
 	}
@@ -1414,18 +1414,18 @@ m10gifstat(Ether *e, void *v, int32_t n, uint32_t off)
 
 	// l +=
 	snprint(p+l, lim,
-		"txcnt = %ud\n"	  "linkstat = %ud\n" 	"dlink = %ud\n"
-		"derror = %ud\n"  "drunt = %ud\n" 	"doverrun = %ud\n"
-		"dnosm = %ud\n"	  "dnobg = %ud\n"	"nrdma = %ud\n"
-		"txstopped = %ud\n" "down = %ud\n" 	"updated = %ud\n"
-		"valid = %ud\n\n"
-		"tx pkt = %uld\n" "tx bytes = %lld\n"
-		"tx cnt = %ud\n"  "tx n = %ud\n"	"tx i = %ud\n"
-		"sm cnt = %ud\n"  "sm i = %ud\n"	"sm n = %ud\n"
-		"sm lst = %ud\n"
-		"bg cnt = %ud\n"  "bg i = %ud\n"	"bg n = %ud\n"
-		"bg lst = %ud\n"
-		"segsz = %ud\n"   "coal = %d\n",
+		"txcnt = %u\n"	  "linkstat = %u\n" 	"dlink = %u\n"
+		"derror = %u\n"  "drunt = %u\n" 	"doverrun = %u\n"
+		"dnosm = %u\n"	  "dnobg = %u\n"	"nrdma = %u\n"
+		"txstopped = %u\n" "down = %u\n" 	"updated = %u\n"
+		"valid = %u\n\n"
+		"tx pkt = %lu\n" "tx bytes = %lld\n"
+		"tx cnt = %u\n"  "tx n = %u\n"	"tx i = %u\n"
+		"sm cnt = %u\n"  "sm i = %u\n"	"sm n = %u\n"
+		"sm lst = %u\n"
+		"bg cnt = %u\n"  "bg i = %u\n"	"bg n = %u\n"
+		"bg lst = %u\n"
+		"segsz = %u\n"   "coal = %d\n",
 		gbit32(s.txcnt),  gbit32(s.linkstat),	gbit32(s.dlink),
 		gbit32(s.derror), gbit32(s.drunt),	gbit32(s.doverrun),
 		gbit32(s.dnosm),  gbit32(s.dnobg),	gbit32(s.nrdma),

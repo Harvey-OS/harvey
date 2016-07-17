@@ -354,7 +354,7 @@ printpkt(char *p, char *e, uint8_t *ps, uint8_t *pe)
 	uint32_t dt;
 
 	dt = (pkttime-starttime)/1000000LL;
-	m.p = seprint(p, e, "%6.6uld ms ", dt);
+	m.p = seprint(p, e, "%6.6lu ms ", dt);
 	m.ps = ps;
 	m.pe = pe;
 	m.e = e;

@@ -123,7 +123,7 @@ psinit(int nproc)
 
 	procalloc.free = malloc(nproc*sizeof(Proc));
 	if(procalloc.free == nil)
-		panic("cannot allocate %ud procs (%udMB)\n", nproc, nproc*sizeof(Proc)/(1024*1024));
+		panic("cannot allocate %u procs (%uMB)\n", nproc, nproc*sizeof(Proc)/(1024*1024));
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;

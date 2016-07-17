@@ -74,7 +74,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		if(type == nil)
 			type = hmkcontent(c, "application", "octet-stream", nil);
 
-		snprint(etag, sizeof(etag), "\"%lluxv%lux\"", qid.path, qid.vers);
+		snprint(etag, sizeof(etag), "\"%lluxv%lx\"", qid.path, qid.vers);
 		ok = checkreq(c, type, enc, mtime, etag);
 		if(ok <= 0){
 			close(fd);
@@ -333,7 +333,7 @@ notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
 	hprint(hout, "Server: Plan9\r\n");
 	hprint(hout, "Date: %D\r\n", time(nil));
 	hprint(hout, "Content-Type: text/html\r\n");
-	hprint(hout, "Content-Length: %lud\r\n", s - c->xferbuf);
+	hprint(hout, "Content-Length: %lu\r\n", s - c->xferbuf);
 	if(c->head.closeit)
 		hprint(hout, "Connection: close\r\n");
 	else if(!http11(c))

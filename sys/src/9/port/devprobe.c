@@ -227,7 +227,7 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 		buf = malloc(READSTR);
 		i = 0;
 		qlock(&probeslk);
-		i += snprint(buf + i, READSTR - i, "logsize %lud\n", logsize);
+		i += snprint(buf + i, READSTR - i, "logsize %lu\n", logsize);
 		for(p = probes; p != nil; p = p->next)
 			i += snprint(buf + i, READSTR - i, "probe %p new %s\n",
 				p->func, p->name);
@@ -236,7 +236,7 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 			if (p->enabled)
 				i += snprint(buf + i, READSTR - i, "probe %s on\n",
 				p->name);
-		i += snprint(buf + i, READSTR - i, "#probehits %lud, in queue %lud\n",
+		i += snprint(buf + i, READSTR - i, "#probehits %lu, in queue %lu\n",
 				pw, pw-pr);
 		snprint(buf + i, READSTR - i, "#probelog %p\n", probelog);
 		qunlock(&probeslk);
