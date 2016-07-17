@@ -1213,7 +1213,7 @@ alltrackinfo(Drive *drive, int first, int last)
 		else
 			drive->laysfx = "";		/* 25GB nominal */
 		if (vflag)
-			fprint(2, "capacity %,lud sectors (%,lld bytes); bd%s\n",
+			fprint(2, "capacity %,lu sectors (%,lld bytes); bd%s\n",
 				track->end, cap, drive->laysfx);
 		if (osfx == nil || strcmp(osfx, drive->laysfx) != 0)
 			drive->relearn = 1;

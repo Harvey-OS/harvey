@@ -252,7 +252,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		f = 14318180*(m+2);
 		f /= (n & 0x1F)+2;
 		f /= 1<<((n>>5) & 0x03);
-		Bprint(&stdout, "%12lud", f);
+		Bprint(&stdout, "%12lu", f);
 	}
 	printitem(ctlr->name, "control");
 	printreg(inportb(Pdata));

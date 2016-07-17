@@ -34,7 +34,7 @@ main(int argc, char **argv)
 			fprint(2, "stat %s: %r\n", argv[i]);
 			errors = 1;
 		}else{
-			print("%11lud %s\n", d->mtime, argv[i]);
+			print("%11lu %s\n", d->mtime, argv[i]);
 			free(d);
 		}
 	}
