@@ -217,7 +217,7 @@ printsizes(void)
 
 		if (max >= offlim)
 			max = offlim - 1;
-		print("max file size = %,llud\n", (Wideoff)max);
+		print("max file size = %,llu\n", (Wideoff)max);
 	}
 	if (INDPERBUF⁲/INDPERBUF != INDPERBUF)
 		print("overflow computing INDPERBUF⁲\n");

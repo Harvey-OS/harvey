@@ -96,7 +96,7 @@ sum5(uint32_t sum, void *buf, uint64_t uvn)
 
 	if(buf == 0){
 		sum = ((sum>>16)+sum) & 0xFFFF;
-		print("%.5lud%6lld", sum, (uvn+(VBSIZE-1))/VBSIZE);
+		print("%.5lu%6lld", sum, (uvn+(VBSIZE-1))/VBSIZE);
 		return 0;
 	}
 	n = uvn;
@@ -115,7 +115,7 @@ sumr(uint32_t sum, void *buf, uint64_t uvn)
 
 	if(buf == 0){
 		sum &= 0xFFFF;
-		print("%.5lud%6lld", sum, (uvn+(RBSIZE-1))/RBSIZE);
+		print("%.5lu%6lld", sum, (uvn+(RBSIZE-1))/RBSIZE);
 		return 0;
 	}
 	n = uvn;
@@ -145,7 +145,7 @@ sum32(uint32_t lcrc, void *buf, uint64_t uvn)
 		x[2] = (n>>8)^0xCC;
 		x[3] = (n)^0x55;
 		crc = sum32(lcrc, x, 4);
-		print("%.8lux %6lld", crc, uvn);
+		print("%.8lx %6lld", crc, uvn);
 		return 0;
 	}
 	while(n-- > 0)
