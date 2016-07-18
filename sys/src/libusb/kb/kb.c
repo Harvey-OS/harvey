@@ -177,7 +177,7 @@ setfirstconfig(KDev* f, int eid, uint8_t *desc, int descsz)
 		for(i = 0; i < nr; i++){
 			if(i%8 == 0)
 				fprint(2, "\n\t");
-			fprint(2, "%#2.2ux ", desc[i]);
+			fprint(2, "%#2.2x ", desc[i]);
 		}
 		fprint(2, "\n");
 	}

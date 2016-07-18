@@ -68,7 +68,7 @@ matchdevcsp(char *info, void *a)
 
 	csps = a;
 	for(; *csps != 0; csps++){
-		snprint(sbuf, sizeof(sbuf), "csp %#08ux", *csps);
+		snprint(sbuf, sizeof(sbuf), "csp %#08x", *csps);
 		if(strstr(info, sbuf) != nil)
 			return 0;
 	}

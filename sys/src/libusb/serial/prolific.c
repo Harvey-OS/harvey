@@ -85,7 +85,7 @@ dumpbuf(uint8_t *buf, int bufsz)
 	int i;
 
 	for(i=0; i<bufsz; i++)
-		print("buf[%d]=%#ux ", i, buf[i]);
+		print("buf[%d]=%#x ", i, buf[i]);
 	print("\n");
 }
 
