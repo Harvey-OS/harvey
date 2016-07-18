@@ -1592,12 +1592,12 @@ writebyte(Param *p, uint8_t *w, Buffer src)
 
 	for(i=0; i<dx; i++){
 		u = w[0] | (w[1]<<8) | (w[2]<<16) | (w[3]<<24);
-		DBG print("u %.8lux...", u);
+		DBG print("u %.8lx...", u);
 		u &= mask;
-		DBG print("&mask %.8lux...", u);
+		DBG print("&mask %.8lx...", u);
 		if(isgrey){
 			u |= ((*grey >> (8-img->nbits[CGrey])) & img->mask[CGrey]) << img->shift[CGrey];
-			DBG print("|grey %.8lux...", u);
+			DBG print("|grey %.8lx...", u);
 			grey += delta;
 		}else{
 			u |= ((*red >> (8-img->nbits[CRed])) & img->mask[CRed]) << img->shift[CRed];
@@ -1606,13 +1606,13 @@ writebyte(Param *p, uint8_t *w, Buffer src)
 			red += delta;
 			grn += delta;
 			blu += delta;
-			DBG print("|rgb %.8lux...", u);
+			DBG print("|rgb %.8lx...", u);
 		}
 
 		if(isalpha){
 			u |= ((*alpha >> (8-img->nbits[CAlpha])) & img->mask[CAlpha]) << img->shift[CAlpha];
 			alpha += adelta;
-			DBG print("|alpha %.8lux...", u);
+			DBG print("|alpha %.8lx...", u);
 		}
 
 		w[0] = u;
@@ -2026,7 +2026,7 @@ rgbatoimg(Memimage *img, uint32_t rgba)
 		}
 		d += nb;
 	}
-//	print("rgba2img %.8lux = %.*lux\n", rgba, 2*d/8, v);
+//	print("rgba2img %.8lx = %.*lx\n", rgba, 2*d/8, v);
 	return v;
 }
 

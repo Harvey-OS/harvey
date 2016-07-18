@@ -417,7 +417,7 @@ buildtbls(void)
 		case 'B':
 		case 'b':
 			if(debug)
-				print("Global: %s %llux\n", p->name, p->value);
+				print("Global: %s %llx\n", p->name, p->value);
 			globals[ng++] = p;
 			break;
 		case 'z':
@@ -456,7 +456,7 @@ buildtbls(void)
 			tp->sym = p;
 			tp->locals = ap;
 			if(debug)
-				print("TEXT: %s at %llux\n", p->name, p->value);
+				print("TEXT: %s at %llx\n", p->name, p->value);
 			if(f && !f->sym) {			/* first  */
 				f->sym = p;
 				f->addr = p->value;
@@ -470,7 +470,7 @@ buildtbls(void)
 					p->name);
 			else {
 				if(debug)
-					print("Local: %s %llux\n", p->name, p->value);
+					print("Local: %s %llx\n", p->name, p->value);
 				tp->locals[tp->n] = p;
 				tp->n++;
 				ap++;
@@ -494,7 +494,7 @@ buildtbls(void)
 		for(j = 0; j < ntxt; j++) {
 			if(f->sym == tp->sym) {
 				if(debug) {
-					print("LINK: %s to at %llux", f->sym->name, f->addr);
+					print("LINK: %s to at %llx", f->sym->name, f->addr);
 					printhist("... ", f->hist, 1);
 				}
 				f->txt = tp++;
@@ -873,7 +873,7 @@ file2pc(char *file, int32_t line)
 	 * run the state machine to locate the pc closest to that value.
 	 */
 	if(debug)
-		print("find pc for %ld - between: %llux and %llux\n", line, start, end);
+		print("find pc for %ld - between: %llx and %llx\n", line, start, end);
 	pc = line2addr(line, start, end);
 	if(pc == ~0) {
 		werrstr("line %ld not in file %s", line, file);

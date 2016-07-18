@@ -244,7 +244,7 @@ audio_interface(Dev *_1, Desc *dd)
 	case 2: // stream
 		switch (b[2]){
 		case 0x01:
-			dprint(2, "Audio stream for TerminalID %d, delay %d, format_tag %#ux\n",
+			dprint(2, "Audio stream for TerminalID %d, delay %d, format_tag %#x\n",
 				b[3], b[4], b[5] | (b[6]<<8));
 			break;
 		case 0x02:
