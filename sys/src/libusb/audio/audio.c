@@ -48,7 +48,7 @@ audio_endpoint(Dev *_1, Desc *dd)
 	switch(b[2]){
 	case 0x01:
 		if(usbdebug){
-			fprint(2, "CS_ENDPOINT for attributes 0x%x, lockdelayunits %d, lockdelay %#ux, ",
+			fprint(2, "CS_ENDPOINT for attributes 0x%x, lockdelayunits %d, lockdelay %#x, ",
 				b[3], b[4], b[5] | (b[6]<<8));
 			if(b[3] & has_setspeed)
 				fprint(2, "has sampling-frequency control");

@@ -716,11 +716,11 @@ dumpblock(Pool *p, Bhdr *b)
 	uint8_t *cp;
 
 	dp = (uint32_t*)b;
-	p->print(p, "pool %s block %p\nhdr %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux\n",
+	p->print(p, "pool %s block %p\nhdr %.8lx %.8lx %.8lx %.8lx %.8lx %.8lx\n",
 		p->name, b, dp[0], dp[1], dp[2], dp[3], dp[4], dp[5], dp[6]);
 
 	dp = (uint32_t*)B2T(b);
-	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux | %.8lux %.8lux\n",
+	p->print(p, "tail %.8lx %.8lx %.8lx %.8lx %.8lx %.8lx | %.8lx %.8lx\n",
 		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1], dp[0], dp[1]);
 
 	if(b->magic == ALLOC_MAGIC){
@@ -1438,7 +1438,7 @@ pooldumparena(Pool *p, Arena *a)
 	Bhdr *b;
 
 	for(b=&a->Bhdr; b->magic != ARENATAIL_MAGIC; b=B2NB(b))
-		p->print(p, "(%p %.8lux %lu)", b, b->magic, b->size);
+		p->print(p, "(%p %.8lx %lu)", b, b->magic, b->size);
 	p->print(p, "\n");
 }
 

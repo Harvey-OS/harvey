@@ -90,9 +90,9 @@ symoff(char *buf, int n, uint64_t v, int space)
 			delta = -delta;
 	}
 	if (v == 0 || r == 0)
-		return snprint(buf, n, "%llux", v);
+		return snprint(buf, n, "%llx", v);
 	if (s.type != 't' && s.type != 'T' && delta >= 4096)
-		return snprint(buf, n, "%llux", v);
+		return snprint(buf, n, "%llx", v);
 	else if (delta)
 		return snprint(buf, n, "%s+%lx", s.name, delta);
 	else
@@ -200,12 +200,12 @@ ieeedftos(char *buf, int n, uint32_t h, uint32_t l)
 		return snprint(buf, n, "0.");
 	exp = (h>>20) & ((1L<<11)-1L);
 	if(exp == 0)
-		return snprint(buf, n, "DeN(%.8lux%.8lux)", h, l);
+		return snprint(buf, n, "DeN(%.8lx%.8lx)", h, l);
 	if(exp == ((1L<<11)-1L)){
 		if(l==0 && (h&((1L<<20)-1L)) == 0)
 			return snprint(buf, n, "Inf");
 		else
-			return snprint(buf, n, "NaN(%.8lux%.8lux)", h&((1L<<20)-1L), l);
+			return snprint(buf, n, "NaN(%.8lx%.8lx)", h&((1L<<20)-1L), l);
 	}
 	exp -= (1L<<10) - 2L;
 	fr = l & ((1L<<16)-1L);
@@ -237,12 +237,12 @@ ieeesftos(char *buf, int n, uint32_t h)
 		return snprint(buf, n, "0.");
 	exp = (h>>23) & ((1L<<8)-1L);
 	if(exp == 0)
-		return snprint(buf, n, "DeN(%.8lux)", h);
+		return snprint(buf, n, "DeN(%.8lx)", h);
 	if(exp == ((1L<<8)-1L)){
 		if((h&((1L<<23)-1L)) == 0)
 			return snprint(buf, n, "Inf");
 		else
-			return snprint(buf, n, "NaN(%.8lux)", h&((1L<<23)-1L));
+			return snprint(buf, n, "NaN(%.8lx)", h&((1L<<23)-1L));
 	}
 	exp -= (1L<<7) - 2L;
 	fr = (h & ((1L<<23)-1L)) | (1L<<23);
