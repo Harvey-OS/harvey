@@ -222,7 +222,7 @@ format(Dir *db, char *name)
 	int i;
 
 	if(sflag)
-		Bprint(&bin, "%*llud ",
+		Bprint(&bin, "%*llu ",
 			swidth, (db->length+1023)/1024);
 	if(mflag){
 		Bprint(&bin, "[%q] ", db->muid);
@@ -230,7 +230,7 @@ format(Dir *db, char *name)
 			Bprint(&bin, " ");
 	}
 	if(qflag)
-		Bprint(&bin, "(%.16llux %*lud %.2x) ",
+		Bprint(&bin, "(%.16llx %*lu %.2x) ",
 			db->qid.path,
 			qwidth, db->qid.vers,
 			db->qid.type);
@@ -238,7 +238,7 @@ format(Dir *db, char *name)
 		Bprint(&bin, "%c ", (db->mode&DMTMP)? 't': '-');
 
 	if(lflag)
-		Bprint(&bin, "%M %C %*ud %*q %*q %*llud %s ",
+		Bprint(&bin, "%M %C %*u %*q %*q %*llu %s ",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,

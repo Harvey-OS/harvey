@@ -538,7 +538,7 @@ Afmt(Fmt *f1)
 	Filta a;
 
 	a = va_arg(f1->args, Filta);
-	return fmtprint(f1, "%6lud %6lud %6lud",
+	return fmtprint(f1, "%6lu %6lu %6lu",
 		fdf(a.f->filter[0], a.scale*60),
 		fdf(a.f->filter[1], a.scale*600),
 		fdf(a.f->filter[2], a.scale*6000));

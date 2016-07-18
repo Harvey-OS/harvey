@@ -175,7 +175,7 @@ unztable(Biobuf *bin, char *file)
 
 		if(wantFile(zh.file)){
 			if(verbose)
-				print("%-32s %10lud %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
+				print("%-32s %10lu %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
 			else
 				print("%s\n", zh.file);
 
@@ -249,7 +249,7 @@ sunztable(Biobuf *bin)
 
 		if(wantFile(zh.file)){
 			if(verbose)
-				print("%-32s %10lud %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
+				print("%-32s %10lu %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
 			else
 				print("%s\n", zh.file);
 

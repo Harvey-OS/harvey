@@ -648,7 +648,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 		goto Out0;
 
 	l = b->l;
-	consPrint("%slabel %#ux %u %u %u %u %#x\n",
+	consPrint("%slabel %#x %u %u %u %u %#x\n",
 		argc==6 ? "old: " : "", addr, l.type, l.state,
 		l.epoch, l.epochClose, l.tag);
 
@@ -664,7 +664,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 		if(strcmp(argv[5], "-") != 0)
 			l.tag = strtoul(argv[5], 0, 0);
 
-		consPrint("new: label %#ux %u %u %u %u %#x\n",
+		consPrint("new: label %#x %u %u %u %u %#x\n",
 			addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
 		bb = _blockSetLabel(b, &l);
 		if(bb == nil)
@@ -735,12 +735,12 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 
 	b = cacheLocal(fs->cache, PartData, addr, argc==4 ? OReadWrite : OReadOnly);
 	if(b == nil){
-		vtSetError("cacheLocal %#ux: %R", addr);
+		vtSetError("cacheLocal %#x: %R", addr);
 		vtRUnlock(fs->elk);
 		return 0;
 	}
 
-	consPrint("\t%sblock %#ux %u %u %.*H\n",
+	consPrint("\t%sblock %#x %u %u %.*H\n",
 		argc==4 ? "old: " : "", addr, offset, count, count, b->data+offset);
 
 	if(argc == 4){
@@ -767,7 +767,7 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 			buf[i>>1] |= c;
 		}
 		memmove(b->data+offset, buf, count);
-		consPrint("\tnew: block %#ux %u %u %.*H\n",
+		consPrint("\tnew: block %#x %u %u %.*H\n",
 			addr, offset, count, count, b->data+offset);
 		blockDirty(b);
 	}
@@ -811,14 +811,14 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 		}
 		b = cacheLocal(fs->cache, PartData, addr, OReadOnly);
 		if(b == nil){
-			consPrint("loading %#ux: %R\n", addr);
+			consPrint("loading %#x: %R\n", addr);
 			continue;
 		}
 		l = b->l;
 		if(l.state == BsFree)
-			consPrint("%#ux is already free\n", addr);
+			consPrint("%#x is already free\n", addr);
 		else{
-			consPrint("label %#ux %u %u %u %u %#x\n",
+			consPrint("label %#x %u %u %u %u %#x\n",
 				addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
 			l.state = BsFree;
 			l.type = BtMax;
@@ -826,7 +826,7 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 			l.epoch = 0;
 			l.epochClose = 0;
 			if(!blockSetLabel(b, &l, 0))
-				consPrint("freeing %#ux: %R\n", addr);
+				consPrint("freeing %#x: %R\n", addr);
 		}
 		blockPut(b);
 		argc--;
@@ -853,7 +853,7 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
-	consPrint("\t%s: %,llud used + %,llud free = %,llud (%.1f%% used)\n",
+	consPrint("\t%s: %,llu used + %,llu free = %,llu (%.1f%% used)\n",
 		fsys->name, used*(int64_t)bsize, (tot-used)*(int64_t)bsize,
 		tot*(int64_t)bsize, used*100.0/tot);
 	return 1;
@@ -886,7 +886,7 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 	addr = strtoul(argv[0], 0, 0);
 	b = cacheLocal(fs->cache, PartData, addr, argc==4 ? OReadWrite : OReadOnly);
 	if(b == nil){
-		vtSetError("cacheLocal %#ux: %R", addr);
+		vtSetError("cacheLocal %#x: %R", addr);
 	Err:
 		vtRUnlock(fsys->fs->elk);
 		return 0;
@@ -922,7 +922,7 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 			consPrint("\toffset %d too large (>= %d)\n", i, max);
 			continue;
 		}
-		consPrint("\tblock %#ux %d %d %.*H\n", addr, offset*sz, sz, sz, b->data+offset*sz);
+		consPrint("\tblock %#x %d %d %.*H\n", addr, offset*sz, sz, sz, b->data+offset*sz);
 		memmove(b->data+offset*sz, zero, sz);
 	}
 	blockDirty(b);
@@ -1331,7 +1331,7 @@ fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
 		return;
 	l = b->l;
 	if(l.state == BsFree || (l.state&BsClosed)){
-		consPrint("%#ux is already closed\n", b->addr);
+		consPrint("%#x is already closed\n", b->addr);
 		return;
 	}
 	if(epoch){	
@@ -1341,7 +1341,7 @@ fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
 		l.state = BsFree;
 		
 	if(!blockSetLabel(b, &l, 0))
-		consPrint("%#ux setlabel: %R\n", b->addr);
+		consPrint("%#x setlabel: %R\n", b->addr);
 }
 
 static void
