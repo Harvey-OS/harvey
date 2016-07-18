@@ -96,7 +96,7 @@ parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 				temp->id = repdesc[i+1];
 				break;
 			default:
-				fprint(2, "report type %#ux bad\n",
+				fprint(2, "report type %#x bad\n",
 					repdesc[i+1]);
 				return -1;
 			}
@@ -213,12 +213,12 @@ dumpreport(HidRepTempl *templ)
 	ifssz = templ->nifcs;
 	ifs = templ->ifcs;
 	for(i = 0; i < ifssz; i++){
-		fprint(2, "\tcount %#ux", ifs[i].count);
+		fprint(2, "\tcount %#x", ifs[i].count);
 		fprint(2, " nbits %d ", ifs[i].nbits);
 		fprint(2, "\n");
 		for(j = 0; j < ifs[i].count; j++){
-			fprint(2, "\t\tkind %#ux ", ifs[i].kind[j]);
-			fprint(2, "v %#lux\n", ifs[i].v[j]);
+			fprint(2, "\t\tkind %#x ", ifs[i].kind[j]);
+			fprint(2, "v %#lx\n", ifs[i].v[j]);
 		}
 		fprint(2, "\n");
 	}

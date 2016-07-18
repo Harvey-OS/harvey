@@ -141,7 +141,7 @@ dump(void)
 	for(rpc = rpcs; rpc != nil; rpc = rpc->next)
 		fprint(2, "rpc %#p %F next %#p\n", rpc, &rpc->t, rpc->next);
 	for(fid = fids; fid != nil; fid = fid->next)
-		fprint(2, "fid %d qid %#llux omode %d aux %#p\n",
+		fprint(2, "fid %d qid %#llx omode %d aux %#p\n",
 			fid->fid, fid->qid.path, fid->omode, fid->aux);
 	fprint(2, "\n");
 	qunlock(&rpclck);
@@ -428,7 +428,7 @@ usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
 	d.length = 0;
 	for(i = n = 0; gen(f, q, i, &d, arg) >= 0; i++){
 		if(usbfsdebug > 1)
-			fprint(2, "%s: dir %d q %#llux: %D\n", argv0, i, q.path, &d);
+			fprint(2, "%s: dir %d q %#llx: %D\n", argv0, i, q.path, &d);
 		nd = convD2M(&d, (uint8_t*)data+n, cnt-n);
 		if(nd <= BIT16SZ)
 			break;

@@ -203,7 +203,7 @@ ramread(Chan *c, void *buf, int32_t n, int64_t off)
 	if (off + n > filelen){
 		n = filelen - off;
 	}
-	memcpy(buf, file->data, n);
+	memmove(buf, file->data, n);
 	qunlock(&ramlock);
 	return n;
 }
@@ -221,7 +221,7 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 		file->data = newfile;
 		file->length = n+off;
 	}
-	memcpy(file->data + off, v, n);
+	memmove(file->data + off, v, n);
 	qunlock(&ramlock);
 	return n;
 }
