@@ -38,7 +38,7 @@ void hexdump(void *v, int length)
 	uint8_t *m = v;
 	uintptr_t memory = (uintptr_t) v;
 	int all_zero = 0;
-
+	print("hexdump: %p, %u\n", v, length);
 	for (i = 0; i < length; i += 16) {
 		int j;
 
@@ -51,15 +51,15 @@ void hexdump(void *v, int length)
 		}
 
 		if (all_zero < 2) {
-			iprint("%p:", (void *)(memory + i));
+			print("%p:", (void *)(memory + i));
 			for (j = 0; j < 16; j++)
-				iprint(" %02x", m[i + j]);
-			iprint("  ");
+				print(" %02x", m[i + j]);
+			print("  ");
 			for (j = 0; j < 16; j++)
-				iprint("%c", isprint(m[i + j]) ? m[i + j] : '.');
-			iprint("\n");
+				print("%c", isprint(m[i + j]) ? m[i + j] : '.');
+			print("\n");
 		} else if (all_zero == 2) {
-			iprint("...\n");
+			print("...\n");
 		}
 	}
 }

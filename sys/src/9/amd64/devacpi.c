@@ -14,6 +14,7 @@
 #include	"fns.h"
 #include	"io.h"
 #include	"../port/error.h"
+#include "apic.h"
 #include "mp.h"
 #include <acpi/acpica/acpi.h>
 
@@ -34,6 +35,16 @@ static Cmdtab ctls[] =
 	{CMgpe,		"gpe",		3},
 };
 #endif
+
+
+/* 
+ * This is the array of eyesores.
+ * An Eyesore is an Interrupt Source Over Ride, which maps from
+ * what they want to what it needs to be. You are not expected
+ * to understand this.
+ */
+static ACPI_MADT_INTERRUPT_OVERRIDE *eyesore;
+static int numeyesore;
 
 static Dirtab acpidir[]={
 	".",		{Qdir, 0, QTDIR},	0,	DMDIR|0555,
@@ -219,12 +230,204 @@ AcpiOsTerminate (
 	return AE_OK;
 }
 
+/* run AML with one integer arg. */
+static int
+run_aml_arg(char *name, int val)
+{
+    ACPI_OBJECT arg1;
+    ACPI_OBJECT_LIST args;
+    ACPI_STATUS as;
+
+    arg1.Type = ACPI_TYPE_INTEGER;
+    arg1.Integer.Value = 1;
+    args.Count = 1;
+    args.Pointer = &arg1;
+
+    /* This does not work. Just leaving it here in case someone
+     * else thinks it will.
+	ACPI_STATUS as;
+	ACPI_OBJECT arg[] = {
+		{
+			.Type = ACPI_TYPE_INTEGER,
+			.Integer.Value = val
+		}
+	};
+	ACPI_OBJECT_LIST args = {
+		.Count = 1,
+		.Pointer = arg
+	};
+    */
+	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, name, &args, NULL);
+	print("run_aml_arg(%s, %d) returns %d\n", name, val, as);
+	return ACPI_SUCCESS(as);
+}
+
+static int
+set_machine_mode(void)
+{
+	/* we always enable the APIC. */
+	return run_aml_arg("_PIC", 1);
+}
+
+void pi(int indent)
+{
+	int i;
+	for(i = 0; i < indent; i++)
+		print(" ");
+}
+
+/* walk the whatever. Limited, right now. */
+static void
+objwalk(ACPI_OBJECT *p)
+{
+	static int indent;
+	int cnt;
+	ACPI_OBJECT *e;
+	pi(indent);
+	switch(p->Type) {
+	case 4: // ACPI_DESC_TYPE_STATE_PACKAGE:
+		print("Package:\n");
+		indent += 2;
+		e = p->Package.Elements;
+		for(cnt = 0; cnt < p->Package.Count; cnt++, e++){
+			objwalk(e);
+		}
+			
+		indent -= 2;
+		print("\n");
+		break;
+	case 1:
+		print("Integer:0x%llx", p->Integer.Value);
+		break;
+	default:
+		print("Can't handle type %d\n", p->Type);
+		break;
+	}
+			
+}
+
+static ACPI_STATUS
+resource(ACPI_RESOURCE *r, void *Context)
+{
+	ACPI_RESOURCE_IRQ *i = &r->Data.Irq;
+	print("\tACPI_RESOURCE_TYPE_%d: Length %d\n", r->Type, r->Length);
+	if (r->Type != ACPI_RESOURCE_TYPE_IRQ)
+		return 0;
+	print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ", 
+	      i->Triggering, i->Polarity, i->Sharable, i->InterruptCount);
+	for(int j = 0; j < i->InterruptCount; j++)
+		print("%d,", i->Interrupts[j]);
+	print("\n");
+	/* assumptions: we assume apic 0 for now. This will need to be fixed.
+	 * We also just take the first interrupt. 
+	 */
+	uint32_t low = Im;
+	switch (i->Polarity){
+	case ACPI_ACTIVE_HIGH:
+		low |= IPhigh;
+		break;
+	case ACPI_ACTIVE_LOW:
+		low |= IPlow;
+		break;
+	case ACPI_ACTIVE_BOTH:
+		low |= IPlow | IPhigh;
+		break;
+	default:
+		print("BOTCH! i->Polarity is 0x%x and I don't do that\n", i->Polarity);
+		break;
+	}
+
+	switch (i->Triggering) {
+	case ACPI_LEVEL_SENSITIVE:
+		low |= TMlevel;
+		break;
+	case ACPI_EDGE_SENSITIVE:
+		low |= TMedge;
+		break;
+	default:
+		print("BOTCH! i->Triggering is 0x%x and I don't do that\n", i->Triggering);
+		break;
+	}
+	print("CODE: ioapicintrinit(0xff, 0x%x, 0x%x, 0x%x, 0x%x\n", 1, i->Interrupts[0], i->Interrupts[0]<<2, low);
+	return 0;
+}
+ACPI_STATUS
+device(ACPI_HANDLE                     Object,
+    UINT32                          NestingLevel,
+    void                            *Context,
+    void                            **ReturnValue)
+
+{
+	ACPI_STATUS as;
+	ACPI_DEVICE_INFO *info;
+	as = AcpiGetObjectInfo(Object, &info);
+	print("as is %d\n", as);
+	if (!ACPI_SUCCESS(as))
+		return 0;
+	ACPI_BUFFER out;
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
+	char n[5];
+	memmove(n, &info->Name, sizeof(info->Name));
+	n[4] = 0;
+	print("%s\n", n);
+	as = AcpiGetIrqRoutingTable(Object, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	if (ACPI_SUCCESS(as)) {
+		void *p = (void *)out.Pointer;
+		while(((ACPI_PCI_ROUTING_TABLE*)p)->Length > 0) {
+			ACPI_PCI_ROUTING_TABLE *t = p;
+			print("%s: ", t->Source);
+			print("Pin 0x%x, Address 0x%llx, SourceIndex 0x%x\n", 
+			      t->Address, t->SourceIndex);
+			p += t->Length;
+		}
+	}
+	as = AcpiWalkResources(Object, "_CRS", resource, nil);
+	print("Walk resources: as is %d\n", as);
+#if 0
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
+	as = AcpiGetPossibleResources(Object, &out);
+	print("get the possible resources: %d\n", as);
+	if (ACPI_SUCCESS(as)) {
+		void *p = (void *)out.Pointer;
+		hexdump(out.Pointer, out.Length);
+		while(((ACPI_RESOURCE*)p)->Type != ACPI_RESOURCE_TYPE_END_TAG) {
+			ACPI_RESOURCE *r = p;
+			ACPI_RESOURCE_IRQ *i = p + sizeof(r->Type);
+			print("\tACPI_RESOURCE_TYPE_%d: Length %d\n", r->Type, r->Length);
+			p += r->Length;
+			if (r->Type != ACPI_RESOURCE_TYPE_IRQ)
+				continue;
+			print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ", 
+			      i->Triggering, i->Polarity, i->Sharable, i->InterruptCount);
+			for(int j = 0; j < i->InterruptCount; j++)
+				print("%d,", i->Interrupts[j]);
+			print("\n");
+			
+
+		}
+		print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+		
+	}
+#endif
+	print("hi\n");
+	
+	return 0;
+}
+
 int
 acpiinit(void)
 {
+	ACPI_STATUS as;
 	ACPI_TABLE_HEADER *h;
+	ACPI_BUFFER out;
 	int status;
-	int apiccnt;
+	int apiccnt = 1;
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
 	status = AcpiInitializeSubsystem();
         if (ACPI_FAILURE(status))
 		panic("can't start acpi");
@@ -246,25 +449,93 @@ acpiinit(void)
         if (ACPI_FAILURE(status))
 		panic("Can't Initialize ACPI objects");
 
-	for(apiccnt = 1; ;apiccnt++) {
-		extern uint8_t *apicbase;
-		ACPI_TABLE_MADT *m;
-		status = AcpiGetTable(ACPI_SIG_MADT, apiccnt, &h);
-		if (ACPI_FAILURE(status))
-			break;
-		m = (ACPI_TABLE_MADT *)h;
-		print("APIC %d: %p 0x%x\n", apiccnt, (void *)(uint64_t)m->Address, m->Flags);
-		if(apicbase == nil){
-			if((apicbase = vmap((uintptr_t)m->Address, 1024)) == nil){
-				panic("%s: can't map apicbase\n", __func__);
-			}
-			print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
+	int sublen;
+	uint8_t *p;
+	extern uint8_t *apicbase;
+	ACPI_TABLE_MADT *m;
+	status = AcpiGetTable(ACPI_SIG_MADT, apiccnt, &h);
+	if (ACPI_FAILURE(status))
+		panic("Can't find a MADT");
+	m = (ACPI_TABLE_MADT *)h;
+	print("APIC %d: %p 0x%x\n", apiccnt, (void *)(uint64_t)m->Address, m->Flags);
+	if(apicbase == nil){
+		if((apicbase = vmap((uintptr_t)m->Address, 1024)) == nil){
+			panic("%s: can't map apicbase\n", __func__);
 		}
-
+		print("%s: apicbase %#p -> %#p\n", __func__, (void *)(uint64_t)m->Address, apicbase);
 	}
-	if ((apiccnt == 1) && ACPI_FAILURE(status))
-			panic("Can't find a MADT");
+	if (! set_machine_mode()){
+		print("Set machine mode failed\n");
+		return 0;
+	}
 
+	p = (void*)&m[1];
+	sublen = m->Header.Length;
+	/* we only process the ones we're certain we need to. */
+	while (sublen > 0) {
+		switch(p[0]){
+		case ACPI_MADT_TYPE_LOCAL_APIC:
+		{
+			ACPI_MADT_LOCAL_APIC *l = (void *)p;
+			if (!l->LapicFlags)
+				break;
+			apicinit(l->Id, m->Address, apiccnt == 1);
+print("CODE: apicinit(%d, %p, %d\n", l->Id, m->Address, apiccnt == 1);
+			apiccnt++;
+		}
+			break;
+		case ACPI_MADT_TYPE_IO_APIC:
+		{
+			ACPI_MADT_IO_APIC *io = (void *)p;
+			print("IOapic %d @ %p\n", io->Id, io->Address);
+			ioapicinit(io->Id, io->Address);
+print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
+		}
+			break;
+		case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE:
+		{
+			ACPI_MADT_INTERRUPT_OVERRIDE *e = (void *)p;
+			print("What an eyesore. Bus %d, SourceIrq %d, GlobalIrq %d, InitFlags 0x%x\n",
+			      e->Bus, e->SourceIrq, e->GlobalIrq, e->IntiFlags);
+			eyesore = realloc(eyesore, numeyesore+1);
+			if (! eyesore)
+				panic("Ran out of eyesores");
+			eyesore[numeyesore] = *e;
+			numeyesore++;
+		}
+		break;
+		case ACPI_MADT_TYPE_LOCAL_APIC_NMI:
+		{
+			ACPI_MADT_LOCAL_APIC_NMI *nmi = (void *)p;
+			apicnmi(nmi->ProcessorId, nmi->Lint, nmi->IntiFlags);
+		}
+			break;
+		default:
+			print("%s: can't handle subtable type %d\n", __func__, p[0]);
+			break;
+		}
+		sublen -= p[1];
+		p += p[1];
+	}
+
+	/* Get the _PRT */
+	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, "\\_SB.PCI0._PRT", NULL, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	hexdump(out.Pointer, out.Length);
+	objwalk(out.Pointer);
+
+	as = AcpiGetDevices (nil, device, nil, nil);
+	print("acpigetdevices %d\n", as);
+
+/* per device code. Not useful yet.
+
+	as = AcpiGetIrqRoutingTable(some device, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	hexdump(out.Pointer, out.Length);
+*/
+	print("CODE: ioapicintrinit(0xff, DONE\n");
 	return 0;
 }
 
@@ -536,7 +807,11 @@ AcpiOsVprintf (
     const char              *Format,
     va_list                 Args)
 {
-	print((char *)Format, Args);
+	/* This is a leaf function, and this function is required to implement
+	 * the va_list argument. I couldn't find any other way to do this. */
+	static char buf[1024];
+	vseprint(buf, &buf[1023], (char *)Format, Args);
+	print(buf);
 }
 
 void

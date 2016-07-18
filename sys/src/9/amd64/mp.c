@@ -55,6 +55,7 @@ static Mpbus mpbusdef[] = {
 	{ "ISA   ", IPhigh, TMedge, },
 };
 static Mpbus* mpbus[Nbus];
+static int hackisabusno = -1;
 int mpisabusno = -1;
 
 static void
@@ -88,6 +89,7 @@ mpmkintr(uint8_t* p)
 	 * to imagine routing a signal to all IOAPICs, the
 	 * usual case is routing NMI and ExtINT to all LAPICs.
 	 */
+	if (p[4] == hackisabusno) p[4] = mpisabusno;
 	if(mpbus[p[4]] == nil){
 		mpintrprint("no source bus", p);
 		return 0;
@@ -203,6 +205,7 @@ mpparse(PCMP* pcmp, int maxcores)
 		print("\n");
 		break;
 	case 0:					/* processor */
+		print("CODE: /* case 0 */\n");
 		/*
 		 * Initialise the APIC if it is enabled (p[3] & 0x01).
 		 * p[1] is the APIC ID, the memory mapped address comes
@@ -212,12 +215,19 @@ mpparse(PCMP* pcmp, int maxcores)
 		 */
 		DBG("mpparse: cpu %d pa %#x bp %d\n",
 			p[1], l32get(pcmp->apicpa), p[3] & 0x02);
-		if((p[3] & 0x01) != 0 && maxcores-- > 0)
+		if((p[3] & 0x01) != 0 && maxcores-- > 0) {
+			print("CODE: apicinit(%d, %p, %d); \n", p[1], (void *)(uint64_t)l32get(pcmp->apicpa), p[3]&2);
 			apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
+		}
+print("MP: add an apic, # %d\n", p[1]);
 		p += 20;
 		break;
 	case 1:					/* bus */
+		print("CODE: /* case 1, bus */\n");
+		if (p[1] == hackisabusno)
+				p[1] = 0xff;
 		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
+print("MP: adda  bus %d\n", p[1]);
 		if(mpbus[p[1]] != nil){
 			print("mpparse: bus %d already allocated\n", p[1]);
 			p += 8;
@@ -232,7 +242,10 @@ mpparse(PCMP* pcmp, int maxcores)
 						p[1], mpisabusno);
 					continue;
 				}
+				hackisabusno = p[1];
+				p[1] = 0xff;
 				mpisabusno = p[1];
+print("CODE: mpisabusno = %d\n", p[1]);
 			}
 			mpbus[p[1]] = &mpbusdef[i];
 			break;
@@ -244,16 +257,21 @@ mpparse(PCMP* pcmp, int maxcores)
 		p += 8;
 		break;
 	case 2:					/* IOAPIC */
+		print("CODE: /* case 2, IOACPI */\n");
 		/*
 		 * Initialise the IOAPIC if it is enabled (p[3] & 0x01).
 		 * p[1] is the APIC ID, p[4-7] is the memory mapped address.
 		 */
-		if(p[3] & 0x01)
+print("MP: add an IOAPIC %d\n", p[1]);
+		if(p[3] & 0x01) {
+print("CODE: ioapicinit(%d, %p);\n", p[i], l32get(p+4));
 			ioapicinit(p[1], l32get(p+4));
+		}
 
 		p += 8;
 		break;
 	case 3:					/* IOINTR */
+		print("CODE: /* case 3, IOINTR */\n");
 		/*
 		 * p[1] is the interrupt type;
 		 * p[2-3] contains the polarity and trigger mode;
@@ -284,11 +302,14 @@ mpparse(PCMP* pcmp, int maxcores)
 		devno = p[5];
 		if(memcmp(mpbus[p[4]]->type, "PCI   ", 6) != 0)
 			devno <<= 2;
+print("CODE: ioapicintrinit(0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n", p[4], p[6], p[7], devno, lo);
+		if (p[4] == hackisabusno) p[4] = mpisabusno;
 		ioapicintrinit(p[4], p[6], p[7], devno, lo);
 
 		p += 8;
 		break;
 	case 4:					/* LINTR */
+		print("CODE: /* case 3, LINTR */\n");
 		/*
 		 * Format is the same as IOINTR above.
 		 */
@@ -307,10 +328,14 @@ mpparse(PCMP* pcmp, int maxcores)
 				if(!xlapic[i].useable || xlapic[i].Ioapic.addr != nil)
 					continue;
 				xlapic[i].Lapic.lvt[p[7]] = lo;
+print("CODE: xlapic[0x%x].Lapic.lvt[0x%x] = 0x%x\n", i, p[7], lo);
+print("MP: add LINTR %d\n", i);
 			}
 		}
-		else
+		else {
 			xlapic[p[6]].Lapic.lvt[p[7]] = lo;
+print("CODE: xlapic[0x%x].Lapic.lvt[0x%x] = 0x%x\n", i, p[7], lo);
+		}
 		p += 8;
 		break;
 	}

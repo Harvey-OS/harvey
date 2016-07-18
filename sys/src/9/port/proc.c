@@ -111,7 +111,6 @@ schedinit(void)		/* never returns */
 {
 	Proc *up;
 	Edf *e;
-
 	machp()->inidle = 1;
 	if(machp()->sch == nil){
 		print("schedinit: no sch for cpu%d\n", machp()->machno);
