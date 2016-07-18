@@ -226,11 +226,11 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 		break;
 	case 24:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.6lux";
+		arg = "%.6lx";
 		break;
 	case 32:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.8lux";
+		arg = "%.8lx";
 		break;
 	}
 	if(fmt == nil){
@@ -272,7 +272,7 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 				nb += 8;
 			}
 			nb -= bpp;
-//			print("bpp %d v %.8lux mask %.8lux nb %d\n", bpp, v, mask, nb);
+//			print("bpp %d v %.8lx mask %.8lx nb %d\n", bpp, v, mask, nb);
 			fmt(&b, arg, (v>>nb)&mask);
 		}
 		Bprint(&b, "\n");
@@ -912,7 +912,7 @@ putpixel(Memimage *img, Point pt, uint32_t nv)
 	p = byteaddr(img, pt);
 	v = p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24);
 	bpp = img->depth;
-DBG print("v %.8lux...", v);
+DBG print("v %.8lx...", v);
 	if(bpp < 8){
 		/*
 		 * Sub-byte greyscale pixels.  We need to skip the leftmost pt.x%npack pixels,
@@ -976,7 +976,7 @@ DBG print("bits %lx mask %lx sh %d...", bits, mask, sh);
 			sh += nbits;
 		}
 	}
-DBG print("v %.8lux\n", v);
+DBG print("v %.8lx\n", v);
 	p[0] = v;
 	p[1] = v>>8;
 	p[2] = v>>16;

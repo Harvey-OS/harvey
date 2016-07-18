@@ -1861,7 +1861,7 @@ immediate(Instr *ip, int64_t val)
 	if((ip->rex & REXW) == 0)
 		bprint(ip, "%lx", (int32_t)val);
 	else
-		bprint(ip, "%llux", val);
+		bprint(ip, "%llx", val);
 }
 
 static void

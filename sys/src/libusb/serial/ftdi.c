@@ -722,7 +722,7 @@ epreader(void *u)
 Eagain:
 		rcount = read(dfd, pk->b, sizeof pk->b);
 		if(serialdebug > 5)
-			dsprint(2, "%d %#ux%#ux ", rcount, p->data[0],
+			dsprint(2, "%d %#x%#x ", rcount, p->data[0],
 				p->data[1]);
 
 		if(rcount < 0){

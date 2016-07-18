@@ -146,7 +146,7 @@ Ufmt(Fmt *f)
 		return fmtprint(f, "%s %ld refs\n", buf, d->Ref.ref);
 	s = seprint(s, e, " csp %s.%lu.%lu",
 		classname(Class(ud->csp)), Subclass(ud->csp), Proto(ud->csp));
-	s = seprint(s, e, " vid %#ux did %#ux", ud->vid, ud->did);
+	s = seprint(s, e, " vid %#x did %#x", ud->vid, ud->did);
 	s = seprint(s, e, " refs %ld\n", d->Ref.ref);
 	s = seprint(s, e, "\t%s %s %s\n", ud->vendor, ud->product, ud->serial);
 	for(i = 0; i < Nconf; i++){
