@@ -35,7 +35,7 @@ main(int argc, char **argv){
 			print("FAIL file size %s incorrect expected %d actual %d\n", filename, strlen(contents) * FILE_SIZE, resultFile->length);
 			exits("FAIL");
 		}
-		free(resultFile);
+		free(dir);
 	}
 	for (i = 0; i < NUM_FILES; i++){
 		sprint(filename, "%s/file%d", dir, i);
