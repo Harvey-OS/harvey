@@ -1,0 +1,6 @@
+#!/bin/rc
+
+echo chdir
+regress/fs/chdir $1
+echo filewrite
+regress/fs/filewrite $1
