@@ -384,89 +384,6 @@ struct Router {
 
 
 static void
-pcirouting(void)
-{
-	uint8_t *p, pin, irq, link, *map;
-	int size, i, fn, tbdf;
-	Bridge *southbridge;
-	Pcidev *sbpci, *pci;
-	Router *r;
-	Slot *e;
-
-	// Search for PCI interrupt routing table in BIOS
-	for(p = (uint8_t *)KADDR(0xf0000); p < (uint8_t *)KADDR(0xfffff); p += 16)
-		if(p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
-			break;
-
-	if(p >= (uint8_t *)KADDR(0xfffff))
-		return;
-
-	r = (Router *)p;
-
-	if(0)
-		print("PCI interrupt routing table version %d.%d at %.6llx\n",
-			r->version[0], r->version[1], (uintptr_t)r & 0xfffff);
-
-	tbdf = (BusPCI << 24)|(r->bus << 16)|(r->devfn << 8);
-	sbpci = pcimatchtbdf(tbdf);
-	if(sbpci == nil) {
-		print("pcirouting: Cannot find south bridge %T\n", tbdf);
-		return;
-	}
-
-	for(i = 0; i != nelem(southbridges); i++)
-		if(sbpci->vid == southbridges[i].vid
-		&& (sbpci->did == southbridges[i].did || southbridges[i].did == 0xffff))
-			break;
-
-	if(i == nelem(southbridges)) {
-		print("pcirouting: ignoring south bridge %T %.4x/%.4x\n", tbdf, sbpci->vid, sbpci->did);
-		return;
-	}
-	southbridge = &southbridges[i];
-	if(southbridge->get == nil || southbridge->set == nil)
-		return;
-
-	size = (r->size[1] << 8)|r->size[0];
-	for(e = (Slot *)&r[1]; (uint8_t *)e < p + size; e++) {
-		if(0){
-			print("%.2x/%.2x %.2x: ", e->bus, e->dev, e->slot);
-			for (i = 0; i != 4; i++) {
-				uint8_t *m = &e->maps[i * 3];
-				print("[%d] %.2x %.4x ",
-					i, m[0], (m[2] << 8)|m[1]);
-			}
-			print("\n");
-		}
-
-		for(fn = 0; fn <= Maxfn; fn++) {
-			tbdf = MKBUS(BusPCI, e->bus, e->dev, fn);
-			pci = pcimatchtbdf(tbdf);
-			if(pci == nil)
-				continue;
-			pin = pcicfgr8(pci, PciINTP);
-			if(pin == 0 || pin == 0xff)
-				continue;
-
-			map = &e->maps[(pin - 1) * 3];
-			link = map[0];
-			irq = southbridge->get(sbpci, link);
-			if(irq == 0 || irq == pci->intl)
-				continue;
-			if(pci->intl != 0 && pci->intl != 0xFF) {
-				print("pcirouting: BIOS workaround: %T at pin %d link %d irq %d -> %d\n",
-					  tbdf, pin, link, irq, pci->intl);
-				southbridge->set(sbpci, link, pci->intl);
-				continue;
-			}
-			print("pcirouting: %T at pin %d link %d irq %d\n", tbdf, pin, link, irq);
-			pcicfgw8(pci, PciINTL, irq);
-			pci->intl = irq;
-		}
-	}
-}
-
-static void
 pcireservemem(void)
 {
 	int i;
@@ -535,9 +452,6 @@ pcicfginit(void)
 		}
 	}
 
-	// no longer.
-	//if(pciroot != nil && getconf("*nopcirouting") == nil)
-	pcirouting();
 	pcireservemem();
 	unlock(&pcicfginitlock);
 
