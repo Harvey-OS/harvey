@@ -1,0 +1,15 @@
+{
+	"Regress": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/fs",
+		"SourceFilesCmd": [
+			"chdir.c",
+			"filewrite.c"
+		],
+		"Post": [
+			"cp fs.rc $HARVEY/$ARCH/bin/regress"
+		]
+	}
+}
