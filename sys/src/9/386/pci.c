@@ -238,7 +238,7 @@ pcilscan(int bno, Pcidev** list)
 					if(pcp == nil)
 						break;
 				}
-			}			
+			}
 			if(head != nil)
 				tail->link = p;
 			else
@@ -302,44 +302,6 @@ pcilscan(int bno, Pcidev** list)
 	return maxubn;
 }
 
-static uint8_t
-pIIxget(Pcidev *router, uint8_t link)
-{
-	uint8_t pirq;
-
-	/* link should be 0x60, 0x61, 0x62, 0x63 */
-	pirq = pcicfgr8(router, link);
-	return (pirq < 16)? pirq: 0;
-}
-
-static void
-pIIxset(Pcidev *router, uint8_t link, uint8_t irq)
-{
-	pcicfgw8(router, link, irq);
-}
-
-static uint8_t
-viaget(Pcidev *router, uint8_t link)
-{
-	uint8_t pirq;
-
-	/* link should be 1, 2, 3, 5 */
-	pirq = (link < 6)? pcicfgr8(router, 0x55 + (link>>1)): 0;
-
-	return (link & 1)? (pirq >> 4): (pirq & 15);
-}
-
-static void
-viaset(Pcidev *router, uint8_t link, uint8_t irq)
-{
-	uint8_t pirq;
-
-	pirq = pcicfgr8(router, 0x55 + (link >> 1));
-	pirq &= (link & 1)? 0x0f: 0xf0;
-	pirq |= (link & 1)? (irq << 4): (irq & 15);
-	pcicfgw8(router, 0x55 + (link>>1), pirq);
-}
-
 typedef struct Bridge Bridge;
 struct Bridge
 {
@@ -347,16 +309,6 @@ struct Bridge
 	uint16_t	did;
 	uint8_t	(*get)(Pcidev *, uint8_t);
 	void	(*set)(Pcidev *, uint8_t, uint8_t);
-};
-
-static Bridge southbridges[] = {
-	{ 0x8086, 0xffff, pIIxget, pIIxset },	// Intel *
-	{ 0x1106, 0x3227, viaget, viaset },	// Viatech VT8237
-
-	{ 0x1022, 0x746B, nil, nil },		// AMD 8111
-	{ 0x10DE, 0x00D1, nil, nil },		// NVIDIA nForce 3
-	{ 0x1166, 0x0200, nil, nil },		// ServerWorks ServerSet III LE
-	{ 0x1002, 0x4377, nil, nil },		// ATI Radeon Xpress 200M
 };
 
 typedef struct Slot Slot;
@@ -567,30 +519,34 @@ pcimatchtbdf(int tbdf)
 	return p;
 }
 
+void
+pcishowdev(Pcidev* t)
+{
+	int i;
+	print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %3d  ",
+	      BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
+	      t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
+
+	for(i = 0; i < nelem(t->mem); i++) {
+		if(t->mem[i].size == 0)
+			continue;
+		print("%d:%.8lx %d ", i, t->mem[i].bar, t->mem[i].size);
+	}
+	if(t->ioa.bar || t->ioa.size)
+		print("ioa:%.8lx %d ", t->ioa.bar, t->ioa.size);
+	if(t->mema.bar || t->mema.size)
+
+	if(t->bridge)
+		print("->%d", BUSBNO(t->bridge->tbdf));
+	print("\n");
+}
 static void
 pcilhinv(Pcidev* p)
 {
-	int i;
 	Pcidev *t;
 
-	for(t = p; t != nil; t = t->link) {
-		print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %3d  ",
-			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
-			t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
-
-		for(i = 0; i < nelem(p->mem); i++) {
-			if(t->mem[i].size == 0)
-				continue;
-			print("%d:%.8lx %d ", i, t->mem[i].bar, t->mem[i].size);
-		}
-		if(t->ioa.bar || t->ioa.size)
-			print("ioa:%.8lx %d ", t->ioa.bar, t->ioa.size);
-		if(t->mema.bar || t->mema.size)
-			print("mema:%.8lx %d ", t->mema.bar, t->mema.size);
-		if(t->bridge)
-			print("->%d", BUSBNO(t->bridge->tbdf));
-		print("\n");
-	}
+	for(t = p; t != nil; t = t->link)
+		pcishowdev(t);
 	for(; p != nil; p = p->link)
 		if(p->bridge != nil)
 			pcilhinv(p->bridge);
