@@ -139,7 +139,7 @@ acpirsdptr(void)
 		return;
 	}
 	print("Found RST PTR ta %p\n", rsd);
-		
+
 #if 0
 	assert(sizeof(Sdthdr) == 36);
 
@@ -292,7 +292,7 @@ objwalk(ACPI_OBJECT *p)
 		for(cnt = 0; cnt < p->Package.Count; cnt++, e++){
 			objwalk(e);
 		}
-			
+
 		indent -= 2;
 		print("\n");
 		break;
@@ -303,7 +303,7 @@ objwalk(ACPI_OBJECT *p)
 		print("Can't handle type %d\n", p->Type);
 		break;
 	}
-			
+
 }
 
 static ACPI_STATUS
@@ -348,7 +348,7 @@ resource(ACPI_RESOURCE *r, void *Context)
 		print("BOTCH! i->Triggering is 0x%x and I don't do that\n", i->Triggering);
 		break;
 	}
-	print("CODE: ioapicintrinit(0xff, 0x%x, 0x%x, 0x%x, 0x%x\n", 1, i->Interrupts[0], i->Interrupts[0]<<2, low);
+	print("ACPICODE: ioapicintrinit(0xff, 0x%x, 0x%x, 0x%x, 0x%x\n", 1, i->Interrupts[0], i->Interrupts[0]<<2, low);
 	return 0;
 }
 ACPI_STATUS
@@ -406,15 +406,15 @@ device(ACPI_HANDLE                     Object,
 			for(int j = 0; j < i->InterruptCount; j++)
 				print("%d,", i->Interrupts[j]);
 			print("\n");
-			
+
 
 		}
 		print("Length is %u ptr is %p\n", out.Length, out.Pointer);
-		
+
 	}
 #endif
 	print("hi\n");
-	
+
 	return 0;
 }
 
@@ -480,7 +480,7 @@ acpiinit(void)
 			if (!l->LapicFlags)
 				break;
 			apicinit(l->Id, m->Address, apiccnt == 1);
-print("CODE: apicinit(%d, %p, %d\n", l->Id, m->Address, apiccnt == 1);
+print("ACPICODE: apicinit(%d, %p, %d\n", l->Id, m->Address, apiccnt == 1);
 			apiccnt++;
 		}
 			break;
@@ -489,7 +489,7 @@ print("CODE: apicinit(%d, %p, %d\n", l->Id, m->Address, apiccnt == 1);
 			ACPI_MADT_IO_APIC *io = (void *)p;
 			print("IOapic %d @ %p\n", io->Id, io->Address);
 			ioapicinit(io->Id, io->Address);
-print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
+print("ACPICODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 		}
 			break;
 		case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE:
@@ -535,7 +535,20 @@ print("CODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
 	hexdump(out.Pointer, out.Length);
 */
-	print("CODE: ioapicintrinit(0xff, DONE\n");
+	/* PCI devices: Walk all devices. For those with interrupts, enable them. */
+	Pcidev*pci = nil;
+	for(pci = pcimatch(pci, 0, 0); pci; pci = pcimatch(pci, 0, 0)){
+		if (!pci->intl || pci->intl == 0xff)
+			continue;
+		print("Interrupt %d: \n", pci->intl);
+		pcishowdev(pci);
+		int bus = BUSBNO(pci->tbdf);
+		int apicno = 1; /* for now */
+		int low = 0x1a000; /* is PCI always this? */
+		print("ACPICODE: ioapicintrinit(%d, %d, %d, 0x%x, 0x%x);\n", bus, apicno, pci->intl, pci->tbdf, low);
+
+	}
+	print("ACPICODE: ioapicintrinit(0xff, DONE\n");
 	return 0;
 }
 
@@ -711,7 +724,7 @@ AcpiOsReadPciConfiguration (
 		*Value = pcicfgr8(&p, Reg);
 		break;
 	default:
-		panic("Can't read pci: bad width %d\n", Width);	
+		panic("Can't read pci: bad width %d\n", Width);
 	}
 
 	return AE_OK;
@@ -739,7 +752,7 @@ AcpiOsWritePciConfiguration (
 		pcicfgw8(&p, Reg, Value);
 		break;
 	default:
-		panic("Can't read pci: bad width %d\n", Width);	
+		panic("Can't read pci: bad width %d\n", Width);
 	}
 
 	return AE_OK;
