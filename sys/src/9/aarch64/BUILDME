@@ -1,5 +1,5 @@
 ARCH=aarch64  \
-STRIP=aarch64-none-eabi-strip \
-CC=aarch64-none-eabi-gcc \
-LD=aarch64-none-eabi-ld \
+STRIP=aarch64-none-elf-strip \
+CC=aarch64-none-elf-gcc \
+LD=aarch64-none-elf-ld \
 ../../../../util/build cpu.json

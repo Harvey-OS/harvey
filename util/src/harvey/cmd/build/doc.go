@@ -161,7 +161,7 @@ See the build godoc for more information about the buildfile format.
 
 ENVIRONMENT
 
-ARCH is needed. Current acceptable vaules are: amd64
+ARCH is needed. Current acceptable vaules are: aarch64 amd64 riscv
 
 HARVEY may be supplied to point at a harvey tree. The default on harvey is "/".
 The default on Linux and OSX is to attempt to find the top level of a git
