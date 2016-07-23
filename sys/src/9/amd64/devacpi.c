@@ -519,14 +519,21 @@ print("ACPICODE: ioapicinit(%d, %p);\n", io->Id, (void*)(uint64_t)io->Address);
 	}
 
 	/* Get the _PRT */
-	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, "\\_SB.PCI0._PRT", NULL, &out);
-	print("get the PRT: %d\n", as);
-	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
-	hexdump(out.Pointer, out.Length);
-	objwalk(out.Pointer);
+	int i;
+	for(i = 0; i < 255; i++) {
+		static char path[255];
+		snprint(path, sizeof(path), "\\_SB.PCI%d._PRT", i);
+		as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, path, NULL, &out);
+		if (!ACPI_SUCCESS(as))
+			continue;
+		print("------>GOT the PRT: %d\n", i);
+		print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+		hexdump(out.Pointer, out.Length);
+		objwalk(out.Pointer);
 
-	as = AcpiGetDevices (nil, device, nil, nil);
-	print("acpigetdevices %d\n", as);
+		as = AcpiGetDevices (nil, device, nil, nil);
+		print("acpigetdevices %d\n", as);
+	}
 
 /* per device code. Not useful yet.
 
