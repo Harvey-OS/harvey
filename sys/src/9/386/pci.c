@@ -168,6 +168,7 @@ pcilscan(int bno, Pcidev** list)
 			p->ltr = pcicfgr8(p, PciLTR);
 
 			p->intl = pcicfgr8(p, PciINTL);
+			p->intp = pcicfgr8(p, PciINTP);
 
 			/*
 			 * If the device is a multi-function device adjust the
@@ -523,9 +524,12 @@ void
 pcishowdev(Pcidev* t)
 {
 	int i;
-	print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %3d  ",
+	char intpin = 'x';
+	if (t->intl != 255)
+		intpin = "ABCDEFGH"[t->intp&0x7];
+	print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %c %3d  ",
 	      BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
-	      t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
+	      t->ccrb, t->ccru, t->ccrp, t->vid, t->did, intpin, t->intl);
 
 	for(i = 0; i < nelem(t->mem); i++) {
 		if(t->mem[i].size == 0)
