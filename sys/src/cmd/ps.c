@@ -107,16 +107,16 @@ ps(char *s)
 
 	if(rflag){
 		if(rtime >= 86400)
-			sprint(rbuf, " %lud:%02lud:%02lud:%02lud", rtime/86400, (rtime/3600)%24, (rtime/60)%60, rtime%60);
+			sprint(rbuf, " %lu:%02lu:%02lu:%02lu", rtime/86400, (rtime/3600)%24, (rtime/60)%60, rtime%60);
 		else if(rtime >= 3600)
-			sprint(rbuf, " %lud:%02lud:%02lud", rtime/3600, (rtime/60)%60, rtime%60);
+			sprint(rbuf, " %lu:%02lu:%02lu", rtime/3600, (rtime/60)%60, rtime%60);
 		else
-			sprint(rbuf, " %lud:%02lud", rtime/60, rtime%60);
+			sprint(rbuf, " %lu:%02lu", rtime/60, rtime%60);
 		sprint(rbuf1, "%12s", rbuf);
 	}else
 		rbuf1[0] = 0;
 
-	Bprint(&bout, "%-10s %8s%s %4lud:%.2lud %3lud:%.2lud %s %7ludK %-8.8s ",
+	Bprint(&bout, "%-10s %8s%s %4lu:%.2lu %3lu:%.2lu %s %7luK %-8.8s ",
 			argv[1],
 			s,
 			rbuf1,

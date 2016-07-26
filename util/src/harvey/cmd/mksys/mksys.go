@@ -110,6 +110,8 @@ func main() {
 	case "sys_harvey.s":
 		a := os.Getenv("ARCH")
 		switch a {
+		case "aarch64":
+			usage("aarch64 support is incomplete")
 		case "amd64":
 		case "riscv":
 			usage("riscv support is incomplete")

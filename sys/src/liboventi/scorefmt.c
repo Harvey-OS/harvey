@@ -22,7 +22,7 @@ vtScoreFmt(Fmt *f)
 		fmtprint(f, "*");
 	}else{
 		for(i = 0; i < VtScoreSize; i++)
-			fmtprint(f, "%2.2ux", v[i]);
+			fmtprint(f, "%2.2x", v[i]);
 	}
 
 	return 0;

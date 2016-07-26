@@ -345,7 +345,7 @@ fillstat(Dir *d, uint64_t path)
 	if(t->name)
 		d->name = estrdup9p(t->name);
 	else{
-		d->name = smprint("%ud", NUM(path));
+		d->name = smprint("%u", NUM(path));
 		if(d->name == nil)
 			sysfatal("out of memory");
 	}
@@ -707,7 +707,7 @@ fsread(Req *r)
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
 	default:
-		snprint(e, sizeof e, "bug in fsread path=%lux", path);
+		snprint(e, sizeof e, "bug in fsread path=%lx", path);
 		respond(r, e);
 		break;
 
@@ -761,7 +761,7 @@ fswrite(Req *r)
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
 	default:
-		snprint(e, sizeof e, "bug in fswrite path=%lux", path);
+		snprint(e, sizeof e, "bug in fswrite path=%lx", path);
 		respond(r, e);
 		break;
 
@@ -812,7 +812,7 @@ fsopen(Req *r)
 		r->fid->qid.path = path;
 		r->ofcall.qid.path = path;
 		if(chatty9p)
-			fprint(2, "open clone => path=%lux\n", path);
+			fprint(2, "open clone => path=%lx\n", path);
 		t = &tab[Qctl];
 		/* fall through */
 	default:

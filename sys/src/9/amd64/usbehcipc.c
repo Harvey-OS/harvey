@@ -190,10 +190,10 @@ scanpci(void)
 			continue;
 		}
 		if(p->intl == 0xff || p->intl == 0) {
-			print("usbehci: no irq assigned for port %#lux\n", io);
+			print("usbehci: no irq assigned for port %#lx\n", io);
 			continue;
 		}
-		dprint("usbehci: %#x %#x: port %#lux size %#x irq %d\n",
+		dprint("usbehci: %#x %#x: port %#lx size %#x irq %d\n",
 			p->vid, p->did, io, p->mem[0].size, p->intl);
 
 		ctlr = malloc(sizeof(Ctlr));
@@ -254,7 +254,7 @@ reset(Hci *hp)
 	capio = ctlr->capio;
 	hp->nports = capio->parms & Cnports;
 
-	ddprint("echi: %s, ncc %lud npcc %lud\n",
+	ddprint("echi: %s, ncc %lu npcc %lu\n",
 		capio->parms & 0x10000 ? "leds" : "no leds",
 		(capio->parms >> 12) & 0xf, (capio->parms >> 8) & 0xf);
 	ddprint("ehci: routing %s, %sport power ctl, %d ports\n",

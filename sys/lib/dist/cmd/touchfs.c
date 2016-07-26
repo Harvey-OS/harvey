@@ -64,7 +64,7 @@ main(int argc, char **argv)
 			exits("notdone");
 		}
 
-		Bprint(&bout, "%q %q %q %q %lud %q\n",
+		Bprint(&bout, "%q %q %q %q %lu %q\n",
 			f[0], f[1], f[2], f[3], d, f[5]);
 
 		size = strtoul(f[5], 0, 0);

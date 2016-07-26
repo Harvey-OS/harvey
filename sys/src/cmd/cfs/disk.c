@@ -55,11 +55,11 @@ dinit(Disk *d, int f, int psize, char *expname)
 	}
 	ba = (Dalloc*)buf;
 	if(ba->bsize <= 0){
-		fprint(2, "dinit: bsize 0x%lux<= 0\n", ba->bsize);
+		fprint(2, "dinit: bsize 0x%lx<= 0\n", ba->bsize);
 		return -1;
 	}
 	if((ba->bsize % psize) != 0){
-		fprint(2, "dinit: logical bsize (%lud) not multiple of physical (%ud)\n",
+		fprint(2, "dinit: logical bsize (%lu) not multiple of physical (%u)\n",
 			ba->bsize, psize);
 		return -1;
 	}
@@ -91,19 +91,19 @@ dinit(Disk *d, int f, int psize, char *expname)
 		}
 		ba = (Dalloc*)b->data;
 		if(ba->magic != Amagic){
-			fprint(2, "dinit: bad magic in alloc block %uld\n", i);
+			fprint(2, "dinit: bad magic in alloc block %lu\n", i);
 			return -1;
 		}
 		if(d->bsize != ba->bsize){
-			fprint(2, "dinit: bad bsize in alloc block %uld\n", i);
+			fprint(2, "dinit: bad bsize in alloc block %lu\n", i);
 			return -1;
 		}
 		if(d->nab != ba->nab){
-			fprint(2, "dinit: bad nab in alloc block %uld\n", i);
+			fprint(2, "dinit: bad nab in alloc block %lu\n", i);
 			return -1;
 		}
 		if(strncmp(d->name, ba->name, sizeof(d->name))){
-			fprint(2, "dinit: bad name in alloc block %uld\n", i);
+			fprint(2, "dinit: bad name in alloc block %lu\n", i);
 			return -1;
 		}
 	}

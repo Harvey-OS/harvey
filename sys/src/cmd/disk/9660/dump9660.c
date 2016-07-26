@@ -397,11 +397,11 @@ Dofix:
 		if(cd->nulldump){
 			Cwseek(cd, (int64_t)cd->nulldump * Blocksize);
 			sprint(buf, "plan 9 dump cd\n");
-			sprint(buf+strlen(buf), "%s %lud %lud %lud %llud %lud %lud",
+			sprint(buf+strlen(buf), "%s %lu %lu %lu %llu %lu %lu",
 				dumpname, now, newnull, cblock, clength,
 				iroot.block, iroot.length);
 			if(cd->flags & CDjoliet)
-				sprint(buf+strlen(buf), " %lud %lud",
+				sprint(buf+strlen(buf), " %lu %lu",
 					jroot.block, jroot.length);
 			strcat(buf, "\n");
 			Cwrite(cd, buf, strlen(buf));

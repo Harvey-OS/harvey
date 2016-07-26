@@ -618,7 +618,7 @@ slinkinfo(uint8_t *p, int n)
 	sendaccm = GLONG(p+16);
 	recvaccm = GLONG(p+20);
 
-	SDB "%I: linkinfo id=%d saccm=%ux raccm=%ux\n", srv.remote, id, sendaccm, recvaccm EDB
+	SDB "%I: linkinfo id=%d saccm=%x raccm=%x\n", srv.remote, id, sendaccm, recvaccm EDB
 
 	if(c = calllookup(id)) {
 		c->sendaccm = sendaccm;
@@ -880,7 +880,7 @@ greread(void *v)
 		}
 
 		if(!(flag&GRE_key))
-			myfatal("%I: gre packet does not contain a key: f=%ux",
+			myfatal("%I: gre packet does not contain a key: f=%x",
 				srv.remote, flag);
 
 		len = GSHORT(p);
@@ -932,12 +932,12 @@ greread(void *v)
 			/* ack packet */
 			c->stat.recvack++;
 
-SDB "%I: %.3f (%.3f): gre %d: recv ack a=%ux n=%d flag=%ux\n", srv.remote, t, t-last,
+SDB "%I: %.3f (%.3f): gre %d: recv ack a=%x n=%d flag=%x\n", srv.remote, t, t-last,
 	c->id, ack, n, flag EDB
 
 		} else {
 
-SDB "%I: %.3f (%.3f): gre %d: recv s=%ux a=%ux len=%d\n", srv.remote, t, t-last,
+SDB "%I: %.3f (%.3f): gre %d: recv s=%x a=%x len=%d\n", srv.remote, t, t-last,
 	c->id, rseq, ack, len EDB
 
 			/*
@@ -953,7 +953,7 @@ SDB "%I: %.3f (%.3f): gre %d: recv s=%ux a=%ux len=%d\n", srv.remote, t, t-last,
 				/* out of sequence - drop on the floor */
 				c->stat.dropped++;
 
-SDB "%I: %.3f: gre %d: recv out of order or dup packet: seq=%ux len=%d\n",
+SDB "%I: %.3f: gre %d: recv out of order or dup packet: seq=%x len=%d\n",
 srv.remote, realtime(), c->id, rseq, len EDB
 
 			}
@@ -983,7 +983,7 @@ greack(Call *c)
 
 	c->stat.sendack++;
 
-SDB "%I: %.3f: gre %d: send ack %ux\n", srv.remote, realtime(), c->id, c->rseq EDB
+SDB "%I: %.3f: gre %d: send ack %x\n", srv.remote, realtime(), c->id, c->rseq EDB
 
 	v6tov4(buf+0, srv.local);		/* source */
 	v6tov4(buf+4, srv.remote);		/* source */
@@ -1041,7 +1041,7 @@ pppread(void *a)
 
 		while(c->seq-c->ack>c->sendwindow && c->tick-tick<Sendtimeout && !c->closed) {
 			c->stat.sendwait++;
-SDB "window full seq = %d ack = %ux window = %ux\n", c->seq, c->ack, c->sendwindow EDB
+SDB "window full seq = %d ack = %x window = %x\n", c->seq, c->ack, c->sendwindow EDB
 			qunlock(&c->lk);
 			ewait(&c->eack);
 			qlock(&c->lk);
@@ -1049,7 +1049,7 @@ SDB "window full seq = %d ack = %ux window = %ux\n", c->seq, c->ack, c->sendwind
 		
 		if(c->tick-tick >= Sendtimeout) {
 			c->stat.sendtimeout++;
-SDB "send timeout = %d ack = %ux window = %ux\n", c->seq, c->ack, c->sendwindow EDB
+SDB "send timeout = %d ack = %x window = %x\n", c->seq, c->ack, c->sendwindow EDB
 		}
 
 		v6tov4(buf+0, srv.local);		/* source */
@@ -1064,7 +1064,7 @@ SDB "send timeout = %d ack = %ux window = %ux\n", c->seq, c->ack, c->sendwindow 
 		c->stat.send++;
 		c->rack = c->rseq;
 
-SDB "%I: %.3f: gre %d: send s=%ux a=%ux len=%d\n", srv.remote, realtime(),
+SDB "%I: %.3f: gre %d: send s=%x a=%x len=%d\n", srv.remote, realtime(),
 	c->id,  c->seq, c->rseq, n EDB
 
 		if(drop == 0. || frand() > drop)

@@ -254,7 +254,7 @@ opt_seprint(uint8_t *ps, uint8_t *pe, char *sps, char *spe)
 
 			p = seprint(p, e, " option=%s pref=%I preflen=%3.3d"
 				" lflag=%1.1d aflag=%1.1d unused1=%1.1d"
-				" validlt=%ud preflt=%ud unused2=%1.1d",
+				" validlt=%u preflt=%u unused2=%1.1d",
 				optname(otype), a+16, (int)(*(a+2)),
 				(*(a+3) & (1 << 7)) != 0,
 				(*(a+3) & (1 << 6)) != 0,
@@ -288,10 +288,10 @@ pkt2str(uint8_t *ps, uint8_t *pe, char *sps, char *spe)
 
 	tn = icmpmsg6[h->type];
 	if(tn == nil)
-		p = seprint(p, e, "t=%ud c=%d ck=%4.4ux", h->type,
+		p = seprint(p, e, "t=%u c=%d ck=%4.4x", h->type,
 			h->code, (uint16_t)NetS(h->cksum));
 	else
-		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
+		p = seprint(p, e, "t=%s c=%d ck=%4.4x", tn,
 			h->code, (uint16_t)NetS(h->cksum));
 
 	switch(h->type){
@@ -559,7 +559,7 @@ issueadd6(Conf *cf)
 {
 	char *cfg;
 
-	cfg = smprint("add6 %I %d %d %d %lud %lud", cf->v6pref, cf->prefixlen,
+	cfg = smprint("add6 %I %d %d %d %lu %lu", cf->v6pref, cf->prefixlen,
 		cf->onlink, cf->autoflag, cf->validlt, cf->preflt);
 	ewrite(cf->cfd, cfg);
 	free(cfg);

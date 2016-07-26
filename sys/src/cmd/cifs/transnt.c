@@ -147,22 +147,22 @@ TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 	if(off2owner){
 		p->pos = base +  off2owner;
 		fmtstrinit(f);
-		fmtprint(f, "S-%ud", g8(p));	/* revision */
+		fmtprint(f, "S-%u", g8(p));	/* revision */
 		n = g8(p);			/* num auth */
-		fmtprint(f, "-%llud", gb48(p));	/* authority */
+		fmtprint(f, "-%llu", gb48(p));	/* authority */
 		for(i = 0; i < n; i++)
-			fmtprint(f, "-%ud", gl32(p));	/* sub-authorities */
+			fmtprint(f, "-%u", gl32(p));	/* sub-authorities */
 		*usid = fmtstrflush(f);
 	}
 
 	if(off2group){
 		p->pos = base +  off2group;
 		fmtstrinit(f);
-		fmtprint(f, "S-%ud", g8(p));	/* revision */
+		fmtprint(f, "S-%u", g8(p));	/* revision */
 		n = g8(p);			/* num auth */
-		fmtprint(f, "-%llud", gb48(p));	/* authority */
+		fmtprint(f, "-%llu", gb48(p));	/* authority */
 		for(i = 0; i < n; i++)
-			fmtprint(f, "-%ud", gl32(p));	/* sub-authorities */
+			fmtprint(f, "-%u", gl32(p));	/* sub-authorities */
 		*gsid = fmtstrflush(f);
 	}
 	free(p);

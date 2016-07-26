@@ -317,7 +317,7 @@ uhcirun(Ctlr *ctlr, int on)
 {
 	int i;
 
-	ddprint("uhci %#ux setting run to %d\n", ctlr->port, on);
+	ddprint("uhci %#x setting run to %d\n", ctlr->port, on);
 
 	if(on)
 		uhcicmd(ctlr, INS(Cmd)|Crun);
@@ -332,7 +332,7 @@ uhcirun(Ctlr *ctlr, int on)
 			delay(1);
 	if(i == 100)
 		dprint("uhci %#x run cmd timed out\n", ctlr->port);
-	ddprint("uhci %#ux cmd %#ux sts %#ux\n",
+	ddprint("uhci %#x cmd %#x sts %#x\n",
 		ctlr->port, INS(Cmd), INS(Status));
 }
 
@@ -357,14 +357,14 @@ tdtok(Td *td)
 static char*
 seprinttd(char *s, char *se, Td *td)
 {
-	s = seprint(s, se, "%#p link %#ulx", td, td->link);
+	s = seprint(s, se, "%#p link %#lx", td, td->link);
 	if((td->link & Tdvf) != 0)
 		s = seprint(s, se, "V");
 	if((td->link & Tdterm) != 0)
 		s = seprint(s, se, "T");
 	if((td->link & Tdlinkqh) != 0)
 		s = seprint(s, se, "Q");
-	s = seprint(s, se, " csw %#ulx ", td->csw);
+	s = seprint(s, se, " csw %#lx ", td->csw);
 	if(td->csw & Tdactive)
 		s = seprint(s, se, "a");
 	if(td->csw & Tdiso)
@@ -376,7 +376,7 @@ seprinttd(char *s, char *se, Td *td)
 	if((td->csw & (Tderr1|Tderr2)) == 0)
 		s = seprint(s, se, "z");
 	if(td->csw & Tderrors)
-		s = seprint(s, se, " err %#ulx", td->csw & Tderrors);
+		s = seprint(s, se, " err %#lx", td->csw & Tderrors);
 	if(td->csw & Tdstalled)
 		s = seprint(s, se, "s");
 	if(td->csw & Tddberr)
@@ -391,7 +391,7 @@ seprinttd(char *s, char *se, Td *td)
 		s = seprint(s, se, "B");
 	s = seprint(s, se, " stslen %d", tdlen(td));
 
-	s = seprint(s, se, " token %#ulx", td->token);
+	s = seprint(s, se, " token %#lx", td->token);
 	if(td->token == 0)		/* the BWS loopback Td, ignore rest */
 		return s;
 	s = seprint(s, se, " maxlen %d", maxtdlen(td));
@@ -399,8 +399,8 @@ seprinttd(char *s, char *se, Td *td)
 		s = seprint(s, se, " d1");
 	else
 		s = seprint(s, se, " d0");
-	s = seprint(s, se, " id %#ulx:", (td->token>>15) & Epmax);
-	s = seprint(s, se, "%#ulx", (td->token>>8) & Devmax);
+	s = seprint(s, se, " id %#lx:", (td->token>>15) & Epmax);
+	s = seprint(s, se, "%#lx", (td->token>>8) & Devmax);
 	switch(tdtok(td)){
 	case Tdtokin:
 		s = seprint(s, se, " in");
@@ -414,8 +414,8 @@ seprinttd(char *s, char *se, Td *td)
 	default:
 		s = seprint(s, se, " BADPID");
 	}
-	s = seprint(s, se, "\n\t  buffer %#ulx data %#p", td->buffer, td->data);
-	s = seprint(s, se, " ndata %uld sbuff %#p buff %#p",
+	s = seprint(s, se, "\n\t  buffer %#lx data %#p", td->buffer, td->data);
+	s = seprint(s, se, " ndata %lu sbuff %#p buff %#p",
 		td->ndata, td->sbuff, td->buff);
 	if(td->ndata > 0)
 		s = seprintdata(s, se, td->data, td->ndata);
@@ -476,7 +476,7 @@ dumptd(Td *td, char *pref)
 	for(; td != nil; td = td->next){
 		s = seprinttd(buf, se, td);
 		if(!sameptr(td->next, td->link))
-			seprint(s, se, " next %#p != link %#ulx %#p",
+			seprint(s, se, " next %#p != link %#lx %#p",
 				td->next, td->link, TPTR(td->link));
 		print("%std %s\n", pref, buf);
 		if(i++ > 20){
@@ -497,19 +497,19 @@ qhdump(Qh *qh, char *pref)
 
 	s = buf;
 	se = buf+sizeof(buf);
-	s = seprint(s, se, "%sqh %s %#p state %s link %#ulx", pref,
+	s = seprint(s, se, "%sqh %s %#p state %s link %#lx", pref,
 		qh->tag, qh, qhsname[qh->state], qh->link);
 	if(!sameptr(qh->tds, qh->elink))
-		s = seprint(s, se, " [tds %#p != elink %#ulx %#p]",
+		s = seprint(s, se, " [tds %#p != elink %#lx %#p]",
 			qh->tds, qh->elink, TPTR(qh->elink));
 	if(!sameptr(qh->next, qh->link))
-		s = seprint(s, se, " [next %#p != link %#ulx %#p]",
+		s = seprint(s, se, " [next %#p != link %#lx %#p]",
 			qh->next, qh->link, QPTR(qh->link));
 	if((qh->link & Tdterm) != 0)
 		s = seprint(s, se, "T");
 	if((qh->link & Tdlinkqh) != 0)
 		s = seprint(s, se, "Q");
-	s = seprint(s, se, " elink %#ulx", qh->elink);
+	s = seprint(s, se, " elink %#lx", qh->elink);
 	if((qh->elink & Tdterm) != 0)
 		s = seprint(s, se, "T");
 	if((qh->elink & Tdlinkqh) != 0)
@@ -523,7 +523,7 @@ qhdump(Qh *qh, char *pref)
 		print("\thw tds:");
 		i = 0;
 		for(td = qh->elink; (td & Tdterm) == 0; td = TPTR(td)->link){
-			print(" %#ulx", td);
+			print(" %#lx", td);
 			if(td == TPTR(td)->link)	/* BWS Td */
 				break;
 			if(i++ > 40){
@@ -558,7 +558,7 @@ xdump(Ctlr *ctlr, int doilock)
 	print("uhci port %#x frames %#p nintr %d ntdintr %d",
 		ctlr->port, ctlr->frames, ctlr->nintr, ctlr->ntdintr);
 	print(" nqhintr %d nisointr %d\n", ctlr->nqhintr, ctlr->nisointr);
-	print("cmd %#ux sts %#ux fl %#ulx ps1 %#ux ps2 %#ux frames[0] %#ulx\n",
+	print("cmd %#x sts %#x fl %#lx ps1 %#x ps2 %#x frames[0] %#lx\n",
 		INS(Cmd), INS(Status),
 		INL(Flbaseadd), INS(PORT(0)), INS(PORT(1)),
 		ctlr->frames[0]);
@@ -836,9 +836,9 @@ isointerrupt(Ctlr *ctlr, Isoio* iso)
 		if((tdi->csw & Tdstalled) != 0){
 			if(iso->err == nil){
 				iso->err = errmsg(err);
-				diprint("isointerrupt: tdi %#p error %#ux %s\n",
+				diprint("isointerrupt: tdi %#p error %#x %s\n",
 					tdi, err, iso->err);
-				diprint("ctlr load %uld\n", ctlr->load);
+				diprint("ctlr load %lu\n", ctlr->load);
 			}
 			tdi->ndata = 0;
 		}else
@@ -889,7 +889,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 	if(qh->tds == nil)
 		panic("qhinterrupt: no tds");
 	if((qh->tds->csw & Tdactive) == 0)
-		ddqprint("qhinterrupt port %#ux qh %#p p0 %#x p1 %#x\n",
+		ddqprint("qhinterrupt port %#x qh %#p p0 %#x p1 %#x\n",
 			ctlr->port, qh, INS(PORT(0)), INS(PORT(1)));
 	for(td = qh->tds; td != nil; td = td->next){
 		if(td->csw & Tdactive)
@@ -900,9 +900,9 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 			/* just stalled is end of xfer but not an error */
 			if(err != Tdstalled && qh->io->err == nil){
 				qh->io->err = errmsg(td->csw & Tderrors);
-				dqprint("qhinterrupt: td %#p error %#ux %s\n",
+				dqprint("qhinterrupt: td %#p error %#x %s\n",
 					td, err, qh->io->err);
-				dqprint("ctlr load %uld\n", ctlr->load);
+				dqprint("ctlr load %lu\n", ctlr->load);
 			}
 			break;
 		}
@@ -952,14 +952,14 @@ interrupt(Ureg *ureg, void *a)
 	OUTS(Status, sts & Sall);
 	cmd = INS(Cmd);
 	if(cmd & Crun == 0){
-		print("uhci %#ux: not running: uhci bug?\n", ctlr->port);
+		print("uhci %#x: not running: uhci bug?\n", ctlr->port);
 		/* BUG: should abort everything in this case */
 	}
 	if(debug > 1){
 		frptr = INL(Flbaseadd);
 		frno = INL(Frnum);
 		frno = TRUNC(frno, Nframes);
-		print("cmd %#ux sts %#ux frptr %#ux frno %d\n",
+		print("cmd %#x sts %#x frptr %#x frno %d\n",
 			cmd, sts, frptr, frno);
 	}
 	ctlr->ntdintr++;
@@ -1228,7 +1228,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t load)
 	int timedout;
 
 	qh = io->qh;
-	ddqprint("uhci io %#p sleep on qh %#p state %uld\n", io, qh, qh->state);
+	ddqprint("uhci io %#p sleep on qh %#p state %lu\n", io, qh, qh->state);
 	timedout = 0;
 	if(waserror()){
 		dqprint("uhci io %#p qh %#p timed out\n", io, qh);
@@ -1285,7 +1285,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	ctlr = ep->hp->Hciimpl.aux;
 	io->debug = ep->debug;
 	tmout = ep->tmout;
-	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
+	ddeprint("epio: %s ep%d.%d io %#p count %ld load %lu\n",
 		io->tok == Tdtokin ? "in" : "out",
 		ep->dev->nb, ep->nb, io, count, ctlr->load);
 	if((debug > 1 || ep->debug > 1) && io->tok != Tdtokin){
@@ -1333,7 +1333,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 		panic("epio: no td");
 
 	ltd->csw |= Tdioc;	/* the last one interrupts */
-	ddeprint("uhci: load %uld ctlr load %uld\n", load, ctlr->load);
+	ddeprint("uhci: load %lu ctlr load %lu\n", load, ctlr->load);
 	ilock(&ctlr->l);
 	if(qh->state != Qclose){
 		io->iotime = TK2MS(machp()->ticks);
@@ -1655,7 +1655,7 @@ isoopen(Ep *ep)
 		print("usb: uhci: bandwidth may be exceeded\n");
 	ctlr->load += ep->load;
 	ctlr->isoload += ep->load;
-	dprint("uhci: load %uld isoload %uld\n", ctlr->load, ctlr->isoload);
+	dprint("uhci: load %lu isoload %lu\n", ctlr->load, ctlr->isoload);
 	iunlock(&ctlr->l);
 
 	/*
@@ -2012,7 +2012,7 @@ portenable(Hci *hp, int port, int on)
 	microdelay(64);
 	iunlock(&ctlr->l);
 	tsleep(&up->sleep, return0, 0, Enabledelay);
-	dprint("uhci %#ux port %d enable=%d: sts %#x\n",
+	dprint("uhci %#x port %d enable=%d: sts %#x\n",
 		ctlr->port, port, on, INS(ioport));
 	qunlock(&ctlr->portlck);
 	poperror();
@@ -2028,7 +2028,7 @@ portreset(Hci *hp, int port, int on)
 	if(on == 0)
 		return 0;
 	ctlr = hp->Hciimpl.aux;
-	dprint("uhci: %#ux port %d reset\n", ctlr->port, port);
+	dprint("uhci: %#x port %d reset\n", ctlr->port, port);
 	p = PORT(port-1);
 	ilock(&ctlr->l);
 	OUTS(p, PSreset);
@@ -2040,7 +2040,7 @@ portreset(Hci *hp, int port, int on)
 		;
 	OUTS(p, (INS(p) & ~PSreset)|PSenable);
 	iunlock(&ctlr->l);
-	dprint("uhci %#ux after port %d reset: sts %#x\n",
+	dprint("uhci %#x after port %d reset: sts %#x\n",
 		ctlr->port, port, INS(p));
 	return 0;
 }
@@ -2066,7 +2066,7 @@ portstatus(Hci *hp, int port)
 	s = INS(ioport);
 	if(s & (PSstatuschg | PSchange)){
 		OUTS(ioport, s);
-		ddprint("uhci %#ux port %d status %#x\n", ctlr->port, port, s);
+		ddprint("uhci %#x port %d status %#x\n", ctlr->port, port, s);
 	}
 	iunlock(&ctlr->l);
 	qunlock(&ctlr->portlck);
@@ -2126,15 +2126,15 @@ scanpci(void)
 			continue;
 		}
 		if(ioalloc(io, p->mem[4].size, 0, "usbuhci") < 0){
-			print("usbuhci: port %#ux in use\n", io);
+			print("usbuhci: port %#x in use\n", io);
 			continue;
 		}
 		if(p->intl == 0xFF || p->intl == 0){
-			print("usbuhci: no irq assigned for port %#ux\n", io);
+			print("usbuhci: no irq assigned for port %#x\n", io);
 			continue;
 		}
 
-		dprint("uhci: %#x %#x: port %#ux size %#x irq %d\n",
+		dprint("uhci: %#x %#x: port %#x size %#x irq %d\n",
 			p->vid, p->did, io, p->mem[4].size, p->intl);
 
 		ctlr = malloc(sizeof(Ctlr));
@@ -2187,7 +2187,7 @@ uhcimeminit(Ctlr *ctlr)
 		ctlr->frames[i] = PCIWADDR(ctlr->qhs)|QHlinkqh;
 	OUTL(Flbaseadd, PCIWADDR(ctlr->frames));
 	OUTS(Frnum, 0);
-	dprint("uhci %#ux flb %#ulx frno %#ux\n", ctlr->port,
+	dprint("uhci %#x flb %#lx frno %#x\n", ctlr->port,
 		INL(Flbaseadd), INS(Frnum));
 }
 
@@ -2199,20 +2199,20 @@ init(Hci *hp)
 	int i;
 
 	ctlr = hp->Hciimpl.aux;
-	dprint("uhci %#ux init\n", ctlr->port);
+	dprint("uhci %#x init\n", ctlr->port);
 	coherence();
 	ilock(&ctlr->l);
 	OUTS(Usbintr, Itmout|Iresume|Ioc|Ishort);
 	uhcirun(ctlr, 1);
-	dprint("uhci: init: cmd %#ux sts %#ux sof %#ux",
+	dprint("uhci: init: cmd %#x sts %#x sof %#x",
 		INS(Cmd), INS(Status), INS(SOFmod));
-	dprint(" flb %#ulx frno %#ux psc0 %#ux psc1 %#ux",
+	dprint(" flb %#lx frno %#x psc0 %#x psc1 %#x",
 		INL(Flbaseadd), INS(Frnum), INS(PORT(0)), INS(PORT(1)));
 	/* guess other ports */
 	for(i = 2; i < 6; i++){
 		sts = INS(PORT(i));
 		if(sts != 0xFFFF && (sts & PSreserved1) == 1){
-			dprint(" psc%d %#ux", i, sts);
+			dprint(" psc%d %#x", i, sts);
 			hp->nports++;
 		}else
 			break;
@@ -2229,7 +2229,7 @@ uhcireset(Ctlr *ctlr)
 	int sof;
 
 	ilock(&ctlr->l);
-	dprint("uhci %#ux reset\n", ctlr->port);
+	dprint("uhci %#x reset\n", ctlr->port);
 
 	/*
 	 * Turn off legacy mode. Some controllers won't

@@ -248,7 +248,7 @@ dumpclock(Vga* vga, Ctlr* ctlr, uint32_t fref, uint32_t m, uint32_t n,
 		break;
 	}
 	printitem(ctlr->name, name);
-	Bprint(&stdout, "%12lud\n", f);
+	Bprint(&stdout, "%12lu\n", f);
 }
 
 static void

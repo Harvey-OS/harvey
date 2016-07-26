@@ -139,6 +139,7 @@ void	pcireset(void);
 void	pcisetbme(Pcidev*);
 void	pcisetmwi(Pcidev*);
 int	pcisetpms(Pcidev*, int);
+void pcishowdev(Pcidev*);
 int	pickcore(int, int);
 void	printcpufreq(void);
 void	putac(Mach*);
@@ -236,6 +237,7 @@ extern int apicisr(int);
 extern int apiconline(void);
 extern void apicpri(int);
 extern void apicsipi(int, uintmem);
+extern void apicnmi(int, int, int);
 
 extern void ioapicinit(int, uintmem);
 extern void ioapicintrinit(int, int, int, int, uint32_t);

@@ -25,10 +25,10 @@ netresp(char *key, int32_t chal, char *answer)
 	uint8_t buf[8];
 
 	memset(buf, 0, sizeof buf);
-	snprint((char *)buf, sizeof buf, "%lud", chal);
+	snprint((char *)buf, sizeof buf, "%lu", chal);
 	if(encrypt(key, buf, 8) < 0)
 		abort();
-	sprint(answer, "%.8ux", buf[0]<<24 | buf[1]<<16 | buf[2]<<8 | buf[3]);
+	sprint(answer, "%.8x", buf[0]<<24 | buf[1]<<16 | buf[2]<<8 | buf[3]);
 }
 
 AuthInfo*

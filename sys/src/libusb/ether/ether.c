@@ -251,7 +251,7 @@ dumpframe(char *tag, void *p, int n)
 	s = seprintaddr(s, se, ep->s);
 	s = seprint(s, se, " -> ");
 	s = seprintaddr(s, se, ep->d);
-	s = seprint(s, se, " type 0x%02ux%02ux ", ep->type[0], ep->type[1]);
+	s = seprint(s, se, " type 0x%02x%02x ", ep->type[0], ep->type[1]);
 	n -= Eaddrlen * 2 + 2;
 	for(i = 0; i < n && i < 16; i++)
 		s = seprint(s, se, "%02x", ep->data[i]);

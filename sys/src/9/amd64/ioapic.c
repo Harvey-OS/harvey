@@ -119,7 +119,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 				busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
-		DBG("dup rdt %d %d %d %d %.8ux\n", busno, apicno, intin, devno, lo);
+		DBG("dup rdt %d %d %d %d %.8x\n", busno, apicno, intin, devno, lo);
 	}
 	rdt->ref++;
 	rbus = malloc(sizeof *rbus);
@@ -183,7 +183,7 @@ ioapicdump(void)
 			lock(&apic->Ioapic.l);
 			rtblget(apic, n, &hi, &lo);
 			unlock(&apic->Ioapic.l);
-			print(" rdt %2.2d %#8.8ux %#8.8ux\n", n, hi, lo);
+			print(" rdt %2.2d %#8.8x %#8.8x\n", n, hi, lo);
 		}
 	}
 	for(i = 0; i < Nbus; i++){
@@ -192,7 +192,7 @@ ioapicdump(void)
 		print("iointr bus %d:\n", i);
 		for(; rbus != nil; rbus = rbus->next){
 			rdt = rbus->rdt;
-			print(" apic %ld devno %#ux (%d %d) intin %d lo %#ux ref %d\n",
+			print(" apic %ld devno %#x (%d %d) intin %d lo %#x ref %d\n",
 				rdt->apic-xioapic, rbus->devno, rbus->devno>>2,
 				rbus->devno & 0x03, rdt->intin, rdt->lo, rdt->ref);
 		}
@@ -322,7 +322,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 	v->type = "msi";
 	v->mask = msimask;
 
-	DBG("msiirq: %T: enabling %.16llux %s irq %d vno %d\n", p->tbdf, msivec, v->name, v->Vkey.irq, vno);
+	DBG("msiirq: %T: enabling %.16llx %s irq %d vno %d\n", p->tbdf, msivec, v->name, v->Vkey.irq, vno);
 	return vno;
 }
 
@@ -361,8 +361,10 @@ ioapicintrenable(Vctl* v)
 			 */
 			extern int mpisabusno;
 
-			if(mpisabusno == -1)
-				panic("no ISA bus allocated");
+			if(mpisabusno == -1) {
+				print("no ISA bus allocated");
+				return -1;
+			}
 			busno = mpisabusno;
 			devno = v->Vkey.irq<<2;
 		}
@@ -376,27 +378,29 @@ ioapicintrenable(Vctl* v)
 
 		busno = BUSBNO(v->Vkey.tbdf);
 		if((pcidev = pcimatchtbdf(v->Vkey.tbdf)) == nil)
-			panic("no PCI dev for tbdf %#8.8ux\n", v->Vkey.tbdf);
+			panic("no PCI dev for tbdf %#8.8x\n", v->Vkey.tbdf);
 		if((vecno = intrenablemsi(v, pcidev)) != -1)
 			return vecno;
 		disablemsi(v, pcidev);
 		if((devno = pcicfgr8(pcidev, PciINTP)) == 0)
-			panic("no INTP for tbdf %#8.8ux\n", v->Vkey.tbdf);
+			panic("no INTP for tbdf %#8.8x\n", v->Vkey.tbdf);
 		devno = BUSDNO(v->Vkey.tbdf)<<2|(devno-1);
-		DBG("ioapicintrenable: tbdf %#8.8ux busno %d devno %d\n",
+		DBG("ioapicintrenable: tbdf %#8.8x busno %d devno %d\n",
 			v->Vkey.tbdf, busno, devno);
 	}
 	else{
 		SET(busno); SET(devno);
-		panic("unknown tbdf %#8.8ux\n", v->Vkey.tbdf);
+		panic("unknown tbdf %#8.8x\n", v->Vkey.tbdf);
 	}
 
 	rdt = nil;
-	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
+	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next) {
+print("IOAPIC: find it, rbus->devno %d devno %d\n", rbus->devno, devno);
 		if(rbus->devno == devno){
 			rdt = rbus->rdt;
 			break;
 		}
+	}
 	if(rdt == nil){
 		extern int mpisabusno;
 
@@ -406,6 +410,7 @@ ioapicintrenable(Vctl* v)
 		 * just defaulted to ISA.
 		 * Rewrite this to be cleaner.
 		 */
+print("TRY 2!\n");
 		if((busno = mpisabusno) == -1)
 			return -1;
 		devno = v->Vkey.irq<<2;
@@ -414,7 +419,7 @@ ioapicintrenable(Vctl* v)
 				rdt = rbus->rdt;
 				break;
 			}
-		DBG("isa: tbdf %#8.8ux busno %d devno %d %#p\n",
+		DBG("isa: tbdf %#8.8x busno %d devno %d %#p\n",
 			v->Vkey.tbdf, busno, devno, rdt);
 	}
 	if(rdt == nil)
@@ -448,7 +453,7 @@ ioapicintrenable(Vctl* v)
 	vecno = lo & 0xff;
 	unlock(&rdt->apic->Ioapic.l);
 
-	DBG("busno %d devno %d hi %#8.8ux lo %#8.8ux vecno %d\n",
+	DBG("busno %d devno %d hi %#8.8x lo %#8.8x vecno %d\n",
 		busno, devno, hi, lo, vecno);
 	v->isr = apicisr;
 	v->eoi = apiceoi;

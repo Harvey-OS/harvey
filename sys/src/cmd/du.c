@@ -38,7 +38,7 @@ int	sflag;
 int	tflag;
 int	uflag;
 
-char	*fmt = "%llud\t%q\n";
+char	*fmt = "%llu\t%q\n";
 char	*readbuf;
 int64_t	blocksize = Vkilo;	/* actually more likely to be 4K or 8K */
 int64_t	unit;			/* scale factor for output */

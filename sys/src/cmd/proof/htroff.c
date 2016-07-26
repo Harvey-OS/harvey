@@ -299,7 +299,7 @@ readpage(void)
 			devcntrl();
 			break;
 		default:
-			fprint(2, "unknown input character %o %c at offset %lud\n", c, c, offsetc());
+			fprint(2, "unknown input character %o %c at offset %lu\n", c, c, offsetc());
 			exits("bad char");
 		}
 	}

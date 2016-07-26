@@ -514,7 +514,7 @@ gettracknwa(Drive *drive, int t, uint32_t beg, uint8_t *resp)
 			fprint(2, "invis track starts blk %ld but nwa is %ld\n",
 				beg, aux->mmcnwa);
 	if (vflag && aux->mmcnwa >= 0)
-		print(" nwa %lud", aux->mmcnwa);
+		print(" nwa %lu", aux->mmcnwa);
 	return 0;
 }
 
@@ -604,7 +604,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	}
 
 	if(vflag)
-		print(" start %lud end %lud", beg, beg + size - 1);
+		print(" start %lu end %lu", beg, beg + size - 1);
 	gettracknwa(drive, t, beg, resp);
 	if (vflag)
 		print("\n");
@@ -1213,7 +1213,7 @@ alltrackinfo(Drive *drive, int first, int last)
 		else
 			drive->laysfx = "";		/* 25GB nominal */
 		if (vflag)
-			fprint(2, "capacity %,lud sectors (%,lld bytes); bd%s\n",
+			fprint(2, "capacity %,lu sectors (%,lld bytes); bd%s\n",
 				track->end, cap, drive->laysfx);
 		if (osfx == nil || strcmp(osfx, drive->laysfx) != 0)
 			drive->relearn = 1;
@@ -1521,7 +1521,7 @@ mmcread(Buf *buf, void *v, int32_t nblock, uint32_t off)
 		if(nn != -1)
 			werrstr("short read %ld/%ld", nn, n);
 		if(vflag)
-			print("read off %lud nblock %ld bs %d failed\n",
+			print("read off %lu nblock %ld bs %d failed\n",
 				off, nblock, bs);
 		return -1;
 	}
@@ -1741,7 +1741,7 @@ reserve(Drive *drive, int track)
 	}
 	sz -= sz % Eccblk;		/* round down to ecc-block multiple */
 	if ((int32_t)sz < 0) {
-		fprint(2, "%s: reserve: bogus size %lud\n", argv0, sz);
+		fprint(2, "%s: reserve: bogus size %lu\n", argv0, sz);
 		return -1;
 	}
 	cmd[1] = 0;			/* no ASRV: allocate by size not lba */

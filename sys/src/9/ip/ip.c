@@ -371,7 +371,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		hl = (h->vihl&0xF)<<2;
 		if(hl < (IP_HLEN4<<2)) {
 			ip->stats[InHdrErrors]++;
-			netlog(f, Logip, "ip: %V bad hivl %ux\n", h->src, h->vihl);
+			netlog(f, Logip, "ip: %V bad hivl %x\n", h->src, h->vihl);
 			freeblist(bp);
 			return;
 		}
@@ -475,7 +475,7 @@ ipstats(Fs *f, char *buf, int len)
 	p = buf;
 	e = p+len;
 	for(i = 0; i < Nipstats; i++)
-		p = seprint(p, e, "%s: %llud\n", statnames[i], ip->stats[i]);
+		p = seprint(p, e, "%s: %llu\n", statnames[i], ip->stats[i]);
 	return p - buf;
 }
 

@@ -71,7 +71,7 @@ ospfauth(Ospfpkt *ospf)
 	case 0:
 		return "no authentication";
 	case 1:
-		sprint(auth, "password(%8.8ux %8.8ux)", NetL(ospf->auth),	
+		sprint(auth, "password(%8.8x %8.8x)", NetL(ospf->auth),	
 			NetL(ospf->auth+4));
 		break;
 	case 2:
@@ -79,7 +79,7 @@ ospfauth(Ospfpkt *ospf)
 			ospf->auth[2], ospf->auth[3]);
 		break;
 	default:
-		sprint(auth, "auth%d(%8.8ux %8.8ux)", NetS(ospf->autype), NetL(ospf->auth),	
+		sprint(auth, "auth%d(%8.8x %8.8x)", NetS(ospf->autype), NetL(ospf->auth),	
 			NetL(ospf->auth+4));
 	}
 	return auth;
@@ -103,7 +103,7 @@ seprintospfhello(char *p, char *e, void *a)
 {
 	Ospfhello *h = a;
 
-	return seprint(p, e, "%s(mask %V interval %d opt %ux pri %ux deadt %d designated %V bdesignated %V)",
+	return seprint(p, e, "%s(mask %V interval %d opt %x pri %x deadt %d designated %V bdesignated %V)",
 		ospftype[OSPFhello],
 		h->mask, NetS(h->interval), h->options, h->pri,
 		NetL(h->deadint), h->designated, h->bdesignated);
@@ -220,7 +220,7 @@ struct OspfLSupdpkt {
 char*
 seprintospflsaheader(char *p, char *e, struct OspfLSAhdr *h)
 {
-	return seprint(p, e, "age %d opt %ux type %ux lsid %V adv_rt %V seqno %ux c %4.4ux l %d",
+	return seprint(p, e, "age %d opt %x type %x lsid %V adv_rt %V seqno %x c %4.4x l %d",
 		NetS(h->lsage), h->options&0xff, h->lstype,
 		h->lsid, h->advtrt, NetL(h->lsseqno), NetS(h->lscksum),
 		NetS(h->lsalen));
@@ -305,7 +305,7 @@ seprintospflsupdate(char *p, char *e, void *a, int len)
 				h = &(g->as[i]);
 				p = seprint(p, e, " lsa%d(", i);
 				p = seprintospflsaheader(p, e, &(h->hdr));
-				p = seprint(p, e, " mask %V extflg %1.1ux met %d fwdaddr %V extrtflg %ux)",
+				p = seprint(p, e, " mask %V extflg %1.1x met %d fwdaddr %V extrtflg %x)",
 					h->netmask, h->lsa.flag, Net3(h->lsa.metric),
 					h->lsa.fwdaddr, NetL(h->lsa.exrttag));
 			}
@@ -356,7 +356,7 @@ p_seprint(Msg *m)
 		return -1;
 	x -= OSPF_HDRSIZE;
 
-	p = seprint(p, e, "ver=%d type=%d len=%d r=%V a=%V c=%4.4ux %s ",
+	p = seprint(p, e, "ver=%d type=%d len=%d r=%V a=%V c=%4.4x %s ",
 		ospf->version, ospf->type, x, 
 		ospf->router, ospf->area, NetS(ospf->sum),
 		ospfauth(ospf));

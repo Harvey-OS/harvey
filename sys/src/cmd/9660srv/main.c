@@ -219,7 +219,7 @@ io(int srvfd)
 		if(write(srvfd, mdata, n) != n)
 			panic(1, "mount write");
 		if(nerr_lab != 0)
-			panic(0, "err stack %d: %lux %lux %lux %lux %lux %lux", nerr_lab,
+			panic(0, "err stack %d: %lx %lx %lx %lx %lx %lx", nerr_lab,
 			err_lab[0][JMPBUFPC], err_lab[1][JMPBUFPC],
 			err_lab[2][JMPBUFPC], err_lab[3][JMPBUFPC],
 			err_lab[4][JMPBUFPC], err_lab[5][JMPBUFPC]);
@@ -554,7 +554,7 @@ showdir(int fd, Dir *s)
 	strcpy(m_time, ctime(s->mtime));
 	if(p=strchr(m_time, '\n'))	/* assign = */
 		*p = 0;
-	fprint(fd, "name=\"%s\" qid=(0x%llux,%lud) type=%d dev=%d \
+	fprint(fd, "name=\"%s\" qid=(0x%llux,%lu) type=%d dev=%d \
 mode=0x%8.8lux=0%luo atime=%s mtime=%s length=%lld uid=\"%s\" gid=\"%s\"...",
 		s->name, s->qid.path, s->qid.vers, s->type, s->dev,
 		s->mode, s->mode,

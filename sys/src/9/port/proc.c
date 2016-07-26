@@ -111,7 +111,6 @@ schedinit(void)		/* never returns */
 {
 	Proc *up;
 	Edf *e;
-
 	machp()->inidle = 1;
 	if(machp()->sch == nil){
 		print("schedinit: no sch for cpu%d\n", machp()->machno);
@@ -1249,7 +1248,7 @@ pexit(char *exitstr, int freemem)
 	if(0 && up->nfullq > 0)
 		iprint(" %s=%d", up->text, up->nfullq);
 	if(0 && up->nicc > 0)
-		iprint(" [%s nicc %ud tctime %ulld actime %ulld]\n",
+		iprint(" [%s nicc %u tctime %llu actime %llu]\n",
 			up->text, up->nicc, up->tctime, up->actime);
 	if(up->syscalltrace != nil)
 		free(up->syscalltrace);
@@ -1459,7 +1458,7 @@ dumpaproc(Proc *p)
 	s = p->psstate;
 	if(s == 0)
 		s = statename[p->state];
-	print("%3d:%10s pc %#p dbgpc %#p  %8s (%s) ut %ld st %ld bss %#p qpc %#p nl %d nd %lud lpc %#p pri %lud\n",
+	print("%3d:%10s pc %#p dbgpc %#p  %8s (%s) ut %ld st %ld bss %#p qpc %#p nl %d nd %lu lpc %#p pri %lu\n",
 		p->pid, p->text, p->pc, dbgpc(p), s, statename[p->state],
 		p->time[0], p->time[1], bss, p->qpc, p->nlocks,
 	      p->delaysched, p->lastlock ? 0/*p->lastlock->pc*/ : 0, p->priority);
@@ -1547,7 +1546,7 @@ scheddump(void)
 				continue;
 			print("sch%ld rq%ld:", sch - run, rq-sch->runq);
 			for(p = rq->head; p; p = p->rnext)
-				print(" %d(%lud)", p->pid, machp()->ticks - p->readytime);
+				print(" %d(%lu)", p->pid, machp()->ticks - p->readytime);
 			print("\n");
 			delay(150);
 		}

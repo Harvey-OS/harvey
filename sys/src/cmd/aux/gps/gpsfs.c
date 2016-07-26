@@ -479,7 +479,7 @@ readposn(Req *r)
 	lock(&fixlock);
 	memmove(&f, &curfix, sizeof f);
 	unlock(&fixlock);
-	snprint(buf, sizeof buf, "%x	%06dZ	%lud	%g	%g	%g	%g	%g	%g",
+	snprint(buf, sizeof buf, "%x	%06dZ	%lu	%g	%g	%g	%g	%g	%g",
 		gpsplayback|f.quality, (int)f.zulu, f.time, f.Place.lon, f.Place.lat, f.altitude - f.sealevel,
 		f.course, f.groundspeed, f.magvar);
 	readstr(r, buf);
@@ -495,7 +495,7 @@ readtime(Req *r)
 	lock(&fixlock);
 	memmove(&f, &curfix, sizeof f);
 	unlock(&fixlock);
-	seprint(buf, buf + sizeof buf, "%*.0lud %*.0llud %*.0llud %c",
+	seprint(buf, buf + sizeof buf, "%*.0lu %*.0llu %*.0llu %c",
 		Numsize-1, f.time,
 		Vlnumsize-1, f.gpstime,
 		Vlnumsize-1, f.localtime, f.valid + (gpsplayback?1:0));
@@ -512,7 +512,7 @@ readstats(Req *r)
 	p = buf;
 	p = seprint(p, buf + sizeof buf, "%lld bytes read, %ld samples processed in %ld seconds\n",
 		rawin, seconds, curfix.time - starttime);
-	p = seprint(p, buf + sizeof buf, "%lud checksum errors\n", checksumerrors);
+	p = seprint(p, buf + sizeof buf, "%lu checksum errors\n", checksumerrors);
 	p = seprint(p, buf + sizeof buf, "format errors:");
 	for(i = 0; i < nelem(gpsmsg); i++){
 		p = seprint(p, buf + sizeof buf, "[%s]: %ld, ",
@@ -524,11 +524,11 @@ readstats(Req *r)
 			i, histo[i]);
 	}
 	p = seprint(p, buf + sizeof buf, "\n");
-	p = seprint(p, buf + sizeof buf, "bad/good/suspect lat: %lud/%lud/%lud\n",
+	p = seprint(p, buf + sizeof buf, "bad/good/suspect lat: %lu/%lu/%lu\n",
 		badlat, goodlat, suspectlat);
-	p = seprint(p, buf + sizeof buf, "bad/good/suspect lon: %lud/%lud/%lud\n",
+	p = seprint(p, buf + sizeof buf, "bad/good/suspect lon: %lu/%lu/%lu\n",
 		badlon, goodlon, suspectlon);
-	p = seprint(p, buf + sizeof buf, "good/suspect time: %lud/%lud\n", goodtime, suspecttime);
+	p = seprint(p, buf + sizeof buf, "good/suspect time: %lu/%lu\n", goodtime, suspecttime);
 	USED(p);
 	readstr(r, buf);
 	return nil;

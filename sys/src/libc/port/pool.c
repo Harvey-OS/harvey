@@ -592,10 +592,10 @@ poolnewarena(Pool *p, uint32_t asize)
 	Arena *ap, *lastap;
 	Alloc *b;
 
-	LOG(p, "newarena %lud\n", asize);
+	LOG(p, "newarena %lu\n", asize);
 	if(p->cursize+asize > p->maxsize) {
 		if(poolcompactl(p) == 0){
-			LOG(p, "pool too big: %lud+%lud > %lud\n",
+			LOG(p, "pool too big: %lu+%lu > %lu\n",
 				p->cursize, asize, p->maxsize);
 			werrstr("memory pool too large");
 		}
@@ -716,11 +716,11 @@ dumpblock(Pool *p, Bhdr *b)
 	uint8_t *cp;
 
 	dp = (uint32_t*)b;
-	p->print(p, "pool %s block %p\nhdr %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux\n",
+	p->print(p, "pool %s block %p\nhdr %.8lx %.8lx %.8lx %.8lx %.8lx %.8lx\n",
 		p->name, b, dp[0], dp[1], dp[2], dp[3], dp[4], dp[5], dp[6]);
 
 	dp = (uint32_t*)B2T(b);
-	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux | %.8lux %.8lux\n",
+	p->print(p, "tail %.8lx %.8lx %.8lx %.8lx %.8lx %.8lx | %.8lx %.8lx\n",
 		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1], dp[0], dp[1]);
 
 	if(b->magic == ALLOC_MAGIC){
@@ -730,9 +730,9 @@ dumpblock(Pool *p, Bhdr *b)
 
 		cp = (uint8_t*)_B2D(b)+dsize;
 		p->print(p, "user data ");
-		p->print(p, "%.2ux %.2ux %.2ux %.2ux  %.2ux %.2ux %.2ux %.2ux",
+		p->print(p, "%.2x %.2x %.2x %.2x  %.2x %.2x %.2x %.2x",
 			cp[-8], cp[-7], cp[-6], cp[-5], cp[-4], cp[-3], cp[-2], cp[-1]);
-		p->print(p, " | %.2ux %.2ux %.2ux %.2ux  %.2ux %.2ux %.2ux %.2ux\n",
+		p->print(p, " | %.2x %.2x %.2x %.2x  %.2x %.2x %.2x %.2x\n",
 			cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]);
 	}
 }
@@ -1145,7 +1145,7 @@ poolallocalignl(Pool *p, uint32_t dsize, uint32_t align, long offset,
 		c = alignptr(c, align, offset);
 		if((uintptr)c/span != (uintptr)(c+dsize-1)/span){
 			poolfreel(p, v);
-			werrstr("cannot satisfy dsize %lud span %lud with align %lud+%ld", dsize, span, align, offset);
+			werrstr("cannot satisfy dsize %lu span %lu with align %lu+%ld", dsize, span, align, offset);
 			return nil;
 		}
 	}
@@ -1228,7 +1228,7 @@ poolalloc(Pool *p, uint32_t n)
 		pooldumpl(p);
 	}
 	if(p->logstack && (p->flags & POOL_LOGGING)) p->logstack(p);
-	LOG(p, "poolalloc %p %lud = %p\n", p, n, v);
+	LOG(p, "poolalloc %p %lu = %p\n", p, n, v);
 	p->unlock(p);
 	return v;
 }
@@ -1254,7 +1254,7 @@ poolallocalign(Pool *p, uint32_t n, uint32_t align, int32_t offset,
 		pooldumpl(p);
 	}
 	if(p->logstack && (p->flags & POOL_LOGGING)) p->logstack(p);
-	LOG(p, "poolalignspanalloc %p %lud %lud %lud %ld = %p\n", p, n, align, span, offset, v);
+	LOG(p, "poolalignspanalloc %p %lu %lu %lu %ld = %p\n", p, n, align, span, offset, v);
 	p->unlock(p);
 	return v;
 }
@@ -1438,7 +1438,7 @@ pooldumparena(Pool *p, Arena *a)
 	Bhdr *b;
 
 	for(b=&a->Bhdr; b->magic != ARENATAIL_MAGIC; b=B2NB(b))
-		p->print(p, "(%p %.8lux %lud)", b, b->magic, b->size);
+		p->print(p, "(%p %.8lx %lu)", b, b->magic, b->size);
 	p->print(p, "\n");
 }
 

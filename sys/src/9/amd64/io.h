@@ -352,6 +352,7 @@ struct Pcidev
 		int	size;
 	} rom;
 	unsigned char	intl;		/* interrupt line */
+	unsigned char	intp;		/* interrupt pin */
 
 	Pcidev*	list;
 	Pcidev*	link;				/* next device on this bno */

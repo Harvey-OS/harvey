@@ -146,7 +146,7 @@ getphy(Dev *d)
 
 	if(asixget(d, Crphy, buf, sizeof(buf)) < 0)
 		return -1;
-	deprint(2, "%s: phy addr %#ux\n", argv0, buf[1]);
+	deprint(2, "%s: phy addr %#x\n", argv0, buf[1]);
 	return buf[1];
 }
 

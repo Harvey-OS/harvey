@@ -202,7 +202,7 @@ fidGet(Con* con, uint32_t fidno, int flags)
 		 */
 		if(flags & FidFCreate){
 			vtUnlock(con->fidlock);
-			vtSetError("%s: fid 0x%ud in use", argv0, fidno);
+			vtSetError("%s: fid 0x%u in use", argv0, fidno);
 			return nil;
 		}
 		fid->ref++;

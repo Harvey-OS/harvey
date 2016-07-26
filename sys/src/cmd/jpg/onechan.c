@@ -119,7 +119,7 @@ load(Image *image, Memimage *memimage)
 
 	switch(chan){
 	default:
-		werrstr("can't handle image type 0x%lux", chan);
+		werrstr("can't handle image type 0x%lx", chan);
 		goto Err;
 	case RGB16:
 		for(i=0; i<ri.chanlen; i++, p+=2){

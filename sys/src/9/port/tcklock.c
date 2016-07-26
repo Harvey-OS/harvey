@@ -117,7 +117,7 @@ lockloop(Lock *l, uintptr_t pc)
 	Proc *p;
 
 	p = l->p;
-	print("lock %#p loop key %#ux pc %#p held by pc %#p proc %d\n",
+	print("lock %#p loop key %#x pc %#p held by pc %#p proc %d\n",
 		l, l->key, pc, l->pc, p ? p->pid : 0);
 	dumpaproc(up);
 	if(p != nil)

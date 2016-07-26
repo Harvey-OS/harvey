@@ -15,6 +15,7 @@
 			"-DKERNDATE=1433623937",
 			"-g",
 			"-Wall",
+			"-Werror",
 			"-W",
 			"-Wno-sign-compare",
 			"-Wno-missing-field-initializers",
@@ -62,6 +63,7 @@
 			"clean.json",
 			"../boot/bootconf.json",
 			"inith.json",
+			"/sys/src/libacpi/acpica/klibacpi.json",
 			"/sys/src/libmemdraw/klibmemdraw.json",
 			"/sys/src/libdraw/klibdraw.json"
 		],

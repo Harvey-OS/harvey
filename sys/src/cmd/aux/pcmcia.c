@@ -62,7 +62,7 @@ readc(void *x)
 	pos++;
 	rv = read(fd, x, 1);
 	if(hex)
-		print("%2.2ux ", *(uint8_t*)x);
+		print("%2.2x ", *(uint8_t*)x);
 	return rv;
 }
 
@@ -77,10 +77,10 @@ tuple(int next, int expect)
 		return -1;
 	if(type == 0xff)
 		return -1;
-print("type %.2uX\n", type & 0xff);
+print("type %.2X\n", type & 0xff);
 
 	if(expect && expect != type){
-		print("expected %.2uX found %.2uX\n", 
+		print("expected %.2X found %.2X\n", 
 			expect, type);
 		return -1;
 	}
@@ -350,7 +350,7 @@ tcfig(int ttype, int len)
 	print("configuration registers at");
 	for(i = 0; i < 16; i++)
 		if((1<<i) & cregs)
-			print(" (%d)0x%lux", i, caddr + i*2);
+			print(" (%d)0x%lx", i, caddr + i*2);
 	print("\n");
 }
 
@@ -488,7 +488,7 @@ range(int asize, int lsize)
 
 	address = getlong(asize);
 	len = getlong(lsize);
-	print("\t\t%lux - %lux\n", address, address+len);
+	print("\t\t%lx - %lx\n", address, address+len);
 }
 
 char *ioaccess[4] =
@@ -560,10 +560,10 @@ memspace(int asize, int lsize, int host)
 	address = getlong(asize)*256;
 	if(host){
 		haddress = getlong(asize)*256;
-		print("\tmemory address range 0x%lux - 0x%lux hostaddr 0x%lux\n",
+		print("\tmemory address range 0x%lx - 0x%lx hostaddr 0x%lx\n",
 			address, address+len, haddress);
 	} else
-		print("\tmemory address range 0x%lux - 0x%lux\n", address, address+len);
+		print("\tmemory address range 0x%lx - 0x%lx\n", address, address+len);
 }
 
 void

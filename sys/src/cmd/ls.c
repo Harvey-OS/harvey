@@ -174,12 +174,12 @@ dowidths(Dir *db)
 	int n;
 
 	if(sflag) {
-		n = sprint(buf, "%llud", (db->length+1023)/1024);
+		n = sprint(buf, "%llu", (db->length+1023)/1024);
 		if(n > swidth)
 			swidth = n;
 	}
 	if(qflag) {
-		n = sprint(buf, "%lud", db->qid.vers);
+		n = sprint(buf, "%lu", db->qid.vers);
 		if(n > qwidth)
 			qwidth = n;
 	}
@@ -189,7 +189,7 @@ dowidths(Dir *db)
 			mwidth = n;
 	}
 	if(lflag) {
-		n = sprint(buf, "%ud", db->dev);
+		n = sprint(buf, "%u", db->dev);
 		if(n > vwidth)
 			vwidth = n;
 		n = sprint(buf, "%q", db->uid);
@@ -198,7 +198,7 @@ dowidths(Dir *db)
 		n = sprint(buf, "%q", db->gid);
 		if(n > gwidth)
 			gwidth = n;
-		n = sprint(buf, "%llud", db->length);
+		n = sprint(buf, "%llu", db->length);
 		if(n > lwidth)
 			lwidth = n;
 	}
@@ -222,7 +222,7 @@ format(Dir *db, char *name)
 	int i;
 
 	if(sflag)
-		Bprint(&bin, "%*llud ",
+		Bprint(&bin, "%*llu ",
 			swidth, (db->length+1023)/1024);
 	if(mflag){
 		Bprint(&bin, "[%q] ", db->muid);
@@ -230,7 +230,7 @@ format(Dir *db, char *name)
 			Bprint(&bin, " ");
 	}
 	if(qflag)
-		Bprint(&bin, "(%.16llux %*lud %.2ux) ",
+		Bprint(&bin, "(%.16llx %*lu %.2x) ",
 			db->qid.path,
 			qwidth, db->qid.vers,
 			db->qid.type);
@@ -238,7 +238,7 @@ format(Dir *db, char *name)
 		Bprint(&bin, "%c ", (db->mode&DMTMP)? 't': '-');
 
 	if(lflag)
-		Bprint(&bin, "%M %C %*ud %*q %*q %*llud %s ",
+		Bprint(&bin, "%M %C %*u %*q %*q %*llu %s ",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,

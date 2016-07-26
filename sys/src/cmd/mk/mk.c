@@ -78,12 +78,12 @@ work(Node *node, Node *p, Arc *parc)
 	int did = 0;
 	char cwd[256];
 
-	/*print("work(%s) flags=0x%x time=%lud\n", node->name, node->flags, node->time);/**/
+	/*print("work(%s) flags=0x%x time=%lu\n", node->name, node->flags, node->time);/**/
 	if(node->flags&BEINGMADE)
 		return(did);
 	if((node->flags&MADE) && (node->flags&PRETENDING) && p && outofdate(p, parc, 0)){
 		if(explain)
-			fprint(1, "unpretending %s(%lud) because %s is out of date(%lud)\n",
+			fprint(1, "unpretending %s(%lu) because %s is out of date(%lu)\n",
 				node->name, node->time, p->name, p->time);
 		unpretend(node);
 	}
@@ -151,7 +151,7 @@ work(Node *node, Node *p, Arc *parc)
 		node->flags &= ~CANPRETEND;
 		MADESET(node, MADE);
 		if(explain && ((node->flags&PRETENDING) == 0))
-			fprint(1, "pretending %s has time %lud\n", node->name, node->time);
+			fprint(1, "pretending %s has time %lu\n", node->name, node->time);
 		node->flags |= PRETENDING;
 		return(did);
 	}
@@ -193,7 +193,7 @@ update(int fake, Node *node)
 			if(a->n && outofdate(node, a, 1))
 				node->time = a->n->time;
 	}
-/*	print("----node %s time=%lud flags=0x%x\n", node->name, node->time, node->flags);/**/
+/*	print("----node %s time=%lu flags=0x%x\n", node->name, node->time, node->flags);/**/
 }
 
 static

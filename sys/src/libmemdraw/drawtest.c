@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 	stmp = allocmemimage(Rect(0, 0, Xrange, Yrange), strtochan(schan));
 	mtmp = allocmemimage(Rect(0, 0, Xrange, Yrange), strtochan(mchan));
 	ones = allocmemimage(Rect(0, 0, Xrange, Yrange), strtochan(mchan));
-//	print("chan %lux %lux %lux %lux %lux %lux\n", dst->chan, src->chan, mask->chan, stmp->chan, mtmp->chan, ones->chan);
+//	print("chan %lx %lx %lx %lx %lx %lx\n", dst->chan, src->chan, mask->chan, stmp->chan, mtmp->chan, ones->chan);
 	if(dst==0 || src==0 || mask==0 || mtmp==0 || ones==0) {
 	Alloc:
 		fprint(2, "dtest: allocation failed: %r\n");
@@ -209,11 +209,11 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 	case 2:
 	case 4:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.1ux";
+		arg = "%.1x";
 		break;
 	case 8:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.2ux";
+		arg = "%.2x";
 		break;
 	case 16:
 		arg = nil;
@@ -221,16 +221,16 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 			fmt = Bprintr5g6b5;
 		else{
 			fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-			arg = "%.4ux";
+			arg = "%.4x";
 		}
 		break;
 	case 24:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.6lux";
+		arg = "%.6lx";
 		break;
 	case 32:
 		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
-		arg = "%.8lux";
+		arg = "%.8lx";
 		break;
 	}
 	if(fmt == nil){
@@ -272,7 +272,7 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 				nb += 8;
 			}
 			nb -= bpp;
-//			print("bpp %d v %.8lux mask %.8lux nb %d\n", bpp, v, mask, nb);
+//			print("bpp %d v %.8lx mask %.8lx nb %d\n", bpp, v, mask, nb);
 			fmt(&b, arg, (v>>nb)&mask);
 		}
 		Bprint(&b, "\n");
@@ -297,7 +297,7 @@ checkone(Point p, Point sp, Point mp)
 
 	if(memcmp(dp, sdp, (dst->depth+7)/8) != 0) {
 		fprint(2, "dtest: one bad pixel drawing at dst %P from source %P mask %P\n", p, sp, mp);
-		fprint(2, " %.2ux %.2ux %.2ux %.2ux should be %.2ux %.2ux %.2ux %.2ux\n",
+		fprint(2, " %.2x %.2x %.2x %.2x should be %.2x %.2x %.2x %.2x\n",
 			dp[0], dp[1], dp[2], dp[3], sdp[0], sdp[1], sdp[2], sdp[3]);
 		fprint(2, "addresses dst %p src %p mask %p\n", dp, byteaddr(src, sp), byteaddr(mask, mp));
 		dumpimage("src", src, src->data->bdata, sp);
@@ -855,7 +855,7 @@ getpixel(Memimage *img, Point pt)
 			case CIgnore:
 				break;
 			default:
-				fprint(2, "unknown channel type %lud\n", TYPE(c));
+				fprint(2, "unknown channel type %lu\n", TYPE(c));
 				abort();
 			}
 		}
@@ -912,7 +912,7 @@ putpixel(Memimage *img, Point pt, uint32_t nv)
 	p = byteaddr(img, pt);
 	v = p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24);
 	bpp = img->depth;
-DBG print("v %.8lux...", v);
+DBG print("v %.8lx...", v);
 	if(bpp < 8){
 		/*
 		 * Sub-byte greyscale pixels.  We need to skip the leftmost pt.x%npack pixels,
@@ -921,13 +921,13 @@ DBG print("v %.8lux...", v);
 		npack = 8/bpp;
 		sh = bpp*(npack - pt.x%npack - 1);
 		bits = RGB2K(r,g,b);
-DBG print("repl %lux 8 %d = %lux...", bits, bpp, replbits(bits, 8, bpp));
+DBG print("repl %lx 8 %d = %lx...", bits, bpp, replbits(bits, 8, bpp));
 		bits = replbits(bits, 8, bpp);
 		mask = (1<<bpp)-1;
-DBG print("bits %lux mask %lux sh %d...", bits, mask, sh);
+DBG print("bits %lx mask %lx sh %d...", bits, mask, sh);
 		mask <<= sh;
 		bits <<= sh;
-DBG print("(%lux & %lux) | (%lux & %lux)", v, ~mask, bits, mask);
+DBG print("(%lx & %lx) | (%lx & %lx)", v, ~mask, bits, mask);
 		v = (v & ~mask) | (bits & mask);
 	} else {
 		/*
@@ -961,22 +961,22 @@ DBG print("(%lux & %lux) | (%lux & %lux)", v, ~mask, bits, mask);
 				break;
 			default:
 				SET(bits);
-				fprint(2, "unknown channel type %lud\n", TYPE(c));
+				fprint(2, "unknown channel type %lu\n", TYPE(c));
 				abort();
 			}
 
-DBG print("repl %lux 8 %d = %lux...", bits, nbits, replbits(bits, 8, nbits));
+DBG print("repl %lx 8 %d = %lx...", bits, nbits, replbits(bits, 8, nbits));
 			if(TYPE(c) != CMap)
 				bits = replbits(bits, 8, nbits);
 			mask = (1<<nbits)-1;
-DBG print("bits %lux mask %lux sh %d...", bits, mask, sh);
+DBG print("bits %lx mask %lx sh %d...", bits, mask, sh);
 			bits <<= sh;
 			mask <<= sh;
 			v = (v & ~mask) | (bits & mask);
 			sh += nbits;
 		}
 	}
-DBG print("v %.8lux\n", v);
+DBG print("v %.8lx\n", v);
 	p[0] = v;
 	p[1] = v>>8;
 	p[2] = v>>16;

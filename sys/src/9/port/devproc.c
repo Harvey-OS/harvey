@@ -246,7 +246,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 
 		if((p = psincref(s)) == nil || (pid = p->pid) == 0)
 			return 0;
-		snprint(up->genbuf, sizeof up->genbuf, "%ud", pid);
+		snprint(up->genbuf, sizeof up->genbuf, "%u", pid);
 		/*
 		 * String comparison is done in devwalk so
 		 * name must match its formatted pid.
@@ -545,7 +545,7 @@ procopen(Chan *c, int omode)
 		poperror();
 		qunlock(&p->debug);
 		psdecref(p);
-		pprint("procopen %#llux\n", c->qid.path);
+		pprint("procopen %#llx\n", c->qid.path);
 		error(Egreg);
 	}
 
@@ -639,7 +639,7 @@ procqidwidth(Chan *c)
 {
 	char buf[32];
 
-	return sprint(buf, "%lud", c->qid.vers);
+	return sprint(buf, "%lu", c->qid.vers);
 }
 
 int
@@ -649,7 +649,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 
 	if(w == 0)
 		w = procqidwidth(c);
-	n = snprint(s, ns, "%3d %.2s %C %4ud (%.16llux %*lud %.2ux) %5ld %8lld %s\n",
+	n = snprint(s, ns, "%3d %.2s %C %4ud (%.16llx %*lu %.2x) %5ld %8lld %s\n",
 		fd,
 		&"r w rw"[(c->mode&3)<<1],
 		c->dev->dc, c->devno,
@@ -1157,7 +1157,7 @@ print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 		poperror();
 		qunlock(&p->qwaitr);
 		psdecref(p);
-		n = snprint(va, n, "%d %lud %lud %lud %q",
+		n = snprint(va, n, "%d %lu %lu %lu %q",
 			wq->w.pid,
 			wq->w.time[TUser], wq->w.time[TSys], wq->w.time[TReal],
 			wq->w.msg);
@@ -1414,7 +1414,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 		poperror();
 		qunlock(&p->debug);
 		psdecref(p);
-		pprint("unknown qid %#llux in procwrite\n", c->qid.path);
+		pprint("unknown qid %#llx in procwrite\n", c->qid.path);
 		error(Egreg);
 	}
 	poperror();

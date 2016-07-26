@@ -155,12 +155,12 @@ playctlproc(void*a)
 		default:
 			sysfatal("playctlproc: [%d]: %s", nf, fields[0]);
 		case 3:
-			chanprint(chan, "playctlproc: error %lud %q", strtoul(fields[1], nil, 0), fields[2]);
+			chanprint(chan, "playctlproc: error %lu %q", strtoul(fields[1], nil, 0), fields[2]);
 			if(strcmp(fields[0], "error") == 0)
 				break;
 			// fall through
 		case 2:
-			chanprint(chan, "playctlproc: %s %lud", fields[0], strtoul(fields[1], nil, 0));
+			chanprint(chan, "playctlproc: %s %lu", fields[0], strtoul(fields[1], nil, 0));
 		}
 	}
 }

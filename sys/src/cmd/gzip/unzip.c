@@ -175,7 +175,7 @@ unztable(Biobuf *bin, char *file)
 
 		if(wantFile(zh.file)){
 			if(verbose)
-				print("%-32s %10lud %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
+				print("%-32s %10lu %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
 			else
 				print("%s\n", zh.file);
 
@@ -186,11 +186,11 @@ unztable(Biobuf *bin, char *file)
 				print("\tmethod %d\n", zh.meth);
 				print("\tmod time %d\n", zh.modtime);
 				print("\tmod date %d\n", zh.moddate);
-				print("\tcrc %lux\n", zh.crc);
-				print("\tcompressed size %lud\n", zh.csize);
-				print("\tuncompressed size %lud\n", zh.uncsize);
-				print("\tinternal attributes %ux\n", zh.iattr);
-				print("\texternal attributes %lux\n", zh.eattr);
+				print("\tcrc %lx\n", zh.crc);
+				print("\tcompressed size %lu\n", zh.csize);
+				print("\tuncompressed size %lu\n", zh.uncsize);
+				print("\tinternal attributes %x\n", zh.iattr);
+				print("\texternal attributes %lx\n", zh.eattr);
 				print("\tstarts at %ld\n", zh.off);
 			}
 		}
@@ -249,7 +249,7 @@ sunztable(Biobuf *bin)
 
 		if(wantFile(zh.file)){
 			if(verbose)
-				print("%-32s %10lud %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
+				print("%-32s %10lu %s", zh.file, zh.uncsize, ctime(msdos2time(zh.modtime, zh.moddate)));
 			else
 				print("%s\n", zh.file);
 
@@ -259,13 +259,13 @@ sunztable(Biobuf *bin)
 				print("\tmethod %d\n", zh.meth);
 				print("\tmod time %d\n", zh.modtime);
 				print("\tmod date %d\n", zh.moddate);
-				print("\tcrc %lux\n", zh.crc);
-				print("\tcompressed size %lud\n", zh.csize);
-				print("\tuncompressed size %lud\n", zh.uncsize);
+				print("\tcrc %lx\n", zh.crc);
+				print("\tcompressed size %lu\n", zh.csize);
+				print("\tuncompressed size %lu\n", zh.uncsize);
 				if((zh.flags & ZTrailInfo) && (hcrc || hcsize || huncsize)){
-					print("\theader crc %lux\n", zh.crc);
-					print("\theader compressed size %lud\n", zh.csize);
-					print("\theader uncompressed size %lud\n", zh.uncsize);
+					print("\theader crc %lx\n", zh.crc);
+					print("\theader compressed size %lu\n", zh.csize);
+					print("\theader uncompressed size %lu\n", zh.uncsize);
 				}
 			}
 		}
@@ -592,7 +592,7 @@ cheader(Biobuf *bin, ZipHead *zh)
 	if(v != ZCHeader){
 		if(v == ZECHeader)
 			return 0;
-		error("bad magic number %lux", v);
+		error("bad magic number %lx", v);
 	}
 	zh->madevers = get1(bin);
 	zh->madeos = get1(bin);
@@ -634,7 +634,7 @@ header(Biobuf *bin, ZipHead *zh)
 	if(v != ZHeader){
 		if(v == ZCHeader)
 			return 0;
-		error("bad magic number %lux at %lld", v, Boffset(bin)-4);
+		error("bad magic number %lx at %lld", v, Boffset(bin)-4);
 	}
 	zh->extvers = get1(bin);
 	zh->extos = get1(bin);

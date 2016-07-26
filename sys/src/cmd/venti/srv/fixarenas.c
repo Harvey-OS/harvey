@@ -117,7 +117,7 @@ bad(char *msg, int64_t o, int len)
 	}
 	if(lb1 != o || (msg && lmsg && strcmp(msg, lmsg) != 0)){
 		if(lb0 != lb1)
-			print("%s %#llux+%#llux (%,lld+%,lld)\n",
+			print("%s %#llx+%#llx (%,lld+%,lld)\n",
 				lmsg, lb0, lb1-lb0, lb0, lb1-lb0);
 		lb0 = o;
 	}
@@ -226,12 +226,12 @@ sbupdate(Shabuf *sb, uint8_t *p, int64_t offset, int len)
 		sb->r0 = offset;
 
 	if(sb->offset < offset || sb->offset >= offset+len){
-		if(0) print("sbupdate %p %#llux+%d but offset=%#llux\n",
+		if(0) print("sbupdate %p %#llx+%d but offset=%#llx\n",
 			p, offset, len, sb->offset);
 		return;
 	}
 	x = sb->offset - offset;
-	if(0) print("sbupdate %p %#llux+%d skip %d\n",
+	if(0) print("sbupdate %p %#llx+%d skip %d\n",
 		sb, offset, len, x);
 	if(x){
 		p += x;
@@ -366,7 +366,7 @@ pageout(void)
 		return;
 	}
 	if(writepart(part, bufoffset, buf, buflen) < 0)
-		print("disk write failed at %#llux+%#ux (%,lld+%,d)\n",
+		print("disk write failed at %#llx+%#x (%,lld+%,d)\n",
 			bufoffset, buflen, bufoffset, buflen);
 	buflen = 0;
 }
@@ -605,11 +605,11 @@ showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
 					info->name, *want, *have);
 				break;
 			case 4:
-				print("\t%s: correct=%#ux disk=%#ux\n",
+				print("\t%s: correct=%#x disk=%#x\n",
 					info->name, u32(want), u32(have));
 				break;
 			case D|4:
-				print("\t%s: correct=%,ud disk=%,ud\n",
+				print("\t%s: correct=%,u disk=%,u\n",
 					info->name, u32(want), u32(have));
 				break;
 			case T|4:
@@ -1394,7 +1394,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 				if(needtozero){
 					zerorange(lastclumpend, v);
 					sbrollback(&newsha, lastclumpend);
-					print("corrupt clump data - %#llux+%#llux (%,llud bytes)\n",
+					print("corrupt clump data - %#llx+%#llx (%,llu bytes)\n",
 						lastclumpend, v, v);
 				}
 				addcicorrupt(v);
@@ -1406,7 +1406,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 			}
 
 			if(haveclump(cl.info.score))
-				print("warning: duplicate clump %d %V at %#llux+%#d\n", cl.info.type, cl.info.score, offset, n);
+				print("warning: duplicate clump %d %V at %#llx+%#d\n", cl.info.type, cl.info.score, offset, n);
 
 			/*
 			 * If clumps use different magic numbers, we don't care.
@@ -1432,7 +1432,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 			 * grow clump info blocks if needed.
 			 */
 			if(verbose > 1)
-				print("\tclump %d: %d %V at %#llux+%#ux (%d)\n", 
+				print("\tclump %d: %d %V at %#llx+%#x (%d)\n", 
 					clumps, cl.info.type, cl.info.score, offset, n, n);
 			addcibuf(&cl.info, 0);
 			if(minclumps%ncib == 0)
@@ -1483,7 +1483,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 	arena->diskstats.used = lastclumpend - boffset;
 	leaked = eoffset - lastclumpend;
 	if(verbose)
-		print("used from %#llux to %#llux = %,lld (%,lld unused)\n",
+		print("used from %#llx to %#llx = %,lld (%,lld unused)\n",
 			boffset, lastclumpend, arena->diskstats.used, leaked);
 
 	/*
@@ -1696,7 +1696,7 @@ dumparena(int64_t offset, int anum, Arena *arena)
 		if(o+n > e)
 			n = e-o;
 		if(pwrite(fd, pagein(o, n), n, o-offset) != n){
-			fprint(2, "write %s at %#llux: %r\n", buf, o-offset);
+			fprint(2, "write %s at %#llx: %r\n", buf, o-offset);
 			return;
 		}
 	}
@@ -1712,7 +1712,7 @@ checkarena(int64_t offset, int anum)
 	Info *fmt, *fmta;
 	int sz;
 
-	print("# arena %d: offset %#llux\n", anum, offset);
+	print("# arena %d: offset %#llx\n", anum, offset);
 
 	if(offset >= partend){
 		print("arena offset out of bounds\n");
@@ -1725,7 +1725,7 @@ checkarena(int64_t offset, int anum)
 		print("#\tversion=%d name=%s blocksize=%d size=%z",
 			head.version, head.name, head.blocksize, head.size);
 		if(head.clumpmagic)
-			print(" clumpmagic=%#.8ux", head.clumpmagic);
+			print(" clumpmagic=%#.8x", head.clumpmagic);
 		print("\n#\tclumps=%d cclumps=%d used=%,lld uncsize=%,lld\n",
 			arena.diskstats.clumps, arena.diskstats.cclumps,
 			arena.diskstats.used, arena.diskstats.uncsize);
@@ -1834,7 +1834,7 @@ checkmap(void)
 
 	an = buildamap();
 	fmtstrinit(&fmt);
-	fmtprint(&fmt, "%ud\n", an->n);
+	fmtprint(&fmt, "%u\n", an->n);
 	for(i=0; i<an->n; i++)
 		fmtprint(&fmt, "%s\t%lld\t%lld\n",
 			an->map[i].name, an->map[i].start, an->map[i].stop);

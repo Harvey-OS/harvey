@@ -492,7 +492,7 @@ addfree(Device dev, int32_t addr, Superb *sb)
 	Iobuf *p;
 
 	if(addr >= sb->fsize){
-		print("addfree: bad addr %lux\n", addr);
+		print("addfree: bad addr %lx\n", addr);
 		return;
 	}
 	n = sb->fbuf.nfree;
@@ -538,7 +538,7 @@ Afmt(Fmt *f1)
 	Filta a;
 
 	a = va_arg(f1->args, Filta);
-	return fmtprint(f1, "%6lud %6lud %6lud",
+	return fmtprint(f1, "%6lu %6lu %6lu",
 		fdf(a.f->filter[0], a.scale*60),
 		fdf(a.f->filter[1], a.scale*600),
 		fdf(a.f->filter[2], a.scale*6000));
@@ -669,7 +669,7 @@ hexdump(void *a, int n)
 	p = a;
 	s1[0] = 0;
 	for(i=0; i<n; i++) {
-		sprint(s2, " %.2ux", p[i]);
+		sprint(s2, " %.2x", p[i]);
 		strcat(s1, s2);
 		if((i&7) == 7) {
 			print("%s\n", s1);

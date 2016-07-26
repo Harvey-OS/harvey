@@ -217,14 +217,14 @@ dump(Source *s, int ident, uint32_t entry)
 		return;
 	}
 
-	Bprint(bout, "%4lud: gen %4ud depth %d tag=%x score=%V",
+	Bprint(bout, "%4lu: gen %4u depth %d tag=%x score=%V",
 		entry, e.gen, e.depth, e.tag, e.score);
 	if(!s->dir){
-		Bprint(bout, " data size: %llud\n", e.size);
+		Bprint(bout, " data size: %llu\n", e.size);
 		return;
 	}
 	n = sourceGetDirSize(s);
-	Bprint(bout, " dir size: %lud\n", n);
+	Bprint(bout, " dir size: %lu\n", n);
 	for(i=0; i<n; i++){
 		ss = sourceOpen(s, i, 1);
 		if(ss == nil)

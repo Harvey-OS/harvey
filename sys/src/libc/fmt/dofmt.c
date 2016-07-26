@@ -377,18 +377,26 @@ _ifmt(Fmt *f)
 	case 'd':
 		base = 10;
 		break;
+	case 'u':
+		base = 10;
+		f->flags |= FmtUnsigned;
+		break;
 	case 'x':
 		base = 16;
+		f->flags |= FmtUnsigned;
 		break;
 	case 'X':
 		base = 16;
+		f->flags |= FmtUnsigned;
 		conv = "0123456789ABCDEF";
 		break;
 	case 'b':
 		base = 2;
+		f->flags |= FmtUnsigned;
 		break;
 	case 'o':
 		base = 8;
+		f->flags |= FmtUnsigned;
 		break;
 	default:
 		return -1;
@@ -506,9 +514,6 @@ _flagfmt(Fmt *f)
 		break;
 	case ' ':
 		f->flags |= FmtSpace;
-		break;
-	case 'u':
-		f->flags |= FmtUnsigned;
 		break;
 	case 'h':
 		if(f->flags & FmtShort)

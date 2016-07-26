@@ -716,7 +716,7 @@ thread(void(*f)(void*), void *a)
 void
 dumpctlpkt(uint8_t *pkt)
 {
-	fprint(2, "pkt len %d mtype %d cookie 0x%.8ux type %d\n",
+	fprint(2, "pkt len %d mtype %d cookie 0x%.8x type %d\n",
 		nhgets(pkt), nhgets(pkt+2),
 		nhgetl(pkt+4), nhgets(pkt+8));
 
@@ -751,11 +751,11 @@ dumpctlpkt(uint8_t *pkt)
 		break;
 
 	case Techo:
-		fprint(2, "\tTecho id %.8ux\n", nhgetl(pkt+12));
+		fprint(2, "\tTecho id %.8x\n", nhgetl(pkt+12));
 		break;
 
 	case Recho:
-		fprint(2, "\tRecho id %.8ux res %d err %d\n", nhgetl(pkt+12), pkt[16], pkt[17]);
+		fprint(2, "\tRecho id %.8x res %d err %d\n", nhgetl(pkt+12), pkt[16], pkt[17]);
 		break;
 
 	case Tcallout:
@@ -774,7 +774,7 @@ dumpctlpkt(uint8_t *pkt)
 		fprint(2, "\tRcallout id %d peerid %d res %d err %d cause %d\n",
 			nhgets(pkt+12), nhgets(pkt+14),
 			pkt[16], pkt[17], nhgets(pkt+18));
-		fprint(2, "\tconnect %d recvwin %d delay %d chan 0x%.8ux\n",
+		fprint(2, "\tconnect %d recvwin %d delay %d chan 0x%.8x\n",
 			nhgetl(pkt+20), nhgets(pkt+24),
 			nhgets(pkt+26), nhgetl(pkt+28));
 		break;
@@ -827,7 +827,7 @@ dumpctlpkt(uint8_t *pkt)
 		break;
 
 	case Alinkinfo:
-		fprint(2, "\tAlinkinfo peerid %d sendaccm 0x%ux recvaccm 0x%ux\n",
+		fprint(2, "\tAlinkinfo peerid %d sendaccm 0x%x recvaccm 0x%x\n",
 			nhgets(pkt+12), nhgetl(pkt+16),
 			nhgetl(pkt+20));
 		break;

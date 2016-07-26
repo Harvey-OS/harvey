@@ -214,10 +214,10 @@ main(int argc, char **argv)
 
 	bppsec = (float)stats->nproto / ((ttime/1e9)+.000001);
 
-	fprint(2, "\nread      %lud bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
-	fprint(2, "write     %lud bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
-	fprint(2, "protocol  %lud bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
-	fprint(2, "rpc       %lud count\n\n", stats->nrpc);
+	fprint(2, "\nread      %lu bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
+	fprint(2, "write     %lu bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
+	fprint(2, "protocol  %lu bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
+	fprint(2, "rpc       %lu count\n\n", stats->nrpc);
 
 	fprint(2, "%-10s %5s %5s %5s %5s %5s          T       R\n", 
 	      "Message", "Count", "Low", "High", "Time", "Averg");
@@ -226,7 +226,7 @@ main(int argc, char **argv)
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
-		fprint(2, "%-10s %5lud %5llud %5llud %5llud %5llud ms %8lud %8lud bytes\n", 
+		fprint(2, "%-10s %5lu %5llu %5llu %5llu %5llu ms %8lu %8lu bytes\n", 
 			rpc->name, 
 			rpc->count,
 			rpc->lo/1000000,
@@ -260,7 +260,7 @@ main(int argc, char **argv)
 		else
 			s = "/.";
 
-		fprint(2, "%5lud %8lud %8lud %8lud %8lud %s\n", fr->opens, fr->nread, fr->bread,
+		fprint(2, "%5lu %8lu %8lu %8lu %8lu %s\n", fr->opens, fr->nread, fr->bread,
 							fr->nwrite, fr->bwrite, s);
 	}
 

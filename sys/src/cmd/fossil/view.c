@@ -177,7 +177,7 @@ readBlock(int part, uint32_t addr)
 	start = partStart(part);
 	end = partEnd(part);
 	if(addr >= end-start){
-		werrstr("bad addr 0x%.8ux; wanted 0x%.8ux - 0x%.8ux", addr, start, end);
+		werrstr("bad addr 0x%.8x; wanted 0x%.8x - 0x%.8x", addr, start, end);
 		return nil;
 	}
 
@@ -275,7 +275,7 @@ dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 		return nil;
 	}
 	if(tag && l.tag != tag){
-		werrstr("tag mismatch; got 0x%.8ux wanted 0x%.8ux",
+		werrstr("tag mismatch; got 0x%.8x wanted 0x%.8x",
 			l.tag, tag);
 		return nil;
 	}
@@ -456,7 +456,7 @@ initxvacroot(uint8_t score[VtScoreSize])
 		return stringnode("unpack %d-byte root: %R", n);
 
 	h.blockSize = vac.blockSize;
-	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%ud score=%V prev=%V",
+	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%u score=%V prev=%V",
 		vac.version, vac.name, vac.type, vac.blockSize, vac.score, vac.prev);
 	t->expand = xvacrootexpand;
 	return t;
@@ -724,15 +724,15 @@ initxdirentry(MetaEntry *me)
 	if(!deUnpack(&dir, me))
 		return stringnode("deUnpack: %R");
 
-	t = stringnode("dirEntry elem=%s size=%llud data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
+	t = stringnode("dirEntry elem=%s size=%llu data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
 	t->nkid = 1;
 	t->kid = mallocz(sizeof(t->kid[0])*1, 1);
 	t->kid[0] = stringnode(
 		"qid=%#llux\n"
 		"uid=%s gid=%s mid=%s\n"
-		"mtime=%lud mcount=%lud ctime=%lud atime=%lud\n"
+		"mtime=%lu mcount=%lu ctime=%lu atime=%lu\n"
 		"mode=%luo\n"
-		"plan9 %d p9path %#llux p9version %lud\n"
+		"plan9 %d p9path %#llux p9version %lu\n"
 		"qidSpace %d offset %#llux max %#llux",
 		dir.qid,
 		dir.uid, dir.gid, dir.mid,
@@ -840,10 +840,10 @@ scoreFmt(Fmt *f)
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)
-		fmtprint(f, "0x%.8ux", addr);
+		fmtprint(f, "0x%.8x", addr);
 	else{
 		for(i = 0; i < VtScoreSize; i++)
-			fmtprint(f, "%2.2ux", v[i]);
+			fmtprint(f, "%2.2x", v[i]);
 	}
 
 	return 0;
