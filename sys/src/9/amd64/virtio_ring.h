@@ -112,19 +112,30 @@ struct virtq_used {
         /* Only if VIRTIO_F_EVENT_IDX: le16 avail_event; */
 };
 
+/* borrowed from 9front sdvirtio: a structure to sleep/wake a process waiting on I/O */
+
+typedef struct rock {
+	int done;
+	Rendez *sleep;
+} Rock;
+
 /* few fields added comparing with the original spec */
 typedef struct virtq {
-		Lock l;
+		// Per spec fields
         unsigned int num;
-        unsigned int free;
-        unsigned int nfree;
-        
-        void *pdev;					// use this to reference the virtio device control structure which is per-driver
-        int idx;					// driver use only, index of the queue per device
-
         struct virtq_desc *desc;
         struct virtq_avail *avail;
         struct virtq_used *used;
+        // Added fields
+        le16 *usedevent;
+        le16 *availevent;
+        le16 lastused;
+		Lock l;
+        unsigned int free;
+        unsigned int nfree;
+        void *pdev;					// use this to reference the virtio device control structure which is per-driver
+        int idx;					// driver use only, index of the queue per device
+        Rock *rock[];				// array of pointers to the waiting processes, length same as queue length
 } Virtq;
 
 static inline int virtq_need_event(uint16_t event_idx, uint16_t new_idx, uint16_t old_idx)

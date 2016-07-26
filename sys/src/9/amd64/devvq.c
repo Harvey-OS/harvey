@@ -35,7 +35,8 @@
 
 #define BY2PG PGSZ
 
-enum {
+enum
+{
 	Qtopdir = 0,			// top directory
 	Qvirtqs,				// virtqs directory under the top
 	Qdevtop,				// toplevel for each device, based on the PCI device number
@@ -44,6 +45,10 @@ enum {
 	Qvqctl,					// virtqueue file entry for control operations, write-only
 };
 
+enum
+{
+	Vqqsize = 64*1024		// default size for the device read queue size
+};
 
 static Dirtab topdir[] = {
 	".",		{ Qtopdir, 0, QTDIR },	0,	DMDIR|0555,
@@ -105,6 +110,95 @@ qid2vq(Qid q)
 	return vc->vqs[vqidx];
 }
 
+static int
+viodone(void *arg)
+{
+	return ((Rock*)arg)->done;
+}
+
+// The interrupt handler.
+
+static void
+vqinterrupt(Virtq *q)
+{
+	int id, free, m;
+	Rock *r;
+	Rendez *z;
+	m = q->num - 1;
+	ilock(&q->l);
+	while((q->lastused ^ q->used->idx) & m) {
+		id = q->used->ring[q->lastused++ & m].id;
+		if(r = q->rock[id]){
+			q->rock[id] = nil;
+			z = r->sleep;
+			r->done = 1;	/* hands off */
+			if(z != nil)
+				wakeup(z);
+		}
+		do {
+			free = id;
+			id = q->desc[free].next;
+			q->desc[free].next = q->free;
+			q->free = free;
+			q->nfree++;
+		} while(q->desc[free].flags & VIRTQ_DESC_F_NEXT);
+	}
+	iunlock(&q->l);
+}
+
+// Generic buffer read-write operation, based on 9front sdvirtio logic. Take buffer address and length,
+// read/write direction. Get a free descriptor from the queue, fill it with the buffer information.
+// Update queue index, notify the device. The Rock structure (sleep/wakeup semaphore) is kept on the
+// process stack, and its address is stored in the queue descriptor's rock array at the index same
+// as the index of the used buffer descriptor. When the device processes the buffer, it sends an interrupt.
+// The interrupt handler scans the used descriptiors ring, and if a descriptor is found on which a process
+// is waiting, the process is awaken, and the descriptor returns to the available ring.
+// Return 0 if OK, -1 if error.
+// Q: is it secure to give interrupt handler access to the sleeping process stack? Would it be better
+// to preallocate all Rock's as part of the queue descriptor (128 bit per each vs. 64bit per a pointer).
+
+
+int
+vqrw(Virtq *q, void *a, uint64_t len, int rw)	// rw can be either 0 for read or VIRTQ_DESC_F_WRITE (2, other bits will be cleared)
+{
+	Proc *up = externup();
+	int free, head;
+	rw &= VIRTQ_DESC_F_WRITE;
+	ilock(&q->l);
+	while(q->nfree < 1) {
+		iunlock(&q->l);
+		if(!waserror())
+			tsleep(&up->sleep, return0, 0, 500);
+		poperror();
+		ilock(&q->l);
+	}
+	head = free = q->free;
+	struct virtq_desc *d = &q->desc[free];
+	free = d->next;
+	d->addr = PADDR(a);
+	d->len = len;
+	d->flags = rw;
+	Rock rock;								// the sleep-wakeup semaphore on the process stack
+	rock.done = 0;
+	rock.sleep = &up->sleep;
+	q->rock[head] = &rock;
+	q->avail->ring[q->avail->idx & (q->num - 1)] = head;
+	coherence();
+	q->avail->idx++;
+	iunlock(&q->l);
+	if((q->used->flags & VIRTQ_AVAIL_F_NO_INTERRUPT) == 0) {
+		vqctl *dev = q->pdev;
+		outs(dev->port + VIRTIO_PCI_QUEUE_NOTIFY, q->idx);
+	}
+	while(!rock.done) {
+		while(waserror())
+			;
+		tsleep(rock.sleep, viodone, &rock, 1000);
+	}
+	if(!rock.done)
+		vqinterrupt(q);
+	return 0;
+}
 
 static int
 vqgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
@@ -307,14 +401,22 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 		outs(port + VIRTIO_PCI_QUEUE_SEL, cnt);
 		int qs = ins(port + VIRTIO_PCI_QUEUE_NUM);
 //print("\nvq queue %d size %d\n", cnt, qs);
-		if(cnt >= 64 || qs == 0 || (qs & (qs-1)) != 0)
+		if(cnt >= 16 || qs == 0 || (qs & (qs-1)) != 0)
 			break;
 		if(vqs != nil) {
 			// Allocate vq's descriptor space, used and available spaces, all page-aligned.
-			vqs[cnt] = malloc(sizeof(Virtq));
+			vqs[cnt] = malloc(sizeof(Virtq) + qs * sizeof(Rock *));
 			Virtq *q = vqs[cnt];
 			q->num = qs;
-			q->desc = mallocalign(PGROUND((q->num * sizeof(struct virtq_desc))), BY2PG, 0, 0);
+			uint64_t descsz = qs * sizeof(struct virtq_desc);
+			uint64_t availsz = sizeof(struct virtq_avail) + qs * sizeof(le16);
+			uint64_t usedsz = sizeof(struct virtq_used) + qs * sizeof(struct virtq_used_elem);
+			uint8_t *p = mallocalign(PGROUND(descsz + availsz + sizeof(le16)) + PGROUND(usedsz + sizeof(le16)), BY2PG, 0, 0);
+			q->desc = (struct virtq_desc *)p;
+			q->avail = (struct virtq_avail *)(p + descsz);
+			q->used = (struct virtq_used *)(p + PGROUND(descsz + availsz));
+			q->usedevent = (le16 *)(p + descsz + availsz);
+			q->availevent = (le16 *)(p + PGROUND(descsz + availsz) + usedsz);
 			q->free = -1;
 			q->nfree = qs;
 			// So in 9front: each descriptor's free field points to the next descriptor
@@ -322,8 +424,6 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 				q->desc[i].next = q->free;
 				q->free = i;
 			}
-			q->avail = mallocalign(PGROUND((sizeof(struct virtq_avail) + qs * sizeof(le16))), BY2PG, 0, 0);
-			q->used = mallocalign(PGROUND((sizeof(struct virtq_used) + qs * sizeof(le16))), BY2PG, 0, 0);
 		}
 		cnt++;
 	}
