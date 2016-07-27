@@ -7,7 +7,7 @@
 			"-static"
 		],
 		"Post": [
-			"rm *.o"
+			"rm -f *.o"
 		],
 		"Pre": [
 			"rm -f *.o *.tag.*"
