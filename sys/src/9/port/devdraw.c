@@ -1383,10 +1383,10 @@ drawcoord(unsigned char *p, unsigned char *maxp, int oldx, int *newx)
 		x |= *p++ << 7;
 		x |= *p++ << 15;
 		if(x & (1<<22))
-			x |= ~0<<23;
+			x |= ~0UL<<23;
 	}else{
 		if(b & 0x40)
-			x |= ~0<<7;
+			x |= ~0UL<<7;
 		x += oldx;
 	}
 	*newx = x;
