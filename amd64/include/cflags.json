@@ -6,6 +6,9 @@
 			],
 			"/opt/intel/bin/icc": [
 				"-Wno-main"
+			],
+			"/usr/local/bin/egcc": [
+				"-fno-stack-protector"
 			]
 		},
 		"Cflags": [
