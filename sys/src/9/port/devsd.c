@@ -490,7 +490,7 @@ static int
 sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 {
 	Proc *up = externup();
-	Qid q;
+	Qid q = {};
 	int64_t l;
 	int i, r;
 	SDpart *pp;
