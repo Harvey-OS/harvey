@@ -25,6 +25,7 @@
 			"cp zconf.h harvey/",
 			"cp harvey.c harvey.h harvey/",
 			"echo > harvey/fcntl.h",
+			"cat upstream/inflate.c | sed -f patch/port-inflate.sed > harvey/inflate.c",
 			"cat upstream/gzguts.h | sed -f patch/port-gzguts.sed > harvey/gzguts.h",
 			"cat upstream/zutil.c | sed -f patch/port-zutils.sed > harvey/zutil.c",
 			"cat upstream/gzread.c | sed -f patch/port-gzread.sed  > harvey/gzread.c",
