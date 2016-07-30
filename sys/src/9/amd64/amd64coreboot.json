@@ -114,7 +114,6 @@
 			"amd64cpu.c",
 			"mouse.c",
 			"cbscreen.c",
-			"sdata.c",
 			"usbehcipc.c",
 			"usbohci.c",
 			"usbuhci.c",
