@@ -90,6 +90,7 @@ typedef struct vqctl		// per-device control structure
 	uint32_t dcfglen;		// device config area length
 	uint32_t dcfgoff;		// device config area offset (20 or 24)
 	int ownpid;				// PID of the process owning the device
+	long dcmtime;			// device config area modification time
 } vqctl;
 
 static vqctl **cvq;			// array of device control structure pointers, length = nvq
@@ -116,7 +117,24 @@ viodone(void *arg)
 	return ((Rock*)arg)->done;
 }
 
-// The interrupt handler.
+// The interrupt handler entry point. Handler will be dispatched based on
+// the bit set in the interrupt status register. If bit 1 is set then a virtqueue
+// has to be handled, otherwise the device connfig area was updated. Reflect this
+// in the reported device config area modification time.
+
+static void 
+vqintr(Ureg *x, void *arg)
+{
+	vqctl *dev = arg;
+	uint8_t isr = inb(dev->port + VIRTIO_PCI_ISR);
+	if(isr & 2) {
+		dev->dcmtime = seconds();
+		return;
+	}
+
+}
+
+// The interrupt handler part that handles the virtqueue.
 
 static void
 vqinterrupt(Virtq *q)
@@ -200,6 +218,19 @@ vqrw(Virtq *q, void *a, uint64_t len, int rw)	// rw can be either 0 for read or 
 	return 0;
 }
 
+static char *
+mapdev(vqctl *vc)
+{
+	char *dmap = nil;
+	for(int i = 0; i < nelem(dmtab) ; i++) {
+		if(vc->pci->did == dmtab[i].did) {
+			dmap = dmtab[i].desc;
+			break;
+		}
+	}
+	return dmap;
+}
+
 static int
 vqgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
@@ -227,13 +258,7 @@ vqgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		}
 		if(s >= nvq)
 			return -1;
-		char *dmap = nil;
-		for(int i = 0; i < nelem(dmtab) ; i++) {
-			if(cvq[s]->pci->did == dmtab[i].did) {
-				dmap = dmtab[i].desc;
-				break;
-			}
-		}
+		char *dmap = mapdev(cvq[s]);
 		snprint(up->genbuf, sizeof up->genbuf, "%s-%d", dmap?dmap:"virtio", s);
 		q = (Qid) {QID(s, Qdevtop), 0, QTDIR};
 		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
@@ -246,6 +271,9 @@ vqgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 			snprint(up->genbuf, sizeof up->genbuf, "devcfg");
 			q = (Qid) {QID(vdidx, Qdevcfg), 0, 0};
 			devdir(c, q, up->genbuf, cvq[vdidx]->dcfglen, eve, 0444, dp);
+			if(cvq[vdidx]->dcmtime == -1)			// initialize lazily because at the moment of the driver bring-up
+				cvq[vdidx]->dcmtime = seconds();	// seconds() does not seem to return correct value
+			dp->mtime = cvq[vdidx]->dcmtime;
 			return 1;
 		} else {						// virtqueues: odd s yield data entries, even s yield control entries
 			int t = s - 1;
@@ -267,7 +295,7 @@ vqgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 static Chan*
 vqattach(char *spec)
 {
-print("vqattach %s\n", spec);
+//print("vqattach %s\n", spec);
 	return devattach(vqdevtab.dc, spec);
 }
 
@@ -439,7 +467,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 // drivers.
 
 static int
-find9p(vqctl **vcs)
+findvdevs(vqctl **vcs)
 {
 	int cnt = 0;
 	// TODO: this seems to work as if MSI-X is not enabled (device conf space starts at 20).
@@ -459,9 +487,12 @@ find9p(vqctl **vcs)
 			vqctl *vc = vcs[cnt];
 			vc->pci = p;
 			vc->port = p->mem[0].bar & ~0x1;
-			print("\nvq: device[%d] port %lux\n", cnt, vc->port);
-			if(ioalloc(vc->port, p->mem[0].size, 0, "virtio9p") < 0) {
-				print("\nvq: port %lux in use\n", vc->port);
+			print("\nvq: device[%d] port %lx\n", cnt, vc->port);
+			char name[32];
+			char *dmap = mapdev(vc);
+			snprint(name, sizeof(name), "%s-%d", dmap?dmap:"virtio", cnt);
+			if(ioalloc(vc->port, p->mem[0].size, 0, name) < 0) {
+				print("\nvq: port %lx in use\n", vc->port);
 				free(vc);
 				vcs[cnt] = nil;
 				return cnt;
@@ -491,6 +522,11 @@ find9p(vqctl **vcs)
 			vc->dcfglen = vc->pci->mem[0].size - vc->dcfgoff;
 			// No process has claimed the device yet
 			vc->ownpid = -1;
+			// Assume that the device config was modified just now
+			vc->dcmtime = -1;
+			// Enable interrupts, complete initialization
+			intrenable(vc->pci->intl, vqintr, vc, vc->pci->tbdf, name);
+			outb(vc->port + VIRTIO_PCI_STATUS, inb(vc->port + VIRTIO_PCI_STATUS) | VIRTIO_CONFIG_S_DRIVER_OK);
 		}
 		cnt++;
 	}
@@ -504,9 +540,8 @@ find9p(vqctl **vcs)
 void
 vqinit(void)
 {
-	print_func_entry();
 	print("\nvq initializing\n");
-	nvq = find9p(nil);
+	nvq = findvdevs(nil);
 	print("\nvq: found %d devices\n", nvq);
 	if(nvq == 0) {
 		return;
@@ -516,7 +551,7 @@ vqinit(void)
 		print("\nvq: failed to allocate control structures\n");
 		return;
 	}
-	find9p(cvq);
+	findvdevs(cvq);
 }
 
 Dev vqdevtab = {
