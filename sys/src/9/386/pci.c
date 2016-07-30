@@ -534,10 +534,10 @@ pcishowdev(Pcidev* t)
 	for(i = 0; i < nelem(t->mem); i++) {
 		if(t->mem[i].size == 0)
 			continue;
-		print("%d:%.8lx %d ", i, t->mem[i].bar, t->mem[i].size);
+		print("%d:%.8llx %d ", i, t->mem[i].bar, t->mem[i].size);
 	}
 	if(t->ioa.bar || t->ioa.size)
-		print("ioa:%.8lx %d ", t->ioa.bar, t->ioa.size);
+		print("ioa:%.8llx %d ", t->ioa.bar, t->ioa.size);
 	if(t->mema.bar || t->mema.size)
 
 	if(t->bridge)
