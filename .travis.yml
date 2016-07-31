@@ -8,7 +8,7 @@ script:
 - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
 compiler:
 - gcc-4.8
-- gcc-5.4
+- gcc-5
 - clang
 env:
   global:
