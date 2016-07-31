@@ -1,4 +1,9 @@
 language: c
+sudo: required
+dist: trusty
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y $CC rc
 script:
 - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
 compiler:
@@ -14,13 +19,6 @@ env:
   matrix:
   - OLD_BUILD=true
 addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - rc
-    - gcc-4.8
-    - gcc-5.4
   coverity_scan:
     project:
       name: elbing/harvey
