@@ -3,7 +3,7 @@ sudo: required
 dist: trusty
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main' -y
+  - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main' -y
   - sudo apt-get update
   - sudo apt-get install -y $CC rc
 script:
