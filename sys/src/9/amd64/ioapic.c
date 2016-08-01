@@ -58,15 +58,28 @@ static int idtno = IdtIOAPIC;
 
 Apic	xioapic[Napic];
 
+static uint32_t ioapicread(Apic*apic, int reg)
+{
+	volatile uint32_t *sel = apic->Ioapic.addr+Ioregsel;
+	volatile uint32_t *data = apic->Ioapic.addr+Iowin;
+	*sel = reg;
+	return *data;
+}
+static void ioapicwrite(Apic*apic, int reg, uint32_t val)
+{
+	volatile uint32_t *sel = apic->Ioapic.addr+Ioregsel;
+	volatile uint32_t *data = apic->Ioapic.addr+Iowin;
+	*sel = reg;
+	*data = val;
+}
+
 static void
 rtblget(Apic* apic, int sel, uint32_t* hi, uint32_t* lo)
 {
 	sel = Ioredtbl + 2*sel;
 
-	*(apic->Ioapic.addr+Ioregsel) = sel+1;
-	*hi = *(apic->Ioapic.addr+Iowin);
-	*(apic->Ioapic.addr+Ioregsel) = sel;
-	*lo = *(apic->Ioapic.addr+Iowin);
+	*hi = ioapicread(apic, sel+1);
+	*lo = ioapicread(apic, sel);
 }
 
 static void
@@ -74,10 +87,8 @@ rtblput(Apic* apic, int sel, uint32_t hi, uint32_t lo)
 {
 	sel = Ioredtbl + 2*sel;
 
-	*(apic->Ioapic.addr+Ioregsel) = sel+1;
-	*(apic->Ioapic.addr+Iowin) = hi;
-	*(apic->Ioapic.addr+Ioregsel) = sel;
-	*(apic->Ioapic.addr+Iowin) = lo;
+	ioapicwrite(apic, sel+1, hi);
+	ioapicwrite(apic, sel, lo);
 }
 
 Rdt*
@@ -152,13 +163,11 @@ ioapicinit(int id, uintptr_t pa)
 	 * responsibility of the O/S to set the APIC ID.
 	 */
 	lock(&apic->Ioapic.l);
-	*(apic->Ioapic.addr+Ioregsel) = Ioapicver;
-	apic->Ioapic.nrdt = ((*(apic->Ioapic.addr+Iowin)>>16) & 0xff) + 1;
+	apic->Ioapic.nrdt = ((ioapicread(apic, Ioapicver)>>16) & 0xff) + 1;
 	apic->Ioapic.gsib = gsib;
 	gsib += apic->Ioapic.nrdt;
 
-	*(apic->Ioapic.addr+Ioregsel) = Ioapicid;
-	*(apic->Ioapic.addr+Iowin) = id<<24;
+	ioapicwrite(apic, Ioapicid, id<<24);
 	unlock(&apic->Ioapic.l);
 }
 
