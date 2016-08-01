@@ -361,7 +361,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 	c->mode = openmode(omode);
 	c->mode = OWRITE;
 
-	DBG("segmentcreate(%s, %#o %#ux)\n", name, omode, perm);
+	DBG("segmentcreate(%s, %#o %#x)\n", name, omode, perm);
 }
 
 enum{PTRSIZE = 19};	/* "0x1234567812345678 " */
@@ -370,7 +370,7 @@ readptr(char *buf, int32_t n, uintptr_t val)
 {
 	if(n < PTRSIZE)
 		return 0;
-	snprint(buf, sizeof buf, "%*#ullx", PTRSIZE-1, val);
+	snprint(buf, sizeof buf, "%*#llx", PTRSIZE-1, val);
 	buf[PTRSIZE-1] = ' ';
 	return PTRSIZE;
 }
@@ -544,7 +544,7 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 				newzmap(g->s);
 			else if(i == 1)
 				zgrow(g->s);
-			DBG("newseg %s base %#ullx len %#ullx\n",
+			DBG("newseg %s base %#llx len %#llx\n",
 				cb->f[0], va, len*BIGPGSZ);
 			if(i == 0 || i == 1)
 				dumpzseg(g->s);

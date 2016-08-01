@@ -267,7 +267,7 @@ asmmapinit(uintmem addr, uintmem size, int type)
 void
 asmmodinit(uint32_t start, uint32_t end, char* s)
 {
-	DBG("asmmodinit: %#ux -> %#ux: <%s> %#ux\n",
+	DBG("asmmodinit: %#x -> %#x: <%s> %#x\n",
 		start, end, s, ROUNDUP(end, 4096));
 
 	if(start < sys->pmstart)

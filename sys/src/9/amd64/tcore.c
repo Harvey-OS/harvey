@@ -260,7 +260,7 @@ runacore(void)
 		case ICCTRAP:
 			s = splhi();
 			machp()->MMU.cr2 = up->ac->MMU.cr2;
-			DBG("runacore: trap %llu cr2 %#ullx ureg %#p\n",
+			DBG("runacore: trap %llu cr2 %#llx ureg %#p\n",
 				ureg->type, machp()->MMU.cr2, ureg);
 			switch(ureg->type){
 			case IdtIPI:
@@ -299,7 +299,7 @@ runacore(void)
 			fn = actrapret;
 			break;
 		case ICCSYSCALL:
-			DBG("runacore: syscall ax %#ullx ureg %#p\n",
+			DBG("runacore: syscall ax %#llx ureg %#p\n",
 				ureg->ax, ureg);
 			cr3put(machp()->MMU.pml4->pa);
 			//syscall(ureg->ax, ureg);
