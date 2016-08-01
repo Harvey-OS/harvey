@@ -1693,7 +1693,7 @@ mmcxwrite(Otrack *o, void *v, int32_t nblk)
 	cmd[7] = nblk>>8;
 	cmd[8] = nblk>>0;
 	if(vflag > 1)
-		print("%lld ns: write+verify %ld at %#lux\n",
+		print("%lld ns: write+verify %ld at %#lx\n",
 			nsec(), nblk, aux->mmcnwa);
 	/*
 	 * we are using a private copy of scsi.c that doesn't retry writes

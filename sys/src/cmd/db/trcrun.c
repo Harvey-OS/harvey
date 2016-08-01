@@ -288,7 +288,7 @@ bkput(BKPT *bp, int install)
 	}else
 		ret = put1(cormap, loc, bp->save, machdata->bpsize);
 	if(ret < 0){
-		sprint(buf, "can't set breakpoint at %#llux: %r", bp->loc);
+		sprint(buf, "can't set breakpoint at %#llx: %r", bp->loc);
 		print(buf);
 		read(0, buf, 100);
 	}

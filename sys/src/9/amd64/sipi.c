@@ -40,7 +40,7 @@ sipi(void)
 		return;
 	sipiptr = UINT2PTR(SIPIHANDLER);
 	memmove(sipiptr, &b1978, 4096);
-	DBG("sipiptr %#p sipipa %#llux\n", sipiptr, sipipa);
+	DBG("sipiptr %#p sipipa %#llx\n", sipiptr, sipipa);
 
 	/*
 	 * Notes:
