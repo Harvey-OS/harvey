@@ -35,6 +35,8 @@
 
 #define BY2PG PGSZ
 
+#define MAXVQS 32			// maximal number of VQs per device
+
 enum
 {
 	Qtopdir = 0,			// top directory
@@ -66,13 +68,13 @@ typedef struct
 } didmap;
 
 static didmap dmtab[] = {
-	PCI_DEVICE_ID_VIRTIO_NET, "net",
-	PCI_DEVICE_ID_VIRTIO_BLOCK, "block",
-	PCI_DEVICE_ID_VIRTIO_BALLOON, "balloon",
-	PCI_DEVICE_ID_VIRTIO_CONSOLE, "console",
-	PCI_DEVICE_ID_VIRTIO_SCSI, "scsi",
-	PCI_DEVICE_ID_VIRTIO_RNG, "rng",
-	PCI_DEVICE_ID_VIRTIO_9P, "9p",
+	PCI_DEVICE_ID_VIRTIO_NET, "virtio-net",
+	PCI_DEVICE_ID_VIRTIO_BLOCK, "virtio-block",
+	PCI_DEVICE_ID_VIRTIO_BALLOON, "virtio-balloon",
+	PCI_DEVICE_ID_VIRTIO_CONSOLE, "virtio-console",
+	PCI_DEVICE_ID_VIRTIO_SCSI, "virtio-scsi",
+	PCI_DEVICE_ID_VIRTIO_RNG, "virtio-rng",
+	PCI_DEVICE_ID_VIRTIO_9P, "virtio-9p",
 };
 
 // Specific device control structures. They are preallocated during the driver
@@ -91,6 +93,7 @@ typedef struct vqctl		// per-device control structure
 	uint32_t dcfgoff;		// device config area offset (20 or 24)
 	int ownpid;				// PID of the process owning the device
 	long dcmtime;			// device config area modification time
+	uint32_t vqiomap;		// minor optimization: set bit for each vq where I/O was requested
 } vqctl;
 
 static vqctl **cvq;			// array of device control structure pointers, length = nvq
@@ -117,10 +120,15 @@ viodone(void *arg)
 	return ((Rock*)arg)->done;
 }
 
+static void
+vqinterrupt(Virtq *q);
+
 // The interrupt handler entry point. Handler will be dispatched based on
 // the bit set in the interrupt status register. If bit 1 is set then a virtqueue
 // has to be handled, otherwise the device connfig area was updated. Reflect this
 // in the reported device config area modification time.
+// If the device's vq IO map is entirely zero, service all existing queues in turn.
+// Otherwise only those queues whose bit is set.
 
 static void 
 vqintr(Ureg *x, void *arg)
@@ -130,8 +138,14 @@ vqintr(Ureg *x, void *arg)
 	if(isr & 2) {
 		dev->dcmtime = seconds();
 		return;
+	} else if(isr & 1) {
+		for(int i = 0; i < dev->nqs; i++) {
+			if((dev->vqiomap == 0) || (dev->vqiomap & (1 << i))) {
+				vqinterrupt(dev->vqs[i]);
+			}
+		}
 	}
-
+	return;
 }
 
 // The interrupt handler part that handles the virtqueue.
@@ -161,6 +175,7 @@ vqinterrupt(Virtq *q)
 			q->nfree++;
 		} while(q->desc[free].flags & VIRTQ_DESC_F_NEXT);
 	}
+	((vqctl *)(q->pdev))->vqiomap &= ~(1 << (q->idx));	// clear bit in IO map for this queue
 	iunlock(&q->l);
 }
 
@@ -201,6 +216,7 @@ vqrw(Virtq *q, void *a, uint64_t len, int rw)	// rw can be either 0 for read or 
 	rock.sleep = &up->sleep;
 	q->rock[head] = &rock;
 	q->avail->ring[q->avail->idx & (q->num - 1)] = head;
+	((vqctl *)(q->pdev))->vqiomap |= (1 << (q->idx));	// set bit in IO map for this queue
 	coherence();
 	q->avail->idx++;
 	iunlock(&q->l);
@@ -419,7 +435,8 @@ vqwrite(Chan *c, void *va, int32_t n, int64_t offset)
 // the number of virtqueues detected. The port argument contains the base port
 // for the device being scanned.
 // Portions of code are borrowed from the 9front virtio drivers.
-// TODO: this function should be shared among all virtio drivers. Move it outside of this driver.
+// Some devices like console report very large number of virtqueues. Whether it is a bug in QEMU
+// or normal behavior we limit the maximum number of virtqueues serviced to 32.
 
 static int
 findvqs(uint32_t port, int nvq, Virtq **vqs)
@@ -429,7 +446,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 		outs(port + VIRTIO_PCI_QUEUE_SEL, cnt);
 		int qs = ins(port + VIRTIO_PCI_QUEUE_NUM);
 //print("\nvq queue %d size %d\n", cnt, qs);
-		if(cnt >= 16 || qs == 0 || (qs & (qs-1)) != 0)
+		if(cnt >= MAXVQS || qs == 0 || (qs & (qs-1)) != 0)
 			break;
 		if(vqs != nil) {
 			// Allocate vq's descriptor space, used and available spaces, all page-aligned.
@@ -524,6 +541,8 @@ findvdevs(vqctl **vcs)
 			vc->ownpid = -1;
 			// Assume that the device config was modified just now
 			vc->dcmtime = -1;
+			// Reset all bits in the IO map
+			vc->vqiomap = 0;
 			// Enable interrupts, complete initialization
 			intrenable(vc->pci->intl, vqintr, vc, vc->pci->tbdf, name);
 			outb(vc->port + VIRTIO_PCI_STATUS, inb(vc->port + VIRTIO_PCI_STATUS) | VIRTIO_CONFIG_S_DRIVER_OK);
