@@ -1439,7 +1439,7 @@ stclunk(Fid *f)
 	cnum = (qidpath >> Connshift) & Connmask;
 	chnum = qidpath & Chanmask;
 	c = connections[cnum];
-	sshdebug(c, "got clunk on file: %#llux %d %d %d: %s",
+	sshdebug(c, "got clunk on file: %#llx %d %d %d: %s",
 		qidpath, lev, cnum, chnum, f->file->name);
 	/* qidpath test implies conn 0, chan 0 */
 	if (lev == Top && qidpath == Qreqrem) {
@@ -1523,7 +1523,7 @@ stflush(Req *r)
 	threadsetname("stflush");
 	or = r->oldreq;
 	qidpath = (uint64_t)or->fid->file->aux;
-	sshdebug(nil, "got flush on file %#llux %lld %lld %lld: %s %#p",
+	sshdebug(nil, "got flush on file %#llx %lld %lld %lld: %s %#p",
 		argv0, qidpath, qidpath >> Levshift,
 		(qidpath >> Connshift) & Connmask, qidpath & Chanmask,
 		or->fid->file->name, or->aux);

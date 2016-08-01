@@ -247,7 +247,7 @@ i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 			sp += f.value-mach->szaddr;
 		}else if(strcmp(s.name, "forkret") == 0){
 //XXX
-			print("//passing interrupt frame; last pc found at sp=%#llux\n", osp);
+			print("//passing interrupt frame; last pc found at sp=%#llx\n", osp);
 
 			sp +=  15 * mach->szaddr;		/* pop interrupt frame */
 		}
@@ -256,12 +256,12 @@ i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 //XXX
 		if(pc == 0 && strcmp(s.name, "forkret") == 0){
 			sp += 3 * mach->szaddr;			/* pop iret eip, cs, eflags */
-			print("//guessing call through invalid pointer, try again at sp=%#llux\n", sp);
+			print("//guessing call through invalid pointer, try again at sp=%#llx\n", sp);
 			s.name = "";
 			pc = getval(sp);
 		}
 		if(pc == 0) {
-			print("//didn't find pc at sp=%#llux, last pc found at sp=%#llux\n", sp, osp);
+			print("//didn't find pc at sp=%#llx, last pc found at sp=%#llx\n", sp, osp);
 			break;
 		}
 		osp = sp;
@@ -303,7 +303,7 @@ amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 			sp += f.value-mach->szaddr;
 		}
 		else if(isintrr){
-			print("//passing interrupt frame; last pc found at sp=%#llux\n", osp);
+			print("//passing interrupt frame; last pc found at sp=%#llx\n", osp);
 			/*
 			 * Pop interrupt frame (ureg.h) up to the IP value.
 			 */
@@ -319,13 +319,13 @@ amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 			 * SP from the saved frame.
 			 */
 			sp += 3 * mach->szaddr;
-			print("//guessing call through invalid pointer; try again at sp=%#llux\n", sp);
+			print("//guessing call through invalid pointer; try again at sp=%#llx\n", sp);
 			s.name = "";
 			sp = getval(sp);
 			pc = getval(sp);
 		}
 		if(pc == 0) {
-			print("//didn't find pc at sp=%#llux, last pc found at sp=%#llux\n", sp, osp);
+			print("//didn't find pc at sp=%#llx, last pc found at sp=%#llx\n", sp, osp);
 			break;
 		}
 		osp = sp;

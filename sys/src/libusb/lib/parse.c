@@ -143,7 +143,7 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uint8_t *b, int n,
 			break;
 	if(i == nelem(ip->ep)){
 		werrstr("parseendpt: bug: too many end points on interface "
-			"with csp %#lux", ip->csp);
+			"with csp %#lx", ip->csp);
 		fprint(2, "%s: %r\n", argv0);
 		return -1;
 	}
