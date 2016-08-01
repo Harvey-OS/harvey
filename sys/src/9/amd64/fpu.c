@@ -302,7 +302,7 @@ fpunote(void)
 		cm =  "Unknown";
 
 	snprint(up->genbuf, sizeof(up->genbuf),
-		"sys: fp: %s Exception ipo=%#llux fsw=%#x",
+		"sys: fp: %s Exception ipo=%#llx fsw=%#x",
 		cm, fpusave->rip, fsw);
 	return up->genbuf;
 }

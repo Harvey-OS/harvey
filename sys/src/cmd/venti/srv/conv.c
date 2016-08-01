@@ -72,7 +72,7 @@ unpackarenapart(ArenaPart *ap, uint8_t *buf)
 
 	m = U32GET(p);
 	if(m != ArenaPartMagic){
-		seterr(ECorrupt, "arena set has wrong magic number: %s expected ArenaPartMagic (%#lux)", fmtmagic(fbuf, m), ArenaPartMagic);
+		seterr(ECorrupt, "arena set has wrong magic number: %s expected ArenaPartMagic (%#lx)", fmtmagic(fbuf, m), ArenaPartMagic);
 		return -1;
 	}
 	p += U32Size;
@@ -124,7 +124,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 	m = U32GET(p);
 	if(m != ArenaMagic){
 		seterr(ECorrupt, "arena %d has wrong magic number: %s "
-			"expected ArenaMagic (%#lux)", debugarena,
+			"expected ArenaMagic (%#lx)", debugarena,
 			fmtmagic(fbuf, m), ArenaMagic);
 		return -1;
 	}
@@ -323,7 +323,7 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 	m = U32GET(p);
 	if(m != ArenaHeadMagic){
 		seterr(ECorrupt, "arena %d head has wrong magic number: %s "
-			"expected ArenaHeadMagic (%#lux)", debugarena,
+			"expected ArenaHeadMagic (%#lx)", debugarena,
 			fmtmagic(fbuf, m), ArenaHeadMagic);
 		return -1;
 	}
@@ -544,7 +544,7 @@ unpackisect(ISect *is, uint8_t *buf)
 
 	m = U32GET(p);
 	if(m != ISectMagic){
-		seterr(ECorrupt, "index section has wrong magic number: %s expected ISectMagic (%#lux)",
+		seterr(ECorrupt, "index section has wrong magic number: %s expected ISectMagic (%#lx)",
 			fmtmagic(fbuf, m), ISectMagic);
 		return -1;
 	}
@@ -712,7 +712,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 
 	m = U32GET(p);
 	if(m != BloomMagic){
-		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lux)", fmtmagic(fbuf, m),
+		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lx)", fmtmagic(fbuf, m),
 		       (uint32_t)BloomMagic);
 		return -1;
 	}
@@ -731,7 +731,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 	b->size = U32GET(p);
 	p += U32Size;
 	if(b->size < BloomHeadSize || b->size > MaxBloomSize || (b->size&(b->size-1))){
-		seterr(ECorrupt, "bloom filter has invalid size %#lux", b->size);
+		seterr(ECorrupt, "bloom filter has invalid size %#lx", b->size);
 		return -1;
 	}
 
