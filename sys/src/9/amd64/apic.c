@@ -88,13 +88,13 @@ Mach	*xlapicmachptr[Napic];		/* maintained, but unused */
 static uint32_t
 apicrget(int r)
 {
-	return *((uint32_t*)(apicbase+r));
+	return *((volatile uint32_t*)(apicbase+r));
 }
 
 static void
 apicrput(int r, uint32_t data)
 {
-	*((uint32_t*)(apicbase+r)) = data;
+	*((volatile uint32_t*)(apicbase+r)) = data;
 }
 
 int
