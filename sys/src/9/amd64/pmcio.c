@@ -113,7 +113,7 @@ getctl(PmcCtl *p, uint32_t regno)
 	e = GetEvMsk(r);
 	u = GetUMsk(r);
 	//TODO inverse translation
-	snprint(p->descstr, KNAMELEN, "%#ullx %#ullx", e, u);
+	snprint(p->descstr, KNAMELEN, "%#llx %#llx", e, u);
 	p->nodesc = 0;
 	return 0;
 }

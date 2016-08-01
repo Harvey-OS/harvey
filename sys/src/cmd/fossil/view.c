@@ -375,12 +375,12 @@ initxheader(void)
 		return stringnode("error unpacking header: %R");
 
 	t = stringnode("header "
-		"version=%#ux (%d) "
-		"blockSize=%#ux (%d) "
-		"super=%#lux (%ld) "
-		"label=%#lux (%ld) "
-		"data=%#lux (%ld) "
-		"end=%#lux (%ld)",
+		"version=%#x (%d) "
+		"blockSize=%#x (%d) "
+		"super=%#lx (%ld) "
+		"label=%#lx (%ld) "
+		"data=%#lx (%ld) "
+		"end=%#lx (%ld)",
 		h.version, h.version, h.blockSize, h.blockSize,
 		h.super, h.super,
 		h.label, h.label, h.data, h.data, h.end, h.end);
@@ -416,9 +416,9 @@ initxsuper(void)
 	}
 	blockPut(b);
 	t = stringnode("super "
-		"version=%#ux "
-		"epoch=[%#ux,%#ux) "
-		"qid=%#llux "
+		"version=%#x "
+		"epoch=[%#x,%#x) "
+		"qid=%#llx "
 		"active=%#x "
 		"next=%#x "
 		"current=%#x "
@@ -456,7 +456,7 @@ initxvacroot(uint8_t score[VtScoreSize])
 		return stringnode("unpack %d-byte root: %R", n);
 
 	h.blockSize = vac.blockSize;
-	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%u score=%V prev=%V",
+	t = stringnode("vac version=%#x name=%s type=%s blockSize=%u score=%V prev=%V",
 		vac.version, vac.name, vac.type, vac.blockSize, vac.score, vac.prev);
 	t->expand = xvacrootexpand;
 	return t;
@@ -465,7 +465,7 @@ initxvacroot(uint8_t score[VtScoreSize])
 Tnode*
 initxlabel(Label l)
 {
-	return stringnode("label type=%s state=%s epoch=%#ux tag=%#ux",
+	return stringnode("label type=%s state=%s epoch=%#x tag=%#x",
 		btStr(l.type), bsStr(l.state), l.epoch, l.tag);
 }
 
@@ -534,7 +534,7 @@ initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**),
 	if(b->addr == NilBlock)
 		t->str = smprint("Block %V: %s", b->score, s);
 	else
-		t->str = smprint("Block %#ux: %s", b->addr, s);
+		t->str = smprint("Block %#x: %s", b->addr, s);
 	t->printlabel = 1;
 	t->nkid = -1;
 	t->expand = xblockexpand;
@@ -591,10 +591,10 @@ initxentry(Entry e)
 
 	t = mallocz(sizeof *t, 1);
 	t->nkid = -1;
-	t->str = smprint("Entry gen=%#ux psize=%d dsize=%d depth=%d flags=%#ux size=%lld score=%V",
+	t->str = smprint("Entry gen=%#x psize=%d dsize=%d depth=%d flags=%#x size=%lld score=%V",
 		e.gen, e.psize, e.dsize, e.depth, e.flags, e.size, e.score);
 	if(e.flags & VtEntryLocal)
-		t->str = smprint("%s archive=%d snap=%d tag=%#ux", t->str, e.archive, e.snap, e.tag);
+		t->str = smprint("%s archive=%d snap=%d tag=%#x", t->str, e.archive, e.snap, e.tag);
 	t->expand = xentryexpand;
 	t->e = e;
 	return t;	
@@ -689,7 +689,7 @@ initxlocalroot(char *name, uint32_t addr)
 	localToGlobal(addr, score);
 	b = dataBlock(score, BtDir, RootTag);
 	if(b == nil)
-		return stringnode("read data block %#ux: %R", addr);
+		return stringnode("read data block %#x: %R", addr);
 	return initxblock(b, smprint("'%s' fs root", name), xlocalrootgen, nil);
 }
 
@@ -724,16 +724,16 @@ initxdirentry(MetaEntry *me)
 	if(!deUnpack(&dir, me))
 		return stringnode("deUnpack: %R");
 
-	t = stringnode("dirEntry elem=%s size=%llu data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
+	t = stringnode("dirEntry elem=%s size=%llu data=%#lx/%#lx meta=%#lx/%#lx", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
 	t->nkid = 1;
 	t->kid = mallocz(sizeof(t->kid[0])*1, 1);
 	t->kid[0] = stringnode(
-		"qid=%#llux\n"
+		"qid=%#llx\n"
 		"uid=%s gid=%s mid=%s\n"
 		"mtime=%lu mcount=%lu ctime=%lu atime=%lu\n"
 		"mode=%luo\n"
-		"plan9 %d p9path %#llux p9version %lu\n"
-		"qidSpace %d offset %#llux max %#llux",
+		"plan9 %d p9path %#llx p9version %lu\n"
+		"qidSpace %d offset %#llx max %#llx",
 		dir.qid,
 		dir.uid, dir.gid, dir.mid,
 		dir.mtime, dir.mcount, dir.ctime, dir.atime,

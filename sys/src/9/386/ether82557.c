@@ -1020,7 +1020,7 @@ scanphy(Ctlr* ctlr)
 		oui <<= 6;
 		x = miir(ctlr, i, 3);
 		oui |= x>>10;
-		//print("phy%d: oui %#ux reg1 %#ux\n", i, oui, miir(ctlr, i, 1));
+		//print("phy%d: oui %#x reg1 %#x\n", i, oui, miir(ctlr, i, 1));
 
 		ctlr->eeprom[6] = i;
 		if(oui == 0xAA00)

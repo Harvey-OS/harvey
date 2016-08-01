@@ -1412,7 +1412,7 @@ blockCopy(Block *b, uint32_t tag, uint32_t ehi, uint32_t elo)
 	Label l;
 
 	if((b->l.state&BsClosed) || b->l.epoch >= ehi)
-		fprint(2, "%s: blockCopy %#ux %L but fs is [%u,%u]\n",
+		fprint(2, "%s: blockCopy %#x %L but fs is [%u,%u]\n",
 			argv0, b->addr, &b->l, elo, ehi);
 
 	bb = cacheAllocBlock(b->c, b->l.type, tag, ehi, elo);
@@ -1751,7 +1751,7 @@ labelFmt(Fmt *f)
 	Label *l;
 
 	l = va_arg(f->args, Label*);
-	return fmtprint(f, "%s,%s,e=%u,%d,tag=%#ux",
+	return fmtprint(f, "%s,%s,e=%u,%d,tag=%#x",
 		btStr(l->type), bsStr(l->state), l->epoch, (int)l->epochClose, l->tag);
 }
 

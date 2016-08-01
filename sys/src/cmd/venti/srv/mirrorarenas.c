@@ -81,7 +81,7 @@ int
 ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	if(readpart(p, offset, buf, count) != count){
-		chat("%T readpart %s at %#llux+%u: %r\n", p->name, offset, count);
+		chat("%T readpart %s at %#llx+%u: %r\n", p->name, offset, count);
 		return -1;
 	}
 	return 0;
@@ -91,7 +91,7 @@ int
 ewritepart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	if(writepart(p, offset, buf, count) != count || flushpart(p) < 0){
-		chat("%T writepart %s at %#llux+%u: %r\n", p->name, offset, count);
+		chat("%T writepart %s at %#llx+%u: %r\n", p->name, offset, count);
 		return -1;
 	}
 	return 0;
