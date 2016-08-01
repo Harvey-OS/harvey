@@ -145,7 +145,7 @@ int get_1click(int but, Mouse* m, Cursor* curs)
 int get_click_or_kbd(int but, Mouse* m, const char* expected)
 {
 	Event ev;
-	uint32_t expbits[4], ty;
+	uint32_t expbits[4] = {}, ty;
 	expbits[0] = expbits[1] = expbits[2] = expbits[3];
 	for (; *expected!=0; expected++)
 		expbits[((*expected)>>5)&3] |= 1 << (*expected&31);
