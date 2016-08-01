@@ -99,14 +99,14 @@ authuser(Conn *c)
 	}
 
 	for(i=0; i<c->nokauth; i++){
-		debug(DBG_AUTH, "authmask %#lux, consider %s (%#x)\n",
+		debug(DBG_AUTH, "authmask %#lx, consider %s (%#x)\n",
 			c->authmask, c->okauth[i]->name, 1<<c->okauth[i]->id);
 		if(c->authmask & (1<<c->okauth[i]->id))
 			if((*c->okauth[i]->fn)(c) == 0)
 				return 0;
 	}
 
-	debug(DBG_AUTH, "no auth methods worked; (authmask=%#lux)\n", c->authmask);
+	debug(DBG_AUTH, "no auth methods worked; (authmask=%#lx)\n", c->authmask);
 	return -1;
 }
 
@@ -232,7 +232,7 @@ sshclienthandshake(Conn *c)
 			break;
 		}
 	if(c->cipher == nil)
-		error("can't agree on ciphers: remote side supports %#lux", c->ciphermask);
+		error("can't agree on ciphers: remote side supports %#lx", c->ciphermask);
 
 	calcsessid(c);
 

@@ -112,7 +112,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 			break;
 
 		case 'A':
-			dprint("%#llux%10t", dot);
+			dprint("%#llx%10t", dot);
 			dotinc = 0;
 			break;
 

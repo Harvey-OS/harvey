@@ -53,7 +53,7 @@ PADDR(void* va)
 KMap*
 kmap(Page* page)
 {
-	DBG("kmap(%#llux) @ %#p: %#p %#p\n",
+	DBG("kmap(%#llx) @ %#p: %#p %#p\n",
 		page->pa, getcallerpc(),
 		page->pa, KADDR(page->pa));
 
