@@ -226,7 +226,7 @@ getfile(Xfile *f)
 	dp->d = nil;
 	if(!isroot(dp->addr)){
 		if(f->qid.path != QIDPATH(dp)){
-			chat("qid mismatch f=%#llux d=%#lux...", f->qid.path, QIDPATH(dp));
+			chat("qid mismatch f=%#llx d=%#lx...", f->qid.path, QIDPATH(dp));
 			putsect(p);
 			errno = Enonexist;
 			return -1;
@@ -1547,7 +1547,7 @@ makecontig(Xfile *f, int nextra)
 	isok = 1;
 	nclust = 0;
 	clust = fileclust(f, 0, 0);
-	chat("clust %#lux", clust);
+	chat("clust %#lx", clust);
 	if(clust != -1) {
 		for(;;) {
 			nclust++;
@@ -1569,7 +1569,7 @@ makecontig(Xfile *f, int nextra)
 			if(getfat(xf, eclust+i) != 0)
 				break;
 		if(i == nextra) {	/* they were all free */
-			chat("eclust=%#lx, getfat eclust-1 = %#lux\n", eclust, getfat(xf, eclust-1));
+			chat("eclust=%#lx, getfat eclust-1 = %#lx\n", eclust, getfat(xf, eclust-1));
 			assert(getfat(xf, eclust-1) == 0xffffffff);
 			putfat(xf, eclust-1, eclust);
 			putfat(xf, eclust, 0xffffffff);

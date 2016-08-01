@@ -163,7 +163,7 @@ recvmsg0(Conn *c)
 	p = m->bp + pad+len-4;
 	crc0 = LONG(p);
 	if(crc != crc0){
-		werrstr("bad crc %#lux != %#lux (packet length %lu)", crc, crc0, len);
+		werrstr("bad crc %#lx != %#lx (packet length %lu)", crc, crc0, len);
 		free(m);
 		return nil;
 	}

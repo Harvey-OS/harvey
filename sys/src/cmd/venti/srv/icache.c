@@ -426,7 +426,7 @@ insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
 				getcallerpc());
 		else{
 			if(icache.as.aa > as->aa)
-				fprint(2, "%T insertscore: aa moving backward: %#llux -> %#llux\n", icache.as.aa, as->aa);
+				fprint(2, "%T insertscore: aa moving backward: %#llx -> %#llx\n", icache.as.aa, as->aa);
 			icache.as = *as;
 		}
 	}

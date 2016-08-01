@@ -377,10 +377,10 @@ initxheader(void)
 	t = stringnode("header "
 		"version=%#x (%d) "
 		"blockSize=%#x (%d) "
-		"super=%#lux (%ld) "
-		"label=%#lux (%ld) "
-		"data=%#lux (%ld) "
-		"end=%#lux (%ld)",
+		"super=%#lx (%ld) "
+		"label=%#lx (%ld) "
+		"data=%#lx (%ld) "
+		"end=%#lx (%ld)",
 		h.version, h.version, h.blockSize, h.blockSize,
 		h.super, h.super,
 		h.label, h.label, h.data, h.data, h.end, h.end);
@@ -418,7 +418,7 @@ initxsuper(void)
 	t = stringnode("super "
 		"version=%#x "
 		"epoch=[%#x,%#x) "
-		"qid=%#llux "
+		"qid=%#llx "
 		"active=%#x "
 		"next=%#x "
 		"current=%#x "
@@ -724,16 +724,16 @@ initxdirentry(MetaEntry *me)
 	if(!deUnpack(&dir, me))
 		return stringnode("deUnpack: %R");
 
-	t = stringnode("dirEntry elem=%s size=%llu data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
+	t = stringnode("dirEntry elem=%s size=%llu data=%#lx/%#lx meta=%#lx/%#lx", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
 	t->nkid = 1;
 	t->kid = mallocz(sizeof(t->kid[0])*1, 1);
 	t->kid[0] = stringnode(
-		"qid=%#llux\n"
+		"qid=%#llx\n"
 		"uid=%s gid=%s mid=%s\n"
 		"mtime=%lu mcount=%lu ctime=%lu atime=%lu\n"
 		"mode=%luo\n"
-		"plan9 %d p9path %#llux p9version %lu\n"
-		"qidSpace %d offset %#llux max %#llux",
+		"plan9 %d p9path %#llx p9version %lu\n"
+		"qidSpace %d offset %#llx max %#llx",
 		dir.qid,
 		dir.uid, dir.gid, dir.mid,
 		dir.mtime, dir.mcount, dir.ctime, dir.atime,

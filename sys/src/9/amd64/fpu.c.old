@@ -275,7 +275,7 @@ fpupostnote(void)
 	else
 		m =  "Unknown";
 
-	snprint(n, sizeof(n), "sys: fp: %s Exception ipo=%#llux fsw=%#x",
+	snprint(n, sizeof(n), "sys: fp: %s Exception ipo=%#llx fsw=%#x",
 		m, fpusave->rip, fsw);
 	postnote(up, 1, n, NDebug);
 }
