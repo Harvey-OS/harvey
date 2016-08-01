@@ -375,8 +375,8 @@ initxheader(void)
 		return stringnode("error unpacking header: %R");
 
 	t = stringnode("header "
-		"version=%#ux (%d) "
-		"blockSize=%#ux (%d) "
+		"version=%#x (%d) "
+		"blockSize=%#x (%d) "
 		"super=%#lux (%ld) "
 		"label=%#lux (%ld) "
 		"data=%#lux (%ld) "
@@ -416,8 +416,8 @@ initxsuper(void)
 	}
 	blockPut(b);
 	t = stringnode("super "
-		"version=%#ux "
-		"epoch=[%#ux,%#ux) "
+		"version=%#x "
+		"epoch=[%#x,%#x) "
 		"qid=%#llux "
 		"active=%#x "
 		"next=%#x "
@@ -456,7 +456,7 @@ initxvacroot(uint8_t score[VtScoreSize])
 		return stringnode("unpack %d-byte root: %R", n);
 
 	h.blockSize = vac.blockSize;
-	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%u score=%V prev=%V",
+	t = stringnode("vac version=%#x name=%s type=%s blockSize=%u score=%V prev=%V",
 		vac.version, vac.name, vac.type, vac.blockSize, vac.score, vac.prev);
 	t->expand = xvacrootexpand;
 	return t;
@@ -465,7 +465,7 @@ initxvacroot(uint8_t score[VtScoreSize])
 Tnode*
 initxlabel(Label l)
 {
-	return stringnode("label type=%s state=%s epoch=%#ux tag=%#ux",
+	return stringnode("label type=%s state=%s epoch=%#x tag=%#x",
 		btStr(l.type), bsStr(l.state), l.epoch, l.tag);
 }
 
@@ -534,7 +534,7 @@ initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**),
 	if(b->addr == NilBlock)
 		t->str = smprint("Block %V: %s", b->score, s);
 	else
-		t->str = smprint("Block %#ux: %s", b->addr, s);
+		t->str = smprint("Block %#x: %s", b->addr, s);
 	t->printlabel = 1;
 	t->nkid = -1;
 	t->expand = xblockexpand;
@@ -591,10 +591,10 @@ initxentry(Entry e)
 
 	t = mallocz(sizeof *t, 1);
 	t->nkid = -1;
-	t->str = smprint("Entry gen=%#ux psize=%d dsize=%d depth=%d flags=%#ux size=%lld score=%V",
+	t->str = smprint("Entry gen=%#x psize=%d dsize=%d depth=%d flags=%#x size=%lld score=%V",
 		e.gen, e.psize, e.dsize, e.depth, e.flags, e.size, e.score);
 	if(e.flags & VtEntryLocal)
-		t->str = smprint("%s archive=%d snap=%d tag=%#ux", t->str, e.archive, e.snap, e.tag);
+		t->str = smprint("%s archive=%d snap=%d tag=%#x", t->str, e.archive, e.snap, e.tag);
 	t->expand = xentryexpand;
 	t->e = e;
 	return t;	
@@ -689,7 +689,7 @@ initxlocalroot(char *name, uint32_t addr)
 	localToGlobal(addr, score);
 	b = dataBlock(score, BtDir, RootTag);
 	if(b == nil)
-		return stringnode("read data block %#ux: %R", addr);
+		return stringnode("read data block %#x: %R", addr);
 	return initxblock(b, smprint("'%s' fs root", name), xlocalrootgen, nil);
 }
 

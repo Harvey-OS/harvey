@@ -667,7 +667,7 @@ findendpoints(Ums *ums)
 		if(!(Class(csp) == Clstorage && (Proto(csp) == Protobulk)))
 			continue;
 		if(sc != Subatapi && sc != Sub8070 && sc != Subscsi)
-			fprint(2, "disk: subclass %#ulx not supported. trying anyway\n", sc);
+			fprint(2, "disk: subclass %#lx not supported. trying anyway\n", sc);
 		if(ep->type == Ebulk){
 			if(ep->dir == Eboth || ep->dir == Ein)
 				if(epin == -1)

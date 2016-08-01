@@ -243,7 +243,7 @@ pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 	switch(type){
 	case Qdata:
 		v = pmcgetctr(coreno, id);
-		snprint(s, PmcCtlRdStr, "%#ullx", v);
+		snprint(s, PmcCtlRdStr, "%#llx", v);
 		break;
 	case Qctl:
 		if (pmcgetctl(coreno, &p, id) < 0)

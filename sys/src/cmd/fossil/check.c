@@ -215,7 +215,7 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 	if(b){
 		/* (i) */
 		if(b->l.epoch < bb->l.epoch || bb->l.epochClose <= b->l.epoch){
-			error(chk, "walk: block %#ux [%u, %u) points at %#ux [%u, %u)",
+			error(chk, "walk: block %#x [%u, %u) points at %#x [%u, %u)",
 				b->addr, b->l.epoch, b->l.epochClose,
 				bb->addr, bb->l.epoch, bb->l.epochClose);
 			goto Exit;
@@ -224,7 +224,7 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 		/* (ii) */
 		if(b->l.epoch == epoch && bb->l.epoch == epoch){
 			if(getBit(chk->emap, addr)){
-				error(chk, "walk: epoch join detected: addr %#ux %L",
+				error(chk, "walk: epoch join detected: addr %#x %L",
 					bb->addr, &bb->l);
 				goto Exit;
 			}
@@ -234,7 +234,7 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 		/* (iii) */
 		if(!(b->l.state&BsCopied) && b->l.epoch == bb->l.epoch){
 			if(getBit(chk->xmap, addr)){
-				error(chk, "walk: copy join detected; addr %#ux %L",
+				error(chk, "walk: copy join detected; addr %#x %L",
 					bb->addr, &bb->l);
 				goto Exit;
 			}
@@ -249,17 +249,17 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 		 * ``have seen active''
 		 */
 		if(getBit(chk->amap, addr)){
-			error(chk, "walk: active join detected: addr %#ux %L",
+			error(chk, "walk: active join detected: addr %#x %L",
 				bb->addr, &bb->l);
 			goto Exit;
 		}
 		if(bb->l.state&BsClosed)
-			error(chk, "walk: addr %#ux: block is in active tree but is closed",
+			error(chk, "walk: addr %#x: block is in active tree but is closed",
 				addr);
 	}else
 		if(!getBit(chk->amap, addr))
 			if(!(bb->l.state&BsClosed)){
-				// error(chk, "walk: addr %#ux: block is not in active tree, not closed (%d)",
+				// error(chk, "walk: addr %#x: block is not in active tree, not closed (%d)",
 				// addr, bb->l.epochClose);
 				chk->close(chk, bb, epoch+1);
 				chk->nclose++;

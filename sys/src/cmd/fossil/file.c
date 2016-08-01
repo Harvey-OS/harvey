@@ -1774,7 +1774,7 @@ setEntry(Source *r, Entry *e)
 	Entry oe;
 
 	b = cacheGlobal(r->fs->cache, r->score, BtDir, r->tag, OReadWrite);
-	if(0) fprint(2, "setEntry: b %#ux %d score=%V\n", b->addr, r->offset % r->epb, e->score);
+	if(0) fprint(2, "setEntry: b %#x %d score=%V\n", b->addr, r->offset % r->epb, e->score);
 	if(b == nil)
 		return 0;
 	if(!entryUnpack(&oe, b->data, r->offset % r->epb)){
