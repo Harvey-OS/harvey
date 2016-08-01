@@ -214,7 +214,7 @@ freepages(int si, int once)
 			pageunchain(p);
 			unlock(&pga.l);
 			if(p->ref != 0)
-				panic("freepages pa %#ullx", p->pa);
+				panic("freepages pa %#llx", p->pa);
 			pgfree(p);
 			if(once)
 				break;

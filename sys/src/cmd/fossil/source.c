@@ -77,7 +77,7 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 
 	if((e.flags & VtEntryLocal) && e.tag == 0){
 		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: flags %#ux tag %#ux\n",
+		consPrint("%s: %s %V: sourceAlloc: flags %#x tag %#x\n",
 			fs->name, pname, e.score, e.flags, e.tag);
 		goto Bad;
 	}

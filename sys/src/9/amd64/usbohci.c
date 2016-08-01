@@ -839,7 +839,7 @@ seprinttd(char *s, char *e, Td *td, int iso)
 	if(td == nil)
 		return seprint(s, e, "<nil td>\n");
 	s = seprint(s, e, "%#p ep %#p ctrl %#p", td, td->ep, td->ctrl);
-	s = seprint(s, e, " cc=%#ulx", (td->ctrl >> Tdccshift) & Tdccmask);
+	s = seprint(s, e, " cc=%#lx", (td->ctrl >> Tdccshift) & Tdccmask);
 	if(iso == 0){
 		if((td->ctrl & Tdround) != 0)
 			s = seprint(s, e, " rnd");

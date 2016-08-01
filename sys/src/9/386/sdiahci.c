@@ -730,7 +730,7 @@ ahciwakeup(Aport *p)
 	p->sctl = 3*Aipm | 0*Aspd | Adet;
 	delay(1);
 	p->sctl &= ~7;
-//	iprint("ahci: wake %#ux -> %#ux\n", s, p->sstatus);
+//	iprint("ahci: wake %#x -> %#x\n", s, p->sstatus);
 }
 
 static int

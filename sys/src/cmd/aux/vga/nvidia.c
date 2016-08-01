@@ -218,7 +218,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 			nv->arch = 40;
 			break;
 		default:
-			error("%s: DID %#4.4ux - %#ux unsupported\n",
+			error("%s: DID %#4.4ux - %#x unsupported\n",
 				ctlr->name, nv->did, (nv->did & 0x0ff0));
 			break;
 		}

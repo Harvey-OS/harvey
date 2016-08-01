@@ -16,7 +16,7 @@ static int
 checksize(int n)
 {
 	if(n < 256 || n > VtMaxLumpSize) {
-		werrstr("bad block size %#ux", n);
+		werrstr("bad block size %#x", n);
 		return -1;
 	}
 	return 0;

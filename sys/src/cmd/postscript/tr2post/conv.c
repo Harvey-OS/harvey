@@ -104,7 +104,7 @@ conv(Biobufhdr *Bp) {
 	}
 	endpage();
 	if (debug) {
-		fprint(2, "r=%#ux\n", r);
+		fprint(2, "r=%#x\n", r);
 		fprint(2, "leaving conv\n");
 	}
 }

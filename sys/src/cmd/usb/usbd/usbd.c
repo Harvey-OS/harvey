@@ -56,7 +56,7 @@ checkhubstatus(Hub *h)
 		return;
 	}
 	sts = GET2(buf);
-	dprint(2, "hub %s: status %#ux\n", h->dev->dir, sts);
+	dprint(2, "hub %s: status %#x\n", h->dev->dir, sts);
 }
 #endif
 
@@ -341,7 +341,7 @@ portattach(Hub *h, int p, int sts)
 	pp = &h->port[p];
 	nd = nil;
 	pp->state = Pattached;
-	dprint(2, "%s: %s: port %d attach sts %#ux\n", argv0, d->dir, p, sts);
+	dprint(2, "%s: %s: port %d attach sts %#x\n", argv0, d->dir, p, sts);
 	sleep(Connectdelay);
 	if(hubfeature(h, p, Fportenable, 1) < 0)
 		dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
@@ -366,7 +366,7 @@ portattach(Hub *h, int p, int sts)
 		sp = "low";
 	if(sts & PShigh)
 		sp = "high";
-	dprint(2, "%s: %s: port %d: attached status %#ux\n", argv0, d->dir, p, sts);
+	dprint(2, "%s: %s: port %d: attached status %#x\n", argv0, d->dir, p, sts);
 
 	if(devctl(d, "newdev %s %d", sp, p) < 0){
 		fprint(2, "%s: %s: port %d: newdev: %r\n", argv0, d->dir, p);
@@ -608,7 +608,7 @@ enumhub(Hub *h, int p)
 			dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
 		sleep(Enabledelay);
 		sts = portstatus(h, p);
-		fprint(2, "%s: %s: port %d: resumed (sts %#ux)\n", argv0, d->dir, p, sts);
+		fprint(2, "%s: %s: port %d: resumed (sts %#x)\n", argv0, d->dir, p, sts);
 	}
 	if((pp->sts & PSpresent) == 0 && (sts & PSpresent) != 0){
 		if(portattach(h, p, sts) != nil)

@@ -2157,7 +2157,7 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;
 			netlog(f, Logtcp,
-			    "bad tcpv6 proto cksum: got %#ux, computed %#ux\n",
+			    "bad tcpv6 proto cksum: got %#x, computed %#x\n",
 				h6->tcpcksum[0]<<8 | h6->tcpcksum[1], csum);
 			freeblist(bp);
 			return;
@@ -3092,7 +3092,7 @@ logreseq(Fs *f, Reseq *r, uint32_t n)
 		else if(r->seg.seq != n)
 			s = "hole";
 		if(s != nil)
-			netlog(f, Logtcp, "%s %lu-%lu (%ld) %#ux\n", s,
+			netlog(f, Logtcp, "%s %lu-%lu (%ld) %#x\n", s,
 				n, r->seg.seq, r->seg.seq - n, r->seg.flags);
 		n = r->seg.seq + r->seg.len;
 	}
