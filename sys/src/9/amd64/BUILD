@@ -152,7 +152,6 @@ AMD64_SRCS = [
 	"ether82563.c",
 	"mouse.c",
 	"screen.c",
-	"sdata.c",
 	"usbehcipc.c",
 	"usbohci.c",
 	"usbuhci.c",

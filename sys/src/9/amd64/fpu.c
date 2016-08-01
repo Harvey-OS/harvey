@@ -302,7 +302,7 @@ fpunote(void)
 		cm =  "Unknown";
 
 	snprint(up->genbuf, sizeof(up->genbuf),
-		"sys: fp: %s Exception ipo=%#llux fsw=%#ux",
+		"sys: fp: %s Exception ipo=%#llx fsw=%#x",
 		cm, fpusave->rip, fsw);
 	return up->genbuf;
 }
@@ -353,7 +353,7 @@ xfpuxf(Ureg* ureg, void* v)
 		cm =  "Unknown";
 
 	snprint(up->genbuf, sizeof(up->genbuf),
-		"sys: fp: %s Exception mxcsr=%#ux", cm, mxcsr);
+		"sys: fp: %s Exception mxcsr=%#x", cm, mxcsr);
 	return up->genbuf;
 }
 

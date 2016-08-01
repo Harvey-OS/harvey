@@ -244,7 +244,7 @@ ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 	printparams(map, sym, sp);
 	dprint(")");
 	if(nextpc != sym->value)
-		dprint("+%#llux ", nextpc - sym->value);
+		dprint("+%#llx ", nextpc - sym->value);
 	printsource(nextpc);
 	dprint("\n");
 	printlocals(map, sym, sp);
