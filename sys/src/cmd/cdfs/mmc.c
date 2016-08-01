@@ -804,7 +804,7 @@ notefeats(Drive *drive, uint8_t *p, uint32_t datalen)
 		len = 4 + p[3];
 		ftnm = featname(feat);
 		if (vflag && ftnm)
-			fprint(2, "%#ux (%s) curr %d\n", feat, ftnm, p[2] & 1);
+			fprint(2, "%#x (%s) curr %d\n", feat, ftnm, p[2] & 1);
 		if (feat >= Maxfeatures) {	/* could be vendor-specific */
 			if (vflag)
 				fprint(2, "feature %d too big for bit map\n",

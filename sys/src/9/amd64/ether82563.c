@@ -1163,7 +1163,7 @@ i82563rproc(void* arg)
 				passed++;
 			} else {
 				if (rd->status & Reop && rd->errors)
-					print("%s: input packet error %#ux\n",
+					print("%s: input packet error %#x\n",
 						tname[ctlr->type], rd->errors);
 				freeb(bp);
 			}

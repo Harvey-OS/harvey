@@ -261,7 +261,7 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 	vtfree(blk);
 
 	hprint(&c->hout, "head:\n<pre>\n");
-	hprint(&c->hout, "version=%d name=%s blocksize=%d size=%#llx clumpmagic=%#ux\n",
+	hprint(&c->hout, "version=%d name=%s blocksize=%d size=%#llx clumpmagic=%#x\n",
 		head.version, head.name, head.blocksize, head.size, 
 		head.clumpmagic);
 	hprint(&c->hout, "</pre><br><br>\n");
@@ -295,7 +295,7 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 	hprint(&c->hout, "version=%d name=%s\n", arena.version, arena.name);
 	hprint(&c->hout, "ctime=%d %s\n", arena.ctime, fmttime(tbuf, arena.ctime));
 	hprint(&c->hout, "wtime=%d %s\n", arena.wtime, fmttime(tbuf, arena.wtime));
-	hprint(&c->hout, "clumpmagic=%#ux\n", arena.clumpmagic);
+	hprint(&c->hout, "clumpmagic=%#x\n", arena.clumpmagic);
 	hprint(&c->hout, "score %V\n", arena.score);
 	hprint(&c->hout, "diskstats:\n");
 	hprint(&c->hout, "\tclumps=%,d cclumps=%,d used=%,lld uncsize=%,lld sealed=%d\n",
@@ -459,7 +459,7 @@ diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 		hprint(&c->hout, "unpackclump: %r\n<br>");
 		rerrstr(err, sizeof err);
 		if(strstr(err, "magic")){
-			hprint(&c->hout, "trying again with magic=%#ux<br>\n", U32GET(blk));
+			hprint(&c->hout, "trying again with magic=%#x<br>\n", U32GET(blk));
 			if(unpackclump(&cl, blk, U32GET(blk)) < 0){
 				hprint(&c->hout, "unpackclump: %r\n<br>\n");
 				goto error;

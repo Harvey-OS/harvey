@@ -302,7 +302,7 @@ main(uint32_t ax, uint32_t bx)
 	fmtinit();
 	print("\nNIX\n");
 	if(vflag){
-		print("&ax = %#p, ax = %#ux, bx = %#ux\n", &ax, ax, bx);
+		print("&ax = %#p, ax = %#x, bx = %#x\n", &ax, ax, bx);
 		multiboot(ax, bx, vflag);
 	}
 

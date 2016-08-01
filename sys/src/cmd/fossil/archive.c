@@ -79,18 +79,18 @@ ventiSend(Arch *a, Block *b, uint8_t *data)
 	uint8_t score[VtScoreSize];
 
 	if(DEBUG > 1)
-		fprint(2, "ventiSend: sending %#ux %L to venti\n", b->addr, &b->l);
+		fprint(2, "ventiSend: sending %#x %L to venti\n", b->addr, &b->l);
 	n = vtZeroTruncate(vtType[b->l.type], data, a->blockSize);
 	if(DEBUG > 1)
 		fprint(2, "ventiSend: truncate %d to %d\n", a->blockSize, n);
 	if(!vtWrite(a->z, score, vtType[b->l.type], data, n)){
-		fprint(2, "ventiSend: vtWrite block %#ux failed: %R\n", b->addr);
+		fprint(2, "ventiSend: vtWrite block %#x failed: %R\n", b->addr);
 		return 0;
 	}
 	if(!vtSha1Check(score, data, n)){
 		uint8_t score2[VtScoreSize];
 		vtSha1(score2, data, n);
-		fprint(2, "ventiSend: vtWrite block %#ux failed vtSha1Check %V %V\n",
+		fprint(2, "ventiSend: vtWrite block %#x failed vtSha1Check %V %V\n",
 			b->addr, score, score2);
 		return 0;
 	}
@@ -199,7 +199,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 
 	b = cacheLocalData(p->c, addr, type, tag, OReadWrite,0);
 	if(b == nil){
-		fprint(2, "archive(%u, %#ux): cannot find block: %R\n", p->snapEpoch, addr);
+		fprint(2, "archive(%u, %#x): cannot find block: %R\n", p->snapEpoch, addr);
 		if(strcmp(vtGetError(), ELabelMismatch) == 0){
 			/* might as well plod on so we write _something_ to Venti */
 			memmove(p->score, vtZeroScore, VtScoreSize);
@@ -208,7 +208,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 		return ArchFailure;
 	}
 
-	if(DEBUG) fprint(2, "%*sarchive(%u, %#ux): block label %L\n",
+	if(DEBUG) fprint(2, "%*sarchive(%u, %#x): block label %L\n",
 		p->depth*2, "",  p->snapEpoch, b->addr, &b->l);
 	p->depth++;
 	if(p->depth > p->maxdepth)
@@ -223,7 +223,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 					continue;
 				if((e->snap && !e->archive)
 				|| (e->flags&VtEntryNoArchive)){
-					if(0) fprint(2, "snap; faking %#ux\n", b->addr);
+					if(0) fprint(2, "snap; faking %#x\n", b->addr);
 					if(data == b->data){
 						data = copyBlock(b, p->blockSize);
 						if(data == nil){
@@ -261,7 +261,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 				vtSleep(b->ioready);
 			switch(x){
 			case ArchFailure:
-				fprint(2, "archWalk %#ux failed; ptr is in %#ux offset %d\n",
+				fprint(2, "archWalk %#x failed; ptr is in %#x offset %d\n",
 					addr, b->addr, i);
 				ret = ArchFailure;
 				goto Out;
@@ -277,7 +277,7 @@ archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 				 */
 				if(e==nil || !e->archive)
 				if(data == b->data){
-if(0) fprint(2, "faked %#ux, faking %#ux (%V)\n", addr, b->addr, p->score);
+if(0) fprint(2, "faked %#x, faking %#x (%V)\n", addr, b->addr, p->score);
 					data = copyBlock(b, p->blockSize);
 					if(data == nil){
 						ret = ArchFailure;
@@ -407,7 +407,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		default:
 			abort();
 		case ArchFailure:
-			fprint(2, "archiveBlock %#ux: %R\n", addr);
+			fprint(2, "archiveBlock %#x: %R\n", addr);
 			sleep(60*1000);
 			continue;
 		case ArchSuccess:
@@ -415,7 +415,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 			break;
 		}
 
-		if(0) fprint(2, "archiveSnapshot 0x%#ux: maxdepth %u nfixed %u"
+		if(0) fprint(2, "archiveSnapshot 0x%#x: maxdepth %u nfixed %u"
 			" send %u nfailsend %u nvisit %u"
 			" nreclaim %u nfake %u nreal %u\n",
 			addr, p.maxdepth, p.nfixed,
@@ -434,7 +434,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		vtRootPack(&root, rbuf);
 		if(!vtWrite(a->z, p.score, VtRootType, rbuf, VtRootSize)
 		|| !vtSha1Check(p.score, rbuf, VtRootSize)){
-			fprint(2, "vtWriteBlock %#ux: %R\n", addr);
+			fprint(2, "vtWriteBlock %#x: %R\n", addr);
 			sleep(60*1000);
 			continue;
 		}
