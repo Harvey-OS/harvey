@@ -79,7 +79,7 @@ pageinit(void)
 				DBG("pageinit: pgalloc failed. breaking.\n");
 				break;	/* don't consume more memory */
 			}
-			DBG("pageinit: alloced pa %#P sz %#ux color %d\n",
+			DBG("pageinit: alloced pa %#P sz %#x color %d\n",
 				pg->pa, sys->pgsz[si], pg->color);
 			lock(&pga.l);
 			pg->ref = 0;
@@ -99,7 +99,7 @@ getpgszi(usize size)
 	for(si = 0; si < sys->npgsz; si++)
 		if(size == sys->pgsz[si])
 			return si;
-	print("getpgszi: size %#ulx not found\n", size);
+	print("getpgszi: size %#lx not found\n", size);
 	return -1;
 }
 
@@ -116,7 +116,7 @@ pgalloc(usize size, int color)
 	}
 	memset(pg, 0, sizeof *pg);
 	if((pg->pa = physalloc(size, &color, pg)) == 0){
-		DBG("pgalloc: physalloc failed: size %#ulx color %d\n", size, color);
+		DBG("pgalloc: physalloc failed: size %#lx color %d\n", size, color);
 		free(pg);
 		return nil;
 	}
@@ -288,7 +288,7 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 
 	lock(&p->l);
 	if(p->ref != 0)
-		panic("newpage pa %#ullx", p->pa);
+		panic("newpage pa %#llx", p->pa);
 
 	uncachepage(p);
 	p->ref++;
@@ -318,7 +318,7 @@ if (VA(k) == 0xfffffe007d800000ULL) trip++;
 //if (trip) die("trip");
 		kunmap(k);
 	}
-	DBG("newpage: va %#p pa %#ullx pgsz %#ux color %d\n",
+	DBG("newpage: va %#p pa %#llx pgsz %#x color %d\n",
 		p->va, p->pa, sys->pgsz[p->pgszi], p->color);
 
 	return p;

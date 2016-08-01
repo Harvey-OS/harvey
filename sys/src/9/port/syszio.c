@@ -69,7 +69,7 @@ ziofmt(Fmt *f)
 	Kzio *io;
 
 	io = va_arg(f->args, Kzio*);
-	return fmtprint(f, "%#p[%#ulx]", io->Zio.data, io->Zio.size);
+	return fmtprint(f, "%#p[%#lx]", io->Zio.data, io->Zio.size);
 }
 
 static void

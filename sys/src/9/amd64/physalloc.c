@@ -408,7 +408,7 @@ physallocdump(void)
 
 	for(n = 0; n < Ndoms; n++)
 		if(bal[n].size > 0)
-			print("physalloc color=%d base=%#ullx size=%#ullx\n",
+			print("physalloc color=%d base=%#llx size=%#llx\n",
 				n, bal[n].base, bal[n].size);
 }
 
@@ -448,13 +448,13 @@ iimbchunk(Bal *b, uintmem a, uintmem e, int type)
 			a += s;
 		}
 	}
-	DBG("done1 a %#P e %#P s %#ux %d\n", a, e, s, k);
+	DBG("done1 a %#P e %#P s %#x %d\n", a, e, s, k);
 
 	while(a+s <= e){
 		plop(b, a, k, type);
 		a += s;
 	}
-	DBG("done2 a %#P e %#P s %#ux %d\n", a, e, s, k);
+	DBG("done2 a %#P e %#P s %#x %d\n", a, e, s, k);
 
 	for(k -= 1, s >>= 1; a < e; s >>= 1, k -= 1){
 		if(a+s <= e){
@@ -462,7 +462,7 @@ iimbchunk(Bal *b, uintmem a, uintmem e, int type)
 			a += s;
 		}
 	}
-	DBG("done3 a %#P e %#P s %#ux %d\n", a, e, s, k);
+	DBG("done3 a %#P e %#P s %#x %d\n", a, e, s, k);
 
 	return 0;
 }
@@ -478,7 +478,7 @@ physinit(uintmem a, uint64_t size)
 	int i, dom;
 	uintmem addr, len;
 
-	DBG("physinit %#ullx %#ullx\n", a, size);
+	DBG("physinit %#llx %#llx\n", a, size);
 
 	for(addr = a; addr < a+size; addr += len){
 		dom = 0;
@@ -494,7 +494,7 @@ physinit(uintmem a, uint64_t size)
 		 * This code assumes that a domain may be extended later and
 		 * that there is no interleaving of domains. Ok by now.
 		 */
-		DBG("physmem block dom %d addr %#ullx size %#ullx\n",
+		DBG("physmem block dom %d addr %#llx size %#llx\n",
 			dom, addr, len);
 		if(dom < 0 || dom >= Ndoms){
 			print("physinit: invalid dom %d\n", dom);
