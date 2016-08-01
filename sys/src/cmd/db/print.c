@@ -162,7 +162,7 @@ printtrace(int modif)
 	case 'e':
 		for (i = 0; globalsym(&s, i); i++) {
 			if (get4(cormap, s.value, &w) > 0)
-				dprint("%s/%12t%#lux\n", s.name, w);
+				dprint("%s/%12t%#lx\n", s.name, w);
 		}
 		break;
 
@@ -356,7 +356,7 @@ printlocals(Symbol *fn, ADDR fp)
 		if (s.class != CAUTO)
 			continue;
 		if (get4(cormap, fp-s.value, &w) > 0)
-			dprint("%8t%s.%s/%10t%#lux\n", fn->name, s.name, w);
+			dprint("%8t%s.%s/%10t%#lx\n", fn->name, s.name, w);
 		else
 			dprint("%8t%s.%s/%10t?\n", fn->name, s.name);
 	}
@@ -378,6 +378,6 @@ printparams(Symbol *fn, ADDR fp)
 		if (first++)
 			dprint(", ");
 		if (get4(cormap, fp+s.value, &w) > 0)
-			dprint("%s=%#lux", s.name, w);
+			dprint("%s=%#lx", s.name, w);
 	}
 }

@@ -804,7 +804,7 @@ notefeats(Drive *drive, uint8_t *p, uint32_t datalen)
 		len = 4 + p[3];
 		ftnm = featname(feat);
 		if (vflag && ftnm)
-			fprint(2, "%#ux (%s) curr %d\n", feat, ftnm, p[2] & 1);
+			fprint(2, "%#x (%s) curr %d\n", feat, ftnm, p[2] & 1);
 		if (feat >= Maxfeatures) {	/* could be vendor-specific */
 			if (vflag)
 				fprint(2, "feature %d too big for bit map\n",
@@ -1693,7 +1693,7 @@ mmcxwrite(Otrack *o, void *v, int32_t nblk)
 	cmd[7] = nblk>>8;
 	cmd[8] = nblk>>0;
 	if(vflag > 1)
-		print("%lld ns: write+verify %ld at %#lux\n",
+		print("%lld ns: write+verify %ld at %#lx\n",
 			nsec(), nblk, aux->mmcnwa);
 	/*
 	 * we are using a private copy of scsi.c that doesn't retry writes

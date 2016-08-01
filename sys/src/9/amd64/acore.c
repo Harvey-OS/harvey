@@ -209,7 +209,7 @@ actrap(Ureg *u)
 	case IdtPF:
 		/* this case is here for debug only */
 		m->pfault++;
-		DBG("actrap: cpu%d: PF cr2 %#ullx\n", machp()->machno, cr2get());
+		DBG("actrap: cpu%d: PF cr2 %#llx\n", machp()->machno, cr2get());
 		break;
 	default:
 		print("actrap: cpu%d: %llu\n", machp()->machno, u->type);

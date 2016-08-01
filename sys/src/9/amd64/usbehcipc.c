@@ -180,7 +180,7 @@ scanpci(void)
 			continue;
 		}
 		//if(0 && p->vid == Vintel && p->did == 0x3b34) {
-		//	print("usbehci: ignoring known bad ctlr %#ux/%#ux\n",
+		//	print("usbehci: ignoring known bad ctlr %#x/%#x\n",
 		//		p->vid, p->did);
 		//	continue;
 		//}

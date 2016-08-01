@@ -143,7 +143,7 @@ acpirsdptr(void)
 #if 0
 	assert(sizeof(Sdthdr) == 36);
 
-	DBG("acpi: RSD PTR@ %#p, physaddr %#ux length %u %#llux rev %d\n",
+	DBG("acpi: RSD PTR@ %#p, physaddr %#x length %u %#llx rev %d\n",
 		rsd, l32get(rsd->raddr), l32get(rsd->length),
 		l64get(rsd->xaddr), rsd->revision);
 
