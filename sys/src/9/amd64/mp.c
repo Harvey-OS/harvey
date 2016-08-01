@@ -15,6 +15,7 @@
 
 #include "apic.h"
 
+#define ISABUSNO 0xff
 /*
  * MultiProcessor Specification Version 1.[14].
  */
@@ -225,7 +226,7 @@ print("MP: add an apic, # %d\n", p[1]);
 	case 1:					/* bus */
 		print("CODE: /* case 1, bus */\n");
 		if (p[1] == hackisabusno)
-				p[1] = 0xff;
+				p[1] = ISABUSNO;
 		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
 print("MP: adda  bus %d\n", p[1]);
 		if(mpbus[p[1]] != nil){
@@ -243,7 +244,7 @@ print("MP: adda  bus %d\n", p[1]);
 					continue;
 				}
 				hackisabusno = p[1];
-				p[1] = 0xff;
+				p[1] = ISABUSNO;
 				mpisabusno = p[1];
 print("CODE: mpisabusno = %d\n", p[1]);
 			}
