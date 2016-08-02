@@ -381,7 +381,7 @@ asixbread(Ether *e, Buf *bp)
 	nr = hd & 0xFFFF;
 	hd = (hd>>16) & 0xFFFF;
 	if(nr != (~hd & 0xFFFF)){
-		if(0)deprint(2, "%s: asixread: bad header %#ulx %#ulx\n",
+		if(0)deprint(2, "%s: asixread: bad header %#lx %#lx\n",
 			argv0, nr, (~hd & 0xFFFF));
 		werrstr("bad usb packet header");
 		rbp->ndata = 0;

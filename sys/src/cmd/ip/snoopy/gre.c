@@ -187,7 +187,7 @@ p_seprint(Msg *m)
 
 	demux(p_mux, h.proto, h.proto, m, &dump);
 
-	m->p = seprint(m->p, m->e, "version=%d proto=%#ux flags=%#.4ux", h.version, h.proto, h.flags);
+	m->p = seprint(m->p, m->e, "version=%d proto=%#x flags=%#.4ux", h.version, h.proto, h.flags);
 	if(h.flags&GRE_chksum)
 		m->p = seprint(m->p, m->e, " checksum=%#.4ux", h.chksum);
 	if(h.flags&GRE_key)
@@ -197,7 +197,7 @@ p_seprint(Msg *m)
 	if(h.flags&GRE_ack)
 		m->p = seprint(m->p, m->e, " ack=%#.8ulx", h.ack);
 	if(h.flags&GRE_routing)
-		m->p = seprint(m->p, m->e, " offset=%#ux haverouting", h.offset);
+		m->p = seprint(m->p, m->e, " offset=%#x haverouting", h.offset);
 	if(h.version == 0)
 		m->p = seprint(m->p, m->e, " recursion=%u", (h.flags&GRE_recur)>>8);
 	

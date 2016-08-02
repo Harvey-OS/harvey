@@ -195,7 +195,7 @@ p_seprint(Msg *m)
 		m->p = seprint(m->p, m->e, "error: %s", e);
 		return 0;
 	}
-	m->p = seprint(m->p, m->e, "id=%d flags=%#ux", dm.id, dm.flags);
+	m->p = seprint(m->p, m->e, "id=%d flags=%#x", dm.id, dm.flags);
 	donext(m);
 	return 0;
 }

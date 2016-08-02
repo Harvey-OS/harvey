@@ -311,7 +311,7 @@ kproc("testproc", testproc, up);
 		switch(rc){
 		case ICCTRAP:
 			m->cr2 = up->ac->cr2;
-			DBG("runacore: trap %llu cr2 %#ullx ureg %#p\n",
+			DBG("runacore: trap %llu cr2 %#llx ureg %#p\n",
 				ureg->type, m->cr2, ureg);
 			if(ureg->type == IdtIPI){
 				if(up->procctl || up->nnote)
@@ -323,7 +323,7 @@ kproc("testproc", testproc, up);
 			fn = actrapret;
 			break;
 		case ICCSYSCALL:
-			DBG("runacore: syscall ax %#ullx ureg %#p\n",
+			DBG("runacore: syscall ax %#llx ureg %#p\n",
 				ureg->ax, ureg);
 			syscall(ureg->ax, ureg);
 			flush = 1;

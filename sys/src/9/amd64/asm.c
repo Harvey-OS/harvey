@@ -267,7 +267,7 @@ asmmapinit(uintmem addr, uintmem size, int type)
 void
 asmmodinit(uint32_t start, uint32_t end, char* s)
 {
-	DBG("asmmodinit: %#ux -> %#ux: <%s> %#ux\n",
+	DBG("asmmodinit: %#x -> %#x: <%s> %#x\n",
 		start, end, s, ROUNDUP(end, 4096));
 
 	if(start < sys->pmstart)
@@ -334,7 +334,7 @@ asmmeminit(void)
 	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, 1, 0);
 	if(mem != pa)
 		panic("asmmeminit 2");
-	DBG("pa %#llux mem %#llux\n", pa, mem);
+	DBG("pa %#llx mem %#llx\n", pa, mem);
 
 	/* assume already 2MiB aligned*/
 	assert(ALIGNED(sys->vmunmapped, 2*MiB));
@@ -411,7 +411,7 @@ asmmeminit(void)
 //  hi = 600*MiB;
 		conf.mem[cx].npage = (hi - lo)/PGSZ;
 		conf.npage += conf.mem[cx].npage;
-		print("cm %d: addr %#llux npage %lu\n",
+		print("cm %d: addr %#llx npage %lu\n",
 			cx, conf.mem[cx].base, conf.mem[cx].npage);
 		cx++;
 #endif /* ConfCrap */
