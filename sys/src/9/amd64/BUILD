@@ -16,6 +16,7 @@ CORE_SRCS = [
 	"archamd64.c",
 	"asm.c",
 	"backtrace.c",
+	"//sys/src/9/port/devbridge.c",
 	"coreboot.c",
 	"ctype.c",
 	"devarch.c",
@@ -27,6 +28,7 @@ CORE_SRCS = [
 	"i8254.c",
 	"i8259.c",
 	"ioapic.c",
+	"//sys/src/9/port/log.c",
 	"main.c",
 	"map.c",
 	"memory.c",
@@ -42,7 +44,7 @@ CORE_SRCS = [
 	"systab.c",
 	"tcore.c",
 	"trap.c",
-	"//sys/src/9/port/usbehci.c"
+	"//sys/src/9/port/usbehci.c",
 ]
 
 PORT_SRCS = [
@@ -111,7 +113,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/syszio.c",
 	"//sys/src/9/port/taslock.c",
 	"//sys/src/9/port/tod.c",
-	"//sys/src/9/port/watermarks.c"
+	"//sys/src/9/port/watermarks.c",
 ]
 
 IP_SRCS = [
@@ -137,7 +139,7 @@ IP_SRCS = [
 	"//sys/src/9/ip/ptclbsum.c",
 	"//sys/src/9/ip/rudp.c",
 	"//sys/src/9/ip/tcp.c",
-	"//sys/src/9/ip/udp.c"
+	"//sys/src/9/ip/udp.c",
 ]
 
 AMD64_SRCS = [
@@ -170,7 +172,7 @@ I386_SRCS = [
 	"//sys/src/9/386/sdiahci.c",
 	"//sys/src/9/386/uarti8250.c",
 	"//sys/src/9/386/uartpci.c",
-	"//sys/src/9/386/vgavesa.c"
+	"//sys/src/9/386/vgavesa.c",
 ]
 
 AMD64SRCS = AMD64_SRCS + CORE_SRCS + I386_SRCS + IP_SRCS + PORT_SRCS
@@ -351,7 +353,7 @@ HRVYDEPS =[
 cc_binary(
 	name="harvey",
 	copts=[
-		"-c",
+		# "-c", this is always on
 		"-std=c11",
 		"-mcmodel=kernel",
 		"-O0",
@@ -371,7 +373,8 @@ cc_binary(
 		"-Wno-parentheses",
 		"-Wno-unknown-pragmas",
 		"-D__HARVEY__",
-		"-U_LINUX", "-U__linux__",
+		"-U_LINUX",
+		"-U__linux__",
 		"-fasm",
 	],
 	srcs=AMD64SRCS,
@@ -382,6 +385,7 @@ cc_binary(
 		"//sys/src/9/port",
 	],
 	deps= HRVYDEPS + KLIBS,
+	alwayslink=true, #this is not necessary as klibs are hardcoded to be alwayslinked
 	ld="kernel.ld",
 	linkopts=[
 		"-z",
@@ -522,7 +526,9 @@ cc_binary(
 		"-fno-builtin",
 		"-mcmodel=small",
 	],
-	deps=LIBS + KLIBS,
+	deps=[
+		"//sys/src/libc:libc",
+	],
 	includes=[
 		"//sys/include",
 		"//amd64/include",
@@ -537,4 +543,3 @@ cc_binary(
 		"//sys/src/9/port/initcode.c",
 	]
 )
-

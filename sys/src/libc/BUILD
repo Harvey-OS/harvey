@@ -449,6 +449,11 @@ cc_library(
         "//sys/src/libc"
     ],
     srcs=KLIBC_SRCS,
+    deps=[
+        ":9syscall",
+        ":syscallheader"
+    ],
+    alwayslink=true,
 )
 
 cc_library(

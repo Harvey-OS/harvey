@@ -64,7 +64,8 @@ cc_library(
         "port/thumb.c",
         "port/tlshand.c",
         "port/x509.c"
-    ]
+    ],
+    alwayslink=true,
 )
 cc_library(
     name="libsec",
