@@ -55,7 +55,6 @@ char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
-int enableacpi = 0;
 
 /*
  *	this may need improvement, but right now it's just for
@@ -149,7 +148,6 @@ options(int argc, char* argv[])
 	vflag = dbgflg['v'];
 	// hack.
 	nosmp = dbgflg['n'];
-	enableacpi = dbgflg['a'];
 }
 
 void
@@ -420,8 +418,7 @@ void badcall(uint64_t where, uint64_t what)
 */
 
 void errstr(char *s, int i) {
-	print("errstr has :%s:, %d: what to do?\n", s, i);
-	//panic("errstr");
+	panic("errstr");
 }
 
 static int x = 0x123456;
@@ -584,11 +581,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-	if (enableacpi){
-		/* If acpiinit succeeds, we leave enableacpi enabled.
-		 * This means we can always boot. */
-		enableacpi = acpiinit();
-	}
+if (0){	acpiinit(); hi("	acpiinit();\n");}
 
 	umeminit();
 	trapinit();
@@ -603,14 +596,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 
 	procinit0();
-	if (! enableacpi)
-		mpsinit(maxcores);
-	print("CODE: apiconline();\n");
+	mpsinit(maxcores);
 	apiconline();
-	print("CODE: if(! nosmp) sipi();\n");
-	if (enableacpi){
-		die("ACPI after apiconline\n");
-	}
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();
