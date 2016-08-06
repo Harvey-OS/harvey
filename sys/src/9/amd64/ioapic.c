@@ -141,7 +141,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 }
 
 void
-ioapicinit(int id, uintptr_t pa)
+ioapicinit(int id, int ibase, uintptr_t pa)
 {
 	Apic *apic;
 
@@ -150,12 +150,14 @@ ioapicinit(int id, uintptr_t pa)
 	 * and the registers can be mapped.
 	 */
 	if(id >= Napic)
+
 		return;
 
 	apic = &xioapic[id];
 	if(apic->useable || (apic->Ioapic.addr = vmap(pa, 1024)) == nil)
 		return;
 	apic->useable = 1;
+	apic->Ioapic.paddr = pa;
 
 	/*
 	 * Initialise the I/O APIC.
@@ -164,8 +166,12 @@ ioapicinit(int id, uintptr_t pa)
 	 */
 	lock(&apic->Ioapic.l);
 	apic->Ioapic.nrdt = ((ioapicread(apic, Ioapicver)>>16) & 0xff) + 1;
-	apic->Ioapic.gsib = gsib;
-	gsib += apic->Ioapic.nrdt;
+	if (ibase == -1) {
+		apic->Ioapic.gsib = gsib;
+		gsib += apic->Ioapic.nrdt;
+	} else {
+		apic->Ioapic.gsib = ibase;
+	}
 
 	ioapicwrite(apic, Ioapicid, id<<24);
 	unlock(&apic->Ioapic.l);

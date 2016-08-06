@@ -581,7 +581,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-if (0){	acpiinit(); hi("	acpiinit();\n");}
+if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 	umeminit();
 	trapinit();

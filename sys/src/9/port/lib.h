@@ -7,6 +7,7 @@
  * in the LICENSE file.
  */
 
+/* TODO: it really ought to be possible to include <libc.h>, not "../port/lib.h". */
 /*
  * functions (possibly) linked in, complete, from libc.
  */
@@ -35,6 +36,7 @@ extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
 extern	char*	strncat(char*, char*, int32_t);
+extern	char*	strlcpy(char*, char*, int32_t);
 extern	char*	strncpy(char*, char*, int32_t);
 extern	int	strncmp(char*, char*, int32_t);
 extern	char*	strrchr(char*, int);
@@ -76,6 +78,8 @@ extern	void	setrealloctag(void*, uint32_t);
 extern	uint32_t	getmalloctag(void*);
 extern	uint32_t	getrealloctag(void*);
 extern	void*	realloc(void *, uint32_t);
+/* from BSD */
+void* reallocarray(void *base, size_t nel, size_t size);
 
 /*
  * print routines
@@ -310,3 +314,31 @@ void set_printx(int mode);
 #       endif
 #endif
 
+/* slice types and functions. */
+
+/*
+ * Copyright (C) 2016 Google Inc.
+ * Dan Cross <crossd@gmail.com>
+ * See LICENSE for license details.
+ */
+
+/*
+ * A tracking structure for growing lists of pointers.
+ */
+typedef struct PtrSlice PtrSlice;
+
+struct PtrSlice {
+	void **ptrs;
+	size_t len;
+	size_t capacity;
+};
+
+void PtrSliceInit(PtrSlice *slice);
+void PtrSliceClear(PtrSlice *slice);
+void *PtrSliceGet(PtrSlice *slice, size_t i);
+int PtrSlicePut(PtrSlice *slice, size_t i, void *p);
+int PtrSliceDel(PtrSlice *slice, size_t i);
+void PtrSliceAppend(PtrSlice *s, void *p);
+size_t PtrSliceLen(PtrSlice *slice);
+void **PtrSliceFinalize(PtrSlice *slice);
+void PtrSliceDestroy(PtrSlice *slice);
