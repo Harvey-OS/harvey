@@ -249,7 +249,7 @@ mpparse(PCMP* pcmp, int maxcores)
 		 * p[1] is the APIC ID, p[4-7] is the memory mapped address.
 		 */
 		if(p[3] & 0x01)
-			ioapicinit(p[1], l32get(p+4));
+			ioapicinit(p[1], -1, l32get(p+4));
 
 		p += 8;
 		break;
@@ -366,7 +366,7 @@ sigchecksum(void* address, int length)
 	return sum;
 }
 
-static void*
+void*
 sigscan(uint8_t* address, int length, char* signature)
 {
 	uint8_t *e, *p;
