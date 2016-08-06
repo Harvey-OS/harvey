@@ -1,90 +1,108 @@
 /*
- * Copyright (C) 2016 Google Inc.
- * Dan Cross <crossd@gmail.com>
- * See LICENSE for license details.
+ * Copyright (c) 2016, Google Inc., Dan Cross <net!gajendra!cross>
+ *
+ * Permission to use, copy, modify, and/or distribute this software
+ * for any purpose with or without fee is hereby granted, provided
+ * that the above copyright notice and this permission notice appear
+ * in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <kmalloc.h>
-#include <assert.h>
-#include <error.h>
-#include <slice.h>
+#include <u.h>
+#include <libc.h>
 
-void slice_init(struct slice *slice)
+void
+psliceinit(PSlice *slice)
 {
 	memset(slice, 0, sizeof(*slice));
 }
 
-void slice_clear(struct slice *slice)
+void
+psliceclear(PSlice *slice)
 {
 	slice->len = 0;
 	memset(slice->ptrs, 0, sizeof(*slice->ptrs) * slice->capacity);
 }
 
-void *slice_get(struct slice *slice, size_t i)
+void *
+psliceget(PSlice *slice, size_t i)
 {
 	if (i >= slice->len)
-		return NULL;
+		return nil;
 	return slice->ptrs[i];
 }
 
-bool slice_put(struct slice *slice, size_t i, void *p)
+int
+psliceput(PSlice *slice, size_t i, void *p)
 {
 	if (i >= slice->len)
-		return FALSE;
+		return 0;
 	slice->ptrs[i] = p;
-	return TRUE;
+	return 1;
 }
 
-bool slice_del(struct slice *slice, size_t i)
+int
+pslicedel(PSlice *slice, size_t i)
 {
 	if (i >= slice->len)
-		return FALSE;
+		return 0;
 	memmove(slice->ptrs + i, slice->ptrs + i + 1,
 	        (slice->len - (i + 1)) * sizeof(void *));
 	slice->len--;
-	return TRUE;
+	return 1;
 }
 
-void slice_append(struct slice *s, void *p)
+void
+psliceappend(PSlice *s, void *p)
 {
 	void **ps;
 
-	assert(p != NULL);
+	assert(p != nil);
 	if (s->len == s->capacity) {
 		if (s->capacity == 0)
 			s->capacity = 4;
 		s->capacity *= 2;
-		ps = kreallocarray(s->ptrs, s->capacity, sizeof(void *),
-				   MEM_WAIT);
-		assert(ps != NULL);		/* XXX: if size*sizeof(void*) overflows. */
+		ps = reallocarray(s->ptrs, s->capacity, sizeof(void *));
+		assert(ps != nil);		/* XXX: if size*sizeof(void*) overflows. */
 		s->ptrs = ps;
 	}
 	s->ptrs[s->len] = p;
 	s->len++;
 }
 
-size_t slice_len(struct slice *slice)
+size_t
+pslicelen(PSlice *slice)
 {
 	return slice->len;
 }
 
-void **slice_finalize(struct slice *slice)
+void **
+pslicefinalize(PSlice *slice)
 {
 	void **ps;
 
-	ps = kreallocarray(slice->ptrs, slice->len, sizeof(void *), MEM_WAIT);
-	assert(ps != NULL);
+	ps = reallocarray(slice->ptrs, slice->len, sizeof(void *));
+	assert(ps != nil);
 	slice->len = 0;
 	slice->capacity = 0;
-	slice->ptrs = NULL;
+	slice->ptrs = nil;
 
 	return ps;
 }
 
-void slice_destroy(struct slice *slice)
+void
+pslicedestroy(PSlice *slice)
 {
-	kfree(slice->ptrs);
-	slice->ptrs = NULL;
+	free(slice->ptrs);
+	slice->ptrs = nil;
 	slice->capacity = 0;
 	slice->len = 0;
 }
