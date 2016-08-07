@@ -11,6 +11,7 @@
 void	intrac(Proc*);
 void	acinit(void);
 int	acpiinit(void);
+int	mpacpi(int);
 void	actrapenable(int, char* (*)(Ureg*, void*), void*, char*);
 void	apicipi(int);
 void	apicpri(int);
@@ -260,7 +261,7 @@ extern int i8259isr(int);
 /*
  * mp.c
  */
-extern void mpsinit(int);
+extern int mpsinit(int);
 void*sigscan(uint8_t* address, int length, char* signature);
 
 /*
