@@ -464,9 +464,10 @@ static uint8_t sdtchecksum(void *addr, int len)
 	uint8_t *p, sum;
 
 	sum = 0;
+print("check %p %d\n", addr, len);
 	for (p = addr; len-- > 0; p++)
 		sum += *p;
-
+print("sum is 0x%x\n", sum);
 	return sum;
 }
 
@@ -474,7 +475,7 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
-
+print("sdtmap %p\n", (void *)pa);
 	if (!pa) {
 		print("sdtmap: nil pa\n");
 		return nil;
@@ -484,23 +485,35 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 		print("acpi: vmap: nil\n");
 		return nil;
 	}
+print("sdt %p\n", sdt);
+print("get it\n");
 	*n = l32get(sdt->length);
+print("*n is %d\n", *n);
 	if (!*n) {
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 		return nil;
 	}
+	sdt = vmap(pa, *n);
+	if (sdt == nil) {
+		print("acpi: vmap: nil\n");
+		return nil;
+	}
+print("check it\n");
 	if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
 		print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
 		return nil;
 	}
+print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
+print("malloc'ed %p\n", p);
 	if (p == nil)
 		panic("sdtmap: memory allocation failed for %lu bytes", *n);
+print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
 	memmove(p->raw, (void *)sdt, *n);
 	p->size = *n;
 	p->next = acpilists;
 	acpilists = p;
-
+	print("sdtmap: size %d\n", *n);
 	return p->raw;
 }
 
@@ -534,6 +547,7 @@ static void loaddsdt(uintptr_t pa)
 	uint8_t *dsdtp;
 
 	dsdtp = sdtmap(pa, &n, 1);
+print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
 		return;
@@ -694,10 +708,13 @@ static Atable *parsefadt(Atable *parent,
 	else
 		loadfacs(fp->facs);
 
+print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
+
 	if (fp->xdsdt == (uint64_t)fp->dsdt)	/* acpica */
 		loaddsdt(fp->xdsdt);
 	else
 		loaddsdt(fp->dsdt);
+print("y\n");
 
 	return finatable_nochildren(t);
 }
@@ -1460,7 +1477,6 @@ static Parser ptable[] = {
  */
 static void parsexsdt(Atable *root)
 {
-	Proc *up = externup();
 	Sdthdr *sdt;
 	Atable *table;
 	PtrSlice slice;
@@ -1468,22 +1484,22 @@ static void parsexsdt(Atable *root)
 	uintptr_t dhpa;
 	//Atable *n;
 	uint8_t *tbl;
-
+print("1\n");
 	PtrSliceInit(&slice);
-	if (waserror()) {
-		PtrSliceDestroy(&slice);
-		return;
-	}
-
+print("2\n");
+print("xsdt %p\n", xsdt);
 	tbl = xsdt->p + sizeof(Sdthdr);
 	end = xsdt->len - sizeof(Sdthdr);
+	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
 		sdt = sdtmap(dhpa, &l, 1);
+		print("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
-		//print("acpi: %s addr %#p\n", tsig, sdt);
+		print("acpi: %s: addr %#p\n", __func__, sdt);
 		for (int j = 0; j < nelem(ptable); j++) {
+			print("tb sig %s\n", ptable[j].sig);
 			if (memcmp(sdt->sig, ptable[j].sig, sizeof(sdt->sig)) == 0) {
 				table = ptable[j].parse(root, ptable[j].sig, (void *)sdt, l);
 				if (table != nil)
@@ -1492,6 +1508,7 @@ static void parsexsdt(Atable *root)
 			}
 		}
 	}
+	print("FINATABLE\n\n\n\n"); delay(1000);
 	finatable(root, &slice);
 }
 
@@ -1534,7 +1551,7 @@ static void parsersdptr(void)
 		   *(uint32_t *)rsd->raddr, *(uint32_t *)rsd->length,
 		   *(uint32_t *)rsd->xaddr, rsd->xchecksum);
 
-	print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llux rev %d\n",
+	print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
 		   rsd, l32get(rsd->raddr), l32get(rsd->length),
 		   l64get(rsd->xaddr), rsd->revision);
 
@@ -1575,6 +1592,7 @@ static void parsersdptr(void)
 	xsdt->asize = asize;
 	print("acpi: XSDT %#p\n", xsdt);
 	parsexsdt(root);
+	print("parsexdt done: lastpath %d\n", lastpath);
 	atableindex = reallocarray(nil, lastpath, sizeof(Atable *));
 	assert(atableindex != nil);
 	makeindex(root);
@@ -1846,7 +1864,11 @@ static void acpiinitonce(void)
 
 int acpiinit(void)
 {
-	acpiinitonce();
+	static int once = 0;
+	//die("acpiinit");
+	if (! once)
+		acpiinitonce();
+	once++;
 	return (root == nil) ? -1 : 0;
 }
 
