@@ -28,6 +28,22 @@
 void *
 reallocarray(void *optr, size_t nmemb, size_t size)
 {
+	/* If both size or nmemb are 0, and realloc is called with
+	 * 0, it's equivalent to freeing the memory. realloc is even
+	 * allowed to return nil. Hence this function needs to distinguish
+	 * between 'pointer to 0 length array' and 'nil pointer'. In the
+	 * event that nmemb * size is zero: free optr, and malloc(0),
+	 * i.e. return a pointer to a zero-length array.
+	 * It is entirely possible that it will return optr, since the allocators
+	 * tend to like to optimize that case, but the bookkeeping
+	 * will be correct: the allocator will know that optr points to a
+	 * 0-length allocation.
+	 */
+	if (nmemb == 0 || size == 0) {
+		free(optr);
+		return malloc(0);
+	}
+
 	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
 	    nmemb > 0 && SIZE_MAX / nmemb < size) {
 		return nil;
