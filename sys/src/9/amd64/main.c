@@ -598,7 +598,8 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 
 	procinit0();
-	mpsinit(maxcores);
+	maxcores = mpsinit(maxcores);
+	mpacpi(maxcores);
 	apiconline();
 	/* Forcing to single core if desired */
 	if(!nosmp) {

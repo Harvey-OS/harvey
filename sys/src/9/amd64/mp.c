@@ -182,7 +182,7 @@ mpmkintr(uint8_t* p)
 	return v;
 }
 
-static void
+static int
 mpparse(PCMP* pcmp, int maxcores)
 {
 	uint32_t lo;
@@ -214,6 +214,7 @@ mpparse(PCMP* pcmp, int maxcores)
 			p[1], l32get(pcmp->apicpa), p[3] & 0x02);
 		if((p[3] & 0x01) != 0 && maxcores-- > 0)
 			apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
+		maxcores--;
 		p += 20;
 		break;
 	case 1:					/* bus */
@@ -352,6 +353,7 @@ mpparse(PCMP* pcmp, int maxcores)
 		p += p[1];
 		break;
 	}
+	return maxcores;
 }
 
 static int
@@ -411,7 +413,7 @@ sigsearch(char* signature)
 	return sigscan(BIOSSEG(0xe000), 0x20000, signature);
 }
 
-void
+int
 mpsinit(int maxcores)
 {
 	uint8_t *p;
@@ -420,7 +422,7 @@ mpsinit(int maxcores)
 	PCMP *pcmp;
 
 	if((mp = sigsearch("_MP_")) == nil)
-		return;
+		return maxcores;
 	if(DBGFLG){
 		DBG("_MP_ @ %#p, addr %#ux length %ud rev %d",
 			mp, l32get(mp->addr), mp->length, mp->revision);
@@ -429,23 +431,23 @@ mpsinit(int maxcores)
 		DBG("\n");
 	}
 	if(mp->revision != 1 && mp->revision != 4)
-		return;
+		return maxcores;
 	if(sigchecksum(mp, mp->length*16) != 0)
-		return;
+		return maxcores;
 
 	if((pcmp = vmap(l32get(mp->addr), sizeof(PCMP))) == nil)
-		return;
+		return maxcores;
 	if(pcmp->revision != 1 && pcmp->revision != 4){
 		vunmap(pcmp, sizeof(PCMP));
-		return;
+		return maxcores;
 	}
 	n = l16get(pcmp->length) + l16get(pcmp->xlength);
 	vunmap(pcmp, sizeof(PCMP));
 	if((pcmp = vmap(l32get(mp->addr), n)) == nil)
-		return;
+		return maxcores;
 	if(sigchecksum(pcmp, l16get(pcmp->length)) != 0){
 		vunmap(pcmp, n);
-		return;
+		return maxcores;
 	}
 	if(DBGFLG){
 		DBG("PCMP @ %#p length %#ux revision %d\n",
@@ -465,7 +467,7 @@ mpsinit(int maxcores)
 		if(((i+pcmp->xchecksum) & 0xff) != 0){
 			print("extended table checksums to %#ux\n", i);
 			vunmap(pcmp, n);
-			return;
+			return maxcores;
 		}
 	}
 
@@ -474,8 +476,9 @@ mpsinit(int maxcores)
 	 * for later interrupt enabling and application processor
 	 * startup.
 	 */
-	mpparse(pcmp, maxcores);
+	maxcores = mpparse(pcmp, maxcores);
 
 	apicdump();
 	ioapicdump();
+	return maxcores;
 }
