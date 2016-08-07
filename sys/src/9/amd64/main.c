@@ -566,11 +566,13 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * not deep in some call chain.
 	 * See next note.
 	 *
-	void *v = malloc(1234);
-	hi("v "); put64((uint64_t)v); hi("\n");
-	free(v);
-	hi("free ok\n");
 	 */
+	if (1) {
+		void *v = malloc(1234);
+		hi("allocated\n ");
+		free(v);
+		hi("free ok\n");
+	}
 
 	/*
 	 * Acpiinit will cause the first malloc
