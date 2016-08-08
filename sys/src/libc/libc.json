@@ -210,6 +210,7 @@
 		"port/sha2.c",
 		"port/sin.c",
 		"port/sinh.c",
+		"port/slice.c",
 		"port/strcat.c",
 		"port/strchr.c",
 		"port/strcmp.c",
