@@ -50,7 +50,7 @@ enum {
 #define ATABLEBUFSZ	ROUNDUP(sizeof(Atable), 128)
 
 static uint64_t lastpath;
-static PtrSlice emptyslice;
+static PSlice emptyslice;
 static Atable **atableindex;
 Dev acpidevtab;
 
@@ -144,15 +144,15 @@ Atable *mkatable(Atable *parent,
 	return t;
 }
 
-Atable *finatable(Atable *t, PtrSlice *slice)
+Atable *finatable(Atable *t, PSlice *slice)
 {
 	size_t n;
 	Atable *tail;
 	Dirtab *dirs;
 
-	n = PtrSliceLen(slice);
+	n = pslicelen(slice);
 	t->nchildren = n;
-	t->children = (Atable **)PtrSliceFinalize(slice);
+	t->children = (Atable **)pslicefinalize(slice);
 	dirs = reallocarray(nil, n + NQtypes, sizeof(Dirtab));
 	assert(dirs != nil);
 	dirs[0] = (Dirtab){ ".",      t->qid,   0, 0555 };
@@ -853,7 +853,7 @@ static Atable *parsesrat(Atable *parent,
 	Atable *t, *tt;
 	uint8_t *pe;
 	int stlen, flags;
-	PtrSlice slice;
+	PSlice slice;
 	char buf[16];
 	int i;
 	Srat *st;
@@ -865,7 +865,7 @@ static Atable *parsesrat(Atable *parent,
 	}
 
 	t = mkatable(parent, SRAT, name, p, rawsize, 0);
-	PtrSliceInit(&slice);
+	psliceinit(&slice);
 	pe = p + rawsize;
 	for (p += 48, i = 0; p < pe; p += stlen, i++) {
 		snprint(buf, sizeof(buf), "%d", i);
@@ -914,7 +914,7 @@ static Atable *parsesrat(Atable *parent,
 		}
 		if (tt != nil) {
 			finatable_nochildren(tt);
-			PtrSliceAppend(&slice, tt);
+			psliceappend(&slice, tt);
 		}
 	}
 	srat = finatable(t, &slice);
@@ -1151,9 +1151,9 @@ static Atable *parsemadt(Atable *parent,
 	size_t stlen;
 	char buf[16];
 	int i;
-	PtrSlice slice;
+	PSlice slice;
 
-	PtrSliceInit(&slice);
+	psliceinit(&slice);
 	t = mkatable(parent, MADT, name, p, size, sizeof(Madt));
 	mt = t->tbl;
 	mt->lapicpa = l32get(p + 36);
@@ -1179,8 +1179,8 @@ static Atable *parsemadt(Atable *parent,
 				st->ioapic.addr = l32get(p + 4);
 				st->ioapic.ibase = l32get(p + 8);
 				/* ioapic overrides any ioapic entry for the same id */
-				for (int i = 0; i < PtrSliceLen(&slice); i++) {
-					l = ((Atable *)PtrSliceGet(&slice, i))->tbl;
+				for (int i = 0; i < pslicelen(&slice); i++) {
+					l = ((Atable *)psliceget(&slice, i))->tbl;
 					if (l->type == ASiosapic && l->iosapic.id == id) {
 						st->ioapic = l->iosapic;
 						/* we leave it linked; could be removed */
@@ -1213,8 +1213,8 @@ static Atable *parsemadt(Atable *parent,
 				st->iosapic.ibase = l32get(p + 4);
 				st->iosapic.addr = l64get(p + 8);
 				/* iosapic overrides any ioapic entry for the same id */
-				for (int i = 0; i < PtrSliceLen(&slice); i++) {
-					l = ((Atable*)PtrSliceGet(&slice, i))->tbl;
+				for (int i = 0; i < pslicelen(&slice); i++) {
+					l = ((Atable*)psliceget(&slice, i))->tbl;
 					if (l->type == ASioapic && l->ioapic.id == id) {
 						l->ioapic = st->iosapic;
 						free(tt);
@@ -1263,7 +1263,7 @@ static Atable *parsemadt(Atable *parent,
 		}
 		if (tt != nil) {
 			finatable_nochildren(tt);
-			PtrSliceAppend(&slice, tt);
+			psliceappend(&slice, tt);
 		}
 	}
 	apics = finatable(t, &slice);
@@ -1280,7 +1280,7 @@ static Atable *parsedmar(Atable *parent,
 	int nentry, nscope, npath, off, dslen, dhlen, type, flags;
 	void *pathp;
 	char buf[16];
-	PtrSlice drhds;
+	PSlice drhds;
 	Drhd *drhd;
 	Dmar *dt;
 
@@ -1302,7 +1302,7 @@ static Atable *parsedmar(Atable *parent,
 		dt->haw = raw[36] + 1;
 
 	/* Now we walk all the DMAR entries. */
-	PtrSliceInit(&drhds);
+	psliceinit(&drhds);
 	for (off = 48, i = 0; i < nentry; i++, off += dslen) {
 		snprint(buf, sizeof(buf), "%d", i);
 		dslen = l16get(raw + off + 2);
@@ -1351,7 +1351,7 @@ static Atable *parsedmar(Atable *parent,
 		 * anything is possible. But we'll warn them.
 		 */
 		finatable_nochildren(tt);
-		PtrSliceAppend(&drhds, tt);
+		psliceappend(&drhds, tt);
 	}
 	dmar = finatable(t, &drhds);
 
@@ -1479,13 +1479,13 @@ static void parsexsdt(Atable *root)
 {
 	Sdthdr *sdt;
 	Atable *table;
-	PtrSlice slice;
+	PSlice slice;
 	size_t l, end;
 	uintptr_t dhpa;
 	//Atable *n;
 	uint8_t *tbl;
 print("1\n");
-	PtrSliceInit(&slice);
+	psliceinit(&slice);
 print("2\n");
 print("xsdt %p\n", xsdt);
 	tbl = xsdt->p + sizeof(Sdthdr);
@@ -1503,7 +1503,7 @@ print("xsdt %p\n", xsdt);
 			if (memcmp(sdt->sig, ptable[j].sig, sizeof(sdt->sig)) == 0) {
 				table = ptable[j].parse(root, ptable[j].sig, (void *)sdt, l);
 				if (table != nil)
-					PtrSliceAppend(&slice, table);
+					psliceappend(&slice, table);
 				break;
 			}
 		}

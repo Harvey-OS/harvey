@@ -314,31 +314,20 @@ void set_printx(int mode);
 #       endif
 #endif
 
-/* slice types and functions. */
+typedef struct PSlice PSlice;
 
-/*
- * Copyright (C) 2016 Google Inc.
- * Dan Cross <crossd@gmail.com>
- * See LICENSE for license details.
- */
-
-/*
- * A tracking structure for growing lists of pointers.
- */
-typedef struct PtrSlice PtrSlice;
-
-struct PtrSlice {
+struct PSlice {
 	void **ptrs;
 	size_t len;
 	size_t capacity;
 };
 
-void PtrSliceInit(PtrSlice *slice);
-void PtrSliceClear(PtrSlice *slice);
-void *PtrSliceGet(PtrSlice *slice, size_t i);
-int PtrSlicePut(PtrSlice *slice, size_t i, void *p);
-int PtrSliceDel(PtrSlice *slice, size_t i);
-void PtrSliceAppend(PtrSlice *s, void *p);
-size_t PtrSliceLen(PtrSlice *slice);
-void **PtrSliceFinalize(PtrSlice *slice);
-void PtrSliceDestroy(PtrSlice *slice);
+void psliceinit(PSlice *slice);
+void psliceclear(PSlice *slice);
+void *psliceget(PSlice *slice, size_t i);
+int psliceput(PSlice *slice, size_t i, void *p);
+int pslicedel(PSlice *slice, size_t i);
+void psliceappend(PSlice *s, void *p);
+size_t pslicelen(PSlice *slice);
+void **pslicefinalize(PSlice *slice);
+void pslicedestroy(PSlice *slice);
