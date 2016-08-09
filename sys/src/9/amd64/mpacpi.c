@@ -66,8 +66,10 @@ int mpacpi(int ncleft)
 				break;
 			case ASioapic:
 				print("ASioapic %d\n", st->ioapic.id);
-				if (st->ioapic.id > Napic)
+				if (st->ioapic.id > Napic){
+					print("ASioapic: %d is > %d, ignoring\n", st->ioapic.id, Napic);
 					break;
+				}
 				apic = xioapic + st->ioapic.id;
 				if (apic->useable) {
 					already = "(mp)";
@@ -77,7 +79,7 @@ int mpacpi(int ncleft)
 pr1:
 				apic->Ioapic.gsib = st->ioapic.ibase;
 				print("ioapic %d ", st->ioapic.id);
-				print("addr %p base %d %s\n", apic->Ioapic.paddr, apic->Ioapic.gsib,
+				print("addr %p ibase %d %s\n", st->ioapic.addr, st->ioapic.ibase,
 					   already);
 				break;
 		}
