@@ -55,6 +55,7 @@ char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
+int acpionly = 0;
 
 /*
  *	this may need improvement, but right now it's just for
@@ -148,6 +149,7 @@ options(int argc, char* argv[])
 	vflag = dbgflg['v'];
 	// hack.
 	nosmp = dbgflg['n'];
+	acpionly = dbgflg['z'];
 }
 
 void
@@ -598,7 +600,8 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 
 	procinit0();
-	maxcores = mpsinit(maxcores);
+	if (! acpionly)
+		maxcores = mpsinit(maxcores);
 	mpacpi(maxcores);
 	apiconline();
 	/* Forcing to single core if desired */
