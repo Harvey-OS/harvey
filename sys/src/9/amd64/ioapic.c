@@ -112,11 +112,28 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 	Rdt *rdt;
 	Apic *apic;
 
-	if(busno >= Nbus || apicno >= Napic || nrdtarray >= Nrdt)
+	if(busno >= Nbus){
+		print("ioapicintrinit: botch: Busno %d >= Nbus %d\n", busno, Nbus);
 		return;
+	}
+	if (apicno >= Napic) {
+		print("ioapicintrinit: botch: acpicno %d >= Napic %d\n", apicno, Napic);
+		return;
+	}
+	if (nrdtarray >= Nrdt){
+		print("ioapicintrinit: botch: nrdtarray %d >= Nrdt %d\n", nrdtarray, Nrdt);
+		return;
+	}
+
 	apic = &xioapic[apicno];
-	if(!apic->useable || intin >= apic->Ioapic.nrdt)
+	if(!apic->useable) {
+		print("ioapicintrinit: botch: apic %d not marked usable\n", apicno);
 		return;
+	}
+	if (intin >= apic->Ioapic.nrdt){
+		print("ioapicintrinit: botch: initin %d >= apic->Ioapic.nrdt %d\n", intin, apic->Ioapic.nrdt);
+		return;
+	}
 
 	rdt = rdtlookup(apic, intin);
 	if(rdt == nil){
