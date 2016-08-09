@@ -550,7 +550,7 @@ int acpiinit(void);
 Atable *mkatable(Atable *parent,
                         int type, char *name, uint8_t *raw,
                         size_t rawsize, size_t addsize);
-Atable *finatable(Atable *t, PtrSlice *slice);
+Atable *finatable(Atable *t, PSlice *slice);
 Atable *finatable_nochildren(Atable *t);
 
 extern Atable *apics;
