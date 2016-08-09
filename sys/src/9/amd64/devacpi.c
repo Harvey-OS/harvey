@@ -931,7 +931,7 @@ static char *dumpslit(char *start, char *end, Slit *sl)
 	start = seprint(start, end, "acpi slit:\n");
 	for (i = 0; i < sl->rowlen * sl->rowlen; i++) {
 		start = seprint(start, end,
-						 "slit: %ux\n",
+						 "slit: %x\n",
 						 sl->e[i / sl->rowlen][i % sl->rowlen].dist);
 	}
 	start = seprint(start, end, "\n");
@@ -1394,7 +1394,7 @@ static char *dumptable(char *start, char *end, char *sig, uint8_t *p, int l)
 		for (i = 0; i < n; i++) {
 			if ((i % 16) == 0)
 				start = seprint(start, end, "%x: ", i);
-			start = seprint(start, end, " %2.2ux", p[i]);
+			start = seprint(start, end, " %2.2x", p[i]);
 			if ((i % 16) == 15)
 				start = seprint(start, end, "\n");
 		}
@@ -1415,7 +1415,7 @@ static char *seprinttable(char *s, char *e, Atable *t)
 	for (i = 0; i < n; i++) {
 		if ((i % 16) == 0)
 			s = seprint(s, e, "%x: ", i);
-		s = seprint(s, e, " %2.2ux", p[i]);
+		s = seprint(s, e, " %2.2x", p[i]);
 		if ((i % 16) == 15)
 			s = seprint(s, e, "\n");
 	}
