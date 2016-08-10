@@ -3,9 +3,10 @@ sudo: required
 dist: trusty
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo add-apt-repository ppa:ubuntu-lxc/lxd-stable -y
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main' -y
   - sudo apt-get update
-  - sudo apt-get install -y $CC rc
+  - sudo apt-get install -y --force-yes $CC rc golang 
 script:
 - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
 compiler:
