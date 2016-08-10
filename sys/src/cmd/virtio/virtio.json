@@ -3,10 +3,11 @@
 			"Include": [
 				"../cmd.json"
 			],
-			"Install": "$ARCH/bin/virtio",
+			"Install": "/$ARCH/bin/virtio",
 			"Projects": [
 			],
 			"SourceFilesCmd": [
+				"lsmtags.c"
 			]
 	}
 }
