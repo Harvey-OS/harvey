@@ -12,6 +12,7 @@ script:
 compiler:
 - gcc-4.8
 - gcc-5
+- gcc-6
 - clang
 - clang-3.8
 env:
