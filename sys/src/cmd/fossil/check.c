@@ -303,8 +303,8 @@ walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
 			}
 			if(!(e.flags & VtEntryActive))
 				continue;
-if(0)			fprint(2, "%x[%d] tag=%x snap=%d score=%V\n",
-				addr, i, e.tag, e.snap, e.score);
+			/* fprint(2, "%x[%d] tag=%x snap=%d score=%V\n",
+				addr, i, e.tag, e.snap, e.score); */
 			ep = epoch;
 			if(e.snap != 0){
 				if(e.snap >= epoch){
@@ -609,8 +609,8 @@ chkDir(Fsck *chk, char *name, Source *source, Source *meta)
 				name, o);
 			continue;
 		}
-if(0)		fprint(2, "source %V:%d block %d addr %d\n", source->score,
-			source->offset, o, b->addr);
+		/* fprint(2, "source %V:%d block %d addr %d\n", source->score,
+			source->offset, o, b->addr); */
 		if(b->addr != NilBlock && getBit(chk->errmap, b->addr))
 			warn(chk, "previously reported error in block %x is in %s",
 				b->addr, name);
