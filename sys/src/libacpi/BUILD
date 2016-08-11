@@ -1,6 +1,41 @@
 
 
 cc_library(
+    name="klibacpi",
+    includes=[
+        "//sys/include/acpi/acpica",
+        "//sys/src/9",
+        "//sys/include",
+        "//amd64/include",
+    ],
+    srcs=glob(["acpica/components/*/*.c"], exclude=["acpica/components/disassembler"]),
+    copts=[
+        "-DACPI_DEBUGGER",
+        "-DACPI_DEBUG_OUTPUT",
+        "-D__HARVEY__",
+        "-D__KERNEL__",
+        "-U_LINUX",
+        "-U__linux__",
+        "-Wno-unused-function",
+        "-Wno-unused-variable",
+        "-mcmodel=kernel",
+        "-O0",
+        "-mno-red-zone",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-Wall",
+        "-Wno-missing-braces",
+        "-Wno-parentheses",
+        "-Wno-unknown-pragmas",
+        "-Wuninitialized",
+        "-include", "u.h",
+        "-include", "libc.h",
+        "-include", "ctype.h",
+        "-g",
+        ],
+   alwayslink=true,
+)
+cc_library(
     name="libacpi",
     includes=[
         "//sys/include/acpi/acpica",
