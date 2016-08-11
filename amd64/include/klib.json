@@ -3,6 +3,9 @@
 		"ToolOpts": {
 			"/usr/bin/clang": [
 				"-mno-implicit-float"
+			],
+			"/usr/bin/gcc": [
+				"-Wno-frame-address"
 			]
 		},
 		"Cflags": [

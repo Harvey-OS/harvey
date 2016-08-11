@@ -90,8 +90,8 @@ getreq(Srv *s)
 		r->type = 0;
 		r->srv = s;
 		r->pool = nil;
-if(chatty9p)
-	fprint(2, "<-%d- %F: dup tag\n", s->infd, &f);
+		if(chatty9p)
+			fprint(2, "<-%d- %F: dup tag\n", s->infd, &f);
 		return r;
 	}
 
@@ -102,11 +102,12 @@ if(chatty9p)
 	memset(&r->ofcall, 0, sizeof r->ofcall);
 	r->type = r->ifcall.type;
 
-if(chatty9p)
-	if(r->error)
-		fprint(2, "<-%d- %F: %s\n", s->infd, &r->ifcall, r->error);
-	else	
-		fprint(2, "<-%d- %F\n", s->infd, &r->ifcall);
+	if(chatty9p) {
+		if(r->error)
+			fprint(2, "<-%d- %F: %s\n", s->infd, &r->ifcall, r->error);
+		else
+			fprint(2, "<-%d- %F\n", s->infd, &r->ifcall);
+	}
 
 	return r;
 }
@@ -612,8 +613,8 @@ sstat(Srv *srv, Req *r)
 		if(r->d.muid)
 			r->d.muid = estrdup9p(r->d.muid);
 	}
-	if(srv->stat)	
-		srv->stat(r);	
+	if(srv->stat)
+		srv->stat(r);
 	else if(r->fid->file)
 		respond(r, nil);
 	else
@@ -712,7 +713,7 @@ srv(Srv *srv)
 	while(r = getreq(srv)){
 		if(r->error){
 			respond(r, r->error);
-			continue;	
+			continue;
 		}
 		switch(r->ifcall.type){
 		default:
@@ -792,8 +793,8 @@ respond(Req *r, char *error)
 	if(r->error)
 		setfcallerror(&r->ofcall, r->error);
 
-if(chatty9p)
-	fprint(2, "-%d-> %F\n", srv->outfd, &r->ofcall);
+	if(chatty9p)
+		fprint(2, "-%d-> %F\n", srv->outfd, &r->ofcall);
 
 	qlock(&srv->wlock);
 	n = convS2M(&r->ofcall, srv->wbuf, srv->msize);
