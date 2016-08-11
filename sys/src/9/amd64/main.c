@@ -55,7 +55,7 @@ char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
-int acpionly = 0;
+int enableacpi = 0;
 
 /*
  *	this may need improvement, but right now it's just for
@@ -149,7 +149,7 @@ options(int argc, char* argv[])
 	vflag = dbgflg['v'];
 	// hack.
 	nosmp = dbgflg['n'];
-	acpionly = dbgflg['z'];
+	enableacpi = dbgflg['a'];
 }
 
 void
@@ -420,7 +420,8 @@ void badcall(uint64_t where, uint64_t what)
 */
 
 void errstr(char *s, int i) {
-	panic("errstr");
+	print("errstr has :%s:, %d: what to do?\n", s, i);
+	//panic("errstr");
 }
 
 static int x = 0x123456;
@@ -568,13 +569,11 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * not deep in some call chain.
 	 * See next note.
 	 *
+	void *v = malloc(1234);
+	hi("v "); put64((uint64_t)v); hi("\n");
+	free(v);
+	hi("free ok\n");
 	 */
-	if (1) {
-		void *v = malloc(1234);
-		hi("allocated\n ");
-		free(v);
-		hi("free ok\n");
-	}
 
 	/*
 	 * Acpiinit will cause the first malloc
@@ -585,7 +584,11 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-if (1){	acpiinit(); hi("	acpiinit();\n");}
+	if (enableacpi){
+		/* If acpiinit succeeds, we leave enableacpi enabled.
+		 * This means we can always boot. */
+		enableacpi = acpiinit();
+	}
 
 	umeminit();
 	trapinit();
@@ -600,10 +603,14 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 
 	procinit0();
-	if (! acpionly)
-		maxcores = mpsinit(maxcores);
-	mpacpi(maxcores);
+	if (! enableacpi)
+		mpsinit(maxcores);
+	print("CODE: apiconline();\n");
 	apiconline();
+	print("CODE: if(! nosmp) sipi();\n");
+	if (enableacpi){
+		die("ACPI after apiconline\n");
+	}
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();
