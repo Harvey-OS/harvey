@@ -68,8 +68,8 @@ allocreq(Reqpool *pool, uint32_t tag)
 Req*
 lookupreq(Reqpool *pool, uint32_t tag)
 {
-if(chatty9p > 1)
-	fprint(2, "lookupreq %lu\n", tag);
+	if(chatty9p > 1)
+		fprint(2, "lookupreq %lu\n", tag);
 	return lookupkey(pool->map, tag);
 }
 
@@ -81,8 +81,8 @@ closereq(Req *r)
 	if(r == nil)
 		return;
 
-if(chatty9p > 1)
-	fprint(2, "closereq %p %ld\n", r, r->ref.ref);
+	if(chatty9p > 1)
+		fprint(2, "closereq %p %ld\n", r, r->ref.ref);
 
 	if(decref(&r->ref) == 0){
 		if(r->fid)
@@ -116,7 +116,7 @@ if(chatty9p > 1)
 Req*
 removereq(Reqpool *pool, uint32_t tag)
 {
-if(chatty9p > 1)
-	fprint(2, "removereq %lu\n", tag);
+	if(chatty9p > 1)
+		fprint(2, "removereq %lu\n", tag);
 	return deletekey(pool->map, tag);
 }
