@@ -30,10 +30,10 @@ auth_getkey(char *params)
 		werrstr("auth_getkey: no /factotum or /boot/factotum: didn't get key %s", params);
 		return -1;
 	}
-if(0)	if(d->type != '/'){
+	/* if(d->type != '/'){
 		werrstr("auth_getkey: /factotum may be bad: didn't get key %s", params);
 		return -1;
-	}
+	} */
 	switch(pid = fork()){
 	case -1:
 		werrstr("can't fork for %s: %r", name);

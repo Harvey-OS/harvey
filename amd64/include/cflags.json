@@ -18,6 +18,9 @@
 			],
 			"/opt/intel/bin/icc": [
 				"-Wno-main"
+			],
+			"/usr/bin/gcc": [
+				"-Wno-frame-address"
 			]
 		},
 		"Cflags": [
