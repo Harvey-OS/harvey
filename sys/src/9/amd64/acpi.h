@@ -7,49 +7,6 @@
  * in the LICENSE file.
  */
 
-/* -----------------------------------------------------------------------------
- * ACPI is a table of tables. The tables define a hierarchy.
- *
- * From the hardware's perspective:
- * Each table that we care about has a header, and the header has a
- * length that includes the the length of all its subtables. So, even
- * if you can't completely parse a table, you can find the next table.
- *
- * The process of parsing is to find the RSDP, and then for each subtable
- * see what type it is and parse it. The process is recursive except for
- * a few issues: The RSDP signature and header differs from the header of
- * its subtables; their headers differ from the signatures of the tables
- * they contain. As you walk down the tree, you need different parsers.
- *
- * The parser is recursive descent. Each parsing function takes a pointer
- * to the parent of the node it is parsing and will attach itself to the parent
- * via that pointer. Parsing functions are responsible for building the data
- * structures that represent their node and recursive invocations of the parser
- * for subtables.
- *
- * So, in this case, it's something like this:
- *
- * RSDP is the root. It has a standard header and size. You map that
- * memory.  You find the first header, get its type and size, and
- * parse as much of it as you can. Parsing will involve either a
- * function or case statement for each element type. DMARs are complex
- * and need functions; APICs are simple and we can get by with case
- * statements.
- *
- * Each node in the tree is represented as a 'struct Atable'. This has a
- * pointer to the actual node data, a type tag, a name, pointers to this
- * node's children (if any) and a parent pointer. It also has a QID so that
- * the entire structure can be exposed as a filesystem. The Atable doesn't
- * contain any table data per se; it's metadata. The table pointer contains
- * the table data as well as a pointer back to it's corresponding Atable.
- *
- * In the end we present a directory tree for #apic that looks, in this example:
- * #acpi/DMAR/DRHD/0/{pretty,raw}
- *
- * 'cat pretty' will return JSON-encoded data described the element.
- * 'cat raw' gets you the raw bytes.
- */
-
 typedef struct Atable Atable;
 typedef struct Facs Facs;
 typedef struct Fadt Fadt;
@@ -68,9 +25,7 @@ typedef struct Apicst Apicst;
 typedef struct Srat Srat;
 typedef struct Slit Slit;
 typedef struct SlEntry SlEntry;
-typedef struct Dmar Dmar;
-typedef struct Drhd Drhd;
-typedef struct DevScope DevScope;
+
 enum
 {
 
@@ -136,77 +91,24 @@ enum
 	CMregion = 0,			/* regio name spc base len accsz*/
 	CMgpe,				/* gpe name id */
 
-	/* Table types. */
-	RSDP = 0,
-	SDTH,
-	RSDT,
-	FADT,
-	FACS,
-	DSDT,
-	SSDT,
-	MADT,
-	SBST,
-	XSDT,
-	ECDT,
-	SLIT,
-	SRAT,
-	CPEP,
-	MSCT,
-	RASF,
-	MPST,
-	PMTT,
-	BGRT,
-	FPDT,
-	GTDT,
-	HPET,
-	APIC,
-	DMAR,
-	/* DMAR types */
-	DRHD,
-	RMRR,
-	ATSR,
-	RHSA,
-	ANDD,
-	NACPITBLS,			/* Number of ACPI tables */
-
-	/* Atable constants */
-	SIGSZ		= 4+1,	/* Size of the signature (including NUL) */
-	OEMIDSZ		= 6+1,	/* Size of the OEM ID (including NUL) */
-	OEMTBLIDSZ	= 8+1,	/* Size of the OEM Table ID (including NUL) */
-
+	Qdir = 0,
+	Qctl,
+	Qtbl,
+	Qio,
 };
 
 /*
  * ACPI table (sw)
- *
- * This Atable struct corresponds to an interpretation of the standard header
- * for all table types we support. It has a pointer to the converted data, i.e.
- * the structs created by functions like acpimadt and so on. Note: althouh the
- * various things in this are a superset of many ACPI table names (DRHD, DRHD
- * scopes, etc). The raw data follows this header.
- *
- * Child entries in the table are kept in an array of pointers. Each entry has
- * a pointer to it's logically "next" sibling, thus forming a linked list. But
- * these lists are purely for convenience and all point to nodes within the
- * same array.
  */
-struct Atable {
-	Qid qid;             /* QID corresponding to this table. */
-	Qid rqid;			/* This table's 'raw' QID. */
-	Qid pqid;			/* This table's 'pretty' QID. */
-	Qid tqid;			/* This table's 'table' QID. */
-	int type;					/* This table's type */
-	void *tbl;					/* pointer to the converted table, e.g. madt. */
-	char name[16];				/* name of this table */
-
-	Atable *parent;		/* Parent pointer */
-	Atable **children;	/* children of this node (an array). */
-	Dirtab *cdirs;		/* child directory entries of this node. */
-	size_t nchildren;			/* count of this node's children */
-	Atable *next;		/* Pointer to the next sibling. */
-
-	size_t rawsize;				/* Total size of raw table */
-	uint8_t *raw;				/* Raw data. */
+struct Atable
+{
+	Atable*	next;		/* next table in list */
+	int	is64;		/* uses 64bits */
+	char	sig[5];		/* signature */
+	char	oemid[7];	/* oem id str. */
+	char	oemtblid[9];	/* oem tbl. id str. */
+	unsigned char* tbl;		/* pointer to table in memory */
+	int32_t	dlen;		/* size of data in table, after Stdhdr */
 };
 
 struct Gpe
@@ -302,8 +204,6 @@ struct Sdthdr
  */
 struct Facs
 {
-	uint8_t sig[4];
-	uint8_t len[4];
 	uint32_t	hwsig;
 	uint32_t	wakingv;
 	uint32_t	glock;
@@ -318,9 +218,10 @@ struct Facs
  */
 struct Msct
 {
-	size_t ndoms;		/* number of discovered domains */
+	int	ndoms;		/* number of domains */
 	int	nclkdoms;	/* number of clock domains */
-	uint64_t	maxpa;	/* max physical address */
+	uint64_t	maxpa;		/* max physical address */
+
 	Mdom*	dom;		/* domain information list */
 };
 
@@ -330,7 +231,7 @@ struct Mdom
 	int	start;		/* start dom id */
 	int	end;		/* end dom id */
 	int	maxproc;	/* max processor capacity */
-	uint64_t maxmem;	/* max memory capacity */
+	uint64_t	maxmem;		/* max memory capacity */
 };
 
 /* Multiple APIC description table
@@ -433,7 +334,7 @@ struct Srat
 /* System locality information table
  */
 struct Slit {
-	uint64_t rowlen;
+	int64_t rowlen;
 	SlEntry **e;
 };
 
@@ -508,53 +409,9 @@ struct Fadt
  */
 struct Xsdt
 {
-	size_t len;
-	size_t asize;
+	int	len;
+	int	asize;
 	uint8_t*	p;
 };
-
-/* DMAR.
- */
-/*
- * Device scope.
- */
-struct DevScope {
-	int enumeration_id;
-	int start_bus_number;
-	int npath;
-	int *paths;
-};
-/*
- * The device scope is basic tbdf as uint32_t. There is a special value
- * that means "everything" and if we see that we set "all" in the Drhd.
- */
-struct Drhd {
-	int flags;
-	int segment;
-	uintptr_t rba;
-	uintptr_t all;	// This drhd scope is for everything.
-	size_t nscope;
-	struct DevScope *scopes;
-};
-
-struct Dmar {
-	int haw;
-	/*
-	 * If your firmware disables x2apic mode, you should not be here.
-	 * We ignore that bit.
-	 */
-	int intr_remap;
-};
-
-int acpiinit(void);
-Atable *mkatable(Atable *parent,
-                        int type, char *name, uint8_t *raw,
-                        size_t rawsize, size_t addsize);
-Atable *finatable(Atable *t, PSlice *slice);
-Atable *finatable_nochildren(Atable *t);
-
-extern Atable *apics;
-extern Atable *dmar;
-extern Atable *srat;
 
 extern uintmem acpimblocksize(uintmem, int*);
