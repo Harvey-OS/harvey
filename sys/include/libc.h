@@ -758,3 +758,22 @@ extern char *argv0;
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */
 extern	char	end[];
 
+void* reallocarray(void *base, size_t nel, size_t size);
+
+typedef struct PSlice PSlice;
+
+struct PSlice {
+	void **ptrs;
+	size_t len;
+	size_t capacity;
+};
+
+void psliceinit(PSlice *slice);
+void psliceclear(PSlice *slice);
+void *psliceget(PSlice *slice, size_t i);
+int psliceput(PSlice *slice, size_t i, void *p);
+int pslicedel(PSlice *slice, size_t i);
+void psliceappend(PSlice *s, void *p);
+size_t pslicelen(PSlice *slice);
+void **pslicefinalize(PSlice *slice);
+void pslicedestroy(PSlice *slice);

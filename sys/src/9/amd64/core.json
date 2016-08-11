@@ -15,6 +15,9 @@
 			],
 			"/usr/bin/clang-3.7": [
 				"-mno-implicit-float"
+			],
+			"/usr/bin/gcc": [
+				"-Wno-frame-address"
 			]
 		},
 		"Cflags": [
