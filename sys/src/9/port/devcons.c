@@ -420,6 +420,17 @@ readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
 }
 
 int32_t
+readmem(int32_t offset, void *buf, int32_t n, void *v, int32_t size)
+{
+	if(offset >= size)
+		return 0;
+	if(offset+n > size)
+		n = size-offset;
+	memmove(buf, v+offset, n);
+	return n;
+}
+
+int32_t
 readstr(int32_t offset, char *buf, int32_t n, char *str)
 {
 	int32_t size;
