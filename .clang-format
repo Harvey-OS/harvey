@@ -40,7 +40,7 @@ PenaltyBreakString: 1000
 PenaltyBreakFirstLessLess: 120
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
-PointerAlignment: Right
+PointerAlignment: Left
 SpacesBeforeTrailingComments: 1
 Cpp11BracedListStyle: true
 Standard:        Cpp11
@@ -48,6 +48,7 @@ IndentWidth:     8
 TabWidth:        8
 UseTab: ForIndentation
 BreakBeforeBraces: Linux
+SortIncludes: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpacesInAngles:  false
