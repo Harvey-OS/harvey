@@ -41,7 +41,7 @@ reallocarray(void *optr, size_t nmemb, size_t size)
 	 */
 	if (nmemb == 0 || size == 0) {
 		free(optr);
-		return malloc(0);
+		return malloc(1);
 	}
 
 	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
