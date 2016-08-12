@@ -1,6 +1,7 @@
 {
 	"klibs": {
 		"Projects": [
+			"/sys/src/libacpi/acpica/klibacpi.json",
 			"/sys/src/libc/klibc.json",
 			"/sys/src/libip/klibip.json",
 			"/sys/src/libdraw/klibdraw.json",
