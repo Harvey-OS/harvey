@@ -15,6 +15,7 @@
 
 #include "apic.h"
 
+#define ISABUSNO 0xff
 /*
  * MultiProcessor Specification Version 1.[14].
  */
@@ -55,13 +56,14 @@ static Mpbus mpbusdef[] = {
 	{ "ISA   ", IPhigh, TMedge, },
 };
 static Mpbus* mpbus[Nbus];
+static int hackisabusno = -1;
 int mpisabusno = -1;
 
 static void
 mpintrprint(char* s, uint8_t* p)
 {
 	char buf[128], *b, *e;
-	char format[] = " type %d flags %#ux bus %d IRQ %d APIC %d INTIN %d\n";
+	char format[] = " type %d flags %#x bus %d IRQ %d APIC %d INTIN %d\n";
 
 	b = buf;
 	e = b + sizeof(buf);
@@ -88,6 +90,7 @@ mpmkintr(uint8_t* p)
 	 * to imagine routing a signal to all IOAPICs, the
 	 * usual case is routing NMI and ExtINT to all LAPICs.
 	 */
+	if (p[4] == hackisabusno) p[4] = mpisabusno;
 	if(mpbus[p[4]] == nil){
 		mpintrprint("no source bus", p);
 		return 0;
@@ -182,7 +185,7 @@ mpmkintr(uint8_t* p)
 	return v;
 }
 
-static int
+static void
 mpparse(PCMP* pcmp, int maxcores)
 {
 	uint32_t lo;
@@ -197,12 +200,13 @@ mpparse(PCMP* pcmp, int maxcores)
 		for(i = 0; p < e; i++){
 			if(i && ((i & 0x0f) == 0))
 				print("\n");
-			print(" %#2.2ux", *p);
+			print(" %#2.2x", *p);
 			p++;
 		}
 		print("\n");
 		break;
 	case 0:					/* processor */
+		print("CODE: /* case 0 */\n");
 		/*
 		 * Initialise the APIC if it is enabled (p[3] & 0x01).
 		 * p[1] is the APIC ID, the memory mapped address comes
@@ -210,15 +214,21 @@ mpparse(PCMP* pcmp, int maxcores)
 		 * CPU and identical for all. Indicate whether this is
 		 * the bootstrap processor (p[3] & 0x02).
 		 */
-		DBG("mpparse: cpu %d pa %#ux bp %d\n",
+		DBG("mpparse: cpu %d pa %#x bp %d\n",
 			p[1], l32get(pcmp->apicpa), p[3] & 0x02);
-		if((p[3] & 0x01) != 0 && maxcores-- > 0)
+		if((p[3] & 0x01) != 0 && maxcores-- > 0) {
+			print("CODE: apicinit(%d, %p, %d); \n", p[1], (void *)(uint64_t)l32get(pcmp->apicpa), p[3]&2);
 			apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
-		maxcores--;
+		}
+print("MP: add an apic, # %d\n", p[1]);
 		p += 20;
 		break;
 	case 1:					/* bus */
+		print("CODE: /* case 1, bus */\n");
+		if (p[1] == hackisabusno)
+				p[1] = ISABUSNO;
 		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
+print("MP: adda  bus %d\n", p[1]);
 		if(mpbus[p[1]] != nil){
 			print("mpparse: bus %d already allocated\n", p[1]);
 			p += 8;
@@ -233,7 +243,10 @@ mpparse(PCMP* pcmp, int maxcores)
 						p[1], mpisabusno);
 					continue;
 				}
+				hackisabusno = p[1];
+				p[1] = ISABUSNO;
 				mpisabusno = p[1];
+print("CODE: mpisabusno = %d\n", p[1]);
 			}
 			mpbus[p[1]] = &mpbusdef[i];
 			break;
@@ -245,16 +258,21 @@ mpparse(PCMP* pcmp, int maxcores)
 		p += 8;
 		break;
 	case 2:					/* IOAPIC */
+		print("CODE: /* case 2, IOACPI */\n");
 		/*
 		 * Initialise the IOAPIC if it is enabled (p[3] & 0x01).
 		 * p[1] is the APIC ID, p[4-7] is the memory mapped address.
 		 */
-		if(p[3] & 0x01)
-			ioapicinit(p[1], -1, l32get(p+4));
+print("MP: add an IOAPIC %d\n", p[1]);
+		if(p[3] & 0x01) {
+print("CODE: ioapicinit(%d, %p);\n", p[i], l32get(p+4));
+			ioapicinit(p[1], l32get(p+4));
+		}
 
 		p += 8;
 		break;
 	case 3:					/* IOINTR */
+		print("CODE: /* case 3, IOINTR */\n");
 		/*
 		 * p[1] is the interrupt type;
 		 * p[2-3] contains the polarity and trigger mode;
@@ -285,11 +303,14 @@ mpparse(PCMP* pcmp, int maxcores)
 		devno = p[5];
 		if(memcmp(mpbus[p[4]]->type, "PCI   ", 6) != 0)
 			devno <<= 2;
+print("CODE: ioapicintrinit(0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n", p[4], p[6], p[7], devno, lo);
+		if (p[4] == hackisabusno) p[4] = mpisabusno;
 		ioapicintrinit(p[4], p[6], p[7], devno, lo);
 
 		p += 8;
 		break;
 	case 4:					/* LINTR */
+		print("CODE: /* case 3, LINTR */\n");
 		/*
 		 * Format is the same as IOINTR above.
 		 */
@@ -308,10 +329,14 @@ mpparse(PCMP* pcmp, int maxcores)
 				if(!xlapic[i].useable || xlapic[i].Ioapic.addr != nil)
 					continue;
 				xlapic[i].Lapic.lvt[p[7]] = lo;
+print("CODE: xlapic[0x%x].Lapic.lvt[0x%x] = 0x%x\n", i, p[7], lo);
+print("MP: add LINTR %d\n", i);
 			}
 		}
-		else
+		else {
 			xlapic[p[6]].Lapic.lvt[p[7]] = lo;
+print("CODE: xlapic[0x%x].Lapic.lvt[0x%x] = 0x%x\n", i, p[7], lo);
+		}
 		p += 8;
 		break;
 	}
@@ -329,14 +354,14 @@ mpparse(PCMP* pcmp, int maxcores)
 		for(i = 0; i < n; i++){
 			if(i && ((i & 0x0f) == 0))
 				print("\n");
-			print(" %#2.2ux", *p);
+			print(" %#2.2x", *p);
 			p++;
 		}
 		print("\n");
 		break;
 	case 128:
 		DBG("address space mapping\n");
-		DBG(" bus %d type %d base %#llux length %#llux\n",
+		DBG(" bus %d type %d base %#llx length %#llx\n",
 			p[2], p[3], l64get(p+4), l64get(p+12));
 		p += p[1];
 		break;
@@ -353,7 +378,6 @@ mpparse(PCMP* pcmp, int maxcores)
 		p += p[1];
 		break;
 	}
-	return maxcores;
 }
 
 static int
@@ -368,7 +392,7 @@ sigchecksum(void* address, int length)
 	return sum;
 }
 
-void*
+static void*
 sigscan(uint8_t* address, int length, char* signature)
 {
 	uint8_t *e, *p;
@@ -413,7 +437,7 @@ sigsearch(char* signature)
 	return sigscan(BIOSSEG(0xe000), 0x20000, signature);
 }
 
-int
+void
 mpsinit(int maxcores)
 {
 	uint8_t *p;
@@ -421,53 +445,54 @@ mpsinit(int maxcores)
 	_MP_ *mp;
 	PCMP *pcmp;
 
-	if((mp = sigsearch("_MP_")) == nil)
-		return maxcores;
+	if((mp = sigsearch("_MP_")) == nil) {
+		panic("NO _MP_ table");
+	}
 	if(DBGFLG){
-		DBG("_MP_ @ %#p, addr %#ux length %ud rev %d",
+		DBG("_MP_ @ %#p, addr %#x length %u rev %d",
 			mp, l32get(mp->addr), mp->length, mp->revision);
 		for(i = 0; i < sizeof(mp->feature); i++)
-			DBG(" %2.2#ux", mp->feature[i]);
+			DBG(" %2.2#x", mp->feature[i]);
 		DBG("\n");
 	}
 	if(mp->revision != 1 && mp->revision != 4)
-		return maxcores;
+		return;
 	if(sigchecksum(mp, mp->length*16) != 0)
-		return maxcores;
+		return;
 
 	if((pcmp = vmap(l32get(mp->addr), sizeof(PCMP))) == nil)
-		return maxcores;
+		return;
 	if(pcmp->revision != 1 && pcmp->revision != 4){
 		vunmap(pcmp, sizeof(PCMP));
-		return maxcores;
+		return;
 	}
 	n = l16get(pcmp->length) + l16get(pcmp->xlength);
 	vunmap(pcmp, sizeof(PCMP));
 	if((pcmp = vmap(l32get(mp->addr), n)) == nil)
-		return maxcores;
+		return;
 	if(sigchecksum(pcmp, l16get(pcmp->length)) != 0){
 		vunmap(pcmp, n);
-		return maxcores;
+		return;
 	}
 	if(DBGFLG){
-		DBG("PCMP @ %#p length %#ux revision %d\n",
+		DBG("PCMP @ %#p length %#x revision %d\n",
 			pcmp, l16get(pcmp->length), pcmp->revision);
-		DBG(" %20.20s oaddr %#ux olength %#ux\n",
+		DBG(" %20.20s oaddr %#x olength %#x\n",
 			(char*)pcmp->string, l32get(pcmp->oaddr),
 			l16get(pcmp->olength));
-		DBG(" entry %d apicpa %#ux\n",
+		DBG(" entry %d apicpa %#x\n",
 			l16get(pcmp->entry), l32get(pcmp->apicpa));
 
-		DBG(" xlength %#ux xchecksum %#ux\n",
+		DBG(" xlength %#x xchecksum %#x\n",
     			l16get(pcmp->xlength), pcmp->xchecksum);
 	}
 	if(pcmp->xchecksum != 0){
 		p = ((uint8_t*)pcmp) + l16get(pcmp->length);
 		i = sigchecksum(p, l16get(pcmp->xlength));
 		if(((i+pcmp->xchecksum) & 0xff) != 0){
-			print("extended table checksums to %#ux\n", i);
+			print("extended table checksums to %#x\n", i);
 			vunmap(pcmp, n);
-			return maxcores;
+			return;
 		}
 	}
 
@@ -476,9 +501,8 @@ mpsinit(int maxcores)
 	 * for later interrupt enabling and application processor
 	 * startup.
 	 */
-	maxcores = mpparse(pcmp, maxcores);
+	mpparse(pcmp, maxcores);
 
 	apicdump();
 	ioapicdump();
-	return maxcores;
 }

@@ -71,10 +71,7 @@ psliceappend(PSlice *s, void *p)
 			s->capacity = 4;
 		s->capacity *= 2;
 		ps = reallocarray(s->ptrs, s->capacity, sizeof(void *));
-		if (ps == nil) {
-			print("realloc at %p failed, cap %d, size %d\n", s->ptrs, s->capacity, sizeof(void *));
-			assert(0);
-		}
+		assert(ps != nil);		/* XXX: if size*sizeof(void*) overflows. */
 		s->ptrs = ps;
 	}
 	s->ptrs[s->len] = p;
@@ -93,10 +90,7 @@ pslicefinalize(PSlice *slice)
 	void **ps;
 
 	ps = reallocarray(slice->ptrs, slice->len, sizeof(void *));
-	if (ps == nil) {
-		print("realloc at %p failed, cap %d, size %d\n", slice->ptrs, slice->len, sizeof(void *));
-		assert(0);
-	}
+	assert(ps != nil);
 	slice->len = 0;
 	slice->capacity = 0;
 	slice->ptrs = nil;

@@ -52,6 +52,7 @@
 			"-Werror"
 		],
 		"Libs": [
+			"/$ARCH/lib/klibacpi.a",
 			"/$ARCH/lib/klibmemlayer.a",
 			"/$ARCH/lib/klibmemdraw.a",
 			"/$ARCH/lib/klibc.a",
@@ -80,6 +81,7 @@
 			"clean.json",
 			"../boot/bootconf.json",
 			"inith.json",
+			"/sys/src/libacpi/acpica/klibacpi.json",
 			"/sys/src/libmemdraw/klibmemdraw.json",
 			"/sys/src/libdraw/klibdraw.json"
 		],
@@ -115,7 +117,6 @@
 			"map.c",
 			"memory.c",
 			"mmu.c",
-			"mpacpi.c",
 			"mp.c",
 			"msi.c",
 			"multiboot.c",
