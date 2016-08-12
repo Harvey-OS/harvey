@@ -161,6 +161,7 @@
 			"gdbserver/build.json",
 			"iostats/build.json",
 			"ip/ip.json",
+			"virtio/virtio.json",
 			"hoc/hoc.json",
 			"grep/grep.json",
 			"ndb/ndb.json",
