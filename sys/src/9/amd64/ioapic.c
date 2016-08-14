@@ -219,6 +219,8 @@ static int acpi_make_rdt(int tbdf, int irq, int busno, int devno)
 	Apicst *st, *lst;
 	uint32_t lo;
 	int pol, edge_level, ioapic_nr, gsi_irq;
+print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
+//die("acpi.make.rdt)\n");
 
 	at = apics;
 	st = nil;
@@ -273,13 +275,15 @@ ioapicinit(int id, int ibase, uintptr_t pa)
 	 * Mark the IOAPIC useable if it has a good ID
 	 * and the registers can be mapped.
 	 */
-	if(id >= Napic)
-
+	if(id >= Napic) {
+		print("NOT setting ioapic %d useable; id must be < %d\n", id, Napic);
 		return;
+	}
 
 	apic = &xioapic[id];
 	if(apic->useable || (apic->Ioapic.addr = vmap(pa, 1024)) == nil)
 		return;
+	print("===================> set %d useable\n", id);
 	apic->useable = 1;
 	apic->Ioapic.paddr = pa;
 
@@ -694,38 +698,37 @@ int bus_irq_setup(Vctl *v)
 		}
 	}
 	switch (BUSTYPE(v->Vkey.tbdf)) {
-#if 0
 	case BusLAPIC:
 		/* nxm used to set the initial 'isr' method (i think equiv to our
 		 * check_spurious) to apiceoi for non-spurious lapic vectors.  in
 		 * effect, i think they were sending the EOI early, and their eoi
 		 * method was 0.  we're not doing that (unless we have to). */
-		irq_h->check_spurious = lapic_check_spurious;
-		irq_h->eoi = lapic_send_eoi;
-		irq_h->mask = lapic_mask_irq;
-		irq_h->unmask = lapic_unmask_irq;
-		irq_h->route_irq = 0;
-		irq_h->type = "lapic";
+		//v->check_spurious = lapic_check_spurious;
+		v->eoi = nil; //apiceoi;
+		v->isr = apiceoi;
+		//v->mask = lapic_mask_irq;
+		//v->unmask = lapic_unmask_irq;
+		//v->route_irq = 0;
+		v->type = "lapic";
 		/* For the LAPIC, irq == vector */
-		return irq_h->dev_irq;
+		return v->Vkey.irq;
 	case BusIPI:
 		/* similar to LAPIC, but we don't actually have LVT entries */
-		irq_h->check_spurious = lapic_check_spurious;
-		irq_h->eoi = lapic_send_eoi;
-		irq_h->mask = 0;
-		irq_h->unmask = 0;
-		irq_h->route_irq = 0;
-		irq_h->type = "IPI";
-		return irq_h->dev_irq;
-		case BusISA:
-			if (mpisabusno == -1)
-				panic("No ISA bus allocated");
-			busno = mpisabusno;
-			/* need to track the irq in devno in PCI interrupt assignment entry
-			 * format (see mp.c or MP spec D.3). */
-			devno = v->Vkey.irq << 2;
-			break;
-#endif
+		//v->check_spurious = lapic_check_spurious;
+		v->eoi = apiceoi;
+		//v->mask = 0;
+		//v->unmask = 0;
+		//v->route_irq = 0;
+		v->type = "IPI";
+		return v->Vkey.irq;
+	case BusISA:
+		if (mpisabusno == -1)
+			panic("No ISA bus allocated");
+		busno = mpisabusno;
+		/* need to track the irq in devno in PCI interrupt assignment entry
+		 * format (see mp.c or MP spec D.3). */
+		devno = v->Vkey.irq << 2;
+		break;
 	case BusPCI:
 		p = pcimatchtbdf(v->Vkey.tbdf);
 		if (!p) {
