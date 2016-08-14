@@ -35,7 +35,9 @@ devtabinit(void)
 	int i;
 
 	for(i = 0; devtab[i] != nil; i++) {
+		print("INIT %d %s\n", i, devtab[i]->name);
 		devtab[i]->init();
+		print("DONE\n");
 	}
 }
 
