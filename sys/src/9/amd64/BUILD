@@ -33,6 +33,7 @@ CORE_SRCS = [
 	"map.c",
 	"memory.c",
 	"mmu.c",
+	"mpacpi.c",
 	"mp.c",
 	"msi.c",
 	"multiboot.c",

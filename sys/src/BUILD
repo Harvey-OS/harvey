@@ -1,5 +1,4 @@
 KLIBS=[
-	"//sys/src/libacpi:klibacpi",
 	"//sys/src/libmemlayer:klibmemlayer",
 	"//sys/src/libmemdraw:klibmemdraw",
 	"//sys/src/libdraw:klibdraw",
