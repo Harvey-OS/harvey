@@ -1,11 +1,10 @@
 {
 	"Libacpi": {
-		"Cflags": [
-		    "-DACPI_USE_LOCAL_CACHE"
-		    ],
 		"Include": [
 			"../../acpiflags.json"
 		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libacpi.a",
 		"SourceFiles": [
 			"utaddress.c",
 			"utalloc.c",

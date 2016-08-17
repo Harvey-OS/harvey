@@ -5,14 +5,16 @@
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "libacpi.a",
+		"NSourceFiles": [
+			"dbinput.c",
+			"dbfileio.c"
+		],
 		"SourceFiles": [
 			"dbcmds.c",
 			"dbconvert.c",
 			"dbdisply.c",
 			"dbexec.c",
-			"dbfileio.c",
 			"dbhistry.c",
-			"dbinput.c",
 			"dbmethod.c",
 			"dbnames.c",
 			"dbobject.c",

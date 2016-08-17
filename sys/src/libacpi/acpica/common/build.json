@@ -1,0 +1,14 @@
+{
+	"Libacpi": {
+		"Include": [
+			"/sys/src/libacpi/acpica/acpiflags.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libacpi.a",
+		"SourceFiles": [
+			"ahids.c",
+			"ahuuids.c"
+			]
+		}
+}
+	

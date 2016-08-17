@@ -52,6 +52,7 @@ enum {
 static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
+static Rsdp *rsd;
 Dev acpidevtab;
 
 static char * devname(void)
@@ -1528,7 +1529,6 @@ void makeindex(Atable *root)
 
 static void parsersdptr(void)
 {
-	Rsdp *rsd;
 	int asize, cksum;
 	uintptr_t sdtpa;
 
@@ -1962,6 +1962,9 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	long q;
 	Atable *t;
 	char *ns, *s, *e, *ntext;
+	size_t mapsize;
+	void *v;
+	int ret;
 
 	if (ttext == nil) {
 		tlen = 32768;
@@ -1974,7 +1977,41 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	case Qdir:
 		return devdirread(c, a, n, nil, 0, acpigen);
 	case Qraw:
-		return readmem(off, a, n, ttext, tlen);
+		/* This is horribly insecure but, for now,
+		 * focus on getting it to work.
+		 * The only read allowed at 0 is sizeof(*rsd).
+		 * Later on, we'll need to track the things we
+		 * map with sdtmap and only allow reads of those
+		 * areas. But let's see if this idea even works, first.
+		 */
+		print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
+		if (off == 0){
+			uint32_t pa = (uint32_t)PADDR(rsd);
+			print("FIND RSD");
+			print("PA OF rsd is %lx, \n", pa);
+			return readmem(0, a, n, &pa, sizeof(pa));
+		}
+		if (off == PADDR(rsd)) {
+			print("READ RSD");
+			print("returning for rsd\n");
+			hexdump(rsd, sizeof(*rsd));
+			return readmem(0, a, n, rsd, sizeof(*rsd));
+		}
+
+		print("MAP AN SDT");
+		v = sdtmap(off, &mapsize, 0);
+		/* we really need to improve on plan 9 error message handling. */
+		if (! v){
+			static char msg[256];
+			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
+			error(msg);
+		}
+		ret = readmem(0, a, n, v, mapsize);
+		print("%d = readmem(0, %p, %d, %p, %d\n", ret, a, n, v, mapsize);
+		// leak, but the design makes it hard to not do this.
+		// TODO: just walk the tables we've scanned, don't parse it again. That's stupid.
+		//free(v);
+		return ret;
 	case Qtbl:
 		s = ttext;
 		e = ttext + tlen;

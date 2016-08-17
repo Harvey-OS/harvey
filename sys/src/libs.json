@@ -2,7 +2,7 @@
 	"libs.json": {
 		"Projects": [
 			"/sys/src/lib9p/lib9p.json",
-			"/sys/src/libacpi/acpica/libacpi.json",
+			"/sys/src/libacpi",
 			"/sys/src/libc/libc.json",
 			"/sys/src/libip/libip.json",
 			"/sys/src/libdraw/libdraw.json",
