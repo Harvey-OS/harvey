@@ -176,6 +176,21 @@ print(char *fmt, ...)
 	return n;
 }
 
+int
+kmprint(char *fmt, ...)
+{
+	int n;
+	va_list arg;
+	char buf[PRINTSIZE];
+
+	va_start(arg, fmt);
+	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
+	kmesgputs(buf, n);
+
+	return n;
+}
+
 /*
  * Want to interlock iprints to avoid interlaced output on
  * multiprocessor, but don't want to deadlock if one processor

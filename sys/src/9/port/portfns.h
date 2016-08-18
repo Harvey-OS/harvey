@@ -168,6 +168,7 @@ int		kbdputc(Queue*, int);
 void		kbdputmap(uint16_t, uint16_t, Rune);
 void		kickpager(int, int);
 void		killbig(char*);
+int		kmprint(char*, ...);
 void		kproc(char*, void(*)(void*), void*);
 void		kprocchild(Proc*, void (*)(void*), void*);
 void		(*kproftimer)(uintptr_t);
