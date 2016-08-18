@@ -283,7 +283,6 @@ ioapicinit(int id, int ibase, uintptr_t pa)
 	apic = &xioapic[id];
 	if(apic->useable || (apic->Ioapic.addr = vmap(pa, 1024)) == nil)
 		return;
-	print("===================> set %d useable\n", id);
 	apic->useable = 1;
 	apic->Ioapic.paddr = pa;
 
