@@ -71,10 +71,10 @@ void
 stacksnippet(void)
 {
 	Stackframe *stkfr;
-	print(" stack:");
+	kmprint(" stack:");
 	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
-		print(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
-	print("\n");
+		kmprint(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
+	kmprint("\n");
 }
 
 void
@@ -96,7 +96,7 @@ machp_bad(void)
 		return;
 	}
 	trace[i] = badpc;
-	print("machp access spllo,");
+	kmprint("machp access spllo,");
 	stacksnippet();
 }
 

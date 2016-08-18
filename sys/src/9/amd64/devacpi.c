@@ -464,10 +464,10 @@ static uint8_t sdtchecksum(void *addr, int len)
 	uint8_t *p, sum;
 
 	sum = 0;
-print("check %p %d\n", addr, len);
+	//print("check %p %d\n", addr, len);
 	for (p = addr; len-- > 0; p++)
 		sum += *p;
-print("sum is 0x%x\n", sum);
+	//print("sum is 0x%x\n", sum);
 	return sum;
 }
 
@@ -475,7 +475,7 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
-print("sdtmap %p\n", (void *)pa);
+	//print("sdtmap %p\n", (void *)pa);
 	if (!pa) {
 		print("sdtmap: nil pa\n");
 		return nil;
@@ -485,10 +485,10 @@ print("sdtmap %p\n", (void *)pa);
 		print("acpi: vmap: nil\n");
 		return nil;
 	}
-print("sdt %p\n", sdt);
-print("get it\n");
+	//print("sdt %p\n", sdt);
+	//print("get it\n");
 	*n = l32get(sdt->length);
-print("*n is %d\n", *n);
+	//print("*n is %d\n", *n);
 	if (!*n) {
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 		return nil;
@@ -498,22 +498,22 @@ print("*n is %d\n", *n);
 		print("acpi: vmap: nil\n");
 		return nil;
 	}
-print("check it\n");
+	//print("check it\n");
 	if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
 		print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
 		return nil;
 	}
-print("now mallocz\n");
+	//print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
-print("malloc'ed %p\n", p);
+	//print("malloc'ed %p\n", p);
 	if (p == nil)
 		panic("sdtmap: memory allocation failed for %lu bytes", *n);
-print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
+	//print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
 	memmove(p->raw, (void *)sdt, *n);
 	p->size = *n;
 	p->next = acpilists;
 	acpilists = p;
-	print("sdtmap: size %d\n", *n);
+	//print("sdtmap: size %d\n", *n);
 	return p->raw;
 }
 
@@ -530,13 +530,15 @@ static int loadfacs(uintptr_t pa)
 	}
 
 	/* no unmap */
-	print("acpi: facs: hwsig: %#p\n", facs->hwsig);
-	print("acpi: facs: wakingv: %#p\n", facs->wakingv);
-	print("acpi: facs: flags: %#p\n", facs->flags);
-	print("acpi: facs: glock: %#p\n", facs->glock);
-	print("acpi: facs: xwakingv: %#p\n", facs->xwakingv);
-	print("acpi: facs: vers: %#p\n", facs->vers);
-	print("acpi: facs: ospmflags: %#p\n", facs->ospmflags);
+	if (0) {
+		print("acpi: facs: hwsig: %#p\n", facs->hwsig);
+		print("acpi: facs: wakingv: %#p\n", facs->wakingv);
+		print("acpi: facs: flags: %#p\n", facs->flags);
+		print("acpi: facs: glock: %#p\n", facs->glock);
+		print("acpi: facs: xwakingv: %#p\n", facs->xwakingv);
+		print("acpi: facs: vers: %#p\n", facs->vers);
+		print("acpi: facs: ospmflags: %#p\n", facs->ospmflags);
+	}
 
 	return 0;
 }
@@ -547,7 +549,7 @@ static void loaddsdt(uintptr_t pa)
 	uint8_t *dsdtp;
 
 	dsdtp = sdtmap(pa, &n, 1);
-print("Loaded it\n");
+	//print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
 		return;
@@ -708,13 +710,13 @@ static Atable *parsefadt(Atable *parent,
 	else
 		loadfacs(fp->facs);
 
-print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
+	//print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
 
 	if (fp->xdsdt == (uint64_t)fp->dsdt)	/* acpica */
 		loaddsdt(fp->xdsdt);
 	else
 		loaddsdt(fp->dsdt);
-print("y\n");
+	//print("y\n");
 
 	return finatable_nochildren(t);
 }
@@ -1484,22 +1486,22 @@ static void parsexsdt(Atable *root)
 	uintptr_t dhpa;
 	//Atable *n;
 	uint8_t *tbl;
-print("1\n");
+	//print("1\n");
 	psliceinit(&slice);
-print("2\n");
-print("xsdt %p\n", xsdt);
+	//print("2\n");
+	//print("xsdt %p\n", xsdt);
 	tbl = xsdt->p + sizeof(Sdthdr);
 	end = xsdt->len - sizeof(Sdthdr);
 	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
 		sdt = sdtmap(dhpa, &l, 1);
-		print("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
+		kmprint("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
-		print("acpi: %s: addr %#p\n", __func__, sdt);
+		kmprint("acpi: %s: addr %#p\n", __func__, sdt);
 		for (int j = 0; j < nelem(ptable); j++) {
-			print("tb sig %s\n", ptable[j].sig);
+			kmprint("tb sig %s\n", ptable[j].sig);
 			if (memcmp(sdt->sig, ptable[j].sig, sizeof(sdt->sig)) == 0) {
 				table = ptable[j].parse(root, ptable[j].sig, (void *)sdt, l);
 				if (table != nil)
@@ -1508,7 +1510,7 @@ print("xsdt %p\n", xsdt);
 			}
 		}
 	}
-	print("FINATABLE\n\n\n\n"); delay(1000);
+	kmprint("FINATABLE\n\n\n\n"); delay(1000);
 	finatable(root, &slice);
 }
 
@@ -1546,12 +1548,12 @@ static void parsersdptr(void)
 	root = mkatable(nil, XSDT, devname(), nil, 0, sizeof(Xsdt));
 	root->parent = root;
 
-	print("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
+	kmprint("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
 		   rsd->signature, rsd->rchecksum, rsd->oemid, rsd->revision,
 		   *(uint32_t *)rsd->raddr, *(uint32_t *)rsd->length,
 		   *(uint32_t *)rsd->xaddr, rsd->xchecksum);
 
-	print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
+	kmprint("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
 		   rsd, l32get(rsd->raddr), l32get(rsd->length),
 		   l64get(rsd->xaddr), rsd->revision);
 
@@ -1584,15 +1586,15 @@ static void parsersdptr(void)
 	}
 	if ((xsdt->p[0] != 'R' && xsdt->p[0] != 'X')
 		|| memcmp(xsdt->p + 1, "SDT", 3) != 0) {
-		print("acpi: xsdt sig: %c%c%c%c\n",
+		kmprint("acpi: xsdt sig: %c%c%c%c\n",
 		       xsdt->p[0], xsdt->p[1], xsdt->p[2], xsdt->p[3]);
 		xsdt = nil;
 		return;
 	}
 	xsdt->asize = asize;
-	print("acpi: XSDT %#p\n", xsdt);
+	kmprint("acpi: XSDT %#p\n", xsdt);
 	parsexsdt(root);
-	print("parsexdt done: lastpath %d\n", lastpath);
+	kmprint("parsexdt done: lastpath %d\n", lastpath);
 	atableindex = reallocarray(nil, lastpath, sizeof(Atable *));
 	assert(atableindex != nil);
 	makeindex(root);
@@ -1634,7 +1636,7 @@ static int acpigen(Chan *c, char *name, Dirtab *tab, int ntab,
  */
 static void dumpxsdt(void)
 {
-	print("xsdt: len = %lu, asize = %lu, p = %p\n",
+	kmprint("xsdt: len = %lu, asize = %lu, p = %p\n",
 	       xsdt->len, xsdt->asize, xsdt->p);
 }
 
