@@ -327,7 +327,7 @@ keybenable(void)
 	ioalloc(Data, 1, 0, "keyb");
 	ioalloc(Cmd, 1, 0, "keyb");
 
-	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "keyb");
+	intrenable(IrqKBD, i8042intr, 0, MKBUS(BusISA, 0xff, 0xff, 0xff), "keyb");
 
 	addarchfile("ps2keyb", 0666, keybread, nil);
 

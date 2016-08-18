@@ -115,6 +115,8 @@ enum {
 	BusVL,				/* VESA Local bus */
 	BusVME,				/* VMEbus */
 	BusXPRESS,			/* Express System Bus */
+	BusLAPIC,	/* Local APIC, fake type */
+	BusIPI,	/* IPIs, fake type like the LAPIC */
 };
 
 #define MKBUS(t,b,d,f)	(((t)<<24)|(((b)&0xFF)<<16)|(((d)&0x1F)<<11)|(((f)&0x07)<<8))
@@ -123,7 +125,7 @@ enum {
 #define BUSBNO(tbdf)	(((tbdf)>>16)&0xFF)
 #define BUSTYPE(tbdf)	((tbdf)>>24)
 #define BUSBDF(tbdf)	((tbdf)&0x00FFFF00)
-#define BUSUNKNOWN	(-1)
+#define BUSUNKNOWN	MKBUS(BusISA, 0xff, 0xff, 0xff)
 
 enum {
 	MaxEISA		= 16,
