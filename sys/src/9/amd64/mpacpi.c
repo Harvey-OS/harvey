@@ -38,7 +38,7 @@ int mpacpi(int ncleft)
 	if (mt == nil)
 		return ncleft;
 
-	print("APIC lapic paddr %#.8llux, flags %#.8ux\n",
+	print("APIC lapic paddr %#.8llx, flags %#.8x\n",
 		   mt->lapicpa, mt->pcat);
 	np = 0;
 	//print("apics->st %p\n", apics->st);

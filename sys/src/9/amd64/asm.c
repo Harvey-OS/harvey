@@ -55,9 +55,9 @@ asmdump(void)
 {
 	Asm* assem;
 
-	print("asm: index %d:\n", asmindex);
+	DBG("asm: index %d:\n", asmindex);
 	for(assem = asmlist; assem != nil; assem = assem->next){
-		print(" %#P %#P %d (%P)\n",
+		DBG(" %#P %#P %d (%P)\n",
 			assem->addr, assem->addr+assem->size,
 			assem->type, assem->size);
 	}
@@ -351,15 +351,15 @@ asmmeminit(void)
 	cx = 0;
 #endif /* ConfCrap */
 	for(assem = asmlist; assem != nil; assem = assem->next){
-		print("asm: addr %#P end %#P type %d size %P\n",
+		DBG("asm: addr %#P end %#P type %d size %P\n",
 			assem->addr, assem->addr+assem->size,
 			assem->type, assem->size);
 		if((assem->type != AsmMEMORY)&&(assem->type != AsmRESERVED)) {
-			print("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
+			DBG("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
 		}
 		va = KSEG2+assem->addr;
-		print("asm: addr %#P end %#P type %d size %P\n",
+		DBG("asm: addr %#P end %#P type %d size %P\n",
 			assem->addr, assem->addr+assem->size,
 			assem->type, assem->size);
 
@@ -411,12 +411,12 @@ asmmeminit(void)
 //  hi = 600*MiB;
 		conf.mem[cx].npage = (hi - lo)/PGSZ;
 		conf.npage += conf.mem[cx].npage;
-		print("cm %d: addr %#llx npage %lu\n",
+		DBG("cm %d: addr %#llx npage %lu\n",
 			cx, conf.mem[cx].base, conf.mem[cx].npage);
 		cx++;
 #endif /* ConfCrap */
 	}
-	print("%d %d %d\n", npg[0], npg[1], npg[2]);
+	DBG("%d %d %d\n", npg[0], npg[1], npg[2]);
 
 #ifdef ConfCrap
 	/*
@@ -426,7 +426,7 @@ asmmeminit(void)
 	conf.upages = conf.npage;
 	i = (sys->vmend - sys->vmstart)/PGSZ;		/* close enough */
 	conf.ialloc = (i/2)*PGSZ;
-	print("npage %llu upage %lu kpage %d\n",
+	DBG("npage %llu upage %lu kpage %d\n",
 		conf.npage, conf.upages, i);
 
 #endif /* ConfCrap */
