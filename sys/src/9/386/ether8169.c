@@ -59,6 +59,8 @@ enum {					/* registers */
 	Tbianar		= 0x68,		/* TBI Auto-Negotiation Advertisment */
 	Tbilpar		= 0x6A,		/* TBI Auto-Negotiation Link Partner */
 	Phystatus	= 0x6C,		/* PHY Status */
+	Pmch		= 0x6F,		/* power management */
+	Ldps		= 0x82,		/* link down power saving */
 
 	Rms		= 0xDA,		/* Receive Packet Maximum Size */
 	Cplusc		= 0xE0,		/* C+ Command */
@@ -122,8 +124,14 @@ enum {					/* Tcr */
 	Macv15		= 0x38800000,	/* RTL8100E */
 //	Macv19		= 0x3c000000,	/* dup Macv12a: RTL8111c-gr */
 	Macv25		= 0x28000000,	/* RTL8168D */
-	Macv2c		= 0x2c000000,	/* RTL8168E */
-	Macv34		= 0x2c800000,	/* RTL8168E */
+	Macv26		= 0x48000000,	/* RTL8111/8168B */
+	Macv27		= 0x2c800000,	/* RTL8111e */
+	Macv28		= 0x2c000000,	/* RTL8111/8168B */
+	Macv29		= 0x40800000,	/* RTL8101/8102E */
+	Macv30		= 0x24000000,	/* RTL8101E? (untested) */
+	Macv40		= 0x4c000000,	/* RTL8168G */
+	Macv44		= 0x5c800000,	/* RTL8411B */
+	Macv45		= 0x50800000,	/* RTL8168GU */
 	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
 	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
 };
@@ -176,10 +184,13 @@ enum {					/* Phystatus */
 };
 
 enum {					/* Cplusc */
+	Txenb		= 0x0001,	/* enable C+ transmit mode */
+	Rxenb		= 0x0002,	/* enable C+ receive mode */
 	Mulrw		= 0x0008,	/* PCI Multiple R/W Enable */
 	Dac		= 0x0010,	/* PCI Dual Address Cycle Enable */
 	Rxchksum	= 0x0020,	/* Receive Checksum Offload Enable */
 	Rxvlan		= 0x0040,	/* Receive VLAN De-tagging Enable */
+	Macstatdis	= 0x0080,	/* Disable Mac Statistics */
 	Endian		= 0x0200,	/* Endian Mode */
 };
 
@@ -402,6 +413,20 @@ rtl8169mii(Ctlr* ctlr)
 	ctlr->mii->ctlr = ctlr;
 
 	/*
+	 * PHY wakeup
+	 */
+	switch(ctlr->macv){
+	case Macv25:
+	case Macv28:
+	case Macv29:
+	case Macv30:
+		csr8w(ctlr, Pmch, csr8r(ctlr, Pmch) | 0x80);
+		break;
+	}
+	rtl8169miimiw(ctlr->mii, 1, 0x1f, 0);
+	rtl8169miimiw(ctlr->mii, 1, 0x0e, 0);
+
+	/*
 	 * Get rev number out of Phyidr2 so can config properly.
 	 * There's probably more special stuff for Macv0[234] needed here.
 	 */
@@ -418,6 +443,10 @@ rtl8169mii(Ctlr* ctlr)
 	}
 	print("oui %#x phyno %d, macv = %#8.8x phyv = %#4.4x\n",
 		phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
+
+	miireset(ctlr->mii);
+
+	microdelay(100);
 
 	miiane(ctlr->mii, ~0, ~0, ~0);
 
@@ -680,7 +709,9 @@ rtl8169replenish(Ctlr* ctlr)
 static int
 rtl8169init(Ether* edev)
 {
+	int i;
 	uint32_t r;
+	Block *bp;
 	Ctlr *ctlr;
 	uint8_t cplusc;
 
@@ -699,8 +730,13 @@ rtl8169init(Ether* edev)
 	 * Transmitter.
 	 */
 	memset(ctlr->td, 0, sizeof(D)*ctlr->ntd);
-	ctlr->tdh = ctlr->tdt = 0;
+	ctlr->tdh = ctlr->tdt = ctlr->ntq = 0;
 	ctlr->td[ctlr->ntd-1].control = Eor;
+	for(i = 0; i < ctlr->ntd; i++)
+		if(bp = ctlr->tb[i]){
+			ctlr->tb[i] = nil;
+			freeb(bp);
+		}
 
 	/*
 	 * Receiver.
@@ -709,6 +745,11 @@ rtl8169init(Ether* edev)
 	memset(ctlr->rd, 0, sizeof(D)*ctlr->nrd);
 	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
 	ctlr->rd[ctlr->nrd-1].control = Eor;
+	for(i = 0; i < ctlr->nrd; i++)
+		if(bp = ctlr->rb[i]){
+			ctlr->rb[i] = nil;
+			freeb(bp);
+		}
 
 	rtl8169replenish(ctlr);
 	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Am|Apm;
@@ -760,8 +801,15 @@ rtl8169init(Ether* edev)
 	case Macv14:
 	case Macv15:
 	case Macv25:
-	case Macv2c:
-	case Macv34:
+	case Macv26:
+	case Macv27:
+	case Macv28:
+	case Macv29:
+	case Macv30:
+		break;
+	case Macv40:
+	case Macv44:
+		cplusc |= Macstatdis;
 		break;
 	}
 
@@ -1124,8 +1172,14 @@ vetmacv(Ctlr *ctlr, uint *macv)
 	case Macv14:
 	case Macv15:
 	case Macv25:
-	case Macv2c:
-	case Macv34:
+	case Macv26:
+	case Macv27:
+	case Macv28:
+	case Macv29:
+	case Macv30:
+	case Macv40:
+	case Macv44:
+	case Macv45:
 		break;
 	}
 	return 0;
@@ -1195,6 +1249,7 @@ rtl8169pci(void)
 		if(rtl8169reset(ctlr)){
 			iofree(port);
 			free(ctlr);
+			print("rtl8169: reset failed\n");
 			continue;
 		}
 
