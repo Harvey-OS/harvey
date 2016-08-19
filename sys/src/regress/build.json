@@ -12,6 +12,7 @@
 			"execl.c",
 			"fdmux.c",
 			"float.c",
+			"fmt.c",
 			"fork.c",
 			"frexp.c",
 			"iphash.c",
