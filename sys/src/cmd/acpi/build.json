@@ -15,7 +15,10 @@
 		],
 		"Install": "/$ARCH/bin/acpi",
 		"Program": "irq",
-		"SourceFiles": [
+		"NSourceFiles": [
+		    "alltables.c"
+		],
+		"SourceFilesCmd": [
 			"irq.c"
 		]
 	}
