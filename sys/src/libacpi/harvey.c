@@ -232,7 +232,7 @@ AcpiOsMapMemory (
 		fprint(2,"%s: read %s: %r\n", __func__, name);
 		return nil;
 	}
-	hexdump(v, Length);
+	//hexdump(v, Length);
 	return v;
 }
 
