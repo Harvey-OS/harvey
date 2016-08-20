@@ -1,6 +1,7 @@
 {
 	"acpiflags": {
 		"NoCflags": [
+			"-Werror not used because ACPICA sucks",
 			"-Wconversion"
 		],
 		"Cflags": [
@@ -11,9 +12,11 @@
 		        "-U_LINUX",
 		        "-U__linux__",
 			"-Wno-unused-function",
+			"-Wno-unused-variable",
+			"-Wno-unused-const-variable",
 			"-Wno-unknown-pragmas",
 			"-Wno-unused-variable",
-			"-Wall", "-Werror",
+			"-Wall", 
 			"-nostdlib",
 		    "-fno-builtin",
 			"-include", "u.h",

@@ -45,4 +45,5 @@ typedef int8_t INT8;
 typedef int ACPI_THREAD_ID;
 
 #define ACPI_MACHINE_WIDTH 64
+#pragma clang diagnostic ignored "-Wunused-variable"
 

@@ -1455,5 +1455,5 @@ AcpiDbGetNextToken (
     ACPI_OBJECT_TYPE        *ReturnType)
 {
 	sysfatal("%s", __func__);
-	return AE_OK;
+	return NULL;
 }

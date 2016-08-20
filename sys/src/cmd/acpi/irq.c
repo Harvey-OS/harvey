@@ -49,7 +49,7 @@ void
 main(int argc, char *argv[])
 {
 	ACPI_STATUS status;
-	AcpiDbgLevel = ACPI_LV_VERBOSITY1;
+	AcpiDbgLevel = 0; //ACPI_LV_VERBOSITY1;
 	print("hi\n");
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
@@ -64,6 +64,9 @@ main(int argc, char *argv[])
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);
 
+	/* from acpi: */
+    	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
+	AcpiGbl_ReducedHardware = 1;
 	print("LOADED TABLES. Hi the any key to continue\n"); getchar();
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
