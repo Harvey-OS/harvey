@@ -165,16 +165,19 @@ AcpiOsSignal (
 	return AE_OK;
 }
 
+/* N.B. Only works for single thread! */
 void ACPI_INTERNAL_VAR_XFACE
 AcpiOsPrintf (
     const char              *Format,
     ...)
 {
+	static char buf[65536];
 	va_list args;
 
 	va_start(args, Format);
-	fprint(2,(char *)Format, args);
+	vseprint(buf, &buf[65535], (char *)Format, args);
 	va_end(args);
+	fprint(2,buf);
 }
 
 void
@@ -232,7 +235,7 @@ AcpiOsMapMemory (
 		fprint(2,"%s: read %s: %r\n", __func__, name);
 		return nil;
 	}
-	//hexdump(v, Length);
+	hexdump(v, Length);
 	return v;
 }
 
@@ -399,7 +402,7 @@ ACPI_THREAD_ID
 AcpiOsGetThreadId (
     void)
 {
-	static int pid = -1;
+	static int pid = 2525;
 	if (pid < 0)
 		pid = getpid();
 	return pid;
@@ -578,6 +581,7 @@ AcpiOsTerminate (
     void)
 {
 	sysfatal("%s\n", __func__);
+	return AE_OK;
 }
 
 /* Another acpica failure of vision: code in libraries that depends on functions defined only
