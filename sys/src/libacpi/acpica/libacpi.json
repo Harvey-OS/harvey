@@ -1,9 +1,8 @@
 {
 	"Libacpi": {
 		"Projects": [
-			"components/build.json"
-		],
-		"NInstall": "/$ARCH/lib/",
-		"NLibrary": "libacpi.a"
+			"components/build.json",
+			"common/build.json"
+		]
 		}
 }

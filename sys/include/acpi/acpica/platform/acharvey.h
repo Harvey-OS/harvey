@@ -48,29 +48,4 @@
 #define ACPI_USE_SYSTEM_CLIBRARY
 #undef ACPI_USE_STANDARD_HEADERS
 
-#ifdef __KERNEL__
-/* TODO: multithreaded ACPI. But single thread is fine for now. */
-#else
-#endif				/* __KERNEL__ */
-
-#define ACPI_FLUSH_CPU_CACHE()
-#define ACPI_CAST_PTHREAD_T(pthread) ((acpi_thread_id) (pthread))
-
-#if defined(__ia64__)    || defined(__x86_64__) ||\
-	defined(__aarch64__) || defined(__PPC64__)
-#define ACPI_MACHINE_WIDTH          64
-#define COMPILER_DEPENDENT_INT64    long
-#define COMPILER_DEPENDENT_UINT64   unsigned long
-#else
-#define ACPI_MACHINE_WIDTH          32
-#define COMPILER_DEPENDENT_INT64    long long
-#define COMPILER_DEPENDENT_UINT64   unsigned long long
-#define ACPI_USE_NATIVE_DIVIDE
-#endif
-
-#ifndef __cdecl
-#define __cdecl
-#endif
-
-
 #endif				/* __ACHARVEY_H__ */
