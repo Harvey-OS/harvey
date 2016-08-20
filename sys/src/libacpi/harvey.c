@@ -13,6 +13,7 @@
 static uint32_t rsdp;
 static char *name;
 
+#if 0
 static int xisprint(int c)
 {
 	return (c >= 32 && c <= 126);
@@ -49,6 +50,7 @@ static void hexdump(void *v, int length)
 		}
 	}
 }
+#endif
 
 static int rawfd(void){
 	if (name == nil)
@@ -235,7 +237,7 @@ AcpiOsMapMemory (
 		fprint(2,"%s: read %s: %r\n", __func__, name);
 		return nil;
 	}
-	hexdump(v, Length);
+	//hexdump(v, Length);
 	return v;
 }
 
@@ -337,6 +339,7 @@ struct handler {
 	void                    *Context;
 };
 
+#if 0
 /* The ACPI interrupt signature and the Harvey one are not compatible. So, we pass an arg to
  * intrenable that can in turn be used to this function to call the ACPI handler. */
 static void acpihandler(void*_, void *arg)
@@ -344,6 +347,7 @@ static void acpihandler(void*_, void *arg)
 	struct handler *h = arg;
 	h->ServiceRoutine(h->Context);
 }
+#endif
 
 ACPI_STATUS
 AcpiOsInstallInterruptHandler (
@@ -414,9 +418,11 @@ AcpiOsExecute (
     ACPI_OSD_EXEC_CALLBACK  Function,
     void                    *Context)
 {
+	ACPI_STATUS ret = AE_OK;
 	fprint(2,"%s\n", __func__);
-	sysfatal("%s", __func__);
-	return AE_OK;
+	Function(Context);
+	
+	return ret;
 }
 
 ACPI_STATUS
