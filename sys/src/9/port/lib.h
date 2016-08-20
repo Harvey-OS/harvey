@@ -125,35 +125,7 @@ extern	int	snprint(char*, int, char*, ...);
 extern	int	vsnprint(char*, int, char*, va_list);
 extern	int	sprint(char*, char*, ...);
 
-#pragma	varargck	argpos	fmtprint	2
-#pragma	varargck	argpos	print		1
-#pragma	varargck	argpos	seprint		3
-#pragma	varargck	argpos	snprint		3
-#pragma	varargck	argpos	sprint		2
 
-#pragma	varargck	type	"lld"	int64_t
-#pragma	varargck	type	"llx"	int64_t
-#pragma	varargck	type	"lld"	uint64_t
-#pragma	varargck	type	"llx"	uint64_t
-#pragma	varargck	type	"ld"	long
-#pragma	varargck	type	"lx"	long
-#pragma	varargck	type	"ld"	uint32_t
-#pragma	varargck	type	"lx"	uint32_t
-#pragma	varargck	type	"d"	int
-#pragma	varargck	type	"x"	int
-#pragma	varargck	type	"c"	int
-#pragma	varargck	type	"C"	int
-#pragma	varargck	type	"d"	uint
-#pragma	varargck	type	"x"	uint
-#pragma	varargck	type	"c"	uint
-#pragma	varargck	type	"C"	uint
-#pragma	varargck	type	"s"	char*
-#pragma	varargck	type	"q"	char*
-#pragma	varargck	type	"S"	Rune*
-#pragma	varargck	type	"%"	void
-#pragma	varargck	type	"p"	uintptr
-#pragma	varargck	type	"p"	void*
-#pragma	varargck	flag	','
 
 extern	int	fmtinstall(int, int (*)(Fmt*));
 extern	int	fmtprint(Fmt*, char*, ...);

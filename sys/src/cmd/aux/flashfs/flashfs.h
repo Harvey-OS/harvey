@@ -167,7 +167,6 @@ extern	int	Jconv(Fmt*);
 extern	uint32_t	now(void);
 extern	void	serve(char*);
 
-#pragma	varargck	type	"J"	Jrec*
 
 extern	void	einit(void);
 extern	void	edump(void);

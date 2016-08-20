@@ -94,5 +94,3 @@ int		term(int);
 void		ungrab(void);
 int		valpr(long, int);
 
-#pragma	varargck	argpos	dprint	1
-#pragma	varargck	type	"t"	void

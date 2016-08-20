@@ -77,7 +77,6 @@ void nbnamecpy(NbName n1, NbName n2);
 void nbmknamefromstring(NbName nbname, char *string);
 void nbmknamefromstringandtype(NbName nbname, char *string, uchar type);
 void nbmkstringfromname(char *buf, int buflen, NbName name);
-#pragma varargck type "B" uchar *
 
 int nbnamefmt(Fmt *);
 

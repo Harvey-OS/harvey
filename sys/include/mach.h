@@ -11,8 +11,6 @@
  *	Architecture-dependent application data
  */
 #include "a.out.h"
-#pragma	src	"/sys/src/libmach"
-#pragma	lib	"libmach.a"
 /*
  *	Supported architectures:
  *		mips,

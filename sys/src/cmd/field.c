@@ -18,7 +18,6 @@ struct Slice {
 	char *begin;
 	char *end;
 };
-#pragma varargck type "S" Slice
 
 struct Slices {
 	uint len;

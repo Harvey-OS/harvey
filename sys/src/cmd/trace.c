@@ -19,8 +19,6 @@
 #include <keyboard.h>
 #include "trace.h"
 
-#pragma	varargck	type	"t"		int64_t
-#pragma	varargck	type	"U"		uint64_t
 
 #define NS(x)	((int64_t)x)
 #define US(x)	(NS(x) * 1000ULL)

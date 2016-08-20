@@ -154,4 +154,3 @@ extern	int		linepos;
 #define	runerealloc(r, n)	(Rune*)erealloc(r, (n)*sizeof(Rune))
 #define	runemove(a, b, n)	memmove(a, b, (n)*sizeof(Rune))
 
-#pragma varargck type "L" void

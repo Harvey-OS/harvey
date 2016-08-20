@@ -7,7 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma lib "./lib.$O.a"
 
 enum{
 	PASSLEN		= 10,
@@ -74,4 +73,3 @@ void	succeed(char*);
 void	wrbio(char*, Acctbio*);
 int	writefile(char*, char*, int);
 
-#pragma	varargck	type	"K"	char*
