@@ -17,9 +17,11 @@ stolenmb(Pcidev *p)
 {
 	switch(p->did){
 	case 0x0166:	/* Ivy Bridge */
+	case 0x0102:	/* Core-5 Sandy Bridge */
+	case 0x0152:	/* Core-i3 */
 		switch((pcicfgr16(p, 0x50) >> 3) & 0x1f){
 		case 0x01:	return 32  - 2;
-		case 0x02:	return 64  - 2;
+		case 0x02:	return 64  - 2;		/* 0102 Dell machine here */
 		case 0x03:	return 96  - 2;
 		case 0x04:	return 128 - 2;
 		case 0x05:	return 32  - 2;
@@ -37,6 +39,7 @@ stolenmb(Pcidev *p)
 		}
 		break;
 	case 0x2a42:	/* X200 */
+	case 0x29a2:	/* 82P965/G965 HECI desktop */
 	case 0x2a02:	/* CF-R7 */
 		switch((pcicfgr16(p, 0x52) >> 4) & 7){
 		case 0x01:	return 1;
@@ -154,11 +157,14 @@ igfxcurregs(VGAscr* scr, int pipe)
 		return nil;
 	switch(scr->pci->did){
 	case 0x0166:	/* Ivy Bridge */
+	case 0x0152:	/* Core-i3 */
 		if(pipe > 2)
 			return nil;
 		break;
 	case 0x2a42:	/* X200 */
+	case 0x29a2:	/* 82P965/G965 HECI desktop */
 	case 0x2a02:	/* CF-R7 */
+	case 0x0102:	/* Sndy Bridge */
 		if(pipe > 1)
 			return nil;
 		o = pipe*0x40;
