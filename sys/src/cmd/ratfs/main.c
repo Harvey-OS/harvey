@@ -48,7 +48,6 @@ int	trustedqid = Qtrustedfile;
 char	*ctlfile =	CTLFILE;
 char	*conffile =	CONFFILE;
 
-#pragma	varargck	type	"I"	Cidraddr*
 
 static	int	ipconv(Fmt*);
 static	void	post(int, char*);

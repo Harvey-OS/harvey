@@ -81,8 +81,6 @@ struct {
 	"netscapestyle",	offsetof(Cookie, netscapestyle),
 };
 
-#pragma varargck type "J"	Jar*
-#pragma varargck type "K"	Cookie*
 
 /* HTTP format */
 static int

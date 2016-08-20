@@ -38,7 +38,6 @@ typedef struct ZBlock		ZBlock;
 typedef struct Round	Round;
 typedef struct Bloom	Bloom;
 
-#pragma incomplete IEStream
 
 #define	TWID32	((uint32_t)~(uint32_t)0)
 #define	TWID64	((uint64_t)~(uint64_t)0)
@@ -761,7 +760,6 @@ extern	int	nstathist;
 extern	uint32_t	stattime;
 
 #ifndef PLAN9PORT
-#pragma varargck type "V" unsigned char*
 #define ODIRECT 0
 #endif
 

@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	src	"/sys/src/libstdio"
-#pragma	lib	"libstdio.a"
 
 /*
  * pANS astdio.h

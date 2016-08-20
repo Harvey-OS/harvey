@@ -50,7 +50,6 @@ static char 	*cmdokname(Edit*, char*);
 static char 	*cmdwrite(Edit*);
 static void	cmdprintctl(Edit*, int);
 
-#pragma varargck type "D" uchar*
 
 Edit edit = {
 	.add=	cmdadd,

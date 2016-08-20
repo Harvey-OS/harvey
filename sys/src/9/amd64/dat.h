@@ -467,7 +467,6 @@ extern uintptr_t kseg0;
 extern char*rolename[];
 
 
-#pragma	varargck	type	"P"	uintmem
 
 /*
  * Horrid.
