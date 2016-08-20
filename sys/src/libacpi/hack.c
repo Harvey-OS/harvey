@@ -113,11 +113,11 @@
  *
  *****************************************************************************/
 
-#include "acpi.h"
+#include <acpi.h>
 #include "accommon.h"
-#include "acdebug.h"
+#include <acdebug.h>
 
-#if 0
+#if 1
 #ifdef ACPI_APPLICATION
 #include "acapps.h"
 #endif
@@ -1432,7 +1432,7 @@ AcpiDbUserCommands (
 
     return (Status);
 }
-#endif
+#else
 ACPI_STATUS
 AcpiDbCommandDispatch (
     char                    *InputBuffer,
@@ -1457,3 +1457,4 @@ AcpiDbGetNextToken (
 	sysfatal("%s", __func__);
 	return NULL;
 }
+#endif
