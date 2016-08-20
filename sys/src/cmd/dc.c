@@ -12,7 +12,6 @@
 #include <bio.h>
 
 typedef	void*	pointer;
-#pragma	varargck	type	"lx"	pointer
 
 #define FATAL 0
 #define NFATAL 1

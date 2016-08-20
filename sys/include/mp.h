@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	src	"/sys/src/libmp"
-#pragma	lib	"libmp.a"
 
 #define _MPINT 1
 
@@ -134,7 +132,6 @@ typedef struct CRTpre	CRTpre;		/* precomputed values for converting */
 					/*  twixt residues and mpint */
 typedef struct CRTres	CRTres;		/* residue form of an mpint */
 
-#pragma incomplete CRTpre
 
 struct CRTres
 {
@@ -149,4 +146,3 @@ void	crtprefree(CRTpre*);
 void	crtresfree(CRTres*);
 
 
-#pragma	varargck	type	"B"	mpint*

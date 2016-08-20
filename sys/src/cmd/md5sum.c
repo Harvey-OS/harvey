@@ -12,7 +12,6 @@
 #include <bio.h>
 #include <libsec.h>
 
-#pragma	varargck	type	"M"	unsigned char*
 
 static int
 digestfmt(Fmt *fmt)

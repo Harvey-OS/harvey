@@ -124,7 +124,6 @@
 #endif /* __APPLE__ */
 
 #ifdef __clang__
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 #endif /* __ACMACOSX_H__ */

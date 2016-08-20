@@ -15,7 +15,6 @@
 #include <bio.h>
 #include <libsec.h>
 
-#pragma	varargck	type	"M"	unsigned char*
 
 typedef struct Sha2 Sha2;
 struct Sha2 {

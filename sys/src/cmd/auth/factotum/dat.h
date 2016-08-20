@@ -18,7 +18,6 @@
 #include <fcall.h>
 #include <9p.h>
 
-#pragma varargck type "N" Attr*
 
 enum
 {
@@ -49,7 +48,6 @@ typedef struct Logbuf Logbuf;
 typedef struct Proto Proto;
 typedef struct State State;
 
-#pragma incomplete State
 
 
 struct Fsstate
@@ -168,7 +166,6 @@ extern	Keyring	*ring;
 
 /* log.c */
 void flog(char*, ...);
-#pragma varargck argpos flog 1
 void logread(Req*);
 void logflush(Req*);
 void logbufflush(Logbuf*, Req*);
@@ -195,9 +192,6 @@ int secstorefetch(char*);
 #define emalloc emalloc9p
 #define estrdup estrdup9p
 #define erealloc erealloc9p
-#pragma varargck argpos failure 2
-#pragma varargck argpos findkey 3
-#pragma varargck argpos setattr 2
 
 int		_authdial(char*, char*);
 void		askuser(char*);
@@ -207,7 +201,6 @@ void		closekey(Key*);
 unsigned char	*convAI2M(AuthInfo*, unsigned char*, int);
 void		disablekey(Key*);
 char		*estrappend(char*, char*, ...);
-#pragma varargck argpos estrappend 2
 int		failure(Fsstate*, char*, ...);
 Keyinfo*	mkkeyinfo(Keyinfo*, Fsstate*, Attr*);
 int		findkey(Key**, Keyinfo*, char*, ...);

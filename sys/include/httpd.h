@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"libhttpd.a"
-#pragma	src	"/sys/src/libhttpd"
 
 typedef struct HConnect		HConnect;
 typedef struct HContent		HContent;
@@ -24,7 +22,6 @@ typedef struct HSPairs		HSPairs;
 
 typedef struct Bin		Bin;
 
-#pragma incomplete Bin
 
 enum
 {
@@ -280,14 +277,9 @@ char			*hurlunesc(HConnect *c, char *s);
 int			hwrite(Hio*, void*, int);
 int			hxferenc(Hio*, int);
 
-#pragma			varargck	argpos	hprint	2
 
 /*
  * D is httpd format date conversion
  * U is url escape convertsion
  * H is html escape conversion
  */
-#pragma	varargck	type	"D"	long
-#pragma	varargck	type	"D"	ulong
-#pragma	varargck	type	"U"	char*
-#pragma	varargck	type	"H"	char*

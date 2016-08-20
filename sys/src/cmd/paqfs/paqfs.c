@@ -150,7 +150,6 @@ char	Edirtoobig[] = 	"directory entry too big";
 
 int debug;
 
-#pragma varargck	type	"V"	uchar*
 
 static int
 sha1fmt(Fmt *f)

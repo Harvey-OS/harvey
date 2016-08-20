@@ -11,8 +11,6 @@
  * Sun RPC; see RFC 1057
  */
 
-#pragma lib "libsunrpc.a"
-#pragma src "/sys/src/libsunrpc"
 
 typedef uint8_t u1int;
 
@@ -184,8 +182,6 @@ void sunCallSetup(SunCall*, SunProg*, uint);
 /*
  * Formatting
  */
-#pragma varargck type "B" SunRpc*
-#pragma varargck type "C" SunCall*
 
 int	sunRpcFmt(Fmt*);
 int	sunCallFmt(Fmt*);

@@ -67,12 +67,6 @@ typedef struct Watermark Watermark;
 typedef struct Zseg	Zseg;
 typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
-#pragma incomplete DevConf
-#pragma incomplete Edf
-#pragma incomplete Mntcache
-#pragma incomplete Mntrpc
-#pragma incomplete Queue
-#pragma incomplete Timers
 
 #include <fcall.h>
 
@@ -780,7 +774,6 @@ union Ar0 {
 };
 
 typedef struct Nixpctl Nixpctl;
-#pragma incomplete Nixpctl
 
 struct Proc
 {
@@ -1195,9 +1188,3 @@ struct Fastcall {
 
 #define DEVDOTDOT -1
 
-#pragma	varargck	type	"I"	unsigned char*
-#pragma	varargck	type	"V"	unsigned char*
-#pragma	varargck	type	"E"	unsigned char*
-#pragma	varargck	type	"M"	unsigned char*
-#pragma	varargck	type	"W"	uint64_t
-#pragma	varargck	type	"Z"	Kzio*

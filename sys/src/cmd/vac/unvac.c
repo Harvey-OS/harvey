@@ -11,7 +11,6 @@
 #include <fcall.h>	/* dirmodefmt */
 #include "vac.h"
 
-#pragma varargck type "t" ulong
 
 VacFs *fs;
 int tostdout;

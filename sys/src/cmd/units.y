@@ -73,7 +73,6 @@ extern	int	yylex(void);
 extern	int	yyparse(void);
 
 typedef	Node*	indnode;
-#pragma	varargck	type	"U"	indnode
 
 %}
 %union

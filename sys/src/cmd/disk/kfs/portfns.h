@@ -99,15 +99,6 @@ Tlock*	tlocked(Iobuf*, Dentry*);
 void	uidtostr(char*,int);
 void	uidtostr1(char*,int);
 
-#pragma varargck	argpos	cprint	1
-#pragma varargck	argpos	panic	1
 
-#pragma varargck	type	"C"	Chan*
-#pragma varargck	type	"D"	Device
-#pragma varargck	type 	"A"	Filta
-#pragma varargck	type	"G"	int
-#pragma varargck	type	"T"	int32_t
-#pragma varargck	type	"F"	Fcall*
 
 typedef struct Oldfcall Oldfcall;	/* needed for pragma */
-#pragma varargck	type	"O"	Oldfcall*
