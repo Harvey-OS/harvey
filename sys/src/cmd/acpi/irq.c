@@ -7,18 +7,11 @@
  * in the LICENSE file.
  */
 
-#include <u.h>
-#include <libc.h>
 #include <acpi.h>
 
 extern void *ACPIRootPointer;
 extern int ACPITableSize;
 extern UINT32 AcpiDbgLevel;
-
-static int isprint(int c)
-{
-	return (c >= 32 && c <= 126);
-}
 
 void hexdump(void *v, int length)
 {
@@ -52,13 +45,6 @@ void hexdump(void *v, int length)
 	}
 }
 
-static int getchar(void)
-{
-	char c[1];
-	read(0, c, 1);
-	return c[1];
-}
-
 void
 main(int argc, char *argv[])
 {
@@ -78,15 +64,17 @@ main(int argc, char *argv[])
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);
 
-	sysfatal("LOADED TABLES. Hi the any key to continue\n"); getchar();
+	print("LOADED TABLES. Hi the any key to continue\n"); getchar();
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't enable ACPI subsystem");
 
+	print("enabled subsystem. Hi the any key to continue\n"); getchar();
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't Initialize ACPI objects");
 
+	print("inited objects. Hi the any key to continue\n"); getchar();
 	status = AcpiInitializeDebugger();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);

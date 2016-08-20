@@ -1,17 +1,11 @@
 {
 	"irq": {
-		"Cflags": [
-			"-I", "/sys/include/acpi/acpica",
-		    "-U", "_LINUX_",
-		    "-U", "__linux__",
-		    "-D", "__HARVEY__",
-		    "-Wno-unused-function"
+	    "Include": [
+		"/sys/src/libacpi/acpica/acpiflags.json",
+			"/sys/src/cmd/cmd.json"
 		],
 		"Oflags": [
 			"-lacpi"
-		],
-		"Include": [
-			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/acpi",
 		"Program": "irq",
