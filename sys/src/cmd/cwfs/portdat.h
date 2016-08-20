@@ -87,7 +87,6 @@ typedef	struct	Tm	Tm;
 typedef	struct	Uid	Uid;
 typedef	struct	Wpath	Wpath;
 
-#pragma incomplete Auth
 
 struct	Tag
 {
@@ -770,11 +769,6 @@ enum
 Conf	conf;
 Cons	cons;
 
-#pragma	varargck	type	"Z"	Device*
-#pragma	varargck	type	"T"	Timet
-#pragma	varargck	type	"I"	uchar*
-#pragma	varargck	type	"E"	uchar*
-#pragma	varargck	type	"G"	int
 
 extern char	*annstrs[];
 extern Biobuf	bin;

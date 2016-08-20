@@ -30,7 +30,6 @@ struct User {
 	User*	nhash;			/* lookup by .uname */
 };
 
-#pragma varargck type "U"   User*
 
 struct Ubox {
 	User*	head;

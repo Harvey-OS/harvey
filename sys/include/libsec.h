@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"libsec.a"
-#pragma	src	"/sys/src/libsec"
 
 
 #ifndef _MPINT

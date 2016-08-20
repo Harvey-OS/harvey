@@ -374,4 +374,3 @@ struct Pcidev
 #define ISAWINDOW	0
 #define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
 
-#pragma	varargck	type	"T"	int

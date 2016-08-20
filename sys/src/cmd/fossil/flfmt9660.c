@@ -33,12 +33,6 @@ enum{
 	Blocksize = 2048,
 };
 
-#pragma varargck type "s" unsigned char*
-#pragma varargck type "L" unsigned char*
-#pragma varargck type "B" unsigned char*
-#pragma varargck type "N" unsigned char*
-#pragma varargck type "T" unsigned char*
-#pragma varargck type "D" unsigned char*
 
 typedef struct Voldesc Voldesc;
 struct Voldesc {
@@ -127,7 +121,6 @@ struct Cdir {
 	uint8_t	namelen;
 	uint8_t	name[1];	/* chumminess */
 };
-#pragma varargck type "D" Cdir*
 
 static int
 Dfmt(Fmt *fmt)

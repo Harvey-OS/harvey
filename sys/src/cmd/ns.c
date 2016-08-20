@@ -13,7 +13,6 @@
 #include <auth.h>
 #include <fcall.h>
 
-#pragma	varargck	type	"P"	char*
 
 int	nsrv;
 Dir	*srv;

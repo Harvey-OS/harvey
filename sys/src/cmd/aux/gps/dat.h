@@ -13,7 +13,6 @@ struct Place {
 	double	lon;
 	double 	lat;
 };
-#pragma	varargck	type	"L"	Place
 
 enum {
 	Undef		= 0x80000000,

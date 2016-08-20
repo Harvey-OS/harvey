@@ -7,10 +7,7 @@
  * in the LICENSE file.
  */
 
-#pragma src "/sys/src/libscribble"
-#pragma lib "libscribble.a"
 
-#pragma incomplete struct graffiti
 
 typedef struct Scribble Scribble;
 typedef struct graffiti Graffiti;
