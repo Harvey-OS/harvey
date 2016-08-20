@@ -103,16 +103,33 @@ static char *regnames[] = {
  * Lists to store RAM that we copy ACPI tables into. When we map a new
  * ACPI list into the kernel, we copy it into a specifically RAM buffer
  * (to make sure it's not coming from e.g. slow device memory). We store
- * pointers to those buffers on these lists.
+ * pointers to those buffers on these lists. We maintain information
+ * about base and size to support Qraw and, hence, the ACPICA library.
  */
 struct Acpilist {
 	struct Acpilist *next;
+	uintptr_t base;
 	size_t size;
 	int8_t raw[];
 };
 typedef struct Acpilist Acpilist;
 static Acpilist *acpilists;
 
+/*
+ * Given a base address, bind the list that contains it.
+ */
+static Acpilist *findlist(uintptr_t base)
+{
+	Acpilist *a = acpilists;
+	print("findlist: find %p\n", (void *)base);
+	for(; a; a = a->next){
+		if ((base >= a->base) && (base < (a->base + a->size))){
+			return a;
+		}
+	}
+	print("Can't find list or %p\n", (void *)base);
+	return nil;
+}
 /*
  * Produces an Atable at some level in the tree. Note that Atables are
  * isomorphic to directories in the file system namespace; this code
@@ -511,6 +528,7 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 		panic("sdtmap: memory allocation failed for %lu bytes", *n);
 	//print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
 	memmove(p->raw, (void *)sdt, *n);
+	p->base = pa;
 	p->size = *n;
 	p->next = acpilists;
 	acpilists = p;
@@ -1962,8 +1980,7 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	long q;
 	Atable *t;
 	char *ns, *s, *e, *ntext;
-	size_t mapsize;
-	void *v;
+	Acpilist *l;
 	int ret;
 
 	if (ttext == nil) {
@@ -1994,23 +2011,30 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 		if (off == PADDR(rsd)) {
 			print("READ RSD");
 			print("returning for rsd\n");
-			hexdump(rsd, sizeof(*rsd));
+			//hexdump(rsd, sizeof(*rsd));
 			return readmem(0, a, n, rsd, sizeof(*rsd));
 		}
 
-		print("MAP AN SDT");
-		v = sdtmap(off, &mapsize, 0);
+		l = findlist(off);
+		/* we don't load all the lists, so this may be a new one. */
+		if (! l) {
+			size_t _;
+			if (sdtmap(off, &_, 0) == nil){
+				static char msg[256];
+				snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
+				error(msg);
+			}
+			l = findlist(off);
+		}
 		/* we really need to improve on plan 9 error message handling. */
-		if (! v){
+		if (! l){
 			static char msg[256];
 			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
 			error(msg);
 		}
-		ret = readmem(0, a, n, v, mapsize);
-		print("%d = readmem(0, %p, %d, %p, %d\n", ret, a, n, v, mapsize);
-		// leak, but the design makes it hard to not do this.
-		// TODO: just walk the tables we've scanned, don't parse it again. That's stupid.
-		//free(v);
+		//hexdump(l->raw, l->size);
+		ret = readmem(off-l->base, a, n, l->raw, l->size);
+		print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 		return ret;
 	case Qtbl:
 		s = ttext;
