@@ -16,9 +16,6 @@ void trap(Cpu *cpu, int e);
 int intr(Cpu *cpu, int v);
 int xec(Cpu *cpu, int n);
 
-#pragma varargck type "I" Inst*
-#pragma varargck type "J" unsigned long
-#pragma varargck type "C" Cpu*
 
 int instfmt(Fmt *fmt);
 int flagfmt(Fmt *fmt);

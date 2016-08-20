@@ -524,7 +524,6 @@ even without Acme.)
 .PP
 A related change was to add lines of the form
 .P1
-#pragma src "/sys/src/libregexp"
 .P2
 to header files; coupled with Acme's ability to locate a header file,
 this provides a fast, keyboardless way to get the source associated with a library.

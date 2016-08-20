@@ -35,4 +35,3 @@ extern int buttonendpt;
 int	ctlparse(char *s, Audiocontrol *c, int32_t *v);
 void	ctlevent(void);
 
-#pragma	varargck	type	"A"	Audiocontrol*

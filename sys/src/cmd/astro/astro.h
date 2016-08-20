@@ -10,8 +10,6 @@
 #include	<u.h>
 #include	<libc.h>
 
-#pragma	varargck	type	"R"	double
-#pragma	varargck	type	"D"	double
 
 typedef	struct	Obj1	Obj1;
 typedef	struct	Obj2	Obj2;

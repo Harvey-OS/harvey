@@ -20,7 +20,6 @@
 #include <libsec.h>
 #include "authcmdlib.h"
 
-#pragma	varargck	type	"W"	char*
 
 char authkey[8];
 

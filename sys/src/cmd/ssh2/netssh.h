@@ -12,7 +12,6 @@
 
 #define MYID "SSH-2.0-Plan9"
 
-#pragma varargck type "M" mpint*
 
 enum {
 	Server =	0,
@@ -150,7 +149,6 @@ typedef struct Packet Packet;
 typedef struct Plist Plist;
 typedef struct SSHChan SSHChan;
 
-#pragma incomplete CipherState
 
 struct Plist {
 	Packet	*pack;

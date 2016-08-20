@@ -126,8 +126,6 @@ usage(void)
 }
 
 
-#pragma	varargck	type	"F"	int
-#pragma	varargck	type	"V"	char*
 static int flag;
 
 /* flag: if integer flag, take following char *value */
