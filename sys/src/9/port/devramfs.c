@@ -196,7 +196,7 @@ ramopen(Chan *c, int omode)
 	Chan* ret = devopen(c, omode, nil, 0, ramgen);
 	struct RamFile* file = (struct RamFile*)c->qid.path;
 	if (file->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		panic("Invalid ram file");
 	file->busy++;
 	qunlock(&ramlock);
 	poperror();
