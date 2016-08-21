@@ -537,7 +537,7 @@ mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	v = qmalloc(size);
+	v = malloc(size);
 	return v;
 }
 
@@ -561,7 +561,7 @@ smalloc(uint32_t size)
 	Proc *up = externup();
 	void *v;
 
-	while((v = malloc(size)) == nil)
+	while((v = mallocz(size)) == nil)
 		tsleep(&up->sleep, return0, 0, 100);
 	return v;
 }
