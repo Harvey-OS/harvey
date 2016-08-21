@@ -537,9 +537,7 @@ mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	if((v = qmalloc(size)) != nil && clr)
-		memset(v, 0, size);
-
+	v = qmalloc(size);
 	return v;
 }
 
@@ -565,8 +563,6 @@ smalloc(uint32_t size)
 
 	while((v = malloc(size)) == nil)
 		tsleep(&up->sleep, return0, 0, 100);
-	memset(v, 0, size);
-
 	return v;
 }
 

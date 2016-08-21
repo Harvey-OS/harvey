@@ -8,7 +8,8 @@
 			"/sys/src/games/games.json",
 			"/acme/build.json",
 			"/sys/src/9/amd64",
-			"/sys/src/regress"
+			"/sys/src/regress",
+			"/sys/src/regress/fs"
 		]
 	}
 }
