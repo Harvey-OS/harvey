@@ -1,15 +1,13 @@
 #!/bin/sh
 
-git submodule init
-git submodule update
 echo Building the build tool...
-GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -d harvey/cmd/... # should really vendor these bits
+
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get github.com/Harvey-OS/ninep/cmd/ufs harvey/cmd/...
-GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go install github.com/Harvey-OS/ninep/cmd/ufs harvey/cmd/...
+
 
 echo Downloading the blaze tool...
-curl -L http://sevki.co/get-build -o util/blaze
-chmod +x util/blaze
+curl -L http://sevki.co/get-build -o util/nuke
+chmod +x util/nuke
 
 # this will make booting a VM easier
 mkdir -p tmp
