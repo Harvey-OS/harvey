@@ -67,17 +67,18 @@ main(int argc, char *argv[])
 	/* from acpi: */
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
 	AcpiGbl_ReducedHardware = 1;
-	print("LOADED TABLES. Hi the any key to continue\n"); getchar();
+	print("LOADED TABLES. Hi the any key to continue\n"); //getchar();
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't enable ACPI subsystem");
 
-	print("enabled subsystem. Hi the any key to continue\n"); getchar();
+	print("enabled subsystem. Hi the any key to continue\n"); //getchar();
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't Initialize ACPI objects");
 
-	print("inited objects. Hi the any key to continue\n"); getchar();
+	print("inited objects. Hi the any key to continue\n"); //getchar();
+	AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
 	status = AcpiInitializeDebugger();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
