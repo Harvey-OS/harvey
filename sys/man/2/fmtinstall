@@ -315,7 +315,6 @@ system calls to produce its output.
 .IP
 .EX
 .ta 6n +6n +6n +6n +6n +6n +6n +6n +6n
-#pragma	varargck	argpos	fatal	1
 .sp 0.3v
 void
 fatal(char *fmt, ...)
@@ -342,7 +341,6 @@ typedef struct {
 	double	r, i;
 } Complex;
 .sp 0.3v
-#pragma	varargck	type	"X"	Complex
 .sp 0.3v
 int
 Xfmt(Fmt *f)

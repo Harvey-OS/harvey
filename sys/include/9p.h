@@ -7,15 +7,12 @@
  * in the LICENSE file.
  */
 
-#pragma src "/sys/src/lib9p"
-#pragma lib "lib9p.a"
 
 /*
  * Maps from ulongs to void*s.
  */
 typedef struct Intmap	Intmap;
 
-#pragma incomplete Intmap
 
 Intmap*	allocmap(void (*inc)(void*));
 void		freemap(Intmap*, void (*destroy)(void*));
@@ -37,8 +34,6 @@ typedef struct Tree		Tree;
 typedef struct Readdir	Readdir;
 typedef struct Srv Srv;
 
-#pragma incomplete Filelist
-#pragma incomplete Readdir
 
 struct Fid
 {
@@ -163,7 +158,6 @@ typedef struct Cmdtab Cmdtab;
 Cmdbuf*		parsecmd(char *a, int n);
 void		respondcmderror(Req*, Cmdbuf*, char*, ...);
 Cmdtab*	lookupcmd(Cmdbuf*, Cmdtab*, int);
-#pragma varargck argpos respondcmderr 3
 struct Cmdbuf
 {
 	char	*buf;

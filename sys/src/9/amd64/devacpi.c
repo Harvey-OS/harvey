@@ -52,6 +52,7 @@ enum {
 static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
+static Rsdp *rsd;
 Dev acpidevtab;
 
 static char * devname(void)
@@ -102,16 +103,33 @@ static char *regnames[] = {
  * Lists to store RAM that we copy ACPI tables into. When we map a new
  * ACPI list into the kernel, we copy it into a specifically RAM buffer
  * (to make sure it's not coming from e.g. slow device memory). We store
- * pointers to those buffers on these lists.
+ * pointers to those buffers on these lists. We maintain information
+ * about base and size to support Qraw and, hence, the ACPICA library.
  */
 struct Acpilist {
 	struct Acpilist *next;
+	uintptr_t base;
 	size_t size;
 	int8_t raw[];
 };
 typedef struct Acpilist Acpilist;
 static Acpilist *acpilists;
 
+/*
+ * Given a base address, bind the list that contains it.
+ */
+static Acpilist *findlist(uintptr_t base)
+{
+	Acpilist *a = acpilists;
+	print("findlist: find %p\n", (void *)base);
+	for(; a; a = a->next){
+		if ((base >= a->base) && (base < (a->base + a->size))){
+			return a;
+		}
+	}
+	print("Can't find list or %p\n", (void *)base);
+	return nil;
+}
 /*
  * Produces an Atable at some level in the tree. Note that Atables are
  * isomorphic to directories in the file system namespace; this code
@@ -464,10 +482,10 @@ static uint8_t sdtchecksum(void *addr, int len)
 	uint8_t *p, sum;
 
 	sum = 0;
-print("check %p %d\n", addr, len);
+	//print("check %p %d\n", addr, len);
 	for (p = addr; len-- > 0; p++)
 		sum += *p;
-print("sum is 0x%x\n", sum);
+	//print("sum is 0x%x\n", sum);
 	return sum;
 }
 
@@ -475,7 +493,7 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
-print("sdtmap %p\n", (void *)pa);
+	//print("sdtmap %p\n", (void *)pa);
 	if (!pa) {
 		print("sdtmap: nil pa\n");
 		return nil;
@@ -485,10 +503,10 @@ print("sdtmap %p\n", (void *)pa);
 		print("acpi: vmap: nil\n");
 		return nil;
 	}
-print("sdt %p\n", sdt);
-print("get it\n");
+	//print("sdt %p\n", sdt);
+	//print("get it\n");
 	*n = l32get(sdt->length);
-print("*n is %d\n", *n);
+	//print("*n is %d\n", *n);
 	if (!*n) {
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 		return nil;
@@ -498,22 +516,23 @@ print("*n is %d\n", *n);
 		print("acpi: vmap: nil\n");
 		return nil;
 	}
-print("check it\n");
+	//print("check it\n");
 	if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
 		print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
 		return nil;
 	}
-print("now mallocz\n");
+	//print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
-print("malloc'ed %p\n", p);
+	//print("malloc'ed %p\n", p);
 	if (p == nil)
 		panic("sdtmap: memory allocation failed for %lu bytes", *n);
-print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
+	//print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
 	memmove(p->raw, (void *)sdt, *n);
+	p->base = pa;
 	p->size = *n;
 	p->next = acpilists;
 	acpilists = p;
-	print("sdtmap: size %d\n", *n);
+	//print("sdtmap: size %d\n", *n);
 	return p->raw;
 }
 
@@ -530,13 +549,15 @@ static int loadfacs(uintptr_t pa)
 	}
 
 	/* no unmap */
-	print("acpi: facs: hwsig: %#p\n", facs->hwsig);
-	print("acpi: facs: wakingv: %#p\n", facs->wakingv);
-	print("acpi: facs: flags: %#p\n", facs->flags);
-	print("acpi: facs: glock: %#p\n", facs->glock);
-	print("acpi: facs: xwakingv: %#p\n", facs->xwakingv);
-	print("acpi: facs: vers: %#p\n", facs->vers);
-	print("acpi: facs: ospmflags: %#p\n", facs->ospmflags);
+	if (0) {
+		print("acpi: facs: hwsig: %#p\n", facs->hwsig);
+		print("acpi: facs: wakingv: %#p\n", facs->wakingv);
+		print("acpi: facs: flags: %#p\n", facs->flags);
+		print("acpi: facs: glock: %#p\n", facs->glock);
+		print("acpi: facs: xwakingv: %#p\n", facs->xwakingv);
+		print("acpi: facs: vers: %#p\n", facs->vers);
+		print("acpi: facs: ospmflags: %#p\n", facs->ospmflags);
+	}
 
 	return 0;
 }
@@ -547,7 +568,7 @@ static void loaddsdt(uintptr_t pa)
 	uint8_t *dsdtp;
 
 	dsdtp = sdtmap(pa, &n, 1);
-print("Loaded it\n");
+	//print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
 		return;
@@ -708,13 +729,13 @@ static Atable *parsefadt(Atable *parent,
 	else
 		loadfacs(fp->facs);
 
-print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
+	//print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
 
 	if (fp->xdsdt == (uint64_t)fp->dsdt)	/* acpica */
 		loaddsdt(fp->xdsdt);
 	else
 		loaddsdt(fp->dsdt);
-print("y\n");
+	//print("y\n");
 
 	return finatable_nochildren(t);
 }
@@ -1484,22 +1505,22 @@ static void parsexsdt(Atable *root)
 	uintptr_t dhpa;
 	//Atable *n;
 	uint8_t *tbl;
-print("1\n");
+	//print("1\n");
 	psliceinit(&slice);
-print("2\n");
-print("xsdt %p\n", xsdt);
+	//print("2\n");
+	//print("xsdt %p\n", xsdt);
 	tbl = xsdt->p + sizeof(Sdthdr);
 	end = xsdt->len - sizeof(Sdthdr);
 	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
 		sdt = sdtmap(dhpa, &l, 1);
-		print("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
+		kmprint("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
-		print("acpi: %s: addr %#p\n", __func__, sdt);
+		kmprint("acpi: %s: addr %#p\n", __func__, sdt);
 		for (int j = 0; j < nelem(ptable); j++) {
-			print("tb sig %s\n", ptable[j].sig);
+			kmprint("tb sig %s\n", ptable[j].sig);
 			if (memcmp(sdt->sig, ptable[j].sig, sizeof(sdt->sig)) == 0) {
 				table = ptable[j].parse(root, ptable[j].sig, (void *)sdt, l);
 				if (table != nil)
@@ -1508,7 +1529,7 @@ print("xsdt %p\n", xsdt);
 			}
 		}
 	}
-	print("FINATABLE\n\n\n\n"); delay(1000);
+	kmprint("FINATABLE\n\n\n\n"); delay(1000);
 	finatable(root, &slice);
 }
 
@@ -1526,7 +1547,6 @@ void makeindex(Atable *root)
 
 static void parsersdptr(void)
 {
-	Rsdp *rsd;
 	int asize, cksum;
 	uintptr_t sdtpa;
 
@@ -1546,12 +1566,12 @@ static void parsersdptr(void)
 	root = mkatable(nil, XSDT, devname(), nil, 0, sizeof(Xsdt));
 	root->parent = root;
 
-	print("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
+	kmprint("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
 		   rsd->signature, rsd->rchecksum, rsd->oemid, rsd->revision,
 		   *(uint32_t *)rsd->raddr, *(uint32_t *)rsd->length,
 		   *(uint32_t *)rsd->xaddr, rsd->xchecksum);
 
-	print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
+	kmprint("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
 		   rsd, l32get(rsd->raddr), l32get(rsd->length),
 		   l64get(rsd->xaddr), rsd->revision);
 
@@ -1584,15 +1604,15 @@ static void parsersdptr(void)
 	}
 	if ((xsdt->p[0] != 'R' && xsdt->p[0] != 'X')
 		|| memcmp(xsdt->p + 1, "SDT", 3) != 0) {
-		print("acpi: xsdt sig: %c%c%c%c\n",
+		kmprint("acpi: xsdt sig: %c%c%c%c\n",
 		       xsdt->p[0], xsdt->p[1], xsdt->p[2], xsdt->p[3]);
 		xsdt = nil;
 		return;
 	}
 	xsdt->asize = asize;
-	print("acpi: XSDT %#p\n", xsdt);
+	kmprint("acpi: XSDT %#p\n", xsdt);
 	parsexsdt(root);
-	print("parsexdt done: lastpath %d\n", lastpath);
+	kmprint("parsexdt done: lastpath %d\n", lastpath);
 	atableindex = reallocarray(nil, lastpath, sizeof(Atable *));
 	assert(atableindex != nil);
 	makeindex(root);
@@ -1634,7 +1654,7 @@ static int acpigen(Chan *c, char *name, Dirtab *tab, int ntab,
  */
 static void dumpxsdt(void)
 {
-	print("xsdt: len = %lu, asize = %lu, p = %p\n",
+	kmprint("xsdt: len = %lu, asize = %lu, p = %p\n",
 	       xsdt->len, xsdt->asize, xsdt->p);
 }
 
@@ -1960,6 +1980,8 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	long q;
 	Atable *t;
 	char *ns, *s, *e, *ntext;
+	Acpilist *l;
+	int ret;
 
 	if (ttext == nil) {
 		tlen = 32768;
@@ -1972,7 +1994,48 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	case Qdir:
 		return devdirread(c, a, n, nil, 0, acpigen);
 	case Qraw:
-		return readmem(off, a, n, ttext, tlen);
+		/* This is horribly insecure but, for now,
+		 * focus on getting it to work.
+		 * The only read allowed at 0 is sizeof(*rsd).
+		 * Later on, we'll need to track the things we
+		 * map with sdtmap and only allow reads of those
+		 * areas. But let's see if this idea even works, first.
+		 */
+		print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
+		if (off == 0){
+			uint32_t pa = (uint32_t)PADDR(rsd);
+			print("FIND RSD");
+			print("PA OF rsd is %lx, \n", pa);
+			return readmem(0, a, n, &pa, sizeof(pa));
+		}
+		if (off == PADDR(rsd)) {
+			print("READ RSD");
+			print("returning for rsd\n");
+			//hexdump(rsd, sizeof(*rsd));
+			return readmem(0, a, n, rsd, sizeof(*rsd));
+		}
+
+		l = findlist(off);
+		/* we don't load all the lists, so this may be a new one. */
+		if (! l) {
+			size_t _;
+			if (sdtmap(off, &_, 0) == nil){
+				static char msg[256];
+				snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
+				error(msg);
+			}
+			l = findlist(off);
+		}
+		/* we really need to improve on plan 9 error message handling. */
+		if (! l){
+			static char msg[256];
+			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
+			error(msg);
+		}
+		//hexdump(l->raw, l->size);
+		ret = readmem(off-l->base, a, n, l->raw, l->size);
+		print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
+		return ret;
 	case Qtbl:
 		s = ttext;
 		e = ttext + tlen;

@@ -1,14 +1,22 @@
 {
 	"acpiflags": {
+		"NoCflags": [
+			"-Werror not used because ACPICA sucks",
+			"-Wconversion"
+		],
 		"Cflags": [
 		        "-DACPI_DEBUGGER",
 		        "-DACPI_DISASSEMBLER",
-		        "-DACPI_DEBUG_OUTPUT",
+		        "-DACPI_EXEC_APP",
 		        "-D__HARVEY__",
 		        "-U_LINUX",
 		        "-U__linux__",
 			"-Wno-unused-function",
 			"-Wno-unused-variable",
+			"-Wno-unused-const-variable",
+			"-Wno-unknown-pragmas",
+			"-Wno-unused-variable",
+			"-Wall", 
 			"-nostdlib",
 		    "-fno-builtin",
 			"-include", "u.h",

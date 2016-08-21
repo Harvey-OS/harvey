@@ -15,8 +15,6 @@
 #include <libsec.h>
 
 #ifndef _UNISTD_H_
-#pragma varargck type "F" VtFcall*
-#pragma varargck type "T" void
 #endif
 
 VtConn *z;
