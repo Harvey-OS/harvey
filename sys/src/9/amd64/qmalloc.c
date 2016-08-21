@@ -537,7 +537,9 @@ mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	v = malloc(size);
+	if((v = malloc(size)) != nil && clr)
+		memset(v, 0, size);
+
 	return v;
 }
 
@@ -561,7 +563,7 @@ smalloc(uint32_t size)
 	Proc *up = externup();
 	void *v;
 
-	while((v = mallocz(size)) == nil)
+	while((v = mallocz(size, 1)) == nil)
 		tsleep(&up->sleep, return0, 0, 100);
 	return v;
 }

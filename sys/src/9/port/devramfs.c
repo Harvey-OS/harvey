@@ -25,7 +25,6 @@ struct RamFile {
 	struct RamFile *sibling;
 	uint64_t length;
 	uint64_t alloclength;
-	int busy;
 	int perm;
 	int opencount;
 	int deleteonclose;
@@ -37,7 +36,7 @@ struct RamFile {
 
 static struct RamFile *ramroot;
 static QLock ramlock;
-
+static int devramdebug = 0;
 
 static void
 printramfile(int offset, struct RamFile* file)
@@ -197,7 +196,6 @@ ramopen(Chan *c, int omode)
 	struct RamFile* file = (struct RamFile*)c->qid.path;
 	if (file->magic != RAM_MAGIC)
 		panic("Invalid ram file");
-	file->busy++;
 	qunlock(&ramlock);
 	poperror();
 	return ret;
@@ -207,8 +205,6 @@ static void
 delete(struct RamFile* file)
 {
 	qlock(&ramlock);
-	//printramfile(0, file);
-	//debugwalk();
 	struct RamFile* prev = file->parent->firstchild;
 	if(prev == file) {
 		// This is the first file - make any sibling the first child
@@ -229,7 +225,7 @@ delete(struct RamFile* file)
 	}
 	file->magic = 0;
 	free(file);
-	if (0) debugwalk();
+	if (devramdebug) debugwalk();
 	qunlock(&ramlock);
 }
 
@@ -239,9 +235,6 @@ ramclose(Chan* c)
         struct RamFile* file = (struct RamFile *)c->qid.path;
 	if (file->magic != RAM_MAGIC)
 		error(INVALID_FILE);
-	qlock(&ramlock);
-	file->busy--;
-	qunlock(&ramlock);
         if(file->deleteonclose){
                delete(file);
         }
@@ -288,7 +281,7 @@ union Header {
 static int32_t
 ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 {
-//	Header *p;
+	Header *p;
 
 	qlock(&ramlock);
 	struct RamFile *file = (void*)c->qid.path;
@@ -309,8 +302,10 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 		}
 		file->length = n+off;
 	}
-//	p = (Header*)file->data - 1;
-//	print("length of buffer=%d, header size=%d, header next=%x, start of write=%d, end of write=%d\n", file->alloclength, p->s.size, p->s.next, off, off + n);
+	if (devramdebug) {
+		p = (Header*)file->data - 1;
+		print("length of buffer=%d, header size=%d, header next=%x, start of write=%d, end of write=%d\n", file->alloclength, p->s.size, p->s.next, off, off + n);
+	}
 	memmove(file->data + off, v, n);
 	qunlock(&ramlock);
 	return n;
@@ -338,7 +333,6 @@ ramcreate(Chan* c, char *name, int omode, int perm)
         strcpy(file->name, name);
         file->perm = perm;
         file->parent = parent;
-	file->busy = 1;
 
 	qlock(&ramlock);
         if(waserror()) {
