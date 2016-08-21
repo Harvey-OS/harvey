@@ -18,12 +18,6 @@
 
 Biobuf *b;
 
-#pragma varargck type "s" uchar*
-#pragma varargck type "L" uchar*
-#pragma varargck type "B" uchar*
-#pragma varargck type "N" uchar*
-#pragma varargck type "T" uchar*
-#pragma varargck type "D" uchar*
 
 typedef struct Voldesc Voldesc;
 struct Voldesc {
@@ -110,7 +104,6 @@ struct Cdir {
 	uint8_t	namelen;
 	uint8_t	name[1];	/* chumminess */
 };
-#pragma varargck type "D" Cdir*
 
 int
 Dfmt(Fmt *fmt)
@@ -138,7 +131,6 @@ struct Path {
 	uint8_t	parent[2];
 	uint8_t	name[1];	/* chumminess */
 };
-#pragma varargck type "P" Path*
 
 int8_t longc, shortc;
 void

@@ -348,7 +348,7 @@ apiconline(void)
 
 	if(apic->Lapic.machno == 0){
 		apicrput(Tic, apic->Lapic.max);
-		intrenable(IdtTIMER, apictimer, 0, -1, "APIC timer");
+		intrenable(IdtTIMER, apictimer, 0, MKBUS(BusLAPIC, 0, 0, 0), "APIC timer");
 		apicrput(Tlvt, Periodic|IrqTIMER);
 	}
 

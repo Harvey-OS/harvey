@@ -55,7 +55,7 @@ char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
-int enableacpi = 0;
+int acpionly = 1;
 
 /*
  *	this may need improvement, but right now it's just for
@@ -71,10 +71,10 @@ void
 stacksnippet(void)
 {
 	Stackframe *stkfr;
-	print(" stack:");
+	kmprint(" stack:");
 	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
-		print(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
-	print("\n");
+		kmprint(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
+	kmprint("\n");
 }
 
 void
@@ -96,7 +96,7 @@ machp_bad(void)
 		return;
 	}
 	trace[i] = badpc;
-	print("machp access spllo,");
+	kmprint("machp access spllo,");
 	stacksnippet();
 }
 
@@ -148,8 +148,8 @@ options(int argc, char* argv[])
 	}
 	vflag = dbgflg['v'];
 	// hack.
-	nosmp = dbgflg['n'];
-	enableacpi = dbgflg['a'];
+	//nosmp = dbgflg['n'];
+	//acpionly = dbgflg['z'];
 }
 
 void
@@ -420,8 +420,7 @@ void badcall(uint64_t where, uint64_t what)
 */
 
 void errstr(char *s, int i) {
-	print("errstr has :%s:, %d: what to do?\n", s, i);
-	//panic("errstr");
+	panic("errstr");
 }
 
 static int x = 0x123456;
@@ -569,11 +568,13 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * not deep in some call chain.
 	 * See next note.
 	 *
-	void *v = malloc(1234);
-	hi("v "); put64((uint64_t)v); hi("\n");
-	free(v);
-	hi("free ok\n");
 	 */
+	if (1) {
+		void *v = malloc(1234);
+		hi("allocated\n ");
+		free(v);
+		hi("free ok\n");
+	}
 
 	/*
 	 * Acpiinit will cause the first malloc
@@ -584,11 +585,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-	if (enableacpi){
-		/* If acpiinit succeeds, we leave enableacpi enabled.
-		 * This means we can always boot. */
-		enableacpi = acpiinit();
-	}
+if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 	umeminit();
 	trapinit();
@@ -603,14 +600,12 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 
 	procinit0();
-	if (! enableacpi)
-		mpsinit(maxcores);
-	print("CODE: apiconline();\n");
+	print("before mpsinit: acpionly %d, maxcores %d\n", acpionly, maxcores);
+	if (! acpionly)
+		maxcores = mpsinit(maxcores);
+	print("before mpacpi, maxcores %d\n", maxcores);
+	mpacpi(maxcores);
 	apiconline();
-	print("CODE: if(! nosmp) sipi();\n");
-	if (enableacpi){
-		die("ACPI after apiconline\n");
-	}
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();

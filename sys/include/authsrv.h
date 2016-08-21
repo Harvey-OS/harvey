@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	src	"/sys/src/libauthsrv"
-#pragma	lib	"libauthsrv.a"
 
 /*
  * Interface for talking to authentication server.

@@ -121,9 +121,6 @@ struct Toc {
 
 extern int msfconv(Fmt*);
 
-#pragma	varargck	argpos	error	1
-#pragma	varargck	argpos	ctlprint	2
-#pragma	varargck	type		"M"	Msf
 
 enum {	/* state */
 	Sunknown,

@@ -79,9 +79,7 @@ static void vncaccept(Vncs*);
 static int vncsfmt(Fmt*);
 static void getremote(char*, char*);
 static void vncname(char*, ...);
-#pragma varargck argpos vncname 1
 
-#pragma varargck type "V" Vncs*
 
 void
 usage(void)

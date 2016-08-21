@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"/sys/src/cmd/map/libmap/libmap.a$O"
-#pragma	src	"/sys/src/cmd/map/libmap"
 
 #ifndef PI
 #define PI	3.1415926535897932384626433832795028841971693993751

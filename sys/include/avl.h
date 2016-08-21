@@ -7,15 +7,11 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"libavl.a"
-#pragma src "/sys/src/libavl"
 
 typedef struct Avl	Avl;
 typedef struct Avltree	Avltree;
 typedef struct Avlwalk	Avlwalk;
 
-#pragma incomplete Avltree
-#pragma incomplete Avlwalk
 
 struct Avl
 {

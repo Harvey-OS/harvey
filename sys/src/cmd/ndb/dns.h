@@ -460,8 +460,6 @@ extern char	*trace;
 extern int	traceactivity;
 extern char	*zonerefreshprogram;
 
-#pragma	varargck	type	"R"	RR*
-#pragma	varargck	type	"Q"	RR*
 
 
 /* dn.c */
@@ -566,4 +564,3 @@ int	convDNS2M(DNSmsg*, unsigned char*, int);
 /* convM2DNS.c */
 char*	convM2DNS(unsigned char*, int, DNSmsg*, int*);
 
-#pragma varargck argpos dnslog 1

@@ -277,12 +277,9 @@ static inline void __clobber_callee_regs(void)
 
 int slim_setlabel(Label*) __attribute__((returns_twice));
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #define setlabel(label) ({int err;                                                 \
                     __clobber_callee_regs();                               \
                     err = slim_setlabel(label);                                     \
                     err;})
 
-#pragma GCC diagnostic pop

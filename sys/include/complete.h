@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"libcomplete.a"
-#pragma src "/sys/src/libcomplete"
 
 typedef struct Completion Completion;
 

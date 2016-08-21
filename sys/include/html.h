@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma lib "libhtml.a"
-#pragma src "/sys/src/libhtml"
 
 /* UTILS */
 extern uint8_t*	fromStr(Rune* buf, int n, int chset);
@@ -88,7 +86,6 @@ enum {
 typedef struct Token Token;
 typedef struct Attr Attr;
 
-#pragma incomplete Token
 
 /* BUILD */
 
@@ -123,7 +120,6 @@ typedef struct Pstate Pstate;
 typedef struct ItemSource ItemSource;
 typedef struct Lay Lay;		/* defined in Layout module */
 
-#pragma incomplete Lay
 
 
 /* Alignment types */
@@ -628,7 +624,6 @@ extern int	targetid(Rune* s);
 extern Rune*	targetname(int targid);
 extern int	validitems(Item* i);
 
-#pragma varargck	type "I"	Item*
 
 /* Control print output */
 extern int	warn;

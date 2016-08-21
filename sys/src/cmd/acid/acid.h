@@ -20,7 +20,6 @@ enum
 	Mempergc	= 1024*1024,
 };
 
-#pragma varargck type "L"	void
 
 typedef struct Node	Node;
 typedef struct String	String;
