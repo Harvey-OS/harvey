@@ -28,7 +28,6 @@
 			"privates.c",
 			"psx.c",
 			"read0.c",
-			"sizes.c",
 			"sqrt.c",
 			"syscall.c",
 			"sysfatal.c",
