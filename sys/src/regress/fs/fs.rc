@@ -4,3 +4,7 @@ echo chdir
 regress/fs/chdir $1
 echo filewrite
 regress/fs/filewrite $1
+echo filecreate
+regress/fs/filecreate $1
+echo filetree
+regress/fs/filetree $1

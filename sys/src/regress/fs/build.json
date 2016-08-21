@@ -6,7 +6,9 @@
 		"Install": "/$ARCH/bin/regress/fs",
 		"SourceFilesCmd": [
 			"chdir.c",
-			"filewrite.c"
+			"filewrite.c",
+			"filetree.c",
+			"filecreate.c"
 		],
 		"Post": [
 			"cp fs.rc $HARVEY/$ARCH/bin/regress"
