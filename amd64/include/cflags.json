@@ -18,6 +18,12 @@
 			],
 			"/opt/intel/bin/icc": [
 				"-Wno-main"
+			],
+			"/usr/bin/gcc": [
+				"-Wno-frame-address"
+			],
+			"/usr/bin/gcc-6": [
+				"-Wno-frame-address"
 			]
 		},
 		"Cflags": [

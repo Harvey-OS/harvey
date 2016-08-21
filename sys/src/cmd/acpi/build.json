@@ -1,0 +1,19 @@
+{
+	"irq": {
+	    "Include": [
+		"/sys/src/libacpi/acpica/acpiflags.json",
+			"/sys/src/cmd/cmd.json"
+		],
+		"Oflags": [
+			"-lacpi"
+		],
+		"Install": "/$ARCH/bin/acpi",
+		"Program": "irq",
+		"NSourceFiles": [
+		    "alltables.c"
+		],
+		"SourceFilesCmd": [
+			"irq.c"
+		]
+	}
+}

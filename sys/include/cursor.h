@@ -7,7 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma src "/sys/src/libdraw"
 
 struct	Cursor
 {

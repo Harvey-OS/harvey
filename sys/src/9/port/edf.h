@@ -55,8 +55,6 @@ struct Edf {
 
 extern Lock	edftestlock;	/* for atomic admitting/expelling */
 
-#pragma	varargck	type	"t"		long
-#pragma	varargck	type	"U"		uint64_t
 
 /* Interface: */
 Edf*		edflock(Proc*);

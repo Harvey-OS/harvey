@@ -15,9 +15,18 @@
 
 #include "apic.h"
 #include "io.h"
+#include "acpi.h"
 
 typedef struct Rbus Rbus;
 typedef struct Rdt Rdt;
+
+/* this cross-dependency from acpi to ioapic is from akaros, and
+ * kind of breaks the clean model we had before, where table
+ * parsing and hardware were completely separate. We'll try to
+ * clean it up later.
+ */
+extern Atable *apics; 		/* APIC info */
+extern int mpisabusno;
 
 struct Rbus {
 	Rbus	*next;
@@ -29,6 +38,7 @@ struct Rdt {
 	Apic	*apic;
 	int	intin;
 	uint32_t	lo;
+	uint32_t	hi;
 
 	int	ref;				/* could map to multiple busses */
 	int	enabled;				/* times enabled */
@@ -57,6 +67,14 @@ static Lock idtnolock;
 static int idtno = IdtIOAPIC;
 
 Apic	xioapic[Napic];
+
+static int map_polarity[4] = {
+	-1, IPhigh, -1, IPlow
+};
+
+static int map_edge_level[4] = {
+	-1, TMedge, -1, TMlevel
+};
 
 static uint32_t ioapicread(Apic*apic, int reg)
 {
@@ -112,11 +130,28 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 	Rdt *rdt;
 	Apic *apic;
 
-	if(busno >= Nbus || apicno >= Napic || nrdtarray >= Nrdt)
+	if(busno >= Nbus){
+		print("ioapicintrinit: botch: Busno %d >= Nbus %d\n", busno, Nbus);
 		return;
+	}
+	if (apicno >= Napic) {
+		print("ioapicintrinit: botch: acpicno %d >= Napic %d\n", apicno, Napic);
+		return;
+	}
+	if (nrdtarray >= Nrdt){
+		print("ioapicintrinit: botch: nrdtarray %d >= Nrdt %d\n", nrdtarray, Nrdt);
+		return;
+	}
+
 	apic = &xioapic[apicno];
-	if(!apic->useable || intin >= apic->Ioapic.nrdt)
+	if(!apic->useable) {
+		print("ioapicintrinit: botch: apic %d not marked usable\n", apicno);
 		return;
+	}
+	if (intin >= apic->Ioapic.nrdt){
+		print("ioapicintrinit: botch: initin %d >= apic->Ioapic.nrdt %d\n", intin, apic->Ioapic.nrdt);
+		return;
+	}
 
 	rdt = rdtlookup(apic, intin);
 	if(rdt == nil){
@@ -140,8 +175,99 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 	rdtbus[busno] = rbus;
 }
 
+static int acpi_irq2ioapic(int irq)
+{
+	int ioapic_idx = 0;
+	Apic *apic;
+	/* with acpi, the ioapics map a global interrupt space.  each covers a
+	 * window of the space from [ibase, ibase + nrdt). */
+	for (apic = xioapic; apic < &xioapic[Napic]; apic++, ioapic_idx++) {
+		/* addr check is just for sanity */
+		if (!apic->useable || !apic->Ioapic.addr)
+			continue;
+		if ((apic->Ioapic.gsib <= irq) && (irq < apic->Ioapic.gsib + apic->Ioapic.nrdt))
+			return ioapic_idx;
+	}
+	return -1;
+}
+
+/* Build an RDT route, like we would have had from the MP tables had they been
+ * parsed, via ACPI.
+ *
+ * This only really deals with the ISA IRQs and maybe PCI ones that happen to
+ * have an override.  FWIW, on qemu the PCI NIC shows up as an ACPI intovr.
+ *
+ * From Brendan http://f.osdev.org/viewtopic.php?f=1&t=25951:
+ *
+ * 		Before parsing the MADT you should begin by assuming that redirection
+ * 		entries 0 to 15 are used for ISA IRQs 0 to 15. The MADT's "Interrupt
+ * 		Source Override Structures" will tell you when this initial/default
+ * 		assumption is wrong. For example, the MADT might tell you that ISA IRQ 9
+ * 		is connected to IO APIC 44 and is level triggered; and (in this case)
+ * 		it'd be silly to assume that ISA IRQ 9 is also connected to IO APIC
+ * 		input 9 just because IO APIC input 9 is not listed.
+ *
+ *		For PCI IRQs, the MADT tells you nothing and you can't assume anything
+ *		at all. Sadly, you have to interpret the ACPI AML to determine how PCI
+ *		IRQs are connected to IO APIC inputs (or find some other work-around;
+ *		like implementing a motherboard driver for each different motherboard,
+ *		or some complex auto-detection scheme, or just configure PCI devices to
+ *		use MSI instead). */
+static int acpi_make_rdt(int tbdf, int irq, int busno, int devno)
+{
+	Atable *at;
+	Apicst *st, *lst;
+	uint32_t lo;
+	int pol, edge_level, ioapic_nr, gsi_irq;
+print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
+//die("acpi.make.rdt)\n");
+
+	at = apics;
+	st = nil;
+	for (int i = 0; i < at->nchildren; i++) {
+		lst = at->children[i]->tbl;
+		if (lst->type == ASintovr) {
+			if (lst->intovr.irq == irq) {
+				st = lst;
+				break;
+			}
+		}
+	}
+	if (st) {
+		pol = map_polarity[st->intovr.flags & AFpmask];
+		if (pol < 0) {
+			print("ACPI override had bad polarity\n");
+			return -1;
+		}
+		edge_level = map_edge_level[(st->intovr.flags & AFlevel) >> 2];
+		if (edge_level < 0) {
+			print("ACPI override had bad edge/level\n");
+			return -1;
+		}
+		lo = pol | edge_level;
+		gsi_irq = st->intovr.intr;
+	} else {
+		if (BUSTYPE(tbdf) == BusISA) {
+			lo = IPhigh | TMedge;
+			gsi_irq = irq;
+		} else {
+			/* Need to query ACPI at some point to handle this */
+			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
+			return -1;
+		}
+	}
+	ioapic_nr = acpi_irq2ioapic(gsi_irq);
+	if (ioapic_nr < 0) {
+		print("Could not find an IOAPIC for global irq %d!\n", gsi_irq);
+		return -1;
+	}
+	ioapicintrinit(busno, ioapic_nr, gsi_irq - xioapic[ioapic_nr].Ioapic.gsib,
+	               devno, lo);
+	return 0;
+}
+
 void
-ioapicinit(int id, uintptr_t pa)
+ioapicinit(int id, int ibase, uintptr_t pa)
 {
 	Apic *apic;
 
@@ -149,13 +275,16 @@ ioapicinit(int id, uintptr_t pa)
 	 * Mark the IOAPIC useable if it has a good ID
 	 * and the registers can be mapped.
 	 */
-	if(id >= Napic)
+	if(id >= Napic) {
+		print("NOT setting ioapic %d useable; id must be < %d\n", id, Napic);
 		return;
+	}
 
 	apic = &xioapic[id];
 	if(apic->useable || (apic->Ioapic.addr = vmap(pa, 1024)) == nil)
 		return;
 	apic->useable = 1;
+	apic->Ioapic.paddr = pa;
 
 	/*
 	 * Initialise the I/O APIC.
@@ -164,8 +293,12 @@ ioapicinit(int id, uintptr_t pa)
 	 */
 	lock(&apic->Ioapic.l);
 	apic->Ioapic.nrdt = ((ioapicread(apic, Ioapicver)>>16) & 0xff) + 1;
-	apic->Ioapic.gsib = gsib;
-	gsib += apic->Ioapic.nrdt;
+	if (ibase == -1) {
+		apic->Ioapic.gsib = gsib;
+		gsib += apic->Ioapic.nrdt;
+	} else {
+		apic->Ioapic.gsib = ibase;
+	}
 
 	ioapicwrite(apic, Ioapicid, id<<24);
 	unlock(&apic->Ioapic.l);
@@ -501,4 +634,171 @@ ioapicintrdisable(int vecno)
 	unlock(&rdt->apic->Ioapic.l);
 
 	return 0;
+}
+
+/* From Akaros, not sure we want this but for now ... */
+static int ioapic_exists(void)
+{
+	/* not foolproof, if we called this before parsing */
+	for (int i = 0; i < Napic; i++)
+		if (xioapic[i].useable)
+			return 1;
+	return 0;
+}
+
+Rdt *rbus_get_rdt(int busno, int devno)
+{
+	Rbus *rbus;
+	for (rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next) {
+		if (rbus->devno == devno)
+			return rbus->rdt;
+	}
+	return 0;
+}
+
+/* Attempts to init a bus interrupt, initializes Vctl, and returns the IDT
+ * vector to use (-1 on error).  If routable, the IRQ will route to core 0.  The
+ * IRQ will be masked, if possible.  Call Vctl->unmask() when you're ready.
+ *
+ * This will determine the type of bus the device is on (LAPIC, IOAPIC, PIC,
+ * etc), and set the appropriate fields in isr_h.  If applicable, it'll also
+ * allocate an IDT vector, such as for an IOAPIC, and route the IOAPIC entries
+ * appropriately.
+ *
+ * Callers init Vctl->dev_irq and ->tbdf.  tbdf encodes the bus type and the
+ * classic PCI bus:dev:func.  dev_irq may be ignored based on the bus type (e.g.
+ * PCI, esp MSI).
+ *
+ * In plan9, this was ioapicintrenable(), which also unmasked.  We don't have a
+ * deinit/disable method that would tear down the route yet.  All the plan9 one
+ * did was dec enabled and mask the entry. */
+int bus_irq_setup(Vctl *v)
+{
+	//Rbus *rbus;
+	Rdt *rdt;
+	int busno = -1, devno = -1, vno;
+	Pcidev *p;
+
+       	if (!ioapic_exists()) {
+		panic("%s: no ioapics?", __func__);
+		switch (BUSTYPE(v->Vkey.tbdf)) {
+			//case BusLAPIC:
+			//case BusIPI:
+			//break;
+		default:
+			//irq_h->check_spurious = pic_check_spurious;
+			//v->eoi = pic_send_eoi;
+			//irq_h->mask = pic_mask_irq;
+			//irq_h->unmask = pic_unmask_irq;
+			//irq_h->route_irq = 0;
+			//irq_h->type = "pic";
+			/* PIC devices have vector = irq + 32 */
+			return -1; //irq_h->dev_irq + IdtPIC;
+		}
+	}
+	switch (BUSTYPE(v->Vkey.tbdf)) {
+	case BusLAPIC:
+		/* nxm used to set the initial 'isr' method (i think equiv to our
+		 * check_spurious) to apiceoi for non-spurious lapic vectors.  in
+		 * effect, i think they were sending the EOI early, and their eoi
+		 * method was 0.  we're not doing that (unless we have to). */
+		//v->check_spurious = lapic_check_spurious;
+		v->eoi = nil; //apiceoi;
+		v->isr = apiceoi;
+		//v->mask = lapic_mask_irq;
+		//v->unmask = lapic_unmask_irq;
+		//v->route_irq = 0;
+		v->type = "lapic";
+		/* For the LAPIC, irq == vector */
+		return v->Vkey.irq;
+	case BusIPI:
+		/* similar to LAPIC, but we don't actually have LVT entries */
+		//v->check_spurious = lapic_check_spurious;
+		v->eoi = apiceoi;
+		//v->mask = 0;
+		//v->unmask = 0;
+		//v->route_irq = 0;
+		v->type = "IPI";
+		return v->Vkey.irq;
+	case BusISA:
+		if (mpisabusno == -1)
+			panic("No ISA bus allocated");
+		busno = mpisabusno;
+		/* need to track the irq in devno in PCI interrupt assignment entry
+		 * format (see mp.c or MP spec D.3). */
+		devno = v->Vkey.irq << 2;
+		break;
+	case BusPCI:
+		p = pcimatchtbdf(v->Vkey.tbdf);
+		if (!p) {
+			print("No PCI dev for tbdf %p!", v->Vkey.tbdf);
+			return -1;
+		}
+		if ((vno = intrenablemsi(v, p))!= -1)
+			return vno;
+		busno = BUSBNO(v->Vkey.tbdf);
+		devno = pcicfgr8(p, PciINTP);
+
+		/* this might not be a big deal - some PCI devices have no INTP.  if
+		 * so, change our devno - 1 below. */
+		if (devno == 0)
+			panic("no INTP for tbdf %p", v->Vkey.tbdf);
+		/* remember, devno is the device shifted with irq pin in bits 0-1.
+		 * we subtract 1, since the PCI intp maps 1 -> INTA, 2 -> INTB, etc,
+		 * and the MP spec uses 0 -> INTA, 1 -> INTB, etc. */
+		devno = BUSDNO(v->Vkey.tbdf) << 2 | (devno - 1);
+		break;
+	default:
+		panic("Unknown bus type, TBDF %p", v->Vkey.tbdf);
+	}
+	/* busno and devno are set, regardless of the bustype, enough to find rdt.
+	 * these may differ from the values in tbdf. */
+	rdt = rbus_get_rdt(busno, devno);
+	if (!rdt) {
+		/* second chance.  if we didn't find the item the first time, then (if
+		 * it exists at all), it wasn't in the MP tables (or we had no tables).
+		 * So maybe we can figure it out via ACPI. */
+		acpi_make_rdt(v->Vkey.tbdf, v->Vkey.irq, busno, devno);
+		rdt = rbus_get_rdt(busno, devno);
+	}
+	if (!rdt) {
+		print("Unable to build IOAPIC route for irq %d\n", v->Vkey.irq);
+		return -1;
+	}
+	/*
+	 * what to do about devices that intrenable/intrdisable frequently?
+	 * 1) there is no ioapicdisable yet;
+	 * 2) it would be good to reuse freed vectors.
+	 * Oh bugger.
+	 * brho: plus the diff btw mask/unmask and enable/disable is unclear
+	 */
+	/*
+	 * This is a low-frequency event so just lock
+	 * the whole IOAPIC to initialise the RDT entry
+	 * rather than putting a Lock in each entry.
+	 */
+	lock(&rdt->apic->Ioapic.l);
+	/* if a destination has already been picked, we store it in the lo.  this
+	 * stays around regardless of enabled/disabled, since we don't reap vectors
+	 * yet.  nor do we really mess with enabled... */
+	if ((rdt->lo & 0xff) == 0) {
+		vno = nextvec();
+		rdt->lo |= vno;
+		rdtvecno[vno] = rdt;
+	} else {
+		print("%p: mutiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
+	}
+	rdt->enabled++;
+	rdt->hi = 0;			/* route to 0 by default */
+	rdt->lo |= Pm | MTf;
+	rtblput(rdt->apic, rdt->intin, rdt->hi, rdt->lo);
+	vno = rdt->lo & 0xff;
+	unlock(&rdt->apic->Ioapic.l);
+
+	v->type = "ioapic";
+
+	v->eoi = apiceoi;
+	v->vno = vno;
+	v->mask = msimask;
+	return vno;
 }

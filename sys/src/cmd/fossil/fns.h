@@ -112,4 +112,3 @@ void	snapSetTimes(Snap*, uint32_t, uint32_t, uint32_t);
 
 void	fsCheck(Fsck*);
 
-#pragma varargck type "L" Label*

@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	src	"/sys/src/libmemdraw"
-#pragma	lib	"libmemdraw.a"
 
 typedef struct	Memimage Memimage;
 typedef struct	Memdata Memdata;
@@ -17,7 +15,6 @@ typedef struct	Memlayer Memlayer;
 typedef struct	Memcmap Memcmap;
 typedef struct	Memdrawparam	Memdrawparam;
 
-#pragma incomplete Memlayer
 
 /*
  * Memdata is allocated from main pool, but .data from the image pool.
@@ -190,16 +187,9 @@ void		memimagemove(void*, void*);
  */
 extern void	rdb(void);
 extern int		iprint(char*, ...);
-#pragma varargck argpos iprint 1
 extern int		drawdebug;
 
 /*
  * doprint interface: numbconv bit strings
  */
-#pragma varargck type "llb" vlong
-#pragma varargck type "llb" uvlong
-#pragma varargck type "lb" long
-#pragma varargck type "lb" ulong
-#pragma varargck type "b" int
-#pragma varargck type "b" uint
 

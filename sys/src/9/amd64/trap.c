@@ -54,6 +54,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	int vno;
 	Vctl *v;
 	extern int ioapicintrenable(Vctl*);
+	extern int bus_irq_setup(Vctl*);
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#x for %s\n",
 			irq, tbdf, name);
@@ -70,7 +71,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	v->name[KNAMELEN-1] = 0;
 
 	ilock(&vctllock);
-	vno = ioapicintrenable(v);
+	vno = bus_irq_setup(v);
 	if(vno == -1){
 		iunlock(&vctllock);
 		print("intrenable: couldn't enable irq %d, tbdf %#x for %s\n",
@@ -218,7 +219,7 @@ trapinit(void)
 	trapenable(VectorBPT, debugbpt, 0, "#BP");
 	trapenable(VectorPF, faultamd64, 0, "#PF");
 	trapenable(Vector2F, doublefault, 0, "#DF");
-	intrenable(IdtIPI, expected, 0, BUSUNKNOWN, "#IPI");
+	//intrenable(IdtIPI, expected, 0, BUSUNKNOWN, "#IPI");
 	trapenable(Vector15, unexpected, 0, "#15");
 	nmienable();
 
@@ -355,6 +356,7 @@ _trap(Ureg *ureg)
 	trap(ureg);
 }
 
+static int lastvno;
 /*
  *  All traps come here.  It is slower to have all traps call trap()
  *  rather than directly vectoring the handler.  However, this avoids a
@@ -368,19 +370,9 @@ trap(Ureg* ureg)
 	int clockintr, vno, user;
 	// cache the previous vno to see what might be causing
 	// trouble
-	static int lastvno;
 	vno = ureg->type;
 	uint64_t gsbase = rdmsr(GSbase);
 	//if (sce > scx) iprint("====================");
-	if (vno == 8) {
-		iprint("Lstar is %p\n", (void *)rdmsr(Lstar));
-		iprint("GSbase is %p\n", (void *)gsbase);
-		iprint("ire %d irx %d sce %d scx %d lastvno %d\n",
-			ire, irx, sce, scx, lastvno);
-		iprint("irxe %d \n",
-			irxe);
-		die("8");
-	}
 	lastvno = vno;
 	if (gsbase < 1ULL<<63)
 		die("bogus gsbase");
@@ -388,11 +380,6 @@ trap(Ureg* ureg)
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 
-	if (0 && machp() && up && up->pid == 6) {
-		//iprint("type %x\n", ureg->type);
-		if (ureg->type != 0x49)
-			die("6\n");
-	}
 	machp()->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (machp()->NIX.nixtype == NIXTC)){
