@@ -45,6 +45,9 @@ void hexdump(void *v, int length)
 	}
 }
 
+/* these go somewhere else, someday. */
+ACPI_STATUS FindIOAPICs(int *pic_mode);
+
 void
 main(int argc, char *argv[])
 {
@@ -76,6 +79,11 @@ main(int argc, char *argv[])
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't Initialize ACPI objects");
+
+	int picmode;
+	status = FindIOAPICs(&picmode);
+
+	print("FindIOAPICs returns status %d picmode %d\n", status, picmode);
 
 	print("inited objects. Hi the any key to continue\n"); //getchar();
 	AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
