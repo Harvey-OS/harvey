@@ -12,7 +12,9 @@
 		    "acfileio.c",
 		    "dbfileio.c",
 			"hack.c",
-			"harvey.c"
+			"harvey.c",
+		    "olsneracpi.c"
+
 			]
 		}
 }
