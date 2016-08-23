@@ -320,7 +320,7 @@ static ACPI_STATUS PrintDeviceCallback(ACPI_HANDLE Device, UINT32 Depth, void *C
 
 // PNP0C0F = PCI Interrupt Link Device
 // PNP0A03 = PCI Root Bridge
-static ACPI_STATUS PrintDevices(void) {
+ACPI_STATUS PrintDevices(void) {
 	ACPI_STATUS status = AE_OK;
 
 	printf("Searching for PNP0A03\n");
