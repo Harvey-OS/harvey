@@ -64,6 +64,127 @@ static int tbdf(ACPI_PCI_ID *p)
 	return (p->Bus << 8) | (p->Device << 3) | (p->Function);
 }
 
+int iol = -1, iow = -1, iob = -1;
+
+uint32_t inl(uint16_t addr)
+{
+	uint64_t off = addr;
+	uint32_t l;
+	if (pread(iol, &l, 4, off) < 4)
+		print("inl(0x%x): %r\n", addr);
+	return l;
+}
+
+uint16_t ins(uint16_t addr)
+{
+	uint64_t off = addr;
+	uint16_t w;
+	if (pread(iow, &w, 2, off) < 2)
+		print("ins(0x%x): %r\n", addr);
+	return w;
+}
+
+uint8_t inb(uint16_t addr)
+{
+	uint64_t off = addr;
+	uint16_t b;
+	if (pread(iow, &b, 1, off) < 1)
+		print("inb(0x%x): %r\n", addr);
+	return b;
+}
+
+void outl(uint32_t val, uint16_t addr)
+{
+	uint64_t off = addr;
+	if (pwrite(iol, &val, 4, off) < 4)
+		print("outl(0x%x): %r\n", addr);
+}
+
+void outs(uint16_t val, uint16_t addr)
+{
+	uint64_t off = addr;
+	if (pwrite(iow, &val, 2, off) < 2)
+		print("outs(0x%x): %r\n", addr);
+}
+
+void outb(uint8_t val, uint16_t addr)
+{
+	uint64_t off = addr;
+	if (pwrite(iob, &val, 1, off) < 1)
+		print("outb(0x%x): %r\n", addr);
+}
+
+#define MKBUS(t,b,d,f)	(((t)<<24)|(((b)&0xFF)<<16)|(((d)&0x1F)<<11)|(((f)&0x07)<<8))
+#define BUSFNO(tbdf)	(((tbdf)>>8)&0x07)
+#define BUSDNO(tbdf)	(((tbdf)>>11)&0x1F)
+#define BUSBNO(tbdf)	(((tbdf)>>16)&0xFF)
+#define BUSTYPE(tbdf)	((tbdf)>>24)
+#define BUSBDF(tbdf)	((tbdf)&0x00FFFF00)
+
+enum
+{
+	PciADDR		= 0xCF8,	/* CONFIG_ADDRESS */
+	PciDATA		= 0xCFC,	/* CONFIG_DATA */
+
+	Maxfn			= 7,
+	Maxdev			= 31,
+	Maxbus			= 255,
+
+	/* command register */
+	IOen		= (1<<0),
+	MEMen		= (1<<1),
+	MASen		= (1<<2),
+	MemWrInv	= (1<<4),
+	PErrEn		= (1<<6),
+	SErrEn		= (1<<8),
+
+	Write,
+	Read,
+};
+
+static int
+pcicfgrw(int tbdf, int r, int data, int rw, int w)
+{
+	int o, x, er;
+
+	if(BUSDNO(tbdf) > Maxdev)
+		return -1;
+
+	o = r & (4-w);
+	er = (r&0xfc) | ((r & 0xf00)<<16);
+	outl(PciADDR, 0x80000000|BUSBDF(tbdf)|er);
+	if(rw == Read){
+		x = -1;
+		switch(w){
+		case 1:
+			x = inb(PciDATA+o);
+			break;
+		case 2:
+			x = ins(PciDATA+o);
+			break;
+		case 4:
+			x = inl(PciDATA+o);
+			break;
+		}
+	}else{
+		x = 0;
+		switch(w){
+		case 1:
+			outb(PciDATA+o, data);
+			break;
+		case 2:
+			outs(PciDATA+o, data);
+			break;
+		case 4:
+			outl(PciDATA+o, data);
+			break;
+		}
+	}
+//	outl(PciADDR, 0);
+
+	return x;
+}
+
 
 ACPI_STATUS
 AcpiOsReadPciConfiguration (
@@ -74,8 +195,6 @@ AcpiOsReadPciConfiguration (
 {
 	uint32_t dev = tbdf(PciId);
 	fprint(2,"%s 0x%lx\n", __func__, dev);
-	sysfatal("NOT");
-#if 0
 	switch(Width) {
 	case 32:
 		*Value = pcicfgr32(&p, Reg);
@@ -89,7 +208,6 @@ AcpiOsReadPciConfiguration (
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
 	}
-#endif
 	return AE_OK;
 
 }
@@ -103,8 +221,6 @@ AcpiOsWritePciConfiguration (
 {
 	uint32_t dev = tbdf(PciId);
 	fprint(2,"%s 0x%lx\n", __func__, dev);
-	sysfatal("NOT");
-#if 0
 	switch(Width) {
 	case 32:
 		pcicfgw32(&p, Reg, Value);
@@ -118,7 +234,6 @@ AcpiOsWritePciConfiguration (
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
 	}
-#endif
 	return AE_OK;
 }
 
@@ -431,8 +546,6 @@ AcpiOsReadPort (
     UINT32                  *Value,
     UINT32                  Width)
 {
-	/* Ooooooookay ... ACPI specifies the IO width in *bits*. */
-#if 0
 	switch(Width) {
 	case 4*8:
 		*Value = inl(Address);
@@ -447,7 +560,6 @@ AcpiOsReadPort (
 		sysfatal("%s, bad width %d", __func__, Width);
 		break;
 	}
-#endif
 	fprint(2,"%s 0x%x 0x%x\n", __func__, Address, *Value);
 	sysfatal("NOT");
 	return AE_OK;
@@ -459,7 +571,6 @@ AcpiOsWritePort (
     UINT32                  Value,
     UINT32                  Width)
 {
-#if 0
 	switch(Width) {
 	case 4*8:
 		outl(Address, Value);
@@ -474,7 +585,6 @@ AcpiOsWritePort (
 		sysfatal("%s, bad width %d", __func__, Width);
 		break;
 	}
-#endif
 	fprint(2,"%s 0x%x 0x%x\n", __func__, Address, Value);
 	sysfatal("NOT");
 	return AE_OK;
@@ -524,6 +634,15 @@ AcpiOsInitialize(void)
 	}
 	close(fd);
 
+	iol = open("/dev/iol", ORDWR);
+	if (iol < 0)
+		sysfatal("iol: %r");
+	iow = open("/dev/iow", ORDWR);
+	if (iow < 0)
+		sysfatal("iow: %r");
+	iob = open("/dev/iob", ORDWR);
+	if (iob < 0)
+		sysfatal("iob: %r");
 	return AE_OK;
 }
 /*
