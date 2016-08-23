@@ -48,3 +48,4 @@ typedef int ACPI_THREAD_ID;
 #define ACPI_MACHINE_WIDTH 64
 #pragma clang diagnostic ignored "-Wunused-variable"
 
+#define ACPI_GET_FUNCTION_NAME __func__

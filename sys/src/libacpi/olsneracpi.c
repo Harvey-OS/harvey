@@ -19,7 +19,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-#include <acpi.h>
+#include "acpi.h"
+#include "accommon.h"
+#include "acapps.h"
+#include "actables.h"
+#include "acutils.h"
+#include <errno.h>
 
 #define _COMPONENT          ACPI_UTILITIES
 ACPI_MODULE_NAME    ("harvey")
@@ -151,7 +156,7 @@ static ACPI_STATUS ExecuteOSI(int pic_mode)
     ReturnValue.Length = ACPI_ALLOCATE_BUFFER;
 
     Status = AcpiEvaluateObject (NULL, "\\_PIC", &ArgList, &ReturnValue);
-	ACPI_FREE_BUFFER(ReturnValue);
+	////ACPI_FREE_BUFFER(ReturnValue);
 	if (Status == AE_NOT_FOUND)
 	{
 		printf("\\_PIC was not found. Assuming that's ok.\n");
@@ -224,7 +229,6 @@ failed:
 	return AE_OK;
 }
 
-#if 0
 static ACPI_STATUS PrintAPICTable(void) {
 	static const char *polarities[] = {
 		"Bus-Conformant",
@@ -308,6 +312,7 @@ ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE Device)
 	return_ACPI_STATUS(status);
 }
 
+
 static ACPI_STATUS PrintDeviceCallback(ACPI_HANDLE Device, UINT32 Depth, void *Context, void** ReturnValue)
 {
 	return PrintAcpiDevice(Device);
@@ -343,7 +348,7 @@ typedef struct IRQRouteData
 } IRQRouteData;
 
 static void ResetBuffer(ACPI_BUFFER* buffer) {
-	ACPI_FREE_BUFFER((*buffer));
+	////ACPI_FREE_BUFFER((*buffer));
 	buffer->Pointer = 0;
 	buffer->Length = ACPI_ALLOCATE_BUFFER;
 }
@@ -392,7 +397,7 @@ static ACPI_STATUS RouteIRQLinkDevice(ACPI_HANDLE Device, ACPI_PCI_ROUTING_TABLE
 	CHECK_STATUS("AcpiSetCurrentResources");
 
 failed:
-	ACPI_FREE_BUFFER(buffer);
+	//ACPI_FREE_BUFFER(buffer);
 	return_ACPI_STATUS(status);
 }
 
@@ -435,15 +440,15 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 		if (status == AE_OK && addr64.ResourceType == ACPI_BUS_NUMBER_RANGE)
 		{
 			printf("RouteIRQ: Root bridge bus range %#x..%#x\n",
-					addr64.Minimum,
-					addr64.Maximum);
-			if (data->pci.Bus < addr64.Minimum ||
-				data->pci.Bus > addr64.Maximum)
+			       addr64.MinAddressFixed,
+					addr64.MaxAddressFixed);
+			if (data->pci.Bus < addr64.MinAddressFixed ||
+			    data->pci.Bus > addr64.MaxAddressFixed)
 			{
 				// This is not the root bridge we're looking for...
 				goto failed;
 			}
-			rootBus = addr64.Minimum;
+			rootBus = addr64.MinAddressFixed;
 			break;
 		}
 		resource = ACPI_NEXT_RESOURCE(resource);
@@ -500,12 +505,12 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	status = AE_CTRL_TERMINATE;
 
 failed:
-	ACPI_FREE_BUFFER(buffer);
+	//ACPI_FREE_BUFFER(buffer);
 	ACPI_FREE(info);
 	return_ACPI_STATUS(status);
 }
 
-static ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq) {
+ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq) {
 	IRQRouteData data = { *device, pin, 0, 0, 0, FALSE };
 	ACPI_STATUS status = AE_OK;
 
@@ -525,7 +530,6 @@ static ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq) {
 	}
 	return_ACPI_STATUS(status);
 }
-#endif
 #if 0
 // reserve some virtual memory space (never touched) to keep track pci device
 // handles.
