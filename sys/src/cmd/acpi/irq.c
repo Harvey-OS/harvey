@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
 	}
-        status = AcpiInitializeTables(NULL, 2048, FALSE);
+        status = AcpiInitializeTables(NULL, 0, FALSE);
         if (ACPI_FAILURE(status))
 		sysfatal("can't set up acpi tables: %d", status);
 
@@ -69,7 +69,7 @@ main(int argc, char *argv[])
 
 	/* from acpi: */
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-	AcpiGbl_ReducedHardware = 1;
+	//AcpiGbl_ReducedHardware = 1;
 	print("LOADED TABLES. Hi the any key to continue\n"); //getchar();
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
@@ -90,6 +90,13 @@ main(int argc, char *argv[])
 	status = AcpiInitializeDebugger();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
+	}
+	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
+	ACPI_PCI_ID id = {0, 0, 2, 0};
+	int irq;
+	for(int i = 0; i < 4; i++) {
+		status = RouteIRQ(&id, i, &irq);
+		print("status %d, irq %d\n", status, irq);
 	}
 	print("OK on init.\n");
 	exits(0);
