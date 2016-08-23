@@ -69,11 +69,11 @@ main(int argc, char *argv[])
 
 	/* from acpi: */
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-	//AcpiGbl_ReducedHardware = 1;
+	AcpiGbl_ReducedHardware = 1;
 	print("LOADED TABLES. Hi the any key to continue\n"); //getchar();
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
-		sysfatal("Can't enable ACPI subsystem");
+		print("Probably does not matter: Can't enable ACPI subsystem");
 
 	print("enabled subsystem. Hi the any key to continue\n"); //getchar();
         status = AcpiInitializeObjects(0);
@@ -98,6 +98,9 @@ main(int argc, char *argv[])
 		status = RouteIRQ(&id, i, &irq);
 		print("status %d, irq %d\n", status, irq);
 	}
+	AcpiDbgLevel = 0;
+	ACPI_STATUS PrintDevices(void);
+	status = PrintDevices();
 	print("OK on init.\n");
 	exits(0);
 }
