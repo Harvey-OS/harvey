@@ -143,47 +143,80 @@ enum
 };
 
 static int
-pcicfgrw(int tbdf, int r, int data, int rw, int w)
+pcicfgrw(int bus, int dev, int fn, int r, int data, int rw, int w)
 {
 	int o, x, er;
-
-	if(BUSDNO(tbdf) > Maxdev)
+	/* single threaded */
+	static char path[128];
+	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", bus, dev, fn);
+	int fd = open(path, ORDWR);
+	if (fd < 0) {
+		print("%s: open %s: %r\n", __func__, path);
 		return -1;
+	}
 
-	o = r & (4-w);
-	er = (r&0xfc) | ((r & 0xf00)<<16);
-	outl(PciADDR, 0x80000000|BUSBDF(tbdf)|er);
 	if(rw == Read){
 		x = -1;
 		switch(w){
 		case 1:
-			x = inb(PciDATA+o);
-			break;
 		case 2:
-			x = ins(PciDATA+o);
-			break;
 		case 4:
-			x = inl(PciDATA+o);
+			if (pread(fd, &x, w, r) != w)
+				print("%s read@%d: %r", __func__, r);
 			break;
 		}
 	}else{
 		x = 0;
 		switch(w){
 		case 1:
-			outb(PciDATA+o, data);
-			break;
 		case 2:
-			outs(PciDATA+o, data);
-			break;
 		case 4:
-			outl(PciDATA+o, data);
-			break;
+			if (pwrite(fd, &data, w, r) != w)
+				print("%s write@%d: %r", __func__, r);
 		}
 	}
-//	outl(PciADDR, 0);
 
+	close(fd);
 	return x;
 }
+
+
+int
+pcicfgr8(int bus, int dev, int fn, int rno)
+{
+	return pcicfgrw(bus, dev, fn, rno, 0, Read, 1);
+}
+
+void
+pcicfgw8(int bus, int dev, int fn, int rno, int data)
+{
+	pcicfgrw(bus, dev, fn, rno, data, Write, 1);
+}
+
+int
+pcicfgr16(int bus, int dev, int fn, int rno)
+{
+	return pcicfgrw(bus, dev, fn, rno, 0, Read, 2);
+}
+
+void
+pcicfgw16(int bus, int dev, int fn, int rno, int data)
+{
+	pcicfgrw(bus, dev, fn, rno, data, Write, 2);
+}
+
+int
+pcicfgr32(int bus, int dev, int fn, int rno)
+{
+	return pcicfgrw(bus, dev, fn, rno, 0, Read, 4);
+}
+
+void
+pcicfgw32(int bus, int dev, int fn, int rno, int data)
+{
+	pcicfgrw(bus, dev, fn, rno, data, Write, 4);
+}
+
 
 
 ACPI_STATUS
@@ -197,13 +230,13 @@ AcpiOsReadPciConfiguration (
 	fprint(2,"%s 0x%lx\n", __func__, dev);
 	switch(Width) {
 	case 32:
-		*Value = pcicfgr32(&p, Reg);
+		*Value = pcicfgr32(PciId->Bus, PciId->Device, PciId->Function, Reg);
 		break;
 	case 16:
-		*Value = pcicfgr16(&p, Reg);
+		*Value = pcicfgr16(PciId->Bus, PciId->Device, PciId->Function, Reg);
 		break;
 	case 8:
-		*Value = pcicfgr8(&p, Reg);
+		*Value = pcicfgr8(PciId->Bus, PciId->Device, PciId->Function, Reg);
 		break;
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
@@ -223,13 +256,13 @@ AcpiOsWritePciConfiguration (
 	fprint(2,"%s 0x%lx\n", __func__, dev);
 	switch(Width) {
 	case 32:
-		pcicfgw32(&p, Reg, Value);
+		pcicfgw32(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
 		break;
 	case 16:
-		pcicfgw16(&p, Reg, Value);
+		pcicfgw16(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
 		break;
 	case 8:
-		pcicfgw8(&p, Reg, Value);
+		pcicfgw8(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
 		break;
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
@@ -506,7 +539,7 @@ AcpiOsSleep (
     UINT64                  Milliseconds)
 {
 	fprint(2,"%s\n", __func__);
-	sysfatal("%s", __func__);
+	sleep(Milliseconds);
 }
 
 void
@@ -514,7 +547,7 @@ AcpiOsStall(
     UINT32                  Microseconds)
 {
 	fprint(2,"%s\n", __func__);
-	sysfatal("%s", __func__);
+	sleep(Microseconds/1000+1);
 }
 
 ACPI_THREAD_ID
@@ -561,7 +594,6 @@ AcpiOsReadPort (
 		break;
 	}
 	fprint(2,"%s 0x%x 0x%x\n", __func__, Address, *Value);
-	sysfatal("NOT");
 	return AE_OK;
 }
 
@@ -586,7 +618,6 @@ AcpiOsWritePort (
 		break;
 	}
 	fprint(2,"%s 0x%x 0x%x\n", __func__, Address, Value);
-	sysfatal("NOT");
 	return AE_OK;
 }
 
