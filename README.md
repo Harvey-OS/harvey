@@ -1,5 +1,5 @@
 ![Harvey](https://harvey-os.org/img/harvey-os-logo.png)
-Harvey: A Fresh Take on Plan 9
+Harvey: A distributed operating system
 =====
 [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
 [![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
