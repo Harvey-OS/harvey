@@ -380,7 +380,9 @@ AcpiOsMapMemory (
 	
 	amt = pread(fd, v, Length, Where);
 	close(fd);
-	if (amt < Length){
+	/* If we just do the amt < Length test, it will not work when
+	 * amt is -1. Length is uint64_t. */
+	if ((amt < 0) || (amt < Length)){
 		free(v);
 		fprint(2,"%s: read %s: %r\n", __func__, name);
 		return nil;
