@@ -87,20 +87,23 @@ main(int argc, char *argv[])
 
 	print("inited objects. Hi the any key to continue\n"); //getchar();
 	AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
+	AcpiDbgLevel = 0;
 	status = AcpiInitializeDebugger();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
 	}
 	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
-	ACPI_PCI_ID id = {0, 0, 2, 0};
-	int irq;
-	for(int i = 0; i < 4; i++) {
-		status = RouteIRQ(&id, i, &irq);
-		print("status %d, irq %d\n", status, irq);
-	}
 	AcpiDbgLevel = 0;
-	ACPI_STATUS PrintDevices(void);
-	status = PrintDevices();
+	ACPI_PCI_ID id = (ACPI_PCI_ID){0, 0, 2, 0};
+	int irq;
+	//for(int i = 0; i < 4; i++) {
+		status = RouteIRQ(&id, 0, &irq);
+		print("status %d, irq %d\n", status, irq);
+	//}
+//	}
+	AcpiDbgLevel = 0;
+	//ACPI_STATUS PrintDevices(void);
+	//status = PrintDevices();
 	print("OK on init.\n");
 	exits(0);
 }
