@@ -127,7 +127,7 @@ static Acpilist *findlist(uintptr_t base)
 			return a;
 		}
 	}
-	print("Can't find list or %p\n", (void *)base);
+	print("Can't find list for %p\n", (void *)base);
 	return nil;
 }
 /*
@@ -500,9 +500,10 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 	}
 	sdt = vmap(pa, sizeof(Sdthdr));
 	if (sdt == nil) {
-		print("acpi: vmap: nil\n");
+		print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
 		return nil;
 	}
+	//hexdump(sdt, sizeof(Sdthdr));
 	//print("sdt %p\n", sdt);
 	//print("get it\n");
 	*n = l32get(sdt->length);
@@ -513,7 +514,7 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 	}
 	sdt = vmap(pa, *n);
 	if (sdt == nil) {
-		print("acpi: vmap: nil\n");
+		print("acpi: vmap full table @%p/%d: nil\n", (void *)pa, *n);
 		return nil;
 	}
 	//print("check it\n");
