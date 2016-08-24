@@ -508,8 +508,12 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 	//print("get it\n");
 	*n = l32get(sdt->length);
 	//print("*n is %d\n", *n);
-	if (!*n) {
+	if (*n == 0) {
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
+		return nil;
+	}
+	if (*n == 0x80000000) {
+		print("sdt has high bit set; weird vmware table? pa = %p\n", pa);
 		return nil;
 	}
 	sdt = vmap(pa, *n);
