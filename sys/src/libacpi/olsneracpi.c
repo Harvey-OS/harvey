@@ -365,7 +365,7 @@ static ACPI_STATUS RouteIRQLinkDevice(ACPI_HANDLE Device, ACPI_PCI_ROUTING_TABLE
 	ResetBuffer(&buffer);
 	status = AcpiGetCurrentResources(LinkDevice, &buffer);
 	CHECK_STATUS("AcpiGetCurrentResources");
-	//printf("Got %lu bytes of current resources\n", buffer.Length);
+	printf("Got %lu bytes of current resources\n", buffer.Length);
 	ACPI_RESOURCE* resource = (ACPI_RESOURCE*)buffer.Pointer;
 	switch (resource->Type) {
 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
@@ -428,27 +428,28 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	// multiple root pci bridges.
 	status = AcpiGetCurrentResources(Device, &buffer);
 	CHECK_STATUS("AcpiGetCurrentResources");
-	//printf("Got %lu bytes of current resources\n", buffer.Length);
-	//status = AcpiBufferToResource(buffer.Pointer, buffer.Length, &resource);
+	printf("Got %lu bytes of current resources\n", buffer.Length);
+	status = AcpiBufferToResource(buffer.Pointer, buffer.Length, &resource);
 	resource = (ACPI_RESOURCE*)buffer.Pointer;
-	//printf("Got resources %p (status %#x)\n", resource, status);
+	printf("Got resources %p (status %#x)\n", resource, status);
 	//CHECK_STATUS();
 	while (resource->Type != ACPI_RESOURCE_TYPE_END_TAG) {
-		//printf("Got resource type %d\n", resource->Type);
+		printf("Got resource type %d\n", resource->Type);
 		ACPI_RESOURCE_ADDRESS64 addr64;
 		ACPI_STATUS status = AcpiResourceToAddress64(resource, &addr64);
+		printf("Processed and got type\n",  addr64.ResourceType);
 		if (status == AE_OK && addr64.ResourceType == ACPI_BUS_NUMBER_RANGE)
 		{
 			printf("RouteIRQ: Root bridge bus range %#x..%#x\n",
-			       addr64.MinAddressFixed,
-					addr64.MaxAddressFixed);
-			if (data->pci.Bus < addr64.MinAddressFixed ||
-			    data->pci.Bus > addr64.MaxAddressFixed)
+			       addr64.Address.Minimum,
+					addr64.Address.Maximum);
+			if (data->pci.Bus < addr64.Address.Minimum ||
+			    data->pci.Bus > addr64.Address.Maximum)
 			{
 				// This is not the root bridge we're looking for...
 				goto failed;
 			}
-			rootBus = addr64.MinAddressFixed;
+			rootBus = addr64.Address.Minimum;
 			break;
 		}
 		resource = ACPI_NEXT_RESOURCE(resource);
@@ -472,10 +473,10 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	ResetBuffer(&buffer);
 	status = AcpiGetIrqRoutingTable(Device, &buffer);
 	CHECK_STATUS("AcpiGetIrqRoutingTable");
-	//printf("Got %u bytes of IRQ routing table\n", buffer.Length);
+	printf("Got %u bytes of IRQ routing table\n", buffer.Length);
 	ACPI_PCI_ROUTING_TABLE* route = buffer.Pointer;
 	ACPI_PCI_ROUTING_TABLE* const end = buffer.Pointer + buffer.Length;
-	//printf("Routing table: %p..%p\n", route, end);
+	printf("Routing table: %p..%p\n", route, end);
 	UINT64 pciAddr = data->pci.Device;
 	while (route < end && route->Length) {
 		if ((route->Address >> 16) == pciAddr && route->Pin == data->pin) {
@@ -496,7 +497,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 
 	if (found->Source[0]) {
 		status = RouteIRQLinkDevice(Device, found, data);
-		//printf("status %#x irq %#x\n", status, data->gsi);
+		printf("status %#x irq %#x\n", status, data->gsi);
 		CHECK_STATUS("RouteIRQLinkDevice");
 	} else {
 		data->gsi = found->SourceIndex;
