@@ -92,6 +92,7 @@
 				"fdisk": "/$ARCH/bin/disk/fdisk",
 				"fossil": "/$ARCH/bin/fossil/fossil",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"irq": "/$ARCH/bin/acpi/irq",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
