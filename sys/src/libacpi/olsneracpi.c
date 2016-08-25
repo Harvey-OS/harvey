@@ -133,6 +133,7 @@ static ACPI_STATUS InitializeFullAcpi (void)
 }
 
 
+#endif
 static ACPI_STATUS ExecuteOSI(int pic_mode)
 {
     ACPI_STATUS             Status;
@@ -172,7 +173,6 @@ static ACPI_STATUS ExecuteOSI(int pic_mode)
     return Status;
 }
 
-#endif
 #define CHECK_STATUS(fmt, ...) do { if (ACPI_FAILURE(status)) { \
 	printf("ACPI failed (%d): " fmt "\n", status, ## __VA_ARGS__); \
 	goto failed; \
