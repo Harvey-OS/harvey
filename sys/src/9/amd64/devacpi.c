@@ -489,7 +489,7 @@ static uint8_t sdtchecksum(void *addr, int len)
 	return sum;
 }
 
-static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
+static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
@@ -513,8 +513,8 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 		return nil;
 	}
 	if (*n == 0x80000000) {
+		*n = want;
 		print("sdt has high bit set; weird vmware table? pa = %p\n", pa);
-		return nil;
 	}
 	sdt = vmap(pa, *n);
 	if (sdt == nil) {
@@ -545,7 +545,7 @@ static int loadfacs(uintptr_t pa)
 {
 	size_t n;
 
-	facs = sdtmap(pa, &n, 0);
+	facs = sdtmap(pa, 0, &n, 0);
 	if (facs == nil)
 		return -1;
 	if (memcmp(facs->sig, "FACS", 4) != 0) {
@@ -572,7 +572,7 @@ static void loaddsdt(uintptr_t pa)
 	size_t n;
 	uint8_t *dsdtp;
 
-	dsdtp = sdtmap(pa, &n, 1);
+	dsdtp = sdtmap(pa, 0, &n, 1);
 	//print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
@@ -1519,7 +1519,7 @@ static void parsexsdt(Atable *root)
 	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
-		sdt = sdtmap(dhpa, &l, 1);
+		sdt = sdtmap(dhpa, 0, &l, 1);
 		kmprint("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
@@ -1602,7 +1602,7 @@ static void parsersdptr(void)
 	 * process the RSDT or XSDT table.
 	 */
 	xsdt = root->tbl;
-	xsdt->p = sdtmap(sdtpa, &xsdt->len, 1);
+	xsdt->p = sdtmap(sdtpa, 0, &xsdt->len, 1);
 	if (xsdt->p == nil) {
 		print("acpi: sdtmap failed\n");
 		return;
@@ -2024,7 +2024,7 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 		/* we don't load all the lists, so this may be a new one. */
 		if (! l) {
 			size_t _;
-			if (sdtmap(off, &_, 0) == nil){
+			if (sdtmap(off, n, &_, 0) == nil){
 				static char msg[256];
 				snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
 				error(msg);
