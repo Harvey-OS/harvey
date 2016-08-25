@@ -284,7 +284,7 @@ pcilscan(int bno, char *path, Pcidev** list)
 			pcicfgw32(p, PciPBN, Maxbus<<16 | sbn<<8 | bno);
 			pcicfgw16(p, PciSPSR, 0xFFFF);
 			char *bus = mallocz(256, 1);
-			snprint(bus, 256, "%s.%d", path, sbn);
+			snprint(bus, 256, "%s/%d.%d.0", path, BUSBNO(p->tbdf), BUSDNO(p->tbdf));
 			maxubn = pcilscan(sbn, bus, &p->bridge);
 			pcicfgw32(p, PciPBN, maxubn<<16 | sbn<<8 | bno);
 		}
@@ -301,7 +301,7 @@ pcilscan(int bno, char *path, Pcidev** list)
 				maxubn = ubn;
 			}
 			char *bus = mallocz(256, 1);
-			snprint(bus, 256, "%s.%d", path, sbn);
+			snprint(bus, 256, "%s/%d.%d.0", path, BUSBNO(p->tbdf), BUSDNO(p->tbdf));
 			pcilscan(sbn, bus, &p->bridge);
 		}
 	}
@@ -392,7 +392,7 @@ pcicfginit(void)
 	list = &pciroot;
 	for(bno = 0; bno <= Maxbus; bno++) {
 		sbno = bno;
-		bno = pcilscan(bno, "0", list);
+		bno = pcilscan(bno, "0.0.0", list);
 
 		while(*list)
 			list = &(*list)->link;
