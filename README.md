@@ -10,7 +10,7 @@ project.
 ## What is harvey?
 
 Harvey is a distributed operating system. It is direct descendant
-[Plan 9 from Bell Labs](https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs) which was originally
+of [Plan 9 from Bell Labs](https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs) which was originally
 developed by the same group at Bell Labs that developed Unix and C.
 
 - Take a look at the
