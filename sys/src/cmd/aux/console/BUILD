@@ -1,8 +1,7 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load('//sys/src/harvey.BUILD', "harvey_binary")
 
-cc_binary(
+harvey_binary(
     name="consoles",
-    copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
         "//amd64/include",
@@ -13,67 +12,47 @@ cc_binary(
         "screenconsole",
     ],
 )
-cc_binary(
-    name="console",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    linkopts=[
-        "static",
-        "e_main",
-        "lc",
-    ],
-    srcs=[
-        "buffer.c",
-        "comconsole.c",
-        "passthrough.c",
-        "serve9p.c",
-        "utils.c",
+harvey_binary(
+	name="console",
+	deps=[
+		"//sys/src/libc:libc",
+	],
+	srcs=[
+		"buffer.c",
+		"comconsole.c",
+		"passthrough.c",
+		"serve9p.c",
+		"utils.c",
     ],
 )
-cc_binary(
-    name="pipeconsole",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    srcs=[
-        "buffer.c",
-        "pipeconsole.c",
-        "passthrough.c",
-        "serve9p.c",
-        "utils.c",
-    ],
-    linkopts=[
-        "static",
-        "e_main",
-        "lc",
-    ],
+
+
+harvey_binary(
+	name="pipeconsole",
+	deps=[
+		"//sys/src/libc:libc",
+	],
+	srcs=[
+		"buffer.c",
+		"pipeconsole.c",
+		"passthrough.c",
+		"serve9p.c",
+		"utils.c",
+	],
 )
-cc_binary(
-    name="screenconsole",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=[
-        "//sys/src/libc:libc",
-    ],
-    linkopts=[
-        "-static",
-        "-e_main",
-    ],
-    srcs=[
-        "buffer.c",
-        "cga.c",
-        "screenconsole.c",
-        "keyboard.c",
-        "passthrough.c",
-        "serve9p.c",
-        "utils.c",
-    ],
+
+harvey_binary(
+	name="screenconsole",
+	deps=[
+		"//sys/src/libc:libc",
+	],
+	srcs=[
+        		"buffer.c",
+		"cga.c",
+		"screenconsole.c",
+		"keyboard.c",
+		"passthrough.c",
+		"serve9p.c",
+		"utils.c",
+	],
 )
