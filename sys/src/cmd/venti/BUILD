@@ -1,138 +1,19 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS", "CMD_DEPS", "CMD_LINK_OPTS")
+load('//sys/src/harvey.BUILD', "harvey_binary")
 
-cc_binary(
-    name="copy",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "copy.c",
-    ],
-)
-cc_binary(
-    name="read",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "read.c",
-    ],
-)
+VENTI_SRCS=[
+	"copy.c",
+	"read.c",
+	"ro.c",
+	"sync.c",
+	"write.c",
+	"devnull.c",
+	"mkroot.c",
+	"randtest.c",
+	"readlist.c",
+	"root.c",
+]
 
-cc_binary(
-    name="ro",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "ro.c",
-    ],
-)
-
-cc_binary(
-    name="sync",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "sync.c",
-    ],
-)
-
-cc_binary(
-    name="write",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "write.c",
-    ],
-)
-
-cc_binary(
-    name="devnull",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "devnull.c",
-    ],
-)
-
-cc_binary(
-    name="mkroot",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "mkroot.c",
-    ],
-)
-
-cc_binary(
-    name="randtest",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "randtest.c",
-    ],
-)
-cc_binary(
-    name="readlist",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "readlist.c",
-    ],
-)
-cc_binary(
-    name="root",
-    copts=LIB_COMPILER_FLAGS,
-    includes=[
-        "//sys/include",
-        "//amd64/include",
-    ],
-    deps=CMD_DEPS,
-    linkopts=CMD_LINK_OPTS,
-    srcs=[
-        "root.c",
-    ],
-)
+[harvey_binary(
+	name=v[:-2],
+	srcs=[v],
+) for v in VENTI_SRCS]
