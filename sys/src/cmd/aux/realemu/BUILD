@@ -1,16 +1,13 @@
-load("//sys/src/FLAGS", "CMD_LINK_OPTS", "CMD_DEPS", "LIB_COMPILER_FLAGS")
+load('//sys/src/harvey.BUILD', "harvey_binary")
 
-cc_binary(
+harvey_binary(
 	name = "realemu",
-	copts =LIB_COMPILER_FLAGS,
 	includes=[
 		"//amd64/include",
 		"//sys/include",
 		"//sys/src/cmd/aux/realemu",
 	 	"//.",
 	],
-	deps=CMD_DEPS,
-	linkopts=CMD_LINK_OPTS,
 	srcs = [
 		"arg.c",
 		"debug.c",
