@@ -520,9 +520,12 @@ static int mapit(IRQRouteData*d, int r)
 	print("------>GOT the PRT: for 0\n");
 	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
 
-	/* now get all PRTs for all devices. */
-	as = AcpiGetDevices (nil, device, nil, nil);
-	print("acpigetdevices %d\n", as);
+	/* at the moment this seems unnecessary. */
+	if (0) {
+		/* now get all PRTs for all devices. */
+		as = AcpiGetDevices (nil, device, nil, nil);
+		print("acpigetdevices %d\n", as);
+	}
 	return -1;
 
 }
