@@ -51,9 +51,16 @@ ACPI_STATUS FindIOAPICs(int *pic_mode);
 void
 main(int argc, char *argv[])
 {
+	int seg = 0, bus = 0, dev = 2, fn = 0, pin = 0;
 	ACPI_STATUS status;
 	AcpiDbgLevel = 0; //ACPI_LV_VERBOSITY1;
 	print("hi\n");
+	if (argc > 1)
+		bus = strtoul(argv[1], 0, 0);
+	if (argc > 2)
+		dev = strtoul(argv[2], 0, 0);
+	if (argc > 3)
+		pin = strtoul(argv[3], 0, 0);
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
@@ -94,10 +101,11 @@ main(int argc, char *argv[])
 	}
 	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
 	AcpiDbgLevel = 0;
-	ACPI_PCI_ID id = (ACPI_PCI_ID){0, 0, 2, 0};
+	ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
+	print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
 	int irq;
 	//for(int i = 0; i < 4; i++) {
-		status = RouteIRQ(&id, 0, &irq);
+		status = RouteIRQ(&id, pin, &irq);
 		print("status %d, irq %d\n", status, irq);
 	//}
 //	}
