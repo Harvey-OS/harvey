@@ -253,7 +253,7 @@ AcpiOsWritePciConfiguration (
     UINT32                  Width)
 {
 	uint32_t dev = tbdf(PciId);
-	fprint(2,"%s 0x%lx\n", __func__, dev);
+	fprint(2,"%s 0x%lx 0x%lx %d bits\n", __func__, dev, Value, Width);
 	switch(Width) {
 	case 32:
 		pcicfgw32(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
