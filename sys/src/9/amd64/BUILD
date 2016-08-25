@@ -179,142 +179,12 @@ I386_SRCS = [
 AMD64SRCS = AMD64_SRCS + CORE_SRCS + I386_SRCS + IP_SRCS + PORT_SRCS
 
 strip(
-	name="bind",
-	deps=[
-		"//sys/src/cmd:bind",
-	],
-)
-
-strip(
-	name="prep",
-	deps=[
-		"//sys/src/cmd/disk/prep:prep",
-	],
-)
-strip(
 	name="boot",
 	deps=[
 		"//sys/src/9/boot:bootamd64cpu",
 	],
 )
-strip(
-	name="cat",
-	deps=[
-		"//sys/src/cmd:cat",
-	],
-)
-strip(
-	name="date",
-	deps=[
-		"//sys/src/cmd:date",
-	],
-)
-strip(
-	name="echo",
-	deps=[
-		"//sys/src/cmd:echo",
-	],
-)
-strip(
-	name="factotum",
-	deps=[
-		"//sys/src/cmd/auth/factotum:factotum",
-	],
-)
-strip(
-	name="fdisk",
-	deps=[
-		"//sys/src/cmd/disk/prep:fdisk",
-	],
-)
-strip(
-	name="ipconfig",
-	deps=[
-		"//sys/src/cmd/ip/ipconfig:ipconfig",
-	],
-)
-strip(
-	name="screenconsole",
-	deps=[
-		"//sys/src/cmd/aux/console:screenconsole",
-	],
-)
-strip(
-	name="ls",
-	deps=[
-		"//sys/src/cmd:ls",
-	],
-)
-strip(
-	name="mount",
-	deps=[
-		"//sys/src/cmd:mount",
-	],
-)
-strip(
-	name="rc",
-	deps=[
-		"//sys/src/cmd/rc:rc",
-	],
-)
-strip(
-	name="ps",
-	deps=[
-		"//sys/src/cmd:ps",
-	],
-)
-strip(
-	name="ed",
-	deps=[
-		"//sys/src/cmd:ed",
-	],
-)
-strip(
-	name="realemu",
-	deps=[
-		"//sys/src/cmd/aux/realemu:realemu",
-	],
-)
-strip(
-	name="vga",
-	deps=[
-		"//sys/src/cmd/aux/vga:vga",
-	],
-)
-strip(
-	name="srv",
-	deps=[
-		"//sys/src/cmd:srv",
-	],
-)
 
-strip(
-	name="usbd",
-	deps=[
-		"//sys/src/cmd/usb/usbd:usbd",
-	],
-)
-
-strip(
-	name="venti",
-	deps=[
-		"//sys/src/cmd/venti/srv:venti",
-	],
-)
-
-strip(
-	name="fossil",
-	deps=[
-		"//sys/src/cmd/fossil:fossil",
-	],
-)
-
-strip(
-	name="ratrace",
-	deps=[
-		"//sys/src/cmd:ratrace",
-	],
-)
 mk_sys(
 	name="error",
 	mode="error.h",
@@ -398,31 +268,31 @@ cc_binary(
 )
 
 KERNEL_DEPS = [
-	":bind",
+	"//sys/src/cmd:bind",
 	":boot",
-	":cat",
-	":date",
-	":echo",
-	":factotum",
-	":fdisk",
-	":fossil",
-	":ipconfig",
-	":ls",
-	":mount",
+	"//sys/src/cmd:cat",
+	"//sys/src/cmd:date",
+	"//sys/src/cmd:echo",
+	"//sys/src/cmd/auth/factotum:factotum",
+	"//sys/src/cmd/disk/prep:fdisk",
+	"//sys/src/cmd/fossil:fossil",
+	"//sys/src/cmd/ip/ipconfig:ipconfig",
+	"//sys/src/cmd:ls",
+	"//sys/src/cmd:mount",
 # nvram FILE ADDED
-	":prep",
-	":rc",
-	":ps",
-	":ed",
+	"//sys/src/cmd/disk/prep:prep",
+	"//sys/src/cmd/rc:rc",
+	"//sys/src/cmd:ps",
+	"//sys/src/cmd:ed",
 # rcmain FILE ADDED
-	":screenconsole",
-	":realemu",
-	":vga",
-	":srv",
+	"//sys/src/cmd/aux/console:screenconsole",
+	"//sys/src/cmd/aux/realemu:realemu",
+	"//sys/src/cmd/aux/vga:vga",
+	"//sys/src/cmd:srv",
 # startdisk FILE ADDED
-	":usbd",
-	":venti",
-	":ratrace",
+	"//sys/src/cmd/usb/usbd:usbd",
+	"//sys/src/cmd/venti/srv:venti",
+	"//sys/src/cmd:ratrace",
 ]
 
 config(

@@ -1,27 +1,24 @@
-load("//sys/src/FLAGS",  "CMD_DEPS", "CMD_LINK_OPTS", "LIB_COMPILER_FLAGS")
+load("//sys/src/harvey.BUILD",  "CMD_DEPS", "harvey_binary")
 
 DEPS =[
 	":devtab",
 	"//sys/src/libusb:libusb",
 ]
 
-USBD_DEPS = DEPS+ CMD_DEPS 
 
-cc_binary(
+harvey_binary(
 	name = "usbd",
-	copts = LIB_COMPILER_FLAGS,
+	deps=DEPS+ CMD_DEPS,
 	includes=[
 		"//sys/include",
 		"//amd64/include",
 		"//sys/src/cmd/usb/usbd",
 	],
-	deps=USBD_DEPS,
 	srcs = [
 		"usbd.c",
 		"dev.c",
 		"devtab.c",
 	],
-	linkopts=CMD_LINK_OPTS,
 )
 
 usb(
