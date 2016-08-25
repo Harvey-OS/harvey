@@ -193,11 +193,7 @@ typedef union acpi_apic_struct
 #pragma pack()
 
 typedef struct {
-	int gsi[8];
-} IRQ;
-
-typedef struct {
-	IRQ irq;
+	int irqs[8];
 } PRT;
 
 PRT prts[256];
@@ -469,7 +465,7 @@ device(ACPI_HANDLE                     Object,
 			print("%s: ", t->Source);
 			print("Pin 0x%x, Address 0x%llx, SourceIndex 0x%x\n", 
 			      t->Pin, t->Address, t->SourceIndex);
-			int adr = t->address>>16;
+			int adr = t->Address>>16;
 			prts[adr].irqs[t->Pin] = t->SourceIndex;
 			p += t->Length;
 		}
@@ -479,8 +475,7 @@ device(ACPI_HANDLE                     Object,
 	return 0;
 }
 
-
-static int mapit(IRQRouteData*d, int r)
+int GetPRT(void)
 {
 	ACPI_BUFFER out;
 	static char path[128];
@@ -492,6 +487,35 @@ static int mapit(IRQRouteData*d, int r)
 	char *bridges;
 	out.Length = ACPI_ALLOCATE_BUFFER;
 	out.Pointer = nil;
+
+	/* this is the part I don't know well. for now, let's try
+	 * getting the _PRT for everything in the path from ROOT.
+	 */
+	snprint(path, sizeof(path), "\\_SB.PCI0._PRT");
+	print("OK, try to evaluate %s\n", path);
+	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, path, NULL, &out);
+	print("returns %d\n", as);
+	if (!ACPI_SUCCESS(as))
+		return as;
+	print("------>GOT the PRT: for 0\n");
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+
+	/* now get all PRTs for all devices. */
+	as = AcpiGetDevices (nil, device, nil, nil);
+	print("acpigetdevices %d\n", as);
+	return AE_OK;
+}
+static int mapit(IRQRouteData*d, int r)
+{
+	static char path[128];
+	static char buf[1024];
+	int BridgeDevice;
+	int gsi;
+	ACPI_STATUS as;
+	/* There are, potentially, 256 levels. Unlikely but ... */
+	char *f[255];
+	int nf;
+	char *bridges;
 	/* try namespace, then device. */
 	snprint(path, sizeof(path), "/dev/pci/%d.%d.0ctl", d->pci.Bus, d->pci.Device);
 	if (readfile(path, buf, sizeof(buf)) < 0) {
@@ -508,24 +532,21 @@ static int mapit(IRQRouteData*d, int r)
 	print("Path as %d componenents\n", nf);
 	if (nf < 2)
 		return 0;
-	/* this is the part I don't know well. for now, let's try
-	 * getting the _PRT for everything in the path from ROOT.
+	/* OK, FOR NOW, we're just doing one level. */
+	if (nf > 2)
+		sysfatal("PANIC: Can't do more than one level of bridge");
+	/* and, further, we take the root bridge as kind of a given. So we only care about
+	 * the bridge in f[1].
 	 */
-	snprint(path, sizeof(path), "\\_SB.PCI0._PRT");
-	print("OK, try to evaluate %s\n", path);
-	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, path, NULL, &out);
-	print("returns %d\n", as);
-	if (!ACPI_SUCCESS(as))
-		return as;
-	print("------>GOT the PRT: for 0\n");
-	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
-
-	/* at the moment this seems unnecessary. */
-	if (0) {
-		/* now get all PRTs for all devices. */
-		as = AcpiGetDevices (nil, device, nil, nil);
-		print("acpigetdevices %d\n", as);
-	}
+	char *bridgeno = f[1];
+	nf = gettokens(bridgeno, f, 3, ".");
+	if (nf < 3)
+		sysfatal("BOTCH! the bridge device requires 3 fields, only had %d\n", nf);
+	BridgeDevice = strtoul(f[1], 0, 0);
+	print("BridgeDevice is 0x%x, pin is %d\n", BridgeDevice, d->pin);
+	gsi = prts[BridgeDevice].irqs[d->pin];
+	print("GSI is 0x%x\n", gsi);
+	
 	return -1;
 
 }

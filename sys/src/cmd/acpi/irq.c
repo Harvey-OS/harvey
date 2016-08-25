@@ -109,6 +109,12 @@ failed:
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
 	}
+	int GetPRT();
+	status = GetPRT();
+	if (ACPI_FAILURE(status)) {
+		sysfatal("Error %d\n", status);
+	}
+
 	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
 	AcpiDbgLevel = 0;
 	ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
