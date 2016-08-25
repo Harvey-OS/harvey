@@ -9,6 +9,11 @@
 
 #include <acpi.h>
 
+#define CHECK_STATUS(fmt, ...) do { if (ACPI_FAILURE(status)) { \
+	printf("ACPI failed (%d): " fmt "\n", status, ## __VA_ARGS__); \
+	goto failed; \
+	} } while(0)
+
 extern void *ACPIRootPointer;
 extern int ACPITableSize;
 extern UINT32 AcpiDbgLevel;
@@ -90,8 +95,13 @@ main(int argc, char *argv[])
 	int picmode;
 	status = FindIOAPICs(&picmode);
 
+	if (picmode == 0)
+		sysfatal("PANIC: Can't handle picmode 0!");
+	ACPI_STATUS ExecuteOSI(int pic_mode);
 	print("FindIOAPICs returns status %d picmode %d\n", status, picmode);
-
+	status = ExecuteOSI(picmode);
+	CHECK_STATUS("ExecuteOSI");
+failed:
 	print("inited objects. Hi the any key to continue\n"); //getchar();
 	AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
 	AcpiDbgLevel = 0;
