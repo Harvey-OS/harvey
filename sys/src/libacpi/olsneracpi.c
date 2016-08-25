@@ -134,7 +134,7 @@ static ACPI_STATUS InitializeFullAcpi (void)
 
 
 #endif
-static ACPI_STATUS ExecuteOSI(int pic_mode)
+ACPI_STATUS ExecuteOSI(int pic_mode)
 {
     ACPI_STATUS             Status;
     ACPI_OBJECT_LIST        ArgList;
@@ -191,6 +191,16 @@ typedef union acpi_apic_struct
 	ACPI_MADT_LOCAL_APIC_NMI LocalApicNMI;
 } ACPI_APIC_STRUCT;
 #pragma pack()
+
+typedef struct {
+	int gsi[8];
+} IRQ;
+
+typedef struct {
+	IRQ irq;
+} PRT;
+
+PRT prts[256];
 
 ACPI_STATUS FindIOAPICs(int *pic_mode) {
 	ACPI_TABLE_MADT* table = NULL;
@@ -401,6 +411,121 @@ failed:
 	return_ACPI_STATUS(status);
 }
 
+static int readfile(char *path, char *buf, size_t buflen)
+{
+	int fd = open(path, OREAD);
+	int amt;
+	if (fd < 0)
+		return fd;
+	amt = read(fd, buf, buflen);
+	(void)close(fd);
+	return amt;
+}
+
+static ACPI_STATUS
+resource(ACPI_RESOURCE *r, void *Context)
+{
+	ACPI_RESOURCE_IRQ *i = &r->Data.Irq;
+	print("\tACPI_RESOURCE_TYPE_%d: Length %d\n", r->Type, r->Length);
+	if (r->Type != ACPI_RESOURCE_TYPE_IRQ)
+		return 0;
+	print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ", 
+	      i->Triggering, i->Polarity, i->Sharable, i->InterruptCount);
+	for(int j = 0; j < i->InterruptCount; j++)
+		print("%d,", i->Interrupts[j]);
+	print("\n");
+
+	print("apic %d, pin 0x%x\n", 1, i->Interrupts[0]);
+	return 0;
+}
+
+ACPI_STATUS
+device(ACPI_HANDLE                     Object,
+    UINT32                          NestingLevel,
+    void                            *Context,
+    void                            **ReturnValue)
+
+{
+	ACPI_STATUS as;
+	ACPI_DEVICE_INFO *info;
+	as = AcpiGetObjectInfo(Object, &info);
+	print("as is %d\n", as);
+	if (!ACPI_SUCCESS(as))
+		return 0;
+	ACPI_BUFFER out;
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
+	char n[5];
+	memmove(n, &info->Name, sizeof(info->Name));
+	n[4] = 0;
+	print("%s\n", n);
+	as = AcpiGetIrqRoutingTable(Object, &out);
+	print("get the PRT: %d\n", as);
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+	if (ACPI_SUCCESS(as)) {
+		void *p = (void *)out.Pointer;
+		while(((ACPI_PCI_ROUTING_TABLE*)p)->Length > 0) {
+			ACPI_PCI_ROUTING_TABLE *t = p;
+			print("%s: ", t->Source);
+			print("Pin 0x%x, Address 0x%llx, SourceIndex 0x%x\n", 
+			      t->Pin, t->Address, t->SourceIndex);
+			int adr = t->address>>16;
+			prts[adr].irqs[t->Pin] = t->SourceIndex;
+			p += t->Length;
+		}
+	}
+	as = AcpiWalkResources(Object, "_CRS", resource, nil);
+	print("Walk resources: as is %d\n", as);
+	return 0;
+}
+
+
+static int mapit(IRQRouteData*d, int r)
+{
+	ACPI_BUFFER out;
+	static char path[128];
+	static char buf[1024];
+	ACPI_STATUS as;
+	/* There are, potentially, 256 levels. Unlikely but ... */
+	char *f[255];
+	int nf;
+	char *bridges;
+	out.Length = ACPI_ALLOCATE_BUFFER;
+	out.Pointer = nil;
+	/* try namespace, then device. */
+	snprint(path, sizeof(path), "/dev/pci/%d.%d.0ctl", d->pci.Bus, d->pci.Device);
+	if (readfile(path, buf, sizeof(buf)) < 0) {
+		snprint(path, sizeof(path), "#$/pci/%d.%d.0ctl", d->pci.Bus, d->pci.Device);
+		if (readfile(path, buf, sizeof(buf)) < 0)
+			return -1;
+	}
+	nf = tokenize(buf, f, 5);
+	if (nf < 5)
+		return -1;
+	print("Path is %s\n", f[3]);
+	bridges = f[3];
+	nf = gettokens(bridges, f, nelem(f), "/");
+	print("Path as %d componenents\n", nf);
+	if (nf < 2)
+		return 0;
+	/* this is the part I don't know well. for now, let's try
+	 * getting the _PRT for everything in the path from ROOT.
+	 */
+	snprint(path, sizeof(path), "\\_SB.PCI0._PRT");
+	print("OK, try to evaluate %s\n", path);
+	as = AcpiEvaluateObject(ACPI_ROOT_OBJECT, path, NULL, &out);
+	print("returns %d\n", as);
+	if (!ACPI_SUCCESS(as))
+		return as;
+	print("------>GOT the PRT: for 0\n");
+	print("Length is %u ptr is %p\n", out.Length, out.Pointer);
+
+	/* now get all PRTs for all devices. */
+	as = AcpiGetDevices (nil, device, nil, nil);
+	print("acpigetdevices %d\n", as);
+	return -1;
+
+}
 static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Context, void** ReturnValue)
 {
 	IRQRouteData* data = (IRQRouteData*)Context;
@@ -467,6 +592,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	{
 		printf("Unimplemented! Device on bus %#x, but root is %#x\n",
 				data->pci.Bus, rootBus);
+		mapit(data, rootBus);
 		goto failed;
 	}
 
