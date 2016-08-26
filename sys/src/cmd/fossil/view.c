@@ -731,7 +731,7 @@ initxdirentry(MetaEntry *me)
 		"qid=%#llx\n"
 		"uid=%s gid=%s mid=%s\n"
 		"mtime=%lu mcount=%lu ctime=%lu atime=%lu\n"
-		"mode=%luo\n"
+		"mode=%lo\n"
 		"plan9 %d p9path %#llx p9version %lu\n"
 		"qidSpace %d offset %#llx max %#llx",
 		dir.qid,
