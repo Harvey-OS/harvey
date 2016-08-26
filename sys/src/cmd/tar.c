@@ -641,7 +641,7 @@ readhdr(int ar)
 	if (hdrcksum == -1 || chksum(hp) != hdrcksum) {
 		if (!resync)
 			sysfatal("bad archive header checksum in %s: "
-				"name %.100s...; expected %#luo got %#luo",
+				"name %.100s...; expected %#lo got %#lo",
 				arname, hp->name, hdrcksum, chksum(hp));
 		fprint(2, "%s: skipping past archive header with bad checksum in %s...",
 			argv0, arname);
