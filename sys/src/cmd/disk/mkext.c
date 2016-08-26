@@ -104,7 +104,7 @@ main(int argc, char **argv)
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%q %luo %q %q %lu %llu\n",
+			Bprint(&bout, "%q %lo %q %q %lu %llu\n",
 				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
@@ -172,7 +172,7 @@ mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
 		rerrstr(olderr, sizeof(olderr));
 		if((d = dirstat(name)) == nil || !(d->mode & DMDIR)){
 			free(d);
-			warn("can't make directory %q, mode %luo: %s", name, mode, olderr);
+			warn("can't make directory %q, mode %lo: %s", name, mode, olderr);
 			return;
 		}
 		free(d);
