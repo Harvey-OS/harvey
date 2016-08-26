@@ -540,7 +540,7 @@ iso9660copyfile(Fs *fs, File *dir, Cdir *c)
 	d.mtime = getcdate(c->date);
 	d.atime = d.mtime;
 
-if(d.mode&DMDIR)	print("%*scopy %s %s %s %luo\n", ind*2, "", d.name, d.uid, d.gid, d.mode);
+if(d.mode&DMDIR)	print("%*scopy %s %s %s %lo\n", ind*2, "", d.name, d.uid, d.gid, d.mode);
 
 	mode = d.mode&0777;
 	if(d.mode&DMDIR)
