@@ -40,6 +40,7 @@ enum {
 	Qpretty,
 	Qraw,
 	Qtbl,
+	Qctl,
 	NQtypes,
 
 	QIndexShift = 8,
@@ -73,12 +74,15 @@ static int devdc(void)
  * of tables. All other tables are mapped and kept for the user-level
  * interpreter.
  */
-/*
-static Cmdtab ctls[] = {
-	{CMregion, "region", 6},
-	{CMgpe, "gpe", 3},
+enum {
+	CMirq,
 };
-*/
+
+static Cmdtab ctls[] = {
+//	{CMregion, "region", 6},
+//	{CMgpe, "gpe", 3},
+	{CMirq, "irq", 2},
+};
 static Facs *facs;	/* Firmware ACPI control structure */
 static Fadt *fadt;	/* Fixed ACPI description to reach ACPI regs */
 static Atable *root;
@@ -2080,22 +2084,23 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 
 static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	error("acpiwrite: not until we can figure out what it's for");
-	return -1;
-#if 0
-	ERRSTACK(2);
-	cmdtab *ct;
-	cmdbuf *cb;
-	Reg *r;
-	unsigned int rno, fun, dev, bus, i;
+	int acpiirq(uint32_t tbdf, int irq);
+	Proc *up = externup();
+	Cmdtab *ct;
+	Cmdbuf *cb;
 
+	uint32_t tbdf;
+	int irq;
+
+#if 0
 	if (c->qid.path == Qio) {
 		if (reg == nil)
 			error("region not configured");
 		return regio(reg, a, n, off, 1);
 	}
+#endif
 	if (c->qid.path != Qctl)
-		error(EPERM, ERROR_FIXME);
+		error("Can only write Qctl");
 
 	cb = parsecmd(a, n);
 	if (waserror()) {
@@ -2104,6 +2109,10 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	}
 	ct = lookupcmd(cb, ctls, nelem(ctls));
 	switch (ct->index) {
+#if 0
+	Reg *r;
+
+		unsigned int rno, fun, dev, bus, i;
 		case CMregion:
 			/* TODO: this block is racy on reg (global) */
 			r = reg;
@@ -2145,13 +2154,18 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 			kstrdup(&gpes[i].obj, cb->f[2]);
 			setgpeen(i, 1);
 			break;
+#endif
+		case CMirq:
+			tbdf = strtoul(cb->f[1], 0, 0);
+			irq = strtoul(cb->f[2], 0, 0);
+			acpiirq(tbdf, irq);
+			break;
 		default:
 			panic("acpi: unknown ctl");
 	}
 	poperror();
 	free(cb);
 	return n;
-#endif
 }
 
 struct {
