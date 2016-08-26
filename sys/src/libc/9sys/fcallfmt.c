@@ -189,7 +189,7 @@ fdirconv(char *buf, char *e, Dir *d)
 	char tmp[16];
 
 	seprint(buf, e, "'%s' '%s' '%s' '%s' "
-		"q " QIDFMT " m %#luo "
+		"q " QIDFMT " m %#lo "
 		"at %ld mt %ld l %lld "
 		"t %d d %d",
 			d->name, d->uid, d->gid, d->muid,
