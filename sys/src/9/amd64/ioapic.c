@@ -76,6 +76,13 @@ static int map_edge_level[4] = {
 	-1, TMedge, -1, TMlevel
 };
 
+/* TODO: use the slice library for this. */
+typedef struct {
+	Vctl v;
+	uint32_t lo;
+} Vinfo;
+static Vinfo todo[1<<13];
+
 static uint32_t ioapicread(Apic*apic, int reg)
 {
 	volatile uint32_t *sel = apic->Ioapic.addr+Ioregsel;
@@ -213,11 +220,11 @@ static int acpi_irq2ioapic(int irq)
  *		like implementing a motherboard driver for each different motherboard,
  *		or some complex auto-detection scheme, or just configure PCI devices to
  *		use MSI instead). */
-static int acpi_make_rdt(int tbdf, int irq, int busno, int devno)
+static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 {
 	Atable *at;
 	Apicst *st, *lst;
-	uint32_t lo;
+	uint32_t lo = 0;
 	int pol, edge_level, ioapic_nr, gsi_irq;
 print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 //die("acpi.make.rdt)\n");
@@ -253,6 +260,8 @@ print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 		} else {
 			/* Need to query ACPI at some point to handle this */
 			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
+			todo[(tbdf>>3)&0x1fff].v = *v;
+			todo[(tbdf>>3)&0x1fff].lo = lo;
 			return -1;
 		}
 	}
@@ -758,7 +767,7 @@ int bus_irq_setup(Vctl *v)
 		/* second chance.  if we didn't find the item the first time, then (if
 		 * it exists at all), it wasn't in the MP tables (or we had no tables).
 		 * So maybe we can figure it out via ACPI. */
-		acpi_make_rdt(v->Vkey.tbdf, v->Vkey.irq, busno, devno);
+		acpi_make_rdt(v, v->Vkey.tbdf, v->Vkey.irq, busno, devno);
 		rdt = rbus_get_rdt(busno, devno);
 	}
 	if (!rdt) {
