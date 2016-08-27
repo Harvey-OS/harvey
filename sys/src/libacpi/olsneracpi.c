@@ -546,6 +546,8 @@ static int mapit(IRQRouteData*d, int r)
 	print("BridgeDevice is 0x%x, pin is %d\n", BridgeDevice, d->pin);
 	gsi = prts[BridgeDevice].irqs[d->pin];
 	print("GSI is 0x%x\n", gsi);
+	print("echo -n 0x%x 0x%x > /dev/acpictl\n", /*MKBUS(0, d->pci.Bus, d->pci.Device, 0), */
+					(d->pci.Bus<<5)|d->pci.Device, gsi);
 	
 	return -1;
 

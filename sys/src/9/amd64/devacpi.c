@@ -40,7 +40,6 @@ enum {
 	Qpretty,
 	Qraw,
 	Qtbl,
-	Qctl,
 	NQtypes,
 
 	QIndexShift = 8,
@@ -66,6 +65,7 @@ static int devdc(void)
 	return acpidevtab.dc;
 }
 
+#if 0
 /*
  * ACPI 4.0 Support.
  * Still WIP.
@@ -83,6 +83,7 @@ static Cmdtab ctls[] = {
 //	{CMgpe, "gpe", 3},
 	{CMirq, "irq", 2},
 };
+#endif
 static Facs *facs;	/* Firmware ACPI control structure */
 static Fadt *fadt;	/* Fixed ACPI description to reach ACPI regs */
 static Atable *root;
@@ -181,6 +182,7 @@ Atable *finatable(Atable *t, PSlice *slice)
 	dirs[1] = (Dirtab){ "pretty", t->pqid,  0, 0444 };
 	dirs[2] = (Dirtab){ "raw",    t->rqid,  0, 0444 };
 	dirs[3] = (Dirtab){ "table",  t->tqid,  0, 0444 };
+	dirs[4] = (Dirtab){ "ctl",  t->tqid,  0, 0666 };
 	for (size_t i = 0; i < n; i++) {
 		strlcpy(dirs[i + NQtypes].name, t->children[i]->name, KNAMELEN);
 		dirs[i + NQtypes].qid = t->children[i]->qid;
@@ -2084,6 +2086,9 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 
 static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
+	error("not yet");
+	return -1;
+#if 0
 	int acpiirq(uint32_t tbdf, int irq);
 	Proc *up = externup();
 	Cmdtab *ct;
@@ -2092,13 +2097,11 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	uint32_t tbdf;
 	int irq;
 
-#if 0
 	if (c->qid.path == Qio) {
 		if (reg == nil)
 			error("region not configured");
 		return regio(reg, a, n, off, 1);
 	}
-#endif
 	if (c->qid.path != Qctl)
 		error("Can only write Qctl");
 
@@ -2109,7 +2112,6 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	}
 	ct = lookupcmd(cb, ctls, nelem(ctls));
 	switch (ct->index) {
-#if 0
 	Reg *r;
 
 		unsigned int rno, fun, dev, bus, i;
@@ -2154,7 +2156,6 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 			kstrdup(&gpes[i].obj, cb->f[2]);
 			setgpeen(i, 1);
 			break;
-#endif
 		case CMirq:
 			tbdf = strtoul(cb->f[1], 0, 0);
 			irq = strtoul(cb->f[2], 0, 0);
@@ -2166,6 +2167,7 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	poperror();
 	free(cb);
 	return n;
+#endif
 }
 
 struct {
@@ -2195,7 +2197,8 @@ static char *raw(Atable *atbl, char *start, char *end, void *unused_arg)
 }
 
 Dev acpidevtab = {
-	.dc = L'α',
+	//.dc = L'α',
+	.dc = 'Z',
 	.name = "acpi",
 
 	.reset = devreset,
