@@ -128,6 +128,31 @@ intrdisable(void* vector)
 }
 
 static int32_t
+irqmapread(Chan* c, void *vbuf, int32_t n, int64_t offset)
+{
+	error("read: not yet");
+	return -1;
+}
+
+static int32_t
+irqmapwrite(Chan* c, void *buf, int32_t n, int64_t offset)
+{
+	int acpiirq(uint32_t tbdf, int irq);
+	int t, b, d, f, irq;
+	int *p[] = {&t, &b, &d, &f, &irq};
+	Cmdbuf *cb;
+
+	cb = parsecmd(buf, n);
+	if (cb->nf < nelem(p))
+		error("iprqmapwrite t b d f irq");
+	for(int i = 0; i < nelem(p); i++)
+		*p[i] = strtoul(cb->f[i], 0, 0);
+
+	acpiirq(MKBUS(t, b, d, f), irq);
+	return -1;
+}
+
+static int32_t
 irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 {
 	char *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
@@ -224,6 +249,7 @@ trapinit(void)
 	nmienable();
 
 	addarchfile("irqalloc", 0444, irqallocread, nil);
+	addarchfile("irqmap", 0666, irqmapread, irqmapwrite);
 }
 
 static char* excname[32] = {
