@@ -746,8 +746,8 @@ mkhdr(Hdr *hp, Dir *dir, char *file)
 		putbe((unsigned char *)hp->size+1, dir->length, sizeof hp->size - 2);
 		hp->size[sizeof hp->size - 1] = ' ';
 	} else
-		sprint(hp->size, "%11lluo ", dir->length);
-	sprint(hp->mtime, "%11luo ", dir->mtime);
+		sprint(hp->size, "%11llo ", dir->length);
+	sprint(hp->mtime, "%11lo ", dir->mtime);
 	hp->linkflag = (dir->mode&DMDIR? LF_DIR: LF_PLAIN1);
 	r = putfullname(hp, file);
 	if (posix) {
@@ -756,7 +756,7 @@ mkhdr(Hdr *hp, Dir *dir, char *file)
 		strncpy(hp->uname, dir->uid, sizeof hp->uname);
 		strncpy(hp->gname, dir->gid, sizeof hp->gname);
 	}
-	sprint(hp->chksum, "%6luo", chksum(hp));
+	sprint(hp->chksum, "%6lo", chksum(hp));
 	return r;
 }
 

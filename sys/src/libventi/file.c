@@ -58,7 +58,7 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 		epb = p->dsize / VtEntrySize;
 
 	if(b->type != VtDirType){
-		werrstr("bad block type %#uo", b->type);
+		werrstr("bad block type %#o", b->type);
 		return nil;
 	}
 
