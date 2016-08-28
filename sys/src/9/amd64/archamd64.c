@@ -30,8 +30,6 @@ cpuidinit(void)
 		return 0;
 	machp()->CPU.ncpuinfos++;
 
-	if(memcmp(&machp()->CPU.cpuinfo[0][1], "GenuntelineI", 12) == 0)
-		machp()->CPU.isintelcpu = 1;
 	cpuid(1, 0, machp()->CPU.cpuinfo[1]);
 
 	/*
@@ -67,16 +65,45 @@ cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 	return 1;
 }
 
+static char *
+cpuidname(uint32_t *info0)
+{
+	char *vendorid;
+
+	if(memcmp(&info0[1], "GenuntelineI", 12) == 0) {
+		vendorid = "GenuineIntel";
+		return vendorid;
+	}
+	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0) {
+		vendorid = "AuthenticAMD";
+		return vendorid;
+	}
+	else {
+		/* weird hypervisor?, let's pass what it has */
+		vendorid = (char *)&info0[1];
+		print("Warning: CPU unknown, %s\n", vendorid);
+		return vendorid;
+	}
+	return vendorid;
+
+
+}
+
 static int64_t
 cpuidhz(uint32_t *info0, uint32_t *info1)
 {
 	int f, r;
 	int64_t hz;
 	uint64_t msr;
+	char *vendorid;
 
-	//print("CPUID Vendor: %s\n", (char *)&info0[1]);
-	//print("CPUID Signature: %d\n", info1[0]);
-	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
+	vendorid = cpuidname(info0);
+
+	DBG("CPUID Vendor: %s\n", (char *)&info0[1]);
+	DBG("vendorid: %s\n", vendorid);
+	DBG("CPUID Signature: %d\n", info1[0]);
+
+	if(strcmp("GenuineIntel", vendorid) == 0) {
 		switch(info1[0] & 0x0fff3ff0){
 		default:
 			return 0;
@@ -182,29 +209,26 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		}
 		DBG("cpuidhz: 0x2a: %#llx hz %lld\n", rdmsr(0x2a), hz);
 	}
-	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
+	else if(strcmp("AuthenticAMD",vendorid) == 0){
 		switch(info1[0] & 0x0fff0ff0){
 		default:
 			return 0;
 		case 0x00050ff0:		/* K8 Athlon Venice 64 / Qemu64 */
 		case 0x00020fc0:		/* K8 Athlon Lima 64 */
 		case 0x00000f50:		/* K8 Opteron 2xxx */
+		case 0x00100f60:		/* K8 Athlon II X2 */
 			msr = rdmsr(0xc0010042);
 			r = (msr>>16) & 0x3f;
 			hz = 200000000ULL*(4 * 2 + r)/2;
 			break;
-		case 0x00100f60:		/* K8 Athlon II */
-		case 0x00100f40:		/* Phenom II X2 */
+		case 0x00100f40:		/* Phenom II X2 && Athlon II X4 559 Processor */
 		case 0x00100f20:		/* Phenom II X4 */
 		case 0x00100fa0:		/* Phenom II X6 */
-			msr = rdmsr(0xc0010042);
-			r = msr & 0x1f;
-			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
-			break;
 		case 0x00100f90:		/* K10 Opteron 61xx */
 		case 0x00600f00:		/* K10 Opteron 62xx */
 		case 0x00600f10:		/* K10 Opteron 6272, FX 6xxx/4xxx */
 		case 0x00600f20:		/* K10 Opteron 63xx, FX 3xxx/8xxx/9xxx */
+		case 0x00700f00:		/* Athlon II X4 5xxx */
 			msr = rdmsr(0xc0010064);
 			r = msr & 0x1f;
 			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
