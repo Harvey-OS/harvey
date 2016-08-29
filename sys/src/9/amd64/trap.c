@@ -37,6 +37,8 @@ static void doublefault(Ureg*, void*);
 static void unexpected(Ureg*, void*);
 static void expected(Ureg*, void*);
 static void dumpstackwithureg(Ureg*);
+extern int ioapicintrenable(Vctl*);
+extern int bus_irq_setup(Vctl*);
 
 static Lock vctllock;
 static Vctl *vctl[256];
@@ -53,8 +55,6 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 {
 	int vno;
 	Vctl *v;
-	extern int ioapicintrenable(Vctl*);
-	extern int bus_irq_setup(Vctl*);
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#x for %s\n",
 			irq, tbdf, name);
@@ -99,6 +99,35 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	 * of the IOAPIC.
 	 */
 	return v;
+}
+
+int acpiintrenable(Vctl *v)
+{
+	int vno;
+	ilock(&vctllock);
+	vno = bus_irq_setup(v);
+	if(vno == -1){
+		iunlock(&vctllock);
+		print("intrenable: couldn't enable irq %d, tbdf %#x for %s\n",
+			v->Vkey.irq, v->Vkey.tbdf, v->name);
+		free(v);
+		return -1;
+	}
+	if(vctl[vno]){
+		if(vctl[v->vno]->isr != v->isr || vctl[v->vno]->eoi != v->eoi)
+			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
+				vctl[v->vno]->name, v->name,
+				vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
+	}
+	v->vno = vno;
+	v->next = vctl[vno];
+	vctl[vno] = v;
+	iunlock(&vctllock);
+
+	if(v->mask)
+		v->mask(&v->Vkey, 0);
+
+	return -1;
 }
 
 int
