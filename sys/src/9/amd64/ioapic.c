@@ -860,6 +860,8 @@ int acpiirq(uint32_t tbdf, int gsi)
 
 	todo[ix].valid = 0;
 	ioapicdump();
+	ioapicintrenable(v);
+	ioapicdump();
 	return 0;
 }
 
