@@ -853,6 +853,7 @@ int acpiirq(uint32_t tbdf, int gsi)
 	if (ioapic_nr < 0) {
 		error("Could not find an IOAPIC for global irq!\n");
 	}
+	ioapicdump();
 	ioapicintrinit(busno, ioapic_nr, gsi - xioapic[ioapic_nr].Ioapic.gsib,
 	               devno, todo[ix].lo);
 	print("ioapicinrinit seems to have worked\n");
@@ -861,6 +862,11 @@ int acpiirq(uint32_t tbdf, int gsi)
 	todo[ix].valid = 0;
 	ioapicdump();
 	ioapicintrenable(v);
+	ioapicdump();
+	Apic *a = &xioapic[ioapic_nr];
+	uint32_t lo, hi;
+	rtblget(a, gsi, &hi, &lo);
+	rtblput(a, gsi, hi, lo|Im);
 	ioapicdump();
 	return 0;
 }
