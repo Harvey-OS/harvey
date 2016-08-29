@@ -827,6 +827,7 @@ int acpiirq(uint32_t tbdf, int gsi)
 	int ix = (BUSBNO(tbdf) << 5) | BUSDNO(tbdf);
 	Pcidev *pcidev;
 	Vctl *v;
+	int acpiintrenable(Vctl *v);
 	/* for now we know it's PCI, just ignore what they told us. */
 	tbdf = MKBUS(BusPCI, busno, BUSDNO(tbdf), 0);
 	if((pcidev = pcimatchtbdf(tbdf)) == nil)
@@ -861,12 +862,7 @@ int acpiirq(uint32_t tbdf, int gsi)
 
 	todo[ix].valid = 0;
 	ioapicdump();
-	ioapicintrenable(v);
-	ioapicdump();
-	Apic *a = &xioapic[ioapic_nr];
-	uint32_t lo, hi;
-	rtblget(a, gsi, &hi, &lo);
-	rtblput(a, gsi, hi, lo|Im);
+	acpiintrenable(v);
 	ioapicdump();
 	return 0;
 }
