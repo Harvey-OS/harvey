@@ -592,7 +592,7 @@ send(char *file)
 			goto Return;
 	}
 
-	fprint(remotefd1, "C%.4luo %lld %s\n", d->mode&0777, d->length, lastelem(file));
+	fprint(remotefd1, "C%.4lo %lld %s\n", d->mode&0777, d->length, lastelem(file));
 	if(getresponse() < 0)
 		goto Return;
 

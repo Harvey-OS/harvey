@@ -7,6 +7,12 @@ Harvey: A distributed operating system
 Welcome to Harvey, we are delighted that you are interested in the
 project.
 
+## What is harvey?
+
+Harvey is a distributed operating system. It is direct descendant
+of [Plan 9 from Bell Labs](https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs) which was originally
+developed by the same group at Bell Labs that invented Unix and C.
+
 - Take a look at the
   [Getting Started](https://github.com/Harvey-OS/harvey/wiki/Getting-Started)
   guide to learn how to get Harvey and how to play with it.

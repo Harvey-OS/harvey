@@ -1,4 +1,0 @@
-#!/bin/rc
-
-exec cat $*
-

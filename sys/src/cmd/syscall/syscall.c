@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 				else{
 					print("[%s] ", d.muid);
 					print("(%.16llux %lu %.2x) ", d.qid.path, d.qid.vers, d.qid.type);
-					print("%M (%luo) ", d.mode, d.mode);
+					print("%M (%lo) ", d.mode, d.mode);
 					print("%c %d ", d.type, d.dev);
 					print("%s %s ", d.uid, d.gid);
 					print("%lld ", d.length);

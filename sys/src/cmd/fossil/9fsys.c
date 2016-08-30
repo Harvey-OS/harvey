@@ -248,7 +248,7 @@ fsysModeString(uint32_t mode, char *buf)
 	for(i=0; modebits[i]; i++)
 		if(mode & modebits[i])
 			*p++ = modechars[i];
-	sprint(p, "%luo", mode&0777);
+	sprint(p, "%lo", mode&0777);
 	return buf;
 }
 
