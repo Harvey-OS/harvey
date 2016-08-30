@@ -17,7 +17,7 @@ fn serverupdate { status='' }
 
 if ( ! test -e /srv/boot && ! test -e /srv/kfs ) {
 	echo 'error: neither /srv/boot nor /srv/kfs present; make sure you are running on the file server'
-	exit '/srv/boot or /srv/kfs not present'
+	exit '/srv/boot and /srv/kfs not present'
 }
 
 if (test -e /srv/$fscons) {
