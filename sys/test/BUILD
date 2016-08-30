@@ -1,0 +1,29 @@
+qemu(
+    name="boot",
+    deps=[
+        "//:harvey",
+    ],
+    prompt="% ",
+    kernel="bin/harvey",
+    cpu="Opteron_G4",
+    smp="8",
+    memory="2048",
+    nographic=true,
+    machine="pc",
+    serial="stdio",
+    monitor="/dev/null",
+    net=[
+        "nic,model=rtl8139",
+        "user,hostfwd=tcp::5555-:1522",
+        "dump,file=/tmp/vm0.pcap",
+    ],
+    redir=[
+        "tcp:9999::9",
+        "tcp:17010::17010",
+        "tcp:17013::17013",
+    ],
+    append="service=cpu nobootprompt=rc maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 -user=harvey",
+    cmds=[
+        "/boot/ls",
+    ],
+)
