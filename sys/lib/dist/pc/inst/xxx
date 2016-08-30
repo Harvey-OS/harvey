@@ -1,9 +1,0 @@
-#!/bin/rc
-
-ip/ipconfig
-echo '	auth=p9auth.cs.bell-labs.com
-	authdom=cs.bell-labs.com' >>/net/ndb
-ndb/cs
-auth/factotum
-bind -a /bin/auth /
-cpu -e clear -h tcp!plan9.bell-labs.com
