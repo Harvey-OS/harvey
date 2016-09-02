@@ -126,6 +126,7 @@ failed:
 	//}
 //	}
 	AcpiDbgLevel = 0;
+	print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
 	//ACPI_STATUS PrintDevices(void);
 	//status = PrintDevices();
 	print("OK on init.\n");

@@ -133,104 +133,6 @@ void outb(uint8_t val, uint16_t addr)
 #define BUSTYPE(tbdf)	((tbdf)>>24)
 #define BUSBDF(tbdf)	((tbdf)&0x00FFFF00)
 
-enum
-{
-	PciADDR		= 0xCF8,	/* CONFIG_ADDRESS */
-	PciDATA		= 0xCFC,	/* CONFIG_DATA */
-
-	Maxfn			= 7,
-	Maxdev			= 31,
-	Maxbus			= 255,
-
-	/* command register */
-	IOen		= (1<<0),
-	MEMen		= (1<<1),
-	MASen		= (1<<2),
-	MemWrInv	= (1<<4),
-	PErrEn		= (1<<6),
-	SErrEn		= (1<<8),
-
-	Write,
-	Read,
-};
-
-static int
-pcicfgrw(int bus, int dev, int fn, int r, int data, int rw, int w)
-{
-	int o, x, er;
-	/* single threaded */
-	static char path[128];
-	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", bus, dev, fn);
-	int fd = open(path, ORDWR);
-	if (fd < 0) {
-		print("%s: open %s: %r\n", __func__, path);
-		return -1;
-	}
-
-	if(rw == Read){
-		x = -1;
-		switch(w){
-		case 1:
-		case 2:
-		case 4:
-			if (pread(fd, &x, w, r) != w)
-				print("%s read@%d: %r", __func__, r);
-			break;
-		}
-	}else{
-		x = 0;
-		switch(w){
-		case 1:
-		case 2:
-		case 4:
-			if (pwrite(fd, &data, w, r) != w)
-				print("%s write@%d: %r", __func__, r);
-		}
-	}
-
-	close(fd);
-	return x;
-}
-
-
-int
-pcicfgr8(int bus, int dev, int fn, int rno)
-{
-	return pcicfgrw(bus, dev, fn, rno, 0, Read, 1);
-}
-
-void
-pcicfgw8(int bus, int dev, int fn, int rno, int data)
-{
-	pcicfgrw(bus, dev, fn, rno, data, Write, 1);
-}
-
-int
-pcicfgr16(int bus, int dev, int fn, int rno)
-{
-	return pcicfgrw(bus, dev, fn, rno, 0, Read, 2);
-}
-
-void
-pcicfgw16(int bus, int dev, int fn, int rno, int data)
-{
-	pcicfgrw(bus, dev, fn, rno, data, Write, 2);
-}
-
-int
-pcicfgr32(int bus, int dev, int fn, int rno)
-{
-	return pcicfgrw(bus, dev, fn, rno, 0, Read, 4);
-}
-
-void
-pcicfgw32(int bus, int dev, int fn, int rno, int data)
-{
-	pcicfgrw(bus, dev, fn, rno, data, Write, 4);
-}
-
-
-
 ACPI_STATUS
 AcpiOsReadPciConfiguration (
     ACPI_PCI_ID             *PciId,
@@ -238,22 +140,35 @@ AcpiOsReadPciConfiguration (
     UINT64                  *Value,
     UINT32                  Width)
 {
-	uint32_t dev = tbdf(PciId);
-	fprint(2,"%s 0x%lx\n", __func__, dev);
+	ACPI_STATUS ret = AE_OK;
+	uint64_t val;
+	int amt;
+	static char path[128];
+	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus, PciId->Device, PciId->Function);
+	int fd = open(path, OREAD);
+	if (fd < 0) {
+		print("%s: open %s: %r\n", __func__, path);
+		return AE_IO_ERROR;
+	}
+
 	switch(Width) {
 	case 32:
-		*Value = pcicfgr32(PciId->Bus, PciId->Device, PciId->Function, Reg);
-		break;
 	case 16:
-		*Value = pcicfgr16(PciId->Bus, PciId->Device, PciId->Function, Reg);
-		break;
 	case 8:
-		*Value = pcicfgr8(PciId->Bus, PciId->Device, PciId->Function, Reg);
+		amt = pread(fd, Value, Width/8, Reg);
+		if (amt < Width/8)
+			ret = AE_IO_ERROR;
 		break;
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
 	}
-	return AE_OK;
+	close(fd);
+	if (amt > 0)
+		memmove(&val, Value, amt);
+	fprint(2, "pciread 0x%x 0x%x 0x%x 0x%x/%d 0x%x %d\n", PciId->Bus, PciId->Device, PciId->Function, 
+	       Reg, Width/8, *Value, ret);
+
+	return ret;
 
 }
 
@@ -264,22 +179,31 @@ AcpiOsWritePciConfiguration (
     UINT64                  Value,
     UINT32                  Width)
 {
-	uint32_t dev = tbdf(PciId);
-	fprint(2,"%s 0x%lx 0x%lx %d bits\n", __func__, dev, Value, Width);
+	ACPI_STATUS ret = AE_OK;
+	int amt;
+	static char path[128];
+	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus, PciId->Device, PciId->Function);
+	int fd = open(path, ORDWR);
+	if (fd < 0) {
+		print("%s: open %s: %r\n", __func__, path);
+		return AE_IO_ERROR;
+	}
+
 	switch(Width) {
 	case 32:
-		pcicfgw32(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
-		break;
 	case 16:
-		pcicfgw16(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
-		break;
 	case 8:
-		pcicfgw8(PciId->Bus, PciId->Device, PciId->Function, Reg, Value);
+		amt = pwrite(fd, &Value, Width/8, Reg);
+		if (amt < Width/8)
+			ret = AE_IO_ERROR;
 		break;
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
 	}
-	return AE_OK;
+	close(fd);
+	fprint(2, "pciwrite 0x%x 0x%x 0x%x 0x%x/%d 0x%x %d\n", PciId->Bus, PciId->Device, PciId->Function, 
+	       Reg, Width/8, Value, ret);
+	return ret;
 }
 
 /*

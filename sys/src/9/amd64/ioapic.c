@@ -263,7 +263,7 @@ print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 			/* Need to query ACPI at some point to handle this */
 			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
 			todo[(tbdf>>11)&0x1fff].v = *v;
-			todo[(tbdf>>11)&0x1fff].lo = lo;
+			todo[(tbdf>>11)&0x1fff].lo = lo | TMlevel | IPlow;
 			todo[(tbdf>>11)&0x1fff].valid = 1;
 			print("Set TOOD[0x%x] to valid\n", (tbdf>>11)&0x1fff);
 			return -1;
@@ -835,6 +835,7 @@ int acpiirq(uint32_t tbdf, int gsi)
 	if((pin = pcicfgr8(pcidev, PciINTP)) == 0)
 		error("no INTP for that device, which is impossible");
 
+//	pcicfgw8(pcidev, PciINTL, gsi);
 	print("ix is %x\n", ix);
 	if (!todo[ix].valid)
 		error("Invalid tbdf");
@@ -845,6 +846,7 @@ int acpiirq(uint32_t tbdf, int gsi)
 		nexterror();
 	}
 	*v = todo[ix].v;
+	v->Vkey.irq = gsi;
 	devno = BUSDNO(v->Vkey.tbdf)<<2|(pin-1);
 	print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
 	    v->Vkey.tbdf, busno, devno);
