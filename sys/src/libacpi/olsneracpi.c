@@ -546,10 +546,9 @@ static int mapit(IRQRouteData*d, int r)
 	print("BridgeDevice is 0x%x, pin is %d\n", BridgeDevice, d->pin);
 	gsi = prts[BridgeDevice].irqs[d->pin];
 	print("GSI is 0x%x\n", gsi);
-	print("echo -n 0x%x 0x%x > /dev/acpictl\n", /*MKBUS(0, d->pci.Bus, d->pci.Device, 0), */
-					(d->pci.Bus<<5)|d->pci.Device, gsi);
+	print("echo -n %d %d %d %d 0x%x > /dev/irqmap\n", 0, d->pci.Bus, d->pci.Device, 0, gsi);
 	
-	return -1;
+	return 0;
 
 }
 static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Context, void** ReturnValue)
@@ -618,8 +617,8 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	{
 		printf("Unimplemented! Device on bus %#x, but root is %#x\n",
 				data->pci.Bus, rootBus);
-		mapit(data, rootBus);
-		goto failed;
+		if (mapit(data, rootBus))
+			goto failed;
 	}
 
 	ResetBuffer(&buffer);
@@ -652,10 +651,12 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 		printf("status %#x irq %#x\n", status, data->gsi);
 		CHECK_STATUS("RouteIRQLinkDevice");
 	} else {
+		printf("found->Source[0] is zero since it's PIC 1\n");
 		data->gsi = found->SourceIndex;
 	}
 	data->found = TRUE;
 	status = AE_CTRL_TERMINATE;
+	status = AE_OK;
 
 failed:
 	//ACPI_FREE_BUFFER(buffer);
@@ -670,6 +671,7 @@ ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq) {
 	status = AcpiGetDevices("PNP0A03", RouteIRQCallback, &data, NULL);
 	if (status == AE_OK)
 	{
+printf("Data f %d 0x%x\n", data.found, data.pci);
 		if (data.found)
 		{
 			*irq = data.gsi
