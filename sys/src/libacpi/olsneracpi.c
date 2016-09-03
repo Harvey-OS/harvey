@@ -629,21 +629,29 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	ACPI_PCI_ROUTING_TABLE* const end = buffer.Pointer + buffer.Length;
 	printf("Routing table: %p..%p\n", route, end);
 	UINT64 pciAddr = data->pci.Device;
+	print("pciAddr: 0x%x\n", pciAddr);
 	while (route < end && route->Length) {
+		print("Route: %p, Address: 0x%08x, Pin: %d\n", route, route->Address, route->Pin);
 		if ((route->Address >> 16) == pciAddr && route->Pin == data->pin) {
+			print("FOUND!\n");
 			found = route;
 			break;
 		}
+		print("Route Length 0x%x\n", route->Length);
 		route = (ACPI_PCI_ROUTING_TABLE*)((char*)route + route->Length);
 	}
 	if (!found) {
+		print("NOT FOUND! FAIL!\n");
 		goto failed;
 	}
 
-	printf("RouteIRQ: %02x:%02x.%d pin %d -> %s:%d\n",
+	printf("RouteIRQ: %02x:%02x.%d pin %d -> %c%c%c%c:%d\n",
 		data->pci.Bus, data->pci.Device, data->pci.Function,
 		found->Pin,
-		found->Source[0] ? found->Source : NULL,
+		found->Source[0],
+		found->Source[1],
+		found->Source[2],
+		found->Source[3],
 		found->SourceIndex);
 
 	if (found->Source[0]) {
