@@ -103,7 +103,8 @@ ps2mouse(void)
 	if(mousetype == MousePS2)
 		return;
 
-	mouseenable();
+	if (0) /* For now, this is done in main.c */
+		mouseenable();
 	/* make mouse streaming, enabled */
 	mousecmd(0xEA);
 	mousecmd(0xF4);
