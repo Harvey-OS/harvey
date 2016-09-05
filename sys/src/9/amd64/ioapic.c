@@ -76,6 +76,14 @@ static int map_edge_level[4] = {
 	-1, TMedge, -1, TMlevel
 };
 
+/* TODO: use the slice library for this. */
+typedef struct {
+	Vctl v;
+	uint32_t lo;
+	int valid;
+} Vinfo;
+static Vinfo todo[1<<13];
+
 static uint32_t ioapicread(Apic*apic, int reg)
 {
 	volatile uint32_t *sel = apic->Ioapic.addr+Ioregsel;
@@ -165,7 +173,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 				busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
-		DBG("dup rdt %d %d %d %d %.8x\n", busno, apicno, intin, devno, lo);
+		print("dup rdt %d %d %d %d %.8x\n", busno, apicno, intin, devno, lo);
 	}
 	rdt->ref++;
 	rbus = malloc(sizeof *rbus);
@@ -173,6 +181,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 	rbus->devno = devno;
 	rbus->next = rdtbus[busno];
 	rdtbus[busno] = rbus;
+	print("%s: success\n", __func__);
 }
 
 static int acpi_irq2ioapic(int irq)
@@ -213,11 +222,11 @@ static int acpi_irq2ioapic(int irq)
  *		like implementing a motherboard driver for each different motherboard,
  *		or some complex auto-detection scheme, or just configure PCI devices to
  *		use MSI instead). */
-static int acpi_make_rdt(int tbdf, int irq, int busno, int devno)
+static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 {
 	Atable *at;
 	Apicst *st, *lst;
-	uint32_t lo;
+	uint32_t lo = 0;
 	int pol, edge_level, ioapic_nr, gsi_irq;
 print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 //die("acpi.make.rdt)\n");
@@ -253,6 +262,10 @@ print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 		} else {
 			/* Need to query ACPI at some point to handle this */
 			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
+			todo[(tbdf>>11)&0x1fff].v = *v;
+			todo[(tbdf>>11)&0x1fff].lo = lo | TMlevel | IPlow;
+			todo[(tbdf>>11)&0x1fff].valid = 1;
+			print("Set TOOD[0x%x] to valid\n", (tbdf>>11)&0x1fff);
 			return -1;
 		}
 	}
@@ -313,8 +326,10 @@ ioapicdump(void)
 	Apic *apic;
 	uint32_t hi, lo;
 
+/*
 	if(!DBGFLG)
 		return;
+ */
 	for(i = 0; i < Napic; i++){
 		apic = &xioapic[i];
 		if(!apic->useable || apic->Ioapic.addr == 0)
@@ -758,7 +773,7 @@ int bus_irq_setup(Vctl *v)
 		/* second chance.  if we didn't find the item the first time, then (if
 		 * it exists at all), it wasn't in the MP tables (or we had no tables).
 		 * So maybe we can figure it out via ACPI. */
-		acpi_make_rdt(v->Vkey.tbdf, v->Vkey.irq, busno, devno);
+		acpi_make_rdt(v, v->Vkey.tbdf, v->Vkey.irq, busno, devno);
 		rdt = rbus_get_rdt(busno, devno);
 	}
 	if (!rdt) {
@@ -802,3 +817,55 @@ int bus_irq_setup(Vctl *v)
 	v->mask = msimask;
 	return vno;
 }
+
+int acpiirq(uint32_t tbdf, int gsi)
+{
+	Proc *up = externup();
+	int ioapic_nr;
+	int busno = BUSBNO(tbdf);
+	int pin, devno;
+	int ix = (BUSBNO(tbdf) << 5) | BUSDNO(tbdf);
+	Pcidev *pcidev;
+	Vctl *v;
+	int acpiintrenable(Vctl *v);
+	/* for now we know it's PCI, just ignore what they told us. */
+	tbdf = MKBUS(BusPCI, busno, BUSDNO(tbdf), 0);
+	if((pcidev = pcimatchtbdf(tbdf)) == nil)
+		error("No such device (any more?)");
+	if((pin = pcicfgr8(pcidev, PciINTP)) == 0)
+		error("no INTP for that device, which is impossible");
+
+//	pcicfgw8(pcidev, PciINTL, gsi);
+	print("ix is %x\n", ix);
+	if (!todo[ix].valid)
+		error("Invalid tbdf");
+	v = malloc(sizeof(*v));
+	if (waserror()) {
+		print("well, that went badly\n");
+		free(v);
+		nexterror();
+	}
+	*v = todo[ix].v;
+	v->Vkey.irq = gsi;
+	devno = BUSDNO(v->Vkey.tbdf)<<2|(pin-1);
+	print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
+	    v->Vkey.tbdf, busno, devno);
+
+	ioapic_nr = acpi_irq2ioapic(gsi);
+	print("ioapic_nr for gsi %d is %d\n", gsi, ioapic_nr);
+	if (ioapic_nr < 0) {
+		error("Could not find an IOAPIC for global irq!\n");
+	}
+	ioapicdump();
+	ioapicintrinit(busno, ioapic_nr, gsi - xioapic[ioapic_nr].Ioapic.gsib,
+	               devno, todo[ix].lo);
+	print("ioapicinrinit seems to have worked\n");
+	poperror();
+
+	todo[ix].valid = 0;
+	ioapicdump();
+	acpiintrenable(v);
+	ioapicdump();
+	return 0;
+}
+

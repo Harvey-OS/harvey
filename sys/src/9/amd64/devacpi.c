@@ -65,6 +65,7 @@ static int devdc(void)
 	return acpidevtab.dc;
 }
 
+#if 0
 /*
  * ACPI 4.0 Support.
  * Still WIP.
@@ -73,12 +74,16 @@ static int devdc(void)
  * of tables. All other tables are mapped and kept for the user-level
  * interpreter.
  */
-/*
-static Cmdtab ctls[] = {
-	{CMregion, "region", 6},
-	{CMgpe, "gpe", 3},
+enum {
+	CMirq,
 };
-*/
+
+static Cmdtab ctls[] = {
+//	{CMregion, "region", 6},
+//	{CMgpe, "gpe", 3},
+	{CMirq, "irq", 2},
+};
+#endif
 static Facs *facs;	/* Firmware ACPI control structure */
 static Fadt *fadt;	/* Fixed ACPI description to reach ACPI regs */
 static Atable *root;
@@ -127,7 +132,7 @@ static Acpilist *findlist(uintptr_t base)
 			return a;
 		}
 	}
-	print("Can't find list or %p\n", (void *)base);
+	print("Can't find list for %p\n", (void *)base);
 	return nil;
 }
 /*
@@ -177,6 +182,7 @@ Atable *finatable(Atable *t, PSlice *slice)
 	dirs[1] = (Dirtab){ "pretty", t->pqid,  0, 0444 };
 	dirs[2] = (Dirtab){ "raw",    t->rqid,  0, 0444 };
 	dirs[3] = (Dirtab){ "table",  t->tqid,  0, 0444 };
+	dirs[4] = (Dirtab){ "ctl",  t->tqid,  0, 0666 };
 	for (size_t i = 0; i < n; i++) {
 		strlcpy(dirs[i + NQtypes].name, t->children[i]->name, KNAMELEN);
 		dirs[i + NQtypes].qid = t->children[i]->qid;
@@ -489,7 +495,7 @@ static uint8_t sdtchecksum(void *addr, int len)
 	return sum;
 }
 
-static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
+static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
@@ -500,20 +506,25 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 	}
 	sdt = vmap(pa, sizeof(Sdthdr));
 	if (sdt == nil) {
-		print("acpi: vmap: nil\n");
+		print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
 		return nil;
 	}
+	//hexdump(sdt, sizeof(Sdthdr));
 	//print("sdt %p\n", sdt);
 	//print("get it\n");
 	*n = l32get(sdt->length);
 	//print("*n is %d\n", *n);
-	if (!*n) {
+	if (*n == 0) {
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 		return nil;
 	}
+	if (*n == 0x80000000) {
+		*n = want;
+		print("sdt has high bit set; weird vmware table? pa = %p\n", pa);
+	}
 	sdt = vmap(pa, *n);
 	if (sdt == nil) {
-		print("acpi: vmap: nil\n");
+		print("acpi: vmap full table @%p/%d: nil\n", (void *)pa, *n);
 		return nil;
 	}
 	//print("check it\n");
@@ -540,7 +551,7 @@ static int loadfacs(uintptr_t pa)
 {
 	size_t n;
 
-	facs = sdtmap(pa, &n, 0);
+	facs = sdtmap(pa, 0, &n, 0);
 	if (facs == nil)
 		return -1;
 	if (memcmp(facs->sig, "FACS", 4) != 0) {
@@ -567,7 +578,7 @@ static void loaddsdt(uintptr_t pa)
 	size_t n;
 	uint8_t *dsdtp;
 
-	dsdtp = sdtmap(pa, &n, 1);
+	dsdtp = sdtmap(pa, 0, &n, 1);
 	//print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
@@ -1514,7 +1525,7 @@ static void parsexsdt(Atable *root)
 	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
-		sdt = sdtmap(dhpa, &l, 1);
+		sdt = sdtmap(dhpa, 0, &l, 1);
 		kmprint("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
@@ -1597,7 +1608,7 @@ static void parsersdptr(void)
 	 * process the RSDT or XSDT table.
 	 */
 	xsdt = root->tbl;
-	xsdt->p = sdtmap(sdtpa, &xsdt->len, 1);
+	xsdt->p = sdtmap(sdtpa, 0, &xsdt->len, 1);
 	if (xsdt->p == nil) {
 		print("acpi: sdtmap failed\n");
 		return;
@@ -2019,7 +2030,7 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 		/* we don't load all the lists, so this may be a new one. */
 		if (! l) {
 			size_t _;
-			if (sdtmap(off, &_, 0) == nil){
+			if (sdtmap(off, n, &_, 0) == nil){
 				static char msg[256];
 				snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
 				error(msg);
@@ -2075,14 +2086,16 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 
 static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	error("acpiwrite: not until we can figure out what it's for");
+	error("not yet");
 	return -1;
 #if 0
-	ERRSTACK(2);
-	cmdtab *ct;
-	cmdbuf *cb;
-	Reg *r;
-	unsigned int rno, fun, dev, bus, i;
+	int acpiirq(uint32_t tbdf, int irq);
+	Proc *up = externup();
+	Cmdtab *ct;
+	Cmdbuf *cb;
+
+	uint32_t tbdf;
+	int irq;
 
 	if (c->qid.path == Qio) {
 		if (reg == nil)
@@ -2090,7 +2103,7 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 		return regio(reg, a, n, off, 1);
 	}
 	if (c->qid.path != Qctl)
-		error(EPERM, ERROR_FIXME);
+		error("Can only write Qctl");
 
 	cb = parsecmd(a, n);
 	if (waserror()) {
@@ -2099,6 +2112,9 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	}
 	ct = lookupcmd(cb, ctls, nelem(ctls));
 	switch (ct->index) {
+	Reg *r;
+
+		unsigned int rno, fun, dev, bus, i;
 		case CMregion:
 			/* TODO: this block is racy on reg (global) */
 			r = reg;
@@ -2140,6 +2156,11 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 			kstrdup(&gpes[i].obj, cb->f[2]);
 			setgpeen(i, 1);
 			break;
+		case CMirq:
+			tbdf = strtoul(cb->f[1], 0, 0);
+			irq = strtoul(cb->f[2], 0, 0);
+			acpiirq(tbdf, irq);
+			break;
 		default:
 			panic("acpi: unknown ctl");
 	}
@@ -2176,7 +2197,8 @@ static char *raw(Atable *atbl, char *start, char *end, void *unused_arg)
 }
 
 Dev acpidevtab = {
-	.dc = L'α',
+	//.dc = L'α',
+	.dc = 'Z',
 	.name = "acpi",
 
 	.reset = devreset,

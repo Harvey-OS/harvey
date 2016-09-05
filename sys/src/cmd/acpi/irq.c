@@ -9,6 +9,11 @@
 
 #include <acpi.h>
 
+#define CHECK_STATUS(fmt, ...) do { if (ACPI_FAILURE(status)) { \
+	printf("ACPI failed (%d): " fmt "\n", status, ## __VA_ARGS__); \
+	goto failed; \
+	} } while(0)
+
 extern void *ACPIRootPointer;
 extern int ACPITableSize;
 extern UINT32 AcpiDbgLevel;
@@ -45,17 +50,27 @@ void hexdump(void *v, int length)
 	}
 }
 
+/* these go somewhere else, someday. */
+ACPI_STATUS FindIOAPICs(int *pic_mode);
+
 void
 main(int argc, char *argv[])
 {
+	int seg = 0, bus = 0, dev = 2, fn = 0, pin = 0;
 	ACPI_STATUS status;
 	AcpiDbgLevel = 0; //ACPI_LV_VERBOSITY1;
 	print("hi\n");
+	if (argc > 1)
+		bus = strtoul(argv[1], 0, 0);
+	if (argc > 2)
+		dev = strtoul(argv[2], 0, 0);
+	if (argc > 3)
+		pin = strtoul(argv[3], 0, 0);
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
 	}
-        status = AcpiInitializeTables(NULL, 2048, FALSE);
+        status = AcpiInitializeTables(NULL, 0, FALSE);
         if (ACPI_FAILURE(status))
 		sysfatal("can't set up acpi tables: %d", status);
 
@@ -67,21 +82,53 @@ main(int argc, char *argv[])
 	/* from acpi: */
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
 	AcpiGbl_ReducedHardware = 1;
-	print("LOADED TABLES. Hi the any key to continue\n"); getchar();
+	print("LOADED TABLES. Hi the any key to continue\n"); //getchar();
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
-		sysfatal("Can't enable ACPI subsystem");
+		print("Probably does not matter: Can't enable ACPI subsystem");
 
-	print("enabled subsystem. Hi the any key to continue\n"); getchar();
+	print("enabled subsystem. Hi the any key to continue\n"); //getchar();
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't Initialize ACPI objects");
 
-	print("inited objects. Hi the any key to continue\n"); getchar();
+	int picmode;
+	status = FindIOAPICs(&picmode);
+
+	if (picmode == 0)
+		sysfatal("PANIC: Can't handle picmode 0!");
+	ACPI_STATUS ExecuteOSI(int pic_mode);
+	print("FindIOAPICs returns status %d picmode %d\n", status, picmode);
+	status = ExecuteOSI(picmode);
+	CHECK_STATUS("ExecuteOSI");
+failed:
+	print("inited objects. Hi the any key to continue\n"); //getchar();
+	AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
+	AcpiDbgLevel = 0;
 	status = AcpiInitializeDebugger();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
 	}
+	int GetPRT();
+	status = GetPRT();
+	if (ACPI_FAILURE(status)) {
+		sysfatal("Error %d\n", status);
+	}
+
+	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
+	AcpiDbgLevel = 0;
+	ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
+	print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
+	int irq;
+	//for(int i = 0; i < 4; i++) {
+		status = RouteIRQ(&id, pin, &irq);
+		print("status %d, irq %d\n", status, irq);
+	//}
+//	}
+	AcpiDbgLevel = 0;
+	print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
+	//ACPI_STATUS PrintDevices(void);
+	//status = PrintDevices();
 	print("OK on init.\n");
 	exits(0);
 }

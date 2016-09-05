@@ -332,6 +332,7 @@ typedef struct Pcidev Pcidev;
 struct Pcidev
 {
 	int	tbdf;					/* type+bus+device+function */
+	char    *path;
 	uint16_t	vid;			/* vendor ID */
 	uint16_t	did;			/* device ID */
 

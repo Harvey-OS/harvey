@@ -1,8 +1,9 @@
-/******************************************************************************
+/*******************************************************************************
  *
- * Module Name: acapps - common include for ACPI applications/tools
+ * Module Name: dbfileio - Debugger file I/O commands. These can't usually
+ *              be used when running the debugger in Ring 0 (Kernel mode)
  *
- *****************************************************************************/
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -113,186 +114,138 @@
  *
  *****************************************************************************/
 
-#ifndef _ACAPPS
-#define _ACAPPS
-
-//#include <stdio.h>
-
-#ifdef _MSC_VER                 /* disable some level-4 warnings */
-#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
+#include "acpi.h"
+#include "accommon.h"
+#include "acdebug.h"
+#include "actables.h"
+#ifdef ACPI_APPLICATION
+#include "acapps.h"
 #endif
 
-/* Common info for tool signons */
+#define _COMPONENT          ACPI_CA_DEBUGGER
+        ACPI_MODULE_NAME    ("dbfileio")
 
-#define ACPICA_NAME                 "Intel ACPI Component Architecture"
-#define ACPICA_COPYRIGHT            "Copyright (c) 2000 - 2016 Intel Corporation"
 
-#if ACPI_MACHINE_WIDTH == 64
-#define ACPI_WIDTH          "-64"
+#ifdef ACPI_DEBUGGER
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiDbCloseDebugFile
+ *
+ * PARAMETERS:  None
+ *
+ * RETURN:      None
+ *
+ * DESCRIPTION: If open, close the current debug output file
+ *
+ ******************************************************************************/
 
-#elif ACPI_MACHINE_WIDTH == 32
-#define ACPI_WIDTH          "-32"
+void
+AcpiDbCloseDebugFile (
+    void)
+{
 
-#else
-#error unknown ACPI_MACHINE_WIDTH
-#define ACPI_WIDTH          "-??"
+#ifdef XACPI_APPLICATION
 
+    if (AcpiGbl_DebugFile)
+    {
+       fclose (AcpiGbl_DebugFile);
+       AcpiGbl_DebugFile = NULL;
+       AcpiGbl_DbOutputToFile = FALSE;
+       AcpiOsPrintf ("Debug output file %s closed\n",
+            AcpiGbl_DbDebugFilename);
+    }
 #endif
-
-/* Macros for signons and file headers */
-
-#define ACPI_COMMON_SIGNON(UtilityName) \
-    "\n%s\n%s version %8.8X%s\n%s\n\n", \
-    ACPICA_NAME, \
-    UtilityName, ((UINT32) ACPI_CA_VERSION), ACPI_WIDTH, \
-    ACPICA_COPYRIGHT
-
-#define ACPI_COMMON_HEADER(UtilityName, Prefix) \
-    "%s%s\n%s%s version %8.8X%s\n%s%s\n%s\n", \
-    Prefix, ACPICA_NAME, \
-    Prefix, UtilityName, ((UINT32) ACPI_CA_VERSION), ACPI_WIDTH, \
-    Prefix, ACPICA_COPYRIGHT, \
-    Prefix
-
-/* Macros for usage messages */
-
-#define ACPI_USAGE_HEADER(Usage) \
-    AcpiOsPrintf ("Usage: %s\nOptions:\n", Usage);
-
-#define ACPI_USAGE_TEXT(Description) \
-    AcpiOsPrintf (Description);
-
-#define ACPI_OPTION(Name, Description) \
-    AcpiOsPrintf ("  %-20s%s\n", Name, Description);
+}
 
 
-/* Check for unexpected exceptions */
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiDbOpenDebugFile
+ *
+ * PARAMETERS:  Name                - Filename to open
+ *
+ * RETURN:      None
+ *
+ * DESCRIPTION: Open a file where debug output will be directed.
+ *
+ ******************************************************************************/
 
-#define ACPI_CHECK_STATUS(Name, Status, Expected) \
-    if (Status != Expected) \
-    { \
-        AcpiOsPrintf ("Unexpected %s from %s (%s-%d)\n", \
-            AcpiFormatException (Status), #Name, _AcpiModuleName, __LINE__); \
+void
+AcpiDbOpenDebugFile (
+    char                    *Name)
+{
+
+#ifdef XACPI_APPLICATION
+
+    AcpiDbCloseDebugFile ();
+    AcpiGbl_DebugFile = fopen (Name, "w+");
+    if (!AcpiGbl_DebugFile)
+    {
+        AcpiOsPrintf ("Could not open debug file %s\n", Name);
+        return;
     }
 
-/* Check for unexpected non-AE_OK errors */
+    AcpiOsPrintf ("Debug output file %s opened\n", Name);
+    strncpy (AcpiGbl_DbDebugFilename, Name,
+        sizeof (AcpiGbl_DbDebugFilename));
+    AcpiGbl_DbOutputToFile = TRUE;
+
+#endif
+}
+#endif
 
 
-#define ACPI_CHECK_OK(Name, Status)   ACPI_CHECK_STATUS (Name, Status, AE_OK);
-
-#define FILE_SUFFIX_DISASSEMBLY     "dsl"
-#define FILE_SUFFIX_BINARY_TABLE    ".dat" /* Needs the dot */
-
-
-/* acfileio */
-
-ACPI_STATUS
-AcGetAllTablesFromFile (
-    char                    *Filename,
-    UINT8                   GetOnlyAmlTables,
-    ACPI_NEW_TABLE_DESC     **ReturnListHead);
-
-BOOLEAN
-AcIsFileBinary (
-    FILE                    *File);
-
-ACPI_STATUS
-AcValidateTableHeader (
-    FILE                    *File,
-    long                    TableOffset);
-
-
-/* Values for GetOnlyAmlTables */
-
-#define ACPI_GET_ONLY_AML_TABLES    TRUE
-#define ACPI_GET_ALL_TABLES         FALSE
-
-
-/*
- * getopt
- */
-int
-AcpiGetopt(
-    int                     argc,
-    char                    **argv,
-    char                    *opts);
-
-int
-AcpiGetoptArgument (
-    int                     argc,
-    char                    **argv);
-
-extern int                  AcpiGbl_Optind;
-extern int                  AcpiGbl_Opterr;
-extern int                  AcpiGbl_SubOptChar;
-extern char                 *AcpiGbl_Optarg;
-
-
-/*
- * cmfsize - Common get file size function
- */
-UINT32
-CmGetFileSize (
-    ACPI_FILE               File);
-
-
-/*
- * adwalk
- */
-void
-AcpiDmCrossReferenceNamespace (
-    ACPI_PARSE_OBJECT       *ParseTreeRoot,
-    ACPI_NAMESPACE_NODE     *NamespaceRoot,
-    ACPI_OWNER_ID           OwnerId);
-
-void
-AcpiDmDumpTree (
-    ACPI_PARSE_OBJECT       *Origin);
-
-void
-AcpiDmFindOrphanMethods (
-    ACPI_PARSE_OBJECT       *Origin);
-
-void
-AcpiDmFinishNamespaceLoad (
-    ACPI_PARSE_OBJECT       *ParseTreeRoot,
-    ACPI_NAMESPACE_NODE     *NamespaceRoot,
-    ACPI_OWNER_ID           OwnerId);
-
-void
-AcpiDmConvertResourceIndexes (
-    ACPI_PARSE_OBJECT       *ParseTreeRoot,
-    ACPI_NAMESPACE_NODE     *NamespaceRoot);
-
-
-/*
- * adfile
- */
-ACPI_STATUS
-AdInitialize (
-    void);
-
-char *
-FlGenerateFilename (
-    char                    *InputFilename,
-    char                    *Suffix);
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiDbLoadTables
+ *
+ * PARAMETERS:  ListHead        - List of ACPI tables to load
+ *
+ * RETURN:      Status
+ *
+ * DESCRIPTION: Load ACPI tables from a previously constructed table list.
+ *
+ ******************************************************************************/
 
 ACPI_STATUS
-FlSplitInputPathname (
-    char                    *InputPath,
-    char                    **OutDirectoryPath,
-    char                    **OutFilename);
+AcpiDbLoadTables (
+    ACPI_NEW_TABLE_DESC     *ListHead)
+{
+    ACPI_STATUS             Status;
+    ACPI_NEW_TABLE_DESC     *TableListHead;
+    ACPI_TABLE_HEADER       *Table;
 
-char *
-AdGenerateFilename (
-    char                    *Prefix,
-    char                    *TableId);
 
-void
-AdWriteTable (
-    ACPI_TABLE_HEADER       *Table,
-    UINT32                  Length,
-    char                    *TableName,
-    char                    *OemTableId);
+    /* Load all ACPI tables in the list */
 
-#endif /* _ACAPPS */
+    TableListHead = ListHead;
+    while (TableListHead)
+    {
+        Table = TableListHead->Table;
+
+        Status = AcpiLoadTable (Table);
+        if (ACPI_FAILURE (Status))
+        {
+            if (Status == AE_ALREADY_EXISTS)
+            {
+                AcpiOsPrintf ("Table %4.4s is already installed\n",
+                    Table->Signature);
+            }
+            else
+            {
+                AcpiOsPrintf ("Could not install table, %s\n",
+                    AcpiFormatException (Status));
+            }
+
+            return (Status);
+        }
+
+        fprintf (stderr,
+            "Acpi table [%4.4s] successfully installed and loaded\n",
+            Table->Signature);
+
+        TableListHead = TableListHead->Next;
+    }
+
+    return (AE_OK);
+}

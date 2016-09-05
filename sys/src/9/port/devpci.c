@@ -198,8 +198,8 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 		if(p == nil)
 			error(Egreg);
 		ebuf = buf+sizeof buf-1;	/* -1 for newline */
-		w = seprint(buf, ebuf, "%.2x.%.2x.%.2x %.4x/%.4x %3d",
-			p->ccrb, p->ccru, p->ccrp, p->vid, p->did, p->intl);
+		w = seprint(buf, ebuf, "%.2x.%.2x.%.2x %.4x/%.4x %3d %s",
+			p->ccrb, p->ccru, p->ccrp, p->vid, p->did, p->intl, p->path);
 		for(i=0; i<nelem(p->mem); i++){
 			if(p->mem[i].size == 0)
 				continue;

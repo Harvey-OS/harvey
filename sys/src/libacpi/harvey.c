@@ -52,10 +52,22 @@ static void hexdump(void *v, int length)
 }
 #endif
 
+/* try several variants */
 static int rawfd(void){
-	if (name == nil)
+	int fd;
+	if (name == nil) {
 		name = smprint("#%C/raw", L'α');
-	fprint(2,"Rawfd: open '%s'\n", name);
+		fprint(2,"Rawfd: open '%s'\n", name);
+		fd = open(name, OREAD);
+		if (fd > -1)
+			return fd;
+		name = smprint("#%C/raw", 'Z');
+		fprint(2,"Rawfd: open '%s'\n", name);
+		fd = open(name, OREAD);
+		if (fd > -1)
+			return fd;
+		/* try /dev paths here later. */
+	}
 	return open(name, OREAD);
 }
 
@@ -64,6 +76,62 @@ static int tbdf(ACPI_PCI_ID *p)
 	return (p->Bus << 8) | (p->Device << 3) | (p->Function);
 }
 
+int iol = -1, iow = -1, iob = -1;
+
+uint32_t inl(uint16_t addr)
+{
+	uint64_t off = addr;
+	uint32_t l;
+	if (pread(iol, &l, 4, off) < 4)
+		print("inl(0x%x): %r\n", addr);
+	return l;
+}
+
+uint16_t ins(uint16_t addr)
+{
+	uint64_t off = addr;
+	uint16_t w;
+	if (pread(iow, &w, 2, off) < 2)
+		print("ins(0x%x): %r\n", addr);
+	return w;
+}
+
+uint8_t inb(uint16_t addr)
+{
+	uint64_t off = addr;
+	uint16_t b;
+	if (pread(iow, &b, 1, off) < 1)
+		print("inb(0x%x): %r\n", addr);
+	return b;
+}
+
+void outl(uint32_t val, uint16_t addr)
+{
+	uint64_t off = addr;
+	if (pwrite(iol, &val, 4, off) < 4)
+		print("outl(0x%x): %r\n", addr);
+}
+
+void outs(uint16_t val, uint16_t addr)
+{
+	uint64_t off = addr;
+	if (pwrite(iow, &val, 2, off) < 2)
+		print("outs(0x%x): %r\n", addr);
+}
+
+void outb(uint8_t val, uint16_t addr)
+{
+	uint64_t off = addr;
+	if (pwrite(iob, &val, 1, off) < 1)
+		print("outb(0x%x): %r\n", addr);
+}
+
+#define MKBUS(t,b,d,f)	(((t)<<24)|(((b)&0xFF)<<16)|(((d)&0x1F)<<11)|(((f)&0x07)<<8))
+#define BUSFNO(tbdf)	(((tbdf)>>8)&0x07)
+#define BUSDNO(tbdf)	(((tbdf)>>11)&0x1F)
+#define BUSBNO(tbdf)	(((tbdf)>>16)&0xFF)
+#define BUSTYPE(tbdf)	((tbdf)>>24)
+#define BUSBDF(tbdf)	((tbdf)&0x00FFFF00)
 
 ACPI_STATUS
 AcpiOsReadPciConfiguration (
@@ -72,25 +140,35 @@ AcpiOsReadPciConfiguration (
     UINT64                  *Value,
     UINT32                  Width)
 {
-	uint32_t dev = tbdf(PciId);
-	fprint(2,"%s 0x%lx\n", __func__, dev);
-	sysfatal("NOT");
-#if 0
+	ACPI_STATUS ret = AE_OK;
+	uint64_t val;
+	int amt;
+	static char path[128];
+	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus, PciId->Device, PciId->Function);
+	int fd = open(path, OREAD);
+	if (fd < 0) {
+		print("%s: open %s: %r\n", __func__, path);
+		return AE_IO_ERROR;
+	}
+
 	switch(Width) {
 	case 32:
-		*Value = pcicfgr32(&p, Reg);
-		break;
 	case 16:
-		*Value = pcicfgr16(&p, Reg);
-		break;
 	case 8:
-		*Value = pcicfgr8(&p, Reg);
+		amt = pread(fd, Value, Width/8, Reg);
+		if (amt < Width/8)
+			ret = AE_IO_ERROR;
 		break;
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
 	}
-#endif
-	return AE_OK;
+	close(fd);
+	if (amt > 0)
+		memmove(&val, Value, amt);
+	fprint(2, "pciread 0x%x 0x%x 0x%x 0x%x/%d 0x%x %d\n", PciId->Bus, PciId->Device, PciId->Function, 
+	       Reg, Width/8, *Value, ret);
+
+	return ret;
 
 }
 
@@ -101,25 +179,31 @@ AcpiOsWritePciConfiguration (
     UINT64                  Value,
     UINT32                  Width)
 {
-	uint32_t dev = tbdf(PciId);
-	fprint(2,"%s 0x%lx\n", __func__, dev);
-	sysfatal("NOT");
-#if 0
+	ACPI_STATUS ret = AE_OK;
+	int amt;
+	static char path[128];
+	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus, PciId->Device, PciId->Function);
+	int fd = open(path, ORDWR);
+	if (fd < 0) {
+		print("%s: open %s: %r\n", __func__, path);
+		return AE_IO_ERROR;
+	}
+
 	switch(Width) {
 	case 32:
-		pcicfgw32(&p, Reg, Value);
-		break;
 	case 16:
-		pcicfgw16(&p, Reg, Value);
-		break;
 	case 8:
-		pcicfgw8(&p, Reg, Value);
+		amt = pwrite(fd, &Value, Width/8, Reg);
+		if (amt < Width/8)
+			ret = AE_IO_ERROR;
 		break;
 	default:
 		sysfatal("Can't read pci: bad width %d\n", Width);
 	}
-#endif
-	return AE_OK;
+	close(fd);
+	fprint(2, "pciwrite 0x%x 0x%x 0x%x 0x%x/%d 0x%x %d\n", PciId->Bus, PciId->Device, PciId->Function, 
+	       Reg, Width/8, Value, ret);
+	return ret;
 }
 
 /*
@@ -232,7 +316,9 @@ AcpiOsMapMemory (
 	
 	amt = pread(fd, v, Length, Where);
 	close(fd);
-	if (amt < Length){
+	/* If we just do the amt < Length test, it will not work when
+	 * amt is -1. Length is uint64_t. */
+	if ((amt < 0) || (amt < Length)){
 		free(v);
 		fprint(2,"%s: read %s: %r\n", __func__, name);
 		return nil;
@@ -391,7 +477,7 @@ AcpiOsSleep (
     UINT64                  Milliseconds)
 {
 	fprint(2,"%s\n", __func__);
-	sysfatal("%s", __func__);
+	sleep(Milliseconds);
 }
 
 void
@@ -399,7 +485,7 @@ AcpiOsStall(
     UINT32                  Microseconds)
 {
 	fprint(2,"%s\n", __func__);
-	sysfatal("%s", __func__);
+	sleep(Microseconds/1000+1);
 }
 
 ACPI_THREAD_ID
@@ -431,8 +517,6 @@ AcpiOsReadPort (
     UINT32                  *Value,
     UINT32                  Width)
 {
-	/* Ooooooookay ... ACPI specifies the IO width in *bits*. */
-#if 0
 	switch(Width) {
 	case 4*8:
 		*Value = inl(Address);
@@ -447,9 +531,7 @@ AcpiOsReadPort (
 		sysfatal("%s, bad width %d", __func__, Width);
 		break;
 	}
-#endif
 	fprint(2,"%s 0x%x 0x%x\n", __func__, Address, *Value);
-	sysfatal("NOT");
 	return AE_OK;
 }
 
@@ -459,7 +541,6 @@ AcpiOsWritePort (
     UINT32                  Value,
     UINT32                  Width)
 {
-#if 0
 	switch(Width) {
 	case 4*8:
 		outl(Address, Value);
@@ -474,9 +555,7 @@ AcpiOsWritePort (
 		sysfatal("%s, bad width %d", __func__, Width);
 		break;
 	}
-#endif
 	fprint(2,"%s 0x%x 0x%x\n", __func__, Address, Value);
-	sysfatal("NOT");
 	return AE_OK;
 }
 
@@ -524,6 +603,15 @@ AcpiOsInitialize(void)
 	}
 	close(fd);
 
+	iol = open("/dev/iol", ORDWR);
+	if (iol < 0)
+		sysfatal("iol: %r");
+	iow = open("/dev/iow", ORDWR);
+	if (iow < 0)
+		sysfatal("iow: %r");
+	iob = open("/dev/iob", ORDWR);
+	if (iob < 0)
+		sysfatal("iob: %r");
 	return AE_OK;
 }
 /*
