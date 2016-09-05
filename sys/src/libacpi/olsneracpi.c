@@ -505,13 +505,29 @@ int GetPRT(void)
 	print("acpigetdevices %d\n", as);
 	return AE_OK;
 }
-static int mapit(IRQRouteData*d, int r)
+static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 {
 	static char path[128];
 	static char buf[1024];
 	int BridgeDevice;
 	int gsi;
 	ACPI_STATUS as;
+	ACPI_STATUS status;
+	ACPI_HANDLE parent;
+	status = AcpiGetParent(dev, &parent);
+	if (ACPI_SUCCESS(status)) {
+		ACPI_BUFFER buffer;
+		print("MAPIT: d, then r\n");
+		PrintAcpiDevice(dev);
+		PrintAcpiDevice(parent);
+		ResetBuffer(&buffer);
+		status = AcpiGetName(parent, ACPI_FULL_PATHNAME, &buffer);
+		if (ACPI_SUCCESS(status)) {
+			printf("NMAE: %s\n", buffer.Pointer);
+		}
+
+	}
+
 	/* There are, potentially, 256 levels. Unlikely but ... */
 	char *f[255];
 	int nf;
@@ -611,60 +627,60 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 				info->Address);
 		goto failed;
 	}
+	if (rootBus != data->pci.Bus) {
+		ResetBuffer(&buffer);
+		status = AcpiGetIrqRoutingTable(Device, &buffer);
+		CHECK_STATUS("AcpiGetIrqRoutingTable");
+		printf("Got %u bytes of IRQ routing table\n", buffer.Length);
+		ACPI_PCI_ROUTING_TABLE* route = buffer.Pointer;
+		ACPI_PCI_ROUTING_TABLE* const end = buffer.Pointer + buffer.Length;
+		printf("Routing table: %p..%p\n", route, end);
+		UINT64 pciAddr = data->pci.Device;
+		print("pciAddr: 0x%x\n", pciAddr);
+		while (route < end && route->Length) {
+			print("Route: %p, Address: 0x%08x, Pin: %d\n", route, route->Address, route->Pin);
+			if ((route->Address >> 16) == pciAddr && route->Pin == data->pin) {
+				print("FOUND!\n");
+				found = route;
+				break;
+			}
+			print("Route Length 0x%x\n", route->Length);
+			route = (ACPI_PCI_ROUTING_TABLE*)((char*)route + route->Length);
+		}
+		if (!found) {
+			print("NOT FOUND! FAIL!\n");
+			goto failed;
+		}
+		
+		printf("RouteIRQ: %02x:%02x.%d pin %d -> %c%c%c%c:%d\n",
+		       data->pci.Bus, data->pci.Device, data->pci.Function,
+		       found->Pin,
+		       found->Source[0],
+		       found->Source[1],
+		       found->Source[2],
+		       found->Source[3],
+		       found->SourceIndex);
+		
+		if (found->Source[0]) {
+			status = RouteIRQLinkDevice(Device, found, data);
+			printf("status %#x irq %#x\n", status, data->gsi);
+			CHECK_STATUS("RouteIRQLinkDevice");
+		} else {
+			printf("found->Source[0] is zero since it's PIC 1\n");
+			data->gsi = found->SourceIndex;
+		}
+		data->found = TRUE;
+		status = AE_CTRL_TERMINATE;
+		status = AE_OK;
+	}
 	// This requires us to walk the chain of pci-pci bridges between the
 	// root bridge and the device. Unimplemented.
-	if (rootBus != data->pci.Bus)
-	{
-		printf("Unimplemented! Device on bus %#x, but root is %#x\n",
-				data->pci.Bus, rootBus);
-		if (mapit(data, rootBus))
-			goto failed;
-	}
-
-	ResetBuffer(&buffer);
-	status = AcpiGetIrqRoutingTable(Device, &buffer);
-	CHECK_STATUS("AcpiGetIrqRoutingTable");
-	printf("Got %u bytes of IRQ routing table\n", buffer.Length);
-	ACPI_PCI_ROUTING_TABLE* route = buffer.Pointer;
-	ACPI_PCI_ROUTING_TABLE* const end = buffer.Pointer + buffer.Length;
-	printf("Routing table: %p..%p\n", route, end);
-	UINT64 pciAddr = data->pci.Device;
-	print("pciAddr: 0x%x\n", pciAddr);
-	while (route < end && route->Length) {
-		print("Route: %p, Address: 0x%08x, Pin: %d\n", route, route->Address, route->Pin);
-		if ((route->Address >> 16) == pciAddr && route->Pin == data->pin) {
-			print("FOUND!\n");
-			found = route;
-			break;
-		}
-		print("Route Length 0x%x\n", route->Length);
-		route = (ACPI_PCI_ROUTING_TABLE*)((char*)route + route->Length);
-	}
-	if (!found) {
-		print("NOT FOUND! FAIL!\n");
+	printf("Unimplemented! Device on bus %#x, but root is %#x\n",
+	       data->pci.Bus, rootBus);
+	if (mapit(Device, data, rootBus))
 		goto failed;
-	}
 
-	printf("RouteIRQ: %02x:%02x.%d pin %d -> %c%c%c%c:%d\n",
-		data->pci.Bus, data->pci.Device, data->pci.Function,
-		found->Pin,
-		found->Source[0],
-		found->Source[1],
-		found->Source[2],
-		found->Source[3],
-		found->SourceIndex);
 
-	if (found->Source[0]) {
-		status = RouteIRQLinkDevice(Device, found, data);
-		printf("status %#x irq %#x\n", status, data->gsi);
-		CHECK_STATUS("RouteIRQLinkDevice");
-	} else {
-		printf("found->Source[0] is zero since it's PIC 1\n");
-		data->gsi = found->SourceIndex;
-	}
-	data->found = TRUE;
-	status = AE_CTRL_TERMINATE;
-	status = AE_OK;
 
 failed:
 	//ACPI_FREE_BUFFER(buffer);
