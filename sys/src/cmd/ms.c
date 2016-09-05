@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 			dx = msg[1];
 			dy = -msg[2];
 			//mousetrack(dx, dy, buttons, TK2MS(MACHP(0)->ticks));
-			fprint(mousefd,"m %#x %#x %#x\n", dx, dy, buttons);
+			fprint(mousefd,"m %d %d %#x\n", dx, dy, buttons);
 		}
 	}
 }
