@@ -33,7 +33,7 @@ static void acpiirq(void)
 {
 	static char *devs[] = {"#Z", "#$", "#P"};
 	int i, pid, irqmap;
-	static char msg[128];
+	Waitmsg *w;
 
 	for (i = 0; i < nelem(devs); i++){
 		if(bind(devs[i], "/dev", MAFTER) < 0){
@@ -55,8 +55,9 @@ static void acpiirq(void)
 	}
 	if (pid > 0) {
 		close(irqmap);
-		if (await(msg, sizeof(msg)))
-			warning(msg);
+		w = wait();
+		if (w && w->msg && w->msg[0])
+			warning(w->msg);
 		return;
 	}
 	dup(irqmap, 0);
@@ -81,11 +82,6 @@ boot(int argc, char *argv[])
 	AuthInfo *ai;
 
 	fmtinstall('r', errfmt);
-
-	/* Do the initial ACPI interrupt setup work.
-	 * If we don't do this we may not get needed
-	 * interfaces. */
-	acpiirq();
 
 	/*
 	 *  start /dev/cons
@@ -121,6 +117,12 @@ boot(int argc, char *argv[])
 	}ARGEND
 	readfile("#e/cputype", cputype, sizeof(cputype));
 	readfile("#e/service", service, sizeof(service));
+
+	/* Do the initial ACPI interrupt setup work.
+	 * If we don't do this we may not get needed
+	 * interfaces. */
+	if (getenv("acpiirq"))
+		acpiirq();
 
 	/*
 	 *  set up usb keyboard, mouse and disk, if any.
