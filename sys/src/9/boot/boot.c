@@ -29,6 +29,44 @@ static void	usbinit(void);
 static void	startconsole(void);
 static void	kbmap(void);
 
+static void acpiirq(void)
+{
+	static char *devs[] = {"#Z", "#$", "#P"};
+	int i, pid, irqmap;
+	static char msg[128];
+
+	for (i = 0; i < nelem(devs); i++){
+		if(bind(devs[i], "/dev", MAFTER) < 0){
+			fprint(2, "Can't bind %s: %r", devs[i]);
+			return;
+		}
+	}
+	irqmap = open("/dev/irqmap", OREAD);
+	if (irqmap < 0) {
+		warning("can't open /dev/irqmap");
+		return;
+	}
+
+	pid = fork();
+	if (pid < 0){
+		warning("Can't fork: %r");
+		close(irqmap);
+		return;
+	}
+	if (pid > 0) {
+		close(irqmap);
+		if (await(msg, sizeof(msg)))
+			warning(msg);
+		return;
+	}
+	dup(irqmap, 0);
+	close(irqmap);
+	if (execl("/boot/irq", "irq", "-s", nil)) {
+		exits("can't start /boot/irq");
+	}
+	exits(nil);
+
+}
 void
 boot(int argc, char *argv[])
 {
@@ -43,6 +81,11 @@ boot(int argc, char *argv[])
 	AuthInfo *ai;
 
 	fmtinstall('r', errfmt);
+
+	/* Do the initial ACPI interrupt setup work.
+	 * If we don't do this we may not get needed
+	 * interfaces. */
+	acpiirq();
 
 	/*
 	 *  start /dev/cons
