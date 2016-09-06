@@ -513,20 +513,6 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 	int gsi;
 	ACPI_STATUS as;
 	ACPI_STATUS status;
-	ACPI_HANDLE parent;
-	status = AcpiGetParent(dev, &parent);
-	if (ACPI_SUCCESS(status)) {
-		ACPI_BUFFER buffer;
-		print("MAPIT: d, then r\n");
-		PrintAcpiDevice(dev);
-		PrintAcpiDevice(parent);
-		ResetBuffer(&buffer);
-		status = AcpiGetName(parent, ACPI_FULL_PATHNAME, &buffer);
-		if (ACPI_SUCCESS(status)) {
-			printf("NMAE: %s\n", buffer.Pointer);
-		}
-
-	}
 
 	/* There are, potentially, 256 levels. Unlikely but ... */
 	char *f[255];
@@ -560,7 +546,13 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 		sysfatal("BOTCH! the bridge device requires 3 fields, only had %d\n", nf);
 	BridgeDevice = strtoul(f[1], 0, 0);
 	print("BridgeDevice is 0x%x, pin is %d\n", BridgeDevice, d->pin);
-	gsi = prts[BridgeDevice].irqs[d->pin];
+
+	/* and the swizzling is fixed, per the PCI standard. take the low 2 bits (for now)
+	 * of device #, add pin, mod3, that's it. */
+	/* confusing: pin numbers are 1-relative. But for this to work they need to be
+	 * zero-relative. Sorry. */
+	int pin = (d->pin - 1 + d->pci.Device) % 3;
+	gsi = prts[BridgeDevice].irqs[pin];
 	print("GSI is 0x%x\n", gsi);
 	print("echo -n %d %d %d %d 0x%x > /dev/irqmap\n", 0, d->pci.Bus, d->pci.Device, 0, gsi);
 	
@@ -627,7 +619,10 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 				info->Address);
 		goto failed;
 	}
-	if (rootBus != data->pci.Bus) {
+
+	/* this is the easy case, and the most common: it's all on Bus 0
+	 * and it Just Works. */
+	if (rootBus == data->pci.Bus) {
 		ResetBuffer(&buffer);
 		status = AcpiGetIrqRoutingTable(Device, &buffer);
 		CHECK_STATUS("AcpiGetIrqRoutingTable");
@@ -672,6 +667,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 		data->found = TRUE;
 		status = AE_CTRL_TERMINATE;
 		status = AE_OK;
+		return status;
 	}
 	// This requires us to walk the chain of pci-pci bridges between the
 	// root bridge and the device. Unimplemented.
@@ -685,6 +681,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 failed:
 	//ACPI_FREE_BUFFER(buffer);
 	ACPI_FREE(info);
+	print("MAPIT: status %d\n", status);
 	return_ACPI_STATUS(status);
 }
 
