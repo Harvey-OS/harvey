@@ -126,7 +126,7 @@ static Acpilist *acpilists;
 static Acpilist *findlist(uintptr_t base)
 {
 	Acpilist *a = acpilists;
-	print("findlist: find %p\n", (void *)base);
+	//print("findlist: find %p\n", (void *)base);
 	for(; a; a = a->next){
 		if ((base >= a->base) && (base < (a->base + a->size))){
 			return a;
@@ -2012,7 +2012,7 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 		 * map with sdtmap and only allow reads of those
 		 * areas. But let's see if this idea even works, first.
 		 */
-		print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
+		//print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
 		if (off == 0){
 			uint32_t pa = (uint32_t)PADDR(rsd);
 			print("FIND RSD");
@@ -2020,8 +2020,8 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 			return readmem(0, a, n, &pa, sizeof(pa));
 		}
 		if (off == PADDR(rsd)) {
-			print("READ RSD");
-			print("returning for rsd\n");
+			//print("READ RSD");
+			//print("returning for rsd\n");
 			//hexdump(rsd, sizeof(*rsd));
 			return readmem(0, a, n, rsd, sizeof(*rsd));
 		}
@@ -2045,7 +2045,7 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 		}
 		//hexdump(l->raw, l->size);
 		ret = readmem(off-l->base, a, n, l->raw, l->size);
-		print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
+		//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 		return ret;
 	case Qtbl:
 		s = ttext;

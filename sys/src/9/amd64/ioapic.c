@@ -245,7 +245,7 @@ static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 	Apicst *st, *lst;
 	uint32_t lo = 0;
 	int pol, edge_level, ioapic_nr, gsi_irq;
-print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
+//print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 //die("acpi.make.rdt)\n");
 
 	at = apics;
@@ -343,10 +343,8 @@ ioapicdump(void)
 	Apic *apic;
 	uint32_t hi, lo;
 
-/*
 	if(!DBGFLG)
 		return;
- */
 	for(i = 0; i < Napic; i++){
 		apic = &xioapic[i];
 		if(!apic->useable || apic->Ioapic.addr == 0)
@@ -853,7 +851,7 @@ int acpiirq(uint32_t tbdf, int gsi)
 		error("no INTP for that device, which is impossible");
 
 //	pcicfgw8(pcidev, PciINTL, gsi);
-	print("ix is %x\n", ix);
+	//print("ix is %x\n", ix);
 	if (!todo[ix].valid)
 		error("Invalid tbdf");
 	v = malloc(sizeof(*v));
@@ -865,24 +863,27 @@ int acpiirq(uint32_t tbdf, int gsi)
 	*v = todo[ix].v;
 	v->Vkey.irq = gsi;
 	devno = BUSDNO(v->Vkey.tbdf)<<2|(pin-1);
-	print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
-	    v->Vkey.tbdf, busno, devno);
+	if (DBGFLG)
+		print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
+	    		v->Vkey.tbdf, busno, devno);
 
 	ioapic_nr = acpi_irq2ioapic(gsi);
-	print("ioapic_nr for gsi %d is %d\n", gsi, ioapic_nr);
+	if (DBGFLG)
+		print("ioapic_nr for gsi %d is %d\n", gsi, ioapic_nr);
 	if (ioapic_nr < 0) {
 		error("Could not find an IOAPIC for global irq!\n");
 	}
-	ioapicdump();
+	//ioapicdump();
 	ioapicintrinit(busno, ioapic_nr, gsi - xioapic[ioapic_nr].Ioapic.gsib,
 	               devno, todo[ix].lo);
-	print("ioapicinrinit seems to have worked\n");
+	if (DBGFLG)
+		print("ioapicinrinit seems to have worked\n");
 	poperror();
 
 	todo[ix].valid = 0;
-	ioapicdump();
+	//ioapicdump();
 	acpiintrenable(v);
-	ioapicdump();
+	//ioapicdump();
 	return 0;
 }
 
