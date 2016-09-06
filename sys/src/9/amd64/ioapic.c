@@ -83,6 +83,23 @@ typedef struct {
 	int valid;
 } Vinfo;
 static Vinfo todo[1<<13];
+/* this is a guess. */
+static char todostring[1024];
+
+char *readtodo(void)
+{
+	int bus, dev, i;
+	char *p = todostring;
+	char *e = p + sizeof(todostring);
+	for(i = 0; i < nelem(todo); i++) {
+		if (!todo[i].valid)
+			continue;
+		bus = BUSBNO(todo[i].v.Vkey.tbdf);
+		dev = BUSDNO(todo[i].v.Vkey.tbdf);
+		p = seprint(p, e, "0x%x 0x%x\n", bus, dev);
+	}
+	return todostring;
+}
 
 static uint32_t ioapicread(Apic*apic, int reg)
 {
