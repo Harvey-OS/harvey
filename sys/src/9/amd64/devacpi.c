@@ -1882,8 +1882,7 @@ static void initgpes(void)
 
 static void acpiioalloc(unsigned int addr, int len)
 {
-	if (addr != 0)
-		print("Just TAKING port %016lx to %016lx\n", addr, addr + len);
+	ioalloc(addr, len, 1, "ACPI");
 }
 
 static void acpiinitonce(void)
@@ -1891,28 +1890,6 @@ static void acpiinitonce(void)
 	parsersdptr();
 	if (root != nil)
 		print("ACPI initialized\n");
-}
-
-int acpiinit(void)
-{
-	static int once = 0;
-	//die("acpiinit");
-	if (! once)
-		acpiinitonce();
-	once++;
-	return (root == nil) ? -1 : 0;
-}
-
-static Chan *acpiattach(char *spec)
-{
-	Chan *c;
-	/*
-	 * This was written for the stock kernel.
-	 * This code must use 64 registers to be acpi ready in nix.
-	 */
-	if (acpiinit() < 0)
-		error("no acpi");
-
 	/*
 	 * should use fadt->xpm* and fadt->xgpe* registers for 64 bits.
 	 * We are not ready in this kernel for that.
@@ -1945,6 +1922,29 @@ static Chan *acpiattach(char *spec)
 	if (fadt->sciint != 0)
 		intrenable(fadt->sciint, acpiintr, 0, BUSUNKNOWN, "acpi");
 #endif
+
+}
+
+int acpiinit(void)
+{
+	static int once = 0;
+	//die("acpiinit");
+	if (! once)
+		acpiinitonce();
+	once++;
+	return (root == nil) ? -1 : 0;
+}
+
+static Chan *acpiattach(char *spec)
+{
+	Chan *c;
+	/*
+	 * This was written for the stock kernel.
+	 * This code must use 64 registers to be acpi ready in nix.
+	 */
+	if (acpiinit() < 0)
+		error("no acpi");
+
 	c = devattach(devdc(), spec);
 
 	return c;
