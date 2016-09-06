@@ -555,7 +555,8 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 	gsi = prts[BridgeDevice].irqs[pin];
 	print("GSI is 0x%x\n", gsi);
 	print("echo -n %d %d %d %d 0x%x > /dev/irqmap\n", 0, d->pci.Bus, d->pci.Device, 0, gsi);
-	
+	d->gsi = gsi;
+	d->found = 1;
 	return 0;
 
 }
@@ -673,10 +674,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	// root bridge and the device. Unimplemented.
 	printf("Unimplemented! Device on bus %#x, but root is %#x\n",
 	       data->pci.Bus, rootBus);
-	if (mapit(Device, data, rootBus))
-		goto failed;
-
-
+	status = mapit(Device, data, rootBus);
 
 failed:
 	//ACPI_FREE_BUFFER(buffer);
