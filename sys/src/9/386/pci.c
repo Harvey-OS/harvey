@@ -531,8 +531,8 @@ pcishowdev(Pcidev* t)
 {
 	int i;
 	char intpin = 'x';
-	if (t->intl != 255)
-		intpin = "ABCDEFGH"[t->intp&0x7];
+	/* intpin numbers can range from 1 to 8. */
+	intpin = "xABCDEFGHxxxxxxx"[t->intp&0xf];
 	print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %c %3d  ",
 	      BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
 	      t->ccrb, t->ccru, t->ccrp, t->vid, t->did, intpin, t->intl);
