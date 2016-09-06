@@ -60,12 +60,6 @@ main(int argc, char *argv[])
 	ACPI_STATUS status;
 	AcpiDbgLevel = 0; //ACPI_LV_VERBOSITY1;
 	print("hi\n");
-	if (argc > 1)
-		bus = strtoul(argv[1], 0, 0);
-	if (argc > 2)
-		dev = strtoul(argv[2], 0, 0);
-	if (argc > 3)
-		pin = strtoul(argv[3], 0, 0);
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
@@ -115,21 +109,26 @@ failed:
 		sysfatal("Error %d\n", status);
 	}
 
-	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
-	AcpiDbgLevel = 0;
-	ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
-	print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
-	int irq;
-	//for(int i = 0; i < 4; i++) {
+	while (1) {
+		if (scanf("%x %x %x", &bus, &dev, &pin) < 0)
+			break;
+		ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
+		AcpiDbgLevel = 0;
+		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
+		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
+		if (!ACPI_SUCCESS(status)){
+			printf("Can't read pin for bus %d dev %d\n", bus, dev);
+			continue;
+		}
+		print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
+		int irq;
 		status = RouteIRQ(&id, pin, &irq);
 		print("status %d, irq %d\n", status, irq);
-	//}
-//	}
-	AcpiDbgLevel = 0;
-	print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
-	//ACPI_STATUS PrintDevices(void);
-	//status = PrintDevices();
-	print("OK on init.\n");
+		AcpiDbgLevel = 0;
+		print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
+		//ACPI_STATUS PrintDevices(void);
+		//status = PrintDevices();
+	}
 	exits(0);
 }
 

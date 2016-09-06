@@ -159,8 +159,8 @@ intrdisable(void* vector)
 static int32_t
 irqmapread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 {
-	error("read: not yet");
-	return -1;
+	char *readtodo(void);
+	return readstr(offset, vbuf, n, readtodo());
 }
 
 static int32_t
