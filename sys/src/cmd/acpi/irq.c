@@ -56,16 +56,26 @@ ACPI_STATUS FindIOAPICs(int *pic_mode);
 void
 main(int argc, char *argv[])
 {
+	int set = -1;
 	int seg = 0, bus = 0, dev = 2, fn = 0, pin = 0;
 	ACPI_STATUS status;
-	AcpiDbgLevel = 0; //ACPI_LV_VERBOSITY1;
-	print("hi\n");
-	if (argc > 1)
-		bus = strtoul(argv[1], 0, 0);
-	if (argc > 2)
-		dev = strtoul(argv[2], 0, 0);
-	if (argc > 3)
-		pin = strtoul(argv[3], 0, 0);
+	int verbose = 0;
+	AcpiDbgLevel = 0;
+	ARGBEGIN{
+	case 'v':
+		AcpiDbgLevel = ACPI_LV_VERBOSITY1;
+		verbose++;
+		break;
+	case 's':
+		set = open("#P/irqmap", OWRITE);
+		if (set < 0)
+			sysfatal("%r");
+		break;
+	default:
+		sysfatal("usage: acpi/irq [-v] [-s]");
+		break;
+	}ARGEND;
+
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
@@ -74,7 +84,8 @@ main(int argc, char *argv[])
         if (ACPI_FAILURE(status))
 		sysfatal("can't set up acpi tables: %d", status);
 
-	print("initit dables\n"); 
+	if (verbose)
+		print("init dables\n"); 
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);
@@ -82,12 +93,14 @@ main(int argc, char *argv[])
 	/* from acpi: */
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
 	AcpiGbl_ReducedHardware = 1;
-	print("LOADED TABLES. Hi the any key to continue\n"); //getchar();
+	if (verbose) 
+		print("LOADED TABLES.\n");
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
 		print("Probably does not matter: Can't enable ACPI subsystem");
 
-	print("enabled subsystem. Hi the any key to continue\n"); //getchar();
+	if (verbose)
+		print("enabled subsystem.\n");
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't Initialize ACPI objects");
@@ -98,13 +111,16 @@ main(int argc, char *argv[])
 	if (picmode == 0)
 		sysfatal("PANIC: Can't handle picmode 0!");
 	ACPI_STATUS ExecuteOSI(int pic_mode);
-	print("FindIOAPICs returns status %d picmode %d\n", status, picmode);
+	if (verbose)
+		print("FindIOAPICs returns status %d picmode %d\n", status, picmode);
 	status = ExecuteOSI(picmode);
 	CHECK_STATUS("ExecuteOSI");
 failed:
-	print("inited objects. Hi the any key to continue\n"); //getchar();
-	AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
-	AcpiDbgLevel = 0;
+	if (verbose)
+		print("inited objects.\n");
+	if (verbose)
+		AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
+
 	status = AcpiInitializeDebugger();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
@@ -115,21 +131,28 @@ failed:
 		sysfatal("Error %d\n", status);
 	}
 
-	ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
-	AcpiDbgLevel = 0;
-	ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
-	print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
-	int irq;
-	//for(int i = 0; i < 4; i++) {
+	while (1) {
+		if (scanf("%x %x %x", &bus, &dev, &pin) < 0)
+			break;
+		ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
+		AcpiDbgLevel = 0;
+		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
+		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
+		if (!ACPI_SUCCESS(status)){
+			printf("Can't read pin for bus %d dev %d\n", bus, dev);
+			continue;
+		}
+		print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
+		int irq;
 		status = RouteIRQ(&id, pin, &irq);
 		print("status %d, irq %d\n", status, irq);
-	//}
-//	}
-	AcpiDbgLevel = 0;
-	print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
-	//ACPI_STATUS PrintDevices(void);
-	//status = PrintDevices();
-	print("OK on init.\n");
+		AcpiDbgLevel = 0;
+		print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
+		//ACPI_STATUS PrintDevices(void);
+		//status = PrintDevices();
+		if (set > -1)
+			fprint(set, "%d %d %d %d 0x%x", seg, bus, dev, fn, irq);
+	}
 	exits(0);
 }
 
