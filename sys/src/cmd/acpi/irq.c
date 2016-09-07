@@ -132,7 +132,7 @@ failed:
 	}
 
 	while (1) {
-		if (scanf("%x %x %x", &bus, &dev, &pin) < 0)
+		if (scanf("%x %x", &bus, &dev) < 0)
 			break;
 		ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
 		AcpiDbgLevel = 0;
