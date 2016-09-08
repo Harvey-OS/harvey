@@ -295,7 +295,7 @@ static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 			/* Need to query ACPI at some point to handle this */
 			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
 			todo[(tbdf>>11)&0x1fff].v = *v;
-			todo[(tbdf>>11)&0x1fff].lo = lo | TMlevel | IPlow;
+			todo[(tbdf>>11)&0x1fff].lo = lo | TMlevel | IPlow | Im;
 			todo[(tbdf>>11)&0x1fff].valid = 1;
 			print("Set TOOD[0x%x] to valid\n", (tbdf>>11)&0x1fff);
 			return -1;
@@ -398,6 +398,29 @@ ioapiconline(void)
 		for(i = 0; i < apic->Ioapic.nrdt; i++){
 			lock(&apic->Ioapic.l);
 			rtblput(apic, i, 0, Im);
+			unlock(&apic->Ioapic.l);
+		}
+	}
+	ioapicdump();
+}
+
+void
+irqenable(void)
+{
+	int i;
+	Apic *apic;
+	uint32_t hi, lo;
+
+	for(apic = xioapic; apic < &xioapic[Napic]; apic++){
+		if(!apic->useable || apic->Ioapic.addr == nil)
+			continue;
+		for(i = 0; i < apic->Ioapic.nrdt; i++){
+			lock(&apic->Ioapic.l);
+			rtblget(apic, i, &hi, &lo);
+			/* if something is set in the vector, enable the
+			 * rdtentry */
+			if (lo&0xff != 0)
+				rtblput(apic, i, hi, lo & ~Im);
 			unlock(&apic->Ioapic.l);
 		}
 	}

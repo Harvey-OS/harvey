@@ -182,6 +182,14 @@ irqmapwrite(Chan* c, void *buf, int32_t n, int64_t offset)
 }
 
 static int32_t
+irqenablewrite(Chan* c, void *vbuf, int32_t n, int64_t offset)
+{
+	void irqenable(void);
+	irqenable();
+	return n;
+}
+
+static int32_t
 irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 {
 	char *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
@@ -279,6 +287,7 @@ trapinit(void)
 
 	addarchfile("irqalloc", 0444, irqallocread, nil);
 	addarchfile("irqmap", 0666, irqmapread, irqmapwrite);
+	addarchfile("irqenable", 0222, nil, irqenablewrite);
 }
 
 static char* excname[32] = {
