@@ -56,7 +56,7 @@ ACPI_STATUS FindIOAPICs(int *pic_mode);
 void
 main(int argc, char *argv[])
 {
-	int set = -1;
+	int set = -1, enable = -1;
 	int seg = 0, bus = 0, dev = 2, fn = 0, pin = 0;
 	ACPI_STATUS status;
 	int verbose = 0;
@@ -153,6 +153,14 @@ failed:
 		if (set > -1)
 			fprint(set, "%d %d %d %d 0x%x", seg, bus, dev, fn, irq);
 	}
+
+	/* we're done. Enable the IRQs we might have set up. */
+	enable = open("/dev/irqenable", OWRITE);
+	if (enable < 0)
+		sysfatal("/dev/irqenable: %r");
+	if (write(enable, "", 1) < 1)
+		sysfatal("Write irqenable: %r");
+
 	exits(0);
 }
 
