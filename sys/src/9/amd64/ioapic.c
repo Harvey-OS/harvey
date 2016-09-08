@@ -148,6 +148,21 @@ rdtlookup(Apic *apic, int intin)
 	return nil;
 }
 
+int compatible(uint32_t new, uint32_t old)
+{
+	uint32_t newtop = new & ~0xff;
+	uint32_t oldtop = old & ~0xff;
+	uint32_t newvno = new & 0xff;
+	print("compatible: new 0x%x, old 0x%x\n", new, old);
+	if (new == old)
+		return 1;
+
+	print("not the same\n");
+	if ((newvno == 0) && (newtop == oldtop))
+		return 1;
+	print("REALLY not the same\n");
+	return 0;
+}
 void
 ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 {
@@ -185,8 +200,8 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 		rdt->intin = intin;
 		rdt->lo = lo;
 	}else{
-		if(lo != rdt->lo){
-			print("mutiple irq botch bus %d %d/%d/%d lo %d vs %d\n",
+		if(! compatible(lo, rdt->lo)){
+			print("ioapicintrinit: multiple irq botch bus %d %d/%d/%d lo %d vs %d\n",
 				busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
@@ -616,7 +631,7 @@ print("TRY 2!\n");
 		rdt->lo |= vecno;
 		rdtvecno[vecno] = rdt;
 	}else
-		DBG("%T: mutiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
+		DBG("ioapicintrenable: %T: multiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
 
 	rdt->enabled++;
 	lo = (rdt->lo & ~Im);
@@ -816,7 +831,7 @@ int bus_irq_setup(Vctl *v)
 		rdt->lo |= vno;
 		rdtvecno[vno] = rdt;
 	} else {
-		print("%p: mutiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
+		print("bus_irq_setup: %p: multiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
 	}
 	rdt->enabled++;
 	rdt->hi = 0;			/* route to 0 by default */
