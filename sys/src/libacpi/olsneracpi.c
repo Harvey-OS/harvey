@@ -551,7 +551,7 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 	 * of device #, add pin, mod3, that's it. */
 	/* confusing: pin numbers are 1-relative. But for this to work they need to be
 	 * zero-relative. Sorry. */
-	int pin = (d->pin - 1 + d->pci.Device) % 3;
+	int pin = (d->pin - 1 + d->pci.Device) % 4;
 	gsi = prts[BridgeDevice].irqs[pin];
 	if (DBGFLG) print("GSI is 0x%x\n", gsi);
 	if (DBGFLG) print("echo -n %d %d %d %d 0x%x > /dev/irqmap\n", 0, d->pci.Bus, d->pci.Device, 0, gsi);
