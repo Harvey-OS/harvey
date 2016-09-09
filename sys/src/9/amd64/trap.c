@@ -37,7 +37,6 @@ static void doublefault(Ureg*, void*);
 static void unexpected(Ureg*, void*);
 static void expected(Ureg*, void*);
 static void dumpstackwithureg(Ureg*);
-extern int ioapicintrenable(Vctl*);
 extern int bus_irq_setup(Vctl*);
 
 static Lock vctllock;
