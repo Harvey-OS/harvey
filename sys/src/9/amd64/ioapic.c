@@ -26,7 +26,7 @@ typedef struct Rdt Rdt;
  * clean it up later.
  */
 extern Atable *apics; 		/* APIC info */
-extern int mpisabusno;
+int mpisabusno = -1;
 
 struct Rbus {
 	Rbus	*next;
