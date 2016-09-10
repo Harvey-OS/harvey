@@ -925,6 +925,14 @@ sysnoted(Ar0* ar0, ...)
 }
 
 void
+sysr0(Ar0* ar0, ...)
+{
+	Proc *up = externup();
+	dumpgpr(up->ureg);
+	ar0->i = 0;
+}
+
+void
 sysrendezvous(Ar0* ar0, ...)
 {
 	Proc *up = externup();
