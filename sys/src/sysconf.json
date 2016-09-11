@@ -1,6 +1,14 @@
 {
 	"Syscalls": [
 		{
+			"#Id": 0,
+			"Id": 4096,
+			"Name": "r0",
+			"Ret": [
+				"int64_t"
+			]
+		},
+		{
 			"#Id": 2,
 			"Args": [
 				"char*",
