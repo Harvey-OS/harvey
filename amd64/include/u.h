@@ -19,6 +19,7 @@ typedef	unsigned long long uint64_t;
 typedef	long long	int64_t;
 typedef uint64_t uintptr;
 typedef uint64_t uintptr_t;
+typedef int64_t intptr_t;
 typedef uint32_t	usize;
 typedef unsigned long size_t;
 typedef	uint32_t		Rune;
