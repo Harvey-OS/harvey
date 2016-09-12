@@ -11,6 +11,7 @@
 		        "-D__HARVEY__",
 		        "-U_LINUX",
 		        "-U__linux__",
+                "-U__FreeBSD__",
 			"-Wno-unused-function",
 			"-Wno-unused-variable",
 			"-Wno-unused-const-variable",
