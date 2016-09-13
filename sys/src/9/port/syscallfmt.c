@@ -227,8 +227,16 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case STAT:
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		/*FALLTHROUGH*/
+		v = va_arg(list, void*);
+		l = va_arg(list, unsigned long);
+		fmtprint(&fmt, "%#p %lu", v, l);
+		break;
 	case ERRSTR:
+		a = va_arg(list, char*);
+		l = va_arg(list, unsigned long);
+		fmtuserstring(&fmt, a, " ");
+		fmtprint(&fmt, "%lu", l);
+		break;
 	case AWAIT:
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
@@ -312,14 +320,8 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		}
 		break;
 	case ERRSTR:
-		if(ar0->i > 0){
-			fmtuserstring(&fmt, a, " ");
-			fmtprint(&fmt, "%lu = %d", l, ar0->i);
-		}
-		else{
-			fmtprint(&fmt, "\"\" %lu = %d", l, ar0->i);
-			errstr = up->errstr;
-		}
+		fmtuserstring(&fmt, a, " ");
+		fmtprint(&fmt, "%lu = %d", l, ar0->i);
 		break;
 	case FD2PATH:
 		if(ar0->i > 0){
