@@ -50,7 +50,7 @@ Now build Harvey:
 
 And boot:
 
-	(HARVEY=$(pwd) && cd sys/src/9/amd64 && sh ../../../../util/GO9PRUN)
+	HARVEY=$(pwd) sh util/GO9PRUN
 
 For more information, see the [Getting Started](https://github.com/Harvey-OS/harvey/wiki/Getting-Started) guide.
 
