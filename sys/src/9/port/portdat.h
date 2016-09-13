@@ -765,7 +765,7 @@ struct Sched
 
 typedef union Ar0 Ar0;
 union Ar0 {
-	int	i;
+	intptr_t	i;
 	int32_t	l;
 	uintptr_t	p;
 	usize	u;
