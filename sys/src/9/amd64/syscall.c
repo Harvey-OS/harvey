@@ -332,6 +332,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	}
 	else{
 		/* failure: save the error buffer for errstr */
+print("waserror errstr '%s' syserrstr '%s'\n", up->errstr, up->syserrstr);
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
 		up->errstr = e;

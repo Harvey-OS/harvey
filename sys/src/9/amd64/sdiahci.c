@@ -335,7 +335,7 @@ listsetup(Aportc *pc, int flags)
 	list->flags = flags | 5;
 	list->len = 0;
 	list->ctab = PCIWADDR(pc->pm->ctab);
-	list->ctabhi = 0;
+	list->ctabhi = PCIWADDR(pc->pm->ctab)>>32;
 }
 
 static int
@@ -517,7 +517,7 @@ ahciidentify0(Aportc *pc, void *id, int atapi)
 	memset(id, 0, 0x100);			/* magic */
 	p = &pc->pm->ctab->prdt;
 	p->dba = PCIWADDR(id);
-	p->dbahi = 0;
+	p->dbahi = PCIWADDR(id)>>32;
 	p->count = 1<<31 | (0x200-2) | 1;
 	return ahciwait(pc, 3*1000);
 }
@@ -765,9 +765,9 @@ ahciconfigdrive(Drive *d)
 	p->serror = SerrAll;
 
 	p->list = PCIWADDR(pm->list);
-	p->listhi = 0;
+	p->listhi = PCIWADDR(pm->list)>>32;
 	p->fis = PCIWADDR(pm->fis.base);
-	p->fishi = 0;
+	p->fishi = PCIWADDR(pm->fis.base)>>32;
 	p->cmd |= Afre|Ast;
 
 	/* drive coming up in slumbering? */
@@ -1585,11 +1585,11 @@ ahcibuild(Drive *d, unsigned char *cmd, void *data, int n, int64_t lba)
 		l->flags |= Lwrite;
 	l->len = 0;
 	l->ctab = PCIWADDR(t);
-	l->ctabhi = 0;
+	l->ctabhi = PCIWADDR(t)>>32;
 
 	p = &t->prdt;
 	p->dba = PCIWADDR(data);
-	p->dbahi = 0;
+	p->dbahi = PCIWADDR(data)>>32;
 	if(d->unit == nil)
 		panic("ahcibuild: nil d->unit");
 	p->count = 1<<31 | (d->unit->secsize*n - 2) | 1;
@@ -1639,14 +1639,14 @@ ahcibuildpkt(Aportm *pm, SDreq *r, void *data, int n)
 		l->flags |= Lwrite;
 	l->len = 0;
 	l->ctab = PCIWADDR(t);
-	l->ctabhi = 0;
+	l->ctabhi = PCIWADDR(t)>>32;
 
 	if(data == 0)
 		return l;
 
 	p = &t->prdt;
 	p->dba = PCIWADDR(data);
-	p->dbahi = 0;
+	p->dbahi = PCIWADDR(data)>>32;
 	p->count = 1<<31 | (n - 2) | 1;
 
 	return l;
