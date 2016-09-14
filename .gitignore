@@ -65,3 +65,4 @@ build_out
 
 cron/lock
 /util/blaze
+/home

@@ -111,8 +111,10 @@ yylex(void)
 	return c;
 }
 
+/*
 void
-yyerror(char*)
+yyerror(char*_)
 {
 	sysfatal("error parsing filter");
 }
+*/

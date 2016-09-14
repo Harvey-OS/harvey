@@ -71,7 +71,7 @@ static Field p_fields[] =
 	{0}
 };
 
-#define plan9opt ((ulong)(('p'<<24) | ('9'<<16) | (' '<<8) | ' '))
+#define plan9opt ((uint32_t)(('p'<<24) | ('9'<<16) | (' '<<8) | ' '))
 #define genericopt (0x63825363UL)
 
 static Mux p_mux[] =

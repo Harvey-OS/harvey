@@ -44,7 +44,7 @@ static Field p_fields[] =
 	{0}
 };
 
-#define ANYPORT ~0UL
+#define ANYPORT ~0
 
 static Mux p_mux[] =
 {
