@@ -1,0 +1,60 @@
+{
+	"snoopy": {
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/ip",
+		"Pre": [
+		        "yacc --defines filter.y"
+		],
+	    
+		"Program": "snoopy",
+	"SourceFiles": [
+	    "/sys/src/cmd/ndb/convM2DNS.c",
+			"aoeata.c",
+			"aoe.c",
+			"aoecmd.c",
+			"aoemask.c",
+			"aoemd.c",
+			"aoerr.c",
+			"arp.c",
+			"bootp.c",
+			"cec.c",
+			"dhcp.c",
+			"dns.c",
+			"dump.c",
+			"eap.c",
+			"eap_identity.c",
+			"eapol.c",
+			"eapol_key.c",
+			"ether.c",
+			"gre.c",
+			"hdlc.c",
+			"icmp6.c",
+			"icmp.c",
+			"il.c",
+			"ip6.c",
+			"ip.c",
+			"main.c",
+			"ninep.c",
+			"ospf.c",
+			"ppp.c",
+			"ppp_ccp.c",
+			"ppp_chap.c",
+			"ppp_comp.c",
+			"ppp_ipcp.c",
+			"ppp_lcp.c",
+			"pppoe_disc.c",
+			"pppoe_sess.c",
+			"protos.c",
+			"rarp.c",
+			"rc4keydesc.c",
+			"rtcp.c",
+			"rtp.c",
+			"tcp.c",
+			"ttls.c",
+			"udp.c",
+	                "y.tab.c"
+		]
+	}
+}

@@ -161,7 +161,7 @@ pint(char *p, char *e, char *tag, uint8_t *o, int n)
 static char*
 puint(char *p, char *e, char *tag, uint8_t *o, int n)
 {
-	uint x;
+	unsigned int x;
 
 	x = *o++;
 	for(; n > 1; n--)
