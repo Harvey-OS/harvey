@@ -164,6 +164,8 @@
 			"hoc/hoc.json",
 			"grep/grep.json",
 			"ndb/ndb.json",
+			"plumb/plumb.json",
+			"plumb/plumber.json",
 			"rc/rc.json",
 			"rio/rio.json",
 			"sam/build.json",
