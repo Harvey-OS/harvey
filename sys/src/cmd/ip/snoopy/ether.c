@@ -104,7 +104,7 @@ static int
 p_seprint(Msg *m)
 {
 	int len;
-	uint t;
+	unsigned int t;
 	Hdr *h;
 
 	len = m->pe - m->ps;

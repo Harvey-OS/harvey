@@ -70,7 +70,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	uchar *pkt;
+	uint8_t *pkt;
 	char *buf, *file, *p, *e;
 	int fd, cfd;
 	int n;
@@ -970,4 +970,10 @@ int
 defaultframer(int fd, uint8_t *pkt, int pktlen)
 {
 	return read(fd, pkt, pktlen);
+}
+
+/* this is gross but I can't deal with yacc nonsense just now. */
+void yyerror(void)
+{
+	sysfatal("yyerror");
 }
