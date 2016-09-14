@@ -1,0 +1,40 @@
+#!/bin/rc
+
+files=()
+dest=()
+
+if(~ $#* 0){
+	echo usage: B file ... >[1=2]
+	exit usage
+}
+
+for(i)
+	switch($i){
+	case /*
+		files = ( $files $i )
+	case *
+		files = ( $files `{cleanname `{pwd}^/$i} )
+	}
+
+
+if(test -f /mnt/plumb/edit || test -f /mnt/term/mnt/plumb/edit){
+	plumb -s B -d edit $files
+	exit
+}
+
+# using sam srv file
+
+if(test -f /mnt/term/srv/sam.$user) dest = /mnt/term/srv/sam.$user
+if not if(test -f /srv/sam.$user) dest = /srv/sam.$user
+if not {
+	echo B: can''''t find sam server file >[1=2]
+	exit open
+}
+
+switch($files){
+case *:*
+	for(i in $files)
+		echo $i | sed 's/^/B /;s/:([0-9]+)$/\n\1/g' >> $dest
+case *
+	echo B $files >> $dest
+}
