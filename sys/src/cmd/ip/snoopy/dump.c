@@ -15,7 +15,7 @@
 #include "protos.h"
 
 static void
-p_compile(Filter *)
+p_compile(Filter *_)
 {
 }
 

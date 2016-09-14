@@ -46,7 +46,8 @@ static Mux p_mux[] =
 	{ 0 }
 };
 
-static Mux p_muxrc4[] =
+//TODO: notused?
+/*static*/ Mux p_muxrc4[] =
 {
 	{ "dump", 0, },
 	{ 0 }
