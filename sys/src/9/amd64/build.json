@@ -126,6 +126,7 @@
 			"cpu.c",
 			"mouse.c",
 			"screen.c",
+			"sdiahci.c",
 			"usbehcipc.c",
 			"usbohci.c",
 			"usbuhci.c",
