@@ -15,11 +15,6 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-// Include the definitions from VIRTIO spec v1.0
-// http://docs.oasis-open.org/virtio/virtio/v1.0/csprd02/listings/virtio_ring.h
-
-#include	"virtio_ring.h"
-
 enum {
 	Qtopdir = 0,
 
