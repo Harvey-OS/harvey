@@ -1,5 +1,3 @@
-#ifndef VIRTIO_RING_H
-#define VIRTIO_RING_H
 /* An interface for efficient virtio implementation.
  *
  * This header is BSD licensed so anyone can use the definitions
@@ -32,7 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include <stdint.h>
 
 /* This marks a buffer as continuing via the next field. */
 #define VRING_DESC_F_NEXT       1
@@ -63,35 +60,35 @@
  * These can chain together via "next". */
 struct vring_desc {
         /* Address (guest-physical). */
-        le64 addr;
+        uint64_t addr;
         /* Length. */
-        le32 len;
+        uint32_t len;
         /* The flags as indicated above. */
-        le16 flags;
+        uint16_t flags;
         /* We chain unused descriptors via this, too */
-        le16 next;
+        uint16_t next;
 };
 
 struct vring_avail {
-        le16 flags;
-        le16 idx;
-        le16 ring[];
-        /* Only if VIRTIO_RING_F_EVENT_IDX: le16 used_event; */
+        uint16_t flags;
+        uint16_t idx;
+        uint16_t ring[];
+        /* Only if VIRTIO_RING_F_EVENT_IDX: uint16_t used_event; */
 };
 
-/* le32 is used here for ids for padding reasons. */
+/* uint32_t is used here for ids for padding reasons. */
 struct vring_used_elem {
         /* Index of start of used descriptor chain. */
-        le32 id;
+        uint32_t id;
         /* Total length of the descriptor chain which was written to. */
-        le32 len;
+        uint32_t len;
 };
 
 struct vring_used {
-        le16 flags;
-        le16 idx;
+        uint16_t flags;
+        uint16_t idx;
         struct vring_used_elem ring[];
-        /* Only if VIRTIO_RING_F_EVENT_IDX: le16 avail_event; */
+        /* Only if VIRTIO_RING_F_EVENT_IDX: uint16_t avail_event; */
 };
 
 struct vring {
@@ -110,19 +107,19 @@ struct vring {
  *      struct vring_desc desc[num];
  *
  *      // A ring of available descriptor heads with free-running index.
- *      le16 avail_flags;
- *      le16 avail_idx;
- *      le16 available[num];
- *      le16 used_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
+ *      uint16_t avail_flags;
+ *      uint16_t avail_idx;
+ *      uint16_t available[num];
+ *      uint16_t used_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
  *
  *      // Padding to the next align boundary.
  *      char pad[];
  *
  *      // A ring of used descriptor heads with free-running index.
- *      le16 used_flags;
- *      le16 used_idx;
+ *      uint16_t used_flags;
+ *      uint16_t used_idx;
  *      struct vring_used_elem used[num];
- *      le16 avail_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
+ *      uint16_t avail_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
  * };
  * Note: for virtio PCI, align is 4096.
  */
@@ -132,16 +129,16 @@ static inline void vring_init(struct vring *vr, unsigned int num, void *p,
         vr->num = num;
         vr->desc = p;
         vr->avail = p + num*sizeof(struct vring_desc);
-        vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + sizeof(le16)
+        vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + sizeof(uint16_t)
                               + align-1)
                             & ~(align - 1));
 }
 
 static inline unsigned vring_size(unsigned int num, unsigned long align)
 {
-        return ((sizeof(struct vring_desc)*num + sizeof(le16)*(3+num)
+        return ((sizeof(struct vring_desc)*num + sizeof(uint16_t)*(3+num)
                  + align - 1) & ~(align - 1))
-                + sizeof(le16)*3 + sizeof(struct vring_used_elem)*num;
+                + sizeof(uint16_t)*3 + sizeof(struct vring_used_elem)*num;
 }
 
 static inline int vring_need_event(uint16_t event_idx, uint16_t new_idx, uint16_t old_idx)
@@ -150,15 +147,14 @@ static inline int vring_need_event(uint16_t event_idx, uint16_t new_idx, uint16_
 }
 
 /* Get location of event indices (only with VIRTIO_RING_F_EVENT_IDX) */
-static inline le16 *vring_used_event(struct vring *vr)
+static inline uint16_t *vring_used_event(struct vring *vr)
 {
         /* For backwards compat, used event index is at *end* of avail ring. */
         return &vr->avail->ring[vr->num];
 }
 
-static inline le16 *vring_avail_event(struct vring *vr)
+static inline uint16_t *vring_avail_event(struct vring *vr)
 {
         /* For backwards compat, avail event index is at *end* of used ring. */
-        return (le16 *)&vr->used->ring[vr->num];
+        return (uint16_t *)&vr->used->ring[vr->num];
 }
-#endif /* VIRTIO_RING_H */
