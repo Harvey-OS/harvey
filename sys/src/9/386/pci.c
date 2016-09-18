@@ -180,11 +180,6 @@ pcilscan(int bno, char *path, Pcidev** list)
 				maxfno = Maxfn;
 
 			/*
-			 * Some virtio-pci devices (e. g. 9p) have ccrb = 0x00, 
-			 * their BARs and sizes also should be picked up here.
-			 */
-
-			/*
 			 * If appropriate, read the base address registers
 			 * and work out the sizes.
 			 */
@@ -198,6 +193,7 @@ pcilscan(int bno, char *path, Pcidev** list)
 				}
 				break;
 
+			case 0x00:
 			case 0x05:		/* memory controller */
 			case 0x06:		/* bridge device */
 				break;
