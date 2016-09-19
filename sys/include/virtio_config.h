@@ -1,5 +1,3 @@
-#ifndef _UAPI_LINUX_VIRTIO_CONFIG_H
-#define _UAPI_LINUX_VIRTIO_CONFIG_H
 /* This header, excluding the #ifdef __KERNEL__ part, is BSD licensed so
  * anyone can use the definitions to implement compatible drivers/servers.
  *
@@ -29,7 +27,6 @@
 /* Virtio devices use a standardized configuration space to define their
  * features and pass configuration information, but each implementation can
  * store and access that space differently. */
-#include <linux/types.h>
 
 /* Status byte for guest to report progress, and synchronize features. */
 /* We have seen device and processed generic fields (VIRTIO_CONFIG_F_VIRTIO) */
@@ -71,4 +68,3 @@
  * this is for compatibility with legacy systems.
  */
 #define VIRTIO_F_IOMMU_PLATFORM		33
-#endif /* _UAPI_LINUX_VIRTIO_CONFIG_H */

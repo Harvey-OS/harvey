@@ -1,5 +1,3 @@
-#ifndef _UAPI_LINUX_VIRTIO_NET_H
-#define _UAPI_LINUX_VIRTIO_NET_H
 /* This header is BSD licensed so anyone can use the definitions to implement
  * compatible drivers/servers.
  *
@@ -25,11 +23,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE. */
-#include <linux/types.h>
-#include <linux/virtio_ids.h>
-#include <linux/virtio_config.h>
-#include <linux/virtio_types.h>
-#include <linux/if_ether.h>
 
 /* The feature bitmap for virtio net */
 #define VIRTIO_NET_F_CSUM	0	/* Host handles pkts w/ partial csum */
@@ -66,16 +59,16 @@
 
 struct virtio_net_config {
 	/* The config defining mac address (if VIRTIO_NET_F_MAC) */
-	__u8 mac[ETH_ALEN];
+	uint8_t mac[ETH_ALEN];
 	/* See VIRTIO_NET_F_STATUS and VIRTIO_NET_S_* above */
-	__u16 status;
+	uint16_t status;
 	/* Maximum number of each of transmit and receive queues;
 	 * see VIRTIO_NET_F_MQ and VIRTIO_NET_CTRL_MQ.
 	 * Legal values are between 1 and 0x8000
 	 */
-	__u16 max_virtqueue_pairs;
+	uint16_t max_virtqueue_pairs;
 	/* Default maximum transmit unit advice */
-	__u16 mtu;
+	uint16_t mtu;
 } __attribute__((packed));
 
 /*
@@ -88,13 +81,13 @@ struct virtio_net_config {
 struct virtio_net_hdr_v1 {
 #define VIRTIO_NET_HDR_F_NEEDS_CSUM	1	/* Use csum_start, csum_offset */
 #define VIRTIO_NET_HDR_F_DATA_VALID	2	/* Csum is valid */
-	__u8 flags;
+	uint8_t flags;
 #define VIRTIO_NET_HDR_GSO_NONE		0	/* Not a GSO frame */
 #define VIRTIO_NET_HDR_GSO_TCPV4	1	/* GSO frame, IPv4 TCP (TSO) */
 #define VIRTIO_NET_HDR_GSO_UDP		3	/* GSO frame, IPv4 UDP (UFO) */
 #define VIRTIO_NET_HDR_GSO_TCPV6	4	/* GSO frame, IPv6 TCP */
 #define VIRTIO_NET_HDR_GSO_ECN		0x80	/* TCP has ECN set */
-	__u8 gso_type;
+	uint8_t gso_type;
 	__virtio16 hdr_len;	/* Ethernet + IP + tcp/udp hdrs */
 	__virtio16 gso_size;	/* Bytes to append to hdr_len per frame */
 	__virtio16 csum_start;	/* Position to start checksumming from */
@@ -109,9 +102,9 @@ struct virtio_net_hdr_v1 {
  * specify GSO or CSUM features, you can simply ignore the header. */
 struct virtio_net_hdr {
 	/* See VIRTIO_NET_HDR_F_* */
-	__u8 flags;
+	uint8_t flags;
 	/* See VIRTIO_NET_HDR_GSO_* */
-	__u8 gso_type;
+	uint8_t gso_type;
 	__virtio16 hdr_len;		/* Ethernet + IP + tcp/udp hdrs */
 	__virtio16 gso_size;		/* Bytes to append to hdr_len per frame */
 	__virtio16 csum_start;	/* Position to start checksumming from */
@@ -134,11 +127,11 @@ struct virtio_net_hdr_mrg_rxbuf {
  * command goes in between.
  */
 struct virtio_net_ctrl_hdr {
-	__u8 class;
-	__u8 cmd;
+	uint8_t class;
+	uint8_t cmd;
 } __attribute__((packed));
 
-typedef __u8 virtio_net_ctrl_ack;
+typedef uint8_t virtio_net_ctrl_ack;
 
 #define VIRTIO_NET_OK     0
 #define VIRTIO_NET_ERR    1
@@ -179,7 +172,7 @@ typedef __u8 virtio_net_ctrl_ack;
  */
 struct virtio_net_ctrl_mac {
 	__virtio32 entries;
-	__u8 macs[][ETH_ALEN];
+	uint8_t macs[][ETH_ALEN];
 } __attribute__((packed));
 
 #define VIRTIO_NET_CTRL_MAC    1
@@ -245,4 +238,3 @@ struct virtio_net_ctrl_mq {
 #define VIRTIO_NET_CTRL_GUEST_OFFLOADS   5
 #define VIRTIO_NET_CTRL_GUEST_OFFLOADS_SET        0
 
-#endif /* _UAPI_LINUX_VIRTIO_NET_H */
