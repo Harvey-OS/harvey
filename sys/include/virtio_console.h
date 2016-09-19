@@ -29,29 +29,23 @@
  * Copyright (C) Red Hat, Inc., 2009, 2010, 2011
  * Copyright (C) Amit Shah <amit.shah@redhat.com>, 2009, 2010, 2011
  */
-#ifndef _UAPI_LINUX_VIRTIO_CONSOLE_H
-#define _UAPI_LINUX_VIRTIO_CONSOLE_H
-#include <linux/types.h>
-#include <linux/virtio_types.h>
-#include <linux/virtio_ids.h>
-#include <linux/virtio_config.h>
 
 /* Feature bits */
 #define VIRTIO_CONSOLE_F_SIZE	0	/* Does host provide console size? */
 #define VIRTIO_CONSOLE_F_MULTIPORT 1	/* Does host provide multiple ports? */
 #define VIRTIO_CONSOLE_F_EMERG_WRITE 2 /* Does host support emergency write? */
 
-#define VIRTIO_CONSOLE_BAD_ID		(~(__u32)0)
+#define VIRTIO_CONSOLE_BAD_ID		(~(uint32_t)0)
 
 struct virtio_console_config {
 	/* colums of the screens */
-	__u16 cols;
+	uint16_t cols;
 	/* rows of the screens */
-	__u16 rows;
+	uint16_t rows;
 	/* max. number of ports this device can hold */
-	__u32 max_nr_ports;
+	uint32_t max_nr_ports;
 	/* emergency write register */
-	__u32 emerg_wr;
+	uint32_t emerg_wr;
 } __attribute__((packed));
 
 /*
@@ -75,4 +69,3 @@ struct virtio_console_control {
 #define VIRTIO_CONSOLE_PORT_NAME	7
 
 
-#endif /* _UAPI_LINUX_VIRTIO_CONSOLE_H */
