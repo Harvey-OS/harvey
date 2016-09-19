@@ -53,9 +53,9 @@ struct virtio_console_config {
  * particular port.
  */
 struct virtio_console_control {
-	__virtio32 id;		/* Port number */
-	__virtio16 event;	/* The kind of control event (see below) */
-	__virtio16 value;	/* Extra information for the key */
+	uint32_t id;		/* Port number */
+	uint16_t event;	/* The kind of control event (see below) */
+	uint16_t value;	/* Extra information for the key */
 };
 
 /* Some events for control messages */
