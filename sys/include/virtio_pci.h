@@ -191,3 +191,17 @@ struct virtio_pci_cfg_cap {
 
 #endif /* VIRTIO_PCI_NO_MODERN */
 
+/* we're not sure where these should go; for now, they go here. */
+// Virtio-pci device type constants, from
+// http://git.qemu.org/?p=qemu.git;a=blob;f=include/hw/pci/pci.h
+#define PCI_VENDOR_ID_REDHAT_QUMRANET    0x1af4
+#define PCI_SUBVENDOR_ID_REDHAT_QUMRANET 0x1af4
+#define PCI_SUBDEVICE_ID_QEMU            0x1100
+
+#define PCI_DEVICE_ID_VIRTIO_NET         0x1000
+#define PCI_DEVICE_ID_VIRTIO_BLOCK       0x1001
+#define PCI_DEVICE_ID_VIRTIO_BALLOON     0x1002
+#define PCI_DEVICE_ID_VIRTIO_CONSOLE     0x1003
+#define PCI_DEVICE_ID_VIRTIO_SCSI        0x1004
+#define PCI_DEVICE_ID_VIRTIO_RNG         0x1005
+#define PCI_DEVICE_ID_VIRTIO_9P          0x1009

@@ -120,19 +120,19 @@ struct virtio_blk_config {
  */
 struct virtio_blk_outhdr {
 	/* VIRTIO_BLK_T* */
-	__virtio32 type;
+	uint32_t type;
 	/* io priority. */
-	__virtio32 ioprio;
+	uint32_t ioprio;
 	/* Sector (ie. 512 byte offset) */
-	__virtio64 sector;
+	uint64_t sector;
 };
 
 #ifndef VIRTIO_BLK_NO_LEGACY
 struct virtio_scsi_inhdr {
-	__virtio32 errors;
-	__virtio32 data_len;
-	__virtio32 sense_len;
-	__virtio32 residual;
+	uint32_t errors;
+	uint32_t data_len;
+	uint32_t sense_len;
+	uint32_t residual;
 };
 #endif /* !VIRTIO_BLK_NO_LEGACY */
 
