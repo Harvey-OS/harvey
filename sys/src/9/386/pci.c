@@ -403,6 +403,22 @@ pcicfginit(void)
 				/* reset the cardbus */
 				pcicfgw16(p, PciBCR, 0x40 | pcicfgr16(p, PciBCR));
 				delay(50);
+				
+			// Try to change the interrupt line to 12/13 if a virtio device
+			}
+			if(p->vid == 0x1af4) {
+				int nintl, intl = pcicfgr8(p, PciINTL);
+				switch(intl) {
+					case 10: 
+					case 11:
+						nintl = intl + 2;
+						pcicfgw8(p, PciINTL, nintl);
+						print("interrupt %d -> %d ... ", intl, nintl);
+						intl = pcicfgr8(p, PciINTL);
+						print("%s\n", (intl == nintl)?(p->intl = intl, "Success"):"Failed");
+					default:
+						break;
+				}
 			}
 		}
 	}
