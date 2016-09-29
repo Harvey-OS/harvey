@@ -11,9 +11,6 @@ import (
 
 func init() {
 	harvey = os.Getenv("HARVEY")
-	if harvey != "" {
-		return
-	}
 	// git is purely optional, for lazy people.
 	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err == nil {
