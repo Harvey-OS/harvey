@@ -122,7 +122,7 @@ pcibarsize(Pcidev *p, int rno)
 }
 
 static int
-pcilscan(int bno, Pcidev** list)
+pcilscan(int bno, char *path, Pcidev** list)
 {
 	Pcidev *p, *head, *tail;
 	int dno, fno, i, hdt, l, maxfno, maxubn, sbn, tbdf, ubn, capoff;
@@ -152,6 +152,7 @@ pcilscan(int bno, Pcidev** list)
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;
+			p->path = path;
 
 			if(pcilist != nil)
 				pcitail->list = p;
@@ -179,11 +180,6 @@ pcilscan(int bno, Pcidev** list)
 				maxfno = Maxfn;
 
 			/*
-			 * Some virtio-pci devices (e. g. 9p) have ccrb = 0x00, 
-			 * their BARs and sizes also should be picked up here.
-			 */
-
-			/*
 			 * If appropriate, read the base address registers
 			 * and work out the sizes.
 			 */
@@ -197,6 +193,7 @@ pcilscan(int bno, Pcidev** list)
 				}
 				break;
 
+			case 0x00:
 			case 0x05:		/* memory controller */
 			case 0x06:		/* bridge device */
 				break;
@@ -282,7 +279,9 @@ pcilscan(int bno, Pcidev** list)
 			pcicfgw32(p, PciPCR, 0xFFFF0000);
 			pcicfgw32(p, PciPBN, Maxbus<<16 | sbn<<8 | bno);
 			pcicfgw16(p, PciSPSR, 0xFFFF);
-			maxubn = pcilscan(sbn, &p->bridge);
+			char *bus = mallocz(256, 1);
+			snprint(bus, 256, "%s/%d.%d.0", path, BUSBNO(p->tbdf), BUSDNO(p->tbdf));
+			maxubn = pcilscan(sbn, bus, &p->bridge);
 			pcicfgw32(p, PciPBN, maxubn<<16 | sbn<<8 | bno);
 		}
 		else {
@@ -294,9 +293,12 @@ pcilscan(int bno, Pcidev** list)
 			 * way down. Need to look more closely at
 			 * this.
 			 */
-			if(ubn > maxubn)
+			if(ubn > maxubn) {
 				maxubn = ubn;
-			pcilscan(sbn, &p->bridge);
+			}
+			char *bus = mallocz(256, 1);
+			snprint(bus, 256, "%s/%d.%d.0", path, BUSBNO(p->tbdf), BUSDNO(p->tbdf));
+			pcilscan(sbn, bus, &p->bridge);
 		}
 	}
 
@@ -386,7 +388,7 @@ pcicfginit(void)
 	list = &pciroot;
 	for(bno = 0; bno <= Maxbus; bno++) {
 		sbno = bno;
-		bno = pcilscan(bno, list);
+		bno = pcilscan(bno, "0.0.0", list);
 
 		while(*list)
 			list = &(*list)->link;
@@ -525,8 +527,8 @@ pcishowdev(Pcidev* t)
 {
 	int i;
 	char intpin = 'x';
-	if (t->intl != 255)
-		intpin = "ABCDEFGH"[t->intp&0x7];
+	/* intpin numbers can range from 1 to 8. */
+	intpin = "xABCDEFGHxxxxxxx"[t->intp&0xf];
 	print("%d  %2d/%d %.2x %.2x %.2x %.4x %.4x %c %3d  ",
 	      BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
 	      t->ccrb, t->ccru, t->ccrp, t->vid, t->did, intpin, t->intl);

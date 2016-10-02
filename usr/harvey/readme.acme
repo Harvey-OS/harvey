@@ -14,7 +14,7 @@ text. You can edit anything at will.
 For example, in the left column is a directory window.
 If you look at the window's tag line, you will see that it contains
 
-	/usr/glenda/ Del Snarf Get | Look 
+	/usr/harvey/ Del Snarf Get | Look 
 
 (This might be truncated if the column is narrow.)
 That is just text.
@@ -24,15 +24,15 @@ thing in Acme:
 
  *	Button 1 can be used to select text (press it, sweep, release it),
 	and also to select the point where text would be inserted in the
-	window. Use it now in your /usr/glenda window.
+	window. Use it now in your /usr/harvey window.
  *	Button 2 can be used to execute things.  For example, use button 1
 	to type "ls -l" before "lib/" in the window showing
-	/usr/glenda.  Now use button 2 to select "ls -l lib/" (press
+	/usr/harvey.  Now use button 2 to select "ls -l lib/" (press
 	it, select, release it).  As you can see, button 2 means
 	"execute this".
  *	Button 3 can be used to get things. For example, click button 3 on
-	"lib/" within the "/usr/glenda" window. Can you see how a new window
-	shows the contents of "/usr/glenda/lib"? Button 3 can also be used
+	"lib/" within the "/usr/harvey" window. Can you see how a new window
+	shows the contents of "/usr/harvey/lib"? Button 3 can also be used
 	to search within the body of a window. Just click button 3 on the
 	thing you want to search. Again, you can select something with
 	button 1 and then use button 3 on the selection.
@@ -58,10 +58,10 @@ Another thing you can see is that tag lines contain words like "New",
 "Del", "Snarf", etc. Those are commands understood (implemented) by
 Acme. When you request execution of one of them, Acme does the job.
 For example, click with button 2 on "Del" in the
-"/usr/glenda/+Errors" window: it's gone.
+"/usr/harvey/+Errors" window: it's gone.
 
 The commands shown by Acme are just text and by no means special. Try
-to type "Del" within the body of the window "/usr/glenda", and then
+to type "Del" within the body of the window "/usr/harvey", and then
 click (button-2) on it.
 
 These are some commands understood by Acme:

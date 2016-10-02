@@ -621,6 +621,7 @@ extern	int32_t	pread(int, void*, int32_t, int64_t);
 extern	int32_t	preadv(int, IOchunk*, int, int64_t);
 extern	int32_t	pwrite(int, const void*, int32_t, int64_t);
 extern	int32_t	pwritev(int, IOchunk*, int, int64_t);
+extern	int32_t	r0(void);
 extern	int32_t	read(int, void*, int32_t);
 extern	int32_t	readn(int, void*, int32_t);
 extern	int32_t	readv(int, IOchunk*, int);

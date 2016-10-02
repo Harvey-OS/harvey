@@ -57,6 +57,23 @@ static int vflag = 1;
 int nosmp = 1;
 int acpionly = 1;
 
+void*
+sigscan(uint8_t* address, int length, char* signature)
+{
+	uint8_t *e, *p;
+	int siglength;
+
+	e = address+length;
+	siglength = strlen(signature);
+	for(p = address; p+siglength < e; p += 16){
+		if(memcmp(p, signature, siglength))
+			continue;
+		return p;
+	}
+
+	return nil;
+}
+
 /*
  *	this may need improvement, but right now it's just for
  *	pretty printing below, so it doesn't need to be accurate
@@ -598,11 +615,7 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	 */
 	i8259init(32);
 
-
 	procinit0();
-	print("before mpsinit: acpionly %d, maxcores %d\n", acpionly, maxcores);
-	if (! acpionly)
-		maxcores = mpsinit(maxcores);
 	print("before mpacpi, maxcores %d\n", maxcores);
 	mpacpi(maxcores);
 	apiconline();

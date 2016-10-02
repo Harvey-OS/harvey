@@ -227,8 +227,16 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case STAT:
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		/*FALLTHROUGH*/
+		v = va_arg(list, void*);
+		l = va_arg(list, unsigned long);
+		fmtprint(&fmt, "%#p %lu", v, l);
+		break;
 	case ERRSTR:
+		a = va_arg(list, char*);
+		l = va_arg(list, unsigned long);
+		fmtuserstring(&fmt, a, " ");
+		fmtprint(&fmt, "%lu", l);
+		break;
 	case AWAIT:
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
@@ -276,12 +284,12 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	switch(syscallno){
 	default:
 		if(ar0->i == -1)
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %d", ar0->i);
 		break;
 	case SEEK:
 		if(ar0->vl == -1)
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %lld", ar0->vl);
 		break;
 	case NSEC:
@@ -290,7 +298,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case ALARM:
 	case PWRITE:
 		if(ar0->l == -1)
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %ld", ar0->l);
 		break;
 	case EXEC:
@@ -298,7 +306,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case SEGATTACH:
 	case RENDEZVOUS:
 		if(ar0->v == (void*)-1)
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
 	case AWAIT:
@@ -308,18 +316,12 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		}
 		else{
 			fmtprint(&fmt, "%#p/\"\" %lu = %d", a, l, ar0->i);
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		break;
 	case ERRSTR:
-		if(ar0->i > 0){
-			fmtuserstring(&fmt, a, " ");
-			fmtprint(&fmt, "%lu = %d", l, ar0->i);
-		}
-		else{
-			fmtprint(&fmt, "\"\" %lu = %d", l, ar0->i);
-			errstr = up->errstr;
-		}
+		fmtuserstring(&fmt, a, " ");
+		fmtprint(&fmt, "%lu = %d", l, ar0->i);
 		break;
 	case FD2PATH:
 		if(ar0->i > 0){
@@ -328,7 +330,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		}
 		else{
 			fmtprint(&fmt, "\"\" %lu = %d", l, ar0->i);
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		break;
 	case PREAD:
@@ -338,7 +340,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		}
 		else{
 			fmtprint(&fmt, " %#p/\"\"", v);
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		fmtprint(&fmt, " %ld %lld = %d", l, vl, ar0->i);
 		break;

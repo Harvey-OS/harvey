@@ -15,6 +15,8 @@ bind -b #k /dev
 bind -a #κ /dev
 bind -a #u /dev
 bind -b #P /dev
+bind -b '#$' /dev
+bind -a 'α' /dev
 
 # screen console
 mount -b /srv/screenconsole /dev

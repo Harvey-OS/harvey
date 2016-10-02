@@ -11,14 +11,14 @@ import (
 
 func init() {
 	harvey = os.Getenv("HARVEY")
-	if harvey != "" {
-		return
+	if harvey == "" {
+		// Try figuring it out from git instead
+		out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+		if err == nil {
+			harvey = strings.TrimSpace(string(out))
+		}
 	}
-	// git is purely optional, for lazy people.
-	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
-	if err == nil {
-		harvey = strings.TrimSpace(string(out))
-	}
+	// If we still haven't found the path, bail out.
 	if harvey == "" {
 		log.Fatal("Set the HARVEY environment variable or run from a git checkout.")
 	}

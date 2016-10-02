@@ -29,6 +29,45 @@ static void	usbinit(void);
 static void	startconsole(void);
 static void	kbmap(void);
 
+static void acpiirq(void)
+{
+	static char *devs[] = {"#Z", "#$", "#P"};
+	int i, pid, irqmap;
+	Waitmsg *w;
+
+	for (i = 0; i < nelem(devs); i++){
+		if(bind(devs[i], "/dev", MAFTER) < 0){
+			fprint(2, "Can't bind %s: %r", devs[i]);
+			return;
+		}
+	}
+	irqmap = open("/dev/irqmap", OREAD);
+	if (irqmap < 0) {
+		warning("can't open /dev/irqmap");
+		return;
+	}
+
+	pid = fork();
+	if (pid < 0){
+		warning("Can't fork: %r");
+		close(irqmap);
+		return;
+	}
+	if (pid > 0) {
+		close(irqmap);
+		w = wait();
+		if (w && w->msg && w->msg[0])
+			warning(w->msg);
+		return;
+	}
+	dup(irqmap, 0);
+	close(irqmap);
+	if (execl("/boot/irq", "irq", "-s", nil)) {
+		exits("can't start /boot/irq");
+	}
+	exits(nil);
+
+}
 void
 boot(int argc, char *argv[])
 {
@@ -78,6 +117,12 @@ boot(int argc, char *argv[])
 	}ARGEND
 	readfile("#e/cputype", cputype, sizeof(cputype));
 	readfile("#e/service", service, sizeof(service));
+
+	/* Do the initial ACPI interrupt setup work.
+	 * If we don't do this we may not get needed
+	 * interfaces. */
+	if (getenv("acpiirq"))
+		acpiirq();
 
 	/*
 	 *  set up usb keyboard, mouse and disk, if any.
