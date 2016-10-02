@@ -266,6 +266,15 @@ cc_binary(
 		"-T",
 	]
 )
+move(
+	name="factotum",
+	deps=[
+		"//sys/src/cmd/auth/factotum:factotum",
+	],
+	installs={
+		"bin/auth/factotum": "bin/factotum",
+	},
+)
 
 KERNEL_DEPS = [
 	"//sys/src/cmd:bind",
@@ -273,7 +282,7 @@ KERNEL_DEPS = [
 	"//sys/src/cmd:cat",
 	"//sys/src/cmd:date",
 	"//sys/src/cmd:echo",
-	"//sys/src/cmd/auth/factotum:factotum",
+	":factotum",
 	"//sys/src/cmd/disk/prep:fdisk",
 	"//sys/src/cmd/fossil:fossil",
 	"//sys/src/cmd/ip/ipconfig:ipconfig",
