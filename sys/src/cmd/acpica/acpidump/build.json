@@ -1,0 +1,18 @@
+{
+	"acpidump": {
+	    "Include": [
+		"/sys/src/libacpi/acpica/acpiflags.json",
+			"/sys/src/cmd/cmd.json"
+		],
+		"Oflags": [
+			"-lacpi"
+		],
+		"Install": "/$ARCH/bin/acpi",
+		"Program": "acpidump",
+		"SourceFiles": [
+			"apdump.c",
+			"apfiles.c",
+			"apmain.c"
+		]
+	}
+}
