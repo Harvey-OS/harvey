@@ -659,9 +659,12 @@ AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER * ExistingTable,
 ACPI_STATUS
 AcpiOsGetLine(char *Buffer, UINT32 BufferLength, UINT32 * BytesRead)
 {
+	int amt;
 	if (debug)
 		fprint(2, "%s\n", __func__);
-	*BytesRead = read(0, Buffer, BufferLength);
+	amt = read(0, Buffer, BufferLength);
+	if (BytesRead)
+		*BytesRead = amt;
 	return AE_OK;
 }
 
