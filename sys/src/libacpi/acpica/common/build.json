@@ -7,7 +7,8 @@
 		"Library": "libacpi.a",
 		"SourceFiles": [
 			"ahids.c",
-			"ahuuids.c"
+			"ahuuids.c",
+			"getopt.c"
 			]
 		}
 }

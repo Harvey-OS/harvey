@@ -213,7 +213,7 @@ AeCtrlCHandler (
     int                     Sig)
 {
 
-    signal (SIGINT, SIG_IGN);
+	//signal (SIGINT, SIG_IGN);
     SigintCount++;
 
     AcpiOsPrintf ("Caught a ctrl-c (#%u)\n\n", SigintCount);
@@ -221,7 +221,7 @@ AeCtrlCHandler (
     if (AcpiGbl_MethodExecuting)
     {
         AcpiGbl_AbortMethod = TRUE;
-        signal (SIGINT, AeCtrlCHandler);
+        notify(AeCtrlCHandler);
 
         if (SigintCount < 10)
         {
@@ -230,7 +230,7 @@ AeCtrlCHandler (
     }
 
     (void) AcpiOsTerminate ();
-    exit (0);
+    exits(nil);
 }
 
 

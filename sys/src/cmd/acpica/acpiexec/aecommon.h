@@ -131,12 +131,6 @@
 #include "amlresrc.h"
 #include "acapps.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-
-
 /*
  * Debug Regions
  */
