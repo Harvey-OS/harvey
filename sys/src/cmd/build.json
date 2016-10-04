@@ -144,6 +144,7 @@
 		"Projects": [
 			"9660srv/9660srv.json",
 			"acpi/build.json",
+			"acpica/",
 			"acme/build.json",
 			"astro/astro.json",
 			"auth/auth.json",
