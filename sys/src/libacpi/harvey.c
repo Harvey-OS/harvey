@@ -10,6 +10,7 @@
 
 #define MiB (1<<20)
 
+BOOLEAN                        AcpiGbl_DebugTimeout = FALSE;
 static uint32_t rsdp;
 static char *name;
 /* debug prints for this file. You can set this in gdb or at compile time. */
@@ -305,6 +306,7 @@ AcpiOsAllocate(ACPI_SIZE Size)
 	return malloc(Size);
 }
 
+void hexdump(void *v, int length);
 void *
 AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length)
 {
@@ -336,6 +338,7 @@ AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length)
 		return nil;
 	}
 	//hexdump(v, Length);
+	hexdump(v, 36);
 	return v;
 }
 
@@ -611,7 +614,7 @@ AcpiOsInitialize(void)
 /*
  * ACPI Table interfaces
  */
-ACPI_PHYSICAL_ADDRESS
+__attribute__ ((weak))ACPI_PHYSICAL_ADDRESS
 AcpiOsGetRootPointer(void)
 {
 	if (debug)
@@ -677,7 +680,7 @@ typedef void *AML_RESOURCE;
 /* this is from acpiexec. */
 
 /* For AcpiExec only */
-void
+__attribute__ ((weak))void
 AeDoObjectOverrides(void)
 {
 	if (debug)
@@ -685,7 +688,7 @@ AeDoObjectOverrides(void)
 }
 
 /* Stubs for the disassembler */
-
+ __attribute__ ((weak))
 void
 MpSaveGpioInfo(ACPI_PARSE_OBJECT * Op,
 			   AML_RESOURCE * Resource,
@@ -695,6 +698,7 @@ MpSaveGpioInfo(ACPI_PARSE_OBJECT * Op,
 		fprint(2, "%s\n", __func__);
 }
 
+__attribute__ ((weak))
 void
 MpSaveSerialInfo(ACPI_PARSE_OBJECT * Op,
 				 AML_RESOURCE * Resource, char *DeviceName)
@@ -710,3 +714,38 @@ AcpiOsWriteFile(ACPI_FILE File, void *Buffer, ACPI_SIZE Size, ACPI_SIZE Count)
 		fprint(2, "%s(%p, %p, %d, %d);\n", File, Buffer, Size, Count);
 	return write(1, Buffer, Size * Count);
 }
+
+
+__attribute__ ((weak))
+void hexdump(void *v, int length)
+{
+	int i;
+	uint8_t *m = v;
+	uintptr_t memory = (uintptr_t) v;
+	int all_zero = 0;
+	print("hexdump: %p, %u\n", v, length);
+	for (i = 0; i < length; i += 16) {
+		int j;
+
+		all_zero++;
+		for (j = 0; (j < 16) && (i + j < length); j++) {
+			if (m[i + j] != 0) {
+				all_zero = 0;
+				break;
+			}
+		}
+
+		if (all_zero < 2) {
+			print("%p:", (void *)(memory + i));
+			for (j = 0; j < 16; j++)
+				print(" %02x", m[i + j]);
+			print("  ");
+			for (j = 0; j < 16; j++)
+				print("%c", isprint(m[i + j]) ? m[i + j] : '.');
+			print("\n");
+		} else if (all_zero == 2) {
+			print("...\n");
+		}
+	}
+}
+

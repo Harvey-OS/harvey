@@ -531,7 +531,7 @@ main (
 
 
     ACPI_DEBUG_INITIALIZE (); /* For debug version only */
-    signal (SIGINT, AeCtrlCHandler);
+    notify(AeCtrlCHandler);
 
     /* Init debug globals */
 

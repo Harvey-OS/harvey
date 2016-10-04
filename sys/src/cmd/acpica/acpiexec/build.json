@@ -1,5 +1,5 @@
 {
-	"irq": {
+	"aeexec": {
 	    "Include": [
 		"/sys/src/libacpi/acpica/acpiflags.json",
 			"/sys/src/cmd/cmd.json"
@@ -8,11 +8,11 @@
 			"-lacpi"
 		],
 		"Install": "/$ARCH/bin/acpi",
-		"Program": "irq",
+		"Program": "aeexec",
 		"NSourceFiles": [
 		    "alltables.c"
 		],
-		"SourceFilesCmd": [
+		"SourceFiles": [
 			"aeexec.c",
 			"aehandlers.c",
 			"aeinitfile.c",
