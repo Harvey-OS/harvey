@@ -7,7 +7,12 @@
  * in the LICENSE file.
  */
 
-
+/* We don't allow compiler guards in real Plan 9 source. This file is
+ * kind of a hybrid as it supports Unix code. For braindead stuff like
+ * ACPICA, we need guards for this Unix relic. This one guard lets us
+ * avoid changing ACPICA code. That's a good thing. */
+#ifndef STDIO_H
+#define STDIO_H
 /*
  * pANS astdio.h
  */
@@ -123,3 +128,4 @@ FILE *sopenr(const char *);
 FILE *sopenw(void);
 char *sclose(FILE *);
 int fileno(FILE *);
+#endif
