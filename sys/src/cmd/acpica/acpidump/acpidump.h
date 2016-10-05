@@ -112,7 +112,9 @@
  * such license, approval or letter.
  *
  *****************************************************************************/
-
+/* Why do we need to do this? Something's missing in how we build. */
+#define _COMPONENT          ACPI_UTILITIES
+#define _AcpiModuleName "acpidump"
 /*
  * Global variables. Defined in main.c only, externed in all other files
  */
@@ -127,12 +129,6 @@
 #include "acpi.h"
 #include "accommon.h"
 #include "actables.h"
-
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/stat.h>
-
 
 /* Globals */
 

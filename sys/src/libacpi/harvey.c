@@ -752,3 +752,20 @@ void hexdump(void *v, int length)
 	}
 }
 
+long
+AcpiOsGetFileOffset (
+    ACPI_FILE               File)
+{
+	return ftell(File);
+}
+
+ACPI_STATUS
+AcpiOsSetFileOffset (
+    ACPI_FILE               File,
+    long                    Offset,
+    UINT8                   From)
+{
+	if (fseek(File, Offset, From))
+		return AE_OK;
+	return AE_ERROR;
+}

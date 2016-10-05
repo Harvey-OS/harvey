@@ -140,6 +140,7 @@ static int
 ApIsExistingFile (
     char                    *Pathname)
 {
+#if 0
 #ifndef _GNU_EFI
     struct stat             StatInfo;
 
@@ -154,7 +155,7 @@ ApIsExistingFile (
         }
     }
 #endif
-
+#endif
     return 0;
 }
 

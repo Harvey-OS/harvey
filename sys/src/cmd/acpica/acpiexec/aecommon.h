@@ -168,8 +168,7 @@ extern ACPI_CONNECTION_INFO AeMyContext;
                                             AcpiOsPrintf PARAM_LIST(fp);}
 
 void ACPI_SYSTEM_XFACE
-AeCtrlCHandler (
-    int                     Sig);
+AeCtrlCHandler (void *, char *);
 
 ACPI_STATUS
 AeBuildLocalTables (
