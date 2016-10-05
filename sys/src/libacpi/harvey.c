@@ -70,19 +70,18 @@ rawfd(void)
 {
 	int fd;
 	if (name == nil) {
-		name = smprint("#%C/raw", L'α');
+		name = "/dev/acpimem";
 		if (debug)
 			fprint(2, "Rawfd: open '%s'\n", name);
 		fd = open(name, OREAD);
 		if (fd > -1)
 			return fd;
-		name = smprint("#%C/raw", 'Z');
+		name = "#P/acpimem";
 		if (debug)
 			fprint(2, "Rawfd: open '%s'\n", name);
 		fd = open(name, OREAD);
 		if (fd > -1)
 			return fd;
-		/* try /dev paths here later. */
 	}
 	return open(name, OREAD);
 }
