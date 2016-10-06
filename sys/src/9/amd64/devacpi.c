@@ -182,7 +182,7 @@ Atable *finatable(Atable *t, PSlice *slice)
 	assert(dirs != nil);
 	dirs[0] = (Dirtab){ ".",      t->qid,   0, 0555 };
 	dirs[1] = (Dirtab){ "pretty", t->pqid,  0, 0444 };
-	dirs[2] = (Dirtab){ "raw",    t->rqid,  0, 0444 };
+	dirs[2] = (Dirtab){ "raw",    t->rqid,  t->rawsize, 0444 };
 	dirs[3] = (Dirtab){ "table",  t->tqid,  0, 0444 };
 	dirs[4] = (Dirtab){ "ctl",  t->tqid,  0, 0666 };
 	for (size_t i = 0; i < n; i++) {
@@ -1623,8 +1623,11 @@ static void parsersdptr(void)
 		return;
 	}
 	xsdt->asize = asize;
+	root->raw = xsdt->p;
+	root->rawsize = xsdt->len;
 	kmprint("acpi: XSDT %#p\n", xsdt);
 	parsexsdt(root);
+	kmprint("POST PARSE XSDT raw is %p len is 0x%x\n", xsdt->p, xsdt->len);
 	kmprint("parsexdt done: lastpath %d\n", lastpath);
 	atableindex = reallocarray(nil, lastpath, sizeof(Atable *));
 	assert(atableindex != nil);
@@ -2044,12 +2047,14 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 }
 // Get the table from the qid.
 // Read that one table using the pointers.
+// Actually, this function doesn't do this right now for pretty or table.
+// It dumps the same table at every level. Working on it.
+// It does the right thing for raw.
 static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	long q;
 	Atable *t;
 	char *ns, *s, *e, *ntext;
-	Acpilist *l;
 	int ret;
 
 	if (ttext == nil) {
@@ -2063,46 +2068,8 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	case Qdir:
 		return devdirread(c, a, n, nil, 0, acpigen);
 	case Qraw:
-		/* This is horribly insecure but, for now,
-		 * focus on getting it to work.
-		 * The only read allowed at 0 is sizeof(*rsd).
-		 * Later on, we'll need to track the things we
-		 * map with sdtmap and only allow reads of those
-		 * areas. But let's see if this idea even works, first.
-		 */
-		//print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
-		if (off == 0){
-			uint32_t pa = (uint32_t)PADDR(rsd);
-			print("FIND RSD");
-			print("PA OF rsd is %lx, \n", pa);
-			return readmem(0, a, n, &pa, sizeof(pa));
-		}
-		if (off == PADDR(rsd)) {
-			//print("READ RSD");
-			//print("returning for rsd\n");
-			//hexdump(rsd, sizeof(*rsd));
-			return readmem(0, a, n, rsd, sizeof(*rsd));
-		}
-
-		l = findlist(off);
-		/* we don't load all the lists, so this may be a new one. */
-		if (! l) {
-			size_t _;
-			if (sdtmap(off, n, &_, 0) == nil){
-				static char msg[256];
-				snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
-				error(msg);
-			}
-			l = findlist(off);
-		}
-		/* we really need to improve on plan 9 error message handling. */
-		if (! l){
-			static char msg[256];
-			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
-			error(msg);
-		}
-		//hexdump(l->raw, l->size);
-		ret = readmem(off-l->base, a, n, l->raw, l->size);
+		t = genatable(c);
+		ret = readmem(off, a, n, t->raw, t->rawsize);
 		//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 		return ret;
 	case Qtbl:
