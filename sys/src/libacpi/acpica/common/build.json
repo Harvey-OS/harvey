@@ -8,6 +8,7 @@
 		"SourceFiles": [
 			"ahids.c",
 			"ahuuids.c",
+			"cmfsize.c",
 			"getopt.c"
 			]
 		}

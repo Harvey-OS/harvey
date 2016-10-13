@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Module Name: aecommon - common include for the AcpiExec utility
+ * Module Name: apfiles - File-related functions for acpidump utility
  *
  *****************************************************************************/
 
@@ -113,165 +113,252 @@
  *
  *****************************************************************************/
 
-#ifndef _AECOMMON
-#define _AECOMMON
-
-#ifdef _MSC_VER                 /* disable some level-4 warnings */
-#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
-#endif
-
-#include "acpi.h"
-#include "accommon.h"
-#include "acparser.h"
-#include "amlcode.h"
-#include "acnamesp.h"
-#include "acdebug.h"
-#include "actables.h"
-#include "acinterp.h"
-#include "amlresrc.h"
+#include "acpidump.h"
 #include "acapps.h"
 
-/*
- * Debug Regions
- */
-typedef struct ae_region
+
+/* Local prototypes */
+
+static int
+ApIsExistingFile (
+    char                    *Pathname);
+
+
+/******************************************************************************
+ *
+ * FUNCTION:    ApIsExistingFile
+ *
+ * PARAMETERS:  Pathname            - Output filename
+ *
+ * RETURN:      0 on success
+ *
+ * DESCRIPTION: Query for file overwrite if it already exists.
+ *
+ ******************************************************************************/
+
+static int
+ApIsExistingFile (
+    char                    *Pathname)
 {
-    ACPI_PHYSICAL_ADDRESS   Address;
-    UINT32                  Length;
-    void                    *Buffer;
-    void                    *NextRegion;
-    UINT8                   SpaceId;
-
-} AE_REGION;
-
-typedef struct ae_debug_regions
-{
-    UINT32                  NumberOfRegions;
-    AE_REGION               *RegionList;
-
-} AE_DEBUG_REGIONS;
+#if 0
+#ifndef _GNU_EFI
+    struct stat             StatInfo;
 
 
-extern BOOLEAN              AcpiGbl_IgnoreErrors;
-extern UINT8                AcpiGbl_RegionFillValue;
-extern UINT8                AcpiGbl_UseHwReducedFadt;
-extern BOOLEAN              AcpiGbl_DisplayRegionAccess;
-extern BOOLEAN              AcpiGbl_DoInterfaceTests;
-extern BOOLEAN              AcpiGbl_LoadTestTables;
-extern FILE                 *AcpiGbl_NamespaceInitFile;
-extern ACPI_CONNECTION_INFO AeMyContext;
+    if (!stat (Pathname, &StatInfo))
+    {
+        AcpiLogError ("Target path already exists, overwrite? [y|n] ");
+
+        if (getchar () != 'y')
+        {
+            return (-1);
+        }
+    }
+#endif
+#endif
+    return 0;
+}
 
 
-#define TEST_OUTPUT_LEVEL(lvl)          if ((lvl) & OutputLevel)
-
-#define OSD_PRINT(lvl,fp)               TEST_OUTPUT_LEVEL(lvl) {\
-                                            AcpiOsPrintf PARAM_LIST(fp);}
-
-void ACPI_SYSTEM_XFACE
-AeCtrlCHandler (void *, char *);
-
-ACPI_STATUS
-AeBuildLocalTables (
-    ACPI_NEW_TABLE_DESC     *TableList);
-
-ACPI_STATUS
-AeInstallTables (
-    void);
-
-ACPI_STATUS
-AeLoadTables (
-    void);
-
-void
-AeDumpNamespace (
-    void);
-
-void
-AeDumpObject (
-    char                    *MethodName,
-    ACPI_BUFFER             *ReturnObj);
-
-void
-AeDumpBuffer (
-    UINT32                  Address);
-
-void
-AeExecute (
-    char                    *Name);
-
-void
-AeSetScope (
-    char                    *Name);
-
-void
-AeCloseDebugFile (
-    void);
-
-void
-AeOpenDebugFile (
-    char                    *Name);
-
-ACPI_STATUS
-AeDisplayAllMethods (
-    UINT32                  DisplayCount);
-
-ACPI_STATUS
-AeInstallEarlyHandlers (
-    void);
-
-ACPI_STATUS
-AeInstallLateHandlers (
-    void);
-
-void
-AeMiscellaneousTests (
-    void);
-
-ACPI_STATUS
-AeRegionHandler (
-    UINT32                  Function,
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT32                  BitWidth,
-    UINT64                  *Value,
-    void                    *HandlerContext,
-    void                    *RegionContext);
-
-UINT32
-AeGpeHandler (
-    ACPI_HANDLE             GpeDevice,
-    UINT32                  GpeNumber,
-    void                    *Context);
-
-void
-AeGlobalEventHandler (
-    UINT32                  Type,
-    ACPI_HANDLE             GpeDevice,
-    UINT32                  EventNumber,
-    void                    *Context);
-
-/* aeregion */
-
-ACPI_STATUS
-AeInstallDeviceHandlers (
-    void);
-
-void
-AeInstallRegionHandlers (
-    void);
-
-void
-AeOverrideRegionHandlers (
-    void);
-
-
-/* aeinitfile */
+/******************************************************************************
+ *
+ * FUNCTION:    ApOpenOutputFile
+ *
+ * PARAMETERS:  Pathname            - Output filename
+ *
+ * RETURN:      Open file handle
+ *
+ * DESCRIPTION: Open a text output file for acpidump. Checks if file already
+ *              exists.
+ *
+ ******************************************************************************/
 
 int
-AeOpenInitializationFile (
-    char                    *Filename);
+ApOpenOutputFile (
+    char                    *Pathname)
+{
+    ACPI_FILE               File;
 
-void
-AeDoObjectOverrides (
-    void);
 
-#endif /* _AECOMMON */
+    /* If file exists, prompt for overwrite */
+
+    if (ApIsExistingFile (Pathname) != 0)
+    {
+        return (-1);
+    }
+
+    /* Point stdout to the file */
+
+    File = AcpiOsOpenFile (Pathname, ACPI_FILE_WRITING);
+    if (!File)
+    {
+        AcpiLogError ("Could not open output file: %s\n", Pathname);
+        return (-1);
+    }
+
+    /* Save the file and path */
+
+    Gbl_OutputFile = File;
+    Gbl_OutputFilename = Pathname;
+    return (0);
+}
+
+
+/******************************************************************************
+ *
+ * FUNCTION:    ApWriteToBinaryFile
+ *
+ * PARAMETERS:  Table               - ACPI table to be written
+ *              Instance            - ACPI table instance no. to be written
+ *
+ * RETURN:      Status
+ *
+ * DESCRIPTION: Write an ACPI table to a binary file. Builds the output
+ *              filename from the table signature.
+ *
+ ******************************************************************************/
+
+int
+ApWriteToBinaryFile (
+    ACPI_TABLE_HEADER       *Table,
+    UINT32                  Instance)
+{
+    char                    Filename[ACPI_NAME_SIZE + 16];
+    char                    InstanceStr [16];
+    ACPI_FILE               File;
+    size_t                  Actual;
+    UINT32                  TableLength;
+
+
+    /* Obtain table length */
+
+    TableLength = ApGetTableLength (Table);
+
+    /* Construct lower-case filename from the table local signature */
+
+    if (ACPI_VALIDATE_RSDP_SIG (Table->Signature))
+    {
+        ACPI_MOVE_NAME (Filename, ACPI_RSDP_NAME);
+    }
+    else
+    {
+        ACPI_MOVE_NAME (Filename, Table->Signature);
+    }
+
+    Filename[0] = (char) tolower ((int) Filename[0]);
+    Filename[1] = (char) tolower ((int) Filename[1]);
+    Filename[2] = (char) tolower ((int) Filename[2]);
+    Filename[3] = (char) tolower ((int) Filename[3]);
+    Filename[ACPI_NAME_SIZE] = 0;
+
+    /* Handle multiple SSDTs - create different filenames for each */
+
+    if (Instance > 0)
+    {
+        AcpiUtSnprintf (InstanceStr, sizeof (InstanceStr), "%u", Instance);
+        strcat (Filename, InstanceStr);
+    }
+
+    strcat (Filename, FILE_SUFFIX_BINARY_TABLE);
+
+    if (Gbl_VerboseMode)
+    {
+        AcpiLogError (
+            "Writing [%4.4s] to binary file: %s 0x%X (%u) bytes\n",
+            Table->Signature, Filename, Table->Length, Table->Length);
+    }
+
+    /* Open the file and dump the entire table in binary mode */
+
+    File = AcpiOsOpenFile (Filename,
+        ACPI_FILE_WRITING | ACPI_FILE_BINARY);
+    if (!File)
+    {
+        AcpiLogError ("Could not open output file: %s\n", Filename);
+        return (-1);
+    }
+
+    Actual = AcpiOsWriteFile (File, Table, 1, TableLength);
+    if (Actual != TableLength)
+    {
+        AcpiLogError ("Error writing binary output file: %s\n", Filename);
+        AcpiOsCloseFile (File);
+        return (-1);
+    }
+
+    AcpiOsCloseFile (File);
+    return (0);
+}
+
+
+/******************************************************************************
+ *
+ * FUNCTION:    ApGetTableFromFile
+ *
+ * PARAMETERS:  Pathname            - File containing the binary ACPI table
+ *              OutFileSize         - Where the file size is returned
+ *
+ * RETURN:      Buffer containing the ACPI table. NULL on error.
+ *
+ * DESCRIPTION: Open a file and read it entirely into a new buffer
+ *
+ ******************************************************************************/
+
+ACPI_TABLE_HEADER *
+ApGetTableFromFile (
+    char                    *Pathname,
+    UINT32                  *OutFileSize)
+{
+    ACPI_TABLE_HEADER       *Buffer = NULL;
+    ACPI_FILE               File;
+    UINT32                  FileSize;
+    size_t                  Actual;
+
+
+    /* Must use binary mode */
+
+    File = AcpiOsOpenFile (Pathname, ACPI_FILE_READING | ACPI_FILE_BINARY);
+    if (!File)
+    {
+        AcpiLogError ("Could not open input file: %s\n", Pathname);
+        return (NULL);
+    }
+
+    /* Need file size to allocate a buffer */
+
+    FileSize = CmGetFileSize (File);
+    if (FileSize == ACPI_UINT32_MAX)
+    {
+        AcpiLogError (
+            "Could not get input file size: %s\n", Pathname);
+        goto Cleanup;
+    }
+
+    /* Allocate a buffer for the entire file */
+
+    Buffer = ACPI_ALLOCATE_ZEROED (FileSize);
+    if (!Buffer)
+    {
+        AcpiLogError (
+            "Could not allocate file buffer of size: %u\n", FileSize);
+        goto Cleanup;
+    }
+
+    /* Read the entire file */
+
+    Actual = AcpiOsReadFile (File, Buffer, 1, FileSize);
+    if (Actual != FileSize)
+    {
+        AcpiLogError (
+            "Could not read input file: %s\n", Pathname);
+        ACPI_FREE (Buffer);
+        Buffer = NULL;
+        goto Cleanup;
+    }
+
+    *OutFileSize = FileSize;
+
+Cleanup:
+    AcpiOsCloseFile (File);
+    return (Buffer);
+}

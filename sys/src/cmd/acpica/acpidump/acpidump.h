@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Module Name: aecommon - common include for the AcpiExec utility
+ * Module Name: acpidump.h - Include file for AcpiDump utility
  *
  *****************************************************************************/
 
@@ -112,166 +112,112 @@
  * such license, approval or letter.
  *
  *****************************************************************************/
-
-#ifndef _AECOMMON
-#define _AECOMMON
-
-#ifdef _MSC_VER                 /* disable some level-4 warnings */
-#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
+/* Why do we need to do this? Something's missing in how we build. */
+#define _COMPONENT          ACPI_UTILITIES
+#define _AcpiModuleName "acpidump"
+/*
+ * Global variables. Defined in main.c only, externed in all other files
+ */
+#ifdef _DECLARE_GLOBALS
+#define EXTERN
+#define INIT_GLOBAL(a,b)        a=b
+#else
+#define EXTERN                  extern
+#define INIT_GLOBAL(a,b)        a
 #endif
 
 #include "acpi.h"
 #include "accommon.h"
-#include "acparser.h"
-#include "amlcode.h"
-#include "acnamesp.h"
-#include "acdebug.h"
 #include "actables.h"
-#include "acinterp.h"
-#include "amlresrc.h"
-#include "acapps.h"
+
+/* Globals */
+
+EXTERN BOOLEAN              INIT_GLOBAL (Gbl_SummaryMode, FALSE);
+EXTERN BOOLEAN              INIT_GLOBAL (Gbl_VerboseMode, FALSE);
+EXTERN BOOLEAN              INIT_GLOBAL (Gbl_BinaryMode, FALSE);
+EXTERN BOOLEAN              INIT_GLOBAL (Gbl_DumpCustomizedTables, TRUE);
+EXTERN BOOLEAN              INIT_GLOBAL (Gbl_DoNotDumpXsdt, FALSE);
+EXTERN ACPI_FILE            INIT_GLOBAL (Gbl_OutputFile, NULL);
+EXTERN char                 INIT_GLOBAL (*Gbl_OutputFilename, NULL);
+EXTERN UINT64               INIT_GLOBAL (Gbl_RsdpBase, 0);
+
+/* Globals required for use with ACPICA modules */
+
+#ifdef _DECLARE_GLOBALS
+UINT8                       AcpiGbl_IntegerByteWidth = 8;
+#endif
+
+/* Action table used to defer requested options */
+
+typedef struct ap_dump_action
+{
+    char                    *Argument;
+    UINT32                  ToBeDone;
+
+} AP_DUMP_ACTION;
+
+#define AP_MAX_ACTIONS              32
+
+#define AP_DUMP_ALL_TABLES          0
+#define AP_DUMP_TABLE_BY_ADDRESS    1
+#define AP_DUMP_TABLE_BY_NAME       2
+#define AP_DUMP_TABLE_BY_FILE       3
+
+#define AP_MAX_ACPI_FILES           256 /* Prevent infinite loops */
+
+/* Minimum FADT sizes for various table addresses */
+
+#define MIN_FADT_FOR_DSDT           (ACPI_FADT_OFFSET (Dsdt) + sizeof (UINT32))
+#define MIN_FADT_FOR_FACS           (ACPI_FADT_OFFSET (Facs) + sizeof (UINT32))
+#define MIN_FADT_FOR_XDSDT          (ACPI_FADT_OFFSET (XDsdt) + sizeof (UINT64))
+#define MIN_FADT_FOR_XFACS          (ACPI_FADT_OFFSET (XFacs) + sizeof (UINT64))
+
 
 /*
- * Debug Regions
+ * apdump - Table get/dump routines
  */
-typedef struct ae_region
-{
-    ACPI_PHYSICAL_ADDRESS   Address;
-    UINT32                  Length;
-    void                    *Buffer;
-    void                    *NextRegion;
-    UINT8                   SpaceId;
-
-} AE_REGION;
-
-typedef struct ae_debug_regions
-{
-    UINT32                  NumberOfRegions;
-    AE_REGION               *RegionList;
-
-} AE_DEBUG_REGIONS;
-
-
-extern BOOLEAN              AcpiGbl_IgnoreErrors;
-extern UINT8                AcpiGbl_RegionFillValue;
-extern UINT8                AcpiGbl_UseHwReducedFadt;
-extern BOOLEAN              AcpiGbl_DisplayRegionAccess;
-extern BOOLEAN              AcpiGbl_DoInterfaceTests;
-extern BOOLEAN              AcpiGbl_LoadTestTables;
-extern FILE                 *AcpiGbl_NamespaceInitFile;
-extern ACPI_CONNECTION_INFO AeMyContext;
-
-
-#define TEST_OUTPUT_LEVEL(lvl)          if ((lvl) & OutputLevel)
-
-#define OSD_PRINT(lvl,fp)               TEST_OUTPUT_LEVEL(lvl) {\
-                                            AcpiOsPrintf PARAM_LIST(fp);}
-
-void ACPI_SYSTEM_XFACE
-AeCtrlCHandler (void *, char *);
-
-ACPI_STATUS
-AeBuildLocalTables (
-    ACPI_NEW_TABLE_DESC     *TableList);
-
-ACPI_STATUS
-AeInstallTables (
-    void);
-
-ACPI_STATUS
-AeLoadTables (
-    void);
-
-void
-AeDumpNamespace (
-    void);
-
-void
-AeDumpObject (
-    char                    *MethodName,
-    ACPI_BUFFER             *ReturnObj);
-
-void
-AeDumpBuffer (
-    UINT32                  Address);
-
-void
-AeExecute (
-    char                    *Name);
-
-void
-AeSetScope (
-    char                    *Name);
-
-void
-AeCloseDebugFile (
-    void);
-
-void
-AeOpenDebugFile (
-    char                    *Name);
-
-ACPI_STATUS
-AeDisplayAllMethods (
-    UINT32                  DisplayCount);
-
-ACPI_STATUS
-AeInstallEarlyHandlers (
-    void);
-
-ACPI_STATUS
-AeInstallLateHandlers (
-    void);
-
-void
-AeMiscellaneousTests (
-    void);
-
-ACPI_STATUS
-AeRegionHandler (
-    UINT32                  Function,
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT32                  BitWidth,
-    UINT64                  *Value,
-    void                    *HandlerContext,
-    void                    *RegionContext);
-
-UINT32
-AeGpeHandler (
-    ACPI_HANDLE             GpeDevice,
-    UINT32                  GpeNumber,
-    void                    *Context);
-
-void
-AeGlobalEventHandler (
-    UINT32                  Type,
-    ACPI_HANDLE             GpeDevice,
-    UINT32                  EventNumber,
-    void                    *Context);
-
-/* aeregion */
-
-ACPI_STATUS
-AeInstallDeviceHandlers (
-    void);
-
-void
-AeInstallRegionHandlers (
-    void);
-
-void
-AeOverrideRegionHandlers (
-    void);
-
-
-/* aeinitfile */
+int
+ApDumpTableFromFile (
+    char                    *Pathname);
 
 int
-AeOpenInitializationFile (
-    char                    *Filename);
+ApDumpTableByName (
+    char                    *Signature);
 
-void
-AeDoObjectOverrides (
+int
+ApDumpTableByAddress (
+    char                    *AsciiAddress);
+
+int
+ApDumpAllTables (
     void);
 
-#endif /* _AECOMMON */
+BOOLEAN
+ApIsValidHeader (
+    ACPI_TABLE_HEADER       *Table);
+
+BOOLEAN
+ApIsValidChecksum (
+    ACPI_TABLE_HEADER       *Table);
+
+UINT32
+ApGetTableLength (
+    ACPI_TABLE_HEADER       *Table);
+
+
+/*
+ * apfiles - File I/O utilities
+ */
+int
+ApOpenOutputFile (
+    char                    *Pathname);
+
+int
+ApWriteToBinaryFile (
+    ACPI_TABLE_HEADER       *Table,
+    UINT32                  Instance);
+
+ACPI_TABLE_HEADER *
+ApGetTableFromFile (
+    char                    *Pathname,
+    UINT32                  *FileSize);

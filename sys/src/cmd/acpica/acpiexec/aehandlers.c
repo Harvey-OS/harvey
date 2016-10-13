@@ -209,14 +209,13 @@ static AE_DEBUG_REGIONS     AeRegions;
  *****************************************************************************/
 
 void ACPI_SYSTEM_XFACE
-AeCtrlCHandler (
-    int                     Sig)
+AeCtrlCHandler (void *v, char *msg)
 {
 
 	//signal (SIGINT, SIG_IGN);
     SigintCount++;
 
-    AcpiOsPrintf ("Caught a ctrl-c (#%u)\n\n", SigintCount);
+    AcpiOsPrintf ("Caught a ctrl-c (#%u), %s\n\n", SigintCount, msg);
 
     if (AcpiGbl_MethodExecuting)
     {

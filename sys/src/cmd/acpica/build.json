@@ -1,7 +1,8 @@
 {
 	"acpica": {
 		"Projects": [
-			"acpiexec/"
+			"acpiexec/",
+			"acpidump/"
 		]
 	}
 }

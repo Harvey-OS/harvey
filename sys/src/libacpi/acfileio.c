@@ -118,7 +118,6 @@
 #include "acapps.h"
 #include "actables.h"
 #include "acutils.h"
-#include <errno.h>
 
 #define _COMPONENT          ACPI_UTILITIES
         ACPI_MODULE_NAME    ("acfileio")
@@ -158,7 +157,6 @@ AcGetAllTablesFromFile (
     UINT8                   GetOnlyAmlTables,
     ACPI_NEW_TABLE_DESC     **ReturnListHead)
 {
-#if 0
     ACPI_NEW_TABLE_DESC     *ListHead = NULL;
     ACPI_NEW_TABLE_DESC     *ListTail = NULL;
     ACPI_NEW_TABLE_DESC     *TableDesc;
@@ -171,12 +169,7 @@ AcGetAllTablesFromFile (
     File = fopen (Filename, "rb");
     if (!File)
     {
-        perror ("Could not open input file");
-        if (errno == ENOENT)
-        {
-            return (AE_NOT_EXIST);
-        }
-
+        fprint(2, "%s: %r\n", Filename);
         return (AE_ERROR);
     }
 
@@ -281,12 +274,9 @@ AcGetAllTablesFromFile (
 ErrorExit:
     fclose(File);
     return (Status);
-#endif
-	sysfatal("Panic can't do this");
+	sysfatal("%s: Panic can't do this", __func__);
 	return AE_OK;
 }
-
-#if 0
 
 /*******************************************************************************
  *
@@ -613,4 +603,3 @@ AcCheckTextModeCorruption (
 
     return (AE_BAD_VALUE);
 }
-#endif
