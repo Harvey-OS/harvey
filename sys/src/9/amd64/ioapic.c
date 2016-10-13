@@ -297,7 +297,7 @@ static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 			todo[(tbdf>>11)&0x1fff].v = *v;
 			todo[(tbdf>>11)&0x1fff].lo = lo | TMlevel | IPlow | Im;
 			todo[(tbdf>>11)&0x1fff].valid = 1;
-			print("Set TOOD[0x%x] to valid\n", (tbdf>>11)&0x1fff);
+			print("Set todo[0x%x] to valid\n", (tbdf>>11)&0x1fff);
 			return -1;
 		}
 	}

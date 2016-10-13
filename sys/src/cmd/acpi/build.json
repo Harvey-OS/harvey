@@ -13,6 +13,7 @@
 		    "alltables.c"
 		],
 		"SourceFilesCmd": [
+			"crs.c",
 			"irq.c"
 		]
 	}

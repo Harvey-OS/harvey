@@ -337,7 +337,7 @@ AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length)
 		return nil;
 	}
 	//hexdump(v, Length);
-	hexdump(v, 36);
+	//hexdump(v, 36);
 	return v;
 }
 
