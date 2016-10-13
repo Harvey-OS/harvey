@@ -124,17 +124,19 @@ static Acpilist *acpilists;
 
 /*
  * Given a base address, bind the list that contains it.
+ * It's possible and allowed for ACPICA to ask for a bigger region,
+ * so size matters.
  */
-static Acpilist *findlist(uintptr_t base)
+static Acpilist *findlist(uintptr_t base, uint size)
 {
 	Acpilist *a = acpilists;
 	//print("findlist: find %p\n", (void *)base);
 	for(; a; a = a->next){
-		if ((base >= a->base) && (base < (a->base + a->size))){
+		if ((base >= a->base) && ((base + size) < (a->base + a->size))){
 			return a;
 		}
 	}
-	print("Can't find list for %p\n", (void *)base);
+	//print("Can't find list for %p\n", (void *)base);
 	return nil;
 }
 /*
@@ -506,6 +508,20 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 		print("sdtmap: nil pa\n");
 		return nil;
 	}
+	if (want) {
+		sdt = vmap(pa, want);
+		if (sdt == nil) {
+			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, want);
+			return nil;
+		}
+		/* realistically, we get a full page, and acpica seems to know that somehow. */
+		uintptr_t endaddress = (uintptr_t) sdt;
+		endaddress += want + 0xfff;
+		endaddress &= ~0xfff;
+		want = endaddress - (uintptr_t)sdt;
+		*n = want;
+	} else {
+
 	sdt = vmap(pa, sizeof(Sdthdr));
 	if (sdt == nil) {
 		print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
@@ -520,19 +536,17 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 		return nil;
 	}
-	if (*n == 0x80000000) {
-		*n = want;
-		print("sdt has high bit set; weird vmware table? pa = %p\n", pa);
-	}
+
 	sdt = vmap(pa, *n);
 	if (sdt == nil) {
-		print("acpi: vmap full table @%p/%d: nil\n", (void *)pa, *n);
+		print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
 		return nil;
 	}
 	//print("check it\n");
 	if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
 		print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
 		return nil;
+	}
 	}
 	//print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
@@ -1999,8 +2013,13 @@ static int tlen;
 static int32_t
 acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Acpilist *l;
 	int ret;
+
+	/* due to vmap limitations, you have to be on core 0. Make
+	 * it easy for them. */
+	procwired(up, 0);
 
 	/* This is horribly insecure but, for now,
 	 * focus on getting it to work.
@@ -2023,7 +2042,7 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 		return readmem(0, a, n, rsd, sizeof(*rsd));
 	}
 
-	l = findlist(off);
+	l = findlist(off, n);
 	/* we don't load all the lists, so this may be a new one. */
 	if (! l) {
 		size_t _;
@@ -2032,7 +2051,7 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
 			error(msg);
 		}
-		l = findlist(off);
+		l = findlist(off, n);
 	}
 	/* we really need to improve on plan 9 error message handling. */
 	if (! l){
