@@ -9,7 +9,7 @@ terminal = "ninep"
 mntgen -s slashn && chmod 666 /srv/slashn
 
 # bind all likely devices (#S was bound in boot)
-for(i in f t m v L P u U '$' Σ κ)
+for(i in f t m v L P u U '$' Σ κ Q)
 	/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
 
 # ONLY FOR LOCAL DISK! We need better hack checking

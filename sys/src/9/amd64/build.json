@@ -48,7 +48,8 @@
 					"uart",
 					"ws",
 					"usb",
-					"vga"
+					"vga",
+					"vq"
 				],
 				"Ip": [
 					"tcp",
@@ -123,6 +124,8 @@
 			"devacpi.c",
 			"devusb.c",
 			"devvga.c",
+			"devvq.c",
+			"vq9p.c",
 			"ether8139.c",
 			"ether82563.c",
 			"cpu.c",
