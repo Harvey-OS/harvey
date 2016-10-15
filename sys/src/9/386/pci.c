@@ -193,7 +193,6 @@ pcilscan(int bno, char *path, Pcidev** list)
 				}
 				break;
 
-			case 0x00:
 			case 0x05:		/* memory controller */
 			case 0x06:		/* bridge device */
 				break;
