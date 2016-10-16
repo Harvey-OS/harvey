@@ -193,7 +193,11 @@ pcilscan(int bno, char *path, Pcidev** list)
 				}
 				break;
 
-			case 0x00:
+			/*
+			 * Some virtio-pci devices have ccrb == 0x00, their BARs and
+			 * sizes also should be picked here.
+			 */
+
 			case 0x05:		/* memory controller */
 			case 0x06:		/* bridge device */
 				break;
