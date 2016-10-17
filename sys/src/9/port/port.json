@@ -76,6 +76,7 @@
 			"../port/syszio.c",
 			"../port/taslock.c",
 			"../port/tod.c",
+			"../port/virtio_lib.c",
 			"../port/watermarks.c"
 		]
 	}
