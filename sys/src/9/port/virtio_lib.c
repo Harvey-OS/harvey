@@ -8,8 +8,6 @@
  * contained in the LICENSE.gpl file.
  */
 
-// devvq.c ('#Q'): a generic virtqueue driver.
-
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
