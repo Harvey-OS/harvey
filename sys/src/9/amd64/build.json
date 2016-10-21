@@ -48,6 +48,7 @@
 					"uart",
 					"ws",
 					"usb",
+					"vcon",
 					"vga"
 				],
 				"Ip": [
