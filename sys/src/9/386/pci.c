@@ -19,6 +19,8 @@
 
 #include "io.h"
 
+void virtiosetup();
+
 int
 pcicapoff(Pcidev *p);
 
@@ -413,6 +415,10 @@ pcicfginit(void)
 
 	pcireservemem();
 	unlock(&pcicfginitlock);
+
+	// Bring the virtio devices live.
+	
+	virtiosetup();
 
 	//if(getconf("*pcihinv"))
 	pcihinv(nil);

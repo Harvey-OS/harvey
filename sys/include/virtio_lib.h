@@ -59,6 +59,43 @@ void reldescr(Virtq *q, int n, uint16_t *descr);
 
 int initvdevs(Vqctl **vcs);
 
+int vqalloc(Virtq **pq, int qs);
+
 void finalinitvdev(Vqctl *vc);
 
+int readvdevcfg(Vqctl *vc, void *va, int32_t n, int64_t offset);
+
+Vqctl *vdevbyidx(uint32_t idx);
+
+uint32_t vdevfeat(Vqctl *vc, uint32_t(*ffltr)(uint32_t));
+
+uint32_t getvdevnum(void);
+
+uint32_t getvdevsbypciid(int pciid, Vqctl **vqs, uint32_t n);
+
 static inline struct vring_desc * q2descr(Virtq *q, int i) { return q->vr.desc + i; }
+
+// Unified QID conversions between values and device/queue indices. We allocate bits:
+// 0 - 7 for QID type (specific to each driver)
+// 16 - 27 for device index (to use with vdevbyidx)
+// 32 - 63 for queue index within device
+
+// Extract QID type
+
+#define TYPE(q)			((uint32_t)(q).path & 0xFF)
+
+// Extract device index
+
+#define DEV(q)			((uint32_t)(((q).path >> 4) & 0x0FFF))
+
+// Extract queue index
+
+#define VQ(q)			((uint32_t)(((q).path >> 16) & 0x0FFFF))
+
+// Construct a non-queue aware QID (to address a per-device file)
+
+#define QID(c, t)		((((c) & 0x0FFF)<<4) | ((t) & 0xFF))
+
+// Construct a queue-aware QID (to address a per-queue file)
+
+#define VQQID(q, c, t)	((((q) & 0x0FFFF)<<16) | (((c) & 0x0FFF)<<4) | ((t) & 0x0F))
