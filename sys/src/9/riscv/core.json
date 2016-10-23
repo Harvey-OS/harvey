@@ -57,7 +57,7 @@
 		"SourceFiles": [
 			"ctype.c",
 			"main.c",
-			"spike_util.c"
+			"uart.c"
 		]
 	}
 }
