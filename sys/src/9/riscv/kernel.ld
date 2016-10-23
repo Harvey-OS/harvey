@@ -8,12 +8,12 @@
 OUTPUT_ARCH("riscv")
 /*OUTPUT_FORMAT("elf64-littleriscv", "elf64-x86-64", "elf64-x86-64") */
 ENTRY(main)
-KERN_LOAD_ADDR = 0xffffffff80000000;
+KERN_LOAD_ADDR = 0xffffffff00000000;
 
 SECTIONS
 {
-	/* Entry Linked and loaded at 0x00810000 */
-	. = 0x00810000;
+	/* Entry Linked and loaded at 0x80810000 */
+	. = 0x80810000;
 
 	.bootstrap : {
 		*(.boottext .bootdata)
