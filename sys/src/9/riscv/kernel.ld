@@ -12,8 +12,8 @@ KERN_LOAD_ADDR = 0xffffffff00000000;
 
 SECTIONS
 {
-	/* Entry Linked and loaded at 0x80810000 */
-	. = 0x80810000;
+	/* Entry Linked and loaded at 0x81810000 */
+	. = 0x81810000;
 
 	.bootstrap : {
 		*(.boottext .bootdata)
