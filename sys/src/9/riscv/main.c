@@ -16,11 +16,25 @@
 #include "init.h"
 #include "io.h"
 
+void testPrint(uint8_t c);
+
+void fuck(char *s)
+{
+	while (*s)
+		testPrint(*s++);
+}
+
+static int x = 0x123456;
+
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
-	void testPrint(void);
-	
-	while (1)
-		testPrint();
+
+	testPrint('0');
+	if (x != 0x123456)
+		fuck("Data is not set up correctly\n");
+	//memset(edata, 0, end - edata);
+	fuck("got somewhere");
+	while (1);
+
 }
