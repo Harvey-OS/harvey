@@ -54,7 +54,7 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
-int nosmp = 1;
+int nosmp;
 int acpionly = 1;
 
 void*
@@ -605,7 +605,6 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 	umeminit();
-	trapinit();
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -618,6 +617,7 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	procinit0();
 	print("before mpacpi, maxcores %d\n", maxcores);
 	mpacpi(maxcores);
+	trapinit();
 	apiconline();
 	/* Forcing to single core if desired */
 	if(!nosmp) {
