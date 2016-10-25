@@ -39,7 +39,8 @@
 			"tsemacquire.c",
 			"va_copy.c",
 			"vseprint.c",
-			"waserror.c"
+			"waserror.c",
+			"writev.c"
 		]
 	}
 }
