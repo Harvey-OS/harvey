@@ -19,7 +19,7 @@
 			"-I", "/sys/src/9/riscv",
 			"-I", "/sys/src/9/port"
 		],
-		"NoLibs": [
+	    "Libs": [
 			"/$ARCH/lib/klibc.a"
 		],
 		"Oflags": [
@@ -55,6 +55,7 @@
 			"trap.c"
 		],
 		"SourceFiles": [
+			"asm.S",
 			"ctype.c",
 			"main.c",
 			"uart.c"
