@@ -4,14 +4,16 @@
 			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/ip",
+		"NoProjects": [
+			"snoopy/build.json"
+		],
 		"Projects": [
 			"ftpd.json",
 			"dhcpd/dhcpd.json",
 			"dhcpd/dhcpleases.json",
 			"ftpfs/ftpfs.json",
 			"httpd/httpd.json",
-			"ipconfig/ipconfig.json",
-			"snoopy/build.json"
+			"ipconfig/ipconfig.json"
 		],
 		"SourceFilesCmd": [
 			"ping.c",

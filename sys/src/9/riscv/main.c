@@ -16,6 +16,8 @@
 #include "init.h"
 #include "io.h"
 
+extern void (*consuartputs)(char*, int);
+
 void testPrint(uint8_t c);
 
 void msg(char *s)
@@ -27,6 +29,12 @@ void die(char *s)
 {
 	msg(s);
 	while (1);
+}
+
+static void puts(char * s, int n)
+{
+	while (n--)
+		testPrint(*s++);
 }
 
 static int x = 0x123456;
@@ -68,9 +76,19 @@ void bsp(void)
 	active.exiting = 0;
 	active.nbooting = 0;
 
-	msg("call asminit\n");
-	/* TODO: can the asm code be made portable? A lot of it looks like it can. */
-	//asminit();
+	/*
+	 * Need something for initial delays
+	 * until a timebase is worked out.
+	 */
+	mach->cpuhz = 2000000000ll;
+	mach->cpumhz = 2000;
+	sys->cyclefreq = mach->cpuhz;
+
+	// this is in 386, so ... not yet. i8250console("0");
+	// probably pull in the one from coreboot for riscv.
+
+	consuartputs = puts;
+
 	die("Completed hart for bsp OK!\n");
 }
 

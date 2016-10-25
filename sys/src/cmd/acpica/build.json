@@ -1,6 +1,6 @@
 {
 	"acpica": {
-		"Projects": [
+		"NoProjectsSinceCanNotBuildOnRISCVYet": [
 			"acpiexec/"
 		]
 	}
