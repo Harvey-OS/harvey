@@ -8,6 +8,12 @@
  */
 
 #include "../port/portfns.h"
+
+/* assembly code support from asm.S */
+void startmach(void (*f)(void), void *m);
+Mach *machp(void);
+
+/* other functions */
 void	intrac(Proc*);
 void	acinit(void);
 int	acpiinit(void);
@@ -135,7 +141,7 @@ uint64_t	spllo(void);
 void	splx(uint64_t);
 void	splxpc(uint64_t);
 void	kstackok(void); /* panic if kstack guards garbaged, works with and without externup */
-Stackframe	*stackframe(void); /* l64v.S */
+Stackframe	*stackframe(void); /* asm.S */
 void	stacksnippet(void);
 void	stopac(void);
 void	syncclock(void);
