@@ -17,7 +17,8 @@
 			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/riscv",
-			"-I", "/sys/src/9/port"
+			"-I", "/sys/src/9/port",
+			"-I", "/sys/src/libc/9syscall"
 		],
 	    "Libs": [
 			"/$ARCH/lib/klibc.a"

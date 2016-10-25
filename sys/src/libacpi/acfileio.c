@@ -118,7 +118,6 @@
 #include "acapps.h"
 #include "actables.h"
 #include "acutils.h"
-#include <errno.h>
 
 #define _COMPONENT          ACPI_UTILITIES
         ACPI_MODULE_NAME    ("acfileio")
