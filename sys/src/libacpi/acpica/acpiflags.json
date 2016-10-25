@@ -19,6 +19,7 @@
 			"-Wno-unused-variable",
 			"-Wall", 
 			"-nostdlib",
+			"-nostdinc",
 		        "-fno-builtin",
 			"-include", "u.h",
 			"-include", "libc.h",

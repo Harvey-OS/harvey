@@ -4,9 +4,10 @@
 			"CONF=riscvcpu"
 		],
 		"Include": [
-			"core.json"
+			"core.json",
+			"../port/riscvport.json"
 		],
-		"IncludeSomeday": [
+		"IncludeSomedayWhenRISCVgetsvirtio": [
 			"../ip/ip.json",
 			"../port/port.json"
 		],
