@@ -1,0 +1,17 @@
+{
+    "archfiles": {
+	"SourceFiles": [
+	    "$ARCH/notejmp.c",
+	    "$ARCH/cycles.c",
+	    "$ARCH/argv0.c",
+	    "$ARCH/getcallerpc.c",
+	    "$ARCH/getcallstack.c",
+	    "$ARCH/rdpmc.c",
+	    "$ARCH/setjmp.s",
+	    "$ARCH/sqrt.s",
+	    "$ARCH/tas.s",
+	    "$ARCH/atom.S",
+	    "$ARCH/main9.S"
+	]
+    }
+}

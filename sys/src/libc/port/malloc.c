@@ -147,6 +147,7 @@ ppanic(Pool *p, char *fmt, ...)
 {
 	va_list v;
 	int n;
+	uintptr stack[6];
 	char *msg;
 	Private *pv;
 
@@ -170,10 +171,9 @@ ppanic(Pool *p, char *fmt, ...)
 		write(pv->printfd, "\n", 1);
 	}
 	va_end(v);
+	getcallstack(stack, nelem(stack));
 	n = seprint(msg, msg+sizeof(panicbuf), "stack: %x, %x, %x %x, %x, %x\n",
-	    __builtin_return_address(1), __builtin_return_address(2), __builtin_return_address(3),
-	    __builtin_return_address(4), __builtin_return_address(5), __builtin_return_address(6)
-	    ) - msg;
+	    stack[0], stack[1], stack[2], stack[3], stack[4], stack[5]) - msg;
 	write(2, msg, n);
 	if(pv->printfd != 2){
 	    write(pv->printfd, msg, n);
