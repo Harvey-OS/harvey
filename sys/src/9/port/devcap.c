@@ -236,9 +236,9 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 		if(key == nil)
 			error(Eshort);
 		*key++ = 0;
-
-		hmac_sha1((uint8_t*)from, strlen(from), (uint8_t*)key,
-			  strlen(key), hash, nil);
+		panic("need a sha256");
+		//hmac_sha1((uint8_t*)from, strlen(from), (uint8_t*)key,
+		//strlen(key), hash, nil);
 
 		p = remcap(hash);
 		if(p == nil){

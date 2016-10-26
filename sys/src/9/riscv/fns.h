@@ -160,24 +160,10 @@ void*	vmap(uintptr_t, usize);
 void	vsvminit(int, int, Mach *);
 void	vunmap(void*, usize);
 
-extern uint64_t cr0get(void);
-extern void cr0put(uint64_t);
-extern uint64_t cr2get(void);
-extern uint64_t cr3get(void);
-extern void cr3put(uint64_t);
-extern uint64_t cr4get(void);
-extern void cr4put(uint64_t);
-extern void gdtget(void*);
-extern void gdtput(int, uint64_t, uint16_t);
+extern uint64_t rootget(void);
+extern void rootput(uintptr_t);
 extern void idtput(int, uint64_t);
-extern uint64_t rdmsr(uint32_t);
 extern uint64_t rdtsc(void);
-extern void trput(uint64_t);
-extern void wrmsr(uint32_t, uint64_t);
-
-// TODO(aki): once we figure this out, these will go.
-extern int infected_with_std(void);
-extern void disinfect_std(void);
 
 extern int islo(void);
 extern void spldone(void);
