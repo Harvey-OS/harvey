@@ -113,7 +113,6 @@
 			"port/fmod.c",
 			"port/frand.c",
 			"port/frexp.c",
-			"port/getcallerpc.c",
 			"port/getfields.c",
 			"port/getuser.c",
 			"port/hangup.c",

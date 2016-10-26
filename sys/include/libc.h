@@ -322,6 +322,7 @@ extern	int	encodefmt(Fmt*);
 extern	void	exits(const char*);
 extern	double	frexp(double, int*);
 extern	uintptr	getcallerpc(void);
+extern	void	getcallstack(uintptr *, size_t);
 extern	char*	getenv(const char*);
 extern	int	getfields(char*, char**, int, int, const char*);
 extern	int	gettokens(char *, char **, int, const char *);
