@@ -59,7 +59,10 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 void
 error(char *s)
 {
-	fprint(2, "acme: %s(%x <- %x): %r\n", s,  __builtin_return_address(1),  __builtin_return_address(2));
+	uintptr stack[2];
+
+	getcallstack(stack, nelem(stack));
+	fprint(2, "acme: %s(%x <- %x): %r\n", s, stack[0], stack[1]);
 	remove(acmeerrorfile);
 	abort();
 }
