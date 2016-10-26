@@ -41,12 +41,11 @@
 			"inith.json"
 		],
 	    "MissingSourceFiles": [
-			"arch.c",
+		        "acore.c",
 			"archriscv.c",
 			"asm.c",
 		        "coreboot.c",
 			"devarch.c",
-			"map.c",
 			"memory.c",
 			"mmu.c",
 			"mp.c",
@@ -57,8 +56,18 @@
 		],
 		"SourceFiles": [
 			"asm.S",
+			"arch.c",
+		        "acore.c",
+			"archriscv.c",
 			"ctype.c",
+			"devarch.c",
 			"main.c",
+			"map.c",
+			"mmu.c",
+			"qmalloc.c",
+			"syscall.c",
+			"systab.c",
+		        "tcore.c",
 			"uart.c"
 		]
 	}
