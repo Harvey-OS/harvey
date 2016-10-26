@@ -36,18 +36,11 @@ debugnotes(void *v, char *s)
 static void
 traceassert(char*a)
 {
-	fprint(2, "assert failed: %s, %#p %#p %#p %#p %#p %#p %#p %#p %#p %#p\n", a,
-		__builtin_return_address(2),
-		__builtin_return_address(3),
-		__builtin_return_address(4),
-		__builtin_return_address(5),
-		__builtin_return_address(6),
-		__builtin_return_address(7),
-		__builtin_return_address(8),
-		__builtin_return_address(9),
-		__builtin_return_address(10),
-		__builtin_return_address(11)
-	);
+	uintptr stack[6];
+
+	getcallstack(stack, nelem(stack));
+	fprint(2, "assert failed: %s, %#p %#p %#p %#p %#p %#p\n", a,
+		stack[0], stack[1], stack[2], stack[3], stack[4], stack[5]);
 	exits(a);
 }
 void
