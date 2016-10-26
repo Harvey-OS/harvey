@@ -73,7 +73,8 @@
 		},
 		"Program": "harvey",
 		"SourceFiles": [
-			"aarch64cpu.c"
+			"l.S",
+			"main.c"
 		]
 	}
 }
