@@ -1,6 +1,15 @@
 {
     "archfiles": {
         "SourceFiles": [
+            "$ARCH/ainc.S",
+            "$ARCH/argv0.c",
+            "$ARCH/getcallerpc.S",
+            "$ARCH/getcallstack.S",
+            "$ARCH/main9.S",
+            "$ARCH/notejmp.c",
+            "$ARCH/setjmp.c",
+            "$ARCH/sqrt.c",
+            "$ARCH/tas.S"
         ]
     }
 }
