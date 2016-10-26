@@ -10,19 +10,24 @@
 			"mksys -o ../port/error.h '-mode=error.h' $HARVEY/sys/src/sysconf.json"
 		],
 		"#SourceFiles": [
+			"../port/devcoreboot.c",
+			"../port/devkprof.c",
+			"../port/cpu_buffer.c",
+			"../port/devkbin.c",
+			"../port/devssl.c",
+			"../port/devtls.c"
+		],
+		"SourceFiles": [
 			"../port/alarm.c",
 			"../port/allocb.c",
 			"../port/cache.c",
 			"../port/chan.c",
-			"../port/cpu_buffer.c",
+			"../port/dev.c",
 			"../port/devcap.c",
 			"../port/devcons.c",
-			"../port/devcoreboot.c",
 			"../port/devdup.c",
 			"../port/devenv.c",
 			"../port/devfdmux.c",
-			"../port/devkprof.c",
-			"../port/devkbin.c",
 			"../port/devmnt.c",
 			"../port/devmntn.c",
 			"../port/devpipe.c",
@@ -33,8 +38,6 @@
 			"../port/devsd.c",
 			"../port/devsegment.c",
 			"../port/devsrv.c",
-			"../port/devssl.c",
-			"../port/devtls.c",
 			"../port/devtab.c",
 			"../port/devtrace.c",
 			"../port/devuart.c",
@@ -75,10 +78,7 @@
 			"../port/syszio.c",
 			"../port/taslock.c",
 			"../port/tod.c",
-			"../port/virtio_lib.c",
 			"../port/watermarks.c"
-		],
-		"SourceFiles": [
-			"../port/qio.c"
-		] }
+		]
+	}
 }
