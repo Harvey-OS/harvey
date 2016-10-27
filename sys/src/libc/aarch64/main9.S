@@ -11,3 +11,8 @@
 .globl _main
 _main:
 	RET
+
+.globl gettls0
+gettls0:
+	MOV	x0, #0
+	RET
