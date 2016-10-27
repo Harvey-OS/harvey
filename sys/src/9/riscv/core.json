@@ -17,9 +17,10 @@
 			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/riscv",
-			"-I", "/sys/src/9/port"
+			"-I", "/sys/src/9/port",
+			"-I", "/sys/src/libc/9syscall"
 		],
-		"NoLibs": [
+	    "Libs": [
 			"/$ARCH/lib/klibc.a"
 		],
 		"Oflags": [
@@ -55,9 +56,10 @@
 			"trap.c"
 		],
 		"SourceFiles": [
+			"asm.S",
 			"ctype.c",
 			"main.c",
-			"spike_util.c"
+			"uart.c"
 		]
 	}
 }

@@ -1,0 +1,12 @@
+{
+	"aarch64cpu": {
+		"Env": [
+			"CONF=aarch64cpu"
+		],
+		"Program": "harvey",
+		"SourceFiles": [
+			"l.S",
+			"main.c"
+		]
+	}
+}

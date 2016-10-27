@@ -16,11 +16,90 @@
 #include "init.h"
 #include "io.h"
 
+extern void (*consuartputs)(char*, int);
+
+void testPrint(uint8_t c);
+
+void msg(char *s)
+{
+	while (*s)
+		testPrint(*s++);
+}
+void die(char *s)
+{
+	msg(s);
+	while (1);
+}
+
+static void puts(char * s, int n)
+{
+	while (n--)
+		testPrint(*s++);
+}
+
+static int x = 0x123456;
+
+/* mach struct for hart 0. */
+/* in many plan 9 implementations this stuff is all reserved in early assembly.
+ * we don't have to do that. */
+static uint64_t m0stack[4096];
+static Mach m0;
+
+/* general purpose hart startup. We call this via startmach.
+ * When we enter here, the machp() function is usable.
+ */
+
+void hart(void)
+{
+	//Mach *mach = machp();
+	die("not yet");
+}
+
+void bsp(void)
+{
+	Mach *mach = machp();
+	if (mach != &m0)
+		die("MACH NOT MATCH");
+	msg("memset mach\n");
+	memset(mach, 0, sizeof(Mach));
+	msg("done that\n");
+
+	mach->self = (uintptr_t)mach;
+	msg("SET SELF OK\n");
+	mach->machno = 0;
+	mach->online = 1;
+	mach->NIX.nixtype = NIXTC;
+	mach->stack = PTR2UINT(m0stack);
+	*(uintptr_t*)mach->stack = STACKGUARD;
+	mach->externup = nil;
+	active.nonline = 1;
+	active.exiting = 0;
+	active.nbooting = 0;
+
+	/*
+	 * Need something for initial delays
+	 * until a timebase is worked out.
+	 */
+	mach->cpuhz = 2000000000ll;
+	mach->cpumhz = 2000;
+	sys->cyclefreq = mach->cpuhz;
+
+	// this is in 386, so ... not yet. i8250console("0");
+	// probably pull in the one from coreboot for riscv.
+
+	consuartputs = puts;
+
+	die("Completed hart for bsp OK!\n");
+}
+
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
-	void testPrint(void);
-	
-	while (1)
-		testPrint();
+
+	testPrint('0');
+	if (x != 0x123456)
+		die("Data is not set up correctly\n");
+	//memset(edata, 0, end - edata);
+	msg("got somewhere");
+	startmach(bsp, &m0);
 }
