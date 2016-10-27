@@ -4,6 +4,8 @@
 	    "$ARCH/notejmp.c",
 	    "$ARCH/argv0.c",
 	    "$ARCH/atomic.S",
+	    "$ARCH/getcallerpc.c",
+	    "$ARCH/getcallstack.c",
 	    "$ARCH/main9.S",
 	    "$ARCH/setjmp.S",
 	    "$ARCH/_spl.S",
