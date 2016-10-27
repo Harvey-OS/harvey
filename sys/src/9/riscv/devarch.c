@@ -563,13 +563,6 @@ timerset(uint64_t x)
 }
 
 void
-cycles(uint64_t* t)
-{
-	panic("cycles");
-	*t = 0;
-}
-
-void
 delay(int millisecs)
 {
 	uint64_t r, t;
