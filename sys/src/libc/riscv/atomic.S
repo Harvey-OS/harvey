@@ -19,8 +19,11 @@ _tas32:
 tas32:
 .globl _tas				/* int _tas(int *); */
 _tas:
+	mv	a3, a0
 	li           a1, 1
+	ld	     a2, 0(a0)
 	amoswap.w.aq a0, a1, 0(a0)
+	ld		a3, 0(a3)
 	ret
 
 .globl aswap				/* int aswap(int *, int); */
@@ -35,7 +38,7 @@ aswap:
 // a2 holds desired value
 // v0 return value, 0 if successful, !0 otherwise
 cas32:
-	lr.w x16, (a0)  // Load original value
+	lr.w x17, (a0)  // Load original value
 	li x16, 1 # Preset return to fail
 	bne x17, a1, return # Doesn’t match, so fail
 	sc.w x16, a2, (a0) # Try to update

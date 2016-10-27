@@ -6,6 +6,7 @@
 	    "$ARCH/atomic.S",
 	    "$ARCH/getcallerpc.c",
 	    "$ARCH/getcallstack.c",
+	    "$ARCH/gettls.S",
 	    "$ARCH/main9.S",
 	    "$ARCH/setjmp.S",
 	    "$ARCH/_spl.S",
