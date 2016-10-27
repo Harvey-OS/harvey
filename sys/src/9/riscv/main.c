@@ -107,6 +107,24 @@ void bsp(void)
 	msg("call fmtinit\n");
 	fmtinit();
 	msg("done fmtinit\n");
+	static uint64_t i = 0, j;
+	j = tas32(&i);
+	if (j) msg ("tas is weird, i was set\n"); else msg("i was not set in first tas\n");
+	j = tas32(&i);
+	if (j) msg ("tas is ok, i was set\n"); else die("i was not set in second tas\n");
+
+	i = 5;
+	cas32(&i, 5, 6);
+	if (i != 6) die("i is not 6 after cas\n"); else msg ("i is 6 after cas\n");
+
+	static Lock l; // to ensure initialization.
+	if (canlock(&l)) msg ("L can be locked\n"); else die("Can't lock L\n");
+	ilock(&l);
+	if (canlock(&l)) msg ("L can be NOT be locked OK\n"); else die("Can lock L after lock\n");
+	iunlock(&l);
+	if (canlock(&l)) msg ("L can be locked after unlock\n"); else die("Can't lock L afterunlock\n");
+	
+	
 	print("\nHarvey\n");
 
 	die("Completed hart for bsp OK!\n");
@@ -233,6 +251,7 @@ setregisters(Ureg*u, char*f, char*t, int amt)
 
 void cycles(uint64_t *p)
 {
+	return;
 	*p = rdtsc();
 }
 
