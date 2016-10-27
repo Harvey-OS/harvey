@@ -24,7 +24,6 @@ THE SOFTWARE.
 #include "acapps.h"
 #include "actables.h"
 #include "acutils.h"
-#include <errno.h>
 #define DBGFLG 0
 #define _COMPONENT          ACPI_UTILITIES
 ACPI_MODULE_NAME    ("harvey")

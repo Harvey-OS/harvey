@@ -9,8 +9,16 @@
  */
 
 #include <u.h>
+#include <libc.h>
+
+int
+setjmp(jmp_buf buf)
+{
+	return __builtin_setjmp(buf);
+}
 
 void
-main(uint64_t mbmagic, uintptr_t mbaddress)
+longjmp(jmp_buf buf, int n)
 {
+	return __builtin_longjmp(buf, 1);
 }

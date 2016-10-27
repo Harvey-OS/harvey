@@ -9,8 +9,14 @@
  */
 
 #include <u.h>
+#include <libc.h>
+#include <ureg.h>
 
 void
-main(uint64_t mbmagic, uintptr_t mbaddress)
+notejmp(void *vr, jmp_buf j, int ret)
 {
+	// TODO(cross): Write this.
+	(void)vr;
+	(void)j;
+	(void)ret;
 }
