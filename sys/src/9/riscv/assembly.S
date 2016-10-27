@@ -33,4 +33,8 @@ slim_setlabel:
 	SD	x2,16(a0)
 	RET
 
-	
+
+.globl rdtsc
+rdtsc:
+	RDCYCLE a0
+	RET
