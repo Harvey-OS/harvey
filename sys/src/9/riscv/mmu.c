@@ -327,7 +327,7 @@ checkpte(uintmem ppn, void *a)
 	s = seprint(s, buf+sizeof buf,
 		"check2: l%d  pte %#p = %llx\n",
 		l, pte, pte?*pte:~0);
-	if(*pte&PtePS)
+	if(*pte&PteFinal)
 		return;
 	if((l = mmuwalk(pml4, addr, 1, &pte, nil)) < 0 || (*pte&PteP) == 0)
 		goto Panic;
@@ -410,10 +410,12 @@ pteflags(uint attr)
 		flags |= PteRW;
 	if(attr&PTEUSER)
 		flags |= PteU;
+	/* Can't do this -- what do we do?
 	if(attr&PTEUNCACHED)
 		flags |= PtePCD;
+	*/
 	if(attr&PTENOEXEC)
-		flags |= PteNX;
+		flags &= ~PteX;
 	return flags;
 }
 
@@ -516,7 +518,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		switch(pgsz){
 		case 2*MiB:
 		case 1*GiB:
-			*pte |= PtePS;
+			*pte |= attr & PteFinal | PteP;
 			break;
 		default:
 			panic("mmuput: user pages must be 2M or 1G");
@@ -590,7 +592,8 @@ pdmap(uintptr_t pa, int attr, uintptr_t va, usize size)
 		 */
 		if(ALIGNED(pa, PGLSZ(1)) && ALIGNED(va, PGLSZ(1)) && (pae-pa) >= PGLSZ(1)){
 			assert(*pde == 0);
-			*pde = pa|attr|PtePS|PteP;
+			/* attr had better include one of Pte{W,R,X}*/
+			*pde = pa|attr|PteP;
 			pgsz = PGLSZ(1);
 		}
 		else{
@@ -664,7 +667,7 @@ vmapalloc(usize size)
 	n = HOWMANY(size, PGLSZ(0));
 	ptsz = PGLSZ(0)/sizeof(PTE);
 	for(i = 0; i < pdsz; i++){
-		if(!(pd[i] & PteP) || (pd[i] & PtePS))
+		if(!(pd[i] & PteP) || (pd[i] & PteFinal))
 			continue;
 
 		pt = (PTE*)(PDMAP+(PDX(VMAP)+i)*4096);
@@ -732,7 +735,7 @@ vmap(uintptr_t pa, usize size)
 		return nil;
 	}
 	ilock(&vmaplock);
-	if((va = vmapalloc(sz)) == 0 || pdmap(pa, PtePCD|PteRW, va, sz) < 0){
+	if((va = vmapalloc(sz)) == 0 || pdmap(pa, /*PtePCD|*/PteRW, va, sz) < 0){
 		iunlock(&vmaplock);
 		return nil;
 	}
@@ -794,7 +797,7 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 			memset(UINT2PTR(KADDR(pa)), 0, PTSZ);
 			*pte = pa|PteRW|PteP;
 		}
-		else if(*pte & PtePS)
+		else if(*pte & PteFinal)
 			break;
 		pte = UINT2PTR(KADDR(PPN(*pte)));
 		pte += PTLX(va, l-1);
