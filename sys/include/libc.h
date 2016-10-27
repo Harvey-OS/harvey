@@ -372,6 +372,7 @@ struct Lock {
 } Lock;
 
 extern int	_tas(int*);
+extern int	_tas32(int*);
 
 extern	void	lock(Lock*);
 extern	int	lockt(Lock*, uint32_t);
