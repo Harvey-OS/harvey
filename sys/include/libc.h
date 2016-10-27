@@ -385,6 +385,7 @@ struct Lock {
 } Lock;
 
 extern int	_tas(int*);
+extern int	_tas32(int*);
 
 extern	void	lock(Lock*);
 extern	void	unlock(Lock*);
