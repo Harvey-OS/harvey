@@ -43,7 +43,6 @@
 	    "MissingSourceFiles": [
 		        "acore.c",
 			"archriscv.c",
-			"asm.c",
 		        "coreboot.c",
 			"devarch.c",
 			"memory.c",
@@ -55,8 +54,9 @@
 			"trap.c"
 		],
 		"SourceFiles": [
-			"asm.S",
+			"assembly.S",
 			"arch.c",
+			"asm.c",
 		        "acore.c",
 			"archriscv.c",
 			"ctype.c",
@@ -64,6 +64,7 @@
 			"main.c",
 			"map.c",
 			"mmu.c",
+			"physalloc.c",
 			"qmalloc.c",
 			"syscall.c",
 			"systab.c",

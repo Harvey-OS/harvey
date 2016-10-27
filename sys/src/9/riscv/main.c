@@ -102,6 +102,9 @@ void bsp(void)
 	// probably pull in the one from coreboot for riscv.
 
 	consuartputs = puts;
+	asminit();
+	fmtinit();
+	print("\nHarvey\n");
 
 	die("Completed hart for bsp OK!\n");
 }
@@ -143,13 +146,6 @@ void
 hardhalt(void)
 {
 	panic((char *)__func__);
-}
-
-uintmem
-physalloc(uint64_t _, int*__, void*___)
-{
-	panic((char *)__func__);
-	return 0;
 }
 
 void
@@ -207,12 +203,6 @@ void fpusysrfork(Ureg*_)
 void kexit(Ureg*_)
 {
 	panic((char *)__func__);
-}
-
-char*
-seprintphysstats(char*_, char*__)
-{
-	return "NOT YET";
 }
 
 void
@@ -291,12 +281,6 @@ setkernur(Ureg*u, Proc*p)
 	panic((char *)__func__);
 }
 
-
-void
-physfree(uintmem data, uint64_t size)
-{
-	panic("physfree %p 0x%lx", data, size);
-}
 
 void
 stacksnippet(void)
