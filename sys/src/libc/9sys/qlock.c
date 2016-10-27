@@ -46,7 +46,7 @@ getqlp(void)
 			p = ql.x;
 		if(p == op)
 			abort();
-		if(_tas32(&(p->inuse)) == 0){
+		if(_tas(&(p->inuse)) == 0){
 			ql.p = p;
 			p->next = nil;
 			break;
