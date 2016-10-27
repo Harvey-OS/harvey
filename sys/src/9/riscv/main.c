@@ -102,8 +102,11 @@ void bsp(void)
 	// probably pull in the one from coreboot for riscv.
 
 	consuartputs = puts;
+	msg("call asminit\n");
 	asminit();
+	msg("call fmtinit\n");
 	fmtinit();
+	msg("done fmtinit\n");
 	print("\nHarvey\n");
 
 	die("Completed hart for bsp OK!\n");
@@ -169,17 +172,6 @@ userpc(Ureg*u)
 }
 
 
-int tas32(void *_)
-{
-	panic("tas32");
-	return -1;
-}
-int      cas32(void*_, uint32_t __, uint32_t ___)
-{
-	panic((char *)__func__);
-	return -1;
-}
-
 void    exit(int _)
 {
 	panic((char *)__func__);
@@ -239,21 +231,15 @@ setregisters(Ureg*u, char*f, char*t, int amt)
 	panic((char *)__func__);
 }
 
-uint64_t rdtsc(void)
+void cycles(uint64_t *p)
 {
-	panic((char *)__func__);
-	return 0;
+	*p = rdtsc();
 }
 
 int islo(void)
 {
 	panic((char *)__func__);
 	return 0;
-}
-
-void mfence(void)
-{
-	panic((char *)__func__);
 }
 
 uintptr_t

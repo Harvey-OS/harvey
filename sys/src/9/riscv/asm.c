@@ -18,6 +18,9 @@
 #include "dat.h"
 #include "fns.h"
 
+#undef DBG
+void msg(char *);
+#define DBG(fmt, ...) msg(fmt)
 /*
  * Address Space Map.
  * Low duty cycle.
@@ -156,12 +159,16 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 
 	DBG("asmalloc: %#P@%#P, type %d\n", size, addr, type);
 	lock(&asmlock);
+//msg("after lock\n");
 	for(pp = nil, assem = asmlist; assem != nil; pp = assem, assem = assem->next){
+//msg("loop\n");
 		if(assem->type != type)
 			continue;
 		a = assem->addr;
+//msg("loop 2\n");
 
 		if(addr != 0){
+//msg("loop 3\n");
 			/*
 			 * A specific address range has been given:
 			 *   if the current map entry is greater then
@@ -184,11 +191,13 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 			a = addr;
 		}
 
+//msg("loop 4\n");
 		if(align > 0)
 			a = ((a+align-1)/align)*align;
 		if(assem->addr+assem->size-a < size)
 			continue;
 
+//msg("loop 5\n");
 		o = assem->addr;
 		assem->addr = a+size;
 		assem->size -= a-o+size;
@@ -199,12 +208,16 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 			asmfreelist = assem;
 		}
 
+//msg("loop 6\n");
 		unlock(&asmlock);
+//msg("loop 7\n");
 		if(o != a)
 			asmfree(o, a-o, type);
 		return a;
 	}
+//msg("loop 8\n");
 	unlock(&asmlock);
+//msg("loop 9\n");
 
 	return 0;
 }
