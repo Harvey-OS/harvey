@@ -53,6 +53,14 @@ main(int argc, char *argv[])
 		exits("bad usage");
 	}
 
+	/* Skip -f */
+	if(argv[1][0] == '-' && argv[1][1] == 'f' && argv[1][2] == 0) {
+		for(i=2; i<argc; i++) {
+			argv[i-1] = argv[i];
+		}
+		argc--;
+	}
+
 	failed = 0;
 	for(i=1; i < argc-1; i++)
 		if(mv(argv[i], todir, toelem) < 0)
