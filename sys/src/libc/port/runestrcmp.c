@@ -15,15 +15,14 @@ runestrcmp(const Rune *s1, const Rune *s2)
 {
 	Rune c1, c2;
 
-	for(;;) {
+	do{
 		c1 = *s1++;
 		c2 = *s2++;
-		if(c1 != c2) {
-			if(c1 > c2)
-				return 1;
+		if(c1 < c2)
 			return -1;
-		}
-		if(c1 == 0)
-			return 0;
-	}
+		if(c1 > c2)
+			return 1;
+	}while(c1 != 0);
+
+	return 0;
 }
