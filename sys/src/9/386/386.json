@@ -1,7 +1,6 @@
 {
 	"386": {
 		"SourceFiles": [
-			"../386/devether.c",
 			"../386/devrtc.c",
 			"../386/ether8169.c",
 			"../386/ether82557.c",

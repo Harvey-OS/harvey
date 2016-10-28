@@ -27,6 +27,7 @@
 			"../port/devcons.c",
 			"../port/devdup.c",
 			"../port/devenv.c",
+			"../port/devether.c",
 			"../port/devfdmux.c",
 			"../port/devmnt.c",
 			"../port/devmntn.c",

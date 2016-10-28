@@ -21,6 +21,7 @@
 			"../port/devcoreboot.c",
 			"../port/devdup.c",
 			"../port/devenv.c",
+			"../port/devether.c",
 			"../port/devfdmux.c",
 			"../port/devkprof.c",
 			"../port/devkbin.c",
