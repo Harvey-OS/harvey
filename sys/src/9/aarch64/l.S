@@ -4,4 +4,5 @@
 
 .globl _start
 _start:
+_main:
 		WFI

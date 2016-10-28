@@ -16,15 +16,119 @@
 #include "init.h"
 #include "io.h"
 
+extern void (*consuartputs)(char*, int);
+
 void testPrint(uint8_t c);
 
-void fuck(char *s)
+void msg(char *s)
 {
 	while (*s)
 		testPrint(*s++);
 }
+void die(char *s)
+{
+	msg(s);
+	while (1);
+}
+
+void
+ndnr(void)
+{
+	die("ndnr");
+}
+
+static void puts(char * s, int n)
+{
+	while (n--)
+		testPrint(*s++);
+}
 
 static int x = 0x123456;
+
+/* mach struct for hart 0. */
+/* in many plan 9 implementations this stuff is all reserved in early assembly.
+ * we don't have to do that. */
+static uint64_t m0stack[4096];
+static Mach m0;
+Sys asys, *sys=&asys;
+Conf conf;
+uintptr_t kseg0 = KZERO;
+char *cputype = "riscv";
+
+/* I forget where this comes from and I don't care just now. */
+uint32_t kerndate;
+
+
+/* general purpose hart startup. We call this via startmach.
+ * When we enter here, the machp() function is usable.
+ */
+
+void hart(void)
+{
+	//Mach *mach = machp();
+	die("not yet");
+}
+
+void bsp(void)
+{
+	Mach *mach = machp();
+	if (mach != &m0)
+		die("MACH NOT MATCH");
+	msg("memset mach\n");
+	memset(mach, 0, sizeof(Mach));
+	msg("done that\n");
+
+	mach->self = (uintptr_t)mach;
+	msg("SET SELF OK\n");
+	mach->machno = 0;
+	mach->online = 1;
+	mach->NIX.nixtype = NIXTC;
+	mach->stack = PTR2UINT(m0stack);
+	*(uintptr_t*)mach->stack = STACKGUARD;
+	mach->externup = nil;
+	active.nonline = 1;
+	active.exiting = 0;
+	active.nbooting = 0;
+
+	/*
+	 * Need something for initial delays
+	 * until a timebase is worked out.
+	 */
+	mach->cpuhz = 2000000000ll;
+	mach->cpumhz = 2000;
+	sys->cyclefreq = mach->cpuhz;
+
+	// this is in 386, so ... not yet. i8250console("0");
+	// probably pull in the one from coreboot for riscv.
+
+	consuartputs = puts;
+	msg("call asminit\n");
+	asminit();
+	msg("call fmtinit\n");
+	fmtinit();
+	msg("done fmtinit\n");
+	static uint64_t i = 0, j;
+	j = tas32(&i);
+	if (j) msg ("tas is weird, i was set\n"); else msg("i was not set in first tas\n");
+	j = tas32(&i);
+	if (j) msg ("tas is ok, i was set\n"); else die("i was not set in second tas\n");
+
+	i = 5;
+	cas32(&i, 5, 6);
+	if (i != 6) die("i is not 6 after cas\n"); else msg ("i is 6 after cas\n");
+
+	static Lock l; // to ensure initialization.
+	if (canlock(&l)) msg ("L can be locked\n"); else die("Can't lock L\n");
+	ilock(&l);
+	if (canlock(&l)) msg ("L can be NOT be locked OK\n"); else die("Can lock L after lock\n");
+	iunlock(&l);
+	if (canlock(&l)) msg ("L can be locked after unlock\n"); else die("Can't lock L afterunlock\n");
+	
+	
+	print("\nHarvey\n");
+
+	die("Completed hart for bsp OK!\n");
+}
 
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
@@ -32,9 +136,204 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	testPrint('0');
 	if (x != 0x123456)
-		fuck("Data is not set up correctly\n");
+		die("Data is not set up correctly\n");
 	//memset(edata, 0, end - edata);
-	fuck("got somewhere");
-	while (1);
-
+	msg("got somewhere");
+	startmach(bsp, &m0);
 }
+
+/* stubs until we implement in assembly */
+int corecolor(int _)
+{
+	return -1;
+}
+
+Proc *externup(void)
+{
+	return machp()->externup;
+}
+
+void errstr(char *s, int i) {
+	panic("errstr");
+}
+
+void
+oprof_alarm_handler(Ureg *u)
+{
+	panic((char *)__func__);
+}
+
+void
+hardhalt(void)
+{
+	panic((char *)__func__);
+}
+
+void
+ureg2gdb(Ureg *u, uintptr_t *g)
+{
+	panic((char *)__func__);
+}
+
+int
+userureg(Ureg*u)
+{
+	panic((char *)__func__);
+	return -1;
+}
+
+uintptr_t
+userpc(Ureg*u)
+{
+	panic((char *)__func__);
+	return 0;
+}
+
+
+void    exit(int _)
+{
+	panic((char *)__func__);
+}
+
+void fpunoted(void)
+{
+	panic((char *)__func__);
+}
+
+void fpunotify(Ureg*_)
+{
+	panic((char *)__func__);
+}
+
+void fpusysrfork(Ureg*_)
+{
+	panic((char *)__func__);
+}
+
+void kexit(Ureg*_)
+{
+	panic((char *)__func__);
+}
+
+void
+reboot(void*_, void*__, int32_t ___)
+{
+	panic("reboot");
+}
+
+void fpusysprocsetup(Proc *_)
+{
+	panic((char *)__func__);
+}
+
+void sysrforkret(void)
+{
+	panic((char *)__func__);
+}
+
+void     fpusysrforkchild(Proc*_, Proc*__)
+{
+	panic((char *)__func__);
+}
+
+int
+fpudevprocio(Proc*p, void*v, int32_t _, uintptr_t __, int ___)
+{
+	panic((char *)__func__);
+	return -1;
+}
+
+void
+setregisters(Ureg*u, char*f, char*t, int amt)
+{
+	panic((char *)__func__);
+}
+
+void cycles(uint64_t *p)
+{
+	return;
+	*p = rdtsc();
+}
+
+int islo(void)
+{
+	panic((char *)__func__);
+	return 0;
+}
+
+uintptr_t
+dbgpc(Proc*p)
+{
+	panic((char *)__func__);
+	return 0;
+}
+
+
+void dumpstack(void)
+{
+	panic((char *)__func__);
+}
+
+void
+dumpgpr(Ureg* ureg)
+{
+	panic((char *)__func__);
+}
+
+void
+setkernur(Ureg*u, Proc*p)
+{
+	panic((char *)__func__);
+}
+
+
+void
+stacksnippet(void)
+{
+	//Stackframe *stkfr;
+	kmprint(" stack:");
+//	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
+//		kmprint(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
+	kmprint("\n");
+}
+
+
+/* crap. */
+/* this should come from build but it's intimately tied in to VGA. Crap. */
+Physseg physseg[8];
+int nphysseg = 8;
+
+/* bringup -- remove asap. */
+void
+DONE(void)
+{
+	print("DONE\n");
+	//prflush();
+	delay(10000);
+	ndnr();
+}
+
+void
+HERE(void)
+{
+	print("here\n");
+	//prflush();
+	delay(5000);
+}
+
+/* The old plan 9 standby ... wave ... */
+
+/* Keep to debug trap.c */
+void wave(int c)
+{
+	testPrint(c);
+}
+
+void hi(char *s)
+{
+	if (! s)
+		s = "<NULL>";
+	while (*s)
+		wave(*s++);
+}
+

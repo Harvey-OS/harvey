@@ -4,9 +4,10 @@
 			"CONF=riscvcpu"
 		],
 		"Include": [
-			"core.json"
+			"core.json",
+			"../port/riscvport.json"
 		],
-		"IncludeSomeday": [
+		"IncludeSomedayWhenRISCVgetsvirtio": [
 			"../ip/ip.json",
 			"../port/port.json"
 		],
@@ -17,14 +18,15 @@
 					"uint32_t kerndate = 1;"
 				],
 				"NoDev": [
+					"kbin",
+					"kprof"
+				],
+				"Dev": [
 					"arch",
 					"cap",
 					"cons",
 					"dup",
 					"env",
-					"ip",
-					"kbin",
-					"kprof",
 					"mnt",
 					"mntn",
 					"pipe",
@@ -33,11 +35,8 @@
 					"root",
 					"segment",
 					"srv",
-					"ssl",
-					"tls",
 					"uart",
-					"ws",
-					"zp"
+					"ws"
 				],
 				"NoIp": [
 					"tcp",

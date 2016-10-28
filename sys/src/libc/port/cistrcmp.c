@@ -9,27 +9,25 @@
 
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 
 int
 cistrcmp(const char *s1, const char *s2)
 {
-	int c1, c2;
+	unsigned int c1, c2;
 
-	while(*s1){
+	do{
 		c1 = *(uint8_t*)s1++;
 		c2 = *(uint8_t*)s2++;
-
 		if(c1 == c2)
 			continue;
+		c1 = tolower(c1);
+		c2 = tolower(c2);
+		if(c1 < c2)
+			return -1;
+		if(c1 > c2)
+			return 1;
+	}while(c1 != 0);
 
-		if(c1 >= 'A' && c1 <= 'Z')
-			c1 -= 'A' - 'a';
-
-		if(c2 >= 'A' && c2 <= 'Z')
-			c2 -= 'A' - 'a';
-
-		if(c1 != c2)
-			return c1 - c2;
-	}
-	return -*s2;
+	return 0;
 }

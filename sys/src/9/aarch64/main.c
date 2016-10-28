@@ -8,7 +8,9 @@
  * contained in the LICENSE.gpl file.
  */
 
+#include <u.h>
+
 void
-main(uint32_t mbmagic, uint32_t mbaddress)
+main(uint64_t mbmagic, uintptr_t mbaddress)
 {
 }

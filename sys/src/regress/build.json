@@ -4,6 +4,9 @@
 			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/regress",
+		"NoSourceFilesCmd": [
+			"tls.c"
+		],
 		"SourceFilesCmd": [
 			"alarm.c",
 			"args.c",
@@ -35,7 +38,6 @@
 			"sysfatal.c",
 			"sysstatread.c",
 			"thread.c",
-			"tls.c",
 			"tsemacquire.c",
 			"va_copy.c",
 			"vseprint.c",
