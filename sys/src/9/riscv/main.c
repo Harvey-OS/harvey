@@ -55,6 +55,7 @@ Sys asys, *sys=&asys;
 Conf conf;
 uintptr_t kseg0 = KZERO;
 char *cputype = "riscv";
+int64_t hz;
 
 /* I forget where this comes from and I don't care just now. */
 uint32_t kerndate;
@@ -91,6 +92,11 @@ void bsp(void *stack)
 	active.exiting = 0;
 	active.nbooting = 0;
 
+	consuartputs = puts;
+	msg("call asminit\n");
+	asminit();
+	asmmapinit(0x81000000, 0xc0000000, 1); print("asmmodinit\n");
+
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
@@ -98,42 +104,32 @@ void bsp(void *stack)
 	mach->cpuhz = 2000000000ll;
 	mach->cpumhz = 2000;
 	sys->cyclefreq = mach->cpuhz;
-
-	// this is in 386, so ... not yet. i8250console("0");
-	// probably pull in the one from coreboot for riscv.
-
-	consuartputs = puts;
-	msg("call asminit\n");
-	asminit();
-	msg("call fmtinit\n");
-	fmtinit();
-	msg("done fmtinit\n");
-	static uint64_t i = 0, j;
-	j = tas32(&i);
-	if (j) msg ("tas is weird, i was set\n"); else msg("i was not set in first tas\n");
-	j = tas32(&i);
-	if (j) msg ("tas is ok, i was set\n"); else die("i was not set in second tas\n");
-
-	i = 5;
-	cas32(&i, 5, 6);
-	if (i != 6) die("i is not 6 after cas\n"); else msg ("i is 6 after cas\n");
-
-	static Lock l; // to ensure initialization.
-	if (canlock(&l)) msg ("L can be locked\n"); else die("Can't lock L\n");
-	unlock(&l);
-	if (canlock(&l)) msg ("L can be NOT be locked OK\n"); else die("Can lock L after lock\n");
-	unlock(&l);
-	if (canlock(&l)) msg ("L can be locked after unlock\n"); else die("Can't lock L afterunlock\n");
-	msg("REAL\n");
 	
+	sys->nmach = 1;
+
+	fmtinit();
 	print("\nHarvey\n");
 
+	mach->perf.period = 1;
+	if((hz = archhz()) != 0ll){
+		mach->cpuhz = hz;
+		mach->cyclefreq = hz;
+		sys->cyclefreq = hz;
+		mach->cpumhz = hz/1000000ll;
+	}
+
 	print("print a number like 5 %d\n", 5);
-	ioinit();
-	//meminit();
-	//confinit();
-	archinit();
-	mallocinit();
+	/*
+	 * Mmuinit before meminit because it
+	 * flushes the TLB via machp()->pml4->pa.
+	 */
+	mmuinit();
+
+	ioinit(); print("ioinit\n");
+	meminit();print("meminit\n");
+	confinit();print("confinit\n");
+	archinit();print("archinit\n");
+	mallocinit();print("mallocinit\n");
 
 	/* test malloc. It's easier to find out it's broken here,
 	 * not deep in some call chain.
@@ -149,6 +145,18 @@ void bsp(void *stack)
 
 
 	die("Completed hart for bsp OK!\n");
+}
+
+void
+confinit(void)
+{
+	int i;
+
+	conf.npage = 0;
+	for(i=0; i<nelem(conf.mem); i++)
+		conf.npage += conf.mem[i].npage;
+	conf.nproc = 1000;
+	conf.nimage = 200;
 }
 
 void

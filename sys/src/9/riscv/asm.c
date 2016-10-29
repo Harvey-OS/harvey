@@ -20,7 +20,7 @@
 
 #undef DBG
 void msg(char *);
-#define DBG(fmt, ...) msg(fmt)
+#define DBG print
 /*
  * Address Space Map.
  * Low duty cycle.
@@ -157,7 +157,7 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 	uintmem a, o;
 	Asm *assem, *pp;
 
-	DBG("asmalloc: %#P@%#P, type %d\n", size, addr, type);
+	DBG("asmalloc: %p@%p, type %d\n", size, addr, type);
 	lock(&asmlock);
 //msg("after lock\n");
 	for(pp = nil, assem = asmlist; assem != nil; pp = assem, assem = assem->next){
@@ -165,6 +165,7 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 		if(assem->type != type)
 			continue;
 		a = assem->addr;
+print("asmalloc: try %p\n", a);
 //msg("loop 2\n");
 
 		if(addr != 0){
@@ -210,13 +211,16 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 
 //msg("loop 6\n");
 		unlock(&asmlock);
+print("o %p\n", o);
 //msg("loop 7\n");
 		if(o != a)
 			asmfree(o, a-o, type);
+print("going to return %p\n", a);
 		return a;
 	}
 //msg("loop 8\n");
 	unlock(&asmlock);
+print("FAILED\n");
 //msg("loop 9\n");
 
 	return 0;
@@ -235,9 +239,15 @@ asminsert(uintmem addr, uintmem size, int type)
 void
 asminit(void)
 {
+	uintmem m;
+print("asminit. \n");
 	sys->pmstart = ROUNDUP(PADDR(end), PGSZ);
+print("sys->pmstart 0x%x\n", sys->pmstart);
 	sys->pmend = sys->pmstart;
-	asmalloc(0, sys->pmstart, AsmNONE, 0);
+print("sys->pmend 0x%x\n", sys->pmend);
+print("asminit  0 sys->pmstart 0x%x\n", sys->pmstart);
+	m = asmalloc(0, sys->pmstart, AsmNONE, 0);
+print("asmalloc returned %p\n", m);
 }
 
 /*
@@ -338,11 +348,14 @@ asmmeminit(void)
 	int cx;
 #endif /* ConfCrap */
 
+print("Check\n");
 	assert(!((sys->vmunmapped|sys->vmend) & sys->pgszmask[1]));
 
+print("mmuphysaddr 0x%x\n", sys->vmunused);
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
 	pa += sys->vmunmapped - sys->vmunused;
+print("sys->vmunapped 0x%x sys->vmunused 0x%x pa 0x%x\n", sys->vmunmapped, sys->vmunused, pa);
 	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, 1, 0);
 	if(mem != pa)
 		panic("asmmeminit 2");

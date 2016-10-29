@@ -319,6 +319,11 @@ struct Stackframe
 struct Sys {
 	unsigned char	machstk[MACHSTKSZ];
 
+	PTE	pml4[PTSZ/sizeof(PTE)];	/*  */
+	PTE	pdp[PTSZ/sizeof(PTE)];
+	PTE	pd[PTSZ/sizeof(PTE)];
+	PTE	pt[PTSZ/sizeof(PTE)];
+
 	union {
 		Mach	mach;
 		unsigned char	machpage[MACHSZ];

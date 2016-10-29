@@ -16,6 +16,10 @@
 #include "encoding.h"
 #include "mmu.h"
 
+#undef DBGFLG
+#define DBGFLG 32
+
+void msg(char *);
 /*
  * To do:
  *	PteNX;
@@ -552,7 +556,6 @@ mmukmapsync(uint64_t va)
 	return 0;
 }
 
-#if 0
 static PTE
 pdeget(uintptr_t va)
 {
@@ -566,7 +569,6 @@ pdeget(uintptr_t va)
 	return pdp[PDX(va)];
 }
 
-#endif
 /*
  * Add kernel mappings for pa -> va for a section of size bytes.
  * Called only after the va range is known to be unoccupied.
@@ -700,7 +702,7 @@ vmap(uintptr_t pa, usize size)
 	uintptr_t va;
 	usize o, sz;
 
-	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
+	print("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
 
 	if(machp()->machno != 0)
 		print("vmap: machp()->machno != 0");
@@ -741,7 +743,7 @@ vmap(uintptr_t pa, usize size)
 	}
 	iunlock(&vmaplock);
 
-	DBG("vmap(%#p, %lu) => %#p\n", pa+o, size, va+o);
+	print("vmap(%#p, %lu) => %#p\n", pa+o, size, va+o);
 
 	return UINT2PTR(va + o);
 }
@@ -751,7 +753,7 @@ vunmap(void* v, usize size)
 {
 	uintptr_t va;
 
-	DBG("vunmap(%#p, %lu)\n", v, size);
+	print("vunmap(%#p, %lu)\n", v, size);
 
 	if(machp()->machno != 0)
 		print("vmap: machp()->machno != 0");
@@ -768,7 +770,7 @@ vunmap(void* v, usize size)
 	 * resources used for the allocation (e.g. page table
 	 * pages).
 	 */
-	DBG("vunmap(%#p, %lu)\n", v, size);
+	print("vunmap(%#p, %lu)\n", v, size);
 }
 
 int
@@ -780,10 +782,11 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 	PTE *pte;
 
 	Mpl pl;
-
+msg("mmuwalk\n");
 	pl = splhi();
+msg("post splihi\n");
 	if(DBGFLG > 1)
-		DBG("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
+		print("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
 	pte = &pml4[PTLX(va, 3)];
 	for(l = 3; l >= 0; l--){
 		if(l == level)
@@ -814,21 +817,25 @@ mmuphysaddr(uintptr_t va)
 	PTE *pte;
 	uintmem mask, pa;
 
+msg("mmyphysaddr\n");
 	/*
 	 * Given a VA, find the PA.
 	 * This is probably not the right interface,
 	 * but will do as an experiment. Usual
 	 * question, should va be void* or uintptr?
 	 */
+	print("machp() %p \n", machp());
+	print("mahcp()->MMU.pml4 %p\n", machp()->MMU.pml4);
+	print("... va  %p\n", machp()->MMU.pml4->va);
 	l = mmuwalk(UINT2PTR(machp()->MMU.pml4->va), va, 0, &pte, nil);
-	DBG("physaddr: va %#p l %d\n", va, l);
+	print("physaddr: va %#p l %d\n", va, l);
 	if(l < 0)
 		return ~0;
 
 	mask = PGLSZ(l)-1;
 	pa = (*pte & ~mask) + (va & mask);
 
-	DBG("physaddr: l %d va %#p pa %#llx\n", l, va, pa);
+	print("physaddr: l %d va %#p pa %#llx\n", l, va, pa);
 
 	return pa;
 }
@@ -838,14 +845,13 @@ Page mach0pml4;
 void
 mmuinit(void)
 {
-	panic("mmuinit");
-#if 0
 	uint8_t *p;
 	Page *page;
-	uint64_t o, pa, r, sz;
+	uint64_t o, pa, sz, n;
 
-	archmmu();
-	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
+	n = archmmu();
+	print("%d page sizes\n", n);
+	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
 
 	if(machp()->machno != 0){
 		/* NIX: KLUDGE: Has to go when each mach is using
@@ -860,11 +866,8 @@ mmuinit(void)
 		machp()->MMU.pml4->pa = PADDR(p);
 		machp()->MMU.pml4->daddr = mach0pml4.daddr;	/* # of user mappings in pml4 */
 
-		r = rdmsr(Efer);
-		r |= Nxe;
-		wrmsr(Efer, r);
 		rootput(machp()->MMU.pml4->pa);
-		DBG("m %#p pml4 %#p\n", machp(), machp()->MMU.pml4);
+		print("m %#p pml4 %#p\n", machp(), machp()->MMU.pml4);
 		return;
 	}
 
@@ -873,10 +876,7 @@ mmuinit(void)
 	page->va = PTR2UINT(KADDR(page->pa));
 
 	machp()->MMU.pml4 = page;
-
-	r = rdmsr(Efer);
-	r |= Nxe;
-	wrmsr(Efer, r);
+	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
 
 	/*
 	 * Set up the various kernel memory allocator limits:
@@ -893,7 +893,9 @@ mmuinit(void)
 	 * This is set up here so meminit can map appropriately.
 	 */
 	o = sys->pmstart;
+print("sys->pmstart is %p\n", o);
 	sz = ROUNDUP(o, 4*MiB) - o;
+print("Size is 0x%x\n", sz);
 	pa = asmalloc(0, sz, 1, 0);
 	if(pa != o)
 		panic("mmuinit: pa %#llx memstart %#llx\n", pa, o);
@@ -921,5 +923,4 @@ mmuinit(void)
 	dumpmmuwalk(KZERO);
 
 	mmuphysaddr(PTR2UINT(end));
-#endif
 }
