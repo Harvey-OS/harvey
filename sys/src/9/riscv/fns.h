@@ -10,7 +10,8 @@
 #include "../port/portfns.h"
 
 /* assembly code support from asm.S */
-void startmach(void (*f)(void), void *m);
+/* Startmach is passed an argument which is its own stack. */
+void startmach(void (*f)(void*), void *m, void *stack);
 Mach *machp(void);
 
 /* other functions */

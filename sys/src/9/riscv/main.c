@@ -15,6 +15,7 @@
 
 #include "init.h"
 #include "io.h"
+#include "encoding.h"
 
 extern void (*consuartputs)(char*, int);
 
@@ -69,7 +70,7 @@ void hart(void)
 	die("not yet");
 }
 
-void bsp(void)
+void bsp(void *stack)
 {
 	Mach *mach = machp();
 	if (mach != &m0)
@@ -83,7 +84,7 @@ void bsp(void)
 	mach->machno = 0;
 	mach->online = 1;
 	mach->NIX.nixtype = NIXTC;
-	mach->stack = PTR2UINT(m0stack);
+	mach->stack = PTR2UINT(stack);
 	*(uintptr_t*)mach->stack = STACKGUARD;
 	mach->externup = nil;
 	active.nonline = 1;
@@ -119,13 +120,33 @@ void bsp(void)
 
 	static Lock l; // to ensure initialization.
 	if (canlock(&l)) msg ("L can be locked\n"); else die("Can't lock L\n");
-	ilock(&l);
+	unlock(&l);
 	if (canlock(&l)) msg ("L can be NOT be locked OK\n"); else die("Can lock L after lock\n");
-	iunlock(&l);
+	unlock(&l);
 	if (canlock(&l)) msg ("L can be locked after unlock\n"); else die("Can't lock L afterunlock\n");
-	
+	msg("REAL\n");
 	
 	print("\nHarvey\n");
+
+	print("print a number like 5 %d\n", 5);
+	ioinit();
+	//meminit();
+	//confinit();
+	archinit();
+	mallocinit();
+
+	/* test malloc. It's easier to find out it's broken here,
+	 * not deep in some call chain.
+	 * See next note.
+	 *
+	 */
+	if (1) {
+		void *v = malloc(1234);
+		msg("allocated\n ");
+		free(v);
+		msg("free ok\n");
+	}
+
 
 	die("Completed hart for bsp OK!\n");
 }
@@ -138,8 +159,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	if (x != 0x123456)
 		die("Data is not set up correctly\n");
 	//memset(edata, 0, end - edata);
-	msg("got somewhere");
-	startmach(bsp, &m0);
+	//msg("got somewhere");
+	startmach(bsp, &m0, m0stack);
 }
 
 /* stubs until we implement in assembly */
@@ -257,8 +278,10 @@ void cycles(uint64_t *p)
 
 int islo(void)
 {
-	panic((char *)__func__);
-	return 0;
+	msg("isloc\n");
+	uint64_t ms = read_csr(sstatus);
+	msg("read it\n");
+	return ms & MSTATUS_SIE;
 }
 
 uintptr_t

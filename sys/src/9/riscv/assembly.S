@@ -4,6 +4,8 @@
 startmach: 
 	csrw	sscratch, a1
 	mv	ra,a0
+	mv	sp, a2
+	mv 	a0, a2
 	ret
 
 .globl machp
