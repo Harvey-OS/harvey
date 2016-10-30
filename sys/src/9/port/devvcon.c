@@ -26,11 +26,165 @@
 
 #include	"virtio_lib.h"
 
+enum
+{
+	Qtopdir = 0,			// top directory
+	Qvirtcon,				// virtcon directory under the top where all consoles live
+	Qvcpipe,				// console pipe for reading/writing
+};
+
+static Dirtab topdir[] = {
+	".",		{ Qtopdir, 0, QTDIR },	0,	DMDIR|0555,
+	"virtcon",	{ Qvirtcon, 0, QTDIR },	0,	DMDIR|0555,
+};
+
+extern Dev vcondevtab;
+
 // Array of defined virtconsoles and their number
 
 static uint32_t nvcon;
 
 static Vqctl **vcons;
+
+// Read-write common code
+
+static int
+rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
+{
+	uint16_t descr[1];
+	Virtq *vq = d->vqs[qidx];
+	int nd = getdescr(vq, 1, descr);
+	if(nd < 1)
+	{
+		error("virtcon: queue low");
+		return -1;
+	}
+	uint8_t buf[n];
+	if(qidx) {
+		memmove(buf, va, n);
+	}
+	q2descr(vq, descr[0])->addr = PADDR(buf);
+	q2descr(vq, descr[0])->len = n;	
+	if(qidx) {
+		q2descr(vq, descr[0])->flags = VRING_DESC_F_WRITE;
+	}
+	int rc = queuedescr(vq, 1, descr);
+print("rwcommon rc=%d\n", rc);
+	if(!qidx) {
+		memmove(va, buf, n);
+	}
+	reldescr(vq, 1, descr);
+	return (rc >= 0)?n:rc;
+}
+
+static int
+vcongen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
+{
+	Proc *up = externup();
+	Qid q;
+	int t = TYPE(c->qid);
+	int vdidx = DEV(c->qid);
+	if(vdidx >= nvcon)
+		error(Ebadarg);
+	switch(t){
+	case Qtopdir:
+		if(s == DEVDOTDOT){
+			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", vcondevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+			return 1;
+		}
+		return devgen(c, nil, topdir, nelem(topdir), s, dp);
+	case Qvirtcon:
+		if(s == DEVDOTDOT){
+			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", vcondevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+			return 1;
+		}
+		if(s >= nvcon)
+			return -1;
+		snprint(up->genbuf, sizeof up->genbuf, "vcons%d", s);
+		q = (Qid) {QID(s, Qvcpipe), 0, 0};
+		devdir(c, q, up->genbuf, 0, eve, 0666, dp);
+		return 1;
+	}
+	return -1;
+}
+
+static Chan*
+vconattach(char *spec)
+{
+	return devattach(vcondevtab.dc, spec);
+}
+
+
+Walkqid*
+vconwalk(Chan* c, Chan *nc, char** name, int nname)
+{
+	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, vcongen);
+}
+
+static int32_t
+vconstat(Chan* c, uint8_t* dp, int32_t n)
+{
+	return devstat(c, dp, n, (Dirtab *)0, 0L, vcongen);
+}
+
+static Chan*
+vconopen(Chan *c, int omode)
+{
+	uint t = TYPE(c->qid);
+	uint vdidx = DEV(c->qid);
+	if(vdidx >= nvcon)
+		error(Ebadarg);
+	c = devopen(c, omode, (Dirtab*)0, 0, vcongen);
+	switch(t) {
+	default:
+		break;
+	}
+	return c;
+}
+
+static int32_t
+vconread(Chan *c, void *va, int32_t n, int64_t offset)
+{
+	int vdidx = DEV(c->qid);
+	if(vdidx >= nvcon)
+		error(Ebadarg);
+	switch(TYPE(c->qid)) {
+	case Qtopdir:
+	case Qvirtcon:
+		return devdirread(c, va, n, (Dirtab *)0, 0L, vcongen);
+	case Qvcpipe:
+print("vconread dev %d addr %08p len %d\n", vdidx, va, n);
+		return rwcommon(vcons[vdidx], va, n, 0);
+	}
+	return -1;
+}
+
+static int32_t
+vconwrite(Chan *c, void *va, int32_t n, int64_t offset)
+{
+	int vdidx = DEV(c->qid);
+	if(vdidx >= nvcon)
+		error(Ebadarg);
+	switch(TYPE(c->qid)) {
+	case Qtopdir:
+	case Qvirtcon:
+		error(Eperm);
+		return -1;
+	case Qvcpipe:
+print("vconwrite dev %d addr %08p len %d\n", vdidx, va, n);
+		return rwcommon(vcons[vdidx], va, n, 1);
+	}
+	return -1;
+}
+
+static void
+vconclose(Chan* c)
+{
+}
 
 static void
 vconinit(void)
@@ -66,15 +220,15 @@ Dev vcondevtab = {
 	.reset = devreset,
 	.init = vconinit,
 	.shutdown = devshutdown,
-//	.attach = vconattach,
-//	.walk = vconwalk,
-//	.stat = vconstat,
-//	.open = vconopen,
+	.attach = vconattach,
+	.walk = vconwalk,
+	.stat = vconstat,
+	.open = vconopen,
 	.create = devcreate,
-//	.close = vconclose,
-//	.read = vconread,
+	.close = vconclose,
+	.read = vconread,
 	.bread = devbread,
-//	.write = vconwrite,
+	.write = vconwrite,
 	.bwrite = devbwrite,
 	.remove = devremove,
 	.wstat = devwstat,
