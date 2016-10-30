@@ -84,3 +84,10 @@ harvey_binary(
         "//sys/src/libc:libc",
 	]
 )
+
+group(
+	name="cmds",
+	deps=[
+		":ps",
+	]
+)
