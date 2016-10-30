@@ -43,7 +43,7 @@ PADDR(void* va)
 print("PADDR(%pa)\n", va);
 	pa = PTR2UINT(va);
 	if(pa >= KSEG0 && pa < KSEG0+TMFM)
-		return pa-KSEG0;
+		return (uintmem)(uint32_t)pa; //-KSEG0;
 	if(pa > KSEG2)
 		return pa-KSEG2;
 
