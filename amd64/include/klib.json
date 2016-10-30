@@ -7,6 +7,9 @@
 			"/usr/bin/gcc": [
 				"-Wno-frame-address"
 			],
+			"/opt/gnu/bin/x86_64-none-elf-gcc": [
+				"-Wno-frame-address"
+			],
 			"/usr/bin/gcc-6": [
 				"-Wno-frame-address"
 			]
