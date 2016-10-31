@@ -109,6 +109,7 @@
 			"../port/devmouse.c",
 			"../port/devpci.c",
 			"devpmc.c",
+			"ether.c",
 			"fpu.c",
 			"i8254.c",
 			"i8259.c",
