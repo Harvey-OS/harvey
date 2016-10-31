@@ -106,6 +106,7 @@
 			"ctype.c",
 			"devarch.c",
 			"../port/devdraw.c",
+			"../port/devether.c",
 			"../port/devmouse.c",
 			"../port/devpci.c",
 			"devpmc.c",
