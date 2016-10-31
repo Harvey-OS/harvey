@@ -19,11 +19,13 @@
 #include "etherif.h"
 
 Ether*
-archetherprobe(int cardno, int ctlrno)
+archetherprobe(int ctlrno, char *type, int (*reset)(Ether *))
 {
 	int i, j;
 	Ether *ether;
 	char buf[128], name[32];
+
+	snprint(name, sizeof(name), "ether%d", ctlrno);
 
 	ether = malloc(sizeof(Ether));
 	memset(ether, 0, sizeof(Ether));
@@ -34,14 +36,8 @@ archetherprobe(int cardno, int ctlrno)
 	ether->Netif.mtu = ETHERMAXTU;
 	ether->Netif.maxmtu = ETHERMAXTU;
 
-	if(cardno >= MaxEther || cards[cardno].type == nil){
-		free(ether);
+	if (reset(ether) < 0)
 		return nil;
-	}
-	if(cards[cardno].reset(ether) < 0){
-		free(ether);
-		return nil;
-	}
 
 	/*
 	 * IRQ2 doesn't really exist, it's used to gang the interrupt
@@ -50,7 +46,6 @@ archetherprobe(int cardno, int ctlrno)
 	 */
 	if(ether->ISAConf.irq == 2)
 		ether->ISAConf.irq = 9;
-	snprint(name, sizeof(name), "ether%d", ctlrno);
 
 	/*
 	 * If ether->irq is <0, it is a hack to indicate no interrupt
@@ -60,7 +55,7 @@ archetherprobe(int cardno, int ctlrno)
 		intrenable(ether->ISAConf.irq, ether->interrupt, ether, ether->tbdf, name);
 
 	i = sprint(buf, "#l%d: %s: %dMbps port %#p irq %d tu %d",
-		ctlrno, cards[cardno].type, ether->Netif.mbps, ether->ISAConf.port, ether->ISAConf.irq, ether->Netif.mtu);
+		ctlrno, type, ether->Netif.mbps, ether->ISAConf.port, ether->ISAConf.irq, ether->Netif.mtu);
 	if(ether->ISAConf.mem)
 		i += sprint(buf+i, " addr %#p", ether->ISAConf.mem);
 	if(ether->ISAConf.size)
@@ -90,24 +85,9 @@ archetherprobe(int cardno, int ctlrno)
 }
 
 void
-archethershutdown(void)
+archethershutdown(Ether *ether)
 {
-	char name[32];
-	int i;
-	Ether *ether;
-
-	for(i = 0; i < MaxEther; i++){
-		ether = etherxx[i];
-		if(ether == nil)
-			continue;
-		if(ether->shutdown == nil) {
-			print("#l%d: no shutdown function\n", i);
-			continue;
-		}
-		snprint(name, sizeof(name), "ether%d", i);
-		if(ether->ISAConf.irq >= 0){
-		//	intrdisable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
-		}
-		(*ether->shutdown)(ether);
+	if(ether->ISAConf.irq >= 0){
+	//	intrdisable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 	}
 }
