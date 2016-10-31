@@ -24,7 +24,7 @@ Chan*
 etherattach(char* spec)
 {
 	Proc *up = externup();
-	uint32_t ctlrno;
+	int ctlrno;
 	char *p;
 	Chan *chan;
 
@@ -143,9 +143,10 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 {
 	Etherpkt *pkt;
 	uint16_t type;
-	int len, multi, tome, fromme;
+	int multi, tome, fromme;
 	Netfile **ep, *f, **fp, *fx;
 	Block *xbp;
+	size_t len;
 
 	ether->Netif.inpackets++;
 
@@ -217,8 +218,9 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 static int
 etheroq(Ether* ether, Block* bp)
 {
-	int len, loopback, s;
+	int loopback, s;
 	Etherpkt *pkt;
+	size_t len;
 
 	ether->Netif.outpackets++;
 
@@ -305,7 +307,7 @@ etherbwrite(Chan* chan, Block* bp, int64_t mm)
 {
 	Proc *up = externup();
 	Ether *ether;
-	int32_t n;
+	size_t n;
 
 	n = BLEN(bp);
 	if(NETTYPE(chan->qid.path) != Ndataqid){
