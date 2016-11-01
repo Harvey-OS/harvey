@@ -183,12 +183,14 @@ vconclose(Chan* c)
 {
 }
 
+static uint32_t 
+wantfeat(uint32_t f) {
+	return VIRTIO_CONSOLE_F_SIZE;	// We want only console size, but not multiport for simplicity
+}
+	
 static void
 vconinit(void)
 {
-	uint32_t wantfeat(uint32_t f) {
-		return VIRTIO_CONSOLE_F_SIZE;	// We want only console size, but not multiport for simplicity
-	}
 	print("virtio-serial-pci initializing\n");
 	uint32_t nvdev = getvdevnum();
 	vcons = mallocz(nvdev * sizeof(Vqctl *), 1);
