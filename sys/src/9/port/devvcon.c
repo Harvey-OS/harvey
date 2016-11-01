@@ -65,11 +65,10 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 	}
 	q2descr(vq, descr[0])->addr = PADDR(buf);
 	q2descr(vq, descr[0])->len = n;	
-	if(qidx) {
+	if(!qidx) {
 		q2descr(vq, descr[0])->flags = VRING_DESC_F_WRITE;
 	}
 	int rc = queuedescr(vq, 1, descr);
-print("rwcommon rc=%d\n", rc);
 	if(!qidx) {
 		memmove(va, buf, n);
 	}
@@ -157,7 +156,6 @@ vconread(Chan *c, void *va, int32_t n, int64_t offset)
 	case Qvirtcon:
 		return devdirread(c, va, n, (Dirtab *)0, 0L, vcongen);
 	case Qvcpipe:
-print("vconread dev %d addr %08p len %d\n", vdidx, va, n);
 		return rwcommon(vcons[vdidx], va, n, 0);
 	}
 	return -1;
@@ -175,7 +173,6 @@ vconwrite(Chan *c, void *va, int32_t n, int64_t offset)
 		error(Eperm);
 		return -1;
 	case Qvcpipe:
-print("vconwrite dev %d addr %08p len %d\n", vdidx, va, n);
 		return rwcommon(vcons[vdidx], va, n, 1);
 	}
 	return -1;
