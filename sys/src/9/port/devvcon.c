@@ -191,13 +191,19 @@ wantfeat(uint32_t f) {
 static void
 vconinit(void)
 {
+	uint32_t nvdev;
+
 	print("virtio-serial-pci initializing\n");
-	uint32_t nvdev = getvdevnum();
+	nvdev = 1;
+	if(0)  // XXX: getvdevnum() fails and panics at boot.
+	nvdev = getvdevnum();
 	vcons = mallocz(nvdev * sizeof(Vqctl *), 1);
 	if(vcons == nil) {
 		print("no memory to allocate virtual consoles\n");
 		return;
 	}
+	nvcon = 0;
+	if(0)  // XXX: getvdevsbypciid() fails and panics at boot.
 	nvcon = getvdevsbypciid(PCI_DEVICE_ID_VIRTIO_CONSOLE, vcons, nvdev);
 	print("virtio consoles found: %d\n", nvcon);
 	for(int i = 0; i < nvcon; i++) {
