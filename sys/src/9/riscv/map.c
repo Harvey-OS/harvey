@@ -16,23 +16,21 @@
 #define _KADDR(pa)	UINT2PTR(kseg0+((uintptr)(pa)))
 #define _PADDR(va)	PTR2UINT(((uintptr)(va)) - kseg0)
 
-#define TMFM		(64*MiB)
+/* physical is from 2 -> 4 GiB */
+#define TMFM		(4ULL*GiB)
 
 int km, ku, k2;
 void*
 KADDR(uintptr_t pa)
 {
-	uint8_t* va;
-
-	va = UINT2PTR(pa);
 	if(pa < TMFM) {
 		km++;
-		return KSEG0+va;
+		return (void *)(KSEG0|pa);
 	}
 
 	assert(pa < KSEG2);
 	k2++;
-	return KSEG2+va;
+	return (void *)(KSEG2|pa);
 }
 
 uintmem

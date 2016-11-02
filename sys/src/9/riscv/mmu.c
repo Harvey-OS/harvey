@@ -29,7 +29,7 @@ void msg(char *);
  *	calculate and map up to TMFM (conf crap);
  */
 
-#define TMFM		(64*MiB)		/* kernel memory */
+#define TMFM		(2*GiB)		/* kernel memory */
 
 #define PPN(x)		((x)&~(PGSZ-1))
 
@@ -890,6 +890,7 @@ mmuinit(void)
 	machp()->MMU.pml4->pa = read_csr(sptbr)<<12;
 	print("sptbr is 0x%x\n", read_csr(sptbr));
 	machp()->MMU.pml4->va = PTR2UINT(KADDR(machp()->MMU.pml4->pa));
+	print("pa is %p va is %p\n", machp()->MMU.pml4->pa, machp()->MMU.pml4->va);
 
 	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
 

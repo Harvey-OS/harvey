@@ -44,8 +44,6 @@ static void puts(char * s, int n)
 		testPrint(*s++);
 }
 
-static int x = 0x123456;
-
 /* mach info for hart 0. */
 /* in many plan 9 implementations this stuff is all reserved in early assembly.
  * we don't have to do that. */
