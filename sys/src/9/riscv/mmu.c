@@ -556,7 +556,13 @@ mmukmapsync(uint64_t va)
 	return 0;
 }
 
-static PTE
+/*
+ * page directoy entry get.
+ * This is old 386 naming which is why it's confusing. 
+ * It returns a page table entry for the kernel
+ * pages mapped with 2 MiB PTEs.
+ */
+PTE
 pdeget(uintptr_t va)
 {
 	PTE *pdp;
@@ -773,6 +779,11 @@ vunmap(void* v, usize size)
 	print("vunmap(%#p, %lu)\n", v, size);
 }
 
+/* mmuwalk will walk the page tables as far as we ask (level)
+ * or as far as possible (you might hit a tera/giga/mega PTE).
+ * If it gets a valid PTE it will return it in ret; test for
+ * validity by testing PetP. To see how far it got, check
+ * the return value. */
 int
 mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 	uint64_t (*alloc)(usize))
@@ -840,13 +851,10 @@ msg("mmyphysaddr\n");
 	return pa;
 }
 
-Page mach0pml4;
-
 void
 mmuinit(void)
 {
 	uint8_t *p;
-	Page *page;
 	uint64_t o, pa, sz, n;
 
 	n = archmmu();
@@ -859,7 +867,8 @@ mmuinit(void)
 		 */
 		p = UINT2PTR(machp()->stack);
 		p += MACHSTKSZ;
-
+		panic("not yet");
+#if 0
 		memmove(p, UINT2PTR(mach0pml4.va), PTSZ);
 		machp()->MMU.pml4 = &machp()->MMU.pml4kludge;
 		machp()->MMU.pml4->va = PTR2UINT(p);
@@ -868,14 +877,14 @@ mmuinit(void)
 
 		rootput(machp()->MMU.pml4->pa);
 		print("m %#p pml4 %#p\n", machp(), machp()->MMU.pml4);
+#endif
 		return;
 	}
+	
+	machp()->MMU.pml4 = &sys->pml4;
+	machp()->MMU.pml4->pa = read_csr(sptbr);
+	machp()->MMU.pml4->va = PTR2UINT(KADDR(machp()->MMU.pml4->pa));
 
-	page = &mach0pml4;
-	page->pa = read_csr(sptbr);
-	page->va = PTR2UINT(KADDR(page->pa));
-
-	machp()->MMU.pml4 = page;
 	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
 
 	/*
@@ -913,14 +922,39 @@ print("Size is 0x%x\n", sz);
 	 * Set up the map for PD entry access by inserting
 	 * the relevant PDP entry into the PD. It's equivalent
 	 * to PADDR(sys->pd)|PteRW|PteP.
-	 *
+	 * N.B. the idea here is that we can have a compile-time
+	 * constant for the PML2, which speeds up tweaking the
+	 * page table. The actual real win in the era of 2 MiB
+	 * PTEs is not all that clear to me.
 	 */
-	sys->pd[PDX(PDMAP)] = sys->pdp[PDPX(PDMAP)] & ~(PteD|PteA);
-	print("sys->pd %#p %#p\n", sys->pd[PDX(PDMAP)], sys->pdp[PDPX(PDMAP)]);
-	assert((pdeget(PDMAP) & ~(PteD|PteA)) == (PADDR(sys->pd)|PteRW|PteP));
+	void *pml4 = (void *)sys->pml4.va;
+	PTE *PtePDMAP, *PtePML2;
+	int l;
+	// Get the pointer to the pml2.
+	// This will make your brain hurt.
+	// To get the pointer to the L2 table, what
+	// do we do? Simple: we mmuwalk to level 3 for the
+	// virtual address of the table. Told ya it would hurt.
+	if((l = mmuwalk(pml4, (uintptr_t)pml4, 3, &PtePML2, nil)) < 0) {
+		panic("Can't walk to PtePML2");
+	}
+	if (! (*PtePML2 & PteP)) {
+		panic("sys->pml2 is not a valid PTE");
+	}
+	if((l = mmuwalk(pml4, PDMAP, 1, &PtePDMAP, nil)) < 0) {
+		panic("Can't walk to PDMAP");
+	}
+	if (*PtePDMAP & PteP) {
+		panic("PDMAP is already a valid PTE");
+	}
+	*PtePDMAP = *PtePML2 & ~(PteD|PteA);
+	//print("sys->pd %#p %#p\n", sys->pd[PDX(PDMAP)], sys->pdp[PDPX(PDMAP)]);
+	//assert((pdeget(PDMAP) & ~(PteD|PteA)) == (PADDR(PtePML2)|PteRW|PteP));
 
 
 	dumpmmuwalk(KZERO);
+
+	dumpmmuwalk(PDMAP);
 
 	mmuphysaddr(PTR2UINT(end));
 }

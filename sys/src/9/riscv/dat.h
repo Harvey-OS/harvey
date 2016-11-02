@@ -169,7 +169,7 @@ struct NIX
 struct MMMU
 {
 	uintptr_t FaultingAddress;
-	Page*	pml4;			/* root for this processor */
+	Page*   pml4;			/* root for this processor */
 	PTE*	pmap;			/* unused as of yet */
 
 	Page	pml4kludge;		/* NIX KLUDGE: we need a page */
@@ -319,10 +319,7 @@ struct Stackframe
 struct Sys {
 	unsigned char	machstk[MACHSTKSZ];
 
-	PTE	pml4[PTSZ/sizeof(PTE)];	/*  */
-	PTE	pdp[PTSZ/sizeof(PTE)];
-	PTE	pd[PTSZ/sizeof(PTE)];
-	PTE	pt[PTSZ/sizeof(PTE)];
+	Page    pml4;
 
 	union {
 		Mach	mach;
