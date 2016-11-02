@@ -49,6 +49,7 @@ etherattach(char* spec)
 	if(etherxx[ctlrno]->attach)
 		etherxx[ctlrno]->attach(etherxx[ctlrno]);
 	poperror();
+
 	return chan;
 }
 
@@ -96,6 +97,14 @@ etherread(Chan* chan, void* buf, int32_t n, int64_t off)
 		if(NETTYPE(chan->qid.path) == Nifstatqid)
 			return ether->ifstat(ether, buf, n, offset);
 		else if(NETTYPE(chan->qid.path) == Nstatqid)
+			// XXX: This forces some drivers to accumulate
+			// statistics that are then read out by the
+			// netifread() call below.  Note that this means
+			// there is an implicit contract between the
+			// devether layer and the drivers: drivers must
+			// treat an ifstat() call with a zero length
+			// argument specially and use it as a call to
+			// syncronize the stats in ether->Netif.
 			ether->ifstat(ether, buf, 0, offset);
 	}
 
@@ -165,7 +174,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 		if(!activemulti(&ether->Netif, pkt->d, sizeof(pkt->d))){
 			if(fromwire){
 				freeb(bp);
-				bp = 0;
+				bp = nil;
 			}
 			return bp;
 		}
@@ -176,36 +185,40 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	fromme = memcmp(pkt->s, ether->ea, sizeof(pkt->s)) == 0;
 
 	/*
-	 * Multiplex the packet to all the connections which want it.
+	 * Multiplex the packet to all the connections that want it.
 	 * If the packet is not to be used subsequently (fromwire != 0),
 	 * attempt to simply pass it into one of the connections, thereby
 	 * saving a copy of the data (usual case hopefully).
 	 */
 	for(fp = ether->Netif.f; fp < ep; fp++){
-		if(f = *fp)
+		f = *fp;
+		if(f != nil)
 		if(f->type == type || f->type < 0)
-		if(tome || multi || f->prom || f->bridge & 2){
+		if(tome || multi || f->prom || (f->bridge & 0x02)){
 			/* Don't want to hear bridged packets */
 			if(f->bridge && !fromwire && !fromme)
 				continue;
-			if(!f->headersonly){
-				if(fromwire && fx == 0)
-					fx = f;
-				else if(xbp = iallocb(len)){
-					memmove(xbp->wp, pkt, len);
-					xbp->wp += len;
-					if(qpass(f->iq, xbp) < 0)
-						ether->Netif.soverflows++;
-				}
-				else
-					ether->Netif.soverflows++;
-			}
-			else
+			if(f->headersonly){
 				etherrtrace(f, pkt, len);
+				continue;
+			}
+			if(fromwire && fx == 0){
+				fx = f;
+				continue;
+			}
+			xbp = iallocb(len);
+			if(xbp == nil){
+				ether->Netif.soverflows++;
+				continue;
+			}
+			memmove(xbp->wp, pkt, len);
+			xbp->wp += len;
+			if(qpass(f->iq, xbp) < 0)
+				ether->Netif.soverflows++;
 		}
 	}
 
-	if(fx){
+	if(fx != nil){
 		if(qpass(fx->iq, bp) < 0)
 			ether->Netif.soverflows++;
 		return 0;
@@ -245,12 +258,13 @@ etheroq(Ether* ether, Block* bp)
 		splx(s);
 	}
 
-	if(!loopback){
-		qbwrite(ether->oq, bp);
-		if(ether->transmit != nil)
-			ether->transmit(ether);
-	} else
+	if(loopback){
 		freeb(bp);
+		return len;
+	}
+	qbwrite(ether->oq, bp);
+	if(ether->transmit != nil)
+		ether->transmit(ether);
 
 	return len;
 }
@@ -271,19 +285,18 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 			return nn;
 		cb = parsecmd(buf, n);
 		if(cb->f[0] && strcmp(cb->f[0], "nonblocking") == 0){
-			if(cb->nf <= 1)
-				onoff = 1;
-			else
+			onoff = 1;
+			if(cb->nf > 1)
 				onoff = atoi(cb->f[1]);
 			qnoblock(ether->oq, onoff);
 			free(cb);
 			return n;
 		}
 		free(cb);
-		if(ether->ctl != nil)
-			return ether->ctl(ether, buf, n);
+		if(ether->ctl == nil)
+			error(Ebadctl);
 
-		error(Ebadctl);
+		return ether->ctl(ether, buf, n);
 	}
 
 	if(n > ether->Netif.mtu)
