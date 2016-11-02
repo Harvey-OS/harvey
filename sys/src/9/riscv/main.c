@@ -46,11 +46,12 @@ static void puts(char * s, int n)
 
 static int x = 0x123456;
 
-/* mach struct for hart 0. */
+/* mach info for hart 0. */
 /* in many plan 9 implementations this stuff is all reserved in early assembly.
  * we don't have to do that. */
-static uint64_t m0stack[4096];
-static Mach m0;
+uint64_t m0stack[4096];
+Mach m0;
+
 Sys asys, *sys=&asys;
 Conf conf;
 uintptr_t kseg0 = KZERO;
@@ -157,18 +158,6 @@ confinit(void)
 		conf.npage += conf.mem[i].npage;
 	conf.nproc = 1000;
 	conf.nimage = 200;
-}
-
-void
-main(uint32_t mbmagic, uint32_t mbaddress)
-{
-
-	testPrint('0');
-	if (x != 0x123456)
-		die("Data is not set up correctly\n");
-	//memset(edata, 0, end - edata);
-	//msg("got somewhere");
-	startmach(bsp, &m0, m0stack);
 }
 
 /* stubs until we implement in assembly */

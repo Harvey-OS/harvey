@@ -796,9 +796,14 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 msg("mmuwalk\n");
 	pl = splhi();
 msg("post splihi\n");
-	if(DBGFLG > 1)
+	if(DBGFLG > 1) {
 		print("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
+		print("PTLX(%p, 3) is 0x%x\n", va, PTLX(va,3));
+		print("pml4 is %p\n", pml4);
+	}
 	pte = &pml4[PTLX(va, 3)];
+	print("pte is %p\n", pte);
+	print("*pte is %p\n", *pte);
 	for(l = 3; l >= 0; l--){
 		if(l == level)
 			break;
@@ -882,7 +887,8 @@ mmuinit(void)
 	}
 	
 	machp()->MMU.pml4 = &sys->pml4;
-	machp()->MMU.pml4->pa = read_csr(sptbr);
+	machp()->MMU.pml4->pa = read_csr(sptbr)<<12;
+	print("sptbr is 0x%x\n", read_csr(sptbr));
 	machp()->MMU.pml4->va = PTR2UINT(KADDR(machp()->MMU.pml4->pa));
 
 	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);

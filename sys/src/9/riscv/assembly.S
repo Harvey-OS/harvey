@@ -1,3 +1,23 @@
+# main has to be in assembly because there's not telling
+# what stack firmware has set up.
+.globl bsp
+.globl m0
+.globl m0stack
+.globl main
+main:
+        lui     a5,%hi(bsp)
+        add     a5,a5,%lo(bsp)
+        mv      a0,a5
+	//li	a1, $m0
+        lui     a5,%hi(m0)
+        add     a5,a5,%lo(m0)
+        mv      a1,a5
+	//li	a2, $m0stack
+        lui     a5,%hi(m0stack)
+        add     a5,a5,%lo(m0stack)
+	li	a6, 32768
+	add 	a5, a5, a6
+        mv      a2,a5
 # startmach starts a function after setting up the mach
 # pointer. The function is in a0, the mach pointer in a1.
 .globl startmach
@@ -12,6 +32,7 @@ startmach:
 machp:
 	csrr	a0,sscratch
 	ret
+
 
 /*
  * Label consists of a stack pointer and a programme counter
