@@ -26,7 +26,56 @@
 
 #include	"virtio_lib.h"
 
-#define MAXVQS 8 			// maximal number of VQs per device
+#define MAXVQS 8 			// maximal detectable number of VQs per device
+
+static uint32_t nvq;		// number of the detected virtio9p devices
+
+static Vqctl **cvq;			// array of device control structure pointers, length = nvq
+
+// Map device identifiers to descriptive strings to display in IO port
+// and interrupt allocation maps.
+
+typedef struct
+{
+	uint16_t did;
+	char *desc;
+} didmap;
+
+static didmap dmtab[] = {
+	PCI_DEVICE_ID_VIRTIO_NET, "virtio-net",
+	PCI_DEVICE_ID_VIRTIO_BLOCK, "virtio-block",
+	PCI_DEVICE_ID_VIRTIO_BALLOON, "virtio-balloon",
+	PCI_DEVICE_ID_VIRTIO_CONSOLE, "virtio-console",
+	PCI_DEVICE_ID_VIRTIO_SCSI, "virtio-scsi",
+	PCI_DEVICE_ID_VIRTIO_RNG, "virtio-rng",
+	PCI_DEVICE_ID_VIRTIO_9P, "virtio-9p"
+};
+
+// Find a device type by its PCI device identifier, used to assign device name in the filesystem,
+// and to determine the flavor of read-write operations.
+
+static didmap *
+finddev(Vqctl *vc)
+{
+	for(int i = 0; i < nelem(dmtab) ; i++) {
+		if(vc->pci->did == dmtab[i].did) {
+			return (dmtab + i);
+		}
+	}
+	return nil;
+}
+
+// Map PCI device identifier to a readable name for the filesystem entry.
+
+static char *
+mapdev(Vqctl *vc)
+{
+	char *dmap = nil;
+	didmap *dm = finddev(vc);
+	if(dm != nil)
+		dmap = dm->desc;
+	return dmap;
+}
 
 static int
 viodone(void *arg)
@@ -169,6 +218,32 @@ queuedescr(Virtq *q, int n, uint16_t *descr)
 	return 0;
 }
 
+// Allocate space for a single queue and initialize its descriptor. This is normally called at startup
+// for every device's every queue discovered. It may however be necessary to process virtqueue hotplug
+// events as with virtio-console, so this procedure can be called independently.
+
+int
+vqalloc(Virtq **pq, int qs)
+{
+	*pq = mallocz(sizeof(Virtq) + qs * sizeof(Rock *), 1);
+	if(*pq == nil)
+		return -1;
+	Virtq *q = *pq;
+	uint64_t vrsize = vring_size(qs, PGSZ);
+	q->vq = mallocalign(vrsize, PGSZ, 0, 0);
+	if(q->vq == nil)
+		return -1;
+	memset(q->vq, 0, vrsize);
+	vring_init(&q->vr, qs, q->vq, PGSZ);
+	q->free = -1;
+	q->nfree = qs;
+	for(int i = 0; i < qs; i++) {
+		q->vr.desc[i].next = q->free;
+		q->free = i;
+	}
+	return 0;
+}
+
 // Scan virtqueues for the given device. If the vqs argument is not nil then
 // nvq is expected to contain the length of the array vqs points to. In this case
 // populate the Virtq structures for each virtqueue found. Otherwise just return
@@ -188,20 +263,12 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 			break;
 		if(vqs != nil) {
 			// Allocate vq's descriptor space, used and available spaces, all page-aligned.
-			vqs[cnt] = mallocz(sizeof(Virtq) + qs * sizeof(Rock *), 1);
-			uint64_t vrsize = vring_size(qs, PGSZ);
-			Virtq *q = vqs[cnt];
-			q->vq = mallocalign(vrsize, PGSZ, 0, 0);
-			memset(q->vq, 0, vrsize);
-			vring_init(&q->vr, qs, q->vq, PGSZ);
-			q->free = -1;
-			q->nfree = qs;
-			for(int i = 0; i < qs; i++) {
-				q->vr.desc[i].next = q->free;
-				q->free = i;
+			if(vqalloc(&vqs[cnt], qs) < 0) {
+				print("no memory to allocate a virtqueue\n");
+				break;
 			}
 			coherence();
-			uint64_t paddr=PADDR(q->vq);
+			uint64_t paddr=PADDR(vqs[cnt]->vq);
 			outl(port + VIRTIO_PCI_QUEUE_PFN, paddr/PGSZ);
 		}
 		cnt++;
@@ -236,7 +303,8 @@ initvdevs(Vqctl **vcs)
 			Vqctl *vc = vcs[cnt];
 			vc->pci = p;
 			vc->port = p->mem[0].bar & ~0x1;
-			snprint(vc->devname, sizeof(vc->devname), "virtio-pci-%d", cnt);
+			char *dmap = mapdev(vc);
+			snprint(vc->devname, sizeof(vc->devname), "%s-%d", dmap?dmap:"virtio-pci", cnt);
 			if(ioalloc(vc->port, p->mem[0].size, 0, vc->devname) < 0) {
 				free(vc);
 				vcs[cnt] = nil;
@@ -244,7 +312,6 @@ initvdevs(Vqctl **vcs)
 			}
 			// Device reset
 			outb(vc->port + VIRTIO_PCI_STATUS, 0);
-			vc->feat = inl(vc->port + VIRTIO_PCI_HOST_FEATURES);
 			outb(vc->port + VIRTIO_PCI_STATUS, VIRTIO_CONFIG_S_ACKNOWLEDGE|VIRTIO_CONFIG_S_DRIVER);
 			int nqs = findvqs(vc->port, 0, nil);
 			// For each vq allocate and populate its descriptor
@@ -269,13 +336,118 @@ initvdevs(Vqctl **vcs)
 	return cnt;
 }
 
-// Final device initialization. Enable interrupts, finish virtio features negotiation.
+// Identity finction for device features.
+
+static uint32_t 
+acceptallfeat(uint32_t feat)
+{
+	return feat;
+}
+
+// Negotiate on device features. Read in the features bitmap, alter as needed by the function
+// provided, write back to the device. If nil is provided as the function, write back unchanged
+// that is, accept whatever is offered (often nothing). Return the feature bits accepted, store
+// the same in the device control structure.
+
+uint32_t
+vdevfeat(Vqctl *vc, uint32_t(*ffltr)(uint32_t))
+{
+	uint32_t feat = inl(vc->port + VIRTIO_PCI_HOST_FEATURES);
+	uint32_t rfeat = ffltr?(*ffltr)(feat):acceptallfeat(feat);
+	rfeat &= feat;					// do not introduce new bits, we can only reject existing
+	vc->feat = rfeat;
+	outl(vc->port + VIRTIO_PCI_GUEST_FEATURES, rfeat);
+	return rfeat;
+}
+
+// Final device initialization, enable interrupts.
 // While initvdevs should be called once for all devices during the OS startup, finalinitdev
-// should be called once per device, from the device-specific part of the driver.
+// should be called once per device, from the device-specific part of the driver. If the driver
+// needs other interrupt handler than the default one, this function should not be called, and
+// custom logic should be provided instead.
 
 void
 finalinitvdev(Vqctl *vc)
 {
 			intrenable(vc->pci->intl, vqintr, vc, vc->pci->tbdf, vc->devname);
 			outb(vc->port + VIRTIO_PCI_STATUS, inb(vc->port + VIRTIO_PCI_STATUS) | VIRTIO_CONFIG_S_DRIVER_OK);
+}
+
+// Read device configuration area into the given buffer at the given offset in the area.
+// Returned is number of bytes actually read. Reading is performed byte by byte, so endianness
+// is preserved. The program that reads the configuration area should take care of endianness conversion.
+
+int
+readvdevcfg(Vqctl *vc, void *va, int32_t n, int64_t offset)
+{
+	int8_t *a = va;
+	uint32_t r = offset;
+	int i;
+	for(i = 0; i < n; a++, i++) {
+		if(i + r >= vc->dcfglen)
+			break;
+		uint8_t b = inb(vc->port + vc->dcfgoff + i + r);
+		PBIT8(a, b);
+	}
+	return i;
+}
+
+// Initialize virtio globally (to be called once during startup).
+
+void
+virtiosetup()
+{
+	if(nvq != 0 || cvq != nil) 
+		return;						// avoid repeated calls
+	print("virtio: initializing\n");
+	nvq = initvdevs(nil);
+	if(nvq == 0) {
+		print("virtio: no devices\n");
+		return;						// nothing found
+	}
+	cvq = mallocz(nvq * sizeof(Vqctl *), 1);
+	if(cvq == nil) {
+		print("virtiosetup: failed to allocate control structures\n");
+		nvq = 0;
+		return;
+	}
+	initvdevs(cvq);
+	print("virtio: initialized\n");
+}
+
+// Get pointer to a virtio device by its index. Nil is returned if idx is out of range.
+
+Vqctl *
+vdevbyidx(uint32_t idx)
+{
+	if(idx >= nvq)
+		return nil;
+	return cvq[idx];
+}
+
+// Get total number of virtio devices defined at the moment.
+
+uint32_t
+getvdevnum(void)
+{
+	return nvq;
+}
+
+// Find all devices of given type (e. g. PCI_DEVICE_ID_VIRTIO_NET). An array of sufficient length
+// should be provided; it will be filled out with the device references found. Returned is the number
+// of devices found.
+
+uint32_t
+getvdevsbypciid(int pciid, Vqctl **vqs, uint32_t n)
+{
+	uint32_t j = 0;
+	if(n < 1 || nvq <= 0)
+		return 0;
+	for(int i = 0; i < nvq ; i++) {
+		if(cvq[i]->pci->did == pciid)
+			vqs[j++] = cvq[i];
+		if(j >= n)
+			break;
+	}
+	return j;
 }

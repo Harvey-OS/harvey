@@ -59,6 +59,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/devcoreboot.c",
 	"//sys/src/9/port/devdup.c",
 	"//sys/src/9/port/devenv.c",
+	"//sys/src/9/port/devether.c",
 	"//sys/src/9/port/devfdmux.c",
 	"//sys/src/9/port/devkprof.c",
 	"//sys/src/9/port/devkbin.c",
@@ -164,7 +165,6 @@ AMD64_SRCS = [
 
 # don't want to start with a number
 I386_SRCS = [
-	"//sys/src/9/386/devether.c",
 	"//sys/src/9/386/devrtc.c",
 	"//sys/src/9/386/ether8169.c",
 	"//sys/src/9/386/ether82557.c",

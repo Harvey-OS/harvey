@@ -20,11 +20,14 @@
 
 static Ether *etherxx[MaxEther];
 
+extern Ether *archetherprobe(int ctlrno, char *type, int (*reset)(Ether *));
+extern void archethershutdown(Ether *ether);
+
 Chan*
 etherattach(char* spec)
 {
 	Proc *up = externup();
-	uint32_t ctlrno;
+	int ctlrno;
 	char *p;
 	Chan *chan;
 
@@ -46,6 +49,7 @@ etherattach(char* spec)
 	if(etherxx[ctlrno]->attach)
 		etherxx[ctlrno]->attach(etherxx[ctlrno]);
 	poperror();
+
 	return chan;
 }
 
@@ -93,6 +97,14 @@ etherread(Chan* chan, void* buf, int32_t n, int64_t off)
 		if(NETTYPE(chan->qid.path) == Nifstatqid)
 			return ether->ifstat(ether, buf, n, offset);
 		else if(NETTYPE(chan->qid.path) == Nstatqid)
+			// XXX: This forces some drivers to accumulate
+			// statistics that are then read out by the
+			// netifread() call below.  Note that this means
+			// there is an implicit contract between the
+			// devether layer and the drivers: drivers must
+			// treat an ifstat() call with a zero length
+			// argument specially and use it as a call to
+			// syncronize the stats in ether->Netif.
 			ether->ifstat(ether, buf, 0, offset);
 	}
 
@@ -143,9 +155,10 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 {
 	Etherpkt *pkt;
 	uint16_t type;
-	int len, multi, tome, fromme;
+	int multi, tome, fromme;
 	Netfile **ep, *f, **fp, *fx;
 	Block *xbp;
+	size_t len;
 
 	ether->Netif.inpackets++;
 
@@ -161,7 +174,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 		if(!activemulti(&ether->Netif, pkt->d, sizeof(pkt->d))){
 			if(fromwire){
 				freeb(bp);
-				bp = 0;
+				bp = nil;
 			}
 			return bp;
 		}
@@ -172,36 +185,40 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	fromme = memcmp(pkt->s, ether->ea, sizeof(pkt->s)) == 0;
 
 	/*
-	 * Multiplex the packet to all the connections which want it.
+	 * Multiplex the packet to all the connections that want it.
 	 * If the packet is not to be used subsequently (fromwire != 0),
 	 * attempt to simply pass it into one of the connections, thereby
 	 * saving a copy of the data (usual case hopefully).
 	 */
 	for(fp = ether->Netif.f; fp < ep; fp++){
-		if(f = *fp)
+		f = *fp;
+		if(f != nil)
 		if(f->type == type || f->type < 0)
-		if(tome || multi || f->prom || f->bridge & 2){
+		if(tome || multi || f->prom || (f->bridge & 0x02)){
 			/* Don't want to hear bridged packets */
 			if(f->bridge && !fromwire && !fromme)
 				continue;
-			if(!f->headersonly){
-				if(fromwire && fx == 0)
-					fx = f;
-				else if(xbp = iallocb(len)){
-					memmove(xbp->wp, pkt, len);
-					xbp->wp += len;
-					if(qpass(f->iq, xbp) < 0)
-						ether->Netif.soverflows++;
-				}
-				else
-					ether->Netif.soverflows++;
-			}
-			else
+			if(f->headersonly){
 				etherrtrace(f, pkt, len);
+				continue;
+			}
+			if(fromwire && fx == 0){
+				fx = f;
+				continue;
+			}
+			xbp = iallocb(len);
+			if(xbp == nil){
+				ether->Netif.soverflows++;
+				continue;
+			}
+			memmove(xbp->wp, pkt, len);
+			xbp->wp += len;
+			if(qpass(f->iq, xbp) < 0)
+				ether->Netif.soverflows++;
 		}
 	}
 
-	if(fx){
+	if(fx != nil){
 		if(qpass(fx->iq, bp) < 0)
 			ether->Netif.soverflows++;
 		return 0;
@@ -217,8 +234,9 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 static int
 etheroq(Ether* ether, Block* bp)
 {
-	int len, loopback, s;
+	int loopback, s;
 	Etherpkt *pkt;
+	size_t len;
 
 	ether->Netif.outpackets++;
 
@@ -240,12 +258,13 @@ etheroq(Ether* ether, Block* bp)
 		splx(s);
 	}
 
-	if(!loopback){
-		qbwrite(ether->oq, bp);
-		if(ether->transmit != nil)
-			ether->transmit(ether);
-	} else
+	if(loopback){
 		freeb(bp);
+		return len;
+	}
+	qbwrite(ether->oq, bp);
+	if(ether->transmit != nil)
+		ether->transmit(ether);
 
 	return len;
 }
@@ -266,19 +285,18 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 			return nn;
 		cb = parsecmd(buf, n);
 		if(cb->f[0] && strcmp(cb->f[0], "nonblocking") == 0){
-			if(cb->nf <= 1)
-				onoff = 1;
-			else
+			onoff = 1;
+			if(cb->nf > 1)
 				onoff = atoi(cb->f[1]);
 			qnoblock(ether->oq, onoff);
 			free(cb);
 			return n;
 		}
 		free(cb);
-		if(ether->ctl != nil)
-			return ether->ctl(ether, buf, n);
+		if(ether->ctl == nil)
+			error(Ebadctl);
 
-		error(Ebadctl);
+		return ether->ctl(ether, buf, n);
 	}
 
 	if(n > ether->Netif.mtu)
@@ -305,7 +323,7 @@ etherbwrite(Chan* chan, Block* bp, int64_t mm)
 {
 	Proc *up = externup();
 	Ether *ether;
-	int32_t n;
+	size_t n;
 
 	n = BLEN(bp);
 	if(NETTYPE(chan->qid.path) != Ndataqid){
@@ -375,72 +393,12 @@ parseether(uint8_t *to, char *from)
 static Ether*
 etherprobe(int cardno, int ctlrno)
 {
-	int i, j;
-	Ether *ether;
-	char buf[128], name[32];
 
-	ether = malloc(sizeof(Ether));
-	memset(ether, 0, sizeof(Ether));
-	ether->ctlrno = ctlrno;
-	ether->tbdf = BUSUNKNOWN;
-	ether->Netif.mbps = 10;
-	ether->Netif.minmtu = ETHERMINTU;
-	ether->Netif.mtu = ETHERMAXTU;
-	ether->Netif.maxmtu = ETHERMAXTU;
-
-	if(cardno >= MaxEther || cards[cardno].type == nil){
-		free(ether);
+	if(cardno >= MaxEther)
 		return nil;
-	}
-	if(cards[cardno].reset(ether) < 0){
-		free(ether);
+	if(cards[cardno].type == nil || cards[cardno].reset == nil)
 		return nil;
-	}
-
-	/*
-	 * IRQ2 doesn't really exist, it's used to gang the interrupt
-	 * controllers together. A device set to IRQ2 will appear on
-	 * the second interrupt controller as IRQ9.
-	 */
-	if(ether->ISAConf.irq == 2)
-		ether->ISAConf.irq = 9;
-	snprint(name, sizeof(name), "ether%d", ctlrno);
-
-	/*
-	 * If ether->irq is <0, it is a hack to indicate no interrupt
-	 * used by ethersink.
-	 */
-	if(ether->ISAConf.irq >= 0)
-		intrenable(ether->ISAConf.irq, ether->interrupt, ether, ether->tbdf, name);
-
-	i = sprint(buf, "#l%d: %s: %dMbps port %#p irq %d tu %d",
-		ctlrno, cards[cardno].type, ether->Netif.mbps, ether->ISAConf.port, ether->ISAConf.irq, ether->Netif.mtu);
-	if(ether->ISAConf.mem)
-		i += sprint(buf+i, " addr %#p", ether->ISAConf.mem);
-	if(ether->ISAConf.size)
-		i += sprint(buf+i, " size 0x%lX", ether->ISAConf.size);
-	i += sprint(buf+i, ": %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
-		ether->ea[0], ether->ea[1], ether->ea[2],
-		ether->ea[3], ether->ea[4], ether->ea[5]);
-	sprint(buf+i, "\n");
-	print(buf);
-
-	j = ether->Netif.mbps;
-	if(j > 1000)
-		j *= 10;
-	for(i = 0; j >= 100; i++)
-		j /= 10;
-	i = (128<<i)*1024;
-	netifinit(&ether->Netif, name, Ntypes, i);
-	if(ether->oq == 0)
-		ether->oq = qopen(i, Qmsg, 0, 0);
-	if(ether->oq == 0)
-		panic("etherreset %s", name);
-	ether->Netif.alen = Eaddrlen;
-	memmove(ether->Netif.addr, ether->ea, Eaddrlen);
-	memset(ether->Netif.bcast, 0xFF, Eaddrlen);
-
-	return ether;
+	return archetherprobe(ctlrno, cards[cardno].type, cards[cardno].reset);
 }
 
 static void
@@ -480,9 +438,7 @@ ethershutdown(void)
 			continue;
 		}
 		snprint(name, sizeof(name), "ether%d", i);
-		if(ether->ISAConf.irq >= 0){
-		//	intrdisable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
-		}
+		archethershutdown(ether);
 		(*ether->shutdown)(ether);
 	}
 }

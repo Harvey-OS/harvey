@@ -19,6 +19,9 @@
 			"/usr/bin/gcc": [
 				"-Wno-frame-address"
 			],
+			"/opt/gnu/bin/x86_64-none-elf-gcc": [
+				"-Wno-frame-address"
+			],
 			"/usr/bin/gcc-6": [
 				"-Wno-frame-address"
 			]
@@ -103,9 +106,11 @@
 			"ctype.c",
 			"devarch.c",
 			"../port/devdraw.c",
+			"../port/devether.c",
 			"../port/devmouse.c",
 			"../port/devpci.c",
 			"devpmc.c",
+			"ether.c",
 			"fpu.c",
 			"i8254.c",
 			"i8259.c",
