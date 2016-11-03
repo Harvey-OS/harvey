@@ -25,4 +25,10 @@ sudo useradd harvey
 sudo useradd none
 
 none is only required for drawterm/cpu access
+
+To get a preview of the not-yet-ready build tool:
+./util/nuke //:harvey
+
+It won't build a useable system but it does show where we hope to be soon.
+Note it only works for amd64.
 EOF

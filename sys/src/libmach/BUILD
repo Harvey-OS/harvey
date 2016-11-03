@@ -6,6 +6,7 @@ cc_library(
         includes=[
             "//sys/include",
             "//amd64/include",
+	    "//",
         ],
 	srcs = [
 		"6.c",
