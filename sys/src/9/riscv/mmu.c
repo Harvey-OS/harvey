@@ -19,6 +19,14 @@
 #undef DBGFLG
 #define DBGFLG 32
 
+/* this gets pretty messy. RV64 has *at least* two modes:
+ * 4 level and 3 level page tables. And people wonder why
+ * I like soft TLB so much. Anyway, for now, not sure
+ * how to handle it.
+ * Would be cool to work out a way to Do The Right Thing
+ * without regard to page size, so that's what I'm going to
+ * try to do.
+ */
 void msg(char *);
 /*
  * To do:
@@ -558,7 +566,7 @@ mmukmapsync(uint64_t va)
 
 /*
  * page directoy entry get.
- * This is old 386 naming which is why it's confusing. 
+ * This is old 386 naming which is why it's confusing.
  * It returns a page table entry for the kernel
  * pages mapped with 2 MiB PTEs.
  */
@@ -856,6 +864,13 @@ msg("mmyphysaddr\n");
 	return pa;
 }
 
+/* this is a hack, yes, but it will be necessary. */
+static PTE fakepml4[512] __attribute((aligned(4096)));
+
+/* to accomodate the weirdness of the rv64 modes, we're going to leave it as a 4
+ * level PT, and fake up the PML4 with one entry when it's 3 levels. Later, we want
+ * to be smarter, but a lot of our code is pretty wired to assume 4 level PT and I'm
+ * not wanting to just rip it all out. */
 void
 mmuinit(void)
 {
@@ -887,10 +902,36 @@ mmuinit(void)
 	}
 	
 	machp()->MMU.pml4 = &sys->pml4;
-	machp()->MMU.pml4->pa = read_csr(sptbr)<<12;
-	print("sptbr is 0x%x\n", read_csr(sptbr));
-	machp()->MMU.pml4->va = PTR2UINT(KADDR(machp()->MMU.pml4->pa));
-	print("pa is %p va is %p\n", machp()->MMU.pml4->pa, machp()->MMU.pml4->va);
+
+	uintptr_t PhysicalRoot = read_csr(sptbr)<<12;
+	PTE *root = KADDR(PhysicalRoot);
+	PTE *KzeroPTE;
+	/* As it happens, as this point, we don't know the number of page table levels.
+	 * But a walk to "level 4" will work even if it's only 3, and we can use that
+	 * information to know what to do. Further, KSEG0 is the last 2M so this will
+	 * get us the last PTE on either an L3 or L2 pte page */
+	int l;
+	if((l = mmuwalk(root, KSEG0, 3, &KzeroPTE, nil)) < 0) {
+		panic("Can't walk to PtePML2");
+	}
+	int PTLevels = (*KzeroPTE>>9)&3;
+	switch(PTLevels) {
+	default:
+		panic("unsupported number of page table levels: %d", PTLevels);
+		break;
+	case 1:
+		/* nothing to do, we're 4 levels */
+		machp()->MMU.pml4->pa = PhysicalRoot;
+		print("sptbr is 0x%x\n", PhysicalRoot);
+		machp()->MMU.pml4->va = PTR2UINT(root);
+		break;
+	case 0:
+		fakepml4[511] = ((PhysicalRoot>>12)<<10)|0xf;
+		machp()->MMU.pml4->pa = PADDR(fakepml4);
+		print("fakeroot is 0x%x\n", PADDR(fakepml4));
+		machp()->MMU.pml4->va = (uintptr_t)fakepml4;
+		/* fake up a level 4 page table. */
+	}
 
 	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
 
@@ -936,7 +977,6 @@ print("Size is 0x%x\n", sz);
 	 */
 	void *pml4 = (void *)sys->pml4.va;
 	PTE *PtePDMAP, *PtePML2;
-	int l;
 	// Get the pointer to the pml2.
 	// This will make your brain hurt.
 	// To get the pointer to the L2 table, what
