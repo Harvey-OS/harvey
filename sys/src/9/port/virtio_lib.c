@@ -402,13 +402,12 @@ virtiosetup()
 	print("virtio: initializing\n");
 	nvq = initvdevs(nil);
 	if(nvq == 0) {
-		nvq = -1;
+		print("virtio: no devices\n");
 		return;						// nothing found
 	}
 	cvq = mallocz(nvq * sizeof(Vqctl *), 1);
 	if(cvq == nil) {
 		print("virtiosetup: failed to allocate control structures\n");
-		nvq = -1;
 		return;
 	}
 	initvdevs(cvq);
@@ -441,7 +440,7 @@ uint32_t
 getvdevsbypciid(int pciid, Vqctl **vqs, uint32_t n)
 {
 	uint32_t j = 0;
-	if(n < 1)
+	if(n < 1 || nvq <= 0)
 		return 0;
 	for(int i = 0; i < nvq ; i++) {
 		if(cvq[i]->pci->did == pciid)
