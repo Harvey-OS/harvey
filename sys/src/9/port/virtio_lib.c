@@ -408,6 +408,7 @@ virtiosetup()
 	cvq = mallocz(nvq * sizeof(Vqctl *), 1);
 	if(cvq == nil) {
 		print("virtiosetup: failed to allocate control structures\n");
+		nvq = 0;
 		return;
 	}
 	initvdevs(cvq);
