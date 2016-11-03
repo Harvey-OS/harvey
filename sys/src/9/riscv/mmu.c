@@ -32,7 +32,6 @@ void msg(char *);
  * To do:
  *	PteNX;
  *	mmukmapsync grot for >1 processor;
- *	replace vmap with newer version (no PDMAP);
  *	mmuptcopy (PteSHARED trick?);
  *	calculate and map up to TMFM (conf crap);
  */
@@ -549,7 +548,6 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 #if 0
 static Lock mmukmaplock;
 #endif
-static Lock vmaplock;
 
 #define PML4X(v)	PTLX((v), 3)
 #define PDPX(v)		PTLX((v), 2)
@@ -562,229 +560,6 @@ mmukmapsync(uint64_t va)
 	USED(va);
 
 	return 0;
-}
-
-/*
- * page directoy entry get.
- * This is old 386 naming which is why it's confusing.
- * It returns a page table entry for the kernel
- * pages mapped with 2 MiB PTEs.
- */
-PTE
-pdeget(uintptr_t va)
-{
-	PTE *pdp;
-
-	if(va < 0xffffffffc0000000ull)
-		panic("pdeget(%#p)", va);
-
-	pdp = (PTE*)(PDMAP+PDX(PDMAP)*4096);
-
-	return pdp[PDX(va)];
-}
-
-/*
- * Add kernel mappings for pa -> va for a section of size bytes.
- * Called only after the va range is known to be unoccupied.
- */
-static int
-pdmap(uintptr_t pa, int attr, uintptr_t va, usize size)
-{
-	uintptr_t pae;
-	PTE *pd, *pde, *pt, *pte;
-	int pdx, pgsz;
-	Page *pg;
-
-	pd = (PTE*)(PDMAP+PDX(PDMAP)*4096);
-
-	for(pae = pa + size; pa < pae; pa += pgsz){
-		pdx = PDX(va);
-		pde = &pd[pdx];
-
-		/*
-		 * Check if it can be mapped using a big page,
-		 * i.e. is big enough and starts on a suitable boundary.
-		 * Assume processor can do it.
-		 */
-		if(ALIGNED(pa, PGLSZ(1)) && ALIGNED(va, PGLSZ(1)) && (pae-pa) >= PGLSZ(1)){
-			assert(*pde == 0);
-			/* attr had better include one of Pte{W,R,X}*/
-			*pde = pa|attr|PteP;
-			pgsz = PGLSZ(1);
-		}
-		else{
-			if(*pde == 0){
-				pg = mmuptpalloc();
-				assert(pg != nil && pg->pa != 0);
-				*pde = pg->pa|PteRW|PteP;
-				memset((PTE*)(PDMAP+pdx*4096), 0, 4096);
-			}
-			assert(*pde != 0);
-
-			pt = (PTE*)(PDMAP+pdx*4096);
-			pte = &pt[PTX(va)];
-			assert(!(*pte & PteP));
-			*pte = pa|attr|PteP;
-			pgsz = PGLSZ(0);
-		}
-		va += pgsz;
-	}
-
-	return 0;
-}
-
-static int
-findhole(PTE* a, int n, int count)
-{
-	int have, i;
-
-	have = 0;
-	for(i = 0; i < n; i++){
-		if(a[i] == 0)
-			have++;
-		else
-			have = 0;
-		if(have >= count)
-			return i+1 - have;
-	}
-
-	return -1;
-}
-
-/*
- * Look for free space in the vmap.
- */
-static uintptr_t
-vmapalloc(usize size)
-{
-	int i, n, o;
-	PTE *pd, *pt;
-	int pdsz, ptsz;
-
-	pd = (PTE*)(PDMAP+PDX(PDMAP)*4096);
-	pd += PDX(VMAP);
-	pdsz = VMAPSZ/PGLSZ(1);
-
-	/*
-	 * Look directly in the PD entries if the size is
-	 * larger than the range mapped by a single entry.
-	 */
-	if(size >= PGLSZ(1)){
-		n = HOWMANY(size, PGLSZ(1));
-		if((o = findhole(pd, pdsz, n)) != -1)
-			return VMAP + o*PGLSZ(1);
-		return 0;
-	}
-
-	/*
-	 * Size is smaller than that mapped by a single PD entry.
-	 * Look for an already mapped PT page that has room.
-	 */
-	n = HOWMANY(size, PGLSZ(0));
-	ptsz = PGLSZ(0)/sizeof(PTE);
-	for(i = 0; i < pdsz; i++){
-		if(!(pd[i] & PteP) || (pd[i] & PteFinal))
-			continue;
-
-		pt = (PTE*)(PDMAP+(PDX(VMAP)+i)*4096);
-		if((o = findhole(pt, ptsz, n)) != -1)
-			return VMAP + i*PGLSZ(1) + o*PGLSZ(0);
-	}
-
-	/*
-	 * Nothing suitable, start using a new PD entry.
-	 */
-	if((o = findhole(pd, pdsz, 1)) != -1)
-		return VMAP + o*PGLSZ(1);
-
-	return 0;
-}
-
-/*
- * KSEG0 maps low memory.
- * KSEG2 maps almost all memory, but starting at an address determined
- * by the address space map (see asm.c).
- * Thus, almost everything in physical memory is already mapped, but
- * there are things that fall in the gap
- * (acpi tables, device memory-mapped registers, etc.)
- * for those things, we also want to disable caching.
- * vmap() is required to access them.
- */
-void*
-vmap(uintptr_t pa, usize size)
-{
-	uintptr_t va;
-	usize o, sz;
-
-	print("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
-
-	if(machp()->machno != 0)
-		print("vmap: machp()->machno != 0");
-
-	/*
-	 * This is incomplete; the checks are not comprehensive
-	 * enough.
-	 * Sometimes the request is for an already-mapped piece
-	 * of low memory, in which case just return a good value
-	 * and hope that a corresponding vunmap of the address
-	 * will have the same address.
-	 * To do this properly will require keeping track of the
-	 * mappings; perhaps something like kmap, but kmap probably
-	 * can't be used early enough for some of the uses.
-	 */
-	if(pa+size < 1ull*MiB)
-		return KADDR(pa);
-	if(pa < 1ull*MiB)
-		return nil;
-
-	/*
-	 * Might be asking for less than a page.
-	 * This should have a smaller granularity if
-	 * the page size is large.
-	 */
-	o = pa & ((1<<PGSHFT)-1);
-	pa -= o;
-	sz = ROUNDUP(size+o, PGSZ);
-
-	if(pa == 0){
-		print("vmap(0, %lu) pc=%#p\n", size, getcallerpc());
-		return nil;
-	}
-	ilock(&vmaplock);
-	if((va = vmapalloc(sz)) == 0 || pdmap(pa, /*PtePCD|*/PteRW, va, sz) < 0){
-		iunlock(&vmaplock);
-		return nil;
-	}
-	iunlock(&vmaplock);
-
-	print("vmap(%#p, %lu) => %#p\n", pa+o, size, va+o);
-
-	return UINT2PTR(va + o);
-}
-
-void
-vunmap(void* v, usize size)
-{
-	uintptr_t va;
-
-	print("vunmap(%#p, %lu)\n", v, size);
-
-	if(machp()->machno != 0)
-		print("vmap: machp()->machno != 0");
-
-	/*
-	 * See the comments above in vmap.
-	 */
-	va = PTR2UINT(v);
-	if(va >= KZERO && va+size < KZERO+1ull*MiB)
-		return;
-
-	/*
-	 * Here will have to deal with releasing any
-	 * resources used for the allocation (e.g. page table
-	 * pages).
-	 */
-	print("vunmap(%#p, %lu)\n", v, size);
 }
 
 /* mmuwalk will walk the page tables as far as we ask (level)
@@ -965,43 +740,7 @@ print("Size is 0x%x\n", sz);
 
 	print("mmuinit: vmstart %#p vmunused %#p vmunmapped %#p vmend %#p\n",
 		sys->vmstart, sys->vmunused, sys->vmunmapped, sys->vmend);
-
-	/*
-	 * Set up the map for PD entry access by inserting
-	 * the relevant PDP entry into the PD. It's equivalent
-	 * to PADDR(sys->pd)|PteRW|PteP.
-	 * N.B. the idea here is that we can have a compile-time
-	 * constant for the PML2, which speeds up tweaking the
-	 * page table. The actual real win in the era of 2 MiB
-	 * PTEs is not all that clear to me.
-	 */
-	void *pml4 = (void *)sys->pml4.va;
-	PTE *PtePDMAP, *PtePML2;
-	// Get the pointer to the pml2.
-	// This will make your brain hurt.
-	// To get the pointer to the L2 table, what
-	// do we do? Simple: we mmuwalk to level 3 for the
-	// virtual address of the table. Told ya it would hurt.
-	if((l = mmuwalk(pml4, (uintptr_t)pml4, 3, &PtePML2, nil)) < 0) {
-		panic("Can't walk to PtePML2");
-	}
-	if (! (*PtePML2 & PteP)) {
-		panic("sys->pml2 is not a valid PTE");
-	}
-	if((l = mmuwalk(pml4, PDMAP, 1, &PtePDMAP, nil)) < 0) {
-		panic("Can't walk to PDMAP");
-	}
-	if (*PtePDMAP & PteP) {
-		panic("PDMAP is already a valid PTE");
-	}
-	*PtePDMAP = *PtePML2 & ~(PteD|PteA);
-	//print("sys->pd %#p %#p\n", sys->pd[PDX(PDMAP)], sys->pdp[PDPX(PDMAP)]);
-	//assert((pdeget(PDMAP) & ~(PteD|PteA)) == (PADDR(PtePML2)|PteRW|PteP));
-
-
 	dumpmmuwalk(KZERO);
-
-	dumpmmuwalk(PDMAP);
 
 	mmuphysaddr(PTR2UINT(end));
 }
