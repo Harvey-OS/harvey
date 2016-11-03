@@ -2,11 +2,12 @@ load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS")
 
 cc_library(
 	name = "libmach",
-        copts = LIB_COMPILER_FLAGS,
-        includes=[
-            "//sys/include",
-            "//amd64/include",
-        ],
+	copts = LIB_COMPILER_FLAGS,
+	includes=[
+		"//sys/include",
+		"//amd64/include",	
+		"//",
+	],
 	srcs = [
 		"6.c",
 		"6obj.c",
