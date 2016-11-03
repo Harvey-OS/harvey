@@ -40,10 +40,15 @@ PADDR(void* va)
 
 print("PADDR(%pa)\n", va);
 	pa = PTR2UINT(va);
-	if(pa >= KSEG0 && pa < KSEG0+TMFM)
+print("pa %p \n", pa);
+	if(pa >= KSEG0) {
+		print("KSEG0 range\n");
 		return (uintmem)(uint32_t)pa; //-KSEG0;
-	if(pa > KSEG2)
+	}
+	if(pa > KSEG2) {
+		print("KSEG2 range\n");
 		return pa-KSEG2;
+	}
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());
 	return 0;
