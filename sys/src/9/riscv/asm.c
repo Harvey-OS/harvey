@@ -92,7 +92,7 @@ asmfree(uintmem addr, uintmem size, int type)
 {
 	Asm *np, *pp, **ppp;
 
-	DBG("asmfree: %#P@%#P, type %d\n", size, addr, type);
+	DBG("asmfree: %#p@%#p, type 0x%x\n", size, addr, type);
 	if(size == 0)
 		return 0;
 
@@ -354,8 +354,10 @@ print("Check\n");
 print("mmuphysaddr 0x%x\n", sys->vmunused);
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
+print("pa of sys->vmunused is 0x%x\n", pa);
+	if (sys->vmunmapped != sys->vmunused) {
 	pa += sys->vmunmapped - sys->vmunused;
-print("sys->vmunapped 0x%x sys->vmunused 0x%x pa 0x%x\n", sys->vmunmapped, sys->vmunused, pa);
+print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n", sys->vmunmapped, sys->vmunused, pa);
 	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, 1, 0);
 	if(mem != pa)
 		panic("asmmeminit 2");
@@ -370,6 +372,7 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa 0x%x\n", sys->vmunmapped, sys->
 		*pte = pa|PteRW|PteP;
 		sys->vmunmapped += 2*MiB;
 		pa += 2*MiB;
+	}
 	}
 
 #ifdef ConfCrap

@@ -36,7 +36,8 @@ void msg(char *);
  *	calculate and map up to TMFM (conf crap);
  */
 
-#define TMFM		(2*GiB)		/* kernel memory */
+/* strike off 2M so it won't wrap to 0. Sleazy. */
+#define TMFM		(2*GiB-2*MiB)		/* kernel memory */
 
 #define PPN(x)		((x)&~(PGSZ-1))
 
@@ -734,9 +735,24 @@ print("Size is 0x%x\n", sz);
 	sys->pmstart += sz;
 
 	sys->vmstart = KSEG0;
+print("Going to set vmunused to %p + 0x%x\n", sys->vmstart, ROUNDUP(o, 4*KiB));
+	/* more issues with arithmetic since physmem is at 80000000 */
+	o &= 0x7fffffff;
 	sys->vmunused = sys->vmstart + ROUNDUP(o, 4*KiB);
-	sys->vmunmapped = sys->vmstart + o + sz;
 	sys->vmend = sys->vmstart + TMFM;
+
+	// on amd64, this was set to just the end of the kernel, because
+	// only that much was mapped, and also vmap required a lot of
+	// free *address space* (not memory, *address space*) for the
+	// vmap functions. vmap was a hack we intended to remove.
+	// It's still there. But we can get rid of it on riscv.
+	// There's lots more to do but at least vmap is gone,
+	// as is the PDMAP hack, which was also supposed to
+	// be temporary. 
+	// TODO: We get much further now but still
+	// die in meminit(). When that's fixed remove
+	// this TODO.
+	sys->vmunmapped = sys->vmend;
 
 	print("mmuinit: vmstart %#p vmunused %#p vmunmapped %#p vmend %#p\n",
 		sys->vmstart, sys->vmunused, sys->vmunmapped, sys->vmend);

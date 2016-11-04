@@ -93,8 +93,10 @@ void bsp(void *stack)
 
 	consuartputs = puts;
 	msg("call asminit\n");
+	msg("==============================================\n");
 	asminit();
-	asmmapinit(0x81000000, 0xc0000000, 1); print("asmmodinit\n");
+	msg(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n");
+	asmmapinit(0x81000000, 0xc0000000, 1); print("asmmapinit\n");
 
 	/*
 	 * Need something for initial delays
@@ -125,9 +127,13 @@ void bsp(void *stack)
 	mmuinit();
 
 	ioinit(); print("ioinit\n");
+print("IOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIO\n");
 	meminit();print("meminit\n");
+print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
 	confinit();print("confinit\n");
+print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
 	archinit();print("archinit\n");
+print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	mallocinit();print("mallocinit\n");
 
 	/* test malloc. It's easier to find out it's broken here,
@@ -273,9 +279,9 @@ void cycles(uint64_t *p)
 
 int islo(void)
 {
-	msg("isloc\n");
+//	msg("isloc\n");
 	uint64_t ms = read_csr(sstatus);
-	msg("read it\n");
+//	msg("read it\n");
 	return ms & MSTATUS_SIE;
 }
 
