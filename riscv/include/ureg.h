@@ -41,9 +41,12 @@ struct Ureg {
 	uintptr_t t5;
 	uintptr_t t6;
 	/* Supervisor CSRs */
-	uintptr_t sstatus;
-	uintptr_t sbadaddr;
-	uintptr_t scause;
+	uintptr_t status;
+	uintptr_t epc;
+	uintptr_t badaddr;
+	uintptr_t cause;
+	uintptr_t insnn;
 	uintptr_t bp; // BOGUS: need a real frame pointer here. 
+	uintptr_t ftype;
 };
 

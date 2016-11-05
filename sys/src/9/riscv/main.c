@@ -58,7 +58,8 @@ int64_t hz;
 
 /* I forget where this comes from and I don't care just now. */
 uint32_t kerndate;
-
+int maxcores = 1;
+int nosmp = 1;
 
 /* general purpose hart startup. We call this via startmach.
  * When we enter here, the machp() function is usable.
@@ -69,6 +70,143 @@ void hart(void)
 	//Mach *mach = machp();
 	die("not yet");
 }
+
+void
+init0(void)
+{
+	Proc *up = externup();
+	char buf[2*KNAMELEN];
+
+	up->nerrlab = 0;
+
+	/*
+	 * if(consuart == nil)
+	 * i8250console("0");
+	 */
+	spllo();
+
+	/*
+	 * These are o.k. because rootinit is null.
+	 * Then early kproc's will have a root and dot.
+	 */
+	up->slash = namec("#/", Atodir, 0, 0);
+	pathclose(up->slash->path);
+	up->slash->path = newpath("/");
+	up->dot = cclone(up->slash);
+
+	devtabinit();
+
+	if(!waserror()){
+		//snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
+		panic("implement loadenv");
+		//loadenv(oargc, oargv);
+		ksetenv("terminal", buf, 0);
+		ksetenv("cputype", cputype, 0);
+		ksetenv("pgsz", "2097152", 0);
+		// no longer. 	confsetenv();
+		poperror();
+	}
+	kproc("alarm", alarmkproc, 0);
+	//debugtouser((void *)UTZERO);
+	panic("fix touser");
+	//touser(sp);
+}
+
+
+void
+userinit(void)
+{
+	Proc *up = externup();
+	Proc *p;
+	Segment *s;
+	KMap *k;
+	Page *pg;
+	int sno;
+
+	p = newproc();
+	p->pgrp = newpgrp();
+	p->egrp = smalloc(sizeof(Egrp));
+	p->egrp->r.ref = 1;
+	p->fgrp = dupfgrp(nil);
+	p->rgrp = newrgrp();
+	p->procmode = 0640;
+
+	kstrdup(&eve, "");
+	kstrdup(&p->text, "*init*");
+	kstrdup(&p->user, eve);
+
+	/*
+	 * Kernel Stack
+	 *
+	 * N.B. make sure there's enough space for syscall to check
+	 *	for valid args and
+	 *	space for gotolabel's return PC
+	 * AMD64 stack must be quad-aligned.
+	 */
+	p->sched.pc = PTR2UINT(init0);
+	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
+	p->sched.sp = STACKALIGN(p->sched.sp);
+
+	/*
+	 * User Stack
+	 *
+	 * Technically, newpage can't be called here because it
+	 * should only be called when in a user context as it may
+	 * try to sleep if there are no pages available, but that
+	 * shouldn't be the case here.
+	 */
+	sno = 0;
+	s = newseg(SG_STACK|SG_READ|SG_WRITE, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
+	p->seg[sno++] = s;
+	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
+	segpage(s, pg);
+	k = kmap(pg);
+	panic("fixbootargs");
+	//bootargs(VA(k));
+	kunmap(k);
+
+	/*
+	 * Text
+	 */
+	s = newseg(SG_TEXT|SG_READ|SG_EXEC, UTZERO, 1);
+	s->flushme++;
+	p->seg[sno++] = s;
+	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
+	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
+	segpage(s, pg);
+	k = kmap(s->map[0]->pages[0]);
+	/* UTZERO is only needed until we make init not have 2M block of zeros at the front. */
+	memmove(UINT2PTR(VA(k) + init_code_start - UTZERO), init_code_out, sizeof(init_code_out));
+	kunmap(k);
+
+	/*
+	 * Data
+	 */
+	s = newseg(SG_DATA|SG_READ|SG_WRITE, UTZERO + BIGPGSZ, 1);
+	s->flushme++;
+	p->seg[sno++] = s;
+	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
+	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
+	segpage(s, pg);
+	k = kmap(s->map[0]->pages[0]);
+	/* This depends on init having a text segment < 2M. */
+	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)), init_data_out, sizeof(init_data_out));
+	kunmap(k);
+	ready(p);
+}
+
+void
+confinit(void)
+{
+	int i;
+
+	conf.npage = 0;
+	for(i=0; i<nelem(conf.mem); i++)
+		conf.npage += conf.mem[i].npage;
+	conf.nproc = 1000;
+	conf.nimage = 200;
+}
+
 
 void bsp(void *stack)
 {
@@ -148,20 +286,43 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 		msg("free ok\n");
 	}
 
+	umeminit();
 
+	procinit0();
+	print("before mpacpi, maxcores %d\n", maxcores);
+	trapinit();
+	print("trapinit done\n");
+	/* Forcing to single core if desired */
+	if(!nosmp) {
+		// smp startup
+	}
+//working.
+	// not needed. teardownidmap(mach);
+	timersinit();print("	timersinit();\n");
+	// ? fpuinit();
+	psinit(conf.nproc);print("	psinit(conf.nproc);\n");
+	initimage();print("	initimage();\n");
+	//links();
+
+	devtabreset();print("	devtabreset();\n");
+	pageinit();print("	pageinit();\n");
+	swapinit();print("	swapinit();\n");
+	userinit();print("	userinit();\n");
+	/* Forcing to single core if desired */
+	if(!nosmp) {
+		//nixsquids();
+		//testiccs();
+	}
+
+	print("NO profiling until you set upa alloc_cpu_buffers()\n");
+	//alloc_cpu_buffers();
+
+	print("CPU Freq. %dMHz\n", mach->cpumhz);
+
+	print("schedinit...\n");
+
+	schedinit();
 	die("Completed hart for bsp OK!\n");
-}
-
-void
-confinit(void)
-{
-	int i;
-
-	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
-		conf.npage += conf.mem[i].npage;
-	conf.nproc = 1000;
-	conf.nimage = 200;
 }
 
 /* stubs until we implement in assembly */
@@ -204,14 +365,6 @@ userureg(Ureg*u)
 	return -1;
 }
 
-uintptr_t
-userpc(Ureg*u)
-{
-	panic((char *)__func__);
-	return 0;
-}
-
-
 void    exit(int _)
 {
 	panic((char *)__func__);
@@ -228,11 +381,6 @@ void fpunotify(Ureg*_)
 }
 
 void fpusysrfork(Ureg*_)
-{
-	panic((char *)__func__);
-}
-
-void kexit(Ureg*_)
 {
 	panic((char *)__func__);
 }
@@ -265,12 +413,6 @@ fpudevprocio(Proc*p, void*v, int32_t _, uintptr_t __, int ___)
 	return -1;
 }
 
-void
-setregisters(Ureg*u, char*f, char*t, int amt)
-{
-	panic((char *)__func__);
-}
-
 void cycles(uint64_t *p)
 {
 	return;
@@ -284,32 +426,6 @@ int islo(void)
 //	msg("read it\n");
 	return ms & MSTATUS_SIE;
 }
-
-uintptr_t
-dbgpc(Proc*p)
-{
-	panic((char *)__func__);
-	return 0;
-}
-
-
-void dumpstack(void)
-{
-	panic((char *)__func__);
-}
-
-void
-dumpgpr(Ureg* ureg)
-{
-	panic((char *)__func__);
-}
-
-void
-setkernur(Ureg*u, Proc*p)
-{
-	panic((char *)__func__);
-}
-
 
 void
 stacksnippet(void)

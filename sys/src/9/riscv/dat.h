@@ -168,7 +168,7 @@ struct NIX
  */
 struct MMMU
 {
-	uintptr_t FaultingAddress;
+	uintptr_t badaddr;
 	Page*   pml4;			/* root for this processor */
 	PTE*	pmap;			/* unused as of yet */
 

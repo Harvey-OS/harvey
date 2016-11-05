@@ -68,6 +68,8 @@
 			"syscall.c",
 			"systab.c",
 		        "tcore.c",
+		        "trap.c",
+		    "trap_util.S",
 			"uart.c"
 		]
 	}
