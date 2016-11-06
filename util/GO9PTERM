@@ -20,13 +20,14 @@ read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
 -serial stdio \
 --machine $machineflag \
--net nic,model=rtl8139 \
+-net user,id=user.0,\
+hostfwd=tcp::5555-:1522,\
+hostfwd=tcp::9999-:9,\
+hostfwd=tcp::17010-:17010,\
+hostfwd=tcp::5356-:5356,\
+hostfwd=tcp::17013-:17013 \
 -net user,hostfwd=tcp::5555-:1522 \
 -net dump,file=/tmp/vm0.pcap \
--redir tcp:9999::9 \
--redir tcp:17010::17010 \
--redir tcp:5356::5356 \
--redir tcp:17013::17013 \
 -append "service=terminal nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1  mouseport=ps2 vgasize=1024x768x24 monitor=vesa" \
 -kernel $HARVEY/sys/src/9/amd64/harvey.32bit $*
 EOF
