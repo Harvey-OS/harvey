@@ -3,12 +3,9 @@
 echo Building the build tool...
 
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -u github.com/Harvey-OS/ninep/cmd/ufs
+GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -u github.com/bldy/build/cmd/bldy
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get harvey/cmd/...
 
-
-echo Downloading the blaze tool...
-curl -L http://sevki.co/get-build -o util/nuke
-chmod +x util/nuke
 
 # this will make booting a VM easier
 mkdir -p tmp
@@ -20,6 +17,7 @@ export ARCH=amd64
 ./util/build
 # See \`build -h' for more information on the build tool.
 
+To build with bldy just type bldy //:kernel 
 To enable access to files, create a harvey and none user:
 sudo useradd harvey
 sudo useradd none
