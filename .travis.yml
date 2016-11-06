@@ -6,7 +6,7 @@ before_install:
   - sudo add-apt-repository ppa:ubuntu-lxc/lxd-stable -y
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main' -y
   - sudo apt-get update
-  - sudo apt-get install -y --force-yes $CC rc golang 
+  - sudo apt-get install -y --force-yes $CC rc golang
 script:
 - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./util/continuous-build.sh; fi
 compiler:
@@ -23,6 +23,7 @@ env:
   - PATH=$PATH:$HARVEY/util
   matrix:
   - OLD_BUILD=true
+  - OLD_BUILD=false
 addons:
   coverity_scan:
     project:
