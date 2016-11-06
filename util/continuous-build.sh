@@ -10,7 +10,7 @@ if [ $OLD_BUILD == true ]; then
 else
 	if [[  ($CC == "clang-3.8") && ("${TRAVIS_PULL_REQUEST}" = "false" ) ]]; then
 
-			scan-build bldy //.:kernel
+			scan-build ./util/bldy //.:kernel
 
 			curl -L http://sevki.co/4qf_NS -o util/scanscan
 			chmod +x util/scanscan
@@ -18,6 +18,6 @@ else
 			#scanscan finds and uploads scan-build files
 			./util/scanscan
  	else
-		bldy -v //.:kernel
+		./util/bldy -v //.:kernel
 	fi
 fi
