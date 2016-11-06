@@ -116,7 +116,7 @@
 #ifndef _ACAPPS
 #define _ACAPPS
 
-#include <stdio.h>
+//#include <stdio.h>
 
 #ifdef _MSC_VER                 /* disable some level-4 warnings */
 #pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */

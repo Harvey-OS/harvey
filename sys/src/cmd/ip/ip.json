@@ -4,6 +4,9 @@
 			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/ip",
+		"NoProjects": [
+			"snoopy/build.json"
+		],
 		"Projects": [
 			"ftpd.json",
 			"dhcpd/dhcpd.json",

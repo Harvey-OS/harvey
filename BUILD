@@ -7,7 +7,7 @@ objcopy(
 	outfile="elf32-i386",
 )
 
-kernel(
+move(
 	name="kernel",
 	deps=[
 		":harvey",
@@ -94,11 +94,15 @@ kernel(
 		"amd64/bin/date": "bin/date",
 		"amd64/bin/ipconfig": "bin/ipconfig",
 		"amd64/bin/acme": "bin/acme",
-		"amd64/bin/factotum": "bin/factotum",
+		"amd64/bin/auth/factotum": "bin/factotum",
 		"amd64/bin/mount": "bin/mount",
 		"amd64/bin/srv": "bin/srv",
 		"amd64/bin/ed": "bin/ed",
 		"amd64/bin/ratrace": "bin/ratrace",
 		"amd64/bin/ps": "bin/ps",
 	},
+)
+old_build(
+	name="all",
+	package="all",
 )

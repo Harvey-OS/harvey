@@ -322,6 +322,7 @@ extern	int	encodefmt(Fmt*);
 extern	void	exits(const char*);
 extern	double	frexp(double, int*);
 extern	uintptr	getcallerpc(void);
+extern	void	getcallstack(uintptr *, size_t);
 extern	char*	getenv(const char*);
 extern	int	getfields(char*, char**, int, int, const char*);
 extern	int	gettokens(char *, char **, int, const char *);
@@ -371,6 +372,7 @@ struct Lock {
 } Lock;
 
 extern int	_tas(int*);
+extern int	_tas32(int*);
 
 extern	void	lock(Lock*);
 extern	int	lockt(Lock*, uint32_t);
@@ -621,6 +623,7 @@ extern	int32_t	pread(int, void*, int32_t, int64_t);
 extern	int32_t	preadv(int, IOchunk*, int, int64_t);
 extern	int32_t	pwrite(int, const void*, int32_t, int64_t);
 extern	int32_t	pwritev(int, IOchunk*, int, int64_t);
+extern	int32_t	r0(void);
 extern	int32_t	read(int, void*, int32_t);
 extern	int32_t	readn(int, void*, int32_t);
 extern	int32_t	readv(int, IOchunk*, int);

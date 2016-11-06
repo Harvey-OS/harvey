@@ -17,10 +17,15 @@
 				"-mno-implicit-float"
 			],
 			"/usr/bin/gcc": [
+				"-Wno-frame-address",
+				"-fno-pie"
+			],
+			"/opt/gnu/bin/x86_64-none-elf-gcc": [
 				"-Wno-frame-address"
 			],
 			"/usr/bin/gcc-6": [
-				"-Wno-frame-address"
+				"-Wno-frame-address",
+				"-fno-pie"
 			]
 		},
 		"Cflags": [
@@ -103,9 +108,11 @@
 			"ctype.c",
 			"devarch.c",
 			"../port/devdraw.c",
+			"../port/devether.c",
 			"../port/devmouse.c",
 			"../port/devpci.c",
 			"devpmc.c",
+			"ether.c",
 			"fpu.c",
 			"i8254.c",
 			"i8259.c",
@@ -116,7 +123,6 @@
 			"memory.c",
 			"mmu.c",
 			"mpacpi.c",
-			"mp.c",
 			"msi.c",
 			"multiboot.c",
 			"physalloc.c",

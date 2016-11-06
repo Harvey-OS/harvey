@@ -55,6 +55,8 @@ static Atable **atableindex;
 static Rsdp *rsd;
 Dev acpidevtab;
 
+static int32_t acpimemread(Chan *c, void *a, int32_t n, int64_t off);
+
 static char * devname(void)
 {
 	return acpidevtab.name;
@@ -65,6 +67,7 @@ static int devdc(void)
 	return acpidevtab.dc;
 }
 
+#if 0
 /*
  * ACPI 4.0 Support.
  * Still WIP.
@@ -73,12 +76,16 @@ static int devdc(void)
  * of tables. All other tables are mapped and kept for the user-level
  * interpreter.
  */
-/*
-static Cmdtab ctls[] = {
-	{CMregion, "region", 6},
-	{CMgpe, "gpe", 3},
+enum {
+	CMirq,
 };
-*/
+
+static Cmdtab ctls[] = {
+//	{CMregion, "region", 6},
+//	{CMgpe, "gpe", 3},
+	{CMirq, "irq", 2},
+};
+#endif
 static Facs *facs;	/* Firmware ACPI control structure */
 static Fadt *fadt;	/* Fixed ACPI description to reach ACPI regs */
 static Atable *root;
@@ -117,17 +124,19 @@ static Acpilist *acpilists;
 
 /*
  * Given a base address, bind the list that contains it.
+ * It's possible and allowed for ACPICA to ask for a bigger region,
+ * so size matters.
  */
-static Acpilist *findlist(uintptr_t base)
+static Acpilist *findlist(uintptr_t base, uint size)
 {
 	Acpilist *a = acpilists;
-	print("findlist: find %p\n", (void *)base);
+	//print("findlist: find %p\n", (void *)base);
 	for(; a; a = a->next){
-		if ((base >= a->base) && (base < (a->base + a->size))){
+		if ((base >= a->base) && ((base + size) < (a->base + a->size))){
 			return a;
 		}
 	}
-	print("Can't find list or %p\n", (void *)base);
+	//print("Can't find list for %p\n", (void *)base);
 	return nil;
 }
 /*
@@ -175,8 +184,9 @@ Atable *finatable(Atable *t, PSlice *slice)
 	assert(dirs != nil);
 	dirs[0] = (Dirtab){ ".",      t->qid,   0, 0555 };
 	dirs[1] = (Dirtab){ "pretty", t->pqid,  0, 0444 };
-	dirs[2] = (Dirtab){ "raw",    t->rqid,  0, 0444 };
+	dirs[2] = (Dirtab){ "raw",    t->rqid,  t->rawsize, 0444 };
 	dirs[3] = (Dirtab){ "table",  t->tqid,  0, 0444 };
+	dirs[4] = (Dirtab){ "ctl",  t->tqid,  0, 0666 };
 	for (size_t i = 0; i < n; i++) {
 		strlcpy(dirs[i + NQtypes].name, t->children[i]->name, KNAMELEN);
 		dirs[i + NQtypes].qid = t->children[i]->qid;
@@ -489,7 +499,7 @@ static uint8_t sdtchecksum(void *addr, int len)
 	return sum;
 }
 
-static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
+static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
@@ -498,28 +508,45 @@ static void *sdtmap(uintptr_t pa, size_t *n, int cksum)
 		print("sdtmap: nil pa\n");
 		return nil;
 	}
+	if (want) {
+		sdt = vmap(pa, want);
+		if (sdt == nil) {
+			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, want);
+			return nil;
+		}
+		/* realistically, we get a full page, and acpica seems to know that somehow. */
+		uintptr_t endaddress = (uintptr_t) sdt;
+		endaddress += want + 0xfff;
+		endaddress &= ~0xfff;
+		want = endaddress - (uintptr_t)sdt;
+		*n = want;
+	} else {
+
 	sdt = vmap(pa, sizeof(Sdthdr));
 	if (sdt == nil) {
-		print("acpi: vmap: nil\n");
+		print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
 		return nil;
 	}
+	//hexdump(sdt, sizeof(Sdthdr));
 	//print("sdt %p\n", sdt);
 	//print("get it\n");
 	*n = l32get(sdt->length);
 	//print("*n is %d\n", *n);
-	if (!*n) {
+	if (*n == 0) {
 		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 		return nil;
 	}
+
 	sdt = vmap(pa, *n);
 	if (sdt == nil) {
-		print("acpi: vmap: nil\n");
+		print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
 		return nil;
 	}
 	//print("check it\n");
 	if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
 		print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
 		return nil;
+	}
 	}
 	//print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
@@ -540,7 +567,7 @@ static int loadfacs(uintptr_t pa)
 {
 	size_t n;
 
-	facs = sdtmap(pa, &n, 0);
+	facs = sdtmap(pa, 0, &n, 0);
 	if (facs == nil)
 		return -1;
 	if (memcmp(facs->sig, "FACS", 4) != 0) {
@@ -567,7 +594,7 @@ static void loaddsdt(uintptr_t pa)
 	size_t n;
 	uint8_t *dsdtp;
 
-	dsdtp = sdtmap(pa, &n, 1);
+	dsdtp = sdtmap(pa, 0, &n, 1);
 	//print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
@@ -1514,7 +1541,7 @@ static void parsexsdt(Atable *root)
 	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
-		sdt = sdtmap(dhpa, &l, 1);
+		sdt = sdtmap(dhpa, 0, &l, 1);
 		kmprint("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
@@ -1597,7 +1624,7 @@ static void parsersdptr(void)
 	 * process the RSDT or XSDT table.
 	 */
 	xsdt = root->tbl;
-	xsdt->p = sdtmap(sdtpa, &xsdt->len, 1);
+	xsdt->p = sdtmap(sdtpa, 0, &xsdt->len, 1);
 	if (xsdt->p == nil) {
 		print("acpi: sdtmap failed\n");
 		return;
@@ -1610,8 +1637,11 @@ static void parsersdptr(void)
 		return;
 	}
 	xsdt->asize = asize;
+	root->raw = xsdt->p;
+	root->rawsize = xsdt->len;
 	kmprint("acpi: XSDT %#p\n", xsdt);
 	parsexsdt(root);
+	kmprint("POST PARSE XSDT raw is %p len is 0x%x\n", xsdt->p, xsdt->len);
 	kmprint("parsexdt done: lastpath %d\n", lastpath);
 	atableindex = reallocarray(nil, lastpath, sizeof(Atable *));
 	assert(atableindex != nil);
@@ -1871,8 +1901,7 @@ static void initgpes(void)
 
 static void acpiioalloc(unsigned int addr, int len)
 {
-	if (addr != 0)
-		print("Just TAKING port %016lx to %016lx\n", addr, addr + len);
+	ioalloc(addr, len, 1, "ACPI");
 }
 
 static void acpiinitonce(void)
@@ -1880,28 +1909,7 @@ static void acpiinitonce(void)
 	parsersdptr();
 	if (root != nil)
 		print("ACPI initialized\n");
-}
-
-int acpiinit(void)
-{
-	static int once = 0;
-	//die("acpiinit");
-	if (! once)
-		acpiinitonce();
-	once++;
-	return (root == nil) ? -1 : 0;
-}
-
-static Chan *acpiattach(char *spec)
-{
-	Chan *c;
-	/*
-	 * This was written for the stock kernel.
-	 * This code must use 64 registers to be acpi ready in nix.
-	 */
-	if (acpiinit() < 0)
-		error("no acpi");
-
+	addarchfile("acpimem", 0444, acpimemread, nil);
 	/*
 	 * should use fadt->xpm* and fadt->xgpe* registers for 64 bits.
 	 * We are not ready in this kernel for that.
@@ -1934,6 +1942,29 @@ static Chan *acpiattach(char *spec)
 	if (fadt->sciint != 0)
 		intrenable(fadt->sciint, acpiintr, 0, BUSUNKNOWN, "acpi");
 #endif
+
+}
+
+int acpiinit(void)
+{
+	static int once = 0;
+	//die("acpiinit");
+	if (! once)
+		acpiinitonce();
+	once++;
+	return (root == nil) ? -1 : 0;
+}
+
+static Chan *acpiattach(char *spec)
+{
+	Chan *c;
+	/*
+	 * This was written for the stock kernel.
+	 * This code must use 64 registers to be acpi ready in nix.
+	 */
+	if (acpiinit() < 0)
+		error("no acpi");
+
 	c = devattach(devdc(), spec);
 
 	return c;
@@ -1973,14 +2004,76 @@ static void acpiclose(Chan *unused)
 static char *ttext;
 static int tlen;
 
+/* acpimemread allows processes to read acpi tables, using the offset as the
+ * physical address. It hence enforces limits on what is visible.
+ * This is NOT the same as Qraw; Qraw is the area associated with one device, and offsets
+ * start at 0 in Qraw. We need this special read so we can make sense of pointers in tables,
+ * which are physical addresses.
+ */
+static int32_t
+acpimemread(Chan *c, void *a, int32_t n, int64_t off)
+{
+	Proc *up = externup();
+	Acpilist *l;
+	int ret;
+
+	/* due to vmap limitations, you have to be on core 0. Make
+	 * it easy for them. */
+	procwired(up, 0);
+
+	/* This is horribly insecure but, for now,
+	 * focus on getting it to work.
+	 * The only read allowed at 0 is sizeof(*rsd).
+	 * Later on, we'll need to track the things we
+	 * map with sdtmap and only allow reads of those
+	 * areas. But let's see if this idea even works, first.
+	 */
+	//print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
+	if (off == 0){
+		uint32_t pa = (uint32_t)PADDR(rsd);
+		print("FIND RSD");
+		print("PA OF rsd is %lx, \n", pa);
+		return readmem(0, a, n, &pa, sizeof(pa));
+	}
+	if (off == PADDR(rsd)) {
+		//print("READ RSD");
+		//print("returning for rsd\n");
+		//hexdump(rsd, sizeof(*rsd));
+		return readmem(0, a, n, rsd, sizeof(*rsd));
+	}
+
+	l = findlist(off, n);
+	/* we don't load all the lists, so this may be a new one. */
+	if (! l) {
+		size_t _;
+		if (sdtmap(off, n, &_, 0) == nil){
+			static char msg[256];
+			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
+			error(msg);
+		}
+		l = findlist(off, n);
+	}
+	/* we really need to improve on plan 9 error message handling. */
+	if (! l){
+		static char msg[256];
+		snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
+		error(msg);
+	}
+	//hexdump(l->raw, l->size);
+	ret = readmem(off-l->base, a, n, l->raw, l->size);
+	//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
+	return ret;
+}
 // Get the table from the qid.
 // Read that one table using the pointers.
+// Actually, this function doesn't do this right now for pretty or table.
+// It dumps the same table at every level. Working on it.
+// It does the right thing for raw.
 static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	long q;
 	Atable *t;
 	char *ns, *s, *e, *ntext;
-	Acpilist *l;
 	int ret;
 
 	if (ttext == nil) {
@@ -1994,47 +2087,9 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	case Qdir:
 		return devdirread(c, a, n, nil, 0, acpigen);
 	case Qraw:
-		/* This is horribly insecure but, for now,
-		 * focus on getting it to work.
-		 * The only read allowed at 0 is sizeof(*rsd).
-		 * Later on, we'll need to track the things we
-		 * map with sdtmap and only allow reads of those
-		 * areas. But let's see if this idea even works, first.
-		 */
-		print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
-		if (off == 0){
-			uint32_t pa = (uint32_t)PADDR(rsd);
-			print("FIND RSD");
-			print("PA OF rsd is %lx, \n", pa);
-			return readmem(0, a, n, &pa, sizeof(pa));
-		}
-		if (off == PADDR(rsd)) {
-			print("READ RSD");
-			print("returning for rsd\n");
-			//hexdump(rsd, sizeof(*rsd));
-			return readmem(0, a, n, rsd, sizeof(*rsd));
-		}
-
-		l = findlist(off);
-		/* we don't load all the lists, so this may be a new one. */
-		if (! l) {
-			size_t _;
-			if (sdtmap(off, &_, 0) == nil){
-				static char msg[256];
-				snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
-				error(msg);
-			}
-			l = findlist(off);
-		}
-		/* we really need to improve on plan 9 error message handling. */
-		if (! l){
-			static char msg[256];
-			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
-			error(msg);
-		}
-		//hexdump(l->raw, l->size);
-		ret = readmem(off-l->base, a, n, l->raw, l->size);
-		print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
+		t = genatable(c);
+		ret = readmem(off, a, n, t->raw, t->rawsize);
+		//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 		return ret;
 	case Qtbl:
 		s = ttext;
@@ -2075,14 +2130,16 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 
 static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	error("acpiwrite: not until we can figure out what it's for");
+	error("not yet");
 	return -1;
 #if 0
-	ERRSTACK(2);
-	cmdtab *ct;
-	cmdbuf *cb;
-	Reg *r;
-	unsigned int rno, fun, dev, bus, i;
+	int acpiirq(uint32_t tbdf, int irq);
+	Proc *up = externup();
+	Cmdtab *ct;
+	Cmdbuf *cb;
+
+	uint32_t tbdf;
+	int irq;
 
 	if (c->qid.path == Qio) {
 		if (reg == nil)
@@ -2090,7 +2147,7 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 		return regio(reg, a, n, off, 1);
 	}
 	if (c->qid.path != Qctl)
-		error(EPERM, ERROR_FIXME);
+		error("Can only write Qctl");
 
 	cb = parsecmd(a, n);
 	if (waserror()) {
@@ -2099,6 +2156,9 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	}
 	ct = lookupcmd(cb, ctls, nelem(ctls));
 	switch (ct->index) {
+	Reg *r;
+
+		unsigned int rno, fun, dev, bus, i;
 		case CMregion:
 			/* TODO: this block is racy on reg (global) */
 			r = reg;
@@ -2140,6 +2200,11 @@ static int32_t acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 			kstrdup(&gpes[i].obj, cb->f[2]);
 			setgpeen(i, 1);
 			break;
+		case CMirq:
+			tbdf = strtoul(cb->f[1], 0, 0);
+			irq = strtoul(cb->f[2], 0, 0);
+			acpiirq(tbdf, irq);
+			break;
 		default:
 			panic("acpi: unknown ctl");
 	}
@@ -2176,7 +2241,8 @@ static char *raw(Atable *atbl, char *start, char *end, void *unused_arg)
 }
 
 Dev acpidevtab = {
-	.dc = L'α',
+	//.dc = L'α',
+	.dc = 'Z',
 	.name = "acpi",
 
 	.reset = devreset,

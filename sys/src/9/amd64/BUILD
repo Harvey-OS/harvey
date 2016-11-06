@@ -34,7 +34,6 @@ CORE_SRCS = [
 	"memory.c",
 	"mmu.c",
 	"mpacpi.c",
-	"mp.c",
 	"msi.c",
 	"multiboot.c",
 	"physalloc.c",
@@ -60,6 +59,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/devcoreboot.c",
 	"//sys/src/9/port/devdup.c",
 	"//sys/src/9/port/devenv.c",
+	"//sys/src/9/port/devether.c",
 	"//sys/src/9/port/devfdmux.c",
 	"//sys/src/9/port/devkprof.c",
 	"//sys/src/9/port/devkbin.c",
@@ -67,6 +67,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/devmntn.c",
 	"//sys/src/9/port/devpipe.c",
 	"//sys/src/9/port/devproc.c",
+	"//sys/src/9/port/devramfs.c",
 	"//sys/src/9/port/devregress.c",
 	"//sys/src/9/port/devroot.c",
 	"//sys/src/9/port/devsd.c",
@@ -114,6 +115,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/syszio.c",
 	"//sys/src/9/port/taslock.c",
 	"//sys/src/9/port/tod.c",
+	"//sys/src/9/port/virtio_lib.c",
 	"//sys/src/9/port/watermarks.c",
 ]
 
@@ -153,6 +155,7 @@ AMD64_SRCS = [
 	"ether82563.c",
 	"mouse.c",
 	"screen.c",
+	"sdiahci.c",
 	"usbehcipc.c",
 	"usbohci.c",
 	"usbuhci.c",
@@ -162,7 +165,6 @@ AMD64_SRCS = [
 
 # don't want to start with a number
 I386_SRCS = [
-	"//sys/src/9/386/devether.c",
 	"//sys/src/9/386/devrtc.c",
 	"//sys/src/9/386/ether8169.c",
 	"//sys/src/9/386/ether82557.c",
@@ -170,7 +172,6 @@ I386_SRCS = [
 	"//sys/src/9/386/etherm10g.c",
 	"//sys/src/9/386/i8042.c",
 	"//sys/src/9/386/pci.c",
-	"//sys/src/9/386/sdiahci.c",
 	"//sys/src/9/386/uarti8250.c",
 	"//sys/src/9/386/uartpci.c",
 	"//sys/src/9/386/vgavesa.c",
@@ -266,6 +267,15 @@ cc_binary(
 		"-T",
 	]
 )
+move(
+	name="factotum",
+	deps=[
+		"//sys/src/cmd/auth/factotum:factotum",
+	],
+	installs={
+		"bin/auth/factotum": "bin/factotum",
+	},
+)
 
 KERNEL_DEPS = [
 	"//sys/src/cmd:bind",
@@ -273,7 +283,7 @@ KERNEL_DEPS = [
 	"//sys/src/cmd:cat",
 	"//sys/src/cmd:date",
 	"//sys/src/cmd:echo",
-	"//sys/src/cmd/auth/factotum:factotum",
+	":factotum",
 	"//sys/src/cmd/disk/prep:fdisk",
 	"//sys/src/cmd/fossil:fossil",
 	"//sys/src/cmd/ip/ipconfig:ipconfig",

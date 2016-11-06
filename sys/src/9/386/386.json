@@ -1,7 +1,6 @@
 {
 	"386": {
 		"SourceFiles": [
-			"../386/devether.c",
 			"../386/devrtc.c",
 			"../386/ether8169.c",
 			"../386/ether82557.c",
@@ -9,7 +8,6 @@
 			"../386/etherm10g.c",
 			"../386/i8042.c",
 			"../386/pci.c",
-			"../386/sdiahci.c",
 			"../386/uarti8250.c",
 			"../386/uartpci.c",
 			"../386/vgavesa.c"

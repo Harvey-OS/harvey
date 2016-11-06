@@ -8,6 +8,12 @@
  */
 
 #include "../port/portfns.h"
+
+/* assembly code support from asm.S */
+void startmach(void (*f)(void), void *m);
+Mach *machp(void);
+
+/* other functions */
 void	intrac(Proc*);
 void	acinit(void);
 int	acpiinit(void);
@@ -135,7 +141,7 @@ uint64_t	spllo(void);
 void	splx(uint64_t);
 void	splxpc(uint64_t);
 void	kstackok(void); /* panic if kstack guards garbaged, works with and without externup */
-Stackframe	*stackframe(void); /* l64v.S */
+Stackframe	*stackframe(void); /* asm.S */
 void	stacksnippet(void);
 void	stopac(void);
 void	syncclock(void);
@@ -154,24 +160,10 @@ void*	vmap(uintptr_t, usize);
 void	vsvminit(int, int, Mach *);
 void	vunmap(void*, usize);
 
-extern uint64_t cr0get(void);
-extern void cr0put(uint64_t);
-extern uint64_t cr2get(void);
-extern uint64_t cr3get(void);
-extern void cr3put(uint64_t);
-extern uint64_t cr4get(void);
-extern void cr4put(uint64_t);
-extern void gdtget(void*);
-extern void gdtput(int, uint64_t, uint16_t);
+extern uint64_t rootget(void);
+extern void rootput(uintptr_t);
 extern void idtput(int, uint64_t);
-extern uint64_t rdmsr(uint32_t);
 extern uint64_t rdtsc(void);
-extern void trput(uint64_t);
-extern void wrmsr(uint32_t, uint64_t);
-
-// TODO(aki): once we figure this out, these will go.
-extern int infected_with_std(void);
-extern void disinfect_std(void);
 
 extern int islo(void);
 extern void spldone(void);

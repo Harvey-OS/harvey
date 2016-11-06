@@ -78,10 +78,10 @@ struct Lock
 
 struct Label
 {
+	/* order known to assembly */
 	uintptr_t	sp;
 	uintptr_t	pc;
-	// TODO: how many?
-	uintptr_t	regs[64];
+	uintptr_t       fp;
 };
 
 struct Fxsave {

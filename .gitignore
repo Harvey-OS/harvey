@@ -11,6 +11,10 @@ amd64/9*
 amd64/bin
 amd64/init
 amd64/lib
+riscv/9*
+riscv/bin
+riscv/init
+riscv/lib
 
 acme/bin/amd64
 
@@ -62,3 +66,4 @@ build_out
 
 cron/lock
 /util/blaze
+/home

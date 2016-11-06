@@ -5,10 +5,15 @@
 				"-mno-implicit-float"
 			],
 			"/usr/bin/gcc": [
+				"-Wno-frame-address",
+				"-fno-pie"
+			],
+			"/opt/gnu/bin/x86_64-none-elf-gcc": [
 				"-Wno-frame-address"
 			],
 			"/usr/bin/gcc-6": [
-				"-Wno-frame-address"
+				"-Wno-frame-address",
+				"-fno-pie"
 			]
 		},
 		"Cflags": [

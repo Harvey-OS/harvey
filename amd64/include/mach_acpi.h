@@ -44,6 +44,8 @@ typedef int16_t INT16;
 typedef int8_t INT8;
 typedef int ACPI_THREAD_ID;
 
+#define DEBUGGER_THREADING DEBUGGER_SINGLE_THREADED
 #define ACPI_MACHINE_WIDTH 64
 #pragma clang diagnostic ignored "-Wunused-variable"
 
+#define ACPI_GET_FUNCTION_NAME __func__

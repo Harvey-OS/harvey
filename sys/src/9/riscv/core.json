@@ -17,9 +17,10 @@
 			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/riscv",
-			"-I", "/sys/src/9/port"
+			"-I", "/sys/src/9/port",
+			"-I", "/sys/src/libc/9syscall"
 		],
-		"NoLibs": [
+	    "Libs": [
 			"/$ARCH/lib/klibc.a"
 		],
 		"Oflags": [
@@ -40,12 +41,10 @@
 			"inith.json"
 		],
 	    "MissingSourceFiles": [
-			"arch.c",
+		        "acore.c",
 			"archriscv.c",
-			"asm.c",
 		        "coreboot.c",
 			"devarch.c",
-			"map.c",
 			"memory.c",
 			"mmu.c",
 			"mp.c",
@@ -55,9 +54,22 @@
 			"trap.c"
 		],
 		"SourceFiles": [
+			"assembly.S",
+			"arch.c",
+			"asm.c",
+		        "acore.c",
+			"archriscv.c",
 			"ctype.c",
+			"devarch.c",
 			"main.c",
-			"spike_util.c"
+			"map.c",
+			"mmu.c",
+			"physalloc.c",
+			"qmalloc.c",
+			"syscall.c",
+			"systab.c",
+		        "tcore.c",
+			"uart.c"
 		]
 	}
 }

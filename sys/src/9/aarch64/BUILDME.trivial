@@ -1,0 +1,5 @@
+ARCH=aarch64  \
+STRIP=aarch64-none-elf-strip \
+CC=aarch64-none-elf-gcc \
+LD=aarch64-none-elf-ld \
+../../../../util/build trivial.json
