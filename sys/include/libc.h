@@ -716,3 +716,8 @@ void psliceappend(PSlice *s, void *p);
 size_t pslicelen(PSlice *slice);
 void **pslicefinalize(PSlice *slice);
 void pslicedestroy(PSlice *slice);
+
+/* configstring functions. These are from riscv but the idea is so good
+ * it might have other uses. */
+void query_mem(const char *config_string, uintptr_t *base, size_t *size);
+void query_rtc(const char *config_string, uintptr_t *mtime);
