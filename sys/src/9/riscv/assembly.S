@@ -57,7 +57,9 @@ slim_setlabel:
 	RET
 
 
+#if 0
 .globl rdtsc
 rdtsc:
 	RDCYCLE a0
 	RET
+#endif

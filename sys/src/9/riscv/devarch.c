@@ -15,6 +15,7 @@
 #include "../port/error.h"
 
 #include "ureg.h"
+#include "encoding.h"
 
 /* leave this for now; we might want to keep track of MMIO apart from memory. */
 typedef struct IOMap IOMap;
@@ -556,10 +557,8 @@ ms(void)
 void
 timerset(uint64_t x)
 {
-	panic("apictimerset");
-//	extern void apictimerset(uint64_t);
-
-//	apictimerset(x);
+	//write_csr(mtimercmp, x);
+	panic("timerset");
 }
 
 void

@@ -71,6 +71,12 @@ void hart(void)
 	die("not yet");
 }
 
+uint64_t
+rdtsc(void)
+{
+	return read_csr(/*s*/cycle);
+}
+
 void
 init0(void)
 {
