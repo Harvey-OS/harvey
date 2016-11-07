@@ -14,7 +14,7 @@ else
 
 	if [[  ($CC == "clang-3.8") && ("${TRAVIS_PULL_REQUEST}" = "false" ) ]]; then
 
-			scan-build ./util/bldy //.:kernel
+			scan-build-3.8 ./util/bldy //.:kernel
 
 			curl -L http://sevki.co/4qf_NS -o util/scanscan
 			chmod +x util/scanscan
