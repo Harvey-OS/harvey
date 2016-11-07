@@ -12,7 +12,7 @@ else
 	curl -L http://sevki.co/get-build -o util/bldy
 	chmod +x util/bldy
 
-	if [[  ($CC == "clang") && ("${TRAVIS_PULL_REQUEST}" = "false" ) ]]; then
+	if [[  ($CC == "clang-3.8") && ("${TRAVIS_PULL_REQUEST}" = "false" ) ]]; then
 
 			scan-build ./util/bldy //.:kernel
 
