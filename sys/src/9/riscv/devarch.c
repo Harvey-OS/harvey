@@ -557,8 +557,12 @@ ms(void)
 void
 timerset(uint64_t x)
 {
-	//write_csr(mtimercmp, x);
-	panic("timerset");
+	uint64_t now;
+	extern uint64_t *mtimecmp;
+	cycles(&now);
+	// who knows. This is claimed to be a 10 mhz.
+	// clock. So let's have it interrupt at 10 hz.
+	*mtimecmp = now + 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
 }
 
 void

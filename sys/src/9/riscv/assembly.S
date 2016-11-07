@@ -1,10 +1,13 @@
 # main has to be in assembly because there's not telling
-# what stack firmware has set up.
+# what stack firmware has set up. It calls the
+# bsp function with stack in a0 and configstring
+# pointer in a1.
 .globl bsp
 .globl m0
 .globl m0stack
 .globl main
 main:
+	mv	a3, a0
         lui     a5,%hi(bsp)
         add     a5,a5,%lo(bsp)
         mv      a0,a5
@@ -18,6 +21,12 @@ main:
 	li	a6, 32768
 	add 	a5, a5, a6
         mv      a2,a5
+	csrw	sscratch, a1
+	mv	ra,a0
+	mv	sp, a2
+	mv 	a0, a2
+	mv	a1, a3
+	ret
 # startmach starts a function after setting up the mach
 # pointer. The function is in a0, the mach pointer in a1.
 .globl startmach

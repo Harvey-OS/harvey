@@ -721,3 +721,4 @@ void pslicedestroy(PSlice *slice);
  * it might have other uses. */
 void query_mem(const char *config_string, uintptr_t *base, size_t *size);
 void query_rtc(const char *config_string, uintptr_t *mtime);
+int query_uint(const char *configstring, char *name, uintptr_t *m);

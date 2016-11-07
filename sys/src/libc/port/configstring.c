@@ -204,15 +204,36 @@ static inline int64_t get_sint(query_result res)
 }
 void query_mem(const char *config_string, uintptr_t *base, size_t *size)
 {
+	*base = 0;
+	*size = 0;
 	query_result res = query_config_string(config_string, "ram{0{addr");
+	if (!res.start)
+		return;
 	*base = get_uint(res);
 	res = query_config_string(config_string, "ram{0{size");
+	if (!res.start)
+		return;
 	*size = get_uint(res);
 }
 
 /* query_rtc returns the physical address of the rtc. */
 void query_rtc(const char *config_string, uintptr_t *mtime)
 {
+	*mtime = 0;
 	query_result res = query_config_string(config_string, "rtc{addr");
+	if (!res.start)
+		return;
 	*mtime = (uintptr_t)get_uint(res);
+}
+
+int query_uint(const char *configstring, char *name, uintptr_t *res)
+{
+	query_result m;
+
+	m = query_config_string(configstring, name);
+	if (m.start) {
+		*res = (uintptr_t)get_uint(m);
+		return 0;
+	}
+	return -1;
 }

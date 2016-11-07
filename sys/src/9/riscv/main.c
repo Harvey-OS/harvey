@@ -18,6 +18,9 @@
 #include "encoding.h"
 
 extern void (*consuartputs)(char*, int);
+void query_mem(const char *config_string, uintptr_t *base, size_t *size);
+void query_rtc(const char *config_string, uintptr_t *mtime);
+void query_uint(const char *config_string, char *name, uintptr_t *val);
 
 void testPrint(uint8_t c);
 
@@ -55,11 +58,15 @@ Conf conf;
 uintptr_t kseg0 = KZERO;
 char *cputype = "riscv";
 int64_t hz;
+uintptr_t rtc;
 
 /* I forget where this comes from and I don't care just now. */
 uint32_t kerndate;
 int maxcores = 1;
 int nosmp = 1;
+uint64_t *mtimecmp;
+
+char *configstring; /* from coreboot, first arg to main */
 
 /* general purpose hart startup. We call this via startmach.
  * When we enter here, the machp() function is usable.
@@ -214,8 +221,10 @@ confinit(void)
 }
 
 
-void bsp(void *stack)
+void bsp(void *stack, char *_configstring)
 {
+	msg(_configstring);
+	configstring = _configstring;
 	Mach *mach = machp();
 	if (mach != &m0)
 		die("MACH NOT MATCH");
@@ -223,6 +232,7 @@ void bsp(void *stack)
 	memset(mach, 0, sizeof(Mach));
 	msg("done that\n");
 
+	msg(_configstring);
 	mach->self = (uintptr_t)mach;
 	msg("SET SELF OK\n");
 	mach->machno = 0;
@@ -230,6 +240,7 @@ void bsp(void *stack)
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(stack);
 	*(uintptr_t*)mach->stack = STACKGUARD;
+	msg(_configstring);
 	mach->externup = nil;
 	active.nonline = 1;
 	active.exiting = 0;
@@ -242,6 +253,7 @@ void bsp(void *stack)
 	msg(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n");
 	asmmapinit(0x81000000, 0xc0000000, 1); print("asmmapinit\n");
 
+	msg(_configstring);
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
@@ -252,9 +264,16 @@ void bsp(void *stack)
 	
 	sys->nmach = 1;
 
+	msg(_configstring);
 	fmtinit();
 	print("\nHarvey\n");
 
+	/* you're going to love this. Print does not print the whole
+	 * string. msg does. Bug. */
+	print("Config string:%p '%s'\n", configstring, configstring);
+	msg("Config string via msg\n");
+	msg(_configstring);
+	msg("\n");
 	mach->perf.period = 1;
 	if((hz = archhz()) != 0ll){
 		mach->cpuhz = hz;
@@ -292,6 +311,12 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 		msg("free ok\n");
 	}
 
+	query_rtc(configstring, &rtc);
+	print("rtc: %p\n", rtc);
+
+	query_uint(configstring, "core{0{0{timecmp", (uintptr_t*)&mtimecmp);
+
+	print("mtimecmp is %p\n", mtimecmp);
 	umeminit();
 
 	procinit0();
