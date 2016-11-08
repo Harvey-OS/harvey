@@ -68,6 +68,8 @@ uint64_t *mtimecmp;
 
 char *configstring; /* from coreboot, first arg to main */
 
+static uintptr_t sp;		/* XXX - must go - user stack of init proc */
+
 /* general purpose hart startup. We call this via startmach.
  * When we enter here, the machp() function is usable.
  */
@@ -125,6 +127,51 @@ init0(void)
 	//touser(sp);
 }
 
+/*
+ * Option arguments from the command line.
+ * oargv[0] is the boot file.
+ * TODO: do it.
+ */
+static int64_t oargc;
+static char* oargv[20];
+static char oargb[1024];
+static int oargblen;
+
+void
+bootargs(uintptr_t base)
+{
+	int i;
+	uint32_t ssize;
+	char **av, *p;
+
+	/*
+	 * Push the boot args onto the stack.
+	 * Make sure the validaddr check in syscall won't fail
+	 * because there are fewer than the maximum number of
+	 * args by subtracting sizeof(up->arg).
+	 */
+	i = oargblen+1;
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc*)0)->arg) - i));
+	memmove(p, oargb, i);
+
+	/*
+	 * Now push argc and the argv pointers.
+	 * This isn't strictly correct as the code jumped to by
+	 * touser in init9.[cs] calls startboot (port/initcode.c) which
+	 * expects arguments
+	 * 	startboot(char* argv0, char* argv[])
+	 * not the usual (int argc, char* argv[]), but argv0 is
+	 * unused so it doesn't matter (at the moment...).
+	 */
+	av = (char**)(p - (oargc+2)*sizeof(char*));
+	ssize = base + BIGPGSZ - PTR2UINT(av);
+	*av++ = (char*)oargc;
+	for(i = 0; i < oargc; i++)
+		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
+	*av = nil;
+
+	sp = USTKTOP - ssize;
+}
 
 void
 userinit(void)
@@ -174,8 +221,7 @@ userinit(void)
 	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
-	panic("fixbootargs");
-	//bootargs(VA(k));
+	bootargs(VA(k));
 	kunmap(k);
 
 	/*
@@ -231,6 +277,7 @@ void bsp(void *stack, char *_configstring)
 	msg("memset mach\n");
 	memset(mach, 0, sizeof(Mach));
 	msg("done that\n");
+	MACHP(0) = mach;
 
 	msg(_configstring);
 	mach->self = (uintptr_t)mach;
