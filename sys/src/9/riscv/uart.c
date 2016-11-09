@@ -13,7 +13,11 @@
  * GNU General Public License for more details.
  */
 
-#include <u.h>
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
 uintptr_t uart_platform_base(int idx)
 {
@@ -22,6 +26,6 @@ uintptr_t uart_platform_base(int idx)
 
 void testPrint(uint8_t c)
 {
-	uint8_t *cp = (void *)uart_platform_base(0);
+	uint8_t *cp = KADDR(uart_platform_base(0));
 	*cp = c;
 }
