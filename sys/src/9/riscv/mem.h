@@ -116,18 +116,11 @@
  */
 
 #ifndef __ASSEMBLER__
-#define KSEG2		(0xfffffe0000000000ull)	/* 1TB - KMAP */
-/*			 0xffffff0000000000ull	end of KSEG2 */
-#define VMAP		(0xffffffffe0000000ull)
-#define VMAPSZ		(256*MiB)
 #define KSEG0		(0xffffffff80000000ull)	/* 256MB - this is confused */
 #define KZERO		(0xffffffff80000000ull)
 #define KTZERO		(KZERO+1*MiB+64*KiB)
 /*			 0xffffffffffffffffull	end of KSEG0 */
 #else
-#define KSEG2           (0xfffffe0000000000)
-#define VMAPSZ          (256*MiB)
-#define VMAP            (0xffffffffe0000000)
 #define KSEG0           (0xffffffff80000000)
 #define KZERO           (0xffffffff80000000)
 #define KTZERO          (KZERO+1*MiB+64*KiB)

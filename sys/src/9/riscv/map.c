@@ -28,9 +28,9 @@ KADDR(uintptr_t pa)
 		return (void *)(KSEG0|pa);
 	}
 
-	assert(pa < KSEG2);
+	assert(pa < (uintptr_t)kseg2);
 	k2++;
-	return (void *)(KSEG2|pa);
+	return (void *)((uintptr_t)kseg2|pa);
 }
 
 uintmem
@@ -45,9 +45,9 @@ print("pa %p \n", pa);
 		print("KSEG0 range\n");
 		return (uintmem)(uint32_t)pa; //-KSEG0;
 	}
-	if(pa > KSEG2) {
-		print("KSEG2 range\n");
-		return pa-KSEG2;
+	if(pa > (uintptr_t)kseg2) {
+		print("kseg2 range\n");
+		return pa-(uintptr_t)kseg2;
 	}
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());

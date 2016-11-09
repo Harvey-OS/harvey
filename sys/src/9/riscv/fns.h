@@ -59,6 +59,7 @@ void	dumpmmu(Proc*);
 void	dumpmmuwalk(uint64_t pa);
 void	dumpptepg(int lvl,uintptr_t pa);
 #define	evenaddr(x)				/* x86 doesn't care */
+void *findKSeg2(void);
 int	fpudevprocio(Proc*, void*, int32_t, uintptr_t, int);
 void	fpuinit(void);
 void	fpunoted(void);
@@ -264,8 +265,9 @@ int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots);
 /* horror */
 static inline void __clobber_callee_regs(void)
 {
-	panic("FIX ME!");
-	//asm volatile ("" : : : "rbx", "r12", "r13", "r14", "r15");
+	// Arrived at through trial and error, this toolchain is a pain.
+	asm volatile ("" : : : "x2", "x3", "x4", "x5", "x6", "x7", /*"x8", */"x9", "x10", "x11", "x12", "x13"/*, "x15"*/);
+	// TODO: f0-f15? 
 }
 
 int slim_setlabel(Label*) __attribute__((returns_twice));

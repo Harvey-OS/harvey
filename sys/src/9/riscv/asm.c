@@ -386,7 +386,7 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n"
 			DBG("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
 		}
-		va = KSEG2+assem->addr;
+		va = (uintptr_t)kseg2+assem->addr;
 		DBG("asm: addr %#P end %#P type %d size %P\n",
 			assem->addr, assem->addr+assem->size,
 			assem->type, assem->size);
