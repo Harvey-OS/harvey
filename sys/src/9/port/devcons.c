@@ -16,6 +16,7 @@
 
 #include	<authsrv.h>
 
+void msg(char *);
 enum
 {
 	Nconsdevs	= 64,		/* max number of consoles */
@@ -114,6 +115,7 @@ static void
 kmesgputs(char *str, int n)
 {
 	uint nn, d;
+	if (1) { msg("NO KMESGPUTS\n"); return; }
 
 	ilock(&kmesg.lk);
 	/* take the tail of huge writes */

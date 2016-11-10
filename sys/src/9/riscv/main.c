@@ -64,7 +64,14 @@ uintptr_t rtc;
 uint32_t kerndate;
 int maxcores = 1;
 int nosmp = 1;
+uint64_t mtimecmppa;
 uint64_t *mtimecmp;
+/*
+ * kseg2 is the base of the virtual address space.
+ * it is not a constant as in amd64; in riscv there are many possible
+ * values, even on the same SOC. It is determined by firmware.
+ */
+void *kseg2;
 
 char *configstring; /* from coreboot, first arg to main */
 
@@ -83,7 +90,11 @@ void hart(void)
 uint64_t
 rdtsc(void)
 {
-	return read_csr(/*s*/cycle);
+	uint64_t cycles;
+	msg("rdtsc\n");
+	cycles = read_csr(/*s*/cycle);
+	msg("done rdts\n");
+	return cycles;
 }
 
 void
@@ -104,12 +115,18 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
+print("1\n");
 	up->slash = namec("#/", Atodir, 0, 0);
+print("1\n");
 	pathclose(up->slash->path);
+print("1\n");
 	up->slash->path = newpath("/");
+print("1\n");
 	up->dot = cclone(up->slash);
+print("1\n");
 
 	devtabinit();
+print("1\n");
 
 	if(!waserror()){
 		//snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
@@ -267,10 +284,12 @@ confinit(void)
 }
 
 
-void bsp(void *stack, char *_configstring)
+void bsp(void *stack, uintptr_t _configstring)
 {
-	msg(_configstring);
-	configstring = _configstring;
+	kseg2 = findKSeg2();
+	msg("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
+	configstring = KADDR(_configstring);
+	msg(configstring);
 	Mach *mach = machp();
 	if (mach != &m0)
 		die("MACH NOT MATCH");
@@ -279,7 +298,7 @@ void bsp(void *stack, char *_configstring)
 	msg("done that\n");
 	MACHP(0) = mach;
 
-	msg(_configstring);
+	msg(configstring);
 	mach->self = (uintptr_t)mach;
 	msg("SET SELF OK\n");
 	mach->machno = 0;
@@ -287,7 +306,7 @@ void bsp(void *stack, char *_configstring)
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(stack);
 	*(uintptr_t*)mach->stack = STACKGUARD;
-	msg(_configstring);
+	msg(configstring);
 	mach->externup = nil;
 	active.nonline = 1;
 	active.exiting = 0;
@@ -300,7 +319,7 @@ void bsp(void *stack, char *_configstring)
 	msg(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n");
 	asmmapinit(0x81000000, 0xc0000000, 1); print("asmmapinit\n");
 
-	msg(_configstring);
+	msg(configstring);
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
@@ -311,15 +330,16 @@ void bsp(void *stack, char *_configstring)
 	
 	sys->nmach = 1;
 
-	msg(_configstring);
+	msg(configstring);
 	fmtinit();
 	print("\nHarvey\n");
+print("KADDR OF (uintptr_t) 0x40001000 is %p\n", KADDR((uintptr_t) 0x40001000));
 
 	/* you're going to love this. Print does not print the whole
 	 * string. msg does. Bug. */
 	print("Config string:%p '%s'\n", configstring, configstring);
 	msg("Config string via msg\n");
-	msg(_configstring);
+	msg(configstring);
 	msg("\n");
 	mach->perf.period = 1;
 	if((hz = archhz()) != 0ll){
@@ -361,7 +381,8 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	query_rtc(configstring, &rtc);
 	print("rtc: %p\n", rtc);
 
-	query_uint(configstring, "core{0{0{timecmp", (uintptr_t*)&mtimecmp);
+	query_uint(configstring, "core{0{0{timecmp", (uintptr_t*)&mtimecmppa);
+	mtimecmp = KADDR(mtimecmppa);
 
 	print("mtimecmp is %p\n", mtimecmp);
 	umeminit();

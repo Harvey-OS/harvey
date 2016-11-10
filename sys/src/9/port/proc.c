@@ -9,6 +9,8 @@
 #include	"errstr.h"
 #include	<trace.h>
 
+void msg(char *);
+
 enum
 {
 	Scaling=2,
@@ -120,6 +122,7 @@ schedinit(void)		/* never returns */
 
 	setlabel(&machp()->sched);
 	up = machp()->externup;
+print("schedinit: up is %p\n", up);
 	if(up) {
 		if((e = up->edf) && (e->flags & Admitted))
 			edfrecord(up);
@@ -167,6 +170,7 @@ stackok(void)
 	char dummy;
 
 	if(&dummy < (char*)up->kstack + 4*KiB){
+		msg("FUCK\n");
 		print("tc kernel stack overflow, cpu%d stopped\n", machp()->machno);
 		DONE();
 	}
@@ -183,14 +187,20 @@ sched(void)
 	Sched *sch;
 	Proc *up = externup();
 
+msg("SCHED()\n");
 	sch = machp()->sch;
-	if(machp()->ilockdepth)
+msg("SCHED2()\n");
+print("shced() up %p\n", up);
+	if(machp()->ilockdepth) {
+		msg("FUCK\n");
+		print("machp %p\n", machp);
 		panic("cpu%d: ilockdepth %d, last lock %#p at %#p, sched called from %#p",
 			machp()->machno,
 			machp()->ilockdepth,
 			up? up->lastilock: nil,
 		      (up && up->lastilock)? 0/*up->lastilock->pc*/: 0,
 		      getcallerpc());
+	}
 
 	if(up){
 		/*
@@ -228,7 +238,7 @@ sched(void)
 		stackok();
 
 		procsave(up);
-		mmuflushtlb(machp()->MMU.pml4->pa);
+		mmuflushtlb();
 		if(setlabel(&up->sched)){
 			procrestore(up);
 			spllo();
@@ -238,6 +248,7 @@ sched(void)
 	}
 	machp()->inidle = 1;
 	p = runproc();
+print("inidle 0\n");
 	machp()->inidle = 0;
 	if(!p->edf){
 		updatecpu(p);
@@ -247,15 +258,19 @@ sched(void)
 		machp()->schedticks = machp()->ticks + HZ/10;
 	machp()->readied = 0;
 	machp()->externup = p;
+print("get read\n");
 	up = p;
 	up->nqtrap = 0;
 	up->nqsyscall = 0;
 	up->state = Running;
 	up->mach = MACHP(machp()->machno);
 	machp()->proc = up;
+print("call mmuswitch\n");
 	mmuswitch(up);
+print("done mmuswitch\n");
 
 		      assert(!up->wired || up->wired == machp());
+print("gootlbael %p\n", &up->sched);
 	gotolabel(&up->sched);
 }
 
@@ -682,17 +697,21 @@ runproc(void)
 	uint64_t start, now;
 	int i;
 
+msg("runproc\n");
 	start = perfticks();
 	sch = machp()->sch;
+msg("runproc\n");
 	/* cooperative scheduling until the clock ticks */
 	if((p=machp()->readied) && p->mach==0 && p->state==Ready
 	&& sch->runq[Nrq-1].head == nil && sch->runq[Nrq-2].head == nil
 	   && (!p->wired || p->wired == machp())){
+msg("coop\n");
 		sch->skipscheds++;
 		rq = &sch->runq[p->priority];
 		goto found;
 	}
 
+msg("preempts\n");
 	sch->preempts++;
 
 loop:
@@ -703,6 +722,7 @@ loop:
 	 */
 	spllo();
 	for(i = 0;; i++){
+msg("find\n");
 		/*
 		 *  find the highest priority target process that this
 		 *  processor can run given affinity constraints.
@@ -730,20 +750,26 @@ loop:
 	}
 
 found:
+msg("FOUND:\n");
 	splhi();
 	p = dequeueproc(sch, rq, p);
+print("p %p\n", p);
 	if(p == nil)
 		goto loop;
 stolen:
 	p->state = Scheding;
 	p->mp = MACHP(machp()->machno);
 
+msg("STOLEN:\n");
 	if(edflock(p)){
+print("edflock\n");
 		edfrun(p, rq == &sch->runq[PriEdf]);	/* start deadline timer and do admin */
 		edfunlock();
 	}
+print("trace %d\n", p->trace);
 	if(p->trace)
 		proctrace(p, SRun, 0);
+print("return %p\n", p);
 	return p;
 }
 
@@ -964,7 +990,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		machp()->cs++;
 
 		procsave(up);
-		mmuflushtlb(machp()->MMU.pml4->pa);
+		mmuflushtlb();
 		if(setlabel(&up->sched)) {
 			/*
 			 *  here when the process is awakened

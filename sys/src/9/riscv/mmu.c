@@ -83,7 +83,7 @@ rootput(uintptr_t root)
 
 }
 void
-mmuflushtlb(uint64_t u)
+mmuflushtlb(void)
 {
 
 	machp()->tlbpurge++;
@@ -112,6 +112,7 @@ mmuptpfree(Proc* proc, int clear)
 	int l;
 	PTE *pte;
 	Page **last, *page;
+msg("mmuptefree\n");
 
 	for(l = 1; l < 4; l++){
 		last = &proc->MMU.mmuptp[l];
@@ -271,21 +272,31 @@ mmuswitch(Proc* proc)
 		proc->newtlb = 0;
 	}
 
+	/* daddr is the number of user PTEs in use in the pml4. */
 	if(machp()->MMU.pml4->daddr){
+		print("memsg(%p, 0, %d\n", UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
 		memset(UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
 		machp()->MMU.pml4->daddr = 0;
 	}
 
 	pte = UINT2PTR(machp()->MMU.pml4->va);
+
+print("pte %p\n", pte);
+	/* N.B. On RISCV, we DO NOT SET and of X, R, W  bits at this level since
+	 * that we point to page table pages on level down.  Also, these are
+	 * explicitly user level pages, so PteU is set. */
 	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
-		pte[page->daddr] = PPN(page->pa)|PteU|PteRW|PteP;
+		pte[page->daddr] = PPN(page->pa)|PteU|PteP;
 		if(page->daddr >= machp()->MMU.pml4->daddr)
 			machp()->MMU.pml4->daddr = page->daddr+1;
 		page->prev = machp()->MMU.pml4;
 	}
 
+	// Switch kernel stacks. Really. 
 	//tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
+print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.pml4->pa);
 	rootput((uintptr_t) machp()->MMU.pml4->pa);
+print("splx\n");
 	splx(pl);
 }
 
@@ -563,6 +574,19 @@ mmukmapsync(uint64_t va)
 	return 0;
 }
 
+// findKSeg2 finds kseg2, i.e., the lowest virtual
+// address mapped by firmware. We need to know this so we can
+// correctly and easily compute KADDR and PADDR.
+// TODO: actually to it.
+// It is *possible* that we'll be able to pick this up from
+// the configstring.
+void *
+findKSeg2(void)
+{
+	// return the Sv39 address that we know coreboot
+	// set up.
+	return (void *)(~0ULL<<38);
+}
 /* mmuwalk will walk the page tables as far as we ask (level)
  * or as far as possible (you might hit a tera/giga/mega PTE).
  * If it gets a valid PTE it will return it in ret; test for

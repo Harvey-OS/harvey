@@ -169,10 +169,10 @@ struct NIX
 struct MMMU
 {
 	uintptr_t badaddr;
-	Page*   pml4;			/* root for this processor */
+	Page*   root;			/* root for this processor */
 	PTE*	pmap;			/* unused as of yet */
 
-	Page	pml4kludge;		/* NIX KLUDGE: we need a page */
+	Page	nixkludge;		/* NIX KLUDGE: we need a page */
 };
 
 /*
@@ -319,7 +319,7 @@ struct Stackframe
 struct Sys {
 	unsigned char	machstk[MACHSTKSZ];
 
-	Page    pml4;
+	Page    root;
 
 	union {
 		Mach	mach;

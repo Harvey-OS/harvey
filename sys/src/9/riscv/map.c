@@ -19,11 +19,12 @@
 /* physical is from 2 -> 4 GiB */
 #define TMFM		(4ULL*GiB)
 
+/* the wacko hole in RISCV address space makes KADDR a bit more complex. */
 int km, ku, k2;
 void*
 KADDR(uintptr_t pa)
 {
-	if(pa < TMFM) {
+	if((pa > 2 * GiB) && (pa < TMFM)) {
 		km++;
 		return (void *)(KSEG0|pa);
 	}
