@@ -139,13 +139,22 @@ ctl(void *va, int32_t n)
 
 // Read-write common code
 
+static int32_t
+getmaxbuf(VconData *vc)
+{
+	if(vc == 0)
+		return 32768;
+	else
+		return vc->maxbuf;
+}
+
 static int
 rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 {
 	uint16_t descr[1];
 	Virtq *vq = d->vqs[qidx];
 	VconData *vc = vq->pqdata;
-	if(n > ((vc!=nil)?vc->maxbuf:32768)) {
+	if(n > getmaxbuf(vc)) {
 		error(Etoobig);
 		return -1;
 	}
@@ -155,7 +164,11 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 		error("virtcon: queue low");
 		return -1;
 	}
-	uint8_t buf[n];
+	uint8_t *buf = malloc(n);
+	if(buf == nil) {
+		error("devvcon: no memory to allocate the exchange buffer");
+		return -1;
+	}
 	if(qidx) {
 		memmove(buf, va, n);
 	} else {
@@ -168,8 +181,8 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 		q2descr(vq, descr[0])->flags = VRING_DESC_F_WRITE;
 	}
 	int rc = queuedescr(vq, 1, descr);
+	int32_t nlen = n;
 	if(!qidx) {
-		int32_t nlen;
 		if(vc != nil)
 		{
 			switch(vc->vcmode) {
@@ -178,16 +191,23 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 					if(buf[nlen] == vc->delim)
 						break;
 				}
+				break;
+			case Vcm9p:
+				nlen = GBIT32(buf);
+				if(nlen > n)
+					nlen = n;
+				break;
 			default:
 				nlen = n;
 			}
 		} else {
 			nlen = n;
 		}
-		memmove(va, buf, n);
+		memmove(va, buf, nlen);
 	}
 	reldescr(vq, 1, descr);
-	return (rc >= 0)?n:rc;
+	free(buf);
+	return (rc >= 0)?nlen:rc;
 }
 
 static int
