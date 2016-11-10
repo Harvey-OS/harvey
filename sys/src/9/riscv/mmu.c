@@ -87,11 +87,11 @@ mmuflushtlb(void)
 {
 
 	machp()->tlbpurge++;
-	if(machp()->MMU.pml4->daddr){
-		memset(UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
-		machp()->MMU.pml4->daddr = 0;
+	if(machp()->MMU.root->daddr){
+		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
+		machp()->MMU.root->daddr = 0;
 	}
-	rootput((uintptr_t) machp()->MMU.pml4->pa);
+	rootput((uintptr_t) machp()->MMU.root->pa);
 }
 
 void
@@ -131,7 +131,7 @@ msg("mmuptefree\n");
 		proc->MMU.mmuptp[l] = nil;
 	}
 
-	machp()->MMU.pml4->daddr = 0;
+	machp()->MMU.root->daddr = 0;
 }
 
 static void
@@ -181,24 +181,20 @@ dumpmmu(Proc *p)
 				" daddr %#lx next %#p prev %#p\n",
 				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
 	}
-	print("pml4 %#llx\n", machp()->MMU.pml4->pa);
-	if(0)dumpptepg(4, machp()->MMU.pml4->pa);
+	print("root %#llx\n", machp()->MMU.root->pa);
+	if(0)dumpptepg(4, machp()->MMU.root->pa);
 }
 
 void
 dumpmmuwalk(uint64_t addr)
 {
 	int l;
-	PTE *pte, *pml4;
+	PTE *pte, *root;
 
-	pml4 = UINT2PTR(machp()->MMU.pml4->va);
-	if((l = mmuwalk(pml4, addr, 3, &pte, nil)) >= 0)
+	root = UINT2PTR(machp()->MMU.root->va);
+	if((l = mmuwalk(root, addr, 1, &pte, nil)) >= 0)
 		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
-	if((l = mmuwalk(pml4, addr, 2, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
-	if((l = mmuwalk(pml4, addr, 1, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
-	if((l = mmuwalk(pml4, addr, 0, &pte, nil)) >= 0)
+	if((l = mmuwalk(root, addr, 0, &pte, nil)) >= 0)
 		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
 }
 
@@ -272,14 +268,14 @@ mmuswitch(Proc* proc)
 		proc->newtlb = 0;
 	}
 
-	/* daddr is the number of user PTEs in use in the pml4. */
-	if(machp()->MMU.pml4->daddr){
-		print("memsg(%p, 0, %d\n", UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
-		memset(UINT2PTR(machp()->MMU.pml4->va), 0, machp()->MMU.pml4->daddr*sizeof(PTE));
-		machp()->MMU.pml4->daddr = 0;
+	/* daddr is the number of user PTEs in use in the root. */
+	if(machp()->MMU.root->daddr){
+		print("memsg(%p, 0, %d\n", UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
+		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
+		machp()->MMU.root->daddr = 0;
 	}
 
-	pte = UINT2PTR(machp()->MMU.pml4->va);
+	pte = UINT2PTR(machp()->MMU.root->va);
 
 print("pte %p\n", pte);
 	/* N.B. On RISCV, we DO NOT SET and of X, R, W  bits at this level since
@@ -287,15 +283,15 @@ print("pte %p\n", pte);
 	 * explicitly user level pages, so PteU is set. */
 	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
 		pte[page->daddr] = PPN(page->pa)|PteU|PteP;
-		if(page->daddr >= machp()->MMU.pml4->daddr)
-			machp()->MMU.pml4->daddr = page->daddr+1;
-		page->prev = machp()->MMU.pml4;
+		if(page->daddr >= machp()->MMU.root->daddr)
+			machp()->MMU.root->daddr = page->daddr+1;
+		page->prev = machp()->MMU.root;
 	}
 
 	// Switch kernel stacks. Really. 
 	//tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
-print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.pml4->pa);
-	rootput((uintptr_t) machp()->MMU.pml4->pa);
+print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.root->pa);
+	rootput((uintptr_t) machp()->MMU.root->pa);
 print("splx\n");
 	splx(pl);
 }
@@ -324,35 +320,30 @@ mmurelease(Proc* proc)
 
 	panic("tssrsp0");
 	//tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
-	rootput(machp()->MMU.pml4->pa);
+	rootput(machp()->MMU.root->pa);
 }
 
 static void
 checkpte(uintmem ppn, void *a)
 {
 	int l;
-	PTE *pte, *pml4;
+	PTE *pte, *root;
 	uint64_t addr;
 	char buf[240], *s;
 
 	addr = PTR2UINT(a);
-	pml4 = UINT2PTR(machp()->MMU.pml4->va);
+	root = UINT2PTR(machp()->MMU.root->va);
 	pte = 0;
 	s = buf;
 	*s = 0;
-	if((l = mmuwalk(pml4, addr, 3, &pte, nil)) < 0 || (*pte&PteP) == 0)
-		goto Panic;
-	s = seprint(buf, buf+sizeof buf,
-		"check3: l%d pte %#p = %llx\n",
-		l, pte, pte?*pte:~0);
-	if((l = mmuwalk(pml4, addr, 2, &pte, nil)) < 0 || (*pte&PteP) == 0)
+	if((l = mmuwalk(root, addr, 2, &pte, nil)) < 0 || (*pte&PteP) == 0)
 		goto Panic;
 	s = seprint(s, buf+sizeof buf,
 		"check2: l%d  pte %#p = %llx\n",
 		l, pte, pte?*pte:~0);
 	if(*pte&PteFinal)
 		return;
-	if((l = mmuwalk(pml4, addr, 1, &pte, nil)) < 0 || (*pte&PteP) == 0)
+	if((l = mmuwalk(root, addr, 1, &pte, nil)) < 0 || (*pte&PteP) == 0)
 		goto Panic;
 	seprint(s, buf+sizeof buf,
 		"check1: l%d  pte %#p = %llx\n",
@@ -380,7 +371,7 @@ mmuptpcheck(Proc *proc)
 
 	if(proc == nil)
 		return;
-	lp = machp()->MMU.pml4;
+	lp = machp()->MMU.root;
 	for(lvl = 3; lvl >= 2; lvl--){
 		npgs = 0;
 		for(p = proc->MMU.mmuptp[lvl]; p != nil; p = p->next){
@@ -487,9 +478,9 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	user = (va < KZERO);
 	x = PTLX(va, 3);
 
-	pte = UINT2PTR(machp()->MMU.pml4->va);
+	pte = UINT2PTR(machp()->MMU.root->va);
 	pte += x;
-	prev = machp()->MMU.pml4;
+	prev = machp()->MMU.root;
 
 	for(lvl = 3; lvl >= 0; lvl--){
 		if(user){
@@ -519,8 +510,8 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			up->MMU.mmuptp[lvl] = page;
 			page->prev = prev;
 			*pte = PPN(page->pa)|PteU|PteRW|PteP;
-			if(lvl == 3 && x >= machp()->MMU.pml4->daddr)
-				machp()->MMU.pml4->daddr = x+1;
+			if(lvl == 2 && x >= machp()->MMU.root->daddr)
+				machp()->MMU.root->daddr = x+1;
 		}
 		x = PTLX(va, lvl-1);
 
@@ -593,7 +584,7 @@ findKSeg2(void)
  * validity by testing PetP. To see how far it got, check
  * the return value. */
 int
-mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
+mmuwalk(PTE* root, uintptr_t va, int level, PTE** ret,
 	uint64_t (*alloc)(usize))
 {
 	int l;
@@ -607,9 +598,9 @@ msg("post splihi\n");
 	if(DBGFLG > 1) {
 		print("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
 		print("PTLX(%p, 3) is 0x%x\n", va, PTLX(va,3));
-		print("pml4 is %p\n", pml4);
+		print("root is %p\n", root);
 	}
-	pte = &pml4[PTLX(va, 3)];
+	pte = &root[PTLX(va, 2)];
 	print("pte is %p\n", pte);
 	print("*pte is %p\n", *pte);
 	for(l = 3; l >= 0; l--){
@@ -649,9 +640,9 @@ msg("mmyphysaddr\n");
 	 * question, should va be void* or uintptr?
 	 */
 	print("machp() %p \n", machp());
-	print("mahcp()->MMU.pml4 %p\n", machp()->MMU.pml4);
-	print("... va  %p\n", machp()->MMU.pml4->va);
-	l = mmuwalk(UINT2PTR(machp()->MMU.pml4->va), va, 0, &pte, nil);
+	print("mahcp()->MMU.root %p\n", machp()->MMU.root);
+	print("... va  %p\n", machp()->MMU.root->va);
+	l = mmuwalk(UINT2PTR(machp()->MMU.root->va), va, 0, &pte, nil);
 	print("physaddr: va %#p l %d\n", va, l);
 	if(l < 0)
 		return ~0;
@@ -663,9 +654,6 @@ msg("mmyphysaddr\n");
 
 	return pa;
 }
-
-/* this is a hack, yes, but it will be necessary. */
-static PTE fakepml4[512] __attribute((aligned(4096)));
 
 /* to accomodate the weirdness of the rv64 modes, we're going to leave it as a 4
  * level PT, and fake up the PML4 with one entry when it's 3 levels. Later, we want
@@ -679,7 +667,7 @@ mmuinit(void)
 
 	n = archmmu();
 	print("%d page sizes\n", n);
-	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
+	print("mach%d: %#p root %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.root, sys->npgsz);
 
 	if(machp()->machno != 0){
 		/* NIX: KLUDGE: Has to go when each mach is using
@@ -689,19 +677,19 @@ mmuinit(void)
 		p += MACHSTKSZ;
 		panic("not yet");
 #if 0
-		memmove(p, UINT2PTR(mach0pml4.va), PTSZ);
-		machp()->MMU.pml4 = &machp()->MMU.pml4kludge;
-		machp()->MMU.pml4->va = PTR2UINT(p);
-		machp()->MMU.pml4->pa = PADDR(p);
-		machp()->MMU.pml4->daddr = mach0pml4.daddr;	/* # of user mappings in pml4 */
+		memmove(p, UINT2PTR(mach0root.va), PTSZ);
+		machp()->MMU.root = &machp()->MMU.root;
+		machp()->MMU.root->va = PTR2UINT(p);
+		machp()->MMU.root->pa = PADDR(p);
+		machp()->MMU.root->daddr = mach0root.daddr;	/* # of user mappings in root */
 
-		rootput(machp()->MMU.pml4->pa);
-		print("m %#p pml4 %#p\n", machp(), machp()->MMU.pml4);
+		rootput(machp()->MMU.root->pa);
+		print("m %#p root %#p\n", machp(), machp()->MMU.root);
 #endif
 		return;
 	}
 	
-	machp()->MMU.pml4 = &sys->pml4;
+	machp()->MMU.root = &sys->root;
 
 	uintptr_t PhysicalRoot = read_csr(sptbr)<<12;
 	PTE *root = KADDR(PhysicalRoot);
@@ -719,21 +707,14 @@ mmuinit(void)
 	default:
 		panic("unsupported number of page table levels: %d", PTLevels);
 		break;
-	case 1:
-		/* nothing to do, we're 4 levels */
-		machp()->MMU.pml4->pa = PhysicalRoot;
-		print("sptbr is 0x%x\n", PhysicalRoot);
-		machp()->MMU.pml4->va = PTR2UINT(root);
-		break;
 	case 0:
-		fakepml4[511] = ((PhysicalRoot>>12)<<10)|0xf;
-		machp()->MMU.pml4->pa = PADDR(fakepml4);
-		print("fakeroot is 0x%x\n", PADDR(fakepml4));
-		machp()->MMU.pml4->va = (uintptr_t)fakepml4;
-		/* fake up a level 4 page table. */
+		machp()->MMU.root->pa = ((PhysicalRoot>>12)<<10)|0xf;
+		print("root is 0x%x\n", machp()->MMU.root->pa);
+		machp()->MMU.root->va = (uintptr_t) KADDR(machp()->MMU.root->pa);
+		break;
 	}
 
-	print("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);
+	print("mach%d: %#p root %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.root, sys->npgsz);
 
 	/*
 	 * Set up the various kernel memory allocator limits:

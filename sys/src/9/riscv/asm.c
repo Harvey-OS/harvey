@@ -341,7 +341,7 @@ asmmeminit(void)
 {
 	int i, l;
 	Asm* assem;
-	PTE *pte, *pml4;
+	PTE *pte, *root;
 	uintptr va;
 	uintmem hi, lo, mem, nextmem, pa;
 #ifdef ConfCrap
@@ -365,9 +365,9 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n"
 
 	/* assume already 2MiB aligned*/
 	assert(ALIGNED(sys->vmunmapped, 2*MiB));
-	pml4 = UINT2PTR(machp()->MMU.pml4->va);
+	root = UINT2PTR(machp()->MMU.root->va);
 	while(sys->vmunmapped < sys->vmend){
-		l = mmuwalk(pml4, sys->vmunmapped, 1, &pte, asmwalkalloc);
+		l = mmuwalk(root, sys->vmunmapped, 1, &pte, asmwalkalloc);
 		DBG("%#p l %d\n", sys->vmunmapped, l);
 		*pte = pa|PteRW|PteP;
 		sys->vmunmapped += 2*MiB;
@@ -405,7 +405,7 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n"
 					continue;
 				/* This page fits entirely within the range. */
 				/* Mark it a usable */
-				if((l = mmuwalk(pml4, va, i, &pte, asmwalkalloc)) < 0)
+				if((l = mmuwalk(root, va, i, &pte, asmwalkalloc)) < 0)
 					panic("asmmeminit 3");
 
 				if (assem->type == AsmMEMORY)

@@ -132,7 +132,7 @@ extern int notify(Ureg*);
 
 /*
  * run an arbitrary function with arbitrary args on an ap core
- * first argument is always pml4 for process
+ * first argument is always root for process
  * make a field and a struct for the args cache line.
  *
  * Returns the return-code for the ICC or -1 if the process was
@@ -154,16 +154,16 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 
 	memmove(mp->NIX.icc->data, a, n);
 	if(flushtlb){
-		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->MMU.pml4->pa, machp()->MMU.pml4->pa);
-		dpg = UINT2PTR(mp->MMU.pml4->va);
-		spg = UINT2PTR(machp()->MMU.pml4->va);
+		DBG("runac flushtlb: cproot %#p %#p\n", mp->MMU.root->pa, machp()->MMU.root->pa);
+		dpg = UINT2PTR(mp->MMU.root->va);
+		spg = UINT2PTR(machp()->MMU.root->va);
 		/* We should copy less:
-		 *	memmove(dgp, spg, machp()->MMU.pml4->daddr * sizeof(PTE));
+		 *	memmove(dgp, spg, machp()->MMU.root->daddr * sizeof(PTE));
 		 */
 		memmove(dpg, spg, PTSZ);
 		if(0){
-			print("runac: upac pml4 %#p\n", up->ac->MMU.pml4->pa);
-			dumpptepg(4, up->ac->MMU.pml4->pa);
+			print("runac: upac root %#p\n", up->ac->MMU.root->pa);
+			dumpptepg(4, up->ac->MMU.root->pa);
 		}
 	}
 	mp->NIX.icc->flushtlb = flushtlb;
@@ -287,13 +287,13 @@ runacore(void)
 				ureg->type = IdtIPI;		/* NOP */
 				break;
 			default:
-				rootput(machp()->MMU.pml4->pa);
+				rootput(machp()->MMU.root->pa);
 				if(0 && ureg->type == IdtPF){
 					print("before PF:\n");
 					print("AC:\n");
-					dumpptepg(4, up->ac->MMU.pml4->pa);
+					dumpptepg(4, up->ac->MMU.root->pa);
 					print("\n%s:\n", rolename[NIXTC]);
-					dumpptepg(4, machp()->MMU.pml4->pa);
+					dumpptepg(4, machp()->MMU.root->pa);
 				}
 				trap(ureg);
 			}
@@ -305,7 +305,7 @@ runacore(void)
 		case ICCSYSCALL:
 			DBG("runacore: syscall a0 %#llx ureg %#p\n",
 				ureg->a0, ureg);
-			rootput(machp()->MMU.pml4->pa);
+			rootput(machp()->MMU.root->pa);
 			//syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;
