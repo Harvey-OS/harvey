@@ -278,7 +278,7 @@ mmuswitch(Proc* proc)
 	pte = UINT2PTR(machp()->MMU.root->va);
 
 print("pte %p\n", pte);
-	/* N.B. On RISCV, we DO NOT SET and of X, R, W  bits at this level since
+	/* N.B. On RISCV, we DO NOT SET any of X, R, W  bits at this level since
 	 * that we point to page table pages on level down.  Also, these are
 	 * explicitly user level pages, so PteU is set. */
 	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
@@ -595,15 +595,16 @@ mmuwalk(PTE* root, uintptr_t va, int level, PTE** ret,
 msg("mmuwalk\n");
 	pl = splhi();
 msg("post splihi\n");
+print("mmuwalk(%p, %p, %d, %p, %p)\n", root, (void *)va, level, ret, alloc);
 	if(DBGFLG > 1) {
 		print("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
-		print("PTLX(%p, 3) is 0x%x\n", va, PTLX(va,3));
+		print("PTLX(%p, 2) is 0x%x\n", va, PTLX(va,2));
 		print("root is %p\n", root);
 	}
 	pte = &root[PTLX(va, 2)];
 	print("pte is %p\n", pte);
 	print("*pte is %p\n", *pte);
-	for(l = 3; l >= 0; l--){
+	for(l = 2; l >= 0; l--){
 		if(l == level)
 			break;
 		if(!(*pte & PteP)){
@@ -630,6 +631,7 @@ mmuphysaddr(uintptr_t va)
 {
 	int l;
 	PTE *pte;
+	uint64_t ppn;
 	uintmem mask, pa;
 
 msg("mmyphysaddr\n");
@@ -643,12 +645,16 @@ msg("mmyphysaddr\n");
 	print("mahcp()->MMU.root %p\n", machp()->MMU.root);
 	print("... va  %p\n", machp()->MMU.root->va);
 	l = mmuwalk(UINT2PTR(machp()->MMU.root->va), va, 0, &pte, nil);
+	print("pte is %p *pte is 0x%llx\n", pte, *pte);
 	print("physaddr: va %#p l %d\n", va, l);
 	if(l < 0)
 		return ~0;
 
+	ppn = (*pte & ~0x3ff) << 2;
+	print("PPN is %llx\n", ppn);
 	mask = PGLSZ(l)-1;
-	pa = (*pte & ~mask) + (va & mask);
+	pa = (ppn & ~mask) + (va & mask);
+	print("physaddr: mask is %llx, ~mask %llx, *pte & ~mask %llx, \n", mask, ~mask, ppn & ~mask);
 
 	print("physaddr: l %d va %#p pa %#llx\n", l, va, pa);
 
@@ -693,22 +699,24 @@ mmuinit(void)
 
 	uintptr_t PhysicalRoot = read_csr(sptbr)<<12;
 	PTE *root = KADDR(PhysicalRoot);
+	print("Physical root is 0x%llx and root 0x %p\n", PhysicalRoot, root);
 	PTE *KzeroPTE;
 	/* As it happens, as this point, we don't know the number of page table levels.
 	 * But a walk to "level 4" will work even if it's only 3, and we can use that
 	 * information to know what to do. Further, KSEG0 is the last 2M so this will
 	 * get us the last PTE on either an L3 or L2 pte page */
 	int l;
-	if((l = mmuwalk(root, KSEG0, 3, &KzeroPTE, nil)) < 0) {
+	if((l = mmuwalk(root, KSEG0, 2, &KzeroPTE, nil)) < 0) {
 		panic("Can't walk to PtePML2");
 	}
+	print("KzeroPTE is 0x%llx\n", KzeroPTE);
 	int PTLevels = (*KzeroPTE>>9)&3;
 	switch(PTLevels) {
 	default:
 		panic("unsupported number of page table levels: %d", PTLevels);
 		break;
 	case 0:
-		machp()->MMU.root->pa = ((PhysicalRoot>>12)<<10)|0xf;
+		machp()->MMU.root->pa = PhysicalRoot;
 		print("root is 0x%x\n", machp()->MMU.root->pa);
 		machp()->MMU.root->va = (uintptr_t) KADDR(machp()->MMU.root->pa);
 		break;

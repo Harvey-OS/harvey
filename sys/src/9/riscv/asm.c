@@ -351,7 +351,7 @@ asmmeminit(void)
 print("Check\n");
 	assert(!((sys->vmunmapped|sys->vmend) & sys->pgszmask[1]));
 
-print("mmuphysaddr 0x%x\n", sys->vmunused);
+print("asmmeminit: call mmuphysaddr 0x%x\n", sys->vmunused);
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
 print("pa of sys->vmunused is 0x%x\n", pa);

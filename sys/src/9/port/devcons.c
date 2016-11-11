@@ -115,6 +115,7 @@ static void
 kmesgputs(char *str, int n)
 {
 	uint nn, d;
+	return;
 	if (1) { msg("NO KMESGPUTS\n"); return; }
 
 	ilock(&kmesg.lk);
