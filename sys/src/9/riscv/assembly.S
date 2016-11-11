@@ -63,6 +63,7 @@ slim_setlabel:
 	SD	sp,0(a0)
 	SD	ra,8(a0)
 	SD	x2,16(a0)
+	mv	a0,zero
 	RET
 
 
