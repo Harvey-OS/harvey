@@ -98,6 +98,26 @@ rdtsc(void)
 }
 
 void
+loadenv(int argc, char* argv[])
+{
+	char *env[2];
+
+	/*
+	 * Process command line env options
+	 */
+	while(--argc > 0){
+		char* next = *++argv;
+		if(next[0] !='-'){
+			if (gettokens(next, env, 2, "=")  == 2){;
+				ksetenv(env[0], env[1], 0);
+			}else{
+				print("Ignoring parameter with no value: %s\n", env[0]);
+			}
+		}
+	}
+}
+
+void
 init0(void)
 {
 	Proc *up = externup();
@@ -115,7 +135,7 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-print("1\n");
+print("init0: up is %p\n", up);
 	up->slash = namec("#/", Atodir, 0, 0);
 print("1\n");
 	pathclose(up->slash->path);
@@ -130,7 +150,6 @@ print("1\n");
 
 	if(!waserror()){
 		//snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
-		panic("implement loadenv");
 		//loadenv(oargc, oargv);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", cputype, 0);
