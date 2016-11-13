@@ -248,6 +248,7 @@ print("sys->pmend 0x%x\n", sys->pmend);
 print("asminit  0 sys->pmstart 0x%x\n", sys->pmstart);
 	m = asmalloc(0, sys->pmstart, AsmNONE, 0);
 print("asmalloc returned %p\n", m);
+print("ASMINIT: DONE\n");
 }
 
 /*
@@ -355,9 +356,16 @@ print("asmmeminit: call mmuphysaddr 0x%x\n", sys->vmunused);
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
 print("pa of sys->vmunused is 0x%x\n", pa);
-	if (sys->vmunmapped != sys->vmunused) {
+	// vmunmapped is the START of unmapped memory (there is none on riscv yet).
+	// it is the END of mapped memory we have not used.
+	// vmunused is the START of mapped memory that is not used and the END
+	// of memory that is used. 
+	// This code falls apart if sys->vmend - sys->vmunmapped is 0.
+	// The goal is to map memory not mapped. But it's all mapped.
+	root = UINT2PTR(machp()->MMU.root->va);
+#if 0
 	pa += sys->vmunmapped - sys->vmunused;
-print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n", sys->vmunmapped, sys->vmunused, pa);
+print("sys->vmunapped 0x%lx sys->vmunused 0x%lx pa of unmapped - unused is 0x%lx\n", sys->vmunmapped, sys->vmunused, pa);
 	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, 1, 0);
 	if(mem != pa)
 		panic("asmmeminit 2");
@@ -365,7 +373,6 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n"
 
 	/* assume already 2MiB aligned*/
 	assert(ALIGNED(sys->vmunmapped, 2*MiB));
-	root = UINT2PTR(machp()->MMU.root->va);
 	while(sys->vmunmapped < sys->vmend){
 		l = mmuwalk(root, sys->vmunmapped, 1, &pte, asmwalkalloc);
 		DBG("%#p l %d\n", sys->vmunmapped, l);
@@ -373,7 +380,7 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n"
 		sys->vmunmapped += 2*MiB;
 		pa += 2*MiB;
 	}
-	}
+#endif
 
 #ifdef ConfCrap
 	cx = 0;
@@ -408,6 +415,7 @@ print("sys->vmunapped 0x%x sys->vmunused 0x%x pa of unmapped - unused is 0x%x\n"
 				if((l = mmuwalk(root, va, i, &pte, asmwalkalloc)) < 0)
 					panic("asmmeminit 3");
 
+				print("ASMMEMINIT pte is %p\n", pte);
 				if (assem->type == AsmMEMORY)
 					*pte = mem|PteRW|PteP;
 				else
