@@ -3,16 +3,18 @@
  * let's make it correct.
  */
 
+#define sstatus 0x100
+#define siebitno 1
 /* int _splhi() */
 .globl _splhi
 _splhi:	
-	li	a0, 0
-	csrrc	a0, 0x100, a0
+	li	a0, siebitno
+	csrrc	a0, sstatus, a0
 	ret
 
 /* int _spllo() */
 .globl _spllo
 _spllo:
-	li	a0, 0
-	csrrs	a0, 0x100, a0
+	li	a0, siebitno
+	csrrs	a0, sstatus, a0
 	ret
