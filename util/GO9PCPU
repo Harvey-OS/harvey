@@ -6,7 +6,7 @@ trap : 2
 $HARVEY/util/ufs -root=$HARVEY &
 ufspid=$!
 
-export machineflag=pc
+export machineflag=q35
 if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	export kvmflag='-enable-kvm'
 	export machineflag='pc,accel=kvm'
