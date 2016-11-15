@@ -192,10 +192,14 @@ dumpmmuwalk(uint64_t addr)
 	PTE *pte, *root;
 
 	root = UINT2PTR(machp()->MMU.root->va);
-	if((l = mmuwalk(root, addr, 1, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
-	if((l = mmuwalk(root, addr, 0, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llx\n", machp()->machno, l, pte, *pte);
+	if((l = mmuwalk(root, addr, 1, &pte, nil)) >= 0) {
+		print("cpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
+		print("%llx\n", *pte);
+	}
+	if((l = mmuwalk(root, addr, 0, &pte, nil)) >= 0) {
+		print("cpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
+		print("%llx\n", *pte);
+	}
 }
 
 static Page mmuptpfreelist;
@@ -618,8 +622,10 @@ print("mmuwalk(%p, %p, %d, %p, %p)\n", root, (void *)va, level, ret, alloc);
 		}
 		else if(*pte & PteFinal)
 			break;
-		pte = UINT2PTR(KADDR(PPN(*pte)));
+		pte = UINT2PTR(KADDR((*pte&~0x3ff)<<2)); // PPN(*pte)));
+		print("pte is %p: ", pte);
 		pte += PTLX(va, l-1);
+		print("and index is %p\n", pte);
 	}
 	*ret = pte;
 	splx(pl);
@@ -651,12 +657,12 @@ msg("mmyphysaddr\n");
 		return ~0;
 
 	ppn = (*pte & ~0x3ff) << 2;
-	print("PPN is %llx\n", ppn);
+	print("PPN from PTE is %llx\n", ppn);
 	mask = PGLSZ(l)-1;
 	pa = (ppn & ~mask) + (va & mask);
-	print("physaddr: mask is %llx, ~mask %llx, *pte & ~mask %llx, \n", mask, ~mask, ppn & ~mask);
+	print("physaddr: mask is %llx, ~mask %llx, ppn & ~mask %llx, \n", mask, ~mask, ppn & ~mask);
 
-	print("physaddr: l %d va %#p pa %#llx\n", l, va, pa);
+	print("physaddr: RESULT: l %d va %#p pa %#llx\n", l, va, pa);
 
 	return pa;
 }
