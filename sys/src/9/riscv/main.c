@@ -159,8 +159,7 @@ print("1\n");
 	}
 	kproc("alarm", alarmkproc, 0);
 	//debugtouser((void *)UTZERO);
-	panic("fix touser");
-	//touser(sp);
+	touser(0x2002c4);
 }
 
 /*
@@ -336,7 +335,7 @@ void bsp(void *stack, uintptr_t _configstring)
 	msg("==============================================\n");
 	asminit();
 	msg(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n");
-	asmmapinit(0x81000000, 0xc0000000, 1); print("asmmapinit\n");
+	asmmapinit(0x81000000, 0x3f000000, 1); print("asmmapinit\n");
 
 	msg(configstring);
 	/*
@@ -436,6 +435,13 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	//alloc_cpu_buffers();
 
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
+	// enable all interrupt sources.
+	uint64_t ints = read_csr(sie);
+	ints |= 0x222;
+	write_csr(sie, ints);
+	// set the trap vector
+	void *supervisor_trap_entry(void);
+	write_csr(/*stvec*/0x105, supervisor_trap_entry);
 
 	print("schedinit...\n");
 
