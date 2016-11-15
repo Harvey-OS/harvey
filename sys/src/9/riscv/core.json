@@ -1,6 +1,7 @@
 {
 	"core": {
 		"Cflags": [
+			"-mcmodel=medany",
 			"-O0",
 			"-static",
 			"-ffreestanding",
