@@ -42,15 +42,8 @@
 			"inith.json"
 		],
 	    "MissingSourceFiles": [
-		        "acore.c",
 		        "coreboot.c",
-			"devarch.c",
-			"mmu.c",
-			"mp.c",
-			"physalloc.c",
-			"systab.c",
-			"tcore.c",
-			"trap.c"
+		        "trapentry.S"
 		],
 		"SourceFiles": [
 			"assembly.S",
