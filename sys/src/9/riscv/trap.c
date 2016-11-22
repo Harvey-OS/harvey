@@ -32,7 +32,7 @@ unsigned long irxe;
 extern int notify(Ureg*);
 
 //static void debugbpt(Ureg*, void*);
-//static void faultarch(Ureg*, void*);
+static void faultarch(Ureg*);
 //static void doublefault(Ureg*, void*);
 //static void unexpected(Ureg*, void*);
 //static void expected(Ureg*, void*);
@@ -120,7 +120,7 @@ static const char *const excname[] = {
 static void print_trap_information(const Ureg *ureg)
 {
 	const char *previous_mode;
-	int status = read_csr(sstatus);
+	int status = ureg->status;
 //	bool mprv = !!(ureg->status & MSTATUS_MPRV);
 
 	/* Leave some space around the trap message */
@@ -142,36 +142,45 @@ static void print_trap_information(const Ureg *ureg)
 }
 
 void trap_handler(Ureg *ureg) {
-//	write_csr(scratch, tf);
-
 	switch(ureg->cause) {
 		case CAUSE_MISALIGNED_FETCH:
-		case CAUSE_FAULT_FETCH:
+			print_trap_information(ureg);
+			panic("misaligned fetch, firmware is supposed to do this");
+			break;
 		case CAUSE_ILLEGAL_INSTRUCTION:
+			print_trap_information(ureg);
+			panic("illegal instruction, going to die");
+			break;
 		case CAUSE_BREAKPOINT:
+			print_trap_information(ureg);
+			panic("can't handle breakpoints yet\n");
+			break;
+		case CAUSE_FAULT_FETCH:
 		case CAUSE_FAULT_LOAD:
 		case CAUSE_FAULT_STORE:
+			print_trap_information(ureg);
+			faultarch(ureg);
+			break;
 		case CAUSE_USER_ECALL:
 		case CAUSE_HYPERVISOR_ECALL:
 		case CAUSE_MACHINE_ECALL:
 			print_trap_information(ureg);
+			panic("Can't do ecalls here");
 			break;
 		case CAUSE_MISALIGNED_LOAD:
+			print("hgroup 2\n");
 			print_trap_information(ureg);
-			//handle_misaligned_load(ureg);
-			panic("no");
+			panic("misaligned LOAD, we don't do these");
 			break;
 		case CAUSE_MISALIGNED_STORE:
 			print_trap_information(ureg);
-			//handle_misaligned_store(ureg);
-			panic("no");
+			panic("misaligned STORE, we don't do these");
 			break;
 		default:
 			print_trap_information(ureg);
+			panic("WTF\n");
 			break;
 	}
-
-	die("Can't recover from trap. Halting.\n");
 }
 
 int
@@ -319,25 +328,32 @@ kexit(Ureg* u)
 	 * initialized in exec, sysproc.c
 	 */
 	tos = (Tos*)(USTKTOP-sizeof(Tos));
+	print("USTKTOP %p sizeof(Tos) %d tos %p\n", (void *)USTKTOP, sizeof(Tos), tos);
 	cycles(&t);
-	tos->kcycles += t - up->kentry;
-	tos->pcycles = up->pcycles;
-	tos->pid = up->pid;
-
-	if (up->ac != nil)
-		mp = up->ac;
-	else
-		mp = machp();
-	tos->core = mp->machno;
-	tos->nixtype = mp->NIX.nixtype;
-	//_pmcupdate(m);
-	/*
-	 * The process may change its core.
-	 * Be sure it has the right cyclefreq.
-	 */
-	tos->cyclefreq = mp->cyclefreq;
-	/* thread local storage */
-	panic("thread local storage");
+	if (1) {
+		print("tos is %p, &tos->kcycles is %p, up is %p\n", tos, &tos->kcycles, up);
+		tos->kcycles += t - up->kentry;
+		tos->pcycles = up->pcycles;
+		tos->pid = up->pid;
+	
+		if (up->ac != nil)
+			mp = up->ac;
+		else
+			mp = machp();
+		print("kexit: mp is %p\n", mp);
+		tos->core = mp->machno;
+		print("kexit: mp is %p\n", mp);
+		tos->nixtype = mp->NIX.nixtype;
+		print("kexit: mp is %p\n", mp);
+		//_pmcupdate(m);
+		/*
+	 	* The process may change its core.
+	 	* Be sure it has the right cyclefreq.
+	 	*/
+		tos->cyclefreq = mp->cyclefreq;
+		print("kexit: mp is %p\n", mp);
+	}
+	print("kexit: done\n");
 }
 
 void
@@ -356,11 +372,35 @@ kstackok(void)
 	}
 }
 
+enum traps {
+	InstructionAlignment = 0,
+	InstructionAccessFault,
+	IllegalInstruction,
+	Breakpoint,
+	Trap4Reserved,
+	LoadAccessFault,
+	AMOAddressMisaligned,
+	Store_AMOAccessFault,
+	EnvironmentCall,
+	LastTrap = EnvironmentCall,
+	InterruptMask = 0x8000000000000000ULL
+};
+
+enum interrupts {
+	UserSoftware,
+	SupervisorSoftware,
+	Interrupt2Reserved,
+	Interrupt3eserved,
+	UserTimer,	
+	SupervisorTimer,
+	LastInterrupt = SupervisorTimer
+};
+
 void
 _trap(Ureg *ureg)
 {
-	die("trap");
-
+	msg("+trap\n");
+	print("_trap\n");
 	/*
 	 * If it's a real trap in this core, then we want to
 	 * use the hardware cr2 register.
@@ -372,15 +412,15 @@ _trap(Ureg *ureg)
 	switch(ureg->cause){
 	case CAUSE_FAULT_FETCH:
 		ureg->ftype = FT_EXEC;
-		machp()->MMU.badaddr = read_csr(sbadaddr);
+		machp()->MMU.badaddr = ureg->badaddr;
 		break;
 	case CAUSE_FAULT_LOAD:
 		ureg->ftype = FT_READ;
-		machp()->MMU.badaddr = read_csr(sbadaddr);
+		machp()->MMU.badaddr = ureg->badaddr;
 		break;
 	case CAUSE_FAULT_STORE:
 		ureg->ftype = FT_WRITE;
-		machp()->MMU.badaddr = read_csr(sbadaddr);
+		machp()->MMU.badaddr = ureg->badaddr;
 		break;
 	}
 	trap(ureg);
@@ -397,10 +437,11 @@ static int lastvno;
 void
 trap(Ureg *ureg)
 {
-	int clockintr, vno, user;
+	int clockintr, vno, user, interrupt;
 	// cache the previous vno to see what might be causing
 	// trouble
-	vno = ureg->cause;
+	vno = ureg->cause & ~InterruptMask;
+	interrupt = ureg->cause & InterruptMask;
 	Mach *m =machp();
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
@@ -413,15 +454,24 @@ trap(Ureg *ureg)
 	machp()->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (machp()->NIX.nixtype == NIXTC)){
+		print("call cycles\n");
 		up->dbgreg = ureg;
 		cycles(&up->kentry);
+		print("done\n");
 	}
 
-	clockintr = 0;
+	clockintr = interrupt && vno == SupervisorTimer;
+	print("clockintr %d\n", clockintr);
 
 	//_pmcupdate(machp());
 
+	if (!interrupt){
+		print("trap_handler\n");
+		trap_handler(ureg);
+	} else {
+
 	if(ctl = vctl[vno]){
+		panic("we don't know what to do with this interrupt yet");
 		if(ctl->isintr){
 			machp()->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
@@ -456,25 +506,16 @@ trap(Ureg *ureg)
 			if(up && !clockintr)
 				preempted();
 		}
-	}
-	else if(vno < nelem(excname) && user){
+	} else if(vno < nelem(excname) && user){
+print("OOR\n");
 		spllo();
 		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);
-	}
-	else if(vno >= VectorPIC && vno != VectorSYSCALL){
+	} else if ((interrupt && vno > LastInterrupt) || (vno > LastTrap)) {
+print("UNK\n");
 		/*
 		 * An unknown interrupt.
-		 * Check for a default IRQ7. This can happen when
-		 * the IRQ input goes away before the acknowledge.
-		 * In this case, a 'default IRQ7' is generated, but
-		 * the corresponding bit in the ISR isn't set.
-		 * In fact, just ignore all such interrupts.
 		 */
-
-		/* clear the interrupt */
-		iprint("do we need i8259isr?\n");
-		//i8259isr(vno);
 
 		iprint("cpu%d: spurious interrupt %d, last %d\n",
 			machp()->machno, vno, machp()->lastintr);
@@ -482,8 +523,8 @@ trap(Ureg *ureg)
 		if(user)
 			kexit(ureg);
 		return;
-	}
-	else{
+	} else {
+print("wut\n");
 		if(vno == VectorNMI){
 			nmienable();
 			if(machp()->machno != 0){
@@ -501,12 +542,12 @@ trap(Ureg *ureg)
 			panic("%s", excname[vno]);
 		panic("unknown trap/intr: %d\n", vno);
 	}
+	}
 	splhi();
 
 	/* delaysched set because we held a lock or because our quantum ended */
-	panic("fix me");
-#if 0
 	if(up && up->delaysched && clockintr){
+#if 0
 		if(0)
 		if(user && up->ac == nil && up->nqtrap == 0 && up->nqsyscall == 0){
 			if(!waserror()){
@@ -516,16 +557,18 @@ trap(Ureg *ureg)
 				return;
 			}
 		}
+#endif
 		sched();
 		splhi();
 	}
-#endif
+print("DUN\n");
 
 	if(user){
 		if(up && up->procctl || up->nnote)
 			notify(ureg);
 		kexit(ureg);
 	}
+print("ALL DONE TRAP\n");
 }
 
 /*
@@ -534,8 +577,6 @@ trap(Ureg *ureg)
 void
 dumpgpr(Ureg* ureg)
 {
-	panic("dumpgpr");
-#if 0
 	Proc *up = externup();
 	if(up != nil)
 		print("cpu%d: registers for %s %d\n",
@@ -543,33 +584,46 @@ dumpgpr(Ureg* ureg)
 	else
 		print("cpu%d: registers for kernel\n", machp()->machno);
 
-	print("ax\t%#16.16llx\n", ureg->ax);
-	print("bx\t%#16.16llx\n", ureg->bx);
-	print("cx\t%#16.16llx\n", ureg->cx);
-	print("dx\t%#16.16llx\n", ureg->dx);
-	print("di\t%#16.16llx\n", ureg->di);
-	print("si\t%#16.16llx\n", ureg->si);
-	print("bp\t%#16.16llx\n", ureg->bp);
-	print("r8\t%#16.16llx\n", ureg->r8);
-	print("r9\t%#16.16llx\n", ureg->r9);
-	print("r10\t%#16.16llx\n", ureg->r10);
-	print("r11\t%#16.16llx\n", ureg->r11);
-	print("r12\t%#16.16llx\n", ureg->r12);
-	print("r13\t%#16.16llx\n", ureg->r13);
-	print("r14\t%#16.16llx\n", ureg->r14);
-	print("r15\t%#16.16llx\n", ureg->r15);
-	print("type\t%#llx\n", ureg->type);
-	print("error\t%#llx\n", ureg->error);
-	print("pc\t%#llx\n", ureg->ip);
-	print("cs\t%#llx\n", ureg->cs);
-	print("flags\t%#llx\n", ureg->flags);
-	print("sp\t%#llx\n", ureg->sp);
-	print("ss\t%#llx\n", ureg->ss);
-	print("type\t%#llx\n", ureg->type);
-	print("sscratch\t%#llx\n", rdmsr(Sscratch));
+	print("ip %#llx\n", ureg->ip);
+	print("sp %#llx\n", ureg->sp);
+	print("gp %#llx\n", ureg->gp);
+	print("tp %#llx\n", ureg->tp);
+	print("t0 %#llx\n", ureg->t0);
+	print("t1 %#llx\n", ureg->t1);
+	print("t2 %#llx\n", ureg->t2);
+	print("s0 %#llx\n", ureg->s0);
+	print("s1 %#llx\n", ureg->s1);
+	print("a0 %#llx\n", ureg->a0);
+	print("a1 %#llx\n", ureg->a1);
+	print("a2 %#llx\n", ureg->a2);
+	print("a3 %#llx\n", ureg->a3);
+	print("a4 %#llx\n", ureg->a4);
+	print("a5 %#llx\n", ureg->a5);
+	print("a6 %#llx\n", ureg->a6);
+	print("a7 %#llx\n", ureg->a7);
+	print("s2 %#llx\n", ureg->s2);
+	print("s3 %#llx\n", ureg->s3);
+	print("s4 %#llx\n", ureg->s4);
+	print("s5 %#llx\n", ureg->s5);
+	print("s6 %#llx\n", ureg->s6);
+	print("s7 %#llx\n", ureg->s7);
+	print("s8 %#llx\n", ureg->s8);
+	print("s9 %#llx\n", ureg->s9);
+	print("s10 %#llx\n", ureg->s10);
+	print("s11 %#llx\n", ureg->s11);
+	print("t3 %#llx\n", ureg->t3);
+	print("t4 %#llx\n", ureg->t4);
+	print("t5 %#llx\n", ureg->t5);
+	print("t6 %#llx\n", ureg->t6);
+	print("status %#llx\n", ureg->status);
+	print("epc %#llx\n", ureg->epc);
+	print("badaddr %#llx\n", ureg->badaddr);
+	print("cause %#llx\n", ureg->cause);
+	print("insnn %#llx\n", ureg->insnn);
+	print("bp %#llx\n", ureg->bp);
+	print("ftype %#llx\n", ureg->ftype);
 
 	print("m\t%#16.16p\nup\t%#16.16p\n", machp(), up);
-#endif
 }
 
 void
@@ -679,17 +733,18 @@ static void
 expected(Ureg* ureg, void* v)
 {
 }
+#endif
 
 /*static*/
 void
-faultarch(Ureg* ureg, void* v)
+faultarch(Ureg* ureg)
 {
 	Proc *up = externup();
 	uint64_t addr;
 	int ftype = ureg->ftype, user, insyscall;
 	char buf[ERRMAX];
 
-	addr = machp()->MMU.badaddr;
+	addr = ureg->badaddr;
 	user = userureg(ureg);
 	if(!user && mmukmapsync(addr))
 		return;
@@ -703,12 +758,6 @@ faultarch(Ureg* ureg, void* v)
 		panic("fault with up == nil; pc %#llx addr %#llx\n",
 			ureg->ip, addr);
 	}
-
-	panic("ftype");
-/*
-if (read) hi("read fault\n"); else hi("write fault\n");
-hi("addr "); put64(addr); hi("\n");
- */
 
 	insyscall = up->insyscall;
 	up->insyscall = 1;
@@ -737,7 +786,6 @@ iprint("could not %s fault %p\n", faulttypes[ftype], addr);
 	}
 	up->insyscall = insyscall;
 }
-#endif
 
 /*
  *  return the userpc the last exception happened at

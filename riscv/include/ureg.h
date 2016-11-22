@@ -9,7 +9,6 @@
 
 struct Ureg {
 	uintptr_t ip;
-	uintptr_t ra;
 	uintptr_t sp;
 	uintptr_t gp;
 	uintptr_t tp;

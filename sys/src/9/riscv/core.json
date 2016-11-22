@@ -22,7 +22,8 @@
 			"-I", "/sys/src/libc/9syscall"
 		],
 	    "Libs": [
-			"/$ARCH/lib/klibc.a"
+			"/$ARCH/lib/klibc.a",
+			"/$ARCH/lib/klibsec.a"
 		],
 		"Oflags": [
 			"-z",
@@ -42,8 +43,7 @@
 			"inith.json"
 		],
 	    "MissingSourceFiles": [
-		        "coreboot.c",
-		        "trapentry.S"
+		        "coreboot.c"
 		],
 		"SourceFiles": [
 			"assembly.S",
@@ -63,7 +63,7 @@
 			"systab.c",
 		        "tcore.c",
 		        "trap.c",
-		    "trap_util.S",
+		        "trapentry.S",
 			"uart.c"
 		]
 	}

@@ -185,7 +185,7 @@ uint64_t	fas64(uint64_t*, uint64_t);
 #define TAS(addr)	tas32((addr))
 #define	FASP(p, v)	((void*)fas64((uint64_t*)(p), (uint64_t)(v)))
 
-void	touser(uintptr_t);
+void	touser(Ureg*);
 void	syscallentry(void);
 void	acsyscallentry(void);
 void	syscallreturn(void);

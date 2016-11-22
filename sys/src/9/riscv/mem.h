@@ -94,9 +94,9 @@
 #define UTZERO		(0+2*MiB)		/* first address in user text */
 #define UTROUND(t)	ROUNDUP((t), BIGPGSZ)
 #ifndef __ASSEMBLER__
-#define USTKTOP		(0x00007ffffffff000ull & ~(BIGPGSZ-1))
+#define USTKTOP		(0x3fffffffffULL & ~(BIGPGSZ-1))
 #else
-#define USTKTOP         (0x00007ffffffff000 & ~(BIGPGSZ-1))
+#define USTKTOP         (0x3fffffffffULL & ~(BIGPGSZ-1))
 #endif
 #define USTKSIZE	(16*1024*1024)		/* size of user stack */
 #define TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */

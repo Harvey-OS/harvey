@@ -225,7 +225,7 @@ noerrorsleft(void)
 	}
 }
 
-int printallsyscalls;
+int printallsyscalls = 1;
 
 void
 syscall(unsigned int scallnr, Ureg *ureg)
@@ -233,6 +233,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	// can only handle 6 args right now.
 	uintptr_t a0, a1, a2, a3;
 	uintptr_t a4, a5;
+	if (printallsyscalls)
+		dumpgpr(ureg);
 
 	a0 = ureg->a0;
 	a1 = ureg->a1;
@@ -241,7 +243,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	a4 = ureg->a4;
 	a5 = ureg->a5;
 	Proc *up = externup();
-	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
+	if (1) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
 	uintptr_t	sp;
 	int s;
@@ -249,9 +251,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	Ar0 ar0;
 	static Ar0 zar0;
 
-	panic("test userureg");
-	//if(!userureg(ureg))
-		//panic("syscall: cs %#llx\n", ureg->cs);
+	if(!userureg(ureg))
+		panic("syscall: userureg is false; ip %#llx\n", ureg->ip);
 
 	cycles(&up->kentry);
 
@@ -262,13 +263,14 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
 	sp = ureg->sp;
+	print("ureg -> sp says %p\n", ureg->sp);
 	startns = stopns = 0;
-	if (0) hi("so far syscall!\n");
+	if (1) print("so far syscall!\n");
 	if (up->pid == 0 || printallsyscalls) {
 		syscallfmt('E', scallnr, nil, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
 			print("E %s\n", up->syscalltrace);
-			free(up->syscalltrace);
+			//free(up->syscalltrace);
 			up->syscalltrace = nil;
 		}
 	}
@@ -292,7 +294,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
-	if (0) hi("more syscall!\n");
+	if (1) print("more syscall!\n");
 	up->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
@@ -302,24 +304,31 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	up->nerrlab = 0;
 	ar0 = zar0;
 	if(!waserror()){
+print("do it\n");
 		if(scallnr >= nsyscall || systab[scallnr].f == nil){
+print("bad one\n");
 			pprint("bad sys call number %d pc %#llx\n",
 				scallnr, ureg->ip);
+print("postnote\n");
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);
 		}
 
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+print("sp is %p\n", sp);
+		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE)){
+			print("check it\n");
 			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		}
 
 		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
 		up->psstate = systab[scallnr].n;
-	if (0) hi("call syscall!\n");
+	if (1) hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
-	if (0) hi("it returned!\n");
+	if (1) hi("it returned!\n");
 		poperror();
 	}
 	else{
+print("failure\n");
 		/* failure: save the error buffer for errstr */
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
@@ -341,6 +350,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	/*
 	 * Put return value in frame.
 	 */
+print("return is %p\n", ar0.p);
 	ureg->a0 = ar0.p;
 
 	if (up->pid == 0 || printallsyscalls) {

@@ -17,7 +17,7 @@
 #include "mmu.h"
 
 #undef DBGFLG
-#define DBGFLG 32
+#define DBGFLG 1
 
 /* this gets pretty messy. RV64 has *at least* two modes:
  * 4 level and 3 level page tables. And people wonder why
@@ -40,6 +40,9 @@ void msg(char *);
 #define TMFM		(2*GiB-2*MiB)		/* kernel memory */
 
 #define PPN(x)		((x)&~(PGSZ-1))
+#define PTE2PPN(p) ((p)>>10)
+#define PTE2PA(p) (((p)>>10)<<12)
+
 
 #if 0
 /* Print the page table structures to the console */
@@ -192,14 +195,21 @@ dumpmmuwalk(uint64_t addr)
 	PTE *pte, *root;
 
 	root = UINT2PTR(machp()->MMU.root->va);
+	print("root is %p\n", root);
+	if((l = mmuwalk(root, addr, 2, &pte, nil)) >= 0) {
+		print("\tcpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
+		print("%llx, PA is %llx\n", *pte, PTE2PA(*pte));
+	}
 	if((l = mmuwalk(root, addr, 1, &pte, nil)) >= 0) {
-		print("cpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
-		print("%llx\n", *pte);
+		print("\tcpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
+		print("%llx, PA is %llx\n", *pte, PTE2PA(*pte));
 	}
 	if((l = mmuwalk(root, addr, 0, &pte, nil)) >= 0) {
-		print("cpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
-		print("%llx\n", *pte);
+		print("\tcpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
+		print("%llx, PA is %llx\n", *pte, PTE2PA(*pte));
 	}
+	if (PTE2PA(*pte) != 0)
+		hexdump(KADDR(PTE2PA(*pte)), 32);
 }
 
 static Page mmuptpfreelist;
@@ -440,7 +450,7 @@ pteflags(uint attr)
 void
 invlpg(uintptr_t _)
 {
-	panic("invlpage");
+	print("invlpage is not implemented, continuing anyway (addr is %p)\n", _);
 }
 
 /*
@@ -457,20 +467,29 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	PTE *pte;
 	Page *page, *prev;
 	Mpl pl;
-	uintmem pa, ppn;
+	uintmem pa, ppage;
 	char buf[80];
 
-	ppn = 0;
+	print("mmuput: %p\n", va);
+	dumpmmuwalk(va);
+	print("now try the put");
+	ppage = 0;
 	pa = pg->pa;
 	if(pa == 0)
 		panic("mmuput: zero pa");
+	if(va == 0)
+		panic("mmuput: zero va");
 
 	if(DBGFLG){
 		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#x\n",
 			machp()->machno, up, va, pa, attr);
 		print("%s", buf);
 	}
-	assert(pg->pgszi >= 0);
+	if (pg->pgszi < 0) {
+		print("mmuput(%p, %p, 0x%x): bad pgszi %d for pa %p\n",
+			va, pg, attr, pg->pgszi, pa);
+		assert(pg->pgszi >= 0);
+	}
 	pgsz = sys->pgsz[pg->pgszi];
 	if(pa & (pgsz-1))
 		panic("mmuput: pa offset non zero: %#llx\n", pa);
@@ -480,13 +499,15 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	if(DBGFLG)
 		mmuptpcheck(up);
 	user = (va < KZERO);
-	x = PTLX(va, 3);
+	x = PTLX(va, 2);
+	print("user is %d, index for %p is 0x%x, ", user, va, x);
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 	pte += x;
 	prev = machp()->MMU.root;
 
-	for(lvl = 3; lvl >= 0; lvl--){
+	print("starting PTE at l2 is %p\n", pte);
+	for(lvl = 2; lvl >= 0; lvl--){
 		if(user){
 			if(pgsz == 2*MiB && lvl == 1)	 /* use 2M */
 				break;
@@ -497,49 +518,59 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			if(page->prev == prev && page->daddr == x){
 				if(*pte == 0){
 					print("mmu: jmk and nemo had fun\n");
-					*pte = PPN(page->pa)|PteU|PteRW|PteP;
+					*pte = (PPN(page->pa)>>2)|PteP;
+					print("level %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, pa);
 				}
 				break;
 			}
 
 		if(page == nil){
-			if(up->MMU.mmuptp[0] == nil)
+			if(up->MMU.mmuptp[0] == nil) {
 				page = mmuptpalloc();
-			else {
+				print("\tallocated page %p\n", page);
+			} else {
 				page = up->MMU.mmuptp[0];
 				up->MMU.mmuptp[0] = page->next;
+				print("\tReused page %p\n", page);
 			}
 			page->daddr = x;
 			page->next = up->MMU.mmuptp[lvl];
 			up->MMU.mmuptp[lvl] = page;
 			page->prev = prev;
-			*pte = PPN(page->pa)|PteU|PteRW|PteP;
+			*pte = (PPN(page->pa)>>2)|PteP;
+			print("\tlevel %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, PPN(page->pa));
 			if(lvl == 2 && x >= machp()->MMU.root->daddr)
 				machp()->MMU.root->daddr = x+1;
 		}
 		x = PTLX(va, lvl-1);
+		print("\tptlx(%p,%d) is %p\n", va, lvl-1,x);
 
-		ppn = PPN(*pte);
-		if(ppn == 0)
+		ppage = PTE2PA(*pte);
+		print("\tpa for pte %p val 0x%llx ppage %p\n", pte, *pte, ppage);
+		if(ppage == 0)
 			panic("mmuput: ppn=0 l%d pte %#p = %#P\n", lvl, pte, *pte);
 
-		pte = UINT2PTR(KADDR(ppn));
+		pte = UINT2PTR(KADDR(ppage));
 		pte += x;
+		print("\tpte for next iteration is %p\n", pte);
 		prev = page;
 	}
 
+	print("\tAFTER LOOP pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
 	if(DBGFLG)
-		checkpte(ppn, pte);
-	*pte = pa|PteU;
+		checkpte(ppage, pte);
+	*pte = (pa>>2)|PteU;
+	print("\tAFTER SET pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
 
 	if(user)
 		switch(pgsz){
 		case 2*MiB:
 		case 1*GiB:
-			*pte |= attr & PteFinal | PteP;
+			*pte |= attr | PteFinal | PteP | 0x1f;
+			print("\tUSER PAGE pte %p val 0x%llx\n", pte, *pte);
 			break;
 		default:
-			panic("mmuput: user pages must be 2M or 1G");
+			panic("\tmmuput: user pages must be 2M or 1G");
 		}
 	splx(pl);
 
@@ -550,6 +581,9 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	}
 
 	invlpg(va);			/* only if old entry valid? */
+	dumpmmuwalk(va);
+	hexdump((void *)va, 16);
+	print("returning from mmuput\n");
 }
 
 #if 0
@@ -596,18 +630,17 @@ mmuwalk(PTE* root, uintptr_t va, int level, PTE** ret,
 	PTE *pte;
 
 	Mpl pl;
-msg("mmuwalk\n");
 	pl = splhi();
-msg("post splihi\n");
-print("mmuwalk(%p, %p, %d, %p, %p)\n", root, (void *)va, level, ret, alloc);
 	if(DBGFLG > 1) {
 		print("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
 		print("PTLX(%p, 2) is 0x%x\n", va, PTLX(va,2));
 		print("root is %p\n", root);
 	}
 	pte = &root[PTLX(va, 2)];
-	print("pte is %p\n", pte);
-	print("*pte is %p\n", *pte);
+	if(DBGFLG > 1) {
+		print("pte is %p\n", pte);
+		print("*pte is %p\n", *pte);
+	}
 	for(l = 2; l >= 0; l--){
 		if(l == level)
 			break;
@@ -623,9 +656,11 @@ print("mmuwalk(%p, %p, %d, %p, %p)\n", root, (void *)va, level, ret, alloc);
 		else if(*pte & PteFinal)
 			break;
 		pte = UINT2PTR(KADDR((*pte&~0x3ff)<<2)); // PPN(*pte)));
-		print("pte is %p: ", pte);
+		if (DBGFLG > 1)
+			print("pte is %p: ", pte);
 		pte += PTLX(va, l-1);
-		print("and index is %p\n", pte);
+		if (DBGFLG > 1)
+			print("and pte after index is %p\n", pte);
 	}
 	*ret = pte;
 	splx(pl);

@@ -16,6 +16,7 @@
 #include "init.h"
 #include "io.h"
 #include "encoding.h"
+#include "ureg.h"
 
 extern void (*consuartputs)(char*, int);
 void query_mem(const char *config_string, uintptr_t *base, size_t *size);
@@ -122,6 +123,7 @@ init0(void)
 {
 	Proc *up = externup();
 	char buf[2*KNAMELEN];
+	Ureg u;
 
 	up->nerrlab = 0;
 
@@ -158,8 +160,12 @@ print("1\n");
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
+	nixprepage(0);
+	print("TOUSER: kstack is %p\n", up->kstack);
 	//debugtouser((void *)UTZERO);
-	touser(0x2002c4);
+	u.ip = 0x200000;
+	u.sp = sp;
+	touser(&u);
 }
 
 /*
@@ -285,6 +291,7 @@ userinit(void)
 	k = kmap(s->map[0]->pages[0]);
 	/* This depends on init having a text segment < 2M. */
 	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)), init_data_out, sizeof(init_data_out));
+
 	kunmap(k);
 	ready(p);
 }
@@ -443,6 +450,8 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	void *supervisor_trap_entry(void);
 	write_csr(/*stvec*/0x105, supervisor_trap_entry);
 
+	dumpmmuwalk(0xfffffffffffff000ULL);
+
 	print("schedinit...\n");
 
 	schedinit();
@@ -457,6 +466,8 @@ int corecolor(int _)
 
 Proc *externup(void)
 {
+	if (! machp())
+		return nil;
 	return machp()->externup;
 }
 
@@ -485,8 +496,8 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 int
 userureg(Ureg*u)
 {
-	panic((char *)__func__);
-	return -1;
+	print("Returning 1 for userureg; need a better test\n");
+	return 1;
 }
 
 void    exit(int _)
@@ -501,7 +512,7 @@ void fpunoted(void)
 
 void fpunotify(Ureg*_)
 {
-	panic((char *)__func__);
+	print("fpunotify: doing nothing since FPU is disabled\n");
 }
 
 void fpusysrfork(Ureg*_)

@@ -14,8 +14,6 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#undef DBG
-#define DBG print
 enum
 {
 	PATHSLOP	= 20,
@@ -1229,10 +1227,7 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, int perm)
 {
-void msg(char *s);
-msg("namec\n");
 	Proc *up = externup();
-print("up %p\n", up);
 	int len, n, nomount;
 	Chan *c, *cnew;
 	Path *path;
@@ -1243,17 +1238,13 @@ print("up %p\n", up);
 	char *name;
 	Dev *dev;
 
-print("1\n");
 	if(aname[0] == '\0')
 		error("empty file name");
-print("1\n");
 	aname = validnamedup(aname, 1);
-print("1\n");
 	if(waserror()){
 		free(aname);
 		nexterror();
 	}
-print("1\n");
 	DBG("namec %s %d %d\n", aname, amode, omode);
 	name = aname;
 
