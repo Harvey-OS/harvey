@@ -137,7 +137,7 @@ static void print_trap_information(const Ureg *ureg)
 	print("Previous mode:      %s\n", previous_mode);
 	print("Bad instruction pc: %p\n", (void *)ureg->epc);
 	print("Bad address:        %p\n", (void *)ureg->badaddr);
-	print("Stored ra:          %p\n", (void*) ureg->ra);
+	print("Stored ip:          %p\n", (void*) ureg->ip);
 	print("Stored sp:          %p\n", (void*) ureg->sp);
 }
 
@@ -401,11 +401,11 @@ trap(Ureg *ureg)
 	// cache the previous vno to see what might be causing
 	// trouble
 	vno = ureg->cause;
-	uint64_t sscratch = read_csr(sscratch);
+	Mach *m =machp();
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
-	if (sscratch < 1ULL<<63)
-		die("bogus sscratch");
+	if (m < (Mach *)(1ULL<<63))
+		die("bogus mach");
 	Proc *up = externup();
 	char buf[ERRMAX];
 	Vctl *ctl, *v;

@@ -22,7 +22,7 @@ main:
 	li	a6, 32768
 	add 	a5, a5, a6
         mv      a2,a5
-	csrw	sscratch, a1
+	mv	tp, a1
 	mv	ra,a0
 	mv	sp, a2
 	mv 	a0, a2
@@ -32,7 +32,7 @@ main:
 # pointer. The function is in a0, the mach pointer in a1.
 .globl startmach
 startmach: 
-	csrw	sscratch, a1
+	mv	tp, a1
 	mv	ra,a0
 	mv	sp, a2
 	mv 	a0, a2
@@ -40,7 +40,7 @@ startmach:
 
 .globl machp
 machp:
-	csrr	a0,sscratch
+	mv	a0,tp
 	ret
 
 

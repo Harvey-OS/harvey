@@ -249,12 +249,7 @@ enum {
  *	stack	- acsyscall
  *	externup - externup()
  *
- * riscv uses sscratch to save important supervisor information.
- * From what I can tell, it's best practice to store the
- * kernel stack in sp and derive what you can from that.
- * If we size kernel stack to 4k, and force alignment of the mach
- * to 8k, then we can just take the kernel stack, clear the low
- * 13 bits, and get the Mach. MAYBE.
+ * riscv uses tp for mach.
  */
 struct Mach
 {
