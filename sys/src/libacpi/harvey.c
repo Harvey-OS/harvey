@@ -119,13 +119,13 @@ inb(uint16_t addr)
 {
 	uint64_t off = addr;
 	uint16_t b;
-	if (pread(iow, &b, 1, off) < 1)
+	if (pread(iob, &b, 1, off) < 1)
 		print("inb(0x%x): %r\n", addr);
 	return b;
 }
 
 void
-outl(uint32_t val, uint16_t addr)
+outl(uint16_t addr, uint32_t val)
 {
 	uint64_t off = addr;
 	if (pwrite(iol, &val, 4, off) < 4)
@@ -133,7 +133,7 @@ outl(uint32_t val, uint16_t addr)
 }
 
 void
-outs(uint16_t val, uint16_t addr)
+outs(uint16_t addr, uint16_t val)
 {
 	uint64_t off = addr;
 	if (pwrite(iow, &val, 2, off) < 2)
@@ -141,7 +141,7 @@ outs(uint16_t val, uint16_t addr)
 }
 
 void
-outb(uint8_t val, uint16_t addr)
+outb(uint16_t addr, uint8_t val)
 {
 	uint64_t off = addr;
 	if (pwrite(iob, &val, 1, off) < 1)
