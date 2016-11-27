@@ -48,6 +48,7 @@
 					"uart",
 					"ws",
 					"usb",
+					"v9p",
 					"vcon",
 					"vga"
 				],
