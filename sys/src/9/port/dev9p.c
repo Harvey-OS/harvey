@@ -11,38 +11,39 @@
 // dev9p.c ('#9'): a virtio9p protocol translation driver to use QEMU's built-in 9p.
 
 
-#include        "u.h"
-#include        "../port/lib.h"
-#include        "mem.h"
-#include        "dat.h"
-#include        "fns.h"
-#include        "io.h"
-#include        "../port/error.h"
+#include	"u.h"
+#include	"../port/lib.h"
+#include	"mem.h"
+#include	"dat.h"
+#include	"fns.h"
+#include	"io.h"
+#include	"../port/error.h"
 
-#include        "virtio_ring.h"
+#include	"virtio_ring.h"
 
-#include        "virtio_config.h"
-#include        "virtio_pci.h"
+#include	"virtio_config.h"
+#include	"virtio_9p.h"
+#include	"virtio_pci.h"
 
-#include        "virtio_lib.h"
+#include	"virtio_lib.h"
 
 Dev v9pdevtab = {
-        .dc = '9',
-        .name = "9p",
+	.dc = '9',
+	.name = "9p",
 
-        .reset = devreset,
-        .init = v9pinit,
-        .shutdown = devshutdown,
-        .attach = v9pattach,
-        .walk = v9pwalk,
-        .stat = v9pstat,
-        .open = v9popen,
-        .create = devcreate,
-        .close = v9pclose,
-        .read = v9pread,
-        .bread = devbread,
-        .write = v9pwrite,
-        .bwrite = devbwrite,
-        .remove = devremove,
-        .wstat = devwstat,
+	.reset = devreset,
+//	.init = v9pinit,
+	.shutdown = devshutdown,
+//	.attach = v9pattach,
+//	.walk = v9pwalk,
+//	.stat = v9pstat,
+//	.open = v9popen,
+	.create = devcreate,
+//	.close = v9pclose,
+//	.read = v9pread,
+	.bread = devbread,
+//	.write = v9pwrite,
+	.bwrite = devbwrite,
+	.remove = devremove,
+	.wstat = devwstat,
 };
