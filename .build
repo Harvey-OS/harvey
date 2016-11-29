@@ -1,4 +1,5 @@
 CC = gcc
+ARCH=amd64
 [darwin]
 TOOLPREFIX = x86_64-elf-
 [harvey]

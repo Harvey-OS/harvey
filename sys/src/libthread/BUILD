@@ -8,7 +8,7 @@ cc_library(
             "//amd64/include",
         ],
 	srcs = [
-		"amd64.c",
+		"$ARCH.c",
 		"channel.c",
 		"chanprint.c",
 		"create.c",
