@@ -191,21 +191,21 @@ strip(
 mk_sys(
 	name="error",
 	mode="error.h",
-	arch="amd64",
+	arch=env("ARCH"),
 	sysconf="//sys/src/sysconf.json",
 )
 
 mk_sys(
 	name="sys",
 	mode="sys.h",
-	arch="amd64",
+	arch=env("ARCH"),
 	sysconf="//sys/src/sysconf.json",
 )
 
 mk_sys(
 	name="systab",
 	mode="systab.c",
-	arch="amd64",
+	arch=env("ARCH"),
 	sysconf="//sys/src/sysconf.json",
 )
 
