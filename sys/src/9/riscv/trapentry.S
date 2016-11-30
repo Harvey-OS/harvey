@@ -64,15 +64,18 @@
 	addi sp, sp, 1024
 	addi sp, sp, 1024
 	addi sp, sp, 1024
-	jal _save_context
+	j _save_context
 
 _restore_kernel_sp:
 	csrr sp, sscratch
 _save_context:
 	sd x1,  PT_IP(sp)
 	sd x3,  PT_GP(sp)
-	/* fix this later .. if tp is zero, there's nothing to do. */
-	beqz tp, 1f
+	/* At some point we had a very early interrupt and tp
+	 * could be zero. I think that was a bug. I'm leaving this
+	 * commented out branch here for now as a note in case
+	 * it comes up again. */
+	//beqz tp, 1f
 	ld x1,  32(tp)
 1:
 	sd x1,  PT_TP(sp)

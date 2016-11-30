@@ -163,6 +163,7 @@ print("1\n");
 	nixprepage(0);
 	print("TOUSER: kstack is %p\n", up->kstack);
 	//debugtouser((void *)UTZERO);
+	memset(&u, 0, sizeof(u));
 	u.ip = 0x200000;
 	u.sp = sp;
 	touser(&u);

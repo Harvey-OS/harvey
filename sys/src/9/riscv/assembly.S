@@ -150,16 +150,14 @@ touser:
 	// X0 is zero
 	// X1 and X2 are done.
 	LD x3, 48(a0)
-	// Don't restore X4, that's reserved for Mach *
-	//LD x4, 56(a0)
+	LD x4, 56(a0)
 	LD x5, 64(a0)
 	LD x6, 72(a0)
 	LD x7, 80(a0)
 	LD x8, 88(a0)
 	LD x9, 96(a0)
-	// don't touch a0.
-	//LD x10, 104(a0)
-	// LD x11, 112(a0)
+	// a0 and a1 are restored below.
+
 	LD x12, 120(a0)
 	LD x13, 128(a0)
 	// X14 done already
