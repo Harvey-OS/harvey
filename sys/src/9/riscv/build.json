@@ -50,7 +50,7 @@
 					"pci"
 				]
 			},
-			"NoRamfiles": {
+			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",

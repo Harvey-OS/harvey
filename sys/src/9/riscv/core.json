@@ -30,6 +30,7 @@
 			"max-page-size=0x1000",
 			"-nostdlib",
 			"-g",
+			"--no-relax",
 			"-T",
 			"kernel.ld"
 		],
