@@ -19,7 +19,7 @@
 			"-static",
 			"--no-relax",
 			"-Ttext=0x200000",
-			"-Tdata=0x401000"
+			"-Tdata=0x400000"
 		],
 		"Post": [
 			"elf2c init > init.h"
