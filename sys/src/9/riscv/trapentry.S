@@ -44,41 +44,9 @@
 	LOCAL _restore_kernel_sp
 	LOCAL _save_context
 
-	/* If coming from userspace, preserve the user stack pointer and load
-	   the kernel stack pointer.  If we came from the kernel, sscratch
-	   will contain 0, and we should continue on the current stack. */
-	csrrw sp, sscratch, sp
-	/* if it is 0 we were in kernel mode. */
-	beqz sp, _restore_kernel_sp
-	/* there's a concern about this being
-	* interrupted but we'll figure that out later.
-	*/
-	sd tp, 32(sp) // rathole.
-	mv tp, sp
-	ld sp, 16(sp) // Proc
-	ld sp, 280(sp) // kstack
-	addi sp, sp, 1024
-	addi sp, sp, 1024
-	addi sp, sp, 1024
-	addi sp, sp, 1024
-	addi sp, sp, 1024
-	addi sp, sp, 1024
-	addi sp, sp, 1024
-	j _save_context
-
-_restore_kernel_sp:
-	csrr sp, sscratch
-_save_context:
+        addi sp, sp, -304
 	sd x1,  PT_IP(sp)
 	sd x3,  PT_GP(sp)
-	/* At some point we had a very early interrupt and tp
-	 * could be zero. I think that was a bug. I'm leaving this
-	 * commented out branch here for now as a note in case
-	 * it comes up again. */
-	//beqz tp, 1f
-	ld x1,  32(tp)
-1:
-	sd x1,  PT_TP(sp)
 	sd x5,  PT_T0(sp)
 	sd x6,  PT_T1(sp)
 	sd x7,  PT_T2(sp)
@@ -131,7 +99,6 @@ _save_context:
 
 	ld x1,  PT_IP(sp)
 	ld x3,  PT_GP(sp)
-	ld x4,  PT_TP(sp)
 	ld x5,  PT_T0(sp)
 	ld x6,  PT_T1(sp)
 	ld x7,  PT_T2(sp)
@@ -160,18 +127,41 @@ _save_context:
 	ld x30, PT_T5(sp)
 	ld x31, PT_T6(sp)
 
-	ld x2,  PT_SP(sp)
 	.endm
 
+	/* we just figure out early whether it's user or not, and branch to totally different code paths.
+	 * it's just easier that way, even though there's duplication of code.
+	 * At this level, duplication is not such a problem since, once written, this kind of code never changes.
+	*/
 .globl supervisor_trap_entry
 supervisor_trap_entry:
+	/* If coming from userspace, preserve the user stack pointer and load
+	   the kernel stack pointer.  If we came from the kernel, sscratch
+	   will contain 0, and we should continue on the current stack. */
+	csrrw sp, sscratch, sp
+	/* if it is 0 we were in kernel mode. */
+	beqz sp, kernel
+	sd tp, 32(sp) // rathole.
+	mv tp, sp
+	ld sp, 16(sp) // Proc
+	ld sp, 280(sp) // kstack
+	addi sp, sp, 1024
+	addi sp, sp, 1024
+	addi sp, sp, 1024
+	addi sp, sp, 1024
+	addi sp, sp, 1024
+	addi sp, sp, 1024
+	addi sp, sp, 1024
 	SAVE_ALL
+	// tp is special, we don't want to touch it in kernel interrupts.
+	ld x1,  32(tp)
+	sd x1,  PT_TP(sp)
 
 	/* Set sscratch register to 0, so that if a recursive exception
 	   occurs, the exception vector knows it came from the kernel */
 	csrw sscratch, x0
 
-	la ra, ret_from_exception
+	la ra, user_ret_from_exception
 	/* MSB of cause differentiates between
 	   interrupts and exceptions */
 	bge s4, zero, 1f
@@ -182,11 +172,11 @@ supervisor_trap_entry:
 1:
         /* Handle syscalls */
         li t0, 8
-        beq s4, t0, handle_syscall
+        beq s4, t0, user_handle_syscall
 	move a0, sp /* pt_regs */
 	tail _trap
 
-handle_syscall:
+user_handle_syscall:
 	/* Advance SEPC to avoid executing the original
 	   scall instruction on sret */
 	addi s2, s2, 0x4
@@ -196,25 +186,60 @@ handle_syscall:
 	move a1, sp /* pt_regs */
 	ld a0, PT_A7(sp)
 	call syscall
-ret_from_syscall:
+user_ret_from_syscall:
 	/* Set user a0 to kernel a0 */
 	sd a0, PT_A0(sp)
 
-ret_from_exception:
+user_ret_from_exception:
 #define sstatus 0x100
 #define siebitno 1
 	// splhi
 	li	a0, siebitno
 	csrrc	a0, sstatus, a0
-	ld s0, PT_SSTATUS(sp)
-	csrc sstatus, siebitno
-	andi s0, s0, 0x10/*SR_PS*/
-	bnez s0, restore_all
-
 	/* Put Mach pointer in sscratch in for user mode. */
 	csrw sscratch, tp
-restore_all:
+user_restore_all:
 	RESTORE_ALL
+	ld x4,  PT_TP(sp)
+	ld x2,  PT_SP(sp)
+	/* FUUUUUUCCCCCKKKKK */
+	/* someday this toolchain will be done. */
+	.long 0x10200073
+	sret
+
+
+kernel:
+	csrr sp, sscratch
+	SAVE_ALL
+	la ra, kernel_ret_from_exception
+	/* MSB of cause differentiates between
+	   interrupts and exceptions */
+	bge s4, zero, 1f
+
+	/* Handle interrupts */
+	move a0, sp /* pt_regs */
+	tail _trap
+1:
+        /* Handle syscalls */
+        li t0, 8
+        beq s4, t0, kernel_handle_syscall
+	move a0, sp /* pt_regs */
+	tail _trap
+
+kernel_handle_syscall:
+	// TODO: panic: syscall in kernel mode.
+	j kernel_handle_syscall
+kernel_ret_from_exception:
+#define sstatus 0x100
+#define siebitno 1
+	// splhi
+	li	a0, siebitno
+	csrrc	a0, sstatus, a0
+
+kernel_restore_all:
+	RESTORE_ALL
+	addi sp, sp, 304
+
 	/* FUUUUUUCCCCCKKKKK */
 	/* someday this toolchain will be done. */
 	.long 0x10200073
