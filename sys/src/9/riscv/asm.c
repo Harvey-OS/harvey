@@ -415,7 +415,7 @@ print("sys->vmunapped 0x%lx sys->vmunused 0x%lx pa of unmapped - unused is 0x%lx
 				if((l = mmuwalk(root, va, i, &pte, asmwalkalloc)) < 0)
 					panic("asmmeminit 3");
 
-				print("ASMMEMINIT pte is %p\n", pte);
+				//print("ASMMEMINIT pte is %p\n", pte);
 				if (assem->type == AsmMEMORY)
 					*pte = mem|PteRW|PteP;
 				else
