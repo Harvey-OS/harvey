@@ -269,6 +269,7 @@ static struct {
 	{"amd64", EM_X86_64},
 	{"aarch64", EM_AARCH64},
 	{"power64", EM_PPC64},
+	{"riscv", EM_RISCV},
 };
 
 static int

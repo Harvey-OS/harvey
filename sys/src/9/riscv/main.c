@@ -427,7 +427,7 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	// ? fpuinit();
 	psinit(conf.nproc);print("	psinit(conf.nproc);\n");
 	initimage();print("	initimage();\n");
-	//links();
+	links();
 
 	devtabreset();print("	devtabreset();\n");
 	pageinit();print("	pageinit();\n");
