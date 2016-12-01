@@ -529,17 +529,20 @@ reboot(void*_, void*__, int32_t ___)
 
 void fpusysprocsetup(Proc *_)
 {
-	panic((char *)__func__);
+	print((char *)__func__);
+	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");
 }
 
 void sysrforkret(void)
 {
-	panic((char *)__func__);
+	print((char *)__func__);
+	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");
 }
 
 void     fpusysrforkchild(Proc*_, Proc*__)
 {
-	panic((char *)__func__);
+	print((char *)__func__);
+	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");
 }
 
 int

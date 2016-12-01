@@ -1,6 +1,7 @@
 {
 	"buildflags": {
 		"Cflags": [
+			"-mcmodel=medany",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-fno-omit-frame-pointer",
@@ -15,6 +16,7 @@
 			"-Wno-unknown-pragmas"
 		],
 		"Oflags": [
+			"-T","/home/rminnich/projects/harvey/harvey/riscv/include/prog.ld",
 			"--no-relax"
 		]
 	}
