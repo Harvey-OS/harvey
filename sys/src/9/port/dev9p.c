@@ -150,57 +150,82 @@ do_request(int tidx, void *inbuf, int32_t inlen, void *outbuf, int32_t outlen)
 	return 0;
 }
 
+typedef int64_t(*post_t)(Fcall *, int, void *);
+
+// Common code to send/receive a fcall. It takes a post-processing function
+// to evaluate the return from fcall. This code takes care of buffer allocation,
+// message conversion, checks for Rerror result and errors out automatically,
+// checks for the result code matching the request code (request + 1), and errors out if not matching,
+// then passes control to the post processing function, finally releases all the buffers
+// it allocated.
+
+static int64_t
+do_fcall(Fcall *pf, int tidx, int32_t msize, void *data, post_t post)
+{
+	uint8_t *msg, *rsp;
+	usize k;
+	uint8_t rtype = pf->type;
+	msg = mallocz(msize, 1);
+	rsp = mallocz(msize, 1);
+	if(msg == nil || rsp == nil)
+		exhausted("do_fcall buffer memory");
+	k = convS2M(pf, msg, msize);
+	if(k == 0) {
+		free(msg);
+		free(rsp);
+		error("do_fcall bad conversion on send");
+	}
+	int rc = do_request(tidx, rsp, msize, msg, msize);
+	free(msg);
+	if(rc < 0) {
+		free(rsp);
+		error("do_fcall virtio request error");
+	}
+	k = convM2S(rsp, msize, pf);
+	if(pf->type != rtype + 1) {
+		free(rsp);
+		error((pf->type == Rerror)?pf->ename:"do_fcall inconsistent return type");
+	}
+	int64_t rc2 = (*post)(pf, tidx, data);
+	free(rsp);
+	return rc2;
+}
+
 // Send a version message over the given virtqueue.
+
+static int64_t
+post_version(Fcall *pf, int tidx, void *data)
+{
+	if(pf->msize > MAXRPC) {
+		error("server tries to increase msize in fversion");
+		return -1;
+	}
+	if(pf->msize<256 || pf->msize>1024*1024) {
+		error("nonsense value of msize in fversion");
+		return -1;
+	}
+	mounts[tidx].msize = pf->msize;
+	mounts[tidx].version = strdup(pf->version);
+	return 0;
+}
 
 static int
 v9pversion(int tidx)
 {
-	uint8_t *msg, *rsp;
-	usize k;
-	Fcall f;
-	f.type = Tversion;
-	f.tag = NOTAG;
-	f.msize = MAXRPC;
-	f.version = VERSION9PU;
-	msg = mallocz(BUFSZ, 1);
-	rsp = mallocz(BUFSZ, 1);
-	if(msg == nil || rsp == nil)
-		exhausted("version memory");
-	k = convS2M(&f, msg, BUFSZ);
-	if(k == 0) {
-		free(msg);
-		free(rsp);
-		error("bad version conversion on send");
-	}
-	int rc = do_request(tidx, rsp, BUFSZ, msg, BUFSZ);
-	int retval = rc;
-	free(msg);
-	if(rc >= 0) {
-		k = convM2S(rsp, BUFSZ, &f);
-		if(f.type == Rerror) {
-			free(rsp);
-			error(f.ename);
-			return -1;
-		} else if(f.type != Rversion) {
-			free(rsp);
-			error("unexpected reply type in fversion");
-			return -1;
-		}
-	}
-	if(f.msize > MAXRPC) {
-		free(rsp);
-		error("server tries to increase msize in fversion");
-		return -1;
-	}
-	if(f.msize<256 || f.msize>1024*1024) {
-		free(rsp);
-		error("nonsense value of msize in fversion");
-		return -1;
-	}
-	mounts[tidx].msize = f.msize;
-	mounts[tidx].version = strdup(f.version);
-	free(rsp);
-	return retval;
+	Fcall f = {
+		.type = Tversion,
+		.tag = NOTAG,
+		.msize = MAXRPC,
+		.version = VERSION9PU
+	};
+	return do_fcall(&f, tidx, BUFSZ, nil, post_version);
+}
+
+static int64_t
+post_attach(Fcall *pf, int tidx, Chan *ch)
+{
+	ch->qid = pf->qid;
+	return 0;
 }
 
 static Chan*
@@ -219,40 +244,16 @@ print("v9pattach %s\n", spec);
 			return nil;
 		}
 	}
-	Chan *ch = devattach(v9pdevtab.dc, spec);
-	Fcall r;
-	r.type = Tattach;
-	r.tag = alloctag();
-	r.fid = ch->fid;
-	r.afid = NOFID;
-	r.uname = "";
-	r.aname = "";
-	uint8_t *msg, *rsp;
-	uint32_t ms = mounts[tidx].msize;
-	msg = mallocz(ms, 1);
-	rsp = mallocz(ms, 1);
-	if(msg == nil || rsp == nil)
-		exhausted("attach memory");
-	usize k = convS2M(&r, msg, ms);
-	if(k == 0) {
-		free(msg);
-		free(rsp);
-		freetag(r.tag);
-		error("bad attach conversion on send");
-	}
-	int rc = do_request(tidx, rsp, ms, msg, ms);
-	freetag(r.tag);
-	free(msg);
-	if(rc >= 0) {
-		k = convM2S(rsp, ms, &r);
-		if(r.type == Rerror) {
-			free(rsp);
-			error(r.ename);
-			return nil;
-		}
-		ch->qid = r.qid;
-	}
-	free(rsp);
+	Chan *ch = devattach(v9pdevtab.dc, mounts[tidx].tag);
+	Fcall r = {
+		.type = Tattach,
+		.tag = alloctag(),
+		.fid = ch->fid,
+		.afid = NOFID,
+		.uname = "",
+		.aname = ""
+	};
+	do_fcall(&r, tidx, mounts[tidx].msize, (void *)ch, (post_t)post_attach);
 	return ch;
 }
 
