@@ -209,7 +209,8 @@ user_restore_all:
 
 
 kernel:
-	csrr sp, sscratch
+	csrrw sp, sscratch, sp
+	//csrr sp, sscratch
 	SAVE_ALL
 	la ra, kernel_ret_from_exception
 	/* MSB of cause differentiates between

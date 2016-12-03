@@ -92,9 +92,9 @@ uint64_t
 rdtsc(void)
 {
 	uint64_t cycles;
-	msg("rdtsc\n");
+//	msg("rdtsc\n");
 	cycles = read_csr(/*s*/cycle);
-	msg("done rdts\n");
+//	msg("done rdts\n");
 	return cycles;
 }
 
@@ -160,7 +160,7 @@ print("1\n");
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	nixprepage(0);
+	//nixprepage(-1);
 	print("TOUSER: kstack is %p\n", up->kstack);
 	//debugtouser((void *)UTZERO);
 	memset(&u, 0, sizeof(u));
@@ -207,12 +207,14 @@ bootargs(uintptr_t base)
 	 */
 	av = (char**)(p - (oargc+2)*sizeof(char*));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
+	print("Stack size in boot args is %p\n", ssize);
 	*av++ = (char*)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;
 
 	sp = USTKTOP - ssize;
+	print("New sp in bootargs is %p\n", sp);
 }
 
 void
@@ -258,6 +260,7 @@ userinit(void)
 	 * shouldn't be the case here.
 	 */
 	sno = 0;
+	print("newseg(0x%x, %p, 0x%llx)\n", SG_STACK|SG_READ|SG_WRITE, (void *)USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
 	s = newseg(SG_STACK|SG_READ|SG_WRITE, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
@@ -497,6 +500,11 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 int
 userureg(Ureg*u)
 {
+	int64_t ip = (int64_t)u->ip;
+	if (ip < 0) {
+		print("RETURNING 0 for userureg\n");
+		return 0;
+	}
 	print("Returning 1 for userureg; need a better test\n");
 	return 1;
 }
