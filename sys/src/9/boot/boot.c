@@ -63,7 +63,7 @@ static void acpiirq(void)
 	dup(irqmap, 0);
 	close(irqmap);
 	if (execl("/boot/irq", "irq", "-s", nil)) {
-		exits("can't start /boot/irq");
+		print("note: can't start /boot/irq");
 	}
 	exits(nil);
 
