@@ -76,7 +76,7 @@ procrestore(Proc *p)
 void
 fpuprocsave(Proc *p)
 {
-	panic("fpuprocsave");
+	print("fpuprocsave -- NEED TO IMPLEMENT");
 }
 
 /*

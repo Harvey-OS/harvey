@@ -187,8 +187,6 @@ user_handle_syscall:
 	ld a0, PT_A7(sp)
 	call syscall
 user_ret_from_syscall:
-	/* Set user a0 to kernel a0 */
-	sd a0, PT_A0(sp)
 
 user_ret_from_exception:
 #define sstatus 0x100

@@ -233,7 +233,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	// can only handle 6 args right now.
 	uintptr_t a0, a1, a2, a3;
 	uintptr_t a4, a5;
-	if (printallsyscalls)
+	if (0 && printallsyscalls)
 		dumpgpr(ureg);
 
 	a0 = ureg->a0;
@@ -352,6 +352,7 @@ print("failure\n");
 	 */
 print("return is %p\n", ar0.p);
 	ureg->a0 = ar0.p;
+print("ureg->ip is %p val %p\n", &ureg->ip, ureg->ip);
 
 	if (up->pid == 0 || printallsyscalls) {
 		stopns = todget(nil);
@@ -456,10 +457,12 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 		panic("misaligned stack in sysexecregs");
 	}
 	sp = (uintptr_t*)(USTKTOP - ssize);
-
+	print("sysexecregs: entry %p sp %p tos %p\n", entry, sp, tos);
 	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
+	ureg->epc = entry;
+	print("SET ip @ %p to %p\n", &ureg->ip, entry);
 
 	/*
 	 * return the address of kernel/user shared data

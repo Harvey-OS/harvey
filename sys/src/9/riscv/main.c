@@ -164,7 +164,7 @@ print("1\n");
 	print("TOUSER: kstack is %p\n", up->kstack);
 	//debugtouser((void *)UTZERO);
 	memset(&u, 0, sizeof(u));
-	u.ip = 0x200000;
+	u.ip = (uintptr_t)init_main;
 	u.sp = sp;
 	touser(&u);
 }

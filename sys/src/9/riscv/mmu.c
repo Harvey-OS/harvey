@@ -17,7 +17,7 @@
 #include "mmu.h"
 
 #undef DBGFLG
-#define DBGFLG 1
+#define DBGFLG 0
 
 /* this gets pretty messy. RV64 has *at least* two modes:
  * 4 level and 3 level page tables. And people wonder why
@@ -470,9 +470,11 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	uintmem pa, ppage;
 	char buf[80];
 
-	print("mmuput: %p\n", va);
-	dumpmmuwalk(va);
-	print("now try the put");
+	if (DBGFLG) {
+		print("mmuput: %p\n", va);
+		dumpmmuwalk(va);
+		print("now try the put");
+	}
 	ppage = 0;
 	pa = pg->pa;
 	if(pa == 0)
@@ -506,7 +508,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	pte += x;
 	prev = machp()->MMU.root;
 
-	print("starting PTE at l2 is %p\n", pte);
+	if (DBGFLG) print("starting PTE at l2 is %p\n", pte);
 	for(lvl = 2; lvl >= 0; lvl--){
 		if(user){
 			if(pgsz == 2*MiB && lvl == 1)	 /* use 2M */
@@ -519,7 +521,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 				if(*pte == 0){
 					print("mmu: jmk and nemo had fun\n");
 					*pte = (PPN(page->pa)>>2)|PteP;
-					print("level %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, pa);
+					if (DBGFLG) print("level %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, pa);
 				}
 				break;
 			}
@@ -527,47 +529,47 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		if(page == nil){
 			if(up->MMU.mmuptp[0] == nil) {
 				page = mmuptpalloc();
-				print("\tallocated page %p\n", page);
+				if (DBGFLG) print("\tallocated page %p\n", page);
 			} else {
 				page = up->MMU.mmuptp[0];
 				up->MMU.mmuptp[0] = page->next;
-				print("\tReused page %p\n", page);
+				if (DBGFLG) print("\tReused page %p\n", page);
 			}
 			page->daddr = x;
 			page->next = up->MMU.mmuptp[lvl];
 			up->MMU.mmuptp[lvl] = page;
 			page->prev = prev;
 			*pte = (PPN(page->pa)>>2)|PteP;
-			print("\tlevel %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, PPN(page->pa));
+			if (DBGFLG) print("\tlevel %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, PPN(page->pa));
 			if(lvl == 2 && x >= machp()->MMU.root->daddr)
 				machp()->MMU.root->daddr = x+1;
 		}
 		x = PTLX(va, lvl-1);
-		print("\tptlx(%p,%d) is %p\n", va, lvl-1,x);
+		if (DBGFLG) print("\tptlx(%p,%d) is %p\n", va, lvl-1,x);
 
 		ppage = PTE2PA(*pte);
-		print("\tpa for pte %p val 0x%llx ppage %p\n", pte, *pte, ppage);
+		if (DBGFLG) print("\tpa for pte %p val 0x%llx ppage %p\n", pte, *pte, ppage);
 		if(ppage == 0)
 			panic("mmuput: ppn=0 l%d pte %#p = %#P\n", lvl, pte, *pte);
 
 		pte = UINT2PTR(KADDR(ppage));
 		pte += x;
-		print("\tpte for next iteration is %p\n", pte);
+		if (DBGFLG) print("\tpte for next iteration is %p\n", pte);
 		prev = page;
 	}
 
-	print("\tAFTER LOOP pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
+	if (DBGFLG) print("\tAFTER LOOP pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
 	if(DBGFLG)
 		checkpte(ppage, pte);
 	*pte = (pa>>2)|PteU;
-	print("\tAFTER SET pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
+	if (DBGFLG) print("\tAFTER SET pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
 
 	if(user)
 		switch(pgsz){
 		case 2*MiB:
 		case 1*GiB:
 			*pte |= attr | PteFinal | PteP | 0x1f;
-			print("\tUSER PAGE pte %p val 0x%llx\n", pte, *pte);
+			if (DBGFLG) print("\tUSER PAGE pte %p val 0x%llx\n", pte, *pte);
 			break;
 		default:
 			panic("\tmmuput: user pages must be 2M or 1G");
@@ -581,9 +583,9 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	}
 
 	invlpg(va);			/* only if old entry valid? */
-	dumpmmuwalk(va);
-	hexdump((void *)va, 16);
-	print("returning from mmuput\n");
+	//dumpmmuwalk(va);
+	//hexdump((void *)va, 16);
+	if (DBGFLG) print("returning from mmuput\n");
 }
 
 #if 0

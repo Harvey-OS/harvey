@@ -160,6 +160,9 @@ void trap_handler(Ureg *ureg) {
 		case CAUSE_FAULT_STORE:
 			print_trap_information(ureg);
 			faultarch(ureg);
+	hexdump((void *)ureg->ip, 16);
+	hexdump((void *)ureg->epc, 16);
+	hexdump((void *)ureg->badaddr, 16);
 			break;
 		case CAUSE_USER_ECALL:
 		case CAUSE_HYPERVISOR_ECALL:
@@ -328,10 +331,10 @@ kexit(Ureg* u)
 	 * initialized in exec, sysproc.c
 	 */
 	tos = (Tos*)(USTKTOP-sizeof(Tos));
-	print("USTKTOP %p sizeof(Tos) %d tos %p\n", (void *)USTKTOP, sizeof(Tos), tos);
+	if (0) print("USTKTOP %p sizeof(Tos) %d tos %p\n", (void *)USTKTOP, sizeof(Tos), tos);
 	cycles(&t);
 	if (1) {
-		print("tos is %p, &tos->kcycles is %p, up is %p\n", tos, &tos->kcycles, up);
+		if (0) print("tos is %p, &tos->kcycles is %p, up is %p\n", tos, &tos->kcycles, up);
 		tos->kcycles += t - up->kentry;
 		tos->pcycles = up->pcycles;
 		tos->pid = up->pid;
@@ -340,20 +343,20 @@ kexit(Ureg* u)
 			mp = up->ac;
 		else
 			mp = machp();
-		print("kexit: mp is %p\n", mp);
+		if (0) print("kexit: mp is %p\n", mp);
 		tos->core = mp->machno;
-		print("kexit: mp is %p\n", mp);
+		if (0) print("kexit: mp is %p\n", mp);
 		tos->nixtype = mp->NIX.nixtype;
-		print("kexit: mp is %p\n", mp);
+		if (0) print("kexit: mp is %p\n", mp);
 		//_pmcupdate(m);
 		/*
 	 	* The process may change its core.
 	 	* Be sure it has the right cyclefreq.
 	 	*/
 		tos->cyclefreq = mp->cyclefreq;
-		print("kexit: mp is %p\n", mp);
+		if (0) print("kexit: mp is %p\n", mp);
 	}
-	print("kexit: done\n");
+	if (0) print("kexit: done\n");
 }
 
 void
@@ -399,8 +402,8 @@ enum interrupts {
 void
 _trap(Ureg *ureg)
 {
-	msg("+trap\n");
-	print("_trap\n");
+	if (0) msg("+trap\n");
+	if (0) print("_trap\n");
 	/*
 	 * If it's a real trap in this core, then we want to
 	 * use the hardware cr2 register.
