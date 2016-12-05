@@ -105,6 +105,7 @@ func main() {
 		// Gen code to stdout. For each file, create an array, a start, and an end variable.
 		w := bufio.NewWriter(os.Stdout)
 		_, file := path.Split(n)
+		fmt.Fprintf(w, "uintptr_t %v_main = %v;\n", n, f.Entry)
 		gencode(w, file, "code", mem, codestart, codeend)
 		gencode(w, file, "data", mem, datastart, dataend)
 		w.Flush()
