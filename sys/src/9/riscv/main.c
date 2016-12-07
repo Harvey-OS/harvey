@@ -597,6 +597,16 @@ void fpusysrfork(Ureg*_)
 	print("IGNORING\n");
 }
 
+void sysrforkret(void)
+{
+	void *stack(void);
+	void *sp = stack();
+	print("sysrforkret: stack is %p\n", sp);
+	dumpgpr((Ureg *)sp);
+void _sysrforkret();
+	_sysrforkret();
+}
+
 void
 reboot(void*_, void*__, int32_t ___)
 {
@@ -604,12 +614,6 @@ reboot(void*_, void*__, int32_t ___)
 }
 
 void fpusysprocsetup(Proc *_)
-{
-	print((char *)__func__);
-	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");
-}
-
-void sysrforkret(void)
 {
 	print((char *)__func__);
 	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");

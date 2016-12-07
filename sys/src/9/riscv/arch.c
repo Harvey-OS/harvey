@@ -57,7 +57,7 @@ decref(Ref *r)
 
 void fpuprocrestore(Proc *p)
 {
-	panic("fpuprocrestore");
+	print("NOT DOING fpuprocrestore");
 }
 
 void

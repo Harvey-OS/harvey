@@ -332,7 +332,7 @@ mmurelease(Proc* proc)
 		wakeup(&pga.rend);
 	proc->MMU.mmuptp[0] = nil;
 
-	panic("tssrsp0");
+	print("NOT DOING tssrsp0");
 	//tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
 	rootput(machp()->MMU.root->pa);
 }

@@ -205,6 +205,11 @@ user_restore_all:
 	.long 0x10200073
 	sret
 
+.globl _sysrforkret
+_sysrforkret:
+	addi	sp, sp, 32
+	sd x0, PT_A0(sp)
+	tail user_ret_from_syscall
 
 kernel:
 	csrrw sp, sscratch, sp

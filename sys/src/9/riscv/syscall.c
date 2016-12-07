@@ -483,7 +483,7 @@ sysrforkchild(Proc* child, Proc* parent)
 	Ureg *cureg;
 // If STACKPAD is 1 things go very bad very quickly.
 // But it is the right value ...
-#define STACKPAD 1 /* for return PC? */
+#define STACKPAD 0 /* for return PC? */
 	/*
 	 * Add STACKPAD*BY2SE to the stack to account for
 	 *  - the return PC
@@ -498,7 +498,10 @@ sysrforkchild(Proc* child, Proc* parent)
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
 	child->insyscall = 0;
-	//iprint("Child SP set tp %p\n", (void *)child->sched.sp);
+	print("Child SP set to %p\n", (void *)child->sched.sp);
+	print("NOTE: UP is wrong, ignoreit\n");
+	dumpgpr(cureg);
+	
 
 	fpusysrforkchild(child, parent);
 }

@@ -135,6 +135,10 @@ slim_setlabel:
 	RET
 
 
+.globl stack
+stack:
+	mv a0, sp
+	ret
 #if 0
 .globl rdtsc
 rdtsc:
