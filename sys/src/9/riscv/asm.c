@@ -18,9 +18,9 @@
 #include "dat.h"
 #include "fns.h"
 
-#undef DBG
+//#undef DBG
 void msg(char *);
-#define DBG print
+//#define DBG msg
 /*
  * Address Space Map.
  * Low duty cycle.
@@ -158,6 +158,7 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 	Asm *assem, *pp;
 
 	DBG("asmalloc: %p@%p, type %d\n", size, addr, type);
+//msg("before asmlock\n");
 	lock(&asmlock);
 //msg("after lock\n");
 	for(pp = nil, assem = asmlist; assem != nil; pp = assem, assem = assem->next){
@@ -165,7 +166,6 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 		if(assem->type != type)
 			continue;
 		a = assem->addr;
-print("asmalloc: try %p\n", a);
 //msg("loop 2\n");
 
 		if(addr != 0){
@@ -211,16 +211,13 @@ print("asmalloc: try %p\n", a);
 
 //msg("loop 6\n");
 		unlock(&asmlock);
-print("o %p\n", o);
 //msg("loop 7\n");
 		if(o != a)
 			asmfree(o, a-o, type);
-print("going to return %p\n", a);
 		return a;
 	}
 //msg("loop 8\n");
 	unlock(&asmlock);
-print("FAILED\n");
 //msg("loop 9\n");
 
 	return 0;
@@ -239,16 +236,9 @@ asminsert(uintmem addr, uintmem size, int type)
 void
 asminit(void)
 {
-	uintmem m;
-print("asminit. \n");
 	sys->pmstart = ROUNDUP(PADDR(end), PGSZ);
-print("sys->pmstart 0x%x\n", sys->pmstart);
 	sys->pmend = sys->pmstart;
-print("sys->pmend 0x%x\n", sys->pmend);
-print("asminit  0 sys->pmstart 0x%x\n", sys->pmstart);
-	m = asmalloc(0, sys->pmstart, AsmNONE, 0);
-print("asmalloc returned %p\n", m);
-print("ASMINIT: DONE\n");
+	asmalloc(0, sys->pmstart, AsmNONE, 0);
 }
 
 /*
@@ -349,13 +339,10 @@ asmmeminit(void)
 	int cx;
 #endif /* ConfCrap */
 
-print("Check\n");
 	assert(!((sys->vmunmapped|sys->vmend) & sys->pgszmask[1]));
 
-print("asmmeminit: call mmuphysaddr 0x%x\n", sys->vmunused);
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
-print("pa of sys->vmunused is 0x%x\n", pa);
 	// vmunmapped is the START of unmapped memory (there is none on riscv yet).
 	// it is the END of mapped memory we have not used.
 	// vmunused is the START of mapped memory that is not used and the END
@@ -365,7 +352,6 @@ print("pa of sys->vmunused is 0x%x\n", pa);
 	root = UINT2PTR(machp()->MMU.root->va);
 #if 0
 	pa += sys->vmunmapped - sys->vmunused;
-print("sys->vmunapped 0x%lx sys->vmunused 0x%lx pa of unmapped - unused is 0x%lx\n", sys->vmunmapped, sys->vmunused, pa);
 	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, 1, 0);
 	if(mem != pa)
 		panic("asmmeminit 2");
