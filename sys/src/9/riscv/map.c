@@ -39,15 +39,11 @@ PADDR(void* va)
 {
 	uintmem pa;
 
-print("PADDR(%pa)\n", va);
 	pa = PTR2UINT(va);
-print("pa %p \n", pa);
 	if(pa >= KSEG0) {
-		print("KSEG0 range\n");
 		return (uintmem)(uint32_t)pa; //-KSEG0;
 	}
 	if(pa > (uintptr_t)kseg2) {
-		print("kseg2 range\n");
 		return pa-(uintptr_t)kseg2;
 	}
 
