@@ -312,7 +312,72 @@ confinit(void)
 	conf.nimage = 200;
 }
 
+/* check checks simple atomics and anything else that is critical to correct operation.
+ * You can make the prints optional on errors cases, not have it print all tests,
+ * but you should never remove check or the call to it. It found some nasty problems. */
+static void
+check(void)
+{
+	// cas test
+	uint32_t t = 0;
+	int fail = 0;
+	int _42 = 42;
+	int a = _42, b;
+	int x = cas32(&t, 0, 1);
 
+	print("cas32 done x %d (want 1) t %d (want 1)\n", x, t);
+	if ((t != 1) || (x != 1))
+		fail++;
+
+	x = cas32(&t, 0, 1);
+	print("cas32 done x %d (want 0) t %d (want 1)\n", x, t);
+	if ((t != 1) || (x != 0))
+		fail++;
+
+	print("t is now %d before final cas32\n", t);
+	x = cas32(&t, 1, 2);
+	print("cas32 done x %d (want 1) t %d (want 2)\n", x, t);
+	if ((t != 2) || (x != 1))
+		fail++;
+
+	t = 0;
+	x = tas32(&t);
+	print("tas done x %d (want 0) t %d (want 1)\n", x, t);
+	if ((t != 1) || (x != 0))
+		fail++;
+
+	x = tas32(&t);
+	print("tas done x %d (want 1) t %d (want 1)\n", x, t);
+	if ((t != 1) || (x != 1))
+		fail++;
+
+	t = 0;
+	x = tas32(&t);
+	print("tas done x %d (want ) t %d (want 1)\n", x, t);
+	if ((t != 1) || (x != 0))
+		fail++;
+
+	b = ainc(&a);
+	print("after ainc a is %d (want 43) b is %d (want 43)\n", a, b);
+	if ((b != _42 + 1) || (a != _42 + 1))
+		fail++;
+
+	b = ainc(&a);
+	print("after ainc a is %d (want 44) b is %d (want 44)\n", a, b);
+	if ((b != _42 + 2) || (a != _42 + 2))
+		fail++;
+
+	b = adec(&a);
+	print("after ainc a is %d (want 43) b is %d (want 43)\n", a, b);
+	if ((b != _42 + 1) || (a != _42 + 1))
+		fail++;
+
+	if (fail) {
+		print("%d failures in check();\n", fail);
+		panic("FIX ME");
+	}
+}
+	
 void bsp(void *stack, uintptr_t _configstring)
 {
 	kseg2 = findKSeg2();
@@ -346,7 +411,7 @@ void bsp(void *stack, uintptr_t _configstring)
 	msg("==============================================\n");
 	asminit();
 	msg(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n");
-	asmmapinit(0x81000000, 0x3f000000, 1); print("asmmapinit\n");
+	asmmapinit(0x81000000, 0x3f000000, 1);
 
 	msg(configstring);
 	/*
@@ -456,6 +521,8 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 
 	dumpmmuwalk(0xfffffffffffff000ULL);
 
+	check();
+
 	print("schedinit...\n");
 
 	schedinit();
@@ -526,7 +593,8 @@ void fpunotify(Ureg*_)
 
 void fpusysrfork(Ureg*_)
 {
-	panic((char *)__func__);
+	print((char *)__func__);
+	print("IGNORING\n");
 }
 
 void
