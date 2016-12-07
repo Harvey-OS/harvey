@@ -196,7 +196,7 @@ queuedescr(Virtq *q, int n, uint16_t *descr)
 {
 	Proc *up = externup();
 	int head = descr[0];
-	uint16_t mask = q->vr.num - 1;				// q->num is power of 2 so mask has all bits set
+	uint16_t mask = q->vr.num - 1;			// q->num is power of 2 so mask has all bits set
 	Rock rock;								// the sleep-wakeup semaphore on the process stack
 	rock.done = 0;
 	rock.sleep = &up->sleep;
