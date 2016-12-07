@@ -41,11 +41,9 @@ char* strdup(char *s);
 
 #define BUFSZ (8192 + IOHDRSZ)
 
-// Shared with devmnt
+// Raise this error when any of the non-implemented functions is called.
 
-extern char Enoversion[];
-extern int alloctag(void);
-extern void freetag(int t);
+#define Edonotcall(f) "Function " #f " should not be called for this device"
 
 extern Dev v9pdevtab;
 
@@ -55,12 +53,84 @@ static uint32_t nv9p;
 
 static Vqctl **v9ps;
 
+// Flag of one-time initailzation
+
+static int initdone;
+
+// A structure to hold a pair of buffer references. Virtio-9p requires buffers to be submitted
+// in pairs for request and response at once. We expect that devmnt issues a write request first, and then
+// read request. Write request will return immediately, but the buffer will be only held until read request
+// comes. Then both buffers are sent to virtqueue, and the result is returned to the caller.
+
+struct holdbuf
+{
+	void *rdbuf;				// read buffer (response)
+	int32_t rdlen;				// read length (allocated)
+	int32_t rfree;				// if true then read buffer was malloc'd and needs to be freed
+	void *wrbuf;				// write buffer (request)
+	int32_t wrlen;				// write length (supplied)
+	int32_t wfree;				// if true then write buffer was malloc'd and needs to be freed
+	Proc *proc;					// holding process
+	int descr;					// virtqueue descriptor index for the request
+};
+
+// PID cache structure. We need a way to find the currently held buffer by a calling process fast.
+// We use the last 4 bits of PID for that as a hash. So we can have up to 16 processes hashed.
+// If lookup fails, linear search will be used. The cache is a simple LRU: newly entering process
+// overwrites the cache entry.
+
+#define PIDCSIZE 16
+#define PIDCMASK 0x0F
+
+struct pidcache
+{
+	int pid;					// actual PID
+	struct holdbuf *hb;			// hold buffer structure pointer
+};
+
+// Per-mount (virtqueue) structure. It holds an array of hold buffer structures of the same
+// length as the number of descriptors in the queue.
+
 static struct v9pmnt
 {
-	char *tag;
-	char *version;
-	uint32_t msize;
+	char *tag;					// mount tag (from host)
+	char *version;				// 9p version (from host)
+	uint32_t msize;				// message size (need this to pad short buffers otherwise QEMU errors out)
+	Virtq *vq;					// associated virtqueue
+	struct holdbuf *hbufs;		// hold buffers
+	struct pidcache pidch[PIDCSIZE];	// PID cache
+	Lock pclock;				// PID cache lock
+	int pcuse;					// cache usage counter (entering processes)
+	int pchit;					// cache hits counter
+	int pcmiss;					// cache misses counter
 } *mounts;
+
+// Find a hold buffer structure by PID. Nil is returned if no process found.
+// First lookup in the cache, then linearly over the whole array.
+
+static struct holdbuf *
+hbbypid(int tidx, int pid)
+{
+	struct holdbuf *ret = nil;
+	lock(&mounts[tidx].pclock);
+	if(mounts[tidx].pidch[pid & PIDCMASK].pid == pid) {
+		ret = mounts[tidx].pidch[pid & PIDCMASK].hb;
+		if(ret->proc->pid == pid) {	// != is unlikely mb corruption but we have to get around
+			mounts[tidx].pchit++;
+			unlock(&mounts[tidx].pclock);
+			return ret;
+		}
+	}
+	unlock(&mounts[tidx].pclock);
+	mounts[tidx].pcmiss++;
+	for(int i = 0; i < PIDCSIZE; i++) {
+		if(mounts[tidx].hbufs[i].proc->pid == pid) {
+			ret = &mounts[tidx].hbufs[i];
+			return ret;
+		}
+	}
+	return nil;
+}
 
 // Find a mount tag index, return -1 if none found.
 
@@ -72,7 +142,63 @@ findtag(char *tag)
 		if(mounts[i].tag && (!strcmp(mounts[i].tag, tag)))
 			return i;
 	}
+print("tag not found: %s\n", tag);
 	return -1;
+}
+
+// Emulate bindmount for each mount tag. We attach to devmnt directly, without
+// the user calling mount. The logic of devmnt properly sequences write and read
+// requests, but this cannot be expected from any other client. So 9p virtqueues
+// are not generally accessible, they operate under the hood.
+
+static void
+domountvq(int tidx)
+{
+	Proc *up = externup();
+	struct {
+		Chan    *chan;
+		Chan    *authchan;
+		char    *spec;
+		int     flags;
+	} bogus;
+	int dc = 'M';
+	Dev *dev = devtabget(dc, 0);
+	if(dev == nil)
+		error("no #M device found");
+	bogus.spec = mounts[tidx].tag;
+	bogus.flags = MCACHE;
+	bogus.authchan = nil;
+	bogus.chan = newchan();
+	bogus.chan->dev = &v9pdevtab;
+	bogus.chan->path = newpath(bogus.spec);
+	Chan *c0 = dev->attach((char *)&bogus);
+print("1\n");
+	if(waserror()) {
+		cclose(c0);
+		nexterror();
+	}
+print("2\n");
+	Chan *c1 = namec(strdup("#9"), Amount, 0, 0);
+print("3\n");
+	if(waserror()) {
+		cclose(c1);
+		nexterror();
+	}
+print("4\n");
+	cmount(&c0, c1, MBEFORE, bogus.spec); 
+print("5\n");
+}
+
+static void 
+mntvq(void)
+{
+	if(initdone)
+		return;
+	initdone = 1;
+	for(int i = 0; i < nv9p; i++) {
+		print("auto mount %d\n", i);
+		domountvq(i);
+	}
 }
 
 static void
@@ -108,8 +234,11 @@ v9pinit(void)
 		mounts[i].tag = mallocz(vcfg.tag_len + 1, 1);
 		readvdevcfg(v9ps[i], mounts[i].tag, vcfg.tag_len, rc);
 		print("tag %s\n", mounts[i].tag);
+		mounts[i].vq = v9ps[i]->vqs[0];
+		mounts[i].hbufs = mallocz(mounts[i].vq->vr.num, 1);
 		finalinitvdev(v9ps[i]);
 	}
+	initdone = 0;
 }
 
 // General virtio request. It takes 2 buffers, one for input and other for output.
@@ -118,15 +247,14 @@ v9pinit(void)
 // indirect mode because this is the only way that work properly with QEMU 9p.
 
 static int32_t
-do_request(int tidx, void *inbuf, int32_t inlen, void *outbuf, int32_t outlen)
+do_request(int gdescr, int tidx, void *inbuf, int32_t inlen, void *outbuf, int32_t outlen)
 {
 	uint16_t descr[1];
 	Virtq *vq = v9ps[tidx]->vqs[0];
-	int rc = getdescr(vq, 1, descr);
-	if(rc < 1) {
-		error("Insufficient number of descriptors in virtqueue");
-		return -1;
+	if(vq == nil) {
+		error("No virtqueue (nil address)");
 	}
+	descr[0] = gdescr;
 	struct vring_desc req[2] = {
 		{
 			.addr = PADDR(outbuf),
@@ -150,113 +278,167 @@ do_request(int tidx, void *inbuf, int32_t inlen, void *outbuf, int32_t outlen)
 	return 0;
 }
 
-typedef int64_t(*post_t)(Fcall *, int, void *);
+// We expect only 9p messages be written, and only for a non-empty chan path (mount tag).
+// Some messages need massaging (like Tversion because QEMU does not support vanilla 9P2000
+// and we have to cheat here about the protocol version). In such case some additional logic
+// applies based on the extracted message type.
 
-// Common code to send/receive a fcall. It takes a post-processing function
-// to evaluate the return from fcall. This code takes care of buffer allocation,
-// message conversion, checks for Rerror result and errors out automatically,
-// checks for the result code matching the request code (request + 1), and errors out if not matching,
-// then passes control to the post processing function, finally releases all the buffers
-// it allocated.
-
-static int64_t
-do_fcall(Fcall *pf, int tidx, int32_t msize, void *data, post_t post)
+static int32_t
+v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	uint8_t *msg, *rsp;
-	usize k;
-	uint8_t rtype = pf->type;
-	msg = mallocz(msize, 1);
-	rsp = mallocz(msize, 1);
-	if(msg == nil || rsp == nil)
-		exhausted("do_fcall buffer memory");
-	k = convS2M(pf, msg, msize);
-	if(k == 0) {
-		free(msg);
-		free(rsp);
-		error("do_fcall bad conversion on send");
+print("write %s %d\n", chanpath(c), n);
+	Proc *up = externup();
+	int tidx = findtag(chanpath(c));
+	if(tidx < 0 || tidx >= nv9p)
+		error(Enonexist);
+	uint8_t *msg = va;
+	int mtype = GBIT8(msg + 4);
+	void *nva;
+	int lnva;
+	int alloc;
+print("write type %d\n", mtype);
+	switch(mtype)
+	{
+	case Tversion:
+			alloc = 1;
+			Fcall f = {
+				.type = mtype,
+				.tag = GBIT16(msg + 5),
+				.msize = GBIT32(msg + 7),
+				.version = VERSION9PU
+			};
+			lnva = IOHDRSZ + strlen(f.version) + 20;
+			nva = mallocz(lnva, 1);
+			convS2M(&f, nva, lnva);
+		break;
+	default:
+		if(n >= mounts[tidx].msize) {
+			nva = va;
+			lnva = n;
+			alloc = 0;
+		} else {
+			lnva = mounts[tidx].msize;
+			nva = mallocz(lnva, 1);
+			alloc = 1;
+			memmove(nva, va, n);
+		}
 	}
-	int rc = do_request(tidx, rsp, msize, msg, msize);
-	free(msg);
-	if(rc < 0) {
-		free(rsp);
-		error("do_fcall virtio request error");
+	uint16_t descr[1];
+	struct v9pmnt *pm = mounts + tidx;
+	int rc = getdescr(pm->vq, 1, descr);
+	if(rc < 1) {
+		if(alloc)
+			free(nva);
+		error("not enough virtqueue descriptors");
 	}
-	k = convM2S(rsp, msize, pf);
-	if(pf->type != rtype + 1) {
-		free(rsp);
-		error((pf->type == Rerror)?pf->ename:"do_fcall inconsistent return type");
-	}
-	int64_t rc2 = (*post)(pf, tidx, data);
-	free(rsp);
-	return rc2;
+	lock(&pm->pclock);
+	pm->hbufs[descr[0]].descr = descr[0];
+	pm->hbufs[descr[0]].proc = up;
+	pm->hbufs[descr[0]].wfree = alloc;
+	pm->hbufs[descr[0]].wrbuf = nva;
+	pm->hbufs[descr[0]].wrlen = lnva;
+	pm->hbufs[descr[0]].rdbuf = nil;
+	pm->hbufs[descr[0]].rdlen = 0;
+	pm->hbufs[descr[0]].rfree = 0;
+	pm->pidch[up->pid & PIDCMASK].hb = &pm->hbufs[descr[0]];
+	pm->pidch[up->pid & PIDCMASK].pid = up->pid;
+	unlock(&pm->pclock);
+	return n;
 }
 
-// Send a version message over the given virtqueue.
+// We expect only 9p messages be received, and only for a non-empty chan path (mount tag).
+// Some messages need massaging (like Rversion because QEMU does not support vanilla 9P2000
+// and we have to cheat here about the protocol version). In such case some additional logic
+// applies based on the extracted message type. The function checks for a held write buffer,
+// absence of such is an error. The length returned may length extracted from the first
+// 4 bytes of the message in some cases.
 
-static int64_t
-post_version(Fcall *pf, int tidx, void *data)
+static int32_t
+v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	if(pf->msize > MAXRPC) {
-		error("server tries to increase msize in fversion");
-		return -1;
+print("read %s %d\n", chanpath(c), n);
+	Proc *up = externup();
+	int tidx = findtag(chanpath(c));
+	if(tidx < 0 || tidx >= nv9p)
+		error(Enonexist);
+	struct holdbuf *hb = hbbypid(tidx, up->pid);
+	if(hb == nil)
+		error("read request without previously held write request");
+	hb->rdbuf = va;
+	hb->rdlen = n;
+	do_request(hb->descr, tidx, hb->rdbuf, hb->rdlen, hb->wrbuf, hb->wrlen);
+	if(hb->wfree)
+		free(hb->wrbuf);
+	uint8_t *msg = va;
+	int mtype = GBIT8(msg + 4);
+print("read type %d\n", mtype);
+	uint32_t mlen = GBIT32(msg);
+	Fcall f;
+	switch(mtype)
+	{
+	case Rerror:
+		convM2S(msg, n, &f);
+		error(f.ename);
+		break;
+	case Rversion:
+		convM2S(msg, n, &f);
+		mounts[tidx].version = strdup(f.version);
+		mounts[tidx].msize = f.msize;
+		f.version = VERSION9P;
+		convS2M(&f, va, n);
+		mlen = GBIT32(msg);
+		break;
+	default:
+		;
 	}
-	if(pf->msize<256 || pf->msize>1024*1024) {
-		error("nonsense value of msize in fversion");
-		return -1;
-	}
-	mounts[tidx].msize = pf->msize;
-	mounts[tidx].version = strdup(pf->version);
-	return 0;
+	return mlen;
 }
 
 static int
 v9pversion(int tidx)
 {
-	Fcall f = {
-		.type = Tversion,
-		.tag = NOTAG,
-		.msize = MAXRPC,
-		.version = VERSION9PU
-	};
-	return do_fcall(&f, tidx, BUFSZ, nil, post_version);
-}
-
-static int64_t
-post_attach(Fcall *pf, int tidx, Chan *ch)
-{
-	ch->qid = pf->qid;
+	error(Edonotcall(version));
 	return 0;
 }
+
+// First attach of #9 will force mounting of all defined tags with devmnt. It cannot be done in devinit
+// because error() called in a kernel process without user context causes double fault and kernel crash.
+// So, to have the host shares actually mounted one has to issue something like ls '#9'.
 
 static Chan*
 v9pattach(char *spec)
 {
-print("v9pattach %s\n", spec);
-	int tidx = findtag(spec);
-	if(tidx < 0) {
-		error(Enonexist);
-		return nil;
-	}
-	if(!mounts[tidx].version) {
-		int rc = v9pversion(tidx);
-		if(rc < 0) {
-			error(Enoversion);
-			return nil;
-		}
-	}
-	Chan *ch = devattach(v9pdevtab.dc, mounts[tidx].tag);
-	Fcall r = {
-		.type = Tattach,
-		.tag = alloctag(),
-		.fid = ch->fid,
-		.afid = NOFID,
-		.uname = "",
-		.aname = ""
-	};
-	do_fcall(&r, tidx, mounts[tidx].msize, (void *)ch, (post_t)post_attach);
-	return ch;
+	mntvq();
+	error(Edonotcall(attach));
+	return nil;
 }
 
+static Chan*
+v9popen(Chan *c, int omode)
+{
+	error(Edonotcall(open));
+	return nil;
+}
+
+static Walkqid*
+v9pwalk(Chan* c, Chan *nc, char** name, int nname)
+{
+	error(Edonotcall(walk));
+	return nil;
+}
+
+static int32_t
+v9pstat(Chan* c, uint8_t* dp, int32_t n)
+{
+	error(Edonotcall(stat));
+	return 0;
+}
+
+static void
+v9pclose(Chan* c)
+{
+	error(Edonotcall(close));
+}
 
 Dev v9pdevtab = {
 	.dc = '9',
@@ -266,14 +448,14 @@ Dev v9pdevtab = {
 	.init = v9pinit,
 	.shutdown = devshutdown,
 	.attach = v9pattach,
-//	.walk = v9pwalk,
-//	.stat = v9pstat,
-//	.open = v9popen,
+	.walk = v9pwalk,
+	.stat = v9pstat,
+	.open = v9popen,
 	.create = devcreate,
-//	.close = v9pclose,
-//	.read = v9pread,
+	.close = v9pclose,
+	.read = v9pread,
 	.bread = devbread,
-//	.write = v9pwrite,
+	.write = v9pwrite,
 	.bwrite = devbwrite,
 	.remove = devremove,
 	.wstat = devwstat,
