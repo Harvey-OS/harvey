@@ -1,4 +1,4 @@
-CMD_DEPS = [
+CMD_DEPS=[
     "//sys/src/libavl:libavl",
     "//sys/src/libcomplete:libcomplete",
     "//sys/src/libcontrol:libcontrol",
@@ -32,12 +32,12 @@ CMD_DEPS = [
     "//sys/src/libc:libc",
 ]
 
-CMD_LINK_OPTS = [
+CMD_LINK_OPTS=[
     "-static",
     "-e_main",
 ]
 
-KLIB_COMPILER_FLAGS = [
+KLIB_COMPILER_FLAGS=[
 	"-mcmodel=kernel",
 	"-O0",
 	"-mno-red-zone",
@@ -51,7 +51,7 @@ KLIB_COMPILER_FLAGS = [
 	"-g",
 ]
 
-LIB_COMPILER_FLAGS = [
+LIB_COMPILER_FLAGS=[
     "-std=c11",
     "-fasm",
     "-c",
