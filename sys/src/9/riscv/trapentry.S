@@ -193,7 +193,7 @@ user_ret_from_exception:
 #define siebitno 1
 	// splhi
 	li	a0, siebitno
-	csrrc	a0, sstatus, a0
+	csrrs	a0, sstatus, a0
 	/* Put Mach pointer in sscratch in for user mode. */
 	csrw sscratch, tp
 user_restore_all:

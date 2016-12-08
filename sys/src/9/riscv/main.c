@@ -511,13 +511,13 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	//alloc_cpu_buffers();
 
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
-	// enable all interrupt sources.
-	uint64_t ints = read_csr(sie);
-	ints |= 0x222;
-	write_csr(sie, ints);
 	// set the trap vector
 	void *supervisor_trap_entry(void);
 	write_csr(/*stvec*/0x105, supervisor_trap_entry);
+	// enable all interrupt sources.
+	uint64_t ints = read_csr(sie);
+	ints |= 0x666;
+	write_csr(sie, ints);
 
 	dumpmmuwalk(0xfffffffffffff000ULL);
 

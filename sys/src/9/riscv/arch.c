@@ -20,6 +20,7 @@
 #include "fns.h"
 #include "../port/error.h"
 #include "ureg.h"
+#include "encoding.h"
 
 /* the rules are different for different compilers. We need to define up. */
 // Initialize it to force it into data.
@@ -131,8 +132,20 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-/*	if(machp()->NIX.nixtype != NIXAC)
-	halt();*/
+	uint32_t sip;
+	int i;
+	print("idlehands\n");
+	print("spin waiting for an interrupt. Only spin 1000000 times\n");
+	/* toolchain is broken. Again. Puts an sret in for a wfi. Bad idea.
+	if(machp()->NIX.nixtype != NIXAC)
+		__asm__ __volatile__("wfi\n");
+	 */
+	for(i = 0; i < 1000; i++) {
+		sip = (uint32_t)read_csr(sie);
+		if (sip & 0x666)
+			break;
+	}
+	print("Leaving idlehands. sip is 0x%x, i is %d\n", sip, i);
 }
 
 #if 0

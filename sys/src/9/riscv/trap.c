@@ -443,6 +443,7 @@ trap(Ureg *ureg)
 	int clockintr, vno, user, interrupt;
 	// cache the previous vno to see what might be causing
 	// trouble
+	print("T");
 	vno = ureg->cause & ~InterruptMask;
 	interrupt = ureg->cause & InterruptMask;
 	Mach *m =machp();
@@ -466,12 +467,14 @@ trap(Ureg *ureg)
 	clockintr = interrupt && vno == SupervisorTimer;
 	print("clockintr %d\n", clockintr);
 
+	if (clockintr) panic("clockintr finallyi set");
 	//_pmcupdate(machp());
 
 	if (!interrupt){
 		print("trap_handler\n");
 		trap_handler(ureg);
 	} else {
+panic("real interrupt!");
 
 	if(ctl = vctl[vno]){
 		panic("we don't know what to do with this interrupt yet");

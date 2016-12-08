@@ -562,7 +562,8 @@ timerset(uint64_t x)
 	cycles(&now);
 	// who knows. This is claimed to be a 10 mhz.
 	// clock. So let's have it interrupt at 10 hz.
-	*mtimecmp = now + 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
+	print("timerset to %d\n", now + 1000);
+	*mtimecmp = now + 1000; //10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
 }
 
 void
