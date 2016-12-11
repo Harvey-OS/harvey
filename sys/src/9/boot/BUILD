@@ -1,10 +1,5 @@
 load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
-
-ARCHS = [
-	"amd64",
-	"riscv",
-	"aarch64",
-]
+load("//sys/src/ARCHS", "ARCHS")
 
 [mk_sys(
 	name="boot%scpuc" % arch,
