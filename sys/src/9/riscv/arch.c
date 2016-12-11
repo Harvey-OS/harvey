@@ -132,20 +132,26 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-	uint32_t sip;
+	uint32_t sip = 0;
 	int i;
-	print("idlehands\n");
-	print("spin waiting for an interrupt. Only spin 1000000 times\n");
+	extern uint64_t *mtimecmp;
+	extern uint64_t *mtime;
+	//print("idlehands, mtime is 0x%llx mtimecmp is 0x%llx\n", *mtime, *mtimecmp);
+	//print("spin waiting for an interrupt or until mtimecmp passes mtime. \n");
 	/* toolchain is broken. Again. Puts an sret in for a wfi. Bad idea.
 	if(machp()->NIX.nixtype != NIXAC)
 		__asm__ __volatile__("wfi\n");
 	 */
-	for(i = 0; i < 1000; i++) {
-		sip = (uint32_t)read_csr(sie);
+	if (*mtimecmp < *mtime)
+		timerset(0);
+	sip = (uint32_t)read_csr(sip);
+	for(i = 0; *mtimecmp < *mtime; i++) {
 		if (sip & 0x666)
 			break;
+		sip = (uint32_t)read_csr(sip);
 	}
-	print("Leaving idlehands. sip is 0x%x, i is %d\n", sip, i);
+	//print("idlehands, mtime is 0x%llx mtimecmp is 0x%llx\n", *mtime, *mtimecmp);
+	//print("Leaving idlehands. sip is 0x%x, i is %d\n", sip, i);
 }
 
 #if 0

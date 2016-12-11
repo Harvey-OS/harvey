@@ -65,8 +65,8 @@ uintptr_t rtc;
 uint32_t kerndate;
 int maxcores = 1;
 int nosmp = 1;
-uint64_t mtimecmppa;
-uint64_t *mtimecmp;
+uint64_t mtimepa, mtimecmppa;
+uint64_t *mtime, *mtimecmp;
 /*
  * kseg2 is the base of the virtual address space.
  * it is not a constant as in amd64; in riscv there are many possible
@@ -94,6 +94,7 @@ rdtsc(void)
 	uint64_t cycles;
 //	msg("rdtsc\n");
 	cycles = read_csr(/*s*/cycle);
+print("cycles in rdtsc is 0x%llx\n", cycles);
 //	msg("done rdts\n");
 	return cycles;
 }
@@ -318,6 +319,7 @@ confinit(void)
 static void
 check(void)
 {
+	uint64_t f2ns;
 	// cas test
 	uint32_t t = 0;
 	int fail = 0;
@@ -376,6 +378,13 @@ check(void)
 		print("%d failures in check();\n", fail);
 		panic("FIX ME");
 	}
+
+	f2ns = fastticks2ns(10);
+	if ((f2ns < 1) || (f2ns > 10)) {
+		print("fastticks2ns(1) is nuts: %d\n", f2ns);
+		panic("Should be in the range 1 to 10, realistically");
+	}
+		
 }
 	
 void bsp(void *stack, uintptr_t _configstring)
@@ -475,10 +484,12 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	query_rtc(configstring, &rtc);
 	print("rtc: %p\n", rtc);
 
+	query_uint(configstring, "rtc{addr", (uintptr_t*)&mtimepa);
+	mtime = KADDR(mtimepa);
 	query_uint(configstring, "core{0{0{timecmp", (uintptr_t*)&mtimecmppa);
 	mtimecmp = KADDR(mtimecmppa);
 
-	print("mtimecmp is %p\n", mtimecmp);
+	print("mtime is %p and mtimecmp is %p\n", mtime, mtimecmp);
 	umeminit();
 
 	procinit0();
@@ -549,7 +560,8 @@ void errstr(char *s, int i) {
 void
 oprof_alarm_handler(Ureg *u)
 {
-	panic((char *)__func__);
+	print((char *)__func__);
+	print("IGNORING\n");
 }
 
 void

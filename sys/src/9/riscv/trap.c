@@ -21,6 +21,30 @@
 #include	"io.h"
 #include        "encoding.h"
 
+enum traps {
+	InstructionAlignment = 0,
+	InstructionAccessFault,
+	IllegalInstruction,
+	Breakpoint,
+	Trap4Reserved,
+	LoadAccessFault,
+	AMOAddressMisaligned,
+	Store_AMOAccessFault,
+	EnvironmentCall,
+	LastTrap = EnvironmentCall,
+	InterruptMask = 0x8000000000000000ULL
+};
+
+enum interrupts {
+	UserSoftware,
+	SupervisorSoftware,
+	Interrupt2Reserved,
+	Interrupt3eserved,
+	UserTimer,	
+	SupervisorTimer,
+	LastInterrupt = SupervisorTimer
+};
+
 void msg(char *);
 // counters. Set by assembly code.
 // interrupt enter and exit, systecm call enter and exit.
@@ -57,6 +81,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#x for %s\n",
 			irq, tbdf, name);
+		panic("FIX ME");
 		return nil;
 	}
 
@@ -70,21 +95,23 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	v->name[KNAMELEN-1] = 0;
 
 	ilock(&vctllock);
-	panic("bus_irq_setup");
+	print(" ignoring bus_irq_setup");
 	//vno = bus_irq_setup(v);
-	vno = -1;
+	vno = irq;
 	if(vno == -1){
 		iunlock(&vctllock);
 		print("intrenable: couldn't enable irq %d, tbdf %#x for %s\n",
 			irq, tbdf, v->name);
+		panic("DIE");
 		free(v);
 		return nil;
 	}
 	if(vctl[vno]){
 		if(vctl[v->vno]->isr != v->isr || vctl[v->vno]->eoi != v->eoi)
-			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
+			print("intrenable: handler: %s %s %#p %#p %#p %#p",
 				vctl[v->vno]->name, v->name,
 				vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
+		panic("CONFLICT");
 	}
 	v->vno = vno;
 	v->next = vctl[vno];
@@ -143,17 +170,24 @@ static void print_trap_information(const Ureg *ureg)
 
 void trap_handler(Ureg *ureg) {
 	switch(ureg->cause) {
+		case 5 | InterruptMask:
+			timerintr(ureg, 0);
+			return;
+			break;
 		case CAUSE_MISALIGNED_FETCH:
 			print_trap_information(ureg);
 			panic("misaligned fetch, firmware is supposed to do this");
+			return;
 			break;
 		case CAUSE_ILLEGAL_INSTRUCTION:
 			print_trap_information(ureg);
 			panic("illegal instruction, going to die");
+			return;
 			break;
 		case CAUSE_BREAKPOINT:
 			print_trap_information(ureg);
 			panic("can't handle breakpoints yet\n");
+			return;
 			break;
 		case CAUSE_FAULT_FETCH:
 		case CAUSE_FAULT_LOAD:
@@ -163,25 +197,30 @@ void trap_handler(Ureg *ureg) {
 	hexdump((void *)ureg->ip, 16);
 	hexdump((void *)ureg->epc, 16);
 	hexdump((void *)ureg->badaddr, 16);
+			return;
 			break;
 		case CAUSE_USER_ECALL:
 		case CAUSE_HYPERVISOR_ECALL:
 		case CAUSE_MACHINE_ECALL:
 			print_trap_information(ureg);
 			panic("Can't do ecalls here");
+			return;
 			break;
 		case CAUSE_MISALIGNED_LOAD:
 			print("hgroup 2\n");
 			print_trap_information(ureg);
 			panic("misaligned LOAD, we don't do these");
+			return;
 			break;
 		case CAUSE_MISALIGNED_STORE:
 			print_trap_information(ureg);
 			panic("misaligned STORE, we don't do these");
+			return;
 			break;
 		default:
 			print_trap_information(ureg);
 			panic("WTF\n");
+			return;
 			break;
 	}
 }
@@ -275,11 +314,17 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	vctl[vno] = v;
 	iunlock(&vctllock);
 }
-
+#if 0
 static void
 nmienable(void)
 {
 	panic("nmienable");
+}
+#endif
+
+static void riscvtimer(struct Ureg *u, void *_)
+{
+	timerintr(u, 0);
 }
 
 void
@@ -287,6 +332,7 @@ trapinit(void)
 {
 	// basically done in firmware. 
 	addarchfile("irqalloc", 0444, irqallocread, nil);
+	intrenable(5, riscvtimer, nil, 0, "timer");
 }
 
 /*
@@ -375,30 +421,6 @@ kstackok(void)
 	}
 }
 
-enum traps {
-	InstructionAlignment = 0,
-	InstructionAccessFault,
-	IllegalInstruction,
-	Breakpoint,
-	Trap4Reserved,
-	LoadAccessFault,
-	AMOAddressMisaligned,
-	Store_AMOAccessFault,
-	EnvironmentCall,
-	LastTrap = EnvironmentCall,
-	InterruptMask = 0x8000000000000000ULL
-};
-
-enum interrupts {
-	UserSoftware,
-	SupervisorSoftware,
-	Interrupt2Reserved,
-	Interrupt3eserved,
-	UserTimer,	
-	SupervisorTimer,
-	LastInterrupt = SupervisorTimer
-};
-
 void
 _trap(Ureg *ureg)
 {
@@ -443,9 +465,9 @@ trap(Ureg *ureg)
 	int clockintr, vno, user, interrupt;
 	// cache the previous vno to see what might be causing
 	// trouble
-	print("T");
 	vno = ureg->cause & ~InterruptMask;
-	interrupt = ureg->cause & InterruptMask;
+	interrupt = !! (ureg->cause & InterruptMask);
+	print("T 0x%llx", ureg->cause);
 	Mach *m =machp();
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
@@ -467,21 +489,19 @@ trap(Ureg *ureg)
 	clockintr = interrupt && vno == SupervisorTimer;
 	print("clockintr %d\n", clockintr);
 
-	if (clockintr) panic("clockintr finallyi set");
 	//_pmcupdate(machp());
 
 	if (!interrupt){
 		print("trap_handler\n");
 		trap_handler(ureg);
 	} else {
-panic("real interrupt!");
+	write_csr(sip, 0);
 
+	print("check vno %d\n", vno);
 	if(ctl = vctl[vno]){
-		panic("we don't know what to do with this interrupt yet");
 		if(ctl->isintr){
 			machp()->intr++;
-			if(vno >= VectorPIC && vno != VectorSYSCALL)
-				machp()->lastintr = ctl->Vkey.irq;
+			machp()->lastintr = ctl->Vkey.irq;
 		}else
 			if(up)
 				up->nqtrap++;
@@ -503,22 +523,19 @@ panic("real interrupt!");
 
 		intrtime(vno);
 		if(ctl->isintr){
-			if(ctl->Vkey.irq == IrqCLOCK || ctl->Vkey.irq == IrqTIMER)
-				clockintr = 1;
-
-			if (ctl->Vkey.irq == IrqTIMER)
+			if (clockintr)
 				oprof_alarm_handler(ureg);
 
 			if(up && !clockintr)
 				preempted();
 		}
 	} else if(vno < nelem(excname) && user){
-print("OOR\n");
+panic("OOR\n");
 		spllo();
 		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);
 	} else if ((interrupt && vno > LastInterrupt) || (vno > LastTrap)) {
-print("UNK\n");
+panic("UNK\n");
 		/*
 		 * An unknown interrupt.
 		 */
@@ -530,7 +547,7 @@ print("UNK\n");
 			kexit(ureg);
 		return;
 	} else {
-print("wut\n");
+#if 0
 		if(vno == VectorNMI){
 			nmienable();
 			if(machp()->machno != 0){
@@ -539,6 +556,7 @@ print("wut\n");
 				for(;;);
 			}
 		}
+#endif
 		dumpregs(ureg);
 		if(!user){
 			ureg->sp = PTR2UINT(&ureg->sp);
@@ -572,6 +590,7 @@ print("DUN\n");
 	if(user){
 		if(up && up->procctl || up->nnote)
 			notify(ureg);
+		print("K");
 		kexit(ureg);
 	}
 print("ALL DONE TRAP\n");
@@ -635,8 +654,6 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-panic("dumpregs");
-
 	dumpgpr(ureg);
 }
 
