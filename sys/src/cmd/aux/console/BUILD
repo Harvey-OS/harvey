@@ -4,7 +4,7 @@ harvey_binary(
     name="consoles",
     includes=[
         "//sys/include",
-        "//amd64/include",
+        "//${ARCH}/include",
     ],
     deps=[
         "comconsole",
@@ -47,7 +47,7 @@ harvey_binary(
 		"//sys/src/libc:libc",
 	],
 	srcs=[
-        		"buffer.c",
+		"buffer.c",
 		"cga.c",
 		"screenconsole.c",
 		"keyboard.c",
