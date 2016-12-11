@@ -51,7 +51,7 @@ cc_library(
 		"boot.c",
 		"bootcache.c",
 		"bootip.c",
-	fmt("boot%scpu.c", env("ARCH")),
+		fmt("boot%scpu.c", env("ARCH")),
 		"bootrc.c",
 		"embed.c",
 		"local.c",
