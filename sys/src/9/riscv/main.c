@@ -17,6 +17,7 @@
 #include "io.h"
 #include "encoding.h"
 #include "ureg.h"
+#include <tos.h>
 
 extern void (*consuartputs)(char*, int);
 void query_mem(const char *config_string, uintptr_t *base, size_t *size);
@@ -167,6 +168,7 @@ print("1\n");
 	memset(&u, 0, sizeof(u));
 	u.ip = (uintptr_t)init_main;
 	u.sp = sp;
+	u.a2 = USTKTOP-sizeof(Tos);
 	touser(&u);
 }
 

@@ -722,7 +722,7 @@ loop:
 	 */
 	spllo();
 	for(i = 0;; i++){
-msg("find\n");
+//msg("find\n");
 		/*
 		 *  find the highest priority target process that this
 		 *  processor can run given affinity constraints.

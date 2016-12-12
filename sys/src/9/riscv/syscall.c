@@ -462,6 +462,7 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
 	ureg->epc = entry;
+	ureg->a2 = USTKTOP-sizeof(Tos);
 	print("SET ip @ %p to %p\n", &ureg->ip, entry);
 
 	/*
