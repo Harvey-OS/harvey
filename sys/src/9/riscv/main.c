@@ -384,6 +384,12 @@ check(void)
 		print("fastticks2ns(1) is nuts: %d\n", f2ns);
 		panic("Should be in the range 1 to 10, realistically");
 	}
+
+	f2ns = ns2fastticks(1);
+	if ((f2ns < 2) || (f2ns > 100)) {
+		print("ns2fastticks(1) is nuts: %d\n", f2ns);
+		panic("Should be in the range 2 to 100, realistically");
+	}
 		
 }
 	

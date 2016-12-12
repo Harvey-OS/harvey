@@ -170,10 +170,6 @@ static void print_trap_information(const Ureg *ureg)
 
 void trap_handler(Ureg *ureg) {
 	switch(ureg->cause) {
-		case 5 | InterruptMask:
-			timerintr(ureg, 0);
-			return;
-			break;
 		case CAUSE_MISALIGNED_FETCH:
 			print_trap_information(ureg);
 			panic("misaligned fetch, firmware is supposed to do this");
@@ -512,6 +508,7 @@ trap(Ureg *ureg)
 		}
 		for(v = ctl; v != nil; v = v->next){
 			if(v->f){
+				print("F");
 				v->f(ureg, v->a);
 				if(islo())print("trap %d: ctlf %p enabled interrupts\n", vno, v->f);
 			}
