@@ -189,6 +189,8 @@ static inline uint64_t get_uint(query_result res)
 	return v;
 }
 
+/* this will be needed, but just not yet.*/
+#if 0
 static inline int64_t get_sint(query_result res)
 {
 	int64_t v;
@@ -202,6 +204,8 @@ static inline int64_t get_sint(query_result res)
 	free(name);
 	return v;
 }
+#endif
+
 void query_mem(const char *config_string, uintptr_t *base, size_t *size)
 {
 	*base = 0;
