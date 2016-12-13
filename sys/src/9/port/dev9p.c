@@ -154,7 +154,6 @@ print("tag not found: %s\n", tag);
 static void
 domountvq(int tidx)
 {
-	Proc *up = externup();
 	struct {
 		Chan    *chan;
 		Chan    *authchan;
@@ -172,21 +171,8 @@ domountvq(int tidx)
 	bogus.chan->dev = &v9pdevtab;
 	bogus.chan->path = newpath(bogus.spec);
 	Chan *c0 = dev->attach((char *)&bogus);
-print("1\n");
-	if(waserror()) {
-		cclose(c0);
-		nexterror();
-	}
-print("2\n");
-	Chan *c1 = namec(strdup("#9"), Amount, 0, 0);
-print("3\n");
-	if(waserror()) {
-		cclose(c1);
-		nexterror();
-	}
-print("4\n");
-	cmount(&c0, c1, MBEFORE, bogus.spec); 
-print("5\n");
+	Chan *c1 = namec(strdup("/mnt/xxx"), Amount, 0, 0);
+	cmount(&c0, c1, MAFTER, bogus.spec); 
 }
 
 static void 
@@ -286,7 +272,6 @@ do_request(int gdescr, int tidx, void *inbuf, int32_t inlen, void *outbuf, int32
 static int32_t
 v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-print("write %s %d\n", chanpath(c), n);
 	Proc *up = externup();
 	int tidx = findtag(chanpath(c));
 	if(tidx < 0 || tidx >= nv9p)
@@ -296,7 +281,6 @@ print("write %s %d\n", chanpath(c), n);
 	void *nva;
 	int lnva;
 	int alloc;
-print("write type %d\n", mtype);
 	switch(mtype)
 	{
 	case Tversion:
@@ -342,9 +326,49 @@ print("write type %d\n", mtype);
 	pm->hbufs[descr[0]].rfree = 0;
 	pm->pidch[up->pid & PIDCMASK].hb = &pm->hbufs[descr[0]];
 	pm->pidch[up->pid & PIDCMASK].pid = up->pid;
+	pm->pcuse++;
 	unlock(&pm->pclock);
+print("write %s msg %d %d\n", chanpath(c), mtype, lnva);
 	return n;
 }
+
+static int
+v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
+{
+	return -1;
+}
+
+
+int
+statcheckx(uint8_t *buf, uint nbuf)
+{
+        uint8_t *ebuf;
+        int i;
+
+        ebuf = buf + nbuf;
+
+print("nbuf %d STATFIXLEN %d BIT16SZ + GBIT16(buf) %d\n", nbuf, STATFIXLEN, BIT16SZ + GBIT16(buf));
+
+        if(nbuf < STATFIXLEN || nbuf != BIT16SZ + GBIT16(buf))
+                {print("x1\n");return -1;}
+
+        buf += STATFIXLEN - 4 * BIT16SZ;
+
+
+        for(i = 0; i < 4; i++){
+                if(buf + BIT16SZ > ebuf)
+					{print("x2\n");return -1;}
+                buf += BIT16SZ + GBIT16(buf);
+        }
+
+print("buf %X ebuf %X\n", buf, ebuf);
+
+        if(buf != ebuf)
+                {print("x3\n");return -1;}
+
+        return 0;
+}
+
 
 // We expect only 9p messages be received, and only for a non-empty chan path (mount tag).
 // Some messages need massaging (like Rversion because QEMU does not support vanilla 9P2000
@@ -356,7 +380,8 @@ print("write type %d\n", mtype);
 static int32_t
 v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-print("read %s %d\n", chanpath(c), n);
+	if(!strcmp(chanpath(c), "#9"))
+		return devdirread(c, va, n, (Dirtab *)0, 0L, v9pgen);
 	Proc *up = externup();
 	int tidx = findtag(chanpath(c));
 	if(tidx < 0 || tidx >= nv9p)
@@ -371,7 +396,6 @@ print("read %s %d\n", chanpath(c), n);
 		free(hb->wrbuf);
 	uint8_t *msg = va;
 	int mtype = GBIT8(msg + 4);
-print("read type %d\n", mtype);
 	uint32_t mlen = GBIT32(msg);
 	Fcall f;
 	switch(mtype)
@@ -388,9 +412,24 @@ print("read type %d\n", mtype);
 		convS2M(&f, va, n);
 		mlen = GBIT32(msg);
 		break;
+	case Rstat:
+		mlen = GBIT16(msg);
+		uint nbuf = GBIT16(msg + 9);
+		uint8_t *buf = msg + 9;
+		Dir d;
+		char strs[1024];
+		convM2D(buf, nbuf, &d, strs);
+		d.uid = eve;
+		d.gid = eve;
+		d.muid = eve;
+		uint dms = convD2M(&d, buf, nbuf);
+		PBIT16(msg + 7, dms);
+		mlen = 9 + dms;
+		PBIT32(msg, mlen);
 	default:
 		;
 	}
+print("read %s msg %d %d\n", chanpath(c), mtype, mlen);
 	return mlen;
 }
 
@@ -409,6 +448,9 @@ static Chan*
 v9pattach(char *spec)
 {
 	mntvq();
+	if(strlen(spec) == 0)
+		return devattach(v9pdevtab.dc, "");
+print("stray attach %s\n", spec);
 	error(Edonotcall(attach));
 	return nil;
 }
@@ -416,6 +458,8 @@ v9pattach(char *spec)
 static Chan*
 v9popen(Chan *c, int omode)
 {
+	if(!strcmp(chanpath(c), "#9"))
+		return devopen(c, omode, (Dirtab*)0, 0, v9pgen);
 	error(Edonotcall(open));
 	return nil;
 }
@@ -423,6 +467,9 @@ v9popen(Chan *c, int omode)
 static Walkqid*
 v9pwalk(Chan* c, Chan *nc, char** name, int nname)
 {
+	if(!strcmp(chanpath(c), "#9"))
+		return devwalk(c, nc, name, nname, (Dirtab *)0, 0, v9pgen);
+print("walk %s\n", chanpath(c));
 	error(Edonotcall(walk));
 	return nil;
 }
@@ -430,6 +477,8 @@ v9pwalk(Chan* c, Chan *nc, char** name, int nname)
 static int32_t
 v9pstat(Chan* c, uint8_t* dp, int32_t n)
 {
+	if(!strcmp(chanpath(c), "#9"))
+		return devstat(c, dp, n, (Dirtab *)0, 0L, v9pgen);
 	error(Edonotcall(stat));
 	return 0;
 }
@@ -437,6 +486,8 @@ v9pstat(Chan* c, uint8_t* dp, int32_t n)
 static void
 v9pclose(Chan* c)
 {
+	if(!strcmp(chanpath(c), "#9"))
+		return;
 	error(Edonotcall(close));
 }
 
