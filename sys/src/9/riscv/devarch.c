@@ -520,11 +520,37 @@ numcoresread(Chan* c, void *a, int32_t n, int64_t off)
         return readstr(off, a, n, buf);
 }
 
+static Queue *keybq;
+/* total hack. */
+static int32_t
+consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+{
+	int amt;
+	if (!keybq) {
+		keybq = qopen(32, 0, 0, 0);
+		if (!keybq)
+			panic("keyboard queue alloc failed");
+	}
+	amt = qread(keybq, vbuf, len);
+	print("consoleread: amt is %d\n", amt);
+	return amt;
+}
+
+static int32_t
+consolewrite(Chan* c, void *vbuf, int32_t len, int64_t off64)
+{
+	int amt = len;
+	print("consolewrite: amt is %d\n", len);
+	return amt;
+}
+
+
 void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("numcores", 0444, numcoresread, nil);
+	addarchfile("console", 0666, consoleread, consolewrite);
 }
 
 void

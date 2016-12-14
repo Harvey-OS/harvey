@@ -65,7 +65,6 @@
 				"ps": "/$ARCH/bin/ps",
 				"ed": "/$ARCH/bin/ed",
 				"rcmain": "/rc/lib/rcmain",
-				"screenconsole": "/$ARCH/bin/aux/screenconsole",
 				"srv": "/$ARCH/bin/srv"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
