@@ -95,7 +95,7 @@ rdtsc(void)
 	uint64_t cycles;
 //	msg("rdtsc\n");
 	cycles = read_csr(/*s*/cycle);
-print("cycles in rdtsc is 0x%llx\n", cycles);
+//print("cycles in rdtsc is 0x%llx\n", cycles);
 //	msg("done rdts\n");
 	return cycles;
 }
@@ -589,10 +589,10 @@ userureg(Ureg*u)
 {
 	int64_t ip = (int64_t)u->ip;
 	if (ip < 0) {
-		print("RETURNING 0 for userureg\n");
+		//print("RETURNING 0 for userureg\n");
 		return 0;
 	}
-	print("Returning 1 for userureg; need a better test\n");
+	//print("Returning 1 for userureg; need a better test\n");
 	return 1;
 }
 

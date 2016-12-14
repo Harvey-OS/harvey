@@ -263,9 +263,9 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
 	sp = ureg->sp;
-	print("ureg -> sp says %p\n", ureg->sp);
+	//print("ureg -> sp says %p\n", ureg->sp);
 	startns = stopns = 0;
-	if (1) print("so far syscall!\n");
+	if (0) print("so far syscall!\n");
 	if (up->pid == 0 || printallsyscalls) {
 		syscallfmt('E', scallnr, nil, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
@@ -294,7 +294,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
-	if (1) print("more syscall!\n");
+	if (0) print("more syscall!\n");
 	up->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
@@ -346,9 +346,9 @@ print("failure\n");
 	/*
 	 * Put return value in frame.
 	 */
-print("return is %p\n", ar0.p);
+	if (0)print("return is %p\n", ar0.p);
 	ureg->a0 = ar0.p;
-print("ureg->ip is %p val %p\n", &ureg->ip, ureg->ip);
+	if (0)print("ureg->ip is %p val %p\n", &ureg->ip, ureg->ip);
 
 	if (up->pid == 0 || printallsyscalls) {
 		stopns = todget(nil);
