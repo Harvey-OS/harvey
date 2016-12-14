@@ -146,12 +146,11 @@ static const char *const excname[] = {
 
 static void print_trap_information(const Ureg *ureg)
 {
+	Proc *up = externup();
 	const char *previous_mode;
 	int status = ureg->status;
-//	bool mprv = !!(ureg->status & MSTATUS_MPRV);
-
 	/* Leave some space around the trap message */
-	print("\n");
+	print("\n PID %d\n", up ? up->pid : -1);
 
 	if (ureg->cause < nelem(excname))
 		print("Exception:          %s\n",
@@ -190,9 +189,6 @@ void trap_handler(Ureg *ureg) {
 		case CAUSE_FAULT_STORE:
 			print_trap_information(ureg);
 			faultarch(ureg);
-	hexdump((void *)ureg->ip, 16);
-	hexdump((void *)ureg->epc, 16);
-	hexdump((void *)ureg->badaddr, 16);
 			return;
 			break;
 		case CAUSE_USER_ECALL:
@@ -463,7 +459,7 @@ trap(Ureg *ureg)
 	// trouble
 	vno = ureg->cause & ~InterruptMask;
 	interrupt = !! (ureg->cause & InterruptMask);
-	print("T 0x%llx", ureg->cause);
+	//print("T 0x%llx", ureg->cause);
 	Mach *m =machp();
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
@@ -483,7 +479,17 @@ trap(Ureg *ureg)
 	}
 
 	clockintr = interrupt && vno == SupervisorTimer;
-	print("clockintr %d\n", clockintr);
+	int getchar(void);
+	if (clockintr) {
+		int c;
+		extern Queue *keybq;
+		c = getchar();
+		if (c >= 0 && keybq) {
+			print("WROTE '%c'\n", c);
+			qiwrite(keybq, &c, 1);
+		}
+	}
+	//print("clockintr %d\n", clockintr);
 
 	//_pmcupdate(machp());
 
@@ -493,7 +499,7 @@ trap(Ureg *ureg)
 	} else {
 	write_csr(sip, 0);
 
-	print("check vno %d\n", vno);
+	//print("check vno %d\n", vno);
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
 			machp()->intr++;
@@ -582,7 +588,7 @@ panic("UNK\n");
 		sched();
 		splhi();
 	}
-print("DUN\n");
+//print("DUN\n");
 
 	if(user){
 		if(up && up->procctl || up->nnote)
@@ -590,7 +596,7 @@ print("DUN\n");
 		print("K");
 		kexit(ureg);
 	}
-print("ALL DONE TRAP\n");
+//print("ALL DONE TRAP\n");
 }
 
 /*

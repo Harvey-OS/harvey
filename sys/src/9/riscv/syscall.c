@@ -304,17 +304,13 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	up->nerrlab = 0;
 	ar0 = zar0;
 	if(!waserror()){
-print("do it\n");
 		if(scallnr >= nsyscall || systab[scallnr].f == nil){
-print("bad one\n");
 			pprint("bad sys call number %d pc %#llx\n",
 				scallnr, ureg->ip);
-print("postnote\n");
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);
 		}
 
-print("sp is %p\n", sp);
 		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE)){
 			print("check it\n");
 			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
@@ -322,9 +318,9 @@ print("sp is %p\n", sp);
 
 		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
 		up->psstate = systab[scallnr].n;
-	if (1) hi("call syscall!\n");
+	//if (1) hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
-	if (1) hi("it returned!\n");
+//	if (1) hi("it returned!\n");
 		poperror();
 	}
 	else{

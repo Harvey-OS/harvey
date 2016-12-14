@@ -520,7 +520,7 @@ numcoresread(Chan* c, void *a, int32_t n, int64_t off)
         return readstr(off, a, n, buf);
 }
 
-static Queue *keybq;
+Queue *keybq;
 /* total hack. */
 static int32_t
 consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
@@ -589,12 +589,14 @@ timerset(uint64_t x)
 	//cycles(&now);
 	// who knows. This is claimed to be a 10 mhz.
 	// clock. So let's have it interrupt at 10 hz.
-	print("timerset: when is 0x%llx\n", x);
+	//print("timerset: when is 0x%llx\n", x);
 	now = *mtime;
 	x /= 100;
+	// for spike, divide by more; we're impatient.
+	x /= 10;
 	if (! x)
-		x = 10000;
-	print("timerset to 0x%llx\n", now + x);
+		x = 1;
+	//print("timerset to 0x%llx\n", now + x);
 	*mtimecmp = now + x ;//+ 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
 }
 
