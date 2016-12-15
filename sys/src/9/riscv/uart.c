@@ -24,7 +24,7 @@ uintptr_t uart_platform_base(int idx)
 	return (uintptr_t) 0x40001000;
 }
 
-void testPrint(uint8_t c)
+void putchar(uint8_t c)
 {
 	uint8_t *cp = KADDR(uart_platform_base(0));
 	*cp = c;

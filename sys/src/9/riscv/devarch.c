@@ -543,11 +543,14 @@ consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
 }
 
 static int32_t
-consolewrite(Chan* c, void *vbuf, int32_t len, int64_t off64)
+consolewrite(Chan* _, void *vbuf, int32_t len, int64_t off64)
 {
-	int amt = len;
-	print("consolewrite: amt is %d\n", len);
-	return amt;
+	void putchar(int);
+	char *c = vbuf;
+
+	for(int i = 0; i < len; i++)
+		putchar(c[i]);
+	return len;
 }
 
 

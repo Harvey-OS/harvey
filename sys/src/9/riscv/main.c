@@ -27,12 +27,12 @@ void query_mem(const char *config_string, uintptr_t *base, size_t *size);
 void query_rtc(const char *config_string, uintptr_t *mtime);
 void query_uint(const char *config_string, char *name, uintptr_t *val);
 
-void testPrint(uint8_t c);
+void putchar(uint8_t c);
 
 void msg(char *s)
 {
 	while (*s)
-		testPrint(*s++);
+		putchar(*s++);
 }
 void die(char *s)
 {
@@ -49,7 +49,7 @@ ndnr(void)
 static void puts(char * s, int n)
 {
 	while (n--)
-		testPrint(*s++);
+		putchar(*s++);
 }
 
 /* mach info for hart 0. */
@@ -701,7 +701,7 @@ HERE(void)
 /* Keep to debug trap.c */
 void wave(int c)
 {
-	testPrint(c);
+	putchar(c);
 }
 
 void hi(char *s)
