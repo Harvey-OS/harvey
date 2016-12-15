@@ -6,7 +6,7 @@
 		"Include": [
 			"core.json",
 			"../ip/ip.json",
-			"../port/riscvport.json"
+			"../port/port.json"
 		],
 		"IncludeSomedayWhenRISCVgetsvirtio": [
 			"../port/port.json"

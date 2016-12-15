@@ -569,13 +569,6 @@ void errstr(char *s, int i) {
 }
 
 void
-oprof_alarm_handler(Ureg *u)
-{
-	//print((char *)__func__);
-	//print("IGNORING\n");
-}
-
-void
 hardhalt(void)
 {
 	panic((char *)__func__);

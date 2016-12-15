@@ -44,15 +44,14 @@
 			"../boot/bootconf.json",
 			"inith.json"
 		],
-	    "MissingSourceFiles": [
-		        "coreboot.c"
-		],
 		"SourceFiles": [
 			"assembly.S",
 			"arch.c",
 			"archriscv.c",
 			"asm.c",
 		        "acore.c",
+			"backtrace.c",
+			"coreboot.c",
 			"ctype.c",
 			"devarch.c",
 			"main.c",

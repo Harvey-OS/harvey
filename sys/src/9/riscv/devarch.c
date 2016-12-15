@@ -522,6 +522,12 @@ numcoresread(Chan* c, void *a, int32_t n, int64_t off)
 
 Queue *keybq;
 /* total hack. */
+void
+kbdputsc(int data, int _)
+{
+	qiwrite(keybq, &data, 1);
+}
+
 static int32_t
 consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
 {

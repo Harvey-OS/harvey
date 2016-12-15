@@ -18,3 +18,8 @@ _spllo:
 	li	a0, siebitmask
 	csrrs	a0, sstatus, a0
 	ret
+
+/* what a hack. Purely a marker for profiling.*/
+.globl spldone
+spldone:
+	ret
