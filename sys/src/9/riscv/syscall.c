@@ -353,45 +353,37 @@ print("failure\n");
 	if (up->pid == 0 || printallsyscalls) {
 		stopns = todget(nil);
 		syscallfmt('X', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
-hi("a\n");
 		if(up->syscalltrace) {
 			print("X %s\n", up->syscalltrace);
 			free(up->syscalltrace);
 			up->syscalltrace = nil;
 		}
-hi("b\n");
 	}
-hi("c\n");
 
 	if(up->procctl == Proc_tracesyscall){
-hi("d\n");
 		uint8_t what = 'X';
 		stopns = todget(nil);
 		up->procctl = Proc_stopme;
-hi("e\n");
 		if (scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
 			what = 'F';
 		syscallfmt(what, scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
-hi("f\n");
 		s = splhi();
 		procctl(up);
 		splx(s);
-hi("g\n");
 		if(up->syscalltrace)
 			free(up->syscalltrace);
 		up->syscalltrace = nil;
-hi("h\n");
 	}else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
 		procctl(up);
 
-	if (1) hi("past sysretfmt\n");
+	if (0) hi("past sysretfmt\n");
 	up->insyscall = 0;
 	up->psstate = 0;
 
 	if(scallnr == NOTED)
 		noted(ureg, a0);
 
-	if (1) hi("now to splhi\n");
+	if (0) hi("now to splhi\n");
 	splhi();
 	if(scallnr != RFORK && (up->procctl || up->nnote))
 		notify(ureg);
@@ -401,7 +393,7 @@ hi("h\n");
 		sched();
 		splhi();
 	}
-	if (1) hi("call kexit\n");
+	if (0) hi("call kexit\n");
 	kexit(ureg);
 	if (0) hi("done kexit\n");
 }
