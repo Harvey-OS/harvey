@@ -486,7 +486,8 @@ trap(Ureg *ureg)
 		c = getchar();
 		if (c >= 0 && keybq) {
 			print("WROTE '%c'\n", c);
-			qiwrite(keybq, &c, 1);
+			void kbdputsc(int data, int _);
+			kbdputsc(c, 0);
 		}
 	}
 	//print("clockintr %d\n", clockintr);

@@ -521,11 +521,19 @@ numcoresread(Chan* c, void *a, int32_t n, int64_t off)
 }
 
 Queue *keybq;
+void putchar(int);
 /* total hack. */
 void
 kbdputsc(int data, int _)
 {
-	qiwrite(keybq, &data, 1);
+	static char line[512];
+	static int len;
+
+	putchar(data);
+	line[len++] = data;
+	if (keybq && (data == '\n'))
+		qiwrite(keybq, line, len);
+	len = 0;
 }
 
 static int32_t
@@ -545,7 +553,6 @@ consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
 static int32_t
 consolewrite(Chan* _, void *vbuf, int32_t len, int64_t off64)
 {
-	void putchar(int);
 	char *c = vbuf;
 
 	for(int i = 0; i < len; i++)
@@ -559,7 +566,7 @@ archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("numcores", 0444, numcoresread, nil);
-	addarchfile("console", 0666, consoleread, consolewrite);
+	addarchfile("cons", 0666, consoleread, consolewrite);
 }
 
 void
