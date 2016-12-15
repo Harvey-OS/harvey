@@ -27,6 +27,7 @@
 					"cons",
 					"dup",
 					"env",
+				        "ip",
 					"mnt",
 					"mntn",
 					"pipe",
