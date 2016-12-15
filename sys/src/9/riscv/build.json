@@ -47,6 +47,11 @@
 					"icmp6",
 					"gre"
 				],
+				"Link": [
+					"ethermedium",
+					"loopbackmedium",
+					"netdevmedium"
+				],
 				"NoUart": [
 					"pci"
 				]
