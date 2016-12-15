@@ -5,10 +5,10 @@
 		],
 		"Include": [
 			"core.json",
+			"../ip/ip.json",
 			"../port/riscvport.json"
 		],
 		"IncludeSomedayWhenRISCVgetsvirtio": [
-			"../ip/ip.json",
 			"../port/port.json"
 		],
 		"Kernel": {
@@ -38,7 +38,7 @@
 					"uart",
 					"ws"
 				],
-				"NoIp": [
+				"Ip": [
 					"tcp",
 					"udp",
 					"ipifc",

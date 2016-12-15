@@ -23,6 +23,7 @@
 		],
 	    "Libs": [
 			"/$ARCH/lib/klibc.a",
+                        "/$ARCH/lib/klibip.a",
 			"/$ARCH/lib/klibsec.a"
 		],
 		"Oflags": [

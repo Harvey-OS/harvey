@@ -19,6 +19,9 @@
 #include "ureg.h"
 #include <tos.h>
 
+
+int cpuserver = 1;
+
 extern void (*consuartputs)(char*, int);
 void query_mem(const char *config_string, uintptr_t *base, size_t *size);
 void query_rtc(const char *config_string, uintptr_t *mtime);
