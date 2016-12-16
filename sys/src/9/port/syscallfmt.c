@@ -28,6 +28,10 @@ fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 		fmtprint(f, "0x0%s", suffix);
 		return;
 	}
+	if(!okaddr((uintptr_t)a, n, 0)){
+		fmtprint(f, "(BAD %p)%s", a, suffix);
+		return;
+	}
 	a = validaddr(a, n, 0);
 	t = smalloc(n+1);
 	for(i = 0; i < n; i++){
@@ -123,6 +127,8 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		argv = va_arg(list, char**);
 		evenaddr(PTR2UINT(argv));
 		for(;;){
+			if (! okaddr((uintptr_t)argv, sizeof(char**), 0))
+				break;
 			a = *(char**)validaddr(argv, sizeof(char**), 0);
 			if(a == nil)
 				break;
