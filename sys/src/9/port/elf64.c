@@ -269,6 +269,7 @@ static struct {
 	{"amd64", EM_X86_64},
 	{"aarch64", EM_AARCH64},
 	{"power64", EM_PPC64},
+	{"riscv", EM_RISCV},
 };
 
 static int
@@ -418,9 +419,12 @@ elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 						error(Ebadexec);
 					}
 
+					/* this is so ridiculous. We can align the section, but we can't tell
+					 * gnu ld how to set the value of the alignment. What a pile of crap.
+					 * Just ignore it for now. */
 					if(align < minpgsz){
-						print("elf64ldseg: align 0x%x < minpgsz 0x%x\n", align, minpgsz);
-						error(Ebadexec);
+						print("elf64ldseg: WARNING ONLY: align 0x%x < minpgsz 0x%x\n", align, minpgsz);
+						//error(Ebadexec);
 					}
 
 					if(offset & (align-1) != vaddr & (align-1)){
