@@ -228,7 +228,7 @@ sched(void)
 		stackok();
 
 		procsave(up);
-		mmuflushtlb(machp()->MMU.pml4->pa);
+		mmuflushtlb();
 		if(setlabel(&up->sched)){
 			procrestore(up);
 			spllo();
@@ -964,7 +964,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		machp()->cs++;
 
 		procsave(up);
-		mmuflushtlb(machp()->MMU.pml4->pa);
+		mmuflushtlb();
 		if(setlabel(&up->sched)) {
 			/*
 			 *  here when the process is awakened
