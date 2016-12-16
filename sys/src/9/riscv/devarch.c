@@ -531,9 +531,10 @@ kbdputsc(int data, int _)
 
 	putchar(data);
 	line[len++] = data;
-	if (keybq && (data == '\n'))
+	if (keybq && (data == '\n')) {
 		qiwrite(keybq, line, len);
-	len = 0;
+		len = 0;
+	}
 }
 
 static int32_t

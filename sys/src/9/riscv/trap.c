@@ -187,7 +187,7 @@ void trap_handler(Ureg *ureg) {
 		case CAUSE_FAULT_FETCH:
 		case CAUSE_FAULT_LOAD:
 		case CAUSE_FAULT_STORE:
-			print_trap_information(ureg);
+			if (0) print_trap_information(ureg);
 			faultarch(ureg);
 			return;
 			break;
@@ -472,10 +472,10 @@ trap(Ureg *ureg)
 	machp()->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (machp()->NIX.nixtype == NIXTC)){
-		print("call cycles\n");
+		if (0)print("call cycles\n");
 		up->dbgreg = ureg;
 		cycles(&up->kentry);
-		print("done\n");
+		if (0)print("done\n");
 	}
 
 	clockintr = interrupt && vno == SupervisorTimer;
@@ -485,7 +485,7 @@ trap(Ureg *ureg)
 		extern Queue *keybq;
 		c = getchar();
 		if (c >= 0 && keybq) {
-			print("WROTE '%c'\n", c);
+			if (0) print("WROTE '%c'\n", c);
 			void kbdputsc(int data, int _);
 			kbdputsc(c, 0);
 		}
@@ -495,7 +495,7 @@ trap(Ureg *ureg)
 	//_pmcupdate(machp());
 
 	if (!interrupt){
-		print("trap_handler\n");
+		if (0) print("trap_handler\n");
 		trap_handler(ureg);
 	} else {
 	write_csr(sip, 0);
@@ -515,7 +515,7 @@ trap(Ureg *ureg)
 		}
 		for(v = ctl; v != nil; v = v->next){
 			if(v->f){
-				print("F");
+				if (0) print("F");
 				v->f(ureg, v->a);
 				if(islo())print("trap %d: ctlf %p enabled interrupts\n", vno, v->f);
 			}
@@ -561,7 +561,7 @@ panic("UNK\n");
 			}
 		}
 #endif
-		dumpregs(ureg);
+		if (0) dumpregs(ureg);
 		if(!user){
 			ureg->sp = PTR2UINT(&ureg->sp);
 			dumpstackwithureg(ureg);
@@ -788,7 +788,7 @@ faultarch(Ureg* ureg)
 
 	insyscall = up->insyscall;
 	up->insyscall = 1;
-	msg("call fault\n");
+	if (0) msg("call fault\n");
 
 	if(fault(addr, ureg->ip, ftype) < 0){
 iprint("could not %s fault %p\n", faulttypes[ftype], addr);

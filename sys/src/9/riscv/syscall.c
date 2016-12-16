@@ -324,7 +324,6 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		poperror();
 	}
 	else{
-print("failure\n");
 		/* failure: save the error buffer for errstr */
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
@@ -487,9 +486,9 @@ sysrforkchild(Proc* child, Proc* parent)
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
 	child->insyscall = 0;
-	print("Child SP set to %p\n", (void *)child->sched.sp);
-	print("NOTE: UP is wrong, ignoreit\n");
-	dumpgpr(cureg);
+	if (0) print("Child SP set to %p\n", (void *)child->sched.sp);
+	if (0) print("NOTE: UP is wrong, ignoreit\n");
+	if (0) dumpgpr(cureg);
 	
 
 	fpusysrforkchild(child, parent);

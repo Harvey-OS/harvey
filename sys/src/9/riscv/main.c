@@ -617,8 +617,8 @@ void sysrforkret(void)
 {
 	void *stack(void);
 	void *sp = stack();
-	print("sysrforkret: stack is %p\n", sp);
-	dumpgpr((Ureg *)sp);
+	if(0) print("sysrforkret: stack is %p\n", sp);
+	if(0) dumpgpr((Ureg *)sp);
 void _sysrforkret();
 	_sysrforkret();
 }

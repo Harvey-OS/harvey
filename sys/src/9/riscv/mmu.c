@@ -291,7 +291,7 @@ mmuswitch(Proc* proc)
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 
-print("pte %p\n", pte);
+	if (0)print("pte %p\n", pte);
 	/* N.B. On RISCV, we DO NOT SET any of X, R, W  bits at this level since
 	 * that we point to page table pages on level down.  Also, these are
 	 * explicitly user level pages, so PteU is set. */
@@ -304,9 +304,10 @@ print("pte %p\n", pte);
 
 	// Switch kernel stacks. Really. 
 	//tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
-print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.root->pa);
+	print("FIXME do tssrsp0\n");
+	if (0)print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.root->pa);
 	rootput((uintptr_t) machp()->MMU.root->pa);
-print("splx\n");
+	if (0)print("splx\n");
 	splx(pl);
 }
 
@@ -332,7 +333,7 @@ mmurelease(Proc* proc)
 		wakeup(&pga.rend);
 	proc->MMU.mmuptp[0] = nil;
 
-	print("NOT DOING tssrsp0");
+	print("FIXME NOT DOING tssrsp0");
 	//tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
 	rootput(machp()->MMU.root->pa);
 }
@@ -450,7 +451,8 @@ pteflags(uint attr)
 void
 invlpg(uintptr_t _)
 {
-	print("invlpage is not implemented, continuing anyway (addr is %p)\n", _);
+	// TOODO
+	if (0) print("invlpage is not implemented, continuing anyway (addr is %p)\n", _);
 }
 
 /*
@@ -502,7 +504,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		mmuptpcheck(up);
 	user = (va < KZERO);
 	x = PTLX(va, 2);
-	print("user is %d, index for %p is 0x%x, ", user, va, x);
+	if (0) print("user is %d, index for %p is 0x%x, ", user, va, x);
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 	pte += x;

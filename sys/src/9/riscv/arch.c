@@ -58,7 +58,7 @@ decref(Ref *r)
 
 void fpuprocrestore(Proc *p)
 {
-	print("NOT DOING fpuprocrestore");
+	if (0)print("NOT DOING fpuprocrestore");
 }
 
 void

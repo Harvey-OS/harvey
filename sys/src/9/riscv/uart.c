@@ -36,7 +36,7 @@ int getchar(void)
 	uint8_t *cp = KADDR(uart_platform_base(0));
 	if (cp[5] & 1) {
 		int c = cp[0];
-		print("getchar: got 0x%x\n", c);
+		if (0) print("getchar: got 0x%x\n", c);
 		return c;
 	}
 	return -1;
