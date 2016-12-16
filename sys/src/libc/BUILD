@@ -134,6 +134,7 @@ LIBC_SRCS = [
     "port/cistrstr.c",
     "port/charstod.c",
     "port/cleanname.c",
+    "port/configstring.c",
     "port/ctype.c",
     "port/encodefmt.c",
     "port/execl.c",

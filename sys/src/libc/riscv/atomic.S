@@ -2,13 +2,16 @@
 
 .globl ainc				/* int32_t ainc(int32_t *); */
 ainc:
-	li		a1, 1
-	amoadd.w.aq	a0, a1, 0(a0)
+	li		t0, 1
+	amoadd.w.aq	t1, t0, 0(a0)
+	add		a0, t1, t0
 	ret
+
 .globl adec				/* int32_t adec(int32_t *); */
 adec:
-	li		a1, -1
-	amoadd.w.aq	a0, a1, 0(a0)
+	li		t0, -1
+	amoadd.w.aq	t1, t0, 0(a0)
+	add		a0, t1, t0
 	ret
 
 /* This works fine either way as we are little endian. */
@@ -19,11 +22,14 @@ _tas32:
 tas32:
 .globl _tas				/* int _tas(int *); */
 _tas:
-	mv	a3, a0
-	li           a1, 1
-	ld	     a2, 0(a0)
-	amoswap.w.aq a0, a1, 0(a0)
-	ld		a3, 0(a3)
+	li t0, 1
+	amoswap.w.aq t0, t0, 0(a0)
+	bnez t0, 1f
+	li a0, 0
+	ret
+/* failure. */
+1:
+	li a0, 1
 	ret
 
 .globl aswap				/* int aswap(int *, int); */
@@ -34,15 +40,19 @@ aswap:
 .globl cas32
 // int	cas32(void* %rdi, uint32_t %esi, uint32_t %edx);
 // a0 holds address of memory location
-// a1 holds expected value
-// a2 holds desired value
-// v0 return value, 0 if successful, !0 otherwise
+// a1 holds expected value (old)
+// a2 holds desired value (new)
+// v0 return value, 1 if successful, 0 otherwise
 cas32:
-	lr.w x17, (a0)  // Load original value
-	li x16, 1 # Preset return to fail
-	bne x17, a1, return # Doesn’t match, so fail
-	sc.w x16, a2, (a0) # Try to update
-return: jr ra
+	lr.w t0, (a0)  // Load original value
+	bne t0, a1, 1f # Doesn’t match, so fail
+	sc.w a0, a2, (a0) # Try to update
+	bne zero, a0, 1f
+	li a0, 1
+	jr ra
+1: 
+	li a0, 0 # Preset return to fail
+	jr ra
 
 .globl mfence
 mfence:
