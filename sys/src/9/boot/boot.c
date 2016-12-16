@@ -438,21 +438,23 @@ static int
 archconsole(void)
 {
 	int i;
-	i = open("#P/console", OREAD);
+	i = open("#P/cons", OREAD);
 	if (i < 0) {
-		print("Can't open #P/console");
+		print("Can't open #P/cons");
 		return -1;
 	}
 	dup(i, 0);
 	close(i);
-	i = open("#P/console", OWRITE);
+	i = open("#P/cons", OWRITE);
 	if (i < 0) {
-		print("Can't open #P/console");
+		print("Can't open #P/cons");
 		return -1;
 	}
 	dup(i, 1);
 	dup(i, 2);
 	close(i);
+	/* if it works, ok, if not, we don't care. */
+	bind("#P", "/dev", MAFTER);
 	return 0;
 }
 
