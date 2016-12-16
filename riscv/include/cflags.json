@@ -16,7 +16,7 @@
 			"-Wno-unknown-pragmas"
 		],
 		"Oflags": [
-			"-T","/home/rminnich/projects/harvey/harvey/riscv/include/prog.ld",
+			"-T","/$ARCH/include/prog.ld",
 			"--no-relax"
 		]
 	}

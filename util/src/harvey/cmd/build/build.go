@@ -90,6 +90,7 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 		b.Projects = adjust(b.Projects)
 		b.Libs = adjust(b.Libs)
 		b.Cflags = adjust(b.Cflags)
+		b.Oflags = adjust(b.Oflags)
 		b.SourceFiles = adjust(b.SourceFiles)
 		b.SourceFilesCmd = adjust(b.SourceFilesCmd)
 		b.ObjectFiles = adjust(b.ObjectFiles)
