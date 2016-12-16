@@ -9,8 +9,6 @@
 	    "$ARCH/gettls.S",
 	    "$ARCH/main9.S",
 	    "$ARCH/setjmp.S",
-	    "$ARCH/_spl.S",
-	    "$ARCH/spl.c",
 	    "$ARCH/sqrt.c"
 	]
     }
