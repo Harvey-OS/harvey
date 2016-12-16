@@ -249,14 +249,12 @@ timersinit(void)
 	 * T->tf == nil means the HZ clock for this processor.
 	 */
 	todinit();
-print("todinit done\n");
 	t = malloc(sizeof(*t));
 	t->tmode = Tperiodic;
 	t->tt = nil;
 	t->tns = 1000000000/HZ;
 	t->tf = nil;
 	timeradd(t);
-print("timeraddr done\n");
 }
 
 Timer*
