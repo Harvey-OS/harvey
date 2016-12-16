@@ -1,6 +1,7 @@
 {
 	"buildflags": {
 		"Cflags": [
+			"-mcmodel=medany",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-fno-omit-frame-pointer",
@@ -13,6 +14,10 @@
 			"-Wno-missing-braces",
 			"-Wno-parentheses",
 			"-Wno-unknown-pragmas"
+		],
+		"Oflags": [
+			"-T","/$ARCH/include/prog.ld",
+			"--no-relax"
 		]
 	}
 }
