@@ -111,6 +111,7 @@
 			"../port/devether.c",
 			"../port/devmouse.c",
 			"../port/devpci.c",
+			"../port/devvcon.c",
 			"devpmc.c",
 			"ether.c",
 			"fpu.c",
@@ -133,8 +134,8 @@
 			"systab.c",
 			"tcore.c",
 			"trap.c",
-			"../port/usbehci.c"
-
+			"../port/usbehci.c",
+			"../port/virtio_lib.c"
 		]
 	}
 }

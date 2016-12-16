@@ -910,7 +910,7 @@ struct Proc
 
 	/* NIX */
 	Mach	*ac;
-	Page	*acpml4;
+	Page	*acPageTableRoot;
 	int	prepagemem;
 	Nixpctl *nixpctl;	/* NIX queue based system calls */
 

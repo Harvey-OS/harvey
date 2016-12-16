@@ -40,7 +40,6 @@
 			"../port/devtab.c",
 			"../port/devtrace.c",
 			"../port/devuart.c",
-			"../port/devvcon.c",
 			"../port/devwd.c",
 			"../port/devws.c",
 			"../port/edf.c",
@@ -78,7 +77,6 @@
 			"../port/syszio.c",
 			"../port/taslock.c",
 			"../port/tod.c",
-			"../port/virtio_lib.c",
 			"../port/watermarks.c"
 		]
 	}
