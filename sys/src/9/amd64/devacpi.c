@@ -54,6 +54,7 @@ static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
 static Rsdp *rsd;
+static Queue *acpiev;
 Dev acpidevtab;
 
 typedef struct Acpiio {
@@ -68,11 +69,9 @@ static int32_t acpimemread(Chan *c, void *a, int32_t n, int64_t off);
 static int32_t acpiioread(Chan *c, void *a, int32_t n, int64_t off);
 static int32_t acpiiowrite(Chan *c, void *a, int32_t n, int64_t off);
 static int32_t acpiintrread(Chan *c, void *a, int32_t n, int64_t off);
-static int32_t acpiintrwrite(Chan *c, void *a, int32_t n, int64_t off);
+
 static void acpihandler(Ureg *u, void *v);
 static void *acpiintrvec;
-static Proc *intrproc;
-static int intrprocpid;
 static uint16_t pm1status;
 
 static char * devname(void)
@@ -1857,6 +1856,9 @@ static unsigned int getgpests(int n)
 }
 
 #if 0
+/* this is nemo's original handler. How much of this should acpihandler do?
+ * we leave the code here until we're sure.
+ */
 static void acpiintr(Ureg *, void *)
 {
 	int i;
@@ -1932,13 +1934,14 @@ static void acpiioalloc(unsigned int addr, int len)
 
 static void acpiinitonce(void)
 {
+	int i;
 	parsersdptr();
 	if (root != nil)
 		print("ACPI initialized\n");
 	addarchfile("acpimem", 0444, acpimemread, nil);
 	/* XXX these permissions are too loose? */
-	addarchfile("acpiio", 0666, acpiioread, acpiiowrite);
-	addarchfile("acpiintr", 0666, acpiintrread, acpiintrwrite);
+	addarchfile("acpiio", 0666|DMEXCL, acpiioread, acpiiowrite);
+	addarchfile("acpiintr", 0666|DMEXCL, acpiintrread, nil);
 	/*
 	 * should use fadt->xpm* and fadt->xgpe* registers for 64 bits.
 	 * We are not ready in this kernel for that.
@@ -1955,7 +1958,7 @@ static void acpiinitonce(void)
 	acpiioalloc(fadt->gpe1blk, fadt->gpe1blklen);
 
 	initgpes();
-#ifdef RON_SAYS_CONFIG_WE_ARE_NOT_WORTHY
+
 	/* this is frightening. SMI: just say no. Although we will almost
 	 * certainly find that we have no choice.
 	 *
@@ -1968,10 +1971,6 @@ static void acpiinitonce(void)
 			break;
 	if (i == 10)
 		error("acpi: failed to enable\n");
-	if (fadt->sciint != 0)
-		intrenable(fadt->sciint, acpiintr, 0, BUSUNKNOWN, "acpi");
-#endif
-
 }
 
 int acpiinit(void)
@@ -1982,6 +1981,18 @@ int acpiinit(void)
 		acpiinitonce();
 	once++;
 	return (root == nil) ? -1 : 0;
+}
+
+void acpistart(void)
+{
+	acpiev = qopen(1024, Qmsg, nil, nil);
+	if (!acpiev) {
+		print("acpistart: qopen failed; not enabling interrupts");
+		return;
+	}
+	if (fadt->sciint != 0)
+		acpiintrvec = intrenable(fadt->sciint, acpihandler, nil, BUSUNKNOWN,
+		    "ACPI interrupt handler");
 }
 
 static Chan *acpiattach(char *spec)
@@ -2094,6 +2105,15 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	return ret;
 }
 
+/*
+ * acpiintrread waits on the acpiev Queue.
+ */
+static int32_t
+acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
+{
+	n = qread(acpiev, a, n);
+	return n;
+}
 /*
  * acpiioread and acpiiowrite provide userspace access to the ACPI io ports.
  * This is necessary in order to get full use of the ACPICA library in user
@@ -2212,45 +2232,6 @@ acpiiowrite(Chan *c, void *a, int32_t n, int64_t off)
 	return -1;
 }
 
-static int32_t
-acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
-{
-	if (a == nil)
-		return 0;
-	if (acpiintrvec)
-		return readstr(off, a, n, "1");
-	else
-		return readstr(off, a, n, "0");
-}
-
-static int32_t
-acpiintrwrite(Chan *c, void *a, int32_t n, int64_t off)
-{
-	char *p;
-
-	p = a;
-	if (p == nil || n < 1)
-		return 0;
-	if (*p == '1') {
-		acpiintrvec = intrenable(fadt->sciint, acpihandler, nil, BUSUNKNOWN,
-		    "ACPI interrupt handler");
-		if (acpiintrvec) {
-			intrproc = externup();
-			intrprocpid = intrproc->pid;
-			return 1;
-		} else
-			return 0;
-	} else if (*p == '0') {
-		if (acpiintrvec) {
-			intrdisable(acpiintrvec);
-			acpiintrvec = nil;
-		}
-		intrproc = nil;
-		return 1;
-	} else
-		return 0;
-}
-
 static void
 acpihandler(Ureg *u, void *v)
 {
@@ -2259,21 +2240,8 @@ acpihandler(Ureg *u, void *v)
 	status = getpm1sts();
 	pm1status = status;
 	setpm1sts(status);
-	if (intrproc == nil)
-		return;
-	/* XXX there must be a better way to test if user Proc is okay */
-	if (intrproc->state != Ready && intrproc->state != Running &&
-	    intrproc->state != Scheding && intrproc->state != Wakeme &&
-	    intrproc->state != Queueing) {
-		intrproc = nil;
-		return;
-	}
-	/* Make sure intrproc is still the same */
-	if (intrproc->pid != intrprocpid) {
-		intrproc = nil;
-		return;
-	}
-	postnote(intrproc, 0, "acpi: interrupt", 0);
+	print("wake up the chan\n");
+	qiwrite(acpiev, &status, sizeof(status));
 }
 
 // Get the table from the qid.
