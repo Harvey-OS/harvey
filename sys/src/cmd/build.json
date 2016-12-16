@@ -58,6 +58,7 @@
 			"init.c",
 			"join.c",
 			"kbmap.c",
+		        "kiss.c",
 			"ktrace.c",
 			"lens.c",
 			"lnfs.c",
