@@ -106,7 +106,7 @@ void	mapraminit(uint64_t, uint64_t);
 void	mapupainit(uint64_t, uint32_t);
 void	meminit(void);
 void	mfence(void);
-void	mmuflushtlb(uint64_t);
+void	mmuflushtlb(void);
 void	mmuinit(void);
 uintptr_t	mmukmap(uintptr_t, uintptr_t, usize);
 int	mmukmapsync(uint64_t);
