@@ -12,7 +12,8 @@
 			"-g"
 		],
 		"Oflags": [
-			"-static"
+			"-static",
+			"--no-relax"
 		],
 		"Post": [
 			"rm *.o"
