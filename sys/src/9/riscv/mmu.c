@@ -115,7 +115,6 @@ mmuptpfree(Proc* proc, int clear)
 	int l;
 	PTE *pte;
 	Page **last, *page;
-msg("mmuptefree\n");
 
 	for(l = 1; l < 4; l++){
 		last = &proc->MMU.mmuptp[l];
