@@ -302,9 +302,6 @@ mmuswitch(Proc* proc)
 		page->prev = machp()->MMU.root;
 	}
 
-	// Switch kernel stacks. Really. 
-	//tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
-	print("FIXME do tssrsp0\n");
 	if (0)print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.root->pa);
 	rootput((uintptr_t) machp()->MMU.root->pa);
 	if (0)print("splx\n");
@@ -333,8 +330,6 @@ mmurelease(Proc* proc)
 		wakeup(&pga.rend);
 	proc->MMU.mmuptp[0] = nil;
 
-	print("FIXME NOT DOING tssrsp0");
-	//tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
 	rootput(machp()->MMU.root->pa);
 }
 
