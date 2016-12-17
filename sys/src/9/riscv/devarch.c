@@ -528,7 +528,7 @@ kbdputsc(int data, int _)
 {
 	static char line[512];
 	static int len;
-
+print("F");
 	putchar(data);
 	line[len++] = data;
 	if (keybq && (data == '\n')) {
@@ -596,25 +596,34 @@ ms(void)
 
 /*
  *  set next timer interrupt
+ *  incoming units are in ns.
+ *  cycles and mtime are not connected to
+ *  other. Get the delta in ns, convert to
+ *  100 ns units, add to mtime, store in
+ *  mtimecmp.
  */
 void
 timerset(uint64_t x)
 {
-	uint64_t now;
 	extern uint64_t *mtimecmp;
 	extern uint64_t *mtime;
-	//cycles(&now);
-	// who knows. This is claimed to be a 10 mhz.
-	// clock. So let's have it interrupt at 10 hz.
-	//print("timerset: when is 0x%llx\n", x);
-	now = *mtime;
-	x /= 100;
-	// for spike, divide by more; we're impatient.
-	x /= 10;
-	if (! x)
-		x = 1;
-	//print("timerset to 0x%llx\n", now + x);
-	*mtimecmp = now + x ;//+ 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
+	uint64_t now;
+	int64_t delta;
+
+	now = rdtsc();
+	//print("now 0x%llx timerset to 0x%llx\n", now , x);
+	// I have no fucking clue why scaling it breaks this but it does.
+	//now = fastticks2ns(now);
+	//print("now 0x%llx timerset to 0x%llx\n", now , x);
+	delta = x - now;
+	//print("delta is %llx\n", delta);
+	delta /= 200;
+	if (delta < 1) {
+		print("BUST!\n");
+		delta = 10 /* one microsecond */ * 1000 /* one millisecond */ ;
+	}
+	//print("adjest x to timer ticks, divide by 500 ... 0x%llx %llx %llx \n", *mtime , delta, *mtime + delta);
+	*mtimecmp = *mtime + delta; //+ 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
 }
 
 void

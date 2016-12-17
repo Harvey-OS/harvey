@@ -545,6 +545,9 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 
 	check();
 
+	void consread(void);
+	addclock0link(consread, 0);
+
 	print("schedinit...\n");
 
 	schedinit();
@@ -650,7 +653,6 @@ fpudevprocio(Proc*p, void*v, int32_t _, uintptr_t __, int ___)
 
 void cycles(uint64_t *p)
 {
-	return;
 	*p = rdtsc();
 }
 

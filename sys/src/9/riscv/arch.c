@@ -141,9 +141,9 @@ idlehands(void)
 	/* toolchain is broken. Again. Puts an sret in for a wfi. Bad idea.
 	if(machp()->NIX.nixtype != NIXAC)
 		__asm__ __volatile__("wfi\n");
-	 */
 	if (*mtimecmp < *mtime)
 		timerset(0);
+	 */
 	sip = (uint32_t)read_csr(sip);
 	for(i = 0; *mtimecmp < *mtime; i++) {
 		if (sip & 0x666)

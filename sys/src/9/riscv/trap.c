@@ -46,6 +46,7 @@ enum interrupts {
 };
 
 void msg(char *);
+int getchar(void);
 // counters. Set by assembly code.
 // interrupt enter and exit, systecm call enter and exit.
 unsigned long ire, irx, sce, scx;
@@ -443,6 +444,18 @@ _trap(Ureg *ureg)
 	trap(ureg);
 }
 
+void consread(void)
+{
+	int c;
+	if (0) print("consrad\n");
+	c = getchar();
+	if (c >= 0) {
+		if (0) print("WROTE '%c'\n", c);
+		void kbdputsc(int data, int _);
+		kbdputsc(c, 0);
+	}
+}
+
 static int lastvno;
 /*
  *  All traps come here.  It is slower to have all traps call trap()
@@ -479,17 +492,7 @@ trap(Ureg *ureg)
 	}
 
 	clockintr = interrupt && vno == SupervisorTimer;
-	int getchar(void);
-	if (clockintr) {
-		int c;
-		extern Queue *keybq;
-		c = getchar();
-		if (c >= 0 && keybq) {
-			if (0) print("WROTE '%c'\n", c);
-			void kbdputsc(int data, int _);
-			kbdputsc(c, 0);
-		}
-	}
+	if (0 && clockintr) print("C");
 	//print("clockintr %d\n", clockintr);
 
 	//_pmcupdate(machp());
