@@ -63,7 +63,7 @@ static void acpiirq(void)
 	dup(irqmap, 0);
 	close(irqmap);
 	if (execl("/boot/irq", "irq", "-s", nil)) {
-		exits("can't start /boot/irq");
+		print("note: can't start /boot/irq");
 	}
 	exits(nil);
 
@@ -361,13 +361,15 @@ usbinit(void)
 	}
 }
 
-static void
-startconsole(void)
+static int
+screenconsole(void)
 {
 	char *dbgfile, *argv[16], **av;
 	int i;
-	if(access("/boot/screenconsole", AEXEC) < 0)
-		fatal("cannot access /boot/screenconsole");
+	if(access("/boot/screenconsole", AEXEC) < 0) {
+		print("cannot access /boot/screenconsole");
+		return -1;
+	}
 
 	/* start agent */
 	i = 0;
@@ -380,10 +382,11 @@ startconsole(void)
 	av[i] = 0;
 	switch(fork()){
 	case -1:
-		fatal("starting screenconsole");
+		print("failed starting screenconsole");
+		return -1;
 	case 0:
 		exec("/boot/screenconsole", av);
-		fatal("execing /boot/screenconsole");
+		fatal("failed execing /boot/screenconsole");
 	default:
 		break;
 	}
@@ -404,22 +407,63 @@ startconsole(void)
 		sleep(250);
 	}
 	/* replace 0, 1 and 2 */
-	if((i = open("#s/screenconsole", ORDWR)) < 0)
-		fatal("open #s/screenconsole");
-	if(mount(i, -1, "/dev", MBEFORE, "", 'M') < 0)
-		fatal("mount /dev");
-	if((i = open("/dev/cons", OREAD))<0)
-		fatal("open /dev/cons, OREAD");
+	if((i = open("#s/screenconsole", ORDWR)) < 0) {
+		print("failed to open #s/screenconsole");
+		return -1;
+	}
+	if(mount(i, -1, "/dev", MBEFORE, "", 'M') < 0) {
+		print("can not mount /dev");
+		return -1;
+	}
+	if((i = open("/dev/cons", OREAD))<0) {
+		print("failed to open /dev/cons, OREAD");
+		return -1;
+	}
 	dup(i, 0);
 	close(i);
-	if((i = open("/dev/cons", OWRITE))<0)
-		fatal("open /dev/cons, OWRITE");
+	if((i = open("/dev/cons", OWRITE))<0) {
+		print("failed to open /dev/cons, OWRITE");
+		return -1;
+	}
 	dup(i, 1);
 	close(i);
-	if(dup(1, 2) != 2)
-		fatal("dup(1, 2)");
+	if(dup(1, 2) != 2) {
+		print("dup(1, 2)");
+		return -1;
+	}
+	return 0;
 }
 
+static int
+archconsole(void)
+{
+	int i;
+	i = open("#P/cons", OREAD);
+	if (i < 0) {
+		print("Can't open #P/cons");
+		return -1;
+	}
+	dup(i, 0);
+	close(i);
+	i = open("#P/cons", OWRITE);
+	if (i < 0) {
+		print("Can't open #P/cons");
+		return -1;
+	}
+	dup(i, 1);
+	dup(i, 2);
+	close(i);
+	/* if it works, ok, if not, we don't care. */
+	bind("#P", "/dev", MAFTER);
+	return 0;
+}
+
+static void startconsole(void)
+{
+	if (screenconsole() != -1)
+		return;
+	archconsole();
+}
 static void
 kbmap(void)
 {
