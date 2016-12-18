@@ -22,6 +22,8 @@
 #define ISPOWEROF2(x)	(((x) != 0) && !((x) & ((x)-1)))
 #define UNO		((uintmem)1)
 
+#undef DBG
+#define DBG print
 enum {
 	BKmin		= 21,			/* Minimum lg2 */
 	BKmax		= 30,			/* Maximum lg2 */
@@ -371,6 +373,7 @@ physalloc(uint64_t size, int *colorp, void *tag)
 					*colorp = i;
 					return m;
 				}
+print("physalloc: return %p\n", m);
 	return m;
 }
 

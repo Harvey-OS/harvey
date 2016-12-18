@@ -94,11 +94,13 @@
 #define UTZERO		(0+2*MiB)		/* first address in user text */
 #define UTROUND(t)	ROUNDUP((t), BIGPGSZ)
 #ifndef __ASSEMBLER__
-#define USTKTOP		(0x00007ffffffff000ull & ~(BIGPGSZ-1))
+#define USTKTOP		(0x3fffffffffULL & ~(BIGPGSZ-1))
 #else
-#define USTKTOP         (0x00007ffffffff000 & ~(BIGPGSZ-1))
+#define USTKTOP         (0x3fffffffffULL & ~(BIGPGSZ-1))
 #endif
+/* U means "user" */
 #define USTKSIZE	(16*1024*1024)		/* size of user stack */
+/* T means "temporary" */
 #define TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
 #define	NIXCALL		(TSTKTOP-USTKSIZE)	/* nix syscall queues (2MiB) */
 #ifndef __ASSEMBLER__
@@ -116,25 +118,14 @@
  */
 
 #ifndef __ASSEMBLER__
-#define KSEG2		(0xfffffe0000000000ull)	/* 1TB - KMAP */
-/*			 0xffffff0000000000ull	end of KSEG2 */
-#define VMAP		(0xffffffffe0000000ull)
-#define VMAPSZ		(256*MiB)
 #define KSEG0		(0xffffffff80000000ull)	/* 256MB - this is confused */
 #define KZERO		(0xffffffff80000000ull)
 #define KTZERO		(KZERO+1*MiB+64*KiB)
-#define PDMAP		(0xffffffffff800000ull)
-#define PMAPADDR		(0xffffffffffe00000ull)	/* unused as of yet */
 /*			 0xffffffffffffffffull	end of KSEG0 */
 #else
-#define KSEG2           (0xfffffe0000000000)
-#define VMAPSZ          (256*MiB)
-#define VMAP            (0xffffffffe0000000)
 #define KSEG0           (0xffffffff80000000)
 #define KZERO           (0xffffffff80000000)
 #define KTZERO          (KZERO+1*MiB+64*KiB)
-#define PDMAP           (0xffffffffff800000)
-#define PMAPADDR        (0xffffffffffe00000)
 #endif
 
 /*

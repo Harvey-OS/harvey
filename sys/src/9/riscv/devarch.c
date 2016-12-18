@@ -15,6 +15,7 @@
 #include "../port/error.h"
 
 #include "ureg.h"
+#include "encoding.h"
 
 /* leave this for now; we might want to keep track of MMIO apart from memory. */
 typedef struct IOMap IOMap;
@@ -519,11 +520,53 @@ numcoresread(Chan* c, void *a, int32_t n, int64_t off)
         return readstr(off, a, n, buf);
 }
 
+Queue *keybq;
+void putchar(int);
+/* total hack. */
+void
+kbdputsc(int data, int _)
+{
+	static char line[512];
+	static int len;
+	putchar(data);
+	line[len++] = data;
+	if (keybq && (data == '\n')) {
+		qiwrite(keybq, line, len);
+		len = 0;
+	}
+}
+
+static int32_t
+consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+{
+	int amt;
+	if (!keybq) {
+		keybq = qopen(32, 0, 0, 0);
+		if (!keybq)
+			panic("keyboard queue alloc failed");
+	}
+	amt = qread(keybq, vbuf, len);
+	print("consoleread: amt is %d\n", amt);
+	return amt;
+}
+
+static int32_t
+consolewrite(Chan* _, void *vbuf, int32_t len, int64_t off64)
+{
+	char *c = vbuf;
+
+	for(int i = 0; i < len; i++)
+		putchar(c[i]);
+	return len;
+}
+
+
 void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("numcores", 0444, numcoresread, nil);
+	addarchfile("cons", 0666, consoleread, consolewrite);
 }
 
 void
@@ -552,14 +595,34 @@ ms(void)
 
 /*
  *  set next timer interrupt
+ *  incoming units are in ns.
+ *  cycles and mtime are not connected to
+ *  other. Get the delta in ns, convert to
+ *  100 ns units, add to mtime, store in
+ *  mtimecmp.
  */
 void
 timerset(uint64_t x)
 {
-	panic("apictimerset");
-//	extern void apictimerset(uint64_t);
+	extern uint64_t *mtimecmp;
+	extern uint64_t *mtime;
+	uint64_t now;
+	int64_t delta;
 
-//	apictimerset(x);
+	now = rdtsc();
+	//print("now 0x%llx timerset to 0x%llx\n", now , x);
+	// I have no fucking clue why scaling it breaks this but it does.
+	//now = fastticks2ns(now);
+	//print("now 0x%llx timerset to 0x%llx\n", now , x);
+	delta = x - now;
+	//print("delta is %llx\n", delta);
+	delta /= 200;
+	if (delta < 1) {
+		print("BUST!\n");
+		delta = 10 /* one microsecond */ * 1000 /* one millisecond */ ;
+	}
+	//print("adjest x to timer ticks, divide by 500 ... 0x%llx %llx %llx \n", *mtime , delta, *mtime + delta);
+	*mtimecmp = *mtime + delta; //+ 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
 }
 
 void
