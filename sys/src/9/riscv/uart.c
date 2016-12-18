@@ -13,15 +13,33 @@
  * GNU General Public License for more details.
  */
 
-#include <u.h>
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
 uintptr_t uart_platform_base(int idx)
 {
 	return (uintptr_t) 0x40001000;
 }
 
-void testPrint(uint8_t c)
+void putchar(uint8_t c)
 {
-	uint8_t *cp = (void *)uart_platform_base(0);
+	uint8_t *cp = KADDR(uart_platform_base(0));
 	*cp = c;
 }
+
+// Get a 7-bit char. < 0 means err.
+int getchar(void)
+{
+	uint8_t *cp = KADDR(uart_platform_base(0));
+	if (cp[5] & 1) {
+		int c = cp[0];
+		if (0) print("getchar: got 0x%x\n", c);
+		return c;
+	}
+	return -1;
+}
+
+

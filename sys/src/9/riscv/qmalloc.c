@@ -265,65 +265,12 @@ qmallocalign(usize nbytes, uintptr_t align, int32_t offset, usize span)
 	return p+1;
 }
 
+/* Force it to allocate on 64 byte boundaries. I want to guarantee this happens as
+ * I don't want to take alignment traps. */
 static void*
 qmalloc(usize nbytes)
 {
-	Qlist *qlist;
-	Header *p, *q;
-	uint nunits, n;
-
-///* FIXME: (ignore for now)
-	if(nbytes == 0)
-		return nil;
-//*/
-
-	qstats[QSmalloc]++;
-	nunits = NUNITS(nbytes);
-	if(nunits <= NQUICK){
-		qlist = &QLIST[nunits];
-		QLOCK(&qlist->lk);
-		if((p = qlist->first) != nil){
-			qlist->first = p->s.next;
-			qlist->nalloc++;
-			QUNLOCK(&qlist->lk);
-			p->s.next = &checkval;
-			return p+1;
-		}
-		QUNLOCK(&qlist->lk);
-	}
-
-	MLOCK;
-	if(nunits > tailsize) {
-		/* hard way */
-		if((q = rover) != nil){
-			do {
-				p = q->s.next;
-				if(p->s.size >= nunits) {
-					if(p->s.size > nunits) {
-						p->s.size -= nunits;
-						p += p->s.size;
-						p->s.size = nunits;
-					} else
-						q->s.next = p->s.next;
-					p->s.next = &checkval;
-					rover = q;
-					qstats[QSmallocrover]++;
-					MUNLOCK;
-					return p+1;
-				}
-			} while((q = p) != rover);
-		}
-		if((n = morecore(nunits)) == 0){
-			MUNLOCK;
-			return nil;
-		}
-		tailsize += n;
-	}
-	qstats[QSmalloctail]++;
-	tailalloc(p, nunits);
-	MUNLOCK;
-
-	return p+1;
+	return qmallocalign(nbytes, 64, 0, 0);
 }
 
 static void

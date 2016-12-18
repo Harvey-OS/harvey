@@ -10,7 +10,8 @@
 #include "../port/portfns.h"
 
 /* assembly code support from asm.S */
-void startmach(void (*f)(void), void *m);
+/* Startmach is passed an argument which is its own stack. */
+void startmach(void (*f)(void*), void *m, void *stack);
 Mach *machp(void);
 
 /* other functions */
@@ -58,6 +59,7 @@ void	dumpmmu(Proc*);
 void	dumpmmuwalk(uint64_t pa);
 void	dumpptepg(int lvl,uintptr_t pa);
 #define	evenaddr(x)				/* x86 doesn't care */
+void *findKSeg2(void);
 int	fpudevprocio(Proc*, void*, int32_t, uintptr_t, int);
 void	fpuinit(void);
 void	fpunoted(void);
@@ -111,7 +113,7 @@ void	mapraminit(uint64_t, uint64_t);
 void	mapupainit(uint64_t, uint32_t);
 void	meminit(void);
 void	mfence(void);
-void	mmuflushtlb(uint64_t);
+void	mmuflushtlb(void);
 void	mmuinit(void);
 uintptr_t	mmukmap(uintptr_t, uintptr_t, usize);
 int	mmukmapsync(uint64_t);
@@ -183,7 +185,7 @@ uint64_t	fas64(uint64_t*, uint64_t);
 #define TAS(addr)	tas32((addr))
 #define	FASP(p, v)	((void*)fas64((uint64_t*)(p), (uint64_t)(v)))
 
-void	touser(uintptr_t);
+void	touser(Ureg*);
 void	syscallentry(void);
 void	acsyscallentry(void);
 void	syscallreturn(void);
@@ -263,8 +265,9 @@ int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots);
 /* horror */
 static inline void __clobber_callee_regs(void)
 {
-	panic("FIX ME!");
-	//asm volatile ("" : : : "rbx", "r12", "r13", "r14", "r15");
+	// Arrived at through trial and error, this toolchain is a pain.
+	asm volatile ("" : : : "x2", "x3", "x4", "x5", "x6", "x7", /*"x8", */"x9", "x10", "x11", "x12", "x13"/*, "x15"*/);
+	// TODO: f0-f15?
 }
 
 int slim_setlabel(Label*) __attribute__((returns_twice));
