@@ -1,6 +1,7 @@
 {
 	"core": {
 		"Cflags": [
+			"-mcmodel=medany",
 			"-O0",
 			"-static",
 			"-ffreestanding",
@@ -21,13 +22,16 @@
 			"-I", "/sys/src/libc/9syscall"
 		],
 	    "Libs": [
-			"/$ARCH/lib/klibc.a"
+			"/$ARCH/lib/klibc.a",
+                        "/$ARCH/lib/klibip.a",
+			"/$ARCH/lib/klibsec.a"
 		],
 		"Oflags": [
 			"-z",
 			"max-page-size=0x1000",
 			"-nostdlib",
 			"-g",
+			"--no-relax",
 			"-T",
 			"kernel.ld"
 		],
@@ -40,35 +44,29 @@
 			"../boot/bootconf.json",
 			"inith.json"
 		],
-	    "MissingSourceFiles": [
-		        "acore.c",
-			"archriscv.c",
-		        "coreboot.c",
-			"devarch.c",
-			"memory.c",
-			"mmu.c",
-			"mp.c",
-			"physalloc.c",
-			"systab.c",
-			"tcore.c",
-			"trap.c"
-		],
 		"SourceFiles": [
 			"assembly.S",
 			"arch.c",
+			"archriscv.c",
 			"asm.c",
 		        "acore.c",
-			"archriscv.c",
+			"backtrace.c",
+			"coreboot.c",
 			"ctype.c",
 			"devarch.c",
 			"main.c",
 			"map.c",
+			"memory.c",
 			"mmu.c",
 			"physalloc.c",
 			"qmalloc.c",
+			"spl.c",
+			"_spl.S",
 			"syscall.c",
 			"systab.c",
 		        "tcore.c",
+		        "trap.c",
+		        "trapentry.S",
 			"uart.c"
 		]
 	}

@@ -20,6 +20,7 @@
 #include "fns.h"
 #include "../port/error.h"
 #include "ureg.h"
+#include "encoding.h"
 
 /* the rules are different for different compilers. We need to define up. */
 // Initialize it to force it into data.
@@ -57,7 +58,7 @@ decref(Ref *r)
 
 void fpuprocrestore(Proc *p)
 {
-	panic("fpuprocrestore");
+	if (0)print("NOT DOING fpuprocrestore");
 }
 
 void
@@ -76,7 +77,7 @@ procrestore(Proc *p)
 void
 fpuprocsave(Proc *p)
 {
-	panic("fpuprocsave");
+	print("fpuprocsave -- NEED TO IMPLEMENT");
 }
 
 /*
@@ -131,8 +132,26 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-/*	if(machp()->NIX.nixtype != NIXAC)
-	halt();*/
+	uint32_t sip = 0;
+	int i;
+	extern uint64_t *mtimecmp;
+	extern uint64_t *mtime;
+	//print("idlehands, mtime is 0x%llx mtimecmp is 0x%llx\n", *mtime, *mtimecmp);
+	//print("spin waiting for an interrupt or until mtimecmp passes mtime. \n");
+	/* toolchain is broken. Again. Puts an sret in for a wfi. Bad idea.
+	if(machp()->NIX.nixtype != NIXAC)
+		__asm__ __volatile__("wfi\n");
+	if (*mtimecmp < *mtime)
+		timerset(0);
+	 */
+	sip = (uint32_t)read_csr(sip);
+	for(i = 0; *mtimecmp < *mtime; i++) {
+		if (sip & 0x666)
+			break;
+		sip = (uint32_t)read_csr(sip);
+	}
+	//print("idlehands, mtime is 0x%llx mtimecmp is 0x%llx\n", *mtime, *mtimecmp);
+	//print("Leaving idlehands. sip is 0x%x, i is %d\n", sip, i);
 }
 
 #if 0
