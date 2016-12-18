@@ -18,9 +18,9 @@
 #include "dat.h"
 #include "fns.h"
 
-#undef DBG
+//#undef DBG
 void msg(char *);
-#define DBG(fmt, ...) msg(fmt)
+//#define DBG msg
 /*
  * Address Space Map.
  * Low duty cycle.
@@ -92,7 +92,7 @@ asmfree(uintmem addr, uintmem size, int type)
 {
 	Asm *np, *pp, **ppp;
 
-	DBG("asmfree: %#P@%#P, type %d\n", size, addr, type);
+	DBG("asmfree: %#p@%#p, type 0x%x\n", size, addr, type);
 	if(size == 0)
 		return 0;
 
@@ -157,7 +157,8 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 	uintmem a, o;
 	Asm *assem, *pp;
 
-	DBG("asmalloc: %#P@%#P, type %d\n", size, addr, type);
+	DBG("asmalloc: %p@%p, type %d\n", size, addr, type);
+//msg("before asmlock\n");
 	lock(&asmlock);
 //msg("after lock\n");
 	for(pp = nil, assem = asmlist; assem != nil; pp = assem, assem = assem->next){
@@ -331,7 +332,7 @@ asmmeminit(void)
 {
 	int i, l;
 	Asm* assem;
-	PTE *pte, *pml4;
+	PTE *pte, *root;
 	uintptr va;
 	uintmem hi, lo, mem, nextmem, pa;
 #ifdef ConfCrap
@@ -342,6 +343,14 @@ asmmeminit(void)
 
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
+	// vmunmapped is the START of unmapped memory (there is none on riscv yet).
+	// it is the END of mapped memory we have not used.
+	// vmunused is the START of mapped memory that is not used and the END
+	// of memory that is used.
+	// This code falls apart if sys->vmend - sys->vmunmapped is 0.
+	// The goal is to map memory not mapped. But it's all mapped.
+	root = UINT2PTR(machp()->MMU.root->va);
+#if 0
 	pa += sys->vmunmapped - sys->vmunused;
 	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, 1, 0);
 	if(mem != pa)
@@ -350,14 +359,14 @@ asmmeminit(void)
 
 	/* assume already 2MiB aligned*/
 	assert(ALIGNED(sys->vmunmapped, 2*MiB));
-	pml4 = UINT2PTR(machp()->MMU.pml4->va);
 	while(sys->vmunmapped < sys->vmend){
-		l = mmuwalk(pml4, sys->vmunmapped, 1, &pte, asmwalkalloc);
+		l = mmuwalk(root, sys->vmunmapped, 1, &pte, asmwalkalloc);
 		DBG("%#p l %d\n", sys->vmunmapped, l);
 		*pte = pa|PteRW|PteP;
 		sys->vmunmapped += 2*MiB;
 		pa += 2*MiB;
 	}
+#endif
 
 #ifdef ConfCrap
 	cx = 0;
@@ -370,7 +379,7 @@ asmmeminit(void)
 			DBG("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
 		}
-		va = KSEG2+assem->addr;
+		va = (uintptr_t)kseg2+assem->addr;
 		DBG("asm: addr %#P end %#P type %d size %P\n",
 			assem->addr, assem->addr+assem->size,
 			assem->type, assem->size);
@@ -389,9 +398,10 @@ asmmeminit(void)
 					continue;
 				/* This page fits entirely within the range. */
 				/* Mark it a usable */
-				if((l = mmuwalk(pml4, va, i, &pte, asmwalkalloc)) < 0)
+				if((l = mmuwalk(root, va, i, &pte, asmwalkalloc)) < 0)
 					panic("asmmeminit 3");
 
+				//print("ASMMEMINIT pte is %p\n", pte);
 				if (assem->type == AsmMEMORY)
 					*pte = mem|PteRW|PteP;
 				else

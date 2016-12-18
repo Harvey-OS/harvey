@@ -25,7 +25,7 @@ cpuiddump(void)
 int64_t
 archhz(void)
 {
-	return 1024*1024*1024ULL;
+	return 1000*1000*1000*2ULL;
 }
 
 int

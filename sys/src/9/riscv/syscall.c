@@ -225,7 +225,7 @@ noerrorsleft(void)
 	}
 }
 
-int printallsyscalls;
+int printallsyscalls = 0;
 
 void
 syscall(unsigned int scallnr, Ureg *ureg)
@@ -233,6 +233,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	// can only handle 6 args right now.
 	uintptr_t a0, a1, a2, a3;
 	uintptr_t a4, a5;
+	if (0 && printallsyscalls)
+		dumpgpr(ureg);
 
 	a0 = ureg->a0;
 	a1 = ureg->a1;
@@ -241,7 +243,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	a4 = ureg->a4;
 	a5 = ureg->a5;
 	Proc *up = externup();
-	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
+	if (1) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
 	uintptr_t	sp;
 	int s;
@@ -249,9 +251,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	Ar0 ar0;
 	static Ar0 zar0;
 
-	panic("test userureg");
-	//if(!userureg(ureg))
-		//panic("syscall: cs %#llx\n", ureg->cs);
+	if(!userureg(ureg))
+		panic("syscall: userureg is false; ip %#llx\n", ureg->ip);
 
 	cycles(&up->kentry);
 
@@ -262,13 +263,14 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
 	sp = ureg->sp;
+	//print("ureg -> sp says %p\n", ureg->sp);
 	startns = stopns = 0;
-	if (0) hi("so far syscall!\n");
+	if (0) print("so far syscall!\n");
 	if (up->pid == 0 || printallsyscalls) {
 		syscallfmt('E', scallnr, nil, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
 			print("E %s\n", up->syscalltrace);
-			free(up->syscalltrace);
+			//free(up->syscalltrace);
 			up->syscalltrace = nil;
 		}
 	}
@@ -292,7 +294,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
-	if (0) hi("more syscall!\n");
+	if (0) print("more syscall!\n");
 	up->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
@@ -309,14 +311,16 @@ syscall(unsigned int scallnr, Ureg *ureg)
 			error(Ebadarg);
 		}
 
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE)){
+			print("check it\n");
 			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		}
 
 		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
 		up->psstate = systab[scallnr].n;
-	if (0) hi("call syscall!\n");
+	//if (1) hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
-	if (0) hi("it returned!\n");
+//	if (1) hi("it returned!\n");
 		poperror();
 	}
 	else{
@@ -341,7 +345,9 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	/*
 	 * Put return value in frame.
 	 */
+	if (0)print("return is %p\n", ar0.p);
 	ureg->a0 = ar0.p;
+	if (0)print("ureg->ip is %p val %p\n", &ureg->ip, ureg->ip);
 
 	if (up->pid == 0 || printallsyscalls) {
 		stopns = todget(nil);
@@ -386,6 +392,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		sched();
 		splhi();
 	}
+	if (0) hi("call kexit\n");
 	kexit(ureg);
 	if (0) hi("done kexit\n");
 }
@@ -437,13 +444,13 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 		panic("misaligned stack in sysexecregs");
 	}
 	sp = (uintptr_t*)(USTKTOP - ssize);
-
+	print("sysexecregs: entry %p sp %p tos %p\n", entry, sp, tos);
 	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
-	//ureg->type = 64;			/* fiction for acid */
-	panic("sysexecregs");
-	//ureg->dx = (uintptr_t)tos;
+	ureg->epc = entry;
+	ureg->a2 = USTKTOP-sizeof(Tos);
+	print("SET ip @ %p to %p\n", &ureg->ip, entry);
 
 	/*
 	 * return the address of kernel/user shared data
@@ -464,7 +471,7 @@ sysrforkchild(Proc* child, Proc* parent)
 	Ureg *cureg;
 // If STACKPAD is 1 things go very bad very quickly.
 // But it is the right value ...
-#define STACKPAD 1 /* for return PC? */
+#define STACKPAD 0 /* for return PC? */
 	/*
 	 * Add STACKPAD*BY2SE to the stack to account for
 	 *  - the return PC
@@ -479,7 +486,10 @@ sysrforkchild(Proc* child, Proc* parent)
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
 	child->insyscall = 0;
-	//iprint("Child SP set tp %p\n", (void *)child->sched.sp);
+	if (0) print("Child SP set to %p\n", (void *)child->sched.sp);
+	if (0) print("NOTE: UP is wrong, ignoreit\n");
+	if (0) dumpgpr(cureg);
+
 
 	fpusysrforkchild(child, parent);
 }

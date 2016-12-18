@@ -5,10 +5,10 @@
 		],
 		"Include": [
 			"core.json",
-			"../port/riscvport.json"
+			"../ip/ip.json",
+			"../port/port.json"
 		],
 		"IncludeSomedayWhenRISCVgetsvirtio": [
-			"../ip/ip.json",
 			"../port/port.json"
 		],
 		"Kernel": {
@@ -27,6 +27,7 @@
 					"cons",
 					"dup",
 					"env",
+				        "ip",
 					"mnt",
 					"mntn",
 					"pipe",
@@ -38,7 +39,7 @@
 					"uart",
 					"ws"
 				],
-				"NoIp": [
+				"Ip": [
 					"tcp",
 					"udp",
 					"ipifc",
@@ -46,13 +47,21 @@
 					"icmp6",
 					"gre"
 				],
+				"Link": [
+					"ethermedium",
+					"loopbackmedium",
+					"netdevmedium"
+				],
 				"NoUart": [
 					"pci"
 				]
 			},
-			"NoRamfiles": {
+		        "#RamFiles": [
+				"boot: /sys/src/9/boot/bootcpu.elf.out"
+			    ],
+			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
-				"boot": "/sys/src/9/boot/bootcpu.elf.out",
+				"boot": "/$ARCH/bin/kiss",
 				"cat": "/$ARCH/bin/cat",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
@@ -65,7 +74,6 @@
 				"ps": "/$ARCH/bin/ps",
 				"ed": "/$ARCH/bin/ed",
 				"rcmain": "/rc/lib/rcmain",
-				"screenconsole": "/$ARCH/bin/aux/screenconsole",
 				"srv": "/$ARCH/bin/srv"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
