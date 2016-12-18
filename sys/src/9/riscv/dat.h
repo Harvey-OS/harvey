@@ -38,7 +38,7 @@ typedef struct Vctl Vctl;
 
 /*
  * Conversion for Ureg to gdb reg. This avoids a lot of nonsense
- * in the outside world. TODO. 
+ * in the outside world. TODO.
  */
 enum regnames {
 	GDB_IP,
@@ -82,6 +82,7 @@ struct Label
 	uintptr_t	sp;
 	uintptr_t	pc;
 	uintptr_t       fp;
+	uintptr_t	x[32];
 };
 
 struct Fxsave {
@@ -168,11 +169,11 @@ struct NIX
  */
 struct MMMU
 {
-	uintptr_t FaultingAddress;
-	Page*	pml4;			/* root for this processor */
+	uintptr_t badaddr;
+	Page*   root;			/* root for this processor */
 	PTE*	pmap;			/* unused as of yet */
 
-	Page	pml4kludge;		/* NIX KLUDGE: we need a page */
+	Page	nixkludge;		/* NIX KLUDGE: we need a page */
 };
 
 /*
@@ -247,6 +248,8 @@ enum {
  *	proc	- syscallentry
  *	stack	- acsyscall
  *	externup - externup()
+ *
+ * riscv uses tp for mach.
  */
 struct Mach
 {
@@ -319,6 +322,8 @@ struct Stackframe
 struct Sys {
 	unsigned char	machstk[MACHSTKSZ];
 
+	Page    root;
+
 	union {
 		Mach	mach;
 		unsigned char	machpage[MACHSZ];
@@ -389,6 +394,7 @@ struct
 extern uintptr_t kseg0;
 
 extern char*rolename[];
+extern void *kseg2;
 
 
 

@@ -123,12 +123,12 @@ acsched(void)
 void
 acmmuswitch(void)
 {
-	extern Page mach0pml4;
+	extern Page mach0root;
 
-	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->MMU.pml4->pa, mach0pml4.pa, sys->machptr[0]->MMU.pml4->pa);
+	DBG("acmmuswitch mpl4 %#p mach0root %#p m0root %#p\n", machp()->MMU.root->pa, mach0root.pa, sys->machptr[0]->MMU.root->pa);
 
 
-	rootput(machp()->MMU.pml4->pa);
+	rootput(machp()->MMU.root->pa);
 }
 
 /*

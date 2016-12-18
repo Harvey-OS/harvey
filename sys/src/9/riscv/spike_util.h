@@ -65,7 +65,7 @@ uintptr_t mcall_query_memory(uintptr_t id, memory_block_info *p);
 uintptr_t mcall_hart_id(void);
 uintptr_t htif_interrupt(uintptr_t mcause, uintptr_t* regs);
 uintptr_t mcall_console_putchar(uint8_t ch);
-void testPrint(void);
+void putchar(void);
 uintptr_t mcall_dev_req(sbi_device_message *m);
 uintptr_t mcall_dev_resp(void);
 uintptr_t mcall_set_timer(unsigned long long when);
