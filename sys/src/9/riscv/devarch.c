@@ -546,7 +546,6 @@ consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
 			panic("keyboard queue alloc failed");
 	}
 	amt = qread(keybq, vbuf, len);
-	print("consoleread: amt is %d\n", amt);
 	return amt;
 }
 
