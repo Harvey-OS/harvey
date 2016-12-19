@@ -9,8 +9,7 @@ if [ $OLD_BUILD == true ]; then
 	build all
 else
 
-	curl -L http://sevki.co/get-build -o util/bldy
-	chmod +x util/bldy
+	(cd $TRAVIS_BUILD_DIR && ./bootstrap.sh)
 
 	if [[  ($CC == "clang-3.8") && ("${TRAVIS_PULL_REQUEST}" = "false" ) ]]; then
 
