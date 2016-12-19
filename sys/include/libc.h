@@ -341,7 +341,7 @@ extern	double	pow10(int);
 extern	int	putenv(const char*, const char*);
 extern	void	qsort(void*, int32_t, int32_t,
 				int (*)(const void*, const void*));
-extern	int	setjmp(jmp_buf);
+extern	int	setjmp(jmp_buf) __attribute__((returns_twice));;
 extern	double	strtod(const char*, char**);
 extern	int32_t	strtol(const char*, char**, int);
 extern	uint32_t	strtoul(const char*, char**, int);
