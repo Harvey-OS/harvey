@@ -3,7 +3,7 @@
 echo Building the build tool...
 
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -u github.com/Harvey-OS/ninep/cmd/ufs
-GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -u github.com/bldy/build/cmd/bldy
+GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -f -u bldy.build/bldy
 GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get harvey/cmd/...
 
 
