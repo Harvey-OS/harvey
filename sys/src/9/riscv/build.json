@@ -67,6 +67,7 @@
 				"echo": "/$ARCH/bin/echo",
 				"factotum": "/$ARCH/bin/auth/factotum",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"longjmp": "/$ARCH/bin/regress/longjmp",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",

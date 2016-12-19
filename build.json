@@ -7,9 +7,9 @@
 			"/sys/src/cmd",
 			"/sys/src/games/games.json",
 			"/acme/build.json",
-			"/sys/src/9/$ARCH",
 			"/sys/src/regress",
-			"/sys/src/regress/fs"
+			"/sys/src/regress/fs",
+			"/sys/src/9/$ARCH"
 		]
 	}
 }
