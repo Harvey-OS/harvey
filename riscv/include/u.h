@@ -25,12 +25,12 @@ typedef int64_t size_t;
 typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
 // This is a guess! Assumes float!
-typedef uintptr		jmp_buf[28]; // for registers.
+typedef uintptr		jmp_buf[64]; // for registers.
 
-#define	JMPBUFSP	13
+#define	JMPBUFSP	1
 #define	JMPBUFPC	0
-#define	JMPBUFARG1	1
-#define	JMPBUFARG2	2
+#define	JMPBUFARG1	13
+#define	JMPBUFARG2	14
 
 #define	JMPBUFDPC	0 // What? 
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
