@@ -4,6 +4,18 @@
 			"/usr/bin/clang": [
 				"-mno-implicit-float"
 			],
+			"/usr/bin/clang-3.4": [
+				"-mno-implicit-float"
+			],
+			"/usr/bin/clang-3.5": [
+				"-mno-implicit-float"
+			],
+			"/usr/bin/clang-3.6": [
+				"-mno-implicit-float"
+			],
+			"/usr/bin/clang-3.7": [
+				"-mno-implicit-float"
+			],
 			"/usr/bin/gcc": [
 				"-Wno-frame-address",
 				"-fno-pie"
