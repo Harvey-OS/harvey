@@ -60,6 +60,7 @@
 				"boot: /sys/src/9/boot/bootcpu.elf.out"
 			    ],
 			"Ramfiles": {
+				"alarm": "/$ARCH/bin/regress/alarm",
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/$ARCH/bin/kiss",
 				"cat": "/$ARCH/bin/cat",
@@ -71,6 +72,7 @@
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
+				"privates": "/$ARCH/bin/regress/privates",
 				"ratrace": "/$ARCH/bin/ratrace",
 				"rc": "/$ARCH/bin/rc",
 				"ps": "/$ARCH/bin/ps",
