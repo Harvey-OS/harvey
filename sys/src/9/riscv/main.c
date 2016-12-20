@@ -602,7 +602,8 @@ void    exit(int _)
 
 void fpunoted(void)
 {
-	panic((char *)__func__);
+	print((char *)__func__);
+	print("NOT DOING IT. IT WILL HURT LATER\n");
 }
 
 void fpunotify(Ureg*_)
