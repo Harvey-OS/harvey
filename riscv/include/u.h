@@ -31,8 +31,11 @@ typedef uintptr		jmp_buf[64]; // for registers.
 #define	JMPBUFPC	0
 #define	JMPBUFARG1	13
 #define	JMPBUFARG2	14
+#define	JMPBUFARG3	15
+#define	JMPBUFARG4	16
 
-#define	JMPBUFDPC	0 // What? 
+// what is this?
+#define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
 
 union FPdbleword

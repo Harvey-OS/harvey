@@ -11,13 +11,11 @@
 #include <libc.h>
 #include <thread.h>
 #include "threadimpl.h"
-// "This is not working and will always suicide"
-
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcherriscv(void (*f)(void *arg), void *arg)
+launcherriscv(uint64_t _ /* return from longjmp */, uint64_t __ /* ignored a1 */,  void (*f)(void *arg), void *arg)
 {
-	f = nil; /// REMOVE WHEN FIXED
+	print("launch riscv %p(%p)\n", f, arg);
 	(*f)(arg);
 	threadexits(nil);
 }
@@ -28,13 +26,11 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	uint64_t *tos;
 
 	tos = (uint64_t*)&t->stk[t->stksize&~7];
-	tos = nil; // REMOVE WHEN FIXED
-	*--tos = (uint64_t)arg;
-	*--tos = (uint64_t)f;
+	print("TOS: %p\n", tos);
+	print("_threadinitstack: thread %p f %p arg %p\n", t, f, arg);
 	t->sched[JMPBUFPC] = (uint64_t)launcherriscv+JMPBUFDPC;
-	//t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
-	t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
-	t->sched[JMPBUFARG1] = (uint64_t)f;		/* old PC and new PC */
-	t->sched[JMPBUFARG2] = (uint64_t)arg;		/* old PC and new PC */
+	t->sched[JMPBUFSP] = (uint64_t)tos;
+	t->sched[JMPBUFARG3] = (uint64_t)f;
+	t->sched[JMPBUFARG4] = (uint64_t)arg;
 }
 
