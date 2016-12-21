@@ -85,6 +85,7 @@ int32_t		devstat(Chan*, unsigned char*, int32_t, Dirtab*, int,
 			       Devgen*);
 Dev*		devtabget(int, int);
 void		devtabinit(void);
+int32_t		mtagsread(Chan*, void*, int32_t, int64_t);
 int32_t		devtabread(Chan*, void*, int32_t, int64_t);
 void		devtabreset(void);
 void		devtabshutdown(void);
