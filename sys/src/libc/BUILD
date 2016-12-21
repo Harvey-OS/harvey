@@ -73,6 +73,7 @@ LIBC_SRCS = [
     "9syscall/pipe.s",
     "9syscall/pread.s",
     "9syscall/pwrite.s",
+    "9syscall/r0.s",
     "9syscall/remove.s",
     "9syscall/rendezvous.s",
     "9syscall/rfork.s",
