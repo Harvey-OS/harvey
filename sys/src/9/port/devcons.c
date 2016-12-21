@@ -382,6 +382,7 @@ enum{
 	Quser,
 	Qzero,
 	Qsyscall,
+	Qmtags,
 	Qdebug,
 };
 
@@ -416,6 +417,7 @@ static Dirtab consdir[]={
 	"user",		{Quser},	0,		0666,
 	"zero",		{Qzero},	0,		0444,
 	"syscall",	{Qsyscall},	0,		0666,
+	"mtags",	{Qmtags},	0,		0666,
 	"debug",	{Qdebug},	0,		0666,
 };
 
@@ -664,6 +666,9 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	case Qdrivers:
 		return devtabread(c, buf, n, off);
+
+	case Qmtags:
+		return mtagsread(c, buf, n, off);
 
 	case Qzero:
 		memset(buf, 0, n);
