@@ -5,14 +5,12 @@
 void
 notejmp(void *vr, jmp_buf j, int ret)
 {
-	/* TODO: 
 	struct Ureg *r = vr;
 
-	r->ax = ret;
+	r->a0 = ret;
 	if(ret == 0)
-		r->ax = 1;
+		r->a0 = 1;
 	r->ip = j[JMPBUFPC];
 	r->sp = j[JMPBUFSP] + 8;
 	noted(NCONT);
-	*/
 }
