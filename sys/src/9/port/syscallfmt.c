@@ -336,7 +336,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		l = va_arg(list, int32_t);
 		vl = va_arg(list, int64_t);
 		if (what == 'E') {
-			fmtprint(&fmt, "%#P %ld %lld", v, l, vl);
+			fmtprint(&fmt, "%#P %ld 0x%llx", v, l, vl);
 		}
 		break;
 	case WRITE:					/* deprecated */
@@ -347,32 +347,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		fmtprint(&fmt, "%d ", i[0]);
 		len = MIN(l, 64);
 		fmtrwdata(&fmt, v, len, " ");
-		fmtprint(&fmt, "%ld", l);
-		if(syscallno == PWRITE){
-			vl = va_arg(list, int64_t);
-			fmtprint(&fmt, " %lld", vl);
-		}
-		break;
-	case ZIOPREAD:
-		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		ul = va_arg(list, usize);
-		vl = va_arg(list, int64_t);
-		fmtprint(&fmt, "%d %#p %d %ld %ulld", i[0], v, i[1], ul, vl);
-		break;
-	case ZIOPWRITE:
-		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		vl = va_arg(list, int64_t);
-		fmtprint(&fmt, "%d %#p %d %ulld", i[0], v, i[1], vl);
-		break;
-	case ZIOFREE:
-		v = va_arg(list, void*);
-		i[1] = va_arg(list, int);
-		fmtprint(&fmt, "%#p %d", v, i[1]);
-	case NIXSYSCALL:
+		fmtprint(&fmt, "%ld 0x%llx", l, vl);
 		break;
 	}
 	if (what == 'E') {
@@ -447,12 +422,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 			fmtprint(&fmt, " %#p/\"\"", v);
 			errstr = up->syserrstr;
 		}
-		fmtprint(&fmt, " %ld", l);
-		if(syscallno == PREAD){
-			vl = va_arg(list, int64_t);
-			fmtprint(&fmt, " %lld", vl);
-		}
-		fmtprint(&fmt, " = %d", ar0->i);
+		fmtprint(&fmt, " %ld 0x%llx = %d", l, vl, ar0->i);
 		break;
 	}
 	fmtprint(&fmt, " %s %#llu %#llu\n", errstr, start, stop);
