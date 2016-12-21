@@ -29,6 +29,14 @@
 
 char* strdup(char *s);
 
+// Functions from devmnt.c
+
+int32_t	mntrdwr(int, Chan*, void*, int32_t, int64_t);
+
+void mntdirfix(uint8_t *dirbuf, Chan *c);
+
+extern char Esbadstat[];
+
 // We use this version string to communicate with QEMU virtio-9P.
 
 #define    VERSION9PU       "9P2000.u"
@@ -45,7 +53,17 @@ char* strdup(char *s);
 
 #define Edonotcall(f) "Function " #f " should not be called for this device"
 
+// This device's dev methods table
+
 extern Dev v9pdevtab;
+
+// A phantom device's dev methods table
+
+extern Dev phdevtab;
+
+// The 'M' device's dev methods table
+
+static Dev *mdevtab;
 
 // Array of defined 9p mounts and their number
 
@@ -103,6 +121,7 @@ static struct v9pmnt
 	int pcuse;					// cache usage counter (entering processes)
 	int pchit;					// cache hits counter
 	int pcmiss;					// cache misses counter
+	uint mounted;				// true if mounted
 } *mounts;
 
 // Find a hold buffer structure by PID. Nil is returned if no process found.
@@ -142,50 +161,9 @@ findtag(char *tag)
 		if(mounts[i].tag && (!strcmp(mounts[i].tag, tag)))
 			return i;
 	}
-print("tag not found: %s\n", tag);
 	return -1;
 }
 
-// Emulate bindmount for each mount tag. We attach to devmnt directly, without
-// the user calling mount. The logic of devmnt properly sequences write and read
-// requests, but this cannot be expected from any other client. So 9p virtqueues
-// are not generally accessible, they operate under the hood.
-
-static void
-domountvq(int tidx)
-{
-	struct {
-		Chan    *chan;
-		Chan    *authchan;
-		char    *spec;
-		int     flags;
-	} bogus;
-	int dc = 'M';
-	Dev *dev = devtabget(dc, 0);
-	if(dev == nil)
-		error("no #M device found");
-	bogus.spec = mounts[tidx].tag;
-	bogus.flags = MCACHE;
-	bogus.authchan = nil;
-	bogus.chan = newchan();
-	bogus.chan->dev = &v9pdevtab;
-	bogus.chan->path = newpath(bogus.spec);
-	Chan *c0 = dev->attach((char *)&bogus);
-	Chan *c1 = namec(strdup("/mnt/xxx"), Amount, 0, 0);
-	cmount(&c0, c1, MAFTER, bogus.spec); 
-}
-
-static void 
-mntvq(void)
-{
-	if(initdone)
-		return;
-	initdone = 1;
-	for(int i = 0; i < nv9p; i++) {
-		print("auto mount %d\n", i);
-		domountvq(i);
-	}
-}
 
 static void
 v9pinit(void)
@@ -193,6 +171,11 @@ v9pinit(void)
 	uint32_t nvdev;
 
 	print("virtio-9p initializing\n");
+	mdevtab = devtabget('M', 1);
+	if(mdevtab == nil) {
+		print("no #M device found, cannot initialize virtio-9p");
+		return;
+	}
 	nvdev = getvdevnum();
 	if(nvdev <= 0)
 		return;
@@ -270,7 +253,7 @@ do_request(int gdescr, int tidx, void *inbuf, int32_t inlen, void *outbuf, int32
 // applies based on the extracted message type.
 
 static int32_t
-v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
+phwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
 	Proc *up = externup();
 	int tidx = findtag(chanpath(c));
@@ -328,49 +311,81 @@ v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
 	pm->pidch[up->pid & PIDCMASK].pid = up->pid;
 	pm->pcuse++;
 	unlock(&pm->pclock);
-print("write %s msg %d %d\n", chanpath(c), mtype, lnva);
 	return n;
 }
 
-static int
-v9pgen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
+// Override the devmnt's read method. It is necessary to fix the incorrectly packed
+// stat structures when reading from a directory.
+
+static int32_t
+v9pread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	return -1;
+	uint8_t *p, *e;
+	int nc, cache, isdir;
+	usize dirlen;
+
+	isdir = 0;
+	cache = c->flag & CCACHE;
+	if(c->qid.type & QTDIR) {
+		cache = 0;
+		isdir = 1;
+	}
+
+	p = buf;
+	if(cache) {
+		nc = mfcread(c, buf, n, off);
+		if(nc > 0) {
+			n -= nc;
+			if(n == 0)
+				return nc;
+			p += nc;
+			off += nc;
+		}
+		n = mntrdwr(Tread, c, p, n, off);
+		mfcupdate(c, p, n, off);
+		return n + nc;
+	}
+
+	n = mntrdwr(Tread, c, buf, n, off);
+	if(isdir) {
+		uint8_t *nbuf = malloc(n);
+		if(nbuf == nil)
+			error(Enomem);
+		uint8_t *xnbuf = nbuf;
+		for(e = &p[n]; p+BIT16SZ < e; p += dirlen){
+			dirlen = BIT16SZ+GBIT16(p);
+			if(p+dirlen > e)
+				break;
+			uint8_t *pn = p + 41;
+			uint lstrs = 0;
+			for(int i = 0; i < 4; i++) {
+				int ns = GBIT16(pn);
+				lstrs += ns + 1;
+				pn += ns + BIT16SZ;
+			}
+			{
+				char strs[lstrs];
+				Dir d;
+				convM2D(p, dirlen, &d, strs);
+				d.uid = eve;
+				d.gid = eve;
+				d.muid = eve;
+				uint dms = convD2M(&d, xnbuf, dirlen);
+				validstat(xnbuf, dms);
+				mntdirfix(xnbuf, c);
+				xnbuf = xnbuf + dms;
+			}
+		}
+		if(p != e)
+			error(Esbadstat);
+		memmove(buf, nbuf, (xnbuf - nbuf));
+		n = xnbuf - nbuf;
+	}
+	return n;
 }
 
 
-int
-statcheckx(uint8_t *buf, uint nbuf)
-{
-        uint8_t *ebuf;
-        int i;
-
-        ebuf = buf + nbuf;
-
-print("nbuf %d STATFIXLEN %d BIT16SZ + GBIT16(buf) %d\n", nbuf, STATFIXLEN, BIT16SZ + GBIT16(buf));
-
-        if(nbuf < STATFIXLEN || nbuf != BIT16SZ + GBIT16(buf))
-                {print("x1\n");return -1;}
-
-        buf += STATFIXLEN - 4 * BIT16SZ;
-
-
-        for(i = 0; i < 4; i++){
-                if(buf + BIT16SZ > ebuf)
-					{print("x2\n");return -1;}
-                buf += BIT16SZ + GBIT16(buf);
-        }
-
-print("buf %X ebuf %X\n", buf, ebuf);
-
-        if(buf != ebuf)
-                {print("x3\n");return -1;}
-
-        return 0;
-}
-
-
-// We expect only 9p messages be received, and only for a non-empty chan path (mount tag).
+// We expect only 9p messages to be received.
 // Some messages need massaging (like Rversion because QEMU does not support vanilla 9P2000
 // and we have to cheat here about the protocol version). In such case some additional logic
 // applies based on the extracted message type. The function checks for a held write buffer,
@@ -378,10 +393,8 @@ print("buf %X ebuf %X\n", buf, ebuf);
 // 4 bytes of the message in some cases.
 
 static int32_t
-v9pread(Chan *c, void *va, int32_t n, int64_t offset)
+phread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	if(!strcmp(chanpath(c), "#9"))
-		return devdirread(c, va, n, (Dirtab *)0, 0L, v9pgen);
 	Proc *up = externup();
 	int tidx = findtag(chanpath(c));
 	if(tidx < 0 || tidx >= nv9p)
@@ -417,79 +430,217 @@ v9pread(Chan *c, void *va, int32_t n, int64_t offset)
 		uint nbuf = GBIT16(msg + 9);
 		uint8_t *buf = msg + 9;
 		Dir d;
-		char strs[1024];
-		convM2D(buf, nbuf, &d, strs);
-		d.uid = eve;
-		d.gid = eve;
-		d.muid = eve;
-		uint dms = convD2M(&d, buf, nbuf);
-		PBIT16(msg + 7, dms);
-		mlen = 9 + dms;
-		PBIT32(msg, mlen);
+		uint8_t *pn = buf + 41;
+		uint lstrs = 0;
+		for(int i = 0; i < 4; i++) {
+			int ns = GBIT16(pn);
+			lstrs += ns + 1;
+			pn += ns + BIT16SZ;
+		}
+		{
+			char strs[lstrs];
+			convM2D(buf, nbuf, &d, strs);
+			d.uid = eve;
+			d.gid = eve;
+			d.muid = eve;
+			uint dms = convD2M(&d, buf, nbuf);
+			PBIT16(msg + 7, dms);
+			mlen = 9 + dms;
+			PBIT32(msg, mlen);
+		}
 	default:
 		;
 	}
-print("read %s msg %d %d\n", chanpath(c), mtype, mlen);
 	return mlen;
 }
 
-static int
-v9pversion(int tidx)
-{
-	error(Edonotcall(version));
-	return 0;
-}
-
-// First attach of #9 will force mounting of all defined tags with devmnt. It cannot be done in devinit
-// because error() called in a kernel process without user context causes double fault and kernel crash.
-// So, to have the host shares actually mounted one has to issue something like ls '#9'.
+// Use a command like "mount [-c] -d '#9' /dev/null /mount/point tag".
+// It is "tag" that matters: it should be same as one of the mount tags
+// provided by the host. The server file name may be any existing file name.
+// It will not be used, cf. "mount none" in Linux. Use "-d '#9'" to use
+// proper mount device methods.
 
 static Chan*
 v9pattach(char *spec)
 {
-	mntvq();
-	if(strlen(spec) == 0)
-		return devattach(v9pdevtab.dc, "");
-print("stray attach %s\n", spec);
-	error(Edonotcall(attach));
-	return nil;
+	struct bogus{
+		Chan	*chan;
+		Chan	*authchan;
+		char	*spec;
+		int	flags;
+	}bogus;
+	bogus = *((struct bogus *)spec);
+	int tidx = findtag(bogus.spec);
+	if(tidx < 0)
+		error("tag does not exist");
+	bogus.authchan = nil;
+	Chan *c = bogus.chan;
+	c->dev = &phdevtab;
+	c->path = newpath(bogus.spec);
+	Chan *mc = mdevtab->attach((char *)&bogus);
+	mc->dev = &v9pdevtab;
+	mounts[tidx].mounted = 1;
+	return mc;
 }
 
 static Chan*
 v9popen(Chan *c, int omode)
 {
-	if(!strcmp(chanpath(c), "#9"))
-		return devopen(c, omode, (Dirtab*)0, 0, v9pgen);
-	error(Edonotcall(open));
-	return nil;
+	return mdevtab->open(c, omode);
 }
 
 static Walkqid*
 v9pwalk(Chan* c, Chan *nc, char** name, int nname)
 {
-	if(!strcmp(chanpath(c), "#9"))
-		return devwalk(c, nc, name, nname, (Dirtab *)0, 0, v9pgen);
-print("walk %s\n", chanpath(c));
-	error(Edonotcall(walk));
-	return nil;
+	return mdevtab->walk(c, nc, name, nname);
 }
 
 static int32_t
 v9pstat(Chan* c, uint8_t* dp, int32_t n)
 {
-	if(!strcmp(chanpath(c), "#9"))
-		return devstat(c, dp, n, (Dirtab *)0, 0L, v9pgen);
-	error(Edonotcall(stat));
-	return 0;
+	return mdevtab->stat(c, dp, n);
 }
 
 static void
 v9pclose(Chan* c)
 {
-	if(!strcmp(chanpath(c), "#9"))
-		return;
-	error(Edonotcall(close));
+	int tidx = findtag(chanpath(c));
+	if(tidx >= 0 && tidx < nv9p)
+		mounts[tidx].mounted = 0;
+	mdevtab->close(c);
 }
+
+static void
+v9pcreate(Chan *c, char *name, int omode, int perm)
+{
+	mdevtab->create(c, name, omode, perm);
+}
+
+static void
+v9premove(Chan *c)
+{
+	mdevtab->remove(c);
+}
+
+static int32_t
+v9pwstat(Chan *c, uint8_t *dp, int32_t n)
+{
+	return mdevtab->wstat(c, dp, n);
+}
+
+static int32_t
+v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
+{
+	return mdevtab->write(c, va, n, offset);
+}
+
+
+// Phantom device. It is used only for read/write operations. It is not registered in the
+// global table or devices, and is not addressable in any other way. It is only needed to
+// pass the reference to the read/write methods to the mount driver. 
+
+static Chan*
+phattach(char *spec)
+{
+	error(Edonotcall(__FUNCTION__));
+	return nil;
+}
+
+static Walkqid*
+phwalk(Chan* c, Chan *nc, char** name, int nname)
+{
+	error(Edonotcall(__FUNCTION__));
+	return nil;
+}
+
+static int32_t
+phstat(Chan* c, uint8_t* dp, int32_t n)
+{
+	error(Edonotcall(__FUNCTION__));
+	return -1;
+}
+
+static int32_t
+phwstat(Chan *c, uint8_t *dp, int32_t n)
+{
+	error(Edonotcall(__FUNCTION__));
+	return -1;
+}
+
+static Chan*
+phopen(Chan *c, int omode)
+{
+	error(Edonotcall(__FUNCTION__));
+	return nil;
+}
+
+static void
+phclose(Chan* c)
+{
+	error(Edonotcall(__FUNCTION__));
+}
+
+static void
+phcreate(Chan *c, char *name, int omode, int perm)
+{
+	error(Edonotcall(__FUNCTION__));
+}
+
+static void
+phremove(Chan *c)
+{
+	error(Edonotcall(__FUNCTION__));
+}
+
+// Read mount tags information as tag:version:msize:pcuse:pchit:pcmiss for mounted tags, and
+// tag:- for non-mounted.
+
+int32_t
+mtagsread(Chan* c, void* buf, int32_t n, int64_t off)
+{
+	Proc *up = externup();
+	int i;
+	char *alloc, *e, *p;
+	alloc = malloc(READSTR);
+	if(alloc == nil)
+		error(Enomem);
+	p = alloc;
+	e = p + READSTR;
+	for(i = 0; i < nv9p; i++) {
+		p = mounts[i].mounted?seprint(p, e, "%s:%s:%d:%d:%d\n", mounts[i].tag, mounts[i].version, mounts[i].msize, mounts[i].pcuse, mounts[i].pchit, mounts[i].pcmiss):
+							  seprint(p, e, "%s:-\n", mounts[i].tag);
+	}
+	if(waserror()) {
+		free(alloc);
+		nexterror();
+	}
+	n = readstr(off, buf, n, alloc);
+	free(alloc);
+	poperror();
+	return n;
+}
+
+Dev phdevtab = {
+	.dc = 2151,			/* 1/9 */
+	.name = "9phantom",
+	
+	.reset = devreset,
+	.init = devinit,
+	.shutdown = devshutdown,
+	.attach = phattach,
+	.walk = phwalk,
+	.stat = phstat,
+	.open = phopen,
+	.create = phcreate,
+	.close = phclose,
+	.read = phread,
+	.bread = devbread,
+	.write = phwrite,
+	.bwrite = devbwrite,
+	.remove = phremove,
+	.wstat = phwstat,
+};
+
 
 Dev v9pdevtab = {
 	.dc = '9',
@@ -502,12 +653,12 @@ Dev v9pdevtab = {
 	.walk = v9pwalk,
 	.stat = v9pstat,
 	.open = v9popen,
-	.create = devcreate,
+	.create = v9pcreate,
 	.close = v9pclose,
 	.read = v9pread,
 	.bread = devbread,
 	.write = v9pwrite,
 	.bwrite = devbwrite,
-	.remove = devremove,
-	.wstat = devwstat,
+	.remove = v9premove,
+	.wstat = v9pwstat,
 };

@@ -177,8 +177,8 @@ devclone(Chan *c)
 	Chan *nc;
 
 	if(c->flag & COPEN){
-		panic("devclone: file of type %C already open\n",
-			c->dev != nil? c->dev->dc: -1);
+		panic("devclone: file of type %C %s already open\n",
+			c->dev != nil? c->dev->dc: -1, chanpath(c));
 	}
 
 	nc = newchan();

@@ -14,6 +14,8 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+int checkdc(int dc);
+
 enum
 {
 	PATHSLOP	= 20,
@@ -1284,7 +1286,7 @@ namec(char *aname, int amode, int omode, int perm)
 		 */
 		n = chartorune(&r, up->genbuf+1)+1;
 		/* actually / is caught by parsing earlier */
-		if(utfrune("M", r))
+		if(checkdc(r))
 			error(Enoattach);
 		if(up->pgrp->noattach && utfrune("|decp", r)==nil)
 			error(Enoattach);
