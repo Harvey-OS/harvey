@@ -710,7 +710,6 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	}
 	if(buf)
 		free(buf);
-
 	if(p != e)
 		error("oops in mountfix");
 
@@ -1109,9 +1108,15 @@ syschdir(Ar0* ar0, ...)
 
 static int dcok[] =  {
 	'M',
-	'N'
+	'N',
+	'9'
 };
-static int checkdc(int dc)
+
+/* to be used in chan.c to disallow attach to these devices
+ */
+
+int 
+checkdc(int dc)
 {
 	int i;
 	/* we check for non-zero in case somebody ever puts a ,
