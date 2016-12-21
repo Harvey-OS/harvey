@@ -72,6 +72,7 @@
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
+				"pipering": "/$ARCH/bin/regress/pipering",
 				"privates": "/$ARCH/bin/regress/privates",
 				"ratrace": "/$ARCH/bin/ratrace",
 				"rc": "/$ARCH/bin/rc",
