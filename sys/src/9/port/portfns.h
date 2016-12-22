@@ -61,6 +61,7 @@ void		copypage(Page*, Page*);
 void		cunmount(Chan*, Chan*);
 Segment*	data2txt(Segment*);
 uintptr_t		dbgpc(Proc*);
+int 		checkdc(int dc);
 int		decrypt(void*, void*, int);
 void		delay(int);
 Proc*		dequeueproc(Sched*, Schedq*, Proc*);
