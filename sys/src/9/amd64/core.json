@@ -103,6 +103,7 @@
 			"archamd64.c",
 			"asm.c",
 			"backtrace.c",
+			"../port/dev9p.c",
 			"../port/devbridge.c",
 		        "coreboot.c",
 			"ctype.c",

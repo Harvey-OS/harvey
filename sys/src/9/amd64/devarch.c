@@ -555,6 +555,7 @@ archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("numcores", 0444, numcoresread, nil);
+	addarchfile("mtags", 0444, mtagsread, nil);
 }
 
 void
