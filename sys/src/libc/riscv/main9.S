@@ -15,8 +15,10 @@ _main:
 	li      a3, 16
 	lui     a5,%hi(_nprivates)
 	sd      a3,%lo(_nprivates)(a5)
-	j main
+	call main
 	addi    sp, sp, 128
 ////        auipc   gp,0xfffff
 //        addi    gp,gp,_gp
+	mv	a0, x0
+	j exits
 	ret
