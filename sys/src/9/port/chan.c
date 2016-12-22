@@ -14,8 +14,6 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-int checkdc(int dc);
-
 enum
 {
 	PATHSLOP	= 20,
