@@ -13,6 +13,8 @@
 		        "bindtest.c",
 			"chdir.c",
 			"conswrite.c",
+			"cow.c",
+			"empty.c",
 			"execl.c",
 			"fdmux.c",
 			"float.c",
