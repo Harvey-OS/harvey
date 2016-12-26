@@ -81,7 +81,10 @@ uint64_t pte_create(uintptr_t ppn, int prot, int user)
 void
 rootput(uintptr_t root)
 {
+	Proc *up = externup();
 	uintptr_t ptbr = root >> RISCV_PGSHIFT;
+
+	if (0) print("rootput %p pid %d\n", root, up ? up->pid : -1);
 	write_csr(sptbr, ptbr);
 
 }
@@ -116,8 +119,10 @@ mmuptpfree(Proc* proc, int clear)
 	PTE *pte;
 	Page **last, *page;
 
-	for(l = 1; l < 4; l++){
+	if (0) print("MMUPTPFREE: proc %p, pid %d\n", proc, proc->pid);
+	for(l = 1; l < 3; l++){
 		last = &proc->MMU.mmuptp[l];
+		if (0) print("%s: level %d: last is %p\n", __func__, l, *last);
 		if(*last == nil)
 			continue;
 		for(page = *last; page != nil; page = page->next){
@@ -175,7 +180,7 @@ dumpmmu(Proc *p)
 	int i;
 	Page *pg;
 
-	print("proc %#p\n", p);
+	print("proc %#p, pid %d\n", p, p->pid);
 	for(i = 3; i > 0; i--){
 		print("mmuptp[%d]:\n", i);
 		for(pg = p->MMU.mmuptp[i]; pg != nil; pg = pg->next)
@@ -184,7 +189,6 @@ dumpmmu(Proc *p)
 				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
 	}
 	print("root %#llx\n", machp()->MMU.root->pa);
-	if(0)dumpptepg(4, machp()->MMU.root->pa);
 }
 
 void
@@ -243,12 +247,12 @@ mmuptpalloc(void)
 	unlock(&mmuptpfreelist.l);
 
 	if((page = malloc(sizeof(Page))) == nil){
-		print("mmuptpalloc Page\n");
+		if (0) print("mmuptpalloc Page\n");
 
 		return nil;
 	}
 	if((va = mallocalign(PTSZ, PTSZ, 0, 0)) == nil){
-		print("mmuptpalloc va\n");
+		if (0) print("mmuptpalloc va\n");
 		free(page);
 
 		return nil;
@@ -283,7 +287,7 @@ mmuswitch(Proc* proc)
 
 	/* daddr is the number of user PTEs in use in the root. */
 	if(machp()->MMU.root->daddr){
-		print("memsg(%p, 0, %d\n", UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
+		if (0) print("MMUSWITCH: memset(%p, 0, %d\n", UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
 		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
 		machp()->MMU.root->daddr = 0;
 	}
@@ -295,6 +299,7 @@ mmuswitch(Proc* proc)
 	 * that we point to page table pages on level down.  Also, these are
 	 * explicitly user level pages, so PteU is set. */
 	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
+		if (0) print("MMUSWITCH: mmuptp[3]? page->pa is %p\n", page->pa);
 		pte[page->daddr] = PPN(page->pa)|PteU|PteP;
 		if(page->daddr >= machp()->MMU.root->daddr)
 			machp()->MMU.root->daddr = page->daddr+1;
@@ -465,9 +470,19 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	Mpl pl;
 	uintmem pa, ppage;
 	char buf[80];
+	uint64_t pteattr = 0;
+
+	/* clear attributes base on attr. */
+	if (attr & PTEVALID) {
+		pteattr = PTE_V | PTE_R | PTE_X;
+		if (attr & PTENOEXEC)
+			pteattr &= ~PTE_X;
+		if (attr & PTEWRITE)
+			pteattr |= PTE_W;
+	}
 
 	if (DBGFLG) {
-		print("mmuput: %p\n", va);
+		print("mmuput: va %p, pa %p, attr 0x%x\n", va, pg->pa, attr);
 		dumpmmuwalk(va);
 		print("now try the put");
 	}
@@ -498,7 +513,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		mmuptpcheck(up);
 	user = (va < KZERO);
 	x = PTLX(va, 2);
-	if (0) print("user is %d, index for %p is 0x%x, ", user, va, x);
+	if (1) print("user is %d, index for %p is 0x%x, ", user, va, x);
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 	pte += x;
@@ -564,7 +579,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		switch(pgsz){
 		case 2*MiB:
 		case 1*GiB:
-			*pte |= attr | PteFinal | PteP | 0x1f;
+			*pte |= pteattr | PteFinal | PteP;
 			if (DBGFLG) print("\tUSER PAGE pte %p val 0x%llx\n", pte, *pte);
 			break;
 		default:
@@ -778,16 +793,13 @@ mmuinit(void)
 	 * This is set up here so meminit can map appropriately.
 	 */
 	o = sys->pmstart;
-print("sys->pmstart is %p\n", o);
 	sz = ROUNDUP(o, 4*MiB) - o;
-print("Size is 0x%x\n", sz);
 	pa = asmalloc(0, sz, 1, 0);
 	if(pa != o)
 		panic("mmuinit: pa %#llx memstart %#llx\n", pa, o);
 	sys->pmstart += sz;
 
 	sys->vmstart = KSEG0;
-print("Going to set vmunused to %p + 0x%x\n", sys->vmstart, ROUNDUP(o, 4*KiB));
 	/* more issues with arithmetic since physmem is at 80000000 */
 	o &= 0x7fffffff;
 	sys->vmunused = sys->vmstart + ROUNDUP(o, 4*KiB);
