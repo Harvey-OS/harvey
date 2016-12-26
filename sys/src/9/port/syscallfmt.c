@@ -315,6 +315,11 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
+	case RFORK:
+		if(ar0->v == (void*)-1)
+			errstr = up->syserrstr;
+		fmtprint(&fmt, " = %d", ar0->v);
+		break;
 	case AWAIT:
 		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
