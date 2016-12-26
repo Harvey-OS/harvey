@@ -406,6 +406,11 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			errstr = up->errstr;
 		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
+	case RFORK:
+		if(ar0->v == (void*)-1)
+			errstr = up->syserrstr;
+		fmtprint(&fmt, " = %d", ar0->v);
+		break;
 	case AWAIT:
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
