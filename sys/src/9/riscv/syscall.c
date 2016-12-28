@@ -312,7 +312,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		}
 
 		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE)){
-			print("check it\n");
+			//print("check it\n");
 			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
 		}
 
