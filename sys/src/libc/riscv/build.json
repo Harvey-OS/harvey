@@ -4,7 +4,6 @@
 	    "$ARCH/notejmp.c",
 	    "$ARCH/argv0.c",
 	    "$ARCH/atomic.S",
-	    "port/getcallerpc.c",
 	    "port/getcallstack.c",
 	    "$ARCH/gettls.S",
 	    "$ARCH/main9.S",
