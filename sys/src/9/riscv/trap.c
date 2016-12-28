@@ -429,14 +429,17 @@ _trap(Ureg *ureg)
 	 */
 	switch(ureg->cause){
 	case CAUSE_FAULT_FETCH:
+		if (0) print("FETCH FAULT %p\n", ureg->ip);
 		ureg->ftype = FT_EXEC;
 		machp()->MMU.badaddr = ureg->badaddr;
 		break;
 	case CAUSE_FAULT_LOAD:
+		if (0) print("LOAD FAULT %p\n", ureg->ip);
 		ureg->ftype = FT_READ;
 		machp()->MMU.badaddr = ureg->badaddr;
 		break;
 	case CAUSE_FAULT_STORE:
+		if (0) print("STORE FAULT %p\n", ureg->ip);
 		ureg->ftype = FT_WRITE;
 		machp()->MMU.badaddr = ureg->badaddr;
 		break;
@@ -597,7 +600,6 @@ panic("UNK\n");
 	if(user){
 		if(up && up->procctl || up->nnote)
 			notify(ureg);
-		print("K");
 		kexit(ureg);
 	}
 //print("ALL DONE TRAP\n");
@@ -611,8 +613,8 @@ dumpgpr(Ureg* ureg)
 {
 	Proc *up = externup();
 	if(up != nil)
-		print("cpu%d: registers for %s %d\n",
-			machp()->machno, up->text, up->pid);
+		print("cpu%d: ureg %p, registers for %s %d\n",
+			machp()->machno, ureg, up->text, up->pid);
 	else
 		print("cpu%d: registers for kernel\n", machp()->machno);
 
