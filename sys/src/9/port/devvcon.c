@@ -59,7 +59,11 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 		error("virtcon: queue low");
 		return -1;
 	}
-	uint8_t buf[n];
+	uint8_t *buf = malloc(n);
+	if(buf==nil) {
+		error("devvcon: no memory to allocate the exchange buffer");
+		return -1;
+	}
 	if(qidx) {
 		memmove(buf, va, n);
 	}
@@ -73,6 +77,7 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 		memmove(va, buf, n);
 	}
 	reldescr(vq, 1, descr);
+	free(buf);
 	return (rc >= 0)?n:rc;
 }
 
@@ -103,7 +108,7 @@ vcongen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		}
 		if(s >= nvcon)
 			return -1;
-		snprint(up->genbuf, sizeof up->genbuf, "vcons%d", s);
+		snprint(up->genbuf, sizeof up->genbuf, vcons[s]->devname);
 		q = (Qid) {QID(s, Qvcpipe), 0, 0};
 		devdir(c, q, up->genbuf, 0, eve, 0666, dp);
 		return 1;
