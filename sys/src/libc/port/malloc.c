@@ -193,7 +193,7 @@ ppanic(Pool *p, char *fmt, ...)
 
 /* tracing */
 enum {
-	Npadlong	= 2,
+	Npadlong	= 8,
 	MallocOffset = 0,
 	ReallocOffset = 1
 };
