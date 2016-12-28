@@ -607,6 +607,9 @@ timerset(uint64_t x)
 	extern uint64_t *mtime;
 	uint64_t now;
 	int64_t delta;
+	// bust is the number of times that we are called
+	// with a delta < 0
+	static uint8_t bust;
 
 	now = rdtsc();
 	//print("now 0x%llx timerset to 0x%llx\n", now , x);
@@ -617,7 +620,8 @@ timerset(uint64_t x)
 	//print("delta is %llx\n", delta);
 	delta /= 200;
 	if (delta < 1) {
-		print("BUST!\n");
+		if (++bust == 0)
+			print("timerset: delta was < 1 256 times\n");
 		delta = 10 /* one microsecond */ * 1000 /* one millisecond */ ;
 	}
 	//print("adjest x to timer ticks, divide by 500 ... 0x%llx %llx %llx \n", *mtime , delta, *mtime + delta);
