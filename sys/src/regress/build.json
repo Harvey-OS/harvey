@@ -21,6 +21,7 @@
 			"fmt.c",
 			"fork.c",
 			"frexp.c",
+			"getcallerpc.c",
 			"iphash.c",
 			"hcube.c",
 			"lockdeath.c",
