@@ -121,18 +121,7 @@ igfxblank(VGAscr *scr, int blank)
 		off = 0xC7204;
 		break;
 	}
-
-	/* toggle PP_CONTROL backlight & power state */
-	if(blank)
-		scr->mmio[off/4] &= ~0x5;
-	else
-		scr->mmio[off/4] |= 0x5;
-}
-
-static void
-igfxdrawinit(VGAscr *scr)
-{
-	scr->blank = igfxblank;
+	scr->softscreen = 1;
 }
 
 VGAdev vgaigfxdev = {
