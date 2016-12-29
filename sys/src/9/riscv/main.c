@@ -69,8 +69,9 @@ uintptr_t rtc;
 uint32_t kerndate;
 int maxcores = 1;
 int nosmp = 1;
-uint64_t mtimepa, mtimecmppa;
+uint64_t mtimepa, mtimecmppa, uartpa;
 uint64_t *mtime, *mtimecmp;
+uint64_t *uart;
 /*
  * kseg2 is the base of the virtual address space.
  * it is not a constant as in amd64; in riscv there are many possible
@@ -167,11 +168,15 @@ print("1\n");
 	kproc("alarm", alarmkproc, 0);
 	//nixprepage(-1);
 	print("TOUSER: kstack is %p\n", up->kstack);
+
 	//debugtouser((void *)UTZERO);
 	memset(&u, 0, sizeof(u));
 	u.ip = (uintptr_t)init_main;
 	u.sp = sp;
 	u.a2 = USTKTOP-sizeof(Tos);
+	print("sstatus is 0x%x, sip is 0x%x, sie is 0x%x\n", read_csr(sstatus),
+			read_csr(sip), read_csr(sie));
+	print("*mtimecmp is 0x%llx *mtime is 0x%llx\n", *mtimecmp, *mtime);
 	touser(&u);
 }
 
@@ -398,12 +403,16 @@ check(void)
 
 }
 
+// Note: any message you try to print before the uart is determined from
+// the configstring will go nowhere. You can hack around if you hit
+// serious problems by, e.g., setting uart to 0xffffffff40001000
+// in this function. Hence, I've left some messages in that won't
+// print as an example of debugging.
 void bsp(void *stack, uintptr_t _configstring)
 {
+	msg("BSP starting\n");
 	kseg2 = findKSeg2();
-	msg("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
 	configstring = KADDR(_configstring);
-	msg(configstring);
 	Mach *mach = machp();
 	if (mach != &m0)
 		die("MACH NOT MATCH");
@@ -446,15 +455,7 @@ void bsp(void *stack, uintptr_t _configstring)
 
 	msg(configstring);
 	fmtinit();
-	print("\nHarvey\n");
-print("KADDR OF (uintptr_t) 0x40001000 is %p\n", KADDR((uintptr_t) 0x40001000));
 
-	/* you're going to love this. Print does not print the whole
-	 * string. msg does. Bug. */
-	print("Config string:%p '%s'\n", configstring, configstring);
-	msg("Config string via msg\n");
-	msg(configstring);
-	msg("\n");
 	mach->perf.period = 1;
 	if((hz = archhz()) != 0ll){
 		mach->cpuhz = hz;
@@ -463,7 +464,6 @@ print("KADDR OF (uintptr_t) 0x40001000 is %p\n", KADDR((uintptr_t) 0x40001000));
 		mach->cpumhz = hz/1000000ll;
 	}
 
-	print("print a number like 5 %d\n", 5);
 	/*
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via machp()->pml4->pa.
@@ -491,6 +491,16 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 		free(v);
 		msg("free ok\n");
 	}
+
+	query_uint(configstring, "uart{addr", (uintptr_t*)&uartpa);
+	uart = KADDR(uartpa);
+	print("\nHarvey\n");
+	/* you're going to love this. Print does not print the whole
+	 * string. msg does. Bug. */
+	print("Config string:%p '%s'\n", configstring, configstring);
+	msg("Config string via msg\n");
+	msg(configstring);
+	msg("\n");
 
 	query_rtc(configstring, &rtc);
 	print("rtc: %p\n", rtc);
