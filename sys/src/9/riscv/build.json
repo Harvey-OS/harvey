@@ -69,6 +69,7 @@
 				"echo": "/$ARCH/bin/echo",
 				"empty": "/$ARCH/bin/regress/empty",
 				"factotum": "/$ARCH/bin/auth/factotum",
+				"getcallerpc": "/$ARCH/bin/regress/getcallerpc",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
 				"longjmp": "/$ARCH/bin/regress/longjmp",
 				"ls": "/$ARCH/bin/ls",
