@@ -103,6 +103,7 @@ igfxenable(VGAscr* scr)
 		if(scr->storage != 0)
 			scr->storage -= PGROUND(64*64*4);
 	}
+	scr->softscreen = 1;
 }
 
 VGAdev vgaigfxdev = {
