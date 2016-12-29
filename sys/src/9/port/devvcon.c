@@ -53,6 +53,9 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 {
 	uint16_t descr[1];
 	Virtq *vq = d->vqs[qidx];
+	if(vq == nil) {
+		error("virtcon: no virtqueue");
+	}
 	int nd = getdescr(vq, 1, descr);
 	if(nd < 1)
 	{
