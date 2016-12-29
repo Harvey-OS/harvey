@@ -513,7 +513,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		mmuptpcheck(up);
 	user = (va < KZERO);
 	x = PTLX(va, 2);
-	if (1) print("user is %d, index for %p is 0x%x, ", user, va, x);
+	if (DBGFLG) print("user is %d, index for %p is 0x%x, ", user, va, x);
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 	pte += x;
