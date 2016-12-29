@@ -763,8 +763,8 @@ mmuinit(void)
 	if((l = mmuwalk(root, KSEG0, 2, &KzeroPTE, nil)) < 0) {
 		panic("Can't walk to PtePML2");
 	}
-	print("KzeroPTE is 0x%llx\n", KzeroPTE);
-	int PTLevels = (*KzeroPTE>>9)&3;
+	print("KzeroPTE is 0x%llx, *KzeroPTE is 0x%llx\n", KzeroPTE, *KzeroPTE);
+	int PTLevels = (*KzeroPTE>>7)&3;
 	switch(PTLevels) {
 	default:
 		panic("unsupported number of page table levels: %d", PTLevels);
