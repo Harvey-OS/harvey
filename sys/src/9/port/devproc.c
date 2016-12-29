@@ -39,6 +39,7 @@ enum
 	Qregs,
 	Qsegment,
 	Qstatus,
+	Qstrace,
 	Qtext,
 	Qwait,
 	Qprofile,
@@ -78,6 +79,10 @@ enum
 	CMexpel,
 	CMevent,
 	CMcore,
+	CMstraceme,
+	CMstraceall,
+	CMstraceoff,
+
 };
 
 enum{
@@ -110,6 +115,7 @@ Dirtab procdir[] =
 	"regs",		{Qregs},	sizeof(Ureg),		0000,
 	"segment",	{Qsegment},	0,			0444,
 	"status",	{Qstatus},	STATSIZE,		0444,
+	"strace",       {Qstrace},      0,                      0666,
 	"text",		{Qtext},	0,			0000,
 	"wait",		{Qwait},	0,			0400,
 	"profile",	{Qprofile},	0,			0400,
@@ -149,6 +155,10 @@ Cmdtab proccmd[] = {
 	CMexpel,		"expel",		1,
 	CMevent,		"event",		1,
 	CMcore,			"core",			2,
+	CMstraceme,             "straceme",             0,
+	CMstraceall, "straceall", 0,
+	CMstraceoff, "straceoff", 0,
+
 };
 
 /*
@@ -541,6 +551,13 @@ procopen(Chan *c, int omode)
 		c->pgrpid.vers = p->noteid;
 		break;
 
+	case Qstrace:
+		if (!p->strace)
+			error("Process does not have tracing enabled");
+		incref(&p->strace->users);
+		c->aux = p->strace;
+		break;
+
 	default:
 		poperror();
 		qunlock(&p->debug);
@@ -727,11 +744,23 @@ procclose(Chan * c)
 			proctrace = notrace;
 		unlock(&tlock);
 	}
+	if (QID(c->qid) == Qsyscall) {
+		if (c->aux)
+			qclose(c->aux);
+		c->aux = nil;
+	}
 	if(QID(c->qid) == Qpager){
 		print("leaking queueus for pager\n");
 	}
 	if(QID(c->qid) == Qns && c->aux != 0)
 		free(c->aux);
+	if (QID(c->qid) == Qstrace && c->aux != 0) {
+		Strace *s = c->aux;
+		// TODO: leak!
+		print("are we leaking strace?\n");
+		decref(&s->users);
+		c->aux = nil;
+	}
 }
 
 static void
@@ -788,6 +817,7 @@ eventsavailable(void *v)
 static int32_t
 procread(Chan *c, void *va, int32_t n, int64_t off)
 {
+	Strace *strace;
 	Proc *up = externup();
 	Proc *p;
 	Mach *ac, *wired;
@@ -1031,6 +1061,10 @@ print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 		r = fpudevprocio(p, va, n, offset, 0);
 		psdecref(p);
 		return r;
+	case Qstrace:
+		strace = c->aux;
+		n = qread(strace->q, va, n);
+		return n;
 
 	case Qstatus:
 		if(offset >= STATSIZE){
@@ -1089,6 +1123,12 @@ print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 		if(offset+n > j+NUMSIZE*17+1)
 			n = j+NUMSIZE*17+1-offset;
 
+		/*
+				if (p->strace)
+					s = seprintf(s, e, " %d trace users %d traced procs",
+					             kref_refcnt(&p->strace->users),
+					             kref_refcnt(&p->strace->procs));
+		*/
 		memmove(va, statbuf+offset, n);
 		free(statbuf);
 		psdecref(p);
@@ -1410,6 +1450,16 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			n = qwrite(p->resp, va, n);
 		break;
 
+		/* this lets your write a marker into the data stream,
+		 * which is a very powerful tool. */
+		case Qstrace:
+			assert(c->aux);
+			/* it is possible that the q hungup and is closed.  that would be
+			 * the case if all of the procs closed and decref'd.  if the q is
+			 * closed, qwrite() will throw an error. */
+			n = qwrite(((Strace*)c->aux)->q, va, n);
+			break;
+
 	default:
 		poperror();
 		qunlock(&p->debug);
@@ -1597,9 +1647,23 @@ parsetime(int64_t *rt, char *s)
 	return nil;
 }
 
+#if 0
+static void strace_shutdown(Strace *strace)
+{
+	qhangup(strace->q, "No more traces");
+}
+
+static void strace_release(Strace *strace)
+{
+	qfree(strace->q);
+	free(strace);
+}
+#endif
+
 static void
 procctlreq(Proc *p, char *va, int n)
 {
+	Strace *strace;
 	Proc *up = externup();
 	Segment *s;
 	int npc, pri, core, sno;
@@ -1618,6 +1682,28 @@ procctlreq(Proc *p, char *va, int n)
 	}
 
 	ct = lookupcmd(cb, proccmd, nelem(proccmd));
+
+	switch(ct->index){
+	case CMstraceall:
+	case CMstraceme:
+		/* common allocation.  if we inherited, we might have one already */
+		if (!p->strace) {
+print("Set up tracing for pid %d\n", p->pid);
+			strace = mallocz(sizeof(*p->strace), 1);
+			strace->q = qopen(65536, Qmsg|Qcoalesce, 0, 0);
+			/* both of these refs are put when the proc is freed.  procs is for
+			 * every process that has this p->strace.  users is procs + every
+			 * user (e.g. from open()).
+			 */
+			incref(&strace->procs);
+			incref(&strace->users);
+			/* Do we need to worry about this? Or does the kernel protect it.
+			 * I suspect that DMEXCL might help here.
+			 * I.e. what if two procs do this command? */
+			p->strace = strace;
+		}
+		break;
+	}
 
 	switch(ct->index){
 	case CMclose:
@@ -1797,6 +1883,18 @@ procctlreq(Proc *p, char *va, int n)
 			p->procctl = Proc_toac;
 			p->prepagemem = 1;
 		}
+		break;
+	case CMstraceme:
+		p->strace_on = 1;
+		p->strace_inherit = 0;
+		break;
+	case CMstraceall:
+		p->strace_on = 1;
+		p->strace_inherit = 1;
+		break;
+	case CMstraceoff:
+		p->strace_on = 0;
+		p->strace_inherit = 0;
 		break;
 	}
 	poperror();
