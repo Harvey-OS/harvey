@@ -1385,6 +1385,13 @@ pexit(char *exitstr, int freemem)
 	edfstop(up);
 	up->state = Moribund;
 	sched();
+
+	if (p->strace) {
+		decref(&p->strace->procs);
+		decref(&p->strace->users);
+	}
+	p->strace = nil;
+
 	panic("pexit");
 }
 
@@ -1554,6 +1561,19 @@ scheddump(void)
 	}
 }
 
+/* Helper for proc_create and fork */
+static void inherit_strace(Proc *parent, Proc *child)
+{
+	if (parent->strace && parent->strace_inherit) {
+		/* Refcnt on both, put in the child's ->strace. */
+		incref(&parent->strace->users);
+		incref(&parent->strace->procs);
+		child->strace = parent->strace;
+		child->strace_on = 1;
+		child->strace_inherit = 1;
+	}
+}
+
 void
 kproc(char *name, void (*func)(void *), void *arg)
 {
@@ -1582,6 +1602,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->notify = up->notify;
 	p->ureg = 0;
 	p->dbgreg = 0;
+	inherit_strace(up, p);
 
 	procpriority(p, PriKproc, 0);
 
