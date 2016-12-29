@@ -7,6 +7,7 @@
 		],
 		"Install": "/$ARCH/bin/",
 		"SourceFilesCmd": [
+			"9pvpxy.c",
 			"aan.c",
 			"archfs.c",
 			"ascii.c",
