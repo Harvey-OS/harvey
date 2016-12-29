@@ -27,6 +27,7 @@ SECTIONS
 	.bss : {
 		*(.bss)
 		*(COMMON)
+		*(.*)
 	}
 
 	PROVIDE(end = .);
