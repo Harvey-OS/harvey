@@ -67,6 +67,7 @@
 		        "tcore.c",
 		        "trap.c",
 		        "trapentry.S",
+			"uart8250mem.c",
 			"uart.c"
 		]
 	}
