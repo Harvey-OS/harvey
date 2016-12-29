@@ -444,13 +444,13 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 		panic("misaligned stack in sysexecregs");
 	}
 	sp = (uintptr_t*)(USTKTOP - ssize);
-	print("sysexecregs: entry %p sp %p tos %p\n", entry, sp, tos);
+	if (0) print("sysexecregs: entry %p sp %p tos %p\n", entry, sp, tos);
 	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
 	ureg->epc = entry;
 	ureg->a2 = USTKTOP-sizeof(Tos);
-	print("SET ip @ %p to %p\n", &ureg->ip, entry);
+	if (0) print("SET ip @ %p to %p\n", &ureg->ip, entry);
 
 	/*
 	 * return the address of kernel/user shared data
