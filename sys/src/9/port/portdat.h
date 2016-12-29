@@ -56,6 +56,7 @@ typedef struct Sched	Sched;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
 typedef struct Sema	Sema;
+typedef struct Strace   Strace;
 typedef struct Timer	Timer;
 typedef struct Timers	Timers;
 typedef struct Uart	Uart;
@@ -775,6 +776,15 @@ union Ar0 {
 
 typedef struct Nixpctl Nixpctl;
 
+struct Strace {
+	int opened;
+	int tracing;
+	int inherit;
+	Ref procs; /* when procs goes to zero, q is hung up. */
+	Ref users; /* when users goes to zero, q and struct are freed. */
+	Queue *q;
+};
+
 struct Proc
 {
 	Label	sched;		/* known to l.s */
@@ -942,6 +952,12 @@ struct Proc
 	 * a result back.
 	 */
 	Queue *req, *resp;
+
+	/* new strace support */
+
+	Strace *strace;
+	int strace_on;
+	int strace_inherit;
 };
 
 struct Procalloc

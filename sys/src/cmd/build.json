@@ -95,6 +95,7 @@
 			"rm.c",
 			"rx.c",
 			"screenlock.c",
+			"strace.c",
 			"seconds.c",
 			"sed.c",
 			"seq.c",
