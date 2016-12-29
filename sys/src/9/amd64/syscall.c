@@ -303,6 +303,25 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
+	if(up->strace_on) {
+		/*
+		 * Redundant validaddr.  Do we care?
+		 * Tracing syscalls is not exactly a fast path...
+		 * Beware, validaddr currently does a pexit rather
+		 * than an error if there's a problem; that might
+		 * change in the future.
+		 */
+		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+
+		syscallfmt('E', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
+		// TODO: make this all use blocks so we have zero copy.
+		// We can do that when we retire the old system call tracing stuff.
+		qwrite(up->strace->q, up->syscalltrace, strlen(up->syscalltrace));
+		free(up->syscalltrace);
+		up->syscalltrace = nil;
+		startns = todget(nil);
+	}
 	if (0) hi("more syscall!\n");
 	up->scallnr = scallnr;
 	if(scallnr == RFORK)
@@ -362,6 +381,17 @@ syscall(unsigned int scallnr, Ureg *ureg)
 			free(up->syscalltrace);
 			up->syscalltrace = nil;
 		}
+	}
+
+	if(up->strace_on) {
+		uint8_t what = 'X';
+		stopns = todget(nil);
+		if (scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
+			what = 'F';
+		syscallfmt(what, scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
+		qwrite(up->strace->q, up->syscalltrace, strlen(up->syscalltrace));
+		free(up->syscalltrace);
+		up->syscalltrace = nil;
 	}
 
 	if(up->procctl == Proc_tracesyscall){
