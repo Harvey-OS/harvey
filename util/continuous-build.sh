@@ -22,6 +22,7 @@ else
 			./util/scanscan
  	else
 		./util/bldy //.:kernel
+		ls -l $ARCH/bin/init
 
 	fi
 fi
