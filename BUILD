@@ -1,5 +1,5 @@
 objcopy(
-	name="harvey",
+	name="harvey.32bit",
 	deps=[
 		"//sys/src/9/amd64:harvey"
 	],
@@ -10,7 +10,7 @@ objcopy(
 move(
 	name="kernel",
 	deps=[
-		":harvey",
+		":harvey.32bit",
 		"//sys/src/9/amd64:init",
 		"//sys/src/cmd/ip/ipconfig:ipconfig",
 		"//sys/src/cmd/auth/factotum:factotum",
