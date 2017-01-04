@@ -15,6 +15,7 @@ move(
 		"//sys/src/cmd/ip/ipconfig:ipconfig",
 		"//sys/src/cmd/auth/factotum:factotum",
 		"//sys/src/cmd/acme:acme",
+	"//sys/src/cmd/acpi:irq",
 	"//sys/src/cmd:ascii",
 	"//sys/src/cmd:awd",
 	"//sys/src/cmd:basename",
@@ -138,6 +139,7 @@ move(
 	"//sys/src/cmd:winwatch",
 	"//sys/src/cmd:xd",
 	"//sys/src/cmd:yacc",
+		"//sys/src/libacpi:libacpi",
 		"//sys/src/libc:libc",
 		"//sys/src/libip:libip",
 		"//sys/src/libdraw:libdraw",
@@ -170,6 +172,7 @@ move(
 		"//sys/src/libventi:libventi",
 	],
 	installs={
+		"amd64/lib/libacpi.a": "lib/libacpi.a",
 		"amd64/lib/libc.a": "lib/libc.a",
 		"amd64/lib/libip.a": "lib/libip.a",
 		"amd64/lib/libdraw.a": "lib/libdraw.a",
