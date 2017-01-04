@@ -65,5 +65,6 @@ usr/harvey/tmp
 build_out
 
 cron/lock
-/util/blaze
+/util/bldy
+util/third_party/src
 /home
