@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+
+trap : 2
+
+$HARVEY/util/ufs -root=$HARVEY &
+ufspid=$!
+
+export machineflag=q35
+if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
+	export kvmflag='-enable-kvm'
+	export machineflag='pc,accel=kvm'
+	if [ ! -w /dev/kvm ]; then
+		# we don't have access as a regular user
+		export kvmdo=sudo
+	fi
+fi
+
+read -r cmd <<EOF
+$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 4 -m 2048 $kvmflag \
+-S \
+-serial stdio \
+--machine $machineflag \
+-net nic,model=rtl8139 \
+-net user,id=user.0,\
+hostfwd=tcp::5555-:1522,\
+hostfwd=tcp::9999-:9,\
+hostfwd=tcp::17010-:17010,\
+hostfwd=tcp::5356-:5356,\
+hostfwd=tcp::17013-:17013 \
+-net dump,file=/tmp/vm0.pcap \
+-append "service=cpu nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1" \
+-kernel $HARVEY/sys/src/9/amd64/harvey.32bit $*
+EOF
+
+echo $cmd
+eval $cmd
+
+kill $ufspid
+wait
+
+# TO ENABLE FACTOTUM replace append with this
+#-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0" \
+
+# -nographic \
+#-S -gdb tcp::1234 \
+# -nographic \
+#-kernel mnt/hdd/kernel $*
+
+# if you need the dump.
+#-net dump,file=/tmp/vm0.pcap \
+
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 4096 -nographic  \
+#-net nic,model=rtl8139 mnt/hdd268mb.img \
+#-net user,hostfwd=tcp::5555-:23 \
+#-net dump,file=/tmp/vm0.pcap \
+#-kernel mnt/hdd/kernel $*
+#
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0 -kernel mnt/hdd/kernel $*
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0,net=192.168.76.0/24,dhcpstart=192.168.76.9 -kernel mnt/hdd/kernel $*
+
+# 

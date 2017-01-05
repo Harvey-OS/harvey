@@ -18,6 +18,7 @@
 			"execl.c",
 			"fdmux.c",
 			"float.c",
+			"floatnotify.c",
 			"fmt.c",
 			"fork.c",
 			"frexp.c",
