@@ -1,16 +1,7 @@
-objcopy(
-	name="harvey.32bit",
-	deps=[
-		"//sys/src/9/amd64:harvey"
-	],
-	infile="elf64-x86-64",
-	outfile="elf32-i386",
-)
-
 move(
 	name="kernel",
 	deps=[
-		":harvey.32bit",
+		"//sys/src/9/amd64:harvey.32bit",
 		"//sys/src/9/amd64:init",
 		"//sys/src/cmd/ip/ipconfig:ipconfig",
 		"//sys/src/cmd/auth/factotum:factotum",
@@ -203,7 +194,7 @@ move(
 		"amd64/lib/libthread.a": "lib/libthread.a",
 		"amd64/lib/libusb.a": "lib/libusb.a",
 		"amd64/lib/libventi.a": "lib/libventi.a",
-		"sys/src/9/amd64/harvey.32bit": "bin/harvey",
+		"sys/src/9/amd64/harvey.32bit": "bin/harvey.32bit",
 		"amd64/bin/init": "bin/init",
 		"amd64/bin/echo": "bin/echo",
 		"amd64/bin/ls": "bin/ls",
@@ -341,8 +332,4 @@ move(
 		"amd64/bin/xd": "bin/xd",
 		"amd64/bin/yacc": "bin/yacc",
 	},
-)
-old_build(
-	name="all",
-	package="all",
 )
