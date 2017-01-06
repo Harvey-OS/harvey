@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//sys/src/FLAGS", "KLIB_COMPILER_FLAGS")
 load("//sys/src/BUILD", "LIBS", "KLIBS")
 
 CORE_SRCS = [
@@ -283,6 +283,7 @@ move(
 KERNEL_DEPS = [
 	"//sys/src/cmd:bind",
 	":boot",
+	"//sys/src/cmd/acpi:irq",
 	"//sys/src/cmd:cat",
 	"//sys/src/cmd:date",
 	"//sys/src/cmd:echo",
