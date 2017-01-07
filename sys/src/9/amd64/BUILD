@@ -216,7 +216,7 @@ mk_sys(
 	sysconf="//sys/src/sysconf.json",
 )
 
-HRVYDEPS =[
+HRVYDEPS = [
 	":amd64cpu",
 	":error",
 	":errstr",
@@ -259,8 +259,8 @@ cc_binary(
 		"//sys/src/9/amd64",
 		"//sys/src/9/port",
 	],
-	deps= HRVYDEPS + KLIBS,
-	alwayslink=true, #this is not necessary as klibs are hardcoded to be alwayslinked
+	deps=HRVYDEPS + KLIBS,
+	alwayslink=true,  # this is not necessary as klibs are hardcoded to be alwayslinked
 	ld="kernel.ld",
 	linkopts=[
 		"-z",
@@ -280,6 +280,15 @@ move(
 	},
 )
 
+objcopy(
+	name="harvey.32bit",
+	deps=[
+		"//sys/src/9/amd64:harvey"
+	],
+	infile="elf64-x86-64",
+	outfile="elf32-i386",
+)
+
 KERNEL_DEPS = [
 	"//sys/src/cmd:bind",
 	":boot",
@@ -292,17 +301,17 @@ KERNEL_DEPS = [
 	"//sys/src/cmd/ip/ipconfig:ipconfig",
 	"//sys/src/cmd:ls",
 	"//sys/src/cmd:mount",
-# nvram FILE ADDED
+	# nvram FILE ADDED
 	"//sys/src/cmd/disk/prep:prep",
 	"//sys/src/cmd/rc:rc",
 	"//sys/src/cmd:ps",
 	"//sys/src/cmd:ed",
-# rcmain FILE ADDED
+	# rcmain FILE ADDED
 	"//sys/src/cmd/aux/console:screenconsole",
 	"//sys/src/cmd/aux/realemu:realemu",
 	"//sys/src/cmd/aux/vga:vga",
 	"//sys/src/cmd:srv",
-# startdisk FILE ADDED
+	# startdisk FILE ADDED
 	"//sys/src/cmd/usb/usbd:usbd",
 	"//sys/src/cmd/venti/srv:venti",
 	"//sys/src/cmd:ratrace",
