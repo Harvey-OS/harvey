@@ -963,7 +963,7 @@ mntrpcread(Mnt *mnt, Mntrpc *r)
 	l = &r->b;
 	*l = nil;
 	do {
-		b = qremove(mnt->q);
+		b = qget(mnt->q);
 		if(hlen > 0){
 			b->rp += hlen;
 			len -= hlen;
