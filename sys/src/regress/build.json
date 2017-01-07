@@ -10,7 +10,7 @@
 		"SourceFilesCmd": [
 			"alarm.c",
 			"args.c",
-		        "bindtest.c",
+		    "bindtest.c",
 			"chdir.c",
 			"conswrite.c",
 			"cow.c",
