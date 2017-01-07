@@ -20,7 +20,9 @@
 				"-Wno-main"
 			],
 			"/usr/bin/gcc": [
-				"-Wno-frame-address"
+				"-Wno-frame-address",
+				"-fvar-tracking",
+ 				"-fvar-tracking-assignments"
 			],
 			"/opt/gnu/bin/x86_64-none-elf-gcc": [
 				"-Wno-frame-address"
