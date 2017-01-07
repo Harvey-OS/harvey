@@ -27,10 +27,8 @@ cc_library(
 		"-Wno-unknown-pragmas",
 		"-O0",
 		"-static",
-		"-mno-red-zone",
 		"-ffreestanding",
 		"-fno-builtin",
-		"-mcmodel=small"
 	],
 	includes=[
 		"//sys/include",
