@@ -1,4 +1,4 @@
-load('//sys/src/FLAGS', "KLIB_COMPILER_FLAGS", "LIB_COMPILER_FLAGS")
+load('//$ARCH/include/FLAGS', "KLIB_COMPILER_FLAGS", "LIB_COMPILER_FLAGS")
 
 cc_library(
     name="klibmemlayer",

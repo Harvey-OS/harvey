@@ -1,4 +1,4 @@
-load('//sys/src/harvey.BUILD', "harvey_binary", "CMD_DEPS")
+load('//$ARCH/include/harvey.BUILD', "harvey_binary", "CMD_DEPS")
 
 CALC = [
     ":calc"

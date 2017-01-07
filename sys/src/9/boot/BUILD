@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//$ARCH/include/FLAGS", "LIB_COMPILER_FLAGS")
 load("//sys/src/ARCHS", "ARCHS")
 
 [mk_sys(

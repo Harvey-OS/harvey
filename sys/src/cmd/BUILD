@@ -1,5 +1,5 @@
-load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS", "CMD_LINK_OPTS")
-load('//sys/src/harvey.BUILD', "harvey_binary")
+load('//$ARCH/include/FLAGS', "LIB_COMPILER_FLAGS", "CMD_LINK_OPTS")
+load('//$ARCH/include/harvey.BUILD', "harvey_binary")
 
 CMD_SRCS = [
 	"9pvpxy.c",

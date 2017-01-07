@@ -1,4 +1,4 @@
-load('//sys/src/harvey.BUILD', "harvey_binary")
+load('//$ARCH/include/harvey.BUILD', "harvey_binary")
 
 VENTI_SRCS=[
 	"copy.c",

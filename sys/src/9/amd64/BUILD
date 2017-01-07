@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "KLIB_COMPILER_FLAGS")
+load("//$ARCH/include/FLAGS", "KLIB_COMPILER_FLAGS")
 load("//sys/src/BUILD", "LIBS", "KLIBS")
 
 CORE_SRCS = [

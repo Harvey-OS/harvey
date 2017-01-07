@@ -1,4 +1,4 @@
-load('//sys/src/FLAGS', "LIB_COMPILER_FLAGS")
+load('//$ARCH/include/FLAGS', "LIB_COMPILER_FLAGS")
 
 cc_library(
 	name = "libhttpd",
