@@ -278,3 +278,6 @@ int slim_setlabel(Label*) __attribute__((returns_twice));
                     err = slim_setlabel(label);                                     \
                     err;})
 
+
+/* sbi calls. They are all too different to bother with a typedef. */
+void sbi_set_mtimecmp(uint64_t t);

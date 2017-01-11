@@ -193,3 +193,7 @@ touser:
 	LD a0, 104(a0)
 	.long 0x10200073
 	sret
+
+.globl sbi_set_mtimecmp
+sbi_set_mtimecmp:
+	tail -1888
