@@ -56,28 +56,28 @@
 					"pci"
 				]
 			},
-		        "#RamFiles": [
-				"boot: /$ARCH/bin/kiss"
-			    ],
+		        "#RamFiles": {
+				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"longjmp": "/$ARCH/bin/regress/longjmp",
+				"empty": "/$ARCH/bin/regress/empty",
+				"factotum": "/$ARCH/bin/auth/factotum",
+				"getcallerpc": "/$ARCH/bin/regress/getcallerpc",
+				"pipering": "/$ARCH/bin/regress/pipering",
+				"privates": "/$ARCH/bin/regress/privates",
+				"ratrace": "/$ARCH/bin/ratrace",
+				"cat": "/$ARCH/bin/cat",
+				"cow": "/$ARCH/bin/regress/cow",
+				"boot" : "/$ARCH/bin/kiss"
+			    },
 			"Ramfiles": {
 				"alarm": "/$ARCH/bin/regress/alarm",
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
-				"cat": "/$ARCH/bin/cat",
-				"cow": "/$ARCH/bin/regress/cow",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
-				"empty": "/$ARCH/bin/regress/empty",
-				"factotum": "/$ARCH/bin/auth/factotum",
-				"getcallerpc": "/$ARCH/bin/regress/getcallerpc",
-				"ipconfig": "/$ARCH/bin/ip/ipconfig",
-				"longjmp": "/$ARCH/bin/regress/longjmp",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
-				"pipering": "/$ARCH/bin/regress/pipering",
-				"privates": "/$ARCH/bin/regress/privates",
-				"ratrace": "/$ARCH/bin/ratrace",
 				"rc": "/$ARCH/bin/rc",
 				"ps": "/$ARCH/bin/ps",
 				"ed": "/$ARCH/bin/ed",

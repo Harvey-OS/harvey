@@ -603,7 +603,6 @@ ms(void)
 void
 timerset(uint64_t x)
 {
-	extern uint64_t *mtimecmp;
 	extern uint64_t *mtime;
 	uint64_t now;
 	int64_t delta;
@@ -618,14 +617,14 @@ timerset(uint64_t x)
 	//print("now 0x%llx timerset to 0x%llx\n", now , x);
 	delta = x - now;
 	//print("delta is %llx\n", delta);
-	delta /= 200;
+	delta /= 1000;
 	if (delta < 1) {
 		if (++bust == 0)
 			print("timerset: delta was < 1 256 times\n");
 		delta = 10 /* one microsecond */ * 1000 /* one millisecond */ ;
 	}
 	//print("adjest x to timer ticks, divide by 500 ... 0x%llx %llx %llx \n", *mtime , delta, *mtime + delta);
-	*mtimecmp = *mtime + delta; //+ 10 /* one microsecond */ * 1000 /* one millisecond */ * 100; /* 100 milliseconds */
+	sbi_set_mtimecmp(*mtime + delta);
 }
 
 void

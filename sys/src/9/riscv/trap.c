@@ -317,6 +317,7 @@ nmienable(void)
 
 static void riscvtimer(struct Ureg *u, void *_)
 {
+	if (0) print("R");
 	timerintr(u, 0);
 }
 
