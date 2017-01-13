@@ -16,8 +16,11 @@ if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	fi
 fi
 
+# specific usb devices added by '-device usb-host,hostbus=X,hostaddr=X'
+# replacing 'X' with the device numbers provided by a tool like 'lsusb'
 read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 2 -m 2048 $kvmflag \
+-usb \
 -serial stdio \
 --machine $machineflag \
 -net nic,model=rtl8139 \
