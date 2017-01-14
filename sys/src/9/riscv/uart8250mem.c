@@ -177,15 +177,20 @@ static int uart8250_mem_can_rx_byte(void *base)
 	return uart8250_read(base, UART8250_LSR) & UART8250_LSR_DR;
 }
 
-static unsigned char uart8250_mem_rx_byte(void *base)
+static int uart8250_mem_rx_byte(void *base)
 {
 	unsigned long int i = SINGLE_CHAR_TIMEOUT;
+	uint8_t c;
 	while (i-- && !uart8250_mem_can_rx_byte(base))
 		udelay(1);
-	if (i)
-		return uart8250_read(base, UART8250_RBR);
+	if (0) print("rx_byte, register is 0x%x LSR 0x%x\n", uart8250_read(base, UART8250_LSR) , UART8250_LSR_DR);
+	if (i) {
+		c = uart8250_read(base, UART8250_RBR);
+		if (0) print("c is 0x%x\n", c);
+		return  c;
+	}
 	else
-		return 0x0;
+		return -1;
 }
 
 static void uart8250_mem_init(void *base, unsigned divisor)
@@ -263,11 +268,11 @@ void lowrisc_putchar(int data)
 	uart8250_mem_tx_byte(base, data);
 }
 
-unsigned char lowrisc_getchar(int idx)
+int lowrisc_getchar(int idx)
 {
 	void *base = uart_platform_baseptr(idx);
 	if (!base)
-		return 0xff;
+		return -1;
 	return uart8250_mem_rx_byte(base);
 }
 
