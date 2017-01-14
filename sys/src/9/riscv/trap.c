@@ -453,8 +453,8 @@ void consread(void)
 	int c;
 	if (0) print("consrad\n");
 	c = getchar();
-	if (c >= 0) {
-		if (0) print("WROTE '%c'\n", c);
+	if (c > -1) {
+		if (1) print("WROTE '%02x'\n", c);
 		void kbdputsc(int data, int _);
 		kbdputsc(c, 0);
 	}
