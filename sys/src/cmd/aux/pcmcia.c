@@ -29,13 +29,13 @@ void	tvers1(int, int);
 
 void (*parse[256])(int, int) =
 {
-[1]		tdevice,
-[6]		tlonglnkmfc,
-[0x15]		tvers1,
-[0x17]		tdevice,
-[0x1A]		tcfig,
-[0x1B]		tentry,
-[Funcid]	tfuncid,
+	[1]			= tdevice,
+	[6]			= tlonglnkmfc,
+	[0x15]		= tvers1,
+	[0x17]		= tdevice,
+	[0x1A]		= tcfig,
+	[0x1B]		= tentry,
+	[Funcid]	=tfuncid,
 };
 
 int hex;
@@ -122,53 +122,53 @@ main(int argc, char *argv[])
 
 uint32_t speedtab[16] =
 {
-[1]	250,
-[2]	200,
-[3]	150,
-[4]	100,
+	[1]	= 250,
+	[2]	= 200,
+	[3]	= 150,
+	[4]	= 100,
 };
 
 uint32_t mantissa[16] =
 {
-[1]	10,
-[2]	12,
-[3]	13,
-[4]	15,
-[5]	20,
-[6]	25,
-[7]	30,
-[8]	35,
-[9]	40,
-[0xa]	45,
-[0xb]	50,
-[0xc]	55,
-[0xd]	60,
-[0xe]	70,
-[0xf]	80,
+	[1]		= 10,
+	[2]		= 12,
+	[3]		= 13,
+	[4]		= 15,
+	[5]		= 20,
+	[6]		= 25,
+	[7]		= 30,
+	[8]		= 35,
+	[9]		= 40,
+	[0xa]	= 45,
+	[0xb]	= 50,
+	[0xc]	= 55,
+	[0xd]	= 60,
+	[0xe]	= 70,
+	[0xf]	= 80,
 };
 
 uint32_t exponent[8] =
 {
-[0]	1,
-[1]	10,
-[2]	100,
-[3]	1000,
-[4]	10000,
-[5]	100000,
-[6]	1000000,
-[7]	10000000,
+	[0]	= 1,
+	[1]	= 10,
+	[2]	= 100,
+	[3]	= 1000,
+	[4]	= 10000,
+	[5]	= 100000,
+	[6]	= 1000000,
+	[7]	= 10000000,
 };
 
 char *typetab[256] =
 {
-[1]	"Masked ROM",
-[2]	"PROM",
-[3]	"EPROM",
-[4]	"EEPROM",
-[5]	"FLASH",
-[6]	"SRAM",
-[7]	"DRAM",
-[0xD]	"IO+MEM",
+	[1]		= "Masked ROM",
+	[2]		= "PROM",
+	[3]		= "EPROM",
+	[4]		= "EEPROM",
+	[5]		= "FLASH",
+	[6]		= "SRAM",
+	[7]		= "DRAM",
+	[0xD]	= "IO+MEM",
 };
 
 uint32_t
@@ -356,12 +356,12 @@ tcfig(int ttype, int len)
 
 char *intrname[16] =
 {
-[0]	"memory",
-[1]	"I/O",
-[4]	"Custom 0",
-[5]	"Custom 1",
-[6]	"Custom 2",
-[7]	"Custom 3",
+	[0] = "memory",
+	[1] = "I/O",
+	[4] = "Custom 0",
+	[5] = "Custom 1",
+	[6] = "Custom 2",
+	[7] = "Custom 3",
 };
 
 uint32_t vexp[8] =
