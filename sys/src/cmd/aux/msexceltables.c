@@ -87,13 +87,13 @@ static char *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static char *Errmsgs[] = {
-	[0x0]	"#NULL!",	// intersection of two cell ranges is empty
-	[0x7]	"#DIV/0!",	// division by zero	
-	[0xf]	"#VALUE!",	// wrong type of operand
-	[0x17]	"#REF!",	// illegal or deleted cell reference
-	[0x1d]	"#NAME?",	// wrong function or range name
-	[0x24]	"#NUM!",	// value range overflow
-	[0x2a]	"#N/A!",	// argument of function not available
+	[0x0]	= "#NULL!",	// intersection of two cell ranges is empty
+	[0x7]	= "#DIV/0!",	// division by zero	
+	[0xf]	= "#VALUE!",	// wrong type of operand
+	[0x17]	= "#REF!",	// illegal or deleted cell reference
+	[0x1d]	= "#NAME?",	// wrong function or range name
+	[0x24]	= "#NUM!",	// value range overflow
+	[0x2a]	= "#N/A!",	// argument of function not available
 };
 
 int
