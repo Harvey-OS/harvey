@@ -53,19 +53,19 @@ void	io(void);
 int	readpdir(Node*);
 
 char 	*(*fcalls[])(Fid*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tattach]	rattach,
-	[Tauth]		rauth,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+	[Tflush]	= rflush,
+	[Tversion]	= rversion,
+	[Tattach]	= rattach,
+	[Tauth]		= rauth,
+	[Twalk]		= rwalk,
+	[Topen]		= ropen,
+	[Tcreate]	= rcreate,
+	[Tread]		= rread,
+	[Twrite]	= rwrite,
+	[Tclunk]	= rclunk,
+	[Tremove]	= rremove,
+	[Tstat]		= rstat,
+	[Twstat]	= rwstat,
 };
 
 /* these names are matched as prefixes, so VMS must precede VM */

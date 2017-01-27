@@ -131,18 +131,18 @@ extern	char*	fswstat(Fs*, Fcall*);
 
 char	*(*fcalls[])(Fs*, Fcall*) =
 {
-	[Tversion]		fsversion,
-	[Tattach]	fsattach,
-	[Tauth]	fsauth,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fscreate,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsremove,
-	[Tstat]		fsstat,
-	[Twstat]	fswstat
+	[Tversion]	= fsversion,
+	[Tattach]	= fsattach,
+	[Tauth]		= fsauth,
+	[Twalk]		= fswalk,
+	[Topen]		= fsopen,
+	[Tcreate]	= fscreate,
+	[Tread]		= fsread,
+	[Twrite]	= fswrite,
+	[Tclunk]	= fsclunk,
+	[Tremove]	= fsremove,
+	[Tstat]		= fsstat,
+	[Twstat]	= fswstat
 };
 
 char	Eperm[] =	"permission denied";
