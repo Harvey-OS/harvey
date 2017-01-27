@@ -42,19 +42,19 @@ enum {
 
 void (*fcalls[])(Fsrpc*) =
 {
-	[Tversion]	Xversion,
-	[Tauth]	Xauth,
-	[Tflush]	Xflush,
-	[Tattach]	Xattach,
-	[Twalk]		Xwalk,
-	[Topen]		slave,
-	[Tcreate]	Xcreate,
-	[Tclunk]	Xclunk,
-	[Tread]		slave,
-	[Twrite]	slave,
-	[Tremove]	Xremove,
-	[Tstat]		Xstat,
-	[Twstat]	Xwstat,
+	[Tversion]	= Xversion,
+	[Tauth]		= Xauth,
+	[Tflush]	= Xflush,
+	[Tattach]	= Xattach,
+	[Twalk]		= Xwalk,
+	[Topen]		= slave,
+	[Tcreate]	= Xcreate,
+	[Tclunk]	= Xclunk,
+	[Tread]		= slave,
+	[Twrite]	= slave,
+	[Tremove]	= Xremove,
+	[Tstat]		= Xstat,
+	[Twstat]	= Xwstat,
 };
 
 /* accounting and debugging counters */
