@@ -215,7 +215,6 @@ lockscreen(void)
 	char buf[Nfld*Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
 	int fd, dx, dy;
 	Image *i;
-	Point p;
 	Rectangle r;
 	Tm *tm;
 
@@ -241,21 +240,23 @@ lockscreen(void)
 	procrfork(blanker, nil, 4096, RFFDG);
 	fd = open(pic, OREAD);
 	if(fd > 0){
+		draw(screen, screen->r, display->black, nil, ZP);
+
+		r = screen->r;
+		Point p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
+
 		i = readimage(display, fd, 0);
+		close(fd);
 		if(i){
- 			r = screen->r;
-			p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
 			dx = (Dx(screen->r) - Dx(i->r)) / 2;
 			r.min.x += dx;
 			r.max.x -= dx;
 			dy = (Dy(screen->r) - Dy(i->r)) / 2;
 			r.min.y += dy;
 			r.max.y -= dy;
-			draw(screen, screen->r, display->black, nil, ZP);
 			draw(screen, r, i, nil, i->r.min);
 			flushimage(display, 1);
 		}
-		close(fd);
 
 		/* identify the user on screen, centered */
 		tm = localtime(time(0));
