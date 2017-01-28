@@ -1,4 +1,4 @@
-load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
+load("//$ARCH/include/FLAGS", "LIB_COMPILER_FLAGS")
 load("//sys/src/ARCHS", "ARCHS")
 
 [mk_sys(
@@ -27,10 +27,8 @@ cc_library(
 		"-Wno-unknown-pragmas",
 		"-O0",
 		"-static",
-		"-mno-red-zone",
 		"-ffreestanding",
 		"-fno-builtin",
-		"-mcmodel=small"
 	],
 	includes=[
 		"//sys/include",

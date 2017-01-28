@@ -28,7 +28,6 @@ LIBS=[
 	"//sys/src/libframe:libframe",
 	"//sys/src/libgeometry:libgeometry",
 	"//sys/src/libhttpd:libhttpd",
-	"//sys/src/liblex:liblex",
 	"//sys/src/libmach:libmach",
 	"//sys/src/libmemdraw:libmemdraw",
 	"//sys/src/libmemlayer:libmemlayer",

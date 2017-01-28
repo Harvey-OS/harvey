@@ -1,4 +1,4 @@
-load('//sys/src/harvey.BUILD', "harvey_binary")
+load('//$ARCH/include/harvey.BUILD', "harvey_binary")
 
 harvey_binary(
 	name="dump9660",

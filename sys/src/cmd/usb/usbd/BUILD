@@ -1,4 +1,4 @@
-load("//sys/src/harvey.BUILD",  "CMD_DEPS", "harvey_binary")
+load("//$ARCH/include/harvey.BUILD",  "CMD_DEPS", "harvey_binary")
 
 DEPS =[
 	":devtab",

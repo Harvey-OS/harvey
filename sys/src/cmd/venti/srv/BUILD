@@ -1,4 +1,4 @@
-load("//sys/src/harvey.BUILD",  "CMD_DEPS", "harvey_binary", "LIB_COMPILER_FLAGS")
+load("//$ARCH/include/harvey.BUILD",  "CMD_DEPS", "harvey_binary", "LIB_COMPILER_FLAGS")
 
 cc_library(
 	name = "libvs",
