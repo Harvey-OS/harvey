@@ -169,14 +169,14 @@ enum
  *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed).
  */
 Network network[] = {
-	[Ntcp] =	{ "tcp",	iplookup,	iptrans,	0 },
-				{ "udp",	iplookup,	iptrans,	1 },
-				{ "icmp",	iplookup,	iptrans,	1 },
-				{ "icmpv6",	iplookup,	iptrans,	1 },
-				{ "rudp",	iplookup,	iptrans,	1 },
-				{ "ssh",	iplookup,	iptrans,	1 },
-				{ "telco",	telcolookup,	telcotrans,	1 },
-				{ 0 },
+	[Ntcp]=	{ "tcp",	iplookup,	iptrans,	0 },
+		{ "udp",	iplookup,	iptrans,	1 },
+		{ "icmp",	iplookup,	iptrans,	1 },
+		{ "icmpv6",	iplookup,	iptrans,	1 },
+		{ "rudp",	iplookup,	iptrans,	1 },
+		{ "ssh",	iplookup,	iptrans,	1 },
+		{ "telco",	telcolookup,	telcotrans,	1 },
+		{ 0 },
 };
 
 Lock ipifclock;
