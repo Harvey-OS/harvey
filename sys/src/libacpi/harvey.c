@@ -161,7 +161,7 @@ AcpiOsReadPciConfiguration(ACPI_PCI_ID * PciId,
 {
 	ACPI_STATUS ret = AE_OK;
 	uint64_t val;
-	int amt;
+	int amt = 0;
 	static char path[128];
 	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus,
 			PciId->Device, PciId->Function);

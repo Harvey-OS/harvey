@@ -26,7 +26,6 @@ jup(void)
 	motion = 299.1284/3600.;
 
 
-	anom = anom;
 	incl *= radian;
 	node *= radian;
 	argp *= radian;
