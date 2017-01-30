@@ -215,6 +215,14 @@ mk_sys(
 	mode="errstr.h",
 	sysconf="//sys/src/sysconf.json",
 )
+group(
+	name="9bins",
+	prefix="sys/src/9/amd64",
+	deps=[
+		":harvey.32bit",
+		":init",
+	],
+)
 
 HRVYDEPS = [
 	":amd64cpu",
@@ -270,15 +278,6 @@ cc_binary(
 		"-T",
 	]
 )
-move(
-	name="factotum",
-	deps=[
-		"//sys/src/cmd/auth/factotum:factotum",
-	],
-	installs={
-		"bin/auth/factotum": "bin/factotum",
-	},
-)
 
 objcopy(
 	name="harvey.32bit",
@@ -295,7 +294,7 @@ KERNEL_DEPS = [
 	"//sys/src/cmd:cat",
 	"//sys/src/cmd:date",
 	"//sys/src/cmd:echo",
-	":factotum",
+	"//sys/src/cmd/auth/factotum:factotum",
 	"//sys/src/cmd/disk/prep:fdisk",
 	"//sys/src/cmd/fossil:fossil",
 	"//sys/src/cmd/ip/ipconfig:ipconfig",
@@ -404,7 +403,7 @@ elf_to_c(
 	deps=[
 		":init",
 	],
-	elf="bin/init",
+	elf="init",
 )
 
 cc_binary(
@@ -423,6 +422,7 @@ cc_binary(
 		"-fno-builtin",
 		"-mcmodel=small",
 	],
+	install="init",
 	deps=[
 		"//sys/src/libc:libc",
 	],
