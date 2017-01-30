@@ -2,6 +2,7 @@ load("//sys/src/harvey.BUILD", "harvey_binary")
 
 harvey_binary(
     name="factotum",
+    install="bin/auth/factotum",
     srcs=[
         "apop.c",
         "chap.c",
