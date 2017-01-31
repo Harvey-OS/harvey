@@ -159,7 +159,7 @@ CMD_SRCS = [
 		"//sys/src/libbio:libbio",
 		"//sys/src/libc:libc",
 	],
-		linkopts=CMD_LINK_OPTS
+	linkopts=CMD_LINK_OPTS
 ) for c in CMD_SRCS]
 
 harvey_binary(
@@ -221,7 +221,7 @@ harvey_binary(
 		"//amd64/include",
 		"//sys/src/libregexp",
 	],
- )
+)
 
 harvey_binary(
 	name="ratrace",
@@ -229,16 +229,20 @@ harvey_binary(
 		"ratrace.c"
 	],
 	deps=[
-        "//sys/src/libthread:libthread",
-        "//sys/src/libc:libc",
+		"//sys/src/libthread:libthread",
+		"//sys/src/libc:libc",
 	]
 )
 group(
 	name="cmds",
 	deps=[
+		"//sys/src/cmd/aux:cmds",
+		"//sys/src/cmd/ndb:cmds",
 		"//sys/src/cmd/ip/ipconfig:ipconfig",
 		"//sys/src/cmd/auth/factotum:factotum",
 		"//sys/src/cmd/acme:acme",
+		"//sys/src/cmd/rc:rc",
+		"//sys/src/cmd/grep:grep",
 		"//sys/src/cmd/acpi:irq",
 		"//sys/src/cmd:ascii",
 		"//sys/src/cmd:awd",
