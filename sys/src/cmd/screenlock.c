@@ -236,8 +236,8 @@ lockscreen(void)
 	procrfork(grabmouse, nil, 4096, RFFDG);
 	procrfork(blanker, nil, 4096, RFFDG);
 
-	draw(screen, screen->r, display->black, nil, ZP);
 	Rectangle r = screen->r;
+	draw(screen, r, display->black, nil, ZP);
 
 	// Try to load and display an image in the centre of the screen
 	fd = open(pic, OREAD);
