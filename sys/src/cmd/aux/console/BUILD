@@ -31,7 +31,7 @@ harvey_binary(
 	],
 	install="bin/aux/pipeconsole",
 	srcs=[
-			"buffer.c",
+		"buffer.c",
 		"pipeconsole.c",
 		"passthrough.c",
 		"serve9p.c",
@@ -46,7 +46,7 @@ harvey_binary(
 	],
 	install="bin/aux/screenconsole",
 	srcs=[
-			"buffer.c",
+		"buffer.c",
 		"cga.c",
 		"screenconsole.c",
 		"keyboard.c",
