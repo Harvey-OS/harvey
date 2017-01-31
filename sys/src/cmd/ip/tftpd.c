@@ -109,12 +109,12 @@ char	flog[] = "ipboot";
 char	net[Maxpath];
 
 static char *opnames[] = {
-	[Tftp_READ]	= "read",
+	[Tftp_READ]		= "read",
 	[Tftp_WRITE]	= "write",
-	[Tftp_DATA]	= "data",
-	[Tftp_ACK]	= "ack",
+	[Tftp_DATA]		= "data",
+	[Tftp_ACK]		= "ack",
 	[Tftp_ERROR]	= "error",
-	[Tftp_OACK]	= "oack",
+	[Tftp_OACK]		= "oack",
 };
 
 void

@@ -84,7 +84,6 @@ p9skinit(Proto *p, Fsstate *fss)
 		return failure(fss, nil);
 
 	s = emalloc(sizeof *s);
-	fss = fss;
 	fss->phasename = phasenames;
 	fss->maxphase = Maxphase;
 	if(p == &p9sk1)

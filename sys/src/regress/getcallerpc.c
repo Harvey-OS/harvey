@@ -11,8 +11,7 @@ void b(void);
 
 void a(void)
 {
-	uintptr_t d = getcallerpc()
-;
+	uintptr_t d = getcallerpc();
 	fprint(2, "This should print something more than %p and less than %p: %p\n",
 		b, c, d);
 	if ((d > b) && (d < c)) {

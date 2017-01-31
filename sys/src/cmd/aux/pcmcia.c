@@ -29,13 +29,13 @@ void	tvers1(int, int);
 
 void (*parse[256])(int, int) =
 {
-	[1]		= tdevice,
-	[6]		= tlonglnkmfc,
+	[1]			= tdevice,
+	[6]			= tlonglnkmfc,
 	[0x15]		= tvers1,
 	[0x17]		= tdevice,
 	[0x1A]		= tcfig,
 	[0x1B]		= tentry,
-	[Funcid]	= tfuncid,
+	[Funcid]	=tfuncid,
 };
 
 int hex;
@@ -130,15 +130,15 @@ uint32_t speedtab[16] =
 
 uint32_t mantissa[16] =
 {
-	[1]	= 10,
-	[2]	= 12,
-	[3]	= 13,
-	[4]	= 15,
-	[5]	= 20,
-	[6]	= 25,
-	[7]	= 30,
-	[8]	= 35,
-	[9]	= 40,
+	[1]		= 10,
+	[2]		= 12,
+	[3]		= 13,
+	[4]		= 15,
+	[5]		= 20,
+	[6]		= 25,
+	[7]		= 30,
+	[8]		= 35,
+	[9]		= 40,
 	[0xa]	= 45,
 	[0xb]	= 50,
 	[0xc]	= 55,
@@ -161,13 +161,13 @@ uint32_t exponent[8] =
 
 char *typetab[256] =
 {
-	[1]	= "Masked ROM",
-	[2]	= "PROM",
-	[3]	= "EPROM",
-	[4]	= "EEPROM",
-	[5]	= "FLASH",
-	[6]	= "SRAM",
-	[7]	= "DRAM",
+	[1]		= "Masked ROM",
+	[2]		= "PROM",
+	[3]		= "EPROM",
+	[4]		= "EEPROM",
+	[5]		= "FLASH",
+	[6]		= "SRAM",
+	[7]		= "DRAM",
 	[0xD]	= "IO+MEM",
 };
 
@@ -356,12 +356,12 @@ tcfig(int ttype, int len)
 
 char *intrname[16] =
 {
-	[0] =	"memory",
-	[1] =	"I/O",
-	[4] =	"Custom 0",
-	[5] =	"Custom 1",
-	[6] =	"Custom 2",
-	[7] =	"Custom 3",
+	[0] = "memory",
+	[1] = "I/O",
+	[4] = "Custom 0",
+	[5] = "Custom 1",
+	[6] = "Custom 2",
+	[7] = "Custom 3",
 };
 
 uint32_t vexp[8] =

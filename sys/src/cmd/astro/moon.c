@@ -279,7 +279,8 @@ moon(void)
  *	planetary terms in parallax
  */
 
-	spterms = spterms;
+	// This was originally uncommented - was it a note or mistake?
+	//spterms = spterms;
 
 /*
  *	computation of longitude

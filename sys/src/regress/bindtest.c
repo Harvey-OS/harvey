@@ -9,6 +9,7 @@
 
 #include <u.h>
 #include <libc.h>
+#include <stdio.h>
 
 int
 cexecpipe(int *p0, int *p1)
@@ -26,14 +27,20 @@ cexecpipe(int *p0, int *p1)
 	return 0;
 }
 
-int main(int argc, char *argv[])
+void
+main(int argc, char *argv[])
 {
 	int f1, f2, ret;
 	ret = cexecpipe(&f1, &f2);
 	print("result %d f1 %d f2 %d\n", ret, f1, f2);
 	if (ret < 0)
+	{
 		printf("FAIL\n");
+		exits("FAIL");
+	}
 	else
+	{
 		printf("OK\n");
-
+		exits("OK");
+	}
 }
