@@ -7,6 +7,7 @@ harvey_binary(
 		"//sys/include",
 		"//.",
 	],
+	install="bin/aux/vga",
 	srcs=[
 		"error.c",
 		"ics534x.c",

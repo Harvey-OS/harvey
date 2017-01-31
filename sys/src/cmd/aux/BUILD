@@ -117,5 +117,6 @@ group(
 		"//sys/src/cmd/aux:tty",
 		"//sys/src/cmd/aux/realemu:realemu",
 		"//sys/src/cmd/aux/console:consoles",
+		"//sys/src/cmd/aux/vga:vga",
 	],
 )
