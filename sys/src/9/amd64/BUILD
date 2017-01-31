@@ -332,6 +332,8 @@ config(
 		"factotum": "auth/factotum",
 		"ipconfig": "ip/ipconfig",
 		"screenconsole": "aux/screenconsole",
+		"realemu": "aux/realemu",
+		"vga": "aux/vga",
 	},
 	dev=[
 		"acpi",
