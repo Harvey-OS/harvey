@@ -8,6 +8,7 @@ harvey_binary(
 		"//sys/src/cmd/aux/realemu",
 	 	"//.",
 	],
+	install="bin/aux/realemu",
 	srcs = [
 		"arg.c",
 		"debug.c",
