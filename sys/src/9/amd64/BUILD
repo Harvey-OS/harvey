@@ -216,7 +216,7 @@ mk_sys(
 	sysconf="//sys/src/sysconf.json",
 )
 group(
-	name="9bins",
+	name="kernelbins",
 	prefix="sys/src/9/amd64",
 	deps=[
 		":harvey.32bit",
@@ -224,7 +224,16 @@ group(
 	],
 )
 
-HRVYDEPS = [
+objcopy(
+	name="harvey.32bit",
+	deps=[
+		"//sys/src/9/amd64:harvey"
+	],
+	infile="elf64-x86-64",
+	outfile="elf32-i386",
+)
+
+HRVYDEPS =[
 	":amd64cpu",
 	":error",
 	":errstr",
@@ -277,15 +286,6 @@ cc_binary(
 		"-g",
 		"-T",
 	]
-)
-
-objcopy(
-	name="harvey.32bit",
-	deps=[
-		"//sys/src/9/amd64:harvey"
-	],
-	infile="elf64-x86-64",
-	outfile="elf32-i386",
 )
 
 KERNEL_DEPS = [
