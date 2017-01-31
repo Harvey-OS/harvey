@@ -336,7 +336,7 @@ actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
 
 	if(vno < 0 || vno >= 256)
 		panic("actrapenable: vno %d\n", vno);
-	v = malloc(sizeof(Vctl));
+	v = malloc(sizeof(ACVctl));
 	v->f = f;
 	v->a = a;
 	v->vno = vno;
