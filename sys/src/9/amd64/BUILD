@@ -328,6 +328,11 @@ config(
 		"//rc/lib/rcmain",
 		"//sys/src/9/amd64/startdisk",
 	],
+	bins={
+		"factotum": "auth/factotum",
+		"ipconfig": "ip/ipconfig",
+		"screenconsole": "aux/screenconsole",
+	},
 	dev=[
 		"acpi",
 		"arch",
