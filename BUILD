@@ -10,7 +10,7 @@ ARCH = env("ARCH")
 group(
 	name="kernel",
 	deps=[
-		"//sys/src/9/%s:9bins" %  ARCH,
+		"//sys/src/9/%s:kernelbins" %  ARCH,
 		":libsncmds",
 	],
 )
