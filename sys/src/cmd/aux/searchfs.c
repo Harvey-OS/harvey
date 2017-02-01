@@ -781,7 +781,6 @@ fswalk(Fs *fs, Fcall *rpc)
 			path = Qstats;
 		}else if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0){
 			type = QTDIR;
-			path = path;
 		}else{
 			err = Enotexist;
 			break;
