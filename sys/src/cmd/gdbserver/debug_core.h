@@ -65,7 +65,7 @@ extern int dbg_switch_cpu;
 extern char remcom_out_buffer[];
 extern char remcom_in_buffer[];
 /* gdbstub interface functions */
-extern int gdb_serial_stub(struct state *ks);
+extern int gdb_serial_stub(struct state *ks, int port);
 extern void gdbstub_msg_write(const char *s, int len);
 
 // And, yeah, since packets are signed, this takes a signed. 
