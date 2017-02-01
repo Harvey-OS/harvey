@@ -59,10 +59,8 @@ static	int	isseekable(int fd);
 void
 main(int argc, char **argv)
 {
-	int seekable, c;
-
 	Binit(&bout, 1, OWRITE);
-	for(; argc > 1 && ((c=*argv[1])=='-'||c=='+'); argc--,argv++ ) {
+	for(int c; argc > 1 && ((c=*argv[1])=='-'||c=='+'); argc--,argv++ ) {
 		if(getnumber(argv[1])) {
 			suffix(argv[1]);
 			continue;
@@ -91,17 +89,19 @@ main(int argc, char **argv)
 			}
 		break;
 	}
+
 	if(dir==REV && (units==CHARS || follow || origin==BEG))
 		fatal("incompatible options");
 	if(!anycount)
-		count = dir==REV? ~0UL>>1: 10;
+		count = dir==REV? -1 : 10;
 	if(origin==BEG && units==LINES && count>0)
 		count--;
 	if(argc > 2)
 		usage();
 	if(argc > 1 && (file=open(argv[1],0)) < 0)
 		fatal(argv[1]);
-	seekable = isseekable(file);
+
+	int seekable = isseekable(file);
 
 	if(!seekable && origin==END)
 		keep();
