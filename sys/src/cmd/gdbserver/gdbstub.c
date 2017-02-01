@@ -49,6 +49,8 @@ char remcom_out_buffer[BUFMAX];
 static int gdbstub_use_prev_in_buf;
 static int gdbstub_prev_in_buf_pos;
 int bpsize;
+int remotefd;
+int debug = 0;
 
 /* support crap */
 /*
@@ -130,17 +132,31 @@ p64(char *dest, uint64_t c)
 	return dest;
 }
 
+void
+sendctl(int pid, char* message)
+{
+    char buf[100];
+    int ctlfd;
+
+    sprint(buf, "/proc/%d/ctl", pid);
+    ctlfd = open(buf, OWRITE);
+    if (ctlfd >= 0) {
+        write(ctlfd, "hang", 4);
+        close(ctlfd);
+    }
+}
+
 static void
 write_char(uint8_t c)
 {
-	write(1, &c, 1);
+	write(remotefd, &c, 1);
 }
 
 static int
 read_char()
 {
 	uint8_t c;
-	if (read(0, &c, 1) < 0)
+	if (read(remotefd, &c, 1) < 0)
 		return -1;
 	return c;
 }
@@ -206,6 +222,8 @@ if (checksum != xmitcsum) syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x
 		}
 		buffer[count] = 0;
 	} while (checksum != xmitcsum);
+	if (debug)
+	    print("<-%s\n", buffer);
 }
 
 /*
@@ -222,6 +240,8 @@ put_packet(char *buffer)
 	/*
 	 * $<packet info>#<checksum>.
 	 */
+	if (debug)
+	    print("->%s\n", buffer);
 	while (1) {
 		write_char('$');
 		checksum = 0;
@@ -514,7 +534,7 @@ gdb_cmd_memread(struct state *ks)
 	unsigned long length;
 	unsigned long addr;
 	char *err;
-	
+
 
 	if (hex2long(&ptr, &addr) > 0 && *ptr++ == ',' &&
 		hex2long(&ptr, &length) > 0) {
@@ -640,13 +660,13 @@ gdb_cmd_query(struct state *ks)
 				error_packet(remcom_out_buffer, Eio);
 				return;
 			}
-			
+
 			close(fd);
 
 			remcom_out_buffer[0] = 'm';
 			ptr = (char *)remcom_out_buffer + 1;
 			if (remcom_in_buffer[1] == 'f') {
-				
+
 				for(int i = 0; i < n; i++) {
 					if (! isdigit(db[i].name[0]))
 						continue;
@@ -822,10 +842,30 @@ gdb_cmd_exception_pass(struct state *ks)
  * This function performs all gdbserial command procesing
  */
 int
-gdb_serial_stub(struct state *ks)
+gdb_serial_stub(struct state *ks, int port)
 {
 	int error = 0;
 	int tmp;
+	char adir[40], ldir[40], buff[256];
+	int acfd, lcfd;
+
+    sprint(buff, "tcp!*!%d", port);
+	acfd = announce(buff, adir);
+	if (acfd < 0) {
+	    fprint(2, "Unable to connect %r\n");
+	    exits("announce");
+	}
+	lcfd = listen(adir, ldir);
+	if (lcfd < 0) {
+	    fprint(2, "listen failed %r\n");
+	    exits("listen");
+	}
+	remotefd = accept(lcfd, ldir);
+	if (remotefd < 0) {
+	    fprint(2, "Accept failed %r\n");
+	    exits("accept");
+	}
+	sendctl(ks->threadid , "stop");
 
 	/* Initialize comm buffer and globals. */
 	memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
@@ -846,6 +886,7 @@ gdb_serial_stub(struct state *ks)
 	}
 
 	while (1) {
+
 		error = 0;
 
 		/* Clear the out buffer. */
@@ -1058,8 +1099,33 @@ static struct state ks = {
 };
 
 void
-main(int argc, char *argv)
+main(int argc, char **argv)
 {
+    char* pid;
+    char* port = "1666";
+    ARGBEGIN {
+    case 'l':
+        port = ARGF();
+        if (port == nil) {
+            fprint(2, "Please specify a listening port");
+            exits("listen");
+        }
+        break;
+    case 'p':
+        pid = ARGF();
+        if (port == nil) {
+            fprint(2, "Please specify a pid");
+            exits("pid");
+        }
+        break;
+    case 'd':
+        debug = 1;
+        break;
+    default:
+        fprint(2, " badflag('%c')", ARGC());
+    } ARGEND
+
+    ks.threadid = atoi(pid);
 	gdbinit();
-	gdb_serial_stub(&ks);
+	gdb_serial_stub(&ks, atoi(port));
 }
