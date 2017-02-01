@@ -21,7 +21,6 @@
 void
 main(int argc, char *argv[])
 {
-	int i;
 	int pid, fpid, cpid;
 
 	pid = getpid();
