@@ -139,6 +139,67 @@ kmesgputs(char *str, int n)
 	iunlock(&kmesg.lk);
 }
 
+static
+void printcontrolt(int c)
+{
+	int x;
+	/* ^T escapes */
+	print("^T^T%c\n", c);
+	switch(c){
+	case 'S':
+		x = splhi();
+		dumpstack();
+		procdump();
+		splx(x);
+		break;
+	case 's':
+		dumpstack();
+		break;
+	case 'x':
+		//xsummary();
+		ixsummary();
+		mallocsummary();
+		//	memorysummary();
+		pagersummary();
+		break;
+	case 'p':
+		x = spllo();
+		procdump();
+		splx(x);
+		break;
+	case 'q':
+		scheddump();
+		break;
+	case 'k':
+		killbig("^t ^t k");
+		break;
+	case 'r':
+		exit(0);
+		break;
+	}
+}
+
+void catchcontrolt(int c)
+{
+	static int ctrlt;
+
+	if(ctrlt == 2) {
+		ctrlt = 0;
+		printcontrolt(c);
+	}
+
+	switch(c){
+	case 0x10:	/* ^P */
+		active.exiting = 1;
+		break;
+	case 0x14:	/* ^T */
+		ctrlt++;
+		if(ctrlt > 2)
+			ctrlt = 2;
+		break;
+	}
+}
+
 /*
  *   Print a string on the console.  Convert \n to \r\n for serial
  *   line consoles.  Locking of the queues is left up to the screen
@@ -148,6 +209,9 @@ kmesgputs(char *str, int n)
 static void
 putstrn0(char *str, int n, int usewrite)
 {
+	if(n == 0)
+		return;
+
 	kmesgputs(str, n);
 	if(consputs != nil)
 		consputs(str, n);
@@ -339,7 +403,7 @@ kbdputc(Queue *q, int ch)
 
 	if(kbd.ir == nil)
 		return 0;		/* in case we're not inited yet */
-	
+
 	ilock(&kbd.lockputc);		/* just a mutex */
 	r = ch;
 	n = runetochar(buf, &r);
@@ -849,7 +913,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 			buf[n-1] = 0;
 		// Doing strncmp right is just painful and overkill here.
 		if (buf[0] == 'o') {
-			if (buf[1] == 'n' && buf[2] == 0) { 
+			if (buf[1] == 'n' && buf[2] == 0) {
 				printallsyscalls = 1;
 				break;
 			}
