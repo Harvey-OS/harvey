@@ -141,7 +141,7 @@ sendctl(int pid, char* message)
     sprint(buf, "/proc/%d/ctl", pid);
     ctlfd = open(buf, OWRITE);
     if (ctlfd >= 0) {
-        write(ctlfd, "hang", 4);
+        write(ctlfd, "stop", 4);
         close(ctlfd);
     }
 }
