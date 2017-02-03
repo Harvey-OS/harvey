@@ -25,6 +25,7 @@ $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 4 -m 2048 $kvmflag \
 hostfwd=tcp::5555-:1522,\
 hostfwd=tcp::9999-:9,\
 hostfwd=tcp::17010-:17010,\
+hostfwd=tcp::1666-:1666,\
 hostfwd=tcp::5356-:5356,\
 hostfwd=tcp::17013-:17013 \
 -net dump,file=/tmp/vm0.pcap \
