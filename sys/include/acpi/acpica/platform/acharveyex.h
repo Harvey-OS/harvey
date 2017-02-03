@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Name: acdragonflyex.h - Extra OS specific defines, etc. for Harvey
+ * Name: acharveyex.h - Extra OS specific defines, etc. for Harvey
  *
  *****************************************************************************/
 
