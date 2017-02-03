@@ -139,9 +139,10 @@ sendctl(int pid, char* message)
     int ctlfd;
 
     sprint(buf, "/proc/%d/ctl", pid);
+    print("%s\n", buf);
     ctlfd = open(buf, OWRITE);
     if (ctlfd >= 0) {
-        write(ctlfd, "stop", 4);
+        write(ctlfd, message, strlen(message));
         close(ctlfd);
     }
 }
@@ -508,7 +509,6 @@ gdb_cmd_getregs(struct state *ks)
 I_AM_HERE;
 	if (ks->threadid <= 0) {
 		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1\n", __func__);
-		ks->threadid = 1;
 	}
 	gpr(ks, ks->threadid);
 	mem2hex(ks->gdbregs, (char *)remcom_out_buffer, NUMREGBYTES);
@@ -540,6 +540,8 @@ gdb_cmd_memread(struct state *ks)
 		hex2long(&ptr, &length) > 0) {
 		char *data = malloc(length);
 		if (err = rmem(data, ks->threadid, addr, length)) {
+		    if(debug)
+		        print("%s: %r", __func__);
 			syslog(0, "gdbserver", "%s: %r", __func__);
 			error_packet(remcom_out_buffer, err);
 			free(data);
@@ -629,12 +631,8 @@ static void
 gdb_cmd_query(struct state *ks)
 {
 	Dir *db;
-/// unsigned char thref[BUF_THREAD_ID_SIZE];
 	char *ptr;
 	int fd, n;
-//  int i;
-	//int cpu;
-	//int finished = 0;
 
 	switch (remcom_in_buffer[1]) {
 		case 'S':
@@ -686,28 +684,13 @@ gdb_cmd_query(struct state *ks)
 			pack_threadid((char *)remcom_out_buffer + 2, (uint8_t *) & ks->threadid);
 			break;
 		case 'T':
-			if (memcmp(remcom_in_buffer + 1, "ThreadExtraInfo,", 16))
-				break;
-
-			ks->threadid = 0;
-			ptr = (char *)remcom_in_buffer + 17;
-			hex2long(&ptr, &ks->threadid);
-fprint(2, "SHIT: extra\n");
-			//if (!getthread(ks->linux_regs, ks->threadid)) {
+		    print("%s\n", remcom_in_buffer );
+		    if (memcmp(remcom_in_buffer, "Status", 6) == 0) {
+		        // TODO: proper status
+		        strcpy(remcom_out_buffer, "Tnotrun:0");
+		        break;
+		    }
 			error_packet(remcom_out_buffer, Einval);
-			//break;
-			//}
-#if 0
-			if ((int)ks->threadid > 0) {
-				mem2hex(getthread(ks->linux_regs,
-								  ks->threadid)->comm, remcom_out_buffer, 16);
-			} else {
-				static char tmpstr[23 + BUF_THREAD_ID_SIZE];
-
-				sprintf(tmpstr, "shadowCPU%d", (int)(-ks->threadid - 2));
-				mem2hex(tmpstr, remcom_out_buffer, strlen(tmpstr));
-			}
-#endif
 			break;
 	}
 }
@@ -723,15 +706,13 @@ gdb_cmd_task(struct state *ks)
 	switch (remcom_in_buffer[1]) {
 		case 'g':
 			ptr = (char *)&remcom_in_buffer[2];
-			hex2long(&ptr, &ks->threadid);
+			//hex2long(&ptr, &ks->threadid);
 			if (ks->threadid <=  0) {
 				syslog(0, "gdbserver", "Warning: using 1 instead of 0\n");
-				ks->threadid = 1;
 			}
 			err = gpr(ks, ks->threadid);
 			syslog(0, "gdbserver", "Try to use thread %d: %s\n", ks->threadid, err);
 			if (err){
-				ks->threadid = -1;
 				error_packet(remcom_out_buffer, err);
 			} else {
 				strcpy((char *)remcom_out_buffer, "OK");
@@ -749,14 +730,13 @@ gdb_cmd_task(struct state *ks)
 static void
 gdb_cmd_thread(struct state *ks)
 {
-	char *ptr = (char *)&remcom_in_buffer[1];
+	//char *ptr = (char *)&remcom_in_buffer[1];
 	char *err;
 
-	hex2long(&ptr, &ks->threadid);
+	//hex2long(&ptr, &ks->threadid);
 
 	if (ks->threadid <= 0) {
 		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1\n", __func__);
-		ks->threadid = 1;
 	}
 	err = gpr(ks, ks->threadid);
 	if (!err)
@@ -860,11 +840,13 @@ gdb_serial_stub(struct state *ks, int port)
 	    fprint(2, "listen failed %r\n");
 	    exits("listen");
 	}
+    print("Waiting for connection on %d...\n", port);
 	remotefd = accept(lcfd, ldir);
 	if (remotefd < 0) {
 	    fprint(2, "Accept failed %r\n");
 	    exits("accept");
 	}
+	print("Connected\n");
 	sendctl(ks->threadid , "stop");
 
 	/* Initialize comm buffer and globals. */
@@ -893,7 +875,7 @@ gdb_serial_stub(struct state *ks, int port)
 		memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
 
 		get_packet(remcom_in_buffer);
-syslog(0, "gdbserver", "packet :%s:\n", remcom_in_buffer);
+        syslog(0, "gdbserver", "packet :%s:\n", remcom_in_buffer);
 
 		switch (remcom_in_buffer[0]) {
 			case '?':	/* gdbserial status */
@@ -1081,6 +1063,8 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 	}
 
 	if (pwrite(fd, addr, size, dest) < size) {
+	    if (debug)
+	        print("wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
 		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
 		close(fd);
 		return errstring(Eio);
@@ -1094,9 +1078,7 @@ gdbinit(void)
 {
 	bpsize = ebreakpoint - breakpoint;
 }
-static struct state ks = {
-	.threadid = -1,
-};
+static struct state ks;
 
 void
 main(int argc, char **argv)
@@ -1113,7 +1095,7 @@ main(int argc, char **argv)
         break;
     case 'p':
         pid = ARGF();
-        if (port == nil) {
+        if (pid == nil) {
             fprint(2, "Please specify a pid");
             exits("pid");
         }

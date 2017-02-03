@@ -15,13 +15,13 @@
 
 /* kernel debug core data structures */
 struct state {
+	unsigned long threadid;
 	int			ex_vector;
 	int			signo;
 	int			err_code;
 	int			cpu;
 	int			pass_exception;
 	unsigned long		thr_query;
-	unsigned long threadid;
 	char *pidname;
 	long			usethreadid;
 	void *gdbregs;
