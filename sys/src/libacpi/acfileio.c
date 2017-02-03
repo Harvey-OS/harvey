@@ -125,6 +125,7 @@
 
 /* Local prototypes */
 
+#if 0
 static ACPI_STATUS
 AcGetOneTableFromFile (
     char                    *Filename,
@@ -135,7 +136,7 @@ AcGetOneTableFromFile (
 static ACPI_STATUS
 AcCheckTextModeCorruption (
     ACPI_TABLE_HEADER       *Table);
-
+#endif
 
 /*******************************************************************************
  *

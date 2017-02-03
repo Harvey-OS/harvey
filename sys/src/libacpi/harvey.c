@@ -6,6 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
+
 #include <acpi.h>
 
 #define MiB (1<<20)
@@ -86,12 +87,6 @@ rawfd(void)
 	return open(name, OREAD);
 }
 
-static int
-tbdf(ACPI_PCI_ID * p)
-{
-	return (p->Bus << 8) | (p->Device << 3) | (p->Function);
-}
-
 int iol = -1, iow = -1, iob = -1;
 
 uint32_t
@@ -156,12 +151,11 @@ outb(uint16_t addr, uint8_t val)
 #define BUSBDF(tbdf)	((tbdf)&0x00FFFF00)
 
 ACPI_STATUS
-AcpiOsReadPciConfiguration(ACPI_PCI_ID * PciId,
-						   UINT32 Reg, UINT64 * Value, UINT32 Width)
+AcpiOsReadPciConfiguration(ACPI_PCI_ID * PciId, UINT32 Reg, UINT64 * Value, UINT32 Width)
 {
 	ACPI_STATUS ret = AE_OK;
 	uint64_t val;
-	int amt;
+	int amt = 0;
 	static char path[128];
 	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus,
 			PciId->Device, PciId->Function);
@@ -184,6 +178,7 @@ AcpiOsReadPciConfiguration(ACPI_PCI_ID * PciId,
 			sysfatal("Can't read pci: bad width %d\n", Width);
 	}
 	close(fd);
+
 	if (amt > 0)
 		memmove(&val, Value, amt);
 	if (debug)
@@ -195,11 +190,9 @@ AcpiOsReadPciConfiguration(ACPI_PCI_ID * PciId,
 }
 
 ACPI_STATUS
-AcpiOsWritePciConfiguration(ACPI_PCI_ID * PciId,
-							UINT32 Reg, UINT64 Value, UINT32 Width)
+AcpiOsWritePciConfiguration(ACPI_PCI_ID * PciId, UINT32 Reg, UINT64 Value, UINT32 Width)
 {
 	ACPI_STATUS ret = AE_OK;
-	int amt;
 	static char path[128];
 	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus,
 			PciId->Device, PciId->Function);
@@ -213,10 +206,12 @@ AcpiOsWritePciConfiguration(ACPI_PCI_ID * PciId,
 		case 32:
 		case 16:
 		case 8:
-			amt = pwrite(fd, &Value, Width / 8, Reg);
+		{
+			int amt = pwrite(fd, &Value, Width / 8, Reg);
 			if (amt < Width / 8)
 				ret = AE_IO_ERROR;
 			break;
+		}
 		default:
 			sysfatal("Can't read pci: bad width %d\n", Width);
 	}

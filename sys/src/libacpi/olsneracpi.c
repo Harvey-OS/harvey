@@ -234,6 +234,7 @@ failed:
 	return AE_OK;
 }
 
+#if 0
 static ACPI_STATUS PrintAPICTable(void) {
 	static const char *polarities[] = {
 		"Bus-Conformant",
@@ -304,6 +305,7 @@ static ACPI_STATUS PrintAPICTable(void) {
 failed:
 	return status;
 }
+#endif
 
 ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE Device)
 {

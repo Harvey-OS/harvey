@@ -9,13 +9,12 @@
 		"Install": "/$ARCH/lib/",
 		"Library": "libacpi.a",
 		"SourceFiles": [
-		    "acfileio.c",
-		    "dbfileio.c",
+			"acfileio.c",
+			"dbfileio.c",
 			"hack.c",
 			"harvey.c",
-		    "olsneracpi.c"
-
-			]
-		}
+			"olsneracpi.c"
+		]
+	}
 }
 	
