@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Name: acenvex.h - Extra host and compiler configuration
+ * Name: acdragonflyex.h - Extra OS specific defines, etc. for Harvey
  *
  *****************************************************************************/
 
@@ -113,38 +113,9 @@
  *
  *****************************************************************************/
 
-#ifndef __ACENVEX_H__
-#define __ACENVEX_H__
+#ifndef __ACHARVEYEX_H__
+#define __ACHARVEYEX_H__
 
-/*! [Begin] no source code translation */
+void AcpiRsDumpResourceList(ACPI_RESOURCE*);
 
-/******************************************************************************
- *
- * Extra host configuration files. All ACPICA headers are included before
- * including these files.
- *
- *****************************************************************************/
-
-#if defined(_LINUX) || defined(__linux__)
-#include "aclinuxex.h"
-
-#elif defined(WIN32)
-#include "acwinex.h"
-
-#elif defined(_AED_EFI)
-#include "acefiex.h"
-
-#elif defined(_GNU_EFI)
-#include "acefiex.h"
-
-#elif defined(__DragonFly__)
-#include "acdragonflyex.h"
-
-#elif defined(__HARVEY__)
-#include "acharveyex.h"
-
-#endif
-
-/*! [End] no source code translation !*/
-
-#endif /* __ACENVEX_H__ */
+#endif /* __ACHARVEYEX_H__ */

@@ -1,7 +1,7 @@
 {
 	"irq": {
 	    "Include": [
-		"/sys/src/libacpi/acpica/acpiflags.json",
+			"/sys/src/libacpi/acpica/acpiflags.json",
 			"/sys/src/cmd/cmd.json"
 		],
 		"Oflags": [
@@ -10,7 +10,7 @@
 		"Install": "/$ARCH/bin/acpi",
 		"Program": "irq",
 		"NSourceFiles": [
-		    "alltables.c"
+			"alltables.c"
 		],
 		"SourceFilesCmd": [
 			"crs.c",
