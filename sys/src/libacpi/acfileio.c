@@ -123,21 +123,6 @@
         ACPI_MODULE_NAME    ("acfileio")
 
 
-/* Local prototypes */
-
-#if 0
-static ACPI_STATUS
-AcGetOneTableFromFile (
-    char                    *Filename,
-    FILE                    *File,
-    UINT8                   GetOnlyAmlTables,
-    ACPI_TABLE_HEADER       **Table);
-
-static ACPI_STATUS
-AcCheckTextModeCorruption (
-    ACPI_TABLE_HEADER       *Table);
-#endif
-
 /*******************************************************************************
  *
  * FUNCTION:    AcGetAllTablesFromFile
