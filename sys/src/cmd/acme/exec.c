@@ -71,34 +71,34 @@ struct Exectab
 };
 
 Exectab exectab[] = {
-	{ L"Cut",	cut,	TRUE,	TRUE,	TRUE	},
-	{ L"Del",	del,	FALSE,	FALSE,	XXX	},
-	{ L"Delcol",	delcol,	FALSE,	XXX,	XXX	},
-	{ L"Delete",	del,	FALSE,	TRUE,	XXX	},
-	{ L"Dump",	dump,	FALSE,	TRUE,	XXX	},
-	{ L"Edit",	edit,	FALSE,	XXX,	XXX	},
-	{ L"Exit",	exit,	FALSE,	XXX,	XXX	},
-	{ L"Font",	fontx,	FALSE,	XXX,	XXX	},
-	{ L"Get",	get,	FALSE,	TRUE,	XXX	},
-	{ L"ID",	id,	FALSE,	XXX,	XXX	},
-	{ L"Incl",	incl,	FALSE,	XXX,	XXX	},
-	{ L"Indent",	indent,	FALSE,	XXX,	XXX	},
-	{ L"Kill",	kill,	FALSE,	XXX,	XXX	},
-	{ L"Load",	dump,	FALSE,	FALSE,	XXX	},
-	{ L"Local",	local,	FALSE,	XXX,	XXX	},
-	{ L"Look",	look,	FALSE,	XXX,	XXX	},
-	{ L"New",	new,	FALSE,	XXX,	XXX	},
-	{ L"Newcol",	newcol,	FALSE,	XXX,	XXX	},
-	{ L"Paste",	paste,	TRUE,	TRUE,	XXX	},
-	{ L"Put",	put,	FALSE,	XXX,	XXX	},
-	{ L"Putall",	putall,	FALSE,	XXX,	XXX	},
-	{ L"Redo",	undo,	FALSE,	FALSE,	XXX	},
-	{ L"Send",	sendx,	TRUE,	XXX,	XXX	},
-	{ L"Snarf",	cut,	FALSE,	TRUE,	FALSE	},
-	{ L"Sort",	sort,	FALSE,	XXX,	XXX	},
-	{ L"Tab",	tab,	FALSE,	XXX,	XXX	},
-	{ L"Undo",	undo,	FALSE,	TRUE,	XXX	},
-	{ L"Zerox",	zeroxx,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Cut",	cut,	TRUE,	TRUE,	TRUE	},
+	{ (Rune*)L"Del",	del,	FALSE,	FALSE,	XXX	},
+	{ (Rune*)L"Delcol",	delcol,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Delete",	del,	FALSE,	TRUE,	XXX	},
+	{ (Rune*)L"Dump",	dump,	FALSE,	TRUE,	XXX	},
+	{ (Rune*)L"Edit",	edit,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Exit",	exit,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Font",	fontx,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Get",	get,	FALSE,	TRUE,	XXX	},
+	{ (Rune*)L"ID",	id,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Incl",	incl,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Indent",	indent,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Kill",	kill,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Load",	dump,	FALSE,	FALSE,	XXX	},
+	{ (Rune*)L"Local",	local,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Look",	look,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"New",	new,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Newcol",	newcol,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Paste",	paste,	TRUE,	TRUE,	XXX	},
+	{ (Rune*)L"Put",	put,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Putall",	putall,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Redo",	undo,	FALSE,	FALSE,	XXX	},
+	{ (Rune*)L"Send",	sendx,	TRUE,	XXX,	XXX	},
+	{ (Rune*)L"Snarf",	cut,	FALSE,	TRUE,	FALSE	},
+	{ (Rune*)L"Sort",	sort,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Tab",	tab,	FALSE,	XXX,	XXX	},
+	{ (Rune*)L"Undo",	undo,	FALSE,	TRUE,	XXX	},
+	{ (Rune*)L"Zerox",	zeroxx,	FALSE,	XXX,	XXX	},
 	{ nil, 		nil,	0,	0,	0	},
 };
 
@@ -873,7 +873,7 @@ sendx(Text *et, Text *t, Text*a, int b, int c, Rune*d, int f)
 	textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 	paste(t, t, nil, TRUE, TRUE, nil, 0);
 	if(textreadc(t, t->file->Buffer.nc-1) != '\n'){
-		textinsert(t, t->file->Buffer.nc, L"\n", 1, TRUE);
+		textinsert(t, t->file->Buffer.nc, (Rune*)L"\n", 1, TRUE);
 		textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 	}
 }
@@ -1004,7 +1004,7 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 			break;
 		r = runemalloc(narg-na+1);
 		runemove(r, arg, narg-na);
-		if(runeeq(r, narg-na, L"fix", 3) || runeeq(r, narg-na, L"var", 3)){
+		if(runeeq(r, narg-na, (Rune*)L"fix", 3) || runeeq(r, narg-na, (Rune*)L"var", 3)){
 			free(flag);
 			flag = r;
 		}else{
@@ -1016,7 +1016,7 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 	}
 	getarg(argt, FALSE, TRUE, &r, &na);
 	if(r)
-		if(runeeq(r, na, L"fix", 3) || runeeq(r, na, L"var", 3)){
+		if(runeeq(r, na, (Rune*)L"fix", 3) || runeeq(r, na, (Rune*)L"var", 3)){
 			free(flag);
 			flag = r;
 		}else{
@@ -1026,7 +1026,7 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 		}
 	fix = 1;
 	if(flag)
-		fix = runeeq(flag, runestrlen(flag), L"fix", 3);
+		fix = runeeq(flag, runestrlen(flag), (Rune*)L"fix", 3);
 	else if(file == nil){
 		newfont = rfget(FALSE, FALSE, FALSE, nil);
 		if(newfont)
@@ -1106,17 +1106,17 @@ indentval(Rune *s, int n)
 {
 	if(n < 2)
 		return IError;
-	if(runestrncmp(s, L"ON", n) == 0){
+	if(runestrncmp(s, (Rune*)L"ON", n) == 0){
 		globalautoindent = TRUE;
 		warning(nil, "Indent ON\n");
 		return IGlobal;
 	}
-	if(runestrncmp(s, L"OFF", n) == 0){
+	if(runestrncmp(s, (Rune*)L"OFF", n) == 0){
 		globalautoindent = FALSE;
 		warning(nil, "Indent OFF\n");
 		return IGlobal;
 	}
-	return runestrncmp(s, L"on", n) == 0;
+	return runestrncmp(s, (Rune*)L"on", n) == 0;
 }
 
 static void
