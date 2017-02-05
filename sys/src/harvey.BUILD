@@ -1,3 +1,4 @@
+load("//sys/src/FLAGS", "LIB_COMPILER_FLAGS")
 CMD_DEPS = [
 	"//sys/src/libavl:libavl",
 	"//sys/src/libcomplete:libcomplete",
@@ -37,39 +38,6 @@ CMD_LINK_OPTS = [
 	"-e_main",
 ]
 
-KLIB_COMPILER_FLAGS = [
-	"-mcmodel=kernel",
-	"-O0",
-	"-mno-red-zone",
-	"-ffreestanding",
-	"-fno-builtin",
-	"-Wall",
-	"-Wno-missing-braces",
-	"-Wno-parentheses",
-	"-Wno-unknown-pragmas",
-	"-Wuninitialized",
-	"-g",
-]
-
-LIB_COMPILER_FLAGS = [
-	"-std=c11",
-	"-fasm",
-	"-c",
-	"-ffreestanding",
-	"-fno-builtin",
-	"-fno-omit-frame-pointer",
-	"-g",
-	"-gdwarf-2",
-	"-ggdb",
-	"-mcmodel=small",
-	"-mno-red-zone",
-	"-O0",
-	"-static",
-	"-Wall",
-	"-Wno-missing-braces",
-	"-Wno-parentheses",
-	"-Wno-unknown-pragmas"
-]
 
 harvey_binary = cc_binary(
 	copts=LIB_COMPILER_FLAGS,
