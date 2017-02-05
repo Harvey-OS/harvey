@@ -171,17 +171,17 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 				break;
 			w = dl->wid;
 			if(maxt-w%maxt < mint){
-				fileinsert(t->file, q1, L"\t", 1);
+				fileinsert(t->file, q1, (Rune*)L"\t", 1);
 				q1++;
 				w += mint;
 			}
 			do{
-				fileinsert(t->file, q1, L"\t", 1);
+				fileinsert(t->file, q1, (Rune*)L"\t", 1);
 				q1++;
 				w += maxt-(w%maxt);
 			}while(w < colw);
 		}
-		fileinsert(t->file, q1, L"\n", 1);
+		fileinsert(t->file, q1, (Rune*)L"\n", 1);
 		q1++;
 	}
 }
@@ -601,7 +601,7 @@ textcomplete(Text *t)
 		}
 		if(dir.nr == 0){
 			dir.nr = 1;
-			dir.r = runestrdup(L".");
+			dir.r = runestrdup((Rune*)L".");
 		}
 		runemove(tmp, dir.r, dir.nr);
 		tmp[dir.nr] = '/';
