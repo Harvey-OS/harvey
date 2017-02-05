@@ -42,7 +42,7 @@ rowinit(Row *row, Rectangle r)
 	r1.min.y = r1.max.y;
 	r1.max.y += Border;
 	draw(screen, r1, display->black, nil, ZP);
-	textinsert(t, 0, L"Newcol Kill Putall Dump Exit ", 29, TRUE);
+	textinsert(t, 0, (Rune*)L"Newcol Kill Putall Dump Exit ", 29, TRUE);
 	textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 }
 
