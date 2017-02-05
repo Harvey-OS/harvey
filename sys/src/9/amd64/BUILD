@@ -244,6 +244,7 @@ HRVYDEPS = [
 	":inith",
 ]
 STD_COMPILER_OPTIONS = [
+	"-std=c11",
 	"-mcmodel=kernel",
 	"-O0",
 	"-static",
