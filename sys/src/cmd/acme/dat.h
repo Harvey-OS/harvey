@@ -37,8 +37,8 @@ enum
 {
 	Blockincr =	256,
 	Maxblock = 	8*1024,
-	NRange =		10,
-	Infinity = 		0x7FFFFFFF,	/* huge value for regexp address */
+	NRange =	10,
+	Infinity = 	0x7FFFFFFF,	/* huge value for regexp address */
 };
 
 typedef	struct	Block Block;
@@ -77,52 +77,52 @@ struct Range
 
 struct Block
 {
-	unsigned int		addr;	/* disk address in bytes */
+	unsigned int	addr;		/* disk address in bytes */
 	union
 	{
-		unsigned int	n;		/* number of used runes in block */
-		Block	*next;	/* pointer to next in free list */
+		unsigned int	n;	/* number of used runes in block */
+		Block	*next;		/* pointer to next in free list */
 	};
 };
 
 struct Disk
 {
 	int		fd;
-	unsigned int		addr;	/* length of temp file */
+	unsigned int	addr;	/* length of temp file */
 	Block	*free[Maxblock/Blockincr+1];
 };
 
 Disk*	diskinit(void);
 Block*	disknewblock(Disk*, unsigned int);
-void		diskrelease(Disk*, Block*);
-void		diskread(Disk*, Block*, Rune*, unsigned int);
-void		diskwrite(Disk*, Block**, Rune*, unsigned int);
+void	diskrelease(Disk*, Block*);
+void	diskread(Disk*, Block*, Rune*, unsigned int);
+void	diskwrite(Disk*, Block**, Rune*, unsigned int);
 
 struct Buffer
 {
 	unsigned int	nc;
-	Rune	*c;			/* cache */
-	unsigned int	cnc;			/* bytes in cache */
+	Rune		*c;		/* cache */
+	unsigned int	cnc;		/* bytes in cache */
 	unsigned int	cmax;		/* size of allocated cache */
-	unsigned int	cq;			/* position of cache */
-	int		cdirty;	/* cache needs to be written */
-	unsigned int	cbi;			/* index of cache Block */
-	Block	**bl;		/* array of blocks */
-	unsigned int	nbl;			/* number of blocks */
+	unsigned int	cq;		/* position of cache */
+	int		cdirty;		/* cache needs to be written */
+	unsigned int	cbi;		/* index of cache Block */
+	Block		**bl;		/* array of blocks */
+	unsigned int	nbl;		/* number of blocks */
 };
 void		bufinsert(Buffer*, unsigned int, Rune*, unsigned int);
 void		bufdelete(Buffer*, unsigned int, unsigned int);
-unsigned int		bufload(Buffer*, unsigned int, int, int*);
+unsigned int	bufload(Buffer*, unsigned int, int, int*);
 void		bufread(Buffer*, unsigned int, Rune*, unsigned int);
 void		bufclose(Buffer*);
 void		bufreset(Buffer*);
 
 struct Elog
 {
-	short	type;		/* Delete, Insert, Filename */
-	unsigned int		q0;		/* location of change (unused in f) */
-	unsigned int		nd;		/* number of deleted characters */
-	unsigned int		nr;		/* # runes in string or file name */
+	short		type;		/* Delete, Insert, Filename */
+	unsigned int	q0;		/* location of change (unused in f) */
+	unsigned int	nd;		/* number of deleted characters */
+	unsigned int	nr;		/* # runes in string or file name */
 	Rune		*r;
 };
 void	elogterm(File*);
@@ -134,32 +134,32 @@ void	elogapply(File*);
 
 struct File
 {
-	Buffer	Buffer;		/* the data */
-	Buffer	delta;	/* transcript of changes */
-	Buffer	epsilon;	/* inversion of delta for redo */
-	Buffer	*elogbuf;	/* log of pending editor changes */
+	Buffer		Buffer;		/* the data */
+	Buffer		delta;		/* transcript of changes */
+	Buffer		epsilon;	/* inversion of delta for redo */
+	Buffer		*elogbuf;	/* log of pending editor changes */
 	Elog		elog;		/* current pending change */
-	Rune		*name;	/* name of associated file */
-	int		nname;	/* size of name */
+	Rune		*name;		/* name of associated file */
+	int		nname;		/* size of name */
 	uint64_t	qidpath;	/* of file when read */
-	unsigned int		mtime;	/* of file when read */
+	unsigned int	mtime;		/* of file when read */
 	int		dev;		/* of file when read */
-	int		unread;	/* file has not been read from disk */
+	int		unread;		/* file has not been read from disk */
 	int		editclean;	/* mark clean after edit command */
 
 	int		seq;		/* if seq==0, File acts like Buffer */
 	int		mod;
 	Text		*curtext;	/* most recently used associated text */
-	Text		**text;	/* list of associated texts */
+	Text		**text;		/* list of associated texts */
 	int		ntext;
-	int		dumpid;	/* used in dumping zeroxed windows */
+	int		dumpid;		/* used in dumping zeroxed windows */
 };
 File*		fileaddtext(File*, Text*);
 void		fileclose(File*);
 void		filedelete(File*, unsigned int, unsigned int);
 void		filedeltext(File*, Text*);
 void		fileinsert(File*, unsigned int, Rune*, unsigned int);
-unsigned int		fileload(File*, unsigned int, int, int*);
+unsigned int	fileload(File*, unsigned int, int, int*);
 void		filemark(File*);
 void		filereset(File*);
 void		filesetname(File*, Rune*, int);
@@ -167,7 +167,7 @@ void		fileundelete(File*, Buffer*, unsigned int, unsigned int);
 void		fileuninsert(File*, Buffer*, unsigned int, unsigned int);
 void		fileunsetname(File*, Buffer*);
 void		fileundo(File*, int, unsigned int*, unsigned int*);
-unsigned int		fileredoseq(File*);
+unsigned int	fileredoseq(File*);
 
 enum	/* Text.what */
 {
@@ -202,8 +202,8 @@ struct Text
 	int	nofill;
 };
 
-unsigned int		textbacknl(Text*, unsigned int, unsigned int);
-unsigned int		textbsinsert(Text*, unsigned int, Rune*,
+unsigned int	textbacknl(Text*, unsigned int, unsigned int);
+unsigned int	textbsinsert(Text*, unsigned int, Rune*,
 					 unsigned int, int, int*);
 int		textbswidth(Text*, Rune);
 int		textclickmatch(Text*, int, int, int, unsigned int*);
@@ -219,7 +219,7 @@ void		textframescroll(Text*, int);
 void		textinit(Text*, File*, Rectangle, Reffont*, Image**);
 void		textinsert(Text*, unsigned int, Rune*, unsigned int,
 			       int);
-unsigned int		textload(Text*, unsigned int, char*, int);
+unsigned int	textload(Text*, unsigned int, char*, int);
 Rune		textreadc(Text*, unsigned int);
 void		textredraw(Text*, Rectangle, Font*, Image*, int);
 void		textreset(Text*);
@@ -228,8 +228,7 @@ void		textscrdraw(Text*);
 void		textscroll(Text*, int);
 void		textselect(Text*);
 int		textselect2(Text*, unsigned int*, unsigned int*, Text**);
-int		textselect23(Text*, unsigned int*, unsigned int*, Image*,
-				int);
+int		textselect23(Text*, unsigned int*, unsigned int*, Image*, int);
 int		textselect3(Text*, unsigned int*, unsigned int*);
 void		textsetorigin(Text*, unsigned int, int);
 void		textsetselect(Text*, unsigned int, unsigned int);
