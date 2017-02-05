@@ -297,9 +297,9 @@ winsetname(Window *w, Rune *name, int n)
 	if(runeeq(t->file->name, t->file->nname, name, n) == TRUE)
 		return;
 	w->isscratch = FALSE;
-	if(n>=6 && runeeq(L"/guide", 6, name+(n-6), 6))
+	if(n>=6 && runeeq((Rune*)L"/guide", 6, name+(n-6), 6))
 		w->isscratch = TRUE;
-	else if(n>=7 && runeeq(L"+Errors", 7, name+(n-7), 7))
+	else if(n>=7 && runeeq((Rune*)L"+Errors", 7, name+(n-7), 7))
 		w->isscratch = TRUE;
 	filesetname(t->file, name, n);
 	for(i=0; i<t->file->ntext; i++){
