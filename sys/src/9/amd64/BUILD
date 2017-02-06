@@ -93,6 +93,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/image.c",
 	"//sys/src/9/port/kdebug.c",
 	"//sys/src/9/port/ipchecksum.c",
+	"//sys/src/9/port/latin1.c",
 	"//sys/src/9/port/mul64fract.c",
 	"//sys/src/9/port/netif.c",
 	"//sys/src/9/port/page.c",
