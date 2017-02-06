@@ -175,6 +175,7 @@ I386_SRCS = [
 	"//sys/src/9/386/etherigbe.c",
 	"//sys/src/9/386/etherm10g.c",
 	"//sys/src/9/386/i8042.c",
+	"//sys/src/9/386/kbd.c",
 	"//sys/src/9/386/pci.c",
 	"//sys/src/9/386/uarti8250.c",
 	"//sys/src/9/386/uartpci.c",
