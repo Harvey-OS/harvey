@@ -929,10 +929,10 @@ userok(char *u, char *cname)
 	return nt != nil;
 }
 
-int m2p[] ={
-	[OREAD]		4,
-	[OWRITE]	2,
-	[ORDWR]		6
+int m2p[] = {
+	[OREAD]		= 4,
+	[OWRITE]	= 2,
+	[ORDWR]		= 6
 };
 
 /*
