@@ -273,7 +273,7 @@ failed:
 typedef struct IRQRouteData
 {
 	ACPI_PCI_ID pci;
-	unsigned pin;
+	UINT64 pin;
 	int8_t gsi;
 	// triggering: 1 = edge triggered, 0 = level
 	int8_t triggering;
@@ -474,7 +474,7 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 	if (nf < 3)
 		sysfatal("BOTCH! the bridge device requires 3 fields, only had %d\n", nf);
 	BridgeDevice = strtoul(f[1], 0, 0);
-	if (DBGFLG) print("BridgeDevice is 0x%x, pin is %d\n", BridgeDevice, d->pin);
+	if (DBGFLG) print("BridgeDevice is 0x%x, pin is %llu\n", BridgeDevice, d->pin);
 
 	/* and the swizzling is fixed, per the PCI standard. take the low 2 bits (for now)
 	 * of device #, add pin, mod3, that's it. */
@@ -612,7 +612,7 @@ failed:
 	return_ACPI_STATUS(status);
 }
 
-ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq) {
+ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, UINT64 pin, int* irq) {
 	IRQRouteData data = { *device, pin, 0, 0, 0, FALSE };
 	ACPI_STATUS status = AE_OK;
 
