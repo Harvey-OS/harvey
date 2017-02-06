@@ -93,6 +93,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/image.c",
 	"//sys/src/9/port/kdebug.c",
 	"//sys/src/9/port/ipchecksum.c",
+	"//sys/src/9/port/latin1.c",
 	"//sys/src/9/port/mul64fract.c",
 	"//sys/src/9/port/netif.c",
 	"//sys/src/9/port/page.c",
@@ -174,6 +175,7 @@ I386_SRCS = [
 	"//sys/src/9/386/etherigbe.c",
 	"//sys/src/9/386/etherm10g.c",
 	"//sys/src/9/386/i8042.c",
+	"//sys/src/9/386/kbd.c",
 	"//sys/src/9/386/pci.c",
 	"//sys/src/9/386/uarti8250.c",
 	"//sys/src/9/386/uartpci.c",
@@ -215,8 +217,25 @@ mk_sys(
 	mode="errstr.h",
 	sysconf="//sys/src/sysconf.json",
 )
+group(
+	name="kernelbins",
+	prefix="sys/src/9/amd64",
+	deps=[
+		":harvey.32bit",
+		":init",
+	],
+)
 
-HRVYDEPS = [
+objcopy(
+	name="harvey.32bit",
+	deps=[
+		"//sys/src/9/amd64:harvey"
+	],
+	infile="elf64-x86-64",
+	outfile="elf32-i386",
+)
+
+HRVYDEPS =[
 	":amd64cpu",
 	":error",
 	":errstr",
@@ -270,24 +289,6 @@ cc_binary(
 		"-T",
 	]
 )
-move(
-	name="factotum",
-	deps=[
-		"//sys/src/cmd/auth/factotum:factotum",
-	],
-	installs={
-		"bin/auth/factotum": "bin/factotum",
-	},
-)
-
-objcopy(
-	name="harvey.32bit",
-	deps=[
-		"//sys/src/9/amd64:harvey"
-	],
-	infile="elf64-x86-64",
-	outfile="elf32-i386",
-)
 
 KERNEL_DEPS = [
 	"//sys/src/cmd:bind",
@@ -295,7 +296,7 @@ KERNEL_DEPS = [
 	"//sys/src/cmd:cat",
 	"//sys/src/cmd:date",
 	"//sys/src/cmd:echo",
-	":factotum",
+	"//sys/src/cmd/auth/factotum:factotum",
 	"//sys/src/cmd/disk/prep:fdisk",
 	"//sys/src/cmd/fossil:fossil",
 	"//sys/src/cmd/ip/ipconfig:ipconfig",
@@ -329,6 +330,13 @@ config(
 		"//rc/lib/rcmain",
 		"//sys/src/9/amd64/startdisk",
 	],
+	bins={
+		"factotum": "auth/factotum",
+		"ipconfig": "ip/ipconfig",
+		"screenconsole": "aux/screenconsole",
+		"realemu": "aux/realemu",
+		"vga": "aux/vga",
+	},
 	dev=[
 		"acpi",
 		"arch",
@@ -404,7 +412,7 @@ elf_to_c(
 	deps=[
 		":init",
 	],
-	elf="bin/init",
+	elf="init",
 )
 
 cc_binary(
@@ -423,6 +431,7 @@ cc_binary(
 		"-fno-builtin",
 		"-mcmodel=small",
 	],
+	install="init",
 	deps=[
 		"//sys/src/libc:libc",
 	],

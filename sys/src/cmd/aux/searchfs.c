@@ -131,18 +131,18 @@ extern	char*	fswstat(Fs*, Fcall*);
 
 char	*(*fcalls[])(Fs*, Fcall*) =
 {
-	[Tversion]		fsversion,
-	[Tattach]	fsattach,
-	[Tauth]	fsauth,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fscreate,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsremove,
-	[Tstat]		fsstat,
-	[Twstat]	fswstat
+	[Tversion]	= fsversion,
+	[Tattach]	= fsattach,
+	[Tauth]		= fsauth,
+	[Twalk]		= fswalk,
+	[Topen]		= fsopen,
+	[Tcreate]	= fscreate,
+	[Tread]		= fsread,
+	[Twrite]	= fswrite,
+	[Tclunk]	= fsclunk,
+	[Tremove]	= fsremove,
+	[Tstat]		= fsstat,
+	[Twstat]	= fswstat
 };
 
 char	Eperm[] =	"permission denied";
@@ -781,7 +781,6 @@ fswalk(Fs *fs, Fcall *rpc)
 			path = Qstats;
 		}else if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0){
 			type = QTDIR;
-			path = path;
 		}else{
 			err = Enotexist;
 			break;

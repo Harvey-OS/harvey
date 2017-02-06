@@ -1,29 +1,26 @@
 load('//sys/src/harvey.BUILD', "harvey_binary")
 
-harvey_binary(
-    name="consoles",
-    includes=[
-        "//sys/include",
-        "//${ARCH}/include",
-    ],
-    deps=[
-        "comconsole",
-        "pipeconsole",
-        "screenconsole",
-    ],
+group(
+	name="consoles",
+	deps=[
+		":comconsole",
+		":pipeconsole",
+		":screenconsole",
+	],
 )
 harvey_binary(
-	name="console",
+	name="comconsole",
 	deps=[
 		"//sys/src/libc:libc",
 	],
+	install="bin/aux/comconsole",
 	srcs=[
 		"buffer.c",
 		"comconsole.c",
 		"passthrough.c",
 		"serve9p.c",
 		"utils.c",
-    ],
+	],
 )
 
 
@@ -32,6 +29,7 @@ harvey_binary(
 	deps=[
 		"//sys/src/libc:libc",
 	],
+	install="bin/aux/pipeconsole",
 	srcs=[
 		"buffer.c",
 		"pipeconsole.c",
@@ -46,6 +44,7 @@ harvey_binary(
 	deps=[
 		"//sys/src/libc:libc",
 	],
+	install="bin/aux/screenconsole",
 	srcs=[
 		"buffer.c",
 		"cga.c",

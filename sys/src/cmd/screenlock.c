@@ -211,27 +211,23 @@ void
 lockscreen(void)
 {
 	enum { Nfld = 5, Fldlen = 12, Cursorlen = 2*4 + 2*2*16, };
-	char *s;
-	char buf[Nfld*Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
-	int fd, dx, dy;
-	Image *i;
-	Point p;
-	Rectangle r;
-	Tm *tm;
 
-	fd = open("/dev/screen", OREAD);
+	int fd = open("/dev/screen", OREAD);
 	if(fd < 0)
 		error("can't open /dev/screen: %r");
+
+	char buf[Nfld*Fldlen], *flds[Nfld], newcmd[128];
 	if(read(fd, buf, Nfld*Fldlen) != Nfld*Fldlen)
 		error("can't read /dev/screen: %r");
 	close(fd);
+
 	buf[sizeof buf-1] = 0;
 	if(tokenize(buf, flds, Nfld) != Nfld)
 		error("can't tokenize /dev/screen header");
 	snprint(newcmd, sizeof newcmd, "-r %s %s %d %d",
 		flds[1], flds[2], atoi(flds[3]) - 1, atoi(flds[4]) - 1);
 	newwindow(newcmd);
-	if (initdraw(nil, nil, "screenlock") < 0)
+	if(initdraw(nil, nil, "screenlock") < 0)
 		sysfatal("initdraw failed");
 	if(display == nil)
 		error("no display");
@@ -239,34 +235,39 @@ lockscreen(void)
 	/* screen is now open and covered.  grab mouse and hold on tight */
 	procrfork(grabmouse, nil, 4096, RFFDG);
 	procrfork(blanker, nil, 4096, RFFDG);
+
+	Rectangle r = screen->r;
+	draw(screen, r, display->black, nil, ZP);
+
+	// Try to load and display an image in the centre of the screen
 	fd = open(pic, OREAD);
 	if(fd > 0){
-		i = readimage(display, fd, 0);
+		Image *i = readimage(display, fd, 0);
+		close(fd);
 		if(i){
- 			r = screen->r;
-			p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
-			dx = (Dx(screen->r) - Dx(i->r)) / 2;
+			int dx = (Dx(screen->r) - Dx(i->r)) / 2;
 			r.min.x += dx;
 			r.max.x -= dx;
-			dy = (Dy(screen->r) - Dy(i->r)) / 2;
+			int dy = (Dy(screen->r) - Dy(i->r)) / 2;
 			r.min.y += dy;
 			r.max.y -= dy;
-			draw(screen, screen->r, display->black, nil, ZP);
 			draw(screen, r, i, nil, i->r.min);
 			flushimage(display, 1);
 		}
-		close(fd);
-
-		/* identify the user on screen, centered */
-		tm = localtime(time(0));
-		s = smprint("user %s at %d:%02.2d", getuser(), tm->hour, tm->min);
-		p = subpt(p, Pt(stringwidth(font, "m") * strlen(s) / 2, 0));
-		screenstring(p, s);
 	}
+
+	/* identify the user on screen, centered */
+	Tm *tm = localtime(time(0));
+	char *s = smprint("user %s at %d:%02.2d", getuser(), tm->hour, tm->min);
+
+	Point p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
+	p = subpt(p, Pt(stringwidth(font, "m") * strlen(s) / 2, 0));
+	screenstring(p, s);
 
 	/* clear the cursor */
 	fd = open("/dev/cursor", OWRITE);
 	if(fd > 0){
+		char cbuf[Cursorlen];
 		memset(cbuf, 0, sizeof cbuf);
 		write(fd, cbuf, sizeof cbuf);
 		/* leave it open */

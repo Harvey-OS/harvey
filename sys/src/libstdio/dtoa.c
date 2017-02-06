@@ -130,7 +130,7 @@ Balloc(int k)
 			rv = (Bigint * )pmem_next;
 			pmem_next += len;
 		} else
-			rv = (Bigint * )malloc(len * sizeof(double));
+			rv = (Bigint * )malloc(len * sizeof(Bigint));
 		rv->k = k;
 		rv->maxwds = x;
 	}

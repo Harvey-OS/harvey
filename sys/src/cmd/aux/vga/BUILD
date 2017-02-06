@@ -1,13 +1,14 @@
 load('//sys/src/harvey.BUILD', "harvey_binary")
 
 harvey_binary(
-	name = "vga",
-    	includes=[
+	name="vga",
+	includes=[
 		"//amd64/include",
 		"//sys/include",
 		"//.",
 	],
-	srcs = [
+	install="bin/aux/vga",
+	srcs=[
 		"error.c",
 		"ics534x.c",
 		"radeon.c",
