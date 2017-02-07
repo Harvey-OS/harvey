@@ -62,9 +62,11 @@ enum {
 	Nscan=	128,
 };
 
-int            addkbdq(Queue*_, int __)
+int
+addkbdq(Queue*_, int __)
 {
 	panic("addkbd1: fix me");
+	return 0; // non void return that doesn't return is an error
 }
 
 /*
