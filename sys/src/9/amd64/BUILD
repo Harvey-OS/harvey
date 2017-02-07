@@ -255,6 +255,7 @@ cc_binary(
 		"-mno-red-zone",
 		"-ffreestanding",
 		"-fno-builtin",
+		"-fno-pie",
 		"-DKERNDATE=1433623937",
 		"-g",
 		"-Wall",

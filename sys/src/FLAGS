@@ -103,6 +103,7 @@ KLIB_COMPILER_FLAGS = [
 	"-mno-red-zone",
 	"-ffreestanding",
 	"-fno-builtin",
+    "-fno-pie",
 	"-Wall",
 	"-Wno-missing-braces",
 	"-Wno-parentheses",
