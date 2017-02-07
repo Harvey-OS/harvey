@@ -197,10 +197,10 @@ enum
 	/* controller command byte */
 	Cscs1=		(1<<6),		/* scan code set 1 */
 	Cauxdis=	(1<<5),		/* mouse disable */
-	Ckbddis=	(1<<4),		/* kbd disable */
+	Ckeybdis=	(1<<4),		/* kbd disable */
 	Csf=		(1<<2),		/* system flag */
 	Cauxint=	(1<<1),		/* mouse interrupt enable */
-	Ckbdint=	(1<<0),		/* kbd interrupt enable */
+	Ckeybint=	(1<<0),		/* kbd interrupt enable */
 };
 
 static Queue *keybq;
@@ -362,7 +362,7 @@ i8042intr(Ureg* u, void* v)
 	 */
 	ilock(&i8042lock);
 	s = inb(Status);
-	if(!(s&Inready)){
+	if((s&Inready) == 0){
 		iunlock(&i8042lock);
 		return;
 	}
@@ -377,9 +377,11 @@ i8042intr(Ureg* u, void* v)
 	 *  if it's the aux port...
 	 */
 	if(s & Minready){
-		if(auxputc != nil)
-			auxputc(c, kbscan.shift);
-		return;
+		if(mouseq != nil)
+			qiwrite(mouseq, &c, 1);
+	} else {
+		if(keybq != nil)
+			qiwrite(keybq, &c, 1);
 	}
 
 	/*
@@ -494,7 +496,7 @@ i8042intr(Ureg* u, void* v)
 			 * to make the VM give up keyboard and mouse focus.
 			 * This has the unfortunate side effect that when you
 			 * come back into focus, Plan 9 thinks you want to type
-			 * a compose sequence (you just typed alt). 
+			 * a compose sequence (you just typed alt).
 			 *
 			 * As a clumsy hack around this, we look for ctl-alt
 			 * and don't treat it as the start of a compose sequence.
@@ -677,6 +679,8 @@ keybinit(void)
 	int c, try;
 
 	/* wait for a quiescent controller */
+	ilock(&i8042lock);
+
 	try = 1000;
 	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
@@ -684,31 +688,43 @@ keybinit(void)
 		delay(1);
 	}
 	if (try <= 0) {
-		print(initfailed);
+		iunlock(&i8042lock);
+		print("keybinit failed 0\n");
 		return;
 	}
 
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
-	if(inready() < 0){
-		print("i8042: kbdinit can't read ccc\n");
+	if(inready() == -1){
+		iunlock(&i8042lock);
+		print("keybinit failed 1\n");
 		ccc = 0;
 	} else
 		ccc = inb(Data);
 
-	/* enable kbd xfers and interrupts */
-	ccc &= ~Ckbddis;
-	ccc |= Csf | Ckbdint | Cscs1;
-	if(outready() < 0) {
-		print(initfailed);
+	/* enable keyb xfers and interrupts */
+	ccc &= ~(Ckeybdis);
+	ccc |= Csf | Ckeybint | Cscs1;
+	if(outready() == -1) {
+		iunlock(&i8042lock);
+		print("keybinit failed 2\n");
+		return;
+	}
+
+	if (outbyte(Cmd, 0x60) == -1){
+		iunlock(&i8042lock);
+		print("keybinit failed 3\n");
+		return;
+	}
+	if (outbyte(Data, ccc) == -1){
+		iunlock(&i8042lock);
+		print("keybinit failed 4\n");
 		return;
 	}
 
 	nokeyb = 0;
 
-	/* disable mouse */
-	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
-		print("i8042: kbdinit mouse disable failed\n");
+	iunlock(&i8042lock);
 }
 
 static int32_t
@@ -753,7 +769,7 @@ kbdputmap(uint16_t m, uint16_t scanc, Rune r)
 	case 3:
 		kbtabaltgr[scanc] = r;
 		break;
-	case 4:	
+	case 4:
 		kbtabctrl[scanc] = r;
 		break;
 	}
