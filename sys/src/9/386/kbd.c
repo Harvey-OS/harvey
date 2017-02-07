@@ -75,129 +75,129 @@ addkbdq(Queue*_, int __)
  */
 Rune kbtab[Nscan] =
 {
-[0x00]	No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
-[0x08]	'7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',
-[0x10]	'q',	'w',	'e',	'r',	't',	'y',	'u',	'i',
-[0x18]	'o',	'p',	'[',	']',	'\n',	Ctrl,	'a',	's',
-[0x20]	'd',	'f',	'g',	'h',	'j',	'k',	'l',	';',
-[0x28]	'\'',	'`',	Shift,	'\\',	'z',	'x',	'c',	'v',
-[0x30]	'b',	'n',	'm',	',',	'.',	'/',	Shift,	'*',
-[0x38]	Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
-[0x40]	KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	Scroll,	'7',
-[0x48]	'8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
-[0x50]	'2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
-[0x58]	KF|12,	No,	No,	No,	No,	No,	No,	No,
-[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78]	No,	View,	No,	Up,	No,	No,	No,	No,
+[0x00]	= No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
+[0x08]	= '7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',
+[0x10]	= 'q',	'w',	'e',	'r',	't',	'y',	'u',	'i',
+[0x18]	= 'o',	'p',	'[',	']',	'\n',	Ctrl,	'a',	's',
+[0x20]	= 'd',	'f',	'g',	'h',	'j',	'k',	'l',	';',
+[0x28]	= '\'',	'`',	Shift,	'\\',	'z',	'x',	'c',	'v',
+[0x30]	= 'b',	'n',	'm',	',',	'.',	'/',	Shift,	'*',
+[0x38]	= Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
+[0x40]	= KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	Scroll,	'7',
+[0x48]	= '8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
+[0x50]	= '2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
+[0x58]	= KF|12,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	= No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	= No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	= No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	= No,	View,	No,	Up,	No,	No,	No,	No,
 };
 
 Rune kbtabshift[Nscan] =
 {
-[0x00]	No,	0x1b,	'!',	'@',	'#',	'$',	'%',	'^',
-[0x08]	'&',	'*',	'(',	')',	'_',	'+',	'\b',	'\t',
-[0x10]	'Q',	'W',	'E',	'R',	'T',	'Y',	'U',	'I',
-[0x18]	'O',	'P',	'{',	'}',	'\n',	Ctrl,	'A',	'S',
-[0x20]	'D',	'F',	'G',	'H',	'J',	'K',	'L',	':',
-[0x28]	'"',	'~',	Shift,	'|',	'Z',	'X',	'C',	'V',
-[0x30]	'B',	'N',	'M',	'<',	'>',	'?',	Shift,	'*',
-[0x38]	Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
-[0x40]	KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	Scroll,	'7',
-[0x48]	'8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
-[0x50]	'2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
-[0x58]	KF|12,	No,	No,	No,	No,	No,	No,	No,
-[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78]	No,	Up,	No,	Up,	No,	No,	No,	No,
+[0x00]	= No,	0x1b,	'!',	'@',	'#',	'$',	'%',	'^',
+[0x08]	= '&',	'*',	'(',	')',	'_',	'+',	'\b',	'\t',
+[0x10]	= 'Q',	'W',	'E',	'R',	'T',	'Y',	'U',	'I',
+[0x18]	= 'O',	'P',	'{',	'}',	'\n',	Ctrl,	'A',	'S',
+[0x20]	= 'D',	'F',	'G',	'H',	'J',	'K',	'L',	':',
+[0x28]	= '"',	'~',	Shift,	'|',	'Z',	'X',	'C',	'V',
+[0x30]	= 'B',	'N',	'M',	'<',	'>',	'?',	Shift,	'*',
+[0x38]	= Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
+[0x40]	= KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	Scroll,	'7',
+[0x48]	= '8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
+[0x50]	= '2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
+[0x58]	= KF|12,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	= No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	= No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	= No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	= No,	Up,	No,	Up,	No,	No,	No,	No,
 };
 
 Rune kbtabesc1[Nscan] =
 {
-[0x00]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x08]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x10]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x18]	No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
-[0x20]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x28]	No,	No,	Shift,	No,	No,	No,	No,	No,
-[0x30]	No,	No,	No,	No,	No,	'/',	No,	Print,
-[0x38]	Altgr,	No,	No,	No,	No,	No,	No,	No,
-[0x40]	No,	No,	No,	No,	No,	No,	Break,	Home,
-[0x48]	Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
-[0x50]	Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
-[0x58]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
+[0x00]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x08]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x10]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x18]	=No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
+[0x20]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x28]	=No,	No,	Shift,	No,	No,	No,	No,	No,
+[0x30]	=No,	No,	No,	No,	No,	'/',	No,	Print,
+[0x38]	=Altgr,	No,	No,	No,	No,	No,	No,	No,
+[0x40]	=No,	No,	No,	No,	No,	No,	Break,	Home,
+[0x48]	=Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
+[0x50]	=Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
+[0x58]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	=No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
 Rune kbtabaltgr[Nscan] =
 {
-[0x00]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x08]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x10]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x18]	No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
-[0x20]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x28]	No,	No,	Shift,	No,	No,	No,	No,	No,
-[0x30]	No,	No,	No,	No,	No,	'/',	No,	Print,
-[0x38]	Altgr,	No,	No,	No,	No,	No,	No,	No,
-[0x40]	No,	No,	No,	No,	No,	No,	Break,	Home,
-[0x48]	Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
-[0x50]	Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
-[0x58]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
+[0x00]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x08]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x10]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x18]	=No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
+[0x20]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x28]	=No,	No,	Shift,	No,	No,	No,	No,	No,
+[0x30]	=No,	No,	No,	No,	No,	'/',	No,	Print,
+[0x38]	=Altgr,	No,	No,	No,	No,	No,	No,	No,
+[0x40]	=No,	No,	No,	No,	No,	No,	Break,	Home,
+[0x48]	=Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
+[0x50]	=Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
+[0x58]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	=No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
 /*
 Rune kbtabctrl[] =
 {
-[0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x08]	'', 	'', 	'', 	'', 	'
+[0x00]	=No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x08]	='', 	'', 	'', 	'', 	'
 ', 	'', 	'\b',	'\t',
-[0x10]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'\t',
-[0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'', 
-[0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'', 
-[0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'', 
-[0x30]	'', 	'', 	'
+[0x10]	='', 	'', 	'', 	'', 	'', 	'', 	'', 	'\t',
+[0x18]	='', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'', 
+[0x20]	='', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'', 
+[0x28]	='', 	No, 	Shift,	'', 	'', 	'', 	'', 	'', 
+[0x30]	='', 	'', 	'
 ', 	'', 	'', 	'', 	Shift,	'\n',
-[0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'', 
-[0x40]	'', 	'', 	'', 	'
+[0x38]	=Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'', 
+[0x40]	='', 	'', 	'', 	'
 ', 	'', 	'', 	'', 	'', 
-[0x48]	'', 	'', 	'
+[0x48]	='', 	'', 	'
 ', 	'', 	'', 	'', 	'', 	'', 
-[0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'', 
-[0x58]	'', 	No,	No,	No,	No,	No,	No,	No,
-[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78]	No,	'', 	No,	'\b',	No,	No,	No,	No,
+[0x50]	='', 	'', 	'', 	'', 	No,	No,	No,	'', 
+[0x58]	='', 	No,	No,	No,	No,	No,	No,	No,
+[0x60]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	=No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	=No,	'', 	No,	'\b',	No,	No,	No,	No,
 };
 */
 
 /* From LP49 */
 Rune kbtabctrl[] =  /* GCC cannot handle plan9 code !? */
 {
-[0x00]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x08]  No,     No,     No,     No,     No,     No,     '\177', No,
-[0x10]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x18]  No,     No,     No,     No,     '\n',   Ctrl,   No,     No,
-[0x20]  No,     No,     No,     '\b',   '\n',   No,     No,     No,
-[0x28]  No,     No,     Shift,  No,     No,     No,     No,     No,
-[0x30]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x38]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x40]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x48]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x50]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x58]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x60]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x68]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x70]  No,     No,     No,     No,     No,     No,     No,     No,
-[0x78]  No,     Up,     No,     No,     No,     No,     No,     No,
+[0x00]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x08]  =No,     No,     No,     No,     No,     No,     '\177', No,
+[0x10]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x18]  =No,     No,     No,     No,     '\n',   Ctrl,   No,     No,
+[0x20]  =No,     No,     No,     '\b',   '\n',   No,     No,     No,
+[0x28]  =No,     No,     Shift,  No,     No,     No,     No,     No,
+[0x30]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x38]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x40]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x48]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x50]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x58]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x60]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x68]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x70]  =No,     No,     No,     No,     No,     No,     No,     No,
+[0x78]  =No,     Up,     No,     No,     No,     No,     No,     No,
 };
 
 enum
