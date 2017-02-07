@@ -51,6 +51,7 @@
 			"../port/image.c",
 			"../port/kdebug.c",
 		        "../port/ipchecksum.c",
+			"../port/latin1.c",
 			"../port/mul64fract.c",
 			"../port/netif.c",
 			"../port/page.c",
