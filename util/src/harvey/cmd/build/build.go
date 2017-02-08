@@ -64,6 +64,7 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
+	SrcDeps	    []string
 	// cmd's
 	SourceFilesCmd []string
 	// Targets.
@@ -88,6 +89,7 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 		b.jsons = make(map[string]bool)
 		b.Projects = adjust(b.Projects)
 		b.Libs = adjust(b.Libs)
+		b.SrcDeps = adjust(b.SrcDeps)
 		b.Cflags = adjust(b.Cflags)
 		b.Oflags = adjust(b.Oflags)
 		b.SourceFiles = adjust(b.SourceFiles)
@@ -124,6 +126,7 @@ var (
 		"aarch64": true,
 	}
 	debugPrint = flag.Bool("debug", false, "enable debug prints")
+	depends = flag.Bool("D", false, "Do dependency checking")
 	shellhack  = flag.Bool("shellhack", false, "spawn every command in a shell (forced on if LD_PRELOAD is set)")
 )
 
@@ -189,7 +192,10 @@ func include(f string, b *build) {
 		b.ObjectFiles = append(b.ObjectFiles, build.ObjectFiles...)
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
+		b.SrcDeps = append(b.SrcDeps, build.SrcDeps...)
+		b.SrcDeps = append(b.SrcDeps, b.Program, b.Library)
 		for _, v := range build.SourceFiles {
+			b.SourceFiles = append(b.SourceFiles, v)
 			f := path.Base(v)
 			o := f[:len(f)-1] + "o"
 			b.ObjectFiles = append(b.ObjectFiles, o)
@@ -274,6 +280,42 @@ func wrapInQuote(args []string) []string {
 	return res
 }
 
+func older(f string, deps[]string) bool {
+	fi, err := os.Stat(f)
+	// If it does not exist, that's really not our problem.
+	// We only worry about things that exist.
+	if err != nil {
+		return true
+	}
+
+	m := fi.ModTime()
+
+	for _,d := range deps {
+		di, err := os.Stat(d)
+		if err != nil {
+			continue
+		}
+		if di.ModTime().After(m) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func uptodate(n string, d []string) bool {
+	if ! *depends {
+		return false
+	}
+
+	return ! older(n, d)
+}
+
+func progdepends(b *build, i string) []string{
+	return []string{fromRoot("/sys/include/u.h"),}
+
+}
+
 func compile(b *build) {
 	log.Printf("Building %s\n", b.name)
 	// N.B. Plan 9 has a very well defined include structure, just three things:
@@ -286,6 +328,14 @@ func compile(b *build) {
 	}
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
+		var s []string
+		for _, i := range b.SourceFilesCmd {
+			// Sleazo test case.
+			if ! uptodate(i, progdepends(b, i)) {
+				s = append(s, i)
+			}
+		}
+		b.SourceFilesCmd = s
 		for _, i := range b.SourceFilesCmd {
 			cmd := exec.Command(tools["cc"], append(args, i)...)
 			run(b, *shellhack, cmd)
