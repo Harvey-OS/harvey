@@ -724,3 +724,41 @@ uartclock(void)
 	}
 	unlock(&uartalloc.Lock);
 }
+
+/*
+ * polling console input, output
+ */
+
+Uart* consuart;
+
+int
+uartgetc(void)
+{
+	if(consuart == nil || consuart->phys->getc == nil)
+		return -1;
+	return consuart->phys->getc(consuart);
+}
+
+void
+uartputc(int c)
+{
+	if(consuart == nil || consuart->phys->putc == nil)
+		return;
+	consuart->phys->putc(consuart, c);
+}
+
+void
+uartputs(char *s, int n)
+{
+	char *e;
+
+	if(consuart == nil || consuart->phys->putc == nil)
+		return;
+
+	e = s+n;
+	for(; s<e; s++){
+		if(*s == '\n')
+			consuart->phys->putc(consuart, '\r');
+		consuart->phys->putc(consuart, *s);
+	}
+}
