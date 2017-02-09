@@ -136,8 +136,7 @@ dosysr1(Node *r, Node*_)
 	r->op = OCONST;
 	r->type = TINT;
 	r->fmt = 'D';
-	fprint(2, "Thank Giacomo -- no sysr1 -- we'll bring it back\n");
-	//r->ival = sysr1();
+	r->ival = sysr1();
 }
 
 void
