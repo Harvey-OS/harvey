@@ -67,7 +67,6 @@
 			"../port/qlock.c",
 			"../port/random.c",
 			"../port/rebootcmd.c",
-			"../port/rdb.c",
 			"../port/rmap.c",
 			"../port/sdscsi.c",
 			"../port/segment.c",
