@@ -306,7 +306,7 @@ consdevputs(Consdev *c, char *s, int n, int usewrite)
  *   or uart code.  Multi-line messages to serial consoles may get
  *   interspersed with other messages.
  */
-/*
+
 static void
 putstrn0(char *str, int n, int usewrite)
 {
@@ -315,8 +315,9 @@ putstrn0(char *str, int n, int usewrite)
 		consputs(str, n);
 	if(consuartputs != nil)
 		consuartputs(str, n);
-}*/
+}
 
+/*
 static void
 putstrn0(char *str, int n, int usewrite)
 {
@@ -348,6 +349,7 @@ putstrn0(char *str, int n, int usewrite)
 		}
 	}
 }
+*/
 
 void
 putstrn(char *str, int n)
