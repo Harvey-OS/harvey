@@ -107,6 +107,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/qio.c",
 	"//sys/src/9/port/qlock.c",
 	"//sys/src/9/port/random.c",
+	"//sys/src/9/port/rdb.c",
 	"//sys/src/9/port/rebootcmd.c",
 	"//sys/src/9/port/rmap.c",
 	"//sys/src/9/port/sdscsi.c",
