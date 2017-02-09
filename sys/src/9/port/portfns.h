@@ -64,6 +64,7 @@ uintptr_t		dbgpc(Proc*);
 int 		checkdc(int dc);
 int		decrypt(void*, void*, int);
 void		delay(int);
+void		delconsdevs(void);
 Proc*		dequeueproc(Sched*, Schedq*, Proc*);
 Chan*		devattach(int, char*);
 Block*		devbread(Chan*, int32_t, int64_t);
