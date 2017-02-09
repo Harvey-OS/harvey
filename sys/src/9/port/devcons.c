@@ -18,7 +18,7 @@
 
 enum
 {
-	Nconsdevs	= 64,		/* max number of consoles */
+	Nconsdevs	= 3,		/* max number of consoles */
 
 	/* Consdev flags */
 	Ciprint		= 2,		/* call this fn from iprint */
@@ -50,7 +50,6 @@ static	Consdev	consdevs[Nconsdevs] =			/* keep this order */
 {
 	{nil, nil,	kmesgputs,	0},			/* kmesg */
 	{nil, nil,	kprintputs,	Ciprint},		/* kprint */
-	{nil, nil,	uartputs,	Ciprint|Cntorn},	/* serial */
 };
 
 static	int	nkbdqs;
@@ -283,6 +282,7 @@ kmesgputs(char *str, int n)
 	iunlock(&kmesg.lk);
 }
 
+/*
 static void
 consdevputs(Consdev *c, char *s, int n, int usewrite)
 {
@@ -299,6 +299,7 @@ consdevputs(Consdev *c, char *s, int n, int usewrite)
 	else if(c->fn != nil)
 		c->fn(s, n);
 }
+*/
 
 /*
  *   Print a string on the console.  Convert \n to \r\n for serial
@@ -521,112 +522,6 @@ pprint(char *fmt, ...)
 	return n;
 }
 
-static void
-echo(char *buf, int n)
-{
-	Mpl pl;
-	static int ctrlt;
-	char *e, *p;
-
-	if(n == 0)
-		return;
-
-	e = buf+n;
-	for(p = buf; p < e; p++){
-		switch(*p){
-		case 0x10:	/* ^P */
-			if(cpuserver && !kbd.ctlpoff){
-				active.exiting = 1;
-				return;
-			}
-			break;
-		case 0x14:	/* ^T */
-			ctrlt++;
-			if(ctrlt > 2)
-				ctrlt = 2;
-			continue;
-		}
-
-		if(ctrlt != 2)
-			continue;
-
-		/* ^T escapes */
-		ctrlt = 0;
-		switch(*p){
-		case 'S':
-			pl = splhi();
-			dumpstack();
-			procdump();
-			splx(pl);
-			return;
-		case 's':
-			dumpstack();
-			return;
-		case 'x':
-			ixsummary();
-			mallocsummary();
-//			memorysummary();
-			pagersummary();
-			return;
-		case 'd':
-			if(consdebug == nil)
-				consdebug = rdb;
-			else
-				consdebug = nil;
-			print("consdebug now %#p\n", consdebug);
-			return;
-		case 'D':
-			if(consdebug == nil)
-				consdebug = rdb;
-			consdebug();
-			return;
-		case 'p':
-			pl = spllo();
-			procdump();
-			splx(pl);
-			return;
-		case 'q':
-			scheddump();
-			return;
-		case 'k':
-			killbig("^t ^t k");
-			return;
-		case 'r':
-			exit(0);
-			return;
-		}
-	}
-
-	if(kbdq != nil)
-		qproduce(kbdq, buf, n);
-	if(kbd.raw == 0)
-		putstrn(buf, n);
-}
-
-/*
- *  Called by a uart interrupt for console input.
- *
- *  turn '\r' into '\n' before putting it into the queue.
- */
-int
-kbdcr2nl(Queue* q, int ch)
-{
-	char *next;
-
-	ilock(&kbd.lockputc);		/* just a mutex */
-	if(ch == '\r' && !kbd.raw)
-		ch = '\n';
-	next = kbd.iw+1;
-	if(next >= kbd.ie)
-		next = kbd.istage;
-	if(next != kbd.ir){
-		*kbd.iw = ch;
-		kbd.iw = next;
-	}
-	iunlock(&kbd.lockputc);
-	return 0;
-}
-
 /*
  *  Put character, possibly a rune, into read queue at interrupt time.
  *  Called at interrupt time to process a character.
@@ -656,29 +551,6 @@ kbdputc(Queue *q, int ch)
 	}
 	iunlock(&kbd.lockputc);
 	return 0;
-}
-
-/*
- *  we save up input characters till clock time to reduce
- *  per character interrupt overhead.
- */
-static void
-kbdputcclock(void)
-{
-	char *iw;
-
-	/* this amortizes cost of qproduce */
-	if(kbd.iw != kbd.ir){
-		iw = kbd.iw;
-		if(iw < kbd.ir){
-			echo(kbd.ir, kbd.ie-kbd.ir);
-			kbd.ir = kbd.istage;
-		}
-		if(kbd.ir != iw){
-			echo(kbd.ir, iw-kbd.ir);
-			kbd.ir = iw;
-		}
-	}
 }
 
 enum{
@@ -788,12 +660,6 @@ static void
 consinit(void)
 {
 	todinit();
-	/*
-	 * at 115200 baud, the 1024 char buffer takes 56 ms to process,
-	 * processing it every 22 ms should be fine
-	 */
-	addclock0link(kbdputcclock, 22);
-	kickkbdq();
 }
 
 static Chan*
