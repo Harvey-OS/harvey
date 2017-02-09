@@ -131,6 +131,35 @@ uartdisable(Uart *p)
 	unlock(&uartalloc.Lock);
 }
 
+Uart*
+uartconsole(int i, char *cmd)
+{
+	Uart *p;
+
+	if(i >= uartnuart || (p = uart[i]) == nil)
+		return nil;
+
+	qlock(&p->ql);
+	if(!p->console){
+		if(p->opens == 0 && uartenable(p) == nil){
+			qunlock(&p->ql);
+			return nil;
+		}
+		p->opens++;
+
+		addkbdq(p->iq, -1);
+		addconsdev(p->oq, uartputs, 2, 0);
+		p->putc = kbdcr2nl;
+		if(cmd != nil && *cmd != '\0')
+			uartctl(p, cmd);
+
+		p->console = 1;
+	}
+	qunlock(&p->ql);
+
+	return p;
+}
+
 static void
 uartsetlength(int i)
 {
@@ -200,6 +229,23 @@ uartreset(void)
 		dp->qid.path = UARTQID(i, Qstat);
 		dp->perm = 0444;
 		dp++;
+
+		uart[i] = p;
+		p->dev = i;
+		if(p->console || p->special){
+			/*
+			 * No qlock here, only called at boot time.
+			 */
+			if(uartenable(p) != nil){
+				if(p->console){
+					addkbdq(p->iq, -1);
+					addconsdev(p->oq, uartputs, 2, 0);
+					p->putc = kbdcr2nl;
+				}
+				p->opens++;
+			}
+		}
+		p = p->next;
 
 		uart[i] = p;
 		p->dev = i;

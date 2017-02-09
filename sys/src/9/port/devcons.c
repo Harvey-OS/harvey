@@ -602,6 +602,30 @@ echo(char *buf, int n)
 }
 
 /*
+ *  Called by a uart interrupt for console input.
+ *
+ *  turn '\r' into '\n' before putting it into the queue.
+ */
+int
+kbdcr2nl(Queue* q, int ch)
+{
+	char *next;
+
+	ilock(&kbd.lockputc);		/* just a mutex */
+	if(ch == '\r' && !kbd.raw)
+		ch = '\n';
+	next = kbd.iw+1;
+	if(next >= kbd.ie)
+		next = kbd.istage;
+	if(next != kbd.ir){
+		*kbd.iw = ch;
+		kbd.iw = next;
+	}
+	iunlock(&kbd.lockputc);
+	return 0;
+}
+
+/*
  *  Put character, possibly a rune, into read queue at interrupt time.
  *  Called at interrupt time to process a character.
  */
