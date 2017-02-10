@@ -24,6 +24,7 @@
 			"../port/devfdmux.c",
 			"../port/devkprof.c",
 			"../port/devkbin.c",
+			"../port/devkbmap.c",
 			"../port/devmnt.c",
 			"../port/devmntn.c",
 			"../port/devpipe.c",
