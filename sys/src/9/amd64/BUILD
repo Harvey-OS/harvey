@@ -64,6 +64,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/devfdmux.c",
 	"//sys/src/9/port/devkprof.c",
 	"//sys/src/9/port/devkbin.c",
+	"//sys/src/9/port/devkbmap.c",
 	"//sys/src/9/port/devmnt.c",
 	"//sys/src/9/port/devmntn.c",
 	"//sys/src/9/port/devpipe.c",
