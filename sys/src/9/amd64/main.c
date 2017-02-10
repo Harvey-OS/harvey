@@ -846,7 +846,7 @@ shutdown(int ispanic)
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
-		if(active.nonline == 0)
+		if(active.nonline == 0 && consactive() == 0)
 			break;
 	}
 
