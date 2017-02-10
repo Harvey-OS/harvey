@@ -50,11 +50,11 @@ static	Consdev	consdevs[Nconsdevs] =			/* keep this order */
 	{nil, nil,	kmesgputs,	0},			/* kmesg */
 };
 
-static	int	nkbdqs;
-static	int	nkbdprocs;
-static	Queue*	kbdqs[Nconsdevs];
-static	int	kbdprocs[Nconsdevs];
-static	Queue*	kbdq;		/* unprocessed console input */
+static	int	nkeybqs;
+static	int	nkeybprocs;
+static	Queue*	keybqs[Nconsdevs];
+static	int	keybprocs[Nconsdevs];
+static	Queue*	keybq;		/* unprocessed console input */
 static	Queue*	lineq;		/* processed console input */
 
 int	panicking;
@@ -144,7 +144,7 @@ conskbdqproc(void *a)
 
 	q = a;
 	while((nr = qread(q, buf, sizeof(buf))) > 0)
-		qwrite(kbdq, buf, nr);
+		qwrite(keybq, buf, nr);
 	pexit("hangup", 1);
 }
 
@@ -154,16 +154,16 @@ kickkbdq(void)
 	Proc *up = externup();
 	int i;
 
-	if(up != nil && nkbdqs > 1 && nkbdprocs != nkbdqs){
+	if(up != nil && nkeybqs > 1 && nkeybprocs != nkeybqs){
 		lock(&consdevslock);
-		if(nkbdprocs == nkbdqs){
+		if(nkeybprocs == nkeybqs){
 			unlock(&consdevslock);
 			return;
 		}
-		for(i = 0; i < nkbdqs; i++)
-			if(kbdprocs[i] == 0){
-				kbdprocs[i] = 1;
-				kproc("conskbdq", conskbdqproc, kbdqs[i]);
+		for(i = 0; i < nkeybqs; i++)
+			if(keybprocs[i] == 0){
+				keybprocs[i] = 1;
+				kproc("conskbdq", conskbdqproc, keybqs[i]);
 			}
 		unlock(&consdevslock);
 	}
@@ -176,22 +176,22 @@ addkbdq(Queue *q, int i)
 
 	ilock(&consdevslock);
 	if(i < 0)
-		i = nkbdqs++;
-	if(nkbdqs == Nconsdevs)
+		i = nkeybqs++;
+	if(nkeybqs == Nconsdevs)
 		panic("Nconsdevs too small");
-	kbdqs[i] = q;
-	n = nkbdqs;
+	keybqs[i] = q;
+	n = nkeybqs;
 	iunlock(&consdevslock);
 	switch(n){
 	case 1:
 		/* if there's just one, pull directly from it. */
-		kbdq = q;
+		keybq = q;
 		break;
 	case 2:
-		/* later we'll merge bytes from all kbdqs into a single kbdq */
-		kbdq = qopen(4*1024, 0, 0, 0);
-		if(kbdq == nil)
-			panic("no kbdq");
+		/* later we'll merge bytes from all keybqs into a single keybq */
+		keybq = qopen(4*1024, 0, 0, 0);
+		if(keybq == nil)
+			panic("no keybq");
 		/* fall */
 	default:
 		kickkbdq();
@@ -522,8 +522,8 @@ echo(char *buf, int n)
 		}
 	}
 
-	if(kbdq != nil)
-		qproduce(kbdq, buf, n);
+	if(keybq != nil)
+		qproduce(keybq, buf, n);
 	if(kbd.raw == 0)
 		putstrn(buf, n);
 }
@@ -782,12 +782,13 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 	char *b, *bp, ch, *s, *e;
 	char tmp[512];		/* Qswap is 381 bytes at clu */
 	int i, k, id, send;
-	int32_t offset;
+	int32_t offset, nread;
 
 
 	if(n <= 0)
 		return n;
 
+	nread = n;
 	offset = off;
 	switch((uint32_t)c->qid.path){
 	case Qdir:
@@ -800,16 +801,16 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 			nexterror();
 		}
 		while(!qcanread(lineq)){
-			if(qread(kbdq, &ch, 1) == 0)
+			if(qread(keybq, &ch, 1) == 0)
 				continue;
 			send = 0;
 			if(ch == 0){
 				/* flush output on rawoff -> rawon */
 				if(kbd.x > 0)
-					send = !qcanread(kbdq);
+					send = !qcanread(keybq);
 			}else if(kbd.raw){
 				kbd.line[kbd.x++] = ch;
-				send = !qcanread(kbdq);
+				send = !qcanread(keybq);
 			}else{
 				switch(ch){
 				case '\b':
@@ -941,7 +942,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 			free(b);
 			nexterror();
 		}
-		n = readstr(offset, buf, n, b);
+		n = readstr(offset, buf, nread, b);
 		free(b);
 		poperror();
 		return n;
@@ -1039,7 +1040,6 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		break;
 
 	case Qconsctl:
-		print("consctl\n");
 		if(n >= sizeof(buf))
 			n = sizeof(buf)-1;
 		strncpy(buf, a, n);
@@ -1049,7 +1049,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 				kbd.raw = 1;
 				/* clumsy hack - wake up reader */
 				ch = 0;
-				qwrite(kbdq, &ch, 1);
+				qwrite(keybq, &ch, 1);
 			}
 			else if(strncmp(a, "rawoff", 6) == 0)
 				kbd.raw = 0;
