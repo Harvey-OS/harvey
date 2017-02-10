@@ -522,6 +522,8 @@ echo(char *buf, int n)
 		}
 	}
 
+	if(kbdq != nil)
+		qproduce(kbdq, buf, n);
 	if(kbd.raw == 0)
 		putstrn(buf, n);
 }
@@ -716,6 +718,7 @@ consinit(void)
 	 * processing it every 22 ms should be fine
 	 */
 	addclock0link(kbdputcclock, 22);
+	kickkbdq();
 }
 
 static Chan*
@@ -755,7 +758,19 @@ consopen(Chan *c, int omode)
 static void
 consclose(Chan *c)
 {
+	switch((uint32_t)c->qid.path){
+	/* last close of control file turns off raw */
+	case Qconsctl:
+		if(c->flag&COPEN){
+			if(decref(&kbd.ctl) == 0)
+				kbd.raw = 0;
+		}
+		break;
 
+	/* close of kprint allows other opens */
+	case Qkprint:
+		error(Egreg);
+	}
 }
 
 static int32_t
