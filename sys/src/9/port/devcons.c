@@ -43,11 +43,19 @@ void	(*consuartputs)(char*, int) = nil;
 
 static void kmesgputs(char *, int);
 
+static	Lock	consdevslock;
 static	int	nconsdevs = 1;
 static	Consdev	consdevs[Nconsdevs] =			/* keep this order */
 {
 	{nil, nil,	kmesgputs,	0},			/* kmesg */
 };
+
+static	int	nkbdqs;
+static	int	nkbdprocs;
+static	Queue*	kbdqs[Nconsdevs];
+static	int	kbdprocs[Nconsdevs];
+static	Queue*	kbdq;		/* unprocessed console input */
+static	Queue*	lineq;		/* processed console input */
 
 int	panicking;
 
@@ -97,6 +105,120 @@ Cmdtab rebootmsg[] =
 	CMreboot,	"reboot",	0,
 	CMpanic,	"panic",	0,
 };
+
+int
+addconsdev(Queue *q, void (*fn)(char*,int), int i, int flags)
+{
+	Consdev *c;
+
+	ilock(&consdevslock);
+	if(i < 0)
+		i = nconsdevs;
+	else
+		flags |= consdevs[i].flags;
+	if(nconsdevs == Nconsdevs)
+		panic("Nconsdevs too small");
+	c = &consdevs[i];
+	c->flags = flags;
+	c->q = q;
+	c->fn = fn;
+	if(i == nconsdevs)
+		nconsdevs++;
+	iunlock(&consdevslock);
+	return i;
+}
+
+void
+delconsdevs(void)
+{
+	nconsdevs = 2;	/* throw away serial consoles and kprint */
+	consdevs[1].q = nil;
+}
+
+static void
+conskbdqproc(void *a)
+{
+	char buf[64];
+	Queue *q;
+	int nr;
+
+	q = a;
+	while((nr = qread(q, buf, sizeof(buf))) > 0)
+		qwrite(kbdq, buf, nr);
+	pexit("hangup", 1);
+}
+
+static void
+kickkbdq(void)
+{
+	Proc *up = externup();
+	int i;
+
+	if(up != nil && nkbdqs > 1 && nkbdprocs != nkbdqs){
+		lock(&consdevslock);
+		if(nkbdprocs == nkbdqs){
+			unlock(&consdevslock);
+			return;
+		}
+		for(i = 0; i < nkbdqs; i++)
+			if(kbdprocs[i] == 0){
+				kbdprocs[i] = 1;
+				kproc("conskbdq", conskbdqproc, kbdqs[i]);
+			}
+		unlock(&consdevslock);
+	}
+}
+
+int
+addkbdq(Queue *q, int i)
+{
+	int n;
+
+	ilock(&consdevslock);
+	if(i < 0)
+		i = nkbdqs++;
+	if(nkbdqs == Nconsdevs)
+		panic("Nconsdevs too small");
+	kbdqs[i] = q;
+	n = nkbdqs;
+	iunlock(&consdevslock);
+	switch(n){
+	case 1:
+		/* if there's just one, pull directly from it. */
+		kbdq = q;
+		break;
+	case 2:
+		/* later we'll merge bytes from all kbdqs into a single kbdq */
+		kbdq = qopen(4*1024, 0, 0, 0);
+		if(kbdq == nil)
+			panic("no kbdq");
+		/* fall */
+	default:
+		kickkbdq();
+	}
+	return i;
+}
+
+void
+printinit(void)
+{
+	lineq = qopen(2*1024, 0, nil, nil);
+	if(lineq == nil)
+		panic("printinit");
+	qnoblock(lineq, 1);
+}
+
+int
+consactive(void)
+{
+	int i;
+	Queue *q;
+
+	for(i = 0; i < nconsdevs; i++)
+		if((q = consdevs[i].q) != nil && qlen(q) > 0)
+			return 1;
+	return 0;
+}
 
 /*
  * Log console output so it can be retrieved via /dev/kmesg.
@@ -642,9 +764,9 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 	Proc *up = externup();
 	uint64_t l;
 	Mach *mp;
-	char *b, *bp, *s, *e;
+	char *b, *bp, ch, *s, *e;
 	char tmp[512];		/* Qswap is 381 bytes at clu */
-	int i, k, id;
+	int i, k, id, send;
 	int32_t offset;
 
 
@@ -657,7 +779,49 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
 
 	case Qcons:
-		error(Egreg);
+		qlock(&kbd.QLock);
+		if(waserror()) {
+			qunlock(&kbd.QLock);
+			nexterror();
+		}
+		while(!qcanread(lineq)){
+			if(qread(kbdq, &ch, 1) == 0)
+				continue;
+			send = 0;
+			if(ch == 0){
+				/* flush output on rawoff -> rawon */
+				if(kbd.x > 0)
+					send = !qcanread(kbdq);
+			}else if(kbd.raw){
+				kbd.line[kbd.x++] = ch;
+				send = !qcanread(kbdq);
+			}else{
+				switch(ch){
+				case '\b':
+					if(kbd.x > 0)
+						kbd.x--;
+					break;
+				case 0x15:	/* ^U */
+					kbd.x = 0;
+					break;
+				case '\n':
+				case 0x04:	/* ^D */
+					send = 1;
+				default:
+					if(ch != 0x04)
+						kbd.line[kbd.x++] = ch;
+					break;
+				}
+			}
+			if(send || kbd.x == sizeof kbd.line){
+				qwrite(lineq, kbd.line, kbd.x);
+				kbd.x = 0;
+			}
+		}
+		n = qread(lineq, buf, n);
+		qunlock(&kbd.QLock);
+		poperror();
+		return n;
 
 	case Qcputime:
 		k = offset;
@@ -830,7 +994,7 @@ static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t off)
 {
 	Proc *up = externup();
-	char buf[256];
+	char buf[256], ch;
 	int32_t l, bp;
 	char *a;
 	Mach *mp;
@@ -866,7 +1030,19 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		strncpy(buf, a, n);
 		buf[n] = 0;
 		for(a = buf; a;){
-			if(strncmp(a, "sys", 3) == 0) {
+			if(strncmp(a, "rawon", 5) == 0){
+				kbd.raw = 1;
+				/* clumsy hack - wake up reader */
+				ch = 0;
+				qwrite(kbdq, &ch, 1);
+			}
+			else if(strncmp(a, "rawoff", 6) == 0)
+				kbd.raw = 0;
+			else if(strncmp(a, "ctlpon", 6) == 0)
+				kbd.ctlpoff = 0;
+			else if(strncmp(a, "ctlpoff", 7) == 0)
+				kbd.ctlpoff = 1;
+			else if(strncmp(a, "sys", 3) == 0) {
 				printallsyscalls = ! printallsyscalls;
 				print("%sracing syscalls\n", printallsyscalls ? "T" : "Not t");
 			}
