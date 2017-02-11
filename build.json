@@ -7,7 +7,6 @@
 	},
 	"kregress": {
 		"Projects": [
-			"clean.json",
 			"/sys/src/klibs.json",
 			"/sys/src/libs.json",
 			"/sys/src/cmd",
