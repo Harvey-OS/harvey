@@ -254,7 +254,7 @@ func process(f string, r []*regexp.Regexp) []build {
 		t := target(&build)
 		deps := targetDepends(&build)
 		for _, v := range s {
-			if uptodate(t, deps) {
+			if uptodate(t, append(deps, v)) {
 				continue
 			}
 			build.SourceFiles = append(build.SourceFiles, v)
@@ -291,37 +291,6 @@ func wrapInQuote(args []string) []string {
 	return res
 }
 
-// Is everything in deps[] older than f?
-func older(f string, deps []string) bool {
-	debug("check older for %s\n", f)
-	fi, err := os.Stat(f)
-	// If it does not exist, that's really not our problem.
-	// We only worry about things that exist.
-	if err != nil {
-		debug("\tdoesn't exist\n")
-		return true
-	}
-
-	m := fi.ModTime()
-
-	debug("older: time is %v\n", m)
-	for _, d := range deps {
-		debug("\tCheck %s:", d)
-		di, err := os.Stat(d)
-		if err != nil {
-			continue
-		}
-		if !di.ModTime().After(m) {
-			debug("%v is newer\n", di.ModTime())
-			return true
-		}
-		debug("%v is older\n", di.ModTime())
-	}
-
-	debug("all is older\n")
-	return false
-}
-
 func uptodate(n string, d []string) bool {
 	debug("uptodate: %s, %v\n", n, d)
 	if !*depends {
@@ -329,11 +298,36 @@ func uptodate(n string, d []string) bool {
 		return false
 	}
 
-	return older(n, d)
+	fi, err := os.Stat(n)
+	// If it does not exist, that's really not our problem.
+	// We only worry about things that exist.
+	if err != nil {
+		debug("\tdoesn't exist\n")
+		return false
+	}
+
+	m := fi.ModTime()
+
+	debug("older: time is %v\n", m)
+	for _, d := range d {
+		debug("\tCheck %s:", d)
+		di, err := os.Stat(d)
+		if err != nil {
+			return false
+		}
+		if !di.ModTime().Before(m) {
+			debug("%v is newer\n", di.ModTime())
+			return false
+		}
+		debug("%v is older\n", di.ModTime())
+	}
+
+	debug("all is older\n")
+	return true
 }
 
 func targetDepends(b *build) []string {
-	return append(b.SrcDeps, fromRoot("/sys/include/u.h"), fromRoot("/sys/include/libc.h"))
+	return append(b.SrcDeps, fromRoot("/sys/include/libc.h"), fromRoot("/$ARCH/include/u.h"))
 }
 
 func target(b *build) string {
