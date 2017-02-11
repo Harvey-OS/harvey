@@ -9,16 +9,16 @@
 
 typedef struct Allocator {
 	void (*init)(void);
+
+	void* (*mallocz)(uint32_t, int);
+	void* (*mallocalign)(uint32_t, uint32_t, int32_t, uint32_t);
+	void* (*realloc)(void*, uint32_t);
+
+	void (*free)(void*);
+
 	uint32_t (*msize)(void*);
 	int32_t (*mallocreadsummary)(Chan*, void*, int32_t, int32_t);
 	void (*mallocsummary)(void);
-
-	void (*free)(void*);
-	void* (*malloc)(uint32_t);
-	void* (*mallocz)(uint32_t, int);
-	void* (*mallocalign)(uint32_t, uint32_t, int32_t, uint32_t);
-	void* (*smalloc)(uint32_t);
-	void* (*realloc)(void*, uint32_t);
 
 } Allocator;
 
