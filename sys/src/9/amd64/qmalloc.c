@@ -395,124 +395,6 @@ qm_msize(void* ap)
 }
 
 static void
-mallocreadfmt(char* s, char* e)
-{
-	char* p;
-	Header* q;
-	int i, n, t;
-	Qlist* qlist;
-
-	p = seprint(s, e,
-	            "%llu memory\n"
-	            "%d pagesize\n"
-	            "%llu kernel\n",
-	            (uint64_t)conf.npage * PGSZ,
-	            PGSZ,
-	            (uint64_t)conf.npage - conf.upages);
-
-	t = 0;
-	for(i = 0; i <= NQUICK; i++) {
-		n = 0;
-		qlist = &QLIST[i];
-		QLOCK(&qlist->lk);
-		for(q = qlist->first; q != nil; q = q->s.next) {
-			//			if(q->s.size != i)
-			//				p = seprint(p, e, "q%d\t%#p\t%u\n",
-			//					i, q, q->s.size);
-			n++;
-		}
-		QUNLOCK(&qlist->lk);
-
-		//		if(n != 0)
-		//			p = seprint(p, e, "q%d %d\n", i, n);
-		t += n * i * sizeof(Header);
-	}
-	p = seprint(p, e, "quick: %u bytes total\n", t);
-
-	MLOCK;
-	if((q = rover) != nil) {
-		i = t = 0;
-		do {
-			t += q->s.size;
-			i++;
-			//			p = seprint(p, e, "m%d\t%#p\n", q->s.size, q);
-		} while((q = q->s.next) != rover);
-
-		p = seprint(p, e, "rover: %d blocks %u bytes total\n",
-		            i, t * sizeof(Header));
-	}
-	p = seprint(p, e, "total allocated %lu, %u remaining\n",
-	            (tailptr - tailbase) * sizeof(Header), tailnunits * sizeof(Header));
-
-	for(i = 0; i < nelem(qstats); i++) {
-		if(qstats[i] == 0)
-			continue;
-		p = seprint(p, e, "%s %u\n", qstatstr[i], qstats[i]);
-	}
-	MUNLOCK;
-}
-
-static int32_t
-qm_mallocreadsummary(Chan* c, void* a, int32_t n, int32_t offset)
-{
-	char* alloc;
-
-	alloc = malloc(16 * READSTR);
-	mallocreadfmt(alloc, alloc + 16 * READSTR);
-	n = readstr(offset, a, n, alloc);
-	free(alloc);
-
-	return n;
-}
-
-static void
-qm_mallocsummary(void)
-{
-	Header* q;
-	int i, n, t;
-	Qlist* qlist;
-
-	t = 0;
-	for(i = 0; i <= NQUICK; i++) {
-		n = 0;
-		qlist = &QLIST[i];
-		QLOCK(&qlist->lk);
-		for(q = qlist->first; q != nil; q = q->s.next) {
-			if(q->s.size != i)
-				DBG("q%d\t%#p\t%u\n", i, q, q->s.size);
-			n++;
-		}
-		QUNLOCK(&qlist->lk);
-
-		t += n * i * sizeof(Header);
-	}
-	print("quick: %u bytes total\n", t);
-
-	MLOCK;
-	if((q = rover) != nil) {
-		i = t = 0;
-		do {
-			t += q->s.size;
-			i++;
-		} while((q = q->s.next) != rover);
-	}
-	MUNLOCK;
-
-	if(i != 0) {
-		print("rover: %d blocks %u bytes total\n",
-		      i, t * sizeof(Header));
-	}
-	print("total allocated %lu, %u remaining\n",
-	      (tailptr - tailbase) * sizeof(Header), tailnunits * sizeof(Header));
-
-	for(i = 0; i < nelem(qstats); i++) {
-		if(qstats[i] == 0)
-			continue;
-		print("%s %u\n", qstatstr[i], qstats[i]);
-	}
-}
-
-static void
 qm_free(void* ap)
 {
 	MLOCK;
@@ -562,7 +444,7 @@ qm_smalloc(uint32_t size)
 	Proc* up = externup();
 	void* v;
 
-	while((v = mallocz(size, 1)) == nil)
+	while((v = qm_mallocz(size, 1)) == nil)
 		tsleep(&up->sleep, return0, 0, 100);
 	return v;
 }
@@ -664,6 +546,124 @@ morecore(uint nunits)
 	return nunits;
 }
 
+static void
+mallocreadfmt(char* s, char* e)
+{
+	char* p;
+	Header* q;
+	int i, n, t;
+	Qlist* qlist;
+
+	p = seprint(s, e,
+	            "%llu memory\n"
+	            "%d pagesize\n"
+	            "%llu kernel\n",
+	            (uint64_t)conf.npage * PGSZ,
+	            PGSZ,
+	            (uint64_t)conf.npage - conf.upages);
+
+	t = 0;
+	for(i = 0; i <= NQUICK; i++) {
+		n = 0;
+		qlist = &QLIST[i];
+		QLOCK(&qlist->lk);
+		for(q = qlist->first; q != nil; q = q->s.next) {
+			//			if(q->s.size != i)
+			//				p = seprint(p, e, "q%d\t%#p\t%u\n",
+			//					i, q, q->s.size);
+			n++;
+		}
+		QUNLOCK(&qlist->lk);
+
+		//		if(n != 0)
+		//			p = seprint(p, e, "q%d %d\n", i, n);
+		t += n * i * sizeof(Header);
+	}
+	p = seprint(p, e, "quick: %u bytes total\n", t);
+
+	MLOCK;
+	if((q = rover) != nil) {
+		i = t = 0;
+		do {
+			t += q->s.size;
+			i++;
+			//			p = seprint(p, e, "m%d\t%#p\n", q->s.size, q);
+		} while((q = q->s.next) != rover);
+
+		p = seprint(p, e, "rover: %d blocks %u bytes total\n",
+		            i, t * sizeof(Header));
+	}
+	p = seprint(p, e, "total allocated %lu, %u remaining\n",
+	            (tailptr - tailbase) * sizeof(Header), tailnunits * sizeof(Header));
+
+	for(i = 0; i < nelem(qstats); i++) {
+		if(qstats[i] == 0)
+			continue;
+		p = seprint(p, e, "%s %u\n", qstatstr[i], qstats[i]);
+	}
+	MUNLOCK;
+}
+
+static int32_t
+qm_mallocreadsummary(Chan* c, void* a, int32_t n, int32_t offset)
+{
+	char* alloc;
+
+	alloc = qm_malloc(16 * READSTR);
+	mallocreadfmt(alloc, alloc + 16 * READSTR);
+	n = readstr(offset, a, n, alloc);
+	free(alloc);
+
+	return n;
+}
+
+static void
+qm_mallocsummary(void)
+{
+	Header* q;
+	int i, n, t;
+	Qlist* qlist;
+
+	t = 0;
+	for(i = 0; i <= NQUICK; i++) {
+		n = 0;
+		qlist = &QLIST[i];
+		QLOCK(&qlist->lk);
+		for(q = qlist->first; q != nil; q = q->s.next) {
+			if(q->s.size != i)
+				DBG("q%d\t%#p\t%u\n", i, q, q->s.size);
+			n++;
+		}
+		QUNLOCK(&qlist->lk);
+
+		t += n * i * sizeof(Header);
+	}
+	print("quick: %u bytes total\n", t);
+
+	MLOCK;
+	if((q = rover) != nil) {
+		i = t = 0;
+		do {
+			t += q->s.size;
+			i++;
+		} while((q = q->s.next) != rover);
+	}
+	MUNLOCK;
+
+	if(i != 0) {
+		print("rover: %d blocks %u bytes total\n",
+		      i, t * sizeof(Header));
+	}
+	print("total allocated %lu, %u remaining\n",
+	      (tailptr - tailbase) * sizeof(Header), tailnunits * sizeof(Header));
+
+	for(i = 0; i < nelem(qstats); i++) {
+		if(qstats[i] == 0)
+			continue;
+		print("%s %u\n", qstatstr[i], qstats[i]);
+	}
+}
+
 // Initialise memory system
 static void
 qm_init(void)
@@ -679,16 +679,18 @@ qm_init(void)
 
 static struct Allocator _qmallocAllocator = {
     .init = qm_init,
-    .msize = qm_msize,
-    .mallocreadsummary = qm_mallocreadsummary,
-    .mallocsummary = qm_mallocsummary,
 
-    .free = qm_free,
     .malloc = qm_malloc,
     .mallocz = qm_mallocz,
     .mallocalign = qm_mallocalign,
-    .smalloc = qm_smalloc,
     .realloc = qm_realloc,
+    .smalloc = qm_smalloc,
+
+    .free = qm_free,
+
+    .msize = qm_msize,
+    .mallocreadsummary = qm_mallocreadsummary,
+    .mallocsummary = qm_mallocsummary,
 };
 
 void
