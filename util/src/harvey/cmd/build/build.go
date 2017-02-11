@@ -126,7 +126,7 @@ var (
 		"aarch64": true,
 	}
 	debugPrint = flag.Bool("debug", false, "enable debug prints")
-	depends = flag.Bool("D", false, "Do dependency checking")
+	depends    = flag.Bool("D", false, "Do dependency checking")
 	shellhack  = flag.Bool("shellhack", false, "spawn every command in a shell (forced on if LD_PRELOAD is set)")
 )
 
@@ -172,7 +172,6 @@ func include(f string, b *build) {
 
 	for n, build := range builds {
 		log.Printf("Merging %v", n)
-		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
 		b.Pre = append(b.Pre, build.Pre...)
@@ -195,6 +194,9 @@ func include(f string, b *build) {
 		b.SrcDeps = append(b.SrcDeps, build.SrcDeps...)
 		b.SrcDeps = append(b.SrcDeps, b.Program, b.Library)
 		for _, v := range build.SourceFiles {
+			if uptodate(v, b.SrcDeps) {
+				continue
+			}
 			b.SourceFiles = append(b.SourceFiles, v)
 			f := path.Base(v)
 			o := f[:len(f)-1] + "o"
@@ -246,7 +248,16 @@ func process(f string, r []*regexp.Regexp) []build {
 
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
-		for _, v := range build.SourceFiles {
+		s := build.SourceFiles
+		build.SourceFiles = nil
+
+		t := target(&build)
+		deps := targetDepends(&build)
+		for _, v := range s {
+			if uptodate(t, deps) {
+				continue
+			}
+			build.SourceFiles = append(build.SourceFiles, v)
 			f := path.Base(v)
 			o := f[:len(f)-1] + "o"
 			build.ObjectFiles = appendIfMissing(build.ObjectFiles, o)
@@ -280,40 +291,59 @@ func wrapInQuote(args []string) []string {
 	return res
 }
 
-func older(f string, deps[]string) bool {
+// Is everything in deps[] older than f?
+func older(f string, deps []string) bool {
+	debug("check older for %s\n", f)
 	fi, err := os.Stat(f)
 	// If it does not exist, that's really not our problem.
 	// We only worry about things that exist.
 	if err != nil {
+		debug("\tdoesn't exist\n")
 		return true
 	}
 
 	m := fi.ModTime()
 
-	for _,d := range deps {
+	debug("older: time is %v\n", m)
+	for _, d := range deps {
+		debug("\tCheck %s:", d)
 		di, err := os.Stat(d)
 		if err != nil {
 			continue
 		}
-		if di.ModTime().After(m) {
+		if !di.ModTime().After(m) {
+			debug("%v is newer\n", di.ModTime())
 			return true
 		}
+		debug("%v is older\n", di.ModTime())
 	}
 
+	debug("all is older\n")
 	return false
 }
 
 func uptodate(n string, d []string) bool {
-	if ! *depends {
+	debug("uptodate: %s, %v\n", n, d)
+	if !*depends {
+		debug("\t no\n")
 		return false
 	}
 
-	return ! older(n, d)
+	return older(n, d)
 }
 
-func progdepends(b *build, i string) []string{
-	return []string{fromRoot("/sys/include/u.h"),}
+func targetDepends(b *build) []string {
+	return append(b.SrcDeps, fromRoot("/sys/include/u.h"), fromRoot("/sys/include/libc.h"))
+}
 
+func target(b *build) string {
+	if b.Program != "" {
+		return path.Join(b.Install, b.Program)
+	}
+	if b.Library != "" {
+		return path.Join(b.Install, b.Library)
+	}
+	return ""
 }
 
 func compile(b *build) {
@@ -328,14 +358,6 @@ func compile(b *build) {
 	}
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
-		var s []string
-		for _, i := range b.SourceFilesCmd {
-			// Sleazo test case.
-			if ! uptodate(i, progdepends(b, i)) {
-				s = append(s, i)
-			}
-		}
-		b.SourceFilesCmd = s
 		for _, i := range b.SourceFilesCmd {
 			cmd := exec.Command(tools["cc"], append(args, i)...)
 			run(b, *shellhack, cmd)
