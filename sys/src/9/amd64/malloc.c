@@ -31,30 +31,6 @@ mallocinitallocator(Allocator* allocator)
 	_allocator->init();
 }
 
-uint32_t
-msize(void* ap)
-{
-	return _allocator->msize(ap);
-}
-
-int32_t
-mallocreadsummary(Chan* c, void* a, int32_t n, int32_t offset)
-{
-	return _allocator->mallocreadsummary(c, a, n, offset);
-}
-
-void
-mallocsummary(void)
-{
-	_allocator->mallocsummary();
-}
-
-void
-free(void* ap)
-{
-	_allocator->free(ap);
-}
-
 void*
 malloc(uint32_t size)
 {
@@ -75,6 +51,12 @@ mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 }
 
 void*
+realloc(void* ap, uint32_t size)
+{
+	return _allocator->realloc(ap, size);
+}
+
+void*
 smalloc(uint32_t size)
 {
 	Proc* up = externup();
@@ -85,10 +67,28 @@ smalloc(uint32_t size)
 	return v;
 }
 
-void*
-realloc(void* ap, uint32_t size)
+void
+free(void* ap)
 {
-	return _allocator->realloc(ap, size);
+	_allocator->free(ap);
+}
+
+uint32_t
+msize(void* ap)
+{
+	return _allocator->msize(ap);
+}
+
+int32_t
+mallocreadsummary(Chan* c, void* a, int32_t n, int32_t offset)
+{
+	return _allocator->mallocreadsummary(c, a, n, offset);
+}
+
+void
+mallocsummary(void)
+{
+	_allocator->mallocsummary();
 }
 
 void
