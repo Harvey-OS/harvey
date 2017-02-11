@@ -180,8 +180,6 @@ func include(f string, b *build) {
 		b.Projects = append(b.Projects, build.Projects...)
 		b.Env = append(b.Env, build.Env...)
 		b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
-		b.Program += build.Program
-		b.Library += build.Library
 		if build.Install != "" {
 			if b.Install != "" {
 				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install.", f, n, build.path, build.name)
@@ -192,11 +190,27 @@ func include(f string, b *build) {
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
 		b.SrcDeps = append(b.SrcDeps, build.SrcDeps...)
-		b.SrcDeps = append(b.SrcDeps, b.Program, b.Library)
+		t := target(&build)
+
+		var s []string
 		for _, v := range build.SourceFiles {
-			if uptodate(v, b.SrcDeps) {
+			if uptodate(t, append(b.SrcDeps, v)) {
 				continue
 			}
+			s = append(s, v)
+		}
+		if *depends && build.Program != "" {
+			if len(s) == 0 {
+				build.SourceFiles = []string{}
+				build.Program = ""
+			}
+		}
+
+		if *depends && b.Library != "" {
+			build.SourceFiles = s
+		}
+
+		for _, v := range build.SourceFiles {
 			b.SourceFiles = append(b.SourceFiles, v)
 			f := path.Base(v)
 			o := f[:len(f)-1] + "o"
@@ -210,6 +224,8 @@ func include(f string, b *build) {
 			}
 			include(v, b)
 		}
+		b.Program += build.Program
+		b.Library += build.Library
 	}
 }
 
@@ -248,16 +264,28 @@ func process(f string, r []*regexp.Regexp) []build {
 
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
-		s := build.SourceFiles
-		build.SourceFiles = nil
-
 		t := target(&build)
 		deps := targetDepends(&build)
-		for _, v := range s {
+		var s []string
+		for _, v := range build.SourceFiles {
 			if uptodate(t, append(deps, v)) {
 				continue
 			}
-			build.SourceFiles = append(build.SourceFiles, v)
+			s = append(s, v)
+		}
+
+		if *depends && build.Program != "" {
+			if len(s) == 0 {
+				build.SourceFiles = []string{}
+				build.Program = ""
+			}
+		}
+
+		if *depends && build.Library != "" {
+			build.SourceFiles = s
+		}
+
+		for _, v := range build.SourceFiles {
 			f := path.Base(v)
 			o := f[:len(f)-1] + "o"
 			build.ObjectFiles = appendIfMissing(build.ObjectFiles, o)
