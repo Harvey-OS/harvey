@@ -41,6 +41,7 @@ CORE_SRCS = [
 	"physalloc.c",
 	"pmcio.c",
 	"qmalloc.c",
+	"malloc.c",
 	"sipi.c",
 	"syscall.c",
 	"systab.c",
