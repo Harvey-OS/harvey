@@ -612,7 +612,7 @@ qm_mallocreadsummary(Chan* c, void* a, int32_t n, int32_t offset)
 	alloc = qm_malloc(16 * READSTR);
 	mallocreadfmt(alloc, alloc + 16 * READSTR);
 	n = readstr(offset, a, n, alloc);
-	free(alloc);
+	qm_free(alloc);
 
 	return n;
 }
