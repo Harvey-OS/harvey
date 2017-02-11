@@ -23,7 +23,6 @@
 
 static Allocator* _allocator = nil;
 
-// Initialise memory system
 void
 mallocinitallocator(Allocator* allocator)
 {

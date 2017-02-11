@@ -536,7 +536,7 @@ qm_mallocz(uint32_t size, int clr)
 {
 	void* v;
 
-	if((v = malloc(size)) != nil && clr)
+	if((v = qmalloc(size)) != nil && clr)
 		memset(v, 0, size);
 
 	return v;
@@ -677,7 +677,6 @@ qm_init(void)
 	print("base %#p ptr %#p nunits %u\n", tailbase, tailptr, tailnunits);
 }
 
-// TODO Change names to qm_*?
 static struct Allocator _qmallocAllocator = {
     .init = qm_init,
     .msize = qm_msize,
