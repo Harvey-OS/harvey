@@ -10,8 +10,8 @@
 /*
  * malloc
  *
- * Externally facing functions are thin wrappers for internal malloc functions.
- * The aim is to make it easier to swap out malloc implementations.
+ * Wrap malloc functions an Allocator struct to make it easier to test and
+ * replace the implementation.
  */
 
 #include "u.h"
