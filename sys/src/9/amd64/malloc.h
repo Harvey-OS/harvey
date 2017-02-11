@@ -1,0 +1,26 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+typedef struct Allocator {
+	void (*init)(void);
+	uint32_t (*msize)(void*);
+	int32_t (*mallocreadsummary)(Chan*, void*, int32_t, int32_t);
+	void (*mallocsummary)(void);
+
+	void (*free)(void*);
+	void* (*malloc)(uint32_t);
+	void* (*mallocz)(uint32_t, int);
+	void* (*mallocalign)(uint32_t, uint32_t, int32_t, uint32_t);
+	void* (*smalloc)(uint32_t);
+	void* (*realloc)(void*, uint32_t);
+
+} Allocator;
+
+void
+mallocinitallocator(Allocator* allocator);
