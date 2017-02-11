@@ -185,9 +185,9 @@ func confcode(path string, kern *kernel) []byte {
 	tmpl := template.Must(template.New("kernconf").Parse(kernconfTmpl))
 	codebuf := &bytes.Buffer{}
 	failOn(tmpl.Execute(codebuf, vars))
-fmt.Printf("VGA IS %v len %d\n", vars.Config.VGA, len(vars.Config.VGA))
+	fmt.Printf("VGA IS %v len %d\n", vars.Config.VGA, len(vars.Config.VGA))
 	if len(vars.Config.VGA) > 0 {
-		tmpl = template.Must(template.New("vgaconf").Parse(vgaconfTmpl ))
+		tmpl = template.Must(template.New("vgaconf").Parse(vgaconfTmpl))
 		vgabuf := &bytes.Buffer{}
 		failOn(tmpl.Execute(codebuf, vars))
 		codebuf.Write(vgabuf.Bytes())
