@@ -18,6 +18,7 @@
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
+#include "fns.h"
 
 #include "malloc.h"
 
@@ -57,7 +58,8 @@ free(void* ap)
 void*
 malloc(uint32_t size)
 {
-	return _allocator->malloc(size);
+	// Default implementation of malloc always clears
+	return _allocator->mallocz(size, 1);
 }
 
 void*
@@ -75,7 +77,12 @@ mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 void*
 smalloc(uint32_t size)
 {
-	return _allocator->smalloc(size);
+	Proc* up = externup();
+	void* v;
+
+	while((v = _allocator->mallocz(size, 1)) == nil)
+		tsleep(&up->sleep, return0, 0, 100);
+	return v;
 }
 
 void*

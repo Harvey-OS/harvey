@@ -403,17 +403,6 @@ qm_free(void* ap)
 }
 
 static void*
-qm_malloc(uint32_t size)
-{
-	void* v;
-
-	if((v = qmalloc(size)) != nil)
-		memset(v, 0, size);
-
-	return v;
-}
-
-static void*
 qm_mallocz(uint32_t size, int clr)
 {
 	void* v;
@@ -435,17 +424,6 @@ qm_mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 	if((v = qmallocalign(nbytes, align, offset, span)) != nil)
 		memset(v, 0, nbytes);
 
-	return v;
-}
-
-static void*
-qm_smalloc(uint32_t size)
-{
-	Proc* up = externup();
-	void* v;
-
-	while((v = qm_mallocz(size, 1)) == nil)
-		tsleep(&up->sleep, return0, 0, 100);
 	return v;
 }
 
@@ -609,7 +587,7 @@ qm_mallocreadsummary(Chan* c, void* a, int32_t n, int32_t offset)
 {
 	char* alloc;
 
-	alloc = qm_malloc(16 * READSTR);
+	alloc = qm_mallocz(16 * READSTR, 1);
 	mallocreadfmt(alloc, alloc + 16 * READSTR);
 	n = readstr(offset, a, n, alloc);
 	qm_free(alloc);
@@ -680,11 +658,9 @@ qm_init(void)
 static struct Allocator _qmallocAllocator = {
     .init = qm_init,
 
-    .malloc = qm_malloc,
     .mallocz = qm_mallocz,
     .mallocalign = qm_mallocalign,
     .realloc = qm_realloc,
-    .smalloc = qm_smalloc,
 
     .free = qm_free,
 
