@@ -311,7 +311,6 @@ KERNEL_DEPS = [
 	"//sys/src/cmd:ps",
 	"//sys/src/cmd:ed",
 	# rcmain FILE ADDED
-	"//sys/src/cmd/aux/console:screenconsole",
 	"//sys/src/cmd/aux/realemu:realemu",
 	"//sys/src/cmd/aux/vga:vga",
 	"//sys/src/cmd:srv",
@@ -336,7 +335,6 @@ config(
 	bins={
 		"factotum": "auth/factotum",
 		"ipconfig": "ip/ipconfig",
-		"screenconsole": "aux/screenconsole",
 		"realemu": "aux/realemu",
 		"vga": "aux/vga",
 	},
