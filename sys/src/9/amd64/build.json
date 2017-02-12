@@ -108,7 +108,6 @@
 				"rcmain": "/rc/lib/rcmain",
 				"ratrace": "/$ARCH/bin/ratrace",
 				"sed": "/$ARCH/bin/sed",
-				"screenconsole": "/$ARCH/bin/aux/screenconsole",
 				"realemu": "/$ARCH/bin/aux/realemu",
 				"vga": "/$ARCH/bin/aux/vga",
 				"srv": "/$ARCH/bin/srv",
