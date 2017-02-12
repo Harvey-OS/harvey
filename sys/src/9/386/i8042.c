@@ -379,6 +379,7 @@ i8042intr(Ureg* u, void* v)
 	if(s & Minready){
 		if(mouseq != nil)
 			qiwrite(mouseq, &c, 1);
+		return;
 	}
 
 	/*
