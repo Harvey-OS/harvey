@@ -172,24 +172,24 @@ Rune kbtabctrl[] =
 };
 */
 
-Rune kbtabctrl[] =  /* GCC cannot handle plan9 code !? */
+static Rune kbtabctrl[256] =
 {
-[0x00] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x08] =  No,     No,     No,     No,     No,     No,     '\177', No,
-[0x10] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x18] =  No,     No,     No,     No,     '\n',   Ctrl,   No,     No,
-[0x20] =  No,     No,     No,     '\b',   '\n',   No,     No,     No,
-[0x28] =  No,     No,     Shift,  No,     No,     No,     No,     No,
-[0x30] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x38] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x40] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x48] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x50] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x58] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x60] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x68] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x70] =  No,     No,     No,     No,     No,     No,     No,     No,
-[0x78] =  No,     Up,     No,     No,     No,     No,     No,     No,
+[0x00] =	No,	'\x1b',	'\x11',	'\x12',	'\x13',	'\x14',	'\x15',	'\x16',
+[0x08] =	'\x17',	'\x18',	'\x19',	'\x10',	'\n',	'\x1d',	'\b',	'\t',
+[0x10] =	'\x11',	'\x17',	'\x05',	'\x12',	'\x14',	'\x19',	'\x15',	'\t',
+[0x18] =	'\x0f',	'\x10',	'\x1b',	'\x1d',	'\n',	Ctrl,	'\x01',	'\x13',
+[0x20] =	'\x04',	'\x06',	'\x07',	'\b',	'\n',	'\x0b',	'\x0c',	'\x1b',
+[0x28] =	'\x07',	No,	Shift,	'\x1c',	'\x1a',	'\x18',	'\x03',	'\x16',
+[0x30] =	'\x02',	'\x0e',	'\n',	'\x0c',	'\x0e',	'\x0f',	Shift,	'\n',
+[0x38] =	Latin,	No,	Ctrl,	'\x05',	'\x06',	'\x07',	'\x04',	'\x05',
+[0x40] =	'\x06',	'\x07',	'\x0c',	'\n',	'\x0e',	'\x05',	'\x06',	'\x17',
+[0x48] =	'\x18',	'\x19',	'\n',	'\x14',	'\x15',	'\x16',	'\x0b',	'\x11',
+[0x50] =	'\x12',	'\x13',	'\x10',	'\x0e',	No,	No,	No,	'\x0f',
+[0x58] =	'\x0c',	No,	No,	No,	No,	No,	No,	No,
+[0x60] =	No,	No,	No,	No,	No,	No,	No,	No,
+[0x68] =	No,	No,	No,	No,	No,	No,	No,	No,
+[0x70] =	No,	No,	No,	No,	No,	No,	No,	No,
+[0x78] =	No,	'\x07',	No,	'\b',	No,	No,	No,	No,
 };
 
 enum
@@ -379,9 +379,6 @@ i8042intr(Ureg* u, void* v)
 	if(s & Minready){
 		if(mouseq != nil)
 			qiwrite(mouseq, &c, 1);
-	} else {
-		if(keybq != nil)
-			qiwrite(keybq, &c, 1);
 	}
 
 	/*
@@ -616,7 +613,7 @@ kbdputsc(int data, int _)
 	qiwrite(keybq, &data, 1);
 }
 
-static char *initfailed = "i8042: kbdinit failed\n";
+static char *initfailed = "i8042: keybinit failed\n";
 
 static int
 outbyte(int port, int c)
