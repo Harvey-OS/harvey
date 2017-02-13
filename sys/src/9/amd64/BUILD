@@ -352,6 +352,7 @@ config(
 		"ether",
 		"ip",
 		"kbin",
+		"kbmap",
 		"kprof",
 		"mnt",
 		"mntn",
