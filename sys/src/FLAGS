@@ -1,3 +1,5 @@
+load("//${ARCH}/${CC}.BUILD", "COMPILER_FLAGS")
+
 CMD_DEPS = [
 	"//sys/src/libavl:libavl",
 	"//sys/src/libcomplete:libcomplete",
@@ -97,7 +99,7 @@ CMD_LINK_OPTS = [
 
 ]
 
-KLIB_COMPILER_FLAGS = [
+STD_KLIB_COMPILER_FLAGS = [
 	"-mcmodel=kernel",
 	"-O0",
 	"-mno-red-zone",
@@ -111,7 +113,7 @@ KLIB_COMPILER_FLAGS = [
 	"-g",
 ]
 
-LIB_COMPILER_FLAGS = [
+STD_LIB_COMPILER_FLAGS = [
 	"-std=c11",
 	"-fasm",
 	"-c",
@@ -128,3 +130,5 @@ LIB_COMPILER_FLAGS = [
 	"-Wno-parentheses",
 	"-Wno-unknown-pragmas"
 ]
+LIB_COMPILER_FLAGS = STD_LIB_COMPILER_FLAGS + COMPILER_FLAGS
+KLIB_COMPILER_FLAGS = STD_KLIB_COMPILER_FLAGS + COMPILER_FLAGS

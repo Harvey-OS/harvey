@@ -40,7 +40,7 @@ colinit(Column *c, Rectangle r)
 	r1.min.y = r1.max.y;
 	r1.max.y += Border;
 	draw(screen, r1, display->black, nil, ZP);
-	textinsert(t, 0, L"New Cut Paste Snarf Sort Zerox Delcol ", 38, TRUE);
+	textinsert(t, 0, (Rune*)L"New Cut Paste Snarf Sort Zerox Delcol ", 38, TRUE);
 	textsetselect(t, t->file->Buffer.nc, t->file->Buffer.nc);
 	draw(screen, t->scrollr, colbutton, nil, colbutton->r.min);
 	c->safe = TRUE;

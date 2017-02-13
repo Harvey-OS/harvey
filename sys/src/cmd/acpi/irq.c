@@ -18,6 +18,8 @@ extern void *ACPIRootPointer;
 extern int ACPITableSize;
 extern UINT32 AcpiDbgLevel;
 
+extern ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, UINT64 pin, int* irq);
+
 void hexdump(void *v, int length)
 {
 	int i;
@@ -57,7 +59,7 @@ void
 main(int argc, char *argv[])
 {
 	int set = -1, enable = -1;
-	int seg = 0, bus = 0, dev = 2, fn = 0, pin = 0;
+	int seg = 0, bus = 0, dev = 2, fn = 0;
 	ACPI_STATUS status;
 	int verbose = 0;
 	AcpiDbgLevel = 0;
@@ -131,10 +133,11 @@ failed:
 		sysfatal("Error %d\n", status);
 	}
 
+	UINT64 pin = 0;
 	while (1) {
 		if (scanf("%x %x", &bus, &dev) < 0)
 			break;
-		ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq);
+
 		AcpiDbgLevel = 0;
 		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
 		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
@@ -142,12 +145,14 @@ failed:
 			printf("Can't read pin for bus %d dev %d\n", bus, dev);
 			continue;
 		}
-		print("ROUTE {%d, %d, %d, %d}, pin %d\n", seg, bus, dev, fn, pin);
+
+		print("ROUTE {%d, %d, %d, %d}, pin %llu\n", seg, bus, dev, fn, pin);
 		int irq;
 		status = RouteIRQ(&id, pin, &irq);
 		print("status %d, irq %d\n", status, irq);
 		AcpiDbgLevel = 0;
 		print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
+
 		//ACPI_STATUS PrintDevices(void);
 		//status = PrintDevices();
 		if (set > -1)
@@ -163,4 +168,3 @@ failed:
 
 	exits(0);
 }
-

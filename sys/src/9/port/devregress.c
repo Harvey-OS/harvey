@@ -134,7 +134,7 @@ regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 }
 
 Dev regressdevtab = {
-	.dc = 'Z',
+	.dc = L'ξ',
 	.name = "regress",
 
 	.reset = devreset,

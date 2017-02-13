@@ -234,76 +234,6 @@ failed:
 	return AE_OK;
 }
 
-static ACPI_STATUS PrintAPICTable(void) {
-	static const char *polarities[] = {
-		"Bus-Conformant",
-		"Active-High",
-		"Reserved",
-		"Active-Low"
-	};
-	static const char *triggerings[] = {
-		"Bus-Conformant",
-		"Edge-Triggered",
-		"Reserved",
-		"Level-Triggered"
-	};
-
-	ACPI_TABLE_MADT* table = NULL;
-	ACPI_STATUS status = AcpiGetTable("APIC", 0, (ACPI_TABLE_HEADER**)&table);
-	CHECK_STATUS("AcpiGetTable");
-
-	if (DBGFLG) printf("Found APIC table: %p\n", table);
-	if (DBGFLG) printf("Address of Local APIC: %#x\n", table->Address);
-	if (DBGFLG) printf("Flags: %#x\n", table->Flags);
-	char* endOfTable = (char*)table + table->Header.Length;
-	char* p = (char*)(table + 1);
-	int n = 0;
-	while (p < endOfTable) {
-		ACPI_APIC_STRUCT* apic = (ACPI_APIC_STRUCT*)p;
-		p += apic->Length;
-		n++;
-		switch (apic->Type)
-		{
-		case ACPI_MADT_TYPE_LOCAL_APIC:
-			if (DBGFLG) printf("%d: Local APIC. Processor ID %#x APIC ID %#x En=%d (%#x)\n", n,
-				(int)apic->LocalApic.ProcessorId,
-				(int)apic->LocalApic.Id,
-				apic->LocalApic.LapicFlags & 1,
-				apic->LocalApic.LapicFlags);
-			break;
-		case ACPI_MADT_TYPE_IO_APIC:
-			if (DBGFLG) printf("%d: I/O APIC. ID %#x Addr %#x GSI base %#x\n", n,
-				(int)apic->IOApic.Id,
-				apic->IOApic.Address,
-				apic->IOApic.GlobalIrqBase);
-			break;
-		case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE:
-		{
-			UINT32 flags = apic->InterruptOverride.IntiFlags;
-			if (DBGFLG) printf("%d: Interrupt Override. Source %#x GSI %#x Pol=%s Trigger=%s\n", n,
-				apic->InterruptOverride.SourceIrq,
-				apic->InterruptOverride.GlobalIrq,
-				polarities[flags & 3], triggerings[(flags >> 2) & 3]);
-			break;
-		}
-		case ACPI_MADT_TYPE_LOCAL_APIC_NMI:
-		{
-			UINT32 flags = apic->InterruptOverride.IntiFlags;
-			if (DBGFLG) printf("%d: Local APIC NMI. Processor ID %#x Pol=%s Trigger=%s LINT# %#x\n", n,
-				apic->LocalApicNMI.ProcessorId,
-				polarities[flags & 3], triggerings[(flags >> 2) & 3],
-				apic->LocalApicNMI.Lint);
-			break;
-		}
-		default:
-			if (DBGFLG) printf("%d: Unknown APIC type %d\n", n, apic->Type);
-			break;
-		}
-	}
-
-failed:
-	return status;
-}
 
 ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE Device)
 {
@@ -343,7 +273,7 @@ failed:
 typedef struct IRQRouteData
 {
 	ACPI_PCI_ID pci;
-	unsigned pin;
+	UINT64 pin;
 	int8_t gsi;
 	// triggering: 1 = edge triggered, 0 = level
 	int8_t triggering;
@@ -544,7 +474,7 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 	if (nf < 3)
 		sysfatal("BOTCH! the bridge device requires 3 fields, only had %d\n", nf);
 	BridgeDevice = strtoul(f[1], 0, 0);
-	if (DBGFLG) print("BridgeDevice is 0x%x, pin is %d\n", BridgeDevice, d->pin);
+	if (DBGFLG) print("BridgeDevice is 0x%x, pin is %llu\n", BridgeDevice, d->pin);
 
 	/* and the swizzling is fixed, per the PCI standard. take the low 2 bits (for now)
 	 * of device #, add pin, mod3, that's it. */
@@ -682,7 +612,7 @@ failed:
 	return_ACPI_STATUS(status);
 }
 
-ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, int pin, int* irq) {
+ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, UINT64 pin, int* irq) {
 	IRQRouteData data = { *device, pin, 0, 0, 0, FALSE };
 	ACPI_STATUS status = AE_OK;
 

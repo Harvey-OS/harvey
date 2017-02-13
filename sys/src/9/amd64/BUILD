@@ -64,6 +64,7 @@ PORT_SRCS = [
 	"//sys/src/9/port/devfdmux.c",
 	"//sys/src/9/port/devkprof.c",
 	"//sys/src/9/port/devkbin.c",
+	"//sys/src/9/port/devkbmap.c",
 	"//sys/src/9/port/devmnt.c",
 	"//sys/src/9/port/devmntn.c",
 	"//sys/src/9/port/devpipe.c",
@@ -175,7 +176,6 @@ I386_SRCS = [
 	"//sys/src/9/386/etherigbe.c",
 	"//sys/src/9/386/etherm10g.c",
 	"//sys/src/9/386/i8042.c",
-	"//sys/src/9/386/kbd.c",
 	"//sys/src/9/386/pci.c",
 	"//sys/src/9/386/uarti8250.c",
 	"//sys/src/9/386/uartpci.c",
@@ -235,7 +235,7 @@ objcopy(
 	outfile="elf32-i386",
 )
 
-HRVYDEPS =[
+HRVYDEPS = [
 	":amd64cpu",
 	":error",
 	":errstr",
@@ -243,34 +243,37 @@ HRVYDEPS =[
 	":sys",
 	":inith",
 ]
+STD_COMPILER_OPTIONS = [
+	"-std=c11",
+	"-mcmodel=kernel",
+	"-O0",
+	"-static",
+	"-mno-red-zone",
+	"-ffreestanding",
+	"-fno-builtin",
+	"-DKERNDATE=1433623937",
+	"-g",
+	"-Wall",
+	"-Werror",
+	"-W",
+	"-Wno-sign-compare",
+	"-Wno-missing-field-initializers",
+	"-Wno-unused-parameter",
+	"-Wno-unused-function",
+	"-Wno-missing-braces",
+	"-Wno-parentheses",
+	"-Wno-unknown-pragmas",
+	"-D__HARVEY__",
+	"-U_LINUX",
+	"-U__linux__",
+	"-fasm",
+]
+
+load("//sys/src/9/amd64/${CC}.BUILD", "COMPILER_FLAGS")
 
 cc_binary(
 	name="harvey",
-	copts=[
-		# "-c", this is always on
-		"-std=c11",
-		"-mcmodel=kernel",
-		"-O0",
-		"-static",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-DKERNDATE=1433623937",
-		"-g",
-		"-Wall",
-		"-W",
-		"-Wno-unused-function",
-		"-Wno-sign-compare",
-		"-Wno-missing-field-initializers",
-		"-Wno-unused-parameter",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-D__HARVEY__",
-		"-U_LINUX",
-		"-U__linux__",
-		"-fasm",
-	],
+	copts=STD_COMPILER_OPTIONS + COMPILER_FLAGS,
 	srcs=AMD64SRCS,
 	includes=[
 		"//sys/include",
@@ -308,7 +311,6 @@ KERNEL_DEPS = [
 	"//sys/src/cmd:ps",
 	"//sys/src/cmd:ed",
 	# rcmain FILE ADDED
-	"//sys/src/cmd/aux/console:screenconsole",
 	"//sys/src/cmd/aux/realemu:realemu",
 	"//sys/src/cmd/aux/vga:vga",
 	"//sys/src/cmd:srv",
@@ -333,7 +335,6 @@ config(
 	bins={
 		"factotum": "auth/factotum",
 		"ipconfig": "ip/ipconfig",
-		"screenconsole": "aux/screenconsole",
 		"realemu": "aux/realemu",
 		"vga": "aux/vga",
 	},

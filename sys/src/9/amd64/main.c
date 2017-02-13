@@ -576,6 +576,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	mmuinit();
 
 	ioinit();
+	keybinit();
 	meminit();
 	confinit();
 	archinit();
@@ -618,6 +619,7 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	print("before mpacpi, maxcores %d\n", maxcores);
 	mpacpi(maxcores);
 	trapinit();
+	printinit();
 	apiconline();
 	/* Forcing to single core if desired */
 	if(!nosmp) {
@@ -631,7 +633,7 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	initimage();
 	links();
 
-	keybinit();
+
 	keybenable();
 	mouseenable();
 
@@ -844,7 +846,7 @@ shutdown(int ispanic)
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
-		if(active.nonline == 0)
+		if(active.nonline == 0 && consactive() == 0)
 			break;
 	}
 

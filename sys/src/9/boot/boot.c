@@ -26,7 +26,6 @@ int	bargc;
 
 static Method	*rootserver(char*);
 static void	usbinit(void);
-static void	startconsole(void);
 static void	kbmap(void);
 
 static void acpiirq(void)
@@ -83,10 +82,10 @@ boot(int argc, char *argv[])
 
 	fmtinstall('r', errfmt);
 
-	/*
-	 *  start /dev/cons
-	 */
-	startconsole();
+	bind("#c", "/dev", MBEFORE);
+	open("/dev/cons", OREAD);
+	open("/dev/cons", OWRITE);
+	open("/dev/cons", OWRITE);
 
 	/*
 	 * init will reinitialize its namespace.
@@ -361,109 +360,6 @@ usbinit(void)
 	}
 }
 
-static int
-screenconsole(void)
-{
-	char *dbgfile, *argv[16], **av;
-	int i;
-	if(access("/boot/screenconsole", AEXEC) < 0) {
-		print("cannot access /boot/screenconsole");
-		return -1;
-	}
-
-	/* start agent */
-	i = 0;
-	av = argv;
-	av[i++] = "screenconsole";
-	if(dbgfile = getenv("debugconsole")){
-		av[i++] = "-d";
-		av[i++] = dbgfile;
-	}
-	av[i] = 0;
-	switch(fork()){
-	case -1:
-		print("failed starting screenconsole");
-		return -1;
-	case 0:
-		exec("/boot/screenconsole", av);
-		fatal("failed execing /boot/screenconsole");
-	default:
-		break;
-	}
-
-	/* NOTE: this sleep and the access loop below are crap.
-	 * this parent should wait on a pipe from screenconsole to get
-	 * an 'OK' and then just go on to the open. Somebody should fix it.
-	 * This nonsense is only needed on qemu because it is taking FOREVER
-	 * to start processes on qemu, for reasons we don't understand.
-	 * Note if we just sleep 250 it still fails sometimes.
-	 * I think this is related to the weirdness in qemu where starting
-	 * programs takes FOREVER.
-	 */
-	sleep(1000);
-	/* wait for agent to really be there */
-	while(access("#s/screenconsole", AEXIST) < 0){
-		print("Screenconsole is STILL NOT READY\n");
-		sleep(250);
-	}
-	/* replace 0, 1 and 2 */
-	if((i = open("#s/screenconsole", ORDWR)) < 0) {
-		print("failed to open #s/screenconsole");
-		return -1;
-	}
-	if(mount(i, -1, "/dev", MBEFORE, "", 'M') < 0) {
-		print("can not mount /dev");
-		return -1;
-	}
-	if((i = open("/dev/cons", OREAD))<0) {
-		print("failed to open /dev/cons, OREAD");
-		return -1;
-	}
-	dup(i, 0);
-	close(i);
-	if((i = open("/dev/cons", OWRITE))<0) {
-		print("failed to open /dev/cons, OWRITE");
-		return -1;
-	}
-	dup(i, 1);
-	close(i);
-	if(dup(1, 2) != 2) {
-		print("dup(1, 2)");
-		return -1;
-	}
-	return 0;
-}
-
-static int
-archconsole(void)
-{
-	int i;
-	i = open("#P/cons", OREAD);
-	if (i < 0) {
-		print("Can't open #P/cons");
-		return -1;
-	}
-	dup(i, 0);
-	close(i);
-	i = open("#P/cons", OWRITE);
-	if (i < 0) {
-		print("Can't open #P/cons");
-		return -1;
-	}
-	dup(i, 1);
-	dup(i, 2);
-	close(i);
-	/* if it works, ok, if not, we don't care. */
-	bind("#P", "/dev", MAFTER);
-	return 0;
-}
-
-static void startconsole(void)
-{
-	if (screenconsole() != -1)
-		return;
-	archconsole();
-}
 static void
 kbmap(void)
 {

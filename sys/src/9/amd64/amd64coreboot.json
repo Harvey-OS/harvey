@@ -95,7 +95,6 @@
 				"prep": "/$ARCH/bin/disk/prep",
 				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
-				"screenconsole": "/$ARCH/bin/aux/screenconsole",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
 				"usbd": "/$ARCH/bin/usb/usbd",
