@@ -5,7 +5,7 @@
 		],
 		"Install": "/$ARCH/bin/",
 		"Post": [
-			"rm y.tab*"
+			"rm -f y.tab*"
 		],
 		"Pre": [
 			"yacc -d grep.y"
