@@ -14,7 +14,7 @@
 			"-static"
 		],
 		"Post": [
-			"rm *.o *.a",
+			"rm -f *.o *.a",
 			"data2c ramfs_bootcpu_ ../boot/bootcpu.elf.out ../$ARCH/cpu.c"
 		],
 		"Program": "bootcpu.elf.out",
