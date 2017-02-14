@@ -4,7 +4,7 @@
 			"../cmd.json"
 		],
 		"Post": [
-			"rm y.tab* x.tab*"
+			"rm -f y.tab* x.tab*"
 		],
 		"Pre": [
 			"yacc -d syn.y",
