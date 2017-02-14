@@ -16,8 +16,16 @@ if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	fi
 fi
 
+# The -usb flag is necessary for the system to recognize usb devices
+# To specify a specific device you must follow the following format:
+#      -device usb-host,hostbus='X',hostaddr='Y'
+# The 'X'/'Y' values can be found with lsusb(8) (Linux/BSD)
+# Provided is an example lsusb(8) output:
+#       Bus 002 Device 004: ID 056a:00e6 Wacom Co., Ltd TPCE6
+# Where 'X'== 2 and 'Y'== 4
 read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 2 -m 2048 $kvmflag \
+-usb \
 -serial stdio \
 --machine $machineflag \
 -net nic,model=rtl8139 \
