@@ -13,7 +13,7 @@
 			"-lc"
 		],
 		"Post": [
-			"rm *.o"
+			"rm -f *.o"
 		],
 		"Program": "screenconsole",
 		"SourceFiles": [
