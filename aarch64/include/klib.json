@@ -15,10 +15,10 @@
 			"-static"
 		],
 		"Post": [
-			"rm *.o"
+			"rm -f *.o"
 		],
 		"Pre": [
-			"rm -f *.o *.tag.*"
+			"rm -f -f *.o *.tag.*"
 		]
 	}
 }
