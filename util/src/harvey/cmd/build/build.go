@@ -170,6 +170,14 @@ func include(f string, b *build) {
 	var builds buildfile
 	failOn(json.Unmarshal(d, &builds))
 
+	for _, build := range builds {
+		t := target(&build)
+		if t != "" {
+			targ = t
+			break
+		}
+	}
+
 	for n, build := range builds {
 		log.Printf("Merging %v", n)
 		b.Cflags = append(b.Cflags, build.Cflags...)
@@ -179,10 +187,16 @@ func include(f string, b *build) {
 		b.Libs = append(b.Libs, build.Libs...)
 		b.Projects = append(b.Projects, build.Projects...)
 		b.Env = append(b.Env, build.Env...)
-		b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
+		for _, v := range build.SourceFilesCmd {
+			_, targ := cmdTarget(&build, v)
+			if uptodate(targ, append(b.SrcDeps, v)) {
+				continue
+			}
+			b.SourceFilesCmd = append(b.SourceFilesCmd, v)
+		}
 		if build.Install != "" {
 			if b.Install != "" {
-				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install.", f, n, build.path, build.name)
+				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install: was %s, redefined to %s.", f, n, build.path, build.name, b.Install, build.Install)
 			}
 			b.Install = build.Install
 		}
@@ -190,11 +204,10 @@ func include(f string, b *build) {
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
 		b.SrcDeps = append(b.SrcDeps, build.SrcDeps...)
-		t := target(&build)
 
 		var s []string
 		for _, v := range build.SourceFiles {
-			if uptodate(t, append(b.SrcDeps, v)) {
+			if uptodate(targ, append(b.SrcDeps, v)) {
 				continue
 			}
 			s = append(s, v)
@@ -222,7 +235,7 @@ func include(f string, b *build) {
 				wd := path.Dir(f)
 				v = path.Join(wd, v)
 			}
-			include(v, b)
+			include(v, targ, b)
 		}
 		b.Program += build.Program
 		b.Library += build.Library
@@ -262,11 +275,21 @@ func process(f string, r []*regexp.Regexp) []build {
 		build.jsons[f] = true
 		build.path = path.Dir(f)
 
+		// Figure out which of these are up to date.
+		var s []string
+		for _, v := range build.SourceFilesCmd {
+			_, targ := cmdTarget(&build, v)
+			if uptodate(targ, append(build.SrcDeps, v)) {
+				continue
+			}
+			s = append(s, v)
+		}
+		build.SourceFilesCmd = s
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
 		t := target(&build)
 		deps := targetDepends(&build)
-		var s []string
+		debug("\ttarget is '%s', deps are '%v'", t, deps)
 		for _, v := range build.SourceFiles {
 			if uptodate(t, append(deps, v)) {
 				continue
@@ -292,7 +315,7 @@ func process(f string, r []*regexp.Regexp) []build {
 		}
 
 		for _, v := range build.Include {
-			include(v, &build)
+			include(v, t, &build)
 		}
 		results = append(results, build)
 	}
@@ -330,13 +353,16 @@ func uptodate(n string, d []string) bool {
 	// If it does not exist, that's really not our problem.
 	// We only worry about things that exist.
 	if err != nil {
-		debug("\tdoesn't exist\n")
-		return false
+		log.Fatalf("\t target '%s' doesn't exist\n", n)
+		return true
 	}
 
 	m := fi.ModTime()
 
 	debug("older: time is %v\n", m)
+	if len(d) == 0 {
+		log.Fatalf("update has nothing to check for %v", n)
+	}
 	for _, d := range d {
 		debug("\tCheck %s:", d)
 		di, err := os.Stat(d)
@@ -366,6 +392,12 @@ func target(b *build) string {
 		return path.Join(b.Install, b.Library)
 	}
 	return ""
+}
+
+func cmdTarget(b *build, n string) (string, string) {
+	ext := filepath.Ext(n)
+	exe := n[:len(n)-len(ext)]
+	return exe, b.Install
 }
 
 func compile(b *build) {
@@ -431,9 +463,7 @@ func install(b *build) {
 	switch {
 	case len(b.SourceFilesCmd) > 0:
 		for _, n := range b.SourceFilesCmd {
-			ext := filepath.Ext(n)
-			exe := n[:len(n)-len(ext)]
-			move(exe, b.Install)
+			move(cmdTarget(b, n))
 		}
 	case len(b.Program) > 0:
 		move(b.Program, b.Install)
