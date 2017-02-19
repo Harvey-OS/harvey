@@ -23,6 +23,9 @@
 			"/opt/gnu/bin/x86_64-none-elf-gcc": [
 				"-Wno-frame-address"
 			],
+			"/usr/local/bin/x86_64-elf-gcc": [
+				"-Wno-frame-address"
+			],
 			"/usr/bin/gcc-6": [
 				"-Wno-frame-address",
 				"-fno-pie"
