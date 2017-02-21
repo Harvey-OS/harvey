@@ -269,7 +269,7 @@ STD_COMPILER_OPTIONS = [
 	"-fasm",
 ]
 
-load("//sys/src/9/amd64/${CC}.BUILD", "COMPILER_FLAGS")
+load("//amd64/${CC}.BUILD", "COMPILER_FLAGS")
 
 cc_binary(
 	name="harvey",
