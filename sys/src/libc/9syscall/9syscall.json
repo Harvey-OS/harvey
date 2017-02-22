@@ -1,8 +1,8 @@
 {
 	"KernelLibc": {
 		"Pre": [
-			"mksys -o sys.h '-mode=sys.h' $HARVEY/sys/src/sysconf.json",
-			"mksys -o . '-mode=syscallfiles' $HARVEY/sys/src/sysconf.json"
+			"mksys -o sys.h -mode=sys.h /sys/src/sysconf.json",
+			"mksys -o . -mode=syscallfiles /sys/src/sysconf.json"
 		]
 	}
 }

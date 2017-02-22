@@ -15,7 +15,7 @@
 		],
 		"Post": [
 			"rm *.o *.a",
-			"data2c ramfs_bootcpu_ ../boot/bootcpu.elf.out >> ../$ARCH/cpu.c"
+			"data2c ramfs_bootcpu_ ../boot/bootcpu.elf.out ../$ARCH/cpu.c"
 		],
 		"Program": "bootcpu.elf.out",
 		"Projects": [

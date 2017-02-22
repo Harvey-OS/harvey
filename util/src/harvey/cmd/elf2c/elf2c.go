@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"debug/elf"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"path"
@@ -30,7 +31,8 @@ func gencode(w io.Writer, n, t string, m []byte, start, end uint64) {
 func main() {
 	flag.Parse()
 	a := flag.Args()
-	for _, n := range a {
+	w := &bytes.Buffer{}
+	for _, n := range a[1:] {
 		f, err := elf.Open(n)
 		if err != nil {
 			fmt.Printf("%v %v\n", n, err)
@@ -102,13 +104,13 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Processed %v\n", v)
 		}
 		fmt.Fprintf(os.Stderr, "gencode\n")
-		// Gen code to stdout. For each file, create an array, a start, and an end variable.
-		w := bufio.NewWriter(os.Stdout)
 		_, file := path.Split(n)
 		fmt.Fprintf(w, "uintptr_t %v_main = %v;\n", n, f.Entry)
 		gencode(w, file, "code", mem, codestart, codeend)
 		gencode(w, file, "data", mem, datastart, dataend)
-		w.Flush()
+	}
+	if err := ioutil.WriteFile(a[0], w.Bytes(), 0444); err != nil {
+		fmt.Fprintf(os.Stderr, "elf2c: write %s failed: %v\n", a[0], err)
 	}
 
 }
