@@ -11,7 +11,7 @@
 		],
 		"Install": "/$ARCH/bin",
 		"Post": [
-			"rm $HARVEY/sys/src/cmd/bzip2/lib/libbzip2.a"
+			"rm /sys/src/cmd/bzip2/lib/libbzip2.a"
 		],
 		"Projects": [
 			"lib/libbzip2.json"
