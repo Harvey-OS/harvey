@@ -7,7 +7,7 @@
 			"-fasm"
 		],
 		"Pre": [
-			"mksys -o ../port/error.h '-mode=error.h' $HARVEY/sys/src/sysconf.json"
+			"mksys -o ../port/error.h -mode=error.h /sys/src/sysconf.json"
 		],
 		"SourceFiles": [
 			"../port/alarm.c",

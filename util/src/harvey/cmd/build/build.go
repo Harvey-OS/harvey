@@ -448,6 +448,23 @@ func dirPush(s string) {
 	fmt.Printf("Entering directory `%v'\n", s)
 	failOn(os.Chdir(s))
 }
+
+func runCmds(b*build, s []string) {
+		for _, c := range s {
+			args := adjust(strings.Split(c, " "))
+			var exp []string
+			for _, v := range args {
+				e, err := filepath.Glob(v)
+				debug("glob %v to %v err %v", v, e, err)
+				if len(e) == 0 || err != nil {
+					exp = append(exp, v)
+				} else {
+					exp = append(exp, e...)
+				}
+			}
+			run(b, *shellhack, exec.Command(exp[0], exp[1:]...))
+		}
+}
 // assumes we are in the wd of the project.
 func project(bf string, which []*regexp.Regexp) {
 	cwd, err := os.Getwd()
@@ -463,10 +480,7 @@ func project(bf string, which []*regexp.Regexp) {
 	for _, b := range builds {
 		debug("Processing %v: %v", b.name, b)
 		projects(&b, regexpAll)
-		for _, c := range b.Pre {
-			// this is a hack: we just pass the command through as an exec.Cmd
-			run(&b, true, exec.Command(c))
-		}
+		runCmds(&b, b.Pre)
 		buildkernel(&b)
 		if len(b.SourceFiles) > 0 || len(b.SourceFilesCmd) > 0 {
 			compile(&b)
@@ -475,9 +489,7 @@ func project(bf string, which []*regexp.Regexp) {
 			link(&b)
 		}
 		install(&b)
-		for _, c := range b.Post {
-			run(&b, true, exec.Command(c))
-		}
+		runCmds(&b, b.Post)
 	}
 }
 
