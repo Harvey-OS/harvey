@@ -1,39 +1,8 @@
 {
 	"buildflags": {
-		"ToolOpts": {
-			"/usr/bin/clang": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.4": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.5": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.6": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.7": [
-				"-mno-implicit-float"
-			],
-			"/opt/intel/bin/icc": [
-				"-Wno-main"
-			],
-			"/usr/bin/gcc": [
-				"-Wno-frame-address",
-				"-fvar-tracking",
- 				"-fvar-tracking-assignments"
-			],
-			"/opt/gnu/bin/x86_64-none-elf-gcc": [
-				"-Wno-frame-address"
-			],
-			"/usr/local/bin/x86_64-elf-gcc": [
-				"-Wno-frame-address"
-			],
-			"/usr/bin/gcc-6": [
-				"-Wno-frame-address"
-			]
-		},
+		"Include": [
+			"/$ARCH/include/$CC.json"
+		],
 		"Cflags": [
 			"-ffreestanding",
 			"-fno-builtin",

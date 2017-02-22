@@ -1,0 +1,9 @@
+{
+	"buildflags": {
+		"Cflags": [
+				"-Wno-frame-address",
+				"-fvar-tracking",
+ 				"-fvar-tracking-assignments"
+			]
+	}
+}
