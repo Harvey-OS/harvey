@@ -30,7 +30,7 @@
 			"xfid.c"
 		],
 	        "Post": [
-	                "mkdir -p $HARVEY/mnt/acme"
+	                "mkdir -p /mnt/acme"
 	        ]
 	}
 }

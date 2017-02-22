@@ -57,6 +57,7 @@ var mode = flag.String("mode", "", "must be one of: sys.h, sysdecl.h, syscallfil
 var outpath = flag.String("o", "", "path/to/output.c")
 
 func usage(msg string) {
+	fmt.Fprintf(os.Stderr, "mksys: invoked via %v\n", os.Args)
 	fmt.Fprintln(os.Stderr, msg)
 	fmt.Fprint(os.Stderr, "Usage: mksys [-o outpath] -mode=MODE path/to/sysconf.json\n")
 	flag.PrintDefaults()

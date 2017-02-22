@@ -78,13 +78,12 @@
 			"kernel.ld"
 		],
 		"Post": [
-			"OBJCOPY=objcopy; $TOOLPREFIX$OBJCOPY -I elf64-x86-64 -O elf32-i386 harvey harvey.32bit",
-			"cp harvey.32bit $HARVEY/cfg/pxe/tftpboot",
-			"OBJDUMP=objdump; $TOOLPREFIX$OBJDUMP -S harvey > harvey.asm"
+			"objcopy -I elf64-x86-64 -O elf32-i386 harvey harvey.32bit",
+			"cp harvey.32bit /cfg/pxe/tftpboot"
 		],
 		"Pre": [
-			"mksys -o systab.c '-mode=systab.c' $HARVEY/sys/src/sysconf.json",
-			"mksys -o errstr.h '-mode=errstr.h' $HARVEY/sys/src/sysconf.json"
+			"mksys -o systab.c -mode=systab.c /sys/src/sysconf.json",
+			"mksys -o errstr.h -mode=errstr.h /sys/src/sysconf.json"
 		],
 		"Projects": [
 			"clean.json",

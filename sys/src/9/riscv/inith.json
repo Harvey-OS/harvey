@@ -22,7 +22,7 @@
 			"-Tdata=0x400000"
 		],
 		"Post": [
-			"elf2c init > init.h"
+			"elf2c init.h init"
 		],
 		"Program": "init",
 		"SourceFiles": [
