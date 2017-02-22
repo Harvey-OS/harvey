@@ -20,7 +20,7 @@
 			"-Ttext=0x200000"
 		],
 		"Post": [
-			"elf2c init > init.h"
+			"elf2c init.h init"
 		],
 		"Program": "init",
 		"SourceFiles": [

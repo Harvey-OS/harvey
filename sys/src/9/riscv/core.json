@@ -36,8 +36,8 @@
 			"kernel.ld"
 		],
 		"Pre": [
-			"mksys -o systab.c '-mode=systab.c' $HARVEY/sys/src/sysconf.json",
-			"mksys -o errstr.h '-mode=errstr.h' $HARVEY/sys/src/sysconf.json"
+			"mksys -o systab.c -mode=systab.c /sys/src/sysconf.json",
+			"mksys -o errstr.h -mode=errstr.h /sys/src/sysconf.json"
 		],
 		"Projects": [
 			"clean.json",

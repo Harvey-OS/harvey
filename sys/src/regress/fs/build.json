@@ -11,7 +11,7 @@
 			"filecreate.c"
 		],
 		"Post": [
-			"cp fs.rc $HARVEY/$ARCH/bin/regress"
+			"cp fs.rc /$ARCH/bin/regress"
 		]
 	}
 }
