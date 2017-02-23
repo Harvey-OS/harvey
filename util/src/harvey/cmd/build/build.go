@@ -64,7 +64,6 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
-	ToolOpts    map[string][]string
 	// cmd's
 	SourceFilesCmd []string
 	// Targets.
@@ -196,9 +195,6 @@ func include(f string, b *build) {
 
 	for n, build := range builds {
 		log.Printf("Merging %v", n)
-		for t,v := range build.ToolOpts {
-			b.ToolOpts[t] = v
-		}
 		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
@@ -254,7 +250,6 @@ func process(f string, r []*regexp.Regexp) []build {
 	for n, build := range builds {
 		build.name = n
 		build.jsons = make(map[string]bool)
-		build.ToolOpts = make(map[string][]string)
 		skip := true
 		for _, re := range r {
 			if re.MatchString(build.name) {
@@ -315,9 +310,6 @@ func compile(b *build) {
 		"-I", fromRoot("/sys/include"),
 		"-I", ".",
 	}
-	if toolOpts, ok := b.ToolOpts[tools["cc"]]; ok {
-		args = append(args, toolOpts...)
-	}
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
@@ -348,17 +340,11 @@ func link(b *build) {
 			args = append(args, "-L", fromRoot("/$ARCH/lib"))
 			args = append(args, b.Libs...)
 			args = append(args, b.Oflags...)
-			if toolOpts, ok := b.ToolOpts[tools["ld"]]; ok {
-				args = append(args, toolOpts...)
-			}
 			run(b, *shellhack, exec.Command(tools["ld"], args...))
 		}
 		return
 	}
 	args := []string{"-o", b.Program}
-	if toolOpts, ok := b.ToolOpts[tools["ld"]]; ok {
-		args = append(args, toolOpts...)
-	}
 	args = append(args, b.ObjectFiles...)
 	args = append(args, "-L", fromRoot("/$ARCH/lib"))
 	args = append(args, b.Libs...)
