@@ -119,8 +119,8 @@ var (
 		"sh":     "sh",
 	}
 	arch = map[string]bool{
-		"amd64": true,
-		"riscv": true,
+		"amd64":   true,
+		"riscv":   true,
 		"aarch64": true,
 	}
 	debugPrint = flag.Bool("debug", false, "enable debug prints")
@@ -288,6 +288,18 @@ func buildkernel(b *build) {
 	failOn(ioutil.WriteFile(b.name+".c", codebuf, 0666))
 }
 
+func wrapInQuote(args []string) []string {
+	var res []string
+	for _, a := range args {
+		if strings.Contains(a, "=") {
+			res = append(res, "'"+a+"'")
+		} else {
+			res = append(res, a)
+		}
+	}
+	return res
+}
+
 func compile(b *build) {
 	log.Printf("Building %s\n", b.name)
 	// N.B. Plan 9 has a very well defined include structure, just three things:
@@ -422,22 +434,23 @@ func dirPush(s string) {
 	failOn(os.Chdir(s))
 }
 
-func runCmds(b*build, s []string) {
-		for _, c := range s {
-			args := adjust(strings.Split(c, " "))
-			var exp []string
-			for _, v := range args {
-				e, err := filepath.Glob(v)
-				debug("glob %v to %v err %v", v, e, err)
-				if len(e) == 0 || err != nil {
-					exp = append(exp, v)
-				} else {
-					exp = append(exp, e...)
-				}
+func runCmds(b *build, s []string) {
+	for _, c := range s {
+		args := adjust(strings.Split(c, " "))
+		var exp []string
+		for _, v := range args {
+			e, err := filepath.Glob(v)
+			debug("glob %v to %v err %v", v, e, err)
+			if len(e) == 0 || err != nil {
+				exp = append(exp, v)
+			} else {
+				exp = append(exp, e...)
 			}
-			run(b, *shellhack, exec.Command(exp[0], exp[1:]...))
 		}
+		run(b, *shellhack, exec.Command(exp[0], exp[1:]...))
+	}
 }
+
 // assumes we are in the wd of the project.
 func project(bf string, which []*regexp.Regexp) {
 	cwd, err := os.Getwd()
@@ -500,11 +513,29 @@ func main() {
 	}
 
 	// If no args, assume 'build.json'
-	// If 1 arg, that's a dir or file name.
-	// if two args, that's a dir and a regular expression.
-	f := "build.json"
-	if len(flag.Args()) > 0 {
-		f = flag.Arg(0)
+	// Otherwise the first argument is either
+	// - the path to a json file
+	// - a directory containing a 'build.json' file
+	// - a regular expression to apply assuming 'build.json'
+	// Further arguments are regular expressions.
+	consumedArgs := 0
+	bf := ""
+	if len(flag.Args()) == 0 {
+		f, err := findBuildfile("build.json")
+		failOn(err)
+		bf = f
+	} else {
+		f, err := findBuildfile(flag.Arg(0))
+		failOn(err)
+
+		if f == "" {
+			f, err := findBuildfile("build.json")
+			failOn(err)
+			bf = f
+		} else {
+			consumedArgs = 1
+			bf = f
+		}
 	}
 	bf, err := findBuildfile(f)
 	failOn(err)
@@ -535,15 +566,9 @@ func findTools(toolprefix string) {
 
 // disambiguate the buildfile argument
 func findBuildfile(f string) (string, error) {
-	try := []string{
-		f,
-		path.Join(f, "build.json"),
-		fromRoot(path.Join("/sys/src", f+".json")),
-		fromRoot(path.Join("/sys/src", f, "build.json")),
-	}
-	for _, p := range try {
-		if fi, err := os.Stat(p); err == nil && !fi.IsDir() {
-			return p, nil
+	if strings.HasSuffix(f, ".json") {
+		if fi, err := os.Stat(f); err == nil && !fi.IsDir() {
+			return f, nil
 		}
 	}
 	return "", fmt.Errorf("unable to find buildfile (tried %s)", strings.Join(try, ", "))
