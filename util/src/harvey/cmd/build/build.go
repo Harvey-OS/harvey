@@ -116,7 +116,6 @@ var (
 		"ld":     "ld",
 		"ranlib": "ranlib",
 		"strip":  "strip",
-		"sh":     "sh",
 	}
 	arch = map[string]bool{
 		"amd64":   true,
@@ -156,33 +155,7 @@ func fromRoot(p string) string {
 	return p
 }
 
-// Sh sends cmd to a shell. It's needed to enable $LD_PRELOAD tricks,
-// see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
-func sh(cmd *exec.Cmd) {
-	shell := exec.Command(tools["sh"])
-	shell.Env = cmd.Env
-
-	if cmd.Args[0] == tools["sh"] && cmd.Args[1] == "-c" {
-		cmd.Args = cmd.Args[2:]
-	}
-	commandString := strings.Join(cmd.Args, " ")
-	if shStdin, e := shell.StdinPipe(); e == nil {
-		go func() {
-			defer shStdin.Close()
-			io.WriteString(shStdin, commandString)
-		}()
-	} else {
-		log.Fatalf("cannot pipe [%v] to %s: %v", commandString, tools["sh"], e)
-	}
-	shell.Stderr = os.Stderr
-	shell.Stdout = os.Stdout
-
-	debug("%q | sh\n", commandString)
-	failOn(shell.Run())
-}
-
-func process(f, which string, b *build) {
-	r := regexp.MustCompile(which)
+func include(f string, b *build) {
 	if b.jsons[f] {
 		return
 	}
@@ -386,6 +359,11 @@ func move(from, to string) {
 }
 
 func run(b *build, pipe bool, cmd *exec.Cmd) {
+	sh := os.Getenv("SHELL")
+	if sh == "" {
+		sh = "sh"
+	}
+
 	if b != nil {
 		cmd.Env = append(os.Environ(), b.Env...)
 	}
@@ -393,7 +371,7 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 	cmd.Stderr = os.Stderr
 	if pipe {
 		// Sh sends cmd to a shell. It's needed to enable $LD_PRELOAD tricks, see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
-		shell := exec.Command(tools["sh"])
+		shell := exec.Command(sh)
 		shell.Env = cmd.Env
 		shell.Stderr = os.Stderr
 		shell.Stdout = os.Stdout
@@ -401,14 +379,14 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 		commandString := strings.Join(cmd.Args, " ")
 		shStdin, err := shell.StdinPipe()
 		if err != nil {
-			log.Fatalf("cannot pipe [%v] to %s: %v", commandString, tools["sh"], err)
+			log.Fatalf("cannot pipe [%v] to %s: %v", commandString, sh, err)
 		}
 		go func() {
 			defer shStdin.Close()
 			io.WriteString(shStdin, commandString)
 		}()
 
-		log.Printf("%q | sh\n", commandString)
+		log.Printf("%q | %s\n", commandString, sh)
 		failOn(shell.Run())
 		return
 	}
@@ -486,8 +464,8 @@ func main() {
 	// OS-specific path setup/manipulation. "harvey" is set there and $PATH is
 	// adjusted.
 	var err error
-	findTools(os.Getenv("TOOLPREFIX"))
 	flag.Parse()
+	findTools(os.Getenv("TOOLPREFIX"))
 	cwd, err = os.Getwd()
 	failOn(err)
 
