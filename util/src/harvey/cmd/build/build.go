@@ -5,12 +5,12 @@
 //
 // ENVIRONMENT
 //
-// Needed: HARVEY, ARCH
+// Needed: CC, HARVEY, ARCH
 //
 // HARVEY should point to a harvey root.
 // A best-effort to autodetect the harvey root is made if not explicitly set.
 //
-// Optional: CC, AR, LD, RANLIB, STRIP, SH, TOOLPREFIX
+// Optional: AR, LD, RANLIB, STRIP, SH, TOOLPREFIX
 //
 // These all control how the needed tools are found.
 //
@@ -502,6 +502,10 @@ func main() {
 	flag.Parse()
 	cwd, err = os.Getwd()
 	failOn(err)
+
+	if os.Getenv("CC") == "" {
+		log.Fatalf("You need to set the CC environment variable (e.g. gcc, clang, clang-3.6, ...)")
+	}
 
 	a := os.Getenv("ARCH")
 	if a == "" || !arch[a] {
