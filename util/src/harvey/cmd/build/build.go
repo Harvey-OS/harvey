@@ -120,8 +120,8 @@ var (
 		"sh":     "sh",
 	}
 	arch = map[string]bool{
-		"amd64": true,
-		"riscv": true,
+		"amd64":   true,
+		"riscv":   true,
 		"aarch64": true,
 	}
 	debugPrint = flag.Bool("debug", false, "enable debug prints")
@@ -290,9 +290,9 @@ func buildkernel(b *build) {
 
 func wrapInQuote(args []string) []string {
 	var res []string
-	for _, a := range(args){
+	for _, a := range args {
 		if strings.Contains(a, "=") {
-			res = append(res, "'" + a + "'")
+			res = append(res, "'"+a+"'")
 		} else {
 			res = append(res, a)
 		}
@@ -435,22 +435,23 @@ func dirPush(s string) {
 	failOn(os.Chdir(s))
 }
 
-func runCmds(b*build, s []string) {
-		for _, c := range s {
-			args := adjust(strings.Split(c, " "))
-			var exp []string
-			for _, v := range args {
-				e, err := filepath.Glob(v)
-				debug("glob %v to %v err %v", v, e, err)
-				if len(e) == 0 || err != nil {
-					exp = append(exp, v)
-				} else {
-					exp = append(exp, e...)
-				}
+func runCmds(b *build, s []string) {
+	for _, c := range s {
+		args := adjust(strings.Split(c, " "))
+		var exp []string
+		for _, v := range args {
+			e, err := filepath.Glob(v)
+			debug("glob %v to %v err %v", v, e, err)
+			if len(e) == 0 || err != nil {
+				exp = append(exp, v)
+			} else {
+				exp = append(exp, e...)
 			}
-			run(b, *shellhack, exec.Command(exp[0], exp[1:]...))
 		}
+		run(b, *shellhack, exec.Command(exp[0], exp[1:]...))
+	}
 }
+
 // assumes we are in the wd of the project.
 func project(bf string, which []*regexp.Regexp) {
 	cwd, err := os.Getwd()
@@ -516,7 +517,7 @@ func main() {
 	// - a directory containing a 'build.json' file
 	// - a regular expression to apply assuming 'build.json'
 	// Further arguments are regular expressions.
-	consumedArgs := 0;
+	consumedArgs := 0
 	bf := ""
 	if len(flag.Args()) == 0 {
 		f, err := findBuildfile("build.json")
@@ -562,8 +563,8 @@ func findTools(toolprefix string) {
 
 // disambiguate the buildfile argument
 func findBuildfile(f string) (string, error) {
-	if strings.HasSuffix(f, ".json"){
-		if fi, err := os.Stat(f); err == nil  && !fi.IsDir() {
+	if strings.HasSuffix(f, ".json") {
+		if fi, err := os.Stat(f); err == nil && !fi.IsDir() {
 			return f, nil
 		}
 		return "", fmt.Errorf("unable to find buildfile %s", f)
