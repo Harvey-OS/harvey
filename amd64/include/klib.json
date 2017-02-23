@@ -1,36 +1,8 @@
 {
 	"KernelLibs": {
-		"ToolOpts": {
-			"/usr/bin/clang": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.4": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.5": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.6": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/clang-3.7": [
-				"-mno-implicit-float"
-			],
-			"/usr/bin/gcc": [
-				"-Wno-frame-address",
-				"-fno-pie"
-			],
-			"/opt/gnu/bin/x86_64-none-elf-gcc": [
-				"-Wno-frame-address"
-			],
-			"/usr/local/bin/x86_64-elf-gcc": [
-				"-Wno-frame-address"
-			],
-			"/usr/bin/gcc-6": [
-				"-Wno-frame-address",
-				"-fno-pie"
-			]
-		},
+		"Include": [
+			"/$ARCH/include/$CC.json"
+		],
 		"Cflags": [
 			"-mcmodel=kernel",
 			"-O0",
