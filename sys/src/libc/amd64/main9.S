@@ -1,4 +1,5 @@
 #define NPRIVATES 16
+.code64
 
 .text
 
