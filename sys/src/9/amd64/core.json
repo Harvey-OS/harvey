@@ -48,7 +48,7 @@
 			"kernel.ld"
 		],
 		"Post": [
-			"objcopy -I elf64-x86-64 -O elf32-i386 harvey harvey.32bit",
+			"${TOOLPREFIX}objcopy -I elf64-x86-64 -O elf32-i386 harvey harvey.32bit",
 			"cp harvey.32bit /cfg/pxe/tftpboot"
 		],
 		"Pre": [
