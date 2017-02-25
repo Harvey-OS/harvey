@@ -56,6 +56,7 @@ static Rsdp *rsd;
 Dev acpidevtab;
 
 static int32_t acpimemread(Chan *c, void *a, int32_t n, int64_t off);
+static void acpiintr(Ureg *, void *);
 
 static char * devname(void)
 {
@@ -1838,8 +1839,7 @@ static unsigned int getgpests(int n)
 	return inb(gpes[n].stsio) & 1 << gpes[n].stsbit;
 }
 
-#if 0
-static void acpiintr(Ureg *, void *)
+static void acpiintr(Ureg *u, void *v)
 {
 	int i;
 	unsigned int sts, en;
@@ -1868,7 +1868,6 @@ static void acpiintr(Ureg *, void *)
 	// XXX serve other interrupts here.
 	setpm1sts(sts);
 }
-#endif
 
 static void initgpes(void)
 {
@@ -1906,6 +1905,8 @@ static void acpiioalloc(unsigned int addr, int len)
 
 static void acpiinitonce(void)
 {
+	int i;
+
 	parsersdptr();
 	if (root != nil)
 		print("ACPI initialized\n");
@@ -1928,7 +1929,6 @@ static void acpiinitonce(void)
 #endif
 
 	initgpes();
-#ifdef RON_SAYS_CONFIG_WE_ARE_NOT_WORTHY
 	/* this is frightening. SMI: just say no. Although we will almost
 	 * certainly find that we have no choice.
 	 *
@@ -1940,11 +1940,13 @@ static void acpiinitonce(void)
 		if (getpm1ctl() & Pm1SciEn)
 			break;
 	if (i == 10)
-		error("acpi: failed to enable\n");
+		print("acpi: failed to enable\n");
+}
+
+void acpistart(void)
+{
 	if (fadt->sciint != 0)
 		intrenable(fadt->sciint, acpiintr, 0, BUSUNKNOWN, "acpi");
-#endif
-
 }
 
 int acpiinit(void)
