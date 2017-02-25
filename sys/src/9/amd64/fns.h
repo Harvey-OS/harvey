@@ -11,6 +11,7 @@
 void	intrac(Proc*);
 void	acinit(void);
 int	acpiinit(void);
+void	acpistart(void);
 int	mpacpi(int);
 void	actrapenable(int, char* (*)(Ureg*, void*), void*, char*);
 void	apicipi(int);
