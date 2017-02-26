@@ -13,6 +13,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
+#include "../port/error.h"
 
 #include "apic.h"
 #include "acpi.h"
@@ -53,9 +54,25 @@ static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
 static Rsdp *rsd;
+static Queue *acpiev;
 Dev acpidevtab;
 
+typedef struct Acpiio {
+	uint32_t start;
+	uint32_t end;
+} Acpiio;
+
+#define NACPIPORTS	16
+static Acpiio acpiiospace[NACPIPORTS];
+
 static int32_t acpimemread(Chan *c, void *a, int32_t n, int64_t off);
+static int32_t acpiioread(Chan *c, void *a, int32_t n, int64_t off);
+static int32_t acpiiowrite(Chan *c, void *a, int32_t n, int64_t off);
+static int32_t acpiintrread(Chan *c, void *a, int32_t n, int64_t off);
+
+static void acpihandler(Ureg *u, void *v);
+static void *acpiintrvec;
+static uint16_t pm1status;
 
 static char * devname(void)
 {
@@ -1839,6 +1856,9 @@ static unsigned int getgpests(int n)
 }
 
 #if 0
+/* this is nemo's original handler. How much of this should acpihandler do?
+ * we leave the code here until we're sure.
+ */
 static void acpiintr(Ureg *, void *)
 {
 	int i;
@@ -1901,21 +1921,32 @@ static void initgpes(void)
 
 static void acpiioalloc(unsigned int addr, int len)
 {
-	ioalloc(addr, len, 1, "ACPI");
+	Acpiio *io;
+
+	for (io = acpiiospace; io < acpiiospace + NACPIPORTS; io++) {
+		if (io->start != 0)
+			continue;
+		io->start = addr;
+		io->end = addr + len;
+		break;
+	}
 }
 
 static void acpiinitonce(void)
 {
+	int i;
 	parsersdptr();
 	if (root != nil)
 		print("ACPI initialized\n");
 	addarchfile("acpimem", 0444, acpimemread, nil);
+	/* XXX these permissions are too loose? */
+	addarchfile("acpiio", 0666|DMEXCL, acpiioread, acpiiowrite);
+	addarchfile("acpiintr", 0666|DMEXCL, acpiintrread, nil);
 	/*
 	 * should use fadt->xpm* and fadt->xgpe* registers for 64 bits.
 	 * We are not ready in this kernel for that.
 	 */
 	assert(fadt != nil);
-#if 0	/* These iomaps intefere with acpica library */
 	acpiioalloc(fadt->smicmd, 1);
 	acpiioalloc(fadt->pm1aevtblk, fadt->pm1evtlen);
 	acpiioalloc(fadt->pm1bevtblk, fadt->pm1evtlen);
@@ -1925,10 +1956,9 @@ static void acpiinitonce(void)
 	acpiioalloc(fadt->pmtmrblk, fadt->pmtmrlen);
 	acpiioalloc(fadt->gpe0blk, fadt->gpe0blklen);
 	acpiioalloc(fadt->gpe1blk, fadt->gpe1blklen);
-#endif
 
 	initgpes();
-#ifdef RON_SAYS_CONFIG_WE_ARE_NOT_WORTHY
+
 	/* this is frightening. SMI: just say no. Although we will almost
 	 * certainly find that we have no choice.
 	 *
@@ -1941,10 +1971,6 @@ static void acpiinitonce(void)
 			break;
 	if (i == 10)
 		error("acpi: failed to enable\n");
-	if (fadt->sciint != 0)
-		intrenable(fadt->sciint, acpiintr, 0, BUSUNKNOWN, "acpi");
-#endif
-
 }
 
 int acpiinit(void)
@@ -1955,6 +1981,18 @@ int acpiinit(void)
 		acpiinitonce();
 	once++;
 	return (root == nil) ? -1 : 0;
+}
+
+void acpistart(void)
+{
+	acpiev = qopen(1024, Qmsg, nil, nil);
+	if (!acpiev) {
+		print("acpistart: qopen failed; not enabling interrupts");
+		return;
+	}
+	if (fadt->sciint != 0)
+		acpiintrvec = intrenable(fadt->sciint, acpihandler, nil, BUSUNKNOWN,
+		    "ACPI interrupt handler");
 }
 
 static Chan *acpiattach(char *spec)
@@ -2066,6 +2104,146 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 	return ret;
 }
+
+/*
+ * acpiintrread waits on the acpiev Queue.
+ */
+static int32_t
+acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
+{
+	n = qread(acpiev, a, n);
+	return n;
+}
+/*
+ * acpiioread and acpiiowrite provide userspace access to the ACPI io ports.
+ * This is necessary in order to get full use of the ACPICA library in user
+ * space. The pm1a event block is a special case as it is used to control
+ * ACPI interrupts, and so it is cached in order to let user space react
+ * to interrupts even though the real interrupt handler runs in the kernel.
+ * XXX need to support pm1b and xpm1 registers
+ */
+static int
+acpiio(uint32_t start, uint32_t end)
+{
+	Acpiio *io;
+
+	for (io = acpiiospace; io < acpiiospace + NACPIPORTS; io++) {
+		if (start >= io->start && start < io->end
+		&& end > start && end <= io->end)
+			return 1;
+	}
+	return 0;
+}
+
+static int32_t
+acpiioread(Chan *c, void *a, int32_t n, int64_t off)
+{
+	int port, pm1aevtblk;
+	uint8_t *p;
+	uint16_t *sp;
+	uint32_t *lp;
+
+	pm1aevtblk = (int)fadt->pm1aevtblk;
+	port = off;
+	if (!acpiio(port, port + n)) {
+		error(Eperm);
+		return -1;
+	}
+	switch (n) {
+	case 1:
+		p = a;
+		if (port == pm1aevtblk)
+			*p = pm1status & 0xff;
+		else if (port == (pm1aevtblk + 1))
+			*p = pm1status >> 8;
+		else
+			*p = inb(port);
+		return n;
+	case 2:
+		if (n & 1) {
+			error(Ebadarg);
+			break;
+		}
+		sp = a;
+		if (port == pm1aevtblk)
+			*sp = pm1status;
+		else
+			*sp = ins(port);
+		return n;
+	case 4:
+		if (n & 3) {
+			error(Ebadarg);
+			break;
+		}
+		lp = a;
+		*lp = inl(port);
+		if (port == pm1aevtblk)
+			*lp |= pm1status;
+		return n;
+	default:
+		error(Ebadarg);
+	}
+	return -1;
+}
+
+static int32_t
+acpiiowrite(Chan *c, void *a, int32_t n, int64_t off)
+{
+	int port, pm1aevtblk;
+	uint8_t *p;
+	uint16_t *sp;
+	uint32_t *lp;
+
+	port = off;
+	pm1aevtblk = (int)fadt->pm1aevtblk;
+	if (!acpiio(port, port + n)) {
+		error(Eperm);
+		return -1;
+	}
+	switch (n) {
+	case 1:
+		p = a;
+		if (port == pm1aevtblk)
+			pm1status &= ~*p;
+		else if (port == (pm1aevtblk + 1))
+			pm1status &= ~(*p << 8);
+		else
+			outb(port, *p);
+		return n;
+	case 2:
+		if (n & 1)
+			error(Ebadarg);
+		sp = a;
+		if (port == pm1aevtblk)
+			pm1status &= ~*sp;
+		outs(port, *sp);
+		return n;
+	case 4:
+		if (n & 3)
+			error(Ebadarg);
+		lp = a;
+		if (port == pm1aevtblk)
+			pm1status &= ~*lp;
+		outl(port, (*lp & ~0xffff));
+		return n;
+	default:
+		error(Ebadarg);
+	}
+	return -1;
+}
+
+static void
+acpihandler(Ureg *u, void *v)
+{
+	unsigned int status;
+
+	status = getpm1sts();
+	pm1status = status;
+	setpm1sts(status);
+	print("wake up the chan\n");
+	qiwrite(acpiev, &status, sizeof(status));
+}
+
 // Get the table from the qid.
 // Read that one table using the pointers.
 // Actually, this function doesn't do this right now for pretty or table.
