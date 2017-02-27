@@ -1916,7 +1916,6 @@ static void acpiinitonce(void)
 	 * We are not ready in this kernel for that.
 	 */
 	assert(fadt != nil);
-#if 0	/* These iomaps intefere with acpica library */
 	acpiioalloc(fadt->smicmd, 1);
 	acpiioalloc(fadt->pm1aevtblk, fadt->pm1evtlen);
 	acpiioalloc(fadt->pm1bevtblk, fadt->pm1evtlen);
@@ -1926,7 +1925,6 @@ static void acpiinitonce(void)
 	acpiioalloc(fadt->pmtmrblk, fadt->pmtmrlen);
 	acpiioalloc(fadt->gpe0blk, fadt->gpe0blklen);
 	acpiioalloc(fadt->gpe1blk, fadt->gpe1blklen);
-#endif
 
 	initgpes();
 	/* this is frightening. SMI: just say no. Although we will almost
