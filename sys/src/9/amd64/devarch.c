@@ -45,7 +45,7 @@ enum {
 	Qbase,
 	Qmapram,
 
-	Qmax = 16,
+	Qmax = 32,
 };
 
 typedef int32_t Rdwrfn(Chan*, void*, int32_t, int64_t);
