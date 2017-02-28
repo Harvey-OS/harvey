@@ -53,9 +53,18 @@ static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
 static Rsdp *rsd;
+static Queue *acpiev;
 Dev acpidevtab;
 
+static uint16_t pm1status;
+/* Table of ACPI ports we own. We just burn 64k of bss here rather
+ * than look them up in a function each time they're used. */
+static uint8_t acpiport[1<<16];
+static int32_t acpiioread(Chan *c, void *a, int32_t n, int64_t off);
+static int32_t acpiiowrite(Chan *c, void *a, int32_t n, int64_t off);
 static int32_t acpimemread(Chan *c, void *a, int32_t n, int64_t off);
+static int32_t acpiintrread(Chan *c, void *a, int32_t n, int64_t off);
+
 static void acpiintr(Ureg *, void *);
 
 static char * devname(void)
@@ -1898,9 +1907,12 @@ static void initgpes(void)
 	}
 }
 
-static void acpiioalloc(unsigned int addr, int len)
+static void acpiioalloc(uint16_t addr, int len)
 {
-	ioalloc(addr, len, 1, "ACPI");
+	if (ioalloc(addr, len, 1, "ACPI")  < 0)
+		return;
+	for (int io = addr; io < addr + len; io++)
+		acpiport[io] = 1;
 }
 
 static void acpiinitonce(void)
@@ -1911,6 +1923,8 @@ static void acpiinitonce(void)
 	if (root != nil)
 		print("ACPI initialized\n");
 	addarchfile("acpimem", 0444, acpimemread, nil);
+	addarchfile("acpiio", 0666|DMEXCL, acpiioread, acpiiowrite);
+	addarchfile("acpiintr", 0444|DMEXCL, acpiintrread, nil);
 	/*
 	 * should use fadt->xpm* and fadt->xgpe* registers for 64 bits.
 	 * We are not ready in this kernel for that.
@@ -1943,6 +1957,12 @@ static void acpiinitonce(void)
 
 void acpistart(void)
 {
+	acpiev = qopen(1024, Qmsg, nil, nil);
+	if (!acpiev) {
+		print("acpistart: qopen failed; not enabling interrupts");
+		return;
+	}
+
 	if (fadt->sciint != 0)
 		intrenable(fadt->sciint, acpiintr, 0, BUSUNKNOWN, "acpi");
 }
@@ -2066,6 +2086,117 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 	return ret;
 }
+
+/*
+ * acpiintrread waits on the acpiev Queue.
+ */
+static int32_t
+acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
+{
+	n = qread(acpiev, a, n);
+	return n;
+}
+
+/* acpiioread only lets you read one of each type for now.
+ * i.e. one byte, word, or long.
+ */
+static int32_t
+acpiioread(Chan *c, void *a, int32_t n, int64_t off)
+{
+	int port, pm1aevtblk;
+	uint8_t *p;
+	uint16_t *sp;
+	uint32_t *lp;
+
+	pm1aevtblk = (int)fadt->pm1aevtblk;
+	port = off;
+	if (!acpiport[port]) {
+		error("Bad port in acpiiread");
+		return -1;
+	}
+	switch (n) {
+	case 1:
+		p = a;
+		if (port == pm1aevtblk)
+			*p = pm1status & 0xff;
+		else if (port == (pm1aevtblk + 1))
+			*p = pm1status >> 8;
+		else
+			*p = inb(port);
+		return n;
+	case 2:
+		if (n & 1) {
+			error("Odd address for word IO");
+			break;
+		}
+		sp = a;
+		if (port == pm1aevtblk)
+			*sp = pm1status;
+		else
+			*sp = ins(port);
+		return n;
+	case 4:
+		if (n & 3) {
+			error("bad alignment for word io");
+			break;
+		}
+		lp = a;
+		*lp = inl(port);
+		if (port == pm1aevtblk)
+			*lp |= pm1status;
+		return n;
+	default:
+		error("Bad size for IO in acpiioread");
+	}
+	return -1;
+}
+
+static int32_t
+acpiiowrite(Chan *c, void *a, int32_t n, int64_t off)
+{
+	int port, pm1aevtblk;
+	uint8_t *p;
+	uint16_t *sp;
+	uint32_t *lp;
+
+	port = off;
+	pm1aevtblk = (int)fadt->pm1aevtblk;
+	if (!acpiport[port]) {
+		error("invalid port in acpiiowrite");
+		return -1;
+	}
+	switch (n) {
+	case 1:
+		p = a;
+		if (port == pm1aevtblk)
+			pm1status &= ~*p;
+		else if (port == (pm1aevtblk + 1))
+			pm1status &= ~(*p << 8);
+		else
+			outb(port, *p);
+		return n;
+	case 2:
+		if (n & 1)
+			error("Odd alignment for word io");
+		sp = a;
+		if (port == pm1aevtblk)
+			pm1status &= ~*sp;
+		outs(port, *sp);
+		return n;
+	case 4:
+		if (n & 3)
+			error("bad alignment for 32 bit IO");
+		lp = a;
+		if (port == pm1aevtblk)
+			pm1status &= ~*lp;
+		outl(port, (*lp & ~0xffff));
+		return n;
+	default:
+		error("bad size for word io");
+	}
+	return -1;
+}
+
 // Get the table from the qid.
 // Read that one table using the pointers.
 // Actually, this function doesn't do this right now for pretty or table.
