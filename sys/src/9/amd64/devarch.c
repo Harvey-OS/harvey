@@ -84,8 +84,7 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 
 	lock(&archwlock);
 	if(narchdir >= Qmax){
-		unlock(&archwlock);
-		return nil;
+		panic("addarchfile: %s: no more slots available: increase Qmax");
 	}
 
 	for(i=0; i<narchdir; i++)
