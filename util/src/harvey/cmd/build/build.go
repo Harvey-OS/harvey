@@ -64,7 +64,7 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
-	SrcDeps	    []string
+	SourceDeps	    []string
 	// cmd's
 	SourceFilesCmd []string
 	// Targets.
@@ -89,7 +89,7 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 		b.jsons = make(map[string]bool)
 		b.Projects = adjust(b.Projects)
 		b.Libs = adjust(b.Libs)
-		b.SrcDeps = adjust(b.SrcDeps)
+		b.SourceDeps = adjust(b.SourceDeps)
 		b.Cflags = adjust(b.Cflags)
 		b.Oflags = adjust(b.Oflags)
 		b.SourceFiles = adjust(b.SourceFiles)
@@ -189,7 +189,7 @@ func include(f string, b *build) {
 		b.Env = append(b.Env, build.Env...)
 		for _, v := range build.SourceFilesCmd {
 			_, targ := cmdTarget(&build, v)
-			if uptodate(targ, append(b.SrcDeps, v)) {
+			if uptodate(targ, append(b.SourceDeps, v)) {
 				continue
 			}
 			b.SourceFilesCmd = append(b.SourceFilesCmd, v)
@@ -203,11 +203,11 @@ func include(f string, b *build) {
 		b.ObjectFiles = append(b.ObjectFiles, build.ObjectFiles...)
 		// For each source file, assume we create an object file with the last char replaced
 		// with 'o'. We can get smarter later.
-		b.SrcDeps = append(b.SrcDeps, build.SrcDeps...)
+		b.SourceDeps = append(b.SourceDeps, build.SourceDeps...)
 
 		var s []string
 		for _, v := range build.SourceFiles {
-			if uptodate(targ, append(b.SrcDeps, v)) {
+			if uptodate(targ, append(b.SourceDeps, v)) {
 				continue
 			}
 			s = append(s, v)
@@ -279,7 +279,7 @@ func process(f string, r []*regexp.Regexp) []build {
 		var s []string
 		for _, v := range build.SourceFilesCmd {
 			_, targ := cmdTarget(&build, v)
-			if uptodate(targ, append(build.SrcDeps, v)) {
+			if uptodate(targ, append(build.SourceDeps, v)) {
 				continue
 			}
 			s = append(s, v)
@@ -350,11 +350,10 @@ func uptodate(n string, d []string) bool {
 	}
 
 	fi, err := os.Stat(n)
-	// If it does not exist, that's really not our problem.
-	// We only worry about things that exist.
+	// If it does not exist, by definition it's not up to date
 	if err != nil {
-		log.Fatalf("\t target '%s' doesn't exist\n", n)
-		return true
+		debug("\t target '%s' doesn't exist\n", n)
+		return false
 	}
 
 	m := fi.ModTime()
@@ -381,7 +380,7 @@ func uptodate(n string, d []string) bool {
 }
 
 func targetDepends(b *build) []string {
-	return append(b.SrcDeps, fromRoot("/sys/include/libc.h"), fromRoot("/$ARCH/include/u.h"))
+	return append(b.SourceDeps, fromRoot("/sys/include/libc.h"), fromRoot("/$ARCH/include/u.h"))
 }
 
 func target(b *build) string {
