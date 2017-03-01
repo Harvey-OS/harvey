@@ -1917,8 +1917,6 @@ static void acpiioalloc(uint16_t addr, int len)
 
 static void acpiinitonce(void)
 {
-	int i;
-
 	parsersdptr();
 	if (root != nil)
 		print("ACPI initialized\n");
@@ -1941,18 +1939,42 @@ static void acpiinitonce(void)
 	acpiioalloc(fadt->gpe1blk, fadt->gpe1blklen);
 
 	initgpes();
-	/* this is frightening. SMI: just say no. Although we will almost
-	 * certainly find that we have no choice.
-	 *
-	 * This starts ACPI, which may require we handle
+}
+
+static int acpienable(void)
+{
+	int i;
+
+	/* This starts ACPI, which may require we handle
 	 * power mgmt events ourselves. Use with care.
 	 */
 	outb(fadt->smicmd, fadt->acpienable);
 	for (i = 0; i < 10; i++)
 		if (getpm1ctl() & Pm1SciEn)
 			break;
-	if (i == 10)
+	if (i == 10) {
 		print("acpi: failed to enable\n");
+		return -1;
+	}
+	return 0;
+}
+
+static int acpidisable(void)
+{
+	int i;
+
+	/* This starts ACPI, which may require we handle
+	 * power mgmt events ourselves. Use with care.
+	 */
+	outb(fadt->smicmd, fadt->acpidisable);
+	for (i = 0; i < 10; i++)
+		if ((getpm1ctl() & Pm1SciEn) == 0)
+			break;
+	if (i == 10) {
+		print("acpi: failed to disable\n");
+		return -1;
+	}
+	return 0;
 }
 
 void acpistart(void)
@@ -2093,7 +2115,11 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 static int32_t
 acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
 {
+	if (acpienable())
+		error("Can't enable ACPI");
 	n = qread(acpiev, a, n);
+	if (acpidisable())
+		error("Can't disable ACPI");
 	return n;
 }
 
