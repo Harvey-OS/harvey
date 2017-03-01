@@ -1,7 +1,8 @@
 {
 	"buildflags": {
 		"Cflags": [
-				"-mno-implicit-float"
+				"-mno-implicit-float",
+				"-Qunused-arguments"
 			]
 	}
 }
