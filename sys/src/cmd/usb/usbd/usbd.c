@@ -161,7 +161,7 @@ newhub(char *fn, Dev *d)
 	if(h->isroot){
 		h->dev = opendev(fn);
 		if(h->dev == nil){
-			fprint(2, "%s: opendev: %s: %r", argv0, fn);
+			fprint(2, "%s: opendev: %s: %r\n", argv0, fn);
 			goto Fail;
 		}
 		if(opendevdata(h->dev, ORDWR) < 0){
