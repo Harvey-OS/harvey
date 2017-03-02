@@ -64,7 +64,7 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
-	SourceDeps	    []string
+	SourceDeps  []string
 	// cmd's
 	SourceFilesCmd []string
 	// Targets.
@@ -75,6 +75,27 @@ type build struct {
 }
 
 type buildfile map[string]build
+
+func globby(s []string) []string {
+	var f = make(map[string]bool)
+
+	for _, n := range s {
+		l, err := filepath.Glob(n)
+		if err != nil {
+			f[n] = true
+		} else {
+			for _, n := range l {
+				f[n] = true
+			}
+		}
+	}
+
+	var all []string
+	for n := range f {
+		all = append(all, n)
+	}
+	return all
+}
 
 // UnmarshalJSON works like the stdlib unmarshal would, except it adjusts all
 // paths.
@@ -92,8 +113,8 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 		b.SourceDeps = adjust(b.SourceDeps)
 		b.Cflags = adjust(b.Cflags)
 		b.Oflags = adjust(b.Oflags)
-		b.SourceFiles = adjust(b.SourceFiles)
-		b.SourceFilesCmd = adjust(b.SourceFilesCmd)
+		b.SourceFiles = globby(adjust(b.SourceFiles))
+		b.SourceFilesCmd = globby(adjust(b.SourceFilesCmd))
 		b.ObjectFiles = adjust(b.ObjectFiles)
 		b.Include = adjust(b.Include)
 		b.Install = fromRoot(b.Install)
@@ -195,7 +216,7 @@ func include(f string, b *build) {
 			b.SourceFilesCmd = append(b.SourceFilesCmd, v)
 		}
 		if build.Install != "" {
-			if b.Install != "" {
+			if b.Install != "" && build.Install != b.Install {
 				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install: was %s, redefined to %s.", f, n, build.path, build.name, b.Install, build.Install)
 			}
 			b.Install = build.Install
