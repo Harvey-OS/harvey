@@ -81,7 +81,7 @@ func globby(s []string) []string {
 
 	for _, n := range s {
 		l, err := filepath.Glob(n)
-		if err != nil {
+		if err != nil || len(l) == 0 {
 			f[n] = true
 		} else {
 			for _, n := range l {
@@ -94,6 +94,7 @@ func globby(s []string) []string {
 	for n := range f {
 		all = append(all, n)
 	}
+	debug("Glob of '%v' is '%v'", s, all)
 	return all
 }
 
@@ -180,7 +181,9 @@ func fromRoot(p string) string {
 	return p
 }
 
-func include(f string, b *build) {
+func include(f string, targ string, b *build) {
+       debug("include(%s, %s, %v)", f, targ, b)
+
 	if b.jsons[f] {
 		return
 	}
