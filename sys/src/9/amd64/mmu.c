@@ -649,7 +649,7 @@ vmap(uintptr_t pa, usize size)
 	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
 
 	if(machp()->machno != 0)
-		print("vmap: machp()->machno != 0");
+		print("vmap: machp()->machno != 0\n");
 
 	/*
 	 * This is incomplete; the checks are not comprehensive
@@ -700,7 +700,7 @@ vunmap(void* v, usize size)
 	DBG("vunmap(%#p, %lu)\n", v, size);
 
 	if(machp()->machno != 0)
-		print("vmap: machp()->machno != 0");
+		print("vmap: machp()->machno != 0\n");
 
 	/*
 	 * See the comments above in vmap.
