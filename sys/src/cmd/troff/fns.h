@@ -11,7 +11,7 @@
  * other
  */
 int	pclose(FILE*);
-long	filesize(int fd);
+int32_t	filesize(int fd);
 int	getpid(void);
 
 /*
@@ -119,9 +119,9 @@ int	roman(int i, int (*f)(Tchar));
 int	roman0(int i, int (*f)(Tchar), char *onesp, char *fivesp);
 int	abc(int i, int (*f)(Tchar));
 int	abc0(int i, int (*f)(Tchar));
-long	atoi0(void);
-long	ckph(void);
-long	atoi1(Tchar ii);
+int32_t	atoi0(void);
+int32_t	ckph(void);
+int32_t	atoi1(Tchar ii);
 void	caserr(void);
 void	casenr(void);
 void	caseaf(void);
