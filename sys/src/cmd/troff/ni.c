@@ -48,7 +48,7 @@ int	fc	= IMP;	/* field character */
 int	eschar	= '\\';
 int	pl;
 int	po;
-FILE	*ptid	= stdout;
+FILE	*ptid;
 
 int	dfact	= 1;
 int	dfactd	= 1;
