@@ -5,6 +5,14 @@ Harvey: A distributed operating system
 [![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
 [![License](https://img.shields.io/aur/license/yaourt.svg)](https://github.com/Harvey-OS/harvey/blob/master/LICENSE.gpl)
 
+[![Donate](
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="7Q45ZGJBQZZVN">
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form>)
+
 Welcome to Harvey, we are delighted that you are interested in the
 project.
 
