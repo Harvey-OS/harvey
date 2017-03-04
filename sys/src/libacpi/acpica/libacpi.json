@@ -1,8 +1,0 @@
-{
-	"Libacpi": {
-		"Projects": [
-			"components/build.json",
-			"common/build.json"
-		]
-		}
-}
