@@ -12,10 +12,8 @@
 		"NSourceFiles": [
 			"alltables.c"
 		],
-		"#SourceFilesCmd": [
-			"TestACPISleep.c"
-		],
 		"SourceFilesCmd": [
+			"TestACPISleep.c",
 			"crs.c",
 			"irq.c"
 		]
