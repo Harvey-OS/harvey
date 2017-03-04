@@ -22,7 +22,19 @@ extern Dev* devtab[];
 void
 devtabreset(void)
 {
-	int i;
+	int i, j;
+
+	/* this is a good time to look for a bad mistake. */
+	for(i = 0; devtab[i] != nil; i++) {
+		for(j = i + 1; devtab[j] != nil; j++) {
+			if (devtab[i]->dc == devtab[j]->dc) {
+				print("Devices %s and %s have the sanme .dc\n", devtab[i]->name, devtab[j]->name);
+				panic("Fix this by change one of them.");
+			}
+		}
+	}
+
+
 
 	for(i = 0; devtab[i] != nil; i++) {
 		devtab[i]->reset();
