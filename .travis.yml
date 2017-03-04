@@ -23,7 +23,6 @@ env:
   - PATH=$PATH:$HARVEY/util
   matrix:
   - OLD_BUILD=true
-  - OLD_BUILD=false
 addons:
   coverity_scan:
     project:
