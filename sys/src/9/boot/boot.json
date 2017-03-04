@@ -17,8 +17,7 @@
 		"Install": "/sys/src/9/boot",
 		"Library": "libboot.a",
 		"Pre": [
-			"mksys -o bootcpu.c -mode=bootcpu.c /sys/src/sysconf.json",
-			"rm -f *.elf.out"
+			"mksys -o bootcpu.c -mode=bootcpu.c /sys/src/sysconf.json"
 		],
 		"SourceFiles": [
 			"aux.c",
