@@ -87,14 +87,20 @@ rawfd(void)
 	return open(name, OREAD);
 }
 
-int iol = -1, iow = -1, iob = -1;
+static int
+tbdf(ACPI_PCI_ID * p)
+{
+	return (p->Bus << 8) | (p->Device << 3) | (p->Function);
+}
+
+int acpiio = -1;
 
 uint32_t
 inl(uint16_t addr)
 {
 	uint64_t off = addr;
 	uint32_t l;
-	if (pread(iol, &l, 4, off) < 4)
+	if (pread(acpiio, &l, 4, off) < 4)
 		print("inl(0x%x): %r\n", addr);
 	return l;
 }
@@ -104,7 +110,7 @@ ins(uint16_t addr)
 {
 	uint64_t off = addr;
 	uint16_t w;
-	if (pread(iow, &w, 2, off) < 2)
+	if (pread(acpiio, &w, 2, off) < 2)
 		print("ins(0x%x): %r\n", addr);
 	return w;
 }
@@ -114,7 +120,7 @@ inb(uint16_t addr)
 {
 	uint64_t off = addr;
 	uint16_t b;
-	if (pread(iob, &b, 1, off) < 1)
+	if (pread(acpiio, &b, 1, off) < 1)
 		print("inb(0x%x): %r\n", addr);
 	return b;
 }
@@ -123,7 +129,7 @@ void
 outl(uint16_t addr, uint32_t val)
 {
 	uint64_t off = addr;
-	if (pwrite(iol, &val, 4, off) < 4)
+	if (pwrite(acpiio, &val, 4, off) < 4)
 		print("outl(0x%x): %r\n", addr);
 }
 
@@ -131,7 +137,7 @@ void
 outs(uint16_t addr, uint16_t val)
 {
 	uint64_t off = addr;
-	if (pwrite(iow, &val, 2, off) < 2)
+	if (pwrite(acpiio, &val, 2, off) < 2)
 		print("outs(0x%x): %r\n", addr);
 }
 
@@ -139,7 +145,7 @@ void
 outb(uint16_t addr, uint8_t val)
 {
 	uint64_t off = addr;
-	if (pwrite(iob, &val, 1, off) < 1)
+	if (pwrite(acpiio, &val, 1, off) < 1)
 		print("outb(0x%x): %r\n", addr);
 }
 
@@ -420,33 +426,35 @@ struct handler {
 	void *Context;
 };
 
-#if 0
-/* The ACPI interrupt signature and the Harvey one are not compatible. So, we pass an arg to
- * intrenable that can in turn be used to this function to call the ACPI handler. */
-static void
-acpihandler(void *_, void *arg)
+static struct handler ihandler;
+
+unsigned int
+AcpiIntrWait(int afd, unsigned int *info)
 {
-	struct handler *h = arg;
-	h->ServiceRoutine(h->Context);
+	int amt;
+
+	amt = read(afd, info, sizeof(*info));
+	if (amt < 1) {
+		print("ACPI intrwait: eof: %r");
+	}
+	if (amt < sizeof(info)) {
+		print("ACPI intrwait: short read: %r");
+	}
+	return amt;
 }
-#endif
+
+ACPI_STATUS AcpiRunInterrupt(void)
+{
+	return ihandler.ServiceRoutine(ihandler.Context);
+}
 
 ACPI_STATUS
 AcpiOsInstallInterruptHandler(UINT32 InterruptNumber,
 							  ACPI_OSD_HANDLER ServiceRoutine, void *Context)
 {
-	/* minix says "don't do it". So we don't, yet. */
-	return AE_OK;
-	struct handler *h = malloc(sizeof(*h));
-	if (!h)
-		return AE_NO_MEMORY;
-	h->ServiceRoutine = ServiceRoutine;
-	h->Context = Context;
-	if (debug)
-		fprint(2, "NOT DOING %s %d %p %p \n", __func__, InterruptNumber,
-			   ServiceRoutine, Context);
-	/* once enabled, can't be disabled; ignore the return value unless it's nil. */
-	//intrenable(InterruptNumber, acpihandler, h, 0x5, "ACPI interrupt handler");
+	ihandler.ServiceRoutine = ServiceRoutine;
+	ihandler.Context = Context;
+
 	return AE_OK;
 }
 
@@ -456,7 +464,7 @@ AcpiOsRemoveInterruptHandler(UINT32 InterruptNumber,
 {
 	if (debug)
 		fprint(2, "%s\n", __func__);
-	sysfatal("%s", __func__);
+	/* No need to even do this call. Since we're user mode, we exit. */
 	return AE_OK;
 }
 
@@ -593,15 +601,9 @@ AcpiOsInitialize(void)
 	}
 	close(fd);
 
-	iol = open("/dev/iol", ORDWR);
-	if (iol < 0)
-		sysfatal("iol: %r");
-	iow = open("/dev/iow", ORDWR);
-	if (iow < 0)
-		sysfatal("iow: %r");
-	iob = open("/dev/iob", ORDWR);
-	if (iob < 0)
-		sysfatal("iob: %r");
+	acpiio = open("/dev/acpiio", ORDWR);
+	if (acpiio < 0)
+		sysfatal("acpiio: %r");
 	return AE_OK;
 }
 
