@@ -134,17 +134,10 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat] =	rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"no authentication in ramfs";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Ebadctl[] =	"unknown control message";
+static char	Eperm[] =	"permission denied";
+static char	Enotexist[] =	"file does not exist";
+static char	Eisopen[] = 	"file already open for I/O";
+static char	Ebadctl[] =	"unknown control message";
 
 int
 notifyf(void *_1, char *s)
