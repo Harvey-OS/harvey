@@ -56,7 +56,6 @@
 			"mksys -o errstr.h -mode=errstr.h /sys/src/sysconf.json"
 		],
 		"Projects": [
-			"clean.json",
 			"../boot/bootconf.json",
 			"inith.json",
 			"/sys/src/libmemdraw/klibmemdraw.json",
