@@ -1901,6 +1901,11 @@ static void initgpes(void)
 		gpes[i + n0].enbit = (n1 + i) & 7;
 		gpes[i + n0].enio = fadt->gpe1blk + ((n1 + i) >> 3);
 	}
+}
+
+static void startgpes(void)
+{
+	int i;
 	for (i = 0; i < ngpes; i++) {
 		setgpeen(i, 0);
 		clrgpests(i);
@@ -2117,6 +2122,7 @@ acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	if (acpienable())
 		error("Can't enable ACPI");
+	startgpes();
 	n = qread(acpiev, a, n);
 	if (acpidisable())
 		error("Can't disable ACPI");
