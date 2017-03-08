@@ -277,7 +277,8 @@ mkcol(int i, int c0, int c1, int c2)
 void
 colinit(void)
 {
-	mediumfont = openfont(display, "/lib/font/bit/pelm/latin1.8.font");
+
+	mediumfont = openfont(display, getenv("font"));
 	if(mediumfont == nil)
 		mediumfont = font;
 
