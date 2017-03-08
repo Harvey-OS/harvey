@@ -16,6 +16,7 @@
 			"/sys/src/libdisk",
 			"/sys/src/libflate/libflate.json",
 			"/sys/src/libframe/libframe.json",
+			"/sys/src/libfreetype/libfreetype.json",
 			"/sys/src/libgeometry/libgeometry.json",
 			"/sys/src/libhttpd/libhttpd.json",
 			"/sys/src/liblex/liblex.json",
