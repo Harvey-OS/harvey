@@ -1,7 +1,7 @@
 {
     "libfreetype": {
         "Cflags": [
-            "-Werror", "-I", "include"
+            "-I", "include"
         ],
         "Include": [
             "../lib.json"
