@@ -12,6 +12,7 @@
 			"-ldisk",
 			"-lflate",
 			"-lframe",
+			"-lfreetype",
 			"-lgeometry",
 			"-lhttpd",
 			"-lbin",
