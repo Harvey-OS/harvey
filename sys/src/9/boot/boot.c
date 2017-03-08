@@ -149,7 +149,7 @@ boot(int argc, char *argv[])
 	 */
 	authentication(cpuflag);
 
-	print("connect...\n");
+	print("connect...");
 
 	/*
 	 *  connect to the root file system
@@ -161,8 +161,8 @@ boot(int argc, char *argv[])
 		if(cfs)
 			fd = (*cfs)(fd);
 	}
-	
-	print("version...\n");
+
+	print("version...");
 	buf[0] = '\0';
 	n = fversion(fd, 0, buf, sizeof buf);
 	if(n < 0)
