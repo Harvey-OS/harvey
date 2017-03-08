@@ -29,6 +29,7 @@ mount -a /srv/factotum /mnt
 # standard bin
 bind /$cputype/bin /bin
 bind -a /rc/bin /bin
+bind -a /apex/$cputype/bin /bin
 
 # internal networks
 # mount -a /srv/ip /net
