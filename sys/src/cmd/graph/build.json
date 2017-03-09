@@ -1,0 +1,14 @@
+{
+	"graph": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "graph",
+		"SourceFiles": [
+			"graph.c",
+			"subr.c",
+			"whoami.c"
+		]
+	}
+}
