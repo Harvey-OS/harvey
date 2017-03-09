@@ -279,7 +279,8 @@ main(int argc, char **argv)
 	if(fontname == nil)
 		font = opendefaultfont(display);
 	else
-		font = openfont(display, fontname);
+		if((font = openfont(display, fontname)) == nil)
+			sysfatal("font '%s' not found", fontname);
 
 	refreshwin();
 	redraw(screen, 1);
