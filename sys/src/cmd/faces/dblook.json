@@ -1,0 +1,14 @@
+{
+	"dblook": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "dblook",
+		"SourceFiles": [
+			"dblook.c",
+			"facedb.c",
+			"util.c"
+		]
+	}
+}
