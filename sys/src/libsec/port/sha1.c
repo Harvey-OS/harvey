@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <libsec.h>
 
 static void encode(uint8_t*, uint32_t*, uint32_t);

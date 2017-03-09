@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <mp.h>
 #include <libsec.h>
 
@@ -31,7 +32,7 @@ rsadecrypt(RSApriv *rsa, mpint *in, mpint *out)
 	// exponentiate the modular rep
 	mpexp(v1, rsa->kp, rsa->p, v1);
 	mpexp(v2, rsa->kq, rsa->q, v2);
-	
+
 	// out = v1 + p*((v2-v1)*c2 mod q)
 	mpsub(v2, v1, v2);
 	mpmul(v2, rsa->c2, v2);

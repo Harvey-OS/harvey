@@ -24,7 +24,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <mp.h>
 #include <libsec.h>
 #include <ctype.h>
