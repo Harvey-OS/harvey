@@ -277,9 +277,7 @@ mkcol(int i, int c0, int c1, int c2)
 void
 colinit(void)
 {
-	mediumfont = openfont(display, "/lib/font/bit/pelm/latin1.8.font");
-	if(mediumfont == nil)
-		mediumfont = font;
+	mediumfont = opendefaultfont(display);
 
 	/* Peach */
 	mkcol(0, 0xFFAAAAFF, 0xFFAAAAFF, 0xBB5D5DFF);
