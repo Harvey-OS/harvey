@@ -161,7 +161,7 @@ newhub(char *fn, Dev *d)
 	if(h->isroot){
 		h->dev = opendev(fn);
 		if(h->dev == nil){
-			fprint(2, "%s: opendev: %s: %r", argv0, fn);
+			fprint(2, "%s: opendev: %s: %r\n", argv0, fn);
 			goto Fail;
 		}
 		if(opendevdata(h->dev, ORDWR) < 0){
@@ -210,7 +210,7 @@ Fail:
 		devctl(d, "detach");
 	free(h->port);
 	free(h);
-	dprint(2, "%s: hub %#p failed to start:", argv0, h);
+	dprint(2, "%s: hub %#p failed to start\n", argv0, h);
 	return nil;
 }
 
@@ -428,7 +428,7 @@ portattach(Hub *h, int p, int sts)
 		if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0)
 			goto Fail;
 	}
-	dprint(2, "%s: %U", argv0, nd);
+	dprint(2, "%s: %U\n", argv0, nd);
 	pp->state = Pconfiged;
 	dprint(2, "%s: %s: port %d: configed: %s\n",
 			argv0, d->dir, p, nd->dir);

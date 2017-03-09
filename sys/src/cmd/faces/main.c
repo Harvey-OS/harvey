@@ -293,7 +293,7 @@ updatetimes(void)
 			continue;
 		if(((int32_t)(now - f->time) <= HhmmTime) != f->recent)
 			drawface(f, i);
-	}	
+	}
 }
 
 void
@@ -608,7 +608,7 @@ click(int button, Mouse *m)
 			return;
 		}else{
 			for(i=first; i<last; i++)	/* clear vwhois faces */
-				if(ptinrect(p, facerect(i-first)) 
+				if(ptinrect(p, facerect(i-first))
 				&& strstr(faces[i]->str[Sshow], "/XXXvwhois")){
 					delface(i);
 					flushimage(display, 1);
