@@ -1,0 +1,17 @@
+{
+	"proof": {
+		"CFlags": [
+		],
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "proof",
+	 	"SourceFiles": [
+			"font.c",
+			"htroff.c",
+			"main.c",
+			"screen.c"
+		]
+	}
+}
