@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <mp.h>
 #include <libsec.h>
 
@@ -26,7 +27,7 @@ des3ECBencrypt(uint8_t *p, int len, DES3state *s)
 		triple_block_cipher(s->expanded, p, DES3EDE);
 		p += 8;
 	}
-	
+
 	if(len > 0){
 		for (i=0; i<8; i++)
 			tmp[i] = i;
@@ -46,7 +47,7 @@ des3ECBdecrypt(uint8_t *p, int len, DES3state *s)
 		triple_block_cipher(s->expanded, p, DES3DED);
 		p += 8;
 	}
-	
+
 	if(len > 0){
 		for (i=0; i<8; i++)
 			tmp[i] = i;

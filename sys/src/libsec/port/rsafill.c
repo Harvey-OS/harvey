@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <mp.h>
 #include <libsec.h>
 
@@ -67,4 +68,3 @@ rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q)
 
 	return rsa;
 }
-
