@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <libsec.h>
 
 void

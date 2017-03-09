@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 #include <mp.h>
 #include <libsec.h>
 #include <bio.h>
@@ -35,7 +36,7 @@ main(void)
 
 	strtomp("123456789abcdef123456789abcdef123456789abcdef123456789abcdef", nil, 16, clr);
 	rsaencrypt(&rsa->pub, clr, enc);
-	
+
 	start = nsec();
 	for(n = 0; n < 10; n++)
 		rsadecrypt(rsa, enc, clr);
@@ -48,7 +49,7 @@ main(void)
 
 	if(mpcmp(clr, clr2) != 0)
 		print("%B != %B\n", clr, clr2);
-	
+
 	print("> ");
 	while(p = Brdline(&b, '\n')){
 		n = Blinelen(&b);

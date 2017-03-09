@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-#include "os.h"
+#include <u.h>
+#include <libc.h>
 
 void
 _sha1block(uint8_t *p, uint32_t len, uint32_t *s)
@@ -51,7 +52,7 @@ _sha1block(uint8_t *p, uint32_t len, uint32_t *s)
 			a += ((b<<5) | (b>>27)) + wp[4];
 			a += 0x5a827999 + (((d^e)&c)^e);
 			c = (c<<30)|(c>>2);
-			
+
 			p += 20;
 		}
 
