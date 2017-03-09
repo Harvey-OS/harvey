@@ -45,3 +45,14 @@ openfont(Display *d, char *name)
 	free(buf);
 	return fnt;
 }
+
+Font*
+opendefaultfont(Display *d)
+{
+	Font *fnt;
+
+	fnt = openfont(d, getenv("font"));
+	if(fnt == nil)
+		openfont(d, "/lib/font/bit/pelm/latin1.8.font");
+	return fnt;
+}
