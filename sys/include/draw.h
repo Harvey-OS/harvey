@@ -473,6 +473,7 @@ extern void	borderop(Image*, Rectangle, int, Image*, Point, Drawop);
  * Font management
  */
 extern Font*	openfont(Display*, char*);
+extern Font*	opendefaultfont(Display*);
 extern Font*	buildfont(Display*, char*, char*);
 extern void	freefont(Font*);
 extern Font*	mkfont(Subfont*, Rune);
