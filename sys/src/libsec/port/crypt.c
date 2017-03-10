@@ -19,6 +19,7 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
+#include <mp.h>
 #include <libsec.h>
 
 /*

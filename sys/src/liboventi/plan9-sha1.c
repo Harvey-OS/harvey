@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <oventi.h>
+#include <mp.h>
 #include <libsec.h>
 
 extern void vtSha1Block(uint32_t *s, uint8_t *p, uint32_t len);

@@ -12,6 +12,7 @@
  */
 #include <u.h>
 #include <libc.h>
+#include <mp.h>
 #include <libsec.h>
 
 static void encode32(uint8_t*, uint32_t*, uint32_t);

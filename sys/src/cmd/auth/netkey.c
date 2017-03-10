@@ -9,6 +9,8 @@
 
 #include <u.h>
 #include <libc.h>
+#include <mp.h>
+#include <libsec.h>
 #include <authsrv.h>
 #include <bio.h>
 #include "authcmdlib.h"
