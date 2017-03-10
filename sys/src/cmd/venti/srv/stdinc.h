@@ -11,6 +11,7 @@
 #include <libc.h>
 #include <venti.h>
 #include <flate.h>
+#include <mp.h>
 #include <libsec.h>
 #include <thread.h>
 #include <httpd.h>

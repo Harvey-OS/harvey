@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mp.h>
 #include <libsec.h>
 
 #include "iso9660.h"
@@ -101,7 +102,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 		start += blocksize-start%blocksize;
 
 	Cwseek(cd, (int64_t)start * Blocksize);
-	
+
 	s = md5(nil, 0, nil, nil);
 	length = 0;
 	while((n = Bread(b, buf, sizeof buf)) > 0) {
@@ -134,7 +135,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 }
 
 /*
- * Write a directory tree.  We work from the leaves, 
+ * Write a directory tree.  We work from the leaves,
  * and patch the dotdot pointers afterward.
  */
 static void

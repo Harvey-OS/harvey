@@ -12,6 +12,7 @@
 #include <bio.h>
 #include <auth.h>
 #include <ip.h>
+#include <mp.h>
 #include <libsec.h>
 #include <String.h>
 
