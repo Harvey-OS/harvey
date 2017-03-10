@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <venti.h>
+#include <mp.h>
 #include <libsec.h>
 
 typedef struct Mem Mem;
@@ -44,7 +45,7 @@ enum {
 	FragLocalAlloc,
 	FragGlobal
 };
-	
+
 struct Frag
 {
 	int state;
@@ -64,10 +65,10 @@ struct Packet
 	uint32_t pc;
 
 	Packet *next;
-	
+
 	Frag *first;
 	Frag *last;
-	
+
 	Frag local[NLocalFrag];
 };
 
@@ -89,7 +90,7 @@ static void checkpacket(Packet*);
 #endif
 
 /*
- * the free list is primarily for speed, but it is 
+ * the free list is primarily for speed, but it is
  * also necessary for packetsplit that packets
  * are never freed -- a packet can contain a different
  * packet's local fragments, thanks to packetsplit!
@@ -166,7 +167,7 @@ packetfree(Packet *p)
 
 Packet *
 packetdup(Packet *p, int offset, int n)
-{	
+{
 	Frag *f, *ff;
 	Packet *pp;
 
@@ -188,7 +189,7 @@ packetdup(Packet *p, int offset, int n)
 	/* skip offset */
 	for(f=p->first; offset >= FRAGSIZE(f); f=f->next)
 		offset -= FRAGSIZE(f);
-	
+
 	/* first frag */
 	ff = fragdup(pp, f);
 	ff->rp += offset;
@@ -204,7 +205,7 @@ packetdup(Packet *p, int offset, int n)
 		n -= FRAGSIZE(ff);
 		pp->asize += FRAGASIZE(ff);
 	}
-	
+
 	/* fix up last frag: note n <= 0 */
 	ff->wp += n;
 	ff->next = nil;
@@ -304,7 +305,7 @@ packettrim(Packet *p, int offset, int n)
 		NOTFREE(p);
 		return 0;
 	}
-	
+
 	/* free before offset */
 	for(f=p->first; offset >= FRAGSIZE(f); f=ff) {
 		p->asize -= FRAGASIZE(f);
@@ -350,7 +351,7 @@ packetheader(Packet *p, int n)
 	}
 
 	p->size += n;
-	
+
 	/* try and fix in current frag */
 	f = p->first;
 	if(f != nil) {
@@ -386,7 +387,7 @@ packettrailer(Packet *p, int n)
 	}
 
 	p->size += n;
-	
+
 	/* try and fix in current frag */
 	if(p->first != nil) {
 		f = p->last;
@@ -442,7 +443,7 @@ packetprefix(Packet *p, uint8_t *buf, int n)
 		nn = n;
 		if(nn > MaxFragSize)
 			nn = MaxFragSize;
-		f = fragalloc(p, nn, PEnd, p->first);	
+		f = fragalloc(p, nn, PEnd, p->first);
 		p->asize += FRAGASIZE(f);
 		if(p->first == nil)
 			p->last = f;
@@ -479,7 +480,7 @@ packetappend(Packet *p, uint8_t *buf, int n)
 			n -= nn;
 		}
 	}
-	
+
 	while(n > 0) {
 		nn = n;
 		if(nn > MaxFragSize)
@@ -546,7 +547,7 @@ packetpeek(Packet *p, uint8_t *buf, int offset, int n)
 		werrstr(EPacketSize);
 		return nil;
 	}
-	
+
 	/* skip up to offset */
 	for(f=p->first; offset >= FRAGSIZE(f); f=f->next)
 		offset -= FRAGSIZE(f);
@@ -595,7 +596,7 @@ packetfragments(Packet *p, IOchunk *io, int nio, int offset)
 	NOTFREE(p);
 	if(p->size == 0 || nio <= 0)
 		return 0;
-	
+
 	if(offset < 0 || offset > p->size) {
 		werrstr(EPacketOffset);
 		return -1;
@@ -608,7 +609,7 @@ packetfragments(Packet *p, IOchunk *io, int nio, int offset)
 	eio = io + nio;
 	for(; f != nil && io < eio; f=f->next) {
 		io->addr = f->rp + offset;
-		io->len = f->wp - (f->rp + offset);	
+		io->len = f->wp - (f->rp + offset);
 		offset = 0;
 		size += io->len;
 		io++;
@@ -642,7 +643,7 @@ packetstats(void)
 	nbm = 0;
 	for(m=freelist.bigmem; m; m=m->next)
 		nbm++;
-	
+
 	fprint(2, "packet: %d/%d frag: %d/%d small mem: %d/%d big mem: %d/%d\n",
 		np, freelist.npacket,
 		nf, freelist.nfrag,
@@ -660,7 +661,7 @@ packetsize(Packet *p)
 	if(1) {
 		Frag *f;
 		int size = 0;
-	
+
 		for(f=p->first; f; f=f->next)
 			size += FRAGSIZE(f);
 		if(size != p->size)
@@ -677,7 +678,7 @@ packetasize(Packet *p)
 	if(0) {
 		Frag *f;
 		int asize = 0;
-	
+
 		for(f=p->first; f; f=f->next)
 			asize += FRAGASIZE(f);
 		if(asize != p->asize)
@@ -773,7 +774,7 @@ fragalloc(Packet *p, int n, int pos, Frag *next)
 			goto Found;
 		}
 	}
-	lock(&freelist.lk);	
+	lock(&freelist.lk);
 	f = freelist.frag;
 	if(f != nil)
 		freelist.frag = f->next;
@@ -834,7 +835,7 @@ fragdup(Packet *p, Frag *f)
 	Frag *ff;
 	Mem *m;
 
-	m = f->mem;	
+	m = f->mem;
 
 	/*
 	 * m->rp && m->wp can be out of date when ref == 1
@@ -862,7 +863,7 @@ fragdup(Packet *p, Frag *f)
 		unlock(&m->lk);
 	}
 
-	
+
 	return ff;
 }
 
@@ -886,7 +887,7 @@ fragfree(Frag *f)
 	lock(&freelist.lk);
 	f->next = freelist.frag;
 	freelist.frag = f;
-	unlock(&freelist.lk);	
+	unlock(&freelist.lk);
 }
 
 static Mem *
@@ -924,7 +925,7 @@ memalloc(int n, int pos)
 		m->bp = vtbrk(nn);
 		m->ep = m->bp + nn;
 	}
-	assert(m->ref == 0);	
+	assert(m->ref == 0);
 	m->ref = 1;
 
 	switch(pos) {
@@ -939,7 +940,7 @@ memalloc(int n, int pos)
 		break;
 	case PEnd:
 		m->rp = m->ep - n;
-		break; 
+		break;
 	}
 	/* check we did not blow it */
 	if(m->rp < m->bp)

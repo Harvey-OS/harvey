@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mp.h>
 #include <libsec.h>
 
 #include "iso9660.h"
@@ -95,9 +96,9 @@ walkdirec(Direc *d, char *name)
  * Add the file ``name'' with attributes d to the
  * directory ``root''.  Name may contain multiple
  * elements; all but the last must exist already.
- * 
+ *
  * The child lists are kept sorted by utfname.
- */	
+ */
 Direc*
 adddirec(Direc *root, char *name, XDir *d)
 {
@@ -139,7 +140,7 @@ adddirec(Direc *root, char *name, XDir *d)
 	return nd;
 }
 
-/* 
+/*
  * Copy the tree src into dst.
  */
 void
@@ -228,4 +229,3 @@ dsort(Direc *d, int (*cmp)(const void*, const void*))
 	for(i=0; i<n; i++)
 		dsort(&d->child[i], cmp);
 }
-

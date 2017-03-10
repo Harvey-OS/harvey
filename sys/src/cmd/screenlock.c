@@ -10,6 +10,7 @@
 /* screenlock - lock a terminal */
 #include <u.h>
 #include <libc.h>
+#include <mp.h>
 #include <libsec.h>
 #include <draw.h>
 #include <thread.h>
@@ -260,7 +261,7 @@ lockscreen(void)
 	Tm *tm = localtime(time(0));
 	char *s = smprint("user %s at %d:%02.2d", getuser(), tm->hour, tm->min);
 
-	Point p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
+	Point p = Pt(r.max.x / 2, r.max.y * 2 / 3);
 	p = subpt(p, Pt(stringwidth(font, "m") * strlen(s) / 2, 0));
 	screenstring(p, s);
 

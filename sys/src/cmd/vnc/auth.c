@@ -8,6 +8,7 @@
  */
 
 #include "vnc.h"
+#include <mp.h>
 #include <libsec.h>
 #include <auth.h>
 
@@ -248,4 +249,3 @@ vncsrvauth(Vnc *v)
 
 	return 0;
 }
-

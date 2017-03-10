@@ -15,6 +15,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mp.h>
 #include <libsec.h>
 #include <auth.h>
 #include "authcmdlib.h"
@@ -124,7 +125,7 @@ initcap(void)
 }
 
 /*
- *  create a change uid capability 
+ *  create a change uid capability
  */
 char*
 mkcap(char *from, char *to)
