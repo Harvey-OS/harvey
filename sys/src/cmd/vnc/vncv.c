@@ -9,6 +9,7 @@
 
 #include "vnc.h"
 #include "vncv.h"
+#include <mp.h>
 #include <libsec.h>
 
 char*	encodings = "copyrect hextile corre rre raw mousewarp";

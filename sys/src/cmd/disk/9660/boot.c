@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mp.h>
 #include <libsec.h>
 
 #include "iso9660.h"
@@ -51,7 +52,7 @@ g% cdsector 3149 | xd -b	# 0x0c4d
                                                     55 aa - magic
 
 0000020  88    - 88 = bootable
-            03   - 3 = 2.88MB diskette 
+            03   - 3 = 2.88MB diskette
                00 00 - load segment 0 means default 0x7C0
                      00  - system type (byte 5 of boot image)
                         00 - unused (0)
@@ -67,13 +68,13 @@ g% cdsector `{h2d 0c4e} | xd -b
 1+0 records out
 0000000  eb 3c 00 00 00 00 00 00 00 00 00 00 02 00 00 00
 0000010  00 00 00 00 00 00 00 00 12 00 02 00 00 00 00 00
-0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53 
+0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53
                                           31 c0
 
 FREEBSD
 0000000  eb 3c 00 00 00 00 00 00 00 00 00 00 02 00 00 00
 0000010  00 00 00 00 00 00 00 00 12 00 02 00 00 00 00 00
-0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53 
+0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53
                                           31 c0
 
 DOS 5

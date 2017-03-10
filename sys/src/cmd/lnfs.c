@@ -13,6 +13,7 @@
 #include <auth.h>
 #include <fcall.h>
 #include <String.h>
+#include <mp.h>
 #include <libsec.h>
 
 enum
