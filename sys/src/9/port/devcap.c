@@ -14,6 +14,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+#include <mp.h>
 #include	<libsec.h>
 
 enum

@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <ctype.h>
+#include <mp.h>
 #include <libsec.h>
 #include <bin.h>
 #include <httpd.h>

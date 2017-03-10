@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mp.h>
 #include <libsec.h>
 
 enum
@@ -89,7 +90,7 @@ rename(char *d, char *old, char *new)
 		fprint(2, "unlnfs: cannot rename %s to %s: %r\n", p, new);
 	free(p);
 }
-	
+
 void
 int32_t2short(char shortname[ENCLEN+1], char *longname)
 {

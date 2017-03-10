@@ -14,6 +14,7 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
+#include <mp.h>
 #include <libsec.h>
 #include "exportfs.h"
 
@@ -229,7 +230,7 @@ main(int argc, char **argv)
 		remote = na;
 		if((fd = dial(netmkaddr(na, 0, "importfs"), 0, 0, 0)) < 0)
 			sysfatal("can't dial %s: %r", na);
-	
+
 		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client %s", keyspec);
 		if(ai == nil)
 			sysfatal("%r: %s", na);
@@ -328,12 +329,12 @@ main(int argc, char **argv)
 			if (n == 0)
 				fatal("connection closed while reading arguments\n");
 
-			if (*p == '\n') 
+			if (*p == '\n')
 				*p = '\0';
 			if (*p++ == '\0')
 				break;
 		}
-		
+
 		if (tokenize(buf, args, nelem(args)) != 2)
 			fatal("impo arguments invalid: impo%s...\n", buf);
 
@@ -367,7 +368,7 @@ main(int argc, char **argv)
 		for(i = 0; i < 4; i++)
 			key[i+12] = rand();
 
-		if (initial) 
+		if (initial)
 			fatal("Protocol botch: old import\n");
 		if(readn(netfd, key, 4) != 4)
 			fatal("can't read key part; %r\n");
@@ -385,7 +386,7 @@ main(int argc, char **argv)
 
 		switch (encproto) {
 		case Encssl:
-			netfd = pushssl(netfd, ealgs, fromserversecret, 
+			netfd = pushssl(netfd, ealgs, fromserversecret,
 						fromclientsecret, nil);
 			break;
 		case Enctls:
@@ -397,7 +398,7 @@ main(int argc, char **argv)
 			fatal("can't establish ssl connection: %r");
 	}
 	else if (filterp) {
-		if (initial) 
+		if (initial)
 			fatal("Protocol botch: don't know how to deal with this\n");
 		netfd = filter(netfd, filterp);
 	}
@@ -409,7 +410,7 @@ main(int argc, char **argv)
 		r = getsbuf();
 		if(r == 0)
 			fatal("Out of service buffers");
-			
+
 		n = localread9pmsg(netfd, r->buf, messagesize, &initial);
 		if(n <= 0)
 			fatal(nil);
@@ -423,7 +424,7 @@ main(int argc, char **argv)
 }
 
 /*
- * WARNING: Replace this with the original version as soon as all 
+ * WARNING: Replace this with the original version as soon as all
  * _old_ imports have been replaced with negotiating imports.  Also
  * cpu relies on this (which needs to be fixed!) -- pb.
  */
@@ -473,7 +474,7 @@ reply(Fcall *r, Fcall *t, char *err)
 		t->type = Rerror;
 		t->ename = err;
 	}
-	else 
+	else
 		t->type = r->type + 1;
 
 	DEBUG(DFD, "\t%F\n", t);
@@ -531,7 +532,7 @@ freefid(int nr)
 		l = &f->next;
 	}
 
-	return 0;	
+	return 0;
 }
 
 Fid *
@@ -564,7 +565,7 @@ newfid(int nr)
 	new->fid = -1;
 	new->mid = 0;
 
-	return new;	
+	return new;
 }
 
 Fsrpc *
@@ -869,7 +870,7 @@ fatal(char *s, ...)
 		postnote(PNPROC, m->pid, "kill");
 
 	DEBUG(DFD, "%s\n", buf);
-	if (s) 
+	if (s)
 		sysfatal("%s", buf);	/* caution: buf could contain '%' */
 	else
 		exits(nil);
@@ -920,7 +921,7 @@ filter(int fd, char *cmd)
 	if ((s = strchr(newport, '\n')) != nil)
 		*s = '\0';
 
-	if ((nb = write(fd, newport, len)) < 0) 
+	if ((nb = write(fd, newport, len)) < 0)
 		sysfatal("getport; cannot write port; %r");
 	assert(nb == len);
 
@@ -952,7 +953,7 @@ filter(int fd, char *cmd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 static void
