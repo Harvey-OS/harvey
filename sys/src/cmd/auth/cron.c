@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mp.h>
 #include <libsec.h>
 #include <auth.h>
 #include "authcmdlib.h"
@@ -86,7 +87,8 @@ int
 sleepuntil(uint32_t tm)
 {
 	uint32_t now = time(0);
-	
+
+
 	if (now < tm)
 		return sleep((tm - now)*1000);
 
@@ -687,7 +689,7 @@ initcap(void)
 }
 
 /*
- *  create a change uid capability 
+ *  create a change uid capability
  */
 char*
 mkcap(char *from, char *to)
