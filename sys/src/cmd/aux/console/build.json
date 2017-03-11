@@ -1,9 +1,0 @@
-{
-	"Consoles": {
-		"Projects": [
-			"comconsole.json",
-			"pipeconsole.json",
-			"screenconsole.json"
-		]
-	}
-}
