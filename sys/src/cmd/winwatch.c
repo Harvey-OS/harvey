@@ -256,7 +256,6 @@ main(int argc, char **argv)
 	int Etimer;
 	Event e;
 
-	fontname = "/lib/font/bit/lucidasans/unicode.8.font";
 	ARGBEGIN{
 	case 'f':
 		fontname = EARGF(usage());
@@ -277,8 +276,11 @@ main(int argc, char **argv)
 	lightblue = allocimagemix(display, DPalebluegreen, DWhite);
 	if(lightblue == nil)
 		sysfatal("allocimagemix: %r");
-	if((font = openfont(display, fontname)) == nil)
-		sysfatal("font '%s' not found", fontname);
+	if(fontname == nil)
+		font = opendefaultfont(display);
+	else
+		if((font = openfont(display, fontname)) == nil)
+			sysfatal("font '%s' not found", fontname);
 
 	refreshwin();
 	redraw(screen, 1);
