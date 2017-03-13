@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 - 2017 cinap_lenrek <cinap_lenrek@felloff.net>
- * Copyright 2017 Rafael Fernández <rafita.fernandez@gmail.com>
+ * Copyright 2017 HarveyOS
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
