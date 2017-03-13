@@ -19,9 +19,6 @@ bind -b '#$' /dev
 bind -a 'α' /dev
 bind -a '#r' /dev
 
-# screen console
-mount -b /srv/screenconsole /dev
-
 # mount points
 mount -a /srv/slashn /n
 mount -a /boot /bin
