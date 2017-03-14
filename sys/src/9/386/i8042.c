@@ -214,6 +214,100 @@ static Lock i8042lock;
 static uint8_t ccc;
 static void (*auxputc)(int, int);
 
+enum {
+	MaxDKResults 	= 28,
+	MaxDK 				= 10,
+};
+typedef struct DeadKey DeadKey;
+typedef struct DeadKeys DeadKeys;
+
+struct DeadKey {
+	Rune key;						//Rune that represents the dead key (i.e. ^)
+	Rune baseKey[MaxDKResults];		//Rune that represents the base letter (i.e. a)
+	Rune resultKey[MaxDKResults];	//Sum of both keys (i.e. â)
+};
+
+struct DeadKeys {
+	Rune max;
+	Rune min;
+	DeadKey deadKey[MaxDK];
+};
+
+static DeadKeys kbdeadkeys;
+
+/*
+ * Allow to reset dead keys when we load a non deadkeys kbmap
+ */
+void
+initDeadKeys(){
+	DeadKey k;
+	k.key = No;
+	memset(k.baseKey, No, sizeof(k.baseKey));
+	for (int i=0; i<MaxDK;i++){
+		kbdeadkeys.deadKey[i] = k;
+	}
+	kbdeadkeys.max = kbdeadkeys.min = 0;
+
+	//DELETEME
+	kbdeadkeys.deadKey[0].key=180;
+	kbdeadkeys.deadKey[0].baseKey[0]=97;
+	kbdeadkeys.deadKey[0].resultKey[0]=225;
+	kbdeadkeys.deadKey[0].baseKey[1]=65;
+	kbdeadkeys.deadKey[0].resultKey[1]=193;
+	kbdeadkeys.max = kbdeadkeys.min = 180;
+}
+
+/*
+ * Process dead keys
+ */
+static Rune
+processdeadkey(Rune c){
+	static DeadKey *k = nil;
+	// shift must be ignored
+	if (c == Shift){
+		return c;
+	}
+	if (k != nil) {
+		// We pressed a dead key before this
+		if (k->key == c){
+			// Press two times the same DeadKey = print the dead key
+			return c;
+		}
+		for (int i=0; i<MaxDKResults && k->baseKey[i]!=No; i++){
+			if(k->baseKey[i] == c){
+				c = k->resultKey[i];
+				k=nil;
+				return c;
+			}
+		}
+		/*
+		 * If we reach this point it is because we pressed a key that can't be
+		 * combined with last dead key or two differents dead keys.
+		 * Both cases are illegal and anulate last dead key.
+		 */
+		 k=nil;
+		 c=No;
+	}
+	if (c <= kbdeadkeys.max && c >= kbdeadkeys.min){
+		// It could be a dead key, let's search it
+		for(int i=0; i<MaxDK && kbdeadkeys.deadKey[i].key != No; i++){
+			if(kbdeadkeys.deadKey[i].key == c){
+				k = &kbdeadkeys.deadKey[i];
+				c = No;
+			}
+		}
+	}
+	return c;
+}
+
+/*
+ * true if the kbmap has dead keys
+ */
+static int
+hasdeadkeys(){
+	return !(kbdeadkeys.max==0 && kbdeadkeys.min==0);
+}
+
 /*
  *  wait for output no longer busy
  */
@@ -420,6 +514,13 @@ i8042intr(Ureg* u, void* v)
 
 	if(kbscan.caps && c<='z' && c>='a')
 		c += 'A' - 'a';
+
+	/*
+	 * Process dead keys
+	 */
+	if (hasdeadkeys()){
+		c = processdeadkey(c);
+	}
 
 	/*
 	 *  keyup only important for shifts
@@ -721,6 +822,8 @@ keybinit(void)
 	}
 
 	nokeyb = 0;
+
+	initDeadKeys();
 
 	iunlock(&i8042lock);
 }
