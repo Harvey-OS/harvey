@@ -14,4 +14,4 @@ if not
 
 a=`{echo $wid-35 | hoc }
 window 60,90,$a,$ht acme -l lib/$dump
-window 20,140,610,450 /usr/glenda/lib/first.window
+window 20,140,610,450 /usr/harvey/lib/first.window
