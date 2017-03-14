@@ -85,7 +85,7 @@ struct Btab
 	"status",	status,
 	"stop",		stop,
 	"strace",	strace,
-	"sysr1",	dosysr1,
+	"sysr0",	dosysr0,
 	"waitstop",	waitstop,
 	"map",		map,
 	"interpret",	interpret,
@@ -129,10 +129,10 @@ installbuiltin(void)
 }
 
 void
-dosysr1(Node *r, Node*_)
+dosysr0(Node *r, Node*_)
 {
-	extern int sysr1(void);
-	
+	extern int sysr0(void);
+
 	r->op = OCONST;
 	r->type = TINT;
 	r->fmt = 'D';
