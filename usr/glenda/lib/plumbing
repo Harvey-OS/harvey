@@ -1,4 +1,4 @@
-# to update: cp /usr/glenda/lib/plumbing /mnt/plumb/rules
+# to update: cp /usr/harvey/lib/plumbing /mnt/plumb/rules
 
 editor = acme
 
