@@ -12,6 +12,7 @@
 #include <thread.h>
 #include <auth.h>
 #include <fcall.h>
+#include <mp.h>
 #include <libsec.h>
 #include <usb/usb.h>
 #include <usb/audio.h>

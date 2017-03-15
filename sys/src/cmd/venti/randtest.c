@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <venti.h>
+#include <mp.h>
 #include <libsec.h>
 #include <thread.h>
 
@@ -341,4 +342,3 @@ xxxlrand(void)
 
 	return x;
 }
-

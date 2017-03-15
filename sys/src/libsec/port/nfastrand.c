@@ -9,6 +9,7 @@
 
 #include <u.h>
 #include <libc.h>
+#include <mp.h>
 #include <libsec.h>
 
 #define Maxrand	((1UL<<31)-1)
@@ -17,7 +18,7 @@ uint32_t
 nfastrand(uint32_t n)
 {
 	uint32_t m, r;
-	
+
 	/*
 	 * set m to the maximum multiple of n <= 2^31-1
 	 * so we want a random number < m.

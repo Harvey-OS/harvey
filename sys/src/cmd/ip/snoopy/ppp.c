@@ -10,6 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
+#include <mp.h>
 #include <libsec.h>
 #include "dat.h"
 #include "protos.h"
@@ -201,7 +202,7 @@ p_seprint(Msg *m)
 	proto = *m->ps++;
 	if((proto&1) == 0)
 		proto = (proto<<8) | *m->ps++;
-	
+
 	m->p = seprint(m->p, m->e, "pr=%u len=%d", proto, len);
 	demux(p_mux, proto, proto, m, &dump);
 
@@ -393,25 +394,25 @@ seprintipcpopt(char *p, char *e, void *a, int len)
 		default:
 			p = seprint(p, e, " (type=%d len=%d)", o->type, o->len);
 			break;
-		case Oipaddrs:	
+		case Oipaddrs:
 			p = seprint(p, e, " ipaddrs(deprecated)");
 			break;
 		case Oipcompress:
 			p = seprint(p, e, " ipcompress");
 			break;
-		case Oipaddr:	
+		case Oipaddr:
 			p = seprint(p, e, " ipaddr=%V", o->data);
 			break;
-		case Oipdns:	
+		case Oipdns:
 			p = seprint(p, e, " dnsaddr=%V", o->data);
 			break;
-		case Oipwins:	
+		case Oipwins:
 			p = seprint(p, e, " winsaddr=%V", o->data);
 			break;
-		case Oipdns2:	
+		case Oipdns2:
 			p = seprint(p, e, " dns2addr=%V", o->data);
 			break;
-		case Oipwins2:	
+		case Oipwins2:
 			p = seprint(p, e, " wins2addr=%V", o->data);
 			break;
 		}
@@ -439,7 +440,7 @@ p_seprintipcp(Msg *m)
 		m->pe = m->ps+len;
 	else if(m->ps+len > m->pe)
 		return -1;
-		
+
 	p = seprint(p, e, "id=%d code=%d", lcp->id, lcp->code);
 	switch(lcp->code) {
 	default:
@@ -476,13 +477,13 @@ seprintccpopt(char *p, char *e, void *a, int len)
 			p = seprint(p, e, " bad opt len %x", o->type);
 			return p;
 		}
-		
+
 		switch(o->type){
 		default:
 			p = seprint(p, e, " type=%d ", o->type);
 			break;
 		case 0:
-			p = seprint(p, e, " OUI=(%d %.2x%.2x%.2x) ", o->type, 
+			p = seprint(p, e, " OUI=(%d %.2x%.2x%.2x) ", o->type,
 				o->data[0], o->data[1], o->data[2]);
 			break;
 		case 17:
@@ -516,7 +517,7 @@ p_seprintccp(Msg *m)
 		m->pe = m->ps+len;
 	else if(m->ps+len > m->pe)
 		return -1;
-		
+
 	p = seprint(p, e, "id=%d code=%d", lcp->id, lcp->code);
 	switch(lcp->code) {
 	default:
@@ -537,7 +538,7 @@ p_seprintccp(Msg *m)
 		break;
 	}
 	m->p = seprint(p, e, " len=%d", len);
-	
+
 	return 0;
 }
 

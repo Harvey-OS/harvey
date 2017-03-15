@@ -5,6 +5,7 @@ if(! syscall create /tmp/xxx 1 0666 >[2]/dev/null)
 	ramfs	# in case we're running off a cd
 font=/lib/font/bit/go/Go-Mono/Go-Mono.14.font
 fn cd { builtin cd $* && awd }  # for acme
+fn acme { /bin/acme -f $font $* }
 
 switch($service){
 case terminal

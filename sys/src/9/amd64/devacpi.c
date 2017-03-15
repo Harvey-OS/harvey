@@ -1768,6 +1768,7 @@ static unsigned int getbanked(uintptr_t ra, uintptr_t rb, int sz)
 static unsigned int setbanked(uintptr_t ra, uintptr_t rb, int sz, int v)
 {
 	unsigned int r;
+	print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, v);
 
 	r = -1;
 	switch (sz) {

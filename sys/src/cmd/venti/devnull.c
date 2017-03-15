@@ -12,6 +12,7 @@
 #include <libc.h>
 #include <venti.h>
 #include <thread.h>
+#include <mp.h>
 #include <libsec.h>
 
 #ifndef _UNISTD_H_
@@ -40,7 +41,7 @@ threadmain(int argc, char **argv)
 
 	fmtinstall('V', vtscorefmt);
 	fmtinstall('F', vtfcallfmt);
-	
+
 	address = "tcp!*!venti";
 
 	ARGBEGIN{
@@ -83,4 +84,3 @@ threadmain(int argc, char **argv)
 	}
 	threadexitsall(nil);
 }
-

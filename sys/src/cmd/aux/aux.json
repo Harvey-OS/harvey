@@ -12,9 +12,6 @@
 			"flashfs/flashfs.json"
 		],
 		"Projects": [
-			"console/screenconsole.json",
-			"console/comconsole.json",
-			"console/pipeconsole.json",
 			"realemu/realemu.json",
 			"realemu/loadcom.json",
 			"vga/vga.json"
