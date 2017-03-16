@@ -247,14 +247,45 @@ initDeadKeys(){
 		kbdeadkeys.deadKey[i] = k;
 	}
 	kbdeadkeys.max = kbdeadkeys.min = 0;
+}
 
-	//DELETEME
-	kbdeadkeys.deadKey[0].key=180;
-	kbdeadkeys.deadKey[0].baseKey[0]=97;
-	kbdeadkeys.deadKey[0].resultKey[0]=225;
-	kbdeadkeys.deadKey[0].baseKey[1]=65;
-	kbdeadkeys.deadKey[0].resultKey[1]=193;
-	kbdeadkeys.max = kbdeadkeys.min = 180;
+/*
+ * Adds new element to dead keys table.
+ */
+void
+kdbputdeadkey(Rune deadkey, Rune basekey, Rune finalkey){
+	DeadKey *k=nil;
+	for (int i=0; i<MaxDK; i++){
+		if (kbdeadkeys.deadKey[i].key == deadkey || kbdeadkeys.deadKey[i].key == No){
+			k=&kbdeadkeys.deadKey[i];
+			break;
+		}
+	}
+	if (k==nil){
+		print("No more space on kbdeadkeys, MaxDK is too small\n");
+		error(Ebadarg);
+		return;
+	}
+	k->key=deadkey;
+	int i;
+	for(i=0; i<MaxDKResults;i++){
+		if(k->baseKey[i] == basekey || k->baseKey[i] == No){
+			k->baseKey[i] = basekey;
+			k->resultKey[i] = finalkey;
+			break;
+		}
+	}
+	if(i==MaxDKResults){
+		print("No more space on DeadKey %d, MaxDKResults is too small\n", deadkey);
+		error(Ebadarg);
+		return;
+	}
+	if(deadkey>kbdeadkeys.max){
+		kbdeadkeys.max=deadkey;
+	}
+	if(deadkey<kbdeadkeys.min || kbdeadkeys.min==0){
+		kbdeadkeys.min=deadkey;
+	}
 }
 
 /*
