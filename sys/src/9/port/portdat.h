@@ -981,7 +981,6 @@ enum
 };
 
 extern	Conf	conf;
-extern	char*	conffile;
 extern	char*	cputype;
 extern	int	cpuserver;
 extern  char*	eve;
