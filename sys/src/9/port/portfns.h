@@ -169,6 +169,8 @@ int		kbdcr2nl(Queue*, int);
 int		kbdgetmap(int, int*, int*, Rune*);
 int		kbdputc(Queue*, int);
 void		kbdputmap(uint16_t, uint16_t, Rune);
+void		initDeadKeys();
+void		kdbputdeadkey(Rune deadkey, Rune basekey, Rune finalkey);
 void		kickpager(int, int);
 void		killbig(char*);
 int		kmprint(char*, ...);
@@ -433,4 +435,3 @@ int alloc_cpu_buffers(void);
 
 #define I_AM_HERE print("Core 0 is in %s() at %s:%d\n", \
                          __FUNCTION__, __FILE__, __LINE__);
-

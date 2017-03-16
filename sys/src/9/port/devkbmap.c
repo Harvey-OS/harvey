@@ -87,6 +87,29 @@ kbmapread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
+static Rune
+kbgetrune(char **p){
+	Rune r = 0;
+	char *lp=*p;
+	while(*lp == ' ' || *lp == '\t')
+		lp++;
+	if(*lp == '\'' && lp[1])
+		chartorune(&r, lp+1);
+	else if(*lp == '^' && lp[1]){
+		chartorune(&r, lp+1);
+		if(0x40 <= r && r < 0x60)
+			r -= 0x40;
+		else
+			error(Ebadarg);
+	}else if(*lp == 'M' && ('1' <= lp[1] && lp[1] <= '5'))
+		r = 0xF900+lp[1]-'0';
+	else if(*lp>='0' && *lp<='9') /* includes 0x... */
+		r = strtoul(lp, &lp, 0);
+	else
+		error(Ebadarg);
+	return r;
+}
+
 static int32_t
 kbmapwrite(Chan *c, void *a, int32_t n, int64_t v)
 {
@@ -99,6 +122,7 @@ kbmapwrite(Chan *c, void *a, int32_t n, int64_t v)
 
 	switch((int)(c->qid.path)){
 	case Qdata:
+		initDeadKeys();
 		b = a;
 		l = n;
 		lp = line;
@@ -122,25 +146,32 @@ kbmapwrite(Chan *c, void *a, int32_t n, int64_t v)
 				while(*lp == ' ' || *lp == '\t')
 					lp++;
 				m = strtoul(line, &lp, 0);
-				key = strtoul(lp, &lp, 0);
-				while(*lp == ' ' || *lp == '\t')
-					lp++;
-				r = 0;
-				if(*lp == '\'' && lp[1])
-					chartorune(&r, lp+1);
-				else if(*lp == '^' && lp[1]){
-					chartorune(&r, lp+1);
-					if(0x40 <= r && r < 0x60)
-						r -= 0x40;
-					else
-						error(Ebadarg);
-				}else if(*lp == 'M' && ('1' <= lp[1] && lp[1] <= '5'))
-					r = 0xF900+lp[1]-'0';
-				else if(*lp>='0' && *lp<='9') /* includes 0x... */
-					r = strtoul(lp, &lp, 0);
-				else
-					error(Ebadarg);
-				kbdputmap(m, key, r);
+				if(m==5ul){
+					Rune k, f;
+					while(*lp == ' ' || *lp == '\t')
+						lp++;
+					k=kbgetrune(&lp);
+
+					//Move next
+					while (!(*lp == ' ' || *lp == '\t' || *lp == '\0'))
+						lp++;
+					while(*lp == ' ' || *lp == '\t')
+						lp++;
+					r=kbgetrune(&lp);
+
+					//Move next
+					while (!(*lp == ' ' || *lp == '\t' || *lp == '\0'))
+						lp++;
+					while(*lp == ' ' || *lp == '\t')
+						lp++;
+					f=kbgetrune(&lp);
+
+					kdbputdeadkey(k,r,f);
+				}else{
+					key = strtoul(lp, &lp, 0);
+					r = kbgetrune(&lp);
+					kbdputmap(m, key, r);
+				}
 				lp = line;
 			}
 		}
