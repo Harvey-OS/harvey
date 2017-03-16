@@ -649,7 +649,7 @@ dumpstackwithureg(Ureg* ureg)
 	iprint("dumpstack\n");
 
 	x = 0;
-	x += iprint("ktrace 9%s %#p %#p\n", strrchr(conffile, '/')+1, ureg->ip, ureg->sp);
+	x += iprint("ktrace %#p %#p\n", ureg->ip, ureg->sp);
 	i = 0;
 	if(up != nil
 //	&& (uintptr)&l >= (uintptr)up->kstack
