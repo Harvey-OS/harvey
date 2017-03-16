@@ -682,7 +682,7 @@ init0(void)
 	devtabinit();
 
 	if(!waserror()){
-		snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
+		snprint(buf, sizeof(buf), "%s", "AMD64");
 		loadenv(oargc, oargv);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", cputype, 0);
