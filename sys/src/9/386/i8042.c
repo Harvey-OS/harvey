@@ -302,6 +302,7 @@ processdeadkey(Rune c){
 		// We pressed a dead key before this
 		if (k->key == c){
 			// Press two times the same DeadKey = print the dead key
+			k=nil;
 			return c;
 		}
 		for (int i=0; i<MaxDKResults && k->baseKey[i]!=No; i++){
@@ -549,7 +550,7 @@ i8042intr(Ureg* u, void* v)
 	/*
 	 * Process dead keys
 	 */
-	if (hasdeadkeys()){
+	if (hasdeadkeys() && !keyup){
 		c = processdeadkey(c);
 	}
 
