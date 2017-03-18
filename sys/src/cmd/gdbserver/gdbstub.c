@@ -1083,20 +1083,20 @@ static struct state ks;
 void
 main(int argc, char **argv)
 {
-    char* pid;
+    char* pid = nil;
     char* port = "1666";
     ARGBEGIN {
     case 'l':
         port = ARGF();
         if (port == nil) {
-            fprint(2, "Please specify a listening port");
+            fprint(2, "Please specify a listening port\n");
             exits("listen");
         }
         break;
     case 'p':
         pid = ARGF();
         if (pid == nil) {
-            fprint(2, "Please specify a pid");
+            fprint(2, "Please specify a pid\n");
             exits("pid");
         }
         break;
@@ -1107,6 +1107,11 @@ main(int argc, char **argv)
         fprint(2, " badflag('%c')", ARGC());
     } ARGEND
 
+        if (pid == nil) {
+            fprint(2, "Please specify a pid\n");
+            exits("pid");
+        }
+		
     ks.threadid = atoi(pid);
 	gdbinit();
 	gdb_serial_stub(&ks, atoi(port));
