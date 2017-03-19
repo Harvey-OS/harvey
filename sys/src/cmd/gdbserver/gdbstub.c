@@ -946,17 +946,21 @@ gdb_serial_stub(struct state *ks, int port)
 				/* Fall through to default processing */
 			default:
 default_handle:
-				/*
-				 * I have no idea what to do.
-				 * Leave cmd processing on error, detach,
-				 * kill, continue, or single step.
-				 */
-				if (error >= 0 || remcom_in_buffer[0] == 'D' ||
+				if (remcom_in_buffer[0] == 'v') {
+					// Specifically indicate we don't handle
+					// v packets.
+					strcpy((char *)remcom_out_buffer, "");
+				}
+				else if (error >= 0 || remcom_in_buffer[0] == 'D' ||
 					remcom_in_buffer[0] == 'k') {
+					/*
+					* I have no idea what to do.
+					* Leave cmd processing on error, detach,
+					* kill, continue, or single step.
+					*/
 					error = 0;
 					goto exit;
 				}
-
 		}
 syslog(0, "gdbserver", "RETURN :%s:\n", remcom_out_buffer);
 		/* reply to the request */
@@ -1083,6 +1087,10 @@ static struct state ks;
 void
 main(int argc, char **argv)
 {
+	syslog(0, "hello graham\n", 0);
+	print("hello again graham\n");
+
+
     char* pid = nil;
     char* port = "1666";
     ARGBEGIN {
