@@ -1087,10 +1087,6 @@ static struct state ks;
 void
 main(int argc, char **argv)
 {
-	syslog(0, "hello graham\n", 0);
-	print("hello again graham\n");
-
-
     char* pid = nil;
     char* port = "1666";
     ARGBEGIN {
