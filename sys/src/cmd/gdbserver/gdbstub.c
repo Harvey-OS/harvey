@@ -684,13 +684,12 @@ gdb_cmd_query(struct state *ks)
 			pack_threadid((char *)remcom_out_buffer + 2, (uint8_t *) & ks->threadid);
 			break;
 		case 'T':
-		    print("%s\n", remcom_in_buffer );
-		    if (memcmp(remcom_in_buffer, "Status", 6) == 0) {
-		        // TODO: proper status
-		        strcpy(remcom_out_buffer, "Tnotrun:0");
-		        break;
-		    }
-			error_packet(remcom_out_buffer, Einval);
+			if (memcmp(remcom_in_buffer+2, "Status", 6) == 0) {
+		        	// TODO: proper status
+		        	strcpy(remcom_out_buffer, "Tnotrun:0");
+		        	break;
+		    	}
+			strcpy((char *)remcom_out_buffer, "");
 			break;
 	}
 }
