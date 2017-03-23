@@ -173,7 +173,7 @@ gdbstub_read_wait(void)
 	}
 	return ret;
 }
-#define I_AM_HERE syslog(0, "gdbserver", "%s %d\n", __FILE__, __LINE__);
+#define I_AM_HERE syslog(0, "gdbserver", "%s %d", __FILE__, __LINE__);
 /* scan for the sequence $<data>#<checksum> */
 static void
 get_packet(char *buffer)
@@ -213,7 +213,7 @@ I_AM_HERE
 		if (ch == '#') {
 			xmitcsum = hex_to_bin(gdbstub_read_wait()) << 4;
 			xmitcsum += hex_to_bin(gdbstub_read_wait());
-if (checksum != xmitcsum) syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x%x\n", xmitcsum, checksum);
+if (checksum != xmitcsum) syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x%x", xmitcsum, checksum);
 			if (checksum != xmitcsum)
 				/* failed checksum */
 				write_char('-');
@@ -508,7 +508,7 @@ gdb_cmd_getregs(struct state *ks)
 {
 I_AM_HERE;
 	if (ks->threadid <= 0) {
-		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1\n", __func__);
+		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1", __func__);
 	}
 	gpr(ks, ks->threadid);
 	mem2hex(ks->gdbregs, (char *)remcom_out_buffer, NUMREGBYTES);
@@ -708,10 +708,10 @@ gdb_cmd_task(struct state *ks)
 			ptr = (char *)&remcom_in_buffer[2];
 			//hex2long(&ptr, &ks->threadid);
 			if (ks->threadid <=  0) {
-				syslog(0, "gdbserver", "Warning: using 1 instead of 0\n");
+				syslog(0, "gdbserver", "Warning: using 1 instead of 0");
 			}
 			err = gpr(ks, ks->threadid);
-			syslog(0, "gdbserver", "Try to use thread %d: %s\n", ks->threadid, err);
+			syslog(0, "gdbserver", "Try to use thread %d: %s", ks->threadid, err);
 			if (err){
 				error_packet(remcom_out_buffer, err);
 			} else {
@@ -736,7 +736,7 @@ gdb_cmd_thread(struct state *ks)
 	//hex2long(&ptr, &ks->threadid);
 
 	if (ks->threadid <= 0) {
-		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1\n", __func__);
+		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1", __func__);
 	}
 	err = gpr(ks, ks->threadid);
 	if (!err)
@@ -875,7 +875,7 @@ gdb_serial_stub(struct state *ks, int port)
 		memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
 
 		get_packet(remcom_in_buffer);
-        syslog(0, "gdbserver", "packet :%s:\n", remcom_in_buffer);
+        syslog(0, "gdbserver", "packet :%s:", remcom_in_buffer);
 
 		switch (remcom_in_buffer[0]) {
 			case '?':	/* gdbserial status */
@@ -962,7 +962,7 @@ default_handle:
 					goto exit;
 				}
 		}
-syslog(0, "gdbserver", "RETURN :%s:\n", remcom_out_buffer);
+syslog(0, "gdbserver", "RETURN :%s:", remcom_out_buffer);
 		/* reply to the request */
 		put_packet(remcom_out_buffer);
 	}
@@ -1042,17 +1042,17 @@ rmem(void *dest, int pid, uint64_t addr, int size)
 	char *memname = smprint("/proc/%d/mem", pid);
 	int fd = open(memname, 0);
 	if (fd < 0) {
-		syslog(0, "gdbserver", "open(%s, 0): %r\n", memname);
+		syslog(0, "gdbserver", "open(%s, 0): %r", memname);
 		return errstring(Enoent);
 	}
 
 	if (pread(fd, dest, size, addr) < size) {
-		syslog(0, "gdbserver", "rmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
+		syslog(0, "gdbserver", "rmem(%p, %d, %p, %d): %r", dest, pid, addr, size);
 		close(fd);
 		return errstring(Eio);
 	}
 	close(fd);
-	syslog(0, "gdbserver", "%s: read 0x%x for %d bytes\n", __func__, addr, size);
+	syslog(0, "gdbserver", "%s: read 0x%x for %d bytes", __func__, addr, size);
 	return nil;
 }
 
@@ -1062,14 +1062,14 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 	char *memname = smprint("/proc/%d/mem", pid);
 	int fd = open(memname, 1);
 	if (fd < 0) {
-		syslog(0, "gdbserver", "open(%s, 1): %r\n", memname);
+		syslog(0, "gdbserver", "open(%s, 1): %r", memname);
 		return errstring(Enoent);
 	}
 
 	if (pwrite(fd, addr, size, dest) < size) {
 		if (debug)
 			print("wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
-		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
+		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d): %r", dest, pid, addr, size);
 		close(fd);
 		return errstring(Eio);
 	}
