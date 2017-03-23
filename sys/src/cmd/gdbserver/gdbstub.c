@@ -664,11 +664,12 @@ gdb_cmd_query(struct state *ks)
 			remcom_out_buffer[0] = 'm';
 			ptr = (char *)remcom_out_buffer + 1;
 			if (remcom_in_buffer[1] == 'f') {
-
 				for(int i = 0; i < n; i++) {
 					if (! isdigit(db[i].name[0]))
 						continue;
-					ptr = pack_threadid(ptr, (unsigned char *)db[i].name);
+
+					int threadid = atoi(db[i].name);
+					ptr = pack_threadid(ptr, (uint8_t *)&threadid);
 					*(ptr++) = ',';
 					ks->thr_query++;
 					if (ks->thr_query % MAX_THREAD_QUERY == 0)
