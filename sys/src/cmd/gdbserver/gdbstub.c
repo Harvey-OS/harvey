@@ -540,8 +540,8 @@ gdb_cmd_memread(struct state *ks)
 		hex2long(&ptr, &length) > 0) {
 		char *data = malloc(length);
 		if (err = rmem(data, ks->threadid, addr, length)) {
-		    if(debug)
-		        print("%s: %r", __func__);
+			if (debug)
+				print("%s: %r", __func__);
 			syslog(0, "gdbserver", "%s: %r", __func__);
 			error_packet(remcom_out_buffer, err);
 			free(data);
@@ -1066,8 +1066,8 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 	}
 
 	if (pwrite(fd, addr, size, dest) < size) {
-	    if (debug)
-	        print("wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
+		if (debug)
+			print("wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
 		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
 		close(fd);
 		return errstring(Eio);
