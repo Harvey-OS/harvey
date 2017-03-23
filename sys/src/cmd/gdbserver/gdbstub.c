@@ -51,6 +51,7 @@ static int gdbstub_prev_in_buf_pos;
 int bpsize;
 int remotefd;
 int debug = 0;
+int attached_to_existing_pid = 0;
 
 /* support crap */
 /*
@@ -692,6 +693,11 @@ gdb_cmd_query(struct state *ks)
 		    	}
 			strcpy((char *)remcom_out_buffer, "");
 			break;
+		case 'A':
+			if (memcmp(remcom_in_buffer + 2, "ttached", 7))
+				break;
+			strcpy((char *)remcom_out_buffer, attached_to_existing_pid ? "1" : "0");
+			break;
 	}
 }
 
@@ -1115,8 +1121,11 @@ main(int argc, char **argv)
             fprint(2, "Please specify a pid\n");
             exits("pid");
         }
-		
-    ks.threadid = atoi(pid);
+
+	ks.threadid = atoi(pid);
+	// Set to 0 if we eventually support creating a new process
+	attached_to_existing_pid = 1;
+
 	gdbinit();
 	gdb_serial_stub(&ks, atoi(port));
 }
