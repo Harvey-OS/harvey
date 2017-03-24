@@ -10,9 +10,6 @@
 	],
 	"Install": "/$ARCH/lib/",
 	"Library": "libc.a",
-	"Post": [
-		"rm -f 9syscall/*.s"
-	],
 	"Projects": [
 		"9syscall/9syscall.json"
 	],
