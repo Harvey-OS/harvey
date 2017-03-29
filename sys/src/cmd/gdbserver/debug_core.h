@@ -21,7 +21,6 @@ struct state {
 	int			err_code;
 	int			cpu;
 	int			pass_exception;
-	unsigned long		thr_query;
 	char *pidname;
 	long			usethreadid;
 	void *gdbregs;
