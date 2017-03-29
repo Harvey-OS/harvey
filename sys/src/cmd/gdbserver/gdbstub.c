@@ -853,7 +853,6 @@ gdb_serial_stub(struct state *ks, int port)
 	    exits("accept");
 	}
 	print("Connected\n");
-	sendctl(ks->threadid , "stop");
 
 	/* Initialize comm buffer and globals. */
 	memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
