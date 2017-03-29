@@ -631,10 +631,6 @@ gdb_cmd_reboot(struct state *ks)
 static void
 gdb_cmd_query(struct state *ks)
 {
-	Dir *db;
-	char *ptr;
-	int fd, n;
-
 	switch (remcom_in_buffer[1]) {
 		case 'S':
 			if (memcmp(remcom_in_buffer + 2, "upported", 8))
@@ -644,40 +640,14 @@ gdb_cmd_query(struct state *ks)
 			// thread id as the pid. i.e. no multiprocess.
 			strcpy((char *)remcom_out_buffer, ""); // "multiprocess+");
 			break;
-		case 's':
+
 		case 'f':
 			if (memcmp(remcom_in_buffer + 2, "ThreadInfo", 10))
 				break;
 
-			fd = open("/proc", 0);
-			if(fd == -1){
-				error_packet(remcom_out_buffer, Einval);
-				return;
-			}
-			n = dirreadall(fd, &db);
-			if(n < 0) {
-				error_packet(remcom_out_buffer, Eio);
-				return;
-			}
-
-			close(fd);
-
+			// Just pass the main pid for now
 			remcom_out_buffer[0] = 'm';
-			ptr = (char *)remcom_out_buffer + 1;
-			if (remcom_in_buffer[1] == 'f') {
-				for(int i = 0; i < n; i++) {
-					if (! isdigit(db[i].name[0]))
-						continue;
-
-					int threadid = atoi(db[i].name);
-					ptr = pack_threadid(ptr, (uint8_t *)&threadid);
-					*(ptr++) = ',';
-					ks->thr_query++;
-					if (ks->thr_query % MAX_THREAD_QUERY == 0)
-						break;
-				}
-			}
-			*(--ptr) = '\0';
+			pack_threadid((char *)remcom_out_buffer + 1, (uint8_t *)&ks->threadid);
 			break;
 
 		case 'C':
@@ -685,6 +655,7 @@ gdb_cmd_query(struct state *ks)
 			strcpy((char *)remcom_out_buffer, "QC");
 			pack_threadid((char *)remcom_out_buffer + 2, (uint8_t *) & ks->threadid);
 			break;
+
 		case 'T':
 			if (memcmp(remcom_in_buffer+2, "Status", 6) == 0) {
 		        	// TODO: proper status
