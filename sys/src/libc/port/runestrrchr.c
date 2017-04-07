@@ -18,7 +18,7 @@ runestrrchr(const Rune *s, Rune c)
 	if(c == 0)
 		return runestrchr(s, 0);
 	r = 0;
-	while(s = runestrchr(s, c))
+	while((s = runestrchr(s, c)) != nil)
 		r = s++;
 	return (Rune *)r;
 }

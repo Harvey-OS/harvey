@@ -13,7 +13,7 @@
 #define	assert(x)	if(x){}else _assert(#x)
 
 extern void (*_abort)(void);
-#define abort() if(_abort){_abort();}else{while(*(volatile int*)0);}
+#define abort() {if(_abort){_abort();}else{while(*(volatile int*)0);}}
 
 /*
  * mem routines

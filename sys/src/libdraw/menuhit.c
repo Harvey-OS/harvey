@@ -178,7 +178,7 @@ menuhit(int but, Mousectl *mc, Menu *menu, Screen *scr)
 	replclipr(screen, 0, screen->r);
 	maxwid = 0;
 	for(nitem = 0;
-	    item = menu->item? menu->item[nitem] : (*menu->gen)(nitem);
+	    (item = menu->item? menu->item[nitem] : (*menu->gen)(nitem)) != nil;
 	    nitem++){
 		i = stringwidth(font, item);
 		if(i > maxwid)

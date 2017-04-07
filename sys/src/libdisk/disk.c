@@ -181,10 +181,10 @@ static struct {
 	int h;
 	int s;
 } guess[] = {
-	64, 32,
-	64, 63,
-	128, 63,
-	255, 63,
+	{64, 32},
+	{64, 63},
+	{128, 63},
+	{255, 63},
 };
 static int
 guessgeometry(Disk *disk)
@@ -248,7 +248,7 @@ opensd(Disk *disk)
 	int nf;
 
 	Binit(&b, disk->ctlfd, OREAD);
-	while(p = Brdline(&b, '\n')) {
+	while((p = Brdline(&b, '\n')) != nil) {
 		p[Blinelen(&b)-1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf >= 3 && strcmp(f[0], "geometry") == 0) {
@@ -330,7 +330,7 @@ opendisk(char *disk, int rdonly, int noctl)
 	}
 
 	/* attempt to find sd(3) disk or partition */
-	if(q = strrchr(p, '/'))
+	if((q = strrchr(p, '/')) != nil)
 		q++;
 	else
 		q = p;
