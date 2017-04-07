@@ -105,7 +105,7 @@ nsfile(char *fn, Biobuf *b, AuthRpc *rpc)
 
 	cdroot = 0;
 	atnotify(catch, 1);
-	while(cmd = Brdline(b, '\n')){
+	while((cmd = Brdline(b, '\n')) != nil){
 		cmd[Blinelen(b)-1] = '\0';
 		while(*cmd==' ' || *cmd=='\t')
 			cmd++;
@@ -333,7 +333,7 @@ expandarg(char *arg, char *buf)
 	int fd, n, len;
 
 	n = 0;
-	while(p = nextdollar(arg)){
+	while((p = nextdollar(arg)) != nil){
 		len = p - arg;
 		if(n + len + ANAMELEN >= MAXARG-1)
 			return 0;

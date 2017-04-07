@@ -106,7 +106,7 @@ cleanfilelist(File *f)
 	 * there are empty entries in the file list.
 	 * clean them out.
 	 */
-	for(l=&f->filelist; fl=*l; ){
+	for(l=&f->filelist; (fl=*l) != nil; ){
 		if(fl->f == nil){
 			*l = (*l)->link;
 			free(fl);
@@ -208,7 +208,7 @@ createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 	 * the file order reflecting creation order. 
 	 * Always create at the end of the list.
 	 */
-	for(l=&fp->filelist; fl=*l; l=&fl->link){
+	for(l=&fp->filelist; (fl=*l) != nil; l=&fl->link){
 		if(fl->f && strcmp(fl->f->Dir.name, name) == 0){
 			wunlock(&fp->RWLock);
 			werrstr("file already exists");
@@ -292,7 +292,7 @@ walkfile(File *f, char *path)
 
 	os = s = estrdup9p(path);
 	for(; *s; s=nexts){
-		if(nexts = strchr(s, '/'))
+		if((nexts = strchr(s, '/')) != nil)
 			*nexts++ = '\0';
 		else
 			nexts = s+strlen(s);

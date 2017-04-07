@@ -127,7 +127,7 @@ filewalk(Req *r)
 
 	incref(&f->Ref);
 	for(i=0; i<r->ifcall.nwname; i++)
-		if(f = walkfile(f, r->ifcall.wname[i]))
+		if((f = walkfile(f, r->ifcall.wname[i])) != nil)
 			r->ofcall.wqid[i] = f->Dir.qid;
 		else
 			break;
@@ -162,7 +162,7 @@ walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*),
 
 	e = nil;
 	for(i=0; i<r->ifcall.nwname; i++){
-		if(e = walk1(r->newfid, r->ifcall.wname[i], arg))
+		if((e = walk1(r->newfid, r->ifcall.wname[i], arg)) != nil)
 			break;
 		r->ofcall.wqid[i] = r->newfid->qid;
 	}
@@ -714,7 +714,7 @@ srv(Srv *srv)
 	srv->fpool->srv = srv;
 	srv->rpool->srv = srv;
 
-	while(r = getreq(srv)){
+	while((r = getreq(srv)) != nil){
 		if(r->error){
 			respond(r, r->error);
 			continue;

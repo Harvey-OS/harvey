@@ -16,7 +16,7 @@ runestrcpy(Rune *s1, const Rune *s2)
 	Rune *os1;
 
 	os1 = s1;
-	while(*s1++ = *s2++)
+	while((*s1++ = *s2++) != 0)
 		;
 	return os1;
 }
