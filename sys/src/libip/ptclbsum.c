@@ -70,7 +70,7 @@ ptclbsum(uint8_t *addr, int len)
 
 	losum += hisum >> 8;
 	losum += (hisum & 0xff) << 8;
-	while(hisum = losum>>16)
+	while((hisum = losum>>16) != 0)
 		losum = hisum + (losum & 0xffff);
 
 	return losum & 0xffff;

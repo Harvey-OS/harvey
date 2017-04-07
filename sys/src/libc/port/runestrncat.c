@@ -17,7 +17,7 @@ runestrncat(Rune *s1, const Rune *s2, int32_t n)
 
 	os1 = s1;
 	s1 = runestrchr(s1, 0);
-	while(*s1++ = *s2++)
+	while((*s1++ = *s2++) != 0)
 		if(--n < 0) {
 			s1[-1] = 0;
 			break;

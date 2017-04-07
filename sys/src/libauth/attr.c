@@ -148,7 +148,7 @@ _parseattr(char *s)
 	a = nil;
 	for(i=ntok-1; i>=0; i--){
 		t = tok[i];
-		if(p = strchr(t, '=')){
+		if((p = strchr(t, '=')) != nil){
 			*p++ = '\0';
 		//	if(p-2 >= t && p[-2] == ':'){
 		//		p[-2] = '\0';

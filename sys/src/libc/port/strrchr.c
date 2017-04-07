@@ -18,7 +18,7 @@ strrchr(const char *s, int c)
 	if(c == 0)
 		return strchr(s, 0);
 	r = 0;
-	while(s = strchr(s, c))
+	while((s = strchr(s, c)) != nil)
 		r = s++;
 	return (char *)r;
 }

@@ -16,14 +16,14 @@ static struct {
 	char *verb;
 	int val;
 } tab[] = {
-	"ok",			ARok,
-	"done",		ARdone,
-	"error",		ARerror,
-	"needkey",	ARneedkey,
-	"badkey",		ARbadkey,
-	"phase",		ARphase,
-	"toosmall",	ARtoosmall,
-	"error",		ARerror,
+	{"ok",       ARok},
+	{"done",     ARdone},
+	{"error",    ARerror},
+	{"needkey",  ARneedkey},
+	{"badkey",   ARbadkey},
+	{"phase",    ARphase},
+	{"toosmall", ARtoosmall},
+	{"error",    ARerror},
 };
 
 static int

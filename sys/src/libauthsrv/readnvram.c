@@ -35,34 +35,34 @@ static struct {
 	int off;
 	int len;
 } nvtab[] = {
-	"sparc", "#r/nvram", 1024+850, sizeof(Nvrsafe),
-	"pc", "#S/sdC0/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sdC1/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sdC1/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sdD0/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sdD0/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sdE0/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sdE0/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sdF0/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sdF0/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd10/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd10/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#r/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
-	"pc", "#f/fd1disk", -1, 512,
-	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
-	"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe),
-	"power", "#F/flash/flash", 0x440000, sizeof(Nvrsafe),
-	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
-	"power", "/nvram", 0, sizeof(Nvrsafe),	/* OK for Ucu */
-	"arm", "#F/flash/flash0", 0x100000, sizeof(Nvrsafe),
-	"arm", "#F/flash/flash", 0x100000, sizeof(Nvrsafe),
-	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
+	{"sparc", "#r/nvram", 1024+850, sizeof(Nvrsafe)},
+	{"pc", "#S/sdC0/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sdC1/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sdC1/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sdD0/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sdD0/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sdE0/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sdE0/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sdF0/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sdF0/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#S/sd10/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#S/sd10/9fat", -1, sizeof(Nvrsafe)},
+	{"pc", "#r/nvram", 0, sizeof(Nvrsafe)},
+	{"pc", "#f/fd0disk", -1, 512},	/* 512: #f requires whole sector reads */
+	{"pc", "#f/fd1disk", -1, 512},
+	{"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe)},
+	{"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe)},
+	{"power", "#F/flash/flash", 0x440000, sizeof(Nvrsafe)},
+	{"power", "#r/nvram", 4352, sizeof(Nvrsafe)},	/* OK for MTX-604e */
+	{"power", "/nvram", 0, sizeof(Nvrsafe)},	/* OK for Ucu */
+	{"arm", "#F/flash/flash0", 0x100000, sizeof(Nvrsafe)},
+	{"arm", "#F/flash/flash", 0x100000, sizeof(Nvrsafe)},
+	{"debug", "/tmp/nvram", 0, sizeof(Nvrsafe)},
 };
 
 static char*
@@ -191,11 +191,12 @@ findnvram(Nvrwhere *locp)
 		if(nvrlen != nil)
 			safelen = atoi(nvrlen);
 		nvroff = getenv("nvroff");
-		if(nvroff != nil)
+		if(nvroff != nil){
 			if(strcmp(nvroff, "dos") == 0)
 				safeoff = -1;
 			else
 				safeoff = atoi(nvroff);
+		}
 		if(safeoff < 0 && fd >= 0){
 			safelen = 512;
 			safeoff = finddosfile(fd, i == 2? v[1]: "plan9.nvr");
@@ -278,7 +279,7 @@ readnvram(Nvrsafe *safep, int flag)
 		|| seek(loc.fd, loc.safeoff, 0) < 0
 		|| read(loc.fd, buf, loc.safelen) != loc.safelen){
 			err = 1;
-			if(flag&(NVwrite|NVwriteonerr))
+			if(flag&(NVwrite|NVwriteonerr)) {
 				if(loc.fd < 0 && nvrfile != nil)
 					fprint(2, "can't open %s: %r\n", nvrfile);
 				else if(loc.fd < 0){
@@ -290,6 +291,7 @@ readnvram(Nvrsafe *safep, int flag)
 				else
 					fprint(2, "can't read %d bytes from %s: %r\n",
 						loc.safelen, nvrfile);
+			}
 			/* start from scratch */
 			memset(safep, 0, sizeof(*safep));
 			safe = safep;
