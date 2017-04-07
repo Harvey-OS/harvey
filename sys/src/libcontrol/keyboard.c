@@ -125,18 +125,18 @@ struct{
 	char	*name;
 	int	val;
 }keytab[] = {
-	"Shift",	0,
-	"Ctrl",	0,
-	"Alt",		0,
-	"Caps",	0,
-	"Del",	'\177',
-	"Enter",	'\n',
-	"Esc",	'\033',
-	"<-",		'\b',
-	"->",		'\t',
-	"Scrib",	0x10000,
-	"Menu",	0x10001,
-	nil,		0,
+	{"Shift",	0},
+	{"Ctrl",	0},
+	{"Alt",		0},
+	{"Caps",	0},
+	{"Del",		'\177'},
+	{"Enter",	'\n'},
+	{"Esc",		'\033'},
+	{"<-",		'\b'},
+	{"->",		'\t'},
+	{"Scrib",	0x10000},
+	{"Menu",	0x10001},
+	{nil,		0},
 };
 
 static char **keyset[Nstate] = {

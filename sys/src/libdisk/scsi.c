@@ -105,7 +105,7 @@ scsierror(int asc, int ascq)
 
 	if(codes) {
 		snprint(search, sizeof search, "\n%.2x%.2x ", asc, ascq);
-		if(p = strstr(codes, search)) {
+		if((p = strstr(codes, search)) != nil) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
 				q = p+strlen(p);
@@ -114,7 +114,7 @@ scsierror(int asc, int ascq)
 		}
 
 		snprint(search, sizeof search, "\n%.2x00", asc);
-		if(p = strstr(codes, search)) {
+		if((p = strstr(codes, search)) != nil) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
 				q = p+strlen(p);
@@ -150,7 +150,7 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 		n = read(s->rawfd, data, dcount);
 		/* read toc errors are frequent and not very interesting */
 		if(n < 0 && (scsiverbose == 1 ||
-		    scsiverbose == 2 && cmd[0] != Readtoc))
+		    (scsiverbose == 2 && cmd[0] != Readtoc)))
 			fprint(2, "dat read: %r: cmd 0x%2.2X\n", cmd[0]);
 		break;
 	case Swrite:
