@@ -99,7 +99,7 @@ lookupkey(Intmap *map, uint32_t id)
 	void *v;
 
 	rlock(&map->RWLock);
-	if(f = *llookup(map, id)){
+	if((f = *llookup(map, id)) != nil){
 		v = f->aux;
 		map->inc(v);
 	}else
@@ -116,7 +116,7 @@ insertkey(Intmap *map, uint32_t id, void *v)
 	uint32_t h;
 
 	wlock(&map->RWLock);
-	if(f = *llookup(map, id)){
+	if((f = *llookup(map, id)) != nil){
 		/* no decrement for ov because we're returning it */
 		ov = f->aux;
 		f->aux = v;
@@ -163,7 +163,7 @@ deletekey(Intmap *map, uint32_t id)
 	void *ov;
 
 	wlock(&map->RWLock);
-	if(f = *(lf = llookup(map, id))){
+	if((f = *(lf = llookup(map, id))) != nil){
 		ov = f->aux;
 		*lf = f->link;
 		free(f);

@@ -1341,10 +1341,10 @@ leafsort(uint32_t *leafcount, uint16_t *leafmap, int a, int n)
 		for(;;){
 			do
 				pi++;
-			while(pi < pn && (leafcount[pi] < leafcount[a] || leafcount[pi] == leafcount[a] && leafmap[pi] > leafmap[a]));
+			while(pi < pn && (leafcount[pi] < leafcount[a] || (leafcount[pi] == leafcount[a] && leafmap[pi] > leafmap[a])));
 			do
 				pj--;
-			while(pj > a && (leafcount[pj] > leafcount[a] || leafcount[pj] == leafcount[a] && leafmap[pj] < leafmap[a]));
+			while(pj > a && (leafcount[pj] > leafcount[a] || (leafcount[pj] == leafcount[a] && leafmap[pj] < leafmap[a])));
 			if(pj < pi)
 				break;
 			t = leafcount[pi];
