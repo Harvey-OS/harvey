@@ -9,10 +9,6 @@
  *   externing the hentry cache.
  *   - hash for each */
 
-#pragma once
-
-#include <ros/common.h>
-
 /*****************************************************************************/
 typedef struct hash_entry
 {

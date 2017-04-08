@@ -7,13 +7,9 @@
  *   - Merges the iterator code with the main hash table code, mostly to avoid
  *   externing the hentry cache. */
 
-#include <ros/common.h>
+#include <u.h>
+#include <libc.h>
 #include <hashtable.h>
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
-#include <slab.h>
-#include <kmalloc.h>
 
 /*
 Credit for primes table: Aaron Krowne
@@ -66,15 +62,15 @@ create_hashtable(size_t minsize,
     hashtable_t *h;
     size_t pindex, size = primes[0];
     /* Check requested hashtable isn't too large */
-    if (minsize > (1u << 30)) return NULL;
+    if (minsize > (1u << 30)) return nil;
     /* Enforce size as prime */
     for (pindex=0; pindex < prime_table_length; pindex++) {
         if (primes[pindex] > minsize) { size = primes[pindex]; break; }
     }
-    h = (hashtable_t *)kmalloc(sizeof(hashtable_t), 0);
-    if (NULL == h) return NULL; /*oom*/
-    h->table = (hash_entry_t **)kmalloc(sizeof(hash_entry_t*) * size, 0);
-    if (NULL == h->table) { kfree(h); return NULL; } /*oom*/
+    h = (hashtable_t *)mallocz(sizeof(hashtable_t), 1);
+    if (nil == h) return nil; /*oom*/
+    h->table = (hash_entry_t **)mallocz(sizeof(hash_entry_t*) * size, 1);
+    if (nil == h->table) { free(h); return nil; } /*oom*/
     memset(h->table, 0, size * sizeof(hash_entry_t *));
     h->tablelength  = size;
     h->primeindex   = pindex;
@@ -112,14 +108,14 @@ hashtable_expand(hashtable_t *h)
     if (h->primeindex == (prime_table_length - 1)) return 0;
     newsize = primes[++(h->primeindex)];
 
-    newtable = (hash_entry_t **)kmalloc(sizeof(hash_entry_t*) * newsize, 0);
-    if (NULL != newtable)
+    newtable = (hash_entry_t **)mallocz(sizeof(hash_entry_t*) * newsize, 1);
+    if (nil != newtable)
     {
         memset(newtable, 0, newsize * sizeof(hash_entry_t*));
         /* This algorithm is not 'stable'. ie. it reverses the list
          * when it transfers entries between the tables */
         for (i = 0; i < h->tablelength; i++) {
-            while (NULL != (e = h->table[i])) {
+            while (nil != (e = h->table[i])) {
                 h->table[i] = e->next;
                 index = indexFor(newsize,e->h);
                 e->next = newtable[index];
@@ -133,12 +129,12 @@ hashtable_expand(hashtable_t *h)
     else
     {
         newtable = (hash_entry_t**)
-                   krealloc(h->table, newsize*sizeof(hash_entry_t*), 0);
-        if (NULL == newtable) { (h->primeindex)--; return 0; }
+                   realloc(h->table, newsize*sizeof(hash_entry_t*), 0);
+        if (nil == newtable) { (h->primeindex)--; return 0; }
         h->table = newtable;
         memset(newtable[h->tablelength], 0, newsize - h->tablelength);
         for (i = 0; i < h->tablelength; i++) {
-            for (pE = &(newtable[i]), e = *pE; e != NULL; e = *pE) {
+            for (pE = &(newtable[i]), e = *pE; e != nil; e = *pE) {
                 index = indexFor(newsize,e->h);
                 if (index == i)
                 {
@@ -181,7 +177,7 @@ hashtable_insert(hashtable_t *h, void *k, void *v)
         hashtable_expand(h);
     }
     e = (hash_entry_t *)kmem_cache_alloc(hentry_cache, 0);
-    if (NULL == e) { --(h->entrycount); return 0; } /*oom*/
+    if (nil == e) { --(h->entrycount); return 0; } /*oom*/
     e->h = hash(h,k);
     index = indexFor(h->tablelength,e->h);
     e->k = k;
@@ -200,13 +196,13 @@ hashtable_search(hashtable_t *h, void *k)
     hashvalue = hash(h,k);
     index = indexFor(h->tablelength,hashvalue);
     e = h->table[index];
-    while (NULL != e)
+    while (nil != e)
     {
         /* Check hash value to short circuit heavier comparison */
         if ((hashvalue == e->h) && (h->eqfn(k, e->k))) return e->v;
         e = e->next;
     }
-    return NULL;
+    return nil;
 }
 
 /*****************************************************************************/
@@ -225,7 +221,7 @@ hashtable_remove(hashtable_t *h, void *k)
     index = indexFor(h->tablelength,hash(h,k));
     pE = &(h->table[index]);
     e = *pE;
-    while (NULL != e)
+    while (nil != e)
     {
         /* Check hash value to short circuit heavier comparison */
         if ((hashvalue == e->h) && (h->eqfn(k, e->k)))
@@ -239,7 +235,7 @@ hashtable_remove(hashtable_t *h, void *k)
         pE = &(e->next);
         e = e->next;
     }
-    return NULL;
+    return nil;
 }
 
 /*****************************************************************************/
@@ -248,14 +244,14 @@ void
 hashtable_destroy(hashtable_t *h)
 {
 	if (hashtable_count(h))
-		warn("Destroying a non-empty hashtable, clean up after yourself!\n");
+		print("Destroying a non-empty hashtable, clean up after yourself!\n");
 
     size_t i;
     hash_entry_t *e, *f;
     hash_entry_t **table = h->table;
 	for (i = 0; i < h->tablelength; i++) {
 		e = table[i];
-		while (NULL != e) {
+		while (nil != e) {
 			f = e;
 			e = e->next;
 			kmem_cache_free(hentry_cache, f);
@@ -276,18 +272,18 @@ hashtable_iterator(hashtable_t *h)
 {
     size_t i, tablelength;
     hashtable_itr_t *itr = (hashtable_itr_t *)
-        kmalloc(sizeof(hashtable_itr_t), 0);
-    if (NULL == itr) return NULL;
+	    mallocz(sizeof(hashtable_itr_t), 1);
+    if (nil == itr) return nil;
     itr->h = h;
-    itr->e = NULL;
-    itr->parent = NULL;
+    itr->e = nil;
+    itr->parent = nil;
     tablelength = h->tablelength;
     itr->index = tablelength;
     if (0 == h->entrycount) return itr;
 
     for (i = 0; i < tablelength; i++)
     {
-        if (NULL != h->table[i])
+        if (nil != h->table[i])
         {
             itr->e = h->table[i];
             itr->index = i;
@@ -296,7 +292,7 @@ hashtable_iterator(hashtable_t *h)
     }
     return itr;
 }
-
+#if 0
 /*****************************************************************************/
 /* key      - return the key of the (key,value) pair at the current position */
 /* value    - return the value of the (key,value) pair at the current position */
@@ -308,7 +304,7 @@ hashtable_iterator_key(hashtable_itr_t *i)
 void *
 hashtable_iterator_value(hashtable_itr_t *i)
 { return i->e->v; }
-
+#endif
 /*****************************************************************************/
 /* advance - advance the iterator to the next element
  *           returns zero if advanced to end of table */
@@ -319,29 +315,29 @@ hashtable_iterator_advance(hashtable_itr_t *itr)
     size_t j,tablelength;
     hash_entry_t **table;
     hash_entry_t *next;
-    if (NULL == itr->e) return 0; /* stupidity check */
+    if (nil == itr->e) return 0; /* stupidity check */
 
     next = itr->e->next;
-    if (NULL != next)
+    if (nil != next)
     {
         itr->parent = itr->e;
         itr->e = next;
         return -1;
     }
     tablelength = itr->h->tablelength;
-    itr->parent = NULL;
+    itr->parent = nil;
     if (tablelength <= (j = ++(itr->index)))
     {
-        itr->e = NULL;
+        itr->e = nil;
         return 0;
     }
     table = itr->h->table;
-    while (NULL == (next = table[j]))
+    while (nil == (next = table[j]))
     {
         if (++j >= tablelength)
         {
             itr->index = tablelength;
-            itr->e = NULL;
+            itr->e = nil;
             return 0;
         }
     }
@@ -365,7 +361,7 @@ hashtable_iterator_remove(hashtable_itr_t *itr)
     ssize_t ret;
 
     /* Do the removal */
-    if (NULL == (itr->parent))
+    if (nil == (itr->parent))
     {
         /* element is head of a chain */
         itr->h->table[itr->index] = itr->e->next;
@@ -397,8 +393,8 @@ hashtable_iterator_search(hashtable_itr_t *itr,
     index = indexFor(h->tablelength,hashvalue);
 
     e = h->table[index];
-    parent = NULL;
-    while (NULL != e)
+    parent = nil;
+    while (nil != e)
     {
         /* Check hash value to short circuit heavier comparison */
         if ((hashvalue == e->h) && (h->eqfn(k, e->k)))
