@@ -10,24 +10,23 @@
 /*
  *	Definitions needed for accessing ELF headers
  */
-#ifdef HARVEY32
 typedef struct {
-	unsigned char	ident[16];	/* ident bytes */
-	unsigned short	type;	/* file type */
-	unsigned short	machine;	/* target machine */
-	int	version;	/* file version */
-	uint32_t	elfentry;	/* start address */
-	uint32_t	phoff;		/* phdr file offset */
-	uint32_t	shoff;		/* shdr file offset */
-	int	flags;		/* file flags */
-	unsigned short	ehsize;		/* sizeof ehdr */
-	unsigned short	phentsize;	/* sizeof phdr */
-	unsigned short	phnum;		/* number phdrs */
-	unsigned short	shentsize;	/* sizeof shdr */
-	unsigned short	shnum;		/* number shdrs */
-	unsigned short	shstrndx;	/* shdr string index */
-} Ehdr;
-#endif
+	uint8_t		ident[16];	/* ident bytes */
+	uint16_t	type;		/* file type */
+	uint16_t	machine;	/* target machine */
+	uint32_t	version;	/* file version */
+	uint64_t	elfentry;	/* start address */
+	uint64_t	phoff;		/* phdr file offset */
+	uint64_t	shoff;		/* shdr file offset */
+	uint32_t	flags;		/* file flags */
+	uint16_t	ehsize;		/* sizeof ehdr */
+	uint16_t	phentsize;	/* sizeof phdr */
+	uint16_t	phnum;		/* number phdrs */
+	uint16_t	shentsize;	/* sizeof shdr */
+	uint16_t	shnum;		/* number shdrs */
+	uint16_t	shstrndx;	/* shdr string index */
+} E64hdr;
+
 typedef struct {
 	int	type;		/* entry type */
 	uint32_t	offset;		/* file offset */
@@ -49,26 +48,6 @@ typedef struct {
 	uint64_t	memsz;		/* memory size */
 	uint64_t	align;		/* memory/file alignment */
 } P64hdr;
-
-typedef P64hdr ProgHdr;
-
-typedef struct {
-	uint8_t		ident[16];	/* ident bytes */
-	uint16_t	type;		/* file type */
-	uint16_t	machine;	/* target machine */
-	uint32_t	version;	/* file version */
-	uint64_t	elfentry;	/* start address */
-	uint64_t	phoff;		/* phdr file offset */
-	uint64_t	shoff;		/* shdr file offset */
-	uint32_t	flags;		/* file flags */
-	uint16_t	ehsize;		/* sizeof ehdr */
-	uint16_t	phentsize;	/* sizeof phdr */
-	uint16_t	phnum;		/* number phdrs */
-	uint16_t	shentsize;	/* sizeof shdr */
-	uint16_t	shnum;		/* number shdrs */
-	uint16_t	shstrndx;	/* shdr string index */
-	P64hdr          *ph;
-} E64hdr;
 
 typedef struct {
 	uint32_t	name;		/* section name */
