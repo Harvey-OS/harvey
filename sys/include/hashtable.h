@@ -12,19 +12,19 @@
 /*****************************************************************************/
 typedef struct hash_entry
 {
-    void *k, *v;
-    size_t h;
-    struct hash_entry *next;
+	void *k, *v;
+	size_t h;
+	struct hash_entry *next;
 } hash_entry_t;
 
 typedef struct hashtable {
-    size_t tablelength;
-    hash_entry_t **table;
-    size_t entrycount;
-    size_t loadlimit;
-    size_t primeindex;
-    size_t (*hashfn) (void *k);
-    ssize_t (*eqfn) (void *k1, void *k2);
+	size_t tablelength;
+	hash_entry_t **table;
+	size_t entrycount;
+	size_t loadlimit;
+	size_t primeindex;
+	size_t (*hashfn) (void *k);
+	ssize_t (*eqfn) (void *k1, void *k2);
 } hashtable_t;
 
 static inline size_t indexFor(unsigned int tablelength, unsigned int hashvalue)
@@ -135,11 +135,11 @@ create_hashtable(size_t minsize,
 ssize_t
 hashtable_insert(hashtable_t *h, void *k, void *v);
 
-#define DEFINE_HASHTABLE_INSERT(fnname, keytype, valuetype) \
-ssize_t fnname (hashtable_t *h, keytype *k, valuetype *v) \
-{ \
-    return hashtable_insert(h,k,v); \
-}
+#define DEFINE_HASHTABLE_INSERT(fnname, keytype, valuetype)		\
+	ssize_t fnname (hashtable_t *h, keytype *k, valuetype *v)	\
+	{								\
+		return hashtable_insert(h,k,v);				\
+	}
 
 /*****************************************************************************
  * hashtable_search
@@ -153,11 +153,11 @@ ssize_t fnname (hashtable_t *h, keytype *k, valuetype *v) \
 void *
 hashtable_search(hashtable_t *h, void *k);
 
-#define DEFINE_HASHTABLE_SEARCH(fnname, keytype, valuetype) \
-valuetype * fnname (hashtable_t *h, keytype *k) \
-{ \
-    return (valuetype *) (hashtable_search(h,k)); \
-}
+#define DEFINE_HASHTABLE_SEARCH(fnname, keytype, valuetype)	\
+	valuetype * fnname (hashtable_t *h, keytype *k)		\
+	{							\
+		return (valuetype *) (hashtable_search(h,k));	\
+	}
 
 /*****************************************************************************
  * hashtable_remove
@@ -173,11 +173,11 @@ valuetype * fnname (hashtable_t *h, keytype *k) \
 void * /* returns value */
 hashtable_remove(hashtable_t *h, void *k);
 
-#define DEFINE_HASHTABLE_REMOVE(fnname, keytype, valuetype) \
-valuetype * fnname (hashtable_t *h, keytype *k) \
-{ \
-    return (valuetype *) (hashtable_remove(h,k)); \
-}
+#define DEFINE_HASHTABLE_REMOVE(fnname, keytype, valuetype)	\
+	valuetype * fnname (hashtable_t *h, keytype *k)		\
+	{							\
+		return (valuetype *) (hashtable_remove(h,k));	\
+	}
 
 
 /*****************************************************************************
@@ -214,10 +214,10 @@ hashtable_destroy(hashtable_t *h);
 /* This struct is only concrete here to allow the inlining of two of the
  * accessor functions. */
 typedef struct hashtable_itr {
-    hashtable_t *h;
-    hash_entry_t *e;
-    hash_entry_t *parent;
-    size_t index;
+	hashtable_t *h;
+	hash_entry_t *e;
+	hash_entry_t *parent;
+	size_t index;
 } hashtable_itr_t;
 
 /*****************************************************************************/
@@ -236,7 +236,7 @@ hashtable_iterator(hashtable_t *h);
 extern inline void *
 hashtable_iterator_key(hashtable_itr_t *i)
 {
-    return i->e->k;
+	return i->e->k;
 }
 
 /*****************************************************************************/
@@ -247,7 +247,7 @@ hashtable_iterator_key(hashtable_itr_t *i)
 extern inline void *
 hashtable_iterator_value(hashtable_itr_t *i)
 {
-    return i->e->v;
+	return i->e->v;
 }
 
 /*****************************************************************************/
@@ -275,18 +275,18 @@ ssize_t
 hashtable_iterator_search(hashtable_itr_t *itr,
                           hashtable_t *h, void *k);
 
-#define DEFINE_HASHTABLE_ITERATOR_SEARCH(fnname, keytype) \
-ssize_t fnname (hashtable_itr_t *i, hashtable_t *h, keytype *k) \
-{ \
-    return (hashtable_iterator_search(i,h,k)); \
-}
+#define DEFINE_HASHTABLE_ITERATOR_SEARCH(fnname, keytype)		\
+	ssize_t fnname (hashtable_itr_t *i, hashtable_t *h, keytype *k) \
+	{								\
+		return (hashtable_iterator_search(i,h,k));		\
+	}
 
 /* Runs func on each member of the hash table */
 void hash_for_each(struct hashtable *hash, void func(void *, void *),
-				   void *opaque);
+		   void *opaque);
 /* Same, but removes the item too */
 void hash_for_each_remove(struct hashtable *hash, void func(void *, void *),
-						  void *opaque);
+			  void *opaque);
 
 /*
  * Copyright (c) 2002, 2004, Christopher Clark
@@ -319,4 +319,4 @@ void hash_for_each_remove(struct hashtable *hash, void func(void *, void *),
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
