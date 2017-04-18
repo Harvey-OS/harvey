@@ -564,6 +564,8 @@
   static Bool
   New_Profile( RAS_ARGS TStates  aState )
   {
+    uint64_t cp = (uint64_t)ras.cProfile;
+
     if ( !ras.fProfile )
     {
       ras.cProfile  = (PProfile)ras.top;
@@ -581,12 +583,12 @@
     {
     case Ascending_State:
       ras.cProfile->flow = Flow_Up;
-      FT_TRACE6(( "New ascending profile = %lx\n", (int32_t)ras.cProfile ));
+      FT_TRACE6(( "New ascending profile = %lx\n", (int32_t)cp ));
       break;
 
     case Descending_State:
       ras.cProfile->flow = Flow_Down;
-      FT_TRACE6(( "New descending profile = %lx\n", (int32_t)ras.cProfile ));
+      FT_TRACE6(( "New descending profile = %lx\n", (int32_t)cp ));
       break;
 
     default:
@@ -628,6 +630,7 @@
   {
     Long      h;
     PProfile  oldProfile;
+    uint64_t cp = (uint64_t)ras.cProfile;;
 
 
     h = (Long)( ras.top - ras.cProfile->offset );
@@ -642,7 +645,7 @@
     if ( h > 0 )
     {
       FT_TRACE6(( "Ending profile %lx, start = %ld, height = %ld\n",
-                  (int32_t)ras.cProfile, ras.cProfile->start, h ));
+                  (int32_t)cp, ras.cProfile->start, h ));
 
       oldProfile           = ras.cProfile;
       ras.cProfile->height = h;

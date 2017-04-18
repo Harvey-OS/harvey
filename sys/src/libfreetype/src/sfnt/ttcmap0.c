@@ -1022,6 +1022,8 @@
     start  = TT_NEXT_USHORT( p );
     count  = TT_NEXT_USHORT( p );
 
+    (void)start;
+
     if ( table + length > valid->limit || length < 10 + count * 2 )
       FT_INVALID_TOO_SHORT;
 
@@ -1401,6 +1403,8 @@
     start  = TT_NEXT_ULONG( p );
     count  = TT_NEXT_ULONG( p );
 
+    (void)start;
+
     if ( table + length > valid->limit || length < 20 + count * 2 )
       FT_INVALID_TOO_SHORT;
 
@@ -1446,7 +1450,6 @@
                        FT_UInt32  *pchar_code )
   {
     FT_Byte*   table     = cmap->data;
-    FT_UInt32  result    = 0;
     FT_UInt32  char_code = *pchar_code + 1;
     FT_UInt    gindex    = 0;
     FT_Byte*   p         = table + 12;
@@ -1466,7 +1469,6 @@
       gindex = TT_NEXT_USHORT( p );
       if ( gindex != 0 )
       {
-        result = char_code;
         break;
       }
       char_code++;

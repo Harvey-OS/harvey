@@ -190,6 +190,8 @@
 
       if ( offset + 12 + num_tables*16 > stream->size )
         goto Bad_Format;
+
+      (void)format_tag;
     }
     else if ( FT_STREAM_SEEK( offset + 12 ) )
       goto Bad_Format;
