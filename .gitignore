@@ -7,16 +7,24 @@
 386/pbslba
 386/pbsraw
 
+aarch64/9*
+aarch64/bin
+aarch64/init
+aarch64/lib
+
 amd64/9*
 amd64/bin
 amd64/init
 amd64/lib
+
 riscv/9*
 riscv/bin
 riscv/init
 riscv/lib
 
+acme/bin/aarch64
 acme/bin/amd64
+acme/bin/riscv
 
 sys/log
 
