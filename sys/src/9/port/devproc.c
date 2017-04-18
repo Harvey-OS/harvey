@@ -1928,7 +1928,7 @@ procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 		if(offset+n >= s->top)
 			n = s->top-offset;
 
-		if(!read && (s->type&SG_TYPE) == SG_TEXT)
+		if(!read && ((s->type&SG_TYPE) == SG_TEXT || (s->type&SG_TYPE) == SG_LOAD))
 			s = txt2data(p, s);
 
 		s->steal++;
@@ -1988,7 +1988,7 @@ txt2data(Proc *p, Segment *s)
 	int i;
 	Segment *ps;
 
-	ps = newseg(SG_DATA, s->base, s->size);
+	ps = newseg(SG_DATA|SG_READ|SG_WRITE|SG_EXEC, s->base, s->size);
 	ps->image = s->image;
 	incref(&ps->image->r);
 	ps->ldseg = s->ldseg;
@@ -2015,7 +2015,7 @@ data2txt(Segment *s)
 {
 	Segment *ps;
 
-	ps = newseg(SG_TEXT, s->base, s->size);
+	ps = newseg(SG_TEXT|SG_READ|SG_EXEC, s->base, s->size);
 	ps->image = s->image;
 	incref(&ps->image->r);
 	ps->ldseg = s->ldseg;
