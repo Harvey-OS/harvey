@@ -1398,14 +1398,11 @@
     FT_Int   n;         /* index of contour in outline     */
     FT_UInt  first;     /* index of first point in contour */
     FT_Int   tag;       /* current point's state           */
-    FT_Int   in_path;
 
     if ( !outline || !stroker )
       return FT_Err_Invalid_Argument;
 
     first = 0;
-
-    in_path = 0;
 
     for ( n = 0; n < outline->n_contours; n++ )
     {
@@ -1455,8 +1452,6 @@
       error = FT_Stroker_BeginSubPath( stroker, &v_start, opened );
       if ( error )
         goto Exit;
-
-      in_path = 1;
 
       while ( point < limit )
       {
