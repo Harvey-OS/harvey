@@ -130,7 +130,6 @@
     FT_Error          error = 0;
     FT_LruNode        node, *pnode;
     FT_LruList_Class  clazz;
-    FT_LruNode*       plast;
     FT_LruNode        result = NULL;
     FT_Memory         memory;
 
@@ -139,7 +138,6 @@
       return FTC_Err_Invalid_Argument;
 
     pnode  = &list->nodes;
-    plast  = pnode;
     node   = NULL;
     clazz  = list->clazz;
     memory = list->memory;
@@ -155,7 +153,6 @@
         if ( clazz->node_compare( node, key, list->data ) )
           break;
 
-        plast = pnode;
         pnode = &(*pnode)->next;
       }
     }
@@ -170,7 +167,6 @@
         if ( node->key == key )
           break;
 
-        plast = pnode;
         pnode = &(*pnode)->next;
       }
     }

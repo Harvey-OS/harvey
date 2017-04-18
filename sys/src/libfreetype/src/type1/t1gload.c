@@ -269,6 +269,8 @@
       goto Exit;
     glyph_data_loaded = 1;
 
+    FT_UNUSED( glyph_data_loaded );
+
     font_matrix = decoder.font_matrix;
     font_offset = decoder.font_offset;
 
