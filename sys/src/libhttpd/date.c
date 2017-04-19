@@ -50,7 +50,7 @@ dtolower(int c)
 static int
 disalpha(int c)
 {
-	return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z';
+	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
 static int
@@ -162,7 +162,7 @@ hdate2sec(char *date)
 		 * YYYY
 		 */
 		tm.year = datenum(&date);
-		if(tm.year < 70 || tm.year > 99 && tm.year < 1970)
+		if(tm.year < 70 || (tm.year > 99 && tm.year < 1970))
 			return 0;
 		if(tm.year >= 1970)
 			tm.year -= 1900;
@@ -178,7 +178,7 @@ hdate2sec(char *date)
 		if(tm.mon < 0 || tm.mon >= 12)
 			return 0;
 		tm.year = datenum(&date);
-		if(tm.year < 70 || tm.year > 99 && tm.year < 1970)
+		if(tm.year < 70 || (tm.year > 99 && tm.year < 1970))
 			return 0;
 		if(tm.year >= 1970)
 			tm.year -= 1900;
