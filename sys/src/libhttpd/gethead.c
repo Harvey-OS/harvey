@@ -27,7 +27,7 @@ hgethead(HConnect *c, int many)
 	for(;;){
 		s = (char*)hin->pos;
 		pp = s;
-		while(p = memchr(pp, '\n', (char*)hin->stop - pp)){
+		while((p = memchr(pp, '\n', (char*)hin->stop - pp)) != nil){
 			if(!many || p == pp || (p == pp + 1 && *pp == '\r')){
 				pp = p + 1;
 				break;

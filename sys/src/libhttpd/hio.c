@@ -18,7 +18,7 @@ static int _hflush(Hio*, int, int);
 int
 hinit(Hio *h, int fd, int mode)
 {
-	if(fd == -1 || mode != Hread && mode != Hwrite)
+	if(fd == -1 || (mode != Hread && mode != Hwrite))
 		return -1;
 	h->hh = nil;
 	h->fd = fd;
@@ -88,8 +88,8 @@ hreadbuf(Hio *h, void *vsave)
 	int c, in, cpy, dpos;
 
 	save = vsave;
-	if(save && (save < h->start || save > h->stop)
-	|| h->state != Hread && h->state != Hend){
+	if((save && (save < h->start || save > h->stop))
+	|| (h->state != Hread && h->state != Hend)){
 		h->state = Herr;
 		h->pos = h->stop;
 		return nil;
@@ -298,7 +298,7 @@ hload(Hio *h, char *buf)
 
 	t = h->start;
 	stop = t + Hsize;
-	for(p = (uint8_t*)&buf[2]; c = *p; p++){
+	for(p = (uint8_t*)&buf[2]; (c = *p) != '\0'; p++){
 		if(c == 0x80){
 			if(p[1] != 0x80)
 				c = 0;
