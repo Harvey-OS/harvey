@@ -21,7 +21,7 @@ hlower(char *p)
 	if(p == nil)
 		return p;
 
-	for(x = p; c = *x; x++)
+	for(x = p; (c = *x) != '\0'; x++)
 		if(c >= 'A' && c <= 'Z')
 			*x -= 'A' - 'a';
 	return p;

@@ -154,13 +154,14 @@ parseuri(HConnect *c, char *uri)
 
 	urihost = nil;
 	ss.s1 = ss.s2 = nil;
-	if(uri[0] != '/')
+	if(uri[0] != '/') {
 		if(cistrncmp(uri, "http://", 7) == 0)
 			uri += 5;		/* skip http: */
 		else if (cistrncmp(uri, "https://", 8) == 0)
 			uri += 6;		/* skip https: */
 		else
 			return ss;
+	}
 
 	/*
 	 * anything starting with // is a host name or number

@@ -346,7 +346,7 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
 			 */
 			if(lex(h) == Word){
 				s = hstrdup(h->c, h->wordval);
-				if(lex(h) != '=' || lex(h) != Word && h->tok != QString)
+				if(lex(h) != '=' || (lex(h) != Word && h->tok != QString))
 					return head;
 				v = strtod(h->wordval, nil);
 				if(strcmp(s, "q") == 0)
@@ -1037,7 +1037,7 @@ digtoul(char *s, char **e)
 			break;
 		s++;
 		c -= '0';
-		if(v > UlongMax/10 || v == UlongMax/10 && c >= UlongMax%10)
+		if(v > UlongMax/10 || (v == UlongMax/10 && c >= UlongMax%10))
 			ovfl = 1;
 		v = v * 10 + c;
 	}
@@ -1052,7 +1052,7 @@ digtoul(char *s, char **e)
 int
 http11(HConnect *c)
 {
-	return c->req.vermaj > 1 || c->req.vermaj == 1 && c->req.vermin > 0;
+	return c->req.vermaj > 1 || (c->req.vermaj == 1 && c->req.vermin > 0);
 }
 
 char*

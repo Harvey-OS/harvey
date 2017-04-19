@@ -24,7 +24,7 @@ httpunesc(HConnect *cc, char *s)
 	Htmlesc *e;
 
 	v = halloc(cc, UTFmax*strlen(s) + 1);
-	for(t = v; c = *s;){
+	for(t = v; (c = *s) != '\0';){
 		if(c == '&'){
 			if(s[1] == '#' && s[2] && s[3] && s[4] && s[5] == ';'){
 				c = atoi(s+2);

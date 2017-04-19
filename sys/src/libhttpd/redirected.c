@@ -67,12 +67,13 @@ hredirected(HConnect *c, char *how, char *uri)
 	if(strcmp(c->req.meth, "HEAD") != 0)
 		hwrite(hout, c->xferbuf, n);
 
-	if(c->replog)
+	if(c->replog) {
 		if(host == nil || host[0] == 0)
 			c->replog(c, "Reply: %s\nRedirect: %U\n", how, uri);
 		else
 			c->replog(c, "Reply: %s\nRedirect: %s://%U%s%U\n",
 				how, scheme, host, sayport, uri);
+	}
 	return hflush(hout);
 }
 
