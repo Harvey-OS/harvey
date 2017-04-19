@@ -22,7 +22,7 @@ hurlunesc(HConnect *cc, char *s)
 
 	/* unescape */
 	u = halloc(cc, strlen(s)+1);
-	for(t = u; c = *s; s++){
+	for(t = u; (c = *s) != '\0'; s++){
 		if(c == '%'){
 			n = s[1];
 			if(n >= '0' && n <= '9')
