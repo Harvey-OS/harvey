@@ -998,9 +998,7 @@ hcomp(Hist *hp, int16_t *sp)
 	s = sp;
 	if (*s == 0)
 		return 0;
-	for (i = 1; j = (cp[i]<<8)|cp[i+1]; i += 2) {
-		if(j == 0)
-			break;
+	for (i = 1; (j = (cp[i]<<8)|cp[i+1]) != 0; i += 2) {
 		if(*s == j)
 			s++;
 		else
@@ -1122,7 +1120,7 @@ fileelem(Sym **fp, uint8_t *cp, char *buf, int n)
 
 	bp = buf;
 	end = buf+n-1;
-	for(i = 1; j = (cp[i]<<8)|cp[i+1]; i+=2){
+	for(i = 1; (j = (cp[i]<<8)|cp[i+1]) != 0; i+=2){
 		sym = fp[j];
 		if (sym == nil)
 			break;
