@@ -212,7 +212,7 @@ ieeedftos(char *buf, int n, uint32_t h, uint32_t l)
 	fr /= 1L<<16;
 	fr += (l>>16) & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (h & (1L<<20)-1L) | (1L<<20);
+	fr += (h & ((1L<<20)-1L)) | (1L<<20);
 	fr /= 1L<<21;
 	fr = ldexp(fr, exp);
 	return snprint(buf, n, "%.18g", fr);
