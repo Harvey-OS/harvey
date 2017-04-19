@@ -31,6 +31,9 @@
 #include <u.h>
 #include <libc.h>
 #include <ureg.h>
+#include <bio.h>
+#include <mach.h>
+
 #include "debug_core.h"
 #include "gdb.h"
 
@@ -66,13 +69,16 @@ int active = -1;
 char *
 arch_set_breakpoint(struct state *ks, struct bkpt *bpt)
 {
-	char *err;
+	//char *err;
 
-	err = rmem(bpt->saved_instr, ks->threadid, bpt->bpt_addr, bpsize);
-	if (err)
-		return err;
-	err = wmem(bpt->bpt_addr, ks->threadid, breakpoint, bpsize);
-	return err;
+	//err = rmem(bpt->saved_instr, ks->threadid, bpt->bpt_addr, bpsize);
+	//if (err)
+	//	return err;
+
+	setbp(bpt->bpt_addr, bpt->saved_instr);
+	//err = wmem(bpt->bpt_addr, ks->threadid, machdata->bpinst, machdata->bpsize);
+	//return err;
+	return nil;
 }
 
 char *

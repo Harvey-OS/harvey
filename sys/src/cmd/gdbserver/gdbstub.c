@@ -32,6 +32,8 @@
 #include <libc.h>
 #include <ureg.h>
 #include <ctype.h>
+#include <bio.h>
+#include <mach.h>
 
 #include "debug_core.h"
 #include "gdb.h"
@@ -52,6 +54,7 @@ int bpsize;
 int remotefd;
 int debug = 0;
 int attached_to_existing_pid = 0;
+Map* cormap;
 
 /* support crap */
 /*
@@ -134,18 +137,125 @@ p64(char *dest, uint64_t c)
 }
 
 void
+read_pid_text(int pid)
+{
+	char buf[100];
+	sprint(buf, "/proc/%d/text", pid);
+
+	// TODO close textfid?
+	int textfid = open(buf, OREAD);
+	if (textfid < 0){
+		syslog(0, "gdbserver", "couldn't open %s: %r", buf);
+		return;
+	}
+
+	Fhdr fhdr;
+	if (!crackhdr(textfid, &fhdr)) {
+		syslog(0, "gdbserver", "couldn't decode file header: %r");
+		return;
+	}
+
+	Map* symmap = loadmap(0, textfid, &fhdr);
+	if (symmap == 0) {
+		syslog(0, "gdbserver", "loadmap failed: %r");
+		return;
+	}
+
+	if (syminit(textfid, &fhdr) < 0) {
+		syslog(0, "gdbserver", "syminit failed: %r");
+		return;
+	}
+
+	machbytype(fhdr.type);
+
+	// TODO close memfid
+	snprint(buf, sizeof(buf), "/proc/%d/mem", pid);
+	int memfid = open(buf, ORDWR);
+	if (memfid < 0) {
+		syslog(0, "gdbserver", "couldn't open %s: %r", buf);
+		return;
+	}
+
+	cormap = attachproc(pid, 0, memfid, &fhdr);
+	if (cormap == 0) {
+		syslog(0, "gdbserver", "couldn't attachproc: %r");
+		return;
+	}
+
+	int i = findseg(cormap, "text");
+	if (i > 0) {
+		cormap->seg[i].name = "*text";
+	}
+
+	i = findseg(cormap, "data");
+	if (i > 0) {
+		cormap->seg[i].name = "*data";
+	}
+
+	syslog(0, "gdbserver", "attachproc succeeded for %s", buf);
+}
+
+void
+setbp(void* addr, void* saved_instr)
+{
+	syslog(0, "gdbserver", "setting breakpoint at %p", addr);
+
+	if (get1(cormap, addr, saved_instr, machdata->bpsize) < 0) {
+		syslog(0, "gdbserver", "setbp: get1 failed: %r");
+		return;
+	}
+
+	if (put1(cormap, addr, machdata->bpinst, machdata->bpsize) < 0) {
+		syslog(0, "gdbserver", "setbp: put1 failed: %r");
+		return;
+	}
+
+	syslog(0, "gdbserver", "successfully set breakpoint");
+}
+
+void
 sendctl(int pid, char* message)
 {
-    char buf[100];
-    int ctlfd;
+	char buf[100];
+	int ctlfd;
 
-    sprint(buf, "/proc/%d/ctl", pid);
-    print("%s\n", buf);
-    ctlfd = open(buf, OWRITE);
-    if (ctlfd >= 0) {
-        write(ctlfd, message, strlen(message));
-        close(ctlfd);
-    }
+	sprint(buf, "/proc/%d/ctl", pid);
+	ctlfd = open(buf, OWRITE);
+	if (ctlfd >= 0) {
+		write(ctlfd, message, strlen(message));
+		close(ctlfd);
+		syslog(0, "gdbserver", "sent '%s' to %s\n", message, buf);
+	}
+}
+
+static char *
+getstatus(int pid)
+{
+	int fd, n;
+	char *argv[16], buf[64];
+	static char status[128];
+
+	snprint(buf, sizeof(buf), "/proc/%d/status", pid);
+	fd = open(buf, OREAD);
+	if(fd < 0) {
+		syslog(0, "gdbserver", "Failed to open %s: %r", buf);
+		return nil;
+	}
+
+	n = read(fd, status, sizeof(status)-1);
+	close(fd);
+	if(n <= 0) {
+		syslog(0, "gdbserver", "Failed to read %s: %r", buf);
+		return nil;
+	}
+	status[n] = '\0';
+
+	if(tokenize(status, argv, nelem(argv)-1) < 3) {
+		syslog(0, "gdbserver", "Failed to tokenize %s: %r", buf);
+		return nil;
+	}
+
+	return argv[2];
 }
 
 static void
@@ -736,7 +846,8 @@ gdb_cmd_break(struct state *ks)
 	unsigned long length;
 	char *error = nil;
 
-	if (*bpt_type >= '0') {
+	// We only support software breakpoints
+	if (*bpt_type >= '1') {
 		return;
 	}
 
@@ -916,10 +1027,25 @@ gdb_serial_stub(struct state *ks, int port)
 				if (tmp == 0)
 					break;
 				/* Fall through on tmp < 0 */
+
 			case 'c':	/* Continue packet */
 			case 's':	/* Single step packet */
+				if (strcmp("Stopped", getstatus(ks->threadid)) != 0) {
+					syslog(0, "gdbserver", "Process not stopped - can't activate breakpoints\n");
+					// Not really sure what to reply with here
+					break;
+				}
+
+				syslog(0, "gdbserver", "Process stopped - activating breakpoints\n");
 				dbg_activate_sw_breakpoints(ks);
-				/* Fall through to default processing */
+
+				// Block for the process to stop or receive a note
+				sendctl(ks->threadid, "startstop");
+
+				// Send code indicating we've hit a breakpoint
+				strcpy((char *)remcom_out_buffer, "S05");
+				break;
+
 			default:
 default_handle:
 				if (remcom_in_buffer[0] == 'v') {
@@ -927,7 +1053,7 @@ default_handle:
 					// v packets.
 					strcpy((char *)remcom_out_buffer, "");
 				}
-				else if (error >= 0 || remcom_in_buffer[0] == 'D' ||
+				else if (error > 0 || remcom_in_buffer[0] == 'D' ||
 					remcom_in_buffer[0] == 'k') {
 					/*
 					* I have no idea what to do.
@@ -1049,6 +1175,7 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 		close(fd);
 		return errstring(Eio);
 	}
+
 	close(fd);
 	return nil;
 }
@@ -1095,6 +1222,8 @@ main(int argc, char **argv)
 	ks.threadid = atoi(pid);
 	// Set to 0 if we eventually support creating a new process
 	attached_to_existing_pid = 1;
+
+	read_pid_text(ks.threadid);
 
 	gdbinit();
 	gdb_serial_stub(&ks, atoi(port));
