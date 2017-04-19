@@ -62,7 +62,7 @@ struct	Obj		/* functions to handle each intermediate (.$O) file */
 
 static Obj	obj[] =
 {			/* functions to identify and parse each type of obj */
-	[Maxobjtype ]=	0, 0
+	[Maxobjtype ]=	{0, 0, 0},
 };
 
 struct	Symtab
@@ -275,11 +275,12 @@ objupdate(int id, int type)
 	Sym *s;
 
 	s = names[id];
-	if (s && s->name[0])
+	if (s && s->name[0]) {
 		if (s->type == 'U')
 			s->type = type;
 		else if (s->type == 'b')
 			s->type = tolower(type);
+	}
 }
 
 /*
