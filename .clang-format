@@ -13,6 +13,7 @@ AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: All
 AlwaysBreakAfterDefinitionReturnType: true
+AlwaysBreakAfterDefinitionReturnType: true
 AlwaysBreakTemplateDeclarations: false
 AlwaysBreakBeforeMultilineStrings: false
 BreakBeforeBinaryOperators: None
