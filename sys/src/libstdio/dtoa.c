@@ -31,7 +31,7 @@ static double private_mem[PRIVATE_mem], *pmem_next = private_mem;
 #define DBL_MAX_10_EXP	308
 #define DBL_MAX_EXP	1024
 #define FLT_RADIX	2
-#define Storeinc(a,b,c) (*a++ = b << 16 | c & 0xffff)
+#define Storeinc(a,b,c) (*a++ = ((b << 16) | (c & 0xffff)))
 
 /* Ten_pmax = floor(P*log(2)/log(5)) */
 /* Bletch = (highest power of 2 < DBL_MAX_10_EXP) / 16 */
@@ -120,7 +120,7 @@ Balloc(int k)
 	unsigned int	len;
 
 	ACQUIRE_DTOA_LOCK(0);
-	if (rv = freelist[k]) {
+	if ((rv = freelist[k]) != nil) {
 		freelist[k] = rv->next;
 	} else {
 		x = 1 << k;
@@ -298,7 +298,7 @@ mult(Bigint *a, Bigint *b)
 	xbe = xb + wb;
 	xc0 = c->x;
 	for (; xb < xbe; xb++, xc0++) {
-		if (y = *xb & 0xffff) {
+		if ((y = *xb & 0xffff) != 0) {
 			x = xa;
 			xc = xc0;
 			carry = 0;
@@ -311,7 +311,7 @@ mult(Bigint *a, Bigint *b)
 			} while (x < xae);
 			*xc = carry;
 		}
-		if (y = *xb >> 16) {
+		if ((y = (*xb >> 16)) != 0) {
 			x = xa;
 			xc = xc0;
 			carry = 0;
@@ -342,7 +342,7 @@ pow5mult(Bigint *b, int k)
 	static int	p05[3] = { 
 		5, 25, 125 	};
 
-	if (i = k & 3)
+	if ((i = (k & 3)) != 0)
 		b = multadd(b, p05[i-1], 0);
 
 	if (!(k >>= 2))
@@ -402,7 +402,7 @@ lshift(Bigint *b, int k)
 			*x1++ = *x << k | z;
 			z = *x++ >> k1;
 		} while (x < xe);
-		if (*x1 = z)
+		if ((*x1 = z) != 0)
 			++n1;
 	} else 
 		do
@@ -502,12 +502,12 @@ d2b(double d, int *e, int *bits)
 
 	uls = double2ulongs(d);
 	z = uls.hi & Frac_mask;
-	uls.hi &= 0x7fffffff;		/* clear sign bit, which we ignore */
+	uls.hi &= 0x7fffffff;			/* clear sign bit, which we ignore */
 	de = (int)(uls.hi >> Exp_shift);
 	z |= Exp_msk11;
-	if (y = uls.lo) {		/* assignment = */
-		if (k = lo0bits(&y)) {	/* assignment = */
-			x[0] = y | z << 32 - k;
+	if ((y = uls.lo) != 0) {		/* assignment = */
+		if ((k = lo0bits(&y)) != 0) {	/* assignment = */
+			x[0] = y | z << (32 - k);
 			z >>= k;
 		} else
 			x[0] = y;
@@ -629,7 +629,7 @@ nrv_alloc(char *s, char **rve, int n)
 	char	*rv, *t;
 
 	t = rv = rv_alloc(n);
-	while (*t = *s++) 
+	while ((*t = *s++) != 0)
 		t++;
 	if (rve)
 		*rve = t;
@@ -869,7 +869,7 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 					ds *= bigtens[i];
 				}
 			d /= ds;
-		} else if (j1 = -k) {
+		} else if ((j1 = -k) != 0) {
 			d *= tens[j1 & 0xf];
 			for (j = j1 >> 4; j; j >>= 1, i++)
 				if (j & 1) {
@@ -943,7 +943,7 @@ fast_failed:
 			*s++ = '0' + (int)L;
 			if (i == ilim) {
 				d += d;
-				if (d > ds || d == ds && L & 1) {
+				if (d > ds || (d == ds && L & 1)) {
 bump_up:
 					while (*--s == '9')
 						if (s == s0) {
@@ -1000,7 +1000,7 @@ bump_up:
 				Bfree(b);
 				b = b1;
 			}
-			if (j = b5 - m5)
+			if ((j = b5 - m5) != 0)
 				b = pow5mult(b, j);
 		} else
 			b = pow5mult(b, b5);
@@ -1029,7 +1029,7 @@ bump_up:
 	 * and for all and pass them and a shift to quorem, so it
 	 * can do shifts and ors to compute the numerator for q.
 	 */
-	if (i = ((s5 ? 32 - hi0bits(S->x[S->wds-1]) : 1) + s2) & 0x1f)
+	if ((i = ((s5 ? 32 - hi0bits(S->x[S->wds-1]) : 1) + s2) & 0x1f) != 0)
 		i = 32 - i;
 	if (i > 4) {
 		i -= 4;
@@ -1100,11 +1100,11 @@ one_digit:
 				*s++ = dig;
 				goto ret;
 			}
-			if (j < 0 || j == 0 && !mode && !(ulsd.lo & 1)) {
+			if (j < 0 || (j == 0 && !mode && !(ulsd.lo & 1))) {
 				if (j1 > 0) {
 					b = lshift(b, 1);
 					j1 = cmp(b, S);
-					if ((j1 > 0 || j1 == 0 && dig & 1)
+					if ((j1 > 0 || (j1 == 0 && dig & 1))
 					     && dig++ == '9')
 						goto round_9_up;
 				}
@@ -1143,7 +1143,7 @@ round_9_up:
 
 	b = lshift(b, 1);
 	j = cmp(b, S);
-	if (j > 0 || j == 0 && dig & 1) {
+	if (j > 0 || (j == 0 && dig & 1)) {
 roundoff:
 		while (*--s == '9')
 			if (s == s0) {

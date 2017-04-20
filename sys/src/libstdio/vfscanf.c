@@ -196,7 +196,7 @@ static int icvt_fixed(FILE *f, va_list *args,
 		}
 		break;
 	}
-	while('0'<=c && c<='9' || 'a'<=c && c<='f' || 'A'<=c && c<='F'){
+	while(('0'<=c && c<='9') || ('a'<=c && c<='f') || ('A'<=c && c<='F')){
 		dig='0'<=c && c<='9'?c-'0':'a'<=c && c<='f'?c-'a'+10:c-'A'+10;
 		if(dig>=base) break;
 		ndig++;
@@ -265,7 +265,7 @@ static int icvt_f(FILE *f, va_list *args, int store, int width, int type){
 		*s++=c;
 		wgetc(c, f, Done);
 	}
-	while('0'<=c && c<='9' || ndpt==0 && c=='.'){
+	while(('0'<=c && c<='9') || (ndpt==0 && c=='.')){
 		if(c=='.') ndpt++;
 		else ndig++;
 		*s++=c;
@@ -347,8 +347,8 @@ static int match(int c, const char *pat){
 	}
 	while(pat!=fmtp){
 		if(pat+2<fmtp && pat[1]=='-'){
-			if(pat[0]<=c && c<=pat[2]
-			|| pat[2]<=c && c<=pat[0])
+			if((pat[0]<=c && c<=pat[2])
+			|| (pat[2]<=c && c<=pat[0]))
 				return ok;
 			pat+=2;
 		}

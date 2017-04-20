@@ -42,10 +42,10 @@ struct Dirtab
 
 static Dirtab dirtab[] =
 {
-	[Qdir] =	"/",	DMDIR|0555,
-	[Qctl] =	"ctl",	0664,		/* nothing secret here */
-	[Qraw] =	"raw",	0640,
-	[Qdata] =	"data",	0640,
+	[Qdir] =	{"/",	 DMDIR|0555},
+	[Qctl] =	{"ctl",	 0664},		/* nothing secret here */
+	[Qraw] =	{"raw",	 0640},
+	[Qdata] =	{"data", 0640},
 };
 
 /*
@@ -262,11 +262,12 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 				memset(data->p + n, 0, left);
 		}
 		nio = n;
-		if(diskdebug)
+		if(diskdebug) {
 			if(n < 0)
 				fprint(2, "disk: data: %r\n");
 			else
 				fprint(2, "disk: data: %d bytes\n", n);
+		}
 		if(n <= 0)
 			if(data->write == 0)
 				unstall(ums->dev, ums->epin, Ein);
@@ -424,7 +425,7 @@ setup(Umsc *lun, char *data, int count, int64_t offset)
 	int32_t nb, lbsize, lbshift, lbmask;
 	uint64_t bno;
 
-	if(count < 0 || lun->ScsiReq.lbsize <= 0 && umscapacity(lun) < 0 ||
+	if(count < 0 || (lun->ScsiReq.lbsize <= 0 && umscapacity(lun) < 0) ||
 	    lun->ScsiReq.lbsize == 0)
 		return -1;
 	lbsize = lun->ScsiReq.lbsize;
