@@ -1,8 +1,7 @@
 {
 	"Libusb": {
 		"Cflags": [
-			"-fasm",
-			"-Werror"
+			"-fasm"
 		],
 		"Include": [
 			"/sys/src/lib.json"

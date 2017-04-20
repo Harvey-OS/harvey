@@ -9,12 +9,6 @@
 			"-g",
 			"-Wall",
 			"-W",
-			"-Wno-sign-compare",
-			"-Wno-missing-field-initializers",
-			"-Wno-unused-parameter",
-			"-Wno-missing-braces",
-			"-Wno-parentheses",
-			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/aarch64",
 			"-I", "/sys/src/9/port"
