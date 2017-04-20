@@ -161,11 +161,12 @@ cmp(const void *vs, const void *vt)
 	const Sym **s = (const Sym**)vs;
 	const Sym **t = (const Sym**)vt;
 
-	if(nflag)
+	if(nflag){
 		if((*s)->value < (*t)->value)
 			return -1;
 		else
 			return (*s)->value > (*t)->value;
+	}
 	return strcmp((*s)->name, (*t)->name);
 }
 /*

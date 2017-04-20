@@ -195,7 +195,7 @@ main(int argc, char **argv)
 		cflag++;
 		cmd[0] = '!';
 		cmd[1] = '\0';
-		while(p = ARGF()) {
+		while((p = ARGF()) != nil) {
 			strcat(cmd, " ");
 			strcat(cmd, p);
 		}
@@ -225,7 +225,7 @@ main(int argc, char **argv)
 		system = p;
 	}
 
-	if(err = rexcall(&data, system, srvname))
+	if((err = rexcall(&data, system, srvname)) != 0)
 		fatal(1, "%s: %s", err, system);
 
 	procsetname("%s", origargs);

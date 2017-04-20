@@ -41,9 +41,9 @@ struct Dirtab {
 };
 
 static Dirtab dirtab[] = {
-	[Qroot] =	"/",		DMDIR|0555,
-	[Qdata] =	"%s",		0660,
-	[Qctl] =	"%sctl",	0664,
+	[Qroot] =	{"/",		DMDIR|0555},
+	[Qdata] =	{"%s",		0660},
+	[Qctl] =	{"%sctl",	0664},
 };
 
 /* someday? static int sdebug; */
@@ -112,12 +112,13 @@ serialreset(Serial *ser)
 int
 serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 {
-	if(p != nil)
+	if(p != nil) {
 		dprint(2, "serial[%d], %s: %s, level %d\n", p->interfc,
 			p->name, err, ser->recover);
-	else
+	} else {
 		dprint(2, "serial[%s], global error, level %d\n",
 			ser->p[0].name, ser->recover);
+	}
 	ser->recover++;
 	if(strstr(err, "detached") != nil)
 		return -1;
