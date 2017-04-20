@@ -260,18 +260,54 @@ static uint8_t compressors[] = {
 	CompressionNull,
 };
 
+<<<<<<< HEAD
 static TlsConnection *tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
 				 int (*trace)(char*fmt, ...),
 				 PEMChain *chain);
 static TlsConnection *tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
 				 int (*trace)(char*fmt, ...));
+=======
+static Namedcurve namedcurves[] = {
+	{0x0017, secp256r1},
+	{0x0018, secp384r1},
+};
+
+static uint8_t pointformats[] = {
+	CompressionNull /* support of uncompressed point format is mandatory */
+};
+
+static struct {
+	DigestState* (*fun)(uint8_t*, uint32_t, uint8_t*, DigestState*);
+	int len;
+} hashfun[] = {
+/*	[0]  is reserved for MD5+SHA1 for < TLS1.2 */
+	[1]	{md5,		MD5dlen},
+	[2]	{sha1,		SHA1dlen},
+	[3]	{sha2_224,	SHA2_224dlen},
+	[4]	{sha2_256,	SHA2_256dlen},
+	[5]	{sha2_384,	SHA2_384dlen},
+	[6]	{sha2_512,	SHA2_512dlen},
+};
+
+// signature algorithms (only RSA and ECDSA at the moment)
+static int sigalgs[] = {
+	0x0603,		/* SHA512 ECDSA */
+	0x0503,		/* SHA384 ECDSA */
+	0x0403,		/* SHA256 ECDSA */
+	0x0203,		/* SHA1 ECDSA */
+
+	0x0601,		/* SHA512 RSA */
+	0x0501,		/* SHA384 RSA */
+	0x0401,		/* SHA256 RSA */
+	0x0201,		/* SHA1 RSA */
+};
 
 static void	msgClear(Msg *m);
 static char* msgPrint(char *buf, int n, Msg *m);
 static int	msgRecv(TlsConnection *c, Msg *m);
 static int	msgSend(TlsConnection *c, Msg *m, int act);
 static void	tlsError(TlsConnection *c, int err, char *msg, ...);
-#pragma	varargck argpos	tlsError 3
+//#pragma	varargck argpos	tlsError 3
 static int setVersion(TlsConnection *c, int version);
 static int finishedMatch(TlsConnection *c, Finished *f);
 static void tlsConnectionFree(TlsConnection *c);

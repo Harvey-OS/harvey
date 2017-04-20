@@ -20,7 +20,7 @@
 #include "ipconfig.h"
 #include "../icmp.h"
 
-#pragma varargck argpos ralog 1
+//#pragma varargck argpos ralog 1
 
 #define RALOG "v6routeradv"
 

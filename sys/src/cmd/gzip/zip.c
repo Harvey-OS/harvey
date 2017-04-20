@@ -30,7 +30,7 @@ static	void	trailer(Biobuf *bout, ZipHead *zh, int64_t off);
 static	void	putCDir(Biobuf *bout);
 
 static	void	error(char*, ...);
-#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	error	1
 
 static	Biobuf	bout;
 static	uint32_t	crc;

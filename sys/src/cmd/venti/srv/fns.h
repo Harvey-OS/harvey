@@ -222,9 +222,9 @@ Packet		*zblock2packet(ZBlock *zb, uint32_t size);
 void		zeropart(Part *part, int blocksize);
 
 /*
-#pragma	varargck	argpos	sysfatal		1
-#pragma	varargck	argpos	logerr		2
-#pragma	varargck	argpos	SetErr		2
+//#pragma	varargck	argpos	sysfatal		1
+//#pragma	varargck	argpos	logerr		2
+//#pragma	varargck	argpos	SetErr		2
 */
 
 #define scorecmp(h1,h2)		memcmp((h1),(h2),VtScoreSize)

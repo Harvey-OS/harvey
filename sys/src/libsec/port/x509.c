@@ -1573,6 +1573,7 @@ enum {
 };
 typedef struct Ints7 {
 	int		len;
+<<<<<<< HEAD
 	int		data[7];
 } Ints7;
 static Ints7 oid_rsaEncryption = {7, 1, 2, 840, 113549, 1, 1, 1 };
@@ -1582,6 +1583,53 @@ static Ints7 oid_md5WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 4 };
 static Ints7 oid_sha1WithRSAEncryption ={7, 1, 2, 840, 113549, 1, 1, 5 };
 static Ints7 oid_sha1WithRSAEncryptionOiw ={6, 1, 3, 14, 3, 2, 29 };
 static Ints7 oid_md5 ={6, 1, 2, 840, 113549, 2, 5, 0 };
+=======
+	int		data[15];
+} Ints15;
+
+typedef struct DigestAlg {
+	int		alg;
+	DigestState*	(*fun)(uint8_t*,uint32_t,uint8_t*,DigestState*);
+	int		len;
+} DigestAlg;
+
+static DigestAlg alg_md5 = { ALG_md5, md5, MD5dlen};
+static DigestAlg alg_sha1 = { ALG_sha1, sha1, SHA1dlen };
+static DigestAlg alg_sha256 = { ALG_sha256, sha2_256, SHA2_256dlen };
+static DigestAlg alg_sha384 = { ALG_sha384, sha2_384, SHA2_384dlen };
+static DigestAlg alg_sha512 = { ALG_sha512, sha2_512, SHA2_512dlen };
+static DigestAlg alg_sha224 = { ALG_sha224, sha2_224, SHA2_224dlen };
+
+/* maximum length of digest output of the digest algs above */
+enum {
+	MAXdlen = SHA2_512dlen,
+};
+
+static Ints15 oid_rsaEncryption = {7, {1, 2, 840, 113549, 1, 1, 1} };
+
+static Ints15 oid_md2WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 2} };
+static Ints15 oid_md4WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 3} };
+static Ints15 oid_md5WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 4} };
+static Ints15 oid_sha1WithRSAEncryption ={7, {1, 2, 840, 113549, 1, 1, 5} };
+static Ints15 oid_sha1WithRSAEncryptionOiw ={6, {1, 3, 14, 3, 2, 29} };
+static Ints15 oid_sha256WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 11} };
+static Ints15 oid_sha384WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 12} };
+static Ints15 oid_sha512WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 13} };
+static Ints15 oid_sha224WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 14} };
+
+static Ints15 oid_ecPublicKey = {6, {1, 2, 840, 10045, 2, 1} };
+static Ints15 oid_sha1WithECDSA = {6, {1, 2, 840, 10045, 4, 1} };
+static Ints15 oid_sha256WithECDSA = {7, {1, 2, 840, 10045, 4, 3, 2} };
+static Ints15 oid_sha384WithECDSA = {7, {1, 2, 840, 10045, 4, 3, 3} };
+static Ints15 oid_sha512WithECDSA = {7, {1, 2, 840, 10045, 4, 3, 4} };
+
+static Ints15 oid_md5 = {6, {1, 2, 840, 113549, 2, 5} };
+static Ints15 oid_sha1 = {6, {1, 3, 14, 3, 2, 26} };
+static Ints15 oid_sha256= {9, {2, 16, 840, 1, 101, 3, 4, 2, 1} };
+static Ints15 oid_sha384= {9, {2, 16, 840, 1, 101, 3, 4, 2, 2} };
+static Ints15 oid_sha512= {9, {2, 16, 840, 1, 101, 3, 4, 2, 3} };
+static Ints15 oid_sha224= {9, {2, 16, 840, 1, 101, 3, 4, 2, 4} };
+
 static Ints *alg_oid_tab[NUMALGS+1] = {
 	(Ints*)&oid_rsaEncryption,
 	(Ints*)&oid_md2WithRSAEncryption,
@@ -1592,7 +1640,31 @@ static Ints *alg_oid_tab[NUMALGS+1] = {
 	(Ints*)&oid_md5,
 	nil
 };
-static DigestFun digestalg[NUMALGS+1] = { md5, md5, md5, md5, sha1, sha1, md5, nil };
+
+static DigestAlg *digestalg[NUMALGS+1] = {
+	&alg_md5, &alg_md5, &alg_md5, &alg_md5,
+	&alg_sha1, &alg_sha1,
+	&alg_sha256, &alg_sha384, &alg_sha512, &alg_sha224,
+	&alg_sha256, &alg_sha1, &alg_sha256, &alg_sha384, &alg_sha512,
+	&alg_md5, &alg_sha1, &alg_sha256, &alg_sha384, &alg_sha512, &alg_sha224,
+	nil
+};
+
+static Bytes* encode_digest(DigestAlg *da, uint8_t *digest);
+
+static Ints15 oid_secp256r1 = {7, {1, 2, 840, 10045, 3, 1, 7}};
+static Ints15 oid_secp384r1 = {5, {1, 3, 132, 0, 34}};
+
+static Ints *namedcurves_oid_tab[] = {
+	(Ints*)&oid_secp256r1,
+	(Ints*)&oid_secp384r1,
+	nil,
+};
+static void (*namedcurves[])(mpint *p, mpint *a, mpint *b, mpint *x, mpint *y, mpint *n, mpint *h) = {
+	secp256r1,
+	secp384r1,
+	nil,
+};
 
 static void
 freecert(CertX509* c)
@@ -2425,13 +2497,14 @@ typedef struct Ints7pref {
 	char	prefix[4];
 } Ints7pref;
 Ints7pref DN_oid[] = {
-	{4, 2, 5, 4, 6, 0, 0, 0,  "C="},
-	{4, 2, 5, 4, 8, 0, 0, 0,  "ST="},
-	{4, 2, 5, 4, 7, 0, 0, 0,  "L="},
-	{4, 2, 5, 4, 10, 0, 0, 0, "O="},
-	{4, 2, 5, 4, 11, 0, 0, 0, "OU="},
-	{4, 2, 5, 4, 3, 0, 0, 0,  "CN="},
- 	{7, 1,2,840,113549,1,9,1, "E="},
+	{4, {2, 5, 4, 6, 0, 0, 0},        "C=", PrintableString},
+	{4, {2, 5, 4, 8, 0, 0, 0},        "ST=",DirectoryString},
+	{4, {2, 5, 4, 7, 0, 0, 0},        "L=", DirectoryString},
+	{4, {2, 5, 4, 10, 0, 0, 0},       "O=", DirectoryString},
+	{4, {2, 5, 4, 11, 0, 0, 0},       "OU=",DirectoryString},
+	{4, {2, 5, 4, 3, 0, 0, 0},        "CN=",DirectoryString},
+	{7, {1,2,840,113549,1,9,1},       "E=", IA5String},
+	{7, {0,9,2342,19200300,100,1,25}, "DC=",IA5String},
 };
 
 static Elem
@@ -2477,6 +2550,7 @@ RSApubtoasn1(RSApub *pub, int *keylen)
 		mkel(mkalg(ALG_rsaEncryption),
 		mkel(mkbits(pkbytes->data, pkbytes->len),
 		nil)));
+<<<<<<< HEAD
 	freebytes(pkbytes);
 	if(encode(pubkey, &pkbytes) != ASN_OK)
 		goto errret;
@@ -2488,6 +2562,138 @@ RSApubtoasn1(RSApub *pub, int *keylen)
 errret:
 	freevalfields(&pubkey.val);
 	return key;
+=======
+	err = encode(e, &ans);
+	freevalfields(&e.val);
+	if(err != ASN_OK)
+		return nil;
+
+	return ans;
+}
+
+int
+asn1encodedigest(DigestState* (*fun)(uint8_t*, uint32_t, uint8_t*, DigestState*), uint8_t *digest, uint8_t *buf, int len)
+{
+	Bytes *bytes;
+	DigestAlg **dp;
+
+	for(dp = digestalg; *dp != nil; dp++){
+		if((*dp)->fun != fun)
+			continue;
+		bytes = encode_digest(*dp, digest);
+		if(bytes == nil)
+			break;
+		if(bytes->len > len){
+			freebytes(bytes);
+			break;
+		}
+		len = bytes->len;
+		memmove(buf, bytes->data, len);
+		freebytes(bytes);
+		return len;
+	}
+	return -1;
+}
+
+static Elem
+mkcont(Elem e, int num)
+{
+	e = mkseq(mkel(e, nil));
+	e.tag.class = Context;
+	e.tag.num = num;
+	return e;
+}
+
+static Elem
+mkaltname(char *s)
+{
+	Elem e;
+	int i;
+
+	for(i=0; i<nelem(DN_oid); i++){
+		if(strstr(s, DN_oid[i].prefix) != nil)
+			return mkcont(mkDN(s), 4); /* DN */
+	}
+	e = mkstring(s, IA5String);
+	e.tag.class = Context;
+	e.tag.num = strchr(s, '@') != nil ? 1 : 2; /* email : DNS */
+	return e;
+}
+
+static Elist*
+mkaltnames(char *alts)
+{
+	Elist *el;
+	char *s, *p;
+
+	if(alts == nil)
+		return nil;
+
+	el = nil;
+	alts = estrdup(alts);
+	for(s = alts; s != nil; s = p){
+		while(*s == ' ')
+			s++;
+		if(*s == '\0')
+			break;
+		if((p = strchr(s, ',')) != nil)
+			*p++ = 0;
+		el = mkel(mkaltname(s), el);
+	}
+	free(alts);
+	return el;
+}
+
+static Elist*
+mkextel(Elem e, Ints *oid, Elist *el)
+{
+	Bytes *b = nil;
+
+	if(encode(e, &b) == ASN_OK){
+		el = mkel(mkseq(
+			mkel(mkoid(oid),
+			mkel(mkoctet(b->data, b->len),
+			nil))), el);
+		freebytes(b);
+	}
+	freevalfields(&e.val);
+	return el;
+}
+
+static Ints15 oid_subjectAltName = {4, {2, 5, 29, 17} };
+static Ints15 oid_extensionRequest = {7, {1, 2, 840, 113549, 1, 9, 14}};
+
+static Elist*
+mkextensions(char *alts, int req)
+{
+	Elist *sl, *xl;
+
+	xl = nil;
+	if((sl = mkaltnames(alts)) != nil)
+		xl = mkextel(mkseq(sl), (Ints*)&oid_subjectAltName, xl);
+	if(xl != nil){
+		if(req) return mkel(mkcont(mkseq(
+			mkel(mkoid((Ints*)&oid_extensionRequest),
+			mkel(mkset(mkel(mkseq(xl), nil)), nil))), 0), nil);
+		return mkel(mkcont(mkseq(xl), 3), nil);
+	}
+	return nil;
+}
+
+static char*
+splitalts(char *s)
+{
+	int q;
+
+	for(q = 0; *s != '\0'; s++){
+		if(*s == '\'')
+			q ^= 1;
+		else if(q == 0 && *s == ','){
+			*s++ = 0;
+			return s;
+		}
+	}
+	return nil;
 }
 
 uint8_t*

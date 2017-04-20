@@ -112,8 +112,8 @@ int vfscanf(FILE *f, const char *s, va_list args){
 	return ncvt;	
 }
 static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
-#pragma ref f
-#pragma ref width
+//#pragma ref f
+//#pragma ref width
 	if(store){
 		--ncvt;	/* this assignment doesn't count! */
 		switch(type){
@@ -285,7 +285,7 @@ Done:
 	return 1;
 }
 static int icvt_s(FILE *f, va_list *args, int store, int width, int type){
-#pragma ref type
+//#pragma ref type
 	int c, nn;
 	register char *s;
 	if(store) s=va_arg(*args, char *);
@@ -313,7 +313,7 @@ Done:
 	return 1;
 }
 static int icvt_c(FILE *f, va_list *args, int store, int width, int type){
-#pragma ref type
+//#pragma ref type
 	int c;
 	register char *s;
 	if(store) s=va_arg(*args, char *);
@@ -345,7 +345,7 @@ static int match(int c, const char *pat){
 	return !ok;
 }
 static int icvt_sq(FILE *f, va_list *args, int store, int width, int type){
-#pragma ref type
+//#pragma ref type
 	int c, nn;
 	register char *s;
 	register const char *pat;

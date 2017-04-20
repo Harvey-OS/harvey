@@ -15,7 +15,7 @@ typedef struct Xfile	Xfile;
 typedef struct Xfs	Xfs;
 typedef struct Xfsub	Xfsub;
 
-#pragma incomplete Isofile
+//#pragma incomplete Isofile
 
 enum
 {
