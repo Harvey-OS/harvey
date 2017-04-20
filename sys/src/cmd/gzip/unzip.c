@@ -38,7 +38,7 @@ static	int	wantFile(char *file);
 
 static	void	*emalloc(uint32_t);
 static	void	error(char*, ...);
-#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
 static	uint32_t	crc;

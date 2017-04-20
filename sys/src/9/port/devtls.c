@@ -262,7 +262,7 @@ static void	freeSec(Secret *sec);
 static char	*tlsstate(int s);
 static void	pdump(int, void*, char*);
 
-#pragma	varargck	argpos	rcvError	3
+//#pragma	varargck	argpos	rcvError	3
 
 static char *tlsnames[] = {
 [Qclonus] = "clone",

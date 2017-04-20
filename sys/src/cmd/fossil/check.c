@@ -25,9 +25,9 @@ static int	walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize],
 			int type, uint32_t tag, uint32_t epoch);
 static void	warn(Fsck*, char*, ...);
 
-#pragma varargck argpos error 2
-#pragma varargck argpos printnop 1
-#pragma varargck argpos warn 2
+//#pragma varargck argpos error 2
+//#pragma varargck argpos printnop 1
+//#pragma varargck argpos warn 2
 
 static Fsck*
 checkInit(Fsck *chk)

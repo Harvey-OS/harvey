@@ -16,8 +16,8 @@ struct {
 	int version;
 	char *s;
 } vtVersions[] = {
-	VtVersion02, "02",
-	0, 0,
+	{VtVersion02, "02"},
+	{0, 0},
 };
 
 static char EBigString[] = "string too long";
@@ -247,7 +247,7 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 			*p = 0;
 			break;
 		}
-		if(c < ' ' || *q && c != *q) {
+		if(c < ' ' || (*q && c != *q)) {
 			vtSetError(EBadVersion);
 			return 0;
 		}

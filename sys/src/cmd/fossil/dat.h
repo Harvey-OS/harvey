@@ -22,12 +22,12 @@ typedef struct Source Source;
 typedef struct Super Super;
 typedef struct WalkPtr WalkPtr;
 
-#pragma incomplete Arch
-#pragma incomplete BList
-#pragma incomplete Cache
-#pragma incomplete Disk
-#pragma incomplete Periodic
-#pragma incomplete Snap
+//#pragma incomplete Arch
+//#pragma incomplete BList
+//#pragma incomplete Cache
+//#pragma incomplete Disk
+//#pragma incomplete Periodic
+//#pragma incomplete Snap
 
 /* tunable parameters - probably should not be constants */
 enum {

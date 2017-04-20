@@ -1654,30 +1654,30 @@ enum {
 	MAXdlen = SHA2_512dlen,
 };
 
-static Ints15 oid_rsaEncryption = {7, 1, 2, 840, 113549, 1, 1, 1 };
+static Ints15 oid_rsaEncryption = {7, {1, 2, 840, 113549, 1, 1, 1} };
 
-static Ints15 oid_md2WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 2 };
-static Ints15 oid_md4WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 3 };
-static Ints15 oid_md5WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 4 };
-static Ints15 oid_sha1WithRSAEncryption ={7, 1, 2, 840, 113549, 1, 1, 5 };
-static Ints15 oid_sha1WithRSAEncryptionOiw ={6, 1, 3, 14, 3, 2, 29 };
-static Ints15 oid_sha256WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 11 };
-static Ints15 oid_sha384WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 12 };
-static Ints15 oid_sha512WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 13 };
-static Ints15 oid_sha224WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 14 };
+static Ints15 oid_md2WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 2} };
+static Ints15 oid_md4WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 3} };
+static Ints15 oid_md5WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 4} };
+static Ints15 oid_sha1WithRSAEncryption ={7, {1, 2, 840, 113549, 1, 1, 5} };
+static Ints15 oid_sha1WithRSAEncryptionOiw ={6, {1, 3, 14, 3, 2, 29} };
+static Ints15 oid_sha256WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 11} };
+static Ints15 oid_sha384WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 12} };
+static Ints15 oid_sha512WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 13} };
+static Ints15 oid_sha224WithRSAEncryption = {7, {1, 2, 840, 113549, 1, 1, 14} };
 
-static Ints15 oid_ecPublicKey = {6, 1, 2, 840, 10045, 2, 1 };
-static Ints15 oid_sha1WithECDSA = {6, 1, 2, 840, 10045, 4, 1 };
-static Ints15 oid_sha256WithECDSA = {7, 1, 2, 840, 10045, 4, 3, 2 };
-static Ints15 oid_sha384WithECDSA = {7, 1, 2, 840, 10045, 4, 3, 3 };
-static Ints15 oid_sha512WithECDSA = {7, 1, 2, 840, 10045, 4, 3, 4 };
+static Ints15 oid_ecPublicKey = {6, {1, 2, 840, 10045, 2, 1} };
+static Ints15 oid_sha1WithECDSA = {6, {1, 2, 840, 10045, 4, 1} };
+static Ints15 oid_sha256WithECDSA = {7, {1, 2, 840, 10045, 4, 3, 2} };
+static Ints15 oid_sha384WithECDSA = {7, {1, 2, 840, 10045, 4, 3, 3} };
+static Ints15 oid_sha512WithECDSA = {7, {1, 2, 840, 10045, 4, 3, 4} };
 
-static Ints15 oid_md5 = {6, 1, 2, 840, 113549, 2, 5 };
-static Ints15 oid_sha1 = {6, 1, 3, 14, 3, 2, 26 };
-static Ints15 oid_sha256= {9, 2, 16, 840, 1, 101, 3, 4, 2, 1 };
-static Ints15 oid_sha384= {9, 2, 16, 840, 1, 101, 3, 4, 2, 2 };
-static Ints15 oid_sha512= {9, 2, 16, 840, 1, 101, 3, 4, 2, 3 };
-static Ints15 oid_sha224= {9, 2, 16, 840, 1, 101, 3, 4, 2, 4 };
+static Ints15 oid_md5 = {6, {1, 2, 840, 113549, 2, 5} };
+static Ints15 oid_sha1 = {6, {1, 3, 14, 3, 2, 26} };
+static Ints15 oid_sha256= {9, {2, 16, 840, 1, 101, 3, 4, 2, 1} };
+static Ints15 oid_sha384= {9, {2, 16, 840, 1, 101, 3, 4, 2, 2} };
+static Ints15 oid_sha512= {9, {2, 16, 840, 1, 101, 3, 4, 2, 3} };
+static Ints15 oid_sha224= {9, {2, 16, 840, 1, 101, 3, 4, 2, 4} };
 
 static Ints *alg_oid_tab[NUMALGS+1] = {
 	(Ints*)&oid_rsaEncryption,
@@ -1719,8 +1719,8 @@ static DigestAlg *digestalg[NUMALGS+1] = {
 
 static Bytes* encode_digest(DigestAlg *da, uint8_t *digest);
 
-static Ints15 oid_secp256r1 = {7, 1, 2, 840, 10045, 3, 1, 7};
-static Ints15 oid_secp384r1 = {5, 1, 3, 132, 0, 34};
+static Ints15 oid_secp256r1 = {7, {1, 2, 840, 10045, 3, 1, 7}};
+static Ints15 oid_secp384r1 = {5, {1, 3, 132, 0, 34}};
 
 static Ints *namedcurves_oid_tab[] = {
 	(Ints*)&oid_secp256r1,
@@ -2600,14 +2600,14 @@ typedef struct Ints7pref {
 	int	stype;
 } Ints7pref;
 Ints7pref DN_oid[] = {
-	{4, 2, 5, 4, 6, 0, 0, 0,        "C=", PrintableString},
-	{4, 2, 5, 4, 8, 0, 0, 0,        "ST=",DirectoryString},
-	{4, 2, 5, 4, 7, 0, 0, 0,        "L=", DirectoryString},
-	{4, 2, 5, 4, 10, 0, 0, 0,       "O=", DirectoryString},
-	{4, 2, 5, 4, 11, 0, 0, 0,       "OU=",DirectoryString},
-	{4, 2, 5, 4, 3, 0, 0, 0,        "CN=",DirectoryString},
-	{7, 1,2,840,113549,1,9,1,       "E=", IA5String},
-	{7, 0,9,2342,19200300,100,1,25,	"DC=",IA5String},
+	{4, {2, 5, 4, 6, 0, 0, 0},        "C=", PrintableString},
+	{4, {2, 5, 4, 8, 0, 0, 0},        "ST=",DirectoryString},
+	{4, {2, 5, 4, 7, 0, 0, 0},        "L=", DirectoryString},
+	{4, {2, 5, 4, 10, 0, 0, 0},       "O=", DirectoryString},
+	{4, {2, 5, 4, 11, 0, 0, 0},       "OU=",DirectoryString},
+	{4, {2, 5, 4, 3, 0, 0, 0},        "CN=",DirectoryString},
+	{7, {1,2,840,113549,1,9,1},       "E=", IA5String},
+	{7, {0,9,2342,19200300,100,1,25}, "DC=",IA5String},
 };
 
 static Elem
@@ -2750,8 +2750,8 @@ mkextel(Elem e, Ints *oid, Elist *el)
 	return el;
 }
 
-static Ints15 oid_subjectAltName = {4, 2, 5, 29, 17 };
-static Ints15 oid_extensionRequest = { 7, 1, 2, 840, 113549, 1, 9, 14};
+static Ints15 oid_subjectAltName = {4, {2, 5, 29, 17} };
+static Ints15 oid_extensionRequest = {7, {1, 2, 840, 113549, 1, 9, 14}};
 
 static Elist*
 mkextensions(char *alts, int req)

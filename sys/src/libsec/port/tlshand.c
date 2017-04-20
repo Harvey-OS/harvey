@@ -359,8 +359,8 @@ static uint8_t compressors[] = {
 };
 
 static Namedcurve namedcurves[] = {
-	0x0017, secp256r1,
-	0x0018, secp384r1,
+	{0x0017, secp256r1},
+	{0x0018, secp384r1},
 };
 
 static uint8_t pointformats[] = {
@@ -406,7 +406,7 @@ static char* msgPrint(char *buf, int n, Msg *m);
 static int	msgRecv(TlsConnection *c, Msg *m);
 static int	msgSend(TlsConnection *c, Msg *m, int act);
 static void	tlsError(TlsConnection *c, int err, char *msg, ...);
-#pragma	varargck argpos	tlsError 3
+//#pragma	varargck argpos	tlsError 3
 static int setVersion(TlsConnection *c, int version);
 static int setSecrets(TlsConnection *c, int isclient);
 static int finishedMatch(TlsConnection *c, Finished *f);

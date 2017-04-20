@@ -53,7 +53,7 @@ void	getaddrs(void);
 void	*emalloc(int32_t);
 void	ewrite(int, void*, int);
 void	myfatal(char*, ...);
-#pragma varargck argpos myfatal 1
+//#pragma varargck argpos myfatal 1
 int	pptp(char*);
 void	pushppp(int);
 void	recordack(int);

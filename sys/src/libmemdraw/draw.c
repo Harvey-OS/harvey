@@ -560,19 +560,19 @@ dumpbuf(char *s, Buffer b, int n)
 	print("%s", s);
 	for(i=0; i<n; i++){
 		print(" ");
-		if(p=b.grey){
+		if((p=b.grey) != 0){
 			print(" k%.2X", *p);
 			b.grey += b.delta;
 		}else{	
-			if(p=b.red){
+			if((p=b.red) != 0){
 				print(" r%.2X", *p);
 				b.red += b.delta;
 			}
-			if(p=b.grn){
+			if((p=b.grn) != 0){
 				print(" g%.2X", *p);
 				b.grn += b.delta;
 			}
-			if(p=b.blu){
+			if((p=b.blu) != 0){
 				print(" b%.2X", *p);
 				b.blu += b.delta;
 			}
@@ -1261,7 +1261,7 @@ readnbit(Param *p, uint8_t *buf, int y)
 	DBG print("readnbit dx %d %p=%p+%d*%d, *r=%d fetch %d ", dx, r, p->bytermin, y, p->bwidth, *r, n);
 	bits = *r++;
 	nbits = 8;
-	if(i=x&(npack-1)){
+	if((i=x&(npack-1)) != 0){
 		DBG print("throwaway %d...", i);
 		bits <<= depth*i;
 		nbits -= depth*i;
@@ -1293,7 +1293,7 @@ readnbit(Param *p, uint8_t *buf, int y)
 	DBG print("x=%d r=%p...", x, r);
 	bits = *r++;
 	nbits = 8;
-	if(i=x&(npack-1)){
+	if((i=x&(npack-1)) != 0){
 		bits <<= depth*i;
 		nbits -= depth*i;
 	}
