@@ -9,7 +9,7 @@
 
 /* this file is also included by usb/disk and cdfs */
 typedef struct Umsc Umsc;
-#pragma incomplete Umsc
+//#pragma incomplete Umsc
 
 enum {					/* fundamental constants/defaults */
 	NTargetID	= 8,		/* number of target IDs */

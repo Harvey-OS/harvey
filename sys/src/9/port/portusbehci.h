@@ -14,8 +14,8 @@
 typedef struct Ecapio Ecapio;
 typedef struct Edbgio Edbgio;
 
-#pragma incomplete Ecapio;
-#pragma incomplete Edbgio;
+//#pragma incomplete Ecapio;
+//#pragma incomplete Edbgio;
 
 /*
  * EHCI interface registers and bits

@@ -95,8 +95,8 @@ sleepuntil(uint32_t tm)
 	return 0;
 }
 
-#pragma varargck	argpos clog 1
-#pragma varargck	argpos fatal 1
+//#pragma varargck	argpos clog 1
+//#pragma varargck	argpos fatal 1
 
 static void
 clog(char *fmt, ...)

@@ -706,7 +706,7 @@ mesgtagpost(Message *m)
 }
 
 /* need to expand selection more than default word */
-#pragma varargck argpos eval 2
+//#pragma varargck argpos eval 2
 
 int32_t
 eval(Window *w, char *s, ...)

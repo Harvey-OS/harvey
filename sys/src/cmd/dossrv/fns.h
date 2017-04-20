@@ -13,7 +13,7 @@ void	bootdump(int, Dosboot*);
 void	bootsecdump32(int fd, Xfs *xf, Dosboot32 *b32);
 int	cfalloc(Xfile*);
 void	chat(char*, ...);
-#pragma	varargck	argpos	chat	1
+//#pragma	varargck	argpos	chat	1
 int	cistrcmp(const char*, const char*);
 int	classifyname(char*);
 Xfile	*clean(Xfile*);
@@ -42,7 +42,7 @@ int	makecontig(Xfile*, int);
 void	mkalias(char*, char*, int);
 int	nameok(char*);
 void	panic(char*, ...);
-#pragma	varargck	argpos	panic	1
+//#pragma	varargck	argpos	panic	1
 void	putdir(Dosdir*, Dir*);
 void	putfat(Xfs*, int, uint32_t);
 void	putfile(Xfile*);

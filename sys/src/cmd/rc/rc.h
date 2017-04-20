@@ -51,8 +51,8 @@ typedef struct thread thread;
 typedef struct builtin builtin;
 
 #ifndef Unix
-#pragma incomplete word
-#pragma incomplete io
+//#pragma incomplete word
+//#pragma incomplete io
 #endif
 
 struct tree{

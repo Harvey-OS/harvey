@@ -460,5 +460,5 @@ extern Ctlr w30c516;
 extern Ctlr mga4xx;
 extern Ctlr mga4xxhwgc;
 
-#pragma	varargck	argpos	error	1
-#pragma	varargck	argpos	trace	1
+//#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	trace	1
