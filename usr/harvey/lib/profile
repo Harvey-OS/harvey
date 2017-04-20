@@ -9,6 +9,7 @@ fn acme { /bin/acme -f $font $* }
 
 switch($service){
 case terminal
+	test ! -d /mnt/plumb && mkdir /mnt/plumb
 	plumber
 	echo -n accelerated > '#m/mousectl'
 	echo -n 'res 3' > '#m/mousectl'
@@ -27,6 +28,7 @@ case cpu
 	prompt=('cpu% ' '	')
 	fn cpu%{ $* }
 	if (! test -e /mnt/term/mnt/wsys) {	# cpu call from drawterm
+		test ! -d /mnt/plumb && mkdir /mnt/plumb
 		plumber
 		font=/lib/font/bit/go/Go-Mono/Go-Mono.14.font
 		exec rio
