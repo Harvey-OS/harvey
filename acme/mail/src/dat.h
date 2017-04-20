@@ -155,8 +155,8 @@ extern	void		error(char*, ...);
 extern	int		tokenizec(char*, char**, int, char*);
 extern	void		execproc(void*);
 
-#pragma	varargck	argpos	error	1
-#pragma	varargck	argpos	ctlprint	2
+//#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	ctlprint	2
 
 extern	Window	*wbox;
 extern	Message	mbox;

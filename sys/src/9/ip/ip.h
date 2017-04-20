@@ -36,11 +36,11 @@ typedef struct 	Hostparams	Hostparams;
 typedef struct 	v6router	v6router;
 typedef struct	v6params	v6params;
 
-#pragma incomplete Arp
-#pragma incomplete Ipself
-#pragma incomplete Ipselftab
-#pragma incomplete IP
-#pragma incomplete Netlog
+//#pragma incomplete Arp
+//#pragma incomplete Ipself
+//#pragma incomplete Ipselftab
+//#pragma incomplete IP
+//#pragma incomplete Netlog
 
 enum
 {
@@ -522,7 +522,7 @@ void	ifclog(Fs*, uint8_t *, int);
 void	ifclogopen(Fs*, Chan*);
 void	ifclogclose(Fs*, Chan*);
 
-#pragma varargck argpos netlog	3
+//#pragma varargck argpos netlog	3
 
 /*
  *  iproute.c

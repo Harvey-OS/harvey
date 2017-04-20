@@ -24,11 +24,11 @@ enum {
 };
 
 typedef struct Conn Conn;
-#pragma incomplete Conn
+//#pragma incomplete Conn
 
-#pragma	varargck argpos	esmprint 1
-#pragma	varargck argpos	ssdebug	2
-#pragma	varargck argpos	sshlog	2
+//#pragma	varargck argpos	esmprint 1
+//#pragma	varargck argpos	ssdebug	2
+//#pragma	varargck argpos	sshlog	2
 
 char *esmprint(char *format, ...);
 void sshdebug(Conn *, char *format, ...);

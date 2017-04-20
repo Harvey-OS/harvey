@@ -910,9 +910,9 @@ nocut(struct place *g, struct place *og, double *cutlon)
 {
 	USED(g, og, cutlon);
 /*
-#pragma	ref g
-#pragma	ref og
-#pragma	ref cutlon
+//#pragma	ref g
+//#pragma	ref og
+//#pragma	ref cutlon
 */
 	return(1);
 }
