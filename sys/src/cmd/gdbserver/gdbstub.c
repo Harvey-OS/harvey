@@ -50,7 +50,6 @@ char remcom_in_buffer[BUFMAX];
 char remcom_out_buffer[BUFMAX];
 static int gdbstub_use_prev_in_buf;
 static int gdbstub_prev_in_buf_pos;
-int bpsize;
 int remotefd;
 int debug = 0;
 int attached_to_existing_pid = 0;
@@ -193,24 +192,6 @@ read_pid_text(int pid)
 	}
 
 	syslog(0, "gdbserver", "attachproc succeeded for %s", buf);
-}
-
-void
-setbp(void* addr, void* saved_instr)
-{
-	syslog(0, "gdbserver", "setting breakpoint at %p", addr);
-
-	if (get1(cormap, addr, saved_instr, machdata->bpsize) < 0) {
-		syslog(0, "gdbserver", "setbp: get1 failed: %r");
-		return;
-	}
-
-	if (put1(cormap, addr, machdata->bpinst, machdata->bpsize) < 0) {
-		syslog(0, "gdbserver", "setbp: put1 failed: %r");
-		return;
-	}
-
-	syslog(0, "gdbserver", "successfully set breakpoint");
 }
 
 void
@@ -869,10 +850,12 @@ gdb_cmd_break(struct state *ks)
 	else if (remcom_in_buffer[0] == 'z' && *bpt_type == '0')
 		error = dbg_remove_sw_break(ks, addr);
 
-	if (error == 0)
+	if (error == 0) {
 		strcpy((char *)remcom_out_buffer, "OK");
-	else
-		error_packet(remcom_out_buffer, error);
+	} else {
+		syslog(0, "gdbserver", "gdb_cmd_break: error: %s", error);
+		error_packet(remcom_out_buffer, Einval);
+	}
 }
 
 /* Handle the 'C' signal / exception passing packets */
@@ -1141,50 +1124,29 @@ gdbstub_exit(int status)
 char *
 rmem(void *dest, int pid, uint64_t addr, int size)
 {
-	char *memname = smprint("/proc/%d/mem", pid);
-	int fd = open(memname, 0);
-	if (fd < 0) {
-		syslog(0, "gdbserver", "open(%s, 0): %r", memname);
-		return errstring(Enoent);
-	}
+	syslog(0, "gdbserver", "rmem(%p, %d, %p, %d)", dest, pid, addr, size);
 
-	if (pread(fd, dest, size, addr) < size) {
-		syslog(0, "gdbserver", "rmem(%p, %d, %p, %d): %r", dest, pid, addr, size);
-		close(fd);
+	if (get1(cormap, addr, dest, size) < 0) {
+		syslog(0, "gdbserver", "rmem(%p, %p, %p, %d) failed: %r", dest, addr, dest, size);
 		return errstring(Eio);
 	}
-	close(fd);
-	syslog(0, "gdbserver", "%s: read 0x%x for %d bytes", __func__, addr, size);
+
+	syslog(0, "gdbserver", "%s: read 0x%x, %d bytes", __func__, addr, size);
 	return nil;
 }
 
 char *
 wmem(uint64_t dest, int pid, void *addr, int size)
 {
-	char *memname = smprint("/proc/%d/mem", pid);
-	int fd = open(memname, 1);
-	if (fd < 0) {
-		syslog(0, "gdbserver", "open(%s, 1): %r", memname);
-		return errstring(Enoent);
-	}
-
-	if (pwrite(fd, addr, size, dest) < size) {
-		if (debug)
-			print("wmem(%p, %d, %p, %d): %r\n", dest, pid, addr, size);
-		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d): %r", dest, pid, addr, size);
-		close(fd);
+	if (put1(cormap, dest, addr, size) < 0) {
+		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d) failed: %r", dest, pid, addr, size);
 		return errstring(Eio);
 	}
+	syslog(0, "gdbserver", "%s: wrote 0x%x, %d bytes", __func__, addr, size);
 
-	close(fd);
 	return nil;
 }
 
-void
-gdbinit(void)
-{
-	bpsize = ebreakpoint - breakpoint;
-}
 static struct state ks;
 
 void
@@ -1225,6 +1187,5 @@ main(int argc, char **argv)
 
 	read_pid_text(ks.threadid);
 
-	gdbinit();
 	gdb_serial_stub(&ks, atoi(port));
 }
