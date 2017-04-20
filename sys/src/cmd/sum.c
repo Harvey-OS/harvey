@@ -40,7 +40,7 @@ main(int argc, char **argv)
 	}ARGEND
 	if(*argv){
 		while(*argv)
-			if(s = sumfile(*argv++, fn))	/* assign = */
+			if((s = sumfile(*argv++, fn)) != nil)	/* assign = */
 				exitstr = s;
 	}else
 		exitstr = sumfile(0, fn);

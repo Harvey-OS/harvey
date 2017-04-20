@@ -480,7 +480,7 @@ readproc(void *x)
 
 	w = x;
 	mdata = emallocz(8*1024+IOHDRSZ, 0);
-	while(event = recvul(w->eventc)){
+	while((event = recvul(w->eventc)) != 0){
 		if(event != Work)
 			continue;
 		f = w->fid;

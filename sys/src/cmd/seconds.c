@@ -100,7 +100,7 @@ parsetime(char *time, Tm *tm)
 		return -1;
 
 	/* this may be considered too strict.  garbage at end of time? */
-	return *time == '\0' || isascii(*time) && isspace(*time)? 0: -1;
+	return (*time == '\0' || (isascii(*time) && isspace(*time)))? 0: -1;
 }
 
 /*
@@ -353,129 +353,129 @@ datetoktype(char *s, int *bigvalp)
  */
 static Datetok datetktbl[] = {
 /*	text		token	lexval */
-	"acsst",	Dtz,	63,	/* Cent. Australia */
-	"acst",		Tz,	57,	/* Cent. Australia */
-	"adt",		Dtz,	-18,	/* Atlantic Daylight Time */
-	"aesst",	Dtz,	66,	/* E. Australia */
-	"aest",		Tz,	60,	/* Australia Eastern Std Time */
-	"ahst",		Tz,	60,	/* Alaska-Hawaii Std Time */
-	"am",		Ampm,	AM,
-	"apr",		Month,	4,
-	"april",	Month,	4,
-	"ast",		Tz,	-24,	/* Atlantic Std Time (Canada) */
-	"at",		Ignore,	0,	/* "at" (throwaway) */
-	"aug",		Month,	8,
-	"august",	Month,	8,
-	"awsst",	Dtz,	54,	/* W. Australia */
-	"awst",		Tz,	48,	/* W. Australia */
-	"bst",		Tz,	6,	/* British Summer Time */
-	"bt",		Tz,	18,	/* Baghdad Time */
-	"cadt",		Dtz,	63,	/* Central Australian DST */
-	"cast",		Tz,	57,	/* Central Australian ST */
-	"cat",		Tz,	-60,	/* Central Alaska Time */
-	"cct",		Tz,	48,	/* China Coast */
-	"cdt",		Dtz,	-30,	/* Central Daylight Time */
-	"cet",		Tz,	6,	/* Central European Time */
-	"cetdst",	Dtz,	12,	/* Central European Dayl.Time */
-	"cst",		Tz,	-36,	/* Central Standard Time */
-	"dec",		Month,	12,
-	"decemb",	Month,	12,
-	"dnt",		Tz,	6,	/* Dansk Normal Tid */
-	"dst",		Ignore,	0,
-	"east",		Tz,	-60,	/* East Australian Std Time */
-	"edt",		Dtz,	-24,	/* Eastern Daylight Time */
-	"eet",		Tz,	12,	/* East. Europe, USSR Zone 1 */
-	"eetdst",	Dtz,	18,	/* Eastern Europe */
-	"est",		Tz,	-30,	/* Eastern Standard Time */
-	"feb",		Month,	2,
-	"februa",	Month,	2,
-	"fri",		Ignore,	5,
-	"friday",	Ignore,	5,
-	"fst",		Tz,	6,	/* French Summer Time */
-	"fwt",		Dtz,	12,	/* French Winter Time  */
-	"gmt",		Tz,	0,	/* Greenwish Mean Time */
-	"gst",		Tz,	60,	/* Guam Std Time, USSR Zone 9 */
-	"hdt",		Dtz,	-54,	/* Hawaii/Alaska */
-	"hmt",		Dtz,	18,	/* Hellas ? ? */
-	"hst",		Tz,	-60,	/* Hawaii Std Time */
-	"idle",		Tz,	72,	/* Intl. Date Line, East */
-	"idlw",		Tz,	-72,	/* Intl. Date Line, West */
-	"ist",		Tz,	12,	/* Israel */
-	"it",		Tz,	22,	/* Iran Time */
-	"jan",		Month,	1,
-	"januar",	Month,	1,
-	"jst",		Tz,	54,	/* Japan Std Time,USSR Zone 8 */
-	"jt",		Tz,	45,	/* Java Time */
-	"jul",		Month,	7,
-	"july",		Month,	7,
-	"jun",		Month,	6,
-	"june",		Month,	6,
-	"kst",		Tz,	54,	/* Korea Standard Time */
-	"ligt",		Tz,	60,	/* From Melbourne, Australia */
-	"mar",		Month,	3,
-	"march",	Month,	3,
-	"may",		Month,	5,
-	"mdt",		Dtz,	-36,	/* Mountain Daylight Time */
-	"mest",		Dtz,	12,	/* Middle Europe Summer Time */
-	"met",		Tz,	6,	/* Middle Europe Time */
-	"metdst",	Dtz,	12,	/* Middle Europe Daylight Time*/
-	"mewt",		Tz,	6,	/* Middle Europe Winter Time */
-	"mez",		Tz,	6,	/* Middle Europe Zone */
-	"mon",		Ignore,	1,
-	"monday",	Ignore,	1,
-	"mst",		Tz,	-42,	/* Mountain Standard Time */
-	"mt",		Tz,	51,	/* Moluccas Time */
-	"ndt",		Dtz,	-15,	/* Nfld. Daylight Time */
-	"nft",		Tz,	-21,	/* Newfoundland Standard Time */
-	"nor",		Tz,	6,	/* Norway Standard Time */
-	"nov",		Month,	11,
-	"novemb",	Month,	11,
-	"nst",		Tz,	-21,	/* Nfld. Standard Time */
-	"nt",		Tz,	-66,	/* Nome Time */
-	"nzdt",		Dtz,	78,	/* New Zealand Daylight Time */
-	"nzst",		Tz,	72,	/* New Zealand Standard Time */
-	"nzt",		Tz,	72,	/* New Zealand Time */
-	"oct",		Month,	10,
-	"octobe",	Month,	10,
-	"on",		Ignore,	0,	/* "on" (throwaway) */
-	"pdt",		Dtz,	-42,	/* Pacific Daylight Time */
-	"pm",		Ampm,	PM,
-	"pst",		Tz,	-48,	/* Pacific Standard Time */
-	"sadt",		Dtz,	63,	/* S. Australian Dayl. Time */
-	"sast",		Tz,	57,	/* South Australian Std Time */
-	"sat",		Ignore,	6,
-	"saturd",	Ignore,	6,
-	"sep",		Month,	9,
-	"sept",		Month,	9,
-	"septem",	Month,	9,
-	"set",		Tz,	-6,	/* Seychelles Time ?? */
-	"sst",		Dtz,	12,	/* Swedish Summer Time */
-	"sun",		Ignore,	0,
-	"sunday",	Ignore,	0,
-	"swt",		Tz,	6,	/* Swedish Winter Time  */
-	"thu",		Ignore,	4,
-	"thur",		Ignore,	4,
-	"thurs",	Ignore,	4,
-	"thursd",	Ignore,	4,
-	"tue",		Ignore,	2,
-	"tues",		Ignore,	2,
-	"tuesda",	Ignore,	2,
-	"ut",		Tz,	0,
-	"utc",		Tz,	0,
-	"wadt",		Dtz,	48,	/* West Australian DST */
-	"wast",		Tz,	42,	/* West Australian Std Time */
-	"wat",		Tz,	-6,	/* West Africa Time */
-	"wdt",		Dtz,	54,	/* West Australian DST */
-	"wed",		Ignore,	3,
-	"wednes",	Ignore,	3,
-	"weds",		Ignore,	3,
-	"wet",		Tz,	0,	/* Western Europe */
-	"wetdst",	Dtz,	6,	/* Western Europe */
-	"wst",		Tz,	48,	/* West Australian Std Time */
-	"ydt",		Dtz,	-48,	/* Yukon Daylight Time */
-	"yst",		Tz,	-54,	/* Yukon Standard Time */
-	"zp4",		Tz,	-24,	/* GMT +4  hours. */
-	"zp5",		Tz,	-30,	/* GMT +5  hours. */
-	"zp6",		Tz,	-36,	/* GMT +6  hours. */
+	{"acsst",	Dtz,	63},	/* Cent. Australia */
+	{"acst",	Tz,	57},	/* Cent. Australia */
+	{"adt",		Dtz,	-18},	/* Atlantic Daylight Time */
+	{"aesst",	Dtz,	66},	/* E. Australia */
+	{"aest",	Tz,	60},	/* Australia Eastern Std Time */
+	{"ahst",	Tz,	60},	/* Alaska-Hawaii Std Time */
+	{"am",		Ampm,	AM},
+	{"apr",		Month,	4},
+	{"april",	Month,	4},
+	{"ast",		Tz,	-24},	/* Atlantic Std Time (Canada) */
+	{"at",		Ignore,	0},	/* "at" (throwaway) */
+	{"aug",		Month,	8},
+	{"august",	Month,	8},
+	{"awsst",	Dtz,	54},	/* W. Australia */
+	{"awst",	Tz,	48},	/* W. Australia */
+	{"bst",		Tz,	6},	/* British Summer Time */
+	{"bt",		Tz,	18},	/* Baghdad Time */
+	{"cadt",	Dtz,	63},	/* Central Australian DST */
+	{"cast",	Tz,	57},	/* Central Australian ST */
+	{"cat",		Tz,	-60},	/* Central Alaska Time */
+	{"cct",		Tz,	48},	/* China Coast */
+	{"cdt",		Dtz,	-30},	/* Central Daylight Time */
+	{"cet",		Tz,	6},	/* Central European Time */
+	{"cetdst",	Dtz,	12},	/* Central European Dayl.Time */
+	{"cst",		Tz,	-36},	/* Central Standard Time */
+	{"dec",		Month,	12},
+	{"decemb",	Month,	12},
+	{"dnt",		Tz,	6},	/* Dansk Normal Tid */
+	{"dst",		Ignore,	0},
+	{"east",	Tz,	-60},	/* East Australian Std Time */
+	{"edt",		Dtz,	-24},	/* Eastern Daylight Time */
+	{"eet",		Tz,	12},	/* East. Europe, USSR Zone 1 */
+	{"eetdst",	Dtz,	18},	/* Eastern Europe */
+	{"est",		Tz,	-30},	/* Eastern Standard Time */
+	{"feb",		Month,	2},
+	{"februa",	Month,	2},
+	{"fri",		Ignore,	5},
+	{"friday",	Ignore,	5},
+	{"fst",		Tz,	6},	/* French Summer Time */
+	{"fwt",		Dtz,	12},	/* French Winter Time  */
+	{"gmt",		Tz,	0},	/* Greenwish Mean Time */
+	{"gst",		Tz,	60},	/* Guam Std Time, USSR Zone 9 */
+	{"hdt",		Dtz,	-54},	/* Hawaii/Alaska */
+	{"hmt",		Dtz,	18},	/* Hellas ? ? */
+	{"hst",		Tz,	-60},	/* Hawaii Std Time */
+	{"idle",	Tz,	72},	/* Intl. Date Line, East */
+	{"idlw",	Tz,	-72},	/* Intl. Date Line, West */
+	{"ist",		Tz,	12},	/* Israel */
+	{"it",		Tz,	22},	/* Iran Time */
+	{"jan",		Month,	1},
+	{"januar",	Month,	1},
+	{"jst",		Tz,	54},	/* Japan Std Time,USSR Zone 8 */
+	{"jt",		Tz,	45},	/* Java Time */
+	{"jul",		Month,	7},
+	{"july",	Month,	7},
+	{"jun",		Month,	6},
+	{"june",	Month,	6},
+	{"kst",		Tz,	54},	/* Korea Standard Time */
+	{"ligt",	Tz,	60},	/* From Melbourne, Australia */
+	{"mar",		Month,	3},
+	{"march",	Month,	3},
+	{"may",		Month,	5},
+	{"mdt",		Dtz,	-36},	/* Mountain Daylight Time */
+	{"mest",	Dtz,	12},	/* Middle Europe Summer Time */
+	{"met",		Tz,	6},	/* Middle Europe Time */
+	{"metdst",	Dtz,	12},	/* Middle Europe Daylight Time*/
+	{"mewt",	Tz,	6},	/* Middle Europe Winter Time */
+	{"mez",		Tz,	6},	/* Middle Europe Zone */
+	{"mon",		Ignore,	1},
+	{"monday",	Ignore,	1},
+	{"mst",		Tz,	-42},	/* Mountain Standard Time */
+	{"mt",		Tz,	51},	/* Moluccas Time */
+	{"ndt",		Dtz,	-15},	/* Nfld. Daylight Time */
+	{"nft",		Tz,	-21},	/* Newfoundland Standard Time */
+	{"nor",		Tz,	6},	/* Norway Standard Time */
+	{"nov",		Month,	11},
+	{"novemb",	Month,	11},
+	{"nst",		Tz,	-21},	/* Nfld. Standard Time */
+	{"nt",		Tz,	-66},	/* Nome Time */
+	{"nzdt",	Dtz,	78},	/* New Zealand Daylight Time */
+	{"nzst",	Tz,	72},	/* New Zealand Standard Time */
+	{"nzt",		Tz,	72},	/* New Zealand Time */
+	{"oct",		Month,	10},
+	{"octobe",	Month,	10},
+	{"on",		Ignore,	0},	/* "on" (throwaway) */
+	{"pdt",		Dtz,	-42},	/* Pacific Daylight Time */
+	{"pm",		Ampm,	PM},
+	{"pst",		Tz,	-48},	/* Pacific Standard Time */
+	{"sadt",	Dtz,	63},	/* S. Australian Dayl. Time */
+	{"sast",	Tz,	57},	/* South Australian Std Time */
+	{"sat",		Ignore,	6},
+	{"saturd",	Ignore,	6},
+	{"sep",		Month,	9},
+	{"sept",	Month,	9},
+	{"septem",	Month,	9},
+	{"set",		Tz,	-6},	/* Seychelles Time ?? */
+	{"sst",		Dtz,	12},	/* Swedish Summer Time */
+	{"sun",		Ignore,	0},
+	{"sunday",	Ignore,	0},
+	{"swt",		Tz,	6},	/* Swedish Winter Time  */
+	{"thu",		Ignore,	4},
+	{"thur",	Ignore,	4},
+	{"thurs",	Ignore,	4},
+	{"thursd",	Ignore,	4},
+	{"tue",		Ignore,	2},
+	{"tues",	Ignore,	2},
+	{"tuesda",	Ignore,	2},
+	{"ut",		Tz,	0},
+	{"utc",		Tz,	0},
+	{"wadt",	Dtz,	48},	/* West Australian DST */
+	{"wast",	Tz,	42},	/* West Australian Std Time */
+	{"wat",		Tz,	-6},	/* West Africa Time */
+	{"wdt",		Dtz,	54},	/* West Australian DST */
+	{"wed",		Ignore,	3},
+	{"wednes",	Ignore,	3},
+	{"weds",	Ignore,	3},
+	{"wet",		Tz,	0},	/* Western Europe */
+	{"wetdst",	Dtz,	6},	/* Western Europe */
+	{"wst",		Tz,	48},	/* West Australian Std Time */
+	{"ydt",		Dtz,	-48},	/* Yukon Daylight Time */
+	{"yst",		Tz,	-54},	/* Yukon Standard Time */
+	{"zp4",		Tz,	-24},	/* GMT +4  hours. */
+	{"zp5",		Tz,	-30},	/* GMT +5  hours. */
+	{"zp6",		Tz,	-36},	/* GMT +6  hours. */
 };
 static unsigned szdatetktbl = nelem(datetktbl);
