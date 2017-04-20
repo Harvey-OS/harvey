@@ -386,9 +386,9 @@ plreadstatus(Serialport *p)
 			return -1;
 		}
 	}
-	if(nr < 0)
+	if(nr < 0){
 		dsprint(2, "serial: reading status: %r");
-	else if(nr >= sizeof buf - 1){
+	} else if(nr >= sizeof buf - 1){
 		p->dcd = buf[8] & DcdStatus;
 		p->dsr = buf[8] & DsrStatus;
 		p->cts = buf[8] & BreakerrStatus;
@@ -400,8 +400,9 @@ plreadstatus(Serialport *p)
 			p->nparityerr++;
 		if(buf[8] & OvererrStatus)
 			p->novererr++;
-	} else
+	} else {
 		dsprint(2, "serial: bad status read %d\n", nr);
+	}
 	dsprint(2, "serial: finished read from interrupt %d\n", nr);
 	qunlock(&ser->QLock);
 	return 0;

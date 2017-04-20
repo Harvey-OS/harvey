@@ -291,11 +291,12 @@ ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 	c = ch->e / 8;
 
 	/* sometimes there is a report id, sometimes not */
-	if(c == kd->templ.sz + 1)
+	if(c == kd->templ.sz + 1) {
 		if(ch->buf[0] == kd->templ.id)
 			ch->b += 8;
 		else
 			return -1;
+	}
 	parsereport(&kd->templ, ch);
 
 	if(kd->debug > 1)
@@ -468,7 +469,7 @@ Repeat:
 	t = 160;
 	for(;;){
 		for(i = 0; i < t; i += 5){
-			if(l = nbrecvul(repeatc))
+			if((l = nbrecvul(repeatc)) != 0)
 				goto Repeat;
 			sleep(5);
 		}
@@ -740,12 +741,13 @@ kbmain(Dev *d, int argc, char* argv[])
 	d->aux = nil;
 	dprint(2, "kb: main: dev %s ref %ld\n", d->dir, d->Ref.ref);
 
-	if(kena)
+	if(kena) {
 		for(i = 0; i < nelem(ud->ep); i++)
 			if((ep = ud->ep[i]) == nil)
 				break;
 			else if(ep->iface->csp == KbdCSP)
 				bootp = 1;
+	}
 
 	for(i = 0; i < nelem(ud->ep); i++){
 		if((ep = ud->ep[i]) == nil)

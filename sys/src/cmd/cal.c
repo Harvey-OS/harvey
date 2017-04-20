@@ -136,31 +136,31 @@ struct
 	int	val;
 } dict[] =
 {
-	"jan",		1,
-	"january",	1,
-	"feb",		2,
-	"february",	2,
-	"mar",		3,
-	"march",	3,
-	"apr",		4,
-	"april",	4,
-	"may",		5,
-	"jun",		6,
-	"june",		6,
-	"jul",		7,
-	"july",		7,
-	"aug",		8,
-	"august",	8,
-	"sep",		9,
-	"sept",		9,
-	"september",	9,
-	"oct",		10,
-	"october",	10,
-	"nov",		11,
-	"november",	11,
-	"dec",		12,
-	"december",	12,
-	0
+	{"jan",		1},
+	{"january",	1},
+	{"feb",		2},
+	{"february",	2},
+	{"mar",		3},
+	{"march",	3},
+	{"apr",		4},
+	{"april",	4},
+	{"may",		5},
+	{"jun",		6},
+	{"june",	6},
+	{"jul",		7},
+	{"july",	7},
+	{"aug",		8},
+	{"august",	8},
+	{"sep",		9},
+	{"sept",	9},
+	{"september",	9},
+	{"oct",		10},
+	{"october",	10},
+	{"nov",		11},
+	{"november",	11},
+	{"dec",		12},
+	{"december",	12},
+	{0, 0}
 };
 
 /*
@@ -174,12 +174,12 @@ number(char *str)
 	int n, c;
 	char *s;
 
-	for(n=0; s=dict[n].word; n++)
+	for(n=0; (s=dict[n].word) != nil; n++)
 		if(strcmp(s, str) == 0)
 			return -dict[n].val;
 	n = 0;
 	s = str;
-	while(c = *s++) {
+	while((c = *s++) != 0){
 		if(c<'0' || c>'9')
 			return 0;
 		n = n*10 + c-'0';

@@ -167,7 +167,7 @@ alt(Alt *alts)
 			else
 				allreadycl = 1;
 
-		if(waiting == 0)
+		if(waiting == 0) {
 			if(ca != nil){
 				/* everything was closed, select last channel */
 				ca->err = errcl;
@@ -182,6 +182,7 @@ alt(Alt *alts)
 				t->chan = Channone;
 				return -1;
 			}
+		}
 		/*
 		 * wait for successful rendezvous.
 		 * we can't just give up if the rendezvous

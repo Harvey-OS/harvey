@@ -104,24 +104,24 @@ Cinfo cinfo[] =
 
 static Dirtab rootdirtab[] =
 {
-	"/",		Qroot,		DMDIR|0555,	/* etherU%d */
-	"clone",	Qclone,		0666,
-	"addr",		Qaddr,		0444,
-	"ifstats",	Qifstats,	0444,
-	"stats",	Qstats,		0444,
+	{"/",		Qroot,		DMDIR|0555},	/* etherU%d */
+	{"clone",	Qclone,		0666},
+	{"addr",	Qaddr,		0444},
+	{"ifstats",	Qifstats,	0444},
+	{"stats",	Qstats,		0444},
 	/* one dir per connection here */
-	nil, 0, 0,
+	{nil, 0, 0},
 };
 
 static Dirtab conndirtab[] =
 {
-	"%d",		Qndir,		DMDIR|0555,
-	"data",		Qndata,		0666,
-	"ctl",		Qnctl,		0666,
-	"ifstats",	Qnifstats,	0444,
-	"stats",	Qnstats,	0444,
-	"type",		Qntype,		0444,
-	nil, 0,
+	{"%d",		Qndir,		DMDIR|0555},
+	{"data",	Qndata,		0666},
+	{"ctl",		Qnctl,		0666},
+	{"ifstats",	Qnifstats,	0444},
+	{"stats",	Qnstats,	0444},
+	{"type",	Qntype,		0444},
+	{nil, 0, 0},
 };
 
 int etherdebug;
@@ -150,7 +150,7 @@ mkqid(int n, int t)
 {
 	uint64_t q;
 
-	q = (n&0xFFFFFF) << 8 | t&0xFF;
+	q = ((n&0xFFFFFF) << 8) | (t&0xFF);
 	return q;
 }
 
