@@ -1,8 +1,5 @@
 {
 	"libavl": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

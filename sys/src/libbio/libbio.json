@@ -1,8 +1,5 @@
 {
 	"libbio": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

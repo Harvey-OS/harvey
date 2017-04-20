@@ -1,8 +1,5 @@
 {
 	"libbin": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

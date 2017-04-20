@@ -1,8 +1,5 @@
 {
 	"liblex": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

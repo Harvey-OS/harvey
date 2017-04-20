@@ -1,8 +1,5 @@
 {
 	"libgeometry": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],
