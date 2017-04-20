@@ -1,8 +1,5 @@
 {
 	"libregexp": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

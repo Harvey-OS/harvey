@@ -1,8 +1,7 @@
 {
 "Libc": {
 	"Cflags": [
-		"-fasm",
-		"-Werror"
+		"-fasm"
 	],
 	"Include": [
 		"../lib.json",
