@@ -365,7 +365,7 @@ swit:
 
 			if (*lab->uninm == L'\0')		/* no label? */
 				quit(CGMES, L":", linebuf);
-			if(lpt = search(lab)) {
+			if((lpt = search(lab)) != nil) {
 				if(lpt->address)
 					quit("Duplicate labels: %S", linebuf);
 			} else {
@@ -439,7 +439,7 @@ jtcommon:
 				cp++;
 			if(*cp == L'\0' || *cp == L';') {
 				/* no label; jump to end */
-				if(pt = ltab[0].chain) {
+				if((pt = ltab[0].chain) != nil) {
 					while((pt1 = pt->lb1) != nil)
 						pt = pt1;
 					pt->lb1 = rep;
@@ -758,7 +758,7 @@ address(Addr *ap)
 		ap->type = A_DOL;
 	else if(c == '/') {
 		seof = c;
-		if (ap->rp = compile())
+		if ((ap->rp = compile()) != nil)
 			ap->type = A_RE;
 		else
 			ap->type = A_LAST;
@@ -921,7 +921,7 @@ execute(void)
 {
 	SedCom	*ipc;
 
-	while (spend = gline(linebuf)){
+	while ((spend = gline(linebuf)) != nil){
 		for(ipc = pspace; ipc->command; ) {
 			if (!executable(ipc)) {
 				ipc++;
@@ -1057,7 +1057,7 @@ dosub(Rune *rhsbuf)
 	rp = rhsbuf;
 	while (lp < loc1)
 		*sp++ = *lp++;
-	while(c = *rp++) {
+	while((c = *rp++) != nil){
 		if (c == '&') {
 			sp = place(sp, loc1, loc2);
 			continue;
@@ -1079,12 +1079,12 @@ dosub(Rune *rhsbuf)
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
-	while (*sp++ = *lp++)
+	while ((*sp++ = *lp++) != 0)
 		if (sp >= &genbuf[LBSIZE])
 			fprint(2, "sed: Output line too int32_t.\n");
 	lp = linebuf;
 	sp = genbuf;
-	while (*lp++ = *sp++)
+	while ((*lp++ = *sp++) != 0)
 		;
 	spend = lp - 1;
 }
@@ -1160,7 +1160,7 @@ command(SedCom *ipc)
 			}
 		}
 		p1++;
-		while(*p2++ = *p1++)
+		while((*p2++ = *p1++) != 0)
 			;
 		spend = p2 - 1;
 		jflag++;
@@ -1171,7 +1171,7 @@ command(SedCom *ipc)
 	case GCOM:
 		p1 = linebuf;
 		p2 = holdsp;
-		while(*p1++ = *p2++)
+		while((*p1++ = *p2++) != 0)
 			;
 		spend = p1 - 1;
 		break;
@@ -1179,7 +1179,7 @@ command(SedCom *ipc)
 		*spend++ = '\n';
 		p1 = spend;
 		p2 = holdsp;
-		while(*p1++ = *p2++)
+		while((*p1++ = *p2++) != 0)
 			if(p1 >= lbend)
 				break;
 		spend = p1 - 1;
@@ -1187,14 +1187,14 @@ command(SedCom *ipc)
 	case HCOM:
 		p1 = holdsp;
 		p2 = linebuf;
-		while(*p1++ = *p2++);
+		while((*p1++ = *p2++) != 0);
 		hspend = p1 - 1;
 		break;
 	case CHCOM:
 		*hspend++ = '\n';
 		p1 = hspend;
 		p2 = linebuf;
-		while(*p1++ = *p2++)
+		while((*p1++ = *p2++) != 0)
 			if(p1 >= hend)
 				break;
 		hspend = p1 - 1;
@@ -1278,11 +1278,12 @@ cpcom:
 		break;
 	case SCOM:
 		i = substitute(ipc);
-		if(i && ipc->pfl)
+		if(i && ipc->pfl){
 			if(ipc->pfl == 1)
 				putline(&fout, linebuf, spend-linebuf);
 			else
 				goto cpcom;
+		}
 		if(i && ipc->fcode)
 			goto wcom;
 		break;
@@ -1301,11 +1302,11 @@ wcom:
 	case XCOM:
 		p1 = linebuf;
 		p2 = genbuf;
-		while(*p2++ = *p1++)
+		while((*p2++ = *p1++) != 0)
 			;
 		p1 = holdsp;
 		p2 = linebuf;
-		while(*p2++ = *p1++)
+		while((*p2++ = *p1++) != 0)
 			;
 		spend = p2 - 1;
 		p1 = genbuf;

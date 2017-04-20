@@ -220,13 +220,14 @@ SRread(ScsiReq *rp, void *buf, int32_t nbytes)
 	int32_t n;
 
 	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
-		if(diskdebug)
+		if(diskdebug){
 			if (nbytes % rp->lbsize)
 				fprint(2, "disk: i/o size %ld %% %ld != 0\n",
 					nbytes, rp->lbsize);
 			else
 				fprint(2, "disk: i/o size %ld > %d\n",
 					nbytes, Maxiosize);
+		}
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -264,7 +265,7 @@ SRread(ScsiReq *rp, void *buf, int32_t nbytes)
 
 	/* device is a tape or something similar */
 	if (rp->sense[2] == Sd2filemark || rp->sense[2] == 0x08 ||
-	    rp->sense[2] & Sd2ili && n > 0)
+	    (rp->sense[2] & Sd2ili && n > 0))
 		rp->data.count = nbytes - n;
 	else
 		return -1;
@@ -284,13 +285,14 @@ SRwrite(ScsiReq *rp, void *buf, int32_t nbytes)
 	int32_t n;
 
 	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
-		if(diskdebug)
+		if(diskdebug){
 			if (nbytes % rp->lbsize)
 				fprint(2, "disk: i/o size %ld %% %ld != 0\n",
 					nbytes, rp->lbsize);
 			else
 				fprint(2, "disk: i/o size %ld > %d\n",
 					nbytes, Maxiosize);
+		}
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -605,7 +607,7 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	/* read status */
 	buf[0] = '\0';
 	r = read(fd, buf, sizeof buf-1);
-	if(exabyte && r <= 0 || !exabyte && r < 0){
+	if((exabyte && r <= 0) || (!exabyte && r < 0)){
 		fprint(2, "scsireq: read status: %r\n");
 		*status = Status_SW;
 		return -1;

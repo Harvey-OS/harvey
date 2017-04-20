@@ -147,8 +147,7 @@ Nrdline(Netbuf *n)
 	p[l=Blinelen(&n->br)-1] = '\0';
 	if(l > 0 && p[l-1] == '\r')
 		p[l-1] = '\0';
-if(netdebug)
-	fprint(2, "-> %s\n", p);
+	if(netdebug) fprint(2, "-> %s\n", p);
 	return p;
 }
 
@@ -406,7 +405,7 @@ findgroup(Group *g, char *name, int mk)
 	static int ngroup;
 
 	for(p=name; *p; p=q){
-		if(q = strchr(p, '.'))
+		if((q = strchr(p, '.')) != nil)
 			*q++ = '\0';
 		else
 			q = p+strlen(p);
@@ -544,7 +543,7 @@ nntprefreshall(Netbuf *n)
 	if(nntpcmd(n, "LIST", 21) < 0)
 		return;
 
-	while(p = Nrdline(n)){
+	while((p = Nrdline(n)) != nil){
 		if(strcmp(p, ".")==0)
 			break;
 
@@ -617,7 +616,7 @@ nntppost(Netbuf *n, char *msg)
 		return n->response;
 
 	for(p=msg; *p; p=q){
-		if(q = strchr(p, '\n'))
+		if((q = strchr(p, '\n')) != nil)
 			*q++ = '\0';
 		else
 			q = p+strlen(p);
@@ -745,7 +744,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 		for(i=0; i<Nfile; i++){ 
 			if(strcmp(name, filename[i])==0){
-				if(a->s = nntpget(net, a->g, a->n, nntpname[i])){
+				if((a->s = nntpget(net, a->g, a->n, nntpname[i])) != nil){
 					*qid = (Qid){PATH(a->g->num, a->n), Qbody, 0};
 					fid->qid = *qid;
 					a->file = i;
@@ -772,7 +771,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		return nil;
 	}
 
-	if(ng = findgroup(a->g, name, 0)){
+	if((ng = findgroup(a->g, name, 0)) != nil){
 		a->g = ng;
 		*qid = (Qid){PATH(a->g->num, 0), 0, QTDIR};
 		fid->qid = *qid;

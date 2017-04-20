@@ -61,12 +61,13 @@ usbfsdirdump(void)
 	qlock(&fslck);
 	fprint(2, "%s: fs list: (%d used %d total)\n", argv0, fsused, nfs);
 	for(i = 1; i < nfs; i++)
-		if(fs[i] != nil)
+		if(fs[i] != nil) {
 			if(fs[i]->dev != nil)
 				fprint(2, "%s\t%s dev %#p refs %ld\n",
 					argv0, fs[i]->name, fs[i]->dev, fs[i]->dev->Ref.ref);
 			else
 				fprint(2, "%s:\t%s\n", argv0, fs[i]->name);
+		}
 	qunlock(&fslck);
 }
 
