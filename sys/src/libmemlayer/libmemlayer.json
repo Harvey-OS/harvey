@@ -1,8 +1,5 @@
 {
 	"libmemlayer": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

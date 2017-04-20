@@ -1,8 +1,5 @@
 {
 	"libflate": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],
