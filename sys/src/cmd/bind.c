@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 		usage();
 	}ARGEND
 
-	if(argc != 2 || (flag&MAFTER)&&(flag&MBEFORE))
+	if(argc != 2 || ((flag&MAFTER)&&(flag&MBEFORE)))
 		usage();
 
 	if(bind(argv[0], argv[1], flag) < 0){

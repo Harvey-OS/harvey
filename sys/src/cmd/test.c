@@ -178,13 +178,14 @@ e3(void)
 	if(EQ(a, "-s"))
 		return(fsizep(nxtarg(0)));
 
-	if(EQ(a, "-t"))
+	if(EQ(a, "-t")){
 		if(ap>=ac)
 			return(isatty(1));
 		else if(nxtintarg(&int1))
 			return(isatty(int1));
 		else
 			synbad("not a valid file descriptor number ", "");
+	}
 
 	if(EQ(a, "-n"))
 		return(!EQ(nxtarg(0), ""));

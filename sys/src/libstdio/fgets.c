@@ -20,8 +20,8 @@ char *fgets(char *as, int n, FILE *f){
 		--n;
 		if(c=='\n') break;
 	}
-	if(c==EOF && s==as
-	|| ferror(f)) return NULL;
+	if((c==EOF && s==as) || ferror(f))
+		return NULL;
 	if(n) *s='\0';
 	return as;
 }
