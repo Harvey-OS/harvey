@@ -25,7 +25,6 @@ extern int			cpu_doing_single_step;
 extern struct task_struct	*usethread;
 extern struct task_struct	*contthread;
 extern char breakpoint[], ebreakpoint[];
-extern int bpsize;
 
 enum bptype {
 	BP_BREAKPOINT = 0,

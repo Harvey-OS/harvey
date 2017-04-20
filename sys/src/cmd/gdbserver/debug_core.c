@@ -69,22 +69,20 @@ int active = -1;
 char *
 arch_set_breakpoint(struct state *ks, struct bkpt *bpt)
 {
-	//char *err;
+	char *err;
 
-	//err = rmem(bpt->saved_instr, ks->threadid, bpt->bpt_addr, bpsize);
-	//if (err)
-	//	return err;
+	err = rmem(bpt->saved_instr, ks->threadid, bpt->bpt_addr, machdata->bpsize);
+	if (err)
+		return err;
 
-	setbp(bpt->bpt_addr, bpt->saved_instr);
-	//err = wmem(bpt->bpt_addr, ks->threadid, machdata->bpinst, machdata->bpsize);
-	//return err;
-	return nil;
+	err = wmem(bpt->bpt_addr, ks->threadid, machdata->bpinst, machdata->bpsize);
+	return err;
 }
 
 char *
 arch_remove_breakpoint(struct state *ks, struct bkpt *bpt)
 {
-	return wmem(bpt->bpt_addr, ks->threadid, bpt->saved_instr, bpsize);
+	return wmem(bpt->bpt_addr, ks->threadid, bpt->saved_instr, machdata->bpsize);
 }
 
 unsigned long
@@ -182,11 +180,24 @@ dbg_deactivate_sw_breakpoints(struct state *s)
 char *
 dbg_remove_sw_break(struct state *s, unsigned long addr)
 {
+	char *error;
 	int i;
 
 	for (i = 0; i < MAX_BREAKPOINTS; i++) {
-		if ((breakpoints[i].state == BP_SET) &&
-			(breakpoints[i].bpt_addr == addr)) {
+		if (breakpoints[i].bpt_addr != addr) {
+			continue;
+		}
+
+		if (breakpoints[i].state == BP_SET) {
+			breakpoints[i].state = BP_REMOVED;
+			return nil;
+		} else if (breakpoints[i].state == BP_ACTIVE) {
+			error = arch_remove_breakpoint(s, &breakpoints[i]);
+			if (error) {
+				fprint(2, "dbg_remove_sw_break failed: %lx\n", breakpoints[i].bpt_addr);
+				return error;
+			}
+
 			breakpoints[i].state = BP_REMOVED;
 			return nil;
 		}
