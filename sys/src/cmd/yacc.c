@@ -315,17 +315,17 @@ struct
 	int32_t	value;
 } resrv[] =
 {
-	"binary",	BINARY,
-	"left",		LEFT,
-	"nonassoc",	BINARY,
-	"prec",		PREC,
-	"right",	RIGHT,
-	"start",	START,
-	"term",		TERM,
-	"token",	TERM,
-	"type",		TYPEDEF,
-	"union",	UNION,
-	0,
+	{"binary",	BINARY},
+	{"left",	LEFT},
+	{"nonassoc",	BINARY},
+	{"prec",	PREC},
+	{"right",	RIGHT},
+	{"start",	START},
+	{"term",	TERM},
+	{"token",	TERM},
+	{"type",	TYPEDEF},
+	{"union",	UNION},
+	{nil,  0},
 };
 
 	/* define functions */
@@ -510,7 +510,7 @@ chcopy(char* p, char* q)
 {
 	int c;
 
-	while(c = *q) {
+	while((c = *q) != 0){
 		if(c == '"')
 			*p++ = '\\';
 		*p++ = c;
@@ -2098,17 +2098,18 @@ swt:
 
 	string:
 		Bputrune(faction, c);
-		while(c = Bgetrune(finput)) {
-			if(c == '\\') {
+		while((c = Bgetrune(finput)) != 0){
+			if(c == '\\'){
 				Bputrune(faction, c);
 				c = Bgetrune(finput);
 				if(c == '\n')
 					lineno++;
-			} else
+			}else{
 				if(c == match)
 					goto lcopy;
 				if(c == '\n')
 					error("newline in string or char. const.");
+			}
 			Bputrune(faction, c);
 		}
 		error("EOF in string or character constant");
