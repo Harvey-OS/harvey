@@ -29,7 +29,7 @@ static	int	gunzip(int ofd, char *ofile, Biobuf *bin);
 static	void	header(Biobuf *bin, GZHead *h);
 static	void	trailer(Biobuf *bin, int32_t wlen);
 static	void	error(char*, ...);
-#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
 static	uint32_t	crc;

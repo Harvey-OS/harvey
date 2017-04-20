@@ -117,7 +117,7 @@
 #define _AECOMMON
 
 #ifdef _MSC_VER                 /* disable some level-4 warnings */
-#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
+//#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
 #endif
 
 #include "acpi.h"

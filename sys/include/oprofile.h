@@ -35,7 +35,7 @@
 #define IBS_FETCH_CODE			13
 #define IBS_OP_CODE			14
 
-#pragma incomplete Ureg
+//#pragma incomplete Ureg
 
 /**
  * One-time exit/cleanup for the arch.

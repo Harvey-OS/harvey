@@ -142,7 +142,7 @@ typedef struct CipherState CipherState;
 typedef struct Conn Conn;
 typedef struct Msg Msg;
 
-#pragma incomplete CipherState
+//#pragma incomplete CipherState
 
 struct Auth
 {
@@ -307,6 +307,6 @@ void		sshlog(char*, ...);
 void		setaliases(Conn*, char*);
 void		privatefactotum(void);
 
-#pragma varargck argpos debug 2
-#pragma varargck argpos error 1
-#pragma varargck argpos sshlog 2
+//#pragma varargck argpos debug 2
+//#pragma varargck argpos error 1
+//#pragma varargck argpos sshlog 2

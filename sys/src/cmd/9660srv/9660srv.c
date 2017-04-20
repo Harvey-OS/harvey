@@ -268,7 +268,7 @@ iwalk(Xfile *f, char *name)
 	int len, vers, dvers;
 
 	vers = -1;
-	if(p = strchr(name, ';')) {	/* assign = */
+	if((p = strchr(name, ';')) != nil) {	/* assign = */
 		len = p-name;
 		if(len >= Maxname)
 			len = Maxname-1;

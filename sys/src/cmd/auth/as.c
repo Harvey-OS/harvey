@@ -33,8 +33,8 @@ int	qidcmp(Qid, Qid);
 void	runas(char *, char *);
 void	usage(void);
 
-#pragma varargck	argpos clog 1
-#pragma varargck	argpos fatal 1
+//#pragma varargck	argpos clog 1
+//#pragma varargck	argpos fatal 1
 
 static void
 fatal(char *fmt, ...)

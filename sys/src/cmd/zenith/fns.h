@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#pragma	varargck	argpos	warning	2
+//#pragma	varargck	argpos	warning	2
 
 void	warning(Mntdir*, char*, ...);
 

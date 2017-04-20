@@ -224,7 +224,7 @@ vfprintf(FILE *f, const char *s, va_list args_pointer)
 static int
 ocvt_c(FILE *f, va_list *args, int flags, int width, int precision)
 {
-#pragma ref precision
+//#pragma ref precision
 	int i;
 
 	if(!(flags&LEFT)) for(i=1; i<width; i++) putc(' ', f);
@@ -273,9 +273,9 @@ ocvt_s(FILE *f, va_list *args, int flags, int width, int precision)
 static int
 ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
 {
-#pragma ref f
-#pragma ref width
-#pragma ref precision
+//#pragma ref f
+//#pragma ref width
+//#pragma ref precision
 	if(flags&SHORT)
 		*va_arg(*args, int16_t *) = nprint;
 	else if(flags&LONG)

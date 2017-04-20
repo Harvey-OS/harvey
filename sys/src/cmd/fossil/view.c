@@ -116,7 +116,7 @@ btStr(int type)
 		return bttab[type];
 	return "unknown";
 }
-#pragma varargck argpos stringnode 1
+//#pragma varargck argpos stringnode 1
 
 Block*
 allocBlock(void)
@@ -310,7 +310,7 @@ copyMetaBlock(MetaBlock mb)
  * visualizer 
  */
 
-#pragma	varargck	argpos	stringnode	1
+//#pragma	varargck	argpos	stringnode	1
 
 Tnode*
 stringnode(char *fmt, ...)

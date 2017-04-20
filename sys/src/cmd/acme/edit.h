@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#pragma	varargck	argpos	editerror	1
+//#pragma	varargck	argpos	editerror	1
 
 typedef struct Addr	Addr;
 typedef struct Address	Address;

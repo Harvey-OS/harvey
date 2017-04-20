@@ -31,7 +31,7 @@
  * Opaque type for the recognizer. The toolkit must access through
  * appropriate access functions.
  */
-#pragma incomplete struct _Recognizer
+//#pragma incomplete struct _Recognizer
 typedef struct _Recognizer* recognizer;
 
 /*

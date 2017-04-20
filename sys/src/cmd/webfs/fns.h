@@ -45,7 +45,7 @@ void		httpclose(Client*);
 /* io.c */
 int		iotlsdial(Ioproc*, char*, char*, char*, int*, int);
 int		ioprint(Ioproc*, int, char*, ...);
-#pragma varargck argpos ioprint 3
+//#pragma varargck argpos ioprint 3
 
 /* plumb.c */
 void	plumbinit(void);

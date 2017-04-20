@@ -174,4 +174,4 @@ void		shutdown(void);
 
 void		screeninit(int, int, char*);
 
-#pragma	varargck	argpos	panic		1
+//#pragma	varargck	argpos	panic		1
