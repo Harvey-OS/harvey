@@ -9,6 +9,7 @@
 		        "-DACPI_DISASSEMBLER",
 		        "-DACPI_EXEC_APP",
 		        "-D__HARVEY__",
+                "-U__FreeBSD__",
 		        "-U_LINUX",
 		        "-U__linux__",
                         "-U__FreeBSD__",
