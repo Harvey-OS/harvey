@@ -38,4 +38,22 @@ developed by the same group at Bell Labs that invented Unix and C.
   [twitter account](https://twitter.com/harvey_os) where we share news
   and things we are excited about.
 
+## Quickstart
+
+Bootstrap the build environment:
+
+	./bootstrap.sh
+
+Make sure to follow any additional directions bootstrap.sh may give!
+
+Now build Harvey:
+
+	ARCH=amd64 ./util/build
+
+And boot:
+
+	HARVEY=$(pwd) sh util/GO9PRUN
+
+For more information, see the [Getting Started](https://github.com/Harvey-OS/harvey/wiki/Getting-Started) guide.
+
 [License](https://github.com/Harvey-OS/harvey/blob/master/LICENSE.gpl)
