@@ -36,6 +36,8 @@ main(int argc, char *argv[])
 	case 'x':
 		xflag++;
 		break;
+	case 'p':
+		break;
 	default:
 		goto usage;
 	} ARGEND
