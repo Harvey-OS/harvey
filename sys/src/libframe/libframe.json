@@ -1,8 +1,5 @@
 {
 	"libframe": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],

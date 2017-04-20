@@ -1,8 +1,7 @@
 {
 	"KernelLibc": {
 		"Cflags": [
-			"-fasm",
-			"-Werror"
+			"-fasm"
 		],
 		"Include": [
 			"/$ARCH/include/klib.json",
