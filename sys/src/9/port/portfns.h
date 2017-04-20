@@ -421,9 +421,9 @@ int		ziofmt(Fmt*);
 int		zputaddr(Segment*, uintptr_t);
 uint32_t		ms(void);
 
-#pragma		varargck	argpos	iprint		1
-#pragma		varargck	argpos	panic		1
-#pragma		varargck	argpos	pprint		1
+//#pragma		varargck	argpos	iprint		1
+//#pragma		varargck	argpos	panic		1
+//#pragma		varargck	argpos	pprint		1
 
 /* profiling. */
 void oprofile_control_trace(int onoff);

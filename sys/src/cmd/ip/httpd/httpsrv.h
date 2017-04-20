@@ -78,9 +78,9 @@ char			*undecorated(char *repl);
 
 /* log.c */
 void			logit(HConnect*, char*, ...);
-#pragma	varargck	argpos	logit	2
+//#pragma	varargck	argpos	logit	2
 void			writelog(HConnect*, char*, ...);
-#pragma	varargck	argpos	writelog	2
+//#pragma	varargck	argpos	writelog	2
 
 /* authorize.c */
 int authorize(HConnect*, char*);

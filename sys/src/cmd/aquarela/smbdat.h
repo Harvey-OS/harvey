@@ -26,9 +26,9 @@ typedef struct SmbLock SmbLock;
 typedef struct SmbLockList SmbLockList;
 typedef struct SmbSlut SmbSlut;
 
-#pragma incomplete SmbIdMap
-#pragma incomplete SmbBuffer
-#pragma incomplete SmbLockList
+//#pragma incomplete SmbIdMap
+//#pragma incomplete SmbBuffer
+//#pragma incomplete SmbLockList
 
 typedef int SMBCIFSWRITEFN(SmbCifsSession *cifs, void *buf, long n);
 typedef int SMBCIFSACCEPTFN(SmbCifsSession *cifs, SMBCIFSWRITEFN **fnp);

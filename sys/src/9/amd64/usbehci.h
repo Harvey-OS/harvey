@@ -26,14 +26,14 @@ typedef struct Poll Poll;
 typedef struct Qh Qh;
 typedef struct Qtree Qtree;
 
-#pragma incomplete Ctlr;
-#pragma incomplete Ecapio;
-#pragma incomplete Edbgio;
-#pragma incomplete Eopio;
-#pragma incomplete Isoio;
-#pragma incomplete Poll;
-#pragma incomplete Qh;
-#pragma incomplete Qtree;
+//#pragma incomplete Ctlr;
+//#pragma incomplete Ecapio;
+//#pragma incomplete Edbgio;
+//#pragma incomplete Eopio;
+//#pragma incomplete Isoio;
+//#pragma incomplete Poll;
+//#pragma incomplete Qh;
+//#pragma incomplete Qtree;
 
 /*
  * EHCI interface registers and bits

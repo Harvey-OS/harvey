@@ -96,8 +96,8 @@ extern	void		startpipe(void);
 extern	int		pipecommand(Window*, char*);
 extern	void		pipectl(void*);
 
-#pragma	varargck	argpos	error	1
-#pragma	varargck	argpos	ctlprint	2
+//#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	ctlprint	2
 
 extern	Window	*win;
 extern	Channel	*fschan, *writechan;

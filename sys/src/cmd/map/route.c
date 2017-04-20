@@ -58,7 +58,7 @@ rinvert(double a, double b, double *x, double *y)
 
 main(int argc, char **argv)
 {
-#pragma ref argv
+//#pragma ref argv
 	double an,aw,bn,bw;
 	ARGBEGIN {
 	case 't':

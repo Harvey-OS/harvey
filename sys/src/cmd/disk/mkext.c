@@ -25,8 +25,8 @@ void	seekpast(uint64_t);
 void	error(char*, ...);
 void	warn(char*, ...);
 void	usage(void);
-#pragma varargck argpos warn 1
-#pragma varargck argpos error 1
+//#pragma varargck argpos warn 1
+//#pragma varargck argpos error 1
 
 Biobufhdr bin;
 unsigned char	binbuf[2*LEN];

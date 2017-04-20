@@ -211,7 +211,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 			s->ptr = Boffset(&db->b);
 			if(t == 0)
 				break;
-			if(s->t = match(t, attr, val)){
+			if((s->t = match(t, attr, val)) != 0){
 				ndbsetmalloctag(t, getcallerpc());
 				return t;
 			}
@@ -224,7 +224,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 			t = ndbparse(db);
 			if(t == 0)
 				break;
-			if(s->t = match(t, attr, val)){
+			if((s->t = match(t, attr, val)) != 0){
 				ndbsetmalloctag(t, getcallerpc());
 				return t;
 			}
@@ -245,7 +245,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 				t = ndbparse(db);
 				if(t == 0)
 					break;
-				if(s->t = match(t, attr, val)){
+				if((s->t = match(t, attr, val)) != 0){
 					ndbsetmalloctag(t, getcallerpc());
 					return t;
 				}

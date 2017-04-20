@@ -11,9 +11,9 @@ typedef struct Fs Fs;
 typedef struct File File;
 typedef struct DirEntryEnum DirEntryEnum;
 
-#pragma incomplete Fs
-#pragma incomplete File
-#pragma incomplete DirEntryEnum
+//#pragma incomplete Fs
+//#pragma incomplete File
+//#pragma incomplete DirEntryEnum
 
 /* modes */
 
