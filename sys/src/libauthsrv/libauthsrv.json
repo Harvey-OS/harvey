@@ -1,8 +1,5 @@
 {
 	"libauthsrv": {
-		"Cflags": [
-			"-Werror"
-		],
 		"Include": [
 			"../lib.json"
 		],
