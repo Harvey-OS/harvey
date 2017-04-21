@@ -450,7 +450,7 @@ findp9authkey(Key **k, Fsstate *fss)
 	mkkeyinfo(&ki, fss, nil);
 	ki.attr = nil;
 	ki.user = nil;
-	if(dom = _strfindattr(fss->attr, "dom"))
+	if((dom = _strfindattr(fss->attr, "dom")) != nil)
 		return findkey(k, &ki, "proto=p9sk1 dom=%q role=server user?", dom);
 	else
 		return findkey(k, &ki, "proto=p9sk1 role=server dom? user?");
@@ -686,7 +686,7 @@ promptforhostowner(void)
 	char owner[64], *p;
 
 	/* hack for bitsy; can't prompt during boot */
-	if(p = getenv("user")){
+	if((p = getenv("user")) != nil){
 		writehostowner(p);
 		free(p);
 		return;

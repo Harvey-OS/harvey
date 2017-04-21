@@ -96,7 +96,7 @@ struct Treq {
 };
 
 struct Wiki {
-	QLock;
+	QLock lk;
 	int isnew;
 	int special;
 	char *arg;

@@ -222,7 +222,7 @@ vncaddkey(Key *k, int before)
 	char *s;
 
 	k->priv = emalloc(8+1);
-	if(s = _strfindattr(k->privattr, "!password")){
+	if((s = _strfindattr(k->privattr, "!password")) != nil){
 		mktab();
 		memset(k->priv, 0, 8+1);
 		strncpy((char*)k->priv, s, 8);
