@@ -697,7 +697,7 @@ fidMergeSort(Fid *f)
 			delay = 0;
 		else
 			a = a->sort;
-		if(b = b->sort)
+		if((b = b->sort) != nil)
 			b = b->sort;
 	}
 

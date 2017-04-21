@@ -365,7 +365,7 @@ putpage(void)
 			}
 			for(Lcolpos=0, Pcolpos=0; C!='\n' && C!='\f' && C!=-1; get(colno))
 					put(C);
-			if(C==-1 || ++colno==Ncols || C=='\n' && get(colno)==-1)
+			if(C==-1 || ++colno==Ncols || (C=='\n' && get(colno)==-1))
 				break;
 			if(Sepc)
 				put(Sepc);

@@ -49,7 +49,7 @@ enum {
 /* disk address (in bytes or sectors), also type of 2nd arg. to seek */
 typedef uint64_t Daddr;
 typedef int64_t Sdaddr;				/* signed disk address */
-typedef int32_t Rdwrfn(int, void *, int32_t);		/* plan 9 read or write */
+typedef int32_t Rdwrfn(int, void *, int32_t);	/* plan 9 read or write */
 
 typedef struct {
 	char	*name;
@@ -483,7 +483,7 @@ copysects(File *src, File *dest, Daddr stsect, Daddr nsects, int mustseek)
 	bigxfer(src,  read,  buf, stsect, xfrsects, mustseek);
 	if (swizzle)
 		swizzlebits(buf, xfrsects);
-	bigxfer(dest, write, buf, stsect, xfrsects, mustseek);
+	bigxfer(dest, (Rdwrfn *)write, buf, stsect, xfrsects, mustseek);
 	/* give a few reassurances at the start, then every 10MB */
 	if (progress &&
 	    (stsect < blksects*10 || stsect%(10*1024*1024/sectsz) == 0))

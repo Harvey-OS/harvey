@@ -1792,13 +1792,14 @@ tread(Thing *t)
 	free(t->name);
 	free(t);
 	for(nt=thing; nt; nt=nt->next)
-		if(nt==new || nt->parent==new)
+		if(nt==new || nt->parent==new){
 			if(nclosed == 0)
 				drawthing(nt, 0);	/* can draw in place */
 			else{
 				redraw(nt);	/* must redraw all below */
 				break;
 			}
+		}
 }
 
 void

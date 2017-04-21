@@ -286,7 +286,7 @@ crackurl(URL *u, char *s)
 		*p = '/';
 	}
 
-	if(p = strchr(u->host, ':')) {
+	if((p = strchr(u->host, ':')) != nil){
 		*p++ = 0;
 		u->port = p;
 	} else
@@ -819,7 +819,7 @@ hhauth(char *p, URL *u, Range *r)
 	s = smprint("%s:%s", up->user, up->passwd);
 	if(enc64(cred, sizeof(cred), (uint8_t *)s, strlen(s)) == -1)
 		sysfatal("enc64");
-  		free(s);
+ 	free(s);
 
 	assert(u->cred = strdup(cred));
 }

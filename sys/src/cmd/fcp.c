@@ -208,7 +208,7 @@ worker(int fdf, int fdt, char *from, char *to)
 	bp = buf;
 	o = nextoff();
 
-	while(n = pread(fdf, bp, len, o)){
+	while((n = pread(fdf, bp, len, o)) != 0){
 		if(n < 0){
 			fprint(2, "reading %s at %lld: %r\n", from, o);
 			_exits("bad");

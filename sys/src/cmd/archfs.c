@@ -61,7 +61,7 @@ Bgetline(Biobuf *b)
 {
 	char *p;
 
-	if(p = Brdline(b, '\n'))
+	if((p = Brdline(b, '\n')) != nil)
 		p[Blinelen(b)-1] = '\0';
 	return p;
 }
@@ -236,7 +236,7 @@ main(int argc, char **argv)
 		sysfatal("open '%s': %r", argv[0]);
 
 	archtree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
-	while(a = gethdr(b)) {
+	while((a = gethdr(b)) != nil){
 		archcreatefile(a->_name, newarch(Boffset(b), a->Dir.length), &a->Dir);
 		Bseek(b, a->Dir.length, 1);
 	}

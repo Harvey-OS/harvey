@@ -40,7 +40,7 @@ main(int _, char *__)
 	i = 0;
 	argv[0] = line;
 	while (1) {
-		if (amt = read(0, &line[i], 1) < 1) {
+		if ((amt = read(0, &line[i], 1)) < 1) {
 			print("read: %r\n");
 			break;
 		}
