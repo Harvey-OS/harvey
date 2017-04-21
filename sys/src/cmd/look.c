@@ -308,7 +308,7 @@ ncomp(Rune *s, Rune *t)
 	a = 0;
 	if(ssgn == tsgn)
 		while(it>t && is>s)
-			if(b = *--it - *--is)
+			if((b = *--it - *--is) != 0)
 				a = b;
 	while(is > s)
 		if(*--is != '0')
@@ -324,7 +324,7 @@ ncomp(Rune *s, Rune *t)
 		t++;
 	if(ssgn == tsgn)
 		while(isdigit(*s) && isdigit(*t))
-			if(a = *t++ - *s++)
+			if((a = *t++ - *s++) != 0)
 				return sgn(a)*ssgn;
 	while(isdigit(*s))
 		if(*s++ != '0')

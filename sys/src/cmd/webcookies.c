@@ -65,23 +65,23 @@ struct {
 	int	offset;
 	int	ishttp;
 } stab[] = {
-	"domain",		offsetof(Cookie, dom),		1,
-	"path",			offsetof(Cookie, path),		1,
-	"name",			offsetof(Cookie, name),		0,
-	"value",		offsetof(Cookie, value),	0,
-	"comment",		offsetof(Cookie, comment),	1,
-	"version",		offsetof(Cookie, version),	1,
+	{"domain",		offsetof(Cookie, dom),		1},
+	{"path",		offsetof(Cookie, path),		1},
+	{"name",		offsetof(Cookie, name),		0},
+	{"value",		offsetof(Cookie, value),	0},
+	{"comment",		offsetof(Cookie, comment),	1},
+	{"version",		offsetof(Cookie, version),	1},
 };
 
 struct {
 	char *s;
 	int	offset;
 } itab[] = {
-	"expire",		offsetof(Cookie, expire),
-	"secure",		offsetof(Cookie, secure),
-	"explicitdomain",	offsetof(Cookie, explicitdom),
-	"explicitpath",		offsetof(Cookie, explicitpath),
-	"netscapestyle",	offsetof(Cookie, netscapestyle),
+	{"expire",		offsetof(Cookie, expire)},
+	{"secure",		offsetof(Cookie, secure)},
+	{"explicitdomain",	offsetof(Cookie, explicitdom)},
+	{"explicitpath",	offsetof(Cookie, explicitpath)},
+	{"netscapestyle",	offsetof(Cookie, netscapestyle)},
 };
 
 
@@ -608,8 +608,8 @@ strtotime(char *s)
 	Tm tm;
 
 	static int mday[2][12] = {
-		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
-		31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+		{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+		{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
 	};
 	static char *wday[] = {
 		"Sunday", "Monday", "Tuesday", "Wednesday",
