@@ -91,7 +91,7 @@ main(int argc, char **argv)
 			break;
 		case 'o':
 			if(argv[1][2]!=0 ||
-			   argc>2 && strchr(argv[2],',')!=0)
+			   (argc>2 && strchr(argv[2],',')!=0))
 				oparse(getoptarg(&argc, &argv));
 			else for (no = 0; no<2*NFLD && argc>2; no++){
 				if (argv[2][0] == '1' && argv[2][1] == '.') {
@@ -215,15 +215,15 @@ join(int seekf)
 	top = 0;
 	bot = Boffset(f[seekf]);
 	readboth(n);
-	while(n[F1]>0 && n[F2]>0 || (a1||a2) && n[F1]+n[F2]>0) {
+	while((n[F1]>0 && n[F2]>0) || ((a1||a2) && n[F1]+n[F2]>0)) {
 		cmp = comp();
-		if(n[F1]>0 && n[F2]>0 && cmp>0 || n[F1]==0) {
+		if((n[F1]>0 && n[F2]>0 && cmp>0) || n[F1]==0) {
 			if(a2)
 				output(0, n[F2]);
 			if (seekf == F2)
 				bot = Boffset(f[seekf]);
 			n[F2] = input(F2);
-		} else if(n[F1]>0 && n[F2]>0 && cmp<0 || n[F2]==0) {
+		} else if((n[F1]>0 && n[F2]>0) && cmp<0 || n[F2]==0) {
 			if(a1)
 				output(n[F1], 0);
 			if (seekf == F1)
@@ -243,8 +243,8 @@ join(int seekf)
 				if(n[F1]>0 && n[F2]>0 && cmp==0) {
 					output(n[F1], n[F2]);
 					n[seekf] = input(seekf);
-				} else if(n[F1]>0 && n[F2]>0 &&
-				    (less? cmp<0 :cmp>0) || n[seekf]==0)
+				} else if((n[F1]>0 && n[F2]>0 &&
+				    (less? cmp<0 :cmp>0)) || n[seekf]==0)
 					seekbotreadboth(seekf, bot, n);
 				else {
 					/*
@@ -330,8 +330,8 @@ output(int on1, int on2)	/* print items from olist */
 				temp = ppi[F2][j2];
 			else {
 				temp = ppi[olistf[i]][olist[i]];
-				if(olistf[i]==F1 && on1<=olist[i] ||
-				   olistf[i]==F2 && on2<=olist[i] ||
+				if((olistf[i]==F1 && on1<=olist[i]) ||
+				   (olistf[i]==F2 && on2<=olist[i]) ||
 				   *temp==0)
 					temp = null;
 			}

@@ -208,20 +208,20 @@ struct Cmd9p {
 };
 
 static Cmd9p cmd9pTmsg[] = {
-	"Tversion", Tversion, 2, "msize version", cmd9pTversion,
-	"Tauth", Tauth, 3, "afid uname aname", cmd9pTauth,
-	"Tflush", Tflush, 1, "oldtag", cmd9pTflush,
-	"Tattach", Tattach, 4, "fid afid uname aname", cmd9pTattach,
-	"Twalk", Twalk, 0, "fid newfid [name...]", cmd9pTwalk,
-	"Topen", Topen, 2, "fid mode", cmd9pTopen,
-	"Tcreate", Tcreate, 4, "fid name perm mode", cmd9pTcreate,
-	"Tread", Tread, 3, "fid offset count", cmd9pTread,
-	"Twrite", Twrite, 3, "fid offset data", cmd9pTwrite,
-	"Tclunk", Tclunk, 1, "fid", cmd9pTclunk,
-	"Tremove", Tremove, 1, "fid", cmd9pTremove,
-	"Tstat", Tstat, 1, "fid", cmd9pTstat,
-	"Twstat", Twstat, 7, "fid name uid gid mode mtime length", cmd9pTwstat,
-	"nexttag", 0, 0, "", cmd9pTag,
+	{"Tversion", Tversion, 2, "msize version", cmd9pTversion},
+	{"Tauth", Tauth, 3, "afid uname aname", cmd9pTauth},
+	{"Tflush", Tflush, 1, "oldtag", cmd9pTflush},
+	{"Tattach", Tattach, 4, "fid afid uname aname", cmd9pTattach},
+	{"Twalk", Twalk, 0, "fid newfid [name...]", cmd9pTwalk},
+	{"Topen", Topen, 2, "fid mode", cmd9pTopen},
+	{"Tcreate", Tcreate, 4, "fid name perm mode", cmd9pTcreate},
+	{"Tread", Tread, 3, "fid offset count", cmd9pTread},
+	{"Twrite", Twrite, 3, "fid offset data", cmd9pTwrite},
+	{"Tclunk", Tclunk, 1, "fid", cmd9pTclunk},
+	{"Tremove", Tremove, 1, "fid", cmd9pTremove},
+	{"Tstat", Tstat, 1, "fid", cmd9pTstat},
+	{"Twstat", Twstat, 7, "fid name uid gid mode mtime length", cmd9pTwstat},
+	{"nexttag", 0, 0, "", cmd9pTag},
 };
 
 static int
@@ -426,7 +426,7 @@ cmdBind(int argc, char* argv[])
 		return cliError(usage);
 	}ARGEND
 
-	if(argc != 2 || (flag&MAFTER)&&(flag&MBEFORE))
+	if(argc != 2 || ((flag&MAFTER)&&(flag&MBEFORE)))
 		return cliError(usage);
 
 	if(bind(argv[0], argv[1], flag) < 0){

@@ -25,10 +25,10 @@ struct Sha2 {
 };
 
 static Sha2 sha2s[] = {
-	224,	SHA2_224dlen,	sha2_224,
-	256,	SHA2_256dlen,	sha2_256,
-	384,	SHA2_384dlen,	sha2_384,
-	512,	SHA2_512dlen,	sha2_512,
+	{224,	SHA2_224dlen,	sha2_224},
+	{256,	SHA2_256dlen,	sha2_256},
+	{384,	SHA2_384dlen,	sha2_384},
+	{512,	SHA2_512dlen,	sha2_512},
 };
 
 static DigestState* (*shafunc)(uint8_t *, uint32_t, uint8_t *,

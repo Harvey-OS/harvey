@@ -28,7 +28,7 @@
 #define STREQ(a, b)	(*(a) == *(b) && strcmp(a, b) == 0)
 #define OTHER(rdwr)	((rdwr) == Rd? Wr: Rd)
 /* per 8c, all multibyte runes are considered alphabetic */
-#define ISIDENT(r) (isascii(r) && isalnum(r) || (r) == '_' || (r) >= Runeself)
+#define ISIDENT(r) ((isascii(r) && isalnum(r)) || (r) == '_' || (r) >= Runeself)
 
 /* safe macros */
 #define checksys(atom)		strbsearch(atom, sysword, nelem(sysword))
@@ -499,7 +499,7 @@ skipcomments(Biobuf *in, int firstc)
 {
 	int c;
 
-	for (c = firstc; isascii(c) && isspace(c) || c == '/'; c = nextc(in)) {
+	for (c = firstc; (isascii(c) && isspace(c)) || c == '/'; c = nextc(in)) {
 		if (c == '\n')
 			lineno++;
 		if (c != '/')

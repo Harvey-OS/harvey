@@ -1057,7 +1057,7 @@ dosub(Rune *rhsbuf)
 	rp = rhsbuf;
 	while (lp < loc1)
 		*sp++ = *lp++;
-	while((c = *rp++) != nil){
+	while((c = *rp++) != 0){
 		if (c == '&') {
 			sp = place(sp, loc1, loc2);
 			continue;
@@ -1311,7 +1311,7 @@ wcom:
 		spend = p2 - 1;
 		p1 = genbuf;
 		p2 = holdsp;
-		while(*p2++ = *p1++)
+		while((*p2++ = *p1++) != 0)
 			;
 		hspend = p2 - 1;
 		break;

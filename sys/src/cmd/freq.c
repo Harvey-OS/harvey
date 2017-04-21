@@ -115,8 +115,8 @@ freq(int f, char *s)
 			Bprint(&bout, "%.2lx ", i);
 		if(flag & Fchar) {
 			if(i <= 0x20 ||
-			   i >= 0x7f && i < 0xa0 ||
-			   i > 0xff && !(flag & Frune))
+			   (i >= 0x7f && i < 0xa0) ||
+			   (i > 0xff && !(flag & Frune)))
 				Bprint(&bout, "- ");
 			else
 				Bprint(&bout, "%C ", (int)i);
