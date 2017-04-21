@@ -2403,7 +2403,7 @@ iftest(char *p, char **bp)
 		p++;
 	}
 	c = *p;
-	if (c >= '0' && c <= '9' || c == '+' || c == '-' || c == '('/*)*/) {
+	if ((c >= '0' && c <= '9') || c == '+' || c == '-' || c == '('/*)*/) {
 		if (numval(&p,1) >= 1)
 			rv = 1;
 		goto done;
@@ -2521,7 +2521,7 @@ g_ie(char *line, char *e)
 		fprint(2, "ms2html: .ie's too deep\n");
 		return;
 	}
-	if (ifwastrue[++elsetop] = ifstart(line, e, &b))
+	if ((ifwastrue[++elsetop] = ifstart(line, e, &b)) != 0)
 		pushbody(b);
 	else
 		skipbody(b);

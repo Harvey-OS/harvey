@@ -149,11 +149,12 @@ main(int argc, char *argv[])
 		usage();
 	} ARGEND
 
-	if (unit == 0)
+	if (unit == 0) {
 		if (qflag || tflag || uflag || autoscale)
 			unit = 1;
 		else
 			unit = Vkilo;
+	}
 	if (blocksize < 1)
 		blocksize = 1;
 

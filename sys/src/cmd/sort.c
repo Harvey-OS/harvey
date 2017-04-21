@@ -734,7 +734,7 @@ doargs(int argc, char *argv[])
 				continue;
 			}
 
-			while(c = *s++)
+			while((c = *s++) != '\0')
 			switch(c) {
 			case '-':	/* end of options */
 				i = argc;
@@ -1666,7 +1666,7 @@ rsort4(Key ***a, uint32_t n, int b)
 	b++;
 	t = a + clist[0];
 	count[256] = 0;
-	for(cp1=clist+1; n=cp1[0]; cp1+=2) {
+	for(cp1=clist+1; (n=cp1[0]) != 0; cp1+=2) {
 		if(n > Threshold)
 			rsort4(t, n, b);
 		else

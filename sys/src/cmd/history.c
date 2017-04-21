@@ -349,7 +349,7 @@ starttime(char *s)
 		tm = localtime(t+dt);
 		if(yr > tm->year ||
 		  (yr == tm->year && mo > tm->mon) ||
-		  (yr == tm->year && mo == tm->mon) && da > tm->mday) {
+		  (yr == tm->year && mo == tm->mon && da > tm->mday)) {
 			t += dt;
 			continue;
 		}

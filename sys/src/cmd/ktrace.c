@@ -57,7 +57,7 @@ printaddr(char *addr, uint64_t pc)
 		}
 	}
 
-	if(p=strchr(addr, '+')){
+	if((p=strchr(addr, '+')) != nil){
 		*p++ = 0;
 		print("src(%#.8llux); // %s+0x%s\n", pc, addr, p);
 	}else
@@ -362,11 +362,11 @@ readstack(void)
 	int nf, i;
 
 	Binit(&b, 0, OREAD);
-	while(p=Brdline(&b, '\n')){
+	while((p=Brdline(&b, '\n')) != nil){
 		p[Blinelen(&b)-1] = 0;
 		nf = tokenize(p, f, nelem(f));
 		for(i=0; i<nf; i++){
-			if(p=strchr(f[i], '=')){
+			if((p=strchr(f[i], '=')) != nil){
 				*p++ = 0;
 				putval(strtoull(f[i], 0, 16), strtoull(p, 0, 16));
 			}
