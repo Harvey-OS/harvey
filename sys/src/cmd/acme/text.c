@@ -649,7 +649,6 @@ texttype(Text *t, Rune r)
 	uint q0, q1;
 	int nnb, nb, n, i;
 	int nr;
-	int linelen;
 	Rune *rp;
 	Text *u;
 

@@ -567,7 +567,7 @@ dbfile2area(Ndb *db)
 	if(debug)
 		dnslog("rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
-	while(t = ndbparse(db))
+	while((t = ndbparse(db)) != nil)
 		ndbfree(t);
 }
 
@@ -641,7 +641,7 @@ dbfile2cache(Ndb *db)
 	if(debug)
 		dnslog("rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
-	while(t = ndbparse(db)){
+	while((t = ndbparse(db)) != nil){
 		dbtuple2cache(t);
 		ndbfree(t);
 	}
@@ -1205,9 +1205,9 @@ insideaddr(char *dom)
 			continue;
 		vallen = strlen(t->val);
 		if (cistrcmp(dom, t->val) == 0 ||
-		    domlen > vallen &&
+		    (domlen > vallen &&
 		     cistrcmp(dom + domlen - vallen, t->val) == 0 &&
-		     dom[domlen - vallen - 1] == '.') {
+		     dom[domlen - vallen - 1] == '.')) {
 			rv = 1;
 			break;
 		}
