@@ -108,7 +108,7 @@ args(int argc, char *argv[])
 		eobj2 = nil;
 		p = ARGF();
 		if(p) {
-			for(i=0; q=objlst[i]; i++) {
+			for(i=0; (q=objlst[i]) != nil; i++) {
 				if(strcmp(q->name, p) == 0)
 					eobj1 = q;
 				if(strcmp(q->name1, p) == 0)
@@ -116,7 +116,7 @@ args(int argc, char *argv[])
 			}
 			p = ARGF();
 			if(p) {
-				for(i=0; q=objlst[i]; i++) {
+				for(i=0; (q=objlst[i]) != nil; i++) {
 					if(strcmp(q->name, p) == 0)
 						eobj2 = q;
 					if(strcmp(q->name1, p) == 0)

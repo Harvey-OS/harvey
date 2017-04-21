@@ -150,7 +150,7 @@ pname(uint8_t *p, uint8_t *ep, char *np, Dict *dp)
 			}
 
 		/* if there's room, enter this name in dictionary */
-		if(dp->n < Ndict)
+		if(dp->n < Ndict) {
 			if(last){
 				/* the whole name is already in dp->buf */
 				last = strchr(last, '.') + 1;
@@ -169,6 +169,7 @@ pname(uint8_t *p, uint8_t *ep, char *np, Dict *dp)
 					dp->n++;
 				}
 			}
+		}
 
 		/* put next component into message */
 		cp = strchr(np, '.');

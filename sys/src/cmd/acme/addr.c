@@ -203,11 +203,12 @@ address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int
 				*qp = q-1;
 				return r;
 			}
-			if(*evalp)
+			if(*evalp){
 				if(c == '.')
 					r = ar;
 				else
 					r = (Range){t->file->Buffer.nc, t->file->Buffer.nc};
+			}
 			if(q < q1)
 				dir = Fore;
 			else

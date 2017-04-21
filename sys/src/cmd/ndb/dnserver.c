@@ -150,7 +150,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 	 *  add an soa to the authority section to help client
 	 *  with negative caching
 	 */
-	if(repp->an == nil)
+	if(repp->an == nil) {
 		if(myarea != nil){
 			lock(&dnlock);
 			rrcopy(myarea->soarr, &tp);
@@ -165,6 +165,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 			}
 			repp->flags |= neg->negrcode;
 		}
+	}
 
 	/*
 	 *  get rid of duplicates

@@ -129,7 +129,7 @@ Dfmt(Fmt *fmt)
 	Cdir *c;
 
 	c = va_arg(fmt->args, Cdir*);
-	if(c->namelen == 1 && c->name[0] == '\0' || c->name[0] == '\001') {
+	if((c->namelen == 1 && c->name[0] == '\0') || c->name[0] == '\001') {
 		snprint(buf, sizeof buf, ".%s dloc %.4N dlen %.4N",
 			c->name[0] ? "." : "", c->dloc, c->dlen);
 	} else {

@@ -244,8 +244,8 @@ dnlookup(char *name, int class, int enter)
 static int
 rrsame(RR *rr1, RR *rr2)
 {
-	return rr1 == rr2 || rr2 && rrequiv(rr1, rr2) &&
-		rr1->db == rr2->db && rr1->auth == rr2->auth;
+	return rr1 == rr2 || (rr2 && rrequiv(rr1, rr2) &&
+		rr1->db == rr2->db && rr1->auth == rr2->auth);
 }
 
 static int
@@ -1649,7 +1649,7 @@ subsume(char *higher, char *lower)
 	ln = strlen(lower);
 	hn = strlen(higher);
 	if (ln < hn || cistrcmp(lower + ln - hn, higher) != 0 ||
-	    ln > hn && hn != 0 && lower[ln - hn - 1] != '.')
+	    (ln > hn && hn != 0 && lower[ln - hn - 1] != '.'))
 		return 0;
 	return 1;
 }
