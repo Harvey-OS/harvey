@@ -208,23 +208,23 @@ typedef struct color_ref {
 } color_ref;
 
 color_ref clrtab[] = {
-	DRed,		"Red",		'R', 0,
-	DPink,		"Pink",		'P', 0,
-	DDkred,		"Dkred",	'r', 0,
-	DOrange,	"Orange",	'O', 0,
-	DYellow,	"Yellow",	'Y', 0,
-	DDkyellow,	"Dkyellow",	'y', 0,
-	DGreen,		"Green",	'G', 0,
-	DDkgreen,	"Dkgreen",	'g', 0,
-	DCyan,		"Cyan",		'C', 0,
-	DBlue,		"Blue",		'B', 0,
-	DLtblue,	"Ltblue",	'b', 0,
-	DMagenta,	"Magenta",	'M', 0,
-	DViolet,	"Violet",	'V', 0,
-	Dgray,		"Gray",		'A', 0,
-	DBlack,		"Black",	'K', 0,
-	DWhite,		"White",	'W', 0,
-	DNofill,	0,		0,   0	/* DNofill means "end of data" */
+	{DRed,		"Red",		'R', 0},
+	{DPink,		"Pink",		'P', 0},
+	{DDkred,	"Dkred",	'r', 0},
+	{DOrange,	"Orange",	'O', 0},
+	{DYellow,	"Yellow",	'Y', 0},
+	{DDkyellow,	"Dkyellow",	'y', 0},
+	{DGreen,	"Green",	'G', 0},
+	{DDkgreen,	"Dkgreen",	'g', 0},
+	{DCyan,		"Cyan",		'C', 0},
+	{DBlue,		"Blue",		'B', 0},
+	{DLtblue,	"Ltblue",	'b', 0},
+	{DMagenta,	"Magenta",	'M', 0},
+	{DViolet,	"Violet",	'V', 0},
+	{Dgray,		"Gray",		'A', 0},
+	{DBlack,	"Black",	'K', 0},
+	{DWhite,	"White",	'W', 0},
+	{DNofill,	0,		0,   0}	/* DNofill means "end of data" */
 };
 
 int16_t nam1_idx[128];			/* the clrtab[] index for each nam1, else -1 */
@@ -298,10 +298,11 @@ thick_color* parse_color_chars(const char* c0, const char* fin,
 	i = 0;
 	for (c=c0; c<fin && i<n; c++) {
 		tc[++i].thick = 0;
-		if (*c=='T')
+		if (*c=='T') {
 			if (++c==fin)
 				return tc_default(tc);
 			else tc[i].thick=1;
+		}
 		j = (*c&~127) ? -1 : nam1_idx[(uint8_t)*c];
 		if (j < 0)
 			return tc_default(tc);
@@ -392,7 +393,7 @@ typedef struct frectangle {
 	fpoint min, max;
 } frectangle;
 
-frectangle empty_frect = {1e30, 1e30, -1e30, -1e30};
+frectangle empty_frect = {{1e30, 1e30}, {-1e30, -1e30}};
 
 
 /* When *r2 is transformed by y=y-x*slant, might it intersect *r1 ?
@@ -458,9 +459,9 @@ typedef struct fpolygons {
 
 
 fpolygons univ = {			/* everything there is to display */
-	0,
-	1e30, 1e30, -1e30, -1e30,
-	0, 0, 0, 0,
+	nil,
+	{{1e30, 1e30}, {-1e30, -1e30}},
+	{{0, 0}, {0, 0}},
 	2*1e30
 };
 

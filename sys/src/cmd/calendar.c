@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 		}
 
 		/* go through the file */
-		while(line = Brdline(&in, '\n')){
+		while((line = Brdline(&in, '\n')) != nil){
 			line[Blinelen(&in) - 1] = 0;
 			upper2lower(buf, line, sizeof buf);
 			for(d=Base; d; d=d->next)
