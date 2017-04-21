@@ -270,12 +270,12 @@ static struct {
 	int qidpath;
 	uint32_t perm;
 } dirtab[] = {
-	"confirm",	Qconfirm,	0600|DMEXCL,		/* we know this is slot #0 below */
-	"needkey", Qneedkey,	0600|DMEXCL,		/* we know this is slot #1 below */
-	"ctl",		Qctl,			0644,
-	"rpc",	Qrpc,		0666,
-	"proto",	Qprotolist,	0444,
-	"log",	Qlog,		0400|DMEXCL,
+	{"confirm",	Qconfirm,	0600|DMEXCL},		/* we know this is slot #0 below */
+	{"needkey",	Qneedkey,	0600|DMEXCL},		/* we know this is slot #1 below */
+	{"ctl",		Qctl,		0644},
+	{"rpc",		Qrpc,		0666},
+	{"proto",	Qprotolist,	0444},
+	{"log",		Qlog,		0400|DMEXCL},
 };
 static int inuse[nelem(dirtab)];
 int *confirminuse = &inuse[0];

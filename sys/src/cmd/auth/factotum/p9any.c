@@ -244,7 +244,7 @@ findneg(char *name)
 	int i, len;
 	char *p;
 
-	if(p = strchr(name, '@'))
+	if((p = strchr(name, '@')) != nil)
 		len = p-name;
 	else
 		len = strlen(name);

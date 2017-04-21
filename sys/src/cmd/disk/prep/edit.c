@@ -81,7 +81,7 @@ addpart(Edit *edit, Part *p)
 	static char msg[100];
 	char *err;
 
-	if(err = okname(edit, p->name))
+	if((err = okname(edit, p->name)) != nil)
 		return err;
 
 	for(i=0; i<edit->npart; i++) {
@@ -138,7 +138,7 @@ editdot(Edit *edit, int argc, char **argv)
 	if(argc > 2)
 		return "args";
 
-	if(err = parseexpr(argv[1], edit->dot, edit->end, edit->end, &ndot))
+	if((err = parseexpr(argv[1], edit->dot, edit->end, edit->end, &ndot)) != nil)
 		return err;
 
 	edit->dot = ndot;
@@ -166,7 +166,7 @@ editadd(Edit *edit, int argc, char **argv)
 		fprint(2, "start %s: ", edit->unit);
 		q = getline(edit);
 	}
-	if(err = parseexpr(q, edit->dot, edit->end, edit->end, &start))
+	if((err = parseexpr(q, edit->dot, edit->end, edit->end, &start)) != nil)
 		return err;
 
 	if(start < 0 || start >= edit->end)
@@ -190,7 +190,7 @@ editadd(Edit *edit, int argc, char **argv)
 		fprint(2, "end [%lld..%lld] ", start, maxend);
 		q = getline(edit);
 	}
-	if(err = parseexpr(q, edit->dot, maxend, edit->end, &end))
+	if((err = parseexpr(q, edit->dot, maxend, edit->end, &end)) != nil)
 		return err;
 
 	if(start == end)
@@ -202,7 +202,7 @@ editadd(Edit *edit, int argc, char **argv)
 	if(argc > 4)
 		return "args";
 
-	if(err = edit->add(edit, name, start, end))
+	if((err = edit->add(edit, name, start, end)) != nil)
 		return err;
 
 	edit->dot = end;
@@ -322,15 +322,15 @@ struct Cmd {
 };
 
 Cmd cmds[] = {
-	'.',	editdot,
-	'a',	editadd,
-	'd',	editdel,
-	'?',	edithelp,
-	'h',	edithelp,
-	'P',	editctlprint,
-	'p',	editprint,
-	'w',	editwrite,
-	'q',	editquit,
+	{'.',	editdot},
+	{'a',	editadd},
+	{'d',	editdel},
+	{'?',	edithelp},
+	{'h',	edithelp},
+	{'P',	editctlprint},
+	{'p',	editprint},
+	{'w',	editwrite},
+	{'q',	editquit},
 };
 
 void

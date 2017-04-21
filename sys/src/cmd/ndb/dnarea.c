@@ -98,7 +98,7 @@ freearea(Area **l)
 {
 	Area *s;
 
-	while(s = *l){
+	while((s = *l) != nil){
 		*l = s->next;
 		lock(&dnlock);
 		rrfree(s->soarr);

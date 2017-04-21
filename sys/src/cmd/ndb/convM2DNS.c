@@ -375,7 +375,7 @@ retry:
 	 */
 	if (len > left &&
 	   !(strcmp(what, "hints") == 0 ||
-	     sp->p == sp->ep + 1 && strcmp(what, "answers") == 0))
+	     (sp->p == sp->ep + 1 && strcmp(what, "answers") == 0)))
 		errtoolong(rp, sp, left, len, "convM2RR");
 	if(sp->err || sp->rcode || sp->stop){
 		rrfree(rp);

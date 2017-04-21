@@ -452,7 +452,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 	 *  Try the cache first
 	 */
 	rp = rrlookup(dp, type, OKneg);
-	if(rp)
+	if(rp) {
 		if(rp->db){
 			/* unauthoritative db entries are hints */
 			if(rp->auth) {
@@ -473,6 +473,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 							getpid(), name, type, class);
 					return rp;
 				}
+	}
 	lock(&dnlock);
 	rrfreelist(rp);
 	unlock(&dnlock);
@@ -824,7 +825,7 @@ int
 ipisbm(uint8_t *ip)
 {
 	if(isv4(ip)){
-		if (ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0 ||
+		if ((ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0) ||
 		    ipcmp(ip, IPv4bcast) == 0)
 			return 4;
 	} else
@@ -910,7 +911,7 @@ serveraddrs(Query *qp, int nd, int depth)
 		 * the end of the ns list in /lib/ndb for `dom='.
 		 */
 		if (ipisbm(cur->a) ||
-		    cfg.straddle && !insideaddr(qp->dp->name) && insidens(cur->a))
+		    (cfg.straddle && !insideaddr(qp->dp->name) && insidens(cur->a)))
 			continue;
 		cur->nx = 0;
 		cur->s = trp->owner;
@@ -1103,7 +1104,7 @@ xmitquery(Query *qp, int medium, int depth, uint8_t *obuf, int inns,
 	destck(qp->curdest);
 
 	/* no servers, punt */
-	if (qp->ndest == 0)
+	if (qp->ndest == 0) {
 		if (cfg.straddle && cfg.inside) {
 			/* get ips of "outside-ns-ips" */
 			qp->curdest = qp->dest;
@@ -1116,6 +1117,7 @@ xmitquery(Query *qp, int medium, int depth, uint8_t *obuf, int inns,
 		} else
 			/* it's probably just a bogus domain, don't log it */
 			return -1;
+	}
 
 	/* send to first 'qp->ndest' destinations */
 	j = 0;
@@ -1311,7 +1313,7 @@ procansw(Query *qp, DNSmsg *mp, uint8_t *srcip, int depth, Dest *p)
 	 *  if we're a pure resolver, don't recurse, we have
 	 *  to forward to a fixed set of named servers.
 	 */
-	if(!mp->ns || cfg.resolver && cfg.justforw)
+	if(!mp->ns || (cfg.resolver && cfg.justforw))
 		return Answnone;
 	tp = rrlookup(ndp, Tns, NOneg);
 	if(contains(qp->nsrp, tp)){

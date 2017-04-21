@@ -71,7 +71,7 @@ netcheck(void *key, int32_t chal, char *response)
 	if(smartcheck(key, chal, response))
 		return 1;
 
-	if(p = strchr(response, '\n'))
+	if((p = strchr(response, '\n')) != nil)
 		*p = '\0';
 	netresp(key, chal, answer);
 

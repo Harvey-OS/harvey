@@ -715,13 +715,14 @@ getfunc(Biobuf *in, char *atom)
 			break;
 		case '(':		/* parameter list for function? */
 			if (atom[0] != '\0' && !checksys(atom)) {
-				if (bracket == 0)
+				if (bracket == 0) {
 					if (isfndefn(in))
 						return Defn;
 					else {
 						c = nextc(in);
 						break;		/* ext. decl. */
 					}
+				}
 				ss = seen(atom);
 				if (ss == Nomore)
 					fprint(2, "%s: %s:%d: more than %d "
