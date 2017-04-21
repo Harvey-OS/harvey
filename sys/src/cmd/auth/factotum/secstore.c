@@ -163,7 +163,7 @@ SC_read(SConn *conn, uint8_t *buf, int n)
 	uint8_t count[2], digest[SHA1dlen];
 	int len, nr;
 
-	if(read(ss->fd, count, 2) != 2 || count[0]&0x80 == 0){
+	if(read(ss->fd, count, 2) != 2 || (count[0]&0x80) == 0){
 		werrstr("!SC_read invalid count");
 		return -1;
 	}
@@ -374,7 +374,7 @@ getfile(SConn *conn, uint8_t *key, int nkey)
 	p = buf;
 	n = 0;
 	while(p){
-		if(q = strchr(p, '\n'))
+		if((q = strchr(p, '\n')) != nil)
 			*q++ = '\0';
 		n++;
 		if(ctlwrite(p, 0) < 0)
