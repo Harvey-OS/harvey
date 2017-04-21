@@ -58,11 +58,11 @@ enum {
 };
 
 Verb rpctab[] = {
-	"authinfo",	Vauthinfo,
-	"read",		Vread,
-	"start",		Vstart,
-	"write",		Vwrite,
-	"attr",		Vattr,
+	{"authinfo",	Vauthinfo},
+	{"read",	Vread},
+	{"start",	Vstart},
+	{"write",	Vwrite},
+	{"attr",	Vattr},
 };
 
 static int
@@ -93,7 +93,7 @@ rpcwrite(Req *r)
 	memmove(fss->rpc.buf, r->ifcall.data, r->ifcall.count);
 	fss->rpc.buf[r->ifcall.count] = '\0';
 	fss->rpc.verb = fss->rpc.buf;
-	if(fss->rpc.arg = strchr(fss->rpc.buf, ' ')){
+	if((fss->rpc.arg = strchr(fss->rpc.buf, ' ')) != nil){
 		*fss->rpc.arg++ = '\0';
 		fss->rpc.narg = r->ifcall.count - (fss->rpc.arg - fss->rpc.buf);
 	}else{
@@ -376,9 +376,9 @@ enum {
 };
 
 Verb ctltab[] = {
-	"delkey",		Vdelkey,
-	"key",		Vaddkey,
-	"debug",	Vdebug,
+	{"delkey",	Vdelkey},
+	{"key",		Vaddkey},
+	{"debug",	Vdebug},
 };
 
 /*
@@ -410,7 +410,7 @@ ctlwrite(char *a, int atzero)
 	 * both with things like "echo delkey >/mnt/factotum/ctl"
 	 * and writes that (incorrectly) contain multiple key lines.
 	 */
-	if(p = strchr(a, '\n')){
+	if((p = strchr(a, '\n')) != nil){
 		if(p[1] != '\0'){
 			werrstr("multiline write not allowed");
 			return -1;

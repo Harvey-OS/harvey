@@ -44,7 +44,7 @@ rdbio(char *file, char *user, Acctbio *a)
 	b = Bopen(file, OREAD);
 	if(b == 0)
 		return;
-	while(p = Brdline(b, '\n')){
+	while((p = Brdline(b, '\n')) != nil){
 		p[Blinelen(b)-1] = 0;
 		n = getfields(p, field, nelem(field), 0, "|");
 		if(n < 4)

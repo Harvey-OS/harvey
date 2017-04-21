@@ -223,7 +223,7 @@ join(int seekf)
 			if (seekf == F2)
 				bot = Boffset(f[seekf]);
 			n[F2] = input(F2);
-		} else if((n[F1]>0 && n[F2]>0) && cmp<0 || n[F2]==0) {
+		} else if((n[F1]>0 && n[F2]>0 && cmp<0) || n[F2]==0) {
 			if(a1)
 				output(n[F1], 0);
 			if (seekf == F1)

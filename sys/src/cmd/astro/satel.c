@@ -112,12 +112,14 @@ loop:
 				if(el > 30.)
 					flag++;
 			} while(el > 0.);
-			if(flag)
+			if(flag){
 				if((*satp)[0] == '-')
 					event("%s pass at ", (*satp)+1, "",
-						t2, SIGNIF+PTIME+DARK); else
+						t2, SIGNIF+PTIME+DARK);
+				else
 					event("%s pass at ", *satp, "",
 						t2, PTIME+DARK);
+			}
 		}
 	out:
 		t += 5./(24.*60.);

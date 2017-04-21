@@ -104,7 +104,7 @@ cmdexec(Text *t, Cmd *cp)
 				ap->next->type = '*';
 		}
 		if(cp->addr){	/* may be false for '\n' (only) */
-			static Address none = {0,0,nil};
+			static Address none = {{0,0},nil};
 			if(f){
 				mkaddr(&dot, f);
 				addr = cmdaddress(ap, dot, 0);
@@ -381,7 +381,7 @@ g_cmd(Text *t, Cmd *cp)
 	}
 	if(rxcompile(cp->re->r) == FALSE)
 		editerror("bad regexp in g command");
-	if(rxexecute(t, nil, addr.r.q0, addr.r.q1, &sel) ^ cp->cmdc=='v'){
+	if(rxexecute(t, nil, addr.r.q0, addr.r.q1, &sel) ^ (cp->cmdc=='v')){
 		t->q0 = addr.r.q0;
 		t->q1 = addr.r.q1;
 		return cmdexec(t, cp->cmd);
@@ -1074,7 +1074,7 @@ editerror("can't handle '");
 			error("cmdaddress");
 			return a;
 		}
-	}while(ap = ap->next);	/* assign = */
+	}while((ap = ap->next) != nil);	/* assign = */
 	return a;
 }
 

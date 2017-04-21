@@ -364,7 +364,7 @@ fsNeedArch(Fs *fs, uint archMinute)
 
 	/* back up to yesterday if necessary */
 	if(now.hour < archMinute/60
-	|| now.hour == archMinute/60 && now.min < archMinute%60)
+	|| (now.hour == archMinute/60 && now.min < archMinute%60))
 		now = *localtime(then-86400);
 
 	snprint(buf, sizeof buf, "/archive/%d/%02d%02d",

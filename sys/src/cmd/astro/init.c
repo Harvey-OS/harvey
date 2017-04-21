@@ -33,18 +33,18 @@ struct	idata
 	void	(*obj)(void);
 } idata[] =
 {
-	"The sun",	"sun",		fsun,
-	"The moon",	"moon",		moon,
-	"The shadow",	"shadow",	shad,
-	"Mercury",	"mercury",	merc,
-	"Venus",	"venus",	venus,
-	"Mars",		"mars",		mars,
-	"Jupiter",	"jupiter",	jup,
-	"Saturn",	"saturn",	sat,
-	"Uranus",	"uranus",	uran,
-	"Neptune",	"neptune",	nept,
-	"Pluto",	"pluto",	plut,
-	"Comet",	"comet",	comet,
+	{"The sun",	"sun",		fsun},
+	{"The moon",	"moon",		moon},
+	{"The shadow",	"shadow",	shad},
+	{"Mercury",	"mercury",	merc},
+	{"Venus",	"venus",	venus},
+	{"Mars",	"mars",		mars},
+	{"Jupiter",	"jupiter",	jup},
+	{"Saturn",	"saturn",	sat},
+	{"Uranus",	"uranus",	uran},
+	{"Neptune",	"neptune",	nept},
+	{"Pluto",	"pluto",	plut},
+	{"Comet",	"comet",	comet},
 };
 
 void
@@ -60,7 +60,7 @@ init(void)
 		 + 0.001e-5*cos(6.*nlat)
 		 + 0.1568e-6*elev;
 
-	for(i=0; q=objlst[i]; i++) {
+	for(i=0; (q=objlst[i]) != nil; i++) {
 		q->name = idata[i].name;
 		q->name1 = idata[i].name1;
 		q->obj = idata[i].obj;
