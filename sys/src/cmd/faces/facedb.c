@@ -158,7 +158,7 @@ translatedomain(char *dom, char *list)
 		return dom;
 
 	for(p=file; p; p=nextp) {
-		if(nextp = strchr(p, '\n'))
+		if((nextp = strchr(p, '\n')) != nil)
 			*nextp++ = '\0';
 
 		if(*p == '#' || (q = strpbrk(p, " \t")) == nil || q-p > sizeof(buf)-2)
@@ -215,7 +215,7 @@ tryfindpicture(char *dom, char *user, char *dir, char *dict)
 	snprint(buf, sizeof buf, "%s/%s", dom, user);
 
 	for(p=file; p; p=nextp){
-		if(nextp = strchr(p, '\n'))
+		if((nextp = strchr(p, '\n')) != nil)
 			*nextp++ = '\0';
 
 		if(*p == '#' || (q = strpbrk(p, " \t")) == nil)

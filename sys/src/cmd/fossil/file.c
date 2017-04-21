@@ -1626,7 +1626,7 @@ chkSource(File *f)
 	if(f->partial)
 		return 1;
 
-	if(f->source == nil || (f->dir.mode & ModeDir) && f->msource == nil){
+	if(f->source == nil || ((f->dir.mode & ModeDir) && f->msource == nil)){
 		vtSetError(ERemoved);
 		return 0;
 	}

@@ -36,7 +36,7 @@ getpass(char *key, char *pass, int check, int confirm)
 			continue;
 		}
 		if(check)
-			if(err = okpasswd(pass)){
+			if((err = okpasswd(pass)) != nil){
 				print("%s, try again\n", err);
 				continue;
 			}

@@ -72,7 +72,7 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 	int i, n;
 
 	r = runemalloc(ndir+8);
-	if(n = ndir){	/* assign = */
+	if((n = ndir) != 0){	/* assign = */
 		runemove(r, dir, ndir);
 		r[n++] = L'/';
 	}

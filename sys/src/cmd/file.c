@@ -1294,7 +1294,7 @@ isp9bit(void)
 	 * Ghostscript sometimes produces a little extra on the end.
 	 */
 	if (len != 0 && (mbuf->length == 0 || mbuf->length == len ||
-	    mbuf->length > len && mbuf->length < len+P9BITLEN)) {
+	    (mbuf->length > len && mbuf->length < len+P9BITLEN))) {
 		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
 		return 1;
 	}

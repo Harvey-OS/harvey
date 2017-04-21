@@ -268,7 +268,7 @@ dologin(int fd, char *S, int forceSTA)
 
 	/* perform operations as asked */
 	while((n = readstr(conn, msg)) > 0){
-		if(nl = strchr(msg, '\n'))
+		if((nl = strchr(msg, '\n')) != nil)
 			*nl = 0;
 		syslog(0, LOG, "[%s] %s", pw->id, msg);
 

@@ -345,7 +345,7 @@ del(Text *et, Text*a, Text *argt, int flag1, int b, Rune *arg, int narg)
 			pm->src = estrdup("acme");
 			pm->dst = estrdup("close");
 			pm->wdir = estrdup(name);
-			if(p = strrchr(pm->wdir, '/'))
+			if((p = strrchr(pm->wdir, '/')) != nil)
 				*p = '\0';
 			pm->type = estrdup("text");
 			pm->attr = nil;
@@ -648,7 +648,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 		pm->src = estrdup("acme");
 		pm->dst = estrdup("put");
 		pm->wdir = estrdup(name);
-		if(p = strrchr(pm->wdir, '/'))
+		if((p = strrchr(pm->wdir, '/')) != nil)
 			*p = '\0';
 		pm->type = estrdup("text");
 		pm->attr = nil;
@@ -922,13 +922,14 @@ putall(Text*ta, Text*b, Text*tc, int d, int ie, Rune*f, int g)
 				continue;
 			a = runetobyte(w->body.file->name, w->body.file->nname);
 			e = access(a, 0);
-			if(w->body.file->mod || w->body.ncache)
+			if(w->body.file->mod || w->body.ncache) {
 				if(e < 0)
 					warning(nil, "no auto-Put of %s: %r\n", a);
 				else{
 					wincommit(w, &w->body);
 					put(&w->body, nil, nil, XXX, XXX, nil, 0);
 				}
+			}
 			free(a);
 		}
 	}
@@ -1015,7 +1016,7 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 		arg = skipbl(a, na, &narg);
 	}
 	getarg(argt, FALSE, TRUE, &r, &na);
-	if(r)
+	if(r) {
 		if(runeeq(r, na, (Rune*)L"fix", 3) || runeeq(r, na, (Rune*)L"var", 3)){
 			free(flag);
 			flag = r;
@@ -1024,6 +1025,7 @@ fontx(Text *et, Text *t, Text *argt, int ia, int b, Rune *arg, int narg)
 			file = r;
 			nf = na;
 		}
+	}
 	fix = 1;
 	if(flag)
 		fix = runeeq(flag, runestrlen(flag), (Rune*)L"fix", 3);

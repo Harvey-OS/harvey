@@ -396,14 +396,14 @@ p9skaddkey(Key *k, int before)
 	char *s;
 
 	k->priv = emalloc(DESKEYLEN);
-	if(s = _strfindattr(k->privattr, "!hex")){
+	if((s = _strfindattr(k->privattr, "!hex")) != nil){
 		if(hexparse(s, k->priv, 7) < 0){
 			free(k->priv);
 			k->priv = nil;
 			werrstr("malformed key data");
 			return -1;
 		}
-	}else if(s = _strfindattr(k->privattr, "!password")){
+	}else if((s = _strfindattr(k->privattr, "!password")) != nil){
 		passtokey((char*)k->priv, s);
 	}else{
 		werrstr("no key data");

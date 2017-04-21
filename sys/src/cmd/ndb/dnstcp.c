@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 			free(err);
 			break;
 		}
-		if (rcode == 0)
+		if (rcode == 0) {
 			if(reqmsg.qdcount < 1){
 				dnslog("server: no questions from %s", caller);
 				break;
@@ -131,6 +131,7 @@ main(int argc, char *argv[])
 					reqmsg.flags & Omask, caller);
 				break;
 			}
+		}
 		if(debug)
 			dnslog("[%d] %d: serve (%s) %d %s %s",
 				getpid(), req.id, caller,

@@ -25,17 +25,17 @@ struct
 	char	*betstr;
 } bettab[] =
 {
-	-1.3572, 231,	50,	"Quadrantid",
-	 0.7620, 336,	0,	"Eta aquarid",
-	 1.5497, 260,	-20,	"Ophiuchid",
-	 2.1324, 315,	-15,	"Capricornid",
-	 2.1991, 339,	-17,	"Delta aquarid",
-	 2.2158, 340,	-30,	"Pisces australid",
-	 2.4331, 46,	58,	"Perseid",
-	-2.6578, 95,	15,	"Orionid",
-	-1.8678, 15,	-55,	"Phoenicid",
-	-1.7260, 113,	32,	"Geminid",
-	0
+	{-1.3572, 231,	 50,	"Quadrantid"},
+	{ 0.7620, 336,	  0,	"Eta aquarid"},
+	{ 1.5497, 260,	-20,	"Ophiuchid"},
+	{ 2.1324, 315,	-15,	"Capricornid"},
+	{ 2.1991, 339,	-17,	"Delta aquarid"},
+	{ 2.2158, 340,	-30,	"Pisces australid"},
+	{ 2.4331,  46,	 58,	"Perseid"},
+	{-2.6578,  95,	 15,	"Orionid"},
+	{-1.8678,  15,	-55,	"Phoenicid"},
+	{-1.7260, 113,	 32,	"Geminid"},
+	{0, 0, 0, nil},
 };
 
 void
