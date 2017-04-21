@@ -119,10 +119,10 @@ typedef struct {
 } Compress;
 
 static Compress comps[] = {
-	"gzip",		"gunzip",	{ ".tar.gz", ".tgz" },	/* default */
-	"compress",	"uncompress",	{ ".tar.Z",  ".tz" },
-	"bzip2",	"bunzip2",	{ ".tar.bz", ".tbz",
-					  ".tar.bz2",".tbz2" },
+	{"gzip",	"gunzip",	{ ".tar.gz", ".tgz" }},	/* default */
+	{"compress",	"uncompress",	{ ".tar.Z",  ".tz" }},
+	{"bzip2",	"bunzip2",	{ ".tar.bz", ".tbz",
+					  ".tar.bz2",".tbz2" }},
 };
 
 typedef struct {
@@ -1186,13 +1186,14 @@ extract1(int ar, Hdr *hp, char *fname)
 		blksleft = 0;
 		break;
 	}
-	if (relative)
+	if (relative) {
 		if(fname[0] == '/')
 			*--fname = '.';
 		else if(fname[0] == '#'){
 			*--fname = '/';
 			*--fname = '.';
 		}
+	}
 
 	if (verb == Xtract)
 		fd = openfname(hp, fname, dir, mode);

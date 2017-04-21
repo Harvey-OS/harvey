@@ -1979,7 +1979,7 @@ cond(char c)
 	cc = sbackc(p);
 	release(p);
 	if((cc<0 && (c == '<' || c == NG)) ||
-	   (cc >0) && (c == '>' || c == NL)) {
+	   ((cc >0) && (c == '>' || c == NL))) {
 		getstk();
 		return(0);
 	}

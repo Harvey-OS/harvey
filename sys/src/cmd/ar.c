@@ -331,7 +331,7 @@ dcmd(char *arname, int count, char **files)
 	Binit(&bar, fd, OREAD);
 	Bseek(&bar,seek(fd,0,1), 1);
 	astart = newtempfile(artemp);
-	for (i = 0; bp = getdir(&bar); i++) {
+	for (i = 0; (bp = getdir(&bar)) != nil; i++) {
 		if(match(count, files)) {
 			mesg('d', file);
 			skip(&bar, bp->size);
@@ -359,7 +359,7 @@ xcmd(char *arname, int count, char **files)
 	Binit(&bar, fd, OREAD);
 	Bseek(&bar,seek(fd,0,1), 1);
 	i = 0;
-	while (bp = getdir(&bar)) {
+	while ((bp = getdir(&bar)) != nil) {
 		if(count == 0 || match(count, files)) {
 			mode = strtoul(bp->hdr.mode, 0, 8) & 0777;
 			f = create(file, OWRITE, mode);
@@ -400,7 +400,7 @@ pcmd(char *arname, int count, char **files)
 	fd = openar(arname, OREAD, 0);
 	Binit(&bar, fd, OREAD);
 	Bseek(&bar,seek(fd,0,1), 1);
-	while(bp = getdir(&bar)) {
+	while((bp = getdir(&bar)) != nil){
 		if(count == 0 || match(count, files)) {
 			if(vflag)
 				print("\n<%s>\n\n", file);
@@ -429,7 +429,7 @@ mcmd(char *arname, int count, char **files)
 	amiddle = newtempfile(movtemp);
 	aend = 0;
 	ap = astart;
-	for (i = 0; bp = getdir(&bar); i++) {
+	for (i = 0; (bp = getdir(&bar)) != nil; i++) {
 		if (bamatch(file, poname)) {
 			aend = newtempfile(tailtemp);
 			ap = aend;
@@ -466,7 +466,7 @@ tcmd(char *arname, int count, char **files)
 	fd = openar(arname, OREAD, 0);
 	Binit(&bar, fd, OREAD);
 	Bseek(&bar,seek(fd,0,1), 1);
-	while(bp = getdir(&bar)) {
+	while((bp = getdir(&bar)) != nil){
 		if(count == 0 || match(count, files)) {
 			if(vflag)
 				int32_tt(bp);

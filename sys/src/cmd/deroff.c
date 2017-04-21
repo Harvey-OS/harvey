@@ -169,7 +169,7 @@ main(int argc, char *av[])
 		break;
 	case 'm':
 		msflag = YES;
-		if(f = ARGF())
+		if((f = ARGF()) != nil)
 			switch(*f)
 			{
 			case 'm':	mac = MM; break;
@@ -498,7 +498,7 @@ comx:
 		else {
 			getfname();
 			if(fname[0]) {
-				if(infile = opn(fname))
+				if((infile = opn(fname)) != nil)
 					*++filesp = infile;
 				else infile = *filesp;
 			}
@@ -846,7 +846,7 @@ copys(char *s)
 
 	if((t0 = t = malloc((strlen(s)+1))) == 0)
 		fatal("Cannot allocate memory", (char*)0);
-	while(*t++ = *s++)
+	while((*t++ = *s++) != '\0')
 		;
 	return(t0);
 }
