@@ -51,6 +51,7 @@ char remcom_out_buffer[BUFMAX];
 static int gdbstub_use_prev_in_buf;
 static int gdbstub_prev_in_buf_pos;
 int remotefd;
+int notefid;
 int debug = 0;
 int attached_to_existing_pid = 0;
 Map* cormap;
@@ -136,7 +137,7 @@ p64(char *dest, uint64_t c)
 }
 
 void
-read_pid_text(int pid)
+attach_to_process(int pid)
 {
 	char buf[100];
 	sprint(buf, "/proc/%d/text", pid);
@@ -191,7 +192,14 @@ read_pid_text(int pid)
 		cormap->seg[i].name = "*data";
 	}
 
-	syslog(0, "gdbserver", "attachproc succeeded for %s", buf);
+	snprint(buf, sizeof(buf), "/proc/%d/note", pid);
+	notefid = open(buf, OREAD);
+	if (notefid < 0) {
+		syslog(0, "gdbserver", "couldn't open %s: %r", buf);
+		return;
+	}
+
+	syslog(0, "gdbserver", "attach_to_process completed");
 }
 
 void
@@ -205,7 +213,7 @@ sendctl(int pid, char* message)
 	if (ctlfd >= 0) {
 		write(ctlfd, message, strlen(message));
 		close(ctlfd);
-		syslog(0, "gdbserver", "sent '%s' to %s\n", message, buf);
+		syslog(0, "gdbserver", "sent '%s' to %s", message, buf);
 	}
 }
 
@@ -237,6 +245,28 @@ getstatus(int pid)
 	}
 
 	return argv[2];
+}
+
+// Remove any pending breakpoint notes
+static void
+remove_note(void)
+{
+	char buf[ERRMAX];
+
+	switch (read(notefid, buf, sizeof buf)) {
+	case -1:
+		syslog(0, "gdbserver", "Error reading note: %r");
+		return;
+	case 0:
+		syslog(0, "gdbserver", "No note to remove");
+		return;
+	}
+
+	buf[ERRMAX-1] = '\0';
+	if(strncmp(buf, "sys: breakpoint", 15) == 0)
+		syslog(0, "gdbserver", "Removed breakpoint note");
+	else
+		syslog(0, "gdbserver", "Found unexpected note: %s", buf);
 }
 
 static void
@@ -627,11 +657,10 @@ gdb_cmd_memread(struct state *ks)
 	unsigned long addr;
 	char *err;
 
-
 	if (hex2long(&ptr, &addr) > 0 && *ptr++ == ',' &&
 		hex2long(&ptr, &length) > 0) {
 		char *data = malloc(length);
-		if (err = rmem(data, ks->threadid, addr, length)) {
+		if ((err = rmem(data, ks->threadid, addr, length)) != 0) {
 			if (debug)
 				print("%s: %r", __func__);
 			syslog(0, "gdbserver", "%s: %r", __func__);
@@ -1014,16 +1043,20 @@ gdb_serial_stub(struct state *ks, int port)
 			case 'c':	/* Continue packet */
 			case 's':	/* Single step packet */
 				if (strcmp("Stopped", getstatus(ks->threadid)) != 0) {
-					syslog(0, "gdbserver", "Process not stopped - can't activate breakpoints\n");
+					syslog(0, "gdbserver", "Process not stopped - can't activate breakpoints");
 					// Not really sure what to reply with here
 					break;
 				}
 
-				syslog(0, "gdbserver", "Process stopped - activating breakpoints\n");
+				syslog(0, "gdbserver", "activating breakpoints");
 				dbg_activate_sw_breakpoints(ks);
 
 				// Block for the process to stop or receive a note
 				sendctl(ks->threadid, "startstop");
+
+				// Remove the breakpoint note so the process
+				// doesn't suicide
+				remove_note();
 
 				// Send code indicating we've hit a breakpoint
 				strcpy((char *)remcom_out_buffer, "S05");
@@ -1127,7 +1160,7 @@ rmem(void *dest, int pid, uint64_t addr, int size)
 	syslog(0, "gdbserver", "rmem(%p, %d, %p, %d)", dest, pid, addr, size);
 
 	if (get1(cormap, addr, dest, size) < 0) {
-		syslog(0, "gdbserver", "rmem(%p, %p, %p, %d) failed: %r", dest, addr, dest, size);
+		syslog(0, "gdbserver", "get1 failed: %r");
 		return errstring(Eio);
 	}
 
@@ -1138,8 +1171,10 @@ rmem(void *dest, int pid, uint64_t addr, int size)
 char *
 wmem(uint64_t dest, int pid, void *addr, int size)
 {
+	syslog(0, "gdbserver", "wmem(%p, %d, %p, %d)", dest, pid, addr, size);
+
 	if (put1(cormap, dest, addr, size) < 0) {
-		syslog(0, "gdbserver", "wmem(%p, %d, %p, %d) failed: %r", dest, pid, addr, size);
+		syslog(0, "gdbserver", "put1 failed: %r");
 		return errstring(Eio);
 	}
 	syslog(0, "gdbserver", "%s: wrote 0x%x, %d bytes", __func__, addr, size);
@@ -1185,7 +1220,7 @@ main(int argc, char **argv)
 	// Set to 0 if we eventually support creating a new process
 	attached_to_existing_pid = 1;
 
-	read_pid_text(ks.threadid);
+	attach_to_process(ks.threadid);
 
 	gdb_serial_stub(&ks, atoi(port));
 }

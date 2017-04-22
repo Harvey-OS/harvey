@@ -276,6 +276,6 @@ reloc(Map *map, uint64_t addr, int64_t *offp)
 			return &map->seg[i];
 		}
 	}
-	werrstr("can't translate address %llux", addr);
+	werrstr("can't translate address %p", addr);
 	return 0;
 }
