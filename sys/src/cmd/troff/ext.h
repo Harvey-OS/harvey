@@ -152,10 +152,10 @@ extern	Diver	*dip;
 
 
 extern	char	xchname[];
-extern	short	xchtab[];
+extern	int16_t	xchtab[];
 extern	char	*codestr;
 extern	char	*chnamep;
-extern	short	*chtab;
+extern	int16_t	*chtab;
 extern	int	nchtab;
 
 extern Numtab *numtabp;

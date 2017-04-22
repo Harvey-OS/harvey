@@ -1,0 +1,11 @@
+TMACDIR='"sys/lib/tmac/tmac."'
+FONTDIR='"sys/lib/troff/font"'
+NTERMDIR='"sys/lib/troff/term/tab."'
+TEXHYPHENS='"sys/lib/texmf/tex/generic/hyphen/hyphen.tex"'
+DWBHOME='"/"'
+TDEVNAME='"utf"'
+NDEVNAME='"utf"'
+
+rm *.o
+clang -c -I ${APEX}/amd64/include -I ${APEX}/include -I . -O2 -mno-red-zone -ffreestanding -fno-builtin -nostdlib -nostdinc -trigraphs -Wall -Wuninitialized -g -DTMACDIR=$TMACDIR -DTDEVNAME=$TDEVNAME -DFONTDIR=$FONTDIR -DNTERMDIR=$NTERMDIR -DTEXHYPHENS=$TEXHYPHENS -DDWBHOME=$DWBHOME -DNDEVNAME=$NDEVNAME -D_SUSV2_SOURCE -D_POSIX_SOURCE -D_LIMITS_EXTENSION -D_BSD_SOURCE -D_BSD_EXTENSION -DHAVE_SOCK_OPTS dwbinit.c hytab.c n10.c n1.c n2.c n3.c n4.c n5.c n6.c n7.c n8.c n9.c ni.c suftab.c t10.c t11.c t6.c y.tab.c
+ld -o troff -static dwbinit.o hytab.o n10.o n1.o n2.o n3.o n4.o n5.o n6.o n7.o n8.o n9.o ni.o suftab.o t10.o t11.o t6.o y.tab.o ${APEX}/amd64/lib/crt1.o ${APEX}/amd64/lib/crti.o ${APEX}/amd64/lib/crtn.o -L ${APEX}/amd64/lib -L ${HARVEY}/amd64/lib -lap -lc

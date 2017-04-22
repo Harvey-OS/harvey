@@ -47,7 +47,7 @@
 typedef	unsigned char	Uchar;
 typedef unsigned short	Ushort;
 
-typedef	/*unsigned*/ long	Tchar;
+typedef	/*unsigned*/ int32_t	Tchar;
 
 typedef	struct	Blockp	Blockp;
 typedef	struct	Diver	Diver;
@@ -94,7 +94,7 @@ extern	char	errbuf[];
 #define	VS	((12*INCH)/72)	/* initial vert space */
 
 
-#define	EMPTS(pts)	(((long)Inch*(pts) + 36) / 72)
+#define	EMPTS(pts)	(((int32_t)Inch*(pts) + 36) / 72)
 #define	EM	(TROFF? EMPTS(pts): t.Em)
 #define	INCH	(TROFF? Inch: 240)
 #define	HOR	(TROFF? Hor: t.Adj)
@@ -398,8 +398,8 @@ extern	Contab	contab[NM];
 struct Numtab {	/* number registers */
 	unsigned int	r;		/* name */
 	int	val;
-	short	fmt;
-	short	inc;
+	int16_t	fmt;
+	int16_t	inc;
 	Numtab	*link;
 };
 
@@ -422,8 +422,8 @@ extern	Numtab	numtab[NN];
 #define	PID	14
 
 struct	Wcache {	/* width cache, indexed by character */
-	short	fontpts;
-	short	width;
+	int16_t	fontpts;
+	int16_t	width;
 };
 
 struct	Tbuf {		/* growable Tchar buffer */
@@ -587,7 +587,7 @@ struct Env {
 	int	_it;
 	int	_itmac;
 	Tchar	*_hyptr[NHYP];
-	long	_tabtab[NTAB];
+	int32_t	_tabtab[NTAB];
 	Tbuf	_line;
 	Tbuf	_word;
 };
