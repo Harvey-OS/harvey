@@ -99,10 +99,10 @@ enum regnames {
 #define NUMREGBYTES		((17 * 8) + (5 * 4))
 
 struct bkpt {
-	unsigned long		bpt_addr;
-	unsigned char		saved_instr[16];
-	enum bptype	type;
-	enum bpstate	state;
+  unsigned long bpt_addr;
+  unsigned char saved_instr[16];
+  enum bptype type;
+  enum bpstate state;
 };
 
 extern char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
@@ -147,41 +147,6 @@ extern int validate_break_address(unsigned long addr);
 extern char *arch_set_breakpoint(struct state *ks, struct bkpt *bpt);
 extern char *arch_remove_breakpoint(struct state *ks, struct bkpt *bpt);
 
-// I'm pretty sure we don't need this. In the kernel these will be defined in the arch.c file.
-// I can't see the need for ops. That's some weird linux thinking artifact I guess.
-/**
- * struct arch - Describe architecture specific values.
- * @gdb_bpt_instr: The instruction to trigger a breakpoint.
- * @flags: Flags for the breakpoint, currently just %HW_BREAKPOINT.
- * @set_breakpoint: Allow an architecture to specify how to set a software
- * breakpoint.
- * @remove_breakpoint: Allow an architecture to specify how to remove a
- * software breakpoint.
- * @set_hw_breakpoint: Allow an architecture to specify how to set a hardware
- * breakpoint.
- * @remove_hw_breakpoint: Allow an architecture to specify how to remove a
- * hardware breakpoint.
- * @disable_hw_break: Allow an architecture to specify how to disable
- * hardware breakpoints for a single cpu.
- * @remove_all_hw_break: Allow an architecture to specify how to remove all
- * hardware breakpoints.
- * @correct_hw_break: Allow an architecture to specify how to correct the
- * hardware debug registers.
- * @enable_nmi: Manage NMI-triggered entry to KGDB
- */
-struct arch {
-	unsigned char		gdb_bpt_instr[16];
-	unsigned long		flags;
-
-	int	(*set_breakpoint)(unsigned long, char *);
-	int	(*remove_breakpoint)(unsigned long, char *);
-	int	(*set_hw_breakpoint)(unsigned long, int, enum bptype);
-	int	(*remove_hw_breakpoint)(unsigned long, int, enum bptype);
-	void	(*disable_hw_break)(uintptr_t *regs);
-	void	(*remove_all_hw_break)(void);
-	void	(*correct_hw_break)(void);
-
-};
 
 // Leave this for now but we should probably just use the chan abstraction
 // for this nonsense.
