@@ -101,7 +101,7 @@ machp_bad(void)
 	uintptr_t badpc;
 	int i;
 
-	badpc = (uintptr_t)__builtin_return_address(1);
+	badpc = (uintptr_t)getcallerpc();
 	for(i = 0; i < nelem(trace); i++){
 		if(trace[i] == badpc)
 			return;

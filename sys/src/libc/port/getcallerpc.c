@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma GCC diagnostic ignored "-Wframe-address"
+
 #include <u.h>
 #include <libc.h>
 
