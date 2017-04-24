@@ -80,19 +80,20 @@ emalloc(uint32_t n)
 {
 	void *p;
 
-	if(p = mallocz(n, 1))
-		return p;
-	fatal("out of memory");
-	return 0;
+	p = mallocz(n, 1);
+	if(p == nil)
+		fatal("out of memory");
+
+	return p;
 }
 
 void *
 erealloc(void *p, uint32_t n)
 {
-	if(p = realloc(p, n))
-		return p;
-	fatal("out of memory");
-	return 0;
+	p = realloc(p, n);
+	if(p == nil)
+		fatal("out of memory");
+	return p;
 }
 
 void
