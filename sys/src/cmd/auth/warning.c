@@ -142,7 +142,7 @@ douser(Fs *f, char *user)
 	 *  matching lines
 	 */
 	rcvrs = 0;
-	while(l = Brdline(f->b, '\n')){
+	while((l = Brdline(f->b, '\n')) != nil){
 		n = strlen(user);
 		if(strncmp(l, user, n) == 0 && (l[n] == ' ' || l[n] == '\t'))
 			rcvrs += mailin(f, user, et, l, l+Blinelen(f->b));

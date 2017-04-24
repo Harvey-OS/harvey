@@ -47,7 +47,7 @@ main(int argc, char **argv)
 
 	n = 0;
 	changed = 0;
-	while(p = Brdline(b, '\n')){
+	while((p = Brdline(b, '\n')) != nil){
 		p[Blinelen(b)-1] = 0;
 		name = p;
 		while(*p && *p != '|')
