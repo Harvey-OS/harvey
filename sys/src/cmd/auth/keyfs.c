@@ -321,13 +321,13 @@ Walk(Fid *f)
 	if(rhdr.fid != rhdr.newfid && i == rhdr.nwname){
 		nf->busy = 1;
 		nf->qtype = qtype;
-		if(nf->user = user)
+		if((nf->user = user) != nil)
 			nf->user->ref++;
 	}else if(nf == nil && rhdr.nwname > 0){	/* walk without clone (rare) */
 		Clunk(f);
 		f->busy = 1;
 		f->qtype = qtype;
-		if(f->user = user)
+		if((f->user = user) != nil)
 			f->user->ref++;
 	}
 
@@ -541,7 +541,7 @@ Write(Fid *f)
 		break;
 	case Qstatus:
 		data[n] = '\0';
-		if(p = strchr(data, '\n'))
+		if((p = strchr(data, '\n')) != nil)
 			*p = '\0';
 		for(i = 0; i < Smax; i++)
 			if(strcmp(data, status[i]) == 0){
@@ -555,7 +555,7 @@ Write(Fid *f)
 		break;
 	case Qexpire:
 		data[n] = '\0';
-		if(p = strchr(data, '\n'))
+		if((p = strchr(data, '\n')) != nil)
 			*p = '\0';
 		else
 			p = &data[n];
@@ -848,7 +848,7 @@ userok(char *user, int nu)
 		if(r == Runeerror){
 //			fprint(2, "keyfs: name %W bad rune byte %d\n", buf, i);
 			rv = -1;
-		} else if(isascii(r) && iscntrl(r) || r == ' ' || r == '/'){
+		} else if((isascii(r) && iscntrl(r)) || r == ' ' || r == '/'){
 //			fprint(2, "keyfs: name %W bad char %C\n", buf, r);
 			rv = -1;
 		}
@@ -1096,10 +1096,11 @@ emalloc(uint32_t n)
 {
 	void *p;
 
-	if(p = malloc(n))
-		return p;
-	error("out of memory");
-	return 0;		/* not reached */
+	p = malloc(n);
+	if(p == nil)
+		error("out of memory");
+
+	return p;
 }
 
 void

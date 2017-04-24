@@ -333,7 +333,7 @@ readjobs(char *file, User *user)
 	jobs = nil;
 	user->lastqid = d->qid;
 	free(d);
-	for(line = 1; savec = Brdline(b, '\n'); line++){
+	for(line = 1; (savec = Brdline(b, '\n')) != nil; line++){
 		savec[Blinelen(b) - 1] = '\0';
 		while(*savec == ' ' || *savec == '\t')
 			savec++;
@@ -540,7 +540,7 @@ mkcmd(char *cmd, char *buf, int len)
 	if(n >= len)
 		return 0;
 	strcpy(buf, "exec rc -c '");
-	while(p = utfrune(cmd, L'\'')){
+	while((p = utfrune(cmd, L'\'')) != nil){
 		p++;
 		m = p - cmd;
 		if(n + m + 1 >= len)
@@ -635,19 +635,20 @@ emalloc(uint32_t n)
 {
 	void *p;
 
-	if(p = mallocz(n, 1))
-		return p;
-	fatal("out of memory");
-	return 0;
+	p = mallocz(n, 1);
+	if(p == nil)
+		fatal("out of memory");
+
+	return p;
 }
 
 void *
 erealloc(void *p, uint32_t n)
 {
-	if(p = realloc(p, n))
-		return p;
-	fatal("out of memory");
-	return 0;
+	p = realloc(p, n);
+	if(p == nil)
+		fatal("out of memory");
+	return p;
 }
 
 void
