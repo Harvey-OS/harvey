@@ -15,16 +15,16 @@
 
 /* kernel debug core data structures */
 struct state {
-	unsigned long threadid;
-	int			ex_vector;
-	int			signo;
-	int			err_code;
-	int			cpu;
-	int			pass_exception;
-	char *pidname;
-	long			usethreadid;
-	void *gdbregs;
-	int gdbregsize; // determined by the amount read from /proc/pid/gdbregs
+	unsigned long	threadid;
+	int		ex_vector;
+	int		signo;
+	int		err_code;
+	int		cpu;
+	int		pass_exception;
+	char		*pidname;
+	long		usethreadid;
+	void		*gdbregs;
+	int 		gdbregsize; // determined by the amount read from /proc/pid/gdbregs
 };
 
 #define DCPU_SSTEP       0x8 /* CPU is single stepping */
