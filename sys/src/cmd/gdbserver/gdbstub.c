@@ -295,7 +295,7 @@ gdbstub_read_wait(void)
 	}
 	return ret;
 }
-#define I_AM_HERE syslog(0, "gdbserver", "%s %d", __FILE__, __LINE__);
+
 /* scan for the sequence $<data>#<checksum> */
 static void
 get_packet(char *buffer)
@@ -313,7 +313,6 @@ get_packet(char *buffer)
 		while ((ch = (gdbstub_read_wait())) != '$')
 			/* nothing */ ;
 
-I_AM_HERE
 		checksum = 0;
 		xmitcsum = -1;
 
@@ -331,7 +330,6 @@ I_AM_HERE
 			count = count + 1;
 		}
 
-I_AM_HERE
 		if (ch == '#') {
 			xmitcsum = hex_to_bin(gdbstub_read_wait()) << 4;
 			xmitcsum += hex_to_bin(gdbstub_read_wait());
@@ -628,7 +626,6 @@ gdb_cmd_status(struct state *ks)
 static void
 gdb_cmd_getregs(struct state *ks)
 {
-I_AM_HERE;
 	if (ks->threadid <= 0) {
 		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1", __func__);
 	}
