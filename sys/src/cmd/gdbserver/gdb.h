@@ -101,8 +101,8 @@ enum regnames {
 struct bkpt {
   unsigned long bpt_addr;
   unsigned char saved_instr[16];
-  enum bptype type;
-  enum bpstate state;
+  enum bptype	type;
+  enum bpstate	state;
 };
 
 extern char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
@@ -127,8 +127,8 @@ extern int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
  */
 extern int
 arch_handle_exception(int vector, int signo, int err_code,
-			   char *remcom_in_buffer,
-			   char *remcom_out_buffer,
+		      char *remcom_in_buffer,
+		      char *remcom_out_buffer,
 		      uintptr_t*regs);
 
 /**
@@ -187,9 +187,4 @@ extern void schedule_breakpoint(void);
 
 extern int
 handle_exception(int ex_vector, int signo, int err_code,
-		      uintptr_t *regs);
-
-extern int			single_step;
-extern int			active;
-
-void gdbinit(void);
+		 uintptr_t *regs);
