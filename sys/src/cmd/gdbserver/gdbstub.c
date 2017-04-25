@@ -748,6 +748,11 @@ gdb_cmd_reboot(struct state *ks)
 static void
 gdb_cmd_query(struct state *ks)
 {
+	if (strcmp(&remcom_in_buffer[1], "Symbol::") == 0) {
+		strcpy((char *)remcom_out_buffer, "OK");
+		return;
+	}
+
 	switch (remcom_in_buffer[1]) {
 		case 'S':
 			if (memcmp(remcom_in_buffer + 2, "upported", 8))
