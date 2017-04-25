@@ -41,12 +41,16 @@
 static char *
 gdb_hex_reg_helper(uintptr_t *gdb_regs, int regnum, char *out)
 {
-	int offset = 0;
+	if (regnum <= GDB_PC) {
+		return mem2hex((void *)&gdb_regs[regnum], out, sizeof(uintptr_t));
+	}
 
-	if (regnum <= GDB_PC)
-		return mem2hex((void *)&gdb_regs[offset], out, sizeof(uintptr_t));
-	if (regnum == GDB_PS)
-		return mem2hex((void *)&gdb_regs[offset], out, sizeof(uint32_t));
+	if (regnum <= GDB_GS) {
+		uint32_t* reg32base = &gdb_regs[GDB_PS];
+		int reg32idx = regnum - GDB_PS;
+		return mem2hex((void *)&reg32base[reg32idx], out, sizeof(uint32_t));
+	}
+
 	memset(out, 0, sizeof(uint32_t));
 	return nil;
 }
@@ -61,13 +65,14 @@ gdb_cmd_reg_get(struct state *ks)
 	hex2long(&ptr, &regnum);
 	syslog(0, "gdbserver", "Get reg %p: ", regnum);
 	if (regnum >= DBG_MAX_REG_NUM) {
-		syslog(0, "gdbserver", "fails\n");
+		syslog(0, "gdbserver", "fails");
 		error_packet(remcom_out_buffer, Einval);
 		return;
 	}
-	syslog(0, "gdbserver", "returns :%s:\n", ptr);
+	syslog(0, "gdbserver", "returns :%s:", ptr);
 	gdb_hex_reg_helper(ks->gdbregs, regnum, (char *)ptr);
 }
+
 
 /* Handle the 'P' individual regster set */
 void
@@ -117,7 +122,7 @@ gpr(struct state *ks, int pid)
 	char *regname = smprint("/proc/%d/gdbregs", pid);
 	int fd = open(regname, 0);
 	if (fd < 0) {
-		syslog(0, "gdbserver", "open(%s, 0): %r\n", regname);
+		syslog(0, "gdbserver", "open(%s, 0): %r", regname);
 		return errstring(Enoent);
 	}
 
