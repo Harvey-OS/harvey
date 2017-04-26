@@ -84,8 +84,8 @@ opint(Cpu *cpu, Inst *i)
 {
 	print_func_entry();
 	cpu->trap = ar(i->a1);
-	longjmp(cpu->jmp, 1);
 	print_func_exit();
+	longjmp(cpu->jmp, 1);
 }
 
 static void
@@ -112,9 +112,9 @@ opret(Cpu *cpu, Inst *i)
 
 	sp = areg(cpu, cpu->slen, RSP);
 	pop(sp, areg(cpu, i->olen, RIP));
-	if(c = ar(i->a1))
+	if((c = ar(i->a1)) != 0)
 		aw(sp, ar(sp) + c);
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -127,9 +127,9 @@ opretf(Cpu *cpu, Inst *i)
 	sp = areg(cpu, cpu->slen, RSP);
 	pop(sp, areg(cpu, i->olen, RIP));
 	pop(sp, areg(cpu, i->olen, RCS));
-	if(c = ar(i->a1))
+	if((c = ar(i->a1)) != 0)
 		aw(sp, ar(sp) + c);
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -181,7 +181,7 @@ oppush(Cpu *cpu, Inst *i)
 		push(sp, acon(cpu, i->olen, ar(i->a1)));
 	else
 		push(sp, i->a1);
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -347,7 +347,7 @@ parity(unsigned long *f, unsigned long r)
 		*f &= ~PF;
 	else
 		*f |= PF;
-		print_func_exit();
+	print_func_exit();
 }
 
 static unsigned long
@@ -386,7 +386,7 @@ opshl(Cpu *cpu, Inst *i)
 		*f |= CF;
 	if(n == 1 && ((a^r) & h))
 		*f |= OF;
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -408,7 +408,7 @@ opshr(Cpu *cpu, Inst *i)
 		*f |= CF;
 	if(n == 1 && (a & sign(s)))
 		*f |= OF;
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -428,7 +428,7 @@ opsar(Cpu *cpu, Inst *i)
 	aw(i->a1, test(f, a>>n, i->a1->len*8));
 	if(a & sign(n))
 		*f |= CF;
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -448,7 +448,7 @@ opshld(Cpu *cpu, Inst *i)
 	aw(i->a1, test(f, (a<<n)|(ar(i->a2)>>(s-n)), s));
 	if((a<<(n-1)) & sign(s))
 		*f |= CF;
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -468,7 +468,7 @@ opshrd(Cpu *cpu, Inst *i)
 	aw(i->a1, test(f, (a>>n)|(ar(i->a2)<<(s-n)), s));
 	if(a & sign(n))
 		*f |= CF;
-		print_func_exit();
+	print_func_exit();
 }
 
 
@@ -826,7 +826,7 @@ opmul(Cpu *cpu, Inst *i)
 		cpu->reg[RFL] |= (CF|OF);
 	else
 		cpu->reg[RFL] &= ~(CF|OF);
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -860,7 +860,7 @@ opimul(Cpu *cpu, Inst *i)
 		cpu->reg[RFL] |= (CF|OF);
 	else
 		cpu->reg[RFL] &= ~(CF|OF);
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -976,7 +976,7 @@ opjump(Cpu *cpu, Inst *i)
 	print_func_entry();
 	if(cctrue(cpu, i))
 		jump(i->a1);
-		print_func_exit();
+	print_func_exit();
 }
 
 static void
@@ -999,8 +999,8 @@ oploop(Cpu *cpu, Inst *i)
 		abort();
 	case OLOOPNZ:
 		if(cpu->reg[RFL] & ZF) {
-		print_func_exit();
-		return;
+			print_func_exit();
+			return;
 		}
 		break;
 	case OLOOPZ:
@@ -1118,26 +1118,26 @@ opcpuid(Cpu *cpu, Inst *inst)
 		unsigned long cx;
 		unsigned long dx;
 	} tab[] = {
-		0,
+		{0,
 			5,
-			0x756e6547, /* Genu */
-			0x6c65746e, /* ntel */
-			0x49656e69, /* ineI */
-		1,
+			0x756e6547,  /* Genu */
+			0x6c65746e,  /* ntel */
+			0x49656e69}, /* ineI */
+		{1,
 			4<<8,
 			0x00000000,
 			0x00000000,
-			0x00000000,
-		2,
-			0x00000000,
-			0x00000000,
-			0x00000000,
-			0x00000000,
-		3,
+			0x00000000},
+		{2,
 			0x00000000,
 			0x00000000,
 			0x00000000,
+			0x00000000},
+		{3,
 			0x00000000,
+			0x00000000,
+			0x00000000,
+			0x00000000},
 	};
 
 	int i;
