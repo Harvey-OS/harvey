@@ -206,10 +206,13 @@ argconv(char *p, Inst *i, Iarg *a)
 	case AOv:
 		if(i->sreg != RDS)
 			p += sprint(p, "%cS:", "ECSDFG"[i->sreg - RES]);
-		if(a->atype == AOb || a->atype == AOv || (i->mod == 0 &&
-			(i->alen == 2 && i->rm == 6) ||
-			(i->alen == 4 && ((i->rm == 5) ||
-			(i->rm == 4 && i->index == 4 && i->base == 5))))){
+		if(a->atype == AOb ||
+		    a->atype == AOv ||
+		    (i->mod == 0 &&
+		        ((i->alen == 2 && i->rm == 6) ||
+			 (i->alen == 4 &&
+		             (i->rm == 5 ||
+			         (i->rm == 4 && i->index == 4 && i->base == 5)))))){
 			p += sprint(p, "[%.*lux]", (int)i->alen*2, a->off);
 			break;
 		}
