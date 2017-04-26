@@ -58,7 +58,7 @@ latchcount(Pit *ch)
 	}
 	w = ch->count & 0xFFFF;
 	if(ch->bcd)
-		w = (w % 10) + ((w/10) % 10)<<4 + ((w/100) % 10)<<8 + ((w/1000) % 10)<<12;
+		w = (w % 10) + (((w/10) % 10)<<4) + (((w/100) % 10)<<8) + (((w/1000) % 10)<<12);
 	ch->rlatch[0] = w & 0xFF;
 	ch->rlatch[1] = (w >> 8) & 0xFF;
 	ch->rcount = 0;
