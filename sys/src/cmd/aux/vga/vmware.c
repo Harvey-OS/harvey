@@ -209,7 +209,7 @@ init(Vga* vga, Ctlr* ctlr)
 	vm = vga->private;
 
 	vmwr(vm, Rid, (0x900000<<8)|2);
-	if(vmrd(vm, Rid)&0xFF != 2)
+	if((vmrd(vm, Rid)&0xFF) != 2)
 		error("old vmware svga version %lu; need version 2\n",
 			vmrd(vm,Rid)&0xFF);
 
