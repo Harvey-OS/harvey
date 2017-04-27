@@ -206,7 +206,7 @@ main(int argc, char **argv)
 
 	lfd = dup(0, -1);
 
-	while(q = strchr(p, ','))
+	while((q = strchr(p, ',')) != nil)
 		*q = ' ';
 	Binit(&b, lfd, OREAD);
 	if(textmode || newwin(p) < 0){
