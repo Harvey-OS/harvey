@@ -362,10 +362,12 @@ work(void)
 					continue;
 				}
 			}
-			else if (lbegin == 0 || p > string) 
+			else if (lbegin == 0 || p > string){
 				if(strict)
 					putch(c,NO);
-				else putch(c,YES);
+				else
+					putch(c,YES);
+			}
 			continue;
 		case ';':
 			putch(c,NO);

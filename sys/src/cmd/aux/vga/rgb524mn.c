@@ -105,7 +105,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * Part comes in at least a -170MHz speed-grade.
 	 */
 	maxpclk = 170000000;
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		maxpclk = strtoul(p+1, 0, 0) * 1000000;
 
 	/*
@@ -117,7 +117,7 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->f[0] = vga->mode->frequency;
 	if(vga->f[0] > maxpclk)
 		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
-	if(val = dbattr(vga->attr, "rgb524mnrefclk"))
+	if((val = dbattr(vga->attr, "rgb524mnrefclk")) != nil)
 		fref = strtol(val, 0, 0);
 	else
 		fref = RefFreq;
@@ -174,7 +174,7 @@ load(Vga* vga, Ctlr* ctlr)
 	if(vga->mode->vsync == '+')
 		x |= 0x20;
 	rgb524mnxo(vga, SyncControl, x);
-	if(val = dbattr(vga->mode->attr, "hsyncdelay"))
+	if((val = dbattr(vga->mode->attr, "hsyncdelay")) != nil)
 		hsyncdelay = strtol(val, 0, 0);
 	else switch(vga->mode->z){
 	default:
@@ -303,7 +303,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		printreg(x[i]);
 	}
 
-	if(val = dbattr(vga->attr, "rgb524mnrefclk"))
+	if((val = dbattr(vga->attr, "rgb524mnrefclk")) != nil)
 		fref = strtol(val, 0, 0);
 	else
 		fref = RefFreq;

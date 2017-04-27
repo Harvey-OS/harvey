@@ -69,7 +69,7 @@ addctlr(Vga* vga, char* val)
 	 */
 	strncpy(name, val, Namelen);
 	name[Namelen] = 0;
-	if(p = strchr(name, '-'))
+	if((p = strchr(name, '-')) != nil)
 		*p = 0;
 
 	for(i = 0; ctlrs[i]; i++){
@@ -102,7 +102,7 @@ dbbios(Vga *vga, Ndbtuple *tuple)
 		string = t->val;
 		len = strlen(string);
 
-		if(p = strchr(t->attr, '-')) {
+		if((p = strchr(t->attr, '-')) != nil){
 			if((offset1 = strtol(p+1, 0, 0)) < offset+len)
 				continue;
 		} else
@@ -150,7 +150,7 @@ dbpci(Vga *vga, Ndbtuple *tuple)
 				did = 0;
 			else if((did=atoi(td->val)) == 0)
 				continue;
-			for(pci=nil; pci=pcimatch(pci, vid, did);)
+			for(pci=nil; (pci=pcimatch(pci, vid, did)) != nil;)
 				if((pci->ccru>>8) == 3)
 					break;
 			if(pci == nil)
@@ -251,7 +251,7 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 	 */
 	clock = 0;
 	strcpy(buf, size);
-	if(p = strchr(buf, '@')){
+	if((p = strchr(buf, '@')) != nil){
 		*p++ = 0;
 		if((clock = strtol(p, &p, 0)) && strcmp(p, "MHz") == 0)
 			clock *= 1000000;
@@ -267,7 +267,7 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 	strcpy(attr, type);
 	strcpy(val, buf);
 
-	if(p = ndbgetvalue(db, &s, attr, "", "videobw", nil)){
+	if((p = ndbgetvalue(db, &s, attr, "", "videobw", nil)) != nil){
 		mode->videobw = atol(p)*1000000UL;
 		free(p);
 	}

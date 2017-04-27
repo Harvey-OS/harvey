@@ -392,7 +392,7 @@ main(int argc, char** argv)
 
 			if(vga->ctlr->type)
 				vtype = vga->ctlr->type;
-			else if(p = strchr(vga->ctlr->name, '-')){
+			else if((p = strchr(vga->ctlr->name, '-')) != nil){
 				strncpy(buf, vga->ctlr->name, p - vga->ctlr->name);
 				buf[p - vga->ctlr->name] = 0;
 				vtype = buf;

@@ -122,14 +122,14 @@ init(Vga* vga, Ctlr* ctlr)
 		 */
 		if(dbattr(vga->attr, "vclkphs"))
 			vga->crt[0x67] |= 0x01;
-		if(val = dbattr(vga->attr, "delaybl"))
+		if((val = dbattr(vga->attr, "delaybl")) != nil)
 			vga->crt[0x6D] |= strtoul(val, 0, 0) & 0x07;
 		else if(mode->x > 1024)
 			vga->crt[0x6D] |= 0x01;
 		else
 			vga->crt[0x6D] |= 0x03;
 
-		if(val = dbattr(vga->attr, "delaysc"))
+		if((val = dbattr(vga->attr, "delaysc")) != nil)
 			vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07)<<4;
 	}
 }

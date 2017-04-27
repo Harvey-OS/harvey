@@ -148,7 +148,7 @@ USED(from); USED(fromval);
 	b->mark = 1;
 	nmark++;
 
-	if(d = finddata(b->addr)) {
+	if((d = finddata(b->addr)) != nil){
 		assert(d->addr >= b->addr);
 		b->d = d;
 		top = b->addr+b->size;
@@ -206,7 +206,7 @@ main(int argc, char **argv)
 	n8 = n16 = 0;
 	allocstart = allocend = 0;
 	Binit(&bio, 0, OREAD);
-	while(p=Brdline(&bio, '\n')) {
+	while((p=Brdline(&bio, '\n')) != nil){
 		p[Blinelen(&bio)-1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf >= 4 && strcmp(f[0], "data") == 0) {
@@ -261,9 +261,9 @@ main(int argc, char **argv)
 	for(d=data; d<ed; d++) {
 		if(d->type == 'a')
 			continue;
-		if(b = findblock(d->val-8))		// pool header 2 words
+		if((b = findblock(d->val-8)) != nil)	// pool header 2 words
 			n8 += markblock(d->addr, d->val, b);
-		else if(b = findblock(d->val-8-8))	// sometimes malloc header 2 words
+		else if((b = findblock(d->val-8-8)) != nil)	// sometimes malloc header 2 words
 			n16 += markblock(d->addr, d->val, b);
 		else
 			{}//print("noblock %.8lux\n", d->val);
