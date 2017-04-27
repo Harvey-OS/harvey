@@ -749,7 +749,7 @@ fsputfid(Fs *fs, Fid *f)
 		unlock(&fs->Lock);
 		return;
 	}
-	for(l = &fs->hash[f->fid%Nhash]; nf = *l; l = &nf->next)
+	for(l = &fs->hash[f->fid%Nhash]; (nf = *l) != nil; l = &nf->next)
 		if(nf == f){
 			*l = f->next;
 			break;

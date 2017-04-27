@@ -54,7 +54,7 @@ main(int argc, char **argv)
 	fd = openlog(argv[2]);
 
 	for(;;){
-		if(p = Brdline(&in, '\n')){
+		if((p = Brdline(&in, '\n')) != nil){
 			p[Blinelen(&in)-1] = 0;
 			t = ctime(time(0));
 			t[19] = 0;

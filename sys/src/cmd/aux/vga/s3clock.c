@@ -225,7 +225,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	strncpy(name, vga->clock->name, Namelen);
 	name[Namelen] = 0;
-	if(p = strchr(name, '-'))
+	if((p = strchr(name, '-')) != nil)
 		*p = 0;
 	for(i = 0; clocks[i].name; i++){
 		if(strcmp(clocks[i].name, name) == 0)
@@ -260,7 +260,7 @@ load(Vga* vga, Ctlr* ctlr)
 
 	strncpy(name, vga->clock->name, Namelen);
 	name[Namelen] = 0;
-	if(p = strchr(name, '-'))
+	if((p = strchr(name, '-')) != nil)
 		*p = 0;
 
 	for(i = 0; clocks[i].name; i++){

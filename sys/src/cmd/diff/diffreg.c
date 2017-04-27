@@ -118,8 +118,8 @@ sort(struct line *a, int n)	/*shellsort CACM #201*/
 			aim = ai+m;
 			do {
 				if (aim->value > ai->value ||
-				   aim->value == ai->value &&
-				   aim->serial > ai->serial)
+				    (aim->value == ai->value &&
+				     aim->serial > ai->serial))
 					break;
 				w = *ai;
 				*ai = *aim;

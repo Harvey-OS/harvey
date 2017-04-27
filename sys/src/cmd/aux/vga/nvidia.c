@@ -489,7 +489,7 @@ init(Vga* vga, Ctlr* ctlr)
 
 	clock(vga, ctlr);
 
-	if(val = dbattr(vga->mode->attr, "lcd")){
+	if((val = dbattr(vga->mode->attr, "lcd")) != nil){
 		 if((nv->islcd = strtol(val, &p, 0)) == 0 && p == val)
 			error("%s: invalid 'lcd' attr\n", ctlr->name);
 	}

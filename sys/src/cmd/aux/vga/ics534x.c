@@ -140,7 +140,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * Part comes in -135, -110 and -80MHz speed-grades.
 	 */
 	pclk = 80000000;
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		pclk = strtoul(p+1, 0, 0) * 1000000;
 
 	/*

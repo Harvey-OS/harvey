@@ -179,7 +179,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 	 * Work out the part speed-grade from name. Name can have,
 	 * e.g. '-135' on the end for 135MHz part.
 	 */
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		vga->f[1] = strtoul(p+1, 0, 0) * 1000000;
 
 	ctlr->flag |= Fsnarf;
@@ -244,7 +244,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * e.g. '-135' on the end for 135MHz part.
 	 */
 	noclockset = 0;
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		vga->f[1] = strtoul(p+1, 0, 0) * 1000000;
 	pclk = vga->f[1];
 
@@ -494,7 +494,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * set using bits <3:2> of vga->misc, otherwise we
 	 * need to programme the DCLK PLL.
 	 */
-	if(val = dbattr(vga->mode->attr, "noclockset")){
+	if((val = dbattr(vga->mode->attr, "noclockset")) != nil){
 		 if((noclockset = strtol(val, &p, 0)) == 0 && p == val)
 			error("%s: invalid 'noclockset' attr\n", ctlr->name);
 	}

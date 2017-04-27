@@ -172,7 +172,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * e.g. '-135' on the end  for 135MHz part.
 	 */
 	grade = 110000000;
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		grade = strtoul(p+1, 0, 0) * 1000000;
 
 	/*

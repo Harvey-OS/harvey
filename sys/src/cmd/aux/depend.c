@@ -257,7 +257,7 @@ estrdup(char *s)
 	if(!s)
 		return 0;
 	d = d0 = emalloc(strlen(s)+1);
-	while(*d++ = *s++)
+	while((*d++ = *s++) != 0)
 		;
 	return d0;
 }
@@ -446,7 +446,7 @@ fsputfid(Fs *fs, Fid *f)
 		unlock(&fs->Lock);
 		return;
 	}
-	for(l = &fs->hash[f->fid%Nfidhash]; nf = *l; l = &nf->next)
+	for(l = &fs->hash[f->fid%Nfidhash]; (nf = *l) != nil; l = &nf->next)
 		if(nf == f){
 			*l = f->next;
 			break;
@@ -1046,7 +1046,7 @@ awk(Biobuf *b, char **field, int n)
 	char *line;
 	int i;
 
-	while(line = Brdline(b, '\n')){
+	while((line = Brdline(b, '\n')) != nil){
 		line[Blinelen(b)-1] = 0;
 		while(*line == ' ' || *line == '\t')
 			*line++ = 0;
