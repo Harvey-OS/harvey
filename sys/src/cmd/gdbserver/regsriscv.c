@@ -98,6 +98,13 @@ gdb_cmd_reg_set(struct state *ks)
 	strcpy((char *)remcom_out_buffer, "OK");
 }
 
+uint64_t
+arch_get_pc(struct state *ks)
+{
+	// not yet.
+
+}
+
 void arch_set_pc(uintptr_t *regs, unsigned long pc)
 {
 	// not yet.

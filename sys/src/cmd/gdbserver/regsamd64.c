@@ -46,7 +46,7 @@ gdb_hex_reg_helper(uintptr_t *gdb_regs, int regnum, char *out)
 	}
 
 	if (regnum <= GDB_GS) {
-		uint32_t* reg32base = &gdb_regs[GDB_PS];
+		uint32_t* reg32base = (uint32_t*)&gdb_regs[GDB_PS];
 		int reg32idx = regnum - GDB_PS;
 		return mem2hex((void *)&reg32base[reg32idx], out, sizeof(uint32_t));
 	}
@@ -101,6 +101,14 @@ gdb_cmd_reg_set(struct state *ks)
 	dbg_set_reg(regnum, gdb_regs, ks->linux_regs);
 #endif
 	strcpy((char *)remcom_out_buffer, "OK");
+}
+
+uint64_t
+arch_get_pc(struct state *ks)
+{
+	uint64_t pc = ((uint64_t*)ks->gdbregs)[GDB_PC];
+	syslog(0, "gdbserver", "get_pc: %p", pc);
+	return pc;
 }
 
 void arch_set_pc(uintptr_t *regs, unsigned long pc)

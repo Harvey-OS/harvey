@@ -166,6 +166,7 @@ attach_to_process(int pid)
 		return;
 	}
 
+	// machdata will be valid after this
 	machbytype(fhdr.type);
 
 	// TODO close memfid
@@ -600,6 +601,19 @@ int_to_threadref(unsigned char *id, int value)
 //  put_unaligned_be32(value, id);
 }
 
+uint64_t
+get_reg(Map *map, char *reg)
+{
+	//uint64_t v;
+	//int ret = get8(map, reg, &v);
+
+	// TODO Not quite sure what do do here yet
+	syslog(0, "gdbserver", "get_reg: %s", reg);
+
+	return 0;
+	//return nil;
+}
+
 /*
  * All the functions that start with gdb_cmd are the various
  * operations to implement the handlers for the gdbserial protocol
@@ -920,6 +934,63 @@ gdb_cmd_exception_pass(struct state *ks)
 	return -1;
 }
 
+static void
+gdb_cmd_continue(struct state *ks)
+{
+	if (strcmp("Stopped", getstatus(ks->threadid)) != 0) {
+		syslog(0, "gdbserver", "Process not stopped - can't activate breakpoints");
+		// Not really sure what to reply with here
+		return;
+	}
+
+	syslog(0, "gdbserver", "activating breakpoints");
+	dbg_activate_sw_breakpoints(ks);
+
+	// Block for the process to stop or receive a note
+	sendctl(ks->threadid, "startstop");
+
+	// Remove the breakpoint note so the process
+	// doesn't suicide
+	remove_note();
+
+	// Send code indicating we've hit a breakpoint
+	strcpy((char *)remcom_out_buffer, "S05");
+}
+
+static void
+gdb_cmd_single_step(struct state *ks)
+{
+	if (machdata == nil) {
+		syslog(0, "gdbserver", "machdata not set");
+		return;
+	}
+
+	if (machdata->foll == nil) {
+		syslog(0, "gdbserver", "machdata->foll not set");
+		return;
+	}
+
+	uint64_t foll[] = {0, 0, 0};
+	uint64_t pc = arch_get_pc(ks);
+	int nfoll = machdata->foll(cormap, pc, get_reg, foll);
+	if (nfoll < 0)
+		syslog(0, "gdbserver", "machdata->foll failed: %r");
+	else
+		syslog(0, "gdbserver", "machdata->foll succeeded, nfoll: %d", nfoll);
+
+	for (int i = 0; i < nfoll; i++) {
+		syslog(0, "gdbserver", "Setting single-step breakpoint at: %p", foll[i]);
+		dbg_set_sw_break(ks, foll[i]);
+	}
+
+	gdb_cmd_continue(ks);
+
+	for (int i = 0; i < nfoll; i++) {
+		syslog(0, "gdbserver", "Removing single-step breakpoint at: %p", foll[i]);
+		dbg_remove_sw_break(ks, foll[i]);
+	}
+}
+
 /*
  * This function performs all gdbserial command procesing
  */
@@ -1043,25 +1114,11 @@ gdb_serial_stub(struct state *ks, int port)
 				/* Fall through on tmp < 0 */
 
 			case 'c':	/* Continue packet */
+				gdb_cmd_continue(ks);
+				break;
+
 			case 's':	/* Single step packet */
-				if (strcmp("Stopped", getstatus(ks->threadid)) != 0) {
-					syslog(0, "gdbserver", "Process not stopped - can't activate breakpoints");
-					// Not really sure what to reply with here
-					break;
-				}
-
-				syslog(0, "gdbserver", "activating breakpoints");
-				dbg_activate_sw_breakpoints(ks);
-
-				// Block for the process to stop or receive a note
-				sendctl(ks->threadid, "startstop");
-
-				// Remove the breakpoint note so the process
-				// doesn't suicide
-				remove_note();
-
-				// Send code indicating we've hit a breakpoint
-				strcpy((char *)remcom_out_buffer, "S05");
+				gdb_cmd_single_step(ks);
 				break;
 
 			default:
