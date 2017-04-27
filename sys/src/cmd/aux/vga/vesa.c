@@ -274,12 +274,12 @@ struct Flag {
 };
 
 static Flag capabilityflag[] = {
-	0x01, "8-bit-dac",
-	0x02, "not-vga",
-	0x04, "ramdac-needs-blank",
-	0x08, "stereoscopic",
-	0x10, "stereo-evc",
-	0
+	{0x01, "8-bit-dac"},
+	{0x02, "not-vga"},
+	{0x04, "ramdac-needs-blank"},
+	{0x08, "stereoscopic"},
+	{0x10, "stereo-evc"},
+	{0, nil}
 };
 
 static char *modelstr[] = {
@@ -597,13 +597,13 @@ vesatextmode(void)
 }
 
 static Flag edidflags[] = {
-	Fdigital, "digital",
-	Fdpmsstandby, "standby",
-	Fdpmssuspend, "suspend",
-	Fdpmsactiveoff, "activeoff",
-	Fmonochrome, "monochrome",
-	Fgtf, "gtf",
-	0
+	{Fdigital, "digital"},
+	{Fdpmsstandby, "standby"},
+	{Fdpmssuspend, "suspend"},
+	{Fdpmsactiveoff, "activeoff"},
+	{Fmonochrome, "monochrome"},
+	{Fgtf, "gtf"},
+	{0, nil}
 };
 
 int parseedid128(Edid *e, void *v);
@@ -985,7 +985,7 @@ fprint(2, "%.8H\n", p);
 		} else if(p[2]==0) {	/* monitor descriptor block */
 			switch(p[3]) {
 			case 0xFF:	/* monitor serial number (13-byte ascii, 0A terminated) */
-				if(q = memchr(p+5, 0x0A, 13))
+				if((q = memchr(p+5, 0x0A, 13)) != nil)
 					*q = '\0';
 				memset(e->serialstr, 0, sizeof(e->serialstr));
 				strncpy(e->serialstr, (char*)p+5, 13);
@@ -1002,7 +1002,7 @@ fprint(2, "%.8H\n", p);
 					e->pclkmax = p[9]*10*1000000;
 				break;
 			case 0xFC:	/* monitor name (13-byte ascii, 0A terminated) */
-				if(q = memchr(p+5, 0x0A, 13))
+				if((q = memchr(p+5, 0x0A, 13)) != nil)
 					*q = '\0';
 				memset(e->name, 0, sizeof(e->name));
 				strncpy(e->name, (char*)p+5, 13);
