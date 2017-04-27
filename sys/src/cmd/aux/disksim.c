@@ -358,12 +358,6 @@ Have:
 	return 0;
 }
 
-void*
-evommem(const void *a, void *b, size_t n)
-{
-	return memmove(b, a, n);
-}
-
 int
 isnonzero(void *v, uint32_t n)
 {
@@ -377,6 +371,15 @@ isnonzero(void *v, uint32_t n)
 	return 0;
 }
 
+void
+move(int type, void *a, void *b, size_t len)
+{
+	if (type == Tread)
+		memmove(a, b, len);
+	else
+		memmove(b, a, len);
+}
+
 int
 rdwrpart(Req *r)
 {
@@ -385,7 +388,6 @@ rdwrpart(Req *r)
 	int64_t offset;
 	int32_t count, tot, n, o;
 	uint8_t *blk, *dat;
-	void *(*move)(void*, const void*, size_t);
 
 	q = r->fid->qid.path-Qpart;
 	if(q < 0 || q > nelem(tab) || !tab[q].inuse || tab[q].vers != r->fid->qid.vers){
@@ -412,12 +414,6 @@ rdwrpart(Req *r)
 		count = p->length*sectsize - offset;
 	offset += p->offset*sectsize;
 
-	if(r->ifcall.type == Tread)
-		move = memmove;
-	else
-		// WOW, this is GROSS. 
-		move = evommem;
-
 	tot = 0;
 	nonzero = 1;
 	if(r->ifcall.type == Tread)
@@ -435,7 +431,7 @@ rdwrpart(Req *r)
 		if(n > count)
 			n = count;
 		if(r->ifcall.type != Twrite || blk != zero)
-			(*move)(dat, blk+o, n);
+			move(r->ifcall.type, dat, blk+o, n);
 		if(r->ifcall.type == Twrite)
 			dirty(offset, blk);
 		tot += n;
@@ -447,7 +443,7 @@ rdwrpart(Req *r)
 		if(n > count-tot)
 			n = count-tot;
 		if(r->ifcall.type != Twrite || blk != zero)
-			(*move)(dat+tot, blk, n);
+			move(r->ifcall.type, dat+tot, blk, n);
 		if(r->ifcall.type == Twrite)
 			dirty(offset+tot, blk);
 		tot += n;
