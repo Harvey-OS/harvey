@@ -81,11 +81,11 @@ init(Vga* vga, Ctlr* ctlr)
 	 * This may not be correct for all monitors.
 	 */
 	vga->crt[0x6D] = 0x00;
-	if(val = dbattr(vga->attr, "delaybl"))
+	if((val = dbattr(vga->attr, "delaybl")) != nil)
 		vga->crt[0x6D] |= strtoul(val, 0, 0) & 0x07;
 	else
 		vga->crt[0x6D] |= 2;
-	if(val = dbattr(vga->attr, "delaysc"))
+	if((val = dbattr(vga->attr, "delaysc")) != nil)
 		vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07)<<4;
 }
 

@@ -107,7 +107,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * Part comes in -170 and -220MHz speed-grades.
 	 */
 	pclk = 170000000;
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		pclk = strtoul(p+1, 0, 0) * 1000000;
 
 	/*
@@ -167,7 +167,7 @@ load(Vga* vga, Ctlr* ctlr)
 	rgb524xo(Frequency0, 0x24);
 	rgb524xo(Frequency0+1, 0x30);
 
-	if(val = dbattr(vga->attr, "rgb524refclk")){
+	if((val = dbattr(vga->attr, "rgb524refclk")) != nil){
 		f = strtol(val, 0, 0);
 		if(f > 1000000)
 			f /= 1000000;

@@ -472,13 +472,13 @@ getserv(char *proto, char *dir, Service *s)
 	int32_t n;
 
 	readstr(dir, "remote", s->remote, sizeof(s->remote)-1);
-	if(p = utfrune(s->remote, L'\n'))
+	if((p = utfrune(s->remote, L'\n')) != nil)
 		*p = '\0';
 
 	n = readstr(dir, "local", addr, sizeof(addr)-1);
 	if(n <= 0)
 		return 0;
-	if(p = utfrune(addr, L'\n'))
+	if((p = utfrune(addr, L'\n')) != nil)
 		*p = '\0';
 	serv = utfrune(addr, L'!');
 	if(!serv)

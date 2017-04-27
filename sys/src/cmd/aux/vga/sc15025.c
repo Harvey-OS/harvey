@@ -71,7 +71,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * e.g. '-110' on the end  for 100MHz part.
 	 */
 	pclk = 66000000;
-	if(p = strrchr(ctlr->name, '-'))
+	if((p = strrchr(ctlr->name, '-')) != nil)
 		pclk = strtoul(p+1, 0, 0) * 1000000;
 
 	/*

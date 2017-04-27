@@ -528,7 +528,7 @@ rdpart(Edit *edit, uint64_t lba, uint64_t xbase)
 			break;
 		default:
 			p = mkpart(nil, lba==0, lba+getle32(tp->xlba), getle32(tp->xsize), tp);
-			if(err = addpart(edit, /* barf. */ (Part*)p))
+			if((err = addpart(edit, /* barf. */ (Part*)p)) != nil)
 				fprint(2, "adding partition: %s\n", err);
 			break;
 		}
@@ -662,7 +662,7 @@ autopart(Edit *edit)
 	p->Part.changed = 1;
 	p->Tentry.type = Type9;
 	edit->changed = 1;
-	if(err = addpart(edit, /*barf */(Part *)p)) {
+	if((err = addpart(edit, /*barf */(Part *)p)) != nil){
 		fprint(2, "error adding plan9 partition: %s\n", err);
 		return;
 	}

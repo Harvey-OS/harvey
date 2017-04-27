@@ -155,7 +155,7 @@ prepare(int i, char *arg)
 		Bseek(bp, 0, 0);
 	}
 	p = MALLOC(struct line, 3);
-	for (j = 0; h = readhash(bp, buf); p[j].value = h)
+	for (j = 0; (h = readhash(bp, buf)) != 0; p[j].value = h)
 		p = REALLOC(p, struct line, (++j+3));
 	len[i] = j;
 	file[i] = p;

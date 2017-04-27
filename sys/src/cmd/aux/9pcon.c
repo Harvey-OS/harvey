@@ -243,20 +243,20 @@ struct Cmd {
 };
 
 Cmd msg9p[] = {
-	"Tversion", Tversion, 2, "messagesize version", tversion,
-	"Tauth", Tauth, 3, "afid uname aname", tauth,
-	"Tflush", Tflush, 1, "oldtag", tflush,
-	"Tattach", Tattach, 4, "fid afid uname aname", tattach,
-	"Twalk", Twalk, 0, "fid newfid [name...]", twalk,
-	"Topen", Topen, 2, "fid mode", topen,
-	"Tcreate", Tcreate, 4, "fid name perm mode", tcreate,
-	"Tread", Tread, 3, "fid offset count", tread,
-	"Twrite", Twrite, 3, "fid offset data", twrite,
-	"Tclunk", Tclunk, 1, "fid", tclunk,
-	"Tremove", Tremove, 1, "fid", tremove,
-	"Tstat", Tstat, 1, "fid", tstat,
-	"Twstat", Twstat, 7, "fid name uid gid mode mtime length", twstat,
-	"nexttag", 0, 0, "", settag,
+	{"Tversion", Tversion, 2, "messagesize version", tversion},
+	{"Tauth", Tauth, 3, "afid uname aname", tauth},
+	{"Tflush", Tflush, 1, "oldtag", tflush},
+	{"Tattach", Tattach, 4, "fid afid uname aname", tattach},
+	{"Twalk", Twalk, 0, "fid newfid [name...]", twalk},
+	{"Topen", Topen, 2, "fid mode", topen},
+	{"Tcreate", Tcreate, 4, "fid name perm mode", tcreate},
+	{"Tread", Tread, 3, "fid offset count", tread},
+	{"Twrite", Twrite, 3, "fid offset data", twrite},
+	{"Tclunk", Tclunk, 1, "fid", tclunk},
+	{"Tremove", Tremove, 1, "fid", tremove},
+	{"Tstat", Tstat, 1, "fid", tstat},
+	{"Twstat", Twstat, 7, "fid name uid gid mode mtime length", twstat},
+	{"nexttag", 0, 0, "", settag},
 };
 
 void
@@ -276,7 +276,7 @@ shell9p(int fd)
 
 	taggen = 0;
 	Binit(&b, 0, OREAD);
-	while(p = Brdline(&b, '\n')){
+	while((p = Brdline(&b, '\n')) != nil){
 		p[Blinelen(&b)-1] = '\0';
 		if(p[0] == '#')
 			continue;
@@ -299,7 +299,7 @@ shell9p(int fd)
 			fprint(2, "?usage: %s %s\n", msg9p[i].name, msg9p[i].usage);
 			continue;
 		}
-		if(e = msg9p[i].fn(&t, nf-1, f+1)){
+		if((e = msg9p[i].fn(&t, nf-1, f+1)) != nil){
 			fprint(2, "?%s\n", e);
 			continue;
 		}
