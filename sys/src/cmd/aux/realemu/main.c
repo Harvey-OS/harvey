@@ -317,22 +317,22 @@ wport(void *aux, unsigned long p, unsigned long w, int len)
 }
 
 static Bus memio[] = {
-	/* 0 */ memory, rmem, wmem,	/* RAM: IVT, BIOS data area */
-	/* 1 */ memory,	rmem, wmem,	/* custom */
-	/* 2 */ nil,	rbad, wbad,
-	/* 3 */ nil,	rbad, wbad,
-	/* 4 */ nil,	rbad, wbad,
-	/* 5 */ nil,	rbad, wbad,
-	/* 6 */ nil,	rbad, wbad,
-	/* 7 */ nil,	rbad, wbad,
-	/* 8 */ nil,	rbad, wbad,
-	/* 9 */ memory,	rmem, wmem,	/* RAM: extended BIOS data area */
-	/* A */ nil,	rrealmem, wrealmem,	/* RAM: VGA framebuffer */
-	/* B */ nil,	rrealmem, wrealmem,	/* RAM: VGA framebuffer */
-	/* C */ memory,	rmem, wmem,	/* ROM: VGA BIOS */
-	/* D */ nil,	rbad, wbad,
-	/* E */ memory,	rmem, wmem,	/* ROM: BIOS */
-	/* F */ memory,	rmem, wbad,	/* ROM: BIOS */
+	/* 0 */ {memory, rmem, wmem},	/* RAM: IVT, BIOS data area */
+	/* 1 */ {memory, rmem, wmem},	/* custom */
+	/* 2 */ {nil,	 rbad, wbad},
+	/* 3 */ {nil,	 rbad, wbad},
+	/* 4 */ {nil,	 rbad, wbad},
+	/* 5 */ {nil,	 rbad, wbad},
+	/* 6 */ {nil,	 rbad, wbad},
+	/* 7 */ {nil,	 rbad, wbad},
+	/* 8 */ {nil,	 rbad, wbad},
+	/* 9 */ {memory, rmem, wmem},	/* RAM: extended BIOS data area */
+	/* A */ {nil,	 rrealmem, wrealmem},	/* RAM: VGA framebuffer */
+	/* B */ {nil,	 rrealmem, wrealmem},	/* RAM: VGA framebuffer */
+	/* C */ {memory, rmem, wmem},	/* ROM: VGA BIOS */
+	/* D */ {nil,	 rbad, wbad},
+	/* E */ {memory, rmem, wmem},	/* ROM: BIOS */
+	/* F */ {memory, rmem, wbad},	/* ROM: BIOS */
 };
 
 static Bus portio = {
@@ -436,7 +436,7 @@ realmode(Cpu *cpu, struct Ureg *u, void *r)
 
 	cpu->reg[RFL] = GETUREG(flags);
 
-	if(i = GETUREG(trap)){
+	if((i = GETUREG(trap)) != 0){
 		cpu->reg[RSS] = 0x0000;
 		cpu->reg[RSP] = 0x7C00;
 		cpu->reg[RCS] = (RMCODE>>4)&0xF000;
@@ -547,20 +547,9 @@ static struct Qtab {
 	int type;
 	int length;
 } qtab[Nqid] = {
-	"/",
-		DMDIR|0555,
-		QTDIR,
-		0,
-
-	"realmode",
-		0666,
-		0,
-		0,
-
-	"realmodemem",
-		0666,	
-		0,
-		MEMSIZE,
+	{"/",		DMDIR|0555, QTDIR, 0},
+	{"realmode",	      0666, 0,     0},
+	{"realmodemem",       0666, 0,     MEMSIZE},
 };
 
 static int
@@ -705,7 +694,7 @@ cpuproc(void *data)
 
 	threadsetname("cpuproc");
 
-	while(r = recvp(reqchan)){
+	while((r = recvp(reqchan)) != nil){
 		if(flushed(r)){
 			respond(r, Eintr);
 			continue;
@@ -745,7 +734,7 @@ cpuproc(void *data)
 				break;
 			}
 			memmove(&rmu, p, n);
-			if(p = realmode(&cpu, &rmu, r)){
+			if((p = realmode(&cpu, &rmu, r)) != nil){
 				respond(r, p);
 				break;
 			}
