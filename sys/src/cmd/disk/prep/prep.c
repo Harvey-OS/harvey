@@ -340,7 +340,7 @@ rdpart(Edit *edit)
 		if(a >= b)
 			goto Error;
 
-		if(err = addpart(edit, mkpart(f[1], a, b, 0))) {
+		if((err = addpart(edit, mkpart(f[1], a, b, 0))) != nil){
 			fprint(2, "?%s: not continuing\n", err);
 			exits("partition");
 		}
@@ -431,7 +431,7 @@ autoxpart(Edit *edit)
 	for(i=0; i<nelem(autox); i++){
 		if(autox[i].alloc == 0)
 			continue;
-		if(err = addpart(edit, mkpart(autox[i].name, s, s+autox[i].size, 1)))
+		if((err = addpart(edit, mkpart(autox[i].name, s, s+autox[i].size, 1))) != nil)
 			fprint(2, "addpart %s: %s\n", autox[i].name, err);
 		s += autox[i].size;
 	}

@@ -454,7 +454,7 @@ strlook(Match *m, char *str, char *e)
 			continue;
 		s = str + 1;
 		up = m->up + 1;
-		for(pat = m->pat + 1; pc = *pat; pat++){
+		for(pat = m->pat + 1; (pc = *pat) != '\0'; pat++){
 			c = *s;
 			if(c != pc && c != *up)
 				break;
@@ -497,7 +497,7 @@ quickmk(Quick *q, char *spat, int ignorecase)
 	if(ignorecase)
 		up = pat + n + 1;
 	q->up = up;
-	while(c = *spat++){
+	while((c = *spat++) != '\0'){
 		if(ignorecase){
 			*up++ = toupper(c);
 			c = tolower(c);
@@ -572,7 +572,7 @@ quicksearch(Quick *q, char *s, char *e)
 		}
 		if(s >= e)
 			return nil;
-		while(n = j[(uint8_t)*s]){
+		while((n = j[(uint8_t)*s]) != 0){
 			s += n;
 			if(s >= e)
 				return nil;
@@ -582,7 +582,7 @@ quicksearch(Quick *q, char *s, char *e)
 		 * does the string match?
 		 */
 		m = s - len;
-		for(n = 0; c = pat[n]; n++){
+		for(n = 0; (c = pat[n]) != '\0'; n++){
 			mc = *m++;
 			if(c != mc && mc != up[n])
 				break;
@@ -816,7 +816,7 @@ fsopen(Fs *fs, Fcall *rpc)
 	}
 	mode = rpc->mode & OPERM;
 	if(mode == OEXEC
-	|| f->qid.path == Qroot && (mode == OWRITE || mode == ORDWR)){
+	|| (f->qid.path == Qroot && (mode == OWRITE || mode == ORDWR))){
 		putfid(fs, f);
 		return Eperm;
 	}

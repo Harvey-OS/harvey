@@ -140,7 +140,7 @@ vgactlinit(void)
 	for(nl = strchr(ctlbuf, '\n'); nl; nl = strchr(nl, '\n')){
 
 		*nl = '\0';
-		if(p = strchr(vp, ' ')){
+		if((p = strchr(vp, ' ')) != nil){
 			*p++ = '\0';
 			attr[nattr].attr = vp;
 			if(*p == '\0')
