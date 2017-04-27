@@ -105,6 +105,8 @@ struct bkpt {
   enum bpstate	state;
 };
 
+extern uint64_t arch_get_pc(struct state *ks);
+
 extern char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
 extern int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
 
