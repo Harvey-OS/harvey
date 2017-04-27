@@ -619,11 +619,12 @@ decode(Iarg *ip, Inst *i)
 		break;
 	}
 	t2 = optabgp[t->op];
-	if(t2 || modrmarg[t->a1] || modrmarg[t->a2] || modrmarg[t->a3])
+	if(t2 || modrmarg[t->a1] || modrmarg[t->a2] || modrmarg[t->a3]){
 		if(i->alen == 2)
 			getmodrm16(ip, i);
 		else
 			getmodrm32(ip, i);
+	}
 	if(i->sreg == 0)
 		i->sreg = i->dsreg;
 
