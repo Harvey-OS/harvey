@@ -500,11 +500,11 @@ strpunct(char *p)
 {
 	int c;
 
-	for(;c = *p; p++){
+	for(;(c = *p) != '\0'; p++){
 		if(ispunct(c))
 			return p;
 	}
-	return 0;
+	return nil;
 }
 
 /*
@@ -787,7 +787,7 @@ readdir(Node *node)
 			return seterr(nosuchfile);
 		}
 		files = 0;
-		while(line = Brdline(bp, '\n')){
+		while((line = Brdline(bp, '\n')) != nil){
 			n = Blinelen(bp);
 			if(debug)
 				write(2, line, n);
@@ -1133,7 +1133,7 @@ getreply(Biobuf *bp, char *msg, int len, int printreply)
 	int rv;
 	int i, n;
 
-	while(line = Brdline(bp, '\n')){
+	while((line = Brdline(bp, '\n')) != nil){
 		/* add line to message buffer, strip off \r */
 		n = Blinelen(bp);
 		if(n > 1 && line[n-2] == '\r'){
@@ -1404,7 +1404,7 @@ vmsdir(char *name)
 	if(name == 0)
 		return 0;
 
-	while(cp = strchr(name, '.')){
+	while((cp = strchr(name, '.')) != nil){
 		*cp = 0;
 		np = vmsextendpath(np, name);
 		name = cp+1;
@@ -1650,7 +1650,7 @@ nw_mode(char dirlet, char *s)		/* NetWare file mode mapping */
 	if(dirlet == 'd')
 		mode |= DMDIR;
 
-	if (strlen(s) >= 10 && s[0] != '[' || s[9] != ']')
+	if (strlen(s) >= 10 && (s[0] != '[' || s[9] != ']'))
 		return(mode);
 
 	if (s[1] == '-')					/* can't read file */

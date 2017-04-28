@@ -601,22 +601,24 @@ reply(Req *r, void *v)
 	sum += r->rtt;
 	if(!r->replied)
 		rcvdmsgs++;
-	if(!quiet && !lostonly)
+	if(!quiet && !lostonly) {
 		if(addresses)
 			(*proto->prreply)(r, v);
 		else
 			print("%u: rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 				r->seq - firstseq, r->rtt, sum/rcvdmsgs, r->ttl);
+	}
 	r->replied = 1;
 }
 
 void
 lost(Req *r, void *v)
 {
-	if(!quiet)
+	if(!quiet) {
 		if(addresses && v != nil)
 			(*proto->prlost)(r->seq - firstseq, v);
 		else
 			print("lost %u\n", r->seq - firstseq);
+	}
 	lostmsgs++;
 }

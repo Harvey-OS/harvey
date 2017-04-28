@@ -85,8 +85,8 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		 * check for if-range requests
 		 */
 		if(c->head.range == nil
-		|| c->head.ifrangeetag != nil && !etagmatch(1, c->head.ifrangeetag, etag)
-		|| c->head.ifrangedate != 0 && c->head.ifrangedate != mtime){
+		|| (c->head.ifrangeetag != nil && !etagmatch(1, c->head.ifrangeetag, etag))
+		|| (c->head.ifrangedate != 0 && c->head.ifrangedate != mtime)){
 			c->head.range = nil;
 			c->head.ifrangeetag = nil;
 			c->head.ifrangedate = 0;
@@ -367,9 +367,9 @@ checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime,
 	 */
 	m = etagmatch(1, c->head.ifnomatch, etag);
 
-	if(m && strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0
-	|| c->head.ifunmodsince && c->head.ifunmodsince < mtime
-	|| c->head.ifmatch != nil && !etagmatch(1, c->head.ifmatch, etag)){
+	if((m && strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)
+	|| (c->head.ifunmodsince && c->head.ifunmodsince < mtime)
+	|| (c->head.ifmatch != nil && !etagmatch(1, c->head.ifmatch, etag))){
 		hprint(hout, "%s 412 Precondition Failed\r\n", hversion);
 		hprint(hout, "Server: Plan9\r\n");
 		hprint(hout, "Date: %D\r\n", time(nil));

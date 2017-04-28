@@ -128,7 +128,7 @@ addparts(char *buf)
 	 * partitions will have the null-string for user.
 	 */
 	for(p = buf; p != nil; p = q){
-		if(q = strchr(p, '/'))
+		if((q = strchr(p, '/')) != nil)
 			*q++ = '\0';
 		if(tokenize(p, f, nelem(f)) >= 3 &&
 		    addpart(f[0], strtoull(f[1], 0, 0), strtoull(f[2], 0, 0)) < 0)

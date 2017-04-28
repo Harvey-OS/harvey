@@ -188,7 +188,7 @@ udpprobe(int cfd, int dfd, char *dest, int interval)
 }
 
 #define MSG "traceroute probe"
-#define MAGIC (0xdead)&0xFF
+#define MAGIC ((0xdead)&0xFF)
 
 /* ICMPv4 only */
 static int

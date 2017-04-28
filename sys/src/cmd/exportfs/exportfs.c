@@ -931,7 +931,7 @@ filter(int fd, char *cmd)
 	argv[argc++] = buf;
 	argv[argc] = nil;
 	file = argv[0];
-	if (s = strrchr(argv[0], '/'))
+	if ((s = strrchr(argv[0], '/')) != nil)
 		argv[0] = s+1;
 
 	if(pipe(p) < 0)

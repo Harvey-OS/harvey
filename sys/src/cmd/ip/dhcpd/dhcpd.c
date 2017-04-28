@@ -423,7 +423,7 @@ proto(Req *rp, int n)
 static void
 slowdelay(Req *rp)
 {
-	if(slowstat && rp->staticbinding || slowdyn && !rp->staticbinding)
+	if((slowstat && rp->staticbinding) || (slowdyn && !rp->staticbinding))
 		sleep(1000);
 }
 
