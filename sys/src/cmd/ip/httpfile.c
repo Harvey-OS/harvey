@@ -334,8 +334,8 @@ struct Tab
 
 Tab tab[] =
 {
-	"/",		DMDIR|0555,
-	nil,		0444,
+	{"/",		DMDIR|0555},
+	{nil,		0444},
 };
 
 static void

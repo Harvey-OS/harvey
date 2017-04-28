@@ -440,7 +440,7 @@ ip6cfg(int autoconf)
 	}
 
 	snprint(buf, sizeof buf, "%I", conf.laddr);
-	while(p = Brdline(bp, '\n')){
+	while((p = Brdline(bp, '\n')) != nil){
 		p[Blinelen(bp)-1] = 0;
 		if(cistrstr(p, buf) != 0) {
 			warning("found dup entry in arp cache");
@@ -921,7 +921,7 @@ sendra6(void)
 			continue;
 		}
 
-		if (ifc->sendra6 <= 0)
+		if (ifc->sendra6 <= 0) {
 			if (nquitmsgs > 0) {
 				sendra(fd, v6allnodesL, 0);
 				nquitmsgs--;
@@ -932,6 +932,7 @@ sendra6(void)
 					conf.dev);
 				exits(0);
 			}
+		}
 
 		nquitmsgs = Maxv6finalras;
 

@@ -83,10 +83,10 @@ int	blksize = Defsegsize;		/* excluding 4-byte header */
 int	timeout = 5;			/* seconds */
 int	tsize;
 static Opt option[] = {
-	"timeout",	&timeout,	1,	255,
+	{"timeout",	&timeout,	1,	255},
 	/* see "hack" below */
-	"blksize",	&blksize,	8,	Maxsegsize,
-	"tsize",	&tsize,		0,	(~0UL >> 1)&0xFF,
+	{"blksize",	&blksize,	8,	Maxsegsize},
+	{"tsize",	&tsize,		0,	(~0UL >> 1)&0xFF},
 };
 
 void	sendfile(int, char*, char*, int);

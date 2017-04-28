@@ -40,7 +40,7 @@ dangerous(char *s)
 	 * filename folding is already supposed to have happened.
 	 * But I'm paranoid.
 	 */
-	while(s = strchr(s,'/')){
+	while((s = strchr(s,'/')) != nil){
 		if(s[1]=='.' && s[2]=='.')
 			return 1;
 		s++;

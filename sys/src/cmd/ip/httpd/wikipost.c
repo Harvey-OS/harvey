@@ -34,7 +34,7 @@ _urlunesc(char *s)
 
 	/* unescape */
 	u = halloc(hc, strlen(s)+1);
-	for(t = u; c = *s; s++){
+	for(t = u; (c = *s) != '\0'; s++){
 		if(c == '%'){
 			n = s[1];
 			if(n >= '0' && n <= '9')
@@ -94,7 +94,7 @@ dangerous(char *s)
 	 * filename folding is already supposed to have happened.
 	 * But I'm paranoid.
 	 */
-	while(s = strchr(s,'/')){
+	while((s = strchr(s,'/')) != nil){
 		if(s[1]=='.' && s[2]=='.')
 			return 1;
 		s++;

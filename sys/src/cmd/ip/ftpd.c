@@ -248,7 +248,7 @@ main(int argc, char **argv)
 	Binit(&in, 0, OREAD);
 	reply("220 Plan 9 FTP server ready");
 	alarm(Maxwait);
-	while(cmd = Brdline(&in, '\n')){
+	while((cmd = Brdline(&in, '\n')) != nil){
 		alarm(0);
 
 		/*
@@ -715,7 +715,7 @@ typecmd(char *arg)
 	if(arg == 0)
 		return reply("501 Type command needs arguments");
 
-	while(c = *arg++){
+	while((c = *arg++) != 0){
 		switch(tolower(c)){
 		case 'a':
 			type = Tascii;
@@ -1093,7 +1093,7 @@ list(char *arg, int lflag)
 			for(g = gl->first; g; g = g->next)
 				if(g->glob && (n = strlen(s_to_c(g->glob))) > maxnamelen)
 					maxnamelen = n;
-		while(s = globiter(gl)){
+		while((s = globiter(gl)) != nil){
 			if(debug)
 				logit("glob %s", s);
 			p = abspath(s);
