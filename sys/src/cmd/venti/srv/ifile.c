@@ -128,7 +128,7 @@ ifileline(IFile *f)
 		t = strchr(s, '#');
 		if(t != nil)
 			*t = '\0';
-		for(; c = *s; s++)
+		for(; (c = *s) != '\0'; s++)
 			if(c != ' ' && c != '\t' && c != '\r')
 				return s;
 	}

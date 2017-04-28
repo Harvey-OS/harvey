@@ -27,7 +27,7 @@ increment(State * s, int c)
 	for (i = 0; i < s->count; i++)
 		fol1(s->re[i], c);
 	qsort(follow, nfollow, sizeof(*follow), fcmp);
-	for (tt = &state0; t = *tt;) {
+	for (tt = &state0; (t = *tt) != nil;) {
 		if (t->count > nfollow) {
 			tt = &t->linkleft;
 			goto cont;
@@ -103,9 +103,9 @@ loop:
 
 		case Tcase:
 			if (c >= 0 && c < 256)
-				if (r1 = r->cases[c])
+				if ((r1 = r->cases[c]) != nil)
 					follow[nfollow++] = r1;
-			if (r = r->next)
+			if ((r = r->next) != nil)
 				goto loop;
 			break;
 

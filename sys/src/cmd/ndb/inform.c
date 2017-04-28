@@ -219,10 +219,11 @@ main(int argc, char *argv[])
 	close(fd);
 
 	err = g16(&p) & 7;
-	if(err != 0 && err != 7)	/* err==7 is just a "yes, I know" warning */
+	if(err != 0 && err != 7){	/* err==7 is just a "yes, I know" warning */
 		if(err < nelem(errmsgs))
 			sysfatal("%s", errmsgs[err]);
 		else
 			sysfatal("unknown dns server error %d", err);
+	}
 	exits(0);
 }
