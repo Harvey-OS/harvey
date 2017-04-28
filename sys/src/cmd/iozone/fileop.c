@@ -1121,7 +1121,7 @@ be2vlong(int64_t *to, char *f)
 	t = (char*)to;
 	o = (char*)&order;
 	for(i = 0; i < 8; i++)
-	t[o[i]] = f[i];
+		t[(int)o[i]] = f[i];
 }
 
 void

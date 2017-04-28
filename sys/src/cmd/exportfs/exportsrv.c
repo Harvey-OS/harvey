@@ -497,12 +497,13 @@ slave(Fsrpc *f)
 			fatal("rfork");
 
 		case 0:
-			if (local[0] != '\0')
+			if (local[0] != '\0') {
 				if (netdir[0] != '\0')
 					procsetname("%s: %s -> %s", netdir, 
 						local, remote);
 				else
 					procsetname("%s -> %s", local, remote);
+			}
 			blockingslave();
 			fatal("slave");
 

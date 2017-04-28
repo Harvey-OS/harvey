@@ -8,7 +8,7 @@
  */
 
 typedef void (*Inst)(void);
-#define	STOP	(Inst) 0
+#define	STOP	(Inst) 0ULL
 
 typedef struct Symbol	Symbol;
 typedef union Datum 	Datum;

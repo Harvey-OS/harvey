@@ -16,50 +16,50 @@ static struct {		/* Keywords */
 	char	*name;
 	int	kval;
 } keywords[] = {
-	"proc",		PROC,
-	"func",		FUNC,
-	"return",	RETURN,
-	"if",		IF,
-	"else",		ELSE,
-	"while",	WHILE,
-	"for",		FOR,
-	"print",	PRINT,
-	"read",		READ,
-	0,		0,
+	{"proc",	PROC},
+	{"func",	FUNC},
+	{"return",	RETURN},
+	{"if",		IF},
+	{"else",	ELSE},
+	{"while",	WHILE},
+	{"for",		FOR},
+	{"print",	PRINT},
+	{"read",	READ},
+	{0,		0},
 };
 
 static struct {		/* Constants */
 	char *name;
 	double cval;
 } consts[] = {
-	"PI",	 3.14159265358979323846,
-	"E",	 2.71828182845904523536,
-	"GAMMA", 0.57721566490153286060,  /* Euler */
-	"DEG",	57.29577951308232087680,  /* deg/radian */
-	"PHI",   1.61803398874989484820,  /* golden ratio */
-	0,	 0
+	{"PI",	 3.14159265358979323846},
+	{"E",	 2.71828182845904523536},
+	{"GAMMA",0.57721566490153286060},  /* Euler */
+	{"DEG",	57.29577951308232087680},  /* deg/radian */
+	{"PHI",  1.61803398874989484820},  /* golden ratio */
+	{0,	 0}
 };
 
 static struct {		/* Built-ins */
 	char *name;
 	double	(*func)(double);
 } builtins[] = {
-	"sin",	sin,
-	"cos",	cos,
-	"tan",	tan,
-	"atan",	atan,
-	"asin",	Asin,	/* checks range */
-	"acos", Acos,	/* checks range */
-	"sinh",	Sinh,	/* checks range */
-	"cosh",	Cosh,	/* checks range */
-	"tanh",	tanh,
-	"log",	Log,	/* checks range */
-	"log10", Log10,	/* checks range */
-	"exp",	Exp,	/* checks range */
-	"sqrt",	Sqrt,	/* checks range */
-	"int",	integer,
-	"abs",	fabs,
-	0,	0
+	{"sin",		sin},
+	{"cos",		cos},
+	{"tan",		tan},
+	{"atan",	atan},
+	{"asin",	Asin},	/* checks range */
+	{"acos",	Acos},	/* checks range */
+	{"sinh",	Sinh},	/* checks range */
+	{"cosh",	Cosh},	/* checks range */
+	{"tanh",	tanh},
+	{"log",		Log},	/* checks range */
+	{"log10",	Log10},/* checks range */
+	{"exp",		Exp},	/* checks range */
+	{"sqrt",	Sqrt},	/* checks range */
+	{"int",		integer},
+	{"abs",		fabs},
+	{0,		0}
 };
 
 void

@@ -74,7 +74,7 @@ main(int argc, char **argv)
 	}ARGEND
 	
 	Binits(&bin, 0, OREAD, binbuf, sizeof binbuf);
-	while(p = Brdline(&bin, '\n')){
+	while((p = Brdline(&bin, '\n')) != nil){
 		p[Blinelen(&bin)-1] = '\0';
 		strcpy(linebuf, p);
 		p = linebuf;
@@ -148,7 +148,7 @@ mkdirs(char *name, char *namep)
 	int fd;
 
 	strcpy(buf, name);
-	for(p = &buf[namep - name]; p = utfrune(p, '/'); p++){
+	for(p = &buf[namep - name]; (p = utfrune(p, '/')) != nil; p++){
 		if(p[1] == '\0')
 			return;
 		*p = 0;
