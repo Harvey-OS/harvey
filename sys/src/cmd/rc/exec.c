@@ -917,7 +917,7 @@ Xrdcmds(void)
 	}
 	Noerror();
 	if(yyparse()){
-		if(!p->iflag || p->eof && !Eintr()){
+		if(!p->iflag || (p->eof && !Eintr())){
 			if(p->cmdfile)
 				efree(p->cmdfile);
 			closeio(p->cmdfd);

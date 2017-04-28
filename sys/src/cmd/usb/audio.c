@@ -108,7 +108,7 @@ controlproc(void *_)
 	int32_t value[8];
 	Channel *replchan;
 
-	while(req = recvp(controlchan)){
+	while((req = recvp(controlchan)) != nil){
 		int rec;
 
 		nf = tokenize(req, args, nelem(args));
