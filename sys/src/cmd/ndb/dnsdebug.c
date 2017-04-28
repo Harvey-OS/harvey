@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 	}
 
 	Binit(&in, 0, OREAD);
-	for(print("> "); p = Brdline(&in, '\n'); print("> ")){
+	for(print("> "); (p = Brdline(&in, '\n')) != nil; print("> ")){
 		p[Blinelen(&in)-1] = 0;
 		n = tokenize(p, f, 3);
 		if(n>=1) {
@@ -393,11 +393,12 @@ doquery(char *name, char *tstr)
 		preloadserveraddrs();
 
 	/* default to an "ip" request if alpha, "ptr" if numeric */
-	if(tstr == nil || *tstr == 0)
+	if(tstr == nil || *tstr == 0) {
 		if(strcmp(ipattr(name), "ip") == 0)
 			tstr = "ptr";
 		else
 			tstr = "ip";
+	}
 
 	/* if name end in '.', remove it */
 	len = strlen(name);

@@ -326,12 +326,12 @@ struct {
 	char *ext;
 	char *type;
 } exttab[] = {
-	".html",	"text/html",
-	".txt",	"text/plain",
-	".xml",	"text/xml",
-	".png",	"image/png",
-	".gif",	"image/gif",
-	0
+	{".html", "text/html"},
+	{".txt",  "text/plain"},
+	{".xml",  "text/xml"},
+	{".png",  "image/png"},
+	{".gif",  "image/gif"},
+	{nil, nil}
 };
 
 static int
@@ -392,20 +392,20 @@ static struct
 	int *p;
 } namedints[] =
 {
-	"compress",	&compressblocks,
-	"devnull",	&writestodevnull,
-	"logging",	&ventilogging,
-	"stats",	&collectstats,
-	"icachesleeptime",	&icachesleeptime,
-	"minicachesleeptime",	&minicachesleeptime,
-	"arenasumsleeptime",	&arenasumsleeptime,
-	"l0quantum",	&l0quantum,
-	"l1quantum",	&l1quantum,
-	"manualscheduling",	&manualscheduling,
-	"ignorebloom",	&ignorebloom,
-	"syncwrites",	&syncwrites,
-	"icacheprefetch",	&icacheprefetch,
-	0
+	{"compress",	&compressblocks},
+	{"devnull",	&writestodevnull},
+	{"logging",	&ventilogging},
+	{"stats",	&collectstats},
+	{"icachesleeptime",	&icachesleeptime},
+	{"minicachesleeptime",	&minicachesleeptime},
+	{"arenasumsleeptime",	&arenasumsleeptime},
+	{"l0quantum",	&l0quantum},
+	{"l1quantum",	&l1quantum},
+	{"manualscheduling",	&manualscheduling},
+	{"ignorebloom",	&ignorebloom},
+	{"syncwrites",	&syncwrites},
+	{"icacheprefetch",	&icacheprefetch},
+	{nil, nil}
 };
 
 static int

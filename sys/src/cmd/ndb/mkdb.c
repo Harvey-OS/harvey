@@ -163,7 +163,7 @@ main(void)
 	Binit(&in, 0, OREAD);
 	Binit(&out, 1, OWRITE);
 	ntup = 0;
-	while(l = Brdline(&in, '\n')){
+	while((l = Brdline(&in, '\n')) != nil){
 		l[Blinelen(&in)-1] = 0;
 		n = getfields(l, fields, NFIELDS, 1, " \t");
 		same = 0;

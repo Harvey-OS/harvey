@@ -59,11 +59,12 @@ cspmatch(Devtab *dt, int dcsp)
 	int	csp;
 
 	for(i = 0; i < nelem(dt->csps); i++)
-		if((csp=dt->csps[i]) != 0)
-		if(csp == dcsp)
-			return 1;
-		else if((csp&DCL) && (csp&~DCL) == Class(dcsp))
-			return 1;
+		if((csp=dt->csps[i]) != 0){
+			if(csp == dcsp)
+				return 1;
+			else if((csp&DCL) && (csp&~DCL) == Class(dcsp))
+				return 1;
+		}
 	return 0;
 }
 

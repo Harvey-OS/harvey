@@ -82,7 +82,7 @@ struct Holdq
 
 struct	/* needed because incref() doesn't return value */
 {
-	Lock;
+	Lock			lk;
 	int			ref;
 } rulesref;
 
@@ -738,14 +738,14 @@ fsysopen(Fcall *t, uint8_t *buf, Fid *f)
 	if(((f->dir->perm&~(DMDIR|DMAPPEND))&m) != m)
 		goto Deny;
 	if(f->qid.path==Qrules && (mode==OWRITE || mode==ORDWR)){
-		lock(&rulesref);
+		lock(&rulesref.lk);
 		if(rulesref.ref++ != 0){
 			rulesref.ref--;
-			unlock(&rulesref);
+			unlock(&rulesref.lk);
 			fsysrespond(t, buf, Einuse);
 			return t;
 		}
-		unlock(&rulesref);
+		unlock(&rulesref.lk);
 	}
 	if(clearrules){
 		writerules(nil, 0);
@@ -954,9 +954,9 @@ fsysclunk(Fcall *t, uint8_t *buf, Fid *f)
 			 * unless last write ended with a blank line
 			 */
 			writerules(nil, 0);
-			lock(&rulesref);
+			lock(&rulesref.lk);
 			rulesref.ref--;
-			unlock(&rulesref);
+			unlock(&rulesref.lk);
 		}
 		prev = nil;
 		for(p=d->fopen; p; p=p->nextopen){
