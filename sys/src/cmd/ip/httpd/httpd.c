@@ -201,21 +201,17 @@ hashstr(char* key)
 static System *
 hashsys(char *rsys)
 {
-	int notme;
 	System *sys;
 
 	sys = syss + hashstr(rsys) % nelem(syss);
 	/* if the bucket is empty, just use it, else find or allocate ours */
 	if(sys->rsys != nil) {
 		/* find match or chain end */
-		for(; notme = (strcmp(sys->rsys, rsys) != 0) &&
-		    sys->next != nil; sys = sys->next)
-			;
-		if(notme) {
-			sys->next = malloc(sizeof *sys);  /* extend chain */
-			sys = sys->next;
-		} else
-			return sys;
+		for(; sys->next != nil; sys = sys->next)
+			if(strcmp(sys->rsys, rsys) == 0)
+				return sys;
+		sys->next = malloc(sizeof *sys);  /* extend chain */
+		sys = sys->next;
 	}
 	if(sys != nil) {
 		memset(sys, 0, sizeof *sys);
