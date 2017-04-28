@@ -620,11 +620,12 @@ doadd(int retry)
 //		return;
 	}
 
-	if(!validip(conf.laddr) && !ppp)
+	if(!validip(conf.laddr) && !ppp) {
 		if(dondbconfig)
 			ndbconfig();
 		else
 			dodhcp = 1;
+	}
 
 	/* run dhcp if we need something */
 	if(dodhcp){
@@ -637,19 +638,21 @@ doadd(int retry)
 		}
 	}
 
-	if(!validip(conf.laddr))
+	if(!validip(conf.laddr)) {
 		if(retry && dodhcp && !noconfig){
 			warning("couldn't determine ip address, retrying");
 			dhcpwatch(1);
 			return;
 		} else
 			sysfatal("no success with DHCP");
+	}
 
-	if(!noconfig)
+	if(!noconfig) {
 		if(ip4cfg() < 0)
 			sysfatal("can't start ip");
 		else if(dodhcp && conf.lease != Lforever)
 			dhcpwatch(0);
+	}
 
 	/* leave everything we've learned somewhere other procs can find it */
 	if(beprimary == 1){
@@ -743,7 +746,7 @@ adddefroute(char *mpoint, uint8_t *gaddr)
 void
 mkclientid(void)
 {
-	if(strcmp(conf.type, "ether") == 0 || strcmp(conf.type, "gbe") == 0)
+	if(strcmp(conf.type, "ether") == 0 || strcmp(conf.type, "gbe") == 0) {
 		if(myetheraddr(conf.hwa, conf.dev) == 0){
 			conf.hwalen = 6;
 			conf.hwatype = 1;
@@ -756,6 +759,7 @@ mkclientid(void)
 				"plan9_%ld.%d", lrand(), getpid());
 			conf.cidlen = strlen((char*)conf.cid);
 		}
+	}
 }
 
 /* bind ip into the namespace */
@@ -779,7 +783,7 @@ controldevice(void)
 	Ctl *cp;
 
 	if (firstctl == nil ||
-	    strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0)
+	    (strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0))
 		return;
 
 	snprint(ctlfile, sizeof ctlfile, "%s/clone", conf.dev);
@@ -1699,7 +1703,7 @@ putndb(void)
 		p = seprint(p, e, "ip=%I ipmask=%M ipgw=%I\n",
 			conf.laddr, conf.mask, conf.gaddr);
 	}
-	if(np = strchr(conf.hostname, '.')){
+	if((np = strchr(conf.hostname, '.')) != nil){
 		if(*conf.domainname == 0)
 			strcpy(conf.domainname, np+1);
 		*np = 0;
@@ -1828,7 +1832,7 @@ ndbconfig(void)
 	db = ndbopen(0);
 	if(db == nil)
 		sysfatal("can't open ndb: %r");
-	if (strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0 ||
+	if ((strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0) ||
 	    myetheraddr(conf.hwa, conf.dev) != 0)
 		sysfatal("can't read hardware address");
 	sprint(etheraddr, "%E", conf.hwa);

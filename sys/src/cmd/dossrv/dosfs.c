@@ -325,7 +325,7 @@ mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype,
 	 */
 	ndp->p = getsect(xf, ndp->addr);
 	if(ndp->p == nil
-	|| longtype!=Short && putlongname(xf, ndp, name, sname) < 0){
+	|| (longtype!=Short && putlongname(xf, ndp, name, sname) < 0)){
 		errno = Eio;
 		return -1;
 	}
@@ -621,9 +621,9 @@ rremove(void)
 		goto out;
 	}
 	pard = (Dosdir *)&parp->iobuf[dp->poffset];
-	if(!isroot(dp->paddr) && (pard->attr & DRONLY)
-	|| (dp->d->attr & DDIR) && emptydir(f) < 0
-	|| isroot(dp->paddr) && (dp->d->attr&DRONLY)){
+	if((!isroot(dp->paddr) && (pard->attr & DRONLY))
+	|| ((dp->d->attr & DDIR) && emptydir(f) < 0)
+	|| (isroot(dp->paddr) && (dp->d->attr&DRONLY))){
 		errno = Eperm;
 		goto out;
 	}
@@ -748,7 +748,7 @@ rwstat(void)
 	 * we only allow truncates for now.
 	 */
 	if(wdir.length!=~0 && wdir.length!=dir.length){
-		if(wdir.length > dir.length || !dir.mode & 0222){
+		if(wdir.length > dir.length || !(dir.mode & 0222)){
 			errno = Eperm;
 			goto out;
 		}
@@ -757,8 +757,8 @@ rwstat(void)
 	/*
 	 * no chown or chgrp
 	 */
-	if(wdir.uid[0] != '\0' && strcmp(dir.uid, wdir.uid) != 0
-	|| wdir.gid[0] != '\0' && strcmp(dir.gid, wdir.gid) != 0){
+	if((wdir.uid[0] != '\0' && strcmp(dir.uid, wdir.uid) != 0)
+	|| (wdir.gid[0] != '\0' && strcmp(dir.gid, wdir.gid) != 0)){
 		errno = Eperm;
 		goto out;
 	}
@@ -820,8 +820,8 @@ rwstat(void)
 			goto out;
 		}
 		pard = (Dosdir *)&parp->iobuf[dp->poffset];
-		if(!isroot(dp->paddr) && (pard->attr & DRONLY)
-		|| isroot(dp->paddr) && (dp->d->attr&DRONLY)){
+		if((!isroot(dp->paddr) && (pard->attr & DRONLY))
+		|| (isroot(dp->paddr) && (dp->d->attr&DRONLY))){
 			putsect(parp);
 			errno = Eperm;
 			goto out;
