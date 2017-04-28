@@ -98,7 +98,7 @@ address(Addr *ap, Address a, int sign)
 			panic("address");
 			return a;
 		}
-	}while(ap = ap->next);	/* assign = */
+	}while((ap = ap->next) != nil);	/* assign = */
 	return a;
 }
 

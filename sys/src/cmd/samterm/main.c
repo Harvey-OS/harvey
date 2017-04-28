@@ -74,11 +74,12 @@ threadmain(int argc, char *argv[])
 			flsetselect(which, cmd.rasp.nrunes, cmd.rasp.nrunes);
 			type(which, RPlumb);
 		}
-		if(got&(1<<RKeyboard))
+		if(got&(1<<RKeyboard)){
 			if(which)
 				type(which, RKeyboard);
 			else
 				kbdblock();
+		}
 		if(got&(1<<RMouse)){
 			if(hostlock==2 || !ptinrect(mousep->xy, screen->r)){
 				mouseunblock();

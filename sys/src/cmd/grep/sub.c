@@ -184,7 +184,7 @@ appendnext(Re * a, Re * b)
 {
 	Re *n;
 
-	while (n = a->next)
+	while ((n = a->next) != nil)
 		a = n;
 	a->next = b;
 }

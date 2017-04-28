@@ -47,18 +47,18 @@ void execmount(void);
 void execnewpgrp(void);
 
 builtin Builtin[] = {
-	"cd",		execcd,
-	"whatis",	execwhatis,
-	"eval",		execeval,
-	"exec",		execexec,	/* but with popword first */
-	"exit",		execexit,
-	"shift",	execshift,
-	"wait",		execwait,
-	".",		execdot,
-	"finit",	execfinit,
-	"flag",		execflag,
-	"rfork",	execnewpgrp,
-	0
+	{"cd",		execcd},
+	{"whatis",	execwhatis},
+	{"eval",	execeval},
+	{"exec",	execexec},	/* but with popword first */
+	{"exit",	execexit},
+	{"shift",	execshift},
+	{"wait",	execwait},
+	{".",		execdot},
+	{"finit",	execfinit},
+	{"flag",	execflag},
+	{"rfork",	execnewpgrp},
+	{0,		nil}
 };
 
 void

@@ -35,13 +35,13 @@ typedef enum{
 #define	WHITE	0
 #define NTP	7
 Point tp[NTP]={			/* tail polygon */
-	 0, 0,
-	 0,76,
-	 3,82,
-	10,84,
-	18,82,
-	21,76,
-	21,70,
+	{ 0, 0},
+	{ 0,76},
+	{ 3,82},
+	{10,84},
+	{18,82},
+	{21,76},
+	{21,70},
 };
 #define	NTAIL	16
 Image *eye[NTAIL+1];
