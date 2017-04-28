@@ -90,7 +90,7 @@ getnext(void)
 	doprompt = doprompt || c=='\n' || c==EOF;
 	if(c==EOF)
 		runq->eof++;
-	else if(flag['V'] || ndot>=2 && flag['v']) pchr(err, c);
+	else if(flag['V'] || (ndot>=2 && flag['v'])) pchr(err, c);
 	return c;
 }
 
@@ -337,7 +337,7 @@ yylex(void)
 				}
 			}
 			if(c!=']'
-			|| t->type==DUP && (t->rtype==HERE || t->rtype==APPEND))
+			|| (t->type==DUP && (t->rtype==HERE || t->rtype==APPEND)))
 				goto RedirErr;
 			*w++=']';
 		}

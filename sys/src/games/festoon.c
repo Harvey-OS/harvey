@@ -243,7 +243,7 @@ art(env)
 			artv->list.s[0] = CHOOSE(aspecsg);
 		else
 			artv->list.s[0] = CHOOSE(aspecpl);
-	} else if (prob(0.50) || env->an && EQ(env->number, "sing")) {
+	} else if (prob(0.50) || (env->an && EQ(env->number, "sing"))) {
 		if (EQ(env->number, "sing"))
 			artv->list.s[0] = env->an ? "a" : CHOOSE(aunssg);
 		else
@@ -1444,7 +1444,7 @@ main(int argc, char *argv[]) {
 
 	for (i = 1, ++argv; i < argc; i++, argv++)
 		if (*argv[0] == '-')	/* -pet -snnn */
-			while (c = *++argv[0])
+			while ((c = *++argv[0]) != '\0')
 				switch (c) {
 				case 'z':
 					flag = 1;

@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	/* count entries to calculate hash size */
 	n = 0;
 
-	while(nt = ndbparse(db)){
+	while((nt = ndbparse(db)) != nil){
 		for(t = nt; t; t = t->entry){
 			if(strcmp(t->attr, argv[2]) == 0)
 				n++;
@@ -123,8 +123,8 @@ main(int argc, char **argv)
 	/* create the in core hash table */
 	Bseek(&db->b, 0, 0);
 	off = 0;
-	while(nt = ndbparse(db)){
-		for(t = nt; t; t = t->entry){
+	while((nt = ndbparse(db)) != nil){
+		for(t = nt; t != nil; t = t->entry){
 			if(strcmp(t->attr, argv[2]) == 0)
 				enter(t->val, off);
 		}
