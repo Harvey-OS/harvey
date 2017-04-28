@@ -212,7 +212,7 @@ restart:
 			free(err);
 			goto freereq;
 		}
-		if (rcode == 0)
+		if(rcode == 0){
 			if(reqmsg.qdcount < 1){
 				dnslog("server: no questions from %I", buf);
 				goto freereq;
@@ -220,6 +220,7 @@ restart:
 				dnslog("server: reply not request from %I", buf);
 				goto freereq;
 			}
+		}
 		op = reqmsg.flags & Omask;
 		if(op != Oquery && op != Onotify){
 			dnslog("server: op %d from %I", reqmsg.flags & Omask,

@@ -1264,7 +1264,6 @@ ipserv(Network *np, char *name, char *buf, int blen)
 	char *p;
 	int alpha = 0;
 	int restr = 0;
-	char port[10];
 	Ndbtuple *t, *nt;
 	Ndbs s;
 
@@ -1275,7 +1274,6 @@ ipserv(Network *np, char *name, char *buf, int blen)
 	}
 
 	/*  see if it's numeric or symbolic */
-	port[0] = 0;
 	for(p = name; *p; p++){
 		if(isdigit(*p))
 			{}

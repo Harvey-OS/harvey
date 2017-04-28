@@ -30,11 +30,11 @@ static struct {
 	uint32_t m;
 	char *s;
 } magics[] = {
-	ArenaPartMagic, "ArenaPartMagic",
-	ArenaHeadMagic, "ArenaHeadMagic",
-	ArenaMagic, "ArenaMagic",
-	ISectMagic, "ISectMagic",
-	BloomMagic, "BloomMagic",
+	{ArenaPartMagic, "ArenaPartMagic"},
+	{ArenaHeadMagic, "ArenaHeadMagic"},
+	{ArenaMagic, "ArenaMagic"},
+	{ISectMagic, "ISectMagic"},
+	{BloomMagic, "BloomMagic"},
 };
 
 static char*

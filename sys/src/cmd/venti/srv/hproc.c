@@ -137,7 +137,7 @@ printsym(void)
 	int i;
 	Sym *sp;
 
-	for (i = 0; sp = getsym(i); i++) {
+	for (i = 0; (sp = getsym(i)) != nil; i++) {
 		switch(sp->type) {
 		case 't':
 		case 'l':
@@ -461,7 +461,7 @@ threadfmt(uintptr t)
 	
 	if(FIELD(Thread, t, moribund) == 1)
 		fmtprint(&fmt, " Moribund");
-	if(s = FIELD(Thread, t, cmdname)){
+	if((s = FIELD(Thread, t, cmdname)) != 0){
 		fmtprint(&fmt, " [%s]", debugstr(s));
 	}
 

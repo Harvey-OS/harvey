@@ -283,12 +283,12 @@ fsloop(void* _)
 		case 'r':
 			*eq = r;
 			r->aux = nil;
-			eq = &r->aux;
+			eq = (Req **)&r->aux;
 			/* call sendinput with hostpt and endpt */
 			sendp(win->cevent, &esendinput);
 			break;
 		case 'f':
-			for(l=&q; *l; l=&(*l)->aux){
+			for(l=&q; *l; l=(Req **)&(*l)->aux){
 				if(*l == r->oldreq){
 					*l = (*l)->aux;
 					if(*l == nil)

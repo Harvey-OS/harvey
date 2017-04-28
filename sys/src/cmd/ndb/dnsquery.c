@@ -71,7 +71,7 @@ query(int fd)
 	Biobuf in;
 
 	Binit(&in, 0, OREAD);
-	for(print("> "); lp = Brdline(&in, '\n'); print("> ")){
+	for(print("> "); (lp = Brdline(&in, '\n')) != nil; print("> ")){
 		n = Blinelen(&in) -1;
 		while(isspace(lp[n]))
 			lp[n--] = 0;
@@ -85,7 +85,7 @@ query(int fd)
 		strcpy(line, lp);
 
 		/* default to an "ip" request if alpha, "ptr" if numeric */
-		if(strchr(line, ' ') == nil)
+		if(strchr(line, ' ') == nil){
 			if(strcmp(ipattr(line), "ip") == 0) {
 				strcat(line, " ptr");
 				n += 4;
@@ -93,6 +93,7 @@ query(int fd)
 				strcat(line, " ip");
 				n += 3;
 			}
+		}
 
 		/* inverse queries may need to be permuted */
 		if(n > 4 && strcmp(" ptr", &line[n-4]) == 0 &&
