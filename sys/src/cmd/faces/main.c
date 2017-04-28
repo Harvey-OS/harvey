@@ -42,7 +42,7 @@ char *procnames[] = {
 	"mouse"
 };
 
-Rectangle leftright = {0, 0, 20, 15};
+Rectangle leftright = {{0, 0}, {20, 15}};
 
 uint8_t leftdata[] = {
 	0x00, 0x80, 0x00, 0x01, 0x80, 0x00, 0x03, 0x80,

@@ -166,7 +166,7 @@ again:		switch(argv[0][0]) {
 				argv++;
 				argc--;
 				p2 = argv[0];
-				while (*p1++ = *p2++);
+				while ((*p1++ = *p2++) != 0);
 			}
 			break;
 
@@ -283,7 +283,7 @@ int32_t numb(float *np, int *argcp, char ***argvp){
 		return(0);
 	while((c=(*argvp)[1][0]) == '+')
 		(*argvp)[1]++;
-	if(!(isdigit(c) || c=='-'&&(*argvp)[1][1]<'A' || c=='.'))
+	if(!(isdigit(c) || (c=='-'&&(*argvp)[1][1]<'A') || c=='.'))
 		return(0);
 	*np = atof((*argvp)[1]);
 	(*argcp)--;
@@ -552,7 +552,7 @@ void scale(struct xy *p){
 
 void equilibrate(struct xy *p, struct xy *q){
 	if(p->xlbf||	/* needn't test xubf; it implies xlbf*/
-	   q->xubf&&q->xlb>q->xub)
+	   (q->xubf&&q->xlb>q->xub))
 		return;
 	if(p->xlb>q->xlb) {
 		p->xlb = q->xlb;
@@ -725,7 +725,7 @@ symbol(int ix, int iy, int k){
 		move(ix,iy);
 		text(k>=0?labels+k:plotsymb);
 		move(ix,iy);
-		return(!brkf|k<0);
+		return(!brkf|(k<0));
 	}
 }
 

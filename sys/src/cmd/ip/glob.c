@@ -143,7 +143,7 @@ globnext(Globlist *gl, char *pattern)
 	/* pick off next pattern and turn into a reg exp */
 	np = s_new();
 	s_putc(np, '^');
-	for(; c = *pattern; pattern++){
+	for(; (c = *pattern) != '\0'; pattern++){
 		if(c == '/'){
 			pattern++;
 			break;

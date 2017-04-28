@@ -407,7 +407,7 @@ readroutes(void)
 	b = Bopen(routefile, OREAD);
 	if(b == 0)
 		return;
-	while(p = Brdline(b, '\n')){
+	while((p = Brdline(b, '\n')) != nil){
 		p[Blinelen(b)-1] = 0;
 		n = getfields(p, f, 6, 1, " \t");
 		if(n < 5)

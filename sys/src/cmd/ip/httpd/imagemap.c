@@ -121,7 +121,7 @@ translate(HConnect *c, char *uri, char *search)
 	dst = nil;
 	close = 0.;
 	ncsa = 1;
-	while(line = Brdline(b, '\n')){
+	while((line = Brdline(b, '\n')) != nil){
 		line[Blinelen(b)-1] = 0;
 
 		ss = getfield(line);
