@@ -191,7 +191,7 @@ menu3hit(void)
 		break;
 
 	default:
-		if(t = text[m-NMENU3]){
+		if((t = text[m-NMENU3]) != nil){
 			i = t->front;
 			if(t->nwin==0 || t->l[i].textfn==0)
 				return;	/* not ready yet; try again later */
@@ -303,7 +303,7 @@ paren(char *s)
 	uchar *t = buf;
 
 	*t++ = '(';
-	do; while(*t++ = *s++);
+	do; while((*t++ = *s++) != '\0');
 	t[-1] = ')';
 	*t = 0;
 	return (char *)buf;
@@ -316,7 +316,7 @@ genmenu2(int n)
 	if(n>=NMENU2+(menu2str[Search]!=0))
 		return 0;
 	p = menu2str[n];
-	if(!hostlock && !t->lock || n==Search || n==Look)
+	if((!hostlock && !t->lock) || n==Search || n==Look)
 		return p;
 	return paren(p);
 }

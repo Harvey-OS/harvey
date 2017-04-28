@@ -281,11 +281,12 @@ pushator(int t)
 Node *
 popand(int op)
 {
-	if(andp <= &andstack[0])
+	if(andp <= &andstack[0]){
 		if(op)
 			regerror_c(Emissop, op);
 		else
 			regerror(Ebadregexp);
+	}
 	return --andp;
 }
 
@@ -612,7 +613,7 @@ execute(File *f, Posn startp, Posn eof)
 				error(Eoverflow);
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
+		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){	/* assignment = */
 	Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */
@@ -738,7 +739,7 @@ bexecute(File *f, Posn startp)
 				error(Eoverflow);
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
+		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){	/* assignment = */
 	Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */

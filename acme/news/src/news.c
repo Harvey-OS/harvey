@@ -29,7 +29,7 @@ char *from;
 
 typedef struct Article Article;
 struct Article {
-	Ref;
+	Ref ref;
 	Article *prev;
 	Article *next;
 	Window *w;
@@ -154,7 +154,7 @@ msgheadline(Biobuf *bin, int n, Biobuf *bout)
 	date = nil;
 	from = nil;
 	subject = nil;
-	while(p = Brdline(bin, '\n')){
+	while((p = Brdline(bin, '\n')) != nil){
 		p[Blinelen(bin)-1] = '\0';
 		if((q = strchr(p, ':')) == nil)
 			continue;
@@ -283,7 +283,7 @@ acmetimer(Article *m, Window *w)
 
 	assert(m==nil && w==root);
 
-	if((d = dirstat(dir))==nil | hi==d->qid.vers){
+	if((d = dirstat(dir))==nil || hi==d->qid.vers){
 		free(d);
 		return;
 	}
@@ -350,7 +350,7 @@ acmecmd(Article *m, Window *w, char *s)
 	}
 	if(m==nil && iscmd(s, "More")){
 		s = skip(s, "More");
-		if(n = atoi(s))
+		if((n = atoi(s)) != 0)
 			nshow = n;
 
 		if(w->data < 0)
@@ -511,7 +511,7 @@ dirthread(void *v)
 	Window *w;
 
 	w = v;
-	while(e = recvp(w->cevent))
+	while((e = recvp(w->cevent)) != nil)
 		acmeevent(nil, w, e);
 
 	threadexitsall(nil);
@@ -606,7 +606,7 @@ fillmesgwindow(int fd, Article *m)
 
 	inhdr = 1;
 	copy = 1;
-	while(p = Brdline(b, '\n')){
+	while((p = Brdline(b, '\n')) != nil){
 		if(Blinelen(b)==1)
 			inhdr = 0, copy=1;
 		if(inhdr && !isspace(p[0])){
@@ -684,7 +684,7 @@ replywindow(Article *m)
 	b = emalloc(sizeof(*b));
 	Binit(b, fd, OREAD);
 	copy = 0;
-	while(p = Brdline(b, '\n')){
+	while((p = Brdline(b, '\n')) != nil){
 		if(Blinelen(b)==1)
 			break;
 		ep = p+Blinelen(b);
@@ -783,7 +783,7 @@ mesgpost(Article *m)
 	ishdr = 1;
 	isfirst = 1;
 	havegroup = havefrom = 0;
-	while(p = Brdline(m->w->body, '\n')){
+	while((p = Brdline(m->w->body, '\n')) != nil){
 		ep = p+Blinelen(m->w->body);
 		if(ishdr && p+1==ep){
 			if(!havegroup)
@@ -928,7 +928,7 @@ findfrom(void)
 	b = Bopen(p, OREAD);
 	free(p);
 	if(b){
-		while(p = Brdline(b, '\n')){
+		while((p = Brdline(b, '\n')) != nil){
 			p[Blinelen(b)-1] = '\0';
 			if(cistrncmp(p, "from:", 5)==0){
 				p = estrdup(skip(p, "from:"));
@@ -967,11 +967,11 @@ threadmain(int argc, char **argv)
 	from = findfrom();
 
 	group = estrdup(argv[0]);	/* someone will be cute */
-	while(q=strchr(group, '/'))
+	while((q=strchr(group, '/')) != nil)
 		*q = '.';
 
 	p = estrdup(argv[0]);
-	while(q=strchr(p, '.'))
+	while((q=strchr(p, '.')) != nil)
 		*q = '/';
 	p = estrstrstrdup(dir, "/", p);
 	cleanname(p);

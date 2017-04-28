@@ -31,7 +31,7 @@ upper(char *x)
 	char *p;
 	int c;
 
-	for(p = x; c = *p; p++)
+	for(p = x; (c = *p) != '\0'; p++)
 		*p = toupper(c);
 	return x;
 }
@@ -137,7 +137,7 @@ parse(char *file)
 	db = ndbopen(file);
 	if(db == 0)
 		exits("no database");
-	while(t = ndbparse(db)){
+	while((t = ndbparse(db)) != nil){
 		for(nt = t; nt; nt = nt->entry){
 			if(strcmp(nt->attr, "ip") == 0)
 				break;

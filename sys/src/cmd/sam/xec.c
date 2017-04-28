@@ -52,7 +52,7 @@ cmdexec(File *f, Cmd *cp)
 				ap->next->type = '*';
 		}
 		if(cp->addr){	/* may be false for '\n' (only) */
-			static Address none = {0,0,0};
+			static Address none = {{0,0},0};
 			if(f)
 				addr = address(ap, f->dot, 0);
 			else	/* a " */
@@ -141,7 +141,7 @@ g_cmd(File *f, Cmd *cp)
 {
 	if(f!=addr.f)panic("g_cmd f!=addr.f");
 	compile(cp->re);
-	if(execute(f, addr.r.p1, addr.r.p2) ^ cp->cmdc=='v'){
+	if(execute(f, addr.r.p1, addr.r.p2) ^ (cp->cmdc=='v')){
 		f->dot = addr;
 		return cmdexec(f, cp->ccmd);
 	}
