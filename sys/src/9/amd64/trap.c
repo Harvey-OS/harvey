@@ -139,7 +139,7 @@ intrdisable(void* vector)
 	v = vector;
 	if(v == nil || vctl[v->vno] != v)
 		panic("intrdisable: v %#p", v);
-	for(ll = vctl+v->vno; x = *ll; ll = &x->next)
+	for(ll = vctl+v->vno; (x = *ll) != nil; ll = &x->next)
 		if(v == x)
 			break;
 	if(x != v)
@@ -454,7 +454,7 @@ trap(Ureg* ureg)
 
 	//_pmcupdate(machp());
 
-	if(ctl = vctl[vno]){
+	if((ctl = vctl[vno]) != nil){
 		if(ctl->isintr){
 			machp()->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
@@ -552,7 +552,7 @@ trap(Ureg* ureg)
 
 
 	if(user){
-		if(up && up->procctl || up->nnote)
+		if(up != nil && (up->procctl || up->nnote))
 			notify(ureg);
 		kexit(ureg);
 	}
