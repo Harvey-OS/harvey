@@ -370,7 +370,7 @@ wantoffer(uint8_t *pkt)
 		return bad("wrong ac name");
 	}
 
-	if(s = findtag(pkt, TagAcCookie, &len, 0)){
+	if((s = findtag(pkt, TagAcCookie, &len, 0)) != nil){
 		cookie = copy(s, len);
 		cookielen = len;
 	}

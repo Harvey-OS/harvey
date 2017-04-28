@@ -391,7 +391,7 @@ fixname(char *buf)
 	char *p;
 
 	p = buf;
-	while(c = *p){
+	while((c = *p) != 0){
 		if(c == ':' && trspaces)
 			*p = ' ';
 		p++;
@@ -416,7 +416,7 @@ classifyname(char *buf)
 	islower = 0;
 	dot = nil;
 	ndot = 0;
-	while(c = (uint8_t)*p){
+	while((c = (uint8_t)*p) != 0){
 		if(c&0x80)	/* UTF8 */
 			isextended = 1;
 		else if(c == '.'){
@@ -831,7 +831,7 @@ walkup(Xfile *f, Dosptr *ndp)
 	/*
 	 * we're done if parent is root
 	 */
-	if(pstart == 0 || f->xf->isfat32 && pstart == bp->rootstart)
+	if(pstart == 0 || (f->xf->isfat32 && pstart == bp->rootstart))
 		return 0;
 
 	/*
@@ -1936,7 +1936,7 @@ utftorunes(Rune *rr, char *s, int n)
 
 	r = rr;
 	re = r + n - 1;
-	while(c = (uint8_t)*s){
+	while((c = (uint8_t)*s) != 0){
 		if(c < Runeself){
 			*r = c;
 			s++;

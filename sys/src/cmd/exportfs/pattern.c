@@ -43,7 +43,7 @@ exclusions(void)
 	if(exclude == nil)
 		fatal("out of memory");
 	exclude[0] = nil;
-	while(line = Brdline(f, '\n')){
+	while((line = Brdline(f, '\n')) != nil){
 		line[Blinelen(f) - 1] = 0;
 		if(strlen(line) < 2 || line[1] != ' ')
 			continue;

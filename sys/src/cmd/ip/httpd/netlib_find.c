@@ -267,7 +267,7 @@ send(HConnect *c)
 		db[dbi].log,hq(pat));
 	nmatch = 0;
 
-	while(s = Brdline(blist, '\n')){ /* get next database record */
+	while((s = Brdline(blist, '\n')) != nil){ /* get next database record */
 		n = Blinelen(blist);
 		e = s+n;
 		hprint(hout, "<PRE>");

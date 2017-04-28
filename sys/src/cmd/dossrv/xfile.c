@@ -45,7 +45,7 @@ getxfs(char *user, char *name)
 	 * of a boot manager programme at the beginning of the disc.
 	 */
 	offset = 0;
-	if(p = strrchr(name, ':')){
+	if((p = strrchr(name, ':')) != nil){
 		*p++ = 0;
 		offset = strtol((const char *)p, &q, 0);
 		chat("name %s, offset %ld\n", p, offset);
@@ -190,7 +190,7 @@ xfile(int fid, int flag)
 	if(f)
 		return clean(f);
 	mlock(&freelock);
-	if(f = freelist){	/* assign = */
+	if((f = freelist) != nil){	/* assign = */
 		freelist = f->next;
 		unmlock(&freelock);
 	} else {
