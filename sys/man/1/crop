@@ -37,12 +37,6 @@ crop, iconv \- frame, crop, and convert image
 .I ty
 ]
 [
-.B -b
-.I red
-.I green
-.I blue
-]
-[
 .I file
 ]
 .PP
