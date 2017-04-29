@@ -526,7 +526,7 @@ static  void
 ebin2mem(unsigned char *buf, unsigned char *mem, int count)
 {
 	int size = 0;
-	unsigned char *c = buf;
+	unsigned char *c = mem;
 
 	while (count-- > 0) {
 		c[size] = *buf++;
