@@ -96,9 +96,9 @@ void
 squidboy(int apicno)
 {
 	char *n[] = {
-		[NIXAC] "AC",
-		[NIXTC] "TC",
-		[NIXKC]	"KC"
+		[NIXAC] = "AC",
+		[NIXTC] = "TC",
+		[NIXKC] = "KC"
 	};
 	vlong hz;
 

@@ -55,16 +55,16 @@ enum
 };
 
 static Dirtab bridgedirtab[]={
-	"ctl",		{Qbctl},	0,	0666,
-	"stats",	{Qstats},	0,	0444,
-	"cache",	{Qcache},	0,	0444,
-	"log",		{Qlog},		0,	0666,
+	{"ctl",		{Qbctl},	0,	0666},
+	{"stats",	{Qstats},	0,	0444},
+	{"cache",	{Qcache},	0,	0444},
+	{"log",		{Qlog},		0,	0666},
 };
 
 static Dirtab portdirtab[]={
-	"ctl",		{Qpctl},	0,	0666,
-	"local",	{Qlocal},	0,	0444,
-	"status",	{Qstatus},	0,	0444,
+	{"ctl",		{Qpctl},	0,	0666},
+	{"local",	{Qlocal},	0,	0444},
+	{"status",	{Qstatus},	0,	0444},
 };
 
 enum {
@@ -940,7 +940,7 @@ tcpmsshack(Etherpkt *epkt, int n)
 		return;
 	// fit checksum
 	cksum = nhgets(tcphdr->cksum);
-	if(optr-(uint8_t*)tcphdr & 1) {
+	if((optr-(uint8_t*)tcphdr) & 1) {
 print("tcpmsshack: odd alignment!\n");
 		// odd alignments are a pain
 		cksum += nhgets(optr+1);
@@ -1124,10 +1124,10 @@ etherwrite(Port *port, Block *bp)
 
 		if((fragoff + seglen) >= dlen) {
 			seglen = dlen - fragoff;
-			hnputs(feh->frag, (frag+fragoff)>>3 | mf);
+			hnputs(feh->frag, ((frag+fragoff)>>3) | mf);
 		}
-		else	
-			hnputs(feh->frag, (frag+fragoff>>3) | IP_MF);
+		else
+			hnputs(feh->frag, ((frag+fragoff)>>3) | IP_MF);
 
 		hnputs(feh->length, seglen + IPHDR);
 		hnputs(feh->id, lid);

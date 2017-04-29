@@ -517,7 +517,7 @@ struct Srcstack
 	Biobuf	in;
 };
 Srcstack sstack[Maxsstack];
-Srcstack *ssp = &sstack[-1];
+Srcstack *ssp = sstack - 1;
 
 char token[128];
 

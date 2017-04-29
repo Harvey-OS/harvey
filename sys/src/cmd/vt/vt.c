@@ -96,38 +96,38 @@ struct funckey xtermfk[NKEYS] = {
 };
 
 char gmap[256] = {
-	['_']	' ',	/* blank */
-	['\\']	'*',	/* diamond */
-	['a']	'X',	/* checkerboard */
-	['b']	'\t',	/* HT */
-	['c']	'\x0C',	/* FF */
-	['d']	'\r',	/* CR */
-	['e']	'\n',	/* LF */
-	['f']	'o',	/* degree */
-	['g']	'+',	/* plus/minus */
-	['h']	'\n',	/* NL, but close enough */
-	['i']	'\v',	/* VT */
-	['j']	'+',	/* lower right corner */
-	['k']	'+',	/* upper right corner */
-	['l']	'+',	/* upper left corner */
-	['m']	'+',	/* lower left corner */
-	['n']	'+',	/* crossing lines */
-	['o']	'-',	/* horiz line - scan 1 */
-	['p']	'-',	/* horiz line - scan 3 */
-	['q']	'-',	/* horiz line - scan 5 */
-	['r']	'-',	/* horiz line - scan 7 */
-	['s']	'-',	/* horiz line - scan 9 */
-	['t']	'+',	/* |-   */
-	['u']	'+',	/* -| */
-	['v']	'+',	/* upside down T */
-	['w']	'+',	/* rightside up T */
-	['x']	'|',	/* vertical bar */
-	['y']	'<',	/* less/equal */
-	['z']	'>',	/* gtr/equal */
-	['{']	'p',	/* pi */
-	['|']	'!',	/* not equal */
-	['}']	'L',	/* pound symbol */
-	['~']	'.',	/* centered dot: · */
+	['_'] =	' ',	/* blank */
+	['\\'] = '*',	/* diamond */
+	['a'] =	'X',	/* checkerboard */
+	['b'] =	'\t',	/* HT */
+	['c'] =	'\x0C',	/* FF */
+	['d'] =	'\r',	/* CR */
+	['e'] =	'\n',	/* LF */
+	['f'] =	'o',	/* degree */
+	['g'] =	'+',	/* plus/minus */
+	['h'] =	'\n',	/* NL, but close enough */
+	['i'] =	'\v',	/* VT */
+	['j'] =	'+',	/* lower right corner */
+	['k'] =	'+',	/* upper right corner */
+	['l'] =	'+',	/* upper left corner */
+	['m'] =	'+',	/* lower left corner */
+	['n'] =	'+',	/* crossing lines */
+	['o'] =	'-',	/* horiz line - scan 1 */
+	['p'] =	'-',	/* horiz line - scan 3 */
+	['q'] =	'-',	/* horiz line - scan 5 */
+	['r'] =	'-',	/* horiz line - scan 7 */
+	['s'] =	'-',	/* horiz line - scan 9 */
+	['t'] =	'+',	/* |-   */
+	['u'] =	'+',	/* -| */
+	['v'] =	'+',	/* upside down T */
+	['w'] =	'+',	/* rightside up T */
+	['x'] =	'|',	/* vertical bar */
+	['y'] =	'<',	/* less/equal */
+	['z'] =	'>',	/* gtr/equal */
+	['{'] =	'p',	/* pi */
+	['|'] =	'!',	/* not equal */
+	['}'] =	'L',	/* pound symbol */
+	['~'] =	'.',	/* centered dot: · */
 };
 
 static void setattr(int argc, int *argv);

@@ -15,8 +15,6 @@
 #include	"../port/error.h"
 #include	"netif.h"
 
-#pragma profile 0
-
 typedef struct Trace Trace;
 /* This is a trace--a segment of memory to watch for entries and exits */
 struct Trace {
@@ -95,9 +93,9 @@ static char eventname[] = {
 };
 
 static Dirtab tracedir[]={
-	".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"tracectl",	{Qctl},		0,		0664,
-	"trace",	{Qdata},	0,		0440,
+	{".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555},
+	{"tracectl",	{Qctl},		0,		0664},
+	{"trace",	{Qdata},	0,		0440},
 };
 
 char hex[] = {

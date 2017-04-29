@@ -1167,7 +1167,7 @@ v6addrtype(uint8_t *addr)
 	if(isv4(addr) || ipcmp(addr, IPnoaddr) == 0)
 		return unknownv6;
 	else if(islinklocal(addr) ||
-	    isv6mcast(addr) && (addr[1] & 0xF) <= Link_local_scop)
+	    (isv6mcast(addr) && (addr[1] & 0xF) <= Link_local_scop))
 		return linklocalv6;
 	else
 		return globalv6;
@@ -1278,8 +1278,8 @@ findlocalip(Fs *f, uint8_t *local, uint8_t *remote)
 			for(lifc = ifc->lifc; lifc; lifc = lifc->next){
 				atypel = v6addrtype(lifc->local);
 				/* prefer appropriate scope */
-				if(atypel > atype && atype < atyper ||
-				   atypel < atype && atype > atyper){
+				if((atypel > atype && atype < atyper) ||
+				   (atypel < atype && atype > atyper)){
 					ipmove(local, lifc->local);
 					deprecated = !v6addrcurr(lifc);
 					atype = atypel;

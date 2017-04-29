@@ -373,7 +373,7 @@ edfadmit(Proc *p)
 		return "C > D";
 
 	qlock(&edfschedlock);
-	if (err = testschedulability(p)){
+	if ((err = testschedulability(p)) != nil){
 		qunlock(&edfschedlock);
 		return err;
 	}
@@ -449,7 +449,7 @@ edfstop(Proc *p)
 {
 	Edf *e;
 
-	if(e = edflock(p)){
+	if((e = edflock(p)) != nil){
 		DPRINT("%lu edfstop %d[%s]\n", now, p->pid, statename[p->state]);
 		if(p->trace)
 			proctrace(p, SExpel, 0);

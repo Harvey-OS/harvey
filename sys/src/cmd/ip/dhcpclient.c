@@ -195,7 +195,7 @@ stdinthread(void* v)
 	}
 	/* shutdown cleanly */
 	qlock(&dhcp.lk);
-	if(dhcp.client) {
+	if(ipcmp(dhcp.client, IPnoaddr) != 0) {
 		if(dhcp.fd < 0)
 			dhcp.fd = openlisten(net);
 		dhcpsend(Release);

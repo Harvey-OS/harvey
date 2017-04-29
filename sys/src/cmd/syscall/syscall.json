@@ -2,6 +2,7 @@
 	"syscall": {
 		"Cflags": [
 			"-Wall",
+			"-Werror",
 			"-I/sys/src/libc/9syscall"
 		],
 		"Include": [

@@ -78,20 +78,20 @@ struct	Cw
 
 static char* cwnames[] =
 {
-	[Cnone]		"none",
-	[Cdirty]	"dirty",
-	[Cdump]		"dump",
-	[Cread]		"read",
-	[Cwrite]	"write",
-	[Cdump1]	"dump1",
-	[Cerror]	"error",
+	[Cnone] =	"none",
+	[Cdirty] =	"dirty",
+	[Cdump] =	"dump",
+	[Cread] =	"read",
+	[Cwrite] =	"write",
+	[Cdump1] =	"dump1",
+	[Cerror] =	"error",
 
-	[Onone]		"none",
-	[Oread]		"read",
-	[Owrite]	"write",
-	[Ogrow]		"grow",
-	[Odump]		"dump",
-	[Orele]		"rele",
+	[Onone] =	"none",
+	[Oread] =	"read",
+	[Owrite] =	"write",
+	[Ogrow] =	"grow",
+	[Odump] =	"dump",
+	[Orele] =	"rele",
 };
 
 int oldcachefmt = 1;

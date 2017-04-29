@@ -30,8 +30,8 @@ enum {
 };
 
 static Dirtab iigdir[] = {
-	".",	{ Qdir, 0, QTDIR },		0,	0550,
-	"iigctl",		{ Qiigctl, 0 },		0,	0660,
+	{".",		{ Qdir, 0, QTDIR },	0,	0550},
+	{"iigctl",	{ Qiigctl, 0 },		0,	0660},
 };
 
 enum {
@@ -41,9 +41,9 @@ enum {
 };
 
 static Cmdtab iigctlmsg[] = {
-	CMsize,		"size",		1,
-	CMblank,  "blank", 1,
-	CMunblank,  "unblank", 1,
+	{CMsize,	"size",		1},
+	{CMblank,	"blank",	1},
+	{CMunblank,	"unblank",	1},
 };
 typedef struct Iig Iig;
 
