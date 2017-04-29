@@ -14,7 +14,6 @@
 #include <u.h>
 #include <libc.h>
 
-int	uflag;
 int	aflag;
 int	*openf;
 
