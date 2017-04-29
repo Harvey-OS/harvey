@@ -447,7 +447,7 @@ cc_binary(
 		"-Ttext=0x200020",
 	],
 	srcs=[
-		"init9.c",
+		"//sys/src/9/amd64/init9.c",
 		"//sys/src/9/port/initcode.c",
 	]
 )
