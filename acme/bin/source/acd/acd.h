@@ -152,6 +152,7 @@ struct Drive {
 };
 
 int gettoc(Scsi*, Toc*);
+void freetoc(Toc *);
 void drawtoc(Window*, Drive*, Toc*);
 void redrawtoc(Window*, Toc*);
 void tocproc(void*);	/* Drive* */
@@ -173,5 +174,3 @@ int ingest(Drive*);
 int markplay(Window*, uint32_t);
 int setplaytime(Window*, char*);
 void advancetrack(Drive*, Window*);
-
-

@@ -104,7 +104,7 @@ whackmatch(Whack *b, uint8_t **ss, uint8_t *esrc, uint32_t h, uint32_t now)
 		 */
 		t = s - off;
 		if(s[0] == t[0] && s[1] == t[1] && s[2] == t[2]){
-			if(!bestlen || esrc - s > bestlen && s[bestlen] == t[bestlen]){
+			if(!bestlen || ((esrc - s) > bestlen && s[bestlen] == t[bestlen])){
 				t += 3;
 				for(s += 3; s < esrc; s++){
 					if(*s != *t)
@@ -190,7 +190,7 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 		}
 		if(len < MinMatch){
 			toff = *s;
-			lithist = (lithist << 1) | toff < 32 | toff > 127;
+			lithist = (lithist << 1) | (toff < 32) | (toff > 127);
 			if(lithist & 0x1e){
 				wbits = (wbits << 9) | toff;
 				wnbits += 9;
@@ -290,7 +290,7 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 			wnbits += bits + 4;
 			offbits += bits + 4;
 		}
-		wbits = (wbits << bits) | toff & ((1 << bits) - 1);
+		wbits = (wbits << bits) | (toff & ((1 << bits) - 1));
 
 		for(; s != ss; s++){
 			if(s + MinMatch <= esrc){

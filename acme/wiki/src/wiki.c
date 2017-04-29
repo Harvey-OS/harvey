@@ -172,7 +172,7 @@ wikiget(Wiki *w)
 	if(!normal)
 		Bprint(w->win->body, "%s\n\n", p);
 
-	while(p = Brdline(bin, '\n')){
+	while((p = Brdline(bin, '\n')) != nil){
 		p[Blinelen(bin)-1] = '\0';
 		if(normal)
 			Bprint(w->win->body, "%s\n", p);
@@ -218,7 +218,7 @@ wikiload(Wiki *w, char *arg)
 	else{
 		p = emalloc(strlen(w->arg)+1+strlen(arg)+1);
 		strcpy(p, w->arg);
-		if(q = strrchr(p, '/')){
+		if((q = strrchr(p, '/')) != nil){
 			++q;
 			*q = '\0';
 		}else
@@ -227,7 +227,7 @@ wikiload(Wiki *w, char *arg)
 		cleanname(p);
 		path = p;
 	}
-	if(addr=strchr(path, ':'))
+	if((addr=strchr(path, ':')) != nil)
 		*addr++ = '\0';
 
 	rv = wikiopen(path, addr)==0;
@@ -589,7 +589,7 @@ wikidiff(Wiki *w)
 
 	p = emalloc(strlen(w->arg)+10);
 	strcpy(p, w->arg);
-	if(q = strchr(p, '/'))
+	if((q = strchr(p, '/')) != nil)
 		*q = '\0';
 	r = estrdup(p);
 	strcat(p, "/+Diff");
