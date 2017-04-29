@@ -14,8 +14,8 @@ enum{
 	Qdata,
 };
 Dirtab kbmaptab[]={
-	".",		{Qdir, 0, QTDIR},	0,	0555,
-	"kbmap",	{Qdata, 0},		0,	0600,
+	{".",		{Qdir, 0, QTDIR},	0,	0555},
+	{"kbmap",	{Qdata, 0},		0,	0600},
 };
 #define	NKBFILE	sizeof(kbmaptab)/sizeof(kbmaptab[0])
 

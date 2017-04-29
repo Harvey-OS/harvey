@@ -361,9 +361,9 @@ struct Ctlr
 	Pcidev*	pcidev;
 };
 
-#define dqprint		if(debug || io && io->debug)print
+#define dqprint		if(debug || (io && io->debug))print
 #define ddqprint		if(debug>1 || (io && io->debug>1))print
-#define diprint		if(debug || iso && iso->Qio.debug)print
+#define diprint		if(debug || (iso && iso->Qio.debug))print
 #define ddiprint		if(debug>1 || (iso && iso->Qio.debug>1))print
 #define TRUNC(x, sz)	((x) & ((sz)-1))
 
@@ -1743,13 +1743,14 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		cio->Qio.tok = Tdtokout;
 		len = count;
 	}
-	if(len > 0)
+	if(len > 0){
 		if(waserror())
 			len = -1;
 		else{
 			len = epio(ep, &cio->Qio, a, len, 0);
 			poperror();
 		}
+	}
 	if(c[Rtype] & Rd2h){
 		count = Rsetuplen;
 		cio->ndata = len;
@@ -2382,7 +2383,7 @@ scanpci(void)
 		return;
 	already = 1;
 	p = nil;
-	while(p = pcimatch(p, 0, 0)) {
+	while((p = pcimatch(p, 0, 0)) != nil){
 		/*
 		 * Find Ohci controllers (Programming Interface = 0x10).
 		 */

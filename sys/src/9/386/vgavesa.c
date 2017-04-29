@@ -178,11 +178,12 @@ vesalinear(VGAscr *scr, int _1, int _2)
 	}
 
 	/* no pci - heuristic guess */
-	if (!havesize)
+	if(!havesize){
 		if(size < 4*1024*1024)
 			size = 4*1024*1024;
 		else
 			size = ROUND(size, 1024*1024);
+	}
 	if(size > 16*1024*1024)		/* arbitrary */
 		size = 16*1024*1024;
 

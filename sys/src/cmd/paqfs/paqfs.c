@@ -118,19 +118,19 @@ char	*rflush(Fid*), *rversion(Fid*),
 	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
 char 	*(*fcalls[])(Fid*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tattach]	rattach,
-	[Tauth]		rauth,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+	[Tflush] =	rflush,
+	[Tversion] =	rversion,
+	[Tattach] =	rattach,
+	[Tauth] =	rauth,
+	[Twalk] =	rwalk,
+	[Topen] =	ropen,
+	[Tcreate] =	rcreate,
+	[Tread] =	rread,
+	[Twrite] =	rwrite,
+	[Tclunk] =	rclunk,
+	[Tremove] =	rremove,
+	[Tstat] =	rstat,
+	[Twstat] =	rwstat,
 };
 
 char	Eperm[] =	"permission denied";

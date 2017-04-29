@@ -20,7 +20,7 @@ struct cvlist
 	int32_t	*so;		/* the corresponding Rune for each si entry */
 } latintab[] = {
 #include "../port/latin1.h"
-	0,	0,		0
+	{nil,	nil,		nil}
 };
 
 /*
@@ -59,11 +59,12 @@ latin1(Rune *k, int n)
 	int c;
 	char* p;
 
-	if(k[0] == 'X')
+	if(k[0] == 'X'){
 		if(n>=5)
 			return unicode(k);
 		else
 			return -5;
+	}
 	for(l=latintab; l->ld!=0; l++)
 		if(k[0] == l->ld[0]){
 			if(n == 1)

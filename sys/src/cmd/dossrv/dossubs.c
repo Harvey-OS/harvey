@@ -1181,24 +1181,24 @@ getnamesect(char *dbuf, char *d, uint8_t *buf, int *islong, int *sum,
 	 * validation checks to make sure we're
 	 * making up a consistent name
 	 */
-	if(buf[11] != 0xf || buf[12] != 0){
+	if(buf[11] != 0xf /*|| buf[12] != 0*/){
 		*islong = 0;
 		return nil;
 	}
 	if(step == 1){
 		if((buf[0] & 0xc0) == 0x40){
 			*islong = buf[0] & 0x3f;
-			*sum = buf[13];
+			*sum = buf[12];
 			d = dbuf + DOSNAMELEN;
 			*--d = '\0';
-		}else if(*islong && *islong == buf[0] + 1 && *sum == buf[13]){
+		}else if(*islong && *islong == buf[0] + 1 && *sum == buf[12]){
 			*islong = buf[0];
 		}else{
 			*islong = 0;
 			return nil;
 		}
 	}else{
-		if(*islong + 1 == (buf[0] & 0xbf) && *sum == buf[13]){
+		if(*islong + 1 == (buf[0] & 0xbf) && *sum == buf[12]){
 			*islong = buf[0] & 0x3f;
 			if(buf[0] & 0x40)
 				*sum = -1;
@@ -1247,8 +1247,7 @@ putnamesect(uint8_t *slot, Rune *longname, int curslot, int first, int sum)
 
 	memset(&ds, 0xff, sizeof ds);
 	ds.attr = 0xf;
-	ds.reserved[0] = 0;
-	ds.reserved[1] = sum;
+	ds.reserved[0] = sum;
 	ds.start[0] = 0;
 	ds.start[1] = 0;
 	if(first)
@@ -1882,7 +1881,7 @@ dirdump(void *vdbuf)
 		name = namebuf + DOSNAMELEN;
 		*--name = '\0';
 		name = getnamerunes(name, dbuf, 1);
-		seprint(buf, ebuf, "\"%s\" %2.2x %2.2x %2.2x %d", name, dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
+		seprint(buf, ebuf, "\"%s\" %2.2x %2.2x %d", name, dbuf[0], dbuf[12], GSHORT(d->start));
 	}else{
 		s = seprint(buf, ebuf, "\"%.8s.%.3s\" ", (char*)d->name,
 				(char*)d->ext);

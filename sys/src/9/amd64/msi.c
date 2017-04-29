@@ -93,7 +93,7 @@ pcimsienable(Pcidev *p, uint64_t vec)
 	}
 	dmode = (vec >> 8) & 7;
 	pcicfgw16(p, c + datao, Msidassert | Msidlogical * logical
-		| Msidmode * dmode | (uint)vec & 0xff);
+		| Msidmode * dmode | ((uint)vec & 0xff));
 	if(f & Vmask)
 		pcicfgw32(p, c + datao + 4, 0);
 

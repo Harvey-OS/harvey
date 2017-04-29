@@ -70,7 +70,6 @@
 				"boot" : "/$ARCH/bin/kiss"
 			    },
 			"Ramfiles": {
-				"alarm": "/$ARCH/bin/regress/alarm",
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"date": "/$ARCH/bin/date",

@@ -225,7 +225,7 @@ pullupblock(Block *bp, int n)
 	 *  copy bytes from the trailing blocks into the first
 	 */
 	n -= BLEN(bp);
-	while(nbp = bp->next){
+	while((nbp = bp->next) != nil){
 		i = BLEN(nbp);
 		if(i > n) {
 			memmove(bp->wp, nbp->rp, n);

@@ -75,7 +75,7 @@ tadd(Timers *tt, Timer *nt)
 		break;
 	}
 
-	for(last = &tt->head; t = *last; last = &t->tnext){
+	for(last = &tt->head; (t = *last) != nil; last = &t->tnext){
 		if(t->twhen > nt->twhen)
 			break;
 	}
@@ -96,7 +96,7 @@ tdel(Timer *dt)
 	tt = dt->tt;
 	if(tt == nil)
 		return 0;
-	for(last = &tt->head; t = *last; last = &t->tnext){
+	for(last = &tt->head; (t = *last) != nil; last = &t->tnext){
 		if(t == dt){
 			assert(dt->tt);
 			dt->tt = nil;
@@ -118,7 +118,7 @@ timeradd(Timer *nt)
 
 	/* Must lock Timer struct before Timers struct */
 	ilock(&nt->l);
-	if(tt = nt->tt){
+	if((tt = nt->tt) != nil){
 		ilock(&tt->l);
 		tdel(nt);
 		iunlock(&tt->l);
@@ -140,7 +140,7 @@ timerdel(Timer *dt)
 	int64_t when;
 
 	ilock(&dt->l);
-	if(tt = dt->tt){
+	if((tt = dt->tt) != nil){
 		ilock(&tt->l);
 		when = tdel(dt);
 		if(when && tt == &timers[machp()->machno])
@@ -207,7 +207,7 @@ timerintr(Ureg *u, int64_t j)
 	tt = &timers[machp()->machno];
 	now = fastticks(nil);
 	ilock(&tt->l);
-	while(t = tt->head){
+	while((t = tt->head) != nil){
 		/*
 		 * No need to ilock t here: any manipulation of t
 		 * requires tdel(t) and this must be done with a

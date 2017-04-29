@@ -546,7 +546,7 @@ resolveaddr6(Ipifc *ifc, Arpent *a)
 	a->rxtsrem--;
 	arprelease(er->f->arp, a);
 
-	if(sflag = ipv6anylocal(ifc, ipsrc))
+	if((sflag = ipv6anylocal(ifc, ipsrc)) != 0)
 		icmpns(er->f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
 }
 

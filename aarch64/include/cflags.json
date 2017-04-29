@@ -9,7 +9,8 @@
 			"-ggdb",
 			"-O0",
 			"-static",
-			"-Wall"
+			"-Wall",
+			"-Werror"
 		]
 	}
 }

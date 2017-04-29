@@ -45,11 +45,11 @@ enum
 
 
 char *ospftype[] = {
-	[OSPFhello]	"hello",
-	[OSPFdd]	"data definition",
-	[OSPFlsrequest]	"link state request",
-	[OSPFlsupdate]	"link state update",
-	[OSPFlsack]	"link state ack",
+	[OSPFhello] =	"hello",
+	[OSPFdd] =	"data definition",
+	[OSPFlsrequest] = "link state request",
+	[OSPFlsupdate] = "link state update",
+	[OSPFlsack] =	"link state ack",
 };
 
 char*
@@ -121,11 +121,11 @@ enum
 
 
 char *lsatype[] = {
-	[LSARouter]	"Router LSA",
-	[LSANetwork]	"Network LSA",
-	[LSASummN]	"Summary LSA (Network)",
-	[LSASummR]	"Summary LSA (Router)",
-	[LSAASext]	"LSA AS external",
+	[LSARouter] =	"Router LSA",
+	[LSANetwork] =	"Network LSA",
+	[LSASummN] =	"Summary LSA (Network)",
+	[LSASummR] =	"Summary LSA (Router)",
+	[LSAASext] =	"LSA AS external",
 };
 
 char*

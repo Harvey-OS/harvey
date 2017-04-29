@@ -653,7 +653,7 @@ drawfreedscreen(DScreen *this)
 		dscreen = this->next;
 		goto Found;
 	}
-	while(next = ds->next){	/* assign = */
+	while((next = ds->next) != nil){
 		if(next == this){
 			ds->next = this->next;
 			goto Found;
@@ -728,7 +728,7 @@ drawuninstallscreen(Client *client, CScreen *this)
 		free(this);
 		return;
 	}
-	while(next = cs->next){	/* assign = */
+	while((next = cs->next) != nil){
 		if(next == this){
 			cs->next = this->next;
 			drawfreedscreen(this->dscreen);
@@ -752,7 +752,7 @@ drawuninstall(Client *client, int id)
 		drawfreedimage(d);
 		return;
 	}
-	while(next = d->next){	/* assign = */
+	while((next = d->next) != nil){
 		if(next->id == id){
 			d->next = next->next;
 			drawfreedimage(next);
@@ -1138,7 +1138,7 @@ drawclose(Chan *c)
 	if(QID(c->qid) == Qctl)
 		cl->busy = 0;
 	if((c->flag&COPEN) && (decref(&cl->r)==0)){
-		while(r = cl->refresh){	/* assign = */
+		while((r = cl->refresh) != nil){
 			cl->refresh = r->next;
 			free(r);
 		}

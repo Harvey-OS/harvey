@@ -372,9 +372,9 @@ syssegdetach(Ar0* ar0, ...)
 		nexterror();
 	}
 
-	s = 0;
+	s = nil;
 	for(i = 0; i < NSEG; i++)
-		if(s = up->seg[i]) {
+		if((s = up->seg[i]) != nil){
 			qlock(&s->lk);
 			if((addr >= s->base && addr < s->top) ||
 			   (s->top == s->base && addr == s->base))

@@ -71,10 +71,10 @@ enum
 
 static Cmdtab mousectlmsg[] =
 {
-	CMbuttonmap,	"buttonmap",	0,
-	CMscrollswap,	"scrollswap",	0,
-	CMswap,		"swap",		1,
-	CMwildcard,	"*",		0,
+	{CMbuttonmap,	"buttonmap",	0},
+	{CMscrollswap,	"scrollswap",	0},
+	{CMswap,	"swap",		1},
+	{CMwildcard,	"*",		0},
 };
 
 Mouseinfo	mouse;
@@ -98,11 +98,11 @@ enum{
 };
 
 static Dirtab mousedir[]={
-	".",	{Qdir, 0, QTDIR},	0,			DMDIR|0555,
-	"cursor",	{Qcursor},	0,			0666,
-	"mouse",	{Qmouse},	0,			0666,
-	"mousein",	{Qmousein},	0,			0220,
-	"mousectl",	{Qmousectl},	0,			0220,
+	{".",	{Qdir, 0, QTDIR},	0,			DMDIR|0555},
+	{"cursor",	{Qcursor},	0,			0666},
+	{"mouse",	{Qmouse},	0,			0666},
+	{"mousein",	{Qmousein},	0,			0220},
+	{"mousectl",	{Qmousectl},	0,			0220},
 };
 
 static unsigned char buttonmap[8] = {
@@ -296,11 +296,12 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 		b = buttonmap[m.buttons&7];
 		/* put buttons 4 and 5 back in */
 		b |= m.buttons & (3<<3);
-		if (scrollswap)
+		if(scrollswap){
 			if (b == 8)
 				b = 16;
 			else if (b == 16)
 				b = 8;
+		}
 		snprint(buf, sizeof buf, "m%11d %11d %11d %11lu ",
 			m.xy.x, m.xy.y,
 			b,
@@ -652,7 +653,7 @@ m3mouseputc(Queue *queue, int c)
 	msg[nb] = c;
 	if(++nb == 3){
 		nb = 0;
-		newbuttons = middle | b[(msg[0]>>4)&3 | (mouseshifted ? 4 : 0)];
+		newbuttons = middle | b[((msg[0]>>4)&3) | (mouseshifted?4:0)];
 		x = (msg[0]&0x3)<<14;
 		dx = (x>>8) | msg[1];
 		x = (msg[0]&0xc)<<12;

@@ -112,7 +112,7 @@ threadmain(int argc, char **argv)
 	d = malloc(sizeof(*d));
 	if(d == nil)
 		error("out of memory");
-	memset(d, 0, sizeof d);
+	memset(d, 0, sizeof *d);
 
 	d->scsi = s;
 	d->w = newwindow();

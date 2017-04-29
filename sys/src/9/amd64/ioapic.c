@@ -419,7 +419,7 @@ irqenable(void)
 			rtblget(apic, i, &hi, &lo);
 			/* if something is set in the vector, enable the
 			 * rdtentry */
-			if (lo&0xff != 0)
+			if ((lo&0xff) != 0)
 				rtblput(apic, i, hi, lo & ~Im);
 			unlock(&apic->Ioapic.l);
 		}

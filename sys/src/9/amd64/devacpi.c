@@ -67,7 +67,7 @@ static int32_t acpiintrread(Chan *c, void *a, int32_t n, int64_t off);
 
 static void acpiintr(Ureg *, void *);
 
-static char * devname(void)
+static char *devname(void)
 {
 	return acpidevtab.name;
 }
@@ -76,6 +76,8 @@ static int devdc(void)
 {
 	return acpidevtab.dc;
 }
+
+void outofyourelement(void);
 
 #if 0
 /*
@@ -1945,6 +1947,8 @@ static void acpiinitonce(void)
 	acpiioalloc(fadt->gpe1blk, fadt->gpe1blklen);
 
 	initgpes();
+
+	outofyourelement();
 }
 
 static int acpienable(void)
@@ -2404,6 +2408,20 @@ static char *raw(Atable *atbl, char *start, char *end, void *unused_arg)
 	memmove(start, atbl->raw, len);
 
 	return start + len;
+}
+
+void outofyourelement(void)
+{
+	/*
+	 * These just shut the compiler up.
+	 */
+	if(0)pretty(nil, nil, nil, nil);
+	if(0)raw(nil, nil, nil, nil);
+	if(0)dumpxsdt();
+	if(0)dumptable(nil, nil, nil, nil, 0);
+	if(0)cmpslitent(nil, nil);
+	if(0)regio(nil, nil, 0, 0, 0);
+	if(0)acpiregid(nil);
 }
 
 Dev acpidevtab = {
