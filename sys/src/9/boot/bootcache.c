@@ -41,7 +41,7 @@ cache(int fd)
 	if(*partition == 0){
 		readfile("#e/bootdisk", bd, sizeof(bd));
 		if(*bd){
-			if(pp = strchr(bd, ':'))
+			if((pp = strchr(bd, ':')) != nil)
 				*pp = 0;
 			/* damned artificial intelligence */
 			i = strlen(bd);

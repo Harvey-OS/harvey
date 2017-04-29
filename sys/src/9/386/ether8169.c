@@ -500,8 +500,8 @@ ethercrcbe(unsigned char *addr, int32_t len)
 static uint32_t
 swabl(uint32_t l)
 {
-	return l>>24 | (l>>8) & (Bytemask<<8) |
-		(l<<8) & (Bytemask<<16) | l<<24;
+	return (l>>24) | ((l>>8)&(Bytemask<<8)) |
+		((l<<8)&(Bytemask<<16)) | (l<<24);
 }
 
 static void
@@ -733,7 +733,7 @@ rtl8169init(Ether* edev)
 	ctlr->tdh = ctlr->tdt = ctlr->ntq = 0;
 	ctlr->td[ctlr->ntd-1].control = Eor;
 	for(i = 0; i < ctlr->ntd; i++)
-		if(bp = ctlr->tb[i]){
+		if((bp = ctlr->tb[i]) != nil){
 			ctlr->tb[i] = nil;
 			freeb(bp);
 		}
@@ -746,7 +746,7 @@ rtl8169init(Ether* edev)
 	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
 	ctlr->rd[ctlr->nrd-1].control = Eor;
 	for(i = 0; i < ctlr->nrd; i++)
-		if(bp = ctlr->rb[i]){
+		if((bp = ctlr->rb[i]) != nil){
 			ctlr->rb[i] = nil;
 			freeb(bp);
 		}
@@ -1194,7 +1194,7 @@ rtl8169pci(void)
 	uint macv;
 
 	p = nil;
-	while(p = pcimatch(p, 0, 0)){
+	while((p = pcimatch(p, 0, 0)) != nil){
 		if(p->ccrb != 0x02 || p->ccru != 0)
 			continue;
 

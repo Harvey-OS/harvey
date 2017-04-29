@@ -18,8 +18,8 @@ enum {
 };
 
 Dirtab kbintab[] = {
-	".",	{Qdir, 0, QTDIR},	0,	0555,
-	"kbin",	{Qkbd, 0},		0,	0200,
+	{".",		{Qdir, 0, QTDIR},	0,	0555},
+	{"kbin",	{Qkbd, 0},		0,	0200},
 };
 
 Lock	kbinlck;

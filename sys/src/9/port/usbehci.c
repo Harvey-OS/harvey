@@ -541,7 +541,7 @@ qhsetaddr(Qh *qh, uint32_t addr)
 	uint32_t eps0;
 
 	eps0 = qh->eps0 & ~((Epmax<<8)|Devmax);
-	qh->eps0 = eps0 | addr & Devmax | ((addr >> 7) & Epmax) << 8;
+	qh->eps0 = eps0 | (addr & Devmax) | (((addr >> 7) & Epmax) << 8);
 	coherence();
 }
 
@@ -1100,7 +1100,7 @@ isodump(Isoio* iso, int all)
 		}
 	else
 		for(i = 0; i < Nisoframes; i++)
-			if(iso->tdps[i] != nil)
+			if(iso->tdps[i] != nil){
 				if(iso->hs != 0){
 					td = iso->itdps[i];
 					seprintitd(buf, buf+sizeof(buf), td);
@@ -1118,6 +1118,7 @@ isodump(Isoio* iso, int all)
 						print("u->");
 					print("[%d]\t%s", i, buf);
 				}
+			}
 }
 
 static void
@@ -1545,11 +1546,12 @@ ehciintr(Hci *hp)
 
 		/* process the Iso transfers */
 		for(iso = ctlr->iso; iso != nil; iso = iso->next)
-			if(iso->state == Qrun || iso->state == Qdone)
+			if(iso->state == Qrun || iso->state == Qdone){
 				if(iso->hs != 0)
 					some += isohsinterrupt(ctlr, iso);
 				else
 					some += isofsinterrupt(ctlr, iso);
+			}
 
 		/* process the qhs in the periodic tree */
 		for(qh = ctlr->intrqhs; qh != nil; qh = qh->inext)
@@ -2540,7 +2542,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 	/* set the address if unset and out of configuration state */
 	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
 		if(cio->Qio.usbid == 0){
-			cio->Qio.usbid = (ep->nb&Epmax) << 7 | ep->dev->nb&Devmax;
+			cio->Qio.usbid = ((ep->nb&Epmax) << 7) | (ep->dev->nb&Devmax);
 			coherence();
 			qhsetaddr(cio->Qio.qh, cio->Qio.usbid);
 		}
@@ -2570,13 +2572,14 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		len = count;
 	}
 	coherence();
-	if(len > 0)
+	if(len > 0){
 		if(waserror())
 			len = -1;
 		else{
 			len = epio(ep, &cio->Qio, a, len, 0);
 			poperror();
 		}
+	}
 	if(c[Rtype] & Rd2h){
 		count = Rsetuplen;
 		cio->ndata = len;
@@ -2704,8 +2707,8 @@ isohsinit(Ep *ep, Isoio *iso)
 		pa = PADDR(td->data) & ~0xFFF;
 		for(p = 0; p < 8; p++)
 			td->buffer[i] = pa + p * 0x1000;
-		td->buffer[0] = PADDR(iso->data) & ~0xFFF |
-			ep->nb << Itdepshift | ep->dev->nb << Itddevshift;
+		td->buffer[0] = (PADDR(iso->data) & ~0xFFF) |
+			(ep->nb << Itdepshift) | (ep->dev->nb << Itddevshift);
 		if(ep->mode == OREAD)
 			td->buffer[1] |= Itdin;
 		else
@@ -2751,7 +2754,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	default:
 		error("iso i/o is half-duplex");
 	}
-	iso->usbid = ep->nb << 7 | ep->dev->nb & Devmax;
+	iso->usbid = (ep->nb << 7) | (ep->dev->nb & Devmax);
 	iso->state = Qidle;
 	coherence();
 	iso->debug = ep->debug;
@@ -2889,7 +2892,7 @@ epopen(Ep *ep)
 	case Tintr:
 		io = ep->aux = smalloc(sizeof(Qio)*2);
 		io[OREAD].debug = io[OWRITE].debug = ep->debug;
-		usbid = (ep->nb&Epmax) << 7 | ep->dev->nb &Devmax;
+		usbid = ((ep->nb&Epmax) << 7) | (ep->dev->nb&Devmax);
 		assert(ep->pollival != 0);
 		if(ep->mode != OREAD){
 			if(ep->toggle[OWRITE] != 0)

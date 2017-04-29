@@ -54,9 +54,4 @@ typedef __builtin_va_list va_list;
 #define va_arg(v,l)	__builtin_va_arg(v,l)
 #define va_copy(v,l)	__builtin_va_copy(v,l)
 
-static inline uintptr_t getcallerpc(void)
-{
-	uintptr_t x = 0;
-	__asm__ __volatile__("sd ra, -24(s0)\n");
-	return x;
-}
+#define getcallerpc()	((uintptr_t)__builtin_return_address(0))

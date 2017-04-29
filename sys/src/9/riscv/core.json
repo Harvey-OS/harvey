@@ -9,19 +9,12 @@
 			"-DKERNDATE=1433623937",
 			"-g",
 			"-Wall",
-			"-W",
-			"-Wno-sign-compare",
-			"-Wno-missing-field-initializers",
-			"-Wno-unused-parameter",
-			"-Wno-missing-braces",
-			"-Wno-parentheses",
-			"-Wno-unknown-pragmas",
 			"-Werror",
 			"-I", "/sys/src/9/riscv",
 			"-I", "/sys/src/9/port",
 			"-I", "/sys/src/libc/9syscall"
 		],
-	    "Libs": [
+		"Libs": [
 			"/$ARCH/lib/klibc.a",
                         "/$ARCH/lib/klibip.a",
 			"/$ARCH/lib/klibsec.a"

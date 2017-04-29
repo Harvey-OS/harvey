@@ -31,8 +31,4 @@ main(int argc, char *argv[])
 }
 .EE
 .SH SOURCE
-.B /sys/src/libc/$objtype/getcallerpc.[cs]
-.SH BUGS
-The 
-.I firstarg
-parameter should not be necessary.
+.B /$arch/include/u.h

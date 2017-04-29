@@ -149,7 +149,7 @@ relocateseg(Segment *s, uintptr_t offset)
 			continue;
 		pte = *p;
 		for(pg = pte->first; pg <= pte->last; pg++) {
-			if(x = *pg)
+			if((x = *pg) != nil)
 				x->va += offset;
 		}
 	}
@@ -212,7 +212,7 @@ dupseg(Segment **seg, int segno, int share)
 	}
 	size = s->mapsize;
 	for(i = 0; i < size; i++)
-		if(pte = s->map[i])
+		if((pte = s->map[i]) != nil)
 			n->map[i] = ptecpy(n, pte);
 
 	n->flushme = s->flushme;
