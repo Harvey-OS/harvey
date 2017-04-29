@@ -1,0 +1,27 @@
+/* acpi.h */
+/* File for Harvey-specific ACPI defines. */
+
+/*
+ * ACPI redefines things found in libc, but this one thing we need.
+ */
+
+#define ACPI_USE_SYSTEM_INTTYPES
+typedef uint8_t BOOLEAN;
+typedef QLock ACPI_MUTEX;
+typedef uint64_t COMPILER_DEPENDENT_UINT64;
+typedef uint64_t UINT64;
+typedef uint32_t UINT32;
+typedef uint16_t UINT16;
+typedef uint8_t UINT8;
+typedef int64_t COMPILER_DEPENDENT_INT64;
+typedef int64_t INT64;
+typedef int32_t INT32;
+typedef int16_t INT16;
+typedef int8_t INT8;
+typedef int ACPI_THREAD_ID;
+
+#define DEBUGGER_THREADING DEBUGGER_SINGLE_THREADED
+#define ACPI_MACHINE_WIDTH 64
+#pragma clang diagnostic ignored "-Wunused-variable"
+
+#define ACPI_GET_FUNCTION_NAME __func__

@@ -77,14 +77,14 @@ struct {
 	char *name;
 	int next;
 } palette[] = {
-	['b']	{ "blue", 'b' },
-	['c']	{ "cyan", 'c' },
-	['g']	{ "green", 'g' },
-	['k']	{ "kblack", 'k' },
-	['m']	{ "magenta", 'm' },
-	['r']	{ "red", 'r' },
-	['w']	{ "white", 'w' },
-	['y']	{ "yellow", 'y' }
+	['b'] =	{ "blue", 'b' },
+	['c'] =	{ "cyan", 'c' },
+	['g'] =	{ "green", 'g' },
+	['k'] =	{ "kblack", 'k' },
+	['m'] =	{ "magenta", 'm' },
+	['r'] =	{ "red", 'r' },
+	['w'] =	{ "white", 'w' },
+	['y'] =	{ "yellow", 'y' }
 };
 int pencolor = 'k';
 

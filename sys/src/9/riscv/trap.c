@@ -228,7 +228,7 @@ intrdisable(void* vector)
 	v = vector;
 	if(v == nil || vctl[v->vno] != v)
 		panic("intrdisable: v %#p", v);
-	for(ll = vctl+v->vno; x = *ll; ll = &x->next)
+	for(ll = vctl+v->vno; (x = *ll) != nil; ll = &x->next)
 		if(v == x)
 			break;
 	if(x != v)
@@ -508,7 +508,7 @@ trap(Ureg *ureg)
 	write_csr(sip, 0);
 
 	//print("check vno %d\n", vno);
-	if(ctl = vctl[vno]){
+	if((ctl = vctl[vno]) != nil){
 		if(ctl->isintr){
 			machp()->intr++;
 			machp()->lastintr = ctl->Vkey.irq;
@@ -599,7 +599,7 @@ panic("UNK\n");
 //print("DUN\n");
 
 	if(user){
-		if(up && up->procctl || up->nnote)
+		if(up && (up->procctl || up->nnote))
 			notify(ureg);
 		kexit(ureg);
 	}

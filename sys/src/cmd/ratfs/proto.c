@@ -33,19 +33,19 @@ static	Fid*	newfid(int);
 static	void	reply(Fcall*, char*);
 
 static	void 	(*fcalls[])(Fcall*) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+	[Tversion] =	rversion,
+	[Tflush] =	rflush,
+	[Tauth] =	rauth,
+	[Tattach] =	rattach,
+	[Twalk] =	rwalk,
+	[Topen] =	ropen,
+	[Tcreate] =	rcreate,
+	[Tread] =	rread,
+	[Twrite] =	rwrite,
+	[Tclunk] =	rclunk,
+	[Tremove] =	rremove,
+	[Tstat] =	rstat,
+	[Twstat] =	rwstat,
 };
 
 

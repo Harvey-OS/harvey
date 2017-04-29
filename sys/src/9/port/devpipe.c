@@ -40,9 +40,9 @@ enum
 
 Dirtab pipedir[] =
 {
-	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"data",		{Qdata0},	0,		0600,
-	"data1",	{Qdata1},	0,		0600,
+	{".",		{Qdir,0,QTDIR},	0,		DMDIR|0500},
+	{"data",	{Qdata0},	0,		0600},
+	{"data1",	{Qdata1},	0,		0600},
 };
 #define NPIPEDIR 3
 

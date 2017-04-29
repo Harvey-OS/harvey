@@ -101,9 +101,9 @@ enum
 
 Cmdtab rebootmsg[] =
 {
-	CMhalt,		"halt",		1,
-	CMreboot,	"reboot",	0,
-	CMpanic,	"panic",	0,
+	{CMhalt,	"halt",		1},
+	{CMreboot,	"reboot",	0},
+	{CMpanic,	"panic",	0},
 };
 
 int
@@ -362,7 +362,6 @@ iprint(char *fmt, ...)
 	return n;
 }
 
-#pragma profile 0
 void
 panic(char *fmt, ...)
 {
@@ -394,7 +393,7 @@ panic(char *fmt, ...)
 	die("wait forever");
 	exit(1);
 }
-#pragma profile 1
+
 /* libmp at least contains a few calls to sysfatal; simulate with panic */
 void
 sysfatal(char *fmt, ...)
@@ -641,32 +640,32 @@ enum
 };
 
 static Dirtab consdir[]={
-	".",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"bintime",	{Qbintime},	24,		0664,
-	"cons",		{Qcons},	0,		0660,
-	"consctl",	{Qconsctl},	0,		0220,
-	"cputime",	{Qcputime},	6*NUMSIZE,	0444,
-	"drivers",	{Qdrivers},	0,		0444,
-	"hostdomain",	{Qhostdomain},	DOMLEN,		0664,
-	"hostowner",	{Qhostowner},	0,		0664,
-	"kmesg",	{Qkmesg},	0,		0440,
-	"kprint",	{Qkprint, 0, QTEXCL},	0,	DMEXCL|0440,
-	"null",		{Qnull},	0,		0666,
-	"osversion",	{Qosversion},	0,		0444,
-	"pgrpid",	{Qpgrpid},	NUMSIZE,	0444,
-	"pid",		{Qpid},		NUMSIZE,	0444,
-	"ppid",		{Qppid},	NUMSIZE,	0444,
-	"random",	{Qrandom},	0,		0444,
-	"urandom",  {Qurandom}, 0,      0444,
-	"reboot",	{Qreboot},	0,		0664,
-	"swap",		{Qswap},	0,		0664,
-	"sysname",	{Qsysname},	0,		0664,
-	"sysstat",	{Qsysstat},	0,		0666,
-	"time",		{Qtime},	NUMSIZE+3*VLNUMSIZE,	0664,
-	"user",		{Quser},	0,		0666,
-	"zero",		{Qzero},	0,		0444,
-	"syscall",	{Qsyscall},	0,		0666,
-	"debug",	{Qdebug},	0,		0666,
+	{".",	{Qdir, 0, QTDIR},	0,		DMDIR|0555},
+	{"bintime",	{Qbintime},	24,		0664},
+	{"cons",	{Qcons},	0,		0660},
+	{"consctl",	{Qconsctl},	0,		0220},
+	{"cputime",	{Qcputime},	6*NUMSIZE,	0444},
+	{"drivers",	{Qdrivers},	0,		0444},
+	{"hostdomain",	{Qhostdomain},	DOMLEN,		0664},
+	{"hostowner",	{Qhostowner},	0,		0664},
+	{"kmesg",	{Qkmesg},	0,		0440},
+	{"kprint",	{Qkprint, 0, QTEXCL},	0,	DMEXCL|0440},
+	{"null",	{Qnull},	0,		0666},
+	{"osversion",	{Qosversion},	0,		0444},
+	{"pgrpid",	{Qpgrpid},	NUMSIZE,	0444},
+	{"pid",		{Qpid},		NUMSIZE,	0444},
+	{"ppid",	{Qppid},	NUMSIZE,	0444},
+	{"random",	{Qrandom},	0,		0444},
+	{"urandom",	{Qurandom},	0,		0444},
+	{"reboot",	{Qreboot},	0,		0664},
+	{"swap",	{Qswap},	0,		0664},
+	{"sysname",	{Qsysname},	0,		0664},
+	{"sysstat",	{Qsysstat},	0,		0666},
+	{"time",	{Qtime},	NUMSIZE+3*VLNUMSIZE,	0664},
+	{"user",	{Quser},	0,		0666},
+	{"zero",	{Qzero},	0,		0444},
+	{"syscall",	{Qsyscall},	0,		0666},
+	{"debug",	{Qdebug},	0,		0666},
 };
 
 int
@@ -1061,7 +1060,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 				printallsyscalls = ! printallsyscalls;
 				print("%sracing syscalls\n", printallsyscalls ? "T" : "Not t");
 			}
-			if(a = strchr(a, ' '))
+			if((a = strchr(a, ' ')) != nil)
 				a++;
 		}
 		break;

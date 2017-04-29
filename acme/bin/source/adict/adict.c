@@ -349,7 +349,7 @@ vopenwin(void *v)
 	name = arg[0];
 	buttons = arg[1];
 	twin = arg[2];
-	wintype = (int)((intptr_t)arg[3]);
+	wintype = (int)((uintptr_t)arg[3]);
 	sendul(arg[4], 0);
 
 	openwin(name, buttons, twin, wintype);
@@ -366,7 +366,7 @@ procopenwin(char *name, char *buttons, Win *twin, int wintype)
 	arg[0] = name;
 	arg[1] = buttons;
 	arg[2] = twin;
-	arg[3] = (void*)((intptr_t)wintype);
+	arg[3] = (void*)((uintptr_t)wintype);
 	arg[4] = c;
 	proccreate(vopenwin, arg, STACK);
 	recvul(c);

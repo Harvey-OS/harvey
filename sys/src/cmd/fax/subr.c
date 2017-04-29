@@ -47,13 +47,13 @@ error(char *fmt, ...)
 }
 
 static char *errors[] = {
-	[Eok]		"no error",
-	[Eattn]		"can't get modem's attention",
-	[Enoanswer]	"Retry, no answer or busy",
-	[Enoresponse]	"Retry, no response from modem",
-	[Eincompatible]	"Retry, incompatible",
-	[Esys]		"Retry, system call error",
-	[Eproto]	"Retry, fax protocol botch",
+	[Eok] =		"no error",
+	[Eattn] =	"can't get modem's attention",
+	[Enoanswer] =	"Retry, no answer or busy",
+	[Enoresponse] =	"Retry, no response from modem",
+	[Eincompatible] = "Retry, incompatible",
+	[Esys] =	"Retry, system call error",
+	[Eproto] =	"Retry, fax protocol botch",
 };
 
 int

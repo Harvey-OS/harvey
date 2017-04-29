@@ -281,8 +281,8 @@ struct Dospart {
 };
 
 struct Recover {
-	Table	table;
 	uint32_t	lba;
+	Table	table;
 };
 
 static Type types[256] = {
@@ -451,7 +451,7 @@ addrecover(Table t, uint32_t lba)
 		if(rtab == nil)
 			sysfatal("out of memory");
 	}
-	rtab[nrtab] = (Recover){t, lba};
+	rtab[nrtab] = (Recover){lba, t};
 	nrtab++;
 }
 
