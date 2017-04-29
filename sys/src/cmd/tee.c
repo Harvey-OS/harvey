@@ -37,11 +37,6 @@ main(int argc, char **argv)
 		atnotify(intignore, 1);
 		break;
 
-	case 'u':
-		uflag++;
-		/* uflag is ignored and undocumented; it's a relic from Unix */
-		break;
-
 	default:
 		fprint(2, "usage: tee [-ai] [file ...]\n");
 		exits("usage");
