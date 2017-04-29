@@ -1141,12 +1141,12 @@ print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 			sg = p->seg[i];
 			if(sg == 0)
 				continue;
-			j += sprint(statbuf+j, "%-6s %c%c%c %c %p %p %4d\n",
+			j += sprint(statbuf+j, "%-6s %c%c%c%c %p %p %4d\n",
 				segtypes[sg->type&SG_TYPE],
 				(sg->type&SG_READ) != 0 ? 'r' : '-',
 				(sg->type&SG_WRITE) != 0 ? 'w' : '-',
 				(sg->type&SG_EXEC) != 0 ? 'x' : '-',
-				sg->profile ? 'P' : ' ',
+				sg->profile ? 'P' : '-',
 				sg->base, sg->top, sg->r.ref);
 		}
 		psdecref(p);
