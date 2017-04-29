@@ -518,23 +518,21 @@ hex2long(char **ptr, unsigned long *long_val)
 }
 
 /*
- * Copy the binary array pointed to by buf into mem.  Fix $, #, and
- * 0x7d escaped with 0x7d. Return -EFAULT on failure or 0 on success.
- * The input buf is overwitten with the result to write to mem.
+ * Copy the binary array pointed to by src into dest.  Fix $, #, and
+ * 0x7d escaped with 0x7d.
  */
-static  void
-ebin2mem(unsigned char *buf, unsigned char *mem, int count)
+static void
+ebin2mem(unsigned char *src, unsigned char *dest, int count)
 {
 	int size = 0;
-	unsigned char *c = mem;
+	unsigned char *c = dest;
 
 	while (count-- > 0) {
-		c[size] = *buf++;
+		c[size] = *src++;
 		if (c[size] == 0x7d)
-			c[size] = *buf++ ^ 0x20;
+			c[size] = *src++ ^ 0x20;
 		size++;
 	}
-
 }
 
 /* Write memory due to an 'M' or 'X' packet. */
@@ -549,13 +547,23 @@ write_mem_msg(struct state *ks, int binary)
 
 	if (hex2long(&cp, &addr) > 0 && *(cp++) == ',' &&
 		hex2long(&cp, &length) > 0 && *(cp++) == ':') {
+
+		// When gdb wants to set a variable, we seem to get a zero length write
+		// packet immediately before the real write packet.  Not sure why,
+		// but let's not try to write it at least.
+		if (length == 0) {
+			return nil;
+		}
+
 		unsigned char *data = malloc(length);
 		if (binary)
 			ebin2mem((unsigned char *)cp, data, length);
 		else
 			hex2mem(cp, data, length);
+
 		err = wmem(addr, ks->threadid, data, length);
 		free(data);
+
 		return err;
 	}
 
@@ -1223,7 +1231,7 @@ rmem(void *dest, int pid, uint64_t addr, int size)
 		return errstring(Eio);
 	}
 
-	syslog(0, "gdbserver", "%s: read 0x%x, %d bytes", __func__, addr, size);
+	syslog(0, "gdbserver", "rmem read %d bytes", size);
 	return nil;
 }
 
@@ -1236,7 +1244,7 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 		syslog(0, "gdbserver", "put1 failed: %r");
 		return errstring(Eio);
 	}
-	syslog(0, "gdbserver", "%s: wrote 0x%x, %d bytes", __func__, addr, size);
+	syslog(0, "gdbserver", "wmem wrote %d bytes", size);
 
 	return nil;
 }
