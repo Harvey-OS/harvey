@@ -72,9 +72,9 @@ enum
 
 static
 Cmdtab routecmd[] = {
-	CMset,		"set",		0,
-	CMclear,	"clear",	0,
-	CMonly,		"only",		0,
+	{CMset,		"set",		0},
+	{CMclear,	"clear",	0},
+	{CMonly,	"only",		0},
 };
 
 void

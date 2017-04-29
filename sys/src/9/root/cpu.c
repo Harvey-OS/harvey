@@ -69,7 +69,7 @@ struct AuthMethod {
 	{ "p9",		p9auth,		srvp9auth,},
 	{ "netkey",	netkeyauth,	netkeysrvauth,},
 	{ "none",	noauth,		srvnoauth,},
-	{ nil,	nil}
+	{ nil,		nil,		nil}
 };
 AuthMethod *am = authmethod;	/* default is p9 */
 
@@ -720,8 +720,8 @@ struct {
 	uint32_t	perm;
 } fstab[] =
 {
-	[Qdir]		{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
-	[Qcpunote]	{ "cpunote",	{Qcpunote, 0},		0444		},
+	[Qdir] =	{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
+	[Qcpunote] =	{ "cpunote",	{Qcpunote, 0},		0444		},
 };
 
 typedef struct Note Note;

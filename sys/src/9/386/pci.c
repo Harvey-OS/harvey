@@ -350,7 +350,7 @@ pcireservemem(void)
 	int i;
 	Pcidev *p;
 
-	for(p = nil; p = pcimatch(p, 0, 0); )
+	for(p = nil; (p = pcimatch(p, 0, 0)) != nil;)
 		for(i=0; i<nelem(p->mem); i++)
 			if(p->mem[i].bar && (p->mem[i].bar&1) == 0)
 				asmmapinit(p->mem[i].bar&~0x0F, p->mem[i].size, 5);
@@ -436,8 +436,8 @@ pcicfgrw(int tbdf, int r, int data, int rw, int w)
 		return -1;
 
 	lock(&pcicfglock);
-	o = r & 4-w;
-	er = r&0xfc | (r & 0xf00)<<16;
+	o = r & (4-w);
+	er = (r&0xfc) | ((r & 0xf00)<<16);
 	outl(PciADDR, 0x80000000|BUSBDF(tbdf)|er);
 	if(rw == Read){
 		x = -1;
@@ -526,7 +526,7 @@ pcimatchtbdf(int tbdf)
 {
 	Pcidev *p;
 
-	for(p = nil; p = pcimatch(p, 0, 0); )
+	for(p = nil; (p = pcimatch(p, 0, 0)) != nil; )
 		if(p->tbdf == tbdf)
 			break;
 	return p;
@@ -586,7 +586,7 @@ pcireset(void)
 {
 	Pcidev *p;
 
-	for(p = nil; p = pcimatch(p, 0, 0); )
+	for(p = nil; (p = pcimatch(p, 0, 0)) != nil;)
 		/* don't mess with the bridges */
 		if(p->ccrb != 0x06)
 			pciclrbme(p);

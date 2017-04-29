@@ -129,23 +129,23 @@ static	Rendez	trendez;
 static	int	tcond;
 static	uint8_t	broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 static 	Dirtab	cecdir[] = {
-	".",		{ Qdir, 0, QTDIR },	0,	DMDIR | 0555,
-	"cecstat",	{ Qstat},		1,	0444,
-	"cecctl",	{ Qctl},		1,	0777,
-//	"cecctl",	{ Qctl},		1,	0664,
+	{".",		{ Qdir, 0, QTDIR },	0,	DMDIR | 0555},
+	{"cecstat",	{ Qstat},		1,	0444},
+	{"cecctl",	{ Qctl},		1,	0777},
+//	{"cecctl",	{ Qctl},		1,	0664},
 
-	"cecdbg",	{ Qdbg }, 		1,	0444,
-	"ceccfg",	{ Qcfg },		1,	0444,
+	{"cecdbg",	{ Qdbg }, 		1,	0444},
+	{"ceccfg",	{ Qcfg },		1,	0444},
 };
 static	Cmdtab	ceccmd[] = {
-	CMsetname,	"name",	2,
-	CMtraceon,	"traceon",	1,
-	CMtraceoff,	"traceoff",	1,
-	CMsetpasswd,	"password",	2,
-	CMcecon,		"cecon",		2,
-	CMcecoff,		"cecoff",		2,
-	CMsetshelf,	"shelf",	2,
-	CMwrite,	"write",	-1,
+	{CMsetname,	"name",	2},
+	{CMtraceon,	"traceon",	1},
+	{CMtraceoff,	"traceoff",	1},
+	{CMsetpasswd,	"password",	2},
+	{CMcecon,		"cecon",		2},
+	{CMcecoff,		"cecoff",		2},
+	{CMsetshelf,	"shelf",	2},
+	{CMwrite,	"write",	-1},
 };
 
 /*

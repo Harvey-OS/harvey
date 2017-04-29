@@ -337,7 +337,7 @@ rfdalloc(uint32_t link)
 	Block *bp;
 	Rfd *rfd;
 
-	if(bp = iallocb(sizeof(Rfd))){
+	if((bp = iallocb(sizeof(Rfd))) != nil){
 		rfd = (Rfd*)bp->rp;
 		rfd->field = 0;
 		rfd->link = link;
@@ -656,7 +656,7 @@ receive(Ether* ether)
 				rfd->count = 0;
 				rfd->field = 0;
 			}
-			else if(xbp = rfdalloc(rfd->link)){
+			else if((xbp = rfdalloc(rfd->link)) != nil){
 				bp->rp += offsetof(Rfd, data[0]);
 				bp->wp = bp->rp + count;
 
@@ -938,9 +938,9 @@ i82557pci(void)
 	Ctlr *ctlr;
 	int i, nop, port;
 
-	p = nil;
 	nop = 0;
-	while(p = pcimatch(p, 0x8086, 0)){
+	p = nil;
+	while((p = pcimatch(p, 0x8086, 0)) != nil){
 		switch(p->did){
 		default:
 			continue;

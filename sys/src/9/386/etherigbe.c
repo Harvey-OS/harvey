@@ -701,7 +701,7 @@ enum {
 };
 
 static Cmdtab igbectlmsg[] = {
-	CMrdtr,	"rdtr",	2,
+	{CMrdtr,	"rdtr",		2},
 };
 
 static int32_t
@@ -1968,7 +1968,7 @@ igbepci(void)
 	void *mem;
 
 	p = nil;
-	while(p = pcimatch(p, 0, 0)){
+	while((p = pcimatch(p, 0, 0)) != nil){
 		if(p->ccrb != 0x02 || p->ccru != 0)
 			continue;
 

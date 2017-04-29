@@ -102,7 +102,7 @@ uint64_t
 arch_get_pc(struct state *ks)
 {
 	// not yet.
-
+	return 0;
 }
 
 void arch_set_pc(uintptr_t *regs, unsigned long pc)

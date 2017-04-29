@@ -17,35 +17,35 @@
 
 static char *binop[] =
 {
-	[OMUL]	"*",
-	[ODIV]	"/",
-	[OMOD]	"%",
-	[OADD]	"+",
-	[OSUB]	"-",
-	[ORSH]	">>",
-	[OLSH]	"<<",
-	[OLT]	"<",
-	[OGT]	">",
-	[OLEQ]	"<=",
-	[OGEQ]	">=",
-	[OEQ]	"==",
-	[ONEQ]	"!=",
-	[OLAND]	"&",
-	[OXOR]	"^",
-	[OLOR]	"|",
-	[OCAND]	"&&",
-	[OCOR]	"||",
-	[OASGN]	" = ",
+	[OMUL] =	"*",
+	[ODIV] =	"/",
+	[OMOD] =	"%",
+	[OADD] =	"+",
+	[OSUB] =	"-",
+	[ORSH] =	">>",
+	[OLSH] =	"<<",
+	[OLT] =		"<",
+	[OGT] =		">",
+	[OLEQ] =	"<=",
+	[OGEQ] =	">=",
+	[OEQ] =		"==",
+	[ONEQ] =	"!=",
+	[OLAND] =	"&",
+	[OXOR] =	"^",
+	[OLOR] =	"|",
+	[OCAND] =	"&&",
+	[OCOR] =	"||",
+	[OASGN] =	" = ",
 };
 
 static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 char *typenames[] =
 {
-	[TINT]		"integer",
-	[TFLOAT]	"float",
-	[TSTRING]	"string",
-	[TLIST]		"list",
-	[TCODE]		"code",
+	[TINT] =	"integer",
+	[TFLOAT] =	"float",
+	[TSTRING] =	"string",
+	[TLIST] =	"list",
+	[TCODE]	=	"code",
 };
 
 int

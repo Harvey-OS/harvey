@@ -480,7 +480,7 @@ extern char*rolename[];
 #define DBGFLG		(0)
 #endif /* _DBGC_ */
 
-#define DBG(...)	if(!DBGFLG){}else dbgprint(__VA_ARGS__)
+#define DBG(...)	do{if(DBGFLG)dbgprint(__VA_ARGS__);}while(0)
 
 extern char dbgflg[256];
 

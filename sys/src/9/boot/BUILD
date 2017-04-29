@@ -22,9 +22,7 @@ cc_library(
 	copts=[
 		"-g",
 		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
+		"-Werror",
 		"-O0",
 		"-static",
 		"-mno-red-zone",

@@ -8,8 +8,6 @@
  * contained in the LICENSE.gpl file.
  */
 
-#pragma GCC diagnostic ignored "-Wframe-address"
-
 #include <u.h>
 #include <libc.h>
 
@@ -18,6 +16,7 @@ getcallstack(uintptr *pcs, size_t npcs)
 {
 	assert(npcs < 6);
 
+#if 0
 	if (npcs > 0)
 		pcs[0] = (uintptr)__builtin_return_address(2);
 	if (npcs > 1)
@@ -30,6 +29,20 @@ getcallstack(uintptr *pcs, size_t npcs)
 		pcs[4] = (uintptr)__builtin_return_address(6);
 	if (npcs > 5)
 		pcs[5] = (uintptr)__builtin_return_address(7);
+#else
+	if (npcs > 0)
+		pcs[0] = (uintptr)0;
+	if (npcs > 1)
+		pcs[1] = (uintptr)0;
+	if (npcs > 2)
+		pcs[2] = (uintptr)0;
+	if (npcs > 3)
+		pcs[3] = (uintptr)0;
+	if (npcs > 4)
+		pcs[4] = (uintptr)0;
+	if (npcs > 5)
+		pcs[5] = (uintptr)0;
+#endif
 	if (npcs > 6)
 		sysfatal("getcallstack: stack size must be <= 6, got %zu", npcs);
 }

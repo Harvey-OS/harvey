@@ -87,11 +87,13 @@ rawfd(void)
 	return open(name, OREAD);
 }
 
+#if 0
 static int
 tbdf(ACPI_PCI_ID * p)
 {
 	return (p->Bus << 8) | (p->Device << 3) | (p->Function);
 }
+#endif
 
 int acpiio = -1;
 

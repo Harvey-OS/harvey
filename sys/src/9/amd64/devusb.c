@@ -146,7 +146,7 @@ static Cmdtab epctls[] =
 
 static Dirtab usbdir[] =
 {
-	"ctl",		{Qctl},		0,	0666,
+	{"ctl",		{Qctl},		0,	0666},
 };
 
 char *usbmodename[] =

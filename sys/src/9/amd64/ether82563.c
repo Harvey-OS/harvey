@@ -1861,7 +1861,7 @@ i82563pci(void)
 	Ctlr *ctlr;
 
 	p = nil;
-	while(p = pcimatch(p, 0x8086, 0)){
+	while((p = pcimatch(p, 0x8086, 0)) != nil){
 		switch(p->did){
 		default:
 			continue;

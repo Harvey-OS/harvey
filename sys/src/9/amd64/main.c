@@ -143,7 +143,7 @@ options(int argc, char* argv[])
 	while(--argc > 0){
 		char* next = *++argv;
 		if(next[0] =='-' && next[1] != '-'){
-			while(o = *++argv[0]){
+			while((o = *++argv[0]) != '\0'){
 				if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
 					continue;
 				n = strtol(argv[0]+1, &p, 0);

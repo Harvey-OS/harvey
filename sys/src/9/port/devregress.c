@@ -17,11 +17,11 @@ enum {
 };
 
 static Dirtab regressdir[Qmax] = {
-	".",		{ Qdir, 0, QTDIR },	0,	0555,
-	"regressctl",	{ Qctl, 0 },	0,	0666,
-	"malloc",	{ Qmalloc, 0 },	0,	0666,
-	"tsleep",	{ Qtsleep, 0 },	0,	0666,
-	"qlock",	{ Qlock, 0 },	0,	0666,
+	{".",		{ Qdir, 0, QTDIR },	0,	0555},
+	{"regressctl",	{ Qctl, 0 },	0,	0666},
+	{"malloc",	{ Qmalloc, 0 },	0,	0666},
+	{"tsleep",	{ Qtsleep, 0 },	0,	0666},
+	{"qlock",	{ Qlock, 0 },	0,	0666},
 };
 
 int verbose = 0;

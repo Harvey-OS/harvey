@@ -34,8 +34,8 @@ struct Dirlist
 };
 
 static Dirtab rootdir[Nrootfiles] = {
-	"#/",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
+	{"#/",		{Qdir, 0, QTDIR},	0,		DMDIR|0555},
+	{"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555},
 };
 static uint8_t *rootdata[Nrootfiles];
 static Dirlist rootlist =
@@ -48,7 +48,7 @@ static Dirlist rootlist =
 };
 
 static Dirtab bootdir[Nbootfiles] = {
-	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
+	{"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555},
 };
 static uint8_t *bootdata[Nbootfiles];
 static Dirlist bootlist =

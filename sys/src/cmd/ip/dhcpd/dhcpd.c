@@ -973,7 +973,7 @@ bootp(Req *rp)
 	if(rp->p9request){
 		warning(0, "p9bootp: %I", iip->ipaddr);
 		memmove(bp->optmagic, plan9opt, 4);
-		if(iip->gwip == 0)
+		if(!validip(iip->gwip))
 			v4tov6(iip->gwip, bp->giaddr);
 		rp->p += sprint((char*)rp->p, "%V %I %I %I",
 				iip->ipmask+IPv4off, iip->fsip,

@@ -33,11 +33,11 @@ enum {
 };
 
 static Dirtab vgadir[] = {
-	".",	{ Qdir, 0, QTDIR },		0,	0550,
-	"vgabios",	{ Qvgabios, 0 },	0x100000, 0440,
-	"vgactl",		{ Qvgactl, 0 },		0,	0660,
-	"vgaovl",		{ Qvgaovl, 0 },		0,	0660,
-	"vgaovlctl",	{ Qvgaovlctl, 0 },	0, 	0660,
+	{".",	{ Qdir, 0, QTDIR },		0,	0550},
+	{"vgabios",	{ Qvgabios, 0 },	0x100000, 0440},
+	{"vgactl",		{ Qvgactl, 0 },		0,	0660},
+	{"vgaovl",		{ Qvgaovl, 0 },		0,	0660},
+	{"vgaovlctl",	{ Qvgaovlctl, 0 },	0, 	0660},
 };
 
 enum {
@@ -58,20 +58,20 @@ enum {
 };
 
 static Cmdtab vgactlmsg[] = {
-	CMactualsize,	"actualsize",	2,
-	CMblank,	"blank",	1,
-	CMblanktime,	"blanktime",	2,
-	CMdrawinit,	"drawinit",	1,
-	CMhwaccel,	"hwaccel",	2,
-	CMhwblank,	"hwblank",	2,
-	CMhwgc,		"hwgc",		2,
-	CMlinear,	"linear",	0,
-	CMpalettedepth,	"palettedepth",	2,
-	CMpanning,	"panning",	2,
-	CMsize,		"size",		3,
-	CMtextmode,	"textmode",	1,
-	CMtype,		"type",		2,
-	CMunblank,	"unblank",	1,
+	{CMactualsize,		"actualsize",	2},
+	{CMblank,		"blank",	1},
+	{CMblanktime,		"blanktime",	2},
+	{CMdrawinit,		"drawinit",	1},
+	{CMhwaccel,		"hwaccel",	2},
+	{CMhwblank,		"hwblank",	2},
+	{CMhwgc,		"hwgc",		2},
+	{CMlinear,		"linear",	0},
+	{CMpalettedepth,	"palettedepth",	2},
+	{CMpanning,		"panning",	2},
+	{CMsize,		"size",		3},
+	{CMtextmode,		"textmode",	1},
+	{CMtype,		"type",		2},
+	{CMunblank,		"unblank",	1},
 };
 
 static long

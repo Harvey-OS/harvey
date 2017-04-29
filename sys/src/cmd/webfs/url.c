@@ -163,56 +163,56 @@ enum
 
 Retab retab[] =	/* view in constant width Font */
 {
-[REsplit]
+[REsplit] =
 	"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]+)?(\\?([^#]*))?(#(.*))?$", nil, 0,
 	/* |-scheme-|      |-auth.-|  |path--|    |query|     |--|frag */
 	{  2,              4,         5,          7,          9},
 
-[REscheme]
+[REscheme] =
 	"^[a-z][a-z0-9+-.]*$", nil, 0,
 	{ 0, },
 
-[REunknowndata]
+[REunknowndata] =
 	"^" URICNOSLASH_2 URIC_2 "*$", nil, 0,
 	{ 0, },
 
-[REauthority]
+[REauthority] =
 	"^(((" USERINFO_2 "*)@)?(((\\[[^\\]@]+\\])|([^:\\[@]+))(:([0-9]*))?)?)?$", nil, 0,
 	/* |----user info-----|  |--------host----------------|  |-port-| */
 	{  3,                    7,                              11, },
 
-[REhost]
+[REhost] =
 	"^(([a-zA-Z0-9\\-.]+)|(\\[([a-fA-F0-9.:]+)\\]))$", nil, 0,
 	/* |--regular host--|     |-IPv6 literal-| */
 	{  2,                     4, },
 
-[REuserinfo]
+[REuserinfo] =
 	"^(([^:]*)(:([^:]*))?)$", nil, 0,
 	/* |user-|  |pass-| */
 	{  2,       4, },
 
-[REabspath]
+[REabspath] =
 	"^/" PSEGCHAR_3 "*$", nil, 0,
 	{ 0, },
 
-[REquery]
+[REquery] =
 	"^" URIC_2 "*$", nil, 0,
 	{ 0, },
 
-[REfragment]
+[REfragment] =
 	"^" URIC_2 "*$", nil, 0,
 	{ 0, },
 
-[REhttppath]
+[REhttppath] =
 	"^.*$", nil, 0,
 	{ 0, },
 
-[REftppath]
+[REftppath] =
 	"^(.+)(;[tT][yY][pP][eE]=([aAiIdD]))?$", nil, 0,
 	/*|--|-path              |ftptype-| */
 	{ 1,                     3, }, 
 
-[REfilepath]
+[REfilepath] =
 	"^.*$", nil, 0,
 	{ 0, },
 };

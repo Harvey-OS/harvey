@@ -5,6 +5,7 @@
 			"-ffreestanding",
 			"-fno-builtin",
 			"-Wall",
+			"-Werror",
 			"-g"
 		],
 		"Oflags": [

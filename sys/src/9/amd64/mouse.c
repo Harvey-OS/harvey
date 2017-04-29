@@ -56,15 +56,15 @@ enum
 
 static Cmdtab mousectlmsg[] =
 {
-	CMaccelerated,		"accelerated",		0,
-	CMhwaccel,		"hwaccel",		2,
-	CMintellimouse,		"intellimouse",		1,
-	CMlinear,		"linear",		1,
-	CMps2,			"ps2",			1,
-	CMps2intellimouse,	"ps2intellimouse",	1,
-	CMres,			"res",			0,
-	CMreset,		"reset",		1,
-	CMserial,		"serial",		0,
+	{CMaccelerated,		"accelerated",		0},
+	{CMhwaccel,		"hwaccel",		2},
+	{CMintellimouse,	"intellimouse",		1},
+	{CMlinear,		"linear",		1},
+	{CMps2,			"ps2",			1},
+	{CMps2intellimouse,	"ps2intellimouse",	1},
+	{CMres,			"res",			0},
+	{CMreset,		"reset",		1},
+	{CMserial,		"serial",		0},
 };
 
 /*

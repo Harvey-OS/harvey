@@ -42,13 +42,13 @@ typedef struct
 } didmap;
 
 static didmap dmtab[] = {
-	PCI_DEVICE_ID_VIRTIO_NET, "virtio-net",
-	PCI_DEVICE_ID_VIRTIO_BLOCK, "virtio-block",
-	PCI_DEVICE_ID_VIRTIO_BALLOON, "virtio-balloon",
-	PCI_DEVICE_ID_VIRTIO_CONSOLE, "virtio-console",
-	PCI_DEVICE_ID_VIRTIO_SCSI, "virtio-scsi",
-	PCI_DEVICE_ID_VIRTIO_RNG, "virtio-rng",
-	PCI_DEVICE_ID_VIRTIO_9P, "virtio-9p"
+	{PCI_DEVICE_ID_VIRTIO_NET, "virtio-net"},
+	{PCI_DEVICE_ID_VIRTIO_BLOCK, "virtio-block"},
+	{PCI_DEVICE_ID_VIRTIO_BALLOON, "virtio-balloon"},
+	{PCI_DEVICE_ID_VIRTIO_CONSOLE, "virtio-console"},
+	{PCI_DEVICE_ID_VIRTIO_SCSI, "virtio-scsi"},
+	{PCI_DEVICE_ID_VIRTIO_RNG, "virtio-rng"},
+	{PCI_DEVICE_ID_VIRTIO_9P, "virtio-9p"}
 };
 
 // Find a device type by its PCI device identifier, used to assign device name in the filesystem,
@@ -121,7 +121,7 @@ vqinterrupt(Virtq *q)
 	ilock(&q->l);
 	while((q->lastused ^ q->vr.used->idx) & m) {
 		id = q->vr.used->ring[q->lastused++ & m].id;
-		if(r = q->rock[id]){
+		if((r = q->rock[id]) != nil){
 			q->rock[id] = nil;
 			z = r->sleep;
 			r->done = 1;	/* hands off */
@@ -292,7 +292,7 @@ initvdevs(Vqctl **vcs)
 	int msix_enabled = 0;
 	Pcidev *p;
 	// Scan the collected PCI devices info, find possible 9p devices
-	for(p = nil; p = pcimatch(p, PCI_VENDOR_ID_REDHAT_QUMRANET, 0);) {
+	for(p = nil; (p = pcimatch(p, PCI_VENDOR_ID_REDHAT_QUMRANET, 0)) != nil;) {
 		if(vcs != nil) {
 			vcs[cnt] = mallocz(sizeof(Vqctl), 1);
 			if(vcs[cnt] == nil) {

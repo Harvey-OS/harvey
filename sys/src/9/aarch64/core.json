@@ -8,7 +8,6 @@
 			"-DKERNDATE=1433623937",
 			"-g",
 			"-Wall",
-			"-W",
 			"-Werror",
 			"-I", "/sys/src/9/aarch64",
 			"-I", "/sys/src/9/port"

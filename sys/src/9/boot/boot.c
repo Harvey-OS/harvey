@@ -232,7 +232,7 @@ boot(int argc, char *argv[])
 	cmd = iargv[0];
 
 	/* make iargv[0] basename(iargv[0]) */
-	if(iargv[0] = strrchr(iargv[0], '/'))
+	if((iargv[0] = strrchr(iargv[0], '/')) != nil)
 		iargv[0]++;
 	else
 		iargv[0] = cmd;

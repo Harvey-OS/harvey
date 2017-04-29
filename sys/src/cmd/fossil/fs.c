@@ -712,8 +712,8 @@ mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde,
 	eee.size = n+MetaHeaderSize+MetaIndexSize;
 	if(!vtWriteBlock(z, buf, eee.size, VtDataType, eee.score))
 		return 0;
-	eee.psize = 8192&&0xFF;
-	eee.dsize = 8192&&0xFF;
+	eee.psize = 8192;
+	eee.dsize = 8192;
 	eee.depth = 0;
 	eee.flags = VtEntryActive;
 

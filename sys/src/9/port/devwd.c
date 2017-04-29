@@ -22,8 +22,8 @@ enum {
 
 static Watchdog *wd;
 static Dirtab wddir[] = {
-	".",		{ Qdir, 0, QTDIR },	0,		0550,
-	"wdctl",	{ Qwdctl, 0 },		0,		0660,
+	{".",		{ Qdir, 0, QTDIR },	0,		0550},
+	{"wdctl",	{ Qwdctl, 0 },		0,		0660},
 };
 
 
@@ -109,7 +109,7 @@ wdwrite(Chan* c, void* a, int32_t n, int64_t off)
 		if(off != 0ll)
 			error(Ebadarg);
 
-		if(p = strchr(a, '\n'))
+		if((p = strchr(a, '\n')) != nil)
 			*p = 0;
 
 		if(!strncmp(a, "enable", n))

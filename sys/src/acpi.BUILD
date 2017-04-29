@@ -23,6 +23,7 @@ LIB_COMPILER_FLAGS = [
 			"-Wno-unknown-pragmas",
 			"-Wno-unused-variable",
 			"-Wall", 
+			"-Werror", 
 			"-nostdlib",
 			"-nostdinc",
 		        "-fno-builtin",

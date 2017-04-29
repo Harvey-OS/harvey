@@ -148,23 +148,26 @@ setctl(PmcCtl *p, int regno)
 
 	v = rdmsr(regno + PerfEvtbase);
 	v &= PeEvMskH|PeEvMskL|PeCtEna|PeOS|PeUsr|PeUnMsk;
-	if (p->enab != PmcCtlNullval)
+	if (p->enab != PmcCtlNullval) {
 		if (p->enab)
 			v |= PeCtEna;
 		else
 			v &= ~PeCtEna;
+	}
 
-	if (p->user != PmcCtlNullval)
+	if (p->user != PmcCtlNullval) {
 		if (p->user)
 			v |= PeUsr;
 		else
 			v &= ~PeUsr;
+	}
 
-	if (p->os != PmcCtlNullval)
+	if (p->os != PmcCtlNullval) {
 		if (p->os)
 			v |= PeOS;
 		else
 			v &= ~PeOS;
+	}
 
 	if (pmctrans(p) < 0)
 		return -1;

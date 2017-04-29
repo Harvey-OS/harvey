@@ -951,7 +951,7 @@ interrupt(Ureg *ureg, void *a)
 	}
 	OUTS(Status, sts & Sall);
 	cmd = INS(Cmd);
-	if(cmd & Crun == 0){
+	if((cmd & Crun) == 0){
 		print("uhci %#x: not running: uhci bug?\n", ctlr->port);
 		/* BUG: should abort everything in this case */
 	}
@@ -1544,13 +1544,14 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		cio->Qio.tok = Tdtokout;
 		len = count;
 	}
-	if(len > 0)
+	if(len > 0) {
 		if(waserror())
 			len = -1;
 		else{
 			len = epio(ep, &cio->Qio, a, len, 0);
 			poperror();
 		}
+	}
 	if(c[Rtype] & Rd2h){
 		count = Rsetuplen;
 		cio->ndata = len;
@@ -2107,7 +2108,7 @@ scanpci(void)
 		return;
 	already = 1;
 	p = nil;
-	while(p = pcimatch(p, 0, 0)){
+	while((p = pcimatch(p, 0, 0)) != nil){
 		/*
 		 * Find UHCI controllers (Programming Interface = 0).
 		 */

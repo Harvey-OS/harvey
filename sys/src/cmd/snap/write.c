@@ -13,15 +13,15 @@
 #include "snap.h"
 
 char *pfile[Npfile] = {
-	[Psegment]	"segment",
-	[Pfd]			"fd",
-	[Pfpregs]		"fpregs",
-	[Pnoteid]		"noteid",
-	[Pkregs]		"kregs",
-	[Pns]			"ns",
-	[Pproc]		"proc",
-	[Pregs]		"regs",
-	[Pstatus]		"status",
+	[Psegment] =	"segment",
+	[Pfd] =		"fd",
+	[Pfpregs] =	"fpregs",
+	[Pnoteid] =	"noteid",
+	[Pkregs] =	"kregs",
+	[Pns] =		"ns",
+	[Pproc] =	"proc",
+	[Pregs] =	"regs",
+	[Pstatus] =	"status",
 };
 
 static void

@@ -38,10 +38,10 @@ enum{
 };
 
 Dirtab kproftab[]={
-	".",		{Kprofdirqid, 0, QTDIR},0,	DMDIR|0550,
-	"kpdata",	{Kprofdataqid},		0,	0600,
-	"kpctl",	{Kprofctlqid},		0,	0600,
-	"kpoprofile",	{Kprofoprofileqid},	0,	0600,
+	{".",		{Kprofdirqid, 0, QTDIR},0,	DMDIR|0550},
+	{"kpdata",	{Kprofdataqid},		0,	0600},
+	{"kpctl",	{Kprofctlqid},		0,	0600},
+	{"kpoprofile",	{Kprofoprofileqid},	0,	0600},
 };
 
 void oprof_alarm_handler(Ureg *u)

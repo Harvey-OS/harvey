@@ -277,8 +277,8 @@ ethercrcbe(unsigned char *addr, int32_t len)
 static uint32_t
 swabl(uint32_t l)
 {
-	return l>>24 | (l>>8) & (Bytemask<<8) |
-		(l<<8) & (Bytemask<<16) | l<<24;
+	return (l>>24) | ((l>>8) & (Bytemask<<8)) |
+		((l<<8) & (Bytemask<<16)) | (l<<24);
 }
 
 static void
@@ -801,7 +801,7 @@ rtl8139pnp(Ether* edev)
 	 */
 	if(ctlrhead == nil){
 		p = nil;
-		while(p = pcimatch(p, 0, 0)){
+		while((p = pcimatch(p, 0, 0)) != nil){
 			if(p->ccrb != 0x02 || p->ccru != 0)
 				continue;
 			ctlr = malloc(sizeof(Ctlr));

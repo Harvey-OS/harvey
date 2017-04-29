@@ -101,7 +101,7 @@ psalloc(void)
 
 	lock(&procalloc.l);
 	for(;;) {
-		if(p = procalloc.free)
+		if((p = procalloc.free) != nil)
 			break;
 
 		unlock(&procalloc.l);

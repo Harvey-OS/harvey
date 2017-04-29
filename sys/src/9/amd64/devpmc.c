@@ -277,14 +277,14 @@ enum{
 
 static Cmdtab pmcctlmsg[] =
 {
-	Enable,		"enable",	0,
-	Disable,	"disable",	0,
-	User,		"user",		0,
-	Os,		"os",		0,
-	NoUser,		"nouser",		0,
-	NoOs,		"noos",		0,
-	Reset,		"reset",	0,
-	Debug, 		"debug",	0,
+	{Enable,	"enable",	0},
+	{Disable,	"disable",	0},
+	{User,		"user",		0},
+	{Os,		"os",		0},
+	{NoUser,	"nouser",	0},
+	{NoOs,		"noos",		0},
+	{Reset,		"reset",	0},
+	{Debug, 	"debug",	0},
 };
 
 typedef void (*APfunc)(void);

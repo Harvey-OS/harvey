@@ -268,7 +268,7 @@ sdgetdev(int idno)
 		return nil;
 
 	qlock(&devslock);
-	if(sdev = devs[i])
+	if((sdev = devs[i]) != nil)
 		incref(&sdev->r);
 	qunlock(&devslock);
 	return sdev;
@@ -1503,7 +1503,7 @@ unconfigure(char* spec)
 		sdev->ifc->disable(sdev);
 
 	for(i = 0; i != sdev->nunit; i++){
-		if(unit = sdev->unit[i]){
+		if((unit = sdev->unit[i]) != nil){
 			free(unit->SDperm.name);
 			free(unit->SDperm.user);
 			free(unit);
@@ -1645,12 +1645,12 @@ static struct {
 	char	*name;
 	void	(*parse)(Confdata*, char*);
 } options[] = {
-	"switch",	parseswitch,
-	"spec",		parsespec,
-	"port",		parseport,
-	"size",		parsesize,
-	"irq",		parseirq,
-	"type",		parsetype,
+	{"switch",	parseswitch},
+	{"spec",	parsespec},
+	{"port",	parseport},
+	{"size",	parsesize},
+	{"irq",		parseirq},
+	{"type",	parsetype},
 };
 
 static void

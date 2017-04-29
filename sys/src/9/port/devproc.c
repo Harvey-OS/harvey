@@ -100,65 +100,64 @@ enum{
  */
 Dirtab procdir[] =
 {
-	"args",		{Qargs},	0,			0660,
-	"ctl",		{Qctl},		0,			0000,
-	"fd",		{Qfd},		0,			0444,
-	"fpregs",	{Qfpregs},	0,			0000,
-	"kregs",	{Qkregs},	sizeof(Ureg),		0600,
-	"mem",		{Qmem},		0,			0000,
-	"note",		{Qnote},	0,			0000,
-	"noteid",	{Qnoteid},	0,			0664,
-	"notepg",	{Qnotepg},	0,			0000,
-	"ns",		{Qns},		0,			0444,
-	"proc",		{Qproc},	0,			0400,
-	"gdbregs",	{Qgdbregs},	GDB_NUMREGBYTES,	0000,
-	"regs",		{Qregs},	sizeof(Ureg),		0000,
-	"segment",	{Qsegment},	0,			0444,
-	"status",	{Qstatus},	STATSIZE,		0444,
-	"strace",       {Qstrace},      0,                      0666,
-	"text",		{Qtext},	0,			0000,
-	"wait",		{Qwait},	0,			0400,
-	"profile",	{Qprofile},	0,			0400,
-	"syscall",	{Qsyscall},	0,			0400,
-	"core",		{Qcore},	0,			0444,
-	"tls",		{Qtls},		0,			0600,
-	"pager",	{Qpager},	0,			0600|DMEXCL,
+	{"args",	{Qargs},	0,			0660},
+	{"ctl",		{Qctl},		0,			0000},
+	{"fd",		{Qfd},		0,			0444},
+	{"fpregs",	{Qfpregs},	0,			0000},
+	{"kregs",	{Qkregs},	sizeof(Ureg),		0600},
+	{"mem",		{Qmem},		0,			0000},
+	{"note",	{Qnote},	0,			0000},
+	{"noteid",	{Qnoteid},	0,			0664},
+	{"notepg",	{Qnotepg},	0,			0000},
+	{"ns",		{Qns},		0,			0444},
+	{"proc",	{Qproc},	0,			0400},
+	{"gdbregs",	{Qgdbregs},	GDB_NUMREGBYTES,	0000},
+	{"regs",	{Qregs},	sizeof(Ureg),		0000},
+	{"segment",	{Qsegment},	0,			0444},
+	{"status",	{Qstatus},	STATSIZE,		0444},
+	{"strace",	{Qstrace},      0,                      0666},
+	{"text",	{Qtext},	0,			0000},
+	{"wait",	{Qwait},	0,			0400},
+	{"profile",	{Qprofile},	0,			0400},
+	{"syscall",	{Qsyscall},	0,			0400},
+	{"core",	{Qcore},	0,			0444},
+	{"tls",		{Qtls},		0,			0600},
+	{"pager",	{Qpager},	0,			0600|DMEXCL},
 
 };
 
 static
 Cmdtab proccmd[] = {
-	CMclose,		"close",		2,
-	CMclosefiles,		"closefiles",		1,
-	CMfixedpri,		"fixedpri",		2,
-	CMhang,			"hang",			1,
-	CMnohang,		"nohang",		1,
-	CMnoswap,		"noswap",		1,
-	CMkill,			"kill",			1,
-	CMpri,			"pri",			2,
-	CMprivate,		"private",		1,
-	CMprofile,		"profile",		1,
-	CMstart,		"start",		1,
-	CMstartstop,		"startstop",		1,
-	CMstartsyscall,		"startsyscall",		1,
-	CMstop,			"stop",			1,
-	CMwaitstop,		"waitstop",		1,
-	CMwired,		"wired",		2,
-	CMtrace,		"trace",		0,
-	CMperiod,		"period",		2,
-	CMdeadline,		"deadline",		2,
-	CMcost,			"cost",			2,
-	CMsporadic,		"sporadic",		1,
-	CMdeadlinenotes,	"deadlinenotes",	1,
-	CMadmit,		"admit",		1,
-	CMextra,		"extra",		1,
-	CMexpel,		"expel",		1,
-	CMevent,		"event",		1,
-	CMcore,			"core",			2,
-	CMstraceme,             "straceme",             0,
-	CMstraceall, "straceall", 0,
-	CMstraceoff, "straceoff", 0,
-
+	{CMclose,		"close",		2},
+	{CMclosefiles,		"closefiles",		1},
+	{CMfixedpri,		"fixedpri",		2},
+	{CMhang,		"hang",			1},
+	{CMnohang,		"nohang",		1},
+	{CMnoswap,		"noswap",		1},
+	{CMkill,		"kill",			1},
+	{CMpri,			"pri",			2},
+	{CMprivate,		"private",		1},
+	{CMprofile,		"profile",		1},
+	{CMstart,		"start",		1},
+	{CMstartstop,		"startstop",		1},
+	{CMstartsyscall,	"startsyscall",		1},
+	{CMstop,		"stop",			1},
+	{CMwaitstop,		"waitstop",		1},
+	{CMwired,		"wired",		2},
+	{CMtrace,		"trace",		0},
+	{CMperiod,		"period",		2},
+	{CMdeadline,		"deadline",		2},
+	{CMcost,		"cost",			2},
+	{CMsporadic,		"sporadic",		1},
+	{CMdeadlinenotes,	"deadlinenotes",	1},
+	{CMadmit,		"admit",		1},
+	{CMextra,		"extra",		1},
+	{CMexpel,		"expel",		1},
+	{CMevent,		"event",		1},
+	{CMcore,		"core",			2},
+	{CMstraceme,		"straceme",		0},
+	{CMstraceall,		"straceall",		0},
+	{CMstraceoff,		"straceoff",		0},
 };
 
 /*
@@ -172,7 +171,7 @@ Cmdtab proccmd[] = {
 #define	QSHIFT	5	/* location in qid of proc slot # */
 #define	SLOTBITS 23	/* number of bits in the slot */
 #define	QIDMASK	((1<<QSHIFT)-1)
-#define	SLOTMASK	((1<<SLOTBITS)-1 << QSHIFT)
+#define	SLOTMASK	(((1<<SLOTBITS)-1) << QSHIFT)
 
 #define QID(q)		((((uint32_t)(q).path)&QIDMASK)>>0)
 #define SLOT(q)		(((((uint32_t)(q).path)&SLOTMASK)>>QSHIFT)-1)
@@ -864,11 +863,12 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		return rptr - (uint8_t*)va;
 	}
 
-	if(QID(c->qid) == Qtracepids)
+	if(QID(c->qid) == Qtracepids){
 		if(tpids == nil)
 			return 0;
 		else
 			return readstr(off, va, n, tpids);
+	}
 
 	if((p = psincref(SLOT(c->qid))) == nil || p->pid != PID(c->qid))
 		error(Eprocdied);
@@ -1811,15 +1811,15 @@ print("Set up tracing for pid %d\n", p->pid);
 	case CMperiod:
 		if(p->edf == nil)
 			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))	/* time in ns */
+		if((e=parsetime(&time, cb->f[1])) != nil)	/* time in ns */
 			error(e);
 		edfstop(p);
-		p->edf->T = time/1000;			/* Edf times are in µs */
+		p->edf->T = time/1000;				/* Edf times are in µs */
 		break;
 	case CMdeadline:
 		if(p->edf == nil)
 			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))
+		if((e=parsetime(&time, cb->f[1])) != nil)
 			error(e);
 		edfstop(p);
 		p->edf->D = time/1000;
@@ -1827,7 +1827,7 @@ print("Set up tracing for pid %d\n", p->pid);
 	case CMcost:
 		if(p->edf == nil)
 			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))
+		if((e=parsetime(&time, cb->f[1])) != nil)
 			error(e);
 		edfstop(p);
 		p->edf->C = time/1000;
@@ -1845,7 +1845,7 @@ print("Set up tracing for pid %d\n", p->pid);
 	case CMadmit:
 		if(p->edf == 0)
 			error("edf params");
-		if(e = edfadmit(p))
+		if((e = edfadmit(p)) != nil)
 			error(e);
 		break;
 	case CMextra:

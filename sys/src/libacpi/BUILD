@@ -211,6 +211,7 @@ cc_library(
 			"-Wno-unknown-pragmas",
 			"-Wno-unused-variable",
 			"-Wall", 
+			"-Werror", 
 			"-nostdlib",
 			"-nostdinc",
 		        "-fno-builtin",

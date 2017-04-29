@@ -30,9 +30,9 @@ enum{
 };
 
 Dirtab Wstab[]={
-	".",		{WSdirqid, 0, QTDIR},0,	DMDIR|0550,
-	"wsdata",	{WSdataqid},		0,	0600,
-	"wsctl",	{WSctlqid},		0,	0600,
+	{".",		{WSdirqid, 0, QTDIR},0,	DMDIR|0550},
+	{"wsdata",	{WSdataqid},		0,	0600},
+	{"wsctl",	{WSctlqid},		0,	0600},
 };
 
 

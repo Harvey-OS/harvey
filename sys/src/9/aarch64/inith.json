@@ -3,6 +3,7 @@
 		"Cflags": [
 			"-g",
 			"-Wall",
+			"-Werror",
 			"-O0",
 			"-static",
 			"-ffreestanding",

@@ -61,9 +61,9 @@ static char eventname[] = {
 };
 
 static Dirtab probedir[]={
-	".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"probectl",	{Qctl},		0,		0664,
-	"probe",	{Qdata},	0,		0440,
+	{".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555},
+	{"probectl",	{Qctl},		0,		0664},
+	{"probe",	{Qdata},	0,		0440},
 };
 
 char hex[] = {

@@ -34,8 +34,8 @@ enum
 };
 
 static Dirtab topdir[] = {
-	".",		{ Qtopdir, 0, QTDIR },	0,	DMDIR|0555,
-	"virtcon",	{ Qvirtcon, 0, QTDIR },	0,	DMDIR|0555,
+	{".",		{ Qtopdir, 0, QTDIR },	0,	DMDIR|0555},
+	{"virtcon",	{ Qvirtcon, 0, QTDIR },	0,	DMDIR|0555},
 };
 
 extern Dev vcondevtab;

@@ -177,7 +177,7 @@ uartreset(void)
 
 	uartndir = 1 + 3*uartnuart;
 	uartdir = malloc(uartndir * sizeof(Dirtab));
-	if(uartnuart > 0 && uart == nil || uartdir == nil)
+	if(uartnuart > 0 && (uart == nil || uartdir == nil))
 		panic("uartreset: no memory");
 	dp = uartdir;
 	strcpy(dp->name, ".");

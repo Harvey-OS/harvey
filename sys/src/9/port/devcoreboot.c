@@ -305,8 +305,8 @@ enum{
 };
 
 static Dirtab corebootdir[]={
-	".",	{Qdir, 0, QTDIR},	0,			DMDIR|0555,
-	"table",	{Qtable},	0,			0444,
+	{".",	{Qdir, 0, QTDIR},	0,			DMDIR|0555},
+	{"table",	{Qtable},	0,			0444},
 };
 
 struct sysinfo_t cbinfo;

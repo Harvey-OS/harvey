@@ -55,9 +55,9 @@ enum{
 };
 
 Dirtab rtcdir[]={
-	".",	{Qdir, 0, QTDIR},	0,	0555,
-	"nvram",	{Qnvram, 0},	Nvsize,	0664,
-	"rtc",		{Qrtc, 0},	0,	0664,
+	{".",	{Qdir, 0, QTDIR},	0,	0555},
+	{"nvram",	{Qnvram, 0},	Nvsize,	0664},
+	{"rtc",		{Qrtc, 0},	0,	0664},
 };
 
 static uint32_t rtc2sec(Rtc*);

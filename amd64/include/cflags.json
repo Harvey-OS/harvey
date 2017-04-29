@@ -14,7 +14,8 @@
 			"-mno-red-zone",
 			"-O0",
 			"-static",
-			"-Wall"
+			"-Wall",
+			"-Werror"
 		]
 	}
 }
