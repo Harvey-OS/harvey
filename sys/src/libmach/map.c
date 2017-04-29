@@ -60,29 +60,40 @@ stacktop(int pid)
 {
 	char buf[64];
 	int fd;
-	int n;
+	int i, n;
 	char *cp;
 
+	// Gets the stack segment details by parsing the first line of
+	// /proc/pid/segment, assuming it'll be 'Stack'.
+	// This line will be of the form:
+	// Stack  rw-   7ffffee00000 7fffffe00000    1
+	// We need to get the 4th token - the top of the stack.
 	snprint(buf, sizeof(buf), "/proc/%d/segment", pid);
 	fd = open(buf, 0);
 	if (fd < 0)
 		return 0;
 	n = read(fd, buf, sizeof(buf)-1);
 	close(fd);
+
 	buf[n] = 0;
 	if (strncmp(buf, "Stack", 5))
 		return 0;
-	for (cp = buf+5; *cp && *cp == ' '; cp++)
-		;
-	if (!*cp)
-		return 0;
-	cp = strchr(cp, ' ');
-	if (!cp)
-		return 0;
-	while (*cp && *cp == ' ')
-		cp++;
-	if (!*cp)
-		return 0;
+
+	for (i = 0, cp = buf; i < 3; i++) {
+		// Skip over the token to the next space
+		cp = strchr(cp, ' ');
+		if (!cp)
+			return 0;
+
+		// Skip over spaces
+		while (*cp == ' ')
+			cp++;
+		if (!*cp)
+			return 0;
+	}
+
+	// cp now points to the token representing the end of the stack,
+	// so parse and return it.
 	return strtoull(cp, 0, 16);
 }
 
