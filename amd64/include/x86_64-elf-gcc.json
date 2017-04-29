@@ -1,7 +1,6 @@
 {
 	"buildflags": {
 		"Cflags": [
-				"-Wno-frame-address"
-			]
+		]
 	}
 }

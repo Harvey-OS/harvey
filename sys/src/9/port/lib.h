@@ -162,7 +162,6 @@ extern	int	abs(int);
 extern	int	atoi(char*);
 extern	char*	cleanname(char*);
 extern	int	dec64(unsigned char*, int, char*, int);
-extern	uintptr_t	getcallerpc(void);
 extern	int	getfields(char*, char**, int, int, char*);
 extern	int	gettokens(char *, char **, int, char *);
 extern	int32_t	strtol(char*, char**, int);

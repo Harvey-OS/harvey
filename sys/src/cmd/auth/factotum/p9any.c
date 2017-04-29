@@ -72,7 +72,6 @@ p9anyinit(Proto* p, Fsstate *fss)
 		return failure(fss, nil);
 
 	s = emalloc(sizeof *s);
-	fss = fss;
 	fss->phasename = phasenames;
 	fss->maxphase = Maxphase;
 	if(iscli)

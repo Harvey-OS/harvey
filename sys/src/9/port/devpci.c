@@ -28,8 +28,8 @@ enum {
 #define QID(c, t)	(((c)<<4)|(t))
 
 static Dirtab topdir[] = {
-	".",	{ Qtopdir, 0, QTDIR },	0,	0555,
-	"pci",	{ Qpcidir, 0, QTDIR },	0,	0555,
+	{".",	{ Qtopdir, 0, QTDIR },	0,	0555},
+	{"pci",	{ Qpcidir, 0, QTDIR },	0,	0555},
 };
 
 extern Dev pcidevtab;

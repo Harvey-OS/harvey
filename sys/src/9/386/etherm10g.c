@@ -32,7 +32,7 @@
 #define MiB		1048576u		/* Mebi 0x0000000000100000 */
 #endif /* KiB */
 
-#define	dprint(...)	if(debug) print(__VA_ARGS__)
+#define	dprint(...)	do{if(debug)print(__VA_ARGS__);}while(0)
 #define	pcicapdbg(...)
 #define malign(n)	mallocalign((n), 4*KiB, 0, 0)
 
@@ -1118,7 +1118,7 @@ m10rx(void *v)
 		replenish(&c->sm);
 		replenish(&c->bg);
 		sleep(&c->rxrendez, rxcansleep, c);
-		while(b = nextblock(c))
+		while((b = nextblock(c)) != nil)
 			etheriq(e, b, 1);
 	}
 }
@@ -1139,7 +1139,7 @@ txcleanup(Tx *tx, uint32_t n)
 	 */
 	for(;; tx->cnt++){
 		j = tx->cnt & tx->m;
-		if(b = tx->bring[j]){
+		if((b = tx->bring[j]) != nil){
 			tx->bring[j] = 0;
 			tx->nbytes += BLEN(b);
 			freeb(b);
@@ -1193,7 +1193,7 @@ submittx(Tx *tx, int n)
 	l = tx->lanai;
 	h = tx->host;
 	for(i = n-1; i >= 0; i--)
-		memmove(l+(i + i0 & m), h+(i + i0 & m), sizeof *h);
+		memmove(l+((i + i0) & m), h+((i + i0) & m), sizeof *h);
 	tx->i += n;
 //	coherence();
 }
@@ -1207,7 +1207,7 @@ nsegments(Block *b, int segsz)
 	bus = PCIWADDR(b->rp);
 	i = 0;
 	for(len = BLEN(b); len; len -= slen){
-		end = bus + segsz & ~(segsz-1);
+		end = (bus + segsz) & ~(segsz-1);
 		slen = end - bus;
 		if(slen > len)
 			slen = len;
@@ -1248,7 +1248,7 @@ m10gtransmit(Ether *e)
 		rdma = nseg = nsegments(b, segsz);
 		bus = PCIWADDR(b->rp);
 		for(; len; len -= slen){
-			end = bus + segsz & ~(segsz-1);
+			end = (bus + segsz) & ~(segsz-1);
 			slen = end - bus;
 			if(slen > len)
 				slen = len;
@@ -1264,7 +1264,7 @@ m10gtransmit(Ether *e)
 			flags &= ~SFfirst;
 			rdma = 1;
 		}
-		tx->bring[i + nseg - 1 & tx->m] = b;
+		tx->bring[(i + nseg - 1) & tx->m] = b;
 		if(1 || count > 0){
 			submittx(tx, count);
 			count = 0;
@@ -1287,7 +1287,7 @@ checkstats(Ether *e, Ctlr *c, Stats *s)
 	i = gbit32(s->linkstat);
 	if(c->linkstat != i){
 		e->Netif.link = i;
-		if(c->linkstat = i)
+		if((c->linkstat = i) != 0)
 			dprint("m10g: link up\n");
 		else
 			dprint("m10g: link down\n");
@@ -1493,12 +1493,12 @@ enum {
 };
 
 static Cmdtab ctab[] = {
-	CMdebug,	"debug",	2,
-	CMcoal,		"coal",		2,
-	CMwakeup,	"wakeup",	1,
-	CMtxwakeup,	"txwakeup",	1,
-//	CMqsummary,	"q",		1,
-	CMrxring,	"rxring",	1,
+	{CMdebug,	"debug",	2},
+	{CMcoal,	"coal",		2},
+	{CMwakeup,	"wakeup",	1},
+	{CMtxwakeup,	"txwakeup",	1},
+//	{CMqsummary,	"q",		1},
+	{CMrxring,	"rxring",	1},
 };
 
 static int32_t
@@ -1592,8 +1592,8 @@ m10gpci(void)
 	Pcidev *p;
 	Ctlr *t, *c;
 
-	t = 0;
-	for(p = 0; p = pcimatch(p, 0x14c1, 0x0008); ){
+	t = nil;
+	for(p = nil; (p = pcimatch(p, 0x14c1, 0x0008)) != nil;){
 		c = malloc(sizeof *c);
 		if(c == nil)
 			continue;

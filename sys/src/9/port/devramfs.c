@@ -220,7 +220,7 @@ delete(struct RamFile* file)
 			prev->sibling = file->sibling;
 		}
 	}
-	if(!file->perm & DMDIR){
+	if(!(file->perm & DMDIR)){
 		free(file->data);
 	}
 	file->magic = 0;

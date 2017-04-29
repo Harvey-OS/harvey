@@ -56,10 +56,10 @@ enum
  */
 Dirtab fdmuxdir[] =
 {
-	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"m",		{Qdata0},	0,		0600,
-	"cons",	{Qdata1},	0,		0600,
-	"consctl",		{Qctl},	0,		0600,
+	{".",		{Qdir,0,QTDIR},	0,		DMDIR|0500},
+	{"m",		{Qdata0},	0,		0600},
+	{"cons",	{Qdata1},	0,		0600},
+	{"consctl",		{Qctl},	0,		0600},
 };
 #define NFDMUXDIR 4
 

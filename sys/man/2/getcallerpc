@@ -29,4 +29,4 @@ main(int argc, char *argv[])
 }
 .EE
 .SH SOURCE
-.B /sys/src/libc/port/getcallerpc.c
+.B /$arch/include/u.h

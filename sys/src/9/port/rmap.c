@@ -116,7 +116,7 @@ rmapalloc(RMap* rmap, uintptr_t addr, uint size, int align)
 			do{
 				mp++;
 				(mp-1)->addr = mp->addr;
-			}while((mp-1)->size = mp->size);
+			}while(((mp-1)->size = mp->size) != 0);
 		}
 
 		unlock(&rmap->Lock);

@@ -642,7 +642,7 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 	if(seq_lt(tcb->rcv.nxt + w, tcb->rcv.wptr))
 		w = tcb->rcv.wptr - tcb->rcv.nxt;
 	if(w != tcb->rcv.wnd)
-	if(w>>tcb->rcv.scale == 0 || tcb->window > 4*tcb->mss && w < tcb->mss/4){
+	if(w>>tcb->rcv.scale == 0 || (tcb->window > 4*tcb->mss && w < tcb->mss/4)){
 		tcb->rcv.blocked = 1;
 		netlog(s->p->f, Logtcp, "tcprcvwin: window %lu qlen %d ws %u lport %d\n",
 			tcb->window, qlen(s->rq), tcb->rcv.scale, s->lport);
@@ -2656,8 +2656,8 @@ tcpoutput(Conv *s)
 
 		if(!(tcb->flags & FORCE))
 			if(ssize == 0 ||
-			    ssize < tcb->mss && tcb->snd.nxt == tcb->snd.ptr &&
-			    sent > TCPREXMTTHRESH * tcb->mss)
+			    (ssize < tcb->mss && tcb->snd.nxt == tcb->snd.ptr &&
+			    sent > TCPREXMTTHRESH * tcb->mss))
 				break;
 
 		tcb->flags &= ~FORCE;

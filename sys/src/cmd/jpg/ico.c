@@ -282,9 +282,9 @@ enum
 };
 
 char	*menu3str[] = {
-	[Mimage]	"write image",
-	[Mmask]		"write mask",
-	[Mexit]		"exit",
+	[Mimage] =	"write image",
+	[Mmask] =	"write mask",
+	[Mexit] =	"exit",
 	0,
 };
 

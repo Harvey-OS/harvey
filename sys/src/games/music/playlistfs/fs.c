@@ -61,19 +61,19 @@ char	*rflush(Worker*), *rauth(Worker*),
 	*rversion(Worker*);
 
 char 	*(*fcalls[])(Worker*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tauth]		rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+	[Tflush] =	rflush,
+	[Tversion] =	rversion,
+	[Tauth] =	rauth,
+	[Tattach] =	rattach,
+	[Twalk] =	rwalk,
+	[Topen] =	ropen,
+	[Tcreate] =	rcreate,
+	[Tread] =	rread,
+	[Twrite] =	rwrite,
+	[Tclunk] =	rclunk,
+	[Tremove] =	rremove,
+	[Tstat] =	rstat,
+	[Twstat] =	rwstat,
 };
 
 int	messagesize = Messagesize;

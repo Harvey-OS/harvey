@@ -27,18 +27,18 @@ enum {
 };
 
 static char *name[2*Ntemplate] = {
- [Tpage]		"page.html",
- [Tedit]		"edit.html",
- [Tdiff]		"diff.html",
- [Thistory]		"history.html",
- [Tnew]		"new.html",
- [Toldpage]	"oldpage.html",
- [Twerror]		"werror.html",
- [Ntemplate+Tpage]	"page.txt",
- [Ntemplate+Tdiff]	"diff.txt",
- [Ntemplate+Thistory]	"history.txt",
- [Ntemplate+Toldpage]	"oldpage.txt",
- [Ntemplate+Twerror]	"werror.txt",
+ [Tpage] =		"page.html",
+ [Tedit] =		"edit.html",
+ [Tdiff] =		"diff.html",
+ [Thistory] =		"history.html",
+ [Tnew] =		"new.html",
+ [Toldpage] =		"oldpage.html",
+ [Twerror] =		"werror.html",
+ [Ntemplate+Tpage] =	"page.txt",
+ [Ntemplate+Tdiff] =	"diff.txt",
+ [Ntemplate+Thistory] =	"history.txt",
+ [Ntemplate+Toldpage] =	"oldpage.txt",
+ [Ntemplate+Twerror] =	"werror.txt",
 };
 
 static struct {
@@ -190,25 +190,25 @@ mkurl(char *s, int ty)
 
 int okayinlist[Nwtxt] =
 {
-	[Wbullet]	1,
-	[Wlink]	1,
-	[Wman]	1,
-	[Wplain]	1,
+	[Wbullet] =	1,
+	[Wlink] =	1,
+	[Wman] =	1,
+	[Wplain] =	1,
 };
 
 int okayinpre[Nwtxt] =
 {
-	[Wlink]	1,
-	[Wman]	1,
-	[Wpre]	1,
+	[Wlink] =	1,
+	[Wman] =	1,
+	[Wpre] =	1,
 };
 
 int okayinpara[Nwtxt] =
 {
-	[Wpara]	1,
-	[Wlink]	1,
-	[Wman]	1,
-	[Wplain]	1,
+	[Wpara] =	1,
+	[Wlink] =	1,
+	[Wman] =	1,
+	[Wplain] =	1,
 };
 
 char*

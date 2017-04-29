@@ -51,9 +51,9 @@ enum
 /* caphash must be last */
 Dirtab capdir[] =
 {
-	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"capuse",	{Quse},		0,		0222,
-	"caphash",	{Qhash},	0,		0200,
+	{".",		{Qdir,0,QTDIR},	0,		DMDIR|0500},
+	{"capuse",	{Quse},		0,		0222},
+	{"caphash",	{Qhash},	0,		0200},
 };
 int ncapdir = nelem(capdir);
 

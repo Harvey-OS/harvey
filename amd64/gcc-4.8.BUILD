@@ -1,5 +1,6 @@
 COMPILER_FLAGS=[
-  "-Wno-frame-address",
+  "-Wall",
+  "-Werror",
   "-fno-pie",
   "-fvar-tracking",
   "-fvar-tracking-assignments"

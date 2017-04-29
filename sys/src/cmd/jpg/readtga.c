@@ -50,15 +50,15 @@ typedef struct {
  */
 
 char *datatype[] = {
-	[0]	"No image data",
-	[1]	"color mapped",
-	[2]	"RGB",
-	[3]	"B&W",
-	[9]	"RLE color-mapped",
-	[10]	"RLE RGB",
-	[11]	"Compressed B&W",
-	[32]	"Compressed color",
-	[33]	"Quadtree compressed color",
+	[0] =	"No image data",
+	[1] =	"color mapped",
+	[2] =	"RGB",
+	[3] =	"B&W",
+	[9] =	"RLE color-mapped",
+	[10] =	"RLE RGB",
+	[11] =	"Compressed B&W",
+	[32] =	"Compressed color",
+	[33] =	"Quadtree compressed color",
 };
 
 static int

@@ -28,9 +28,9 @@ enum {
 	Vmarvell= 0x1b4b,
 };
 
-#define	dprint(...)	if(debug)	iprint(__VA_ARGS__); else USED(debug)
-#define	idprint(...)	if(prid)	iprint(__VA_ARGS__);  else USED(prid)
-#define	aprint(...)	if(datapi)	iprint(__VA_ARGS__);  else USED(datapi)
+#define	dprint(...)	do if(debug)	iprint(__VA_ARGS__); while(0)
+#define	idprint(...)	do if(prid)	iprint(__VA_ARGS__); while(0)
+#define	aprint(...)	do if(datapi)	iprint(__VA_ARGS__); while(0)
 
 #define Tname(c)	tname[(c)->type]
 #define Intel(x)	((x)->pci->vid == Vintel)
@@ -960,7 +960,7 @@ updatedrive(Drive *d)
 		}
 		pr = 0;
 	}
-	if(p->task & 1 && last != cause)
+	if((p->task & 1) && last != cause)
 		dprint("%s: err ca %#lx serr %#lx task %#lx sstat %#lx\n",
 			name, cause, serr, p->task, p->sstatus);
 	if(pr)
@@ -1545,7 +1545,7 @@ ahcibuild(Drive *d, unsigned char *cmd, void *data, int n, int64_t lba)
 	Actab *t;
 	Aportm *pm;
 	Aprdt *p;
-	static unsigned char tab[2][2] = { 0xc8, 0x25, 0xca, 0x35, };
+	static unsigned char tab[2][2] = { {0xc8, 0x25}, {0xca, 0x35}, };
 
 	pm = &d->portm;
 	dir = *cmd != 0x28;
@@ -1773,7 +1773,7 @@ retry:
 	task = d->port->task;
 	iunlock(&d->Lock);
 
-	if(task & (Efatal<<8) || task & (ASbsy|ASdrq) && d->state == Dready){
+	if((task & (Efatal<<8)) || ((task & (ASbsy|ASdrq)) && d->state == Dready)){
 		d->port->ci = 0;
 		ahcirecover(&d->portc);
 		task = d->port->task;
@@ -1917,8 +1917,8 @@ retry:
 		task = d->port->task;
 		iunlock(&d->Lock);
 
-		if(task & (Efatal<<8) ||
-		    task & (ASbsy|ASdrq) && d->state == Dready){
+		if((task & (Efatal<<8)) ||
+		    ((task & (ASbsy|ASdrq)) && d->state == Dready)){
 			d->port->ci = 0;
 			ahcirecover(&d->portc);
 			task = d->port->task;
