@@ -490,106 +490,106 @@ struct Info
 };
 
 Info partinfo[] = {
-	4,	"magic",
-	D|4,	"version",
-	Z|4,	"blocksize",
-	4,	"arenabase",
-	0
+	{4,	"magic"},
+	{D|4,	"version"},
+	{Z|4,	"blocksize"},
+	{4,	"arenabase"},
+	{0,	nil}
 };
 
 Info headinfo4[] = {
-	4,	"magic",
-	D|4,	"version",
-	S|ANameSize,	"name",
-	Z|4,	"blocksize",
-	Z|8,	"size",
-	0
+	{4,	"magic"},
+	{D|4,	"version"},
+	{S|ANameSize,	"name"},
+	{Z|4,	"blocksize"},
+	{Z|8,	"size"},
+	{0,	nil}
 };
 
 Info headinfo5[] = {
-	4,	"magic",
-	D|4,	"version",
-	S|ANameSize,	"name",
-	Z|4,	"blocksize",
-	Z|8,	"size",
-	4,	"clumpmagic",
-	0
+	{4,	"magic"},
+	{D|4,	"version"},
+	{S|ANameSize,	"name"},
+	{Z|4,	"blocksize"},
+	{Z|8,	"size"},
+	{4,	"clumpmagic"},
+	{0,	nil}
 };
 
 Info tailinfo4[] = {
-	4,	"magic",
-	D|4,	"version",
-	S|ANameSize,	"name",
-	D|4,	"clumps",
-	D|4,	"cclumps",
-	T|4,	"ctime",
-	T|4,	"wtime",
-	D|8,	"used",
-	D|8,	"uncsize",
-	1,	"sealed",
-	0
+	{4,	"magic"},
+	{D|4,	"version"},
+	{S|ANameSize,	"name"},
+	{D|4,	"clumps"},
+	{D|4,	"cclumps"},
+	{T|4,	"ctime"},
+	{T|4,	"wtime"},
+	{D|8,	"used"},
+	{D|8,	"uncsize"},
+	{1,	"sealed"},
+	{0,	nil}
 };
 
 Info tailinfo4a[] = {
 	/* tailinfo 4 */
-	4,	"magic",
-	D|4,	"version",
-	S|ANameSize,	"name",
-	D|4,	"clumps",
-	D|4,	"cclumps",
-	T|4,	"ctime",
-	T|4,	"wtime",
-	D|8,	"used",
-	D|8,	"uncsize",
-	1,	"sealed",
+	{4,	"magic"},
+	{D|4,	"version"},
+	{S|ANameSize,	"name"},
+	{D|4,	"clumps"},
+	{D|4,	"cclumps"},
+	{T|4,	"ctime"},
+	{T|4,	"wtime"},
+	{D|8,	"used"},
+	{D|8,	"uncsize"},
+	{1,	"sealed"},
 
 	/* mem stats */
-	1,	"extension",
-	D|4,	"mem.clumps",
-	D|4,	"mem.cclumps",
-	D|8,	"mem.used",
-	D|8,	"mem.uncsize",
-	1,	"mem.sealed",
-	0
+	{1,	"extension"},
+	{D|4,	"mem.clumps"},
+	{D|4,	"mem.cclumps"},
+	{D|8,	"mem.used"},
+	{D|8,	"mem.uncsize"},
+	{1,	"mem.sealed"},
+	{0,	nil}
 };
 
 Info tailinfo5[] = {
-	4,	"magic",
-	D|4,	"version",
-	S|ANameSize,	"name",
-	D|4,	"clumps",
-	D|4,	"cclumps",
-	T|4,	"ctime",
-	T|4,	"wtime",
-	4,	"clumpmagic",
-	D|8,	"used",
-	D|8,	"uncsize",
-	1,	"sealed",
-	0
+	{4,	"magic"},
+	{D|4,	"version"},
+	{S|ANameSize,	"name"},
+	{D|4,	"clumps"},
+	{D|4,	"cclumps"},
+	{T|4,	"ctime"},
+	{T|4,	"wtime"},
+	{4,	"clumpmagic"},
+	{D|8,	"used"},
+	{D|8,	"uncsize"},
+	{1,	"sealed"},
+	{0,	nil}
 };
 
 Info tailinfo5a[] = {
 	/* tailinfo 5 */
-	4,	"magic",
-	D|4,	"version",
-	S|ANameSize,	"name",
-	D|4,	"clumps",
-	D|4,	"cclumps",
-	T|4,	"ctime",
-	T|4,	"wtime",
-	4,	"clumpmagic",
-	D|8,	"used",
-	D|8,	"uncsize",
-	1,	"sealed",
+	{4,	"magic"},
+	{D|4,	"version"},
+	{S|ANameSize,	"name"},
+	{D|4,	"clumps"},
+	{D|4,	"cclumps"},
+	{T|4,	"ctime"},
+	{T|4,	"wtime"},
+	{4,	"clumpmagic"},
+	{D|8,	"used"},
+	{D|8,	"uncsize"},
+	{1,	"sealed"},
 
 	/* mem stats */
-	1,	"extension",
-	D|4,	"mem.clumps",
-	D|4,	"mem.cclumps",
-	D|8,	"mem.used",
-	D|8,	"mem.uncsize",
-	1,	"mem.sealed",
-	0
+	{1,	"extension"},
+	{D|4,	"mem.clumps"},
+	{D|4,	"mem.cclumps"},
+	{D|8,	"mem.used"},
+	{D|8,	"mem.uncsize"},
+	{1,	"mem.sealed"},
+	{0,	nil}
 };
 
 void

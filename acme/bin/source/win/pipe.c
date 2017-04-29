@@ -171,7 +171,7 @@ newpipethread(void* _)
 {
 	Window *w;
 
-	while(w = recvp(newpipechan))
+	while((w = recvp(newpipechan)) != nil)
 		threadcreate(pipectl, w, STACK);
 }
 

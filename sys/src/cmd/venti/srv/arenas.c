@@ -37,7 +37,7 @@ hashstr(char *s)
 	int c;
 
 	h = 0;
-	for(; c = *s; s++){
+	for(; (c = *s) != '\0'; s++){
 		c ^= c << 6;
 		h += (c << 11) ^ (c >> 1);
 		c = *s;

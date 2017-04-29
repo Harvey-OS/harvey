@@ -32,7 +32,7 @@ nameok(char *name)
 
 	if(name == nil)
 		return -1;
-	for(t = name; c = *t; t++)
+	for(t = name; (c = *t) != '\0'; t++)
 		if(t - name >= ANameSize
 		|| c < ' ' || c >= 0x7f)
 			return -1;
