@@ -259,6 +259,67 @@ kmesgputs(char *str, int n)
 	iunlock(&kmesg.lk);
 }
 
+static
+void printcontrolt(int c)
+{
+	int x;
+	/* ^T escapes */
+	print("^T^T%c\n", c);
+	switch(c){
+	case 'S':
+		x = splhi();
+		dumpstack();
+		procdump();
+		splx(x);
+		break;
+	case 's':
+		dumpstack();
+		break;
+	case 'x':
+		//xsummary();
+		ixsummary();
+		mallocsummary();
+		//	memorysummary();
+		pagersummary();
+		break;
+	case 'p':
+		x = spllo();
+		procdump();
+		splx(x);
+		break;
+	case 'q':
+		scheddump();
+		break;
+	case 'k':
+		killbig("^t ^t k");
+		break;
+	case 'r':
+		exit(0);
+		break;
+	}
+}
+
+void catchcontrolt(int c)
+{
+	static int ctrlt;
+
+	if(ctrlt == 2) {
+		ctrlt = 0;
+		printcontrolt(c);
+	}
+
+	switch(c){
+	case 0x10:	/* ^P */
+		active.exiting = 1;
+		break;
+	case 0x14:	/* ^T */
+		ctrlt++;
+		if(ctrlt > 2)
+			ctrlt = 2;
+		break;
+	}
+}
+
 /*
  *   Print a string on the console.  Convert \n to \r\n for serial
  *   line consoles.  Locking of the queues is left up to the screen
@@ -269,6 +330,9 @@ kmesgputs(char *str, int n)
 static void
 putstrn0(char *str, int n, int usewrite)
 {
+	if(n == 0)
+		return;
+
 	kmesgputs(str, n);
 	if(consputs != nil)
 		consputs(str, n);
