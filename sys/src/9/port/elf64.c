@@ -427,7 +427,7 @@ elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 						//error(Ebadexec);
 					}
 
-					if(offset & (align-1) != vaddr & (align-1)){
+					if((offset&(align-1)) != (vaddr&(align-1))){
 						print("elf64ldseg: va offset 0x%x != file offset 0x%x (align 0x%x)\n",
 							offset & (align-1),
 							vaddr & (align-1),
