@@ -156,7 +156,7 @@ attach_to_process(int pid)
 	}
 
 	Map* symmap = loadmap(0, textfid, &fhdr);
-	if (symmap == 0) {
+	if (symmap == nil) {
 		syslog(0, "gdbserver", "loadmap failed: %r");
 		return;
 	}
@@ -452,7 +452,6 @@ mem2hex(unsigned char *mem, char *buf, int count)
 	char *tmp;
 
 	for(tmp = buf; count; tmp += 2, count--, mem++){
-		syslog(0, "gdbserver", "%02x", *mem);
 		sprint(tmp, "%02x", *mem);
 	}
 
