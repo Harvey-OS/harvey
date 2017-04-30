@@ -1045,7 +1045,6 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		if(offset+n > rsize)
 			n = rsize - offset;
 		ureg2gdb(p->dbgreg, gdbregs);
-print("Qgdbregs: va %p, rptr +offset %p, n %d\n", va, rptr+offset, n);
 		memmove(va, rptr+offset, n);
 		psdecref(p);
 		return n;
