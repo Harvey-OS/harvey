@@ -971,6 +971,3 @@ isectproc(void *v)
 
 	sendp(isectdonechan, is);
 }
-
-
-

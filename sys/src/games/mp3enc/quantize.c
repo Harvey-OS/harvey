@@ -1842,6 +1842,3 @@ iteration_loop(
 
     ResvFrameEnd (gfc, l3_side, mean_bits);
 }
-
-
-

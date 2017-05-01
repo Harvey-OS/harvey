@@ -83,4 +83,3 @@ t6init(void)
 
 	nr(L(".l"), eval(L("6.5i")));
 }
-

@@ -319,4 +319,3 @@ void DWBprefix(char *prog, char *path, int length)
 }   /* End of DWBprefix */
 
 /*****************************************************************************/
-

@@ -347,5 +347,3 @@ actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
 		panic("AC traps can't be shared");
 	acvctl[vno] = v;
 }
-
-

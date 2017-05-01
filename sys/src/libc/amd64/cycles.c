@@ -8,4 +8,3 @@ void _cycles(uint64_t *x)
         __asm__ __volatile__ ("rdtsc" : "=a" (a), "=d" (d));
 
 }
-

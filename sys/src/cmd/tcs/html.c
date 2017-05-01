@@ -477,4 +477,3 @@ html_out(Rune *r, int n, int32_t *x)
 	}
 	Bflush(&b);
 }
-

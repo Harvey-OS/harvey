@@ -378,5 +378,3 @@ putsize(char *s)
 	if (s && *s)
 		Bprint(&tabout, "\\s%s", s);
 }
-
-

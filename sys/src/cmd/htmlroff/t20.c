@@ -85,4 +85,3 @@ t20init(void)
 	addreq(L("pm"), r_pm, -1);
 	addreq(L("fl"), r_fl, 0);
 }
-

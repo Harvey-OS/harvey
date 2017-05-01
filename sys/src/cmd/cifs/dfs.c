@@ -413,4 +413,3 @@ redirect(Session *s, Share *sp, char *path)
 			cp->src, cp->share, cp->path);
 	return 0;
 }
-

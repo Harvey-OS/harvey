@@ -34,4 +34,3 @@ convPR2M(Passwordreq *f, char *ap, char *key)
 		encrypt(key, ap, n);
 	return n;
 }
-

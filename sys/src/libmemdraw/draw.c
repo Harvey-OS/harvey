@@ -2516,4 +2516,3 @@ memfillcolor(Memimage *i, uint32_t val)
 		break;
 	}
 }
-

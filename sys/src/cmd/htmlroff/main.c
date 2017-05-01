@@ -78,4 +78,3 @@ main(int argc, char **argv)
 	Bterm(&bout);
 	exits(nil);
 }
-

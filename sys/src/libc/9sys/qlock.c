@@ -369,4 +369,3 @@ rwakeupall(Rendez *r)
 		;
 	return i;
 }
-

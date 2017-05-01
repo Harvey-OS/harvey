@@ -142,4 +142,3 @@ move(int key)
 
 	drawglenda();
 }
-

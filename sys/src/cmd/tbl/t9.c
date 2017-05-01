@@ -80,5 +80,3 @@ domore(char *dataln)
 	exstore = exspace;		 /* reuse space for numerical items */
 	return(1);
 }
-
-

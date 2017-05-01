@@ -73,4 +73,3 @@ smbmkrep(char *pattern)
 	free(tmp);
 	return r;
 }
-

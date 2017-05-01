@@ -184,4 +184,3 @@ runetobyte(Rune *r, int n, int *ip)
 	print_func_exit();
 	return s;
 }
-

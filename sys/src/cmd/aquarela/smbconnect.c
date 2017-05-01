@@ -281,4 +281,3 @@ smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **)
 	}
 	return 0;
 }
-

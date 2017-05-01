@@ -476,4 +476,3 @@ bufimage(Display *d, int n)
 	d->bufp += n;
 	return p;
 }
-

@@ -46,4 +46,3 @@ Cipher cipherblowfish =
 	encryptblowfish,
 	decryptblowfish,
 };
-

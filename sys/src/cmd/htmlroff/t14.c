@@ -39,4 +39,3 @@ t14init(void)
 	addreq(L("pc"), r_nop, -1);	/* page number char */
 	addreq(L("lt"), r_lt, -1);
 }
-
