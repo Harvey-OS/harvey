@@ -5,6 +5,8 @@ before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo add-apt-repository ppa:ubuntu-lxc/lxd-stable -y
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main' -y
+  - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main' -y
+  - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main' -y
   - sudo apt-get update
   - sudo apt-get install -y --force-yes $CC rc golang
 script:
@@ -15,6 +17,8 @@ compiler:
 - gcc-6
 - clang
 - clang-3.8
+- clang-3.9
+- clang-4-0
 env:
   global:
   - secure: tARd2A5pHaoxooEXFhjnbLcPCp5cKPZTH4f+tMajMrSAkSmuNpL+GxUsa3wGhTRm0S3LOHtstqB0w8aRkdmwoytj64D9idX6121Ui9NuA47YL+NFRs76Oh3JcEzvdTu2ZhfTlvOwpDR1zjXhBBSVhFB8Tr2+N9Ywz95SjIgybx8V8B6jk946lPMK5dm1MBJ9iKy9Xngv49DNy5A3g7nalzK3+gL8yeKLdgu10KqZkLFXcdxoU2Nq5A/T8mrufxEe7tYmmGRpN9YqXn4rRnKg3BrEPXWcYfD8nkyUeaCRXIx9autWpGFU8HmxvWvOKrcDR6FjzrD7uWSlVGh9WGoomwSCgRb9pJSYOnORGrlTUkO/badEZHXBCAlCV6RgL2CFENxr55p2Ddb+iXxTM+iP5sJ1bhVQVbIL590lNqMkxvhT46g+meE6xIil+05OC5PR2B/SqhQ0jqcvjKRsK232KobseKQ1h7+jm2kZMfl45nPq1q+dlsN1IvKKN5XgyIhAje1eudvAeBzFbl0I7k0ZUnikKGW0AB1pjTDcFLIQFuzTZOix1uYrahI25oo1FgE1iLCbhgXQKtAW++sgxdb31fX7Rzi+YZCBprJ8PbJ4vUiUIhKfb5ORT71cmew7GVlFmKclVgDMaNOeGiJjUsHgPXx0sDsHsGT4RLwvxzpg+Cw=
