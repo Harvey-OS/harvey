@@ -1007,18 +1007,20 @@ gdb_serial_stub(struct state *ks, int port)
 	char adir[40], ldir[40], buff[256];
 	int acfd, lcfd;
 
-    sprint(buff, "tcp!*!%d", port);
+	sprint(buff, "tcp!*!%d", port);
 	acfd = announce(buff, adir);
 	if (acfd < 0) {
 	    fprint(2, "Unable to connect %r\n");
 	    exits("announce");
 	}
+
 	lcfd = listen(adir, ldir);
 	if (lcfd < 0) {
 	    fprint(2, "listen failed %r\n");
 	    exits("listen");
 	}
-    print("Waiting for connection on %d...\n", port);
+
+	print("Waiting for connection on %d...\n", port);
 	remotefd = accept(lcfd, ldir);
 	if (remotefd < 0) {
 	    fprint(2, "Accept failed %r\n");
@@ -1052,7 +1054,7 @@ gdb_serial_stub(struct state *ks, int port)
 		memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
 
 		get_packet(remcom_in_buffer);
-        syslog(0, "gdbserver", "packet :%s:", remcom_in_buffer);
+		syslog(0, "gdbserver", "packet :%s:", remcom_in_buffer);
 
 		switch (remcom_in_buffer[0]) {
 			case '?':	/* gdbserial status */
@@ -1105,13 +1107,6 @@ gdb_serial_stub(struct state *ks, int port)
 			case 'Z':	/* Break point set */
 				gdb_cmd_break(ks);
 				break;
-#ifdef CONFIG_KDB
-			case '3':	/* Escape into back into kdb */
-				if (remcom_in_buffer[1] == '\0') {
-					gdb_cmd_detachkill(ks);
-					return DBG_PASS_EVENT;
-				}
-#endif
 			case 'C':	/* Exception passing */
 				tmp = gdb_cmd_exception_pass(ks);
 				if (tmp > 0)
@@ -1146,7 +1141,7 @@ default_handle:
 					goto exit;
 				}
 		}
-syslog(0, "gdbserver", "RETURN :%s:", remcom_out_buffer);
+		syslog(0, "gdbserver", "RETURN :%s:", remcom_out_buffer);
 		/* reply to the request */
 		put_packet(remcom_out_buffer);
 	}
@@ -1253,34 +1248,35 @@ static struct state ks;
 void
 main(int argc, char **argv)
 {
-    char* pid = nil;
-    char* port = "1666";
-    ARGBEGIN {
-    case 'l':
-        port = ARGF();
-        if (port == nil) {
-            fprint(2, "Please specify a listening port\n");
-            exits("listen");
-        }
-        break;
-    case 'p':
-        pid = ARGF();
-        if (pid == nil) {
-            fprint(2, "Please specify a pid\n");
-            exits("pid");
-        }
-        break;
-    case 'd':
-        debug = 1;
-        break;
-    default:
-        fprint(2, " badflag('%c')", ARGC());
-    } ARGEND
+	char* pid = nil;
+	char* port = "1666";
 
-        if (pid == nil) {
-            fprint(2, "Please specify a pid\n");
-            exits("pid");
-        }
+	ARGBEGIN {
+	case 'l':
+		port = ARGF();
+		if (port == nil) {
+			fprint(2, "Please specify a listening port\n");
+			exits("listen");
+		}
+		break;
+	case 'p':
+		pid = ARGF();
+		if (pid == nil) {
+			fprint(2, "Please specify a pid\n");
+			exits("pid");
+		}
+		break;
+	case 'd':
+		debug = 1;
+		break;
+	default:
+		fprint(2, " badflag('%c')", ARGC());
+	} ARGEND
+
+	if (pid == nil) {
+		fprint(2, "Please specify a pid\n");
+		exits("pid");
+	}
 
 	ks.threadid = atoi(pid);
 	// Set to 0 if we eventually support creating a new process
