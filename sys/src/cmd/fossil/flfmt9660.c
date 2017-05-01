@@ -10,7 +10,7 @@
 /*
  * Initialize a fossil file system from an ISO9660 image already in the
  * file system.  This is a fairly bizarre thing to do, but it lets us generate
- * installation CDs that double as valid Plan 9 disk partitions.  
+ * installation CDs that double as valid Plan 9 disk partitions.
  * People having trouble booting the CD can just copy it into a disk
  * partition and you've got a working Plan 9 system.
  *
@@ -153,7 +153,7 @@ littleend(void)
 {
 	longc = 'L';
 }
-*/ 
+*/
 
 static uint32_t
 big(void *a, int n)
@@ -266,7 +266,7 @@ runeTfmt(Fmt *fmt)
 	fmt->flags &= ~FmtPrec;
 	return fmtprint(fmt, "%S", buf);
 }
-*/ 
+*/
 
 static void
 getsect(uint8_t *buf, int n)
@@ -409,7 +409,7 @@ iso9660start(Cdir *c)
 		c = (Cdir*)((uint8_t*)c+c->len);	/* skip dotdot */
 		/* oops: might happen if leftmost directory is empty or leftmost file is zero length! */
 		if(little(c->dloc, 4) == 0)
-			vtFatal("error parsing cd image or unfortunate cd image");	
+			vtFatal("error parsing cd image or unfortunate cd image");
 	}
 	return little(c->dloc, 4);
 }

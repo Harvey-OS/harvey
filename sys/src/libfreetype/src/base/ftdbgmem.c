@@ -64,9 +64,9 @@
     FT_ULong         alloc_max;
     FT_ULong         alloc_count;
 
-    FT_Bool          bound_total;    
+    FT_Bool          bound_total;
     FT_ULong         alloc_total_max;
-    
+
     FT_Bool          bound_count;
     FT_ULong         alloc_count_max;
 
@@ -489,9 +489,9 @@
       return NULL;
 
     /* return NULL if this allocation would overflow the maximum heap size */
-    if ( table->bound_total && 
+    if ( table->bound_total &&
          table->alloc_current + (FT_ULong)size > table->alloc_total_max )
-      return NULL;         
+      return NULL;
 
     block = (FT_Byte *)ft_mem_table_alloc( table, size );
     if ( block )
@@ -595,29 +595,29 @@
       if ( table )
       {
         const char*  p;
-        
+
         memory->user    = table;
         memory->alloc   = ft_mem_debug_alloc;
         memory->realloc = ft_mem_debug_realloc;
         memory->free    = ft_mem_debug_free;
-        
+
         p = getenv( "FT2_ALLOC_TOTAL_MAX" );
         if ( p != NULL )
         {
           FT_Long   total_max = atol(p);
-          
+
           if ( total_max > 0 )
           {
             table->bound_total     = 1;
             table->alloc_total_max = (FT_ULong) total_max;
           }
         }
-        
+
         p = getenv( "FT2_ALLOC_COUNT_MAX" );
         if ( p != NULL )
         {
           FT_Long  total_count = atol(p);
-          
+
           if ( total_count > 0 )
           {
             table->bound_count     = 1;

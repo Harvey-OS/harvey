@@ -22,17 +22,17 @@ struct {
 	char	*buf;
 	int	len;
 } Infdir[] = {
-	{ "Users",	userinfo },	
-	{ "Groups",	groupinfo },	
-	{ "Shares",	shareinfo },	
-	{ "Connection",	conninfo },	
-	{ "Sessions",	sessioninfo },	
-	{ "Dfsroot",	dfsrootinfo },	
-	{ "Dfscache",	dfscacheinfo },	
-	{ "Domains",	domaininfo },	
-	{ "Openfiles",	openfileinfo },	
-	{ "Workstations", workstationinfo },	
-	{ "Filetable",	filetableinfo },	
+	{ "Users",	userinfo },
+	{ "Groups",	groupinfo },
+	{ "Shares",	shareinfo },
+	{ "Connection",	conninfo },
+	{ "Sessions",	sessioninfo },
+	{ "Dfsroot",	dfsrootinfo },
+	{ "Dfscache",	dfscacheinfo },
+	{ "Domains",	domaininfo },
+	{ "Openfiles",	openfileinfo },
+	{ "Workstations", workstationinfo },
+	{ "Filetable",	filetableinfo },
 };
 
 int

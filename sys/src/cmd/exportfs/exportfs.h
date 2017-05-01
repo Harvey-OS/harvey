@@ -105,9 +105,9 @@ extern char*	patternfile;
 /* File system protocol service procedures */
 void Xattach(Fsrpc*);
 void Xauth(Fsrpc*);
-void Xclunk(Fsrpc*); 
+void Xclunk(Fsrpc*);
 void Xcreate(Fsrpc*);
-void Xflush(Fsrpc*); 
+void Xflush(Fsrpc*);
 void Xnop(Fsrpc*);
 void Xremove(Fsrpc*);
 void Xstat(Fsrpc*);

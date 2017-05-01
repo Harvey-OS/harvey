@@ -56,7 +56,7 @@ rregsub(Rune *sp,	/* source string */
 					*dp++ = *sp;
 				break;
 			}
-		}else if(*sp == '&'){				
+		}else if(*sp == '&'){
 			if(mp[0].rsp != 0 && mp!=0 && ms>0)
 			if(mp[0].rsp != 0)
 				for(ssp = mp[0].rsp;

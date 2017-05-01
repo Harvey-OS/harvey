@@ -20,7 +20,7 @@ longjmp:
         movq	64(%r9), %rdi /* 1st function argument */
         movq	72(%r9), %rsi /* 2nd function argument */
 
-        jmp     *%r8 
+        jmp     *%r8
 
 .globl setjmp
 setjmp:

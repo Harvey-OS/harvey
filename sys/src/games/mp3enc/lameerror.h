@@ -25,11 +25,11 @@ typedef enum {
     LAME_BADBITRATE       = -11,
     LAME_BADSAMPFREQ      = -12,
     LAME_INTERNALERROR    = -13,
-    
+
     FRONTEND_READERROR    = -80,
     FRONTEND_WRITEERROR   = -81,
     FRONTEND_FILETOOLARGE = -82,
-    
+
 } lame_errorcodes_t;
 
 /* end of lameerror.h */

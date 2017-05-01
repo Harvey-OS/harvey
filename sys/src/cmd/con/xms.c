@@ -53,7 +53,7 @@ updcrc(int c, uint16_t crc)
 			crc += (((c<<=1) & 0400)  !=  0);
 		}
 	}
-	return crc;	
+	return crc;
 }
 
 void
@@ -181,7 +181,7 @@ send(uint8_t *buf, int len)
 			return -1;
 		if(write(1, buf, len) != len)
 			return -1;
-		
+
 		alarm(30*1000);
 		n = read(0, &c, 1);
 		alarm(0);

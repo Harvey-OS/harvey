@@ -52,7 +52,7 @@ authtisfn(Conn *c)
 	m = allocmsg(c, SSH_CMSG_AUTH_TIS_RESPONSE, 4+strlen(resp));
 	putstring(m, resp);
 	sendmsg(m);
-	
+
 	m = recvmsg(c, -1);
 	switch(m->type){
 	default:

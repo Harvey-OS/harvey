@@ -59,7 +59,7 @@ authorize(HConnect *c, char *file)
 		return 1;
 	}
 	n = tokenize(buf, t, nelem(t));
-	
+
 	if(c->head.authuser != nil && c->head.authpass != 0){
 		for(i = 1; i+1 < n; i += 2){
 			if(strcmp(t[i], c->head.authuser) == 0

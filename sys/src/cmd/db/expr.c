@@ -192,7 +192,7 @@ item(int a)
 			return 1;
 		}
 		error("bad file location");
-	} else if (symchar(0)) {	
+	} else if (symchar(0)) {
 		readsym(gsym);
 		if (lastc=='.') {
 			readchar();	/* ugh */
@@ -216,7 +216,7 @@ item(int a)
 		reread();
 	} else if (getnum(readchar)) {
 		;
-	} else if (lastc=='.') {	
+	} else if (lastc=='.') {
 		readchar();
 		if (!symchar(0) && lastc != '.') {
 			expv = dot;
@@ -232,7 +232,7 @@ item(int a)
 			if (localaddr(cormap, s.name, lsym, &e, rget) < 0)
 				error("%r");
 			expv = e;
-		}	
+		}
 		reread();
 	} else if (lastc=='"') {
 		expv=ditto;
@@ -249,7 +249,7 @@ item(int a)
 		expv = ascval();
 	else if (a)
 		error("address expected");
-	else {	
+	else {
 		reread();
 		return(0);
 	}

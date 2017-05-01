@@ -112,7 +112,7 @@ const char*  get_lame_version ( void )		/* primary to write screen reports */
 /*!
   It's mainly for inclusion into the MP3 stream.
 
-  \param void   
+  \param void
   \return a pointer to the short version of the LAME version string.
 */
 const char*  get_lame_short_version ( void )
@@ -193,7 +193,7 @@ const char*  get_lame_url ( void )
     static /*@observer@*/ const char *const str = LAME_URL;
 
     return str;
-}    
+}
 
 
 //! Get the numerical representation of the version.
@@ -201,7 +201,7 @@ const char*  get_lame_url ( void )
   Writes the numerical representation of the version of LAME and
   GPSYCHO into lvp.
 
-  \param lvp    
+  \param lvp
 */
 void get_lame_version_numerical ( lame_version_t *const lvp )
 {

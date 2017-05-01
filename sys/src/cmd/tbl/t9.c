@@ -45,13 +45,13 @@ domore(char *dataln)
 	instead[0] = (char *)0;
 	if (dataln[1] == 0)
 		switch (dataln[0]) {
-		case '_': 
-			fullbot[0] = '-'; 
-			putline(useln, 0);  
+		case '_':
+			fullbot[0] = '-';
+			putline(useln, 0);
 			return(1);
-		case '=': 
-			fullbot[0] = '='; 
-			putline(useln, 0); 
+		case '=':
+			fullbot[0] = '=';
+			putline(useln, 0);
 			return(1);
 		}
 	for (icol = 0; icol < ncol; icol++) {
@@ -71,7 +71,7 @@ domore(char *dataln)
 		}
 		while (ctype(useln, icol + 1) == 's') /* spanning */
 			table[0][++icol].col = "";
-		if (ch == '\0') 
+		if (ch == '\0')
 			break;
 	}
 	while (++icol < ncol)

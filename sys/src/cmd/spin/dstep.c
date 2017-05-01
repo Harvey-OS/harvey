@@ -300,7 +300,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		}
 		Sourced(nxt->Seqno, 1);
 		lineno = ln;
-		Fname = nxt->n->fn;	
+		Fname = nxt->n->fn;
 		Mopup(fd);
 	}
 	unskip(s->frst->seqno);

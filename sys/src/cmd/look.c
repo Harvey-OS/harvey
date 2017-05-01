@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 	case 'f':
 		fold++;
 		break;
-	case 'i': 
+	case 'i':
 		iflag++;
 		break;
 	case 'n':
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 	if(argc < 1) {
 		direc++;
 		fold++;
-	} else 
+	} else
 		filename = argv[0];
 	if (!iflag)
 		rcanon(orig, key);

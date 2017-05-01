@@ -15,7 +15,7 @@
  *
  * The rule here (hopefully followed!) is that block corruption
  * only ever has a local effect -- there are no blocks that you
- * can wipe out that will cause large portions of 
+ * can wipe out that will cause large portions of
  * uncorrupted data blocks to be useless.
  */
 
@@ -631,7 +631,7 @@ showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
 				break;
 			case S|ANameSize:
 				print("\t%s: correct=%s disk=%.*s\n",
-					info->name, (char*)want, 
+					info->name, (char*)want,
 					utfnlen((char*)have, ANameSize-1),
 					(char*)have);
 				break;
@@ -823,7 +823,7 @@ guessgeometry(void)
 		}
 	}
 	p = pagein(ap.arenabase, Block);
-	print("arena base likely %z%s\n", (int64_t)ap.arenabase, 
+	print("arena base likely %z%s\n", (int64_t)ap.arenabase,
 		u32(p)!=ArenaHeadMagic ? " (but no arena head there)" : "");
 
 	ap.tabsize = ap.arenabase - ap.tabbase;
@@ -1029,7 +1029,7 @@ haveclump(uint8_t *score)
 {
 	int i;
 	int p;
-	
+
 	p = ciroot;
 	for(;;){
 		if(p == -1)
@@ -1099,7 +1099,7 @@ okayname(char *name, int n)
 	sprint(buf, "%d", n);
 	if(n == 0)
 		buf[0] = 0;
-	if(strlen(name) < strlen(buf) 
+	if(strlen(name) < strlen(buf)
 	|| strcmp(name+strlen(name)-strlen(buf), buf) != 0)
 		return 0;
 	return 1;
@@ -1185,7 +1185,7 @@ loadarenabasics(int64_t offset0, int anum, ArenaHead *head, Arena *arena)
 	if(offset0+arena->size > partend)
 		arena->size = partend - offset0;
 	head->size = arena->size;
-	
+
 	arena->blocksize = ap.blocksize;
 	head->blocksize = arena->blocksize;
 
@@ -1432,7 +1432,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 			 * grow clump info blocks if needed.
 			 */
 			if(verbose > 1)
-				print("\tclump %d: %d %V at %#llx+%#x (%d)\n", 
+				print("\tclump %d: %d %V at %#llx+%#x (%d)\n",
 					clumps, cl.info.type, cl.info.score, offset, n, n);
 			addcibuf(&cl.info, 0);
 			if(minclumps%ncib == 0)
@@ -1478,7 +1478,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 	pageout();
 
 	if(verbose)
-		print("readable clumps: %d; min. directory entries: %d\n", 
+		print("readable clumps: %d; min. directory entries: %d\n",
 			clumps, minclumps);
 	arena->diskstats.used = lastclumpend - boffset;
 	leaked = eoffset - lastclumpend;
@@ -1554,7 +1554,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 	 * The tricky part is handling the corrupt sections of arena.
 	 * If possible, we remark just the affected directory entries
 	 * rather than slide everything down.
-	 * 
+	 *
 	 * Allocate clumps+1 blocks and check that we don't need
 	 * the last one at the end.
 	 */

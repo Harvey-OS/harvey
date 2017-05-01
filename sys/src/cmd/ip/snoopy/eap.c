@@ -61,7 +61,7 @@ static Mux p_mux[] =
 	{ "eap_gtc", Gtc, },
 	{ "ttls", Ttls, },
 	{ "eap_xpnd", Xpnd, },
-	{ "eap_xprm", Xprm, }, 
+	{ "eap_xprm", Xprm, },
 	{ 0 }
 };
 

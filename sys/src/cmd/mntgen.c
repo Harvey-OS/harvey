@@ -210,7 +210,7 @@ fsattach(Req *r)
 		respond(r, "invalid attach specifier");
 		return;
 	}
-	
+
 	r->ofcall.qid = (Qid){0, 0, QTDIR};
 	r->fid->qid = r->ofcall.qid;
 	respond(r, nil);

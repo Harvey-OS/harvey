@@ -78,7 +78,7 @@ void caps(void);
 void abo(void);
 char *splitup(char *);
 
-X 
+X
 nomq(E env) {
 	X               v = getxx();
 	v->type = "-nomq";
@@ -98,7 +98,7 @@ nomq(E env) {
 	return v;
 }
 
-X 
+X
 rel(void) {
 	static char    *c[] = {"that", "which"};
 	X               v = getxx();
@@ -107,7 +107,7 @@ rel(void) {
 	return v;
 }
 
-X 
+X
 sent(E env) {
 	X               sentv = getxx();
 	sentv->type = "sent";
@@ -126,7 +126,7 @@ sent(E env) {
 	return sentv;
 }
 
-X 
+X
 nomy(void) {
 	X               v = getxx();
 	v->type = "-nomq";
@@ -134,7 +134,7 @@ nomy(void) {
 	return v;
 }
 
-X 
+X
 np(env)
 	E               env;
 {
@@ -155,7 +155,7 @@ np(env)
 	return npv;
 }
 
-X 
+X
 aux(E env) {
 	X               auxv = getxx();
 	int             i = 0;
@@ -172,7 +172,7 @@ aux(E env) {
 	return auxv;
 }
 
-X 
+X
 passive(env)
 	E               env;
 {
@@ -198,7 +198,7 @@ passive(env)
 	return v;
 }
 
-X 
+X
 passprep(void) {
 	X               v = getxx();
 	v->type = "-passprep";
@@ -206,7 +206,7 @@ passprep(void) {
 	return v;
 }
 
-X 
+X
 vp(env)
 	E               env;
 {
@@ -223,7 +223,7 @@ vp(env)
 	return vpv;
 }
 
-X 
+X
 art(env)
 	E               env;
 {
@@ -259,7 +259,7 @@ art(env)
 	return artv;
 }
 
-X 
+X
 modal(env)
 	E               env;
 {
@@ -277,7 +277,7 @@ modal(env)
 	return modalv;
 }
 
-X 
+X
 perf(env)
 	E               env;
 {
@@ -300,7 +300,7 @@ perf(env)
 	return perfv;
 }
 
-X 
+X
 prog(env)
 	E               env;
 {
@@ -329,7 +329,7 @@ prog(env)
 	return progv;
 }
 
-X 
+X
 verb(env)
 	E               env;
 {
@@ -662,7 +662,7 @@ static char    *adjlist[] = {"concrete", "abstract", "procedural",
 	"clear", "lucid", "simple", "perspicuous",
 	"incomplete", "concerned"};
 
-X 
+X
 noun(env)
 	E               env;
 {
@@ -702,7 +702,7 @@ noun(env)
 	return nounv;
 }
 
-X 
+X
 adjval(void) {
 	X               adjvalv = getxx();
 	int             i = 0;
@@ -716,7 +716,7 @@ adjval(void) {
 	return adjvalv;
 }
 
-X 
+X
 nounal(env)
 	E               env;
 {
@@ -812,7 +812,7 @@ number()
 	return prob(0.25) ? "plural" : "sing";
 }
 
-X 
+X
 getxx()
 {
 	X               rv;
@@ -827,7 +827,7 @@ getxx()
 	return rv;
 }
 
-X 
+X
 verbal(env)
 	E               env;
 {
@@ -951,8 +951,8 @@ static char    *advlist[] = {"absolutely", "functionally",
 	"supposedly", "systematically", "understandably",
 	"necessarily", "unfortunately",
 	"unnecessarily", "unmistakably", "usefully", "weakly"};
-	
-X 
+
+X
 adverb(void) {
 	static char    *wordy[] = {"very ", "extremely ", "generally ",
 		"reasonably ", "fundamentally ", "essentially ", "particularly ",
@@ -991,7 +991,7 @@ adverb(void) {
 	return adverbv;
 }
 
-X 
+X
 adjective(void) {
 	static char    *suff[] = {"ive", "ful", "ous", "some", "oid",
 	"ine", "esque", "en", "an",
@@ -1015,7 +1015,7 @@ adjective(void) {
 	return adjv;
 }
 
-X 
+X
 adjph(env)
 	E               env;
 {
@@ -1058,7 +1058,7 @@ static char    *preplist[] = {"across", "by", "in", "of",
 	"being joined together with", "being merged together with",
 	"in the vicinity of"};
 
-X 
+X
 prep(void) {
 	X               pv = getxx();
 	pv->type = "-prep";
@@ -1066,7 +1066,7 @@ prep(void) {
 	return pv;
 }
 
-X 
+X
 comp(env)
 	E               env;
 {
@@ -1092,7 +1092,7 @@ comp(env)
 	return v;
 }
 
-X 
+X
 advp(env)
 	E               env;
 {
@@ -1105,7 +1105,7 @@ advp(env)
 
 static char    *vpreplist[] = {"to", "at", "by", "from", "with", "for"};
 
-X 
+X
 vprep(void) {
 	X               v = getxx();
 	v->type = "-vprep";
@@ -1113,7 +1113,7 @@ vprep(void) {
 	return v;
 }
 
-E 
+E
 getenvq()
 {
 	static EE       empty;
@@ -1127,7 +1127,7 @@ getenvq()
 	return v;
 }
 
-X 
+X
 comma(env)
 	E               env;
 {
@@ -1143,7 +1143,7 @@ comma(env)
 static char    *conjadvlist[] = {"we believe", "naturally", "therefore",
 	"moreover", "obviously"};
 
-X 
+X
 conjadv(void) {
 	X               v = getxx();
 
@@ -1183,7 +1183,7 @@ static char    *lconjlist[] = {"therefore", "however", "nevertheless",
 	"with this in mind",
 	"substantially", "ultimately"};
 
-X 
+X
 lconjadv(void) {
 
 	X               v = getxx();
@@ -1192,7 +1192,7 @@ lconjadv(void) {
 	return v;
 }
 
-X 
+X
 conjsub(void) {
 	static char    *conjsublist[] = {"although", "even though",
 		"despite the fact that",
@@ -1234,7 +1234,7 @@ static char    *lconjsublist[] = {"although", "even though",
 	"as can be seen from the fact that",
 	"as"};
 
-X 
+X
 lconjsub(void) {
 	X               v = getxx();
 	v->type = "-lconjsub";
@@ -1244,7 +1244,7 @@ lconjsub(void) {
 
 static char    *conjlist[] = {"and", "but", "yet", "and", "and"};
 
-X 
+X
 conj(void) {
 	X               v = getxx();
 	v->type = "-conj";
@@ -1276,7 +1276,7 @@ static char    *nomzlist[] = {"it is easy to see that",
 	"it is left to the reader to prove"
 };
 
-X 
+X
 nomz(void) {
 	X               v = getxx();
 	v->type = "-nomz";
@@ -1307,7 +1307,7 @@ equation(void) {
 	return v;
 }
 
-X 
+X
 turgid(env)
 	E               env;
 {

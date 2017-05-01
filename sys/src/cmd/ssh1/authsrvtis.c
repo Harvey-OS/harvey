@@ -52,7 +52,7 @@ authsrvtisfn(Conn *conn, Msg *m)
 	return ai;
 }
 
-Authsrv authsrvtis = 
+Authsrv authsrvtis =
 {
 	SSH_AUTH_TIS,
 	"tis",

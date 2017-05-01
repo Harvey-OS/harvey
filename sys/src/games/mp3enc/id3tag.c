@@ -457,7 +457,7 @@ id3tag_write_v2(lame_global_flags *gfp)
             *p++ = 0;
             /* calculate and set tag size = total size - header size */
             adjusted_tag_size = tag_size - 10;
-            /* encode adjusted size into four bytes where most significant 
+            /* encode adjusted size into four bytes where most significant
              * bit is clear in each byte, for 28-bit total */
             *p++ = (adjusted_tag_size >> 21) & 0x7fu;
             *p++ = (adjusted_tag_size >> 14) & 0x7fu;

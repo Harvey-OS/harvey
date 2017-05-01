@@ -167,11 +167,11 @@ parse(char *s)
 
 	if(strcmp(s, "buf") == 0)
 		return (uintptr)buf;
-	
+
 	l = strtoull(s, &t, 0);
 	if(t>s && *t==0)
 		return l;
-	return (uintptr)s; 
+	return (uintptr)s;
 }
 
 void

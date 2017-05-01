@@ -82,7 +82,7 @@ static const struct
 /*	      ix_max							 */
 /*************************************************************************/
 
-int 
+int
 ix_max(const int *ix, const int *end)
 {
     int max1 = 0, max2 = 0;
@@ -90,21 +90,21 @@ ix_max(const int *ix, const int *end)
     do {
 	int x1 = *ix++;
 	int x2 = *ix++;
-	if (max1 < x1) 
+	if (max1 < x1)
 	    max1 = x1;
 
-	if (max2 < x2) 
+	if (max2 < x2)
 	    max2 = x2;
     } while (ix < end);
-    if (max1 < max2) 
+    if (max1 < max2)
 	max1 = max2;
     return max1;
 }
 
 int
-count_bit_ESC( 
-    const int *       ix, 
-    const int * const end, 
+count_bit_ESC(
+    const int *       ix,
+    const int * const end,
           int         t1,
     const int         t2,
           int * const s )
@@ -170,7 +170,7 @@ count_bit_noESC(const int * ix, const int * const end, int * const s)
 
 inline static int
 count_bit_noESC_from2(
-    const int *       ix, 
+    const int *       ix,
     const int * const end,
           int         t1,
           int * const s )
@@ -205,7 +205,7 @@ count_bit_noESC_from2(
 
 inline static int
 count_bit_noESC_from3(
-    const int *       ix, 
+    const int *       ix,
     const int * const end,
           int         t1,
           int * const s )
@@ -258,7 +258,7 @@ count_bit_noESC_from3(
 
 static int
 choose_table_nonMMX(
-    const int *       ix, 
+    const int *       ix,
     const int * const end,
           int * const s )
 {
@@ -316,7 +316,7 @@ choose_table_nonMMX(
 /*************************************************************************/
 
 /*
- Function: Count the number of bits necessary to code the subregion. 
+ Function: Count the number of bits necessary to code the subregion.
 */
 
 
@@ -327,7 +327,7 @@ int count_bits_long(lame_internal_flags * const gfc, const int ix[576], gr_info 
 
     i=576;
     /* Determine count1 region */
-    for (; i > 1; i -= 2) 
+    for (; i > 1; i -= 2)
 	if (ix[i - 1] | ix[i - 2])
 	    break;
     gi->count1 = i;
@@ -389,7 +389,7 @@ int count_bits_long(lame_internal_flags * const gfc, const int ix[576], gr_info 
     /* (and region0, region1 are ignored) */
     a1 = Min(a1,i);
     a2 = Min(a2,i);
-    
+
 //	assert( a1 >= 0 );
 //	assert( a2 >= 0 );
 
@@ -406,10 +406,10 @@ int count_bits_long(lame_internal_flags * const gfc, const int ix[576], gr_info 
 
 
 int count_bits(
-          lame_internal_flags * const gfc, 
+          lame_internal_flags * const gfc,
           int     * const ix,
     const FLOAT8  * const xr,
-          gr_info * const cod_info)  
+          gr_info * const cod_info)
 {
   int bits=0,i;
   /* since quantize_xrpow uses table lookup, we need to check this first: */
@@ -419,7 +419,7 @@ int count_bits(
       return LARGE_BITS;
   }
 
-  if (gfc->quantization) 
+  if (gfc->quantization)
     quantize_xrpow(xr, ix, IPOW20(cod_info->global_gain));
   else
     quantize_xrpow_ISO(xr, ix, IPOW20(cod_info->global_gain));
@@ -494,7 +494,7 @@ recalc_divide_sub(
 
     for (r2 = 2; r2 < SBMAX_l + 1; r2++) {
 	a2 = gfc->scalefac_band.l[r2];
-	if (a2 >= bigv) 
+	if (a2 >= bigv)
 	    break;
 
 	bits = r01_bits[r2 - 2] + cod_info2.count1bits;
@@ -520,7 +520,7 @@ recalc_divide_sub(
 
 void best_huffman_divide(
     const lame_internal_flags * const gfc,
-    const int             gr, 
+    const int             gr,
     const int             ch,
           gr_info * const gi,
           int     * const ix )
@@ -534,8 +534,8 @@ void best_huffman_divide(
     int r1_tbl[7 + 15 + 1];
 
 
-    /* SHORT BLOCK stuff fails for MPEG2 */ 
-    if (gi->block_type == SHORT_TYPE && gfc->mode_gr==1) 
+    /* SHORT BLOCK stuff fails for MPEG2 */
+    if (gi->block_type == SHORT_TYPE && gfc->mode_gr==1)
           return;
 
 
@@ -559,7 +559,7 @@ void best_huffman_divide(
     a1 = a2 = 0;
 
     assert(i <= 576);
-    
+
     for (; i > cod_info2.big_values; i -= 4) {
 	int p = ((ix[i-4] * 2 + ix[i-3]) * 2 + ix[i-2]) * 2 + ix[i-1];
 	a1 += t32l[p];
@@ -613,7 +613,7 @@ scfsi_calc(int ch,
     static const int slen2_n[16] = { 0, 2, 4, 8, 1, 2, 4, 8, 2, 4, 8, 2, 4, 8, 4, 8 };
 #endif
 
-    for (i = 0; i < 4; i++) 
+    for (i = 0; i < 4; i++)
 	l3_side->scfsi[ch][i] = 0;
 
     for (i = 0; i < (sizeof(scfsi_band) / sizeof(int)) - 1; i++) {
@@ -680,7 +680,7 @@ void best_scalefac_store(
      * from the AAC ISO docs.  added mt 3/00 */
     /* check if l3_enc=0 */
     for ( sfb = 0; sfb < gi->sfb_lmax; sfb++ ) {
-      if (scalefac[gr][ch].l[sfb]>0) { 
+      if (scalefac[gr][ch].l[sfb]>0) {
 	start = gfc->scalefac_band.l[ sfb ];
 	end   = gfc->scalefac_band.l[ sfb+1 ];
 	for ( l = start; l < end; l++ ) if (l3_enc[gr][ch][l]!=0) break;
@@ -693,7 +693,7 @@ void best_scalefac_store(
 	for ( i = 0; i < 3; i++ ) {
 	  if (scalefac[gr][ch].s[sfb][i]>0) {
 	    j2 = j;
-	    for ( l = start; l < end; l++ ) 
+	    for ( l = start; l < end; l++ )
 	      if (l3_enc[gr][ch][j2++ /*3*l+i*/]!=0) break;
 	    if (l==end) scalefac[gr][ch].s[sfb][i]=0;
 	  }
@@ -769,7 +769,7 @@ static const int scale_long[16] = {
 
 /* Also calculates the number of bits necessary to code the scalefactors. */
 
-int scale_bitcount( 
+int scale_bitcount(
     III_scalefac_t * const scalefac, gr_info * const cod_info)
 {
     int i, k, sfb, max_slen1 = 0, max_slen2 = 0, ep = 2;
@@ -860,9 +860,9 @@ static const int max_range_sfac_tab[6][4] =
 /*            scale_bitcount_lsf                                         */
 /*************************************************************************/
 
-/* Also counts the number of bits to encode the scalefacs but for MPEG 2 */ 
+/* Also counts the number of bits to encode the scalefacs but for MPEG 2 */
 /* Lower sampling frequencies  (24, 22.05 and 16 kHz.)                   */
- 
+
 /*  This is reverse-engineered from section 2.4.3.2 of the MPEG2 IS,     */
 /* "Audio Decoding Layer III"                                            */
 
@@ -960,11 +960,11 @@ int scale_bitcount_lsf(const lame_internal_flags *gfc,
 	}
     }
 #ifdef DEBUG
-    if ( over ) 
+    if ( over )
         ERRORF(gfc, "---WARNING !! Amplification of some bands over limits\n" );
 #endif
     if (!over) {
-      assert( cod_info->sfb_partition_table );     
+      assert( cod_info->sfb_partition_table );
       cod_info->part2_length=0;
       for ( partition = 0; partition < 4; partition++ )
 	cod_info->part2_length += cod_info->slen[partition] * cod_info->sfb_partition_table[partition];
@@ -979,7 +979,7 @@ void huffman_init(lame_internal_flags * const gfc)
     int i;
 
     gfc->choose_table = choose_table_nonMMX;
-    
+
 #ifdef MMX_choose_table
     if (gfc->CPU_features.MMX) {
         extern int choose_table_MMX(const int *ix, const int *end, int *s);

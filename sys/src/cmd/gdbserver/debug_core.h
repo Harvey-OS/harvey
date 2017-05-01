@@ -67,7 +67,7 @@ extern char remcom_in_buffer[];
 extern int gdb_serial_stub(struct state *ks, int port);
 extern void gdbstub_msg_write(const char *s, int len);
 
-// And, yeah, since packets are signed, this takes a signed. 
+// And, yeah, since packets are signed, this takes a signed.
 void error_packet(char *pkt, char *error);
 char *errstring(char *prefix);
 

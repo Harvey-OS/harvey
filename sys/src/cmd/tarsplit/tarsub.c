@@ -121,7 +121,7 @@ getdir(Hblock *hp, int in, int64_t *lenp)
 	return 1;
 }
 
-uint64_t 
+uint64_t
 passtar(Hblock *hp, int in, int outf, int64_t len)
 {
 	uint32_t bytes;

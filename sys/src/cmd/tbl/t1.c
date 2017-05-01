@@ -50,7 +50,7 @@ setinp(int argc, char **argv)
 {
 	sargc = argc;
 	sargv = argv;
-	sargc--; 
+	sargc--;
 	sargv++;
 	if (sargc == 0 || swapin() == 0) {
 		tabin = (Biobuf*)getcore(sizeof(Biobuf), 1);
@@ -76,10 +76,10 @@ swapin(void)
 			pr1403 = 1;
 		if (match("-", *sargv))
 			break;
-		sargc--; 
+		sargc--;
 		sargv++;
 	}
-	if (sargc <= 0) 
+	if (sargc <= 0)
 		return(0);
 	/* file closing is done by GCOS troff preprocessor */
 	if(tabin)

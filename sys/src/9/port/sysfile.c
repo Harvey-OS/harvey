@@ -1115,7 +1115,7 @@ static int dcok[] =  {
 /* to be used in chan.c to disallow attach to these devices
  */
 
-int 
+int
 checkdc(int dc)
 {
 	int i;

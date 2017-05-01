@@ -237,7 +237,7 @@ activatetab(Control *c, int act)
 	else
 		deactivate(t->tabcolumn);
 }
-	
+
 Control *
 createtab(Controlset *cs, char *name)
 {

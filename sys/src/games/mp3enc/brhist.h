@@ -45,7 +45,7 @@ typedef struct {
     FILE*   Console_fp;			/* filepointer to stream reporting information */
     FILE*   Error_fp;                   /* filepointer to stream fatal error reporting information */
     FILE*   Report_fp;                  /* filepointer to stream reports (normally a text file or /dev/null) */
-#if defined(_WIN32)  &&  !defined(__CYGWIN__) 
+#if defined(_WIN32)  &&  !defined(__CYGWIN__)
     HANDLE  Console_Handle;
 #endif
     int     disp_width;

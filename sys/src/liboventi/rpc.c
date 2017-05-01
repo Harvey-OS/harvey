@@ -212,7 +212,7 @@ char *
 vtGetVersion(VtSession *z)
 {
 	int v, i;
-	
+
 	v = z->version;
 	if(v == 0)
 		return "unknown";
@@ -255,7 +255,7 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 		if(*q)
 			q++;
 	}
-		
+
 	vtDebug(z, "version string in: %s\n", buf);
 
 	p = buf + strlen(prefix);
@@ -274,7 +274,7 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 		if(*p != ':')
 			return 0;
 		p++;
-	}	
+	}
 }
 
 Packet*
@@ -321,9 +321,9 @@ vtRecvPacket(VtSession *z)
 	p = packetSplit(p, len);
 	vtUnlock(z->inLock);
 	return p;
-Err:	
+Err:
 	vtUnlock(z->inLock);
-	return nil;	
+	return nil;
 }
 
 int
@@ -332,7 +332,7 @@ vtSendPacket(VtSession *z, Packet *p)
 	IOchunk ioc;
 	int n;
 	uint8_t buf[2];
-	
+
 	/* add framing */
 	n = packetSize(p);
 	if(n >= (1<<16)) {
@@ -445,12 +445,12 @@ vtConnect(VtSession *z, char *password)
 		vtSha1Update(z->outHash, (uint8_t*)buf, p-buf);
 	if(!vtFdWrite(z->fd, (uint8_t*)buf, p-buf))
 		goto Err;
-	
+
 	vtDebug(z, "version string out: %s", buf);
 
 	if(!vtVersionRead(z, prefix, &z->version))
 		goto Err;
-		
+
 	vtDebug(z, "version = %d: %s\n", z->version, vtGetVersion(z));
 
 	vtUnlock(z->inLock);
@@ -463,7 +463,7 @@ vtConnect(VtSession *z, char *password)
 
 	if(!vtHello(z))
 		goto Err;
-	return 1;	
+	return 1;
 Err:
 	if(z->fd >= 0)
 		vtFdClose(z->fd);
@@ -472,6 +472,6 @@ Err:
 	vtUnlock(z->outLock);
 	z->cstate = VtStateClosed;
 	vtUnlock(z->lk);
-	return 0;	
+	return 0;
 }
 

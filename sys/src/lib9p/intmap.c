@@ -71,7 +71,7 @@ freemap(Intmap *map, void (*destroy)(void*))
 			free(p);
 		}
 	}
-			
+
 	free(map);
 }
 
@@ -83,7 +83,7 @@ llookup(Intmap *map, uint32_t id)
 	for(lf=&map->hash[hashid(id)]; *lf; lf=&(*lf)->link)
 		if((*lf)->id == id)
 			break;
-	return lf;	
+	return lf;
 }
 
 /*
@@ -130,7 +130,7 @@ insertkey(Intmap *map, uint32_t id, void *v)
 		ov = nil;
 	}
 	wunlock(&map->RWLock);
-	return ov;	
+	return ov;
 }
 
 int
@@ -153,7 +153,7 @@ caninsertkey(Intmap *map, uint32_t id, void *v)
 		rv = 1;
 	}
 	wunlock(&map->RWLock);
-	return rv;	
+	return rv;
 }
 
 void*

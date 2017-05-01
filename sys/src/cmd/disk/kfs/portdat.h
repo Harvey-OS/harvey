@@ -126,7 +126,7 @@ struct	Filter
 {
 	uint32_t	count;			/* count and old count kept separate */
 	uint32_t	oldcount;		/* so interrput can read them */
-	Float	filter[3];		/* filters for 1m 10m 100m */ 
+	Float	filter[3];		/* filters for 1m 10m 100m */
 };
 
 struct	Filta

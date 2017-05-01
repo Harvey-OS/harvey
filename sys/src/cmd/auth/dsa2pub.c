@@ -44,7 +44,7 @@ main(int argc, char **argv)
 		sysfatal("%r");
 
 	s = smprint("key %A p=%B q=%B alpha=%B key=%B\n",
-		a, 
+		a,
 		key->pub.p, key->pub.q, key->pub.alpha, key->pub.key);
 	if(s == nil)
 		sysfatal("smprint: %r");

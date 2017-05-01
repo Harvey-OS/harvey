@@ -67,7 +67,7 @@ pciscan(int bno, Pcidev** list)
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;
-			p->rid = pcicfgr8(p, PciRID);	
+			p->rid = pcicfgr8(p, PciRID);
 
 			if(pcilist != nil)
 				pcitail->list = p;
@@ -205,7 +205,7 @@ pcicfginit(void)
 				pcimaxdno = 31;
 			}
 		}
-	
+
 		if(pcicfgmode > 0){
 			list = &pciroot;
 			for(bno = 0; bno < 256; bno++){
@@ -213,7 +213,7 @@ pcicfginit(void)
 				while(*list)
 					list = &(*list)->link;
 			}
-				
+
 		}
 	}
 }

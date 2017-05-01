@@ -21,7 +21,7 @@
  *	getc		getchar		gets		putc		putchar
  *	puts		ungetc		fread		fwrite		fgetpos
  *	fseek		fsetpos		ftell		rewind		clearerr
- *	feof		ferror		perror	
+ *	feof		ferror		perror
  *
  * (But plan9 version omits remove and rename, because they are in libc)
  */

@@ -23,7 +23,7 @@ hdisk(HConnect *c)
 	char *disk, *type;
 	Part *p;
 	int ret;
-	
+
 	if(hsethtml(c) < 0)
 		return -1;
 
@@ -51,7 +51,7 @@ hdisk(HConnect *c)
 		return 0;
 	}
 	freepart(p);
-	return ret;	
+	return ret;
 }
 
 static int
@@ -60,7 +60,7 @@ disksummary(HConnect *c)
 	int i;
 	Index *ix;
 	Part *p;
-	
+
 	hprint(&c->hout, "<h1>venti disks</h1>\n");
 	hprint(&c->hout, "<pre>\n");
 	ix = mainindex;
@@ -92,7 +92,7 @@ readap(Part *p, ArenaPart *ap)
 {
 	uint8_t *blk;
 	char *table;
-	
+
 	blk = vtmalloc(8192);
 	if(readpart(p, PartBlank, blk, 8192) != 8192)
 		return nil;
@@ -117,7 +117,7 @@ xfindarena(char *table, char *name, int64_t *start, int64_t *end)
 {
 	int i, nline;
 	char *p, *q, *f[4], line[256];
-	
+
 	nline = atoi(table);
 	p = strchr(table, '\n');
 	if(p)
@@ -221,7 +221,7 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 		hprint(&c->hout, "%r\n");
 		goto out;
 	}
-	
+
 	hprint(&c->hout, "<pre>\n");
 	hprint(&c->hout, "version=%d blocksize=%d base=%d\n",
 		ap.version, ap.blocksize, ap.arenabase);
@@ -232,12 +232,12 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 		diskarenatable(c, disk, table);
 		goto out;
 	}
-	
+
 	if(xfindarena(table, arenaname, &start, &end) < 0){
 		hprint(&c->hout, "no such arena %s\n", arenaname);
 		goto out;
 	}
-	
+
 	hprint(&c->hout, "<h2>arena %s</h2>\n", arenaname);
 	hprint(&c->hout, "<pre>start=%#llx end=%#llx<pre>\n", start, end);
 	if(end < start || end - start < HeadSize){
@@ -262,7 +262,7 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 
 	hprint(&c->hout, "head:\n<pre>\n");
 	hprint(&c->hout, "version=%d name=%s blocksize=%d size=%#llx clumpmagic=%#x\n",
-		head.version, head.name, head.blocksize, head.size, 
+		head.version, head.name, head.blocksize, head.size,
 		head.clumpmagic);
 	hprint(&c->hout, "</pre><br><br>\n");
 
@@ -290,7 +290,7 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 	scorecp(arena.score, blk+head.blocksize - VtScoreSize);
 
 	vtfree(blk);
-	
+
 	hprint(&c->hout, "tail:\n<pre>\n");
 	hprint(&c->hout, "version=%d name=%s\n", arena.version, arena.name);
 	hprint(&c->hout, "ctime=%d %s\n", arena.ctime, fmttime(tbuf, arena.ctime));
@@ -398,10 +398,10 @@ diskarenatoc(HConnect *c, Arena *arena)
 		}
 		unpackclumpinfo(&ci, blk+(i%arena->clumpmax)*ClumpInfoSize);
 		if(i/arena->clumpmax == cib || i%arena->clumpmax == 0){
-			hprint(&c->hout, "%5d %6d %7d %V", 
+			hprint(&c->hout, "%5d %6d %7d %V",
 				ci.type, ci.size, ci.uncsize, ci.score);
 			if(coff >= 0)
-				hprint(&c->hout, " at <a href=\"%s&clump=%#llx&score=%V\">%#llx</a>", 
+				hprint(&c->hout, " at <a href=\"%s&clump=%#llx&score=%V\">%#llx</a>",
 					base, coff, ci.score, coff);
 			if(i/arena->clumpmax != cib)
 				hprint(&c->hout, "  <font size=-1><a href=\"%s&cib=%d\">more</a></font>", base, i/arena->clumpmax);
@@ -424,7 +424,7 @@ diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 	uint8_t xscore[VtScoreSize], score[VtScoreSize];
 	Unwhack uw;
 	int n;
-	
+
 	if(scorestr){
 		if(vtparsescore(scorestr, nil, score) < 0){
 			hprint(&c->hout, "bad score %s: %r\n", scorestr);
@@ -445,7 +445,7 @@ diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 		hprint(&c->hout, "bad offset %#llx\n", off);
 		return -1;
 	}
-	
+
 	off += arena->base;
 
 	blk = vtmalloc(ClumpSize + VtMaxLumpSize);
@@ -470,15 +470,15 @@ diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 
 	hprint(&c->hout, "<pre>type=%d size=%d uncsize=%d score=%V\n", cl.info.type, cl.info.size, cl.info.uncsize, cl.info.score);
 	hprint(&c->hout, "encoding=%d creator=%d time=%d %s</pre>\n", cl.encoding, cl.creator, cl.time, fmttime(err, cl.time));
-	
+
 	if(cl.info.type == VtCorruptType)
 		hprint(&c->hout, "clump is marked corrupt<br>\n");
-	
+
 	if(cl.info.size >= VtMaxLumpSize){
 		hprint(&c->hout, "clump too big\n");
 		goto error;
 	}
-	
+
 	switch(cl.encoding){
 	case ClumpECompress:
 		blk2 = vtmalloc(VtMaxLumpSize);
@@ -502,7 +502,7 @@ diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 		scoremem(xscore, blk+ClumpSize, cl.info.size);
 		break;
 	}
-	
+
 	hprint(&c->hout, "score=%V<br>\n", xscore);
 	if(scorestr && scorecmp(score, xscore) != 0)
 		hprint(&c->hout, "score does NOT match expected %V\n", score);
@@ -545,7 +545,7 @@ debugamap(HConnect *c)
 
 	amap = mainindex->amap;
 	for(i=0; i<mainindex->narenas; i++)
-		hprint(&c->hout, "%s %#llx %#llx\n", 
+		hprint(&c->hout, "%s %#llx %#llx\n",
 			amap[i].name, amap[i].start, amap[i].stop);
 }
 
@@ -568,23 +568,23 @@ debugread(HConnect *c, uint8_t *score)
 		hprint(&c->hout, "zero score\n");
 		return;
 	}
-	
+
 	hprint(&c->hout, "<h2>index search %V</h2><pre>\n", score);
 	if(icachelookup(score, -1, &ia) < 0)
 		hprint(&c->hout, "  icache: not found\n");
 	else
 		hprint(&c->hout, "  icache: addr=%#llx size=%d type=%d blocks=%d\n",
 			ia.addr, ia.size, ia.type, ia.blocks);
-	
+
 	if(loadientry(mainindex, score, -1, &ie) < 0)
 		hprint(&c->hout, "  idisk: not found\n");
 	else
 		hprint(&c->hout, "  idisk: addr=%#llx size=%d type=%d blocks=%d\n",
 			ie.ia.addr, ie.ia.size, ie.ia.type, ie.ia.blocks);
-	
+
 	hprint(&c->hout, "</pre><h2>lookup %V</h2>\n", score);
 	hprint(&c->hout, "<pre>\n");
-	
+
 	for(type=0; type < VtMaxType; type++){
 		hprint(&c->hout, "%V type %d:", score, type);
 		u = lookuplump(score, type);
@@ -593,14 +593,14 @@ debugread(HConnect *c, uint8_t *score)
 		else
 			hprint(&c->hout, " -cache");
 		putlump(u);
-		
+
 		if(lookupscore(score, type, &ia) < 0){
 			hprint(&c->hout, " -lookup\n");
 			continue;
 		}
 		hprint(&c->hout, "\n  lookupscore: addr=%#llx size=%d blocks=%d\n",
 			ia.addr, ia.size, ia.blocks);
-		
+
 		arena = amapitoa(mainindex, ia.addr, &aa);
 		if(arena == nil){
 			hprint(&c->hout, "  amapitoa failed: %r\n");
@@ -615,7 +615,7 @@ debugread(HConnect *c, uint8_t *score)
 			hprint(&c->hout, "  loadclump failed: %r\n");
 			continue;
 		}
-		
+
 		hprint(&c->hout, "  loadclump: uncsize=%d type=%d score=%V\n",
 			cl.info.uncsize, cl.info.type, sc);
 		if(ia.size != cl.info.uncsize || ia.type != cl.info.type || scorecmp(score, sc) != 0){
@@ -623,12 +623,12 @@ debugread(HConnect *c, uint8_t *score)
 			continue;
 		}
 	}
-	
+
 	if(hargstr(c, "brute", "")[0] == 'y'){
 		hprint(&c->hout, "</pre>\n");
 		hprint(&c->hout, "<h2>brute force arena search %V</h2>\n", score);
 		hprint(&c->hout, "<pre>\n");
-		
+
 		for(i=0; i<mainindex->narenas; i++){
 			arena = mainindex->arenas[i];
 			hprint(&c->hout, "%s...\n", arena->name);
@@ -646,10 +646,10 @@ static void
 debugmem(HConnect *c)
 {
 	Index *ix;
-	
+
 	ix = mainindex;
 	hprint(&c->hout, "<h2>memory</h2>\n");
-	
+
 	hprint(&c->hout, "<pre>\n");
 	hprint(&c->hout, "ix=%p\n", ix);
 	hprint(&c->hout, "\tarenas=%p\n", ix->arenas);
@@ -669,7 +669,7 @@ hdebug(HConnect *c)
 {
 	char *scorestr, *op;
 	uint8_t score[VtScoreSize];
-	
+
 	if(hsethtml(c) < 0)
 		return -1;
 	hprint(&c->hout, "<h1>venti debug</h1>\n");
@@ -679,7 +679,7 @@ hdebug(HConnect *c)
 		hprint(&c->hout, "no op\n");
 		return 0;
 	}
-	
+
 	if(strcmp(op, "amap") == 0){
 		debugamap(c);
 		return 0;
@@ -699,7 +699,7 @@ hdebug(HConnect *c)
 		debugread(c, score);
 		return 0;
 	}
-	
+
 	hprint(&c->hout, "unknown op %s", op);
 	return 0;
 }

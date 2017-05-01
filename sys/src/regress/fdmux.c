@@ -107,7 +107,7 @@ main(void)
 		 * to know.
 		 */
 	}
-		
+
 	if (write(cons, "rawoff", 6) < 6)
 		fprint(2, "rawoff: %r");
 #if 0

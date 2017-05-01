@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -455,7 +455,7 @@ parsecmd(int nest)
 						if(nextc() == 'g')
 							cmd.flag = getch();
 					}
-			
+
 				}
 			}
 		}
@@ -545,7 +545,7 @@ simpleaddr(void)
 		addr.num = getnum(1);
 		break;
 	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9': 
+	case '5': case '6': case '7': case '8': case '9':
 		addr.num = getnum(1);
 		addr.type='l';
 		break;

@@ -16,7 +16,7 @@ runout(void)
 {
 	int	i;
 
-	if (boxflg || allflg || dboxflg) 
+	if (boxflg || allflg || dboxflg)
 		need();
 	if (ctrflg) {
 		Bprint(&tabout, ".nr #I \\n(.i\n");
@@ -74,15 +74,15 @@ runtabs(int lform, int ldata)
 int
 ifline(char *s)
 {
-	if (!point(s)) 
+	if (!point(s))
 		return(0);
-	if (s[0] == '\\') 
+	if (s[0] == '\\')
 		s++;
-	if (s[1] ) 
+	if (s[1] )
 		return(0);
-	if (s[0] == '_') 
+	if (s[0] == '_')
 		return('-');
-	if (s[0] == '=') 
+	if (s[0] == '=')
 		return('=');
 	return(0);
 }
@@ -133,7 +133,7 @@ deftail(void)
 			Bprint(&tabout, ".if \\n(T. ");
 			drawline(nlin, 0, ncol, dboxflg ? '=' : '-', 1, 0);
 			Bprint(&tabout, "\n.if \\n(T. .vs\n");
-			/* T. is really an argument to a macro but because of 
+			/* T. is really an argument to a macro but because of
 		   eqn we don't dare pass it as an argument and reference by $1 */
 		}
 	for (c = 0; c < ncol; c++) {

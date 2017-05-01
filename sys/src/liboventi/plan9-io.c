@@ -74,7 +74,7 @@ vtMemBrk(int n)
 		align = IdealAlignment;
 	else if(n > 8)
 		align = 8;
-	else	
+	else
 		align = 4;
 
 	lock(&lk);
@@ -87,8 +87,8 @@ vtMemBrk(int n)
 		nchunk++;
 	}
 
-	assert(n + pad <= nbuf);	
-	
+	assert(n + pad <= nbuf);
+
 	p = buf + pad;
 	buf += pad + n;
 	nbuf -= pad + n;
@@ -129,7 +129,7 @@ int
 vtFdWrite(int fd, uint8_t *buf, int n)
 {
 	int nn;
-	
+
 	nn = write(fd, buf, n);
 	if(nn < 0) {
 		vtOSError();

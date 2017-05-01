@@ -109,7 +109,7 @@ enum		/* protocol constants */
 
 	SESSKEYLEN = 32,
 	SESSIDLEN = 16,
-	
+
 	COOKIELEN = 8,
 };
 

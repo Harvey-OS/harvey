@@ -251,7 +251,7 @@ elogapply(File *f)
 	 * but using coordinates relative to the unmodified buffer.  As we apply the log,
 	 * we have to update the coordinates to be relative to the modified buffer.
 	 * Textinsert and textdelete will do this for us; our only work is to apply the
-	 * convention that an insertion at t->q0==t->q1 is intended to select the 
+	 * convention that an insertion at t->q0==t->q1 is intended to select the
 	 * inserted text.
 	 */
 

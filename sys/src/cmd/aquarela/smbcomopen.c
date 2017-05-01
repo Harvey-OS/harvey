@@ -43,8 +43,8 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 	int diropen = 0;
 
 //smblogprint(-1, "%s A %r", path);
-	p9mode = (mode >> SMB_OPEN_MODE_ACCESS_SHIFT) & SMB_OPEN_MODE_ACCESS_MASK;	
-	share = (mode >> SMB_OPEN_MODE_SHARE_SHIFT) & SMB_OPEN_MODE_SHARE_MASK;	
+	p9mode = (mode >> SMB_OPEN_MODE_ACCESS_SHIFT) & SMB_OPEN_MODE_ACCESS_MASK;
+	share = (mode >> SMB_OPEN_MODE_SHARE_SHIFT) & SMB_OPEN_MODE_SHARE_MASK;
 	if (share == SMB_OPEN_MODE_SHARE_COMPATIBILITY) {
 	badshare:
 //smblogprint(-1, "%s SMB_OPEN_MODE_SHARE_COMPATIBILITY", path);
@@ -66,7 +66,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 			smbseterror(s, ERRDOS, ERRnoaccess);
 			goto done;
 		}
-			
+
 		sf = smbsharedfileget(d, p9mode, &share);
 		if (sf == nil)
 			goto badshare;
@@ -174,7 +174,7 @@ smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	uint8_t andxcommand;
 	uint16_t andxoffset, flags, mode, sattr, attr;
-	uint32_t createtime;	
+	uint32_t createtime;
 	uint16_t ofun;
 	uint32_t createsize, timeout;
 	char *path = nil;
@@ -312,7 +312,7 @@ smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		pr = smbchaincommand(s, h, andxoffsetfixupoffset, andxcommand, andxoffset, b);
 	else
 		pr = SmbProcessResultReply;
-	goto done;	
+	goto done;
 errordone:
 	pr = SmbProcessResultError;
 done:
@@ -403,7 +403,7 @@ smbcomcreate(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	smblogprint(h->command, "tid=%d\n", h->tid);
 	attr = smbnhgets(pdata); pdata += 2;
 	createtime = smbnhgetl(pdata);
-	if (!smbbuffergetb(b, &fmt) || fmt != 0x04 || 
+	if (!smbbuffergetb(b, &fmt) || fmt != 0x04 ||
 	    !smbbuffergetstring(b, h, SMB_STRING_PATH, &path)){
 		pr = SmbProcessResultError;
 		goto done;

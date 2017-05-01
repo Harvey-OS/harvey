@@ -114,7 +114,7 @@ struct VGAscr {
 
 	uint32_t	io;				/* device specific registers */
 	uint32_t	*mmio;
-	
+
 	uint32_t	colormap[Pcolours][3];
 	int	palettedepth;
 

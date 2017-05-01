@@ -32,7 +32,7 @@ vtParseScore(char *buf, uint n, uint8_t score[VtScoreSize])
 
 		if((i & 1) == 0)
 			c <<= 4;
-	
+
 		score[i>>1] |= c;
 	}
 	return 1;

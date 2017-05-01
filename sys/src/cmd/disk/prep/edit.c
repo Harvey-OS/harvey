@@ -93,7 +93,7 @@ addpart(Edit *edit, Part *p)
 		}
 	}
 
-	if(edit->npart >= nelem(edit->part))	
+	if(edit->npart >= nelem(edit->part))
 		return "too many partitions";
 
 	edit->part[i=edit->npart++] = p;
@@ -223,7 +223,7 @@ editdel(Edit *edit, int argc, char **argv)
 	return edit->del(edit, p);
 }
 
-static char *helptext = 
+static char *helptext =
 	". [newdot] - display or set value of dot\n"
 	"a name [start [end]] - add partition\n"
 	"d name - delete partition\n"
@@ -368,7 +368,7 @@ runcmd(Edit *edit, char *cmd)
 		else
 			err = "unknown command";
 	}
-	if(err) 
+	if(err)
 		fprint(2, "?%s\n", err);
 	edit->lastcmd = f[0][0];
 }
@@ -505,7 +505,7 @@ ctldiff(Edit *edit, int ctlfd)
 
 	waserr = 0;
 	/*
-	 * delete all the changed partitions except data (we'll add them back if necessary) 
+	 * delete all the changed partitions except data (we'll add them back if necessary)
 	 */
 	for(i=0; i<edit->nctlpart; i++) {
 		p = edit->ctlpart[i];

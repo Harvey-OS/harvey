@@ -271,7 +271,7 @@ smblogdata(-1, smblogprint, smbbufferreadpointer(ob), smbbufferwriteoffset(ob), 
 int
 smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **)
 {
-	int32_t n; 
+	int32_t n;
 	SmbClient *c = magic;
 	smbbufferreset(ib);
 	n = nbssread(c->nbss, smbbufferwritepointer(ib), smbbufferwritespace(ib));

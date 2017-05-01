@@ -161,7 +161,7 @@ rtsched(void)
 	char *ctl;
 
 	ctl = smprint("/proc/%u/ctl", getpid());
-	if((fd = open(ctl, ORDWR)) < 0) 
+	if((fd = open(ctl, ORDWR)) < 0)
 		sysfatal("%s: %r", ctl);
 	if(fprint(fd, "period 20ms") < 0)
 		sysfatal("%s: %r", ctl);

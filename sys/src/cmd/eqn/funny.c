@@ -33,7 +33,7 @@ void funny(int n)
 	printf(".ds %d %s\n", yyval, f);
 	eht[yyval] = EM(1.0, ps+Funnyps) - EM(Funnyht, ps);
 	ebase[yyval] = EM(Funnybase, ps);
-	dprintf(".\tS%d <- %s; h=%g b=%g\n", 
+	dprintf(".\tS%d <- %s; h=%g b=%g\n",
 		yyval, f, eht[yyval], ebase[yyval]);
 	lfont[yyval] = rfont[yyval] = ROM;
 }

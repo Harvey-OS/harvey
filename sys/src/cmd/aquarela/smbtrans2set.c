@@ -171,7 +171,7 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 //			length = size;
 //		else
 //			length = ~0LL;
-	
+
 		translogprint(s->transaction.in.setup[0], "size %lld\n", size);
 		translogprint(s->transaction.in.setup[0], "adate %d atime %d", adate, atime);
 		translogprint(s->transaction.in.setup[0], "mdate %d mtime %d\n", mdate, mtime);

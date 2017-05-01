@@ -11,7 +11,7 @@ enum {
 	/* levels */
 	Empty		= 0,
 	Background,
-	Wall, 
+	Wall,
 	Cargo,
 	Goal,
 	GoalCargo,
@@ -35,7 +35,7 @@ enum {
 	MazeY = 18,
 	BoardX = 49,
 	BoardY = 49,
-	SizeX = MazeX*BoardX+10,	
+	SizeX = MazeX*BoardX+10,
 	SizeY = MazeY*BoardY+10,
 
 	Maxlevels = 200,

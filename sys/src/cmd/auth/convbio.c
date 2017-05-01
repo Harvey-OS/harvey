@@ -84,7 +84,7 @@ ordbio(Biobuf *b, Acctbio *a)
 
 		/* get emails */
 		ne = 0;
-		for(cp = p; *cp && ne < Nemail;){	
+		for(cp = p; *cp && ne < Nemail;){
 			if(*cp != '<'){
 				cp++;
 				continue;

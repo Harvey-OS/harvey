@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 	exits("");
 }
 
-char *months[] = 
+char *months[] =
 {
 	"january",
 	"february",
@@ -130,7 +130,7 @@ char *months[] =
 	"december"
 };
 char *nth[] = {
-	"first", 
+	"first",
 	"second",
 	"third",
 	"fourth",
@@ -181,7 +181,7 @@ dates(Tm *tm)
 
 	nd = emalloc(sizeof(Date));
 	nd->p = regcomp(buf);
-	nd->next = Base;	
+	nd->next = Base;
 	Base = nd;
 
 	if (matchyear)
@@ -195,24 +195,24 @@ dates(Tm *tm)
 	if(debug)
 		print("%s\n", buf);
 	nd = emalloc(sizeof(Date));
-	nd->p = regcomp(buf);	
-	nd->next = Base;	
+	nd->p = regcomp(buf);
+	nd->next = Base;
 	Base = nd;
 
 	snprint(buf, sizeof buf, "^[\t ]*every[ \t]+%s", day);
 	if(debug)
 		print("%s\n", buf);
 	nd = emalloc(sizeof(Date));
-	nd->p = regcomp(buf);	
-	nd->next = Base;	
+	nd->p = regcomp(buf);
+	nd->next = Base;
 	Base = nd;
 
 	snprint(buf, sizeof buf, "[\t ]*the[\t ]+%s[\t ]+%s", nth[(tm->mday-1)/7], day);
 	if(debug)
 		print("%s\n", buf);
 	nd = emalloc(sizeof(Date));
-	nd->p = regcomp(buf);	
-	nd->next = Base;	
+	nd->p = regcomp(buf);
+	nd->next = Base;
 	Base = nd;
 }
 

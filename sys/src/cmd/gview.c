@@ -1659,7 +1659,7 @@ void all_set_clr(fpolygons* fps, Image* clr)
 	for (p=fps->p; p!=0; p=p->link)
 		p->c.clr = clr;
 }
-	
+
 
 void all_set_scheme(fpolygons* fps, int scheme)
 {
@@ -1668,7 +1668,7 @@ void all_set_scheme(fpolygons* fps, int scheme)
 		if (p->ct!=0 && scheme <= p->ct[0].thick)
 			p->c = p->ct[scheme];
 }
-	
+
 
 void do_recolor(int but, Mouse* m, int alluniv)
 {
@@ -1950,7 +1950,7 @@ e_action* do_undo(e_action* a0)		/* pop off an e_action and (un)do it */
 	case Erecolor: a->fp->c.clr = a->clr;
 		eresized(0);
 		break;
-	case Edelete: 
+	case Edelete:
 		a->fp->link = univ.p;
 		univ.p = a->fp;
 		grow_bb(&univ.bb, &a->fp->bb);

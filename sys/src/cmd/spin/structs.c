@@ -152,7 +152,7 @@ do_same(Lextok *n, Symbol *v, int xinit)
 
 	lineno = n->ln;
 	Fname = n->fn;
-	
+
 	/* n->sym->type == STRUCT
 	 * index:		n->lft
 	 * subfields:		n->rgt
@@ -497,7 +497,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 			sprintf(eprefix, "%s[%d]", prefix, ix);
 		else
 			strcpy(eprefix, prefix);
-		
+
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)

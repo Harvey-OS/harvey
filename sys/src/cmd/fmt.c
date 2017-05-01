@@ -113,7 +113,7 @@ indentof(char **linep)
 			ind -= ind%maxtab;
 			break;
 		}
-			
+
 	/* plain white space doesn't change the indent */
 	*linep = "";
 	return indent;
@@ -190,7 +190,7 @@ nspaceafter(char *s)
 		return 2;
 	return 1;
 }
-	
+
 
 void
 printwords(Word **w, int nw)

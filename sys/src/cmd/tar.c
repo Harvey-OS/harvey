@@ -891,7 +891,7 @@ skip(int ar, Hdr *hp, char *msg)
 
 static void
 skiptoend(int ar)
-{ 
+{
 	Hdr *hp;
 
 	while ((hp = readhdr(ar)) != nil)

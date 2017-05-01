@@ -276,7 +276,7 @@ nettrans(const char *addr, char *naddr, int na, char *file, int nf)
 		p = strchr(buf+1, '/');
 		if(p == nil)
 			p = buf;
-		else 
+		else
 			p++;
 	}
 	snprint(file, nf, "%s/%s", netdir, p);

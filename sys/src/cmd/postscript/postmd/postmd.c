@@ -92,7 +92,7 @@
  *
  * The encoding produced by the program is essentially identical to what's done
  * by postdmd. See the comments at the beginning of that program if you need more
- * details. The prologue also shares much of the same code. 
+ * details. The prologue also shares much of the same code.
  *
  * The PostScript prologue is copied from *prologue before any of the input files
  * are translated. The program expects that the following PostScript procedures
@@ -150,7 +150,7 @@
  *	    Makes sure the last page is printed. Only needed when we're printing
  *	    more than one page on each sheet of paper.
  *
- * Many default values, like the magnification and orientation, are defined in 
+ * Many default values, like the magnification and orientation, are defined in
  * the prologue, which is where they belong. If they're changed (by options), an
  * appropriate definition is made after the prologue is added to the output file.
  * The -P option passes arbitrary PostScript through to the output file. Among
