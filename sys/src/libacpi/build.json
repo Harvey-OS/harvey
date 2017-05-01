@@ -1,7 +1,7 @@
 {
 	"Libacpi": {
 		"#Projects": [
-		    "acpica/libacpi.json"
+			"acpica/libacpi.json"
 		],
 		"Include": [
 			"/sys/src/libacpi/acpica/acpiflags.json"
@@ -10,19 +10,18 @@
 		"Library": "libacpi.a",
 		"SourceFiles": [
 			"*.c",
-		"/sys/src/libacpi/acpica/components/events/*.c",
-		"/sys/src/libacpi/acpica/components/parser/*.c",
-		"/sys/src/libacpi/acpica/components/utilities/*.c",
-		"/sys/src/libacpi/acpica/components/executer/*.c",
-		"/sys/src/libacpi/acpica/components/namespace/*.c",
-		"/sys/src/libacpi/acpica/components/hardware/*.c",
-		"/sys/src/libacpi/acpica/components/tables/*.c",
-		"/sys/src/libacpi/acpica/components/disassembler/*.c",
-		"/sys/src/libacpi/acpica/components/debugger/*.c",
-		"/sys/src/libacpi/acpica/components/resources/*.c",
-		"/sys/src/libacpi/acpica/components/dispatcher/*.c",
-		"/sys/src/libacpi/acpica/common/*.c"
+			"/sys/src/libacpi/acpica/components/events/*.c",
+			"/sys/src/libacpi/acpica/components/parser/*.c",
+			"/sys/src/libacpi/acpica/components/utilities/*.c",
+			"/sys/src/libacpi/acpica/components/executer/*.c",
+			"/sys/src/libacpi/acpica/components/namespace/*.c",
+			"/sys/src/libacpi/acpica/components/hardware/*.c",
+			"/sys/src/libacpi/acpica/components/tables/*.c",
+			"/sys/src/libacpi/acpica/components/disassembler/*.c",
+			"/sys/src/libacpi/acpica/components/debugger/*.c",
+			"/sys/src/libacpi/acpica/components/resources/*.c",
+			"/sys/src/libacpi/acpica/components/dispatcher/*.c",
+			"/sys/src/libacpi/acpica/common/*.c"
 		]
 	}
 }
-	

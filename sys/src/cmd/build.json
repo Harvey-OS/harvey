@@ -1,7 +1,6 @@
 {
 	"Cmd": {
-		"CFlags": [
-		],
+		"CFlags": [],
 		"Include": [
 			"cmd.json"
 		],
@@ -15,10 +14,6 @@
 			"cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
-		"WhoCares": [
-			"cdfs/cdfs.json",
-			"cifs/cifs.json"
-		],
 		"Projects": [
 			"9660srv/9660srv.json",
 			"acpi/build.json",
@@ -53,6 +48,10 @@
 			"samterm/build.json",
 			"usb/build.json",
 			"venti/venti.json"
+		],
+		"WhoCares": [
+			"cdfs/cdfs.json",
+			"cifs/cifs.json"
 		]
 	}
 }

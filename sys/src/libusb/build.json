@@ -8,6 +8,9 @@
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "libusb.a",
+		"NotYet": [
+			"audio/audioctl.c"
+		],
 		"SourceFiles": [
 			"lib/dev.c",
 			"lib/devs.c",
@@ -15,9 +18,9 @@
 			"lib/parse.c",
 			"lib/fs.c",
 			"lib/fsdir.c",
-		    "audio/audioctl.c",
-		    "audio/audiofs.c",
-		    "audio/audiosub.c",
+			"audio/audioctl.c",
+			"audio/audiofs.c",
+			"audio/audiosub.c",
 			"disk/disk.c",
 			"disk/scsireq.c",
 			"ether/asix.c",
@@ -32,10 +35,6 @@
 			"serial/serial.c",
 			"serial/silabs.c",
 			"serial/ucons.c"
-		],
-	    "NotYet": [
-			"audio/audioctl.c"
-	    ]
-
+		]
 	}
 }

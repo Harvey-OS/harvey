@@ -1,14 +1,14 @@
 {
-    "archfiles": {
-	"SourceFiles": [
-	    "$ARCH/notejmp.c",
-	    "$ARCH/argv0.c",
-	    "$ARCH/atomic.S",
-	    "port/getcallstack.c",
-	    "$ARCH/gettls.S",
-	    "$ARCH/main9.S",
-	    "$ARCH/setjmp.S",
-	    "$ARCH/sqrt.c"
-	]
-    }
+	"archfiles": {
+		"SourceFiles": [
+			"$ARCH/notejmp.c",
+			"$ARCH/argv0.c",
+			"$ARCH/atomic.S",
+			"port/getcallstack.c",
+			"$ARCH/gettls.S",
+			"$ARCH/main9.S",
+			"$ARCH/setjmp.S",
+			"$ARCH/sqrt.c"
+		]
+	}
 }

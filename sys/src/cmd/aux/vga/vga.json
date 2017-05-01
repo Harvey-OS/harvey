@@ -1,7 +1,8 @@
 {
 	"vga": {
 		"Cflags": [
-			"-I", "/"
+			"-I",
+			"/"
 		],
 		"Include": [
 			"../../cmd.json"

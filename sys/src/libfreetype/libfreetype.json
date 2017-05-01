@@ -1,14 +1,15 @@
 {
-    "libfreetype": {
-        "Cflags": [
-            "-I", "include"
-        ],
-        "Include": [
-            "../lib.json"
-        ],
-        "Install": "/$ARCH/lib/",
-        "Library": "libfreetype.a",
-        "SourceFiles": [
+	"libfreetype": {
+		"Cflags": [
+			"-I",
+			"include"
+		],
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libfreetype.a",
+		"SourceFiles": [
 			"src/winfonts/winfnt.c",
 			"src/type42/t42objs.c",
 			"src/type42/t42parse.c",
@@ -93,6 +94,6 @@
 			"src/autohint/ahglyph.c",
 			"src/autohint/ahhint.c",
 			"src/autohint/ahmodule.c"
-        ]
-    }
+		]
+	}
 }

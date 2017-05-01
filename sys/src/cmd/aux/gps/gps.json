@@ -1,7 +1,6 @@
 {
 	"gpsfs": {
-	    "CFlags": [
-		],
+		"CFlags": [],
 		"Include": [
 			"../../cmd.json"
 		],

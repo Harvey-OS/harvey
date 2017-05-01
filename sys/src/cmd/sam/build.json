@@ -1,13 +1,12 @@
 {
 	"sam": {
-	"CFlags": [
-	],
+		"CFlags": [],
 		"Include": [
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
 		"Program": "sam",
-	 	"SourceFiles": [
+		"SourceFiles": [
 			"address.c",
 			"buff.c",
 			"cmd.c",

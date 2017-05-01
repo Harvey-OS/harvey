@@ -1,7 +1,8 @@
 {
 	"libmach": {
 		"Cflags": [
-			"-I", "/"
+			"-I",
+			"/"
 		],
 		"Include": [
 			"../lib.json"

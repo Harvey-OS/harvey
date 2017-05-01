@@ -3,6 +3,7 @@
 		"Include": [
 			"../cmd.json"
 		],
+		"Install": "/$ARCH/bin",
 		"Post": [
 			"rm -f y.tab* x.tab*"
 		],
@@ -10,7 +11,6 @@
 			"yacc -d syn.y",
 			"cp y.tab.h x.tab.h"
 		],
-		"Install": "/$ARCH/bin",
 		"Program": "rc",
 		"SourceFiles": [
 			"code.c",

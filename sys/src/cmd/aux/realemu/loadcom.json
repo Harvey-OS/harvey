@@ -1,7 +1,8 @@
 {
 	"Loadcom": {
 		"Cflags": [
-			"-I", "/"
+			"-I",
+			"/"
 		],
 		"Include": [
 			"../../cmd.json"
