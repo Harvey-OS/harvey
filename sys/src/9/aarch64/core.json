@@ -9,8 +9,23 @@
 			"-g",
 			"-Wall",
 			"-Werror",
-			"-I", "/sys/src/9/aarch64",
-			"-I", "/sys/src/9/port"
+			"-I",
+			"/sys/src/9/aarch64",
+			"-I",
+			"/sys/src/9/port"
+		],
+		"MissingSourceFiles": [
+			"arch.c",
+			"asm.c",
+			"devarch.c",
+			"map.c",
+			"memory.c",
+			"mmu.c",
+			"mp.c",
+			"physalloc.c",
+			"systab.c",
+			"tcore.c",
+			"trap.c"
 		],
 		"NoLibs": [
 			"/$ARCH/lib/klibc.a"
@@ -31,19 +46,6 @@
 			"clean.json",
 			"../boot/bootconf.json",
 			"inith.json"
-		],
-	    "MissingSourceFiles": [
-			"arch.c",
-			"asm.c",
-			"devarch.c",
-			"map.c",
-			"memory.c",
-			"mmu.c",
-			"mp.c",
-			"physalloc.c",
-			"systab.c",
-			"tcore.c",
-			"trap.c"
 		],
 		"SourceFiles": [
 			"main.c"

@@ -4,14 +4,14 @@
 			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/regress/fs",
+		"Post": [
+			"cp fs.rc /$ARCH/bin/regress"
+		],
 		"SourceFilesCmd": [
 			"chdir.c",
 			"filewrite.c",
 			"filetree.c",
 			"filecreate.c"
-		],
-		"Post": [
-			"cp fs.rc /$ARCH/bin/regress"
 		]
 	}
 }

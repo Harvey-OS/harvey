@@ -12,14 +12,23 @@
 			"../port/port.json"
 		],
 		"Kernel": {
+			"#RamFiles": {
+				"boot": "/$ARCH/bin/kiss",
+				"cat": "/$ARCH/bin/cat",
+				"cow": "/$ARCH/bin/regress/cow",
+				"empty": "/$ARCH/bin/regress/empty",
+				"factotum": "/$ARCH/bin/auth/factotum",
+				"getcallerpc": "/$ARCH/bin/regress/getcallerpc",
+				"ipconfig": "/$ARCH/bin/ip/ipconfig",
+				"longjmp": "/$ARCH/bin/regress/longjmp",
+				"pipering": "/$ARCH/bin/regress/pipering",
+				"privates": "/$ARCH/bin/regress/privates",
+				"ratrace": "/$ARCH/bin/ratrace"
+			},
 			"Config": {
 				"Code": [
 					"int cpuserver = 1;",
 					"uint32_t kerndate = 1;"
-				],
-				"NoDev": [
-					"kbin",
-					"kprof"
 				],
 				"Dev": [
 					"arch",
@@ -27,7 +36,7 @@
 					"cons",
 					"dup",
 					"env",
-				        "ip",
+					"ip",
 					"mnt",
 					"mntn",
 					"pipe",
@@ -52,34 +61,25 @@
 					"loopbackmedium",
 					"netdevmedium"
 				],
+				"NoDev": [
+					"kbin",
+					"kprof"
+				],
 				"NoUart": [
 					"pci"
 				]
 			},
-		        "#RamFiles": {
-				"ipconfig": "/$ARCH/bin/ip/ipconfig",
-				"longjmp": "/$ARCH/bin/regress/longjmp",
-				"empty": "/$ARCH/bin/regress/empty",
-				"factotum": "/$ARCH/bin/auth/factotum",
-				"getcallerpc": "/$ARCH/bin/regress/getcallerpc",
-				"pipering": "/$ARCH/bin/regress/pipering",
-				"privates": "/$ARCH/bin/regress/privates",
-				"ratrace": "/$ARCH/bin/ratrace",
-				"cat": "/$ARCH/bin/cat",
-				"cow": "/$ARCH/bin/regress/cow",
-				"boot" : "/$ARCH/bin/kiss"
-			    },
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"date": "/$ARCH/bin/date",
 				"echo": "/$ARCH/bin/echo",
+				"ed": "/$ARCH/bin/ed",
 				"ls": "/$ARCH/bin/ls",
 				"mount": "/$ARCH/bin/mount",
 				"nvram": "/util/nvram",
-				"rc": "/$ARCH/bin/rc",
 				"ps": "/$ARCH/bin/ps",
-				"ed": "/$ARCH/bin/ed",
+				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
 				"srv": "/$ARCH/bin/srv"
 			},
