@@ -306,7 +306,7 @@ newsect(void)
 	Iosect *p;
 
 	mlock(&freelock);
-	if((p = freelist) != nil)	/* assign = */
+	if((p = freelist) != nil)
 		freelist = p->next;
 	else
 		p = malloc(sizeof(Iosect));

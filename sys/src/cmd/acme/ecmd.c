@@ -1074,7 +1074,7 @@ editerror("can't handle '");
 			error("cmdaddress");
 			return a;
 		}
-	}while((ap = ap->next) != nil);	/* assign = */
+	}while((ap = ap->next) != nil);
 	return a;
 }
 

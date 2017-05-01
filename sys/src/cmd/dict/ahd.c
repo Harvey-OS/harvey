@@ -131,7 +131,7 @@ ahdnextoff(int32_t fromoff)
 		}
 		if(pat[++state])
 			continue;
-		if(pat = patterns[++k]){	/* assign = */
+		if(pat = patterns[++k]){
 			state = 0;
 			defoff = fromoff-6;
 			continue;
