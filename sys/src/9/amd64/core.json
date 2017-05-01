@@ -1,8 +1,5 @@
 {
 	"core": {
-		"Include": [
-			"/$ARCH/include/$CC.json"
-		],
 		"Cflags": [
 			"-mcmodel=kernel",
 			"-O0",
@@ -15,10 +12,17 @@
 			"-Wall",
 			"-Werror",
 			"-D__HARVEY__",
-			"-U_LINUX", "-U__linux__",
-			"-I", "/sys/src/9/amd64",
-			"-I", "/sys/src/9/port",
-			"-I", "/sys/src/libc/9syscall"
+			"-U_LINUX",
+			"-U__linux__",
+			"-I",
+			"/sys/src/9/amd64",
+			"-I",
+			"/sys/src/9/port",
+			"-I",
+			"/sys/src/libc/9syscall"
+		],
+		"Include": [
+			"/$ARCH/include/$CC.json"
 		],
 		"Libs": [
 			"/$ARCH/lib/klibmemlayer.a",
@@ -67,7 +71,7 @@
 			"backtrace.c",
 			"../port/dev9p.c",
 			"../port/devbridge.c",
-		        "coreboot.c",
+			"coreboot.c",
 			"ctype.c",
 			"devarch.c",
 			"../port/devdraw.c",
