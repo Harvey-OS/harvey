@@ -627,10 +627,10 @@ poolnewarena(Pool *p, uint32_t asize)
 	for(lastap=nil, ap=p->arenalist; ap > a; lastap=ap, ap=ap->down)
 		;
 
-	if((a->down = ap) != nil)	/* assign = */
+	if((a->down = ap) != nil)
 		a->down->aup = a;
 
-	if((a->aup = lastap) != nil)	/* assign = */
+	if((a->aup = lastap) != nil)
 		a->aup->down = a;
 	else
 		p->arenalist = a;
@@ -686,7 +686,7 @@ arenamerge(Pool *p, Arena *bot, Arena *top)
 		return nil;
 
 	/* remove top from list */
-	if((bot->aup = top->aup) != nil)	/* assign = */
+	if((bot->aup = top->aup) != nil)
 		bot->aup->down = bot;
 	else
 		p->arenalist = bot;

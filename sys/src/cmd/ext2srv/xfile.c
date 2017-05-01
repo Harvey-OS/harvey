@@ -141,7 +141,7 @@ xfile(Fid *fid, int flag)
 	if(f)
 		return clean(f);
 	lock(&freelock);
-	if(f = freelist){	/* assign = */
+	if((f = freelist) != nil){
 		freelist = f->next;
 		unlock(&freelock);
 	} else {

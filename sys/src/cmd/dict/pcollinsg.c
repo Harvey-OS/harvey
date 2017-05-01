@@ -137,7 +137,7 @@ pcollgprintentry(Entry e, int cmd)
 			outchar(*p++);
 			continue;
 		}
-		switch(r = intab[*p++]){	/* assign = */
+		switch(r = intab[*p++]){
 		case TAGS:
 			if(rprev != NONE){
 				outrune(rprev);

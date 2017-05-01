@@ -90,7 +90,7 @@ regexec1(Reprog *progp,	/* program to run */
 			_renewemptythread(tl, progp->startinst, ms, s);
 
 		/* Execute machine until current list is empty */
-		for(tlp=tl; tlp->inst; tlp++){	/* assignment = */
+		for(tlp=tl; tlp->inst; tlp++){
 			for(inst = tlp->inst; ; inst = inst->next){
 				switch(inst->type){
 				case RUNE:	/* regular character */
