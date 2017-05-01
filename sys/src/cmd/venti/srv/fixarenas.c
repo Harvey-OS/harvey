@@ -1919,4 +1919,3 @@ threadmain(int argc, char **argv)
 	checkmap();
 	threadexitsall(nil);
 }
-

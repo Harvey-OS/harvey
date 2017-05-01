@@ -34,4 +34,3 @@ convM2T(char *ap, Ticket *f, char *key)
 	STRING(key, DESKEYLEN);
 	USED(p);
 }
-

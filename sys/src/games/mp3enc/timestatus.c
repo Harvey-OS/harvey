@@ -231,4 +231,3 @@ void decoder_progress_finish ( const lame_global_flags* const gfp )
 {
     fprintf ( stderr, "\n" );
 }
-

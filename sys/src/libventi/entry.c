@@ -101,4 +101,3 @@ vtentryunpack(VtEntry *e, uint8_t *p, int index)
 
 	return 0;
 }
-

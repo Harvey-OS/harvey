@@ -184,4 +184,3 @@ readkbd(Vnc *v)
 		}
 	}
 }
-

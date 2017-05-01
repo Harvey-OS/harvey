@@ -138,4 +138,3 @@
  */
 #define PTLX(v, l)	(((v)>>(((l)*PTSHFT)+PGSHFT)) & ((1<<PTSHFT)-1))
 #define PGLSZ(l)	(1<<(((l)*PTSHFT)+PGSHFT))
-

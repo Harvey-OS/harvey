@@ -109,4 +109,3 @@ procexecl(Channel *pidc, char *f, ...)
 
 	procexec(pidc, f, args);
 }
-

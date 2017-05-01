@@ -721,4 +721,3 @@ warn(char *fmt, ...)
 	fprint(2, "\n");
 	va_end(arg);
 }
-

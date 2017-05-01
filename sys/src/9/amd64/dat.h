@@ -485,4 +485,3 @@ extern char*rolename[];
 extern char dbgflg[256];
 
 #define dbgprint	print		/* for now */
-

@@ -37,4 +37,3 @@ vtParseScore(char *buf, uint n, uint8_t score[VtScoreSize])
 	}
 	return 1;
 }
-

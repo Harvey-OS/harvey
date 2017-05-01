@@ -795,4 +795,3 @@ int acpiirq(uint32_t tbdf, int gsi)
 	//ioapicdump();
 	return 0;
 }
-

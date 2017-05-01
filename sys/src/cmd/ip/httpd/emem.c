@@ -31,4 +31,3 @@ estrdup(char *s)
 		sysfatal("out of memory");
 	return s;
 }
-

@@ -195,4 +195,3 @@ yield(void)
 {
 	_sched();
 }
-

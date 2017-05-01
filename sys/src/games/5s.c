@@ -105,4 +105,3 @@ Piece pieces[]={
 };
 
 int NP = nelem(pieces);
-

@@ -2089,4 +2089,3 @@ etherigbelink(void)
 	addethercard("i82543", igbepnp);
 	addethercard("igbe", igbepnp);
 }
-

@@ -2111,4 +2111,3 @@ sha1matches(VacFile *f, uint32_t b, uint8_t *buf, int n)
 		return 1;
 	return 0;
 }
-

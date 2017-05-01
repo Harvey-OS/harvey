@@ -212,4 +212,3 @@ tetra(void)
 	}
 	return(Xtetra);
 }
-

@@ -1721,4 +1721,3 @@ putmhead(Mhead *mh)
 		free(mh);
 	}
 }
-

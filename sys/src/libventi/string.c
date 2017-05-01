@@ -56,4 +56,3 @@ vtgetstring(Packet *p, char **ps)
 	*ps = s;
 	return 0;
 }
-

@@ -102,4 +102,3 @@ zblock2packet(ZBlock *zb, uint32_t size)
 	packetappend(p, zb->data, size);
 	return p;
 }
-

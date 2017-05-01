@@ -1514,4 +1514,3 @@ isface(void)
 		print("face image depth %d\n", ldepth);
 	return 1;
 }
-

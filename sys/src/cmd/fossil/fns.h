@@ -111,4 +111,3 @@ void	snapGetTimes(Snap*, uint32_t*, uint32_t*, uint32_t*);
 void	snapSetTimes(Snap*, uint32_t, uint32_t, uint32_t);
 
 void	fsCheck(Fsck*);
-

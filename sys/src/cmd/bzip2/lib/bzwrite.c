@@ -259,4 +259,3 @@ void BZ_API(BZ2_bzWriteClose64)
    BZ2_bzCompressEnd ( &(bzf->strm) );
    free ( bzf );
 }
-

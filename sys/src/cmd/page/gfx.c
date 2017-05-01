@@ -339,4 +339,3 @@ spawnrc(char *cmd, uint8_t *stdinbuf, int nstdinbuf)
 	close(pfd[0]);
 	return pfd[1];
 }
-

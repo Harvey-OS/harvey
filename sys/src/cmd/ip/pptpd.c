@@ -1347,4 +1347,3 @@ proc(char **argv, int fd0, int fd1, int fd2)
 	myfatal("proc: exec failed: %r");
 	return 0;
 }
-

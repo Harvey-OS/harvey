@@ -93,5 +93,3 @@ int getchar(void)
 	}
 	return -1;
 }
-
-

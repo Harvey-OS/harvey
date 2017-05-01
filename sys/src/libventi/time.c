@@ -31,4 +31,3 @@ vttimefmt(Fmt *fmt)
 			tm.hour, tm.min, tm.sec);
 	}
 }
-

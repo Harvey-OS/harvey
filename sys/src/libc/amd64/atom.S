@@ -83,4 +83,3 @@ _cas64r0:
 mfence:
 	mfence
 	ret
-

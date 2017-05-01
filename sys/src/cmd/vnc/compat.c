@@ -256,4 +256,3 @@ rendclearintr(void)
 	up->intr = 0;
 	unlock(&up->rlock);
 }
-

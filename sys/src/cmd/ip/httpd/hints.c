@@ -303,4 +303,3 @@ continuei: ;
 	if(newhint)
 		hprint(hout, "Fresh: have/%d\r\n", j);
 }
-

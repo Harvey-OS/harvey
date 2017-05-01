@@ -75,4 +75,3 @@ typedef
    bzFile;
 
 extern Bool bz_feof( FILE* );
-

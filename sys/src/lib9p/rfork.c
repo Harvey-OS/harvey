@@ -40,4 +40,3 @@ postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 	_forker = rforker;
 	_postmountsrv(s, name, mtpt, flag);
 }
-

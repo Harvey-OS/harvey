@@ -42,4 +42,3 @@ void set_printx(int mode)
 {
 	printx_on = mode;
 }
-

@@ -183,4 +183,3 @@ emallocz(uint32_t size, int zero)
 	setmalloctag(x, getcallerpc());
 	return x;
 }
-

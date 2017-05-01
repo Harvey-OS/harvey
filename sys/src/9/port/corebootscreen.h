@@ -69,5 +69,3 @@ struct CorebootScreen {
 struct Corebootfb {		/* frame buffer for 24-bit active color */
 	uint8_t *pixel;
 };
-
-

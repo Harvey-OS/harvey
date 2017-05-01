@@ -80,5 +80,3 @@ up1(int i)
 		i--;
 	return(i);
 }
-
-

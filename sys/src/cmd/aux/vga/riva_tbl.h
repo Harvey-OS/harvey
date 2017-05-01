@@ -962,4 +962,3 @@ static unsigned nv10TablePRAMIN_32BPP[][2] =
     {0x0000053D, 0x00000E02},
     {0x00000541, 0x00000E02}
 };
-

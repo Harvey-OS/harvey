@@ -864,4 +864,3 @@ postfd(char *name, int pfd)
 		fprint(2, "postfd successful\n");
 	return 0;
 }
-

@@ -116,4 +116,3 @@ t5init(void)
 	nr(L(".ls"), 1);
 	nr(L(".ls0"), 1);
 }
-

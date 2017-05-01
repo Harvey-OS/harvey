@@ -155,5 +155,3 @@ deftail(void)
 	Bprint(&tabout, "..\n");
 	Bprint(&tabout, ".ec\n");
 }
-
-

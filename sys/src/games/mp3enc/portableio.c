@@ -484,4 +484,3 @@ ReadIeeeExtendedHighLow(FILE *fp)
 	ReadBytes ( fp, bytes, 10 );
 	return ConvertFromIeeeExtended ( bytes );
 }
-

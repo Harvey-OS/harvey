@@ -46,4 +46,3 @@ Cipher cipherdes =
 	encryptdes,
 	decryptdes,
 };
-
