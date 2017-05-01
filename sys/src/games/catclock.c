@@ -145,7 +145,7 @@ void drawhand(int length, int width, double theta){
 	vhand[1]=add(screen->r.min, add(catoffs, Pt(CATWID/2-round(ws+wc), CATHGT/2+round(wc-ws))));
 	vhand[2]=add(screen->r.min, add(catoffs, Pt(CATWID/2-round(ws-wc), CATHGT/2+round(wc+ws))));
 	vhand[3] = vhand[0];
-	fillpoly(screen, vhand, 4, wind, display->white, 
+	fillpoly(screen, vhand, 4, wind, display->white,
 		addpt(screen->r.min, vhand[0]));
 	poly(screen, vhand, 4, Endsquare, Endsquare, 0, display->black,
 		addpt(screen->r.min, vhand[0]));
@@ -245,9 +245,9 @@ drawclock(void){
 		drawhand(HOURLEN, HANDWID, 2.*PI*(tm.hour+tm.min/60.)/12.);
 		xredraw=0;
 	}
-	draw(screen, screen->r, tail[t], nil, 
+	draw(screen, screen->r, tail[t], nil,
 		mulpt(add(catoffs, tailoffs), -1));
-	draw(screen, screen->r, eye[t], nil, 
+	draw(screen, screen->r, eye[t], nil,
 		mulpt(add(catoffs, eyeoffs), -1));
 	//bitblt(&screen, add(catoffs, tailoffs), tail[t], tail[t]->r, S);
 	//bitblt(&screen, add(catoffs, eyeoffs), eye[t], eye[t]->r, S);

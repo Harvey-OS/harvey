@@ -48,7 +48,7 @@ unique(char *buf, Sym *s)
 		print("\t%s=%s %c/%llux\n", s->name, buf, s->type, s->value);
 	if(l == 0)
 		l = enter(buf, Tid);
-	return l;	
+	return l;
 }
 
 void

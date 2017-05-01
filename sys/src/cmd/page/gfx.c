@@ -111,7 +111,7 @@ initgfx(Biobuf*, int argc, char **argv, uint8_t *buf, int nbuf)
 	doc = emalloc(sizeof(*doc));
 	gfx = emalloc(sizeof(*gfx));
 	gfx->g = nil;
-	
+
 	doc->npage = 0;
 	doc->drawpage = gfxdrawpage;
 	doc->pagename = gfxpagename;
@@ -174,7 +174,7 @@ genaddpage(Document *doc, char *name, uint8_t *buf, int nbuf)
 	memset(g, 0, sizeof *g);
 	if(memcmp(buf, "GIF", 3) == 0)
 		g->type = Igif;
-	else if(memcmp(buf, "\111\111\052\000", 4) == 0) 
+	else if(memcmp(buf, "\111\111\052\000", 4) == 0)
 		g->type = Itiff;
 	else if(memcmp(buf, "\115\115\000\052", 4) == 0)
 		g->type = Itiff;
@@ -221,7 +221,7 @@ genaddpage(Document *doc, char *name, uint8_t *buf, int nbuf)
 	return doc->npage++;
 }
 
-static int 
+static int
 addpage(Document *doc, char *name)
 {
 	return genaddpage(doc, name, nil, 0);
@@ -272,7 +272,7 @@ convert(Graphic *g)
 				wexits("open");
 			}
 		}else
-			fd = stdinpipe(g->buf, g->nbuf);	
+			fd = stdinpipe(g->buf, g->nbuf);
 	} else {
 		cmd = c.cmd;
 		if(truecolor && c.truecmd)
@@ -293,7 +293,7 @@ convert(Graphic *g)
 		if(fd < 0) {
 			fprint(2, "cannot spawn converter: %r\n");
 			wexits("convert");
-		}	
+		}
 	}
 
 	im = readimage(display, fd, 0);

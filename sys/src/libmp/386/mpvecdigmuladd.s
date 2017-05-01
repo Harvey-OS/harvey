@@ -18,7 +18,7 @@
  *		i-n = BP
  *		m = BX
  *		oldhi = CX
- *		
+ *
  */
 TEXT	mpvecdigmuladd(SB),$0
 

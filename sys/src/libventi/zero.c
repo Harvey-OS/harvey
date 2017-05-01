@@ -32,7 +32,7 @@ vtzeroextend(int type, uint8_t *buf, uint n, uint nn)
 	}
 }
 
-uint 
+uint
 vtzerotruncate(int type, uint8_t *buf, uint n)
 {
 	uint8_t *p;

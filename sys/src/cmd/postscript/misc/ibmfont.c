@@ -17,7 +17,7 @@
  *
  * where font.ibm is the font file, exactly as it came over from an IBM PC,
  * and font.unix is equivalent host resident font file usable on Unix systems.
- * 
+ *
  */
 
 #include <stdio.h>
@@ -218,7 +218,7 @@ asciitext(count)
 	    ch = '\n';
 	putc(ch, fp_out);
     }	/* End for */
-	
+
 }   /* End of asciitext */
 
 /*****************************************************************************/
@@ -244,7 +244,7 @@ hexdata(count)
 	if ( (++n % 40) == 0 )
 	    putc('\n', fp_out);
     }	/* End for */
-	
+
 }   /* End of hexdata */
 
 /*****************************************************************************/
@@ -269,7 +269,7 @@ getint()
 
     return(val);
 
-}   /* End of getint */ 
+}   /* End of getint */
 
 /*****************************************************************************/
 

@@ -61,7 +61,7 @@ Control *b_remember;
 Control *b_accept;
 Control *b_refuse;
 
-RequestType rt[] = 
+RequestType rt[] =
 {
 	{ "/mnt/factotum/confirm",	confirm,	resizeconfirm, },
 	{ "/mnt/factotum/needkey",	needkey,	resizeneedkey, },

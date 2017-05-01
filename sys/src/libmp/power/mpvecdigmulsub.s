@@ -25,7 +25,7 @@
  *		oldhi = R10
  *		tmp = R11
  *		borrow = R12
- *		
+ *
  */
 TEXT	mpvecdigmulsub(SB),$0
 
@@ -37,7 +37,7 @@ TEXT	mpvecdigmulsub(SB),$0
 	SUBC	$4, R6		/* pre decrement for MOVWU's and set carry */
 	MOVW	XER,R12
 
-	MOVW	R0, R10	
+	MOVW	R0, R10
 
 _mulsubloop:
 	MOVWU	4(R3),R9	/* lo = b[i] */

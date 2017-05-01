@@ -61,3 +61,24 @@ sqrt(double arg)
 		temp = 0.5*(temp + arg/temp);
 	return temp;
 }
+
+void
+main(void)
+{
+	double v;
+	char *a, *b;
+
+	for(v = 4; v < 65536; v += 3) {
+		a = smprint("%f", sqrtC(v));
+		b = smprint("%f", sqrt(v));
+		if(strcmp(a, b)){
+			print("FAIL\n");
+			exits("FAIL");
+		}
+		free(a);
+		free(b);
+	}
+
+	print("PASS\n");
+	exits(nil);
+}

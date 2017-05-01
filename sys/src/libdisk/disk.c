@@ -25,16 +25,16 @@ mkwidth(Disk *disk)
 
 /*
  * Discover the disk geometry by various sleazeful means.
- * 
+ *
  * First, if there is a partition table in sector 0,
  * see if all the partitions have the same end head
- * and sector; if so, we'll assume that that's the 
+ * and sector; if so, we'll assume that that's the
  * right count.
- * 
+ *
  * If that fails, we'll try looking at the geometry that the ATA
  * driver supplied, if any, and translate that as a
- * BIOS might. 
- * 
+ * BIOS might.
+ *
  * If that too fails, which should only happen on a SCSI
  * disk with no currently defined partitions, we'll try
  * various common (h, s) pairs used by BIOSes when faking
@@ -265,7 +265,7 @@ opensd(Disk *disk)
 		}
 	}
 
-	
+
 	disk->size = disk->secs * disk->secsize;
 	if(disk->size <= 0) {
 		strcpy(disk->part, "");

@@ -11,8 +11,8 @@
 #include <libc.h>
 
 Rune*
-runestrdup(Rune *s) 
-{  
+runestrdup(const Rune *s)
+{
 	Rune *ns;
 
 	ns = malloc(sizeof(Rune)*(runestrlen(s) + 1));

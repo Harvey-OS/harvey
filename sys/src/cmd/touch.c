@@ -38,7 +38,7 @@ main(int argc, char **argv)
 	case 'c':
 		nocreate = 1;
 		break;
-	default:	
+	default:
 		usage();
 	}ARGEND
 

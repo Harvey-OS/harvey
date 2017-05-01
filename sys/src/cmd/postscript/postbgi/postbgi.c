@@ -166,7 +166,7 @@
  * the generation of uniform width lines when linewidth is non-zero and boolean
  * fixlinewidth is true.
  *
- * Many default values, like the magnification and orientation, are defined in 
+ * Many default values, like the magnification and orientation, are defined in
  * the prologue, which is where they belong. If they're changed (by options), an
  * appropriate definition is made after the prologue is added to the output file.
  * The -P option passes arbitrary PostScript through to the output file. Among
@@ -760,7 +760,7 @@ vgoto(n)
 /*
  *
  * Sets the absolute vertical position to n.
- * 
+ *
  */
 
     vpos = n;

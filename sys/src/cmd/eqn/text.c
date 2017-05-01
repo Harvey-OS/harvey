@@ -198,7 +198,7 @@ trans(int c, char *)
 			cadd(c);
 			psp++;
 		} else {
-			cadd(c);  
+			cadd(c);
 		}
 		return f;
 	case '-':
@@ -268,7 +268,7 @@ char *pad(int n)	/* return the padding as a string */
 	if (n < 0) {
 		sprintf(buf, "\\h'-%du*\\w'\\^'u'", -n);
 		return buf;
-	}	
+	}
 	for ( ; n > 1; n -= 2)
 		strcat(buf, "\\|");
 	if (n > 0)

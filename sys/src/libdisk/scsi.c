@@ -10,7 +10,7 @@
 /*
  * Now thread-safe.
  *
- * The codeqlock guarantees that once codes != nil, that pointer will never 
+ * The codeqlock guarantees that once codes != nil, that pointer will never
  * change nor become invalid.
  *
  * The QLock in the Scsi structure moderates access to the raw device.
@@ -93,7 +93,7 @@ getcodes(void)
 	codes[n] = '\0';
 	qunlock(&codeqlock);
 }
-	
+
 char*
 scsierror(int asc, int ascq)
 {
@@ -267,11 +267,11 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 		if((n=_scsicmd(s, req, sizeof(req), sense, sizeof(sense), Sread, 0)) < 14)
 			if(scsiverbose)
 				fprint(2, "reqsense scsicmd %d: %r\n", n);
-	
+
 		if(_scsiready(s, 0) < 0)
 			if(scsiverbose)
 				fprint(2, "unit not ready\n");
-	
+
 		key = sense[2] & 0xf;
 		code = sense[12];			/* asc */
 		if(code == Recovnoecc || code == Recovecc) { /* recovered errors */
@@ -373,7 +373,7 @@ openscsi(char *dev)
 	s->rawfd = rawfd;
 	s->inquire = p;
 	s->changetime = time(0);
-	
+
 	if(scsiready(s) < 0)
 		goto Error1;
 

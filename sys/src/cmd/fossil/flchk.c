@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	int csize = 1000;
 	VtSession *z;
 	char *host = nil;
-	
+
 	fsck.useventi = 1;
 	Binit(&bout, 1, OWRITE);
 	ARGBEGIN{

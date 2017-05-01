@@ -20,7 +20,7 @@ plumbopen(char *name, int omode)
 
 	if(name[0] == '/')
 		return open(name, omode);
-		
+
 	/* find elusive plumber */
 	if(access("/mnt/plumb/send", AWRITE) >= 0)
 		plumber = "/mnt/plumb";

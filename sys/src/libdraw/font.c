@@ -64,7 +64,7 @@ cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 			c++;
 			h++;
 		}
-	
+
 		/*
 		 * Not found; toss out oldest entry
 		 */
@@ -101,7 +101,7 @@ cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 			break;
 		}
 		c = &f->cache[h];	/* may have reallocated f->cache */
-	
+
 	    Found:
 		wid += c->width;
 		c->age = f->age;

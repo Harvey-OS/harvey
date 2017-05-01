@@ -16,7 +16,7 @@ void
 r_lt(int argc, Rune **argv)
 {
 	Rune *p;
-	
+
 	if(argc < 2)
 		nr(L(".lt"), evalscale(L("6.5i"), 'm'));
 	else{

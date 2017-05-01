@@ -44,7 +44,7 @@ getmemdefont(void)
 	md = mallocz(sizeof(Memdata), 1);
 	if(md == nil)
 		return nil;
-	
+
 	p += 5*12;
 
 	md->base = nil;		/* so freememimage doesn't free p */

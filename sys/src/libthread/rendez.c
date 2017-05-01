@@ -70,7 +70,7 @@ _threadrendezvous(void *tag, void *val)
 
 /*
  * This is called while holding _threadpq.lock and p->lock,
- * so we can't lock _threadrgrp.lock.  Instead our caller has 
+ * so we can't lock _threadrgrp.lock.  Instead our caller has
  * to call _threadbreakrendez after dropping those locks.
  */
 void

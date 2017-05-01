@@ -398,7 +398,7 @@ fmtr(char *f)
 	static int nstart;
 
 	USED(f);
-	if(nstart)	
+	if(nstart)
 		xprint("%*c", 3*nstart, ' ');
 	for(i=nstart; i<ndata; )
 		if(data[i] < Runeself)
@@ -411,7 +411,7 @@ fmtr(char *f)
 				cw = w;
 				if(i + w>ndata)
 					cw = ndata - i;
-				xprint(rfmt[0][0], r);	
+				xprint(rfmt[0][0], r);
 				xprint("%*c", 3*cw-3, ' ');
 				i += w;
 			}

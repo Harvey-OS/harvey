@@ -11,7 +11,7 @@
  * HTTPDIGEST - MD5 challenge/response authentication (RFC 2617)
  *
  * Client protocol:
- *	write challenge: nonce method uri 
+ *	write challenge: nonce method uri
  *	read response: 2*MD5dlen hex digits
  *
  * Server protocol:

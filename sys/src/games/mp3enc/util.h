@@ -102,7 +102,7 @@
 #define MAX_BITS 4095
 
 /* "bit_stream.h" Definitions */
-#define         BUFFER_SIZE     LAME_MAXMP3BUFFER 
+#define         BUFFER_SIZE     LAME_MAXMP3BUFFER
 
 #define         Min(A, B)       ((A) < (B) ? (A) : (B))
 #define         Max(A, B)       ((A) > (B) ? (A) : (B))
@@ -127,7 +127,7 @@ typedef struct  bit_stream_struc {
     int         totbit;         /* bit counter of bit stream */
     int         buf_byte_idx;   /* pointer to top byte in buffer */
     int         buf_bit_idx;    /* pointer to top bit of top byte in buffer */
-    
+
     /* format of file in rd mode (BINARY/ASCII) */
 } Bit_stream_struc;
 
@@ -148,7 +148,7 @@ typedef struct {
 } nsPsy_t;
 
 
-typedef struct 
+typedef struct
 {
     int sum;    // what we have seen so far
     int seen;   // how many frames we have seen in this chunk
@@ -222,11 +222,11 @@ typedef struct  {
    * internal variables NOT set by calling program, and should not be *
    * modified by the calling program                                  *
    ********************************************************************/
-  
-  /*  
+
+  /*
    * Some remarks to the Class_ID field:
    * The Class ID is an Identifier for a pointer to this struct.
-   * It is very unlikely that a pointer to lame_global_flags has the same 32 bits 
+   * It is very unlikely that a pointer to lame_global_flags has the same 32 bits
    * in it's structure (large and other special properties, for instance prime).
    *
    * To test that the structure is right and initialized, use:
@@ -236,7 +236,7 @@ typedef struct  {
    *     should be "if (flag == 1)" and NOT "if (flag)". Unintended modification
    *     of this element will be otherwise misinterpreted as an init.
    */
-  
+
   #define  LAME_ID   0xFFF88E3B
   unsigned long Class_ID;
 
@@ -245,8 +245,8 @@ typedef struct  {
     void (*debugf)(const char *format, va_list ap);
     void (*errorf)(const char *format, va_list ap);
   } report;
-  
-  int lame_encode_frame_init;     
+
+  int lame_encode_frame_init;
   int iteration_init_init;
   int fill_buffer_resample_init;
   int psymodel_init;
@@ -286,7 +286,7 @@ typedef struct  {
   /* lowpass and highpass filter control */
   float lowpass1,lowpass2;        /* normalized frequency bounds of passband */
   float highpass1,highpass2;      /* normalized frequency bounds of passband */
-                                  
+
   /* polyphase filter (filter_type=0)  */
   int lowpass_band;          /* zero bands >= lowpass_band in the polyphase filterbank */
   int highpass_band;         /* zero bands <= highpass_band */
@@ -298,23 +298,23 @@ typedef struct  {
 
   int filter_type;          /* 0=polyphase filter, 1= FIR filter 2=MDCT filter(bad)*/
   int quantization;         /* 0 = ISO formual,  1=best amplitude */
-  int noise_shaping;        /* 0 = none 
+  int noise_shaping;        /* 0 = none
                                1 = ISO AAC model
-                               2 = allow scalefac_select=1  
+                               2 = allow scalefac_select=1
                              */
 
   int noise_shaping_amp;    /*  0 = ISO model: amplify all distorted bands
                                 1 = amplify only most distorted band
-                                2 = amplify bands using? 
+                                2 = amplify bands using?
                                 3 = amplify bands using?
 			     */
 
   int psymodel;             /* 1 = gpsycho. 0 = none */
   int noise_shaping_stop;   /* 0 = stop at over=0, all scalefacs amplified or
                                    a scalefac has reached max value
-                               1 = stop when all scalefacs amplified or        
+                               1 = stop when all scalefacs amplified or
                                    a scalefac has reached max value
-                               2 = stop when all scalefacs amplified 
+                               2 = stop when all scalefacs amplified
 			    */
 
   int use_best_huffman;     /* 0 = no.  1=outside loop  2=inside loop(slow) */
@@ -342,9 +342,9 @@ typedef struct  {
   FLOAT8 masking_lower;
 
   char bv_scf[576];
-  
+
   int sfb21_extra; /* will be set in lame_init_params */
-  
+
   int is_mpeg1; /* 1 for MPEG-1, 0 for MPEG-2(.5) */
 
 #ifndef KLEMM_44
@@ -364,7 +364,7 @@ typedef struct  {
 
   /* variables for bitstream.c */
   /* mpeg1: buffer=511 bytes  smallest frame: 96-38(sideinfo)=58
-   * max number of frames in reservoir:  8 
+   * max number of frames in reservoir:  8
    * mpeg2: buffer=255 bytes.  smallest frame: 24-23bytes=1
    * with VBR, if you are encoding all silence, it is possible to
    * have 8kbs/24khz frames with 1byte of data each, which means we need
@@ -381,13 +381,13 @@ typedef struct  {
   int h_ptr;
   int w_ptr;
   int ancillary_flag;
-  
+
 
   /* variables for reservoir.c */
   int ResvSize; /* in bits */
   int ResvMax;  /* in bits */
 
-  
+
   scalefac_struct scalefac_band;
 
 
@@ -403,7 +403,7 @@ typedef struct  {
 
   III_psy_xmin thm[4];
   III_psy_xmin en[4];
-  
+
   /* unpredictability calculation
    */
   int cw_upper_index;
@@ -420,11 +420,11 @@ typedef struct  {
   FLOAT energy_s[3][HBLKSIZE_s];
   FLOAT tot_ener[4];
 
-  
+
   /* fft.c    */
   FLOAT window[BLKSIZE], window_s[BLKSIZE_s/2];
-  
-  
+
+
   /* Scale Factor Bands    */
   FLOAT8	w1_l[SBMAX_l], w2_l[SBMAX_l];
   FLOAT8	w1_s[SBMAX_s], w2_s[SBMAX_s];
@@ -433,19 +433,19 @@ typedef struct  {
   int	bu_s[SBMAX_s],bo_s[SBMAX_s] ;
   int	npart_l,npart_s;
   int	npart_l_orig,npart_s_orig;
-  
+
   int	s3ind[CBANDS][2];
   int	s3ind_s[CBANDS][2];
   FLOAT8 SNR_s[CBANDS];
 
   int	numlines_s[CBANDS];
   int	numlines_l[CBANDS];
-  
+
   /* frame analyzer    */
   FLOAT energy_save[4][HBLKSIZE];
   FLOAT8 pe_save[4];
   FLOAT8 ers_save[4];
-  
+
   /* simple statistics */
   int   bitrate_stereoMode_Hist [16] [4+1];
 
@@ -469,25 +469,25 @@ typedef struct  {
     unsigned int  SIMD      : 1; /* Pentium III, Pentium 4    */
     unsigned int  SIMD2     : 1; /* Pentium 4, K8             */
   } CPU_features;
-   
+
   /* functions to replace with CPU feature optimized versions in takehiro.c */
   int (*choose_table)(const int *ix, const int *end, int *s);
-  
+
 
   nsPsy_t nsPsy;  /* variables used for --nspsytune */
-  
+
   unsigned crcvalue;
-  
+
   VBR_seek_info_t VBR_seek_table; // used for Xing VBR header
-  
+
   ATH_t *ATH;   // all ATH related stuff
-  
-  
+
+
 } lame_internal_flags;
 
 
 
- 
+
 
 /***********************************************************************
 *
@@ -505,7 +505,7 @@ extern FLOAT8         freq2cbw(FLOAT8 freq);
 extern void freorder(int scalefac_band[],FLOAT8 ix_orig[576]);
 void disable_FPE(void);
 
-extern void 
+extern void
 getframebits(lame_global_flags *gfp, int *bitsPerFrame, int *mean_bits);
 
 void fill_buffer(lame_global_flags *gfp,

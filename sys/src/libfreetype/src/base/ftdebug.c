@@ -133,7 +133,7 @@
         q = p;
         while ( *p && *p != ':' )
           p++;
-          
+
         if ( *p == ':' && p > q )
         {
           FT_Int  n, i, len = (FT_Int)(p - q);

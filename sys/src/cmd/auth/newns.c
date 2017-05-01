@@ -68,4 +68,4 @@ main(int argc, char **argv)
 		errstr(err, sizeof err);
 	}
 	sysfatal("exec: %s: %r", argv[0]);
-}	
+}

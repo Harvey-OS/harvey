@@ -32,7 +32,7 @@ smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 		smbseterror(s, ERRSRV, ERRinvtid);
 		return SmbProcessResultError;
 	}
-	
+
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
 smblogprintif(1, "smbcomcheckdirectory: statting %s\n", fullpath);
 	d = dirstat(fullpath);

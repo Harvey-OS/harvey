@@ -154,7 +154,7 @@ static void cb_parse_framebuffer(void *ptr, struct sysinfo_t *info)
 }
 
 static void cb_parse_x86_rom_var_mtrr(void *ptr, struct sysinfo_t *info)
-{ 
+{
 	kmprint("%s, ignoring MTRR information.\n", __func__);
 }
 
@@ -173,10 +173,10 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 	for (i = 0; i < len; i += 16, ptr += 16) {
 		header = (struct cb_header *)ptr;
 		if (0)
-		kmprint("Check header %p sig %p val %02x %02x %02x %02x\n", header, header->signature, 
-				header->signature[0], 
-				header->signature[1], 
-				header->signature[2], 
+		kmprint("Check header %p sig %p val %02x %02x %02x %02x\n", header, header->signature,
+				header->signature[0],
+				header->signature[1],
+				header->signature[2],
 				header->signature[3]);
 		if (!strncmp((char *)header->signature, "LBIO", 4))
 			break;
@@ -211,7 +211,7 @@ int cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 		switch (rec->tag) {
 		case CB_TAG_FORWARD:
 			forward = KADDR((unsigned long)((struct cb_forward *)rec)->forward);
-			kmprint("FORWARD: %p %p\n", (unsigned long)((struct cb_forward *)rec)->forward, 
+			kmprint("FORWARD: %p %p\n", (unsigned long)((struct cb_forward *)rec)->forward,
 					forward);
 			return cb_parse_header(forward, len, info);
 			continue;

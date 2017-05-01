@@ -382,7 +382,7 @@ sopen(Srv *srv, Req *r)
 	default:
 		assert(0);
 	case OREAD:
-		p = AREAD;	
+		p = AREAD;
 		break;
 	case OWRITE:
 		p = AWRITE;
@@ -391,7 +391,7 @@ sopen(Srv *srv, Req *r)
 		p = AREAD|AWRITE;
 		break;
 	case OEXEC:
-		p = AEXEC;	
+		p = AEXEC;
 		break;
 	}
 	if(r->ifcall.mode&OTRUNC)
@@ -586,7 +586,7 @@ rremove(Req *r, char *error, char *errbuf)
 		return;
 	if(r->fid->file){
 		if(removefile(r->fid->file) < 0){
-			snprint(errbuf, ERRMAX, "remove %s: %r", 
+			snprint(errbuf, ERRMAX, "remove %s: %r",
 				r->fid->file->Dir.name);
 			r->error = errbuf;
 		}
@@ -830,7 +830,7 @@ void
 responderror(Req *r)
 {
 	char errbuf[ERRMAX];
-	
+
 	rerrstr(errbuf, sizeof errbuf);
 	respond(r, errbuf);
 }

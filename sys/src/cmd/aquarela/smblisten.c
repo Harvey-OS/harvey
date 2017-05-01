@@ -161,4 +161,4 @@ smblistencifs(SMBCIFSACCEPTFN *accept)
 	qunlock(&tcp);
 	return 0;
 }
-	
+

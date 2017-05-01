@@ -152,7 +152,7 @@ hint(void)
 			x = level.c.x;
 			y = level.c.y;
 		}
-	} else 
+	} else
 		for(d = Depth - 1; d >= 0; d--)
 			for(y = 0; y < Ly; y++)
 				for(x = 0; x < Lx; x++)

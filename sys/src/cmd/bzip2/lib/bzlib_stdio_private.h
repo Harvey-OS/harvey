@@ -62,7 +62,7 @@ extern void BZ2_bz__AssertH__fail ( int errcode );
    if (bzf != NULL) bzf->lastErr = eee;   \
 }
 
-typedef 
+typedef
    struct {
       FILE*     handle;
       Char      buf[BZ_MAX_UNUSED];

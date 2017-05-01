@@ -119,7 +119,7 @@ drawlevel(void)
 
 	if(img)
 		freeimage(img);
-	img = eallocimage(Rpt(Pt(0, 0), boardsize(level.max)), 0, 0);	
+	img = eallocimage(Rpt(Pt(0, 0), boardsize(level.max)), 0, 0);
 
 	draw(img, insetrect(img->r, 1), empty, nil, ZP);
 

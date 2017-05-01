@@ -66,7 +66,7 @@ printheader(char *name, ArenaHead *head, int fd)
 	Arena arena;
 	int64_t baseoff, lo, hi, off;
 	int clumpmax;
-	
+
 	off = seek(fd, 0, 1);
 	seek(fd, off + head->size - head->blocksize, 0);
 	if(readblock(fd, data, head->blocksize) < 0){
@@ -100,7 +100,7 @@ printheader(char *name, ArenaHead *head, int fd)
 		lo = hi;
 	fprint(2, "\t%llx-%llx: clumps (%llx)\n", lo, hi, hi - lo);
 	fprint(2, "\t%llx-%llx: tail\n", hi, hi + head->blocksize);
-	
+
 	fprint(2, "arena:\n");
 	printarena(2, &arena);
 	return 0;
@@ -158,7 +158,7 @@ cmparena(char *name, int64_t len)
 
 	if(printheader(name, &head, fd) < 0)
 		return;
-	
+
 	/*
 	 * now we know how much to read
 	 * read everything but the last block, which is special
@@ -205,7 +205,7 @@ static int
 shouldcheck(char *name, char **s, int n)
 {
 	int i;
-	
+
 	if(n == 0)
 		return 1;
 
@@ -222,7 +222,7 @@ char *
 readap(int fd, ArenaPart *ap)
 {
 	char *table;
-	
+
 	if(preadblock(fd, data, 8192, PartBlank) < 0)
 		sysfatal("read arena part header: %r");
 	if(unpackarenapart(ap, data) < 0)
@@ -246,7 +246,7 @@ threadmain(int argc, char *argv[])
 	int64_t start, stop;
 	ArenaPart ap;
 	ArenaPart ap1;
-	
+
 	ventifmtinstall();
 	blocksize = MaxIoSize;
 	ARGBEGIN{

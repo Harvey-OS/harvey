@@ -59,7 +59,7 @@ rev_escape(SeqList *e)
 	if ((r = rev_escape(e->nxt)) != ZE) /* reversed order */
 		return r;
 
-	return eval_sub(e->this->frst);		
+	return eval_sub(e->this->frst);
 }
 
 Element *
@@ -288,7 +288,7 @@ eval_sub(Element *e)
 				}	}	}
 				Escape_Check--;
 			}
-		
+
 			switch (e->n->ntyp) {
 			case TIMEOUT: case RUN:
 			case PRINT: case PRINTM:
@@ -344,7 +344,7 @@ assign(Lextok *now)
 		t = Sym_typ(now->rgt);
 		break;
 	}
-	typ_ck(Sym_typ(now->lft), t, "assignment"); 
+	typ_ck(Sym_typ(now->lft), t, "assignment");
 	return setval(now->lft, eval(now->rgt));
 }
 

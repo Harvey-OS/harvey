@@ -230,7 +230,7 @@ checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 	chan->authed = 1;
 
 	return 0;
-}		
+}
 
 static int
 fsattach(Chan* chan, Fcall* f, Fcall* r)
@@ -1848,7 +1848,7 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 		}
 		if(CHAT(chan))
 			print("9p2: r %F\n", &r);
-	
+
 		n = convS2M(&r, outbuf, sizeof outbuf);
 		if(n == 0){
 			type = r.type;

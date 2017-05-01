@@ -104,7 +104,7 @@ const char  pretab [SBMAX_l] =
 
 /*
   Here are MPEG1 Table B.8 and MPEG2 Table B.1
-  -- Layer III scalefactor bands. 
+  -- Layer III scalefactor bands.
   Index into this using a method such as:
     idx  = fr_ps->header->sampling_frequency
            + (fr_ps->header->version * 3)
@@ -198,8 +198,8 @@ iteration_init( lame_global_flags *gfp)
 
 
 
-/* 
-compute the ATH for each scalefactor band 
+/*
+compute the ATH for each scalefactor band
 cd range:  0..96db
 
 Input:  3.3kHz signal  32767 amplitude  (3.3kHz is where ATH is smallest = -5db)
@@ -208,18 +208,18 @@ shortblocks: sfb=5           -9db              0db
 
 Input:  1 1 1 1 1 1 1 -1 -1 -1 -1 -1 -1 -1 (repeated)
 longblocks:  amp=1      sfb=12   en0/bw=-103 db      max_en0 = -92db
-            amp=32767   sfb=12           -12 db                 -1.4db 
+            amp=32767   sfb=12           -12 db                 -1.4db
 
 Input:  1 1 1 1 1 1 1 -1 -1 -1 -1 -1 -1 -1 (repeated)
-shortblocks: amp=1      sfb=5   en0/bw= -99                    -86 
-            amp=32767   sfb=5           -9  db                  4db 
+shortblocks: amp=1      sfb=5   en0/bw= -99                    -86
+            amp=32767   sfb=5           -9  db                  4db
 
 
 MAX energy of largest wave at 3.3kHz = 1db
 AVE energy of largest wave at 3.3kHz = -11db
-Let's take AVE:  -11db = maximum signal in sfb=12.  
-Dynamic range of CD: 96db.  Therefor energy of smallest audible wave 
-in sfb=12  = -11  - 96 = -107db = ATH at 3.3kHz.  
+Let's take AVE:  -11db = maximum signal in sfb=12.
+Dynamic range of CD: 96db.  Therefor energy of smallest audible wave
+in sfb=12  = -11  - 96 = -107db = ATH at 3.3kHz.
 
 ATH formula for this wave: -5db.  To adjust to LAME scaling, we need
 ATH = ATH_formula  - 103  (db)
@@ -231,15 +231,15 @@ FLOAT8 ATHmdct( lame_global_flags *gfp, FLOAT8 f )
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     FLOAT8 ath;
-  
+
     ath = ATHformula( f , gfp );
-	  
+
     if (gfc->nsPsy.use) {
         ath -= NSATHSCALE;
     } else {
         ath -= 114;
     }
-    
+
     /*  modify the MDCT scaling for the ATH  */
     ath -= gfp->ATHlower;
 
@@ -247,7 +247,7 @@ FLOAT8 ATHmdct( lame_global_flags *gfp, FLOAT8 f )
     ath = pow( 10.0, ath/10.0 );
     return ath;
 }
- 
+
 
 void compute_ath( lame_global_flags *gfp, FLOAT8 ATH_l[], FLOAT8 ATH_s[] )
 {
@@ -282,7 +282,7 @@ void compute_ath( lame_global_flags *gfp, FLOAT8 ATH_l[], FLOAT8 ATH_s[] )
     /*  no-ATH mode:
      *  reduce ATH to -200 dB
      */
-    
+
     if (gfp->noATH) {
         for (sfb = 0; sfb < SBMAX_l; sfb++) {
             ATH_l[sfb] = 1E-37;
@@ -323,7 +323,7 @@ int targ_bits[2],int mean_bits, int gr)
   lame_internal_flags *gfc=gfp->internal_flags;
   gr_info *cod_info;
   int extra_bits,tbits,bits;
-  int add_bits[2]; 
+  int add_bits[2];
   int ch;
   int max_bits;  /* maximum allowed bits for this granule */
 
@@ -335,12 +335,12 @@ int targ_bits[2],int mean_bits, int gr)
 
   for (ch=0 ; ch < gfc->channels_out ; ch ++) {
     /******************************************************************
-     * allocate bits for each channel 
+     * allocate bits for each channel
      ******************************************************************/
     cod_info = &l3_side->gr[gr].ch[ch].tt;
-    
+
     targ_bits[ch]=Min(MAX_BITS, tbits/gfc->channels_out);
-    
+
     if (gfc->nsPsy.use) {
       add_bits[ch] = targ_bits[ch]*pe[gr][ch]/700.0-targ_bits[ch];
     } else {
@@ -354,7 +354,7 @@ int targ_bits[2],int mean_bits, int gr)
       if (add_bits[ch] > .75*mean_bits) add_bits[ch]=mean_bits*.75;
       if (add_bits[ch] < 0) add_bits[ch]=0;
 
-      if ((targ_bits[ch]+add_bits[ch]) > MAX_BITS) 
+      if ((targ_bits[ch]+add_bits[ch]) > MAX_BITS)
 	add_bits[ch]=Max(0, MAX_BITS-targ_bits[ch]);
     }
 
@@ -381,23 +381,23 @@ void reduce_side(int targ_bits[2],FLOAT8 ms_ener_ratio,int mean_bits,int max_bit
   FLOAT fac;
 
 
-  /*  ms_ener_ratio = 0:  allocate 66/33  mid/side  fac=.33  
+  /*  ms_ener_ratio = 0:  allocate 66/33  mid/side  fac=.33
    *  ms_ener_ratio =.5:  allocate 50/50 mid/side   fac= 0 */
   /* 75/25 split is fac=.5 */
   /* float fac = .50*(.5-ms_ener_ratio[gr])/.5;*/
   fac = .33*(.5-ms_ener_ratio)/.5;
   if (fac<0) fac=0;
   if (fac>.5) fac=.5;
-  
+
     /* number of bits to move from side channel to mid channel */
     /*    move_bits = fac*targ_bits[1];  */
-    move_bits = fac*.5*(targ_bits[0]+targ_bits[1]);  
+    move_bits = fac*.5*(targ_bits[0]+targ_bits[1]);
 
     if (move_bits > MAX_BITS - targ_bits[0]) {
         move_bits = MAX_BITS - targ_bits[0];
     }
     if (move_bits<0) move_bits=0;
-    
+
     if (targ_bits[1] >= 125) {
       /* dont reduce side channel below 125 bits */
       if (targ_bits[1]-move_bits > 125) {
@@ -412,7 +412,7 @@ void reduce_side(int targ_bits[2],FLOAT8 ms_ener_ratio,int mean_bits,int max_bit
 	targ_bits[1] = 125;
       }
     }
-    
+
     move_bits=targ_bits[0]+targ_bits[1];
     if (move_bits > max_bits) {
       targ_bits[0]=(max_bits*targ_bits[0])/move_bits;
@@ -438,12 +438,12 @@ FLOAT8 dreinorm (FLOAT8 a, FLOAT8 b, FLOAT8 c)
 
   returns number of sfb's with energy > ATH
 */
-int calc_xmin( 
+int calc_xmin(
         lame_global_flags *gfp,
         const FLOAT8                xr [576],
         const III_psy_ratio * const ratio,
-	const gr_info       * const cod_info, 
-              III_psy_xmin  * const l3_xmin ) 
+	const gr_info       * const cod_info,
+              III_psy_xmin  * const l3_xmin )
 {
   lame_internal_flags *gfc=gfp->internal_flags;
   int sfb,j,start, end, bw,l, b, ath_over=0;
@@ -462,7 +462,7 @@ int calc_xmin(
         en0 += ener;
       }
       en0 /= bw;
-      
+
       if (gfp->ATHonly || gfp->ATHshort) {
         xmin = gfc->ATH->adjust * gfc->ATH->s[sfb];
       } else {
@@ -505,12 +505,12 @@ int calc_xmin(
       for ( sfb = 0; sfb < SBMAX_l; sfb++ ){
 	start = gfc->scalefac_band.l[ sfb ];
 	end   = gfc->scalefac_band.l[ sfb+1 ];
-    
+
 	for (en0 = 0.0, l = start; l < end; l++ ) {
 	  ener = xr[l] * xr[l];
 	  en0 += ener;
 	}
-    
+
 	if (gfp->ATHonly) {
 	  xmin=gfc->ATH->adjust * gfc->ATH->l[sfb];
 	} else {
@@ -538,13 +538,13 @@ int calc_xmin(
 	start = gfc->scalefac_band.l[ sfb ];
 	end   = gfc->scalefac_band.l[ sfb+1 ];
 	bw = end - start;
-    
+
 	for (en0 = 0.0, l = start; l < end; l++ ) {
 	  ener = xr[l] * xr[l];
 	  en0 += ener;
 	}
 	en0 /= bw;
-    
+
 	if (gfp->ATHonly) {
 	  xmin=gfc->ATH->adjust * gfc->ATH->l[sfb];
 	} else {
@@ -554,7 +554,7 @@ int calc_xmin(
           xmin=Max(gfc->ATH->adjust * gfc->ATH->l[sfb], xmin);
 	}
 	l3_xmin->l[sfb]=xmin*bw;
-	
+
         if (en0 > gfc->ATH->adjust * gfc->ATH->l[sfb]) ath_over++;
       }
     }
@@ -585,19 +585,19 @@ double penalties ( double noise )
 
 /*  mt 5/99:  Function: Improved calc_noise for a single channel   */
 
-int  calc_noise( 
+int  calc_noise(
         const lame_internal_flags           * const gfc,
         const FLOAT8                    xr [576],
         const int                       ix [576],
         const gr_info           * const cod_info,
-        const III_psy_xmin      * const l3_xmin, 
+        const III_psy_xmin      * const l3_xmin,
         const III_scalefac_t    * const scalefac,
               III_psy_xmin      * xfsf,
               calc_noise_result * const res )
 {
   int sfb,start, end, j,l, i, over=0;
   FLOAT8 sum;
-  
+
   int count=0;
   FLOAT8 noise,noise_db;
   FLOAT8 over_noise = 1;     /*    0 dB relative to masking */
@@ -642,7 +642,7 @@ int  calc_noise(
 
 	    noise_db=10*log10(Max(noise,1E-20));
             /* multiplying here is adding in dB, but will overflow */
-	    //tot_noise *= Max(noise, 1E-20); 
+	    //tot_noise *= Max(noise, 1E-20);
 	    tot_noise_db += noise_db;
 
             if (noise > 1) {
@@ -651,12 +651,12 @@ int  calc_noise(
 		//over_noise *= noise;
 		over_noise_db += noise_db;
 	    }
-	    count++;	    
+	    count++;
         }
     }
   }else{ /* cod_info->block_type == SHORT_TYPE */
     int max_index = gfc->sfb21_extra ? SBMAX_l : SBPSY_l;
-    
+
     for ( sfb = 0; sfb < max_index; sfb++ ) {
 	FLOAT8 step;
 	int s = scalefac->l[sfb];
@@ -703,16 +703,16 @@ int  calc_noise(
   res->over_count = over;
 
   /* convert to db. DO NOT CHANGE THESE */
-  /* tot_noise = is really the average over each sfb of: 
+  /* tot_noise = is really the average over each sfb of:
      [noise(db) - allowed_noise(db)]
 
      and over_noise is the same average, only over only the
-     bands with noise > allowed_noise.  
+     bands with noise > allowed_noise.
 
   */
 
-  //res->tot_noise   = 10.*log10(Max(1e-20,tot_noise )); 
-  //res->over_noise  = 10.*log10(Max(1e+00,over_noise)); 
+  //res->tot_noise   = 10.*log10(Max(1e-20,tot_noise ));
+  //res->over_noise  = 10.*log10(Max(1e+00,over_noise));
   res->tot_noise   = tot_noise_db;
   res->over_noise  = over_noise_db;
   res->max_noise   = 10.*log10(Max(1e-20,max_noise ));
@@ -738,11 +738,11 @@ int  calc_noise(
  *
  *  set_pinfo()
  *
- *  updates plotting data    
+ *  updates plotting data
  *
- *  Mark Taylor 2000-??-??                
+ *  Mark Taylor 2000-??-??
  *
- *  Robert Hegemann: moved noise/distortion calc into it                          
+ *  Robert Hegemann: moved noise/distortion calc into it
  *
  ************************************************************************/
 
@@ -750,10 +750,10 @@ static
 void set_pinfo (
         lame_global_flags *gfp,
         const gr_info        * const cod_info,
-        const III_psy_ratio  * const ratio, 
+        const III_psy_ratio  * const ratio,
         const III_scalefac_t * const scalefac,
         const FLOAT8                 xr[576],
-        const int                    l3_enc[576],        
+        const int                    l3_enc[576],
         const int                    gr,
         const int                    ch )
 {
@@ -820,7 +820,7 @@ void set_pinfo (
 
                 /* convert to MDCT units */
                 en1=1e15;  /* scaling so it shows up on FFT plot */
-                gfc->pinfo->xfsf_s[gr][ch][3*sfb+i] 
+                gfc->pinfo->xfsf_s[gr][ch][3*sfb+i]
                     = en1*xfsf.s[sfb][i]*l3_xmin.s[sfb][i]/bw;
                 gfc->pinfo->en_s[gr][ch][3*sfb+i] = en1*en0;
 
@@ -831,10 +831,10 @@ void set_pinfo (
                 if (gfp->ATHonly || gfp->ATHshort)
                     en0=0;
 
-                gfc->pinfo->thr_s[gr][ch][3*sfb+i] = 
+                gfc->pinfo->thr_s[gr][ch][3*sfb+i] =
                         en1*Max(en0*ratio->thm.s[sfb][i],gfc->ATH->s[sfb]);
 
- 
+
                 /* there is no scalefactor bands >= SBPSY_s */
                 if (sfb < SBPSY_s) {
                     gfc->pinfo->LAMEsfb_s[gr][ch][3*sfb+i]=
@@ -851,7 +851,7 @@ void set_pinfo (
             start = gfc->scalefac_band.l[ sfb ];
             end   = gfc->scalefac_band.l[ sfb+1 ];
             bw = end - start;
-            for ( en0 = 0.0, l = start; l < end; l++ ) 
+            for ( en0 = 0.0, l = start; l < end; l++ )
                 en0 += xr[l] * xr[l];
             if (!gfc->nsPsy.use) en0/=bw;
       /*
@@ -915,7 +915,7 @@ void set_pinfo (
                 gfc->pinfo->LAMEsfb[gr][ch][sfb] = 0;
             }
 
-            if (cod_info->preflag && sfb>=11) 
+            if (cod_info->preflag && sfb>=11)
                 gfc->pinfo->LAMEsfb[gr][ch][sfb] -= ifqstep*pretab[sfb];
         } /* for sfb */
     } /* block type long */
@@ -934,16 +934,16 @@ void set_pinfo (
  *
  *  set_frame_pinfo()
  *
- *  updates plotting data for a whole frame  
+ *  updates plotting data for a whole frame
  *
- *  Robert Hegemann 2000-10-21                          
+ *  Robert Hegemann 2000-10-21
  *
  ************************************************************************/
 
-void set_frame_pinfo( 
+void set_frame_pinfo(
         lame_global_flags *gfp,
         FLOAT8          xr       [2][2][576],
-        III_psy_ratio   ratio    [2][2],  
+        III_psy_ratio   ratio    [2][2],
         int             l3_enc   [2][2][576],
         III_scalefac_t  scalefac [2][2] )
 {
@@ -952,11 +952,11 @@ void set_frame_pinfo(
     int                   act_l3enc[576];
     III_scalefac_t        act_scalefac [2];
     int scsfi[2] = {0,0};
-    
-    
+
+
     gfc->masking_lower = 1.0;
-    
-    /* reconstruct the scalefactors in case SCSFI was used 
+
+    /* reconstruct the scalefactors in case SCSFI was used
      */
     for (ch = 0; ch < gfc->channels_out; ch ++) {
         for (sfb = 0; sfb < SBMAX_l; sfb ++) {
@@ -968,47 +968,47 @@ void set_frame_pinfo(
             }
         }
     }
-    
+
     /* for every granule and channel patch l3_enc and set info
      */
     for (gr = 0; gr < gfc->mode_gr; gr ++) {
         for (ch = 0; ch < gfc->channels_out; ch ++) {
             int i;
             gr_info *cod_info = &gfc->l3_side.gr[gr].ch[ch].tt;
-            
+
             /* revert back the sign of l3enc */
             for ( i = 0; i < 576; i++) {
-                if (xr[gr][ch][i] < 0) 
+                if (xr[gr][ch][i] < 0)
                     act_l3enc[i] = -l3_enc[gr][ch][i];
                 else
                     act_l3enc[i] = +l3_enc[gr][ch][i];
             }
-            if (gr == 1 && scsfi[ch]) 
+            if (gr == 1 && scsfi[ch])
                 set_pinfo (gfp, cod_info, &ratio[gr][ch], &act_scalefac[ch],
-                        xr[gr][ch], act_l3enc, gr, ch);                    
+                        xr[gr][ch], act_l3enc, gr, ch);
             else
                 set_pinfo (gfp, cod_info, &ratio[gr][ch], &scalefac[gr][ch],
-                        xr[gr][ch], act_l3enc, gr, ch);                    
+                        xr[gr][ch], act_l3enc, gr, ch);
         } /* for ch */
     }    /* for gr */
 }
-        
+
 
 
 
 /*********************************************************************
- * nonlinear quantization of xr 
+ * nonlinear quantization of xr
  * More accurate formula than the ISO formula.  Takes into account
- * the fact that we are quantizing xr -> ix, but we want ix^4/3 to be 
+ * the fact that we are quantizing xr -> ix, but we want ix^4/3 to be
  * as close as possible to x^4/3.  (taking the nearest int would mean
  * ix is as close as possible to xr, which is different.)
  * From Segher Boessenkool <segher@eastsite.nl>  11/1999
- * ASM optimization from 
+ * ASM optimization from
  *    Mathew Hendry <scampi@dial.pipex.com> 11/1999
  *    Acy Stapp <AStapp@austin.rr.com> 11/1999
  *    Takehiro Tominaga <tominaga@isoternet.org> 11/1999
  * 9/00: ASM code removed in favor of IEEE754 hack.  If you need
- * the ASM code, check CVS circa Aug 2000.  
+ * the ASM code, check CVS circa Aug 2000.
  *********************************************************************/
 
 
@@ -1080,16 +1080,16 @@ void quantize_xrpow_ISO(const FLOAT8 xp[576], int pi[576], FLOAT8 istep)
 #else
 
 /*********************************************************************
- * XRPOW_FTOI is a macro to convert floats to ints.  
+ * XRPOW_FTOI is a macro to convert floats to ints.
  * if XRPOW_FTOI(x) = nearest_int(x), then QUANTFAC(x)=adj43asm[x]
  *                                         ROUNDFAC= -0.0946
  *
- * if XRPOW_FTOI(x) = floor(x), then QUANTFAC(x)=asj43[x]   
+ * if XRPOW_FTOI(x) = floor(x), then QUANTFAC(x)=asj43[x]
  *                                   ROUNDFAC=0.4054
  *
  * Note: using floor() or (int) is extermely slow. On machines where
  * the TAKEHIRO_IEEE754_HACK code above does not work, it is worthwile
- * to write some ASM for XRPOW_FTOI().  
+ * to write some ASM for XRPOW_FTOI().
  *********************************************************************/
 #define XRPOW_FTOI(src,dest) ((dest) = (int)(src))
 #define QUANTFAC(rx)  adj43[rx]
@@ -1098,7 +1098,7 @@ void quantize_xrpow_ISO(const FLOAT8 xp[576], int pi[576], FLOAT8 istep)
 
 void quantize_xrpow(const FLOAT8 xr[576], int ix[576], FLOAT8 istep) {
     /* quantize on xr^(3/4) instead of xr */
-    /* from Wilfried.Behne@t-online.de.  Reported to be 2x faster than 
+    /* from Wilfried.Behne@t-online.de.  Reported to be 2x faster than
        the above code (when not using ASM) on PowerPC */
     int j;
 

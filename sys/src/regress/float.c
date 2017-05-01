@@ -26,8 +26,8 @@ tstdiv(double p)
 	double r = 1.0;
 
 	r /= p;
-	print("1/%0.20g = %0.20g\n", p, r);
-} 
+	fprint(2, "1/%0.20g = %0.20g\n", p, r);
+}
 
 void
 main(void)

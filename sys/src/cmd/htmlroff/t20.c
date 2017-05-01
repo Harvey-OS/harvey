@@ -22,7 +22,7 @@ void
 r_pm(int argc, Rune **argv)
 {
 	int i;
-	
+
 	if(argc == 1){
 		printds(0);
 		return;
@@ -39,9 +39,9 @@ void
 r_tm(Rune *name)
 {
 	Rune *line;
-	
+
 	USED(name);
-	
+
 	line = readline(CopyMode);
 	fprint(2, "%S\n", line);
 	free(line);
@@ -51,7 +51,7 @@ void
 r_ab(Rune *name)
 {
 	USED(name);
-	
+
 	r_tm(L("ab"));
 	exits(".ab");
 }

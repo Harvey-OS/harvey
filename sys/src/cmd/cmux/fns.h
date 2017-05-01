@@ -38,7 +38,7 @@ int	shutdown(void*, char*);
 void	*erealloc(void*, uint);
 void *emalloc(uint);
 char *estrdup(char*);
-// snarf buffer? Sure, why not? 
+// snarf buffer? Sure, why not?
 // /dev/snarf can hold items to be pasted between consoles.
 void	putsnarf(void);
 void	getsnarf(void);

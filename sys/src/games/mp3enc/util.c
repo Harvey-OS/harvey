@@ -74,11 +74,11 @@ void  freegfc ( lame_internal_flags* const gfc )   /* bit stream structure */
             free ( gfc->blackfilt[i] );
 	    gfc->blackfilt[i] = NULL;
 	}
-    if ( gfc->inbuf_old[0] ) { 
+    if ( gfc->inbuf_old[0] ) {
         free ( gfc->inbuf_old[0] );
 	gfc->inbuf_old[0] = NULL;
     }
-    if ( gfc->inbuf_old[1] ) { 
+    if ( gfc->inbuf_old[1] ) {
         free ( gfc->inbuf_old[1] );
 	gfc->inbuf_old[1] = NULL;
     }
@@ -146,7 +146,7 @@ FLOAT8 ATHformula_GBtweak(FLOAT8 f)
 }
 
 
-/* 
+/*
  *  Klemm 1994 and 1997. Experimental data. Sorry, data looks a little bit
  *  dodderly. Data below 30 Hz is extrapolated from other material, above 18
  *  kHz the ATH is limited due to the original purpose (too much noise at
@@ -201,10 +201,10 @@ FLOAT8  ATHformula_Frank( FLOAT8 freq )
     };
     FLOAT8    freq_log;
     unsigned  index;
-    
+
     if ( freq <    10. ) freq =    10.;
     if ( freq > 29853. ) freq = 29853.;
-    
+
     freq_log = 40. * log10 (0.1 * freq);   /* 4 steps per third, starting at 10 Hz */
     index    = (unsigned) freq_log;
     assert ( index < sizeof(tab)/sizeof(*tab) );
@@ -251,33 +251,33 @@ FLOAT8 freq2cbw(FLOAT8 freq)
 
 
 /***********************************************************************
- * compute bitsperframe and mean_bits for a layer III frame 
+ * compute bitsperframe and mean_bits for a layer III frame
  **********************************************************************/
-void getframebits(lame_global_flags *gfp, int *bitsPerFrame, int *mean_bits) 
+void getframebits(lame_global_flags *gfp, int *bitsPerFrame, int *mean_bits)
 {
   lame_internal_flags *gfc=gfp->internal_flags;
   int  whole_SpF;  /* integral number of Slots per Frame without padding */
   int  bit_rate;
-  
+
   /* get bitrate in kbps [?] */
-  if (gfc->bitrate_index) 
+  if (gfc->bitrate_index)
     bit_rate = bitrate_table[gfp->version][gfc->bitrate_index];
   else
     bit_rate = gfp->brate;
   assert ( bit_rate <= 550 );
-  
+
   // bytes_per_frame = bitrate * 1000 / ( gfp->out_samplerate / (gfp->version == 1  ?  1152  :  576 )) / 8;
   // bytes_per_frame = bitrate * 1000 / gfp->out_samplerate * (gfp->version == 1  ?  1152  :  576 ) / 8;
   // bytes_per_frame = bitrate * ( gfp->version == 1  ?  1152/8*1000  :  576/8*1000 ) / gfp->out_samplerate;
-  
+
   whole_SpF = (gfp->version+1)*72000*bit_rate / gfp->out_samplerate;
-  
+
   // There must be somewhere code toggling gfc->padding on and off
-  
+
   /* main encoding routine toggles padding on and off */
   /* one Layer3 Slot consists of 8 bits */
   *bitsPerFrame = 8 * (whole_SpF + gfc->padding);
-  
+
   // sideinfo_len
   *mean_bits = (*bitsPerFrame - 8*gfc->sideinfo_len) / gfc->mode_gr;
 }
@@ -294,11 +294,11 @@ int samplerate)   /* convert bitrate in kbps to index */
 {
     int  bitrate = 0;
     int  i;
-  
+
     for ( i = 1; i <= 14; i++ )
         if ( ABS (bitrate_table[version][i] - bRate) < ABS (bitrate - bRate) )
             bitrate = bitrate_table [version] [i];
-	    
+
     return bitrate;
 }
 
@@ -317,7 +317,7 @@ int map2MP3Frequency(int freq)
     if (freq <= 24000) return 24000;
     if (freq <= 32000) return 32000;
     if (freq <= 44100) return 44100;
-    
+
     return 48000;
 }
 
@@ -331,7 +331,7 @@ int samplerate)   /* convert bitrate in kbps to index */
     for ( i = 0; i <= 14; i++)
         if ( bitrate_table [version] [i] == bRate )
             return i;
-	    
+
     return -1;
 }
 
@@ -400,7 +400,7 @@ S.D. Stearns and R.A. David, Prentice-Hall, 1992
   */
   FLOAT8 bkwn,x2;
   FLOAT8 wcn = (PI * fcn);
-  
+
   x /= l;
   if (x<0) x=0;
   if (x>1) x=1;
@@ -408,7 +408,7 @@ S.D. Stearns and R.A. David, Prentice-Hall, 1992
 
   bkwn = 0.42 - 0.5*cos(2*x*PI)  + 0.08*cos(4*x*PI);
   if (fabs(x2)<1e-9) return wcn/PI;
-  else 
+  else
     return  (  bkwn*sin(l*wcn*x2)  / (PI*l*x2)  );
 
 
@@ -425,7 +425,7 @@ int gcd ( int i, int j )
 
 
 
-/* copy in new samples from in_buffer into mfbuf, with resampling & scaling 
+/* copy in new samples from in_buffer into mfbuf, with resampling & scaling
    if necessary.  n_in = number of samples from the input buffer that
    were used.  n_out = number of samples copied into mfbuf  */
 
@@ -466,7 +466,7 @@ void fill_buffer(lame_global_flags *gfp,
     }
 
 }
-    
+
 
 
 
@@ -477,10 +477,10 @@ int fill_buffer_resample(
        sample_t *inbuf,
        int len,
        int *num_used,
-       int ch) 
+       int ch)
 {
 
-  
+
   lame_internal_flags *gfc=gfp->internal_flags;
   int BLACKSIZE;
   FLOAT8 offset,xvalue;
@@ -502,7 +502,7 @@ int fill_buffer_resample(
 
 
   BLACKSIZE = filter_l+1;  /* size of data needed for FIR */
-  
+
   if ( gfc->fill_buffer_resample_init == 0 ) {
     gfc->inbuf_old[0]=calloc(BLACKSIZE,sizeof(gfc->inbuf_old[0][0]));
     gfc->inbuf_old[1]=calloc(BLACKSIZE,sizeof(gfc->inbuf_old[0][0]));
@@ -514,17 +514,17 @@ int fill_buffer_resample(
 
     /* precompute blackman filter coefficients */
     for ( j = 0; j <= 2*bpc; j++ ) {
-        FLOAT8 sum = 0.; 
+        FLOAT8 sum = 0.;
         offset = (j-bpc) / (2.*bpc);
-        for ( i = 0; i <= filter_l; i++ ) 
-            sum += 
+        for ( i = 0; i <= filter_l; i++ )
+            sum +=
 	    gfc->blackfilt[j][i]  = blackman(i-offset,fcn,filter_l);
-	for ( i = 0; i <= filter_l; i++ ) 
+	for ( i = 0; i <= filter_l; i++ )
 	  gfc->blackfilt[j][i] /= sum;
     }
     gfc->fill_buffer_resample_init = 1;
   }
-  
+
   inbuf_old=gfc->inbuf_old[ch];
 
   /* time of j'th element in inbuf = itime + j/ifreq; */
@@ -564,7 +564,7 @@ int fill_buffer_resample(
     outbuf[k]=xvalue;
   }
 
-  
+
   /* k = number of samples added to outbuf */
   /* last k sample used data from [j-filter_l/2,j+filter_l-filter_l/2]  */
 
@@ -586,11 +586,11 @@ int fill_buffer_resample(
 
        /* shift n_shift samples by *num_used, to make room for the
 	* num_used new samples */
-       for (i=0; i<n_shift; ++i ) 
+       for (i=0; i<n_shift; ++i )
 	   inbuf_old[i] = inbuf_old[i+ *num_used];
 
        /* shift in the *num_used samples */
-       for (j=0; i<BLACKSIZE; ++i, ++j ) 
+       for (j=0; i<BLACKSIZE; ++i, ++j )
 	   inbuf_old[i] = inbuf[j];
 
        assert(j==*num_used);
@@ -631,7 +631,7 @@ void  lame_msgf (const lame_internal_flags *gfc, const char* format, ... )
     va_list  args;
 
     va_start ( args, format );
-   
+
     if ( gfc->report.msgf != NULL ) {
         gfc->report.msgf( format, args );
     } else {
@@ -649,7 +649,7 @@ void  lame_errorf (const lame_internal_flags *gfc, const char* format,
     va_list  args;
 
     va_start ( args, format );
-    
+
     if ( gfc->report.errorf != NULL ) {
         gfc->report.errorf( format, args );
     } else {
@@ -673,52 +673,52 @@ void  lame_errorf (const lame_internal_flags *gfc, const char* format,
 
 int  has_i387 ( void )
 {
-#ifdef HAVE_NASM 
+#ifdef HAVE_NASM
     return 1;
 #else
     return 0;   /* don't know, assume not */
 #endif
-}    
+}
 
 int  has_MMX ( void )
 {
-#ifdef HAVE_NASM 
+#ifdef HAVE_NASM
     extern int has_MMX_nasm ( void );
     return has_MMX_nasm ();
 #else
     return 0;   /* don't know, assume not */
 #endif
-}    
+}
 
 int  has_3DNow ( void )
 {
-#ifdef HAVE_NASM 
+#ifdef HAVE_NASM
     extern int has_3DNow_nasm ( void );
     return has_3DNow_nasm ();
 #else
     return 0;   /* don't know, assume not */
 #endif
-}    
+}
 
 int  has_SIMD ( void )
 {
-#ifdef HAVE_NASM 
+#ifdef HAVE_NASM
     extern int has_SIMD_nasm ( void );
     return has_SIMD_nasm ();
 #else
     return 0;   /* don't know, assume not */
 #endif
-}    
+}
 
 int  has_SIMD2 ( void )
 {
-#ifdef HAVE_NASM 
+#ifdef HAVE_NASM
     extern int has_SIMD2_nasm ( void );
     return has_SIMD2_nasm ();
 #else
     return 0;   /* don't know, assume not */
 #endif
-}    
+}
 
 /***********************************************************************
  *
@@ -735,15 +735,15 @@ int  has_SIMD2 ( void )
  *  3:  MS-i
  *
  ***********************************************************************/
- 
+
 void updateStats( lame_internal_flags * const gfc )
 {
     assert ( gfc->bitrate_index < 16u );
     assert ( gfc->mode_ext      <  4u );
-    
+
     /* count bitrate indices */
     gfc->bitrate_stereoMode_Hist [gfc->bitrate_index] [4] ++;
-    
+
     /* count 'em for every mode extension in case of 2 channel encoding */
     if (gfc->channels_out == 2)
         gfc->bitrate_stereoMode_Hist [gfc->bitrate_index] [gfc->mode_ext]++;
@@ -756,7 +756,7 @@ void updateStats( lame_internal_flags * const gfc )
 int select_kth_int(int a[], int N, int k)
 {
     int i, j, l, r, v, w;
-    
+
     l = 0;
     r = N-1;
     while (r > l) {
@@ -766,7 +766,7 @@ int select_kth_int(int a[], int N, int k)
         for (;;) {
             while (a[++i] < v) /*empty*/;
             while (a[--j] > v) /*empty*/;
-            if (i >= j) 
+            if (i >= j)
                 break;
             /* swap i and j */
             w = a[i];
@@ -777,9 +777,9 @@ int select_kth_int(int a[], int N, int k)
         w = a[i];
         a[i] = a[r];
         a[r] = w;
-        if (i >= k) 
+        if (i >= k)
             r = i-1;
-        if (i <= k) 
+        if (i <= k)
             l = i+1;
     }
     return a[k];
@@ -858,7 +858,7 @@ void disable_FPE(void) {
 #  define _FPU_SETCW(cw) __asm__ ("fldcw %0" : : "m" (*&cw))
 #  endif
 
-        /* 
+        /*
          * Set the Linux mask to abort on most FPE's
          * if bit is set, we _mask_ SIGFPE on that error!
          *  mask &= ~( _FPU_MASK_IM | _FPU_MASK_ZM | _FPU_MASK_OM | _FPU_MASK_UM );

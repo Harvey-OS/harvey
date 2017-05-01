@@ -33,14 +33,14 @@
 #define LAME_GET_AUDIO_H
 
 typedef enum sound_file_format_e {
-  sf_unknown, 
-  sf_raw, 
-  sf_wave, 
-  sf_aiff, 
+  sf_unknown,
+  sf_raw,
+  sf_wave,
+  sf_aiff,
   sf_mp1,  /* MPEG Layer 1, aka mpg */
   sf_mp2,  /* MPEG Layer 2 */
   sf_mp3,  /* MPEG Layer 3 */
-  sf_ogg 
+  sf_ogg
 } sound_file_format;
 
 
@@ -54,13 +54,13 @@ int get_audio(lame_global_flags *gfp,short buffer[2][1152]);
 
 /* the simple lame decoder */
 /* After calling lame_init(), lame_init_params() and
- * init_infile(), call this routine to read the input MP3 file 
+ * init_infile(), call this routine to read the input MP3 file
  * and output .wav data to the specified file pointer
  * lame_decoder will ignore the first 528 samples, since these samples
- * represent the mpglib decoding delay (and are all 0).  
+ * represent the mpglib decoding delay (and are all 0).
  *skip = number of additional
  * samples to skip, to (for example) compensate for the encoder delay,
- * only used when decoding mp3 
+ * only used when decoding mp3
 */
 int lame_decoder(lame_global_flags *gfp,FILE *outf,int skip, char *inPath, char *outPath);
 
@@ -77,7 +77,7 @@ void SwapBytesInWords( short *loc, int words );
 
 #else
 /*****************************************************************
- * LAME/ISO built in audio file I/O routines 
+ * LAME/ISO built in audio file I/O routines
  *******************************************************************/
 #include "portableio.h"
 

@@ -192,7 +192,7 @@ void inlineeq(void)
 	printf(".lf %d\n", curfile->lineno+1);
 	if (curfile->lineno > n+3)
 		fprintf(stderr, "eqn warning: multi-line %c...%c, file %s:%d,%d\n",
-			lefteq, righteq, curfile->fname, n, curfile->lineno); 
+			lefteq, righteq, curfile->fname, n, curfile->lineno);
 	sfree(ds);
 	if (sz1) sfree(sz1);
 }
@@ -279,7 +279,7 @@ char *ABSPS(int dn)	/* absolute size dn in printable form \sd or \s(dd (dd >= 40
 	} else {
 		*lb++ = dn + '0';
 	}
-	*lb++ = '\0';	
+	*lb++ = '\0';
 	return p;
 }
 
@@ -310,7 +310,7 @@ char *DPS(int f, int t)	/* delta ps (t-f) in printable form \s+d or \s-d or \s+-
 	} else {
 		*lb++ = dn + '0';
 	}
-	*lb++ = '\0';	
+	*lb++ = '\0';
 	return p;
 }
 

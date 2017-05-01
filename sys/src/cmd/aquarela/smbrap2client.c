@@ -103,7 +103,7 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 		*entriesp = entries;
 	}
 	else
-		rv = -1;	
+		rv = -1;
 done:
 	free(si);
 	smbbufferfree(&opb);

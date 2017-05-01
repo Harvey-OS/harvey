@@ -306,7 +306,7 @@ getwidth(void)
 		return;
 	}
 	buf[n] = 0;
-	
+
 	/* window stucture:
 		4 bit left edge
 		1 bit gap

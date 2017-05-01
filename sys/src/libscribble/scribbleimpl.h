@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-/* 
+/*
  *  scribble.h:			User-Level API for Handwriting Recognition
  *  Author:				James Kempf
  *  Created On:			Mon Nov  2 14:01:25 1992
@@ -15,8 +15,8 @@
  *  Last Modified On:	Fri Aug 25 10:24:50 EDT 2000
  *  Copyright (c) 1994 by Sun Microsystems Computer Company
  *  All rights reserved.
- *  
- *  Use and copying of this software and preparation of 
+ *
+ *  Use and copying of this software and preparation of
  *  derivative works based upon this software are permitted.
  *  Any distribution of this software or derivative works
  *  must comply with all applicable United States export control
@@ -74,7 +74,7 @@ typedef unsigned char rec_confidence;
  * recognition can be limited. The locale and category should be
  * suitable for the setlocale(3). Those recognizers which don't do text
  * can simply report a blank locale and category, and report the
- * graphics types they recognize in the subset. 
+ * graphics types they recognize in the subset.
  */
 
 typedef struct {
@@ -111,7 +111,7 @@ typedef struct {
 
 /*Bounding box. Structurally identical to Rectangle.*/
 
-typedef Rectangle pen_rect;    
+typedef Rectangle pen_rect;
 
 
 /*
@@ -123,10 +123,10 @@ typedef Rectangle pen_rect;
 typedef struct {
 	pen_rect pr_area;
 	short pr_row, pr_col;
-} pen_frame; 
+} pen_frame;
 
-/* 
- * Structure for describing a set of letters to constrain recognition. 
+/*
+ * Structure for describing a set of letters to constrain recognition.
  * ls_type is the same as the re_type field for rec_element below.
 */
 
@@ -152,8 +152,8 @@ typedef struct _letterset {
 #define REC_CORR    0x20	    /*rec_correlation struct*/
 
 /*
- * Recognition elements. A recognition element is a structure having a 
- * confidence level member, and a union, along with a flag indicating 
+ * Recognition elements. A recognition element is a structure having a
+ * confidence level member, and a union, along with a flag indicating
  * the union type. The union contains a pointer to the result. This
  * is the basic recognition return value, corresponding to one
  * recognized word, letter, or group of letters.
@@ -166,7 +166,7 @@ struct rec_element {
 		char*				aval;	/*ASCII and variable width.*/
 		wchar_t*			wval;	/*Unicode.*/
 		rec_correlation*	rcval;	/*rec_correlation*/
-	} re_result;                   
+	} re_result;
 	rec_confidence	re_conf;        /*Confidence (0-100).*/
 };
 
@@ -187,7 +187,7 @@ struct rec_alternative {
 
 /*
  * Gestures. The toolkit initializes the recognizer with a
- * set of gestures having appropriate callbacks. 
+ * set of gestures having appropriate callbacks.
  * When a gesture is recognized, it is returned as part of a
  * recognition element. The recognizer fills in the bounding
  * box and hotspots. The toolkit fills in any additional values,
@@ -212,7 +212,7 @@ typedef void (*xgesture)(gesture*);
  * a pointer to an arrray of pointers to strokes, and
  * two arrays of integers, giving the starting point and
  * stopping point of each corresponding recogition element returned
- * in the strokes. 
+ * in the strokes.
  */
 
 struct rec_correlation {
@@ -244,7 +244,7 @@ recognizer	recognizer_load(char*, char*, char**);
 int			recognizer_unload(recognizer);
 
 /*
- * recognizer_get_info-Get a pointer to a rec_info 
+ * recognizer_get_info-Get a pointer to a rec_info
  * giving the locale and subsets supported by the recognizer, and shared
  * library pathname.
  */
@@ -324,26 +324,26 @@ int			recognizer_delete_from_dictionary(recognizer, letterset*, wordset);
  * TRANSLATION
  */
 
-/* recognizer_set/get_context - Set/get the recognition context for 
- * subsequent buffering and translation. recognizer_set_context() 
- * returns -1 if an error occurs, otherwise 0. recognizer_get_context() 
- * returns NULL if no context has been set. The context is copied to avoid 
+/* recognizer_set/get_context - Set/get the recognition context for
+ * subsequent buffering and translation. recognizer_set_context()
+ * returns -1 if an error occurs, otherwise 0. recognizer_get_context()
+ * returns NULL if no context has been set. The context is copied to avoid
  * potential memory deallocation problems.
  */
 
 int			recognizer_set_context(recognizer, rc*);
 rc*			recognizer_get_context(recognizer);
 
-/* recognizer_clear - Set stroke buffer to NULL and clear the context. 
- * Returns -1 if an error occurred, otherwise 0. Both the context and the 
+/* recognizer_clear - Set stroke buffer to NULL and clear the context.
+ * Returns -1 if an error occurred, otherwise 0. Both the context and the
  * stroke buffer are deallocated. If delete_points_p is true, delete the
  * points also.
  */
 
 int			recognizer_clear(recognizer, bool);
 
-/* recognizer_get/set_buffer - Get/set the stroke buffer. The stroke buffer 
- * is copied to avoid potential memory allocation problems. Returns -1 if 
+/* recognizer_get/set_buffer - Get/set the stroke buffer. The stroke buffer
+ * is copied to avoid potential memory allocation problems. Returns -1 if
  * an error occurs, otherwise 0.
  */
 
@@ -351,14 +351,14 @@ int			recognizer_get_buffer(recognizer, uint*, Stroke**);
 int			recognizer_set_buffer(recognizer, uint, Stroke*);
 
 /* recognizer_translate - Copy the strokes argument into the stroke buffer and
- * translate the buffer. If correlate_p is true, then provide stroke 
- * correlations as well. If either nstrokes is 0 or strokes is NULL, then 
- * just translate the stroke buffer and return the translation. Return an 
- * array of alternative translation segmentations in the ret pointer and the 
- * number of alternatives in nret, or NULL and 0 if there is no translation. 
- * The direction of segmentation is as specified by the rc_direction field in 
- * the buffered recognition context. Returns -1 if an error occurred, 
- * otherwise 0. 
+ * translate the buffer. If correlate_p is true, then provide stroke
+ * correlations as well. If either nstrokes is 0 or strokes is NULL, then
+ * just translate the stroke buffer and return the translation. Return an
+ * array of alternative translation segmentations in the ret pointer and the
+ * number of alternatives in nret, or NULL and 0 if there is no translation.
+ * The direction of segmentation is as specified by the rc_direction field in
+ * the buffered recognition context. Returns -1 if an error occurred,
+ * otherwise 0.
  */
 
 int			recognizer_translate(recognizer, uint, Stroke*, bool,
@@ -384,7 +384,7 @@ rec_fn*		recognizer_get_extension_functions(recognizer);
 char**		recognizer_get_gesture_names(recognizer);
 
 /*
- * recognizer_set_gesture_action-Set the action function associated with the 
+ * recognizer_set_gesture_action-Set the action function associated with the
  *  name.
  */
 

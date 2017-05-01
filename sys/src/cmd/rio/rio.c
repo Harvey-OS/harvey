@@ -317,7 +317,7 @@ shutdown(void * vacio, char *msg)
 {
 	int i;
 	static Lock shutdownlk;
-	
+
 	killprocs();
 	for(i=0; oknotes[i]; i++)
 		if(strncmp(oknotes[i], msg, strlen(oknotes[i])) == 0){
@@ -393,7 +393,7 @@ int
 whichcorner(Window *w, Point p)
 {
 	int i, j;
-	
+
 	i = portion(p.x, w->screenr.min.x, w->screenr.max.x);
 	j = portion(p.y, w->screenr.min.y, w->screenr.max.y);
 	return 3*j+i;
@@ -989,7 +989,7 @@ bandsize(Window *w)
 	drawborder(r, 1);
 	or = r;
 	startp = p;
-	
+
 	while(mouse->buttons == but){
 		p = onscreen(mouse->xy);
 		r = whichrect(w->screenr, p, which);

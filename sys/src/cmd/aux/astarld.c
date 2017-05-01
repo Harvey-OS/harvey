@@ -165,7 +165,7 @@ main(int argc, char **argv)
 		mfd = open(file, ORDWR);
 		if(mfd < 0)
 			sysfatal("opening %s", file);
-	
+
 		if(write(cfd, "download", 8) != 8)
 			sysfatal("requesting download: %r");
 	} else {

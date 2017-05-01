@@ -10,7 +10,7 @@
 #include "a.h"
 
 /*
- * 4 - Text filling, centering, and adjusting.  
+ * 4 - Text filling, centering, and adjusting.
  * 	"\ " - unbreakable space
  * 	.n register - length of last line
  *	nl register - text baseline position on this page
@@ -75,7 +75,7 @@ void
 r_ad(int argc, Rune **argv)
 {
 	int c, n;
-	
+
 	nr(L(".j"), getnr(L(".j"))|1);
 	if(argc < 2)
 		return;
@@ -142,7 +142,7 @@ t4init(void)
 	addreq(L("ad"), r_ad, -1);
 	addreq(L("na"), r_na, 0);
 	addreq(L("ce"), r_ce, -1);
-	
+
 	addesc(' ', e_space, 0);
 	addesc('p', e_warn, 0);
 	addesc('&', e_amp, 0);

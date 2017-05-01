@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 
 	u = argv[0];
 	fmtinstall('K', keyfmt);
-	
+
 	if(memchr(u, '\0', ANAMELEN) == 0)
 		error("bad user name");
 	key = findkey(NETKEYDB, u, keybuf);

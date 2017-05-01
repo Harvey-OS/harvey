@@ -45,7 +45,7 @@ stringunpack(char **s, uint8_t **p, int *n)
 
 	if(*n < 2)
 		return -1;
-	
+
 	nn = U16GET(*p);
 	*p += 2;
 	*n -= 2;
@@ -196,7 +196,7 @@ if(0)print("eo = %d en = %d\n", eo, en);
 	}
 
 	p = mb->buf + eo;
-	
+
 	/* make sure entry looks ok and includes an elem name */
 	if(en < 8 || U32GET(p) != DirMagic || en < 8 + U16GET(p+6)) {
 		werrstr("corrupted meta block entry");
@@ -326,7 +326,7 @@ mbcompact(MetaBlock *mb, MetaChunk *mc)
 	int oo, o, n, i;
 
 	oo = MetaHeaderSize + mb->maxindex*MetaIndexSize;
-	
+
 	for(i=0; i<mb->nindex; i++) {
 		o = mc[i].offset;
 		n = mc[i].size;
@@ -384,7 +384,7 @@ int
 vdsize(VacDir *dir, int version)
 {
 	int n;
-	
+
 	if(version < 8 || version > 9)
 		sysfatal("bad version %d in vdpack", version);
 
@@ -442,7 +442,7 @@ vdpack(VacDir *dir, MetaEntry *me, int version)
 		sysfatal("bad version %d in vdpack", version);
 
 	p = me->p;
-	
+
 	U32PUT(p, DirMagic);
 	U16PUT(p+4, version);		/* version */
 	p += 6;
@@ -451,7 +451,7 @@ vdpack(VacDir *dir, MetaEntry *me, int version)
 
 	U32PUT(p, dir->entry);
 	p += 4;
-	
+
 	if(version == 9){
 		U32PUT(p, dir->gen);
 		U32PUT(p+4, dir->mentry);
@@ -465,7 +465,7 @@ vdpack(VacDir *dir, MetaEntry *me, int version)
 	p += stringpack(dir->uid, p);
 	p += stringpack(dir->gid, p);
 	p += stringpack(dir->mid, p);
-	
+
 	U32PUT(p, dir->mtime);
 	U32PUT(p+4, dir->mcount);
 	U32PUT(p+8, dir->ctime);
@@ -490,7 +490,7 @@ vdpack(VacDir *dir, MetaEntry *me, int version)
 		U64PUT(p+8, dir->qidmax, t32);
 		p += 16;
 	}
-	
+
 	if(dir->gen && version < 9) {
 		U8PUT(p, DirGenEntry);
 		U16PUT(p+1, 4);
@@ -507,7 +507,7 @@ vdunpack(VacDir *dir, MetaEntry *me)
 {
 	int t, nn, n, version;
 	uint8_t *p;
-	
+
 	p = me->p;
 	n = me->size;
 
@@ -526,7 +526,7 @@ vdunpack(VacDir *dir, MetaEntry *me)
 	if(version < 7 || version > 9)
 		goto Err;
 	p += 2;
-	n -= 2;	
+	n -= 2;
 
 	/* elem */
 	if(stringunpack(&dir->elem, &p, &n) < 0)
@@ -569,7 +569,7 @@ vdunpack(VacDir *dir, MetaEntry *me)
 		p += VtScoreSize;
 		n -= VtScoreSize;
 	}
-	
+
 	/* uid */
 	if(stringunpack(&dir->uid, &p, &n) < 0)
 		goto Err;
@@ -687,7 +687,7 @@ mbsearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 			*ri = i;
 			return 1;
 		}
-	
+
 		if(x < 0)
 			b = i+1;
 		else /* x > 0 */
@@ -695,7 +695,7 @@ mbsearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 	}
 
 	assert(b == t);
-	
+
 	*ri = b;	/* b is the index to insert this entry */
 	memset(me, 0, sizeof(*me));
 

@@ -109,7 +109,8 @@ int vfscanf(FILE *f, const char *s, va_list args){
 		if(*fmtp=='\0') break;
 		if(store) ncvt++;
 	}
-	return ncvt;	
+	va_end(args);
+	return ncvt;
 }
 static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
 //#pragma ref f
