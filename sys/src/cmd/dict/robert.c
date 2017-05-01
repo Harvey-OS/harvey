@@ -154,7 +154,7 @@ robertprintentry(Entry *def, Entry *etym, int cmd)
 			continue;
 		}
 		c = *p++;
-		switch(r = intab[c]){	/* assign = */
+		switch(r = intab[c]){
 		case BROM:
 		case ITON:
 		case ROM:
@@ -250,7 +250,7 @@ robertprintkey(void)
 	char *l;
 
 	db = Bouvrir(kfile);
-	while(l = Brdline(db, '\n'))	/* assign = */
+	while((l = Brdline(db, '\n')) != nil)
 		Bwrite(bout, l, Blinelen(db));
 	Bterm(db);
 }

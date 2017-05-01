@@ -190,7 +190,7 @@ xfile(int fid, int flag)
 	if(f)
 		return clean(f);
 	mlock(&freelock);
-	if((f = freelist) != nil){	/* assign = */
+	if((f = freelist) != nil){
 		freelist = f->next;
 		unmlock(&freelock);
 	} else {

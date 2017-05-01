@@ -36,7 +36,7 @@ atnotify(int (*f)(void*, char*), int in)
 
 	if(!init){
 		notify(notifier);
-		init = 1;		/* assign = */
+		init = 1;
 	}
 	ret = 0;
 	lock(&onnotlock);
