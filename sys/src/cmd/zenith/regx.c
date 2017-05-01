@@ -632,7 +632,7 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 			}
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
+		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){
 	Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */
@@ -770,7 +770,7 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 			}
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
+		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){
 	Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */
