@@ -140,9 +140,8 @@ void
 attach_to_process(int pid)
 {
 	char buf[100];
-	sprint(buf, "/proc/%d/text", pid);
 
-	// TODO close textfid?
+	sprint(buf, "/proc/%d/text", pid);
 	int textfid = open(buf, OREAD);
 	if (textfid < 0){
 		syslog(0, "gdbserver", "couldn't open %s: %r", buf);
@@ -169,7 +168,6 @@ attach_to_process(int pid)
 	// machdata will be valid after this
 	machbytype(fhdr.type);
 
-	// TODO close memfid
 	snprint(buf, sizeof(buf), "/proc/%d/mem", pid);
 	int memfid = open(buf, ORDWR);
 	if (memfid < 0) {
@@ -291,7 +289,7 @@ gdbstub_read_wait(void)
 	int ret;
 	ret = read_char();
 	if (ret < 0) {
-		write(1, "DIE", 3);
+		print("Session ended\n");
 		exits("die");
 	}
 	return ret;
@@ -718,30 +716,30 @@ gdb_cmd_binwrite(struct state *ks)
 		strcpy((char *)remcom_out_buffer, "OK");
 }
 
-/* Handle the 'D' or 'k', detach or kill packets */
+/* Handle the 'D', detach packet */
 static void
-gdb_cmd_detachkill(struct state *ks)
+gdb_cmd_detach(struct state *ks)
 {
 	char *error;
 
-	/* The detach case */
-	if (remcom_in_buffer[0] == 'D') {
-		error = dbg_remove_all_break(ks);
-		if (error < 0) {
-			error_packet(remcom_out_buffer, error);
-		} else {
-			strcpy((char *)remcom_out_buffer, "OK");
-			//connected = 0;
-		}
-		put_packet(remcom_out_buffer);
+	error = dbg_remove_all_break(ks);
+	if (error < 0) {
+		error_packet(remcom_out_buffer, error);
 	} else {
-		/*
-		 * Assume the kill case, with no exit code checking,
-		 * trying to force detach the debugger:
-		 */
-		dbg_remove_all_break(ks);
+		strcpy((char *)remcom_out_buffer, "OK");
 		connected = 0;
+		sendctl(ks->threadid, "start");
 	}
+	put_packet(remcom_out_buffer);
+}
+
+/* Handle the 'k' kill packet */
+static void
+gdb_cmd_kill(struct state *ks)
+{
+	sendctl(ks->threadid, "kill");
+	connected = 0;
+	print("Process %d killed by gdb\n", ks->threadid);
 }
 
 /* Handle the 'R' reboot packets */
@@ -1085,9 +1083,11 @@ gdb_serial_stub(struct state *ks, int port)
 				 * continue.
 				 */
 			case 'D':	/* Debugger detach */
+				gdb_cmd_detach(ks);
+				break;
 			case 'k':	/* Debugger detach via kill */
-				gdb_cmd_detachkill(ks);
-				goto default_handle;
+				gdb_cmd_kill(ks);
+				goto exit;
 			case 'R':	/* Reboot */
 				if (gdb_cmd_reboot(ks))
 					goto default_handle;
