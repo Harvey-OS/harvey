@@ -40,4 +40,3 @@ s_grow(String *s, int incr)
 
 	return s;
 }
-

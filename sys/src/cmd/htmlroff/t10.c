@@ -146,4 +146,3 @@ t10init(void)
 	addesc('\n', e_newline, CopyMode|ArgMode|HtmlMode);
 	addesc('e', e_e, 0);
 }
-

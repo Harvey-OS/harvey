@@ -133,4 +133,3 @@
 #define ENDPAGE				"%%EndPage:"
 #define FORMSPERPAGE			"%%FormsPerPage:"
 #define VERSION				"%%Version:"
-

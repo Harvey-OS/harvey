@@ -397,4 +397,3 @@ nixprepage(int i)
 		for(i = 0; i < NSEG; i++)
 			prepageseg(i);
 }
-

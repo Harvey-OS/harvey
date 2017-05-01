@@ -105,4 +105,3 @@ const char * BZ_API(BZ2_bzlibVersion)(void)
 {
    return BZ_VERSION;
 }
-

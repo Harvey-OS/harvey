@@ -35,4 +35,3 @@ double	pagewidth = PAGEWIDTH;
 
 int	reading = UTFENCODING;		/* input */
 int	writing = WRITING;		/* and output encoding */
-

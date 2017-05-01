@@ -55,4 +55,3 @@ t3init(void)
 	addreq(L("mk"), r_nop, -1);
 	addreq(L("rt"), r_warn, -1);
 }
-

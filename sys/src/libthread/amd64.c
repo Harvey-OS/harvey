@@ -34,4 +34,3 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	t->sched[JMPBUFARG1] = (uint64_t)f;		/* old PC and new PC */
 	t->sched[JMPBUFARG2] = (uint64_t)arg;		/* old PC and new PC */
 }
-

@@ -201,4 +201,3 @@ failed:
 	CHECK_STATUS("AcpiGetDevices PNP0A03");
 	exits(0);
 }
-

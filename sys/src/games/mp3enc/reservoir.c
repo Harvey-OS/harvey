@@ -271,5 +271,3 @@ ResvFrameEnd(lame_internal_flags *gfc, III_side_info_t *l3_side, int mean_bits)
 
     return;
 }
-
-

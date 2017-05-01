@@ -696,4 +696,3 @@ qidpathgen(Device *dev)
 	putbuf(p);
 	return path;
 }
-

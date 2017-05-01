@@ -72,4 +72,3 @@ extern int	interactive;		/* TRUE for interactive mode */
 extern int	whatami;		/* a READ or WRITE process - or both */
 extern int	canread;		/* allows reads */
 extern int	canwrite;		/* and writes if TRUE */
-

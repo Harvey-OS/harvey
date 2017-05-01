@@ -148,5 +148,3 @@ int BZ_API(BZ2_bzBuffToBuffDecompress)
    BZ2_bzDecompressEnd ( &strm );
    return ret;
 }
-
-

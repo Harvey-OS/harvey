@@ -265,4 +265,3 @@ extern int consVPrint(char*, va_list);
  * fossil.c
  */
 extern int Dflag;
-

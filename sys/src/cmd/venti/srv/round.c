@@ -108,4 +108,3 @@ delaykickroundproc(void *v)
 		trace(TraceProc, "finishround 0x%x", (uint)n);
 	}
 }
-

@@ -51,4 +51,3 @@ extern float update_interval;      /* to use Frank's time status display */
 #define         Max(A, B)       ((A) > (B) ? (A) : (B))
 
 #define         MAX_U_32_NUM            0xFFFFFFFF
-

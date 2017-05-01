@@ -876,5 +876,3 @@ loadibucket(Index *ix, uint8_t *score, ISect **pis, uint32_t *pbuck,
 {
 	return loadibucket1(ix, score, pis, pbuck, ib);
 }
-
-

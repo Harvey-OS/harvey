@@ -49,4 +49,3 @@
   enable_irqrestore(flags); \
   res; })
 #endif
-

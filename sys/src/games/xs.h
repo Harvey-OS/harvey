@@ -30,4 +30,3 @@ struct Piece{
 
 extern int N, NP;
 extern Piece pieces[];
-

@@ -1871,4 +1871,3 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 	if(chan == cons.srvchan || chan == cons.chan)
 		print("console chan read error");
 }
-

@@ -410,5 +410,3 @@ freearr(void)
 	free(acase);
 	free(topat);
 }
-
-

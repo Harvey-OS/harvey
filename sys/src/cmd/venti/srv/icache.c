@@ -577,4 +577,3 @@ emptyicache(void)
 	}
 	qunlock(&icache.lock);
 }
-

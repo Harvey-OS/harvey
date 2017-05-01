@@ -72,4 +72,3 @@ nextWalk(WalkPtr *w, uint8_t score[VtScoreSize], uint8_t *type, uint32_t *tag,
 	w->n++;
 	return 1;
 }
-

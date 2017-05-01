@@ -592,5 +592,3 @@ _apstart64v:
 	MOVQ	8(%rsi), %rAX			/* m->splpc */
 	xorq	%rbp, %rbp			/* stack trace ends here */
 	CALL	*%raX				/* CALL squidboy(SB) */
-
-

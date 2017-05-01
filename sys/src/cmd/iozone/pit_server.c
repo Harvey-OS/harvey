@@ -828,4 +828,3 @@ static void pit( int    tSckt[ ],
       }  /* End FOR each socket descriptor. */
    }  /* End WHILE forever. */
 }  /* End pit() */
-

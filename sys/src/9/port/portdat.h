@@ -1202,4 +1202,3 @@ struct Fastcall {
 
 
 #define DEVDOTDOT -1
-

@@ -1529,4 +1529,3 @@ closetar(Dfile *df, Symbol *dp)
 		closefile(&df->file[i]);
 	}
 }
-

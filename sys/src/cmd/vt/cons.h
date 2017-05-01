@@ -95,4 +95,3 @@ extern int nocolor;
 extern void curson(int);
 extern void cursoff(void);
 extern void setdim(int, int);
-

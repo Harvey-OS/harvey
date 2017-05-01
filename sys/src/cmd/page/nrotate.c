@@ -283,4 +283,3 @@ writefile(char *name, Image *im, int gran)
 	writeimage(fd, im, 0);
 	close(fd);
 }
-

@@ -204,4 +204,3 @@ authattach(Req *r)
 	}
 	return 0;
 }
-

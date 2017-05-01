@@ -257,4 +257,3 @@ vtsend(VtConn *z, Packet *p)
 	qunlock(&z->outlk);
 	return 0;
 }
-

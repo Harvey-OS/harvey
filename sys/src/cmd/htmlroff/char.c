@@ -131,4 +131,3 @@ troff2rune(Rune *rs)
 			return trtab[i].r;
 	return Runeerror;
 }
-

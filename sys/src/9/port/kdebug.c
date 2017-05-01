@@ -67,4 +67,3 @@ void set_printx(int mode)
 			break;
 	}
 }
-

@@ -518,4 +518,3 @@ rsaencryptbuf(RSApub *key, uint8_t *buf, int nbuf)
 	mpfree(b);
 	return c;
 }
-

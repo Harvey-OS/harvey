@@ -1107,4 +1107,3 @@ snapClose(Snap *s)
 	periodicKill(s->tick);
 	vtMemFree(s);
 }
-

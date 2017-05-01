@@ -66,4 +66,3 @@ pppbinddev(void)
 	noconfig = 1;
 	getndb();
 }
-

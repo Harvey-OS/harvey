@@ -95,4 +95,3 @@ diskaccess(int level)
 	}
 	lasttime[level] = time(0);
 }
-

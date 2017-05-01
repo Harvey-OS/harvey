@@ -1221,4 +1221,3 @@ usage(void)
 	fprint(2, "usage: %s [-disv] [-c cachesize] [-m mountpoint] [-M mesgsize] paqfile\n", argv0);
 	exits("usage");
 }
-

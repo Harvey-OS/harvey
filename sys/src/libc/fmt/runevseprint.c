@@ -31,4 +31,3 @@ runevseprint(Rune *buf, Rune *e, const char *fmt, va_list args)
 	*(Rune*)f.to = '\0';
 	return f.to;
 }
-

@@ -14,4 +14,3 @@ FT_USE_MODULE(tt_driver_class)
 FT_USE_MODULE(t1_driver_class)
 FT_USE_MODULE(t42_driver_class)
 FT_USE_MODULE(winfnt_driver_class)
-

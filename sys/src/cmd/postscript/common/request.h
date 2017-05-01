@@ -28,4 +28,3 @@ typedef struct {
 	int	page;
 	char	*file;
 } Request;
-

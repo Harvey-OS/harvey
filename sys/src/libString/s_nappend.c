@@ -24,4 +24,3 @@ s_nappend(String *to, char *from, int n)
 	s_terminate(to);
 	return to;
 }
-

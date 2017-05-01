@@ -132,5 +132,3 @@ thish(int i, int c)
 		return(t);
 	return(0);
 }
-
-

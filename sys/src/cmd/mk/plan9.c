@@ -443,4 +443,3 @@ mkmtime(char *name, int force)
 	free(d);
 	return t;
 }
-
