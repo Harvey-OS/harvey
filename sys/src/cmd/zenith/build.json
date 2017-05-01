@@ -1,13 +1,16 @@
 {
 	"zenith": {
-		"CFlags": [
-		],
+		"CFlags": [],
 		"Include": [
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin",
+		"Post": [
+			"mkdir -p /mnt/acme",
+			"cp zenith.init /$ARCH/bin"
+		],
 		"Program": "zenith",
-	 	"SourceFiles": [
+		"SourceFiles": [
 			"acme.c",
 			"addr.c",
 			"buff.c",
@@ -28,10 +31,6 @@
 			"util.c",
 			"wind.c",
 			"xfid.c"
-		],
-	        "Post": [
-	                "mkdir -p /mnt/acme",
-			"cp zenith.init /$ARCH/bin"
-	        ]
+		]
 	}
 }

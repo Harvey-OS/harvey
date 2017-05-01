@@ -1,15 +1,15 @@
 {
-    "gdbserver": {
-	"Include": [
-	    "/sys/src/cmd/cmd.json"
-	],
-	"Install": "/$ARCH/bin",
+	"gdbserver": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin",
 		"Program": "gdbserver",
-	"SourceFiles": [
-	    "$ARCH.S",
-	    "regs$ARCH.c",
-	    "debug_core.c",
-	    "gdbstub.c"
-	]
-    }
+		"SourceFiles": [
+			"$ARCH.S",
+			"regs$ARCH.c",
+			"debug_core.c",
+			"gdbstub.c"
+		]
+	}
 }

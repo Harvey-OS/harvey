@@ -1,7 +1,6 @@
 {
 	"dns": {
-	"CFlags": [
-	],
+		"CFlags": [],
 		"Include": [
 			"../cmd.json"
 		],

@@ -6,10 +6,10 @@
 		"Install": "/$ARCH/bin/",
 		"Program": "plumber",
 		"SourceFiles": [
-                        "fsys.c",
-                        "match.c",
-                        "plumber.c",
-                        "rules.c"
+			"fsys.c",
+			"match.c",
+			"plumber.c",
+			"rules.c"
 		]
 	}
 }

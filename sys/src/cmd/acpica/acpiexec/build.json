@@ -1,17 +1,17 @@
 {
 	"aeexec": {
-	    "Include": [
-		"/sys/src/libacpi/acpica/acpiflags.json",
+		"Include": [
+			"/sys/src/libacpi/acpica/acpiflags.json",
 			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/acpi",
+		"NSourceFiles": [
+			"alltables.c"
 		],
 		"Oflags": [
 			"-lacpi"
 		],
-		"Install": "/$ARCH/bin/acpi",
 		"Program": "aeexec",
-		"NSourceFiles": [
-		    "alltables.c"
-		],
 		"SourceFiles": [
 			"aeexec.c",
 			"aehandlers.c",
