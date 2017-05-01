@@ -27,4 +27,3 @@ fmtprint(Fmt *f, const char *fmt, ...)
 	va_end(va);
 	return n;
 }
-

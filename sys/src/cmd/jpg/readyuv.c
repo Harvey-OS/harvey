@@ -220,5 +220,3 @@ readyuv(int fd, int colorspace)
 	Bterm(&b);
 	return a;
 }
-
-

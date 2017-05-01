@@ -94,4 +94,3 @@ void main(int argc, char *argv[])
                 fail("failed to terminate acpi");
         exits(nil);
 }
-

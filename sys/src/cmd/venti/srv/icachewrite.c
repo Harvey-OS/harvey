@@ -364,4 +364,3 @@ iesort(IEntry *ie)
 	*l = nil;
 	return sorted;
 }
-

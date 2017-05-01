@@ -94,4 +94,3 @@ typedef unsigned short  UInt16;
   Only here to avoid probs with 64-bit platforms.
 --*/
 typedef int IntNative;
-

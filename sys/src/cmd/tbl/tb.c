@@ -106,5 +106,3 @@ release(void)
 	tpcount = -1;
 	exstore = 0;
 }
-
-

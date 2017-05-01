@@ -176,4 +176,3 @@ clean(Xfile *f)
 	f->qid = (Qid){0,0,0};
 	return f;
 }
-

@@ -33,4 +33,3 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	t->sched[JMPBUFARG3] = (uint64_t)f;
 	t->sched[JMPBUFARG4] = (uint64_t)arg;
 }
-

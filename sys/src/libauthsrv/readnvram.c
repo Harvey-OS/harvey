@@ -487,4 +487,3 @@ finddosfile(int fd, char *file)
 	 */
 	return rootoff + rootsects*sectsize + (n-2)*sectsize*b->clustsize;
 }
-

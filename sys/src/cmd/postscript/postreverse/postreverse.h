@@ -27,4 +27,3 @@ typedef struct {
  */
 
 char	*copystdin();
-

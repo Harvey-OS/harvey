@@ -415,4 +415,3 @@ extern void *kseg2;
 extern char dbgflg[256];
 
 #define dbgprint	print		/* for now */
-

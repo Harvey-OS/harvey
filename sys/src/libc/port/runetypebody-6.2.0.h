@@ -1647,4 +1647,3 @@ totitlerune(Rune c)
 		return c + p[1] - 1048576;
 	return c;
 }
-

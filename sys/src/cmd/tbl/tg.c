@@ -91,5 +91,3 @@ untext(void)
 	Bprint(&tabout, ".nf\n");
 	Bprint(&tabout, ".ll \\n(%du\n", SL);
 }
-
-

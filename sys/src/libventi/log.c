@@ -264,4 +264,3 @@ vtlogdump(int fd, VtLog *l)
 		write(fd, c->p, c->wp-c->p);
 	}
 }
-

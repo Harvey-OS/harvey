@@ -1107,4 +1107,3 @@ clientwriteproc(Vncs *v)
 	vncunlock(v);
 	vnchungup(v);
 }
-

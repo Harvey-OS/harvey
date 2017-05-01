@@ -461,4 +461,3 @@ int BZ_API(BZ2_bzDecompressEnd)  ( bz_stream *strm )
 
    return BZ_OK;
 }
-

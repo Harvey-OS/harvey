@@ -60,4 +60,3 @@ enum {
 	BusVME,				/* VMEbus */
 	BusXPRESS,			/* Express System Bus */
 };
-

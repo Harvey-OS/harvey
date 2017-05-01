@@ -139,4 +139,3 @@ opentemp(char *template)
 
 	return fd;
 }
-

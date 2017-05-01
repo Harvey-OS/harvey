@@ -794,4 +794,3 @@ vacshutdown(void)
 	vacfsclose(fs);
 	vthangup(conn);
 }
-

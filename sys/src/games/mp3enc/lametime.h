@@ -41,4 +41,3 @@ extern int     lame_set_stream_binary_mode ( FILE* const fp );
 extern off_t   lame_get_file_size          ( const char* const filename );
 
 #endif /* LAME_LAMETIME_H */
-

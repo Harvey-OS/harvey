@@ -639,4 +639,3 @@ pc_enabled(Lextok *n)
 		}
 	return result;
 }
-

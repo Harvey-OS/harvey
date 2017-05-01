@@ -607,4 +607,3 @@ Srv fs = {
 .flush=	fsflush,
 .destroyfid=	fsdestroyfid,
 };
-

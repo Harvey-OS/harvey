@@ -724,4 +724,3 @@ void hi(char *s)
 	while (*s)
 		wave(*s++);
 }
-

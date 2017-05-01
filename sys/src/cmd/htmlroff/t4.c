@@ -148,4 +148,3 @@ t4init(void)
 	addesc('&', e_amp, 0);
 	addesc('c', e_c, 0);
 }
-

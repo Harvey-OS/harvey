@@ -38,4 +38,3 @@
 #define FONTDIR		"/sys/lib/troff/font"
 #define POSTLIBDIR	"/sys/lib/postscript/prologues"
 #define TEMPDIR		"/tmp"
-

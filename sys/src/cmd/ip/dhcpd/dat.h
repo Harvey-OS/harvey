@@ -91,4 +91,3 @@ extern char	*blog;
 extern Ipifc	*ipifcs;
 extern int32_t	now;
 extern char	*ndbfile;
-

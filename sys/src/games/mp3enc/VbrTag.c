@@ -581,4 +581,3 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 
 	return 0;       /* success */
 }
-
