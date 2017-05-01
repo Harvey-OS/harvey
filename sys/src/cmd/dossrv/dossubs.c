@@ -285,7 +285,7 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 	d = dp->d;
 	next = 0;
 
-	/* 
+	/*
 	 * asking for the cluster of the root directory
 	 * is not a well-formed question, since the root directory
 	 * does not begin on a cluster boundary.
@@ -358,7 +358,7 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 }
 
 /*
- * return the disk sector for the isect disk sector in f 
+ * return the disk sector for the isect disk sector in f
  */
 int32_t
 fileaddr(Xfile *f, int32_t isect, int cflag)
@@ -399,11 +399,11 @@ fixname(char *buf)
 }
 
 /*
- * classify the file name as one of 
+ * classify the file name as one of
  *	Invalid - contains a bad character
  *	Short - short valid 8.3 name, no lowercase letters
  *	ShortLower - short valid 8.3 name except for lowercase letters
- *	Long - long name 
+ *	Long - long name
  */
 int
 classifyname(char *buf)
@@ -432,7 +432,7 @@ classifyname(char *buf)
 	}
 
 	is8dot3 = (ndot==0 && p-buf <= 8) || (ndot==1 && dot-buf <= 8 && p-(dot+1) <= 3);
-	
+
 	if(!isextended && is8dot3){
 		if(islower)
 			return ShortLower;
@@ -440,7 +440,7 @@ classifyname(char *buf)
 	}
 	return Long;
 }
-		
+
 /*
  * make an alias for a valid long file name
  */
@@ -903,7 +903,7 @@ walkup(Xfile *f, Dosptr *ndp)
 					goto error;
 				}
 			}
-			k = clust2sect(bp, ppclust) + 
+			k = clust2sect(bp, ppclust) +
 				so%bp->clustsize;
 		}else{
 			if(so*bp->sectsize >= bp->rootsize*DOSDIRSIZE)
@@ -1252,7 +1252,7 @@ putnamesect(uint8_t *slot, Rune *longname, int curslot, int first, int sum)
 	ds.start[1] = 0;
 	if(first)
 		ds.name[0] = 0x40 | curslot;
-	else 
+	else
 		ds.name[0] = curslot;
 	memmove(slot, &ds, sizeof ds);
 
@@ -1523,7 +1523,7 @@ iscontig(Xfs *xf, Dosdir *d)
 }
 
 /*
- * Make a file contiguous, with nextra clusters of 
+ * Make a file contiguous, with nextra clusters of
  * free space after it for later expansion.
  * Return the number of the first new cluster.
  */
@@ -1662,7 +1662,7 @@ makecontig(Xfile *f, int nextra)
 	}
 
 	return start+nclust;
-}	
+}
 
 int
 falloc(Xfs *xf)

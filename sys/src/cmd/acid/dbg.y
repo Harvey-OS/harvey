@@ -46,7 +46,7 @@
 
 %%
 
-prog		: 
+prog		:
 		| prog bigstmnt
 		;
 
@@ -116,7 +116,7 @@ member		: Tconst Tconst mname ';'
 		}
 		;
 
-zname		: 
+zname		:
 		{ $$ = 0; }
 		| Tid
 		;
@@ -184,7 +184,7 @@ zexpr		:
 expr		: castexpr
 		| expr '*' expr
 		{
-			$$ = an(OMUL, $1, $3); 
+			$$ = an(OMUL, $1, $3);
 		}
 		| expr '/' expr
 		{
@@ -273,11 +273,11 @@ castexpr	: monexpr
 		;
 
 monexpr		: term
-		| '*' monexpr 
+		| '*' monexpr
 		{
 			$$ = an(OINDM, $2, ZN);
 		}
-		| '@' monexpr 
+		| '@' monexpr
 		{
 			$$ = an(OINDC, $2, ZN);
 		}
@@ -324,7 +324,7 @@ monexpr		: term
 		}
 		| Teval monexpr
 		{
-			$$ = an(OEVAL, $2, ZN);	
+			$$ = an(OEVAL, $2, ZN);
 		}
 		;
 

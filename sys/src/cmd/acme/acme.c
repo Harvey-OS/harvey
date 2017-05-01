@@ -127,7 +127,7 @@ threadmain(int argc, char *argv[])
 		free(p);
 	}
 	if(maxtab == 0)
-		maxtab = 4; 
+		maxtab = 4;
 	if(loadfile)
 		rowloadfonts(loadfile);
 	putenv("font", fontnames[0]);
@@ -452,7 +452,7 @@ mousethread(void *v)
 	if(cplumb == nil)
 		alts[MPlumb].op = CHANNOP;
 	alts[NMALT].op = CHANEND;
-	
+
 	for(;;){
 		qlock(&row.QLock);
 		flushwarnings();

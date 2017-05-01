@@ -161,7 +161,7 @@ FT_BEGIN_HEADER
   {
     char*  key;
     void*  data;
-  
+
   } _hashnode, *hashnode;
 
 

@@ -662,7 +662,7 @@ activate(Control *a)
 	for(c=a->controlset->actives; c; c=c->nextactive)
 		if(c == a)
 			ctlerror("%q already active\n", a->name);
-	
+
 	if (a->activate){
 		a->activate(a, 1);
 		return;

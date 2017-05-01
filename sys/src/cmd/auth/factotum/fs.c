@@ -371,7 +371,7 @@ fsstat(Req *r)
 			respond(r, nil);
 			return;
 		}
-	respond(r, "file not found");	
+	respond(r, "file not found");
 }
 
 static void

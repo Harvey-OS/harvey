@@ -42,7 +42,7 @@ typedef FLOAT8	D192_3[192][3];
 typedef int	I192_3[192][3];
 
 
-typedef struct 
+typedef struct
 {
    int l[1+SBMAX_l];
    int s[1+SBMAX_s];
@@ -86,7 +86,7 @@ typedef struct {
 } gr_info;
 
 typedef struct {
-	int main_data_begin; 
+	int main_data_begin;
 	int private_bits;
 	int resvDrain_pre;
 	int resvDrain_post;

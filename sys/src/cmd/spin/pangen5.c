@@ -561,7 +561,7 @@ ana_var(FSM_trans *t, Lextok *now, int usage)
 			use_free = use_free->nxt;
 		} else
 			u = (FSM_use *) emalloc(sizeof(FSM_use));
-	
+
 		u->var = now->sym;
 		u->nxt = t->Val[usage];
 		t->Val[usage] = u;
@@ -599,7 +599,7 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 	case C_EXPR:
 		break;
 
-	case '!':	
+	case '!':
 	case UMIN:
 	case '~':
 	case ENABLED:
@@ -836,7 +836,7 @@ ana_seq(Sequence *s)
 			FSM_EDGE(From, To, e);
 
 			ana_seq(t);
-		} else 
+		} else
 		{	if (e->n->ntyp == GOTO)
 			{	g = get_lab(e->n, 1);
 				g = huntele(g, e->status, -1);

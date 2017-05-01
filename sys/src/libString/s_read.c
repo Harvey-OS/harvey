@@ -20,7 +20,7 @@ enum
 /* Append up to 'len' input bytes to the string 'to'.
  *
  * Returns the number of characters read.
- */ 
+ */
 extern int
 s_read(Biobuf *fp, String *to, int len)
 {

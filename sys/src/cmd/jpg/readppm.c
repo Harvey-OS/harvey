@@ -32,7 +32,7 @@ Bgetch(Biobufhdr *b)
 				;
 		}
 		return c;
-	}		
+	}
 }
 
 /*
@@ -51,7 +51,7 @@ Bgetint(Biobufhdr *b)
 		return -1;
 
 	i = 0;
-	do { 
+	do {
 		i = i*10 + (c-'0');
 	} while((c = Bgetch(b)) != Beof && isdigit(c));
 

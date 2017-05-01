@@ -305,7 +305,7 @@ wport(void *aux, unsigned long p, unsigned long w, int len)
 	case 0xA0:	/* PIC 2 */
 	case 0xA1:
 		break;
-	
+
 	default:
 		pw[len](data, w);
 		if(pwrite(portfd[len], data, len, p) != len){
@@ -630,7 +630,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 		print_func_exit();
 		return Enonexist;
-		
+
 	default:
 		print_func_exit();
 		return Ewalk;

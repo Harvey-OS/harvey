@@ -205,9 +205,9 @@
     * on each unsucesful attempt, one node will be removed from the list
     *
     */
-    
+
     {
-      FT_Int   drop_last = ( list->max_nodes > 0 && 
+      FT_Int   drop_last = ( list->max_nodes > 0 &&
                              list->num_nodes >= list->max_nodes );
 
       for (;;)
@@ -224,7 +224,7 @@
           */
           pnode = &list->nodes;
           node  = *pnode;
-  
+
           if ( node == NULL )
           {
             FT_ASSERT( list->nodes == 0 );
@@ -239,14 +239,14 @@
             pnode = &node->next;
             node  = *pnode;
           }
-  
+
          /* remove it from the list, and try to "flush" it. doing this will
           * save a significant number of dynamic allocations compared to
           * a classic destroy/create cycle
           */
           *pnode = NULL;
           list->num_nodes -= 1;
-  
+
           if ( clazz->node_flush )
           {
             error = clazz->node_flush( node, key, list->data );
@@ -263,7 +263,7 @@
           */
           if ( clazz->node_done )
             clazz->node_done( node, list->data );
-            
+
           FT_MEM_ZERO( node, clazz->node_size );
         }
         else
@@ -275,7 +275,7 @@
           if ( FT_ALLOC( node, clazz->node_size ) )
             goto Fail;
         }
-  
+
         FT_ASSERT( node != NULL );
 
         node->key = key;
@@ -296,11 +296,11 @@
         list->nodes = node;
         list->num_nodes++;
         goto Exit;
-  
+
       Fail:
         if ( error != FT_Err_Out_Of_Memory )
           goto Exit;
-        
+
         drop_last = 1;
         continue;
       }

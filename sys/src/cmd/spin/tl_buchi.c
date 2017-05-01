@@ -283,7 +283,7 @@ clutter(void)
 	{	s->cond = unclutter(s->cond, p->name->name);
 		if (s->cond
 		&&  s->cond->ntyp == FALSE)
-		{	if (s != p->trans 
+		{	if (s != p->trans
 			||  s->nxt)
 				s->redundant = 1;
 		}
@@ -646,7 +646,7 @@ fsm_print(void)
 	if (b && (Max_Red == 0))
 		b->accepting = 1;
 
-	mergestates(0); 
+	mergestates(0);
 	b = findstate("T0_init");
 
 	fprintf(tl_out, "never %s {    /* ", claim_name?claim_name:"");

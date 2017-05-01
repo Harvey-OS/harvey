@@ -61,7 +61,7 @@ newer(char *f1, char *f2)
 	if (stat(f1, (struct stat *)&x) < 0) return 0;
 	if (stat(f2, (struct stat *)&y) < 0) return 1;
 	if (x.st_mtime < y.st_mtime) return 0;
-	
+
 	return 1;
 }
 
@@ -134,7 +134,7 @@ match_trail(void)
 			printf("spin: cannot find trail file\n");
 			alldone(1);
 	}	}
-okay:		
+okay:
 	if (xspin == 0 && newer(oFname->name, snap))
 	printf("spin: warning, \"%s\" is newer than %s\n",
 		oFname->name, snap);
@@ -227,7 +227,7 @@ okay:
 				{	printf("\tpid %d\tproctype %s\n", X->pid, X->n->name);
 				}
 				printf("\n");
-				continue;	
+				continue;
 			} else
 			{	printf("%3d:\tproc  %d (?) ", depth, pno);
 				lost_trail();
@@ -247,10 +247,10 @@ okay:
 				&& ((verbose&32) || ((verbose&4) && not_claim())))
 				{	if (columns != 2)
 					{	p_talk(og, 1);
-		
+
 						if (og->n->ntyp == D_STEP)
 						og = og->n->sl->this->frst;
-		
+
 						printf("\t[");
 						comment(stdout, og->n, 0);
 						printf("]\n");
@@ -280,10 +280,10 @@ keepgoing:		if (dothis->merge_start)
 			&& ((verbose&32) || ((verbose&4) && not_claim())))	/* -v or -p */
 			{	if (columns != 2)
 				{	p_talk(dothis, 1);
-	
+
 					if (dothis->n->ntyp == D_STEP)
 					dothis = dothis->n->sl->this->frst;
-		
+
 					printf("\t[");
 					comment(stdout, dothis->n, 0);
 					printf("]");

@@ -27,4 +27,4 @@ void splx(int s)
 	else
 		_spllo();
 }
-		
+

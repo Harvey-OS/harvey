@@ -28,7 +28,7 @@ enum
 
 enum
 {
-	FlagL = 1<<7, 
+	FlagL = 1<<7,
 	FlagM = 1<<6,
 	FlagS = 1<<5,
 	Version = (1<<2)|(1<<1)|(1<<0),

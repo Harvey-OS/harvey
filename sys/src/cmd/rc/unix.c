@@ -189,7 +189,7 @@ mkenv(void)
 	}
 	*ep = 0;
 	qsort((void *)env, nvar, sizeof ep[0], cmpenv);
-	return env;	
+	return env;
 }
 char *sigmsg[] = {
 /*  0 normal  */ 0,
@@ -512,7 +512,7 @@ execumask(void)		/* wrong -- should fork before writing */
 	case 2:
 		umask(octal(runq->argv->words->next->word));
 		break;
-	case 1: 
+	case 1:
 		umask(m = umask(0));
 		out->fd = mapfd(1);
 		out->bufp = out->buf;
@@ -576,7 +576,7 @@ void
 delwaitpid(int pid)
 {
 	int r, w;
-	
+
 	for(r=w=0; r<nwaitpids; r++)
 		if(waitpids[r] != pid)
 			waitpids[w++] = waitpids[r];

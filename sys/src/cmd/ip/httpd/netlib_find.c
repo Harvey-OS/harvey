@@ -25,7 +25,7 @@ Hio *hout;
 /********** table of databases ************/
 
 typedef struct DB	DB;
-struct DB 
+struct DB
 {
 	int	SELECT;	/* value from search.html */
 	char	*log;	/* abbreviation for logfile */

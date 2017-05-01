@@ -38,7 +38,7 @@ procexec(Channel *pidc, char *prog, char *args[])
 	 * never return, and if it fails, return with errstr set.
 	 * Unfortunately, the exec happens in another proc since
 	 * we have to wait for the exec'ed process to finish.
-	 * To provide the semantics, we open a pipe with the 
+	 * To provide the semantics, we open a pipe with the
 	 * write end close-on-exec and hand it to the proc that
 	 * is doing the exec.  If the exec succeeds, the pipe will
 	 * close so that our read below fails.  If the exec fails,

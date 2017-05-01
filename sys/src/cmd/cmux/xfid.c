@@ -386,7 +386,7 @@ xfidwrite(Xfid *x)
 		alts[CWflush].v = nil;
 		alts[CWflush].op = CHANRCV;
 		alts[NCW].op = CHANEND;
-	
+
 		switch(alt(alts)){
 		case CWdata:
 			break;

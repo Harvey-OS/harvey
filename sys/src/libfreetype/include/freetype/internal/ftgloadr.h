@@ -65,7 +65,7 @@ FT_BEGIN_HEADER
     FT_Int     arg1;
     FT_Int     arg2;
     FT_Matrix  transform;
-    
+
   } FT_SubGlyphRec;
 
 

@@ -57,14 +57,14 @@ mkihash(int size1)
 	uint32_t size;
 	int bits;
 	IHash *ih;
-	
+
 	bits = 0;
 	size = 1;
 	while(size < size1){
 		bits++;
 		size <<= 1;
 	}
-	
+
 	ih = vtmallocz(sizeof(IHash)+size*sizeof(ih->table[0]));
 	ih->table = (IEntry**)(ih+1);
 	ih->bits = bits;
@@ -77,7 +77,7 @@ ihashlookup(IHash *ih, uint8_t score[VtScoreSize], int type)
 {
 	uint32_t h;
 	IEntry *ie;
-	
+
 	h = hashbits(score, ih->bits);
 	for(ie=ih->table[h]; ie; ie=ie->nexthash)
 		if((type == -1 || type == ie->ia.type) && scorecmp(score, ie->score) == 0)
@@ -90,7 +90,7 @@ ihashdelete(IHash *ih, IEntry *ie, char *what)
 {
 	uint32_t h;
 	IEntry **l;
-	
+
 	h = hashbits(ie->score, ih->bits);
 	for(l=&ih->table[h]; *l; l=&(*l)->nexthash)
 		if(*l == ie){
@@ -104,7 +104,7 @@ static void
 ihashinsert(IHash *ih, IEntry *ie)
 {
 	uint32_t h;
-	
+
 	h = hashbits(ie->score, ih->bits);
 	ie->nexthash = ih->table[h];
 	ih->table[h] = ie;
@@ -200,7 +200,7 @@ scacheevict(void)
 {
 	ISum *s;
 	int i;
-	
+
 	for(i=icache.nsum-1; i>=0; i--){
 		s = icache.sum[i];
 		if(canqlock(&s->lock)){
@@ -278,7 +278,7 @@ scachemiss(uint64_t addr)
 		qunlock(&s->lock);
 		return nil;
 	}
-	
+
 	return s;	/* locked */
 }
 
@@ -291,7 +291,7 @@ initicache(uint32_t mem0)
 {
 	uint32_t mem;
 	int i, entries, scache;
-	
+
 	icache.full.l = &icache.lock;
 
 	mem = mem0;
@@ -309,7 +309,7 @@ fprint(2, "icache %,d bytes = %,d entries; %d scache\n", mem0, entries, scache);
 	icache.clean.prev = icache.clean.next = &icache.clean;
 	icache.dirty.prev = icache.dirty.next = &icache.dirty;
 	icache.free.prev = icache.free.next = &icache.free;
-	
+
 	icache.hash = mkihash(entries);
 	icache.nentries = entries;
 	setstat(StatIcacheSize, entries);
@@ -335,7 +335,7 @@ static IEntry*
 evictlru(void)
 {
 	IEntry *ie;
-	
+
 	ie = poplast(&icache.clean);
 	if(ie == nil)
 		return nil;
@@ -353,7 +353,7 @@ icacheinsert(uint8_t score[VtScoreSize], IAddr *ia, int state)
 		while((ie = poplast(&icache.free)) == nil && (ie = evictlru()) == nil){
 			// Could safely return here if state == IEClean.
 			// But if state == IEDirty, have to wait to make
-			// sure we don't lose an index write.  
+			// sure we don't lose an index write.
 			// Let's wait all the time.
 			flushdcache();
 			kickicache();
@@ -435,7 +435,7 @@ insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
 		scacheload(toload);
 		qunlock(&toload->lock);
 	}
-	
+
 	if(icache.ndirty >= icache.maxdirty)
 		kickicache();
 
@@ -474,7 +474,7 @@ lookupscore(uint8_t score[VtScoreSize], int type, IAddr *ia)
 	addstat2(StatIcacheRead, 1, StatIcacheReadTime, msec() - ms);
 	return ret;
 }
-	
+
 uint32_t
 hashbits(uint8_t *sc, int bits)
 {
@@ -541,7 +541,7 @@ void
 icacheclean(IEntry *ie)
 {
 	IEntry *next;
-	
+
 	trace(TraceProc, "icacheclean enter");
 	qlock(&icache.lock);
 	for(; ie; ie=next){
@@ -565,7 +565,7 @@ emptyicache(void)
 	int i;
 	IEntry *ie;
 	ISum *s;
-	
+
 	qlock(&icache.lock);
 	while((ie = evictlru()) != nil)
 		pushfirst(&icache.free, ie);

@@ -54,7 +54,7 @@ static	int		notfound(HConnect *c, char *url);
 
 uint8_t *certificate;
 int certlen;
-PEMChain *certchain;	
+PEMChain *certchain;
 
 void
 usage(void)
@@ -186,7 +186,7 @@ mkhspriv(void)
 	return p;
 }
 
-static uint 
+static uint
 hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
@@ -477,7 +477,7 @@ magic:
 	 */
 	if(hparseheaders(c, 15*60*1000) < 0)
 		exits("failed");
-	if(origuri[0] == '/' && origuri[1] == 0){	
+	if(origuri[0] == '/' && origuri[1] == 0){
 		snprint(virtualhost, sizeof virtualhost, "http://%s/", c->head.host);
 		newuri = redirect(c, virtualhost, nil);
 		if(newuri == nil)

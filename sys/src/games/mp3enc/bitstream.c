@@ -53,7 +53,7 @@ const int scfsi_band[5] = { 0, 6, 11, 16, 21 };
 /* unsigned int is at least this large:  */
 /* we work with ints, so when doing bit manipulation, we limit
  * ourselves to MAX_LENGTH-2 just to be on the safe side */
-#define MAX_LENGTH      32  
+#define MAX_LENGTH      32
 
 
 
@@ -105,7 +105,7 @@ putbits2(lame_global_flags *gfp, int val, int j)
 	bs->buf_bit_idx -= k;
 
 //	assert (j < MAX_LENGTH); /* 32 too large on 32 bit machines */
-//	assert (bs->buf_bit_idx < MAX_LENGTH); 
+//	assert (bs->buf_bit_idx < MAX_LENGTH);
 
         bs->buf[bs->buf_byte_idx] |= (val >> j) << bs->buf_bit_idx;
 	bs->totbit += k;
@@ -133,12 +133,12 @@ putbits_noheaders(lame_global_flags *gfp, int val, int j)
 
 	k = Min(j, bs->buf_bit_idx);
 	j -= k;
-        
+
 	bs->buf_bit_idx -= k;
-        
+
 //	assert (j < MAX_LENGTH); /* 32 too large on 32 bit machines */
-//	assert (bs->buf_bit_idx < MAX_LENGTH); 
-	
+//	assert (bs->buf_bit_idx < MAX_LENGTH);
+
         bs->buf[bs->buf_byte_idx] |= (val >> j) << bs->buf_bit_idx;
 	bs->totbit += k;
     }
@@ -174,10 +174,10 @@ drain_into_ancillary(lame_global_flags *gfp,int remainingBits)
       putbits2(gfp,0x45,8);
       remainingBits -= 8;
     }
-      
+
     if (remainingBits >= 32) {
       const char *version = get_lame_short_version ();
-      if (remainingBits >= 32) 
+      if (remainingBits >= 32)
 	for (i=0; i<(int)strlen(version) && remainingBits >=8 ; ++i) {
 	  remainingBits -= 8;
 	  putbits2(gfp,version[i],8);
@@ -218,7 +218,7 @@ CRC_writeheader(lame_internal_flags *gfc, int value, int length,int *crc)
    int bit = 1 << length;
 
    assert(length < MAX_LENGTH-2);
-   
+
    while((bit >>= 1)){
       *crc <<= 1;
       if (!(*crc & 0x10000) ^ !(value & bit))
@@ -239,12 +239,12 @@ encodeSideInfo2(lame_global_flags *gfp,int bitsPerFrame)
     III_side_info_t *l3_side;
     int gr, ch;
     int crc;
-    
+
     l3_side = &gfc->l3_side;
     gfc->header[gfc->h_ptr].ptr = 0;
     memset(gfc->header[gfc->h_ptr].buf, 0, gfc->sideinfo_len);
     crc = 0xffff; /* (jo) init crc16 for error_protection */
-    if (gfp->out_samplerate < 16000) 
+    if (gfp->out_samplerate < 16000)
       writeheader(gfc,0xffe,                12);
     else
       writeheader(gfc,0xfff,                12);
@@ -481,7 +481,7 @@ HuffmanCode(lame_global_flags* const gfp, int table_select, int x1, int x2)
     int  sgn_x2  = 0;
     int  linbits = h->xlen;
     int  xlen    = h->xlen;
-    int  ext; 
+    int  ext;
 
 //	assert ( table_select > 0 );
 
@@ -544,7 +544,7 @@ HuffmanCode(lame_global_flags* const gfp, int table_select, int x1, int x2)
 
     putbits2 ( gfp, code, cbits );
     putbits2 ( gfp, ext,  xbits );
-    
+
     return cbits + xbits;
 }
 
@@ -576,9 +576,9 @@ ShortHuffmancodebits(lame_global_flags *gfp,int *ix, gr_info *gi)
     lame_internal_flags *gfc=gfp->internal_flags;
     int bits;
     int region1Start;
-    
+
     region1Start = 3*gfc->scalefac_band.s[3];
-    if (region1Start > gi->big_values) 	
+    if (region1Start > gi->big_values)
         region1Start = gi->big_values;
 
     /* short blocks do not have a region2 */
@@ -740,7 +740,7 @@ flush_bitstream(lame_global_flags *gfp)
   int last_ptr,first_ptr;
   first_ptr=gfc->w_ptr;           /* first header to add to bitstream */
   last_ptr = gfc->h_ptr - 1;   /* last header to add to bitstream */
-  if (last_ptr==-1) last_ptr=MAX_HEADER_BUF-1;   
+  if (last_ptr==-1) last_ptr=MAX_HEADER_BUF-1;
 
   /* add this many bits to bitstream so we can flush all headers */
   flushbits = gfc->header[last_ptr].write_timing - gfc->bs.totbit;
@@ -749,7 +749,7 @@ flush_bitstream(lame_global_flags *gfp)
     /* if flushbits >= 0, some headers have not yet been written */
     /* reduce flushbits by the size of the headers */
     remaining_headers= 1+last_ptr - first_ptr;
-    if (last_ptr < first_ptr) 
+    if (last_ptr < first_ptr)
       remaining_headers= 1+last_ptr - first_ptr + MAX_HEADER_BUF;
     flushbits -= remaining_headers*8*gfc->sideinfo_len;
   }
@@ -757,7 +757,7 @@ flush_bitstream(lame_global_flags *gfp)
 
   /* finally, add some bits so that the last frame is complete
    * these bits are not necessary to decode the last frame, but
-   * some decoders will ignore last frame if these bits are missing 
+   * some decoders will ignore last frame if these bits are missing
    */
   getframebits(gfp,&bitsPerFrame,&mean_bits);
   flushbits += bitsPerFrame;
@@ -790,9 +790,9 @@ void  add_dummy_byte ( lame_global_flags* const gfp, unsigned char val )
   lame_internal_flags *gfc = gfp->internal_flags;
   int i;
 
-  putbits_noheaders(gfp,val,8);   
+  putbits_noheaders(gfp,val,8);
 
-  for (i=0 ; i< MAX_HEADER_BUF ; ++i) 
+  for (i=0 ; i< MAX_HEADER_BUF ; ++i)
     gfc->header[i].write_timing += 8;
 }
 
@@ -854,8 +854,8 @@ format_bitstream(lame_global_flags *gfp, int bitsPerFrame,
     if (gfc->bs.totbit > 1000000000  ) {
       /* to avoid totbit overflow, (at 8h encoding at 128kbs) lets reset bit counter*/
       int i;
-      for (i=0 ; i< MAX_HEADER_BUF ; ++i) 
-	gfc->header[i].write_timing -= gfc->bs.totbit;      
+      for (i=0 ; i< MAX_HEADER_BUF ; ++i)
+	gfc->header[i].write_timing -= gfc->bs.totbit;
       gfc->bs.totbit=0;
     }
     return 0;

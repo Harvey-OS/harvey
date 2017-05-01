@@ -101,7 +101,7 @@ wsetname(Window *w)
 {
 	int i, n;
 	char err[ERRMAX];
-	
+
 	n = sprint(w->name, "window.%d.%d", w->id, w->namecount++);
 	for(i='A'; i<='Z'; i++){
 		if(nameimage(w->i, w->name, 1) > 0)
@@ -219,7 +219,7 @@ winctl(void *arg)
 	crm.c2 = chancreate(sizeof(Stringpair), 0);
 	cwrm.c1 = chancreate(sizeof(Stringpair), 0);
 	cwrm.c2 = chancreate(sizeof(Stringpair), 0);
-	
+
 
 	alts[WKey].c = w->ck;
 	alts[WKey].v = &kbdr;
@@ -747,7 +747,7 @@ wbswidth(Window *w, Rune c)
 		if(r == '\n'){		/* eat at most one more character */
 			if(q == w->q0)	/* eat the newline */
 				--q;
-			break; 
+			break;
 		}
 		if(c == 0x17){
 			eq = isalnum(r);

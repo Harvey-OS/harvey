@@ -121,9 +121,9 @@ vgareset(void)
 {
 	/* reserve the 'standard' vga registers */
 	if(ioalloc(0x2b0, 0x2df-0x2b0+1, 0, "vga") < 0)
-		panic("vga ports already allocated"); 
+		panic("vga ports already allocated");
 	if(ioalloc(0x3c0, 0x3da-0x3c0+1, 0, "vga") < 0)
-		panic("vga ports already allocated"); 
+		panic("vga ports already allocated");
 	addarchfile("realmodemem", 0660, rmemread, rmemwrite);
 }
 
@@ -157,7 +157,7 @@ vgaopen(Chan* c, int omode)
 	if ((uint32_t)c->qid.path == Qvgaovlctl) {
 		if (scr->dev && scr->dev->ovlctl)
 			scr->dev->ovlctl(scr, c, openctl, strlen(openctl));
-		else 
+		else
 			error(Enonexist);
 	}
 	return devopen(c, omode, vgadir, nelem(vgadir), devgen);
@@ -229,7 +229,7 @@ vgaread(Chan* c, void* a, int32_t n, int64_t off)
 				scr->gscreen->r.max.x, scr->gscreen->r.max.y,
 				scr->gscreen->depth, chantostr(chbuf, scr->gscreen->chan));
 
-			if(Dx(scr->gscreen->r) != Dx(physgscreenr) 
+			if(Dx(scr->gscreen->r) != Dx(physgscreenr)
 			|| Dy(scr->gscreen->r) != Dy(physgscreenr))
 				len += snprint(p+len, READSTR-len, "actualsize %dx%d\n",
 					physgscreenr.max.x, physgscreenr.max.y);
@@ -380,7 +380,7 @@ vgactl(Cmdbuf *cb)
 		physgscreenr = Rect(0,0,x,y);
 		scr->gscreen->clipr = physgscreenr;
 		return;
-	
+
 	case CMpalettedepth:
 		x = strtoul(cb->f[1], &p, 0);
 		if(x != 8 && x != 6)
@@ -395,7 +395,7 @@ vgactl(Cmdbuf *cb)
 		if(scr->dev && scr->dev->drawinit)
 			scr->dev->drawinit(scr);
 		return;
-	
+
 	case CMlinear:
 		if(cb->nf!=2 && cb->nf!=3)
 			error(Ebadarg);
@@ -407,7 +407,7 @@ vgactl(Cmdbuf *cb)
 		if(screenaperture(size, align) < 0)
 			error("not enough free address space");
 		return;
-/*	
+/*
 	case CMmemset:
 		memset((void*)strtoul(cb->f[1], 0, 0), atoi(cb->f[2]), atoi(cb->f[3]));
 		return;
@@ -416,11 +416,11 @@ vgactl(Cmdbuf *cb)
 	case CMblank:
 		drawblankscreen(1);
 		return;
-	
+
 	case CMunblank:
 		drawblankscreen(0);
 		return;
-	
+
 	case CMblanktime:
 		blanktime = strtoul(cb->f[1], 0, 0);
 		return;
@@ -449,7 +449,7 @@ vgactl(Cmdbuf *cb)
 		else
 			break;
 		return;
-	
+
 	case CMhwblank:
 		if(strcmp(cb->f[1], "on") == 0)
 			hwblank = 1;

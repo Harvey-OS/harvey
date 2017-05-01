@@ -89,7 +89,7 @@ struct SmbSession {
 	SmbPeerInfo peerinfo;
 	Chalstate *cs;
 	struct {
-		char *accountname;	
+		char *accountname;
 		char *primarydomain;
 		char *nativeos;
 		char *nativelanman;

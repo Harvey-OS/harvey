@@ -77,7 +77,7 @@ main(int argc, char **argv)
 		srvfile = argv[0];
 	else
 		usage();
-	
+
 	iobuf_init();
 	/*notify(handler);*/
 

@@ -12,7 +12,7 @@
 
 char*
 strdup(const char *s)
-{  
+{
 	char *ns;
 
 	ns = malloc(strlen(s) + 1);

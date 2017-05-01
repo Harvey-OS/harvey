@@ -124,8 +124,8 @@ Extern Frec	*frtail;
 Extern int	myiounit;
 
 /* File system protocol service procedures */
-void Xcreate(Fsrpc*), Xclunk(Fsrpc*); 
-void Xversion(Fsrpc*), Xauth(Fsrpc*), Xflush(Fsrpc*); 
+void Xcreate(Fsrpc*), Xclunk(Fsrpc*);
+void Xversion(Fsrpc*), Xauth(Fsrpc*), Xflush(Fsrpc*);
 void Xattach(Fsrpc*), Xwalk(Fsrpc*), Xauth(Fsrpc*);
 void Xremove(Fsrpc*), Xstat(Fsrpc*), Xwstat(Fsrpc*);
 void slave(Fsrpc*);

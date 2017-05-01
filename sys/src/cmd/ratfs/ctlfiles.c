@@ -113,7 +113,7 @@ reload(void)
 	bp = Bopen(ctlfile, OREAD);
 	if(bp == 0)
 		return;
-	
+
 	if(lastctltime){
 		for(dir = root->children; dir; dir = dir->sibs){
 			if (dir->d.type != Addrdir)
@@ -145,7 +145,7 @@ reload(void)
 			dir = dirwalk(cp, root);
 		if(dir == 0)
 			continue;
-		
+
 		for(cp += strlen(cp)+1; cp && *cp; cp += strlen(cp)+1){
 			if(type == '*')
 				acctinsert(dir, cp);

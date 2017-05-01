@@ -58,7 +58,7 @@ struct Opt
 {
 	char	*name;
 	int	code;
-	char	noway;	
+	char	noway;
 	int	(*change)(Biobuf*, int);	/* routine for status change */
 	int	(*sub)(Biobuf*, uint8_t*, int n);	/* routine for subnegotiation */
 	char	remote;				/* remote value */

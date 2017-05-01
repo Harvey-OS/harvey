@@ -22,5 +22,5 @@ char *errmsg[] = {
 	[Elongname] =	"name is too long",
 	[Eintern] =	"internal Ext2 error",
 	[Ecorrupt] =	"corrupt filesystem",
-	[Enotclean] =	"fs not clean ... running e2fsck is recommended"	
+	[Enotclean] =	"fs not clean ... running e2fsck is recommended"
 };

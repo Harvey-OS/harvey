@@ -155,7 +155,7 @@ main(int argc, char **argv)
 		case 160:	Bprint(&bout, " ");		break;	/* non-breaking space */
 
 		/*
-		 *  these are only supposed to get used when special is set, but we 
+		 *  these are only supposed to get used when special is set, but we
 		 * never see these ascii values otherwise anyway.
 		 */
 
@@ -163,7 +163,7 @@ main(int argc, char **argv)
 		 * Empirically, some documents have sections of text where
 		 * every character is followed by a zero byte.  Some have sections
 		 * of text where there are no zero bytes.  Still others have both
-		 * types and alternate between them.  Until we parse which 
+		 * types and alternate between them.  Until we parse which
 		 * characters are ``special'', page numbers lose out.
 		 */
 		case 0:	/* Bprint(&bout, "<pageno>"); */	break;

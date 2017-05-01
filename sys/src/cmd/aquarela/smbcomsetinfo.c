@@ -113,6 +113,6 @@ smbcomsetinformation(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 			return SmbProcessResultError;
 		}
 	}
-	free(name);		
+	free(name);
 	return smbbufferputack(s->response, h, &s->peerinfo);
 }

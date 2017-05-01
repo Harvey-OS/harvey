@@ -45,7 +45,7 @@ dec64(uint8_t *out, int lim, const char *in, int n)
 	b24 = 0;
 	i = 0;
 	while(n-- > 0){
- 
+
 		c = t64d[*(uint8_t*)in++];
 		if(c == INVAL)
 			continue;

@@ -105,7 +105,7 @@ readfile(char *s)
 			continue;
 
 		/*
-		 * if it's less than 30 seconds since we read it, or it 
+		 * if it's less than 30 seconds since we read it, or it
 		 * hasn't changed, send back our copy
 		 */
 		if(time(0) - r->rdtime < 30)

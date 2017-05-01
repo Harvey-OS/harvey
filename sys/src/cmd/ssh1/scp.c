@@ -539,8 +539,8 @@ receive(char *dest)
 			break;
 
 		default:
-			scperror(0, "unrecognized header type char %c", buf[0]);	
-			scperror(1, "input line: %s", buf);	
+			scperror(0, "unrecognized header type char %c", buf[0]);
+			scperror(1, "input line: %s", buf);
 		}
 	}
 }
@@ -621,7 +621,7 @@ send(char *file)
 		}
 		scperror(0, "%s: %r", file);
 	}
-		
+
 	getresponse();
 
     Return:
@@ -724,7 +724,7 @@ remotessh(char *host, char *cmd)
 		dup(p[1], 1);
 		for (i = 3; i < 100; i++)
 			close(i);
-	
+
 		i = 0;
 		arg[i++] = ssh;
 		arg[i++] = "-x";
@@ -737,7 +737,7 @@ remotessh(char *host, char *cmd)
 		arg[i++] = host;
 		arg[i++] = cmd;
 		arg[i] = nil;
-	
+
 		exec(ssh, arg);
 		exits("exec failed");
 

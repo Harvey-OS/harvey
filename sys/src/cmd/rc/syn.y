@@ -45,7 +45,7 @@ cmd:				{$$=0;}
 |	IF NOT {skipnl();} cmd	{$$=mung1($2, $4);}
 |	FOR '(' word IN words ')' {skipnl();} cmd
 	/*
-	 * if ``words'' is nil, we need a tree element to distinguish between 
+	 * if ``words'' is nil, we need a tree element to distinguish between
 	 * for(i in ) and for(i), the former being a loop over the empty set
 	 * and the latter being the implicit argument loop.  so if $5 is nil
 	 * (the empty set), we represent it as "()".  don't parenthesize non-nil
@@ -73,7 +73,7 @@ cmd:				{$$=0;}
 simple:	first
 |	simple word		{$$=tree2(ARGLIST, $1, $2);}
 |	simple redir		{$$=tree2(ARGLIST, $1, $2);}
-first:	comword	
+first:	comword
 |	first '^' word		{$$=tree2('^', $1, $3);}
 word:	keyword			{lastword=1; $1->type=WORD;}
 |	comword

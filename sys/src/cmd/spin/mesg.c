@@ -637,7 +637,7 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 		if (n && n->sym && n->sym->type == CHAN)
 		{	setaccess(n->sym, ZS, 0, 'V');
 			return;
-		}	
+		}
 	}
 
 	/* ok on the rhs of an assignment: */
@@ -650,7 +650,7 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 	{	if (d == 1)
 			fatal("invalid use of chan name", (char *) 0);
 		else
-			setaccess(n->sym, ZS, 0, 'V');	
+			setaccess(n->sym, ZS, 0, 'V');
 	}
 
 	if (n->ntyp == NAME

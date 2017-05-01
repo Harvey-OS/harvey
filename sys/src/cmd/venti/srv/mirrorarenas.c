@@ -8,7 +8,7 @@
  */
 
 /*
- * Mirror one arena partition onto another.  
+ * Mirror one arena partition onto another.
  * Be careful to copy only new data.
  */
 
@@ -48,7 +48,7 @@ void
 tag(char *fmt, ...)
 {
 	va_list arg;
-	
+
 	if(tagged){
 		free(tagged);
 		tagged = nil;
@@ -86,7 +86,7 @@ ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 	}
 	return 0;
 }
-		
+
 int
 ewritepart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
@@ -107,7 +107,7 @@ static void
 writeproc(void *v)
 {
 	Write *w;
-	
+
 	USED(v);
 	while((w = recvp(writechan)) != nil){
 		if(w == &wsync)
@@ -124,7 +124,7 @@ copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 	uint64_t o;
 	static uint8_t tmp[2][1024*1024];
 	Write w[2];
-	
+
 	assert(start <= end);
 	assert(astart <= start && start < aend);
 	assert(astart <= end && end <= aend);
@@ -182,7 +182,7 @@ copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
 	int n;
 	uint64_t o;
 	static uint8_t tmp[1024*1024];
-	
+
 	assert(start <= end);
 	assert(astart <= start && start < aend);
 	assert(astart <= end && end <= aend);
@@ -252,16 +252,16 @@ mirror(Arena *sa, Arena *da)
 	ArenaHead h;
 	DigestState xds, *ds;
 	int64_t shaoff, base;
-	
+
 	base = sa->base;
 	blocksize = sa->blocksize;
 	end = sa->base + sa->size;
-	
+
 	astart = base - blocksize;
 	aend = end + blocksize;
 
 	tag("%T %s (%,llud-%,llud)\n", sa->name, astart, aend);
-	
+
 	if(force){
 		copy(astart, aend, "all", nil);
 		return;
@@ -298,7 +298,7 @@ mirror(Arena *sa, Arena *da)
 		if(ewritepart(dst, end, buf, blocksize) < 0)
 			return;
 	}
-	
+
 	memset(&h, 0, sizeof h);
 	h.version = da->version;
 	strcpy(h.name, da->name);
@@ -320,7 +320,7 @@ mirror(Arena *sa, Arena *da)
 		sha1(buf, blocksize, nil, ds);
 		shaoff = base;
 	}
-	
+
 	if(sa->diskstats.used != da->diskstats.used){
 		di = base+rdown(da->diskstats.used, blocksize);
 		si = base+rup(sa->diskstats.used, blocksize);
@@ -330,14 +330,14 @@ mirror(Arena *sa, Arena *da)
 			return;
 		shaoff = si;
 	}
-	
+
 	clumpmax = sa->clumpmax;
 	di = end - da->diskstats.clumps/clumpmax * blocksize;
 	si = end - (sa->diskstats.clumps+clumpmax-1)/clumpmax * blocksize;
 
 	if(sa->diskstats.sealed){
 		/*
-		 * might be a small hole between the end of the 
+		 * might be a small hole between the end of the
 		 * data and the beginning of the directory.
 		 */
 		v = base+rup(sa->diskstats.used, blocksize);
@@ -360,7 +360,7 @@ mirror(Arena *sa, Arena *da)
 	da->wtime = sa->wtime;
 	da->diskstats = sa->diskstats;
 	da->diskstats.sealed = 0;
-	
+
 	/*
 	 * Repack the arena tail information
 	 * and save it for next time...
@@ -456,7 +456,7 @@ mirrormany(ArenaPart *sp, ArenaPart *dp, char *range)
 			da = dp->arenas[i];
 			mirror(sa, da);
 		}
-	}	
+	}
 }
 
 
@@ -467,7 +467,7 @@ threadmain(int argc, char **argv)
 	Arena *sa, *da;
 	ArenaPart *s, *d;
 	char *ranges;
-	
+
 	ventifmtinstall();
 
 	ARGBEGIN{
@@ -483,7 +483,7 @@ threadmain(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	
+
 	if(argc != 2 && argc != 3)
 		usage();
 	ranges = nil;
@@ -502,7 +502,7 @@ threadmain(int argc, char **argv)
 		sysfatal("loadarenapart %s: %r", argv[1]);
 	for(i=0; i<d->narenas; i++)
 		delarena(d->arenas[i]);
-	
+
 	/*
 	 * The arena geometries must match or all bets are off.
 	 */
@@ -520,7 +520,7 @@ threadmain(int argc, char **argv)
 		if(strcmp(sa->name, da->name) != 0)
 			sysfatal("arena %d: name mismatch: %s vs %s", i, sa->name, da->name);
 	}
-	
+
 	/*
 	 * Mirror one arena at a time.
 	 */

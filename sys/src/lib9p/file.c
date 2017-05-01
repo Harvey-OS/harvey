@@ -88,7 +88,7 @@ cleanfilelist(File *f)
 {
 	Filelist **l;
 	Filelist *fl;
-	
+
 	/*
 	 * can't delete filelist structures while there
 	 * are open readers of this directory, because
@@ -135,7 +135,7 @@ removefile(File *f)
 {
 	File *fp;
 	Filelist *fl;
-	
+
 	fp = f->parent;
 	if(fp == nil){
 		werrstr("no parent");
@@ -205,7 +205,7 @@ createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 	 * way due to deleted files that have not yet
 	 * been flushed from the file list.  Don't reuse
 	 * those - some apps (e.g., omero) depend on
-	 * the file order reflecting creation order. 
+	 * the file order reflecting creation order.
 	 * Always create at the end of the list.
 	 */
 	for(l=&fp->filelist; (fl=*l) != nil; l=&fl->link){
@@ -215,7 +215,7 @@ createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 			return nil;
 		}
 	}
-	
+
 	fl = emalloc9p(sizeof *fl);
 	*l = fl;
 
@@ -303,7 +303,7 @@ walkfile(File *f, char *path)
 	free(os);
 	return f;
 }
-			
+
 Tree*
 alloctree(char *uid, char *gid, uint32_t mode, void (*destroy)(File*))
 {
@@ -384,7 +384,7 @@ opendirfile(File *dir)
 	r = emalloc9p(sizeof(*r));
 
 	/*
-	 * This reference won't go away while we're 
+	 * This reference won't go away while we're
 	 * using it because file list entries are not freed
 	 * until the directory is removed and all refs to
 	 * it (our fid is one!) have gone away.

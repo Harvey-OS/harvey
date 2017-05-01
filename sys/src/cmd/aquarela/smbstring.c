@@ -123,7 +123,7 @@ smbstrnput(uint8_t *buf, uint16_t n, uint16_t maxlen, char *string,
 	}
 	else
 		memcpy(p, string, l);
-	
+
 	p += l;
 	while (l++ < size)
 		*p++ = 0;

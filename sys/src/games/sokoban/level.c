@@ -28,7 +28,7 @@ loadlevels(char *path)
 	Biobuf *b;
 	int x = 0, y = 0, lnum = 0;
 	char c;
-		
+
 	if(path == nil)
 		return 0;
 
@@ -39,7 +39,7 @@ loadlevels(char *path)
 	}
 
 	memset(levels, 0, Maxlevels*sizeof(Level));
-	
+
 	while((c = Bgetc(b)) > 0) {
 		switch(c)  {
 		case ';':

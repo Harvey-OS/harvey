@@ -354,7 +354,7 @@ resource(ACPI_RESOURCE *r, void *Context)
 	if (DBGFLG) print("\tACPI_RESOURCE_TYPE_%d: Length %d\n", r->Type, r->Length);
 	if (r->Type != ACPI_RESOURCE_TYPE_IRQ)
 		return 0;
-	if (DBGFLG) print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ", 
+	if (DBGFLG) print("\t\tIRQ Triggering %d Polarity %d Sharable %d InterruptCount %d: ",
 	      i->Triggering, i->Polarity, i->Sharable, i->InterruptCount);
 	for(int j = 0; j < i->InterruptCount; j++)
 		if (DBGFLG) print("%d,", i->Interrupts[j]);
@@ -392,7 +392,7 @@ device(ACPI_HANDLE                     Object,
 		while(((ACPI_PCI_ROUTING_TABLE*)p)->Length > 0) {
 			ACPI_PCI_ROUTING_TABLE *t = p;
 			if (DBGFLG) print("%s: ", t->Source);
-			if (DBGFLG) print("Pin 0x%x, Address 0x%llx, SourceIndex 0x%x\n", 
+			if (DBGFLG) print("Pin 0x%x, Address 0x%llx, SourceIndex 0x%x\n",
 			      t->Pin, t->Address, t->SourceIndex);
 			int adr = t->Address>>16;
 			prts[adr].irqs[t->Pin] = t->SourceIndex;
@@ -576,7 +576,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 			if (DBGFLG) print("NOT FOUND! FAIL!\n");
 			goto failed;
 		}
-		
+
 		if (DBGFLG) printf("RouteIRQ: %02x:%02x.%d pin %d -> %c%c%c%c:%d\n",
 		       data->pci.Bus, data->pci.Device, data->pci.Function,
 		       found->Pin,
@@ -585,7 +585,7 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 		       found->Source[2],
 		       found->Source[3],
 		       found->SourceIndex);
-		
+
 		if (found->Source[0]) {
 			status = RouteIRQLinkDevice(Device, found, data);
 			if (DBGFLG) printf("status %#x irq %#x\n", status, data->gsi);

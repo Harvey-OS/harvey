@@ -261,16 +261,16 @@
   {
     FT_UInt32  u1 = ((T1_CMapUniPair)pair1)->unicode;
     FT_UInt32  u2 = ((T1_CMapUniPair)pair2)->unicode;
-    
+
 
     if ( u1 < u2 )
       return -1;
-      
+
     if ( u1 > u2 )
       return +1;
-      
+
     return 0;
-  }                            
+  }
 
 
   FT_CALLBACK_DEF( FT_Error )
@@ -314,7 +314,7 @@
           }
         }
       }
-      
+
       new_count = (FT_UInt)( pair - cmap->pairs );
       if ( new_count == 0 )
       {

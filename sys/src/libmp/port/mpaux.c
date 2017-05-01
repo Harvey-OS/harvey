@@ -57,7 +57,7 @@ mpsetminbits(int n)
 	mpmindigits = DIGITS(n);
 }
 
-// allocate an n bit 0'd number 
+// allocate an n bit 0'd number
 mpint*
 mpnew(int n)
 {

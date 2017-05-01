@@ -190,7 +190,7 @@ name_def_use(Lextok *n, int code)
 		use_free = use_free->nxt;
 	} else
 		u = (FSM_use *) emalloc(sizeof(FSM_use));
-	
+
 	u->n = n;
 	u->special = code;
 	u->nxt = cur_t->Val[0];
@@ -205,8 +205,8 @@ def_use(Lextok *now, int code)
 
 	if (now)
 	switch (now->ntyp) {
-	case '!':	
-	case UMIN:	
+	case '!':
+	case UMIN:
 	case '~':
 	case 'c':
 	case ENABLED:
@@ -242,7 +242,7 @@ def_use(Lextok *now, int code)
 	case LSHIFT:
 	case RSHIFT:
 		def_use(now->lft, USE|code);
-		def_use(now->rgt, USE|code); 
+		def_use(now->rgt, USE|code);
 		break;
 
 	case ASGN:
@@ -294,7 +294,7 @@ def_use(Lextok *now, int code)
 		{	def_use(now->rgt->lft, code);
 			def_use(now->rgt->rgt, code);
 		}
-		break;	
+		break;
 
 	case PRINT:
 		for (v = now->lft; v; v = v->rgt)
@@ -661,12 +661,12 @@ def_relevant(char *pn, FSM_trans *t, Lextok *n, int ischan)
 				continue;
 			for (ca = na->alias; ca; ca = ca->nxt)
 				if (AST_mutual(ca->cnm, n, 1)
-				&&  AST_isini(ca->cnm))	
+				&&  AST_isini(ca->cnm))
 				{	AST_indirect(u, t, "(alias match)", pn);
 					break;
 				}
 			if (ca) break;
-	}	}	
+	}	}
 }
 
 static void
@@ -745,7 +745,7 @@ AST_dorelevant(void)
 			}
 		if (!a)
 		fatal("cannot find proctype %s", r->rn->name);
-	}		
+	}
 }
 
 static void
@@ -866,13 +866,13 @@ AST_edge_dump(AST *a, FSM_state *f)
 			case  3: printf("#%3d ", t->round); break;
 			default: printf("? "); break;
 			}
-	
+
 			printf("%d\t->\t%d\t", f->from, t->to);
 			if (t->step)
 				comment(stdout, t->step->n, 0);
 			else
 				printf("Unless");
-	
+
 			for (u = t->Val[0]; u; u = u->nxt)
 			{	printf(" <");
 				AST_var(u->n, u->n->sym, 1);
@@ -1065,8 +1065,8 @@ AST_track(Lextok *now, int code)	/* called from main.c */
 	case RSHIFT:
 		AST_track(now->rgt, USE|code);
 		/* fall through */
-	case '!':	
-	case UMIN:	
+	case '!':
+	case UMIN:
 	case '~':
 	case 'c':
 	case ENABLED:
@@ -1099,7 +1099,7 @@ AST_track(Lextok *now, int code)	/* called from main.c */
 		break;
 
 /* added for control deps: */
-	case TYPE:	
+	case TYPE:
 		name_AST_track(now, code);
 		break;
 	case ASGN:
@@ -1830,7 +1830,7 @@ AST_var_init(void)		/* initialized vars (not chans) - hidden assignments */
 	Symbol	*sp;
 	AST *a;
 
-	for (walk = all_names; walk; walk = walk->next)	
+	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (sp
 		&&  !sp->context		/* globals */
@@ -1846,7 +1846,7 @@ AST_var_init(void)		/* initialized vars (not chans) - hidden assignments */
 	for (a = ast; a; a = a->nxt)
 	{	if (a->p->b != N_CLAIM
 		&&  a->p->b != E_TRACE && a->p->b != N_TRACE)	/* has no locals */
-		for (walk = all_names; walk; walk = walk->next)	
+		for (walk = all_names; walk; walk = walk->next)
 		{	sp = walk->entry;
 			if (sp
 			&&  sp->context
@@ -1999,7 +1999,7 @@ subgraph(AST *a, FSM_state *f, int out)
 	if (verbose&32)
 		printf("possible pair %d %d -- %d\n",
 			f->from, h->from, (g[i]&(1<<j))?1:0);
-	
+
 	if (g[i]&(1<<j))		/* also a forward dominance pair */
 		AST_pair(a, h, f->from);	/* record this pair */
 }
@@ -2151,7 +2151,7 @@ curtail(AST *a)
 			printf("prescratch %d -- %d %d %d %d -- %d\n",
 				f->from, i, isrel, blocking, haselse, is_guard(f));
 #endif
-		if (isrel			/* 3. */		
+		if (isrel			/* 3. */
 		||  (i == 1 && blocking)	/* 2. */
 		||  (i >  1 && !haselse))	/* 1. */
 		{	if (!is_guard(f))
@@ -2312,7 +2312,7 @@ AST_dominant(void)
 		oi = a->i_st;
 		if (fsm_tbl[0]->seen)	/* end-state reachable - else leave it */
 			a->i_st = 0;	/* becomes initial state */
-	
+
 		dom_forward(a);		/* reverse dominance -- don't redo reachability! */
 		act_dom(a);		/* mark proper subgraphs, if any */
 		AST_checkpairs(a);	/* selectively place 2 scratch-marks */
@@ -2340,7 +2340,7 @@ AST_dominant(void)
 				f->p = f->t;
 				f->t = t;	/* invert edges */
 			}
-	
+
 			AST_checkpairs(a);	/* recompute 2-marks */
 
 			for (f = a->fsm; f; f = f->nxt)

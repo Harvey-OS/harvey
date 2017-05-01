@@ -251,7 +251,7 @@ resample_t*  resample_open (
         OUT long double  sampfreq_out,   // [Hz]
         OUT double       lowpass_freq,   // [Hz] or <0 for auto mode
         OUT int          quality );      // Proposal: 0 default, 1 sample select, 2 linear interpol, 4 4-point interpolation, 32 32-point interpolation
-        
+
 int  resample_buffer (                          // return code, 0 for success
         INOUT resample_t *const   r,            // internal structure
         IN    sample_t   *const   out,          // where to write the output data

@@ -260,7 +260,7 @@ newline(void)
 void
 cursoff(void)
 {
-	draw(screen, Rpt(pt(x, y), addpt(pt(x, y), Pt(CW,NS))), 
+	draw(screen, Rpt(pt(x, y), addpt(pt(x, y), Pt(CW,NS))),
 		cursback, nil, cursback->r.min);
 }
 
@@ -375,7 +375,7 @@ canon(char *ep, int c)
 				*sendp++ = c;
 			*ep++ = c;
 			break;
-		
+
 	}
 	*ep = 0;
 	return(OTHER);
@@ -519,7 +519,7 @@ waitchar(void)
 		curson(wasblocked);	/* turn on cursor while we're waiting */
 		do {
 			newmouse = 0;
-			switch(eread(blocked ? Emouse|Ekeyboard : 
+			switch(eread(blocked ? Emouse|Ekeyboard :
 					       Emouse|Ekeyboard|Ehost, &e)) {
 			case Emouse:
 				mouse = e.mouse;
@@ -798,7 +798,7 @@ rcvchar(void)
 	if(*echop) {
 		c = *echop++;
 		if(!*echop) {
-			echop = echo_input;	
+			echop = echo_input;
 			*echop = 0;
 		}
 		return c;
@@ -841,7 +841,7 @@ escapedump(int fd,uint8_t *str,int len)
 	int i;
 
 	for(i = 0; i < len; i++) {
-		if((str[i] < ' ' || str[i] > '\177') && 
+		if((str[i] < ' ' || str[i] > '\177') &&
 			str[i] != '\n' && str[i] != '\t') fprint(fd,"^%c",str[i]+64);
 		else if(str[i] == '\177') fprint(fd,"^$");
 		else if(str[i] == '\n') fprint(fd,"^J\n");
@@ -865,7 +865,7 @@ drawstring(Point p, char *str, int attr)
 {
 	int i;
 	Image *txt, *bg, *tmp;
-	
+
 	txt = fgcolor;
 	bg = bgcolor;
 	if(attr & TReverse){

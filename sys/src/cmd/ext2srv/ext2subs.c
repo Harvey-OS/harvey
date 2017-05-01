@@ -9,7 +9,7 @@
 
 /*
  * ext2subs.c version 0.20
- * 
+ *
  * Some strategic functions come from linux/fs/ext2
  * kernel sources written by Remy Card.
  *
@@ -104,7 +104,7 @@ ext2fs(Xfs *xf)
 
 	/* get the super block */
 	seek(xf->dev, OFFSET_SUPER_BLOCK, 0);
-	if( sizeof(SuperBlock) != 
+	if( sizeof(SuperBlock) !=
 				read(xf->dev, &superblock, sizeof(SuperBlock)) ){
 		chat("can't read super block %r...", xf->dev);
 		errno = Eformat;
@@ -120,7 +120,7 @@ ext2fs(Xfs *xf)
 		errno = Enotclean;
 		return -1;
 	}
-	
+
 	xf->block_size = EXT2_MIN_BLOCK_SIZE << superblock.s_log_block_size;
 	xf->desc_per_block = xf->block_size / sizeof (GroupDesc);
 	xf->inodes_per_group = superblock.s_inodes_per_group;
@@ -141,15 +141,15 @@ ext2fs(Xfs *xf)
 
 	chat("good super block...");
 
-	xf->ngroups = (superblock.s_blocks_count - 
-				superblock.s_first_data_block + 
-				superblock.s_blocks_per_group -1) / 
+	xf->ngroups = (superblock.s_blocks_count -
+				superblock.s_first_data_block +
+				superblock.s_blocks_per_group -1) /
 				superblock.s_blocks_per_group;
 
 	superblock.s_state &= ~EXT2_VALID_FS;
 	superblock.s_mnt_count++;
 	seek(xf->dev, OFFSET_SUPER_BLOCK, 0);
-	if( !rdonly && sizeof(SuperBlock) != 
+	if( !rdonly && sizeof(SuperBlock) !=
 				write(xf->dev, &superblock, sizeof(SuperBlock)) ){
 		chat("can't write super block...");
 		errno = Eio;
@@ -231,7 +231,7 @@ get_inode( Xfile *file, uint nr )
 		return -1;
 	}
 	ed = getext2(xf, EXT2_DESC, block_group);
-	block = ed.u.gd->bg_inode_table + (((nr-1) % xf->inodes_per_group) / 
+	block = ed.u.gd->bg_inode_table + (((nr-1) % xf->inodes_per_group) /
 			xf->inodes_per_block);
 	putext2(ed);
 
@@ -243,14 +243,14 @@ get_inode( Xfile *file, uint nr )
 }
 int
 get_file( Xfile *f, char *name)
-{	
+{
 	uint offset, nr, i;
 	Xfs *xf = f->xf;
 	Inode *inode;
 	int nblock;
 	DirEntry *dir;
 	Iobuf *buf, *ibuf;
-	
+
 	if( !S_ISDIR(getmode(f)) )
 		return -1;
 	ibuf = getbuf(xf, f->bufaddr);
@@ -267,7 +267,7 @@ get_file( Xfile *f, char *name)
 		}
 		for(offset=0 ; offset < xf->block_size ;  ){
 			dir = (DirEntry *)(buf->iobuf + offset);
-			if( dir->name_len==strlen(name) && 
+			if( dir->name_len==strlen(name) &&
 					!strncmp(name, dir->name, dir->name_len) ){
 				nr = dir->inode;
 				putbuf(buf);
@@ -317,7 +317,7 @@ getname(Xfile *f, char *str)
 				len = (dir->name_len < EXT2_NAME_LEN) ? dir->name_len : EXT2_NAME_LEN;
 				if (str == 0)
 					str = malloc(len+1);
-				strncpy(str, dir->name, len);   
+				strncpy(str, dir->name, len);
 				str[len] = 0;
 				putbuf(buf);
 				putbuf(ibuf);
@@ -364,7 +364,7 @@ dostat(Qid qid, Xfile *f, Dir *dir )
 	}
 
 }
-int 
+int
 dowstat(Xfile *f, Dir *stat)
 {
 	Xfs *xf = f->xf;
@@ -383,7 +383,7 @@ dowstat(Xfile *f, Dir *stat)
 			chat("can't get inode %d...", f->pinbr);
 			return -1;
 		}
-	
+
 		ibuf = getbuf(xf, fdir.bufaddr);
 		if( !ibuf )
 			return -1;
@@ -392,17 +392,17 @@ dowstat(Xfile *f, Dir *stat)
 		/* Clean old dir entry */
 		if( delete_entry(xf, inode, f->inbr) < 0 ){
 			chat("delete entry failed...");
-			putbuf(ibuf);	
+			putbuf(ibuf);
 			return -1;
 		}
 		putbuf(ibuf);
 
 		/* add the new entry */
 		if( add_entry(&fdir, stat->name, f->inbr) < 0 ){
-			chat("add entry failed...");	
+			chat("add entry failed...");
 			return -1;
 		}
-	
+
 	}
 
 	ibuf = getbuf(xf, f->bufaddr);
@@ -436,7 +436,7 @@ readfile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	uint8_t *buf;
 
 	buf = vbuf;
-	
+
 	ibuf = getbuf(xf, f->bufaddr);
 	if( !ibuf )
 		return -1;
@@ -452,7 +452,7 @@ readfile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	/* fast link */
 	if( S_ISLNK(getmode(f)) && (inode->i_size <= EXT2_N_BLOCKS<<2) ){
 		memcpy(&buf[0], ((char *)inode->i_block)+offset, count);
-		putbuf(ibuf);	
+		putbuf(ibuf);
 		return count;
 	}
 	chat("read block [ ");
@@ -506,7 +506,7 @@ readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	buf = vbuf;
 	if (offset == 0)
 		f->dirindex = 0;
-	
+
 	if( !S_ISDIR(getmode(f)) )
 		return -1;
 
@@ -519,7 +519,7 @@ readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	chat("read block [ ");
 	index = 0;
 	for(i=0, rcount=0 ; (i < nblock) && (i < EXT2_NDIR_BLOCKS) ; i++){
-		
+
 		buffer = getbuf(xf, inode->i_block[i]);
 		if( !buffer ){
 			putbuf(ibuf);
@@ -527,19 +527,19 @@ readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 		}
 		chat("%d, ", buffer->addr);
 		for(off=0 ; off < xf->block_size ;  ){
-		
-			edir = (DirEntry *)(buffer->iobuf + off);	
+
+			edir = (DirEntry *)(buffer->iobuf + off);
 			off += edir->rec_len;
 			if( (edir->name[0] == '.' ) && (edir->name_len == 1))
 				continue;
-			if(edir->name[0] == '.' && edir->name[1] == '.' && 
+			if(edir->name[0] == '.' && edir->name[1] == '.' &&
 										edir->name_len == 2)
 				continue;
 			if( edir->inode == 0 ) /* for lost+found dir ... */
 				continue;
 			if( index++ < f->dirindex )
 				continue;
-			
+
 			if( get_inode(&ft, edir->inode) < 0 ){
 				chat("can't find ino no %d ] ...", edir->inode);
 error:			putbuf(buffer);
@@ -551,12 +551,12 @@ error:			putbuf(buffer);
 				goto error;
 			tinode = ((Inode *)tbuf->iobuf) + ft.bufoffset;
 
-			memset(&pdir, 0, sizeof(Dir));			
-			
-			/* fill plan9 dir struct */			
+			memset(&pdir, 0, sizeof(Dir));
+
+			/* fill plan9 dir struct */
 			pdir.name = name;
 			len = (edir->name_len < EXT2_NAME_LEN) ? edir->name_len : EXT2_NAME_LEN;
-			strncpy(pdir.name, edir->name, len);   
+			strncpy(pdir.name, edir->name, len);
 			pdir.name[len] = 0;
 // chat("name %s len %d\n", pdir.name, edir->name_len);
 			pdir.uid = mapuid(tinode->i_uid);
@@ -572,7 +572,7 @@ error:			putbuf(buffer);
 			pdir.length = tinode->i_size;
 			pdir.atime = tinode->i_atime;
 			pdir.mtime = tinode->i_mtime;
-		
+
 			putbuf(tbuf);
 
 			dirlen = convD2M(&pdir, &buf[rcount], count-rcount);
@@ -601,7 +601,7 @@ bmap( Xfile *f, int block )
 	int addr;
 	int addr_per_block = xf->addr_per_block;
 	int addr_per_block_bits = ffz(~addr_per_block);
-	
+
 	if(block < 0) {
 		chat("bmap() block < 0 ...");
 		return 0;
@@ -624,7 +624,7 @@ bmap( Xfile *f, int block )
 		return inode->i_block[block];
 	}
 	block -= EXT2_NDIR_BLOCKS;
-	
+
 	/* indirect blocks*/
 	if(block < addr_per_block) {
 		addr = inode->i_block[EXT2_IND_BLOCK];
@@ -634,10 +634,10 @@ bmap( Xfile *f, int block )
 		addr = *(((uint *)buf->iobuf) + block);
 		putbuf(buf);
 		putbuf(ibuf);
-		return addr;	
+		return addr;
 	}
 	block -= addr_per_block;
-	
+
 	/* double indirect blocks */
 	if(block < (1 << (addr_per_block_bits * 2))) {
 		addr = inode->i_block[EXT2_DIND_BLOCK];
@@ -729,7 +729,7 @@ end:
 		return -1;
 	return w;
 }
-int 
+int
 new_block( Xfile *f, int goal )
 {
 	Xfs *xf= f->xf;
@@ -738,12 +738,12 @@ new_block( Xfile *f, int goal )
 	char *p, *r;
 	Iobuf *buf;
 	Ext2 ed, es, eb;
-	
+
 	es = getext2(xf, EXT2_SUPER, 0);
 	redo = 0;
- 
+
 repeat:
-	
+
 	if( goal < es.u.sb->s_first_data_block || goal >= es.u.sb->s_blocks_count )
 		goal = es.u.sb->s_first_data_block;
 	group = (goal - es.u.sb->s_first_data_block) / xf->blocks_per_group;
@@ -751,21 +751,21 @@ repeat:
 	ed = getext2(xf, EXT2_DESC, group);
 	eb = getext2(xf, EXT2_BBLOCK, group);
 
-	/* 
+	/*
 	 * First, test if goal block is free
 	 */
 	if( ed.u.gd->bg_free_blocks_count > 0 ){
 		block = (goal - es.u.sb->s_first_data_block) % xf->blocks_per_group;
-		
+
 		if( !test_bit(block, eb.u.bmp) )
 			goto got_block;
-		
+
 		if( block ){
 			/*
-			 * goal wasn't free ; search foward for a free 
+			 * goal wasn't free ; search foward for a free
 			 * block within the next 32 blocks
 			*/
-			
+
 			lmap = (((uint32_t *)eb.u.bmp)[block>>5]) >>
 					((block & 31) + 1);
 			if( block < xf->blocks_per_group - 32 )
@@ -780,7 +780,7 @@ repeat:
 					block += k;
 					goto got_block;
 				}
-			}			
+			}
 		}
 		/*
 		 * Search in the remaider of the group
@@ -792,7 +792,7 @@ repeat:
 			block = k;
 			goto search_back;
 		}
-		k = find_next_zero_bit((unsigned long *)eb.u.bmp, 
+		k = find_next_zero_bit((unsigned long *)eb.u.bmp,
 						xf->blocks_per_group>>3, block);
 		if( k < xf->blocks_per_group ){
 			block = k;
@@ -823,9 +823,9 @@ repeat:
 		 * we have retry (because the last block) and all other
 		 * groups are also full.
 		*/
-full:	
+full:
 		chat("no free blocks ...");
-	 	putext2(es); 
+	 	putext2(es);
 		errno = Enospace;
 		return 0;
 	}
@@ -850,14 +850,14 @@ search_back:
 	 * A free byte was found in the block. Now search backwards up
 	 * to 7 bits to find the start of this group of free block.
 	*/
-	for(k=0 ; k < 7 && block > 0 && 
+	for(k=0 ; k < 7 && block > 0 &&
 		!test_bit(block-1, eb.u.bmp) ; k++, block--);
 
 got_block:
 
-	baddr = block + (group * xf->blocks_per_group) + 
+	baddr = block + (group * xf->blocks_per_group) +
 				es.u.sb->s_first_data_block;
-	
+
 	if( baddr == ed.u.gd->bg_block_bitmap ||
 	     baddr == ed.u.gd->bg_inode_bitmap ){
 		chat("Allocating block in system zone...");
@@ -873,7 +873,7 @@ got_block:
 		return 0;
 	}
 	dirtyext2(eb);
-	
+
 	if( baddr >= es.u.sb->s_blocks_count ){
 		chat("block >= blocks count...");
 		errno = Eintern;
@@ -882,12 +882,12 @@ error:
 		putext2(eb); putext2(ed); putext2(es);
 		return 0;
 	}
-	
+
 	buf = getbuf(xf, baddr);
 	if( !buf ){
 		if( !redo ){
 			/*
-			 * It's perhaps the last block of the disk and 
+			 * It's perhaps the last block of the disk and
 			 * it can't be acceded because the last sector.
 			 * Therefore, we try one more time with goal at 0
 			 * to force scanning all groups.
@@ -934,7 +934,7 @@ getblk(Xfile *f, int block)
 	}
 	if( block < EXT2_NDIR_BLOCKS )
 		return inode_getblk(f, block);
-	block -= EXT2_NDIR_BLOCKS;	
+	block -= EXT2_NDIR_BLOCKS;
 	if( block < addr_per_block ){
 		baddr = inode_getblk(f, EXT2_IND_BLOCK);
 		baddr = block_getblk(f, baddr, block);
@@ -945,7 +945,7 @@ getblk(Xfile *f, int block)
 		baddr = inode_getblk(f, EXT2_DIND_BLOCK);
 		baddr = block_getblk(f, baddr, block / addr_per_block);
 		baddr = block_getblk(f, baddr, block & ( addr_per_block-1));
-		return baddr; 
+		return baddr;
 	}
 	block -= addr_per_block * addr_per_block;
 	baddr = inode_getblk(f, EXT2_TIND_BLOCK);
@@ -990,7 +990,7 @@ block_getblk(Xfile *f, int rb, int nr)
 				es.u.sb->s_first_data_block;
 		putext2(es);
 	}
-	
+
 	tmp = new_block(f, goal);
 	if( !tmp ){
 		putbuf(buf);
@@ -1000,7 +1000,7 @@ block_getblk(Xfile *f, int rb, int nr)
 	*p = tmp;
 	dirtybuf(buf);
 	putbuf(buf);
-	
+
 	ibuf = getbuf(xf, f->bufaddr);
 	if( !ibuf )
 		return -1;
@@ -1011,7 +1011,7 @@ block_getblk(Xfile *f, int rb, int nr)
 
 	return tmp;
 }
-int 
+int
 inode_getblk(Xfile *f, int block)
 {
 	Xfs *xf = f->xf;
@@ -1059,7 +1059,7 @@ inode_getblk(Xfile *f, int block)
 
 	return tmp;
 }
-int 
+int
 new_inode(Xfile *f, int mode)
 {
 	Xfs *xf = f->xf;
@@ -1135,7 +1135,7 @@ new_inode(Xfile *f, int mode)
 	}
 	ed = getext2(xf, EXT2_DESC, group);
 	eb = getext2(xf, EXT2_BINODE, group);
-	if( (j = find_first_zero_bit(eb.u.bmp, 
+	if( (j = find_first_zero_bit(eb.u.bmp,
 			xf->inodes_per_group>>3)) < xf->inodes_per_group){
 		if( set_bit(j, eb.u.bmp) ){
 			chat("inode %d of group %d is already allocated...", j, group);
@@ -1160,13 +1160,13 @@ error:
 		putext2(eb); putext2(ed); putext2(es);
 		return 0;
 	}
-	
+
 	buf = getbuf(xf, ed.u.gd->bg_inode_table +
-			(((j-1) % xf->inodes_per_group) / 
+			(((j-1) % xf->inodes_per_group) /
 			xf->inodes_per_block));
 	if( !buf )
 		goto error;
-	inode = ((struct Inode *) buf->iobuf) + 
+	inode = ((struct Inode *) buf->iobuf) +
 		((j-1) % xf->inodes_per_block);
 	memset(inode, 0, sizeof(Inode));
 	inode->i_mode = mode;
@@ -1215,7 +1215,7 @@ create_file(Xfile *fdir, char *name, int mode)
 		return -1;
 	}
 	if( add_entry(fdir, name, inr) < 0 ){
-		chat("add entry failed...");	
+		chat("add entry failed...");
 		free_inode(fdir->xf, inr);
 		return -1;
 	}
@@ -1240,7 +1240,7 @@ free_inode( Xfs *xf, int inr)
 		putext2(ed);
 		return;
 	}
-	inode = ((struct Inode *) buf->iobuf) + 
+	inode = ((struct Inode *) buf->iobuf) +
 		((inr-1) % xf->inodes_per_block);
 
 	if( S_ISDIR(inode->i_mode) )
@@ -1258,7 +1258,7 @@ free_inode( Xfs *xf, int inr)
 	clear_bit(b, eb.u.bmp);
 	dirtyext2(eb);
 	putext2(eb);
-	
+
 	es = getext2(xf, EXT2_SUPER, 0);
 	es.u.sb->s_free_inodes_count++;
 	dirtyext2(es); putext2(es);
@@ -1300,7 +1300,7 @@ create_dir(Xfile *fdir, char *name, int mode)
 	}
 	inode = ((Inode *)ibuf->iobuf) + tf.bufoffset;
 
-	
+
 	baddr = inode_getblk(&tf, 0);
 	if( !baddr ){
 		putbuf(ibuf);
@@ -1314,30 +1314,30 @@ create_dir(Xfile *fdir, char *name, int mode)
 		putbuf(ibuf);
 		free_inode(fdir->xf, inr);
 		return -1;
-	}	
-	
-	inode->i_size = xf->block_size;	
+	}
+
+	inode->i_size = xf->block_size;
 	buf = getbuf(xf, baddr);
-	
+
 	de = (DirEntry *)buf->iobuf;
 	de->inode = inr;
 	de->name_len = 1;
 	de->rec_len = DIR_REC_LEN(de->name_len);
 	strcpy(de->name, ".");
-	
+
 	de = (DirEntry *)( (char *)de + de->rec_len);
 	de->inode = fdir->inbr;
 	de->name_len = 2;
 	de->rec_len = xf->block_size - DIR_REC_LEN(1);
 	strcpy(de->name, "..");
-	
+
 	dirtybuf(buf);
 	putbuf(buf);
-	
+
 	inode->i_links_count = 2;
 	dirtybuf(ibuf);
 	putbuf(ibuf);
-	
+
 	ibuf = getbuf(xf, fdir->bufaddr);
 	if( !ibuf )
 		return -1;
@@ -1379,7 +1379,7 @@ add_entry(Xfile *f, char *name, int inr)
 		return -1;
 	}
 	de = (DirEntry *)buf->iobuf;
-	
+
 	for(;;){
 		if( ((char *)de) >= (xf->block_size + buf->iobuf) ){
 			putbuf(buf);
@@ -1422,7 +1422,7 @@ add_entry(Xfile *f, char *name, int inr)
 				de1->rec_len = de->rec_len - DIR_REC_LEN(de->name_len);
 				de->rec_len = DIR_REC_LEN(de->name_len);
 				de = de1;
-			}	
+			}
 			de->inode = inr;
 			de->name_len = namelen;
 			memcpy(de->name, name, namelen);
@@ -1440,7 +1440,7 @@ add_entry(Xfile *f, char *name, int inr)
 int
 unlink( Xfile *file )
 {
-	Xfs *xf = file->xf;	
+	Xfs *xf = file->xf;
 	Inode *dir;
 	int bg, b;
 	Inode *inode;
@@ -1471,19 +1471,19 @@ unlink( Xfile *file )
 	}
 	ed = getext2(xf, EXT2_DESC, bg);
 	b = ed.u.gd->bg_inode_table +
-			(((file->pinbr-1) % xf->inodes_per_group) / 
+			(((file->pinbr-1) % xf->inodes_per_group) /
 			xf->inodes_per_block);
 	putext2(ed);
 	buf = getbuf(xf, b);
-	if( !buf ){	
-		putext2(es);	
+	if( !buf ){
+		putext2(es);
 		return -1;
 	}
-	dir = ((struct Inode *) buf->iobuf) + 
+	dir = ((struct Inode *) buf->iobuf) +
 		((file->pinbr-1) % xf->inodes_per_block);
 
 	/* Clean dir entry */
-	
+
 	if( delete_entry(xf, dir, file->inbr) < 0 ){
 		putbuf(buf);
 		putext2(es);
@@ -1494,7 +1494,7 @@ unlink( Xfile *file )
 		dirtybuf(buf);
 	}
 	putbuf(buf);
-	
+
 	/* clean blocks */
 	ibuf = getbuf(xf, file->bufaddr);
 	if( !ibuf ){
@@ -1503,7 +1503,7 @@ unlink( Xfile *file )
 	}
 	inode = ((Inode *)ibuf->iobuf) + file->bufoffset;
 
-	if( !S_ISLNK(getmode(file)) || 
+	if( !S_ISLNK(getmode(file)) ||
 		(S_ISLNK(getmode(file)) && (inode->i_size > EXT2_N_BLOCKS<<2)) )
 		if( free_block_inode(file) < 0 ){
 			chat("error while freeing blocks...");
@@ -1511,10 +1511,10 @@ unlink( Xfile *file )
 			putbuf(ibuf);
 			return -1;
 		}
-	
 
-	/* clean inode */	
-	
+
+	/* clean inode */
+
 	bg = (file->inbr -1) / xf->inodes_per_group;
 	b = (file->inbr -1) % xf->inodes_per_group;
 
@@ -1553,7 +1553,7 @@ empty_dir(Xfile *dir)
 	DirEntry *de;
 	Inode *inode;
 	Iobuf *buf, *ibuf;
-	
+
 	if( !S_ISDIR(getmode(dir)) )
 		return 0;
 
@@ -1584,7 +1584,7 @@ empty_dir(Xfile *dir)
 	putbuf(ibuf);
 	return 1;
 }
-int 
+int
 free_block_inode(Xfile *file)
 {
 	Xfs *xf = file->xf;
@@ -1608,7 +1608,7 @@ free_block_inode(Xfile *file)
 	naddr = xf->addr_per_block;
 
 	/* indirect blocks */
-	
+
 	if( (b=inode->i_block[EXT2_IND_BLOCK]) ){
 		buf = getbuf(xf, b);
 		if( !buf ){ putbuf(ibuf); return -1; }
@@ -1642,9 +1642,9 @@ free_block_inode(Xfile *file)
 		free_block(xf, b);
 		putbuf(buf);
 	}
-	
+
 	/* triple indirect block */
-	
+
 	if( (b=inode->i_block[EXT2_TIND_BLOCK]) ){
 		buf = getbuf(xf, b);
 		if( !buf ){ putbuf(ibuf); return -1; }
@@ -1701,14 +1701,14 @@ void free_block( Xfs *xf, uint32_t block )
 	putext2(ed);
 
 }
-int 
+int
 delete_entry(Xfs *xf, Inode *inode, int inbr)
 {
 	int nblock = (inode->i_blocks * 512) / xf->block_size;
 	uint offset, i;
 	DirEntry *de, *pde;
 	Iobuf *buf;
-	
+
 	if( !S_ISDIR(inode->i_mode) )
 		return -1;
 
@@ -1746,7 +1746,7 @@ truncfile(Xfile *f)
 	if( !ibuf )
 		return -1;
 	inode = ((Inode *)ibuf->iobuf) + f->bufoffset;
-	
+
 	if( free_block_inode(f) < 0 ){
 		chat("error while freeing blocks...");
 		putbuf(ibuf);
@@ -1784,7 +1784,7 @@ CleanSuper(Xfs *xf)
 	dirtyext2(es);
 	putext2(es);
 }
-int 
+int
 test_bit(int i, void *data)
 {
 	char *pt = (char *)data;
@@ -1799,24 +1799,24 @@ set_bit(int i, void *data)
 
   	if( test_bit(i, data) )
     		return 1; /* bit already set !!! */
-  
+
   	pt = (char *)data;
   	pt[i>>3] |= (0x01 << (i&7));
 
   	return 0;
 }
 
-int 
+int
 clear_bit(int i, void *data)
 {
 	char *pt;
 
   	if( !test_bit(i, data) )
     		return 1; /* bit already clear !!! */
-  
+
  	 pt = (char *)data;
   	pt[i>>3] &= ~(0x01 << (i&7));
-	
+
 	return 0;
 }
 void *
@@ -1833,12 +1833,12 @@ memscan( void *data, int c, int count )
 	return (void *)pt;
 }
 
-int 
+int
 find_first_zero_bit( void *data, int count /* in byte */)
 {
   char *pt = (char *)data;
   int n, i;
-  
+
   n = 0;
 
   while( n < count ){
@@ -1850,12 +1850,12 @@ find_first_zero_bit( void *data, int count /* in byte */)
   return n << 3;
 }
 
-int 
+int
 find_next_zero_bit( void *data, int count /* in byte */, int where)
 {
   char *pt = (((char *)data) + (where >> 3));
   int n, i;
-  
+
   n = where >> 3;
   i = where & 7;
 

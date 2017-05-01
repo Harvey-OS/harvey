@@ -537,14 +537,14 @@ FT_BEGIN_HEADER
   FT_Done_GlyphSlot( FT_GlyphSlot  slot );
 
  /* */
- 
+
  /*
   * free the bitmap of a given glyphslot when needed
   * (i.e. only when it was allocated with ft_glyphslot_alloc_bitmap)
   */
   FT_BASE( void )
   ft_glyphslot_free_bitmap( FT_GlyphSlot  slot );
- 
+
  /*
   * allocate a new bitmap buffer in a glyph slot
   */

@@ -228,7 +228,7 @@ clientthread(void *a)
 			fprint(2, "clientthread finished req\n");
 	}
 }
-	
+
 enum
 {
 	Bool,

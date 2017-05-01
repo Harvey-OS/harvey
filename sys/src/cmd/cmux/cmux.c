@@ -256,7 +256,7 @@ shutdown(void * vacio, char *msg)
 	print_func_entry();
 	int i;
 	static Lock shutdownlk;
-	
+
 	killprocs();
 	for(i=0; oknotes[i]; i++)
 		if(strncmp(oknotes[i], msg, strlen(oknotes[i])) == 0){

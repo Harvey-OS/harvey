@@ -367,7 +367,7 @@
     decoder->num_globals  = cff->num_global_subrs;
     decoder->globals      = cff->global_subrs;
     decoder->globals_bias = cff_compute_bias( decoder->num_globals );
-    
+
     decoder->hint_mode    = hint_mode;
   }
 

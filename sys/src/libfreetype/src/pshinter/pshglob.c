@@ -650,7 +650,7 @@
 
 
         write->org = priv->standard_height[0];
-        write++;                           
+        write++;
         read = priv->snap_heights;
         for ( count = priv->num_snap_heights; count > 0; count-- )
         {

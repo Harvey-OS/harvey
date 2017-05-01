@@ -685,7 +685,7 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 				if (separate == 2) {
 				printf("spin: warning, make sure that the S1 model\n");
 				printf("      also polls channel '%s' in its claim\n",
-				n->sym->name); 
+				n->sym->name);
 			}	}
 			forbidden = 0;
 			break;
@@ -730,7 +730,7 @@ rem_lab(Symbol *a, Lextok *b, Symbol *c)	/* proctype name, pid, label name */
 	   'p' -sym-> _p               'q' -sym-> c (label name)
 	   /                           /
 	 '?' -sym-> a (proctype)     NAME -sym-> a (proctype name)
-	 / 
+	 /
 	b (pid expr)
 #endif
 }
@@ -754,7 +754,7 @@ rem_var(Symbol *a, Lextok *b, Symbol *c, Lextok *ndx)
 	    / \______  possible arrayindex on c
 	   /
 	 '?' -sym-> a (proctype)
-	 / 
+	 /
 	b (pid expr)
 #endif
 }

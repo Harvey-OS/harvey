@@ -38,7 +38,7 @@ subpcs(int modif)
 	switch (modif) {
 
 		/* delete breakpoint */
-	case 'd': 
+	case 'd':
 	case 'D':
 		if ((bk=scanbkpt(dot)) == 0)
 			error("no breakpoint set");
@@ -46,7 +46,7 @@ subpcs(int modif)
 		return;
 
 		/* set breakpoint */
-	case 'b': 
+	case 'b':
 	case 'B':
 		if (bk=scanbkpt(dot))
 			bk->flag=BKPTCLR;
@@ -89,7 +89,7 @@ subpcs(int modif)
 		return;
 
 		/* run program */
-	case 'r': 
+	case 'r':
 	case 'R':
 		endpcs();
 		setup();
@@ -97,7 +97,7 @@ subpcs(int modif)
 		break;
 
 		/* single step */
-	case 's': 
+	case 's':
 		if (pid == 0) {
 			setup();
 			loopcnt--;
@@ -126,8 +126,8 @@ subpcs(int modif)
 		loopcnt = 0;
 		break;
 		/* continue with optional note */
-	case 'c': 
-	case 'C': 
+	case 'c':
+	case 'C':
 		if (pid==0)
 			error(NOPCS);
 		runmode=CONTIN;

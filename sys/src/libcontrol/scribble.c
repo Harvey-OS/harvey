@@ -297,7 +297,7 @@ addpoint(Scrib *w, Point p)
 	*pt = p;
 
 	s->ps.npts++;
-	
+
 	displaylast(w);
 }
 

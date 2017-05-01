@@ -50,7 +50,7 @@
 #define SCALE (32768.0/ 2.384e-06)
 
 #ifndef USE_GOGO_SUBBAND
-static const FLOAT8 enwindow[] = 
+static const FLOAT8 enwindow[] =
 {
       -4.77e-07*0.740951125354959/2.384e-06,  1.03951e-04*0.740951125354959/2.384e-06,  9.53674e-04*0.740951125354959/2.384e-06, 2.841473e-03*0.740951125354959/2.384e-06,
   3.5758972e-02*0.740951125354959/2.384e-06, 3.401756e-03*0.740951125354959/2.384e-06,  9.83715e-04*0.740951125354959/2.384e-06,   9.9182e-05*0.740951125354959/2.384e-06, /* 15*/
@@ -691,7 +691,7 @@ inline static void mdct_long(FLOAT8 *out, FLOAT8 *in)
 }
 
 
-void mdct_sub48( lame_internal_flags *gfc, const sample_t *w0, const sample_t *w1, 
+void mdct_sub48( lame_internal_flags *gfc, const sample_t *w0, const sample_t *w1,
                  FLOAT8 mdct_freq[2][2][576] )
 {
     int gr, k, ch;
@@ -724,16 +724,16 @@ void mdct_sub48( lame_internal_flags *gfc, const sample_t *w0, const sample_t *w
 	    /* bands <= gfc->highpass_band will be zeroed out below */
 	    /* bands >= gfc->lowpass_band  will be zeroed out below */
 	    if (gfc->filter_type==0) {
-              for (band=gfc->highpass_start_band;  band <= gfc->highpass_end_band; band++) { 
-		  for (k=0; k<18; k++) 
+              for (band=gfc->highpass_start_band;  band <= gfc->highpass_end_band; band++) {
+		  for (k=0; k<18; k++)
 		    gfc->sb_sample[ch][1-gr][k][order[band]]*=gfc->amp_highpass[band];
 	      }
-              for (band=gfc->lowpass_start_band;  band <= gfc->lowpass_end_band; band++) { 
-		  for (k=0; k<18; k++) 
+              for (band=gfc->lowpass_start_band;  band <= gfc->lowpass_end_band; band++) {
+		  for (k=0; k<18; k++)
 		    gfc->sb_sample[ch][1-gr][k][order[band]]*=gfc->amp_lowpass[band];
 	      }
 	    }
-	    
+
 
 
 	    /*
@@ -786,7 +786,7 @@ void mdct_sub48( lame_internal_flags *gfc, const sample_t *w0, const sample_t *w
 		    FLOAT8 bu,bd;
 		    bu = mdct_enc[k] * ca[k] + mdct_enc[-1-k] * cs[k];
 		    bd = mdct_enc[k] * cs[k] - mdct_enc[-1-k] * ca[k];
-		    
+
 		    mdct_enc[-1-k] = bu;
 		    mdct_enc[k]    = bd;
 		  }

@@ -24,7 +24,7 @@ struct xy {
 	float	xquant;		/*quantum*/
 	float	xoff;		/*screen offset fraction*/
 	float	xsize;		/*screen fraction*/
-	int	xbot,xtop;	/*screen coords of border*/	
+	int	xbot,xtop;	/*screen coords of border*/
 	float	xmult;		/*scaling constant*/
 } xd,yd;
 struct val {
@@ -433,12 +433,12 @@ void setlim(struct xy *p){
 		if(ub > 0) {
 			ub = 2*ub;
 			lb = 0;
-		} 
+		}
 		else
 			if(lb < 0) {
 				lb = 2*lb;
 				ub = 0;
-			} 
+			}
 			else {
 				ub = 1;
 				lb = -1;
@@ -720,7 +720,7 @@ symbol(int ix, int iy, int k){
 		if(mode==0)
 			point(ix,iy);
 		return(1);
-	} 
+	}
 	else {
 		move(ix,iy);
 		text(k>=0?labels+k:plotsymb);

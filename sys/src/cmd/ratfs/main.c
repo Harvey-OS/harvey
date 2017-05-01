@@ -40,7 +40,7 @@ Filetree	filetree[] =
 	2,	"ip",		IPaddr,		0555|DMDIR,	Qaddr,
 	2,	"account",	Acctaddr,	0555|DMDIR,	Qaddr,
 	0,	0,		0,		0,		0,
-	
+
 };
 
 int	debugfd = -1;

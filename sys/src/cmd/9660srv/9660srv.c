@@ -745,7 +745,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 		}
 	}
 	d->length = 0;
-	if((d->mode & DMDIR) == 0)	
+	if((d->mode & DMDIR) == 0)
 		d->length = fakemax(l32(dp->size));
 	d->type = 0;
 	d->dev = 0;

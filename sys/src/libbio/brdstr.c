@@ -110,7 +110,7 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 			}
 			ip += j;
 		}
-	
+
 		/*
 		 * full buffer without finding; add to user string and continue
 		 */

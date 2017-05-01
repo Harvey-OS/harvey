@@ -87,7 +87,7 @@ cvtrgb12tocmap8(uint8_t *dst, uint8_t *src, int npixel)
 }
 
 /*
- * convert BGR8 (b2g3r3, default VNC format) to CMAP8 
+ * convert BGR8 (b2g3r3, default VNC format) to CMAP8
  * some bits are lost.
  */
 static uint8_t bgr8[256];

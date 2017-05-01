@@ -37,7 +37,7 @@ listenproc(void *v)
 	char ndir[NETPATHLEN], dir[NETPATHLEN];
 	int ctl, data, nctl;
 	Srv *os, *s;
-	
+
 	os = v;
 	ctl = announce(os->addr, dir);
 	if(ctl < 0){
@@ -51,7 +51,7 @@ listenproc(void *v)
 			fprint(2, "%s: listen %s: %r", argv0, os->addr);
 			break;
 		}
-		
+
 		data = accept(ctl, ndir);
 		if(data < 0){
 			fprint(2, "%s: accept %s: %r\n", argv0, ndir);
@@ -77,7 +77,7 @@ srvproc(void *v)
 {
 	int data;
 	Srv *s;
-	
+
 	s = v;
 	data = s->infd;
 	srv(s);

@@ -56,11 +56,11 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 
-	if (argc != 1) 
+	if (argc != 1)
 		usage();
 
 	url = argv[0];
- 
+
 	snprint(buf, sizeof buf, "%s/clone", mtpt);
 	if((ctlfd = open(buf, ORDWR)) < 0)
 		sysfatal("couldn't open %s: %r", buf);

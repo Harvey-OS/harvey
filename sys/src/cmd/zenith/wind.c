@@ -97,7 +97,7 @@ delrunepos(Window *w)
 {
 	int n;
 	Rune rune;
-	
+
 	for(n=0; n<w->tag.file->Buffer.nc; n++) {
 		bufread(&w->tag.file->Buffer, n, &rune, 1);
 		if(rune == ' ')
@@ -113,7 +113,7 @@ void
 movetodel(Window *w)
 {
 	int n;
-	
+
 	n = delrunepos(w);
 	if(n < 0)
 		return;
@@ -571,7 +571,7 @@ winctlprint(Window *w, char *buf, int fonts)
 	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->Buffer.nc,
 		w->body.file->Buffer.nc, w->isdir, w->dirty);
 	if(fonts)
-		return smprint("%s%11d %q %11d " , buf, Dx(w->body.Frame.r), 
+		return smprint("%s%11d %q %11d " , buf, Dx(w->body.Frame.r),
 			w->body.reffont->f->name, w->body.Frame.maxtab);
 	return buf;
 }

@@ -998,7 +998,7 @@ pgwnextoff(int32_t fromoff)
 		if(c == '<' && Bgetc(bdict) == 'p' && Bgetc(bdict) == '>') {
 			c = Bgetc(bdict);
 			if(c == '<') {
-				if (Bgetc(bdict) == 'h' && Bgetc(bdict) == 'w' 
+				if (Bgetc(bdict) == 'h' && Bgetc(bdict) == 'w'
 					&& Bgetc(bdict) == '>')
 						n = 7;
 			}else if (c == '{')

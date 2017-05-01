@@ -410,7 +410,7 @@ atailcmp(ATailStats *a, ATailStats *b)
 		return -1;
 	if(a->used > b->used)
 		return 1;
-		
+
 	/* suspect tests - why order this way? (no one cares) */
 	if(a->clumps < b->clumps)
 		return -1;
@@ -428,7 +428,7 @@ atailcmp(ATailStats *a, ATailStats *b)
 		return -1;
 	if(a->sealed > b->sealed)
 		return 1;
-		
+
 	/* everything matches */
 	return 0;
 }
@@ -582,7 +582,7 @@ ReadErr:
 	sha1(b->data, bs-VtScoreSize, nil, &s);
 	sha1(zeroscore, VtScoreSize, nil, &s);
 	sha1(nil, 0, score, &s);
-	
+
 	/*
 	 * check for no checksum or the same
 	 */
@@ -691,7 +691,7 @@ loadarena(Arena *arena)
 	     || arena->blocksize != head.blocksize
 	     || arena->size + 2 * arena->blocksize != head.size){
 		if(namecmp(arena->name, head.name)!=0)
-			logerr(ECorrupt, "arena tail name %s head %s", 
+			logerr(ECorrupt, "arena tail name %s head %s",
 				arena->name, head.name);
 		else if(arena->clumpmagic != head.clumpmagic)
 			logerr(ECorrupt, "arena %d tail clumpmagic 0x%lx head 0x%lx",
@@ -790,22 +790,22 @@ putcib(Arena *arena, CIBlock *cib)
 
 
 /*
- * For index entry readahead purposes, the arenas are 
+ * For index entry readahead purposes, the arenas are
  * broken into smaller subpieces, called clump info groups
  * or cigs.  Each cig has ArenaCIGSize clumps (ArenaCIGSize
  * is chosen to make the index entries take up about half
  * a megabyte).  The index entries do not contain enough
  * information to determine what the clump index is for
  * a given address in an arena.  That info is needed both for
- * figuring out which clump group an address belongs to 
+ * figuring out which clump group an address belongs to
  * and for prefetching a clump group's index entries from
  * the arena table of contents.  The first time clump groups
  * are accessed, we scan the entire arena table of contents
- * (which might be 10s of megabytes), recording the data 
+ * (which might be 10s of megabytes), recording the data
  * offset of each clump group.
  */
 
-/* 
+/*
  * load clump info group information by scanning entire toc.
  */
 static void
@@ -821,7 +821,7 @@ loadcig(Arena *arena)
 		return;
 
 //	fprint(2, "loadcig %s\n", arena->name);
-	
+
 	ncig = (arena->memstats.clumps+ArenaCIGSize-1) / ArenaCIGSize;
 	if(ncig == 0){
 		arena->cig = vtmalloc(1);
@@ -849,7 +849,7 @@ loadcig(Arena *arena)
 		}
 	}
 	vtfree(ci);
-	
+
 	arena->ncig = ncig;
 	arena->cig = cig;
 
@@ -911,7 +911,7 @@ asumload(Arena *arena, int g, IEntry *entries, int nentries)
 		fprint(2, "asking for too few entries\n");
 		return -1;
 	}
-	
+
 	qlock(&arena->lock);
 	if(arena->cig == nil)
 		loadcig(arena);
@@ -919,7 +919,7 @@ asumload(Arena *arena, int g, IEntry *entries, int nentries)
 		qunlock(&arena->lock);
 		return -1;
 	}
-	
+
 	addr = 0;
 	base = g*ArenaCIGSize;
 	limit = base + ArenaCIGSize;

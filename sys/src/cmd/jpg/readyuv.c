@@ -67,7 +67,7 @@ looksize(char *file, int64_t size, int *pixels, int *lines, int *bits)
 }
 
 
-static int 
+static int
 clip(int x)
 {
 	x >>= (Shift+2); // +2 as we assume all input images are 10 bit

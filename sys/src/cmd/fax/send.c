@@ -56,9 +56,9 @@ main(int argc, char *argv[])
 	r = faxsend(m, argc, argv);
 	if(r != Eok){
 		fprint(2, "faxsend: %s\n", m->error);
-		syslog(0, "fax", "failed %s %s: %s", argv[0], argv[1], m->error); 
+		syslog(0, "fax", "failed %s %s: %s", argv[0], argv[1], m->error);
 		exits(m->error);
 	}
-	syslog(0, "fax", "success %s %s", argv[0], argv[1]); 
+	syslog(0, "fax", "success %s %s", argv[0], argv[1]);
 	exits(0);
 }

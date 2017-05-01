@@ -79,7 +79,7 @@ main(int argc, char **argv)
 			exits("bad mac");
 		}
 	}
-	
+
 	fd0 = 0;
 	fd1 = 1;
 	if(altaddr){

@@ -38,7 +38,7 @@ stow(char *s)
 			head = w = new;
 		while(w->next)
 			w = w->next;
-		
+
 	}
 	if (!head)
 		head = newword("");

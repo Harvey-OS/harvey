@@ -24,7 +24,7 @@ authdial(char *netroot, char *dom)
 {
 	char *p;
 	int rv;
-	
+
 	if(dom != nil){
 		/* look up an auth server in an authentication domain */
 		p = csgetvalue(netroot, "authdom", dom, "auth", nil);

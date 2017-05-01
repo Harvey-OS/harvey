@@ -163,7 +163,7 @@ doread(Ram *r, int64_t off, int32_t cnt)
 		sysfatal("%d - unsupported compression method", zh.meth);
 		break;
 	}
-	
+
 	return buf;
 }
 

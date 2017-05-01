@@ -647,7 +647,7 @@ seprintcmd(char *s, char* e, char *cmd, int count, int args)
 		case ScmdStart:
 			s = seprint(s, e, " code %d", cmd[4]);
 			break;
-	
+
 		}
 	return s;
 }

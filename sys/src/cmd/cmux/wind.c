@@ -57,7 +57,7 @@ wsetname(Window *w)
 	print_func_entry();
 	int i, n;
 	char err[ERRMAX];
-	
+
 	n = sprint(w->name, "window.%d.%d", w->id, w->namecount++);
 	for(i='A'; i<='Z'; i++){
 		//	if(nameimage(w->i, w->name, 1) > 0)
@@ -123,7 +123,7 @@ winctl(void *arg)
 	crm.c2 = chancreate(sizeof(Stringpair), 0);
 	cwrm.c1 = chancreate(sizeof(Stringpair), 0);
 	cwrm.c2 = chancreate(sizeof(Stringpair), 0);
-	
+
 
 	alts[WKey].c = w->ck;
 	alts[WKey].v = &kbdr;

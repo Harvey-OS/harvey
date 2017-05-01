@@ -510,7 +510,7 @@
         *PSname = MAC_NAME( idx );
       }
     }
-    
+
     /* nothing to do for format == 0x00030000L */
 
   End:

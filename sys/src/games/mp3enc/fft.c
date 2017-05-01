@@ -10,10 +10,10 @@
 /*
 ** FFT and FHT routines
 **  Copyright 1988, 1993; Ron Mayer
-**  
+**
 **  fht(fz,n);
 **      Does a hartley transform of "n" points in the array "fz".
-**      
+**
 ** NOTE: This routine uses at least 2 patented algorithms, and may be
 **       under the restrictions of a bunch of different organizations.
 **       Although I wrote it completely myself; it is kind of a derivative
@@ -193,7 +193,7 @@ static const unsigned char rv_tbl[] = {
 #define ms31(f)	(window_s[0x3e - i] * f(i + k + 0xc1))
 
 
-void fft_short(lame_internal_flags *gfc, 
+void fft_short(lame_internal_flags *gfc,
                 FLOAT x_real[3][BLKSIZE_s], int chn, const sample_t *buffer[2])
 {
     const FLOAT*  window_s = (const FLOAT *)&gfc->window_s[0];
@@ -279,7 +279,7 @@ void init_fft(lame_internal_flags * const gfc)
 	window[i] = 0.42-0.5*cos(2*PI*i/(BLKSIZE-1))+0.08*cos(4*PI*i/(BLKSIZE-1));
     } else {
       /*
-       * calculate HANN window coefficients 
+       * calculate HANN window coefficients
        */
       for (i = 0; i < BLKSIZE ; i++)
 	window[i] = 0.5 * (1.0 - cos(2.0 * PI * (i + 0.5) / BLKSIZE));

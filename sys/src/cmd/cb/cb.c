@@ -1023,7 +1023,7 @@ clearif(struct indent *cl)
 	int i;
 	for(i=0;i<IFLEVEL-1;i++)cl->ifc[i] = 0;
 }
-char 
+char
 puttmp(char c, int keep)
 {
 	if(tp < &temp[TEMP-120])

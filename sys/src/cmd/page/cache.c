@@ -35,7 +35,7 @@ questionmark(void)
 	static Image *im;
 
 	if(im)
-		return im;	
+		return im;
 	im = xallocimage(display, Rect(0,0,50,50), GREY1, 1, DBlack);
 	if(im == nil)
 		return nil;
@@ -159,7 +159,7 @@ cachedpage(Document *doc, int angle, int page)
 	static int rabusy;
 	Image *im;
 	int ra;
-	
+
 	if(doc->npage < 1)
 		return display->white;
 

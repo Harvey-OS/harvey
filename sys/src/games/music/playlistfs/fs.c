@@ -246,7 +246,7 @@ rwalk(Worker *w)
 	for(i = 0; i < r->ifcall.nwname; i++){
 		rv = dowalk(f, r->ifcall.wname[i]);
 		if(rv != nil){
-			if(nf != nil)	
+			if(nf != nil)
 				nf->flags &= ~(Open|Busy);
 			else
 				f->file = savefile;
@@ -846,7 +846,7 @@ srv(void*)
 
 	while(r = recvp(dispatchc))
 		allocwork(r);
-		
+
 }
 
 void

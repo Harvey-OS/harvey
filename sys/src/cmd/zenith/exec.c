@@ -165,7 +165,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 			f |= 2;
 		}
 		aa = getbytearg(argt, TRUE, TRUE, &a);
-		if(a){	
+		if(a){
 			if(strlen(a) > EVENTSIZE){	/* too big; too bad */
 				free(aa);
 				free(a);

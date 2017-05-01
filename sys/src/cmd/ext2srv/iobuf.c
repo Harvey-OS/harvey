@@ -131,7 +131,7 @@ iobuf_init(void)
 	for(p = iobuf; p <= iotail; p++) {
 		p->next = p+1;
 		p->prev = p-1;
-		
+
 		p->iobuf = (char *)malloc(EXT2_MAX_BLOCK_SIZE);
 		if(p->iobuf == 0)
 			panic("iobuf_init");
@@ -154,7 +154,7 @@ xread(Xfs *dev, Iobuf *p, int32_t addr)
 	/*chat("xread ok...");*/
 	return 0;
 }
-void 
+void
 xwrite(Iobuf *p)
 {
 	Xfs *dev;
@@ -176,8 +176,8 @@ void
 dumpbuf(void)
 {
 	Iobuf *p;
-	
+
 	for(p = iotail; p ; p = p->prev)
 		if( p->busy )
-			mchat("\nHi ERROR buf(%x, %d, %d)\n", p, p->addr, p->busy);	
+			mchat("\nHi ERROR buf(%x, %d, %d)\n", p, p->addr, p->busy);
 }

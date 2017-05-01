@@ -438,9 +438,9 @@ xstrdup(char *s)
 
 /*
  *	Return a uniquely allocated copy of a string.
- *	Don't free these -- they stay in the table for the 
+ *	Don't free these -- they stay in the table for the
  *	next caller who wants that particular string.
- *	String comparison can be done with pointer comparison 
+ *	String comparison can be done with pointer comparison
  *	if you know both strings are atoms.
  */
 static Stringtab *stab[1024];
@@ -462,7 +462,7 @@ atom(char *str)
 {
 	uint h;
 	Stringtab *tab;
-	
+
 	h = hash(str) % nelem(stab);
 	for(tab=stab[h]; tab; tab=tab->link)
 		if(strcmp(str, tab->str) == 0)

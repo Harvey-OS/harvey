@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -85,8 +85,8 @@ static Rectangle window;
 
 static struct VGAdev cbvgadev = {
 	.name =  "coreboot",
-/*		
-		
+/*
+
 		void	(*enable)(VGAscr*);
 		void	(*disable)(VGAscr*);
 		void	(*page)(VGAscr*, int);
@@ -132,7 +132,7 @@ VGAscr vgascreen[1] = {
 static	void	screenwin(void);
 
 /*
- * Software cursor. 
+ * Software cursor.
  */
 int	swvisible;	/* is the cursor visible? */
 int	swenabled;	/* is the cursor supposed to be on the screen? */
@@ -283,7 +283,7 @@ swload(Cursor *curs)
 	 * Build cursor image and mask.
 	 * Image is just the usual cursor image
 	 * but mask is a transparent alpha mask.
-	 * 
+	 *
 	 * The 16x16x8 memimages do not have
 	 * padding at the end of their scan lines.
 	 */
@@ -388,7 +388,7 @@ screeninit(void)
 	print("%s: fb is %p\n", __func__, cbinfo.framebuffer);
 	if (!cbinfo.framebuffer)
 		return -1;
-	
+
 	fb = KADDR((uintptr_t)cbinfo.framebuffer);
 	framebuf.pixel =  KADDR(fb->physical_address);
 

@@ -72,14 +72,14 @@ pfnc(io *fd, thread *t)
 	list *a;
 
 	pfmt(fd, "pid %d cycle %p %d ", getpid(), t->code, t->pc);
-	for (i = 0; fname[i].f; i++) 
+	for (i = 0; fname[i].f; i++)
 		if (fname[i].f == fn) {
 			pstr(fd, fname[i].name);
 			break;
 		}
 	if (!fname[i].f)
 		pfmt(fd, "%p", fn);
-	for (a = t->argv; a; a = a->next) 
+	for (a = t->argv; a; a = a->next)
 		pfmt(fd, " (%v)", a->words);
 	pchr(fd, '\n');
 	flush(fd);

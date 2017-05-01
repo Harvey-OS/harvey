@@ -81,7 +81,7 @@ double GetRealTime ( void )			/* conforming:  SVr4, BSD 4.3 */
     if ( 0 != gettimeofday (&t, NULL) )
         assert (0);
     return t.tv_sec + 1.e-6 * t.tv_usec;
-} 
+}
 
 int  lame_set_stream_binary_mode ( FILE* const fp )
 {

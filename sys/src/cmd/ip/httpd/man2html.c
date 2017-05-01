@@ -44,7 +44,7 @@ error(char *title, char *fmt, ...)
 }
 
 typedef struct Hit	Hit;
-struct Hit 
+struct Hit
 {
 	Hit *next;
 	char *file;

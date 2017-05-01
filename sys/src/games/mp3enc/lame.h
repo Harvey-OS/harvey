@@ -53,7 +53,7 @@ typedef enum vbr_mode_e {
   vbr_rh,
   vbr_abr,
   vbr_mtrh,
-  vbr_default=vbr_rh  /* change this to change the default VBR mode of LAME */ 
+  vbr_default=vbr_rh  /* change this to change the default VBR mode of LAME */
 } vbr_mode;
 
 
@@ -64,14 +64,14 @@ typedef enum MPEG_mode_e {
   DUAL_CHANNEL,   /* LAME doesn't supports this! */
   MONO,
   NOT_SET,
-  MAX_INDICATOR   /* Don't use this! It's used for sanity checks. */ 
+  MAX_INDICATOR   /* Don't use this! It's used for sanity checks. */
 } MPEG_mode;
 
 
 /***********************************************************************
 *
 *  Control Parameters set by User.  These parameters are here for
-*  backwards compatibility with the old, non-shared lib API.  
+*  backwards compatibility with the old, non-shared lib API.
 *  Please use the lame_set_variablename() functions below
 *
 *
@@ -82,7 +82,7 @@ typedef struct  {
   int num_channels;           /* input number of channels. default=2         */
   int in_samplerate;          /* input_samp_rate in Hz. default=44.1 kHz     */
   int out_samplerate;         /* output_samp_rate.
-                                   default: LAME picks best value 
+                                   default: LAME picks best value
                                    at least not used for MP3 decoding:
                                    Remember 44.1 kHz MP3s and AC97           */
   float scale;                /* scale input by this amount before encoding
@@ -127,7 +127,7 @@ typedef struct  {
 
   /* quantization/noise shaping */
   int disable_reservoir;          /* use bit reservoir?                     */
-  int experimentalX;            
+  int experimentalX;
   int experimentalY;
   int experimentalZ;
   int exp_nspsytune;
@@ -156,7 +156,7 @@ typedef struct  {
 
 
   /*
-   * psycho acoustics and other arguments which you should not change 
+   * psycho acoustics and other arguments which you should not change
    * unless you know what you are doing
    */
   int ATHonly;                    /* only use ATH                         */
@@ -190,7 +190,7 @@ typedef struct  {
 
   int version;                    /* 0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)     */
   int encoder_delay;
-  int framesize;                  
+  int framesize;
   int frameNum;                   /* number of frames encoded             */
   int totalframes;
   int lame_allocated_gfp;         /* is this struct owned by calling
@@ -214,7 +214,7 @@ typedef struct  {
 
 } lame_global_flags;
 
-// I give up. Klemm has worn me down on this one... 
+// I give up. Klemm has worn me down on this one...
 typedef lame_global_flags lame_t;
 
 
@@ -225,7 +225,7 @@ typedef lame_global_flags lame_t;
  *
  *  The LAME API
  *  These functions should be called, in this order, for each
- *  MP3 file to be encoded 
+ *  MP3 file to be encoded
  *
  ***********************************************************************/
 
@@ -249,7 +249,7 @@ int CDECL lame_init_old(lame_global_flags *);
 /********************************************************************
  *  input stream description
  ***********************************************************************/
-// number of samples.  default = 2^32-1  
+// number of samples.  default = 2^32-1
 int CDECL lame_set_num_samples(lame_global_flags *, unsigned long);
 unsigned long CDECL lame_get_num_samples(const lame_global_flags *);
 
@@ -257,7 +257,7 @@ unsigned long CDECL lame_get_num_samples(const lame_global_flags *);
 int CDECL lame_set_in_samplerate(lame_global_flags *, int);
 int CDECL lame_get_in_samplerate(const lame_global_flags *);
 
-// number of channels in input stream. default=2 
+// number of channels in input stream. default=2
 int CDECL lame_set_num_channels(lame_global_flags *, int);
 int CDECL lame_get_num_channels(const lame_global_flags *);
 
@@ -266,7 +266,7 @@ int CDECL lame_get_num_channels(const lame_global_flags *);
 int CDECL lame_set_scale(lame_global_flags *, float);
 float CDECL lame_get_scale(const lame_global_flags *);
 
-// output sample rate in Hz.  default = 0, which means LAME picks best value 
+// output sample rate in Hz.  default = 0, which means LAME picks best value
 // based on the amount of compression.  MPEG only allows:
 // MPEG1    32, 44.1,   48khz
 // MPEG2    16, 22.05,  24
@@ -303,7 +303,7 @@ int CDECL lame_get_ogg(const lame_global_flags *);
 
 // internal algorithm selection.  True quality is determined by the bitrate
 // but this variable will effect quality by selecting expensive or cheap algorithms.
-// quality=0..9.  0=best (very slow).  9=worst.  
+// quality=0..9.  0=best (very slow).  9=worst.
 // recommended:  2     near-best quality, not too slow
 //               5     good quality, fast
 //               7     ok quality, really fast
@@ -315,7 +315,7 @@ int CDECL lame_get_quality(const lame_global_flags *);
 int CDECL lame_set_mode(lame_global_flags *, MPEG_mode);
 MPEG_mode CDECL lame_get_mode(const lame_global_flags *);
 
-// mode_automs.  Us a M/S mode with a switching threshold based on 
+// mode_automs.  Us a M/S mode with a switching threshold based on
 // compression ratio
 // default = 0 (disabled)
 int CDECL lame_set_mode_automs(lame_global_flags *, int);
@@ -384,17 +384,17 @@ int CDECL lame_get_extension(const lame_global_flags *);
 // enforce strict ISO complience.  default=0
 int CDECL lame_set_strict_ISO(lame_global_flags *, int);
 int CDECL lame_get_strict_ISO(const lame_global_flags *);
- 
+
 
 /********************************************************************
- * quantization/noise shaping 
+ * quantization/noise shaping
  ***********************************************************************/
 
 // disable the bit reservoir. For testing only. default=0
 int CDECL lame_set_disable_reservoir(lame_global_flags *, int);
 int CDECL lame_get_disable_reservoir(const lame_global_flags *);
 
-// select a different "best quantization" function. default=0 
+// select a different "best quantization" function. default=0
 int CDECL lame_set_experimentalX(lame_global_flags *, int);
 int CDECL lame_get_experimentalX(const lame_global_flags *);
 
@@ -419,7 +419,7 @@ int CDECL lame_get_exp_nspsytune(const lame_global_flags *);
 int CDECL lame_set_VBR(lame_global_flags *, vbr_mode);
 vbr_mode CDECL lame_get_exp_VBR(const lame_global_flags *);
 
-// VBR quality level.  0=highest  9=lowest 
+// VBR quality level.  0=highest  9=lowest
 int CDECL lame_set_VBR_q(lame_global_flags *, int);
 int CDECL lame_get_VBR_q(const lame_global_flags *);
 
@@ -458,7 +458,7 @@ int CDECL lame_get_highpasswidth(const lame_global_flags *);
 
 
 /********************************************************************
- * psycho acoustics and other arguments which you should not change 
+ * psycho acoustics and other arguments which you should not change
  * unless you know what you are doing
  ***********************************************************************/
 // only use ATH for masking
@@ -511,7 +511,7 @@ int CDECL lame_get_emphasis(const lame_global_flags *);
 /* internal variables, cannot be set...                                 */
 /* provided because they may be of use to calling application           */
 /************************************************************************/
-// version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)    
+// version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)
 int CDECL lame_get_version(const lame_global_flags *);
 
 // encoder delay
@@ -524,7 +524,7 @@ int CDECL lame_get_framesize(const lame_global_flags *);
 int CDECL lame_get_frameNum(const lame_global_flags *);
 
 // lame's estimate of the total number of frames to be encoded
-// only valid if calling program set num_samples 
+// only valid if calling program set num_samples
 int CDECL lame_get_totalframes(const lame_global_flags *);
 
 
@@ -544,8 +544,8 @@ int CDECL lame_init_params(lame_global_flags *);
 
 /*
  * OPTIONAL:
- * get the version number, in a string. of the form:  
- * "3.63 (beta)" or just "3.63". 
+ * get the version number, in a string. of the form:
+ * "3.63 (beta)" or just "3.63".
  */
 const /*@observer@*/ char*  CDECL get_lame_version       ( void );
 const /*@observer@*/ char*  CDECL get_lame_short_version ( void );
@@ -588,16 +588,16 @@ void CDECL lame_print_config(const lame_global_flags*  gfp);
 /*
  * input pcm data, output (maybe) mp3 frames.
  * This routine handles all buffering, resampling and filtering for you.
- * 
- * return code     number of bytes output in mp3buf. Can be 0 
+ *
+ * return code     number of bytes output in mp3buf. Can be 0
  *                 -1:  mp3buf was too small
  *                 -2:  malloc() problem
  *                 -3:  lame_init_params() not called
- *                 -4:  psycho acoustic problems 
+ *                 -4:  psycho acoustic problems
  *                 -5:  ogg cleanup encoding error
  *                 -6:  ogg frame encoding error
  *
- * The required mp3buf_size can be computed from num_samples, 
+ * The required mp3buf_size can be computed from num_samples,
  * samplerate and encoding rate, but here is a worst case estimate:
  *
  * mp3buf_size in bytes = 1.25*num_samples + 7200
@@ -617,7 +617,7 @@ void CDECL lame_print_config(const lame_global_flags*  gfp);
  * if gfp->num_channels=2, but gfp->mode = 3 (mono), the L & R channels
  * will be averaged into the L channel before encoding only the L channel
  * This will overwrite the data in buffer_l[] and buffer_r[].
- * 
+ *
 */
 int CDECL lame_encode_buffer (
         lame_global_flags*  gfp,           /* global context handle         */
@@ -630,9 +630,9 @@ int CDECL lame_encode_buffer (
 
 /*
  * as above, but input has L & R channel data interleaved.
- * NOTE: 
+ * NOTE:
  * num_samples = number of samples in the L (or R)
- * channel, not the total number of samples in pcm[]  
+ * channel, not the total number of samples in pcm[]
  */
 int CDECL lame_encode_buffer_interleaved(
         lame_global_flags*  gfp,           /* global context handlei        */
@@ -673,11 +673,11 @@ int CDECL lame_encode_buffer_long(
 
 /*
  * REQUIRED:
- * lame_encode_finish will flush the buffers and may return a 
+ * lame_encode_finish will flush the buffers and may return a
  * final few mp3 frames.  'mp3buf' should be at least 7200 bytes long
  * to hold all possible emitted data.
  *
- * will also write id3v1 tags (if any) into the bitstream       
+ * will also write id3v1 tags (if any) into the bitstream
  *
  * return code = number of bytes output to mp3buf. Can be 0
  */
@@ -688,7 +688,7 @@ int CDECL lame_encode_flush(
 
 
 #ifdef KLEMM_44
- 
+
 int CDECL lame_encode_pcm (
         lame_t* const   lame,      /* lame context handle                     */
         octetstream_t*  os,        /* octet stream object                     */
@@ -699,7 +699,7 @@ int CDECL lame_encode_pcm (
 int CDECL lame_encode_pcm_flush (
         lame_t*        const  lame,  /* lame context handle                   */
         octetstream_t* const  os );  /* octet stream object                   */
- 
+
 #endif /* KLEMM_44 */
 
 
@@ -717,19 +717,19 @@ int CDECL lame_encode_pcm_flush (
  * suggested: lame_encode_flush -> lame_*_hist -> lame_close
  */
 
-/*@-fixedformalarray@*/ 
-void CDECL lame_bitrate_hist( 
-        const lame_global_flags *const gfp, 
+/*@-fixedformalarray@*/
+void CDECL lame_bitrate_hist(
+        const lame_global_flags *const gfp,
               int                      bitrate_count[14] );
-void CDECL lame_bitrate_kbps( 
-        const lame_global_flags *const gfp, 
+void CDECL lame_bitrate_kbps(
+        const lame_global_flags *const gfp,
               int                      bitrate_kbps [14] );
-void CDECL lame_stereo_mode_hist( 
-        const lame_global_flags *const gfp, 
+void CDECL lame_stereo_mode_hist(
+        const lame_global_flags *const gfp,
               int                      stereo_mode_count[4] );
 
-void CDECL lame_bitrate_stereo_mode_hist ( 
-        const lame_global_flags*  gfp, 
+void CDECL lame_bitrate_stereo_mode_hist (
+        const lame_global_flags*  gfp,
         int  bitrate_stmode_count [14] [4] );
 /*@=fixedformalarray@*/
 
@@ -773,7 +773,7 @@ int CDECL lame_encode_finish(
 
 /*********************************************************************
  *
- * decoding 
+ * decoding
  *
  * a simple interface to mpglib, part of mpg123, is also included if
  * libmp3lame is compiled with HAVE_MPGLIB
@@ -802,7 +802,7 @@ typedef struct {
 int CDECL lame_decode_init(void);
 
 /*********************************************************************
- * input 1 mp3 frame, output (maybe) pcm data.  
+ * input 1 mp3 frame, output (maybe) pcm data.
  * lame_decode() return code:
  *   -1: error
  *    0: need more data
@@ -941,7 +941,7 @@ extern int id3tag_set_genre(
 /***********************************************************************
 *
 *  list of valid bitrates [kbps] & sample frequencies [Hz].
-*  first index: 0: MPEG-2   values  (sample frequencies 16...24 kHz) 
+*  first index: 0: MPEG-2   values  (sample frequencies 16...24 kHz)
 *               1: MPEG-1   values  (sample frequencies 32...48 kHz)
 *               2: MPEG-2.5 values  (sample frequencies  8...12 kHz)
 ***********************************************************************/
@@ -951,7 +951,7 @@ extern const int      samplerate_table [3] [ 4];
 
 
 /* maximum size of mp3buffer needed if you encode at most 1152 samples for
-   each call to lame_encode_buffer.  see lame_encode_buffer() below  
+   each call to lame_encode_buffer.  see lame_encode_buffer() below
    (LAME_MAXMP3BUFFER is now obsolete)  */
 #define LAME_MAXMP3BUFFER   16384
 

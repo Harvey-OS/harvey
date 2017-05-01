@@ -21,7 +21,7 @@ typedef struct Ind Ind;
 
 /*
  * with 8192-byte blocks and 4-byte pointers,
- * double-indirect gets us 34 GB. 
+ * double-indirect gets us 34 GB.
  * triple-indirect gets us 70,368 GB.
  */
 
@@ -36,7 +36,7 @@ static uint8_t zero[BLKSZ];
 
 struct Trip
 {
-	Dbl *dbl[NPTR];	
+	Dbl *dbl[NPTR];
 };
 
 struct Dbl
@@ -108,7 +108,7 @@ addpart(char *name, int64_t start, int64_t end)
 			break;
 	if(i == nelem(tab)){
 		werrstr("no free partition slots");
-		return -1;	
+		return -1;
 	}
 
 	free(tab[i].name);
@@ -223,7 +223,7 @@ ctlwrite(Req *r)
 	free(cb);
 	respond(r, nil);
 }
-	
+
 void*
 allocblk(int64_t addr)
 {
@@ -299,7 +299,7 @@ dirty(int64_t addr, uint8_t *buf)
 	if(pwrite(fd, buf, BLKSZ, oaddr) != BLKSZ)
 		sysfatal("write: %r");
 }
-	
+
 int
 rootgen(int off, Dir *d, void *v)
 {
@@ -317,8 +317,8 @@ rootgen(int off, Dir *d, void *v)
 		return 0;
 	}
 	return -1;
-}	
-		
+}
+
 int
 dirgen(int off, Dir *d, void *v)
 {
@@ -362,7 +362,7 @@ int
 isnonzero(void *v, uint32_t n)
 {
 	uint8_t *a, *ea;
-	
+
 	a = v;
 	ea = a+n;
 	for(; a<ea; a++)
@@ -554,7 +554,7 @@ fsstat(Req *r)
 		d->mode = p->mode;
 		break;
 	}
-		
+
 	d->uid = estrdup9p("disksim");
 	d->gid = estrdup9p("disksim");
 	d->muid = estrdup9p("");

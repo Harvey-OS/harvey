@@ -182,7 +182,7 @@ main(int argc, char **argv)
 	/* start up a process to pass along notes */
 	lclnoteproc(data);
 
-	/* 
+	/*
 	 *  Wait for the other end to execute and start our file service
 	 *  of /mnt/term
 	 */
@@ -273,7 +273,7 @@ old9p(int fd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 /* Invoked with stdin, stdout and stderr connected to the network connection */
@@ -421,7 +421,7 @@ readstr(int fd, char *str, int len)
 
 	while(len) {
 		n = read(fd, str, 1);
-		if(n < 0) 
+		if(n < 0)
 			return -1;
 		if(*str == '\0')
 			return 0;
@@ -591,7 +591,7 @@ chuid(char* to)
 		werrstr("open #¤/caphash: %r");
 		return -1;
 	}
-	
+
 	cap = smprint("%s@Why can't we all just get along?", to);
 	p = strrchr(cap, '@');
 	hmac_sha1((uint8_t*)cap, p-cap, (uint8_t*)p+1, strlen(p+1), hash,
@@ -769,7 +769,7 @@ rmtnoteproc(void)
 			syslog(0, "cpu", "cpu -R: can't open %s", rmtnotefile);
 			_exits(0);
 		}
-	
+
 		for(;;){
 			n = read(fd, buf, sizeof(buf)-1);
 			if(n <= 0){

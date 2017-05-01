@@ -44,7 +44,7 @@ main(int argc, char **argv)
 		sysfatal("%r");
 
 	s = smprint("key %A size=%d ek=%B !dk=%B n=%B !p=%B !q=%B !kp=%B !kq=%B !c2=%B\n",
-		a, 
+		a,
 		mpsignif(key->pub.n), key->pub.ek,
 		key->dk, key->pub.n, key->p, key->q,
 		key->kp, key->kq, key->c2);

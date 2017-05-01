@@ -28,7 +28,7 @@ prefix(char *small, char *big)
 	int	c;
 
 	while ((c = *small++) == *big++)
-		if (c == 0) 
+		if (c == 0)
 			return(1);
 	return(c == 0);
 }

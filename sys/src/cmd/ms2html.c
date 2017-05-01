@@ -872,7 +872,7 @@ getnext(void)
 				return token;
 			}
 			r -= '0';
-			if(msp >= 0) 
+			if(msp >= 0)
 				pushstr(mstack[msp].argv[r]);
 			return getnext();
 
@@ -989,11 +989,11 @@ getnext(void)
 				r = getrune();
 			if(r != '\'')
 				ungetrune();
-			
+
 			if(vert > 0)
 				return "^";
 			return getnext();
-			
+
 
 		/* horizontal line */
 		case 'l':
@@ -1258,7 +1258,7 @@ void
 printarg(char *a)
 {
 	char *e, *p;
-	
+
 	e = a + strlen(a);
 	pushstr(a);
 	while(strsp >= 0 && strstack[strsp] >= a && strstack[strsp] < e){
@@ -1463,7 +1463,7 @@ closel(void)
 		break;
 	}
 	list = 0;
-	
+
 }
 
 
@@ -1654,7 +1654,7 @@ g_TL(int i, char **c)
 				p++;
 			strncpy(name, p, sizeof(name));
 			name[sizeof(name)-1] = 0;
-		
+
 			/* dump any extensions */
 			np = strchr(name, '.');
 			if(np)

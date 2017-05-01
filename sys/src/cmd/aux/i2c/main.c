@@ -194,7 +194,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 		print_func_exit();
 		return Enonexist;
-		
+
 	default:
 		print_func_exit();
 		return Ewalk;

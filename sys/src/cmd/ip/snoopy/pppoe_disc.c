@@ -39,7 +39,7 @@ enum
 	Osess,
 };
 
-static Field p_fields[] = 
+static Field p_fields[] =
 {
 	{"v",	Fnum,	Overs,	"version",	} ,
 	{"t",	Fnum,	Otype,	"type",	} ,

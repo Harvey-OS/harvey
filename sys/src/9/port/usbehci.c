@@ -769,7 +769,7 @@ static void
 qhfree(Ctlr *ctlr, Qh *qh)
 {
 	Td *td, *ltd;
-	Qh *q;  
+	Qh *q;
 
 	if(qh == nil)
 		return;

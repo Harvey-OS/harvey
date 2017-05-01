@@ -82,7 +82,7 @@ lookuplump(uint8_t *score, int type)
 
 	ms = 0;
 	trace(TraceLump, "lookuplump enter");
-	
+
 	h = hashbits(score, HashLog);
 
 	/*

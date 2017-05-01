@@ -118,27 +118,27 @@ getkey(int argc, char **argv, int needprivate, Attr **pa)
 	}
 	if((key->kp = strtomp(p, &p, 16, nil)) == nil || *p != 0){
 		fprint(2, "warning: bad !kp\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
 	if((p = _strfindattr(a, "!kq")) == nil){
 		fprint(2, "warning: no !kq\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
 	if((key->kq = strtomp(p, &p, 16, nil)) == nil || *p != 0){
 		fprint(2, "warning: bad !kq\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
 	if((p = _strfindattr(a, "!c2")) == nil){
 		fprint(2, "warning: no !c2\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
 	if((key->c2 = strtomp(p, &p, 16, nil)) == nil || *p != 0){
 		fprint(2, "warning: bad !c2\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
 regen:
@@ -294,7 +294,7 @@ uint8_t*
 putmp2(uint8_t *p, mpint *b)
 {
 	int bits, n;
-	
+
 	if(mpcmp(b, mpzero) == 0)
 		return put4(p, 0);
 	bits = mpsignif(b);

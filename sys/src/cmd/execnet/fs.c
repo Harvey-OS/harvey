@@ -147,7 +147,7 @@ conngen(int i, Dir *d, void *aux)
 	return -1;
 }
 
-char *statusstr[] = 
+char *statusstr[] =
 {
 	"Closed",
 	"Exec",
@@ -447,7 +447,7 @@ initfs(void)
 	procrfork(fsthread, nil, STACK, RFNAMEG);
 }
 
-Srv fs = 
+Srv fs =
 {
 .attach=		fssend,
 .destroyfid=	fsdestroyfid,

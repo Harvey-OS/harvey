@@ -1,9 +1,9 @@
 #include <u.h>
 #include <libc.h>
 
-const char *contents = "This is a string of bytes in a file"; 
-const char *changedcontents = "This is a xxxxxx of bytes in a file"; 
-const char *changedcontents2 = "This is a yyyyyy of bytes in a file"; 
+const char *contents = "This is a string of bytes in a file";
+const char *changedcontents = "This is a xxxxxx of bytes in a file";
+const char *changedcontents2 = "This is a yyyyyy of bytes in a file";
 
 void
 failonbad(int rc, const char* reason)
@@ -67,7 +67,7 @@ writetest()
 	if(strncmp(buffer, changedcontents2, strlen(contents))){
 		failonbad(-1, "changed compare failed");
 	}
-	
+
 	rc = close(fd);
 	failonbad(rc, "File close in ramdisk");
 }

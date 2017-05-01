@@ -15,7 +15,7 @@
 #include "dat.h"
 
 typedef struct State State;
-struct State 
+struct State
 {
 	Key *key;
 };

@@ -137,7 +137,7 @@ bin_simpler(Node *ptr)
 			break;
 		}
 		if (isequal(ptr->lft, ptr->rgt))
-		{	/* p U p = p */	
+		{	/* p U p = p */
 			ptr = ptr->rgt;
 			break;
 		}
@@ -174,7 +174,7 @@ bin_simpler(Node *ptr)
 			break;
 		}
 		if (isequal(ptr->lft, ptr->rgt))
-		{	/* p V p = p */	
+		{	/* p V p = p */
 			ptr = ptr->rgt;
 			break;
 		}
@@ -281,7 +281,7 @@ bin_simpler(Node *ptr)
 		||  ptr->lft->ntyp == TRUE)	/* (T && p) == p */
 		{	ptr = ptr->rgt;
 			break;
-		}	
+		}
 		if (ptr->rgt->ntyp == TRUE	/* (p && T) == p */
 		||  ptr->lft->ntyp == FALSE)	/* (F && p) == F */
 		{	ptr = ptr->lft;
@@ -329,7 +329,7 @@ bin_simpler(Node *ptr)
 		||  ptr->lft->ntyp == TRUE)	/* (T || p) == T */
 		{	ptr = ptr->lft;
 			break;
-		}	
+		}
 		if (ptr->rgt->ntyp == TRUE	/* (p || T) == T */
 		||  ptr->lft->ntyp == FALSE)	/* (F || p) == p */
 		{	ptr = ptr->rgt;
@@ -352,7 +352,7 @@ bin_simpler(Node *ptr)
 		&&  isequal(ptr->lft->rgt, ptr->rgt->rgt))
 		{	ptr = ptr->rgt;
 			break;
-		}		
+		}
 #endif
 		break;
 	}
@@ -388,7 +388,7 @@ again:
 static Node *
 tl_formula(void)
 {	tl_yychar = tl_yylex();
-	return tl_level(1);	/* 2 precedence levels, 1 and 0 */	
+	return tl_level(1);	/* 2 precedence levels, 1 and 0 */
 }
 
 void

@@ -5,7 +5,7 @@
 
 /* int _splhi() */
 .globl _splhi
-_splhi:	
+_splhi:
 	li	a0, 0
 	csrrc	a0, 0x100, a0
 	ret

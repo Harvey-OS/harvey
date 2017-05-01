@@ -277,7 +277,7 @@ printsyms(Sym **symptr, int32_t nsym)
 
 	if(!sflag)
 		qsort(symptr, nsym, sizeof(*symptr), cmp);
-	
+
 	wid = 0;
 	for (i=0; i<nsym; i++) {
 		s = symptr[i];
@@ -285,7 +285,7 @@ printsyms(Sym **symptr, int32_t nsym)
 			wid = 8;
 		else if (s->value >= 0x100000000LL && wid == 8)
 			wid = 16;
-	}	
+	}
 	for (i=0; i<nsym; i++) {
 		s = symptr[i];
 		if (multifile && !hflag)

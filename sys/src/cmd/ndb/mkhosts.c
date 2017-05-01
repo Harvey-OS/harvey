@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 		parse("/lib/ndb/local");
 		parse("/lib/ndb/friends");
 	}
-	
+
 //	sprint(fn, "/lib/ndb/hosts.%-.21s", domname);
 //	fd = create(fn, OWRITE, 0664);
 //	if(fd < 0){
