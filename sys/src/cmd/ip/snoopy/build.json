@@ -5,12 +5,11 @@
 		],
 		"Install": "/$ARCH/bin/ip",
 		"Pre": [
-		        "yacc --defines filter.y"
+			"yacc --defines filter.y"
 		],
-	    
 		"Program": "snoopy",
-	"SourceFiles": [
-	    "/sys/src/cmd/ndb/convM2DNS.c",
+		"SourceFiles": [
+			"/sys/src/cmd/ndb/convM2DNS.c",
 			"aoeata.c",
 			"aoe.c",
 			"aoecmd.c",
@@ -54,7 +53,7 @@
 			"tcp.c",
 			"ttls.c",
 			"udp.c",
-	                "y.tab.c"
+			"y.tab.c"
 		]
 	}
 }

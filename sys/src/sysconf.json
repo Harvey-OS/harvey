@@ -1,4 +1,24 @@
 {
+	"Bootmethods": [
+		{
+			"Arg": "",
+			"Config": "configtcp",
+			"Connect": "connecttcp",
+			"Name": "tcp"
+		},
+		{
+			"Arg": "",
+			"Config": "configrc",
+			"Connect": "connectrc",
+			"Name": "rc"
+		},
+		{
+			"Arg": "",
+			"Config": "configlocal",
+			"Connect": "connectlocal",
+			"Name": "local"
+		}
+	],
 	"Syscalls": [
 		{
 			"Id": 0,
@@ -8,74 +28,74 @@
 			]
 		},
 		{
-			"Id": 2,
 			"Args": [
 				"char*",
 				"char*",
 				"int32_t"
 			],
+			"Id": 2,
 			"Name": "bind",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 3,
 			"Args": [
 				"char*"
 			],
+			"Id": 3,
 			"Name": "chdir",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 4,
 			"Args": [
 				"int32_t"
 			],
+			"Id": 4,
 			"Name": "close",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 5,
 			"Args": [
 				"int32_t",
 				"int32_t"
 			],
+			"Id": 5,
 			"Name": "dup",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 6,
 			"Args": [
 				"uint64_t"
 			],
+			"Id": 6,
 			"Name": "alarm",
 			"Ret": [
 				"int64_t"
 			]
 		},
 		{
-			"Id": 7,
 			"Args": [
 				"char*",
 				"char**"
 			],
+			"Id": 7,
 			"Name": "exec",
 			"Ret": [
 				"void*"
 			]
 		},
 		{
-			"Id": 8,
 			"Args": [
 				"char*"
 			],
+			"Id": 8,
 			"Libname": "_exits",
 			"Name": "exits",
 			"Ret": [
@@ -97,95 +117,95 @@
 			]
 		},
 		{
-			"Id": 14,
 			"Args": [
 				"char*",
 				"int32_t"
 			],
+			"Id": 14,
 			"Name": "open",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 19,
 			"Args": [
 				"int32_t"
 			],
+			"Id": 19,
 			"Name": "rfork",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 21,
 			"Args": [
 				"int32_t*"
 			],
+			"Id": 21,
 			"Name": "pipe",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 22,
 			"Args": [
 				"char*",
 				"int32_t",
 				"int32_t"
 			],
+			"Id": 22,
 			"Name": "create",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 23,
 			"Args": [
 				"int32_t",
 				"char*",
 				"uint32_t"
 			],
+			"Id": 23,
 			"Name": "fd2path",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 24,
 			"Args": [
 				"void*"
 			],
+			"Id": 24,
 			"Name": "brk_",
 			"Ret": [
 				"void*"
 			]
 		},
 		{
-			"Id": 25,
 			"Args": [
 				"char*"
 			],
+			"Id": 25,
 			"Name": "remove",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 28,
 			"Args": [
 				"void*"
 			],
+			"Id": 28,
 			"Name": "notify",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 29,
 			"Args": [
 				"int32_t"
 			],
+			"Id": 29,
 			"Name": "noted",
 			"Ret": [
 				"int32_t"
@@ -220,56 +240,56 @@
 			]
 		},
 		{
-			"Id": 34,
 			"Args": [
 				"void*"
 			],
+			"Id": 34,
 			"Name": "rendezvous",
 			"Ret": [
 				"void*"
 			]
 		},
 		{
-			"Id": 35,
 			"Args": [
 				"char*",
 				"char*"
 			],
+			"Id": 35,
 			"Name": "unmount",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 37,
 			"Args": [
 				"int32_t*",
 				"int32_t"
 			],
+			"Id": 37,
 			"Name": "semacquire",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 38,
 			"Args": [
 				"int32_t*",
 				"int32_t"
 			],
+			"Id": 38,
 			"Name": "semrelease",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 39,
 			"Args": [
 				"int64_t*",
 				"int32_t",
 				"int64_t",
 				"int32_t"
 			],
+			"Id": 39,
 			"Name": "seek",
 			"Ret": [
 				"int64_t"
@@ -283,130 +303,130 @@
 			]
 		},
 		{
-			"Id": 41,
 			"Args": [
 				"char*",
 				"uint32_t"
 			],
+			"Id": 41,
 			"Name": "errstr",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 42,
 			"Args": [
 				"char*",
 				"uint8_t*",
 				"uint32_t"
 			],
+			"Id": 42,
 			"Name": "stat",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 43,
 			"Args": [
 				"int32_t",
 				"uint8_t*",
 				"uint32_t"
 			],
+			"Id": 43,
 			"Name": "fstat",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 44,
 			"Args": [
 				"char*",
 				"uint8_t*",
 				"uint32_t"
 			],
+			"Id": 44,
 			"Name": "wstat",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 45,
 			"Args": [
 				"int32_t",
 				"uint8_t*",
 				"uint32_t"
 			],
+			"Id": 45,
 			"Name": "fwstat",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 46,
 			"Args": [
 				"int32_t",
 				"char*",
 				"int32_t",
 				"char*"
 			],
+			"Id": 46,
 			"Name": "mount",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 47,
 			"Args": [
 				"char*",
 				"int32_t"
 			],
+			"Id": 47,
 			"Name": "await",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 50,
 			"Args": [
 				"int32_t",
 				"void*",
 				"int32_t",
 				"int64_t"
 			],
+			"Id": 50,
 			"Name": "pread",
 			"Ret": [
 				"int32_t"
 			]
 		},
 		{
-			"Id": 51,
 			"Args": [
 				"int32_t",
 				"void*",
 				"int32_t",
 				"int64_t"
 			],
+			"Id": 51,
 			"Name": "pwrite",
 			"Ret": [
 				"int32_t"
 			]
 		},
-	    {
-		"Id": 17,
-		"Args": [
-		    "int64_t"
-		],
-		"Name": "sleep",
-		"Ret": [
-		    "int32_t"
-		]
-	    },
 		{
-			"Id": 52,
+			"Args": [
+				"int64_t"
+			],
+			"Id": 17,
+			"Name": "sleep",
+			"Ret": [
+				"int32_t"
+			]
+		},
+		{
 			"Args": [
 				"int32_t*",
 				"uint64_t"
 			],
+			"Id": 52,
 			"Name": "tsemacquire",
 			"Ret": [
 				"int32_t"
@@ -685,26 +705,6 @@
 			"Id": 52,
 			"Name": "Eunmount",
 			"String": "not mounted"
-		}
-	],
-	"Bootmethods": [
-		{
-			"Name": "tcp",
-			"Config": "configtcp",
-			"Connect": "connecttcp",
-			"Arg": ""
-		},
-		{
-			"Name": "rc",
-			"Config": "configrc",
-			"Connect": "connectrc",
-			"Arg": ""
-		},
-		{
-			"Name": "local",
-			"Config": "configlocal",
-			"Connect": "connectlocal",
-			"Arg": ""
 		}
 	]
 }

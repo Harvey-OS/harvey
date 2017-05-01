@@ -116,7 +116,7 @@
 			"usbehcipc.c",
 			"usbohci.c",
 			"usbuhci.c",
-		    "cbvga.c"
+			"cbvga.c"
 		]
 	}
 }

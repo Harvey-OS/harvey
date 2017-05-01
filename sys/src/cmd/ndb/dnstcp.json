@@ -1,7 +1,6 @@
 {
 	"dnstcp": {
-	"CFlags": [
-	],
+		"CFlags": [],
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],

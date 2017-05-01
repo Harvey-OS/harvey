@@ -1,8 +1,5 @@
 {
 	"KernelLibs": {
-		"Include": [
-			"/$ARCH/include/$CC.json"
-		],
 		"Cflags": [
 			"-mcmodel=kernel",
 			"-O0",
@@ -12,6 +9,9 @@
 			"-Wall",
 			"-Werror",
 			"-g"
+		],
+		"Include": [
+			"/$ARCH/include/$CC.json"
 		],
 		"Oflags": [
 			"-static"

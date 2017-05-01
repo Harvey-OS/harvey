@@ -3,10 +3,10 @@
 		"Include": [
 			"../../cmd.json"
 		],
+		"Install": "/$ARCH/bin",
 		"Post": [
 			"cp mk9660.rc /$ARCH/bin/mk9660"
 		],
-		"Install": "/$ARCH/bin",
 		"Program": "dump9660",
 		"SourceFiles": [
 			"boot.c",

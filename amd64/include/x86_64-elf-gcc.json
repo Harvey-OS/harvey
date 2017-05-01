@@ -1,6 +1,5 @@
 {
 	"buildflags": {
-		"Cflags": [
-		]
+		"Cflags": []
 	}
 }

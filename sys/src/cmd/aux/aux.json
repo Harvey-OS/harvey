@@ -1,16 +1,10 @@
 {
 	"Aux": {
-	    "CFlags": [
-		],
+		"CFlags": [],
 		"Include": [
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/aux",
-	    "WhoCares": [
-			"mnihongo/mnihongo.json",
-			"gps/gps.json",
-			"flashfs/flashfs.json"
-		],
 		"Projects": [
 			"realemu/realemu.json",
 			"realemu/loadcom.json",
@@ -50,6 +44,11 @@
 			"write.c",
 			"zerotrunc.c",
 			"tty.c"
+		],
+		"WhoCares": [
+			"mnihongo/mnihongo.json",
+			"gps/gps.json",
+			"flashfs/flashfs.json"
 		]
 	}
 }

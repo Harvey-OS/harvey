@@ -1,20 +1,94 @@
 {
-    "Comment": [
-	"only kb, disk, and ether are prepared for embedding.",
-	"others are not yet converted to sit in the usbd device driver library."
-    ],
-    "Embeds": [
-	{"Name": "kb", "Class": "0", "CSP": ["0x010103", "0x020103", "0", "0"], "VID": "-1", "DID": "-1"},
-	{"Name": "disk", "Class": "8", "CSP": [	"DCL", "0", "0", "0" ], "VID": "-1", "DID": "-1"}
+	"Comment": [
+		"only kb, disk, and ether are prepared for embedding.",
+		"others are not yet converted to sit in the usbd device driver library."
 	],
-    "NotWorkingEmbeds": [
-	{"Name": "ether", "Class": "255", "CSP": ["0x00ffff", "0", "0", "0"], "VID": "0x0b95", "DID": "0"},
-	{"Name": "ether", "Class": "255", "CSP": ["0xff00ff", "0", "0", "0"], "VID": "0x0424", "DID": "0xec00"},
-	{"Name": "serial", "Class": "255", "CSP": ["0xffffff", "0", "0", "0"], "VID": "0x9e88", "DID": "0x9e8f"},
-	{"Name": "serial", "Class": "255", "CSP": ["0xffffff", "0", "0", "0"], "VID": "0x0403", "DID": "0"},
-	{"Name": "serial", "Class": "255", "CSP": ["0x0000ff", "0", "0", "0"], "VID": "0x10c4", "DID": "0"}
-
-    ]
-    
+	"Embeds": [
+		{
+			"CSP": [
+				"0x010103",
+				"0x020103",
+				"0",
+				"0"
+			],
+			"Class": "0",
+			"DID": "-1",
+			"Name": "kb",
+			"VID": "-1"
+		},
+		{
+			"CSP": [
+				"DCL",
+				"0",
+				"0",
+				"0"
+			],
+			"Class": "8",
+			"DID": "-1",
+			"Name": "disk",
+			"VID": "-1"
+		}
+	],
+	"NotWorkingEmbeds": [
+		{
+			"CSP": [
+				"0x00ffff",
+				"0",
+				"0",
+				"0"
+			],
+			"Class": "255",
+			"DID": "0",
+			"Name": "ether",
+			"VID": "0x0b95"
+		},
+		{
+			"CSP": [
+				"0xff00ff",
+				"0",
+				"0",
+				"0"
+			],
+			"Class": "255",
+			"DID": "0xec00",
+			"Name": "ether",
+			"VID": "0x0424"
+		},
+		{
+			"CSP": [
+				"0xffffff",
+				"0",
+				"0",
+				"0"
+			],
+			"Class": "255",
+			"DID": "0x9e8f",
+			"Name": "serial",
+			"VID": "0x9e88"
+		},
+		{
+			"CSP": [
+				"0xffffff",
+				"0",
+				"0",
+				"0"
+			],
+			"Class": "255",
+			"DID": "0",
+			"Name": "serial",
+			"VID": "0x0403"
+		},
+		{
+			"CSP": [
+				"0x0000ff",
+				"0",
+				"0",
+				"0"
+			],
+			"Class": "255",
+			"DID": "0",
+			"Name": "serial",
+			"VID": "0x10c4"
+		}
+	]
 }
-

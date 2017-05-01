@@ -1,13 +1,12 @@
 {
 	"proof": {
-		"CFlags": [
-		],
+		"CFlags": [],
 		"Include": [
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
 		"Program": "proof",
-	 	"SourceFiles": [
+		"SourceFiles": [
 			"font.c",
 			"htroff.c",
 			"main.c",
