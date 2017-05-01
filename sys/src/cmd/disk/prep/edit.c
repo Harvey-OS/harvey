@@ -554,4 +554,3 @@ estrdup(char *s)
 		sysfatal("strdup (%.10s) fails", s);
 	return s;
 }
-

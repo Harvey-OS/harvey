@@ -687,4 +687,3 @@ usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
 	}
 	close(fd[0]);
 }
-

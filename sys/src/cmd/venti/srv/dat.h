@@ -762,4 +762,3 @@ extern	uint32_t	stattime;
 #ifndef PLAN9PORT
 #define ODIRECT 0
 #endif
-

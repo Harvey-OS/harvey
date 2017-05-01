@@ -74,4 +74,3 @@ main(int _, char *__)
 	}
 	exits(0);
 }
-

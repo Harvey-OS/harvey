@@ -28,5 +28,3 @@ threadmain(int argc, char **argv)
 		print("now2 %ld %s", now2, ctime(now2));
 	}
 }
-
-

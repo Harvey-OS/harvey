@@ -44,4 +44,3 @@ struct VacDirEnum
 	int i, n;
 	VacDir *buf;
 };
-

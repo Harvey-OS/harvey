@@ -549,4 +549,3 @@ t7init(void)
 	ds(L("eof"), L(".sp 0.5i\n"));
 	ds(L(".."), L(""));
 }
-

@@ -148,4 +148,3 @@ _procsplx(int s)
 	if(p->pending)
 		delayednotes(p, nil);
 }
-

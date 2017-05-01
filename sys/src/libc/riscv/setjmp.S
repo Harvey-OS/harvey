@@ -79,5 +79,3 @@ longjmp:
 	MV	ra,a0 // X1 (non zero by definition I hope.
 	mv	a0, a1
 	RET
-
-

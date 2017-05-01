@@ -62,4 +62,3 @@ struct Packet
 
 	Frag local[NLocalFrag];
 };
-

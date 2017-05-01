@@ -180,4 +180,3 @@ Proto pppoe_sess =
 	p_fields,
 	defaultframer
 };
-

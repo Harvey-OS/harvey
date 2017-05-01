@@ -2274,9 +2274,3 @@ int psymodel_init(lame_global_flags *gfp)
 
     return 0;
 }
-
-
-
-
-
-

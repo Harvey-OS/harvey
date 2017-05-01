@@ -427,4 +427,3 @@ bwatchUnlock(Block *b)
 	}else
 		w->b[i] = w->b[--w->nb];
 }
-

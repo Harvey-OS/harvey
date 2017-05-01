@@ -74,4 +74,3 @@ void xmlamap(Hio *hout, AMap *s, char *tag, int indent){
 	xmlu64int(hout, s->stop, "stop");
 	hprint(hout, "/>\n");
 }
-

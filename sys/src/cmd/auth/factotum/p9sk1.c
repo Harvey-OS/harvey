@@ -491,4 +491,3 @@ Proto p9sk2 = {
 .read=	p9skread,
 .close=	p9skclose,
 };
-

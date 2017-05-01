@@ -148,4 +148,3 @@ t19init(void)
 
 	nr(L("$$"), getpid());
 }
-

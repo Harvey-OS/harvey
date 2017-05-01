@@ -280,4 +280,3 @@ t2init(void)
 	addesc('N', e_N, 0);
 	/* \- \' \` are handled in html.c */
 }
-

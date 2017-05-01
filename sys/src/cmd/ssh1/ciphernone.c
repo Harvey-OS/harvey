@@ -34,4 +34,3 @@ Cipher ciphernone =
 	encryptnone,
 	decryptnone,
 };
-

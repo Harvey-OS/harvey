@@ -607,4 +607,3 @@ vtglobaltolocal(uint8_t score[VtScoreSize])
 		return NilBlock;
 	return (score[16]<<24)|(score[17]<<16)|(score[18]<<8)|score[19];
 }
-
