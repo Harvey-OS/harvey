@@ -113,7 +113,7 @@ Strcmp(String *a, String *b)
 	int i, c;
 
 	for(i=0; i<a->n && i<b->n; i++)
-		if((c = (a->s[i] - b->s[i])) != 0)	/* assign = */
+		if((c = (a->s[i] - b->s[i])) != 0)
 			return c;
 	/* damn NULs confuse everything */
 	i = a->n - b->n;
@@ -133,7 +133,7 @@ Strispre(String *a, String *b)
 	int i;
 
 	for(i=0; i<a->n && i<b->n; i++){
-		if(a->s[i] - b->s[i]){	/* assign = */
+		if(a->s[i] - b->s[i]){
 			if(a->s[i] == 0)
 				return 1;
 			return 0;

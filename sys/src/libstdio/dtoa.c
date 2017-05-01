@@ -505,8 +505,8 @@ d2b(double d, int *e, int *bits)
 	uls.hi &= 0x7fffffff;			/* clear sign bit, which we ignore */
 	de = (int)(uls.hi >> Exp_shift);
 	z |= Exp_msk11;
-	if ((y = uls.lo) != 0) {		/* assignment = */
-		if ((k = lo0bits(&y)) != 0) {	/* assignment = */
+	if ((y = uls.lo) != 0) {
+		if ((k = lo0bits(&y)) != 0) {
 			x[0] = y | z << (32 - k);
 			z >>= k;
 		} else
