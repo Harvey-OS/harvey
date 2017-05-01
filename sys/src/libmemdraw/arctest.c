@@ -71,4 +71,3 @@ iprint(char *fmt, ...)
 	write(1,buf,n);
 	return 1;
 }
-

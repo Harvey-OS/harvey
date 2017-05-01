@@ -293,4 +293,3 @@ htmlinit(void)
 
 	ds(L("font"), L(defaultfont));
 }
-

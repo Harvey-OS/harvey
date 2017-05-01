@@ -70,5 +70,3 @@ ineqn (char *s, char *p)
 	}
 	return(0);
 }
-
-

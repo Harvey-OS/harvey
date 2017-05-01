@@ -235,5 +235,3 @@ filler(char *s)
 {
 	return (point(s) && s[0] == '\\' && s[1] == 'R');
 }
-
-

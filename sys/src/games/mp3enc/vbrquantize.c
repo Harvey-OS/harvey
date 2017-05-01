@@ -1693,6 +1693,3 @@ VBR_quantize(lame_global_flags *gfp,
 
 
 }
-
-
-

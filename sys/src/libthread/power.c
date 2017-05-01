@@ -33,4 +33,3 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	t->sched[JMPBUFPC] = (uint32_t)launcherpower+JMPBUFDPC;
 	t->sched[JMPBUFSP] = (uint32_t)tos;
 }
-

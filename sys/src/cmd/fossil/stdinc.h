@@ -17,4 +17,3 @@ typedef	unsigned char	uint8_t;
 #include "oventi.h"
 #include "vac.h"
 #include "fs.h"
-

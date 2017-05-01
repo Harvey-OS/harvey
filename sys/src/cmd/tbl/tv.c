@@ -188,5 +188,3 @@ barent(char *s)
 	}
 	return(0);
 }
-
-

@@ -129,4 +129,3 @@ L(char *s)
 	hash[h] = l;
 	return l->r;
 }
-

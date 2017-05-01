@@ -23,4 +23,3 @@ t13init(void)
 
 	addesc('%', e_nop, 0);
 }
-

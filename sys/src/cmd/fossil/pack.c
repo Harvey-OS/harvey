@@ -232,4 +232,3 @@ Err:
 	vtSetError(EBadSuper);
 	return 0;
 }
-

@@ -93,4 +93,3 @@ int		symchar(int);
 int		term(int);
 void		ungrab(void);
 int		valpr(long, int);
-

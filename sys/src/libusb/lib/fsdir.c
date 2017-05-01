@@ -426,4 +426,3 @@ Usbfs usbdirfs =
 	.stat = fsstat,
 	.end = fsend,
 };
-

@@ -518,4 +518,3 @@ rwstat(Fcall *f)
 {
 	reply(f, "wstat not implemented");
 }
-

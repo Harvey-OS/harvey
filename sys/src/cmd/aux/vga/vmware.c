@@ -295,4 +295,3 @@ Ctlr vmwarehwgc = {
 	0,				/* load */
 	0,				/* dump */
 };
-

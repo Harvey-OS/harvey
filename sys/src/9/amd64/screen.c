@@ -758,4 +758,3 @@ VGAcur vgavesacur =
 	swload,
 	swmove,
 };
-

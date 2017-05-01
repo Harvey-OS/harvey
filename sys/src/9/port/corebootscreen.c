@@ -678,4 +678,3 @@ screenputc(char *buf)
 	}
 }
 #endif
-

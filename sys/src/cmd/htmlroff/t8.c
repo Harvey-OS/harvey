@@ -455,4 +455,3 @@ t8init(void)
 	addesc('n', e_n, CopyMode|ArgMode|HtmlMode);
 	addesc('g', e_g, 0);
 }
-

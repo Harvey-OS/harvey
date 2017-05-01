@@ -192,4 +192,3 @@ t1init(void)
 	nr(L("mo"), tm.mon);
 	nr(L("yr"), tm.year%100);
 }
-

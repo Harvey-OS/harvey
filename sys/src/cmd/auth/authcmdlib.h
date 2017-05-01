@@ -72,4 +72,3 @@ int	smartcheck(void*, int32_t, char*);
 void	succeed(char*);
 void	wrbio(char*, Acctbio*);
 int	writefile(char*, char*, int);
-

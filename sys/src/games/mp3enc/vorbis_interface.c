@@ -577,4 +577,3 @@ int  lame_encode_ogg_frame (
 #endif
 
 /* end of vorbis_interface.c */
-

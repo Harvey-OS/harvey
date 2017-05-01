@@ -464,4 +464,3 @@ dochap(char *pass, int id, char chal[ChapChallen],
 	memmove(buf+1+n, chal, ChapChallen);
 	md5((uint8_t*)buf, 1+n+ChapChallen, resp, nil);
 }
-

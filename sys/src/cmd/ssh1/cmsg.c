@@ -382,4 +382,3 @@ requestpty(Conn *c)
 	}
 	free(m);
 }
-

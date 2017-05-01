@@ -106,4 +106,3 @@ Bool bz_feof ( FILE* f )
    ungetc ( c, f );
    return False;
 }
-

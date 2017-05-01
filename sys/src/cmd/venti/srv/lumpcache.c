@@ -435,4 +435,3 @@ checklumpcache(void)
 	if(lumpcache.nheap + nfree + refed != lumpcache.nblocks)
 		sysfatal("lc: missing blocks: %d %d %d %d", lumpcache.nheap, refed, nfree, lumpcache.nblocks);
 }
-

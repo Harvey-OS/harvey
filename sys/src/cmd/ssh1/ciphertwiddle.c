@@ -34,4 +34,3 @@ Cipher ciphertwiddle =
 	twiddle,
 	twiddle,
 };
-

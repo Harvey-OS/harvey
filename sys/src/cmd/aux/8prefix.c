@@ -301,4 +301,3 @@ walkobj(Obj *obj, void (*fn)(int, Sym*, uint8_t*, int))
 		}
 	}
 }
-

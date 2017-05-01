@@ -563,4 +563,3 @@ int	convDNS2M(DNSmsg*, unsigned char*, int);
 
 /* convM2DNS.c */
 char*	convM2DNS(unsigned char*, int, DNSmsg*, int*);
-

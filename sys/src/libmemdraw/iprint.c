@@ -17,4 +17,3 @@ iprint(char* c,...)
 {
 	return -1;
 }
-

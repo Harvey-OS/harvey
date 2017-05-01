@@ -479,4 +479,3 @@ pmcupdate(Mach *m)
 		iunlock(&m->pmclock);
 	}
 }
-

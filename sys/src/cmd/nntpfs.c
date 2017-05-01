@@ -1107,4 +1107,3 @@ main(int argc, char **argv)
 	postmountsrv(&nntpsrv, service, mtpt, MREPL);
 	exits(nil);
 }
-

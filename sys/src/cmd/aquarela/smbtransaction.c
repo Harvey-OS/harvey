@@ -524,4 +524,3 @@ smbtransactionexecute(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer
 		*rhp = rh;
 	return 1;
 }
-

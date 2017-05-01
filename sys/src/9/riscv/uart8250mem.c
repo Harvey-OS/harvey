@@ -283,4 +283,3 @@ void lowrisc_flush(int idx)
 		return;
 	uart8250_mem_tx_flush(base);
 }
-

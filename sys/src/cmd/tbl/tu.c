@@ -262,5 +262,3 @@ prev(int i)
 		;
 	return(i);
 }
-
-

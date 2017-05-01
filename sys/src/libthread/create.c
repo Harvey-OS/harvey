@@ -160,4 +160,3 @@ _freethread(Thread *t)
 	free(t->stk);
 	free(t);
 }
-

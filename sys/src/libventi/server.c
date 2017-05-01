@@ -223,4 +223,3 @@ vtrespond(VtReq *r)
 	vtfcallclear(&r->rx);
 	vtfree(r);
 }
-

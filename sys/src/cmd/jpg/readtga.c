@@ -421,5 +421,3 @@ readtga(int fd)
 	Bterm(&b);
 	return a;
 }
-
-
