@@ -144,7 +144,7 @@ dbvesamode(char *mode)
 	uint8_t *p, *ep;
 	Vmode vm;
 	Mode *m;
-	
+
 	if(vbe == nil)
 		return nil;
 
@@ -242,8 +242,8 @@ dump(Vga* vga, Ctlr* ctlr)
 	for(i=0x100; i<0x1FF; i++)
 		if(!did[i])
 			vbeprintmodeinfo(vbe, i, " (unoffered)");
-				
-	
+
+
 	if(vbeddcedid(vbe, &edid) < 0)
 		fprint(2, "warning: reading edid: %r\n");
 	else
@@ -613,7 +613,7 @@ vbeddcedid(Vbe *vbe, Edid *e)
 {
 	uint8_t *p;
 	Ureg u;
-	
+
 	p = vbesetup(vbe, &u, 0x4F15);
 	u.bx = 0x0001;
 	if(vbecall(vbe, &u) < 0)
@@ -624,12 +624,12 @@ vbeddcedid(Vbe *vbe, Edid *e)
 	}
 	return 0;
 }
-	
+
 void
 printedid(Edid *e)
 {
 	Modelist *l;
-	
+
 	printitem("edid", "mfr");
 	Bprint(&stdout, "%s\n", e->mfr);
 	printitem("edid", "serialstr");
@@ -656,7 +656,7 @@ printedid(Edid *e)
 	Bprint(&stdout, "%lu\n", e->pclkmax);
 	printitem("edid", "flags");
 	printflags(edidflags, e->flags);
-	
+
 	for(l=e->modelist; l; l=l->next){
 		printitem("edid", l->Mode.name);
 		Bprint(&stdout, "\n\t\tclock=%g\n\t\tshb=%d ehb=%d ht=%d\n\t\tvrs=%d vre=%d vt=%d\n\t\thsync=%c vsync=%c %s\n",
@@ -770,7 +770,7 @@ decodedtb(Mode *m, uint8_t *p)
 	m->ehs = ha+hb;
 
 	m->vt = va+vb;
-	m->vbs = va;	
+	m->vbs = va;
 	m->vrs = va+vso;
 	m->vre = va+vso+vspw;
 	m->vbe = va+vb;
@@ -782,7 +782,7 @@ decodedtb(Mode *m, uint8_t *p)
 		return -1;
 
 	/*
-	 * Sync signal description.  I have no idea how to properly handle the 
+	 * Sync signal description.  I have no idea how to properly handle the
 	 * first three cases, which I think are aimed at things other than
 	 * canonical SVGA monitors.
 	 */
@@ -873,7 +873,7 @@ parseedid128(Edid *e, void *v)
 	}
 
 	sum = 0;
-	for(i=0; i<128; i++) 
+	for(i=0; i<128; i++)
 		sum += p[i];
 	if(sum != 0) {
 		werrstr("bad edid checksum");
@@ -957,7 +957,7 @@ parseedid128(Edid *e, void *v)
 	 */
 	estab = (p[0]<<16) | (p[1]<<8) | p[2];
 	p += 3;
-	
+
 	for(i=0, m=1<<23; i<nelem(estabtime); i++, m>>=1)
 		if(estab & m)
 			if(vesalookup(&mode, estabtime[i]) == 0)

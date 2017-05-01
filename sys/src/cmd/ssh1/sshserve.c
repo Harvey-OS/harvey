@@ -195,7 +195,7 @@ InteractiveMode:
 		case SSH_CMSG_EXIT_CONFIRMATION:
 			/* sent by some clients as dying breath */
 			exits(nil);
-	
+
 		case SSH_CMSG_WINDOW_SIZE:
 			/* we don't care */
 			break;
@@ -215,7 +215,7 @@ copyout(Conn *c, int fd, int mtype)
 		max = maxmsg - 32;
 	if(max <= 0)
 		sysfatal("maximum message size too small");
-	
+
 	switch(pid = rfork(RFPROC|RFMEM|RFNOWAIT)){
 	case -1:
 		sysfatal("fork: %r");
@@ -271,7 +271,7 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 				putenv("sysname", sysname);
 			if(tz)
 				putenv("tz", tz);
-	
+
 			dir = smprint("/usr/%s", c->user);
 			if(dir == nil || chdir(dir) < 0)
 				chdir("/");
@@ -306,7 +306,7 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 			for(i=0; i<3; i++)
 				close(pfd[i][0]);
 			free(w);
-			exits(nil);	
+			exits(nil);
 			break;
 		}
 	default:

@@ -310,7 +310,7 @@ _floatfmt(Fmt *fmt, double f)
 	 * The max length of a %f string is
 	 *	'[+-]'+"max exponent"+'.'+"max precision"+'\0'
 	 * which is 341 currently.
-	 */	
+	 */
 	xdtoa(fmt, s, f);
 	fmt->flags &= FmtWidth|FmtLeft;
 	_fmtcpy(fmt, s, strlen(s), strlen(s));

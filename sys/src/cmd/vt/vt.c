@@ -18,7 +18,7 @@
  *
  * 3. We don't respect requests to do reverse video for the whole screen.
  *
- * 4. We ignore the ESC#n codes, so that we don't do double-width nor 
+ * 4. We ignore the ESC#n codes, so that we don't do double-width nor
  * 	double-height lines, nor the ``fill the screen with E's'' confidence check.
  *
  * 5. Cursor key sequences aren't selected by keypad application mode.
@@ -436,7 +436,7 @@ print("resetterminal\n");
 					 */
 					case 'l':
 						if(noperand == 1){
-							switch(operand[0]){	
+							switch(operand[0]){
 							case 20:	/* set line feed mode */
 								ttystate[cs->raw].nlcr = 1;
 								break;
@@ -614,7 +614,7 @@ print("resetterminal\n");
 						if(y > yscrmax)
 							y=yscrmax;
 						break;
-					
+
 					/*
 					 * C - cursor right
 					 */
@@ -893,10 +893,10 @@ setattr(int argc, int *argv)
 			break;
 		case 1:
 			attr |= THighIntensity;
-			break;		
+			break;
 		case 4:
 			attr |= TUnderline;
-			break;		
+			break;
 		case 5:
 			attr |= TBlink;
 			break;
@@ -908,10 +908,10 @@ setattr(int argc, int *argv)
 			break;
 		case 22:
 			attr &= ~THighIntensity;
-			break;		
+			break;
 		case 24:
 			attr &= ~TUnderline;
-			break;		
+			break;
 		case 25:
 			attr &= ~TBlink;
 			break;

@@ -268,7 +268,7 @@ getrange(Block *b)
 
 	netfd = dialhttp(&netbio);
 
-	fprint(netfd, 
+	fprint(netfd,
 		"GET %s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"Accept-Encoding:\r\n"
@@ -430,7 +430,7 @@ getfilesize(void)
 
 	netfd = dialhttp(&netbio);
 
-	fprint(netfd, 
+	fprint(netfd,
 		"HEAD %s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"Accept-Encoding:\r\n"
@@ -565,7 +565,7 @@ fsread(Req *r)
 	}
 }
 
-Srv fs = 
+Srv fs =
 {
 .attach=		fsattach,
 .walk1=		fswalk1,

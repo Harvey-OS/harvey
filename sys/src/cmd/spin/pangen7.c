@@ -497,7 +497,7 @@ explore_product(void)
 		}
 	} while (render);
 	assert(!dsts);
-	
+
 }
 
 static void
@@ -826,7 +826,7 @@ get_sub(int n, Element *e)
 	if (e->n->ntyp == D_STEP
 	||  e->n->ntyp == ATOMIC)
 	{	fatal("atomic or d_step in never claim product", 0);
-	} 
+	}
 	/* NON_ATOMIC */
 	e->n->sl->this->last->nxt = e->nxt;
 	get_seq(n, e->n->sl->this);
@@ -924,7 +924,7 @@ get_seq(int n, Sequence *s)
 			||  e->n->ntyp == D_STEP
 			||  e->n->ntyp == NON_ATOMIC)
 			{	get_sub(n, e);
-			} else 
+			} else
 			{	set_el(n, e);
 			}
 		}

@@ -155,7 +155,7 @@ init_outfile(char *outPath, int decode)
     /* open the output file */
     if (0 == strcmp(outPath, "-"))
         lame_set_stream_binary_mode(outf = stdout);
-    else 
+    else
         if ((outf = fopen(outPath, "wb+")) == NULL)
             return NULL;
     return outf;
@@ -253,10 +253,10 @@ get_audio(lame_global_flags * const gfp, int16_t buffer[2][1152])
     int     j;
     int16_t  *p;
 
-    /* 
+    /*
      * NOTE: LAME can now handle arbritray size input data packets,
      * so there is no reason to read the input data in chuncks of
-     * size "gfp->framesize".  EXCEPT:  the LAME graphical frame analyzer 
+     * size "gfp->framesize".  EXCEPT:  the LAME graphical frame analyzer
      * will get out of sync if we read more than framesize worth of data.
      */
 
@@ -269,7 +269,7 @@ get_audio(lame_global_flags * const gfp, int16_t buffer[2][1152])
     /* if this flag has been set, then we are carefull to read
      * exactly num_samples and no more.  This is useful for .wav and .aiff
      * files which have id3 or other tags at the end.  Note that if you
-     * are using LIBSNDFILE, this is not necessary 
+     * are using LIBSNDFILE, this is not necessary
      */
     if (count_samples_carefully) {
         remaining = tmp_num_samples - Min(tmp_num_samples, num_samples_read);
@@ -1254,7 +1254,7 @@ parse_file_header(lame_global_flags * gfp, FILE * sf)
     int     type = Read32BitsHighLow(sf);
     /*
        DEBUGF(
-       "First word of input stream: %08x '%4.4s'\n", type, (char*) &type); 
+       "First word of input stream: %08x '%4.4s'\n", type, (char*) &type);
      */
     count_samples_carefully = 0;
     input_format = sf_raw;
@@ -1265,7 +1265,7 @@ parse_file_header(lame_global_flags * gfp, FILE * sf)
             input_format = sf_wave;
             count_samples_carefully = 1;
         } else {
-	    fprintf( stderr, "Warning: corrupt or unsupported WAVE format\n"); 
+	    fprintf( stderr, "Warning: corrupt or unsupported WAVE format\n");
         }
     }
     else if (type == IFF_ID_FORM) {
@@ -1446,7 +1446,7 @@ is_syncword_mp123(const void *const headerptr)
     if ((p[2] & 0xF0) == 0xF0)
         return 0;       // bad bitrate
     if ((p[2] & 0x0C) == 0x0C)
-        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)    
+        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)
     if ((p[1] & 0x06) == 0x04) // illegal Layer II bitrate/Channel Mode comb
         if (abl2[p[2] >> 4] & (1 << (p[3] >> 6)))
             return 0;
@@ -1469,7 +1469,7 @@ is_syncword_mp3(const void *const headerptr)
     if ((p[2] & 0xF0) == 0xF0)
         return 0;       // bad bitrate
     if ((p[2] & 0x0C) == 0x0C)
-        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)    
+        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)
     return 1;
 }
 
@@ -1532,9 +1532,9 @@ lame_decode_initfile(FILE * fd, mp3data_struct * mp3data)
                 "\rXing VBR header dectected.  MP3 file has %i frames\n",
                 num_frames);
 
-        // skip the rest of the Xing header.  LAME decoder ignores TOC data    
+        // skip the rest of the Xing header.  LAME decoder ignores TOC data
         fskip(fd, pTagData.headersize - 48, SEEK_CUR);
-        // buffer a few more bytes for next header check:  
+        // buffer a few more bytes for next header check:
         len = fread(buf, 1, 4, fd);
 
     }
@@ -1551,10 +1551,10 @@ lame_decode_initfile(FILE * fd, mp3data_struct * mp3data)
     }
 #endif
 
-    // now parse the current buffer looking for MP3 headers 
-    // we dont want to feed too much data to lame_decode1_headers -  
+    // now parse the current buffer looking for MP3 headers
+    // we dont want to feed too much data to lame_decode1_headers -
     // we dont want it to actually decode the first frame
-    // (as of 11/00: mpglib modified so that for the first frame where 
+    // (as of 11/00: mpglib modified so that for the first frame where
     // headers are parsed, no data will be decoded.  So the above is
     // now a moot point.
     ret = lame_decode1_headers(buf, len, pcm_l, pcm_r, mp3data);

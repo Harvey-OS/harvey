@@ -56,9 +56,9 @@ struct Group {
 };
 
 /*
- * First eight fields are, in order: 
- *	article number, subject, author, date, message-ID, 
- *	references, byte count, line count 
+ * First eight fields are, in order:
+ *	article number, subject, author, date, message-ID,
+ *	references, byte count, line count
  * We don't support OVERVIEW.FMT; when I see a server with more
  * interesting fields, I'll implement support then.  In the meantime,
  * the standard defines the first eight fields.
@@ -220,7 +220,7 @@ nntpconnect(Netbuf *n)
 {
 	n->currentgroup = nil;
 	close(n->fd);
-	if((n->fd = dial(n->addr, nil, nil, nil)) < 0){	
+	if((n->fd = dial(n->addr, nil, nil, nil)) < 0){
 		snprint(n->response, sizeof n->response, "dial %s: %r", n->addr);
 		return -1;
 	}
@@ -339,17 +339,17 @@ nntpover(Netbuf *n, Group *g, int m)
 	if(g != xovergroup || m < xoverlo || m >= xoverhi){
 		lo = (m/XoverChunk)*XoverChunk;
 		hi = lo+XoverChunk;
-	
+
 		if(lo < g->lo)
 			lo = g->lo;
 		else if (lo > g->hi)
 			lo = g->hi;
 		if(hi < lo || hi > g->hi)
 			hi = g->hi;
-	
+
 		if(nntpcurrentgroup(n, g) < 0)
 			return nil;
-	
+
 		if(lo == hi)
 			snprint(cmd, sizeof cmd, "XOVER %d", hi);
 		else
@@ -426,7 +426,7 @@ findgroup(Group *g, char *name, int mk)
 			if(g->nkid%16 == 0)
 				g->kid = erealloc(g->kid, (g->nkid+16)*sizeof(g->kid[0]));
 
-			/* 
+			/*
 			 * if we're down to a single place 'twixt lo and hi, the insertion might need
 			 * to go at lo or at hi.  strcmp to find out.  the list needs to stay sorted.
 		 	 */
@@ -639,12 +639,12 @@ nntppost(Netbuf *n, char *msg)
 
 /*
  * Because an expanded QID space makes thngs much easier,
- * we sleazily use the version part of the QID as more path bits. 
+ * we sleazily use the version part of the QID as more path bits.
  * Since we make sure not to mount ourselves cached, this
- * doesn't break anything (unless you want to bind on top of 
+ * doesn't break anything (unless you want to bind on top of
  * things in this file system).  In the next version of 9P, we'll
  * have more QID bits to play with.
- * 
+ *
  * The newsgroup is encoded in the top 15 bits
  * of the path.  The message number is the bottom 17 bits.
  * The file within the message directory is in the version [sic].
@@ -705,7 +705,7 @@ fsattach(Req *r)
 	a->g = root;
 	a->n = -1;
 	r->fid->aux = a;
-	
+
 	r->ofcall.qid = (Qid){0, 0, QTDIR};
 	r->fid->qid = r->ofcall.qid;
 	respond(r, nil);
@@ -742,7 +742,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			a->n = -1;
 			return nil;
 		}
-		for(i=0; i<Nfile; i++){ 
+		for(i=0; i<Nfile; i++){
 			if(strcmp(name, filename[i])==0){
 				if((a->s = nntpget(net, a->g, a->n, nntpname[i])) != nil){
 					*qid = (Qid){PATH(a->g->num, a->n), Qbody, 0};
@@ -1070,7 +1070,7 @@ main(int argc, char **argv)
 	if(argc==0)
 		where = "$nntp";
 	else
-		where = argv[0]; 
+		where = argv[0];
 
 	now = time(0);
 

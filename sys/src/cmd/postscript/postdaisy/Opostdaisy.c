@@ -74,7 +74,7 @@
  *	    Makes sure the last page is printed. Only needed when we're printing
  *	    more than one page on each sheet of paper.
  *
- * Many default values, like the magnification and orientation, are defined in 
+ * Many default values, like the magnification and orientation, are defined in
  * the prologue, which is where they belong. If they're changed (by options), an
  * appropriate definition is made after the prologue is added to the output file.
  * The -P option passes arbitrary PostScript through to the output file. Among

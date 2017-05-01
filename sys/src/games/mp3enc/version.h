@@ -33,7 +33,7 @@
 
 # include <stdio.h>
 
-/* 
+/*
  * To make a string from a token, use the # operator:
  *
  * #define __STR(x)  #x

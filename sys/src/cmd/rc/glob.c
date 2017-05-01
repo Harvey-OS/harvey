@@ -130,7 +130,7 @@ equtf(uint8_t *p, uint8_t *q)
 	Rune pr, qr;
 	if(*p!=*q)
 		return 0;
-	
+
 	chartorune(&pr, (char*)p);
 	chartorune(&qr, (char*)q);
 	return pr == qr;

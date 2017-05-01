@@ -50,7 +50,7 @@ cas32:
 	bne zero, a0, 1f
 	li a0, 1
 	jr ra
-1: 
+1:
 	li a0, 0 # Preset return to fail
 	jr ra
 

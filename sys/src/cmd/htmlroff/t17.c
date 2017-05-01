@@ -106,7 +106,7 @@ r_ev(int argc, Rune **argv)
 {
 	int i;
 	Env *e;
-	
+
 	if(argc == 1){
 		if(nevstack <= 0){
 			if(verbose) warn(".ev stack underflow");
@@ -132,7 +132,7 @@ void
 t17init(void)
 {
 	int i;
-	
+
 	for(i=0; i<nelem(env); i++)
 		env[i] = defenv;
 

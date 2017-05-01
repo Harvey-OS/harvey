@@ -118,7 +118,7 @@ bterm(Buf *b)
 {
 	/* DVD & BD prefer full ecc blocks (tracks), but can cope with less */
 	if(b->omode == OWRITE && b->ndata)
-		b->fn(b, b->data, (b->ndata + b->bs - 1)/b->bs, 0); 
+		b->fn(b, b->data, (b->ndata + b->bs - 1)/b->bs, 0);
 
 	free(b->data);
 	free(b);

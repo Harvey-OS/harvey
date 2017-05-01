@@ -86,7 +86,7 @@ typedef struct Symbol {
 	struct Symbol	*next;	/* linked list */
 } Symbol;
 
-typedef struct Ordered {	/* links all names in Symbol table */ 
+typedef struct Ordered {	/* links all names in Symbol table */
 	struct Symbol	*entry;
 	struct Ordered	*next;
 } Ordered;

@@ -71,7 +71,7 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 		memmove(buf, va, n);
 	}
 	q2descr(vq, descr[0])->addr = PADDR(buf);
-	q2descr(vq, descr[0])->len = n;	
+	q2descr(vq, descr[0])->len = n;
 	if(!qidx) {
 		q2descr(vq, descr[0])->flags = VRING_DESC_F_WRITE;
 	}
@@ -191,11 +191,11 @@ vconclose(Chan* c)
 {
 }
 
-static uint32_t 
+static uint32_t
 wantfeat(uint32_t f) {
 	return VIRTIO_CONSOLE_F_SIZE;	// We want only console size, but not multiport for simplicity
 }
-	
+
 static void
 vconinit(void)
 {

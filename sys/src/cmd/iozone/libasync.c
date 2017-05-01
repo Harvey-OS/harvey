@@ -1,21 +1,21 @@
 
 
-/* 
+/*
  * Library for Posix async read operations with hints.
  * Author: Don Capps
  * Company: Iozone
  * Date: 4/24/1998
  *
  * Two models are supported.  First model is a replacement for read() where the async
- * operations are performed and the requested data is bcopy()-ed back into the users 
- * buffer. The second model is a new version of read() where the caller does not 
+ * operations are performed and the requested data is bcopy()-ed back into the users
+ * buffer. The second model is a new version of read() where the caller does not
  * supply the address of the buffer but instead is returned an address to the
  * location of the data. The second model eliminates a bcopy from the path.
  *
  * To use model #1:
  * 1. Call async_init(&pointer_on_stack,fd,direct_flag);
  *	The fd is the file descriptor for the async operations.
- *	The direct_flag sets VX_DIRECT 
+ *	The direct_flag sets VX_DIRECT
  *
  * 2. Call async_read(gc, fd, ubuffer, offset, size, stride, max, depth)
  *    	Where:
@@ -35,12 +35,12 @@
  * To use model #2:
  * 1. Call async_init(&pointer_on_stack,fd,direct_flag);
  *	The fd is the file descriptor for the async operations.
- *	The direct_flag sets VX_DIRECT 
+ *	The direct_flag sets VX_DIRECT
  * 2. Call async_read(gc, fd, &ubuffer, offset, size, stride, max, depth)
  *    	Where:
  *	gc ............	is the pointer on the stack
  *	fd ............	is the file descriptor
- *	ubuffer .......	is the address of a pointer that will be filled in 
+ *	ubuffer .......	is the address of a pointer that will be filled in
  *                      by the async library.
  *	offset ........	is the offset in the file to begin reading
  *	size ..........	is the size of the transfer.
@@ -75,21 +75,21 @@
  *
  * Notes:
  *	The intended use is to replace calls to read() with calls to
- *	async_read() and allow the user to make suggestions on 
+ *	async_read() and allow the user to make suggestions on
  *	what kind of async read-ahead would be nice to have.
  *	The first transfer requested is guarenteed to be complete
  *	before returning to the caller. The async operations will
  *	be started and will also be guarenteed to have completed
  *	if the next call specifies its first request to be one
  *	that was previously performed with an async operation.
- *	
+ *
  *	The async_read_no_copy() function allows the async operations
- *	to return the data to the user and not have to perform 
- *	a bcopy of the data back into the user specified buffer 
+ *	to return the data to the user and not have to perform
+ *	a bcopy of the data back into the user specified buffer
  *	location. This model is faster but assumes that the user
  *	application has been modified to work with this model.
  *
- * 	The async_write() is intended to enhance the performance of 
+ * 	The async_write() is intended to enhance the performance of
  *	initial writes to a file. This is the slowest case in the write
  *	path as it must perform meta-data allocations and wait.
  */
@@ -153,13 +153,13 @@ extern int one;
 char version[] = "Libasync Version $Revision: 3.24 $";
 struct cache_ent {
 	struct aiocb myaiocb;			/* For use in small file mode */
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #if defined(__CrayX1__)
 	aiocb64_t myaiocb64;		/* For use in large file mode */
 #else
 	struct aiocb64 myaiocb64;		/* For use in large file mode */
-#endif 
-#endif 
+#endif
+#endif
 	long long fd;				/* File descriptor */
 	long long size;				/* Size of the transfer */
 	struct cache_ent *forward;		/* link to next element on cache list */
@@ -167,7 +167,7 @@ struct cache_ent {
 	long long direct;			/* flag to indicate if the buffer should be */
 						/* de-allocated by library */
 	char *real_address;			/* Real address to free */
-	
+
 	volatile void *oldbuf;			/* Used for firewall to prevent in flight */
 						/* accidents */
 	int oldfd;				/* Used for firewall to prevent in flight */
@@ -270,7 +270,7 @@ struct cache *gc;
 int
 async_suspend(struct cache_ent *ce)
 {
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	const struct aiocb * const cblist[1] = {&ce->myaiocb};
 #else
@@ -280,7 +280,7 @@ async_suspend(struct cache_ent *ce)
 	const struct aiocb * const cblist[1] = {&ce->myaiocb};
 #endif
 
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	return aio_suspend(cblist, 1, NULL);
 #else
@@ -295,32 +295,32 @@ async_suspend(struct cache_ent *ce)
  * This routine is a generic async reader assist funtion. It takes
  * the same calling parameters as read() but also extends the
  * interface to include:
- * stride ..... For the async reads, what is the distance, in size units, 
+ * stride ..... For the async reads, what is the distance, in size units,
  * 		to space the reads. Note: Stride of 0 indicates that
  *		you do not want any read-ahead.
  * max    ..... What is the maximum file offset for this operation.
  * depth  ..... How much read-ahead do you want.
- * 
+ *
  * The calls to this will guarentee to complete the read() operation
  * before returning to the caller. The completion may occur in two
  * ways. First the operation may be completed by calling aio_read()
- * and then waiting for it to complete. Second  the operation may be 
- * completed by copying the data from a cache of previously completed 
- * async operations. 
- * In the event the read to be satisfied is not in the cache then a 
- * series of async operations will be scheduled and then the first 
- * async read will be completed. In the event that the read() can be 
- * satisfied from the cache then the data is copied back to the 
- * user buffer and a series of async reads will be initiated.  If a 
- * read is issued and the cache contains data and the read can not 
- * be satisfied from the cache, then the cache is discarded, and 
+ * and then waiting for it to complete. Second  the operation may be
+ * completed by copying the data from a cache of previously completed
+ * async operations.
+ * In the event the read to be satisfied is not in the cache then a
+ * series of async operations will be scheduled and then the first
+ * async read will be completed. In the event that the read() can be
+ * satisfied from the cache then the data is copied back to the
+ * user buffer and a series of async reads will be initiated.  If a
+ * read is issued and the cache contains data and the read can not
+ * be satisfied from the cache, then the cache is discarded, and
  * a new cache is constructed.
  * Note: All operations are aio_read(). The series will be issued
  * as asyncs in the order requested. After all are in flight
  * then the code will wait for the manditory first read.
  *************************************************************************/
 
-int 
+int
 async_read(gc, fd, ubuffer, offset, size, stride, max, depth)
 struct cache *gc;
 long long fd;
@@ -347,7 +347,7 @@ long long depth;
 	 */
 	if((ce=(struct cache_ent *)incache(gc,fd,offset,size)))
 	{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		while((ret=aio_error(&ce->myaiocb))== EINPROGRESS)
 		{
@@ -369,7 +369,7 @@ long long depth;
 		{
 			printf("aio_error 1: ret %d %d\n",ret,errno);
 		}
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		retval=aio_return(&ce->myaiocb);
 #else
@@ -385,7 +385,7 @@ long long depth;
 #endif
 		if(retval > 0)
 		{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			mbcopy((char *)ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
 #else
@@ -395,7 +395,7 @@ long long depth;
 			mbcopy((char *)ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
 #endif
 		}
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		if(retval < ce->myaiocb.aio_nbytes)
 #else
@@ -406,7 +406,7 @@ long long depth;
 #endif
 		{
 			printf("aio_return error1: ret %d %d\n",retval,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			printf("aio_return error1: fd %d offset %ld buffer %lx size %d Opcode %d\n",
 				ce->myaiocb.aio_fildes,
@@ -443,7 +443,7 @@ long long depth;
 		del_read++;
 		first_ce=alloc_cache(gc,fd,offset,size,(long long)LIO_READ);
 again:
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		ret=aio_read(&first_ce->myaiocb);
 #else
@@ -482,7 +482,7 @@ again:
 		if((ce=incache(gc,fd,r_offset,a_size)))
 			continue;
 		ce=alloc_cache(gc,fd,r_offset,a_size,(long long)LIO_READ);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		ret=aio_read(&ce->myaiocb);
 #else
@@ -496,11 +496,11 @@ again:
 			takeoff_cache(gc,ce);
 			break;
 		}
-	}			
+	}
 out:
 	if(del_read)	/* Wait for the first read to complete */
 	{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		while((ret=aio_error(&first_ce->myaiocb))== EINPROGRESS)
 		{
@@ -520,7 +520,7 @@ out:
 #endif
 		if(ret)
 			printf("aio_error 2: ret %d %d\n",ret,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		retval=aio_return(&first_ce->myaiocb);
 #else
@@ -529,7 +529,7 @@ out:
 #else
 		retval=aio_return(&first_ce->myaiocb);
 #endif
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		if(retval < first_ce->myaiocb.aio_nbytes)
 #else
@@ -540,7 +540,7 @@ out:
 #endif
 		{
 			printf("aio_return error2: ret %d %d\n",retval,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			printf("aio_return error2: fd %d offset %lld buffer %lx size %d Opcode %d\n",
 				first_ce->myaiocb.aio_fildes,
@@ -568,7 +568,7 @@ out:
 		}
 		if(retval > 0)
 		{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			mbcopy((char *)first_ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
 #else
@@ -581,11 +581,11 @@ out:
 		first_ce->direct=0;
 		takeoff_cache(gc,first_ce);
 	}
-	return((int)retval);	
+	return((int)retval);
 }
 
 /************************************************************************
- * This routine allocates a cache_entry. It contains the 
+ * This routine allocates a cache_entry. It contains the
  * aiocb block as well as linkage for use in the cache mechanism.
  * The space allocated here will be released after the cache entry
  * has been consumed. The routine takeoff_cache() will be called
@@ -609,7 +609,7 @@ off64_t offset;
 		exit(175);
 	}
 	bzero(ce,sizeof(struct cache_ent));
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ce->myaiocb.aio_fildes=(int)fd;
 	ce->myaiocb.aio_offset=(off64_t)offset;
@@ -641,7 +641,7 @@ off64_t offset;
 		exit(176);
 	}
 	/*bzero(ce->myaiocb.aio_buf,(size_t)size);*/
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ce->myaiocb.aio_reqprio=0;
 	ce->myaiocb.aio_nbytes=(size_t)size;
@@ -673,7 +673,7 @@ off64_t offset;
 
 /************************************************************************
  * This routine checks to see if the requested data is in the
- * cache. 
+ * cache.
 *************************************************************************/
 struct cache_ent *
 incache(gc,fd,offset,size)
@@ -687,7 +687,7 @@ off64_t offset;
 		return(0);
 	}
 	move=gc->head;
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	while(move)
 	{
@@ -788,9 +788,9 @@ struct cache_ent *ce;
 
 /************************************************************************
  * This routine is used to purge the entire cache. This is called when
- * the cache contains data but the incomming read was not able to 
+ * the cache contains data but the incomming read was not able to
  * be satisfied from the cache. This indicates that the previous
- * async read-ahead was not correct and a new pattern is emerging. 
+ * async read-ahead was not correct and a new pattern is emerging.
  ************************************************************************/
 void
 del_cache(gc)
@@ -804,7 +804,7 @@ struct cache *gc;
 		ce=gc->head;
 		if(ce==0)
 			return;
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		while((ret = aio_cancel(0,&ce->myaiocb))==AIO_NOTCANCELED)
 #else
@@ -813,9 +813,9 @@ struct cache *gc;
 #else
 		while((ret = aio_cancel(0,&ce->myaiocb))==AIO_NOTCANCELED)
 #endif
-			; 
+			;
 
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		ret = aio_return(&ce->myaiocb);
 #else
@@ -830,8 +830,8 @@ struct cache *gc;
 }
 
 /************************************************************************
- * Like its sister async_read() this function performs async I/O for 
- * all buffers but it differs in that it expects the caller to 
+ * Like its sister async_read() this function performs async I/O for
+ * all buffers but it differs in that it expects the caller to
  * request a pointer to the data to be returned instead of handing
  * the function a location to put the data. This will allow the
  * async I/O to be performed and does not require any bcopy to be
@@ -864,7 +864,7 @@ long long depth;
 	 */
 	if((ce=(struct cache_ent *)incache(gc,fd,offset,size)))
 	{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		while((ret=aio_error(&ce->myaiocb))== EINPROGRESS)
 		{
@@ -884,24 +884,24 @@ long long depth;
 #endif
 		if(ret)
 			printf("aio_error 3: ret %d %d\n",ret,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		if(ce->oldbuf != ce->myaiocb.aio_buf ||
 			ce->oldfd != ce->myaiocb.aio_fildes ||
-			ce->oldsize != ce->myaiocb.aio_nbytes) 
+			ce->oldsize != ce->myaiocb.aio_nbytes)
 #else
 		if(ce->oldbuf != ce->myaiocb64.aio_buf ||
 			ce->oldfd != ce->myaiocb64.aio_fildes ||
-			ce->oldsize != ce->myaiocb64.aio_nbytes) 
+			ce->oldsize != ce->myaiocb64.aio_nbytes)
 #endif
 #else
 		if(ce->oldbuf != ce->myaiocb.aio_buf ||
 			ce->oldfd != ce->myaiocb.aio_fildes ||
-			ce->oldsize != ce->myaiocb.aio_nbytes) 
+			ce->oldsize != ce->myaiocb.aio_nbytes)
 #endif
 			printf("It changed in flight\n");
-			
-#ifdef _LARGEFILE64_SOURCE 
+
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		retval=aio_return(&ce->myaiocb);
 #else
@@ -912,7 +912,7 @@ long long depth;
 #endif
 		if(retval > 0)
 		{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			*ubuffer=(char *)ce->myaiocb.aio_buf;
 #else
@@ -923,7 +923,7 @@ long long depth;
 #endif
 		}else
 			*ubuffer=0;
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		if(retval < ce->myaiocb.aio_nbytes)
 #else
@@ -934,7 +934,7 @@ long long depth;
 #endif
 		{
 			printf("aio_return error4: ret %d %d\n",retval,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			printf("aio_return error4: fd %d offset %lld buffer %lx size %d Opcode %d\n",
 				ce->myaiocb.aio_fildes,
@@ -973,7 +973,7 @@ long long depth;
 		first_ce=alloc_cache(gc,fd,offset,size,(long long)LIO_READ); /* allocate buffer */
 		/*printf("allocated buffer/read %x offset %d\n",first_ce->myaiocb.aio_buf,offset);*/
 again:
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		first_ce->oldbuf=first_ce->myaiocb.aio_buf;
 		first_ce->oldfd=first_ce->myaiocb.aio_fildes;
@@ -1021,7 +1021,7 @@ again:
 		if((ce=incache(gc,fd,r_offset,a_size)))
 			continue;
 		ce=alloc_cache(gc,fd,r_offset,a_size,(long long)LIO_READ);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		ce->oldbuf=ce->myaiocb.aio_buf;
 		ce->oldfd=ce->myaiocb.aio_fildes;
@@ -1044,11 +1044,11 @@ again:
 			takeoff_cache(gc,ce);
 			break;
 		}
-	}			
+	}
 out:
 	if(del_read)	/* Wait for the first read to complete */
 	{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		while((ret=aio_error(&first_ce->myaiocb))== EINPROGRESS)
 		{
@@ -1068,28 +1068,28 @@ out:
 #endif
 		if(ret)
 			printf("aio_error 4: ret %d %d\n",ret,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		if(first_ce->oldbuf != first_ce->myaiocb.aio_buf ||
 			first_ce->oldfd != first_ce->myaiocb.aio_fildes ||
-			first_ce->oldsize != first_ce->myaiocb.aio_nbytes) 
+			first_ce->oldsize != first_ce->myaiocb.aio_nbytes)
 			printf("It changed in flight2\n");
 		retval=aio_return(&first_ce->myaiocb);
 #else
 		if(first_ce->oldbuf != first_ce->myaiocb64.aio_buf ||
 			first_ce->oldfd != first_ce->myaiocb64.aio_fildes ||
-			first_ce->oldsize != first_ce->myaiocb64.aio_nbytes) 
+			first_ce->oldsize != first_ce->myaiocb64.aio_nbytes)
 			printf("It changed in flight2\n");
 		retval=aio_return64(&first_ce->myaiocb64);
 #endif
 #else
 		if(first_ce->oldbuf != first_ce->myaiocb.aio_buf ||
 			first_ce->oldfd != first_ce->myaiocb.aio_fildes ||
-			first_ce->oldsize != first_ce->myaiocb.aio_nbytes) 
+			first_ce->oldsize != first_ce->myaiocb.aio_nbytes)
 			printf("It changed in flight2\n");
 		retval=aio_return(&first_ce->myaiocb);
 #endif
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		if(retval < first_ce->myaiocb.aio_nbytes)
 #else
@@ -1100,7 +1100,7 @@ out:
 #endif
 		{
 			printf("aio_return error5: ret %d %d\n",retval,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			printf("aio_return error5: fd %d offset %lld buffer %lx size %d Opcode %d\n",
 				first_ce->myaiocb.aio_fildes,
@@ -1128,7 +1128,7 @@ out:
 		}
 		if(retval > 0)
 		{
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			*ubuffer=(char *)first_ce->myaiocb.aio_buf;
 #else
@@ -1143,7 +1143,7 @@ out:
 		takeoff_cache(gc,first_ce);
 		putoninuse(gc,first_ce);
 	}
-	return((int)retval);	
+	return((int)retval);
 }
 
 /************************************************************************
@@ -1160,8 +1160,8 @@ struct cache *gc;
 
 
 /************************************************************************
- * Put the buffer on the inuse list. When the user is finished with 
- * the buffer it will call back into async_release and the items on the 
+ * Put the buffer on the inuse list. When the user is finished with
+ * the buffer it will call back into async_release and the items on the
  * inuse list will be deallocated.
  ************************************************************************/
 void
@@ -1189,7 +1189,7 @@ struct cache *gc;
 		printf("Takeoffinuse error\n");
 	ce=gc->inuse_head;
 	gc->inuse_head=gc->inuse_head->forward;
-	
+
 	if(gc->inuse_head !=0)
 		printf("Error in take off inuse\n");
 	free((void*)(ce->real_address));
@@ -1200,10 +1200,10 @@ struct cache *gc;
  * This routine is a generic async writer assist funtion. It takes
  * the same calling parameters as write() but also extends the
  * interface to include:
- * 
+ *
  * offset ..... offset in the file.
  * depth  ..... How much read-ahead do you want.
- * 
+ *
  *************************************************************************/
 size_t
 async_write(gc,fd,buffer,size,offset,depth)
@@ -1217,7 +1217,7 @@ long long depth;
 	size_t ret;
 	ce=allocate_write_buffer(gc,fd,offset,size,(long long)LIO_WRITE,depth,0LL,(char *)0,(char *)0);
 	ce->direct=0;	 /* not direct. Lib supplies buffer and must free it */
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	mbcopy(buffer,(char *)(ce->myaiocb.aio_buf),(size_t)size);
 #else
@@ -1231,10 +1231,10 @@ long long depth;
 	printf("asw: fd %d offset %lld, size %d\n",ce->myaiocb64.aio_fildes,
 		ce->myaiocb64.aio_offset,
 		ce->myaiocb64.aio_nbytes);
-	*/	
+	*/
 
 again:
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ret=aio_write(&ce->myaiocb);
 #else
@@ -1268,12 +1268,12 @@ again:
 			*/
 			exit(177);
 		}
-	} 
+	}
 	return((ssize_t)size);
 }
 
 /*************************************************************************
- * Allocate a write aiocb and write buffer of the size specified. Also 
+ * Allocate a write aiocb and write buffer of the size specified. Also
  * put some extra buffer padding so that VX_DIRECT can do its job when
  * needed.
  *************************************************************************/
@@ -1303,7 +1303,7 @@ char *buffer,*free_addr;
 		exit(179);
 	}
 	bzero(ce,sizeof(struct cache_ent));
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ce->myaiocb.aio_fildes=(int)fd;
 	ce->myaiocb.aio_offset=(off64_t)offset;
@@ -1357,7 +1357,7 @@ char *buffer,*free_addr;
 		printf("Malloc failed 2\n");
 		exit(180);
 	}
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ce->myaiocb.aio_reqprio=0;
 	ce->myaiocb.aio_nbytes=(size_t)size;
@@ -1437,7 +1437,7 @@ struct cache *gc;
 		ce->myaiocb64.aio_nbytes);
 	printf("write count %lld \n",gc->w_count);
 	*/
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	while((ret=aio_error(&ce->myaiocb))== EINPROGRESS)
 	{
@@ -1458,7 +1458,7 @@ struct cache *gc;
 	if(ret)
 	{
 		printf("aio_error 5: ret %d %d\n",ret,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 		printf("fd %d offset %lld size %d\n",
 			ce->myaiocb.aio_fildes,
@@ -1479,7 +1479,7 @@ struct cache *gc;
 		exit(181);
 	}
 
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	retval=aio_return(&ce->myaiocb);
 #else
@@ -1511,11 +1511,11 @@ struct cache *gc;
  * This routine is a generic async writer assist funtion. It takes
  * the same calling parameters as write() but also extends the
  * interface to include:
- * 
+ *
  * offset ..... offset in the file.
  * depth  ..... How much read-ahead do you want.
  * free_addr .. address of memory to free after write is completed.
- * 
+ *
  *************************************************************************/
 size_t
 async_write_no_copy(gc,fd,buffer,size,offset,depth,free_addr)
@@ -1539,7 +1539,7 @@ char *free_addr;
 	*/
 
 again:
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ret=aio_write(&ce->myaiocb);
 #else
@@ -1564,7 +1564,7 @@ again:
 		else
 		{
 			printf("Error in aio_write: ret %d errno %d\n",ret,errno);
-#ifdef _LARGEFILE64_SOURCE 
+#ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 			printf("aio_write_no_copy: fd %d buffer %lx offset %lld size %d\n",
 				ce->myaiocb.aio_fildes,
@@ -1587,8 +1587,8 @@ again:
 #endif
 			exit(182);
 		}
-	} 
-	else	
+	}
+	else
 	{
 		return((ssize_t)size);
 	}

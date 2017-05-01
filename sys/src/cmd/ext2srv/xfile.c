@@ -83,7 +83,7 @@ getxfs(char *name)
 	fxf->fmt = 0;
 	fxf->ptr = 0;
 	free(dir);
-	if( ext2fs(fxf)<0 ){ 
+	if( ext2fs(fxf)<0 ){
 		xhead = fxf->next;
 		free(fxf);
 		unlock(&xlock);

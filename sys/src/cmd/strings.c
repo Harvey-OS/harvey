@@ -92,7 +92,7 @@ stringit(char *str)
 			}
 			start = 0;
 			cnt = 0;
-		}	
+		}
 		posn = Boffset(fin);
 	}
 

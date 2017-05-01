@@ -30,14 +30,14 @@
  */
 
 
-#include "get_audio.h"        
+#include "get_audio.h"
 
 #define         MAX_NAME_SIZE           1000
 
 
-/* GLOBAL VARIABLES used by parse.c and main.c.  
+/* GLOBAL VARIABLES used by parse.c and main.c.
    instantiated in parce.c.  ugly, ugly */
-extern sound_file_format input_format;   
+extern sound_file_format input_format;
 extern int swapbytes;              /* force byte swapping   default=0*/
 extern int silent;
 extern int brhist;

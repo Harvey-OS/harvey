@@ -19,7 +19,7 @@
  *		n = CX		- constrained by LOOP instr
  *		m = BX
  *		oldhi = R8
- *		
+ *
  */
 TEXT	mpvecdigmulsub(SB),$0
 

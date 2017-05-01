@@ -383,7 +383,7 @@ oadd(Node *n, Node *res)
 		if(r.type == TSTRING) {
 			res->type = TSTRING;
 			res->fmt = 's';
-			res->string = stradd(l.string, r.string); 
+			res->string = stradd(l.string, r.string);
 			break;
 		}
 		if(r.type == TINT) {
@@ -910,7 +910,7 @@ oeinc(Node *n, Node *res)
 			v->ival -= fmtsize(v);
 		else
 			v->ival += fmtsize(v);
-		break;			
+		break;
 	case TFLOAT:
 		if(n->op == OEDEC)
 			v->fval--;
@@ -939,7 +939,7 @@ opinc(Node *n, Node *res)
 			v->ival -= fmtsize(v);
 		else
 			v->ival += fmtsize(v);
-		break;			
+		break;
 	case TFLOAT:
 		if(n->op == OPDEC)
 			v->fval--;

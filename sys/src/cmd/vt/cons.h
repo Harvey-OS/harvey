@@ -39,7 +39,7 @@ enum {
 	TReverse = (1<<3),
 	TInvisible = (1<<4),
 };
-	
+
 
 #define	button2()	((mouse.buttons & 07)==2)
 #define	button3()	((mouse.buttons & 07)==4)

@@ -166,7 +166,7 @@ FT_BitmapGlyph getBitmapGlyph(FTfont* font, FT_Glyph glyph) {
 
 	return (FT_BitmapGlyph) glyph;
 }
-	
+
 FTmetrics getMetrics(FTfont* font, int c) {
 	FT_Glyph glyph;
 	FT_BitmapGlyph bglyph;
@@ -204,7 +204,7 @@ FTmetrics getMetrics(FTfont* font, int c) {
 				break;
 		}
 	}
-			
+
 /*	FT_Done_Glyph(glyph); */
 
 	return ret;
@@ -351,7 +351,7 @@ void drawChar(FTfont* font, Memimage* img, int x0, int y0, int c) {
 				break;
 		}
 	}
-	
+
 	for(y = 0; y < height; y++) {
 		for(x = 0; x < width; x++) {
 			Point pt;
@@ -359,8 +359,8 @@ void drawChar(FTfont* font, Memimage* img, int x0, int y0, int c) {
 
 			pt.x = x + x0;
 			pt.y = y + y0;
-			memfillcolor(color, cl);			
-			memimagedraw(img, rectaddpt(Rect(0, 0, 1, 1), pt), 
+			memfillcolor(color, cl);
+			memimagedraw(img, rectaddpt(Rect(0, 0, 1, 1), pt),
 				color, ZP, nil, ZP, SatopD);
 		}
 	}
@@ -402,7 +402,7 @@ void initSubfont(FTfont* font, FTsubfont* sf, int startc) {
 		} else
 			rc[i] = getMetrics(font, startc + i);
 
-			
+
 		if (ascent < rc[i].top) {
 			ascent = rc[i].top;
 		}
@@ -425,7 +425,7 @@ void initSubfont(FTfont* font, FTsubfont* sf, int startc) {
 
 	for(i = 0; i < sf->nchars; i++) {
 		sf->metrics[i] = rc[i];
-	}	
+	}
 }
 
 int createSubfont(FTfont* font, FTsubfont* sf, char* fname) {
@@ -485,7 +485,7 @@ usage(char *s)
 {
 	fprint(2, "\nusage: %s <options>\n", s);
 	fprint(2, "\nwhere:\n", s);
-	fprint(2, 
+	fprint(2,
 	"	-s size						- point size\n"
 	"	-h 							- this message\n"
 	"	-f fname					- ttf file name\n"
@@ -512,7 +512,7 @@ void main(int argc, char* argv[]) {
 
 	font.name = nil;
 	font.size = 0;
-	
+
 	if(argc == 1)
 		usage(progname);
 
@@ -654,7 +654,7 @@ void main(int argc, char* argv[]) {
 	snprint(buf, sizeof(buf), "%s", font.name);
 	if(access(buf, AEXIST) == -1) {
 		fd = create(buf, OREAD, DMDIR|0777);
-		if(fd < 0) 
+		if(fd < 0)
 			sysfatal("cannot create font directory: %r");
 	}
 
@@ -662,7 +662,7 @@ void main(int argc, char* argv[]) {
 	fd = create(buf, OWRITE, 0666);
 	if(fd < 0)
 		sysfatal("cannot create .font file: %r");
-		
+
 	fprint(fd, "%d\t%d\n", font.height, font.ascent);
 
 	for(sf = font.sfont; sf != nil; sf = sf->next) {

@@ -63,7 +63,7 @@ crtpre(int n, mpint **m)
 
 	mpfree(u);
 
-	return crt;		
+	return crt;
 }
 
 void

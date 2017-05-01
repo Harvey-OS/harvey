@@ -25,4 +25,4 @@ main(void)
 	}
 	write(1, p, strlen(p));
 	exits(0);
-}	
+}

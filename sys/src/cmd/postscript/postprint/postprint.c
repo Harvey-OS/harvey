@@ -77,7 +77,7 @@
  * we printed in size POINTSIZE. Selecting a point size using the -s option and
  * adding -l0 to the command line forces the guess to be made.
  *
- * Many default values, like the magnification and orientation, are defined in 
+ * Many default values, like the magnification and orientation, are defined in
  * the prologue, which is where they belong. If they're changed (by options), an
  * appropriate definition is made after the prologue is added to the output file.
  * The -P option passes arbitrary PostScript through to the output file. Among
@@ -574,7 +574,7 @@ formfeed()
  * restore so it can be easily redefined to have side-effects in the printer's VM.
  * Although it seems reasonable I haven't implemented it, because it makes other
  * things, like selectively setting manual feed or choosing an alternate paper
- * tray, clumsy - at least on a per page basis. 
+ * tray, clumsy - at least on a per page basis.
  *
  */
 

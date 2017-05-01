@@ -69,7 +69,7 @@ page(Modem *m, char *spool)
 				return seterror(m, Esys);
 			}
 			count = 0;
-		}	
+		}
 	}
 	verbose("page %d done, count %d", m->pageno, count);
 	if(count && write(m->pagefd, buf, count) < 0){

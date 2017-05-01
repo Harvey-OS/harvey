@@ -36,9 +36,9 @@ PSYCHO ACOUSTICS
 
 
 This routine computes the psycho acoustics, delayed by
-one granule.  
+one granule.
 
-Input: buffer of PCM data (1024 samples).  
+Input: buffer of PCM data (1024 samples).
 
 This window should be centered over the 576 sample granule window.
 The routine will compute the psycho acoustics for
@@ -46,10 +46,10 @@ this granule, but return the psycho acoustics computed
 for the *previous* granule.  This is because the block
 type of the previous granule can only be determined
 after we have computed the psycho acoustics for the following
-granule.  
+granule.
 
 Output:  maskings and energies for each scalefactor band.
-block type, PE, and some correlation measures.  
+block type, PE, and some correlation measures.
 The PE is used by CBR modes to determine if extra bits
 from the bit reservoir should be used.  The correlation
 measures are used to determine mid/side or regular stereo.
@@ -60,7 +60,7 @@ Notation:
 barks:  a non-linear frequency scale.  Mapping from frequency to
         barks is given by freq2bark()
 
-scalefactor bands: The spectrum (frequencies) are broken into 
+scalefactor bands: The spectrum (frequencies) are broken into
                    SBMAX "scalefactor bands".  Thes bands
                    are determined by the MPEG ISO spec.  In
                    the noise shaping/quantization code, we allocate
@@ -68,7 +68,7 @@ scalefactor bands: The spectrum (frequencies) are broken into
                    best possible quality
 
 partition bands:   The spectrum is also broken into about
-                   64 "partition bands".  Each partition 
+                   64 "partition bands".  Each partition
                    band is about .34 barks wide.  There are about 2-5
                    partition bands for each scalefactor band.
 
@@ -89,7 +89,7 @@ The general outline is as follows:
 2. compute the tonality in each partition band
 3. compute the strength of each partion band "masker"
 4. compute the masking (via the spreading function applied to each masker)
-5. Modifications for mid/side masking.  
+5. Modifications for mid/side masking.
 
 Each partition band is considiered a "masker".  The strength
 of the i'th masker in band j is given by:
@@ -103,7 +103,7 @@ energy divided by a linear function of the tonality.
 
 
 s3() is the "spreading function".  It is given by a formula
-determined via listening tests.  
+determined via listening tests.
 
 The total masking in the j'th partition band is the sum over
 all maskings i.  It is thus given by the convolution of
@@ -136,7 +136,7 @@ Other data computed by the psy-model:
 ms_ratio        side-channel / mid-channel masking ratio (for previous granule)
 ms_ratio_next   side-channel / mid-channel masking ratio for this granule
 
-percep_entropy[2]     L and R values (prev granule) of PE - A measure of how 
+percep_entropy[2]     L and R values (prev granule) of PE - A measure of how
                       much pre-echo is in the previous granule
 percep_entropy_MS[2]  mid and side channel values (prev granule) of percep_entropy
 energy[4]             L,R,M,S energy in each channel, prev granule
@@ -199,23 +199,23 @@ blocktype_d[2]        block type to use for previous granule
 /*
    L3psycho_anal.  Compute psycho acoustics.
 
-   Data returned to the calling program must be delayed by one 
-   granule. 
+   Data returned to the calling program must be delayed by one
+   granule.
 
-   This is done in two places.  
+   This is done in two places.
    If we do not need to know the blocktype, the copying
    can be done here at the top of the program: we copy the data for
    the last granule (computed during the last call) before it is
    overwritten with the new data.  It looks like this:
-  
-   0. static psymodel_data 
+
+   0. static psymodel_data
    1. calling_program_data = psymodel_data
    2. compute psymodel_data
-    
+
    For data which needs to know the blocktype, the copying must be
    done at the end of this loop, and the old values must be saved:
-   
-   0. static psymodel_data_old 
+
+   0. static psymodel_data_old
    1. compute psymodel_data
    2. compute possible block type of this granule
    3. compute final block type of previous granule based on #2.
@@ -223,17 +223,17 @@ blocktype_d[2]        block type to use for previous granule
    5. psymodel_data_old = psymodel_data
 */
 int L3psycho_anal( lame_global_flags * gfp,
-                    const sample_t *buffer[2], int gr_out, 
+                    const sample_t *buffer[2], int gr_out,
                     FLOAT8 *ms_ratio,
                     FLOAT8 *ms_ratio_next,
 		    III_psy_ratio masking_ratio[2][2],
 		    III_psy_ratio masking_MS_ratio[2][2],
-		    FLOAT8 percep_entropy[2],FLOAT8 percep_MS_entropy[2], 
+		    FLOAT8 percep_entropy[2],FLOAT8 percep_MS_entropy[2],
                     FLOAT8 energy[4],
                     int blocktype_d[2])
 {
 /* to get a good cache performance, one has to think about
- * the sequence, in which the variables are used.  
+ * the sequence, in which the variables are used.
  * (Note: these static variables have been moved to the gfc-> struct,
  * and their order in memory is layed out in util.h)
  */
@@ -248,13 +248,13 @@ int L3psycho_anal( lame_global_flags * gfp,
   FLOAT8 eb[CBANDS];
   FLOAT8 cb[CBANDS];
   FLOAT8 thr[CBANDS];
-  
+
   /* ratios    */
   FLOAT8 ms_ratio_l=0,ms_ratio_s=0;
 
   /* block type  */
   int blocktype[2],uselongblock[2];
-  
+
   /* usual variables like loop indices, etc..    */
   int numchn, chn;
   int   b, i, j, k;
@@ -266,11 +266,11 @@ int L3psycho_anal( lame_global_flags * gfp,
       init_fft(gfc);
       gfc->psymodel_init=1;
   }
-  
 
 
-  
-  
+
+
+
   numchn = gfc->channels_out;
   /* chn=2 and 3 = Mid and Side channels */
   if (gfp->mode == JOINT_STEREO) numchn=4;
@@ -280,35 +280,35 @@ int L3psycho_anal( lame_global_flags * gfp,
 	  energy[chn]=gfc->tot_ener[chn];
       }
   }
-  
+
   for (chn=0; chn<numchn; chn++) {
 
       /* there is a one granule delay.  Copy maskings computed last call
        * into masking_ratio to return to calling program.
        */
-      if (chn < 2) {    
+      if (chn < 2) {
 	  /* LR maskings  */
-	  percep_entropy            [chn]       = gfc -> pe  [chn]; 
+	  percep_entropy            [chn]       = gfc -> pe  [chn];
 	  masking_ratio    [gr_out] [chn]  .en  = gfc -> en  [chn];
 	  masking_ratio    [gr_out] [chn]  .thm = gfc -> thm [chn];
       } else {
 	  /* MS maskings  */
-	  percep_MS_entropy         [chn-2]     = gfc -> pe  [chn]; 
+	  percep_MS_entropy         [chn-2]     = gfc -> pe  [chn];
 	  masking_MS_ratio [gr_out] [chn-2].en  = gfc -> en  [chn];
 	  masking_MS_ratio [gr_out] [chn-2].thm = gfc -> thm [chn];
       }
-      
-      
+
+
 
     /**********************************************************************
      *  compute FFTs
      **********************************************************************/
     wsamp_s = gfc->wsamp_S+(chn & 1);
     wsamp_l = gfc->wsamp_L+(chn & 1);
-    if (chn<2) {    
+    if (chn<2) {
       fft_long ( gfc, *wsamp_l, chn, buffer);
       fft_short( gfc, *wsamp_s, chn, buffer);
-    } 
+    }
     /* FFT data for mid and side channel is derived from L & R */
     if (chn == 2)
       {
@@ -335,14 +335,14 @@ int L3psycho_anal( lame_global_flags * gfp,
     /**********************************************************************
      *  compute energies
      **********************************************************************/
-    
-    
-    
+
+
+
     gfc->energy[0]  = (*wsamp_l)[0];
     gfc->energy[0] *= gfc->energy[0];
-    
+
     gfc->tot_ener[chn] = gfc->energy[0]; /* sum total energy at nearly no extra cost */
-    
+
     for (j=BLKSIZE/2-1; j >= 0; --j)
     {
       FLOAT re = (*wsamp_l)[BLKSIZE/2-j];
@@ -371,9 +371,9 @@ int L3psycho_anal( lame_global_flags * gfp,
       gfc->energy_save[chn][j]=gfc->energy[j];
     }
   }
-    
+
     /**********************************************************************
-     *    compute unpredicatability of first six spectral lines            * 
+     *    compute unpredicatability of first six spectral lines            *
      **********************************************************************/
     for ( j = 0; j < gfc->cw_lower_index; j++ )
       {	 /* calculate unpredictability measure cw */
@@ -389,7 +389,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	b1 = gfc-> bx_sav[chn][1][j] = gfc-> bx_sav[chn][0][j];
 	r1 = gfc-> rx_sav[chn][1][j] = gfc-> rx_sav[chn][0][j];
 	an = gfc-> ax_sav[chn][0][j] = (*wsamp_l)[j];
-	bn = gfc-> bx_sav[chn][0][j] = j==0 ? (*wsamp_l)[0] : (*wsamp_l)[BLKSIZE-j];  
+	bn = gfc-> bx_sav[chn][0][j] = j==0 ? (*wsamp_l)[0] : (*wsamp_l)[BLKSIZE-j];
 	rn = gfc-> rx_sav[chn][0][j] = sqrt(gfc->energy[j]);
 
 	{ /* square (x1,y1) */
@@ -403,7 +403,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	    den = 1;
 	  }
 	}
-	
+
 	{ /* multiply by (x2,-y2) */
 	  if( r2 != 0 ) {
 	    FLOAT tmp2 = (numim+numre)*(a2+b2)*(FLOAT)0.5;
@@ -415,7 +415,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	    /* do nothing */
 	  }
 	}
-	
+
 	{ /* r-prime factor */
 	  FLOAT tmp = (2*r1-r2)/den;
 	  numre *= tmp;
@@ -434,18 +434,18 @@ int L3psycho_anal( lame_global_flags * gfp,
 
     /**********************************************************************
      *     compute unpredicatibility of next 200 spectral lines            *
-     **********************************************************************/ 
+     **********************************************************************/
     for ( j = gfc->cw_lower_index; j < gfc->cw_upper_index; j += 4 )
       {/* calculate unpredictability measure cw */
 	FLOAT rn, r1, r2;
 	FLOAT numre, numim, den;
-	
-	k = (j+2) / 4; 
-	
+
+	k = (j+2) / 4;
+
 	{ /* square (x1,y1) */
 	  r1 = gfc->energy_s[0][k];
 	  if( r1 != 0 ) {
-	    FLOAT a1 = (*wsamp_s)[0][k]; 
+	    FLOAT a1 = (*wsamp_s)[0][k];
 	    FLOAT b1 = (*wsamp_s)[0][BLKSIZE_s-k]; /* k is never 0 */
 	    numre = (a1*b1);
 	    numim = (a1*a1-b1*b1)*(FLOAT)0.5;
@@ -457,51 +457,51 @@ int L3psycho_anal( lame_global_flags * gfp,
 	    den = 1;
 	  }
 	}
-	
-	
+
+
 	{ /* multiply by (x2,-y2) */
 	  r2 = gfc->energy_s[2][k];
 	  if( r2 != 0 ) {
-	    FLOAT a2 = (*wsamp_s)[2][k]; 
+	    FLOAT a2 = (*wsamp_s)[2][k];
 	    FLOAT b2 = (*wsamp_s)[2][BLKSIZE_s-k];
-	    
-	    
+
+
 	    FLOAT tmp2 = (numim+numre)*(a2+b2)*(FLOAT)0.5;
 	    FLOAT tmp1 = -a2*numre+tmp2;
 	    numre =       -b2*numim+tmp2;
 	    numim = tmp1;
-	    
+
 	    r2 = sqrt(r2);
 	    den *= r2;
 	  } else {
 	    /* do nothing */
 	  }
 	}
-	
+
 	{ /* r-prime factor */
 	  FLOAT tmp = (2*r1-r2)/den;
 	  numre *= tmp;
 	  numim *= tmp;
 	}
-	
+
 	rn = sqrt(gfc->energy_s[1][k]);
 	den=rn+fabs(2*r1-r2);
 	if( den != 0 ) {
-	  FLOAT an = (*wsamp_s)[1][k]; 
+	  FLOAT an = (*wsamp_s)[1][k];
 	  FLOAT bn = (*wsamp_s)[1][BLKSIZE_s-k];
 	  numre = (an+bn)*(FLOAT)0.5-numre;
 	  numim = (an-bn)*(FLOAT)0.5-numim;
 	  den = sqrt(numre*numre+numim*numim)/den;
 	}
-	
+
 	gfc->cw[j+1] = gfc->cw[j+2] = gfc->cw[j+3] = gfc->cw[j] = den;
       }
-    
+
 #if 0
     for ( j = 14; j < HBLKSIZE-4; j += 4 )
       {/* calculate energy from short ffts */
 	FLOAT8 tot,ave;
-	k = (j+2) / 4; 
+	k = (j+2) / 4;
 	for (tot=0, sblock=0; sblock < 3; sblock++)
 	  tot+=gfc->energy_s[sblock][k];
 	ave = gfc->energy[j+1]+ gfc->energy[j+2]+ gfc->energy[j+3]+ gfc->energy[j];
@@ -509,7 +509,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	gfc->energy[j+1] = gfc->energy[j+2] = gfc->energy[j+3] =  gfc->energy[j]=tot;
       }
 #endif
-    
+
     /**********************************************************************
      *    Calculate the energy and the unpredictability in the threshold   *
      *    calculation partitions                                           *
@@ -565,8 +565,8 @@ int L3psycho_anal( lame_global_flags * gfp,
 	    ctb += gfc->s3_l[b][k] * cb[k];
 	  }
 
-	/* calculate the tonality of each threshold calculation partition 
-	 * calculate the SNR in each threshold calculation partition 
+	/* calculate the tonality of each threshold calculation partition
+	 * calculate the SNR in each threshold calculation partition
 	 * tonality = -0.299 - .43*log(ctb/ecb);
 	 * tonality = 0:           use NMT   (lots of masking)
 	 * tonality = 1:           use TMN   (little masking)
@@ -580,11 +580,11 @@ int L3psycho_anal( lame_global_flags * gfp,
 	if (tbb != 0)
 	  {
 	    tbb = ctb / tbb;
-	    if (tbb <= exp((1-CONV1)/CONV2)) 
+	    if (tbb <= exp((1-CONV1)/CONV2))
 	      { /* tonality near 1 */
 		tbb = exp(-LN_TO_LOG10 * TMN);
 	      }
-	    else if (tbb >= exp((0-CONV1)/CONV2)) 
+	    else if (tbb >= exp((0-CONV1)/CONV2))
 	      {/* tonality near 0 */
 		tbb = exp(-LN_TO_LOG10 * NMT);
 	      }
@@ -601,8 +601,8 @@ int L3psycho_anal( lame_global_flags * gfp,
 	/* at this point, tbb represents the amount the spreading function
 	 * will be reduced.  The smaller the value, the less masking.
 	 * minval[] = 1 (0db)     says just use tbb.
-	 * minval[]= .01 (-20db)  says reduce spreading function by 
-	 *                        at least 20db.  
+	 * minval[]= .01 (-20db)  says reduce spreading function by
+	 *                        at least 20db.
 	 */
 
 	tbb = Min(gfc->minval[b], tbb);
@@ -613,17 +613,17 @@ int L3psycho_anal( lame_global_flags * gfp,
 	/* note: all surges in PE are because of this pre-echo formula
 	 * for thr[b].  If it this is not used, PE is always around 600
 	 */
-	/* dont use long block pre-echo control if previous granule was 
-	 * a short block.  This is to avoid the situation:   
-	 * frame0:  quiet (very low masking)  
+	/* dont use long block pre-echo control if previous granule was
+	 * a short block.  This is to avoid the situation:
+	 * frame0:  quiet (very low masking)
 	 * frame1:  surge  (triggers short blocks)
-	 * frame2:  regular frame.  looks like pre-echo when compared to 
+	 * frame2:  regular frame.  looks like pre-echo when compared to
 	 *          frame0, but all pre-echo was in frame1.
 	 */
 	/* chn=0,1   L and R channels
-	   chn=2,3   S and M channels.  
+	   chn=2,3   S and M channels.
 	*/
-        
+
         if (vbr_mtrh == gfp->VBR) {
             thr[b] = Min (rpelev*gfc->nb_1[chn][b], rpelev2*gfc->nb_2[chn][b]);
             thr[b] = Max (thr[b], gfc->ATH->adjust * gfc->ATH->cb[b]);
@@ -648,13 +648,13 @@ int L3psycho_anal( lame_global_flags * gfp,
 	}
       }
 
-    /*************************************************************** 
+    /***************************************************************
      * determine the block type (window type) based on L & R channels
-     * 
+     *
      ***************************************************************/
     {  /* compute PE for all 4 channels */
       FLOAT mn,mx,ma=0,mb=0,mc=0;
-      
+
       for ( j = HBLKSIZE_s/2; j < HBLKSIZE_s; j ++)
 	{
 	  ma += gfc->energy_s[0][j];
@@ -665,30 +665,30 @@ int L3psycho_anal( lame_global_flags * gfp,
       mn = Min(mn,mc);
       mx = Max(ma,mb);
       mx = Max(mx,mc);
-      
+
       /* bit allocation is based on pe.  */
       if (mx>mn) {
 	FLOAT8 tmp = 400*log(mx/(1e-12+mn));
 	if (tmp>gfc->pe[chn]) gfc->pe[chn]=tmp;
       }
 
-      /* block type is based just on L or R channel */      
+      /* block type is based just on L or R channel */
       if (chn<2) {
 	uselongblock[chn] = 1;
-	
+
 	/* tuned for t1.wav.  doesnt effect most other samples */
-	if (gfc->pe[chn] > 3000) 
+	if (gfc->pe[chn] > 3000)
 	  uselongblock[chn]=0;
-	
-	if ( mx > 30*mn ) 
+
+	if ( mx > 30*mn )
 	  {/* big surge of energy - always use short blocks */
 	    uselongblock[chn] = 0;
-	  } 
+	  }
 	else if ((mx > 10*mn) && (gfc->pe[chn] > 1000))
 	  {/* medium surge, medium pe - use short blocks */
 	    uselongblock[chn] = 0;
 	  }
-	
+
 	/* disable short blocks */
 	if (gfp->no_short_blocks)
 	  uselongblock[chn]=1;
@@ -716,7 +716,7 @@ int L3psycho_anal( lame_global_flags * gfp,
     }
 
 
-    /*************************************************************** 
+    /***************************************************************
      * compute masking thresholds for both short and long blocks
      ***************************************************************/
     /* longblock threshold calculation (part 2) */
@@ -734,7 +734,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	gfc->en [chn].l[sb] = enn;
 	gfc->thm[chn].l[sb] = thmm;
       }
-    
+
 
     /* threshold calculation for short blocks */
     for ( sblock = 0; sblock < 3; sblock++ )
@@ -763,7 +763,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	for ( sb = 0; sb < NBPSY_s; sb++ ){
             FLOAT8 enn  = gfc->w1_s[sb] * eb[gfc->bu_s[sb]] + gfc->w2_s[sb] * eb[gfc->bo_s[sb]];
 	    FLOAT8 thmm = gfc->w1_s[sb] *thr[gfc->bu_s[sb]] + gfc->w2_s[sb] * thr[gfc->bo_s[sb]];
-	    
+
             for ( b = gfc->bu_s[sb]+1; b < gfc->bo_s[sb]; b++ ) {
 		enn  += eb[b];
 		thmm += thr[b];
@@ -779,8 +779,8 @@ int L3psycho_anal( lame_global_flags * gfp,
   /* compute M/S thresholds from Johnston & Ferreira 1992 ICASSP paper */
   if (gfp->mode == JOINT_STEREO) {
     FLOAT8 rside,rmid,mld;
-    int chmid=2,chside=3; 
-    
+    int chmid=2,chside=3;
+
     for ( sb = 0; sb < NBPSY_l; sb++ ) {
       /* use this fix if L & R masking differs by 2db or less */
       /* if db = 10*log10(x2/x1) < 2 */
@@ -825,14 +825,14 @@ int L3psycho_anal( lame_global_flags * gfp,
       x2 = Max(gfc->thm[0].l[sb],gfc->thm[1].l[sb]);
       /* thresholds difference in db */
       if (x2 >= 1000*x1)  db=3;
-      else db = log10(x2/x1);  
+      else db = log10(x2/x1);
       /*  DEBUGF(gfc,"db = %f %e %e  \n",db,gfc->thm[0].l[sb],gfc->thm[1].l[sb]);*/
       sidetot += db;
       tot++;
     }
     ms_ratio_l= (sidetot/tot)*0.7; /* was .35*(sidetot/tot)/5.0*10 */
     ms_ratio_l = Min(ms_ratio_l,0.5);
-    
+
     sidetot=0; tot=0;
     for ( sblock = 0; sblock < 3; sblock++ )
       for ( sb = NBPSY_s/4; sb < NBPSY_s; sb++ ) {
@@ -840,7 +840,7 @@ int L3psycho_anal( lame_global_flags * gfp,
 	x2 = Max(gfc->thm[0].s[sb][sblock],gfc->thm[1].s[sb][sblock]);
 	/* thresholds difference in db */
 	if (x2 >= 1000*x1)  db=3;
-	else db = log10(x2/x1);  
+	else db = log10(x2/x1);
 	sidetot += db;
 	tot++;
       }
@@ -848,7 +848,7 @@ int L3psycho_anal( lame_global_flags * gfp,
     ms_ratio_s = Min(ms_ratio_s,.5);
   }
 
-  /*************************************************************** 
+  /***************************************************************
    * determine final block type
    ***************************************************************/
 
@@ -870,22 +870,22 @@ int L3psycho_anal( lame_global_flags * gfp,
     }
   }
 
-  
-  
+
+
   /* update the blocktype of the previous granule, since it depends on what
    * happend in this granule */
   for (chn=0; chn<gfc->channels_out; chn++) {
     if ( uselongblock[chn])
       {				/* no attack : use long blocks */
 	assert( gfc->blocktype_old[chn] != START_TYPE );
-	switch( gfc->blocktype_old[chn] ) 
+	switch( gfc->blocktype_old[chn] )
 	  {
 	  case NORM_TYPE:
 	  case STOP_TYPE:
 	    blocktype[chn] = NORM_TYPE;
 	    break;
 	  case SHORT_TYPE:
-	    blocktype[chn] = STOP_TYPE; 
+	    blocktype[chn] = STOP_TYPE;
 	    break;
 	  }
       } else   {
@@ -898,12 +898,12 @@ int L3psycho_anal( lame_global_flags * gfp,
 	  gfc->blocktype_old[chn] = SHORT_TYPE ;
 	}
       }
-    
+
     blocktype_d[chn] = gfc->blocktype_old[chn];  /* value returned to calling program */
     gfc->blocktype_old[chn] = blocktype[chn];    /* save for next call to l3psy_anal */
   }
-  
-  if (blocktype_d[0]==2) 
+
+  if (blocktype_d[0]==2)
     *ms_ratio = gfc->ms_ratio_s_old;
   else
     *ms_ratio = gfc->ms_ratio_l_old;
@@ -972,17 +972,17 @@ inline static FLOAT8 mask_add(FLOAT8 m1,FLOAT8 m2,int k,int b, lame_internal_fla
 }
 
 int L3psycho_anal_ns( lame_global_flags * gfp,
-                    const sample_t *buffer[2], int gr_out, 
+                    const sample_t *buffer[2], int gr_out,
                     FLOAT8 *ms_ratio,
                     FLOAT8 *ms_ratio_next,
 		    III_psy_ratio masking_ratio[2][2],
 		    III_psy_ratio masking_MS_ratio[2][2],
-		    FLOAT8 percep_entropy[2],FLOAT8 percep_MS_entropy[2], 
-		    FLOAT8 energy[4], 
+		    FLOAT8 percep_entropy[2],FLOAT8 percep_MS_entropy[2],
+		    FLOAT8 energy[4],
                     int blocktype_d[2])
 {
 /* to get a good cache performance, one has to think about
- * the sequence, in which the variables are used.  
+ * the sequence, in which the variables are used.
  * (Note: these static variables have been moved to the gfc-> struct,
  * and their order in memory is layed out in util.h)
  */
@@ -995,7 +995,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
   /* convolution   */
   FLOAT8 eb[CBANDS],eb2[CBANDS];
   FLOAT8 thr[CBANDS];
-  
+
   FLOAT8 max[CBANDS],avg[CBANDS],tonality2[CBANDS];
 
   /* ratios    */
@@ -1003,7 +1003,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 
   /* block type  */
   int blocktype[2],uselongblock[2];
-  
+
   /* usual variables like loop indices, etc..    */
   int numchn, chn;
   int   b, i, j, k;
@@ -1053,7 +1053,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	FLOAT firbuf[576+576/3+NSFIRLEN];
 
 	/* apply high pass filter of fs/4 */
-	
+
 	for(i=-NSFIRLEN;i<576+576/3;i++)
 	  firbuf[i+NSFIRLEN] = buffer[chn][576-350+(i)];
 
@@ -1076,7 +1076,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	}
     }
   }
-  
+
 
 
   /* there is a one granule delay.  Copy maskings computed last call
@@ -1096,14 +1096,14 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
     pe_l[chn] = gfc->nsPsy.pe_l[chn];
     pe_s[chn] = gfc->nsPsy.pe_s[chn];
 
-    if (chn < 2) {    
+    if (chn < 2) {
       /* LR maskings  */
-      //percep_entropy            [chn]       = gfc -> pe  [chn]; 
+      //percep_entropy            [chn]       = gfc -> pe  [chn];
       masking_ratio    [gr_out] [chn]  .en  = gfc -> en  [chn];
       masking_ratio    [gr_out] [chn]  .thm = gfc -> thm [chn];
     } else {
       /* MS maskings  */
-      //percep_MS_entropy         [chn-2]     = gfc -> pe  [chn]; 
+      //percep_MS_entropy         [chn-2]     = gfc -> pe  [chn];
       masking_MS_ratio [gr_out] [chn-2].en  = gfc -> en  [chn];
       masking_MS_ratio [gr_out] [chn-2].thm = gfc -> thm [chn];
     }
@@ -1118,10 +1118,10 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
     wsamp_s = gfc->wsamp_S+(chn & 1);
     wsamp_l = gfc->wsamp_L+(chn & 1);
 
-    if (chn<2) {    
+    if (chn<2) {
       fft_long ( gfc, *wsamp_l, chn, buffer);
       fft_short( gfc, *wsamp_s, chn, buffer);
-    } 
+    }
 
     /* FFT data for mid and side channel is derived from L & R */
 
@@ -1150,14 +1150,14 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
     /**********************************************************************
      *  compute energies for each spectral line
      **********************************************************************/
-    
+
     /* long block */
 
     gfc->energy[0]  = (*wsamp_l)[0];
     gfc->energy[0] *= gfc->energy[0];
-    
+
     gfc->tot_ener[chn] = gfc->energy[0]; /* sum total energy at nearly no extra cost */
-    
+
     for (j=BLKSIZE/2-1; j >= 0; --j)
     {
       FLOAT re = (*wsamp_l)[BLKSIZE/2-j];
@@ -1192,7 +1192,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	gfc->energy_save[chn][j]=gfc->energy[j];
       }
     }
-    
+
 
     /**********************************************************************
      *    Calculate the energy and the tonality of each partition.
@@ -1201,11 +1201,11 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
     for (b=0, j=0; b<gfc->npart_l_orig; b++)
       {
 	FLOAT8 ebb,m,a;
-  
+
 	ebb = gfc->energy[j];
 	m = a = gfc->energy[j];
 	j++;
-  
+
 	for (i = gfc->numlines_l[b] - 1; i > 0; i--)
 	  {
 	    FLOAT8 el = gfc->energy[j];
@@ -1218,7 +1218,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	max[b] = m;
 	avg[b] = a / gfc->numlines_l[b];
       }
-  
+
     j = 0;
     for (b=0; b < gfc->npart_l_orig; b++ )
       {
@@ -1236,7 +1236,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	      m = m < max[k] ? max[k] : m;
 	    }
 	  }
- 
+
 	a /= c1;
 	tonality2[b] = a == 0 ? 0 : (m / a - 1)/(c2-1);
       }
@@ -1301,16 +1301,16 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 
 	/****   long block pre-echo control   ****/
 
-	/* dont use long block pre-echo control if previous granule was 
-	 * a short block.  This is to avoid the situation:   
-	 * frame0:  quiet (very low masking)  
+	/* dont use long block pre-echo control if previous granule was
+	 * a short block.  This is to avoid the situation:
+	 * frame0:  quiet (very low masking)
 	 * frame1:  surge  (triggers short blocks)
-	 * frame2:  regular frame.  looks like pre-echo when compared to 
+	 * frame2:  regular frame.  looks like pre-echo when compared to
 	 *          frame0, but all pre-echo was in frame1.
 	 */
 
 	/* chn=0,1   L and R channels
-	   chn=2,3   S and M channels.  
+	   chn=2,3   S and M channels.
 	*/
 
 #define NS_INTERP(x,y,r) (pow((x),(r))*pow((y),1-(r)))
@@ -1325,7 +1325,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
       }
 
 
-    /*************************************************************** 
+    /***************************************************************
      * determine the block type (window type)
      ***************************************************************/
 
@@ -1416,7 +1416,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
     }
 
 
-    /*************************************************************** 
+    /***************************************************************
      * compute masking thresholds for long blocks
      ***************************************************************/
 
@@ -1434,9 +1434,9 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	gfc->en [chn].l[sb] = enn;
 	gfc->thm[chn].l[sb] = thmm;
       }
-    
 
-    /*************************************************************** 
+
+    /***************************************************************
      * compute masking thresholds for short blocks
      ***************************************************************/
 
@@ -1467,7 +1467,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	  {
             FLOAT8 enn  = gfc->w1_s[sb] * eb[gfc->bu_s[sb]] + gfc->w2_s[sb] * eb[gfc->bo_s[sb]];
 	    FLOAT8 thmm = gfc->w1_s[sb] *thr[gfc->bu_s[sb]] + gfc->w2_s[sb] * thr[gfc->bo_s[sb]];
-	    
+
             for ( b = gfc->bu_s[sb]+1; b < gfc->bo_s[sb]; b++ )
 	      {
 		enn  += eb[b];
@@ -1517,7 +1517,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
       }
 
 
-    /*************************************************************** 
+    /***************************************************************
      * save some values for analysis of the next granule
      ***************************************************************/
 
@@ -1536,7 +1536,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 
 
 
-  /*************************************************************** 
+  /***************************************************************
    * compute M/S thresholds
    ***************************************************************/
 
@@ -1544,8 +1544,8 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 
   if ( numchn==4 /* mid/side and r/l */) {
     FLOAT8 rside,rmid,mld;
-    int chmid=2,chside=3; 
-    
+    int chmid=2,chside=3;
+
     for ( sb = 0; sb < NBPSY_l; sb++ ) {
       /* use this fix if L & R masking differs by 2db or less */
       /* if db = 10*log10(x2/x1) < 2 */
@@ -1585,7 +1585,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
   /* Naoki Shibata 2000 */
 
 #define NS_MSFIX 3.5
-  
+
   if (numchn == 4) {
     FLOAT msfix = NS_MSFIX;
     if (gfc->nsPsy.safejoint) msfix = 1;
@@ -1644,7 +1644,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
   ms_ratio_s = 0;
 
 
-  /*************************************************************** 
+  /***************************************************************
    * compute estimation of the amount of bit used in the granule
    ***************************************************************/
 
@@ -1662,7 +1662,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	for ( sb = 0; sb < NBPSY_l; sb++ )
 	  {
 	    FLOAT8 t;
-	      
+
 	    if (gfc->thm[chn].l[sb]*gfc->masking_lower != 0 &&
 		gfc->en[chn].l[sb]/(gfc->thm[chn].l[sb]*gfc->masking_lower) > 1)
 	      t = log(gfc->en[chn].l[sb]/(gfc->thm[chn].l[sb]*gfc->masking_lower));
@@ -1687,7 +1687,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	    for ( sb = 0; sb < NBPSY_s; sb++ )
 	      {
 		FLOAT8 t;
-	      
+
 		if (gfc->thm[chn].s[sb][sblock] * gfc->masking_lower != 0 &&
 		    gfc->en[chn].s[sb][sblock] / (gfc->thm[chn].s[sb][sblock] * gfc->masking_lower) > 1)
 		  t = log(gfc->en[chn].s[sb][sblock] / (gfc->thm[chn].s[sb][sblock] * gfc->masking_lower));
@@ -1703,7 +1703,7 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
       //gfc->pe[chn] -= 150;
     }
 
-  /*************************************************************** 
+  /***************************************************************
    * determine final block type
    ***************************************************************/
 
@@ -1730,14 +1730,14 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
     if ( uselongblock[chn])
       {				/* no attack : use long blocks */
 	assert( gfc->blocktype_old[chn] != START_TYPE );
-	switch( gfc->blocktype_old[chn] ) 
+	switch( gfc->blocktype_old[chn] )
 	  {
 	  case NORM_TYPE:
 	  case STOP_TYPE:
 	    blocktype[chn] = NORM_TYPE;
 	    break;
 	  case SHORT_TYPE:
-	    blocktype[chn] = STOP_TYPE; 
+	    blocktype[chn] = STOP_TYPE;
 	    break;
 	  }
       } else   {
@@ -1750,11 +1750,11 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 	  gfc->blocktype_old[chn] = SHORT_TYPE ;
 	}
       }
-    
+
     blocktype_d[chn] = gfc->blocktype_old[chn];  /* value returned to calling program */
     gfc->blocktype_old[chn] = blocktype[chn];    /* save for next call to l3psy_anal */
   }
-  
+
   /*********************************************************************
    * compute the value of PE to return (one granule delay)
    *********************************************************************/
@@ -1785,16 +1785,16 @@ int L3psycho_anal_ns( lame_global_flags * gfp,
 
 
 
-/* 
+/*
  *   The spreading function.  Values returned in units of energy
  */
 FLOAT8 s3_func(FLOAT8 bark) {
-    
+
     FLOAT8 tempx,x,tempy,temp;
     tempx = bark;
     if (tempx>=0) tempx *= 3;
-    else tempx *=1.5; 
-    
+    else tempx *=1.5;
+
     if(tempx>=0.5 && tempx<=2.5)
 	{
 	    temp = tempx - 0.5;
@@ -1803,10 +1803,10 @@ FLOAT8 s3_func(FLOAT8 bark) {
     else x = 0.0;
     tempx += 0.474;
     tempy = 15.811389 + 7.5*tempx - 17.5*sqrt(1.0+tempx*tempx);
-    
+
     if (tempy <= -60.0) return  0.0;
 
-    tempx = exp( (x + tempy)*LN_TO_LOG10 ); 
+    tempx = exp( (x + tempy)*LN_TO_LOG10 );
 
     /* Normalization.  The spreading function should be normalized so that:
          +inf
@@ -1817,7 +1817,7 @@ FLOAT8 s3_func(FLOAT8 bark) {
     */
     tempx /= .6609193;
     return tempx;
-    
+
 }
 
 
@@ -1827,11 +1827,11 @@ FLOAT8 s3_func(FLOAT8 bark) {
 
 
 
-int L3para_read(lame_global_flags * gfp, FLOAT8 sfreq, int *numlines_l,int *numlines_s, 
+int L3para_read(lame_global_flags * gfp, FLOAT8 sfreq, int *numlines_l,int *numlines_s,
 FLOAT8 *minval,
 FLOAT8 s3_l[CBANDS][CBANDS], FLOAT8 s3_s[CBANDS][CBANDS],
-FLOAT8 *SNR, 
-int *bu_l, int *bo_l, FLOAT8 *w1_l, FLOAT8 *w2_l, 
+FLOAT8 *SNR,
+int *bu_l, int *bo_l, FLOAT8 *w1_l, FLOAT8 *w2_l,
 int *bu_s, int *bo_s, FLOAT8 *w1_s, FLOAT8 *w2_s,
 int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
 {
@@ -1845,7 +1845,7 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
   int  sbmax ;
   int  i,j;
   int freq_scale=1;
-  int partition[HBLKSIZE]; 
+  int partition[HBLKSIZE];
   int loop, k2;
 
 
@@ -1860,12 +1860,12 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
 
       j2 = j;
       j2 = Min(j2,BLKSIZE/2);
-      
+
       do {
 	/* find smallest j2 >= j so that  (bark - bark_l[i-1]) < DELBARK */
 	ji = j;
 	bark1 = freq2bark(sfreq*ji/BLKSIZE);
-	
+
 	++j2;
 	ji = j2;
 	bark2  = freq2bark(sfreq*ji/BLKSIZE);
@@ -1888,7 +1888,7 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
       end   = gfc->scalefac_band.l[ sfb+1 ];
       freq1 = sfreq*(start-.5)/(2*576);
       freq2 = sfreq*(end-1+.5)/(2*576);
-		     
+
       i1 = floor(.5 + BLKSIZE*freq1/sfreq);
       if (i1<0) i1=0;
       i2 = floor(.5 + BLKSIZE*freq2/sfreq);
@@ -1967,12 +1967,12 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
 
       j2 = j;
       j2 = Min(j2,BLKSIZE_s/2);
-      
+
       do {
 	/* find smallest j2 >= j so that  (bark - bark_s[i-1]) < DELBARK */
 	ji = j;
 	bark1  = freq2bark(sfreq*ji/BLKSIZE_s);
-	
+
 	++j2;
 	ji = j2;
 	bark2  = freq2bark(sfreq*ji/BLKSIZE_s);
@@ -1996,7 +1996,7 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
       end   = gfc->scalefac_band.s[ sfb+1 ];
       freq1 = sfreq*(start-.5)/(2*192);
       freq2 = sfreq*(end-1+.5)/(2*192);
-		     
+
       i1 = floor(.5 + BLKSIZE_s*freq1/sfreq);
       if (i1<0) i1=0;
       i2 = floor(.5 + BLKSIZE_s*freq2/sfreq);
@@ -2025,19 +2025,19 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
       k    = numlines_s[i] - 1;
 
       bark1 = freq2bark (sfreq*(j+0)/BLKSIZE_s);
-      bark2 = freq2bark (sfreq*(j+k)/BLKSIZE_s); 
+      bark2 = freq2bark (sfreq*(j+k)/BLKSIZE_s);
       bval_s[i] = .5*(bark1+bark2);
 
       bark1 = freq2bark (sfreq*(j+0-.5)/BLKSIZE_s);
-      bark2 = freq2bark (sfreq*(j+k+.5)/BLKSIZE_s); 
+      bark2 = freq2bark (sfreq*(j+k+.5)/BLKSIZE_s);
       bval_s_width[i] = bark2-bark1;
       j        += k+1;
-      
+
       /* SNR formula */
       if (bval_s[i]<13)
           snr=-8.25;
-      else 
-	  snr  = -4.5 * (bval_s[i]-13)/(24.0-13.0)  + 
+      else
+	  snr  = -4.5 * (bval_s[i]-13)/(24.0-13.0)  +
 	      -8.25*(bval_s[i]-24)/(13.0-24.0);
 
       SNR[i]=pow(10.0,snr/10.0);
@@ -2052,7 +2052,7 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
    * Now compute the spreading function, s[j][i], the value of the spread-*
    * ing function, centered at band j, for band i, store for later use    *
    ************************************************************************/
-  /* i.e.: sum over j to spread into signal barkval=i  
+  /* i.e.: sum over j to spread into signal barkval=i
      NOTE: i and j are used opposite as in the ISO docs */
   for(i=0;i<*npart_l_orig;i++)    {
       for(j=0;j<*npart_l_orig;j++) 	{
@@ -2064,17 +2064,17 @@ int *npart_l_orig,int *npart_l,int *npart_s_orig,int *npart_s)
   	  s3_s[i][j]=s3_func(bval_s[i]-bval_s[j])*bval_s_width[j];
       }
   }
-  
+
 
 
 
   /* compute: */
   /* npart_l_orig   = number of partition bands before convolution */
   /* npart_l  = number of partition bands after convolution */
-  
+
   *npart_l=bo_l[NBPSY_l-1]+1;
   *npart_s=bo_s[NBPSY_s-1]+1;
-  
+
   assert(*npart_l <= *npart_l_orig);
   assert(*npart_s <= *npart_s_orig);
 
@@ -2170,10 +2170,10 @@ int psymodel_init(lame_global_flags *gfp)
 
 
 
-    
+
     /*  gfp->cwlimit = sfreq*j/1024.0;  */
     gfc->cw_lower_index=6;
-    if (gfp->cwlimit>0) 
+    if (gfp->cwlimit>0)
       cwlimit=gfp->cwlimit;
     else
       cwlimit=(FLOAT)8871.7;
@@ -2183,8 +2183,8 @@ int psymodel_init(lame_global_flags *gfp)
 
     for ( j = 0; j < HBLKSIZE; j++ )
       gfc->cw[j] = 0.4f;
-    
-    
+
+
 
     i=L3para_read( gfp,(FLOAT8) samplerate,gfc->numlines_l,gfc->numlines_s,
           gfc->minval,gfc->s3_l,gfc->s3_s,gfc->SNR_s,gfc->bu_l,
@@ -2192,19 +2192,19 @@ int psymodel_init(lame_global_flags *gfp)
           gfc->w1_s,gfc->w2_s,&gfc->npart_l_orig,&gfc->npart_l,
           &gfc->npart_s_orig,&gfc->npart_s );
     if (i!=0) return -1;
-    
+
 
 
     /* npart_l_orig   = number of partition bands before convolution */
     /* npart_l  = number of partition bands after convolution */
-    
+
     for (i=0; i<gfc->npart_l; i++) {
       for (j = 0; j < gfc->npart_l_orig; j++) {
 	if (gfc->s3_l[i][j] != 0.0)
 	  break;
       }
       gfc->s3ind[i][0] = j;
-      
+
       for (j = gfc->npart_l_orig - 1; j > 0; j--) {
 	if (gfc->s3_l[i][j] != 0.0)
 	  break;
@@ -2219,19 +2219,19 @@ int psymodel_init(lame_global_flags *gfp)
 	  break;
       }
       gfc->s3ind_s[i][0] = j;
-      
+
       for (j = gfc->npart_s_orig - 1; j > 0; j--) {
 	if (gfc->s3_s[i][j] != 0.0)
 	  break;
       }
       gfc->s3ind_s[i][1] = j;
     }
-    
-    
-    /*  
+
+
+    /*
       #include "debugscalefac.c"
     */
-    
+
 
 
     if (gfc->nsPsy.use) {
@@ -2239,7 +2239,7 @@ int psymodel_init(lame_global_flags *gfp)
 	for ( b = 0;b < gfc->npart_l; b++ ) {
 	    for ( k = gfc->s3ind[b][0]; k <= gfc->s3ind[b][1]; k++ ) {
 		// spreading function has been properly normalized by
-		// multiplying by DELBARK/.6609193 = .515.  
+		// multiplying by DELBARK/.6609193 = .515.
 		// It looks like Naoki was
                 // way ahead of me and added this factor here!
 		// it is no longer needed.
@@ -2247,7 +2247,7 @@ int psymodel_init(lame_global_flags *gfp)
 	    }
 	}
 	/* short block spreading function normalization */
-	// no longer needs to be normalized, but nspsytune wants 
+	// no longer needs to be normalized, but nspsytune wants
 	// SNR_s applied here istead of later to save CPU cycles
 	for ( b = 0;b < gfc->npart_s; b++ ) {
 	    FLOAT8 norm=0;
@@ -2265,7 +2265,7 @@ int psymodel_init(lame_global_flags *gfp)
     if (gfc->nsPsy.use) {
 #if 1
 	/* spread only from npart_l bands.  Normally, we use the spreading
-	 * function to convolve from npart_l_orig down to npart_l bands 
+	 * function to convolve from npart_l_orig down to npart_l bands
 	 */
 	for(b=0;b<gfc->npart_l;b++)
 	    if (gfc->s3ind[b][1] > gfc->npart_l-1) gfc->s3ind[b][1] = gfc->npart_l-1;

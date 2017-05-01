@@ -586,7 +586,7 @@ doremove(Xfs *xf, Dosptr *dp)
 			p->flags |= BMOD;
 		}
 		putsect(p);
-	}		
+	}
 }
 
 void

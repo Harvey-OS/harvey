@@ -581,7 +581,7 @@ haveroom(Edit *edit, int primary, int64_t start)
 		return n<4;
 	}
 
-	/* 
+	/*
 	 * secondary partitions can be inserted between two primary
 	 * partitions only if there is an empty primary slot.
 	 * otherwise, we can put a new secondary partition next
@@ -645,7 +645,7 @@ autopart(Edit *edit)
 	}
 
 	/* set new partition active only if no others are */
-	active = Active;	
+	active = Active;
 	for(i=0; i<edit->npart; i++)
 		if(((Dospart*)edit->part[i])->primary && (((Dospart*)edit->part[i])->Tentry.active & Active))
 			active = 0;
@@ -842,7 +842,7 @@ cmdwrite(Edit *edit)
 	return nil;
 }
 
-static char *help = 
+static char *help =
 	"A name - set partition active\n"
 	"P - print table in ctl format\n"
 	"R - restore disk back to initial configuration and exit\n"
@@ -1078,11 +1078,11 @@ wrextend(Edit *edit, int i, int64_t xbase, int64_t startlba,
 	if(diskwrite(edit->disk, &table, Tablesz, mbroffset+startlba, Toffset) < 0)
 		recover(edit);
 	return ni;
-}	
+}
 
 static void
 wrpart(Edit *edit)
-{	
+{
 	int i, ni, t;
 	Table table;
 	Tentry *tp, *ep;
@@ -1121,7 +1121,7 @@ wrpart(Edit *edit)
 	}
 	for(; tp<ep; tp++)
 		memset(tp, 0, sizeof(*tp));
-		
+
 	if(i != edit->npart)
 		sysfatal("cannot happen #1");
 

@@ -25,8 +25,8 @@ enum {
 
 	Nwidths = 4096,
 };
-	
-	
+
+
 typedef struct Biff Biff;
 typedef struct Col Col;
 typedef struct Row Row;
@@ -82,13 +82,13 @@ static int Width[Nwidths];	// array of colum widths
 static int Ncols = -1;		// max colums in table used
 static int Content = 0;		// type code for contents of sheet
 static Row *Root = nil;		// one worksheet's worth of cells
-				
+
 static char *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static char *Errmsgs[] = {
 	[0x0]	= "#NULL!",	// intersection of two cell ranges is empty
-	[0x7]	= "#DIV/0!",	// division by zero	
+	[0x7]	= "#DIV/0!",	// division by zero
 	[0xf]	= "#VALUE!",	// wrong type of operand
 	[0x17]	= "#REF!",	// illegal or deleted cell reference
 	[0x1d]	= "#NAME?",	// wrong function or range name
@@ -137,7 +137,7 @@ wanted(char *range, int here)
 	}
 }
 
-	
+
 void
 cell(int r, int c, int f, int type, void *val)
 {
@@ -416,7 +416,7 @@ xd(Biff *b)
 	Bseek(b->bp, off, 0);
 }
 
-static int 
+static int
 getrec(Biff *b)
 {
 	int c;
@@ -553,7 +553,7 @@ gstr(Biff *b, int len_width)
 		}
 		if(getrec(b) == -1)
 			sysfatal("in STRING expected CONTINUE, got EOF");
-		if(b->op != 0x03c)	
+		if(b->op != 0x03c)
 			sysfatal("in STRING expected CONTINUE, got op=0x%x", b->op);
 		opt = gint(b, 1);
 	}
@@ -563,7 +563,7 @@ void
 sst(Biff *b)
 {
 	int n;
-	
+
 	skip(b, 4);			// total # strings
 	Nstrtab = gint(b, 4);		// # unique strings
 	if((Strtab = calloc(Nstrtab, sizeof(char *))) == nil)
@@ -612,7 +612,7 @@ number(Biff *b)
 	int r = gint(b, 2);		// row
 	int c = gint(b, 2);		// col
 	int f = gint(b, 2);		// formatting ref
-	double v = gdoub(b);		// double 
+	double v = gdoub(b);		// double
 	cell(r, c, f, Tnumber, &v);
 }
 
@@ -641,7 +641,7 @@ void
 bof(Biff *b)
 {
 	Biffver = gint(b, 2);
-	Content = gint(b, 2);	
+	Content = gint(b, 2);
 }
 
 void
@@ -677,7 +677,7 @@ eof(Biff *b)
 		release();
 		return;
 	}
-			
+
 	if(Ncols != -1){
 		if(All){
 			for(i = 0; i < nelem(names); i++)
@@ -686,7 +686,7 @@ eof(Biff *b)
 					dump();
 				}
 		}
-		else 
+		else
 		if(Content == 0x10)		// Worksheet
 			dump();
 	}
@@ -771,8 +771,8 @@ xls2csv(Biobuf *bp)
 		{0x027e, rk},
 		{0x0809, bof},
 		{0x00e0, xf},
-	};		
-	
+	};
+
 	b = &biff;
 	b->bp = bp;
 	while(getrec(b) != -1){
@@ -795,7 +795,7 @@ main(int argc, char *argv[])
 {
 	int i;
 	Biobuf bin, bout, *bp;
-	
+
 	ARGBEGIN{
 	case 'D':
 		Debug = 1;

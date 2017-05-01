@@ -87,7 +87,7 @@ p9crinit(Proto *p, Fsstate *fss)
 
 	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
-	
+
 	s = emalloc(sizeof(*s));
 	s->asfd = -1;
 	if(p == &p9cr){

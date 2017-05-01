@@ -204,8 +204,8 @@
     if ( slot->flags & FT_GLYPH_OWN_BITMAP )
     {
       FT_Memory  memory = FT_FACE_MEMORY( slot->face );
-      
-      
+
+
       FT_FREE( slot->bitmap.buffer );
       slot->flags &= ~FT_GLYPH_OWN_BITMAP;
     }
@@ -223,11 +223,11 @@
                            FT_Pointer    buffer )
   {
     ft_glyphslot_free_bitmap( slot );
-    
+
     slot->bitmap.buffer = buffer;
-    
+
     FT_ASSERT( (slot->flags & FT_GLYPH_OWN_BITMAP) == 0 );
-  }                           
+  }
 
 
   FT_BASE_DEF( FT_Error )
@@ -235,15 +235,15 @@
                              FT_ULong      size )
   {
     FT_Memory  memory = FT_FACE_MEMORY( slot->face );
-    
-    
+
+
     if ( slot->flags & FT_GLYPH_OWN_BITMAP )
       FT_FREE( slot->bitmap.buffer );
     else
       slot->flags |= FT_GLYPH_OWN_BITMAP;
-    
+
     return FT_MEM_ALLOC( slot->bitmap.buffer, size );
-  }                             
+  }
 
 
   static void

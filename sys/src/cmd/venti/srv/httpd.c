@@ -60,7 +60,7 @@ httpdinit(char *address, char *dir)
 	if(address == nil)
 		address = "tcp!*!http";
 	webroot = dir;
-	
+
 	httpdobj("/stats", estats);
 	httpdobj("/index", dindex);
 	httpdobj("/storage", sindex);
@@ -177,7 +177,7 @@ httpproc(void *v)
 		 */
 		if(hparsereq(c, 0) < 0)
 			break;
-		
+
 		for(i = 0; i < MaxObjs && objs[i].name[0]; i++){
 			n = strlen(objs[i].name);
 			if((objs[i].name[n-1] == '/' && strncmp(c->req.uri, objs[i].name, n) == 0)
@@ -205,7 +205,7 @@ char*
 hargstr(HConnect *c, char *name, char *def)
 {
 	HSPairs *p;
-	
+
 	for(p=c->req.searchpairs; p; p=p->next)
 		if(strcmp(p->s, name) == 0)
 			return p->t;
@@ -216,7 +216,7 @@ int64_t
 hargint(HConnect *c, char *name, int64_t def)
 {
 	char *a;
-	
+
 	if((a = hargstr(c, name, nil)) == nil)
 		return def;
 	return atoll(a);
@@ -291,7 +291,7 @@ herror(HConnect *c)
 {
 	int n;
 	Hio *hout;
-	
+
 	hout = &c->hout;
 	n = snprint(c->xferbuf, HBufSize, "<html><head><title>Error</title></head>\n<body><h1>Error</h1>\n<pre>%r</pre>\n</body></html>");
 	hprint(hout, "%s %s\r\n", hversion, "400 Bad Request");
@@ -310,7 +310,7 @@ herror(HConnect *c)
 
 	return hflush(hout);
 }
-	
+
 int
 hnotfound(HConnect *c)
 {
@@ -340,7 +340,7 @@ fromwebdir(HConnect *c)
 	char buf[4096], *p, *ext, *type;
 	int i, fd, n, defaulted;
 	Dir *d;
-	
+
 	if(webroot == nil || strstr(c->req.uri, ".."))
 		return hnotfound(c);
 	snprint(buf, sizeof buf-20, "%s/%s", webroot, c->req.uri+1);
@@ -438,7 +438,7 @@ xset(HConnect *c)
 		hflush(&c->hout);
 		return 0;
 	}
-	
+
 	old = *namedints[i].p;
 	*namedints[i].p = atoll(value);
 	hprint(&c->hout, "%s = %d (was %d)\n", name, *namedints[i].p, old);
@@ -504,7 +504,7 @@ estats(HConnect *c)
 		percent(stats.absorbedwrites, stats.dirtydblocks));
 
 	hprint(hout, "disk cache flushes=%,ld\n", stats.dcacheflushes);
-	hprint(hout, "disk cache flush writes=%,ld (%,ld per flush)\n", 
+	hprint(hout, "disk cache flush writes=%,ld (%,ld per flush)\n",
 		stats.dcacheflushwrites,
 		stats.dcacheflushwrites/(stats.dcacheflushes ? stats.dcacheflushes : 1));
 
@@ -827,7 +827,7 @@ diskbw(Stats *s)
 	uint32_t *n;
 
 	n = s->n;
-	return n[StatApartReadBytes]+n[StatApartWriteBytes]	
+	return n[StatApartReadBytes]+n[StatApartWriteBytes]
 		+ n[StatIsectReadBytes]+n[StatIsectWriteBytes]
 		+ n[StatSumReadBytes];
 }
@@ -888,7 +888,7 @@ static char* graphname[] =
 	"lcachesize",
 	"lcachestall",
 	"lcachelookuptime",
-	
+
 	"dcachehit",
 	"dcachemiss",
 	"dcachelookup",
@@ -937,7 +937,7 @@ static char* graphname[] =
 
 	"sumread",
 	"sumreadbyte",
-	
+
 	"cigload",
 	"cigloadtime",
 };
@@ -1002,7 +1002,7 @@ xgraph(HConnect *c)
 	g.ht = hargint(c, "ht", -1);
 	dotext = hargstr(c, "text", "")[0] != 0;
 	g.fill = hargint(c, "fill", -1);
-	
+
 	graph = hargstr(c, "graph", "raw");
 	if(strcmp(graph, "raw") == 0)
 		g.fn = rawgraph;
@@ -1141,14 +1141,14 @@ vtloghdump(Hio *h, VtLog *l)
 	int i;
 	VtLogChunk *c;
 	char *name;
-	
+
 	name = l ? l->name : "&lt;nil&gt;";
 
 	hprint(h, "<html><head>\n");
 	hprint(h, "<title>Venti Server Log: %s</title>\n", name);
 	hprint(h, "</head><body>\n");
 	hprint(h, "<b>Venti Server Log: %s</b>\n<p>\n", name);
-	
+
 	if(l){
 		c = l->w;
 		for(i=0; i<l->nchunk; i++){
@@ -1171,12 +1171,12 @@ vtloghlist(Hio *h)
 {
 	char **p;
 	int i, n;
-	
+
 	hprint(h, "<html><head>\n");
 	hprint(h, "<title>Venti Server Logs</title>\n");
 	hprint(h, "</head><body>\n");
 	hprint(h, "<b>Venti Server Logs</b>\n<p>\n");
-	
+
 	p = vtlognames(&n);
 	qsort(p, n, sizeof(p[0]), strpcmp);
 	for(i=0; i<n; i++)

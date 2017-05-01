@@ -43,7 +43,7 @@ rattach(Req *r)
 
 	chat("attach(fid=%d,uname=\"%s\",aname=\"%s\",afid=\"%d\")...",
 		thdr.fid, thdr.uname, thdr.aname, thdr.afid);
-	
+
 	errno = 0;
 	root = xfile(r->fid, Clean);
 	if(!root){
@@ -53,18 +53,18 @@ rattach(Req *r)
 	root->xf = xf = getxfs(thdr.aname);
 	if(!xf)
 		goto error;
-	
+
 	/* now attach root inode */
 	if( get_inode(root, EXT2_ROOT_INODE) < 0 )
 		goto error;
-	
+
 	r->fid->qid.type = QTDIR;
 	r->fid->qid.vers = 0;
 	root->xf->rootqid = r->fid->qid;
 	root->pinbr = EXT2_ROOT_INODE;
 	root->root = 1;
 	rhdr.qid = r->fid->qid;
-	
+
 error:
 	response(r);
 }
@@ -174,12 +174,12 @@ rwstat(Req *r)
 		errno = Eio;
 	else
 		dowstat(f, &r->d);
-	response(r);	
+	response(r);
 }
 static void
 rread(Req *r)
 {
-	Xfile *f; 
+	Xfile *f;
 	int nr;
 
 	chat("read(fid=%d,offset=%lld,count=%d)...",
@@ -191,7 +191,7 @@ rread(Req *r)
 		nr = readdir(f, r->rbuf, thdr.offset, thdr.count);
 	}else
 		nr = readfile(f, r->rbuf, thdr.offset, thdr.count);
-	
+
 	if(nr >= 0){
 		rhdr.count = nr;
 		chat("rcnt=%d...OK\n", nr);
@@ -206,7 +206,7 @@ static void
 rwrite(Req *r)
 {
 	Xfile *f; int nr;
-	
+
 	chat("write(fid=%d,offset=%lld,count=%d)...",
 		thdr.fid, thdr.offset, thdr.count);
 
@@ -220,7 +220,7 @@ rwrite(Req *r)
 		goto error;
 	}
 	nr = writefile(f, thdr.data, thdr.offset, thdr.count);
-	if(nr >= 0){	
+	if(nr >= 0){
 		rhdr.count = nr;
 		chat("rcnt=%d...OK\n", nr);
 		respond(r, nil);
@@ -250,7 +250,7 @@ ropen(Req *r)
 		errno = Eio;
 		goto error;
 	}
-	
+
 	if(thdr.mode & OTRUNC){
 		if( !S_ISREG(getmode(f)) ){
 			errno = Eperm;
@@ -293,7 +293,7 @@ rcreate(Req *r)
 	/* create */
 	errno = 0;
 	if( thdr.perm & DMDIR ){
-		perm = (thdr.perm & ~0777) | 
+		perm = (thdr.perm & ~0777) |
 				(getmode(f) & thdr.perm & 0777);
 		perm |= S_IFDIR;
 		inr = create_dir(f, thdr.name, perm);
@@ -302,7 +302,7 @@ rcreate(Req *r)
 				(getmode(f) & thdr.perm & 0666);
 		perm |= S_IFREG;
 		inr = create_file(f, thdr.name, perm);
-		
+
 	}
 	if( inr < 0 )
 		goto error;

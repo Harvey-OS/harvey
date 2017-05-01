@@ -87,7 +87,7 @@ main(int argc, char *argv[])
 		sysfatal("can't set up acpi tables: %d", status);
 
 	if (verbose)
-		print("init dables\n"); 
+		print("init dables\n");
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);
@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 	/* from acpi: */
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
 	AcpiGbl_ReducedHardware = 1;
-	if (verbose) 
+	if (verbose)
 		print("LOADED TABLES.\n");
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))

@@ -66,7 +66,7 @@ main(void)
 {
 	double v;
 	char *a, *b;
-	
+
 	for(v = 4; v < 65536; v += 3) {
 		a = smprint("%f", sqrtC(v));
 		b = smprint("%f", sqrt(v));
@@ -77,7 +77,7 @@ main(void)
 		free(a);
 		free(b);
 	}
-	
+
 	print("PASS\n");
 	exits(nil);
 }

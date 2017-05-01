@@ -831,7 +831,7 @@ getstatus(t)
  * request (control T) is sent to the printer and nostatus is returned to the
  * caller (provided quiet isn't TRUE). Interactive mode either never returns from
  * readline() or returns FALSE.
- * 
+ *
  */
 
     if ( canread == TRUE && (gotline = readline()) == TRUE )  {
@@ -942,7 +942,7 @@ char *find(str1, str2)
  * Looks for *str1 in string *str2. Returns a pointer to the start of the substring
  * if it's found or to the end of string str2 otherwise.
  *
- */ 
+ */
 
     for ( ; *str2 != '\0'; str2++ )  {
 	for ( s1 = str1, s2 = str2; *s1 != '\0' && *s1 == *s2; s1++, s2++ ) ;
@@ -964,7 +964,7 @@ clearline()
  *
  * Reads characters from the input line until nothing's left. Don't do anything if
  * we're currently running separate read and write processes.
- * 
+ *
  */
 
     if ( whatami == READWRITE )
@@ -1216,6 +1216,6 @@ Write(fd, buf, n)
     return(count);
 
 }   /* End of Write */
- 
+
 /*****************************************************************************/
 

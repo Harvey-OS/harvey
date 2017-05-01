@@ -46,7 +46,7 @@ convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 	int i, ns;
 
 	if(nbuf < STATFIXLEN)
-		return 0; 
+		return 0;
 
 	p = buf;
 	ebuf = buf + nbuf;
@@ -98,6 +98,6 @@ convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 		d->gid = nullstring;
 		d->muid = nullstring;
 	}
-	
+
 	return p - buf;
 }

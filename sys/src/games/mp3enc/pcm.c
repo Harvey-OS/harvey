@@ -115,7 +115,7 @@ static inline int  lame_encode_frame (
     fprintf ( fp, "\n" );
     fflush ( fp );
 #endif
-    
+
     FN("lame_encode_frame");
 
     switch ( lame -> coding ) {
@@ -151,7 +151,7 @@ static inline int  lame_encode_frame (
         ret = -5;
         break;
     }
-    
+
     if ( ret >= 0 ) {
         lame->frame_count++;
         if ( lame->analyzer_callback != NULL )
@@ -435,7 +435,7 @@ FUNCTION ( copy_f64_be , *(const float64_t*)src )
  *  The demultiplexers
  *    - 1st argument is the destination of the data converted to sample_t (and normalized to +/-32768)
  *    - 2nd argument is a pointer to the source data, in any format
- *    - 3rd argument is 1st argument of the table (multiplied by the channel count in the case of 
+ *    - 3rd argument is 1st argument of the table (multiplied by the channel count in the case of
  *      interleaved data)
  *    - 4th argument is the count of samples per channel to convert
  */
@@ -612,13 +612,13 @@ static inline int  internal_lame_encoding_pcm (
 
         /* copy in new samples into mfbuf, with resampling if necessary */
         if ( lame->resample_in != NULL )  {
-	
+
             FN("internal_lame_encoding_pcm 10");
-	
+
             for ( ch = 0; ch < lame->channels_out; ch++ ) {
                 n_in  = remaining;
                 n_out = lame->frame_size;
-		
+
                 FN("internal_lame_encoding_pcm 12");
 
                 // resample filter virtually should have no delay !
@@ -631,14 +631,14 @@ static inline int  internal_lame_encoding_pcm (
                     return ret;
                 pdata [ch] += n_in;
             }
-	    
+
             FN("internal_lame_encoding_pcm 13");
-	    
+
         }
         else {
-	
+
             FN("internal_lame_encoding_pcm 14");
-	
+
             n_in = n_out = MIN ( lame->frame_size, remaining );
 
             FN("internal_lame_encoding_pcm 15");
@@ -649,9 +649,9 @@ static inline int  internal_lame_encoding_pcm (
                           n_out * sizeof (**mfbuf) );
                 pdata [ch] += n_in;
             }
-	    
+
             FN("internal_lame_encoding_pcm 16");
-	    
+
         }
 
         FN("internal_lame_encoding_pcm 4");
@@ -702,7 +702,7 @@ static inline int  internal_lame_encoding_pcm (
             lame->mf_samples_to_encode -= lame->frame_size;
             for ( ch = 0; ch < lame->channels_out; ch++ )
                 memmove ( mfbuf [ch] + 0, mfbuf [ch] + lame->frame_size, lame->mf_size * sizeof (**mfbuf) );
-		
+
             FN("internal_lame_encoding_pcm 6");
 
         }
@@ -889,8 +889,8 @@ int  lame_encode_pcm_flush (
 
     FN("lame_encode_pcm_flush");
 
-    ret = lame_encode_pcm ( lame, os, NULL, 
-                            lame->mf_samples_to_encode + lame->frame_size, 
+    ret = lame_encode_pcm ( lame, os, NULL,
+                            lame->mf_samples_to_encode + lame->frame_size,
 			    LAME_INTERLEAVED | LAME_SILENCE | 1 );
 
 
@@ -898,7 +898,7 @@ int  lame_encode_pcm_flush (
     flush_bitstream (lame -> global_flags);       // mp3 related stuff. bit buffer might still contain some mp3 data
     id3tag_write_v1 (lame -> global_flags);       // write a ID3 tag to the bitstream
     ret_cb = copy_buffer (os->data, os->size - os->length, &lame->bs);
-    if (ret_cb < 0) 
+    if (ret_cb < 0)
         return ret_cb;
     os->length += ret_cb;
 
@@ -1309,7 +1309,7 @@ float_t  scalar1n_float32 ( const sample_t* p, const sample_t* q, size_t len )
         q   += 3;
         break;
     }
-    
+
     for ( len >>= 2; len--; ) {
         sum += p[0]*q[0] + p[1]*q[1] + p[2]*q[2] + p[3]*q[3];
         p   += 4;
@@ -1377,10 +1377,10 @@ void  init_scalar_functions ( OUT lame_t* const lame )
  *  It searches the best ratio a:b with b <= MAX_TABLES
  */
 
-static double  factorize ( 
-        OUT long double  f1, 
-	OUT long double  f2, 
-	IN  int* const   x1, 
+static double  factorize (
+        OUT long double  f1,
+	OUT long double  f2,
+	IN  int* const   x1,
 	IN  int* const   x2 )
 {
     unsigned     i;
@@ -1507,7 +1507,7 @@ resample_t*  resample_open (
     for ( i = 0; i < ret->scale_out; i++, p += TAPS ) {
         ret->src_step [i] = round_nearest ( (i+1.L) * ret->scale_in / ret->scale_out )
                           - round_nearest ( (i+0.L) * ret->scale_in / ret->scale_out );
-                          
+
         Calc_Coeffs ( ret->fir [i] = p,
                       ret->scale_out, ret->scale_in,
                       i, round_nearest ( (double)i * ret->scale_in / ret->scale_out - WINDOW_SIZE ),

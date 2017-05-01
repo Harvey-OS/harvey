@@ -2,17 +2,17 @@
 * File: pit_server.c
 *
 * Description: Contains source code for an IPv6-capable 'PIT' server.
-* This is a derivative of the tod6 (time-of-day) server that was written 
+* This is a derivative of the tod6 (time-of-day) server that was written
 * by John Wenker.
 * .......
 * Author of tod6: John Wenker, Sr. Software Engineer,
 *                  Performance Technologies, San Diego, USA
 * .......
 * The program tod6 was a time of day server. It has beeen modified
-* to provide a microsecond timestamp on request.  Modified and adapted 
+* to provide a microsecond timestamp on request.  Modified and adapted
 * for PIT purposes by Don Capps.  [ capps@iozone.org ]
-* 
-* This server sends the current value of gettimeofday() in 
+*
+* This server sends the current value of gettimeofday() in
 * microseconds back to the client, as a numerical string.
 *
 * /etc/services should contain "PIT" with a specified port value.
@@ -97,7 +97,7 @@ int need;
         }  /* End USAGE macro. */
 /*
 ** Macro to terminate the program if a system call error occurs.  The system
-** call must be one of the usual type that returns -1 on error.  
+** call must be one of the usual type that returns -1 on error.
 */
 #define CHK(expr)                                                   \
         do                                                          \
@@ -476,7 +476,7 @@ static int openSckt( const char *service,
 *
 * Description:
 *    Listen on a set of sockets and send the current microsecond counter
-*    that was produced by gettimeofday(), to any clients.  This function 
+*    that was produced by gettimeofday(), to any clients.  This function
 *    never returns.
 *
 * Parameters:
@@ -555,9 +555,9 @@ static void pit( int    tSckt[ ],
 #if defined(Windows)
    LARGE_INTEGER freq,counter;
    double wintime,bigcounter;
-   /* For Windows the time_of_day() is useless. It increments in 55 milli 
-    * second increments. By using the Win32api one can get access to the 
-    * high performance measurement interfaces. With this one can get back 
+   /* For Windows the time_of_day() is useless. It increments in 55 milli
+    * second increments. By using the Win32api one can get access to the
+    * high performance measurement interfaces. With this one can get back
     * into the 8 to 9 microsecond resolution.
     */
       QueryPerformanceFrequency(&freq);
@@ -568,7 +568,7 @@ static void pit( int    tSckt[ ],
       secs = (long long)(wintime * 1000000);
 #else
       ret = gettimeofday( &tm,0 );
-      secs = ((unsigned long long)tm.tv_sec * 1000000) 
+      secs = ((unsigned long long)tm.tv_sec * 1000000)
 		+ (unsigned long long)tm.tv_usec;
 #endif
 

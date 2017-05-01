@@ -39,7 +39,7 @@ mptobe(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 		else
 			return 1;
 	}
-		
+
 	s = p;
 	e = s+n;
 	suppress = 1;

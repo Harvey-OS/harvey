@@ -247,46 +247,46 @@ exchange_charge(Dot *p, Dot *q)
  * and point of collision.  We start with the two
  * quantities that we know are conserved in
  * elastic collisions -- momentum and kinetic energy.
- * 
+ *
  * Let the masses of the particles be m1 and m2;
  * their initial velocities V1 and V2 (vector quantities
  * represented by upper case variables, scalars lower
  * case); their final velocities V1' and V2'.
- * 
+ *
  * Conservation of momentum gives us:
- * 
+ *
  * 	(1)	m1 * V1 + m2 * V2	= m1 * V1' + m2 * V2'
- * 
+ *
  * and conservation of kinetic energy gives:
- * 
+ *
  * 	(2)	1/2 * m1 * |V1| * |V1| + 1/2 * m2 * |V2| * |V2|	=
  * 			1/2 * m1 * |V1'| * |V1'| + 1/2 * m2 * |V2'| * |V2'|
- * 
+ *
  * Then, decomposing (1) into its 2D scalar components:
- * 
+ *
  * 	(1a)	m1 * v1x + m2 * v2x	= m1 * v1x' + m2 * v2x'
  * 	(1b)	m1 * v1y + m2 * v2y	= m1 * v1y' + m2 * v2y'
- * 
+ *
  * and simplifying and expanding (2):
- * 
+ *
  * 	(2a)	m1 * (v1x * v1x + v1y * v1y) +
  * 		m2 * (v2x * v2x + v2y * v2y)
  * 					=
  * 		m1 * (v1x' * v1x' + v1y' * v1y') +
  * 		m2 * (v2x' * v2x' + v2y' * v2y')
- * 
+ *
  * We know m1, m2, V1 and V2 which leaves four unknowns:
- * 
+ *
  * 	v1x', v1y', v2x' and v2y'
- * 
+ *
  * but we have just three equations:
- * 
+ *
  * 	(1a), (1b) and (2a)
- * 
+ *
  * To remove this extra degree of freedom we add the assumption that
  * the forces during the collision act instantaneously and exactly
  * along the (displacement) vector joining the centres of the two objects.
- * 
+ *
  * And unfortunately, I've forgotten the extra equation that this
  * adds to the system(!), but it turns out that this extra constraint
  * does allow us to solve the augmented system of equations.
@@ -373,7 +373,7 @@ drawdot(Dot *d)
 	r = rectsubpt(r, d->face->r.min);
 	r = rectaddpt(r, d->pos);
 	r = rectaddpt(r, screen->r.min);
-	
+
 	draw(screen, r, d->face, d->mask, d->face->r.min);
 
 	if(PDUP > 1) {	/* assume debugging */
@@ -391,7 +391,7 @@ undraw(Dot *d)
 	r = rectsubpt(r, d->face->r.min);
 	r = rectaddpt(r, d->pos);
 	r = rectaddpt(r, screen->r.min);
-	
+
 	draw(screen, r, display->black, d->mask, d->face->r.min);
 
 /*
@@ -649,7 +649,7 @@ setup(Dot *d, char *who, uint8_t *face, int n_els)
 	nbits = 8/repl;
 	mask = (1<<(nbits))-1;
 
-	if(0) print("converting %s... n_els=%d repl=%d mask=%x nbits=%d...\n", 
+	if(0) print("converting %s... n_els=%d repl=%d mask=%x nbits=%d...\n",
 		who, n_els, repl, mask, nbits);
 	n = 0;
 	for (i = 0; i < n_els; i++)
@@ -811,7 +811,7 @@ main(int argc, char *argv[])
 	im = eallocimage(display, Rect(0, 0, PDUP*NPJW, PDUP*NPJW), CMAP8, 0, DNofill);
 
 	draw(screen, screen->r, display->black, nil, ZP);
-	
+
 /*	track = balloc(Rect(0, 0, track_width, track_width), 0); */
 
 	edot = &dot[0];

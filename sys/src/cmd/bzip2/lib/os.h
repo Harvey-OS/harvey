@@ -85,7 +85,7 @@ typedef int             Int32;
 typedef unsigned int    UInt32;
 typedef short           Int16;
 typedef unsigned short  UInt16;
-                                       
+
 #define True  ((Bool)1)
 #define False ((Bool)0)
 

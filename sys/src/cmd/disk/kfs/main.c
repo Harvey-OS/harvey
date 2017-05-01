@@ -445,7 +445,7 @@ memsize(void)
 		by2pg = 8*1024;
 
 	secs = 4*1024*1024;
-	
+
 	fd = open("/dev/swap", OREAD);
 	if(fd < 0)
 		return secs;

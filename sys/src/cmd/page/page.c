@@ -179,7 +179,7 @@ main(int argc, char **argv)
 		if(!(b = Bopen(argv[0], OREAD))) {
 			fprint(2, "page: cannot open \"%s\"\n", argv[0]);
 			wexits("open");
-		}	
+		}
 
 		if(Bread(b, buf, Ninput) != Ninput) {
 			fprint(2, "page: short read reading %s\n", argv[0]);

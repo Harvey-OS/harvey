@@ -130,7 +130,7 @@ main(int argc, char *argv[])
 	    if (ACPI_FAILURE (Status))
 	    {
 		    /* AE_LIMIT means that no more tables are available */
-		    
+
 		    if (Status == AE_LIMIT)
 		    {
 			    break;
@@ -151,7 +151,7 @@ main(int argc, char *argv[])
     UINT32                  TableLength;
 
     TableLength = ApGetTableLength (Table);
-	    
+
         AcpiTbPrintTableHeader (Address, Table);
 
 
@@ -163,15 +163,15 @@ main(int argc, char *argv[])
         DB_BYTE_DISPLAY, 0);
     AcpiUtFilePrintf (1, "\n");
 
-	    ACPI_FREE (Table);	    
+	    ACPI_FREE (Table);
 	    if (TableStatus)
 	    {
 		    break;
 	    }
     }
-    
+
 #if 0
-    print("initit dables\n"); 
+    print("initit dables\n");
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);

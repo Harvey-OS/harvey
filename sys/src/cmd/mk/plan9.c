@@ -119,7 +119,7 @@ exportenv(Envy *e)
 			e->values = 0;		/* memory leak */
 			continue;
 		}
-	
+
 		f = create(nam, OWRITE, 0666L);
 		if(f < 0) {
 			fprint(2, "can't create %s, f=%d\n", nam, f);

@@ -130,7 +130,7 @@ cddbfilltoc(Toc *t)
 
 	/*
 	 *	Protocol level 6 is the same as level 5 except that
-	 *	the character set is now UTF-8 instead of ISO-8859-1. 
+	 *	the character set is now UTF-8 instead of ISO-8859-1.
  	 */
 	fprint(fd, "proto 6\r\n");
 	DPRINT(2, "proto 6\r\n");
@@ -217,7 +217,7 @@ DPRINT(2, "cddb %s\n", p);
 
 				t->track[i].title = append(t->track[i].title, estrdup(p));
 			}
-		} 
+		}
 	} while(*p != '.');
 
 	fprint(fd, "quit\r\n");

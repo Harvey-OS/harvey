@@ -168,8 +168,8 @@ struct Mouseinfo
 	uint32_t	counter;	/* serial no. of last mouse event we received */
 	uint32_t	lastcounter;	/* serial no. of last mouse event sent to client */
 	int	lastb;	/* last button state we received */
-	unsigned char	qfull;	/* filled the queue; no more recording until client comes back */	
-};	
+	unsigned char	qfull;	/* filled the queue; no more recording until client comes back */
+};
 
 struct Window
 {

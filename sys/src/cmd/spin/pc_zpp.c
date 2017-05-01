@@ -454,7 +454,7 @@ process(char *q, int lno, char *fnm)
 				fprintf(outpp, "#line %d \"%s\"\n", lno, fnm);
 			return r;
 		}
-	
+
 	debug("zpp: unrecognized directive: %s", p);
 	return 0;
 }

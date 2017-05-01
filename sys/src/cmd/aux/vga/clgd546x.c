@@ -121,7 +121,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		if(write(f, "type clgd546x", 13) != 13)
 			error("%s: can't set type\n", ctlr->name);
 		close(f);
-	
+
 		mmio = segattach(0, "clgd546xmmio", 0, p->mem[1].size);
 		if(mmio == (void*)-1)
 			error("%s: can't attach mmio segment\n", ctlr->name);

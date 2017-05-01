@@ -296,7 +296,7 @@ main(int argc, char **argv)
 	author = unhttp(author);
 	base = unhttp(base);
 
-	if(title==nil || version==~0 || text==nil || text[0]=='\0' || base == nil 
+	if(title==nil || version==~0 || text==nil || text[0]=='\0' || base == nil
 	|| service == nil || strchr(title, '\n') || strchr(comment, '\n')
 	|| dangerous(service) || strchr(service, '/') || strlen(service)>20){
 		syslog(0, LOG, "%s failed dangerous", hp->remotesys);

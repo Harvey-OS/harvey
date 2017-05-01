@@ -9,7 +9,7 @@
 
 /*
  * This is a URL parser, written to parse "Common Internet Scheme" URL
- * syntax as described in RFC1738 and updated by RFC2396.  Only absolute URLs 
+ * syntax as described in RFC1738 and updated by RFC2396.  Only absolute URLs
  * are supported, using "server-based" naming authorities in the schemes.
  * Support for literal IPv6 addresses is included, per RFC2732.
  *
@@ -59,7 +59,7 @@ ischeme(char *s)
 }
 
 /*
- * URI splitting regexp is from RFC2396, Appendix B: 
+ * URI splitting regexp is from RFC2396, Appendix B:
  *		^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?
  *		 12            3  4          5       6  7        8 9
  *
@@ -104,13 +104,13 @@ ischeme(char *s)
  *    ipv6reference = "[" IPv6address "]"		(RFC2373)
  *
  * Since hostnames and numbers will have to be resolved by the OS anyway,
- * we don't have to parse them too pedantically (counting '.'s, checking 
+ * we don't have to parse them too pedantically (counting '.'s, checking
  * for well-formed literal IP addresses, etc.).
  *
  * In FTP/file paths, we reject most ";param"s and querys.  In HTTP paths,
  * we just pass them through.
  *
- * Instead of letting a "path" be 0-or-more characters as RFC2396 suggests, 
+ * Instead of letting a "path" be 0-or-more characters as RFC2396 suggests,
  * we'll say it's 1-or-more characters, 0-or-1 times.  This way, an absent
  * path yields a nil substring match, instead of an empty one.
  *
@@ -210,7 +210,7 @@ Retab retab[] =	/* view in constant width Font */
 [REftppath] =
 	"^(.+)(;[tT][yY][pP][eE]=([aAiIdD]))?$", nil, 0,
 	/*|--|-path              |ftptype-| */
-	{ 1,                     3, }, 
+	{ 1,                     3, },
 
 [REfilepath] =
 	"^.*$", nil, 0,
@@ -300,7 +300,7 @@ merge_relative_path(char *base, char *rel_st, int rel_len, char *dest)
 	}
 
 	/* 6d: remove a trailing "." as a complete segment */
-	if(pdest>dest && *(pdest-1)=='.' && 
+	if(pdest>dest && *(pdest-1)=='.' &&
 	  (pdest==dest+1 || *(pdest-2)=='/'))
 		*--pdest = '\0';
 
@@ -344,7 +344,7 @@ merge_relative_path(char *base, char *rel_st, int rel_len, char *dest)
 	USED(pdest);
 
 	if(urldebug)
-		fprint(2, "merge_relative_path: '%s' + '%.*s' -> '%s'\n", base, rel_len, 
+		fprint(2, "merge_relative_path: '%s' + '%.*s' -> '%s'\n", base, rel_len,
 			rel_st, dest);
 }
 
@@ -389,7 +389,7 @@ resolve_relative(SplitUrl *su, Url *base, Url *u)
 			return 0;
 		currentdoc = 1;
 	}
-	
+
 	/* Over-estimate the maximum lengths, for allocation purposes */
 	/* (constants are for separators) */
 	plen = 1;
@@ -533,7 +533,7 @@ spliturl(char *url, SplitUrl *su)
 	Retab *t;
 
 	/*
-	 * Newlines are not valid in a URI, but regexp(2) treats them specially 
+	 * Newlines are not valid in a URI, but regexp(2) treats them specially
 	 * so it's best to make sure there are none before proceeding.
 	 */
 	if(strchr(url, '\n')){
@@ -701,7 +701,7 @@ parse_authority(SplitUrl *su, Url *u)
 
 
 	if(urldebug > 0){
-		userinfo = estredup(m[t->ind[0]].sp, m[t->ind[0]].ep); 
+		userinfo = estredup(m[t->ind[0]].sp, m[t->ind[0]].ep);
 		host = estredup(m[t->ind[1]].sp, m[t->ind[1]].ep);
 		fprint(2, "port: %q, authority %q\n", u->port, u->authority);
 		fprint(2, "host %q, userinfo %q\n", host, userinfo);
@@ -885,7 +885,7 @@ parseurl(char *url, Url *base)
 		return nil;
 	}
 
-	/* RFC2396 sec 3.1 says relative URIs are distinguished by absent scheme */ 
+	/* RFC2396 sec 3.1 says relative URIs are distinguished by absent scheme */
 	if(su.scheme.s==nil){
 		if(urldebug)
 			fprint(2, "parseurl has nil scheme\n");
@@ -958,10 +958,10 @@ rewriteurl(Url *u)
 	if(u->schemedata)
 		s = estrmanydup(u->scheme, ":", u->schemedata, nil);
 	else
-		s = estrmanydup(u->scheme, "://", 
+		s = estrmanydup(u->scheme, "://",
 			u->user ? u->user : "",
 			u->passwd ? ":" : "", u->passwd ? u->passwd : "",
-			u->user ? "@" : "", u->host ? u->host : "", 
+			u->user ? "@" : "", u->host ? u->host : "",
 			u->port ? ":" : "", u->port ? u->port : "",
 			u->path,
 			u->query ? "?" : "", u->query ? u->query : "",

@@ -319,7 +319,7 @@ diskThread(void *a)
 	uint8_t *buf, *p;
 	double t;
 	int nio;
-	
+
 	vtThreadSetName("disk");
 
 //fprint(2, "diskThread %d\n", getpid());

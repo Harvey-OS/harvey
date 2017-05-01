@@ -38,7 +38,7 @@ main(int argc, char *argv[])
 		dirfrom = nil;
 		if(argc == 3
 		&& (dirfrom = dirstat(argv[1])) != nil
-		&& (dirfrom->mode & DMDIR)) 
+		&& (dirfrom->mode & DMDIR))
 			split(argv[argc-1], &todir, &toelem); /* mv dir1 dir2 */
 		else{				/* mv file... dir */
 			todir = argv[argc-1];

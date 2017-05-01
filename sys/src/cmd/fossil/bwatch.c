@@ -133,7 +133,7 @@ _bwatchResetParent(uint8_t *score)
 	}
 }
 /*
- * and child 
+ * and child
  */
 static void
 _bwatchResetChild(uint8_t *score)

@@ -124,7 +124,7 @@ smbcomwrite(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		|| yacount != count
 		|| smbbufferreadspace(b) < count)
 		return SmbProcessResultFormat;
-	
+
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
@@ -135,7 +135,7 @@ smbcomwrite(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		smbseterror(s, ERRDOS, ERRbadfid);
 		return SmbProcessResultError;
 	}
-	
+
 	if (!f->ioallowed) {
 		smbseterror(s, ERRDOS, ERRbadaccess);
 		return SmbProcessResultError;
@@ -179,7 +179,7 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		return SmbProcessResultFormat;
 
 	andxcommand = *pdata++;				// andx command
-	pdata++;					// reserved 
+	pdata++;					// reserved
 	andxoffset = smbnhgets(pdata); pdata += 2;	// andx offset
 	fid = smbnhgets(pdata); pdata += 2;		// fid
 	offset = smbnhgetl(pdata); pdata += 4;		// offset in file

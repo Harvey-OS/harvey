@@ -192,7 +192,7 @@ Xwalk(Fsrpc *r)
 			thdr.wqid[thdr.nwqid++] = f->f->qid;
 			continue;
 		}
-	
+
 		nf = file(f->f, r->work.wname[i]);
 		if(nf == 0) {
 			errstr(errbuf, sizeof errbuf);
@@ -315,7 +315,7 @@ Xcreate(Fsrpc *r)
 		r->busy = 0;
 		return;
 	}
-	
+
 
 	makepath(path, f->f, r->work.name);
 	f->fid = create(path, r->work.mode, r->work.perm);
@@ -434,7 +434,7 @@ slave(Fsrpc *f)
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
-			}	
+			}
 		}
 
 		if(++nproc > MAXPROC)
@@ -473,7 +473,7 @@ blockingslave(void)
 	pid = getpid();
 
 	m = rendezvous((void*)pid, 0);
-		
+
 	for(;;) {
 		p = rendezvous((void*)pid, (void*)pid);
 		if(p == (void*)~0)			/* Interrupted */
@@ -501,7 +501,7 @@ blockingslave(void)
 			p->work.tag = p->flushtag;
 			reply(&p->work, &thdr, 0);
 		}
-		p->busy = 0;	
+		p->busy = 0;
 		m->busy = 0;
 	}
 }
@@ -527,7 +527,7 @@ slaveopen(Fsrpc *p)
 		close(f->fid);
 		f->fid = -1;
 	}
-	
+
 	makepath(path, f->f, "");
 	DEBUG(2, "\topen: %s %d\n", path, work->mode);
 
@@ -593,7 +593,7 @@ slaveread(Fsrpc *p)
 			if(seek(f->fid, 0, 0) != 0){
 				errstr(err, sizeof err);
 				reply(work, &thdr, err);
-				return;	
+				return;
 			}
 			f->offset = 0;
 		}

@@ -93,10 +93,10 @@ needstack(int n)
 	int x;
 	Proc *p;
 	Thread *t;
-	
+
 	p = _threadgetproc();
 	t = p->thread;
-	
+
 	if((uint8_t*)&x - n < (uint8_t*)t->stk){
 		fprint(2, "%s %lu: &x=%p n=%d t->stk=%p\n",
 			argv0, _tos->pid, &x, n, t->stk);

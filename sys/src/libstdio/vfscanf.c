@@ -122,7 +122,7 @@ int vfscanf(FILE *f, const char *s, va_list args_pointer){
 		if(store) ncvt++;
 	}
 	va_end(args);
-	return ncvt;	
+	return ncvt;
 }
 static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
 //#pragma ref f

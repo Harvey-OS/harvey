@@ -92,7 +92,7 @@ typedef struct {
   int scfsi[2],mean_bits,resvsize;
   int totbits;
 } plotting_data;
- 
+
 
 extern plotting_data *pinfo;
 

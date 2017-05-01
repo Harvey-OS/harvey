@@ -13,8 +13,8 @@
 #include <draw.h>
 #include <event.h>
 
-enum { 
-	Facesize = 48 
+enum {
+	Facesize = 48
 };
 
 

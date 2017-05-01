@@ -60,7 +60,7 @@ int pchar(Tchar i)
 		return 0;
 	}
 	if (ismot(i)) {
-		pchar1(i); 
+		pchar1(i);
 		return 0;
 	}
 	switch (j = cbits(i)) {
@@ -220,7 +220,7 @@ void caseex(void)
 }
 
 
-void done(int x) 
+void done(int x)
 {
 	int i;
 
@@ -256,7 +256,7 @@ void done(int x)
 }
 
 
-void done1(int x) 
+void done1(int x)
 {
 	error |= x;
 	if (numtabp[NL].val) {
@@ -270,7 +270,7 @@ void done1(int x)
 }
 
 
-void done2(int x) 
+void done2(int x)
 {
 	ptlead();
 	if (TROFF && !ascii)
@@ -279,7 +279,7 @@ void done2(int x)
 	done3(x);
 }
 
-void done3(int x) 
+void done3(int x)
 {
 	error |= x;
 	flusho();
@@ -291,7 +291,7 @@ void done3(int x)
 }
 
 
-void edone(int x) 
+void edone(int x)
 {
 	frame = stk;
 	nxf = frame + 1;

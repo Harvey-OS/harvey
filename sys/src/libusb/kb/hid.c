@@ -164,7 +164,7 @@ parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 	for(i = 0; i < n; i++)
 		temp->sz += temp->ifcs[i].nbits * temp->ifcs[i].count;
 	temp->sz = (temp->sz + 7) / 8;
-	
+
 	if(isptr && hasxy && hasbut)
 		return 0;
 	fprint(2, "bad report: isptr %d, hasxy %d, hasbut %d\n",

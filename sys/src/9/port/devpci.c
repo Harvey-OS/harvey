@@ -54,7 +54,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 		devdir(c, q, up->genbuf, 128, eve, 0664, dp);
 		return 1;
 
-	// Display device capabilities as a directory, 
+	// Display device capabilities as a directory,
 	// each capability has an entry as a file.
 
 	case Qpcicap:
@@ -109,7 +109,7 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			return -1;
-		
+
 		// Generate a directory entry for each PCI device capability
 		// gathered during the PCI bus scan.
 		// Each capability is displayed as a file of length equal to the length
@@ -120,13 +120,13 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		// config type (cfg_type), B is BAR number, and O is offset within BAR.
 		// The capabilities files cannot be read or written. They are displayed
 		// for exploratory purposes only.
-			
+
 		if(TYPE(c->qid) == Qpcicap) {
 			if(s >= p->capcnt)
 				return -1;
 			q = (Qid){BUSBDF(tbdf)|(Qpcicap + s + 1), 0, 0};
 			Pcicap *pcp = p->capidx[s];
-			snprint(up->genbuf, sizeof up->genbuf, "cap%d.v%d.l%d.t%d.b%d.o%d", 
+			snprint(up->genbuf, sizeof up->genbuf, "cap%d.v%d.l%d.t%d.b%d.o%d",
 				s, pcp->vndr, pcp->caplen, pcp->type, pcp->bar, pcp->offset);
 			devdir(c, q, up->genbuf, pcp->length, eve, 0444, dp);
 			return 1;

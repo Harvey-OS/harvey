@@ -202,7 +202,7 @@ httprcode(HttpState *hs)
 	buf[n] = 0;
 	return atoi(p+1);
 }
- 
+
 /*
  *  read a single mime header, collect continuations.
  *
@@ -431,35 +431,35 @@ httpopen(Client *c, Url *url)
 	case 409: /* Conflict */
 		werrstr("Conflict  (409)");
 		goto Error;
-	
+
 	case 410: /* Gone */
 		werrstr("Gone  (410)");
 		goto Error;
-	
+
 	case 411: /* Length Required */
 		werrstr("Length Required  (411)");
 		goto Error;
-	
+
 	case 412: /* Precondition Failed */
 		werrstr("Precondition Failed  (412)");
 		goto Error;
-	
+
 	case 413: /* Request Entity Too Large */
 		werrstr("Request Entity Too Large  (413)");
 		goto Error;
-	
+
 	case 414: /* Request-URI Too Long */
 		werrstr("Request-URI Too Long  (414)");
 		goto Error;
-	
+
 	case 415: /* Unsupported Media Type */
 		werrstr("Unsupported Media Type  (415)");
 		goto Error;
-	
+
 	case 416: /* Requested Range Not Satisfiable */
 		werrstr("Requested Range Not Satisfiable  (416)");
 		goto Error;
-	
+
 	case 417: /* Expectation Failed */
 		werrstr("Expectation Failed  (417)");
 		goto Error;
@@ -479,7 +479,7 @@ httpopen(Client *c, Url *url)
 	case 503:	/* Service unavailable */
 		werrstr("Service unavailable (503)");
 		goto Error;
-	
+
 	default:
 		/* Bogus: we should treat unknown code XYZ as code X00 */
 		werrstr("Unknown response code %d", code);

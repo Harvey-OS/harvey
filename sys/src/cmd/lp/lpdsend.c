@@ -311,7 +311,7 @@ main(int argc, char *argv[])
 			if (statflag) {
 				fprintf(stderr, "cannot have both -k and -q flags\n");
 				exit(1);
-			}	
+			}
 			killflag = 1;
 			killarg = optarg;
 			break;
@@ -319,7 +319,7 @@ main(int argc, char *argv[])
 			if (killflag) {
 				fprintf(stderr, "cannot have both -q and -k flags\n");
 				exit(1);
-			}	
+			}
 			statflag = 1;
 			break;
 		case 's':

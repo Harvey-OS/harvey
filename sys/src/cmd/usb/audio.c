@@ -285,7 +285,7 @@ threadmain(int argc, char **argv)
 		sysfatal("opendev: %r");
 	if(configdev(ad) < 0)
 		sysfatal("configdev: %r");
-	
+
 	for(i = 0; i < nelem(ad->usb->ddesc); i++)
 		if(ad->usb->ddesc[i] != nil)
 		switch(ad->usb->ddesc[i]->data.bDescriptorType){

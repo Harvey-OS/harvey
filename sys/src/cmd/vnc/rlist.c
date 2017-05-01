@@ -114,7 +114,7 @@ rectcornersubr(Rectangle *r, Rectangle s, Rectangle *rr)
 
 	*rr = *r;
 
-	if(s.min.x == r->min.x){  
+	if(s.min.x == r->min.x){
 		if(s.min.y == r->min.y){  // upper left
 			*rr = Rpt(UPRIGHT(s), r->max);
 			*r = Rpt(LOWLEFT(s), LOWLEFT(*rr));
@@ -177,7 +177,7 @@ addtorlist(Rlist *rlist, Rectangle r)
 
 	memset(&tmp, 0, sizeof tmp);
 	rappend(&tmp, r);
-	
+
 	if(verbose > 5)
 		fprint(2, "region union add %R:\n", r);
 
@@ -213,7 +213,7 @@ addtorlist(Rlist *rlist, Rectangle r)
 				continue;
 			}
 
-			/* not aligned */ 
+			/* not aligned */
 			if(verbose > 5)
 				fprint(2, "break up rect %R and %R\n", ir, r);
 			/* 2->2 breakup */

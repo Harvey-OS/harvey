@@ -54,7 +54,7 @@ vtsendthread(void *v)
 	}
 	/*
 	 * All the send threads try to exit right when
-	 * threadmain is calling threadexitsall.  
+	 * threadmain is calling threadexitsall.
 	 * Either libthread or the Linux NPTL pthreads library
 	 * can't handle this condition (I suspect NPTL but have
 	 * not confirmed this) and we get a seg fault in exit.
@@ -215,7 +215,7 @@ threadmain(int argc, char *argv[])
 		if(vtconnect(z) < 0)
 			sysfatal("vtconnect: %r");
 	}
-	
+
 	c = chancreate(sizeof(ZClump), 0);
 	for(i=0; i<12; i++)
 		vtproc(vtsendthread, nil);

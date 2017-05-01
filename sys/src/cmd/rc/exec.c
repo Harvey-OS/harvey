@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 	if(flag['I'])
 		flag['i'] = 0;
 	else if(flag['i']==0 && argc==1 && Isatty(0)) flag['i'] = flagset;
-	rcmain = flag['m']?flag['m'][0]:Rcmain; 
+	rcmain = flag['m']?flag['m'][0]:Rcmain;
 	err = openfd(2);
 	kinit();
 	Trapinit();
@@ -702,7 +702,7 @@ word*
 copynwords(word *a, word *tail, int n)
 {
 	word *v, **end;
-	
+
 	v = 0;
 	end = &v;
 	while(n-- > 0){

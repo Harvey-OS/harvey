@@ -87,7 +87,7 @@ struct Header
 	Huffman	acht[4];
 	int		**data[3];
 	int		ndata[3];
-	
+
 	uint8_t	*sf;	/* start of frame; do better later */
 	uint8_t	*ss;	/* start of scan; do better later */
 	int		ri;	/* restart interval */
@@ -1494,7 +1494,7 @@ receiveEOB(Header *h, int s)
 	return v;
 }
 
-/* 
+/*
  * return next bit of input
  */
 static

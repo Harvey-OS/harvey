@@ -99,7 +99,7 @@ struct Inode {
 	ushort i_links_count;	/* Links count */
 	uint  i_blocks;	/* Blocks count */
 	uint  i_flags;		/* File flags */
-	uint osd1;				
+	uint osd1;
 	uint	i_block[EXT2_N_BLOCKS];/* Pointers to blocks */
 	uint	i_version;	/* File version (for NFS) */
 	uint	i_file_acl;	/* File ACL */
@@ -154,7 +154,7 @@ struct Xfs{
 	Qid	rootqid;	/* of plan9 constructed root directory */
 	short	dev;
 	short	fmt;
-	void *ptr; 
+	void *ptr;
 
 	/* data from super block */
 

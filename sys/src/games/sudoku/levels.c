@@ -58,7 +58,7 @@ void
 fprintbrd(int fd, Cell *board)
 {
 	int i;
-	
+
 	for(i = 0; i < Psize; i++) {
 		if(board[i].digit == -1)
 			fprint(fd, ".");
@@ -83,7 +83,7 @@ loadlevel(char *name, Cell *board)
 	Biobuf *b;
 	char c;
 	int i;
-	
+
 	b = Bopen(name, OREAD);
 	if(b == nil) {
 		fprint(2, "could not open file %s: %r\n", name);
@@ -155,7 +155,7 @@ void
 printboard(Cell *board)
 {
 	int fd;
-	
+
 	fd = create("/tmp/sudoku-board", OWRITE|OTRUNC, 0600);
 	if(fd < 0) {
 		perror("can not open save file /tmp/sudoku-save");
@@ -171,7 +171,7 @@ void
 savegame(Cell *board)
 {
 	int fd;
-	
+
 	fd = create("/tmp/sudoku-save", OWRITE|OTRUNC, 0600);
 	if(fd < 0) {
 		perror("can not open save file /tmp/sudoku-save");
@@ -202,7 +202,7 @@ loadgame(Cell *board)
 		close(fd);
 		return -1;
 	}
-	
+
 	close(fd);
 
 	return 1;

@@ -1072,7 +1072,7 @@ put_sub(Element *e, int Tt0, int Tt1)
 				fprintf(tm, "+delta_m; delta_m = 0");
 			fprintf(tm, "; goto P999;\n\n");
 		}
-	
+
 		fprintf(tb, "\tcase %d: ", uniq-1);
 		fprintf(tb, "/* STATE %d */\n", e->seqno);
 		fprintf(tb, "\t\tsv_restor();\n");
@@ -1739,7 +1739,7 @@ put_el(Element *e, int Tt0, int Tt1)
 	case '.':
 	case GOTO:
 	case BREAK:
-		putskip(e->seqno); 
+		putskip(e->seqno);
 		casenr = 1; /* standard goto */
 generic_case:	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 		fprintf(tt, "settr(%d,%d,%d,%d,0,\"",
@@ -1902,7 +1902,7 @@ put_seq(Sequence *s, int Tt0, int Tt1)
 			||  e->n->ntyp == D_STEP
 			||  e->n->ntyp == NON_ATOMIC)
 				put_sub(e, Tt0, Tt1);
-			else 
+			else
 			{
 				if (0) printf("			put_el %d\n", e->seqno);
 				put_el(e, Tt0, Tt1);
@@ -2789,7 +2789,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 					putstmnt(fd, v->lft->lft, m);
 				} else
 					fprintf(fd, ", 0, 0");
-			}	
+			}
 			for ( ; i < Mpars; i++)
 				fprintf(fd, ", 0, 0");
 			fprintf(fd, ")");

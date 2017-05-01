@@ -153,7 +153,7 @@ hbbypid(int tidx, int pid)
 
 // Find a mount tag index, return -1 if none found.
 
-static int 
+static int
 findtag(char *tag)
 {
 	for(int i = 0; i < nv9p; i++)
@@ -537,7 +537,7 @@ v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
 
 // Phantom device. It is used only for read/write operations. It is not registered in the
 // global table or devices, and is not addressable in any other way. It is only needed to
-// pass the reference to the read/write methods to the mount driver. 
+// pass the reference to the read/write methods to the mount driver.
 
 static Chan*
 phattach(char *spec)
@@ -623,7 +623,7 @@ mtagsread(Chan* c, void* buf, int32_t n, int64_t off)
 Dev phdevtab = {
 	.dc = 2151,			/* 1/9 */
 	.name = "9phantom",
-	
+
 	.reset = devreset,
 	.init = devinit,
 	.shutdown = devshutdown,

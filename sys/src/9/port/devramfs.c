@@ -45,7 +45,7 @@ printramfile(int offset, struct RamFile* file)
 	for(i = 0; i < offset; i++) {
 		print(" ");
 	}
-	print("ramfile: %x, magic:%x, name: %s, parent: %x, sibling:%x, length:%d, alloclength: %d, perm: %o\n", 
+	print("ramfile: %x, magic:%x, name: %s, parent: %x, sibling:%x, length:%d, alloclength: %d, perm: %o\n",
 			file, file->magic, file->name, file->parent, file->sibling, file->length, file->alloclength, file->perm);
 }
 
@@ -94,7 +94,7 @@ ramattach(char *spec)
 {
         Chan *c;
         char *buf;
-         
+
         c = newchan();
         mkqid(&c->qid, (int64_t)ramroot, 0, QTDIR);
         c->dev = devtabget('@', 0);

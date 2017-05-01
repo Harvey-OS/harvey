@@ -595,7 +595,7 @@ textinsert(Text *t, uint q0, Rune *r, uint n, int tofile)
 					textscrdraw(u);
 				}
 			}
-					
+
 	}
 	if(q0 < t->q1)
 		t->q1 += n;
@@ -752,7 +752,7 @@ textbswidth(Text *t, Rune c)
 		if(r == '\n'){		/* eat at most one more character */
 			if(q == t->q0)	/* eat the newline */
 				--q;
-			break; 
+			break;
 		}
 		if(c == 0x17){
 			eq = isalnum(r);
@@ -1600,7 +1600,7 @@ textselect23(Text *t, uint *q0, uint *q1, Image *high, int mask)
 {
 	uint p0, p1;
 	int buts;
-	
+
 	p0 = xselect(&t->Frame, mousectl, high, &p1);
 	buts = mousectl->buttons;
 	if((buts & mask) == 0){

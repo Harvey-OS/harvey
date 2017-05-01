@@ -24,7 +24,7 @@ int g;
 uchar *p;
 %}
 acc	:	lexinput
-	={	
+	={
 # ifdef DEBUG
 		if(debug) sect2dump();
 # endif

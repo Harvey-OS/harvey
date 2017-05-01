@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 		 * but still set mouseshifted.
 		 */
 		//shift |= mouseshifted;
-		/* 
+		/*
 		 *  check byte 0 for consistency
 		 */
 		if(nb==0 && (c&0xc8)!=0x08)
@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 				packetsize = 4;
 				continue;
 			}
-		
+
 		msg[nb] = c;
 		if(++nb == packetsize){
 			nb = 0;
@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 				msg[1] |= 0xFF00;
 			if(msg[0] & 0x20)
 				msg[2] |= 0xFF00;
-			
+
 			buttons = b[(msg[0]&7) | (shift ? 8 : 0)];
 			if(intellimouse && packetsize==4){
 				if((msg[3]&0xc8) == 0x08){
@@ -85,9 +85,9 @@ main(int argc, char *argv[])
 					 * and generate a single button 4 or 5 click
 					 * accordingly.
 					 */
-					if((msg[3] >> 3) & 1) 
+					if((msg[3] >> 3) & 1)
 						buttons |= 1<<3;
-					else if(msg[3] & 0x7) 
+					else if(msg[3] & 0x7)
 						buttons |= 1<<4;
 				}
 			}

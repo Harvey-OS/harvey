@@ -16,7 +16,7 @@
  *
  * Server protocol:
  * 	read list of protocols.
- *	write null-terminated 
+ *	write null-terminated
  */
 
 #include "dat.h"
@@ -283,7 +283,7 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 				return failure(fss, "unknown version of p9any");
 			}
 		}
-	
+
 		/*
 		 * look for a key
 		 */
@@ -422,7 +422,7 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 	}
 }
 
-Proto p9any = 
+Proto p9any =
 {
 .name=	"p9any",
 .init=		p9anyinit,

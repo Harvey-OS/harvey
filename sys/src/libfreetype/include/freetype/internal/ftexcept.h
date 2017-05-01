@@ -31,7 +31,7 @@ FT_BEGIN_HEADER
   } FT_CleanupItemRec;
 
   typedef struct FT_CleanupChunkRec_*   FT_CleanupChunk;
-  
+
   typedef struct FT_CleanupChunkRec_
   {
     FT_CleanupChunk    link;
@@ -66,7 +66,7 @@ FT_BEGIN_HEADER
 
   FT_BASE( void )
   ft_xhandler_enter( FT_XHandler  xhandler,
-                     FT_Memory    memory );                         
+                     FT_Memory    memory );
 
   FT_BASE( void )
   ft_xhandler_exit( FT_XHandler  xhandler );

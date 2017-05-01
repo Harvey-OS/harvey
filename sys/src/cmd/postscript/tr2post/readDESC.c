@@ -81,7 +81,7 @@ readDESC(void)
 			printdesclang=galloc(printdesclang, strlen(token)+1, "readdesc:");
 			strcpy(printdesclang, token);
 			if (debug) Bprint(Bstderr, "PDL %s\n", token);
-			break;	
+			break;
 		case 1:
 			encoding=galloc(encoding, strlen(token)+1, "readdesc:");
 			strcpy(encoding, token);
@@ -97,7 +97,7 @@ readDESC(void)
 				fontmtab = galloc(fontmtab,
 						  fontmnt*sizeof(char *),
 						  "readdesc:");
-				
+
 				for (i=0; i<fontmnt; i++)
 					fontmtab[i] = 0;
 				fontindex = 0;

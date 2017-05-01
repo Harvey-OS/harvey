@@ -70,7 +70,7 @@ udplistener(void *)
 						s.flags &= 3;
 						ipmove(s.srcip, nbglobals.myipaddr);
 						s.srcport = NbDgramPort;
-						s.type = NbDgramError;	
+						s.type = NbDgramError;
 						s.error.code = NbDgramErrorDestinationNameNotPresent;
 						nbdgramsendto(uh->raddr, nhgets(uh->rport), &s);
 */

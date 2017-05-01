@@ -171,7 +171,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 	 * all the existing version 4 arenas too.
 	 *
 	 * To maintain backwards compatibility with existing venti
-	 * installations using the older format, we define that if 
+	 * installations using the older format, we define that if
 	 * memstats == diskstats, then the extension fields are not
 	 * included (see packarena below).  That is, only partially
 	 * indexed arenas have these fields.  Fully indexed arenas
@@ -190,7 +190,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 		p += U64Size;
 		arena->memstats.sealed = U8GET(p);
 		p += U8Size;
-		
+
 		/*
 		 * 2008/4/2
 		 * Packarena (below) used to have a bug in which it would
@@ -274,7 +274,7 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 	p += U64Size;
 	U8PUT(p, arena->diskstats.sealed);
 	p += U8Size;
-	
+
 	/*
 	 * Extension fields; see above.
 	 */
@@ -291,7 +291,7 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 		p += U32Size;
 		U32PUT(p, arena->memstats.cclumps);
 		p += U32Size;
-		U64PUT(p, arena->memstats.used, t32);	
+		U64PUT(p, arena->memstats.used, t32);
 		p += U64Size;
 		U64PUT(p, arena->memstats.uncsize, t32);
 		p += U64Size;
@@ -680,7 +680,7 @@ unpackibucket(IBucket *b, uint8_t *buf, uint32_t magic)
 	b->data = buf + IBucketSize;
 	if(magic && magic != U32GET(buf+U16Size))
 		b->n = 0;
-}		
+}
 
 void
 packibucket(IBucket *b, uint8_t *buf, uint32_t magic)
@@ -717,7 +717,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 		return -1;
 	}
 	p += U32Size;
-	
+
 	m = U32GET(p);
 	if(m != BloomVersion){
 		seterr(ECorrupt, "bloom filter has wrong version %u expected %u", (uint)m, (uint)BloomVersion);

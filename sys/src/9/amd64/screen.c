@@ -35,15 +35,15 @@ VGAscr vgascreen[1];
 
 Cursor	arrow = {
 	{ -1, -1 },
-	{ 0xFF, 0xFF, 0x80, 0x01, 0x80, 0x02, 0x80, 0x0C, 
-	  0x80, 0x10, 0x80, 0x10, 0x80, 0x08, 0x80, 0x04, 
-	  0x80, 0x02, 0x80, 0x01, 0x80, 0x02, 0x8C, 0x04, 
-	  0x92, 0x08, 0x91, 0x10, 0xA0, 0xA0, 0xC0, 0x40, 
+	{ 0xFF, 0xFF, 0x80, 0x01, 0x80, 0x02, 0x80, 0x0C,
+	  0x80, 0x10, 0x80, 0x10, 0x80, 0x08, 0x80, 0x04,
+	  0x80, 0x02, 0x80, 0x01, 0x80, 0x02, 0x8C, 0x04,
+	  0x92, 0x08, 0x91, 0x10, 0xA0, 0xA0, 0xC0, 0x40,
 	},
-	{ 0x00, 0x00, 0x7F, 0xFE, 0x7F, 0xFC, 0x7F, 0xF0, 
-	  0x7F, 0xE0, 0x7F, 0xE0, 0x7F, 0xF0, 0x7F, 0xF8, 
-	  0x7F, 0xFC, 0x7F, 0xFE, 0x7F, 0xFC, 0x73, 0xF8, 
-	  0x61, 0xF0, 0x60, 0xE0, 0x40, 0x40, 0x00, 0x00, 
+	{ 0x00, 0x00, 0x7F, 0xFE, 0x7F, 0xFC, 0x7F, 0xF0,
+	  0x7F, 0xE0, 0x7F, 0xE0, 0x7F, 0xF0, 0x7F, 0xF8,
+	  0x7F, 0xFC, 0x7F, 0xFE, 0x7F, 0xFC, 0x73, 0xF8,
+	  0x61, 0xF0, 0x60, 0xE0, 0x40, 0x40, 0x00, 0x00,
 	},
 };
 
@@ -292,7 +292,7 @@ setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
 }
 
 /*
- * On some video cards (e.g. Mach64), the palette is used as the 
+ * On some video cards (e.g. Mach64), the palette is used as the
  * DAC registers for >8-bit modes.  We don't want to set them when the user
  * is trying to set a colormap and the card is in one of these modes.
  */
@@ -394,7 +394,7 @@ hwdraw(Memdrawparam *par)
 		if(mask->data->bdata == gscreendata.bdata)
 			swcursoravoid(par->mr);
 	}
-	
+
 	if(dst->data->bdata != gscreendata.bdata)
 		return 0;
 
@@ -426,7 +426,7 @@ hwdraw(Memdrawparam *par)
 	&& (par->op&S) == S)
 		return scr->scroll(scr, par->r, par->sr);
 
-	return 0;	
+	return 0;
 }
 
 void
@@ -469,7 +469,7 @@ vgalinearpci(VGAscr *scr)
 	uint32_t paddr;
 	int i, size, best;
 	Pcidev *p;
-	
+
 	p = scr->pci;
 	if(p == nil)
 		return;
@@ -491,9 +491,9 @@ vgalinearpci(VGAscr *scr)
 			continue;
 		if(p->mem[i].size < 640*480)	/* not big enough */
 			continue;
-		if(best==-1 
-		|| p->mem[i].size > p->mem[best].size 
-		|| (p->mem[i].size == p->mem[best].size 
+		if(best==-1
+		|| p->mem[i].size > p->mem[best].size
+		|| (p->mem[i].size == p->mem[best].size
 		  && (p->mem[i].bar&8)
 		  && !(p->mem[best].bar&8)))
 			best = i;
@@ -529,7 +529,7 @@ vgalinearaddr(VGAscr *scr, uint32_t paddr, int size)
 		 */
 		error("cannot grow vga frame buffer");
 	}
-	
+
 	/* round to page boundary, just in case */
 	x = paddr&(4*KiB-1);
 	npaddr = paddr-x;
@@ -551,7 +551,7 @@ vgalinearaddr(VGAscr *scr, uint32_t paddr, int size)
 
 
 /*
- * Software cursor. 
+ * Software cursor.
  */
 int	swvisible;	/* is the cursor visible? */
 int	swenabled;	/* is the cursor supposed to be on the screen? */
@@ -647,7 +647,7 @@ swload(VGAscr *v, Cursor *curs)
 	 * Build cursor image and mask.
 	 * Image is just the usual cursor image
 	 * but mask is a transparent alpha mask.
-	 * 
+	 *
 	 * The 16x16x8 memimages do not have
 	 * padding at the end of their scan lines.
 	 */

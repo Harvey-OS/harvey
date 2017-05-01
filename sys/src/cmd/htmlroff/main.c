@@ -32,11 +32,11 @@ main(int argc, char **argv)
 	char *p;
 	Rune *r;
 	Rune buf[2];
-	
+
 	Binit(&bout, 1, OWRITE);
 	fmtinstall('L', linefmt);
 	quotefmtinstall();
-	
+
 	tmacdir = "/sys/lib/tmac";
 	dostdin = 0;
 	ARGBEGIN{
@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	}
 	if(argc == 0 || dostdin)
 		queuestdin();
-	
+
 	run();
 	Bprint(&bout, "\n");
 	Bterm(&bout);

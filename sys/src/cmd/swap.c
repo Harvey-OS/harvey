@@ -49,7 +49,7 @@ main(int argc, char **argv)
 	}
 
 	i = create("/env/swap", OWRITE, 0666);
-	if(i < 0) 
+	if(i < 0)
 		error("open /env/swap");
 
 	if(write(i, p, strlen(p)) != strlen(p))

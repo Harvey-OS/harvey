@@ -39,7 +39,7 @@ Brdwline(void *vb, int sep)
 		return p;
 	}else{
 		Bungetc(b);
-		return nil;	
+		return nil;
 	}
 }
 

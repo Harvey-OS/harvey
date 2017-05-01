@@ -40,10 +40,10 @@ enum {
 
 /*
  * the file consists of chains of blocks of size 0x200.
- * to find what block follows block n, you look at 
+ * to find what block follows block n, you look at
  * blockmap[n].  that block follows it unless it is Bspecial
  * or Bendchain.
- * 
+ *
  * it's like the MS-DOS file system allocation tables.
  */
 struct Ofile {
@@ -160,7 +160,7 @@ chainlen(Ofile *f, uint32_t start)
 }
 
 /*
- * read nbuf bytes starting at offset off from the 
+ * read nbuf bytes starting at offset off from the
  * chain whose first block is block.  the chain is linked
  * together via the blockmap as described above,
  * like the MS-DOS file allocation tables.
@@ -177,7 +177,7 @@ oreadchain(Ofile *f, uint32_t block, int off, char *buf, int nbuf)
 	return oreadblock(f, block, off%Blocksize, buf, nbuf);
 }
 
-int 
+int
 oreadfile(Odir *d, int off, char *buf, int nbuf)
 {
 	/*
@@ -192,7 +192,7 @@ oreadfile(Odir *d, int off, char *buf, int nbuf)
 	if(off+nbuf > d->size)
 		nbuf = d->size-off;
 
-	if(d->size >= 0x1000 
+	if(d->size >= 0x1000
 	|| memcmp(d->name, L"Root Entry", 11*sizeof(Rune)) == 0)
 		return oreadchain(d->f, d->start, off, buf, nbuf);
 	else {	/* small block */
@@ -224,7 +224,7 @@ dumpdir(Ofile *f, uint32_t dnum)
 	}
 
 	fprint(2, "%.8lux type %d size %lu l %.8lux r %.8lux d %.8lux (%S)\n", dnum, d.type, d.size, d.left, d.right, d.dir, d.name);
-	if(d.left != (uint32_t)-1) 
+	if(d.left != (uint32_t)-1)
 		dumpdir(f, d.left);
 	if(d.right != (uint32_t)-1)
 		dumpdir(f, d.right);
@@ -315,7 +315,7 @@ oleopen(char *fn)
 	}
 	/*
 	 * if the first block can't hold it, it continues in the block at LONG(hdr+0x44).
-	 * if that in turn is not big enough, there's a next block number at the end of 
+	 * if that in turn is not big enough, there's a next block number at the end of
 	 * each block.
 	 */
 	while(i < ndepot) {
@@ -424,7 +424,7 @@ copydir(Odir *d)
 	*e = *d;
 	return e;
 }
-		
+
 void
 filldir(File *t, Ofile *f, int dnum, int nrecur)
 {
@@ -451,10 +451,10 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 	for(i=0; rbuf[i]; i++)
 		if(rbuf[i] == L' ')
 			rbuf[i] = L'␣';
-		else if(rbuf[i] <= 0x20 || rbuf[i] == L'/' 
+		else if(rbuf[i] <= 0x20 || rbuf[i] == L'/'
 			|| (0x80 <= rbuf[i] && rbuf[i] <= 0x9F))
 				rbuf[i] = ':';
-	
+
 	snprint(buf, sizeof buf, "%S", rbuf);
 
 	if(d.dir == 0xFFFFFFFF) {
@@ -491,7 +491,7 @@ main(int argc, char **argv)
 	case 'm':
 		mtpt = ARGF();
 		break;
-	
+
 	default:
 		goto Usage;
 	}ARGEND

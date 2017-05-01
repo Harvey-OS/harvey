@@ -137,7 +137,7 @@ iigctl(Cmdbuf *cb)
 	case CMblank:
 		drawblankscreen(1);
 		return;
-	
+
 	case CMunblank:
 		drawblankscreen(0);
 		return;

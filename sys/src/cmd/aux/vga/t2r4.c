@@ -121,7 +121,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		if(write(f, "type t2r4", 9) != 9)
 			error("%s: can't set type\n", ctlr->name);
 		close(f);
-	
+
 		mmio = segattach(0, "t2r4mmio", 0, p->mem[4].size);
 		if(mmio == (void*)-1)
 			error("%s: can't attach mmio segment\n", ctlr->name);

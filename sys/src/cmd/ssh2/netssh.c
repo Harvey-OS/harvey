@@ -465,7 +465,7 @@ stlisconn(void *a)
 	snprint(path, sizeof path, "%s/tcp/%s/listen", mntpt, buf);
 	for(;;) {
 		fd = ioopen(io, path, ORDWR);
-		if (fd < 0) 
+		if (fd < 0)
 			listerrexit(r, io, cl);
 		c = alloc_conn();
 		if (c)

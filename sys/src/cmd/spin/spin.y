@@ -114,7 +114,7 @@ unit	: proc		/* proctype { }       */
 	;
 
 proc	: inst		/* optional instantiator */
-	  proctype NAME	{ 
+	  proctype NAME	{
 			  setptype($3, PROCTYPE, ZN);
 			  setpname($3);
 			  context = $3->sym;

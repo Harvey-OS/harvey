@@ -287,17 +287,17 @@ struct Pcisiz
  * but adds fields to build the linked list of capabilities per device.
  *
  * struct virtio_pci_cap {
- *   u8 cap_vndr; // Generic PCI field: PCI_CAP_ID_VNDR 
- *   u8 cap_next; // Generic PCI field: next ptr. 
- *   u8 cap_len; // Generic PCI field: capability length 
- *   u8 cfg_type; // Identifies the structure. 
- *   u8 bar; // Where to find it. 
- *   u8 padding[3]; // Pad to full dword. 
- *   le32 offset; // Offset within bar. 
- *   le32 length; // Length of the structure, in bytes. 
+ *   u8 cap_vndr; // Generic PCI field: PCI_CAP_ID_VNDR
+ *   u8 cap_next; // Generic PCI field: next ptr.
+ *   u8 cap_len; // Generic PCI field: capability length
+ *   u8 cfg_type; // Identifies the structure.
+ *   u8 bar; // Where to find it.
+ *   u8 padding[3]; // Pad to full dword.
+ *   le32 offset; // Offset within bar.
+ *   le32 length; // Length of the structure, in bytes.
  * };
  */
- 
+
 enum {
 	PciCapVndr 	= 0x00,
 	PciCapNext 	= 0x01,

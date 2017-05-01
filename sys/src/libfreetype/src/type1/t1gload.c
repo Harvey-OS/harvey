@@ -120,7 +120,7 @@
                   FT_UInt     glyph_index )
   {
     FT_Data   glyph_data;
-    FT_Error  error = T1_Parse_Glyph_And_Get_Char_String( 
+    FT_Error  error = T1_Parse_Glyph_And_Get_Char_String(
                         decoder, glyph_index, &glyph_data );
 
 
@@ -184,7 +184,7 @@
       error = T1_Parse_Glyph( &decoder, glyph_index );
       if ( glyph_index == 0 || decoder.builder.advance.x > *max_advance )
         *max_advance = decoder.builder.advance.x;
-        
+
       /* ignore the error if one occured - skip to next glyph */
     }
 

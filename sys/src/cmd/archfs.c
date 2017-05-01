@@ -167,20 +167,20 @@ fsread(Req *r)
 	int n;
 
 	a = r->fid->file->aux;
-	if(a->length <= r->ifcall.offset) 
+	if(a->length <= r->ifcall.offset)
 		r->ifcall.count = 0;
 	else if(a->length <= r->ifcall.offset+r->ifcall.count)
 		r->ifcall.count = a->length - r->ifcall.offset;
 
 	werrstr("unknown error");
-	if(Bseek(b, a->off+r->ifcall.offset, 0) < 0 
+	if(Bseek(b, a->off+r->ifcall.offset, 0) < 0
 	|| (n = Bread(b, r->ofcall.data, r->ifcall.count)) < 0) {
 		err[0] = '\0';
 		errstr(err, sizeof err);
 		respond(r, err);
 	} else {
 		r->ofcall.count = n;
-		respond(r, nil);	
+		respond(r, nil);
 	}
 }
 

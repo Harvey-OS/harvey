@@ -22,7 +22,7 @@ _getsubfont(Display *d, char *name)
 	Subfont *f;
 
 	fd = open(name, OREAD);
-		
+
 	if(fd < 0){
 		fprint(2, "getsubfont: can't open %s: %r\n", name);
 		return 0;
