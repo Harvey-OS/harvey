@@ -613,7 +613,7 @@ execute(File *f, Posn startp, Posn eof)
 				error(Eoverflow);
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){	/* assignment = */
+		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){
 	Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */
@@ -739,7 +739,7 @@ bexecute(File *f, Posn startp)
 				error(Eoverflow);
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){	/* assignment = */
+		for(tlp = tl; (inst = tlp->inst) != nil; tlp++){
 	Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */

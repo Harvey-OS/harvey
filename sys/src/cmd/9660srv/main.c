@@ -549,10 +549,10 @@ showdir(int fd, Dir *s)
 	char *p;
 
 	strcpy(a_time, ctime(s->atime));
-	if((p=strchr(a_time, '\n')) != nil)	/* assign = */
+	if((p=strchr(a_time, '\n')) != nil)
 		*p = 0;
 	strcpy(m_time, ctime(s->mtime));
-	if((p=strchr(m_time, '\n')) != nil)	/* assign = */
+	if((p=strchr(m_time, '\n')) != nil)
 		*p = 0;
 	fprint(fd, "name=\"%s\" qid=(0x%llux,%lu) type=%d dev=%d \
 mode=0x%8.8lux=0%luo atime=%s mtime=%s length=%lld uid=\"%s\" gid=\"%s\"...",

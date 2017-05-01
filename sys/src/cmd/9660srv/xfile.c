@@ -145,7 +145,7 @@ xfile(int fid, int flag)
 	}
 	if(f)
 		return clean(f);
-	if((f = freelist) != nil)	/* assign = */
+	if((f = freelist) != nil)
 		freelist = f->next;
 	else
 		f = ealloc(sizeof(Xfile));
