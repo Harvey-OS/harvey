@@ -56,7 +56,7 @@ main(int argc, char **argv)
 	if(argc != 1)
 		usage();
 
-	if(filex && !file)	
+	if(filex && !file)
 		sysfatal("specifying -x without -t is useless");
 	if(file){
 		thumb = initThumbprints(file, filex);

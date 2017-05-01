@@ -151,7 +151,7 @@ pcollgprintentry(Entry e, int cmd)
 
 		case TAGE:	/* an extra one */
 			break;
-	
+
 		case SPCS:
 			p = reach(p, 0xba);
 			r = looknassoc(numtab, asize(numtab), strtol(tag,0,0));
@@ -192,7 +192,7 @@ pcollgprintentry(Entry e, int cmd)
 				rprev = r;
 			}
 		}
-		
+
 	}
 	if(rprev != NONE)
 		outrune(rprev);

@@ -86,7 +86,7 @@ crop(Memimage *m, uint32_t c)
 				bottom = y;
 			}
 	}
-	
+
 	if(n != nil)
 		freememimage(n);
 	return Rect(left, top, right+1, bottom+1);

@@ -115,7 +115,7 @@ stdinpipe(uint8_t *ibuf, int in)
 	int n;
 	int p[2];
 	if(pipe(p) < 0){
-		fprint(2, "pipe fails: %r\n");	
+		fprint(2, "pipe fails: %r\n");
 		wexits("pipe");
 	}
 

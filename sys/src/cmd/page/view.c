@@ -38,25 +38,25 @@ void redraw(Image*);
 
 Cursor reading={
 	{-1, -1},
-	{0xff, 0x80, 0xff, 0x80, 0xff, 0x00, 0xfe, 0x00, 
-	 0xff, 0x00, 0xff, 0x80, 0xff, 0xc0, 0xef, 0xe0, 
-	 0xc7, 0xf0, 0x03, 0xf0, 0x01, 0xe0, 0x00, 0xc0, 
+	{0xff, 0x80, 0xff, 0x80, 0xff, 0x00, 0xfe, 0x00,
+	 0xff, 0x00, 0xff, 0x80, 0xff, 0xc0, 0xef, 0xe0,
+	 0xc7, 0xf0, 0x03, 0xf0, 0x01, 0xe0, 0x00, 0xc0,
 	 0x03, 0xff, 0x03, 0xff, 0x03, 0xff, 0x03, 0xff, },
-	{0x00, 0x00, 0x7f, 0x00, 0x7e, 0x00, 0x7c, 0x00, 
-	 0x7e, 0x00, 0x7f, 0x00, 0x6f, 0x80, 0x47, 0xc0, 
-	 0x03, 0xe0, 0x01, 0xf0, 0x00, 0xe0, 0x00, 0x40, 
+	{0x00, 0x00, 0x7f, 0x00, 0x7e, 0x00, 0x7c, 0x00,
+	 0x7e, 0x00, 0x7f, 0x00, 0x6f, 0x80, 0x47, 0xc0,
+	 0x03, 0xe0, 0x01, 0xf0, 0x00, 0xe0, 0x00, 0x40,
 	 0x00, 0x00, 0x01, 0xb6, 0x01, 0xb6, 0x00, 0x00, }
 };
 
 Cursor query = {
 	{-7,-7},
-	{0x0f, 0xf0, 0x1f, 0xf8, 0x3f, 0xfc, 0x7f, 0xfe, 
-	 0x7c, 0x7e, 0x78, 0x7e, 0x00, 0xfc, 0x01, 0xf8, 
-	 0x03, 0xf0, 0x07, 0xe0, 0x07, 0xc0, 0x07, 0xc0, 
+	{0x0f, 0xf0, 0x1f, 0xf8, 0x3f, 0xfc, 0x7f, 0xfe,
+	 0x7c, 0x7e, 0x78, 0x7e, 0x00, 0xfc, 0x01, 0xf8,
+	 0x03, 0xf0, 0x07, 0xe0, 0x07, 0xc0, 0x07, 0xc0,
 	 0x07, 0xc0, 0x07, 0xc0, 0x07, 0xc0, 0x07, 0xc0, },
-	{0x00, 0x00, 0x0f, 0xf0, 0x1f, 0xf8, 0x3c, 0x3c, 
-	 0x38, 0x1c, 0x00, 0x3c, 0x00, 0x78, 0x00, 0xf0, 
-	 0x01, 0xe0, 0x03, 0xc0, 0x03, 0x80, 0x03, 0x80, 
+	{0x00, 0x00, 0x0f, 0xf0, 0x1f, 0xf8, 0x3c, 0x3c,
+	 0x38, 0x1c, 0x00, 0x3c, 0x00, 0x78, 0x00, 0xf0,
+	 0x01, 0xe0, 0x03, 0xc0, 0x03, 0x80, 0x03, 0x80,
 	 0x00, 0x00, 0x03, 0x80, 0x03, 0x80, 0x00, 0x00, }
 };
 
@@ -91,13 +91,13 @@ unhide(void)
 	write(wctl, "unhide", 6);
 }
 
-int 
+int
 max(int a, int b)
 {
 	return a > b ? a : b;
 }
 
-int 
+int
 min(int a, int b)
 {
 	return a < b ? a : b;
@@ -142,7 +142,7 @@ showpage(int page, Menu *m)
 		m->lasthit = 0;	/* this page */
 	else
 		m->lasthit = reverse ? doc->npage-1-page : page;
-	
+
 	esetcursor(&reading);
 	delayfreeimage(nil);
 	im = cachedpage(doc, angle, page);
@@ -186,7 +186,7 @@ writebitmap(void)
 			q = basename;
 		if(p = strchr(q, '.'))
 			*p = 0;
-		
+
 		memset(name, 0, sizeof name);
 		snprint(name, sizeof(name)-1, "%s.%d.bit", q, page+1);
 		if(access(name, 0) >= 0) {
@@ -198,7 +198,7 @@ writebitmap(void)
 	} else {
 		strcpy(name, "bitXXXX");
 		mktemp(name);
-		if(access(name, 0) >= 0) 
+		if(access(name, 0) >= 0)
 			return "couldn't think of a name for bitmap";
 	}
 
@@ -258,7 +258,7 @@ enum{
 	Empty3,
 	Exit,
 };
- 
+
 void
 viewer(Document *dd)
 {
@@ -281,13 +281,13 @@ viewer(Document *dd)
  		"next",
  		"prev",
 		"zerox",
- 		"", 
+ 		"",
  		"reverse",
  		"discard",
  		"write",
- 		"", 
- 		"quit", 
- 		0 
+ 		"",
+ 		"quit",
+ 		0
  	};
 	char *s;
 	enum { Eplumb = 4 };
@@ -465,7 +465,7 @@ viewer(Document *dd)
 				esetcursor(&query);
 				sleep(1000);
 				esetcursor(nil);
-				break;	
+				break;
 			}
 			break;
 
@@ -477,7 +477,7 @@ viewer(Document *dd)
 				xy0 = oxy;
 				do {
 					dxy = subpt(m.xy, oxy);
-					oxy = m.xy;	
+					oxy = m.xy;
 					translate(dxy);
 					unlockdisplay(display);
 					m = emouse();
@@ -488,7 +488,7 @@ viewer(Document *dd)
 					translate(dxy);
 				}
 				break;
-	
+
 			case Middle:
 				if(doc->npage == 0)
 					break;
@@ -511,7 +511,7 @@ viewer(Document *dd)
 
 					if((page >= doc->npage) && !doc->fwdonly)
 						return;
-	
+
 					showpage(page, &menu);
 					nxt = 0;
 					break;
@@ -527,7 +527,7 @@ viewer(Document *dd)
 
 					if((page >= doc->npage) && !doc->fwdonly && !reverse)
 						return;
-	
+
 					showpage(page, &menu);
 					nxt = 0;
 					break;
@@ -550,8 +550,8 @@ viewer(Document *dd)
 							delta = (double)Dy(im->r)/(double)Dy(r);
 
 						esetcursor(&reading);
-						tmp = xallocimage(display, 
-								Rect(0, 0, (int)((double)Dx(im->r)*delta), (int)((double)Dy(im->r)*delta)), 
+						tmp = xallocimage(display,
+								Rect(0, 0, (int)((double)Dx(im->r)*delta), (int)((double)Dy(im->r)*delta)),
 								im->chan, 0, DBlack);
 						if(tmp == nil) {
 							fprint(2, "out of memory during zoom: %r\n");
@@ -570,7 +570,7 @@ viewer(Document *dd)
 					{
 						double delta;
 						Rectangle r;
-						
+
 						delta = (double)Dx(screen->r)/(double)Dx(im->r);
 						if((double)Dy(im->r)*delta > Dy(screen->r))
 							delta = (double)Dy(screen->r)/(double)Dy(im->r);
@@ -607,7 +607,7 @@ viewer(Document *dd)
 						break;
 					reverse = !reverse;
 					menu.lasthit = doc->npage-1-menu.lasthit;
-	
+
 					if(page == 0 || page == doc->npage-1) {
 						page = doc->npage-1-page;
 						showpage(page, &menu);
@@ -640,10 +640,10 @@ viewer(Document *dd)
 				case Empty3:
 					break;
 
-				}; 
+				};
 
-	
-	
+
+
 			case Right:
 				if(doc->npage == 0)
 					break;
@@ -654,7 +654,7 @@ viewer(Document *dd)
 				lockdisplay(display);
 				if(n == -1)
 					break;
-	
+
 				if(doc->fwdonly) {
 					switch(n){
 					case 0:	/* this page */
@@ -667,12 +667,12 @@ viewer(Document *dd)
 					}
 					break;
 				}
-	
+
 				if(n == doc->npage)
 					return;
 				else
 					page = reverse ? doc->npage-1-n : n;
-	
+
 				if(oldpage != page)
 					showpage(page, &menu);
 				nxt = 0;
@@ -719,7 +719,7 @@ Image *gray;
  * mp and sp get aligned with bot.min.
  */
 static void
-gendrawdiff(Image *dst, Rectangle bot, Rectangle top, 
+gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 	Image *src, Point sp, Image *mask, Point mp, int op)
 {
 	Rectangle r;
@@ -856,7 +856,7 @@ redraw(Image *screen)
 		}
 	}
 	border(screen, r, -4000, gray, ZP);
-//	flushimage(display, 0);	
+//	flushimage(display, 0);
 }
 
 void
@@ -888,7 +888,7 @@ pclip(Point p, Rectangle r)
 }
 
 /*
- * resize is perhaps a misnomer. 
+ * resize is perhaps a misnomer.
  * this really just grows the window to be at least dx across
  * and dy high.  if the window hits the bottom or right edge,
  * it is backed up until it hits the top or left edge.
@@ -1070,7 +1070,7 @@ zerox(void)
 	switch(rfork(RFFDG|RFREND|RFPROC)) {
 		case -1:
 			wexits("cannot fork in zerox: %r");
-		case 0: 
+		case 0:
 			dup(pfd[1], 0);
 			close(pfd[0]);
 			execl("/bin/page", "page", "-w", nil);

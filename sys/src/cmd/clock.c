@@ -104,5 +104,5 @@ main(int i, char **c)
 		} else if(key == timer) {
 			redraw(screen);
 		}
-	}	
+	}
 }

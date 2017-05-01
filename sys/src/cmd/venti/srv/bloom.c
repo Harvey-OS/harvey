@@ -9,7 +9,7 @@
 
 /*
  * Bloom filter tracking which scores are present in our arenas
- * and (more importantly) which are not.  
+ * and (more importantly) which are not.
  */
 
 #include "stdinc.h"
@@ -22,19 +22,19 @@ int
 bloominit(Bloom *b, int64_t vsize, uint8_t *data)
 {
 	uint32_t size;
-	
+
 	size = vsize;
 	if(size != vsize){	/* truncation */
 		werrstr("bloom data too big");
 		return -1;
 	}
-	
+
 	b->size = size;
 	b->nhash = 32;	/* will be fixed by caller on initialization */
 	if(data != nil)
 		if(unpackbloomhead(b, data) < 0)
 			return -1;
-	
+
 	b->bitmask = (b->size<<3) - 1;
 	b->data = data;
 	return 0;
@@ -51,7 +51,7 @@ readbloom(Part *p)
 {
 	uint8_t buf[512];
 	Bloom *b;
-	
+
 	b = vtmallocz(sizeof *b);
 	if(readpart(p, 0, buf, sizeof buf) < 0)
 		return nil;
@@ -84,7 +84,7 @@ int
 resetbloom(Bloom *b)
 {
 	uint8_t *data;
-	
+
 	data = vtmallocz(b->size);
 	b->data = data;
 	if(b->size == MaxBloomSize)	/* 2^32 overflows uint32_t */
@@ -101,7 +101,7 @@ loadbloom(Bloom *b)
 	uint ones;
 	uint8_t *data;
 	uint32_t *a;
-	
+
 	data = vtmallocz(b->size);
 	if(readpart(b->part, 0, data, b->size) < 0){
 		vtfree(b);
@@ -114,14 +114,14 @@ loadbloom(Bloom *b)
 	n = b->size/4;
 	ones = 0;
 	for(i=0; i<n; i++)
-		ones += countbits(a[i]); 
+		ones += countbits(a[i]);
 	addstat(StatBloomOnes, ones);
 
 	if(b->size == MaxBloomSize)	/* 2^32 overflows uint32_t */
 		addstat(StatBloomBits, b->size*8-1);
 	else
 		addstat(StatBloomBits, b->size*8);
-		
+
 	return 0;
 }
 
@@ -213,7 +213,7 @@ inbloomfilter(Bloom *b, uint8_t *score)
 
 	if(ignorebloom)
 		return 1;
-	
+
 	rlock(&b->lk);
 	r = _inbloomfilter(b, score);
 	runlock(&b->lk);
@@ -244,7 +244,7 @@ bloomwriteproc(void *v)
 	int ret;
 	Bloom *b;
 
-	threadsetname("bloomwriteproc");	
+	threadsetname("bloomwriteproc");
 	b = v;
 	for(;;){
 		recv(b->writechan, 0);
@@ -261,5 +261,5 @@ startbloomproc(Bloom *b)
 {
 	b->writechan = chancreate(sizeof(void*), 0);
 	b->writedonechan = chancreate(sizeof(uint32_t), 0);
-	vtproc(bloomwriteproc, b);	
+	vtproc(bloomwriteproc, b);
 }

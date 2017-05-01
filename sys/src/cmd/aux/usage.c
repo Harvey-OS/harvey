@@ -18,13 +18,13 @@ main(void)
 	char *argv0, *args, *flags, *p, *p0;
 	int single;
 	Rune r;
-	
+
 	argv0 = getenv("0");
 	if((p = strrchr(argv0, '/')) != nil)
 		argv0 = p+1;
 	flags = getenv("flagfmt");
 	args = getenv("args");
-	
+
 	if(argv0 == nil){
 		fprint(2, "aux/usage: $0 not set\n");
 		exits("$0");

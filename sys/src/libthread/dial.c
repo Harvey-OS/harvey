@@ -148,7 +148,7 @@ call(char *clone, char *dest, DS *ds)
 		p = strchr(clone+1, '/');
 		if(p == nil)
 			p = clone;
-		else 
+		else
 			p++;
 	} else
 		p = clone;

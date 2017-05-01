@@ -140,7 +140,7 @@ load(Vga* vga, Ctlr* ctlr)
 
 	if(rgb524mnxi == nil && rgb524mnxo == nil)
 		error("%s->load: no access routines\n", ctlr->name);
-		
+
 	/*
 	 * Set the m/n values for the desired frequency and
 	 * set pixel control to use compatibility mode with

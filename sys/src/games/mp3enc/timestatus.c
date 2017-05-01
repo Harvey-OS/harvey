@@ -33,11 +33,11 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
- 
+
 
 /* Hope it works now, otherwise complain or flame ;-)
  */
- 
+
 
 #if 1
 # define SPEED_CHAR	"x"	/* character x */
@@ -70,7 +70,7 @@ typedef struct {
     double  speed_index;		  // speed relative to realtime coding [100%]
 } timestatus_t;
 
-/* 
+/*
  *  Calculates from the input (see below) the following values:
  *    - total estimated time
  *    - a speed index
@@ -78,13 +78,13 @@ typedef struct {
 
 static void  ts_calc_times (
     timestatus_t* const  tstime,           // tstime->elapsed_time: elapsed time
-    const int            sample_freq,      // sample frequency [Hz/kHz] 
+    const int            sample_freq,      // sample frequency [Hz/kHz]
     const int            frameNum,         // Number of the current Frame
     const int            totalframes,      // total umber of Frames
     const int            framesize )       // Size of a frame [bps/kbps]
 {
     assert ( sample_freq >= 8000  &&  sample_freq <= 48000 );
-    
+
     if ( frameNum > 0  &&  tstime->elapsed_time > 0 ) {
         tstime->estimated_time = tstime->elapsed_time * totalframes / frameNum;
         tstime->speed_index    = framesize * frameNum / (sample_freq * tstime->elapsed_time);
@@ -113,7 +113,7 @@ static void  ts_time_decompose ( const unsigned long time_in_sec,
         fprintf ( stderr,         "%6lu h%c", hour,           padded_char );
 }
 
-void timestatus ( const int samp_rate, 
+void timestatus ( const int samp_rate,
                   const int frameNum,
                   const int totalframes,
                   const int framesize )
@@ -127,7 +127,7 @@ void timestatus ( const int samp_rate,
         real_time.start_time = GetRealTime ();
         proc_time.start_time = GetCPUTime  ();
     }
-    
+
     real_time.elapsed_time = GetRealTime () - real_time.start_time;
     proc_time.elapsed_time = GetCPUTime  () - proc_time.start_time;
 
@@ -139,9 +139,9 @@ void timestatus ( const int samp_rate,
 	    /* , Console_IO.str_clreoln, Console_IO.str_clreoln */ );
 	init = 1;
         return;
-    }  
+    }
     /* reset init counter for next time we are called with frameNum==0 */
-    if (frameNum > 0) 
+    if (frameNum > 0)
         init = 0;
 
     ts_calc_times ( &real_time, samp_rate, frameNum, totalframes, framesize );
@@ -159,7 +159,7 @@ void timestatus ( const int samp_rate,
     ts_time_decompose ( (unsigned long)proc_time.estimated_time, '|' );
     ts_time_decompose ( (unsigned long)real_time.elapsed_time  , '/' );
     ts_time_decompose ( (unsigned long)real_time.estimated_time, '|' );
-    fprintf ( stderr, proc_time.speed_index <= 1.  ?  
+    fprintf ( stderr, proc_time.speed_index <= 1.  ?
               "%9.4f" SPEED_CHAR "|"  :  "%#9.5g" SPEED_CHAR "|",
 	      SPEED_MULT * proc_time.speed_index );
     ts_time_decompose ( (unsigned long)(real_time.estimated_time - real_time.elapsed_time), ' ' );
@@ -177,7 +177,7 @@ void timestatus_klemm ( const lame_global_flags* const gfp )
     static double  last_time = 0.;
 
     if ( !silent )
-        if ( gfp->frameNum == 0  ||  
+        if ( gfp->frameNum == 0  ||
   	     gfp->frameNum == 9  ||
   	     GetRealTime () - last_time >= update_interval  ||
 	     GetRealTime () - last_time <  0 ) {
@@ -204,17 +204,17 @@ void decoder_progress ( const lame_global_flags* const gfp, const mp3data_struct
     static int  last;
     fprintf ( stderr, "\rFrame#%6i/%-6i %3i kbps",
               mp3data->framenum, mp3data->totalframes, mp3data->bitrate );
-              
+
     // Programmed with a single frame hold delay
     // Attention: static data
-    
+
     // MP2 Playback is still buggy.
     // "'00' subbands 4-31 in intensity_stereo, bound==4"
     // is this really intensity_stereo or is it MS stereo?
-    
+
     if ( mp3data->mode == JOINT_STEREO ) {
         int         curr = mp3data->mode_ext;
-        fprintf ( stderr, "  %s  %c" , 
+        fprintf ( stderr, "  %s  %c" ,
                   curr&2  ?  last&2 ? " MS " : "LMSR"  :  last&2 ? "LMSR" : "L  R",
                   curr&1  ?  last&1 ? 'I'    : 'i'     :  last&1 ? 'i'    : ' ' );
         last = curr;

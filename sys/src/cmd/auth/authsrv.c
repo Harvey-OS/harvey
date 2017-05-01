@@ -689,9 +689,9 @@ mschap(Ticketreq *tr)
 	dupe = memcmp(reply.LMresp, reply.NTresp, MSresplen) == 0;
 
 	/*
-	 * It is valid to send the same response in both the LM and NTLM 
+	 * It is valid to send the same response in both the LM and NTLM
 	 * fields provided one of them is correct, if neither matches,
-	 * or the two fields are different and either fails to match, 
+	 * or the two fields are different and either fails to match,
 	 * the whole sha-bang fails.
 	 *
 	 * This is an improvement in security as it allows clients who

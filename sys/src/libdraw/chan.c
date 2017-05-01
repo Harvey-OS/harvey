@@ -59,7 +59,7 @@ strtochan(char *s)
 		p++;
 
 	while(*p && !isspace(*p)){
-		if((q = strchr(channames, p[0])) == nil) 
+		if((q = strchr(channames, p[0])) == nil)
 			return 0;
 		t = q-channames;
 		if(p[1] < '0' || p[1] > '9')

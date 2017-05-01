@@ -80,7 +80,7 @@ addctlr(Vga* vga, char* val)
 		*ctlr = alloc(sizeof(Ctlr));
 		**ctlr = *ctlrs[i];
 		strncpy((*ctlr)->name, val, Namelen);
-		return *ctlr;	
+		return *ctlr;
 	}
 
 	fprint(2, "dbctlr: unknown controller \"%s\" ctlr\n", val);

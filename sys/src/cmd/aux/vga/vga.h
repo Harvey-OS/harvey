@@ -123,7 +123,7 @@ typedef struct Mode {
 
 	int		vbs;		/* optional Vertical Blank Start */
 	int		vbe;		/* optional Vertical Blank End */
-	
+
 	uint32_t	videobw;
 
 	char	hsync;
@@ -139,18 +139,18 @@ typedef struct Mode {
  * The clock elements are used for communication between the VGA, RAMDAC and clock chips;
  * they can use them however they like, it's assumed they will be used compatibly.
  *
- * The mode->x, mode->y coordinates are the physical size of the screen. 
+ * The mode->x, mode->y coordinates are the physical size of the screen.
  * Virtx and virty are the coordinates of the underlying memory image.
  * This can be used to implement panning around a larger screen or to cope
  * with chipsets that need the in-memory pixel line width to be a round number.
- * For example, virge.c uses this because the Savage chipset needs the pixel 
+ * For example, virge.c uses this because the Savage chipset needs the pixel
  * width to be a multiple of 16.  Also, mga2164w.c needs the pixel width
  * to be a multiple of 128.
  *
  * Vga->panning differentiates between these two uses of virtx, virty.
  *
  * (14 October 2001, rsc) Most drivers don't know the difference between
- * mode->x and virtx, a bug that should be corrected.  Vga.c, virge.c, and 
+ * mode->x and virtx, a bug that should be corrected.  Vga.c, virge.c, and
  * mga2164w.c know.  For the others, the computation that sets crt[0x13]
  * should use virtx instead of mode->x (and maybe other places change too,
  * dependent on the driver).

@@ -206,7 +206,7 @@ readenv(char *name)
 	f = open(name, OREAD);
 	if(f < 0){
 		print("init: can't open %s: %r\n", name);
-		return "*unknown*";	
+		return "*unknown*";
 	}
 	d = dirfstat(f);
 	if(d == nil){

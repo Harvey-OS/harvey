@@ -8,7 +8,7 @@
  */
 
 enum {
-	NbNameLen = 16,	
+	NbNameLen = 16,
 	NbnsTimeoutBroadcast = 1000,
 	NbnsRetryBroadcast = 3,
 	NbnsPort = 137,

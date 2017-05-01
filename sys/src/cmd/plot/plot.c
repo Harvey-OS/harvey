@@ -585,7 +585,7 @@ void call(char *a){
 		exits("undefined");
 	}
 	*ap = sav;
-	while (isspace(*ap) || *ap == ',') 
+	while (isspace(*ap) || *ap == ',')
 		ap++;
 	if (*ap != '\0')
 		SC = atof(ap);

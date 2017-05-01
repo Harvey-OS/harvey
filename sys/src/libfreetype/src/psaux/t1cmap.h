@@ -47,16 +47,16 @@ FT_BEGIN_HEADER
 
     FT_UInt                    num_glyphs;
     const char* const*         glyph_names;
-    
+
   } T1_CMapStdRec;
 
 
   FT_CALLBACK_TABLE const FT_CMap_ClassRec
   t1_cmap_standard_class_rec;
-  
+
   FT_CALLBACK_TABLE const FT_CMap_ClassRec
   t1_cmap_expert_class_rec;
-  
+
 
   /*************************************************************************/
   /*************************************************************************/
@@ -67,20 +67,20 @@ FT_BEGIN_HEADER
   /*************************************************************************/
 
   typedef struct T1_CMapCustomRec_*  T1_CMapCustom;
-  
+
   typedef struct  T1_CMapCustomRec_
   {
     FT_CMapRec  cmap;
     FT_UInt     first;
     FT_UInt     count;
     FT_UShort*  indices;
-  
+
   } T1_CMapCustomRec;
 
 
   FT_CALLBACK_TABLE const FT_CMap_ClassRec
   t1_cmap_custom_class_rec;
-  
+
 
   /*************************************************************************/
   /*************************************************************************/
@@ -97,7 +97,7 @@ FT_BEGIN_HEADER
   {
     FT_UInt32  unicode;
     FT_UInt    gindex;
-  
+
   } T1_CMapUniPairRec, *T1_CMapUniPair;
 
 
@@ -115,7 +115,7 @@ FT_BEGIN_HEADER
 
  /* */
 
- 
+
 FT_END_HEADER
 
 #endif /* __T1CMAP_H__ */

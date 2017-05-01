@@ -55,7 +55,7 @@ lstnListen(void* a)
 	Lstn *lstn;
 	int dfd, lfd;
 	char newdir[NETPATHLEN];
-	
+
  	vtThreadSetName("listen");
 
 	lstn = a;

@@ -231,7 +231,7 @@ enum{
 	REXX		= 1<<1,	/* extend sib index */
 	REXB		= 1<<0	/* extend modrm r/m, sib base, or opcode reg */
 };
-	
+
 	/* Operand Format codes */
 /*
 %A	-	address size register modifier (!asize -> 'E')
@@ -291,7 +291,7 @@ enum {
 	OPOVER,			/* Operand size override */
 	ADDOVER,		/* Address size override */
 };
-	
+
 static Optable optab0F00[8]=
 {
 [0x00] =	{{0,0},		"MOVW	LDT,%e"},
@@ -789,7 +789,7 @@ static Optable optabD8[8+8] =
 [0x0f] =	{{0,0},		"FDIVRD	%f,F0"},
 };
 /*
- *	optabD9 and optabDB use the following encoding: 
+ *	optabD9 and optabDB use the following encoding:
  *	if (0 <= modrm <= 2) instruction = optabDx[modrm&0x07];
  *	else instruction = optabDx[(modrm&0x3f)+8];
  *
@@ -2160,7 +2160,7 @@ i386foll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 		return 1;
 	default:
 		break;
-	}		
+	}
 	if (strncmp(op->proto,"JMP", 3) == 0 || strncmp(op->proto,"CALL", 4) == 0)
 		return 1;
 	foll[n++] = pc+i.n;

@@ -81,7 +81,7 @@ e_w(void)
 {
 	Rune *a;
 	Rune buf[40];
-	
+
 	a = getqarg();
 	runesnprint(buf, sizeof buf, "%ld", runestrlen(a));
 	pushinputstring(buf);

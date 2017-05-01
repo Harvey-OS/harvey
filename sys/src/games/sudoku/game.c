@@ -68,7 +68,7 @@ printbrd(int *board)
 	int i;
 
 	for(i = 0; i < Psize; i++) {
-		if(i > 0 && i % Brdsize == 0) 
+		if(i > 0 && i % Brdsize == 0)
 			print("\n");
 		print("%2.2d ", board[i] & Digit);
 	}
@@ -120,20 +120,20 @@ boxcheck(int *board)
 				} else
 					sum += ((board[boxind[i][j]] & Solve)==(d << 4)) ? 1: 0;
 			}
-			if (sum==0) 
+			if (sum==0)
 				return(0);
 			if ((sum==1)&&(last>=0))
-				if (!setallowed(board,last,d)) 
+				if (!setallowed(board,last,d))
 					return(0);
 
-			if((sum == 2) && (last >= 0) && ( last2 >= 0) && 
+			if((sum == 2) && (last >= 0) && ( last2 >= 0) &&
 					(getrow(last) == getrow(last2))) {
 				for (j = 0; j < 9; j++) {
 					int c = rowind[getrow(last)][j];
 					if ((c != last)&&(c != last2)) {
 						if (board[c] & allowbits[d]) {
 							board[c] &= ~allowbits[d];
-							if ((board[c] & Allow)==0) 
+							if ((board[c] & Allow)==0)
 								return(0);
 						}
 					}
@@ -146,7 +146,7 @@ boxcheck(int *board)
 					if ((c != last) && (c != last2)) {
 						if (board[c] & allowbits[d]) {
 							board[c] &= ~allowbits[d];
-							if ((board[c] & Allow) == 0) 
+							if ((board[c] & Allow) == 0)
 								return(0);
 						}
 					}
@@ -173,10 +173,10 @@ rowcheck(int *board)
 				} else
 					sum += ((board[rowind[i][j]] & Solve) == (d << 4)) ? 1: 0;
 			}
-			if (sum == 0) 
+			if (sum == 0)
 				return(0);
 			if ((sum == 1) && (last >= 0)) {
-				if (!setallowed(board, rowind[i][last], d)) 
+				if (!setallowed(board, rowind[i][last], d))
 						return(0);
 			}
 		}
@@ -200,10 +200,10 @@ colcheck(int *board)
 				} else
 					sum += ((board[colind[i][j]] & Solve) == (d << 4)) ? 1: 0;
 			}
-			if (sum == 0) 
+			if (sum == 0)
 				return(0);
 			if ((sum == 1) && (last >= 0)) {
-				if (!setallowed(board, colind[i][last], d)) 
+				if (!setallowed(board, colind[i][last], d))
 					return(0);
 			}
 		}
@@ -224,7 +224,7 @@ setallowed(int *board, int cc, int num)
 	for (j = 0; j < 9; j++) {
 		if (board[rowind[row][j]] & allowbits[num]) {
 			board[rowind[row][j]] &= ~allowbits[num];
-			if ((board[rowind[row][j]] & Allow) == 0) 
+			if ((board[rowind[row][j]] & Allow) == 0)
 				return(0);
 		}
 	}
@@ -233,7 +233,7 @@ setallowed(int *board, int cc, int num)
 	for (j = 0; j < 9; j++) {
 		if (board[colind[col][j]] & allowbits[num]) {
 			board[colind[col][j]] &= ~allowbits[num];
-			if ((board[colind[col][j]] & Allow) == 0) 
+			if ((board[colind[col][j]] & Allow) == 0)
 				return(0);
 		}
 	}
@@ -242,7 +242,7 @@ setallowed(int *board, int cc, int num)
 	for (j = 0;j < 9;j++) {
 		if (board[boxind[box][j]] & allowbits[num]) {
 			board[boxind[box][j]] &= ~allowbits[num];
-			if ((board[boxind[box][j]] & Allow)==0) 
+			if ((board[boxind[box][j]] & Allow)==0)
 				return(0);
 		}
 	}
@@ -250,7 +250,7 @@ setallowed(int *board, int cc, int num)
 	for (j = 0;j < 81; j++)
 		for (d = 0; d < 9; d++)
 			if ((board[j] & Allow) == allowbits[d])
-				if (!setallowed(board, j, d)) 
+				if (!setallowed(board, j, d))
 					return(0);
 
 	if (!boxcheck(board)||!rowcheck(board)||!colcheck(board))
@@ -259,7 +259,7 @@ setallowed(int *board, int cc, int num)
 	for (j = 0; j < 81; j++)
 		for (d = 0; d < 9; d++)
 			if ((board[j] & Allow) == allowbits[d])
-				if (!setallowed(board, j, d)) 
+				if (!setallowed(board, j, d))
 					return(0);
 
 	return(1);
@@ -288,7 +288,7 @@ findmove(int *board)
 	for (i=(s+1)%81;i!=s;i=(i+1)%81) {
 		if (!(board[i] & Allow)) {
 			d=(board[i] & Solve) >> 4;
-			if ((board[i] & Digit)!=d) 
+			if ((board[i] & Digit)!=d)
 				return(i);
 		}
 	}
@@ -305,7 +305,7 @@ attempt(int *pboard, int level)
 	if (level > maxlevel)
 		maxlevel = level;
 
-	if (level > 25) 
+	if (level > 25)
 		exits("level");	/* too much */
 
 	s = nrand(Psize);
@@ -314,25 +314,25 @@ attempt(int *pboard, int level)
 			e=nrand(9);
 			for (j = (e + 1) % 9; j != e; j = (j + 1) % 9) {
 				if (pboard[i] & allowbits[j]) {
-					for (k = 0; k < Psize; k++) 
+					for (k = 0; k < Psize; k++)
 						tb[k] = pboard[k];
 
 					if (setallowed(tb, i, j)) {
 						tb[i] = (tb[i] & ~Digit) | j;
 						if (chksolved(tb)) {
-							for (k = 0;k < Psize; k++) 
+							for (k = 0;k < Psize; k++)
 								pboard[k] = tb[k];
 							return;	/* bad! */
 						}
 
 						attempt(tb, level + 1);
 						if (chksolved(tb)) {
-							for (k = 0; k < Psize; k++) 
+							for (k = 0; k < Psize; k++)
 								pboard[k] = tb[k];
 							return;
 						}
 						tb[i] |= Digit;
-						if (level > 25) 
+						if (level > 25)
 							return;
 					}
 				}
@@ -348,7 +348,7 @@ solve(void)
 	int	i, c;
 
 	if (!solved) {
-		for (i = 0; i < Psize; i++) 
+		for (i = 0; i < Psize; i++)
 			pboard[i] = Allow | Solve | Digit;
 
 		for (i = 0; i < Psize; i++) {

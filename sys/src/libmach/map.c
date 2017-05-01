@@ -148,7 +148,7 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	setmap(map, corefd, fp->dataddr, n, fp->dataddr, "data");
 	return map;
 }
-	
+
 int
 findseg(Map *map, char *name)
 {

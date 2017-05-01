@@ -134,7 +134,7 @@ outin(char *prompt, char *def, int len)
 	if(cpuflag){
 		notify(catchint);
 		alarm(15*1000);
-	} 
+	}
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
 	n = read(0, buf, len);

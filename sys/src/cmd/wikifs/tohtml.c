@@ -18,7 +18,7 @@
  * Get HTML and text templates from underlying file system.
  * Caches them, which means changes don't take effect for
  * up to Tcache seconds after they are made.
- * 
+ *
  * If the files are deleted, we keep returning the last
  * known copy.
  */
@@ -126,7 +126,7 @@ Return:
 	return s;
 }
 
-	
+
 /*
  * Write wiki document in HTML.
  */
@@ -223,7 +223,7 @@ nospaces(char *s)
 			*q = '_';
 	return s;
 }
-	
+
 String*
 pagehtml(String *s, Wpage *wtxt, int ty)
 {
@@ -253,8 +253,8 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 		switch(t){
 		case Wheading:
 			p = nospaces(w->text);
-			s = s_appendlist(s, 
-				"\n<a name=\"", p, "\" /><h3>", 
+			s = s_appendlist(s,
+				"\n<a name=\"", p, "\" /><h3>",
 				w->text, "</h3>\n", nil);
 			free(p);
 			break;
@@ -293,12 +293,12 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 
 		case Wman:
 			sprint(tmp, "%d", w->section);
-			s = s_appendlist(s, 
+			s = s_appendlist(s,
 				"<a href=\"http://plan9.bell-labs.com/magic/man2html/",
 				tmp, "/", w->text, "\"><i>", w->text, "</i>(",
 				tmp, ")</a>", nil);
 			break;
-			
+
 		case Wpre:
 			if(!inpre){
 				inpre = 1;
@@ -307,7 +307,7 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 			s = s_escappend(s, w->text, 1);
 			s = s_append(s, "\n");
 			break;
-		
+
 		case Whr:
 			s = s_append(s, "<hr />");
 			break;
@@ -458,7 +458,7 @@ diffhtml(String *s, Whist *h)
 			sprint(tmp, "%lu", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
 		atime[strlen(atime)-1] = '\0';
-		s = s_appendlist(s, 
+		s = s_appendlist(s,
 			"<a href=\"", tmp, "\">",
 			atime, "</a>", nil);
 		if(h->doc[i].author)
@@ -490,7 +490,7 @@ historyhtml(String *s, Whist *h)
 			sprint(tmp, "%lu", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
 		atime[strlen(atime)-1] = '\0';
-		s = s_appendlist(s, 
+		s = s_appendlist(s,
 			"<li><a href=\"", tmp, "\">",
 			atime, "</a>", nil);
 		if(h->doc[i].author)
@@ -502,7 +502,7 @@ historyhtml(String *s, Whist *h)
 			s = s_appendlist(s, "<br><i>", h->doc[i].comment, "</i>\n", nil);
 	}
 	s = s_append(s, "</ul>");
-	return s;		
+	return s;
 }
 
 String*
@@ -594,10 +594,10 @@ s_appendbrk(String *s, char *p, char *prefix, int dosharp)
 			*x = ' ';
 		}else
 			w = strrchr(e, ' ');
-	
+
 		if(w-s_to_c(s) < strlen(prefix))
 			break;
-		
+
 		x = estrdup(w+1);
 		*w = '\0';
 		s->ptr = w;
@@ -704,7 +704,7 @@ pagetext(String *s, Wpage *page, int dosharp)
 			sprint(tmp, "(%d)", w->section);
 			s = s_appendbrk(s, tmp, prefix, dosharp);
 			break;
-			
+
 		case Wpre:
 			if(inlist){
 				prefix = "";
@@ -756,7 +756,7 @@ historytext(String *s, Whist *h)
 		if(h->doc[i].comment)
 			s = s_appendlist(s, "<i>", h->doc[i].comment, "</i>\n", nil);
 	}
-	return s;		
+	return s;
 }
 
 String*
@@ -790,7 +790,7 @@ totext(Whist *h, Wdoc *d, int ty)
 		sub[nsub] = (Sub){ "DATE", atime };
 		nsub++;
 	}
-	
+
 	s = s_reset(nil);
 	s = s_appendsub(s, s_to_c(t), p-s_to_c(t), sub, nsub);
 	switch(ty){

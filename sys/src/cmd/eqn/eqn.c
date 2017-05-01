@@ -492,7 +492,7 @@ yyerrlab:
 	if(yyj >= YYLAST || yychk[yystate=yyact[yyj]] != -yyn)
 		yystate = yyact[yyg];
 	switch(yym) {
-		
+
 case 1:
 #line	24	"/sys/src/cmd/eqn/eqn.y"
 { putout(yypt[-0].yyv); } break;

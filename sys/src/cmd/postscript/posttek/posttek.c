@@ -102,7 +102,7 @@
  * engines. The line width can be changed using the -w option, or you can change
  * the initialization of linewidth in the prologue.
  *
- * Many default values, like the magnification and orientation, are defined in 
+ * Many default values, like the magnification and orientation, are defined in
  * the prologue, which is where they belong. If they're changed (by options), an
  * appropriate definition is made after the prologue is added to the output file.
  * The -P option passes arbitrary PostScript through to the output file. Among
@@ -114,7 +114,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 
 #include "comments.h"			/* PostScript file structuring comments */
 #include "gen.h"			/* general purpose definitions */

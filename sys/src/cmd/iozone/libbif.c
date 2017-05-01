@@ -1,13 +1,13 @@
-/* 
- * Here is a very simple set of routines to write an Excel worksheet 
- * Microsoft BIFF format. The Excel version is set to 2.0 so that it 
+/*
+ * Here is a very simple set of routines to write an Excel worksheet
+ * Microsoft BIFF format. The Excel version is set to 2.0 so that it
  * will work with all versions of Excel.
  *
- * Author: Don Capps 
+ * Author: Don Capps
  */
 
-/* 
- * Note: rows and colums should not exceed 255 or this code will 
+/*
+ * Note: rows and colums should not exceed 255 or this code will
  * act poorly
  */
 
@@ -63,28 +63,28 @@ int junk, *junkp;
 /* Here is the API... Enjoy 						*/
 /************************************************************************/
 /* Create worksheet 							*/
-int create_xls(char *);			
+int create_xls(char *);
 /*    Args: Filename							*/
 /*    									*/
 /* Close worksheet 							*/
-void close_xls(int);			
+void close_xls(int);
 /*   Args: file descriptor						*/
 /*    									*/
 /* Put a 16 bit integer in worksheet 					*/
-void do_int(int,int,int,int);		
+void do_int(int,int,int,int);
 /*    Args: file descriptor,						*/
 /*    	  value,							*/
 /*	  row,								*/
 /*	  column							*/
 
 /* Put a double in 8 byte float 					*/
-void do_float(int,double,int,int); 	
+void do_float(int,double,int,int);
 /*    Args: file descriptor,						*/
 /*    	  value,							*/
 /*	  row,								*/
 /*	  column							*/
 /* Put a string in worksheet 						*/
-void do_label(int,char *,int,int);	
+void do_label(int,char *,int,int);
 /*    Args: file descriptor,						*/
 /*   	  string,							*/
 /*	  row,								*/
@@ -159,7 +159,7 @@ struct float_record {		/* Type 3 record */
 	double data;
 	};
 /*
- * Write the EOF and close the file 
+ * Write the EOF and close the file
  */
 #ifdef HAVE_ANSIC_C
 void
@@ -201,13 +201,13 @@ char *name;
 	do_header(fd);
 	return(fd);
 }
-	
+
 #ifdef HAVE_ANSIC_C
 void
 do_header(int fd) /* Stick the BOF at the beginning of the file */
 {
 #else
-do_header(fd) 
+do_header(fd)
 int fd;
 {
 #endif
@@ -224,7 +224,7 @@ int fd;
 }
 
 /*
- * Put an integer (16 bit) in the worksheet 
+ * Put an integer (16 bit) in the worksheet
  */
 #ifdef HAVE_ANSIC_C
 void
@@ -255,11 +255,11 @@ int fd,val,row,column;
 	junk=write(fd,&intrec,13);
 }
 
-/* Note: This routine converts Big Endian to Little Endian 
+/* Note: This routine converts Big Endian to Little Endian
  * and writes the record out.
  */
 
-/* 
+/*
  * Put a double in the worksheet as 8 byte float in IEEE format.
  */
 #ifdef HAVE_ANSIC_C
@@ -385,27 +385,27 @@ int row,column;
 
 }
 
-/* 
- * Write the EOF in the file 
+/*
+ * Write the EOF in the file
  */
 #ifdef HAVE_ANSIC_C
 void
-do_eof(int fd) 
+do_eof(int fd)
 {
 #else
-do_eof(fd) 
+do_eof(fd)
 int fd;
 {
 #endif
 	char buf[]={0x0a,0x00,0x00,0x00};
 	junk=write(fd,buf,4);
 }
-	
-/* 
+
+/*
  * Routine to determine the Endian-ness of the system. This
  * is needed for Iozone to convert doubles (floats) into
- * Little-endian format. This is needed for Excel to be 
- * able to interpret the file 
+ * Little-endian format. This is needed for Excel to be
+ * able to interpret the file
  */
 int
 endian(void)

@@ -104,7 +104,7 @@ closeclient(Client *c)
 		c->moribund = 1;
 		kickwriter(c);
 		iointerrupt(c->readerproc);
-		iointerrupt(c->writerproc);		
+		iointerrupt(c->writerproc);
 		c->activethread++;
 		die(c);
 	}

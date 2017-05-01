@@ -72,7 +72,7 @@ char *strchr (), *strrchr ();
 # include <sys/stat.h>
 #endif
 
-/* 
+/*
  * 3 different types of pow() functions:
  *   - table lookup
  *   - pow()

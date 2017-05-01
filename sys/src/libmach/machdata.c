@@ -131,7 +131,7 @@ fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 			if (rp->rformat == 'F')
 				return 1;
 			return 2;
-		}	
+		}
 			/* treat it like 'f' */
 		if (get1(map, rp->roffs, (uint8_t *)reg, 4) < 0)
 			return -1;

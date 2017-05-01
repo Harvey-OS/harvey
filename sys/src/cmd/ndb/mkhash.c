@@ -77,7 +77,7 @@ main(int argc, char **argv)
 {
 	Ndbtuple *t, *nt;
 	int n;
-	Dir *d;	
+	Dir *d;
 	uint8_t buf[8];
 	char file[128];
 	int fd;

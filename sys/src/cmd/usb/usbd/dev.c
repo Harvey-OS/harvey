@@ -51,7 +51,7 @@ putdevnb(uint64_t *maskp, int id)
 		*maskp &= ~(1ULL<<id);
 	unlock(&masklck);
 }
-		
+
 static int
 cspmatch(Devtab *dt, int dcsp)
 {

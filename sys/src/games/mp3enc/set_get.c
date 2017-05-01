@@ -297,7 +297,7 @@ lame_get_ogg( const lame_global_flags*  gfp )
  * Internal algorithm selection.
  * True quality is determined by the bitrate but this variable will effect
  * quality by selecting expensive or cheap algorithms.
- * quality=0..9.  0=best (very slow).  9=worst.  
+ * quality=0..9.  0=best (very slow).  9=worst.
  * recommended:  2     near-best quality, not too slow
  *               5     good quality, fast
  *               7     ok quality, really fast
@@ -480,12 +480,12 @@ lame_set_strict_ISO( lame_global_flags*  gfp,
                      int                 strict_ISO );
 int
 lame_get_strict_ISO( const lame_global_flags*  gfp );
- 
+
 
 
 
 /********************************************************************
- * quantization/noise shaping 
+ * quantization/noise shaping
  ***********************************************************************/
 
 // disable the bit reservoir. For testing only. default=0
@@ -496,7 +496,7 @@ int
 lame_get_disable_reservoir( const lame_global_flags*  gfp );
 
 
-// select a different "best quantization" function. default=0 
+// select a different "best quantization" function. default=0
 int
 lame_set_experimentalX( lame_global_flags*  gfp,
                         int                 experimentalX );
@@ -542,7 +542,7 @@ vbr_mode
 lame_get_exp_VBR( const lame_global_flags*  gfp );
 
 
-// VBR quality level.  0=highest  9=lowest 
+// VBR quality level.  0=highest  9=lowest
 int
 lame_set_VBR_q( lame_global_flags*  gfp,
                 int                 VBR_q );
@@ -618,7 +618,7 @@ lame_get_highpasswidth( const lame_global_flags*  gfp );
 
 
 /*
- * psycho acoustics and other arguments which you should not change 
+ * psycho acoustics and other arguments which you should not change
  * unless you know what you are doing
  */
 
@@ -713,7 +713,7 @@ lame_get_emphasis( const lame_global_flags*  gfp );
 /* provided because they may be of use to calling application  */
 /***************************************************************/
 
-// version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)    
+// version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)
 int
 lame_get_version( const lame_global_flags* gfp );
 
@@ -734,6 +734,6 @@ lame_get_frameNum( const lame_global_flags*  gfp );
 
 
 // lame's estimate of the total number of frames to be encoded
-// only valid if calling program set num_samples 
+// only valid if calling program set num_samples
 int
 lame_get_totalframes( const lame_global_flags*  gfp );

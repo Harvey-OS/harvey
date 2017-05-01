@@ -173,7 +173,7 @@ load(Vga* vga, Ctlr* ctlr)
 			f /= 1000000;
 		rgb524xo(PLLReference, f/2);
 	}
-		
+
 	/*
 	 * Enable pixel programming and clock divide
 	 * factor.

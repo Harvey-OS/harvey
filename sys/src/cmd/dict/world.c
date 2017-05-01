@@ -57,7 +57,7 @@ static Rune chartab[] = {
 	L'ɪ',	L'ð',	L'ʒ',	L'ã',	L'œ',	L'ũ',	L'ʌ',	L'ɥ',
 /*c0*/	L'ʀ',	L'ë',	L'l',	L'ʌ',	L'õ',	L'ñ',	L'Œ',	NONE,
 	NONE,	L'S',	L's',	L'Z',	L'z',	NONE,	NONE,	NONE,
-/*d0*/	L'ß',	NONE,	NONE,	L'ā',	L'ī',	L'ū',	L'ē',	L'ō',	
+/*d0*/	L'ß',	NONE,	NONE,	L'ā',	L'ī',	L'ū',	L'ē',	L'ō',
 	NONE,	NONE,	NONE,	L' ',	NONE,	NONE,	NONE,	NONE,
 
 /*e0*/	L'α',	L'β',	L'γ',	L'π',	L'Σ',	L'σ',	L'µ',	L'τ',

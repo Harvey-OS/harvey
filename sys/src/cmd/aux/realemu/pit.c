@@ -321,7 +321,7 @@ wpit(Pit *pit, unsigned char addr, unsigned char data)
 		omode = (data >> 1) & 7;
 		amode = (data >> 4) & 3;
 		sc = (data >> 6) & 3;
-	
+
 		if(sc == Readback){
 			ch = nil;
 			for(;;){
@@ -358,7 +358,7 @@ wpit(Pit *pit, unsigned char addr, unsigned char data)
 			return;
 		}
 		ch->bcd = bcd;
-		
+
 		ch->amode = amode;
 		ch->omode = omode;
 

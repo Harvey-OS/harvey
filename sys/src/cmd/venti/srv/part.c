@@ -50,7 +50,7 @@ strtoullsuf(char *p, char **pp, int rad, uint64_t *u)
 	*u = v;
 	return 0;
 }
-	
+
 static int
 parsepart(char *name, char **file, uint64_t *lo, uint64_t *hi)
 {
@@ -186,7 +186,7 @@ rwpart(Part *part, int isread, uint64_t offset0, uint8_t *buf0,
 	uint8_t *buf;
 	uint64_t offset;
 
-	trace(TraceDisk, "%s %s %u at 0x%llx", 
+	trace(TraceDisk, "%s %s %u at 0x%llx",
 		isread ? "read" : "write", part->name, count0, offset0);
 	if(offset0 >= part->size || offset0+count0 > part->size){
 		seterr(EStrange, "out of bounds %s offset 0x%llux count %u to partition %s size 0x%llux",

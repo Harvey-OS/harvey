@@ -386,14 +386,14 @@ Breadtga(Biobuf *bp)
 		break;
 	default:
 		werrstr("ReadTGA: type=%d (%s) unsupported\n", h->datatype, datatype[h->datatype]);
-		goto Error;	
+		goto Error;
  	}
 
 	if(h->xorigin != 0)
 		reflect(ar);
 	if(h->yorigin == 0)
 		flip(ar);
-	
+
 	free(h->cmap);
 	free(h);
 	return array;

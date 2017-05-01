@@ -123,7 +123,7 @@ serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 	if(strstr(err, "detached") != nil)
 		return -1;
 	if(ser->recover < 3){
-		if(p != nil){	
+		if(p != nil){
 			if(ep != nil){
 				if(ep == p->epintr)
 					unstall(ser->dev, p->epintr, Ein);

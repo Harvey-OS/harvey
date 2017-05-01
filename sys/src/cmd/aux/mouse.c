@@ -28,7 +28,7 @@ char *speeds[] =
 	0,
 };
 
-int	button2; 
+int	button2;
 
 #define DEBUG if(debug)
 
@@ -210,7 +210,7 @@ C(int ctl, int data)
 	char **s;
 	int c;
 	char buf[256];
-	
+
 	sleep(100);
 	for(s = speeds; *s; s++){
 		DEBUG print("%s\n", *s);
@@ -352,16 +352,16 @@ main(int argc, char *argv[])
 			fprint(2, "%s: can't open %s - %r\n", argv0, buf);
 			exits("open data");
 		}
-	
+
 		notify(catch);
-	
+
 		type = MorW(ctl, data);
 		if(type == 0)
 			type = C(ctl, data);
 		if(type == 0){
 			/* with the default we can't assume anything */
 			baud = 0;
-	
+
 			/* try the default */
 			switch(def){
 			case 'C':
@@ -371,10 +371,10 @@ main(int argc, char *argv[])
 				setupeia(ctl, "b1200", "l7");
 				break;
 			}
-	
+
 			type = def;
 		}
-	
+
 		sprint(buf, "serial %s", p);
 		switch(type){
 		case 0:

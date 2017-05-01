@@ -22,7 +22,7 @@
  * a+ a+b ab+	open to read and write, positioned at eof, creating if non-existant.
  */
 FILE *fdopen(const int fd, const char *mode){
-	FILE *f;	
+	FILE *f;
 	qlock(&_stdiolk);
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++)
 		if(f->state==CLOSED)

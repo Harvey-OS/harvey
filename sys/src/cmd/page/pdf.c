@@ -9,7 +9,7 @@
 
 /*
  * pdf.c
- * 
+ *
  * pdf file support for page
  */
 
@@ -29,7 +29,7 @@ struct PDFInfo {
 static Image*	pdfdrawpage(Document *d, int page);
 static char*	pdfpagename(Document*, int);
 
-char *pdfprolog = 
+char *pdfprolog =
 #include "pdfprolog.c"
 	;
 
@@ -39,7 +39,7 @@ pdfbbox(GSInfo *gs)
 	char *p;
 	char *f[4];
 	Rectangle r;
-	
+
 	r = Rect(0,0,0,0);
 	waitgs(gs);
 	gscmd(gs, "/CropBox knownoget {} {[0 0 0 0]} ifelse PAGE==\n");

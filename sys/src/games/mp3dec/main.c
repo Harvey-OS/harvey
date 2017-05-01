@@ -43,7 +43,7 @@ input(void *data, struct mad_stream *stream)
 }
 
 /*
- * Dither 28-bit down to 16-bit.  From mpg321. 
+ * Dither 28-bit down to 16-bit.  From mpg321.
  * I'm skeptical, but it's supposed to make the
  * samples sound better than just truncation.
  */
@@ -77,15 +77,15 @@ audiodither(mad_fixed_t v, Dither *d)
 	v += d->error[0] - d->error[1] + d->error[2];
 	d->error[2] = d->error[1];
 	d->error[1] = d->error[0] / 2;
-	
+
 	/* bias */
 	out = v + Round;
-	
+
 	/* dither */
 	random = PRNG(d->random);
 	out += (random & LowMask) - (d->random & LowMask);
 	d->random = random;
-	
+
 	/* clip */
 	if(out > Max){
 		out = Max;
@@ -96,13 +96,13 @@ audiodither(mad_fixed_t v, Dither *d)
 		if(v < Min)
 			v = Min;
 	}
-	
+
 	/* quantize */
 	out &= ~LowMask;
-	
+
 	/* error feedback */
 	d->error[0] = v - out;
-	
+
 	/* scale */
 	return out >> ScaleBits;
 }
@@ -170,7 +170,7 @@ void
 play(int fd, char *nam)
 {
 	struct mad_decoder decoder;
-	
+
 	name = nam;
 	mad_decoder_init(&decoder, (void*)fd, input, nil, nil, output, error, nil);
 	mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
@@ -197,7 +197,7 @@ main(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	
+
 	if(outfile){
 		if((fd = create(outfile, OWRITE, 0666)) < 0)
 			sysfatal("create %s: %r", outfile);

@@ -903,7 +903,7 @@ static char *Tail[] = {
 	"			}",
 	"#endif",
 	"			/* T4 points to first non-escape, T5 to its parent, T0 to original list */",
-	"			if (T4 != T0)		 /* there was at least one escape */",	
+	"			if (T4 != T0)		 /* there was at least one escape */",
 	"			{	T3 = T5->nxt;		 /* start of non-escapes */",
 	"				T5->nxt = (Trans *) 0;	 /* separate */",
 	"				Tx = T0;		 /* start of the escapes */",

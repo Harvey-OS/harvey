@@ -139,7 +139,7 @@ Balloc(int k)
 	return rv;
 }
 
-static void	
+static void
 Bfree(Bigint *v)
 {
 	if (v) {
@@ -185,7 +185,7 @@ multadd(Bigint *b, int m, int a)	/* multiply by m and add a */
 	return b;
 }
 
-static int	
+static int
 hi0bits(register unsigned int x)
 {
 	register int	k = 0;
@@ -214,7 +214,7 @@ hi0bits(register unsigned int x)
 	return k;
 }
 
-static int	
+static int
 lo0bits(unsigned int *y)
 {
 	register int	k;
@@ -326,7 +326,7 @@ mult(Bigint *a, Bigint *b)
 			*xc = z2;
 		}
 	}
-	for (xc0 = c->x, xc = xc0 + wc; wc > 0 && !*--xc; --wc) 
+	for (xc0 = c->x, xc = xc0 + wc; wc > 0 && !*--xc; --wc)
 		;
 	c->wds = wc;
 	return c;
@@ -339,7 +339,7 @@ pow5mult(Bigint *b, int k)
 {
 	Bigint * b1, *p5, *p51;
 	int	i;
-	static int	p05[3] = { 
+	static int	p05[3] = {
 		5, 25, 125 	};
 
 	if ((i = (k & 3)) != 0)
@@ -404,7 +404,7 @@ lshift(Bigint *b, int k)
 		} while (x < xe);
 		if ((*x1 = z) != 0)
 			++n1;
-	} else 
+	} else
 		do
 			*x1++ = *x++;
 		while (x < xe);
@@ -413,7 +413,7 @@ lshift(Bigint *b, int k)
 	return b1;
 }
 
-static int	
+static int
 cmp(Bigint *a, Bigint *b)
 {
 	unsigned int * xa, *xa0, *xb, *xb0;
@@ -532,7 +532,7 @@ tens[] = {
 };
 
 static const double
-bigtens[] = { 
+bigtens[] = {
 	1e16, 1e32, 1e64, 1e128, 1e256 };
 
 #define Scale_Bit 0x10
@@ -542,7 +542,7 @@ bigtens[] = {
 
 #define NAN_WORD1 0
 
-static int	
+static int
 quorem(Bigint *b, Bigint *S)
 {
 	int	n;
@@ -613,8 +613,8 @@ rv_alloc(int i)
 	int	j, k, *r;
 
 	j = sizeof(unsigned int);
-	for (k = 0; 
-	    sizeof(Bigint) - sizeof(unsigned int) - sizeof(int) + j <= i; 
+	for (k = 0;
+	    sizeof(Bigint) - sizeof(unsigned int) - sizeof(int) + j <= i;
 	    j <<= 1)
 		k++;
 	r = (int * )Balloc(k);
@@ -966,7 +966,7 @@ bump_up:
 	mhi = mlo = 0;
 	if (leftright) {
 		if (mode < 2) {
-			i = 
+			i =
 			    1 + P - bbits;
 		} else {
 			j = ilim - 1;

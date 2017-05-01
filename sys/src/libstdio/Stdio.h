@@ -28,7 +28,7 @@
  *				(f)->wp>=(f)->rp || (f)->flags&LINEBUF && _IO_ctmp=='\n'\
  *					?_IO_putc(_IO_ctmp, f)\
  *					:*(f)->wp++=_IO_ctmp)
- *				
+ *
  */
 typedef struct{
 	int fd;		/* UNIX file pointer */

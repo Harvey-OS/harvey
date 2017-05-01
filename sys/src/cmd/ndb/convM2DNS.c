@@ -443,7 +443,7 @@ retry:
 		USHORT(rp->port);
 		/*
 		 * rfc2782 sez no name compression but to be
-		 * backward-compatible with rfc2052, we try to expand the name. 
+		 * backward-compatible with rfc2052, we try to expand the name.
 		 * if the length is under 64 bytes, either interpretation is
 		 * fine; if it's longer, we'll assume it's compressed,
 		 * as recommended by rfc3597.

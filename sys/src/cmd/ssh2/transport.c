@@ -78,7 +78,7 @@ add_block(Packet *p, void *data, int len)
 	add_packet(p, data, len);
 }
 
-void 
+void
 add_string(Packet *p, char *s)
 {
 	uint8_t *q;

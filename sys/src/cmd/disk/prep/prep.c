@@ -74,7 +74,7 @@ struct Auto
 /*
  * Order matters -- this is the layout order on disk.
  */
-Auto autox[] = 
+Auto autox[] =
 {
 	{	"9fat",		10*MB,	100*MB,	10,	},
 	{	"nvram",	512,	512,	1,	},
@@ -479,7 +479,7 @@ wrpart(Edit *edit)
 	memset(secbuf, 0, disk->secsize);
 	n = 0;
 	for(i=0; i<edit->npart; i++)
-		n += snprint(secbuf+n, disk->secsize-n, "part %s %lld %lld\n", 
+		n += snprint(secbuf+n, disk->secsize-n, "part %s %lld %lld\n",
 			edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
 
 	if(seek(disk->wfd, disk->secsize, 0) != disk->secsize){
@@ -513,7 +513,7 @@ checkfat(Disk *disk)
 	if(buf[0] != 0xEB || buf[1] != 0x3C || buf[2] != 0x90)
 		return;
 
-	fprint(2, 
+	fprint(2,
 		"there's a fat partition where the\n"
 		"plan9 partition table would go.\n"
 		"if you really want to overwrite it, zero\n"

@@ -20,10 +20,10 @@ syncarenaindex(Arena *arena, uint64_t a0)
 	ClumpInfo ci;
 	IAddr ia;
 	AState as;
-	
+
 	if(arena->diskstats.clumps == arena->memstats.clumps)
 		return 0;
-	
+
 	memset(&as, 0, sizeof as);
 	as.arena = arena;
 	as.stats = arena->diskstats;
@@ -77,10 +77,10 @@ syncindex(Index *ix)
 			continue;
 		}
 		flushdcache();
-		
+
 		if(arena->memstats.clumps == arena->diskstats.clumps)
 			continue;
-		
+
 		fprint(2, "%T %s: indexing %d clumps...\n",
 			arena->name,
 			arena->memstats.clumps - arena->diskstats.clumps);

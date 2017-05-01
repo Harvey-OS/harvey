@@ -355,9 +355,9 @@ getnumber(char *s)
 	if(count < 0 ||	(int)count != count)
 		fatal("too big");
 	return 1;
-}	
+}
 
-void		
+void
 fatal(char *s)
 {
 	char buf[ERRMAX];
@@ -380,7 +380,7 @@ usage(void)
  */
 static int
 isseekable(int fd)
-{	
+{
 	int64_t m;
 
 	m = seek(fd, 0, 1);

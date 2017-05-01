@@ -309,7 +309,7 @@ rwalk(Fid *f)
 	for(i = 0; i < thdr.nwname; i++){
 		rv = dowalk(f, thdr.wname[i]);
 		if(rv != nil){
-			if(nf != nil)	
+			if(nf != nil)
 				rclunk(nf);
 			break;
 		}

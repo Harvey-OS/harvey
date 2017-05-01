@@ -63,7 +63,7 @@ struct Fsstate
 		char *arg, buf[Maxrpc], *verb;
 		int iverb, narg, nbuf, nwant;
 	} rpc;
-	
+
 	/* persistent (cross-rpc) information */
 	char err[ERRMAX];
 	char keyinfo[3*Maxname];	/* key request */

@@ -93,7 +93,7 @@ vqinterrupt(Virtq *q);
 // If the device's vq IO map is entirely zero, service all existing queues in turn.
 // Otherwise only those queues whose bit is set.
 
-static void 
+static void
 vqintr(Ureg *x, void *arg)
 {
 	Vqctl *dev = arg;
@@ -188,7 +188,7 @@ getdescr(Virtq *q, int n, uint16_t *descr)
 // Place a given number of populated descriptors into the virtqueue. Descriptor indices are
 // provided in an array. Descriptors will be queued in the order of increasing array index.
 // The process issuing this call will be suspended until the I/O operation on the virtqueue
-// completes. It is the calling process responsibility to return the used descriptors 
+// completes. It is the calling process responsibility to return the used descriptors
 // to the queue.
 
 int
@@ -338,7 +338,7 @@ initvdevs(Vqctl **vcs)
 
 // Identity finction for device features.
 
-static uint32_t 
+static uint32_t
 acceptallfeat(uint32_t feat)
 {
 	return feat;
@@ -397,7 +397,7 @@ readvdevcfg(Vqctl *vc, void *va, int32_t n, int64_t offset)
 void
 virtiosetup()
 {
-	if(nvq != 0 || cvq != nil) 
+	if(nvq != 0 || cvq != nil)
 		return;						// avoid repeated calls
 	print("virtio: initializing\n");
 	nvq = initvdevs(nil);

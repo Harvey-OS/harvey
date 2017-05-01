@@ -45,7 +45,7 @@ static int __wait(unsigned bus, int timeout_us, int for_scl)
 
 	start = nsec();
 	end = start + timeout_us * 1000;
-	
+
 	do {
 		int old_sda = sda;
 		int old_scl = scl;

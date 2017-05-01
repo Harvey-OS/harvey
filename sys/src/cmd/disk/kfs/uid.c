@@ -112,12 +112,12 @@ read_user(void)
 				break;
 			}
 		while(((c=fname(name))==',' || c=='\n') && name[0]){
-work here		
+work here
 			if(c=='\n')
 				break;
 		}
 	}
-	
+
 skipline:
 	while(c != '\n')
 		fname(ustr);

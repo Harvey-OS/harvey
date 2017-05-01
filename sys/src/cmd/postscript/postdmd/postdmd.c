@@ -20,7 +20,7 @@
  * zero. The next 8 bytes set the x and y coordinates of the bitmap's origin and
  * corner (ie. the upper left and lower right corners). The compressed raster data
  * follows the header and consists of control bytes followed an appropriate number
- * of data bytes. Control bytes (ie. n) less than 127 means read the next 2*n bytes 
+ * of data bytes. Control bytes (ie. n) less than 127 means read the next 2*n bytes
  * of raster data directly from the input file, while if n is larger than 128 we
  * read two bytes from the input file and replicate the bytes n-128 times. After
  * each scan line is recovered it's exclusive-or'd with the preceeding line to
@@ -41,17 +41,17 @@
  * with a fast processor (eg. a PS-810).
  *
  * The encoding produced by the program (and decoded on the printer) looks like,
- * 
+ *
  * 	bytes patterns count
- * 
+ *
  * where bytes and count are decimal integers and patterns is a hex string. Bytes
  * is the number of bytes represented by the hex patterns and count is the number
  * of additional times the patterns should be repeated. For example,
- * 
+ *
  * 	2 FFFF 4
  * 	5 FFFFFFFFFF 1
  *     10 FFFFFFFFFFFFFFFFFFFF 0
- * 
+ *
  * all represent 10 consecutive bytes of ones. Scanlines are terminated by a 0 on
  * a line by itself.
  *
@@ -91,7 +91,7 @@
  *	    Makes sure the last page is printed. Only needed when we're printing
  *	    more than one page on each sheet of paper.
  *
- * Many default values, like the magnification and orientation, are defined in 
+ * Many default values, like the magnification and orientation, are defined in
  * the prologue, which is where they belong. If they're changed (by options), an
  * appropriate definition is made after the prologue is added to the output file.
  * The -P option passes arbitrary PostScript through to the output file. Among

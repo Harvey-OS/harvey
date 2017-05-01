@@ -63,7 +63,7 @@ build(Node *n)
 		l = al(res.type);
 		l->Store = res.Store;
 		*tail = l;
-		tail = &l->next;	
+		tail = &l->next;
 	}
 }
 

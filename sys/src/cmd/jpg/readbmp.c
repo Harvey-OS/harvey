@@ -194,7 +194,7 @@ load_4C(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 						p = &buf[ix + iy * width];
 						if((1 == (val & 3)) || (2 == (val & 3)))
 							skip = 1;
-						else 
+						else
 							skip = 0;
 
 						while(val--) {
@@ -282,7 +282,7 @@ load_8C(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 						p = &buf[ix + iy * width];
 						if(val & 1)
 							skip = 1;
-						else 
+						else
 							skip = 0;
 
 						while(val--) {
@@ -497,7 +497,7 @@ ReadBMP(Biobuf *b, int *width, int *height)
 		num_coltab = 3;
 
 	if(num_coltab) {
-		int i; 
+		int i;
 		Bseek(b, bmih.size + Filehdrsz, 0);
 
 		for(i = 0; i < num_coltab; i++) {

@@ -23,7 +23,7 @@ main(int argc, char *argv[])
 		m = plumbrecv(fd);
 		if (m == nil)
 			sysfatal("plumrecv: %r");
-		
+
 		plumbfree(m);
 	}
 }

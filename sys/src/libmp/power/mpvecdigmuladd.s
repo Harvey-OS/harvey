@@ -23,7 +23,7 @@
  *		lo = R9		- constrained by hardware
  *		oldhi = R10
  *		tmp = R11
- *		
+ *
  */
 TEXT	mpvecdigmuladd(SB),$0
 
@@ -33,7 +33,7 @@ TEXT	mpvecdigmuladd(SB),$0
 	SUB	$4, R3		/* pre decrement for MOVWU's */
 	SUB	$4, R6		/* pre decrement for MOVWU's */
 
-	MOVW	R0, R10	
+	MOVW	R0, R10
 	MOVW	R0, XER
 	MOVW	R4, CTR
 _muladdloop:

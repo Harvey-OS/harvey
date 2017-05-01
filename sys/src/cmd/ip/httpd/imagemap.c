@@ -17,13 +17,13 @@ typedef struct Point	Point;
 typedef struct OkPoint	OkPoint;
 typedef struct Strings	Strings;
 
-struct Point 
+struct Point
 {
 	int	x;
 	int	y;
 };
 
-struct OkPoint 
+struct OkPoint
 {
 	Point	p;
 	int	ok;

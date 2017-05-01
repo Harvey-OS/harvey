@@ -37,10 +37,10 @@ tokenise(char *s, char **start, char **end)
 			if(to != *start)		/* we have data */
 				break;
 			s += n;				/* null string - keep looking */
-			while(*s && SEP(*s))	
+			while(*s && SEP(*s))
 				s++;
 			to = *start = s;
-		} 
+		}
 		else if(r == '\''){
 			s += n;				/* skip leading quote */
 			while(*s){
@@ -55,7 +55,7 @@ tokenise(char *s, char **start, char **end)
 			}
 			if(!*s)				/* no trailing quote */
 				break;
-			s++;				/* skip trailing quote */ 
+			s++;				/* skip trailing quote */
 		}
 		else  {
 			while(n--)
@@ -140,7 +140,7 @@ slut(Slut *s, char *pat)
 		s++;
 	}
 	Bprint(&bout, "%s unrecognised\n", pat);
-	return -1;	
+	return -1;
 }
 
 static int32_t
@@ -160,7 +160,7 @@ cmdopen(SmbClient *c, int argc, char *argv[])
 		return -1;
 	}
 	sm = slut(sharemodeslut, argv[1]);
-	if (sm < 0) 
+	if (sm < 0)
 		return -1;
 	om = slut(openmodeslut, argv[2]);
 	if (om < 0)
