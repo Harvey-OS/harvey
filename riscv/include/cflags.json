@@ -14,7 +14,8 @@
 			"-Werror"
 		],
 		"Oflags": [
-			"-T","/$ARCH/include/prog.ld",
+			"-T",
+			"/$ARCH/include/prog.ld",
 			"--no-relax"
 		]
 	}

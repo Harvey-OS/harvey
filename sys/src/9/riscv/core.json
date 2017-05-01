@@ -10,13 +10,16 @@
 			"-g",
 			"-Wall",
 			"-Werror",
-			"-I", "/sys/src/9/riscv",
-			"-I", "/sys/src/9/port",
-			"-I", "/sys/src/libc/9syscall"
+			"-I",
+			"/sys/src/9/riscv",
+			"-I",
+			"/sys/src/9/port",
+			"-I",
+			"/sys/src/libc/9syscall"
 		],
 		"Libs": [
 			"/$ARCH/lib/klibc.a",
-                        "/$ARCH/lib/klibip.a",
+			"/$ARCH/lib/klibip.a",
 			"/$ARCH/lib/klibsec.a"
 		],
 		"Oflags": [
@@ -42,7 +45,7 @@
 			"arch.c",
 			"archriscv.c",
 			"asm.c",
-		        "acore.c",
+			"acore.c",
 			"backtrace.c",
 			"coreboot.c",
 			"ctype.c",
@@ -57,9 +60,9 @@
 			"_spl.S",
 			"syscall.c",
 			"systab.c",
-		        "tcore.c",
-		        "trap.c",
-		        "trapentry.S",
+			"tcore.c",
+			"trap.c",
+			"trapentry.S",
 			"uart8250mem.c",
 			"uart.c"
 		]

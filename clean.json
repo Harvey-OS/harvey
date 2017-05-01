@@ -1,10 +1,11 @@
 {
 	"amd64cpu": {
-		"Projects": ["/sys/src/9/amd64/clean.json"],
-	"Pre": [
-		"rm -f -rf $ARCH/lib/*.a $ARCH/bin/*",
-		"git checkout $ARCH/bin"
-	]
+		"Pre": [
+			"rm -f -rf $ARCH/lib/*.a $ARCH/bin/*",
+			"git checkout $ARCH/bin"
+		],
+		"Projects": [
+			"/sys/src/9/amd64/clean.json"
+		]
 	}
-	
 }

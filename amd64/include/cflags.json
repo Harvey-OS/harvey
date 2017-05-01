@@ -1,8 +1,5 @@
 {
 	"buildflags": {
-		"Include": [
-			"/$ARCH/include/$CC.json"
-		],
 		"Cflags": [
 			"-ffreestanding",
 			"-fno-builtin",
@@ -16,6 +13,9 @@
 			"-static",
 			"-Wall",
 			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/include/$CC.json"
 		]
 	}
 }

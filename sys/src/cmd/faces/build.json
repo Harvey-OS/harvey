@@ -4,10 +4,10 @@
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
+		"Program": "faces",
 		"Projects": [
 			"dblook.json"
 		],
-		"Program": "faces",
 		"SourceFiles": [
 			"main.c",
 			"facedb.c",
