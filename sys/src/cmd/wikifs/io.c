@@ -9,14 +9,14 @@
 
 /*
  * I/O for a Wiki document set.
- * 
+ *
  * The files are kept in one flat directory.
  * There are three files for each document:
  *	nnn	- current version of the document
  *	nnn.hist	- history (all old versions) of the document
  *		append-only
  *	L.nnn	- write lock file for the document
- * 
+ *
  * At the moment, since we don't have read/write locks
  * in the file system, we use the L.nnn file as a read lock too.
  * It's a hack but there aren't supposed to be many readers
@@ -32,7 +32,7 @@
  *	nnn Title Here
  * The lock file L.map must be held to add to the end, to
  * make sure that the numbers are allocated sequentially.
- * 
+ *
  * We assume that writes to the map file will fit in one message,
  * so that we don't have to read-lock the file.
  */
@@ -430,7 +430,7 @@ currentmap(int force)
 	map = nmap;
 	incref(map);
 	nmap = nil;
-	
+
 Return:
 	free(d);
 	if(nmap){
@@ -493,13 +493,13 @@ allocnum(char *title, int mustbenew)
 	}
 
 	/*
-	 * What we really need to do here is make sure the 
+	 * What we really need to do here is make sure the
 	 * map is up-to-date, then make sure the title isn't
 	 * taken, and then add it, all without dropping the locks.
 	 *
 	 * This turns out to be a mess when you start adding
 	 * all the necessary dolock flags, so instead we just
-	 * read through the file ourselves, and let our 
+	 * read through the file ourselves, and let our
 	 * map catch up on its own.
 	 */
 	Binit(&b, fd, OREAD);
@@ -620,7 +620,7 @@ Brdstring(Biobuf *b)
  * version (t is the version we started with) to avoid conflicting
  * writes.
  *
- * If there is a conflicting write, we still write the page to 
+ * If there is a conflicting write, we still write the page to
  * the history file, but mark it as a failed write.
  */
 int

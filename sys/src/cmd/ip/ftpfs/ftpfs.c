@@ -808,7 +808,7 @@ newtopsdir(char *name)
 		np->d->mode = DMDIR|0777;
 		np->d->length = 0;
 		np->d = reallocdir(np->d, 1);
-		
+
 		if(changedir(np) >= 0)
 			VALID(np);
 	}
@@ -826,5 +826,5 @@ fixsymbolic(Node *node)
 		node->d->qid.type = QTDIR;
 	} else
 		node->d->qid.type = QTFILE;
-	node->d->mode &= ~DMSYML; 
+	node->d->mode &= ~DMSYML;
 }

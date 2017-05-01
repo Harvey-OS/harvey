@@ -515,7 +515,7 @@ fsysSync(Fsys* fsys, int argc, char* argv[])
 {
 	char *usage = "usage: [fsys name] sync";
 	int n;
-	
+
 	ARGBEGIN{
 	default:
 		return cliError(usage);
@@ -1319,7 +1319,7 @@ fsckClri(Fsck *fsck, char *name, MetaBlock *mb, int i, Block *b)
 
 	mbDelete(mb, i);
 	mbPack(mb);
-	blockDirty(b);	
+	blockDirty(b);
 }
 
 static void
@@ -1334,12 +1334,12 @@ fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
 		consPrint("%#x is already closed\n", b->addr);
 		return;
 	}
-	if(epoch){	
+	if(epoch){
 		l.state |= BsClosed;
 		l.epochClose = epoch;
 	}else
 		l.state = BsFree;
-		
+
 	if(!blockSetLabel(b, &l, 0))
 		consPrint("%#x setlabel: %R\n", b->addr);
 }

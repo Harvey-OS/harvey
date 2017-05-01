@@ -50,7 +50,7 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x00] = ((mode->ht/4)>>3)-5;
 		vga->crt[0x01] = ((mode->x/4)>>3)-1;
 		vga->crt[0x02] = ((mode->shb/4)>>3)-1;
-	
+
 		x = (mode->ehb/4)>>3;
 		vga->crt[0x03] = 0x80|(x & 0x1F);
 		vga->crt[0x04] = (mode->shs/4)>>3;

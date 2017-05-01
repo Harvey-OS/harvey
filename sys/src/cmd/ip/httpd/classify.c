@@ -378,7 +378,7 @@ classify(char *ip, Ndbtuple *t)
 
 	isgov = iscountry = isbadc = 0;
 	isgoodc = 1;
-	
+
 	for(nt = t; nt != nil; nt = nt->entry){
 		if(strcmp(nt->attr, "country") == 0){
 			iscountry = 1;

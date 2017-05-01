@@ -77,7 +77,7 @@ gettoken(char *token)
 
 	for(;;){
 		if(curtext){
-			p = &curtext[strspn(curtext, " \t")];	
+			p = &curtext[strspn(curtext, " \t")];
 			if(*p && *p != '\n')
 				break;
 		}

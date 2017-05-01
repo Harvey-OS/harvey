@@ -256,7 +256,7 @@ threadmain(int argc, char *argv[])
 		configfile = "venti.conf";
 
 	/* remember free memory before initventi & loadbloom, for auto-sizing */
-	stfree = freemem(); 	 
+	stfree = freemem();
 	fprint(2, "conf...");
 	if(initventi(configfile, &config) < 0)
 		sysfatal("can't init server: %r");
@@ -314,7 +314,7 @@ threadmain(int argc, char *argv[])
 	/*
 	 * block cache: need a block for every arena and every process
 	 */
-	minbcmem = maxblocksize * 
+	minbcmem = maxblocksize *
 		(mainindex->narenas + mainindex->nsects*4 + 16);
 	if(bcmem < minbcmem)
 		bcmem = minbcmem;

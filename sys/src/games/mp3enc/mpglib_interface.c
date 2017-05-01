@@ -43,7 +43,7 @@ int lame_decode_init( void )
  *  0     ok, but need more data before outputing any samples
  *  n     number of samples output.  either 576 or 1152 depending on MP3 file.
  */
- 
+
 int lame_decode1_headers(
         unsigned char*   buffer,
         int              len,
@@ -64,7 +64,7 @@ int lame_decode1_headers(
     int                i;
 
     mp3data->header_parsed = 0;
-  
+
     ret = decodeMP3 ( &mp, buffer, len, (char*)p, sizeof(out),
                      &processed_bytes );
 
@@ -75,7 +75,7 @@ int lame_decode1_headers(
         mp3data->mode          = mp.fr.mode;
         mp3data->mode_ext      = mp.fr.mode_ext;
         mp3data->framesize     = smpls [mp.fr.lsf] [mp.fr.lay];
-	
+
         if (mp.fsizeold > 0)      /* works for free format and fixed, no overrun, temporal results are < 400.e6 */
             mp3data->bitrate   = 8 * (4 + mp.fsizeold) * mp3data->samplerate /
 	                         ( 1.e3 * mp3data->framesize ) + 0.5;
@@ -85,7 +85,7 @@ int lame_decode1_headers(
         if (mp.num_frames>0) {
 	  /* Xing VBR header found and num_frames was set */
 	  mp3data->totalframes = mp.num_frames;
-          mp3data->nsamp=mp3data->framesize * mp.num_frames;  
+          mp3data->nsamp=mp3data->framesize * mp.num_frames;
 	}
     }
 
@@ -94,7 +94,7 @@ int lame_decode1_headers(
         switch ( mp.fr.stereo ) {
 	case 1:
             processed_samples = processed_bytes >> 1;
-            for ( i = 0; i < processed_samples; i++ ) 
+            for ( i = 0; i < processed_samples; i++ )
 	        pcm_l [i] = *p++;
 	    break;
 	case 2:
@@ -108,21 +108,21 @@ int lame_decode1_headers(
             processed_samples = -1;
 	    assert (0);
 	    break;
-        }    
+        }
 	break;
-	
+
     case MP3_NEED_MORE:
         processed_samples = 0;
 	break;
-	
+
     default:
         assert (0);
-    case MP3_ERR: 
+    case MP3_ERR:
         processed_samples = -1;
 	break;
-	
+
     }
-  
+
     //  printf ( "ok, more, err:  %i %i %i\n", MP3_OK, MP3_NEED_MORE, MP3_ERR );
     //  printf ( "ret = %i out=%i\n", ret, totsize );
     return processed_samples;
@@ -134,17 +134,17 @@ int lame_decode1_headers(
  *  -1     error
  *   0     ok, but need more data before outputing any samples
  *   n     number of samples output.  Will be at most one frame of
- *         MPEG data.  
+ *         MPEG data.
  */
- 
-int lame_decode1( 
+
+int lame_decode1(
         unsigned char*  buffer,
 	int    len,
 	int16_t  pcm_l [],
 	int16_t  pcm_r [] )
 {
   mp3data_struct mp3data;
-  
+
   return lame_decode1_headers ( buffer, len, pcm_l, pcm_r, &mp3data );
 }
 
@@ -155,8 +155,8 @@ int lame_decode1(
  *   0     ok, but need more data before outputing any samples
  *   n     number of samples output.  a multiple of 576 or 1152 depending on MP3 file.
  */
- 
-int lame_decode_headers( 
+
+int lame_decode_headers(
         unsigned char*   buffer,
 	int              len,
 	int16_t            pcm_l [],
@@ -185,7 +185,7 @@ int lame_decode(
 	int16_t  pcm_r [] )
 {
     mp3data_struct  mp3data;
-    
+
     return lame_decode_headers ( buffer, len, pcm_l, pcm_r, &mp3data );
 }
 

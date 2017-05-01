@@ -38,7 +38,7 @@
 *
 ***********************************************************************/
 
-/* 
+/*
  * layer III enc->dec delay:  1056 (1057?)   (observed)
  * layer  II enc->dec delay:   480  (481?)   (observed)
  *
@@ -51,33 +51,33 @@
  * So total Encode+Decode delay = ENCDELAY + 528 + 1
  */
 
-/* 
- * ENCDELAY  The encoder delay.  
+/*
+ * ENCDELAY  The encoder delay.
  *
  * Minimum allowed is MDCTDELAY (see below)
- *  
+ *
  * The first 96 samples will be attenuated, so using a value less than 96
  * will result in corrupt data for the first 96-ENCDELAY samples.
  *
  * suggested: 576
  * set to 1160 to sync with FhG.
  */
- 
+
 #define ENCDELAY      576
 
-/* 
+/*
  * delay of the MDCT used in mdct.c
- * original ISO routines had a delay of 528!  
- * Takehiro's routines: 
+ * original ISO routines had a delay of 528!
+ * Takehiro's routines:
  */
 
-#define MDCTDELAY     48  
+#define MDCTDELAY     48
 #define FFTOFFSET     (224+MDCTDELAY)
 
 /*
- * Most decoders, including the one we use, have a delay of 528 samples.  
+ * Most decoders, including the one we use, have a delay of 528 samples.
  */
- 
+
 #define DECDELAY      528
 
 
@@ -110,7 +110,7 @@
 #define SHORT_TYPE    2
 #define STOP_TYPE     3
 
-/* 
+/*
  * Mode Extention:
  * When we are in stereo mode, there are 4 possible methods to store these
  * two channels. The stereo modes -m? are using a subset of them.
@@ -120,7 +120,7 @@
  *  -mf: MPG_MD_MS_LR
  *  -mi: all
  */
- 
+
 #define MPG_MD_LR_LR  0
 #define MPG_MD_LR_I   1
 #define MPG_MD_MS_LR  2
@@ -134,7 +134,7 @@ int  lame_encode_mp3_frame (
         lame_global_flags*  const gfp,
         sample_t*           inbuf_l,
         sample_t*           inbuf_r,
-        unsigned char*      mp3buf, 
+        unsigned char*      mp3buf,
 	int                 mp3buf_size );
 
 #endif /* LAME_ENCODER_H */

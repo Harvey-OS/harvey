@@ -122,15 +122,15 @@ cmdmap(Map *map)
 			textseg(expv, &fhdr);
 		map->seg[i].b = expv;
 	} else
-		error("Invalid base address"); 
+		error("Invalid base address");
 	if (expr(0))
 		map->seg[i].e = expv;
 	else
-		error("Invalid end address"); 
+		error("Invalid end address");
 	if (expr(0))
-		map->seg[i].f = expv; 
+		map->seg[i].f = expv;
 	else
-		error("Invalid file offset"); 
+		error("Invalid file offset");
 	if (rdc()=='?' && map == cormap) {
 		if (fcor)
 			close(fcor);

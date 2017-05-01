@@ -417,7 +417,7 @@ pcicfginit(void)
 	unlock(&pcicfginitlock);
 
 	// Bring the virtio devices live.
-	
+
 	virtiosetup();
 
 	//if(getconf("*pcihinv"))

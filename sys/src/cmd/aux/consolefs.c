@@ -510,9 +510,9 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly,
 	fs->ncons++;
 	c->name = strdup(name);
 	c->dev = strdup(dev);
-	if(strcmp(c->dev, "/dev/null") == 0) 
+	if(strcmp(c->dev, "/dev/null") == 0)
 		c->chat = 1;
-	else 
+	else
 		c->chat = 0;
 	c->fd = -1;
 	c->cfd = -1;
@@ -1128,7 +1128,7 @@ fswrite(Fs *fs, Request *r, Fid *f)
 			fskick(fs, f);
 			if(!f->used)
 				break;
-	
+
 			if(f->bufn + r->f.count > Bufsize){
 				r->f.count -= (f->bufn + r->f.count) % Bufsize;
 				eol = 1;

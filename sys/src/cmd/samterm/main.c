@@ -412,7 +412,7 @@ flushtyping(int clearesc)
 	ulong n;
 
 	if(clearesc)
-		typeesc = -1;	
+		typeesc = -1;
 	if(typestart == typeend) {
 		modified = 0;
 		return;

@@ -169,9 +169,9 @@ paqFile(char *name, Dir *dir)
 			goto Err;
 		}
 		tot += nn;
-		if(nn == 0) {	
+		if(nn == 0) {
 			if(n == 0)
-				break;	
+				break;
 			/* pad out last block */
 			memset(block+n, 0, blocksize-n);
 			nn = blocksize - n;
@@ -288,7 +288,7 @@ paqDir(char *name, Dir *dir)
 	free(block);
 	free(pointer);
 	return paqDirAlloc(dir, offset);
-Err:	
+Err:
 	free(nname);
 	free(dirs);
 	paqDirFree(pd);
@@ -304,7 +304,7 @@ paqDirAlloc(Dir *dir, uint32_t offset)
 	static uint32_t qid = 1;
 
 	pd = emallocz(sizeof(PaqDir));
-	
+
 	pd->name = strdup(dir->name);
 	pd->qid = qid++;
 	pd->mode = dir->mode & (DMDIR|DMAPPEND|0777);
@@ -371,7 +371,7 @@ writeBlock(uint8_t *b, int type)
 	offset = Boffset(out);
 
 	bh.magic = BlockMagic;
-	bh.size = blocksize;	
+	bh.size = blocksize;
 	bh.type = type;
 	bh.encoding = NoEnc;
 	bh.adler32 = adler32(0, b, blocksize);
@@ -384,13 +384,13 @@ writeBlock(uint8_t *b, int type)
 			bh.encoding = DeflateEnc;
 			bh.size = n;
 			ob = cb;
-		}	
+		}
 	}
 
 	putBlock(buf, &bh);
 	outWrite(buf, sizeof(buf));
 	outWrite(ob, bh.size);
-	
+
 	if(ob != b)
 		free(ob);
 	return offset;
@@ -458,7 +458,7 @@ putDir(uint8_t *p, PaqDir *d)
 	uint8_t *q;
 
 	puts(p, paqDirSize(d));
-	putl(p+2, d->qid);	
+	putl(p+2, d->qid);
 	putl(p+6, d->mode);
 	putl(p+10, d->mtime);
 	putl(p+14, d->length);

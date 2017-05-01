@@ -68,8 +68,8 @@ adjust_ATH( lame_global_flags* const  gfp,
     if (gfc->ATH->use_adjust) {
         FLOAT8 max_val = 0;
 
-	for ( gr = 0; gr < gfc->mode_gr; ++gr ) 
-	    for ( channel = 0; channel < gfc->channels_out; ++channel ) 
+	for ( gr = 0; gr < gfc->mode_gr; ++gr )
+	    for ( channel = 0; channel < gfc->channels_out; ++channel )
 	        max_val = Max( max_val, tot_ener[gr][channel] );
 	/* scale to 0..1, and then rescale to 0..32767 */
 	max_val *= 32767/1e13;
@@ -83,7 +83,7 @@ adjust_ATH( lame_global_flags* const  gfp,
              *         :
              *  32640  ->  ~0.01 dB
              */
-            FLOAT8 
+            FLOAT8
             x = Max (640, 320*(int)(max_val/320));
             x = x/32768;
             gfc->ATH->adjust *= gfc->ATH->decay;
@@ -98,7 +98,7 @@ adjust_ATH( lame_global_flags* const  gfp,
             else if (0.3 < max_val / 32768) {       /* value above 30 % */
                     gfc->ATH->adjust *= 0.955;      /* reduce by ~0.2 dB */
                     if (gfc->ATH->adjust < 0.3)     /* but ~5 dB in maximum */
-                        gfc->ATH->adjust = 0.3;            
+                        gfc->ATH->adjust = 0.3;
             }
             else {                                  /* value below 30 % */
                     gfc->ATH->adjust *= 0.93;       /* reduce by ~0.3 dB */
@@ -173,7 +173,7 @@ FFT's                    <---------1024---------->
     encoder acts on inbuf[ch][0], but output is delayed by MDCTDELAY
     so the MDCT coefficints are from inbuf[ch][-MDCTDELAY]
 
-    psy-model FFT has a 1 granule delay, so we feed it data for the 
+    psy-model FFT has a 1 granule delay, so we feed it data for the
     next granule.
     FFT is centered over granule:  224+576+224
     So FFT starts at:   576-224-MDCTDELAY
@@ -209,7 +209,7 @@ int  lame_encode_mp3_frame (				// Output
   const sample_t *inbuf[2];
   lame_internal_flags *gfc=gfp->internal_flags;
 
-  FLOAT8 tot_ener[2][4];   
+  FLOAT8 tot_ener[2][4];
   FLOAT8 ms_ener_ratio[2]={.5,.5};
   chgrdata pe,pe_MS;
   chgrdata *pe_use;
@@ -233,8 +233,8 @@ int  lame_encode_mp3_frame (				// Output
 
   if (gfc->lame_encode_frame_init==0 )  {
     gfc->lame_encode_frame_init=1;
-    
-    /* padding method as described in 
+
+    /* padding method as described in
      * "MPEG-Layer3 / Bitstream Syntax and Decoding"
      * by Martin Sieler, Ralph Sperschneider
      *
@@ -242,10 +242,10 @@ int  lame_encode_mp3_frame (				// Output
      *
      * Robert.Hegemann@gmx.de 2000-06-22
      */
-        
+
     gfc->frac_SpF = ((gfp->version+1)*72000L*gfp->brate) % gfp->out_samplerate;
     gfc->slot_lag  = gfc->frac_SpF;
-    
+
     /* check FFT will not use a negative starting offset */
 #if 576 < FFTOFFSET
 # error FFTOFFSET greater than 576: FFT uses a negative offset
@@ -258,18 +258,18 @@ int  lame_encode_mp3_frame (				// Output
     assert(gfc->mf_size>=(286+576*(1+gfc->mode_gr)));
 
     /* prime the MDCT/polyphase filterbank with a short block */
-    { 
+    {
       int i,j;
       sample_t primebuff0[286+1152+576];
       sample_t primebuff1[286+1152+576];
       for (i=0, j=0; i<286+576*(1+gfc->mode_gr); ++i) {
 	if (i<576*gfc->mode_gr) {
 	  primebuff0[i]=0;
-	  if (gfc->channels_out==2) 
+	  if (gfc->channels_out==2)
 	    primebuff1[i]=0;
 	}else{
 	  primebuff0[i]=inbuf[0][j];
-	  if (gfc->channels_out==2) 
+	  if (gfc->channels_out==2)
 	    primebuff1[i]=inbuf[1][j];
 	  ++j;
 	}
@@ -282,9 +282,9 @@ int  lame_encode_mp3_frame (				// Output
       }
       mdct_sub48(gfc, primebuff0, primebuff1, xr);
     }
-    
+
     iteration_init(gfp);
-    
+
     /*  prepare for ATH auto adjustment:
      *  we want to decrease the ATH by 12 dB per second
      */ {
@@ -314,7 +314,7 @@ int  lame_encode_mp3_frame (				// Output
 	/* if the user specified --nores, dont very gfc->padding either */
 	/* tiny changes in frac_SpF rounding will cause file differences */
       }else{
-        /* padding method as described in 
+        /* padding method as described in
          * "MPEG-Layer3 / Bitstream Syntax and Decoding"
          * by Martin Sieler, Ralph Sperschneider
          *
@@ -351,12 +351,12 @@ int  lame_encode_mp3_frame (				// Output
 	bufp[ch] = &inbuf[ch][576 + gr*576-FFTOFFSET];
 
       if (gfc->nsPsy.use) {
-	ret=L3psycho_anal_ns( gfp, bufp, gr, 
+	ret=L3psycho_anal_ns( gfp, bufp, gr,
 			      &gfc->ms_ratio[gr],&ms_ratio_next,
 			      masking_LR, masking_MS,
 			      pe[gr],pe_MS[gr],tot_ener[gr],blocktype);
       } else {
-	ret=L3psycho_anal( gfp, bufp, gr, 
+	ret=L3psycho_anal( gfp, bufp, gr,
 			   &gfc->ms_ratio[gr],&ms_ratio_next,
 			   masking_LR, masking_MS,
 			   pe[gr],pe_MS[gr],tot_ener[gr],blocktype);
@@ -412,7 +412,7 @@ int  lame_encode_mp3_frame (				// Output
       }
     }
   }
-  
+
 
   /* use m/s gfc->channels_out? */
   if (check_ms_stereo) {
@@ -422,21 +422,21 @@ int  lame_encode_mp3_frame (				// Output
       (gfc->l3_side.gr[gr0].ch[0].tt.block_type==gfc->l3_side.gr[gr0].ch[1].tt.block_type) &&
       (gfc->l3_side.gr[gr1].ch[0].tt.block_type==gfc->l3_side.gr[gr1].ch[1].tt.block_type);
   }
-  
+
   /* Here will be selected MS or LR coding of the 2 stereo channels */
 
   assert (  gfc->mode_ext == MPG_MD_LR_LR );
   gfc->mode_ext = MPG_MD_LR_LR;
-  
+
   if (gfp->force_ms) {
     gfc->mode_ext = MPG_MD_MS_LR;
   } else if (check_ms_stereo) {
       /* ms_ratio = is scaled, for historical reasons, to look like
-	 a ratio of side_channel / total.  
+	 a ratio of side_channel / total.
          0 = signal is 100% mono
          .5 = L & R uncorrelated
       */
-      
+
       /* [0] and [1] are the results for the two granules in MPEG-1,
        * in MPEG-2 it's only a faked averaging of the same value
        * _prev is the value of the last granule of the previous frame
@@ -456,7 +456,7 @@ int  lame_encode_mp3_frame (				// Output
 	  ms_ratio_ave1 = 0.25 * ( gfc->ms_ratio[0] + gfc->ms_ratio[1] + ms_ratio_prev + ms_ratio_next );
 	  ms_ratio_ave2 = 0.50 * ( gfc->ms_ratio[0] + gfc->ms_ratio[1] );
       }
-      
+
       if (gfp->mode_automs) {
 	  if ( gfp->compression_ratio < 11.025 ) {
 	      /* 11.025 => 1, 6.3 => 0 */
@@ -466,13 +466,13 @@ int  lame_encode_mp3_frame (				// Output
 	      threshold2   *= thr;
 	  }
       }
-      
+
       if ((ms_ratio_ave1 < threshold1  &&  ms_ratio_ave2 < threshold2) || gfc->nsPsy.use) {
 	  int  sum_pe_MS = pe_MS[0][0] + pe_MS[0][1] + pe_MS[1][0] + pe_MS[1][1];
 	  int  sum_pe_LR = pe   [0][0] + pe   [0][1] + pe   [1][0] + pe   [1][1];
-	  
+
 	  /* based on PE: M/S coding would not use much more bits than L/R coding */
-	  
+
 	  if (sum_pe_MS <= 1.07 * sum_pe_LR && !gfc->nsPsy.use) gfc->mode_ext = MPG_MD_MS_LR;
 	  if (sum_pe_MS <= 1.00 * sum_pe_LR &&  gfc->nsPsy.use) gfc->mode_ext = MPG_MD_MS_LR;
       }
@@ -488,7 +488,7 @@ int  lame_encode_mp3_frame (				// Output
 	gfc->pinfo->blocktype[gr][ch]=
 	  gfc->l3_side.gr[gr].ch[ch].tt.block_type;
 	memcpy(gfc->pinfo->xr[gr][ch],xr[gr][ch],sizeof(xr[gr][ch]));
-	/* in psymodel, LR and MS data was stored in pinfo.  
+	/* in psymodel, LR and MS data was stored in pinfo.
 	   switch to MS data: */
 	if (gfc->mode_ext==MPG_MD_MS_LR) {
 	  gfc->pinfo->pe[gr][ch]=gfc->pinfo->pe[gr][ch+2];
@@ -546,7 +546,7 @@ int  lame_encode_mp3_frame (				// Output
     }
   }
 
-  switch (gfp->VBR){ 
+  switch (gfp->VBR){
   default:
   case vbr_off:
     iteration_loop( gfp,*pe_use,ms_ener_ratio, xr, *masking, l3_enc, scalefac);
@@ -586,7 +586,7 @@ int  lame_encode_mp3_frame (				// Output
     }
     set_frame_pinfo (gfp, xr, *masking, l3_enc, scalefac);
   }
-  
+
   updateStats( gfc );
 
   return mp3count;

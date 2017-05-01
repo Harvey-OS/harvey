@@ -264,7 +264,7 @@ nbsslisten(NbName to, NbName from,int (*accept)(void *magic, NbSession *s, NBSSW
 
 void
 nbssfree(NbSession *s)
-{	
+{
 	deletesession((Session *)s);
 }
 

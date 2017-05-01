@@ -20,7 +20,7 @@
  *		lo = R9		- constrained by hardware
  *		oldhi = R10
  *		tmp = R11
- *		
+ *
  */
 TEXT	mpvecdigmuladd(SB),$0
 

@@ -821,7 +821,7 @@ rrattach1(RR *new, int auth)
 			if(rp->negative != new->negative) {
 				/* rp == *l before; *l == rp->next after */
 				rrdelhead(l);
-				continue;	
+				continue;
 			}
 			/* all things equal, pick the newer one */
 			else if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1){

@@ -132,16 +132,16 @@
                  AH_Angle  angle2 )
   {
     AH_Angle  delta;
-    
+
 
     delta = ( angle2 - angle1 );
     if ( delta < 0 )
       delta += AH_2PI;
-    
+
     if ( delta > AH_PI )
       delta -= AH_2PI;
-    
+
     return delta;
-  }                 
+  }
 
 /* END */

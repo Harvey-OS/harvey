@@ -238,7 +238,7 @@ rpcstartlog(Attr *attr, Fsstate *fss, int ret)
 		return;
 	snprint(pre, sizeof pre, "%d: start %A yields phase %s", fss->seqnum,
 		attr, phasename(fss, fss->phase, tmp));
-	logret(pre, fss, ret);		
+	logret(pre, fss, ret);
 }
 
 int seqnum;
@@ -279,7 +279,7 @@ rpcread(Req *r)
 			_freeattr(fss->attr);
 			fss->attr = nil;
 			fss->phase = Notstarted;
-		}	
+		}
 		attr = _parseattr(fss->rpc.arg);
 		if((p = _strfindattr(attr, "proto")) == nil){
 			retstring(r, fss, "error did not specify proto");

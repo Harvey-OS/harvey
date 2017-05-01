@@ -23,19 +23,19 @@ putline(int i, int nl)
 	char	*ss, *size, *fn, *rct;
 
 	cmidx = watchout = vspf = exvspen = 0;
-	if (i == 0) 
+	if (i == 0)
 		once = 0;
 	if (i == 0 && ( allflg || boxflg || dboxflg))
 		fullwide(0,   dboxflg ? '=' : '-');
 	if (instead[nl] == 0 && fullbot[nl] == 0)
 		for (c = 0; c < ncol; c++) {
 			ss = table[nl][c].col;
-			if (ss == 0) 
+			if (ss == 0)
 				continue;
 			if (vspen(ss)) {
 				for (ip = nl; ip < nlin; ip = next(ip)){
 					ss = table[ip][c].col;
-					if (!vspen(ss)) 
+					if (!vspen(ss))
 						break;
 				}
 				s = (int)(uintptr)ss;
@@ -43,7 +43,7 @@ putline(int i, int nl)
 					Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
 				continue;
 			}
-			if (point(ss)) 
+			if (point(ss))
 				continue;
 			s = (int)(uintptr)ss;
 			Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
@@ -66,10 +66,10 @@ putline(int i, int nl)
 	}
 	for (c = 0; c < ncol; c++) {
 		if (instead[nl] == 0 && fullbot[nl] == 0)
-			if (vspen(table[nl][c].col)) 
+			if (vspen(table[nl][c].col))
 				vspf = 1;
 		if (lf >= 0)
-			if (vspen(table[lf][c].col)) 
+			if (vspen(table[lf][c].col))
 				vspf = 1;
 	}
 	if (vspf) {
@@ -80,11 +80,11 @@ putline(int i, int nl)
 	chfont = 0;
 	for (c = 0; c < ncol; c++) {
 		ss = table[nl][c].col;
-		if (ss == 0) 
+		if (ss == 0)
 			continue;
 		if(font[c][stynum[nl]])
 			chfont = 1;
-		if (point(ss) ) 
+		if (point(ss) )
 			continue;
 		s = (int)(uintptr)ss;
 		lf = prev(nl);
@@ -118,7 +118,7 @@ putline(int i, int nl)
 			drawvert(lf, i, c, lwid);
 			vct += 2;
 		}
-		if (rightl && c + 1 == ncol) 
+		if (rightl && c + 1 == ncol)
 			continue;
 		vforml = i;
 		for (lf = prev(nl); lf >= 0 && vspen(table[lf][c].col); lf = prev(lf))
@@ -126,9 +126,9 @@ putline(int i, int nl)
 		form = ctype(vforml, c);
 		if (form != 's') {
 			rct = reg(c, CLEFT);
-			if (form == 'a') 
+			if (form == 'a')
 				rct = reg(c, CMID);
-			if (form == 'n' && table[nl][c].rcol && lused[c] == 0) 
+			if (form == 'n' && table[nl][c].rcol && lused[c] == 0)
 				rct = reg(c, CMID);
 			Bprint(&tabout, "\\h'|\\n(%2su'", rct);
 		}
@@ -163,10 +163,10 @@ putline(int i, int nl)
 							}
 						}
 					Bprint(&tabout, "%c%c", F1, F2);
-					if (uphalf) 
+					if (uphalf)
 						Bprint(&tabout, "\\u");
 					puttext(ss, fn, size);
-					if (uphalf) 
+					if (uphalf)
 						Bprint(&tabout, "\\d");
 					Bprint(&tabout, "%c", F1);
 				}
@@ -175,13 +175,13 @@ putline(int i, int nl)
 				break;
 			}
 		case 'c':
-			form = 3; 
+			form = 3;
 			break;
 		case 'r':
-			form = 2; 
+			form = 2;
 			break;
 		case 'l':
-			form = 1; 
+			form = 1;
 			break;
 		case '-':
 		case '=':
@@ -223,10 +223,10 @@ putline(int i, int nl)
 				vspf = 1;
 			else
 			 {
-				if (uphalf) 
+				if (uphalf)
 					Bprint(&tabout, "\\u");
 				puttext(ss, fn, size);
-				if (uphalf) 
+				if (uphalf)
 					Bprint(&tabout, "\\d");
 			}
 			if (form != 2)
@@ -236,8 +236,8 @@ putline(int i, int nl)
 		ip = prev(nl);
 		if (ip >= 0)
 			if (vspen(table[ip][c].col)) {
-				exvspen = (c + 1 < ncol) && vspen(table[ip][c+1].col) && 
-				    (topat[c] == topat[c+1]) && 
+				exvspen = (c + 1 < ncol) && vspen(table[ip][c+1].col) &&
+				    (topat[c] == topat[c+1]) &&
 				    (cmidx == (flags[c+1] [stynum[nl]] & (CTOP | CDOWN) == 0))
 				     && (left(i, c + 1, &lwid) < 0);
 				if (exvspen == 0) {
@@ -259,7 +259,7 @@ putline(int i, int nl)
 		}
 	}
 	Bprint(&tabout, "\n");
-	if (allh(i) && !pr1403) 
+	if (allh(i) && !pr1403)
 		Bprint(&tabout, ".vs \\n(%du\n", SVS);
 	if (watchout)
 		funnies(i, nl);
@@ -281,9 +281,9 @@ puttext(char *s, char *fn, char *size)
 		putfont(fn);
 		putsize(size);
 		Bprint(&tabout, "%s", s);
-		if (*fn > 0) 
+		if (*fn > 0)
 			Bprint(&tabout, "\\f\\n(%2d", S1);
-		if (size != 0) 
+		if (size != 0)
 			putsize("0");
 	}
 }
@@ -300,9 +300,9 @@ funnies(int stl, int lin)
 	Bprint(&tabout, ".nr %d \\n(##\n", S1);		 /* bottom position */
 	for (c = 0; c < ncol; c++) {
 		ss = table[lin][c].col;
-		if (point(ss)) 
+		if (point(ss))
 			continue;
-		if (ss == 0) 
+		if (ss == 0)
 			continue;
 		s = (int)(uintptr)ss;
 		Bprint(&tabout, ".sp |\\n(##u-1v\n");
@@ -344,7 +344,7 @@ funnies(int stl, int lin)
 		}
 		Bprint(&tabout, ".%c+\n", s);
 		Bprint(&tabout, ".in -\\n(%du\n", SIND);
-		if (*fn > 0) 
+		if (*fn > 0)
 			putfont("P");
 		Bprint(&tabout, ".mk %d\n", S2);
 		Bprint(&tabout, ".if \\n(%d>\\n(%d .nr %d \\n(%d\n", S2, S1, S1, S2);

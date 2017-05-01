@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 		break;
 	case 'n':
 		notkbd = 1;
-		break; 
+		break;
 	case 'r':
 		returns = 0;
 		break;
@@ -469,7 +469,7 @@ system(int fd, char *cmd)
 	}
 	for(p = waitpid(); p >= 0; p = waitpid()){
 		if(p == pid)
-			return msg.msg;	
+			return msg.msg;
 	}
 	return "lost child";
 }

@@ -43,7 +43,7 @@ struct Event {
 struct Task {
 	int	pid;
 	char	*name;
-	int	nevents;	
+	int	nevents;
 	Event	*events;
 	int64_t	tstart;
 	int64_t	total;
@@ -63,7 +63,7 @@ enum {
 int64_t	now, prevts;
 
 int	newwin;
-int	Width = 1000;		
+int	Width = 1000;
 int	Height = 100;		// Per task
 int	topmargin = 8;
 int	bottommargin = 4;
@@ -163,7 +163,7 @@ threadmain(int argc, char **argv)
 
 	fname[sizeof fname - 1] = 0;
 	for(i = 0; i < argc; i++){
-		snprint(fname, sizeof fname - 2, "/proc/%s/ctl", 
+		snprint(fname, sizeof fname - 2, "/proc/%s/ctl",
 					argv[i]);
 		if((fd = open(fname, OWRITE)) < 0){
 			fprint(2, "%s: cannot open %s: %r\n",
@@ -241,7 +241,7 @@ redraw(int scaleno)
 	ppp = period / Width;	// period per pixel.
 
 	/* Round `now' to a nice number */
-	newestts = now - (now % scales[scaleno].bigtics) + 
+	newestts = now - (now % scales[scaleno].bigtics) +
 			(scales[scaleno].littletics>>1);
 
 	oldestts = newestts - period;
@@ -304,7 +304,7 @@ redraw(int scaleno)
 		for (i = 0; i < t->nevents-1; i++)
 			if (prevts < t->events[i + 1].Traceevent.time)
 				break;
-			
+
 		if (i > 0) {
 			memmove(t->events, t->events + i, (t->nevents - i) * sizeof(Event));
 			t->nevents -= i;
@@ -318,32 +318,32 @@ redraw(int scaleno)
 			case SAdmit:
 				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
 					sx = time2x(e->Traceevent.time);
-					line(screen, addpt(p, Pt(sx, topmargin)), 
-						addpt(p, Pt(sx, Height - bottommargin)), 
+					line(screen, addpt(p, Pt(sx, topmargin)),
+						addpt(p, Pt(sx, Height - bottommargin)),
 						Endarrow, Endsquare, 1, green, ZP);
 				}
 				break;
 			case SExpel:
 				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
 					sx = time2x(e->Traceevent.time);
-					line(screen, addpt(p, Pt(sx, topmargin)), 
-						addpt(p, Pt(sx, Height - bottommargin)), 
+					line(screen, addpt(p, Pt(sx, topmargin)),
+						addpt(p, Pt(sx, Height - bottommargin)),
 						Endsquare, Endarrow, 1, red, ZP);
 				}
 				break;
 			case SRelease:
 				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
 					sx = time2x(e->Traceevent.time);
-					line(screen, addpt(p, Pt(sx, topmargin)), 
-						addpt(p, Pt(sx, Height - bottommargin)), 
+					line(screen, addpt(p, Pt(sx, topmargin)),
+						addpt(p, Pt(sx, Height - bottommargin)),
 						Endarrow, Endsquare, 1, fg, ZP);
 				}
 				break;
 			case SDeadline:
 				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
 					sx = time2x(e->Traceevent.time);
-					line(screen, addpt(p, Pt(sx, topmargin)), 
-						addpt(p, Pt(sx, Height - bottommargin)), 
+					line(screen, addpt(p, Pt(sx, topmargin)),
+						addpt(p, Pt(sx, Height - bottommargin)),
 						Endsquare, Endarrow, 1, fg, ZP);
 				}
 				break;
@@ -352,17 +352,17 @@ redraw(int scaleno)
 			case SUser:
 				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
 					sx = time2x(e->Traceevent.time);
-					line(screen, addpt(p, Pt(sx, topmargin)), 
-						addpt(p, Pt(sx, Height - bottommargin)), 
-						Endsquare, Endarrow, 0, 
+					line(screen, addpt(p, Pt(sx, topmargin)),
+						addpt(p, Pt(sx, Height - bottommargin)),
+						Endsquare, Endarrow, 0,
 						(e->Traceevent.etype == SYield)? green: blue, ZP);
 				}
 				break;
 			case SSlice:
 				if (e->Traceevent.time > prevts && e->Traceevent.time <= newestts) {
 					sx = time2x(e->Traceevent.time);
-					line(screen, addpt(p, Pt(sx, topmargin)), 
-						addpt(p, Pt(sx, Height - bottommargin)), 
+					line(screen, addpt(p, Pt(sx, topmargin)),
+						addpt(p, Pt(sx, Height - bottommargin)),
 						Endsquare, Endarrow, 0, red, ZP);
 				}
 				break;
@@ -388,18 +388,18 @@ redraw(int scaleno)
 					case SInts:
 						if (_e->Traceevent.time > prevts && _e->Traceevent.time <= newestts){
 							sx = time2x(_e->Traceevent.time);
-							line(screen, addpt(p, Pt(sx, topmargin)), 
-												addpt(p, Pt(sx, Height / 2 - bottommargin)), 	
-												Endsquare, Endsquare, 0, 
+							line(screen, addpt(p, Pt(sx, topmargin)),
+												addpt(p, Pt(sx, Height / 2 - bottommargin)),
+												Endsquare, Endsquare, 0,
 												green, ZP);
 						}
 						break;
 					case SInte:
 						if (_e->Traceevent.time > prevts && _e->Traceevent.time <= newestts) {
 							sx = time2x(_e->Traceevent.time);
-							line(screen, addpt(p, Pt(sx, Height / 2 - bottommargin)), 
-												addpt(p, Pt(sx, Height - bottommargin)), 
-												Endsquare, Endsquare, 0, 
+							line(screen, addpt(p, Pt(sx, Height / 2 - bottommargin)),
+												addpt(p, Pt(sx, Height - bottommargin)),
+												Endsquare, Endsquare, 0,
 												blue, ZP);
 						}
 						break;
@@ -449,7 +449,7 @@ redraw(int scaleno)
 	ss = 0;
 	while(x < Width){
 		snprint(buf, sizeof(buf), "%t", ss);
-		string(screen, addpt(p, Pt(x - stringwidth(tinyfont, buf)/2, - tinyfont->height - 1)), 
+		string(screen, addpt(p, Pt(x - stringwidth(tinyfont, buf)/2, - tinyfont->height - 1)),
 			fg, ZP, tinyfont, buf);
 		ts += scales[scaleno].bigtics;
 		ss += scales[scaleno].bigtics;
@@ -457,9 +457,9 @@ redraw(int scaleno)
 	}
 
 	snprint(buf, sizeof(buf), "%t", now);
-	string(screen, Pt(screen->r.max.x - stringwidth(mediumfont, buf), screen->r.min.y), 
+	string(screen, Pt(screen->r.max.x - stringwidth(mediumfont, buf), screen->r.min.y),
 		fg, ZP, mediumfont, buf);
-	
+
 	flushimage(display, 1);
 	prevts = newestts;
 }
@@ -530,7 +530,7 @@ doevent(Task *t, Traceevent *ep)
 	case SReady:
 	case SSlice:
 		for(i = n-1; i >= 0; i--)
-			if (t->events[i].Traceevent.etype == SRun || 
+			if (t->events[i].Traceevent.etype == SRun ||
 				t->events[i].Traceevent.etype == SEdf)
 				break;
 		if(i < 0 || t->events[i].etime != 0)
@@ -582,24 +582,24 @@ drawtrace(void)
 		if((wsys = getenv("wsys")) == nil)
 			sysfatal("%s: Cannot find windowing system: %r",
 						argv0);
-	
+
 		if((wfd = open(wsys, ORDWR)) < 0)
 			sysfatal("%s: Cannot open windowing system: %r",
 						argv0);
-	
+
 		snprint(line, sizeof(line), "new -pid %d -dx %d -dy %d",
 				getpid(), Width + 20, Height + 5);
 		line[sizeof(line) - 1] = '\0';
 		rfork(RFNAMEG);
-	
-		if(mount(wfd, -1, "/mnt/wsys", MREPL, line, 'M') < 0) 
+
+		if(mount(wfd, -1, "/mnt/wsys", MREPL, line, 'M') < 0)
 			sysfatal("%s: Cannot mount %s under /mnt/wsys: %r",
 						argv0, line);
-	
-		if(bind("/mnt/wsys", "/dev", MBEFORE) < 0) 
+
+		if(bind("/mnt/wsys", "/dev", MBEFORE) < 0)
 			sysfatal("%s: Cannot bind /mnt/wsys in /dev: %r",
 						argv0);
-	
+
 	}
 	if((wctlfd = open("/dev/wctl", OWRITE)) < 0)
 		sysfatal("%s: Cannot open /dev/wctl: %r", argv0);
@@ -636,17 +636,17 @@ drawtrace(void)
 			if(getwindow(display, Refnone) < 0)
 				sysfatal("drawrt: Cannot re-attach window");
 			if(newwin){
-				if(Dx(screen->r) != Width || 
+				if(Dx(screen->r) != Width ||
 					Dy(screen->r) != (ntasks * Height)){
 					fprint(2, "resize: x: have %d, need %d; y: have %d, need %d\n",
 							Dx(screen->r), Width + 8, Dy(screen->r), (ntasks * Height) + 8);
-					fprint(wctlfd, "resize -dx %d -dy %d\n", 
+					fprint(wctlfd, "resize -dx %d -dy %d\n",
 							Width + 8, (ntasks * Height) + 8);
 				}
 			}
 			else{
 				Width = Dx(screen->r);
-				Height = ntasks? Dy(screen->r)/ntasks: 
+				Height = ntasks? Dy(screen->r)/ntasks:
 							Dy(screen->r);
 			}
 			break;
@@ -664,7 +664,7 @@ drawtrace(void)
 					tasks[i].runs = 0;
 					memset(tasks[i].tevents, 0,
 					       Nevent*sizeof(uint32_t));
-					
+
 				}
 				break;
 
@@ -695,7 +695,7 @@ drawtrace(void)
 				break;
 			}
 			break;
-			
+
 		case 3:
 			now = nsec();
 			while((n = read(logfd, eventbuf, Nevents*sizeof(Traceevent))) > 0){

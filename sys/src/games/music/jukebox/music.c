@@ -818,7 +818,7 @@ work(void)
 	activate(vol);
 	activate(controlcalled("tabs"));
 	activatebuttons(1 << Exitbutton | 1 << Rootbutton | 1 << Helpbutton);
-	
+
 	root = getroot();
 	setparent(root);
 	clearchildren();

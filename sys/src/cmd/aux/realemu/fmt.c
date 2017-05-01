@@ -155,7 +155,7 @@ argconv(char *p, Inst *i, Iarg *a)
 		case 4:
 			*p++ = 'E';
 		case 2:
-			p += sprint(p, "%c%c", 
+			p += sprint(p, "%c%c",
 				"ACDBSBSDECSDFGIF"[a->reg],
 				"XXXXPPIISSSSSSPL"[a->reg]);
 			print_func_exit();
@@ -233,7 +233,7 @@ argconv(char *p, Inst *i, Iarg *a)
 				}
 			} else
 				p += sprint(p, "%s", memstr32[i->rm]);
-		}			
+		}
 		if(i->mod != 0)
 			p += sprint(p, "%+lx", i->disp);
 		*p++ = ']';
@@ -281,7 +281,7 @@ instfmt(Fmt *fmt)
 		p += sprint(p, "A32: ");
 	if(i->rep)
 		p += sprint(p, "%s: ", opstr[i->rep]);
-	
+
 	if(i->op == OXLAT && i->sreg != RDS)
 		p += sprint(p, "%cS:", "ECSDFG"[i->sreg - RES]);
 
@@ -363,7 +363,7 @@ cpufmt(Fmt *fmt)
 		decode(amem(cpu, 1, RCS, cpu->reg[RIP]), &i);
 	memmove(cpu->jmp, jmp, sizeof jmp);
 
-	snprint(buf, sizeof(buf), 
+	snprint(buf, sizeof(buf),
 		"%.6lux "
 		"%.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux "
 		"%.4lux %.4lux %.4lux %.4lux "

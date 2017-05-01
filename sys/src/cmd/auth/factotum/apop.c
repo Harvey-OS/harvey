@@ -140,7 +140,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		closekey(k);
 		fss->phase = CHaveResp;
 		return RpcOk;
-	
+
 	case SNeedUser:
 		if((v = _strfindattr(fss->attr, "user")) && strcmp(v, a) != 0)
 			return failure(fss, "bad user");

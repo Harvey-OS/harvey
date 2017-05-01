@@ -32,9 +32,9 @@
 #define LAME_TIMESTATUS_H
 void timestatus_klemm(const lame_global_flags *gfp);
 
-void timestatus ( int samp_rate, 
-                  int frameNum, 
-                  int totalframes, 
+void timestatus ( int samp_rate,
+                  int frameNum,
+                  int totalframes,
                   int           framesize);
 void timestatus_finish(void);
 

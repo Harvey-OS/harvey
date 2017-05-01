@@ -95,7 +95,7 @@ int	allobj = 1;			/* set when all members are object files of the same type */
 int	symdefsize;			/* size of symdef file */
 int	dupfound;			/* flag for duplicate symbol */
 Hashchain	*hash[NHASH];		/* hash table of text symbols */
-	
+
 #define	ARNAMESIZE	sizeof(astart->tail->hdr.name)
 
 char	poname[ARNAMESIZE+1];		/* name of pivot member */

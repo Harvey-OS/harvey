@@ -41,7 +41,7 @@ main(int argc, char **argv){
 		if (resultFile->length != filesize) {
 			print("FAIL file size %s incorrect expected %d actual %d\n", filename, filesize, resultFile->length);
 			exits("FAIL");
-		} 
+		}
 		free(resultFile);
 	}
 	for (i = 0; i < NUM_FILES; i++){

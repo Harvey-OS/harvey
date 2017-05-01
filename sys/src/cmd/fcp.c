@@ -151,7 +151,7 @@ copy(char *from, char *to, int todir)
 			dirt.gid = dirb->gid;
 		if(dirfwstat(fdt, &dirt) < 0)
 			fprint(2, "fcp: warning: can't wstat %s: %r\n", to);
-	}			
+	}
 	free(dirb);
 	close(fdf);
 	close(fdt);

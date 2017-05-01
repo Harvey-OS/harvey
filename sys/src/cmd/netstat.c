@@ -238,7 +238,7 @@ pipifc(void)
 	for(nip = ip; nip; nip = nip->next){
 		for(lifc = nip->lifc; lifc; lifc = lifc->next)
 			Bprint(&out, "%-12s %5d %-*I %5M %-*I %8lu %8lu %8lu %8lu\n",
-				nip->dev, nip->mtu, 
+				nip->dev, nip->mtu,
 				l, lifc->ip, lifc->mask, l, lifc->net,
 				nip->pktin, nip->pktout,
 				nip->errin, nip->errout);

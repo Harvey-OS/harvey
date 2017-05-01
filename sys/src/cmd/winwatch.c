@@ -104,12 +104,12 @@ refreshwin(void)
 				nw++;
 				continue;
 			}
-	
+
 			if(nw < nwin){
 				free(win[nw].label);
 				win[nw].label = nil;
 			}
-			
+
 			if(nw >= mwin){
 				mwin += 8;
 				win = erealloc(win, mwin*sizeof(win[0]));
@@ -144,9 +144,9 @@ drawwin(int i)
 {
 	draw(screen, win[i].r, lightblue, nil, ZP);
 	_string(screen, addpt(win[i].r.min, Pt(2,0)), display->black, ZP,
-		font, win[i].label, nil, strlen(win[i].label), 
+		font, win[i].label, nil, strlen(win[i].label),
 		win[i].r, nil, ZP, SoverD);
-	border(screen, win[i].r, 1, display->black, ZP);	
+	border(screen, win[i].r, 1, display->black, ZP);
 	win[i].dirty = 0;
 }
 
@@ -204,7 +204,7 @@ eresized(int new)
 void
 click(Mouse m)
 {
-	int fd, i, j;	
+	int fd, i, j;
 	char buf[128];
 
 	if(m.buttons == 0 || (m.buttons & ~4))

@@ -232,7 +232,7 @@ connectto(char *machine, char **argv)
 	int p1[2], p2[2];
 	char **av;
 	int ac;
-	
+
 	// count args
 	for(av = argv; *av; av++)
 		;

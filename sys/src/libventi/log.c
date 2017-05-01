@@ -47,7 +47,7 @@ vtlognames(int *pn)
 	int i, nname, size;
 	VtLog *l;
 	char **s, *a, *e;
-	
+
 	qlock(&vl.lk);
 	size = 0;
 	nname = 0;
@@ -224,10 +224,10 @@ void
 vtlogprint(VtLog *l, char *fmt, ...)
 {
 	va_list arg;
-	
+
 	if(l == nil)
 		return;
-		
+
 	va_start(arg, fmt);
 	vtlogvprint(l, fmt, arg);
 	va_end(arg);

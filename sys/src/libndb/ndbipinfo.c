@@ -191,7 +191,7 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 		/* none found, make one up */
 		if(strcmp(attr, "ip") != 0) {
 			ndbfree(f);
-			return nil;	
+			return nil;
 		}
 		t = ndbnew("ip", val);
 		t->line = t;

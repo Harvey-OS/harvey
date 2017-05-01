@@ -63,7 +63,7 @@ memimageinit(void)
 	mktables();
 	_memmkcmap();
 
-	fmtinstall('R', Rfmt); 
+	fmtinstall('R', Rfmt);
 	fmtinstall('P', Pfmt);
 	fmtinstall('b', _ifmt);
 
@@ -155,7 +155,7 @@ memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask
 	DBG print("draw dr %R sr %R mr %R %lx\n", r, par.sr, par.mr, par.state);
 
 	/*
-	 * Now that we've clipped the parameters down to be consistent, we 
+	 * Now that we've clipped the parameters down to be consistent, we
 	 * simply try sub-drawing routines in order until we find one that was able
 	 * to handle us.  If the sub-drawing routine returns zero, it means it was
 	 * unable to satisfy the request, so we do not return.
@@ -204,7 +204,7 @@ DBG print("alphadraw handled\n");
 #undef DBG
 
 /*
- * Clip the destination rectangle further based on the properties of the 
+ * Clip the destination rectangle further based on the properties of the
  * source and mask rectangles.  Once the destination rectangle is properly
  * clipped, adjust the source and mask rectangles to be the same size.
  * Then if source or mask is replicated, move its clipped rectangle
@@ -332,7 +332,7 @@ static int replmul[1+8] = {
 	a _ _ X _ _ X _ _ X _ _ X _ _ X _,
 	a _ _ _ X _ _ _ X _ _ _ X _ _ _ X,
 	a _ _ _ _ X _ _ _ _ X _ _ _ _ X _,
-	a _ _ _ _ _ X _ _ _ _ _ X _ _ _ _, 
+	a _ _ _ _ _ X _ _ _ _ _ X _ _ _ _,
 	a _ _ _ _ _ _ X _ _ _ _ _ _ X _ _,
 	a _ _ _ _ _ _ _ X _ _ _ _ _ _ _ X,
 };
@@ -344,7 +344,7 @@ static void
 mktables(void)
 {
 	int i, j, mask, sh, small;
-		
+
 	if(tablesbuilt)
 		return;
 
@@ -410,7 +410,7 @@ enum {
 /* giant rathole to customize functions with */
 struct Param {
 	Readfn	*replcall;
-	Readfn	*greymaskcall;	
+	Readfn	*greymaskcall;
 	Readfn	*convreadcall;
 	Writefn	*convwritecall;
 
@@ -457,7 +457,7 @@ static Calcfn*	boolcopyfn(Memimage*, Memimage*);
 static Readfn*	convfn(Memimage*, Param*, Memimage*, Param*, int*);
 static Readfn*	ptrfn(Memimage*);
 
-static Calcfn *alphacalc[Ncomp] = 
+static Calcfn *alphacalc[Ncomp] =
 {
 	alphacalc0,		/* Clear */
 	alphacalc14,		/* DoutS */
@@ -569,14 +569,14 @@ dumpbuf(char *s, Buffer b, int n)
 {
 	int i;
 	uint8_t *p;
-	
+
 	print("%s", s);
 	for(i=0; i<n; i++){
 		print(" ");
 		if((p=b.grey) != 0){
 			print(" k%.2X", *p);
 			b.grey += b.delta;
-		}else{	
+		}else{
 			if((p=b.red) != 0){
 				print(" r%.2X", *p);
 				b.red += b.delta;
@@ -606,7 +606,7 @@ dumpbuf(char *s, Buffer b, int n)
  * If the destination image is grey and the source is not, it is converted using the NTSC
  * formula.
  *
- * Once we have all the channels, we call either rgbcalc or greycalc, depending on 
+ * Once we have all the channels, we call either rgbcalc or greycalc, depending on
  * whether the destination image is color.  This is allowed to overwrite the dst buffer (perhaps
  * the actual data, perhaps a copy) with its result.  It should only overwrite the dst buffer
  * with the same format (i.e. red bytes with red bytes, etc.)  A new buffer is returned from
@@ -638,7 +638,7 @@ alphadraw(Memdrawparam *par)
 		return 0;
 
 	src = par->src;
-	mask = par->mask;	
+	mask = par->mask;
 	dst = par->dst;
 	sr = par->sr;
 	mr = par->mr;
@@ -647,7 +647,7 @@ alphadraw(Memdrawparam *par)
 	isgrey = dst->flags&Fgrey;
 
 	/*
-	 * Buffering when src and dst are the same bitmap is sufficient but not 
+	 * Buffering when src and dst are the same bitmap is sufficient but not
 	 * necessary.  There are stronger conditions we could use.  We could
 	 * check to see if the rectangles intersect, and if simply moving in the
 	 * correct y direction can avoid the need to buffer.
@@ -1492,7 +1492,7 @@ writecmap(Param *p, uint8_t *w, Buffer src)
 	int i, dx, delta;
 
 	cmap = p->img->cmap->rgb2cmap;
-	
+
 	delta = src.delta;
 	red= src.red;
 	grn = src.grn;
@@ -1587,7 +1587,7 @@ DBG print("%x\n", w[-1]);
 		if(r == end)
 			r = begin;
 	}
-	
+
 	b.alpha = copyalpha ? buf : &ones;
 	b.rgba = (uint32_t*)buf;
 	if(alphaonly){
@@ -1842,7 +1842,7 @@ genconv(Param *p, uint8_t *buf, int y)
 	b.blu = b.grn = b.grey = b.alpha = nil;
 	b.rgba = (uint32_t*)buf;
 	b.delta = 0;
-	
+
 	return b;
 }
 
@@ -2030,12 +2030,12 @@ imgtorgba(Memimage *img, uint32_t val)
 		case CMap:
 			p = img->cmap->cmap2rgb+3*ov;
 			r = *p++;
-			g = *p++;	
+			g = *p++;
 			b = *p;
 			break;
 		}
 	}
-	return (r<<24)|(g<<16)|(b<<8)|a;	
+	return (r<<24)|(g<<16)|(b<<8)|a;
 }
 
 static uint32_t
@@ -2127,14 +2127,14 @@ DBG print("memopt, dst %p, dst->data->bdata %p\n", dst, dst->data->bdata);
 			dx -= (ppb-np);
 			nb = 8 - np * dst->depth;		/* no. bits used on right side of word */
 			lm = (1<<nb)-1;
-			DBG print("np %d x %d nb %d lm %x ppb %d m %x\n", np, par->r.min.x, nb, lm, ppb, m);	
+			DBG print("np %d x %d nb %d lm %x ppb %d m %x\n", np, par->r.min.x, nb, lm, ppb, m);
 
 			/* right edge */
 			np = par->r.max.x&m;	/* no. pixels used on left side of word */
 			dx -= np;
 			nb = 8 - np * dst->depth;		/* no. bits unused on right side of word */
 			rm = ~((1<<nb)-1);
-			DBG print("np %d x %d nb %d rm %x ppb %d m %x\n", np, par->r.max.x, nb, rm, ppb, m);	
+			DBG print("np %d x %d nb %d rm %x ppb %d m %x\n", np, par->r.max.x, nb, rm, ppb, m);
 
 DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 			/* lm, rm are masks that are 1 where we should touch the bits */
@@ -2208,7 +2208,7 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 	 * the source is not replicated, memmove suffices.
 	 */
 	m = Simplemask|Fullmask;
-	if((par->state&(m|Replsrc))==m && src->depth >= 8 
+	if((par->state&(m|Replsrc))==m && src->depth >= 8
 	&& src->chan == dst->chan && !(src->flags&Falpha) && (op == S || op == SoverD)){
 		unsigned char *sp, *dp;
 		int32_t swid, dwid, nb;
@@ -2240,8 +2240,8 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 	 * they're all bit aligned, we can just use bit operators.  This happens
 	 * when we're manipulating boolean masks, e.g. in the arc code.
 	 */
-	if((par->state&(Simplemask|Simplesrc|Replmask|Replsrc))==0 
-	&& dst->chan==GREY1 && src->chan==GREY1 && par->mask->chan==GREY1 
+	if((par->state&(Simplemask|Simplesrc|Replmask|Replsrc))==0
+	&& dst->chan==GREY1 && src->chan==GREY1 && par->mask->chan==GREY1
 	&& (par->r.min.x&7)==(par->sr.min.x&7) && (par->r.min.x&7)==(par->mr.min.x&7)){
 		unsigned char *sp, *dp, *mp;
 		unsigned char lm, rm;
@@ -2330,7 +2330,7 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 		}
 		return 1;
 	}
-	return 0;	
+	return 0;
 }
 #undef DBG
 
@@ -2353,7 +2353,7 @@ chardraw(Memdrawparam *par)
 	Memimage *mask, *src, *dst;
 
 DBG print("chardraw? mf %lx md %d sf %lx dxs %d dys %d dd %d ddat %p sdat %p\n",
-		par->mask->flags, par->mask->depth, par->src->flags, 
+		par->mask->flags, par->mask->depth, par->src->flags,
 		Dx(par->src->r), Dy(par->src->r), par->dst->depth, par->dst->data, par->src->data);
 
 	mask = par->mask;
@@ -2388,7 +2388,7 @@ DBG print("bsh %d\n", bsh);
 	 * for loop counts from bsh to bsh+dx
 	 *
 	 * we want the bottom bits to be the amount
-	 * to shift the pixels down, so for n≡0 (mod 8) we want 
+	 * to shift the pixels down, so for n≡0 (mod 8) we want
 	 * bottom bits 7.  for n≡1, 6, etc.
 	 * the bits come from -n-1.
 	 */
@@ -2463,8 +2463,8 @@ DBG print("bsh %d\n", bsh);
 		}
 	}
 
-DBG print("\n");	
-	return 1;	
+	DBG print("\n");
+	return 1;
 }
 #undef DBG
 

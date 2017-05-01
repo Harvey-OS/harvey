@@ -92,7 +92,7 @@ enum
 	ArenaPartMagic		= 0xa9e4a5e7U,	/* arena partition header */
 	ArenaMagic		= 0xf2a14eadU,	/* arena trailer */
 	ArenaHeadMagic		= 0xd15c4eadU,	/* arena header */
-	
+
 	BloomMagic		= 0xb1004eadU,	/* bloom filter header */
 	BloomMaxHash	= 32,
 
@@ -147,7 +147,7 @@ enum
 	IEntryAddrOff		= VtScoreSize + U32Size + U16Size,
 
 	MaxClumpBlocks		=  (VtMaxLumpSize + ClumpSize + (1 << ABlockLog) - 1) >> ABlockLog,
-	
+
 	IcacheFrac		= 1000000,	/* denominator */
 
 	SleepForever		= 1000000000,	/* magic value for sleep time */
@@ -158,7 +158,7 @@ enum
 	DirtyArenaCib,
 	DirtyArenaTrailer,
 	DirtyMax,
-	
+
 	ArenaCIGSize = 10*1024,	// about 0.5 MB worth of IEntry.
 
 	VentiZZZZZZZZ
@@ -233,7 +233,7 @@ struct DBlock
 	uint32_t	used2;
 	uint32_t	ref;			/* reference count */
 	RWLock	lock;			/* for access to data only */
-	Channel	*writedonechan;	
+	Channel	*writedonechan;
 	void*	chanbuf[1];		/* buffer for the chan! */
 };
 
@@ -317,7 +317,7 @@ struct CIBlock
 };
 
 /*
- * Statistics kept in the tail. 
+ * Statistics kept in the tail.
  */
 struct ATailStats
 {
@@ -384,7 +384,7 @@ struct Arena
 	uint32_t		ctime;			/* first time a block was written */
 	uint32_t		wtime;			/* last time a block was written */
 	uint32_t		clumpmagic;
-	
+
 	ArenaCIG	*cig;
 	int	ncig;
 };
@@ -467,7 +467,7 @@ struct Index
 	Bloom		*bloom;	/* bloom filter */
 
 	/*
-	 * fields stored in config file 
+	 * fields stored in config file
 	 */
 	uint32_t		version;
 	char		name[ANameSize];	/* text label */
@@ -475,7 +475,7 @@ struct Index
 	AMap		*smap;			/* mapping of buckets to index sections */
 	int		narenas;
 	AMap		*amap;			/* mapping from index addesses to arenas */
-	
+
 	QLock	writing;
 };
 
@@ -531,7 +531,7 @@ struct IEntry
 	/* on disk data - 32 bytes*/
 	uint8_t	score[VtScoreSize];
 	IAddr	ia;
-	
+
 	IEntry	*nexthash;
 	IEntry	*nextdirty;
 	IEntry	*next;
@@ -659,7 +659,7 @@ enum
 
 	StatSumRead,
 	StatSumReadBytes,
-	
+
 	StatCigLoad,
 	StatCigLoadTime,
 

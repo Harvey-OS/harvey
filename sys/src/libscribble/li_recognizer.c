@@ -19,7 +19,7 @@
  *
  *
  *  Adapted from cmu_recognizer.c by Jay Kistler.
- *  
+ *
  *  Where is the CMU copyright???? Gotta track it down - Jim Gettys
  *
  *  Credit to Dean Rubine, Jim Kempf, and Ari Rapkin.
@@ -79,7 +79,7 @@ add_example(point_list* l,int npts,pen_point* pts)
 
 	return(p);
 }
-	
+
 
 static void
 delete_examples(point_list* l)
@@ -124,11 +124,11 @@ static int
   file_path(char* dir,char* filename,char* pathname)
 {
 	char* dot;
-	
+
 	/*Check for proper extension on file name.*/
-	
+
 	dot = strrchr(filename,'.');
-	
+
 	if( dot == nil ) {
 		return(-1);
 	}
@@ -140,17 +140,17 @@ static int
 	}
 
 	/*Concatenate directory and filename into pathname.*/
-	
+
 	strcpy(pathname,dir);
 	strcat(pathname,"/");
 	strcat(pathname,filename);
-	
+
 	return(0);
 }
 
 /*read_classifier_points-Read points so classifier can be extended.*/
 
-static int 
+static int
 read_classifier_points(FILE* fd,int nclss,point_list** ex,char** cnames)
 {
 	int i,j,k;
@@ -173,30 +173,30 @@ read_classifier_points(FILE* fd,int nclss,point_list** ex,char** cnames)
 		for( k = 0; k < nclss; k++ ) {
 
 				/*Read class name and number of examples.*/
-		
+
 				if( fscanf(fd,"%d %s",&nex,buf) != 2 )
 					goto unallocate;
-		
+
 				/*Save class name*/
-		
+
 				names[k] = strdup(buf);
-		
+
 				/*Read examples.*/
-				
+
 				for( i = 0; i < nex; i++ ) {
-					
+
 					/*Read number of points.*/
-					
+
 					if( fscanf(fd,"%d",&npts) != 1 )
 								goto unallocate; /*Boy would I like exceptions!*/
-					
+
 					/*Allocate array for points.*/
-					
+
 					if( (pts = mallocz(npts*sizeof(pen_point), 1)) == nil )
 								goto unallocate;
-					
+
 					/*Read in points.*/
-					
+
 					for( j = 0; j < npts; j++ ) {
 								int x,y;
 								if( fscanf(fd,"%d %d",&x,&y) != 2 ) {
@@ -205,16 +205,16 @@ read_classifier_points(FILE* fd,int nclss,point_list** ex,char** cnames)
 								}
 								pts[j].Point = Pt(x, y);
 					}
-					
+
 					/*Add example*/
-					
+
 					if( (examples[k] = add_example(examples[k],npts,pts)) == nil ) {
 								delete_pen_point_array(pts);
 								goto unallocate;
 					}
-					
+
 					delete_pen_point_array(pts);
-			
+
 				}
 		}
 
@@ -243,7 +243,7 @@ unallocate:
 
 static int read_classifier(FILE* fd,rClassifier* rc)
 {
-	
+
 	li_err_msg = nil;
 
 	/*Read in classifier file.*/
@@ -280,7 +280,7 @@ recognizer_getClasses (recognizer r, char ***list, int *nc)
 				li_err_msg = "Not a LI recognizer";
 				return(-1);
 	}
-	
+
 	*nc = nclasses = rec->li_rc.nclasses;
 	ret = malloc(nclasses*sizeof(char*));
 
@@ -315,16 +315,16 @@ recognizer_train(recognizer r, rc* rc, uint u, Stroke* s, rec_element* re, bool 
 
 int
 li_recognizer_get_example (recognizer r,
-						   int		class, 
+						   int		class,
 						   int		instance,
-						   char		**name, 
+						   char		**name,
 						   pen_point	**points,
 						   int		*npts)
 {
 	li_recognizer   *rec = (li_recognizer*)r->recognizer_specific;
 	int nclasses = rec->li_rc.nclasses;
 	point_list	    *pl;
-	
+
 		if( !CHECK_LI_MAGIC(rec) ) {
 				li_err_msg = "Not a LI recognizer";
 				return(-1);
@@ -358,7 +358,7 @@ static int li_recognizer_load(recognizer r, char* dir, char* filename)
 		char* pathname;
 		li_recognizer* rec;
 		rClassifier* rc;
-		
+
 		rec = (li_recognizer*)r->recognizer_specific;
 
 		/*Make sure recognizer's OK*/
@@ -417,7 +417,7 @@ static int li_recognizer_load(recognizer r, char* dir, char* filename)
 		}
 
 		/*Read classifier.*/
-		
+
 		if( read_classifier(fd,rc) < 0 ) {
 				free(pathname);
 				return(-1);
@@ -444,7 +444,7 @@ static int li_recognizer_load(recognizer r, char* dir, char* filename)
 /*li_recognizer_save-Save a classifier file.*/
 
 static int li_recognizer_save(recognizer r, char* c, char* d)
-{ 
+{
 		/*This operation isn't supported by the LI recognizer.*/
 
 		li_err_msg = "Saving is not supported by the LI recognizer";
@@ -510,10 +510,10 @@ li_recognizer_error(recognizer rec)
 	return ret;
 }
 
-static int 
+static int
 li_recognizer_clear(recognizer r, bool b)
 {
-		li_recognizer* rec; 
+		li_recognizer* rec;
 
 		rec = (li_recognizer*)r->recognizer_specific;
 		/*Check for LI recognizer.*/
@@ -524,7 +524,7 @@ li_recognizer_clear(recognizer r, bool b)
 		return 0;
 }
 
-static int 
+static int
 li_recognizer_set_context(recognizer r, rc* rc)
 {
 		/*This operation isn't supported by the LI recognizer.*/
@@ -540,7 +540,7 @@ li_recognizer_get_context(recognizer r)
 		return nil;
 }
 
-static int 
+static int
 li_recognizer_get_buffer(recognizer r, uint* u, Stroke** s)
 {
 		/*This operation isn't supported by the LI recognizer.*/
@@ -548,7 +548,7 @@ li_recognizer_get_buffer(recognizer r, uint* u, Stroke** s)
 		return -1;
 }
 
-static int 
+static int
 li_recognizer_set_buffer(recognizer r, uint u, Stroke* s)
 {
 		/*This operation isn't supported by the LI recognizer.*/
@@ -560,10 +560,10 @@ static int
 li_recognizer_translate(recognizer r, uint ncs, Stroke* tps, bool b, int* nret, rec_alternative** ret)
 {
 	char* clss;
-	li_recognizer* rec; 
+	li_recognizer* rec;
 	int conf;
 	rClassifier* rc;
-	  
+
 	rec = (li_recognizer*)r->recognizer_specific;
 
 	*nret = 0;
@@ -601,7 +601,7 @@ li_recognizer_translate(recognizer r, uint ncs, Stroke* tps, bool b, int* nret, 
 	 *   stroke recognizer, each stroke is treated as a separate
 	 *   character or gesture. We allow only characters or gestures
 	 *   to be recognized at one time, since otherwise, handling
-	 *   the display of segmentation would be difficult. 
+	 *   the display of segmentation would be difficult.
 	*/
 	clss = recognize_internal(rc,tps,&conf);
 	if (clss == nil) {
@@ -698,7 +698,7 @@ RECOGNIZER_INITIALIZE(ri)
 		}
 	  }
 	}
-			 
+
 /* ari */
 	r = make_recognizer(ri);
 /* fprint(2, "past make_recognizer.\n"); */
@@ -737,10 +737,10 @@ RECOGNIZER_INITIALIZE(ri)
 	r->recognizer_get_buffer = li_recognizer_get_buffer;
 	r->recognizer_set_buffer = li_recognizer_set_buffer;
 	r->recognizer_clear = li_recognizer_clear;
-	r->recognizer_get_extension_functions = 
+	r->recognizer_get_extension_functions =
 	  li_recognizer_get_extension_functions;
 	r->recognizer_get_gesture_names = li_recognizer_get_gesture_names;
-	r->recognizer_set_gesture_action = 
+	r->recognizer_set_gesture_action =
 	  li_recognizer_set_gesture_action;
 
 	/*Initialize LI Magic Number.*/
@@ -1001,7 +1001,7 @@ static int lialg_preprocess_stroke(point_list *points) {
 	lialg_get_bounding_box(points, &minx, &miny, &maxx, &maxy);
 	xrange = maxx - minx;
 	yrange = maxy - miny;
-	scale = ( ((100 * xrange + CANONICAL_X / 2) / CANONICAL_X) > 
+	scale = ( ((100 * xrange + CANONICAL_X / 2) / CANONICAL_X) >
 			  ((100 * yrange + CANONICAL_Y / 2) / CANONICAL_Y))
 	  ? (100 * CANONICAL_X + xrange / 2) / xrange
 	  : (100 * CANONICAL_Y + yrange / 2) / yrange;
@@ -1155,13 +1155,13 @@ static void lialg_bresline(pen_point *startpt, pen_point *endpt,
 				int dPr	= dY<<1;	    /* amount to increment decision if right is chosen (always) */
 				int dPru = dPr - (dX<<1);   /* amount to increment decision if up is chosen */
 				int P =	dPr - dX;	    /* decision variable start value */
-		
+
 				/* process each point in the line one at a time (just use dX) */
 				for (; dX>=0; dX--) {
 					newpts->pts[*j].x = Ax;
 					newpts->pts[*j].y = Ay;
 					(*j)++;
-		
+
 					if (P > 0) {	/* is the pixel	going right AND	up? */
 								Ax+=Xincr;	/* increment independent variable */
 								Ay+=Yincr;	/* increment dependent variable */
@@ -1175,13 +1175,13 @@ static void lialg_bresline(pen_point *startpt, pen_point *endpt,
 				int dPr	= dX<<1;	    /* amount to increment decision if right is chosen (always) */
 				int dPru = dPr - (dY<<1);   /* amount to increment decision if up is chosen */
 				int P  = dPr - dY;	    /* decision variable start value */
-		
+
 				/* process each point in the line one at a time (just use dY) */
 				for (; dY>=0; dY--) {
 					newpts->pts[*j].x = Ax;
 					newpts->pts[*j].y = Ay;
 					(*j)++;
-		
+
 					if (P > 0) {	/* is the pixel going up AND right? */
 								Ax+=Xincr;	/* increment dependent variable */
 								Ay+=Yincr;	/* increment independent variable */
@@ -1204,7 +1204,7 @@ static void lialg_compute_chain_code(point_list *pts) {
 				int dy = endpt->y - startpt->y;
 				int tmp = quadr(likeatan(dy, dx));
 				int dircode = (12 - tmp) % 8;
-		
+
 				startpt->chaincode = dircode;
 	}
 }
@@ -1250,12 +1250,12 @@ static region_list *lialg_compute_regions(point_list *pts) {
 				int d_i = pts->pts[i].chaincode;
 				int d_iminusone = pts->pts[i-1].chaincode;
 				int a_i;
-		
+
 				if (d_iminusone < d_i)
 					d_iminusone += 8;
-		
+
 				a_i = (d_iminusone - d_i) % 8;
-		
+
 				/* convert to degrees, x 100 */
 				curr[i] = ((12 - a_i) % 8) * 45 * 100;
 	}
@@ -1266,14 +1266,14 @@ static region_list *lialg_compute_regions(point_list *pts) {
 	for (j = 0; j < LP_FILTER_ITERS; j++, curr = R[j], next = R[j+1]) {
 				for (i = 0; i < pts->npts; i++) {
 					int k;
-		
+
 					next[i] = 0;
-		
+
 					for (k = i - LP_FILTER_WIDTH; k <= i + LP_FILTER_WIDTH; k++) {
 						int oldval = (k < 0 || k >= pts->npts) ? 18000 : curr[k];
 						next[i]	+= oldval * lialg_lpfwts[k - (i	- LP_FILTER_WIDTH)];	/* overflow? */
 					}
-		
+
 					next[i] /= lialg_lpfconst;
 				}
 	}
@@ -1299,9 +1299,9 @@ static region_list *lialg_compute_regions(point_list *pts) {
 	{
 				int start, end;
 				int currtype;
-		
+
 #define	RGN_TYPE(val) (((val)==18000)?RGN_PLAIN:((val)<18000?RGN_CONCAVE:RGN_CONVEX))
-		
+
 				start = 0;
 				currtype = RGN_TYPE(curr[0]);
 				regions = malloc(sizeof(region_list));
@@ -1312,15 +1312,15 @@ static region_list *lialg_compute_regions(point_list *pts) {
 				curr_reg->next = nil;
 				for (i = 1; i < pts->npts; i++) {
 					int nexttype = RGN_TYPE(curr[i]);
-		
+
 					if (nexttype != currtype) {
 								region_list *next_reg;
-				
+
 								end = i - 1;
 								curr_reg->end = end;
 								if (lidebug > 1)
 									fprint(2, "  (%d, %d), %d\n", start, end, currtype);
-				
+
 								start = i;
 								currtype = nexttype;
 								next_reg = malloc(sizeof(region_list));
@@ -1328,7 +1328,7 @@ static region_list *lialg_compute_regions(point_list *pts) {
 								next_reg->end = 0;
 								next_reg->type = nexttype;
 								next_reg->next = nil;
-				
+
 								curr_reg->next = next_reg;
 								curr_reg = next_reg;
 					}
@@ -1342,7 +1342,7 @@ static region_list *lialg_compute_regions(point_list *pts) {
 				for (curr_reg = regions; curr_reg; curr_reg = curr_reg->next)
 					if (curr_reg->type == RGN_PLAIN) {
 								region_list *next_reg;
-				
+
 								for (next_reg = curr_reg->next;
 									 next_reg != nil &&
 									   (next_reg->end - next_reg->start) < LP_FILTER_MIN;
@@ -1350,19 +1350,19 @@ static region_list *lialg_compute_regions(point_list *pts) {
 									/* next_reg must not be plain, and it must be followed by a plain */
 									/* assert(next_reg->type != RGN_PLAIN); */
 									/* assert(next_reg->next != nil && (next_reg->next)->type == RGN_PLAIN); */
-				
+
 									curr_reg->next = (next_reg->next)->next;
 									curr_reg->end = (next_reg->next)->end;
-				
+
 									free(next_reg->next);
 									free(next_reg);
 								}
 					}
-		
+
 				/* Add-in pseudo-extremes. */
 				{
 					region_list *tmp, *prev_reg;
-		
+
 					tmp = regions;
 					regions = nil;
 					prev_reg = nil;
@@ -1380,20 +1380,20 @@ static region_list *lialg_compute_regions(point_list *pts) {
 
 							if (lidebug)
 								fprint(2, "%d, %d, %d\n", arclen, chordlen, atcr);
-		
+
 							/* Split region if necessary. */
 							if (arclen >= PE_AL_THLD && atcr >= PE_ATCR_THLD) {
 								int mid = curr_reg->start + (curr_reg->end - curr_reg->start) / 2;
 								int end = curr_reg->end;
 								region_list *saved_next = curr_reg->next;
-		
+
 								curr_reg->end = mid - 1;
 								if (prev_reg == nil)
 									regions = curr_reg;
 								else
 									prev_reg->next = curr_reg;
 								prev_reg = curr_reg;
-		
+
 								/* curr_reg = (region_list *)safe_malloc(sizeof(region_list));*/
 								curr_reg = malloc(sizeof(region_list));
 								curr_reg->start = mid;
@@ -1402,7 +1402,7 @@ static region_list *lialg_compute_regions(point_list *pts) {
 								curr_reg->next = nil;
 								prev_reg->next = curr_reg;
 								prev_reg = curr_reg;
-		
+
 								/* curr_reg = (region_list *)malloc(sizeof(region_list)); */
 								curr_reg = malloc(sizeof(region_list));
 								curr_reg->start = mid + 1;
@@ -1411,12 +1411,12 @@ static region_list *lialg_compute_regions(point_list *pts) {
 								curr_reg->next = nil;
 								prev_reg->next = curr_reg;
 								prev_reg = curr_reg;
-		
+
 								curr_reg->next = saved_next;
 								continue;
 							}
 						}
-		
+
 						if (prev_reg == nil)
 							regions = curr_reg;
 						else
@@ -1475,7 +1475,7 @@ static point_list *lialg_compute_dompts(point_list *pts, region_list *regions) {
 						int max_ix = -1;
 						int min_ix = -1;
 						int i;
-		
+
 						for (i = curr->start; i <= curr->end; i++) {
 							int v = cas[i];
 							if (v > max_v) { max_v = v; max_ix = i; }
@@ -1483,15 +1483,15 @@ static point_list *lialg_compute_dompts(point_list *pts, region_list *regions) {
 							if (lidebug > 1)
 								fprint(2, "  %d\n", v);
 						}
-		
+
 						currix = (curr->type == RGN_CONVEX ? max_ix : min_ix);
-		
+
 						/* Record midpoint. */
 						dpts->pts[dp++] = pts->pts[previx + (currix - previx) / 2];
-		
+
 						/* Record extreme point. */
 						dpts->pts[dp++] = pts->pts[currix];
-		
+
 						previx = currix;
 			}
 
@@ -1701,7 +1701,7 @@ static int lialg_compute_distance(point_list *input_dompts,
 						int dx = bx - ax;
 						int dy = by - ay;
 						int dist = isqrt(10000 * (dx * dx + dy * dy));
-				
+
 						C[i][j] = dist;
 				}
 		}
@@ -1712,29 +1712,29 @@ static int lialg_compute_distance(point_list *input_dompts,
 		for (j = N; j > 0; j--)
 				for (i = M; i > 0; i--) {
 						int min = MAX_DIST;
-		
+
 						if (i > BE[j] || i < TE[j] || (j == N && i == M))
 								continue;
-		
+
 						if (j < N) {
 								if (i >= TE[j+1]) {
 										int tmp = C[i][j+1];
 										if (tmp < min)
 												min = tmp;
 								}
-		
+
 								if (i < M) {
 										int tmp = C[i+1][j+1];
 										if (tmp < min)
 												min = tmp;
 								}
 						}
-		
+
 						if (i < BE[j]) {
 								int tmp = C[i+1][j];
 								if (tmp < min) min = tmp;
 						}
-		
+
 						C[i][j] += min;
 				}
 
@@ -1762,26 +1762,26 @@ static int lialg_read_classifier_digest(rClassifier *rec) {
 	{
 				char *clx_path;
 				char *dot;
-		
+
 				/* Get a copy of the filename, with some room on the end. */
 				/*	clx_path = safe_malloc(strlen(rec->file_name) + 5); */
 				clx_path = malloc((strlen(rec->file_name) + 5) *sizeof(char));
 				strcpy(clx_path, rec->file_name);
-		
+
 				/* Truncate the path after the last dot. */
 				dot = strrchr(clx_path, '.');
 				if (dot == nil) { free(clx_path); return(-1); }
 				*(dot + 1) = 0;
-		
+
 				/* Append the classifier-digest extension. */
 				strcat(clx_path, "clx");
-		
+
 				fp = fopen(clx_path, "r");
 				if (fp == nil) {
 						free(clx_path);
 						return(-1);
 				}
-		
+
 				free(clx_path);
 	}
 
@@ -1881,7 +1881,7 @@ static int lialg_canonicalize_examples(rClassifier *rec) {
 		int minx, miny, maxx, maxy;
 		int avgxrange, avgyrange, avgxoff, avgyoff, avgscale;
 
-		
+
 		if (lidebug) {
 			fprint(2, "lialg_canonicalize_examples working on class %s\n",
 					rec->cnames[i]);
@@ -2144,7 +2144,7 @@ static int lialg_compute_equipoints(point_list *points) {
 		equipoints[nequipoints] = points->pts[points->npts - 1];
 	} else {
 	  if (lidebug) {
-		fprint(2,"lialg_compute_equipoints: nequipoints = %d\n", 
+		fprint(2,"lialg_compute_equipoints: nequipoints = %d\n",
 				nequipoints);
 	  }
 /*	assert(false);*/
@@ -2298,19 +2298,19 @@ static int isqrt(int n) {
 
 
 /* Helper routines from Mark Hayter. */
-static int likeatan(int tantop, int tanbot) { 
+static int likeatan(int tantop, int tanbot) {
 		int t;
 		/* Use tan(theta)=top/bot --> order for t */
 		/* t in range 0..0x40000 */
 
-		if ((tantop == 0) && (tanbot == 0)) 
+		if ((tantop == 0) && (tanbot == 0))
 				t = 0;
 	else
 		{
 				t = (tantop << 16) / (abs(tantop) + abs(tanbot));
-				if (tanbot < 0) 
+				if (tanbot < 0)
 						t = 0x20000 - t;
-				else 
+				else
 						if (tantop < 0) t = 0x40000 + t;
 		}
 		return t;

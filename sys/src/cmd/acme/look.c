@@ -378,7 +378,7 @@ includename(Text *t, Rune *r, int n)
 		sprint(buf, "/%s/include", objtype);
 		objdir = bytetorune(buf, &i);
 		objdir = runerealloc(objdir, i+1);
-		objdir[i] = '\0';	
+		objdir[i] = '\0';
 	}
 
 	w = t->w;

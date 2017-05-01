@@ -812,7 +812,7 @@ bundle(int a, ...)
 	int i;
 	char **q;
 	va_list arg;
-	
+
 	i = a;
 	va_start(arg, a);
 	q = bsp_nxt;
@@ -833,7 +833,7 @@ void
 routput(char *p)
 {
 	char **pp;
-	
+
 	if(bdebug)
 		fprint(2, "routput(%lx)\n", p);
 	if((char**)p >= &bspace[0] && (char**)p < &bspace[bsp_max]) {

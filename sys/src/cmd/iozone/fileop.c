@@ -8,9 +8,9 @@
  *
  *  Copyright 2006, 2007, 2008, 2009   Don Capps.
  *
- *  License to freely use and distribute this software is hereby granted 
- *  by the author, subject to the condition that this copyright notice 
- *  remains intact.  The author retains the exclusive right to publish 
+ *  License to freely use and distribute this software is hereby granted
+ *  by the author, subject to the condition that this copyright notice
+ *  remains intact.  The author retains the exclusive right to publish
  *  derivative works based on this work, including, but not limited to,
  *  revised versions of this work",
  *
@@ -532,7 +532,7 @@ dir_create(int x)
 	      exits("mkdir");
 	  }
 	  close(ret);
-	  
+
 	  stats[statDirCreate].endtime=time_so_far();
 	  stats[statDirCreate].speed=stats[statDirCreate].endtime-stats[statDirCreate].starttime;
 	  if(stats[statDirCreate].speed < (double)0.0)

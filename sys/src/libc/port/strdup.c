@@ -11,8 +11,8 @@
 #include <libc.h>
 
 char*
-strdup(char *s) 
-{  
+strdup(const char *s)
+{
 	char *ns;
 
 	ns = malloc(strlen(s) + 1);

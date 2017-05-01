@@ -20,7 +20,7 @@ struct {
 enum{
 	Finc=	128,	/* allocation chunksize for files */
 	Fmax=	10000,	/* maximum file structures to be allocated */
-	
+
 	Winc=	8*128,	/* allocation chunksize for wpath */
 	Wmax=	8*10000,	/* maximum wpath structures to be allocated */
 };
@@ -121,7 +121,7 @@ sublockinit(void)
 	conf.nwpath = 0;
 	unlock(&suballoc.flock);
 	unlock(&wpathlock);
-}	
+}
 
 /*
  * always called with cp->flock locked
@@ -307,7 +307,7 @@ iaccess(File *f, Dentry *d, int m)
 	 * other access for everyone except members of group 9999
 	 */
 	if(m & d->mode){
-		/* 
+		/*
 		 *  walk directories regardless.
 		 *  otherwise its impossible to get
 		 *  from the root to noworld's directories.

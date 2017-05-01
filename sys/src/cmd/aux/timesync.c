@@ -1350,7 +1350,7 @@ background(void)
 	if(inbackground)
 		return;
 
-	if(!debug) 
+	if(!debug)
 		switch(rfork(RFPROC|RFFDG|RFNAMEG|RFNOTEG|RFNOWAIT)){
 		case -1:
 			sysfatal("forking: %r");

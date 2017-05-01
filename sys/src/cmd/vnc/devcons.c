@@ -254,7 +254,7 @@ setsnarf(char *buf, int n, int *vers)
 	qlock(&snarf);
 	snarf.vers++;
 	if(vers)
-		*vers = snarf.vers;	
+		*vers = snarf.vers;
 	for(i = 0; i < nelem(consdir); i++){
 		if(consdir[i].qid.type == Qsnarf){
 			consdir[i].qid.vers = snarf.vers;
@@ -391,7 +391,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t)
 				kbd.raw = 1;
 				/* clumsy hack - wake up reader */
 				ch = 0;
-				qwrite(kbdq, &ch, 1);			
+				qwrite(kbdq, &ch, 1);
 			} else if(strncmp(a, "rawoff", 6) == 0){
 				kbd.raw = 0;
 			}
