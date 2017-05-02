@@ -8,6 +8,7 @@
 			"-U_LINUX",
 			"-U__linux__",
 			"-U__FreeBSD__",
+			"-U__NetBSD__",
 			"-Wno-unused-function",
 			"-Wno-unused-variable",
 			"-Wno-unused-const-variable",
