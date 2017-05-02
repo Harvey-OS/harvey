@@ -741,7 +741,7 @@ mkhdr(Hdr *hp, Dir *dir, char *file)
 			printed = 1;
 			fprint(2, "%s: storing large sizes in \"base 256\"\n", argv0);
 		}
-		hp->size[0] = Binsize;
+		hp->size[0] = (char)Binsize;
 		/* emit so-called `base 256' representation of size */
 		putbe((unsigned char *)hp->size+1, dir->length, sizeof hp->size - 2);
 		hp->size[sizeof hp->size - 1] = ' ';
