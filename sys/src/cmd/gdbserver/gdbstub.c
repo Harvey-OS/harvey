@@ -154,19 +154,14 @@ attach_to_process(int pid)
 		return;
 	}
 
+	// machdata will be valid after this
+	machbytype(fhdr.type);
+
 	Map* symmap = loadmap(0, textfid, &fhdr);
 	if (symmap == nil) {
 		syslog(0, "gdbserver", "loadmap failed: %r");
 		return;
 	}
-
-	if (syminit(textfid, &fhdr) < 0) {
-		syslog(0, "gdbserver", "syminit failed: %r");
-		return;
-	}
-
-	// machdata will be valid after this
-	machbytype(fhdr.type);
 
 	snprint(buf, sizeof(buf), "/proc/%d/mem", pid);
 	int memfid = open(buf, ORDWR);
@@ -1282,6 +1277,9 @@ main(int argc, char **argv)
 	// Set to 0 if we eventually support creating a new process
 	attached_to_existing_pid = 1;
 
+	print("Stopping process...\n", ks.threadid);
+	sendctl(ks.threadid, "stop");
+	print("Process stopped.  Waiting for remote gdb connection...\n");
 	attach_to_process(ks.threadid);
 
 	gdb_serial_stub(&ks, atoi(port));
