@@ -485,8 +485,8 @@ out:
 int
 termchange(Biobuf *bp, int cmd)
 {
-	char buf[8];
-	char *p = buf;
+	unsigned char buf[8];
+	unsigned char *p = buf;
 
 	if(cmd != Will)
 		return 0;
@@ -519,8 +519,8 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 int
 xlocchange(Biobuf *bp, int cmd)
 {
-	char buf[8];
-	char *p = buf;
+	unsigned char buf[8];
+	unsigned char *p = buf;
 
 	if(cmd != Will)
 		return 0;

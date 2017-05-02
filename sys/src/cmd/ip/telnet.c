@@ -499,9 +499,9 @@ echochange(Biobuf *bp, int cmd)
 int
 termsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	char buf[64];
+	unsigned char buf[64];
 	char *term;
-	char *p = buf;
+	unsigned char *p = buf;
 
 	if(n < 1)
 		return 0;
@@ -513,9 +513,9 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 		term = getenv("TERM");
 		if(term == 0 || *term == 0)
 			term = "p9win";
-		strncpy(p, term, sizeof(buf) - (p - buf) - 2);
+		strncpy((char *)p, term, sizeof(buf) - (p - buf) - 2);
 		buf[sizeof(buf)-2] = 0;
-		p += strlen(p);
+		p += strlen((char *)p);
 		*p++ = Iac;
 		*p++ = Se;
 		return iwrite(Bfildes(bp), buf, p-buf);
@@ -529,9 +529,9 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 int
 xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	char buf[64];
+	unsigned char buf[64];
 	char *term;
-	char *p = buf;
+	unsigned char *p = buf;
 
 	if(n < 1)
 		return 0;
@@ -543,7 +543,7 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
 		term = getenv("XDISP");
 		if(term == 0 || *term == 0)
 			term = "unknown";
-		strncpy(p, term, p - buf - 2);
+		strncpy((char *)p, term, p - buf - 2);
 		p += strlen(term);
 		*p++ = Iac;
 		*p++ = Se;
