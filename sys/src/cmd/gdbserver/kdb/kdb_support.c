@@ -785,7 +785,7 @@ void *debug_kmalloc(size_t size, gfp_t flags)
 		h->next = best->next;
 	} else
 		h_offset = best->next;
-	best->caller = __builtin_return_address(0);
+	best->caller = getcallerpc();
 	dah_used += best->size;
 	dah_used_max = max(dah_used, dah_used_max);
 	if (bestprev)
