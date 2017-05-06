@@ -28,12 +28,19 @@ _notetramp(int sig, void (*hdlr)(int, char*, struct Ureg*), struct Ureg *u)
 	if(nstack >= MAXSIGSTACK)
 		noted(1);	/* nesting too deep; just do system default */
 	p = &pcstack[nstack];
+print("a\n");
 	p->restorepc = u->ip;
+print("b\n");
 	p->sig = sig;
+print("c\n");
 	p->hdlr = hdlr;
+print("d\n");
 	p->u = u;
+print("e\n");
 	nstack++;
+print("f\n");
 	u->ip = (uint64_t) notecont;
+print("g\n");
 	noted(2);	/* NSAVE: clear note but hold state */
 }
 
@@ -43,11 +50,22 @@ notecont(struct Ureg *u, char *s)
 	Pcstack *p;
 	void(*f)(int, char*, struct Ureg*);
 
+print("notecont u is %p, msg %s\n", u, s);
+print("A\n");
 	p = &pcstack[nstack-1];
+print("B\n");
 	f = p->hdlr;
+print("C\n");
 	u->ip = p->restorepc;
+print("D\n");
 	nstack--;
+print("E\n");
+	print("notecont: let's call f at %p\n", f);
+print("F\n");
 	(*f)(p->sig, s, u);
+print("G\n");
+	print("notecont: back ...\n");
+print("H\n");
 	noted(3);	/* NRSTR */
 }
 
@@ -60,6 +78,7 @@ static void fu(int i, char *s, struct Ureg *u)
 static void
 handler(void *u, char *msg)
 {
+	print("HANDLER: msg %s\n", msg);
 	_notetramp(1, fu, u);
 	noted(0); /* NCONT */
 }
