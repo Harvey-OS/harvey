@@ -7,7 +7,6 @@
 typedef struct Range Range;
 typedef struct Slice Slice;
 typedef struct Slices Slices;
-typedef struct Token Token;
 
 struct Range {
 	int begin;
@@ -25,17 +24,13 @@ struct Slices {
 	Slice *slices;
 };
 
-struct Token {
-	int type;
-	Slice slice;
-};
-
 enum {
 	NF = 0x7FFFFFFF
 };
 
 Biobuf bin;
 Biobuf bout;
+int zflag;
 
 int guesscollapse(const char *sep);
 int Sfmt(Fmt *f);
@@ -63,7 +58,7 @@ main(int argc, char *argv[])
 	Range *rv;
 	char *filename, *insep, *outsep;
 	Reprog *delim;
-	int rc, collapse, eflag, Eflag, oflag, zflag;
+	int rc, collapse, eflag, Eflag, oflag;
 
 	insep = "[ \t\v\r]+";
 	outsep = " ";
@@ -407,7 +402,7 @@ pprefix(char *prefix)
 {
 	if (prefix == nil)
 		return;
-	if (*prefix == '\0')
+	if (zflag)
 		Bputc(&bout, '\0');
 	else
 		Bprint(&bout, "%s", prefix);
