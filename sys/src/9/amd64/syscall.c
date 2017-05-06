@@ -106,7 +106,7 @@ noted(Ureg* cur, uintptr_t arg0)
 		nf->arg1 = nf->msg;
 		nf->arg0 = &nf->ureg;
 		cur->bp = PTR2UINT(nf->arg0);
-		nf->ip = 0;
+	//	nf->ip = 0;
 		cur->sp = PTR2UINT(nf);
 		break;
 	default:
