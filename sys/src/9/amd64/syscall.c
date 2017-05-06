@@ -107,6 +107,8 @@ noted(Ureg* cur, uintptr_t arg0)
 		nf->arg0 = &nf->ureg;
 		cur->bp = PTR2UINT(nf->arg0);
 	//	nf->ip = 0;
+		cur->di = (uint64_t) nf->arg0;
+		cur->si = (uint64_t) nf->arg1;
 		cur->sp = PTR2UINT(nf);
 		break;
 	default:
