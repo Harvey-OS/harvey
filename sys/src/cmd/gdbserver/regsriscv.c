@@ -99,6 +99,12 @@ gdb_cmd_reg_set(struct state *ks)
 }
 
 uint64_t
+arch_get_reg(struct state *ks, int regnum)
+{
+	return 0;
+}
+
+uint64_t
 arch_get_pc(struct state *ks)
 {
 	// not yet.
