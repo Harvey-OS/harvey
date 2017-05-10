@@ -1,4 +1,4 @@
-/*
+	/*
  * Kernel Debug Core
  *
  * Maintainer: Jason Wessel <jason.wessel@windriver.com>
@@ -55,6 +55,8 @@ int notefid;
 int debug = 0;
 int attached_to_existing_pid = 0;
 Map* cormap;
+
+static struct state ks;
 
 /* support crap */
 /*
@@ -604,14 +606,23 @@ int_to_threadref(unsigned char *id, int value)
 uint64_t
 get_reg(Map *map, char *reg)
 {
-	//uint64_t v;
-	//int ret = get8(map, reg, &v);
+	(void)map;
 
-	// TODO Not quite sure what do do here yet
-	syslog(0, "gdbserver", "get_reg: %s", reg);
+	int reg_idx = -1;
+	for (int i = 0; i < DBG_MAX_REG_NUM; i++) {
+		if (!strcmp(reg, regstrs[i])) {
+			reg_idx = i;
+			break;
+		}
+	}
 
-	return 0;
-	//return nil;
+	if (reg_idx == -1) {
+		syslog(0, "gdbserver", "get_reg: Unrecognised register %s.", reg);
+		return 0;
+	}
+
+	uint64_t value = arch_get_reg(&ks, reg_idx);
+	return value;
 }
 
 /*
@@ -1237,8 +1248,6 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 
 	return nil;
 }
-
-static struct state ks;
 
 void
 main(int argc, char **argv)

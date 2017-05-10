@@ -93,6 +93,35 @@ enum regnames {
 	GDB_GS,			/* 23 */
 };
 
+// Again, this is very gdb-specific.  Order should be maintained the table above
+static const
+char* regstrs[] = {
+	"AX",
+	"BX",
+	"CX",
+	"DX",
+	"SI",
+	"DI",
+	"BP",
+	"SP",
+	"R8",
+	"R9",
+	"R10",
+	"R11",
+	"R12",
+	"R13",
+	"R14",
+	"R15",
+	"PC",
+	"PS",
+	"CS",
+	"SS",
+	"DS",
+	"ES",
+	"FS",
+	"GS",
+};
+
 #define GDB_ORIG_AX		57
 #define DBG_MAX_REG_NUM		24
 /* 17 64 bit regs and 5 32 bit regs */
@@ -182,7 +211,7 @@ char *mem2hex(unsigned char *mem, char *buf, int count);
 char *hex2mem(char *buf, unsigned char *mem, int count);
 void gdb_cmd_reg_get(struct state *ks);
 void gdb_cmd_reg_set(struct state *ks);
-
+uint64_t arch_get_reg(struct state *ks, int regnum);
 
 extern int isremovedbreak(unsigned long addr);
 extern void schedule_breakpoint(void);
