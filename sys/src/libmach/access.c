@@ -220,14 +220,14 @@ mget(Map *map, uint64_t addr, void *buf, int size)
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
 		k = spread(s, (void*)((uint8_t *)buf+j), size-j, off+j);
 		if (k < 0) {
-			werrstr("can't read address %llux: %r", addr);
+			werrstr("can't read address %p: %r", addr);
 			return -1;
 		}
 		j += k;
 		if (j == size)
 			return j;
 	}
-	werrstr("partial read at address %llux (size %d j %d)", addr, size, j);
+	werrstr("partial read at address %p (size %d j %d)", addr, size, j);
 	return -1;
 }
 
@@ -250,14 +250,14 @@ mput(Map *map, uint64_t addr, void *buf, int size)
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
 		k = write(s->fd, buf, size-j);
 		if (k < 0) {
-			werrstr("can't write address %llux: %r", addr);
+			werrstr("can't write address %p: %r", addr);
 			return -1;
 		}
 		j += k;
 		if (j == size)
 			return j;
 	}
-	werrstr("partial write at address %llux", addr);
+	werrstr("partial write at address %p", addr);
 	return -1;
 }
 
