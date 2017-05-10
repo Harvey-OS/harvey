@@ -104,6 +104,21 @@ gdb_cmd_reg_set(struct state *ks)
 }
 
 uint64_t
+arch_get_reg(struct state *ks, int regnum) {
+	uint64_t value = 0;
+	if (regnum <= GDB_PC) {
+		value = ((uint64_t*)ks->gdbregs)[regnum];
+
+	} else if (regnum <= GDB_GS) {
+		uint32_t* reg32base = (uint32_t*)&(((uint64_t*)ks->gdbregs)[GDB_PS]);
+		int reg32idx = regnum - GDB_PS;
+		value = reg32base[reg32idx];
+	}
+
+	return value;
+}
+
+uint64_t
 arch_get_pc(struct state *ks)
 {
 	uint64_t pc = ((uint64_t*)ks->gdbregs)[GDB_PC];
