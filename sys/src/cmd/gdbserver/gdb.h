@@ -93,34 +93,8 @@ enum regnames {
 	GDB_GS,			/* 23 */
 };
 
-// Again, this is very gdb-specific.  Order should be maintained the table above
-static const
-char* regstrs[] = {
-	"AX",
-	"BX",
-	"CX",
-	"DX",
-	"SI",
-	"DI",
-	"BP",
-	"SP",
-	"R8",
-	"R9",
-	"R10",
-	"R11",
-	"R12",
-	"R13",
-	"R14",
-	"R15",
-	"PC",
-	"PS",
-	"CS",
-	"SS",
-	"DS",
-	"ES",
-	"FS",
-	"GS",
-};
+// Again, this is very gdb-specific.
+extern char* regstrs[];
 
 #define GDB_ORIG_AX		57
 #define DBG_MAX_REG_NUM		24
