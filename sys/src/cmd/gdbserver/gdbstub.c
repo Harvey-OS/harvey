@@ -65,6 +65,34 @@ static struct state ks;
 
 static char *hex_asc = "0123456789abcdef";
 
+char* regstrs[] = {
+	[GDB_AX] = "AX",
+	[GDB_BX] = "BX",
+	[GDB_CX] = "CX",
+	[GDB_DX] = "DX",
+	[GDB_SI] = "SI",
+	[GDB_DI] = "DI",
+	[GDB_BP] = "BP",
+	[GDB_SP] = "SP",
+	[GDB_R8] = "R8",
+	[GDB_R9] = "R9",
+	[GDB_R10] = "R10",
+	[GDB_R11] = "R11",
+	[GDB_R12] = "R12",
+	[GDB_R13] = "R13",
+	[GDB_R14] = "R14",
+	[GDB_R15] = "R15",
+	[GDB_PC] = "PC",
+	[GDB_PS] = "PS",
+	[GDB_CS] = "CS",
+	[GDB_SS] = "SS",
+	[GDB_DS] = "DS",
+	[GDB_ES] = "ES",
+	[GDB_FS] = "FS",
+	[GDB_GS] = "GS",
+};
+
+
 // not reentrant, bla bla bla
 char *
 errstring(char *prefix)
