@@ -233,7 +233,7 @@ hashtable_iterator(hashtable_t *h);
  *
  * Keep this in sync with the non-externed version in the .c */
 
-extern inline void *
+static inline void *
 hashtable_iterator_key(hashtable_itr_t *i)
 {
 	return i->e->k;
@@ -244,7 +244,7 @@ hashtable_iterator_key(hashtable_itr_t *i)
  *
  * Keep this in sync with the non-externed version in the .c */
 
-extern inline void *
+static inline void *
 hashtable_iterator_value(hashtable_itr_t *i)
 {
 	return i->e->v;
