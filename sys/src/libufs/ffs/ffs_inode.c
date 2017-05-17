@@ -264,7 +264,7 @@ ffs_truncate(vp, length, flags, cred)
 		if (length != 0)
 			panic("ffs_truncate: partial truncate of symlink");
 #endif
-		bzero(SHORTLINK(ip), (u_int)ip->i_size);
+		bzero(SHORTLINK(ip), (uint)ip->i_size);
 		ip->i_size = 0;
 		DIP_SET(ip, i_size, 0);
 		ip->i_flag |= IN_CHANGE | IN_UPDATE;
@@ -416,7 +416,7 @@ ffs_truncate(vp, length, flags, cred)
 		size = blksize(fs, ip, lbn);
 		if (vp->v_type != VDIR && offset != 0)
 			bzero((char *)bp->b_data + offset,
-			    (u_int)(size - offset));
+			    (uint)(size - offset));
 		/* Kirk's code has reallocbuf(bp, size, 1) here */
 		allocbuf(bp, size);
 		if (bp->b_bufsize == fs->fs_bsize)
@@ -673,7 +673,7 @@ ffs_indirtrunc(ip, lbn, dbn, lastbn, level, countp)
 		bap2 = (ufs2_daddr_t *)bp->b_data;
 	if (lastbn != -1) {
 		copy = malloc(fs->fs_bsize, M_TEMP, M_WAITOK);
-		bcopy((caddr_t)bp->b_data, copy, (u_int)fs->fs_bsize);
+		bcopy((caddr_t)bp->b_data, copy, (uint)fs->fs_bsize);
 		for (i = last + 1; i < NINDIR(fs); i++)
 			if (I_IS_UFS1(ip))
 				bap1[i] = 0;

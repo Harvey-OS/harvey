@@ -618,7 +618,7 @@ ffs_reload(struct mount *mp, struct thread *td, int flags)
 	newfs->fs_active = fs->fs_active;
 	newfs->fs_ronly = fs->fs_ronly;
 	sblockloc = fs->fs_sblockloc;
-	bcopy(newfs, fs, (u_int)fs->fs_sbsize);
+	bcopy(newfs, fs, (uint)fs->fs_sbsize);
 	brelse(bp);
 	mp->mnt_maxsymlinklen = fs->fs_maxsymlinklen;
 	ffs_oldfscompat_read(fs, VFSTOUFS(mp), sblockloc);
@@ -639,7 +639,7 @@ ffs_reload(struct mount *mp, struct thread *td, int flags)
 	blks = howmany(size, fs->fs_fsize);
 	if (fs->fs_contigsumsize > 0)
 		size += fs->fs_ncg * sizeof(int32_t);
-	size += fs->fs_ncg * sizeof(u_int8_t);
+	size += fs->fs_ncg * sizeof(uint8_t);
 	free(fs->fs_csp, M_UFSMNT);
 	space = malloc(size, M_UFSMNT, M_WAITOK);
 	fs->fs_csp = space;
@@ -651,7 +651,7 @@ ffs_reload(struct mount *mp, struct thread *td, int flags)
 		    NOCRED, &bp);
 		if (error)
 			return (error);
-		bcopy(bp->b_data, space, (u_int)size);
+		bcopy(bp->b_data, space, (uint)size);
 		space = (char *)space + size;
 		brelse(bp);
 	}
@@ -664,8 +664,8 @@ ffs_reload(struct mount *mp, struct thread *td, int flags)
 			*lp++ = fs->fs_contigsumsize;
 		space = lp;
 	}
-	size = fs->fs_ncg * sizeof(u_int8_t);
-	fs->fs_contigdirs = (u_int8_t *)space;
+	size = fs->fs_ncg * sizeof(uint8_t);
+	fs->fs_contigdirs = (uint8_t *)space;
 	bzero(fs->fs_contigdirs, size);
 	if ((flags & FFSR_UNSUSPEND) != 0) {
 		MNT_ILOCK(mp);
@@ -883,7 +883,7 @@ ffs_mountfs(devvp, mp, td)
 	ump->um_rdonly = ffs_rdonly;
 	ump->um_snapgone = ffs_snapgone;
 	mtx_init(UFS_MTX(ump), "FFS", "FFS Lock", MTX_DEF);
-	bcopy(bp->b_data, ump->um_fs, (u_int)fs->fs_sbsize);
+	bcopy(bp->b_data, ump->um_fs, (uint)fs->fs_sbsize);
 	if (fs->fs_sbsize < SBLOCKSIZE)
 		bp->b_flags |= B_INVAL | B_NOCACHE;
 	brelse(bp);
@@ -895,7 +895,7 @@ ffs_mountfs(devvp, mp, td)
 	blks = howmany(size, fs->fs_fsize);
 	if (fs->fs_contigsumsize > 0)
 		size += fs->fs_ncg * sizeof(int32_t);
-	size += fs->fs_ncg * sizeof(u_int8_t);
+	size += fs->fs_ncg * sizeof(uint8_t);
 	space = malloc(size, M_UFSMNT, M_WAITOK);
 	fs->fs_csp = space;
 	for (i = 0; i < blks; i += fs->fs_frag) {
@@ -907,7 +907,7 @@ ffs_mountfs(devvp, mp, td)
 			free(fs->fs_csp, M_UFSMNT);
 			goto out;
 		}
-		bcopy(bp->b_data, space, (u_int)size);
+		bcopy(bp->b_data, space, (uint)size);
 		space = (char *)space + size;
 		brelse(bp);
 		bp = NULL;
@@ -918,8 +918,8 @@ ffs_mountfs(devvp, mp, td)
 			*lp++ = fs->fs_contigsumsize;
 		space = lp;
 	}
-	size = fs->fs_ncg * sizeof(u_int8_t);
-	fs->fs_contigdirs = (u_int8_t *)space;
+	size = fs->fs_ncg * sizeof(uint8_t);
+	fs->fs_contigdirs = (uint8_t *)space;
 	bzero(fs->fs_contigdirs, size);
 	fs->fs_active = NULL;
 	mp->mnt_data = ump;
@@ -1805,7 +1805,7 @@ ffs_fhtovp(mp, fhp, flags, vpp)
 	struct cg *cgp;
 	struct buf *bp;
 	ino_t ino;
-	u_int cg;
+	uint cg;
 	int error;
 
 	ufhp = (struct ufid *)fhp;
@@ -1898,7 +1898,7 @@ ffs_sbupdate(ump, waitfor, suspended)
 			size = (blks - i) * fs->fs_fsize;
 		bp = getblk(ump->um_devvp, fsbtodb(fs, fs->fs_csaddr + i),
 		    size, 0, 0, 0);
-		bcopy(space, bp->b_data, (u_int)size);
+		bcopy(space, bp->b_data, (uint)size);
 		space = (char *)space + size;
 		if (suspended)
 			bp->b_flags |= B_VALIDSUSPWRT;
@@ -1933,7 +1933,7 @@ ffs_sbupdate(ump, waitfor, suspended)
 	fs->fs_time = time_second;
 	if (MOUNTEDSOFTDEP(ump->um_mountp))
 		softdep_setup_sbupdate(ump, (struct fs *)bp->b_data, bp);
-	bcopy((caddr_t)fs, bp->b_data, (u_int)fs->fs_sbsize);
+	bcopy((caddr_t)fs, bp->b_data, (uint)fs->fs_sbsize);
 	ffs_oldfscompat_write((struct fs *)bp->b_data, ump);
 	if (suspended)
 		bp->b_flags |= B_VALIDSUSPWRT;

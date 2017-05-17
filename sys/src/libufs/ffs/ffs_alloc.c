@@ -72,10 +72,10 @@
 #include <ufs/ffs/ffs_extern.h>
 #include <ufs/ffs/softdep.h>
 
-typedef ufs2_daddr_t allocfcn_t(struct inode *ip, u_int cg, ufs2_daddr_t bpref,
+typedef ufs2_daddr_t allocfcn_t(struct inode *ip, uint cg, ufs2_daddr_t bpref,
 				  int size, int rsize);
 
-static ufs2_daddr_t ffs_alloccg(struct inode *, u_int, ufs2_daddr_t, int, int);
+static ufs2_daddr_t ffs_alloccg(struct inode *, uint, ufs2_daddr_t, int, int);
 static ufs2_daddr_t
 	      ffs_alloccgblk(struct inode *, struct buf *, ufs2_daddr_t, int);
 static void	ffs_blkfree_cg(struct ufsmount *, struct fs *,
@@ -86,14 +86,14 @@ static void	ffs_blkfree_trim_task(void *ctx, int pending __unused);
 #ifdef INVARIANTS
 static int	ffs_checkblk(struct inode *, ufs2_daddr_t, long);
 #endif
-static ufs2_daddr_t ffs_clusteralloc(struct inode *, u_int, ufs2_daddr_t, int);
+static ufs2_daddr_t ffs_clusteralloc(struct inode *, uint, ufs2_daddr_t, int);
 static ino_t	ffs_dirpref(struct inode *);
-static ufs2_daddr_t ffs_fragextend(struct inode *, u_int, ufs2_daddr_t,
-		    int, int);
+static ufs2_daddr_t ffs_fragextend(struct inode *, uint, ufs2_daddr_t,
+				   int, int);
 static ufs2_daddr_t	ffs_hashalloc
-		(struct inode *, u_int, ufs2_daddr_t, int, int, allocfcn_t *);
-static ufs2_daddr_t ffs_nodealloccg(struct inode *, u_int, ufs2_daddr_t, int,
-		    int);
+		(struct inode *, uint, ufs2_daddr_t, int, int, allocfcn_t *);
+static ufs2_daddr_t ffs_nodealloccg(struct inode *, uint, ufs2_daddr_t, int,
+				    int);
 static ufs1_daddr_t ffs_mapsearch(struct fs *, struct cg *, ufs2_daddr_t, int);
 static int	ffs_reallocblks_ufs1(struct vop_reallocblks_args *);
 static int	ffs_reallocblks_ufs2(struct vop_reallocblks_args *);
@@ -128,7 +128,7 @@ ffs_alloc(ip, lbn, bpref, size, flags, cred, bnp)
 	struct fs *fs;
 	struct ufsmount *ump;
 	ufs2_daddr_t bno;
-	u_int cg, reclaimed;
+	uint cg, reclaimed;
 	static struct timeval lastfail;
 	static int curfail;
 	int64_t delta;
@@ -141,7 +141,7 @@ ffs_alloc(ip, lbn, bpref, size, flags, cred, bnp)
 	fs = ump->um_fs;
 	mtx_assert(UFS_MTX(ump), MA_OWNED);
 #ifdef INVARIANTS
-	if ((u_int)size > fs->fs_bsize || fragoff(fs, size) != 0) {
+	if ((uint)size > fs->fs_bsize || fragoff(fs, size) != 0) {
 		printf("dev = %s, bsize = %ld, size = %d, fs = %s\n",
 		    devtoname(ump->um_dev), (long)fs->fs_bsize, size,
 		    fs->fs_fsmnt);
@@ -226,7 +226,7 @@ ffs_realloccg(ip, lbprev, bprev, bpref, osize, nsize, flags, cred, bpp)
 	struct fs *fs;
 	struct buf *bp;
 	struct ufsmount *ump;
-	u_int cg, request, reclaimed;
+	uint cg, request, reclaimed;
 	int error, gbflags;
 	ufs2_daddr_t bno;
 	static struct timeval lastfail;
@@ -243,8 +243,8 @@ ffs_realloccg(ip, lbprev, bprev, bpref, osize, nsize, flags, cred, bpp)
 #ifdef INVARIANTS
 	if (vp->v_mount->mnt_kern_flag & MNTK_SUSPENDED)
 		panic("ffs_realloccg: allocation on suspended filesystem");
-	if ((u_int)osize > fs->fs_bsize || fragoff(fs, osize) != 0 ||
-	    (u_int)nsize > fs->fs_bsize || fragoff(fs, nsize) != 0) {
+	if ((uint)osize > fs->fs_bsize || fragoff(fs, osize) != 0 ||
+	    (uint)nsize > fs->fs_bsize || fragoff(fs, nsize) != 0) {
 		printf(
 		"dev = %s, bsize = %ld, osize = %d, nsize = %d, fs = %s\n",
 		    devtoname(ump->um_dev), (long)fs->fs_bsize, osize,
@@ -1007,7 +1007,7 @@ ffs_valloc(pvp, mode, cred, vpp)
 	struct timespec ts;
 	struct ufsmount *ump;
 	ino_t ino, ipref;
-	u_int cg;
+	uint cg;
 	int error, error1, reclaimed;
 	static struct timeval lastfail;
 	static int curfail;
@@ -1129,10 +1129,10 @@ ffs_dirpref(pip)
 {
 	struct fs *fs;
 	int cg, prefcg, dirsize, cgsize;
-	u_int avgifree, avgbfree, avgndir, curdirsize;
-	u_int minifree, minbfree, maxndir;
-	u_int mincg, minndir;
-	u_int maxcontigdirs;
+	uint avgifree, avgbfree, avgndir, curdirsize;
+	uint minifree, minbfree, maxndir;
+	uint mincg, minndir;
+	uint maxcontigdirs;
 
 	mtx_assert(UFS_MTX(ITOUMP(pip)), MA_OWNED);
 	fs = ITOFS(pip);
@@ -1278,8 +1278,8 @@ ffs_blkpref_ufs1(ip, lbn, indx, bap)
 	ufs1_daddr_t *bap;
 {
 	struct fs *fs;
-	u_int cg, inocg;
-	u_int avgbfree, startcg;
+	uint cg, inocg;
+	uint avgbfree, startcg;
 	ufs2_daddr_t pref;
 
 	KASSERT(indx <= 0 || bap != NULL, ("need non-NULL bap"));
@@ -1383,8 +1383,8 @@ ffs_blkpref_ufs2(ip, lbn, indx, bap)
 	ufs2_daddr_t *bap;
 {
 	struct fs *fs;
-	u_int cg, inocg;
-	u_int avgbfree, startcg;
+	uint cg, inocg;
+	uint avgbfree, startcg;
 	ufs2_daddr_t pref;
 
 	KASSERT(indx <= 0 || bap != NULL, ("need non-NULL bap"));
@@ -1492,7 +1492,7 @@ ffs_blkpref_ufs2(ip, lbn, indx, bap)
 static ufs2_daddr_t
 ffs_hashalloc(ip, cg, pref, size, rsize, allocator)
 	struct inode *ip;
-	u_int cg;
+	uint cg;
 	ufs2_daddr_t pref;
 	int size;	/* Search size for data blocks, mode for inodes */
 	int rsize;	/* Real allocated size. */
@@ -1500,7 +1500,7 @@ ffs_hashalloc(ip, cg, pref, size, rsize, allocator)
 {
 	struct fs *fs;
 	ufs2_daddr_t result;
-	u_int i, icg = cg;
+	uint i, icg = cg;
 
 	mtx_assert(UFS_MTX(ITOUMP(ip)), MA_OWNED);
 #ifdef INVARIANTS
@@ -1551,7 +1551,7 @@ ffs_hashalloc(ip, cg, pref, size, rsize, allocator)
 static ufs2_daddr_t
 ffs_fragextend(ip, cg, bprev, osize, nsize)
 	struct inode *ip;
-	u_int cg;
+	uint cg;
 	ufs2_daddr_t bprev;
 	int osize, nsize;
 {
@@ -1563,7 +1563,7 @@ ffs_fragextend(ip, cg, bprev, osize, nsize)
 	long bno;
 	int frags, bbase;
 	int i, error;
-	u_int8_t *blksfree;
+	uint8_t *blksfree;
 
 	ump = ITOUMP(ip);
 	fs = ump->um_fs;
@@ -1635,7 +1635,7 @@ fail:
 static ufs2_daddr_t
 ffs_alloccg(ip, cg, bpref, size, rsize)
 	struct inode *ip;
-	u_int cg;
+	uint cg;
 	ufs2_daddr_t bpref;
 	int size;
 	int rsize;
@@ -1647,7 +1647,7 @@ ffs_alloccg(ip, cg, bpref, size, rsize)
 	ufs1_daddr_t bno;
 	ufs2_daddr_t blkno;
 	int i, allocsiz, error, frags;
-	u_int8_t *blksfree;
+	uint8_t *blksfree;
 
 	ump = ITOUMP(ip);
 	fs = ump->um_fs;
@@ -1748,7 +1748,7 @@ ffs_alloccgblk(ip, bp, bpref, size)
 	struct ufsmount *ump;
 	ufs1_daddr_t bno;
 	ufs2_daddr_t blkno;
-	u_int8_t *blksfree;
+	uint8_t *blksfree;
 	int i, cgbpref;
 
 	ump = ITOUMP(ip);
@@ -1823,7 +1823,7 @@ gotit:
 static ufs2_daddr_t
 ffs_clusteralloc(ip, cg, bpref, len)
 	struct inode *ip;
-	u_int cg;
+	uint cg;
 	ufs2_daddr_t bpref;
 	int len;
 {
@@ -1833,9 +1833,9 @@ ffs_clusteralloc(ip, cg, bpref, len)
 	struct ufsmount *ump;
 	int i, run, bit, map, got;
 	ufs2_daddr_t bno;
-	u_char *mapp;
+	uint8_t *mapp;
 	int32_t *lp;
-	u_int8_t *blksfree;
+	uint8_t *blksfree;
 
 	ump = ITOUMP(ip);
 	fs = ump->um_fs;
@@ -1937,7 +1937,7 @@ fail:
 }
 
 static inline struct buf *
-getinobuf(struct inode *ip, u_int cg, uint32_t cginoblk, int gbflags)
+getinobuf(struct inode *ip, uint cg, uint32_t cginoblk, int gbflags)
 {
 	struct fs *fs;
 
@@ -1959,7 +1959,7 @@ getinobuf(struct inode *ip, u_int cg, uint32_t cginoblk, int gbflags)
 static ufs2_daddr_t
 ffs_nodealloccg(ip, cg, ipref, mode, unused)
 	struct inode *ip;
-	u_int cg;
+	uint cg;
 	ufs2_daddr_t ipref;
 	int mode;
 	int unused;
@@ -1968,7 +1968,7 @@ ffs_nodealloccg(ip, cg, ipref, mode, unused)
 	struct cg *cgp;
 	struct buf *bp, *ibp;
 	struct ufsmount *ump;
-	u_int8_t *inosused, *loc;
+	uint8_t *inosused, *loc;
 	struct ufs2_dinode *dp2;
 	int error, start, len, i;
 	uint32_t old_initediblk;
@@ -2135,8 +2135,8 @@ ffs_blkfree_cg(ump, fs, devvp, bno, size, inum, dephd)
 	ufs1_daddr_t fragno, cgbno;
 	ufs2_daddr_t cgblkno;
 	int i, blk, frags, bbase;
-	u_int cg;
-	u_int8_t *blksfree;
+	uint cg;
+	uint8_t *blksfree;
 	struct cdev *dev;
 
 	cg = dtog(fs, bno);
@@ -2153,7 +2153,7 @@ ffs_blkfree_cg(ump, fs, devvp, bno, size, inum, dephd)
 	} else
 		return;
 #ifdef INVARIANTS
-	if ((u_int)size > fs->fs_bsize || fragoff(fs, size) != 0 ||
+	if ((uint)size > fs->fs_bsize || fragoff(fs, size) != 0 ||
 	    fragnum(fs, bno) + numfrags(fs, size) > fs->fs_frag) {
 		printf("dev=%s, bno = %jd, bsize = %ld, size = %ld, fs = %s\n",
 		    devtoname(dev), (intmax_t)bno, (long)fs->fs_bsize,
@@ -2161,7 +2161,7 @@ ffs_blkfree_cg(ump, fs, devvp, bno, size, inum, dephd)
 		panic("ffs_blkfree_cg: bad size");
 	}
 #endif
-	if ((u_int)bno >= fs->fs_size) {
+	if ((uint)bno >= fs->fs_size) {
 		printf("bad block %jd, ino %lu\n", (intmax_t)bno,
 		    (u_long)inum);
 		ffs_fserr(fs, inum, "bad block");
@@ -2372,15 +2372,15 @@ ffs_checkblk(ip, bno, size)
 	struct buf *bp;
 	ufs1_daddr_t cgbno;
 	int i, error, frags, free;
-	u_int8_t *blksfree;
+	uint8_t *blksfree;
 
 	fs = ITOFS(ip);
-	if ((u_int)size > fs->fs_bsize || fragoff(fs, size) != 0) {
+	if ((uint)size > fs->fs_bsize || fragoff(fs, size) != 0) {
 		printf("bsize = %ld, size = %ld, fs = %s\n",
 		    (long)fs->fs_bsize, size, fs->fs_fsmnt);
 		panic("ffs_checkblk: bad size");
 	}
-	if ((u_int)bno >= fs->fs_size)
+	if ((uint)bno >= fs->fs_size)
 		panic("ffs_checkblk: bad block %jd", (intmax_t)bno);
 	error = bread(ITODEVVP(ip), fsbtodb(fs, cgtod(fs, dtog(fs, bno))),
 		(int)fs->fs_cgsize, NOCRED, &bp);
@@ -2445,8 +2445,8 @@ ffs_freefile(ump, fs, devvp, ino, mode, wkhd)
 	struct buf *bp;
 	ufs2_daddr_t cgbno;
 	int error;
-	u_int cg;
-	u_int8_t *inosused;
+	uint cg;
+	uint8_t *inosused;
 	struct cdev *dev;
 
 	cg = ino_to_cg(fs, ino);
@@ -2520,8 +2520,8 @@ ffs_checkfreefile(fs, devvp, ino)
 	struct buf *bp;
 	ufs2_daddr_t cgbno;
 	int ret;
-	u_int cg;
-	u_int8_t *inosused;
+	uint cg;
+	uint8_t *inosused;
 
 	cg = ino_to_cg(fs, ino);
 	if (devvp->v_type == VREG) {
@@ -2567,7 +2567,7 @@ ffs_mapsearch(fs, cgp, bpref, allocsiz)
 	ufs1_daddr_t bno;
 	int start, len, loc, i;
 	int blk, field, subfield, pos;
-	u_int8_t *blksfree;
+	uint8_t *blksfree;
 
 	/*
 	 * find the fragment by searching through the free block
@@ -2579,15 +2579,15 @@ ffs_mapsearch(fs, cgp, bpref, allocsiz)
 		start = cgp->cg_frotor / NBBY;
 	blksfree = cg_blksfree(cgp);
 	len = howmany(fs->fs_fpg, NBBY) - start;
-	loc = scanc((u_int)len, (u_char *)&blksfree[start],
-		fragtbl[fs->fs_frag],
-		(u_char)(1 << (allocsiz - 1 + (fs->fs_frag % NBBY))));
+	loc = scanc((uint)len, (uint8_t *)&blksfree[start],
+		    fragtbl[fs->fs_frag],
+		    (uint8_t)(1 << (allocsiz - 1 + (fs->fs_frag % NBBY))));
 	if (loc == 0) {
 		len = start + 1;
 		start = 0;
-		loc = scanc((u_int)len, (u_char *)&blksfree[0],
-			fragtbl[fs->fs_frag],
-			(u_char)(1 << (allocsiz - 1 + (fs->fs_frag % NBBY))));
+		loc = scanc((uint)len, (uint8_t *)&blksfree[0],
+			    fragtbl[fs->fs_frag],
+			    (uint8_t)(1 << (allocsiz - 1 + (fs->fs_frag % NBBY))));
 		if (loc == 0) {
 			printf("start = %d, len = %d, fs = %s\n",
 			    start, len, fs->fs_fsmnt);
