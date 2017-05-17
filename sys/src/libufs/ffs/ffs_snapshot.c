@@ -48,10 +48,8 @@
 #define DEBUG 1
 
 #ifdef NO_FFS_SNAPSHOT
-int
-ffs_snapshot(mp, snapfile)
-	struct mount *mp;
-	char *snapfile;
+int 
+ffs_snapshot (struct mount *mp, char *snapfile)
 {
 	return (EINVAL);
 }
@@ -69,42 +67,34 @@ ffs_snapblkfree(fs, devvp, bno, size, inum, vtype, wkhd)
 	return (EINVAL);
 }
 
-void
-ffs_snapremove(vp)
-	struct vnode *vp;
+void 
+ffs_snapremove (struct vnode *vp)
 {
 }
 
-void
-ffs_snapshot_mount(mp)
-	struct mount *mp;
+void 
+ffs_snapshot_mount (struct mount *mp)
 {
 }
 
-void
-ffs_snapshot_unmount(mp)
-	struct mount *mp;
+void 
+ffs_snapshot_unmount (struct mount *mp)
 {
 }
 
-void
-ffs_snapgone(ip)
-	struct inode *ip;
+void 
+ffs_snapgone (struct inode *ip)
 {
 }
 
-int
-ffs_copyonwrite(devvp, bp)
-	struct vnode *devvp;
-	struct buf *bp;
+int 
+ffs_copyonwrite (struct vnode *devvp, struct buf *bp)
 {
 	return (EINVAL);
 }
 
-void
-ffs_sync_snap(mp, waitfor)
-	struct mount *mp;
-	int waitfor;
+void 
+ffs_sync_snap (struct mount *mp, int waitfor)
 {
 }
 
@@ -170,10 +160,8 @@ SYSCTL_INT(_debug, OID_AUTO, collectsnapstats, CTLFLAG_RW, &collectsnapstats,
 /*
  * Create a snapshot file and initialize it for the filesystem.
  */
-int
-ffs_snapshot(mp, snapfile)
-	struct mount *mp;
-	char *snapfile;
+int 
+ffs_snapshot (struct mount *mp, char *snapfile)
 {
 	ufs2_daddr_t numblks, blkno, *blkp, *snapblklist;
 	int error, cg, snaploc;
@@ -846,12 +834,8 @@ out:
  * is a revision to a previous pass which must be undone as the
  * replacement pass is done.
  */
-static int
-cgaccount(cg, vp, nbp, passno)
-	int cg;
-	struct vnode *vp;
-	struct buf *nbp;
-	int passno;
+static int 
+cgaccount (int cg, struct vnode *vp, struct buf *nbp, int passno)
 {
 	struct buf *bp, *ibp;
 	struct inode *ip;
@@ -1525,9 +1509,8 @@ mapacct_ufs2(vp, oldblkp, lastblkp, fs, lblkno, expungetype)
  * Decrement extra reference on snapshot when last name is removed.
  * It will not be freed until the last open reference goes away.
  */
-void
-ffs_snapgone(ip)
-	struct inode *ip;
+void 
+ffs_snapgone (struct inode *ip)
 {
 	struct inode *xp;
 	struct fs *fs;
@@ -1572,9 +1555,8 @@ ffs_snapgone(ip)
 /*
  * Prepare a snapshot file for being removed.
  */
-void
-ffs_snapremove(vp)
-	struct vnode *vp;
+void 
+ffs_snapremove (struct vnode *vp)
 {
 	struct inode *ip;
 	struct vnode *devvp;
@@ -1921,9 +1903,8 @@ retry:
 /*
  * Associate snapshot files when mounting.
  */
-void
-ffs_snapshot_mount(mp)
-	struct mount *mp;
+void 
+ffs_snapshot_mount (struct mount *mp)
 {
 	struct ufsmount *ump = VFSTOUFS(mp);
 	struct vnode *devvp = ump->um_devvp;
@@ -2058,9 +2039,8 @@ ffs_snapshot_mount(mp)
 /*
  * Disassociate snapshot files when unmounting.
  */
-void
-ffs_snapshot_unmount(mp)
-	struct mount *mp;
+void 
+ffs_snapshot_unmount (struct mount *mp)
 {
 	struct vnode *devvp = VFSTOUFS(mp)->um_devvp;
 	struct snapdata *sn;
@@ -2095,10 +2075,8 @@ ffs_snapshot_unmount(mp)
  * locked after snaplk. devvp shall be locked on entry, and will be
  * leaved locked upon exit.
  */
-static int
-ffs_bp_snapblk(devvp, bp)
-	struct vnode *devvp;
-	struct buf *bp;
+static int 
+ffs_bp_snapblk (struct vnode *devvp, struct buf *bp)
 {
 	struct snapdata *sn;
 	struct fs *fs;
@@ -2129,10 +2107,8 @@ ffs_bp_snapblk(devvp, bp)
 	return (0);
 }
 
-void
-ffs_bdflush(bo, bp)
-	struct bufobj *bo;
-	struct buf *bp;
+void 
+ffs_bdflush (struct bufobj *bo, struct buf *bp)
 {
 	struct thread *td;
 	struct vnode *vp, *devvp;
@@ -2205,10 +2181,8 @@ ffs_bdflush(bo, bp)
  * Check for need to copy block that is about to be written,
  * copying the block if necessary.
  */
-int
-ffs_copyonwrite(devvp, bp)
-	struct vnode *devvp;
-	struct buf *bp;
+int 
+ffs_copyonwrite (struct vnode *devvp, struct buf *bp)
 {
 	struct snapdata *sn;
 	struct buf *ibp, *cbp, *savedcbp = NULL;
@@ -2423,10 +2397,8 @@ ffs_copyonwrite(devvp, bp)
  * sync snapshots to force freework records waiting on snapshots to claim
  * blocks to free.
  */
-void
-ffs_sync_snap(mp, waitfor)
-	struct mount *mp;
-	int waitfor;
+void 
+ffs_sync_snap (struct mount *mp, int waitfor)
 {
 	struct snapdata *sn;
 	struct vnode *devvp;

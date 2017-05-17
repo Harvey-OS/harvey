@@ -157,13 +157,8 @@ ufs_delete_denied(struct vnode *vdp, struct vnode *tdp, struct ucred *cred,
  *	if not at end, add name to cache; if at end and neither creating
  *	  nor deleting, add name to cache
  */
-int
-ufs_lookup(ap)
-	struct vop_cachedlookup_args /* {
-		struct vnode *a_dvp;
-		struct vnode **a_vpp;
-		struct componentname *a_cnp;
-	} */ *ap;
+int 
+ufs_lookup (struct vop_cachedlookup_args *ap)
 {
 
 	return (ufs_lookup_ino(ap->a_dvp, ap->a_vpp, ap->a_cnp, NULL));
@@ -755,11 +750,8 @@ ufs_dirbad(ip, offset, how)
  *	name is not longer than UFS_MAXNAMLEN
  *	name must be as long as advertised, and null terminated
  */
-int
-ufs_dirbadentry(dp, ep, entryoffsetinblock)
-	struct vnode *dp;
-	struct direct *ep;
-	int entryoffsetinblock;
+int 
+ufs_dirbadentry (struct vnode *dp, struct direct *ep, int entryoffsetinblock)
 {
 	int i, namlen;
 
@@ -798,11 +790,8 @@ bad:
  * parameters that it left in the componentname argument cnp. The
  * argument ip is the inode to which the new directory entry will refer.
  */
-void
-ufs_makedirentry(ip, cnp, newdirp)
-	struct inode *ip;
-	struct componentname *cnp;
-	struct direct *newdirp;
+void 
+ufs_makedirentry (struct inode *ip, struct componentname *cnp, struct direct *newdirp)
 {
 
 #ifdef INVARIANTS
@@ -833,14 +822,8 @@ ufs_makedirentry(ip, cnp, newdirp)
  * Non-null bp indicates that a directory is being created (for the
  * soft dependency code).
  */
-int
-ufs_direnter(dvp, tvp, dirp, cnp, newdirbp, isrename)
-	struct vnode *dvp;
-	struct vnode *tvp;
-	struct direct *dirp;
-	struct componentname *cnp;
-	struct buf *newdirbp;
-	int isrename;
+int 
+ufs_direnter (struct vnode *dvp, struct vnode *tvp, struct direct *dirp, struct componentname *cnp, struct buf *newdirbp, int isrename)
 {
 	struct ucred *cr;
 	struct thread *td;
@@ -1130,12 +1113,8 @@ ufs_direnter(dvp, tvp, dirp, cnp, newdirbp, isrename)
  * the space of the now empty record by adding the record size
  * to the size of the previous entry.
  */
-int
-ufs_dirremove(dvp, ip, flags, isrmdir)
-	struct vnode *dvp;
-	struct inode *ip;
-	int flags;
-	int isrmdir;
+int 
+ufs_dirremove (struct vnode *dvp, struct inode *ip, int flags, int isrmdir)
 {
 	struct inode *dp;
 	struct direct *ep, *rep;
