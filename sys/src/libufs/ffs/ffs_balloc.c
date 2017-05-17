@@ -58,18 +58,7 @@
  *
  *	@(#)ffs_balloc.c	8.8 (Berkeley) 6/16/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/lock.h>
-#include <sys/mount.h>
-#include <sys/vnode.h>
-#include <sys/vmmeter.h>
 
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>

@@ -28,30 +28,7 @@
  *
  *	@(#)ffs_inode.c	8.13 (Berkeley) 4/21/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/proc.h>
-#include <sys/racct.h>
-#include <sys/random.h>
-#include <sys/resourcevar.h>
-#include <sys/rwlock.h>
-#include <sys/stat.h>
-#include <sys/vmmeter.h>
-#include <sys/vnode.h>
-
-#include <vm/vm.h>
-#include <vm/vm_extern.h>
-#include <vm/vm_object.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

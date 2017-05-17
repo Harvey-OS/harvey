@@ -58,34 +58,7 @@
  *
  *	@(#)ffs_alloc.c	8.18 (Berkeley) 5/26/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-
-#include <sys/param.h>
-#include <sys/capsicum.h>
-#include <sys/systm.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/conf.h>
-#include <sys/fcntl.h>
-#include <sys/file.h>
-#include <sys/filedesc.h>
-#include <sys/priv.h>
-#include <sys/proc.h>
-#include <sys/vnode.h>
-#include <sys/mount.h>
-#include <sys/kernel.h>
-#include <sys/syscallsubr.h>
-#include <sys/sysctl.h>
-#include <sys/syslog.h>
-#include <sys/taskqueue.h>
-
-#include <security/audit/audit.h>
-
-#include <geom/geom.h>
 
 #include <ufs/ufs/dir.h>
 #include <ufs/ufs/extattr.h>

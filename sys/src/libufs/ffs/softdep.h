@@ -39,8 +39,6 @@
  * $FreeBSD$
  */
 
-#include <sys/queue.h>
-
 /*
  * Allocation dependencies are handled with undo/redo on the in-memory
  * copy of the data. A particular data dependency is eliminated when

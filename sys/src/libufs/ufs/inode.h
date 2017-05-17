@@ -37,9 +37,6 @@
 
 #ifndef _UFS_UFS_INODE_H_
 #define	_UFS_UFS_INODE_H_
-
-#include <sys/lock.h>
-#include <sys/queue.h>
 #include <ufs/ufs/dinode.h>
 
 /*

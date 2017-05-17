@@ -28,21 +28,7 @@
  *
  * $FreeBSD$
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/buf.h>
-#include <sys/ioccom.h>
-#include <sys/mount.h>
-#include <sys/vnode.h>
-#include <sys/conf.h>
-#include <sys/jail.h>
-#include <sys/sx.h>
-
-#include <security/mac/mac_framework.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

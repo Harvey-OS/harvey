@@ -33,20 +33,7 @@
  *
  *	@(#)ufs_inode.c	8.9 (Berkeley) 5/14/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-#include "opt_ufs.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/vnode.h>
-#include <sys/lock.h>
-#include <sys/mount.h>
-#include <sys/malloc.h>
-#include <sys/mutex.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

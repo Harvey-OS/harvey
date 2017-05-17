@@ -28,35 +28,7 @@
  *
  *	@(#)ffs_vfsops.c	8.31 (Berkeley) 5/20/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-#include "opt_ufs.h"
-#include "opt_ffs.h"
-#include "opt_ddb.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/namei.h>
-#include <sys/priv.h>
-#include <sys/proc.h>
-#include <sys/taskqueue.h>
-#include <sys/kernel.h>
-#include <sys/vnode.h>
-#include <sys/mount.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/conf.h>
-#include <sys/fcntl.h>
-#include <sys/ioccom.h>
-#include <sys/malloc.h>
-#include <sys/mutex.h>
-#include <sys/rwlock.h>
-#include <sys/vmmeter.h>
-
-#include <security/mac/mac_framework.h>
 
 #include <ufs/ufs/dir.h>
 #include <ufs/ufs/extattr.h>
@@ -68,15 +40,6 @@ __FBSDID("$FreeBSD$");
 
 #include <ufs/ffs/fs.h>
 #include <ufs/ffs/ffs_extern.h>
-
-#include <vm/vm.h>
-#include <vm/uma.h>
-#include <vm/vm_page.h>
-
-#include <geom/geom.h>
-#include <geom/geom_vfs.h>
-
-#include <ddb/ddb.h>
 
 static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
@@ -1124,8 +1087,6 @@ out:
 	dev_rel(dev);
 	return (error);
 }
-
-#include <sys/sysctl.h>
 static int bigcgs = 0;
 SYSCTL_INT(_debug, OID_AUTO, bigcgs, CTLFLAG_RW, &bigcgs, 0, "");
 

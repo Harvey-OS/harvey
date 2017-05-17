@@ -83,8 +83,6 @@ void	 ffs_snapgone(struct inode *);
 vfs_root_t ufs_root;
 int	 ufs_uninit(struct vfsconf *);
 int	 ufs_vinit(struct mount *, struct vop_vector *, struct vnode **);
-
-#include <sys/sysctl.h>
 SYSCTL_DECL(_vfs_ufs);
 
 /*
