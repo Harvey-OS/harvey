@@ -35,8 +35,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_UFS_INODE_H_
-#define	_UFS_UFS_INODE_H_
 #include <ufs/ufs/dinode.h>
 
 /*
@@ -201,4 +199,3 @@ struct ufid {
 };
 #endif /* _KERNEL */
 
-#endif /* !_UFS_UFS_INODE_H_ */
