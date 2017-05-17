@@ -22,6 +22,7 @@ typedef uint64_t uintptr_t;
 typedef int64_t intptr_t;
 typedef uint32_t	usize;
 typedef unsigned long size_t;
+typedef long ssize_t;
 typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uintptr		jmp_buf[10]; // for registers.

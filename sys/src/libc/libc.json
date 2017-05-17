@@ -160,6 +160,7 @@
 			"port/getfields.c",
 			"port/getuser.c",
 			"port/hangup.c",
+			"port/hashtable.c",
 			"port/hypot.c",
 			"port/lnrand.c",
 			"port/lock.c",
