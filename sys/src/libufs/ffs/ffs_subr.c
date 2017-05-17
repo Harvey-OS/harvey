@@ -173,7 +173,7 @@ ffs_isblock(struct fs *fs, unsigned char *cp, ufs1_daddr_t h)
  * check if a block is free
  */
 int
-ffs_isfreeblock(struct fs *fs, u_char *cp, ufs1_daddr_t h)
+ffs_isfreeblock(struct fs *fs, uint8_t *cp, ufs1_daddr_t h)
 {
  
 	switch ((int)fs->fs_frag) {
@@ -198,7 +198,7 @@ ffs_isfreeblock(struct fs *fs, u_char *cp, ufs1_daddr_t h)
  * take a block out of the map
  */
 void
-ffs_clrblock(struct fs *fs, u_char *cp, ufs1_daddr_t h)
+ffs_clrblock(struct fs *fs, uint8_t *cp, ufs1_daddr_t h)
 {
 
 	switch ((int)fs->fs_frag) {
@@ -261,7 +261,7 @@ ffs_clusteracct(struct fs *fs, struct cg *cgp, ufs1_daddr_t blkno, int cnt)
 {
 	int32_t *sump;
 	int32_t *lp;
-	u_char *freemapp, *mapp;
+	uint8_t *freemapp, *mapp;
 	int i, start, end, forw, back, map, bit;
 
 	if (fs->fs_contigsumsize <= 0)

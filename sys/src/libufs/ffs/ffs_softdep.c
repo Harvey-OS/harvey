@@ -9662,7 +9662,7 @@ clear_unlinked_inodedep(inodedep)
 		 * that is in the list.
 		 */
 		if (pino == 0) {
-			bcopy((caddr_t)fs, bp->b_data, (u_int)fs->fs_sbsize);
+			bcopy((caddr_t)fs, bp->b_data, (uint)fs->fs_sbsize);
 			ffs_oldfscompat_write((struct fs *)bp->b_data, ump);
 			softdep_setup_sbupdate(ump, (struct fs *)bp->b_data,
 			    bp);
@@ -9686,7 +9686,7 @@ clear_unlinked_inodedep(inodedep)
 			FREE_LOCK(ump);
 			bp = getblk(ump->um_devvp, btodb(fs->fs_sblockloc),
 			    (int)fs->fs_sbsize, 0, 0, 0);
-			bcopy((caddr_t)fs, bp->b_data, (u_int)fs->fs_sbsize);
+			bcopy((caddr_t)fs, bp->b_data, (uint)fs->fs_sbsize);
 			ffs_oldfscompat_write((struct fs *)bp->b_data, ump);
 			softdep_setup_sbupdate(ump, (struct fs *)bp->b_data,
 			    bp);
