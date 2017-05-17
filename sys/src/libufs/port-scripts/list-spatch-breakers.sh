@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Prints out a list of all UFS files that cannot be fully parsed by spatch
 
