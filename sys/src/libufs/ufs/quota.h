@@ -33,9 +33,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_UFS_QUOTA_H_
-#define	_UFS_UFS_QUOTA_H_
-
 /*
  * Definitions for disk quotas imposed on the average user
  * (big brother finally hits UNIX).
@@ -252,4 +249,3 @@ __END_DECLS
 
 #endif /* _KERNEL */
 
-#endif /* !_UFS_UFS_QUOTA_H_ */

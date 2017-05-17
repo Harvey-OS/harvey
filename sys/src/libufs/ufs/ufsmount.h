@@ -30,9 +30,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_UFS_UFSMOUNT_H_
-#define	_UFS_UFS_UFSMOUNT_H_
-
 /*
  * Arguments to mount UFS-based filesystems
  */
@@ -141,4 +138,3 @@ struct ufsmount {
 #define	is_sequential(ump, a, b)	((b) == (a) + ump->um_seqinc)
 #endif /* _KERNEL */
 
-#endif
