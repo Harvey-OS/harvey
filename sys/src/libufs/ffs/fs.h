@@ -30,12 +30,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_FFS_FS_H_
-#define	_UFS_FFS_FS_H_
-
-#include <sys/mount.h>
-#include <ufs/ufs/dinode.h>
-
 /*
  * Each disk drive contains some number of filesystems.
  * A filesystem consists of a number of cylinder groups.
@@ -254,6 +248,9 @@ struct csum_total {
 	int64_t	cs_spare[3];		/* future expansion */
 };
 
+
+// FIXME
+#if 0
 /*
  * Super block for an FFS filesystem.
  */
@@ -269,7 +266,7 @@ struct fs {
 	int32_t  fs_old_time;		/* last time written */
 	int32_t	 fs_old_size;		/* number of blocks in fs */
 	int32_t	 fs_old_dsize;		/* number of data blocks in fs */
-	u_int32_t fs_ncg;		/* number of cylinder groups */
+	uint32_t fs_ncg;		/* number of cylinder groups */
 	int32_t	 fs_bsize;		/* size of basic blocks in fs */
 	int32_t	 fs_fsize;		/* size of frag blocks in fs */
 	int32_t	 fs_frag;		/* number of frags in a block in fs */
@@ -292,7 +289,7 @@ struct fs {
 	int32_t	 fs_spare1[2];		/* old fs_csmask */
 					/* old fs_csshift */
 	int32_t	 fs_nindir;		/* value of NINDIR */
-	u_int32_t fs_inopb;		/* value of INOPB */
+	uint32_t fs_inopb;		/* value of INOPB */
 	int32_t	 fs_old_nspf;		/* value of NSPF */
 /* yet another configuration parameter */
 	int32_t	 fs_optim;		/* optimization preference, see below */
@@ -309,7 +306,7 @@ struct fs {
 	int32_t  fs_old_spc;		/* sectors per cylinder */
 	int32_t	 fs_old_ncyl;		/* cylinders in filesystem */
 	int32_t	 fs_old_cpg;		/* cylinders per group */
-	u_int32_t fs_ipg;		/* inodes per group */
+	uint32_t fs_ipg;		/* inodes per group */
 	int32_t	 fs_fpg;		/* blocks per group * fs_frag */
 /* this data must be re-computed after crashes */
 	struct	csum fs_old_cstotal;	/* cylinder summary information */
@@ -769,11 +766,5 @@ CTASSERT(sizeof(union jrec) == JREC_SIZE);
 
 extern int inside[], around[];
 extern u_char *fragtbl[];
-
-/*
- * IOCTLs used for filesystem write suspension.
- */
-#define	UFSSUSPEND	_IOW('U', 1, fsid_t)
-#define	UFSRESUME	_IO('U', 2)
 
 #endif
