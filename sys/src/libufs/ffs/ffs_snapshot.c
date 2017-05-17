@@ -472,7 +472,7 @@ restart:
 			copy_fs = NULL;
 			goto out1;
 		}
-		bcopy(bp->b_data, space, (u_int)len);
+		bcopy(bp->b_data, space, (uint)len);
 		space = (char *)space + len;
 		bp->b_flags |= B_INVAL | B_NOCACHE;
 		brelse(bp);
@@ -767,7 +767,7 @@ out1:
 		brelse(nbp);
 	} else {
 		loc = blkoff(fs, fs->fs_sblockloc);
-		bcopy((char *)copy_fs, &nbp->b_data[loc], (u_int)fs->fs_sbsize);
+		bcopy((char *)copy_fs, &nbp->b_data[loc], (uint)fs->fs_sbsize);
 		bawrite(nbp);
 	}
 	/*
