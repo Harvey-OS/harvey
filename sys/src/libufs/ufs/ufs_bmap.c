@@ -33,7 +33,8 @@
  *
  *	@(#)ufs_bmap.c	8.7 (Berkeley) 3/21/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
