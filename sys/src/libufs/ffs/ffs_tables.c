@@ -29,13 +29,9 @@
  *	@(#)ffs_tables.c	8.1 (Berkeley) 6/11/93
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
-#include <sys/param.h>
-#include <sys/types.h>
-#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
+#include <u.h>
+#include <libc.h>
+#include "fs.h"
 
 /*
  * Bit patterns for identifying fragments in the block map
@@ -60,7 +56,7 @@ int inside[9] = {
  * These tables are used by the scanc instruction on the VAX to
  * quickly find an appropriate fragment.
  */
-static u_char fragtbl124[256] = {
+static uint8_t fragtbl124[256] = {
 	0x00, 0x16, 0x16, 0x2a, 0x16, 0x16, 0x26, 0x4e,
 	0x16, 0x16, 0x16, 0x3e, 0x2a, 0x3e, 0x4e, 0x8a,
 	0x16, 0x16, 0x16, 0x3e, 0x16, 0x16, 0x36, 0x5e,
@@ -95,7 +91,7 @@ static u_char fragtbl124[256] = {
 	0x9e, 0x9e, 0x9e, 0xbe, 0xaa, 0xbe, 0xce, 0x8a,
 };
 
-static u_char fragtbl8[256] = {
+static uint8_t fragtbl8[256] = {
 	0x00, 0x01, 0x01, 0x02, 0x01, 0x01, 0x02, 0x04,
 	0x01, 0x01, 0x01, 0x03, 0x02, 0x03, 0x04, 0x08,
 	0x01, 0x01, 0x01, 0x03, 0x01, 0x01, 0x03, 0x05,
@@ -133,6 +129,6 @@ static u_char fragtbl8[256] = {
 /*
  * The actual fragtbl array.
  */
-u_char *fragtbl[MAXFRAG + 1] = {
+uint8_t *fragtbl[MAXFRAG + 1] = {
 	0, fragtbl124, fragtbl124, 0, fragtbl124, 0, 0, 0, fragtbl8,
 };
