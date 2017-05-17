@@ -1152,7 +1152,7 @@ static int
 ufsdirhash_destroy(struct dirhash *dh)
 {
 	doff_t **hash;
-	u_int8_t *blkfree;
+	uint8_t *blkfree;
 	int i, mem, narrays;
 
 	KASSERT(dh->dh_hash != NULL, ("dirhash: NULL hash on list"));
