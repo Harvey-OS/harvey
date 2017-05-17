@@ -31,7 +31,8 @@
 
 #include <u.h>
 #include <libc.h>
-#include "fs.h"
+#include <dinode.h>
+#include <fs.h>
 
 /*
  * Bit patterns for identifying fragments in the block map

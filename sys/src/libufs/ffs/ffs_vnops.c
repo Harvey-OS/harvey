@@ -557,7 +557,7 @@ ffs_read(ap)
 			 * arguments point to arrays of the size specified in
 			 * the 6th argument.
 			 */
-			u_int nextsize = blksize(fs, ip, nextlbn);
+			uint nextsize = blksize(fs, ip, nextlbn);
 			error = breadn_flags(vp, lbn, size, &nextlbn,
 			    &nextsize, 1, NOCRED, GB_UNMAPPED, &bp);
 		} else {
@@ -902,7 +902,7 @@ ffs_extread(struct vnode *vp, struct uio *uio, int ioflag)
 			 * arguments point to arrays of the size specified in
 			 * the 6th argument.
 			 */
-			u_int nextsize = sblksize(fs, dp->di_extsize, nextlbn);
+			uint nextsize = sblksize(fs, dp->di_extsize, nextlbn);
 
 			nextlbn = -1 - nextlbn;
 			error = breadn(vp, -1 - lbn,
@@ -1076,8 +1076,8 @@ ffs_extwrite(struct vnode *vp, struct uio *uio, int ioflag, struct ucred *ucred)
  * the length of the EA, and possibly the pointer to the entry and to the data.
  */
 static int
-ffs_findextattr(u_char *ptr, u_int length, int nspace, const char *name,
-    struct extattr **eapp, u_char **eac)
+ffs_findextattr(uint8_t *ptr, uint length, int nspace, const char *name,
+		struct extattr **eapp, uint8_t **eac)
 {
 	struct extattr *eap, *eaend;
 	size_t nlen;
@@ -1103,16 +1103,16 @@ ffs_findextattr(u_char *ptr, u_int length, int nspace, const char *name,
 }
 
 static int
-ffs_rdextattr(u_char **p, struct vnode *vp, struct thread *td, int extra)
+ffs_rdextattr(uint8_t **p, struct vnode *vp, struct thread *td, int extra)
 {
 	struct inode *ip;
 	struct ufs2_dinode *dp;
 	struct fs *fs;
 	struct uio luio;
 	struct iovec liovec;
-	u_int easize;
+	uint easize;
 	int error;
-	u_char *eae;
+	uint8_t *eae;
 
 	ip = VTOI(vp);
 	fs = ITOFS(ip);
@@ -1343,7 +1343,7 @@ vop_deleteextattr {
 	struct extattr *eap;
 	uint32_t ul;
 	int olen, error, i, easize;
-	u_char *eae;
+	uint8_t *eae;
 	void *tmp;
 
 	ip = VTOI(ap->a_vp);
@@ -1389,7 +1389,7 @@ vop_deleteextattr {
 		return (ENOATTR);
 	}
 	ul = eap->ea_length;
-	i = (u_char *)EXTATTR_NEXT(eap) - eae;
+	i = (uint8_t *)EXTATTR_NEXT(eap) - eae;
 	bcopy(EXTATTR_NEXT(eap), eap, easize - i);
 	easize -= ul;
 
@@ -1419,7 +1419,7 @@ vop_getextattr {
 */
 {
 	struct inode *ip;
-	u_char *eae, *p;
+	uint8_t *eae, *p;
 	unsigned easize;
 	int error, ealen;
 
@@ -1537,7 +1537,7 @@ vop_setextattr {
 	uint32_t ealength, ul;
 	ssize_t ealen;
 	int olen, eapad1, eapad2, error, i, easize;
-	u_char *eae;
+	uint8_t *eae;
 	void *tmp;
 
 	ip = VTOI(ap->a_vp);
@@ -1601,10 +1601,10 @@ vop_setextattr {
 		easize += ealength;
 	} else {
 		ul = eap->ea_length;
-		i = (u_char *)EXTATTR_NEXT(eap) - eae;
+		i = (uint8_t *)EXTATTR_NEXT(eap) - eae;
 		if (ul != ealength) {
-			bcopy(EXTATTR_NEXT(eap), (u_char *)eap + ealength,
-			    easize - i);
+			bcopy(EXTATTR_NEXT(eap), (uint8_t *)eap + ealength,
+			      easize - i);
 			easize += (ealength - ul);
 		}
 	}
@@ -1629,7 +1629,7 @@ vop_setextattr {
 			ip->i_ea_error = error;
 		return (error);
 	}
-	bzero((u_char *)EXTATTR_CONTENT(eap) + ealen, eapad2);
+	bzero((uint8_t *)EXTATTR_CONTENT(eap) + ealen, eapad2);
 
 	tmp = ip->i_ea_area;
 	ip->i_ea_area = eae;
