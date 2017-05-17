@@ -1,5 +1,11 @@
 {
 	"Libufs": {
+		"Cflags": [
+			"-fasm"
+		],
+		"Include": [
+			"../lib.json"
+		],
 		"Install": "/$ARCH/lib/",
 		"Library": "libufs.a",
 		"#SourceFiles": [
@@ -11,7 +17,6 @@
 			"ffs/ffs_softdep.c",
 			"ffs/ffs_subr.c",
 			"ffs/ffs_suspend.c",
-			"ffs/ffs_tables.c",
 			"ffs/ffs_vfsops.c",
 			"ffs/ffs_vnops.c",
 			"ufs/ufs_acl.c",
@@ -26,6 +31,7 @@
 			"ufs/ufs_vnops.c"
 		],
 		"SourceFiles": [
+			"ffs/ffs_tables.c"
 		]
 	}
 }
