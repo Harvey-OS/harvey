@@ -25,9 +25,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_UFS_DIRHASH_H_
-#define	_UFS_UFS_DIRHASH_H_
-
 /*
  * For fast operations on large directories, we maintain a hash
  * that maps the file name to the offset of the directory entry within
@@ -127,4 +124,3 @@ void	ufsdirhash_free(struct inode *);
 
 void	ufsdirhash_checkblock(struct inode *, char *, doff_t);
 
-#endif /* !_UFS_UFS_DIRHASH_H_ */

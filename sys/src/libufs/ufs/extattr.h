@@ -32,9 +32,6 @@
  * Support for extended filesystem attributes.
  */
 
-#ifndef _UFS_UFS_EXTATTR_H_
-#define	_UFS_UFS_EXTATTR_H_
-
 #define	UFS_EXTATTR_MAGIC		0x00b5d5ec
 #define	UFS_EXTATTR_VERSION		0x00000003
 #define	UFS_EXTATTR_FSROOTSUBDIR	".attribute"
@@ -140,4 +137,3 @@ void	ufs_extattr_vnode_inactive(struct vnode *vp, struct thread *td);
 
 #endif /* !_KERNEL */
 
-#endif /* !_UFS_UFS_EXTATTR_H_ */

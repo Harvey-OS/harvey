@@ -32,9 +32,6 @@
  * Support for POSIX.1e access control lists.
  */
 
-#ifndef _UFS_UFS_ACL_H_
-#define	_UFS_UFS_ACL_H_
-
 #ifdef _KERNEL
 
 int	ufs_getacl_nfs4_internal(struct vnode *vp, struct acl *aclp, struct thread *td);
@@ -47,5 +44,3 @@ int	ufs_setacl(struct vop_setacl_args *);
 int	ufs_aclcheck(struct vop_aclcheck_args *);
 
 #endif /* !_KERNEL */
-
-#endif /* !_UFS_UFS_ACL_H_ */
