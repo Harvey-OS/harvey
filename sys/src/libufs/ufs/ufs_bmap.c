@@ -33,20 +33,7 @@
  *
  *	@(#)ufs_bmap.c	8.7 (Berkeley) 3/21/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/proc.h>
-#include <sys/vnode.h>
-#include <sys/mount.h>
-#include <sys/racct.h>
-#include <sys/resourcevar.h>
-#include <sys/stat.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

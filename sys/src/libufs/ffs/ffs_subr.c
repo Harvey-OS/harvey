@@ -28,24 +28,12 @@
  *
  *	@(#)ffs_subr.c	8.5 (Berkeley) 3/21/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include <sys/param.h>
 
 #ifndef _KERNEL
 #include <ufs/ufs/dinode.h>
 #include <ufs/ffs/fs.h>
 #else
-#include <sys/systm.h>
-#include <sys/lock.h>
-#include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/vnode.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/ucred.h>
 
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>

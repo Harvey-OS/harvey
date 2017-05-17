@@ -33,27 +33,7 @@
  *
  *	@(#)ufs_lookup.c	8.15 (Berkeley) 6/16/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_ufs.h"
-#include "opt_quota.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/kernel.h>
-#include <sys/namei.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/proc.h>
-#include <sys/stat.h>
-#include <sys/mount.h>
-#include <sys/vnode.h>
-#include <sys/sysctl.h>
-
-#include <vm/vm.h>
-#include <vm/vm_extern.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

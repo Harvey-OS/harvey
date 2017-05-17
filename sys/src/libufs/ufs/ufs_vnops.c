@@ -33,41 +33,7 @@
  *
  *	@(#)ufs_vnops.c	8.27 (Berkeley) 5/27/95
  */
-
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-#include "opt_suiddir.h"
-#include "opt_ufs.h"
-#include "opt_ffs.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/malloc.h>
-#include <sys/namei.h>
-#include <sys/kernel.h>
-#include <sys/fcntl.h>
-#include <sys/filio.h>
-#include <sys/stat.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/mount.h>
-#include <sys/priv.h>
-#include <sys/refcount.h>
-#include <sys/unistd.h>
-#include <sys/vnode.h>
-#include <sys/dirent.h>
-#include <sys/lockf.h>
-#include <sys/conf.h>
-#include <sys/acl.h>
-
-#include <security/mac/mac_framework.h>
-
-#include <sys/file.h>		/* XXX */
-
-#include <vm/vm.h>
-#include <vm/vm_extern.h>
+__FBSDID("$FreeBSD$");		/* XXX */
 
 #include <ufs/ufs/acl.h>
 #include <ufs/ufs/extattr.h>

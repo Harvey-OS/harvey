@@ -33,22 +33,7 @@
  *
  *	@(#)ufs_vfsops.c	8.8 (Berkeley) 5/20/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-#include "opt_ufs.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/kernel.h>
-#include <sys/lock.h>
-#include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/proc.h>
-#include <sys/socket.h>
-#include <sys/vnode.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
