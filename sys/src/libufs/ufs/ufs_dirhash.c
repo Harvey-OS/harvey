@@ -1219,8 +1219,8 @@ ufsdirhash_recycle(int wanted)
 /*
  * Callback that frees some dirhashes when the system is low on virtual memory.
  */
-static void
-ufsdirhash_lowmem()
+static void 
+ufsdirhash_lowmem (void)
 {
 	struct dirhash *dh, *dh_temp;
 	int memfreed, memwanted;
@@ -1249,8 +1249,8 @@ ufsdirhash_lowmem()
 	DIRHASHLIST_UNLOCK();
 }
 
-static int
-ufsdirhash_set_reclaimpercent(SYSCTL_HANDLER_ARGS)
+static int 
+ufsdirhash_set_reclaimpercent (int SYSCTL_HANDLER_ARGS)
 {
 	int error, v;
 
@@ -1270,8 +1270,8 @@ ufsdirhash_set_reclaimpercent(SYSCTL_HANDLER_ARGS)
 	return (0);
 }
 
-void
-ufsdirhash_init()
+void 
+ufsdirhash_init (void)
 {
 	ufs_dirhashmaxmem = lmax(roundup(hibufspace / 64, PAGE_SIZE),
 	    2 * 1024 * 1024);
@@ -1286,8 +1286,8 @@ ufsdirhash_init()
 	    EVENTHANDLER_PRI_FIRST);
 }
 
-void
-ufsdirhash_uninit()
+void 
+ufsdirhash_uninit (void)
 {
 	KASSERT(TAILQ_EMPTY(&ufsdirhash_list), ("ufsdirhash_uninit"));
 	uma_zdestroy(ufsdirhash_zone);

@@ -47,16 +47,8 @@
  * number on the disk. The conversion is done by using the logical block
  * number to index into the array of block pointers described by the dinode.
  */
-int
-ufs_bmap(ap)
-	struct vop_bmap_args /* {
-		struct vnode *a_vp;
-		daddr_t a_bn;
-		struct bufobj **a_bop;
-		daddr_t *a_bnp;
-		int *a_runp;
-		int *a_runb;
-	} */ *ap;
+int 
+ufs_bmap (struct vop_bmap_args *ap)
 {
 	ufs2_daddr_t blkno;
 	int error;
