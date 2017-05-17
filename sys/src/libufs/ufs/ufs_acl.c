@@ -30,7 +30,8 @@
  * Support for POSIX.1e access control lists: UFS-specific support functions.
  */
 
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>
