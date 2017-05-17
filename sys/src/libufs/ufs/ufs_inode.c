@@ -52,12 +52,8 @@
 /*
  * Last reference to an inode.  If necessary, write or delete it.
  */
-int
-ufs_inactive(ap)
-	struct vop_inactive_args /* {
-		struct vnode *a_vp;
-		struct thread *a_td;
-	} */ *ap;
+int 
+ufs_inactive (struct vop_inactive_args *ap)
 {
 	struct vnode *vp = ap->a_vp;
 	struct inode *ip = VTOI(vp);
@@ -193,12 +189,8 @@ ufs_prepare_reclaim(struct vnode *vp)
 /*
  * Reclaim an inode so that it can be used for other purposes.
  */
-int
-ufs_reclaim(ap)
-	struct vop_reclaim_args /* {
-		struct vnode *a_vp;
-		struct thread *a_td;
-	} */ *ap;
+int 
+ufs_reclaim (struct vop_reclaim_args *ap)
 {
 	struct vnode *vp = ap->a_vp;
 	struct inode *ip = VTOI(vp);
