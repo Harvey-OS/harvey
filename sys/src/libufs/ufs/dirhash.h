@@ -28,9 +28,6 @@
 #ifndef _UFS_UFS_DIRHASH_H_
 #define	_UFS_UFS_DIRHASH_H_
 
-#include <sys/_lock.h>
-#include <sys/_sx.h>
-
 /*
  * For fast operations on large directories, we maintain a hash
  * that maps the file name to the offset of the directory entry within
