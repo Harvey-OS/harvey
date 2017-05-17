@@ -28,7 +28,8 @@
  *
  *	@(#)ffs_vfsops.c	8.31 (Berkeley) 5/20/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/dir.h>
 #include <ufs/ufs/extattr.h>

@@ -32,7 +32,8 @@
  *
  *	@(#)ffs_snapshot.c	8.11 (McKusick) 7/23/00
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

@@ -28,7 +28,8 @@
  *
  *	@(#)ffs_inode.c	8.13 (Berkeley) 4/21/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

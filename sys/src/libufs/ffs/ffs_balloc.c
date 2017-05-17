@@ -58,7 +58,8 @@
  *
  *	@(#)ffs_balloc.c	8.8 (Berkeley) 6/16/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>

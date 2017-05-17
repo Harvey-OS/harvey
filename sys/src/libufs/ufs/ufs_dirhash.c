@@ -27,7 +27,8 @@
  * This implements a hash-based lookup scheme for UFS directories.
  */
 
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #ifdef UFS_DIRHASH
 

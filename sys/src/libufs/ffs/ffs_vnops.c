@@ -60,7 +60,8 @@
  * from: $FreeBSD: .../ufs/ufs_readwrite.c,v 1.96 2002/08/12 09:22:11 phk ...
  *	@(#)ffs_vnops.c	8.15 (Berkeley) 5/14/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

@@ -33,7 +33,8 @@
  *
  *	@(#)ufs_vnops.c	8.27 (Berkeley) 5/27/95
  */
-__FBSDID("$FreeBSD$");		/* XXX */
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/acl.h>
 #include <ufs/ufs/extattr.h>

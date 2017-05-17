@@ -31,7 +31,8 @@
  *
  *	@(#)ufs_quota.c	8.5 (Berkeley) 5/20/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
