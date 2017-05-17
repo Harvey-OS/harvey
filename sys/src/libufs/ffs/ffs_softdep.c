@@ -38,7 +38,8 @@
  *
  *	from: @(#)ffs_softdep.c	9.59 (McKusick) 6/21/00
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 /*
  * For now we want the safety net that the DEBUG flag provides.

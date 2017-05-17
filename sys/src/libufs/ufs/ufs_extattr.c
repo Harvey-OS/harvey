@@ -37,7 +37,8 @@
  * Support for filesystem extended attribute: UFS-specific support functions.
  */
 
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #include <ufs/ufs/dir.h>
 #include <ufs/ufs/extattr.h>
