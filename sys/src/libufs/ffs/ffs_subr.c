@@ -28,7 +28,8 @@
  *
  *	@(#)ffs_subr.c	8.5 (Berkeley) 3/21/95
  */
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
 #ifndef _KERNEL
 #include <ufs/ufs/dinode.h>
