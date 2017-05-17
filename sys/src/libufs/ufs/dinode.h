@@ -65,9 +65,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_UFS_DINODE_H_
-#define	_UFS_UFS_DINODE_H_
-
 /*
  * The root inode is the root of the filesystem.  Inode 0 can't be used for
  * normal purposes and historically bad blocks were linked to inode 1, thus
@@ -186,4 +183,3 @@ struct ufs1_dinode {
 	uint64_t	di_modrev;	/* 120: i_modrev for NFSv4 */
 };
 
-#endif /* _UFS_UFS_DINODE_H_ */
