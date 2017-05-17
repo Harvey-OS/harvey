@@ -30,9 +30,6 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_UFS_EXTERN_H_
-#define	_UFS_UFS_EXTERN_H_
-
 struct componentname;
 struct direct;
 struct indir;
@@ -122,4 +119,3 @@ void	softdep_revert_rmdir(struct inode *, struct inode *);
 #define	BA_SEQSHIFT	24
 #define	BA_SEQMAX	0x7F
 
-#endif /* !_UFS_UFS_EXTERN_H_ */
