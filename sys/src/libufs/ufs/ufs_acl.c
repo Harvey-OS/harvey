@@ -335,15 +335,8 @@ ufs_getacl_posix1e(struct vop_getacl_args *ap)
 	return (error);
 }
 
-int
-ufs_getacl(ap)
-	struct vop_getacl_args /* {
-		struct vnode *vp;
-		acl_type_t type;
-		struct acl *aclp;
-		struct ucred *cred;
-		struct thread *td;
-	} */ *ap;
+int 
+ufs_getacl (struct vop_getacl_args *ap)
 {
 
 	if ((ap->a_vp->v_mount->mnt_flag & (MNT_ACLS | MNT_NFS4ACLS)) == 0)
@@ -586,15 +579,8 @@ ufs_setacl_posix1e(struct vop_setacl_args *ap)
 	return (error);
 }
 
-int
-ufs_setacl(ap)
-	struct vop_setacl_args /* {
-		struct vnode *vp;
-		acl_type_t type;
-		struct acl *aclp;
-		struct ucred *cred;
-		struct thread *td;
-	} */ *ap;
+int 
+ufs_setacl (struct vop_setacl_args *ap)
 {
 	if ((ap->a_vp->v_mount->mnt_flag & (MNT_ACLS | MNT_NFS4ACLS)) == 0)
 		return (EOPNOTSUPP);
@@ -661,15 +647,8 @@ ufs_aclcheck_posix1e(struct vop_aclcheck_args *ap)
 /*
  * Check the validity of an ACL for a file.
  */
-int
-ufs_aclcheck(ap)
-	struct vop_aclcheck_args /* {
-		struct vnode *vp;
-		acl_type_t type;
-		struct acl *aclp;
-		struct ucred *cred;
-		struct thread *td;
-	} */ *ap;
+int 
+ufs_aclcheck (struct vop_aclcheck_args *ap)
 {
 
 	if ((ap->a_vp->v_mount->mnt_flag & (MNT_ACLS | MNT_NFS4ACLS)) == 0)
