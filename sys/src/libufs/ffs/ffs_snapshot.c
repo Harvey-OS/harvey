@@ -32,31 +32,7 @@
  *
  *	@(#)ffs_snapshot.c	8.11 (McKusick) 7/23/00
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_quota.h"
-
-#include <sys/param.h>
-#include <sys/kernel.h>
-#include <sys/systm.h>
-#include <sys/conf.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/fcntl.h>
-#include <sys/proc.h>
-#include <sys/namei.h>
-#include <sys/sched.h>
-#include <sys/stat.h>
-#include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/resource.h>
-#include <sys/resourcevar.h>
-#include <sys/rwlock.h>
-#include <sys/vnode.h>
-
-#include <geom/geom.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
@@ -69,8 +45,6 @@ __FBSDID("$FreeBSD$");
 
 #define KERNCRED thread0.td_ucred
 #define DEBUG 1
-
-#include "opt_ffs.h"
 
 #ifdef NO_FFS_SNAPSHOT
 int
@@ -184,7 +158,6 @@ static int ffs_bp_snapblk(struct vnode *, struct buf *);
 int dopersistence = 0;
 
 #ifdef DEBUG
-#include <sys/sysctl.h>
 SYSCTL_INT(_debug, OID_AUTO, dopersistence, CTLFLAG_RW, &dopersistence, 0, "");
 static int snapdebug = 0;
 SYSCTL_INT(_debug, OID_AUTO, snapdebug, CTLFLAG_RW, &snapdebug, 0, "");
