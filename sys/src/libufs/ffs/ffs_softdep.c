@@ -38,13 +38,7 @@
  *
  *	from: @(#)ffs_softdep.c	9.59 (McKusick) 6/21/00
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_ffs.h"
-#include "opt_quota.h"
-#include "opt_ddb.h"
 
 /*
  * For now we want the safety net that the DEBUG flag provides.
@@ -52,30 +46,6 @@ __FBSDID("$FreeBSD$");
 #ifndef DEBUG
 #define DEBUG
 #endif
-
-#include <sys/param.h>
-#include <sys/kernel.h>
-#include <sys/systm.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/kdb.h>
-#include <sys/kthread.h>
-#include <sys/ktr.h>
-#include <sys/limits.h>
-#include <sys/lock.h>
-#include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/mutex.h>
-#include <sys/namei.h>
-#include <sys/priv.h>
-#include <sys/proc.h>
-#include <sys/racct.h>
-#include <sys/rwlock.h>
-#include <sys/stat.h>
-#include <sys/sysctl.h>
-#include <sys/syslog.h>
-#include <sys/vnode.h>
-#include <sys/conf.h>
 
 #include <ufs/ufs/dir.h>
 #include <ufs/ufs/extattr.h>
@@ -86,14 +56,6 @@ __FBSDID("$FreeBSD$");
 #include <ufs/ffs/softdep.h>
 #include <ufs/ffs/ffs_extern.h>
 #include <ufs/ufs/ufs_extern.h>
-
-#include <vm/vm.h>
-#include <vm/vm_extern.h>
-#include <vm/vm_object.h>
-
-#include <geom/geom.h>
-
-#include <ddb/ddb.h>
 
 #define	KTR_SUJ	0	/* Define to KTR_SPARE. */
 

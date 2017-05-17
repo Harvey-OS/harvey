@@ -60,34 +60,7 @@
  * from: $FreeBSD: .../ufs/ufs_readwrite.c,v 1.96 2002/08/12 09:22:11 phk ...
  *	@(#)ffs_vnops.c	8.15 (Berkeley) 5/14/95
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include <sys/param.h>
-#include <sys/bio.h>
-#include <sys/systm.h>
-#include <sys/buf.h>
-#include <sys/conf.h>
-#include <sys/extattr.h>
-#include <sys/kernel.h>
-#include <sys/limits.h>
-#include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/priv.h>
-#include <sys/rwlock.h>
-#include <sys/stat.h>
-#include <sys/sysctl.h>
-#include <sys/vmmeter.h>
-#include <sys/vnode.h>
-
-#include <vm/vm.h>
-#include <vm/vm_param.h>
-#include <vm/vm_extern.h>
-#include <vm/vm_object.h>
-#include <vm/vm_page.h>
-#include <vm/vm_pager.h>
-#include <vm/vnode_pager.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
@@ -97,8 +70,6 @@ __FBSDID("$FreeBSD$");
 
 #include <ufs/ffs/fs.h>
 #include <ufs/ffs/ffs_extern.h>
-#include "opt_directio.h"
-#include "opt_ffs.h"
 
 #define	ALIGNED_TO(ptr, s)	\
 	(((uintptr_t)(ptr) & (_Alignof(s) - 1)) == 0)

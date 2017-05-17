@@ -23,20 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_ufs.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/buf.h>
-#include <sys/kernel.h>
-#include <sys/vnode.h>
-#include <sys/lock.h>
-#include <sys/mount.h>
-#include <sys/mutex.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>

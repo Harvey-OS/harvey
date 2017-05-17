@@ -37,28 +37,7 @@
  * Support for filesystem extended attribute: UFS-specific support functions.
  */
 
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-
-#include "opt_ufs.h"
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/kernel.h>
-#include <sys/namei.h>
-#include <sys/malloc.h>
-#include <sys/fcntl.h>
-#include <sys/priv.h>
-#include <sys/proc.h>
-#include <sys/vnode.h>
-#include <sys/mount.h>
-#include <sys/lock.h>
-#include <sys/dirent.h>
-#include <sys/extattr.h>
-#include <sys/sx.h>
-#include <sys/sysctl.h>
-
-#include <vm/uma.h>
 
 #include <ufs/ufs/dir.h>
 #include <ufs/ufs/extattr.h>
