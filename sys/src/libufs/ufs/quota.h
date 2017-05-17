@@ -134,8 +134,6 @@ struct dqhdr64 {
 
 #ifdef _KERNEL
 
-#include <sys/queue.h>
-
 /*
  * The following structure records disk usage for a user or group on a
  * filesystem. There is one allocated for each quota that exists on any
@@ -247,8 +245,6 @@ void	quotaadj(struct dquot **, struct ufsmount *, int64_t);
 #endif /* SOFTUPDATES */
 
 #else /* !_KERNEL */
-
-#include <sys/cdefs.h>
 
 __BEGIN_DECLS
 int	quotactl(const char *, int, int, void *);
