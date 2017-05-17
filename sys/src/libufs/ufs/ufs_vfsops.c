@@ -51,11 +51,8 @@ MALLOC_DEFINE(M_UFSMNT, "ufs_mount", "UFS mount structure");
 /*
  * Return the root of a filesystem.
  */
-int
-ufs_root(mp, flags, vpp)
-	struct mount *mp;
-	int flags;
-	struct vnode **vpp;
+int 
+ufs_root (struct mount *mp, int flags, struct vnode **vpp)
 {
 	struct vnode *nvp;
 	int error;
@@ -164,9 +161,8 @@ ufs_quotactl(mp, cmds, id, arg)
 /*
  * Initial UFS filesystems, done only once.
  */
-int
-ufs_init(vfsp)
-	struct vfsconf *vfsp;
+int 
+ufs_init (struct vfsconf *vfsp)
 {
 
 #ifdef QUOTA
@@ -181,9 +177,8 @@ ufs_init(vfsp)
 /*
  * Uninitialise UFS filesystems, done before module unload.
  */
-int
-ufs_uninit(vfsp)
-	struct vfsconf *vfsp;
+int 
+ufs_uninit (struct vfsconf *vfsp)
 {
 
 #ifdef QUOTA
@@ -201,12 +196,8 @@ ufs_uninit(vfsp)
  *
  * Call the VFS_CHECKEXP beforehand to verify access.
  */
-int
-ufs_fhtovp(mp, ufhp, flags, vpp)
-	struct mount *mp;
-	struct ufid *ufhp;
-	int flags;
-	struct vnode **vpp;
+int 
+ufs_fhtovp (struct mount *mp, struct ufid *ufhp, int flags, struct vnode **vpp)
 {
 	struct inode *ip;
 	struct vnode *nvp;

@@ -371,15 +371,8 @@ ffs_fdatasync(struct vop_fdatasync_args *ap)
 	return (ffs_syncvnode(ap->a_vp, MNT_WAIT, DATA_ONLY));
 }
 
-static int
-ffs_lock(ap)
-	struct vop_lock1_args /* {
-		struct vnode *a_vp;
-		int a_flags;
-		struct thread *a_td;
-		char *file;
-		int line;
-	} */ *ap;
+static int 
+ffs_lock (struct vop_lock1_args *ap)
 {
 #ifndef NO_FFS_SNAPSHOT
 	struct vnode *vp;
@@ -435,14 +428,8 @@ ffs_lock(ap)
 /*
  * Vnode op for reading.
  */
-static int
-ffs_read(ap)
-	struct vop_read_args /* {
-		struct vnode *a_vp;
-		struct uio *a_uio;
-		int a_ioflag;
-		struct ucred *a_cred;
-	} */ *ap;
+static int 
+ffs_read (struct vop_read_args *ap)
 {
 	struct vnode *vp;
 	struct inode *ip;
@@ -624,14 +611,8 @@ ffs_read(ap)
 /*
  * Vnode op for writing.
  */
-static int
-ffs_write(ap)
-	struct vop_write_args /* {
-		struct vnode *a_vp;
-		struct uio *a_uio;
-		int a_ioflag;
-		struct ucred *a_cred;
-	} */ *ap;
+static int 
+ffs_write (struct vop_write_args *ap)
 {
 	struct vnode *vp;
 	struct uio *uio;

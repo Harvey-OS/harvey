@@ -54,10 +54,8 @@ static int ffs_indirtrunc(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
  * reflect the presumably successful write, and if waitfor is set, then wait
  * for the write to complete.
  */
-int
-ffs_update(vp, waitfor)
-	struct vnode *vp;
-	int waitfor;
+int 
+ffs_update (struct vnode *vp, int waitfor)
 {
 	struct fs *fs;
 	struct buf *bp;
