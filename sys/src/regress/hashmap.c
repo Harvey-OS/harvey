@@ -55,7 +55,7 @@ main(void)
 			for(i = 0; i < nelem(stats); i++){
 				if(stats[i] > 0){
 					sum += stats[i];
-					print("size %zu: %zu %zu\n", i, sum, stats[i]);
+					print("size %u: %u %u\n", i, sum, stats[i]);
 				}
 			}
 		}
@@ -76,7 +76,7 @@ main(void)
 		fprint(2, "map isn't empty at the end.\n");
 		exits("map isn't empty at the end.\n");
 	}
-	print("map cap %zu at the end\n", map.cur->cap);
+	print("map cap %u at the end\n", map.cur->cap);
 
 	fprint(2, "random put/del sequencing\n");
 
@@ -126,7 +126,7 @@ main(void)
 		fprint(2, "map isn't empty at the end.\n");
 		exits(smprint("map isn't empty at the end.\n"));
 	}
-	print("map cap %zu at the end\n", map.cur->cap);
+	print("map cap %u at the end\n", map.cur->cap);
 	free(keys);
 	hmapfree(&map);
 	return 0;
