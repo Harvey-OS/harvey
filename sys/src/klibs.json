@@ -6,7 +6,8 @@
 			"/sys/src/libdraw/klibdraw.json",
 			"/sys/src/libmemdraw/klibmemdraw.json",
 			"/sys/src/libmemlayer/klibmemlayer.json",
-			"/sys/src/libsec/klibsec.json"
+			"/sys/src/libsec/klibsec.json",
+			"/sys/src/libufs"
 		]
 	}
 }
