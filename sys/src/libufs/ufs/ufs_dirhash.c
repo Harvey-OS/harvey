@@ -27,31 +27,9 @@
  * This implements a hash-based lookup scheme for UFS directories.
  */
 
-#include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include "opt_ufs.h"
-
 #ifdef UFS_DIRHASH
-
-#include <sys/param.h>
-#include <sys/systm.h>
-#include <sys/kernel.h>
-#include <sys/lock.h>
-#include <sys/mutex.h>
-#include <sys/malloc.h>
-#include <sys/fnv_hash.h>
-#include <sys/proc.h>
-#include <sys/bio.h>
-#include <sys/buf.h>
-#include <sys/vnode.h>
-#include <sys/mount.h>
-#include <sys/refcount.h>
-#include <sys/sysctl.h>
-#include <sys/sx.h>
-#include <sys/eventhandler.h>
-#include <sys/time.h>
-#include <vm/uma.h>
 
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>

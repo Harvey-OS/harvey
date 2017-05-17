@@ -104,8 +104,6 @@ struct extattr {
 
 #ifdef _KERNEL
 
-#include <sys/_sx.h>
-
 struct vnode;
 LIST_HEAD(ufs_extattr_list_head, ufs_extattr_list_entry);
 struct ufs_extattr_list_entry {
