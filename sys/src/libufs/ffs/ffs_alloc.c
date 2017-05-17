@@ -1963,7 +1963,7 @@ fail:
 }
 
 static inline struct buf *
-getinobuf(struct inode *ip, u_int cg, u_int32_t cginoblk, int gbflags)
+getinobuf(struct inode *ip, u_int cg, uint32_t cginoblk, int gbflags)
 {
 	struct fs *fs;
 
@@ -1997,7 +1997,7 @@ ffs_nodealloccg(ip, cg, ipref, mode, unused)
 	u_int8_t *inosused, *loc;
 	struct ufs2_dinode *dp2;
 	int error, start, len, i;
-	u_int32_t old_initediblk;
+	uint32_t old_initediblk;
 
 	ump = ITOUMP(ip);
 	fs = ump->um_fs;
