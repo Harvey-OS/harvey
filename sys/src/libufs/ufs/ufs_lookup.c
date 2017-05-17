@@ -817,7 +817,7 @@ ufs_makedirentry(ip, cnp, newdirp)
 	else {
 		newdirp->d_type = 0;
 #		if (BYTE_ORDER == LITTLE_ENDIAN)
-			{ u_char tmp = newdirp->d_namlen;
+			{ uint8_t tmp = newdirp->d_namlen;
 			newdirp->d_namlen = newdirp->d_type;
 			newdirp->d_type = tmp; }
 #		endif
@@ -847,9 +847,9 @@ ufs_direnter(dvp, tvp, dirp, cnp, newdirbp, isrename)
 	int newentrysize;
 	struct inode *dp;
 	struct buf *bp;
-	u_int dsize;
+	uint dsize;
 	struct direct *ep, *nep;
-	u_int64_t old_isize;
+	uint64_t old_isize;
 	int error, ret, blkoff, loc, spacefree, flags, namlen;
 	char *dirbuf;
 
@@ -1067,7 +1067,7 @@ ufs_direnter(dvp, tvp, dirp, cnp, newdirbp, isrename)
 	    dirp->d_reclen == spacefree))
 		ufsdirhash_add(dp, dirp, dp->i_offset + ((char *)ep - dirbuf));
 #endif
-	bcopy((caddr_t)dirp, (caddr_t)ep, (u_int)newentrysize);
+	bcopy((caddr_t)dirp, (caddr_t)ep, (uint)newentrysize);
 #ifdef UFS_DIRHASH
 	if (dp->i_dirhash != NULL)
 		ufsdirhash_checkblock(dp, dirbuf -

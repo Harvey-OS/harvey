@@ -1,7 +1,11 @@
 {
 	"Libufs": {
 		"Cflags": [
-			"-fasm"
+		    "-fasm",
+		    "-I",
+		    "ffs",
+		    "-I",
+		    "ufs"
 		],
 		"Include": [
 			"../lib.json"

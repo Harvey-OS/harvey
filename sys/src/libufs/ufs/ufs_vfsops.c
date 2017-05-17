@@ -106,7 +106,7 @@ ufs_quotactl(mp, cmds, id, arg)
 			return (EINVAL);
 		}
 	}
-	if ((u_int)type >= MAXQUOTAS) {
+	if ((uint)type >= MAXQUOTAS) {
 		if (cmd == Q_QUOTAON)
 			vfs_unbusy(mp);
 		return (EINVAL);
