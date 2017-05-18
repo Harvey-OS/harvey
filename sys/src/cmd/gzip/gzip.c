@@ -14,7 +14,7 @@
 #include "gzip.h"
 
 static	int	gzipf(char*, int);
-static	int	gzip(char*, int32_t, int, Biobuf*);
+static	int	gzip(char*, int32_t, int64_t, Biobuf*);
 static	int	crcread(void *fd, void *buf, int n);
 static	int	gzwrite(void *bout, void *buf, int n);
 
@@ -143,7 +143,7 @@ gzipf(char *file, int stdout)
 }
 
 static int
-gzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
+gzip(char *file, int32_t mtime, int64_t ifd, Biobuf *bout)
 {
 	int flags, err;
 
