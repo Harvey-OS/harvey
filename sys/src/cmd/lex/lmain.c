@@ -87,14 +87,16 @@ uint8_t match[NCH];
 uint8_t extra[NACTIONS];
 uint8_t *pchar, *pcptr;
 int pchlen = TOKENSIZE;
- int32_t rcount;
+int32_t rcount;
 int *verify, *advance, *stoff;
 int scon;
 uint8_t *psave;
 
 static void	free1core(void);
 static void	free2core(void);
+# ifdef DEBUG
 static void	free3core(void);
+# endif
 static void	get1core(void);
 static void	get2core(void);
 static void	get3core(void);
