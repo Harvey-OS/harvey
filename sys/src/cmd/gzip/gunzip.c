@@ -25,7 +25,7 @@ static	int	crcwrite(void *bout, void *buf, int n);
 static	int	get1(Biobuf *b);
 static	uint32_t	get4(Biobuf *b);
 static	int	gunzipf(char *file, int stdout);
-static	int	gunzip(int ofd, char *ofile, Biobuf *bin);
+static	int	gunzip(int64_t ofd, char *ofile, Biobuf *bin);
 static	void	header(Biobuf *bin, GZHead *h);
 static	void	trailer(Biobuf *bin, int32_t wlen);
 static	void	error(char*, ...);
@@ -174,7 +174,7 @@ gunzipf(char *file, int stdout)
 }
 
 static int
-gunzip(int ofd, char *ofile, Biobuf *bin)
+gunzip(int64_t ofd, char *ofile, Biobuf *bin)
 {
 	Dir *d;
 	GZHead h;
