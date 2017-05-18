@@ -76,7 +76,7 @@ prods:	prods pr
 	{	$$.i = mn2(RNEWE,$1.i,$2.i);
 		}
 	|	pr
-{	$$.i = $1.i;}
+	{	$$.i = $1.i;}
 	;
 pr:	r NEWE
 	{
