@@ -122,7 +122,7 @@ zip(Biobuf *bout, char *file, int stdout)
 	ZipHead *zh;
 	Dir *dir;
 	int64_t off;
-	int fd, err;
+	int64_t fd, err;
 
 	fd = open(file, OREAD);
 	if(fd < 0)

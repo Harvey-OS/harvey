@@ -19,7 +19,7 @@ enum
 };
 
 static	int	cheader(Biobuf *bin, ZipHead *zh);
-static	int	copyout(int ofd, Biobuf *bin, int32_t len);
+static	int	copyout(int64_t ofd, Biobuf *bin, int32_t len);
 static	int	crcwrite(void *ofd, void *buf, int n);
 static	int	findCDir(Biobuf *bin, char *file);
 static	int	get1(Biobuf *b);
@@ -410,8 +410,8 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 	Dir *d;
 	ZipHead zh;
 	char *p;
-	int64_t off;
-	int fd, isdir, ok, err;
+	int64_t off, fd;
+	int isdir, ok, err;
 
 	zh.file = nil;
 	if(setjmp(zjmp)){
@@ -700,7 +700,7 @@ crcwrite(void *out, void *buf, int n)
 }
 
 static int
-copyout(int ofd, Biobuf *bin, int32_t len)
+copyout(int64_t ofd, Biobuf *bin, int32_t len)
 {
 	char buf[BufSize];
 	int n;
