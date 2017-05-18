@@ -181,7 +181,7 @@ first(int v)	/* calculate set of positions with v as root which can be active in
 			break;
 		case RSCON:
 			i = stnum/2 +1;
-			p = (uint8_t *)right[v];
+			p = (uint8_t *)(intptr_t)right[v];
 			while(*p)
 				if(*p++ == i){
 					first(left[v]);
@@ -329,9 +329,9 @@ nextstate(int s, int c)
 	for(i = 0; i<num; i++){
 		curpos = *pos++;
 		j = name[curpos];
-		if(j < NCH && j == c
-		|| j == RSTR && c == right[curpos]
-		|| j == RCCL && member(c, ptr[curpos])){
+		if((j < NCH && j == c)
+		|| (j == RSTR && c == right[curpos])
+		|| (j == RCCL && member(c, ptr[curpos]))){
 			f = foll[curpos];
 			number = *f;
 			newpos = f+1;
