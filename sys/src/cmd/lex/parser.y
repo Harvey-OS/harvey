@@ -26,7 +26,7 @@ uint8_t *p;
 %%
 
 acc	:	lexinput
-{
+	{
 # ifdef DEBUG
 		if(debug) sect2dump();
 # endif
@@ -34,12 +34,12 @@ acc	:	lexinput
 	;
 lexinput:	defns delim prods end
 	|	defns delim end
-{
+	{
 		if(!funcflag)phead2();
 		funcflag = TRUE;
 	}
 	| error
-{
+	{
 # ifdef DEBUG
 		if(debug) {
 			sect1dump();
@@ -50,7 +50,7 @@ lexinput:	defns delim prods end
 	;
 end:		delim | ;
 defns:	defns STR STR
-{	strcpy((char*)dp,(char*)$2.cp);
+	{	strcpy((char*)dp,(char*)$2.cp);
 		def[dptr] = dp;
 		dp += strlen((char*)$2.cp) + 1;
 		strcpy((char*)dp,(char*)$3.cp);
@@ -65,7 +65,7 @@ defns:	defns STR STR
 	|
 	;
 delim:	DELIM
-{
+	{
 # ifdef DEBUG
 		if(sect == DEFSECTION && debug) sect1dump();
 # endif
@@ -73,13 +73,13 @@ delim:	DELIM
 		}
 	;
 prods:	prods pr
-{	$$.i = mn2(RNEWE,$1.i,$2.i);
+	{	$$.i = mn2(RNEWE,$1.i,$2.i);
 		}
 	|	pr
 {	$$.i = $1.i;}
 	;
 pr:	r NEWE
-{
+	{
 		if(divflg == TRUE)
 			i = mn1(S1FINAL,casecount);
 		else i = mn1(FINAL,casecount);
@@ -88,15 +88,15 @@ pr:	r NEWE
 		casecount++;
 		}
 	| error NEWE
-{
+	{
 # ifdef DEBUG
 		if(debug) sect2dump();
 # endif
 		}
 r:	CHAR
-{	$$.i = mn0($1.i); }
+	{	$$.i = mn0($1.i); }
 	| STR
-{
+	{
 		p = $1.cp;
 		i = mn0(*p++);
 		while(*p)
@@ -104,7 +104,7 @@ r:	CHAR
 		$$.i = i;
 		}
 	| '.'
-{	symbol['\n'] = 0;
+	{	symbol['\n'] = 0;
 		if(psave == FALSE){
 			p = ccptr;
 			psave = ccptr;
@@ -126,21 +126,21 @@ r:	CHAR
 		cclinter(1);
 		}
 	| CCL
-{	$$.i = mnp(RCCL,$1.cp); }
+	{	$$.i = mnp(RCCL,$1.cp); }
 	| NCCL
-{	$$.i = mnp(RNCCL,$1.cp); }
+	{	$$.i = mnp(RNCCL,$1.cp); }
 	| r '*'
-{	$$.i = mn1(STAR,$1.i); }
+	{	$$.i = mn1(STAR,$1.i); }
 	| r '+'
-{	$$.i = mn1(PLUS,$1.i); }
+	{	$$.i = mn1(PLUS,$1.i); }
 	| r '?'
-{	$$.i = mn1(QUEST,$1.i); }
+	{	$$.i = mn1(QUEST,$1.i); }
 	| r '|' r
-{	$$.i = mn2(BAR,$1.i,$3.i); }
+	{	$$.i = mn2(BAR,$1.i,$3.i); }
 	| r r %prec CAT
-{	$$.i = mn2(RCAT,$1.i,$2.i); }
+	{	$$.i = mn2(RCAT,$1.i,$2.i); }
 	| r '/' r
-{	if(!divflg){
+	{	if(!divflg){
 			j = mn1(S2FINAL,-casecount);
 			i = mn2(RCAT,$1.i,j);
 			$$.i = mn2(DIV,i,$3.i);
@@ -152,7 +152,7 @@ r:	CHAR
 		divflg = TRUE;
 		}
 	| r ITER ',' ITER '}'
-{	if($2.i > $4.i){
+	{	if($2.i > $4.i){
 			i = $2.i;
 			$2.i = $4.i;
 			$4.i = i;
@@ -173,7 +173,7 @@ r:	CHAR
 			}
 	}
 	| r ITER '}'
-{
+	{
 		if($2.i < 0)warning("Can't have negative iteration");
 		else if($2.i == 0) $$.i = mn0(RNULLS);
 		else {
@@ -184,7 +184,7 @@ r:	CHAR
 			}
 		}
 	| r ITER ',' '}'
-{
+	{
 				/* from n to infinity */
 		if($2.i < 0)warning("Can't have negative iteration");
 		else if($2.i == 0) $$.i = mn1(STAR,$1.i);
@@ -198,11 +198,11 @@ r:	CHAR
 			}
 		}
 	| SCON r
-{	$$.i = mn2(RSCON,$2.i,(uintptr)$1.cp); }
+	{	$$.i = mn2(RSCON,$2.i,(uintptr)$1.cp); }
 	| '^' r
-{	$$.i = mn1(CARAT,$2.i); }
+	{	$$.i = mn1(CARAT,$2.i); }
 	| r '$'
-{	i = mn0('\n');
+	{	i = mn0('\n');
 		if(!divflg){
 			j = mn1(S2FINAL,-casecount);
 			k = mn2(RCAT,$1.i,j);
@@ -212,12 +212,12 @@ r:	CHAR
 		divflg = TRUE;
 		}
 	| '(' r ')'
-{	$$.i = $2.i; }
+	{	$$.i = $2.i; }
 	|	NULLS
-{	$$.i = mn0(RNULLS); }
+	{	$$.i = mn0(RNULLS); }
 	;
 %%
-
+int yylex(void);
 int
 yylex(void)
 {
