@@ -1,0 +1,23 @@
+{
+	"lex": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Post": [
+			"cp ncform /sys/lib/lex",
+			"rm -f y.tab*"
+		],
+		"Pre": [
+			"yacc -d parser.y"
+		],
+		"Program": "lex",
+		"SourceFiles": [
+			"lmain.c",
+			"y.tab.c",
+			"sub1.c",
+			"sub2.c",
+			"header.c"
+		]
+	}
+}
