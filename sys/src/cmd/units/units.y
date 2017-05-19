@@ -18,7 +18,7 @@ typedef	struct	Prefix	Prefix;
 struct	Node
 {
 	double	val;
-	schar	dim[Ndim];
+	uint8_t	dim[Ndim];
 };
 struct	Var
 {
@@ -38,7 +38,7 @@ Biobuf*	fi;
 Biobuf	linebuf;
 Var*	fund[Ndim];
 Rune	line[1000];
-ulong	lineno;
+uint32_t	lineno;
 int	linep;
 int	nerrors;
 Node	one;
@@ -388,7 +388,7 @@ ralpha(int c)
 }
 
 int
-gdigit(void*)
+gdigit(void *v)
 {
 	int c;
 
@@ -615,7 +615,7 @@ lookup(int f)
 	int i;
 	Var *v, *w;
 	double p;
-	ulong h;
+	uint32_t h;
 
 	h = 0;
 	for(i=0; sym[i]; i++)
@@ -654,30 +654,30 @@ lookup(int f)
 
 Prefix	prefix[] =
 {
-	1e-24,	L"yocto",
-	1e-21,	L"zepto",
-	1e-18,	L"atto",
-	1e-15,	L"femto",
-	1e-12,	L"pico",
-	1e-9,	L"nano",
-	1e-6,	L"micro",
-	1e-6,	L"μ",
-	1e-3,	L"milli",
-	1e-2,	L"centi",
-	1e-1,	L"deci",
-	1e1,	L"deka",
-	1e2,	L"hecta",
-	1e2,	L"hecto",
-	1e3,	L"kilo",
-	1e6,	L"mega",
-	1e6,	L"meg",
-	1e9,	L"giga",
-	1e12,	L"tera",
-	1e15,	L"peta",
-	1e18,	L"exa",
-	1e21,	L"zetta",
-	1e24,	L"yotta",
-	0,	0
+	{1e-24,	(Rune *)L"yocto"},
+	{1e-21,	(Rune *)L"zepto"},
+	{1e-18,	(Rune *)L"atto"},
+	{1e-15,	(Rune *)L"femto"},
+	{1e-12,	(Rune *)L"pico"},
+	{1e-9,	(Rune *)L"nano"},
+	{1e-6,	(Rune *)L"micro"},
+	{1e-6,	(Rune *)L"μ"},
+	{1e-3,	(Rune *)L"milli"},
+	{1e-2,	(Rune *)L"centi"},
+	{1e-1,	(Rune *)L"deci"},
+	{1e1,	(Rune *)L"deka"},
+	{1e2,	(Rune *)L"hecta"},
+	{1e2,	(Rune *)L"hecto"},
+	{1e3,	(Rune *)L"kilo"},
+	{1e6,	(Rune *)L"mega"},
+	{1e6,	(Rune *)L"meg"},
+	{1e9,	(Rune *)L"giga"},
+	{1e12,	(Rune *)L"tera"},
+	{1e15,	(Rune *)L"peta"},
+	{1e18,	(Rune *)L"exa"},
+	{1e21,	(Rune *)L"zetta"},
+	{1e24,	(Rune *)L"yotta"},
+	{0,	0}
 };
 
 double
@@ -689,8 +689,8 @@ pname(void)
 	/*
 	 * rip off normal prefixs
 	 */
-	for(i=0; p=prefix[i].pname; i++) {
-		for(j=0; c=p[j]; j++)
+	for(i=0; (p=prefix[i].pname); i++) {
+		for(j=0; (c=p[j]); j++)
 			if(c != sym[j])
 				goto no;
 		memmove(sym, sym+j, (Nsym-j)*sizeof(*sym));
