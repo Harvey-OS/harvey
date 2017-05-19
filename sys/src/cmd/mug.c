@@ -1203,7 +1203,7 @@ main(int argc, char **argv)
 				case 10:
 					state.black += (m.xy.x-lastp.x)/255.0;
 					state.white += (m.xy.x-lastp.x)/255.0;
-					//state.gamma = y2gamma(p.y); /* Has it sense? Point p never was filled and is not used anymore */
+					state.gamma = y2gamma(p.y);
 					break;
 				}
 				process(rdata, orig->r, state.selr, small);
