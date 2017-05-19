@@ -217,7 +217,6 @@ r:	CHAR
 	{	$$.i = mn0(RNULLS); }
 	;
 %%
-int yylex(void);
 int
 yylex(void)
 {
