@@ -234,7 +234,7 @@ case '/':	/* look for comments */
 		Bputc(&fout, c);
 		savline=yyline;
 		savfile=yyfile;
-		while( c=gch() ){
+		while( (c=gch()) ){
 			if( c=='*' ){
 				Bputc(&fout, c);
 				if( (c=gch()) == '/' ) goto loop;
@@ -255,7 +255,7 @@ case '"':	/* character string */
 	string:
 
 		Bputc(&fout, c);
-		while( c=gch() ){
+		while( (c=gch()) ){
 			if( c=='\\' ){
 				Bputc(&fout, c);
 				c=gch();
