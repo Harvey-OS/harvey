@@ -1,0 +1,9 @@
+{
+	"buildflags": {
+		"Cflags": [
+			"-fno-pie",
+			"-fvar-tracking",
+			"-fvar-tracking-assignments"
+		]
+	}
+}
