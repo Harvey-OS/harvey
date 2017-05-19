@@ -1,0 +1,18 @@
+{
+	"bc": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Post": [
+			"rm -f y.tab*"
+		],
+		"Pre": [
+			"yacc -d bc.y"
+		],
+		"Program": "bc",
+		"SourceFiles": [
+			"y.tab.c"
+		]
+	}
+}

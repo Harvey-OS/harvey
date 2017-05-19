@@ -77,11 +77,12 @@
 	void	pp(char*);
 	void	routput(char*);
 	void	tp(char*);
+	int yylex(void);
 	void	yyerror(char*, ...);
 	int	yyparse(void);
 
 	typedef	void*	pointer;
-	#pragma	varargck	type	"lx"	pointer
+	/* #pragma	varargck	type	"lx"	pointer */
 
 %}
 %union
@@ -91,7 +92,7 @@
 }
 
 %type	<cptr>	pstat stat stat1 def slist dlets e ase nase
-%type	<cptr>	slist re fprefix cargs eora cons constant lora
+%type	<cptr>	re fprefix cargs eora cons constant lora
 %type	<cptr>	crs
 
 %token	<cptr>	LETTER EQOP _AUTO DOT
@@ -238,7 +239,7 @@ fprefix:
 	}
 
 BLEV:
-	=
+	'='
 	{
 		--bindx;
 	}
@@ -404,7 +405,8 @@ nase:
 	{
 		bundle(3, "l", getf($1), "x");
 	}
-|	LETTER = {
+|	LETTER '='
+	{
 		bundle(2, "l", $1);
 	}
 |	LENGTH '(' e ')'
@@ -527,7 +529,7 @@ constant:
 	}
 
 crs:
-	=
+	'='
 	{
 		$$ = cp;
 		*cp++ = '<';
@@ -825,7 +827,7 @@ bundle(int a, ...)
 	}
 	*bsp_nxt++ = 0;
 	va_end(arg);
-	yyval.cptr = (char*)q;
+	yylval.cptr = (char*)q;
 	return (char*)q;
 }
 
@@ -885,9 +887,9 @@ pp(char *s)
 {
 	/* puts the relevant stuff on pre and post for the letter s */
 	bundle(3, "S", s, pre);
-	pre = yyval.cptr;
+	pre = yylval.cptr;
 	bundle(4, post, "L", s, "s.");
-	post = yyval.cptr;
+	post = yylval.cptr;
 }
 
 void
@@ -895,9 +897,9 @@ tp(char *s)
 {
 	/* same as pp, but for temps */
 	bundle(3, "0S", s, pre);
-	pre = yyval.cptr;
+	pre = yylval.cptr;
 	bundle(4, post, "L", s, "s.");
-	post = yyval.cptr;
+	post = yylval.cptr;
 }
 
 void
