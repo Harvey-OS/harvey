@@ -1033,7 +1033,7 @@ main(int argc, char **argv)
 	double gammatab[256];
 	Event e;
 	Mouse m;
-	Point lastp, p;
+	Point lastp, p = {};
 	Rectangle nselr, rbig9[9];
 
 	ARGBEGIN{
