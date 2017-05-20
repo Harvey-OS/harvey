@@ -83,7 +83,7 @@ struct ufsmount {
 	int64_t	um_savedmaxfilesize;		/* XXX - limit maxfilesize */
 	int	um_candelete;			/* devvp supports TRIM */
 	int	um_writesuspended;		/* suspension in progress */
-	u_int	um_trim_inflight;
+	uint	um_trim_inflight;
 	struct taskqueue *um_trim_tq;
 	int	(*um_balloc)(struct vnode *, off_t, int, struct ucred *,
 		    int, struct buf **);

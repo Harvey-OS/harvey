@@ -65,7 +65,7 @@ void	ffs_blkfree(struct ufsmount *, struct fs *, struct vnode *,
 ufs2_daddr_t ffs_blkpref_ufs1(struct inode *, ufs_lbn_t, int, ufs1_daddr_t *);
 ufs2_daddr_t ffs_blkpref_ufs2(struct inode *, ufs_lbn_t, int, ufs2_daddr_t *);
 int	ffs_checkfreefile(struct fs *, struct vnode *, ino_t);
-void	ffs_clrblock(struct fs *, u_char *, ufs1_daddr_t);
+void	ffs_clrblock(struct fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_clusteracct(struct fs *, struct cg *, ufs1_daddr_t, int);
 void	ffs_bdflush(struct bufobj *, struct buf *);
 int	ffs_copyonwrite(struct vnode *, struct buf *);
@@ -74,8 +74,8 @@ void	ffs_fragacct(struct fs *, int, int32_t [], int);
 int	ffs_freefile(struct ufsmount *, struct fs *, struct vnode *, ino_t,
 	    int, struct workhead *);
 void	ffs_fserr(struct fs *, ino_t, char *);
-int	ffs_isblock(struct fs *, u_char *, ufs1_daddr_t);
-int	ffs_isfreeblock(struct fs *, u_char *, ufs1_daddr_t);
+int	ffs_isblock(struct fs *, uint8_t *, ufs1_daddr_t);
+int	ffs_isfreeblock(struct fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_load_inode(struct buf *, struct inode *, struct fs *, ino_t);
 void	ffs_oldfscompat_write(struct fs *, struct ufsmount *);
 int	ffs_own_mount(const struct mount *mp);
@@ -84,7 +84,7 @@ int	ffs_realloccg(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
 	    ufs2_daddr_t, int, int, int, struct ucred *, struct buf **);
 int	ffs_reload(struct mount *, struct thread *, int);
 int	ffs_sbupdate(struct ufsmount *, int, int);
-void	ffs_setblock(struct fs *, u_char *, ufs1_daddr_t);
+void	ffs_setblock(struct fs *, uint8_t *, ufs1_daddr_t);
 int	ffs_snapblkfree(struct fs *, struct vnode *, ufs2_daddr_t, long, ino_t,
 	    enum vtype, struct workhead *);
 void	ffs_snapremove(struct vnode *vp);
