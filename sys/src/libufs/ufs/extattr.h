@@ -54,15 +54,15 @@
 #define	UFS_EXTATTR_CMD_DISABLE		0x00000004
 
 struct ufs_extattr_fileheader {
-	u_int	uef_magic;	/* magic number for sanity checking */
-	u_int	uef_version;	/* version of attribute file */
-	u_int	uef_size;	/* size of attributes, w/o header */
+	uint	uef_magic;	/* magic number for sanity checking */
+	uint	uef_version;	/* version of attribute file */
+	uint	uef_size;	/* size of attributes, w/o header */
 };
 
 struct ufs_extattr_header {
-	u_int	ueh_flags;	/* flags for attribute */
-	u_int	ueh_len;	/* local defined length; <= uef_size */
-	u_int32_t	ueh_i_gen;	/* generation number for sanity */
+	uint	ueh_flags;	/* flags for attribute */
+	uint	ueh_len;	/* local defined length; <= uef_size */
+	uint32_t	ueh_i_gen;	/* generation number for sanity */
 	/* data follows the header */
 };
 
@@ -90,9 +90,9 @@ struct extattr {
  *	content referenced by eap.
  */
 #define	EXTATTR_NEXT(eap) \
-	((struct extattr *)(((u_char *)(eap)) + (eap)->ea_length))
+	((struct extattr *)(((uint8_t *)(eap)) + (eap)->ea_length))
 #define	EXTATTR_CONTENT(eap) \
-	(void *)(((u_char *)(eap)) + EXTATTR_BASE_LENGTH(eap))
+	(void *)(((uint8_t *)(eap)) + EXTATTR_BASE_LENGTH(eap))
 #define	EXTATTR_CONTENT_SIZE(eap) \
 	((eap)->ea_length - EXTATTR_BASE_LENGTH(eap) - (eap)->ea_contentpadlen)
 /* -1 below compensates for ea_name[1] */
