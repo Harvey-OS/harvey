@@ -61,16 +61,16 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
-#include <ufs/ufs/ufsmount.h>
+#include "../ufs/dir.h"
+#include "../ufs/extattr.h"
+#include "../ufs/quota.h"
+#include "../ufs/inode.h"
+#include "../ufs/ufs_extern.h"
+#include "../ufs/ufsmount.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
-#include <ufs/ffs/softdep.h>
+#include "fs.h"
+#include "ffs_extern.h"
+#include "softdep.h"
 
 typedef ufs2_daddr_t allocfcn_t(struct inode *ip, uint cg, ufs2_daddr_t bpref,
 				  int size, int rsize);

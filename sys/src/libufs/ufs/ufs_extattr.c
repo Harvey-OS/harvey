@@ -40,12 +40,12 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "dir.h"
+#include "extattr.h"
+#include "quota.h"
+#include "ufsmount.h"
+#include "inode.h"
+#include "ufs_extern.h"
 
 #ifdef UFS_EXTATTR
 

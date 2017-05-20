@@ -31,13 +31,13 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
+#include "../ufs/extattr.h"
+#include "../ufs/quota.h"
+#include "../ufs/ufsmount.h"
+#include "../ufs/inode.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+#include "fs.h"
+#include "ffs_extern.h"
 
 static d_open_t ffs_susp_open;
 static d_write_t ffs_susp_rdwr;

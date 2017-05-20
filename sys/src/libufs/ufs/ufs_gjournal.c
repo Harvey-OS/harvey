@@ -26,14 +26,14 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/gjournal.h>
+#include "extattr.h"
+#include "quota.h"
+#include "inode.h"
+#include "ufsmount.h"
+#include "gjournal.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+#include "../ffs/fs.h"
+#include "../ffs/ffs_extern.h"
 
 /*
  * Change the number of unreferenced inodes.

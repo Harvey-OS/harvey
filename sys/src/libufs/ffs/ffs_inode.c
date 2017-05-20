@@ -31,14 +31,14 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "../ufs/extattr.h"
+#include "../ufs/quota.h"
+#include "../ufs/ufsmount.h"
+#include "../ufs/inode.h"
+#include "../ufs/ufs_extern.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+#include "fs.h"
+#include "ffs_extern.h"
 
 static int ffs_indirtrunc(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
 	    ufs2_daddr_t, int, ufs2_daddr_t *);

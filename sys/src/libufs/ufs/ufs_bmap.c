@@ -36,11 +36,11 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "extattr.h"
+#include "quota.h"
+#include "inode.h"
+#include "ufsmount.h"
+#include "ufs_extern.h"
 
 /*
  * Bmap converts the logical block number of a file to its physical block

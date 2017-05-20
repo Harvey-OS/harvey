@@ -33,14 +33,14 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/acl.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
-#include <ufs/ffs/fs.h>
+#include "quota.h"
+#include "inode.h"
+#include "acl.h"
+#include "extattr.h"
+#include "dir.h"
+#include "ufsmount.h"
+#include "ufs_extern.h"
+#include "../ffs/fs.h"
 
 #ifdef UFS_ACL
 
