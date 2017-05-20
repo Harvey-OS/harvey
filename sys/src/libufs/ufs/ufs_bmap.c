@@ -36,11 +36,13 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "extattr.h"
+#include "quota.h"
+#include "freebsd_util.h"
+#include "dinode.h"
+#include "inode.h"
+#include "ufsmount.h"
+#include "ufs_extern.h"
 
 /*
  * Bmap converts the logical block number of a file to its physical block
@@ -83,13 +85,13 @@ ufs_bmap (struct vop_bmap_args *ap)
  */
 
 int
-ufs_bmaparray(vp, bn, bnp, nbp, runp, runb)
-	struct vnode *vp;
-	ufs2_daddr_t bn;
-	ufs2_daddr_t *bnp;
-	struct buf *nbp;
-	int *runp;
-	int *runb;
+ufs_bmaparray(
+	struct vnode *vp,
+	ufs2_daddr_t bn,
+	ufs2_daddr_t *bnp,
+	struct buf *nbp,
+	int *runp,
+	int *runb)
 {
 	struct inode *ip;
 	struct buf *bp;
@@ -291,11 +293,11 @@ ufs_bmaparray(vp, bn, bnp, nbp, runp, runb)
  * once with the offset into the page itself.
  */
 int
-ufs_getlbns(vp, bn, ap, nump)
-	struct vnode *vp;
-	ufs2_daddr_t bn;
-	struct indir *ap;
-	int *nump;
+ufs_getlbns(
+	struct vnode *vp,
+	ufs2_daddr_t bn,
+	struct indir *ap,
+	int *nump)
 {
 	ufs2_daddr_t blockcnt;
 	ufs_lbn_t metalbn, realbn;
