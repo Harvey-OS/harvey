@@ -243,9 +243,7 @@ void	quotaadj(struct dquot **, struct ufsmount *, int64_t);
 
 #else /* !_KERNEL */
 
-__BEGIN_DECLS
 int	quotactl(const char *, int, int, void *);
-__END_DECLS
 
 #endif /* _KERNEL */
 
