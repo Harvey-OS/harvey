@@ -32,17 +32,17 @@
 #include <libc.h>
 
 #ifndef _KERNEL
-#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
+#include "../ufs/dinode.h"
+#include "fs.h"
 #else
 
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
-#include <ufs/ffs/ffs_extern.h>
-#include <ufs/ffs/fs.h>
+#include "../ufs/quota.h"
+#include "../ufs/inode.h"
+#include "../ufs/extattr.h"
+#include "../ufs/ufsmount.h"
+#include "../ufs/ufs_extern.h"
+#include "ffs_extern.h"
+#include "fs.h"
 
 /*
  * Return buffer with the contents of block "offset" from the beginning of

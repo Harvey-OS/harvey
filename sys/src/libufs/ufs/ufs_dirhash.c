@@ -32,13 +32,13 @@
 
 #ifdef UFS_DIRHASH
 
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/dirhash.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "quota.h"
+#include "inode.h"
+#include "dir.h"
+#include "dirhash.h"
+#include "extattr.h"
+#include "ufsmount.h"
+#include "ufs_extern.h"
 
 #define WRAPINCR(val, limit)	(((val) + 1 == (limit)) ? 0 : ((val) + 1))
 #define WRAPDECR(val, limit)	(((val) == 0) ? ((limit) - 1) : ((val) - 1))

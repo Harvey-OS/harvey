@@ -35,7 +35,7 @@
  * $FreeBSD$
  */
 
-#include <ufs/ufs/dinode.h>
+#include "dinode.h"
 
 /*
  * This must agree with the definition in <ufs/ufs/dir.h>.

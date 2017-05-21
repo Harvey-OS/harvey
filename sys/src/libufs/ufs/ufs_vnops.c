@@ -36,18 +36,18 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/acl.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "acl.h"
+#include "extattr.h"
+#include "quota.h"
+#include "inode.h"
+#include "dir.h"
+#include "ufsmount.h"
+#include "ufs_extern.h"
 #ifdef UFS_DIRHASH
-#include <ufs/ufs/dirhash.h>
+#include "dirhash.h"
 #endif
 #ifdef UFS_GJOURNAL
-#include <ufs/ufs/gjournal.h>
+#include "gjournal.h"
 FEATURE(ufs_gjournal, "Journaling support through GEOM for UFS");
 #endif
 
@@ -62,7 +62,7 @@ FEATURE(suiddir,
 #endif
 
 
-#include <ufs/ffs/ffs_extern.h>
+#include "../ffs/ffs_extern.h"
 
 static vop_accessx_t	ufs_accessx;
 static int ufs_chmod(struct vnode *, int, struct ucred *, struct thread *);
