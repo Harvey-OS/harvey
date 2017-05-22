@@ -29,7 +29,7 @@
 	char*	pre;
 	char*	post;
 
-	long	peekc = -1;
+	int32_t	peekc = -1;
 	int	sargc;
 	int	ifile;
 	char**	sargv;
@@ -101,10 +101,10 @@
 %token	<cc>	_RETURN _BREAK _DEFINE BASE OBASE SCALE
 %token	<cc>	QSTR ERROR
 
-%right	'=' EQOP
+%right '=' EQOP
 %left	'+' '-'
 %left	'*' '/' '%'
-%right	'^'
+%right '^'
 %left	UMINUS
 
 %%
@@ -239,7 +239,6 @@ fprefix:
 	}
 
 BLEV:
-	'='
 	{
 		--bindx;
 	}
@@ -529,7 +528,6 @@ constant:
 	}
 
 crs:
-	'='
 	{
 		$$ = cp;
 		*cp++ = '<';
@@ -775,7 +773,7 @@ cpeek(int c, int yes, int no)
 int
 getch(void)
 {
-	long ch;
+	int32_t ch;
 
 loop:
 	ch = peekc;

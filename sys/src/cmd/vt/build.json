@@ -1,0 +1,15 @@
+{
+	"vt": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "vt",
+		"SourceFiles": [
+			"consctl.c",
+      "event.c",
+      "main.c",
+      "vt.c"
+		]
+	}
+}
