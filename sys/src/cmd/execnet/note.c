@@ -12,7 +12,7 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "/sys/src/libthread/threadimpl.h"
+#include <threadimpl.h>
 
 int	_threadnopasser;
 
