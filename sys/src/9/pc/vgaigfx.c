@@ -16,6 +16,8 @@ static ulong
 stolenmb(Pcidev *p)
 {
 	switch(p->did){
+	case 0x0412:	/* Haswell HD Graphics 4600 */
+	case 0x0a16:	/* Haswell HD Graphics 4400 */
 	case 0x0166:	/* Ivy Bridge */
 	case 0x0102:	/* Core-5 Sandy Bridge */
 	case 0x0152:	/* Core-i3 */
@@ -142,7 +144,7 @@ enum {
 	CURBASE,
 	CURPOS,
 
-	NPIPE = 3,
+	NPIPE = 4,
 };
 
 static u32int*
@@ -152,11 +154,18 @@ igfxcurregs(VGAscr* scr, int pipe)
 
 	if(scr->mmio == nil || scr->storage == 0)
 		return nil;
-	o = pipe*0x1000;
+	o = pipe == 3 ? 0xf000 : pipe*0x1000;
 	/* check PIPExCONF if enabled */
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
 	switch(scr->pci->did){
+	case 0x0412:	/* Haswell HD Graphics 4600 */
+	case 0x0a16:	/* Haswell HD Graphics 4400 */
+		if(pipe > 3)
+			return nil;
+		if(pipe == 3)
+			o = 0;
+		break;
 	case 0x0166:	/* Ivy Bridge */
 	case 0x0152:	/* Core-i3 */
 		if(pipe > 2)
