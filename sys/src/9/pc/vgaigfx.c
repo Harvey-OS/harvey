@@ -18,7 +18,6 @@ stolenmb(Pcidev *p)
 	switch(p->did){
 	case 0x0412:	/* Haswell HD Graphics 4600 */
 	case 0x0a16:	/* Haswell HD Graphics 4400 */
-	case 0x0126:	/* Sandy Bridge HD Graphics 3000 */
 	case 0x0166:	/* Ivy Bridge */
 	case 0x0102:	/* Core-5 Sandy Bridge */
 	case 0x0152:	/* Core-i3 */
