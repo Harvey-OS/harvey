@@ -35,7 +35,7 @@ newclient(void)
 
 	c = emalloc(sizeof(Client));
 	c->writerkick = chancreate(sizeof(void*), 1);
-	c->execpid = chancreate(sizeof(ulong), 0);
+	c->execpid = chancreate(sizeof(uint32_t), 0);
 	c->cmd = nocmd;
 
 	c->readerproc = ioproc();
@@ -358,7 +358,7 @@ execthread(void *a)
 	c = a;
 	snprint(tmp, sizeof tmp, "exec%d", c->num);
 	threadsetname(tmp);
-	c->execpid = chancreate(sizeof(ulong), 0);
+	c->execpid = chancreate(sizeof(uint32_t), 0);
 	proccreate(execproc, c, STACK);
 	p = recvul(c->execpid);
 	chanfree(c->execpid);
@@ -425,7 +425,7 @@ ctlwrite(Req *r, Client *c)
 			goto Out;
 		}
 		c->status = Exec;
-		if(p = strrchr(f[1], '!'))
+		if((p = strrchr(f[1], '!')))
 			*p = '\0';
 		c->cmd = emalloc(4+1+strlen(f[1])+1);
 		strcpy(c->cmd, "exec ");
