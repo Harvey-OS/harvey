@@ -287,7 +287,7 @@ snarfpipe(Igfx *igfx, int x)
 
 	p = &igfx->pipe[x];
 
-	o = 0x60000 + x*0x1000;
+	o = x == 3 ? 0x6F000 : 0x60000 + x*0x1000;
 	snarftrans(igfx, p, o);
 
 	if(igfx->type != TypeHSW || x != 3)
@@ -328,10 +328,13 @@ snarfpipe(Igfx *igfx, int x)
 	p->dsp->stride		= snarfreg(igfx, 0x70188 + x*0x1000);
 	p->dsp->tileoff		= snarfreg(igfx, 0x701A4 + x*0x1000);
 	p->dsp->surf		= snarfreg(igfx, 0x7019C + x*0x1000);
+	if(igfx->type == TypeHSW)
+		p->dsp->leftsurf = snarfreg(igfx, 0x701B0 + x*0x1000);
 
 	/* cursor plane */
 	switch(igfx->type){
 	case TypeIVB:
+	case TypeHSW:
 		p->cur->cntr	= snarfreg(igfx, 0x70080 + x*0x1000);
 		p->cur->base	= snarfreg(igfx, 0x70084 + x*0x1000);
 		p->cur->pos	= snarfreg(igfx, 0x70088 + x*0x1000);
@@ -719,6 +722,20 @@ genpll(int freq, int cref, int P2, int *m1, int *m2, int *n, int *p1)
 
 static int
 initdpll(Igfx *igfx, int x, int freq, int islvds, int ishdmi)
+{
+	Dpll *dpll;
+
+	dpll = &igfx->dpll[x];
+	if(igfx->type == TypeG45){
+		if(((dpll->ctrl.v >> 13) & 3) == 3)
+			return 100*MHz;
+		return 96*MHz;
+	}
+	return 120*MHz;
+}
+
+static int
+initdpll(Igfx *igfx, int x, int freq, int port)
 {
 	int cref, m1, m2, n, n2, p1, p2, r2;
 	Dpll *dpll;
@@ -1413,8 +1430,16 @@ disablepipe(Igfx *igfx, int x)
 	csr(igfx, p->dsp->cntr.a, 1<<31, 0);
 	csr(igfx, p->dsp->surf.a, ~0, 0);	/* arm */
 	/* cursor off */
-	csr(igfx, p->cur->cntr.a, 1<<5 | 7, 0);
-	csr(igfx, p->cur->base.a, ~0, 0);	/* arm */
+	if(igfx->type == TypeHSW)
+		csr(igfx, p->cur->cntr.a, 0x3F, 0);
+	else
+		csr(igfx, p->cur->cntr.a, 1<<5 | 7, 0);
+	wr(igfx, p->cur->base.a, 0);	/* arm */
+
+	/* display/overlay/cursor planes off */
+	if(igfx->type == TypeG45)
+		csr(igfx, p->conf.a, 0, 3<<18);
+	csr(igfx, p->src.a, ~0, 0);
 
 	/* disable cpu pipe */
 	disabletrans(igfx, p);
@@ -1652,6 +1677,57 @@ dumppipe(Igfx *igfx, int x)
 }
 
 static void
+dumpdpll(Igfx *igfx, int x)
+{
+	int cref, m1, m2, n, p1, p2;
+	uvlong freq;
+	char name[32];
+	Dpll *dpll;
+	u32int m;
+
+	dpll = &igfx->dpll[x];
+	snprint(name, sizeof(name), "%s dpll %c", igfx->ctlr->name, 'a'+x);
+
+	dumpreg(name, "ctrl", dpll->ctrl);
+	dumpreg(name, "fp0", dpll->fp0);
+	dumpreg(name, "fp1", dpll->fp1);
+
+	if(igfx->type == TypeHSW)
+		return;
+
+	p2 = ((dpll->ctrl.v >> 13) & 3) == 3 ? 14 : 10;
+	if(((dpll->ctrl.v >> 24) & 3) == 1)
+		p2 >>= 1;
+	m = (dpll->ctrl.v >> 16) & 0xFF;
+	for(p1 = 1; p1 <= 8; p1++)
+		if(m & (1<<(p1-1)))
+			break;
+	printitem(name, "ctrl p1");
+	Bprint(&stdout, " %d\n", p1);
+	printitem(name, "ctrl p2");
+	Bprint(&stdout, " %d\n", p2);
+
+	n = (dpll->fp0.v >> 16) & 0x3f;
+	m1 = (dpll->fp0.v >> 8) & 0x3f;
+	m2 = (dpll->fp0.v >> 0) & 0x3f;
+
+	cref = getcref(igfx, x);
+	freq = ((uvlong)cref * (5*(m1+2) + (m2+2)) / (n+2)) / (p1 * p2);
+
+	printitem(name, "fp0 m1");
+	Bprint(&stdout, " %d\n", m1);
+	printitem(name, "fp0 m2");
+	Bprint(&stdout, " %d\n", m2);
+	printitem(name, "fp0 n");
+	Bprint(&stdout, " %d\n", n);
+
+	printitem(name, "cref");
+	Bprint(&stdout, " %d\n", cref);
+	printitem(name, "fp0 freq");
+	Bprint(&stdout, " %lld\n", freq);
+}
+
+static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	char name[32];
@@ -1683,6 +1759,13 @@ dump(Vga* vga, Ctlr* ctlr)
 	for(x=0; x<nelem(igfx->dp); x++){
 		snprint(name, sizeof(name), "%s dp %c", ctlr->name, 'a'+x);
 		dumpreg(name, "ctl", igfx->dp[x].ctl);
+		dumpreg(name, "bufctl", igfx->dp[x].bufctl);
+		dumpreg(name, "stat", igfx->dp[x].stat);
+		dumphex(name, "dpcd", igfx->dp[x].dpcd, sizeof(igfx->dp[x].dpcd));
+		for(y=0; y<nelem(igfx->dp[x].buftrans); y++){
+			snprint(name, sizeof(name), "%s buftrans %c %d", ctlr->name, 'a'+x, y);
+			dumpreg(name, "ctl", igfx->dp[x].buftrans[y]);
+		}
 	}
 	for(x=0; x<nelem(igfx->hdmi); x++){
 		snprint(name, sizeof(name), "%s hdmi %c", ctlr->name, 'a'+x);
