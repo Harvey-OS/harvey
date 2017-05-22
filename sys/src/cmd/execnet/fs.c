@@ -55,15 +55,15 @@ struct Tab
 
 Tab tab[] =
 {
-	"/",		DMDIR|0555,
-	"exec",	DMDIR|0555,
-	"clone",	0666,
-	nil,		DMDIR|0555,
-	"ctl",		0666,
-	"data",	0666,
-	"local",	0444,
-	"remote",	0444,
-	"status",	0444,
+	{"/",		DMDIR|0555},
+	{"exec",	DMDIR|0555},
+	{"clone",	0666},
+	{nil,		DMDIR|0555},
+	{"ctl",		0666},
+	{"data",	0666},
+	{"local",	0444},
+	{"remote",	0444},
+	{"status",	0444},
 };
 
 void
@@ -108,7 +108,7 @@ fsstat(Req *r)
 }
 
 static int
-rootgen(int i, Dir *d, void*)
+rootgen(int i, Dir *d, void *v)
 {
 	if(i < 1){
 		fillstat(d, PATH(Qexec, 0));
@@ -118,7 +118,7 @@ rootgen(int i, Dir *d, void*)
 }
 
 static int
-execgen(int i, Dir *d, void*)
+execgen(int i, Dir *d, void *v)
 {
 	if(i < 1){
 		fillstat(d, PATH(Qclone, 0));
@@ -367,7 +367,7 @@ Channel *creq;
 Channel *creqwait;
 
 static void
-fsthread(void*)
+fsthread(void *v)
 {
 	uint32_t path;
 	Alt a[3];
