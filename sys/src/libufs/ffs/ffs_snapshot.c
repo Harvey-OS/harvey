@@ -433,7 +433,7 @@ restart:
 	 * Grab a copy of the superblock and its summary information.
 	 * We delay writing it until the suspension is released below.
 	 */
-	copy_fs = malloc((u_long)fs->fs_bsize, M_UFSMNT, M_WAITOK);
+	copy_fs = malloc((uint64_t)fs->fs_bsize, M_UFSMNT, M_WAITOK);
 	bcopy(fs, copy_fs, fs->fs_sbsize);
 	if ((fs->fs_flags & (FS_UNCLEAN | FS_NEEDSFSCK)) == 0)
 		copy_fs->fs_clean = 1;
@@ -444,7 +444,7 @@ restart:
 	size = blkroundup(fs, fs->fs_cssize);
 	if (fs->fs_contigsumsize > 0)
 		size += fs->fs_ncg * sizeof(int32_t);
-	space = malloc((u_long)size, M_UFSMNT, M_WAITOK);
+	space = malloc((uint64_t)size, M_UFSMNT, M_WAITOK);
 	copy_fs->fs_csp = space;
 	bcopy(fs->fs_csp, copy_fs->fs_csp, fs->fs_cssize);
 	space = (char *)space + fs->fs_cssize;

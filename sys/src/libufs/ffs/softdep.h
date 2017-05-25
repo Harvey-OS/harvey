@@ -1034,17 +1034,17 @@ struct mount_softdeps {
 	struct	bmsafemaphd sd_dirtycg;		/* Dirty CGs */
 	struct	mkdirlist sd_mkdirlisthd;	/* Track mkdirs */
 	struct	pagedep_hashhead *sd_pdhash;	/* pagedep hash table */
-	u_long	sd_pdhashsize;			/* pagedep hash table size-1 */
+	uint64_t	sd_pdhashsize;			/* pagedep hash table size-1 */
 	long	sd_pdnextclean;			/* next hash bucket to clean */
 	struct	inodedep_hashhead *sd_idhash;	/* inodedep hash table */
-	u_long	sd_idhashsize;			/* inodedep hash table size-1 */
+	uint64_t	sd_idhashsize;			/* inodedep hash table size-1 */
 	long	sd_idnextclean;			/* next hash bucket to clean */
 	struct	newblk_hashhead *sd_newblkhash;	/* newblk hash table */
-	u_long	sd_newblkhashsize;		/* newblk hash table size-1 */
+	uint64_t	sd_newblkhashsize;		/* newblk hash table size-1 */
 	struct	bmsafemap_hashhead *sd_bmhash;	/* bmsafemap hash table */
-	u_long	sd_bmhashsize;			/* bmsafemap hash table size-1*/
+	uint64_t	sd_bmhashsize;			/* bmsafemap hash table size-1*/
 	struct	indir_hashhead *sd_indirhash;	/* indir hash table */
-	u_long	sd_indirhashsize;		/* indir hash table size-1 */
+	uint64_t	sd_indirhashsize;		/* indir hash table size-1 */
 	int	sd_on_journal;			/* Items on the journal list */
 	int	sd_on_worklist;			/* Items on the worklist */
 	int	sd_deps;			/* Total dependency count */
@@ -1055,7 +1055,7 @@ struct mount_softdeps {
 	struct	thread *sd_flushtd;		/* thread handling flushing */
 	TAILQ_ENTRY(mount_softdeps) sd_next;	/* List of softdep filesystem */
 	struct	ufsmount *sd_ump;		/* our ufsmount structure */
-	u_long	sd_curdeps[D_LAST + 1];		/* count of current deps */
+	uint64_t	sd_curdeps[D_LAST + 1];		/* count of current deps */
 };
 /*
  * Flags for communicating with the syncer thread.
