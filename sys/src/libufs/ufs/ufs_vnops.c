@@ -2040,7 +2040,7 @@ ufs_readdir (struct vop_readdir_args *ap)
 	struct buf *bp;
 	struct inode *ip;
 	struct direct *dp, *edp;
-	u_long *cookies;
+	uint64_t *cookies;
 	struct dirent dstdp;
 	off_t offset, startoffset;
 	size_t readcnt, skipcnt;
@@ -2218,8 +2218,8 @@ ufs_print (struct vop_print_args *ap)
 	struct vnode *vp = ap->a_vp;
 	struct inode *ip = VTOI(vp);
 
-	printf("\tino %lu, on dev %s", (u_long)ip->i_number,
-	    devtoname(ITODEV(ip)));
+	printf("\tino %lu, on dev %s", (uint64_t)ip->i_number,
+	       devtoname(ITODEV(ip)));
 	if (vp->v_type == VFIFO)
 		fifo_printinfo(vp);
 	printf("\n");
