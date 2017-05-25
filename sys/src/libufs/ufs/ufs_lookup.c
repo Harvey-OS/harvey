@@ -185,7 +185,7 @@ ufs_lookup_ino(struct vnode *vdp, struct vnode **vpp, struct componentname *cnp,
 	struct vnode *pdp;		/* saved dp during symlink work */
 	struct vnode *tdp;		/* returned by VFS_VGET */
 	doff_t enduseful;		/* pointer past last used dir slot */
-	u_long bmask;			/* block offset mask */
+	uint64_t bmask;			/* block offset mask */
 	int namlen, error;
 	struct ucred *cred = cnp->cn_cred;
 	int flags = cnp->cn_flags;
@@ -862,12 +862,12 @@ ufs_direnter (struct vnode *dvp, struct vnode *tvp, struct direct *dirp, struct 
 		}
 #endif
 		old_isize = dp->i_size;
-		vnode_pager_setsize(dvp, (u_long)dp->i_offset + DIRBLKSIZ);
+		vnode_pager_setsize(dvp, (uint64_t)dp->i_offset + DIRBLKSIZ);
 		if ((error = UFS_BALLOC(dvp, (off_t)dp->i_offset, DIRBLKSIZ,
 		    cr, flags, &bp)) != 0) {
 			if (DOINGSOFTDEP(dvp) && newdirbp != NULL)
 				bdwrite(newdirbp);
-			vnode_pager_setsize(dvp, (u_long)old_isize);
+			vnode_pager_setsize(dvp, (uint64_t)old_isize);
 			return (error);
 		}
 		dp->i_size = dp->i_offset + DIRBLKSIZ;

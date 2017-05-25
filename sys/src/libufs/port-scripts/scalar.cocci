@@ -20,6 +20,13 @@ typedef uint64_t;
 + uint64_t
 
 @@
+typedef u_long;
+typedef uint64_t;
+@@
+- u_long
++ uint64_t
+
+@@
 typedef u_char;
 typedef uint8_t;
 @@
@@ -38,4 +45,3 @@ typedef uint;
 @@
 - u_int
 + uint
-

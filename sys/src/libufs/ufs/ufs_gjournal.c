@@ -73,7 +73,7 @@ ufs_gjournal_modref(struct vnode *vp, int count)
 	}
 	if ((uint)ino >= fs->fs_ipg * fs->fs_ncg)
 		panic("ufs_gjournal_modref: range: dev = %s, ino = %lu, fs = %s",
-		    devtoname(dev), (u_long)ino, fs->fs_fsmnt);
+		    devtoname(dev), (uint64_t)ino, fs->fs_fsmnt);
 	if ((error = bread(devvp, cgbno, (int)fs->fs_cgsize, NOCRED, &bp))) {
 		brelse(bp);
 		return (error);
