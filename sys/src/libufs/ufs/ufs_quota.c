@@ -58,7 +58,7 @@ static int chkdqchg(struct inode *, ufs2_daddr_t, struct ucred *, int, int *);
 static int chkiqchg(struct inode *, int, struct ucred *, int, int *);
 static int dqopen(struct vnode *, struct ufsmount *, int);
 static int dqget(struct vnode *,
-	u_long, struct ufsmount *, int, struct dquot **);
+	uint64_t, struct ufsmount *, int, struct dquot **);
 static int dqsync(struct vnode *, struct dquot *);
 static int dqflush(struct vnode *);
 static int quotaoff1(struct thread *td, struct mount *mp, int type);
@@ -748,8 +748,8 @@ quotaoff(struct thread *td, struct mount *mp, int type)
  * Q_GETQUOTA - return current values in a dqblk structure.
  */
 static int
-_getquota(struct thread *td, struct mount *mp, u_long id, int type,
-    struct dqblk64 *dqb)
+_getquota(struct thread *td, struct mount *mp, uint64_t id, int type,
+	  struct dqblk64 *dqb)
 {
 	struct dquot *dq;
 	int error;
@@ -789,8 +789,8 @@ _getquota(struct thread *td, struct mount *mp, u_long id, int type,
  * Q_SETQUOTA - assign an entire dqblk structure.
  */
 static int
-_setquota(struct thread *td, struct mount *mp, u_long id, int type,
-    struct dqblk64 *dqb)
+_setquota(struct thread *td, struct mount *mp, uint64_t id, int type,
+	  struct dqblk64 *dqb)
 {
 	struct dquot *dq;
 	struct dquot *ndq;
@@ -852,8 +852,8 @@ _setquota(struct thread *td, struct mount *mp, u_long id, int type,
  * Q_SETUSE - set current inode and block usage.
  */
 static int
-_setuse(struct thread *td, struct mount *mp, u_long id, int type,
-    struct dqblk64 *dqb)
+_setuse(struct thread *td, struct mount *mp, uint64_t id, int type,
+	struct dqblk64 *dqb)
 {
 	struct dquot *dq;
 	struct ufsmount *ump;
@@ -899,7 +899,8 @@ _setuse(struct thread *td, struct mount *mp, u_long id, int type,
 }
 
 int
-getquota32(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
+getquota32(struct thread *td, struct mount *mp, uint64_t id, int type,
+	   void *addr)
 {
 	struct dqblk32 dqb32;
 	struct dqblk64 dqb64;
@@ -914,7 +915,8 @@ getquota32(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
 }
 
 int
-setquota32(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
+setquota32(struct thread *td, struct mount *mp, uint64_t id, int type,
+	   void *addr)
 {
 	struct dqblk32 dqb32;
 	struct dqblk64 dqb64;
@@ -929,7 +931,8 @@ setquota32(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
 }
 
 int
-setuse32(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
+setuse32(struct thread *td, struct mount *mp, uint64_t id, int type,
+	 void *addr)
 {
 	struct dqblk32 dqb32;
 	struct dqblk64 dqb64;
@@ -944,7 +947,8 @@ setuse32(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
 }
 
 int
-getquota(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
+getquota(struct thread *td, struct mount *mp, uint64_t id, int type,
+	 void *addr)
 {
 	struct dqblk64 dqb64;
 	int error;
@@ -957,7 +961,8 @@ getquota(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
 }
 
 int
-setquota(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
+setquota(struct thread *td, struct mount *mp, uint64_t id, int type,
+	 void *addr)
 {
 	struct dqblk64 dqb64;
 	int error;
@@ -970,7 +975,7 @@ setquota(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
 }
 
 int
-setuse(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
+setuse(struct thread *td, struct mount *mp, uint64_t id, int type, void *addr)
 {
 	struct dqblk64 dqb64;
 	int error;
@@ -986,8 +991,8 @@ setuse(struct thread *td, struct mount *mp, u_long id, int type, void *addr)
  * Q_GETQUOTASIZE - get bit-size of quota file fields
  */
 int
-getquotasize(struct thread *td, struct mount *mp, u_long id, int type,
-    void *sizep)
+getquotasize(struct thread *td, struct mount *mp, uint64_t id, int type,
+	     void *sizep)
 {
 	struct ufsmount *ump = VFSTOUFS(mp);
 	int bitsize;
@@ -1092,7 +1097,7 @@ qsyncvp(struct vnode *vp)
 #define DQHASH(dqvp, id) \
 	(&dqhashtbl[((((intptr_t)(dqvp)) >> 8) + id) & dqhash])
 static LIST_HEAD(dqhash, dquot) *dqhashtbl;
-static u_long dqhash;
+static uint64_t dqhash;
 
 /*
  * Dquot free list.
@@ -1110,8 +1115,8 @@ struct mtx dqhlock;
 #define	DQH_LOCK()	mtx_lock(&dqhlock)
 #define	DQH_UNLOCK()	mtx_unlock(&dqhlock)
 
-static struct dquot *dqhashfind(struct dqhash *dqh, u_long id,
-	struct vnode *dqvp);
+static struct dquot *dqhashfind(struct dqhash *dqh, uint64_t id,
+				struct vnode *dqvp);
 
 /*
  * Initialize the quota system.
@@ -1143,7 +1148,7 @@ dquninit(void)
 }
 
 static struct dquot *
-dqhashfind(struct dqhash *dqh, u_long id, struct vnode *dqvp)
+dqhashfind(struct dqhash *dqh, uint64_t id, struct vnode *dqvp)
 {
 	struct dquot *dq;
 
@@ -1222,8 +1227,8 @@ dqopen(struct vnode *vp, struct ufsmount *ump, int type)
  * reading the information from the file if necessary.
  */
 static int
-dqget(struct vnode *vp, u_long id, struct ufsmount *ump, int type,
-    struct dquot **dqp)
+dqget(struct vnode *vp, uint64_t id, struct ufsmount *ump, int type,
+      struct dquot **dqp)
 {
 	uint8_t buf[sizeof(struct dqblk64)];
 	off_t base, recsize;
