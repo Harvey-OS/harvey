@@ -29,7 +29,7 @@
 	char*	pre;
 	char*	post;
 
-	int32_t	peekc = -1;
+	int	peekc = -1;
 	int	sargc;
 	int	ifile;
 	char**	sargv;
@@ -82,7 +82,6 @@
 	int	yyparse(void);
 
 	typedef	void*	pointer;
-	/* #pragma	varargck	type	"lx"	pointer */
 
 %}
 %union
@@ -773,7 +772,7 @@ cpeek(int c, int yes, int no)
 int
 getch(void)
 {
-	int32_t ch;
+	int ch;
 
 loop:
 	ch = peekc;
