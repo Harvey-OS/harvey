@@ -66,12 +66,12 @@ struct ufsmount {
 	struct	g_consumer *um_cp;
 	struct	bufobj *um_bo;			/* Buffer cache object */
 	struct	vnode *um_devvp;		/* block device mounted vnode */
-	u_long	um_fstype;			/* type of filesystem */
+	uint64_t	um_fstype;			/* type of filesystem */
 	struct	fs *um_fs;			/* pointer to superblock */
 	struct	ufs_extattr_per_mount um_extattr;	/* extended attrs */
-	u_long	um_nindir;			/* indirect ptrs per block */
-	u_long	um_bptrtodb;			/* indir ptr to disk block */
-	u_long	um_seqinc;			/* inc between seq blocks */
+	uint64_t	um_nindir;			/* indirect ptrs per block */
+	uint64_t	um_bptrtodb;			/* indir ptr to disk block */
+	uint64_t	um_seqinc;			/* inc between seq blocks */
 	struct	mtx um_lock;			/* Protects ufsmount & fs */
 	pid_t	um_fsckpid;			/* PID permitted fsck sysctls */
 	struct	mount_softdeps *um_softdep;	/* softdep mgmt structure */
