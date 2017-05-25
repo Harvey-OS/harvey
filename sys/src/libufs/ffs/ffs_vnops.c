@@ -249,7 +249,7 @@ loop:
 			continue;
 		if (bp->b_lblkno > lbn)
 			panic("ffs_syncvnode: syncing truncated data.");
-		if (BUF_LOCK(bp, LK_EXCLUSIVE | LK_NOWAIT, NULL) == 0) {
+		if (BUF_LOCK(bp, LK_EXCLUSIVE | LK_NOWAIT, nil) == 0) {
 			BO_UNLOCK(bo);
 		} else if (wait) {
 			if (BUF_LOCK(bp,
@@ -348,7 +348,7 @@ next:
 			if (wait || ++passes < UFS_NIADDR + 2)
 				goto loop;
 #ifdef INVARIANTS
-			if (!vn_isdisk(vp, NULL))
+			if (!vn_isdisk(vp, nil))
 				vn_printf(vp, "ffs_fsync: dirty ");
 #endif
 		}
@@ -405,9 +405,10 @@ ffs_lock (struct vop_lock1_args *ap)
 			 * right lock.  Release it, and try to get the
 			 * new lock.
 			 */
-			(void) _lockmgr_args(lkp, LK_RELEASE, NULL,
-			    LK_WMESG_DEFAULT, LK_PRIO_DEFAULT, LK_TIMO_DEFAULT,
-			    ap->a_file, ap->a_line);
+			(void) _lockmgr_args(lkp, LK_RELEASE, nil,
+					     LK_WMESG_DEFAULT,
+					     LK_PRIO_DEFAULT, LK_TIMO_DEFAULT,
+					     ap->a_file, ap->a_line);
 			if ((flags & (LK_INTERLOCK | LK_NOWAIT)) ==
 			    (LK_INTERLOCK | LK_NOWAIT))
 				return (EBUSY);
@@ -486,7 +487,7 @@ ffs_read (struct vop_read_args *ap)
 	    uio->uio_offset >= fs->fs_maxfilesize)
 		return (EOVERFLOW);
 
-	for (error = 0, bp = NULL; uio->uio_resid > 0; bp = NULL) {
+	for (error = 0, bp = nil; uio->uio_resid > 0; bp = nil) {
 		if ((bytesinfile = ip->i_size - uio->uio_offset) <= 0)
 			break;
 		lbn = lblkno(fs, uio->uio_offset);
@@ -558,7 +559,7 @@ ffs_read (struct vop_read_args *ap)
 		}
 		if (error) {
 			brelse(bp);
-			bp = NULL;
+			bp = nil;
 			break;
 		}
 
@@ -595,7 +596,7 @@ ffs_read (struct vop_read_args *ap)
 	 * and on normal completion has not set a new value into it.
 	 * so it must have come from a 'break' statement
 	 */
-	if (bp != NULL)
+	if (bp != nil)
 		vfs_bio_brelse(bp, ioflag);
 
 	if ((error == 0 || uio->uio_resid != orig_resid) &&
@@ -838,7 +839,7 @@ ffs_extread(struct vnode *vp, struct uio *uio, int ioflag)
 		return (0);
 	KASSERT(uio->uio_offset >= 0, ("ffs_extread: uio->uio_offset < 0"));
 
-	for (error = 0, bp = NULL; uio->uio_resid > 0; bp = NULL) {
+	for (error = 0, bp = nil; uio->uio_resid > 0; bp = nil) {
 		if ((bytesinfile = dp->di_extsize - uio->uio_offset) <= 0)
 			break;
 		lbn = lblkno(fs, uio->uio_offset);
@@ -891,7 +892,7 @@ ffs_extread(struct vnode *vp, struct uio *uio, int ioflag)
 		}
 		if (error) {
 			brelse(bp);
-			bp = NULL;
+			bp = nil;
 			break;
 		}
 
@@ -922,7 +923,7 @@ ffs_extread(struct vnode *vp, struct uio *uio, int ioflag)
 	 * and on normal completion has not set a new value into it.
 	 * so it must have come from a 'break' statement
 	 */
-	if (bp != NULL)
+	if (bp != nil)
 		vfs_bio_brelse(bp, ioflag);
 	return (error);
 }
@@ -1074,9 +1075,9 @@ ffs_findextattr(uint8_t *ptr, uint length, int nspace, const char *name,
 		if (eap->ea_namespace != nspace || eap->ea_namelength != nlen
 		    || memcmp(eap->ea_name, name, nlen) != 0)
 			continue;
-		if (eapp != NULL)
+		if (eapp != nil)
 			*eapp = eap;
-		if (eac != NULL)
+		if (eac != nil)
 			*eac = EXTATTR_CONTENT(eap);
 		return (EXTATTR_CONTENT_SIZE(eap));
 	}
@@ -1162,7 +1163,7 @@ ffs_open_ea(struct vnode *vp, struct ucred *cred, struct thread *td)
 	ip = VTOI(vp);
 
 	ffs_lock_ea(vp);
-	if (ip->i_ea_area != NULL) {
+	if (ip->i_ea_area != nil) {
 		ip->i_ea_refs++;
 		ffs_unlock_ea(vp);
 		return (0);
@@ -1195,7 +1196,7 @@ ffs_close_ea(struct vnode *vp, int commit, struct ucred *cred, struct thread *td
 	ip = VTOI(vp);
 
 	ffs_lock_ea(vp);
-	if (ip->i_ea_area == NULL) {
+	if (ip->i_ea_area == nil) {
 		ffs_unlock_ea(vp);
 		return (EINVAL);
 	}
@@ -1221,7 +1222,7 @@ ffs_close_ea(struct vnode *vp, int commit, struct ucred *cred, struct thread *td
 	}
 	if (--ip->i_ea_refs == 0) {
 		free(ip->i_ea_area, M_TEMP);
-		ip->i_ea_area = NULL;
+		ip->i_ea_area = nil;
 		ip->i_ea_len = 0;
 		ip->i_ea_error = 0;
 	}
@@ -1347,7 +1348,7 @@ vop_deleteextattr {
 		 * ffs_lock_ea is not needed there, because the vnode
 		 * must be exclusively locked.
 		 */
-		if (ip->i_ea_area != NULL && ip->i_ea_error == 0)
+		if (ip->i_ea_area != nil && ip->i_ea_error == 0)
 			ip->i_ea_error = error;
 		return (error);
 	}
@@ -1362,7 +1363,7 @@ vop_deleteextattr {
 	easize = ip->i_ea_len;
 
 	olen = ffs_findextattr(eae, easize, ap->a_attrnamespace, ap->a_name,
-	    &eap, NULL);
+	    &eap, nil);
 	if (olen == -1) {
 		/* delete but nonexistent */
 		free(eae, M_TEMP);
@@ -1422,12 +1423,12 @@ vop_getextattr {
 	easize = ip->i_ea_len;
 
 	ealen = ffs_findextattr(eae, easize, ap->a_attrnamespace, ap->a_name,
-	    NULL, &p);
+	    nil, &p);
 	if (ealen >= 0) {
 		error = 0;
-		if (ap->a_size != NULL)
+		if (ap->a_size != nil)
 			*ap->a_size = ealen;
-		else if (ap->a_uio != NULL)
+		else if (ap->a_uio != nil)
 			error = uiomove(p, ealen, ap->a_uio);
 	} else
 		error = ENOATTR;
@@ -1471,7 +1472,7 @@ vop_listextattr {
 		return (error);
 
 	error = 0;
-	if (ap->a_size != NULL)
+	if (ap->a_size != nil)
 		*ap->a_size = 0;
 
 	KASSERT(ALIGNED_TO(ip->i_ea_area, struct extattr), ("unaligned"));
@@ -1485,9 +1486,9 @@ vop_listextattr {
 			continue;
 
 		ealen = eap->ea_namelength;
-		if (ap->a_size != NULL)
+		if (ap->a_size != nil)
 			*ap->a_size += ealen + 1;
-		else if (ap->a_uio != NULL)
+		else if (ap->a_uio != nil)
 			error = uiomove(&eap->ea_namelength, ealen + 1,
 			    ap->a_uio);
 	}
@@ -1531,7 +1532,7 @@ vop_setextattr {
 		return (EINVAL);
 
 	/* XXX Now unsupported API to delete EAs using NULL uio. */
-	if (ap->a_uio == NULL)
+	if (ap->a_uio == nil)
 		return (EOPNOTSUPP);
 
 	if (ap->a_vp->v_mount->mnt_flag & MNT_RDONLY)
@@ -1549,7 +1550,7 @@ vop_setextattr {
 		 * ffs_lock_ea is not needed there, because the vnode
 		 * must be exclusively locked.
 		 */
-		if (ip->i_ea_area != NULL && ip->i_ea_error == 0)
+		if (ip->i_ea_area != nil && ip->i_ea_error == 0)
 			ip->i_ea_error = error;
 		return (error);
 	}
@@ -1573,7 +1574,7 @@ vop_setextattr {
 	easize = ip->i_ea_len;
 
 	olen = ffs_findextattr(eae, easize, ap->a_attrnamespace, ap->a_name,
-	    &eap, NULL);
+	    &eap, nil);
         if (olen == -1) {
 		/* new, append at end */
 		KASSERT(ALIGNED_TO(eae + easize, struct extattr),
@@ -1592,7 +1593,7 @@ vop_setextattr {
 	if (easize > lblktosize(fs, UFS_NXADDR)) {
 		free(eae, M_TEMP);
 		ffs_close_ea(ap->a_vp, 0, ap->a_cred, ap->a_td);
-		if (ip->i_ea_area != NULL && ip->i_ea_error == 0)
+		if (ip->i_ea_area != nil && ip->i_ea_error == 0)
 			ip->i_ea_error = ENOSPC;
 		return (ENOSPC);
 	}
@@ -1606,7 +1607,7 @@ vop_setextattr {
 	if (error) {
 		free(eae, M_TEMP);
 		ffs_close_ea(ap->a_vp, 0, ap->a_cred, ap->a_td);
-		if (ip->i_ea_area != NULL && ip->i_ea_error == 0)
+		if (ip->i_ea_area != nil && ip->i_ea_error == 0)
 			ip->i_ea_error = error;
 		return (error);
 	}
@@ -1673,7 +1674,7 @@ ffs_getpages(struct vop_getpages_args *ap)
 
 	if (!use_buf_pager && um->um_devvp->v_bufobj.bo_bsize <= PAGE_SIZE)
 		return (vnode_pager_generic_getpages(vp, ap->a_m, ap->a_count,
-		    ap->a_rbehind, ap->a_rahead, NULL, NULL));
+		    ap->a_rbehind, ap->a_rahead, nil, nil));
 	return (vfs_bio_getpages(vp, ap->a_m, ap->a_count, ap->a_rbehind,
 	    ap->a_rahead, ffs_gbp_getblkno, ffs_gbp_getblksz));
 }

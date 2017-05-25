@@ -115,7 +115,7 @@ static int
 ufs_extattr_valid_attrname(int attrnamespace, const char *attrname)
 {
 
-	if (attrname == NULL)
+	if (attrname == nil)
 		return (0);
 	if (strlen(attrname) == 0)
 		return (0);
@@ -135,7 +135,7 @@ ufs_extattr_find_attr(struct ufsmount *ump, int attrnamespace,
 	sx_assert(&ump->um_extattr.uepm_lock, SA_XLOCKED);
 
 	for (search_attribute = LIST_FIRST(&ump->um_extattr.uepm_list);
-	    search_attribute != NULL;
+	    search_attribute != nil;
 	    search_attribute = LIST_NEXT(search_attribute, uele_entries)) {
 		if (!(strncmp(attrname, search_attribute->uele_attrname,
 		    UFS_EXTATTR_MAXEXTATTRNAME)) &&
@@ -255,7 +255,7 @@ ufs_extattr_lookup(struct vnode *start_dvp, int lockparent, char *dirname,
 		return (error);
 	}
 	cnp.cn_namelen--;	/* trim nul termination */
-	vargs.a_gen.a_desc = NULL;
+	vargs.a_gen.a_desc = nil;
 	vargs.a_dvp = start_dvp;
 	vargs.a_vpp = &target_vp;
 	vargs.a_cnp = &cnp;
@@ -308,7 +308,7 @@ ufs_extattr_enable_with_open(struct ufsmount *ump, struct vnode *vp,
 {
 	int error;
 
-	error = VOP_OPEN(vp, FREAD|FWRITE, td->td_ucred, td, NULL);
+	error = VOP_OPEN(vp, FREAD|FWRITE, td->td_ucred, td, nil);
 	if (error) {
 		printf("ufs_extattr_enable_with_open.VOP_OPEN(): failed "
 		    "with %d\n", error);
@@ -362,13 +362,13 @@ ufs_extattr_iterate_directory(struct ufsmount *ump, struct vnode *dvp,
 	auio.uio_td = td;
 	auio.uio_offset = 0;
 
-	vargs.a_gen.a_desc = NULL;
+	vargs.a_gen.a_desc = nil;
 	vargs.a_vp = dvp;
 	vargs.a_uio = &auio;
 	vargs.a_cred = td->td_ucred;
 	vargs.a_eofflag = &eofflag;
-	vargs.a_ncookies = NULL;
-	vargs.a_cookies = NULL;
+	vargs.a_ncookies = nil;
+	vargs.a_cookies = nil;
 
 	while (!eofflag) {
 		auio.uio_resid = DIRBLKSIZ;
@@ -543,7 +543,7 @@ ufs_extattr_stop(struct mount *mp, struct thread *td)
 		goto unlock;
 	}
 
-	while ((uele = LIST_FIRST(&ump->um_extattr.uepm_list)) != NULL) {
+	while ((uele = LIST_FIRST(&ump->um_extattr.uepm_list)) != nil) {
 		ufs_extattr_disable(ump, uele->uele_attrnamespace,
 		    uele->uele_attrname, td);
 	}
@@ -551,7 +551,7 @@ ufs_extattr_stop(struct mount *mp, struct thread *td)
 	ump->um_extattr.uepm_flags &= ~UFS_EXTATTR_UEPM_STARTED;
 
 	crfree(ump->um_extattr.uepm_ucred);
-	ump->um_extattr.uepm_ucred = NULL;
+	ump->um_extattr.uepm_ucred = nil;
 
 unlock:
 	ufs_extattr_uepm_unlock(ump);
@@ -698,7 +698,7 @@ ufs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,
 	 */
 	error = priv_check(td, PRIV_UFS_EXTATTRCTL);
 	if (error) {
-		if (filename_vp != NULL)
+		if (filename_vp != nil)
 			VOP_UNLOCK(filename_vp, 0);
 		return (error);
 	}
@@ -708,18 +708,18 @@ ufs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,
 	 * native extended attributes.
 	 */
 	if (ump->um_fstype != UFS1) {
-		if (filename_vp != NULL)
+		if (filename_vp != nil)
 			VOP_UNLOCK(filename_vp, 0);
 		return (EOPNOTSUPP);
 	}
 
 	switch(cmd) {
 	case UFS_EXTATTR_CMD_START:
-		if (filename_vp != NULL) {
+		if (filename_vp != nil) {
 			VOP_UNLOCK(filename_vp, 0);
 			return (EINVAL);
 		}
-		if (attrname != NULL)
+		if (attrname != nil)
 			return (EINVAL);
 
 		error = ufs_extattr_start(mp, td);
@@ -727,11 +727,11 @@ ufs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,
 		return (error);
 		
 	case UFS_EXTATTR_CMD_STOP:
-		if (filename_vp != NULL) {
+		if (filename_vp != nil) {
 			VOP_UNLOCK(filename_vp, 0);
 			return (EINVAL);
 		}
-		if (attrname != NULL)
+		if (attrname != nil)
 			return (EINVAL);
 
 		error = ufs_extattr_stop(mp, td);
@@ -740,9 +740,9 @@ ufs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,
 
 	case UFS_EXTATTR_CMD_ENABLE:
 
-		if (filename_vp == NULL)
+		if (filename_vp == nil)
 			return (EINVAL);
-		if (attrname == NULL) {
+		if (attrname == nil) {
 			VOP_UNLOCK(filename_vp, 0);
 			return (EINVAL);
 		}
@@ -760,11 +760,11 @@ ufs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,
 
 	case UFS_EXTATTR_CMD_DISABLE:
 
-		if (filename_vp != NULL) {
+		if (filename_vp != nil) {
 			VOP_UNLOCK(filename_vp, 0);
 			return (EINVAL);
 		}
-		if (attrname == NULL)
+		if (attrname == nil)
 			return (EINVAL);
 
 		ufs_extattr_uepm_lock(ump);
@@ -848,7 +848,7 @@ ufs_extattr_get(struct vnode *vp, int attrnamespace, const char *name,
 	 * extended attribute semantic.  Otherwise we can't guarantee
 	 * atomicity, as we don't provide locks for extended attributes.
 	 */
-	if (uio != NULL && uio->uio_offset != 0)
+	if (uio != nil && uio->uio_offset != 0)
 		return (ENXIO);
 
 	/*
@@ -915,11 +915,11 @@ ufs_extattr_get(struct vnode *vp, int attrnamespace, const char *name,
 	}
 
 	/* Return full data size if caller requested it. */
-	if (size != NULL)
+	if (size != nil)
 		*size = ueh.ueh_len;
 
 	/* Return data if the caller requested it. */
-	if (uio != NULL) {
+	if (uio != nil) {
 		/* Allow for offset into the attribute data. */
 		uio->uio_offset = base_offset + sizeof(struct
 		    ufs_extattr_header);
@@ -942,7 +942,7 @@ ufs_extattr_get(struct vnode *vp, int attrnamespace, const char *name,
 
 vopunlock_exit:
 
-	if (uio != NULL)
+	if (uio != nil)
 		uio->uio_offset = 0;
 
 	if (attribute->uele_backing_vnode != vp)
@@ -1004,7 +1004,7 @@ vop_setextattr {
 	/*
 	 * XXX: No longer a supported way to delete extended attributes.
 	 */
-	if (ap->a_uio == NULL)
+	if (ap->a_uio == nil)
 		return (EINVAL);
 
 	ufs_extattr_uepm_lock(ump);
@@ -1272,7 +1272,7 @@ ufs_extattr_vnode_inactive(struct vnode *vp, struct thread *td)
 
 	LIST_FOREACH(uele, &ump->um_extattr.uepm_list, uele_entries)
 		ufs_extattr_rm(vp, uele->uele_attrnamespace,
-		    uele->uele_attrname, NULL, td);
+		    uele->uele_attrname, nil, td);
 
 	ufs_extattr_uepm_unlock(ump);
 }

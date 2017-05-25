@@ -109,7 +109,7 @@ ffs_balloc_ufs1(struct vnode *vp, off_t startoffset, int size,
 	reclaimed = 0;
 	if (size > fs->fs_bsize)
 		panic("ffs_balloc_ufs1: blk too big");
-	*bpp = NULL;
+	*bpp = nil;
 	if (flags & IO_EXT)
 		return (EOPNOTSUPP);
 	if (lbn < 0)
@@ -234,7 +234,7 @@ ffs_balloc_ufs1(struct vnode *vp, off_t startoffset, int size,
 	 */
 	--num;
 	nb = dp->di_ib[indirs[0].in_off];
-	allocib = NULL;
+	allocib = nil;
 	allocblk = allociblk;
 	lbns_remfree = lbns;
 	if (nb == 0) {
@@ -341,7 +341,7 @@ retry:
 			}
 		}
 		bap[indirs[i - 1].in_off] = nb;
-		if (allocib == NULL && unwindidx < 0)
+		if (allocib == nil && unwindidx < 0)
 			unwindidx = i - 1;
 		/*
 		 * If required, write synchronously, otherwise use
@@ -454,7 +454,7 @@ fail:
 	 * If we have failed to allocate any blocks, simply return the error.
 	 * This is the usual case and avoids the need to fsync the file.
 	 */
-	if (allocblk == allociblk && allocib == NULL && unwindidx == -1)
+	if (allocblk == allociblk && allocib == nil && unwindidx == -1)
 		return (error);
 	/*
 	 * If we have failed part way through block allocation, we
@@ -478,7 +478,7 @@ fail:
 		 */
 		bp = getblk(vp, *lbns_remfree, fs->fs_bsize, 0, 0,
 		    GB_NOCREAT | GB_UNMAPPED);
-		if (bp != NULL) {
+		if (bp != nil) {
 			KASSERT(bp->b_blkno == fsbtodb(fs, *blkp),
 			    ("mismatch1 l %jd %jd b %ju %ju",
 			    (intmax_t)bp->b_lblkno, (uintmax_t)*lbns_remfree,
@@ -490,7 +490,7 @@ fail:
 		}
 		deallocated += fs->fs_bsize;
 	}
-	if (allocib != NULL) {
+	if (allocib != nil) {
 		*allocib = 0;
 	} else if (unwindidx >= 0) {
 		int r;
@@ -533,7 +533,7 @@ fail:
 			lbns_remfree = lbns;
 		bp = getblk(vp, *lbns_remfree, fs->fs_bsize, 0, 0,
 		    GB_NOCREAT | GB_UNMAPPED);
-		if (bp != NULL) {
+		if (bp != nil) {
 			panic("zombie1 %jd %ju %ju",
 			    (intmax_t)bp->b_lblkno, (uintmax_t)bp->b_blkno,
 			    (uintmax_t)fsbtodb(fs, *blkp));
@@ -541,7 +541,7 @@ fail:
 		lbns_remfree++;
 #endif
 		ffs_blkfree(ump, fs, ump->um_devvp, *blkp, fs->fs_bsize,
-		    ip->i_number, vp->v_type, NULL);
+		    ip->i_number, vp->v_type, nil);
 	}
 	return (error);
 }
@@ -583,7 +583,7 @@ ffs_balloc_ufs2(struct vnode *vp, off_t startoffset, int size,
 	reclaimed = 0;
 	if (size > fs->fs_bsize)
 		panic("ffs_balloc_ufs2: blk too big");
-	*bpp = NULL;
+	*bpp = nil;
 	if (lbn < 0)
 		return (EFBIG);
 	gbflags = (flags & BA_UNMAPPED) != 0 ? GB_UNMAPPED : 0;
@@ -820,7 +820,7 @@ ffs_balloc_ufs2(struct vnode *vp, off_t startoffset, int size,
 	 */
 	--num;
 	nb = dp->di_ib[indirs[0].in_off];
-	allocib = NULL;
+	allocib = nil;
 	allocblk = allociblk;
 	lbns_remfree = lbns;
 	if (nb == 0) {
@@ -929,7 +929,7 @@ retry:
 			}
 		}
 		bap[indirs[i - 1].in_off] = nb;
-		if (allocib == NULL && unwindidx < 0)
+		if (allocib == nil && unwindidx < 0)
 			unwindidx = i - 1;
 		/*
 		 * If required, write synchronously, otherwise use
@@ -1048,7 +1048,7 @@ fail:
 	 * If we have failed to allocate any blocks, simply return the error.
 	 * This is the usual case and avoids the need to fsync the file.
 	 */
-	if (allocblk == allociblk && allocib == NULL && unwindidx == -1)
+	if (allocblk == allociblk && allocib == nil && unwindidx == -1)
 		return (error);
 	/*
 	 * If we have failed part way through block allocation, we
@@ -1072,7 +1072,7 @@ fail:
 		 */
 		bp = getblk(vp, *lbns_remfree, fs->fs_bsize, 0, 0,
 		    GB_NOCREAT | GB_UNMAPPED);
-		if (bp != NULL) {
+		if (bp != nil) {
 			KASSERT(bp->b_blkno == fsbtodb(fs, *blkp),
 			    ("mismatch2 l %jd %jd b %ju %ju",
 			    (intmax_t)bp->b_lblkno, (uintmax_t)*lbns_remfree,
@@ -1084,7 +1084,7 @@ fail:
 		}
 		deallocated += fs->fs_bsize;
 	}
-	if (allocib != NULL) {
+	if (allocib != nil) {
 		*allocib = 0;
 	} else if (unwindidx >= 0) {
 		int r;
@@ -1127,7 +1127,7 @@ fail:
 			lbns_remfree = lbns;
 		bp = getblk(vp, *lbns_remfree, fs->fs_bsize, 0, 0,
 		    GB_NOCREAT | GB_UNMAPPED);
-		if (bp != NULL) {
+		if (bp != nil) {
 			panic("zombie2 %jd %ju %ju",
 			    (intmax_t)bp->b_lblkno, (uintmax_t)bp->b_blkno,
 			    (uintmax_t)fsbtodb(fs, *blkp));
@@ -1135,7 +1135,7 @@ fail:
 		lbns_remfree++;
 #endif
 		ffs_blkfree(ump, fs, ump->um_devvp, *blkp, fs->fs_bsize,
-		    ip->i_number, vp->v_type, NULL);
+		    ip->i_number, vp->v_type, nil);
 	}
 	return (error);
 }

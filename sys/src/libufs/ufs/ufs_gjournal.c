@@ -68,7 +68,7 @@ ufs_gjournal_modref(struct vnode *vp, int count)
 		dev = devvp->v_rdev;
 		cgbno = fsbtodb(fs, cgtod(fs, cg));
 	} else {
-		bp = NULL;
+		bp = nil;
 		return (EIO);
 	}
 	if ((uint)ino >= fs->fs_ipg * fs->fs_ncg)
@@ -99,7 +99,7 @@ ufs_gjournal_orphan(struct vnode *vp)
 {
 	struct inode *ip;
 
-	if (vp->v_mount->mnt_gjprovider == NULL)
+	if (vp->v_mount->mnt_gjprovider == nil)
 		return;
 	if (vp->v_usecount < 2 || (vp->v_vflag & VV_DELETED))
 		return;
@@ -118,7 +118,7 @@ ufs_gjournal_close(struct vnode *vp)
 {
 	struct inode *ip;
 
-	if (vp->v_mount->mnt_gjprovider == NULL)
+	if (vp->v_mount->mnt_gjprovider == nil)
 		return;
 	if (!(vp->v_vflag & VV_DELETED))
 		return;

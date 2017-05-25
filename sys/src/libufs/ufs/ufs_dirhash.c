@@ -170,15 +170,15 @@ ufsdirhash_create(struct inode *ip)
 	struct dirhash *dh;
 	struct vnode *vp;
 
-	ndh = dh = NULL;
+	ndh = dh = nil;
 	vp = ip->i_vnode;
 	for (;;) {
 		/* Racy check for i_dirhash to prefetch a dirhash structure. */
-		if (ip->i_dirhash == NULL && ndh == NULL) {
+		if (ip->i_dirhash == nil && ndh == nil) {
 			ndh = malloc(sizeof *dh, M_DIRHASH,
 			    M_NOWAIT | M_ZERO);
-			if (ndh == NULL)
-				return (NULL);
+			if (ndh == nil)
+				return (nil);
 			refcount_init(&ndh->dh_refcount, 1);
 
 			/*
@@ -198,10 +198,10 @@ ufsdirhash_create(struct inode *ip)
 		 */
 		VI_LOCK(vp);
 		dh = ip->i_dirhash;
-		if (dh == NULL) {
+		if (dh == nil) {
 			ip->i_dirhash = ndh;
 			VI_UNLOCK(vp);
-			if (ndh == NULL)
+			if (ndh == nil)
 				continue;
 			return (ndh);
 		}
@@ -223,7 +223,7 @@ ufsdirhash_create(struct inode *ip)
 		ufsdirhash_drop(dh);
 
 		/* If the hash is still valid we've succeeded. */
-		if (dh->dh_hash != NULL)
+		if (dh->dh_hash != nil)
 			break;
 		/*
 		 * If the hash is NULL it has been recycled.  Try to upgrade
@@ -255,13 +255,13 @@ ufsdirhash_acquire(struct inode *ip)
 	ASSERT_VOP_ELOCKED(ip->i_vnode, __FUNCTION__);
 
 	dh = ip->i_dirhash;
-	if (dh == NULL)
-		return (NULL);
+	if (dh == nil)
+		return (nil);
 	sx_xlock(&dh->dh_lock);
-	if (dh->dh_hash != NULL)
+	if (dh->dh_hash != nil)
 		return (dh);
 	ufsdirhash_free_locked(ip);
-	return (NULL);
+	return (nil);
 }
 
 /*
@@ -279,7 +279,7 @@ ufsdirhash_free(struct inode *ip)
 		/* Grab a reference on this inode's dirhash if it has one. */
 		VI_LOCK(vp);
 		dh = ip->i_dirhash;
-		if (dh == NULL) {
+		if (dh == nil) {
 			VI_UNLOCK(vp);
 			return;
 		}
@@ -316,7 +316,7 @@ int
 ufsdirhash_build(struct inode *ip)
 {
 	struct dirhash *dh;
-	struct buf *bp = NULL;
+	struct buf *bp = nil;
 	struct direct *ep;
 	struct vnode *vp;
 	doff_t bmask, pos;
@@ -338,9 +338,9 @@ ufsdirhash_build(struct inode *ip)
 		return (-1);
 	}
 	dh = ufsdirhash_create(ip);
-	if (dh == NULL)
+	if (dh == nil)
 		return (-1);
-	if (dh->dh_hash != NULL)
+	if (dh->dh_hash != nil)
 		return (0);
 
 	vp = ip->i_vnode;
@@ -388,14 +388,14 @@ ufsdirhash_build(struct inode *ip)
 	 */
 	dh->dh_hash = malloc(narrays * sizeof(dh->dh_hash[0]),
 	    M_DIRHASH, M_NOWAIT | M_ZERO);
-	if (dh->dh_hash == NULL)
+	if (dh->dh_hash == nil)
 		goto fail;
 	dh->dh_blkfree = malloc(nblocks * sizeof(dh->dh_blkfree[0]),
 	    M_DIRHASH, M_NOWAIT);
-	if (dh->dh_blkfree == NULL)
+	if (dh->dh_blkfree == nil)
 		goto fail;
 	for (i = 0; i < narrays; i++) {
-		if ((dh->dh_hash[i] = DIRHASH_BLKALLOC_WAITOK()) == NULL)
+		if ((dh->dh_hash[i] = DIRHASH_BLKALLOC_WAITOK()) == nil)
 			goto fail;
 		for (j = 0; j < DH_NBLKOFF; j++)
 			dh->dh_hash[i][j] = DIRHASH_EMPTY;
@@ -407,9 +407,9 @@ ufsdirhash_build(struct inode *ip)
 	while (pos < ip->i_size) {
 		/* If necessary, get the next directory block. */
 		if ((pos & bmask) == 0) {
-			if (bp != NULL)
+			if (bp != nil)
 				brelse(bp);
-			if (UFS_BLKATOFF(vp, (off_t)pos, NULL, &bp) != 0)
+			if (UFS_BLKATOFF(vp, (off_t)pos, nil, &bp) != 0)
 				goto fail;
 		}
 
@@ -433,7 +433,7 @@ ufsdirhash_build(struct inode *ip)
 		pos += ep->d_reclen;
 	}
 
-	if (bp != NULL)
+	if (bp != nil)
 		brelse(bp);
 	DIRHASHLIST_LOCK();
 	TAILQ_INSERT_TAIL(&ufsdirhash_list, dh, dh_list);
@@ -466,7 +466,7 @@ ufsdirhash_free_locked(struct inode *ip)
 	vp = ip->i_vnode;
 	VI_LOCK(vp);
 	dh = ip->i_dirhash;
-	ip->i_dirhash = NULL;
+	ip->i_dirhash = nil;
 	VI_UNLOCK(vp);
 
 	/*
@@ -490,12 +490,12 @@ ufsdirhash_free_locked(struct inode *ip)
 	/*
 	 * Handle partially recycled as well as fully constructed hashes.
 	 */
-	if (dh->dh_hash != NULL) {
+	if (dh->dh_hash != nil) {
 		for (i = 0; i < dh->dh_narrays; i++)
-			if (dh->dh_hash[i] != NULL)
+			if (dh->dh_hash[i] != nil)
 				DIRHASH_BLKFREE(dh->dh_hash[i]);
 		free(dh->dh_hash, M_DIRHASH);
-		if (dh->dh_blkfree != NULL)
+		if (dh->dh_blkfree != nil)
 			free(dh->dh_blkfree, M_DIRHASH);
 	}
 
@@ -531,22 +531,22 @@ ufsdirhash_lookup(struct inode *ip, char *name, int namelen, doff_t *offp,
 	int error;
 
 	dh = ip->i_dirhash;
-	KASSERT(dh != NULL && dh->dh_hash != NULL,
-	    ("ufsdirhash_lookup: Invalid dirhash %p\n", dh));
+	KASSERT(dh != nil && dh->dh_hash != nil,
+		("ufsdirhash_lookup: Invalid dirhash %p\n", dh));
 	DIRHASH_ASSERT_LOCKED(dh);
 	/*
 	 * Move this dirhash towards the end of the list if it has a
 	 * score higher than the next entry, and acquire the dh_lock.
 	 */
 	DIRHASHLIST_LOCK();
-	if (TAILQ_NEXT(dh, dh_list) != NULL) {
+	if (TAILQ_NEXT(dh, dh_list) != nil) {
 		/*
 		 * If the new score will be greater than that of the next
 		 * entry, then move this entry past it. With both mutexes
 		 * held, dh_next won't go away, but its dh_score could
 		 * change; that's not important since it is just a hint.
 		 */
-		if ((dh_next = TAILQ_NEXT(dh, dh_list)) != NULL &&
+		if ((dh_next = TAILQ_NEXT(dh, dh_list)) != nil &&
 		    dh->dh_score >= dh_next->dh_score) {
 			KASSERT(dh->dh_onlist, ("dirhash: not on list"));
 			TAILQ_REMOVE(&ufsdirhash_list, dh, dh_list);
@@ -565,7 +565,7 @@ ufsdirhash_lookup(struct inode *ip, char *name, int namelen, doff_t *offp,
 	vp = ip->i_vnode;
 	bmask = vp->v_mount->mnt_stat.f_iosize - 1;
 	blkoff = -1;
-	bp = NULL;
+	bp = nil;
 	seqoff = dh->dh_seqoff;
 restart:
 	slot = ufsdirhash_hash(dh, name, namelen);
@@ -599,15 +599,15 @@ restart:
 		if (offset < 0 || offset >= ip->i_size)
 			panic("ufsdirhash_lookup: bad offset in hash array");
 		if ((offset & ~bmask) != blkoff) {
-			if (bp != NULL)
+			if (bp != nil)
 				brelse(bp);
 			blkoff = offset & ~bmask;
-			if (UFS_BLKATOFF(vp, (off_t)blkoff, NULL, &bp) != 0) {
+			if (UFS_BLKATOFF(vp, (off_t)blkoff, nil, &bp) != 0) {
 				error = EJUSTRETURN;
 				goto fail;
 			}
 		}
-		KASSERT(bp != NULL, ("no buffer allocated"));
+		KASSERT(bp != nil, ("no buffer allocated"));
 		dp = (struct direct *)(bp->b_data + (offset & bmask));
 		if (dp->d_reclen == 0 || dp->d_reclen >
 		    DIRBLKSIZ - (offset & (DIRBLKSIZ - 1))) {
@@ -618,7 +618,7 @@ restart:
 		if (dp->d_namlen == namelen &&
 		    bcmp(dp->d_name, name, namelen) == 0) {
 			/* Found. Get the prev offset if needed. */
-			if (prevoffp != NULL) {
+			if (prevoffp != nil) {
 				if (offset & (DIRBLKSIZ - 1)) {
 					prevoff = ufsdirhash_getprev(dp,
 					    offset);
@@ -651,7 +651,7 @@ restart:
 	error = ENOENT;
 fail:
 	ufsdirhash_release(dh);
-	if (bp != NULL)
+	if (bp != nil)
 		brelse(bp);
 	return (error);
 }
@@ -682,8 +682,8 @@ ufsdirhash_findfree(struct inode *ip, int slotneeded, int *slotsize)
 	int dirblock, error, freebytes, i;
 
 	dh = ip->i_dirhash;
-	KASSERT(dh != NULL && dh->dh_hash != NULL,
-	    ("ufsdirhash_findfree: Invalid dirhash %p\n", dh));
+	KASSERT(dh != nil && dh->dh_hash != nil,
+		("ufsdirhash_findfree: Invalid dirhash %p\n", dh));
 	DIRHASH_ASSERT_LOCKED(dh);
 
 	/* Find a directory block with the desired free space. */
@@ -756,8 +756,8 @@ ufsdirhash_enduseful(struct inode *ip)
 
 	dh = ip->i_dirhash;
 	DIRHASH_ASSERT_LOCKED(dh);
-	KASSERT(dh != NULL && dh->dh_hash != NULL,
-	    ("ufsdirhash_enduseful: Invalid dirhash %p\n", dh));
+	KASSERT(dh != nil && dh->dh_hash != nil,
+		("ufsdirhash_enduseful: Invalid dirhash %p\n", dh));
 
 	if (dh->dh_blkfree[dh->dh_dirblks - 1] != DIRBLKSIZ / DIRALIGN)
 		return (-1);
@@ -780,7 +780,7 @@ ufsdirhash_add(struct inode *ip, struct direct *dirp, doff_t offset)
 	struct dirhash *dh;
 	int slot;
 
-	if ((dh = ufsdirhash_acquire(ip)) == NULL)
+	if ((dh = ufsdirhash_acquire(ip)) == nil)
 		return;
 	
 	KASSERT(offset < dh->dh_dirblks * DIRBLKSIZ,
@@ -821,7 +821,7 @@ ufsdirhash_remove(struct inode *ip, struct direct *dirp, doff_t offset)
 	struct dirhash *dh;
 	int slot;
 
-	if ((dh = ufsdirhash_acquire(ip)) == NULL)
+	if ((dh = ufsdirhash_acquire(ip)) == nil)
 		return;
 
 	KASSERT(offset < dh->dh_dirblks * DIRBLKSIZ,
@@ -848,7 +848,7 @@ ufsdirhash_move(struct inode *ip, struct direct *dirp, doff_t oldoff,
 	struct dirhash *dh;
 	int slot;
 
-	if ((dh = ufsdirhash_acquire(ip)) == NULL)
+	if ((dh = ufsdirhash_acquire(ip)) == nil)
 		return;
 
 	KASSERT(oldoff < dh->dh_dirblks * DIRBLKSIZ &&
@@ -870,7 +870,7 @@ ufsdirhash_newblk(struct inode *ip, doff_t offset)
 	struct dirhash *dh;
 	int block;
 
-	if ((dh = ufsdirhash_acquire(ip)) == NULL)
+	if ((dh = ufsdirhash_acquire(ip)) == nil)
 		return;
 
 	KASSERT(offset == dh->dh_dirblks * DIRBLKSIZ,
@@ -899,7 +899,7 @@ ufsdirhash_dirtrunc(struct inode *ip, doff_t offset)
 	struct dirhash *dh;
 	int block, i;
 
-	if ((dh = ufsdirhash_acquire(ip)) == NULL)
+	if ((dh = ufsdirhash_acquire(ip)) == nil)
 		return;
 
 	KASSERT(offset <= dh->dh_dirblks * DIRBLKSIZ,
@@ -951,7 +951,7 @@ ufsdirhash_checkblock(struct inode *ip, char *buf, doff_t offset)
 
 	if (!ufs_dirhashcheck)
 		return;
-	if ((dh = ufsdirhash_acquire(ip)) == NULL)
+	if ((dh = ufsdirhash_acquire(ip)) == nil)
 		return;
 
 	block = offset / DIRBLKSIZ;
@@ -1155,15 +1155,15 @@ ufsdirhash_destroy(struct dirhash *dh)
 	uint8_t *blkfree;
 	int i, mem, narrays;
 
-	KASSERT(dh->dh_hash != NULL, ("dirhash: NULL hash on list"));
+	KASSERT(dh->dh_hash != nil, ("dirhash: NULL hash on list"));
 	
 	/* Remove it from the list and detach its memory. */
 	TAILQ_REMOVE(&ufsdirhash_list, dh, dh_list);
 	dh->dh_onlist = 0;
 	hash = dh->dh_hash;
-	dh->dh_hash = NULL;
+	dh->dh_hash = nil;
 	blkfree = dh->dh_blkfree;
-	dh->dh_blkfree = NULL;
+	dh->dh_blkfree = nil;
 	narrays = dh->dh_narrays;
 	mem = dh->dh_memreq;
 	dh->dh_memreq = 0;
@@ -1194,7 +1194,7 @@ ufsdirhash_recycle(int wanted)
 	dh = TAILQ_FIRST(&ufsdirhash_list);
 	while (wanted + ufs_dirhashmem > ufs_dirhashmaxmem) {
 		/* Decrement the score; only recycle if it becomes zero. */
-		if (dh == NULL || --dh->dh_score > 0) {
+		if (dh == nil || --dh->dh_score > 0) {
 			DIRHASHLIST_UNLOCK();
 			return (-1);
 		}
@@ -1258,7 +1258,7 @@ ufsdirhash_set_reclaimpercent (int SYSCTL_HANDLER_ARGS)
 	error = sysctl_handle_int(oidp, &v, v, req);
 	if (error)
 		return (error);
-	if (req->newptr == NULL)
+	if (req->newptr == nil)
 		return (error);
 	if (v == ufs_dirhashreclaimpercent)
 		return (0);
@@ -1277,13 +1277,13 @@ ufsdirhash_init (void)
 	    2 * 1024 * 1024);
 
 	ufsdirhash_zone = uma_zcreate("DIRHASH", DH_NBLKOFF * sizeof(doff_t),
-	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, 0);
-	mtx_init(&ufsdirhash_mtx, "dirhash list", NULL, MTX_DEF);
+	    nil, nil, nil, nil, UMA_ALIGN_PTR, 0);
+	mtx_init(&ufsdirhash_mtx, "dirhash list", nil, MTX_DEF);
 	TAILQ_INIT(&ufsdirhash_list);
 
 	/* Register a callback function to handle low memory signals */
-	EVENTHANDLER_REGISTER(vm_lowmem, ufsdirhash_lowmem, NULL, 
-	    EVENTHANDLER_PRI_FIRST);
+	EVENTHANDLER_REGISTER(vm_lowmem, ufsdirhash_lowmem, nil, 
+			      EVENTHANDLER_PRI_FIRST);
 }
 
 void 
