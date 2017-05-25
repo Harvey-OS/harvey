@@ -62,8 +62,8 @@ ufs_sync_acl_from_inode(struct inode *ip, struct acl *acl)
 	 * and ACL_GROUP_OBJ for use after we know whether ACL_MASK is
 	 * present.
 	 */
-	acl_mask = NULL;
-	acl_group_obj = NULL;
+	acl_mask = nil;
+	acl_group_obj = nil;
 	for (i = 0; i < acl->acl_cnt; i++) {
 		switch (acl->acl_entry[i].ae_tag) {
 		case ACL_USER_OBJ:
@@ -97,10 +97,10 @@ ufs_sync_acl_from_inode(struct inode *ip, struct acl *acl)
 		}
 	}
 
-	if (acl_group_obj == NULL)
+	if (acl_group_obj == nil)
 		panic("ufs_sync_acl_from_inode(): no ACL_GROUP_OBJ");
 
-	if (acl_mask == NULL) {
+	if (acl_mask == nil) {
 		/*
 		 * There is no ACL_MASK, so update ACL_GROUP_OBJ.
 		 */
@@ -418,7 +418,7 @@ ufs_setacl_nfs4(struct vop_setacl_args *ap)
 	if (ap->a_vp->v_mount->mnt_flag & MNT_RDONLY)
 		return (EROFS);
 
-	if (ap->a_aclp == NULL)
+	if (ap->a_aclp == nil)
 		return (EINVAL);
 
 	error = VOP_ACLCHECK(ap->a_vp, ap->a_type, ap->a_aclp, ap->a_cred,
@@ -475,7 +475,7 @@ ufs_setacl_posix1e(struct vop_setacl_args *ap)
 	 * invoke VOP_ACLCHECK() on the passed ACL to determine if it is
 	 * valid for the target.  This will include a check on ap->a_type.
 	 */
-	if (ap->a_aclp != NULL) {
+	if (ap->a_aclp != nil) {
 		/*
 		 * Set operation.
 		 */
@@ -524,7 +524,7 @@ ufs_setacl_posix1e(struct vop_setacl_args *ap)
 		break;
 
 	case ACL_TYPE_DEFAULT:
-		if (ap->a_aclp == NULL) {
+		if (ap->a_aclp == nil) {
 			error = vn_extattr_rm(ap->a_vp, IO_NODELOCKED,
 			    POSIX1E_ACL_DEFAULT_EXTATTR_NAMESPACE,
 			    POSIX1E_ACL_DEFAULT_EXTATTR_NAME, ap->a_td);
