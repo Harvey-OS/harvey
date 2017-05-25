@@ -267,7 +267,7 @@ ffs_susp_ioctl(struct cdev *dev, uint64_t cmd, caddr_t addr, int flags,
 	case UFSSUSPEND:
 		fsidp = (fsid_t *)addr;
 		mp = vfs_getvfs(fsidp);
-		if (mp == NULL) {
+		if (mp == nil) {
 			error = ENOENT;
 			break;
 		}

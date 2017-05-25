@@ -176,7 +176,7 @@ struct dquot {
  * set to NODQUOT.  Once a write attempt is made the inode pointer is set
  * to reference a dquot structure.
  */
-#define	NODQUOT		NULL
+#define	NODQUOT		nil
 
 /*
  * Flags to chkdq() and chkiq()

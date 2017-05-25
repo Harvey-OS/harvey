@@ -66,7 +66,7 @@ ffs_rawread_setup(void *arg __unused)
 
 	ffsrawbufcnt = (nswbuf > 100 ) ? (nswbuf - (nswbuf >> 4)) : nswbuf - 8;
 }
-SYSINIT(ffs_raw, SI_SUB_VM_CONF, SI_ORDER_ANY, ffs_rawread_setup, NULL);
+SYSINIT(ffs_raw, SI_SUB_VM_CONF, SI_ORDER_ANY, ffs_rawread_setup, nil);
 
 static int
 ffs_rawread_sync(struct vnode *vp)
@@ -83,7 +83,7 @@ ffs_rawread_sync(struct vnode *vp)
 	VI_LOCK(vp);
 	if (bo->bo_numoutput > 0 ||
 	    bo->bo_dirty.bv_cnt > 0 ||
-	    ((obj = vp->v_object) != NULL &&
+	    ((obj = vp->v_object) != nil &&
 	     (obj->flags & OBJ_MIGHTBEDIRTY) != 0)) {
 		VI_UNLOCK(vp);
 		BO_UNLOCK(bo);
@@ -114,7 +114,7 @@ ffs_rawread_sync(struct vnode *vp)
 			return (EIO);
 		}
 		/* Attempt to msync mmap() regions to clean dirty mmap */ 
-		if ((obj = vp->v_object) != NULL &&
+		if ((obj = vp->v_object) != nil &&
 		    (obj->flags & OBJ_MIGHTBEDIRTY) != 0) {
 			VI_UNLOCK(vp);
 			VM_OBJECT_WLOCK(obj);
@@ -201,7 +201,7 @@ ffs_rawread_readahead(struct vnode *vp,
 	
 	bp->b_lblkno = bp->b_blkno = blockno;
 	
-	error = ufs_bmaparray(vp, bp->b_lblkno, &blkno, NULL, &bforwards, NULL);
+	error = ufs_bmaparray(vp, bp->b_lblkno, &blkno, nil, &bforwards, nil);
 	if (error != 0)
 		return error;
 	if (blkno == -1) {
@@ -264,12 +264,12 @@ ffs_rawread_main(struct vnode *vp,
 	error = 0;
 	nerror = 0;
 	
-	bp = NULL;
-	nbp = NULL;
+	bp = nil;
+	nbp = nil;
 	
 	while (resid > 0) {
 		
-		if (bp == NULL) { /* Setup first read */
+		if (bp == nil) { /* Setup first read */
 			/* XXX: Leave some bufs for swap */
 			bp = getpbuf(&ffsrawbufcnt);
 			pbgetvp(vp, bp);
@@ -283,8 +283,8 @@ ffs_rawread_main(struct vnode *vp,
 				if (rawreadahead != 0) 
 					nbp = trypbuf(&ffsrawbufcnt);
 				else
-					nbp = NULL;
-				if (nbp != NULL) {
+					nbp = nil;
+				if (nbp != nil) {
 					pbgetvp(vp, nbp);
 					
 					nerror = ffs_rawread_readahead(vp, 
@@ -299,7 +299,7 @@ ffs_rawread_main(struct vnode *vp,
 					if (nerror) {
 						pbrelvp(nbp);
 						relpbuf(nbp, &ffsrawbufcnt);
-						nbp = NULL;
+						nbp = nil;
 					}
 				}
 			}
@@ -331,7 +331,7 @@ ffs_rawread_main(struct vnode *vp,
 						      bp);
 			if (error != 0)
 				break;
-		} else if (nbp != NULL) { /* Complete read with readahead */
+		} else if (nbp != nil) { /* Complete read with readahead */
 			
 			tbp = bp;
 			bp = nbp;
@@ -340,7 +340,7 @@ ffs_rawread_main(struct vnode *vp,
 			if (resid <= bp->b_bufsize) { /* No more readaheads */
 				pbrelvp(nbp);
 				relpbuf(nbp, &ffsrawbufcnt);
-				nbp = NULL;
+				nbp = nil;
 			} else { /* Setup next readahead */
 				nerror = ffs_rawread_readahead(vp,
 							       udata +
@@ -354,7 +354,7 @@ ffs_rawread_main(struct vnode *vp,
 				if (nerror != 0) {
 					pbrelvp(nbp);
 					relpbuf(nbp, &ffsrawbufcnt);
-					nbp = NULL;
+					nbp = nil;
 				}
 			}
 		} else if (nerror != 0) {/* Deferred Readahead error */
@@ -367,11 +367,11 @@ ffs_rawread_main(struct vnode *vp,
 		}
 	}
 	
-	if (bp != NULL) {
+	if (bp != nil) {
 		pbrelvp(bp);
 		relpbuf(bp, &ffsrawbufcnt);
 	}
-	if (nbp != NULL) {			/* Run down readahead buffer */
+	if (nbp != nil) {			/* Run down readahead buffer */
 		bwait(nbp, PRIBIO, "rawrd");
 		vunmapbuf(nbp);
 		pbrelvp(nbp);
@@ -397,7 +397,7 @@ ffs_rawread(struct vnode *vp,
 	    uio->uio_iovcnt == 1 && 
 	    uio->uio_segflg == UIO_USERSPACE &&
 	    uio->uio_resid == uio->uio_iov->iov_len &&
-	    (((uio->uio_td != NULL) ? uio->uio_td : curthread)->td_pflags &
+	    (((uio->uio_td != nil) ? uio->uio_td : curthread)->td_pflags &
 	     TDP_DEADLKTREAT) == 0) {
 		int secsize;		/* Media sector size */
 		off_t filebytes;	/* Bytes left of file */

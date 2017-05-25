@@ -103,14 +103,14 @@ static struct buf_ops ffs_ops = {
 static const char *ffs_opts[] = { "acls", "async", "noatime", "noclusterr",
     "noclusterw", "noexec", "export", "force", "from", "groupquota",
     "multilabel", "nfsv4acls", "fsckpid", "snapshot", "nosuid", "suiddir",
-    "nosymfollow", "sync", "union", "userquota", NULL };
+    "nosymfollow", "sync", "union", "userquota", nil };
 
 static int
 ffs_mount(struct mount *mp)
 {
 	struct vnode *devvp;
 	struct thread *td;
-	struct ufsmount *ump = NULL;
+	struct ufsmount *ump = nil;
 	struct fs *fs;
 	pid_t fsckpid = 0;
 	int error, error1, flags;
@@ -122,15 +122,15 @@ ffs_mount(struct mount *mp)
 	td = curthread;
 	if (vfs_filteropt(mp->mnt_optnew, ffs_opts))
 		return (EINVAL);
-	if (uma_inode == NULL) {
+	if (uma_inode == nil) {
 		uma_inode = uma_zcreate("FFS inode",
-		    sizeof(struct inode), NULL, NULL, NULL, NULL,
+		    sizeof(struct inode), nil, nil, nil, nil,
 		    UMA_ALIGN_PTR, 0);
 		uma_ufs1 = uma_zcreate("FFS1 dinode",
-		    sizeof(struct ufs1_dinode), NULL, NULL, NULL, NULL,
+		    sizeof(struct ufs1_dinode), nil, nil, nil, nil,
 		    UMA_ALIGN_PTR, 0);
 		uma_ufs2 = uma_zcreate("FFS2 dinode",
-		    sizeof(struct ufs2_dinode), NULL, NULL, NULL, NULL,
+		    sizeof(struct ufs2_dinode), nil, nil, nil, nil,
 		    UMA_ALIGN_PTR, 0);
 	}
 
@@ -142,10 +142,10 @@ ffs_mount(struct mount *mp)
 		return (error);
 
 	mntorflags = 0;
-	if (vfs_getopt(mp->mnt_optnew, "acls", NULL, NULL) == 0)
+	if (vfs_getopt(mp->mnt_optnew, "acls", nil, nil) == 0)
 		mntorflags |= MNT_ACLS;
 
-	if (vfs_getopt(mp->mnt_optnew, "snapshot", NULL, NULL) == 0) {
+	if (vfs_getopt(mp->mnt_optnew, "snapshot", nil, nil) == 0) {
 		mntorflags |= MNT_SNAPSHOT;
 		/*
 		 * Once we have set the MNT_SNAPSHOT flag, do not
@@ -155,7 +155,7 @@ ffs_mount(struct mount *mp)
 		vfs_deleteopt(mp->mnt_opt, "snapshot");
 	}
 
-	if (vfs_getopt(mp->mnt_optnew, "fsckpid", NULL, NULL) == 0 &&
+	if (vfs_getopt(mp->mnt_optnew, "fsckpid", nil, nil) == 0 &&
 	    vfs_scanopt(mp->mnt_optnew, "fsckpid", "%d", &fsckpid) == 1) {
 		/*
 		 * Once we have set the restricted PID, do not
@@ -165,12 +165,12 @@ ffs_mount(struct mount *mp)
 		vfs_deleteopt(mp->mnt_opt, "fsckpid");
 		if (mp->mnt_flag & MNT_UPDATE) {
 			if (VFSTOUFS(mp)->um_fs->fs_ronly == 0 &&
-			     vfs_flagopt(mp->mnt_optnew, "ro", NULL, 0) == 0) {
+			     vfs_flagopt(mp->mnt_optnew, "ro", nil, 0) == 0) {
 				vfs_mount_error(mp,
 				    "Checker enable: Must be read-only");
 				return (EINVAL);
 			}
-		} else if (vfs_flagopt(mp->mnt_optnew, "ro", NULL, 0) == 0) {
+		} else if (vfs_flagopt(mp->mnt_optnew, "ro", nil, 0) == 0) {
 			vfs_mount_error(mp,
 			    "Checker enable: Must be read-only");
 			return (EINVAL);
@@ -180,7 +180,7 @@ ffs_mount(struct mount *mp)
 			fsckpid = -1;
 	}
 
-	if (vfs_getopt(mp->mnt_optnew, "nfsv4acls", NULL, NULL) == 0) {
+	if (vfs_getopt(mp->mnt_optnew, "nfsv4acls", nil, nil) == 0) {
 		if (mntorflags & MNT_ACLS) {
 			vfs_mount_error(mp,
 			    "\"acls\" and \"nfsv4acls\" options "
@@ -214,11 +214,11 @@ ffs_mount(struct mount *mp)
 			ump->um_fsckpid = 0;
 		}
 		if (fs->fs_ronly == 0 &&
-		    vfs_flagopt(mp->mnt_optnew, "ro", NULL, 0)) {
+		    vfs_flagopt(mp->mnt_optnew, "ro", nil, 0)) {
 			/*
 			 * Flush any dirty data and suspend filesystem.
 			 */
-			if ((error = vn_start_write(NULL, &mp, V_WAIT)) != 0)
+			if ((error = vn_start_write(nil, &mp, V_WAIT)) != 0)
 				return (error);
 			error = vfs_write_suspend_umnt(mp);
 			if (error != 0)
@@ -278,7 +278,7 @@ ffs_mount(struct mount *mp)
 		    (error = ffs_reload(mp, td, 0)) != 0)
 			return (error);
 		if (fs->fs_ronly &&
-		    !vfs_flagopt(mp->mnt_optnew, "ro", NULL, 0)) {
+		    !vfs_flagopt(mp->mnt_optnew, "ro", nil, 0)) {
 			/*
 			 * If we are running a checker, do not allow upgrade.
 			 */
@@ -329,7 +329,7 @@ ffs_mount(struct mount *mp)
 			g_topology_unlock();
 			if (error)
 				return (error);
-			if ((error = vn_start_write(NULL, &mp, V_WAIT)) != 0)
+			if ((error = vn_start_write(nil, &mp, V_WAIT)) != 0)
 				return (error);
 			fs->fs_ronly = 0;
 			MNT_ILOCK(mp);
@@ -531,7 +531,7 @@ ffs_cmount(struct mntarg *ma, void *data, uint64_t flags)
 	struct export_args exp;
 	int error;
 
-	if (data == NULL)
+	if (data == nil)
 		return (EINVAL);
 	error = copyin(data, &args, sizeof args);
 	if (error)
@@ -738,8 +738,8 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	struct g_consumer *cp;
 	struct mount *nmp;
 
-	bp = NULL;
-	ump = NULL;
+	bp = nil;
+	ump = nil;
 	cred = td ? td->td_ucred : NOCRED;
 	ronly = (mp->mnt_flag & MNT_RDONLY) != 0;
 
@@ -766,7 +766,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	if (mp->mnt_iosize_max > MAXPHYS)
 		mp->mnt_iosize_max = MAXPHYS;
 
-	fs = NULL;
+	fs = nil;
 	sblockloc = 0;
 	/*
 	 * Try reading the superblock in each of its possible locations.
@@ -792,7 +792,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 		    fs->fs_bsize >= sizeof(struct fs))
 			break;
 		brelse(bp);
-		bp = NULL;
+		bp = nil;
 	}
 	if (sblock_try[i] == -1) {
 		error = EINVAL;		/* XXX needs translation */
@@ -851,14 +851,14 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 			    "but no gjournal provider below\n",
 			    mp->mnt_stat.f_mntonname);
 			free(mp->mnt_gjprovider, M_UFSMNT);
-			mp->mnt_gjprovider = NULL;
+			mp->mnt_gjprovider = nil;
 		}
 #else
 		printf("WARNING: %s: GJOURNAL flag on fs but no "
 		    "UFS_GJOURNAL support\n", mp->mnt_stat.f_mntonname);
 #endif
 	} else {
-		mp->mnt_gjprovider = NULL;
+		mp->mnt_gjprovider = nil;
 	}
 	ump = malloc(sizeof *ump, M_UFSMNT, M_WAITOK | M_ZERO);
 	ump->um_cp = cp;
@@ -884,7 +884,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	if (fs->fs_sbsize < SBLOCKSIZE)
 		bp->b_flags |= B_INVAL | B_NOCACHE;
 	brelse(bp);
-	bp = NULL;
+	bp = nil;
 	fs = ump->um_fs;
 	ffs_oldfscompat_read(fs, ump, sblockloc);
 	fs->fs_ronly = ronly;
@@ -907,7 +907,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 		bcopy(bp->b_data, space, (uint)size);
 		space = (char *)space + size;
 		brelse(bp);
-		bp = NULL;
+		bp = nil;
 	}
 	if (fs->fs_contigsumsize > 0) {
 		fs->fs_maxcluster = lp = space;
@@ -918,11 +918,11 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	size = fs->fs_ncg * sizeof(uint8_t);
 	fs->fs_contigdirs = (uint8_t *)space;
 	bzero(fs->fs_contigdirs, size);
-	fs->fs_active = NULL;
+	fs->fs_active = nil;
 	mp->mnt_data = ump;
 	mp->mnt_stat.f_fsid.val[0] = fs->fs_id[0];
 	mp->mnt_stat.f_fsid.val[1] = fs->fs_id[1];
-	nmp = NULL;
+	nmp = nil;
 	if (fs->fs_id[0] == 0 || fs->fs_id[1] == 0 ||
 	    (nmp = vfs_getvfs(&mp->mnt_stat.f_fsid))) {
 		if (nmp)
@@ -1066,20 +1066,20 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 out:
 	if (bp)
 		brelse(bp);
-	if (cp != NULL) {
+	if (cp != nil) {
 		g_topology_lock();
 		g_vfs_close(cp);
 		g_topology_unlock();
 	}
 	if (ump) {
 		mtx_destroy(UFS_MTX(ump));
-		if (mp->mnt_gjprovider != NULL) {
+		if (mp->mnt_gjprovider != nil) {
 			free(mp->mnt_gjprovider, M_UFSMNT);
-			mp->mnt_gjprovider = NULL;
+			mp->mnt_gjprovider = nil;
 		}
 		free(ump->um_fs, M_UFSMNT);
 		free(ump, M_UFSMNT);
-		mp->mnt_data = NULL;
+		mp->mnt_data = nil;
 	}
 	atomic_store_rel_ptr((uintptr_t *)&dev->si_mountpt, 0);
 	dev_rel(dev);
@@ -1243,7 +1243,7 @@ ffs_unmount (struct mount *mp, int mntflags)
 	}
 	if (susp)
 		vfs_write_resume(mp, VR_START_WRITE);
-	if (ump->um_trim_tq != NULL) {
+	if (ump->um_trim_tq != nil) {
 		while (ump->um_trim_inflight != 0)
 			pause("ufsutr", hz);
 		taskqueue_drain_all(ump->um_trim_tq);
@@ -1263,14 +1263,14 @@ ffs_unmount (struct mount *mp, int mntflags)
 	vrele(ump->um_devvp);
 	dev_rel(ump->um_dev);
 	mtx_destroy(UFS_MTX(ump));
-	if (mp->mnt_gjprovider != NULL) {
+	if (mp->mnt_gjprovider != nil) {
 		free(mp->mnt_gjprovider, M_UFSMNT);
-		mp->mnt_gjprovider = NULL;
+		mp->mnt_gjprovider = nil;
 	}
 	free(fs->fs_csp, M_UFSMNT);
 	free(fs, M_UFSMNT);
 	free(ump, M_UFSMNT);
-	mp->mnt_data = NULL;
+	mp->mnt_data = nil;
 	MNT_ILOCK(mp);
 	mp->mnt_flag &= ~MNT_LOCAL;
 	MNT_IUNLOCK(mp);
@@ -1621,8 +1621,8 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 	struct vnode *vp;
 	int error;
 
-	error = vfs_hash_get(mp, ino, flags, curthread, vpp, NULL, NULL);
-	if (error || *vpp != NULL)
+	error = vfs_hash_get(mp, ino, flags, curthread, vpp, nil, nil);
+	if (error || *vpp != nil)
 		return (error);
 
 	/*
@@ -1649,14 +1649,14 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 	error = getnewvnode("ufs", mp, fs->fs_magic == FS_UFS1_MAGIC ?
 	    &ffs_vnodeops1 : &ffs_vnodeops2, &vp);
 	if (error) {
-		*vpp = NULL;
+		*vpp = nil;
 		uma_zfree(uma_inode, ip);
 		return (error);
 	}
 	/*
 	 * FFS supports recursive locking.
 	 */
-	lockmgr(vp->v_vnlock, LK_EXCLUSIVE, NULL);
+	lockmgr(vp->v_vnlock, LK_EXCLUSIVE, nil);
 	VN_LOCK_AREC(vp);
 	vp->v_data = ip;
 	vp->v_bufobj.bo_bsize = fs->fs_bsize;
@@ -1679,12 +1679,12 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 	error = insmntque(vp, mp);
 	if (error != 0) {
 		uma_zfree(uma_inode, ip);
-		*vpp = NULL;
+		*vpp = nil;
 		return (error);
 	}
 	vp->v_vflag &= ~VV_FORCEINSMQ;
-	error = vfs_hash_insert(vp, ino, flags, curthread, vpp, NULL, NULL);
-	if (error || *vpp != NULL)
+	error = vfs_hash_insert(vp, ino, flags, curthread, vpp, nil, nil);
+	if (error || *vpp != nil)
 		return (error);
 
 	/* Read in the disk contents for the inode, copy into the inode. */
@@ -1699,7 +1699,7 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 		 */
 		brelse(bp);
 		vput(vp);
-		*vpp = NULL;
+		*vpp = nil;
 		return (error);
 	}
 	if (I_IS_UFS1(ip))
@@ -1721,7 +1721,7 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 	    &vp);
 	if (error) {
 		vput(vp);
-		*vpp = NULL;
+		*vpp = nil;
 		return (error);
 	}
 
@@ -1756,7 +1756,7 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 		if (error) {
 			/* ufs_inactive will release ip->i_devvp ref. */
 			vput(vp);
-			*vpp = NULL;
+			*vpp = nil;
 			return (error);
 		}
 	}
@@ -1938,9 +1938,9 @@ static void
 ffs_ifree(struct ufsmount *ump, struct inode *ip)
 {
 
-	if (ump->um_fstype == UFS1 && ip->i_din1 != NULL)
+	if (ump->um_fstype == UFS1 && ip->i_din1 != nil)
 		uma_zfree(uma_ufs1, ip->i_din1);
-	else if (ip->i_din2 != NULL)
+	else if (ip->i_din2 != nil)
 		uma_zfree(uma_ufs2, ip->i_din2);
 	uma_zfree(uma_inode, ip);
 }
@@ -1963,7 +1963,7 @@ ffs_backgroundwritedone(struct buf *bp)
 	 */
 	bufobj = bp->b_bufobj;
 	BO_LOCK(bufobj);
-	if ((origbp = gbincore(bp->b_bufobj, bp->b_lblkno)) == NULL)
+	if ((origbp = gbincore(bp->b_bufobj, bp->b_lblkno)) == nil)
 		panic("backgroundwritedone: lost buffer");
 
 	/*
@@ -2074,12 +2074,12 @@ ffs_bufwrite(struct buf *bp)
 	    (bp->b_flags & B_ASYNC) &&
 	    !vm_page_count_severe() &&
 	    !buf_dirty_count_severe()) {
-		KASSERT(bp->b_iodone == NULL,
-		    ("bufwrite: needs chained iodone (%p)", bp->b_iodone));
+		KASSERT(bp->b_iodone == nil,
+			("bufwrite: needs chained iodone (%p)", bp->b_iodone));
 
 		/* get a new block */
 		newbp = geteblk(bp->b_bufsize, GB_NOWAIT_BD);
-		if (newbp == NULL)
+		if (newbp == nil)
 			goto normal_write;
 
 		KASSERT(buf_mapped(bp), ("Unmapped cg"));
@@ -2138,13 +2138,13 @@ ffs_geom_strategy(struct bufobj *bo, struct buf *bp)
 	vp = bo2vnode(bo);
 	if (bp->b_iocmd == BIO_WRITE) {
 		if ((bp->b_flags & B_VALIDSUSPWRT) == 0 &&
-		    bp->b_vp != NULL && bp->b_vp->v_mount != NULL &&
+		    bp->b_vp != nil && bp->b_vp->v_mount != nil &&
 		    (bp->b_vp->v_mount->mnt_kern_flag & MNTK_SUSPENDED) != 0)
 			panic("ffs_geom_strategy: bad I/O");
 		nocopy = bp->b_flags & B_NOCOPY;
 		bp->b_flags &= ~(B_VALIDSUSPWRT | B_NOCOPY);
 		if ((vp->v_vflag & VV_COPYONWRITE) && nocopy == 0 &&
-		    vp->v_rdev->si_snapdata != NULL) {
+		    vp->v_rdev->si_snapdata != nil) {
 			if ((bp->b_flags & B_CLUSTER) != 0) {
 				runningbufwakeup(bp);
 				TAILQ_FOREACH(tbp, &bp->b_cluster.cluster_head,

@@ -63,7 +63,7 @@ ffs_blkatoff(struct vnode *vp, off_t offset, char **res, struct buf **bpp)
 	lbn = lblkno(fs, offset);
 	bsize = blksize(fs, ip, lbn);
 
-	*bpp = NULL;
+	*bpp = nil;
 	error = bread(vp, lbn, bsize, NOCRED, &bp);
 	if (error) {
 		brelse(bp);
