@@ -62,7 +62,7 @@ ufs_inactive (struct vop_inactive_args *ap)
 	off_t isize;
 	struct mount *mp;
 
-	mp = NULL;
+	mp = nil;
 	/*
 	 * Ignore inodes related to stale file handles.
 	 */
@@ -138,12 +138,12 @@ ufs_inactive (struct vop_inactive_args *ap)
 	}
 	if (ip->i_flag & (IN_ACCESS | IN_CHANGE | IN_MODIFIED | IN_UPDATE)) {
 		if ((ip->i_flag & (IN_CHANGE | IN_UPDATE | IN_MODIFIED)) == 0 &&
-		    mp == NULL &&
+		    mp == nil &&
 		    vn_start_secondary_write(vp, &mp, V_NOWAIT)) {
-			mp = NULL;
+			mp = nil;
 			ip->i_flag &= ~IN_ACCESS;
 		} else {
-			if (mp == NULL)
+			if (mp == nil)
 				(void) vn_start_secondary_write(vp, &mp,
 								V_WAIT);
 			UFS_UPDATE(vp, 0);
@@ -156,7 +156,7 @@ out:
 	 */
 	if (ip->i_mode == 0)
 		vrecycle(vp);
-	if (mp != NULL)
+	if (mp != nil)
 		vn_finished_secondary_write(mp);
 	return (error);
 }
@@ -181,7 +181,7 @@ ufs_prepare_reclaim(struct vnode *vp)
 	}
 #endif
 #ifdef UFS_DIRHASH
-	if (ip->i_dirhash != NULL)
+	if (ip->i_dirhash != nil)
 		ufsdirhash_free(ip);
 #endif
 }

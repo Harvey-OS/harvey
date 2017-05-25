@@ -495,7 +495,7 @@ quotaon(struct thread *td, struct mount *mp, int type, void *fname)
 	flags = FREAD | FWRITE;
 	vfs_ref(mp);
 	vfs_unbusy(mp);
-	error = vn_open(&nd, &flags, 0, NULL);
+	error = vn_open(&nd, &flags, 0, nil);
 	if (error != 0) {
 		vfs_rel(mp);
 		return (error);
@@ -1125,7 +1125,7 @@ void
 dqinit(void)
 {
 
-	mtx_init(&dqhlock, "dqhlock", NULL, MTX_DEF);
+	mtx_init(&dqhlock, "dqhlock", nil, MTX_DEF);
 	dqhashtbl = hashinit(desiredvnodes, M_DQUOT, &dqhash);
 	TAILQ_INIT(&dqfreelist);
 }
@@ -1139,7 +1139,7 @@ dquninit(void)
 	struct dquot *dq;
 
 	hashdestroy(dqhashtbl, M_DQUOT, dqhash);
-	while ((dq = TAILQ_FIRST(&dqfreelist)) != NULL) {
+	while ((dq = TAILQ_FIRST(&dqfreelist)) != nil) {
 		TAILQ_REMOVE(&dqfreelist, dq, dq_freelist);
 		mtx_destroy(&dq->dq_lock);
 		free(dq, M_DQUOT);
@@ -1272,12 +1272,12 @@ dqget(struct vnode *vp, uint64_t id, struct ufsmount *ump, int type,
 	dqh = DQHASH(dqvp, id);
 	DQH_LOCK();
 	dq = dqhashfind(dqh, id, dqvp);
-	if (dq != NULL) {
+	if (dq != nil) {
 		DQH_UNLOCK();
 hfound:		DQI_LOCK(dq);
 		DQI_WAIT(dq, PINOD+1, "dqget");
 		DQI_UNLOCK(dq);
-		if (dq->dq_ump == NULL) {
+		if (dq->dq_ump == nil) {
 			dqrele(vp, dq);
 			dq = NODQUOT;
 			error = EIO;
@@ -1303,7 +1303,7 @@ hfound:		DQI_LOCK(dq);
 		 * Recheck the cache after sleep for quota vnode lock.
 		 */
 		dq = dqhashfind(dqh, id, dqvp);
-		if (dq != NULL) {
+		if (dq != nil) {
 			DQH_UNLOCK();
 			goto hfound;
 		}
@@ -1320,13 +1320,13 @@ hfound:		DQI_LOCK(dq);
 		numdquot++;
 		DQH_UNLOCK();
 		dq1 = malloc(sizeof *dq1, M_DQUOT, M_WAITOK | M_ZERO);
-		mtx_init(&dq1->dq_lock, "dqlock", NULL, MTX_DEF);
+		mtx_init(&dq1->dq_lock, "dqlock", nil, MTX_DEF);
 		DQH_LOCK();
 		/*
 		 * Recheck the cache after sleep for memory.
 		 */
 		dq = dqhashfind(dqh, id, dqvp);
-		if (dq != NULL) {
+		if (dq != nil) {
 			numdquot--;
 			DQH_UNLOCK();
 			mtx_destroy(&dq1->dq_lock);
@@ -1335,7 +1335,7 @@ hfound:		DQI_LOCK(dq);
 		}
 		dq = dq1;
 	} else {
-		if ((dq = TAILQ_FIRST(&dqfreelist)) == NULL) {
+		if ((dq = TAILQ_FIRST(&dqfreelist)) == nil) {
 			DQH_UNLOCK();
 			tablefull("dquot");
 			*dqp = NODQUOT;
@@ -1348,7 +1348,7 @@ hfound:		DQI_LOCK(dq);
 		if (dq->dq_cnt || (dq->dq_flags & DQ_MOD))
 			panic("dqget: free dquot isn't %p", dq);
 		TAILQ_REMOVE(&dqfreelist, dq, dq_freelist);
-		if (dq->dq_ump != NULL)
+		if (dq->dq_ump != nil)
 			LIST_REMOVE(dq, dq_hash);
 	}
 
@@ -1404,7 +1404,7 @@ hfound:		DQI_LOCK(dq);
 	 */
 	if (error) {
 		DQH_LOCK();
-		dq->dq_ump = NULL;
+		dq->dq_ump = nil;
 		LIST_REMOVE(dq, dq_hash);
 		DQH_UNLOCK();
 		DQI_LOCK(dq);
@@ -1515,19 +1515,19 @@ dqsync(struct vnode *vp, struct dquot *dq)
 	struct ufsmount *ump;
 
 #ifdef DEBUG_VFS_LOCKS
-	if (vp != NULL)
+	if (vp != nil)
 		ASSERT_VOP_ELOCKED(vp, "dqsync");
 #endif
 
-	mp = NULL;
+	mp = nil;
 	error = 0;
 	if (dq == NODQUOT)
 		panic("dqsync: dquot");
-	if ((ump = dq->dq_ump) == NULL)
+	if ((ump = dq->dq_ump) == nil)
 		return (0);
 	UFS_LOCK(ump);
 	if ((dqvp = ump->um_quotas[dq->dq_type]) == NULLVP) {
-		if (vp == NULL) {
+		if (vp == nil) {
 			UFS_UNLOCK(ump);
 			return (0);
 		} else
@@ -1621,7 +1621,7 @@ dqflush(struct vnode *vp)
 				error = EBUSY;
 			else {
 				LIST_REMOVE(dq, dq_hash);
-				dq->dq_ump = NULL;
+				dq->dq_ump = nil;
 			}
 		}
 	}
@@ -1682,7 +1682,7 @@ quotarele (struct dquot **qrp)
 	for (i = 0; i < MAXQUOTAS; i++) {
 		if ((dq = qrp[i]) == NODQUOT)
 			continue;
-		dqrele(NULL, dq);
+		dqrele(nil, dq);
 	}
 }
 

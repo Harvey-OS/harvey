@@ -236,7 +236,7 @@ ffs_realloccg(ip, lbprev, bprev, bpref, osize, nsize, flags, cred, bpp)
 	vp = ITOV(ip);
 	ump = ITOUMP(ip);
 	fs = ump->um_fs;
-	bp = NULL;
+	bp = nil;
 	gbflags = (flags & BA_UNMAPPED) != 0 ? GB_UNMAPPED : 0;
 
 	mtx_assert(UFS_MTX(ump), MA_OWNED);
@@ -292,7 +292,7 @@ retry:
 	/*
 	 * Check for extension in the existing location.
 	 */
-	*bpp = NULL;
+	*bpp = nil;
 	cg = dtog(fs, bprev);
 	UFS_LOCK(ump);
 	bno = ffs_fragextend(ip, cg, bprev, osize, nsize);
@@ -366,7 +366,7 @@ retry:
 		bp->b_blkno = fsbtodb(fs, bno);
 		if (!DOINGSOFTDEP(vp))
 			ffs_blkfree(ump, fs, ump->um_devvp, bprev, (long)osize,
-			    ip->i_number, vp->v_type, NULL);
+			    ip->i_number, vp->v_type, nil);
 		delta = btodb(nsize - osize);
 		DIP_SET(ip, i_blocks, DIP(ip, i_blocks) + delta);
 		if (flags & IO_EXT)
@@ -398,7 +398,7 @@ nospace:
 		UFS_UNLOCK(ump);
 		if (bp) {
 			brelse(bp);
-			bp = NULL;
+			bp = nil;
 		}
 		UFS_LOCK(ump);
 		softdep_request_cleanup(fs, vp, cred, FLUSH_BLOCKS_WAIT);
@@ -564,7 +564,7 @@ ffs_reallocblks_ufs1 (struct vop_reallocblks_args *ap)
 	/*
 	 * If the block range spans two block maps, get the second map.
 	 */
-	ebap = NULL;
+	ebap = nil;
 	if (end_lvl == 0 || (idp = &end_ap[end_lvl - 1])->in_off + 1 >= len) {
 		ssize = len;
 	} else {
@@ -695,7 +695,7 @@ ffs_reallocblks_ufs1 (struct vop_reallocblks_args *ap)
 		if (!DOINGSOFTDEP(vp))
 			ffs_blkfree(ump, fs, ump->um_devvp,
 			    dbtofsb(fs, buflist->bs_children[i]->b_blkno),
-			    fs->fs_bsize, ip->i_number, vp->v_type, NULL);
+			    fs->fs_bsize, ip->i_number, vp->v_type, nil);
 		buflist->bs_children[i]->b_blkno = fsbtodb(fs, blkno);
 #ifdef INVARIANTS
 		if (!ffs_checkblk(ip,
@@ -809,7 +809,7 @@ ffs_reallocblks_ufs2 (struct vop_reallocblks_args *ap)
 	/*
 	 * If the block range spans two block maps, get the second map.
 	 */
-	ebap = NULL;
+	ebap = nil;
 	if (end_lvl == 0 || (idp = &end_ap[end_lvl - 1])->in_off + 1 >= len) {
 		ssize = len;
 	} else {
@@ -939,7 +939,7 @@ ffs_reallocblks_ufs2 (struct vop_reallocblks_args *ap)
 		if (!DOINGSOFTDEP(vp))
 			ffs_blkfree(ump, fs, ump->um_devvp,
 			    dbtofsb(fs, buflist->bs_children[i]->b_blkno),
-			    fs->fs_bsize, ip->i_number, vp->v_type, NULL);
+			    fs->fs_bsize, ip->i_number, vp->v_type, nil);
 		buflist->bs_children[i]->b_blkno = fsbtodb(fs, blkno);
 #ifdef INVARIANTS
 		if (!ffs_checkblk(ip,
@@ -996,7 +996,7 @@ ffs_valloc (struct vnode *pvp, int mode, struct ucred *cred, struct vnode **vpp)
 	static struct timeval lastfail;
 	static int curfail;
 
-	*vpp = NULL;
+	*vpp = nil;
 	pip = VTOI(pvp);
 	ump = ITOUMP(pip);
 	fs = ump->um_fs;
@@ -1266,7 +1266,7 @@ ffs_blkpref_ufs1(ip, lbn, indx, bap)
 	uint avgbfree, startcg;
 	ufs2_daddr_t pref;
 
-	KASSERT(indx <= 0 || bap != NULL, ("need non-NULL bap"));
+	KASSERT(indx <= 0 || bap != nil, ("need non-NULL bap"));
 	mtx_assert(UFS_MTX(ITOUMP(ip)), MA_OWNED);
 	fs = ITOFS(ip);
 	/*
@@ -1371,7 +1371,7 @@ ffs_blkpref_ufs2(ip, lbn, indx, bap)
 	uint avgbfree, startcg;
 	ufs2_daddr_t pref;
 
-	KASSERT(indx <= 0 || bap != NULL, ("need non-NULL bap"));
+	KASSERT(indx <= 0 || bap != nil, ("need non-NULL bap"));
 	mtx_assert(UFS_MTX(ITOUMP(ip)), MA_OWNED);
 	fs = ITOFS(ip);
 	/*
@@ -1987,11 +1987,11 @@ restart:
 	start = cgp->cg_irotor / NBBY;
 	len = howmany(fs->fs_ipg - cgp->cg_irotor, NBBY);
 	loc = memcchr(&inosused[start], 0xff, len);
-	if (loc == NULL) {
+	if (loc == nil) {
 		len = start + 1;
 		start = 0;
 		loc = memcchr(&inosused[start], 0xff, len);
-		if (loc == NULL) {
+		if (loc == nil) {
 			printf("cg = %d, irotor = %ld, fs = %s\n",
 			    cg, (long)cgp->cg_irotor, fs->fs_fsmnt);
 			panic("ffs_nodealloccg: map corrupted");
@@ -2024,7 +2024,7 @@ gotit:
 		 */
 		ibp = getinobuf(ip, cg, old_initediblk, GB_LOCK_NOWAIT);
 		brelse(bp);
-		if (ibp == NULL) {
+		if (ibp == nil) {
 			/*
 			 * The inode block buffer is already owned by
 			 * another thread, which must initialize it.
@@ -2318,12 +2318,12 @@ ffs_blkfree(ump, fs, devvp, bno, size, inum, vtype, dephd)
 	tp->bno = bno;
 	tp->size = size;
 	tp->inum = inum;
-	if (dephd != NULL) {
+	if (dephd != nil) {
 		LIST_INIT(&tp->dephd);
 		LIST_SWAP(dephd, &tp->dephd, worklist, wk_list);
 		tp->pdephd = &tp->dephd;
 	} else
-		tp->pdephd = NULL;
+		tp->pdephd = nil;
 
 	bip = g_alloc_bio();
 	bip->bio_cmd = BIO_DELETE;
@@ -2333,7 +2333,7 @@ ffs_blkfree(ump, fs, devvp, bno, size, inum, vtype, dephd)
 	bip->bio_caller2 = tp;
 
 	mp = UFSTOVFS(ump);
-	vn_start_secondary_write(NULL, &mp, 0);
+	vn_start_secondary_write(nil, &mp, 0);
 	g_io_request(bip, (struct g_consumer *)devvp->v_bufobj.bo_private);
 }
 
@@ -2406,7 +2406,7 @@ ffs_vfree(pvp, ino, mode)
 	}
 	ip = VTOI(pvp);
 	ump = VFSTOUFS(pvp->v_mount);
-	return (ffs_freefile(ump, ump->um_fs, ump->um_devvp, ino, mode, NULL));
+	return (ffs_freefile(ump, ump->um_fs, ump->um_devvp, ino, mode, nil));
 }
 
 /*
@@ -2441,7 +2441,7 @@ ffs_freefile(ump, fs, devvp, ino, mode, wkhd)
 		dev = devvp->v_rdev;
 		cgbno = fsbtodb(fs, cgtod(fs, cg));
 	} else {
-		bp = NULL;
+		bp = nil;
 		return (0);
 	}
 	if (ino >= fs->fs_ipg * fs->fs_ncg)
@@ -2753,7 +2753,7 @@ sysctl_ffs_fsck (int SYSCTL_HANDLER_ARGS)
 		return (EINVAL);
 	}
 	vn_start_write(vp, &mp, V_WAIT);
-	if (mp == NULL ||
+	if (mp == nil ||
 	    strncmp(mp->mnt_stat.f_fstypename, "ufs", MFSNAMELEN)) {
 		vn_finished_write(mp);
 		fdrop(fp, td);
@@ -2843,7 +2843,7 @@ sysctl_ffs_fsck (int SYSCTL_HANDLER_ARGS)
 #endif /* DEBUG */
 		while (cmd.size > 0) {
 			if ((error = ffs_freefile(ump, fs, ump->um_devvp,
-			    cmd.value, filetype, NULL)))
+			    cmd.value, filetype, nil)))
 				break;
 			cmd.size -= 1;
 			cmd.value += 1;
@@ -2871,7 +2871,7 @@ sysctl_ffs_fsck (int SYSCTL_HANDLER_ARGS)
 			if (blksize > blkcnt)
 				blksize = blkcnt;
 			ffs_blkfree(ump, fs, ump->um_devvp, blkno,
-			    blksize * fs->fs_fsize, UFS_ROOTINO, VDIR, NULL);
+			    blksize * fs->fs_fsize, UFS_ROOTINO, VDIR, nil);
 			blkno += blksize;
 			blkcnt -= blksize;
 			blksize = fs->fs_frag;
@@ -2990,7 +2990,7 @@ sysctl_ffs_fsck (int SYSCTL_HANDLER_ARGS)
 		if (fsckcmds) {
 			char buf[32];
 
-			if (copyinstr((char *)(intptr_t)cmd.value, buf,32,NULL))
+			if (copyinstr((char *)(intptr_t)cmd.value, buf,32,nil))
 				strncpy(buf, "Name_too_long", 32);
 			printf("%s: unlink %s (inode %jd)\n",
 			    mp->mnt_stat.f_mntonname, buf, (intmax_t)cmd.size);
@@ -3002,7 +3002,7 @@ sysctl_ffs_fsck (int SYSCTL_HANDLER_ARGS)
 		 * indicates that vn_finished_write is not needed down below.
 		 */
 		vn_finished_write(mp);
-		mp = NULL;
+		mp = nil;
 		error = kern_unlinkat(td, AT_FDCWD, (char *)(intptr_t)cmd.value,
 		    UIO_USERSPACE, (ino_t)cmd.size);
 		break;
@@ -3062,7 +3062,7 @@ sysctl_ffs_fsck (int SYSCTL_HANDLER_ARGS)
 			error = EINVAL;
 			break;
 		}
-		if (origops == NULL) {
+		if (origops == nil) {
 			origops = vfp->f_ops;
 			bcopy((void *)origops, (void *)&bufferedops,
 			    sizeof(bufferedops));
@@ -3117,7 +3117,7 @@ buffered_write (struct file *fp, struct uio *uio, struct ucred *active_cred, int
 	 * within the filesystem being written. Yes, this is an ugly hack.
 	 */
 	devvp = fp->f_vnode;
-	if (!vn_isdisk(devvp, NULL))
+	if (!vn_isdisk(devvp, nil))
 		return (EINVAL);
 	fdp = td->td_proc->p_fd;
 	FILEDESC_SLOCK(fdp);

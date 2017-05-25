@@ -210,7 +210,7 @@ ufs_mknod (struct vop_mknod_args *ap)
 	vput(*vpp);
 	error = VFS_VGET(ap->a_dvp->v_mount, ino, LK_EXCLUSIVE, vpp);
 	if (error) {
-		*vpp = NULL;
+		*vpp = nil;
 		return (error);
 	}
 	return (0);
@@ -349,12 +349,13 @@ relock:
 		case 0:
 			if (type == ACL_TYPE_NFS4) {
 				error = vaccess_acl_nfs4(vp->v_type, ip->i_uid,
-				    ip->i_gid, acl, accmode, ap->a_cred, NULL);
+				    ip->i_gid, acl, accmode, ap->a_cred, nil);
 			} else {
 				error = vfs_unixify_accmode(&accmode);
 				if (error == 0)
 					error = vaccess_acl_posix1e(vp->v_type, ip->i_uid,
-					    ip->i_gid, acl, accmode, ap->a_cred, NULL);
+					    ip->i_gid, acl, accmode, ap->a_cred,
+					    nil);
 			}
 			break;
 		default:
@@ -370,7 +371,7 @@ relock:
 			error = vfs_unixify_accmode(&accmode);
 			if (error == 0)
 				error = vaccess(vp->v_type, ip->i_mode, ip->i_uid,
-				    ip->i_gid, accmode, ap->a_cred, NULL);
+				    ip->i_gid, accmode, ap->a_cred, nil);
 		}
 		acl_free(acl);
 
@@ -380,7 +381,7 @@ relock:
 	error = vfs_unixify_accmode(&accmode);
 	if (error == 0)
 		error = vaccess(vp->v_type, ip->i_mode, ip->i_uid, ip->i_gid,
-		    accmode, ap->a_cred, NULL);
+		    accmode, ap->a_cred, nil);
 	return (error);
 }
 
@@ -922,7 +923,7 @@ ufs_link (struct vop_link_args *ap)
 	error = UFS_UPDATE(vp, !DOINGSOFTDEP(vp) && !DOINGASYNC(vp));
 	if (!error) {
 		ufs_makedirentry(ip, cnp, &newdir);
-		error = ufs_direnter(tdvp, vp, &newdir, cnp, NULL, 0);
+		error = ufs_direnter(tdvp, vp, &newdir, cnp, nil, 0);
 	}
 
 	if (error) {
@@ -968,7 +969,7 @@ ufs_whiteout (struct vop_whiteout_args *ap)
 		newdir.d_namlen = cnp->cn_namelen;
 		bcopy(cnp->cn_nameptr, newdir.d_name, (unsigned)cnp->cn_namelen + 1);
 		newdir.d_type = DT_WHT;
-		error = ufs_direnter(dvp, NULL, &newdir, cnp, NULL, 0);
+		error = ufs_direnter(dvp, nil, &newdir, cnp, nil, 0);
 		break;
 
 	case DELETE:
@@ -979,7 +980,7 @@ ufs_whiteout (struct vop_whiteout_args *ap)
 #endif
 
 		cnp->cn_flags &= ~DOWHITEOUT;
-		error = ufs_dirremove(dvp, NULL, cnp->cn_flags, 0);
+		error = ufs_dirremove(dvp, nil, cnp->cn_flags, 0);
 		break;
 	default:
 		panic("ufs_whiteout: unknown op");
@@ -1051,7 +1052,7 @@ ufs_rename (struct vop_rename_args *ap)
 	if ((fvp->v_mount != tdvp->v_mount) ||
 	    (tvp && (fvp->v_mount != tvp->v_mount))) {
 		error = EXDEV;
-		mp = NULL;
+		mp = nil;
 		goto releout;
 	}
 relock:
@@ -1082,7 +1083,7 @@ relock:
 	 * Re-resolve fvp to be certain it still exists and fetch the
 	 * correct vnode.
 	 */
-	error = ufs_lookup_ino(fdvp, NULL, fcnp, &ino);
+	error = ufs_lookup_ino(fdvp, nil, fcnp, &ino);
 	if (error) {
 		VOP_UNLOCK(fdvp, 0);
 		VOP_UNLOCK(tdvp, 0);
@@ -1108,7 +1109,7 @@ relock:
 	/*
 	 * Re-resolve tvp and acquire the vnode lock if present.
 	 */
-	error = ufs_lookup_ino(tdvp, NULL, tcnp, &ino);
+	error = ufs_lookup_ino(tdvp, nil, tcnp, &ino);
 	if (error != 0 && error != EJUSTRETURN) {
 		VOP_UNLOCK(fdvp, 0);
 		VOP_UNLOCK(tdvp, 0);
@@ -1118,16 +1119,16 @@ relock:
 	/*
 	 * If tvp disappeared we just carry on.
 	 */
-	if (error == EJUSTRETURN && tvp != NULL) {
+	if (error == EJUSTRETURN && tvp != nil) {
 		vrele(tvp);
-		tvp = NULL;
+		tvp = nil;
 	}
 	/*
 	 * Get the tvp ino if the lookup succeeded.  We may have to restart
 	 * if the non-blocking acquire fails.
 	 */
 	if (error == 0) {
-		nvp = NULL;
+		nvp = nil;
 		error = VFS_VGET(mp, ino, LK_EXCLUSIVE | LK_NOWAIT, &nvp);
 		if (tvp)
 			vrele(tvp);
@@ -1149,7 +1150,7 @@ relock:
 	fdp = VTOI(fdvp);
 	fip = VTOI(fvp);
 	tdp = VTOI(tdvp);
-	tip = NULL;
+	tip = nil;
 	if (tvp)
 		tip = VTOI(tvp);
 	if (tvp && ((VTOI(tvp)->i_flags & (NOUNLINK | IMMUTABLE | APPEND)) ||
@@ -1192,9 +1193,9 @@ relock:
 			newparent = tdp->i_number;
 		doingdirectory = 1;
 	}
-	if ((fvp->v_type == VDIR && fvp->v_mountedhere != NULL) ||
-	    (tvp != NULL && tvp->v_type == VDIR &&
-	    tvp->v_mountedhere != NULL)) {
+	if ((fvp->v_type == VDIR && fvp->v_mountedhere != nil) ||
+	    (tvp != nil && tvp->v_type == VDIR &&
+	     tvp->v_mountedhere != nil)) {
 		error = EXDEV;
 		goto unlockout;
 	}
@@ -1261,7 +1262,7 @@ relock:
 	 *    entry to reference the source inode and
 	 *    expunge the original entry's existence.
 	 */
-	if (tip == NULL) {
+	if (tip == nil) {
 		if (ITODEV(tdp) != ITODEV(fip))
 			panic("ufs_rename: EXDEV");
 		if (doingdirectory && newparent) {
@@ -1278,7 +1279,7 @@ relock:
 			}
 		}
 		ufs_makedirentry(fip, tcnp, &newdir);
-		error = ufs_direnter(tdvp, NULL, &newdir, tcnp, NULL, 1);
+		error = ufs_direnter(tdvp, nil, &newdir, tcnp, nil, 1);
 		if (error)
 			goto bad;
 		/* Setup tdvp for directory compaction if needed. */
@@ -1378,7 +1379,7 @@ relock:
 	 * fixup the directory offset and count for ufs_dirremove.
 	 */
 	if (fdvp == tdvp) {
-		error = ufs_lookup_ino(fdvp, NULL, fcnp, &ino);
+		error = ufs_lookup_ino(fdvp, nil, fcnp, &ino);
 		if (error)
 			panic("ufs_rename: from entry went away!");
 		if (ino != fip->i_number)
@@ -1396,7 +1397,7 @@ relock:
 		 * If tip exists we simply use its link, otherwise we must
 		 * add a new one.
 		 */
-		if (tip == NULL) {
+		if (tip == nil) {
 			tdp->i_effnlink++;
 			tdp->i_nlink++;
 			DIP_SET(tdp, i_nlink, tdp->i_nlink);
@@ -1450,7 +1451,7 @@ unlockout:
 			vn_printf(tdvp, "ufs_rename: failed to truncate "
 			    "err %d", error);
 #ifdef UFS_DIRHASH
-		else if (tdp->i_dirhash != NULL)
+		else if (tdp->i_dirhash != nil)
 			ufsdirhash_dirtrunc(tdp, endoff);
 #endif
 		/*
@@ -1990,7 +1991,7 @@ ufs_rmdir (struct vop_rmdir_args *ap)
 	cache_purge(vp);
 #ifdef UFS_DIRHASH
 	/* Kill any active hash; i_effnlink == 0, so it will not come back. */
-	if (ip->i_dirhash != NULL)
+	if (ip->i_dirhash != nil)
 		ufsdirhash_free(ip);
 #endif
 out:
@@ -2023,7 +2024,7 @@ ufs_symlink (struct vop_symlink_args *ap)
 	} else
 		error = vn_rdwr(UIO_WRITE, vp, ap->a_target, len, (off_t)0,
 		    UIO_SYSSPACE, IO_NODELOCKED | IO_NOMACCHECK,
-		    ap->a_cnp->cn_cred, NOCRED, NULL, NULL);
+		    ap->a_cnp->cn_cred, NOCRED, nil, nil);
 	if (error)
 		vput(vp);
 	return (error);
@@ -2053,7 +2054,7 @@ ufs_readdir (struct vop_readdir_args *ap)
 	ip = VTOI(vp);
 	if (ip->i_effnlink == 0)
 		return (0);
-	if (ap->a_ncookies != NULL) {
+	if (ap->a_ncookies != nil) {
 		ncookies = uio->uio_resid;
 		if (uio->uio_offset >= ip->i_size)
 			ncookies = 0;
@@ -2065,14 +2066,14 @@ ufs_readdir (struct vop_readdir_args *ap)
 		*ap->a_cookies = cookies;
 	} else {
 		ncookies = 0;
-		cookies = NULL;
+		cookies = nil;
 	}
 	offset = startoffset = uio->uio_offset;
 	startresid = uio->uio_resid;
 	error = 0;
 	while (error == 0 && uio->uio_resid > 0 &&
 	    uio->uio_offset < ip->i_size) {
-		error = ffs_blkatoff(vp, uio->uio_offset, NULL, &bp);
+		error = ffs_blkatoff(vp, uio->uio_offset, nil, &bp);
 		if (error)
 			break;
 		if (bp->b_offset + bp->b_bcount > ip->i_size)
@@ -2123,7 +2124,7 @@ ufs_readdir (struct vop_readdir_args *ap)
 			error = uiomove((caddr_t)&dstdp, dstdp.d_reclen, uio);
 			if (error)
 				break;
-			if (cookies != NULL) {
+			if (cookies != nil) {
 				KASSERT(ncookies > 0,
 				    ("ufs_readdir: cookies buffer too small"));
 				*cookies = offset + dp->d_reclen;
@@ -2141,13 +2142,13 @@ nextentry:
 	uio->uio_offset = offset;
 	if (error == EJUSTRETURN)
 		error = 0;
-	if (ap->a_ncookies != NULL) {
+	if (ap->a_ncookies != nil) {
 		if (error == 0) {
 			ap->a_ncookies -= ncookies;
 		} else {
 			free(*ap->a_cookies, M_TEMP);
 			*ap->a_ncookies = 0;
-			*ap->a_cookies = NULL;
+			*ap->a_cookies = nil;
 		}
 	}
 	if (error == 0 && ap->a_eofflag)
@@ -2189,7 +2190,7 @@ ufs_strategy (struct vop_strategy_args *ap)
 	int error;
 
 	if (bp->b_blkno == bp->b_lblkno) {
-		error = ufs_bmaparray(vp, bp->b_lblkno, &blkno, bp, NULL, NULL);
+		error = ufs_bmaparray(vp, bp->b_lblkno, &blkno, bp, nil, nil);
 		bp->b_blkno = blkno;
 		if (error) {
 			bp->b_error = error;
@@ -2432,7 +2433,7 @@ ufs_makeinode (int mode, struct vnode *dvp, struct vnode **vpp, struct component
 	if ((cnp->cn_flags & HASBUF) == 0)
 		panic("%s: no name", callfunc);
 #endif
-	*vpp = NULL;
+	*vpp = nil;
 	if ((mode & IFMT) == 0)
 		mode |= IFREG;
 
@@ -2559,7 +2560,7 @@ ufs_makeinode (int mode, struct vnode *dvp, struct vnode **vpp, struct component
 	}
 #endif /* !UFS_ACL */
 	ufs_makedirentry(ip, cnp, &newdir);
-	error = ufs_direnter(dvp, tvp, &newdir, cnp, NULL, 0);
+	error = ufs_direnter(dvp, tvp, &newdir, cnp, nil, 0);
 	if (error)
 		goto bad;
 	*vpp = tvp;
