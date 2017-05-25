@@ -1052,7 +1052,7 @@ dup_alloc:
 	}
 	if (DIP(ip, i_blocks) && (fs->fs_flags & FS_UNCLEAN) == 0) {  /* XXX */
 		printf("free inode %s/%lu had %ld blocks\n",
-		    fs->fs_fsmnt, (u_long)ino, (long)DIP(ip, i_blocks));
+		    fs->fs_fsmnt, (uint64_t)ino, (long)DIP(ip, i_blocks));
 		DIP_SET(ip, i_blocks, 0);
 	}
 	ip->i_flags = 0;
@@ -2147,7 +2147,7 @@ ffs_blkfree_cg(ump, fs, devvp, bno, size, inum, dephd)
 #endif
 	if ((uint)bno >= fs->fs_size) {
 		printf("bad block %jd, ino %lu\n", (intmax_t)bno,
-		    (u_long)inum);
+		    (uint64_t)inum);
 		ffs_fserr(fs, inum, "bad block");
 		return;
 	}
@@ -2594,7 +2594,7 @@ ffs_mapsearch(fs, cgp, bpref, allocsiz)
 			subfield <<= 1;
 		}
 	}
-	printf("bno = %lu, fs = %s\n", (u_long)bno, fs->fs_fsmnt);
+	printf("bno = %lu, fs = %s\n", (uint64_t)bno, fs->fs_fsmnt);
 	panic("ffs_alloccg: block not in map");
 	return (-1);
 }

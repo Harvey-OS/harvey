@@ -571,7 +571,7 @@ ffs_reload(struct mount *mp, struct thread *td, int flags)
 	struct ufsmount *ump;
 	ufs2_daddr_t sblockloc;
 	int i, blks, error;
-	u_long size;
+	uint64_t size;
 	int32_t *lp;
 
 	ump = VFSTOUFS(mp);
@@ -732,7 +732,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	void *space;
 	ufs2_daddr_t sblockloc;
 	int error, i, blks, len, ronly;
-	u_long size;
+	uint64_t size;
 	int32_t *lp;
 	struct ucred *cred;
 	struct g_consumer *cp;
@@ -838,7 +838,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 		 * Get journal provider name.
 		 */
 		len = 1024;
-		mp->mnt_gjprovider = malloc((u_long)len, M_UFSMNT, M_WAITOK);
+		mp->mnt_gjprovider = malloc((uint64_t)len, M_UFSMNT, M_WAITOK);
 		if (g_io_getattr("GJOURNAL::provider", cp, &len,
 		    mp->mnt_gjprovider) == 0) {
 			mp->mnt_gjprovider = realloc(mp->mnt_gjprovider, len,
@@ -863,7 +863,7 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	ump = malloc(sizeof *ump, M_UFSMNT, M_WAITOK | M_ZERO);
 	ump->um_cp = cp;
 	ump->um_bo = &devvp->v_bufobj;
-	ump->um_fs = malloc((u_long)fs->fs_sbsize, M_UFSMNT, M_WAITOK);
+	ump->um_fs = malloc((uint64_t)fs->fs_sbsize, M_UFSMNT, M_WAITOK);
 	if (fs->fs_magic == FS_UFS1_MAGIC) {
 		ump->um_fstype = UFS1;
 		ump->um_balloc = ffs_balloc_ufs1;
