@@ -249,7 +249,7 @@ ffs_truncate(vp, length, flags, cred)
 					continue;
 				ffs_blkfree(ump, fs, ITODEVVP(ip), oldblks[i],
 				    sblksize(fs, osize, i), ip->i_number,
-				    vp->v_type, NULL);
+				    vp->v_type, nil);
 			}
 		}
 	}
@@ -497,7 +497,7 @@ ffs_truncate(vp, length, flags, cred)
 				DIP_SET(ip, i_ib[level], 0);
 				ffs_blkfree(ump, fs, ump->um_devvp, bn,
 				    fs->fs_bsize, ip->i_number,
-				    vp->v_type, NULL);
+				    vp->v_type, nil);
 				blocksreleased += nblocks;
 			}
 		}
@@ -517,7 +517,7 @@ ffs_truncate(vp, length, flags, cred)
 		DIP_SET(ip, i_db[i], 0);
 		bsize = blksize(fs, ip, i);
 		ffs_blkfree(ump, fs, ump->um_devvp, bn, bsize, ip->i_number,
-		    vp->v_type, NULL);
+		    vp->v_type, nil);
 		blocksreleased += btodb(bsize);
 	}
 	if (lastblock < 0)
@@ -549,7 +549,7 @@ ffs_truncate(vp, length, flags, cred)
 			 */
 			bn += numfrags(fs, newspace);
 			ffs_blkfree(ump, fs, ump->um_devvp, bn,
-			   oldspace - newspace, ip->i_number, vp->v_type, NULL);
+			   oldspace - newspace, ip->i_number, vp->v_type, nil);
 			blocksreleased += btodb(oldspace - newspace);
 		}
 	}
@@ -609,12 +609,12 @@ ffs_indirtrunc(ip, lbn, dbn, lastbn, level, countp)
 	struct buf *bp;
 	struct fs *fs;
 	struct vnode *vp;
-	caddr_t copy = NULL;
+	caddr_t copy = nil;
 	int i, nblocks, error = 0, allerror = 0;
 	ufs2_daddr_t nb, nlbn, last;
 	ufs2_daddr_t blkcount, factor, blocksreleased = 0;
-	ufs1_daddr_t *bap1 = NULL;
-	ufs2_daddr_t *bap2 = NULL;
+	ufs1_daddr_t *bap1 = nil;
+	ufs2_daddr_t *bap2 = nil;
 #define BAP(ip, i) (I_IS_UFS1(ip) ? bap1[i] : bap2[i])
 
 	fs = ITOFS(ip);
@@ -705,7 +705,7 @@ ffs_indirtrunc(ip, lbn, dbn, lastbn, level, countp)
 			blocksreleased += blkcount;
 		}
 		ffs_blkfree(ITOUMP(ip), fs, ITODEVVP(ip), nb, fs->fs_bsize,
-		    ip->i_number, vp->v_type, NULL);
+		    ip->i_number, vp->v_type, nil);
 		blocksreleased += nblocks;
 	}
 
@@ -723,7 +723,7 @@ ffs_indirtrunc(ip, lbn, dbn, lastbn, level, countp)
 			blocksreleased += blkcount;
 		}
 	}
-	if (copy != NULL) {
+	if (copy != nil) {
 		free(copy, M_TEMP);
 	} else {
 		bp->b_flags |= B_INVAL | B_NOCACHE;

@@ -59,13 +59,13 @@ ufs_bmap (struct vop_bmap_args *ap)
 	 * Check for underlying vnode requests and ensure that logical
 	 * to physical mapping is requested.
 	 */
-	if (ap->a_bop != NULL)
+	if (ap->a_bop != nil)
 		*ap->a_bop = &VFSTOUFS(ap->a_vp->v_mount)->um_devvp->v_bufobj;
-	if (ap->a_bnp == NULL)
+	if (ap->a_bnp == nil)
 		return (0);
 
-	error = ufs_bmaparray(ap->a_vp, ap->a_bn, &blkno, NULL,
-	    ap->a_runp, ap->a_runb);
+	error = ufs_bmaparray(ap->a_vp, ap->a_bn, &blkno, nil,
+			      ap->a_runp, ap->a_runb);
 	*ap->a_bnp = blkno;
 	return (error);
 }
@@ -103,7 +103,7 @@ ufs_bmaparray(
 	int error, num, maxrun = 0;
 	int *nump;
 
-	ap = NULL;
+	ap = nil;
 	ip = VTOI(vp);
 	mp = vp->v_mount;
 	ump = VFSTOUFS(mp);
@@ -132,7 +132,7 @@ ufs_bmaparray(
 			*bnp = blkptrtodb(ump, ip->i_din2->di_extb[-1 - bn]);
 			if (*bnp == 0)
 				*bnp = -1;
-			if (nbp == NULL)
+			if (nbp == nil)
 				panic("ufs_bmaparray: mapping ext data");
 			nbp->b_xflags |= BX_ALTDATA;
 			return (0);
@@ -176,7 +176,7 @@ ufs_bmaparray(
 	/* Get disk address out of indirect block array */
 	daddr = DIP(ip, i_ib[ap->in_off]);
 
-	for (bp = NULL, ++ap; --num; ++ap) {
+	for (bp = nil, ++ap; --num; ++ap) {
 		/*
 		 * Exit the loop if there is no disk address assigned yet and
 		 * the indirect block isn't in the cache, or if we were
