@@ -18,7 +18,7 @@ typedef	struct	Prefix	Prefix;
 struct	Node
 {
 	double	val;
-	uint8_t	dim[Ndim];
+	char	dim[Ndim];
 };
 struct	Var
 {
