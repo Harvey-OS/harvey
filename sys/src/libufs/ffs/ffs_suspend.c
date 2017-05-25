@@ -246,8 +246,8 @@ ffs_susp_dtor(void *data)
 }
 
 static int
-ffs_susp_ioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
-    struct thread *td)
+ffs_susp_ioctl(struct cdev *dev, uint64_t cmd, caddr_t addr, int flags,
+	       struct thread *td)
 {
 	struct mount *mp;
 	fsid_t *fsidp;
