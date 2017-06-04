@@ -47,8 +47,9 @@
 					"ssl",
 					"tls",
 					"uart",
-					"ws",
+					"ufs",
 					"usb",
+					"ws",
 					"v9p",
 					"vcon",
 					"vga"
