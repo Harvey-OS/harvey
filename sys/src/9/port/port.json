@@ -40,6 +40,7 @@
 			"../port/devtab.c",
 			"../port/devtrace.c",
 			"../port/devuart.c",
+			"../port/devufs.c",
 			"../port/devwd.c",
 			"../port/devws.c",
 			"../port/edf.c",
