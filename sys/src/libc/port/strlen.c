@@ -10,9 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int32_t
+int
 strlen(const char *s)
 {
-
 	return strchr(s, 0) - s;
 }
