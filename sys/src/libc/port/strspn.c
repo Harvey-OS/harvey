@@ -12,7 +12,7 @@
 
 #define	N	256
 
-int32_t
+int
 strspn(const char *s, const char *b)
 {
 	const char *os;
