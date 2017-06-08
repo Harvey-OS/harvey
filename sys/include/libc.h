@@ -42,7 +42,7 @@ extern	int	strncmp(const char*, const char*, int32_t);
 extern	char*	strpbrk(const char*, const char*);
 extern	char*	strrchr(const char*, int);
 extern	char*	strtok(char*, char*);
-extern	int32_t	strlen(const char*);
+extern	int	strlen(const char*);
 extern	int32_t	strspn(const char*, const char*);
 extern	int32_t	strcspn(const char*, const char*);
 extern	char*	strstr(const char*, const char*);
