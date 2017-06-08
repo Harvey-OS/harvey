@@ -40,7 +40,7 @@ extern	char*	strlcpy(char*, char*, int32_t);
 extern	char*	strncpy(char*, char*, int32_t);
 extern	int	strncmp(char*, char*, int32_t);
 extern	char*	strrchr(char*, int);
-extern	int32_t	strlen(char*);
+extern	int32_t	strlen(const char*);
 extern	char*	strstr(char*, char*);
 extern	int	cistrncmp(char*, char*, int);
 extern	int	cistrcmp(char*, char*);
