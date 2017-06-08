@@ -12,8 +12,8 @@
 
 #define	N	256
 
-int32_t
-strspn(char *s, char *b)
+int
+strspn(const char *s, const char *b)
 {
 	char map[N], *os;
 
