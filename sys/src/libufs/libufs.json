@@ -1,0 +1,42 @@
+{
+	"Libufs": {
+		"Cflags": [
+		    "-fasm",
+		    "-I",
+		    "ffs",
+		    "-I",
+		    "ufs"
+		],
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libufs.a",
+		"#SourceFiles": [
+			"ffs/ffs_alloc.c",
+			"ffs/ffs_balloc.c",
+			"ffs/ffs_inode.c",
+			"ffs/ffs_rawread.c",
+			"ffs/ffs_snapshot.c",
+			"ffs/ffs_softdep.c",
+			"ffs/ffs_subr.c",
+			"ffs/ffs_suspend.c",
+			"ffs/ffs_vfsops.c",
+			"ffs/ffs_vnops.c",
+			"ufs/ufs_acl.c",
+			"ufs/ufs_bmap.c",
+			"ufs/ufs_dirhash.c",
+			"ufs/ufs_extattr.c",
+			"ufs/ufs_gjournal.c",
+			"ufs/ufs_inode.c",
+			"ufs/ufs_lookup.c",
+			"ufs/ufs_quota.c",
+			"ufs/ufs_vfsops.c",
+			"ufs/ufs_vnops.c"
+		],
+		"SourceFiles": [
+			"ffs/ffs_tables.c",
+			"ffs/ffs_vfsops.c"
+		]
+	}
+}
