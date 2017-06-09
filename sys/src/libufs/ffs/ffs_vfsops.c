@@ -31,17 +31,21 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/gjournal.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+//#include "dir.h"
+//#include "extattr.h"
+//#include "gjournal.h"
+//#include "quota.h"
+//#include "ufsmount.h"
+//#include "inode.h"
+//#include "ufs_extern.h"
 
+//#include "../ffs/fs.h"
+//#include "../ffs/ffs_extern.h"
+
+#include "libufs.h"
+
+#if 0
 static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(struct vnode *, struct mount *, struct thread *);
@@ -60,39 +64,11 @@ static vfs_statfs_t ffs_statfs;
 static vfs_fhtovp_t ffs_fhtovp;
 static vfs_sync_t ffs_sync;
 
-static struct vfsops ufs_vfsops = {
-	.vfs_extattrctl =	ffs_extattrctl,
-	.vfs_fhtovp =		ffs_fhtovp,
-	.vfs_init =		ffs_init,
-	.vfs_mount =		ffs_mount,
-	.vfs_cmount =		ffs_cmount,
-	.vfs_quotactl =		ufs_quotactl,
-	.vfs_root =		ufs_root,
-	.vfs_statfs =		ffs_statfs,
-	.vfs_sync =		ffs_sync,
-	.vfs_uninit =		ffs_uninit,
-	.vfs_unmount =		ffs_unmount,
-	.vfs_vget =		ffs_vget,
-	.vfs_susp_clean =	process_deferred_inactive,
-};
-
 VFS_SET(ufs_vfsops, ufs, 0);
 MODULE_VERSION(ufs, 1);
 
 static b_strategy_t ffs_geom_strategy;
 static b_write_t ffs_bufwrite;
-
-static struct buf_ops ffs_ops = {
-	.bop_name =	"FFS",
-	.bop_write =	ffs_bufwrite,
-	.bop_strategy =	ffs_geom_strategy,
-	.bop_sync =	bufsync,
-#ifdef NO_FFS_SNAPSHOT
-	.bop_bdflush =	bufbdflush,
-#else
-	.bop_bdflush =	ffs_bdflush,
-#endif
-};
 
 /*
  * Note that userquota and groupquota options are not currently used
@@ -104,10 +80,12 @@ static const char *ffs_opts[] = { "acls", "async", "noatime", "noclusterr",
     "noclusterw", "noexec", "export", "force", "from", "groupquota",
     "multilabel", "nfsv4acls", "fsckpid", "snapshot", "nosuid", "suiddir",
     "nosymfollow", "sync", "union", "userquota", nil };
+#endif // 0
 
-static int
+int
 ffs_mount(struct mount *mp)
 {
+#if 0
 	struct vnode *devvp;
 	struct thread *td;
 	struct ufsmount *ump = nil;
@@ -517,8 +495,12 @@ ffs_mount(struct mount *mp)
 		}
 	}
 	vfs_mountedfrom(mp, fspec);
+
+#endif // 0
 	return (0);
 }
+
+#if 0
 
 /*
  * Compatibility with old mount system call.
@@ -2223,3 +2205,5 @@ DB_SHOW_COMMAND (int ffs, int db_show_ffs)
 
 #endif	/* SOFTUPDATES */
 #endif	/* DDB */
+
+#endif // 0
