@@ -1,5 +1,5 @@
 {
-	"Libufs": {
+	"Kernellibufs": {
 		"Cflags": [
 		    "-fasm",
 		    "-I",
@@ -8,10 +8,10 @@
 		    "ufs"
 		],
 		"Include": [
-			"../lib.json"
+			"/$ARCH/include/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
-		"Library": "libufs.a",
+		"Library": "klibufs.a",
 		"#SourceFiles": [
 			"ffs/ffs_alloc.c",
 			"ffs/ffs_balloc.c",
@@ -35,7 +35,8 @@
 			"ufs/ufs_vnops.c"
 		],
 		"SourceFiles": [
-			"ffs/ffs_tables.c"
+			"ffs/ffs_tables.c",
+			"ffs/ffs_vfsops.c"
 		]
 	}
 }

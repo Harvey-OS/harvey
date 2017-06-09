@@ -15,6 +15,8 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#include "libufs.h"
+
 
 enum {
 	Qdir = 0,		// #U
@@ -33,7 +35,7 @@ static Dirtab ufsdir[] =
 #define QID(q)	((int)(q).path)
 
 // Just one possible mountpoint for now.  Replace with a collection later
-//static void* superblock = 0;
+static struct mount* mountpoint = nil;
 
 static int MaxMounts = 1;
 
@@ -79,9 +81,9 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 			return -1;
 		}
 
-		/*if (superblock == nil) {
+		if (mountpoint == nil) {
 			return -1;
-		}*/
+		}
 
 		// Mount point (more in the future)
 		sprint(name, "%d", s);
@@ -145,6 +147,14 @@ mount(const char* path)
 	}
 
 	print("Mount %s\n", path);
+	struct mount* mp = mallocz(sizeof(struct mount), 1);
+	int rcode = ffs_mount(mp);
+	if (rcode != 0) {
+		// TODO translate error
+		print("Error mounting %s\n", path);
+	} else {
+		mountpoint = mp;
+	}
 }
 
 static int32_t
