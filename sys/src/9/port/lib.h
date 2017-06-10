@@ -30,20 +30,20 @@ extern	void*	memchr(void*, int, uint32_t);
 /*
  * string routines
  */
-extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, int);
-extern	int	strcmp(char*, char*);
-extern	char*	strcpy(char*, char*);
-extern	char*	strecpy(char*, char*, char*);
-extern	char*	strncat(char*, char*, int32_t);
-extern	char*	strlcpy(char*, char*, int32_t);
-extern	char*	strncpy(char*, char*, int32_t);
-extern	int	strncmp(char*, char*, int32_t);
-extern	char*	strrchr(char*, int);
-extern	int32_t	strlen(char*);
-extern	char*	strstr(char*, char*);
-extern	int	cistrncmp(char*, char*, int);
-extern	int	cistrcmp(char*, char*);
+extern	char*	strcat(char*, const char*);
+extern	char*	strchr(const char*, int);
+extern	int	strcmp(const char*, const char*);
+extern	char*	strcpy(char*, const char*);
+extern	char*	strecpy(char*, char*, const char*);
+extern	char*	strncat(char*, const char*, int32_t);
+extern	char*	strlcpy(char*, const char*, int32_t);
+extern	char*	strncpy(char*, const char*, int32_t);
+extern	int	strncmp(const char*, const char*, int32_t);
+extern	char*	strrchr(const char*, int);
+extern	int	strlen(const char*);
+extern	char*	strstr(const char*, const char*);
+extern	int	cistrncmp(const char*, const char*, int);
+extern	int	cistrcmp(const char*, const char*);
 extern	int	tokenize(char*, char**, int);
 
 enum

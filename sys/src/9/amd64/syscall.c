@@ -47,8 +47,8 @@ noted(Ureg* cur, uintptr_t arg0)
 	qlock(&up->debug);
 	if(arg0 != NRSTR && !up->notified){
 		qunlock(&up->debug);
-		pprint("suicide: call to noted when not notified\n");
-		pexit("Suicide", 0);
+		pprint("noted:suicide: call to noted when not notified\n");
+		pexit("Suicide in noted", 0);
 	}
 	up->notified = 0;
 	fpunoted();
@@ -58,8 +58,8 @@ noted(Ureg* cur, uintptr_t arg0)
 	/* sanity clause */
 	if(!okaddr(PTR2UINT(nf), sizeof(NFrame), 0)){
 		qunlock(&up->debug);
-		pprint("suicide: bad ureg %#p in noted\n", nf);
-		pexit("Suicide", 0);
+		pprint("noted:suicide: bad ureg %#p in noted\n", nf);
+		pexit("Suicide in noted", 0);
 	}
 
 	/*
@@ -68,11 +68,11 @@ noted(Ureg* cur, uintptr_t arg0)
 	nur = &nf->ureg;
 	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
 		qunlock(&up->debug);
-		pprint("suicide: bad segment selector (cs %p want %p, ss %p want %p), in noted\n",
+		pprint("noted: suicide: bad segment selector (cs %p want %p, ss %p want %p), in noted\n",
 			nur->cs, SSEL(SiUCS, SsRPL3),
 			nur->ss, SSEL(SiUDS, SsRPL3)
 		);
-		pexit("Suicide", 0);
+		pexit("Suicide in noted", 0);
 	}
 
 	/* don't let user change system flags */
@@ -106,7 +106,9 @@ noted(Ureg* cur, uintptr_t arg0)
 		nf->arg1 = nf->msg;
 		nf->arg0 = &nf->ureg;
 		cur->bp = PTR2UINT(nf->arg0);
-		nf->ip = 0;
+	//	nf->ip = 0;
+		cur->di = (uint64_t) nf->arg0;
+		cur->si = (uint64_t) nf->arg1;
 		cur->sp = PTR2UINT(nf);
 		break;
 	default:

@@ -1,4 +1,4 @@
-/*
+	/*
  * Kernel Debug Core
  *
  * Maintainer: Jason Wessel <jason.wessel@windriver.com>
@@ -56,12 +56,42 @@ int debug = 0;
 int attached_to_existing_pid = 0;
 Map* cormap;
 
+static struct state ks;
+
 /* support crap */
 /*
  * GDB remote protocol parser:
  */
 
 static char *hex_asc = "0123456789abcdef";
+
+char* regstrs[] = {
+	[GDB_AX] = "AX",
+	[GDB_BX] = "BX",
+	[GDB_CX] = "CX",
+	[GDB_DX] = "DX",
+	[GDB_SI] = "SI",
+	[GDB_DI] = "DI",
+	[GDB_BP] = "BP",
+	[GDB_SP] = "SP",
+	[GDB_R8] = "R8",
+	[GDB_R9] = "R9",
+	[GDB_R10] = "R10",
+	[GDB_R11] = "R11",
+	[GDB_R12] = "R12",
+	[GDB_R13] = "R13",
+	[GDB_R14] = "R14",
+	[GDB_R15] = "R15",
+	[GDB_PC] = "PC",
+	[GDB_PS] = "PS",
+	[GDB_CS] = "CS",
+	[GDB_SS] = "SS",
+	[GDB_DS] = "DS",
+	[GDB_ES] = "ES",
+	[GDB_FS] = "FS",
+	[GDB_GS] = "GS",
+};
+
 
 // not reentrant, bla bla bla
 char *
@@ -140,9 +170,8 @@ void
 attach_to_process(int pid)
 {
 	char buf[100];
-	sprint(buf, "/proc/%d/text", pid);
 
-	// TODO close textfid?
+	sprint(buf, "/proc/%d/text", pid);
 	int textfid = open(buf, OREAD);
 	if (textfid < 0){
 		syslog(0, "gdbserver", "couldn't open %s: %r", buf);
@@ -155,21 +184,15 @@ attach_to_process(int pid)
 		return;
 	}
 
+	// machdata will be valid after this
+	machbytype(fhdr.type);
+
 	Map* symmap = loadmap(0, textfid, &fhdr);
 	if (symmap == nil) {
 		syslog(0, "gdbserver", "loadmap failed: %r");
 		return;
 	}
 
-	if (syminit(textfid, &fhdr) < 0) {
-		syslog(0, "gdbserver", "syminit failed: %r");
-		return;
-	}
-
-	// machdata will be valid after this
-	machbytype(fhdr.type);
-
-	// TODO close memfid
 	snprint(buf, sizeof(buf), "/proc/%d/mem", pid);
 	int memfid = open(buf, ORDWR);
 	if (memfid < 0) {
@@ -291,7 +314,7 @@ gdbstub_read_wait(void)
 	int ret;
 	ret = read_char();
 	if (ret < 0) {
-		write(1, "DIE", 3);
+		print("Session ended\n");
 		exits("die");
 	}
 	return ret;
@@ -611,14 +634,23 @@ int_to_threadref(unsigned char *id, int value)
 uint64_t
 get_reg(Map *map, char *reg)
 {
-	//uint64_t v;
-	//int ret = get8(map, reg, &v);
+	(void)map;
 
-	// TODO Not quite sure what do do here yet
-	syslog(0, "gdbserver", "get_reg: %s", reg);
+	int reg_idx = -1;
+	for (int i = 0; i < DBG_MAX_REG_NUM; i++) {
+		if (!strcmp(reg, regstrs[i])) {
+			reg_idx = i;
+			break;
+		}
+	}
 
-	return 0;
-	//return nil;
+	if (reg_idx == -1) {
+		syslog(0, "gdbserver", "get_reg: Unrecognised register %s.", reg);
+		return 0;
+	}
+
+	uint64_t value = arch_get_reg(&ks, reg_idx);
+	return value;
 }
 
 /*
@@ -718,30 +750,30 @@ gdb_cmd_binwrite(struct state *ks)
 		strcpy((char *)remcom_out_buffer, "OK");
 }
 
-/* Handle the 'D' or 'k', detach or kill packets */
+/* Handle the 'D', detach packet */
 static void
-gdb_cmd_detachkill(struct state *ks)
+gdb_cmd_detach(struct state *ks)
 {
 	char *error;
 
-	/* The detach case */
-	if (remcom_in_buffer[0] == 'D') {
-		error = dbg_remove_all_break(ks);
-		if (error < 0) {
-			error_packet(remcom_out_buffer, error);
-		} else {
-			strcpy((char *)remcom_out_buffer, "OK");
-			//connected = 0;
-		}
-		put_packet(remcom_out_buffer);
+	error = dbg_remove_all_break(ks);
+	if (error < 0) {
+		error_packet(remcom_out_buffer, error);
 	} else {
-		/*
-		 * Assume the kill case, with no exit code checking,
-		 * trying to force detach the debugger:
-		 */
-		dbg_remove_all_break(ks);
+		strcpy((char *)remcom_out_buffer, "OK");
 		connected = 0;
+		sendctl(ks->threadid, "start");
 	}
+	put_packet(remcom_out_buffer);
+}
+
+/* Handle the 'k' kill packet */
+static void
+gdb_cmd_kill(struct state *ks)
+{
+	sendctl(ks->threadid, "kill");
+	connected = 0;
+	print("Process %d killed by gdb\n", ks->threadid);
 }
 
 /* Handle the 'R' reboot packets */
@@ -1009,18 +1041,20 @@ gdb_serial_stub(struct state *ks, int port)
 	char adir[40], ldir[40], buff[256];
 	int acfd, lcfd;
 
-    sprint(buff, "tcp!*!%d", port);
+	sprint(buff, "tcp!*!%d", port);
 	acfd = announce(buff, adir);
 	if (acfd < 0) {
 	    fprint(2, "Unable to connect %r\n");
 	    exits("announce");
 	}
+
 	lcfd = listen(adir, ldir);
 	if (lcfd < 0) {
 	    fprint(2, "listen failed %r\n");
 	    exits("listen");
 	}
-    print("Waiting for connection on %d...\n", port);
+
+	print("Waiting for connection on %d...\n", port);
 	remotefd = accept(lcfd, ldir);
 	if (remotefd < 0) {
 	    fprint(2, "Accept failed %r\n");
@@ -1054,7 +1088,7 @@ gdb_serial_stub(struct state *ks, int port)
 		memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
 
 		get_packet(remcom_in_buffer);
-        syslog(0, "gdbserver", "packet :%s:", remcom_in_buffer);
+		syslog(0, "gdbserver", "packet :%s:", remcom_in_buffer);
 
 		switch (remcom_in_buffer[0]) {
 			case '?':	/* gdbserial status */
@@ -1085,9 +1119,11 @@ gdb_serial_stub(struct state *ks, int port)
 				 * continue.
 				 */
 			case 'D':	/* Debugger detach */
+				gdb_cmd_detach(ks);
+				break;
 			case 'k':	/* Debugger detach via kill */
-				gdb_cmd_detachkill(ks);
-				goto default_handle;
+				gdb_cmd_kill(ks);
+				goto exit;
 			case 'R':	/* Reboot */
 				if (gdb_cmd_reboot(ks))
 					goto default_handle;
@@ -1105,13 +1141,6 @@ gdb_serial_stub(struct state *ks, int port)
 			case 'Z':	/* Break point set */
 				gdb_cmd_break(ks);
 				break;
-#ifdef CONFIG_KDB
-			case '3':	/* Escape into back into kdb */
-				if (remcom_in_buffer[1] == '\0') {
-					gdb_cmd_detachkill(ks);
-					return DBG_PASS_EVENT;
-				}
-#endif
 			case 'C':	/* Exception passing */
 				tmp = gdb_cmd_exception_pass(ks);
 				if (tmp > 0)
@@ -1146,7 +1175,7 @@ default_handle:
 					goto exit;
 				}
 		}
-syslog(0, "gdbserver", "RETURN :%s:", remcom_out_buffer);
+		syslog(0, "gdbserver", "RETURN :%s:", remcom_out_buffer);
 		/* reply to the request */
 		put_packet(remcom_out_buffer);
 	}
@@ -1248,44 +1277,46 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 	return nil;
 }
 
-static struct state ks;
-
 void
 main(int argc, char **argv)
 {
-    char* pid = nil;
-    char* port = "1666";
-    ARGBEGIN {
-    case 'l':
-        port = ARGF();
-        if (port == nil) {
-            fprint(2, "Please specify a listening port\n");
-            exits("listen");
-        }
-        break;
-    case 'p':
-        pid = ARGF();
-        if (pid == nil) {
-            fprint(2, "Please specify a pid\n");
-            exits("pid");
-        }
-        break;
-    case 'd':
-        debug = 1;
-        break;
-    default:
-        fprint(2, " badflag('%c')", ARGC());
-    } ARGEND
+	char* pid = nil;
+	char* port = "1666";
 
-        if (pid == nil) {
-            fprint(2, "Please specify a pid\n");
-            exits("pid");
-        }
+	ARGBEGIN {
+	case 'l':
+		port = ARGF();
+		if (port == nil) {
+			fprint(2, "Please specify a listening port\n");
+			exits("listen");
+		}
+		break;
+	case 'p':
+		pid = ARGF();
+		if (pid == nil) {
+			fprint(2, "Please specify a pid\n");
+			exits("pid");
+		}
+		break;
+	case 'd':
+		debug = 1;
+		break;
+	default:
+		fprint(2, " badflag('%c')", ARGC());
+	} ARGEND
+
+	if (pid == nil) {
+		fprint(2, "Please specify a pid\n");
+		exits("pid");
+	}
 
 	ks.threadid = atoi(pid);
 	// Set to 0 if we eventually support creating a new process
 	attached_to_existing_pid = 1;
 
+	print("Stopping process...\n", ks.threadid);
+	sendctl(ks.threadid, "stop");
+	print("Process stopped.  Waiting for remote gdb connection...\n");
 	attach_to_process(ks.threadid);
 
 	gdb_serial_stub(&ks, atoi(port));
