@@ -9,15 +9,19 @@
  */
 
 
-struct Chan;
-struct mount;
-struct vnode;
+typedef	struct Chan	Chan;
 
 
-struct mount* newufsmount(struct Chan* c);
-struct vnode* newufsvnode();
+struct mount {
+	struct ufsmount*	mnt_data;
+	Chan*			chan;
+};
 
-void releaseufsmount(struct mount* mp);
-void releaseufsvnode(struct vnode* vn);
-
-void mountufs(struct mount* mp);
+/* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
+ * wrapper for the inode and any associated data.  This is not intended to be
+ * support multiple filesystems and should probably be renamed after it works.
+ */
+struct vnode {
+	struct inode* v_data;
+	//struct mount* v_mount;
+};
