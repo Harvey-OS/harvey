@@ -21,7 +21,6 @@
 			"ffs/ffs_softdep.c",
 			"ffs/ffs_subr.c",
 			"ffs/ffs_suspend.c",
-			"ffs/ffs_vfsops.c",
 			"ffs/ffs_vnops.c",
 			"ufs/ufs_acl.c",
 			"ufs/ufs_bmap.c",
@@ -36,7 +35,8 @@
 		],
 		"SourceFiles": [
 			"ffs/ffs_tables.c",
-			"ffs/ffs_vfsops.c"
+			"ffs/ffs_vfsops.c",
+			"ufs_harvey.c"
 		]
 	}
 }
