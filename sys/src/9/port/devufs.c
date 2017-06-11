@@ -139,22 +139,41 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 }
 
 static void
-mount(const char* path)
+mount(char* a, int32_t n)
 {
-	if (!path || strlen(path) == 0) {
-		error(Enonexist);
+	Proc *up = externup();
+
+	Cmdbuf* cb = parsecmd(a, n);
+	if (waserror()) {
+		free(cb);
+		nexterror();
+		print("couldn't parse mount path: %s: %r", a);
+		return;
+	}
+	poperror();
+
+	// TODO Make namec and related functions accept const char*
+	Chan* c = namec(cb->buf, Aopen, ORDWR, 0);
+	free(cb);
+	cb = nil;
+	if (waserror()) {
+		cclose(c);
+		nexterror();
+		print("couldn't open file %s to mount: %r", cb->buf);
+		return;
+	}
+	poperror();
+
+	struct mount* mp = newufsmount(c);
+	int rcode = ffs_mount(mp);
+	if (rcode != 0) {
+		// TODO translate error to string
+		print("failed to mount %s with error code: %d", cb->buf, rcode);
+		releaseufsmount(mp);
 		return;
 	}
 
-	print("Mount %s\n", path);
-	struct mount* mp = mallocz(sizeof(struct mount), 1);
-	int rcode = ffs_mount(mp);
-	if (rcode != 0) {
-		// TODO translate error
-		print("Error mounting %s\n", path);
-	} else {
-		mountpoint = mp;
-	}
+	mountpoint = mp;
 }
 
 static int32_t
@@ -167,7 +186,7 @@ ufswrite(Chan *c, void *a, int32_t n, int64_t offset)
 
 	switch (QID(c->qid)) {
 	case Qmount:
-		mount((char*)a);
+		mount((char*)a, n);
 		return n;
 
 	default:

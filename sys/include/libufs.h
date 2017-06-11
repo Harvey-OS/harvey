@@ -9,8 +9,18 @@
  */
 
 
+typedef	struct	Chan	Chan;
+
+
 struct mount {
-	struct ufsmount* mnt_data;
+	struct ufsmount*	mnt_data;
+	Chan*			chan;
 };
+
+struct mount* newufsmount(Chan* c);
+struct vnode* newufsvnode();
+
+void releaseufsmount(struct mount* mp);
+void releaseufsvnode(struct vnode* vn);
 
 int ffs_mount(struct mount *mp);
