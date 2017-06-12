@@ -143,7 +143,6 @@ mount(char* a, int32_t n)
 {
 	Proc *up = externup();
 
-	print("1\n");
 	Cmdbuf* cb = parsecmd(a, n);
 	if (waserror()) {
 		free(cb);
