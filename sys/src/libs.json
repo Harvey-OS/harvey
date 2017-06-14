@@ -33,7 +33,7 @@
 			"/sys/src/libstdio/libstdio.json",
 			"/sys/src/libthread/libthread.json",
 			"/sys/src/libusb",
-			"/sys/src/libufs",
+			"/sys/src/libufs/libufs.json",
 			"/sys/src/libventi/libventi.json"
 		]
 	}
