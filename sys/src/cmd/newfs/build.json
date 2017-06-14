@@ -1,0 +1,13 @@
+{
+	"newfs": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin",
+		"Program": "newfs",
+		"SourceFiles": [
+			"newfs.c",
+			"mkfs.c"
+		]
+	}
+}
