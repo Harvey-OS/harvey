@@ -430,7 +430,7 @@ restart:
 	sblock.fs_cssize =
 	    fragroundup(&sblock, sblock.fs_ncg * sizeof(struct csum));
 	fscs = (struct csum *)calloc(1, sblock.fs_cssize);
-	if (fscs == NULL)
+	if (fscs == nil)
 		errx(31, "calloc failed");
 	sblock.fs_sbsize = fragroundup(&sblock, sizeof(struct fs));
 	if (sblock.fs_sbsize > SBLOCKSIZE)
@@ -614,7 +614,7 @@ restart:
 	 * Update information about this partition in pack
 	 * label, to that it may be updated on disk.
 	 */
-	if (pp != NULL) {
+	if (pp != nil) {
 		pp->p_fstype = FS_BSDFFS;
 		pp->p_fsize = sblock.fs_fsize;
 		pp->p_frag = sblock.fs_frag;
@@ -824,7 +824,7 @@ fsinit(time_t utime)
 	int entries;
 
 	memset(&node, 0, sizeof node);
-	if ((grp = getgrnam("operator")) != NULL) {
+	if ((grp = getgrnam("operator")) != nil) {
 		gid = grp->gr_gid;
 	} else {
 		warnx("Cannot retrieve operator gid, using gid 0.");
