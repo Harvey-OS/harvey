@@ -662,13 +662,7 @@ extern	void	werrstr(const char*, ...);
 
 /* compiler directives on plan 9 */
 #define SET(x)  ((x)=0)
-#define USED(x) if(x){}else{}
-#ifdef __GNUC__
-#       if __GNUC__ >= 3
-#               undef USED
-#               define USED(x) ((void)(x))
-#       endif
-#endif
+#define USED(x) ((void)(x))
 
 extern char *argv0;
 /* #define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\ */
