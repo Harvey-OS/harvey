@@ -22,6 +22,6 @@ struct mount {
  * support multiple filesystems and should probably be renamed after it works.
  */
 struct vnode {
-	struct inode* v_data;
-	//struct mount* v_mount;
+	struct inode*	v_data;
+	//struct mount*	v_mount;
 };
