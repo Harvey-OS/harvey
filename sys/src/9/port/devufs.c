@@ -138,17 +138,39 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
+static struct mount*
+mountufs(Chan* c)
+{
+	struct mount* mp = newufsmount(c);
+	if (mp == nil) {
+		print("couldn't prepare UFS mount\n");
+		error(Enoattach);
+	}
+
+	int rcode = ffs_mount(mp);
+	if (rcode != 0) {
+		print("couldn't mount as UFS.  Error code: %d\n", rcode);
+		error(Enoattach);
+	}
+
+	return mp;
+}
+
 static void
 mount(char* a, int32_t n)
 {
 	Proc *up = externup();
 
+	// Accept only one mount for now
+	if (mountpoint != nil) {
+		error(Enoattach);
+	}
+
 	Cmdbuf* cb = parsecmd(a, n);
 	if (waserror()) {
+		print("couldn't parse mount path: %s: %r", a);
 		free(cb);
 		nexterror();
-		print("couldn't parse mount path: %s: %r", a);
-		return;
 	}
 	poperror();
 
@@ -157,21 +179,19 @@ mount(char* a, int32_t n)
 	free(cb);
 	cb = nil;
 	if (waserror()) {
+		print("couldn't open file %s to mount: %r", cb->buf);
 		cclose(c);
 		nexterror();
-		print("couldn't open file %s to mount: %r", cb->buf);
-		return;
 	}
 	poperror();
 
-	struct mount* mp = newufsmount(c);
-	mountufs(mp);
-	/*if (rcode != 0) {
-		// TODO translate error to string
-		print("failed to mount %s with error code: %d", cb->buf, rcode);
-		releaseufsmount(mp);
-		return;
-	}*/
+	struct mount* mp = mountufs(c);
+	if (waserror()) {
+		print("couldn't mount %s: %r", cb->buf);
+		cclose(c);
+		nexterror();
+	}
+	poperror();
 
 	mountpoint = mp;
 }
