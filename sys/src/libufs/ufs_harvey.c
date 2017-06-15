@@ -16,12 +16,10 @@
 #include "libufs.h"
 
 
-int ffs_mount(struct mount *mp);
-
-
 struct mount*
 newufsmount(Chan* c)
 {
+	// TODO HARVEY - Implement caching
 	struct mount* mp = mallocz(sizeof(struct mount), 1);
 	mp->chan = c;
 	return mp;
@@ -30,6 +28,7 @@ newufsmount(Chan* c)
 struct vnode*
 newufsvnode()
 {
+	// TODO HARVEY - Implement caching
 	struct vnode* vn = mallocz(sizeof(struct vnode), 1);
 	return vn;
 }
@@ -46,10 +45,4 @@ releaseufsvnode(struct vnode* vn)
 {
 	// TODO HARVEY - This assumes no sharing
 	free(vn);
-}
-
-void
-mountufs(struct mount* mp)
-{
-	ffs_mount(mp);
 }
