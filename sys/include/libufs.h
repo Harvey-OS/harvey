@@ -20,4 +20,4 @@ struct vnode* newufsvnode();
 void releaseufsmount(struct mount* mp);
 void releaseufsvnode(struct vnode* vn);
 
-void mountufs(struct mount* mp);
+int ffs_mount(struct mount *mp);
