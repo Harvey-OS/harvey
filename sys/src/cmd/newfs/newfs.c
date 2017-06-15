@@ -105,7 +105,7 @@ int	maxcontig = 0;		/* max contiguous blocks to allocate */
 int	maxbpg;			/* maximum blocks per file in a cyl group */
 int	avgfilesize = AVFILESIZ;/* expected average file size */
 int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
-u_char	*volumelabel = NULL;	/* volume label for filesystem */
+u_char	*volumelabel = nil;	/* volume label for filesystem */
 struct uufsd disk;		/* libufs disk structure */
 
 static char	device[MAXPATHLEN];
@@ -302,7 +302,7 @@ main(int argc, char *argv[])
 	if (!special[0])
 		err(1, "empty file/special name");
 	cp = strrchr(special, '/');
-	if (cp == NULL) {
+	if (cp == nil) {
 		/*
 		 * No path prefix; try prefixing _PATH_DEV.
 		 */
@@ -321,7 +321,7 @@ main(int argc, char *argv[])
 			errx(1, "%s: ", special);
 	} else if (ufs_disk_fillout_blank(&disk, special) == -1 ||
 	    (!Nflag && ufs_disk_write(&disk) == -1)) {
-		if (disk.d_error != NULL)
+		if (disk.d_error != nil)
 			errx(1, "%s: %s", special, disk.d_error);
 		else
 			err(1, "%s", special);
@@ -343,9 +343,9 @@ main(int argc, char *argv[])
 	    if (sectorsize && ioctl(disk.d_fd, DIOCGMEDIASIZE, &mediasize) != -1)
 		getfssize(&fssize, special, mediasize / sectorsize, reserved);
 	}
-	pp = NULL;
+	pp = nil;
 	lp = getdisklabel(special);
-	if (lp != NULL) {
+	if (lp != nil) {
 		if (!is_file) /* already set for files */
 			part_name = special[strlen(special) - 1];
 		if ((part_name < 'a' || part_name - 'a' >= MAXPARTITIONS) &&
@@ -390,14 +390,14 @@ main(int argc, char *argv[])
 
 		sectorsize = DEV_BSIZE;
 		fssize *= secperblk;
-		if (pp != NULL)
+		if (pp != nil)
 			pp->p_size *= secperblk;
 	}
 	mkfs(pp, special);
 	ufs_disk_close(&disk);
 	if (!jflag)
 		exit(0);
-	if (execlp("tunefs", "newfs", "-j", "enable", special, NULL) < 0)
+	if (execlp("tunefs", "newfs", "-j", "enable", special, nil) < 0)
 		err(1, "Cannot enable soft updates journaling, tunefs");
 	/* NOT REACHED */
 }
@@ -439,10 +439,10 @@ getdisklabel(char *s)
 
 	if (disktype) {
 		lp = getdiskbyname(disktype);
-		if (lp != NULL)
+		if (lp != nil)
 			return (lp);
 	}
-	return (NULL);
+	return (nil);
 }
 
 static void
