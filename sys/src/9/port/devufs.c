@@ -201,18 +201,17 @@ ufswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
 	if(c->qid.type == QTDIR) {
 		error(Eisdir);
-		return -1;
 	}
 
 	switch (QID(c->qid)) {
 	case Qmount:
 		mount((char*)a, n);
-		return n;
+		break;
 
 	default:
 		error(Eperm);
-		return -1;
 	}
+	return n;
 }
 
 Dev ufsdevtab = {
