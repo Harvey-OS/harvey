@@ -36,6 +36,17 @@
  * SUCH DAMAGE.
  */
 
+#include <u.h>
+#include <libc.h>
+
+
+#include <ufs/dir.h>
+#include <ufs/dinode.h>
+#include <ffs/fs.h>
+#include <ufs/ufsmount.h>
+
+#include <ufs/freebsd_util.h>
+#if 0
 #include <sys/cdefs.h>
 
 /*
@@ -48,10 +59,6 @@
 #include <sys/file.h>
 #include <sys/mount.h>
 
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
-#include <ufs/ufs/ufsmount.h>
 
 #include <ctype.h>
 #include <err.h>
@@ -66,6 +73,7 @@
 #include <unistd.h>
 
 #include <libutil.h>
+#endif
 
 #include "newfs.h"
 

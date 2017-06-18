@@ -58,3 +58,8 @@ typedef	int64_t daddr_t;	/* disk address */
 typedef	uint32_t ino_t;		/* inode number */
 typedef	uint32_t uid_t;		/* user id */
 typedef	uint32_t gid_t;		/* group id */
+
+typedef int64_t off_t;		/* File offset */
+typedef int64_t ufs2_daddr_t;
+
+typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or replaced with a spatch */
