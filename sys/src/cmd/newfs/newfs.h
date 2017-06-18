@@ -38,8 +38,6 @@
  * $FreeBSD$
  */
 
-#include <libufs.h>
-
 /*
  * The following two constants set the default block and fragment sizes.
  * Both constants must be a power of 2 and meet the following constraints:

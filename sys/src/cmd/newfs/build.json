@@ -1,5 +1,6 @@
 {
 	"newfs": {
+		"CFlags": ["-I", "/sys/src/libufs"],
 		"Include": [
 			"../cmd.json"
 		],
