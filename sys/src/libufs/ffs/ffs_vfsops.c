@@ -49,7 +49,7 @@
 
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
-static int	ffs_mountfs(struct vnode *, struct mount *, struct thread *);
+static int	ffs_mountfs(vnode *, MountPoint *, thread *);
 #if 0
 static void	ffs_oldfscompat_read(struct fs *, struct ufsmount *,
 		    ufs2_daddr_t);
@@ -85,10 +85,10 @@ static const char *ffs_opts[] = { "acls", "async", "noatime", "noclusterr",
 #endif // 0
 
 int
-ffs_mount(struct mount *mp)
+ffs_mount(MountPoint *mp)
 {
-	struct vnode *devvp = nil;
-	struct thread *td = nil;
+	vnode *devvp = nil;
+	thread *td = nil;
 	int error;
 #if 0
 	struct ufsmount *ump = nil;
@@ -711,7 +711,7 @@ static int sblock_try[] = SBLOCKSEARCH;
  * Common code for mount and mountroot
  */
 static int 
-ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
+ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
 	int error, i;

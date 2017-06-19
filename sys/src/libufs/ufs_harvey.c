@@ -16,35 +16,35 @@
 #include "libufs.h"
 
 
-struct mount*
+MountPoint*
 newufsmount(
-	struct Chan* c,
-	int32_t (*read)(struct mount*, void*, int32_t, int64_t))
+	struct Chan *c,
+	int32_t (*read)(MountPoint*, void*, int32_t, int64_t))
 {
 	// TODO HARVEY - Implement caching
-	struct mount* mp = mallocz(sizeof(struct mount), 1);
+	MountPoint *mp = mallocz(sizeof(MountPoint), 1);
 	mp->chan = c;
 	mp->read = read;
 	return mp;
 }
 
-struct vnode*
+vnode*
 newufsvnode()
 {
 	// TODO HARVEY - Implement caching
-	struct vnode* vn = mallocz(sizeof(struct vnode), 1);
+	vnode *vn = mallocz(sizeof(vnode), 1);
 	return vn;
 }
 
 void
-releaseufsmount(struct mount* mp)
+releaseufsmount(MountPoint *mp)
 {
 	// TODO HARVEY - This assumes no sharing
 	free(mp);
 }
 
 void
-releaseufsvnode(struct vnode* vn)
+releaseufsvnode(vnode *vn)
 {
 	// TODO HARVEY - This assumes no sharing
 	free(vn);

@@ -35,7 +35,7 @@ static Dirtab ufsdir[] =
 #define QID(q)	((int)(q).path)
 
 // Just one possible mountpoint for now.  Replace with a collection later
-static struct mount* mountpoint = nil;
+static MountPoint *mountpoint = nil;
 
 static int MaxMounts = 1;
 
@@ -139,15 +139,15 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 }
 
 static int32_t
-chanread(struct mount* mp, void *p, int32_t n, int64_t off)
+chanread(MountPoint *mp, void *p, int32_t n, int64_t off)
 {
 	return mp->chan->dev->read(mp->chan, p, n, off);
 }
 
-static struct mount*
+static MountPoint*
 mountufs(Chan* c)
 {
-	struct mount* mp = newufsmount(c, chanread);
+	MountPoint *mp = newufsmount(c, chanread);
 	if (mp == nil) {
 		print("couldn't prepare UFS mount\n");
 		error(Enoattach);
@@ -191,7 +191,7 @@ mount(char* a, int32_t n)
 	}
 	poperror();
 
-	struct mount* mp = mountufs(c);
+	MountPoint *mp = mountufs(c);
 	if (waserror()) {
 		print("couldn't mount %s: %r", cb->buf);
 		cclose(c);

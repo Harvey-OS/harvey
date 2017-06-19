@@ -9,17 +9,21 @@
  */
 
 
+typedef struct inode inode;
+
 /* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
  * wrapper for the inode and any associated data.  This is not intended to be
  * support multiple filesystems and should probably be renamed after it works.
  */
-struct vnode {
-	struct inode*	v_data;
-	//struct mount*	v_mount;
-};
+typedef struct vnode {
+	inode	*v_data;
+	//MountPoint	*v_mount;
+} vnode;
 
 // Not sure we even need this - if not we can remove it later.
-struct thread {};
+typedef struct thread {
+} thread;
+
 
 /*
  * MAXBSIZE -	Filesystems are made out of blocks of at most MAXBSIZE bytes

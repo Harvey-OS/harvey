@@ -9,26 +9,29 @@
  */
 
 
-struct Chan;
-struct vnode;
-struct thread;
+typedef struct Chan Chan;
+typedef struct ufsmount ufsmount;
+typedef struct vnode vnode;
+typedef struct thread thread;
+
 
 /* Wrapper for a UFS mount.  Should support reading from both kernel and user
  * space (eventually)
  */
-struct mount {
-	struct ufsmount*	mnt_data;
-	struct Chan*		chan;
-	int32_t			(*read)(struct mount*, void*, int32_t, int64_t);
-};
+typedef struct MountPoint {
+	ufsmount	*mnt_data;
+	Chan		*chan;
+	int32_t		(*read)(struct MountPoint*, void*, int32_t, int64_t);
+} MountPoint;
 
-struct mount* newufsmount(
-	struct Chan* c,
-	int32_t (*read)(struct mount*, void*, int32_t, int64_t));
 
-struct vnode* newufsvnode();
+MountPoint *newufsmount(
+	Chan *c,
+	int32_t (*read)(MountPoint*, void*, int32_t, int64_t));
 
-void releaseufsmount(struct mount* mp);
-void releaseufsvnode(struct vnode* vn);
+vnode* newufsvnode();
 
-int ffs_mount(struct mount *mp);
+void releaseufsmount(MountPoint *mp);
+void releaseufsvnode(vnode *vn);
+
+int ffs_mount(MountPoint *mp);
