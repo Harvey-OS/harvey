@@ -17,11 +17,14 @@
 
 
 struct mount*
-newufsmount(Chan* c)
+newufsmount(
+	struct Chan* c,
+	int32_t (*read)(struct mount*, void*, int32_t, int64_t))
 {
 	// TODO HARVEY - Implement caching
 	struct mount* mp = mallocz(sizeof(struct mount), 1);
 	mp->chan = c;
+	mp->read = read;
 	return mp;
 }
 
