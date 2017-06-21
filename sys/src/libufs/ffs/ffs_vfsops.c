@@ -38,17 +38,19 @@
 //#include "quota.h"
 //#include "ufsmount.h"
 //#include "inode.h"
+#include "dinode.h"
 //#include "ufs_extern.h"
 
-//#include "../ffs/fs.h"
+#include "../ffs/fs.h"
 //#include "../ffs/ffs_extern.h"
 
 #include "libufs.h"
+#include "ufs_harvey.h"
 
+//static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
+
+static int	ffs_mountfs(vnode *, MountPoint *, thread *);
 #if 0
-static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
-
-static int	ffs_mountfs(struct vnode *, struct mount *, struct thread *);
 static void	ffs_oldfscompat_read(struct fs *, struct ufsmount *,
 		    ufs2_daddr_t);
 static void	ffs_ifree(struct ufsmount *ump, struct inode *ip);
@@ -83,11 +85,12 @@ static const char *ffs_opts[] = { "acls", "async", "noatime", "noclusterr",
 #endif // 0
 
 int
-ffs_mount(struct mount *mp)
+ffs_mount(MountPoint *mp)
 {
+	vnode *devvp = nil;
+	thread *td = nil;
+	int error;
 #if 0
-	struct vnode *devvp;
-	struct thread *td;
 	struct ufsmount *ump = nil;
 	struct fs *fs;
 	pid_t fsckpid = 0;
@@ -458,6 +461,7 @@ ffs_mount(struct mount *mp)
 		if (error)
 			return (error);
 	} else {
+#endif // 0
 		/*
 		 * New mount
 		 *
@@ -467,9 +471,9 @@ ffs_mount(struct mount *mp)
 		 * Note that vfs_mount_alloc() populates f_mntonname for us.
 		 */
 		if ((error = ffs_mountfs(devvp, mp, td)) != 0) {
-			vrele(devvp);
 			return (error);
 		}
+#if 0
 		if (fsckpid > 0) {
 			KASSERT(MOUNTEDSOFTDEP(mp) == 0,
 			    ("soft updates enabled on read-only file system"));
@@ -696,6 +700,8 @@ loop:
 	return (0);
 }
 
+#endif // 0
+
 /*
  * Possible superblock locations ordered from most to least likely.
  */
@@ -705,11 +711,15 @@ static int sblock_try[] = SBLOCKSEARCH;
  * Common code for mount and mountroot
  */
 static int 
-ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
+ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
+	// TODO HARVEY - Don't need devvp, and maybe don't need td?
+	int error, i;
+	struct fs *fs;
+	ufs2_daddr_t sblockloc;
+#if 0
 	struct ufsmount *ump;
 	struct buf *bp;
-	struct fs *fs;
 	struct cdev *dev;
 	void *space;
 	ufs2_daddr_t sblockloc;
@@ -747,24 +757,28 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 		mp->mnt_iosize_max = dev->si_iosize_max;
 	if (mp->mnt_iosize_max > MAXPHYS)
 		mp->mnt_iosize_max = MAXPHYS;
+#endif // 0
 
-	fs = nil;
+	fs = mallocz(SBLOCKSIZE, 1);
 	sblockloc = 0;
 	/*
 	 * Try reading the superblock in each of its possible locations.
 	 */
 	for (i = 0; sblock_try[i] != -1; i++) {
-		if ((SBLOCKSIZE % cp->provider->sectorsize) != 0) {
+		/*if ((SBLOCKSIZE % cp->provider->sectorsize) != 0) {
 			error = EINVAL;
 			vfs_mount_error(mp,
 			    "Invalid sectorsize %d for superblock size %d",
 			    cp->provider->sectorsize, SBLOCKSIZE);
 			goto out;
-		}
-		if ((error = bread(devvp, btodb(sblock_try[i]), SBLOCKSIZE,
-		    cred, &bp)) != 0)
+		}*/
+
+		if (mp->read(mp, fs, SBLOCKSIZE, sblock_try[i]) != SBLOCKSIZE) {
+			print("not found at %p\n", sblock_try[i]);
+			error = -1;
 			goto out;
-		fs = (struct fs *)bp->b_data;
+		}
+
 		sblockloc = sblock_try[i];
 		if ((fs->fs_magic == FS_UFS1_MAGIC ||
 		     (fs->fs_magic == FS_UFS2_MAGIC &&
@@ -773,13 +787,16 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 		    fs->fs_bsize <= MAXBSIZE &&
 		    fs->fs_bsize >= sizeof(struct fs))
 			break;
-		brelse(bp);
-		bp = nil;
 	}
+
 	if (sblock_try[i] == -1) {
-		error = EINVAL;		/* XXX needs translation */
+		//error = EINVAL;		/* XXX needs translation */
+		// TODO HARVEY error string?
+		error = -1;
 		goto out;
 	}
+
+#if 0
 	fs->fs_fmod = 0;
 	fs->fs_flags &= ~FS_INDEXDIRS;	/* no support for directory indices */
 	fs->fs_flags &= ~FS_UNCLEAN;
@@ -1044,8 +1061,12 @@ ffs_mountfs (struct vnode *devvp, struct mount *mp, struct thread *td)
 	(void) ufs_extattr_autostart(mp, td);
 #endif /* !UFS_EXTATTR_AUTOSTART */
 #endif /* !UFS_EXTATTR */
+#endif // 0
 	return (0);
 out:
+	if (fs)
+		free(fs);
+#if 0
 	if (bp)
 		brelse(bp);
 	if (cp != nil) {
@@ -1065,8 +1086,11 @@ out:
 	}
 	atomic_store_rel_ptr((uintptr_t *)&dev->si_mountpt, 0);
 	dev_rel(dev);
+#endif // 0
 	return (error);
 }
+
+#if 0
 static int bigcgs = 0;
 SYSCTL_INT(_debug, OID_AUTO, bigcgs, CTLFLAG_RW, &bigcgs, 0, "");
 
