@@ -30,8 +30,7 @@
 			"/$ARCH/lib/klibc.a",
 			"/$ARCH/lib/klibdraw.a",
 			"/$ARCH/lib/klibip.a",
-			"/$ARCH/lib/klibsec.a",
-			"/$ARCH/lib/klibufs.a"
+			"/$ARCH/lib/klibsec.a"
 		],
 		"Oflags": [
 			"-z",
