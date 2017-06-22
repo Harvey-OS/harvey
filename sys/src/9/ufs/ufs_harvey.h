@@ -9,7 +9,21 @@
  */
 
 
+typedef struct Chan Chan;
+typedef struct ufsmount ufsmount;
+typedef struct vnode vnode;
+typedef struct thread thread;
 typedef struct inode inode;
+
+
+/* Wrapper for a UFS mount.  Should support reading from both kernel and user
+ * space (eventually)
+ */
+typedef struct MountPoint {
+	ufsmount	*mnt_data;
+	Chan		*chan;
+} MountPoint;
+
 
 /* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
  * wrapper for the inode and any associated data.  This is not intended to be
@@ -19,6 +33,7 @@ typedef struct vnode {
 	inode	*v_data;
 	//MountPoint	*v_mount;
 } vnode;
+
 
 // Not sure we even need this - if not we can remove it later.
 typedef struct thread {
@@ -33,3 +48,13 @@ typedef struct thread {
  *		filesystems which require a block size exceeding MAXBSIZE.
  */
 #define MAXBSIZE	65536	/* must be power of 2 */
+
+
+MountPoint *newufsmount(Chan *c);
+
+vnode* newufsvnode();
+
+void releaseufsmount(MountPoint *mp);
+void releaseufsvnode(vnode *vn);
+
+int ffs_mount(MountPoint *mp);
