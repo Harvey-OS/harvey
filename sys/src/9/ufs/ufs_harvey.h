@@ -22,6 +22,8 @@ typedef struct inode inode;
 typedef struct MountPoint {
 	ufsmount	*mnt_data;
 	Chan		*chan;
+
+	uint64_t	mnt_flag;		/* (i) flags shared with user */
 } MountPoint;
 
 
