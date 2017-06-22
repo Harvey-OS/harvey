@@ -48,6 +48,8 @@
 //#include "../ffs/ffs_extern.h"
 
 #include "ufs_harvey.h"
+#include "freebsd_util.h"
+
 
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
@@ -716,12 +718,12 @@ static int
 ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
-	int error, i;
+	int error, i, ronly;
 	struct fs *fs;
 	ufs2_daddr_t sblockloc;
 	Chan *mpc = mp->chan;
-#if 0
-	struct ufsmount *ump;
+
+	/*struct ufsmount *ump;
 	struct buf *bp;
 	struct cdev *dev;
 	void *space;
@@ -735,10 +737,10 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 
 	bp = nil;
 	ump = nil;
-	cred = td ? td->td_ucred : NOCRED;
+	cred = td ? td->td_ucred : NOCRED;*/
 	ronly = (mp->mnt_flag & MNT_RDONLY) != 0;
 
-	KASSERT(devvp->v_type == VCHR, ("reclaimed devvp"));
+	/*KASSERT(devvp->v_type == VCHR, ("reclaimed devvp"));
 	dev = devvp->v_rdev;
 	if (atomic_cmpset_acq_ptr((uintptr_t *)&dev->si_mountpt, 0,
 	    (uintptr_t)mp) == 0) {
@@ -760,7 +762,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		mp->mnt_iosize_max = dev->si_iosize_max;
 	if (mp->mnt_iosize_max > MAXPHYS)
 		mp->mnt_iosize_max = MAXPHYS;
-#endif // 0
+	*/
 
 	fs = mallocz(SBLOCKSIZE, 1);
 	sblockloc = 0;
@@ -793,13 +795,11 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	}
 
 	if (sblock_try[i] == -1) {
-		//error = EINVAL;		/* XXX needs translation */
+		error = EINVAL;		/* XXX needs translation */
 		// TODO HARVEY error string?
-		error = -1;
 		goto out;
 	}
 
-#if 0
 	fs->fs_fmod = 0;
 	fs->fs_flags &= ~FS_INDEXDIRS;	/* no support for directory indices */
 	fs->fs_flags &= ~FS_UNCLEAN;
@@ -808,10 +808,10 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		if (ronly || (mp->mnt_flag & MNT_FORCE) ||
 		    ((fs->fs_flags & (FS_SUJ | FS_NEEDSFSCK)) == 0 &&
 		     (fs->fs_flags & FS_DOSOFTDEP))) {
-			printf("WARNING: %s was not properly dismounted\n",
+			print("WARNING: %s was not properly dismounted\n",
 			    fs->fs_fsmnt);
 		} else {
-			vfs_mount_error(mp, "R/W mount of %s denied. %s%s",
+			print("R/W mount of %s denied. %s%s",
 			    fs->fs_fsmnt, "Filesystem is not clean - run fsck.",
 			    (fs->fs_flags & FS_SUJ) == 0 ? "" :
 			    " Forced mount will invalidate journal contents");
@@ -820,7 +820,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		}
 		if ((fs->fs_pendingblocks != 0 || fs->fs_pendinginodes != 0) &&
 		    (mp->mnt_flag & MNT_FORCE)) {
-			printf("WARNING: %s: lost blocks %jd files %d\n",
+			print("WARNING: %s: lost blocks %jd files %d\n",
 			    fs->fs_fsmnt, (intmax_t)fs->fs_pendingblocks,
 			    fs->fs_pendinginodes);
 			fs->fs_pendingblocks = 0;
@@ -828,12 +828,13 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		}
 	}
 	if (fs->fs_pendingblocks != 0 || fs->fs_pendinginodes != 0) {
-		printf("WARNING: %s: mount pending error: blocks %jd "
+		print("WARNING: %s: mount pending error: blocks %jd "
 		    "files %d\n", fs->fs_fsmnt, (intmax_t)fs->fs_pendingblocks,
 		    fs->fs_pendinginodes);
 		fs->fs_pendingblocks = 0;
 		fs->fs_pendinginodes = 0;
 	}
+#if 0
 	if ((fs->fs_flags & FS_GJOURNAL) != 0) {
 #ifdef UFS_GJOURNAL
 		/*
