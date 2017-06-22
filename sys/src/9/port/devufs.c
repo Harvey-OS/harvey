@@ -138,16 +138,10 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-static int32_t
-chanread(MountPoint *mp, void *p, int32_t n, int64_t off)
-{
-	return mp->chan->dev->read(mp->chan, p, n, off);
-}
-
 static MountPoint*
 mountufs(Chan* c)
 {
-	MountPoint *mp = newufsmount(c, chanread);
+	MountPoint *mp = newufsmount(c);
 	if (mp == nil) {
 		print("couldn't prepare UFS mount\n");
 		error(Enoattach);

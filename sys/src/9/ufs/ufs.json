@@ -3,6 +3,8 @@
 		"Cflags": [
 		    "-fasm",
 		    "-I",
+		    "../ufs",
+		    "-I",
 		    "../ufs/ffs",
 		    "-I",
 		    "../ufs/ufs"

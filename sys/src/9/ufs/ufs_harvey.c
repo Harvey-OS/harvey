@@ -9,22 +9,19 @@
  */
 
 
-#include <u.h>
-#include <libc.h>
+#include "u.h"
+#include "../../port/lib.h"
 
 #include "ufs_harvey.h"
 #include "libufs.h"
 
 
 MountPoint*
-newufsmount(
-	struct Chan *c,
-	int32_t (*read)(MountPoint*, void*, int32_t, int64_t))
+newufsmount(Chan *c)
 {
 	// TODO HARVEY - Implement caching
 	MountPoint *mp = mallocz(sizeof(MountPoint), 1);
 	mp->chan = c;
-	mp->read = read;
 	return mp;
 }
 

@@ -21,13 +21,10 @@ typedef struct thread thread;
 typedef struct MountPoint {
 	ufsmount	*mnt_data;
 	Chan		*chan;
-	int32_t		(*read)(struct MountPoint*, void*, int32_t, int64_t);
 } MountPoint;
 
 
-MountPoint *newufsmount(
-	Chan *c,
-	int32_t (*read)(MountPoint*, void*, int32_t, int64_t));
+MountPoint *newufsmount(Chan *c);
 
 vnode* newufsvnode();
 
