@@ -28,8 +28,11 @@
  *
  *	@(#)ffs_vfsops.c	8.31 (Berkeley) 5/20/95
  */
-#include <u.h>
-#include <libc.h>
+
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
 
 
 //#include "dir.h"
@@ -717,6 +720,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	int error, i;
 	struct fs *fs;
 	ufs2_daddr_t sblockloc;
+	Chan *mpc = mp->chan;
 #if 0
 	struct ufsmount *ump;
 	struct buf *bp;
@@ -773,7 +777,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 			goto out;
 		}*/
 
-		if (mp->read(mp, fs, SBLOCKSIZE, sblock_try[i]) != SBLOCKSIZE) {
+		if (mpc->dev->read(mpc, fs, SBLOCKSIZE, sblock_try[i]) != SBLOCKSIZE) {
 			print("not found at %p\n", sblock_try[i]);
 			error = -1;
 			goto out;
