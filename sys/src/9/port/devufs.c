@@ -15,7 +15,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
-#include "libufs.h"
+#include "../ufs/ufs_harvey.h"
 
 
 enum {

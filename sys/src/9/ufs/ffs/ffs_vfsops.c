@@ -47,7 +47,6 @@
 #include "../ffs/fs.h"
 //#include "../ffs/ffs_extern.h"
 
-#include "libufs.h"
 #include "ufs_harvey.h"
 
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;

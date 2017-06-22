@@ -13,7 +13,6 @@
 #include "../../port/lib.h"
 
 #include "ufs_harvey.h"
-#include "libufs.h"
 
 
 MountPoint*
