@@ -252,7 +252,7 @@ struct csum_total {
 /*
  * Super block for an FFS filesystem.
  */
-struct fs {
+typedef struct fs {
 	int32_t	 fs_firstfield;		/* historic filesystem linked list, */
 	int32_t	 fs_unused_1;		/*     used for incore super blocks */
 	int32_t	 fs_sblkno;		/* offset of super-block in filesys */
@@ -358,7 +358,7 @@ struct fs {
 	int32_t	 fs_spare5[2];		/* old fs_postbloff */
 					/* old fs_rotbloff */
 	int32_t	 fs_magic;		/* magic number */
-};
+} fs;
 
 /* Sanity checking. */
 #ifdef CTASSERT
