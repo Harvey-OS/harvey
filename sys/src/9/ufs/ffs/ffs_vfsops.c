@@ -33,13 +33,14 @@
 #include "../../port/lib.h"
 #include "mem.h"
 #include "dat.h"
+#include "../../port/portfns.h"
 
 
+#define _KERNEL
+#include "freebsd_util.h"
 //#include "dir.h"
 //#include "extattr.h"
-//#include "gjournal.h"
 //#include "quota.h"
-//#include "ufsmount.h"
 //#include "inode.h"
 #include "dinode.h"
 //#include "ufs_extern.h"
@@ -47,9 +48,8 @@
 #include "../ffs/fs.h"
 //#include "../ffs/ffs_extern.h"
 
+#include "ufsmount.h"
 #include "ufs_harvey.h"
-#include "freebsd_util.h"
-
 
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
@@ -719,12 +719,12 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
 	int error, i, ronly;
-	struct fs *fs;
+	fs *fs;
 	ufs2_daddr_t sblockloc;
 	Chan *mpc = mp->chan;
 
-	/*struct ufsmount *ump;
-	struct buf *bp;
+	ufsmount *ump;
+	/*struct buf *bp;
 	struct cdev *dev;
 	void *space;
 	ufs2_daddr_t sblockloc;
@@ -736,8 +736,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	struct mount *nmp;
 
 	bp = nil;
-	ump = nil;
 	cred = td ? td->td_ucred : NOCRED;*/
+	ump = nil;
 	ronly = (mp->mnt_flag & MNT_RDONLY) != 0;
 
 	/*KASSERT(devvp->v_type == VCHR, ("reclaimed devvp"));
@@ -836,37 +836,15 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	}
 #if 0
 	if ((fs->fs_flags & FS_GJOURNAL) != 0) {
-#ifdef UFS_GJOURNAL
-		/*
-		 * Get journal provider name.
-		 */
-		len = 1024;
-		mp->mnt_gjprovider = malloc((uint64_t)len, M_UFSMNT, M_WAITOK);
-		if (g_io_getattr("GJOURNAL::provider", cp, &len,
-		    mp->mnt_gjprovider) == 0) {
-			mp->mnt_gjprovider = realloc(mp->mnt_gjprovider, len,
-			    M_UFSMNT, M_WAITOK);
-			MNT_ILOCK(mp);
-			mp->mnt_flag |= MNT_GJOURNAL;
-			MNT_IUNLOCK(mp);
-		} else {
-			printf("WARNING: %s: GJOURNAL flag on fs "
-			    "but no gjournal provider below\n",
-			    mp->mnt_stat.f_mntonname);
-			free(mp->mnt_gjprovider, M_UFSMNT);
-			mp->mnt_gjprovider = nil;
-		}
-#else
-		printf("WARNING: %s: GJOURNAL flag on fs but no "
+		print("WARNING: %s: GJOURNAL flag on fs but no "
 		    "UFS_GJOURNAL support\n", mp->mnt_stat.f_mntonname);
-#endif
-	} else {
-		mp->mnt_gjprovider = nil;
 	}
-	ump = malloc(sizeof *ump, M_UFSMNT, M_WAITOK | M_ZERO);
-	ump->um_cp = cp;
-	ump->um_bo = &devvp->v_bufobj;
-	ump->um_fs = malloc((uint64_t)fs->fs_sbsize, M_UFSMNT, M_WAITOK);
+#endif // 0
+	ump = (ufsmount*)smalloc(sizeof *ump);
+	//ump->um_cp = cp;
+	//ump->um_bo = &devvp->v_bufobj;
+	ump->um_fs = smalloc((uint64_t)fs->fs_sbsize);
+#if 0
 	if (fs->fs_magic == FS_UFS1_MAGIC) {
 		ump->um_fstype = UFS1;
 		ump->um_balloc = ffs_balloc_ufs1;
@@ -1070,27 +1048,26 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 out:
 	if (fs)
 		free(fs);
-#if 0
-	if (bp)
+	/*if (bp)
 		brelse(bp);
 	if (cp != nil) {
 		g_topology_lock();
 		g_vfs_close(cp);
 		g_topology_unlock();
-	}
+	}*/
 	if (ump) {
-		mtx_destroy(UFS_MTX(ump));
+		/*mtx_destroy(UFS_MTX(ump));
 		if (mp->mnt_gjprovider != nil) {
 			free(mp->mnt_gjprovider, M_UFSMNT);
 			mp->mnt_gjprovider = nil;
 		}
-		free(ump->um_fs, M_UFSMNT);
-		free(ump, M_UFSMNT);
+		free(ump->um_fs, M_UFSMNT);*/
+		free(ump);
 		mp->mnt_data = nil;
 	}
-	atomic_store_rel_ptr((uintptr_t *)&dev->si_mountpt, 0);
-	dev_rel(dev);
-#endif // 0
+	//atomic_store_rel_ptr((uintptr_t *)&dev->si_mountpt, 0);
+	//dev_rel(dev);
+
 	return (error);
 }
 
