@@ -95,8 +95,8 @@ typedef struct ufsmount {
 	int	(*um_valloc)(vnode *, int, Ucred *, vnode **);
 	int	(*um_vfree)(vnode *, ino_t, int);
 	void	(*um_ifree)(ufsmount *, inode *);
-	//int	(*um_rdonly)(struct inode *);
-	//void	(*um_snapgone)(struct inode *);
+	int	(*um_rdonly)(inode *);
+	void	(*um_snapgone)(inode *);
 } ufsmount;
 
 /*#define	UFS_BALLOC(aa, bb, cc, dd, ee, ff) VFSTOUFS((aa)->v_mount)->um_balloc(aa, bb, cc, dd, ee, ff)
