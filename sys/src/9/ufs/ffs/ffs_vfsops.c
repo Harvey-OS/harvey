@@ -725,8 +725,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	Chan *mpc = mp->chan;
 
 	ufsmount *ump;
-	/*struct buf *bp;
-	struct cdev *dev;
+	/*struct cdev *dev;
 	void *space;
 	ufs2_daddr_t sblockloc;
 	int error, i, blks, len, ronly;
@@ -736,7 +735,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	struct g_consumer *cp;
 	struct mount *nmp;
 
-	bp = nil;
 	cred = td ? td->td_ucred : NOCRED;*/
 	ump = nil;
 	ronly = (mp->mnt_flag & MNT_RDONLY) != 0;
@@ -858,14 +856,9 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_ifree = ffs_ifree;
 	ump->um_rdonly = ffs_rdonly;
 	ump->um_snapgone = ffs_snapgone;
-#if 0
-	mtx_init(UFS_MTX(ump), "FFS", "FFS Lock", MTX_DEF);
-	bcopy(bp->b_data, ump->um_fs, (uint)fs->fs_sbsize);
-	if (fs->fs_sbsize < SBLOCKSIZE)
-		bp->b_flags |= B_INVAL | B_NOCACHE;
-	brelse(bp);
-	bp = nil;
+	memmove(ump->um_fs, fs, (uint)fs->fs_sbsize);
 	fs = ump->um_fs;
+#if 0
 	ffs_oldfscompat_read(fs, ump, sblockloc);
 	fs->fs_ronly = ronly;
 	size = fs->fs_cssize;
