@@ -10,7 +10,6 @@
 		    "../ufs/ufs"
 		],
 		"#SourceFiles": [
-			"../ufs/ffs/ffs_alloc.c",
 			"../ufs/ffs/ffs_rawread.c",
 			"../ufs/ffs/ffs_snapshot.c",
 			"../ufs/ffs/ffs_softdep.c",
@@ -28,6 +27,7 @@
 			"../ufs/ufs/ufs_vnops.c"
 		],
 		"SourceFiles": [
+			"../ufs/ffs/ffs_alloc.c",
 			"../ufs/ffs/ffs_balloc.c",
 			"../ufs/ffs/ffs_inode.c",
 			"../ufs/ffs/ffs_subr.c",

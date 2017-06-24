@@ -852,9 +852,9 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	}
 	ump->um_blkatoff = ffs_blkatoff;
 	ump->um_truncate = ffs_truncate;
-#if 0
 	ump->um_update = ffs_update;
 	ump->um_valloc = ffs_valloc;
+#if 0
 	ump->um_vfree = ffs_vfree;
 	ump->um_ifree = ffs_ifree;
 	ump->um_rdonly = ffs_rdonly;
