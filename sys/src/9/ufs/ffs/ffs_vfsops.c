@@ -718,23 +718,20 @@ static int
 ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
-	int error, i, ronly;
 	fs *fs;
-	ufs2_daddr_t sblockloc;
 	Chan *mpc = mp->chan;
 
 	ufsmount *ump;
-	/*struct cdev *dev;
 	void *space;
 	ufs2_daddr_t sblockloc;
-	int error, i, blks, len, ronly;
+	int error, i, blks, /*len,*/ ronly;
 	uint64_t size;
-	int32_t *lp;
-	struct ucred *cred;
-	struct g_consumer *cp;
-	struct mount *nmp;
+	//int32_t *lp;
+	//struct ucred *cred;
+	//struct g_consumer *cp;
+	//struct mount *nmp;
 
-	cred = td ? td->td_ucred : NOCRED;*/
+	//cred = td ? td->td_ucred : NOCRED;
 	ump = nil;
 	ronly = (mp->mnt_flag & MNT_RDONLY) != 0;
 
@@ -858,15 +855,15 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	memmove(ump->um_fs, fs, (uint)fs->fs_sbsize);
 	fs = ump->um_fs;
 	ffs_oldfscompat_read(fs, ump, sblockloc);
-#if 0
 	fs->fs_ronly = ronly;
 	size = fs->fs_cssize;
-	blks = howmany(size, fs->fs_fsize);
+	blks = HOWMANY(size, fs->fs_fsize);
 	if (fs->fs_contigsumsize > 0)
 		size += fs->fs_ncg * sizeof(int32_t);
 	size += fs->fs_ncg * sizeof(uint8_t);
-	space = malloc(size, M_UFSMNT, M_WAITOK);
+	space = smalloc(size);
 	fs->fs_csp = space;
+#if 0
 	for (i = 0; i < blks; i += fs->fs_frag) {
 		size = fs->fs_bsize;
 		if (i + fs->fs_frag > blks)
