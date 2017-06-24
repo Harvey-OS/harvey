@@ -1059,8 +1059,8 @@ out:
 		if (mp->mnt_gjprovider != nil) {
 			free(mp->mnt_gjprovider, M_UFSMNT);
 			mp->mnt_gjprovider = nil;
-		}
-		free(ump->um_fs, M_UFSMNT);*/
+		}*/
+		free(ump->um_fs);
 		free(ump);
 		mp->mnt_data = nil;
 	}
