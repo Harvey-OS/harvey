@@ -89,7 +89,7 @@ typedef struct ufsmount {
 	//uint	um_trim_inflight;
 	//struct taskqueue *um_trim_tq;
 	int	(*um_balloc)(vnode *, off_t, int, Ucred *, int, Buf **);
-	//int	(*um_blkatoff)(struct vnode *, off_t, char **, struct buf **);
+	int	(*um_blkatoff)(vnode *, off_t, char **, Buf **);
 	//int	(*um_truncate)(struct vnode *, off_t, int, struct ucred *);
 	//int	(*um_update)(struct vnode *, int);
 	//int	(*um_valloc)(struct vnode *, int, struct ucred *, struct vnode **);
