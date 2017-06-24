@@ -38,6 +38,8 @@
 #define _KERNEL
 
 #include "freebsd_util.h"
+#include "ufs_harvey.h"
+
 //#include "dir.h"
 //#include "extattr.h"
 //#include "quota.h"
@@ -49,7 +51,6 @@
 #include "../ffs/ffs_extern.h"
 
 #include "ufsmount.h"
-#include "ufs_harvey.h"
 
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
@@ -850,8 +851,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		ump->um_balloc = ffs_balloc_ufs2;
 	}
 	ump->um_blkatoff = ffs_blkatoff;
-#if 0
 	ump->um_truncate = ffs_truncate;
+#if 0
 	ump->um_update = ffs_update;
 	ump->um_valloc = ffs_valloc;
 	ump->um_vfree = ffs_vfree;
