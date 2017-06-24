@@ -55,10 +55,10 @@
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
+//static void	ffs_oldfscompat_read(struct fs *, struct ufsmount *,
+//		    ufs2_daddr_t);
+static void	ffs_ifree(ufsmount *ump, inode *ip);
 #if 0
-static void	ffs_oldfscompat_read(struct fs *, struct ufsmount *,
-		    ufs2_daddr_t);
-static void	ffs_ifree(struct ufsmount *ump, struct inode *ip);
 static int	ffs_sync_lazy(struct mount *mp);
 
 static vfs_init_t ffs_init;
@@ -854,9 +854,9 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_truncate = ffs_truncate;
 	ump->um_update = ffs_update;
 	ump->um_valloc = ffs_valloc;
-#if 0
 	ump->um_vfree = ffs_vfree;
 	ump->um_ifree = ffs_ifree;
+#if 0
 	ump->um_rdonly = ffs_rdonly;
 	ump->um_snapgone = ffs_snapgone;
 	mtx_init(UFS_MTX(ump), "FFS", "FFS Lock", MTX_DEF);
@@ -1920,16 +1920,22 @@ ffs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,
 #endif
 }
 
-static void
-ffs_ifree(struct ufsmount *ump, struct inode *ip)
-{
+#endif // 0
 
+static void
+ffs_ifree(ufsmount *ump, inode *ip)
+{
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	if (ump->um_fstype == UFS1 && ip->i_din1 != nil)
 		uma_zfree(uma_ufs1, ip->i_din1);
 	else if (ip->i_din2 != nil)
 		uma_zfree(uma_ufs2, ip->i_din2);
 	uma_zfree(uma_inode, ip);
+#endif // 0
 }
+
+#if 0
 
 static int dobkgrdwrite = 1;
 SYSCTL_INT(_debug, OID_AUTO, dobkgrdwrite, CTLFLAG_RW, &dobkgrdwrite, 0,
