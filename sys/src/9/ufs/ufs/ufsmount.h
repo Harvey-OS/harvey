@@ -83,7 +83,7 @@ typedef struct ufsmount {
 	//time_t	um_btime[MAXQUOTAS];		/* block quota time limit */
 	//time_t	um_itime[MAXQUOTAS];		/* inode quota time limit */
 	//char	um_qflags[MAXQUOTAS];		/* quota specific flags */
-	//int64_t	um_savedmaxfilesize;		/* XXX - limit maxfilesize */
+	int64_t	um_savedmaxfilesize;		/* XXX - limit maxfilesize */
 	//int	um_candelete;			/* devvp supports TRIM */
 	//int	um_writesuspended;		/* suspension in progress */
 	//uint	um_trim_inflight;
