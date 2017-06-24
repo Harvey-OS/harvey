@@ -28,13 +28,12 @@
  *
  *	@(#)ffs_subr.c	8.5 (Berkeley) 3/21/95
  */
-#include <u.h>
-#include <libc.h>
 
-#ifndef _KERNEL
-#include <ufs/ufs/dinode.h>
+#include "u.h"
+#include "../../port/lib.h"
+
+/*#include <ufs/ufs/dinode.h>
 #include <ufs/ffs/fs.h>
-#else
 
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>
@@ -42,7 +41,10 @@
 #include <ufs/ufs/ufsmount.h>
 #include <ufs/ufs/ufs_extern.h>
 #include <ufs/ffs/ffs_extern.h>
-#include <ufs/ffs/fs.h>
+#include <ufs/ffs/fs.h>*/
+
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
 
 /*
  * Return buffer with the contents of block "offset" from the beginning of
@@ -50,8 +52,10 @@
  * remaining space in the directory.
  */
 int
-ffs_blkatoff(struct vnode *vp, off_t offset, char **res, struct buf **bpp)
+ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
 {
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct inode *ip;
 	struct fs *fs;
 	struct buf *bp;
@@ -72,8 +76,11 @@ ffs_blkatoff(struct vnode *vp, off_t offset, char **res, struct buf **bpp)
 	if (res)
 		*res = (char *)bp->b_data + blkoff(fs, offset);
 	*bpp = bp;
+#endif // 0
 	return (0);
 }
+
+#if 0
 
 /*
  * Load up the contents of an inode and copy the appropriate pieces
@@ -105,7 +112,6 @@ ffs_load_inode(struct buf *bp, struct inode *ip, struct fs *fs, ino_t ino)
 		ip->i_gid = ip->i_din2->di_gid;
 	}
 }
-#endif /* KERNEL */
 
 /*
  * Update the frsum fields to reflect addition or deletion
@@ -338,3 +344,5 @@ ffs_clusteracct(struct fs *fs, struct cg *cgp, ufs1_daddr_t blkno, int cnt)
 			break;
 	fs->fs_maxcluster[cgp->cg_cgx] = i;
 }
+
+#endif // 0
