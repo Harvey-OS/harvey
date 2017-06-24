@@ -75,7 +75,7 @@ typedef struct ufsmount {
 	//uint64_t	um_nindir;			/* indirect ptrs per block */
 	//uint64_t	um_bptrtodb;			/* indir ptr to disk block */
 	//uint64_t	um_seqinc;			/* inc between seq blocks */
-	//struct	mtx um_lock;			/* Protects ufsmount & fs */
+	QLock um_lock;					/* Protects ufsmount & fs */
 	//pid_t	um_fsckpid;			/* PID permitted fsck sysctls */
 	//struct	mount_softdeps *um_softdep;	/* softdep mgmt structure */
 	//struct	vnode *um_quotas[MAXQUOTAS];	/* pointer to quota files */
