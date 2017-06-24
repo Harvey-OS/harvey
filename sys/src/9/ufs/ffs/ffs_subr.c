@@ -32,6 +32,9 @@
 #include "u.h"
 #include "../../port/lib.h"
 
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
+
 /*#include <ufs/ufs/dinode.h>
 #include <ufs/ffs/fs.h>
 
@@ -42,9 +45,6 @@
 #include <ufs/ufs/ufs_extern.h>
 #include <ufs/ffs/ffs_extern.h>
 #include <ufs/ffs/fs.h>*/
-
-#include "freebsd_util.h"
-#include "ufs_harvey.h"
 
 /*
  * Return buffer with the contents of block "offset" from the beginning of
