@@ -849,8 +849,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		ump->um_fstype = UFS2;
 		ump->um_balloc = ffs_balloc_ufs2;
 	}
-#if 0
 	ump->um_blkatoff = ffs_blkatoff;
+#if 0
 	ump->um_truncate = ffs_truncate;
 	ump->um_update = ffs_update;
 	ump->um_valloc = ffs_valloc;
