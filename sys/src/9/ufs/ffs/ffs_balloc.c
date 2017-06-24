@@ -58,17 +58,22 @@
  *
  *	@(#)ffs_balloc.c	8.8 (Berkeley) 6/16/95
  */
-#include <u.h>
-#include <libc.h>
+#include "u.h"
+#include "../../port/lib.h"
 
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/ufsmount.h>
+#define _KERNEL
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+#include "freebsd_util.h"
+//#include <ufs/ufs/quota.h>
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/ufs_extern.h>
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/ufsmount.h>
+
+//#include <ufs/ffs/fs.h>
+//#include <ufs/ffs/ffs_extern.h>
+
+#include "ufs_harvey.h"
 
 /*
  * Balloc defines the structure of filesystem storage
@@ -78,9 +83,12 @@
  * the allocation strategy for UFS2.
  */
 int
-ffs_balloc_ufs1(struct vnode *vp, off_t startoffset, int size,
-    struct ucred *cred, int flags, struct buf **bpp)
+ffs_balloc_ufs1(vnode *vp, off_t startoffset, int size,
+    Ucred *cred, int flags, Buf **bpp)
 {
+	int error = 0;
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct inode *ip;
 	struct ufs1_dinode *dp;
 	ufs_lbn_t lbn, lastlbn;
@@ -543,6 +551,7 @@ fail:
 		ffs_blkfree(ump, fs, ump->um_devvp, *blkp, fs->fs_bsize,
 		    ip->i_number, vp->v_type, nil);
 	}
+#endif // 0
 	return (error);
 }
 
@@ -554,9 +563,12 @@ fail:
  * the allocation strategy for UFS1.
  */
 int
-ffs_balloc_ufs2(struct vnode *vp, off_t startoffset, int size,
-    struct ucred *cred, int flags, struct buf **bpp)
+ffs_balloc_ufs2(vnode *vp, off_t startoffset, int size,
+    Ucred *cred, int flags, Buf **bpp)
 {
+	int error = 0;
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct inode *ip;
 	struct ufs2_dinode *dp;
 	ufs_lbn_t lbn, lastlbn;
@@ -1137,5 +1149,6 @@ fail:
 		ffs_blkfree(ump, fs, ump->um_devvp, *blkp, fs->fs_bsize,
 		    ip->i_number, vp->v_type, nil);
 	}
+#endif // 0
 	return (error);
 }

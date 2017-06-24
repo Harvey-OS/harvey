@@ -69,7 +69,7 @@ typedef struct ufsmount {
 	//struct	g_consumer *um_cp;
 	//struct	bufobj *um_bo;			/* Buffer cache object */
 	//struct	vnode *um_devvp;		/* block device mounted vnode */
-	//uint64_t	um_fstype;			/* type of filesystem */
+	uint64_t	um_fstype;			/* type of filesystem */
 	fs		*um_fs;				/* pointer to superblock */
 	//struct	ufs_extattr_per_mount um_extattr;	/* extended attrs */
 	//uint64_t	um_nindir;			/* indirect ptrs per block */
@@ -88,20 +88,18 @@ typedef struct ufsmount {
 	//int	um_writesuspended;		/* suspension in progress */
 	//uint	um_trim_inflight;
 	//struct taskqueue *um_trim_tq;
-	int	(*um_balloc)(struct vnode *, off_t, int, struct ucred *,
-		    int, struct buf **);
-	int	(*um_blkatoff)(struct vnode *, off_t, char **, struct buf **);
-	int	(*um_truncate)(struct vnode *, off_t, int, struct ucred *);
-	int	(*um_update)(struct vnode *, int);
-	int	(*um_valloc)(struct vnode *, int, struct ucred *,
-		    struct vnode **);
-	int	(*um_vfree)(struct vnode *, ino_t, int);
-	void	(*um_ifree)(struct ufsmount *, struct inode *);
-	int	(*um_rdonly)(struct inode *);
-	void	(*um_snapgone)(struct inode *);
+	int	(*um_balloc)(vnode *, off_t, int, Ucred *, int, Buf **);
+	//int	(*um_blkatoff)(struct vnode *, off_t, char **, struct buf **);
+	//int	(*um_truncate)(struct vnode *, off_t, int, struct ucred *);
+	//int	(*um_update)(struct vnode *, int);
+	//int	(*um_valloc)(struct vnode *, int, struct ucred *, struct vnode **);
+	//int	(*um_vfree)(struct vnode *, ino_t, int);
+	//void	(*um_ifree)(struct ufsmount *, struct inode *);
+	//int	(*um_rdonly)(struct inode *);
+	//void	(*um_snapgone)(struct inode *);
 } ufsmount;
 
-#define	UFS_BALLOC(aa, bb, cc, dd, ee, ff) VFSTOUFS((aa)->v_mount)->um_balloc(aa, bb, cc, dd, ee, ff)
+/*#define	UFS_BALLOC(aa, bb, cc, dd, ee, ff) VFSTOUFS((aa)->v_mount)->um_balloc(aa, bb, cc, dd, ee, ff)
 #define	UFS_BLKATOFF(aa, bb, cc, dd) VFSTOUFS((aa)->v_mount)->um_blkatoff(aa, bb, cc, dd)
 #define	UFS_TRUNCATE(aa, bb, cc, dd) VFSTOUFS((aa)->v_mount)->um_truncate(aa, bb, cc, dd)
 #define	UFS_UPDATE(aa, bb) VFSTOUFS((aa)->v_mount)->um_update(aa, bb)
@@ -114,13 +112,14 @@ typedef struct ufsmount {
 #define	UFS_LOCK(aa)	mtx_lock(&(aa)->um_lock)
 #define	UFS_UNLOCK(aa)	mtx_unlock(&(aa)->um_lock)
 #define	UFS_MTX(aa)	(&(aa)->um_lock)
-
+*/
 /*
  * Filesystem types
  */
 #define	UFS1	1
 #define	UFS2	2
 
+#if 0
 /*
  * Flags describing the state of quotas.
  */
@@ -139,5 +138,6 @@ typedef struct ufsmount {
 #define	MNINDIR(ump)			((ump)->um_nindir)
 #define	blkptrtodb(ump, b)		((b) << (ump)->um_bptrtodb)
 #define	is_sequential(ump, a, b)	((b) == (a) + ump->um_seqinc)
+#endif // 0
 #endif /* _KERNEL */
 
