@@ -42,6 +42,18 @@ typedef struct thread {
 } thread;
 
 
+// Not sure we need this either - can be removed if not.
+typedef struct Ucred {
+} Ucred;
+
+
+/* Hopefully we can replace this with something already in Harvey - e.g. Biobuf?
+ * postponing the decision until later.
+ */ 
+typedef struct Buf {
+} Buf;
+
+
 /*
  * MAXBSIZE -	Filesystems are made out of blocks of at most MAXBSIZE bytes
  *		per block.  MAXBSIZE may be made larger without effecting

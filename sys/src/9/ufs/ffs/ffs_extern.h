@@ -30,35 +30,33 @@
  * $FreeBSD$
  */
 
-#ifndef _UFS_FFS_EXTERN_H
-#define	_UFS_FFS_EXTERN_H
-
 #ifndef _KERNEL
 #error "No user-serving parts inside"
 #else
 
-struct buf;
-struct cg;
-struct fid;
-struct fs;
-struct inode;
-struct malloc_type;
-struct mount;
-struct thread;
-struct sockaddr;
-struct statfs;
-struct ucred;
-struct vnode;
-struct vop_fsync_args;
-struct vop_reallocblks_args;
-struct workhead;
+typedef struct Buf Buf;
+//struct cg;
+//struct fid;
+//struct fs;
+//struct inode;
+//struct malloc_type;
+//struct mount;
+//struct thread;
+//struct sockaddr;
+//struct statfs;
+typedef struct Ucred Ucred;
+typedef struct vnode vnode;
+//struct vop_fsync_args;
+//struct vop_reallocblks_args;
+//struct workhead;
 
-int	ffs_alloc(struct inode *, ufs2_daddr_t, ufs2_daddr_t, int, int,
-	    struct ucred *, ufs2_daddr_t *);
-int	ffs_balloc_ufs1(struct vnode *a_vp, off_t a_startoffset, int a_size,
-            struct ucred *a_cred, int a_flags, struct buf **a_bpp);
-int	ffs_balloc_ufs2(struct vnode *a_vp, off_t a_startoffset, int a_size,
-            struct ucred *a_cred, int a_flags, struct buf **a_bpp);
+//int	ffs_alloc(struct inode *, ufs2_daddr_t, ufs2_daddr_t, int, int,
+//	    struct ucred *, ufs2_daddr_t *);
+int	ffs_balloc_ufs1(vnode *a_vp, off_t a_startoffset, int a_size,
+            Ucred *a_cred, int a_flags, Buf **a_bpp);
+int	ffs_balloc_ufs2(vnode *a_vp, off_t a_startoffset, int a_size,
+            Ucred *a_cred, int a_flags, Buf **a_bpp);
+#if 0
 int	ffs_blkatoff(struct vnode *, off_t, char **, struct buf **);
 void	ffs_blkfree(struct ufsmount *, struct fs *, struct vnode *,
 	    ufs2_daddr_t, long, ino_t, enum vtype, struct workhead *);
@@ -195,6 +193,6 @@ struct snapdata {
 	struct lock sn_lock;
 };
 
-#endif /* _KERNEL */
+#endif // 0
 
-#endif /* !_UFS_FFS_EXTERN_H */
+#endif /* _KERNEL */
