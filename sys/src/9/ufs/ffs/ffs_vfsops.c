@@ -834,12 +834,10 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		fs->fs_pendingblocks = 0;
 		fs->fs_pendinginodes = 0;
 	}
-#if 0
 	if ((fs->fs_flags & FS_GJOURNAL) != 0) {
 		print("WARNING: %s: GJOURNAL flag on fs but no "
-		    "UFS_GJOURNAL support\n", mp->mnt_stat.f_mntonname);
+		    "UFS_GJOURNAL support\n", fs->fs_fsmnt);
 	}
-#endif // 0
 	ump = (ufsmount*)smalloc(sizeof *ump);
 	//ump->um_cp = cp;
 	//ump->um_bo = &devvp->v_bufobj;
