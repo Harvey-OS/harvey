@@ -94,9 +94,9 @@ int	ffs_syncvnode(struct vnode *vp, int waitfor, int flags);*/
 int	ffs_truncate(vnode *, off_t, int, Ucred *);
 int	ffs_update(vnode *, int);
 int	ffs_valloc(vnode *, int, Ucred *, vnode **);
-#if 0
 
 int	ffs_vfree(struct vnode *, ino_t, int);
+#if 0
 vfs_vget_t ffs_vget;
 int	ffs_vgetf(struct mount *, ino_t, int, struct vnode **, int);
 void	ffs_susp_initialize(void);

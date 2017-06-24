@@ -2399,15 +2399,16 @@ ffs_checkblk(ip, bno, size)
 }
 #endif /* INVARIANTS */
 
+#endif // 0
+
 /*
  * Free an inode.
  */
 int
-ffs_vfree(pvp, ino, mode)
-	struct vnode *pvp;
-	ino_t ino;
-	int mode;
+ffs_vfree(vnode *pvp, ino_t ino, int mode)
 {
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct ufsmount *ump;
 	struct inode *ip;
 
@@ -2417,8 +2418,12 @@ ffs_vfree(pvp, ino, mode)
 	}
 	ip = VTOI(pvp);
 	ump = VFSTOUFS(pvp->v_mount);
-	return (ffs_freefile(ump, ump->um_fs, ump->um_devvp, ino, mode, nil));
+	return (ffs_freefile(ump, ump->um_fs, ump->um_devvp, ino, mode, nil));*/
+#endif // 0
+	return 0;
 }
+
+#if 0
 
 /*
  * Do the actual free operation.
