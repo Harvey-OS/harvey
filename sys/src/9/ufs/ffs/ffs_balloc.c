@@ -65,6 +65,8 @@
 #define _KERNEL
 
 #include "freebsd_util.h"
+#include "ufs_harvey.h"
+
 //#include <ufs/ufs/quota.h>
 //#include <ufs/ufs/inode.h>
 //#include <ufs/ufs/ufs_extern.h>
@@ -74,7 +76,6 @@
 //#include <ufs/ffs/fs.h>
 //#include <ufs/ffs/ffs_extern.h>
 
-#include "ufs_harvey.h"
 
 /*
  * Balloc defines the structure of filesystem storage
