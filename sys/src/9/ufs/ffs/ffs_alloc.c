@@ -58,19 +58,25 @@
  *
  *	@(#)ffs_alloc.c	8.18 (Berkeley) 5/26/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
-#include <ufs/ufs/ufsmount.h>
+#include "u.h"
+#include "../../port/lib.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
-#include <ufs/ffs/softdep.h>
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
+
+//#include <ufs/ufs/dir.h>
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/ufs_extern.h>
+//#include <ufs/ufs/ufsmount.h>
+
+//#include <ufs/ffs/fs.h>
+//#include <ufs/ffs/ffs_extern.h>
+//#include <ufs/ffs/softdep.h>
+
+#if 0
 
 typedef ufs2_daddr_t allocfcn_t(struct inode *ip, uint cg, ufs2_daddr_t bpref,
 				  int size, int rsize);
@@ -966,7 +972,7 @@ fail:
 		brelse(sbp);
 	return (ENOSPC);
 }
-
+#endif // 0
 /*
  * Allocate an inode in the filesystem.
  *
@@ -983,8 +989,10 @@ fail:
  *      available inode is located.
  */
 int 
-ffs_valloc (struct vnode *pvp, int mode, struct ucred *cred, struct vnode **vpp)
+ffs_valloc (vnode *pvp, int mode, Ucred *cred, vnode **vpp)
 {
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct inode *pip;
 	struct fs *fs;
 	struct inode *ip;
@@ -1091,8 +1099,11 @@ noinodes:
 		uprintf("\n%s: create/symlink failed, no inodes free\n",
 		    fs->fs_fsmnt);
 	}
+#endif // 0
 	return (ENOSPC);
 }
+
+#if 0
 
 /*
  * Find a cylinder group to place a directory.
@@ -3171,3 +3182,4 @@ out:
 	foffset_unlock_uio(fp, uio, flags | FOF_NEXTOFF);
 	return (error);
 }
+#endif // 0

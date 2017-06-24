@@ -88,3 +88,4 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
  */
 #define	EPERM		1		/* Operation not permitted */
 #define	EINVAL		22		/* Invalid argument */
+#define	ENOSPC		28		/* No space left on device */
