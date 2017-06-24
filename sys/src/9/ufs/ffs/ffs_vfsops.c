@@ -45,7 +45,7 @@
 //#include "quota.h"
 //#include "inode.h"
 #include "dinode.h"
-//#include "ufs_extern.h"
+#include "ufs_extern.h"
 
 #include "../ffs/fs.h"
 #include "../ffs/ffs_extern.h"
@@ -856,9 +856,9 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_valloc = ffs_valloc;
 	ump->um_vfree = ffs_vfree;
 	ump->um_ifree = ffs_ifree;
-#if 0
 	ump->um_rdonly = ffs_rdonly;
 	ump->um_snapgone = ffs_snapgone;
+#if 0
 	mtx_init(UFS_MTX(ump), "FFS", "FFS Lock", MTX_DEF);
 	bcopy(bp->b_data, ump->um_fs, (uint)fs->fs_sbsize);
 	if (fs->fs_sbsize < SBLOCKSIZE)

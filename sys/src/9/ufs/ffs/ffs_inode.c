@@ -745,11 +745,14 @@ ffs_indirtrunc(ip, lbn, dbn, lastbn, level, countp)
 	return (allerror);
 }
 
-int
-ffs_rdonly(struct inode *ip)
-{
-
-	return (ITOFS(ip)->fs_ronly != 0);
-}
-
 #endif // 0
+
+int
+ffs_rdonly(inode *ip)
+{
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
+	return (ITOFS(ip)->fs_ronly != 0);
+#endif // 0
+	return 0;
+}
