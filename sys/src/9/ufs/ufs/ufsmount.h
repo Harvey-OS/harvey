@@ -91,8 +91,8 @@ typedef struct ufsmount {
 	int	(*um_balloc)(vnode *, off_t, int, Ucred *, int, Buf **);
 	int	(*um_blkatoff)(vnode *, off_t, char **, Buf **);
 	int	(*um_truncate)(vnode *, off_t, int, Ucred *);
-	//int	(*um_update)(struct vnode *, int);
-	//int	(*um_valloc)(struct vnode *, int, struct ucred *, struct vnode **);
+	int	(*um_update)(vnode *, int);
+	int	(*um_valloc)(vnode *, int, Ucred *, vnode **);
 	//int	(*um_vfree)(struct vnode *, ino_t, int);
 	//void	(*um_ifree)(struct ufsmount *, struct inode *);
 	//int	(*um_rdonly)(struct inode *);
