@@ -35,8 +35,8 @@
 #include "dat.h"
 #include "../../port/portfns.h"
 
-
 #define _KERNEL
+
 #include "freebsd_util.h"
 //#include "dir.h"
 //#include "extattr.h"
@@ -46,7 +46,7 @@
 //#include "ufs_extern.h"
 
 #include "../ffs/fs.h"
-//#include "../ffs/ffs_extern.h"
+#include "../ffs/ffs_extern.h"
 
 #include "ufsmount.h"
 #include "ufs_harvey.h"
@@ -842,7 +842,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	//ump->um_cp = cp;
 	//ump->um_bo = &devvp->v_bufobj;
 	ump->um_fs = smalloc((uint64_t)fs->fs_sbsize);
-#if 0
 	if (fs->fs_magic == FS_UFS1_MAGIC) {
 		ump->um_fstype = UFS1;
 		ump->um_balloc = ffs_balloc_ufs1;
@@ -850,6 +849,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		ump->um_fstype = UFS2;
 		ump->um_balloc = ffs_balloc_ufs2;
 	}
+#if 0
 	ump->um_blkatoff = ffs_blkatoff;
 	ump->um_truncate = ffs_truncate;
 	ump->um_update = ffs_update;
