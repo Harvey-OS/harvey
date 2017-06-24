@@ -55,8 +55,7 @@
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
-//static void	ffs_oldfscompat_read(struct fs *, struct ufsmount *,
-//		    ufs2_daddr_t);
+static void	ffs_oldfscompat_read(fs *, ufsmount *, ufs2_daddr_t);
 static void	ffs_ifree(ufsmount *ump, inode *ip);
 #if 0
 static int	ffs_sync_lazy(struct mount *mp);
@@ -858,8 +857,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_snapgone = ffs_snapgone;
 	memmove(ump->um_fs, fs, (uint)fs->fs_sbsize);
 	fs = ump->um_fs;
-#if 0
 	ffs_oldfscompat_read(fs, ump, sblockloc);
+#if 0
 	fs->fs_ronly = ronly;
 	size = fs->fs_cssize;
 	blks = howmany(size, fs->fs_fsize);
@@ -1063,9 +1062,8 @@ out:
 	return (error);
 }
 
-#if 0
+// Set to 1 to enable bigcgs debug flag
 static int bigcgs = 0;
-SYSCTL_INT(_debug, OID_AUTO, bigcgs, CTLFLAG_RW, &bigcgs, 0, "");
 
 /*
  * Sanity checks for loading old filesystem superblocks.
@@ -1075,10 +1073,7 @@ SYSCTL_INT(_debug, OID_AUTO, bigcgs, CTLFLAG_RW, &bigcgs, 0, "");
  * Unfortunately new bits get added.
  */
 static void
-ffs_oldfscompat_read(fs, ump, sblockloc)
-	struct fs *fs;
-	struct ufsmount *ump;
-	ufs2_daddr_t sblockloc;
+ffs_oldfscompat_read(fs *fs, ufsmount *ump, ufs2_daddr_t sblockloc)
 {
 	off_t maxfilesize;
 
@@ -1126,6 +1121,8 @@ ffs_oldfscompat_read(fs, ump, sblockloc)
 		fs->fs_cgsize = fs->fs_bsize;
 	}
 }
+
+#if 0
 
 /*
  * Unwinding superblock updates for old filesystems.
