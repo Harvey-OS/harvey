@@ -46,7 +46,7 @@
 
 //static int ffs_indirtrunc(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
 //	    ufs2_daddr_t, int, ufs2_daddr_t *);
-#if 0
+
 /*
  * Update the access, modified, and inode change times as specified by the
  * IN_ACCESS, IN_UPDATE, and IN_CHANGE flags respectively.  Write the inode
@@ -59,8 +59,11 @@
  * for the write to complete.
  */
 int 
-ffs_update (struct vnode *vp, int waitfor)
+ffs_update (vnode *vp, int waitfor)
 {
+	int error = 0;
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct fs *fs;
 	struct buf *bp;
 	struct inode *ip;
@@ -145,14 +148,13 @@ loop:
 		bdwrite(bp);
 		error = 0;
 	}
+#endif // 0
 	return (error);
 }
 
 #define	SINGLE	0	/* index of single indirect block */
 #define	DOUBLE	1	/* index of double indirect block */
 #define	TRIPLE	2	/* index of triple indirect block */
-
-#endif //0
 
 /*
  * Truncate the inode ip to at most length size, freeing the

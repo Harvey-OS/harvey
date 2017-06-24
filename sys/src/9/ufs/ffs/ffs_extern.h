@@ -92,7 +92,7 @@ void	process_deferred_inactive(struct mount *mp);
 void	ffs_sync_snap(struct mount *, int);
 int	ffs_syncvnode(struct vnode *vp, int waitfor, int flags);*/
 int	ffs_truncate(vnode *, off_t, int, Ucred *);
-//int	ffs_update(struct vnode *, int);
+int	ffs_update(struct vnode *, int);
 //int	ffs_valloc(struct vnode *, int, struct ucred *, struct vnode **);
 #if 0
 
