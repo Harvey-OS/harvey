@@ -30,26 +30,27 @@
  * $FreeBSD$
  */
 
-struct componentname;
-struct direct;
-struct indir;
-struct inode;
-struct mount;
-struct thread;
-struct sockaddr;
-struct ucred;
-struct ufid;
-struct vfsconf;
-struct vnode;
-struct vop_bmap_args;
-struct vop_cachedlookup_args;
-struct vop_generic_args;
-struct vop_inactive_args;
-struct vop_reclaim_args;
+//struct componentname;
+//struct direct;
+//struct indir;
+typedef struct inode inode;
+//struct mount;
+//struct thread;
+//struct sockaddr;
+//struct ucred;
+//struct ufid;
+//struct vfsconf;
+//struct vnode;
+//struct vop_bmap_args;
+//struct vop_cachedlookup_args;
+//struct vop_generic_args;
+//struct vop_inactive_args;
+//struct vop_reclaim_args;
 
-extern struct vop_vector ufs_fifoops;
-extern struct vop_vector ufs_vnodeops;
+//extern struct vop_vector ufs_fifoops;
+//extern struct vop_vector ufs_vnodeops;
 
+#if 0
 int	 ufs_bmap(struct vop_bmap_args *);
 int	 ufs_bmaparray(struct vnode *, ufs2_daddr_t, ufs2_daddr_t *,
 	    struct buf *, int *, int *);
@@ -76,7 +77,9 @@ int	 ufs_lookup(struct vop_cachedlookup_args *);
 void	 ufs_prepare_reclaim(struct vnode *vp);
 int	 ufs_readdir(struct vop_readdir_args *);
 int	 ufs_reclaim(struct vop_reclaim_args *);
+#endif // 0
 void	 ffs_snapgone(struct inode *);
+#if 0
 vfs_root_t ufs_root;
 int	 ufs_uninit(struct vfsconf *);
 int	 ufs_vinit(struct mount *, struct vop_vector *, struct vnode **);
@@ -119,3 +122,4 @@ void	softdep_revert_rmdir(struct inode *, struct inode *);
 #define	BA_SEQSHIFT	24
 #define	BA_SEQMAX	0x7F
 
+#endif // 0

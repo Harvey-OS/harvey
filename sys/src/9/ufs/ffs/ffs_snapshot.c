@@ -32,22 +32,25 @@
  *
  *	@(#)ffs_snapshot.c	8.11 (McKusick) 7/23/00
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "u.h"
+#include "../../port/lib.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+//#include <ufs/ufs/ufsmount.h>
+//#include <ufs/ufs/inode.h>
+#include "ufs/ufs_extern.h"
 
-#define KERNCRED thread0.td_ucred
-#define DEBUG 1
+//#include <ufs/ffs/fs.h>
+//#include <ufs/ffs/ffs_extern.h>
+
+//#define KERNCRED thread0.td_ucred
+//#define DEBUG 1
 
 #ifdef NO_FFS_SNAPSHOT
+#if 0
+
 int 
 ffs_snapshot (struct mount *mp, char *snapfile)
 {
@@ -98,7 +101,12 @@ ffs_sync_snap (struct mount *mp, int waitfor)
 {
 }
 
+#endif // 0
+
 #else
+
+#if 0
+
 FEATURE(ffs_snapshot, "FFS snapshot support");
 
 LIST_HEAD(, snapdata) snapfree;
@@ -1505,13 +1513,17 @@ mapacct_ufs2(vp, oldblkp, lastblkp, fs, lblkno, expungetype)
 	return (0);
 }
 
+#endif // 0
+
 /*
  * Decrement extra reference on snapshot when last name is removed.
  * It will not be freed until the last open reference goes away.
  */
 void 
-ffs_snapgone (struct inode *ip)
+ffs_snapgone (inode *ip)
 {
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct inode *xp;
 	struct fs *fs;
 	int snaploc;
@@ -1550,7 +1562,10 @@ ffs_snapgone (struct inode *ip)
 		fs->fs_snapinum[snaploc - 1] = 0;
 	}
 	UFS_UNLOCK(ump);
+#endif // 0
 }
+
+#if 0
 
 /*
  * Prepare a snapshot file for being removed.
@@ -2457,8 +2472,10 @@ readblock(vp, bp, lbn)
 	return (bp->b_error);
 }
 
+#endif // 0
 #endif
 
+#if 0
 /*
  * Process file deletes that were deferred by ufs_inactive() due to
  * the file system being suspended. Transfer IN_LAZYACCESS into
@@ -2625,3 +2642,5 @@ ffs_snapdata_acquire(struct vnode *devvp)
 }
 
 #endif
+
+#endif // 0

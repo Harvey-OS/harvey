@@ -161,6 +161,7 @@ void	softdep_buf_append(struct buf *, struct workhead *);
 void	softdep_inode_append(struct inode *, struct ucred *, struct workhead *);
 void	softdep_freework(struct workhead *);
 
+#endif // 0
 
 /*
  * Things to request flushing in softdep_request_cleanup()
@@ -181,7 +182,9 @@ void	softdep_freework(struct workhead *);
  */
 #define	DATA_ONLY		0x00000002
 
-int	ffs_rdonly(struct inode *);
+int	ffs_rdonly(inode *);
+
+#if 0
 
 TAILQ_HEAD(snaphead, inode);
 
