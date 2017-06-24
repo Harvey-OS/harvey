@@ -28,21 +28,25 @@
  *
  *	@(#)ffs_inode.c	8.13 (Berkeley) 4/21/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "u.h"
+#include "../../port/lib.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
 
-static int ffs_indirtrunc(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
-	    ufs2_daddr_t, int, ufs2_daddr_t *);
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+//#include <ufs/ufs/ufsmount.h>
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/ufs_extern.h>
 
+//#include <ufs/ffs/fs.h>
+//#include <ufs/ffs/ffs_extern.h>
+
+//static int ffs_indirtrunc(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
+//	    ufs2_daddr_t, int, ufs2_daddr_t *);
+#if 0
 /*
  * Update the access, modified, and inode change times as specified by the
  * IN_ACCESS, IN_UPDATE, and IN_CHANGE flags respectively.  Write the inode
@@ -147,17 +151,18 @@ loop:
 #define	SINGLE	0	/* index of single indirect block */
 #define	DOUBLE	1	/* index of double indirect block */
 #define	TRIPLE	2	/* index of triple indirect block */
+
+#endif //0
+
 /*
  * Truncate the inode ip to at most length size, freeing the
  * disk blocks.
  */
 int
-ffs_truncate(vp, length, flags, cred)
-	struct vnode *vp;
-	off_t length;
-	int flags;
-	struct ucred *cred;
+ffs_truncate(vnode *vp, off_t length, int flags, Ucred *cred)
 {
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct inode *ip;
 	ufs2_daddr_t bn, lbn, lastblock, lastiblock[UFS_NIADDR];
 	ufs2_daddr_t indir_lbn[UFS_NIADDR], oldblks[UFS_NDADDR + UFS_NIADDR];
@@ -589,8 +594,12 @@ extclean:
 	else
 		softdep_setup_freeblocks(ip, length, IO_EXT);
 	return (ffs_update(vp, waitforupdate));
+
+#endif // 0
+	return 0;
 }
 
+#if 0
 /*
  * Release blocks associated with the inode ip and stored in the indirect
  * block bn.  Blocks are free'd in LIFO order up to (but not including)
@@ -741,3 +750,4 @@ ffs_rdonly(struct inode *ip)
 	return (ITOFS(ip)->fs_ronly != 0);
 }
 
+#endif // 0

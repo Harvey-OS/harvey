@@ -57,8 +57,7 @@ int	ffs_balloc_ufs1(vnode *a_vp, off_t a_startoffset, int a_size,
 int	ffs_balloc_ufs2(vnode *a_vp, off_t a_startoffset, int a_size,
             Ucred *a_cred, int a_flags, Buf **a_bpp);
 int	ffs_blkatoff(vnode *, off_t, char **, Buf **);
-#if 0
-void	ffs_blkfree(struct ufsmount *, struct fs *, struct vnode *,
+/*void	ffs_blkfree(struct ufsmount *, struct fs *, struct vnode *,
 	    ufs2_daddr_t, long, ino_t, enum vtype, struct workhead *);
 ufs2_daddr_t ffs_blkpref_ufs1(struct inode *, ufs_lbn_t, int, ufs1_daddr_t *);
 ufs2_daddr_t ffs_blkpref_ufs2(struct inode *, ufs_lbn_t, int, ufs2_daddr_t *);
@@ -91,10 +90,11 @@ void	ffs_snapshot_mount(struct mount *mp);
 void	ffs_snapshot_unmount(struct mount *mp);
 void	process_deferred_inactive(struct mount *mp);
 void	ffs_sync_snap(struct mount *, int);
-int	ffs_syncvnode(struct vnode *vp, int waitfor, int flags);
-int	ffs_truncate(struct vnode *, off_t, int, struct ucred *);
-int	ffs_update(struct vnode *, int);
-int	ffs_valloc(struct vnode *, int, struct ucred *, struct vnode **);
+int	ffs_syncvnode(struct vnode *vp, int waitfor, int flags);*/
+int	ffs_truncate(vnode *, off_t, int, Ucred *);
+//int	ffs_update(struct vnode *, int);
+//int	ffs_valloc(struct vnode *, int, struct ucred *, struct vnode **);
+#if 0
 
 int	ffs_vfree(struct vnode *, ino_t, int);
 vfs_vget_t ffs_vget;
