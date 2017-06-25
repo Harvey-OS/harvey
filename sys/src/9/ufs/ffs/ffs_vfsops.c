@@ -52,6 +52,9 @@
 
 #include "ufsmount.h"
 
+
+static char Ebadread[] = "bread returned wrong size";
+
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
@@ -712,6 +715,22 @@ loop:
 static int sblock_try[] = SBLOCKSEARCH;
 
 /*
+ * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
+ * block read function.
+ */
+static int32_t
+bread(MountPoint *mp, ufs2_daddr_t blockno, void *data, size_t size)
+{
+	Chan *c = mp->chan;
+	int64_t offset = dbtob(blockno);
+	int32_t bytesRead = c->dev->read(c, data, size, offset);
+	if (bytesRead != size) {
+		error(Ebadread);
+	}
+	return 0;
+}
+
+/*
  * Common code for mount and mountroot
  */
 static int 
@@ -719,7 +738,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
 	fs *fs;
-	Chan *mpc = mp->chan;
 
 	ufsmount *ump;
 	void *space;
@@ -772,8 +790,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 			    cp->provider->sectorsize, SBLOCKSIZE);
 			goto out;
 		}*/
-
-		if (mpc->dev->read(mpc, fs, SBLOCKSIZE, sblock_try[i]) != SBLOCKSIZE) {
+		
+		if (bread(mp, btodb(sblock_try[i]), fs, SBLOCKSIZE) != 0) {
 			print("not found at %p\n", sblock_try[i]);
 			error = -1;
 			goto out;
@@ -863,21 +881,20 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	size += fs->fs_ncg * sizeof(uint8_t);
 	space = smalloc(size);
 	fs->fs_csp = space;
-#if 0
 	for (i = 0; i < blks; i += fs->fs_frag) {
 		size = fs->fs_bsize;
 		if (i + fs->fs_frag > blks)
 			size = (blks - i) * fs->fs_fsize;
-		if ((error = bread(devvp, fsbtodb(fs, fs->fs_csaddr + i), size,
-		    cred, &bp)) != 0) {
-			free(fs->fs_csp, M_UFSMNT);
+
+		if ((error = bread(mp, fsbtodb(fs, fs->fs_csaddr + i), space,
+			size)) != 0) {
+			free(fs->fs_csp);
 			goto out;
 		}
-		bcopy(bp->b_data, space, (uint)size);
+
 		space = (char *)space + size;
-		brelse(bp);
-		bp = nil;
 	}
+#if 0
 	if (fs->fs_contigsumsize > 0) {
 		fs->fs_maxcluster = lp = space;
 		for (i = 0; i < fs->fs_ncg; i++)
