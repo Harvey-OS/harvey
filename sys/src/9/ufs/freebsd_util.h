@@ -89,3 +89,22 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
 #define	EPERM		1		/* Operation not permitted */
 #define	EINVAL		22		/* Invalid argument */
 #define	ENOSPC		28		/* No space left on device */
+
+
+
+#define	DEV_BSHIFT	9		/* log2(DEV_BSIZE) */
+#define	DEV_BSIZE	(1<<DEV_BSHIFT)
+
+/*
+ * btodb() is messy and perhaps slow because `bytes' may be an off_t.  We
+ * want to shift an unsigned type to avoid sign extension and we don't
+ * want to widen `bytes' unnecessarily.  Assume that the result fits in
+ * a daddr_t.
+ */
+#define btodb(bytes)	 		/* calculates (bytes / DEV_BSIZE) */ \
+	(sizeof (bytes) > sizeof(long) \
+	 ? (daddr_t)((unsigned long long)(bytes) >> DEV_BSHIFT) \
+	 : (daddr_t)((unsigned long)(bytes) >> DEV_BSHIFT))
+
+#define dbtob(db)			/* calculates (db * DEV_BSIZE) */ \
+	((off_t)(db) << DEV_BSHIFT)
