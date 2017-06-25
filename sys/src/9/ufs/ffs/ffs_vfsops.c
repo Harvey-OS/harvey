@@ -744,7 +744,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ufs2_daddr_t sblockloc;
 	int error, i, blks, /*len,*/ ronly;
 	uint64_t size;
-	//int32_t *lp;
+	int32_t *lp;
 	//struct ucred *cred;
 	//struct g_consumer *cp;
 	//struct mount *nmp;
@@ -790,7 +790,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 			    cp->provider->sectorsize, SBLOCKSIZE);
 			goto out;
 		}*/
-		
+
 		if (bread(mp, btodb(sblock_try[i]), fs, SBLOCKSIZE) != 0) {
 			print("not found at %p\n", sblock_try[i]);
 			error = -1;
@@ -894,7 +894,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 
 		space = (char *)space + size;
 	}
-#if 0
 	if (fs->fs_contigsumsize > 0) {
 		fs->fs_maxcluster = lp = space;
 		for (i = 0; i < fs->fs_ncg; i++)
@@ -903,9 +902,10 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	}
 	size = fs->fs_ncg * sizeof(uint8_t);
 	fs->fs_contigdirs = (uint8_t *)space;
-	bzero(fs->fs_contigdirs, size);
+	memset(fs->fs_contigdirs, 0, size);
 	fs->fs_active = nil;
 	mp->mnt_data = ump;
+#if 0
 	mp->mnt_stat.f_fsid.val[0] = fs->fs_id[0];
 	mp->mnt_stat.f_fsid.val[1] = fs->fs_id[1];
 	nmp = nil;
