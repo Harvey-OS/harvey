@@ -58,13 +58,14 @@ struct vnode;
 struct ufs_extattr_per_mount;
 struct jblocks;
 struct inodedep;
+struct MountPoint;
 
 TAILQ_HEAD(inodedeplst, inodedep);
 LIST_HEAD(bmsafemaphd, bmsafemap);
 
 /* This structure describes the UFS specific mount structure data. */
 typedef struct ufsmount {
-	//struct	mount *um_mountp;		/* filesystem vfs structure */
+	MountPoint	*um_mountp;			/* filesystem vfs structure */
 	//struct	cdev *um_dev;			/* device mounted */
 	//struct	g_consumer *um_cp;
 	//struct	bufobj *um_bo;			/* Buffer cache object */
@@ -72,9 +73,9 @@ typedef struct ufsmount {
 	uint64_t	um_fstype;			/* type of filesystem */
 	fs		*um_fs;				/* pointer to superblock */
 	//struct	ufs_extattr_per_mount um_extattr;	/* extended attrs */
-	//uint64_t	um_nindir;			/* indirect ptrs per block */
-	//uint64_t	um_bptrtodb;			/* indir ptr to disk block */
-	//uint64_t	um_seqinc;			/* inc between seq blocks */
+	uint64_t	um_nindir;			/* indirect ptrs per block */
+	uint64_t	um_bptrtodb;			/* indir ptr to disk block */
+	uint64_t	um_seqinc;			/* inc between seq blocks */
 	QLock um_lock;					/* Protects ufsmount & fs */
 	//pid_t	um_fsckpid;			/* PID permitted fsck sysctls */
 	//struct	mount_softdeps *um_softdep;	/* softdep mgmt structure */
