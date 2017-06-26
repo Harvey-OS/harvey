@@ -905,8 +905,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	memset(fs->fs_contigdirs, 0, size);
 	fs->fs_active = nil;
 	mp->mnt_data = ump;
-#if 0
-	mp->mnt_stat.f_fsid.val[0] = fs->fs_id[0];
+	// TODO HARVEY - maybe we won't need this
+	/*mp->mnt_stat.f_fsid.val[0] = fs->fs_id[0];
 	mp->mnt_stat.f_fsid.val[1] = fs->fs_id[1];
 	nmp = nil;
 	if (fs->fs_id[0] == 0 || fs->fs_id[1] == 0 ||
@@ -914,11 +914,12 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		if (nmp)
 			vfs_rel(nmp);
 		vfs_getnewfsid(mp);
-	}
-	mp->mnt_maxsymlinklen = fs->fs_maxsymlinklen;
-	MNT_ILOCK(mp);
+	}*/
+	//mp->mnt_maxsymlinklen = fs->fs_maxsymlinklen;
+	qlock(&mp->mnt_lock);
 	mp->mnt_flag |= MNT_LOCAL;
-	MNT_IUNLOCK(mp);
+	qunlock(&mp->mnt_lock);
+#if 0
 	if ((fs->fs_flags & FS_MULTILABEL) != 0) {
 #ifdef MAC
 		MNT_ILOCK(mp);

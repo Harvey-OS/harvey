@@ -24,6 +24,7 @@ typedef struct MountPoint {
 	Chan		*chan;
 
 	uint64_t	mnt_flag;		/* (i) flags shared with user */
+	QLock		mnt_lock;		/* (mnt_mtx) structure lock */
 } MountPoint;
 
 
