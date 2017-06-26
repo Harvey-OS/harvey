@@ -919,15 +919,14 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	qlock(&mp->mnt_lock);
 	mp->mnt_flag |= MNT_LOCAL;
 	qunlock(&mp->mnt_lock);
-#if 0
 	if ((fs->fs_flags & FS_MULTILABEL) != 0) {
 #ifdef MAC
 		MNT_ILOCK(mp);
 		mp->mnt_flag |= MNT_MULTILABEL;
 		MNT_IUNLOCK(mp);
 #else
-		printf("WARNING: %s: multilabel flag on fs but "
-		    "no MAC support\n", mp->mnt_stat.f_mntonname);
+		print("WARNING: %s: multilabel flag on fs but "
+		    "no MAC support\n", fs->fs_fsmnt);
 #endif
 	}
 	if ((fs->fs_flags & FS_ACLS) != 0) {
@@ -943,8 +942,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 
 		MNT_IUNLOCK(mp);
 #else
-		printf("WARNING: %s: ACLs flag on fs but no ACLs support\n",
-		    mp->mnt_stat.f_mntonname);
+		print("WARNING: %s: ACLs flag on fs but no ACLs support\n",
+		    fs->fs_fsmnt);
 #endif
 	}
 	if ((fs->fs_flags & FS_NFS4ACLS) != 0) {
@@ -960,11 +959,12 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 
 		MNT_IUNLOCK(mp);
 #else
-		printf("WARNING: %s: NFSv4 ACLs flag on fs but no "
-		    "ACLs support\n", mp->mnt_stat.f_mntonname);
+		print("WARNING: %s: NFSv4 ACLs flag on fs but no "
+		    "ACLs support\n", fs->fs_fsmnt);
 #endif
 	}
-	if ((fs->fs_flags & FS_TRIM) != 0) {
+	// TODO HARVEY TRIM support
+	/*if ((fs->fs_flags & FS_TRIM) != 0) {
 		len = sizeof(int);
 		if (g_io_getattr("GEOM::candelete", cp, &len,
 		    &ump->um_candelete) == 0) {
@@ -984,8 +984,9 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 			taskqueue_start_threads(&ump->um_trim_tq, 1, PVFS,
 			    "%s trim", mp->mnt_stat.f_mntonname);
 		}
-	}
+	}*/
 
+#if 0
 	ump->um_mountp = mp;
 	ump->um_dev = dev;
 	ump->um_devvp = devvp;
