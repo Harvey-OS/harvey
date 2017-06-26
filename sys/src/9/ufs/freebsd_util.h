@@ -81,6 +81,13 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
  */
 #define	MNT_FORCE	0x0000000000080000ULL /* force unmount or readonly */
 
+/*
+ * Flags set by internal operations,
+ * but visible to the user.
+ * XXX some of these are not quite right.. (I've never seen the root flag set)
+ */
+#define	MNT_LOCAL	0x0000000000001000ULL /* filesystem is stored locally */
+
 
 /*
  * Error codes used by UFS.
