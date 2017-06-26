@@ -986,15 +986,15 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		}
 	}*/
 
-#if 0
 	ump->um_mountp = mp;
-	ump->um_dev = dev;
-	ump->um_devvp = devvp;
+	//ump->um_dev = dev;
+	//ump->um_devvp = devvp;
 	ump->um_nindir = fs->fs_nindir;
 	ump->um_bptrtodb = fs->fs_fsbtodb;
 	ump->um_seqinc = fs->fs_frag;
-	for (i = 0; i < MAXQUOTAS; i++)
-		ump->um_quotas[i] = NULLVP;
+	//for (i = 0; i < MAXQUOTAS; i++)
+	//	ump->um_quotas[i] = NULLVP;
+#if 0
 #ifdef UFS_EXTATTR
 	ufs_extattr_uepm_init(&ump->um_extattr);
 #endif
