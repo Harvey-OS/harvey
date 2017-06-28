@@ -38,8 +38,15 @@
  *
  *	from: @(#)ffs_softdep.c	9.59 (McKusick) 6/21/00
  */
-#include <u.h>
-#include <libc.h>
+
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "../../port/portfns.h"
+
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
 
 /*
  * For now we want the safety net that the DEBUG flag provides.
@@ -48,34 +55,38 @@
 #define DEBUG
 #endif
 
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/softdep.h>
-#include <ufs/ffs/ffs_extern.h>
-#include <ufs/ufs/ufs_extern.h>
+//#include <ufs/ufs/dir.h>
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+#include "../ufs/dinode.h"
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/ufsmount.h>
+#include "../ffs/fs.h"
+//#include <ufs/ffs/softdep.h>
+//#include <ufs/ffs/ffs_extern.h>
+//#include <ufs/ufs/ufs_extern.h>
 
 #define	KTR_SUJ	0	/* Define to KTR_SPARE. */
 
 #ifndef SOFTUPDATES
 
+#if 0
 int 
-softdep_flushfiles (struct mount *oldmnt, int flags, struct thread *td)
+softdep_flushfiles (MountPoint *oldmnt, int flags, thread *td)
 {
 
 	panic("softdep_flushfiles called");
 }
+#endif // 0
 
 int 
-softdep_mount (struct vnode *devvp, struct mount *mp, struct fs *fs, struct ucred *cred)
+softdep_mount (vnode *devvp, MountPoint *mp, fs *fs, Ucred *cred)
 {
 
 	return (0);
 }
 
+#if 0
 void 
 softdep_initialize (void)
 {
@@ -516,6 +527,8 @@ softdep_freework (struct workhead *wkhd)
 
 	panic("softdep_freework called");
 }
+
+#endif // 0
 
 #else
 

@@ -1,17 +1,17 @@
 {
 	"ufs": {
 		"Cflags": [
-		    "-fasm",
-		    "-I",
-		    "../ufs",
-		    "-I",
-		    "../ufs/ffs",
-		    "-I",
-		    "../ufs/ufs"
+			"-fasm",
+			"-I",
+			"../ufs",
+			"-I",
+			"../ufs/ffs",
+			"-I",
+			"../ufs/ufs",
+			"-DNO_FFS_SNAPSHOT"
 		],
 		"#SourceFiles": [
 			"../ufs/ffs/ffs_rawread.c",
-			"../ufs/ffs/ffs_softdep.c",
 			"../ufs/ffs/ffs_suspend.c",
 			"../ufs/ffs/ffs_vnops.c",
 			"../ufs/ufs/ufs_acl.c",
@@ -30,6 +30,7 @@
 			"../ufs/ffs/ffs_balloc.c",
 			"../ufs/ffs/ffs_inode.c",
 			"../ufs/ffs/ffs_snapshot.c",
+			"../ufs/ffs/ffs_softdep.c",
 			"../ufs/ffs/ffs_subr.c",
 			"../ufs/ffs/ffs_tables.c",
 			"../ufs/ffs/ffs_vfsops.c",
