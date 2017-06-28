@@ -42,15 +42,16 @@
 
 //#include "dir.h"
 //#include "extattr.h"
-//#include "quota.h"
-//#include "inode.h"
-#include "dinode.h"
-#include "ufs_extern.h"
+#include "ufs/quota.h"
+#include "ufs/inode.h"
+#include "ffs/softdep.h"
+#include "ufs/dinode.h"
+#include "ufs/ufs_extern.h"
 
-#include "../ffs/fs.h"
-#include "../ffs/ffs_extern.h"
+#include "ffs/fs.h"
+#include "ffs/ffs_extern.h"
 
-#include "ufsmount.h"
+#include "ufs/ufsmount.h"
 
 
 static char Ebadread[] = "bread returned wrong size";
@@ -745,10 +746,12 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	int error, i, blks, /*len,*/ ronly;
 	uint64_t size;
 	int32_t *lp;
-	//struct ucred *cred;
+	Ucred *cred;
 	//struct g_consumer *cp;
 	//struct mount *nmp;
 
+	// TODO HARVEY
+	cred = nil;	// NOCRED
 	//cred = td ? td->td_ucred : NOCRED;
 	ump = nil;
 	ronly = (mp->mnt_flag & MNT_RDONLY) != 0;
@@ -994,17 +997,18 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_seqinc = fs->fs_frag;
 	//for (i = 0; i < MAXQUOTAS; i++)
 	//	ump->um_quotas[i] = NULLVP;
-#if 0
 #ifdef UFS_EXTATTR
 	ufs_extattr_uepm_init(&ump->um_extattr);
 #endif
 	/*
 	 * Set FS local "last mounted on" information (NULL pad)
 	 */
-	bzero(fs->fs_fsmnt, MAXMNTLEN);
-	strlcpy(fs->fs_fsmnt, mp->mnt_stat.f_mntonname, MAXMNTLEN);
-	mp->mnt_stat.f_iosize = fs->fs_bsize;
+	memset(fs->fs_fsmnt, 0, MAXMNTLEN);
+	// HARVEY TODO Mount name
+	//strlcpy(fs->fs_fsmnt, mp->mnt_stat.f_mntonname, MAXMNTLEN);
+	//mp->mnt_stat.f_iosize = fs->fs_bsize;
 
+#if 0
 	if (mp->mnt_flag & MNT_ROOTFS) {
 		/*
 		 * Root mount; update timestamp in mount structure.
@@ -1013,12 +1017,13 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		 */
 		mp->mnt_time = fs->fs_time;
 	}
+#endif // 0
 
 	if (ronly == 0) {
-		fs->fs_mtime = time_second;
+		fs->fs_mtime = seconds();
 		if ((fs->fs_flags & FS_DOSOFTDEP) &&
 		    (error = softdep_mount(devvp, mp, fs, cred)) != 0) {
-			free(fs->fs_csp, M_UFSMNT);
+			free(fs->fs_csp);
 			ffs_flushfiles(mp, FORCECLOSE, td);
 			goto out;
 		}
@@ -1028,6 +1033,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		fs->fs_clean = 0;
 		(void) ffs_sbupdate(ump, MNT_WAIT, 0);
 	}
+#if 0
 	/*
 	 * Initialize filesystem state information in mount struct.
 	 */
@@ -1284,12 +1290,17 @@ fail1:
 	return (error);
 }
 
+#endif // 0
+
 /*
  * Flush out all the files in a filesystem.
  */
 int 
-ffs_flushfiles (struct mount *mp, int flags, struct thread *td)
+ffs_flushfiles (MountPoint *mp, int flags, thread *td)
 {
+	int error = 0;
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct ufsmount *ump;
 	int qerror, error;
 
@@ -1350,8 +1361,11 @@ ffs_flushfiles (struct mount *mp, int flags, struct thread *td)
 	vn_lock(ump->um_devvp, LK_EXCLUSIVE | LK_RETRY);
 	error = VOP_FSYNC(ump->um_devvp, MNT_WAIT, td);
 	VOP_UNLOCK(ump->um_devvp, 0);
+#endif // 0
 	return (error);
 }
+
+#if 0
 
 /*
  * Get filesystem statistics.
@@ -1833,12 +1847,17 @@ ffs_uninit (struct vfsconf *vfsp)
 	return (ret);
 }
 
+#endif // 0
+
 /*
  * Write a superblock and associated information back to disk.
  */
 int 
-ffs_sbupdate (struct ufsmount *ump, int waitfor, int suspended)
+ffs_sbupdate (ufsmount *ump, int waitfor, int suspended)
 {
+	int allerror = 0;
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct fs *fs = ump->um_fs;
 	struct buf *sbbp;
 	struct buf *bp;
@@ -1909,8 +1928,11 @@ ffs_sbupdate (struct ufsmount *ump, int waitfor, int suspended)
 		bawrite(bp);
 	else if ((error = bwrite(bp)) != 0)
 		allerror = error;
+#endif // 0
 	return (allerror);
 }
+
+#if 0
 
 static int
 ffs_extattrctl(struct mount *mp, int cmd, struct vnode *filename_vp,

@@ -35,73 +35,72 @@
 
 #include "u.h"
 #include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
 
 //#include <ufs/ufs/extattr.h>
-//#include <ufs/ufs/quota.h>
+#include "ufs/quota.h"
 //#include <ufs/ufs/ufsmount.h>
-//#include <ufs/ufs/inode.h>
+#include "ufs/inode.h"
+#include "ufs/dinode.h"
+#include "ffs/softdep.h"
 #include "ufs/ufs_extern.h"
 
-//#include <ufs/ffs/fs.h>
+#include "ffs/fs.h"
 //#include <ufs/ffs/ffs_extern.h>
 
 //#define KERNCRED thread0.td_ucred
 //#define DEBUG 1
 
 #ifdef NO_FFS_SNAPSHOT
-#if 0
 
-int 
-ffs_snapshot (struct mount *mp, char *snapfile)
+/*int 
+ffs_snapshot (MountPoint *mp, char *snapfile)
 {
 	return (EINVAL);
-}
+}*/
 
 int
-ffs_snapblkfree(fs, devvp, bno, size, inum, vtype, wkhd)
-	struct fs *fs;
-	struct vnode *devvp;
-	ufs2_daddr_t bno;
-	long size;
-	ino_t inum;
-	enum vtype vtype;
-	struct workhead *wkhd;
+ffs_snapblkfree(fs *fs, vnode *devvp, ufs2_daddr_t bno, long size, ino_t inum,
+	Vtype vtype, struct workhead *wkhd)
+{
+	return (EINVAL);
+}
+
+/*void 
+ffs_snapremove (vnode *vp)
+{
+}*/
+
+void 
+ffs_snapshot_mount (MountPoint *mp)
+{
+}
+
+/*void 
+ffs_snapshot_unmount (MountPoint *mp)
+{
+}*/
+
+void 
+ffs_snapgone (inode *ip)
+{
+}
+
+/*int 
+ffs_copyonwrite (vnode *devvp, buf *bp)
 {
 	return (EINVAL);
 }
 
 void 
-ffs_snapremove (struct vnode *vp)
+ffs_sync_snap (MountPoint *mp, int waitfor)
 {
-}
-
-void 
-ffs_snapshot_mount (struct mount *mp)
-{
-}
-
-void 
-ffs_snapshot_unmount (struct mount *mp)
-{
-}
-
-void 
-ffs_snapgone (struct inode *ip)
-{
-}
-
-int 
-ffs_copyonwrite (struct vnode *devvp, struct buf *bp)
-{
-	return (EINVAL);
-}
-
-void 
-ffs_sync_snap (struct mount *mp, int waitfor)
-{
-}
-
-#endif // 0
+}*/
 
 #else
 
@@ -1919,7 +1918,7 @@ retry:
  * Associate snapshot files when mounting.
  */
 void 
-ffs_snapshot_mount (struct mount *mp)
+ffs_snapshot_mount (MountPoint *mp)
 {
 	struct ufsmount *ump = VFSTOUFS(mp);
 	struct vnode *devvp = ump->um_devvp;

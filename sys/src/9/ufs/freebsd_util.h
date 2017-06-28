@@ -58,9 +58,18 @@ typedef	int64_t daddr_t;	/* disk address */
 typedef	uint32_t ino_t;		/* inode number */
 typedef	uint32_t uid_t;		/* user id */
 typedef	uint32_t gid_t;		/* group id */
-
+typedef	uint16_t nlink_t;	/* link count */
+typedef	char *caddr_t;		/* core address */
+typedef	uint16_t mode_t;	/* permissions */
 typedef int64_t off_t;		/* File offset */
-typedef int64_t ufs2_daddr_t;
+
+/*
+ * The size of physical and logical block numbers and time fields in UFS.
+ */
+typedef	int32_t	ufs1_daddr_t;
+typedef	int64_t	ufs2_daddr_t;
+typedef int64_t ufs_lbn_t;
+typedef int64_t ufs_time_t;
 
 typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or replaced with a spatch */
 
@@ -88,6 +97,12 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
  */
 #define	MNT_LOCAL	0x0000000000001000ULL /* filesystem is stored locally */
 
+/*
+ * Flags for various system call interfaces.
+ *
+ * waitfor flags to vfs_sync() and getfsstat()
+ */
+#define MNT_WAIT	1	/* synchronously wait for I/O to complete */
 
 /*
  * Error codes used by UFS.
