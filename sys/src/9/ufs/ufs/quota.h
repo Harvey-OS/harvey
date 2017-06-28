@@ -87,6 +87,8 @@
 #define	Q_SETUSE	0x0900	/* set usage (64-bit version) */
 #define	Q_GETQUOTASIZE	0x0A00	/* get bit-size of quota file fields */
 
+#if 0
+
 /*
  * The following structure defines the format of the disk quota file
  * (as it appears on disk) - the file is an array of these structures
@@ -248,3 +250,4 @@ int	quotactl(const char *, int, int, void *);
 
 #endif /* _KERNEL */
 
+#endif // 0
