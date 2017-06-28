@@ -40,7 +40,7 @@ typedef struct Buf Buf;
 //struct fs;
 //struct inode;
 //struct malloc_type;
-//struct mount;
+typedef struct MountPoint MountPoint;
 //struct thread;
 //struct sockaddr;
 //struct statfs;
@@ -65,9 +65,9 @@ int	ffs_checkfreefile(struct fs *, struct vnode *, ino_t);
 void	ffs_clrblock(struct fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_clusteracct(struct fs *, struct cg *, ufs1_daddr_t, int);
 void	ffs_bdflush(struct bufobj *, struct buf *);
-int	ffs_copyonwrite(struct vnode *, struct buf *);
-int	ffs_flushfiles(struct mount *, int, struct thread *);
-void	ffs_fragacct(struct fs *, int, int32_t [], int);
+int	ffs_copyonwrite(struct vnode *, struct buf *);*/
+int	ffs_flushfiles(MountPoint *, int, thread *);
+/*void	ffs_fragacct(struct fs *, int, int32_t [], int);
 int	ffs_freefile(struct ufsmount *, struct fs *, struct vnode *, ino_t,
 	    int, struct workhead *);
 void	ffs_fserr(struct fs *, ino_t, char *);
@@ -79,15 +79,15 @@ int	ffs_own_mount(const struct mount *mp);
 int	ffs_reallocblks(struct vop_reallocblks_args *);
 int	ffs_realloccg(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
 	    ufs2_daddr_t, int, int, int, struct ucred *, struct buf **);
-int	ffs_reload(struct mount *, struct thread *, int);
-int	ffs_sbupdate(struct ufsmount *, int, int);
-void	ffs_setblock(struct fs *, uint8_t *, ufs1_daddr_t);
-int	ffs_snapblkfree(struct fs *, struct vnode *, ufs2_daddr_t, long, ino_t,
-	    enum vtype, struct workhead *);
-void	ffs_snapremove(struct vnode *vp);
-int	ffs_snapshot(struct mount *mp, char *snapfile);
-void	ffs_snapshot_mount(struct mount *mp);
-void	ffs_snapshot_unmount(struct mount *mp);
+int	ffs_reload(struct mount *, struct thread *, int);*/
+int	ffs_sbupdate(ufsmount *, int, int);
+//void	ffs_setblock(struct fs *, uint8_t *, ufs1_daddr_t);
+int	ffs_snapblkfree(fs *, vnode *, ufs2_daddr_t, long, ino_t,
+	    Vtype, struct workhead *);
+//void	ffs_snapremove(struct vnode *vp);
+//int	ffs_snapshot(struct mount *mp, char *snapfile);
+void	ffs_snapshot_mount(MountPoint *mp);
+/*void	ffs_snapshot_unmount(struct mount *mp);
 void	process_deferred_inactive(struct mount *mp);
 void	ffs_sync_snap(struct mount *, int);
 int	ffs_syncvnode(struct vnode *vp, int waitfor, int flags);*/
@@ -95,9 +95,8 @@ int	ffs_truncate(vnode *, off_t, int, Ucred *);
 int	ffs_update(vnode *, int);
 int	ffs_valloc(vnode *, int, Ucred *, vnode **);
 
-int	ffs_vfree(struct vnode *, ino_t, int);
-#if 0
-vfs_vget_t ffs_vget;
+int	ffs_vfree(vnode *, ino_t, int);
+/*vfs_vget_t ffs_vget;
 int	ffs_vgetf(struct mount *, ino_t, int, struct vnode **, int);
 void	ffs_susp_initialize(void);
 void	ffs_susp_uninitialize(void);
@@ -110,20 +109,19 @@ void	ffs_susp_uninitialize(void);
 extern struct vop_vector ffs_vnodeops1;
 extern struct vop_vector ffs_fifoops1;
 extern struct vop_vector ffs_vnodeops2;
-extern struct vop_vector ffs_fifoops2;
+extern struct vop_vector ffs_fifoops2;*/
 
 /*
  * Soft update function prototypes.
  */
 
-int	softdep_check_suspend(struct mount *, struct vnode *,
+/*int	softdep_check_suspend(struct mount *, struct vnode *,
 	  int, int, int, int);
 void	softdep_get_depcounts(struct mount *, int *, int *);
 void	softdep_initialize(void);
-void	softdep_uninitialize(void);
-int	softdep_mount(struct vnode *, struct mount *, struct fs *,
-	    struct ucred *);
-void	softdep_unmount(struct mount *);
+void	softdep_uninitialize(void);*/
+int	softdep_mount(vnode *, MountPoint *, fs *, Ucred *);
+/*void	softdep_unmount(struct mount *);
 int	softdep_move_dependencies(struct buf *, struct buf *);
 int	softdep_flushworklist(struct mount *, int *, struct thread *);
 int	softdep_flushfiles(struct mount *, int, struct thread *);
@@ -159,9 +157,7 @@ void	softdep_journal_freeblocks(struct inode *, struct ucred *, off_t, int);
 void	softdep_journal_fsync(struct inode *);
 void	softdep_buf_append(struct buf *, struct workhead *);
 void	softdep_inode_append(struct inode *, struct ucred *, struct workhead *);
-void	softdep_freework(struct workhead *);
-
-#endif // 0
+void	softdep_freework(struct workhead *);*/
 
 /*
  * Things to request flushing in softdep_request_cleanup()

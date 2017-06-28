@@ -187,7 +187,7 @@
  * per second to process the items on the queue.
  */
 
-/* LIST_HEAD(workhead, worklist);	-- declared in buf.h */
+LIST_HEAD(workhead, worklist);
 
 /*
  * Each request can be linked onto a work queue through its worklist structure.
@@ -1019,11 +1019,14 @@ LIST_HEAD(newblk_hashhead, newblk);
 LIST_HEAD(bmsafemap_hashhead, bmsafemap);
 TAILQ_HEAD(indir_hashhead, freework);
 
+#if 0
+
 /*
  * Per-filesystem soft dependency data.
  * Allocated at mount and freed at unmount.
  */
 struct mount_softdeps {
+	/* HARVEY TODO This lock is used in interrupt */
 	struct	rwlock sd_fslock;		/* softdep lock */
 	struct	workhead sd_workitem_pending;	/* softdep work queue */
 	struct	worklist *sd_worklist_tail;	/* Tail pointer for above */
@@ -1057,6 +1060,9 @@ struct mount_softdeps {
 	struct	ufsmount *sd_ump;		/* our ufsmount structure */
 	uint64_t	sd_curdeps[D_LAST + 1];		/* count of current deps */
 };
+
+#endif // 0
+
 /*
  * Flags for communicating with the syncer thread.
  */
