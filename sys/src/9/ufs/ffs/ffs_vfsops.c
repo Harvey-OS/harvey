@@ -1033,14 +1033,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		fs->fs_clean = 0;
 		(void) ffs_sbupdate(ump, MNT_WAIT, 0);
 	}
-#if 0
-	/*
-	 * Initialize filesystem state information in mount struct.
-	 */
-	MNT_ILOCK(mp);
-	mp->mnt_kern_flag |= MNTK_LOOKUP_SHARED | MNTK_EXTENDED_SHARED |
-	    MNTK_NO_IOPF | MNTK_UNMAPPED_BUFS | MNTK_USES_BCACHE;
-	MNT_IUNLOCK(mp);
+
 #ifdef UFS_EXTATTR
 #ifdef UFS_EXTATTR_AUTOSTART
 	/*
@@ -1056,7 +1049,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	(void) ufs_extattr_autostart(mp, td);
 #endif /* !UFS_EXTATTR_AUTOSTART */
 #endif /* !UFS_EXTATTR */
-#endif // 0
 	return (0);
 out:
 	if (fs)
