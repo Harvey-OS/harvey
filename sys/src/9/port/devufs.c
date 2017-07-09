@@ -19,25 +19,40 @@
 
 
 enum {
-	Qdir = 0,		// #U
-	Qufsdir,		// #U/ufs
-	Qmount,			// #U/ufs/mount
-	QmountIdBase = 1000,	// #U/ufs/0-MaxMounts
-	Qmax,
+	Qdir = 0,			// #U
+	Qufsdir,			// #U/ufs
+	Qmount,				// #U/ufs/mount
+	Qmountdir,			// #U/ufs/x (x embedded in qid)
+	Qmountctl,			// #U/ufs/x/ctl
+};
+
+enum {
+	Qidshift = 6,
+	MaxMounts = 1,			// Maximum possible mounts
 };
 
 static Dirtab ufsdir[] =
 {
-	{"mount",	{ Qmount },	0,	0666},
+	{"mount",	{Qmount},	0,	0666},
 };
 
+static Dirtab ufsmntdir[] =
+{
+	{"ctl",		{Qmountctl},	0,	0666},
+};
 
-#define QID(q)	((int)(q).path)
+enum
+{
+	CMunmount,
+};
+
+static
+Cmdtab mountcmds[] = {
+	{CMunmount,	"unmount",	1},
+};
 
 // Just one possible mountpoint for now.  Replace with a collection later
 static MountPoint *mountpoint = nil;
-
-static int MaxMounts = 1;
 
 
 static int
@@ -46,10 +61,15 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	Qid q;
 	char name[64];
 
-	//print("ufsgen q %#x s %d...\n", QID(c->qid), s);
+	// The qid has a mount id embedded in it, so we need to mask out the
+	// real qid value.
+	int qid = c->qid.path & ((1 << Qidshift)-1);
+	int qidmntid = c->qid.path >> Qidshift;
+
+	//print("ufsgen q %#x s %d qidmntid %d...\n", qid, s, qidmntid);
 
 	if(s == DEVDOTDOT) {
-		if (QID(c->qid) <= Qufsdir) {
+		if (qid <= Qufsdir) {
 			mkqid(&q, Qdir, 0, QTDIR);
 			devdir(c, q, "#U", 0, eve, 0555, dp);
 		} else {
@@ -59,8 +79,9 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		return 1;
 	}
 
-	switch (QID(c->qid)) {
-	case Qdir:				// list #U
+	switch (qid) {
+	case Qdir:
+		// list #U
 		if (s == 0) {
 			mkqid(&q, Qufsdir, 0, QTDIR);
 			devdir(c, q, "ufs", 0, eve, 0555, dp);
@@ -68,7 +89,8 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		}
 		return -1;
 
-	case Qufsdir:				// list #U/ufs
+	case Qufsdir:
+		// list #U/ufs
 		if (s < nelem(ufsdir)) {
 			// Populate with ufsdir table
 			dir = &ufsdir[s];
@@ -87,15 +109,30 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 
 		// Mount point (more in the future)
 		sprint(name, "%d", s);
-		mkqid(&q, QmountIdBase+s, 0, QTDIR);
+		mkqid(&q, Qmountdir | (s << Qidshift), 0, QTDIR);
 		devdir(c, q, name, 0, eve, 0555, dp);
+		return 1;
+
+	case Qmountdir:
+		// Generate #U/ufs/x/...
+		if (s >= nelem(ufsmntdir)) {
+			return -1;
+		}
+
+		// #U/ufs/x/...
+		if (!mountpoint) {
+			return -1;
+		}
+
+		dir = &ufsmntdir[s];
+		mkqid(&q, dir->qid.path | (qidmntid << Qidshift), 0, QTFILE);
+		devdir(c, q, dir->name, dir->length, eve, dir->perm, dp);
 		return 1;
 
 	default:
 		return -1;
 	}
 }
-
 
 static Chan*
 ufsattach(char* spec)
@@ -157,6 +194,20 @@ mountufs(Chan* c)
 }
 
 static void
+unmountufs()
+{
+	// Unnmount, then release the mountpoint even if there's been an error
+	int rcode = ffs_unmount(mountpoint, 0);
+	releaseufsmount(mountpoint);
+	mountpoint = nil;
+
+	if (rcode != 0) {
+		print("couldn't unmount UFS.  Error code: %d\n", rcode);
+		error(Eio);
+	}
+}
+
+static void
 mount(char* a, int32_t n)
 {
 	Proc *up = externup();
@@ -196,21 +247,56 @@ mount(char* a, int32_t n)
 	mountpoint = mp;
 }
 
+static void
+ctlreq(int mntid, void *a, int32_t n)
+{
+	Proc *up = externup();
+
+	if (mountpoint == nil) {
+		error(Eunmount);
+	}
+
+	Cmdbuf* cb = parsecmd(a, n);
+	if (waserror()) {
+		print("couldn't parse command: %s: %r", a);
+		free(cb);
+		nexterror();
+	}
+	poperror();
+
+	Cmdtab *ct = lookupcmd(cb, mountcmds, nelem(mountcmds));
+
+	switch (ct->index) {
+	case CMunmount:
+		unmountufs();
+		break;
+	}
+	free(cb);
+}
+
 static int32_t
 ufswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	int qid = c->qid.path & ((1 << Qidshift)-1);
+	int mntid = c->qid.path >> Qidshift;
+
 	if(c->qid.type == QTDIR) {
 		error(Eisdir);
 	}
 
-	switch (QID(c->qid)) {
+	switch (qid) {
 	case Qmount:
 		mount((char*)a, n);
+		break;
+
+	case Qmountctl:
+		ctlreq(mntid, (char*)a, n);
 		break;
 
 	default:
 		error(Eperm);
 	}
+
 	return n;
 }
 
