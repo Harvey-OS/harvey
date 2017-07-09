@@ -86,3 +86,4 @@ void releaseufsmount(MountPoint *mp);
 void releaseufsvnode(vnode *vn);
 
 int ffs_mount(MountPoint *mp);
+int ffs_unmount(MountPoint *mp, int mntflags);
