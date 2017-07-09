@@ -1166,12 +1166,18 @@ ffs_oldfscompat_write (struct fs *fs, struct ufsmount *ump)
 	}
 }
 
+#endif // 0
+
 /*
  * unmount system call
  */
-static int 
-ffs_unmount (struct mount *mp, int mntflags)
+int 
+ffs_unmount (MountPoint *mp, int mntflags)
 {
+	int error = 0;
+	print("HARVEY TODO: %s\n", __func__);
+
+#if 0
 	struct thread *td;
 	struct ufsmount *ump = VFSTOUFS(mp);
 	struct fs *fs;
@@ -1279,10 +1285,9 @@ fail1:
 	}
 #endif
 
+#endif // 0
 	return (error);
 }
-
-#endif // 0
 
 /*
  * Flush out all the files in a filesystem.
