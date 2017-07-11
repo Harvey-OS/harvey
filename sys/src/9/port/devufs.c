@@ -52,10 +52,10 @@ Cmdtab mountcmds[] = {
 };
 
 // Rather vague errors until we interpret the UFS error codes
-char Eufsmount[] = "could not mount";
-char Eufsunmount[] = "could not unmount";
-char Eufsnomp[] = "no empty mountpoints";
-char Eufsinvalidmp[] = "not a valid mountpoint";
+static char Eufsmount[] = "could not mount";
+static char Eufsunmount[] = "could not unmount";
+static char Eufsnomp[] = "no empty mountpoints";
+static char Eufsinvalidmp[] = "not a valid mountpoint";
 
 // Just one possible mountpoint for now.  Replace with a collection later
 static MountPoint *mountpoint = nil;
