@@ -51,6 +51,12 @@ Cmdtab mountcmds[] = {
 	{CMunmount,	"unmount",	1},
 };
 
+// Rather vague errors until we interpret the UFS error codes
+char Eufsmount[] = "could not mount";
+char Eufsunmount[] = "could not unmount";
+char Eufsnomp[] = "no empty mountpoints";
+char Eufsinvalidmp[] = "not a valid mountpoint";
+
 // Just one possible mountpoint for now.  Replace with a collection later
 static MountPoint *mountpoint = nil;
 
@@ -181,13 +187,13 @@ mountufs(Chan* c)
 	MountPoint *mp = newufsmount(c);
 	if (mp == nil) {
 		print("couldn't prepare UFS mount\n");
-		error(Enoattach);
+		error(Eufsmount);
 	}
 
 	int rcode = ffs_mount(mp);
 	if (rcode != 0) {
 		print("couldn't mount as UFS.  Error code: %d\n", rcode);
-		error(Enoattach);
+		error(Eufsmount);
 	}
 
 	return mp;
@@ -203,7 +209,7 @@ unmountufs()
 
 	if (rcode != 0) {
 		print("couldn't unmount UFS.  Error code: %d\n", rcode);
-		error(Eio);
+		error(Eufsunmount);
 	}
 }
 
@@ -214,7 +220,7 @@ mount(char* a, int32_t n)
 
 	// Accept only one mount for now
 	if (mountpoint != nil) {
-		error(Enoattach);
+		error(Eufsnomp);
 	}
 
 	Cmdbuf* cb = parsecmd(a, n);
@@ -253,7 +259,7 @@ ctlreq(int mntid, void *a, int32_t n)
 	Proc *up = externup();
 
 	if (mountpoint == nil) {
-		error(Eunmount);
+		error(Eufsinvalidmp);
 	}
 
 	Cmdbuf* cb = parsecmd(a, n);
