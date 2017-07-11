@@ -50,63 +50,59 @@ typedef struct inode inode;
 //extern struct vop_vector ufs_fifoops;
 //extern struct vop_vector ufs_vnodeops;
 
-#if 0
-int	 ufs_bmap(struct vop_bmap_args *);
-int	 ufs_bmaparray(struct vnode *, ufs2_daddr_t, ufs2_daddr_t *,
-	    struct buf *, int *, int *);
-int	 ufs_fhtovp(struct mount *, struct ufid *, int, struct vnode **);
-int	 ufs_checkpath(ino_t, ino_t, struct inode *, struct ucred *, ino_t *);
-void	 ufs_dirbad(struct inode *, doff_t, char *);
-int	 ufs_dirbadentry(struct vnode *, struct direct *, int);
-int	 ufs_dirempty(struct inode *, ino_t, struct ucred *);
-int	 ufs_extread(struct vop_read_args *);
-int	 ufs_extwrite(struct vop_write_args *);
-void	 ufs_makedirentry(struct inode *, struct componentname *,
-	    struct direct *);
-int	 ufs_direnter(struct vnode *, struct vnode *, struct direct *,
-	    struct componentname *, struct buf *, int);
-int	 ufs_dirremove(struct vnode *, struct inode *, int, int);
-int	 ufs_dirrewrite(struct inode *, struct inode *, ino_t, int, int);
-int	 ufs_lookup_ino(struct vnode *, struct vnode **, struct componentname *,
-	    ino_t *);
-int	 ufs_getlbns(struct vnode *, ufs2_daddr_t, struct indir *, int *);
-int	 ufs_inactive(struct vop_inactive_args *);
-int	 ufs_init(struct vfsconf *);
-void	 ufs_itimes(struct vnode *vp);
-int	 ufs_lookup(struct vop_cachedlookup_args *);
-void	 ufs_prepare_reclaim(struct vnode *vp);
-int	 ufs_readdir(struct vop_readdir_args *);
-int	 ufs_reclaim(struct vop_reclaim_args *);
-#endif // 0
+//int	 ufs_bmap(struct vop_bmap_args *);
+//int	 ufs_bmaparray(struct vnode *, ufs2_daddr_t, ufs2_daddr_t *,
+//	    struct buf *, int *, int *);
+//int	 ufs_fhtovp(struct mount *, struct ufid *, int, struct vnode **);
+//int	 ufs_checkpath(ino_t, ino_t, struct inode *, struct ucred *, ino_t *);
+//void	 ufs_dirbad(struct inode *, doff_t, char *);
+//int	 ufs_dirbadentry(struct vnode *, struct direct *, int);
+//int	 ufs_dirempty(struct inode *, ino_t, struct ucred *);
+//int	 ufs_extread(struct vop_read_args *);
+//int	 ufs_extwrite(struct vop_write_args *);
+//void	 ufs_makedirentry(struct inode *, struct componentname *,
+//	    struct direct *);
+//int	 ufs_direnter(struct vnode *, struct vnode *, struct direct *,
+//	    struct componentname *, struct buf *, int);
+//int	 ufs_dirremove(struct vnode *, struct inode *, int, int);
+//int	 ufs_dirrewrite(struct inode *, struct inode *, ino_t, int, int);
+int	 ufs_lookup_ino(vnode *, vnode **, ComponentName *, ino_t *);
+//int	 ufs_getlbns(struct vnode *, ufs2_daddr_t, struct indir *, int *);
+//int	 ufs_inactive(struct vop_inactive_args *);
+//int	 ufs_init(struct vfsconf *);
+//void	 ufs_itimes(struct vnode *vp);
+//int	 ufs_lookup(vop_cachedlookup_args *);
+//void	 ufs_prepare_reclaim(struct vnode *vp);
+//int	 ufs_readdir(struct vop_readdir_args *);
+//int	 ufs_reclaim(struct vop_reclaim_args *);
 void	 ffs_snapgone(struct inode *);
-#if 0
-vfs_root_t ufs_root;
-int	 ufs_uninit(struct vfsconf *);
-int	 ufs_vinit(struct mount *, struct vop_vector *, struct vnode **);
-SYSCTL_DECL(_vfs_ufs);
+//vfs_root_t ufs_root;
+//int	 ufs_uninit(struct vfsconf *);
+//int	 ufs_vinit(struct mount *, struct vop_vector *, struct vnode **);
+//SYSCTL_DECL(_vfs_ufs);
 
 /*
  * Soft update function prototypes.
  */
-int	softdep_setup_directory_add(struct buf *, struct inode *, off_t,
-	    ino_t, struct buf *, int);
-void	softdep_change_directoryentry_offset(struct buf *, struct inode *,
-	    caddr_t, caddr_t, caddr_t, int);
-void	softdep_setup_remove(struct buf *,struct inode *, struct inode *, int);
-void	softdep_setup_directory_change(struct buf *, struct inode *,
-	    struct inode *, ino_t, int);
-void	softdep_change_linkcnt(struct inode *);
-int	softdep_slowdown(struct vnode *);
-void	softdep_setup_create(struct inode *, struct inode *);
-void	softdep_setup_dotdot_link(struct inode *, struct inode *);
-void	softdep_setup_link(struct inode *, struct inode *);
-void	softdep_setup_mkdir(struct inode *, struct inode *);
-void	softdep_setup_rmdir(struct inode *, struct inode *);
-void	softdep_setup_unlink(struct inode *, struct inode *);
-void	softdep_revert_create(struct inode *, struct inode *);
-void	softdep_revert_link(struct inode *, struct inode *);
-void	softdep_revert_mkdir(struct inode *, struct inode *);
-void	softdep_revert_rmdir(struct inode *, struct inode *);
+//int	softdep_setup_directory_add(struct buf *, struct inode *, off_t,
+//	    ino_t, struct buf *, int);
+//void	softdep_change_directoryentry_offset(struct buf *, struct inode *,
+//	    caddr_t, caddr_t, caddr_t, int);
+//void	softdep_setup_remove(struct buf *,struct inode *, struct inode *, int);
+//void	softdep_setup_directory_change(struct buf *, struct inode *,
+//	    struct inode *, ino_t, int);
+//void	softdep_change_linkcnt(struct inode *);
+//int	softdep_slowdown(struct vnode *);
+//void	softdep_setup_create(struct inode *, struct inode *);
+//void	softdep_setup_dotdot_link(struct inode *, struct inode *);
+//void	softdep_setup_link(struct inode *, struct inode *);
+//void	softdep_setup_mkdir(struct inode *, struct inode *);
+//void	softdep_setup_rmdir(struct inode *, struct inode *);
+//void	softdep_setup_unlink(struct inode *, struct inode *);
+//void	softdep_revert_create(struct inode *, struct inode *);
+//void	softdep_revert_link(struct inode *, struct inode *);
+//void	softdep_revert_mkdir(struct inode *, struct inode *);
+//void	softdep_revert_rmdir(struct inode *, struct inode *);
 
 /*
  * Flags to low-level allocation routines.  The low 16-bits are reserved
@@ -121,5 +117,3 @@ void	softdep_revert_rmdir(struct inode *, struct inode *);
 #define	BA_SEQMASK	0x7F000000	/* Bits holding seq heuristic. */
 #define	BA_SEQSHIFT	24
 #define	BA_SEQMAX	0x7F
-
-#endif // 0
