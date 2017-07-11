@@ -35,10 +35,10 @@
 #include "dat.h"
 #include "../../port/portfns.h"
 
-#define _KERNEL
-
 #include "freebsd_util.h"
 #include "ufs_harvey.h"
+
+#define _KERNEL
 
 //#include "dir.h"
 //#include "extattr.h"
