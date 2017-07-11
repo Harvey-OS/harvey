@@ -62,6 +62,7 @@ typedef	uint16_t nlink_t;	/* link count */
 typedef	char *caddr_t;		/* core address */
 typedef	uint16_t mode_t;	/* permissions */
 typedef int64_t off_t;		/* File offset */
+typedef	uint32_t ino_t;		/* inode number */
 
 /*
  * The size of physical and logical block numbers and time fields in UFS.
@@ -109,9 +110,9 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
  * TODO HARVEY Translate to error strings.
  */
 #define	EPERM		1		/* Operation not permitted */
+#define	ENOENT		2		/* No such file or directory */
 #define	EINVAL		22		/* Invalid argument */
 #define	ENOSPC		28		/* No space left on device */
-
 
 
 #define	DEV_BSHIFT	9		/* log2(DEV_BSIZE) */

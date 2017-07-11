@@ -55,11 +55,28 @@ typedef struct Buf {
 } Buf;
 
 
+typedef struct ComponentName {
+	/*
+	 * Arguments to lookup.
+	 */
+	unsigned long cn_nameiop;	/* namei operation */
+	uint64_t cn_flags;		/* flags to namei */
+	//struct	thread *cn_thread;/* thread requesting lookup */
+	struct	ucred *cn_cred;		/* credentials */
+	int	cn_lkflags;		/* Lock flags LK_EXCLUSIVE or LK_SHARED */
+	/*
+	 * Shared between lookup and commit routines.
+	 */
+	char	*cn_pnbuf;		/* pathname buffer */
+	char	*cn_nameptr;		/* pointer to looked up name */
+	long	cn_namelen;		/* length of looked up component */
+} ComponentName;
+
+
 /*
  * Vnode types.  VNON means no type.
  */
-enum vtype	{ VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD,
-		  VMARKER };
+enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
 /*
