@@ -33,29 +33,38 @@
  *
  *	@(#)ufs_lookup.c	8.15 (Berkeley) 6/16/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/dir.h>
-#ifdef UFS_DIRHASH
-#include <ufs/ufs/dirhash.h>
-#endif
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "../../port/portfns.h"
 
-#ifdef DIAGNOSTIC
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
+
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/dir.h>
+//#ifdef UFS_DIRHASH
+//#include <ufs/ufs/dirhash.h>
+//#endif
+//#include <ufs/ufs/ufsmount.h>
+//#include <ufs/ufs/ufs_extern.h>
+
+/*#ifdef DIAGNOSTIC
 static int	dirchk = 1;
 #else
 static int	dirchk = 0;
-#endif
+#endif*/
 
-SYSCTL_INT(_debug, OID_AUTO, dircheck, CTLFLAG_RW, &dirchk, 0, "");
+//SYSCTL_INT(_debug, OID_AUTO, dircheck, CTLFLAG_RW, &dirchk, 0, "");
 
 /* true if old FS format...*/
 #define OFSFMT(vp)	((vp)->v_mount->mnt_maxsymlinklen <= 0)
+
+#if 0
 
 static int
 ufs_delete_denied(struct vnode *vdp, struct vnode *tdp, struct ucred *cred,
@@ -1443,3 +1452,5 @@ ufs_checkpath(ino_t source_ino, ino_t parent_ino, struct inode *target, struct u
 		vput(vp);
 	return (error);
 }
+
+#endif // 0
