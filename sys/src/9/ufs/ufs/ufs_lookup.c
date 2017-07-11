@@ -43,9 +43,11 @@
 #include "freebsd_util.h"
 #include "ufs_harvey.h"
 
+#define _KERNEL
+
 //#include <ufs/ufs/extattr.h>
-//#include <ufs/ufs/quota.h>
-//#include <ufs/ufs/inode.h>
+#include "ufs/quota.h"
+#include "ufs/inode.h"
 //#include <ufs/ufs/dir.h>
 //#ifdef UFS_DIRHASH
 //#include <ufs/ufs/dirhash.h>
@@ -121,6 +123,8 @@ ufs_delete_denied(struct vnode *vdp, struct vnode *tdp, struct ucred *cred,
 	return (0);
 }
 
+#endif // 0
+
 /*
  * Convert a component of a pathname into a pointer to a locked inode.
  * This is a very central and rather complicated routine.
@@ -166,41 +170,39 @@ ufs_delete_denied(struct vnode *vdp, struct vnode *tdp, struct ucred *cred,
  *	if not at end, add name to cache; if at end and neither creating
  *	  nor deleting, add name to cache
  */
-int 
-ufs_lookup (struct vop_cachedlookup_args *ap)
+/*int 
+ufs_lookup (vop_cachedlookup_args *ap)
 {
-
 	return (ufs_lookup_ino(ap->a_dvp, ap->a_vpp, ap->a_cnp, nil));
-}
+}*/
 
 int
-ufs_lookup_ino(struct vnode *vdp, struct vnode **vpp, struct componentname *cnp,
-    ino_t *dd_ino)
+ufs_lookup_ino(vnode *vdp, vnode **vpp, ComponentName *cnp, ino_t *dd_ino)
 {
-	struct inode *dp;		/* inode for directory being searched */
-	struct buf *bp;			/* a buffer of directory entries */
-	struct direct *ep;		/* the current directory entry */
-	int entryoffsetinblock;		/* offset of ep in bp's buffer */
-	enum {NONE, COMPACT, FOUND} slotstatus;
-	doff_t slotoffset;		/* offset of area with free space */
-	doff_t i_diroff;		/* cached i_diroff value. */
-	doff_t i_offset;		/* cached i_offset value. */
-	int slotsize;			/* size of area at slotoffset */
-	int slotfreespace;		/* amount of space free in slot */
-	int slotneeded;			/* size of the entry we're seeking */
-	int numdirpasses;		/* strategy for directory search */
-	doff_t endsearch;		/* offset to end directory search */
-	doff_t prevoff;			/* prev entry dp->i_offset */
-	struct vnode *pdp;		/* saved dp during symlink work */
-	struct vnode *tdp;		/* returned by VFS_VGET */
-	doff_t enduseful;		/* pointer past last used dir slot */
-	uint64_t bmask;			/* block offset mask */
-	int namlen, error;
-	struct ucred *cred = cnp->cn_cred;
-	int flags = cnp->cn_flags;
-	int nameiop = cnp->cn_nameiop;
-	ino_t ino, ino1;
-	int ltype;
+	inode *dp;			/* inode for directory being searched */
+	//struct buf *bp;			/* a buffer of directory entries */
+	//struct direct *ep;		/* the current directory entry */
+	//int entryoffsetinblock;		/* offset of ep in bp's buffer */
+	//enum {NONE, COMPACT, FOUND} slotstatus;
+	//doff_t slotoffset;		/* offset of area with free space */
+	//doff_t i_diroff;		/* cached i_diroff value. */
+	//doff_t i_offset;		/* cached i_offset value. */
+	//int slotsize;			/* size of area at slotoffset */
+	//int slotfreespace;		/* amount of space free in slot */
+	//int slotneeded;			/* size of the entry we're seeking */
+	//int numdirpasses;		/* strategy for directory search */
+	//doff_t endsearch;		/* offset to end directory search */
+	//doff_t prevoff;			/* prev entry dp->i_offset */
+	//struct vnode *pdp;		/* saved dp during symlink work */
+	//struct vnode *tdp;		/* returned by VFS_VGET */
+	//doff_t enduseful;		/* pointer past last used dir slot */
+	//uint64_t bmask;			/* block offset mask */
+	//int namlen, error;
+	//struct ucred *cred = cnp->cn_cred;
+	//int flags = cnp->cn_flags;
+	//int nameiop = cnp->cn_nameiop;
+	//ino_t ino, ino1;
+	//int ltype;
 
 	if (vpp != nil)
 		*vpp = nil;
@@ -208,6 +210,7 @@ ufs_lookup_ino(struct vnode *vdp, struct vnode **vpp, struct componentname *cnp,
 	dp = VTOI(vdp);
 	if (dp->i_effnlink == 0)
 		return (ENOENT);
+#if 0
 
 	/*
 	 * Create a vm object if vmiodirenable is enabled.
@@ -729,8 +732,11 @@ found:
 	 */
 	if (cnp->cn_flags & MAKEENTRY)
 		cache_enter(vdp, *vpp, cnp);
+#endif // 0
 	return (0);
 }
+
+#if 0
 
 void
 ufs_dirbad(ip, offset, how)
