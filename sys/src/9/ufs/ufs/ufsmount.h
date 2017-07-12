@@ -41,8 +41,6 @@ struct ufs_args {
 
 #endif // 0
 
-#ifdef _KERNEL
-
 #ifdef MALLOC_DECLARE
 MALLOC_DECLARE(M_UFSMNT);
 #endif
@@ -140,5 +138,3 @@ typedef struct ufsmount {
 #define	blkptrtodb(ump, b)		((b) << (ump)->um_bptrtodb)
 #define	is_sequential(ump, a, b)	((b) == (a) + ump->um_seqinc)
 #endif // 0
-#endif /* _KERNEL */
-
