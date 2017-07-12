@@ -99,8 +99,6 @@ struct extattr {
 #define	EXTATTR_BASE_LENGTH(eap) \
 	roundup2((sizeof(struct extattr) - 1 + (eap)->ea_namelength), 8)
 
-#ifdef _KERNEL
-
 struct vnode;
 LIST_HEAD(ufs_extattr_list_head, ufs_extattr_list_entry);
 struct ufs_extattr_list_entry {
@@ -134,6 +132,3 @@ int	ufs_getextattr(struct vop_getextattr_args *ap);
 int	ufs_deleteextattr(struct vop_deleteextattr_args *ap);
 int	ufs_setextattr(struct vop_setextattr_args *ap);
 void	ufs_extattr_vnode_inactive(struct vnode *vp, struct thread *td);
-
-#endif /* !_KERNEL */
-

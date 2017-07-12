@@ -65,8 +65,6 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KERNEL
-
 #include "freebsd_util.h"
 #include "ufs_harvey.h"
 

@@ -30,10 +30,6 @@
  * $FreeBSD$
  */
 
-#ifndef _KERNEL
-#error "No user-serving parts inside"
-#else
-
 typedef struct Buf Buf;
 //struct cg;
 //struct fid;
@@ -193,5 +189,3 @@ struct snapdata {
 };
 
 #endif // 0
-
-#endif /* _KERNEL */
