@@ -130,8 +130,6 @@ struct inode {
 #define	i_din1 dinode_u.din1
 #define	i_din2 dinode_u.din2
 
-#ifdef _KERNEL
-
 #define	ITOUMP(ip)	((ip)->i_ump)
 #define	ITODEV(ip)	(ITOUMP(ip)->um_dev)
 #define	ITODEVVP(ip)	(ITOUMP(ip)->um_devvp)
@@ -195,5 +193,4 @@ struct ufid {
 	uint32_t  ufid_ino;	/* File number (ino). */
 	uint32_t  ufid_gen;	/* Generation number. */
 };
-#endif /* _KERNEL */
 

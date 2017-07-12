@@ -170,9 +170,7 @@ ffs_isblock(struct fs *fs, unsigned char *cp, ufs1_daddr_t h)
 		mask = 0x01 << (h & 0x7);
 		return ((cp[h >> 3] & mask) == mask);
 	default:
-#ifdef _KERNEL
 		panic("ffs_isblock");
-#endif
 		break;
 	}
 	return (0);
@@ -195,9 +193,7 @@ ffs_isfreeblock(struct fs *fs, uint8_t *cp, ufs1_daddr_t h)
 	case 1:
 		return ((cp[h >> 3] & (0x01 << (h & 0x7))) == 0);
 	default:
-#ifdef _KERNEL
 		panic("ffs_isfreeblock");
-#endif
 		break;
 	}
 	return (0);
@@ -224,9 +220,7 @@ ffs_clrblock(struct fs *fs, uint8_t *cp, ufs1_daddr_t h)
 		cp[h >> 3] &= ~(0x01 << (h & 0x7));
 		return;
 	default:
-#ifdef _KERNEL
 		panic("ffs_clrblock");
-#endif
 		break;
 	}
 }
@@ -253,9 +247,7 @@ ffs_setblock(struct fs *fs, unsigned char *cp, ufs1_daddr_t h)
 		cp[h >> 3] |= (0x01 << (h & 0x7));
 		return;
 	default:
-#ifdef _KERNEL
 		panic("ffs_setblock");
-#endif
 		break;
 	}
 }

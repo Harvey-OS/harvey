@@ -38,8 +38,6 @@
 #include "freebsd_util.h"
 #include "ufs_harvey.h"
 
-#define _KERNEL
-
 //#include "dir.h"
 //#include "extattr.h"
 #include "ufs/quota.h"

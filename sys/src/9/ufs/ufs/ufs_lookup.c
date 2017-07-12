@@ -43,8 +43,6 @@
 #include "freebsd_util.h"
 #include "ufs_harvey.h"
 
-#define _KERNEL
-
 //#include <ufs/ufs/extattr.h>
 #include "ufs/quota.h"
 #include "ufs/inode.h"
