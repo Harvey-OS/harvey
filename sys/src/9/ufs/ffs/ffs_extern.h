@@ -33,7 +33,7 @@
 typedef struct Buf Buf;
 //struct cg;
 //struct fid;
-//struct fs;
+typedef struct fs fs;
 //struct inode;
 //struct malloc_type;
 typedef struct MountPoint MountPoint;
@@ -78,8 +78,8 @@ int	ffs_realloccg(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
 int	ffs_reload(struct mount *, struct thread *, int);*/
 int	ffs_sbupdate(ufsmount *, int, int);
 //void	ffs_setblock(struct fs *, uint8_t *, ufs1_daddr_t);
-int	ffs_snapblkfree(fs *, vnode *, ufs2_daddr_t, long, ino_t,
-	    Vtype, struct workhead *);
+//int	ffs_snapblkfree(fs *, vnode *, ufs2_daddr_t, long, ino_t, Vtype,
+//	workhead *);
 //void	ffs_snapremove(struct vnode *vp);
 //int	ffs_snapshot(struct mount *mp, char *snapfile);
 void	ffs_snapshot_mount(MountPoint *mp);
@@ -92,9 +92,9 @@ int	ffs_update(vnode *, int);
 int	ffs_valloc(vnode *, int, Ucred *, vnode **);
 
 int	ffs_vfree(vnode *, ino_t, int);
-/*vfs_vget_t ffs_vget;
-int	ffs_vgetf(struct mount *, ino_t, int, struct vnode **, int);
-void	ffs_susp_initialize(void);
+int	ffs_vget(MountPoint *mp, ino_t ino, int flags, vnode **vpp);
+int	ffs_vgetf(MountPoint *, ino_t, int, vnode **, int);
+/*void	ffs_susp_initialize(void);
 void	ffs_susp_uninitialize(void);
 
 #define	FFSV_FORCEINSMQ	0x0001
