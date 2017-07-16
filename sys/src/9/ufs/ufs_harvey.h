@@ -104,3 +104,6 @@ void releaseufsvnode(vnode *vn);
 
 int ffs_mount(MountPoint *mp);
 int ffs_unmount(MountPoint *mp, int mntflags);
+
+int ufs_root(MountPoint *mp, int flags, vnode **vpp);
+int ufs_lookup(MountPoint *mp);
