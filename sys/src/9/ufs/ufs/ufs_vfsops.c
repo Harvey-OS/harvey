@@ -33,36 +33,48 @@
  *
  *	@(#)ufs_vfsops.c	8.8 (Berkeley) 5/20/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/ufs_extern.h>
-#ifdef UFS_DIRHASH
-#include <ufs/ufs/dir.h>
-#include <ufs/ufs/dirhash.h>
-#endif
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "../../port/portfns.h"
 
-MALLOC_DEFINE(M_UFSMNT, "ufs_mount", "UFS mount structure");
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
+
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+#include "ufs/dinode.h"
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/ufsmount.h>
+#include "ffs/ffs_extern.h"
+//#include <ufs/ufs/ufs_extern.h>
+//#ifdef UFS_DIRHASH
+//#include <ufs/ufs/dir.h>
+//#include <ufs/ufs/dirhash.h>
+//#endif
+
+//MALLOC_DEFINE(M_UFSMNT, "ufs_mount", "UFS mount structure");
 
 /*
  * Return the root of a filesystem.
  */
-int 
-ufs_root (struct mount *mp, int flags, struct vnode **vpp)
+int
+ufs_root(MountPoint *mp, int flags, vnode **vpp)
 {
-	struct vnode *nvp;
+	vnode *nvp;
 	int error;
 
-	error = VFS_VGET(mp, (ino_t)UFS_ROOTINO, flags, &nvp);
+	//_rc = (*(MP)->mnt_op->vfs_vget)(MP, INO, FLAGS, VPP);
+	error = ffs_vget(mp, (ino_t)UFS_ROOTINO, flags, &nvp);
 	if (error)
 		return (error);
 	*vpp = nvp;
 	return (0);
 }
+
+#if 0
 
 /*
  * Do operations associated with quotas
@@ -219,3 +231,5 @@ ufs_fhtovp (struct mount *mp, struct ufid *ufhp, int flags, struct vnode **vpp)
 	vnode_create_vobject(*vpp, DIP(ip, i_size), curthread);
 	return (0);
 }
+
+#endif // 0

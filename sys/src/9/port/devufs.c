@@ -8,6 +8,11 @@
  * contained in the LICENSE.gpl file.
  */
 
+// TODO HARVEY
+// General todos...  I guess we need a general lock on reading and writing
+// operations.  Would this compensate for the lack of sigdeferstop, which is
+// present in FreeBSD's VFS_GET?.  I think so...
+
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -44,11 +49,13 @@ static Dirtab ufsmntdir[] =
 enum
 {
 	CMunmount,
+	CMtestmount,
 };
 
 static
 Cmdtab mountcmds[] = {
 	{CMunmount,	"unmount",	1},
+	{CMtestmount,	"test",		1},
 };
 
 // Rather vague errors until we interpret the UFS error codes
@@ -214,6 +221,34 @@ unmountufs()
 }
 
 static void
+testmount()
+{
+	if (mountpoint == nil) {
+		error(Eufsinvalidmp);
+	}
+
+	// Get the root
+	vnode *root = newufsvnode();
+	int rcode = ufs_root(mountpoint, 0, &root);
+	if (rcode != 0) {
+		print("couldn't get root: %d", rcode);
+	}
+
+	// TODO Probably need to pass in:
+	//   vdp Root vnode or pwd vnode?  Will an empty struct work?
+	//   vpp nil?  Seems to be the desination.
+	// vpp will be populated with the found vnode.
+	// TODO UFS caches lookups.  We could do that in devufs.
+	/*char path[] = "/";
+	ComponentName cname;
+	cname.cn_pnbuf = path;
+	int rcode = ufs_lookup(mountpoint, &cname);
+	if (rcode != 0) {
+		print("couldn't lookup path: %s: %d", path, rcode);
+	}*/
+}
+
+static void
 mount(char* a, int32_t n)
 {
 	Proc *up = externup();
@@ -272,9 +307,13 @@ ctlreq(int mntid, void *a, int32_t n)
 
 	Cmdtab *ct = lookupcmd(cb, mountcmds, nelem(mountcmds));
 
+	// TODO HARVEY handle errors here
 	switch (ct->index) {
 	case CMunmount:
 		unmountufs();
+		break;
+	case CMtestmount:
+		testmount();
 		break;
 	}
 	free(cb);

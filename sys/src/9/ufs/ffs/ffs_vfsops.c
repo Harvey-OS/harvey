@@ -1597,24 +1597,19 @@ loop:
 	return (allerror);
 }
 
+#endif // 0
+
 int
-ffs_vget(mp, ino, flags, vpp)
-	struct mount *mp;
-	ino_t ino;
-	int flags;
-	struct vnode **vpp;
+ffs_vget(MountPoint *mp, ino_t ino, int flags, vnode **vpp)
 {
 	return (ffs_vgetf(mp, ino, flags, vpp, 0));
 }
 
 int
-ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
-	struct mount *mp;
-	ino_t ino;
-	int flags;
-	struct vnode **vpp;
-	int ffs_flags;
+ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 {
+	print("HARVEY TODO: %s\n", __func__);
+#if 0
 	struct fs *fs;
 	struct inode *ip;
 	struct ufsmount *ump;
@@ -1764,8 +1759,11 @@ ffs_vgetf(mp, ino, flags, vpp, ffs_flags)
 #endif
 
 	*vpp = vp;
+#endif // 0
 	return (0);
 }
+
+#if 0
 
 /*
  * File handle to vnode
