@@ -60,19 +60,26 @@
  * from: $FreeBSD: .../ufs/ufs_readwrite.c,v 1.96 2002/08/12 09:22:11 phk ...
  *	@(#)ffs_vnops.c	8.15 (Berkeley) 5/14/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
-#include <ufs/ufs/ufs_extern.h>
-#include <ufs/ufs/ufsmount.h>
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "../../port/portfns.h"
 
-#include <ufs/ffs/fs.h>
-#include <ufs/ffs/ffs_extern.h>
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
 
-#define	ALIGNED_TO(ptr, s)	\
+//#include <ufs/ufs/extattr.h>
+//#include <ufs/ufs/quota.h>
+//#include <ufs/ufs/inode.h>
+//#include <ufs/ufs/ufs_extern.h>
+//#include <ufs/ufs/ufsmount.h>
+
+//#include <ufs/ffs/fs.h>
+//#include <ufs/ffs/ffs_extern.h>
+
+/*#define	ALIGNED_TO(ptr, s)	\
 	(((uintptr_t)(ptr) & (_Alignof(s) - 1)) == 0)
 
 #ifdef DIRECTIO
@@ -95,20 +102,23 @@ static vop_listextattr_t	ffs_listextattr;
 static vop_openextattr_t	ffs_openextattr;
 static vop_setextattr_t	ffs_setextattr;
 static vop_vptofh_t	ffs_vptofh;
+*/
 
 /* Global vfs data structures for ufs. */
 struct vop_vector ffs_vnodeops1 = {
-	.vop_default =		&ufs_vnodeops,
-	.vop_fsync =		ffs_fsync,
-	.vop_fdatasync =	ffs_fdatasync,
-	.vop_getpages =		ffs_getpages,
-	.vop_getpages_async =	vnode_pager_local_getpages_async,
-	.vop_lock1 =		ffs_lock,
-	.vop_read =		ffs_read,
-	.vop_reallocblks =	ffs_reallocblks,
-	.vop_write =		ffs_write,
-	.vop_vptofh =		ffs_vptofh,
+	//.vop_default =		&ufs_vnodeops,
+	//.vop_fsync =		ffs_fsync,
+	//.vop_fdatasync =	ffs_fdatasync,
+	//.vop_getpages =		ffs_getpages,
+	//.vop_getpages_async =	vnode_pager_local_getpages_async,
+	//.vop_lock1 =		ffs_lock,
+	//.vop_read =		ffs_read,
+	//.vop_reallocblks =	ffs_reallocblks,
+	//.vop_write =		ffs_write,
+	//.vop_vptofh =		ffs_vptofh,
 };
+
+#if 0
 
 struct vop_vector ffs_fifoops1 = {
 	.vop_default =		&ufs_fifoops,
@@ -118,25 +128,29 @@ struct vop_vector ffs_fifoops1 = {
 	.vop_vptofh =		ffs_vptofh,
 };
 
+#endif // 0
+
 /* Global vfs data structures for ufs. */
 struct vop_vector ffs_vnodeops2 = {
-	.vop_default =		&ufs_vnodeops,
-	.vop_fsync =		ffs_fsync,
-	.vop_fdatasync =	ffs_fdatasync,
-	.vop_getpages =		ffs_getpages,
-	.vop_getpages_async =	vnode_pager_local_getpages_async,
-	.vop_lock1 =		ffs_lock,
-	.vop_read =		ffs_read,
-	.vop_reallocblks =	ffs_reallocblks,
-	.vop_write =		ffs_write,
-	.vop_closeextattr =	ffs_closeextattr,
-	.vop_deleteextattr =	ffs_deleteextattr,
-	.vop_getextattr =	ffs_getextattr,
-	.vop_listextattr =	ffs_listextattr,
-	.vop_openextattr =	ffs_openextattr,
-	.vop_setextattr =	ffs_setextattr,
-	.vop_vptofh =		ffs_vptofh,
+	//.vop_default =		&ufs_vnodeops,
+	//.vop_fsync =		ffs_fsync,
+	//.vop_fdatasync =	ffs_fdatasync,
+	//.vop_getpages =		ffs_getpages,
+	//.vop_getpages_async =	vnode_pager_local_getpages_async,
+	//.vop_lock1 =		ffs_lock,
+	//.vop_read =		ffs_read,
+	//.vop_reallocblks =	ffs_reallocblks,
+	//.vop_write =		ffs_write,
+	//.vop_closeextattr =	ffs_closeextattr,
+	//.vop_deleteextattr =	ffs_deleteextattr,
+	//.vop_getextattr =	ffs_getextattr,
+	//.vop_listextattr =	ffs_listextattr,
+	//.vop_openextattr =	ffs_openextattr,
+	//.vop_setextattr =	ffs_setextattr,
+	//.vop_vptofh =		ffs_vptofh,
 };
+
+#if 0
 
 struct vop_vector ffs_fifoops2 = {
 	.vop_default =		&ufs_fifoops,
@@ -1678,3 +1692,5 @@ ffs_getpages(struct vop_getpages_args *ap)
 	return (vfs_bio_getpages(vp, ap->a_m, ap->a_count, ap->a_rbehind,
 	    ap->a_rahead, ffs_gbp_getblkno, ffs_gbp_getblksz));
 }
+
+#endif // 0

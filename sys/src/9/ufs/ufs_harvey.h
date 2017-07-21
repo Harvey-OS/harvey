@@ -28,16 +28,6 @@ typedef struct MountPoint {
 } MountPoint;
 
 
-/* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
- * wrapper for the inode and any associated data.  This is not intended to be
- * support multiple filesystems and should probably be renamed after it works.
- */
-typedef struct vnode {
-	inode	*v_data;
-	//MountPoint	*v_mount;
-} vnode;
-
-
 // Not sure we even need this - if not we can remove it later.
 typedef struct thread {
 } thread;
@@ -79,6 +69,33 @@ typedef struct ComponentName {
 enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
+
+// TODO HARVEY Is this really necessary in Harvey?  We only need to distinguish
+// between UFS1 and 2.
+typedef struct vop_vector {
+	//vop_vector *vop_default;
+	//int (*vop_open)(vop_open_args *);
+	//int (*vop_access)(vop_access_args *);
+} vop_vector;
+
+
+/* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
+ * wrapper for the inode and any associated data.  This is not intended to be
+ * support multiple filesystems and should probably be renamed after it works.
+ */
+typedef struct vnode {
+	/*
+	 * Fields which define the identity of the vnode.  These fields are
+	 * owned by the filesystem (XXX: and vgone() ?)
+	 */
+	const char *v_tag;			/* u type of underlying data */
+	vop_vector *v_op;			/* u vnode operations vector */
+	inode	*v_data;
+	//MountPoint	*v_mount;
+	enum	vtype v_type;			/* u vnode type */
+} vnode;
+
+
 /*
  * MAXBSIZE -	Filesystems are made out of blocks of at most MAXBSIZE bytes
  *		per block.  MAXBSIZE may be made larger without effecting
@@ -107,3 +124,5 @@ int ffs_unmount(MountPoint *mp, int mntflags);
 
 int ufs_root(MountPoint *mp, int flags, vnode **vpp);
 int ufs_lookup(MountPoint *mp);
+
+int getnewvnode(const char *tag, MountPoint *mp, vop_vector *vops, vnode **vpp);
