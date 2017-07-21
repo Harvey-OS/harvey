@@ -48,3 +48,85 @@ releaseufsvnode(vnode *vn)
 	// TODO HARVEY - This assumes no sharing
 	free(vn);
 }
+
+/*
+ * Return the next vnode from the free list.
+ */
+int
+getnewvnode(const char *tag, MountPoint *mp, vop_vector *vops, vnode **vpp)
+{
+	vnode *vp = nil;
+	//struct lock_object *lo;
+	//static int cyclecount;
+	//int error = 0;
+
+//alloc:
+	vp = (vnode *)smalloc(sizeof(vnode));
+
+	// TODO HARVEY Revisit locking of vnodes
+	// TODO HARVEY Revisit counters
+#if 0
+	/*
+	 * Locks are given the generic name "vnode" when created.
+	 * Follow the historic practice of using the filesystem
+	 * name when they allocated, e.g., "zfs", "ufs", "nfs, etc.
+	 *
+	 * Locks live in a witness group keyed on their name. Thus,
+	 * when a lock is renamed, it must also move from the witness
+	 * group of its old name to the witness group of its new name.
+	 *
+	 * The change only needs to be made when the vnode moves
+	 * from one filesystem type to another. We ensure that each
+	 * filesystem use a single static name pointer for its tag so
+	 * that we can compare pointers rather than doing a strcmp().
+	 */
+	lo = &vp->v_vnlock->lock_object;
+	if (lo->lo_name != tag) {
+		lo->lo_name = tag;
+		WITNESS_DESTROY(lo);
+		WITNESS_INIT(lo, tag);
+	}
+	/*
+	 * By default, don't allow shared locks unless filesystems opt-in.
+	 */
+	vp->v_vnlock->lock_object.lo_flags |= LK_NOSHARE;
+	/*
+	 * Finalize various vnode identity bits.
+	 */
+	KASSERT(vp->v_object == NULL, ("stale v_object %p", vp));
+	KASSERT(vp->v_lockf == NULL, ("stale v_lockf %p", vp));
+	KASSERT(vp->v_pollinfo == NULL, ("stale v_pollinfo %p", vp));
+#endif // 0
+	vp->v_type = VNON;
+	vp->v_tag = tag;
+	vp->v_op = vops;
+#if 0
+	v_init_counters(vp);
+	//vp->v_bufobj.bo_ops = &buf_ops_bio;
+#ifdef DIAGNOSTIC
+	if (mp == NULL && vops != &dead_vnodeops)
+		printf("NULL mp in getnewvnode(9), tag %s\n", tag);
+#endif
+#ifdef MAC
+	mac_vnode_init(vp);
+	if (mp != NULL && (mp->mnt_flag & MNT_MULTILABEL) == 0)
+		mac_vnode_associate_singlelabel(mp, vp);
+#endif
+	if (mp != NULL) {
+		vp->v_bufobj.bo_bsize = mp->mnt_stat.f_iosize;
+		if ((mp->mnt_kern_flag & MNTK_NOKNOTE) != 0)
+			vp->v_vflag |= VV_NOKNOTE;
+	}
+#endif // 0
+
+	/*
+	 * For the filesystems which do not use vfs_hash_insert(),
+	 * still initialize v_hash to have vfs_hash_index() useful.
+	 * E.g., nullfs uses vfs_hash_index() on the lower vnode for
+	 * its own hashing.
+	 */
+	//vp->v_hash = (uintptr_t)vp >> vnsz2log;
+
+	*vpp = vp;
+	return (0);
+}
