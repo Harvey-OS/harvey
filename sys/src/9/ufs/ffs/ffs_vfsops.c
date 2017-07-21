@@ -1609,26 +1609,25 @@ int
 ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 {
 	print("HARVEY TODO: %s\n", __func__);
-#if 0
-	struct fs *fs;
-	struct inode *ip;
-	struct ufsmount *ump;
-	struct buf *bp;
-	struct vnode *vp;
+	fs *fs;
+	inode *ip;
+	ufsmount *ump;
+	//struct buf *bp;
+	vnode *vp;
 	int error;
 
-	error = vfs_hash_get(mp, ino, flags, curthread, vpp, nil, nil);
-	if (error || *vpp != nil)
-		return (error);
+	//error = vfs_hash_get(mp, ino, flags, curthread, vpp, nil, nil);
+	//if (error || *vpp != nil)
+	//	return (error);
 
 	/*
 	 * We must promote to an exclusive lock for vnode creation.  This
 	 * can happen if lookup is passed LOCKSHARED.
 	 */
-	if ((flags & LK_TYPE_MASK) == LK_SHARED) {
-		flags &= ~LK_TYPE_MASK;
-		flags |= LK_EXCLUSIVE;
-	}
+	//if ((flags & LK_TYPE_MASK) == LK_SHARED) {
+	//	flags &= ~LK_TYPE_MASK;
+	//	flags |= LK_EXCLUSIVE;
+	//}
 
 	/*
 	 * We do not lock vnode creation as it is believed to be too
@@ -1637,18 +1636,22 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 * and check later to decide who wins. Let the race begin!
 	 */
 
-	ump = VFSTOUFS(mp);
+	ump = mp->mnt_data;
 	fs = ump->um_fs;
-	ip = uma_zalloc(uma_inode, M_WAITOK | M_ZERO);
+	ip = smalloc(sizeof(inode));
 
 	/* Allocate a new vnode/inode. */
+	// TODO HARVEY FreeBSD uses a picks a vnode from a freelist.  We should
+	// consider something similar, but for now just new up.
 	error = getnewvnode("ufs", mp, fs->fs_magic == FS_UFS1_MAGIC ?
 	    &ffs_vnodeops1 : &ffs_vnodeops2, &vp);
 	if (error) {
 		*vpp = nil;
-		uma_zfree(uma_inode, ip);
+		//uma_zfree(uma_inode, ip);
+		free(ip);
 		return (error);
 	}
+#if 0
 	/*
 	 * FFS supports recursive locking.
 	 */
