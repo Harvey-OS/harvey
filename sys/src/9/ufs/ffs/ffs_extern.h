@@ -48,8 +48,6 @@ typedef struct vnode vnode;
 
 //int	ffs_alloc(struct inode *, ufs2_daddr_t, ufs2_daddr_t, int, int,
 //	    struct ucred *, ufs2_daddr_t *);
-int	ffs_balloc_ufs1(vnode *a_vp, off_t a_startoffset, int a_size,
-            Ucred *a_cred, int a_flags, Buf **a_bpp);
 int	ffs_balloc_ufs2(vnode *a_vp, off_t a_startoffset, int a_size,
             Ucred *a_cred, int a_flags, Buf **a_bpp);
 int	ffs_blkatoff(vnode *, off_t, char **, Buf **);
