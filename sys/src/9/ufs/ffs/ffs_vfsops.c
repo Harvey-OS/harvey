@@ -857,9 +857,11 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	//ump->um_bo = &devvp->v_bufobj;
 	ump->um_fs = smalloc((uint64_t)fs->fs_sbsize);
 	if (fs->fs_magic == FS_UFS1_MAGIC) {
-		ump->um_fstype = UFS1;
-		ump->um_balloc = ffs_balloc_ufs1;
-	} else {
+		print("WARNING: UFS1 not supported\n"); 
+		// TODO HARVEY Better error message 
+		error = -1; 
+		goto out;
+ 	} else {
 		ump->um_fstype = UFS2;
 		ump->um_balloc = ffs_balloc_ufs2;
 	}
