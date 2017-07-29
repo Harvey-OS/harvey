@@ -1,4 +1,5 @@
 ![Harvey](https://harvey-os.org/img/harvey-os-logo.png)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FHarvey-OS%2Fharvey.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FHarvey-OS%2Fharvey?ref=badge_shield)
 Harvey: A distributed operating system
 =====
 [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
@@ -39,3 +40,7 @@ developed by the same group at Bell Labs that invented Unix and C.
   and things we are excited about.
 
 [License](https://github.com/Harvey-OS/harvey/blob/master/LICENSE.gpl)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FHarvey-OS%2Fharvey.svg?type=large)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FHarvey-OS%2Fharvey?ref=badge_large)
