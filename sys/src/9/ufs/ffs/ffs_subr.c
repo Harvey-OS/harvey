@@ -38,10 +38,12 @@
 #include "freebsd_util.h"
 #include "ufs_harvey.h"
 
-/*#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
+#include "ufs/quota.h"
+#include "ufs/inode.h"
+#include "ufs/dinode.h"
+#include "ffs/fs.h"
 
-#include <ufs/ufs/quota.h>
+/*#include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/ufsmount.h>
@@ -83,38 +85,24 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
 	return (0);
 }
 
-#if 0
-
 /*
  * Load up the contents of an inode and copy the appropriate pieces
  * to the incore copy.
  */
 void
-ffs_load_inode(struct buf *bp, struct inode *ip, struct fs *fs, ino_t ino)
+ffs_load_inode(void *buf, inode *ip, fs *fs, ino_t ino)
 {
-
-	if (I_IS_UFS1(ip)) {
-		*ip->i_din1 =
-		    *((struct ufs1_dinode *)bp->b_data + ino_to_fsbo(fs, ino));
-		ip->i_mode = ip->i_din1->di_mode;
-		ip->i_nlink = ip->i_din1->di_nlink;
-		ip->i_size = ip->i_din1->di_size;
-		ip->i_flags = ip->i_din1->di_flags;
-		ip->i_gen = ip->i_din1->di_gen;
-		ip->i_uid = ip->i_din1->di_uid;
-		ip->i_gid = ip->i_din1->di_gid;
-	} else {
-		*ip->i_din2 =
-		    *((struct ufs2_dinode *)bp->b_data + ino_to_fsbo(fs, ino));
-		ip->i_mode = ip->i_din2->di_mode;
-		ip->i_nlink = ip->i_din2->di_nlink;
-		ip->i_size = ip->i_din2->di_size;
-		ip->i_flags = ip->i_din2->di_flags;
-		ip->i_gen = ip->i_din2->di_gen;
-		ip->i_uid = ip->i_din2->di_uid;
-		ip->i_gid = ip->i_din2->di_gid;
-	}
+	*ip->i_din2 = *((ufs2_dinode *)buf + ino_to_fsbo(fs, ino));
+	ip->i_mode = ip->i_din2->di_mode;
+	ip->i_nlink = ip->i_din2->di_nlink;
+	ip->i_size = ip->i_din2->di_size;
+	ip->i_flags = ip->i_din2->di_flags;
+	ip->i_gen = ip->i_din2->di_gen;
+	ip->i_uid = ip->i_din2->di_uid;
+	ip->i_gid = ip->i_din2->di_gid;
 }
+
+#if 0
 
 /*
  * Update the frsum fields to reflect addition or deletion
