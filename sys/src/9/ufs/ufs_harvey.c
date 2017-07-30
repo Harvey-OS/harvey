@@ -53,7 +53,7 @@ releaseufsvnode(vnode *vn)
  * Return the next vnode from the free list.
  */
 int
-getnewvnode(const char *tag, MountPoint *mp, vop_vector *vops, vnode **vpp)
+getnewvnode(const char *tag, MountPoint *mp, vnode **vpp)
 {
 	vnode *vp = nil;
 	//struct lock_object *lo;
@@ -99,7 +99,7 @@ getnewvnode(const char *tag, MountPoint *mp, vop_vector *vops, vnode **vpp)
 #endif // 0
 	vp->v_type = VNON;
 	vp->v_tag = tag;
-	vp->v_op = vops;
+	vp->v_mount = mp;
 #if 0
 	v_init_counters(vp);
 	//vp->v_bufobj.bo_ops = &buf_ops_bio;

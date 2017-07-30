@@ -78,7 +78,7 @@ int	ufs_lookup_ino(vnode *, vnode **, ComponentName *, ino_t *);
 void	ffs_snapgone(struct inode *);
 int	ufs_root(MountPoint *mp, int flags, vnode **vpp);
 //int	 ufs_uninit(struct vfsconf *);
-//int	 ufs_vinit(struct mount *, struct vop_vector *, struct vnode **);
+int	 ufs_vinit(MountPoint *, vnode **);
 //SYSCTL_DECL(_vfs_ufs);
 
 /*

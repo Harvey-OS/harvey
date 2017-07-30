@@ -33,10 +33,21 @@
  *
  *	@(#)ufs_vnops.c	8.27 (Berkeley) 5/27/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/acl.h>
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "../../port/portfns.h"
+
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
+
+#include "ufs/quota.h"
+#include "ufs/inode.h"
+#include "ufs/dinode.h"
+
+/*#include <ufs/ufs/acl.h>
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>
@@ -63,7 +74,9 @@ FEATURE(suiddir,
 
 
 #include <ufs/ffs/ffs_extern.h>
+*/
 
+#if 0
 static vop_accessx_t	ufs_accessx;
 static int ufs_chmod(struct vnode *, int, struct ucred *, struct thread *);
 static int ufs_chown(struct vnode *, uid_t, gid_t, struct ucred *, struct thread *);
@@ -2394,27 +2407,30 @@ ufs_pathconf (struct vop_pathconf_args *ap)
 	return (error);
 }
 
+#endif // 0
+
 /*
  * Initialize the vnode associated with a new inode, handle aliased
  * vnodes.
  */
 int 
-ufs_vinit (struct mount *mntp, struct vop_vector *fifoops, struct vnode **vpp)
+ufs_vinit (MountPoint *mntp, vnode **vpp)
 {
-	struct inode *ip;
-	struct vnode *vp;
+	inode *ip;
+	vnode *vp;
 
 	vp = *vpp;
 	ip = VTOI(vp);
 	vp->v_type = IFTOVT(ip->i_mode);
-	if (vp->v_type == VFIFO)
-		vp->v_op = fifoops;
-	ASSERT_VOP_LOCKED(vp, "ufs_vinit");
+	// TODO HARVEY Locking
+	//ASSERT_VOP_LOCKED(vp, "ufs_vinit");
 	if (ip->i_number == UFS_ROOTINO)
 		vp->v_vflag |= VV_ROOT;
 	*vpp = vp;
 	return (0);
 }
+
+#if 0
 
 /*
  * Allocate a new inode.
@@ -2673,3 +2689,4 @@ struct vop_vector ufs_fifoops = {
 	.vop_aclcheck =		ufs_aclcheck,
 #endif
 };
+#endif // 0
