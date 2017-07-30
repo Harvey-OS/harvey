@@ -119,7 +119,7 @@ typedef int64_t ufs_time_t;
 #define	UFS_NDADDR	12		/* Direct addresses in inode. */
 #define	UFS_NIADDR	3		/* Indirect addresses in inode. */
 
-struct ufs2_dinode {
+typedef struct ufs2_dinode {
 	uint16_t	di_mode;	/*   0: IFMT, permissions; see below. */
 	int16_t		di_nlink;	/*   2: File link count. */
 	uint32_t	di_uid;		/*   4: File owner. */
@@ -145,7 +145,7 @@ struct ufs2_dinode {
 	uint64_t	di_modrev;	/* 232: i_modrev for NFSv4 */
 	uint32_t	di_freelink;	/* 240: SUJ: Next unlinked inode. */
 	uint32_t	di_spare[3];	/* 244: Reserved; currently unused */
-};
+} ufs2_dinode;
 
 /*
  * The di_db fields may be overlaid with other information for

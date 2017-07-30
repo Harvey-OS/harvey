@@ -127,7 +127,6 @@ struct inode {
 
 #define	i_dirhash i_un.dirhash
 #define	i_snapblklist i_un.snapblklist
-#define	i_din1 dinode_u.din1
 #define	i_din2 dinode_u.din2
 
 #define	ITOUMP(ip)	((ip)->i_ump)
@@ -157,9 +156,6 @@ I_IS_UFS2(const struct inode *ip)
 #define	DIP(ip, field)	(I_IS_UFS1(ip) ? (ip)->i_din1->d##field : \
     (ip)->i_din2->d##field)
 #define	DIP_SET(ip, field, val) do {				\
-	if (I_IS_UFS1(ip))					\
-		(ip)->i_din1->d##field = (val); 		\
-	else							\
 		(ip)->i_din2->d##field = (val); 		\
 	} while (0)
 
