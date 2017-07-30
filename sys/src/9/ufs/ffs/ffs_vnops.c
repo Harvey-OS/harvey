@@ -104,69 +104,7 @@ static vop_setextattr_t	ffs_setextattr;
 static vop_vptofh_t	ffs_vptofh;
 */
 
-/* Global vfs data structures for ufs. */
-struct vop_vector ffs_vnodeops1 = {
-	//.vop_default =		&ufs_vnodeops,
-	//.vop_fsync =		ffs_fsync,
-	//.vop_fdatasync =	ffs_fdatasync,
-	//.vop_getpages =		ffs_getpages,
-	//.vop_getpages_async =	vnode_pager_local_getpages_async,
-	//.vop_lock1 =		ffs_lock,
-	//.vop_read =		ffs_read,
-	//.vop_reallocblks =	ffs_reallocblks,
-	//.vop_write =		ffs_write,
-	//.vop_vptofh =		ffs_vptofh,
-};
-
 #if 0
-
-struct vop_vector ffs_fifoops1 = {
-	.vop_default =		&ufs_fifoops,
-	.vop_fsync =		ffs_fsync,
-	.vop_fdatasync =	ffs_fdatasync,
-	.vop_reallocblks =	ffs_reallocblks, /* XXX: really ??? */
-	.vop_vptofh =		ffs_vptofh,
-};
-
-#endif // 0
-
-/* Global vfs data structures for ufs. */
-struct vop_vector ffs_vnodeops2 = {
-	//.vop_default =		&ufs_vnodeops,
-	//.vop_fsync =		ffs_fsync,
-	//.vop_fdatasync =	ffs_fdatasync,
-	//.vop_getpages =		ffs_getpages,
-	//.vop_getpages_async =	vnode_pager_local_getpages_async,
-	//.vop_lock1 =		ffs_lock,
-	//.vop_read =		ffs_read,
-	//.vop_reallocblks =	ffs_reallocblks,
-	//.vop_write =		ffs_write,
-	//.vop_closeextattr =	ffs_closeextattr,
-	//.vop_deleteextattr =	ffs_deleteextattr,
-	//.vop_getextattr =	ffs_getextattr,
-	//.vop_listextattr =	ffs_listextattr,
-	//.vop_openextattr =	ffs_openextattr,
-	//.vop_setextattr =	ffs_setextattr,
-	//.vop_vptofh =		ffs_vptofh,
-};
-
-#if 0
-
-struct vop_vector ffs_fifoops2 = {
-	.vop_default =		&ufs_fifoops,
-	.vop_fsync =		ffs_fsync,
-	.vop_fdatasync =	ffs_fdatasync,
-	.vop_lock1 =		ffs_lock,
-	.vop_reallocblks =	ffs_reallocblks,
-	.vop_strategy =		ffsext_strategy,
-	.vop_closeextattr =	ffs_closeextattr,
-	.vop_deleteextattr =	ffs_deleteextattr,
-	.vop_getextattr =	ffs_getextattr,
-	.vop_listextattr =	ffs_listextattr,
-	.vop_openextattr =	ffs_openextattr,
-	.vop_setextattr =	ffs_setextattr,
-	.vop_vptofh =		ffs_vptofh,
-};
 
 /*
  * Synch an open file.

@@ -29,6 +29,8 @@
  *	@(#)ffs_vfsops.c	8.31 (Berkeley) 5/20/95
  */
 
+#include <limits.h>
+
 #include "u.h"
 #include "../../port/lib.h"
 #include "mem.h"
@@ -1610,11 +1612,10 @@ ffs_vget(MountPoint *mp, ino_t ino, int flags, vnode **vpp)
 int
 ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 {
-	print("HARVEY TODO: %s\n", __func__);
 	fs *fs;
 	inode *ip;
 	ufsmount *ump;
-	//struct buf *bp;
+	void *buf;
 	vnode *vp;
 	int error;
 
@@ -1645,28 +1646,27 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	/* Allocate a new vnode/inode. */
 	// TODO HARVEY FreeBSD uses a picks a vnode from a freelist.  We should
 	// consider something similar, but for now just new up.
-	error = getnewvnode("ufs", mp, fs->fs_magic == FS_UFS1_MAGIC ?
-	    &ffs_vnodeops1 : &ffs_vnodeops2, &vp);
+	error = getnewvnode("ufs", mp, &vp);
 	if (error) {
 		*vpp = nil;
-		//uma_zfree(uma_inode, ip);
 		free(ip);
 		return (error);
 	}
-#if 0
+
+	// TODO HARVEY Locking
 	/*
 	 * FFS supports recursive locking.
 	 */
-	lockmgr(vp->v_vnlock, LK_EXCLUSIVE, nil);
-	VN_LOCK_AREC(vp);
+	//lockmgr(vp->v_vnlock, LK_EXCLUSIVE, nil);
+	//VN_LOCK_AREC(vp);
 	vp->v_data = ip;
-	vp->v_bufobj.bo_bsize = fs->fs_bsize;
+	//vp->v_bufobj.bo_bsize = fs->fs_bsize;
 	ip->i_vnode = vp;
 	ip->i_ump = ump;
 	ip->i_number = ino;
 	ip->i_ea_refs = 0;
 	ip->i_nextclustercg = -1;
-	ip->i_flag = fs->fs_magic == FS_UFS1_MAGIC ? 0 : IN_UFS2;
+	ip->i_flag = IN_UFS2;
 #ifdef QUOTA
 	{
 		int i;
@@ -1675,22 +1675,29 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	}
 #endif
 
-	if (ffs_flags & FFSV_FORCEINSMQ)
-		vp->v_vflag |= VV_FORCEINSMQ;
-	error = insmntque(vp, mp);
-	if (error != 0) {
-		uma_zfree(uma_inode, ip);
-		*vpp = nil;
-		return (error);
-	}
-	vp->v_vflag &= ~VV_FORCEINSMQ;
-	error = vfs_hash_insert(vp, ino, flags, curthread, vpp, nil, nil);
-	if (error || *vpp != nil)
-		return (error);
+	// TODO HARVEY Need to add vnode to collection in mountpoint
+	//if (ffs_flags & FFSV_FORCEINSMQ)
+	//	vp->v_vflag |= VV_FORCEINSMQ;
+	//error = insmntque(vp, mp);
+	//if (error != 0) {
+	//	ufree(ip);
+	//	*vpp = nil;
+	//	return (error);
+	//}
+
+	// TODO HARVEY Implement hashing at some point
+	//vp->v_vflag &= ~VV_FORCEINSMQ;
+	//error = vfs_hash_insert(vp, ino, flags, curthread, vpp, nil, nil);
+	//if (error || *vpp != nil)
+	//	return (error);
+
+	// TODO HARVEY Temp buffer for reading in the inode.  Maybe do something
+	// nicer once it's actually working.	
+	buf = (ufsmount*)smalloc(fs->fs_bsize);
 
 	/* Read in the disk contents for the inode, copy into the inode. */
-	error = bread(ump->um_devvp, fsbtodb(fs, ino_to_fsba(fs, ino)),
-	    (int)fs->fs_bsize, NOCRED, &bp);
+	error = bread(mp, fsbtodb(fs, ino_to_fsba(fs, ino)), buf,
+		(int)fs->fs_bsize);
 	if (error) {
 		/*
 		 * The inode does not contain anything useful, so it would
@@ -1698,40 +1705,38 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		 * still zero, it will be unlinked and returned to the free
 		 * list by vput().
 		 */
-		brelse(bp);
-		vput(vp);
+		free(buf);
+		releaseufsvnode(vp);
 		*vpp = nil;
 		return (error);
 	}
-	if (I_IS_UFS1(ip))
-		ip->i_din1 = uma_zalloc(uma_ufs1, M_WAITOK);
-	else
-		ip->i_din2 = uma_zalloc(uma_ufs2, M_WAITOK);
-	ffs_load_inode(bp, ip, fs, ino);
-	if (DOINGSOFTDEP(vp))
-		softdep_load_inodeblock(ip);
-	else
+	ip->dinode_u.din2 = smalloc(sizeof(ufs2_dinode));
+	ffs_load_inode(buf, ip, fs, ino);
+	// TODO HARVEY SOFTDEP
+	//if (DOINGSOFTDEP(vp))
+	//	softdep_load_inodeblock(ip);
+	//else
 		ip->i_effnlink = ip->i_nlink;
-	bqrelse(bp);
+	free(buf);
 
 	/*
 	 * Initialize the vnode from the inode, check for aliases.
 	 * Note that the underlying vnode may have changed.
 	 */
-	error = ufs_vinit(mp, I_IS_UFS1(ip) ? &ffs_fifoops1 : &ffs_fifoops2,
-	    &vp);
+	error = ufs_vinit(mp, &vp);
 	if (error) {
-		vput(vp);
+		releaseufsvnode(vp);
 		*vpp = nil;
 		return (error);
 	}
 
+	// TODO HARVEY Locking
 	/*
 	 * Finish inode initialization.
 	 */
 	if (vp->v_type != VFIFO) {
 		/* FFS supports shared locking for all files except fifos. */
-		VN_LOCK_ASHARE(vp);
+		//VN_LOCK_ASHARE(vp);
 	}
 
 	/*
@@ -1739,8 +1744,13 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 * already have one. This should only happen on old filesystems.
 	 */
 	if (ip->i_gen == 0) {
-		while (ip->i_gen == 0)
-			ip->i_gen = arc4random();
+		while (ip->i_gen == 0) {
+			// i_gen is uint64_t, but arc4random() (which was
+			// previously the source here), returns uint32_t.
+			// lrand() returns int32_t, which isn't ideal but it's
+			// all we have right now
+			ip->i_gen = lrand();
+		}
 		if ((vp->v_mount->mnt_flag & MNT_RDONLY) == 0) {
 			ip->i_flag |= IN_MODIFIED;
 			DIP_SET(ip, i_gen, ip->i_gen);
@@ -1764,7 +1774,6 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 #endif
 
 	*vpp = vp;
-#endif // 0
 	return (0);
 }
 
