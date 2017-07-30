@@ -19,8 +19,7 @@
 			"../ufs/ufs/ufs_extattr.c",
 			"../ufs/ufs/ufs_gjournal.c",
 			"../ufs/ufs/ufs_inode.c",
-			"../ufs/ufs/ufs_quota.c",
-			"../ufs/ufs/ufs_vnops.c"
+			"../ufs/ufs/ufs_quota.c"
 		],
 		"SourceFiles": [
 			"../ufs/ffs/ffs_alloc.c",
@@ -34,6 +33,7 @@
 			"../ufs/ffs/ffs_vnops.c",
 			"../ufs/ufs/ufs_lookup.c",
 			"../ufs/ufs/ufs_vfsops.c",
+			"../ufs/ufs/ufs_vnops.c",
 			"../ufs/ufs_harvey.c"
 		]
 	}

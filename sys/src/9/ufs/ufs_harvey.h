@@ -70,29 +70,67 @@ enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
 
-// TODO HARVEY Is this really necessary in Harvey?  We only need to distinguish
-// between UFS1 and 2.
-typedef struct vop_vector {
-	//vop_vector *vop_default;
-	//int (*vop_open)(vop_open_args *);
-	//int (*vop_access)(vop_access_args *);
-} vop_vector;
+/*
+ * Conversion tables for conversion from vnode types to inode formats
+ * and back.
+ */
+static Vtype iftovt_tab[16] = {
+	VNON, VFIFO, VCHR, VNON, VDIR, VNON, VBLK, VNON,
+	VREG, VNON, VLNK, VNON, VSOCK, VNON, VNON, VBAD,
+};
+
+#define S_IFMT 0170000		/* type of file */
+#define	IFTOVT(mode)	(iftovt_tab[((mode) & S_IFMT) >> 12])
+
+
+/*
+ * Vnode flags.
+ *	VI flags are protected by interlock and live in v_iflag
+ *	VV flags are protected by the vnode lock and live in v_vflag
+ *
+ *	VI_DOOMED is doubly protected by the interlock and vnode lock.  Both
+ *	are required for writing but the status may be checked with either.
+ */
+//#define	VI_MOUNT	0x0020	/* Mount in progress */
+//#define	VI_DOOMED	0x0080	/* This vnode is being recycled */
+//#define	VI_FREE		0x0100	/* This vnode is on the freelist */
+//#define	VI_ACTIVE	0x0200	/* This vnode is on the active list */
+//#define	VI_DOINGINACT	0x0800	/* VOP_INACTIVE is in progress */
+//#define	VI_OWEINACT	0x1000	/* Need to call inactive */
+
+#define	VV_ROOT		0x0001	/* root of its filesystem */
+//#define	VV_ISTTY	0x0002	/* vnode represents a tty */
+//#define	VV_NOSYNC	0x0004	/* unlinked, stop syncing */
+//#define	VV_ETERNALDEV	0x0008	/* device that is never destroyed */
+//#define	VV_CACHEDLABEL	0x0010	/* Vnode has valid cached MAC label */
+//#define	VV_TEXT		0x0020	/* vnode is a pure text prototype */
+//#define	VV_COPYONWRITE	0x0040	/* vnode is doing copy-on-write */
+//#define	VV_SYSTEM	0x0080	/* vnode being used by kernel */
+//#define	VV_PROCDEP	0x0100	/* vnode is process dependent */
+//#define	VV_NOKNOTE	0x0200	/* don't activate knotes on this vnode */
+//#define	VV_DELETED	0x0400	/* should be removed */
+//#define	VV_MD		0x0800	/* vnode backs the md device */
+//#define	VV_FORCEINSMQ	0x1000	/* force the insmntque to succeed */
+
+//#define	VMP_TMPMNTFREELIST	0x0001	/* Vnode is on mnt's tmp free list */
 
 
 /* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
  * wrapper for the inode and any associated data.  This is not intended to be
  * support multiple filesystems and should probably be renamed after it works.
+ * It may be unnecessary - if so, we should use inodes directly.
  */
 typedef struct vnode {
 	/*
 	 * Fields which define the identity of the vnode.  These fields are
 	 * owned by the filesystem (XXX: and vgone() ?)
 	 */
-	const char *v_tag;			/* u type of underlying data */
-	vop_vector *v_op;			/* u vnode operations vector */
-	inode	*v_data;
-	//MountPoint	*v_mount;
-	enum	vtype v_type;			/* u vnode type */
+	const char 	*v_tag;			/* u type of underlying data */
+	inode		*v_data;
+	MountPoint	*v_mount;
+	
+	enum vtype 	v_type;			/* u vnode type */
+	unsigned int	v_vflag;		/* v vnode flags */
 } vnode;
 
 
@@ -125,4 +163,4 @@ int ffs_unmount(MountPoint *mp, int mntflags);
 int ufs_root(MountPoint *mp, int flags, vnode **vpp);
 int ufs_lookup(MountPoint *mp);
 
-int getnewvnode(const char *tag, MountPoint *mp, vop_vector *vops, vnode **vpp);
+int getnewvnode(const char *tag, MountPoint *mp, vnode **vpp);

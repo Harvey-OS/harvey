@@ -81,6 +81,8 @@ extern	void*	realloc(void *, uint32_t);
 /* from BSD */
 void* reallocarray(void *base, size_t nel, size_t size);
 
+extern	int32_t	lrand(void);
+
 /*
  * print routines
  */
