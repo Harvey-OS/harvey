@@ -33,10 +33,17 @@
  *
  *	@(#)ufs_inode.c	8.9 (Berkeley) 5/14/95
  */
-#include <u.h>
-#include <libc.h>
 
-#include <ufs/ufs/extattr.h>
+#include "u.h"
+#include "../../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "../../port/portfns.h"
+
+#include "freebsd_util.h"
+#include "ufs_harvey.h"
+
+/*#include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
 #include <ufs/ufs/inode.h>
 #include <ufs/ufs/ufsmount.h>
@@ -47,7 +54,19 @@
 #endif
 #ifdef UFS_GJOURNAL
 #include <ufs/ufs/gjournal.h>
-#endif
+#endif*/
+
+
+/*
+ * Conversion tables for conversion from vnode types to inode formats
+ * and back.
+ */
+static Vtype iftovt_tab[16] = {
+	VNON, VFIFO, VCHR, VNON, VDIR, VNON, VBLK, VNON,
+	VREG, VNON, VLNK, VNON, VSOCK, VNON, VNON, VBAD,
+};
+
+#if 0
 
 /*
  * Last reference to an inode.  If necessary, write or delete it.
@@ -214,4 +233,13 @@ ufs_reclaim (struct vop_reclaim_args *ap)
 	VI_UNLOCK(vp);
 	UFS_IFREE(ITOUMP(ip), ip);
 	return (0);
+}
+
+#endif // 0
+
+/* Convert from inode format to vnode type */
+Vtype
+ifmt_to_vtype(uint16_t imode)
+{
+	return iftovt_tab[((imode) & S_IFMT) >> 12];
 }
