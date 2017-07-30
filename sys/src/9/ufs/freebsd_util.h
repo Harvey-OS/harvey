@@ -131,3 +131,6 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
 
 #define dbtob(db)			/* calculates (db * DEV_BSIZE) */ \
 	((off_t)(db) << DEV_BSHIFT)
+
+
+#define S_IFMT 0170000		/* type of file */
