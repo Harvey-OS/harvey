@@ -70,17 +70,6 @@ enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
 
-/*
- * Conversion tables for conversion from vnode types to inode formats
- * and back.
- */
-static Vtype iftovt_tab[16] = {
-	VNON, VFIFO, VCHR, VNON, VDIR, VNON, VBLK, VNON,
-	VREG, VNON, VLNK, VNON, VSOCK, VNON, VNON, VBAD,
-};
-
-#define S_IFMT 0170000		/* type of file */
-#define	IFTOVT(mode)	(iftovt_tab[((mode) & S_IFMT) >> 12])
 
 
 /*
