@@ -190,3 +190,4 @@ struct ufid {
 	uint32_t  ufid_gen;	/* Generation number. */
 };
 
+Vtype ifmt_to_vtype(uint16_t imode);

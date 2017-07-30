@@ -2421,7 +2421,7 @@ ufs_vinit (MountPoint *mntp, vnode **vpp)
 
 	vp = *vpp;
 	ip = VTOI(vp);
-	vp->v_type = IFTOVT(ip->i_mode);
+	vp->v_type = ifmt_to_vtype(ip->i_mode);
 	// TODO HARVEY Locking
 	//ASSERT_VOP_LOCKED(vp, "ufs_vinit");
 	if (ip->i_number == UFS_ROOTINO)
