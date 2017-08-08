@@ -720,11 +720,13 @@ static int sblock_try[] = SBLOCKSEARCH;
  * block read function.
  */
 static int32_t
-bread(MountPoint *mp, ufs2_daddr_t blockno, void *data, size_t size)
+bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf)
 {
+	*buf = smalloc(size);
+
 	Chan *c = mp->chan;
 	int64_t offset = dbtob(blockno);
-	int32_t bytesRead = c->dev->read(c, data, size, offset);
+	int32_t bytesRead = c->dev->read(c, *buf, size, offset);
 	if (bytesRead != size) {
 		error(Ebadread);
 	}
@@ -739,6 +741,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
 	Fs *fs;
+	void *buf;
 
 	ufsmount *ump;
 	void *space;
@@ -780,7 +783,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		mp->mnt_iosize_max = MAXPHYS;
 	*/
 
-	fs = mallocz(SBLOCKSIZE, 1);
+	fs = nil;
 	sblockloc = 0;
 	/*
 	 * Try reading the superblock in each of its possible locations.
@@ -794,11 +797,14 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 			goto out;
 		}*/
 
-		if (bread(mp, btodb(sblock_try[i]), fs, SBLOCKSIZE) != 0) {
+		if (bread(mp, btodb(sblock_try[i]), SBLOCKSIZE, &buf) != 0) {
+			free(buf);
 			print("not found at %p\n", sblock_try[i]);
 			error = -1;
 			goto out;
 		}
+
+		fs = (Fs*)buf;
 
 		sblockloc = sblock_try[i];
 		if ((fs->fs_magic == FS_UFS1_MAGIC ||
@@ -808,6 +814,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		    fs->fs_bsize <= MAXBSIZE &&
 		    fs->fs_bsize >= sizeof(Fs))
 			break;
+		free(buf);
 	}
 
 	if (sblock_try[i] == -1) {
@@ -876,6 +883,8 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_rdonly = ffs_rdonly;
 	ump->um_snapgone = ffs_snapgone;
 	memmove(ump->um_fs, fs, (uint)fs->fs_sbsize);
+	free(buf);
+	buf = nil;
 	fs = ump->um_fs;
 	ffs_oldfscompat_read(fs, ump, sblockloc);
 	fs->fs_ronly = ronly;
@@ -891,13 +900,15 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		if (i + fs->fs_frag > blks)
 			size = (blks - i) * fs->fs_fsize;
 
-		if ((error = bread(mp, fsbtodb(fs, fs->fs_csaddr + i), space,
-			size)) != 0) {
+		if ((error = bread(mp, fsbtodb(fs, fs->fs_csaddr + i),
+			size, &buf)) != 0) {
 			free(fs->fs_csp);
 			goto out;
 		}
 
+		memmove(space, buf, size);
 		space = (char *)space + size;
+		free(buf);
 	}
 	if (fs->fs_contigsumsize > 0) {
 		fs->fs_maxcluster = lp = space;
@@ -1053,11 +1064,9 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 #endif /* !UFS_EXTATTR */
 	return (0);
 out:
-	if (fs)
-		free(fs);
-	/*if (bp)
-		brelse(bp);
-	if (cp != nil) {
+	if (buf)
+		free(buf);
+	/*if (cp != nil) {
 		g_topology_lock();
 		g_vfs_close(cp);
 		g_topology_unlock();
@@ -1691,13 +1700,9 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	//if (error || *vpp != nil)
 	//	return (error);
 
-	// TODO HARVEY Temp buffer for reading in the inode.  Maybe do something
-	// nicer once it's actually working.	
-	buf = (ufsmount*)smalloc(fs->fs_bsize);
-
 	/* Read in the disk contents for the inode, copy into the inode. */
-	error = bread(mp, fsbtodb(fs, ino_to_fsba(fs, ino)), buf,
-		(int)fs->fs_bsize);
+	error = bread(mp, fsbtodb(fs, ino_to_fsba(fs, ino)),
+		(int)fs->fs_bsize, &buf);
 	if (error) {
 		/*
 		 * The inode does not contain anything useful, so it would
