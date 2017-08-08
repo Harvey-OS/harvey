@@ -65,7 +65,7 @@ ffs_snapshot (MountPoint *mp, char *snapfile)
 }*/
 
 int
-ffs_snapblkfree(fs *fs, vnode *devvp, ufs2_daddr_t bno, long size, ino_t inum,
+ffs_snapblkfree(Fs *fs, vnode *devvp, ufs2_daddr_t bno, long size, ino_t inum,
 	Vtype vtype, struct workhead *wkhd)
 {
 	return (EINVAL);
