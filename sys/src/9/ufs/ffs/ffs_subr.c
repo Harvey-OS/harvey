@@ -90,7 +90,7 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
  * to the incore copy.
  */
 void
-ffs_load_inode(void *buf, inode *ip, fs *fs, ino_t ino)
+ffs_load_inode(void *buf, inode *ip, Fs *fs, ino_t ino)
 {
 	*ip->i_din2 = *((ufs2_dinode *)buf + ino_to_fsbo(fs, ino));
 	ip->i_mode = ip->i_din2->di_mode;
