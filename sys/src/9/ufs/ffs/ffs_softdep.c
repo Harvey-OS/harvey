@@ -80,7 +80,7 @@ softdep_flushfiles (MountPoint *oldmnt, int flags, thread *td)
 #endif // 0
 
 int 
-softdep_mount (vnode *devvp, MountPoint *mp, fs *fs, Ucred *cred)
+softdep_mount (vnode *devvp, MountPoint *mp, Fs *fs, Ucred *cred)
 {
 
 	return (0);

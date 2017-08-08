@@ -39,6 +39,8 @@
  * $FreeBSD$
  */
 
+typedef struct Fs Fs;
+
 /*
  * Allocation dependencies are handled with undo/redo on the in-memory
  * copy of the data. A particular data dependency is eliminated when
@@ -338,7 +340,7 @@ struct inodedep {
 #	define	id_state id_list.wk_state /* inode dependency state */
 	LIST_ENTRY(inodedep) id_hash;	/* hashed lookup */
 	TAILQ_ENTRY(inodedep) id_unlinked;	/* Unlinked but ref'd inodes */
-	struct	fs *id_fs;		/* associated filesystem */
+	Fs *id_fs;			/* associated filesystem */
 	ino_t	id_ino;			/* dependent inode */
 	nlink_t	id_nlinkdelta;		/* saved effective link count */
 	nlink_t	id_savednlink;		/* Link saved during rollback */

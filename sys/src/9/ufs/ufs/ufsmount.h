@@ -69,7 +69,7 @@ typedef struct ufsmount {
 	//struct	bufobj *um_bo;			/* Buffer cache object */
 	//struct	vnode *um_devvp;		/* block device mounted vnode */
 	uint64_t	um_fstype;			/* type of filesystem */
-	fs		*um_fs;				/* pointer to superblock */
+	Fs		*um_fs;				/* pointer to superblock */
 	//struct	ufs_extattr_per_mount um_extattr;	/* extended attrs */
 	uint64_t	um_nindir;			/* indirect ptrs per block */
 	uint64_t	um_bptrtodb;			/* indir ptr to disk block */

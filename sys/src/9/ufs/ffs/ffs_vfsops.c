@@ -59,7 +59,7 @@ static char Ebadread[] = "bread returned wrong size";
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
-static void	ffs_oldfscompat_read(fs *, ufsmount *, ufs2_daddr_t);
+static void	ffs_oldfscompat_read(Fs *, ufsmount *, ufs2_daddr_t);
 static void	ffs_ifree(ufsmount *ump, inode *ip);
 #if 0
 static int	ffs_sync_lazy(struct mount *mp);
@@ -738,7 +738,7 @@ static int
 ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
-	fs *fs;
+	Fs *fs;
 
 	ufsmount *ump;
 	void *space;
@@ -806,7 +806,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		      (fs->fs_sblockloc == sblockloc ||
 		       (fs->fs_old_flags & FS_FLAGS_UPDATED) == 0))) &&
 		    fs->fs_bsize <= MAXBSIZE &&
-		    fs->fs_bsize >= sizeof(struct fs))
+		    fs->fs_bsize >= sizeof(Fs))
 			break;
 	}
 
@@ -1089,7 +1089,7 @@ static int bigcgs = 0;
  * Unfortunately new bits get added.
  */
 static void
-ffs_oldfscompat_read(fs *fs, ufsmount *ump, ufs2_daddr_t sblockloc)
+ffs_oldfscompat_read(Fs *fs, ufsmount *ump, ufs2_daddr_t sblockloc)
 {
 	off_t maxfilesize;
 
@@ -1612,7 +1612,7 @@ ffs_vget(MountPoint *mp, ino_t ino, int flags, vnode **vpp)
 int
 ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 {
-	fs *fs;
+	Fs *fs;
 	inode *ip;
 	ufsmount *ump;
 	void *buf;
