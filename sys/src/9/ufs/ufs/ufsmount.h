@@ -30,17 +30,6 @@
  * $FreeBSD$
  */
 
-#if 0
-/*
- * Arguments to mount UFS-based filesystems
- */
-struct ufs_args {
-	char	*fspec;			/* block special device to mount */
-	struct	oexport_args export;	/* network export information */
-};
-
-#endif // 0
-
 #ifdef MALLOC_DECLARE
 MALLOC_DECLARE(M_UFSMNT);
 #endif

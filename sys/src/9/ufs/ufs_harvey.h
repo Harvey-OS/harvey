@@ -16,12 +16,22 @@ typedef struct thread thread;
 typedef struct inode inode;
 
 
+/*
+ * filesystem statistics
+ */
+typedef struct statfs {
+	uint64_t f_iosize;		/* optimal transfer block size */
+} StatFs;
+
 /* Wrapper for a UFS mount.  Should support reading from both kernel and user
  * space (eventually)
  */
 typedef struct MountPoint {
 	ufsmount	*mnt_data;
 	Chan		*chan;
+	int		id;
+	StatFs		mnt_stat;		/* cache of filesystem stats */
+	int		mnt_maxsymlinklen;	/* max size of short symlink */
 
 	uint64_t	mnt_flag;		/* (i) flags shared with user */
 	QLock		mnt_lock;		/* (mnt_mtx) structure lock */
@@ -139,7 +149,7 @@ typedef struct vnode {
 #define	FORCECLOSE	0x0002	/* vflush: force file closure */
 
 
-MountPoint *newufsmount(Chan *c);
+MountPoint *newufsmount(Chan *c, int id);
 
 vnode* newufsvnode();
 
