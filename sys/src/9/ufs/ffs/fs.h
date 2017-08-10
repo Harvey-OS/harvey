@@ -362,7 +362,7 @@ typedef struct Fs {
 
 /* Sanity checking. */
 #ifdef CTASSERT
-CTASSERT(sizeof(struct fs) == 1376);
+CTASSERT(sizeof(Fs) == 1376);
 #endif
 
 /*

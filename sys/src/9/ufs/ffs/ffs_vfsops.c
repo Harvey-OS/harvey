@@ -751,7 +751,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	int32_t *lp;
 	Ucred *cred;
 	//struct g_consumer *cp;
-	//struct mount *nmp;
 
 	// TODO HARVEY
 	cred = nil;	// NOCRED
@@ -921,17 +920,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	memset(fs->fs_contigdirs, 0, size);
 	fs->fs_active = nil;
 	mp->mnt_data = ump;
-	// TODO HARVEY - maybe we won't need this
-	/*mp->mnt_stat.f_fsid.val[0] = fs->fs_id[0];
-	mp->mnt_stat.f_fsid.val[1] = fs->fs_id[1];
-	nmp = nil;
-	if (fs->fs_id[0] == 0 || fs->fs_id[1] == 0 ||
-	    (nmp = vfs_getvfs(&mp->mnt_stat.f_fsid))) {
-		if (nmp)
-			vfs_rel(nmp);
-		vfs_getnewfsid(mp);
-	}*/
-	//mp->mnt_maxsymlinklen = fs->fs_maxsymlinklen;
+	mp->mnt_maxsymlinklen = fs->fs_maxsymlinklen;
 	qlock(&mp->mnt_lock);
 	mp->mnt_flag |= MNT_LOCAL;
 	qunlock(&mp->mnt_lock);
@@ -1013,13 +1002,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 #ifdef UFS_EXTATTR
 	ufs_extattr_uepm_init(&ump->um_extattr);
 #endif
-	/*
-	 * Set FS local "last mounted on" information (NULL pad)
-	 */
-	memset(fs->fs_fsmnt, 0, MAXMNTLEN);
-	// HARVEY TODO Mount name
-	//strlcpy(fs->fs_fsmnt, mp->mnt_stat.f_mntonname, MAXMNTLEN);
-	//mp->mnt_stat.f_iosize = fs->fs_bsize;
+	mp->mnt_stat.f_iosize = fs->fs_bsize;
 
 #if 0
 	if (mp->mnt_flag & MNT_ROOTFS) {
