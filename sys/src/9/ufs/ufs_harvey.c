@@ -19,11 +19,12 @@
 
 
 MountPoint*
-newufsmount(Chan *c)
+newufsmount(Chan *c, int id)
 {
 	// TODO HARVEY - Implement caching
 	MountPoint *mp = mallocz(sizeof(MountPoint), 1);
 	mp->chan = c;
+	mp->id = id;
 	return mp;
 }
 

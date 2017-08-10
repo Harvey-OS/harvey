@@ -191,7 +191,9 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 static MountPoint*
 mountufs(Chan* c)
 {
-	MountPoint *mp = newufsmount(c);
+	// TODO Use real IDs eventually
+	int id = 0;
+	MountPoint *mp = newufsmount(c, id);
 	if (mp == nil) {
 		print("couldn't prepare UFS mount\n");
 		error(Eufsmount);
