@@ -15,46 +15,26 @@
 #include "dat.h"
 #include "fns.h"
 
+#include "freebsd_util.h"
 #include "ufs_harvey.h"
+#include "ufs_mountpoint.h"
+
+#include "ufs/quota.h"
+#include "ufs/inode.h"
 
 
-MountPoint*
-newufsmount(Chan *c, int id)
+int
+findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp)
 {
-	// TODO HARVEY - Implement caching
-	MountPoint *mp = mallocz(sizeof(MountPoint), 1);
-	mp->chan = c;
-	mp->id = id;
-	return mp;
-}
-
-vnode*
-newufsvnode()
-{
-	// TODO HARVEY - Implement caching
-	vnode *vn = mallocz(sizeof(vnode), 1);
-	return vn;
-}
-
-void
-releaseufsmount(MountPoint *mp)
-{
-	// TODO HARVEY - This assumes no sharing
-	free(mp);
-}
-
-void
-releaseufsvnode(vnode *vn)
-{
-	// TODO HARVEY - This assumes no sharing
-	free(vn);
+	*vpp = findvnode(mp, ino);
+	return 0;
 }
 
 /*
  * Return the next vnode from the free list.
  */
 int
-getnewvnode(const char *tag, MountPoint *mp, vnode **vpp)
+getnewvnode(MountPoint *mp, vnode **vpp)
 {
 	vnode *vp = nil;
 	//struct lock_object *lo;
@@ -62,7 +42,10 @@ getnewvnode(const char *tag, MountPoint *mp, vnode **vpp)
 	//int error = 0;
 
 //alloc:
-	vp = (vnode *)smalloc(sizeof(vnode));
+	vp = getfreevnode(mp);
+	if (vp == nil) {
+		return 0;
+	}
 
 	// TODO HARVEY Revisit locking of vnodes
 	// TODO HARVEY Revisit counters
@@ -99,7 +82,6 @@ getnewvnode(const char *tag, MountPoint *mp, vnode **vpp)
 	KASSERT(vp->v_pollinfo == NULL, ("stale v_pollinfo %p", vp));
 #endif // 0
 	vp->v_type = VNON;
-	vp->v_tag = tag;
 	vp->v_mount = mp;
 #if 0
 	v_init_counters(vp);
@@ -130,4 +112,10 @@ getnewvnode(const char *tag, MountPoint *mp, vnode **vpp)
 
 	*vpp = vp;
 	return (0);
+}
+
+void
+releaseufsvnode(MountPoint *mp, vnode *vn)
+{
+	releasevnode(mp, vn);
 }

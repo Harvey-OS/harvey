@@ -20,7 +20,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
-#include "../ufs/ufs_harvey.h"
+#include "../ufs/ufs_ext.h"
 
 
 enum {
@@ -29,6 +29,7 @@ enum {
 	Qmount,				// #U/ufs/mount
 	Qmountdir,			// #U/ufs/x (x embedded in qid)
 	Qmountctl,			// #U/ufs/x/ctl
+	Qmountstats,			// #U/ufs/x/stats
 };
 
 enum {
@@ -44,6 +45,7 @@ static Dirtab ufsdir[] =
 static Dirtab ufsmntdir[] =
 {
 	{"ctl",		{Qmountctl},	0,	0666},
+	{"stats",	{Qmountstats},	0,	0666},
 };
 
 enum
@@ -172,8 +174,29 @@ ufsopen(Chan* c, int omode)
 }
 
 static void
-ufsclose(Chan*unused)
+ufsclose(Chan* unused)
 {
+}
+
+static int
+dumpstats(MountPoint *mp, void *a, int32_t n, int64_t offset)
+{
+	int i = 0;
+	char *buf = malloc(READSTR);
+
+	qlock(&mp->vnodes_lock);
+	int numinuse = countvnodes(mp->vnodes);
+	int numfree = countvnodes(mp->free_vnodes);
+	qunlock(&mp->vnodes_lock);
+
+	i += snprint(buf + i, READSTR - i, "Mountpoint:        %d\n", mp->id);
+	i += snprint(buf + i, READSTR - i, "Num vnodes in use: %d\n", numinuse);
+	i += snprint(buf + i, READSTR - i, "Num vnodes free:   %d\n", numfree);
+
+	n = readstr(offset, a, n, buf);
+	free(buf);
+
+	return n;
 }
 
 static int32_t
@@ -183,7 +206,13 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 		return devdirread(c, a, n, nil, 0, ufsgen);
 	}
 
-	error(Eperm);
+	switch ((int)c->qid.path) {
+	case Qmountstats:
+		n = dumpstats(mountpoint, a, n, offset);
+		break;
+	default:
+		error(Eperm);
+	}
 
 	return n;
 }
@@ -230,7 +259,7 @@ testmount()
 	}
 
 	// Get the root
-	vnode *root = newufsvnode();
+	vnode *root = nil;
 	int rcode = ufs_root(mountpoint, 0, &root);
 	if (rcode != 0) {
 		print("couldn't get root: %d", rcode);
