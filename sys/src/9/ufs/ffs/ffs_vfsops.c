@@ -38,6 +38,7 @@
 #include "../../port/portfns.h"
 
 #include "freebsd_util.h"
+#include "ufs_mountpoint.h"
 #include "ufs_harvey.h"
 
 //#include "dir.h"
@@ -1611,9 +1612,9 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	vnode *vp;
 	int error;
 
-	//error = vfs_hash_get(mp, ino, flags, curthread, vpp, nil, nil);
-	//if (error || *vpp != nil)
-	//	return (error);
+	error = findexistingvnode(mp, ino, vpp);
+	if (error || *vpp != nil)
+		return (error);
 
 	/*
 	 * We must promote to an exclusive lock for vnode creation.  This
@@ -1636,9 +1637,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	ip = smalloc(sizeof(inode));
 
 	/* Allocate a new vnode/inode. */
-	// TODO HARVEY FreeBSD uses a picks a vnode from a freelist.  We should
-	// consider something similar, but for now just new up.
-	error = getnewvnode("ufs", mp, &vp);
+	error = getnewvnode(mp, &vp);
 	if (error) {
 		*vpp = nil;
 		free(ip);
@@ -1694,7 +1693,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		 * list by vput().
 		 */
 		free(buf);
-		releaseufsvnode(vp);
+		releaseufsvnode(mp, vp);
 		*vpp = nil;
 		return (error);
 	}
@@ -1713,7 +1712,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 */
 	error = ufs_vinit(mp, &vp);
 	if (error) {
-		releaseufsvnode(vp);
+		releaseufsvnode(mp, vp);
 		*vpp = nil;
 		return (error);
 	}
