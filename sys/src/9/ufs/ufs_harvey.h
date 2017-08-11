@@ -10,32 +10,11 @@
 
 
 typedef struct Chan Chan;
+typedef struct inode inode;
+typedef struct MountPoint MountPoint;
+typedef struct thread thread;
 typedef struct ufsmount ufsmount;
 typedef struct vnode vnode;
-typedef struct thread thread;
-typedef struct inode inode;
-
-
-/*
- * filesystem statistics
- */
-typedef struct statfs {
-	uint64_t f_iosize;		/* optimal transfer block size */
-} StatFs;
-
-/* Wrapper for a UFS mount.  Should support reading from both kernel and user
- * space (eventually)
- */
-typedef struct MountPoint {
-	ufsmount	*mnt_data;
-	Chan		*chan;
-	int		id;
-	StatFs		mnt_stat;		/* cache of filesystem stats */
-	int		mnt_maxsymlinklen;	/* max size of short symlink */
-
-	uint64_t	mnt_flag;		/* (i) flags shared with user */
-	QLock		mnt_lock;		/* (mnt_mtx) structure lock */
-} MountPoint;
 
 
 // Not sure we even need this - if not we can remove it later.
@@ -48,9 +27,7 @@ typedef struct Ucred {
 } Ucred;
 
 
-/* Hopefully we can replace this with something already in Harvey - e.g. Biobuf?
- * postponing the decision until later.
- */ 
+// TODO HARVEY Delete
 typedef struct Buf {
 } Buf;
 
@@ -76,6 +53,8 @@ typedef struct ComponentName {
 /*
  * Vnode types.  VNON means no type.
  */
+// TODO HARVEY Mark all unsupported vnode types as VNON.
+// Probably only need VREG, VDIR, VLNK.
 enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
@@ -120,16 +99,22 @@ typedef enum vtype Vtype;
  * It may be unnecessary - if so, we should use inodes directly.
  */
 typedef struct vnode {
+	vnode		*next;
+	vnode		*prev;
+
+	Ref		ref;		/* Refcount */
+	QLock		v_vnlock;	/* u pointer to vnode lock */
+
 	/*
 	 * Fields which define the identity of the vnode.  These fields are
 	 * owned by the filesystem (XXX: and vgone() ?)
 	 */
-	const char 	*v_tag;			/* u type of underlying data */
+	const char 	*v_tag;		/* u type of underlying data */
 	inode		*v_data;
 	MountPoint	*v_mount;
 	
-	enum vtype 	v_type;			/* u vnode type */
-	unsigned int	v_vflag;		/* v vnode flags */
+	enum vtype 	v_type;		/* u vnode type */
+	unsigned int	v_vflag;	/* v vnode flags */
 } vnode;
 
 
@@ -149,17 +134,12 @@ typedef struct vnode {
 #define	FORCECLOSE	0x0002	/* vflush: force file closure */
 
 
-MountPoint *newufsmount(Chan *c, int id);
-
-vnode* newufsvnode();
-
-void releaseufsmount(MountPoint *mp);
-void releaseufsvnode(vnode *vn);
+int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
+int getnewvnode(MountPoint *mp, vnode **vpp);
+void releaseufsvnode(MountPoint *mp, vnode *vn);
 
 int ffs_mount(MountPoint *mp);
 int ffs_unmount(MountPoint *mp, int mntflags);
 
 int ufs_root(MountPoint *mp, int flags, vnode **vpp);
 int ufs_lookup(MountPoint *mp);
-
-int getnewvnode(const char *tag, MountPoint *mp, vnode **vpp);
