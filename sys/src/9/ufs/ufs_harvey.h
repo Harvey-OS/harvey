@@ -109,7 +109,6 @@ typedef struct vnode {
 	 * Fields which define the identity of the vnode.  These fields are
 	 * owned by the filesystem (XXX: and vgone() ?)
 	 */
-	const char 	*v_tag;		/* u type of underlying data */
 	inode		*v_data;
 	MountPoint	*v_mount;
 	
