@@ -128,6 +128,10 @@ getfreevnode(MountPoint *mp)
         mp->free_vnodes = vn->next;
         mp->free_vnodes->prev = nil;
 
+        // Clear out
+        memset(vn, 0, sizeof(vnode));
+        vn->m_mount = mp;
+
         if (mp->vnodes != nil) {
                 mp->vnodes->prev = vn;
         }
