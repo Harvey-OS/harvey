@@ -12,6 +12,52 @@
 #include <cursor.h>
 #include "screen.h"
 
+static ulong
+stolenmb(Pcidev *p)
+{
+	switch(p->did){
+	case 0x0412:	/* Haswell HD Graphics 4600 */
+	case 0x0a16:	/* Haswell HD Graphics 4400 */
+	case 0x0126:	/* Sandy Bridge HD Graphics 3000 */
+	case 0x0166:	/* Ivy Bridge */
+	case 0x0102:	/* Core-5 Sandy Bridge */
+	case 0x0152:	/* Core-i3 */
+		switch((pcicfgr16(p, 0x50) >> 3) & 0x1f){
+		case 0x01:	return 32  - 2;
+		case 0x02:	return 64  - 2;		/* 0102 Dell machine here */
+		case 0x03:	return 96  - 2;
+		case 0x04:	return 128 - 2;
+		case 0x05:	return 32  - 2;
+		case 0x06:	return 48  - 2;
+		case 0x07:	return 64  - 2;
+		case 0x08:	return 128 - 2;
+		case 0x09:	return 256 - 2;
+		case 0x0A:	return 96  - 2;
+		case 0x0B:	return 160 - 2;
+		case 0x0C:	return 224 - 2;
+		case 0x0D:	return 352 - 2;
+		case 0x0E:	return 448 - 2;
+		case 0x0F:	return 480 - 2;
+		case 0x10:	return 512 - 2;
+		}
+		break;
+	case 0x2a42:	/* X200 */
+	case 0x29a2:	/* 82P965/G965 HECI desktop */
+	case 0x2a02:	/* CF-R7 */
+		switch((pcicfgr16(p, 0x52) >> 4) & 7){
+		case 0x01:	return 1;
+		case 0x02:	return 4;
+		case 0x03:	return 8;
+		case 0x04:	return 16;
+		case 0x05:	return 32;
+		case 0x06:	return 48;
+		case 0x07:	return 64;
+		}
+		break;
+	}
+	return 0;
+}
+
 static uintptr
 igfxcuralloc(Pcidev *pci, void *mmio, int apsize)
 {
