@@ -435,8 +435,11 @@ ctlr
 	ctlr=geode linear=1
 
 ctlr
-	vid=0x8086 did=0x0166	# X230
-	vid=0x8086 did=0x2a42	# X200s
+	vid=0x8086 did=0x0126	# Intel 2nd Gen Core (HD 3000)
+	vid=0x8086 did=0x0166	# Intel 3rd Gen Core
+	vid=0x8086 did=0x2a42	# Intel 4 Series Mobile
+	vid=0x8086 did=0x0a16	# Intel 4th Gen Core (HD 4400)
+	vid=0x8086 did=0x0412	# Intel 4th Gen Core (HD 4600)
 	link=vga
 	hwgc=igfxhwgc
 	ctlr=igfx linear=1
