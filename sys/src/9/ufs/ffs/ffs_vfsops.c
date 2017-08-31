@@ -1650,7 +1650,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 */
 	//lockmgr(vp->v_vnlock, LK_EXCLUSIVE, nil);
 	//VN_LOCK_AREC(vp);
-	vp->v_data = ip;
+	vp->data = ip;
 	//vp->v_bufobj.bo_bsize = fs->fs_bsize;
 	ip->i_vnode = vp;
 	ip->i_ump = ump;
@@ -1721,7 +1721,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	/*
 	 * Finish inode initialization.
 	 */
-	if (vp->v_type != VFIFO) {
+	if (vp->type != VFIFO) {
 		/* FFS supports shared locking for all files except fifos. */
 		//VN_LOCK_ASHARE(vp);
 	}
@@ -1738,7 +1738,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 			// all we have right now
 			ip->i_gen = lrand();
 		}
-		if ((vp->v_mount->mnt_flag & MNT_RDONLY) == 0) {
+		if ((vp->mount->mnt_flag & MNT_RDONLY) == 0) {
 			ip->i_flag |= IN_MODIFIED;
 			DIP_SET(ip, i_gen, ip->i_gen);
 		}

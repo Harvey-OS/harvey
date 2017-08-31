@@ -173,7 +173,7 @@ struct indir {
 };
 
 /* Convert between inode pointers and vnode pointers. */
-#define	VTOI(vp)	((struct inode *)(vp)->v_data)
+#define	VTOI(vp)	((inode *)(vp)->data)
 #define	ITOV(ip)	((ip)->i_vnode)
 
 /* Determine if soft dependencies are being done */

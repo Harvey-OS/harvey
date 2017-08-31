@@ -81,8 +81,8 @@ getnewvnode(MountPoint *mp, vnode **vpp)
 	KASSERT(vp->v_lockf == NULL, ("stale v_lockf %p", vp));
 	KASSERT(vp->v_pollinfo == NULL, ("stale v_pollinfo %p", vp));
 #endif // 0
-	vp->v_type = VNON;
-	vp->v_mount = mp;
+	vp->type = VNON;
+	vp->mount = mp;
 #if 0
 	v_init_counters(vp);
 	//vp->v_bufobj.bo_ops = &buf_ops_bio;
