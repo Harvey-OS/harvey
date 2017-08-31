@@ -98,7 +98,7 @@ findvnode(MountPoint *mp, ino_t ino)
 
 	// Check for existing vnode
 	for (vn = mp->vnodes; vn != nil; vn = vn->next) {
-		if (vn->v_data->i_number == ino) {
+		if (vn->data->i_number == ino) {
 			break;
 		}
 	}
@@ -133,7 +133,7 @@ getfreevnode(MountPoint *mp)
 
 	// Clear out
 	memset(vn, 0, sizeof(vnode));
-	vn->v_mount = mp;
+	vn->mount = mp;
 
 	if (mp->vnodes != nil) {
 		mp->vnodes->prev = vn;

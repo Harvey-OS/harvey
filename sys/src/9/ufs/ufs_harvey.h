@@ -103,17 +103,17 @@ typedef struct vnode {
 	vnode		*prev;
 
 	Ref		ref;		/* Refcount */
-	QLock		v_vnlock;	/* u pointer to vnode lock */
+	QLock		vnlock;		/* u pointer to vnode lock */
 
 	/*
 	 * Fields which define the identity of the vnode.  These fields are
 	 * owned by the filesystem (XXX: and vgone() ?)
 	 */
-	inode		*v_data;
-	MountPoint	*v_mount;
+	inode		*data;
+	MountPoint	*mount;
 	
-	enum vtype 	v_type;		/* u vnode type */
-	unsigned int	v_vflag;	/* v vnode flags */
+	enum vtype 	type;		/* u vnode type */
+	unsigned int	vflag;		/* v vnode flags */
 } vnode;
 
 
