@@ -103,7 +103,7 @@ typedef struct vnode {
 	vnode		*prev;
 
 	Ref		ref;		/* Refcount */
-	QLock		vnlock;		/* u pointer to vnode lock */
+	RWlock		vnlock;		/* u pointer to vnode lock */
 
 	/*
 	 * Fields which define the identity of the vnode.  These fields are

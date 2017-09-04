@@ -1644,11 +1644,10 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		return (error);
 	}
 
-	// TODO HARVEY Locking
 	/*
 	 * FFS supports recursive locking.
 	 */
-	//lockmgr(vp->v_vnlock, LK_EXCLUSIVE, nil);
+	wlock(&vp->vnlock);
 	//VN_LOCK_AREC(vp);
 	vp->data = ip;
 	//vp->v_bufobj.bo_bsize = fs->fs_bsize;
@@ -1717,14 +1716,12 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		return (error);
 	}
 
-	// TODO HARVEY Locking
 	/*
 	 * Finish inode initialization.
 	 */
-	if (vp->type != VFIFO) {
-		/* FFS supports shared locking for all files except fifos. */
-		//VN_LOCK_ASHARE(vp);
-	}
+	/* FFS supports shared locking for all files except fifos. */
+	//VN_LOCK_ASHARE(vp);
+	wunlock(&vp->vnlock);
 
 	/*
 	 * Set up a generation number for this inode if it does not
