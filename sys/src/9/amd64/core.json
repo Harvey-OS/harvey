@@ -1,6 +1,7 @@
 {
 	"core": {
 		"Cflags": [
+			"-fno-stack-protector",
 			"-mcmodel=kernel",
 			"-O0",
 			"-static",
