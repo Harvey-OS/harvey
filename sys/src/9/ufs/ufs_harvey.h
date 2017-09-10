@@ -53,9 +53,7 @@ typedef struct ComponentName {
 /*
  * Vnode types.  VNON means no type.
  */
-// TODO HARVEY Mark all unsupported vnode types as VNON.
-// Probably only need VREG, VDIR, VLNK.
-enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
+enum vtype { VNON, VREG, VDIR, VLNK, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
 
