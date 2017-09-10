@@ -51,6 +51,7 @@ int countvnodes(vnode *vn);
 int ffs_mount(MountPoint *mp);
 int ffs_unmount(MountPoint *mp, int mntflags);
 
-// TODO HARVEY Are these here temporarily?
 int ufs_root(MountPoint *mp, int flags, vnode **vpp);
 int ufs_lookup(MountPoint *mp);
+
+int lookuppath(MountPoint *mp, char *path, vnode **vn);

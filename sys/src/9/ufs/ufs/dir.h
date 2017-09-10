@@ -71,14 +71,14 @@
 #define	DIRBLKSIZ	DEV_BSIZE
 #define	UFS_MAXNAMLEN	255
 
-struct	direct {
+typedef struct Direct {
 	uint32_t d_ino;		/* inode number of entry */
 	uint16_t d_reclen;		/* length of this record */
 	uint8_t  d_type; 		/* file type, see below */
 	uint8_t  d_namlen;		/* length of string in d_name */
 	char	  d_name[UFS_MAXNAMLEN + 1];
 					/* name with length <= UFS_MAXNAMLEN */
-};
+} Direct;
 
 /*
  * File types
@@ -108,8 +108,8 @@ struct	direct {
  * 
  */
 #define	DIRECTSIZ(namlen)						\
-	((__offsetof(struct direct, d_name) +				\
-	  ((namlen)+1)*sizeof(((struct direct *)0)->d_name[0]) + 3) & ~3)
+	((__offsetof(Direct, d_name) +				\
+	  ((namlen)+1)*sizeof(((Direct *)0)->d_name[0]) + 3) & ~3)
 #if (BYTE_ORDER == LITTLE_ENDIAN)
 #define	DIRSIZ(oldfmt, dp) \
     ((oldfmt) ? DIRECTSIZ((dp)->d_type) : DIRECTSIZ((dp)->d_namlen))

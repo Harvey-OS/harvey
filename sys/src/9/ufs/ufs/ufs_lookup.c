@@ -202,6 +202,8 @@ ufs_lookup_ino(vnode *vdp, vnode **vpp, ComponentName *cnp, ino_t *dd_ino)
 	//ino_t ino, ino1;
 	//int ltype;
 
+	print("HARVEY TODO: %s\n", __func__);
+
 	if (vpp != nil)
 		*vpp = nil;
 
