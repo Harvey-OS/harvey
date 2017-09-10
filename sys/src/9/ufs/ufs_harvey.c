@@ -21,6 +21,7 @@
 
 #include "ufs/quota.h"
 #include "ufs/inode.h"
+#include "ufs/ufs_extern.h"
 
 
 int
@@ -118,4 +119,26 @@ void
 releaseufsvnode(MountPoint *mp, vnode *vn)
 {
 	releasevnode(mp, vn);
+}
+
+int
+lookuppath(MountPoint *mp, char *path, vnode **vn)
+{
+	// Get the root
+	vnode *root = nil;
+	int rcode = ufs_root(mp, 0, &root);
+	if (rcode != 0) {
+		print("couldn't get root: %d", rcode);
+		return -1;
+	}
+
+	// TODO UFS caches lookups.  We could do that in devufs.
+	ComponentName cname = { .cn_pnbuf = path, .cn_nameiop = LOOKUP };
+	rcode = ufs_lookup_ino(root, vn, &cname, nil);
+	if (rcode != 0) {
+		print("couldn't lookup path: %s: %d", path, rcode);
+		return -1;
+	}
+
+	return 0;
 }
