@@ -134,9 +134,3 @@ typedef struct vnode {
 int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
 int getnewvnode(MountPoint *mp, vnode **vpp);
 void releaseufsvnode(MountPoint *mp, vnode *vn);
-
-int ffs_mount(MountPoint *mp);
-int ffs_unmount(MountPoint *mp, int mntflags);
-
-int ufs_root(MountPoint *mp, int flags, vnode **vpp);
-int ufs_lookup(MountPoint *mp);
