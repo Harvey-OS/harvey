@@ -258,25 +258,13 @@ testmount()
 		error(Eufsinvalidmp);
 	}
 
-	// Get the root
-	vnode *root = nil;
-	int rcode = ufs_root(mountpoint, 0, &root);
-	if (rcode != 0) {
-		print("couldn't get root: %d", rcode);
-	}
-
-	// TODO Probably need to pass in:
-	//   vdp Root vnode or pwd vnode?  Will an empty struct work?
-	//   vpp nil?  Seems to be the desination.
-	// vpp will be populated with the found vnode.
 	// TODO UFS caches lookups.  We could do that in devufs.
-	/*char path[] = "/";
-	ComponentName cname;
-	cname.cn_pnbuf = path;
-	int rcode = ufs_lookup(mountpoint, &cname);
+	vnode *vn;
+	char *path = "/";
+	int rcode = lookuppath(mountpoint, path, &vn);
 	if (rcode != 0) {
 		print("couldn't lookup path: %s: %d", path, rcode);
-	}*/
+	}
 }
 
 static void

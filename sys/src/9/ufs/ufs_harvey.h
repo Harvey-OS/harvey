@@ -130,6 +130,14 @@ typedef struct vnode {
  */
 #define	FORCECLOSE	0x0002	/* vflush: force file closure */
 
+/*
+ * namei operations
+ */
+#define	LOOKUP		0	/* perform name lookup only */
+#define	CREATE		1	/* setup for file creation */
+#define	DELETE		2	/* setup for file deletion */
+#define	RENAME		3	/* setup for file renaming */
+#define	OPMASK		3	/* mask for operation */
 
 int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
 int getnewvnode(MountPoint *mp, vnode **vpp);
