@@ -1,4 +1,4 @@
-# pc - a normal pc terminal
+# pc - a normal pc terminal from 9front
 dev
 	root
 	cons
@@ -29,6 +29,7 @@ dev
 
 	sd
 	floppy		dma
+	aoe
 	lpt
 
 	audio		dma
@@ -37,12 +38,11 @@ dev
 	uart
 	usb
 
-	wd
-
 link
 	realmode
 	devpccard
 	devi82365
+	apm		apmjump
 
 # order of ethernet drivers should match that in ../pcboot/boot so that
 # devices are detected in the same order by bootstraps and kernels
@@ -69,9 +69,10 @@ link
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
-#	etherm10g	pci ethermii		# vast firmware
-#	ether82598	pci
-	ethervirtio	pci
+	ethervirtio		pci
+	etheriwl	pci wifi
+	etherwpi	pci wifi
+	etherrt2860	pci wifi
 
 	ethermedium
 	pcmciamodem
@@ -82,8 +83,6 @@ link
 	usbohci
 	usbehci		usbehcipc
 
-	x86watchdog
-
 misc
 	archmp		mp apic mpacpi
 	mtrr
@@ -92,11 +91,11 @@ misc
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
+	sdaoe
 	sdvirtio	pci sdscsi
 
 	uarti8250
 	uartpci		pci
-	uartisa
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
@@ -136,13 +135,24 @@ ip
 port
 	int cpuserver = 0;
 
-boot
+boot boot #S/sdC0/
 	tcp
+	local
+	rc
 
 bootdir
 	boot$CONF.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
+	/386/bin/fossil/fossil
+	/386/bin/venti/venti
 	/386/bin/usb/usbd
 # needed to boot from a usb key and use its fossil
 	/386/bin/disk/partfs
+	/386/bin/rc
+	/rc/lib/rcmain
+	/386/bin/disk/prep
+	/386/bin/disk/fdisk
+	/386/bin/ls
+	/386/bin/bind
+	/386/bin/mount

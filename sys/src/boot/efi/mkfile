@@ -79,8 +79,8 @@ test.iso:D:	efiboot.fat
 	mkdir tmp/386
 	cp efiboot.fat tmp/386
 	cp /386/9bootiso tmp/386
-	cp /386/9pcf tmp/386
-	echo 'bootfile=/386/9pcf' >tmp/cfg/plan9.ini
+	cp /386/9pc tmp/386
+	echo 'bootfile=/386/9pc' >tmp/cfg/plan9.ini
 	disk/mk9660 -B 386/9bootiso -E 386/efiboot.fat -p <{echo +} -s tmp $target
 	rm -r tmp
 
@@ -95,8 +95,8 @@ test.fat:D:	bootia32.efi bootx64.efi
 	mkdir /n/esp/efi/boot
 	cp bootia32.efi /n/esp/efi/boot
 	cp bootx64.efi /n/esp/efi/boot
-	cp /386/9pcf /n/esp
-	echo 'bootfile=9pcf' >/n/esp/plan9.ini
+	cp /386/9pc /n/esp
+	echo 'bootfile=9pc' >/n/esp/plan9.ini
 	unmount /n/esp
 	rm /srv/$s
 
