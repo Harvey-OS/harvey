@@ -1,0 +1,113 @@
+
+#
+#  files comprising the database, use as many as you like
+#
+database=
+	file=/lib/ndb/local
+	file=/lib/ndb/common
+
+#
+#  entries defining the dns root.  these will be overridden by any
+#  authentic info obtained from the root.
+#
+dom=
+	ns=A.ROOT-SERVERS.NET
+	ns=B.ROOT-SERVERS.NET
+	ns=C.ROOT-SERVERS.NET
+	ns=D.ROOT-SERVERS.NET
+	ns=E.ROOT-SERVERS.NET
+	ns=F.ROOT-SERVERS.NET
+	ns=G.ROOT-SERVERS.NET
+	ns=H.ROOT-SERVERS.NET
+	ns=I.ROOT-SERVERS.NET
+	ns=J.ROOT-SERVERS.NET
+	ns=K.ROOT-SERVERS.NET
+	ns=L.ROOT-SERVERS.NET
+	ns=M.ROOT-SERVERS.NET
+dom=A.ROOT-SERVERS.NET ip=198.41.0.4
+dom=B.ROOT-SERVERS.NET ip=128.9.0.107
+dom=C.ROOT-SERVERS.NET ip=192.33.4.12
+dom=D.ROOT-SERVERS.NET ip=128.8.10.90
+dom=E.ROOT-SERVERS.NET ip=192.203.230.10
+dom=F.ROOT-SERVERS.NET ip=192.5.5.241
+dom=G.ROOT-SERVERS.NET ip=192.112.36.4
+dom=H.ROOT-SERVERS.NET ip=128.63.2.53
+dom=I.ROOT-SERVERS.NET ip=192.36.148.17
+dom=J.ROOT-SERVERS.NET ip=198.41.0.10
+dom=K.ROOT-SERVERS.NET ip=193.0.14.129
+dom=L.ROOT-SERVERS.NET ip=198.32.64.12	# old
+			ip=199.7.83.42	# new, nov 2007
+dom=M.ROOT-SERVERS.NET ip=202.12.27.33
+
+
+#  select one of the following two entries:
+
+#
+#  your domain if you are a dns server for your domain
+#
+dom=myuniversity.edu soa=
+	refresh=3600 ttl=3600
+	ns=ns1.myuniversity.edu
+	ns=ns2.myuniversity.edu
+	mx=mail.myuniversity.edu pref=1
+	mx=mailbackup.myuniversity.edu pref=2
+	mbox=netmaster@myuniversity.edu
+
+#
+#  your domain if you aren't a domain server for the domain
+#
+dom=myuniversity.edu
+	ns=ns1.myuniversity.edu
+	ns=ns2.myuniversity.edu
+
+#
+#  define your network.  dns, ntp, time, and wins are servers that can
+#  be returned by dhcp. auth and fs are the default plan9 authentication
+#  and name servers.  change the addresses to whatever makes sense in your
+#  world.
+#
+#  each dnsdomain is a domain to search through when resolving
+#  dnsnames
+#
+ipnet=mynetwork ip=10.0.0.0 ipmask=255.0.0.0
+	fs=myfileserver.myuniversity.edu
+	auth=myauthserver.myuniversity.edu
+	dns=10.0.0.1
+	dns=10.0.0.2
+	wins=10.0.0.3
+	wins=10.0.0.4
+	ntp=10.0.0.5
+	ntp=10.0.0.6
+	time=10.0.0.7
+	dnsdomain=cs.myuniversity.edu
+	dnsdomain=ee.myuniversity.edu
+	dnsdomain=math.myuniversity.edu
+	dnsdomain=myuniversity.edu
+
+#
+#  a subnet of of your network.  you can override anything specified for the
+#  network.
+#
+ipnet=mysubnetwork ip=10.0.1.0 ipmask=255.255.255.0
+	dns=10.0.1.1
+	dns=10.0.1.2
+
+#
+#  define a few systems.  if they support the il protocol, say so.  otherwise
+#  the connection server will assume they just know tcp and udp.
+#	- the sys= tuple specifies a local nickname for the machine.
+#	- unless a bootf= tuple exists, dhcp will not answer boot requests for it
+#
+ip=10.0.1.10 ether=0010dc724074 sys=fs
+	dom=myfileserver.myuniversity.edu 
+	bootf=/386/9pc
+
+ip=10.0.1.11 ether=0010dc724075 sys=auth
+	dom=myauthserver.myuniversity.edu
+	bootf=/386/9pc
+
+ip=10.0.1.12 ether=0010dc724076 sys=term
+	dom=myterminal.myuniversity.edu
+	bootf=/386/9pc
+
+auth=sources.cs.bell-labs.com authdom=outside.plan9.bell-labs.com

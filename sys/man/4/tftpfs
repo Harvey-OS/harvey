@@ -1,0 +1,74 @@
+.TH TFTPFS 4
+.SH NAME
+tftpfs \- trivial file transfer protocol (TFTP) file system
+.SH SYNOPSIS
+.B ip/tftpfs
+[
+.B -D
+] [
+.B -s
+.I srvname
+] [
+.B -m
+.I mtpt
+] [
+.B -x
+.I net
+] [
+.I ipaddr
+]
+.SH DESCRIPTION
+.I Tftpfs
+serves files from a TFTP server as a filesystem. TFTP
+is mostly used by bootloaders to download kernel images for
+network bootstrap (see
+.IR dhcpd (8)).
+As the protocol has no way of distinguishing files from
+directories, the final path segment needs to conain a dot
+(.) character to be recognized as a file. To access files that
+have no dot in the filename, a trailing dot has to be added
+and will be stripped before it is passed to the server.
+.PP
+The
+.B -D
+option enables 9P debugging messages.
+.PP
+The
+.B -s
+option causes 
+.I tftpfs
+to post the 9P service as
+.BI /srv/ srvname
+and disables the default mount.
+.PP
+The default mountpoint
+.BR /n/tftp
+can be changed with the
+.B -B
+.I mtpt
+option.
+.PP
+The
+.B -x
+option specifies an alternate network directory
+.RI ( e.g., 
+.BR /net.alt ).
+.PP
+The ip address of the server can be passed in
+as the last program argument,
+.I ipaddr,
+ or in the mount spec (see
+.IR bind (1))
+on a per mount basis.
+.SH EXAMPLE
+Boot a kernel from a tftp server (note the final
+dot in the kernel path).
+.IP
+.EX
+ip/tftpfs 10.192.254.53
+echo reboot /n/tftp/386/9pc. >/dev/reboot
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/tftpfs.c
+.SH "SEE ALSO"
+.IR dhcpd (8).

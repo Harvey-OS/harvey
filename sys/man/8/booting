@@ -52,7 +52,9 @@ configuration partition or on a DOS file system
 .RI ( 9load ).
 See 
 .IR 9boot (8)
-for details.
+program is used to load the kernel
+.B /386/9pc
+into memory.
 .PP
 Once the kernel is booted, it behaves like the others.
 See
@@ -74,6 +76,50 @@ to always boot from Ethernet via DHCP and TFTP, and arrange to load the ELF exec
 .B /mips/9rb
 in
 .IR ndb (6).
+
+.IP
+The following is from 9front, and may not apply to Harvey (yet).
+Proceed as for the PC terminal, but have
+.B service=cpu
+set in
+.IR plan9.ini (8).
+.SS SGI Challenge multiprocessor CPU Server
+The Challenge ROM monitor can boot from the Ethernet.
+To boot from the Ethernet, type
+.IP
+.EX
+.B bootp()/mips/9ch
+.EE
+.PP
+or use the ROM command
+.B setenv
+to set the variable
+.B bootfile
+to that same string and type
+.BR boot .
+To load a different file, tell
+.B bootp
+which file to load,
+and to force the download to come from a particular system,
+.BR bootp()system:file .
+Any arguments after
+.B bootp()file
+are passed to
+.BR /boot .
+If you are running a Plan 9
+.SM BOOTP
+server (see
+.IR dhcpd (8)),
+the file name can be omitted and the
+file specified by the
+.B bootf
+parameter for the machine in
+.B /lib/ndb
+will be downloaded by default.
+.PP
+Once the kernel is loaded,
+it prompts for the Ethernet
+protocol to use to reach the root file server; request the default.
 .
 .SS ARM Systems
 All ARM systems are started by
