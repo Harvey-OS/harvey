@@ -53,9 +53,7 @@ typedef struct ComponentName {
 /*
  * Vnode types.  VNON means no type.
  */
-// TODO HARVEY Mark all unsupported vnode types as VNON.
-// Probably only need VREG, VDIR, VLNK.
-enum vtype { VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD, VMARKER };
+enum vtype { VNON, VREG, VDIR, VLNK, VBAD, VMARKER };
 typedef enum vtype Vtype;
 
 
@@ -132,13 +130,15 @@ typedef struct vnode {
  */
 #define	FORCECLOSE	0x0002	/* vflush: force file closure */
 
+/*
+ * namei operations
+ */
+#define	LOOKUP		0	/* perform name lookup only */
+#define	CREATE		1	/* setup for file creation */
+#define	DELETE		2	/* setup for file deletion */
+#define	RENAME		3	/* setup for file renaming */
+#define	OPMASK		3	/* mask for operation */
 
 int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
 int getnewvnode(MountPoint *mp, vnode **vpp);
 void releaseufsvnode(MountPoint *mp, vnode *vn);
-
-int ffs_mount(MountPoint *mp);
-int ffs_unmount(MountPoint *mp, int mntflags);
-
-int ufs_root(MountPoint *mp, int flags, vnode **vpp);
-int ufs_lookup(MountPoint *mp);

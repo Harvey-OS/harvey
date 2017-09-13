@@ -62,8 +62,8 @@
  * and back.
  */
 static Vtype iftovt_tab[16] = {
-	VNON, VFIFO, VCHR, VNON, VDIR, VNON, VBLK, VNON,
-	VREG, VNON, VLNK, VNON, VSOCK, VNON, VNON, VBAD,
+	VNON, VNON, VNON, VNON, VDIR, VNON, VNON, VNON,
+	VREG, VNON, VLNK, VNON, VNON, VNON, VNON, VBAD,
 };
 
 #if 0
