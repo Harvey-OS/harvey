@@ -43,7 +43,7 @@
 #include <ufs/dir.h>
 #include <ufs/dinode.h>
 #include <ffs/fs.h>
-#include <ufs/ufsmount.h>
+#include <ufsmount.h>
 
 #include <ufs/freebsd_util.h>
 #if 0
