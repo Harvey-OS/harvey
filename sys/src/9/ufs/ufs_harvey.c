@@ -15,7 +15,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "freebsd_util.h"
+#include <ufs/freebsd_util.h>
 #include "ufs_harvey.h"
 #include "ufs_mountpoint.h"
 

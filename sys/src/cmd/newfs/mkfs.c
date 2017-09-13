@@ -39,7 +39,8 @@
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
-#include <sys/disklabel.h>
+// TODO: find me
+// #include <sys/disklabel.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -56,9 +57,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
-#include <ufs/ufs/dinode.h>
-#include <ufs/ufs/dir.h>
-#include <ufs/ffs/fs.h>
+#include <ufs/dinode.h>
+#include <ufs/dir.h>
+#include <ffs/fs.h>
 #include "newfs.h"
 
 /*
