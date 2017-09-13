@@ -38,7 +38,7 @@
 
 #include "extattr.h"
 #include "quota.h"
-#include "freebsd_util.h"
+#include <ufs/freebsd_util.h>
 #include "dinode.h"
 #include "inode.h"
 #include "ufsmount.h"

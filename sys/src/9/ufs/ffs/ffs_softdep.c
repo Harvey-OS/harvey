@@ -45,7 +45,7 @@
 #include "dat.h"
 #include "../../port/portfns.h"
 
-#include "freebsd_util.h"
+#include <ufs/freebsd_util.h>
 #include "ufs_harvey.h"
 
 /*
@@ -58,10 +58,10 @@
 //#include <ufs/ufs/dir.h>
 //#include <ufs/ufs/extattr.h>
 //#include <ufs/ufs/quota.h>
-#include "../ufs/dinode.h"
+#include "ufs/dinode.h"
 //#include <ufs/ufs/inode.h>
 //#include <ufs/ufs/ufsmount.h>
-#include "../ffs/fs.h"
+#include "ffs/fs.h"
 //#include <ufs/ffs/softdep.h>
 //#include <ufs/ffs/ffs_extern.h>
 //#include <ufs/ufs/ufs_extern.h>
