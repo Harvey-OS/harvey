@@ -61,12 +61,12 @@ void	ffs_clusteracct(struct fs *, struct cg *, ufs1_daddr_t, int);
 void	ffs_bdflush(struct bufobj *, struct buf *);
 int	ffs_copyonwrite(struct vnode *, struct buf *);*/
 int	ffs_flushfiles(MountPoint *, int, thread *);
-/*void	ffs_fragacct(struct fs *, int, int32_t [], int);
-int	ffs_freefile(struct ufsmount *, struct fs *, struct vnode *, ino_t,
-	    int, struct workhead *);
-void	ffs_fserr(struct fs *, ino_t, char *);
-int	ffs_isblock(struct fs *, uint8_t *, ufs1_daddr_t);
-int	ffs_isfreeblock(struct fs *, uint8_t *, ufs1_daddr_t);*/
+//void	ffs_fragacct(struct fs *, int, int32_t [], int);
+//int	ffs_freefile(struct ufsmount *, struct fs *, struct vnode *, ino_t,
+//	    int, struct workhead *);
+//void	ffs_fserr(struct fs *, ino_t, char *);
+//int	ffs_isblock(struct fs *, uint8_t *, ufs1_daddr_t);
+//int	ffs_isfreeblock(struct fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_load_inode(void *, inode *, Fs *, ino_t);
 /*void	ffs_oldfscompat_write(struct fs *, struct ufsmount *);
 int	ffs_own_mount(const struct mount *mp);
@@ -92,14 +92,14 @@ int	ffs_valloc(vnode *, int, Ucred *, vnode **);
 int	ffs_vfree(vnode *, ino_t, int);
 int	ffs_vget(MountPoint *mp, ino_t ino, int flags, vnode **vpp);
 int	ffs_vgetf(MountPoint *, ino_t, int, vnode **, int);
-/*void	ffs_susp_initialize(void);
+void	ffs_susp_initialize(void);
 void	ffs_susp_uninitialize(void);
 
-#define	FFSV_FORCEINSMQ	0x0001
+//#define	FFSV_FORCEINSMQ	0x0001
 
-#define	FFSR_FORCE	0x0001
-#define	FFSR_UNSUSPEND	0x0002
-*/
+//#define	FFSR_FORCE	0x0001
+//#define	FFSR_UNSUSPEND	0x0002
+
 extern struct vop_vector ffs_vnodeops1;
 //extern struct vop_vector ffs_fifoops1;
 extern struct vop_vector ffs_vnodeops2;
@@ -109,11 +109,11 @@ extern struct vop_vector ffs_vnodeops2;
  * Soft update function prototypes.
  */
 
-/*int	softdep_check_suspend(struct mount *, struct vnode *,
-	  int, int, int, int);
-void	softdep_get_depcounts(struct mount *, int *, int *);
+//int	softdep_check_suspend(struct mount *, struct vnode *,
+//	  int, int, int, int);
+//void	softdep_get_depcounts(struct mount *, int *, int *);
 void	softdep_initialize(void);
-void	softdep_uninitialize(void);*/
+void	softdep_uninitialize(void);
 int	softdep_mount(vnode *, MountPoint *, Fs *, Ucred *);
 /*void	softdep_unmount(struct mount *);
 int	softdep_move_dependencies(struct buf *, struct buf *);

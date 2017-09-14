@@ -69,7 +69,7 @@ typedef struct inode inode;
 int	ufs_lookup_ino(vnode *, vnode **, ComponentName *, ino_t *);
 //int	 ufs_getlbns(struct vnode *, ufs2_daddr_t, struct indir *, int *);
 //int	 ufs_inactive(struct vop_inactive_args *);
-//int	 ufs_init(struct vfsconf *);
+int	 ufs_init();
 //void	 ufs_itimes(struct vnode *vp);
 //int	 ufs_lookup(vop_cachedlookup_args *);
 //void	 ufs_prepare_reclaim(struct vnode *vp);
@@ -77,7 +77,7 @@ int	ufs_lookup_ino(vnode *, vnode **, ComponentName *, ino_t *);
 //int	 ufs_reclaim(struct vop_reclaim_args *);
 void	ffs_snapgone(struct inode *);
 int	ufs_root(MountPoint *mp, int flags, vnode **vpp);
-//int	 ufs_uninit(struct vfsconf *);
+int	 ufs_uninit();
 int	 ufs_vinit(MountPoint *, vnode **);
 //SYSCTL_DECL(_vfs_ufs);
 
