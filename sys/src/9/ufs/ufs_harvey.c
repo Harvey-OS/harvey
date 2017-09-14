@@ -126,7 +126,7 @@ lookuppath(MountPoint *mp, char *path, vnode **vn)
 {
 	// Get the root
 	vnode *root = nil;
-	int rcode = ufs_root(mp, 0, &root);
+	int rcode = ufs_root(mp, LK_EXCLUSIVE, &root);
 	if (rcode != 0) {
 		print("couldn't get root: %d", rcode);
 		return -1;
@@ -141,4 +141,30 @@ lookuppath(MountPoint *mp, char *path, vnode **vn)
 	}
 
 	return 0;
+}
+
+static void
+vfs_badlock(const char *msg, const char *str, vnode *vp)
+{
+	print("*** %s: %p %s\n", str, (void *)vp, msg);
+}
+
+void
+assert_vop_locked(vnode *vp, const char *str)
+{
+	if (vp == nil) {
+		print("assert_vop_locked: vnode is nil (checking %s)\n", str);
+	} else if (vp->vnlock.readers == 0 && vp->vnlock.writer == 0) {
+		vfs_badlock("is not locked but should be", str, vp);
+	}
+}
+
+void
+assert_vop_elocked(vnode *vp, const char *str)
+{
+	if (vp == nil) {
+		print("assert_vop_elocked: vnode is nil (checking %s)\n", str);
+	} else if (vp->vnlock.writer == 0) {
+		vfs_badlock("is not exclusive locked but should be", str, vp);
+	}
 }
