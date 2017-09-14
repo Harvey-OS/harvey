@@ -152,3 +152,5 @@ void releaseufsvnode(MountPoint *mp, vnode *vn);
 
 void assert_vop_locked(vnode *vp, const char *str);
 void assert_vop_elocked(vnode *vp, const char *str);
+
+int32_t bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
