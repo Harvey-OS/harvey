@@ -65,7 +65,6 @@ ufs_root(MountPoint *mp, int flags, vnode **vpp)
 	vnode *nvp;
 	int error;
 
-	//_rc = (*(MP)->mnt_op->vfs_vget)(MP, INO, FLAGS, VPP);
 	error = ffs_vget(mp, (ino_t)UFS_ROOTINO, flags, &nvp);
 	if (error)
 		return (error);
