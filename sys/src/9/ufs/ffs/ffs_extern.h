@@ -50,7 +50,7 @@ typedef struct workhead workhead;
 //	    struct ucred *, ufs2_daddr_t *);
 int	ffs_balloc_ufs2(vnode *a_vp, off_t a_startoffset, int a_size,
             Ucred *a_cred, int a_flags, Buf **a_bpp);
-int	ffs_blkatoff(vnode *, off_t, char **, Buf **);
+int	ffs_blkatoff(vnode *, off_t, char **, void **);
 /*void	ffs_blkfree(struct ufsmount *, struct fs *, struct vnode *,
 	    ufs2_daddr_t, long, ino_t, enum vtype, struct workhead *);
 ufs2_daddr_t ffs_blkpref_ufs1(struct inode *, ufs_lbn_t, int, ufs1_daddr_t *);

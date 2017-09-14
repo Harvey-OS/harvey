@@ -57,7 +57,7 @@
  * remaining space in the directory.
  */
 int
-ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
+ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
 {
 	inode *ip;
 	Fs *fs;
