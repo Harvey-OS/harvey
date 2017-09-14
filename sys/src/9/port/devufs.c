@@ -149,6 +149,18 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	}
 }
 
+static void
+ufsinit()
+{
+	ffs_init();
+}
+
+static void
+ufsshutdown()
+{
+	ffs_uninit();
+}
+
 static Chan*
 ufsattach(char* spec)
 {
@@ -369,8 +381,8 @@ Dev ufsdevtab = {
 	.name = "ufs",
 
 	.reset = devreset,
-	.init = devinit,
-	.shutdown = devshutdown,
+	.init = ufsinit,
+	.shutdown = ufsshutdown,
 	.attach = ufsattach,
 	.walk = ufswalk,
 	.stat = ufsstat,
