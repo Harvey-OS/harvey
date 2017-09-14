@@ -2414,7 +2414,7 @@ ufs_pathconf (struct vop_pathconf_args *ap)
  * vnodes.
  */
 int 
-ufs_vinit (MountPoint *mntp, vnode **vpp)
+ufs_vinit(MountPoint *mntp, vnode **vpp)
 {
 	inode *ip;
 	vnode *vp;
@@ -2422,8 +2422,7 @@ ufs_vinit (MountPoint *mntp, vnode **vpp)
 	vp = *vpp;
 	ip = VTOI(vp);
 	vp->type = ifmt_to_vtype(ip->i_mode);
-	// TODO HARVEY Locking
-	//ASSERT_VOP_LOCKED(vp, "ufs_vinit");
+	assert_vop_locked(vp, "ufs_vinit");
 	if (ip->i_number == UFS_ROOTINO)
 		vp->vflag |= VV_ROOT;
 	*vpp = vp;
