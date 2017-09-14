@@ -143,6 +143,24 @@ lookuppath(MountPoint *mp, char *path, vnode **vn)
 	return 0;
 }
 
+/*
+ * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
+ * block read function.
+ */
+int32_t
+bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf)
+{
+	*buf = smalloc(size);
+
+	Chan *c = mp->chan;
+	int64_t offset = dbtob(blockno);
+	int32_t bytesRead = c->dev->read(c, *buf, size, offset);
+	if (bytesRead != size) {
+		error("bread returned wrong size");
+	}
+	return 0;
+}
+
 static void
 vfs_badlock(const char *msg, const char *str, vnode *vp)
 {
