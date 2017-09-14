@@ -55,8 +55,6 @@
 #include "ufs/ufsmount.h"
 
 
-static char Ebadread[] = "bread returned wrong size";
-
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
@@ -715,24 +713,6 @@ loop:
  * Possible superblock locations ordered from most to least likely.
  */
 static int sblock_try[] = SBLOCKSEARCH;
-
-/*
- * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
- * block read function.
- */
-static int32_t
-bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf)
-{
-	*buf = smalloc(size);
-
-	Chan *c = mp->chan;
-	int64_t offset = dbtob(blockno);
-	int32_t bytesRead = c->dev->read(c, *buf, size, offset);
-	if (bytesRead != size) {
-		error(Ebadread);
-	}
-	return 0;
-}
 
 /*
  * Common code for mount and mountroot
