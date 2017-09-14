@@ -1647,7 +1647,12 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	/*
 	 * FFS supports recursive locking.
 	 */
-	wlock(&vp->vnlock);
+	if (flags & LK_EXCLUSIVE) {
+		wlock(&vp->vnlock);
+	} else if (flags & LK_SHARED) {
+		rlock(&vp->vnlock);
+	}
+	
 	//VN_LOCK_AREC(vp);
 	vp->data = ip;
 	//vp->v_bufobj.bo_bsize = fs->fs_bsize;
@@ -1721,7 +1726,6 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 */
 	/* FFS supports shared locking for all files except fifos. */
 	//VN_LOCK_ASHARE(vp);
-	wunlock(&vp->vnlock);
 
 	/*
 	 * Set up a generation number for this inode if it does not

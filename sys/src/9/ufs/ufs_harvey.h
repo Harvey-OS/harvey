@@ -139,6 +139,16 @@ typedef struct vnode {
 #define	RENAME		3	/* setup for file renaming */
 #define	OPMASK		3	/* mask for operation */
 
+/*
+ * Operations for lockmgr().
+ */
+#define	LK_EXCLUSIVE	0x080000
+#define	LK_SHARED	0x200000
+
+
 int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
 int getnewvnode(MountPoint *mp, vnode **vpp);
 void releaseufsvnode(MountPoint *mp, vnode *vn);
+
+void assert_vop_locked(vnode *vp, const char *str);
+void assert_vop_elocked(vnode *vp, const char *str);
