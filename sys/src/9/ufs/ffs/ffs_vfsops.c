@@ -1652,7 +1652,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	} else if (flags & LK_SHARED) {
 		rlock(&vp->vnlock);
 	}
-	
+
 	//VN_LOCK_AREC(vp);
 	vp->data = ip;
 	//vp->v_bufobj.bo_bsize = fs->fs_bsize;
@@ -1816,33 +1816,32 @@ ffs_fhtovp (struct mount *mp, struct fid *fhp, int flags, struct vnode **vpp)
 	return (ufs_fhtovp(mp, ufhp, flags, vpp));
 }
 
+#endif // 0
+
 /*
  * Initialize the filesystem.
  */
-static int 
-ffs_init (struct vfsconf *vfsp)
+int 
+ffs_init ()
 {
-
 	ffs_susp_initialize();
 	softdep_initialize();
-	return (ufs_init(vfsp));
+	return (ufs_init());
 }
 
 /*
  * Undo the work of ffs_init().
  */
-static int 
-ffs_uninit (struct vfsconf *vfsp)
+int 
+ffs_uninit ()
 {
 	int ret;
 
-	ret = ufs_uninit(vfsp);
+	ret = ufs_uninit();
 	softdep_uninitialize();
 	ffs_susp_uninitialize();
 	return (ret);
 }
-
-#endif // 0
 
 /*
  * Write a superblock and associated information back to disk.
