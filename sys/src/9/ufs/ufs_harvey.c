@@ -126,7 +126,7 @@ lookuppath(MountPoint *mp, char *path, vnode **vn)
 {
 	// Get the root
 	vnode *root = nil;
-	int rcode = ufs_root(mp, 0, &root);
+	int rcode = ufs_root(mp, LK_EXCLUSIVE, &root);
 	if (rcode != 0) {
 		print("couldn't get root: %d", rcode);
 		return -1;
@@ -141,4 +141,48 @@ lookuppath(MountPoint *mp, char *path, vnode **vn)
 	}
 
 	return 0;
+}
+
+/*
+ * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
+ * block read function.
+ */
+int32_t
+bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf)
+{
+	*buf = smalloc(size);
+
+	Chan *c = mp->chan;
+	int64_t offset = dbtob(blockno);
+	int32_t bytesRead = c->dev->read(c, *buf, size, offset);
+	if (bytesRead != size) {
+		error("bread returned wrong size");
+	}
+	return 0;
+}
+
+static void
+vfs_badlock(const char *msg, const char *str, vnode *vp)
+{
+	print("*** %s: %p %s\n", str, (void *)vp, msg);
+}
+
+void
+assert_vop_locked(vnode *vp, const char *str)
+{
+	if (vp == nil) {
+		print("assert_vop_locked: vnode is nil (checking %s)\n", str);
+	} else if (vp->vnlock.readers == 0 && vp->vnlock.writer == 0) {
+		vfs_badlock("is not locked but should be", str, vp);
+	}
+}
+
+void
+assert_vop_elocked(vnode *vp, const char *str)
+{
+	if (vp == nil) {
+		print("assert_vop_elocked: vnode is nil (checking %s)\n", str);
+	} else if (vp->vnlock.writer == 0) {
+		vfs_badlock("is not exclusive locked but should be", str, vp);
+	}
 }

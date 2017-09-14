@@ -65,7 +65,6 @@ ufs_root(MountPoint *mp, int flags, vnode **vpp)
 	vnode *nvp;
 	int error;
 
-	//_rc = (*(MP)->mnt_op->vfs_vget)(MP, INO, FLAGS, VPP);
 	error = ffs_vget(mp, (ino_t)UFS_ROOTINO, flags, &nvp);
 	if (error)
 		return (error);
@@ -168,14 +167,14 @@ ufs_quotactl(mp, cmds, id, arg)
 	return (error);
 #endif
 }
+#endif // 0
 
 /*
  * Initial UFS filesystems, done only once.
  */
 int 
-ufs_init (struct vfsconf *vfsp)
+ufs_init ()
 {
-
 #ifdef QUOTA
 	dqinit();
 #endif
@@ -189,9 +188,8 @@ ufs_init (struct vfsconf *vfsp)
  * Uninitialise UFS filesystems, done before module unload.
  */
 int 
-ufs_uninit (struct vfsconf *vfsp)
+ufs_uninit ()
 {
-
 #ifdef QUOTA
 	dquninit();
 #endif
@@ -200,6 +198,8 @@ ufs_uninit (struct vfsconf *vfsp)
 #endif
 	return (0);
 }
+
+#if 0
 
 /*
  * This is the generic part of fhtovp called after the underlying

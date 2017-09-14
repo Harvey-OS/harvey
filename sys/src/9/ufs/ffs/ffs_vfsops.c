@@ -55,8 +55,6 @@
 #include "ufs/ufsmount.h"
 
 
-static char Ebadread[] = "bread returned wrong size";
-
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
@@ -715,24 +713,6 @@ loop:
  * Possible superblock locations ordered from most to least likely.
  */
 static int sblock_try[] = SBLOCKSEARCH;
-
-/*
- * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
- * block read function.
- */
-static int32_t
-bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf)
-{
-	*buf = smalloc(size);
-
-	Chan *c = mp->chan;
-	int64_t offset = dbtob(blockno);
-	int32_t bytesRead = c->dev->read(c, *buf, size, offset);
-	if (bytesRead != size) {
-		error(Ebadread);
-	}
-	return 0;
-}
 
 /*
  * Common code for mount and mountroot
@@ -1647,7 +1627,12 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	/*
 	 * FFS supports recursive locking.
 	 */
-	wlock(&vp->vnlock);
+	if (flags & LK_EXCLUSIVE) {
+		wlock(&vp->vnlock);
+	} else if (flags & LK_SHARED) {
+		rlock(&vp->vnlock);
+	}
+
 	//VN_LOCK_AREC(vp);
 	vp->data = ip;
 	//vp->v_bufobj.bo_bsize = fs->fs_bsize;
@@ -1721,7 +1706,6 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 */
 	/* FFS supports shared locking for all files except fifos. */
 	//VN_LOCK_ASHARE(vp);
-	wunlock(&vp->vnlock);
 
 	/*
 	 * Set up a generation number for this inode if it does not
@@ -1812,33 +1796,32 @@ ffs_fhtovp (struct mount *mp, struct fid *fhp, int flags, struct vnode **vpp)
 	return (ufs_fhtovp(mp, ufhp, flags, vpp));
 }
 
+#endif // 0
+
 /*
  * Initialize the filesystem.
  */
-static int 
-ffs_init (struct vfsconf *vfsp)
+int 
+ffs_init ()
 {
-
 	ffs_susp_initialize();
 	softdep_initialize();
-	return (ufs_init(vfsp));
+	return (ufs_init());
 }
 
 /*
  * Undo the work of ffs_init().
  */
-static int 
-ffs_uninit (struct vfsconf *vfsp)
+int 
+ffs_uninit ()
 {
 	int ret;
 
-	ret = ufs_uninit(vfsp);
+	ret = ufs_uninit();
 	softdep_uninitialize();
 	ffs_susp_uninitialize();
 	return (ret);
 }
-
-#endif // 0
 
 /*
  * Write a superblock and associated information back to disk.

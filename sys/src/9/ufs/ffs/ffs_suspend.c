@@ -28,8 +28,11 @@
  *
  * $FreeBSD$
  */
+
 #include <u.h>
 #include <libc.h>
+
+#if 0
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
@@ -306,19 +309,21 @@ ffs_susp_ioctl(struct cdev *dev, uint64_t cmd, caddr_t addr, int flags,
 	return (error);
 }
 
+#endif // 0
+
 void
 ffs_susp_initialize(void)
 {
-
-	sx_init(&ffs_susp_lock, "ffs_susp");
-	ffs_susp_dev = make_dev(&ffs_susp_cdevsw, 0, UID_ROOT, GID_WHEEL, 0600,
-	    "ufssuspend");
+	print("HARVEY TODO: %s\n", __func__);
+	//sx_init(&ffs_susp_lock, "ffs_susp");
+	//ffs_susp_dev = make_dev(&ffs_susp_cdevsw, 0, UID_ROOT, GID_WHEEL, 0600,
+	//    "ufssuspend");
 }
 
 void
 ffs_susp_uninitialize(void)
 {
-
-	destroy_dev(ffs_susp_dev);
-	sx_destroy(&ffs_susp_lock);
+	print("HARVEY TODO: %s\n", __func__);
+	//destroy_dev(ffs_susp_dev);
+	//sx_destroy(&ffs_susp_lock);
 }

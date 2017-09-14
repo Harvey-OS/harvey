@@ -39,12 +39,12 @@
 #include "ufs_harvey.h"
 
 #include "ufs/quota.h"
+#include "ffs/fs.h"
+#include "ufs/ufsmount.h"
 #include "ufs/inode.h"
 #include "ufs/dinode.h"
-#include "ffs/fs.h"
 
-/*#include <ufs/ufs/quota.h>
-#include <ufs/ufs/inode.h>
+/*
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/ufsmount.h>
 #include <ufs/ufs/ufs_extern.h>
@@ -57,13 +57,11 @@
  * remaining space in the directory.
  */
 int
-ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
+ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
 {
-	print("HARVEY TODO: %s\n", __func__);
-#if 0
-	struct inode *ip;
-	struct fs *fs;
-	struct buf *bp;
+	inode *ip;
+	Fs *fs;
+	void *bp;
 	ufs_lbn_t lbn;
 	int bsize, error;
 
@@ -73,16 +71,16 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
 	bsize = blksize(fs, ip, lbn);
 
 	*bpp = nil;
-	error = bread(vp, lbn, bsize, NOCRED, &bp);
+	error = bread(vp->mount, lbn, bsize, /*NOCRED,*/ &bp); 
 	if (error) {
-		brelse(bp);
+		free(bp);
 		return (error);
 	}
 	if (res)
-		*res = (char *)bp->b_data + blkoff(fs, offset);
+		*res = (char *)bp + blkoff(fs, offset);
 	*bpp = bp;
-#endif // 0
 	return (0);
+
 }
 
 /*

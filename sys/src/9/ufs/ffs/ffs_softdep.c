@@ -82,25 +82,22 @@ softdep_flushfiles (MountPoint *oldmnt, int flags, thread *td)
 int 
 softdep_mount (vnode *devvp, MountPoint *mp, Fs *fs, Ucred *cred)
 {
-
 	return (0);
 }
 
-#if 0
 void 
 softdep_initialize (void)
 {
-
 	return;
 }
 
 void 
 softdep_uninitialize (void)
 {
-
 	return;
 }
 
+#if 0
 void 
 softdep_unmount (struct mount *mp)
 {
