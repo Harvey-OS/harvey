@@ -48,6 +48,9 @@ MountPoint *newufsmount(Chan *c, int id);
 void releaseufsmount(MountPoint *mp);
 int countvnodes(vnode *vn);
 
+int ffs_init();
+int ffs_uninit();
+
 int ffs_mount(MountPoint *mp);
 int ffs_unmount(MountPoint *mp, int mntflags);
 
