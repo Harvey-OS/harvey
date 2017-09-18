@@ -51,15 +51,6 @@ typedef struct ComponentName {
 
 
 /*
- * Vnode types.  VNON means no type.
- */
-enum vtype { VNON, VREG, VDIR, VLNK, VBAD, VMARKER };
-typedef enum vtype Vtype;
-
-
-
-
-/*
  * Vnode flags.
  *	VI flags are protected by interlock and live in v_iflag
  *	VV flags are protected by the vnode lock and live in v_vflag
