@@ -1,0 +1,13 @@
+{
+	"Kernellibufs": {
+		"Include": [
+			"/$ARCH/include/klib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "klibufs.a",
+		"SourceFiles": [
+			"libufs_subr.c",
+			"ffs_tables.c"
+		]
+	}
+}

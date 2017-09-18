@@ -9,6 +9,8 @@
 			"block.c",
 			"cgroup.c",
 			"inode.c",
+			"libufs_subr.c",
+			"ffs_tables.c",
 			"sblock.c",
 			"type.c"
 		]
