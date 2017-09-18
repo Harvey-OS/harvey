@@ -27,7 +27,6 @@
 			"../ufs/ffs/ffs_softdep.c",
 			"../ufs/ffs/ffs_subr.c",
 			"../ufs/ffs/ffs_suspend.c",
-			"../ufs/ffs/ffs_tables.c",
 			"../ufs/ffs/ffs_vfsops.c",
 			"../ufs/ffs/ffs_vnops.c",
 			"../ufs/ufs/ufs_inode.c",

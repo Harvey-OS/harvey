@@ -465,7 +465,7 @@ CTASSERT(sizeof(Fs) == 1376);
  * Cylinder group block for a filesystem.
  */
 #define	CG_MAGIC	0x090255
-struct cg {
+typedef struct Cg {
 	int32_t	 cg_firstfield;		/* historic cyl groups linked list */
 	int32_t	 cg_magic;		/* magic number */
 	int32_t  cg_old_time;		/* time last written */
@@ -494,7 +494,7 @@ struct cg {
 	int64_t	 cg_sparecon64[3];	/* reserved for future use */
 	uint8_t cg_space[1];		/* space for cylinder group maps */
 /* actually longer */
-};
+} Cg;
 
 /*
  * Macros for access to cylinder group array structures
