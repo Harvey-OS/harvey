@@ -37,6 +37,7 @@
 #include "dat.h"
 #include "../../port/portfns.h"
 
+#include <ufs/ufsdat.h>
 #include <ufs/freebsd_util.h>
 #include "ufs_mountpoint.h"
 #include "ufs_harvey.h"
