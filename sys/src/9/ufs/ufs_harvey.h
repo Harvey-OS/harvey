@@ -107,16 +107,6 @@ typedef struct vnode {
 
 
 /*
- * MAXBSIZE -	Filesystems are made out of blocks of at most MAXBSIZE bytes
- *		per block.  MAXBSIZE may be made larger without effecting
- *		any existing filesystems as long as it does not exceed MAXPHYS,
- *		and may be made smaller at the risk of not being able to use
- *		filesystems which require a block size exceeding MAXBSIZE.
- */
-#define MAXBSIZE	65536	/* must be power of 2 */
-
-
-/*
  * Flags to various vnode functions.
  */
 #define	FORCECLOSE	0x0002	/* vflush: force file closure */
