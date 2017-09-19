@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 1982, 1986, 1989, 1993
+ * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,69 +26,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)ffs_subr.c	8.5 (Berkeley) 3/21/95
+ *	@(#)queue.h	8.5 (Berkeley) 8/20/94
+ * $FreeBSD$
  */
 
-#include "u.h"
-#include "../../port/lib.h"
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
-
-#include <ufs/ufsdat.h>
-#include <ufs/freebsd_util.h>
-#include "ufs_harvey.h"
-
-#include "ufs/quota.h"
-#include <ffs/fs.h>
-#include "ufs/ufsmount.h"
-#include "ufs/inode.h"
-#include "ufs/dinode.h"
+typedef char *caddr_t;		/* core address */
+typedef int64_t off_t;		/* File offset */
+typedef uint32_t ino_t;		/* inode number */
 
 /*
- * Return buffer with the contents of block "offset" from the beginning of
- * directory "ip".  If "res" is non-zero, fill it in with a pointer to the
- * remaining space in the directory.
+ * MAXBSIZE -	Filesystems are made out of blocks of at most MAXBSIZE bytes
+ *		per block.  MAXBSIZE may be made larger without effecting
+ *		any existing filesystems as long as it does not exceed MAXPHYS,
+ *		and may be made smaller at the risk of not being able to use
+ *		filesystems which require a block size exceeding MAXBSIZE.
  */
-int
-ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
-{
-	inode *ip;
-	Fs *fs;
-	void *bp;
-	ufs_lbn_t lbn;
-	int bsize, error;
-
-	ip = VTOI(vp);
-	fs = ITOFS(ip);
-	lbn = lblkno(fs, offset);
-	bsize = blksize(fs, ip, lbn);
-
-	*bpp = nil;
-	error = bread(vp->mount, lbn, bsize, /*NOCRED,*/ &bp); 
-	if (error) {
-		free(bp);
-		return (error);
-	}
-	if (res)
-		*res = (char *)bp + blkoff(fs, offset);
-	*bpp = bp;
-	return (0);
-}
-
-/*
- * Load up the contents of an inode and copy the appropriate pieces
- * to the incore copy.
- */
-void
-ffs_load_inode(void *buf, inode *ip, Fs *fs, ino_t ino)
-{
-	*ip->i_din2 = *((ufs2_dinode *)buf + ino_to_fsbo(fs, ino));
-	ip->i_mode = ip->i_din2->di_mode;
-	ip->i_nlink = ip->i_din2->di_nlink;
-	ip->i_size = ip->i_din2->di_size;
-	ip->i_flags = ip->i_din2->di_flags;
-	ip->i_gen = ip->i_din2->di_gen;
-	ip->i_uid = ip->i_din2->di_uid;
-	ip->i_gid = ip->i_din2->di_gid;
-}
+#define MAXBSIZE	65536	/* must be power of 2 */
