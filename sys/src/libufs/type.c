@@ -36,16 +36,16 @@
 #include <ufs/dinode.h>
 #include <ffs/fs.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <fstab.h>
-#include <paths.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+//#include <errno.h>
+//#include <fcntl.h>
+//#include <fstab.h>
+//#include <paths.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <unistd.h>
 
-#include <libufs.h>
+#include <lib/libufs.h>
 
 /* Internally, track the 'name' value, it's ours. */
 #define	MINE_NAME	0x01
