@@ -45,7 +45,7 @@
 //#include <string.h>
 //#include <unistd.h>
 
-#include <lib/libufs.h>
+#include <ufs/libufs.h>
 
 /* Internally, track the 'name' value, it's ours. */
 #define	MINE_NAME	0x01
