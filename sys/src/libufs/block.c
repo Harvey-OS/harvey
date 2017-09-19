@@ -25,34 +25,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-//#include <sys/cdefs.h>
+#include <u.h>
+#include <libc.h>
 
-//#include <sys/param.h>
-//#include <sys/mount.h>
-//#include <sys/disk.h>
-//#include <sys/disklabel.h>
-//#include <sys/stat.h>
-
-#include <ufs/ufsmount.h>
+#include <ufs/ufsdat.h>
 #include <ufs/dinode.h>
 #include <ffs/fs.h>
-
-//#include <errno.h>
-//#include <fcntl.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include <unistd.h>
-
 #include <ufs/libufs.h>
 
-ssize_t
-bread(struct uufsd *disk, ufs2_daddr_t blockno, void *data, size_t size)
+int32_t
+bread(Uufsd *disk, ufs2_daddr_t blockno, void *data, size_t size)
 {
 	void *p2;
-	ssize_t cnt;
+	int32_t cnt;
 
-	ERROR(disk, NULL);
+	libufserror(disk, nil);
 
 	p2 = data;
 	/*
@@ -63,22 +50,22 @@ bread(struct uufsd *disk, ufs2_daddr_t blockno, void *data, size_t size)
 	 */
 	if (((intptr_t)data) & 0x3f) {
 		p2 = malloc(size);
-		if (p2 == NULL) {
-			ERROR(disk, "allocate bounce buffer");
+		if (p2 == nil) {
+			libufserror(disk, "allocate bounce buffer");
 			goto fail;
 		}
 	}
 	cnt = pread(disk->d_fd, p2, size, (off_t)(blockno * disk->d_bsize));
 	if (cnt == -1) {
-		ERROR(disk, "read error from block device");
+		libufserror(disk, "read error from block device");
 		goto fail;
 	}
 	if (cnt == 0) {
-		ERROR(disk, "end of file from block device");
+		libufserror(disk, "end of file from block device");
 		goto fail;
 	}
 	if ((size_t)cnt != size) {
-		ERROR(disk, "short read or read error from block device");
+		libufserror(disk, "short read or read error from block device");
 		goto fail;
 	}
 	if (p2 != data) {
@@ -93,18 +80,18 @@ fail:	memset(data, 0, size);
 	return (-1);
 }
 
-ssize_t
-bwrite(struct uufsd *disk, ufs2_daddr_t blockno, const void *data, size_t size)
+int32_t
+bwrite(Uufsd *disk, ufs2_daddr_t blockno, const void *data, size_t size)
 {
-	ssize_t cnt;
+	int32_t cnt;
 	int rv;
-	void *p2 = NULL;
+	void *p2 = nil;
 
-	ERROR(disk, NULL);
+	libufserror(disk, nil);
 
 	rv = ufs_disk_write(disk);
 	if (rv == -1) {
-		ERROR(disk, "failed to open disk for writing");
+		libufserror(disk, "failed to open disk for writing");
 		return (-1);
 	}
 
@@ -116,85 +103,36 @@ bwrite(struct uufsd *disk, ufs2_daddr_t blockno, const void *data, size_t size)
 	 */
 	if (((intptr_t)data) & 0x3f) {
 		p2 = malloc(size);
-		if (p2 == NULL) {
-			ERROR(disk, "allocate bounce buffer");
+		if (p2 == nil) {
+			libufserror(disk, "allocate bounce buffer");
 			return (-1);
 		}
 		memcpy(p2, data, size);
 		data = p2;
 	}
 	cnt = pwrite(disk->d_fd, data, size, (off_t)(blockno * disk->d_bsize));
-	if (p2 != NULL)
+	if (p2 != nil)
 		free(p2);
 	if (cnt == -1) {
-		ERROR(disk, "write error to block device");
+		libufserror(disk, "write error to block device");
 		return (-1);
 	}
 	if ((size_t)cnt != size) {
-		ERROR(disk, "short write to block device");
+		libufserror(disk, "short write to block device");
 		return (-1);
 	}
 
 	return (cnt);
 }
 
-#ifdef __FreeBSD_kernel__
-
-static int
-berase_helper(struct uufsd *disk, ufs2_daddr_t blockno, ufs2_daddr_t size)
+/*
+ * Trace steps through libufs, to be used at entry and erroneous return.
+ */
+void
+libufserror(Uufsd *u, const char *str)
 {
-	off_t ioarg[2];
-
-	ioarg[0] = blockno * disk->d_bsize;
-	ioarg[1] = size;
-	return (ioctl(disk->d_fd, DIOCGDELETE, ioarg));
-}
-
-#else
-
-static int
-berase_helper(struct uufsd *disk, ufs2_daddr_t blockno, ufs2_daddr_t size)
-{
-	char *zero_chunk;
-	off_t offset, zero_chunk_size, pwrite_size;
-	int rv;
-
-	offset = blockno * disk->d_bsize;
-	zero_chunk_size = 65536 * disk->d_bsize;
-	zero_chunk = calloc(1, zero_chunk_size);
-	if (zero_chunk == NULL) {
-		ERROR(disk, "failed to allocate memory");
-		return (-1);
-	}
-	while (size > 0) { 
-		pwrite_size = size;
-		if (pwrite_size > zero_chunk_size)
-			pwrite_size = zero_chunk_size;
-		rv = pwrite(disk->d_fd, zero_chunk, pwrite_size, offset);
-		if (rv == -1) {
-			ERROR(disk, "failed writing to disk");
-			break;
-		}
-		size -= rv;
-		offset += rv;
-		rv = 0;
-	}
-	free(zero_chunk);
-	return (rv);
-}
-
-#endif
-
-int
-berase(struct uufsd *disk, ufs2_daddr_t blockno, ufs2_daddr_t size)
-{
-	int rv;
-
-	ERROR(disk, NULL);
-	rv = ufs_disk_write(disk);
-	if (rv == -1) {
-		ERROR(disk, "failed to open disk for writing");
-		return(rv);
-	}
-	return (berase_helper(disk, blockno, size));
+	if (str != nil)
+		perror(str);
+	if (u != nil)
+		u->d_error = str;
 }

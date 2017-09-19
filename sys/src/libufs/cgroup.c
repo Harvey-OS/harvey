@@ -25,6 +25,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <u.h>
+#include <libc.h>
+
 //#include <sys/cdefs.h>
 
 //#include <sys/param.h>
