@@ -25,17 +25,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
+//#include <sys/cdefs.h>
 
-#include <sys/param.h>
-#include <sys/mount.h>
-#include <sys/disklabel.h>
-#include <sys/stat.h>
+//#include <sys/param.h>
+//#include <sys/mount.h>
+//#include <sys/disklabel.h>
+//#include <sys/stat.h>
 
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
+#include <ufs/ufsmount.h>
+#include <ufs/dinode.h>
+#include <ffs/fs.h>
 
 #include <errno.h>
 #include <stdio.h>
