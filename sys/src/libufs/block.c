@@ -37,14 +37,14 @@
 #include <ufs/dinode.h>
 #include <ffs/fs.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+//#include <errno.h>
+//#include <fcntl.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <unistd.h>
 
-#include <libufs.h>
+#include <ufs/libufs.h>
 
 ssize_t
 bread(struct uufsd *disk, ufs2_daddr_t blockno, void *data, size_t size)

@@ -36,13 +36,13 @@
 #include <ufs/dinode.h>
 #include <ffs/fs.h>
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
+//#include <errno.h>
+//#include <stdio.h>
+//#include <string.h>
+//#include <stdlib.h>
+//#include <unistd.h>
 
-#include <libufs.h>
+#include <ufs/libufs.h>
 
 static int superblocks[] = SBLOCKSEARCH;
 
