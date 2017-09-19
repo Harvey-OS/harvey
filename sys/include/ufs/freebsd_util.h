@@ -59,10 +59,7 @@ typedef	uint32_t ino_t;		/* inode number */
 typedef	uint32_t uid_t;		/* user id */
 typedef	uint32_t gid_t;		/* group id */
 typedef	uint16_t nlink_t;	/* link count */
-typedef	char *caddr_t;		/* core address */
 typedef	uint16_t mode_t;	/* permissions */
-typedef int64_t off_t;		/* File offset */
-typedef	uint32_t ino_t;		/* inode number */
 
 /*
  * The size of physical and logical block numbers and time fields in UFS.

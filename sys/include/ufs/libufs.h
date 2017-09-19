@@ -27,9 +27,6 @@
  * $FreeBSD$
  */
 
-#ifndef	__LIBUFS_H__
-#define	__LIBUFS_H__
-
 /*
  * libufs structures.
  */
@@ -37,7 +34,7 @@
 /*
  * userland ufs disk.
  */
-struct uufsd {
+typedef struct Uufsd {
 	const char *d_name;	/* disk name */
 	int d_ufs;		/* decimal UFS version */
 	int d_fd;		/* raw device file descriptor */
@@ -48,12 +45,12 @@ struct uufsd {
 	ino_t d_inomin;		/* low inode */
 	ino_t d_inomax;		/* high inode */
 	union {
-		struct fs d_fs;	/* filesystem information */
+		Fs d_fs;	/* filesystem information */
 		char d_sb[MAXBSIZE];
 				/* superblock as buffer */
 	} d_sbunion;
 	union {
-		struct cg d_cg;	/* cylinder group */
+		Cg d_cg;	/* cylinder group */
 		char d_buf[MAXBSIZE];
 				/* cylinder group storage */
 	} d_cgunion;
@@ -64,33 +61,8 @@ struct uufsd {
 #define	d_fs	d_sbunion.d_fs
 #define	d_sb	d_sbunion.d_sb
 #define	d_cg	d_cgunion.d_cg
-};
+} Uufsd;
 
-/*
- * libufs macros (internal, non-exported).
- */
-#ifdef	_LIBUFS
-/*
- * Trace steps through libufs, to be used at entry and erroneous return.
- */
-static inline void
-ERROR(struct uufsd *u, const char *str)
-{
-
-#ifdef	_LIBUFS_DEBUGGING
-	if (str != NULL) {
-		fprintf(stderr, "libufs: %s", str);
-		if (errno != 0)
-			fprintf(stderr, ": %s", strerror(errno));
-		fprintf(stderr, "\n");
-	}
-#endif
-	if (u != NULL)
-		u->d_error = str;
-}
-#endif	/* _LIBUFS */
-
-__BEGIN_DECLS
 
 /*
  * libufs prototypes.
@@ -99,51 +71,47 @@ __BEGIN_DECLS
 /*
  * block.c
  */
-ssize_t bread(struct uufsd *, ufs2_daddr_t, void *, size_t);
-ssize_t bwrite(struct uufsd *, ufs2_daddr_t, const void *, size_t);
-int berase(struct uufsd *, ufs2_daddr_t, ufs2_daddr_t);
+int32_t bread(Uufsd *, ufs2_daddr_t, void *, size_t);
+int32_t bwrite(Uufsd *, ufs2_daddr_t, const void *, size_t);
+void libufserror(Uufsd *u, const char *str);
 
 /*
  * cgroup.c
  */
-ufs2_daddr_t cgballoc(struct uufsd *);
-int cgbfree(struct uufsd *, ufs2_daddr_t, long);
-ino_t cgialloc(struct uufsd *);
-int cgread(struct uufsd *);
-int cgread1(struct uufsd *, int);
-int cgwrite(struct uufsd *);
-int cgwrite1(struct uufsd *, int);
+ufs2_daddr_t cgballoc(Uufsd *);
+int cgbfree(Uufsd *, ufs2_daddr_t, long);
+ino_t cgialloc(Uufsd *);
+int cgread(Uufsd *);
+int cgread1(Uufsd *, int);
+int cgwrite(Uufsd *);
+int cgwrite1(Uufsd *, int);
 
 /*
  * inode.c
  */
-int getino(struct uufsd *, void **, ino_t, int *);
-int putino(struct uufsd *);
+int getino(Uufsd *, void **, ino_t, int *);
+int putino(Uufsd *);
 
 /*
  * sblock.c
  */
-int sbread(struct uufsd *);
-int sbwrite(struct uufsd *, int);
+int sbread(Uufsd *);
+int sbwrite(Uufsd *, int);
 
 /*
  * type.c
  */
-int ufs_disk_close(struct uufsd *);
-int ufs_disk_fillout(struct uufsd *, const char *);
-int ufs_disk_fillout_blank(struct uufsd *, const char *);
-int ufs_disk_write(struct uufsd *);
+int ufs_disk_close(Uufsd *);
+int ufs_disk_fillout(Uufsd *, const char *);
+int ufs_disk_fillout_blank(Uufsd *, const char *);
+int ufs_disk_write(Uufsd *);
 
 /*
  * ffs_subr.c
  */
-void	ffs_clrblock(struct fs *, u_char *, ufs1_daddr_t);
-void	ffs_clusteracct(struct fs *, struct cg *, ufs1_daddr_t, int);
-void	ffs_fragacct(struct fs *, int, int32_t [], int);
-int	ffs_isblock(struct fs *, u_char *, ufs1_daddr_t);
-int	ffs_isfreeblock(struct fs *, u_char *, ufs1_daddr_t);
-void	ffs_setblock(struct fs *, u_char *, ufs1_daddr_t);
-
-__END_DECLS
-
-#endif	/* __LIBUFS_H__ */
+void	ffs_clrblock(Fs *, uint8_t *, ufs1_daddr_t);
+void	ffs_clusteracct(Fs *, Cg *, ufs1_daddr_t, int);
+void	ffs_fragacct(Fs *, int, int32_t [], int);
+int	ffs_isblock(Fs *, uint8_t *, ufs1_daddr_t);
+int	ffs_isfreeblock(Fs *, uint8_t *, ufs1_daddr_t);
+void	ffs_setblock(Fs *, uint8_t *, ufs1_daddr_t);

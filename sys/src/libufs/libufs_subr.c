@@ -153,7 +153,7 @@ ffs_clrblock(Fs *fs, uint8_t *cp, ufs1_daddr_t h)
  * put a block into the map
  */
 void
-ffs_setblock(Fs *fs, unsigned char *cp, ufs1_daddr_t h)
+ffs_setblock(Fs *fs, uint8_t *cp, ufs1_daddr_t h)
 {
 	switch ((int)fs->fs_frag) {
 
