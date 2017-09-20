@@ -54,8 +54,6 @@ struct {								\
 }
 
 
-typedef	int64_t daddr_t;	/* disk address */
-typedef	uint32_t ino_t;		/* inode number */
 typedef	uint32_t uid_t;		/* user id */
 typedef	uint32_t gid_t;		/* group id */
 typedef	uint16_t nlink_t;	/* link count */
