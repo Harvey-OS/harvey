@@ -51,3 +51,10 @@ typedef int64_t ufs_time_t;
  *		filesystems which require a block size exceeding MAXBSIZE.
  */
 #define MAXBSIZE	65536	/* must be power of 2 */
+
+#define	NBBY	8		/* number of bits in a byte */
+
+#define	setbit(a,i)	(((unsigned char *)(a))[(i)/NBBY] |= 1<<((i)%NBBY))
+#define	clrbit(a,i)	(((unsigned char *)(a))[(i)/NBBY] &= ~(1<<((i)%NBBY)))
+#define	isclr(a,i)							\
+	((((const unsigned char *)(a))[(i)/NBBY] & (1<<((i)%NBBY))) == 0)
