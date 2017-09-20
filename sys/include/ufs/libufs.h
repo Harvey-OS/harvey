@@ -111,7 +111,7 @@ int ufs_disk_write(Uufsd *);
  */
 void	ffs_clrblock(Fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_clusteracct(Fs *, Cg *, ufs1_daddr_t, int);
-void	ffs_fragacct(Fs *, int, int32_t [], int);
+void	ffs_fragacct(Fs *, int, uint32_t [], int);
 int	ffs_isblock(Fs *, uint8_t *, ufs1_daddr_t);
 int	ffs_isfreeblock(Fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_setblock(Fs *, uint8_t *, ufs1_daddr_t);

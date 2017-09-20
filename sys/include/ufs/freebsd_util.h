@@ -122,11 +122,6 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
 
 #define S_IFMT 0170000		/* type of file */
 
-#define	NBBY	8		/* number of bits in a byte */
-
-#define	setbit(a,i)	(((unsigned char *)(a))[(i)/NBBY] |= 1<<((i)%NBBY))
-#define	clrbit(a,i)	(((unsigned char *)(a))[(i)/NBBY] &= ~(1<<((i)%NBBY)))
-
 /*
  * Vnode types.  VNON means no type.
  */

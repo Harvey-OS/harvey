@@ -7,13 +7,13 @@
 		"Library": "libufs.a",
 		"SourceFiles": [
 			"block.c",
-			"inode.c"
+			"cgroup.c",
+			"inode.c",
+			"sblock.c"
 		],
 		"NotSourceFiles": [
-			"cgroup.c",
 			"libufs_subr.c",
 			"ffs_tables.c",
-			"sblock.c",
 			"type.c"
 		]
 	}
