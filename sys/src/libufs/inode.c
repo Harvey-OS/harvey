@@ -25,47 +25,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
+#include <u.h>
+#include <libc.h>
 
-#include <sys/param.h>
-#include <sys/mount.h>
-#include <sys/disklabel.h>
-#include <sys/stat.h>
-
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
-
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <libufs.h>
+#include <ufs/ufsdat.h>
+#include <ufs/dinode.h>
+#include <ffs/fs.h>
+#include <ufs/libufs.h>
 
 int
-getino(struct uufsd *disk, void **dino, ino_t inode, int *mode)
+getino(Uufsd *disk, void **dino, ino_t inode, int *mode)
 {
 	ino_t min, max;
 	caddr_t inoblock;
-	struct ufs1_dinode *dp1;
-	struct ufs2_dinode *dp2;
-	struct fs *fs;
+	ufs2_dinode *dp2;
+	Fs *fs;
 
-	ERROR(disk, NULL);
+	libufserror(disk, nil);
 
 	fs = &disk->d_fs;
 	inoblock = disk->d_inoblock;
 	min = disk->d_inomin;
 	max = disk->d_inomax;
 
-	if (inoblock == NULL) {
+	if (inoblock == nil) {
 		inoblock = malloc(fs->fs_bsize);
-		if (inoblock == NULL) {
-			ERROR(disk, "unable to allocate inode block");
+		if (inoblock == nil) {
+			libufserror(disk, "unable to allocate inode block");
 			return (-1);
 		}
 		disk->d_inoblock = inoblock;
@@ -78,10 +64,8 @@ getino(struct uufsd *disk, void **dino, ino_t inode, int *mode)
 	disk->d_inomax = max = min + INOPB(fs);
 gotit:	switch (disk->d_ufs) {
 	case 1:
-		dp1 = &((struct ufs1_dinode *)inoblock)[inode - min];
-		*mode = dp1->di_mode & IFMT;
-		*dino = dp1;
-		return (0);
+		libufserror(disk, "UFS1 not supported");
+		return (-1);
 	case 2:
 		dp2 = &((struct ufs2_dinode *)inoblock)[inode - min];
 		*mode = dp2->di_mode & IFMT;
@@ -90,18 +74,18 @@ gotit:	switch (disk->d_ufs) {
 	default:
 		break;
 	}
-	ERROR(disk, "unknown UFS filesystem type");
+	libufserror(disk, "unknown UFS filesystem type");
 	return (-1);
 }
 
 int
-putino(struct uufsd *disk)
+putino(Uufsd *disk)
 {
-	struct fs *fs;
+	Fs *fs;
 
 	fs = &disk->d_fs;
-	if (disk->d_inoblock == NULL) {
-		ERROR(disk, "No inode block allocated");
+	if (disk->d_inoblock == nil) {
+		libufserror(disk, "No inode block allocated");
 		return (-1);
 	}
 	if (bwrite(disk, fsbtodb(fs, ino_to_fsba(&disk->d_fs, disk->d_inomin)),
