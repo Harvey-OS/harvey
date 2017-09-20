@@ -81,14 +81,6 @@
  */
 #define	UFS_WINO	((ino_t)1)
 
-/*
- * The size of physical and logical block numbers and time fields in UFS.
- */
-typedef	int32_t	ufs1_daddr_t;
-typedef	int64_t	ufs2_daddr_t;
-typedef int64_t ufs_lbn_t;
-typedef int64_t ufs_time_t;
-
 /* File permissions. */
 #define	IEXEC		0000100		/* Executable. */
 #define	IWRITE		0000200		/* Writeable. */
