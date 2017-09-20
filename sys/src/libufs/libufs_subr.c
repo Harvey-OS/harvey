@@ -48,7 +48,7 @@ void panic(char*, ...);
  * of some frags.
  */
 void
-ffs_fragacct(Fs *fs, int fragmap, int32_t fraglist[], int cnt)
+ffs_fragacct(Fs *fs, int fragmap, uint32_t fraglist[], int cnt)
 {
 	int inblk;
 	int field, subfield;
