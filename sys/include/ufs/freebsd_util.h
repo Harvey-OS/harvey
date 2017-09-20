@@ -61,14 +61,6 @@ typedef	uint32_t gid_t;		/* group id */
 typedef	uint16_t nlink_t;	/* link count */
 typedef	uint16_t mode_t;	/* permissions */
 
-/*
- * The size of physical and logical block numbers and time fields in UFS.
- */
-typedef	int32_t	ufs1_daddr_t;
-typedef	int64_t	ufs2_daddr_t;
-typedef int64_t ufs_lbn_t;
-typedef int64_t ufs_time_t;
-
 typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or replaced with a spatch */
 
 

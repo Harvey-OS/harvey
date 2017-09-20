@@ -30,9 +30,18 @@
  * $FreeBSD$
  */
 
+typedef int64_t daddr_t;	/* disk address */
 typedef char *caddr_t;		/* core address */
 typedef int64_t off_t;		/* File offset */
 typedef uint32_t ino_t;		/* inode number */
+
+/*
+ * The size of physical and logical block numbers and time fields in UFS.
+ */
+typedef int32_t ufs1_daddr_t;
+typedef int64_t ufs2_daddr_t;
+typedef int64_t ufs_lbn_t;
+typedef int64_t ufs_time_t;
 
 /*
  * MAXBSIZE -	Filesystems are made out of blocks of at most MAXBSIZE bytes
