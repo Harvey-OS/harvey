@@ -28,32 +28,17 @@
 #include <u.h>
 #include <libc.h>
 
-//#include <sys/cdefs.h>
-
-//#include <sys/param.h>
-//#include <sys/mount.h>
-//#include <sys/disklabel.h>
-//#include <sys/stat.h>
-
-#include <ufs/ufsmount.h>
+#include <ufs/ufsdat.h>
 #include <ufs/dinode.h>
 #include <ffs/fs.h>
-
-//#include <errno.h>
-//#include <fcntl.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include <unistd.h>
-
 #include <ufs/libufs.h>
 
 ufs2_daddr_t
-cgballoc(struct uufsd *disk)
+cgballoc(Uufsd *disk)
 {
-	u_int8_t *blksfree;
-	struct cg *cgp;
-	struct fs *fs;
+	uint8_t *blksfree;
+	Cg *cgp;
+	Fs *fs;
 	long bno;
 
 	fs = &disk->d_fs;
@@ -74,11 +59,11 @@ gotit:
 }
 
 int
-cgbfree(struct uufsd *disk, ufs2_daddr_t bno, long size)
+cgbfree(Uufsd *disk, ufs2_daddr_t bno, long size)
 {
-	u_int8_t *blksfree;
-	struct fs *fs;
-	struct cg *cgp;
+	uint8_t *blksfree;
+	Fs *fs;
+	Cg *cgp;
 	ufs1_daddr_t fragno, cgbno;
 	int i, cg, blk, frags, bbase;
 
@@ -135,12 +120,12 @@ cgbfree(struct uufsd *disk, ufs2_daddr_t bno, long size)
 }
 
 ino_t
-cgialloc(struct uufsd *disk)
+cgialloc(Uufsd *disk)
 {
-	struct ufs2_dinode *dp2;
-	u_int8_t *inosused;
-	struct cg *cgp;
-	struct fs *fs;
+	ufs2_dinode *dp2;
+	uint8_t *inosused;
+	Cg *cgp;
+	Fs *fs;
 	ino_t ino;
 	int i;
 
@@ -156,10 +141,10 @@ gotit:
 	    ino + INOPB(fs) > cgp->cg_initediblk &&
 	    cgp->cg_initediblk < cgp->cg_niblk) {
 		char block[MAXBSIZE];
-		bzero(block, (int)fs->fs_bsize);
-		dp2 = (struct ufs2_dinode *)&block;
+		memset(block, 0, (int)fs->fs_bsize);
+		dp2 = (ufs2_dinode *)&block;
 		for (i = 0; i < INOPB(fs); i++) {
-			dp2->di_gen = arc4random();
+			dp2->di_gen = lrand();
 			dp2++;
 		}
 		if (bwrite(disk, ino_to_fsba(fs,
@@ -180,15 +165,15 @@ gotit:
 }
 
 int
-cgread(struct uufsd *disk)
+cgread(Uufsd *disk)
 {
 	return (cgread1(disk, disk->d_ccg++));
 }
 
 int
-cgread1(struct uufsd *disk, int c)
+cgread1(Uufsd *disk, int c)
 {
-	struct fs *fs;
+	Fs *fs;
 
 	fs = &disk->d_fs;
 
@@ -197,7 +182,7 @@ cgread1(struct uufsd *disk, int c)
 	}
 	if (bread(disk, fsbtodb(fs, cgtod(fs, c)), disk->d_cgunion.d_buf,
 	    fs->fs_bsize) == -1) {
-		ERROR(disk, "unable to read cylinder group");
+		libufserror(disk, "unable to read cylinder group");
 		return (-1);
 	}
 	disk->d_lcg = c;
@@ -205,20 +190,20 @@ cgread1(struct uufsd *disk, int c)
 }
 
 int
-cgwrite(struct uufsd *disk)
+cgwrite(Uufsd *disk)
 {
 	return (cgwrite1(disk, disk->d_lcg));
 }
 
 int
-cgwrite1(struct uufsd *disk, int c)
+cgwrite1(Uufsd *disk, int c)
 {
-	struct fs *fs;
+	Fs *fs;
 
 	fs = &disk->d_fs;
 	if (bwrite(disk, fsbtodb(fs, cgtod(fs, c)),
 	    disk->d_cgunion.d_buf, fs->fs_bsize) == -1) {
-		ERROR(disk, "unable to write cylinder group");
+		libufserror(disk, "unable to write cylinder group");
 		return (-1);
 	}
 	return (0);
