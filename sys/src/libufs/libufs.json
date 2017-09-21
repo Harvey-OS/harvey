@@ -8,12 +8,10 @@
 		"SourceFiles": [
 			"block.c",
 			"cgroup.c",
-			"inode.c",
-			"sblock.c"
-		],
-		"NotSourceFiles": [
-			"libufs_subr.c",
 			"ffs_tables.c",
+			"inode.c",
+			"libufs_subr.c",
+			"sblock.c",
 			"type.c"
 		]
 	}
