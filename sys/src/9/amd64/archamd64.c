@@ -152,6 +152,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x00000650:		/* i5 6xx, i3 5xx */
 		case 0x000006c0:		/* i5 4xxx */
 		case 0x000006a0:		/* i7 paurea... */
+		case 0x000306a0:		/* i7 Ivy Bridge, Haswell and Broadwell... */
 			/*
 			 * Get the FSB frequemcy.
 			 * If processor has Enhanced Intel Speedstep Technology
@@ -229,6 +230,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x00600f10:		/* K10 Opteron 6272, FX 6xxx/4xxx */
 		case 0x00600f20:		/* K10 Opteron 63xx, FX 3xxx/8xxx/9xxx */
 		case 0x00700f00:		/* Athlon II X4 5xxx */
+		case 0x00800f10:		/* Ryzen 5 and 7 */
 			msr = rdmsr(0xc0010064);
 			r = msr & 0x1f;
 			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
