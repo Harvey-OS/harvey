@@ -102,12 +102,10 @@ int sbwrite(Uufsd *, int);
  * type.c
  */
 int ufs_disk_close(Uufsd *);
-int ufs_disk_fillout(Uufsd *, const char *);
-int ufs_disk_fillout_blank(Uufsd *, const char *);
 int ufs_disk_write(Uufsd *);
 
 /*
- * ffs_subr.c
+ * libufs_subr.c
  */
 void	ffs_clrblock(Fs *, uint8_t *, ufs1_daddr_t);
 void	ffs_clusteracct(Fs *, Cg *, ufs1_daddr_t, int);
