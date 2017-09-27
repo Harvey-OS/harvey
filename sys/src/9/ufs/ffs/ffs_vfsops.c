@@ -793,9 +793,14 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		      (fs->fs_sblockloc == sblockloc ||
 		       (fs->fs_old_flags & FS_FLAGS_UPDATED) == 0))) &&
 		    fs->fs_bsize <= MAXBSIZE &&
-		    fs->fs_bsize >= sizeof(Fs))
+		    fs->fs_bsize >= sizeof(Fs)) {
+		    	// fs looks valid 
 			break;
+		}
+
+		// fs doesn't look right - free and try again
 		free(buf);
+		buf = nil;
 	}
 
 	if (sblock_try[i] == -1) {
