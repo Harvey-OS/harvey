@@ -71,7 +71,7 @@ fsread(void *f, void *data, int len)
 {
 	UINTN size;
 
-	size = len;
+	size = len > 4096 ? 4096 : len;
 	if(eficall(((EFI_FILE_PROTOCOL*)f)->Read, f, &size, data))
 		return 0;
 	return (int)size;
