@@ -48,7 +48,6 @@
 int	erasecontents;		/* Erase previous disk contents */
 //int	Lflag;			/* add a volume label */
 int	createfs = 1;		/* run without writing file system */
-//int	Oflag = 2;		/* file system format (1 => UFS1, 2 => UFS2) */
 int	regressiontest;		/* regression test */
 int	enablesu;		/* enable soft updates for file system */
 int	enablesuj;		/* enable soft updates journaling for filesys */
@@ -73,7 +72,7 @@ int	enabletrim;		/* enable TRIM */
 //int	avgfilesize = AVFILESIZ;/* expected average file size */
 //int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
 //u_char	*volumelabel = nil;	/* volume label for filesystem */
-//struct uufsd disk;		/* libufs disk structure */
+Uufsd disk;		/* libufs disk structure */
 
 //static char	device[MAXPATHLEN];
 //static u_char   bootarea[BBSIZE];
@@ -85,8 +84,6 @@ int	enabletrim;		/* enable TRIM */
 //static struct disklabel *getdisklabel(char *s);
 static void usage();
 //static int expand_number_int(const char *buf, int *num);
-
-//ufs2_daddr_t part_ofs; /* partition offset in blocks, used with files */
 
 void
 main(int argc, char *argv[])
@@ -130,6 +127,26 @@ main(int argc, char *argv[])
 		exits("usage");
 	}
 
+	char *filename = argv[0];
+
+	memset(&disk, 0, sizeof(disk));
+	disk.d_bsize = 1;
+	disk.d_name = filename;
+	if (createfs && ufs_disk_create(&disk) == -1) {
+		fprint(2, "Can't create %s\n", filename);
+		exits("can't create file");
+	}
+
+	mkfs(filename);
+	ufs_disk_close(&disk);
+
+	if (enablesuj) {
+		fprint(2, "Soft updates journalling not implemented yet\n");
+		//if (execlp("tunefs", "newfs", "-j", "enable", special, nil) < 0)
+		//	err(1, "Cannot enable soft updates journaling, tunefs");
+		/* NOT REACHED */
+	}
+	exits(nil);
 #if 0
 	struct partition *pp;
 	struct disklabel *lp;
@@ -156,11 +173,6 @@ main(int argc, char *argv[])
 				    MAXVOLLEN);
 			}
 			Lflag = 1;
-			break;
-		case 'O':
-			if ((Oflag = atoi(optarg)) < 1 || Oflag > 2)
-				errx(1, "%s: bad file system format value",
-				    optarg);
 			break;
 		case 'S':
 			rval = expand_number_int(optarg, &sectorsize);
@@ -252,10 +264,6 @@ main(int argc, char *argv[])
 			if (errno != 0 || cp == optarg ||
 			    *cp != '\0' || reserved < 0)
 				errx(1, "%s: bad reserved size", optarg);
-			break;
-		case 'p':
-			is_file = 1;
-			part_name = optarg[0];
 			break;
 
 		case 's':
@@ -370,15 +378,7 @@ main(int argc, char *argv[])
 		if (pp != nil)
 			pp->p_size *= secperblk;
 	}
-	mkfs(pp, special);
-	ufs_disk_close(&disk);
-	if (!enablesuj)
-		exits(nil);
-	if (execlp("tunefs", "newfs", "-j", "enable", special, nil) < 0)
-		err(1, "Cannot enable soft updates journaling, tunefs");
-	/* NOT REACHED */
 #endif // 0
-	exits(nil);
 }
 
 #if 0
@@ -430,12 +430,11 @@ getdisklabel(char *s)
 static void
 usage()
 {
-	fprint(2, "usage: newfs [ -fsoptions ] special-device [device-type]\n");
+	fprint(2, "usage: newfs [ -fsoptions ] filename\n");
 	fprint(2, "where fsoptions are:\n");
 	fprint(2, "\t-E Erase previous disk content\n");
 	fprint(2, "\t-L volume label to add to superblock\n");
 	fprint(2, "\t-N do not create file system, just print out parameters\n");
-	fprint(2, "\t-O file system format: 1 => UFS1, 2 => UFS2\n");
 	fprint(2, "\t-R regression test, suppress random factors\n");
 	fprint(2, "\t-S sector size\n");
 	fprint(2, "\t-T disktype\n");
@@ -455,7 +454,6 @@ usage()
 	fprint(2, "\t-n do not create .snap directory\n");
 	fprint(2, "\t-m minimum free space %%\n");
 	fprint(2, "\t-o optimization preference (`space' or `time')\n");
-	fprint(2, "\t-p partition name (a..h)\n");
 	fprint(2, "\t-r reserved sectors at the end of device\n");
 	fprint(2, "\t-s file system size (sectors)\n");
 	fprint(2, "\t-t enable TRIM\n");
