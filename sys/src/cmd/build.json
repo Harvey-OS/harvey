@@ -41,6 +41,7 @@
 			"ip/ip.json",
 			"lex/build.json",
 			"ndb/ndb.json",
+			"newfs/",
 			"plumb/plumb.json",
 			"plumb/plumber.json",
 			"rc/rc.json",
