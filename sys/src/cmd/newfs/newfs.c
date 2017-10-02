@@ -380,8 +380,8 @@ main(int argc, char *argv[])
 	if (bsize <= 0)
 		bsize = MIN(DFL_BLKSIZE, 8 * fsize);
 	if (minfree < MINFREE && opt != FS_OPTSPACE) {
-		fprintf(stderr, "Warning: changing optimization to space ");
-		fprintf(stderr, "because minfree is less than %d%%\n", MINFREE);
+		fprint(2, "Warning: changing optimization to space ");
+		fprint(2, "because minfree is less than %d%%\n", MINFREE);
 		opt = FS_OPTSPACE;
 	}
 	realsectorsize = sectorsize;
@@ -448,40 +448,36 @@ getdisklabel(char *s)
 static void
 usage()
 {
-	fprintf(stderr,
-	    "usage: %s [ -fsoptions ] special-device%s\n",
-	    getprogname(),
-	    " [device-type]");
-	fprintf(stderr, "where fsoptions are:\n");
-	fprintf(stderr, "\t-E Erase previous disk content\n");
-	fprintf(stderr, "\t-J Enable journaling via gjournal\n");
-	fprintf(stderr, "\t-L volume label to add to superblock\n");
-	fprintf(stderr,
-	    "\t-N do not create file system, just print out parameters\n");
-	fprintf(stderr, "\t-O file system format: 1 => UFS1, 2 => UFS2\n");
-	fprintf(stderr, "\t-R regression test, suppress random factors\n");
-	fprintf(stderr, "\t-S sector size\n");
-	fprintf(stderr, "\t-T disktype\n");
-	fprintf(stderr, "\t-U enable soft updates\n");
-	fprintf(stderr, "\t-a maximum contiguous blocks\n");
-	fprintf(stderr, "\t-b block size\n");
-	fprintf(stderr, "\t-c blocks per cylinders group\n");
-	fprintf(stderr, "\t-d maximum extent size\n");
-	fprintf(stderr, "\t-e maximum blocks per file in a cylinder group\n");
-	fprintf(stderr, "\t-f frag size\n");
-	fprintf(stderr, "\t-g average file size\n");
-	fprintf(stderr, "\t-h average files per directory\n");
-	fprintf(stderr, "\t-i number of bytes per inode\n");
-	fprintf(stderr, "\t-j enable soft updates journaling\n");
-	fprintf(stderr, "\t-k space to hold for metadata blocks\n");
-	fprintf(stderr, "\t-l enable multilabel MAC\n");
-	fprintf(stderr, "\t-n do not create .snap directory\n");
-	fprintf(stderr, "\t-m minimum free space %%\n");
-	fprintf(stderr, "\t-o optimization preference (`space' or `time')\n");
-	fprintf(stderr, "\t-p partition name (a..h)\n");
-	fprintf(stderr, "\t-r reserved sectors at the end of device\n");
-	fprintf(stderr, "\t-s file system size (sectors)\n");
-	fprintf(stderr, "\t-t enable TRIM\n");
+	fprint(2, "usage: newfs [ -fsoptions ] special-device [device-type]\n");
+	fprint(2, "where fsoptions are:\n");
+	fprint(2, "\t-E Erase previous disk content\n");
+	fprint(2, "\t-J Enable journaling via gjournal\n");
+	fprint(2, "\t-L volume label to add to superblock\n");
+	fprint(2, "\t-N do not create file system, just print out parameters\n");
+	fprint(2, "\t-O file system format: 1 => UFS1, 2 => UFS2\n");
+	fprint(2, "\t-R regression test, suppress random factors\n");
+	fprint(2, "\t-S sector size\n");
+	fprint(2, "\t-T disktype\n");
+	fprint(2, "\t-U enable soft updates\n");
+	fprint(2, "\t-a maximum contiguous blocks\n");
+	fprint(2, "\t-b block size\n");
+	fprint(2, "\t-c blocks per cylinders group\n");
+	fprint(2, "\t-d maximum extent size\n");
+	fprint(2, "\t-e maximum blocks per file in a cylinder group\n");
+	fprint(2, "\t-f frag size\n");
+	fprint(2, "\t-g average file size\n");
+	fprint(2, "\t-h average files per directory\n");
+	fprint(2, "\t-i number of bytes per inode\n");
+	fprint(2, "\t-j enable soft updates journaling\n");
+	fprint(2, "\t-k space to hold for metadata blocks\n");
+	fprint(2, "\t-l enable multilabel MAC\n");
+	fprint(2, "\t-n do not create .snap directory\n");
+	fprint(2, "\t-m minimum free space %%\n");
+	fprint(2, "\t-o optimization preference (`space' or `time')\n");
+	fprint(2, "\t-p partition name (a..h)\n");
+	fprint(2, "\t-r reserved sectors at the end of device\n");
+	fprint(2, "\t-s file system size (sectors)\n");
+	fprint(2, "\t-t enable TRIM\n");
 	exit(1);
 }
 
