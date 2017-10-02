@@ -67,6 +67,9 @@
 #define UMASK		0755
 #define POWEROF2(num)	(((num) & ((num) - 1)) == 0)
 
+#define HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
+
 static struct	csum *fscs;
 #define	sblock	disk.d_fs
 #define	acg	disk.d_cg
@@ -290,10 +293,10 @@ restart:
 		    sizeof(ufs2_daddr_t));
 	}
 	sblock.fs_sblkno =
-	    roundup(howmany(sblock.fs_sblockloc + SBLOCKSIZE, sblock.fs_fsize),
+	    ROUNDUP(HOWMANY(sblock.fs_sblockloc + SBLOCKSIZE, sblock.fs_fsize),
 		sblock.fs_frag);
 	sblock.fs_cblkno = sblock.fs_sblkno +
-	    roundup(howmany(SBLOCKSIZE, sblock.fs_fsize), sblock.fs_frag);
+	    ROUNDUP(HOWMANY(SBLOCKSIZE, sblock.fs_fsize), sblock.fs_frag);
 	sblock.fs_iblkno = sblock.fs_cblkno + sblock.fs_frag;
 	sblock.fs_maxfilesize = sblock.fs_bsize * UFS_NDADDR - 1;
 	for (sizepb = sblock.fs_bsize, i = 0; i < UFS_NIADDR; i++) {
@@ -348,17 +351,17 @@ restart:
 		if (minfpg > sblock.fs_size)
 			minfpg = sblock.fs_size;
 		sblock.fs_ipg = INOPB(&sblock);
-		sblock.fs_fpg = roundup(sblock.fs_iblkno +
+		sblock.fs_fpg = ROUNDUP(sblock.fs_iblkno +
 		    sblock.fs_ipg / INOPF(&sblock), sblock.fs_frag);
 		if (sblock.fs_fpg < minfpg)
 			sblock.fs_fpg = minfpg;
-		sblock.fs_ipg = roundup(howmany(sblock.fs_fpg, fragsperinode),
+		sblock.fs_ipg = ROUNDUP(HOWMANY(sblock.fs_fpg, fragsperinode),
 		    INOPB(&sblock));
-		sblock.fs_fpg = roundup(sblock.fs_iblkno +
+		sblock.fs_fpg = ROUNDUP(sblock.fs_iblkno +
 		    sblock.fs_ipg / INOPF(&sblock), sblock.fs_frag);
 		if (sblock.fs_fpg < minfpg)
 			sblock.fs_fpg = minfpg;
-		sblock.fs_ipg = roundup(howmany(sblock.fs_fpg, fragsperinode),
+		sblock.fs_ipg = ROUNDUP(HOWMANY(sblock.fs_fpg, fragsperinode),
 		    INOPB(&sblock));
 		if (CGSIZE(&sblock) < (unsigned long)sblock.fs_bsize)
 			break;
@@ -374,7 +377,7 @@ restart:
 	 * so fs_ipg is limited to 2^15 - 1.
 	 */
 	for ( ; sblock.fs_fpg < maxblkspercg; sblock.fs_fpg += sblock.fs_frag) {
-		sblock.fs_ipg = roundup(howmany(sblock.fs_fpg, fragsperinode),
+		sblock.fs_ipg = ROUNDUP(HOWMANY(sblock.fs_fpg, fragsperinode),
 		    INOPB(&sblock));
 		if (Oflag > 1 || (Oflag == 1 && sblock.fs_ipg <= 0x7fff)) {
 			if (sblock.fs_size / sblock.fs_fpg < MINCYLGRPS)
@@ -385,7 +388,7 @@ restart:
 				break;
 		}
 		sblock.fs_fpg -= sblock.fs_frag;
-		sblock.fs_ipg = roundup(howmany(sblock.fs_fpg, fragsperinode),
+		sblock.fs_ipg = ROUNDUP(HOWMANY(sblock.fs_fpg, fragsperinode),
 		    INOPB(&sblock));
 		break;
 	}
@@ -397,8 +400,8 @@ restart:
 	 */
 	optimalfpg = sblock.fs_fpg;
 	for (;;) {
-		sblock.fs_ncg = howmany(sblock.fs_size, sblock.fs_fpg);
-		lastminfpg = roundup(sblock.fs_iblkno +
+		sblock.fs_ncg = HOWMANY(sblock.fs_size, sblock.fs_fpg);
+		lastminfpg = ROUNDUP(sblock.fs_iblkno +
 		    sblock.fs_ipg / INOPF(&sblock), sblock.fs_frag);
 		if (sblock.fs_size < lastminfpg) {
 			printf("Filesystem size %jd < minimum size of %d\n",
@@ -409,7 +412,7 @@ restart:
 		    sblock.fs_size % sblock.fs_fpg == 0)
 			break;
 		sblock.fs_fpg -= sblock.fs_frag;
-		sblock.fs_ipg = roundup(howmany(sblock.fs_fpg, fragsperinode),
+		sblock.fs_ipg = ROUNDUP(HOWMANY(sblock.fs_fpg, fragsperinode),
 		    INOPB(&sblock));
 	}
 	if (optimalfpg != sblock.fs_fpg)
@@ -457,12 +460,12 @@ restart:
 	sblock.fs_id[0] = (long)utime;
 	sblock.fs_id[1] = newfs_random();
 	sblock.fs_fsmnt[0] = '\0';
-	csfrags = howmany(sblock.fs_cssize, sblock.fs_fsize);
+	csfrags = HOWMANY(sblock.fs_cssize, sblock.fs_fsize);
 	sblock.fs_dsize = sblock.fs_size - sblock.fs_sblkno -
 	    sblock.fs_ncg * (sblock.fs_dblkno - sblock.fs_sblkno);
 	sblock.fs_cstotal.cs_nbfree =
 	    fragstoblks(&sblock, sblock.fs_dsize) -
-	    howmany(csfrags, sblock.fs_frag);
+	    HOWMANY(csfrags, sblock.fs_frag);
 	sblock.fs_cstotal.cs_nffree =
 	    fragnum(&sblock, sblock.fs_size) +
 	    (fragnum(&sblock, csfrags) > 0 ?
@@ -647,7 +650,7 @@ initcg(int cylno, time_t utime)
 	dlower = cgsblock(&sblock, cylno) - cbase;
 	dupper = cgdmin(&sblock, cylno) - cbase;
 	if (cylno == 0)
-		dupper += howmany(sblock.fs_cssize, sblock.fs_fsize);
+		dupper += HOWMANY(sblock.fs_cssize, sblock.fs_fsize);
 	cs = &fscs[cylno];
 	memset(&acg, 0, sblock.fs_cgsize);
 	acg.cg_time = utime;
@@ -674,16 +677,16 @@ initcg(int cylno, time_t utime)
 		acg.cg_iusedoff = acg.cg_old_boff +
 		    sblock.fs_old_cpg * sizeof(u_int16_t);
 	}
-	acg.cg_freeoff = acg.cg_iusedoff + howmany(sblock.fs_ipg, CHAR_BIT);
-	acg.cg_nextfreeoff = acg.cg_freeoff + howmany(sblock.fs_fpg, CHAR_BIT);
+	acg.cg_freeoff = acg.cg_iusedoff + HOWMANY(sblock.fs_ipg, CHAR_BIT);
+	acg.cg_nextfreeoff = acg.cg_freeoff + HOWMANY(sblock.fs_fpg, CHAR_BIT);
 	if (sblock.fs_contigsumsize > 0) {
 		acg.cg_clustersumoff =
-		    roundup(acg.cg_nextfreeoff, sizeof(u_int32_t));
+		    ROUNDUP(acg.cg_nextfreeoff, sizeof(u_int32_t));
 		acg.cg_clustersumoff -= sizeof(u_int32_t);
 		acg.cg_clusteroff = acg.cg_clustersumoff +
 		    (sblock.fs_contigsumsize + 1) * sizeof(u_int32_t);
 		acg.cg_nextfreeoff = acg.cg_clusteroff +
-		    howmany(fragstoblks(&sblock, sblock.fs_fpg), CHAR_BIT);
+		    HOWMANY(fragstoblks(&sblock, sblock.fs_fpg), CHAR_BIT);
 	}
 	if (acg.cg_nextfreeoff > (unsigned)sblock.fs_cgsize) {
 		printf("Panic: cylinder group too big\n");
@@ -966,7 +969,7 @@ goth:
 		fscs[0].cs_ndir++;
 	}
 	if (size != sblock.fs_bsize) {
-		frag = howmany(size, sblock.fs_fsize);
+		frag = HOWMANY(size, sblock.fs_fsize);
 		fscs[0].cs_nffree += sblock.fs_frag - frag;
 		sblock.fs_cstotal.cs_nffree += sblock.fs_frag - frag;
 		acg.cg_cs.cs_nffree += sblock.fs_frag - frag;
