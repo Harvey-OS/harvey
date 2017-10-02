@@ -155,7 +155,7 @@ mkfs(struct partition *pp, char *fsys)
 	 */
 	if (fssize <= 0) {
 		fprint(2, "preposterous size %jd\n", (intmax_t)fssize);
-		exit(13);
+		exits("preposterous size");
 	}
 	wtfs(fssize - (realsectorsize / DEV_BSIZE), realsectorsize,
 	    (char *)&sblock);
@@ -164,12 +164,16 @@ mkfs(struct partition *pp, char *fsys)
 	 */
 	sblock.fs_avgfilesize = avgfilesize;
 	sblock.fs_avgfpdir = avgfilesperdir;
-	if (sblock.fs_avgfilesize <= 0)
+	if (sblock.fs_avgfilesize <= 0) {
 		fprint(2, "illegal expected average file size %d\n",
-		    sblock.fs_avgfilesize), exit(14);
-	if (sblock.fs_avgfpdir <= 0)
+		    sblock.fs_avgfilesize);
+		exits("illegal expected average file size");
+	}
+	if (sblock.fs_avgfpdir <= 0) {
 		fprint(2, "illegal expected number of files per directory %d\n",
-		    sblock.fs_avgfpdir), exit(15);
+		    sblock.fs_avgfpdir);
+		exits("illegal expected number of files per directory");
+	}
 
 restart:
 	/*
@@ -180,12 +184,12 @@ restart:
 	if (!POWEROF2(sblock.fs_bsize)) {
 		fprint(2, "block size must be a power of 2, not %d\n",
 		    sblock.fs_bsize);
-		exit(16);
+		exits("block size not a power of 2");
 	}
 	if (!POWEROF2(sblock.fs_fsize)) {
 		fprint(2, "fragment size must be a power of 2, not %d\n",
 		    sblock.fs_fsize);
-		exit(17);
+		exits("fragment size not a power of 2");
 	}
 	if (sblock.fs_fsize < sectorsize) {
 		fprint(2, "increasing fragment size from %d to sector size (%d)\n",
@@ -255,7 +259,7 @@ restart:
 	if (sblock.fs_frag > MAXFRAG) {
 		fprint(2, "fragment size %d is still too small (can't happen)\n",
 		    sblock.fs_bsize / MAXFRAG);
-		exit(21);
+		exits("fragment size too small");
 	}
 	sblock.fs_fsbtodb = ilog2(sblock.fs_fsize / sectorsize);
 	sblock.fs_size = fssize = dbtofsb(&sblock, fssize);
@@ -407,7 +411,7 @@ restart:
 		if (sblock.fs_size < lastminfpg) {
 			fprint(2, "Filesystem size %jd < minimum size of %d\n",
 			    (intmax_t)sblock.fs_size, lastminfpg);
-			exit(28);
+			exits("filesystem size less than minimum size");
 		}
 		if (sblock.fs_size % sblock.fs_fpg >= lastminfpg ||
 		    sblock.fs_size % sblock.fs_fpg == 0)
@@ -434,8 +438,10 @@ restart:
 	sblock.fs_cssize =
 	    fragroundup(&sblock, sblock.fs_ncg * sizeof(struct csum));
 	fscs = (struct csum *)calloc(1, sblock.fs_cssize);
-	if (fscs == nil)
-		errx(31, "calloc failed");
+	if (fscs == nil) {
+		fprint(2, "calloc failed");
+		exits("calloc failed");
+	}
 	sblock.fs_sbsize = fragroundup(&sblock, sizeof(struct fs));
 	if (sblock.fs_sbsize > SBLOCKSIZE)
 		sblock.fs_sbsize = SBLOCKSIZE;
@@ -513,8 +519,10 @@ restart:
 	 */
 	if (!Nflag && Oflag != 1) {
 		i = bread(&disk, part_ofs + SBLOCK_UFS1 / disk.d_bsize, chdummy, SBLOCKSIZE);
-		if (i == -1)
-			err(1, "can't read old UFS1 superblock: %s", disk.d_error);
+		if (i == -1) {
+			fprint(2, "can't read old UFS1 superblock: %s", disk.d_error);
+			exits("cannot read old ufs1 superblock");
+		}
 
 		if (fsdummy.fs_magic == FS_UFS1_MAGIC) {
 			fsdummy.fs_magic = 0;
@@ -532,7 +540,7 @@ restart:
 		do_sbwrite(&disk);
 	if (Xflag == 1) {
 		fprint(2, "** Exiting on Xflag 1\n");
-		exit(0);
+		exits("xflag1");
 	}
 	if (Xflag == 2)
 		fprint(2, "** Leaving BAD MAGIC on Xflag 2\n");
@@ -556,7 +564,7 @@ restart:
 		iobufsize = 4 * sblock.fs_bsize;
 	if ((iobuf = calloc(1, iobufsize)) == 0) {
 		fprint(2, "Cannot allocate I/O buffer\n");
-		exit(38);
+		exits("cannot allocate io buffer");
 	}
 	/*
 	 * Make a copy of the superblock into the buffer that we will be
@@ -580,7 +588,7 @@ restart:
 	}
 	print("\n");
 	if (Nflag)
-		exit(0);
+		exits(nil);
 	/*
 	 * Now construct the initial file system,
 	 * then write out the super-block.
@@ -594,7 +602,7 @@ restart:
 	}
 	if (Xflag == 3) {
 		fprint(2, "** Exiting on Xflag 3\n");
-		exit(0);
+		exits("xflag3");
 	}
 	if (!Nflag) {
 		do_sbwrite(&disk);
@@ -691,7 +699,7 @@ initcg(int cylno, time_t utime)
 	}
 	if (acg.cg_nextfreeoff > (unsigned)sblock.fs_cgsize) {
 		fprint(2, "Panic: cylinder group too big\n");
-		exit(37);
+		exits("cylinder group too big");
 	}
 	acg.cg_cs.cs_nifree += sblock.fs_ipg;
 	if (cylno == 0)
@@ -945,17 +953,17 @@ alloc(int size, int mode)
 	    sblock.fs_cgsize);
 	if (acg.cg_magic != CG_MAGIC) {
 		fprint(2, "cg 0: bad magic number\n");
-		exit(38);
+		exits("bad cg magic number");
 	}
 	if (acg.cg_cs.cs_nbfree == 0) {
 		fprint(2, "first cylinder group ran out of space\n");
-		exit(39);
+		exits("first cylinder group ran out of space");
 	}
 	for (d = 0; d < acg.cg_ndblk; d += sblock.fs_frag)
 		if (isblock(&sblock, cg_blksfree(&acg), d / sblock.fs_frag))
 			goto goth;
 	fprint(2, "internal error: can't find block in cyl 0\n");
-	exit(40);
+	exits("cannot find block in cyl 0");
 goth:
 	blkno = fragstoblks(&sblock, d);
 	clrblock(&sblock, cg_blksfree(&acg), blkno);
@@ -996,7 +1004,7 @@ iput(union dinode *ip, ino_t ino)
 	    sblock.fs_cgsize);
 	if (acg.cg_magic != CG_MAGIC) {
 		fprint(2, "cg 0: bad magic number\n");
-		exit(31);
+		exits("bad cg magic number");
 	}
 	acg.cg_cs.cs_nifree--;
 	setbit(cg_inosused(&acg), ino);
@@ -1007,7 +1015,7 @@ iput(union dinode *ip, ino_t ino)
 	if (ino >= (unsigned long)sblock.fs_ipg * sblock.fs_ncg) {
 		fprint(2, "fsinit: inode value out of range (%ju).\n",
 		    (uintmax_t)ino);
-		exit(32);
+		exits("inode value out of range");
 	}
 	d = fsbtodb(&sblock, ino_to_fsba(&sblock, ino));
 	bread(&disk, part_ofs + d, (char *)iobuf, sblock.fs_bsize);
@@ -1028,8 +1036,10 @@ wtfs(ufs2_daddr_t bno, int size, char *bf)
 {
 	if (Nflag)
 		return;
-	if (bwrite(&disk, part_ofs + bno, bf, size) < 0)
-		err(36, "wtfs: %d bytes at sector %jd", size, (intmax_t)bno);
+	if (bwrite(&disk, part_ofs + bno, bf, size) < 0) {
+		fprint(2, "wtfs: %d bytes at sector %jd", size, (intmax_t)bno);
+		exits("bwrite failed");
+	}
 }
 
 /*
@@ -1139,6 +1149,7 @@ ilog2(int val)
 		if (1 << n == val)
 			return (n);
 	errx(1, "ilog2: %d is not a power of 2\n", val);
+	exits("ilog2: not a power of 2");
 }
 
 /*
