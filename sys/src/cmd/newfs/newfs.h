@@ -74,7 +74,7 @@
  * variables set up by front end.
  */
 extern int	erasecontents;	/* Erase previous disk contents */
-//extern int	Lflag;		/* add a volume label */
+extern int	addvolumelabel;	/* add a volume label */
 extern int	createfs;	/* run mkfs without writing file system */
 extern int	regressiontest;	/* regression test */
 extern int	enablesu;	/* enable soft updates for file system */

@@ -129,7 +129,7 @@ mkfs(char *filename)
 	sblock.fs_flags = 0;
 	if (enablesu)
 		sblock.fs_flags |= FS_DOSOFTDEP;
-	if (Lflag)
+	if (addvolumelabel)
 		strlcpy(sblock.fs_volname, volumelabel, MAXVOLLEN);
 	if (enablemultilabel)
 		sblock.fs_flags |= FS_MULTILABEL;
