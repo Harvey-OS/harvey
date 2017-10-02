@@ -45,18 +45,17 @@
 
 #include "newfs.h"
 
-//int	Eflag;			/* Erase previous disk contents */
+int	erasecontents;		/* Erase previous disk contents */
 //int	Lflag;			/* add a volume label */
-//int	Nflag;			/* run without writing file system */
+int	createfs = 1;		/* run without writing file system */
 //int	Oflag = 2;		/* file system format (1 => UFS1, 2 => UFS2) */
-//int	Rflag;			/* regression test */
-//int	Uflag;			/* enable soft updates for file system */
-//int	jflag;			/* enable soft updates journaling for filesys */
-//int	Xflag = 0;		/* exit in middle of newfs for testing */
-//int	Jflag;			/* enable gjournal for file system */
-//int	lflag;			/* enable multilabel for file system */
-//int	nflag;			/* do not create .snap directory */
-//int	tflag;			/* enable TRIM */
+int	regressiontest;		/* regression test */
+int	enablesu;		/* enable soft updates for file system */
+int	enablesuj;		/* enable soft updates journaling for filesys */
+int	exitflag = 0;		/* exit in middle of newfs for testing */
+int	enablemultilabel;	/* enable multilabel for file system */
+int	createsnapdir = 1;	/* do not create .snap directory */
+int	enabletrim;		/* enable TRIM */
 //intmax_t fssize;		/* file system size */
 //off_t	mediasize;		/* device size */
 //int	sectorsize;		/* bytes/sector */
@@ -84,7 +83,7 @@
 
 //static void getfssize(intmax_t *, const char *p, intmax_t, intmax_t);
 //static struct disklabel *getdisklabel(char *s);
-//static void usage(void);
+static void usage();
 //static int expand_number_int(const char *buf, int *num);
 
 //ufs2_daddr_t part_ofs; /* partition offset in blocks, used with files */
@@ -92,6 +91,45 @@
 void
 main(int argc, char *argv[])
 {
+	ARGBEGIN {
+	default:
+		usage();
+		exits(nil);
+
+	case 'E':
+		erasecontents = 1;
+		break;
+	case 'N':
+		createfs = 0;
+		break;
+	case 'R':
+		regressiontest = 1;
+		break;
+	case 'U':
+		enablesu = 1;
+		break;
+	case 'X':
+		exitflag++;
+		break;
+	case 'j':
+		enablesuj = 1;
+		enablesu = 1;
+		break;
+	case 'l':
+		enablemultilabel = 1;
+		break;
+	case 'n':
+		createsnapdir = 0;
+		break;
+	case 't':
+		enabletrim = 1;
+		break;
+	} ARGEND
+	if (argv[0] == nil) {
+		usage();
+		exits("usage");
+	}
+
 #if 0
 	struct partition *pp;
 	struct disklabel *lp;
@@ -106,12 +144,6 @@ main(int argc, char *argv[])
 	while ((ch = getopt(argc, argv,
 	    "EJL:NO:RS:T:UXa:b:c:d:e:f:g:h:i:jk:lm:no:p:r:s:t")) != -1)
 		switch (ch) {
-		case 'E':
-			Eflag = 1;
-			break;
-		case 'J':
-			Jflag = 1;
-			break;
 		case 'L':
 			volumelabel = optarg;
 			i = -1;
@@ -125,16 +157,10 @@ main(int argc, char *argv[])
 			}
 			Lflag = 1;
 			break;
-		case 'N':
-			Nflag = 1;
-			break;
 		case 'O':
 			if ((Oflag = atoi(optarg)) < 1 || Oflag > 2)
 				errx(1, "%s: bad file system format value",
 				    optarg);
-			break;
-		case 'R':
-			Rflag = 1;
 			break;
 		case 'S':
 			rval = expand_number_int(optarg, &sectorsize);
@@ -143,15 +169,6 @@ main(int argc, char *argv[])
 			break;
 		case 'T':
 			disktype = optarg;
-			break;
-		case 'j':
-			jflag = 1;
-			/* fall through to enable soft updates */
-		case 'U':
-			Uflag = 1;
-			break;
-		case 'X':
-			Xflag++;
 			break;
 		case 'a':
 			rval = expand_number_int(optarg, &maxcontig);
@@ -208,9 +225,6 @@ main(int argc, char *argv[])
 			if (rval < 0 || density <= 0)
 				errx(1, "%s: bad bytes per inode", optarg);
 			break;
-		case 'l':
-			lflag = 1;
-			break;
 		case 'k':
 			if ((metaspace = atoi(optarg)) < 0)
 				errx(1, "%s: bad metadata space %%", optarg);
@@ -221,9 +235,6 @@ main(int argc, char *argv[])
 		case 'm':
 			if ((minfree = atoi(optarg)) < 0 || minfree > 99)
 				errx(1, "%s: bad free space %%", optarg);
-			break;
-		case 'n':
-			nflag = 1;
 			break;
 		case 'o':
 			if (strcmp(optarg, "space") == 0)
@@ -254,9 +265,6 @@ main(int argc, char *argv[])
 			    *cp != '\0' || fssize < 0)
 				errx(1, "%s: bad file system size", optarg);
 			break;
-		case 't':
-			tflag = 1;
-			break;
 		case '?':
 		default:
 			usage();
@@ -286,10 +294,10 @@ main(int argc, char *argv[])
 		disk.d_name = special;
 		disk.d_fd = open(special, O_RDONLY);
 		if (disk.d_fd < 0 ||
-		    (!Nflag && ufs_disk_write(&disk) == -1))
+		    (createfs && ufs_disk_write(&disk) == -1))
 			errx(1, "%s: ", special);
 	} else if (ufs_disk_fillout_blank(&disk, special) == -1 ||
-	    (!Nflag && ufs_disk_write(&disk) == -1)) {
+	    (createfs && ufs_disk_write(&disk) == -1)) {
 		if (disk.d_error != nil)
 			errx(1, "%s: %s", special, disk.d_error);
 		else
@@ -364,7 +372,7 @@ main(int argc, char *argv[])
 	}
 	mkfs(pp, special);
 	ufs_disk_close(&disk);
-	if (!jflag)
+	if (!enablesuj)
 		exits(nil);
 	if (execlp("tunefs", "newfs", "-j", "enable", special, nil) < 0)
 		err(1, "Cannot enable soft updates journaling, tunefs");
@@ -417,13 +425,14 @@ getdisklabel(char *s)
 	return (nil);
 }
 
+#endif // 0
+
 static void
 usage()
 {
 	fprint(2, "usage: newfs [ -fsoptions ] special-device [device-type]\n");
 	fprint(2, "where fsoptions are:\n");
 	fprint(2, "\t-E Erase previous disk content\n");
-	fprint(2, "\t-J Enable journaling via gjournal\n");
 	fprint(2, "\t-L volume label to add to superblock\n");
 	fprint(2, "\t-N do not create file system, just print out parameters\n");
 	fprint(2, "\t-O file system format: 1 => UFS1, 2 => UFS2\n");
@@ -452,6 +461,8 @@ usage()
 	fprint(2, "\t-t enable TRIM\n");
 	exits("usage");
 }
+
+#if 0
 
 static int
 expand_number_int(const char *buf, int *num)
