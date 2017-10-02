@@ -73,18 +73,17 @@
 /*
  * variables set up by front end.
  */
-//extern int	Eflag;		/* Erase previous disk contents */
+extern int	erasecontents;	/* Erase previous disk contents */
 //extern int	Lflag;		/* add a volume label */
-//extern int	Nflag;		/* run mkfs without writing file system */
+extern int	createfs;	/* run mkfs without writing file system */
 //extern int	Oflag;		/* build UFS1 format file system */
-//extern int	Rflag;		/* regression test */
-//extern int	Uflag;		/* enable soft updates for file system */
-//extern int	jflag;		/* enable soft updates journaling for filesys */
-//extern int	Xflag;		/* exit in middle of newfs for testing */
-//extern int	Jflag;		/* enable gjournal for file system */
-//extern int	lflag;		/* enable multilabel MAC for file system */
-//extern int	nflag;		/* do not create .snap directory */
-//extern int	tflag;		/* enable TRIM */
+extern int	regressiontest;	/* regression test */
+extern int	enablesu;	/* enable soft updates for file system */
+extern int	enablesuj;	/* enable soft updates journaling for filesys */
+extern int	exitflag;	/* exit in middle of newfs for testing */
+extern int	enablemultilabel;		/* enable multilabel MAC for file system */
+extern int	createsnapdir;	/* do not create .snap directory */
+extern int	enabletrim;	/* enable TRIM */
 //extern intmax_t	fssize;		/* file system size */
 //extern off_t	mediasize;	/* device size */
 //extern int	sectorsize;	/* bytes/sector */

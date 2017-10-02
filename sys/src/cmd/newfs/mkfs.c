@@ -118,21 +118,19 @@ mkfs(struct partition *pp, char *fsys)
 	 */
 	disk.d_bsize = sectorsize;
 	disk.d_ufs = Oflag;
-	if (Rflag)
+	if (regressiontest)
 		utime = 1000000000;
 	else
 		time(&utime);
 	sblock.fs_old_flags = FS_FLAGS_UPDATED;
 	sblock.fs_flags = 0;
-	if (Uflag)
+	if (enablesu)
 		sblock.fs_flags |= FS_DOSOFTDEP;
 	if (Lflag)
 		strlcpy(sblock.fs_volname, volumelabel, MAXVOLLEN);
-	if (Jflag)
-		sblock.fs_flags |= FS_GJOURNAL;
-	if (lflag)
+	if (enablemultilabel)
 		sblock.fs_flags |= FS_MULTILABEL;
-	if (tflag)
+	if (enabletrim)
 		sblock.fs_flags |= FS_TRIM;
 	/*
 	 * Validate the given file system size.
@@ -493,7 +491,7 @@ restart:
 		fprint(2, "\twith soft updates\n");
 #	undef B2MBFACTOR
 
-	if (Eflag && !Nflag) {
+	if (erasecontents && createfs) {
 		fprint(2, "Erasing sectors [%jd...%jd]\n", 
 		    sblock.fs_sblockloc / disk.d_bsize,
 		    fsbtodb(&sblock, sblock.fs_size) - 1);
@@ -503,7 +501,7 @@ restart:
 	/*
 	 * Wipe out old UFS1 superblock(s) if necessary.
 	 */
-	if (!Nflag && Oflag != 1) {
+	if (createfs && Oflag != 1) {
 		i = bread(&disk, part_ofs + SBLOCK_UFS1 / disk.d_bsize, chdummy, SBLOCKSIZE);
 		if (i == -1) {
 			fprint(2, "can't read old UFS1 superblock: %s", disk.d_error);
@@ -522,14 +520,14 @@ restart:
 			}
 		}
 	}
-	if (!Nflag)
+	if (createfs)
 		do_sbwrite(&disk);
-	if (Xflag == 1) {
-		fprint(2, "** Exiting on Xflag 1\n");
+	if (exitflag == 1) {
+		fprint(2, "** Exiting on exitflag 1\n");
 		exits("xflag1");
 	}
-	if (Xflag == 2)
-		fprint(2, "** Leaving BAD MAGIC on Xflag 2\n");
+	if (exitflag == 2)
+		fprint(2, "** Leaving BAD MAGIC on exitflag 2\n");
 	else
 		sblock.fs_magic = (Oflag != 1) ? FS_UFS2_MAGIC : FS_UFS1_MAGIC;
 
@@ -573,7 +571,7 @@ restart:
 		fflush(stdout);
 	}
 	print("\n");
-	if (Nflag)
+	if (!createfs)
 		exits(nil);
 	/*
 	 * Now construct the initial file system,
@@ -586,11 +584,11 @@ restart:
 		sblock.fs_old_cstotal.cs_nifree = sblock.fs_cstotal.cs_nifree;
 		sblock.fs_old_cstotal.cs_nffree = sblock.fs_cstotal.cs_nffree;
 	}
-	if (Xflag == 3) {
-		fprint(2, "** Exiting on Xflag 3\n");
+	if (exitflag == 3) {
+		fprint(2, "** Exiting on exitflag 3\n");
 		exits("xflag3");
 	}
-	if (!Nflag) {
+	if (createfs) {
 		do_sbwrite(&disk);
 		/*
 		 * For UFS1 filesystems with a blocksize of 64K, the first
@@ -828,7 +826,7 @@ fsinit(time_t utime)
 		warnx("Cannot retrieve operator gid, using gid 0.");
 		gid = 0;
 	}
-	entries = (nflag) ? ROOTLINKCNT - 1: ROOTLINKCNT;
+	entries = createsnapdir ? ROOTLINKCNT : ROOTLINKCNT - 1;
 	if (sblock.fs_magic == FS_UFS1_MAGIC) {
 		/*
 		 * initialize the node
@@ -848,7 +846,7 @@ fsinit(time_t utime)
 		wtfs(fsbtodb(&sblock, node.dp1.di_db[0]), sblock.fs_fsize,
 		    iobuf);
 		iput(&node, UFS_ROOTINO);
-		if (!nflag) {
+		if (createsnapdir) {
 			/*
 			 * create the .snap directory
 			 */
@@ -884,7 +882,7 @@ fsinit(time_t utime)
 		wtfs(fsbtodb(&sblock, node.dp2.di_db[0]), sblock.fs_fsize,
 		    iobuf);
 		iput(&node, UFS_ROOTINO);
-		if (!nflag) {
+		if (createsnapdir) {
 			/*
 			 * create the .snap directory
 			 */
@@ -1020,7 +1018,7 @@ iput(union dinode *ip, ino_t ino)
 static void
 wtfs(ufs2_daddr_t bno, int size, char *bf)
 {
-	if (Nflag)
+	if (!createfs)
 		return;
 	if (bwrite(&disk, part_ofs + bno, bf, size) < 0) {
 		fprint(2, "wtfs: %d bytes at sector %jd", size, (intmax_t)bno);
@@ -1147,7 +1145,7 @@ newfs_random(void)
 {
 	static int nextnum = 1;
 
-	if (Rflag)
+	if (regressiontest)
 		return (nextnum++);
 	return (arc4random());
 }
