@@ -93,9 +93,12 @@ do_sbwrite(struct uufsd *disk)
 	    disk->d_sblock) * disk->d_bsize)));
 }
 
+#endif // 0
+
 void
-mkfs(struct partition *pp, char *fsys)
+mkfs(char *filename)
 {
+#if 0
 	int fragsperinode, optimalfpg, origdensity, minfpg, lastminfpg;
 	long i, j, csfrags;
 	uint cg;
@@ -616,7 +619,10 @@ restart:
 		pp->p_frag = sblock.fs_frag;
 		pp->p_cpg = sblock.fs_fpg;
 	}
+#endif // 0
 }
+
+#if 0
 
 /*
  * Initialize a cylinder group.
