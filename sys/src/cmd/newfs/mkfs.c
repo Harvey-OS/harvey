@@ -154,7 +154,7 @@ mkfs(struct partition *pp, char *fsys)
 	 * Convert to file system fragment sized units.
 	 */
 	if (fssize <= 0) {
-		printf("preposterous size %jd\n", (intmax_t)fssize);
+		fprint(2, "preposterous size %jd\n", (intmax_t)fssize);
 		exit(13);
 	}
 	wtfs(fssize - (realsectorsize / DEV_BSIZE), realsectorsize,
@@ -165,10 +165,10 @@ mkfs(struct partition *pp, char *fsys)
 	sblock.fs_avgfilesize = avgfilesize;
 	sblock.fs_avgfpdir = avgfilesperdir;
 	if (sblock.fs_avgfilesize <= 0)
-		printf("illegal expected average file size %d\n",
+		fprint(2, "illegal expected average file size %d\n",
 		    sblock.fs_avgfilesize), exit(14);
 	if (sblock.fs_avgfpdir <= 0)
-		printf("illegal expected number of files per directory %d\n",
+		fprint(2, "illegal expected number of files per directory %d\n",
 		    sblock.fs_avgfpdir), exit(15);
 
 restart:
@@ -178,42 +178,42 @@ restart:
 	sblock.fs_bsize = bsize;
 	sblock.fs_fsize = fsize;
 	if (!POWEROF2(sblock.fs_bsize)) {
-		printf("block size must be a power of 2, not %d\n",
+		fprint(2, "block size must be a power of 2, not %d\n",
 		    sblock.fs_bsize);
 		exit(16);
 	}
 	if (!POWEROF2(sblock.fs_fsize)) {
-		printf("fragment size must be a power of 2, not %d\n",
+		fprint(2, "fragment size must be a power of 2, not %d\n",
 		    sblock.fs_fsize);
 		exit(17);
 	}
 	if (sblock.fs_fsize < sectorsize) {
-		printf("increasing fragment size from %d to sector size (%d)\n",
+		fprint(2, "increasing fragment size from %d to sector size (%d)\n",
 		    sblock.fs_fsize, sectorsize);
 		sblock.fs_fsize = sectorsize;
 	}
 	if (sblock.fs_bsize > MAXBSIZE) {
-		printf("decreasing block size from %d to maximum (%d)\n",
+		fprint(2, "decreasing block size from %d to maximum (%d)\n",
 		    sblock.fs_bsize, MAXBSIZE);
 		sblock.fs_bsize = MAXBSIZE;
 	}
 	if (sblock.fs_bsize < MINBSIZE) {
-		printf("increasing block size from %d to minimum (%d)\n",
+		fprint(2, "increasing block size from %d to minimum (%d)\n",
 		    sblock.fs_bsize, MINBSIZE);
 		sblock.fs_bsize = MINBSIZE;
 	}
 	if (sblock.fs_fsize > MAXBSIZE) {
-		printf("decreasing fragment size from %d to maximum (%d)\n",
+		fprint(2, "decreasing fragment size from %d to maximum (%d)\n",
 		    sblock.fs_fsize, MAXBSIZE);
 		sblock.fs_fsize = MAXBSIZE;
 	}
 	if (sblock.fs_bsize < sblock.fs_fsize) {
-		printf("increasing block size from %d to fragment size (%d)\n",
+		fprint(2, "increasing block size from %d to fragment size (%d)\n",
 		    sblock.fs_bsize, sblock.fs_fsize);
 		sblock.fs_bsize = sblock.fs_fsize;
 	}
 	if (sblock.fs_fsize * MAXFRAG < sblock.fs_bsize) {
-		printf(
+		fprint(2,
 		"increasing fragment size from %d to block size / %d (%d)\n",
 		    sblock.fs_fsize, MAXFRAG, sblock.fs_bsize / MAXFRAG);
 		sblock.fs_fsize = sblock.fs_bsize / MAXFRAG;
@@ -222,10 +222,10 @@ restart:
 		maxbsize = bsize;
 	if (maxbsize < bsize || !POWEROF2(maxbsize)) {
 		sblock.fs_maxbsize = sblock.fs_bsize;
-		printf("Extent size set to %d\n", sblock.fs_maxbsize);
+		fprint(2, "Extent size set to %d\n", sblock.fs_maxbsize);
 	} else if (sblock.fs_maxbsize > FS_MAXCONTIG * sblock.fs_bsize) {
 		sblock.fs_maxbsize = FS_MAXCONTIG * sblock.fs_bsize;
-		printf("Extent size reduced to %d\n", sblock.fs_maxbsize);
+		fprint(2, "Extent size reduced to %d\n", sblock.fs_maxbsize);
 	} else {
 		sblock.fs_maxbsize = maxbsize;
 	}
@@ -240,7 +240,7 @@ restart:
 	sblock.fs_maxcontig = maxcontig;
 	if (sblock.fs_maxcontig < sblock.fs_maxbsize / sblock.fs_bsize) {
 		sblock.fs_maxcontig = sblock.fs_maxbsize / sblock.fs_bsize;
-		printf("Maxcontig raised to %d\n", sblock.fs_maxbsize);
+		fprint(2, "Maxcontig raised to %d\n", sblock.fs_maxbsize);
 	}
 	if (sblock.fs_maxcontig > 1)
 		sblock.fs_contigsumsize = MIN(sblock.fs_maxcontig,FS_MAXCONTIG);
@@ -253,7 +253,7 @@ restart:
 	sblock.fs_frag = numfrags(&sblock, sblock.fs_bsize);
 	sblock.fs_fragshift = ilog2(sblock.fs_frag);
 	if (sblock.fs_frag > MAXFRAG) {
-		printf("fragment size %d is still too small (can't happen)\n",
+		fprint(2, "fragment size %d is still too small (can't happen)\n",
 		    sblock.fs_bsize / MAXFRAG);
 		exit(21);
 	}
@@ -335,7 +335,7 @@ restart:
 	} else if (density < minfragsperinode * fsize) {
 		origdensity = density;
 		density = minfragsperinode * fsize;
-		fprintf(stderr, "density increased from %d to %d\n",
+		fprint(2, "density increased from %d to %d\n",
 		    origdensity, density);
 	}
 	origdensity = density;
@@ -344,7 +344,7 @@ restart:
 		if (fragsperinode < minfragsperinode) {
 			bsize <<= 1;
 			fsize <<= 1;
-			printf("Block size too small for a file system %s %d\n",
+			fprint(2, "Block size too small for a file system %s %d\n",
 			     "of this size. Increasing blocksize to", bsize);
 			goto restart;
 		}
@@ -369,7 +369,7 @@ restart:
 		density -= sblock.fs_fsize;
 	}
 	if (density != origdensity)
-		printf("density reduced from %d to %d\n", origdensity, density);
+		fprint(2, "density reduced from %d to %d\n", origdensity, density);
 	/*
 	 * Start packing more blocks into the cylinder group until
 	 * it cannot grow any larger, the number of cylinder groups
@@ -405,7 +405,7 @@ restart:
 		lastminfpg = ROUNDUP(sblock.fs_iblkno +
 		    sblock.fs_ipg / INOPF(&sblock), sblock.fs_frag);
 		if (sblock.fs_size < lastminfpg) {
-			printf("Filesystem size %jd < minimum size of %d\n",
+			fprint(2, "Filesystem size %jd < minimum size of %d\n",
 			    (intmax_t)sblock.fs_size, lastminfpg);
 			exit(28);
 		}
@@ -417,7 +417,7 @@ restart:
 		    INOPB(&sblock));
 	}
 	if (optimalfpg != sblock.fs_fpg)
-		printf("Reduced frags per cylinder group from %d to %d %s\n",
+		fprint(2, "Reduced frags per cylinder group from %d to %d %s\n",
 		   optimalfpg, sblock.fs_fpg, "to enlarge last cyl group");
 	sblock.fs_cgsize = fragroundup(&sblock, CGSIZE(&sblock));
 	sblock.fs_dblkno = sblock.fs_iblkno + sblock.fs_ipg / INOPF(&sblock);
@@ -490,19 +490,19 @@ restart:
 	 * Dump out summary information about file system.
 	 */
 #	define B2MBFACTOR (1 / (1024.0 * 1024.0))
-	printf("%s: %.1fMB (%jd sectors) block size %d, fragment size %d\n",
+	print("%s: %.1fMB (%jd sectors) block size %d, fragment size %d\n",
 	    fsys, (float)sblock.fs_size * sblock.fs_fsize * B2MBFACTOR,
 	    (intmax_t)fsbtodb(&sblock, sblock.fs_size), sblock.fs_bsize,
 	    sblock.fs_fsize);
-	printf("\tusing %d cylinder groups of %.2fMB, %d blks, %d inodes.\n",
+	print("\tusing %d cylinder groups of %.2fMB, %d blks, %d inodes.\n",
 	    sblock.fs_ncg, (float)sblock.fs_fpg * sblock.fs_fsize * B2MBFACTOR,
 	    sblock.fs_fpg / sblock.fs_frag, sblock.fs_ipg);
 	if (sblock.fs_flags & FS_DOSOFTDEP)
-		printf("\twith soft updates\n");
+		fprint(2, "\twith soft updates\n");
 #	undef B2MBFACTOR
 
 	if (Eflag && !Nflag) {
-		printf("Erasing sectors [%jd...%jd]\n", 
+		fprint(2, "Erasing sectors [%jd...%jd]\n", 
 		    sblock.fs_sblockloc / disk.d_bsize,
 		    fsbtodb(&sblock, sblock.fs_size) - 1);
 		berase(&disk, sblock.fs_sblockloc / disk.d_bsize,
@@ -531,11 +531,11 @@ restart:
 	if (!Nflag)
 		do_sbwrite(&disk);
 	if (Xflag == 1) {
-		printf("** Exiting on Xflag 1\n");
+		fprint(2, "** Exiting on Xflag 1\n");
 		exit(0);
 	}
 	if (Xflag == 2)
-		printf("** Leaving BAD MAGIC on Xflag 2\n");
+		fprint(2, "** Leaving BAD MAGIC on Xflag 2\n");
 	else
 		sblock.fs_magic = (Oflag != 1) ? FS_UFS2_MAGIC : FS_UFS1_MAGIC;
 
@@ -543,7 +543,7 @@ restart:
 	 * Now build the cylinders group blocks and
 	 * then print out indices of cylinder groups.
 	 */
-	printf("super-block backups (for fsck_ffs -b #) at:\n");
+	print("super-block backups (for fsck_ffs -b #) at:\n");
 	i = 0;
 	width = charsperline();
 	/*
@@ -555,7 +555,7 @@ restart:
 	else
 		iobufsize = 4 * sblock.fs_bsize;
 	if ((iobuf = calloc(1, iobufsize)) == 0) {
-		printf("Cannot allocate I/O buffer\n");
+		fprint(2, "Cannot allocate I/O buffer\n");
 		exit(38);
 	}
 	/*
@@ -571,14 +571,14 @@ restart:
 		if (j < 0)
 			tmpbuf[j = 0] = '\0';
 		if (i + j >= width) {
-			printf("\n");
+			print("\n");
 			i = 0;
 		}
 		i += j;
-		printf("%s", tmpbuf);
+		print("%s", tmpbuf);
 		fflush(stdout);
 	}
-	printf("\n");
+	print("\n");
 	if (Nflag)
 		exit(0);
 	/*
@@ -593,7 +593,7 @@ restart:
 		sblock.fs_old_cstotal.cs_nffree = sblock.fs_cstotal.cs_nffree;
 	}
 	if (Xflag == 3) {
-		printf("** Exiting on Xflag 3\n");
+		fprint(2, "** Exiting on Xflag 3\n");
 		exit(0);
 	}
 	if (!Nflag) {
@@ -690,7 +690,7 @@ initcg(int cylno, time_t utime)
 		    HOWMANY(fragstoblks(&sblock, sblock.fs_fpg), CHAR_BIT);
 	}
 	if (acg.cg_nextfreeoff > (unsigned)sblock.fs_cgsize) {
-		printf("Panic: cylinder group too big\n");
+		fprint(2, "Panic: cylinder group too big\n");
 		exit(37);
 	}
 	acg.cg_cs.cs_nifree += sblock.fs_ipg;
@@ -944,17 +944,17 @@ alloc(int size, int mode)
 	bread(&disk, part_ofs + fsbtodb(&sblock, cgtod(&sblock, 0)), (char *)&acg,
 	    sblock.fs_cgsize);
 	if (acg.cg_magic != CG_MAGIC) {
-		printf("cg 0: bad magic number\n");
+		fprint(2, "cg 0: bad magic number\n");
 		exit(38);
 	}
 	if (acg.cg_cs.cs_nbfree == 0) {
-		printf("first cylinder group ran out of space\n");
+		fprint(2, "first cylinder group ran out of space\n");
 		exit(39);
 	}
 	for (d = 0; d < acg.cg_ndblk; d += sblock.fs_frag)
 		if (isblock(&sblock, cg_blksfree(&acg), d / sblock.fs_frag))
 			goto goth;
-	printf("internal error: can't find block in cyl 0\n");
+	fprint(2, "internal error: can't find block in cyl 0\n");
 	exit(40);
 goth:
 	blkno = fragstoblks(&sblock, d);
@@ -995,7 +995,7 @@ iput(union dinode *ip, ino_t ino)
 	bread(&disk, part_ofs + fsbtodb(&sblock, cgtod(&sblock, 0)), (char *)&acg,
 	    sblock.fs_cgsize);
 	if (acg.cg_magic != CG_MAGIC) {
-		printf("cg 0: bad magic number\n");
+		fprint(2, "cg 0: bad magic number\n");
 		exit(31);
 	}
 	acg.cg_cs.cs_nifree--;
@@ -1005,7 +1005,7 @@ iput(union dinode *ip, ino_t ino)
 	sblock.fs_cstotal.cs_nifree--;
 	fscs[0].cs_nifree--;
 	if (ino >= (unsigned long)sblock.fs_ipg * sblock.fs_ncg) {
-		printf("fsinit: inode value out of range (%ju).\n",
+		fprint(2, "fsinit: inode value out of range (%ju).\n",
 		    (uintmax_t)ino);
 		exit(32);
 	}
@@ -1053,7 +1053,7 @@ isblock(struct fs *fs, unsigned char *cp, int h)
 		mask = 0x01 << (h & 0x7);
 		return ((cp[h >> 3] & mask) == mask);
 	default:
-		fprintf(stderr, "isblock bad fs_frag %d\n", fs->fs_frag);
+		fprint(2, "isblock bad fs_frag %d\n", fs->fs_frag);
 		return (0);
 	}
 }
@@ -1078,7 +1078,7 @@ clrblock(struct fs *fs, unsigned char *cp, int h)
 		cp[h >> 3] &= ~(0x01 << (h & 0x7));
 		return;
 	default:
-		fprintf(stderr, "clrblock bad fs_frag %d\n", fs->fs_frag);
+		fprint(2, "clrblock bad fs_frag %d\n", fs->fs_frag);
 		return;
 	}
 }
@@ -1103,7 +1103,7 @@ setblock(struct fs *fs, unsigned char *cp, int h)
 		cp[h >> 3] |= (0x01 << (h & 0x7));
 		return;
 	default:
-		fprintf(stderr, "setblock bad fs_frag %d\n", fs->fs_frag);
+		fprint(2, "setblock bad fs_frag %d\n", fs->fs_frag);
 		return;
 	}
 }
