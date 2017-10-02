@@ -396,7 +396,7 @@ main(int argc, char *argv[])
 	mkfs(pp, special);
 	ufs_disk_close(&disk);
 	if (!jflag)
-		exit(0);
+		exits(nil);
 	if (execlp("tunefs", "newfs", "-j", "enable", special, nil) < 0)
 		err(1, "Cannot enable soft updates journaling, tunefs");
 	/* NOT REACHED */
@@ -478,7 +478,7 @@ usage()
 	fprint(2, "\t-r reserved sectors at the end of device\n");
 	fprint(2, "\t-s file system size (sectors)\n");
 	fprint(2, "\t-t enable TRIM\n");
-	exit(1);
+	exits("usage");
 }
 
 static int
