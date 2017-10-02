@@ -39,6 +39,7 @@
 #include <u.h>
 #include <libc.h>
 
+#include <ctype.h>
 #include <ufs/ufsdat.h>
 #include <ffs/fs.h>
 #include <ufs/libufs.h>
@@ -46,7 +47,7 @@
 #include "newfs.h"
 
 int	erasecontents;		/* Erase previous disk contents */
-//int	Lflag;			/* add a volume label */
+int	addvolumelabel;		/* add a volume label */
 int	createfs = 1;		/* run without writing file system */
 int	regressiontest;		/* regression test */
 int	enablesu;		/* enable soft updates for file system */
@@ -71,7 +72,7 @@ int	enabletrim;		/* enable TRIM */
 //int	maxbpg;			/* maximum blocks per file in a cyl group */
 //int	avgfilesize = AVFILESIZ;/* expected average file size */
 //int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
-//u_char	*volumelabel = nil;	/* volume label for filesystem */
+char	*volumelabel = nil;	/* volume label for filesystem */
 Uufsd disk;		/* libufs disk structure */
 
 //static char	device[MAXPATHLEN];
@@ -96,6 +97,29 @@ main(int argc, char *argv[])
 	case 'E':
 		erasecontents = 1;
 		break;
+	case 'L':
+	{
+		volumelabel = ARGF();
+		if (volumelabel == nil) {
+			fprint(2, "No volume label specified\n");
+			exits("no volume label");
+		}
+
+		int i = -1;
+		while (isalnum(volumelabel[++i]))
+			;
+		if (volumelabel[i] != '\0') {
+			fprint(2, "Volume label characters must be alphanumeric.\n");
+			exits("bad volume label characters");
+		}
+		if (strlen(volumelabel) >= MAXVOLLEN) {
+			fprint(2, "Volume label is too long. Length is longer than %d.\n",
+			    MAXVOLLEN);
+			exits("bad volume label length");
+		}
+		addvolumelabel = 1;
+		break;
+	}
 	case 'N':
 		createfs = 0;
 		break;
@@ -133,7 +157,7 @@ main(int argc, char *argv[])
 	disk.d_bsize = 1;
 	disk.d_name = filename;
 	if (createfs && ufs_disk_create(&disk) == -1) {
-		fprint(2, "Can't create %s\n", filename);
+		fprint(2, "Can't create file %s\n", filename);
 		exits("can't create file");
 	}
 
@@ -161,19 +185,6 @@ main(int argc, char *argv[])
 	while ((ch = getopt(argc, argv,
 	    "EJL:NO:RS:T:UXa:b:c:d:e:f:g:h:i:jk:lm:no:p:r:s:t")) != -1)
 		switch (ch) {
-		case 'L':
-			volumelabel = optarg;
-			i = -1;
-			while (isalnum(volumelabel[++i]));
-			if (volumelabel[i] != '\0') {
-				errx(1, "bad volume label. Valid characters are alphanumerics.");
-			}
-			if (strlen(volumelabel) >= MAXVOLLEN) {
-				errx(1, "bad volume label. Length is longer than %d.",
-				    MAXVOLLEN);
-			}
-			Lflag = 1;
-			break;
 		case 'S':
 			rval = expand_number_int(optarg, &sectorsize);
 			if (rval < 0 || sectorsize <= 0)
