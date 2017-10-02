@@ -76,7 +76,6 @@
 extern int	erasecontents;	/* Erase previous disk contents */
 //extern int	Lflag;		/* add a volume label */
 extern int	createfs;	/* run mkfs without writing file system */
-//extern int	Oflag;		/* build UFS1 format file system */
 extern int	regressiontest;	/* regression test */
 extern int	enablesu;	/* enable soft updates for file system */
 extern int	enablesuj;	/* enable soft updates journaling for filesys */
@@ -103,20 +102,4 @@ extern int	enabletrim;	/* enable TRIM */
 //extern u_char	*volumelabel;	/* volume label for filesystem */
 //extern struct uufsd disk;	/* libufs disk structure */
 
-/*
- * To override a limitation in libufs, export the offset (in sectors) of the
- * partition on the underlying media (file or disk). The value is used as
- * an offset for all accesses to the media through bread(), which is only
- * invoked directly in this program.
- * For bwrite() we need a different approach, namely override the library
- * version with one defined here. This is because bwrite() is called also
- * by the library function sbwrite() which we cannot intercept nor want to
- * rewrite. As a consequence, the internal version of bwrite() adds the
- * partition offset itself when calling the underlying function, pwrite().
- *
- * XXX This info really ought to go into the struct uufsd, at which point
- * we can remove the above hack.
- */
-//extern ufs2_daddr_t part_ofs;	/* partition offset in blocks */
-
-//void mkfs (struct partition *, char *);
+void mkfs(char *);

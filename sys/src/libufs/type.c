@@ -58,6 +58,20 @@ ufs_disk_close(Uufsd *disk)
 }
 
 int
+ufs_disk_create(Uufsd *disk)
+{
+	disk->d_fd = create(disk->d_name, ORDWR, 0664);
+	if (disk->d_fd < 0) {
+		libufserror(disk, "failed to create file");
+		return (-1);
+	}
+
+	disk->d_mine |= MINE_WRITE;
+
+	return (0);
+}
+
+int
 ufs_disk_write(Uufsd *disk)
 {
 	libufserror(disk, nil);
@@ -69,7 +83,7 @@ ufs_disk_write(Uufsd *disk)
 
 	disk->d_fd = open(disk->d_name, ORDWR);
 	if (disk->d_fd < 0) {
-		libufserror(disk, "failed to open disk for writing");
+		libufserror(disk, "failed to open file for writing");
 		return (-1);
 	}
 

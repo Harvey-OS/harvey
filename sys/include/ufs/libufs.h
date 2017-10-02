@@ -102,6 +102,7 @@ int sbwrite(Uufsd *, int);
  * type.c
  */
 int ufs_disk_close(Uufsd *);
+int ufs_disk_create(Uufsd *);
 int ufs_disk_write(Uufsd *);
 
 /*
