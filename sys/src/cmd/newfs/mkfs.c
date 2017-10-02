@@ -36,31 +36,17 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
+#include <u.h>
+#include <libc.h>
 
-#include <sys/param.h>
-// TODO: find me
-// #include <sys/disklabel.h>
-#include <sys/file.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/resource.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <err.h>
-#include <grp.h>
-#include <limits.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-#include <ufs/dinode.h>
+#include <ufs/ufsdat.h>
 #include <ufs/dir.h>
 #include <ffs/fs.h>
+#include <ufs/dinode.h>
+#include <ufs/libufs.h>
 #include "newfs.h"
+
+#if 0
 
 /*
  * make file system for cylinder-group style file systems
@@ -1165,3 +1151,4 @@ newfs_random(void)
 		return (nextnum++);
 	return (arc4random());
 }
+#endif // 0

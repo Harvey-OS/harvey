@@ -4,6 +4,9 @@
 		"Include": [
 			"../cmd.json"
 		],
+		"Oflags": [
+			"-lufs"
+		],
 		"Install": "/$ARCH/bin",
 		"Program": "newfs",
 		"SourceFiles": [

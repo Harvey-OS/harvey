@@ -39,91 +39,60 @@
 #include <u.h>
 #include <libc.h>
 
-
-#include <ufs/dir.h>
-#include <ufs/dinode.h>
+#include <ufs/ufsdat.h>
 #include <ffs/fs.h>
-#include <ufsmount.h>
-
-#include <ufs/freebsd_util.h>
-#if 0
-#include <sys/cdefs.h>
-
-/*
- * newfs: friendly front end to mkfs
- */
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <sys/disk.h>
-#include <sys/disklabel.h>
-#include <sys/file.h>
-#include <sys/mount.h>
-
-
-#include <ctype.h>
-#include <err.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <paths.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <syslog.h>
-#include <unistd.h>
-
-#include <libutil.h>
-#endif
+#include <ufs/libufs.h>
 
 #include "newfs.h"
 
-int	Eflag;			/* Erase previous disk contents */
-int	Lflag;			/* add a volume label */
-int	Nflag;			/* run without writing file system */
-int	Oflag = 2;		/* file system format (1 => UFS1, 2 => UFS2) */
-int	Rflag;			/* regression test */
-int	Uflag;			/* enable soft updates for file system */
-int	jflag;			/* enable soft updates journaling for filesys */
-int	Xflag = 0;		/* exit in middle of newfs for testing */
-int	Jflag;			/* enable gjournal for file system */
-int	lflag;			/* enable multilabel for file system */
-int	nflag;			/* do not create .snap directory */
-int	tflag;			/* enable TRIM */
-intmax_t fssize;		/* file system size */
-off_t	mediasize;		/* device size */
-int	sectorsize;		/* bytes/sector */
-int	realsectorsize;		/* bytes/sector in hardware */
-int	fsize = 0;		/* fragment size */
-int	bsize = 0;		/* block size */
-int	maxbsize = 0;		/* maximum clustering */
-int	maxblkspercg = MAXBLKSPERCG; /* maximum blocks per cylinder group */
-int	minfree = MINFREE;	/* free space threshold */
-int	metaspace;		/* space held for metadata blocks */
-int	opt = DEFAULTOPT;	/* optimization preference (space or time) */
-int	density;		/* number of bytes per inode */
-int	maxcontig = 0;		/* max contiguous blocks to allocate */
-int	maxbpg;			/* maximum blocks per file in a cyl group */
-int	avgfilesize = AVFILESIZ;/* expected average file size */
-int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
-u_char	*volumelabel = nil;	/* volume label for filesystem */
-struct uufsd disk;		/* libufs disk structure */
+//int	Eflag;			/* Erase previous disk contents */
+//int	Lflag;			/* add a volume label */
+//int	Nflag;			/* run without writing file system */
+//int	Oflag = 2;		/* file system format (1 => UFS1, 2 => UFS2) */
+//int	Rflag;			/* regression test */
+//int	Uflag;			/* enable soft updates for file system */
+//int	jflag;			/* enable soft updates journaling for filesys */
+//int	Xflag = 0;		/* exit in middle of newfs for testing */
+//int	Jflag;			/* enable gjournal for file system */
+//int	lflag;			/* enable multilabel for file system */
+//int	nflag;			/* do not create .snap directory */
+//int	tflag;			/* enable TRIM */
+//intmax_t fssize;		/* file system size */
+//off_t	mediasize;		/* device size */
+//int	sectorsize;		/* bytes/sector */
+//int	realsectorsize;		/* bytes/sector in hardware */
+//int	fsize = 0;		/* fragment size */
+//int	bsize = 0;		/* block size */
+//int	maxbsize = 0;		/* maximum clustering */
+//int	maxblkspercg = MAXBLKSPERCG; /* maximum blocks per cylinder group */
+//int	minfree = MINFREE;	/* free space threshold */
+//int	metaspace;		/* space held for metadata blocks */
+//int	opt = DEFAULTOPT;	/* optimization preference (space or time) */
+//int	density;		/* number of bytes per inode */
+//int	maxcontig = 0;		/* max contiguous blocks to allocate */
+//int	maxbpg;			/* maximum blocks per file in a cyl group */
+//int	avgfilesize = AVFILESIZ;/* expected average file size */
+//int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
+//u_char	*volumelabel = nil;	/* volume label for filesystem */
+//struct uufsd disk;		/* libufs disk structure */
 
-static char	device[MAXPATHLEN];
-static u_char   bootarea[BBSIZE];
-static int	is_file;		/* work on a file, not a device */
-static char	*dkname;
-static char	*disktype;
+//static char	device[MAXPATHLEN];
+//static u_char   bootarea[BBSIZE];
+//static int	is_file;		/* work on a file, not a device */
+//static char	*dkname;
+//static char	*disktype;
 
-static void getfssize(intmax_t *, const char *p, intmax_t, intmax_t);
-static struct disklabel *getdisklabel(char *s);
-static void usage(void);
-static int expand_number_int(const char *buf, int *num);
+//static void getfssize(intmax_t *, const char *p, intmax_t, intmax_t);
+//static struct disklabel *getdisklabel(char *s);
+//static void usage(void);
+//static int expand_number_int(const char *buf, int *num);
 
-ufs2_daddr_t part_ofs; /* partition offset in blocks, used with files */
+//ufs2_daddr_t part_ofs; /* partition offset in blocks, used with files */
 
-int
+void
 main(int argc, char *argv[])
 {
+#if 0
 	struct partition *pp;
 	struct disklabel *lp;
 	struct stat st;
@@ -400,8 +369,11 @@ main(int argc, char *argv[])
 	if (execlp("tunefs", "newfs", "-j", "enable", special, nil) < 0)
 		err(1, "Cannot enable soft updates journaling, tunefs");
 	/* NOT REACHED */
+#endif // 0
+	exits(nil);
 }
 
+#if 0
 void
 getfssize(intmax_t *fsz, const char *s, intmax_t disksize, intmax_t reserved)
 {
@@ -497,3 +469,4 @@ expand_number_int(const char *buf, int *num)
 	*num = (int)num64;
 	return (0);
 }
+#endif // 0
