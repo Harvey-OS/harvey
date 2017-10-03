@@ -102,9 +102,6 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
 #define	ENOSPC		28		/* No space left on device */
 
 
-#define	DEV_BSHIFT	9		/* log2(DEV_BSIZE) */
-#define	DEV_BSIZE	(1<<DEV_BSHIFT)
-
 /*
  * btodb() is messy and perhaps slow because `bytes' may be an off_t.  We
  * want to shift an unsigned type to avoid sign extension and we don't
