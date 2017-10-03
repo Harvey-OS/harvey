@@ -56,35 +56,53 @@ int	exitflag = 0;		/* exit in middle of newfs for testing */
 int	enablemultilabel;	/* enable multilabel for file system */
 int	createsnapdir = 1;	/* do not create .snap directory */
 int	enabletrim;		/* enable TRIM */
-//intmax_t fssize;		/* file system size */
+int64_t fssize;			/* file system size */
 //off_t	mediasize;		/* device size */
-//int	sectorsize;		/* bytes/sector */
+int	sectorsize;		/* bytes/sector */
 //int	realsectorsize;		/* bytes/sector in hardware */
-//int	fsize = 0;		/* fragment size */
-//int	bsize = 0;		/* block size */
-//int	maxbsize = 0;		/* maximum clustering */
-//int	maxblkspercg = MAXBLKSPERCG; /* maximum blocks per cylinder group */
-//int	minfree = MINFREE;	/* free space threshold */
-//int	metaspace;		/* space held for metadata blocks */
-//int	opt = DEFAULTOPT;	/* optimization preference (space or time) */
-//int	density;		/* number of bytes per inode */
-//int	maxcontig = 0;		/* max contiguous blocks to allocate */
-//int	maxbpg;			/* maximum blocks per file in a cyl group */
-//int	avgfilesize = AVFILESIZ;/* expected average file size */
-//int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
+int	fsize = 0;		/* fragment size */
+int	bsize = 0;		/* block size */
+int	maxbsize = 0;		/* maximum clustering */
+int	maxblkspercg = MAXBLKSPERCG; /* maximum blocks per cylinder group */
+int	minfree = MINFREE;	/* free space threshold */
+int	metaspace;		/* space held for metadata blocks */
+int	opt = DEFAULTOPT;	/* optimization preference (space or time) */
+int	density;		/* number of bytes per inode */
+int	maxcontig = 0;		/* max contiguous blocks to allocate */
+int	maxbpg;			/* maximum blocks per file in a cyl group */
+int	avgfilesize = AVFILESIZ;/* expected average file size */
+int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
 char	*volumelabel = nil;	/* volume label for filesystem */
-Uufsd disk;		/* libufs disk structure */
+Uufsd	disk;		/* libufs disk structure */
 
 //static char	device[MAXPATHLEN];
 //static u_char   bootarea[BBSIZE];
 //static int	is_file;		/* work on a file, not a device */
 //static char	*dkname;
-//static char	*disktype;
 
 //static void getfssize(intmax_t *, const char *p, intmax_t, intmax_t);
 //static struct disklabel *getdisklabel(char *s);
 static void usage();
-//static int expand_number_int(const char *buf, int *num);
+
+static int
+parseint(const char *str, int *val)
+{
+	if (str == nil) {
+		return 0;
+	}
+	*val = atoi(str);
+	return 1;
+}
+
+static int
+parsei64(const char *str, int64_t *val)
+{
+	if (str == nil) {
+		return 0;
+	}
+	*val = atoll(str);
+	return 1;
+}
 
 void
 main(int argc, char *argv[])
@@ -126,26 +144,151 @@ main(int argc, char *argv[])
 	case 'R':
 		regressiontest = 1;
 		break;
+	case 'S':
+	{
+		if (!parseint(ARGF(), &sectorsize) || sectorsize <= 0) {
+			fprint(2, "Invalid sector size\n");
+			exits("bad file sector size");
+		}
+		break;
+	}
 	case 'U':
 		enablesu = 1;
 		break;
 	case 'X':
 		exitflag++;
 		break;
+	case 'a':
+	{
+		if (!parseint(ARGF(), &maxcontig) || maxcontig <= 0) {
+			fprint(2, "Invalid blocks per cylinder group\n");
+			exits("bad blocks per cylinder group");
+		}
+		break;
+	}
+	case 'b':
+	{
+		if (!parseint(ARGF(), &bsize) || bsize < MINBSIZE) {
+			fprint(2, "Block size too small, min is: %d\n", MINBSIZE);
+			exits("block size too small");
+		} else if (bsize > MAXBSIZE) {
+			fprint(2, "Block size too large, max is: %d\n", MAXBSIZE);
+			exits("block size too large");
+		}
+		break;
+	}
+	case 'c':
+	{
+		if (!parseint(ARGF(), &maxblkspercg) || maxblkspercg <= 0) {
+			fprint(2, "Invalid sector size\n");
+			exits("bad file sector size");
+		}
+		break;
+	}
+	case 'd':
+	{
+		if (!parseint(ARGF(), &maxbsize) || maxbsize < MINBSIZE) {
+			fprint(2, "Invalid extent block size\n");
+			exits("bad file sector size");
+		}
+		break;
+	}
+	case 'e':
+	{
+		if (!parseint(ARGF(), &maxbpg) || maxbpg <= 0) {
+			fprint(2, "Invalid blocks per file in a cylinder group\n");
+			exits("bad blocks per file in a cylinder group");
+		}
+		break;
+	}
+	case 'f':
+	{
+		if (!parseint(ARGF(), &fsize) || fsize <= 0) {
+			fprint(2, "Invalid fragment size\n");
+			exits("bad fragment size");
+		}
+		break;
+	}
+	case 'g':
+	{
+		if (!parseint(ARGF(), &avgfilesize) || avgfilesize <= 0) {
+			fprint(2, "Invalid average file size\n");
+			exits("bad average file size");
+		}
+		break;
+	}
+	case 'h':
+	{
+		if (!parseint(ARGF(), &avgfilesperdir) || avgfilesperdir <= 0) {
+			fprint(2, "Invalid average files per dir\n");
+			exits("bad average files per dir");
+		}
+		break;
+	}
+	case 'i':
+	{
+		if (!parseint(ARGF(), &density) || density <= 0) {
+			fprint(2, "Invalid bytes per inode\n");
+			exits("bad bytes per inode");
+		}
+		break;
+	}
 	case 'j':
 		enablesuj = 1;
 		enablesu = 1;
 		break;
+	case 'k':
+	{
+		if (!parseint(ARGF(), &metaspace)) {
+			fprint(2, "Invalid metadata space\n");
+			exits("bad metadata space");
+		}
+		if (metaspace == 0) {
+			/* force to stay zero in mkfs */
+			metaspace = -1;
+		}
+		break;
+	}
 	case 'l':
 		enablemultilabel = 1;
 		break;
+	case 'm':
+	{
+		if (!parseint(ARGF(), &minfree) || minfree > 99) {
+			fprint(2, "Invalid free space\n");
+			exits("bad free space");
+		}
+		break;
+	}
 	case 'n':
 		createsnapdir = 0;
 		break;
+	case 'o':
+	{
+		char *p = ARGF();
+		if (strcmp(p, "space") == 0) {
+			opt = FS_OPTSPACE;
+		} else if (strcmp(p, "time") == 0) {
+			opt = FS_OPTTIME;
+		} else {
+			fprint(2, "Invalid optimization preference: use `space' or `time'\n");
+			exits("bad optimization preference");
+		}
+		break;
+	}
+	case 's':
+	{
+		if (!parsei64(ARGF(), &fssize) || fssize <= 0) {
+			fprint(2, "Invalid file system size\n");
+			exits("bad file system size");
+		}
+		break;
+	}
 	case 't':
 		enabletrim = 1;
 		break;
 	} ARGEND
+
 	if (argv[0] == nil) {
 		usage();
 		exits("usage");
@@ -185,43 +328,6 @@ main(int argc, char *argv[])
 	while ((ch = getopt(argc, argv,
 	    "EJL:NO:RS:T:UXa:b:c:d:e:f:g:h:i:jk:lm:no:p:r:s:t")) != -1)
 		switch (ch) {
-		case 'S':
-			rval = expand_number_int(optarg, &sectorsize);
-			if (rval < 0 || sectorsize <= 0)
-				errx(1, "%s: bad sector size", optarg);
-			break;
-		case 'T':
-			disktype = optarg;
-			break;
-		case 'a':
-			rval = expand_number_int(optarg, &maxcontig);
-			if (rval < 0 || maxcontig <= 0)
-				errx(1, "%s: bad maximum contiguous blocks",
-				    optarg);
-			break;
-		case 'b':
-			rval = expand_number_int(optarg, &bsize);
-			if (rval < 0)
-				 errx(1, "%s: bad block size",
-                                    optarg);
-			if (bsize < MINBSIZE)
-				errx(1, "%s: block size too small, min is %d",
-				    optarg, MINBSIZE);
-			if (bsize > MAXBSIZE)
-				errx(1, "%s: block size too large, max is %d",
-				    optarg, MAXBSIZE);
-			break;
-		case 'c':
-			rval = expand_number_int(optarg, &maxblkspercg);
-			if (rval < 0 || maxblkspercg <= 0)
-				errx(1, "%s: bad blocks per cylinder group",
-				    optarg);
-			break;
-		case 'd':
-			rval = expand_number_int(optarg, &maxbsize);
-			if (rval < 0 || maxbsize < MINBSIZE)
-				errx(1, "%s: bad extent block size", optarg);
-			break;
 		case 'e':
 			rval = expand_number_int(optarg, &maxbpg);
 			if (rval < 0 || maxbpg <= 0)
@@ -277,13 +383,6 @@ main(int argc, char *argv[])
 				errx(1, "%s: bad reserved size", optarg);
 			break;
 
-		case 's':
-			errno = 0;
-			fssize = strtoimax(optarg, &cp, 0);
-			if (errno != 0 || cp == optarg ||
-			    *cp != '\0' || fssize < 0)
-				errx(1, "%s: bad file system size", optarg);
-			break;
 		case '?':
 		default:
 			usage();
@@ -448,7 +547,6 @@ usage()
 	fprint(2, "\t-N do not create file system, just print out parameters\n");
 	fprint(2, "\t-R regression test, suppress random factors\n");
 	fprint(2, "\t-S sector size\n");
-	fprint(2, "\t-T disktype\n");
 	fprint(2, "\t-U enable soft updates\n");
 	fprint(2, "\t-a maximum contiguous blocks\n");
 	fprint(2, "\t-b block size\n");
@@ -465,28 +563,7 @@ usage()
 	fprint(2, "\t-n do not create .snap directory\n");
 	fprint(2, "\t-m minimum free space %%\n");
 	fprint(2, "\t-o optimization preference (`space' or `time')\n");
-	fprint(2, "\t-r reserved sectors at the end of device\n");
 	fprint(2, "\t-s file system size (sectors)\n");
 	fprint(2, "\t-t enable TRIM\n");
 	exits("usage");
 }
-
-#if 0
-
-static int
-expand_number_int(const char *buf, int *num)
-{
-	int64_t num64;
-	int rval;
-
-	rval = expand_number(buf, &num64);
-	if (rval < 0)
-		return (rval);
-	if (num64 > INT_MAX || num64 < INT_MIN) {
-		errno = ERANGE;
-		return (-1);
-	}
-	*num = (int)num64;
-	return (0);
-}
-#endif // 0
