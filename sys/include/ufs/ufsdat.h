@@ -52,6 +52,9 @@ typedef int64_t ufs_time_t;
  */
 #define MAXBSIZE	65536	/* must be power of 2 */
 
+#define	DEV_BSHIFT	9		/* log2(DEV_BSIZE) */
+#define	DEV_BSIZE	(1<<DEV_BSHIFT)
+
 #define	NBBY	8		/* number of bits in a byte */
 
 #define	setbit(a,i)	(((unsigned char *)(a))[(i)/NBBY] |= 1<<((i)%NBBY))

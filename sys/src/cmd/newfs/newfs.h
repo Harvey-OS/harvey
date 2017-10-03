@@ -84,9 +84,8 @@ extern int	enablemultilabel;		/* enable multilabel MAC for file system */
 extern int	createsnapdir;	/* do not create .snap directory */
 extern int	enabletrim;	/* enable TRIM */
 extern int64_t	fssize;		/* file system size */
-//extern off_t	mediasize;	/* device size */
 extern int	sectorsize;	/* bytes/sector */
-//extern int	realsectorsize;	/* bytes/sector in hardware*/
+extern int	realsectorsize;	/* bytes/sector in hardware*/
 extern int	fsize;		/* fragment size */
 extern int	bsize;		/* block size */
 extern int	maxbsize;	/* maximum clustering */
