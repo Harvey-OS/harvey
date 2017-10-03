@@ -46,6 +46,9 @@
 
 #include "newfs.h"
 
+#define	MIN(a,b) (((a)<(b))?(a):(b))
+#define	MAX(a,b) (((a)>(b))?(a):(b))
+
 int	erasecontents;		/* Erase previous disk contents */
 int	addvolumelabel;		/* add a volume label */
 int	createfs = 1;		/* run without writing file system */
@@ -57,9 +60,8 @@ int	enablemultilabel;	/* enable multilabel for file system */
 int	createsnapdir = 1;	/* do not create .snap directory */
 int	enabletrim;		/* enable TRIM */
 int64_t fssize;			/* file system size */
-//off_t	mediasize;		/* device size */
 int	sectorsize;		/* bytes/sector */
-//int	realsectorsize;		/* bytes/sector in hardware */
+int	realsectorsize;		/* bytes/sector in hardware */
 int	fsize = 0;		/* fragment size */
 int	bsize = 0;		/* block size */
 int	maxbsize = 0;		/* maximum clustering */
@@ -73,15 +75,8 @@ int	maxbpg;			/* maximum blocks per file in a cyl group */
 int	avgfilesize = AVFILESIZ;/* expected average file size */
 int	avgfilesperdir = AFPDIR;/* expected number of files per directory */
 char	*volumelabel = nil;	/* volume label for filesystem */
-Uufsd	disk;		/* libufs disk structure */
+Uufsd	disk;			/* libufs disk structure */
 
-//static char	device[MAXPATHLEN];
-//static u_char   bootarea[BBSIZE];
-//static int	is_file;		/* work on a file, not a device */
-//static char	*dkname;
-
-//static void getfssize(intmax_t *, const char *p, intmax_t, intmax_t);
-//static struct disklabel *getdisklabel(char *s);
 static void usage();
 
 static int
@@ -290,8 +285,8 @@ main(int argc, char *argv[])
 	} ARGEND
 
 	if (argv[0] == nil) {
-		usage();
-		exits("usage");
+		fprint(2, "No filename specified\n");
+		exits("no filename");
 	}
 
 	char *filename = argv[0];
@@ -304,6 +299,31 @@ main(int argc, char *argv[])
 		exits("can't create file");
 	}
 
+	if (sectorsize == 0) {
+		sectorsize = 512;
+	}
+        if (fssize == 0) {
+                fssize = 1048576; 
+        }
+	if (fsize == 0) {
+		fsize = MAX(DFL_FRAGSIZE, sectorsize);
+	}
+	if (bsize == 0) {
+		bsize = MIN(DFL_BLKSIZE, 8 * fsize);
+	}
+	if (minfree < MINFREE && opt != FS_OPTSPACE) {
+		fprint(2, "Warning: changing optimization to space ");
+		fprint(2, "because minfree is less than %d%%\n", MINFREE);
+		opt = FS_OPTSPACE;
+	}
+
+	realsectorsize = sectorsize;
+	if (sectorsize != DEV_BSIZE) {
+		int secperblk = sectorsize / DEV_BSIZE;
+		fssize *= secperblk;
+		sectorsize = DEV_BSIZE;
+	}
+
 	mkfs(filename);
 	ufs_disk_close(&disk);
 
@@ -314,228 +334,7 @@ main(int argc, char *argv[])
 		/* NOT REACHED */
 	}
 	exits(nil);
-#if 0
-	struct partition *pp;
-	struct disklabel *lp;
-	struct stat st;
-	char *cp, *special;
-	intmax_t reserved;
-	int ch, i, rval;
-	char part_name;		/* partition name, default to full disk */
-
-	part_name = 'c';
-	reserved = 0;
-	while ((ch = getopt(argc, argv,
-	    "EJL:NO:RS:T:UXa:b:c:d:e:f:g:h:i:jk:lm:no:p:r:s:t")) != -1)
-		switch (ch) {
-		case 'e':
-			rval = expand_number_int(optarg, &maxbpg);
-			if (rval < 0 || maxbpg <= 0)
-			  errx(1, "%s: bad blocks per file in a cylinder group",
-				    optarg);
-			break;
-		case 'f':
-			rval = expand_number_int(optarg, &fsize);
-			if (rval < 0 || fsize <= 0)
-				errx(1, "%s: bad fragment size", optarg);
-			break;
-		case 'g':
-			rval = expand_number_int(optarg, &avgfilesize);
-			if (rval < 0 || avgfilesize <= 0)
-				errx(1, "%s: bad average file size", optarg);
-			break;
-		case 'h':
-			rval = expand_number_int(optarg, &avgfilesperdir);
-			if (rval < 0 || avgfilesperdir <= 0)
-			       errx(1, "%s: bad average files per dir", optarg);
-			break;
-		case 'i':
-			rval = expand_number_int(optarg, &density);
-			if (rval < 0 || density <= 0)
-				errx(1, "%s: bad bytes per inode", optarg);
-			break;
-		case 'k':
-			if ((metaspace = atoi(optarg)) < 0)
-				errx(1, "%s: bad metadata space %%", optarg);
-			if (metaspace == 0)
-				/* force to stay zero in mkfs */
-				metaspace = -1;
-			break;
-		case 'm':
-			if ((minfree = atoi(optarg)) < 0 || minfree > 99)
-				errx(1, "%s: bad free space %%", optarg);
-			break;
-		case 'o':
-			if (strcmp(optarg, "space") == 0)
-				opt = FS_OPTSPACE;
-			else if (strcmp(optarg, "time") == 0)
-				opt = FS_OPTTIME;
-			else
-				errx(1, 
-		"%s: unknown optimization preference: use `space' or `time'",
-				    optarg);
-			break;
-		case 'r':
-			errno = 0;
-			reserved = strtoimax(optarg, &cp, 0);
-			if (errno != 0 || cp == optarg ||
-			    *cp != '\0' || reserved < 0)
-				errx(1, "%s: bad reserved size", optarg);
-			break;
-
-		case '?':
-		default:
-			usage();
-		}
-	argc -= optind;
-	argv += optind;
-
-	if (argc != 1)
-		usage();
-
-	special = argv[0];
-	if (!special[0])
-		err(1, "empty file/special name");
-	cp = strrchr(special, '/');
-	if (cp == nil) {
-		/*
-		 * No path prefix; try prefixing _PATH_DEV.
-		 */
-		snprintf(device, sizeof(device), "%s%s", _PATH_DEV, special);
-		special = device;
-	}
-
-	if (is_file) {
-		/* bypass ufs_disk_fillout_blank */
-		bzero( &disk, sizeof(disk));
-		disk.d_bsize = 1;
-		disk.d_name = special;
-		disk.d_fd = open(special, O_RDONLY);
-		if (disk.d_fd < 0 ||
-		    (createfs && ufs_disk_write(&disk) == -1))
-			errx(1, "%s: ", special);
-	} else if (ufs_disk_fillout_blank(&disk, special) == -1 ||
-	    (createfs && ufs_disk_write(&disk) == -1)) {
-		if (disk.d_error != nil)
-			errx(1, "%s: %s", special, disk.d_error);
-		else
-			err(1, "%s", special);
-	}
-	if (fstat(disk.d_fd, &st) < 0)
-		err(1, "%s", special);
-	if ((st.st_mode & S_IFMT) != S_IFCHR) {
-		warn("%s: not a character-special device", special);
-		is_file = 1;	/* assume it is a file */
-		dkname = special;
-		if (sectorsize == 0)
-			sectorsize = 512;
-		mediasize = st.st_size;
-		/* set fssize from the partition */
-	} else {
-	    if (sectorsize == 0)
-		if (ioctl(disk.d_fd, DIOCGSECTORSIZE, &sectorsize) == -1)
-		    sectorsize = 0;	/* back out on error for safety */
-	    if (sectorsize && ioctl(disk.d_fd, DIOCGMEDIASIZE, &mediasize) != -1)
-		getfssize(&fssize, special, mediasize / sectorsize, reserved);
-	}
-	pp = nil;
-	lp = getdisklabel(special);
-	if (lp != nil) {
-		if (!is_file) /* already set for files */
-			part_name = special[strlen(special) - 1];
-		if ((part_name < 'a' || part_name - 'a' >= MAXPARTITIONS) &&
-				!isdigit(part_name))
-			errx(1, "%s: can't figure out file system partition",
-					special);
-		cp = &part_name;
-		if (isdigit(*cp))
-			pp = &lp->d_partitions[RAW_PART];
-		else
-			pp = &lp->d_partitions[*cp - 'a'];
-		if (pp->p_size == 0)
-			errx(1, "%s: `%c' partition is unavailable",
-			    special, *cp);
-		if (pp->p_fstype == FS_BOOT)
-			errx(1, "%s: `%c' partition overlaps boot program",
-			    special, *cp);
-		getfssize(&fssize, special, pp->p_size, reserved);
-		if (sectorsize == 0)
-			sectorsize = lp->d_secsize;
-		if (fsize == 0)
-			fsize = pp->p_fsize;
-		if (bsize == 0)
-			bsize = pp->p_frag * pp->p_fsize;
-		if (is_file)
-			part_ofs = pp->p_offset;
-	}
-	if (sectorsize <= 0)
-		errx(1, "%s: no default sector size", special);
-	if (fsize <= 0)
-		fsize = MAX(DFL_FRAGSIZE, sectorsize);
-	if (bsize <= 0)
-		bsize = MIN(DFL_BLKSIZE, 8 * fsize);
-	if (minfree < MINFREE && opt != FS_OPTSPACE) {
-		fprint(2, "Warning: changing optimization to space ");
-		fprint(2, "because minfree is less than %d%%\n", MINFREE);
-		opt = FS_OPTSPACE;
-	}
-	realsectorsize = sectorsize;
-	if (sectorsize != DEV_BSIZE) {		/* XXX */
-		int secperblk = sectorsize / DEV_BSIZE;
-
-		sectorsize = DEV_BSIZE;
-		fssize *= secperblk;
-		if (pp != nil)
-			pp->p_size *= secperblk;
-	}
-#endif // 0
 }
-
-#if 0
-void
-getfssize(intmax_t *fsz, const char *s, intmax_t disksize, intmax_t reserved)
-{
-	intmax_t available;
-
-	available = disksize - reserved;
-	if (available <= 0)
-		errx(1, "%s: reserved not less than device size %jd",
-		    s, disksize);
-	if (*fsz == 0)
-		*fsz = available;
-	else if (*fsz > available)
-		errx(1, "%s: maximum file system size is %jd",
-		    s, available);
-}
-
-struct disklabel *
-getdisklabel(char *s)
-{
-	static struct disklabel lab;
-	struct disklabel *lp;
-
-	if (is_file) {
-		if (read(disk.d_fd, bootarea, BBSIZE) != BBSIZE)
-			err(4, "cannot read bootarea");
-		if (bsd_disklabel_le_dec(
-		    bootarea + (0 /* labeloffset */ +
-				1 /* labelsoffset */ * sectorsize),
-		    &lab, MAXPARTITIONS))
-			errx(1, "no valid label found");
-
-		lp = &lab;
-		return &lab;
-	}
-
-	if (disktype) {
-		lp = getdiskbyname(disktype);
-		if (lp != nil)
-			return (lp);
-	}
-	return (nil);
-}
-
-#endif // 0
 
 static void
 usage()
