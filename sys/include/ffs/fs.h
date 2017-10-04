@@ -233,12 +233,12 @@ struct fsck_cmd {
  * read in from fs_csaddr (size fs_cssize) in addition to the
  * super block.
  */
-struct csum {
+typedef struct csum {
 	int32_t	cs_ndir;		/* number of directories */
 	int32_t	cs_nbfree;		/* number of free blocks */
 	int32_t	cs_nifree;		/* number of free inodes */
 	int32_t	cs_nffree;		/* number of free frags */
-};
+} csum;
 struct csum_total {
 	int64_t	cs_ndir;		/* number of directories */
 	int64_t	cs_nbfree;		/* number of free blocks */
@@ -434,22 +434,6 @@ CTASSERT(sizeof(Fs) == 1376);
 	if ((fs)->fs_active)						\
 		ACTIVECGNUM((fs), (cg)) &= ~ACTIVECGOFF((cg));		\
 } while (0)
-
-/*
- * The size of a cylinder group is calculated by CGSIZE. The maximum size
- * is limited by the fact that cylinder groups are at most one block.
- * Its size is derived from the size of the maps maintained in the
- * cylinder group and the (struct cg) size.
- */
-#define	CGSIZE(fs) \
-    /* base cg */	(sizeof(struct cg) + sizeof(int32_t) + \
-    /* old btotoff */	(fs)->fs_old_cpg * sizeof(int32_t) + \
-    /* old boff */	(fs)->fs_old_cpg * sizeof(u_int16_t) + \
-    /* inode map */	howmany((fs)->fs_ipg, NBBY) + \
-    /* block map */	howmany((fs)->fs_fpg, NBBY) +\
-    /* if present */	((fs)->fs_contigsumsize <= 0 ? 0 : \
-    /* cluster sum */	(fs)->fs_contigsumsize * sizeof(int32_t) + \
-    /* cluster map */	howmany(fragstoblks(fs, (fs)->fs_fpg), NBBY)))
 
 /*
  * The minimal number of cylinder groups that should be created.
