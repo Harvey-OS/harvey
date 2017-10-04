@@ -125,6 +125,51 @@ bwrite(Uufsd *disk, ufs2_daddr_t blockno, const void *data, size_t size)
 	return (cnt);
 }
 
+static int
+berase_helper(Uufsd *disk, ufs2_daddr_t blockno, ufs2_daddr_t size)
+{
+	char *zero_chunk;
+	off_t offset, zero_chunk_size, pwrite_size;
+	int rv;
+
+	offset = blockno * disk->d_bsize;
+	zero_chunk_size = 65536 * disk->d_bsize;
+	zero_chunk = calloc(1, zero_chunk_size);
+	if (zero_chunk == nil) {
+		libufserror(disk, "failed to allocate memory");
+		return (-1);
+	}
+	while (size > 0) { 
+		pwrite_size = size;
+		if (pwrite_size > zero_chunk_size)
+			pwrite_size = zero_chunk_size;
+		rv = pwrite(disk->d_fd, zero_chunk, pwrite_size, offset);
+		if (rv == -1) {
+			libufserror(disk, "failed writing to disk");
+			break;
+		}
+		size -= rv;
+		offset += rv;
+		rv = 0;
+	}
+	free(zero_chunk);
+	return (rv);
+}
+
+int
+berase(Uufsd *disk, ufs2_daddr_t blockno, ufs2_daddr_t size)
+{
+	int rv;
+
+	libufserror(disk, nil);
+	rv = ufs_disk_write(disk);
+	if (rv == -1) {
+		libufserror(disk, "failed to open disk for writing");
+		return(rv);
+	}
+	return (berase_helper(disk, blockno, size));
+}
+
 /*
  * Trace steps through libufs, to be used at entry and erroneous return.
  */
