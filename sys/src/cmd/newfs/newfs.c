@@ -43,11 +43,7 @@
 #include <ufs/ufsdat.h>
 #include <ffs/fs.h>
 #include <ufs/libufs.h>
-
 #include "newfs.h"
-
-#define	MIN(a,b) (((a)<(b))?(a):(b))
-#define	MAX(a,b) (((a)>(b))?(a):(b))
 
 int	erasecontents;		/* Erase previous disk contents */
 int	addvolumelabel;		/* add a volume label */
