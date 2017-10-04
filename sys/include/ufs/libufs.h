@@ -73,6 +73,7 @@ typedef struct Uufsd {
  */
 int32_t bread(Uufsd *, ufs2_daddr_t, void *, size_t);
 int32_t bwrite(Uufsd *, ufs2_daddr_t, const void *, size_t);
+int berase(Uufsd *disk, ufs2_daddr_t blockno, ufs2_daddr_t size);
 void libufserror(Uufsd *u, const char *str);
 
 /*

@@ -61,3 +61,17 @@ typedef int64_t ufs_time_t;
 #define	clrbit(a,i)	(((unsigned char *)(a))[(i)/NBBY] &= ~(1<<((i)%NBBY)))
 #define	isclr(a,i)							\
 	((((const unsigned char *)(a))[(i)/NBBY] & (1<<((i)%NBBY))) == 0)
+
+/*
+ * btodb() is messy and perhaps slow because `bytes' may be an off_t.  We
+ * want to shift an unsigned type to avoid sign extension and we don't
+ * want to widen `bytes' unnecessarily.  Assume that the result fits in
+ * a daddr_t.
+ */
+#define btodb(bytes)	 		/* calculates (bytes / DEV_BSIZE) */ \
+	(sizeof (bytes) > sizeof(long) \
+	 ? (daddr_t)((unsigned long long)(bytes) >> DEV_BSHIFT) \
+	 : (daddr_t)((unsigned long)(bytes) >> DEV_BSHIFT))
+
+#define dbtob(db)			/* calculates (db * DEV_BSIZE) */ \
+	((off_t)(db) << DEV_BSHIFT)

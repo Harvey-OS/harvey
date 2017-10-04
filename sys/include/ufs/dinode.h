@@ -154,7 +154,7 @@ typedef struct ufs2_dinode {
  * this structure describes an on-disk structure, all its fields
  * are defined by types with precise widths.
  */
-struct ufs1_dinode {
+typedef struct ufs1_dinode {
 	uint16_t	di_mode;	/*   0: IFMT, permissions; see below. */
 	int16_t		di_nlink;	/*   2: File link count. */
 	uint32_t	di_freelink;	/*   4: SUJ: Next unlinked inode. */
@@ -173,5 +173,4 @@ struct ufs1_dinode {
 	uint32_t	di_uid;		/* 112: File owner. */
 	uint32_t	di_gid;		/* 116: File group. */
 	uint64_t	di_modrev;	/* 120: i_modrev for NFSv4 */
-};
-
+} ufs1_dinode;
