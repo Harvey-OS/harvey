@@ -127,17 +127,3 @@ struct dirtemplate {
 	uint8_t	dotdot_namlen;
 	char		dotdot_name[4];	/* ditto */
 };
-
-/*
- * This is the old format of directories, sanz type element.
- */
-struct odirtemplate {
-	uint32_t	dot_ino;
-	int16_t		dot_reclen;
-	uint16_t	dot_namlen;
-	char		dot_name[4];	/* must be multiple of 4 */
-	uint32_t	dotdot_ino;
-	int16_t		dotdot_reclen;
-	uint16_t	dotdot_namlen;
-	char		dotdot_name[4];	/* ditto */
-};
