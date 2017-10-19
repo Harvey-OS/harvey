@@ -383,7 +383,7 @@ searchloop:
 			int size = ep->d_reclen;
 
 			if (ep->d_ino != 0)
-				size -= DIRSIZ(OFSFMT(vdp), ep);
+				size -= DIRSIZ(ep);
 			if (size > 0) {
 				if (size >= slotneeded) {
 					slotstatus = FOUND;
@@ -406,14 +406,7 @@ searchloop:
 		 * Check for a name match.
 		 */
 		if (ep->d_ino) {
-#			if (BYTE_ORDER == LITTLE_ENDIAN)
-				if (OFSFMT(vdp))
-					namlen = ep->d_type;
-				else
-					namlen = ep->d_namlen;
-#			else
-				namlen = ep->d_namlen;
-#			endif
+			namlen = ep->d_namlen;
 			if (namlen == cnp->cn_namelen &&
 				(cnp->cn_nameptr[0] == ep->d_name[0]) &&
 			    !bcmp(cnp->cn_nameptr, ep->d_name,
@@ -539,9 +532,9 @@ found:
 	 * Check that directory length properly reflects presence
 	 * of this entry.
 	 */
-	if (i_offset + DIRSIZ(OFSFMT(vdp), ep) > dp->i_size) {
+	if (i_offset + DIRSIZ(ep) > dp->i_size) {
 		ufs_dirbad(dp, i_offset, "i_size too small");
-		dp->i_size = i_offset + DIRSIZ(OFSFMT(vdp), ep);
+		dp->i_size = i_offset + DIRSIZ(ep);
 		DIP_SET(dp, i_size, dp->i_size);
 		dp->i_flag |= IN_CHANGE | IN_UPDATE;
 	}
@@ -771,17 +764,10 @@ ufs_dirbadentry (struct vnode *dp, struct direct *ep, int entryoffsetinblock)
 {
 	int i, namlen;
 
-#	if (BYTE_ORDER == LITTLE_ENDIAN)
-		if (OFSFMT(dp))
-			namlen = ep->d_type;
-		else
-			namlen = ep->d_namlen;
-#	else
-		namlen = ep->d_namlen;
-#	endif
+	namlen = ep->d_namlen;
 	if ((ep->d_reclen & 0x3) != 0 ||
 	    ep->d_reclen > DIRBLKSIZ - (entryoffsetinblock & (DIRBLKSIZ - 1)) ||
-	    ep->d_reclen < DIRSIZ(OFSFMT(dp), ep) || namlen > UFS_MAXNAMLEN) {
+	    ep->d_reclen < DIRSIZ(ep) || namlen > UFS_MAXNAMLEN) {
 		/*return (1); */
 		printf("First bad\n");
 		goto bad;
@@ -817,16 +803,7 @@ ufs_makedirentry (struct inode *ip, struct componentname *cnp, struct direct *ne
 	newdirp->d_ino = ip->i_number;
 	newdirp->d_namlen = cnp->cn_namelen;
 	bcopy(cnp->cn_nameptr, newdirp->d_name, (unsigned)cnp->cn_namelen + 1);
-	if (ITOV(ip)->v_mount->mnt_maxsymlinklen > 0)
-		newdirp->d_type = IFTODT(ip->i_mode);
-	else {
-		newdirp->d_type = 0;
-#		if (BYTE_ORDER == LITTLE_ENDIAN)
-			{ uint8_t tmp = newdirp->d_namlen;
-			newdirp->d_namlen = newdirp->d_type;
-			newdirp->d_type = tmp; }
-#		endif
-	}
+	newdirp->d_type = IFTODT(ip->i_mode);
 }
 
 /*
@@ -856,7 +833,7 @@ ufs_direnter (struct vnode *dvp, struct vnode *tvp, struct direct *dirp, struct 
 	cr = td->td_ucred;
 
 	dp = VTOI(dvp);
-	newentrysize = DIRSIZ(OFSFMT(dvp), dirp);
+	newentrysize = DIRSIZ(dirp);
 
 	if (dp->i_count == 0) {
 		/*
@@ -992,7 +969,7 @@ ufs_direnter (struct vnode *dvp, struct vnode *tvp, struct direct *dirp, struct 
 	 * dp->i_offset + dp->i_count would yield the space.
 	 */
 	ep = (struct direct *)dirbuf;
-	dsize = ep->d_ino ? DIRSIZ(OFSFMT(dvp), ep) : 0;
+	dsize = ep->d_ino ? DIRSIZ(ep) : 0;
 	spacefree = ep->d_reclen - dsize;
 	for (loc = ep->d_reclen; loc < dp->i_count; ) {
 		nep = (struct direct *)(dirbuf + loc);
@@ -1017,7 +994,7 @@ ufs_direnter (struct vnode *dvp, struct vnode *tvp, struct direct *dirp, struct 
 			dsize = 0;
 			continue;
 		}
-		dsize = DIRSIZ(OFSFMT(dvp), nep);
+		dsize = DIRSIZ(nep);
 		spacefree += nep->d_reclen - dsize;
 #ifdef UFS_DIRHASH
 		if (dp->i_dirhash != nil)
@@ -1040,14 +1017,7 @@ ufs_direnter (struct vnode *dvp, struct vnode *tvp, struct direct *dirp, struct 
 	 * Update the pointer fields in the previous entry (if any),
 	 * copy in the new entry, and write out the block.
 	 */
-#	if (BYTE_ORDER == LITTLE_ENDIAN)
-		if (OFSFMT(dvp))
-			namlen = ep->d_type;
-		else
-			namlen = ep->d_namlen;
-#	else
-		namlen = ep->d_namlen;
-#	endif
+	namlen = ep->d_namlen;
 	if (ep->d_ino == 0 ||
 	    (ep->d_ino == UFS_WINO && namlen == dirp->d_namlen &&
 	     bcmp(ep->d_name, dirp->d_name, dirp->d_namlen) == 0)) {
@@ -1332,14 +1302,7 @@ ufs_dirempty(ip, parentino, cred)
 		if (dp->d_ino == 0 || dp->d_ino == UFS_WINO)
 			continue;
 		/* accept only "." and ".." */
-#		if (BYTE_ORDER == LITTLE_ENDIAN)
-			if (OFSFMT(ITOV(ip)))
-				namlen = dp->d_type;
-			else
-				namlen = dp->d_namlen;
-#		else
-			namlen = dp->d_namlen;
-#		endif
+		namlen = dp->d_namlen;
 		if (namlen > 2)
 			return (0);
 		if (dp->d_name[0] != '.')
@@ -1387,14 +1350,7 @@ ufs_dir_dd_ino(struct vnode *vp, struct ucred *cred, ino_t *dd_ino,
 	    IO_NODELOCKED | IO_NOMACCHECK, cred, NOCRED, nil, nil);
 	if (error != 0)
 		return (error);
-#if (BYTE_ORDER == LITTLE_ENDIAN)
-	if (OFSFMT(vp))
-		namlen = dirbuf.dotdot_type;
-	else
-		namlen = dirbuf.dotdot_namlen;
-#else
 	namlen = dirbuf.dotdot_namlen;
-#endif
 	if (namlen != 2 || dirbuf.dotdot_name[0] != '.' ||
 	    dirbuf.dotdot_name[1] != '.')
 		return (ENOTDIR);

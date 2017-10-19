@@ -2105,17 +2105,10 @@ ufs_readdir (struct vop_readdir_args *ap)
 				error = EIO;
 				break;
 			}
-#if BYTE_ORDER == LITTLE_ENDIAN
-			/* Old filesystem format. */
-			if (vp->v_mount->mnt_maxsymlinklen <= 0) {
-				dstdp.d_namlen = dp->d_type;
-				dstdp.d_type = dp->d_namlen;
-			} else
-#endif
-			{
-				dstdp.d_namlen = dp->d_namlen;
-				dstdp.d_type = dp->d_type;
-			}
+
+			dstdp.d_namlen = dp->d_namlen;
+			dstdp.d_type = dp->d_type;
+
 			if (offsetof(struct direct, d_name) + dstdp.d_namlen >
 			    dp->d_reclen) {
 				error = EIO;
