@@ -42,7 +42,6 @@
 
 #define WRAPINCR(val, limit)	(((val) + 1 == (limit)) ? 0 : ((val) + 1))
 #define WRAPDECR(val, limit)	(((val) == 0) ? ((limit) - 1) : ((val) - 1))
-#define OFSFMT(vp)		((vp)->v_mount->mnt_maxsymlinklen <= 0)
 #define BLKFREE2IDX(n)		((n) > DH_NFSTATS ? DH_NFSTATS : (n))
 
 static MALLOC_DEFINE(M_DIRHASH, "ufs_dirhash", "UFS directory hash tables");
@@ -331,8 +330,7 @@ ufsdirhash_build(struct inode *ip)
 	}
 
 	/* Check if we can/should use dirhash. */
-	if (ip->i_size < ufs_mindirhashsize || OFSFMT(ip->i_vnode) ||
-	    ip->i_effnlink == 0) {
+	if (ip->i_size < ufs_mindirhashsize || ip->i_effnlink == 0) {
 		if (ip->i_dirhash)
 			ufsdirhash_free(ip);
 		return (-1);
