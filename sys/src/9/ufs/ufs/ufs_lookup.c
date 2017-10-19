@@ -62,9 +62,6 @@ static int	dirchk = 0;
 
 //SYSCTL_INT(_debug, OID_AUTO, dircheck, CTLFLAG_RW, &dirchk, 0, "");
 
-/* true if old FS format...*/
-#define OFSFMT(vp)	((vp)->v_mount->mnt_maxsymlinklen <= 0)
-
 #if 0
 
 static int
@@ -419,8 +416,7 @@ foundentry:
 				 * reclen in ndp->ni_ufs area, and release
 				 * directory buffer.
 				 */
-				if (vdp->v_mount->mnt_maxsymlinklen > 0 &&
-				    ep->d_type == DT_WHT) {
+				if (ep->d_type == DT_WHT) {
 					slotstatus = FOUND;
 					slotoffset = i_offset;
 					slotsize = ep->d_reclen;
@@ -1239,8 +1235,7 @@ ufs_dirrewrite(dp, oip, newinum, newtype, isrmdir)
 		return (EIDRM);
 	}
 	ep->d_ino = newinum;
-	if (!OFSFMT(vdp))
-		ep->d_type = newtype;
+	ep->d_type = newtype;
 	if (DOINGSOFTDEP(vdp)) {
 		softdep_setup_directory_change(bp, dp, oip, newinum, isrmdir);
 		bdwrite(bp);
