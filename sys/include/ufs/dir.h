@@ -104,21 +104,12 @@ typedef struct Direct {
  * the directory entry.  This requires the amount of space in struct direct
  * without the d_name field, plus enough space for the name with a terminating
  * null byte (dp->d_namlen+1), rounded up to a 4 byte boundary.
- *
- * 
  */
 #define	DIRECTSIZ(namlen)						\
 	((offsetof(Direct, d_name) +				\
 	  ((namlen)+1)*sizeof(((Direct *)0)->d_name[0]) + 3) & ~3)
-#if (BYTE_ORDER == LITTLE_ENDIAN)
-#define	DIRSIZ(oldfmt, dp) \
-    ((oldfmt) ? DIRECTSIZ((dp)->d_type) : DIRECTSIZ((dp)->d_namlen))
-#else
-#define	DIRSIZ(oldfmt, dp) \
+#define	DIRSIZ(dp) \
     DIRECTSIZ((dp)->d_namlen)
-#endif
-#define	OLDDIRFMT	1
-#define	NEWDIRFMT	0
 
 /*
  * Template for manipulating directories.  Should use struct direct's,
