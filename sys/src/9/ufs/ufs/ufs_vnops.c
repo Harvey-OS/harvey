@@ -114,10 +114,6 @@ static struct dirtemplate mastertemplate = {
 	0, 12, DT_DIR, 1, ".",
 	0, DIRBLKSIZ - 12, DT_DIR, 2, ".."
 };
-static struct odirtemplate omastertemplate = {
-	0, 12, 1, ".",
-	0, DIRBLKSIZ - 12, 2, ".."
-};
 
 static void
 ufs_itimes_locked(struct vnode *vp)
@@ -965,18 +961,13 @@ ufs_whiteout (struct vop_whiteout_args *ap)
 
 	switch (ap->a_flags) {
 	case LOOKUP:
-		/* 4.4 format directories support whiteout operations */
-		if (dvp->v_mount->mnt_maxsymlinklen > 0)
-			return (0);
-		return (EOPNOTSUPP);
+		return (0);
 
 	case CREATE:
 		/* create a new directory whiteout */
 #ifdef INVARIANTS
 		if ((cnp->cn_flags & SAVENAME) == 0)
 			panic("ufs_whiteout: missing name");
-		if (dvp->v_mount->mnt_maxsymlinklen <= 0)
-			panic("ufs_whiteout: old format filesystem");
 #endif
 
 		newdir.d_ino = UFS_WINO;
@@ -988,11 +979,6 @@ ufs_whiteout (struct vop_whiteout_args *ap)
 
 	case DELETE:
 		/* remove an existing directory whiteout */
-#ifdef INVARIANTS
-		if (dvp->v_mount->mnt_maxsymlinklen <= 0)
-			panic("ufs_whiteout: old format filesystem");
-#endif
-
 		cnp->cn_flags &= ~DOWHITEOUT;
 		error = ufs_dirremove(dvp, nil, cnp->cn_flags, 0);
 		break;
@@ -1845,10 +1831,7 @@ ufs_mkdir (struct vop_mkdir_args *ap)
 	/*
 	 * Initialize directory with "." and ".." from static template.
 	 */
-	if (dvp->v_mount->mnt_maxsymlinklen > 0)
-		dtp = &mastertemplate;
-	else
-		dtp = (struct dirtemplate *)&omastertemplate;
+	dtp = &mastertemplate;
 	dirtemplate = *dtp;
 	dirtemplate.dot_ino = ip->i_number;
 	dirtemplate.dotdot_ino = dp->i_number;
