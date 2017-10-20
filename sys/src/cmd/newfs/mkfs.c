@@ -80,11 +80,6 @@ static struct	csum *fscs;
 #define	sblock	disk.d_fs
 #define	acg	disk.d_cg
 
-union dinode {
-	struct ufs1_dinode dp1;
-	struct ufs2_dinode dp2;
-};
-
 static caddr_t iobuf;
 static long iobufsize;
 static ufs2_daddr_t alloc(int size, int mode);
@@ -93,7 +88,7 @@ static void fsinit(int32_t);
 static int ilog2(int);
 static void initcg(int, int32_t);
 static int isblock(Fs *, unsigned char *, int);
-static void iput(union dinode *, ino_t);
+static void iput(ufs2_dinode *, ino_t);
 static int makedir(Direct *, int);
 static void setblock(Fs *, unsigned char *, int);
 static void wtfs(ufs2_daddr_t, int, char *);
@@ -265,7 +260,7 @@ restart:
 
 	sblock.fs_sblockloc = SBLOCK_UFS2;
 	sblock.fs_nindir = sblock.fs_bsize / sizeof(ufs2_daddr_t);
-	sblock.fs_inopb = sblock.fs_bsize / sizeof(struct ufs2_dinode);
+	sblock.fs_inopb = sblock.fs_bsize / sizeof(ufs2_dinode);
 	sblock.fs_maxsymlinklen = ((UFS_NDADDR + UFS_NIADDR) * sizeof(ufs2_daddr_t));
 	sblock.fs_sblkno =
 	    ROUNDUP(HOWMANY(sblock.fs_sblockloc + SBLOCKSIZE, sblock.fs_fsize),
@@ -669,7 +664,7 @@ initcg(int cylno, int32_t utime)
 	start = MAX(sblock.fs_bsize, SBLOCKSIZE);
 	memcpy(&iobuf[start], (char *)&acg, sblock.fs_cgsize);
 	start += sblock.fs_bsize;
-	dp2 = (struct ufs2_dinode *)(&iobuf[start]);
+	dp2 = (ufs2_dinode *)(&iobuf[start]);
 	for (i = 0; i < acg.cg_initediblk; i++) {
 		dp2->di_gen = newfs_random();
 		dp2++;
@@ -699,7 +694,7 @@ void
 fsinit(int32_t utime)
 {
 	// TODO HARVEY Set group
-	union dinode node;
+	ufs2_dinode node;
 	//struct group *grp;
 	//gid_t gid;
 	int entries;
@@ -716,32 +711,32 @@ fsinit(int32_t utime)
 	/*
 	 * initialize the node
 	 */
-	node.dp2.di_atime = utime;
-	node.dp2.di_mtime = utime;
-	node.dp2.di_ctime = utime;
-	node.dp2.di_birthtime = utime;
+	node.di_atime = utime;
+	node.di_mtime = utime;
+	node.di_ctime = utime;
+	node.di_birthtime = utime;
 	/*
 	 * create the root directory
 	 */
-	node.dp2.di_mode = IFDIR | UMASK;
-	node.dp2.di_nlink = entries;
-	node.dp2.di_size = makedir(root_dir, entries);
-	node.dp2.di_db[0] = alloc(sblock.fs_fsize, node.dp2.di_mode);
-	node.dp2.di_blocks = btodb(fragroundup(&sblock, node.dp2.di_size));
-	wtfs(fsbtodb(&sblock, node.dp2.di_db[0]), sblock.fs_fsize, iobuf);
+	node.di_mode = IFDIR | UMASK;
+	node.di_nlink = entries;
+	node.di_size = makedir(root_dir, entries);
+	node.di_db[0] = alloc(sblock.fs_fsize, node.di_mode);
+	node.di_blocks = btodb(fragroundup(&sblock, node.di_size));
+	wtfs(fsbtodb(&sblock, node.di_db[0]), sblock.fs_fsize, iobuf);
 	iput(&node, UFS_ROOTINO);
 	if (createsnapdir) {
 		/*
 		 * create the .snap directory
 		 */
-		node.dp2.di_mode |= 020;
-		//node.dp2.di_gid = gid;
-		node.dp2.di_nlink = SNAPLINKCNT;
-		node.dp2.di_size = makedir(snap_dir, SNAPLINKCNT);
-		node.dp2.di_db[0] = alloc(sblock.fs_fsize, node.dp2.di_mode);
-		node.dp2.di_blocks =
-		    btodb(fragroundup(&sblock, node.dp2.di_size));
-			wtfs(fsbtodb(&sblock, node.dp2.di_db[0]), 
+		node.di_mode |= 020;
+		//node.di_gid = gid;
+		node.di_nlink = SNAPLINKCNT;
+		node.di_size = makedir(snap_dir, SNAPLINKCNT);
+		node.di_db[0] = alloc(sblock.fs_fsize, node.di_mode);
+		node.di_blocks =
+		    btodb(fragroundup(&sblock, node.di_size));
+			wtfs(fsbtodb(&sblock, node.di_db[0]), 
 			    sblock.fs_fsize, iobuf);
 		iput(&node, UFS_ROOTINO + 1);
 	}
@@ -826,7 +821,7 @@ goth:
  * Allocate an inode on the disk
  */
 void
-iput(union dinode *ip, ino_t ino)
+iput(ufs2_dinode *ip, ino_t ino)
 {
 	ufs2_daddr_t d;
 
@@ -849,12 +844,7 @@ iput(union dinode *ip, ino_t ino)
 	}
 	d = fsbtodb(&sblock, ino_to_fsba(&sblock, ino));
 	bread(&disk, d, (char *)iobuf, sblock.fs_bsize);
-	if (sblock.fs_magic == FS_UFS1_MAGIC)
-		((struct ufs1_dinode *)iobuf)[ino_to_fsbo(&sblock, ino)] =
-		    ip->dp1;
-	else
-		((struct ufs2_dinode *)iobuf)[ino_to_fsbo(&sblock, ino)] =
-		    ip->dp2;
+	((ufs2_dinode *)iobuf)[ino_to_fsbo(&sblock, ino)] = *ip;
 	wtfs(d, sblock.fs_bsize, (char *)iobuf);
 }
 
