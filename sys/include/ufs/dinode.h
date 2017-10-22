@@ -147,30 +147,3 @@ typedef struct ufs2_dinode {
  * di_db area.
  */
 #define	di_rdev di_db[0]
-
-/*
- * A UFS1 dinode contains all the meta-data associated with a UFS1 file.
- * This structure defines the on-disk format of a UFS1 dinode. Since
- * this structure describes an on-disk structure, all its fields
- * are defined by types with precise widths.
- */
-typedef struct ufs1_dinode {
-	uint16_t	di_mode;	/*   0: IFMT, permissions; see below. */
-	int16_t		di_nlink;	/*   2: File link count. */
-	uint32_t	di_freelink;	/*   4: SUJ: Next unlinked inode. */
-	uint64_t	di_size;	/*   8: File byte count. */
-	int32_t		di_atime;	/*  16: Last access time. */
-	int32_t		di_atimensec;	/*  20: Last access time. */
-	int32_t		di_mtime;	/*  24: Last modified time. */
-	int32_t		di_mtimensec;	/*  28: Last modified time. */
-	int32_t		di_ctime;	/*  32: Last inode change time. */
-	int32_t		di_ctimensec;	/*  36: Last inode change time. */
-	ufs1_daddr_t	di_db[UFS_NDADDR]; /*  40: Direct disk blocks. */
-	ufs1_daddr_t	di_ib[UFS_NIADDR]; /*  88: Indirect disk blocks. */
-	uint32_t	di_flags;	/* 100: Status flags (chflags). */
-	uint32_t	di_blocks;	/* 104: Blocks actually held. */
-	uint32_t	di_gen;		/* 108: Generation number. */
-	uint32_t	di_uid;		/* 112: File owner. */
-	uint32_t	di_gid;		/* 116: File group. */
-	uint64_t	di_modrev;	/* 120: i_modrev for NFSv4 */
-} ufs1_dinode;
