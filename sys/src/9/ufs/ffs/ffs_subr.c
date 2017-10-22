@@ -83,12 +83,12 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
 void
 ffs_load_inode(void *buf, inode *ip, Fs *fs, ino_t ino)
 {
-	*ip->i_din2 = *((ufs2_dinode *)buf + ino_to_fsbo(fs, ino));
-	ip->i_mode = ip->i_din2->di_mode;
-	ip->i_nlink = ip->i_din2->di_nlink;
-	ip->i_size = ip->i_din2->di_size;
-	ip->i_flags = ip->i_din2->di_flags;
-	ip->i_gen = ip->i_din2->di_gen;
-	ip->i_uid = ip->i_din2->di_uid;
-	ip->i_gid = ip->i_din2->di_gid;
+	*ip->din2 = *((ufs2_dinode *)buf + ino_to_fsbo(fs, ino));
+	ip->i_mode = ip->din2->di_mode;
+	ip->i_nlink = ip->din2->di_nlink;
+	ip->i_size = ip->din2->di_size;
+	ip->i_flags = ip->din2->di_flags;
+	ip->i_gen = ip->din2->di_gen;
+	ip->i_uid = ip->din2->di_uid;
+	ip->i_gid = ip->din2->di_gid;
 }
