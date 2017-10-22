@@ -148,15 +148,6 @@ I_IS_UFS2(const struct inode *ip)
 	return ((ip->i_flag & IN_UFS2) != 0);
 }
 
-/*
- * The DIP macro is used to access fields in the dinode that are
- * not cached in the inode itself.
- */
-#define	DIP(ip, field)	((ip)->i_din2->d##field)
-#define	DIP_SET(ip, field, val) do {				\
-		(ip)->din2->d##field = (val); 			\
-	} while (0)
-
 #define	SHORTLINK(ip)	((caddr_t)(ip)->i_din2->di_db)
 #define	IS_SNAPSHOT(ip)		((ip)->i_flags & SF_SNAPSHOT)
 
