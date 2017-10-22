@@ -35,6 +35,8 @@
  * $FreeBSD$
  */
 
+typedef struct ufs2_dinode ufs2_dinode;
+
 /*
  * This must agree with the definition in <ufs/ufs/dir.h>.
  */
@@ -65,13 +67,11 @@ struct inode {
 		struct dirhash *dirhash; /* Hashing for large directories. */
 		daddr_t *snapblklist;    /* Collect expunged snapshot blocks. */
 	} i_un;
+
 	/*
 	 * The real copy of the on-disk inode.
 	 */
-	union {
-		struct ufs1_dinode *din1;	/* UFS1 on-disk dinode. */
-		struct ufs2_dinode *din2;	/* UFS2 on-disk dinode. */
-	} dinode_u;
+	ufs2_dinode *din2;	/* UFS2 on-disk dinode. */
 
 	ino_t	  i_number;	/* The identity of the inode. */
 	uint32_t i_flag;	/* flags, see below */
@@ -127,7 +127,6 @@ struct inode {
 
 #define	i_dirhash i_un.dirhash
 #define	i_snapblklist i_un.snapblklist
-#define	i_din2 dinode_u.din2
 
 #define	ITOUMP(ip)	((ip)->i_ump)
 #define	ITODEV(ip)	(ITOUMP(ip)->um_dev)
@@ -153,14 +152,12 @@ I_IS_UFS2(const struct inode *ip)
  * The DIP macro is used to access fields in the dinode that are
  * not cached in the inode itself.
  */
-#define	DIP(ip, field)	(I_IS_UFS1(ip) ? (ip)->i_din1->d##field : \
-    (ip)->i_din2->d##field)
+#define	DIP(ip, field)	((ip)->i_din2->d##field)
 #define	DIP_SET(ip, field, val) do {				\
-		(ip)->i_din2->d##field = (val); 		\
+		(ip)->din2->d##field = (val); 			\
 	} while (0)
 
-#define	SHORTLINK(ip)	(I_IS_UFS1(ip) ?			\
-    (caddr_t)(ip)->i_din1->di_db : (caddr_t)(ip)->i_din2->di_db)
+#define	SHORTLINK(ip)	((caddr_t)(ip)->i_din2->di_db)
 #define	IS_SNAPSHOT(ip)		((ip)->i_flags & SF_SNAPSHOT)
 
 /*
