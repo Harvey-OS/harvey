@@ -1727,7 +1727,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		}
 		if ((vp->mount->mnt_flag & MNT_RDONLY) == 0) {
 			ip->i_flag |= IN_MODIFIED;
-			DIP_SET(ip, i_gen, ip->i_gen);
+			ip->din2->di_gen = ip->i_gen;
 		}
 	}
 #ifdef MAC
