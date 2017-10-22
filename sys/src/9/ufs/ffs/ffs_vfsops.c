@@ -1687,7 +1687,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		*vpp = nil;
 		return (error);
 	}
-	ip->dinode_u.din2 = smalloc(sizeof(ufs2_dinode));
+	ip->din2 = smalloc(sizeof(ufs2_dinode));
 	ffs_load_inode(buf, ip, fs, ino);
 	// TODO HARVEY SOFTDEP
 	//if (DOINGSOFTDEP(vp))
