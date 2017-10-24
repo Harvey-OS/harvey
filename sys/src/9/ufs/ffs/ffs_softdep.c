@@ -9389,14 +9389,9 @@ clear_unlinked_inodedep (struct inodedep *inodedep)
 		 */
 		if (pino == 0) {
 			bcopy((caddr_t)fs, bp->b_data, (uint)fs->fs_sbsize);
-			ffs_oldfscompat_write((struct fs *)bp->b_data, ump);
-			softdep_setup_sbupdate(ump, (struct fs *)bp->b_data,
-			    bp);
-		} else if (fs->fs_magic == FS_UFS1_MAGIC)
-			((struct ufs1_dinode *)bp->b_data +
-			    ino_to_fsbo(fs, pino))->di_freelink = nino;
-		else
-			((struct ufs2_dinode *)bp->b_data +
+			softdep_setup_sbupdate(ump, (struct fs *)bp->b_data, bp);
+		} else
+			((ufs2_dinode *)bp->b_data +
 			    ino_to_fsbo(fs, pino))->di_freelink = nino;
 		/*
 		 * If the bwrite fails we have no recourse to recover.  The
@@ -9413,9 +9408,7 @@ clear_unlinked_inodedep (struct inodedep *inodedep)
 			bp = getblk(ump->um_devvp, btodb(fs->fs_sblockloc),
 			    (int)fs->fs_sbsize, 0, 0, 0);
 			bcopy((caddr_t)fs, bp->b_data, (uint)fs->fs_sbsize);
-			ffs_oldfscompat_write((struct fs *)bp->b_data, ump);
-			softdep_setup_sbupdate(ump, (struct fs *)bp->b_data,
-			    bp);
+			softdep_setup_sbupdate(ump, (struct fs *)bp->b_data, bp);
 			bwrite(bp);
 			ACQUIRE_LOCK(ump);
 		}
