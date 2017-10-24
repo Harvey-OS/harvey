@@ -65,6 +65,7 @@
  * is limited by the fact that cylinder groups are at most one block.
  * Its size is derived from the size of the maps maintained in the
  * cylinder group and the (struct cg) size.
+ * TODO HARVEY Do we need fs_old_cpg?
  */
 #define	CGSIZE(fs) \
     /* base cg */	(sizeof(Cg) + sizeof(int32_t) + \
