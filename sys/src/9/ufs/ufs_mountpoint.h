@@ -8,37 +8,7 @@
  * contained in the LICENSE.gpl file.
  */
 
-
-typedef struct Chan Chan;
-typedef struct ufsmount ufsmount;
 typedef struct vnode vnode;
-
-
-/*
- * filesystem statistics
- */
-typedef struct statfs {
-	uint64_t f_iosize;		/* optimal transfer block size */
-} StatFs;
-
-
-/* Wrapper for a UFS mount.  Should support reading from both kernel and user
- * space (eventually)
- */
-typedef struct MountPoint {
-	ufsmount	*mnt_data;
-	Chan		*chan;
-	int		id;
-	StatFs		mnt_stat;		/* cache of filesystem stats */
-	int		mnt_maxsymlinklen;	/* max size of short symlink */
-
-	uint64_t	mnt_flag;	/* (i) flags shared with user */
-	QLock		mnt_lock;	/* (mnt_mtx) structure lock */
-
-	QLock		vnodes_lock;	/* lock on vnodes in use & freelist */
-	vnode		*vnodes;	/* vnode cache */
-	vnode		*free_vnodes;	/* vnode freelist */
-} MountPoint;
 
 
 vnode* findvnode(MountPoint *mp, ino_t ino);
