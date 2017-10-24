@@ -30,6 +30,7 @@ enum {
 	Qmountdir,			// #U/ufs/x (x embedded in qid)
 	Qmountctl,			// #U/ufs/x/ctl
 	Qmountstats,			// #U/ufs/x/stats
+	Qsuperblock,			// #U/ufs/x/superblock
 };
 
 enum {
@@ -46,6 +47,7 @@ static Dirtab ufsmntdir[] =
 {
 	{"ctl",		{Qmountctl},	0,	0666},
 	{"stats",	{Qmountstats},	0,	0666},
+	{"superblock",	{Qsuperblock},	0,	0666},
 };
 
 enum
@@ -211,6 +213,19 @@ dumpstats(MountPoint *mp, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
+static int
+dumpsuperblock(MountPoint *mp, void *a, int32_t n, int64_t offset)
+{
+	char *buf = malloc(READSTR);
+
+	writesuperblock(mp, buf, READSTR);
+	n = readstr(offset, a, n, buf);
+
+	free(buf);
+
+	return n;
+}
+
 static int32_t
 ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 {
@@ -221,6 +236,9 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 	switch ((int)c->qid.path) {
 	case Qmountstats:
 		n = dumpstats(mountpoint, a, n, offset);
+		break;
+	case Qsuperblock:
+		n = dumpsuperblock(mountpoint, a, n, offset);
 		break;
 	default:
 		error(Eperm);
