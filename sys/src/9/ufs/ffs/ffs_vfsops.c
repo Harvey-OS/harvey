@@ -60,7 +60,6 @@
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
-static void	ffs_oldfscompat_read(Fs *, ufsmount *, ufs2_daddr_t);
 static void	ffs_ifree(ufsmount *ump, inode *ip);
 #if 0
 static int	ffs_sync_lazy(struct mount *mp);
@@ -616,7 +615,6 @@ ffs_reload(struct mount *mp, struct thread *td, int flags)
 	bcopy(newfs, fs, (uint)fs->fs_sbsize);
 	brelse(bp);
 	mp->mnt_maxsymlinklen = fs->fs_maxsymlinklen;
-	ffs_oldfscompat_read(fs, VFSTOUFS(mp), sblockloc);
 	UFS_LOCK(ump);
 	if (fs->fs_pendingblocks != 0 || fs->fs_pendinginodes != 0) {
 		printf("WARNING: %s: reload pending error: blocks %jd "
@@ -873,7 +871,6 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	free(buf);
 	buf = nil;
 	fs = ump->um_fs;
-	ffs_oldfscompat_read(fs, ump, sblockloc);
 	fs->fs_ronly = ronly;
 	size = fs->fs_cssize;
 	blks = HOWMANY(size, fs->fs_fsize);
@@ -1057,98 +1054,6 @@ out:
 
 	return (error);
 }
-
-// Set to 1 to enable bigcgs debug flag
-static int bigcgs = 0;
-
-/*
- * Sanity checks for loading old filesystem superblocks.
- * See ffs_oldfscompat_write below for unwound actions.
- *
- * XXX - Parts get retired eventually.
- * Unfortunately new bits get added.
- */
-static void
-ffs_oldfscompat_read(Fs *fs, ufsmount *ump, ufs2_daddr_t sblockloc)
-{
-	off_t maxfilesize;
-
-	/*
-	 * If not yet done, update fs_flags location and value of fs_sblockloc.
-	 */
-	if ((fs->fs_old_flags & FS_FLAGS_UPDATED) == 0) {
-		fs->fs_flags = fs->fs_old_flags;
-		fs->fs_old_flags |= FS_FLAGS_UPDATED;
-		fs->fs_sblockloc = sblockloc;
-	}
-	/*
-	 * If not yet done, update UFS1 superblock with new wider fields.
-	 */
-	if (fs->fs_magic == FS_UFS1_MAGIC && fs->fs_maxbsize != fs->fs_bsize) {
-		fs->fs_maxbsize = fs->fs_bsize;
-		fs->fs_time = fs->fs_old_time;
-		fs->fs_size = fs->fs_old_size;
-		fs->fs_dsize = fs->fs_old_dsize;
-		fs->fs_csaddr = fs->fs_old_csaddr;
-		fs->fs_cstotal.cs_ndir = fs->fs_old_cstotal.cs_ndir;
-		fs->fs_cstotal.cs_nbfree = fs->fs_old_cstotal.cs_nbfree;
-		fs->fs_cstotal.cs_nifree = fs->fs_old_cstotal.cs_nifree;
-		fs->fs_cstotal.cs_nffree = fs->fs_old_cstotal.cs_nffree;
-	}
-	if (fs->fs_magic == FS_UFS1_MAGIC &&
-	    fs->fs_old_inodefmt < FS_44INODEFMT) {
-		fs->fs_maxfilesize = ((uint64_t)1 << 31) - 1;
-		fs->fs_qbmask = ~fs->fs_bmask;
-		fs->fs_qfmask = ~fs->fs_fmask;
-	}
-	if (fs->fs_magic == FS_UFS1_MAGIC) {
-		ump->um_savedmaxfilesize = fs->fs_maxfilesize;
-		maxfilesize = (uint64_t)0x80000000 * fs->fs_bsize - 1;
-		if (fs->fs_maxfilesize > maxfilesize)
-			fs->fs_maxfilesize = maxfilesize;
-	}
-	/* Compatibility for old filesystems */
-	if (fs->fs_avgfilesize <= 0)
-		fs->fs_avgfilesize = AVFILESIZ;
-	if (fs->fs_avgfpdir <= 0)
-		fs->fs_avgfpdir = AFPDIR;
-	if (bigcgs) {
-		fs->fs_save_cgsize = fs->fs_cgsize;
-		fs->fs_cgsize = fs->fs_bsize;
-	}
-}
-
-#if 0
-
-/*
- * Unwinding superblock updates for old filesystems.
- * See ffs_oldfscompat_read above for details.
- *
- * XXX - Parts get retired eventually.
- * Unfortunately new bits get added.
- */
-void 
-ffs_oldfscompat_write (struct fs *fs, struct ufsmount *ump)
-{
-
-	/*
-	 * Copy back UFS2 updated fields that UFS1 inspects.
-	 */
-	if (fs->fs_magic == FS_UFS1_MAGIC) {
-		fs->fs_old_time = fs->fs_time;
-		fs->fs_old_cstotal.cs_ndir = fs->fs_cstotal.cs_ndir;
-		fs->fs_old_cstotal.cs_nbfree = fs->fs_cstotal.cs_nbfree;
-		fs->fs_old_cstotal.cs_nifree = fs->fs_cstotal.cs_nifree;
-		fs->fs_old_cstotal.cs_nffree = fs->fs_cstotal.cs_nffree;
-		fs->fs_maxfilesize = ump->um_savedmaxfilesize;
-	}
-	if (bigcgs) {
-		fs->fs_cgsize = fs->fs_save_cgsize;
-		fs->fs_save_cgsize = 0;
-	}
-}
-
-#endif // 0
 
 /*
  * unmount system call
