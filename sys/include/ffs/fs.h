@@ -239,14 +239,14 @@ typedef struct csum {
 	int32_t	cs_nifree;		/* number of free inodes */
 	int32_t	cs_nffree;		/* number of free frags */
 } csum;
-struct csum_total {
+typedef struct csum_total {
 	int64_t	cs_ndir;		/* number of directories */
 	int64_t	cs_nbfree;		/* number of free blocks */
 	int64_t	cs_nifree;		/* number of free inodes */
 	int64_t	cs_nffree;		/* number of free frags */
 	int64_t	cs_numclusters;		/* number of free clusters */
 	int64_t	cs_spare[3];		/* future expansion */
-};
+} csum_total;
 
 
 /*
@@ -307,7 +307,7 @@ typedef struct Fs {
 	uint32_t fs_ipg;		/* inodes per group */
 	int32_t	 fs_fpg;		/* blocks per group * fs_frag */
 /* this data must be re-computed after crashes */
-	struct	csum fs_old_cstotal;	/* cylinder summary information */
+	csum     fs_old_cstotal;	/* cylinder summary information */
 /* these fields are cleared at mount time */
 	int8_t   fs_fmod;		/* super block modified flag */
 	int8_t   fs_clean;		/* filesystem is clean flag */
@@ -321,7 +321,7 @@ typedef struct Fs {
 	int32_t	 fs_cgrotor;		/* last cg searched */
 	void 	*fs_ocsp[NOCSPTRS];	/* padding; was list of fs_cs buffers */
 	uint8_t *fs_contigdirs;	/* (u) # of contig. allocated dirs */
-	struct	csum *fs_csp;		/* (u) cg summary info buffer */
+	csum    *fs_csp;		/* (u) cg summary info buffer */
 	int32_t	*fs_maxcluster;		/* (u) max cluster in each cyl group */
 	uint	*fs_active;		/* (u) used by snapshots to track fs */
 	int32_t	 fs_old_cpc;		/* cyl per cycle in postbl */
@@ -331,7 +331,7 @@ typedef struct Fs {
 	int64_t	 fs_metaspace;		/* size of area reserved for metadata */
 	int64_t	 fs_sparecon64[14];	/* old rotation block list head */
 	int64_t	 fs_sblockloc;		/* byte offset of standard superblock */
-	struct	csum_total fs_cstotal;	/* (u) cylinder summary information */
+	csum_total fs_cstotal;		/* (u) cylinder summary information */
 	ufs_time_t fs_time;		/* last time written */
 	int64_t	 fs_size;		/* number of blocks in fs */
 	int64_t	 fs_dsize;		/* number of data blocks in fs */
@@ -511,9 +511,7 @@ typedef struct Cg {
 #define	cgimin(fs, c)	(cgstart(fs, c) + (fs)->fs_iblkno)	/* inode blk */
 #define	cgsblock(fs, c)	(cgstart(fs, c) + (fs)->fs_sblkno)	/* super blk */
 #define	cgtod(fs, c)	(cgstart(fs, c) + (fs)->fs_cblkno)	/* cg block */
-#define	cgstart(fs, c)							\
-       ((fs)->fs_magic == FS_UFS2_MAGIC ? cgbase(fs, c) :		\
-       (cgbase(fs, c) + (fs)->fs_old_cgoffset * ((c) & ~((fs)->fs_old_cgmask))))
+#define	cgstart(fs, c)	(cgbase(fs, c))
 
 /*
  * Macros for handling inode numbers:
