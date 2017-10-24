@@ -34,12 +34,12 @@
 MALLOC_DECLARE(M_UFSMNT);
 #endif
 
-struct buf;
-struct inode;
+typedef struct Buf Buf;
+typedef struct inode inode;
 struct nameidata;
 struct taskqueue;
 struct timeval;
-struct ucred;
+typedef struct Ucred Ucred;
 struct uio;
 struct vnode;
 struct ufs_extattr_per_mount;
