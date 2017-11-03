@@ -20,8 +20,8 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#include "ufs/ufsdat.h"
 #include "../ufs/ufs_ext.h"
-
 
 enum {
 	Qdir = 0,			// #U
@@ -31,6 +31,8 @@ enum {
 	Qmountctl,			// #U/ufs/x/ctl
 	Qmountstats,			// #U/ufs/x/stats
 	Qsuperblock,			// #U/ufs/x/superblock
+	Qinodedir,			// #U/ufs/x/inode (inode directory)
+	Qinode,				// #U/ufs/x/inode/y (inode file)
 };
 
 enum {
@@ -45,9 +47,10 @@ static Dirtab ufsdir[] =
 
 static Dirtab ufsmntdir[] =
 {
-	{"ctl",		{Qmountctl},	0,	0666},
-	{"stats",	{Qmountstats},	0,	0666},
-	{"superblock",	{Qsuperblock},	0,	0666},
+	{"ctl",		{Qmountctl},		0,	0666},
+	{"stats",	{Qmountstats},		0,	0444},
+	{"superblock",	{Qsuperblock},		0,	0444},
+	{"inode",	{Qinodedir, 0, QTDIR},	0,	DMDIR|0111},
 };
 
 enum
@@ -106,12 +109,13 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		}
 		return -1;
 
+	case Qmount:
 	case Qufsdir:
 		// list #U/ufs
 		if (s < nelem(ufsdir)) {
 			// Populate with ufsdir table
 			dir = &ufsdir[s];
-			mkqid(&q, dir->qid.path, 0, QTFILE);
+			mkqid(&q, dir->qid.path, 0, dir->qid.type);
 			devdir(c, q, dir->name, dir->length, eve, dir->perm, dp);
 			return 1;
 		}
@@ -130,6 +134,9 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		devdir(c, q, name, 0, eve, 0555, dp);
 		return 1;
 
+	case Qmountctl:
+	case Qmountstats:
+	case Qsuperblock:
 	case Qmountdir:
 		// Generate #U/ufs/x/...
 		if (s >= nelem(ufsmntdir)) {
@@ -142,9 +149,47 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		}
 
 		dir = &ufsmntdir[s];
-		mkqid(&q, dir->qid.path | (qidmntid << Qidshift), 0, QTFILE);
+		mkqid(&q, dir->qid.path | (qidmntid << Qidshift), 0, dir->qid.type);
 		devdir(c, q, dir->name, dir->length, eve, dir->perm, dp);
 		return 1;
+
+	case Qinode:
+	case Qinodedir:
+	{
+		// Generate #U/ufs/x/inode/...
+		// We don't allow listing of the inode folder because the
+		// number of files would be enormous and of limited use.
+		// Instead, we'll look at the requested path, and parse
+		// it to ensure it's a valid number.  If it is, then we'll
+		// assume that the inode number exists.
+		// TODO Check if the inode number is valid
+		// TODO Consider just listing all allocated inode numbers here
+
+		if ((qid == Qinodedir) && (d == nil)) {
+			return -1;
+		}
+
+
+		char *filename = d;
+		if (filename == nil) {
+			// Need to extract it from the path
+			filename = strrchr(c->path->s, '/');
+			if (filename == nil) {
+				error("invalid inode");
+			}
+			filename++;
+
+			// Validate
+			if (strtoll(filename, nil, 10) < 2) {
+				error("invalid inode");
+			}
+		}
+
+		// Ensure we pass through the mount ID
+		mkqid(&q, Qinode | (qidmntid << Qidshift), 0, QTFILE);
+		devdir(c, q, filename, 0, eve, 0444, dp);
+		return 1;
+	}
 
 	default:
 		return -1;
@@ -226,6 +271,19 @@ dumpsuperblock(MountPoint *mp, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
+static int
+dumpinode(MountPoint *mp, void *a, int32_t n, int64_t offset, ino_t ino)
+{
+	char *buf = malloc(READSTR);
+
+	writeinode(mp, buf, READSTR, ino);
+	n = readstr(offset, a, n, buf);
+
+	free(buf);
+
+	return n;
+}
+
 static int32_t
 ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 {
@@ -240,6 +298,25 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 	case Qsuperblock:
 		n = dumpsuperblock(mountpoint, a, n, offset);
 		break;
+	case Qinode:
+	{
+		// We need to get the inode from the last element of the path
+		// We couldn't encode it anywhere, because it'll eventually
+		// be a 64-bit value.
+		char *inostr = strrchr(c->path->s, '/');
+		if (!inostr) {
+			error("invalid inode");
+		}
+
+		ino_t ino = strtoll(inostr+1, nil, 10);
+		if (ino == 0) {
+			error("invalid inode");
+		}
+
+		n = dumpinode(mountpoint, a, n, offset, ino);
+		break;
+	}
+
 	default:
 		error(Eperm);
 	}
@@ -374,7 +451,7 @@ ufswrite(Chan *c, void *a, int32_t n, int64_t offset)
 	int qid = c->qid.path & ((1 << Qidshift)-1);
 	int mntid = c->qid.path >> Qidshift;
 
-	if(c->qid.type == QTDIR) {
+	if (c->qid.type == QTDIR) {
 		error(Eisdir);
 	}
 
