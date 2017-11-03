@@ -48,6 +48,7 @@ MountPoint *newufsmount(Chan *c, int id);
 void releaseufsmount(MountPoint *mp);
 int countvnodes(vnode *vn);
 int writesuperblock(MountPoint *mp, char *buf, int buflen);
+int writeinode(MountPoint *mp, char *buf, int buflen, ino_t ino);
 
 int ffs_init();
 int ffs_uninit();
