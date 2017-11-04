@@ -62,10 +62,10 @@
  */
 
 #include "u.h"
-#include "../../port/lib.h"
+#include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
-#include "../../port/portfns.h"
+#include "../port/portfns.h"
 
 #include <ufs/ufsdat.h>
 #include <ufs/freebsd_util.h>
