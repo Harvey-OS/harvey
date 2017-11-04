@@ -34,7 +34,7 @@
  */
 
 #include "u.h"
-#include "../../port/lib.h"
+#include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
@@ -48,8 +48,8 @@
 //#include <ufs/ufs/ufsmount.h>
 #include "ufs/inode.h"
 #include "ufs/dinode.h"
-#include "ffs/softdep.h"
-#include "ufs/ufs_extern.h"
+#include "softdep.h"
+#include "ufs_extern.h"
 
 #include "ffs/fs.h"
 //#include <ufs/ffs/ffs_extern.h>

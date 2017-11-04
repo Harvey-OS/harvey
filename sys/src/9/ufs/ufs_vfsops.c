@@ -35,10 +35,10 @@
  */
 
 #include "u.h"
-#include "../../port/lib.h"
+#include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
-#include "../../port/portfns.h"
+#include "../port/portfns.h"
 
 #include <ufs/ufsdat.h>
 #include <ufs/freebsd_util.h>
@@ -49,7 +49,7 @@
 #include "ufs/dinode.h"
 //#include <ufs/ufs/inode.h>
 //#include <ufs/ufs/ufsmount.h>
-#include "ffs/ffs_extern.h"
+#include "ffs_extern.h"
 //#ifdef UFS_DIRHASH
 //#include <ufs/ufs/dir.h>
 //#include <ufs/ufs/dirhash.h>
