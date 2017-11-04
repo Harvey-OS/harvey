@@ -40,7 +40,7 @@
 #include "ufs_harvey.h"
 
 #include "ufs/quota.h"
-#include <ffs/fs.h>
+#include <ufs/fs.h>
 #include "ufs/ufsmount.h"
 #include "ufs/inode.h"
 #include "ufs/dinode.h"

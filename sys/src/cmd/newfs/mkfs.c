@@ -41,7 +41,7 @@
 
 #include <ufs/ufsdat.h>
 #include <ufs/dir.h>
-#include <ffs/fs.h>
+#include <ufs/fs.h>
 #include <ufs/dinode.h>
 #include <ufs/libufs.h>
 #include "newfs.h"
