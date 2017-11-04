@@ -62,7 +62,7 @@
 #include "ufs/dinode.h"
 //#include <ufs/ufs/inode.h>
 //#include <ufs/ufs/ufsmount.h>
-#include "ffs/fs.h"
+#include "ufs/fs.h"
 //#include <ufs/ffs/softdep.h>
 //#include <ufs/ffs/ffs_extern.h>
 //#include <ufs/ufs/ufs_extern.h>
