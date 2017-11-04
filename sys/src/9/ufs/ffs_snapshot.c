@@ -51,7 +51,7 @@
 #include "softdep.h"
 #include "ufs_extern.h"
 
-#include "ffs/fs.h"
+#include "ufs/fs.h"
 //#include <ufs/ffs/ffs_extern.h>
 
 //#define KERNCRED thread0.td_ucred

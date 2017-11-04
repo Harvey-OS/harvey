@@ -17,7 +17,7 @@
 
 #include <ufs/ufsdat.h>
 #include <ufs/freebsd_util.h>
-#include <ffs/fs.h>
+#include <ufs/fs.h>
 #include "ufs_ext.h"
 #include <ufs/ufsmount.h>
 

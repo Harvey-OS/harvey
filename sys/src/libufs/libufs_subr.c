@@ -36,7 +36,7 @@
 #include <ufs/freebsd_util.h>
 #include <ufs/ufsdat.h>
 #include <ufs/quota.h>
-#include <ffs/fs.h>
+#include <ufs/fs.h>
 #include <ufs/inode.h>
 
 
