@@ -29,7 +29,7 @@
 #include <libc.h>
 
 #include <ufs/ufsdat.h>
-#include <ffs/fs.h>
+#include <ufs/fs.h>
 #include <ufs/libufs.h>
 
 static int superblocks[] = SBLOCKSEARCH;

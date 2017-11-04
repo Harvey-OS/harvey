@@ -51,7 +51,7 @@
 #include "ufs/dinode.h"
 #include "ufs_extern.h"
 
-#include "ffs/fs.h"
+#include "ufs/fs.h"
 #include "ffs_extern.h"
 
 #include "ufs/ufsmount.h"

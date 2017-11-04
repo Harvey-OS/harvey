@@ -34,7 +34,7 @@
 
 #include <ufs/ufsdat.h>
 #include <ufs/dinode.h>
-#include <ffs/fs.h>
+#include <ufs/fs.h>
 
 /*
  * Bit patterns for identifying fragments in the block map
