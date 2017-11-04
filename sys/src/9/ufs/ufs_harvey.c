@@ -10,7 +10,7 @@
 
 
 #include "u.h"
-#include "../../port/lib.h"
+#include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
@@ -23,7 +23,7 @@
 
 #include "ufs/quota.h"
 #include "ufs/inode.h"
-#include "ufs/ufs_extern.h"
+#include "ufs_extern.h"
 
 
 int
