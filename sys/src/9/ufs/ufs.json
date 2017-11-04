@@ -3,7 +3,7 @@
 		"Cflags": [
 			"-fasm",
 			"-I",
-			"../ufs",
+        		"/sys/src/9",
 			"-DNO_FFS_SNAPSHOT"
 		],
 		"#SourceFiles": [
