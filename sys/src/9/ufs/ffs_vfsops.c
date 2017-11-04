@@ -32,10 +32,10 @@
 #include <limits.h>
 
 #include "u.h"
-#include "../../port/lib.h"
+#include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
-#include "../../port/portfns.h"
+#include "../port/portfns.h"
 
 #include <ufs/ufsdat.h>
 #include <ufs/freebsd_util.h>
@@ -47,12 +47,12 @@
 //#include "extattr.h"
 #include "ufs/quota.h"
 #include "ufs/inode.h"
-#include "ffs/softdep.h"
+#include "softdep.h"
 #include "ufs/dinode.h"
-#include "ufs/ufs_extern.h"
+#include "ufs_extern.h"
 
 #include "ffs/fs.h"
-#include "ffs/ffs_extern.h"
+#include "ffs_extern.h"
 
 #include "ufs/ufsmount.h"
 
