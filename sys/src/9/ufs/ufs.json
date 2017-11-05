@@ -12,7 +12,6 @@
 			"../ufs/ufs_bmap.c",
 			"../ufs/ufs_dirhash.c",
 			"../ufs/ufs_extattr.c",
-			"../ufs/ufs_gjournal.c",
 			"../ufs/ufs_quota.c"
 		],
 		"SourceFiles": [
