@@ -118,9 +118,9 @@ getnewvnode(MountPoint *mp, vnode **vpp)
 }
 
 void
-releaseufsvnode(MountPoint *mp, vnode *vn)
+releaseufsvnode(vnode *vn)
 {
-	releasevnode(mp, vn);
+	releasevnode(vn);
 }
 
 int

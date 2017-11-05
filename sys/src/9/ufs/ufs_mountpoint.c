@@ -25,7 +25,8 @@
 
 #include "ufs/quota.h"
 #include "ufs/inode.h"
-
+#include "ufs/dinode.h"
+#include "ufs/ffs_extern.h"
 
 const static int VnodeFreelistBatchSize = 1000;
 
@@ -155,8 +156,9 @@ getfreevnode(MountPoint *mp)
 }
 
 void
-releasevnode(MountPoint *mp, vnode *vn)
+releasevnode(vnode *vn)
 {
+	MountPoint *mp = vn->mount;
 	qlock(&mp->vnodes_lock);
 
 	if (decref(&vn->ref) == 0) {
@@ -264,7 +266,6 @@ writesuperblock(MountPoint *mp, char *buf, int buflen)
 	i += snprint(buf + i, buflen - i, "fs_state\t%d\n", fs->fs_state);
 	i += snprint(buf + i, buflen - i, "fs_magic\t%d\n", fs->fs_magic);
 
-
 	qunlock(&mp->mnt_lock);
 
 	return i;
@@ -273,12 +274,63 @@ writesuperblock(MountPoint *mp, char *buf, int buflen)
 int
 writeinode(MountPoint *mp, char *buf, int buflen, ino_t ino)
 {
-	//qlock(&mp->mnt_lock);
+	qlock(&mp->mnt_lock);
+
+	vnode *vp = nil;
+	int rcode = ffs_vget(mp, ino, LK_SHARED, &vp);
+	if (rcode != 0) {
+		qunlock(&mp->mnt_lock);
+		error("cannot dump inode");
+	}
+
+	inode *ip = vp->data;
 
 	int i = 0;
-	i += snprint(buf + i, buflen - i, "inode\t%lld\n", ino);
+	i += snprint(buf + i, buflen - i, "i_number\t%llu\n", (uint64_t)ip->i_number);
+	i += snprint(buf + i, buflen - i, "i_flag\t%u\n", ip->i_flag);
+	i += snprint(buf + i, buflen - i, "i_size\t%llu\n", ip->i_size);
+	i += snprint(buf + i, buflen - i, "i_gen\t%llu\n", ip->i_gen);
+	i += snprint(buf + i, buflen - i, "i_flags\t%u\n", ip->i_flags);
+	i += snprint(buf + i, buflen - i, "i_uid\t%u\n", ip->i_uid);
+	i += snprint(buf + i, buflen - i, "i_gid\t%u\n", ip->i_gid);
+	i += snprint(buf + i, buflen - i, "i_mode\t%hhu\n", ip->i_mode);
+	i += snprint(buf + i, buflen - i, "i_nlink\t%hhd\n", ip->i_nlink);
 
-	//qunlock(&mp->mnt_lock);
+	ufs2_dinode *din = ip->din2;
+	i += snprint(buf + i, buflen - i, "di_mode\t%hhu\n", din->di_mode);
+	i += snprint(buf + i, buflen - i, "di_nlink\t%hhd\n", din->di_nlink);
+	i += snprint(buf + i, buflen - i, "di_uid\t%u\n", din->di_uid);
+	i += snprint(buf + i, buflen - i, "di_gid\t%u\n", din->di_gid);
+	i += snprint(buf + i, buflen - i, "di_blksize\t%u\n", din->di_blksize);
+	i += snprint(buf + i, buflen - i, "di_size\t%llu\n", din->di_size);
+	i += snprint(buf + i, buflen - i, "di_blocks\t%llu\n", din->di_blocks);
+	i += snprint(buf + i, buflen - i, "di_atime\t%lld\n", din->di_atime);
+	i += snprint(buf + i, buflen - i, "di_mtime\t%lld\n", din->di_mtime);
+	i += snprint(buf + i, buflen - i, "di_ctime\t%lld\n", din->di_ctime);
+	i += snprint(buf + i, buflen - i, "di_birthtime\t%lld\n", din->di_birthtime);
+	i += snprint(buf + i, buflen - i, "di_mtimensec\t%d\n", din->di_mtimensec);
+	i += snprint(buf + i, buflen - i, "di_atimensec\t%d\n", din->di_atimensec);
+	i += snprint(buf + i, buflen - i, "di_ctimensec\t%d\n", din->di_ctimensec);
+	i += snprint(buf + i, buflen - i, "di_birthnsec\t%d\n", din->di_birthnsec);
+	i += snprint(buf + i, buflen - i, "di_gen\t%u\n", din->di_gen);
+	i += snprint(buf + i, buflen - i, "di_kernflags\t%u\n", din->di_kernflags);
+	i += snprint(buf + i, buflen - i, "di_flags\t%u\n", din->di_flags);
+	i += snprint(buf + i, buflen - i, "di_extsize\t%u\n", din->di_extsize);
+	for (int j = 0; j < nelem(din->di_extb); j++) {
+		i += snprint(buf + i, buflen - i, "di_extb[%d]\t%u\n", j, din->di_extb[j]);
+	}
+	for (int j = 0; j < nelem(din->di_db); j++) {
+		i += snprint(buf + i, buflen - i, "di_db[%d]\t%u\n", j, din->di_db[j]);
+	}
+	for (int j = 0; j < nelem(din->di_ib); j++) {
+		i += snprint(buf + i, buflen - i, "di_ib[%d]\t%u\n", j, din->di_ib[j]);
+	}
+	i += snprint(buf + i, buflen - i, "di_modrev\t%llu\n", din->di_modrev);
+	i += snprint(buf + i, buflen - i, "di_freelink\t%u\n", din->di_freelink);
+
+	releasevnode(vp);
+
+	qunlock(&mp->mnt_lock);
 
 	return i;
 }
