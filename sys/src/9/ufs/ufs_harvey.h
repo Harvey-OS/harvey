@@ -129,7 +129,7 @@ typedef struct vnode {
 
 int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
 int getnewvnode(MountPoint *mp, vnode **vpp);
-void releaseufsvnode(MountPoint *mp, vnode *vn);
+void releaseufsvnode(vnode *vn);
 
 void assert_vop_locked(vnode *vp, const char *str);
 void assert_vop_elocked(vnode *vp, const char *str);
