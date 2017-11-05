@@ -13,4 +13,4 @@ typedef struct vnode vnode;
 
 vnode* findvnode(MountPoint *mp, ino_t ino);
 vnode* getfreevnode(MountPoint *mp);
-void releasevnode(MountPoint *mp, vnode *vn);
+void releasevnode(vnode *vn);
