@@ -57,6 +57,9 @@
 #include "ufs/ufsmount.h"
 
 
+#define INT32_MIN  (-1-0x7fffffff)
+
+
 //static uma_zone_t uma_inode, uma_ufs1, uma_ufs2;
 
 static int	ffs_mountfs(vnode *, MountPoint *, thread *);
@@ -1589,7 +1592,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		 * list by vput().
 		 */
 		free(buf);
-		releaseufsvnode(mp, vp);
+		releaseufsvnode(vp);
 		*vpp = nil;
 		return (error);
 	}
@@ -1608,7 +1611,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 */
 	error = ufs_vinit(mp, &vp);
 	if (error) {
-		releaseufsvnode(mp, vp);
+		releaseufsvnode(vp);
 		*vpp = nil;
 		return (error);
 	}
@@ -1629,7 +1632,8 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 			// previously the source here), returns uint32_t.
 			// lrand() returns int32_t, which isn't ideal but it's
 			// all we have right now
-			ip->i_gen = lrand();
+			// TODO HARVEY We need a u64 random number generator
+			ip->i_gen = -INT32_MIN + rand();
 		}
 		if ((vp->mount->mnt_flag & MNT_RDONLY) == 0) {
 			ip->i_flag |= IN_MODIFIED;
