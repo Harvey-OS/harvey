@@ -719,6 +719,7 @@ fsinit(int32_t utime)
 	/*
 	 * create the root directory
 	 */
+	node.di_gen = newfs_random();
 	node.di_mode = IFDIR | UMASK;
 	node.di_nlink = entries;
 	node.di_size = makedir(root_dir, entries);
@@ -730,6 +731,7 @@ fsinit(int32_t utime)
 		/*
 		 * create the .snap directory
 		 */
+		node.di_gen = newfs_random();
 		node.di_mode |= 020;
 		//node.di_gid = gid;
 		node.di_nlink = SNAPLINKCNT;
