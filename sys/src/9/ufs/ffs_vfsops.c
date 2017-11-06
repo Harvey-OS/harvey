@@ -1633,7 +1633,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 			// lrand() returns int32_t, which isn't ideal but it's
 			// all we have right now
 			// TODO HARVEY We need a u64 random number generator
-			ip->i_gen = (int)-INT32_MIN + rand();
+			ip->i_gen = (int64_t)-INT32_MIN + rand();
 		}
 		if ((vp->mount->mnt_flag & MNT_RDONLY) == 0) {
 			ip->i_flag |= IN_MODIFIED;
