@@ -334,3 +334,11 @@ writeinode(MountPoint *mp, char *buf, int buflen, ino_t ino)
 
 	return i;
 }
+
+int
+writeinodedata(MountPoint *mp, char *buf, int buflen, ino_t ino)
+{
+	int i = 0;
+	i += snprint(buf + i, buflen - i, "inode file data goes here\n");
+	return i;
+}
