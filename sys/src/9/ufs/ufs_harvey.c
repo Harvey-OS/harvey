@@ -24,7 +24,7 @@
 #include "ufs/quota.h"
 #include "ufs/inode.h"
 #include "ufs_extern.h"
-
+#include "ffs_extern.h"
 
 int
 findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp)
@@ -121,6 +121,16 @@ void
 releaseufsvnode(vnode *vn)
 {
 	releasevnode(vn);
+}
+
+vnode *
+ufs_open_ino(MountPoint *mp, ino_t ino) {
+	vnode *vn;
+	int rcode = ffs_vget(mp, ino, LK_SHARED, &vn);
+	if (rcode) {
+		error("cannot get file to open");
+	}
+	return vn;
 }
 
 int

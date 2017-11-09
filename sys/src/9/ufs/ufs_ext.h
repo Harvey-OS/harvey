@@ -47,9 +47,9 @@ typedef struct MountPoint {
 MountPoint *newufsmount(Chan *c, int id);
 void releaseufsmount(MountPoint *mp);
 int countvnodes(vnode *vn);
-int writesuperblock(MountPoint *mp, char *buf, int buflen);
-int writeinode(MountPoint *mp, char *buf, int buflen, ino_t ino);
-int writeinodedata(MountPoint *mp, char *buf, int buflen, ino_t ino);
+int writesuperblock(char *buf, int buflen, MountPoint *mp);
+int writeinode(char *buf, int buflen, vnode *vn);
+int writeinodedata(char *buf, int buflen, vnode *vn);
 
 int ffs_init();
 int ffs_uninit();
@@ -61,3 +61,5 @@ int ufs_root(MountPoint *mp, int flags, vnode **vpp);
 int ufs_lookup(MountPoint *mp);
 
 int lookuppath(MountPoint *mp, char *path, vnode **vn);
+vnode *ufs_open_ino(MountPoint *mp, ino_t ino);
+void releaseufsvnode(vnode *vn);
