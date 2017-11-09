@@ -193,7 +193,7 @@ countvnodes(vnode* vn)
 }
 
 int
-writesuperblock(MountPoint *mp, char *buf, int buflen)
+writesuperblock(char *buf, int buflen, MountPoint *mp)
 {
 	qlock(&mp->mnt_lock);
 
@@ -272,18 +272,9 @@ writesuperblock(MountPoint *mp, char *buf, int buflen)
 }
 
 int
-writeinode(MountPoint *mp, char *buf, int buflen, ino_t ino)
+writeinode(char *buf, int buflen, vnode *vn)
 {
-	qlock(&mp->mnt_lock);
-
-	vnode *vp = nil;
-	int rcode = ffs_vget(mp, ino, LK_SHARED, &vp);
-	if (rcode != 0) {
-		qunlock(&mp->mnt_lock);
-		error("cannot dump inode");
-	}
-
-	inode *ip = vp->data;
+	inode *ip = vn->data;
 
 	int i = 0;
 	i += snprint(buf + i, buflen - i, "i_number\t%llu\n", (uint64_t)ip->i_number);
@@ -328,17 +319,21 @@ writeinode(MountPoint *mp, char *buf, int buflen, ino_t ino)
 	i += snprint(buf + i, buflen - i, "di_modrev\t%llu\n", din->di_modrev);
 	i += snprint(buf + i, buflen - i, "di_freelink\t%u\n", din->di_freelink);
 
-	releasevnode(vp);
-
-	qunlock(&mp->mnt_lock);
-
 	return i;
 }
 
 int
-writeinodedata(MountPoint *mp, char *buf, int buflen, ino_t ino)
+writeinodedata(char *buf, int buflen, vnode *vn)
 {
 	int i = 0;
-	i += snprint(buf + i, buflen - i, "inode file data goes here\n");
+
+	if (vn->type == VREG) {
+		i += snprint(buf + i, buflen - i, "regular file\n");
+	} else if (vn->type == VDIR) {
+		i += snprint(buf + i, buflen - i, "directory\n");
+	} else {
+		i += snprint(buf + i, buflen - i, "unsupported inode type (%d)\n", vn->type);
+	}
+
 	return i;
 }
