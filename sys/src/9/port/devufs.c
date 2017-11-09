@@ -233,90 +233,11 @@ ufsstat(Chan* c, uint8_t* dp, int32_t n)
 static Chan*
 ufsopen(Chan* c, int omode)
 {
-	return devopen(c, omode, nil, 0, ufsgen);
-}
+	int qid = c->qid.path & ((1 << Qidshift)-1);
 
-static void
-ufsclose(Chan* unused)
-{
-}
-
-static int
-dumpstats(MountPoint *mp, void *a, int32_t n, int64_t offset)
-{
-	int i = 0;
-	char *buf = malloc(READSTR);
-
-	qlock(&mp->vnodes_lock);
-	int numinuse = countvnodes(mp->vnodes);
-	int numfree = countvnodes(mp->free_vnodes);
-	qunlock(&mp->vnodes_lock);
-
-	i += snprint(buf + i, READSTR - i, "Mountpoint:        %d\n", mp->id);
-	i += snprint(buf + i, READSTR - i, "Num vnodes in use: %d\n", numinuse);
-	i += snprint(buf + i, READSTR - i, "Num vnodes free:   %d\n", numfree);
-
-	n = readstr(offset, a, n, buf);
-	free(buf);
-
-	return n;
-}
-
-static int
-dumpsuperblock(MountPoint *mp, void *a, int32_t n, int64_t offset)
-{
-	char *buf = malloc(READSTR);
-
-	writesuperblock(mp, buf, READSTR);
-	n = readstr(offset, a, n, buf);
-
-	free(buf);
-
-	return n;
-}
-
-static int
-dumpinode(MountPoint *mp, void *a, int32_t n, int64_t offset, ino_t ino)
-{
-	char *buf = malloc(READSTR);
-
-	writeinode(mp, buf, READSTR, ino);
-	n = readstr(offset, a, n, buf);
-
-	free(buf);
-
-	return n;
-}
-
-static int
-dumpinodedata(MountPoint *mp, void *a, int32_t n, int64_t offset, ino_t ino)
-{
-	char *buf = malloc(READSTR);
-
-	writeinodedata(mp, buf, READSTR, ino);
-	n = readstr(offset, a, n, buf);
-
-	free(buf);
-
-	return n;
-}
-
-static int32_t
-ufsread(Chan *c, void *a, int32_t n, int64_t offset)
-{
-	if (c->qid.type == QTDIR) {
-		return devdirread(c, a, n, nil, 0, ufsgen);
-	}
-
-	int qid = (int)c->qid.path;
+	c = devopen(c, omode, nil, 0, ufsgen);
 
 	switch (qid) {
-	case Qmountstats:
-		n = dumpstats(mountpoint, a, n, offset);
-		break;
-	case Qsuperblock:
-		n = dumpsuperblock(mountpoint, a, n, offset);
-		break;
 	case Qinode:
 	case Qinodedata:
 	{
@@ -346,11 +267,124 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 			error("invalid inode");
 		}
 
-		if (qid == Qinode) {
-			n = dumpinode(mountpoint, a, n, offset, ino);
-		} else if (qid == Qinodedata) {
-			n = dumpinodedata(mountpoint, a, n, offset, ino);
+		vnode *vn = ufs_open_ino(mountpoint, ino);
+		c->aux = vn;
+		break;
+	}
+	default:
+		break;
+	}
+
+	return c;
+}
+
+static void
+ufsclose(Chan* c)
+{
+	int qid = c->qid.path & ((1 << Qidshift)-1);
+	switch (qid) {
+	case Qinode:
+	case Qinodedata:
+	{
+		vnode *vn = (vnode*)c->aux;
+		if (!vn) {
+			error("no vnode to close");
 		}
+		releaseufsvnode(vn);		
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+static int
+dumpstats(void *a, int32_t n, int64_t offset, MountPoint *mp)
+{
+	int i = 0;
+	char *buf = malloc(READSTR);
+
+	qlock(&mp->vnodes_lock);
+	int numinuse = countvnodes(mp->vnodes);
+	int numfree = countvnodes(mp->free_vnodes);
+	qunlock(&mp->vnodes_lock);
+
+	i += snprint(buf + i, READSTR - i, "Mountpoint:        %d\n", mp->id);
+	i += snprint(buf + i, READSTR - i, "Num vnodes in use: %d\n", numinuse);
+	i += snprint(buf + i, READSTR - i, "Num vnodes free:   %d\n", numfree);
+
+	n = readstr(offset, a, n, buf);
+	free(buf);
+
+	return n;
+}
+
+static int
+dumpsuperblock(void *a, int32_t n, int64_t offset, MountPoint *mp)
+{
+	char *buf = malloc(READSTR);
+
+	writesuperblock(buf, READSTR, mp);
+	n = readstr(offset, a, n, buf);
+
+	free(buf);
+
+	return n;
+}
+
+static int
+dumpinode(void *a, int32_t n, int64_t offset, vnode *vn)
+{
+	char *buf = malloc(READSTR);
+
+	writeinode(buf, READSTR, vn);
+	n = readstr(offset, a, n, buf);
+
+	free(buf);
+
+	return n;
+}
+
+static int
+dumpinodedata(void *a, int32_t n, int64_t offset, vnode *vn)
+{
+	char *buf = malloc(READSTR);
+
+	writeinodedata(buf, READSTR, vn);
+	n = readstr(offset, a, n, buf);
+
+	free(buf);
+
+	return n;
+}
+
+static int32_t
+ufsread(Chan *c, void *a, int32_t n, int64_t offset)
+{
+	if (c->qid.type == QTDIR) {
+		return devdirread(c, a, n, nil, 0, ufsgen);
+	}
+
+	int qid = (int)c->qid.path;
+
+	switch (qid) {
+	case Qmountstats:
+		n = dumpstats(a, n, offset, mountpoint);
+		break;
+	case Qsuperblock:
+		n = dumpsuperblock(a, n, offset, mountpoint);
+		break;
+	case Qinode:
+	{
+		vnode *vn = (vnode*)c->aux;
+		n = dumpinode(a, n, offset, vn);
+		break;
+	}
+
+	case Qinodedata:
+	{
+		vnode *vn = (vnode*)c->aux;
+		n = dumpinodedata(a, n, offset, vn);
 		break;
 	}
 
