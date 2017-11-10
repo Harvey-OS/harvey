@@ -35,9 +35,9 @@
 #include "dat.h"
 #include "fns.h"
 
+#include "ufs/ufsdat.h"
 #include <ufs/libufsdat.h>
 #include <ufs/freebsd_util.h>
-#include "ufs_harvey.h"
 
 //#include <ufs/ufs/extattr.h>
 //#include <ufs/ufs/quota.h>
