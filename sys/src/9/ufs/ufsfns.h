@@ -8,41 +8,13 @@
  * contained in the LICENSE.gpl file.
  */
 
-// Functions to be exposed outside the UFS code (e.g. to devufs)
 
 typedef struct Chan Chan;
 typedef struct MountPoint MountPoint;
-typedef struct ufsmount ufsmount;
 typedef struct vnode vnode;
 
 
-/*
- * filesystem statistics
- */
-typedef struct statfs {
-	uint64_t f_iosize;		/* optimal transfer block size */
-} StatFs;
-
-
-/* Wrapper for a UFS mount.  Should support reading from both kernel and user
- * space (eventually)
- */
-typedef struct MountPoint {
-	ufsmount	*mnt_data;
-	Chan		*chan;
-	int		id;
-	StatFs		mnt_stat;		/* cache of filesystem stats */
-	int		mnt_maxsymlinklen;	/* max size of short symlink */
-
-	uint64_t	mnt_flag;	/* (i) flags shared with user */
-	QLock		mnt_lock;	/* (mnt_mtx) structure lock */
-
-	QLock		vnodes_lock;	/* lock on vnodes in use & freelist */
-	vnode		*vnodes;	/* vnode cache */
-	vnode		*free_vnodes;	/* vnode freelist */
-} MountPoint;
-
-
+Vtype ifmt_to_vtype(uint16_t imode);
 
 MountPoint *newufsmount(Chan *c, int id);
 void releaseufsmount(MountPoint *mp);
@@ -62,4 +34,16 @@ int ufs_lookup(MountPoint *mp);
 
 int lookuppath(MountPoint *mp, char *path, vnode **vn);
 vnode *ufs_open_ino(MountPoint *mp, ino_t ino);
+
+int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
+int getnewvnode(MountPoint *mp, vnode **vpp);
 void releaseufsvnode(vnode *vn);
+
+void assert_vop_locked(vnode *vp, const char *str);
+void assert_vop_elocked(vnode *vp, const char *str);
+
+int32_t bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
+
+vnode* findvnode(MountPoint *mp, ino_t ino);
+vnode* getfreevnode(MountPoint *mp);
+void releasevnode(vnode *vn);
