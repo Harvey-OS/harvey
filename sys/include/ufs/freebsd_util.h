@@ -103,10 +103,4 @@ typedef int64_t intmax_t;	/* FIXME: This should probably be moved to <u.h> or re
 
 #define S_IFMT 0170000		/* type of file */
 
-/*
- * Vnode types.  VNON means no type.
- */
-enum vtype { VNON, VREG, VDIR, VLNK, VBAD, VMARKER };
-typedef enum vtype Vtype;
-
 

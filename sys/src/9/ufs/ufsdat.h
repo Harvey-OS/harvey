@@ -8,28 +8,58 @@
  * contained in the LICENSE.gpl file.
  */
 
+// Functions to be exposed outside the UFS code (e.g. to devufs)
 
 typedef struct Chan Chan;
-typedef struct inode inode;
-typedef struct MountPoint MountPoint;
-typedef struct thread thread;
 typedef struct ufsmount ufsmount;
 typedef struct vnode vnode;
+typedef struct inode inode;
+
+
+/*
+ * Vnode types.  VNON means no type.
+ */
+enum vtype { VNON, VREG, VDIR, VLNK, VBAD, VMARKER };
+typedef enum vtype Vtype;
 
 
 // Not sure we even need this - if not we can remove it later.
 typedef struct thread {
 } thread;
 
-
 // Not sure we need this either - can be removed if not.
 typedef struct Ucred {
 } Ucred;
 
-
 // TODO HARVEY Delete
 typedef struct Buf {
 } Buf;
+
+/*
+ * filesystem statistics
+ */
+typedef struct StatFs {
+	uint64_t f_iosize;		/* optimal transfer block size */
+} StatFs;
+
+
+/* Wrapper for a UFS mount.  Should support reading from both kernel and user
+ * space (eventually)
+ */
+typedef struct MountPoint {
+	ufsmount	*mnt_data;
+	Chan		*chan;
+	int		id;
+	StatFs		mnt_stat;		/* cache of filesystem stats */
+	int		mnt_maxsymlinklen;	/* max size of short symlink */
+
+	uint64_t	mnt_flag;	/* (i) flags shared with user */
+	QLock		mnt_lock;	/* (mnt_mtx) structure lock */
+
+	QLock		vnodes_lock;	/* lock on vnodes in use & freelist */
+	vnode		*vnodes;	/* vnode cache */
+	vnode		*free_vnodes;	/* vnode freelist */
+} MountPoint;
 
 
 typedef struct ComponentName {
@@ -39,7 +69,7 @@ typedef struct ComponentName {
 	unsigned long cn_nameiop;	/* namei operation */
 	uint64_t cn_flags;		/* flags to namei */
 	//struct	thread *cn_thread;/* thread requesting lookup */
-	struct	ucred *cn_cred;		/* credentials */
+	struct	Ucred *cn_cred;		/* credentials */
 	int	cn_lkflags;		/* Lock flags LK_EXCLUSIVE or LK_SHARED */
 	/*
 	 * Shared between lookup and commit routines.
@@ -48,6 +78,30 @@ typedef struct ComponentName {
 	char	*cn_nameptr;		/* pointer to looked up name */
 	long	cn_namelen;		/* length of looked up component */
 } ComponentName;
+
+
+/* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
+ * wrapper for the inode and any associated data.  This is not intended to be
+ * support multiple filesystems and should probably be renamed after it works.
+ * It may be unnecessary - if so, we should use inodes directly.
+ */
+typedef struct vnode {
+	vnode		*next;
+	vnode		*prev;
+
+	Ref		ref;		/* Refcount */
+	RWlock		vnlock;		/* u pointer to vnode lock */
+
+	/*
+	 * Fields which define the identity of the vnode.  These fields are
+	 * owned by the filesystem (XXX: and vgone() ?)
+	 */
+	inode		*data;
+	MountPoint	*mount;
+	
+	enum vtype 	type;		/* u vnode type */
+	unsigned int	vflag;		/* v vnode flags */
+} vnode;
 
 
 /*
@@ -82,30 +136,6 @@ typedef struct ComponentName {
 //#define	VMP_TMPMNTFREELIST	0x0001	/* Vnode is on mnt's tmp free list */
 
 
-/* Harvey equivalent to FreeBSD vnode, but not exactly the same.  Acts as a
- * wrapper for the inode and any associated data.  This is not intended to be
- * support multiple filesystems and should probably be renamed after it works.
- * It may be unnecessary - if so, we should use inodes directly.
- */
-typedef struct vnode {
-	vnode		*next;
-	vnode		*prev;
-
-	Ref		ref;		/* Refcount */
-	RWlock		vnlock;		/* u pointer to vnode lock */
-
-	/*
-	 * Fields which define the identity of the vnode.  These fields are
-	 * owned by the filesystem (XXX: and vgone() ?)
-	 */
-	inode		*data;
-	MountPoint	*mount;
-	
-	enum vtype 	type;		/* u vnode type */
-	unsigned int	vflag;		/* v vnode flags */
-} vnode;
-
-
 /*
  * Flags to various vnode functions.
  */
@@ -125,13 +155,3 @@ typedef struct vnode {
  */
 #define	LK_EXCLUSIVE	0x080000
 #define	LK_SHARED	0x200000
-
-
-int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
-int getnewvnode(MountPoint *mp, vnode **vpp);
-void releaseufsvnode(vnode *vn);
-
-void assert_vop_locked(vnode *vp, const char *str);
-void assert_vop_elocked(vnode *vp, const char *str);
-
-int32_t bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
