@@ -39,7 +39,7 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufsdat.h>
+#include <ufs/libufsdat.h>
 #include <ufs/dir.h>
 #include <ufs/fs.h>
 #include <ufs/dinode.h>
