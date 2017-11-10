@@ -28,7 +28,7 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufsdat.h>
+#include <ufs/libufsdat.h>
 #include <ufs/dinode.h>
 #include <ufs/fs.h>
 #include <ufs/libufs.h>
