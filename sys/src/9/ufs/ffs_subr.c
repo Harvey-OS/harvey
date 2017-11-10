@@ -35,9 +35,10 @@
 #include "dat.h"
 #include "fns.h"
 
+#include "ufsdat.h"
 #include <ufs/libufsdat.h>
+#include "ufsfns.h"
 #include <ufs/freebsd_util.h>
-#include "ufs_harvey.h"
 
 #include "ufs/quota.h"
 #include <ufs/fs.h>
