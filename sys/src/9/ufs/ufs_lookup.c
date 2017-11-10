@@ -40,9 +40,9 @@
 #include "dat.h"
 #include "port/portfns.h"
 
+#include "ufsdat.h"
 #include <ufs/libufsdat.h>
 #include <ufs/freebsd_util.h>
-#include "ufs_harvey.h"
 
 //#include <ufs/ufs/extattr.h>
 #include "ufs/quota.h"

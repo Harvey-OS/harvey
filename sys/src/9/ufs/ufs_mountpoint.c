@@ -15,13 +15,12 @@
 #include "dat.h"
 #include "fns.h"
 
+#include "ufsdat.h"
 #include <ufs/libufsdat.h>
 #include <ufs/freebsd_util.h>
 #include <ufs/fs.h>
-#include "ufs_ext.h"
-#include <ufs/ufsmount.h>
 
-#include "ufs_harvey.h"
+#include <ufs/ufsmount.h>
 
 #include "ufs/quota.h"
 #include "ufs/inode.h"
