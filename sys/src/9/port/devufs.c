@@ -20,8 +20,9 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#include "ufs/ufsdat.h"
 #include "ufs/libufsdat.h"
-#include "../ufs/ufs_ext.h"
+#include "ufs/ufsfns.h"
 
 enum {
 	Qdir = 0,		// #U
