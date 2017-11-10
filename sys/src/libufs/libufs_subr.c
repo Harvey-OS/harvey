@@ -32,9 +32,8 @@
 #include <u.h>
 #include <libc.h>
 
-#include <ufs/ufsdat.h>
+#include <ufs/libufsdat.h>
 #include <ufs/freebsd_util.h>
-#include <ufs/ufsdat.h>
 #include <ufs/quota.h>
 #include <ufs/fs.h>
 #include <ufs/inode.h>
