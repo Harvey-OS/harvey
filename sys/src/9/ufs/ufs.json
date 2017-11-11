@@ -28,8 +28,9 @@
 			"../ufs/ufs_lookup.c",
 			"../ufs/ufs_vfsops.c",
 			"../ufs/ufs_vnops.c",
-			"../ufs/ufs_harvey.c",
-			"../ufs/ufs_mountpoint.c"
+			"../ufs/ufs_harvey_internal.c",
+			"../ufs/ufs_harvey_external.c",
+			"../ufs/ufs_harvey_vnode.c"
 		]
 	}
 }

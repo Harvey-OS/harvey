@@ -16,44 +16,15 @@
 #include "fns.h"
 
 #include "ufsdat.h"
-#include <ufs/libufsdat.h>
-#include <ufs/freebsd_util.h>
-#include <ufs/fs.h>
-
-#include <ufs/ufsmount.h>
-
+#include "ufs/libufsdat.h"
+#include "ufs/fs.h"
+#include "ufs/ufsmount.h"
 #include "ufs/quota.h"
-#include "ufs/inode.h"
 #include "ufs/dinode.h"
-#include "ufs/ffs_extern.h"
+#include "ufs/inode.h"
+#include "ufs_extern.h"
+#include "ffs_extern.h"
 
-const static int VnodeFreelistBatchSize = 1000;
-
-static vnode*
-alloc_freelist()
-{
-	vnode *head = nil;
-	vnode *curr = nil;
-
-	for (int i = 0; i < VnodeFreelistBatchSize; i++) {
-		vnode *vn = mallocz(sizeof(vnode), 1);
-		if (vn == nil) {
-		       break;
-		}
-
-		if (head == nil) {
-			head = vn;
-		}
-
-		vn->prev = curr;
-		if (curr != nil) {
-			curr->next = vn;
-		}
-
-		curr = vn;
-	}
-	return head;
-}
 
 MountPoint*
 newufsmount(Chan *c, int id)
@@ -91,104 +62,6 @@ releaseufsmount(MountPoint *mp)
 	}
 
 	free(mp);
-}
-
-vnode*
-findvnode(MountPoint *mp, ino_t ino)
-{
-	vnode *vn = nil;
-
-	qlock(&mp->vnodes_lock);
-
-	// Check for existing vnode
-	for (vn = mp->vnodes; vn != nil; vn = vn->next) {
-		if (vn->data->i_number == ino) {
-			break;
-		}
-	}
-
-	if (vn != nil) {
-		incref(&vn->ref);
-	}
-
-	qunlock(&mp->vnodes_lock);
-
-	return vn;
-}
-
-vnode*
-getfreevnode(MountPoint *mp)
-{
-	qlock(&mp->vnodes_lock);
-
-	if (mp->free_vnodes == nil) {
-		mp->free_vnodes = alloc_freelist();
-		if (mp->free_vnodes == nil) {
-			qunlock(&mp->vnodes_lock);
-			return nil;
-		}
-	}
-
-	vnode *vn = mp->free_vnodes;
-
-	// Move from freelist to vnodes
-	mp->free_vnodes = vn->next;
-	mp->free_vnodes->prev = nil;
-
-	// Clear out
-	memset(vn, 0, sizeof(vnode));
-	vn->mount = mp;
-
-	if (mp->vnodes != nil) {
-		mp->vnodes->prev = vn;
-	}
-	vn->next = mp->vnodes;
-	vn->prev = nil;
-
-	incref(&vn->ref);
-
-	mp->vnodes = vn;
-
-	qunlock(&mp->vnodes_lock);
-
-	return vn;
-}
-
-void
-releasevnode(vnode *vn)
-{
-	MountPoint *mp = vn->mount;
-	qlock(&mp->vnodes_lock);
-
-	if (decref(&vn->ref) == 0) {
-		// Remove vnode from vnodes list
-		if (vn->prev != nil) {
-		       vn->prev->next = vn->next;
-		}
-		if (vn->next != nil) {
-			vn->next->prev = vn->prev;
-		}
-		if (mp->vnodes == vn) {
-			mp->vnodes = vn->next;
-		}
-
-		// Return to free list
-		vn->next = mp->free_vnodes;
-		mp->free_vnodes->prev = vn;
-		mp->free_vnodes = vn;
-		vn->prev = nil;
-	}
-
-	qunlock(&mp->vnodes_lock);
-}
-
-int
-countvnodes(vnode* vn)
-{
-	int n = 0;
-	for (; vn != nil; vn = vn->next, n++)
-		;
-	return n;
 }
 
 int
@@ -335,4 +208,36 @@ writeinodedata(char *buf, int buflen, vnode *vn)
 	}
 
 	return i;
+}
+
+vnode *
+ufs_open_ino(MountPoint *mp, ino_t ino) {
+	vnode *vn;
+	int rcode = ffs_vget(mp, ino, LK_SHARED, &vn);
+	if (rcode) {
+		error("cannot get file to open");
+	}
+	return vn;
+}
+
+int
+lookuppath(MountPoint *mp, char *path, vnode **vn)
+{
+	// Get the root
+	vnode *root = nil;
+	int rcode = ufs_root(mp, LK_EXCLUSIVE, &root);
+	if (rcode != 0) {
+		print("couldn't get root: %d", rcode);
+		return -1;
+	}
+
+	// TODO UFS caches lookups.  We could do that in devufs.
+	ComponentName cname = { .cn_pnbuf = path, .cn_nameiop = LOOKUP };
+	rcode = ufs_lookup_ino(root, vn, &cname, nil);
+	if (rcode != 0) {
+		print("couldn't lookup path: %s: %d", path, rcode);
+		return -1;
+	}
+
+	return 0;
 }
