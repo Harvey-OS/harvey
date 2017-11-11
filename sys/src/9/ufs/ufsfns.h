@@ -14,36 +14,30 @@ typedef struct MountPoint MountPoint;
 typedef struct vnode vnode;
 
 
-Vtype ifmt_to_vtype(uint16_t imode);
+// Vnode
+int		countvnodes(vnode *vn);
+vnode*		findvnode(MountPoint *mp, ino_t ino);
+vnode*		getfreevnode(MountPoint *mp);
+int		getnewvnode(MountPoint *mp, vnode **vpp);
+void		releasevnode(vnode *vn);
+vnode*		ufs_open_ino(MountPoint *mp, ino_t ino);
 
-MountPoint *newufsmount(Chan *c, int id);
-void releaseufsmount(MountPoint *mp);
-int countvnodes(vnode *vn);
-int writesuperblock(char *buf, int buflen, MountPoint *mp);
-int writeinode(char *buf, int buflen, vnode *vn);
-int writeinodedata(char *buf, int buflen, vnode *vn);
+// External
+MountPoint*	newufsmount(Chan *c, int id);
+void		releaseufsmount(MountPoint *mp);
+int		lookuppath(MountPoint *mp, char *path, vnode **vn);
+int		writesuperblock(char *buf, int buflen, MountPoint *mp);
+int		writeinode(char *buf, int buflen, vnode *vn);
+int		writeinodedata(char *buf, int buflen, vnode *vn);
 
-int ffs_init();
-int ffs_uninit();
+// Misc
+int		ffs_init();
+int		ffs_uninit();
+int		ffs_mount(MountPoint *mp);
+int		ffs_unmount(MountPoint *mp, int mntflags);
 
-int ffs_mount(MountPoint *mp);
-int ffs_unmount(MountPoint *mp, int mntflags);
-
-int ufs_root(MountPoint *mp, int flags, vnode **vpp);
-int ufs_lookup(MountPoint *mp);
-
-int lookuppath(MountPoint *mp, char *path, vnode **vn);
-vnode *ufs_open_ino(MountPoint *mp, ino_t ino);
-
-int findexistingvnode(MountPoint *mp, ino_t ino, vnode **vpp);
-int getnewvnode(MountPoint *mp, vnode **vpp);
-void releaseufsvnode(vnode *vn);
-
-void assert_vop_locked(vnode *vp, const char *str);
-void assert_vop_elocked(vnode *vp, const char *str);
-
-int32_t bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
-
-vnode* findvnode(MountPoint *mp, ino_t ino);
-vnode* getfreevnode(MountPoint *mp);
-void releasevnode(vnode *vn);
+// Internal functions - maybe they should be somewhere else?
+void		assert_vop_locked(vnode *vp, const char *str);
+void		assert_vop_elocked(vnode *vp, const char *str);
+int32_t		bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
+Vtype		ifmt_to_vtype(uint16_t imode);
