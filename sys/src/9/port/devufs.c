@@ -291,7 +291,7 @@ ufsclose(Chan* c)
 		if (!vn) {
 			error("no vnode to close");
 		}
-		releaseufsvnode(vn);		
+		releasevnode(vn);		
 		break;
 	}
 	default:

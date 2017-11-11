@@ -47,10 +47,11 @@ struct jblocks;
 struct inodedep;
 struct MountPoint;
 
-TAILQ_HEAD(inodedeplst, inodedep);
-LIST_HEAD(bmsafemaphd, bmsafemap);
+//TAILQ_HEAD(inodedeplst, inodedep);
+//LIST_HEAD(bmsafemaphd, bmsafemap);
 
 /* This structure describes the UFS specific mount structure data. */
+// TODO HARVEY Maybe combine this with MountPoint?
 typedef struct ufsmount {
 	MountPoint	*um_mountp;			/* filesystem vfs structure */
 	//struct	cdev *um_dev;			/* device mounted */
