@@ -1506,9 +1506,9 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	vnode *vp;
 	int error;
 
-	error = findexistingvnode(mp, ino, vpp);
-	if (error || *vpp != nil)
-		return (error);
+	*vpp = findvnode(mp, ino);
+	if (*vpp != nil)
+		return 0;
 
 	/*
 	 * We must promote to an exclusive lock for vnode creation.  This
@@ -1591,7 +1591,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		 * list by vput().
 		 */
 		free(buf);
-		releaseufsvnode(vp);
+		releasevnode(vp);
 		*vpp = nil;
 		return (error);
 	}
@@ -1610,7 +1610,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	 */
 	error = ufs_vinit(mp, &vp);
 	if (error) {
-		releaseufsvnode(vp);
+		releasevnode(vp);
 		*vpp = nil;
 		return (error);
 	}
