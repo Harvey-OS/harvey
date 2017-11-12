@@ -12,72 +12,24 @@
 #include <cursor.h>
 #include "screen.h"
 
-static ulong
-stolenmb(Pcidev *p)
-{
-	switch(p->did){
-	case 0x0412:	/* Haswell HD Graphics 4600 */
-	case 0x0a16:	/* Haswell HD Graphics 4400 */
-	case 0x0126:	/* Sandy Bridge HD Graphics 3000 */
-	case 0x0166:	/* Ivy Bridge */
-	case 0x0102:	/* Core-5 Sandy Bridge */
-	case 0x0152:	/* Core-i3 */
-		switch((pcicfgr16(p, 0x50) >> 3) & 0x1f){
-		case 0x01:	return 32  - 2;
-		case 0x02:	return 64  - 2;		/* 0102 Dell machine here */
-		case 0x03:	return 96  - 2;
-		case 0x04:	return 128 - 2;
-		case 0x05:	return 32  - 2;
-		case 0x06:	return 48  - 2;
-		case 0x07:	return 64  - 2;
-		case 0x08:	return 128 - 2;
-		case 0x09:	return 256 - 2;
-		case 0x0A:	return 96  - 2;
-		case 0x0B:	return 160 - 2;
-		case 0x0C:	return 224 - 2;
-		case 0x0D:	return 352 - 2;
-		case 0x0E:	return 448 - 2;
-		case 0x0F:	return 480 - 2;
-		case 0x10:	return 512 - 2;
-		}
-		break;
-	case 0x2a42:	/* X200 */
-	case 0x29a2:	/* 82P965/G965 HECI desktop */
-	case 0x2a02:	/* CF-R7 */
-		switch((pcicfgr16(p, 0x52) >> 4) & 7){
-		case 0x01:	return 1;
-		case 0x02:	return 4;
-		case 0x03:	return 8;
-		case 0x04:	return 16;
-		case 0x05:	return 32;
-		case 0x06:	return 48;
-		case 0x07:	return 64;
-		}
-		break;
-	}
-	return 0;
-}
-
 static uintptr
-gmsize(Pcidev *pci, void *mmio)
+igfxcuralloc(Pcidev *pci, void *mmio, int apsize)
 {
-	u32int x, i, npg, *gtt;
+	int n;
+	u32int pa, *buf, *p, *e;
 
-	npg = stolenmb(pci)<<(20-12);
-	if(npg == 0)
+	buf = mallocalign(64*64*4, BY2PG, 0, 0);
+	if(buf == nil){
+		print("igfx: no memory for cursor image\n");
 		return 0;
-	gtt = (u32int*)((uchar*)mmio + pci->mem[0].size/2);
-	if((gtt[0]&1) == 0)
-		return 0;
-	x = (gtt[0]>>12)+1;
-	for(i=1; i<npg; i++){
-		if((gtt[i]&1) == 0 || (gtt[i]>>12) != x)
-			break;
-		x++;
 	}
-	if(0) print("igfx: graphics memory at %p-%p (%ud MB)\n", 
-		(uintptr)(x-i)<<12, (uintptr)x<<12, (i>>(20-12)));
-	return (uintptr)i<<12;
+	n = (apsize > 128*MB ? 128*1024 : apsize/1024) / 4 - 4;
+	p = (u32int*)((uchar*)mmio + pci->mem[0].size/2) + n;
+	*(u32int*)((uchar*)mmio + 0x2170) = 0;	/* flush write buffers */
+	for(e=p+4, pa=PADDR(buf); p<e; p++, pa+=1<<12)
+		*p = pa | 1;
+	*(u32int*)((uchar*)mmio + 0x2170) = 0;	/* flush write buffers */
+	return (uintptr)n << 12;
 }
 
 static void
@@ -98,13 +50,7 @@ igfxenable(VGAscr* scr)
 		vgalinearpci(scr);
 	if(scr->apsize){
 		addvgaseg("igfxscreen", scr->paddr, scr->apsize);
-		scr->storage = gmsize(p, scr->mmio);
-		if(scr->storage < MB)
-			scr->storage = 0;
-		else if(scr->storage > scr->apsize)
-			scr->storage = scr->apsize;
-		if(scr->storage != 0)
-			scr->storage -= PGROUND(64*64*4);
+		scr->storage = igfxcuralloc(p, scr->mmio, scr->apsize);
 	}
 	scr->softscreen = 1;
 }
