@@ -1465,6 +1465,76 @@ disablepipe(Igfx *igfx, int x)
 		csr(igfx, igfx->dpllsel[0].a, 8<<(x*4), 0);
 }
 
+void
+checkgtt(Igfx *igfx, Mode *m)
+{
+	int fd, c;
+	ulong n;
+	char buf[64], *fl[5];
+	u32int i, j, pa, nilpte, *gtt;
+
+	if(igfx->mmio == nil)
+		return;
+	gtt = (u32int*)((uchar*)igfx->mmio + igfx->pci->mem[0].size/2);
+	pa = (gtt[0] & ~((1<<12)-1)) + (1<<12) | 1;
+	for(i=1; i<64*1024/4-4; i++, pa+=1<<12)
+		if((gtt[i] & ~((1<<11)-1<<1)) != pa)
+			break;
+	n = m->x * m->y * m->z / 8;
+	if(i<<12 >= n)
+		return;
+
+	/* unmap pages past stolen memory */
+	nilpte = gtt[64*1024/4-5];
+	wr(igfx, 0x2170, 0);	/* flush write buffers */
+	for(j=i; j<64*1024/4-5; j++){
+		if((gtt[j] & 1) == 0 || (gtt[j] & ~((1<<11)-1<<1)) == pa)
+			break;
+		pa = gtt[j];
+		gtt[j] = nilpte;
+	}
+	wr(igfx, 0x2170, 0);	/* flush write buffers */
+
+	trace("%s: mapping %lud additional bytes for requested mode\n", igfx->ctlr->name, n - (i<<12));
+	snprint(buf, sizeof buf, "#g/igfxtra");
+	if((fd = open(buf, OREAD)) >= 0){
+		close(fd);
+		if(remove(buf) < 0)
+			goto err;
+	}
+	if((fd = create(buf, OREAD, DMDIR|0777)) < 0)
+		goto err;
+	close(fd);
+	strncat(buf, "/ctl", sizeof(buf)-strlen("/ctl"));
+	if((fd = open(buf, ORDWR|OTRUNC)) < 0)
+		goto err;
+	snprint(buf, sizeof buf, "va 0x10000000 %#lux fixed", n - (i<<12));
+	if(write(fd, buf, strlen(buf)) < 0){
+		close(fd);
+		goto err;
+	}
+	seek(fd, 0, 0);
+	if((c = read(fd, buf, sizeof buf)) <= 0){
+		close(fd);
+		goto err;
+	}
+	close(fd);
+	buf[c-1] = 0;
+	if(getfields(buf, fl, nelem(fl), 0, " ") != nelem(fl)
+	|| (pa = strtoul(fl[4], nil, 16)) == 0){
+		werrstr("invalid physical base address");
+		goto err;
+	}
+	n >>= 12;
+	wr(igfx, 0x2170, 0);	/* flush write buffers */
+	for(; i<n; i++, pa+=1<<12)
+		gtt[i] = pa | 1;
+	wr(igfx, 0x2170, 0);	/* flush write buffers */
+	return;
+err:
+	trace("%s: checkgtt: %r\n", igfx->ctlr->name);
+}
+
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
