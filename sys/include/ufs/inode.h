@@ -59,6 +59,7 @@ typedef struct ufs2_dinode ufs2_dinode;
  * exclusive.
  */
 struct inode {
+	// TODO HARVEY Replace when snapshot code re-enabled
 	//TAILQ_ENTRY(inode) i_nextsnap; /* snapshot file list. */
 	struct	vnode  *i_vnode;/* Vnode associated with this inode. */
 	struct 	ufsmount *i_ump;/* Ufsmount point associated with this inode. */
