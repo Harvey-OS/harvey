@@ -191,7 +191,7 @@ getnewvnode(MountPoint *mp, vnode **vpp)
 	//vp->v_hash = (uintptr_t)vp >> vnsz2log;
 
 	*vpp = vp;
-	return (0);
+	return 0;
 }
 
 void
@@ -222,21 +222,13 @@ releasevnode(vnode *vn)
 	qunlock(&mp->vnodes_lock);
 }
 
-int
-countvnodes(vnode* vn)
-{
-	int n = 0;
-	for (; vn != nil; vn = vn->next, n++)
-		;
-	return n;
-}
-
 static void
 vfs_badlock(const char *msg, const char *str, vnode *vp)
 {
 	print("*** %s: %p %s\n", str, (void *)vp, msg);
 }
 
+// TODO Make names consistent - these aren't asserts
 void
 assert_vop_locked(vnode *vp, const char *str)
 {
@@ -254,5 +246,13 @@ assert_vop_elocked(vnode *vp, const char *str)
 		print("assert_vop_elocked: vnode is nil (checking %s)\n", str);
 	} else if (vp->vnlock.writer == 0) {
 		vfs_badlock("is not exclusive locked but should be", str, vp);
+	}
+}
+
+void
+check_vnodes_locked(MountPoint *mp)
+{
+	if (!canqlock(&mp->vnodes_lock)) {
+		print("Mountpoint %d vnodes_lock should be locked", mp->id);
 	}
 }
