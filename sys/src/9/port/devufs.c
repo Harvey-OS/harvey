@@ -302,19 +302,11 @@ ufsclose(Chan* c)
 static int
 dumpstats(void *a, int32_t n, int64_t offset, MountPoint *mp)
 {
-	int i = 0;
 	char *buf = malloc(READSTR);
 
-	qlock(&mp->vnodes_lock);
-	int numinuse = countvnodes(mp->vnodes);
-	int numfree = countvnodes(mp->free_vnodes);
-	qunlock(&mp->vnodes_lock);
-
-	i += snprint(buf + i, READSTR - i, "Mountpoint:        %d\n", mp->id);
-	i += snprint(buf + i, READSTR - i, "Num vnodes in use: %d\n", numinuse);
-	i += snprint(buf + i, READSTR - i, "Num vnodes free:   %d\n", numfree);
-
+	writestats(buf, READSTR, mp);
 	n = readstr(offset, a, n, buf);
+
 	free(buf);
 
 	return n;

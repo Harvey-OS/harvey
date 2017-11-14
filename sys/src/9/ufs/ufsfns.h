@@ -15,7 +15,6 @@ typedef struct vnode vnode;
 
 
 // Vnode
-int		countvnodes(vnode *vn);
 vnode*		findvnode(MountPoint *mp, ino_t ino);
 vnode*		getfreevnode(MountPoint *mp);
 int		getnewvnode(MountPoint *mp, vnode **vpp);
@@ -26,6 +25,7 @@ vnode*		ufs_open_ino(MountPoint *mp, ino_t ino);
 MountPoint*	newufsmount(Chan *c, int id);
 void		releaseufsmount(MountPoint *mp);
 int		lookuppath(MountPoint *mp, char *path, vnode **vn);
+int		writestats(char *buf, int buflen, MountPoint *mp);
 int		writesuperblock(char *buf, int buflen, MountPoint *mp);
 int		writeinode(char *buf, int buflen, vnode *vn);
 int		writeinodedata(char *buf, int buflen, vnode *vn);
@@ -40,4 +40,5 @@ int		ffs_unmount(MountPoint *mp, int mntflags);
 void		assert_vop_locked(vnode *vp, const char *str);
 void		assert_vop_elocked(vnode *vp, const char *str);
 int32_t		bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
+void		check_vnodes_locked(MountPoint *mp);
 Vtype		ifmt_to_vtype(uint16_t imode);
