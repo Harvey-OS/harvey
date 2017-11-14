@@ -17,6 +17,7 @@
 
 #include "ufsdat.h"
 #include "ufs/libufsdat.h"
+#include "ufs/ufsfns.h"
 #include "ufs/fs.h"
 #include "ufs/ufsmount.h"
 #include "ufs/quota.h"
@@ -25,6 +26,17 @@
 #include "ufs_extern.h"
 #include "ffs_extern.h"
 
+
+static int
+countvnodes(vnode* vn)
+{
+	check_vnodes_locked(vn->mount);
+	
+	int n = 0;
+	for (; vn != nil; vn = vn->next, n++)
+		;
+	return n;
+}
 
 MountPoint*
 newufsmount(Chan *c, int id)
@@ -62,6 +74,22 @@ releaseufsmount(MountPoint *mp)
 	}
 
 	free(mp);
+}
+
+int
+writestats(char *buf, int buflen, MountPoint *mp)
+{
+	qlock(&mp->vnodes_lock);
+	int numinuse = countvnodes(mp->vnodes);
+	int numfree = countvnodes(mp->free_vnodes);
+	qunlock(&mp->vnodes_lock);
+
+	int i = 0;
+	i += snprint(buf + i, READSTR - i, "Mountpoint:        %d\n", mp->id);
+	i += snprint(buf + i, READSTR - i, "Num vnodes in use: %d\n", numinuse);
+	i += snprint(buf + i, READSTR - i, "Num vnodes free:   %d\n", numfree);
+
+	return i;
 }
 
 int
