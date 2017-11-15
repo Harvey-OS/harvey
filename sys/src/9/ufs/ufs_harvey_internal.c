@@ -18,20 +18,57 @@
 #include "ufsdat.h"
 #include "ufs/libufsdat.h"
 
+
+// TODO HARVEY Pool of buffers?  Aiming for as simple as possible for now.
+Buf*
+newbuf(size_t size)
+{
+	Buf *b = smalloc(sizeof(Buf));
+	b->data = smalloc(size);
+	return b;
+}
+
+void
+releasebuf(Buf *b)
+{
+	if (b->data) {
+		free(b->data);
+		b->data = nil;
+	}
+	free(b);
+}
+
 /*
  * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
  * block read function.
  */
 int32_t
-bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf)
+bread(MountPoint *mp, daddr_t blockno, size_t size, Buf **buf)
 {
-	*buf = smalloc(size);
+	Buf *b = newbuf(size);
 
 	Chan *c = mp->chan;
 	int64_t offset = dbtob(blockno);
-	int32_t bytesRead = c->dev->read(c, *buf, size, offset);
+	int32_t bytesRead = c->dev->read(c, b->data, size, offset);
 	if (bytesRead != size) {
-		error("bread returned wrong size");
+		releasebuf(b);
+		print("bread returned wrong size\n");
+		return 1;
 	}
+
+	*buf = b;
 	return 0;
+}
+
+Buf *
+getblk(vnode *vp, daddr_t blkno, size_t size, int flags)
+{
+	Buf *b;
+	MountPoint *mp = vp->mount;
+	int32_t rcode = bread(mp, blkno, size, &b);
+	if (rcode) {
+		print("getblk - bread failed\n");
+		return nil;
+	}
+	return b;
 }

@@ -51,8 +51,7 @@ typedef struct inode inode;
 //extern struct vop_vector ufs_vnodeops;
 
 //int	 ufs_bmap(struct vop_bmap_args *);
-//int	 ufs_bmaparray(struct vnode *, ufs2_daddr_t, ufs2_daddr_t *,
-//	    struct buf *, int *, int *);
+int	 ufs_bmaparray(vnode *, ufs2_daddr_t, ufs2_daddr_t *, Buf *, int *, int *);
 //int	 ufs_fhtovp(struct mount *, struct ufid *, int, struct vnode **);
 //int	 ufs_checkpath(ino_t, ino_t, struct inode *, struct ucred *, ino_t *);
 //void	 ufs_dirbad(struct inode *, doff_t, char *);
@@ -67,7 +66,7 @@ typedef struct inode inode;
 //int	 ufs_dirremove(struct vnode *, struct inode *, int, int);
 //int	 ufs_dirrewrite(struct inode *, struct inode *, ino_t, int, int);
 int	ufs_lookup_ino(vnode *, vnode **, ComponentName *, ino_t *);
-//int	 ufs_getlbns(struct vnode *, ufs2_daddr_t, struct indir *, int *);
+int	ufs_getlbns(vnode *, ufs2_daddr_t, Indir *, int *);
 //int	 ufs_inactive(struct vop_inactive_args *);
 int	 ufs_init();
 //void	 ufs_itimes(struct vnode *vp);
