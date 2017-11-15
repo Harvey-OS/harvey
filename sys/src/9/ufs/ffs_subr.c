@@ -52,11 +52,11 @@
  * remaining space in the directory.
  */
 int
-ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
+ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
 {
 	inode *ip;
 	Fs *fs;
-	void *bp;
+	Buf *bp;
 	ufs_lbn_t lbn;
 	int bsize, error;
 
@@ -68,13 +68,14 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
 	*bpp = nil;
 	error = bread(vp->mount, lbn, bsize, /*NOCRED,*/ &bp); 
 	if (error) {
-		free(bp);
+		releasebuf(bp);
 		return (error);
 	}
-	if (res)
+	if (res) {
 		*res = (char *)bp + blkoff(fs, offset);
+	}
 	*bpp = bp;
-	return (0);
+	return 0;
 }
 
 /*
@@ -82,9 +83,9 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, void **bpp)
  * to the incore copy.
  */
 void
-ffs_load_inode(void *buf, inode *ip, Fs *fs, ino_t ino)
+ffs_load_inode(Buf *buf, inode *ip, Fs *fs, ino_t ino)
 {
-	*ip->din2 = *((ufs2_dinode *)buf + ino_to_fsbo(fs, ino));
+	*ip->din2 = *((ufs2_dinode *)buf->data + ino_to_fsbo(fs, ino));
 	ip->i_mode = ip->din2->di_mode;
 	ip->i_nlink = ip->din2->di_nlink;
 	ip->i_size = ip->din2->di_size;

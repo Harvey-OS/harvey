@@ -56,8 +56,6 @@
 #define HOWMANY(x, y)	(((x)+((y)-1))/(y))
 #define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
 
-#define MAXPHYS		(128 * 1024)	/* max raw I/O transfer size */
-
 #define CHAR_BIT 8
 
 /*
