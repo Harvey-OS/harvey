@@ -35,6 +35,7 @@ MALLOC_DECLARE(M_UFSMNT);
 #endif
 
 typedef struct Buf Buf;
+typedef struct Fs Fs;
 typedef struct inode inode;
 struct nameidata;
 struct taskqueue;
@@ -108,7 +109,6 @@ typedef struct ufsmount {
 #define	UFS1	1
 #define	UFS2	2
 
-#if 0
 /*
  * Flags describing the state of quotas.
  */
@@ -116,15 +116,9 @@ typedef struct ufsmount {
 #define	QTF_CLOSING	0x02			/* Q_QUOTAOFF in progress */
 #define	QTF_64BIT	0x04			/* 64-bit quota file */
 
-/* Convert mount ptr to ufsmount ptr. */
-#define	VFSTOUFS(mp)	((struct ufsmount *)((mp)->mnt_data))
-#define	UFSTOVFS(ump)	(ump)->um_mountp
-
 /*
  * Macros to access filesystem parameters in the ufsmount structure.
  * Used by ufs_bmap.
  */
-#define	MNINDIR(ump)			((ump)->um_nindir)
 #define	blkptrtodb(ump, b)		((b) << (ump)->um_bptrtodb)
 #define	is_sequential(ump, a, b)	((b) == (a) + ump->um_seqinc)
-#endif // 0
