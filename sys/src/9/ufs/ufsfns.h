@@ -39,6 +39,9 @@ int		ffs_unmount(MountPoint *mp, int mntflags);
 // Internal functions - maybe they should be somewhere else?
 void		assert_vop_locked(vnode *vp, const char *str);
 void		assert_vop_elocked(vnode *vp, const char *str);
-int32_t		bread(MountPoint *mp, ufs2_daddr_t blockno, size_t size, void **buf);
+int32_t		bread(MountPoint *mp, daddr_t blockno, size_t size, Buf **buf);
 void		check_vnodes_locked(MountPoint *mp);
+Buf*		getblk(vnode *vp, daddr_t blkno, size_t size, int flags);
 Vtype		ifmt_to_vtype(uint16_t imode);
+Buf*		newbuf(size_t size);
+void		releasebuf(Buf *b);

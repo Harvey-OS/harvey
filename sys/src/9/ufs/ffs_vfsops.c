@@ -724,7 +724,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
 	Fs *fs;
-	void *buf;
+	Buf *buf;
 
 	ufsmount *ump;
 	void *space;
@@ -764,6 +764,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	if (mp->mnt_iosize_max > MAXPHYS)
 		mp->mnt_iosize_max = MAXPHYS;
 	*/
+	mp->mnt_iosize_max = MAXPHYS;
 
 	fs = nil;
 	sblockloc = 0;
@@ -780,13 +781,13 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		}*/
 
 		if (bread(mp, btodb(sblock_try[i]), SBLOCKSIZE, &buf) != 0) {
-			free(buf);
+			releasebuf(buf);
 			print("not found at %p\n", sblock_try[i]);
 			error = -1;
 			goto out;
 		}
 
-		fs = (Fs*)buf;
+		fs = (Fs*)buf->data;
 
 		sblockloc = sblock_try[i];
 		if ((fs->fs_magic == FS_UFS1_MAGIC ||
@@ -800,7 +801,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		}
 
 		// fs doesn't look right - free and try again
-		free(buf);
+		releasebuf(buf);
 		buf = nil;
 	}
 
@@ -870,7 +871,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	ump->um_rdonly = ffs_rdonly;
 	ump->um_snapgone = ffs_snapgone;
 	memmove(ump->um_fs, fs, (uint)fs->fs_sbsize);
-	free(buf);
+	releasebuf(buf);
 	buf = nil;
 	fs = ump->um_fs;
 	fs->fs_ronly = ronly;
@@ -886,15 +887,15 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		if (i + fs->fs_frag > blks)
 			size = (blks - i) * fs->fs_fsize;
 
-		if ((error = bread(mp, fsbtodb(fs, fs->fs_csaddr + i),
-			size, &buf)) != 0) {
+		error = bread(mp, fsbtodb(fs, fs->fs_csaddr + i), size, &buf);
+		if (error != 0) {
 			free(fs->fs_csp);
 			goto out;
 		}
 
-		memmove(space, buf, size);
+		memmove(space, buf->data, size);
 		space = (char *)space + size;
-		free(buf);
+		releasebuf(buf);
 	}
 	if (fs->fs_contigsumsize > 0) {
 		fs->fs_maxcluster = lp = space;
@@ -1035,7 +1036,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 	return (0);
 out:
 	if (buf)
-		free(buf);
+		releasebuf(buf);
 	/*if (cp != nil) {
 		g_topology_lock();
 		g_vfs_close(cp);
@@ -1502,7 +1503,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	Fs *fs;
 	inode *ip;
 	ufsmount *ump;
-	void *buf;
+	Buf *buf;
 	vnode *vp;
 	int error;
 
@@ -1590,7 +1591,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 		 * still zero, it will be unlinked and returned to the free
 		 * list by vput().
 		 */
-		free(buf);
+		releasebuf(buf);
 		releasevnode(vp);
 		*vpp = nil;
 		return (error);
@@ -1602,7 +1603,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	//	softdep_load_inodeblock(ip);
 	//else
 		ip->i_effnlink = ip->i_nlink;
-	free(buf);
+	releasebuf(buf);
 
 	/*
 	 * Initialize the vnode from the inode, check for aliases.
