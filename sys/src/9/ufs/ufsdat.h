@@ -31,8 +31,8 @@ typedef struct thread {
 typedef struct Ucred {
 } Ucred;
 
-// TODO HARVEY Delete
 typedef struct Buf {
+	void *data;
 } Buf;
 
 /*
@@ -52,6 +52,7 @@ typedef struct MountPoint {
 	int		id;
 	StatFs		mnt_stat;		/* cache of filesystem stats */
 	int		mnt_maxsymlinklen;	/* max size of short symlink */
+	int		mnt_iosize_max;		/* max size for clusters, etc */
 
 	uint64_t	mnt_flag;	/* (i) flags shared with user */
 	QLock		mnt_lock;	/* (mnt_mtx) structure lock */

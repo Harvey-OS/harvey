@@ -52,6 +52,8 @@ typedef int64_t ufs_time_t;
  */
 #define MAXBSIZE	65536	/* must be power of 2 */
 
+#define MAXPHYS		(128 * 1024)	/* max raw I/O transfer size */
+
 #define	DEV_BSHIFT	9		/* log2(DEV_BSIZE) */
 #define	DEV_BSIZE	(1<<DEV_BSHIFT)
 
