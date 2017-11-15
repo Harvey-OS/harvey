@@ -67,7 +67,7 @@ int	ffs_flushfiles(MountPoint *, int, thread *);
 //void	ffs_fserr(struct fs *, ino_t, char *);
 //int	ffs_isblock(struct fs *, uint8_t *, ufs1_daddr_t);
 //int	ffs_isfreeblock(struct fs *, uint8_t *, ufs1_daddr_t);
-void	ffs_load_inode(void *, inode *, Fs *, ino_t);
+void	ffs_load_inode(Buf *, inode *, Fs *, ino_t);
 /*int	ffs_own_mount(const struct mount *mp);
 int	ffs_reallocblks(struct vop_reallocblks_args *);
 int	ffs_realloccg(struct inode *, ufs2_daddr_t, ufs2_daddr_t,
