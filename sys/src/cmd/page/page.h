@@ -26,14 +26,14 @@ void *erealloc(void*, int);
 char *estrdup(char*);
 int spawncmd(char*, char **, int, int, int);
 
-int spooltodisk(uchar*, int, char**);
-int stdinpipe(uchar*, int);
-Document *initps(Biobuf*, int, char**, uchar*, int);
-Document *initpdf(Biobuf*, int, char**, uchar*, int);
-Document *initgfx(Biobuf*, int, char**, uchar*, int);
-Document *inittroff(Biobuf*, int, char**, uchar*, int);
-Document *initdvi(Biobuf*, int, char**, uchar*, int);
-Document *initmsdoc(Biobuf*, int, char**, uchar*, int);
+int spooltodisk(uint8_t*, int, char**);
+int stdinpipe(uint8_t*, int);
+Document *initps(Biobuf*, int, char**, uint8_t*, int);
+Document *initpdf(Biobuf*, int, char**, uint8_t*, int);
+Document *initgfx(Biobuf*, int, char**, uint8_t*, int);
+Document *inittroff(Biobuf*, int, char**, uint8_t*, int);
+Document *initdvi(Biobuf*, int, char**, uint8_t*, int);
+Document *initmsdoc(Biobuf*, int, char**, uint8_t*, int);
 void setlabel(char *);
 
 void viewer(Document*);
@@ -82,6 +82,7 @@ int	bell(void*, char*);
 int	opentemp(char *template);
 Image*	cachedpage(Document*, int, int);
 void	cacheflush(void);
+void moveup(Image*, Image*, int, int, int, int);
 
 extern int stdinfd;
 extern int truecolor;

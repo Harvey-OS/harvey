@@ -22,15 +22,15 @@
 
 typedef struct PDFInfo	PDFInfo;
 struct PDFInfo {
-	GSInfo;
+	GSInfo *gs;
 	Rectangle *pagebbox;
 };
 
 static Image*	pdfdrawpage(Document *d, int page);
 static char*	pdfpagename(Document*, int);
 
-char *pdfprolog =
-#include "pdfprolog.c"
+const char *pdfprolog =
+#include "pdfprolog.c_txt"
 	;
 
 Rectangle
@@ -106,16 +106,16 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	d->pagename = pdfpagename;
 	d->fwdonly = 0;
 
-	if(spawngs(pdf, "-dDELAYSAFER") < 0)
+	if(spawngs(pdf->gs, "-dDELAYSAFER") < 0)
 		return nil;
 
-	gscmd(pdf, "%s", pdfprolog);
-	waitgs(pdf);
+	gscmd(pdf->gs, "%s", pdfprolog);
+	waitgs(pdf->gs);
 
-	setdim(pdf, Rect(0,0,0,0), ppi, 0);
-	gscmd(pdf, "(%s) (r) file { DELAYSAFER { .setsafe } if } stopped pop pdfopen begin\n", fn);
-	gscmd(pdf, "pdfpagecount PAGE==\n");
-	p = Brdline(&pdf->gsrd, '\n');
+	setdim(pdf->gs, Rect(0,0,0,0), ppi, 0);
+	gscmd(pdf->gs, "(%s) (r) file { DELAYSAFER { .setsafe } if } stopped pop pdfopen begin\n", fn);
+	gscmd(pdf->gs, "pdfpagecount PAGE==\n");
+	p = Brdline(&pdf->gs->gsrd, '\n');
 	npage = (p != nil? atoi(p): 0);
 	if(npage < 1) {
 		fprint(2, "no pages?\n");
@@ -124,13 +124,13 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	d->npage = npage;
 	d->docname = argv[0];
 
-	gscmd(pdf, "Trailer\n");
-	bbox = pdfbbox(pdf);
+	gscmd(pdf->gs, "Trailer\n");
+	bbox = pdfbbox(pdf->gs);
 
 	pdf->pagebbox = emalloc(sizeof(Rectangle)*npage);
 	for(i=0; i<npage; i++) {
-		gscmd(pdf, "%d pdfgetpage\n", i+1);
-		pdf->pagebbox[i] = pdfbbox(pdf);
+		gscmd(pdf->gs, "%d pdfgetpage\n", i+1);
+		pdf->pagebbox[i] = pdfbbox(pdf->gs);
 		if(Dx(pdf->pagebbox[i]) <= 0)
 			pdf->pagebbox[i] = bbox;
 	}
@@ -143,18 +143,18 @@ pdfdrawpage(Document *doc, int page)
 	PDFInfo *pdf = doc->extra;
 	Image *im;
 
-	gscmd(pdf, "%d DoPDFPage\n", page+1);
-	im = readimage(display, pdf->gsdfd, 0);
+	gscmd(pdf->gs, "%d DoPDFPage\n", page+1);
+	im = readimage(display, pdf->gs->gsdfd, 0);
 	if(im == nil) {
 		fprint(2, "fatal: readimage error %r\n");
 		wexits("readimage");
 	}
-	waitgs(pdf);
+	waitgs(pdf->gs);
 	return im;
 }
 
 static char*
-pdfpagename(Document*, int page)
+pdfpagename(Document *doc, int page)
 {
 	static char str[15];
 	sprint(str, "p %d", page+1);
