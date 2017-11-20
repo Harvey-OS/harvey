@@ -77,8 +77,8 @@ main(int argc, char **argv)
 	int i;
 	Biobuf *b, out;
 	Icon *icon;
-	ulong offset;
-	ulong len;
+	uint32_t offset;
+	uint32_t len;
 
 	ARGBEGIN{
 	}ARGEND;

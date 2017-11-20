@@ -51,7 +51,8 @@ static void		writeheader(Biobuf*, Rectangle, int, uint32_t,
 				       int);
 static void		writedescriptor(Biobuf*, Rectangle);
 static char*	writedata(Biobuf*, Image*, Memimage*);
-static void		writetrailer(Biobuf *fd);
+/* Never implemented */
+/* static void		writetrailer(Biobuf *fd); */
 static void		writecomment(Biobuf *fd, char*);
 static void		writegraphiccontrol(Biobuf *fd, int, int);
 static void*	gifmalloc(uint32_t);

@@ -12,10 +12,10 @@ typedef struct Rawimage Rawimage;
 struct Rawimage
 {
 	Rectangle	r;
-	uchar	*cmap;
+	uint8_t	*cmap;
 	int		cmaplen;
 	int		nchans;
-	uchar	*chans[4];
+	uint8_t	*chans[4];
 	int		chandesc;
 	int		chanlen;
 

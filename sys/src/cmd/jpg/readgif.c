@@ -77,19 +77,19 @@ giffreeall(Header *h, int freeimage)
 		Bterm(h->fd);
 		h->fd = nil;
 	}
-	clear(&h->pic);
+	clear((void *)&h->pic);
 	if(h->new){
-		clear(&h->new->cmap);
-		clear(&h->new->chans[0]);
-		clear(&h->new);
+		clear((void *)&h->new->cmap);
+		clear((void *)&h->new->chans[0]);
+		clear((void *)&h->new);
 	}
-	clear(&h->globalcmap);
+	clear((void *)&h->globalcmap);
 	if(freeimage && h->array!=nil){
 		for(i=0; h->array[i]; i++){
-			clear(&h->array[i]->cmap);
-			clear(&h->array[i]->chans[0]);
+			clear((void *)&h->array[i]->cmap);
+			clear((void *)&h->array[i]->chans[0]);
 		}
-		clear(&h->array);
+		clear((void *)&h->array);
 	}
 }
 
