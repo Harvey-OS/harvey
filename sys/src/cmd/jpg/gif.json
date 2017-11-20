@@ -1,0 +1,16 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "gif",
+		"SourceFiles": [
+			"gif.c",
+			"readgif.c",
+			"totruecolor.c",
+			"writerawimage.c",
+			"torgbv.c"
+		]
+	}
+}

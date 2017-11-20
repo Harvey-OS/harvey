@@ -1,0 +1,15 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "togif",
+		"SourceFiles": [
+			"writegif.c",
+			"onechan.c",
+			"togif.c",
+			"torgbv.c"
+		]
+	}
+}

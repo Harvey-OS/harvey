@@ -1,0 +1,14 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "toppm",
+		"SourceFiles": [
+			"writeppm.c",
+			"multichan.c",
+			"toppm.c"
+		]
+	}
+}
