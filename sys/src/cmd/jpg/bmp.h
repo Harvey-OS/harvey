@@ -14,10 +14,10 @@
 #define BMP_BITFIELDS	3
 
 typedef struct {
-	uchar red;
-	uchar green;
-	uchar blue;
-	uchar alpha;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t alpha;
 } Rgb;
 
 #define Filehdrsz	14
