@@ -42,7 +42,7 @@ uint rgbmap[256] = {
 	0xFFAA00, 0xFFAA55, 0xFFAAAA, 0xFFAAFF, 0xFFFF00, 0xFFFF55, 0xFFFFAA, 0xFFFFFF,
 };
 
-uchar closestrgb[16*16*16] = {
+uint8_t closestrgb[16*16*16] = {
 	0,17,17,1,1,18,35,52,2,19,36,53,3,20,37,54,
 	17,17,17,1,1,18,35,52,2,19,36,53,3,20,37,54,
 	17,17,34,5,5,5,35,6,6,6,23,7,7,7,24,41,
