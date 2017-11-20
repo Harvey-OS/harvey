@@ -1,0 +1,16 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "v210",
+		"SourceFiles": [
+			"readv210.c",
+			"v210.c",
+			"totruecolor.c",
+			"writerawimage.c",
+			"torgbv.c"
+		]
+	}
+}

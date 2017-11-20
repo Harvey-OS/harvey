@@ -1,0 +1,16 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "tga",
+		"SourceFiles": [
+			"tga.c",
+			"readtga.c",
+			"totruecolor.c",
+			"writerawimage.c",
+			"torgbv.c"
+		]
+	}
+}
