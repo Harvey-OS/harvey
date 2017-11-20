@@ -180,11 +180,11 @@ writebitmap(void)
 		strncpy(basename, p+1, sizeof(basename)-1);
 
 	if(basename[0]) {
-		if(q = strrchr(basename, '/'))
+		if((q = strrchr(basename, '/')) != nil)
 			q++;
 		else
 			q = basename;
-		if(p = strchr(q, '.'))
+		if((p = strchr(q, '.')) != nil)
 			*p = 0;
 
 		memset(name, 0, sizeof name);
@@ -268,8 +268,8 @@ viewer(Document *dd)
 	Mouse m;
 	Event e;
 	Point dxy, oxy, xy0;
-	Rectangle r;
 	Image *tmp;
+
 	static char *fwditems[] = { "this page", "next page", "exit", 0 };
  	static char *miditems[] = {
  		"orig size",
@@ -300,7 +300,6 @@ viewer(Document *dd)
 		eplumb(Eplumb, "image");
 
 	esetcursor(&reading);
-	r.min = ZP;
 
 	/*
 	 * im is a global pointer to the current image.

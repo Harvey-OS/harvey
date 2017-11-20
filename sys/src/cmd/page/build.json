@@ -1,0 +1,16 @@
+{
+	"page": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "page",
+		"SourceFiles": [
+			"*.c"
+		],
+		"whocares":
+		[
+			"cat pdfprolog.ps | sed 's/.*/\"&\\n\"/g' >pdfprolog.c_txt"
+		]
+	}
+}
