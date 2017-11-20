@@ -1,0 +1,13 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "topng",
+		"SourceFiles": [
+			"writepng.c",
+			"topng.c"
+		]
+	}
+}
