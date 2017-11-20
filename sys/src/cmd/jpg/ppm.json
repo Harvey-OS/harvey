@@ -1,0 +1,16 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "ppm",
+		"SourceFiles": [
+			"ppm.c",
+			"readppm.c",
+			"totruecolor.c",
+			"writerawimage.c",
+			"torgbv.c"
+		]
+	}
+}
