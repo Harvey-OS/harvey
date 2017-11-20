@@ -1,12 +1,14 @@
 {
-	"Gzip": {
-		"CFlags": [],
+	"gzip": {
 		"Include": [
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
 		"SourceFilesCmd": [
-			"*.c"
+			"gzip.c",
+			"gunzip.c",
+			"zip.c",
+			"unzip.c"
 		]
 	}
 }
