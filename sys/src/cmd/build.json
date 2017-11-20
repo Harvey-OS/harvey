@@ -40,6 +40,7 @@
 			"iostats/build.json",
 			"iozone/fileop.json",
 			"ip/ip.json",
+			"jpg/build.json",
 			"lex/build.json",
 			"ndb/ndb.json",
 			"newfs/",

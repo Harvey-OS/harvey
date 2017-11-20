@@ -88,7 +88,7 @@ Bgetbit(Biobufhdr *b)
 
 static
 void
-Bflushbit(Biobufhdr*)
+Bflushbit(Biobufhdr *b)
 {
 	nbit = 0;
 }
@@ -174,7 +174,7 @@ readppm(Biobuf *b, Rawimage *a)
 	int i, ch, wid, ht, r, c;
 	int maxcol, nchan, invert;
 	int (*fetch)(Biobufhdr*);
-	uchar *rgb[3];
+	uint8_t *rgb[3];
 	char buf[ERRMAX];
 	char *e;
 	Pix *p;

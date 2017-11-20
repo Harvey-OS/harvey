@@ -192,38 +192,38 @@ jpgfreeall(Header *h, int freeimage)
 {
 	int i, j;
 
-	clear(&h->buf);
+	clear((void *)&h->buf);
 	if(h->dccoeff[0])
 		for(i=0; i<3; i++)
-			clear(&h->dccoeff[i]);
+			clear((void *)&h->dccoeff[i]);
 	if(h->accoeff[0])
 		for(i=0; i<3; i++){
 			if(h->accoeff[i])
 				for(j=0; j<h->naccoeff[i]; j++)
-					clear(&h->accoeff[i][j]);
-			clear(&h->accoeff[i]);
+					clear((void *)&h->accoeff[i][j]);
+			clear((void *)&h->accoeff[i]);
 		}
 	for(i=0; i<4; i++){
-		clear(&h->dcht[i].size);
-		clear(&h->acht[i].size);
-		clear(&h->dcht[i].code);
-		clear(&h->acht[i].code);
-		clear(&h->dcht[i].val);
-		clear(&h->acht[i].val);
+		clear((void *)&h->dcht[i].size);
+		clear((void *)&h->acht[i].size);
+		clear((void *)&h->dcht[i].code);
+		clear((void *)&h->acht[i].code);
+		clear((void *)&h->dcht[i].val);
+		clear((void *)&h->acht[i].val);
 	}
 	if(h->data[0])
 		for(i=0; i<3; i++){
 			if(h->data[i])
 				for(j=0; j<h->ndata[i]; j++)
-					clear(&h->data[i][j]);
-			clear(&h->data[i]);
+					clear((void *)&h->data[i][j]);
+			clear((void *)&h->data[i]);
 		}
 	if(freeimage && h->image!=nil){
-		clear(&h->array);
-		clear(&h->image->cmap);
+		clear((void *)&h->array);
+		clear((void *)&h->image->cmap);
 		for(i=0; i<3; i++)
-			clear(&h->image->chans[i]);
-		clear(&h->image);
+			clear((void *)&h->image->chans[i]);
+		clear((void *)&h->image);
 	}
 }
 
@@ -1052,11 +1052,12 @@ increment(Header *h, int acc[], int k, int Pt)
 {
 	if(acc[k] == 0)
 		return;
-	if(receivebit(h) != 0)
+	if(receivebit(h) != 0) {
 		if(acc[k] < 0)
 			acc[k] -= Pt;
 		else
 			acc[k] += Pt;
+	}
 }
 
 static
