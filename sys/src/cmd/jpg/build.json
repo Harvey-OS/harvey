@@ -1,0 +1,25 @@
+{
+	"jpg": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin",
+		"Projects": [
+			"jpg.json",
+			"gif.json",
+			"togif.json",
+			"ppm.json",
+			"toppm.json",
+			"png.json",
+			"topng.json",
+			"yuv.json",
+			"bmp.json",
+			"tga.json",
+			"v210.json"
+		],
+		"SourceFilesCmd": [
+			"toico.c",
+			"ico.c"
+		]
+	}
+}
