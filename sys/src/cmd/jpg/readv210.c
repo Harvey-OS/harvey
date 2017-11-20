@@ -82,7 +82,7 @@ BreadV210(Biobuf *bp, int colourspace)
 	uint8_t *buf, *r, *g, *b;
 	uint i, t;
 	int y1, y2, cb, cr, c, l, rd;
-	int chunk, lines, pixels;
+	int chunk, lines, pixels = 0;
 	int F1, F2, F3, F4;
 
 	buf = nil;
