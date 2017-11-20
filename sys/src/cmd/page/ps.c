@@ -30,7 +30,7 @@ struct Page {
 };
 
 struct PSInfo {
-	GSInfo;
+	GSInfo *gs;
 	Rectangle bbox;	/* default bounding box */
 	Page *page;
 	int npage;
@@ -205,7 +205,7 @@ initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	cantranslate = goodps;
 	incomments = 1;
 Keepreading:
-	while(p = Brdline(b, eol)) {
+	while((p = Brdline(b, eol)) != nil) {
 		if(p[0] == '%')
 			if(chatty > 1) fprint(2, "ps %.*s\n", utfnlen(p, Blinelen(b)-1), p);
 		if(npage == mpage) {
@@ -357,25 +357,25 @@ Keepreading:
 	d->fwdonly = ps->clueless = dumb;
 	d->docname = argv[0];
 
-	if(spawngs(ps, "-dSAFER") < 0)
+	if(spawngs(ps->gs, "-dSAFER") < 0)
 		return nil;
 
 	if(!cantranslate)
 		bbox.min = ZP;
-	setdim(ps, bbox, ppi, landscape);
+	setdim(ps->gs, bbox, ppi, landscape);
 
 	if(goodps){
 		/*
 		 * We want to only send the page (i.e. not header and trailer) information
 	 	 * for each page, so initialize the device by sending the header now.
 		 */
-		pswritepage(d, ps->gsfd, -1);
-		waitgs(ps);
+		pswritepage(d, ps->gs->gsfd, -1);
+		waitgs(ps->gs);
 	}
 
 	if(dumb) {
-		fprint(ps->gsfd, "(%s) run\n", argv[0]);
-		fprint(ps->gsfd, "(/fd/3) (w) file dup (THIS IS NOT A PLAN9 BITMAP 01234567890123456789012345678901234567890123456789\\n) writestring flushfile\n");
+		fprint(ps->gs->gsfd, "(%s) run\n", argv[0]);
+		fprint(ps->gs->gsfd, "(/fd/3) (w) file dup (THIS IS NOT A PLAN9 BITMAP 01234567890123456789012345678901234567890123456789\\n) writestring flushfile\n");
 	}
 
 	ps->bbox = bbox;
@@ -425,28 +425,28 @@ psdrawpage(Document *d, int page)
 	Image *im;
 
 	if(ps->clueless)
-		return readimage(display, ps->gsdfd, 0);
+		return readimage(display, ps->gs->gsdfd, 0);
 
-	waitgs(ps);
+	waitgs(ps->gs);
 
 	if(goodps)
-		pswritepage(d, ps->gsfd, page);
+		pswritepage(d, ps->gs->gsfd, page);
 	else {
-		pswritepage(d, ps->gsfd, -1);
-		pswritepage(d, ps->gsfd, page);
-		pswritepage(d, ps->gsfd, d->npage);
+		pswritepage(d, ps->gs->gsfd, -1);
+		pswritepage(d, ps->gs->gsfd, page);
+		pswritepage(d, ps->gs->gsfd, d->npage);
 	}
 	/*
 	 * If last line terminator is \r, gs will read ahead to check for \n
 	 * so send one to avoid deadlock.
 	 */
-	write(ps->gsfd, "\n", 1);
-	im = readimage(display, ps->gsdfd, 0);
+	write(ps->gs->gsfd, "\n", 1);
+	im = readimage(display, ps->gs->gsdfd, 0);
 	if(im == nil) {
 		fprint(2, "fatal: readimage error %r\n");
 		wexits("readimage");
 	}
-	waitgs(ps);
+	waitgs(ps->gs);
 
 	return im;
 }

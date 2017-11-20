@@ -113,7 +113,7 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
 
 	drawop(tmp, im->r, im, display->opaque, im->r.min, S);
 	gendrawop(im, r0, tmp, p0, mask, mask->r.min, S);
-	gendrawop(im, r0, tmp, p1, mask, p1, S);
+	gendrawop(im, r1, tmp, p1, mask, p1, S);
 }
 
 /*
@@ -138,11 +138,11 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
 int
 nextmask(Image *mask, int axis, int maskdim)
 {
-	Point δ;
+	Point p;
 
-	δ = axis==Xaxis ? Pt(maskdim,0) : Pt(0,maskdim);
+	p = axis==Xaxis ? Pt(maskdim,0) : Pt(0,maskdim);
 	drawop(mtmp, mtmp->r, mask, nil, mask->r.min, S);
-	gendrawop(mask, mask->r, mtmp, δ, mtmp, divpt(δ,-2), S);
+	gendrawop(mask, mask->r, mtmp, p, mtmp, divpt(p,-2), S);
 //	writefile("mask", mask, maskdim/2);
 	return maskdim/2;
 }
@@ -315,11 +315,11 @@ i0(double x)
 }
 
 double
-kaiser(double x, double τ, double α)
+kaiser(double x, double t, double a)
 {
-	if(fabs(x) > τ)
+	if(fabs(x) > t)
 		return 0.;
-	return i0(α*sqrt(1-(x*x/(τ*τ))))/i0(α);
+	return i0(a*sqrt(1-(x*x/(t*t))))/i0(a);
 }
 
 
