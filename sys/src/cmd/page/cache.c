@@ -64,7 +64,6 @@ _cachedpage(Document *doc, int angle, int page, char *ra)
 	int i;
 	Cached *c, old;
 	Image *im, *tmp;
-	static int lastpage = -1;
 
 	if((page < 0 || page >= doc->npage) && !doc->fwdonly)
 		return nil;
