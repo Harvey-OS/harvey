@@ -32,7 +32,7 @@ int notewatcher;
 int notegp;
 
 int
-watcher(void*, char *x)
+watcher(void *u, char *x)
 {
 	if(strcmp(x, "die") != 0)
 		postnote(PNGROUP, notegp, x);
@@ -89,7 +89,7 @@ main(int argc, char **argv)
 	Document *doc;
 	Biobuf *b;
 	enum { Ninput = 16 };
-	uchar buf[Ninput+1];
+	uint8_t buf[Ninput+1];
 	int readstdin;
 
 	ARGBEGIN{

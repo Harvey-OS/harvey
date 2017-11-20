@@ -44,6 +44,7 @@
 			"lex/build.json",
 			"ndb/ndb.json",
 			"newfs/",
+			"page/build.json",
 			"plumb/plumb.json",
 			"plumb/plumber.json",
 			"rc/rc.json",

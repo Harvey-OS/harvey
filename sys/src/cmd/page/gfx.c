@@ -80,8 +80,6 @@ static Image*	convert(Graphic*);
 static Image*	gfxdrawpage(Document *d, int page);
 static char*	gfxpagename(Document*, int);
 static int	spawnrc(char*, uint8_t*, int);
-static void	waitrc(void);
-static int	spawnpost(int);
 static int	addpage(Document*, char*);
 static int	rmpage(Document*, int);
 static int	genaddpage(Document*, char*, uint8_t*, int);
@@ -102,7 +100,7 @@ gfxdrawpage(Document *doc, int page)
 }
 
 Document*
-initgfx(Biobuf*, int argc, char **argv, uint8_t *buf, int nbuf)
+initgfx(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	GfxInfo *gfx;
 	Document *doc;
