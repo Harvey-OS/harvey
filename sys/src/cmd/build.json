@@ -25,7 +25,7 @@
 			"bzip2/bzip2.json",
 			"bc/buid.json",
 			"cb/cb.json",
-			"cdfs/build.json"
+			"cdfs/build.json",
 			"con/con.json",
 			"dial/dial.json",
 			"diff/diff.json",
