@@ -49,7 +49,7 @@ typedef struct {
 
 typedef union {
 	uint8_t	dummy[Tblock];
-	Header *header;
+	Header header;
 } Hblock;
 
 /* tarsub.c */
