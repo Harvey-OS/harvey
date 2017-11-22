@@ -39,8 +39,7 @@ reflect(int i, double wr, double wi, double *x, double *y)
 static int
 Xhex(struct place *place, double *x, double *y)
 {
-	int ns;
-	register i;
+	int ns, i;
 	double zr,zi;
 	double sr,si,tr,ti,ur,ui,vr,vi,yr,yi;
 	struct place p;
@@ -88,7 +87,7 @@ Xhex(struct place *place, double *x, double *y)
 proj
 hex(void)
 {
-	register i;
+	int i;
 	double t;
 	double root3;
 	double c,d;

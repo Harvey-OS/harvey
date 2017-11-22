@@ -162,7 +162,7 @@ vfprintf(FILE *f, const char *s, va_list args_pointer)
 
 	qlock(&_stdiolk);
 
-	va_copy(args, args_pointer);
+//	va_copy(args, args_pointer);
 
 	nprint = 0;
 	while(*s){

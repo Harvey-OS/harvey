@@ -601,6 +601,7 @@ xfidglobalctlwrite(Xfid *x)
 	char *err, *p;
 
 	err = nil;
+	n = 0;
 	if(x->Fcall.count < RBUFSIZE)
 		r = fbufalloc();
 	else{

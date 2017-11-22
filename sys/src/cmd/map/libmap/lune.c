@@ -28,7 +28,8 @@ static double pwr;
    in absence of a cut routine, error is returned for
    points outside a polar cap through E and W poles */
 
-static Xlune(struct place *place, double *x, double *y)
+static int
+Xlune(struct place *place, double *x, double *y)
 {
 	double stereox, stereoy;
 	double z1x, z1y, z2x, z2y;
