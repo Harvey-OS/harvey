@@ -32,8 +32,8 @@ checksum(Hblock *hp)
 	int i;
 	uint8_t *cp, *csum, *end;
 
-	i = ' ' * sizeof hp->header->chksum;	/* pretend blank chksum field */
-	csum = (uint8_t *)hp->header->chksum;
+	i = ' ' * sizeof hp->header.chksum;	/* pretend blank chksum field */
+	csum = (uint8_t *)hp->header.chksum;
 	end = &hp->dummy[Tblock];
 	/*
 	 * Unixware gets this wrong; it adds *signed* chars.
@@ -42,7 +42,7 @@ checksum(Hblock *hp)
 	for (cp = hp->dummy; cp < csum; )
 		i += *cp++;
 	/* skip checksum field */
-	for (cp += sizeof hp->header->chksum; cp < end; )
+	for (cp += sizeof hp->header.chksum; cp < end; )
 		i += *cp++;
 	return i;
 }
@@ -107,17 +107,17 @@ getdir(Hblock *hp, int in, int64_t *lenp)
 {
 	*lenp = 0;
 	readtar(in, (char*)hp, Tblock);
-	if (hp->header->name[0] == '\0') { /* zero block indicates end-of-archive */
+	if (hp->header.name[0] == '\0') { /* zero block indicates end-of-archive */
 		lastnm = strdup(thisnm);
 		return 0;
 	}
-	*lenp = otoi(hp->header->size);
-	if (otoi(hp->header->chksum) != checksum(hp))
+	*lenp = otoi(hp->header.size);
+	if (otoi(hp->header.chksum) != checksum(hp))
 		sysfatal("directory checksum error");
 	if (lastnm != nil)
 		free(lastnm);
 	lastnm = thisnm;
-	thisnm = strdup(hp->header->name);
+	thisnm = strdup(hp->header.name);
 	return 1;
 }
 
@@ -130,7 +130,7 @@ passtar(Hblock *hp, int in, int outf, int64_t len)
 	char bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
 
 	off = outoff;
-	if (islink(hp->header->linkflag))
+	if (islink(hp->header.linkflag))
 		return off;
 	for (blks = TAPEBLKS((uint64_t)len); blks >= Blocksxfr;
 	    blks -= Blocksxfr) {
