@@ -250,7 +250,7 @@ struct Drive
 	int	maxwritespeed;
 	int	readspeed;
 	int	writespeed;
-	Dev;
+	Dev dev;
 
 	unsigned char	features[Maxfeatures/8];
 

@@ -1,0 +1,29 @@
+{
+	"map": {
+		"Cflags": [
+			"-I$HARVEY/sys/src/cmd/map"
+		],
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/aux",
+		"Program": "mapd",
+		"Libs": [
+			"/sys/src/cmd/map/libmap/libmap.a"
+		],
+		"Post": [
+			"rm -f /sys/src/cmd/map/libmap/libmap.a",
+			"cp map.rc /rc/bin/map",
+			"cp mapdemo.rc /rc/bin/mapdemo"
+		],
+		"Projects": [
+			"libmap/libmap.json"
+		],
+		"SourceFiles": [
+			"map.c",
+			"symbol.c",
+			"index.c",
+			"sqrt.c"
+		]
+	}
+}

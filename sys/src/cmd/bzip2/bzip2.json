@@ -11,7 +11,7 @@
 			"/sys/src/cmd/bzip2/lib/libbzip2.a"
 		],
 		"Post": [
-			"rm -f $HARVEY/sys/src/cmd/bzip2/lib/libbzip2.a"
+			"rm -f /sys/src/cmd/bzip2/lib/libbzip2.a"
 		],
 		"Projects": [
 			"lib/libbzip2.json"

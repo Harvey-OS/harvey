@@ -81,13 +81,13 @@ enum {
 };
 
 Intfeat intfeats[] = {
-	Featrandwrite,	"random writable",	/* for write-and-verify */
+	{Featrandwrite,	"random writable"},	/* for write-and-verify */
 //	0x21,		"incr. streaming writable",
-	Featdfctmgmt,	"hw defect mgmt.",
-	Featwriteonce,	"write once",		/* for write-and-verify */
-	Featedfctrpt,	"enhanced defect reporting",
-	Featdvdrw,	"dvd+rw",		/* for dvd write-and-verify */
-	0x38,		"pseudo-overwrite",
+	{Featdfctmgmt,	"hw defect mgmt."},
+	{Featwriteonce,	"write once"},		/* for write-and-verify */
+	{Featedfctrpt,	"enhanced defect reporting"},
+	{Featdvdrw,	"dvd+rw"},		/* for dvd write-and-verify */
+	{0x38,		"pseudo-overwrite"},
 //	0x40,		"bd read",
 //	0x41,		"bd write",
 };
@@ -340,7 +340,7 @@ mmcgetspeed(Drive *drive)
 	maxwrite = (buf[18]<<8)|buf[19];
 	curwrite = (buf[20]<<8)|buf[21];
 
-	if(maxread && maxread < 170 || curread && curread < 170)
+	if((maxread && maxread < 170) || (curread && curread < 170))
 		return;			/* bogus data */
 
 	drive->readspeed = curread;
@@ -415,7 +415,7 @@ mmcprobe(Scsi *scsi)
 
 	drive = emalloc(sizeof(Drive));
 	drive->scsi = *scsi;
-	drive->Dev = mmcdev;
+	drive->dev = mmcdev;
 	drive->invistrack = -1;
 	getinvistrack(drive);
 
@@ -499,20 +499,22 @@ gettracknwa(Drive *drive, int t, uint32_t beg, uint8_t *resp)
 	aux = drive->aux;
 	if(resp[7] & 1) {			/* nwa valid? */
 		newnwa = bige(&resp[12]);
-		if (newnwa >= 0)
+		if (newnwa >= 0){
 			if (aux->mmcnwa < 0)
 				aux->mmcnwa = newnwa;
 			else if (aux->mmcnwa != newnwa)
 				fprint(2, "nwa is %ld but invis track starts blk %ld\n",
 					newnwa, aux->mmcnwa);
+		}
 	}
 	/* resp[6] & (1<<7) of zero: invisible track */
-	if(t == Invistrack || t == drive->invistrack)
+	if(t == Invistrack || t == drive->invistrack){
 		if (aux->mmcnwa < 0)
 			aux->mmcnwa = beg;
 		else if (aux->mmcnwa != beg)
 			fprint(2, "invis track starts blk %ld but nwa is %ld\n",
 				beg, aux->mmcnwa);
+	}
 	if (vflag && aux->mmcnwa >= 0)
 		print(" nwa %lu", aux->mmcnwa);
 	return 0;
@@ -940,7 +942,7 @@ bdguess(Drive *drive)
 			fprint(2, "drive probably a BD (from inquiry string)\n");
 		drive->mmctype = Mmcbd;
 	} else if (drive->mmctype == Mmcbd) {
-		if (drive->erasable != Unset && drive->recordable != Unset)
+		if (drive->erasable != (uint8_t)Unset && drive->recordable != (uint8_t)Unset)
 			return 0;
 	} else
 		return -1;
@@ -950,13 +952,13 @@ bdguess(Drive *drive)
 		if (vflag)
 			fprint(2, "drive probably a burner (from inquiry string)\n");
 		drive->recordable = drive->writeok = Yes;
-		if (drive->erasable == Unset) {	/* set by getdiscinfo perhaps */
+		if (drive->erasable == (uint8_t)Unset) {	/* set by getdiscinfo perhaps */
 			drive->erasable = No;	/* no way to tell, alas */
 			if (vflag)
 				fprint(2, "\tassuming -r not -re\n");
 		}
 	} else {
-		if (drive->erasable == Unset)
+		if (drive->erasable == (uint8_t)Unset)
 			drive->erasable = No;
 	}
 	if (drive->erasable == Yes)
@@ -1286,9 +1288,9 @@ finddisctype(Drive *drive, int first, int last)
 
 	if (vflag) {
 		fprint(2, "writeok %d", drive->writeok);
-		if (drive->recordable != Unset)
+		if (drive->recordable != (uint8_t)Unset)
 			fprint(2, " recordable %d", drive->recordable);
-		if (drive->erasable != Unset)
+		if (drive->erasable != (uint8_t)Unset)
 			fprint(2, " erasable %d", drive->erasable);
 		fprint(2, "\n");
 		fprint(2, "first %d last ", first);
@@ -1668,7 +1670,7 @@ mmcxwrite(Otrack *o, void *v, int32_t nblk)
 		return -1;
 	}
 	if (aux->mmcnwa == -1 ||
-	    drive->end != 0 && aux->mmcnwa + nblk > drive->end) {
+	    (drive->end != 0 && aux->mmcnwa + nblk > drive->end)) {
 		werrstr("writing past last block");
 		return -1;
 	}
