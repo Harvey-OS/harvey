@@ -16,7 +16,7 @@
 
 static double r0sq, r1sq, d2, n, den, sinb1, sinb2;
 static struct coord plat1, plat2;
-static southpole;
+static int southpole;
 
 static double num(double s)
 {

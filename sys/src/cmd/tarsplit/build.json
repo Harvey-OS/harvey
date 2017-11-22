@@ -1,0 +1,14 @@
+{
+	"tarsplit": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "tarsplit",
+		"Projects": [ "tarcat.json" ],
+		"SourceFiles": [
+			"tarsplit.c",
+			"tarsub.c"
+		]
+	}
+}

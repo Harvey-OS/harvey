@@ -25,8 +25,8 @@ Xperspective(struct place *place, double *x, double *y)
 	*y = - r*place->wlon.c;
 	if(r>4.)
 		return(-1);
-	if(fabs(viewpt)>1 && place->nlat.s<1/viewpt ||
-	   fabs(viewpt)<=1 && place->nlat.s<viewpt)
+	if((fabs(viewpt)>1 && place->nlat.s<1/viewpt) ||
+	   (fabs(viewpt)<=1 && place->nlat.s<viewpt))
 			return 0;
 	return(1);
 }
@@ -72,7 +72,7 @@ gnomonic(void)
 int
 plimb(double *lat, double *lon, double res)
 {
-	static first = 1;
+	static int first = 1;
 	if(viewpt >= ORTHRAD)
 		return olimb(lat, lon, res);
 	if(first) {

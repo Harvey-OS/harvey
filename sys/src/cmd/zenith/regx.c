@@ -293,12 +293,13 @@ popand(int op)
 {
 	char buf[64];
 
-	if(andp <= &andstack[0])
+	if(andp <= &andstack[0]){
 		if(op){
 			sprint(buf, "missing operand for %c", op);
 			regerror(buf);
 		}else
 			regerror("malformed regexp");
+	}
 	return --andp;
 }
 

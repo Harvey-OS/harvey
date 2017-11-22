@@ -479,13 +479,14 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 					q1++;
 			}
 		}
-		if(q1 > q0)
+		if(q1 > q0){
 			if(colon >= 0){	/* stop at white space */
 				for(amax=colon+1; amax<t->file->Buffer.nc; amax++)
 					if((c=textreadc(t, amax))==' ' || c=='\t' || c=='\n')
 						break;
 			}else
 				amax = t->file->Buffer.nc;
+		}
 	}
 	amin = amax;
 	e->q0 = q0;

@@ -1,0 +1,12 @@
+{
+	"libplot": {
+		"Include": [
+			"../../../lib.json"
+		],
+		"Install": "/sys/src/cmd/plot/libplot/",
+		"Library": "libplot.a",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}

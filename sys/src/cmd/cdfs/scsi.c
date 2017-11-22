@@ -105,7 +105,7 @@ scsierror(int asc, int ascq)
 
 	if(codes) {
 		snprint(search, sizeof search, "\n%.2x%.2x ", asc, ascq);
-		if(p = strstr(codes, search)) {
+		if((p = strstr(codes, search)) != nil) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
 				q = p+strlen(p);
@@ -114,7 +114,7 @@ scsierror(int asc, int ascq)
 		}
 
 		snprint(search, sizeof search, "\n%.2x00", asc);
-		if(p = strstr(codes, search)) {
+		if((p = strstr(codes, search)) != nil) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
 				q = p+strlen(p);
@@ -137,11 +137,11 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 	int32_t status;
 
 	if(dolock)
-		qlock(s);
+		qlock(&s->QLock);
 	if(write(s->rawfd, cmd, ccount) != ccount) {
 		werrstr("cmd write: %r");
 		if(dolock)
-			qunlock(s);
+			qunlock(&s->QLock);
 		return -1;
 	}
 
@@ -149,8 +149,8 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 	case Sread:
 		n = read(s->rawfd, data, dcount);
 		/* read toc errors are frequent and not very interesting */
-		if(n < 0 && (scsiverbose == 1 ||
-		    scsiverbose == 2 && cmd[0] != Readtoc))
+		if((n < 0 && (scsiverbose == 1)) ||
+		    (scsiverbose == 2 && cmd[0] != Readtoc))
 			fprint(2, "dat read: %r: cmd 0x%2.2X\n", cmd[0]);
 		break;
 	case Swrite:
@@ -170,11 +170,11 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 	if(read(s->rawfd, resp, sizeof(resp)) < 0) {
 		werrstr("resp read: %r\n");
 		if(dolock)
-			qunlock(s);
+			qunlock(&s->QLock);
 		return -1;
 	}
 	if(dolock)
-		qunlock(s);
+		qunlock(&s->QLock);
 
 	resp[sizeof(resp)-1] = '\0';
 	status = atoi((char*)resp);
@@ -199,7 +199,7 @@ _scsiready(Scsi *s, int dolock)
 	int status, i;
 
 	if(dolock)
-		qlock(s);
+		qlock(&s->QLock);
 	werrstr("");
 	for(i=0; i<3; i++) {
 		memset(cmd, 0, sizeof(cmd));
@@ -220,7 +220,7 @@ _scsiready(Scsi *s, int dolock)
 		status = atoi((char*)resp);
 		if(status == 0 || status == 0x02) {
 			if(dolock)
-				qunlock(s);
+				qunlock(&s->QLock);
 			return 0;
 		}
 		if(scsiverbose)
@@ -230,7 +230,7 @@ _scsiready(Scsi *s, int dolock)
 	if(err[0] == '\0')
 		werrstr("unit did not become ready");
 	if(dolock)
-		qunlock(s);
+		qunlock(&s->QLock);
 	return -1;
 }
 
@@ -249,11 +249,11 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 
 	data = v;
 	SET(key); SET(code);
-	qlock(s);
+	qlock(&s->QLock);
 	for(tries=0; tries<2; tries++) {
 		n = _scsicmd(s, cmd, ccount, data, dcount, io, 0);
 		if(n >= 0) {
-			qunlock(s);
+			qunlock(&s->QLock);
 			return n;
 		}
 
@@ -275,7 +275,7 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 		key = sense[2] & 0xf;
 		code = sense[12];			/* asc */
 		if(code == Recovnoecc || code == Recovecc) { /* recovered errors */
-			qunlock(s);
+			qunlock(&s->QLock);
 			return dcount;
 		}
 
@@ -298,10 +298,10 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 	if(cmd[0] == Readtoc && key == Sensenotrdy &&
 	    (code == Nomedium || code == Lunnotrdy)) {
 		s->changetime = 0;
-		qunlock(s);
+		qunlock(&s->QLock);
 		return -1;
 	}
-	qunlock(s);
+	qunlock(&s->QLock);
 
 	if(cmd[0] == Readtoc && key == Sensebadreq && code == Badcdb)
 		return -1;			/* blank media */
