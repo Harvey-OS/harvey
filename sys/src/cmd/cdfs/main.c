@@ -351,7 +351,7 @@ static void
 readctl(Req *r)
 {
 	int i, isaudio;
-	uint64_t nwa;
+	uint32_t nwa;
 	char *p, *e, *ty;
 	char s[1024];
 	Msf *m;
@@ -383,14 +383,14 @@ readctl(Req *r)
 	p = seprint(p, e, "maxspeed read %d write %d\n",
 		drive->maxreadspeed, drive->maxwritespeed);
 
-	if (drive->changetime != 0 && drive->ntrack != 0) { /* have disc? */
+	if (drive->scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
 		ty = disctype(drive);
 		p = seprint(p, e, "%s", ty);
 		free(ty);
 		if (drive->mmctype != Mmcnone) {
 			nwa = getnwa(drive);
 			p = seprint(p, e, " next writable sector ");
-			if (nwa == (uint64_t)~0ul)
+			if (nwa == (uint32_t)~0ul)
 				p = seprint(p, e, "none; disc full");
 			else
 				p = seprint(p, e, "%lu", nwa);
