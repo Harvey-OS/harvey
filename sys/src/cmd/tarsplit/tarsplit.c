@@ -47,7 +47,7 @@ opennext(int out, char *prefix)
 }
 
 static int
-split(int in, int out, char * /* inname */)
+split(int in, int out, char *inname)
 {
 	int64_t len, membsz;
 	uint64_t outoff = 0;
@@ -60,7 +60,7 @@ split(int in, int out, char * /* inname */)
 			out = closeout(out, filenm, 1);
 			if (membsz + Endsize > size)
 				sysfatal("archive member %s (%,lld) + overhead "
-					"exceeds size limit %,lld", hp->name,
+					"exceeds size limit %,lld", hp->header->name,
 					len, size);
 		}
 		if (out < 0)

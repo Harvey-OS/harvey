@@ -44,10 +44,10 @@
 
 static struct place tpole[4];	/* point of tangency of tetrahedron face*/
 static double tpoleinit[4][2] = {
-	1.,	0.,
-	1.,	180.,
-	-1.,	90.,
-	-1.,	-90.
+	{1.,	0.},
+	{1.,	180.},
+	{-1.,	90.},
+	{-1.,	-90.}
 };
 static struct tproj {
 	double tlat,tlon;	/* center of stereo projection*/
@@ -180,7 +180,7 @@ tetracut(struct place *g, struct place *og, double *cutlon)
 proj
 tetra(void)
 {
-	register i;
+	int i;
 	int j;
 	register struct place *tp;
 	register struct tproj *tpp;

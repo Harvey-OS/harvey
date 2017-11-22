@@ -177,7 +177,7 @@ fscreate(Req *r)
 		return;
 	}
 
-	o = drive->create(drive, type);
+	o = drive->dev.create(drive, type);
 	if(o == nil) {
 		respond(r, geterrstr());
 		return;
@@ -198,7 +198,7 @@ fsremove(Req *r)
 	switch((uint32_t)r->fid->qid.path){
 	case Qwa:
 	case Qwd:
-		if(drive->fixate(drive) < 0)
+		if(drive->dev.fixate(drive) < 0)
 			respond(r, geterrstr());
 // let us see if it can figure this out:	drive->writeok = No;
 		else
@@ -238,13 +238,14 @@ disctype(Drive *drive)
 		type = "**GOK**";		/* traditional */
 		break;
 	}
-	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
+	if (drive->mmctype != Mmcnone && drive->dvdtype == nil){
 		if (drive->erasable == Yes)
 			rw = drive->mmctype == Mmcbd? "re": "rw";
 		else if (drive->recordable == Yes)
 			rw = "r";
 		else
 			rw = "rom";
+	}
 	return smprint("%s%s%s", type, rw, laysfx);
 }
 
@@ -282,8 +283,8 @@ fillstat(uint32_t qid, Dir *d)
 
 	case Qwa:
 		if(drive->writeok == No ||
-		    drive->mmctype != Mmcnone &&
-		    drive->mmctype != Mmccd)
+		    (drive->mmctype != Mmcnone &&
+		    drive->mmctype != Mmccd))
 			return 0;
 		d->name = "wa";
 		d->qid.type = QTDIR;
@@ -350,7 +351,7 @@ static void
 readctl(Req *r)
 {
 	int i, isaudio;
-	uint32_t nwa;
+	uint64_t nwa;
 	char *p, *e, *ty;
 	char s[1024];
 	Msf *m;
@@ -382,14 +383,14 @@ readctl(Req *r)
 	p = seprint(p, e, "maxspeed read %d write %d\n",
 		drive->maxreadspeed, drive->maxwritespeed);
 
-	if (drive->scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
+	if (drive->changetime != 0 && drive->ntrack != 0) { /* have disc? */
 		ty = disctype(drive);
 		p = seprint(p, e, "%s", ty);
 		free(ty);
 		if (drive->mmctype != Mmcnone) {
 			nwa = getnwa(drive);
 			p = seprint(p, e, " next writable sector ");
-			if (nwa == ~0ul)
+			if (nwa == (uint64_t)~0ul)
 				p = seprint(p, e, "none; disc full");
 			else
 				p = seprint(p, e, "%lu", nwa);
@@ -448,7 +449,7 @@ fsread(Req *r)
 	default:
 		/* a disk track; we can only call read for whole blocks */
 		o = ((Aux*)fid->aux)->o;
-		if((count = o->drive->read(o, buf, count, offset)) < 0) {
+		if((count = o->drive->dev.read(o, buf, count, offset)) < 0) {
 			respond(r, geterrstr());
 			return;
 		}
@@ -518,9 +519,9 @@ writectl(void *v, int32_t count)
 		}
 		if(what != '?')
 			return Ebadmsg;
-		return drive->setspeed(drive, r, w);
+		return drive->dev.setspeed(drive, r, w);
 	}
-	return drive->ctl(drive, nf, f);
+	return drive->dev.ctl(drive, nf, f);
 }
 
 static void
@@ -541,7 +542,7 @@ fswrite(Req *r)
 		return;
 	}
 
-	if(o->drive->write(o, r->ifcall.data, r->ifcall.count) < 0)
+	if(o->drive->dev.write(o, r->ifcall.data, r->ifcall.count) < 0)
 		respond(r, geterrstr());
 	else
 		respond(r, nil);
@@ -596,7 +597,7 @@ fsopen(Req *r)
 		 * drive and disc are both capable?
 		 */
 		if(omode != OREAD ||
-		    (o = drive->openrd(drive, fid->qid.path-Qtrack)) == nil) {
+		    (o = drive->dev.openrd(drive, fid->qid.path-Qtrack)) == nil) {
 			respond(r, "permission denied");
 			return;
 		}
@@ -620,7 +621,7 @@ fsdestroyfid(Fid *fid)
 	o = aux->o;
 	if(o && --o->nref == 0) {
 		bterm(o->buf);
-		drive->close(o);
+		drive->dev.close(o);
 		checktoc(drive);
 	}
 }
@@ -631,7 +632,7 @@ checktoc(Drive *drive)
 	int i;
 	Track *t;
 
-	drive->gettoc(drive);
+	drive->dev.gettoc(drive);
 	if(drive->nameok)
 		return;
 

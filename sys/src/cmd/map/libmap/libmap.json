@@ -1,0 +1,15 @@
+{
+	"libmap": {
+		"Cflags": [
+			"-I$HARVEY/sys/src/cmd/map"
+		],
+		"Include": [
+			"../../../lib.json"
+		],
+		"Install": "/sys/src/cmd/map/libmap/",
+		"Library": "libmap.a",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}

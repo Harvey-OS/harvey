@@ -29,7 +29,7 @@ orthographic(void)
 int
 olimb(double *lat, double *lon, double res)
 {
-	static first  = 1;
+	static int first  = 1;
 	if(first) {
 		*lat = 0;
 		*lon = -180;

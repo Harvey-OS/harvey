@@ -12,13 +12,13 @@
 #include "map.h"
 
 static struct coord stdpar;
-static double r0;
+static double rr0;
 
-static
+static int
 Xbonne(struct place *place, double *x, double *y)
 {
 	double r, alpha;
-	r = r0 - place->nlat.l;
+	r = rr0 - place->nlat.l;
 	if(r<.001)
 		if(fabs(stdpar.c)<1e-10)
 			alpha = place->wlon.l;
@@ -40,6 +40,6 @@ bonne(double par)
 	if(fabs(par*RAD) < .01)
 		return(Xsinusoidal);
 	deg2rad(par, &stdpar);
-	r0 = stdpar.c/stdpar.s + stdpar.l;
+	rr0 = stdpar.c/stdpar.s + stdpar.l;
 	return(Xbonne);
 }
