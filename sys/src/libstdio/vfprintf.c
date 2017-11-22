@@ -161,6 +161,8 @@ vfprintf(FILE *f, const char *s, va_list args)
 
 	qlock(&_stdiolk);
 
+//	va_copy(args, args_pointer);
+
 	nprint = 0;
 	while(*s){
 		if(*s != '%'){

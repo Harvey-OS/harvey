@@ -56,6 +56,7 @@ rinvert(double a, double b, double *x, double *y)
 	dorot(a,b,x,y,invert);
 }
 
+int
 main(int argc, char **argv)
 {
 //#pragma ref argv
@@ -105,14 +106,15 @@ doroute(double dir, double an, double aw, double bn, double bw)
 	orient(pn,pw,theta);
 	rotate(an,aw,&an1,&aw1);
 	rotate(bn,bw,&bn1,&bw1);
-	if(fabs(aw1-bw1)>180)
+	if(fabs(aw1-bw1)>180){
 		if(theta<0.) theta+=180;
 		else theta -= 180;
+	}
 	orient(pn,pw,theta);
 	rotate(an,aw,&an1,&aw1);
 	rotate(bn,bw,&bn1,&bw1);
 	if(!track) {
-		double dlat, dlon, t;
+		double dlat, dlon;
 		/* printf("A %.4f %.4f\n",an1,aw1); */
 		/* printf("B %.4f %.4f\n",bn1,bw1); */
 		cw1 = fabs(bw1-aw1);	/* angular difference for map margins */

@@ -48,8 +48,8 @@ typedef struct {
 } Header;
 
 typedef union {
-	uchar	dummy[Tblock];
-	Header;
+	uint8_t	dummy[Tblock];
+	Header *header;
 } Hblock;
 
 /* tarsub.c */
@@ -57,10 +57,10 @@ char *thisnm, *lastnm;
 
 unsigned checksum(Hblock *hp);
 int	closeout(int outf, char *, int prflag);
-int	getdir(Hblock *, int in, vlong *);
+int	getdir(Hblock *, int in, int64_t *);
 uint32_t	otoi(char *s);
 void	newarch(void);
-uvlong	passtar(Hblock *hp, int in, int outf, vlong bytes);
+uint64_t	passtar(Hblock *hp, int in, int outf, int64_t bytes);
 void	putempty(int out);
-void	readtar(int in, char *buffer, long size);
-uvlong	writetar(int outf, char *buffer, uint32_t size);
+void	readtar(int in, char *buffer, int32_t size);
+uint64_t	writetar(int outf, char *buffer, uint32_t size);
