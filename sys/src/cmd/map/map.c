@@ -54,8 +54,8 @@ static void dolimb(void);
 static int onlimb;
 static int poles;
 static double orientation[3] = { 90., 0., 0. };	/* -o option */
-static oriented;	/* nonzero if -o option occurred */
-static upright;		/* 1 if orientation[0]==90, -1 if -90, else 0*/
+static int oriented;	/* nonzero if -o option occurred */
+static int upright;		/* 1 if orientation[0]==90, -1 if -90, else 0*/
 static int delta = 1;	/* -d setting */
 static double limits[4] = {	/* -l parameters */
 	-90., 90., -180., 180.
@@ -69,7 +69,7 @@ static double lolat, hilat, lolon, hilon;
 static double window[4] = {	/* option -w */
 	-90., 90., -180., 180.
 };
-static windowed;	/* nozero if option -w */
+static int windowed;	/* nozero if option -w */
 static struct vert { double x, y; } v[NVERT+2];	/*clipping polygon*/
 static struct edge { double a, b, c; } e[NVERT]; /* coeffs for linear inequality */
 static int nvert;	/* number of vertices in clipping polygon */
@@ -688,7 +688,7 @@ satellite(struct file *t)
 	char sym[50];
 	char lbl[50];
 	double scale;
-	register conn;
+	int conn;
 	double lat,lon;
 	struct place place;
 	static FILE *ifile = stdin;
@@ -774,7 +774,7 @@ mapindex(char *s)
 }
 
 #define NOPT 32767
-static ox = NOPT, oy = NOPT;
+static int ox = NOPT, oy = NOPT;
 
 int
 cpoint(int xi, int yi, int conn)
@@ -830,7 +830,7 @@ plotpt(struct place *g, int conn)
 	case 1:
 		oldg = *g;
 		ret = doproj(g,&kx,&ky);
-		if(ret==0 || !onlimb && ret*vflag<=0)
+		if(ret==0 || (!onlimb && ret*vflag<=0))
 			return(0);
 		ret = cpoint(kx,ky,conn);
 		return ret;
@@ -908,7 +908,7 @@ picut(struct place *g, struct place *og, double *cutlon)
 int
 nocut(struct place *g, struct place *og, double *cutlon)
 {
-	USED(g, og, cutlon);
+	USED(g), USED(og), USED(cutlon);
 /*
 //#pragma	ref g
 //#pragma	ref og
@@ -1015,7 +1015,7 @@ dogrid(double lat0, double lat1, double lon0, double lon1)
 	gridpt(lat1,lon1,conn);
 }
 
-static gridinv;		/* nonzero when doing window bounds */
+static int gridinv;		/* nonzero when doing window bounds */
 
 int
 gridpt(double lat, double lon, int conn)
@@ -1034,11 +1034,11 @@ void
 dobounds(double lolat, double hilat, double lolon, double hilon, int win)
 {
 	gridinv = win;
-	if(lolat>-90 || win && (poles&1)!=0)
+	if(lolat>-90 || (win && (poles&1)!=0))
 		dogrid(lolat+FUZZ,lolat+FUZZ,lolon,hilon);
-	if(hilat<90 || win && (poles&2)!=0)
+	if(hilat<90 || (win && (poles&2)!=0))
 		dogrid(hilat-FUZZ,hilat-FUZZ,lolon,hilon);
-	if(hilon-lolon<360 || win && cut==picut) {
+	if(hilon-lolon<360 || (win && cut==picut)) {
 		dogrid(lolat,hilat,lolon+FUZZ,lolon+FUZZ);
 		dogrid(lolat,hilat,hilon-FUZZ,hilon-FUZZ);
 	}
@@ -1155,7 +1155,7 @@ pathnames(void)
 void
 clipinit(void)
 {
-	register i;
+	int i;
 	double s,t;
 	if(nvert<=0)
 		return;
@@ -1176,7 +1176,7 @@ clipinit(void)
 		    (v[i-1].y-v[i].y)*(v[i+1].x-v[i].x);
 		if(t<-FUZZ && s>=0) s = 1;
 		if(t>FUZZ && s<=0) s = -1;
-		if(-FUZZ<=t&&t<=FUZZ || t*s>0) {
+		if((-FUZZ<=t&&t<=FUZZ) || t*s>0) {
 			s = 0;
 			break;
 		}
@@ -1193,7 +1193,7 @@ clipinit(void)
 int
 inpoly(double x, double y)
 {
-	register i;
+	int i;
 	for(i=0; i<nvert; i++) {
 		register struct edge *ei = &e[i];
 		double val = x*ei->a + y*ei->b - ei->c;

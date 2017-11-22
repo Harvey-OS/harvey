@@ -64,43 +64,43 @@ struct pcall {
 	char	*cc;
 	int	numc;
 } plots[] = {
-	[ARC] = 	"a", 	1,
-	[BOX] = 	"bo", 	2,
-	[CALL] =	"ca",	2,
-	[CFILL] = 	"cf", 	2,
-	[CIRC] = 	"ci", 	2,
-	[CLOSEPL] = 	"cl", 	2,
-	[COLOR] = 	"co", 	2,
-	[CSPLINE] =	"cs",	2,
-	[DEFINE] =	"de",	2,
-	[DISK] =	"di",	2,
-	[DSPLINE] =	"ds",	2,
-	[ERASE] = 	"e", 	1,
-	[FILL] = 	"fi", 	2,
-	[FRAME] = 	"fr", 	2,
-	[FSPLINE] =	"fs",	2,
-	[GRADE] = 	"g", 	1,
-	[IDLE] = 	"id", 	2,
-	[INCLUDE] =	"in",	2,
-	[LINE] = 	"li", 	2,
-	[LSPLINE] =	"ls",	2,
-	[MOVE] = 	"m", 	1,
-	[OPENPL] = 	"o", 	1,
-	[PARABOLA] = 	"par", 	3,
-	[PEN] = 	"pe", 	2,
-	[PAUSE] = 	"pau", 	3,
-	[POINT] = 	"poi", 	3,
-	[POLY] = 	"pol", 	3,
-	[RANGE] = 	"ra", 	2,
-	[RESTORE] = 	"re", 	2,
-	[RMOVE] = 	"rm", 	2,
-	[RVEC] = 	"rv", 	2,
-	[SAVE] = 	"sa", 	2,
-	[SBOX] = 	"sb", 	2,
-	[SPLINE] = 	"sp", 	2,
-	[TEXT] = 	"t", 	1,
-	[VEC] = 	"v", 	1,
-	[LAST] = 	0, 	0,
+	[ARC] = 	{"a", 	1},
+	[BOX] = 	{"bo", 	2},
+	[CALL] =	{"ca",	2},
+	[CFILL] = 	{"cf", 	2},
+	[CIRC] = 	{"ci", 	2},
+	[CLOSEPL] = 	{"cl", 	2},
+	[COLOR] = 	{"co", 	2},
+	[CSPLINE] =	{"cs",	2},
+	[DEFINE] =	{"de",	2},
+	[DISK] =	{"di",	2},
+	[DSPLINE] =	{"ds",	2},
+	[ERASE] = 	{"e", 	1},
+	[FILL] = 	{"fi", 	2},
+	[FRAME] = 	{"fr", 	2},
+	[FSPLINE] =	{"fs",	2},
+	[GRADE] = 	{"g", 	1},
+	[IDLE] = 	{"id", 	2},
+	[INCLUDE] =	{"in",	2},
+	[LINE] = 	{"li", 	2},
+	[LSPLINE] =	{"ls",	2},
+	[MOVE] = 	{"m", 	1},
+	[OPENPL] = 	{"o", 	1},
+	[PARABOLA] = 	{"par", 	3},
+	[PEN] = 	{"pe", 	2},
+	[PAUSE] = 	{"pau", 	3},
+	[POINT] = 	{"poi", 	3},
+	[POLY] = 	{"pol", 	3},
+	[RANGE] = 	{"ra", 	2},
+	[RESTORE] = 	{"re", 	2},
+	[RMOVE] = 	{"rm", 	2},
+	[RVEC] = 	{"rv", 	2},
+	[SAVE] = 	{"sa", 	2},
+	[SBOX] = 	{"sb", 	2},
+	[SPLINE] = 	{"sp", 	2},
+	[TEXT] = 	{"t", 	1},
+	[VEC] = 	{"v", 	1},
+	[LAST] = 	{0, 	0},
 };
 
 struct pcall *pplots;		/* last command read */
@@ -220,7 +220,7 @@ int isdigit(int c)
 }
 int ispunct(int c)
 {
-	return strchr("!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~", c)!=0;
+	return strchr("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~", c)!=0;
 }
 int isspace(int c)
 {
@@ -278,6 +278,7 @@ strarg(void){
 /*
  * Read a floating point number into argstr
  */
+int
 numstring(void){
 	int ndp=0;
 	int ndig=0;
@@ -327,7 +328,7 @@ numargs(int n){
 	for(i=0;i!=n;i++){
 		do{
 			c=nextc();
-		}while(strchr(" \t\n", c) || c!='.' && c!='+' && c!='-' && ispunct(c));
+		}while(strchr(" \t\n", c) || (c!='.' && c!='+' && c!='-' && ispunct(c)));
 		fsp->peekc=c;
 		if(!numstring()){
 			fprint(2, "line %d: number expected\n", fsp->lineno);
@@ -409,6 +410,7 @@ polyarg(void){
 	}
 }
 
+int
 process(Biobuf *fd){
 	char *s;
 	int c;
