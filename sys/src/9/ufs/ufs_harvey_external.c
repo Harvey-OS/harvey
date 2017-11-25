@@ -226,6 +226,7 @@ writeinode(char *buf, int buflen, vnode *vn)
 int
 writeinodedata(char *buf, int buflen, vnode *vn)
 {
+	Proc *up = externup();
 	int i = 0;
 
 	if (vn->type == VREG) {
@@ -235,13 +236,16 @@ writeinodedata(char *buf, int buflen, vnode *vn)
 
 	if (vn->type == VDIR) {
 		Uio* uio = newuio(DIRBLKSIZ);
+		if (waserror()) {
+			releaseuio(uio);
+			nexterror();
+		}
+
 		uio->resid = vn->data->i_size;
 
 		int rcode = ufs_readdir(vn, uio);
 		if (rcode) {
-			i += snprint(buf + i, buflen - i, "error reading directory\n");
-			releaseuio(uio);
-			return i;
+			error("error reading directory");
 		}
 
 		packuio(uio);
@@ -256,6 +260,7 @@ writeinodedata(char *buf, int buflen, vnode *vn)
 			diroffset += dir->reclen;
 		}
 
+		poperror();
 		releaseuio(uio);
 		return i;
 	}
