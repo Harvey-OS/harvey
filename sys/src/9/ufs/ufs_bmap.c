@@ -107,10 +107,10 @@ ufs_bmaparray(
 	int *runp,
 	int *runb)
 {
-	//struct buf *bp;
+	Buf *bp;
 	Indir a[UFS_NIADDR+1], *ap;
 	ufs2_daddr_t daddr;
-	//ufs_lbn_t metalbn;
+	ufs_lbn_t metalbn;
 	int error, num, maxrun = 0;
 	int *nump;
 
@@ -186,8 +186,6 @@ ufs_bmaparray(
 	/* Get disk address out of indirect block array */
 	daddr = ip->din2->di_ib[ap->in_off];
 
-#if 0
-
 	for (bp = nil, ++ap; --num; ++ap) {
 		/*
 		 * Exit the loop if there is no disk address assigned yet and
@@ -196,17 +194,25 @@ ufs_bmaparray(
 		 */
 
 		metalbn = ap->in_lbn;
-		if ((daddr == 0 && !incore(&vp->v_bufobj, metalbn)) || metalbn == bn)
+
+		// TODO HARVEY Going to have to revisit this when we implement
+		// writing, so we can read writes before they've been flushed
+		// to disk.
+		//if ((daddr == 0 && !incore(&vp->v_bufobj, metalbn)) || metalbn == bn)
+		//	break;
+		if (daddr == 0 || metalbn == bn)
 			break;
+
 		/*
 		 * If we get here, we've either got the block in the cache
 		 * or we have a disk address for it, go fetch it.
 		 */
 		if (bp)
-			bqrelse(bp);
+			releasebuf(bp);
 
-		bp = getblk(vp, metalbn, mp->mnt_stat.f_iosize, 0, 0, 0);
-		if ((bp->b_flags & B_CACHE) == 0) {
+		bp = getblk(vp, metalbn, mp->mnt_stat.f_iosize, 0);
+		// TODO HARVEY Revisit when we manage a cache of Bufs
+		/*if ((bp->b_flags & B_CACHE) == 0) {
 #ifdef INVARIANTS
 			if (!daddr)
 				panic("ufs_bmaparray: indirect block not in cache");
@@ -217,43 +223,35 @@ ufs_bmaparray(
 			bp->b_ioflags &= ~BIO_ERROR;
 			vfs_busy_pages(bp, 0);
 			bp->b_iooffset = dbtob(bp->b_blkno);
-			bstrategy(bp);
-#ifdef RACCT
-			if (racct_enable) {
-				PROC_LOCK(curproc);
-				racct_add_buf(curproc, bp, 0);
-				PROC_UNLOCK(curproc);
-			}
-#endif /* RACCT */
+			ffs_geom_strategy(bp);
 			curthread->td_ru.ru_inblock++;
 			error = bufwait(bp);
 			if (error) {
 				brelse(bp);
 				return (error);
 			}
-		}
+		}*/
 
-		daddr = ((ufs2_daddr_t *)bp->b_data)[ap->in_off];
+		daddr = ((ufs2_daddr_t *)bp->data)[ap->in_off];
 		if (num == 1 && daddr && runp) {
 			for (bn = ap->in_off + 1;
-			    bn < MNINDIR(ump) && *runp < maxrun &&
+			    bn < ump->um_nindir && *runp < maxrun &&
 			    is_sequential(ump,
-			    ((ufs2_daddr_t *)bp->b_data)[bn - 1],
-			    ((ufs2_daddr_t *)bp->b_data)[bn]);
+			    ((ufs2_daddr_t *)bp->data)[bn - 1],
+			    ((ufs2_daddr_t *)bp->data)[bn]);
 			    ++bn, ++*runp);
 			bn = ap->in_off;
 			if (runb && bn) {
 				for (--bn; bn >= 0 && *runb < maxrun &&
 				    is_sequential(ump,
-				    ((ufs2_daddr_t *)bp->b_data)[bn],
-				    ((ufs2_daddr_t *)bp->b_data)[bn + 1]);
+				    ((ufs2_daddr_t *)bp->data)[bn],
+				    ((ufs2_daddr_t *)bp->data)[bn + 1]);
 				    --bn, ++*runb);
 			}
 		}
 	}
 	if (bp)
 		releasebuf(bp);
-#endif //0
 
 	/*
 	 * Since this is FFS independent code, we are out of scope for the

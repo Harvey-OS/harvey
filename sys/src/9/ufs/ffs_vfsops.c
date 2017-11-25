@@ -720,7 +720,7 @@ static int sblock_try[] = SBLOCKSEARCH;
  * Common code for mount and mountroot
  */
 static int 
-ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
+ffs_mountfs(vnode *devvp, MountPoint *mp, thread *td)
 {
 	// TODO HARVEY - Don't need devvp, and maybe don't need td?
 	Fs *fs;
@@ -780,7 +780,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 			goto out;
 		}*/
 
-		if (bread(mp, btodb(sblock_try[i]), SBLOCKSIZE, &buf) != 0) {
+		if (breadmp(mp, btodb(sblock_try[i]), SBLOCKSIZE, &buf) != 0) {
 			releasebuf(buf);
 			print("not found at %p\n", sblock_try[i]);
 			error = -1;
@@ -887,7 +887,7 @@ ffs_mountfs (vnode *devvp, MountPoint *mp, thread *td)
 		if (i + fs->fs_frag > blks)
 			size = (blks - i) * fs->fs_fsize;
 
-		error = bread(mp, fsbtodb(fs, fs->fs_csaddr + i), size, &buf);
+		error = breadmp(mp, fsbtodb(fs, fs->fs_csaddr + i), size, &buf);
 		if (error != 0) {
 			free(fs->fs_csp);
 			goto out;
@@ -1582,7 +1582,7 @@ ffs_vgetf(MountPoint *mp, ino_t ino, int flags, vnode **vpp, int ffs_flags)
 	//	return (error);
 
 	/* Read in the disk contents for the inode, copy into the inode. */
-	error = bread(mp, fsbtodb(fs, ino_to_fsba(fs, ino)),
+	error = breadmp(mp, fsbtodb(fs, ino_to_fsba(fs, ino)),
 		(int)fs->fs_bsize, &buf);
 	if (error) {
 		/*

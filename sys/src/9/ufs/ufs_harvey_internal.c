@@ -17,6 +17,7 @@
 
 #include "ufsdat.h"
 #include "ufs/libufsdat.h"
+#include "ufs_extern.h"
 
 
 // TODO HARVEY Pool of buffers?  Aiming for as simple as possible for now.
@@ -24,7 +25,10 @@ Buf*
 newbuf(size_t size)
 {
 	Buf *b = smalloc(sizeof(Buf));
+	b->vnode = nil;
 	b->data = smalloc(size);
+	b->offset = 0;
+	b->bcount = size;
 	return b;
 }
 
@@ -33,22 +37,102 @@ releasebuf(Buf *b)
 {
 	if (b->data) {
 		free(b->data);
-		b->data = nil;
 	}
 	free(b);
+}
+
+Uio*
+newuio(int blocksize)
+{
+	// TODO HARVEY error handling
+	Uio *uio = smalloc(sizeof(Uio));
+	return uio;
+}
+
+void
+releaseuio(Uio *uio)
+{
+	// TODO HARVEY error handling
+	if (uio->dest) {
+		freeblist(uio->dest);
+	}
+	free(uio);
+}
+
+void
+packuio(Uio *uio)
+{
+	if (uio->dest) {
+		uio->dest = concatblock(uio->dest);
+	}
+}
+
+int
+uiomove(void *src, int64_t srclen, Uio *uio)
+{
+	// TODO HARVEY error handling
+	Block *block = mem2bl(src, srclen);
+
+	if (!uio->dest) {
+		uio->dest = block;
+	} else {
+		// Append block - seems like this should be a standard function
+		Block *b = uio->dest;
+		while (b->next) {
+			b = b->next;
+		}
+		b->next = block;
+	}
+
+	uio->resid -= srclen;
+	uio->offset += srclen;
+	return 0;
 }
 
 /*
  * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
  * block read function.
+ * Use when reading Fs or anything else not relative to a vnode.
  */
 int32_t
-bread(MountPoint *mp, daddr_t blockno, size_t size, Buf **buf)
+breadmp(MountPoint *mp, daddr_t blkno, size_t size, Buf **buf)
 {
 	Buf *b = newbuf(size);
 
 	Chan *c = mp->chan;
-	int64_t offset = dbtob(blockno);
+	int64_t offset = dbtob(blkno);
+	int32_t bytesRead = c->dev->read(c, b->data, size, offset);
+	if (bytesRead != size) {
+		releasebuf(b);
+		print("bread returned wrong size\n");
+		return 1;
+	}
+
+	*buf = b;
+	return 0;
+}
+
+/*
+ * Wrapper to enable Harvey's channel read function to be used like FreeBSD's
+ * block read function.
+ * Use when reading relative to a vnode.
+ */
+int32_t
+bread(vnode *vn, daddr_t lblkno, size_t size, Buf **buf)
+{
+	daddr_t pblkno;
+	int rcode = ufs_bmaparray(vn, lblkno, &pblkno, nil, nil, nil);
+	if (rcode) {
+		print("bread failed to transform logical block to physical\n");
+		return 1;
+	}
+
+	Buf *b = newbuf(size);
+	b->vnode = vn;
+
+	MountPoint *mp = vn->mount;
+	Chan *c = mp->chan;
+	int64_t offset = dbtob(pblkno);
 	int32_t bytesRead = c->dev->read(c, b->data, size, offset);
 	if (bytesRead != size) {
 		releasebuf(b);
@@ -61,11 +145,10 @@ bread(MountPoint *mp, daddr_t blockno, size_t size, Buf **buf)
 }
 
 Buf *
-getblk(vnode *vp, daddr_t blkno, size_t size, int flags)
+getblk(vnode *vn, daddr_t lblkno, size_t size, int flags)
 {
 	Buf *b;
-	MountPoint *mp = vp->mount;
-	int32_t rcode = bread(mp, blkno, size, &b);
+	int32_t rcode = bread(vn, lblkno, size, &b);
 	if (rcode) {
 		print("getblk - bread failed\n");
 		return nil;
