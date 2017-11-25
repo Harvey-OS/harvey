@@ -33,10 +33,10 @@ typedef struct Ucred {
 
 
 typedef struct Buf {
-	vnode*	vnode;
-	void*	data;
-	size_t	bcount;		/* Requested size of buffer */
-	int64_t	offset;		/* Offset into file. */
+	vnode*		vnode;
+	unsigned char*	data;
+	size_t		bcount;		/* Requested size of buffer */
+	int64_t		offset;		/* Offset into file. */
 } Buf;
 
 
