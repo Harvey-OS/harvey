@@ -44,7 +44,6 @@ releasebuf(Buf *b)
 Uio*
 newuio(int blocksize)
 {
-	// TODO HARVEY error handling
 	Uio *uio = smalloc(sizeof(Uio));
 	return uio;
 }
@@ -52,7 +51,6 @@ newuio(int blocksize)
 void
 releaseuio(Uio *uio)
 {
-	// TODO HARVEY error handling
 	if (uio->dest) {
 		freeblist(uio->dest);
 	}
@@ -70,7 +68,6 @@ packuio(Uio *uio)
 int
 uiomove(void *src, int64_t srclen, Uio *uio)
 {
-	// TODO HARVEY error handling
 	Block *block = mem2bl(src, srclen);
 
 	if (!uio->dest) {
