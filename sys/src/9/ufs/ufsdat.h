@@ -31,9 +31,22 @@ typedef struct thread {
 typedef struct Ucred {
 } Ucred;
 
+
 typedef struct Buf {
-	void *data;
+	vnode*	vnode;
+	void*	data;
+	size_t	bcount;		/* Requested size of buffer */
+	int64_t	offset;		/* Offset into file. */
 } Buf;
+
+
+typedef struct Uio {
+	int64_t	offset;		/* offset in target object */
+	int64_t	resid;		/* remaining bytes to process */
+
+	Block*	dest;
+} Uio;
+
 
 /*
  * filesystem statistics
@@ -103,6 +116,18 @@ typedef struct vnode {
 	enum vtype 	type;		/* u vnode type */
 	unsigned int	vflag;		/* v vnode flags */
 } vnode;
+
+
+#define	MAXUFSNAMLEN	255
+
+
+typedef struct Dirent {
+	uint32_t	fileno;			// file number of entry
+	uint16_t	reclen;			// length of this record
+	uint8_t		type; 			// file type, see below
+	uint8_t		namlen;			// length of string in name
+	char		name[MAXUFSNAMLEN + 1];	// name must be no longer than this
+} Dirent;
 
 
 /*

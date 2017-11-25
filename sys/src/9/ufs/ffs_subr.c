@@ -66,7 +66,7 @@ ffs_blkatoff(vnode *vp, off_t offset, char **res, Buf **bpp)
 	bsize = blksize(fs, ip, lbn);
 
 	*bpp = nil;
-	error = bread(vp->mount, lbn, bsize, /*NOCRED,*/ &bp); 
+	error = bread(vp, lbn, bsize, /*NOCRED,*/ &bp); 
 	if (error) {
 		releasebuf(bp);
 		return (error);
