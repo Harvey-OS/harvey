@@ -23,6 +23,7 @@
 #include "ufs/quota.h"
 #include "ufs/dinode.h"
 #include "ufs/inode.h"
+#include "ufs/dir.h"
 #include "ufs_extern.h"
 #include "ffs_extern.h"
 
@@ -228,13 +229,38 @@ writeinodedata(char *buf, int buflen, vnode *vn)
 	int i = 0;
 
 	if (vn->type == VREG) {
-		i += snprint(buf + i, buflen - i, "regular file\n");
-	} else if (vn->type == VDIR) {
-		i += snprint(buf + i, buflen - i, "directory\n");
-	} else {
-		i += snprint(buf + i, buflen - i, "unsupported inode type (%d)\n", vn->type);
+		i += snprint(buf + i, buflen - i, "file\n");
+		return i;
 	}
 
+	if (vn->type == VDIR) {
+		Uio* uio = newuio(DIRBLKSIZ);
+		uio->resid = vn->data->i_size;
+
+		int rcode = ufs_readdir(vn, uio);
+		if (rcode) {
+			i += snprint(buf + i, buflen - i, "error reading directory\n");
+			releaseuio(uio);
+			return i;
+		}
+
+		packuio(uio);
+
+		// Iterate over all files
+		int64_t diroffset = 0;
+		int64_t endoffset = uio->offset - uio->resid;
+		while (uio->offset >= 0 && diroffset < endoffset) {
+			Dirent* dir = (Dirent*)(uio->dest->rp + diroffset);
+
+			i += snprint(buf + i, buflen - i, "%s\t%llu\n", dir->name, (uint64_t)dir->fileno);
+			diroffset += dir->reclen;
+		}
+
+		releaseuio(uio);
+		return i;
+	}
+
+	i += snprint(buf + i, buflen - i, "unsupported inode type (%d)\n", vn->type);
 	return i;
 }
 
