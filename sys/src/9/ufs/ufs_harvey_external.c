@@ -74,6 +74,7 @@ releaseufsmount(MountPoint *mp)
 		free(vntofree);
 	}
 
+	cclose(mp->chan);
 	free(mp);
 }
 

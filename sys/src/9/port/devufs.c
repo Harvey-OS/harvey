@@ -450,32 +450,25 @@ mount(char* a, int32_t n)
 
 	Cmdbuf* cb = parsecmd(a, n);
 	if (waserror()) {
-		print("couldn't parse mount path: %s: %r", a);
 		free(cb);
 		nexterror();
 	}
-	poperror();
 
 	// TODO Make namec and related functions accept const char*
 	Chan* c = namec(cb->buf, Aopen, ORDWR, 0);
+
+	// Don't need cb any more, pop and free
+	poperror();
 	free(cb);
 	cb = nil;
+
 	if (waserror()) {
-		print("couldn't open file %s to mount: %r", cb->buf);
 		cclose(c);
 		nexterror();
 	}
-	poperror();
 
-	MountPoint *mp = mountufs(c);
-	if (waserror()) {
-		print("couldn't mount %s: %r", cb->buf);
-		cclose(c);
-		nexterror();
-	}
+	mountpoint = mountufs(c);
 	poperror();
-
-	mountpoint = mp;
 }
 
 static void
