@@ -9,7 +9,7 @@
 
 /* t9.c: write lines for tables over 200 lines */
 # include "t.h"
-static useln;
+static int useln;
 
 void
 yetmore(void)

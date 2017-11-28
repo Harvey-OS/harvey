@@ -1,0 +1,11 @@
+{
+	"cfs": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}

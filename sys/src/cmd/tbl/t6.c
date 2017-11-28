@@ -111,7 +111,7 @@ maktab(void)			/* define the tab stops of the table */
 			    reg(icol, CRIGHT), TMP, reg(icol, CRIGHT), TMP);
 		}
 		for (ilin = 0; ilin < nlin; ilin++)
-			if (k = lspan(ilin, icol)) {
+			if ((k = lspan(ilin, icol))) {
 				ss = table[ilin][icol-k].col;
 				if (!real(ss) || barent(ss) || vspen(ss) )
 					continue;
