@@ -1080,8 +1080,7 @@ new_inode(Xfile *f, int mode)
 			ed = getext2(xf, EXT2_DESC, i);
 			if( ed.u.gd->bg_free_inodes_count &&
 					ed.u.gd->bg_free_inodes_count >= ave ){
-				if( group<0 || ed.u.gd->bg_free_inodes_count >
-								ed.u.gd->bg_free_inodes_count )
+				if( group<0 )
 					group = i;
 			}
 			putext2(ed);
