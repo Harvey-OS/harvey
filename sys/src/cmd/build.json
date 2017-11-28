@@ -70,10 +70,6 @@
 			"usb/build.json",
 			"venti/venti.json",
 			"zenith/build.json"
-		],
-		"WhoCares": [
-			"cdfs/cdfs.json",
-			"cifs/cifs.json"
 		]
 	}
 }
