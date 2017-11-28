@@ -21,9 +21,9 @@ enum
  */
 struct Ibuf
 {
-	Lru;			/* must be first in structure */
+	Lru	lru;			/* must be first in structure */
 	int	inuse;		/* non-0 if in use */
-	ulong	ino;		/* index into inode table */
+	uint32_t	ino;		/* index into inode table */
 	Inode	inode;		/* the inode contents */
 };
 
@@ -32,7 +32,7 @@ struct Ibuf
  */
 struct Imap
 {
-	Lru;			/* must be first in structure */
+	Lru	lru;			/* must be first in structure */
 	Qid	qid;
 	Ibuf	*b;		/* cache buffer */
 	int	inuse;		/* non-0 if in use */
@@ -43,10 +43,10 @@ struct Imap
  */
 struct Icache
 {
-	Disk;
+	Disk	disk;
 
 	int	nino;		/* number of inodes */
-	ulong	ib0;		/* first inode block */
+	uint32_t	ib0;		/* first inode block */
 	int	nib;		/* number of inode blocks */
 	int	i2b;		/* inodes to a block */
 

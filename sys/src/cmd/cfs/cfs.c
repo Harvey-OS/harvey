@@ -695,7 +695,7 @@ rwstat(Mfile *mf)
 		return;
 	}
 	delegate();
-	if(b = iget(&ic, mf->qid))
+	if((b = iget(&ic, mf->qid)))
 		b->inode.length = MAXLEN;
 }
 

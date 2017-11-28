@@ -20,8 +20,8 @@ enum
  */
 struct Bbuf
 {
-	Lru;				/* must be first in struct */
-	ulong	bno;
+	Lru	lru;				/* must be first in struct */
+	uint32_t	bno;
 	int	inuse;
 	Bbuf	*next;			/* next in dirty list */
 	int	dirty;
@@ -33,7 +33,7 @@ struct Bbuf
  */
 struct Bcache
 {
-	Lru;
+	Lru	lru;
 	int	bsize;			/* block size in bytes */
 	int	f;			/* fd to disk */
 	Bbuf	*dfirst;		/* dirty list */
