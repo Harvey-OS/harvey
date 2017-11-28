@@ -103,7 +103,7 @@ dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
 	mask = 0;
 	bits = 0;;
 	for(; a<aend; a++) {
-		if(px = *a) {
+		if((px = *a)) {
 			if(mask == 0) {
 				mask = 0x80;
 				bits = Bgetc(infile);
