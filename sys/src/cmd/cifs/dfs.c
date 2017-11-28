@@ -57,6 +57,7 @@
 #include <libc.h>
 #include <fcall.h>
 #include <thread.h>
+#include <mp.h>
 #include <libsec.h>
 #include <ctype.h>
 #include <9p.h>
