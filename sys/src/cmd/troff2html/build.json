@@ -1,0 +1,11 @@
+{
+	"troff2html": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}

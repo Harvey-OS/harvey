@@ -1,0 +1,11 @@
+{
+	"tbl": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}

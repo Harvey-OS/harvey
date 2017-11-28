@@ -25,7 +25,7 @@ bcinit(Bcache *bc, int f, int bsize)
 	bc->dfirst = 0;
 	bc->bsize = bsize;
 	bc->f = f;
-	lruinit(bc);
+	lruinit(&bc->lru);
 	for(b = bc->bb; b < &bc->bb[Nbcache]; b++){
 		b->inuse = 0;
 		b->next = 0;
@@ -34,7 +34,7 @@ bcinit(Bcache *bc, int f, int bsize)
 			b->data = (char *)malloc(bc->bsize);
 		if(b->data == 0)
 			return -1;
-		lruadd(bc, b);
+		lruadd(&bc->lru, &b->lru);
 	}
 
 	return 0;
@@ -62,7 +62,7 @@ bcfind(Bcache *bc, uint32_t bno)
 	/*
 	 *  get least recently used block
 	 */
-	b = (Bbuf*)bc->lnext;
+	b = (Bbuf*)bc->lru.lnext;
 out:
 	/*
 	 *  if dirty, write it out
@@ -70,7 +70,7 @@ out:
 	if(b->dirty)
 		if(bcwrite(bc, b) < 0)
 			warning("writing dirty page");
-	lruref(bc, b);
+	lruref(&bc->lru, &b->lru);
 	return b;
 }
 
@@ -122,7 +122,7 @@ bcread(Bcache *bc, uint32_t bno)
 void
 bcmark(Bcache *bc, Bbuf *b)
 {
-	lruref(bc, b);
+	lruref(&bc->lru, &b->lru);
 
 	if(b->dirty){
 		bcwrite(bc, b);
@@ -148,7 +148,7 @@ bcwrite(Bcache *bc, Bbuf *b)
 	/*
 	 *  write out all preceding pages
 	 */
-	while(nb = bc->dfirst){
+	while((nb = bc->dfirst)){
 		if(bwrite(bc, nb->bno, nb->data) < 0)
 			return -1;
 		nb->dirty = 0;

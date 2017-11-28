@@ -78,13 +78,13 @@ struct HTMLfont{
 /* R must be first; it's the default representation for fonts we don't recognize */
 HTMLfont htmlfonts[] =
 {
-	"R",		nil,	0,
-	"LucidaSans",	nil,	0,
-	"I",		"i",	Italic,
-	"LucidaSansI",	"i",	Italic,
-	"CW",		"tt",	CW,
-	"LucidaCW",	"tt",	CW,
-	nil,	nil,
+	{"R",		nil,	0},
+	{"LucidaSans",	nil,	0},
+	{"I",		"i",	Italic},
+	{"LucidaSansI",	"i",	Italic},
+	{"CW",		"tt",	CW},
+	{"LucidaCW",	"tt",	CW},
+	{nil,	nil},
 };
 
 #define TABLE "<table border=0 cellpadding=0 cellspacing=0>"
@@ -621,7 +621,6 @@ lookup(int c, Htmlchar tab[], int ntab)
 void
 emithtmlchar(int r)
 {
-	static char buf[10];
 	int i;
 
 	i = lookup(r, htmlchars, nelem(htmlchars));
