@@ -18,14 +18,14 @@ maknew(char *str)
 	char	*p, *q, *ba, *dpoint;
 
 	p = str;
-	for (ba = 0; c = *str; str++)
-		if (c == '\\' && *(str + 1) == '&')
+	for (ba = 0; (c = *str); str++)
+		if ((c == '\\') && (*(str + 1) == '&'))
 			ba = str;
 	str = p;
 	if (ba == 0) {
 		for (dpoint = 0; *str; str++) {
 			if (*str == '.' && !ineqn(str, p) &&
-			    (str > p && digit(*(str - 1)) ||
+			    ((str > p && digit(*(str - 1))) ||
 			    digit(*(str + 1))))
 				dpoint = str;
 		}
@@ -46,7 +46,7 @@ maknew(char *str)
 		exlim = exstore + MAXCHS;
 	}
 	q = exstore;
-	while (*exstore++ = *str++)
+	while ((*exstore++ = *str++))
 		;
 	*p = 0;
 	return(q);
@@ -59,7 +59,7 @@ ineqn (char *s, char *p)
 				/* true if s is in a eqn within p */
 	int	ineq = 0, c;
 
-	while (c = *p) {
+	while ((c = *p)) {
 		if (s == p)
 			return(ineq);
 		p++;

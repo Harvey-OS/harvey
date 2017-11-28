@@ -9,8 +9,8 @@
 
 struct Cfsmsg {
 	uint32_t	n;			/* number of messages (of some type) */
-	vlong	t;			/* time spent in these messages */
-	vlong	s;			/* start time of last call */
+	int64_t	t;			/* time spent in these messages */
+	int64_t	s;			/* start time of last call */
 };
 
 struct Cfsstat {
@@ -23,12 +23,12 @@ struct Cfsstat {
 	uint32_t ndelete;			/* # of cache delete ops */
 	uint32_t nupdate;			/* # of cache update ops */
 
-	uvlong bytesread;		/* # of bytes read by client */
-	uvlong byteswritten;		/* # of bytes written by client */
-	uvlong bytesfromserver;		/* # of bytes read from server */
-	uvlong bytesfromdirs;		/* # of directory bytes read from server */
-	uvlong bytesfromcache;		/* # of bytes read from cache */
-	uvlong bytestocache;		/* # of bytes written to cache */
+	uint64_t bytesread;		/* # of bytes read by client */
+	uint64_t byteswritten;		/* # of bytes written by client */
+	uint64_t bytesfromserver;		/* # of bytes read from server */
+	uint64_t bytesfromdirs;		/* # of directory bytes read from server */
+	uint64_t bytesfromcache;		/* # of bytes read from cache */
+	uint64_t bytestocache;		/* # of bytes written to cache */
 };
 
 extern struct Cfsstat cfsstat, cfsprev;

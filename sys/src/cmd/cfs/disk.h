@@ -14,9 +14,9 @@ typedef struct Disk	Disk;
  */
 struct Disk
 {
-	Bcache;
-	ulong	nb;	/* number of blocks */
-	ulong	nab;	/* number of allocation blocks */
+	Bcache	bcache;
+	uint32_t	nb;	/* number of blocks */
+	uint32_t	nab;	/* number of allocation blocks */
 	int	b2b;	/* allocation bits to a block */
 	int	p2b;	/* Dptr's per page */
 	char	name[CACHENAMELEN];
