@@ -261,14 +261,14 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(pfd[1]);	/* don't deadlock if child fails */
-		if(mnt && mount(pfd[0], -1, mntpoint, MREPL|MCREATE, "") < 0)
+		if(mnt && (mount(pfd[0], -1, mntpoint, MREPL|MCREATE, "", 'M') < 0))
 			sysfatal("mount %s: %r", mntpoint);
 	}
 	exits(0);
 }
 
 char*
-rversion(Fid*)
+rversion(Fid *fid)
 {
 	Fid *f;
 
@@ -286,7 +286,7 @@ rversion(Fid*)
 }
 
 char*
-rauth(Fid*)
+rauth(Fid *f)
 {
 	return Enoauth;
 }
