@@ -53,6 +53,7 @@
 			"ndb/ndb.json",
 			"newfs/",
 			"page/build.json",
+			"paqfs/build.json",
 			"plot/build.json",
 			"plumb/plumb.json",
 			"plumb/plumber.json",
