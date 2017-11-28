@@ -19,7 +19,6 @@ char lastload[NFONT][20];	/* last file name prefix loaded for this font */
 Font	*fonttab[NFONT][NSIZE];	/* pointers to fonts */
 int	fmap[NFONT];		/* what map to use with this font */
 
-static void	bufchar(Point, Subfont *, uint8_t *);
 static void	loadfont(int, int);
 static void	fontlookup(int, char *);
 static void	buildxheight(Biobuf*);
@@ -192,7 +191,7 @@ loadfontname(int n, char *s)
 	}
 	fontlookup(n, s);
 	for (i = 0; i < NSIZE; i++)
-		if (f = fonttab[n][i]){
+		if ((f = fonttab[n][i])){
 			if (f != g) {
 				freefont(f);
 				g = f;
