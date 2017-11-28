@@ -31,6 +31,7 @@ struct coord {
 struct place {
 	struct coord nlat;
 	struct coord wlon;
+	struct coord elon; /* For cmd/scat */
 };
 
 typedef int (*proj)(struct place *, double *, double *);

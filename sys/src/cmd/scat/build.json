@@ -1,0 +1,14 @@
+{
+	"scat": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Cflags": [
+			"-I$HARVEY/sys/src/cmd/map"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}
