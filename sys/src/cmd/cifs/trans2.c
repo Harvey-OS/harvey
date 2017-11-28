@@ -449,8 +449,10 @@ T2fssizeinfo(Session *s, Share *sp, uint64_t *total, uint64_t *unused)
 	n = gl32(p);		/* sectors per block */
 	b = gl32(p);		/* bytes per sector */
 
+	/* I just can't figure out why this is here
 	if(free)
 		*unused = f * n * b;
+	*/
 	if(total)
 		*total = t * n * b;
 

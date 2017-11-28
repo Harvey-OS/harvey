@@ -1,0 +1,11 @@
+{
+	"ext2srv": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}
