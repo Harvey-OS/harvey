@@ -238,7 +238,7 @@ putline(int i, int nl)
 			if (vspen(table[ip][c].col)) {
 				exvspen = (c + 1 < ncol) && vspen(table[ip][c+1].col) &&
 				    (topat[c] == topat[c+1]) &&
-				    ((cmidx == (flags[c+1] [stynum[nl]] & (CTOP | CDOWN))== 0))
+				    ((cmidx == ((flags[c+1] [stynum[nl]] & (CTOP | CDOWN))== 0)))
 				     && (left(i, c + 1, &lwid) < 0);
 				if (exvspen == 0) {
 					Bprint(&tabout, "\\v'(\\n(\\*(#du-\\n(^%cu", c + 'a');
