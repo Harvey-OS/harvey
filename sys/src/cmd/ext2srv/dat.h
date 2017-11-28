@@ -45,18 +45,18 @@ struct SuperBlock {
 	uint	s_inodes_per_group;	/* # Inodes per group */
 	uint	s_mtime;		/* Mount time */
 	uint	s_wtime;		/* Write time */
-	ushort	s_mnt_count;		/* Mount count */
+	uint16_t	s_mnt_count;		/* Mount count */
 	short	s_max_mnt_count;	/* Maximal mount count */
-	ushort	s_magic;		/* Magic signature */
-	ushort	s_state;		/* File system state */
-	ushort	s_errors;		/* Behaviour when detecting errors */
-	ushort	s_pad;
+	uint16_t	s_magic;		/* Magic signature */
+	uint16_t	s_state;		/* File system state */
+	uint16_t	s_errors;		/* Behaviour when detecting errors */
+	uint16_t	s_pad;
 	uint	s_lastcheck;		/* time of last check */
 	uint	s_checkinterval;	/* max. time between checks */
 	uint	s_creator_os;		/* OS */
 	uint	s_rev_level;		/* Revision level */
-	ushort	s_def_resuid;		/* Default uid for reserved blocks */
-	ushort	s_def_resgid;		/* Default gid for reserved blocks */
+	uint16_t	s_def_resuid;		/* Default uid for reserved blocks */
+	uint16_t	s_def_resgid;		/* Default gid for reserved blocks */
 	uint	s_reserved[235];	/* Padding to the end of the block */
 };
 
@@ -68,10 +68,10 @@ struct GroupDesc
 	uint	bg_block_bitmap;		/* Blocks bitmap block */
 	uint	bg_inode_bitmap;		/* Inodes bitmap block */
 	uint	bg_inode_table;		/* Inodes table block */
-	ushort	bg_free_blocks_count;	/* Free blocks count */
-	ushort	bg_free_inodes_count;	/* Free inodes count */
-	ushort	bg_used_dirs_count;	/* Directories count */
-	ushort	bg_pad;
+	uint16_t	bg_free_blocks_count;	/* Free blocks count */
+	uint16_t	bg_free_inodes_count;	/* Free inodes count */
+	uint16_t	bg_used_dirs_count;	/* Directories count */
+	uint16_t	bg_pad;
 	uint	bg_reserved[3];
 };
 
@@ -88,15 +88,15 @@ struct GroupDesc
  * Structure of an inode on the disk
  */
 struct Inode {
-	ushort i_mode;		/* File mode */
-	ushort i_uid;		/* Owner Uid */
+	uint16_t i_mode;		/* File mode */
+	uint16_t i_uid;		/* Owner Uid */
 	uint  i_size;		/* Size in bytes */
 	uint  i_atime;		/* Access time */
 	uint i_ctime;		/* Creation time */
 	uint  i_mtime;		/* Modification time */
 	uint  i_dtime;		/* Deletion Time */
-	ushort i_gid;		/* Group Id */
-	ushort i_links_count;	/* Links count */
+	uint16_t i_gid;		/* Group Id */
+	uint16_t i_links_count;	/* Links count */
 	uint  i_blocks;	/* Blocks count */
 	uint  i_flags;		/* File flags */
 	uint osd1;
@@ -105,7 +105,7 @@ struct Inode {
 	uint	i_file_acl;	/* File ACL */
 	uint	i_dir_acl;	/* Directory ACL */
 	uint	i_faddr;		/* Fragment address */
-	uchar osd2[12];
+	uint8_t osd2[12];
 };
 
 /*
@@ -116,9 +116,9 @@ struct Inode {
 
 struct DirEntry {
 	uint	inode;			/* Inode number */
-	ushort	rec_len;		/* Directory entry length */
-	uchar	name_len;		/* Name length */
-	uchar	reserved;
+	uint16_t	rec_len;		/* Directory entry length */
+	uint8_t	name_len;		/* Name length */
+	uint8_t	reserved;
 	char	name[EXT2_NAME_LEN];	/* File name */
 };
 
@@ -189,6 +189,7 @@ struct Xfile{
 #define EXT2_DESC		2
 #define EXT2_BBLOCK	3
 #define EXT2_BINODE	4
+#define EXT2_UNKNOWN 5
 
 struct Ext2{
 	char type;

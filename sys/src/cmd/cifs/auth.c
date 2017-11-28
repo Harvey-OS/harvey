@@ -26,28 +26,12 @@
 
 #define DEF_AUTH 	"ntlmv2"
 
-static enum {
+enum {
 	MACkeylen	= 40,	/* MAC key len */
 	MAClen		= 8,	/* signature length */
 	MACoff		= 14,	/* sign. offset from start of SMB (not netbios) pkt */
 	Bliplen		= 8,	/* size of LMv2 client nonce */
 };
-
-static void
-dmp(char *s, int seq, void *buf, int n)
-{
-	int i;
-	char *p = buf;
-
-	print("%s %3d      ", s, seq);
-	while(n > 0){
-		for(i = 0; i < 16 && n > 0; i++, n--)
-			print("%02x ", *p++ & 0xff);
-		if(n > 0)
-			print("\n");
-	}
-	print("\n");
-}
 
 static Auth *
 auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
@@ -63,7 +47,7 @@ auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
 		sysfatal("cannot get key - %r");
 
 	ap = emalloc9p(sizeof(Auth));
-	memset(ap, 0, sizeof(ap));
+	memset(&ap->mackey, 0, sizeof(ap->mackey));
 	ap->user = estrdup9p(up->user);
 	ap->windom = estrdup9p(windom);
 
@@ -90,7 +74,7 @@ auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
 		sysfatal("cannot get key - %r");
 
 	ap = emalloc9p(sizeof(Auth));
-	memset(ap, 0, sizeof(ap));
+	memset(&ap->mackey, 0, sizeof(ap->mackey));
 	ap->user = estrdup9p(user);
 	ap->windom = estrdup9p(windom);
 
@@ -238,7 +222,7 @@ auth_ntlmv2(char *windom, char *keyp, uint8_t *chal, int len)
 		sysfatal("cannot get key - %r");
 
 	ap = emalloc9p(sizeof(Auth));
-	memset(ap, 0, sizeof(ap));
+	memset(&ap->mackey, 0, sizeof(ap->mackey));
 
 	/* Standard says unlimited length, experience says 128 max */
 	if((n = strlen(up->passwd)) > 128)
