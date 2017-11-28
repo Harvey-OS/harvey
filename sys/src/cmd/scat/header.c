@@ -20,65 +20,65 @@ struct
 	char	offset;
 } Hproto[] =
 {
-	"ppo1",		Pppo1,
-	"ppo2",		Pppo2,
-	"ppo3",		Pppo3,
-	"ppo4",		Pppo4,
-	"ppo5",		Pppo5,
-	"ppo6",		Pppo6,
+	{"ppo1",		Pppo1},
+	{"ppo2",		Pppo2},
+	{"ppo3",		Pppo3},
+	{"ppo4",		Pppo4},
+	{"ppo5",		Pppo5},
+	{"ppo6",		Pppo6},
 
-	"amdx1",	Pamdx1,
-	"amdx2",	Pamdx2,
-	"amdx3",	Pamdx3,
-	"amdx4",	Pamdx4,
-	"amdx5",	Pamdx5,
-	"amdx6",	Pamdx6,
-	"amdx7",	Pamdx7,
-	"amdx8",	Pamdx8,
-	"amdx9",	Pamdx9,
-	"amdx10",	Pamdx10,
-	"amdx11",	Pamdx11,
-	"amdx12",	Pamdx12,
-	"amdx13",	Pamdx13,
-	"amdx14",	Pamdx14,
-	"amdx15",	Pamdx15,
-	"amdx16",	Pamdx16,
-	"amdx17",	Pamdx17,
-	"amdx18",	Pamdx18,
-	"amdx19",	Pamdx19,
-	"amdx20",	Pamdx20,
+	{"amdx1",	Pamdx1},
+	{"amdx2",	Pamdx2},
+	{"amdx3",	Pamdx3},
+	{"amdx4",	Pamdx4},
+	{"amdx5",	Pamdx5},
+	{"amdx6",	Pamdx6},
+	{"amdx7",	Pamdx7},
+	{"amdx8",	Pamdx8},
+	{"amdx9",	Pamdx9},
+	{"amdx10",	Pamdx10},
+	{"amdx11",	Pamdx11},
+	{"amdx12",	Pamdx12},
+	{"amdx13",	Pamdx13},
+	{"amdx14",	Pamdx14},
+	{"amdx15",	Pamdx15},
+	{"amdx16",	Pamdx16},
+	{"amdx17",	Pamdx17},
+	{"amdx18",	Pamdx18},
+	{"amdx19",	Pamdx19},
+	{"amdx20",	Pamdx20},
 
-	"amdy1",	Pamdy1,
-	"amdy2",	Pamdy2,
-	"amdy3",	Pamdy3,
-	"amdy4",	Pamdy4,
-	"amdy5",	Pamdy5,
-	"amdy6",	Pamdy6,
-	"amdy7",	Pamdy7,
-	"amdy8",	Pamdy8,
-	"amdy9",	Pamdy9,
-	"amdy10",	Pamdy10,
-	"amdy11",	Pamdy11,
-	"amdy12",	Pamdy12,
-	"amdy13",	Pamdy13,
-	"amdy14",	Pamdy14,
-	"amdy15",	Pamdy15,
-	"amdy16",	Pamdy16,
-	"amdy17",	Pamdy17,
-	"amdy18",	Pamdy18,
-	"amdy19",	Pamdy19,
-	"amdy20",	Pamdy20,
+	{"amdy1",	Pamdy1},
+	{"amdy2",	Pamdy2},
+	{"amdy3",	Pamdy3},
+	{"amdy4",	Pamdy4},
+	{"amdy5",	Pamdy5},
+	{"amdy6",	Pamdy6},
+	{"amdy7",	Pamdy7},
+	{"amdy8",	Pamdy8},
+	{"amdy9",	Pamdy9},
+	{"amdy10",	Pamdy10},
+	{"amdy11",	Pamdy11},
+	{"amdy12",	Pamdy12},
+	{"amdy13",	Pamdy13},
+	{"amdy14",	Pamdy14},
+	{"amdy15",	Pamdy15},
+	{"amdy16",	Pamdy16},
+	{"amdy17",	Pamdy17},
+	{"amdy18",	Pamdy18},
+	{"amdy19",	Pamdy19},
+	{"amdy20",	Pamdy20},
 
-	"pltscale",	Ppltscale,
-	"xpixelsz",	Pxpixelsz,
-	"ypixelsz",	Pypixelsz,
+	{"pltscale",	Ppltscale},
+	{"xpixelsz",	Pxpixelsz},
+	{"ypixelsz",	Pypixelsz},
 
-	"pltrah",	Ppltrah,
-	"pltram",	Ppltram,
-	"pltras",	Ppltras,
-	"pltdecd",	Ppltdecd,
-	"pltdecm",	Ppltdecm,
-	"pltdecs",	Ppltdecs,
+	{"pltrah",	Ppltrah},
+	{"pltram",	Ppltram},
+	{"pltras",	Ppltras},
+	{"pltdecd",	Ppltdecd},
+	{"pltdecm",	Ppltdecm},
+	{"pltdecs",	Ppltdecs},
 
 };
 
@@ -150,7 +150,7 @@ getheader(char *rgn)
 			if(j >= nelem(Hproto))
 				j = 0;
 			if(strcmp(name, Hproto[j].name) == 0) {
-				hd.param[Hproto[j].offset] = atof(value);
+				hd.param[(uintptr_t)Hproto[j].offset] = atof(value);
 				break;
 			}
 		}
@@ -222,7 +222,7 @@ getplates(void)
 			memmove(p->rgn, rec+0, 5);
 			if(p->rgn[4] == ' ')
 				p->rgn[4] = 0;
-			for(i=0; c=p->rgn[i]; i++)
+			for(i=0; (c=p->rgn[i]); i++)
 				if(c >= 'A' && c <= 'Z')
 					p->rgn[i] += 'a'-'A';
 			p->ra = RAD(atof(rec+12)*15 +
