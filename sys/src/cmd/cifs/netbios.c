@@ -452,11 +452,12 @@ xd(char *str, void *buf, int n)
 		fprint(2, "setupcnt=%u ", G8(&p));
 		fprint(2, "reserved=%u\n", G8(&p));
 	}
-	if(err)
+	if(err){
 		if(flags2 & FL2_NT_ERRCODES)
 			fprint(2, "err=%s\n", nterrstr(err));
 		else
 			fprint(2, "err=%s\n", doserrstr(err));
+	}
 Raw:
 	fprint(2, "\n");
 	for(; p < end; p++){

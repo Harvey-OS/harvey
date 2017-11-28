@@ -11,6 +11,7 @@
 #include <libc.h>
 #include <fcall.h>
 #include <thread.h>
+#include <mp.h>
 #include <libsec.h>
 #include <9p.h>
 #include "cifs.h"
@@ -557,7 +558,7 @@ smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 		break;
 	}
 
-	if(mode & DMEXCL == 0)
+	if((mode & DMEXCL) == 0)
 		access |= 0x10;
 	else
 		access |= 0x40;
