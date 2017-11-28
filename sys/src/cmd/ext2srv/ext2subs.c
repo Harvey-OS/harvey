@@ -158,6 +158,7 @@ ext2fs(Xfs *xf)
 
 	return 0;
 }
+
 Ext2
 getext2(Xfs *xf, char type, int n)
 {
@@ -204,9 +205,10 @@ getext2(Xfs *xf, char type, int n)
 	default:
 		goto error;
 	}
-	return e;
+
 error:
 	panic("getext2");
+	e.type = EXT2_UNKNOWN;
 	return e;
 }
 int

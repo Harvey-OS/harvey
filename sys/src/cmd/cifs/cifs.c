@@ -229,13 +229,13 @@ CIFSnegotiate(Session *s, int32_t *svrtime, char *domain, int domlen,
 	int d, i;
 	char *ispeak = "NT LM 0.12";
 	static char *dialects[] = {
-//		{ "PC NETWORK PROGRAM 1.0"},
-//		{ "MICROSOFT NETWORKS 1.03"},
-//		{ "MICROSOFT NETWORKS 3.0"},
-//		{ "LANMAN1.0"},
-//		{ "LM1.2X002"},
-//		{ "NT LANMAN 1.0"},
-		{ "NT LM 0.12" },
+//		 "PC NETWORK PROGRAM 1.0",
+//		 "MICROSOFT NETWORKS 1.03",
+//		 "MICROSOFT NETWORKS 3.0",
+//		 "LANMAN1.0",
+//		 "LM1.2X002",
+//		 "NT LANMAN 1.0",
+		 "NT LM 0.12" ,
 	};
 	Pkt *p;
 
@@ -371,7 +371,7 @@ CIFSsession(Session *s)
 	return 0;
 }
 
-
+int
 CIFStreeconnect(Session *s, char *cname, char *tree, Share *sp)
 {
 	int len;
@@ -578,6 +578,7 @@ CIFS_NT_opencreate(Session *s, Share *sp, char *name, int flags,
 }
 
 /* for Win95/98/ME */
+int
 CIFS_SMB_opencreate(Session *s, Share *sp, char *name, int access,
 	int attrs, int action, int *result)
 {
