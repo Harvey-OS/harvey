@@ -56,24 +56,15 @@ double	mapscale;
 double	maps;
 int (*projection)(struct place*, double*, double*);
 
-char *fontname = "/lib/font/bit/lucida/unicode.6.font";
-
-/* types Coord and Loc correspond to types in map(3) thus:
+/* type Coord correspond to types in map(3) thus:
    Coord == struct coord;
-   Loc == struct place, except longitudes are measured
-     positive east for Loc and west for struct place
 */
 
 typedef struct Xyz Xyz;
 typedef struct coord Coord;
-typedef struct Loc Loc;
 
 struct Xyz{
 	double x,y,z;
-};
-
-struct Loc{
-	Coord nlat, elon;
 };
 
 Xyz north = { 0, 0, 1 };
@@ -109,9 +100,7 @@ plotopen(void)
 	neptunecolor = allocimage(display, Rect(0, 0, 1, 1), RGBA32, 1, 0x77FF77FF);
 	plutocolor = allocimage(display, Rect(0, 0, 1, 1), RGBA32, 1, 0x7777FFFF);
 	cometcolor = allocimage(display, Rect(0, 0, 1, 1), RGBA32, 1, 0xAAAAFFFF);
-	font = openfont(display, fontname);
-	if(font == nil)
-		fprint(2, "warning: no font %s: %r\n", fontname);
+	font = opendefaultfont(display);
 	return 1;
 }
 
@@ -230,7 +219,7 @@ rot(struct place center, struct place zenith)
 }
 
 int (*
-heavens(double zlatdeg, double zlondeg, double clatdeg, double clondeg))(Loc*, double*, double*)
+heavens(double zlatdeg, double zlondeg, double clatdeg, double clondeg))(struct place*, double*, double*)
 {
 	struct place center;
 	struct place zenith;
@@ -618,7 +607,7 @@ plot(char *flags)
 	dy = 512;
 	zenithup = 0;
 	for(;;){
-		if(t = alpha(flags, "nogrid")){
+		if((t = alpha(flags, "nogrid"))){
 			nogrid = 1;
 			flags = t;
 			continue;
@@ -638,7 +627,7 @@ plot(char *flags)
 			flags = t;
 			continue;
 		}
-		if(t = alpha(flags, "dx")){
+		if((t = alpha(flags, "dx"))){
 			dx = strtol(t, &t, 0);
 			if(dx < 100){
 				fprint(2, "dx %d too small (min 100) in plot\n", dx);
@@ -647,7 +636,7 @@ plot(char *flags)
 			flags = skipbl(t);
 			continue;
 		}
-		if(t = alpha(flags, "dy")){
+		if((t = alpha(flags, "dy"))){
 			dy = strtol(t, &t, 0);
 			if(dy < 100){
 				fprint(2, "dy %d too small (min 100) in plot\n", dy);

@@ -13,7 +13,7 @@
 #include <draw.h>
 #include <event.h>
 #include "sky.h"
-#include "strings.c"
+#include "strings.C"
 
 enum
 {
@@ -63,6 +63,7 @@ int32_t	noreca;
 Biobuf	bin;
 Biobuf	bout;
 
+int
 main(int argc, char *argv[])
 {
 	char *line;
@@ -72,7 +73,7 @@ main(int argc, char *argv[])
 	if(argc != 1)
 		dir = argv[1];
 	astro("", 1);
-	while(line = Brdline(&bin, '\n')){
+	while((line = Brdline(&bin, '\n'))){
 		line[Blinelen(&bin)-1] = 0;
 		lookup(line, 1);
 		Bflush(&bout);
@@ -595,28 +596,28 @@ cull(char *s, int keep, int dobbox)
 			s = skipbl(t);
 			continue;
 		}
-		if(t = text(s, "m")){
+		if((t = text(s, "m"))	){
  			dom = 1;
 			s = t;
 			continue;
 		}
-		if(t = text(s, "sao")){
+		if((t = text(s, "sao"))){
 			dosao = 1;
 			s = t;
 			continue;
 		}
-		if(t = text(s, "ngc")){
+		if((t = text(s, "ngc"))){
 			dongc = 1;
 			s = t;
 			continue;
 		}
-		if(t = text(s, "abell")){
+		if((t = text(s, "abell"))){
 			doabell = 1;
 			s = t;
 			continue;
 		}
 		for(i=0; names[i].name; i++)
-			if(t = alpha(s, names[i].name)){
+			if((t = alpha(s, names[i].name))){
 				if(nobj > 100){
 					fprint(2, "too many object types\n");
 					return 0;
@@ -675,7 +676,7 @@ cull(char *s, int keep, int dobbox)
 int
 compar(const void *va, const void *vb)
 {
-	Record *a=va, *b=vb;
+	Record const *a=va, *b=vb;
 
 	if(a->type == b->type)
 		return a->index - b->index;
@@ -1022,7 +1023,7 @@ lookup(char *s, int doreset)
 	if(*s == 0)
 		goto Print;
 
-	if(t = alpha(s, "flat")){
+	if((t = alpha(s, "flat"))){
 		if(*t){
 			fprint(2, "flat takes no arguments\n");
 			return;
@@ -1035,7 +1036,7 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "print")){
+	if((t = alpha(s, "print"))){
 		if(*t){
 			fprint(2, "print takes no arguments\n");
 			return;
@@ -1045,12 +1046,12 @@ lookup(char *s, int doreset)
 		return;
 	}
 
-	if(t = alpha(s, "add")){
+	if((t = alpha(s, "add"))){
 		lookup(t, 0);
 		return;
 	}
 
-	if(t = alpha(s, "sao")){
+	if((t = alpha(s, "sao"))){
 		n = strtoul(t, &u, 10);
 		if(n<=0 || n>NSAO)
 			goto NotFound;
@@ -1066,7 +1067,7 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "ngc")){
+	if((t = alpha(s, "ngc"))){
 		n = strtoul(t, &u, 10);
 		if(n<=0 || n>NNGC)
 			goto NotFound;
@@ -1082,7 +1083,7 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "ic")){
+	if((t = alpha(s, "ic"))){
 		n = strtoul(t, &u, 10);
 		if(n<=0 || n>NIC)
 			goto NotFound;
@@ -1098,7 +1099,7 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "abell")){
+	if((t = alpha(s, "abell"))){
 		n = strtoul(t, &u, 10);
 		if(n<=0 || n>NAbell)
 			goto NotFound;
@@ -1109,7 +1110,7 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "m")){
+	if((t = alpha(s, "m"))){
 		n = strtoul(t, &u, 10);
 		if(n<=0 || n>NM)
 			goto NotFound;
@@ -1130,7 +1131,7 @@ lookup(char *s, int doreset)
 	}
 
 	for(i=1; i<=Ncon; i++)
-		if(t = alpha(s, constel[i])){
+		if((t = alpha(s, constel[i]))){
 			if(*t){
 				fprint(2, "syntax error in constellation\n");
 				return;
@@ -1149,7 +1150,7 @@ lookup(char *s, int doreset)
 			goto Print;
 		}
 
-	if(t = alpha(s, "expand")){
+	if((t = alpha(s, "expand"))){
 		n = 0;
 		if(*t){
 			if(*t<'0' && '9'<*t){
@@ -1166,7 +1167,7 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "plot")){
+	if((t = alpha(s, "plot"))){
 		if(nrec == 0){
 			Bprint(&bout, "empty\n");
 			return;
@@ -1175,17 +1176,17 @@ lookup(char *s, int doreset)
 		return;
 	}
 
-	if(t = alpha(s, "astro")){
+	if((t = alpha(s, "astro"))){
 		astro(t, 0);
 		return;
 	}
 
-	if(t = alpha(s, "plate")){
+	if((t = alpha(s, "plate"))){
 		pplate(t);
 		return;
 	}
 
-	if(t = alpha(s, "gamma")){
+	if((t = alpha(s, "gamma"))){
 		while(*t==' ')
 			t++;
 		u = t;
@@ -1196,20 +1197,20 @@ lookup(char *s, int doreset)
 		return;
 	}
 
-	if(t = alpha(s, "keep")){
+	if((t = alpha(s, "keep"))){
 		if(!cull(t, 1, 0))
 			return;
 		goto Print;
 	}
 
-	if(t = alpha(s, "drop")){
+	if((t = alpha(s, "drop"))){
 		if(!cull(t, 0, 0))
 			return;
 		goto Print;
 	}
 
 	for(i=0; planet[i].name[0]; i++){
-		if(t = alpha(s, planet[i].name)){
+		if((t = alpha(s, planet[i].name))){
 			if(doreset)
 				reset();
 			loadplanet(i, nil);
@@ -1218,7 +1219,7 @@ lookup(char *s, int doreset)
 	}
 
 	for(i=0; names[i].name; i++){
-		if(t = alpha(s, names[i].name)){
+		if((t = alpha(s, names[i].name))){
 			if(*t){
 				fprint(2, "syntax error in type\n");
 				return;
@@ -1329,21 +1330,21 @@ lookup(char *s, int doreset)
 
 char *ngctypes[] =
 {
-[Galaxy] 		"Gx",
-[PlanetaryN]	"Pl",
-[OpenCl]		"OC",
-[GlobularCl]	"Gb",
-[DiffuseN]		"Nb",
-[NebularCl]	"C+N",
-[Asterism]		"Ast",
-[Knot]		"Kt",
-[Triple]		"***",
-[Double]		"D*",
-[Single]		"*",
-[Uncertain]	"?",
-[Nonexistent]	"-",
-[Unknown]	" ",
-[PlateDefect]	"PD",
+	[Galaxy] 		= "Gx",
+	[PlanetaryN]	= "Pl",
+	[OpenCl]		= "OC",
+	[GlobularCl]	= "Gb",
+	[DiffuseN]		= "Nb",
+	[NebularCl]	= "C+N",
+	[Asterism]		= "Ast",
+	[Knot]		= "Kt",
+	[Triple]		= "***",
+	[Double]		= "D*",
+	[Single]		= "*",
+	[Uncertain]	= "?",
+	[Nonexistent]	= "-",
+	[Unknown]	= " ",
+	[PlateDefect]	= "PD",
 };
 
 char*
@@ -1504,7 +1505,7 @@ nameof(Record *r)
 				i += snprint(buf+i, sizeof buf-i, "%d", s->name[1]);
 		}else
 			i = snprint(buf, sizeof buf, " %d", s->name[0]);
-		snprint(buf+i, sizeof buf-i, " %s", constel[s->name[2]]);
+		snprint(buf+i, sizeof buf-i, " %s", constel[(uintptr_t)s->name[2]]);
 		break;
 	case NGC:
 		n = &r->ngc;
