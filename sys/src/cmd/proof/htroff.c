@@ -53,7 +53,6 @@ static void	eatline(void);
 static int	getn(void);
 static int	botpage(int);
 static void	getstr(char *);
-static void	getutf(char *);
 
 #define Do screen->r.min
 #define Dc screen->r.max
@@ -462,24 +461,6 @@ getstr(char *is)
 }
 
 static void
-getutf(char *s)		/* get next utf char, as bytes */
-{
-	int c, i;
-
-	for (i=0;;) {
-		c = getc();
-		if (c < 0)
-			return;
-		s[i++] = c;
-
-		if (fullrune(s, i)) {
-			s[i] = 0;
-			return;
-		}
-	}
-}
-
-static void
 eatline(void)
 {
 	int c;
@@ -493,7 +474,7 @@ getn(void)
 {
 	int n, c, sign;
 
-	while (c = getc())
+	while ((c = getc()))
 		if (!isspace(c))
 			break;
 	if(c == '-'){
@@ -515,7 +496,7 @@ botpage(int np)	/* called at bottom of page np-1 == top of page np */
 	char *p;
 	int n;
 
-	while (p = getcmdstr()) {
+	while ((p = getcmdstr())) {
 		if (*p == '\0')
 			return 0;
 		if (*p == 'q')
