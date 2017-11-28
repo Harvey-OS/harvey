@@ -16,7 +16,6 @@
 #include "proof.h"
 
 static	int	checkmouse(void);
-static	int	buttondown(void);
 static	char	*getmousestr(void);
 static	char	*getkbdstr(int);
 
@@ -131,14 +130,6 @@ getkbdstr(int c0)
 #define button123(b)	((b) & 7)
 
 #define	butcvt(b)	(1 << ((b) - 1))
-
-static int buttondown(void)	/* report state of buttons, if any */
-{
-	if (!ecanmouse())	/* no event pending */
-		return 0;
-	mouse = emouse();	/* something, but it could be motion */
-	return mouse.buttons & 7;
-}
 
 int waitdown(void)	/* wait until some button is down */
 {
@@ -307,6 +298,7 @@ Cursor skull ={
 	  0xC3, 0xC3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, }
 };
 
+int
 confirm(int but)	/* ask for confirmation if menu item ends with '?' */
 {
 	int c;
