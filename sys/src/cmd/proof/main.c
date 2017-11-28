@@ -14,7 +14,7 @@
 #include	<bio.h>
 #include	"proof.h"
 
-Rectangle rpage = { 0, 0, 850, 1150 };
+Rectangle rpage = { {0, 0}, {850, 1150} };
 char devname[64];
 double mag = DEFMAG;
 int dbg = 0;
