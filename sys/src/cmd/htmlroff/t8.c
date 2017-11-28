@@ -349,7 +349,7 @@ getname(void)
 	cc = getnext();
 	if(c < 0 || cc < 0)
 		return L("");
-	if(c == '\n' | cc == '\n'){
+	if((c == '\n') | (cc == '\n')){
 		warn("newline in \\n");
 		ungetnext(cc);
 		if(c == '\n')
