@@ -43,7 +43,7 @@ enum {
 struct PaqHeader
 {
 	uint32_t	magic;
-	ushort	version;
+	uint16_t	version;
 	uint32_t	blocksize;
 	uint32_t	time;
 	char	label[32];
@@ -53,8 +53,8 @@ struct PaqBlock
 {
 	uint32_t	magic;
 	uint32_t	size;		/* data size - always <= blocksize */
-	uchar	type;
-	uchar	encoding;
+	uint8_t	type;
+	uint8_t	encoding;
 	uint32_t	adler32;	/* applied to unencoded data */
 };
 
@@ -62,7 +62,7 @@ struct PaqTrailer
 {
 	uint32_t	magic;
 	uint32_t	root;
-	uchar	sha1[20];
+	uint8_t	sha1[20];
 };
 
 struct PaqDir

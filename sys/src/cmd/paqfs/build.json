@@ -1,0 +1,11 @@
+{
+	"paqfs": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+}
