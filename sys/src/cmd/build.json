@@ -62,6 +62,7 @@
 			"rio/rio.json",
 			"sam/build.json",
 			"samterm/build.json",
+			"scat/build.json",
 			"tarsplit/build.json",
 			"tbl/build.json",
 			"troff2html/build.json",
