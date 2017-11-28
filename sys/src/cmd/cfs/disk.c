@@ -54,21 +54,21 @@ dinit(Disk *d, int f, int psize, char *expname)
 		return -1;
 	}
 	ba = (Dalloc*)buf;
-	if(ba->bsize <= 0){
-		fprint(2, "dinit: bsize 0x%lx<= 0\n", ba->bsize);
+	if(ba->dahdr.bsize <= 0){
+		fprint(2, "dinit: bsize 0x%lx<= 0\n", ba->dahdr.bsize);
 		return -1;
 	}
-	if((ba->bsize % psize) != 0){
+	if((ba->dahdr.bsize % psize) != 0){
 		fprint(2, "dinit: logical bsize (%lu) not multiple of physical (%u)\n",
-			ba->bsize, psize);
+			ba->dahdr.bsize, psize);
 		return -1;
 	}
-	d->bsize = ba->bsize;
-	d->nb = length/d->bsize;
-	d->b2b = (d->bsize - sizeof(Dahdr))*8;
+	d->bcache.bsize = ba->dahdr.bsize;
+	d->nb = length/d->bcache.bsize;
+	d->b2b = (d->bcache.bsize - sizeof(Dahdr))*8;
 	d->nab = (d->nb+d->b2b-1)/d->b2b;
-	d->p2b = d->bsize/sizeof(Dptr);
-	strncpy(d->name, ba->name, sizeof d->name);
+	d->p2b = d->bcache.bsize/sizeof(Dptr);
+	strncpy(d->name, ba->dahdr.name, sizeof d->name);
 
 	if (expname != nil && strncmp(d->name, expname, sizeof d->name) != 0) {
 		/* Mismatch with recorded name; fail here to force a format */
@@ -79,30 +79,30 @@ dinit(Disk *d, int f, int psize, char *expname)
 	/*
 	 *  check allocation blocks for consistency
 	 */
-	if(bcinit(d, f, d->bsize) < 0){
+	if(bcinit(&d->bcache, f, d->bcache.bsize) < 0){
 		fprint(2, "dinit: couldn't init block cache\n");
 		return -1;
 	}
 	for(i = 0; i < d->nab; i++){
-		b = bcread(d, i);
+		b = bcread(&d->bcache, i);
 		if(b == 0){
 			perror("dinit: read");
 			return -1;
 		}
 		ba = (Dalloc*)b->data;
-		if(ba->magic != Amagic){
+		if(ba->dahdr.magic != Amagic){
 			fprint(2, "dinit: bad magic in alloc block %lu\n", i);
 			return -1;
 		}
-		if(d->bsize != ba->bsize){
+		if(d->bcache.bsize != ba->dahdr.bsize){
 			fprint(2, "dinit: bad bsize in alloc block %lu\n", i);
 			return -1;
 		}
-		if(d->nab != ba->nab){
+		if(d->nab != ba->dahdr.nab){
 			fprint(2, "dinit: bad nab in alloc block %lu\n", i);
 			return -1;
 		}
-		if(strncmp(d->name, ba->name, sizeof(d->name))){
+		if(strncmp(d->name, ba->dahdr.name, sizeof(d->name))){
 			fprint(2, "dinit: bad name in alloc block %lu\n", i);
 			return -1;
 		}
@@ -132,34 +132,34 @@ dformat(Disk *d, int f, char *name, uint32_t bsize, uint32_t psize)
 	if(dir == nil)
 		return -1;
 	length = dir->length;
-	d->bsize = bsize;
-	if((d->bsize % psize) != 0){
+	d->bcache.bsize = bsize;
+	if((d->bcache.bsize % psize) != 0){
 		fprint(2, "cfs: logical bsize not multiple of physical\n");
 		return -1;
 	}
-	d->nb = length/d->bsize;
-	d->b2b = (d->bsize - sizeof(Dahdr))*8;
+	d->nb = length/d->bcache.bsize;
+	d->b2b = (d->bcache.bsize - sizeof(Dahdr))*8;
 	d->nab = (d->nb+d->b2b-1)/d->b2b;
-	d->p2b = d->bsize/sizeof(Dptr);
+	d->p2b = d->bcache.bsize/sizeof(Dptr);
 
 	/*
 	 *  init allocation blocks
 	 */
-	if(bcinit(d, f, d->bsize) < 0)
+	if(bcinit(&d->bcache, f, d->bcache.bsize) < 0)
 		return -1;
 	for(i = 0; i < d->nab; i++){
-		b = bcalloc(d, i);
+		b = bcalloc(&d->bcache, i);
 		if(b == 0){
 			perror("cfs: bcalloc");
 			return -1;
 		}
-		memset(b->data, 0, d->bsize);
+		memset(b->data, 0, d->bcache.bsize);
 		ba = (Dalloc*)b->data;
-		ba->magic = Amagic;
-		ba->bsize = d->bsize;
-		ba->nab = d->nab;
-		strncpy(ba->name, name, sizeof(ba->name));
-		bcmark(d, b);
+		ba->dahdr.magic = Amagic;
+		ba->dahdr.bsize = d->bcache.bsize;
+		ba->dahdr.nab = d->nab;
+		strncpy(ba->dahdr.name, name, sizeof(ba->dahdr.name));
+		bcmark(&d->bcache, b);
 	}
 
 	/*
@@ -171,7 +171,7 @@ dformat(Disk *d, int f, char *name, uint32_t bsize, uint32_t psize)
 			return -1;
 		}
 
-	return bcsync(d);
+	return bcsync(&d->bcache);
 }
 
 /*
@@ -234,7 +234,7 @@ dalloc(Disk *d, Dptr *p)
 
 	max = d->nb;
 	for(bno = 0; bno < d->nab; bno++){
-		b = bcread(d, bno);
+		b = bcread(&d->bcache, bno);
 		ba = (Dalloc*)b->data;
 		rv = _balloc(ba, max > d->b2b ? d->b2b : max);
 		if(rv != Notabno){
@@ -243,7 +243,7 @@ dalloc(Disk *d, Dptr *p)
 				p->start = p->end = 0;
 				p->bno = rv;
 			}
-			bcmark(d, b);
+			bcmark(&d->bcache, b);
 			return rv;
 		}
 		max -= d->b2b;
@@ -269,7 +269,7 @@ dpalloc(Disk *d, Dptr *p)
 	 *  allocate the page and invalidate all the
 	 *  pointers
 	 */
-	b = bcalloc(d, p->bno);
+	b = bcalloc(&d->bcache, p->bno);
 	if(b == 0)
 		return -1;
 	sp = (Dptr*)b->data;
@@ -279,12 +279,12 @@ dpalloc(Disk *d, Dptr *p)
 	}
 	p->bno |= Indbno;
 	p->start = 0;
-	p->end = d->bsize;
+	p->end = d->bcache.bsize;
 
 	/*
 	 *  mark the page as dirty
 	 */
-	bcmark(d, b);
+	bcmark(&d->bcache, b);
 	return 0;
 }
 
@@ -305,7 +305,7 @@ _bfree(Disk *d, uint32_t i)
 	bno = i/d->b2b;
 	if(bno >= d->nab)
 		return -1;
-	b = bcread(d, bno);
+	b = bcread(&d->bcache, bno);
 	if(b == 0)
 		return -1;
 	ba = (Dalloc*)b->data;
@@ -317,7 +317,7 @@ _bfree(Disk *d, uint32_t i)
 	p = ba->bits + (i/BtoUL);
 	m = 1<<(i%BtoUL);
 	*p &= ~m;
-	bcmark(d, b);
+	bcmark(&d->bcache, b);
 
 	return 0;
 }
@@ -359,7 +359,7 @@ dfree(Disk *d, Dptr *dp)
 	 *	DANGER: this algorithm may fail if there are more
 	 *		allocation blocks than block buffers
 	 */
-	b = bcread(d, bno);
+	b = bcread(&d->bcache, bno);
 	if(b == 0)
 		return -1;
 	sp = (Dptr*)b->data;

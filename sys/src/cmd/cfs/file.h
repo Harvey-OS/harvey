@@ -9,6 +9,6 @@
 
 void	fmerge(Dptr*, char*, char*, int, int);
 int	fbwrite(Icache*, Ibuf*, char*, uint32_t, int);
-long	fwrite(Icache*, Ibuf*, char*, uint32_t, long);
+int32_t	fwrite(Icache*, Ibuf*, char*, uint32_t, int32_t);
 Dptr*	fpget(Icache*, Ibuf*, uint32_t);
-long	fread(Icache*, Ibuf*, char*, uint32_t, long);
+int32_t	fread(Icache*, Ibuf*, char*, uint32_t, int32_t);
