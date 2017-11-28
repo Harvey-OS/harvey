@@ -83,12 +83,12 @@ int ntrtab;
 
 static Trtab trinit[] =
 {
-	"pl",		Upl,
-	"eq",	Ueq,
-	"em",	0x2014,
-	"en",	0x2013,
-	"mi",	Umi,
-	"fm",	0x2032,
+	{"pl",		Upl},
+	{"eq",	Ueq},
+	{"em",	0x2014},
+	{"en",	0x2013},
+	{"mi",	Umi},
+	{"fm",	0x2032},
 };
 
 Rune

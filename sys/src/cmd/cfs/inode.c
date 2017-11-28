@@ -38,28 +38,28 @@ iinit(Icache *ic, int f, int psize, char* name)
 	/*
 	 *  get basic sizes and allocation info from disk
 	 */
-	if(dinit(ic, f, psize, name) < 0)
+	if(dinit(&ic->disk, f, psize, name) < 0)
 		return -1;
 
 	/*
 	 *  read first inode block to get number of inodes
 	 */
-	bb = bcread(ic, ic->nab);
+	bb = bcread(&ic->disk.bcache, ic->disk.nab);
 	if(bb == 0){
 		fprint(2, "iinit: can't read disk\n");
 		return -1;
 	}
 	bi = (Dinode*)bb->data;
-	if(bi->nino==0 || bi->nino>2048){
+	if(bi->dihdr.nino==0 || bi->dihdr.nino>2048){
 		fprint(2, "iinit: bad nino\n");
 		return -1;
 	}
-	ic->nino = bi->nino;
+	ic->nino = bi->dihdr.nino;
 
 	/*
 	 *  set up sizing constants
 	 */
-	ic->i2b = (ic->bsize - sizeof(Dihdr))/sizeof(Inode);
+	ic->i2b = (ic->disk.bcache.bsize - sizeof(Dihdr))/sizeof(Inode);
 	ic->nib = (ic->nino + ic->i2b - 1)/ic->i2b;
 
 	/*
@@ -76,7 +76,7 @@ iinit(Icache *ic, int f, int psize, char* name)
 	for(m = ic->map; m < &ic->map[ic->nino]; m++){
 		m->inuse = 0;
 		m->b = 0;
-		lruadd(&ic->mlru, m);
+		lruadd(&ic->mlru, &m->lru);
 	}
 
 	/*
@@ -85,7 +85,7 @@ iinit(Icache *ic, int f, int psize, char* name)
 	lruinit(&ic->blru);
 	for(b = ic->ib; b < &ic->ib[Nicache]; b++){
 		b->inuse = 0;
-		lruadd(&ic->blru, b);
+		lruadd(&ic->blru, &b->lru);
 	}
 
 	/*
@@ -102,7 +102,7 @@ iinit(Icache *ic, int f, int psize, char* name)
 			m = &ic->map[ino];
 			m->inuse = 1;
 			m->qid = b->inode.qid;
-			lruref(&ic->mlru, m);
+			lruref(&ic->mlru, &m->lru);
 		}
 	}
 	return 0;
@@ -123,7 +123,7 @@ iformat(Icache *ic, int f, uint32_t nino, char *name, int bsize,
 	/*
 	 *  first format disk allocation
 	 */
-	if(dformat(ic, f, name, bsize, psize) < 0)
+	if(dformat(&ic->disk, f, name, bsize, psize) < 0)
 		return -1;
 
 	fprint(2, "formatting inodes\n");
@@ -131,25 +131,25 @@ iformat(Icache *ic, int f, uint32_t nino, char *name, int bsize,
 	i2b = (bsize - sizeof(Dihdr))/sizeof(Inode);
 	nib = (nino + i2b - 1)/i2b;
 
-	for(bno = ic->nab; bno < ic->nab + nib; bno++){
-		if(dalloc(ic, 0) == Notabno){
+	for(bno = ic->disk.nab; bno < ic->disk.nab + nib; bno++){
+		if(dalloc(&ic->disk, 0) == Notabno){
 			fprint(2, "iformat: balloc failed\n");
 			return -1;
 		}
-		bb = bcalloc(ic, bno);
+		bb = bcalloc(&ic->disk.bcache, bno);
 		if(bb == 0){
 			fprint(2, "iformat: bcalloc failed\n");
 			return -1;
 		}
 		bi = (Dinode*)bb->data;
-		bi->magic = Imagic;
-		bi->nino = nino;
+		bi->dihdr.magic = Imagic;
+		bi->dihdr.nino = nino;
 		for(i = 0; i < i2b; i++)
 			bi->inode[i].inuse = 0;
-		bcmark(ic, bb);
+		bcmark(&ic->disk.bcache, bb);
 	}
 
-	bcsync(ic);
+	bcsync(&ic->disk.bcache);
 
 	return iinit(ic, f, psize, name);
 }
@@ -182,7 +182,7 @@ ifree(Icache *ic, Ibuf *b)
 	b->inuse = 0;
 	if(b->inuse)
 		ic->map[b->ino].b = 0;
-	lruderef(&ic->blru, b);
+	lruderef(&ic->blru, &b->lru);
 }
 
 /*
@@ -274,8 +274,8 @@ iread(Icache *ic, uint32_t ino)
 	 *  read it
 	 */
 	b = ialloc(ic, ino);
-	bno = ic->nab + ino/ic->i2b;
-	bb = bcread(ic, bno);
+	bno = ic->disk.nab + ino/ic->i2b;
+	bb = bcread(&ic->disk.bcache, bno);
 	if(bb == 0){
 		ifree(ic, b);
 		return 0;
@@ -286,7 +286,7 @@ iread(Icache *ic, uint32_t ino)
 	/*
 	 *  consistency check
 	 */
-	if(bi->nino!=ic->nino || bi->magic!=Imagic){
+	if(bi->dihdr.nino!=ic->nino || bi->dihdr.magic!=Imagic){
 		fprint(2, "iread: inconsistent inode block\n");
 		ifree(ic, b);
 		return 0;
@@ -295,8 +295,8 @@ out:
 	b->inuse = 1;
 	m->b = b;
 	if(b->inode.inuse)
-		lruref(&ic->mlru, m);
-	lruref(&ic->blru, b);
+		lruref(&ic->mlru, &m->lru);
+	lruref(&ic->blru, &b->lru);
 	return b;
 }
 
@@ -310,15 +310,15 @@ iwrite(Icache *ic, Ibuf *b)
 	Bbuf *bb;
 	Dinode *bi;
 
-	bno = ic->nab + b->ino/ic->i2b;
-	bb = bcread(ic, bno);
+	bno = ic->disk.nab + b->ino/ic->i2b;
+	bb = bcread(&ic->disk.bcache, bno);
 	if(bb == 0)
 		return 0;
 	bi = (Dinode*)bb->data;
 	bi->inode[b->ino % ic->i2b] = b->inode;
-	bcmark(ic, bb);
-	lruref(&ic->mlru, &ic->map[b->ino]);
-	lruref(&ic->blru, b);
+	bcmark(&ic->disk.bcache, bb);
+	lruref(&ic->mlru, &ic->map[b->ino].lru);
+	lruref(&ic->blru, &b->lru);
 	return 0;
 }
 
@@ -356,7 +356,7 @@ iupdate(Icache *ic, uint32_t ino, Qid qid)
 	b->inode.ptr.bno = Notabno;
 	if(iwrite(ic, b) < 0)
 		return -1;
-	dfree(ic, &d);
+	dfree(&ic->disk, &d);
 	return 0;
 }
 
@@ -392,7 +392,7 @@ iremove(Icache *ic, uint32_t ino)
 	/*
 	 *  throw out it's data pages
 	 */
-	dfree(ic, &b->inode.ptr);
+	dfree(&ic->disk, &b->inode.ptr);
 
 	/*
 	 *  free the inode buffer
@@ -402,7 +402,7 @@ iremove(Icache *ic, uint32_t ino)
 	/*
 	 *  make map entry least recently used
 	 */
-	lruderef(&ic->mlru, m);
+	lruderef(&ic->mlru, &m->lru);
 	return 0;
 }
 

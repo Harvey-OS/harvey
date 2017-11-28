@@ -67,7 +67,7 @@ fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
 	Dptr *p;
 	Dptr t;
 
-	fbno = off / ic->bsize;
+	fbno = off / ic->disk.bcache.bsize;
 	p = &b->inode.ptr;
 	ibb = 0;
 	wrinode = 0;
@@ -84,37 +84,37 @@ fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
  	 *  is it an indirect block?
 	 */
 	if(p->bno & Indbno){
-		ibb = bcread(ic, p->bno);
+		ibb = bcread(&ic->disk.bcache, p->bno);
 		if(ibb == 0)
 			return -1;
 		p = (Dptr*)ibb->data;
-		p += fbno % ic->p2b;
+		p += fbno % ic->disk.p2b;
 		goto dowrite;
 	}
 
 	/*
  	 *  is it the wrong direct block?
 	 */
-	if((p->fbno%ic->p2b) != (fbno%ic->p2b)){
+	if((p->fbno%ic->disk.p2b) != (fbno%ic->disk.p2b)){
 		/*
 		 *  yes, make an indirect block
 		 */
 		t = *p;
-		dpalloc(ic, p);
+		dpalloc(&ic->disk, p);
 		if(p->bno == Notabno){
 			*p = t;
 			return -1;
 		}
-		ibb = bcalloc(ic, p->bno);
+		ibb = bcalloc(&ic->disk.bcache, p->bno);
 		if(ibb == 0){
 			*p = t;
 			return -1;
 		}
 		p = (Dptr*)ibb->data;
-		p += t.fbno % ic->p2b;
+		p += t.fbno % ic->disk.p2b;
 		*p = t;
 		p = (Dptr*)ibb->data;
-		p += fbno % ic->p2b;
+		p += fbno % ic->disk.p2b;
 	}
 	wrinode = 1;
 
@@ -126,15 +126,15 @@ dowrite:
 		/*
 		 *  create a new block
 		 */
-		dalloc(ic, p);
+		dalloc(&ic->disk, p);
 		if(p->bno == Notabno)
 			return -1;		/* no blocks left (maybe) */
-		dbb = bcalloc(ic, p->bno);
+		dbb = bcalloc(&ic->disk.bcache, p->bno);
 	} else {
 		/*
 		 *  use what's there
 		 */
-		dbb = bcread(ic, p->bno);
+		dbb = bcread(&ic->disk.bcache, p->bno);
 	}
 	if(dbb == 0)
 		return -1;
@@ -146,15 +146,15 @@ dowrite:
 		p->start = p->end = 0;
 		p->fbno = fbno;
 	}
-	fmerge(p, dbb->data, a, off % ic->bsize, len);
+	fmerge(p, dbb->data, a, off % ic->disk.bcache.bsize, len);
 
 	/*
 	 *  write changed blocks back in the
 	 *  correct order
 	 */
-	bcmark(ic, dbb);
+	bcmark(&ic->disk.bcache, dbb);
 	if(ibb)
-		bcmark(ic, ibb);
+		bcmark(&ic->disk.bcache, ibb);
 	if(wrinode)
 		if(iwrite(ic, b) < 0)
 			return -1;
@@ -173,7 +173,7 @@ fwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 	int32_t sofar;
 
 	for(sofar = 0; sofar < n; sofar += len){
-		len = ic->bsize - ((off+sofar)%ic->bsize);
+		len = ic->disk.bcache.bsize - ((off+sofar)%ic->disk.bcache.bsize);
 		if(len > n - sofar)
 			len = n - sofar;
 		if(fbwrite(ic, b, a+sofar, off+sofar, len) < 0)
@@ -193,7 +193,7 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 	Bbuf *ibb;	/* indirect block */
 	Dptr *p, *p0, *pf;
 
-	fbno = off / ic->bsize;
+	fbno = off / ic->disk.bcache.bsize;
 	p = &b->inode.ptr;
 
 	/*
@@ -213,7 +213,7 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 			return p;
 		if(p->fbno < fbno)
 			return 0;
-		doff = off % ic->bsize;
+		doff = off % ic->disk.bcache.bsize;
 		if(doff>=p->start && doff<p->end)
 			return p;
 		else
@@ -223,7 +223,7 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 	/*
 	 *  read the indirect block
 	 */
-	ibb = bcread(ic, p->bno);
+	ibb = bcread(&ic->disk.bcache, p->bno);
 	if(ibb == 0)
 		return 0;
 
@@ -231,13 +231,13 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 	 *  find the next valid pointer
 	 */
 	p0 = (Dptr*)ibb->data;
-	pf = p0 + (fbno % ic->p2b);
+	pf = p0 + (fbno % ic->disk.p2b);
 	if(pf->bno!=Notabno && pf->fbno==fbno){
-		doff = off % ic->bsize;
+		doff = off % ic->disk.bcache.bsize;
 		if(doff<pf->end)
 			return pf;
 	}
-	for(p = pf+1; p < p0 + ic->p2b; p++){
+	for(p = pf+1; p < p0 + ic->disk.p2b; p++){
 		fbno++;
 		if(p->fbno==fbno && p->bno!=Notabno && p->start<p->end)
 			return p;
@@ -285,17 +285,18 @@ fread(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 		/*
 		 *  if there's a gap, return the size of the gap
 		 */
-		gap = (ic->bsize*p->fbno + p->start) - off;
-		if(gap>0)
+		gap = (ic->disk.bcache.bsize*p->fbno + p->start) - off;
+		if(gap>0){
 			if(sofar == 0)
 				return -gap;
 			else
 				return sofar;
+		}
 
 		/*
 		 *  return what we have
 		 */
-		bb = bcread(ic, p->bno);
+		bb = bcread(&ic->disk.bcache, p->bno);
 		if(bb == 0)
 			return sofar;
 		start = p->start - gap;

@@ -43,7 +43,7 @@ struct Dahdr
 };
 struct Dalloc
 {
-	Dahdr;
+	Dahdr	dahdr;
 	uint32_t	bits[1];
 };
 
@@ -54,8 +54,8 @@ struct Dptr
 {
 	uint32_t	fbno;		/* file block number */
 	uint32_t	bno;		/* disk block number */
-	ushort	start;		/* offset into block of valid data */
-	ushort	end;		/* offset into block after valid data */
+	uint16_t	start;		/* offset into block of valid data */
+	uint16_t	end;		/* offset into block after valid data */
 };
 
 /*
@@ -64,7 +64,7 @@ struct Dptr
 struct Inode
 {
 	Qid	qid;
-	vlong	length;
+	int64_t	length;
 	Dptr	ptr;		/* pointer page */
 	char	inuse;
 };
@@ -79,6 +79,6 @@ struct Dihdr
 };
 struct Dinode
 {
-	Dihdr;
+	Dihdr	dihdr;
 	Inode	inode[1];
 };

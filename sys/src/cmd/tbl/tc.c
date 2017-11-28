@@ -44,7 +44,7 @@ choochar(void)
 	}
 				/* choose first funny character */
 	for (s = COMMON "Y"; *s; s++) {
-		if (had[*s] == 0) {
+		if (had[(uint8_t)*s] == 0) {
 			F1 = *s;
 			had[F1] = 1;
 			break;
@@ -52,7 +52,7 @@ choochar(void)
 	}
 				/* choose second funny character */
 	for (s = COMMON "u"; *s; s++) {
-		if (had[*s] == 0) {
+		if (had[(uint8_t)*s] == 0) {
 			F2 = *s;
 			break;
 		}

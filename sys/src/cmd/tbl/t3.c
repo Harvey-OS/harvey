@@ -14,27 +14,27 @@ struct optstr {
 	char	*optnam;
 	int	*optadd;
 } options [] = {
-	"expand", &expflg,
-	"EXPAND", &expflg,
-	"center", &ctrflg,
-	"CENTER", &ctrflg,
-	"box", &boxflg,
-	"BOX", &boxflg,
-	"allbox", &allflg,
-	"ALLBOX", &allflg,
-	"doublebox", &dboxflg,
-	"DOUBLEBOX", &dboxflg,
-	"frame", &boxflg,
-	"FRAME", &boxflg,
-	"doubleframe", &dboxflg,
-	"DOUBLEFRAME", &dboxflg,
-	"tab", &tab,
-	"TAB", &tab,
-	"linesize", &linsize,
-	"LINESIZE", &linsize,
-	"delim", &delim1,
-	"DELIM", &delim1,
-	0, 0
+	{"expand", &expflg},
+	{"EXPAND", &expflg},
+	{"center", &ctrflg},
+	{"CENTER", &ctrflg},
+	{"box", &boxflg},
+	{"BOX", &boxflg},
+	{"allbox", &allflg},
+	{"ALLBOX", &allflg},
+	{"doublebox", &dboxflg},
+	{"DOUBLEBOX", &dboxflg},
+	{"frame", &boxflg},
+	{"FRAME", &boxflg},
+	{"doubleframe", &dboxflg},
+	{"DOUBLEFRAME", &dboxflg},
+	{"tab", &tab},
+	{"TAB", &tab},
+	{"linesize", &linsize},
+	{"LINESIZE", &linsize},
+	{"delim", &delim1},
+	{"DELIM", &delim1},
+	{0, 0}
 };
 
 void

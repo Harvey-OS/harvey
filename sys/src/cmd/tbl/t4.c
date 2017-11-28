@@ -51,7 +51,7 @@ readspec(void)
 	char	sn[10], *snp, *temp;
 
 	sawchar = icol = 0;
-	while (c = get1char()) {
+	while ((c = get1char())) {
 		switch (c) {
 		default:
 			if (c != tab) {
@@ -190,7 +190,7 @@ readspec(void)
 			if (icol <= 0)
 				continue;
 			temp = snp = csize[icol-1][nclin];
-			while (c = get1char()) {
+			while ((c = get1char())) {
 				if (c == ' ' || c == tab || c == '\n')
 					break;
 				if (c == '-' || c == '+')
@@ -215,7 +215,7 @@ readspec(void)
 			if (icol <= 0)
 				continue;
 			temp = snp = vsize[icol-1][nclin];
-			while (c = get1char()) {
+			while ((c = get1char())) {
 				if (c == ' ' || c == tab || c == '\n')
 					break;
 				if (c == '-' || c == '+')
@@ -243,9 +243,9 @@ readspec(void)
 				Bprint(&tabout, "Ignored second width specification");
 				continue;
 				}
-		/* end commented out code ... */
+		 * end commented out code ... */
 			stopc = 0;
-			while (c = get1char()) {
+			while ((c = get1char())) {
 				if (snp == cll[icol-1] && c == '(') {
 					stopc = ')';
 					continue;
@@ -321,7 +321,7 @@ findcol(void)
 		;
 	if (c != '\n')
 		un1getc(c);
-	for (s = line; *s = c = get1char(); s++) {
+	for (s = line; (*s = (c = get1char())); s++) {
 		if (c == ')')
 			inpar = 0;
 		if (inpar)
