@@ -43,7 +43,7 @@
 			"grep/grep.json",
 			"gzip/build.json",
 			"hoc/hoc.json",
-			"htmlroff/build.json"
+			"htmlroff/build.json",
 			"iostats/build.json",
 			"iozone/fileop.json",
 			"ip/ip.json",
