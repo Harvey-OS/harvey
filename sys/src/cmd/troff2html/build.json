@@ -4,6 +4,7 @@
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
+		"Program": "troff2html",
 		"SourceFiles": [
 			"*.c"
 		]
