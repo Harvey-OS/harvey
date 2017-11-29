@@ -391,7 +391,7 @@ ffs_read(vnode *vp, Uio *uio)
 	inode *ip;
 	Fs *fs;
 	Buf *bp;
-	ufs_lbn_t lbn, nextlbn;
+	ufs_lbn_t lbn;//, nextlbn;
 	off_t bytesinfile;
 	long size, xfersize, blkoffset;
 	int64_t orig_resid;
@@ -443,7 +443,7 @@ ffs_read(vnode *vp, Uio *uio)
 			break;
 
 		lbn = lblkno(fs, uio->offset);
-		nextlbn = lbn + 1;
+		//nextlbn = lbn + 1;
 
 		/*
 		 * size of buffer.  The buffer representing the
