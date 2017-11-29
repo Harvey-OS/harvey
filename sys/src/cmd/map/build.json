@@ -12,7 +12,6 @@
 			"/sys/src/cmd/map/libmap/libmap.a"
 		],
 		"Post": [
-			"rm -f /sys/src/cmd/map/libmap/libmap.a",
 			"cp map.rc /rc/bin/map",
 			"cp mapdemo.rc /rc/bin/mapdemo"
 		],

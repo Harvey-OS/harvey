@@ -4,6 +4,7 @@
 			"../cmd.json"
 		],
 		"Install": "/$ARCH/bin/",
+		"Program": "htmlroff",
 		"SourceFiles": [
 			"*.c"
 		]
