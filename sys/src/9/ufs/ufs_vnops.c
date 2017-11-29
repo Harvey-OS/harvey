@@ -41,9 +41,9 @@
 #include "port/portfns.h"
 
 #include "ufsdat.h"
-#include <ufs/libufsdat.h>
+#include "ufs/libufsdat.h"
 #include "ufsfns.h"
-#include <ufs/freebsd_util.h>
+#include "ufs/freebsd_util.h"
 
 #include "ufs/quota.h"
 #include "ufs/inode.h"
