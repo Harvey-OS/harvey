@@ -105,6 +105,7 @@ breadmp(MountPoint *mp, daddr_t blkno, size_t size, Buf **buf)
 		return 1;
 	}
 
+	b->resid = size - bytesRead;
 	*buf = b;
 	return 0;
 }
@@ -130,13 +131,16 @@ bread(vnode *vn, daddr_t lblkno, size_t size, Buf **buf)
 	MountPoint *mp = vn->mount;
 	Chan *c = mp->chan;
 	int64_t offset = dbtob(pblkno);
+
 	int32_t bytesRead = c->dev->read(c, b->data, size, offset);
+
 	if (bytesRead != size) {
 		releasebuf(b);
 		print("bread returned wrong size\n");
 		return 1;
 	}
 
+	b->resid = size - bytesRead;
 	*buf = b;
 	return 0;
 }

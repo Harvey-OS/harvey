@@ -338,19 +338,6 @@ dumpinode(void *a, int32_t n, int64_t offset, vnode *vn)
 	return n;
 }
 
-static int
-dumpinodedata(void *a, int32_t n, int64_t offset, vnode *vn)
-{
-	char *buf = malloc(READSTR);
-
-	writeinodedata(buf, READSTR, vn);
-	n = readstr(offset, a, n, buf);
-
-	free(buf);
-
-	return n;
-}
-
 static int32_t
 ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 {
@@ -377,7 +364,7 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 	case Qinodedata:
 	{
 		vnode *vn = (vnode*)c->aux;
-		n = dumpinodedata(a, n, offset, vn);
+		n = writeinodedata(a, n, offset, vn);
 		break;
 	}
 

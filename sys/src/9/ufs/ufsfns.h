@@ -28,7 +28,7 @@ int		lookuppath(MountPoint *mp, char *path, vnode **vn);
 int		writestats(char *buf, int buflen, MountPoint *mp);
 int		writesuperblock(char *buf, int buflen, MountPoint *mp);
 int		writeinode(char *buf, int buflen, vnode *vn);
-int		writeinodedata(char *buf, int buflen, vnode *vn);
+int		writeinodedata(char *buf, int32_t n, int64_t offset, vnode *vn);
 
 // Misc
 int		ffs_init();
