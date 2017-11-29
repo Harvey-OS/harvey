@@ -7,6 +7,13 @@
 			"-I$HARVEY/sys/src/cmd/map"
 		],
 		"Install": "/$ARCH/bin/",
+		"Program": "scat",
+		"Libs": [
+			"/sys/src/cmd/map/libmap/libmap.a"
+		],
+		"Post": [
+			"rm -f /sys/src/cmd/map/libmap/libmap.a"
+		],
 		"SourceFiles": [
 			"*.c"
 		]
