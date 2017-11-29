@@ -36,6 +36,8 @@
  */
 
 typedef struct ufs2_dinode ufs2_dinode;
+typedef struct ufsmount ufsmount;
+typedef struct vnode vnode;
 
 /*
  * This must agree with the definition in <ufs/ufs/dir.h>.
@@ -61,8 +63,8 @@ typedef struct ufs2_dinode ufs2_dinode;
 struct inode {
 	// TODO HARVEY Replace when snapshot code re-enabled
 	//TAILQ_ENTRY(inode) i_nextsnap; /* snapshot file list. */
-	struct	vnode  *i_vnode;/* Vnode associated with this inode. */
-	struct 	ufsmount *i_ump;/* Ufsmount point associated with this inode. */
+	vnode  *i_vnode;/* Vnode associated with this inode. */
+	ufsmount *i_ump;/* Ufsmount point associated with this inode. */
 	struct	 dquot *i_dquot[MAXQUOTAS]; /* Dquot structures. */
 	union {
 		struct dirhash *dirhash; /* Hashing for large directories. */
@@ -154,6 +156,7 @@ typedef struct Indir {
 } Indir;
 
 /* Convert between inode pointers and vnode pointers. */
+// TODO HARVEY Just remove these 2 macros
 #define	VTOI(vp)	((inode *)(vp)->data)
 #define	ITOV(ip)	((ip)->i_vnode)
 
