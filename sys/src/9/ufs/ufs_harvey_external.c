@@ -225,23 +225,52 @@ writeinode(char *buf, int buflen, vnode *vn)
 }
 
 int
-writeinodedata(char *buf, int buflen, vnode *vn)
+writeinodedata(char *buf, int32_t n, int64_t offset, vnode *vn)
 {
 	Proc *up = externup();
-	int i = 0;
 
 	if (vn->type == VREG) {
-		i += snprint(buf + i, buflen - i, "file\n");
-		return i;
-	}
+		uint64_t size = vn->data->i_size;
+		if (offset >= size) {
+			return 0;
+		}
+		if (offset + n > size) {
+			n = size - offset;
+		}
 
-	if (vn->type == VDIR) {
-		Uio* uio = newuio(DIRBLKSIZ);
+		Uio* uio = newuio(n);
 		if (waserror()) {
 			releaseuio(uio);
 			nexterror();
 		}
 
+		uio->resid = vn->data->i_size;
+		uio->offset = offset;
+
+		int rcode = ffs_read(vn, uio);
+		if (rcode) {
+			error("error reading file");
+		}
+
+		packuio(uio);
+
+
+		uio->dest = bl2mem((uint8_t*)buf, uio->dest, n);
+
+		poperror();
+		releaseuio(uio);
+		return n;
+	
+	} else if (vn->type == VDIR) {
+		Uio* uio = newuio(n);
+		if (waserror()) {
+			releaseuio(uio);
+			nexterror();
+		}
+
+		// We don't set uio->offset here - that's accounted for when
+		// writing the directory strings, since that's where the offset
+		// is really relative to.
 		uio->resid = vn->data->i_size;
 
 		int rcode = ufs_readdir(vn, uio);
@@ -252,22 +281,30 @@ writeinodedata(char *buf, int buflen, vnode *vn)
 		packuio(uio);
 
 		// Iterate over all files
+		int i = 0, offseti = 0;
 		int64_t diroffset = 0;
 		int64_t endoffset = uio->offset - uio->resid;
 		while (uio->offset >= 0 && diroffset < endoffset) {
 			Dirent* dir = (Dirent*)(uio->dest->rp + diroffset);
 
-			i += snprint(buf + i, buflen - i, "%s\t%llu\n", dir->name, (uint64_t)dir->fileno);
+			int len = snprint(buf + i, n - i, "%s\t%llu\n", dir->name, (uint64_t)dir->fileno);
+
+			// Only progress if we've passed the offset.  This will
+			// continually overwrite until that point.
+			if (offseti >= offset) {
+				i += len;
+			}
+			offseti += len;
 			diroffset += dir->reclen;
 		}
 
 		poperror();
 		releaseuio(uio);
 		return i;
-	}
 
-	i += snprint(buf + i, buflen - i, "unsupported inode type (%d)\n", vn->type);
-	return i;
+	} else {
+		return snprint(buf, n, "unsupported inode type (%d)\n", vn->type);
+	}
 }
 
 vnode *

@@ -67,16 +67,18 @@
 #include "dat.h"
 #include "port/portfns.h"
 
-#include <ufs/libufsdat.h>
-#include <ufs/freebsd_util.h>
+#include "ufsdat.h"
+#include "ufs/libufsdat.h"
+#include "ufsfns.h"
+#include "ufs/freebsd_util.h"
+#include "ufs/fs.h"
+#include "ufs/quota.h"
+#include "ufs/inode.h"
+#include "ufs/dinode.h"
+#include "ufs/ufsmount.h"
 
 //#include <ufs/ufs/extattr.h>
-//#include <ufs/ufs/quota.h>
-//#include <ufs/ufs/inode.h>
 //#include <ufs/ufs/ufs_extern.h>
-//#include <ufs/ufs/ufsmount.h>
-
-//#include <ufs/ffs/fs.h>
 //#include <ufs/ffs/ffs_extern.h>
 
 /*#define	ALIGNED_TO(ptr, s)	\
@@ -378,34 +380,27 @@ ffs_lock (struct vop_lock1_args *ap)
 #endif
 }
 
+#endif // 0
+
 /*
  * Vnode op for reading.
  */
-static int 
-ffs_read (struct vop_read_args *ap)
+int 
+ffs_read(vnode *vp, Uio *uio)
 {
-	struct vnode *vp;
-	struct inode *ip;
-	struct uio *uio;
-	struct fs *fs;
-	struct buf *bp;
+	inode *ip;
+	Fs *fs;
+	Buf *bp;
 	ufs_lbn_t lbn, nextlbn;
 	off_t bytesinfile;
 	long size, xfersize, blkoffset;
-	ssize_t orig_resid;
+	int64_t orig_resid;
 	int error;
-	int seqcount;
-	int ioflag;
+	//int seqcount;
+	//int ioflag;
 
-	vp = ap->a_vp;
-	uio = ap->a_uio;
-	ioflag = ap->a_ioflag;
-	if (ap->a_ioflag & IO_EXT)
-#ifdef notyet
-		return (ffs_extread(vp, uio, ioflag));
-#else
-		panic("ffs_read+IO_EXT");
-#endif
+
+	// TODO HARVEY Keep or delete?
 #ifdef DIRECTIO
 	if ((ioflag & IO_DIRECT) != 0) {
 		int workdone;
@@ -416,33 +411,38 @@ ffs_read (struct vop_read_args *ap)
 	}
 #endif
 
-	seqcount = ap->a_ioflag >> IO_SEQSHIFT;
-	ip = VTOI(vp);
+	//seqcount = ap->a_ioflag >> IO_SEQSHIFT;
+	ip = vp->data;
 
+	// TODO HARVEY Add as to runtime check
 #ifdef INVARIANTS
 	if (uio->uio_rw != UIO_READ)
 		panic("ffs_read: mode");
 
-	if (vp->v_type == VLNK) {
-		if ((int)ip->i_size < vp->v_mount->mnt_maxsymlinklen)
-			panic("ffs_read: short symlink");
-	} else if (vp->v_type != VREG && vp->v_type != VDIR)
+	if (vp->v_type != VREG && vp->v_type != VDIR)
 		panic("ffs_read: type %d",  vp->v_type);
 #endif
-	orig_resid = uio->uio_resid;
-	KASSERT(orig_resid >= 0, ("ffs_read: uio->uio_resid < 0"));
+
+	orig_resid = uio->resid;
+	if (orig_resid < 0) {
+		print("ffs_read: uio->resid < 0\n");
+	}
 	if (orig_resid == 0)
-		return (0);
-	KASSERT(uio->uio_offset >= 0, ("ffs_read: uio->uio_offset < 0"));
-	fs = ITOFS(ip);
-	if (uio->uio_offset < ip->i_size &&
-	    uio->uio_offset >= fs->fs_maxfilesize)
+		return 0;
+	if (uio->offset < 0) {
+		print("ffs_read: uio->offset < 0\n");
+	}
+
+	fs = ip->i_ump->um_fs;
+	if (uio->offset < ip->i_size &&
+	    uio->offset >= fs->fs_maxfilesize)
 		return (EOVERFLOW);
 
-	for (error = 0, bp = nil; uio->uio_resid > 0; bp = nil) {
-		if ((bytesinfile = ip->i_size - uio->uio_offset) <= 0)
+	for (error = 0, bp = nil; uio->resid > 0; bp = nil) {
+		if ((bytesinfile = ip->i_size - uio->offset) <= 0)
 			break;
-		lbn = lblkno(fs, uio->uio_offset);
+
+		lbn = lblkno(fs, uio->offset);
 		nextlbn = lbn + 1;
 
 		/*
@@ -452,7 +452,7 @@ ffs_read (struct vop_read_args *ap)
 		 * depending ).
 		 */
 		size = blksize(fs, ip, lbn);
-		blkoffset = blkoff(fs, uio->uio_offset);
+		blkoffset = blkoff(fs, uio->offset);
 
 		/*
 		 * The amount we want to transfer in this iteration is
@@ -466,11 +466,12 @@ ffs_read (struct vop_read_args *ap)
 		 * or the file doesn't have a whole block more of data,
 		 * then use the lesser number.
 		 */
-		if (uio->uio_resid < xfersize)
-			xfersize = uio->uio_resid;
+		if (uio->resid < xfersize)
+			xfersize = uio->resid;
 		if (bytesinfile < xfersize)
 			xfersize = bytesinfile;
 
+#if 0
 		if (lblktosize(fs, nextlbn) >= ip->i_size) {
 			/*
 			 * Don't do readahead if this is the end of the file.
@@ -501,16 +502,16 @@ ffs_read (struct vop_read_args *ap)
 			error = breadn_flags(vp, lbn, size, &nextlbn,
 			    &nextsize, 1, NOCRED, GB_UNMAPPED, &bp);
 		} else {
+#endif // 0
 			/*
 			 * Failing all of the above, just read what the
 			 * user asked for. Interestingly, the same as
 			 * the first option above.
 			 */
-			error = bread_gb(vp, lbn, size, NOCRED,
-			    GB_UNMAPPED, &bp);
-		}
+			error = bread(vp, lbn, size, /*NOCRED, GB_UNMAPPED,*/ &bp);
+		//}
 		if (error) {
-			brelse(bp);
+			releasebuf(bp);
 			bp = nil;
 			break;
 		}
@@ -522,13 +523,18 @@ ffs_read (struct vop_read_args *ap)
 		 * then we want to ensure that we do not uiomove bad
 		 * or uninitialized data.
 		 */
-		size -= bp->b_resid;
+		size -= bp->resid;
 		if (size < xfersize) {
 			if (size == 0)
 				break;
 			xfersize = size;
 		}
 
+		error = uiomove((char *)bp->data + blkoffset, xfersize, uio);
+		if (error)
+			break;
+
+#if 0
 		if (buf_mapped(bp)) {
 			error = vn_io_fault_uiomove((char *)bp->b_data +
 			    blkoffset, (int)xfersize, uio);
@@ -538,19 +544,24 @@ ffs_read (struct vop_read_args *ap)
 		}
 		if (error)
 			break;
+#endif // 0
 
-		vfs_bio_brelse(bp, ioflag);
+		// TODO HARVEY See if there's anything in ioflag we should honour
+		releasebuf(bp);
+		//vfs_bio_brelse(bp, ioflag);
 	}
-
 	/*
 	 * This can only happen in the case of an error
 	 * because the loop above resets bp to NULL on each iteration
 	 * and on normal completion has not set a new value into it.
 	 * so it must have come from a 'break' statement
 	 */
+	// TODO HARVEY See if there's anything in ioflag we should honour
 	if (bp != nil)
-		vfs_bio_brelse(bp, ioflag);
+		releasebuf(bp);//, ioflag);
 
+#if 0
+	// TODO HARVEY Update i_flag
 	if ((error == 0 || uio->uio_resid != orig_resid) &&
 	    (vp->v_mount->mnt_flag & (MNT_NOATIME | MNT_RDONLY)) == 0 &&
 	    (ip->i_flag & IN_ACCESS) == 0) {
@@ -558,8 +569,11 @@ ffs_read (struct vop_read_args *ap)
 		ip->i_flag |= IN_ACCESS;
 		VI_UNLOCK(vp);
 	}
+#endif // 0
 	return (error);
 }
+
+#if 0
 
 /*
  * Vnode op for writing.

@@ -37,6 +37,10 @@ typedef struct Buf {
 	unsigned char*	data;
 	size_t		bcount;		/* Requested size of buffer */
 	int64_t		offset;		/* Offset into file. */
+
+	// Number of bytes remaining in I/O.  After an I/O operation
+ 	// completes, b_resid is usually 0 indicating 100% success.
+	int64_t		resid;
 } Buf;
 
 
