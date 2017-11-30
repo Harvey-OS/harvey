@@ -53,10 +53,8 @@ rm -f '#¤/caphash'
 #	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
 # }
 
-# netssh
-
 # start listeners if it hasn't already been done (dicey check)
-if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
+if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|113|565|17007|17009|17010) .*')
 	aux/listen -q tcp
 
 if(! ps|grep -s timesync) {
@@ -75,8 +73,7 @@ if(test -e /cfg/$sysname/cpustart)
 # other /proc files, such as note, so let listen be killed.
 #dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
 
-#aux/listen1 -t -v tcp!*!1522 /bin/aux/pipeconsole /bin/rc -m /rc/lib/rcmain -i &
-#aux/comconsole '#t/eia0' /bin/rc -m/rc/lib/rcmain -i &
+#aux/listen1 -t -v tcp!*!1522 /bin/rc -m /rc/lib/rcmain -i &
 
 echo 'key proto=p9sk1 dom=harvey user=harvey !password=harvey' >/mnt/factotum/ctl
 aux/listen1 -t tcp!*!6666 /bin/cpu -R &
