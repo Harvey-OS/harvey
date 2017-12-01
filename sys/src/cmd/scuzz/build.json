@@ -1,0 +1,12 @@
+{
+	"scuzz": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "scuzz",
+		"SourceFiles": [
+			"*.c"
+		]
+	}
+}
