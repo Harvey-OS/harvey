@@ -73,7 +73,7 @@ writesnap(Biobuf *b, Proc *p)
 	Data *d;
 
 	for(i=0; i<Npfile; i++)
-		if(d = p->d[i]) {
+		if((d = p->d[i])) {
 			Bprint(b, "%-11ld %s\n%-11lu ", p->pid, pfile[i], d->len);
 			Bwrite(b, d->data, d->len);
 		}
@@ -83,7 +83,7 @@ writesnap(Biobuf *b, Proc *p)
 		writeseg(b, p, p->text);
 	}
 
-	if(n = p->nseg) {
+	if((n = p->nseg)) {
 		Bprint(b, "%-11ld mem\n%-11d ", p->pid, n);
 		for(i=0; i<n; i++)
 			writeseg(b, p, p->seg[i]);
