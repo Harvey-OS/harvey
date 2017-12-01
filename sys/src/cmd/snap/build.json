@@ -1,0 +1,20 @@
+{
+	"snap": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Projects":
+		[
+			"snapfs.json"
+		],
+		"Program": "snap",
+		"SourceFiles": [
+			"snap.c",
+			"read.c",
+			"take.c",
+			"util.c",
+			"write.c"
+		]
+	}
+}

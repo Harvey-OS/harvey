@@ -34,8 +34,8 @@ struct Data {
 
 struct Seg {
 	char*	name;
-	uvlong	offset;
-	uvlong	 len;
+	uint64_t	offset;
+	uint64_t	 len;
 	Page**	pg;
 	int	npg;
 };
@@ -49,12 +49,12 @@ struct Page {
 	int	written;
 	int	type;
 	uint32_t	pid;
-	uvlong	offset;
+	uint64_t	offset;
 };
 
 struct Proc {
 	Proc *link;
-	long	pid;
+	int32_t	pid;
 	Data*	d[Npfile];
 	Seg**	seg;	/* memory segments */
 	int	nseg;
@@ -63,13 +63,13 @@ struct Proc {
 
 extern char *pfile[Npfile];
 
-Proc*	snap(long pid, int usetext);
+Proc*	snap(int32_t pid, int usetext);
 void*	emalloc(uint32_t);
 void*	erealloc(void*, uint32_t);
 char*	estrdup(char*);
 void	writesnap(Biobuf*, Proc*);
-Page*	datapage(char *p, long len);
+Page*	datapage(char *p, int32_t len);
 Proc*	readsnap(Biobuf *b);
-Page*	findpage(Proc *plist, long pid, int type, uvlong off);
+Page*	findpage(Proc *plist, int32_t pid, int type, uint64_t off);
 
 int	debug;

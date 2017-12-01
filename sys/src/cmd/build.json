@@ -64,6 +64,7 @@
 			"samterm/build.json",
 			"scat/build.json",
 			"scuzz/build.json",
+			"snap/build.json",
 			"tarsplit/build.json",
 			"tbl/build.json",
 			"troff2html/build.json",
