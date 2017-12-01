@@ -218,7 +218,7 @@ readsnap(Biobuf *b)
 		panic("bad snapshot file format");
 
 	plist = nil;
-	while(q = Brdline(b, '\n')) {
+	while((q = Brdline(b, '\n'))) {
 		q[Blinelen(b)-1] = 0;
 		pid = atol(q);
 		q += 12;

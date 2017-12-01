@@ -67,7 +67,7 @@ main(int argc, char **argv)
 	for(i=0; i<argc; i++) {
 		if((pid = atol(argv[i])) == me)
 			fprint(2, "warning: will not snapshot self\n");
-		else if(p = snap(pid, 1))
+		else if((p = snap(pid, 1)))
 			writesnap(b, p);
 	}
 	exits(0);

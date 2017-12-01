@@ -61,7 +61,7 @@ memread(Proc *p, File *f, void *buf, int32_t *count, int64_t offset)
 	int po;
 
 	po = offset%Pagesize;
-	if(!(pg = findpage(p, p->pid, f->name[0], offset-po)))
+	if(!(pg = findpage(p, p->pid, f->Dir.name[0], offset-po)))
 		return "address not mapped";
 
 	if(*count > Pagesize-po)
@@ -188,9 +188,9 @@ main(int argc, char **argv)
 
 		ecreatefile(fdir, "mem", nil, 0666, PDProc(p));
 		for(i=0; i<Npfile; i++) {
-			if(d = p->d[i]) {
+			if((d = p->d[i])) {
 				f = ecreatefile(fdir, pfile[i], nil, 0666, PDData(d));
-				f->length = d->len;
+				f->Dir.length = d->len;
 			}
 		}
 	}
