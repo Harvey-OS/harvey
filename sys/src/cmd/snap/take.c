@@ -219,7 +219,7 @@ snap(int32_t pid, int usetext)
 
 	np = 0;
 	for(i=0; i<Npfile; i++) {
-		if(proc->d[i] = readsection(pid, pfile[i]))
+		if((proc->d[i] = readsection(pid, pfile[i])))
 			np++;
 		else
 			fprint(2, "warning: can't include /proc/%ld/%s\n", pid, pfile[i]);
@@ -270,7 +270,7 @@ snap(int32_t pid, int usetext)
 	stackoff = 0;
 	stacki = 0;
 	for(i=0; i<nf; i++) {
-		if(q = strchr(f[i], ' '))
+		if((q = strchr(f[i], ' ')))
 			*q = 0;
 		name = f[i];
 		off = strtoull(name+10, &q, 16);
