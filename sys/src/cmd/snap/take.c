@@ -91,7 +91,7 @@ readsection(int32_t pid, char *sec)
 		return nil;
 
 	tot = 0;
-	hdr = (int)(intptr_t)((Data*)0)->data;
+	hdr = offsetof(Data, data);
 	while((n = read(fd, buf, sizeof buf)) > 0) {
 		d = erealloc(d, tot+n+hdr);
 		memmove(d->data+tot, buf, n);

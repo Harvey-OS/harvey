@@ -109,7 +109,7 @@ readln(char *prompt, char *line, int len)
 			p++;
 		}
 		if(nr == len){
-			fprint(fd, "line too long; try again\n%s", prompt);
+			fprint(fd, "line too int32_t; try again\n%s", prompt);
 			nr = 0;
 			p = line;
 		}
