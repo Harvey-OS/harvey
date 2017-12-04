@@ -35,7 +35,7 @@ Snarf	snarf = {
 
 static struct
 {
-	QLock;
+	QLock	qlock;
 	int	raw;		/* true if we shouldn't process input */
 	int	ctl;		/* number of opens to the control file */
 	int	x;		/* index into line */
@@ -196,11 +196,11 @@ enum{
 };
 
 static Dirtab consdir[]={
-	".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"cons",		{Qcons},	0,		0660,
-	"consctl",	{Qconsctl},	0,		0220,
-	"snarf",	{Qsnarf},	0,		0600,
-	"winname",	{Qwinname},	0,		0000,
+	{".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555},
+	{"cons",		{Qcons},	0,		0660},
+	{"consctl",	{Qconsctl},	0,		0220},
+	{"snarf",	{Qsnarf},	0,		0600},
+	{"winname",	{Qwinname},	0,		0000},
 };
 
 static void
@@ -234,9 +234,9 @@ consopen(Chan *c, int omode)
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
 	switch((uint32_t)c->qid.path){
 	case Qconsctl:
-		qlock(&kbd);
+		qlock(&kbd.qlock);
 		kbd.ctl++;
-		qunlock(&kbd);
+		qunlock(&kbd.qlock);
 		break;
 	case Qsnarf:
 		if((c->mode&3) == OWRITE || (c->mode&3) == ORDWR)
@@ -251,7 +251,7 @@ setsnarf(char *buf, int n, int *vers)
 {
 	int i;
 
-	qlock(&snarf);
+	qlock(&snarf.qlock);
 	snarf.vers++;
 	if(vers)
 		*vers = snarf.vers;
@@ -264,7 +264,7 @@ setsnarf(char *buf, int n, int *vers)
 	free(snarf.buf);
 	snarf.n = n;
 	snarf.buf = buf;
-	qunlock(&snarf);
+	qunlock(&snarf.qlock);
 }
 
 static void
@@ -276,10 +276,10 @@ consclose(Chan *c)
 	/* last close of control file turns off raw */
 	case Qconsctl:
 		if(c->flag&COPEN){
-			qlock(&kbd);
+			qlock(&kbd.qlock);
 			if(--kbd.ctl == 0)
 				kbd.raw = 0;
-			qunlock(&kbd);
+			qunlock(&kbd.qlock);
 		}
 		break;
 	/* odd behavior but really ok: replace snarf buffer when /dev/snarf is closed */
@@ -305,23 +305,23 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return n;
 	switch((uint32_t)c->qid.path){
 	case Qsnarf:
-		qlock(&snarf);
+		qlock(&snarf.qlock);
 		if(off < snarf.n){
 			if(off + n > snarf.n)
 				n = snarf.n - off;
 			memmove(buf, snarf.buf+off, n);
 		}else
 			n = 0;
-		qunlock(&snarf);
+		qunlock(&snarf.qlock);
 		return n;
 
 	case Qdir:
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
 
 	case Qcons:
-		qlock(&kbd);
+		qlock(&kbd.qlock);
 		if(waserror()){
-			qunlock(&kbd);
+			qunlock(&kbd.qlock);
 			nexterror();
 		}
 		while(!qcanread(lineq)){
@@ -358,7 +358,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 			}
 		}
 		n = qread(lineq, buf, n);
-		qunlock(&kbd);
+		qunlock(&kbd.qlock);
 		poperror();
 		return n;
 
@@ -370,7 +370,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 }
 
 static int32_t
-conswrite(Chan *c, void *va, int32_t n, int64_t)
+conswrite(Chan *c, void *va, int32_t n, int64_t u)
 {
 	Snarf *t;
 	char buf[256], *a;
@@ -395,7 +395,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t)
 			} else if(strncmp(a, "rawoff", 6) == 0){
 				kbd.raw = 0;
 			}
-			if(a = strchr(a, ' '))
+			if((a = strchr(a, ' ')))
 				a++;
 		}
 		break;

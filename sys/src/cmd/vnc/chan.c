@@ -23,7 +23,7 @@ newchan(void)
 	   close calls rootclose, a nop */
 	c->type = 0;
 	c->flag = 0;
-	c->ref = 1;
+	c->ref.ref = 1;
 	c->dev = 0;
 	c->offset = 0;
 	c->iounit = 0;
@@ -46,7 +46,7 @@ cclose(Chan *c)
 {
 	if(c->flag&CFREE)
 		panic("cclose %#p", getcallerpc());
-	if(decref(c))
+	if(decref(&c->ref))
 		return;
 
 	if(!waserror()){
@@ -70,7 +70,7 @@ cclone(Chan *c)
 	free(wq);
 	nc->name = c->name;
 	if(c->name)
-		incref(c->name);
+		incref(&c->name->ref);
 	return nc;
 }
 
@@ -94,9 +94,9 @@ incref(Ref *r)
 {
 	int x;
 
-	lock(r);
+	lock(&r->lock);
 	x = ++r->ref;
-	unlock(r);
+	unlock(&r->lock);
 	return x;
 }
 
@@ -105,9 +105,9 @@ decref(Ref *r)
 {
 	int x;
 
-	lock(r);
+	lock(&r->lock);
 	x = --r->ref;
-	unlock(r);
+	unlock(&r->lock);
 	if(x < 0)
 		panic("decref");
 
@@ -126,7 +126,7 @@ newcname(char *s)
 	n->alen = i+CNAMESLOP;
 	n->s = smalloc(n->alen);
 	memmove(n->s, s, i+1);
-	n->ref = 1;
+	n->ref.ref = 1;
 	incref(&ncname);
 	return n;
 }
@@ -136,7 +136,7 @@ cnameclose(Cname *n)
 {
 	if(n == nil)
 		return;
-	if(decref(n))
+	if(decref(&n->ref))
 		return;
 	decref(&ncname);
 	free(n->s);
@@ -153,7 +153,7 @@ addelem(Cname *n, char *s)
 	if(s[0]=='.' && s[1]=='\0')
 		return n;
 
-	if(n->ref > 1){
+	if(n->ref.ref > 1){
 		/* copy on write */
 		new = newcname(n->s);
 		cnameclose(n);

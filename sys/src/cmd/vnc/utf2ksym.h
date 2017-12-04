@@ -11,7 +11,7 @@
  * VNC uses X11's keysyms defined in X11/keysym.h, this is a converter
  * from unicode characters to ksyms that other servers use.
  */
-static ulong
+static uint32_t
 utf2ksym [] = {
 	[L'Ą'] =	0x1a1,
 	[L'˘'] =	0x1a2,
@@ -901,7 +901,7 @@ utf2ksym [] = {
 	[L'օ'] =	0x14fb,
 	[L'Ֆ'] =	0x14fc,
 	[L'ֆ'] =	0x14fd,
-	[L'''] =	0x14ff,
+	[L'\''] =	0x14ff,
 	[L'ა'] =	0x15d0,
 	[L'ბ'] =	0x15d1,
 	[L'გ'] =	0x15d2,

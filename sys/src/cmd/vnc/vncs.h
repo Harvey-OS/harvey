@@ -20,7 +20,7 @@ struct Rlist
 
 struct Vncs
 {
-	Vnc;
+	Vnc	vnc;
 
 	Vncs	*next;
 	char		remote[NETPATHLEN];
@@ -44,7 +44,7 @@ struct Vncs
 	int		snarfvers;
 
 	Memimage	*image;
-	ulong	imagechan;
+	uint32_t	imagechan;
 };
 
 /* rre.c */

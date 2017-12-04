@@ -10,8 +10,8 @@
 typedef struct Cursor Cursor;
 typedef struct Cursorinfo Cursorinfo;
 struct Cursorinfo {
-	Cursor;
-	Lock;
+	Cursor	cursor;
+	Lock	lock;
 };
 
 extern Cursorinfo	cursor;
@@ -32,12 +32,12 @@ void		drawactive(int);
 void		drawlock(void);
 void		drawunlock(void);
 int		candrawlock(void);
-void		getcolor(ulong, uint32_t*, uint32_t*, uint32_t*);
-int		setcolor(ulong, ulong, ulong, ulong);
+void		getcolor(uint32_t, uint32_t*, uint32_t*, uint32_t*);
+int		setcolor(uint32_t, uint32_t, uint32_t, uint32_t);
 #define		TK2SEC(x)	0
 extern void	blankscreen(int);
 void		screeninit(int x, int y, char *chanstr);
 void		mousetrack(int x, int y, int b, int msec);
-uchar		*attachscreen(Rectangle*, uint32_t*, int*, int*, int*);
+uint8_t		*attachscreen(Rectangle*, uint32_t*, int*, int*, int*);
 
 void		fsinit(char *mntpt, int x, int y, char *chanstr);
