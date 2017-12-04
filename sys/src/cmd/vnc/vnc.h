@@ -33,7 +33,7 @@ struct Pixfmt {
 };
 
 struct Vnc {
-	QLock;
+	QLock	qlock;
 	int		datafd;			/* for network connection */
 	int		ctlfd;			/* control for network connection */
 
@@ -41,7 +41,7 @@ struct Vnc {
 	Biobuf		out;
 
 	Point		dim;
-	Pixfmt;
+	Pixfmt	pixfmt;
 	char		*name;	/* client only */
 };
 
@@ -94,7 +94,7 @@ enum {
 };
 
 /*
- * we're only using the ulong as a place to store bytes,
+ * we're only using the uint32_t as a place to store bytes,
  * and as something to compare against.
  * the bytes are stored in little-endian format.
  */
@@ -108,8 +108,8 @@ extern	int		vncsrvhandshake(Vnc*);
 
 /* proto.c */
 extern	Vnc*		vncinit(int, int, Vnc*);
-extern	uchar		vncrdchar(Vnc*);
-extern	ushort		vncrdshort(Vnc*);
+extern	uint8_t		vncrdchar(Vnc*);
+extern	uint16_t		vncrdshort(Vnc*);
 extern	uint32_t		vncrdlong(Vnc*);
 extern	Point		vncrdpoint(Vnc*);
 extern	Rectangle	vncrdrect(Vnc*);
@@ -119,14 +119,14 @@ extern	void		vncrdbytes(Vnc*, void*, int);
 extern	char*		vncrdstring(Vnc*);
 extern	char*	vncrdstringx(Vnc*);
 extern	void		vncwrstring(Vnc*, char*);
-extern  void    	vncgobble(Vnc*, long);
+extern  void    	vncgobble(Vnc*, int32_t);
 
 extern	void		vncflush(Vnc*);
 extern	void		vncterm(Vnc*);
 extern	void		vncwrbytes(Vnc*, void*, int);
 extern	void		vncwrlong(Vnc*, uint32_t);
-extern	void		vncwrshort(Vnc*, ushort);
-extern	void		vncwrchar(Vnc*, uchar);
+extern	void		vncwrshort(Vnc*, uint16_t);
+extern	void		vncwrchar(Vnc*, uint8_t);
 extern	void		vncwrpixfmt(Vnc*, Pixfmt*);
 extern	void		vncwrrect(Vnc*, Rectangle);
 extern	void		vncwrpoint(Vnc*, Point);

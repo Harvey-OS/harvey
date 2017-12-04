@@ -20,7 +20,7 @@ char	*eve;
 extern void *mainmem;
 
 void
-_assert(char *fmt)
+_assert(const char *fmt)
 {
 	panic("assert failed: %s", fmt);
 }
@@ -73,7 +73,11 @@ void
 initcompat(void)
 {
 	rfork(RFREND);
-	privup = privalloc();
+	/* I just don't know how to fix this, because
+	 * in harvey up is Mach *mah()->externup and
+	 * this emulation through the proc seems so weird for me.
+	 */
+	privup = (Proc **)privalloc();
 	kerndate = seconds();
 	eve = getuser();
 	newup("main");
@@ -186,13 +190,13 @@ rendsleep(Rendez *r, int (*f)(void*), void *arg)
 	up->r = r;
 	unlock(&up->rlock);
 
-	lock(r);
+	lock(&r->lock);
 
 	/*
 	 * if condition happened, never mind
 	 */
 	if(up->intr || f(arg)){
-		unlock(r);
+		unlock(&r->lock);
 		goto Done;
 	}
 
@@ -203,7 +207,7 @@ rendsleep(Rendez *r, int (*f)(void*), void *arg)
 	if(r->p)
 		panic("double sleep");
 	r->p = up;
-	unlock(r);
+	unlock(&r->lock);
 
 	_rendsleep(r);
 
@@ -224,7 +228,7 @@ rendwakeup(Rendez *r)
 	Proc *p;
 	int rv;
 
-	lock(r);
+	lock(&r->lock);
 	p = r->p;
 	rv = 0;
 	if(p){
@@ -232,7 +236,7 @@ rendwakeup(Rendez *r)
 		_rendwakeup(r);
 		rv = 1;
 	}
-	unlock(r);
+	unlock(&r->lock);
 	return rv;
 }
 

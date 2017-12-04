@@ -14,12 +14,12 @@ static struct {
 	char	*name;
 	int	num;
 } enctab[] = {
-	"copyrect",	EncCopyRect,
-	"corre",	EncCorre,
-	"hextile",	EncHextile,
-	"raw",		EncRaw,
-	"rre",		EncRre,
-	"mousewarp",	EncMouseWarp,
+	{"copyrect",	EncCopyRect},
+	{"corre",	EncCorre},
+	{"hextile",	EncHextile},
+	{"raw",		EncRaw},
+	{"rre",		EncRre},
+	{"mousewarp",	EncMouseWarp},
 };
 
 static	uint8_t	*pixbuf;
@@ -346,7 +346,7 @@ readfromserver(Vnc *v)
 	uint8_t junk[100];
 	int32_t n;
 
-	vpixb = calcpixb(v->bpp);
+	vpixb = calcpixb(v->pixfmt.bpp);
 	pixb = calcpixb(screen->depth);
 	switch(pixb){
 	case 1:

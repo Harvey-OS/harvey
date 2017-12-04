@@ -265,13 +265,13 @@ vncwrpoint(Vnc *v, Point p)
 void
 vnclock(Vnc *v)
 {
-	qlock(v);
+	qlock(&v->qlock);
 }
 
 void
 vncunlock(Vnc *v)
 {
-	qunlock(v);
+	qunlock(&v->qlock);
 }
 
 void

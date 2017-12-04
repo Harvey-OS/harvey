@@ -61,24 +61,24 @@ sendraw(Vncs *v, Rectangle r)
 	if(!rectinrect(r, v->image->r))
 		sysfatal("sending bad rectangle");
 
-	pixb = v->bpp >> 3;
-	if((pixb << 3) != v->bpp)
+	pixb = v->vnc.pixfmt.bpp >> 3;
+	if((pixb << 3) != v->vnc.pixfmt.bpp)
 		sysfatal("bad pixel math in sendraw");
-	stride = v->image->width*sizeof(ulong);
+	stride = v->image->width*sizeof(uint32_t);
 	if(((stride / pixb) * pixb) != stride)
 		sysfatal("bad pixel math in sendraw");
 	stride /= pixb;
 
 	raw = byteaddr(v->image, r.min);
 
-	vncwrrect(v, r);
-	vncwrlong(v, EncRaw);
-	sendtraw(v, raw, pixb, stride, Dx(r), Dy(r));
+	vncwrrect(&v->vnc, r);
+	vncwrlong(&v->vnc, EncRaw);
+	sendtraw(&v->vnc, raw, pixb, stride, Dx(r), Dy(r));
 	return 1;
 }
 
 int
-countraw(Vncs*, Rectangle)
+countraw(Vncs *v, Rectangle r)
 {
 	return 1;
 }
@@ -102,7 +102,7 @@ sendhextile(Vncs *v, Rectangle r)
 	if(h == 0 || w == 0 || !rectinrect(r, v->image->r))
 		sysfatal("bad rectangle %R in sendhextile %R", r, v->image->r);
 
-	switch(v->bpp){
+	switch(v->vnc.pixfmt.bpp){
 	case  8:	pixlg = 0;	eq = eqpix8;	break;
 	case 16:	pixlg = 1;	eq = eqpix16;	break;
 	case 32:	pixlg = 2;	eq = eqpix32;	break;
@@ -111,7 +111,7 @@ sendhextile(Vncs *v, Rectangle r)
 		return 1;
 	}
 	pixb = 1 << pixlg;
-	stride = v->image->width*sizeof(ulong);
+	stride = v->image->width*sizeof(uint32_t);
 	if(((stride >> pixlg) << pixlg) != stride){
 		sendraw(v, r);
 		return 1;
@@ -128,8 +128,8 @@ sendhextile(Vncs *v, Rectangle r)
 	}
 	raw = byteaddr(v->image, r.min);
 
-	vncwrrect(v, r);
-	vncwrlong(v, EncHextile);
+	vncwrrect(&v->vnc, r);
+	vncwrlong(&v->vnc, EncHextile);
 	oback = -1;
 	ofore = -1;
 	for(sy = 0; sy < h; sy += HextileDim){
@@ -149,10 +149,10 @@ sendhextile(Vncs *v, Rectangle r)
 			if(oback < 0 || !(*eq)(raw, back + ((traw - raw) >> pixlg), oback))
 				k |= HextileBack;
 			if(nc == 1){
-				vncwrchar(v, k);
+				vncwrchar(&v->vnc, k);
 				if(k & HextileBack){
 					oback = back + ((traw - raw) >> pixlg);
-					putpix(v, raw, oback, pixb);
+					putpix(&v->vnc, raw, oback, pixb);
 				}
 				continue;
 			}
@@ -179,23 +179,23 @@ sendhextile(Vncs *v, Rectangle r)
 			memset(done, 0, HextileDim * HextileDim);
 			nr = encrre(traw, stride, tw, th, back, pixb, buf, nr, done, eq, putr);
 			if(nr < 0){
-				vncwrchar(v, HextileRaw);
-				sendtraw(v, traw, pixb, stride, tw, th);
+				vncwrchar(&v->vnc, HextileRaw);
+				sendtraw(&v->vnc, traw, pixb, stride, tw, th);
 				/* stupid vnc clients smash colors in this case */
 				ofore = -1;
 				oback = -1;
 			}else{
-				vncwrchar(v, k);
+				vncwrchar(&v->vnc, k);
 				if(k & HextileBack){
 					oback = back + ((traw - raw) >> pixlg);
-					putpix(v, raw, oback, pixb);
+					putpix(&v->vnc, raw, oback, pixb);
 				}
 				if(k & HextileFore){
 					ofore = fore + ((traw - raw) >> pixlg);
-					putpix(v, raw, ofore, pixb);
+					putpix(&v->vnc, raw, ofore, pixb);
 				}
-				vncwrchar(v, nr);
-				vncwrbytes(v, buf, nr * bpr);
+				vncwrchar(&v->vnc, nr);
+				vncwrbytes(&v->vnc, buf, nr * bpr);
 			}
 		}
 	}
@@ -205,7 +205,7 @@ sendhextile(Vncs *v, Rectangle r)
 }
 
 int
-counthextile(Vncs*, Rectangle)
+counthextile(Vncs *v, Rectangle r)
 {
 	return 1;
 }
@@ -250,7 +250,7 @@ puthexcol(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y,
 }
 
 static uint8_t*
-puthexfore(uint8_t *buf, uint8_t*, int, int, int x, int y, int w, int h)
+puthexfore(uint8_t *buf, uint8_t *c, int i, int n, int x, int y, int w, int h)
 {
 	*buf++ = (x << 4) | y;
 	*buf++ = (w - 1) << 4 | (h - 1);
@@ -279,13 +279,13 @@ enum
 };
 
 int
-countrre(Vncs*, Rectangle r)
+countrre(Vncs *v, Rectangle r)
 {
 	return rrerects(r, MaxRreDim);
 }
 
 int
-countcorre(Vncs*, Rectangle r)
+countcorre(Vncs *v, Rectangle r)
 {
 	return rrerects(r, MaxCorreDim);
 }
@@ -319,7 +319,7 @@ _sendrre(Vncs *v, Rectangle r, int split, int compact)
 	if(h == 0 || w == 0 || !rectinrect(r, v->image->r))
 		sysfatal("bad rectangle in sendrre");
 
-	switch(v->bpp){
+	switch(v->vnc.pixfmt.bpp){
 	case  8:	pixlg = 0;	eq = eqpix8;	break;
 	case 16:	pixlg = 1;	eq = eqpix16;	break;
 	case 32:	pixlg = 2;	eq = eqpix32;	break;
@@ -328,7 +328,7 @@ _sendrre(Vncs *v, Rectangle r, int split, int compact)
 		return totr + 1;
 	}
 	pixb = 1 << pixlg;
-	stride = v->image->width*sizeof(ulong);
+	stride = v->image->width*sizeof(uint32_t);
 	if(((stride >> pixlg) << pixlg) != stride){
 		sendraw(v, r);
 		return totr + 1;
@@ -359,18 +359,18 @@ _sendrre(Vncs *v, Rectangle r, int split, int compact)
 	else
 		nr = encrre(raw, stride, w, h, back, pixb, buf, nr, done, eq, putrre);
 	if(nr < 0){
-		vncwrrect(v, r);
-		vncwrlong(v, EncRaw);
-		sendtraw(v, raw, pixb, stride, w, h);
+		vncwrrect(&v->vnc, r);
+		vncwrlong(&v->vnc, EncRaw);
+		sendtraw(&v->vnc, raw, pixb, stride, w, h);
 	}else{
-		vncwrrect(v, r);
+		vncwrrect(&v->vnc, r);
 		if(compact)
-			vncwrlong(v, EncCorre);
+			vncwrlong(&v->vnc, EncCorre);
 		else
-			vncwrlong(v, EncRre);
-		vncwrlong(v, nr);
-		putpix(v, raw, back, pixb);
-		vncwrbytes(v, buf, nr * bpr);
+			vncwrlong(&v->vnc, EncRre);
+		vncwrlong(&v->vnc, nr);
+		putpix(&v->vnc, raw, back, pixb);
+		vncwrbytes(&v->vnc, buf, nr * bpr);
 	}
 	free(buf);
 	free(done);

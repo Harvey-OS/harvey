@@ -31,26 +31,26 @@ enum
 
 struct Ref
 {
-	Lock;
+	Lock lock;
 	int	ref;
 };
 
 struct Rendez
 {
-	Lock;
+	Lock lock;
 	Proc	*p;
 };
 
 struct Chan
 {
-	Ref;
+	Ref	ref;
 	Chan*	next;			/* allocation */
 	Chan*	link;
-	vlong	offset;			/* in file */
-	ushort	type;
+	int64_t	offset;			/* in file */
+	uint16_t	type;
 	uint32_t	dev;
-	ushort	mode;			/* read/write */
-	ushort	flag;
+	uint16_t	mode;			/* read/write */
+	uint16_t	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
 	uint32_t	iounit;			/* chunk size for i/o; 0==default */
@@ -60,7 +60,7 @@ struct Chan
 
 struct Cname
 {
-	Ref;
+	Ref	ref;
 	int	alen;			/* allocated length */
 	int	len;			/* strlen(s) */
 	char	*s;
@@ -75,24 +75,24 @@ struct Dev
 	void	(*init)(void);
 	Chan*	(*attach)(char*);
 	Walkqid*	(*walk)(Chan*, Chan*, char**, int);
-	int	(*stat)(Chan*, uchar*, int);
+	int	(*stat)(Chan*, uint8_t*, int);
 	Chan*	(*open)(Chan*, int);
 	void	(*create)(Chan*, char*, int, uint32_t);
 	void	(*close)(Chan*);
-	long	(*read)(Chan*, void*, long, vlong);
-	Block*	(*bread)(Chan*, long, uint32_t);
-	long	(*write)(Chan*, void*, long, vlong);
-	long	(*bwrite)(Chan*, Block*, uint32_t);
+	int32_t	(*read)(Chan*, void*, int32_t, int64_t);
+	Block*	(*bread)(Chan*, int32_t, uint32_t);
+	int32_t	(*write)(Chan*, void*, int32_t, int64_t);
+	int32_t	(*bwrite)(Chan*, Block*, uint32_t);
 	void	(*remove)(Chan*);
-	int	(*wstat)(Chan*, uchar*, int);
+	int	(*wstat)(Chan*, uint8_t*, int);
 };
 
 struct Dirtab
 {
 	char	name[KNAMELEN];
 	Qid	qid;
-	vlong length;
-	long	perm;
+	int64_t length;
+	int32_t	perm;
 };
 
 struct Walkqid
@@ -128,31 +128,31 @@ void		cclose(Chan*);
 void		cnameclose(Cname*);
 int		decref(Ref*);
 Chan*		devattach(int, char*);
-Block*		devbread(Chan*, long, uint32_t);
-long		devbwrite(Chan*, Block*, uint32_t);
+Block*		devbread(Chan*, int32_t, uint32_t);
+int32_t		devbwrite(Chan*, Block*, uint32_t);
 void		devcreate(Chan*, char*, int, uint32_t);
-void		devdir(Chan*, Qid, char*, vlong, char*, long, Dir*);
-long		devdirread(Chan*, char*, long, Dirtab*, int, Devgen*);
+void		devdir(Chan*, Qid, char*, int64_t, char*, int32_t, Dir*);
+int32_t		devdirread(Chan*, char*, int32_t, Dirtab*, int, Devgen*);
 Devgen		devgen;
 void		devinit(void);
 Chan*		devopen(Chan*, int, Dirtab*, int, Devgen*);
 void		devremove(Chan*);
 void		devreset(void);
-int		devstat(Chan*, uchar*, int, Dirtab*, int, Devgen*);
+int		devstat(Chan*, uint8_t*, int, Dirtab*, int, Devgen*);
 Walkqid*		devwalk(Chan*, Chan*, char**, int, Dirtab*, int, Devgen*);
-int		devwstat(Chan*, uchar*, int);
+int		devwstat(Chan*, uint8_t*, int);
 void		error(char*);
 int		incref(Ref*);
 void		isdir(Chan*);
 void		kproc(char*, void(*)(void*), void*);
-void		mkqid(Qid*, vlong, uint32_t, int);
+void		mkqid(Qid*, int64_t, uint32_t, int);
 void		nexterror(void);
 Chan*		newchan(void);
 Cname*		newcname(char*);
 int		openmode(uint32_t);
 void		panic(char*, ...);
 int		readstr(uint32_t, char*, uint32_t, char*);
-long		seconds(void);
+int32_t		seconds(void);
 void*		smalloc(uint32_t);
 
 #define		poperror()	up->nerrlab--
