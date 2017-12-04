@@ -30,34 +30,11 @@ Dev	*devtab[] =
 	nil
 };
 
-static char *msgname[] = {
-	[MPixFmt] = "MPixFmt",
-	[MFixCmap] = "MFixCmap",
-	[MSetEnc] = "MSetEnc",
-	[MFrameReq] = "MFrameReq",
-	[MKey] = "MKey",
-	[MMouse] = "MMouse",
-	[MCCut] = "MCCut",
-};
-
-static char *encname[] = {
-	[EncRaw] = "raw",
-	[EncCopyRect] = "copy rect",
-	[EncRre] = "rre",
-	[EncCorre] = "corre",
-	[EncHextile] = "hextile",
-	[EncZlib]	= "zlib",
-	[EncTight]	= "zlibtight",
-	[EncZHextile]	= "zhextile",
-	[EncMouseWarp]	= "mousewarp",
-
-};
-
 /*
  * list head. used to hold the list, the lock, dim, and pixelfmt
  */
 struct {
-	QLock;
+	QLock	qlock;
 	Vncs *head;
 } clients;
 
@@ -176,7 +153,7 @@ main(int argc, char **argv)
 		break;
 	}
 
-	vncpriv = privalloc();
+	vncpriv = (Vncs **)privalloc();
 	if(vncpriv == nil)
 		sysfatal("privalloc: %r");
 
@@ -246,16 +223,16 @@ main(int argc, char **argv)
 			close(fd);
 			continue;
 		}
-		v->ctlfd = cfd;
-		v->datafd = fd;
+		v->vnc.ctlfd = cfd;
+		v->vnc.datafd = fd;
 		v->nproc = 1;
 		v->ndead = 0;
 		getremote(ldir, v->remote);
 		strcpy(v->netpath, ldir);
-		qlock(&clients);
+		qlock(&clients.qlock);
 		v->next = clients.head;
 		clients.head = v;
-		qunlock(&clients);
+		qunlock(&clients.qlock);
 		vncaccept(v);
 	}
 	exits(0);
@@ -314,27 +291,27 @@ vncclose(Vncs *v)
 	Vncs **l;
 
 	/* remove self from client list if there */
-	qlock(&clients);
+	qlock(&clients.qlock);
 	for(l=&clients.head; *l; l=&(*l)->next)
 		if(*l == v){
 			*l = v->next;
 			break;
 		}
-	qunlock(&clients);
+	qunlock(&clients.qlock);
 
 	/* if last proc, free v */
-	vnclock(v);
+	vnclock(&v->vnc);
 	if(++v->ndead < v->nproc){
-		vncunlock(v);
+		vncunlock(&v->vnc);
 		return;
 	}
 
 	freerlist(&v->rlist);
-	vncterm(v);
-	if(v->ctlfd >= 0)
-		close(v->ctlfd);
-	if(v->datafd >= 0)
-		close(v->datafd);
+	vncterm(&v->vnc);
+	if(v->vnc.ctlfd >= 0)
+		close(v->vnc.ctlfd);
+	if(v->vnc.datafd >= 0)
+		close(v->vnc.datafd);
 	if(v->image)
 		freememimage(v->image);
 	free(v);
@@ -363,19 +340,19 @@ killclients(Vncs *safe)
 {
 	Vncs *v;
 
-	qlock(&clients);
+	qlock(&clients.qlock);
 	for(v=clients.head; v; v=v->next){
 		if(v == safe)
 			continue;
-		if(v->ctlfd >= 0){
-			hangup(v->ctlfd);
-			close(v->ctlfd);
-			v->ctlfd = -1;
-			close(v->datafd);
-			v->datafd = -1;
+		if(v->vnc.ctlfd >= 0){
+			hangup(v->vnc.ctlfd);
+			close(v->vnc.ctlfd);
+			v->vnc.ctlfd = -1;
+			close(v->vnc.datafd);
+			v->vnc.datafd = -1;
 		}
 	}
-	qunlock(&clients);
+	qunlock(&clients.qlock);
 }
 
 /*
@@ -404,7 +381,7 @@ shutdown(void)
 }
 
 static void
-noteshutdown(void*, char *msg)
+noteshutdown(void *v, char *msg)
 {
 	if(strcmp(msg, killkin) == 0)	/* already shutting down */
 		noted(NDFLT);
@@ -523,7 +500,7 @@ vncaccept(Vncs *v)
 			fprint(2, "%V: could not read cert %s: %r; hanging up\n", v, cert);
 			exits(nil);
 		}
-		fd = tlsServer(v->datafd, &conn);
+		fd = tlsServer(v->vnc.datafd, &conn);
 		if(fd < 0){
 			fprint(2, "%V: tlsServer: %r; hanging up\n", v);
 			free(conn.cert);
@@ -531,50 +508,50 @@ vncaccept(Vncs *v)
 				free(conn.sessionID);
 			exits(nil);
 		}
-		close(v->datafd);
-		v->datafd = fd;
+		close(v->vnc.datafd);
+		v->vnc.datafd = fd;
 		free(conn.cert);
 		free(conn.sessionID);
 	}
-	vncinit(v->datafd, v->ctlfd, v);
+	vncinit(v->vnc.datafd, v->vnc.ctlfd, &v->vnc);
 
 	if(verbose)
 		fprint(2, "%V: handshake\n", v);
-	if(vncsrvhandshake(v) < 0){
+	if(vncsrvhandshake(&v->vnc) < 0){
 		fprint(2, "%V: handshake failed; hanging up\n", v);
 		exits(0);
 	}
 	if(verbose)
 		fprint(2, "%V: auth\n", v);
-	if(vncsrvauth(v) < 0){
+	if(vncsrvauth(&v->vnc) < 0){
 		fprint(2, "%V: auth failed; hanging up\n", v);
 		exits(0);
 	}
 
-	shared = vncrdchar(v);
+	shared = vncrdchar(&v->vnc);
 
 	if(verbose)
 		fprint(2, "%V: %sshared\n", v, shared ? "" : "not ");
 	if(!shared)
 		killclients(v);
 
-	v->dim = (Point){Dx(gscreen->r), Dy(gscreen->r)};
-	vncwrpoint(v, v->dim);
+	v->vnc.dim = (Point){Dx(gscreen->r), Dy(gscreen->r)};
+	vncwrpoint(&v->vnc, v->vnc.dim);
 	if(verbose)
-		fprint(2, "%V: send screen size %P (rect %R)\n", v, v->dim, gscreen->r);
+		fprint(2, "%V: send screen size %P (rect %R)\n", v, v->vnc.dim, gscreen->r);
 
-	v->bpp = gscreen->depth;
-	v->depth = gscreen->depth;
-	v->truecolor = 1;
-	v->bigendian = 0;
-	chan2fmt(v, gscreen->chan);
+	v->vnc.pixfmt.bpp = gscreen->depth;
+	v->vnc.pixfmt.depth = gscreen->depth;
+	v->vnc.pixfmt.truecolor = 1;
+	v->vnc.pixfmt.bigendian = 0;
+	chan2fmt(&v->vnc.pixfmt, gscreen->chan);
 	if(verbose)
 		fprint(2, "%V: bpp=%d, depth=%d, chan=%s\n", v,
-			v->bpp, v->depth, chantostr(buf, gscreen->chan));
-	vncwrpixfmt(v, v);
-	vncwrlong(v, 14);
-	vncwrbytes(v, "Plan9 Desktop", 14);
-	vncflush(v);
+			v->vnc.pixfmt.bpp, v->vnc.pixfmt.depth, chantostr(buf, gscreen->chan));
+	vncwrpixfmt(&v->vnc, &v->vnc.pixfmt);
+	vncwrlong(&v->vnc, 14);
+	vncwrbytes(&v->vnc, "Harvey Desktop", 14);
+	vncflush(&v->vnc);
 
 	if(verbose)
 		fprint(2, "%V: handshaking done\n", v);
@@ -582,7 +559,7 @@ vncaccept(Vncs *v)
 	switch(rfork(RFPROC|RFMEM)){
 	case -1:
 		fprint(2, "%V: cannot fork: %r; hanging up\n", v);
-		vnchungup(v);
+		vnchungup(&v->vnc);
 	default:
 		clientreadproc(v);
 		exits(nil);
@@ -628,12 +605,12 @@ setpixelfmt(Vncs *v)
 {
 	uint32_t chan;
 
-	vncgobble(v, 3);
-	v->Pixfmt = vncrdpixfmt(v);
-	chan = fmt2chan(v);
+	vncgobble(&v->vnc, 3);
+	v->vnc.pixfmt = vncrdpixfmt(&v->vnc);
+	chan = fmt2chan(&v->vnc.pixfmt);
 	if(chan == 0){
 		fprint(2, "%V: bad pixel format; hanging up\n", v);
-		vnchungup(v);
+		vnchungup(&v->vnc);
 	}
 	v->imagechan = chan;
 }
@@ -649,10 +626,10 @@ setencoding(Vncs *v)
 {
 	int n, x;
 
-	vncrdchar(v);
-	n = vncrdshort(v);
+	vncrdchar(&v->vnc);
+	n = vncrdshort(&v->vnc);
 	while(n-- > 0){
-		x = vncrdlong(v);
+		x = vncrdlong(&v->vnc);
 		switch(x){
 		case EncCopyRect:
 			v->copyrect = 1;
@@ -712,11 +689,11 @@ clientreadproc(Vncs *v)
 	vncname("read %V", v);
 
 	for(;;){
-		type = vncrdchar(v);
+		type = vncrdchar(&v->vnc);
 		switch(type){
 		default:
 			fprint(2, "%V: unknown vnc message type %d; hanging up\n", v, type);
-			vnchungup(v);
+			vnchungup(&v->vnc);
 
 		/* set pixel format */
 		case MPixFmt:
@@ -725,9 +702,9 @@ clientreadproc(Vncs *v)
 
 		/* ignore color map changes */
 		case MFixCmap:
-			vncgobble(v, 3);
-			n = vncrdshort(v);
-			vncgobble(v, n*6);
+			vncgobble(&v->vnc, 3);
+			n = vncrdshort(&v->vnc);
+			vncgobble(&v->vnc, n*6);
 			break;
 
 		/* set encoding list */
@@ -737,51 +714,51 @@ clientreadproc(Vncs *v)
 
 		/* request image update in rectangle */
 		case MFrameReq:
-			incremental = vncrdchar(v);
-			r = vncrdrect(v);
+			incremental = vncrdchar(&v->vnc);
+			r = vncrdrect(&v->vnc);
 			if(incremental){
-				vnclock(v);
+				vnclock(&v->vnc);
 				v->updaterequest = 1;
-				vncunlock(v);
+				vncunlock(&v->vnc);
 			}else{
 				drawlock();	/* protects rlist */
-				vnclock(v);	/* protects updaterequest */
+				vnclock(&v->vnc);	/* protects updaterequest */
 				v->updaterequest = 1;
 				addtorlist(&v->rlist, r);
-				vncunlock(v);
+				vncunlock(&v->vnc);
 				drawunlock();
 			}
 			break;
 
 		/* send keystroke */
 		case MKey:
-			keydown = vncrdchar(v);
-			vncgobble(v, 2);
-			key = vncrdlong(v);
+			keydown = vncrdchar(&v->vnc);
+			vncgobble(&v->vnc, 2);
+			key = vncrdlong(&v->vnc);
 			vncputc(!keydown, key);
 			break;
 
 		/* send mouse event */
 		case MMouse:
-			buttons = vncrdchar(v);
-			x = vncrdshort(v);
-			y = vncrdshort(v);
+			buttons = vncrdchar(&v->vnc);
+			x = vncrdshort(&v->vnc);
+			y = vncrdshort(&v->vnc);
 			mousetrack(x, y, buttons, nsec()/(1000*1000LL));
 			break;
 
 		/* send cut text */
 		case MCCut:
-			vncgobble(v, 3);
-			n = vncrdlong(v);
+			vncgobble(&v->vnc, 3);
+			n = vncrdlong(&v->vnc);
 			buf = malloc(n+1);
 			if(buf){
-				vncrdbytes(v, buf, n);
+				vncrdbytes(&v->vnc, buf, n);
 				buf[n] = 0;
-				vnclock(v);	/* for snarfvers */
+				vnclock(&v->vnc);	/* for snarfvers */
 				setsnarf(buf, n, &v->snarfvers);
-				vncunlock(v);
+				vncunlock(&v->vnc);
 			}else
-				vncgobble(v, n);
+				vncgobble(&v->vnc, n);
 			break;
 		}
 	}
@@ -891,10 +868,10 @@ flushmemscreen(Rectangle r)
 
 	if(!rectclip(&r, gscreen->r))
 		return;
-	qlock(&clients);
+	qlock(&clients.qlock);
 	for(v=clients.head; v; v=v->next)
 		addtorlist(&v->rlist, r);
-	qunlock(&clients);
+	qunlock(&clients.qlock);
 }
 
 /*
@@ -905,16 +882,16 @@ mousewarpnote(Point p)
 {
 	Vncs *v;
 
-	qlock(&clients);
+	qlock(&clients.qlock);
 	for(v=clients.head; v; v=v->next){
 		if(v->canwarp){
-			vnclock(v);
+			vnclock(&v->vnc);
 			v->needwarp = 1;
 			v->warppt = p;
-			vncunlock(v);
+			vncunlock(&v->vnc);
 		}
 	}
-	qunlock(&clients);
+	qunlock(&clients.qlock);
 }
 
 /*
@@ -940,7 +917,7 @@ updateimage(Vncs *v)
 	needwarp = v->canwarp && v->needwarp;
 	warppt = v->warppt;
 	v->needwarp = 0;
-	vncunlock(v);
+	vncunlock(&v->vnc);
 
 	/* copy the screen bits and then unlock the screen so updates can proceed */
 	drawlock();
@@ -948,7 +925,7 @@ updateimage(Vncs *v)
 	memset(&v->rlist, 0, sizeof v->rlist);
 
 	/* if the cursor has moved or changed shape, we need to redraw its square */
-	lock(&cursor);
+	lock(&cursor.lock);
 	if(v->cursorver != cursorver || !eqpt(v->cursorpos, cursorpos)){
 		docursor = 1;
 		v->cursorver = cursorver;
@@ -958,7 +935,7 @@ updateimage(Vncs *v)
 		docursor = 0;
 		cr = v->cursorr;
 	}
-	unlock(&cursor);
+	unlock(&cursor.lock);
 
 	if(docursor){
 		addtorlist(&rlist, v->cursorr);
@@ -982,11 +959,11 @@ updateimage(Vncs *v)
 
 	drawunlock();
 
-	ooffset = Boffset(&v->out);
+	ooffset = Boffset(&v->vnc.out);
 	/* no more locks are held; talk to the client */
 
 	if(rlist.nrect == 0 && needwarp == 0){
-		vnclock(v);
+		vnclock(&v->vnc);
 		return 0;
 	}
 
@@ -1005,9 +982,9 @@ updateimage(Vncs *v)
 		fprint(2, "sendupdate: rlist.nrect=%d, ncount=%d", rlist.nrect, ncount);
 
 	t1 = nsec();
-	vncwrchar(v, MFrameUpdate);
-	vncwrchar(v, 0);
-	vncwrshort(v, ncount+needwarp);
+	vncwrchar(&v->vnc, MFrameUpdate);
+	vncwrchar(&v->vnc, 0);
+	vncwrshort(&v->vnc, ncount+needwarp);
 
 	nsend = 0;
 	for(i=0; i<rlist.nrect; i++)
@@ -1015,20 +992,20 @@ updateimage(Vncs *v)
 
 	if(ncount != nsend){
 		fprint(2, "%V: ncount=%d, nsend=%d; hanging up\n", v, ncount, nsend);
-		vnchungup(v);
+		vnchungup(&v->vnc);
 	}
 
 	if(needwarp){
-		vncwrrect(v, Rect(warppt.x, warppt.y, warppt.x+1, warppt.y+1));
-		vncwrlong(v, EncMouseWarp);
+		vncwrrect(&v->vnc, Rect(warppt.x, warppt.y, warppt.x+1, warppt.y+1));
+		vncwrlong(&v->vnc, EncMouseWarp);
 	}
 
 	t1 = nsec() - t1;
 	if(verbose > 1)
-		fprint(2, " in %lldms, %lld bytes\n", t1/1000000, Boffset(&v->out) - ooffset);
+		fprint(2, " in %lldms, %lld bytes\n", t1/1000000, Boffset(&v->vnc.out) - ooffset);
 
 	freerlist(&rlist);
-	vnclock(v);
+	vnclock(&v->vnc);
 	return 1;
 }
 
@@ -1043,25 +1020,25 @@ updatesnarf(Vncs *v)
 
 	if(v->snarfvers == snarf.vers)
 		return;
-	vncunlock(v);
-	qlock(&snarf);
+	vncunlock(&v->vnc);
+	qlock(&snarf.qlock);
 	len = snarf.n;
 	buf = malloc(len);
 	if(buf == nil){
-		qunlock(&snarf);
-		vnclock(v);
+		qunlock(&snarf.qlock);
+		vnclock(&v->vnc);
 		return;
 	}
 	memmove(buf, snarf.buf, len);
 	v->snarfvers = snarf.vers;
-	qunlock(&snarf);
+	qunlock(&snarf.qlock);
 
-	vncwrchar(v, MSCut);
-	vncwrbytes(v, "pad", 3);
-	vncwrlong(v, len);
-	vncwrbytes(v, buf, len);
+	vncwrchar(&v->vnc, MSCut);
+	vncwrbytes(&v->vnc, "pad", 3);
+	vncwrlong(&v->vnc, len);
+	vncwrbytes(&v->vnc, buf, len);
 	free(buf);
-	vnclock(v);
+	vnclock(&v->vnc);
 }
 
 /*
@@ -1075,17 +1052,17 @@ clientwriteproc(Vncs *v)
 
 	vncname("write %V", v);
 	for(;;){
-		vnclock(v);
+		vnclock(&v->vnc);
 		if(v->ndead)
 			break;
 		if((v->image == nil && v->imagechan!=0)
 		|| (v->image && v->image->chan != v->imagechan)){
 			if(v->image)
 				freememimage(v->image);
-			v->image = allocmemimage(Rpt(ZP, v->dim), v->imagechan);
+			v->image = allocmemimage(Rpt(ZP, v->vnc.dim), v->imagechan);
 			if(v->image == nil){
 				fprint(2, "%V: allocmemimage: %r; hanging up\n", v);
-				vnchungup(v);
+				vnchungup(&v->vnc);
 			}
 			if(verbose)
 				fprint(2, "%V: translating image from chan=%s to chan=%s\n",
@@ -1099,11 +1076,11 @@ clientwriteproc(Vncs *v)
 			if(!sent)
 				v->updaterequest = 1;
 		}
-		vncunlock(v);
-		vncflush(v);
+		vncunlock(&v->vnc);
+		vncflush(&v->vnc);
 		if(!sent)
 			sleep(sleeptime);
 	}
-	vncunlock(v);
-	vnchungup(v);
+	vncunlock(&v->vnc);
+	vnchungup(&v->vnc);
 }

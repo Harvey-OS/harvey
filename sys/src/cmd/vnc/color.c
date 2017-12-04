@@ -157,22 +157,22 @@ choosecolor(Vnc *v)
 		}
 	}
 
-	v->bpp = bpp;
-	v->depth = depth;
-	v->truecolor = 1;
-	v->bigendian = 0;
-	chan2fmt(v, chan);
-	if(v->red.max == 0 || v->green.max == 0 || v->blue.max == 0)
+	v->pixfmt.bpp = bpp;
+	v->pixfmt.depth = depth;
+	v->pixfmt.truecolor = 1;
+	v->pixfmt.bigendian = 0;
+	chan2fmt(&v->pixfmt, chan);
+	if(v->pixfmt.red.max == 0 || v->pixfmt.green.max == 0 || v->pixfmt.blue.max == 0)
 		sysfatal("screen not supported");
 
 	if(verbose)
 		fprint(2, "%d bpp, %d depth, 0x%lx chan, %d truecolor, %d bigendian\n",
-			v->bpp, v->depth, screen->chan, v->truecolor, v->bigendian);
+			v->pixfmt.bpp, v->pixfmt.depth, screen->chan, v->pixfmt.truecolor, v->pixfmt.bigendian);
 
 	/* send information to server */
 	vncwrchar(v, MPixFmt);
 	vncwrchar(v, 0);	/* padding */
 	vncwrshort(v, 0);
-	vncwrpixfmt(v, &v->Pixfmt);
+	vncwrpixfmt(v, &v->pixfmt);
 	vncflush(v);
 }
