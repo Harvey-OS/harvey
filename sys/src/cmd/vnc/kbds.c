@@ -53,38 +53,38 @@ enum
 
 static Rune vnckeys[] =
 {
-[0x00]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x08]	'\b',	'\t',	'\r',	No,	No,	'\n',	No,	No,
-[0x10]	No,	No,	No,	No,	Scroll,	No,	No,	No,
-[0x18]	No,	No,	No,	Esc,	No,	No,	No,	No,
-[0x20]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x28]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x30]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x38]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x40]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x48]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x50]	Home,	Left,	Up,	Right,	Down,	Pgup,	Pgdown,	No,
-[0x58]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x60]	No,	Print,	No,	Ins,	No,	No,	No,	No,
-[0x68]	No,	No,	No,	Break,	No,	No,	No,	No,
-[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78]	No,	No,	No,	No,	No,	No,	No,	Num,
-[0x80]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x88]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x90]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x98]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xa0]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xa8]	No,	No,	'*',	'+',	No,	'-',	'.',	'/',
-[0xb0]	'0',	'1',	'2',	'3',	'4',	'5',	'6',	'7',
-[0xb8]	'8',	'9',	No,	No,	No,	'=',	No,	No,
-[0xc0]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xc8]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xd0]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xd8]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xe0]	No,	Shift,	Shift,	Ctrl,	Ctrl,	Caps,	Caps,	No,
-[0xe8]	No,	Latin,	Latin,	No,	No,	No,	No,	No,
-[0xf0]	No,	No,	No,	No,	No,	No,	No,	No,
-[0xf8]	No,	No,	No,	No,	No,	No,	No,	Delete,
+	[0x00]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x08]=	'\b',	'\t',	'\r',	No,	No,	'\n',	No,	No,
+	[0x10]=	No,	No,	No,	No,	Scroll,	No,	No,	No,
+	[0x18]=	No,	No,	No,	Esc,	No,	No,	No,	No,
+	[0x20]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x28]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x30]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x38]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x40]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x48]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x50]=	Home,	Left,	Up,	Right,	Down,	Pgup,	Pgdown,	No,
+	[0x58]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x60]=	No,	Print,	No,	Ins,	No,	No,	No,	No,
+	[0x68]=	No,	No,	No,	Break,	No,	No,	No,	No,
+	[0x70]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x78]=	No,	No,	No,	No,	No,	No,	No,	Num,
+	[0x80]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x88]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x90]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0x98]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xa0]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xa8]=	No,	No,	'*',	'+',	No,	'-',	'.',	'/',
+	[0xb0]=	'0',	'1',	'2',	'3',	'4',	'5',	'6',	'7',
+	[0xb8]=	'8',	'9',	No,	No,	No,	'=',	No,	No,
+	[0xc0]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xc8]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xd0]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xd8]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xe0]=	No,	Shift,	Shift,	Ctrl,	Ctrl,	Caps,	Caps,	No,
+	[0xe8]=	No,	Latin,	Latin,	No,	No,	No,	No,	No,
+	[0xf0]=	No,	No,	No,	No,	No,	No,	No,	No,
+	[0xf8]=	No,	No,	No,	No,	No,	No,	No,	Delete,
 };
 
 /*
@@ -94,7 +94,6 @@ void
 vncputc(int keyup, int c)
 {
 	int i;
-	static int esc1, esc2;
 	static int alt, caps, ctl, num, shift;
 	static int collecting, nk;
 	static Rune kc[5];
@@ -178,5 +177,6 @@ vncputc(int keyup, int c)
 			return;
 		}
 	}
+	USED(shift), USED(alt);
 	kbdputc(c);
 }

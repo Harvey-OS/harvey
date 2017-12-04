@@ -71,6 +71,7 @@
 			"units/build.json",
 			"usb/build.json",
 			"venti/venti.json",
+			"vnc/build.json",
 			"zenith/build.json"
 		]
 	}
