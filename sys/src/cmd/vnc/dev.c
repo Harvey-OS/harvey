@@ -237,13 +237,13 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 {
 	int32_t k, m, dsz;
 	struct{
-		Dir;
+		Dir	dir;
 		char slop[100];
 	}dir;
 
 	k = c->offset;
 	for(m=0; m<n; k++){
-		switch((*gen)(c, tab, ntab, k, &dir)){
+		switch((*gen)(c, tab, ntab, k, &dir.dir)){
 		case -1:
 			return m;
 
@@ -252,7 +252,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 			break;
 
 		case 1:
-			dsz = convD2M(&dir, (uint8_t*)d, n-m);
+			dsz = convD2M(&dir.dir, (uint8_t*)d, n-m);
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					return -1;
@@ -319,33 +319,33 @@ Return:
 }
 
 void
-devcreate(Chan*, char*, int, uint32_t)
+devcreate(Chan *c, char *r, int i, uint32_t u)
 {
 	error(Eperm);
 }
 
 Block*
-devbread(Chan *, int32_t, uint32_t)
+devbread(Chan *c, int32_t i, uint32_t u)
 {
 	panic("no block read");
 	return nil;
 }
 
 int32_t
-devbwrite(Chan *, Block *, uint32_t)
+devbwrite(Chan *c, Block *b, uint32_t u)
 {
 	panic("no block write");
 	return 0;
 }
 
 void
-devremove(Chan*)
+devremove(Chan *c)
 {
 	error(Eperm);
 }
 
 int
-devwstat(Chan*, uint8_t*, int)
+devwstat(Chan *c, uint8_t *u, int i)
 {
 	error(Eperm);
 	return 0;

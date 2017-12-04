@@ -11,7 +11,7 @@ typedef struct	Snarf	Snarf;
 
 struct Snarf
 {
-	QLock;
+	QLock	qlock;
 	int		vers;
 	int		n;
 	char		*buf;
@@ -24,7 +24,7 @@ enum
 
 extern	Snarf		snarf;
 
-long			latin1(Rune *k, int n);
+int32_t			latin1(Rune *k, int n);
 void			kbdputc(int c);
 void			screenputs(char*, int);
 void			vncputc(int, int);

@@ -1,0 +1,31 @@
+{
+	"vnc": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Projects":
+		[
+			"vncv.json"
+		],
+		"Program": "vncs",
+		"SourceFiles": [
+			"vncs.c",
+			"devdraw.c",
+			"devmouse.c",
+			"devcons.c",
+			"screen.c",
+			"exporter.c",
+			"dev.c",
+			"chan.c",
+			"compat.c",
+			"exportfs.c",
+			"kbds.c",
+			"latin1.c",
+			"rre.c",
+			"rlist.c",
+			"proto.c",
+			"auth.c"
+		]
+	}
+}

@@ -62,7 +62,7 @@ netmkvncaddr(char *inserver)
 	port = 5900;
 	if(tls)
 		port = 35729;
-	if(p = strchr(server, ':')) {
+	if((p = strchr(server, ':'))) {
 		*p++ = '\0';
 		port += atoi(p);
 	}
@@ -74,7 +74,7 @@ netmkvncaddr(char *inserver)
 }
 
 void
-vnchungup(Vnc*)
+vnchungup(Vnc *v)
 {
 	sysfatal("connection closed");
 }
@@ -211,7 +211,7 @@ vncstart(Vnc *v, int shared)
 	vncwrchar(v, shared);
 	vncflush(v);
 	v->dim = vncrdpoint(v);
-	v->Pixfmt = vncrdpixfmt(v);
+	v->pixfmt = vncrdpixfmt(v);
 	v->name = vncrdstring(v);
 	return 0;
 }

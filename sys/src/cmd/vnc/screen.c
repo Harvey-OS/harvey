@@ -43,10 +43,8 @@ static Rectangle	cursorr;
 static Point		offscreen;
 static uint8_t		cursset[CURSORDIM*CURSORDIM/8];
 static uint8_t		cursclr[CURSORDIM*CURSORDIM/8];
-static int		cursdrawvers = -1;
 static Memimage		*cursorset;
 static Memimage		*cursorclear;
-static Cursor		screencursor;
 
 Cursor	arrow = {
 	{ -1, -1 },
@@ -152,6 +150,7 @@ screeninit(int x, int y, char *chanstr)
 	drawunlock();
 
 	setcursor(&arrow);
+	USED(q);
 }
 
 uint8_t*
@@ -168,7 +167,7 @@ attachscreen(Rectangle* r, uint32_t* chan, int* d, int* width,
 }
 
 void
-getcolor(uint32_t , uint32_t* pr, uint32_t* pg, uint32_t* pb)
+getcolor(uint32_t i, uint32_t* pr, uint32_t* pg, uint32_t* pb)
 {
 	*pr = 0;
 	*pg = 0;
@@ -176,7 +175,7 @@ getcolor(uint32_t , uint32_t* pr, uint32_t* pg, uint32_t* pb)
 }
 
 int
-setcolor(uint32_t , uint32_t , uint32_t , uint32_t )
+setcolor(uint32_t i, uint32_t n, uint32_t t, uint32_t u)
 {
 	return 0;
 }
@@ -191,7 +190,7 @@ cursordraw(Memimage *dst, Rectangle r)
 	static int ver = -1;
 	int i, j, n;
 
-	lock(&cursor);
+	lock(&cursor.lock);
 	if(ver != cursorver){
 		n = 0;
 		for(i = 0; i < CURSORDIM*CURSORDIM/8; i += CURSORDIM/8){
@@ -205,11 +204,11 @@ cursordraw(Memimage *dst, Rectangle r)
 		}
 		memmove(clr, cursclr, CURSORDIM*CURSORDIM/8);
 		ver = cursorver;
-		unlock(&cursor);
+		unlock(&cursor.lock);
 		loadmemimage(cursorset, cursorr, set, CURSORDIM*CURSORDIM);
 		loadmemimage(cursorclear, cursorr, clr, CURSORDIM*CURSORDIM/8);
 	}else
-		unlock(&cursor);
+		unlock(&cursor.lock);
 	memimagedraw(dst, r, memwhite, ZP, cursorclear, ZP, SoverD);
 	memimagedraw(dst, r, curscol, ZP, cursorset, ZP, SoverD);
 }
@@ -222,8 +221,8 @@ cursorrect(void)
 {
 	Rectangle r;
 
-	r.min.x = cursorpos.x + cursor.offset.x;
-	r.min.y = cursorpos.y + cursor.offset.y;
+	r.min.x = cursorpos.x + cursor.cursor.offset.x;
+	r.min.y = cursorpos.y + cursor.cursor.offset.y;
 	r.max.x = r.min.x + CURSORDIM;
 	r.max.y = r.min.y + CURSORDIM;
 	return r;
@@ -244,10 +243,10 @@ int
 cursoron(int dolock)
 {
 	if(dolock)
-		lock(&cursor);
+		lock(&cursor.lock);
 	cursorpos = mousexy();
 	if(dolock)
-		unlock(&cursor);
+		unlock(&cursor.lock);
 
 	return 0;
 }
@@ -256,10 +255,10 @@ void
 cursoroff(int dolock)
 {
 	if(dolock)
-		lock(&cursor);
+		lock(&cursor.lock);
 	cursorpos = offscreen;
 	if(dolock)
-		unlock(&cursor);
+		unlock(&cursor.lock);
 }
 
 void
@@ -311,7 +310,14 @@ screenputc(char *buf)
 	static int *xp;
 	static int xbuf[256];
 
-	if(xp < xbuf || xp >= &xbuf[sizeof(xbuf)])
+/* This just hasn't any sense, checking if it's smaller
+ * or more or equal to the size of an array guessing it's full.
+ * I think there was an age in what the size of an array was the number
+ * of its elements...
+ * Compiler: error: array index 1024 is past the end of the array
+ * if(xp < xbuf || xp >= &xbuf[sizeof(xbuf)])
+ */
+	if(xp < xbuf || xp >= xbuf)
 		xp = xbuf;
 
 	switch(buf[0]){
