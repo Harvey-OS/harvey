@@ -132,7 +132,7 @@ loadexcludefile(char *file)
 		sysfatal("open %s: %r", file);
 	for(n=1; (p=Brdstr(b, '\n', 1)) != nil; free(p), n++){
 		q = p+strlen(p);
-		while(q > p && isspace((uchar)*(q-1)))
+		while(q > p && isspace((uint8_t)*(q-1)))
 			*--q = 0;
 		switch(p[0]){
 		case '\0':

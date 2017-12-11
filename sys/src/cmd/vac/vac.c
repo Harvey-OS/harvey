@@ -59,14 +59,14 @@ threadmain(int argc, char **argv)
 	int i, j, fd, n, printstats;
 	Dir *d;
 	char *s;
-	uvlong u;
+	uint64_t u;
 	VacFile *f, *fdiff;
 	VacFs *fsdiff;
 	int blocksize;
 	int outfd;
 	char *stdinname;
 	char *diffvac;
-	uvlong qid;
+	uint64_t qid;
 
 
 	fmtinstall('F', vtfcallfmt);

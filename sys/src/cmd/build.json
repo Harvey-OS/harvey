@@ -72,6 +72,7 @@
 			"troff2html/build.json",
 			"units/build.json",
 			"usb/build.json",
+			"vac/build.json",
 			"venti/venti.json",
 			"vnc/build.json",
 			"zenith/build.json"
