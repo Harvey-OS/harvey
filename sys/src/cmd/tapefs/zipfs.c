@@ -44,7 +44,6 @@ static uint32_t crc;
 static int findCDir(Biobuf *);
 static int header(Biobuf *, ZipHead *);
 static int cheader(Biobuf *, ZipHead *);
-static void trailer(Biobuf *, ZipHead *);
 static char *getname(Biobuf *, int);
 static int blwrite(void *, void *, int);
 static uint32_t get4(Biobuf *);
@@ -301,17 +300,6 @@ blwrite(void *vb, void *buf, int n)
 	memmove(b->pos, buf, n);
 	b->pos += n;
 	return n;
-}
-
-
-static void
-trailer(Biobuf *bin, ZipHead *zh)
-{
-	if(zh->flags & ZTrailInfo){
-		zh->crc = get4(bin);
-		zh->csize = get4(bin);
-		zh->uncsize = get4(bin);
-	}
 }
 
 static char*

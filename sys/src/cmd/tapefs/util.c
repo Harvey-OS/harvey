@@ -74,7 +74,7 @@ poppath(Fileinf fi, int new)
 	if (*fi.name=='\0')
 		return 0;
 	origname = estrdup(fi.name);
-	if (suffix=strrchr(fi.name, '/')){
+	if ((suffix = strrchr(fi.name, '/'))){
 		*suffix = 0;
 		suffix++;
 		if (*suffix=='\0'){
