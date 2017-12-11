@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomclose(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *)
+smbcomclose(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *sb)
 {
 	SmbTree *t;
 	SmbFile *f;

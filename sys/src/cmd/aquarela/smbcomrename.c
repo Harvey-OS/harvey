@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
+smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 {
 	int rv;
 	char *old,     *new;

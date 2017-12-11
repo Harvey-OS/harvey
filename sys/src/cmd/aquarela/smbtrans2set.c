@@ -122,7 +122,7 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 	uint32_t attr;
 	uint32_t mode;
 	uint32_t size;
-//	uvlong length;
+//	uint64_t length;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {

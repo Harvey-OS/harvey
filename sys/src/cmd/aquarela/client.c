@@ -114,7 +114,7 @@ threadmain(int argc, char **argv)
 {
 	int broadcast = 1, i, listen137thread, rv;
 	char *ip;
-	uchar ipaddr[IPaddrlen], serveripaddr[IPaddrlen];
+	char ipaddr[IPaddrlen], serveripaddr[IPaddrlen];
 	NbName nbname;
 
 	ARGBEGIN {

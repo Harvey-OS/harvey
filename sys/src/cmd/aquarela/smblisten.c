@@ -11,7 +11,7 @@
 
 static struct {
 	int thread;
-	QLock;
+	QLock	qlock;
 	char adir[NETPATHLEN];
 	int acfd;
 	char ldir[NETPATHLEN];
@@ -24,7 +24,7 @@ typedef struct Session Session;
 enum { Connected, Dead };
 
 struct Session {
-	SmbCifsSession;
+	SmbCifsSession	scs;
 	int thread;
 	Session *next;
 	int state;
@@ -32,7 +32,7 @@ struct Session {
 };
 
 static struct {
-	QLock;
+	QLock	qlock;
 	Session *head;
 } sessions;
 
@@ -42,13 +42,13 @@ static void
 deletesession(Session *s)
 {
 	Session **sp;
-	close(s->fd);
-	qlock(&sessions);
+	close(s->scs.fd);
+	qlock(&sessions.qlock);
 	for (sp = &sessions.head; *sp && *sp != s; sp = &(*sp)->next)
 		;
 	if (*sp)
 		*sp = s->next;
-	qunlock(&sessions);
+	qunlock(&sessions.qlock);
 	free(s);
 }
 
@@ -64,12 +64,12 @@ tcpreader(void *a)
 		uint8_t flags;
 		uint16_t length;
 
-		n = readn(s->fd, buf, 4);
+		n = readn(s->scs.fd, buf, 4);
 		if (n != 4) {
 		die:
 			free(buf);
 			if (s->state == Connected)
-				(*s->write)(s, nil, -1);
+				(*s->write)(&s->scs, nil, -1);
 			deletesession(s);
 			return;
 		}
@@ -79,11 +79,11 @@ tcpreader(void *a)
 			print("nbss: too much data (%u)\n", length);
 			goto die;
 		}
-		n = readn(s->fd, buf + 4, length);
+		n = readn(s->scs.fd, buf + 4, length);
 		if (n != length)
 			goto die;
 		if (s->state == Connected) {
-			if ((*s->write)(s, buf + 4, length) != 0) {
+			if ((*s->write)(&s->scs, buf + 4, length) != 0) {
 				s->state = Dead;
 				goto die;
 			}
@@ -96,29 +96,29 @@ createsession(int fd)
 {
 	Session *s;
 	s = smbemalloc(sizeof(Session));
-	s->fd = fd;
+	s->scs.fd = fd;
 	s->state = Connected;
-	qlock(&sessions);
-	if (!(*tcp.accept)(s, &s->write)) {
-		qunlock(&sessions);
+	qlock(&sessions.qlock);
+	if (!(*tcp.accept)(&s->scs, &s->write)) {
+		qunlock(&sessions.qlock);
 		free(s);
 		return nil;
 	}
 	s->thread = procrfork(tcpreader, s, 32768, RFNAMEG);
 	if (s->thread < 0) {
-		qunlock(&sessions);
-		(*s->write)(s, nil, -1);
+		qunlock(&sessions.qlock);
+		(*s->write)(&s->scs, nil, -1);
 		free(s);
 		return nil;
 	}
 	s->next = sessions.head;
 	sessions.head = s;
-	qunlock(&sessions);
+	qunlock(&sessions.qlock);
 	return s;
 }
 
 static void
-tcplistener(void *)
+tcplistener(void *v)
 {
 	for (;;) {
 		int dfd;
@@ -129,10 +129,10 @@ tcplistener(void *)
 //print("cifstcplistener: contact\n");
 		if (lcfd < 0) {
 		die:
-			qlock(&tcp);
+			qlock(&tcp.qlock);
 			close(tcp.acfd);
 			tcp.thread = -1;
-			qunlock(&tcp);
+			qunlock(&tcp.qlock);
 			return;
 		}
 		dfd = accept(lcfd, ldir);
@@ -147,17 +147,17 @@ tcplistener(void *)
 int
 smblistencifs(SMBCIFSACCEPTFN *accept)
 {
-	qlock(&tcp);
+	qlock(&tcp.qlock);
 	if (tcp.thread < 0) {
 		tcp.acfd = announce("tcp!*!cifs", tcp.adir);
 		if (tcp.acfd < 0) {
 			print("smblistentcp: can't announce: %r\n");
-			qunlock(&tcp);
+			qunlock(&tcp.qlock);
 			return -1;
 		}
 		tcp.thread = proccreate(tcplistener, nil, 16384);
 	}
 	tcp.accept = accept;
-	qunlock(&tcp);
+	qunlock(&tcp.qlock);
 	return 0;
 }

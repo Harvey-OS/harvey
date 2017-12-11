@@ -1,0 +1,21 @@
+{
+	"aquarela": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Install": "/$ARCH/bin",
+		"Libs": [
+			"/sys/src/cmd/aquarela/libsmb.a"
+		],
+		"Post": [
+			"rm -f /sys/src/cmd/aquarela/libsmb.a"
+		],
+		"Projects": [
+			"libsmb.json"
+		],
+		"SourceFilesCmd": [
+			"aquarela.c",
+			"cifscmd.c"
+		]
+	}
+}

@@ -117,11 +117,11 @@ bad:
 void
 smbserviceget(SmbService *serv)
 {
-	incref(serv);
+	incref(&serv->ref);
 }
 
 void
 smbserviceput(SmbService *serv)
 {
-	decref(serv);
+	decref(&serv->ref);
 }

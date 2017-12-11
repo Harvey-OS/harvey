@@ -50,7 +50,7 @@ smbcheckwordandbytecount(char *name, SmbHeader *h, uint16_t wordcount,
 	return 1;
 }
 
-SmbProcessResult
+int
 smbchaincommand(SmbSession *s, SmbHeader *h, uint32_t andxoffsetfixup,
 		uint8_t cmd, uint16_t offset, SmbBuffer *b)
 {
@@ -249,7 +249,7 @@ smbseterror(SmbSession *s, uint8_t errclass, uint16_t error)
 	s->error = error;
 }
 
-SmbProcessResult
+int
 smbbufferputack(SmbBuffer *b, SmbHeader *h, SmbPeerInfo *p)
 {
 	h->wordcount = 0;
@@ -306,7 +306,7 @@ smbplan9length2size32(int64_t length)
 }
 
 int64_t
-smbl2roundupvlong(int64_t v, int l2)
+smbl2roundupint64_t(int64_t v, int l2)
 {
 	uint64_t mask;
 	mask = (1 << l2) - 1;
