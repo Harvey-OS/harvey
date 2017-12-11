@@ -13,7 +13,7 @@
 
 /* big endian */
 #define	b4byte(x)	(((x)[0]<<24) + ((x)[1]<<16) + ((x)[2]<<8) + (x)[3])
-#define	b8byte(x)	(((vlong)b4byte(x)<<32) | (u32int)b4byte((x)+4))
+#define	b8byte(x)	(((int64_t)b4byte(x)<<32) | (uint32_t)b4byte((x)+4))
 enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
@@ -26,9 +26,9 @@ typedef struct Ram Ram;
 
 struct Fid
 {
-	short	busy;
-	short	open;
-	short	rclose;
+	int16_t	busy;
+	int16_t	open;
+	int16_t	rclose;
 	int	fid;
 	Fid	*next;
 	char	*user;
@@ -44,15 +44,15 @@ struct Ram
 	Ram	*child;		/* first member of directory */
 	Ram	*next;		/* next member of file's directory */
 	Qid	qid;
-	long	perm;
+	int32_t	perm;
 	char	*name;
 	uint32_t	atime;
 	uint32_t	mtime;
 	char	*user;
 	char	*group;
-	vlong addr;
+	int64_t addr;
 	void *data;
-	vlong	ndata;
+	int64_t	ndata;
 };
 
 enum
@@ -72,13 +72,13 @@ typedef struct idmap {
 
 typedef struct fileinf {
 	char	*name;
-	vlong	addr;
+	int64_t	addr;
 	void	*data;
-	vlong	size;
+	int64_t	size;
 	int	mode;
 	int	uid;
 	int	gid;
-	long	mdate;
+	int32_t	mdate;
 } Fileinf;
 
 extern	uint32_t	path;		/* incremented for each new file */
@@ -95,8 +95,8 @@ char	*estrdup(char*);
 void	populate(char *);
 void	dotrunc(Ram*);
 void	docreate(Ram*);
-char	*doread(Ram*, vlong, long);
-void	dowrite(Ram*, char*, long, long);
+char	*doread(Ram*, int64_t, int32_t);
+void	dowrite(Ram*, char*, int32_t, int32_t);
 int	dopermw(Ram*);
 Idmap	*getpass(char*);
 char	*mapid(Idmap*,int);
