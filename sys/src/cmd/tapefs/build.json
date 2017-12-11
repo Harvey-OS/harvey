@@ -1,0 +1,27 @@
+{
+	"tapefs": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Libs": [
+			"/sys/src/cmd/tapefs/libtpfs.a"
+		],
+		"Post": [
+			"rm -f /sys/src/cmd/tapefs/libtpfs.a"
+		],
+		"Projects": [
+			"libtpfs.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFilesCmd": [
+			"tarfs.c",
+			"tpfs.c",
+			"v6fs.c",
+			"32vfs.c",
+			"cpiofs.c",
+			"tapfs.c",
+			"v10fs.c",
+			"zipfs.c"
+		]
+	}
+}

@@ -1,0 +1,13 @@
+{
+	"tapefs": {
+		"Include": [
+			"../../lib.json"
+		],
+		"Install": "/sys/src/cmd/tapefs/",
+		"Library": "libtpfs.a",
+		"SourceFiles": [
+			"fs.c",
+			"util.c"
+		]
+	}
+}
