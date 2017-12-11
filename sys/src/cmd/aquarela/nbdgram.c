@@ -15,7 +15,7 @@
 
 static struct {
 	int thread;
-	QLock;
+	QLock	qlock;
 	int fd;
 } udp = { -1 };
 
@@ -29,12 +29,12 @@ struct Listen {
 };
 
 static struct {
-	QLock;
+	QLock	qlock;
 	Listen *head;
 } listens;
 
 static void
-udplistener(void *)
+udplistener(void *v)
 {
 //print("udplistener - starting\n");
 	for (;;) {
@@ -76,7 +76,7 @@ udplistener(void *)
 */
 						break;
 					}
-					qlock(&listens);
+					qlock(&listens.qlock);
 					for (lp = &listens.head; (l = *lp) != nil;) {
 						if (nbnameisany(l->to) || nbnameequal(l->to, s.datagram.dstname)) {
 							switch ((*l->deliver)(l->magic, &s)) {
@@ -94,7 +94,7 @@ udplistener(void *)
 						}
 						lp = &l->next;
 					}
-					qunlock(&listens);
+					qunlock(&listens.qlock);
 					USED(delivered);
 				}
 				default:
@@ -104,25 +104,25 @@ udplistener(void *)
 		}
 	}
 print("udplistener - exiting\n");
-	qlock(&udp);
+	qlock(&udp.qlock);
 	udp.thread = -1;
-	qunlock(&udp);
+	qunlock(&udp.qlock);
 }
 
 static char *
 startlistener(void)
 {
-	qlock(&udp);
+	qlock(&udp.qlock);
 	if (udp.thread < 0) {
 		char *e;
 		e = nbudpannounce(NbDgramPort, &udp.fd);
 		if (e) {
-			qunlock(&udp);
+			qunlock(&udp.qlock);
 			return e;
 		}
 		udp.thread = proccreate(udplistener, nil, 16384);
 	}
-	qunlock(&udp);
+	qunlock(&udp.qlock);
 	return nil;
 }
 
@@ -139,10 +139,10 @@ nbdgramlisten(NbName to, int (*deliver)(void *magic, NbDgram *s), void *magic)
 	nbnamecpy(l->to, to);
 	l->deliver = deliver;
 	l->magic = magic;
-	qlock(&listens);
+	qlock(&listens.qlock);
 	l->next = listens.head;
 	listens.head = l;
-	qunlock(&listens);
+	qunlock(&listens.qlock);
 	return 0;
 }
 
@@ -177,17 +177,17 @@ nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s)
 }
 
 static struct {
-	Lock;
-	ushort id;
+	Lock	lock;
+	uint16_t id;
 } id;
 
 static uint16_t
 nextdgramid(void)
 {
 	uint16_t v;
-	lock(&id);
+	lock(&id.lock);
 	v = id.id++;
-	unlock(&id);
+	unlock(&id.lock);
 	return v;
 }
 

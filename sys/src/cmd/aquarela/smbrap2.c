@@ -123,7 +123,7 @@ shareinfoput(SmbBuffer *b, uint16_t level, void *data)
 	if (level > 1) {
 		if (!smbbufferputs(b, 7)
 			|| !smbbufferputs(b, -1)
-			|| !smbbufferputs(b, serv->ref)
+			|| !smbbufferputs(b, serv->ref.ref)
 			|| !smbbufferputl(b, 0)
 			|| !smbbufferfill(b, 0, 10))
 			return 0;
@@ -159,7 +159,7 @@ shareinfoputstrings(SmbBuffer *b, uint16_t level, int instance, void *data)
 }
 
 static void *
-shareinfoenumerate(void *, int i)
+shareinfoenumerate(void *v, int i)
 {
 	SmbService *serv;
 	for (serv = smbservices; i-- > 0 && serv; serv = serv->next)
@@ -236,7 +236,7 @@ netshareenum(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 	uint16_t level;
 
 	/* WrLeh */
-	/* ushort sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, ushort *pcTotalAvail */
+	/* uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, uint16_t *pcTotalAvail */
 
 	if (!smbbuffergets(inparam, &level))
 		return SmbProcessResultFormat;
@@ -262,10 +262,11 @@ netserverenum2(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 	int entries;
 
 	/* WrLehDz
-	 * ushort sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, ushort *pcTotalAvail,
-	 * ulong fServerType, char *pszDomain
+	 * uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, uint16_t *pcTotalAvail,
+	 * uint32_t fServerType, char *pszDomain
 	*/
 
+	domain = malloc(sizeof(domain));
 	if (!smbbuffergets(inparam, &level)
 		|| !smbbuffergets(inparam, &rbl)
 		|| !smbbuffergetl(inparam, &servertype)
@@ -320,7 +321,7 @@ netsharegetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 
 	/*
 	 * zWrLh
-	 * char *pszNetName, ushort sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ushort *pcbTotalAvail
+	 * char *pszNetName, uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, uint16_t *pcbTotalAvail
 	*/
 
 	if (!smbbuffergetstrinline(inparam, &netname)
@@ -359,7 +360,7 @@ netservergetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 	SmbProcessResult pr;
 
 	/* WrLh
-	 * ushort sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ushort *pcbTotalAvail
+	 * uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, uint16_t *pcbTotalAvail
 	*/
 
 	if (!smbbuffergets(inparam, &level)) {
@@ -389,7 +390,7 @@ netwkstagetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 	int moredata;
 
 	/* WrLh
-	 * ushort sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ushort *pcbTotalAvail
+	 * uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, uint16_t *pcbTotalAvail
 	*/
 
 	if (!smbbuffergets(inparam, &level)) {
@@ -441,14 +442,14 @@ done:
 }
 
 static RapTableEntry raptable[] = {
-[RapNetShareGetInfo] { "NetShareGetInfo", netsharegetinfo },
-[RapNetShareEnum] { "NetShareEnum", netshareenum },
-[RapNetServerGetInfo] {"NetServerGetInfo", netservergetinfo },
-[RapNetWkstaGetInfo] { "NetWkstaGetInfo", netwkstagetinfo },
-[RapNetServerEnum2] { "NetServerEnum2", netserverenum2 },
+[RapNetShareGetInfo] = { "NetShareGetInfo", netsharegetinfo },
+[RapNetShareEnum] = { "NetShareEnum", netshareenum },
+[RapNetServerGetInfo] = {"NetServerGetInfo", netservergetinfo },
+[RapNetWkstaGetInfo] = { "NetWkstaGetInfo", netwkstagetinfo },
+[RapNetServerEnum2] = { "NetServerEnum2", netserverenum2 },
 };
 
-SmbProcessResult
+int
 smbrap2(SmbSession *s)
 {
 	char *pstring;

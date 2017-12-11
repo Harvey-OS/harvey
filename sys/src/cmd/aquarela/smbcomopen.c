@@ -333,13 +333,13 @@ smbcomopen(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	SmbFile *f;
 	SmbProcessResult pr;
 
+	path = malloc(sizeof(path));
 	if (!smbcheckwordcount("comopen", h, 2))
 		return SmbProcessResultFormat;
 	mode = smbnhgets(pdata);
 	attr = smbnhgets(pdata + 2);
 	if (!smbbuffergetb(b, &fmt)
-		|| fmt != 4
-		|| !smbbuffergetstring(b, h, SMB_STRING_PATH, &path)) {
+		|| fmt != 4 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &path)) {
 		pr = SmbProcessResultFormat;
 		goto done;
 	}
@@ -403,8 +403,8 @@ smbcomcreate(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	smblogprint(h->command, "tid=%d\n", h->tid);
 	attr = smbnhgets(pdata); pdata += 2;
 	createtime = smbnhgetl(pdata);
-	if (!smbbuffergetb(b, &fmt) || fmt != 0x04 ||
-	    !smbbuffergetstring(b, h, SMB_STRING_PATH, &path)){
+	if (!smbbuffergetb(b, &fmt) || (fmt != 0x04 ||
+	    !smbbuffergetstring(b, h, SMB_STRING_PATH, &path))){
 		pr = SmbProcessResultError;
 		goto done;
 	}
@@ -524,7 +524,7 @@ static void
 smbsblutlogprint(uint8_t cmd, SmbSblut *sblut, uint32_t mask)
 {
 	while (sblut->s) {
-		if (mask && (sblut->mask & mask) || (mask == 0 && sblut->mask == 0))
+		if ((mask && (sblut->mask & mask)) || ((mask == 0 && sblut->mask == 0)))
 			smblogprint(cmd, " %s", sblut->s);
 		sblut++;
 	}
@@ -638,7 +638,7 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 
 	if (shareaccess == SMB_SA_NO_SHARE)
 		sharemode = SMB_OPEN_MODE_SHARE_EXCLUSIVE;
-	else if (shareaccess & (SMB_SA_SHARE_READ | SMB_SA_SHARE_WRITE) ==
+	else if ((shareaccess & (SMB_SA_SHARE_READ | SMB_SA_SHARE_WRITE)) ==
 		(SMB_SA_SHARE_READ | SMB_SA_SHARE_WRITE))
 		sharemode = SMB_OPEN_MODE_SHARE_DENY_NONE;
 	else if (shareaccess & SMB_SA_SHARE_READ)
@@ -696,7 +696,7 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		|| !smbbufferputv(s->response, mtime)
 		|| !smbbufferputv(s->response, mtime)
 		|| !smbbufferputl(s->response, smbplan9mode2dosattr(d->mode))
-		|| !smbbufferputv(s->response, smbl2roundupvlong(d->length, smbglobals.l2allocationsize))
+		|| !smbbufferputv(s->response, smbl2roundupint64_t(d->length, smbglobals.l2allocationsize))
 		|| !smbbufferputv(s->response, d->length)
 		|| !smbbufferputbytes(s->response, nil, 4)
 		|| !smbbufferputb(s->response, (d->qid.type & QTDIR) != 0)

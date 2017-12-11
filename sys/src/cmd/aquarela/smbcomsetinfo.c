@@ -11,7 +11,7 @@
 
 SmbProcessResult
 smbcomsetinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
-		      SmbBuffer *)
+		      SmbBuffer *sb)
 {
 	uint16_t fid, adate, atime, mdate, mtime;
 	SmbTree *t;

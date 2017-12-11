@@ -15,7 +15,7 @@
 
 static struct {
 	int thread;
-	QLock;
+	QLock	qlock;
 	char adir[NETPATHLEN];
 	int acfd;
 	char ldir[NETPATHLEN];
@@ -27,7 +27,7 @@ typedef struct Session Session;
 enum { NeedSessionRequest, Connected, Dead };
 
 struct Session {
-	NbSession;
+	NbSession nbs;
 	int thread;
 	Session *next;
 	int state;
@@ -35,7 +35,7 @@ struct Session {
 };
 
 static struct {
-	QLock;
+	QLock qlock;
 	Session *head;
 } sessions;
 
@@ -50,7 +50,7 @@ struct Listen {
 };
 
 static struct {
-	QLock;
+	QLock qlock;
 	Listen *head;
 } listens;
 
@@ -58,13 +58,13 @@ static void
 deletesession(Session *s)
 {
 	Session **sp;
-	close(s->fd);
-	qlock(&sessions);
+	close(s->nbs.fd);
+	qlock(&sessions.qlock);
 	for (sp = &sessions.head; *sp && *sp != s; sp = &(*sp)->next)
 		;
 	if (*sp)
 		*sp = s->next;
-	qunlock(&sessions);
+	qunlock(&sessions.qlock);
 	free(s);
 }
 
@@ -80,18 +80,18 @@ tcpreader(void *a)
 		uint8_t flags;
 		uint16_t length;
 
-		n = readn(s->fd, buf, 4);
+		n = readn(s->nbs.fd, buf, 4);
 		if (n != 4) {
 		die:
 			free(buf);
 			if (s->state == Connected)
-				(*s->write)(s, nil, -1);
+				(*s->write)(&s->nbs, nil, -1);
 			deletesession(s);
 			return;
 		}
 		flags = buf[1];
 		length = nhgets(buf + 2) | ((flags & 1) << 16);
-		n = readn(s->fd, buf + 4, length);
+		n = readn(s->nbs.fd, buf + 4, length);
 		if (n != length)
 			goto die;
 		if (flags & 0xfe) {
@@ -105,7 +105,7 @@ tcpreader(void *a)
 				goto die;
 			}
 			if (s->state == Connected) {
-				if ((*s->write)(s, buf + 4, length) != 0) {
+				if ((*s->write)(&s->nbs, buf + 4, length) != 0) {
 					s->state = Dead;
 					goto die;
 				}
@@ -124,13 +124,13 @@ tcpreader(void *a)
 			}
 			p = buf + 4;
 			ep = p + length;
-			k = nbnamedecode(p, p, ep, s->to);
+			k = nbnamedecode(p, p, ep, s->nbs.to);
 			if (k == 0) {
 				print("nbss: malformed called name in session request\n");
 				goto die;
 			}
 			p += k;
-			k = nbnamedecode(p, p, ep, s->from);
+			k = nbnamedecode(p, p, ep, s->nbs.from);
 			if (k == 0) {
 				print("nbss: malformed calling name in session request\n");
 				goto die;
@@ -144,38 +144,38 @@ tcpreader(void *a)
 */
 			called_found = 0;
 //print("nbss: called %B calling %B\n", s->to, s->from);
-			qlock(&listens);
+			qlock(&listens.qlock);
 			for (l = listens.head; l; l = l->next)
-				if (nbnameequal(l->to, s->to)) {
+				if (nbnameequal(l->to, s->nbs.to)) {
 					called_found = 1;
-					if (nbnameequal(l->from, s->from))
+					if (nbnameequal(l->from, s->nbs.from))
 						break;
 				}
 			if (l == nil) {
-				qunlock(&listens);
+				qunlock(&listens.qlock);
 				error_code  = called_found ? 0x81 : 0x80;
 			replydie:
 				buf[0] = 0x83;
 				buf[1] = 0;
 				hnputs(buf + 2, 1);
 				buf[4] = error_code;
-				write(s->fd, buf, 5);
+				write(s->nbs.fd, buf, 5);
 				goto die;
 			}
-			if (!(*l->accept)(l->magic, s, &s->write)) {
-				qunlock(&listens);
+			if (!(*l->accept)(l->magic, &s->nbs, &s->write)) {
+				qunlock(&listens.qlock);
 				error_code = 0x83;
 				goto replydie;
 			}
 			buf[0] = 0x82;
 			buf[1] = 0;
 			hnputs(buf + 2, 0);
-			if (write(s->fd, buf, 4) != 4) {
-				qunlock(&listens);
+			if (write(s->nbs.fd, buf, 4) != 4) {
+				qunlock(&listens.qlock);
 				goto die;
 			}
 			s->state = Connected;
-			qunlock(&listens);
+			qunlock(&listens.qlock);
 			break;
 		}
 		case 0x85: /* keep awake */
@@ -192,23 +192,23 @@ createsession(int fd)
 {
 	Session *s;
 	s = nbemalloc(sizeof(Session));
-	s->fd = fd;
+	s->nbs.fd = fd;
 	s->state = NeedSessionRequest;
-	qlock(&sessions);
+	qlock(&sessions.qlock);
 	s->thread = procrfork(tcpreader, s, 32768, RFNAMEG);
 	if (s->thread < 0) {
-		qunlock(&sessions);
+		qunlock(&sessions.qlock);
 		free(s);
 		return nil;
 	}
 	s->next = sessions.head;
 	sessions.head = s;
-	qunlock(&sessions);
-	return s;
+	qunlock(&sessions.qlock);
+	return &s->nbs;
 }
 
 static void
-tcplistener(void *)
+tcplistener(void *v)
 {
 	for (;;) {
 		int dfd;
@@ -219,10 +219,10 @@ tcplistener(void *)
 //print("tcplistener: contact\n");
 		if (lcfd < 0) {
 		die:
-			qlock(&tcp);
+			qlock(&tcp.qlock);
 			close(tcp.acfd);
 			tcp.thread = -1;
-			qunlock(&tcp);
+			qunlock(&tcp.qlock);
 			return;
 		}
 		dfd = accept(lcfd, ldir);
@@ -238,27 +238,27 @@ int
 nbsslisten(NbName to, NbName from,int (*accept)(void *magic, NbSession *s, NBSSWRITEFN **writep), void *magic)
 {
 	Listen *l;
-	qlock(&tcp);
+	qlock(&tcp.qlock);
 	if (tcp.thread < 0) {
 		fmtinstall('B', nbnamefmt);
 		tcp.acfd = announce("tcp!*!netbios", tcp.adir);
 		if (tcp.acfd < 0) {
 			print("nbsslisten: can't announce: %r\n");
-			qunlock(&tcp);
+			qunlock(&tcp.qlock);
 			return -1;
 		}
 		tcp.thread = proccreate(tcplistener, nil, 16384);
 	}
-	qunlock(&tcp);
+	qunlock(&tcp.qlock);
 	l = nbemalloc(sizeof(Listen));
 	nbnamecpy(l->to, to);
 	nbnamecpy(l->from, from);
 	l->accept = accept;
 	l->magic = magic;
-	qlock(&listens);
+	qlock(&listens.qlock);
 	l->next = listens.head;
 	listens.head = l;
-	qunlock(&listens);
+	qunlock(&listens.qlock);
 	return 0;
 }
 
@@ -352,13 +352,13 @@ nbssconnect(NbName to, NbName from)
 		return nil;
 	}
 	s = nbemalloc(sizeof(Session));
-	s->fd = fd;
+	s->nbs.fd = fd;
 	s->state = Connected;
-	qlock(&sessions);
+	qlock(&sessions.qlock);
 	s->next = sessions.head;
 	sessions.head = s;
-	qunlock(&sessions);
-	return s;
+	qunlock(&sessions.qlock);
+	return &s->nbs;
 }
 
 int32_t
@@ -375,7 +375,7 @@ nbssscatterread(NbSession *nbs, NbScatterGather *a)
 		l += ap->l;
 //print("nbssscatterread %ld bytes\n", l);
 again:
-	if (readn(s->fd, hdr, 4) != 4) {
+	if (readn(s->nbs.fd, hdr, 4) != 4) {
 	dead:
 		s->state = Dead;
 		return -1;
@@ -408,7 +408,7 @@ again:
 		if (thistime > ap->l)
 			thistime = ap->l;
 //print("reading %d\n", length);
-		n = readn(s->fd, ap->p, thistime);
+		n = readn(s->nbs.fd, ap->p, thistime);
 		if (n != thistime)
 			goto dead;
 		length -= thistime;
