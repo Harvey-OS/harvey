@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
+smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 {
 	int rv;
 	char *path;

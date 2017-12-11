@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomqueryinformation(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
+smbcomqueryinformation(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 {
 	SmbTree *t;
 	uint8_t fmt;
@@ -55,7 +55,7 @@ smbcomqueryinformation(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 
 SmbProcessResult
 smbcomqueryinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
-			SmbBuffer *)
+			SmbBuffer *sb)
 {
 	SmbTree *t;
 	Dir *d;
@@ -94,7 +94,7 @@ smbcomqueryinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 		|| !smbbufferputs(s->response, mtime)
 		|| !smbbufferputl(s->response, smbplan9length2size32(d->length))
 		|| !smbbufferputl(s->response,
-			smbplan9length2size32(smbl2roundupvlong(d->length, smbglobals.l2allocationsize)))
+			smbplan9length2size32(smbl2roundupint64_t(d->length, smbglobals.l2allocationsize)))
 		|| !smbbufferputs(s->response, smbplan9mode2dosattr(d->mode))
 		|| !smbbufferputs(s->response, 0)) {
 		free(d);

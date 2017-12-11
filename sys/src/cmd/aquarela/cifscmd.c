@@ -98,7 +98,7 @@ typedef struct {
 static Cmd cmd[];
 
 static int32_t
-cmdhelp(SmbClient *, int argc, char *argv[])
+cmdhelp(SmbClient *s, int argc, char *argv[])
 {
 	Cmd *cp;
 	char *p;
@@ -212,7 +212,7 @@ threadmain(int argc, char *argv[])
 		if (c == nil)
 			fprint(2, "failed to connect: %s\n", errmsg);
 	}
-	while (ap = Brdline(&bin, '\n')) {
+	while ((ap = Brdline(&bin, '\n'))) {
 		ap[Blinelen(&bin) - 1] = 0;
 		switch (ac = parse(ap, av, nelem(av))) {
 		default:

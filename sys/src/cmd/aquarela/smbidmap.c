@@ -74,7 +74,7 @@ grow(SmbIdMap *m)
 		m->entries = INITIALCHUNKSIZE;
 	else
 		m->entries *= 2;
-	smberealloc(&m->array, sizeof(Entry) * m->entries);
+	smberealloc((void *)&m->array, sizeof(Entry) * m->entries);
 	for (x = m->entries - 1; x >= oldentries; x--) {
 		m->array[x].freechain = m->freeindex;
 		m->freeindex = x;

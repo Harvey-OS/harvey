@@ -221,7 +221,7 @@ struct NbNameTableEntry {
 };
 
 static struct {
-	QLock;
+	QLock	qlock;
 	NbNameTableEntry *head;
 } nbnametable;
 
@@ -230,10 +230,10 @@ nbnametablefind(NbName name, int add)
 {
 	int rv;
 	NbNameTableEntry *p;
-	qlock(&nbnametable);
+	qlock(&nbnametable.qlock);
 	for (p = nbnametable.head; p; p = p->next) {
 		if (nbnameequal(p->name, name)) {
-			qunlock(&nbnametable);
+			qunlock(&nbnametable.qlock);
 			return 1;
 		}
 	}
@@ -246,7 +246,7 @@ nbnametablefind(NbName name, int add)
 	}
 	else
 		rv = 0;
-	qunlock(&nbnametable);
+	qunlock(&nbnametable.qlock);
 	return rv;
 }
 
@@ -259,7 +259,7 @@ struct NbRemoteNameTableEntry {
 };
 
 static struct {
-	QLock;
+	QLock	qlock;
 	NbRemoteNameTableEntry *head;
 } nbremotenametable;
 
@@ -268,7 +268,7 @@ nbremotenametablefind(NbName name, uint8_t *ipaddr)
 {
 	NbRemoteNameTableEntry *p, **pp;
 	int32_t now = time(nil);
-	qlock(&nbremotenametable);
+	qlock(&nbremotenametable.qlock);
 	for (pp = &nbremotenametable.head; (p = *pp) != nil;) {
 		if (p->expire <= now) {
 //print("nbremotenametablefind: expired %B\n", p->name);
@@ -278,12 +278,12 @@ nbremotenametablefind(NbName name, uint8_t *ipaddr)
 		}
 		if (nbnameequal(p->name, name)) {
 			ipmove(ipaddr, p->ipaddr);
-			qunlock(&nbremotenametable);
+			qunlock(&nbremotenametable.qlock);
 			return 1;
 		}
 		pp = &p->next;
 	}
-	qunlock(&nbremotenametable);
+	qunlock(&nbremotenametable.qlock);
 	return 0;
 }
 
@@ -291,7 +291,7 @@ int
 nbremotenametableadd(NbName name, uint8_t *ipaddr, uint32_t ttl)
 {
 	NbRemoteNameTableEntry *p;
-	qlock(&nbremotenametable);
+	qlock(&nbremotenametable.qlock);
 	for (p = nbremotenametable.head; p; p = p->next)
 		if (nbnameequal(p->name, name))
 			break;
@@ -304,6 +304,6 @@ nbremotenametableadd(NbName name, uint8_t *ipaddr, uint32_t ttl)
 	ipmove(p->ipaddr, ipaddr);
 	p->expire = time(nil) + ttl;
 //print("nbremotenametableadd: %B ttl %lu expire %ld\n", p->name, ttl, p->expire);
-	qunlock(&nbremotenametable);
+	qunlock(&nbremotenametable.qlock);
 	return 1;
 }
