@@ -11,20 +11,20 @@
 
 typedef struct SmbSharedFileEntry SmbSharedFileEntry;
 struct SmbSharedFileEntry {
-	SmbSharedFile;
-	Ref;
+	SmbSharedFile	ssf;
+	Ref	ref;
 	SmbSharedFileEntry *next;
 };
 
 static struct {
-	QLock;
+	QLock	qlock;
 	SmbSharedFileEntry *list;
 } sharedfiletable;
 
 typedef struct SmbLockListEntry SmbLockListEntry;
 
 struct SmbLockListEntry {
-	SmbLock;
+	SmbLock smblock;
 	SmbLockListEntry *next;
 };
 
@@ -74,22 +74,22 @@ smbsharedfilelock(SmbSharedFile *sf, SmbSession *s, uint16_t pid,
 {
 	SmbLockListEntry smblock;
 	SmbLockListEntry *l, *nl, **lp;
-	smblock.s = s;
-	smblock.pid = pid;
-	smblock.base = base;
-	smblock.limit = limit;
+	smblock.smblock.s = s;
+	smblock.smblock.pid = pid;
+	smblock.smblock.base = base;
+	smblock.smblock.limit = limit;
 	if (sf->locklist) {
 		for (l = sf->locklist->head; l; l = l->next)
-			if (lockconflict(l, &smblock)) {
+			if (lockconflict(&l->smblock, &smblock.smblock)) {
 				smblogprintif(smbglobals.log.locks, "smbsharedfilelock: lock [%lld, %lld) failed because conflicts with [%lld, %lld)\n",
-					base, limit, l->base, l->limit);
+					base, limit, l->smblock.base, l->smblock.limit);
 				return 0;
 			}
 	}
 	if (sf->locklist == nil)
 		sf->locklist = smbemallocz(sizeof(SmbLockList), 1);
 	for (lp = &sf->locklist->head; (l = *lp) != nil; lp = &l->next)
-		if (lockorder(&smblock, l) <= 0)
+		if (lockorder(&smblock.smblock, &l->smblock) <= 0)
 			break;
 	smblogprintif(smbglobals.log.locks, "smbsharedfilelock: lock [%lld, %lld) succeeded\n", base, limit);
 	nl = smbemalloc(sizeof(*nl));
@@ -110,16 +110,16 @@ smbsharedfileunlock(SmbSharedFile *sf, SmbSession *s, uint16_t pid,
 {
 	SmbLockListEntry smblock;
 	SmbLockListEntry *l, **lp;
-	smblock.s = s;
-	smblock.pid = pid;
-	smblock.base = base;
-	smblock.limit = limit;
+	smblock.smblock.s = s;
+	smblock.smblock.pid = pid;
+	smblock.smblock.base = base;
+	smblock.smblock.limit = limit;
 	if (sf->locklist == nil)
 		goto failed;
 	for (lp = &sf->locklist->head; (l = *lp) != nil; lp = &l->next) {
-		if (l->s != s || l->pid != pid)
+		if (l->smblock.s != s || l->smblock.pid != pid)
 			continue;
-		switch (lockorder(&smblock, l)) {
+		switch (lockorder(&smblock.smblock, &l->smblock)) {
 		case 0:
 			*lp = l->next;
 			free(l);
@@ -226,58 +226,58 @@ SmbSharedFile *
 smbsharedfileget(Dir *d, int p9mode, int *sharep)
 {
 	SmbSharedFileEntry *sfe;
-	qlock(&sharedfiletable);
+	qlock(&sharedfiletable.qlock);
 	for (sfe = sharedfiletable.list; sfe; sfe = sfe->next) {
-		if (sfe->type == d->type && sfe->dev == d->dev && sfe->path == d->qid.path) {
-			if (p9denied(p9mode, sfe->share)) {
-				qunlock(&sharedfiletable);
+		if (sfe->ssf.type == d->type && sfe->ssf.dev == d->dev && sfe->ssf.path == d->qid.path) {
+			if (p9denied(p9mode, sfe->ssf.share)) {
+				qunlock(&sharedfiletable.qlock);
 				return nil;
 			}
-			*sharep = sharesubtract(*sharep, sfe->share);
-			sfe->share = shareadd(sfe->share, *sharep);
-			sfe->ref++;
+			*sharep = sharesubtract(*sharep, sfe->ssf.share);
+			sfe->ssf.share = shareadd(sfe->ssf.share, *sharep);
+			sfe->ref.ref++;
 			goto done;
 		}
 	}
 	sfe = smbemallocz(sizeof(SmbSharedFileEntry), 1);
-	sfe->type = d->type;
-	sfe->dev = d->dev;
-	sfe->path = d->qid.path;
+	sfe->ssf.type = d->type;
+	sfe->ssf.dev = d->dev;
+	sfe->ssf.path = d->qid.path;
 //	sfe->name = smbestrdup(name);
-	sfe->ref = 1;
-	sfe->share = *sharep;
+	sfe->ref.ref = 1;
+	sfe->ssf.share = *sharep;
 	sfe->next = sharedfiletable.list;
 	sharedfiletable.list = sfe;
 done:
 	smblogprintif(smbglobals.log.sharedfiles, "smbsharedfileget: ref %d share %d\n",
-		sfe->ref, sfe->share);
-	qunlock(&sharedfiletable);
-	return sfe;
+		sfe->ref.ref, sfe->ssf.share);
+	qunlock(&sharedfiletable.qlock);
+	return &sfe->ssf;
 }
 
 void
 smbsharedfileput(SmbFile *f, SmbSharedFile *sf, int share)
 {
 	SmbSharedFileEntry *sfe, **sfep;
-	qlock(&sharedfiletable);
+	qlock(&sharedfiletable.qlock);
 	for (sfep = &sharedfiletable.list; (sfe = *sfep) != nil; sfep = &sfe->next) {
-		if (sfe == sf) {
-			sfe->ref--;
-			if (sfe->ref == 0) {
+		if (&sfe->ssf == sf) {
+			sfe->ref.ref--;
+			if (sfe->ref.ref == 0) {
 				*sfep = sfe->next;
-				if (sfe->deleteonclose && f)
+				if (sfe->ssf.deleteonclose && f)
 					smbremovefile(f->t, nil, f->name);
 				smblogprintif(smbglobals.log.sharedfiles, "smbsharedfileput: removed\n");
-				locklistfree(&sfe->locklist);
+				locklistfree(&sfe->ssf.locklist);
 				free(sfe);
 			}
 			else {
-				sfe->share = sharesubtract(sfe->share, share);
+				sfe->ssf.share = sharesubtract(sfe->ssf.share, share);
 				smblogprintif(smbglobals.log.sharedfiles,
-					"smbsharedfileput: ref %d share %d\n", sfe->ref, sfe->share);
+					"smbsharedfileput: ref %d share %d\n", sfe->ref.ref, sfe->ssf.share);
 			}
 			break;
 		}
 	}
-	qunlock(&sharedfiletable);
+	qunlock(&sharedfiletable.qlock);
 }

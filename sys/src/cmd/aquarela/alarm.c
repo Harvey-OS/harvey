@@ -16,22 +16,22 @@
 static struct {
 	int thread;
 	int die;
-	QLock;
+	QLock	qlock;
 	NbnsAlarm *head;
 } alarmlist = { -1 };
 
-#define MaxLong ((1 << (sizeof(long) * 8 - 1)) - 1)
+#define MaxLong ((1 << (sizeof(int32_t) * 4 - 1)) - 1)
 
 void
-alarmist(void *)
+alarmist(void *v)
 {
 	for (;;) {
 		int64_t now;
 		int32_t snooze;
 //print("running\n");
-		qlock(&alarmlist);
+		qlock(&alarmlist.qlock);
 		if (alarmlist.die) {
-			qunlock(&alarmlist);
+			qunlock(&alarmlist.qlock);
 			break;
 		}
 		now = nsec() / 1000000;
@@ -50,7 +50,7 @@ alarmist(void *)
 		else
 			snooze = 60 * 1000;
 //print("snoozing for %ld\n", snooze);
-		qunlock(&alarmlist);
+		qunlock(&alarmlist.qlock);
 		sleep(snooze);
 	}
 }
@@ -75,7 +75,7 @@ nbnsalarmcancel(NbnsAlarm *a)
 {
 	NbnsAlarm **ap;
 	int rv;
-	qlock(&alarmlist);
+	qlock(&alarmlist.qlock);
 	for (ap = &alarmlist.head; *ap && *ap != a; ap = &(*ap)->next)
 		;
 	if (*ap) {
@@ -83,7 +83,7 @@ nbnsalarmcancel(NbnsAlarm *a)
 		if (ap == &alarmlist.head)
 			threadint(alarmlist.thread);
 	}
-	qunlock(&alarmlist);
+	qunlock(&alarmlist.qlock);
 	do {
 		uint32_t v;
 		rv = nbrecv(a->c, &v);
@@ -93,12 +93,12 @@ nbnsalarmcancel(NbnsAlarm *a)
 void
 nbnsalarmend(void)
 {
-	qlock(&alarmlist);
+	qlock(&alarmlist.qlock);
 	if (alarmlist.thread >= 0) {
 		alarmlist.die = 1;
 		threadint(alarmlist.thread);
 	}
-	qunlock(&alarmlist);
+	qunlock(&alarmlist.qlock);
 }
 
 void
@@ -107,7 +107,7 @@ nbnsalarmset(NbnsAlarm *a, uint32_t millisec)
 	NbnsAlarm **ap;
 	nbnsalarmcancel(a);
 	a->expirems = nsec() / 1000000 + millisec;
-	qlock(&alarmlist);
+	qlock(&alarmlist.qlock);
 	for (ap = &alarmlist.head; *ap; ap = &(*ap)->next)
 		if (a->expirems < (*ap)->expirems)
 			break;
@@ -117,7 +117,7 @@ nbnsalarmset(NbnsAlarm *a, uint32_t millisec)
 		alarmlist.thread = proccreate(alarmist, nil, 16384);
 	else
 		threadint(alarmlist.thread);
-	qunlock(&alarmlist);
+	qunlock(&alarmlist.qlock);
 }
 
 void

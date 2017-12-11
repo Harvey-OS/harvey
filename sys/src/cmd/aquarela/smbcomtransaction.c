@@ -10,7 +10,7 @@
 #include "headers.h"
 
 static int
-sendresponse(void *magic, SmbBuffer *, char **errmsgp)
+sendresponse(void *magic, SmbBuffer *sb, char **errmsgp)
 {
 	int rv;
 	SmbSession *s = magic;
@@ -32,7 +32,7 @@ SmbTransactionMethod smbtransactionmethod2 = {
 	.sendresponse = sendresponse,
 };
 
-int
+SmbProcessResult
 smbcomtransaction(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	int rv;
@@ -82,7 +82,7 @@ done:
 	return pr;
 }
 
-int
+SmbProcessResult
 smbcomtransaction2(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	int rv;

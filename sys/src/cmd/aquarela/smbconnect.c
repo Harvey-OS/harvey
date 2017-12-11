@@ -104,7 +104,7 @@ print("netbios session established\n");
 	print("utc: %s(and %lld μs)\n", asctime(gmtime(peerinfo.utc / 1000000000)), peerinfo.utc % 1000000000);
 	print("tzoff: %d\n", peerinfo.tzoff);
 	print("encryptionkeylength: %d\n", peerinfo.encryptionkeylength);
-	smberealloc(&peerinfo.encryptionkey, peerinfo.encryptionkeylength);
+	smberealloc((void *)&peerinfo.encryptionkey, peerinfo.encryptionkeylength);
 	if (!smbbuffergetbytes(b, peerinfo.encryptionkey, peerinfo.encryptionkeylength)) {
 		smbstringprint(errmsgp, "not enough data for encryption key");
 		goto fail;
@@ -260,7 +260,7 @@ smbclientfree(SmbClient *c)
 }
 
 int
-smbtransactionclientsend(void *magic, SmbBuffer *ob, char **)
+smbtransactionclientsend(void *magic, SmbBuffer *ob, char **l)
 {
 	SmbClient *c = magic;
 smblogprint(-1, "sending:\n");
@@ -269,7 +269,7 @@ smblogdata(-1, smblogprint, smbbufferreadpointer(ob), smbbufferwriteoffset(ob), 
 }
 
 int
-smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **)
+smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **l)
 {
 	int32_t n;
 	SmbClient *c = magic;

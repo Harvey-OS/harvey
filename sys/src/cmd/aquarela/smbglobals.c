@@ -44,7 +44,7 @@ smbglobalsguess(int client)
 		smbglobals.primarydomain = "PLAN9";
 	if (smbglobals.serverinfo.remark == nil)
 		smbglobals.serverinfo.remark = "This is a default server comment";
-	if (smbglobals.log.fd < 0)
+	if (smbglobals.log.fd < 0){
 		if (client){
 			smbglobals.log.fd = create("client.log", OWRITE|OTRUNC, 0666);
 		}
@@ -52,4 +52,5 @@ smbglobalsguess(int client)
 			if (access("/sys/log/aquarela", 2) == 0)
 				smbglobals.log.fd = open("/sys/log/aquarela", OWRITE);
 		}
+	}
 }
