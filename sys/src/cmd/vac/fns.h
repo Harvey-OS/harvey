@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-int	mbunpack(MetaBlock *mb, uchar *p, int n);
+int	mbunpack(MetaBlock *mb, uint8_t *p, int n);
 void	mbinsert(MetaBlock *mb, int i, MetaEntry*);
 void	mbdelete(MetaBlock *mb, int i, MetaEntry*);
 void	mbpack(MetaBlock *mb);
-uchar	*mballoc(MetaBlock *mb, int n);
-void		mbinit(MetaBlock *mb, uchar *p, int n, int entries);
+uint8_t	*mballoc(MetaBlock *mb, int n);
+void		mbinit(MetaBlock *mb, uint8_t *p, int n, int entries);
 int mbsearch(MetaBlock*, char*, int*, MetaEntry*);
 int mbresize(MetaBlock*, MetaEntry*, int);
 
@@ -30,8 +30,8 @@ void	vdpack(VacDir *dir, MetaEntry*, int);
 
 VacFile *_vacfileroot(VacFs *fs, VtFile *file);
 
-int	_vacfsnextqid(VacFs *fs, uvlong *qid);
-void	vacfsjumpqid(VacFs*, uvlong step);
+int	_vacfsnextqid(VacFs *fs, uint64_t *qid);
+void	vacfsjumpqid(VacFs*, uint64_t step);
 
 Reprog*	glob2regexp(char*);
 void	loadexcludefile(char*);

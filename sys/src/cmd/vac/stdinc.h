@@ -13,5 +13,6 @@
 #include <ctype.h>
 #include <thread.h>
 #include <venti.h>
+#include <mp.h>
 #include <libsec.h>
 #include <regexp.h>
