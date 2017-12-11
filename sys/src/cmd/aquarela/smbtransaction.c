@@ -51,7 +51,7 @@ _smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
 	doffset = smbnhgets(pdata); pdata += 2;
 	pdata++; /* scount */
 	pdata++; /* reserved */
-	smbfree(&t->in.setup);
+	smbfree((void *)&t->in.setup);
 	if (t->in.scount) {
 		int x;
 		t->in.setup = smbemalloc(t->in.scount * sizeof(uint16_t));
@@ -60,7 +60,7 @@ _smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
 			pdata += 2;
 		}
 	}
-	smbfree(&t->in.name);
+	smbfree((void *)&t->in.name);
 	if (hasname && !smbbuffergetstring(b, h, SMB_STRING_PATH, &t->in.name)) {
 		smbstringprint(errmsgp, "not enough bdata for name");
 		return -1;
@@ -73,7 +73,7 @@ _smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
 		smbstringprint(errmsgp, "too many parameters");
 		return -1;
 	}
-	smbfree(&t->in.parameters);
+	smbfree((void *)&t->in.parameters);
 	t->in.parameters = smbemalloc(t->in.tpcount);
 	memcpy(t->in.parameters, smbbufferpointer(b, poffset), t->in.pcount);
 	if (doffset + t->in.dcount > smbbufferwriteoffset(b)) {
@@ -84,7 +84,7 @@ _smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
 		smbstringprint(errmsgp, "too much data");
 		return -1;
 	}
-	smbfree(&t->in.data);
+	smbfree((void *)&t->in.data);
 	t->in.data = smbemalloc(t->in.tdcount);
 	memcpy(t->in.data, smbbufferpointer(b, doffset), t->in.dcount);
 	if (t->in.dcount < t->in.tdcount || t->in.pcount < t->in.tpcount)

@@ -116,6 +116,11 @@ smblogunlock();
 		smbseterror(smbs, ERRSRV, ERRerror);
 		pr = SmbProcessResultError;
 		break;
+	case SmbProcessResultOk:
+	case SmbProcessResultError:
+	case SmbProcessResultReply:
+	case SmbProcessResultDie:
+		break;
 	}
 	if (pr == SmbProcessResultError) {
 		smblogprint(h.command, "reply: error %d/%d\n", smbs->errclass, smbs->error);
@@ -159,7 +164,7 @@ cifswrite(SmbCifsSession *cifs, void *p, int32_t n)
 }
 
 int
-nbssaccept(void *, NbSession *s, NBSSWRITEFN **writep)
+nbssaccept(void *v, NbSession *s, NBSSWRITEFN **writep)
 {
 	SmbSession *smbs = smbemallocz(sizeof(SmbSession), 1);
 	smbs->nbss = s;

@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbnegotiate(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
+smbnegotiate(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 {
 	uint16_t index;
 	int i;

@@ -8,31 +8,31 @@
  */
 
 typedef struct SmbRawHeader {
-	uchar protocol[4];
-	uchar command;
+	uint8_t protocol[4];
+	uint8_t command;
 //	union {
 //		struct {
-//			uchar errorclass;
-//			uchar reserved;
-//			uchar error[2];
+//			uint8_t errorclass;
+//			uint8_t reserved;
+//			uint8_t error[2];
 //		} doserror;
-		uchar status[4];
+		uint8_t status[4];
 //	};
-	uchar flags;
-	uchar flags2[2];
+	uint8_t flags;
+	uint8_t flags2[2];
 //	union {
-		uchar extra[12];
+		uint8_t extra[12];
 //		struct {
-//			uchar pidhigh[2];
-//			uchar securitysignature[8];
+//			uint8_t pidhigh[2];
+//			uint8_t securitysignature[8];
 //		};
 //	};
-	uchar tid[2];
-	uchar pid[2];
-	uchar uid[2];
-	uchar mid[2];
-	uchar wordcount;
-	uchar parameterwords[1];
+	uint8_t tid[2];
+	uint8_t pid[2];
+	uint8_t uid[2];
+	uint8_t mid[2];
+	uint8_t wordcount;
+	uint8_t parameterwords[1];
 } SmbRawHeader;
 
 enum {
@@ -105,7 +105,7 @@ enum {
 	SMB_COM_TRANSACTION2_SECONDARY = 0x33,
 	SMB_COM_FIND_CLOSE2 = 0x34,
 	SMB_COM_FIND_NOTIFY_CLOSE = 0x35,
-/* Used by Xenix/Unix 0x60 - 0x6E */,
+/* Used by Xenix/Unix 0x60 - 0x6E ,*/
 	SMB_COM_TREE_CONNECT = 0x70,
 	SMB_COM_TREE_DISCONNECT = 0x71,
 	SMB_COM_NEGOTIATE = 0x72,
