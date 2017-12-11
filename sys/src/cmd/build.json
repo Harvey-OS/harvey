@@ -66,6 +66,7 @@
 			"scat/build.json",
 			"scuzz/build.json",
 			"snap/build.json",
+			"tapefs/build.json",
 			"tarsplit/build.json",
 			"tbl/build.json",
 			"troff2html/build.json",
