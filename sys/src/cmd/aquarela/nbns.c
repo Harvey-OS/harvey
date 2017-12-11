@@ -15,7 +15,7 @@
 
 static struct {
 	int thread;
-	QLock;
+	QLock	qlock;
 	int fd;
 } udp = { -1 };
 
@@ -29,17 +29,17 @@ struct Listen {
 };
 
 static struct {
-	Lock;
-	ushort id;
+	Lock	lock;
+	uint16_t id;
 } id;
 
 struct {
-	QLock;
+	QLock	qlock;
 	NbnsTransaction *head;
 } transactionlist;
 
 static void
-udplistener(void *)
+udplistener(void *v)
 {
 	for (;;) {
 		uint8_t msg[Udphdrsize + 576];
@@ -60,7 +60,7 @@ udplistener(void *)
 //nbnsdumpmessage(s);
 				if (s->response) {
 					NbnsTransaction *t;
-					qlock(&transactionlist);
+					qlock(&transactionlist.qlock);
 					for (t = transactionlist.head; t; t = t->next)
 						if (t->id == s->id)
 							break;
@@ -68,7 +68,7 @@ udplistener(void *)
 						sendp(t->c, s);
 					else
 						nbnsmessagefree(&s);
-					qunlock(&transactionlist);
+					qunlock(&transactionlist.qlock);
 				}
 				else
 					nbnsmessagefree(&s);
@@ -80,17 +80,17 @@ udplistener(void *)
 static char *
 startlistener(void)
 {
-	qlock(&udp);
+	qlock(&udp.qlock);
 	if (udp.thread < 0) {
 		char *e;
 		e = nbudpannounce(NbnsPort, &udp.fd);
 		if (e) {
-			qunlock(&udp);
+			qunlock(&udp.qlock);
 			return e;
 		}
 		udp.thread = proccreate(udplistener, nil, 16384);
 	}
-	qunlock(&udp);
+	qunlock(&udp.qlock);
 	return nil;
 }
 
@@ -98,9 +98,9 @@ uint16_t
 nbnsnextid(void)
 {
 	uint16_t rv;
-	lock(&id);
+	lock(&id.lock);
 	rv = id.id++;
-	unlock(&id);
+	unlock(&id.lock);
 	return rv;
 }
 
@@ -125,10 +125,10 @@ nbnstransactionnew(NbnsMessage *s, uint8_t *ipaddr)
 		free(t);
 		return nil;
 	}
-	qlock(&transactionlist);
+	qlock(&transactionlist.qlock);
 	t->next = transactionlist.head;
 	transactionlist.head = t;
-	qunlock(&transactionlist);
+	qunlock(&transactionlist.qlock);
 	u = (Udphdr *)msg;
 	ipmove(u->laddr, nbglobals.myipaddr);
 	hnputs(u->lport, NbnsPort);
@@ -150,7 +150,7 @@ nbnstransactionfree(NbnsTransaction **tp)
 
 	t = *tp;
 	if (t) {
-		qlock(&transactionlist);
+		qlock(&transactionlist.qlock);
 		while ((s = nbrecvp(t->c)) != nil)
 			nbnsmessagefree(&s);
 		for (tp2 = &transactionlist.head; *tp2 && *tp2 != t; tp2 = &(*tp2)->next)
@@ -159,7 +159,7 @@ nbnstransactionfree(NbnsTransaction **tp)
 			*tp2 = t->next;
 			free(t);
 		}
-		qunlock(&transactionlist);
+		qunlock(&transactionlist.qlock);
 		*tp = nil;
 	}
 }

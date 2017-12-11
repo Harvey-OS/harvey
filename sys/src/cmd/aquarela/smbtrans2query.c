@@ -86,7 +86,7 @@ query(SmbSession *s, char *cmdname, char *filename, uint16_t infolevel,
 		translogprint(s->transaction.in.setup[0], "length=%lld", d->length);
 		translogprint(s->transaction.in.setup[0], "isdir=%d\n", (d->qid.type & QTDIR) != 0);
 
-		if (!smbbufferputv(s->transaction.out.data, smbl2roundupvlong(d->length, smbglobals.l2allocationsize))
+		if (!smbbufferputv(s->transaction.out.data, smbl2roundupint64_t(d->length, smbglobals.l2allocationsize))
 			|| !smbbufferputv(s->transaction.out.data, d->length)
 			|| !smbbufferputl(s->transaction.out.data, 1)
 			|| !smbbufferputb(s->transaction.out.data, 0)

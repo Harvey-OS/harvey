@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomtreedisconnect(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *)
+smbcomtreedisconnect(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 {
 	if (!smbcheckwordcount("comtreedisconnect", h, 0))
 		return SmbProcessResultFormat;

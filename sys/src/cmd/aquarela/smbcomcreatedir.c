@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomcreatedirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
+smbcomcreatedirectory(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 {
 	int fd;
 	char *path;

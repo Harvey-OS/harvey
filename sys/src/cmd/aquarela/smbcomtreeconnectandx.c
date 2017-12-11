@@ -21,7 +21,7 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	char *service = nil;
 	uint16_t flags;
 	uint16_t passwordlength;
-//	ushort bytecount;
+//	uint16_t bytecount;
 	uint8_t errclass;
 	uint16_t error;
 	SmbService *serv;

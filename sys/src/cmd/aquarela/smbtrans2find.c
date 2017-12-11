@@ -99,7 +99,7 @@ poolcheck(mainmem);
 		|| !smbbufferputv(b, mtime)
 		|| !smbbufferputv(b, mtime)
 		|| !smbbufferputv(b, d->length)
-		|| !smbbufferputv(b, smbl2roundupvlong(d->length, smbglobals.l2allocationsize))			// ha
+		|| !smbbufferputv(b, smbl2roundupint64_t(d->length, smbglobals.l2allocationsize))			// ha
 		|| !smbbufferputl(b, (d->qid.type & QTDIR) ? 0x10 : 0x80)
 		|| !smbbufferputl(b, smbstringlen(p, d->name))
 		|| !smbbufferputl(b, 0)
