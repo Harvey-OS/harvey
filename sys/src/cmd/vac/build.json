@@ -1,0 +1,22 @@
+{
+	"tapefs": {
+		"Include": [
+			"../cmd.json"
+		],
+		"Libs": [
+			"/sys/src/cmd/vac/libvac.a"
+		],
+		"Post": [
+			"rm -f /sys/src/cmd/vac/libvac.a"
+		],
+		"Projects": [
+			"libvac.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"SourceFilesCmd": [
+      "vac.c",
+			"unvac.c",
+			"vacfs.c"
+		]
+	}
+}

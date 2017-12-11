@@ -1,0 +1,15 @@
+{
+	"vac": {
+		"Include": [
+			"../../lib.json"
+		],
+		"Install": "/sys/src/cmd/vac/",
+		"Library": "libvac.a",
+		"SourceFiles": [
+			"error.c",
+			"file.c",
+			"glob.c",
+			"pack.c"
+		]
+	}
+}
