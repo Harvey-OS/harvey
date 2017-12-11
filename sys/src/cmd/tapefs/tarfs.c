@@ -45,7 +45,7 @@ enum {
 typedef union {
 	char	dummy[Tblock];
 	char	tbuf[Maxbuf];
-	struct Header {
+	struct {
 		char	name[Namsiz];
 		char	mode[8];
 		char	uid[8];
@@ -64,7 +64,7 @@ typedef union {
 		char	devmajor[8];
 		char	devminor[8];
 		char	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
-	};
+	} Header;
 } Hdr;
 
 Hdr dblock;
@@ -75,7 +75,7 @@ int	checksum(void);
 static int
 isustar(Hdr *hp)
 {
-	return strcmp(hp->magic, "ustar") == 0;
+	return strcmp(hp->Header.magic, "ustar") == 0;
 }
 
 /*
@@ -96,18 +96,18 @@ tarname(Hdr *hp)
 	int pfxlen, namlen;
 	static char fullname[Maxname+1];
 
-	namlen = strnlen(hp->name, sizeof hp->name);
-	if (hp->prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
-		memmove(fullname, hp->name, namlen);
+	namlen = strnlen(hp->Header.name, sizeof hp->Header.name);
+	if (hp->Header.prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
+		memmove(fullname, hp->Header.name, namlen);
 		fullname[namlen] = '\0';
 		return fullname;
 	}
 
 	/* posix name: name is in two pieces */
-	pfxlen = strnlen(hp->prefix, sizeof hp->prefix);
-	memmove(fullname, hp->prefix, pfxlen);
+	pfxlen = strnlen(hp->Header.prefix, sizeof hp->Header.prefix);
+	memmove(fullname, hp->Header.prefix, pfxlen);
 	fullname[pfxlen] = '/';
-	memmove(fullname + pfxlen + 1, hp->name, namlen);
+	memmove(fullname + pfxlen + 1, hp->Header.name, namlen);
 	fullname[pfxlen + 1 + namlen] = '\0';
 	return fullname;
 }
@@ -136,17 +136,17 @@ populate(char *name)
 
 		/* crack header */
 		f.addr = blkno + 1;
-		f.mode = strtoul(hp->mode, 0, 8);
-		f.uid  = strtoul(hp->uid, 0, 8);
-		f.gid  = strtoul(hp->gid, 0, 8);
-		if((uint8_t)hp->size[0] == 0x80)
-			f.size = b8byte(hp->size+3);
+		f.mode = strtoul(hp->Header.mode, 0, 8);
+		f.uid  = strtoul(hp->Header.uid, 0, 8);
+		f.gid  = strtoul(hp->Header.gid, 0, 8);
+		if((uint8_t)hp->Header.size[0] == 0x80)
+			f.size = b8byte(hp->Header.size+3);
 		else
-			f.size = strtoull(hp->size, 0, 8);
-		f.mdate = strtoul(hp->mtime, 0, 8);
-		chksum  = strtoul(hp->chksum, 0, 8);
+			f.size = strtoull(hp->Header.size, 0, 8);
+		f.mdate = strtoul(hp->Header.mtime, 0, 8);
+		chksum  = strtoul(hp->Header.chksum, 0, 8);
 		/* the mode test is ugly but sometimes necessary */
-		if (hp->linkflag == LF_DIR || (f.mode&0170000) == 040000 ||
+		if (hp->Header.linkflag == LF_DIR || (f.mode&0170000) == 040000 ||
 		    strrchr(fname, '\0')[-1] == '/'){
 			f.mode |= DMDIR;
 			f.size = 0;
@@ -161,8 +161,8 @@ populate(char *name)
 			fname += 3;
 
 		/* reject links */
-		linkflg = hp->linkflag == LF_SYMLINK1 ||
-			hp->linkflag == LF_SYMLINK2 || hp->linkflag == LF_LINK;
+		linkflg = hp->Header.linkflag == LF_SYMLINK1 ||
+			hp->Header.linkflag == LF_SYMLINK2 || hp->Header.linkflag == LF_LINK;
 		if (chksum != checksum()){
 			fprint(2, "%s: bad checksum on %.28s at offset %lld\n",
 				argv0, fname, Tblock*blkno);
@@ -234,7 +234,7 @@ checksum(void)
 	int i, n;
 	uint8_t *cp;
 
-	memset(dblock.chksum, ' ', sizeof dblock.chksum);
+	memset(dblock.Header.chksum, ' ', sizeof dblock.Header.chksum);
 	cp = (uint8_t *)dblock.dummy;
 	i = 0;
 	for (n = Tblock; n-- > 0; )
