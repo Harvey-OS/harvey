@@ -1,4 +1,5 @@
 ![Harvey](https://harvey-os.org/images/harvey-os-logo.png)
+
 Harvey: A distributed operating system
 =====
 [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
