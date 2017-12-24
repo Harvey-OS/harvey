@@ -5,6 +5,7 @@ Harvey: A distributed operating system
 [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
 [![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
 [![License](https://img.shields.io/aur/license/yaourt.svg)](https://github.com/Harvey-OS/harvey/blob/master/LICENSE.gpl)
+[![LicenseMIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Harvey-OS/apex/blob/master/LICENSE.mit)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7Q45ZGJBQZZVN)
 
 Welcome to Harvey, we are delighted that you are interested in the
@@ -30,7 +31,7 @@ developed by the same group at Bell Labs that invented Unix and C.
   [wiki](https://github.com/Harvey-OS/harvey/wiki) and
   [apex's wiki](https://github.com/Harvey-OS/apex/wiki).
 - If the information you are looking for is not on the wiki, ask the
-  [Mailing list](https://groups.google.com/forum/#!forum/harvey) or 
+  [Mailing list](https://groups.google.com/forum/#!forum/harvey) or
   [Slack](https://harvey-slack.herokuapp.com/) for
   help. It is where most of the development conversation happens.
 - [Man Pages](https://sevki.io/harvey/sys/man/1/0intro) are where you
