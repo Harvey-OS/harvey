@@ -5,6 +5,10 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
+
+ * Portions of this file are copyright cinap_lenrek <cinap_lenrek@felloff.net>
+ * and mischief <mischief@offblast.org>, and are made available
+ * under the terms of the MIT license that can be found in the LICENSE.mit file.
  */
 
 #include <u.h>
