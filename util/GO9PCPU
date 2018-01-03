@@ -1,4 +1,20 @@
-#!/bin/bash
+#!/bin/sh -eu
+#
+# Copyright (C) 2018 Harvey OS
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 set -e
 
 trap : 2
@@ -59,4 +75,4 @@ wait
 #sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0 -kernel mnt/hdd/kernel $*
 #sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0,net=192.168.76.0/24,dhcpstart=192.168.76.9 -kernel mnt/hdd/kernel $*
 
-# 
+#

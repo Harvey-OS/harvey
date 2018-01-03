@@ -1,3 +1,21 @@
+#!/bin/sh -eu
+#
+# Copyright (C) 2018 Harvey OS
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 qemu-img create -f qcow2 harvey.qcow2 3G
 sudo modprobe nbd max_part=63
 sudo qemu-nbd -c /dev/nbd0 harvey.qcow2
@@ -27,9 +45,9 @@ total 280
 
 [modules are into /usr/lib/syslinux/modules/bios/ so copy it from there]
 
-$ cat syslinux/syslinux.cfg 
+$ cat syslinux/syslinux.cfg
 # syslinux.cfg
-#TIMEOUT = Time to wait to autoboot in 1/10 secs. zero (0) disables the timeout 
+#TIMEOUT = Time to wait to autoboot in 1/10 secs. zero (0) disables the timeout
 #PROMPT = one (1) displays the prompt only, zero (0) will not display the prompt
 #ONTIMEOUT = The default menu label to automatically boot at timeout (selected after timeout)
 #DISPLAY = Optional menu text if not using LABEL Entries
@@ -65,4 +83,3 @@ sudo umount disk/
 [Run qemu]
 
 qemu-system-x86_64 --enable-kvm -s -cpu core2duo -smp 2 -m 2048 -monitor stdio -serial /dev/pts/4 --machine pc -net nic,model=rtl8139 -net user,hostfwd=tcp::5555-:23 -drive file=/media/backup1/source/plan9/harvey/util/harvey.qcow2,media=disk,index=0,cache=writeback
-
