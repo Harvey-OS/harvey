@@ -49,7 +49,7 @@ enum
 	S7,			// _+#.#e+#	#S7
 };
 
-static	int	xcmp(char*, char*);
+static	int	xcmp(const char*, char*);
 static	int	fpcmp(char*, uint32_t*);
 static	void	frnorm(uint32_t*);
 static	void	divascii(char*, int*, int*, int*);
@@ -65,12 +65,13 @@ struct	Tab
 };
 
 double
-strtod(char *as, char **aas)
+strtod(const char *as, char **aas)
 {
 	int na, ona, ex, dp, bp, c, i, flag, state;
 	uint32_t low[Prec], hig[Prec], mid[Prec], num, den;
 	double d;
-	char *s, a[Ndig];
+	const char *s;
+	char a[Ndig];
 
 	flag = 0;	// Fsign, Fesign, Fdpoint
 	na = 0;		// number of digits of a[]
@@ -161,23 +162,23 @@ strtod(char *as, char **aas)
 	case S0:
 		if(xcmp(s, "nan") == 0) {
 			if(aas != nil)
-				*aas = s+3;
+				*aas = (char *)s+3;
 			goto retnan;
 		}
 	case S1:
 		if(xcmp(s, "infinity") == 0) {
 			if(aas != nil)
-				*aas = s+8;
+				*aas = (char *)s+8;
 			goto retinf;
 		}
 		if(xcmp(s, "inf") == 0) {
 			if(aas != nil)
-				*aas = s+3;
+				*aas = (char *)s+3;
 			goto retinf;
 		}
 	case S3:
 		if(aas != nil)
-			*aas = as;
+			*aas = (char *)as;
 		goto ret0;	// no digits found
 	case S6:
 		s--;		// back over +-
@@ -186,7 +187,7 @@ strtod(char *as, char **aas)
 		break;
 	}
 	if(aas != nil)
-		*aas = s;
+		*aas = (char *)s;
 
 	if(flag & Fdpoint)
 	while(na > 0 && a[na-1] == '0')
@@ -421,16 +422,16 @@ divby(char *a, int *na, int b)
 
 static	Tab	tab1[] =
 {
-	 1,  0, "",
-	 3,  1, "7",
-	 6,  2, "63",
-	 9,  3, "511",
-	13,  4, "8191",
-	16,  5, "65535",
-	19,  6, "524287",
-	23,  7, "8388607",
-	26,  8, "67108863",
-	27,  9, "134217727",
+	{  1,  0, ""          },
+	{  3,  1, "7"         },
+	{  6,  2, "63"        },
+	{  9,  3, "511"       },
+	{ 13,  4, "8191"      },
+	{ 16,  5, "65535"     },
+	{ 19,  6, "524287"    },
+	{ 23,  7, "8388607"   },
+	{ 26,  8, "67108863"  },
+	{ 27,  9, "134217727" },
 };
 
 static void
@@ -480,16 +481,16 @@ mulby(char *a, char *p, char *q, int b)
 
 static	Tab	tab2[] =
 {
-	 1,  1, "",				// dp = 0-0
-	 3,  3, "125",
-	 6,  5, "15625",
-	 9,  7, "1953125",
-	13, 10, "1220703125",
-	16, 12, "152587890625",
-	19, 14, "19073486328125",
-	23, 17, "11920928955078125",
-	26, 19, "1490116119384765625",
-	27, 19, "7450580596923828125",		// dp 8-9
+	{  1,  1, ""                    },	// dp = 0-0
+	{  3,  3, "125"                 },
+	{  6,  5, "15625"               },
+	{  9,  7, "1953125"             },
+	{ 13, 10, "1220703125"          },
+	{ 16, 12, "152587890625"        },
+	{ 19, 14, "19073486328125"      },
+	{ 23, 17, "11920928955078125"   },
+	{ 26, 19, "1490116119384765625" },
+	{ 27, 19, "7450580596923828125" },	// dp 8-9
 };
 
 static void
@@ -514,11 +515,11 @@ mulascii(char *a, int *na, int *dp, int *bp)
 }
 
 static int
-xcmp(char *a, char *b)
+xcmp(const char *a, char *b)
 {
 	int c1, c2;
 
-	while(c1 = *b++) {
+	while((c1 = *b++) != 0) {
 		c2 = *a++;
 		if(isupper(c2))
 			c2 = tolower(c2);

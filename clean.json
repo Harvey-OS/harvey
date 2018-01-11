@@ -1,5 +1,11 @@
 {
-	"k8cpu": {
-		"Projects": ["/sys/src/9/k10/clean.json"]
+	"amd64cpu": {
+		"Pre": [
+			"rm -f -rf $ARCH/lib/*.a $ARCH/bin/*",
+			"git checkout $ARCH/bin"
+		],
+		"Projects": [
+			"/sys/src/9/amd64/clean.json"
+		]
 	}
 }

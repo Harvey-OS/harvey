@@ -17,7 +17,7 @@ enum
 };
 
 Dir*
-dirstat(char *name)
+dirstat(const char *name)
 {
 	Dir *d;
 	uint8_t *buf;

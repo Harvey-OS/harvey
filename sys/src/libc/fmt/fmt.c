@@ -31,33 +31,33 @@ struct
 } fmtalloc;
 
 static Convfmt knownfmt[] = {
-	' ',	_flagfmt,
-	'#',	_flagfmt,
-	'%',	_percentfmt,
-	'+',	_flagfmt,
-	',',	_flagfmt,
-	'-',	_flagfmt,
-	'C',	_runefmt,
-	'E',	_efgfmt,
-	'G',	_efgfmt,
-	'S',	_runesfmt,
-	'X',	_ifmt,
-	'b',	_ifmt,
-	'c',	_charfmt,
-	'd',	_ifmt,
-	'e',	_efgfmt,
-	'f',	_efgfmt,
-	'g',	_efgfmt,
-	'h',	_flagfmt,
-	'l',	_flagfmt,
-	'n',	_countfmt,
-	'o',	_ifmt,
-	'p',	_ifmt,
-	'r',	errfmt,
-	's',	_strfmt,
-	'u',	_flagfmt,
-	'x',	_ifmt,
-	0,	nil,
+	{ ' ',	_flagfmt    },
+	{ '#',	_flagfmt    },
+	{ '%',	_percentfmt },
+	{ '+',	_flagfmt    },
+	{ ',',	_flagfmt    },
+	{ '-',	_flagfmt    },
+	{ 'C',	_runefmt    },
+	{ 'E',	_efgfmt     },
+	{ 'G',	_efgfmt     },
+	{ 'S',	_runesfmt   },
+	{ 'X',	_ifmt       },
+	{ 'b',	_ifmt       },
+	{ 'c',	_charfmt    },
+	{ 'd',	_ifmt       },
+	{ 'e',	_efgfmt     },
+	{ 'f',	_efgfmt     },
+	{ 'g',	_efgfmt     },
+	{ 'h',	_flagfmt    },
+	{ 'l',	_flagfmt    },
+	{ 'n',	_countfmt   },
+	{ 'o',	_ifmt       },
+	{ 'p',	_ifmt       },
+	{ 'r',	errfmt      },
+	{ 's',	_strfmt     },
+	{ 'u',	_ifmt       },
+	{ 'x',	_ifmt       },
+	{ 0,	nil         },
 };
 
 int	(*doquote)(int);
@@ -130,12 +130,12 @@ fmtfmt(int c)
 }
 
 void*
-_fmtdispatch(Fmt *f, void *fmt, int isrunes)
+_fmtdispatch(Fmt *f, const void *fmt, int isrunes)
 {
 	Rune rune, r;
 	int i, n, w, p;
 	uint32_t fl;
-	void *ret;
+	const void *ret;
 
 	w = f->width;
 	p = f->prec;
@@ -223,5 +223,5 @@ end:
 	f->width = w;
 	f->prec = p;
 	f->flags = fl;
-	return ret;
+	return (void*)ret;
 }

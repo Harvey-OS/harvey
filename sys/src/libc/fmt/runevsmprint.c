@@ -47,7 +47,7 @@ runefmtstrinit(Fmt *f)
 	f->start = malloc(sizeof(Rune)*n);
 	if(f->start == nil)
 		return -1;
-	setmalloctag(f->start, getcallerpc(&f));
+	setmalloctag(f->start, getcallerpc());
 	f->to = f->start;
 	f->stop = (Rune*)f->start + n - 1;
 	f->flush = runeFmtStrFlush;
@@ -60,7 +60,7 @@ runefmtstrinit(Fmt *f)
  * print into an allocated string buffer
  */
 Rune*
-runevsmprint(char *fmt, va_list args)
+runevsmprint(const char *fmt, va_list args)
 {
 	Fmt f;
 	int n;
@@ -77,7 +77,7 @@ runevsmprint(char *fmt, va_list args)
 		free(f.start);
 		return nil;
 	}
-	setmalloctag(f.start, getcallerpc(&fmt));
+	setmalloctag(f.start, getcallerpc());
 	*(Rune*)f.to = '\0';
 	return f.start;
 }

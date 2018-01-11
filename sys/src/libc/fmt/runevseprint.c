@@ -11,7 +11,7 @@
 #include <libc.h>
 
 Rune*
-runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
+runevseprint(Rune *buf, Rune *e, const char *fmt, va_list args)
 {
 	Fmt f;
 
@@ -31,4 +31,3 @@ runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
 	*(Rune*)f.to = '\0';
 	return f.to;
 }
-

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-utfecpy(char *to, char *e, char *from)
+utfecpy(char *to, char *e, const char *from)
 {
 	char *end;
 

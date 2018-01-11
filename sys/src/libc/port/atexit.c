@@ -49,10 +49,8 @@ atexitdont(void (*f)(void))
 			onex[i].f = 0;
 }
 
-#pragma profile off
-
 void
-exits(char *s)
+exits(const char *s)
 {
 	int i, pid;
 	void (*f)(void);
@@ -65,5 +63,3 @@ exits(char *s)
 		}
 	_exits(s);
 }
-
-#pragma profile on

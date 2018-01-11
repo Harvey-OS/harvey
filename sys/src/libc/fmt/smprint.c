@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-smprint(char *fmt, ...)
+smprint(const char *fmt, ...)
 {
 	va_list args;
 	char *p;
@@ -19,6 +19,6 @@ smprint(char *fmt, ...)
 	va_start(args, fmt);
 	p = vsmprint(fmt, args);
 	va_end(args);
-	setmalloctag(p, getcallerpc(&fmt));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
