@@ -1,0 +1,18 @@
+{
+	"libufs": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libufs.a",
+		"SourceFiles": [
+			"block.c",
+			"cgroup.c",
+			"ffs_tables.c",
+			"inode.c",
+			"libufs_subr.c",
+			"sblock.c",
+			"type.c"
+		]
+	}
+}
