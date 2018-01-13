@@ -24,7 +24,7 @@ struct graffiti {
 	/* pointer to training function: */
 	li_recognizer_train			rec_train;
 	/* pointer to function that lists the characters in the classifier file */
-	li_recognizer_getClasses	rec_getClasses; 
+	li_recognizer_getClasses	rec_getClasses;
 };
 
 extern char *cl_name[3];
