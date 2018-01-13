@@ -25,16 +25,16 @@ mkwidth(Disk *disk)
 
 /*
  * Discover the disk geometry by various sleazeful means.
- * 
+ *
  * First, if there is a partition table in sector 0,
  * see if all the partitions have the same end head
- * and sector; if so, we'll assume that that's the 
+ * and sector; if so, we'll assume that that's the
  * right count.
- * 
+ *
  * If that fails, we'll try looking at the geometry that the ATA
  * driver supplied, if any, and translate that as a
- * BIOS might. 
- * 
+ * BIOS might.
+ *
  * If that too fails, which should only happen on a SCSI
  * disk with no currently defined partitions, we'll try
  * various common (h, s) pairs used by BIOSes when faking
@@ -181,10 +181,10 @@ static struct {
 	int h;
 	int s;
 } guess[] = {
-	64, 32,
-	64, 63,
-	128, 63,
-	255, 63,
+	{64, 32},
+	{64, 63},
+	{128, 63},
+	{255, 63},
 };
 static int
 guessgeometry(Disk *disk)
@@ -248,7 +248,7 @@ opensd(Disk *disk)
 	int nf;
 
 	Binit(&b, disk->ctlfd, OREAD);
-	while(p = Brdline(&b, '\n')) {
+	while((p = Brdline(&b, '\n')) != nil) {
 		p[Blinelen(&b)-1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf >= 3 && strcmp(f[0], "geometry") == 0) {
@@ -265,7 +265,7 @@ opensd(Disk *disk)
 		}
 	}
 
-	
+
 	disk->size = disk->secs * disk->secsize;
 	if(disk->size <= 0) {
 		strcpy(disk->part, "");
@@ -330,7 +330,7 @@ opendisk(char *disk, int rdonly, int noctl)
 	}
 
 	/* attempt to find sd(3) disk or partition */
-	if(q = strrchr(p, '/'))
+	if((q = strrchr(p, '/')) != nil)
 		q++;
 	else
 		q = p;

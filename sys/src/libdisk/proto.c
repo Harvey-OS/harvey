@@ -263,7 +263,7 @@ copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 			d->mode = f->mode;
 	}
 
-	if(p = strrchr(f->new, '/'))
+	if((p = strrchr(f->new, '/')) != nil)
 		d->name = p+1;
 	else
 		d->name = f->new;
@@ -291,7 +291,7 @@ mkpath(Mkaux *mkaux, char *prefix, char *elem)
 static void
 setnames(Mkaux *mkaux, File *f)
 {
-	
+
 	if(f->old){
 		if(f->old[0] == '/')
 			setname(mkaux, &mkaux->oldfile, f->old, "");
