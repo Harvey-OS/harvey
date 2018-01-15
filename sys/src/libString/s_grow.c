@@ -13,7 +13,7 @@
 
 /* grow a String's allocation by at least `incr' bytes */
 extern String*
-s_grow(String *s, int incr)	
+s_grow(String *s, int incr)
 {
 	char *cp;
 	int size;
@@ -40,4 +40,3 @@ s_grow(String *s, int incr)
 
 	return s;
 }
-
