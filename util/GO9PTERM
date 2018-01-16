@@ -6,7 +6,7 @@ trap : 2
 $HARVEY/util/ufs -root=$HARVEY &
 ufspid=$!
 
-export machineflag=pc
+export machineflag=q35
 if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	export kvmflag='-enable-kvm'
 	export machineflag='pc,accel=kvm'
@@ -16,17 +16,27 @@ if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	fi
 fi
 
+# The -usb flag is necessary for the system to recognize usb devices
+# To specify a specific device you must follow the following format:
+#      -device usb-host,hostbus='X',hostaddr='Y'
+# The 'X'/'Y' values can be found with lsusb(8) (Linux/BSD)
+# Provided is an example lsusb(8) output:
+#       Bus 002 Device 004: ID 056a:00e6 Wacom Co., Ltd TPCE6
+# Where 'X'== 2 and 'Y'== 4
 read -r cmd <<EOF
-$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048 $kvmflag \
+$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 2 -m 2048 $kvmflag \
+-usb \
 -serial stdio \
 --machine $machineflag \
 -net nic,model=rtl8139 \
--net user,hostfwd=tcp::5555-:1522 \
+-net user,id=user.0,\
+hostfwd=tcp::5555-:1522,\
+hostfwd=tcp::9999-:9,\
+hostfwd=tcp::17010-:17010,\
+hostfwd=tcp::1666-:1666,\
+hostfwd=tcp::5356-:5356,\
+hostfwd=tcp::17013-:17013 \
 -net dump,file=/tmp/vm0.pcap \
--redir tcp:9999::9 \
--redir tcp:17010::17010 \
--redir tcp:5356::5356 \
--redir tcp:17013::17013 \
 -append "service=terminal nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1  mouseport=ps2 vgasize=1024x768x24 monitor=vesa" \
 -kernel $HARVEY/sys/src/9/amd64/harvey.32bit $*
 EOF

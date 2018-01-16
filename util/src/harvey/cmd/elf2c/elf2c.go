@@ -1,11 +1,42 @@
+/*
+Copyright 2018 Harvey OS Team
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"debug/elf"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"path"
@@ -30,7 +61,8 @@ func gencode(w io.Writer, n, t string, m []byte, start, end uint64) {
 func main() {
 	flag.Parse()
 	a := flag.Args()
-	for _, n := range a {
+	w := &bytes.Buffer{}
+	for _, n := range a[1:] {
 		f, err := elf.Open(n)
 		if err != nil {
 			fmt.Printf("%v %v\n", n, err)
@@ -102,13 +134,13 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Processed %v\n", v)
 		}
 		fmt.Fprintf(os.Stderr, "gencode\n")
-		// Gen code to stdout. For each file, create an array, a start, and an end variable.
-		w := bufio.NewWriter(os.Stdout)
 		_, file := path.Split(n)
 		fmt.Fprintf(w, "uintptr_t %v_main = %v;\n", n, f.Entry)
 		gencode(w, file, "code", mem, codestart, codeend)
 		gencode(w, file, "data", mem, datastart, dataend)
-		w.Flush()
+	}
+	if err := ioutil.WriteFile(a[0], w.Bytes(), 0444); err != nil {
+		fmt.Fprintf(os.Stderr, "elf2c: write %s failed: %v\n", a[0], err)
 	}
 
 }
