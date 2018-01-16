@@ -14,7 +14,6 @@ cc_library(
 		"lib/parse.c",
 		"lib/fs.c",
 		"lib/fsdir.c",
-		"audio/audio.c",
 		"audio/audioctl.c",
 		"audio/audiofs.c",
 		"audio/audiosub.c",
