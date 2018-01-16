@@ -58,14 +58,14 @@ struct Message
 	int		ctlfd;
 	char		*name;
 	char		*replyname;
-	uchar	opened;
-	uchar	dirty;
-	uchar	isreply;
-	uchar	deleted;
-	uchar	writebackdel;
-	uchar	tagposted;
-	uchar	recursed;
-	uchar	level;
+	uint8_t	opened;
+	uint8_t	dirty;
+	uint8_t	isreply;
+	uint8_t	deleted;
+	uint8_t	writebackdel;
+	uint8_t	tagposted;
+	uint8_t	recursed;
+	uint8_t	level;
 
 	/* header info */
 	char		*fromcolon;	/* from header file; all rest are from info file */
@@ -155,8 +155,8 @@ extern	void		error(char*, ...);
 extern	int		tokenizec(char*, char**, int, char*);
 extern	void		execproc(void*);
 
-#pragma	varargck	argpos	error	1
-#pragma	varargck	argpos	ctlprint	2
+//#pragma	varargck	argpos	error	1
+//#pragma	varargck	argpos	ctlprint	2
 
 extern	Window	*wbox;
 extern	Message	mbox;

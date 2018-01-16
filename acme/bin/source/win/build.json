@@ -1,0 +1,16 @@
+{
+	"win": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/acme/bin/$ARCH/",
+		"Program": "win",
+		"SourceFiles": [
+			"fs.c",
+			"main.c",
+			"pipe.c",
+			"util.c",
+			"win.c"
+		]
+	}
+}

@@ -81,7 +81,7 @@ wikiput(Wiki *w)
 	}
 	write(fd, p, Blinelen(b));
 
-	snprint(buf, sizeof buf, "D%lud\n", w->time);
+	snprint(buf, sizeof buf, "D%lu\n", w->time);
 	if(email)
 		snprint(buf+strlen(buf), sizeof(buf)-strlen(buf), "A%s\n", email);
 
@@ -100,7 +100,7 @@ wikiput(Wiki *w)
 
 	werrstr("");
 	if((n=write(fd, "", 0)) != 0){
-		fprint(2, "Wiki commit %lud %d %d: %r\n", w->time, fd, n);
+		fprint(2, "Wiki commit %lu %d %d: %r\n", w->time, fd, n);
 		close(fd);
 		return -1;
 	}
@@ -172,7 +172,7 @@ wikiget(Wiki *w)
 	if(!normal)
 		Bprint(w->win->body, "%s\n\n", p);
 
-	while(p = Brdline(bin, '\n')){
+	while((p = Brdline(bin, '\n')) != nil){
 		p[Blinelen(bin)-1] = '\0';
 		if(normal)
 			Bprint(w->win->body, "%s\n", p);
@@ -218,7 +218,7 @@ wikiload(Wiki *w, char *arg)
 	else{
 		p = emalloc(strlen(w->arg)+1+strlen(arg)+1);
 		strcpy(p, w->arg);
-		if(q = strrchr(p, '/')){
+		if((q = strrchr(p, '/')) != nil){
 			++q;
 			*q = '\0';
 		}else
@@ -227,7 +227,7 @@ wikiload(Wiki *w, char *arg)
 		cleanname(p);
 		path = p;
 	}
-	if(addr=strchr(path, ':'))
+	if((addr=strchr(path, ':')) != nil)
 		*addr++ = '\0';
 
 	rv = wikiopen(path, addr)==0;
@@ -320,15 +320,15 @@ expand(Window *w, Event *e, Event *eacme)
 		return e;
 	}
 
-	q0 = eval(w, "#%lud-/\\[/", e->q0);
+	q0 = eval(w, "#%lu-/\\[/", e->q0);
 	if(q0 < 0)
 		return eacme;
-	if(eval(w, "#%lud+/\\]/", q0) < e->q0)	/* [ closes before us */
+	if(eval(w, "#%lu+/\\]/", q0) < e->q0)	/* [ closes before us */
 		return eacme;
-	q1 = eval(w, "#%lud+/\\]/", e->q1);
+	q1 = eval(w, "#%lu+/\\]/", e->q1);
 	if(q1 < 0)
 		return eacme;
-	if((x=eval(w, "#%lud-/\\[/", q1))==-1 || x > e->q1)	/* ] opens after us */
+	if((x=eval(w, "#%lu-/\\[/", q1))==-1 || x > e->q1)	/* ] opens after us */
 		return eacme;
 	e->q0 = q0+1;
 	e->q1 = q1;
@@ -589,7 +589,7 @@ wikidiff(Wiki *w)
 
 	p = emalloc(strlen(w->arg)+10);
 	strcpy(p, w->arg);
-	if(q = strchr(p, '/'))
+	if((q = strchr(p, '/')) != nil)
 		*q = '\0';
 	r = estrdup(p);
 	strcat(p, "/+Diff");

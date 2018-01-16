@@ -1,0 +1,14 @@
+#!/bin/rc
+
+rfork en
+fn sigterm{}
+USER=$user
+HOME=$home
+bind -b /apex/rc/bin /bin
+bind -b /apex/amd64/lib /lib
+bind -b /apex/amd64/bin /bin
+
+# For crossnative compiler!
+#bind -b /apex/ports/cross2/bin /bin
+
+pdksh -l $*

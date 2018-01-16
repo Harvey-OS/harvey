@@ -96,7 +96,7 @@ struct Treq {
 };
 
 struct Wiki {
-	QLock;
+	QLock lk;
 	int isnew;
 	int special;
 	char *arg;
@@ -104,7 +104,7 @@ struct Wiki {
 	int n;
 	int dead;
 	Window *win;
-	ulong time;
+	uint32_t time;
 	int linked;
 	Wiki *next;
 	Wiki *prev;

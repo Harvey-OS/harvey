@@ -56,4 +56,3 @@ Harvey is a proud member of [SFC](https://sfconservancy.org/projects/current/) a
 ## Licenses
 
 * [![License GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/Harvey-OS/harvey/blob/master/LICENSE)
-* [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Harvey-OS/harvey/blob/master/LICENSE.mit)

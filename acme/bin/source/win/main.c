@@ -229,7 +229,7 @@ __sendinput(Window *w, uint32_t q0, uint32_t q1)
 		eq = &q;
 	r->aux = nil;
 	if(debug)
-		fprint(2, "read returns %lud-%lud: %.*q\n", q0, q0+n, n, r->ofcall.data);
+		fprint(2, "read returns %lu-%lu: %.*q\n", q0, q0+n, n, r->ofcall.data);
 	respond(r, nil);
 	return n;
 }
@@ -244,7 +244,7 @@ _sendinput(Window *w, uint32_t q0, uint32_t *q1)
 	if(!n || !eraseinput)
 		return n;
 	/* erase q0 to q0+n */
-	sprint(buf, "#%lud,#%lud", q0, q0+n);
+	sprint(buf, "#%lu,#%lu", q0, q0+n);
 	winsetaddr(w, buf, 0);
 	write(w->data, buf, 0);
 	*q1 -= n;
@@ -267,7 +267,7 @@ sendinput(Window *w, uint32_t q0, uint32_t *q1)
 
 Event esendinput;
 void
-fsloop(void*)
+fsloop(void* _)
 {
 	Fsevent e;
 	Req **l, *r;
@@ -283,12 +283,12 @@ fsloop(void*)
 		case 'r':
 			*eq = r;
 			r->aux = nil;
-			eq = &r->aux;
+			eq = (Req **)&r->aux;
 			/* call sendinput with hostpt and endpt */
 			sendp(win->cevent, &esendinput);
 			break;
 		case 'f':
-			for(l=&q; *l; l=&(*l)->aux){
+			for(l=&q; *l; l=(Req **)&(*l)->aux){
 				if(*l == r->oldreq){
 					*l = (*l)->aux;
 					if(*l == nil)
@@ -424,7 +424,7 @@ mainctl(void *v)
 	pendingK = 0;
 	for(;;){
 		if(debug)
-			fprint(2, "input range %lud-%lud\n", hostpt, endpt);
+			fprint(2, "input range %lu-%lu\n", hostpt, endpt);
 		e = recvp(w->cevent);
 		if(debug)
 			fprint(2, "msg: %C %C %d %d %d %d %q\n",
@@ -443,7 +443,7 @@ mainctl(void *v)
 			break;
 
 		case 'S':	/* output to stdout */
-			sprint(tmp, "#%lud", hostpt);
+			sprint(tmp, "#%lu", hostpt);
 			winsetaddr(w, tmp, 0);
 			write(w->data, e->b, e->nb);
 			pendingS += e->nr;
@@ -475,7 +475,7 @@ mainctl(void *v)
 				if(pendingS < 0)
 					fprint(2, "win: pendingS = %d\n", pendingS);
 				if(e->q0 != hostpt)
-					fprint(2, "win: insert at %d expected %lud\n", e->q0, hostpt);
+					fprint(2, "win: insert at %d expected %lu\n", e->q0, hostpt);
 				endpt += delta;
 				hostpt += delta;
 				sendp(writechan, nil);

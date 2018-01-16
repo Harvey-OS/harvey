@@ -31,6 +31,7 @@ fn roff {
 		preproc=($preproc eqn)
 	if(~ $x *tbl*)
 		preproc=($preproc tbl)
+echo $preproc
 	{echo -n $FONTS; cat $2 </dev/null} |
 		switch($#preproc) {
 		case 0

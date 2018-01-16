@@ -31,19 +31,19 @@ struct{
 	char	*port;
 	char *suffix;
 } ports[] = {
-	"text/",			"edit",		".txt",
+	{"text/",			"edit",		".txt"},
 	/* text must be first for plumbport() */
-	"image/gif",			"image",	".gif",
-	"image/jpeg",			"image",	".jpg",
-	"image/jpeg",			"image",	".jpeg",
-	"image/png",			"image",	".png",
-	"image/tiff",			"image",	".tif",
-	"application/postscript",	"postscript",	".ps",
-	"application/pdf",		"postscript",	".pdf",
-	"application/msword",		"msword",	".doc",
-	"application/rtf",		"msword",	".rtf",
-	"audio/x-wav",			"wav",		".wav",
-	nil,	nil
+	{"image/gif",			"image",	".gif"},
+	{"image/jpeg",			"image",	".jpg"},
+	{"image/jpeg",			"image",	".jpeg"},
+	{"image/png",			"image",	".png"},
+	{"image/tiff",			"image",	".tif"},
+	{"application/postscript",	"postscript",	".ps"},
+	{"application/pdf",		"postscript",	".pdf"},
+	{"application/msword",		"msword",	".doc"},
+	{"application/rtf",		"msword",	".rtf"},
+	{"audio/x-wav",			"wav",		".wav"},
+	{nil,				nil,		nil}
 };
 
 char *goodtypes[] = {
@@ -61,9 +61,9 @@ struct{
 	char *type;
 	char	*ext;
 } exts[] = {
-	"image/gif",	".gif",
-	"image/jpeg",	".jpg",
-	nil, nil
+	{"image/gif",	".gif"},
+	{"image/jpeg",	".jpg"},
+	{nil, nil}
 };
 
 char *okheaders[] =
@@ -467,7 +467,7 @@ mesgmenumarkdel(Window *w, Message *mbox, Message *m, int writeback)
 }
 
 void
-mesgmenumarkundel(Window *w, Message*, Message *m)
+mesgmenumarkundel(Window *w, Message* _, Message *m)
 {
 	char *buf;
 
@@ -706,9 +706,9 @@ mesgtagpost(Message *m)
 }
 
 /* need to expand selection more than default word */
-#pragma varargck argpos eval 2
+//#pragma varargck argpos eval 2
 
-long
+int32_t
 eval(Window *w, char *s, ...)
 {
 	char buf[64];
@@ -745,7 +745,7 @@ char*
 expandaddr(Window *w, Event *e)
 {
 	char *s;
-	long q0, q1;
+	int32_t q0, q1;
 
 	if(e->q0 != e->q1)	/* cannot happen */
 		return nil;
@@ -967,7 +967,7 @@ mimedisplay(Message *m, char *name, char *rootdir, Window *w, int fileonly)
 			dest[strlen(dest)-1] = '\0';
 		}else
 			dest = estrdup(m->filename);
-		if(maildest = getenv("maildest")){
+		if((maildest = getenv("maildest")) != nil){
 			maildest = eappend(maildest, "/", dest);
 			Bprint(w->body, "\tcp %s%sbody%s %q\n", rootdir, name, ext(m->type), maildest);
 			free(maildest);
