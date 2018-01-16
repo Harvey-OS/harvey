@@ -42,7 +42,7 @@ hredirected(HConnect *c, char *how, char *uri)
 	else
 		snprint(sayport, sizeof sayport, ":%s", c->port);
 
-	n = snprint(c->xferbuf, HBufSize, 
+	n = snprint(c->xferbuf, HBufSize,
 			"<head><title>Redirection</title></head>\r\n"
 			"<body><h1>Redirection</h1>\r\n"
 			"Your selection can be found <a href=\"%U\"> here</a>.<p></body>\r\n", uri);
