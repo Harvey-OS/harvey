@@ -186,7 +186,7 @@ upheap(int i, VtBlock *b)
 	uint32_t now;
 	int p;
 	VtCache *c;
-	
+
 	c = b->c;
 	now = c->now;
 	for(; i != 0; i = p){
@@ -210,7 +210,7 @@ downheap(int i, VtBlock *b)
 	uint32_t now;
 	int k;
 	VtCache *c;
-	
+
 	c = b->c;
 	now = c->now;
 	for(; ; i = k){
@@ -301,7 +301,7 @@ vtcachebumpblock(VtCache *c)
 		b->prev = nil;
 	}
 
- 	
+
 if(0)fprint(2, "droping %x:%V\n", b->addr, b->score);
 	/* set vtBlock to a reasonable state */
 	b->ref = 1;
@@ -322,7 +322,7 @@ vtcachelocal(VtCache *c, uint32_t addr, int type)
 	if(addr == 0)
 		sysfatal("vtcachelocal: asked for nonexistent block 0");
 	if(addr > c->nblock)
-		sysfatal("vtcachelocal: asked for block #%ud; only %d blocks",
+		sysfatal("vtcachelocal: asked for block #%u; only %d blocks",
 			addr, c->nblock);
 
 	b = &c->block[addr-1];
@@ -338,7 +338,7 @@ vtcachelocal(VtCache *c, uint32_t addr, int type)
 
 	qlock(&b->lk);
 	b->nlock = 1;
-	b->pc = getcallerpc(&c);
+	b->pc = getcallerpc();
 	return b;
 }
 
@@ -358,7 +358,7 @@ vtcacheallocblock(VtCache *c, int type)
 
 	qlock(&b->lk);
 	b->nlock = 1;
-	b->pc = getcallerpc(&c);
+	b->pc = getcallerpc();
 	return b;
 }
 
@@ -375,14 +375,14 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 	uint32_t addr;
 
 	if(vttracelevel)
-		fprint(2, "vtcacheglobal %V %d from %p\n", score, type, getcallerpc(&c));
+		fprint(2, "vtcacheglobal %V %d from %p\n", score, type, getcallerpc());
 	addr = vtglobaltolocal(score);
 	if(addr != NilBlock){
 		if(vttracelevel)
 			fprint(2, "vtcacheglobal %V %d => local\n", score, type);
 		b = vtcachelocal(c, addr, type);
 		if(b)
-			b->pc = getcallerpc(&c);
+			b->pc = getcallerpc();
 		return b;
 	}
 
@@ -413,7 +413,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 		}
 		if(vttracelevel)
 			fprint(2, "vtcacheglobal %V %d => found in cache; returning\n", score, type);
-		b->pc = getcallerpc(&c);
+		b->pc = getcallerpc();
 		return b;
 	}
 
@@ -433,7 +433,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 
 	/*
 	 * Lock b before unlocking c, so that others wait while we read.
-	 * 
+	 *
 	 * You might think there is a race between this qlock(b) before qunlock(c)
 	 * and the qlock(c) while holding a qlock(b) in vtblockwrite.  However,
 	 * the block here can never be the block in a vtblockwrite, so we're safe.
@@ -461,7 +461,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 	b->nlock = 1;
 	if(vttracelevel)
 		fprint(2, "vtcacheglobal %V %d => loaded into cache; returning\n", score, type);
-	b->pc = getcallerpc(&b);
+	b->pc = getcallerpc();
 	return b;
 }
 
@@ -492,7 +492,7 @@ vtblockput(VtBlock* b)
 
 if(0)fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->iostate);
 	if(vttracelevel)
-		fprint(2, "vtblockput %p from %p\n", b, getcallerpc(&b));
+		fprint(2, "vtblockput %p from %p\n", b, getcallerpc());
 
 	if(--b->nlock > 0)
 		return;
@@ -501,7 +501,7 @@ if(0)fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->ios
 	 * b->nlock should probably stay at zero while
 	 * the vtBlock is unlocked, but diskThread and vtSleep
 	 * conspire to assume that they can just qlock(&b->lk); vtblockput(b),
-	 * so we have to keep b->nlock set to 1 even 
+	 * so we have to keep b->nlock set to 1 even
 	 * when the vtBlock is unlocked.
 	 */
 	assert(b->nlock == 0);
@@ -584,7 +584,7 @@ vtblockcopy(VtBlock *b)
 	}
 	memmove(bb->data, b->data, b->c->blocksize);
 	vtblockput(b);
-	bb->pc = getcallerpc(&b);
+	bb->pc = getcallerpc();
 	return bb;
 }
 
@@ -607,4 +607,3 @@ vtglobaltolocal(uint8_t score[VtScoreSize])
 		return NilBlock;
 	return (score[16]<<24)|(score[17]<<16)|(score[18]<<8)|score[19];
 }
-
