@@ -1,0 +1,15 @@
+{
+	"libdisk": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libdisk.a",
+		"SourceFiles": [
+			"disk.c",
+			"proto.c",
+			"scsi.c",
+			"scsierrs.c"
+		]
+	}
+}
