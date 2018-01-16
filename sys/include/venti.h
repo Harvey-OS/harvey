@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma lib "libventi.a"
-#pragma src "/sys/src/libventi"
 
 
 /* XXX should be own library? */
@@ -21,7 +19,6 @@ enum
 };
 
 typedef struct Packet Packet;
-#pragma incomplete Packet
 
 Packet*	packetalloc(void);
 void	packetappend(Packet*, uint8_t *buf, int n);
@@ -205,10 +202,6 @@ int vtparsescore(char *s, char **prefix, uint8_t[VtScoreSize]);
  *
  * V	a venti score
  */
-#pragma	varargck	type	"V"	uchar*
-#pragma	varargck	type	"F"	VtFcall*
-#pragma	varargck	type	"T"	void
-#pragma	varargck	type	"lT"	void
 
 int vtscorefmt(Fmt*);
 
@@ -357,7 +350,6 @@ int	vtgoodbye(VtConn* z);
 
 /* server */
 typedef struct VtSrv VtSrv;
-#pragma incomplete VtSrv
 typedef struct VtReq VtReq;
 struct VtReq
 {
@@ -402,7 +394,6 @@ enum
 
 typedef struct VtBlock VtBlock;
 typedef struct VtCache VtCache;
-#pragma incomplete VtCache
 
 struct VtBlock
 {

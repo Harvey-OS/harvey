@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	src	"/sys/src/libbio"
-#pragma	lib	"libbio.a"
 
 typedef	struct	Biobuf	Biobuf;
 typedef	struct	Biobuf	Biobufhdr;
@@ -75,4 +73,3 @@ int	Bungetc(Biobufhdr*);
 int	Bungetrune(Biobufhdr*);
 int32_t	Bwrite(Biobufhdr*, void*, int32_t);
 
-#pragma	varargck	argpos	Bprint	2

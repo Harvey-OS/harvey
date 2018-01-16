@@ -7,14 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"libsec.a"
-#pragma	src	"/sys/src/libsec"
-
-
-#ifndef _MPINT
-typedef struct mpint mpint;
-#endif
-
 /*
  * AES definitions
  */
@@ -313,6 +305,8 @@ uint8_t*		X509req(RSApriv *priv, char *subj, int *certlen);
 char*		X509verify(uint8_t *cert, int ncert, RSApub *pk);
 void		X509dump(uint8_t *cert, int ncert);
 
+
+
 /*
  * elgamal
  */
@@ -429,3 +423,4 @@ int	okThumbprint(uint8_t *sha1, Thumbprint *ok);
 /* readcert.c */
 uint8_t	*readcert(char *filename, int *pcertlen);
 PEMChain*readcertchain(char *filename);
+

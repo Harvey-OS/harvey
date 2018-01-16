@@ -7,8 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma lib "libgeometry.a"
-#pragma src "/sys/src/libgeometry"
 typedef double Matrix[4][4];
 typedef struct Point3 Point3;
 typedef struct Quaternion Quaternion;

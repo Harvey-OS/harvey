@@ -374,7 +374,6 @@ extern int	_tas(int*);
 extern int	_tas32(int*);
 
 extern	void	lock(Lock*);
-extern	int	lockt(Lock*, uint32_t);
 extern	void	unlock(Lock*);
 extern	int	canlock(Lock*);
 
@@ -619,11 +618,12 @@ extern	int	fd2path(int, char*, int);
 // extern	int	fdflush(int);
 extern	int	pipe(int*);
 extern	int32_t	pread(int, void*, int32_t, int64_t);
+#define read(a, b, c) pread(a, b, c, ~0LL)
 extern	int32_t	preadv(int, IOchunk*, int, int64_t);
 extern	int32_t	pwrite(int, const void*, int32_t, int64_t);
+#define write(a, b, c) pwrite(a, b, c, ~0LL)
 extern	int32_t	pwritev(int, IOchunk*, int, int64_t);
 extern	int32_t	r0(void);
-extern	int32_t	read(int, void*, int32_t);
 extern	int32_t	readn(int, void*, int32_t);
 extern	int32_t	readv(int, IOchunk*, int);
 extern	int	remove(const char*);
@@ -642,7 +642,6 @@ extern	int	stat(const char*, uint8_t*, int);
 extern	int	tsemacquire(int32_t*, uint64_t);
 extern	Waitmsg*	wait(void);
 extern	int	waitpid(void);
-extern	int32_t	write(int, const void*, int32_t);
 extern	int32_t	writev(int, IOchunk*, int);
 extern	int	wstat(const char*, uint8_t*, int);
 extern	void*	rendezvous(void*, void*);
