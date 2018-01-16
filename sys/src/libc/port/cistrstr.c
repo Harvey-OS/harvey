@@ -11,22 +11,22 @@
 #include <libc.h>
 
 char*
-cistrstr(char *s, char *sub)
+cistrstr(const char *s, const char *sub)
 {
 	int c, csub, n;
 
 	csub = *sub;
 	if(csub == '\0')
-		return s;
+		return (char*)s;
 	if(csub >= 'A' && csub <= 'Z')
 		csub -= 'A' - 'a';
 	sub++;
 	n = strlen(sub);
-	for(; c = *s; s++){
+	for(; (c = *s) != '\0'; s++){
 		if(c >= 'A' && c <= 'Z')
 			c -= 'A' - 'a';
 		if(c == csub && cistrncmp(s+1, sub, n) == 0)
-			return s;
+			return (char*)s;
 	}
 	return nil;
 }

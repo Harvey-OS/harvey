@@ -135,6 +135,7 @@ LIBC_SRCS = [
     "port/cistrstr.c",
     "port/charstod.c",
     "port/cleanname.c",
+    "port/configstring.c",
     "port/ctype.c",
     "port/encodefmt.c",
     "port/execl.c",
@@ -144,7 +145,6 @@ LIBC_SRCS = [
     "port/fmod.c",
     "port/frand.c",
     "port/frexp.c",
-    "port/getcallerpc.c",
     "port/getfields.c",
     "port/getuser.c",
     "port/hangup.c",
@@ -174,6 +174,7 @@ LIBC_SRCS = [
     "port/quote.c",
     "port/rand.c",
     "port/readn.c",
+    "port/reallocarray.c",
     "port/rijndael.c",
     "port/rune.c",
     "port/runebase.c",
@@ -194,6 +195,7 @@ LIBC_SRCS = [
     "port/sha2.c",
     "port/sin.c",
     "port/sinh.c",
+    "port/slice.c",
     "port/strcat.c",
     "port/strchr.c",
     "port/strcmp.c",
@@ -201,6 +203,8 @@ LIBC_SRCS = [
     "port/strecpy.c",
     "port/strcspn.c",
     "port/strdup.c",
+    "port/strlcat.c",
+    "port/strlcpy.c",
     "port/strlen.c",
     "port/strncat.c",
     "port/strncmp.c",
@@ -228,15 +232,16 @@ LIBC_SRCS = [
     "port/u16.c",
     "port/u32.c",
     "port/u64.c",
-    "amd64/notejmp.c",
-    "amd64/cycles.c",
-    "amd64/argv0.c",
-    "amd64/rdpmc.c",
-    "amd64/setjmp.s",
-    "amd64/sqrt.s",
-    "amd64/tas.s",
-    "amd64/atom.S",
-    "amd64/main9.S"
+    "${ARCH}/notejmp.c",
+    "${ARCH}/cycles.c",
+    "${ARCH}/argv0.c",
+    "port/getcallstack.c",
+    "${ARCH}/rdpmc.c",
+    "${ARCH}/setjmp.s",
+    "${ARCH}/sqrt.s",
+    "${ARCH}/tas.s",
+    "${ARCH}/atom.S",
+    "${ARCH}/main9.S"
 ]
 
 KLIBC_SRCS = [
@@ -342,7 +347,6 @@ KLIBC_SRCS = [
     "port/fmod.c",
     "port/frand.c",
     "port/frexp.c",
-    "port/getcallerpc.c",
     "port/getfields.c",
     "port/getuser.c",
     "port/hangup.c",
@@ -372,6 +376,7 @@ KLIBC_SRCS = [
     "port/quote.c",
     "port/rand.c",
     "port/readn.c",
+    "port/reallocarray.c",
     "port/rijndael.c",
     "port/rune.c",
     "port/runebase.c",
@@ -392,6 +397,7 @@ KLIBC_SRCS = [
     "port/sha2.c",
     "port/sin.c",
     "port/sinh.c",
+    "port/slice.c",
     "port/strcat.c",
     "port/strchr.c",
     "port/strcmp.c",
@@ -399,6 +405,8 @@ KLIBC_SRCS = [
     "port/strecpy.c",
     "port/strcspn.c",
     "port/strdup.c",
+    "port/strlcat.c",
+    "port/strlcpy.c",
     "port/strlen.c",
     "port/strncat.c",
     "port/strncmp.c",
@@ -426,24 +434,25 @@ KLIBC_SRCS = [
     "port/u16.c",
     "port/u32.c",
     "port/u64.c",
-    "amd64/notejmp.c",
-    "amd64/cycles.c",
-    "amd64/argv0.c",
-    "amd64/rdpmc.c",
-    "amd64/setjmp.s",
-    "amd64/sqrt.s",
-    "amd64/tas.s",
-    "amd64/atom.S",
-    "amd64/main9.S"
+    "${ARCH}/notejmp.c",
+    "${ARCH}/cycles.c",
+    "${ARCH}/argv0.c",
+    "port/getcallstack.c",
+    "${ARCH}/rdpmc.c",
+    "${ARCH}/setjmp.s",
+    "${ARCH}/sqrt.s",
+    "${ARCH}/tas.s",
+    "${ARCH}/atom.S",
+    "${ARCH}/main9.S"
 ]
 
 
 cc_library(
-    name="libkc",
+    name="klibc",
     copts=KLIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
-        "//amd64/include",
+        "//${ARCH}/include",
         "//sys/src/libc"
     ],
     srcs=KLIBC_SRCS,
@@ -459,7 +468,7 @@ cc_library(
     copts=LIB_COMPILER_FLAGS,
     includes=[
         "//sys/include",
-        "//amd64/include",
+        "//${ARCH}/include",
         "//sys/src/libc"
     ],
     srcs=LIBC_SRCS,
@@ -472,13 +481,13 @@ cc_library(
 mk_sys(
     name="syscallheader",
     mode="sys.h",
-    arch="amd64",
+    arch=env("ARCH"),
     sysconf="//sys/src/sysconf.json",
 )
 
 mk_sys(
     name="9syscall",
     mode="syscallfiles",
-    arch="amd64",
+    arch=env("ARCH"),
     sysconf="//sys/src/sysconf.json",
 )

@@ -45,7 +45,7 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 }
 
 NetConnInfo*
-getnetconninfo(char *dir, int fd)
+getnetconninfo(const char *dir, int fd)
 {
 	NetConnInfo *nci;
 	char *cp;

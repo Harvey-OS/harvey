@@ -15,7 +15,7 @@
  *  make an address, add the defaults
  */
 char *
-netmkaddr(char *linear, char *defnet, char *defsrv)
+netmkaddr(const char *linear, const char *defnet, const char *defsrv)
 {
 	static char addr[256];
 	char *cp;
@@ -48,13 +48,13 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	 */
 	cp = strchr(cp+1, '!');
 	if(cp)
-		return linear;
+		return (char *)linear;
 
 	/*
 	 *  add default service
 	 */
 	if(defsrv == 0)
-		return linear;
+		return (char *)linear;
 	snprint(addr, sizeof(addr), "%s!%s", linear, defsrv);
 
 	return addr;

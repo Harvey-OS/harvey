@@ -44,7 +44,6 @@ static Pool sbrkmem = {
 	.private=		&sbrkmempriv,
 };
 Pool *mainmem = &sbrkmem;
-Pool *imagmem = &sbrkmem;
 
 /*
  * we do minimal bookkeeping so we can tell pool
@@ -148,6 +147,7 @@ ppanic(Pool *p, char *fmt, ...)
 {
 	va_list v;
 	int n;
+	uintptr stack[6];
 	char *msg;
 	Private *pv;
 
@@ -171,7 +171,13 @@ ppanic(Pool *p, char *fmt, ...)
 		write(pv->printfd, "\n", 1);
 	}
 	va_end(v);
-//	unlock(&pv->lk);
+	getcallstack(stack, nelem(stack));
+	n = seprint(msg, msg+sizeof(panicbuf), "stack: %x, %x, %x %x, %x, %x\n",
+	    stack[0], stack[1], stack[2], stack[3], stack[4], stack[5]) - msg;
+	write(2, msg, n);
+	if(pv->printfd != 2){
+	    write(pv->printfd, msg, n);
+	}
 	abort();
 }
 
@@ -206,7 +212,7 @@ malloc(size_t size)
 	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
 	if(Npadlong && v != nil) {
 		v = (uintptr_t*)v+Npadlong;
-		setmalloctag(v, getcallerpc(&size));
+		setmalloctag(v, getcallerpc());
 		setrealloctag(v, 0);
 	}
 	return v;
@@ -220,7 +226,7 @@ mallocz(uint32_t size, int clr)
 	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
 	if(Npadlong && v != nil){
 		v = (uintptr_t*)v+Npadlong;
-		setmalloctag(v, getcallerpc(&size));
+		setmalloctag(v, getcallerpc());
 		setrealloctag(v, 0);
 	}
 	if(clr && v != nil)
@@ -237,7 +243,7 @@ mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
 			   offset-Npadlong*sizeof(uintptr_t), span);
 	if(Npadlong && v != nil){
 		v = (uintptr_t*)v+Npadlong;
-		setmalloctag(v, getcallerpc(&size));
+		setmalloctag(v, getcallerpc());
 		setrealloctag(v, 0);
 	}
 	return v;
@@ -266,9 +272,9 @@ realloc(void *v, size_t size)
 
 	if((nv = poolrealloc(mainmem, v, size))){
 		nv = (uintptr_t*)nv+Npadlong;
-		setrealloctag(nv, getcallerpc(&v));
+		setrealloctag(nv, getcallerpc());
 		if(v == nil)
-			setmalloctag(nv, getcallerpc(&v));
+			setmalloctag(nv, getcallerpc());
 	}		
 	return nv;
 }
@@ -284,7 +290,7 @@ calloc(uint32_t n, size_t szelem)
 {
 	void *v;
 	if((v = mallocz(n*szelem, 1)))
-		setmalloctag(v, getcallerpc(&n));
+		setmalloctag(v, getcallerpc());
 	return v;
 }
 

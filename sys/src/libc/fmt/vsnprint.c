@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-vsnprint(char *buf, int len, char *fmt, va_list args)
+vsnprint(char *buf, int len, const char *fmt, va_list args)
 {
 	Fmt f;
 

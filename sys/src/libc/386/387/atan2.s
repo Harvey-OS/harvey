@@ -1,5 +1,0 @@
-TEXT	atan2(SB), $0
-	FMOVD	a+0(FP), F0
-	FMOVD	b+8(FP), F0
-	FPATAN
-	RET

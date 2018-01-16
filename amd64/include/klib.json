@@ -1,0 +1,26 @@
+{
+	"KernelLibs": {
+		"Cflags": [
+			"-mcmodel=kernel",
+			"-O0",
+			"-mno-red-zone",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-Wall",
+			"-Werror",
+			"-g"
+		],
+		"Include": [
+			"/$ARCH/include/$CC.json"
+		],
+		"Oflags": [
+			"-static"
+		],
+		"Post": [
+			"rm -f *.o"
+		],
+		"Pre": [
+			"rm -f -f *.o *.tag.*"
+		]
+	}
+}

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-strncat(char *s1, char *s2, int32_t n)
+strncat(char *s1, const char *s2, int32_t n)
 {
 	char *os1;
 
@@ -19,7 +19,7 @@ strncat(char *s1, char *s2, int32_t n)
 	while(*s1++)
 		;
 	s1--;
-	while(*s1++ = *s2++)
+	while((*s1++ = *s2++) != 0)
 		if(--n < 0) {
 			s1[-1] = 0;
 			break;
