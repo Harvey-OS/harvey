@@ -99,7 +99,7 @@ procrexec(char *xprog, ...)
 	}
 	args[i] = nil;
 
-	c = chancreate(sizeof(ulong), 0);
+	c = chancreate(sizeof(uint32_t), 0);
 	rexarg[0] = xprog;
 	rexarg[1] = args;
 	rexarg[2] = fpipe;
@@ -349,7 +349,7 @@ vopenwin(void *v)
 	name = arg[0];
 	buttons = arg[1];
 	twin = arg[2];
-	wintype = (int)arg[3];
+	wintype = (int)((uintptr_t)arg[3]);
 	sendul(arg[4], 0);
 
 	openwin(name, buttons, twin, wintype);
@@ -362,11 +362,11 @@ procopenwin(char *name, char *buttons, Win *twin, int wintype)
 	void *arg[5];
 	Channel *c;
 
-	c = chancreate(sizeof(ulong), 0);
+	c = chancreate(sizeof(uint32_t), 0);
 	arg[0] = name;
 	arg[1] = buttons;
 	arg[2] = twin;
-	arg[3] = (void*)wintype;
+	arg[3] = (void*)((uintptr_t)wintype);
 	arg[4] = c;
 	proccreate(vopenwin, arg, STACK);
 	recvul(c);
@@ -423,7 +423,7 @@ procpexec(char *prog, char **args)
 	void *rexarg[4];
 	Channel *c;
 
-	c = chancreate(sizeof(ulong), 0);
+	c = chancreate(sizeof(uint32_t), 0);
 	rexarg[0] = prog;
 	rexarg[1] = args;
 	rexarg[2] = c;

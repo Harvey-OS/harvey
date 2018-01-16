@@ -1,0 +1,3 @@
+#!/bin/rc
+echo opstop >'#K/kpctl'
+cp '#K/kpoprofile' $1
