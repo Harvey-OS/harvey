@@ -61,7 +61,7 @@ var config = struct {
 	Fail      bool
 }{
 	Harvey: os.Getenv("HARVEY"),
-	Except: map[string]bool{"cflags.json": true, "9": true, "libauthcmd.json": true, "awk.json": true, "bzip2": true, "klibc.json": true, "kcmds.json": true, "klib.json": true, "kernel.json": true},
+	Except: map[string]bool{"sysconf.json": true},
 }
 
 type fixup func(string, map[string]interface{})
@@ -118,10 +118,11 @@ func one(n string, f ...fixup) error {
 		log.Printf("%v: %v", n, jsmap)
 	}
 
-	for _, d := range f {
-		d(n, jsmap)
-	}
-	buf, err = json.MarshalIndent(jsmap, "", "\t")
+	mapname := jsmap["Name"].(string)
+	delete(jsmap, "Name")
+	var nmap = make(map[string]map[string]interface{})
+	nmap[mapname] = jsmap
+	buf, err = json.MarshalIndent(nmap, "", "\t")
 	if err != nil {
 		return err
 	}
@@ -157,19 +158,16 @@ func main() {
 				return err
 			}
 			if fi.IsDir() {
-				if config.Except[fi.Name()] {
-					return filepath.SkipDir
-				}
 				return nil
 			}
 			n := fi.Name()
 			if len(n) < 5 || n[len(n)-5:] != ".json" {
 				return nil
 			}
-			todo := []fixup{cflags, removeempty, checkname}
-			if config.Except[n] {
-				todo = todo[1:]
+			if config.Except[fi.Name()] {
+				return nil
 			}
+			todo := []fixup{removeempty, checkname}
 			log.Printf("process %s", name)
 			err = one(name, todo...)
 			if err != nil {

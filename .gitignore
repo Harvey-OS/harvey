@@ -7,16 +7,28 @@
 386/pbslba
 386/pbsraw
 
+aarch64/9*
+aarch64/bin
+aarch64/init
+aarch64/lib
+
 amd64/9*
 amd64/bin
 amd64/init
 amd64/lib
 
-sys/src/libc/9syscall/sys.h
-sys/src/9/k10/errstr.h
-sys/src/9/k10/sipi.h
-sys/src/9/port/error.h
-sys/src/9/k10/systab.c
+riscv/9*
+riscv/bin
+riscv/init
+riscv/lib
+
+acme/bin/aarch64
+acme/bin/amd64
+acme/bin/riscv
+
+sys/log
+
+#sys/src/9/port/error.h
 sys/src/9/root/nvram
 
 *.orig
@@ -56,6 +68,11 @@ tools/share
 /tmp
 
 cfg/pxe/tftpboot
-util/third_party/bin
-util/third_party/src/golang.org
+usr/harvey/tmp
 
+build_out
+
+cron/lock
+/util/bldy
+util/third_party/src
+/home
