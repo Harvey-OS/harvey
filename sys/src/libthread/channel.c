@@ -98,7 +98,7 @@ int
 alt(Alt *alts)
 {
 	Alt *a, *xa, *ca;
-	Channel *c;
+	Channel volatile *c;
 	int n, s, waiting, allreadycl;
 	void* r;
 	Thread *t;
@@ -135,7 +135,7 @@ alt(Alt *alts)
 			return -1;
 		}
 
-		if(isopenfor(c, xa->op) && canexec(xa))
+		if(isopenfor((Channel*)c, xa->op) && canexec(xa))
 			if(nrand(++n) == 0)
 				a = xa;
 	}
@@ -156,18 +156,20 @@ alt(Alt *alts)
 		ca = nil;
 		waiting = 0;
 		allreadycl = 0;
-		for(xa=alts; xa->op!=CHANEND; xa++)
-			if(xa->op==CHANNOP)
+		for(xa=alts; xa->op!=CHANEND; xa++) {
+			if(xa->op==CHANNOP) {
 				continue;
-			else if(isopenfor(xa->c, xa->op)){
+			} else if(isopenfor(xa->c, xa->op)) {
 				waiting = 1;
-				enqueue(xa, &c);
-			} else if(xa->err != errcl)
+				enqueue(xa, (struct Channel **)&c);
+			} else if(xa->err != errcl) {
 				ca = xa;
-			else
+			} else {
 				allreadycl = 1;
+			}
+		}
 
-		if(waiting == 0)
+		if(waiting == 0) {
 			if(ca != nil){
 				/* everything was closed, select last channel */
 				ca->err = errcl;
@@ -182,6 +184,8 @@ alt(Alt *alts)
 				t->chan = Channone;
 				return -1;
 			}
+		}
+
 		/*
 		 * wait for successful rendezvous.
 		 * we can't just give up if the rendezvous
@@ -191,21 +195,18 @@ alt(Alt *alts)
 		 * if the channel was closed, the op is done
 		 * and we flag an error for the entry.
 		 */
-		Channel volatile *vc;
-		vc = (Channel volatile *)c;
 	    Again:
 		unlock(&chanlock);
 		_procsplx(s);
-		r = _threadrendezvous(&vc, 0);
+		r = _threadrendezvous(&c, 0);
 		s = _procsplhi();
 		lock(&chanlock);
 
 		if(r==Intred){		/* interrupted */
-			if(vc!=nil)	/* someone will meet us; go back */
+			if(c!=nil)	/* someone will meet us; go back */
 				goto Again;
-			vc = (Channel*)~0;	/* so no one tries to meet us */
+			c = (Channel*)~0;	/* so no one tries to meet us */
 		}
-		c = (Channel *)vc;
 
 		/* dequeue from channels, find selected one */
 		a = nil;
@@ -609,7 +610,7 @@ altexec(Alt *a, int spl)
 		_threaddebug(DBGCHAN, "unlocking the chanlock");
 		unlock(&chanlock);
 		_procsplx(spl);
-		_threaddebug(DBGCHAN, "chanlock is %lud",
+		_threaddebug(DBGCHAN, "chanlock is %lu",
 			     *(uint32_t*)&chanlock);
 		while(_threadrendezvous(b->tag, 0) == Intred)
 			;
