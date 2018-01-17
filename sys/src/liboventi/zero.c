@@ -49,7 +49,7 @@ vtZeroExtend(int type, uint8_t *buf, int n, int nn)
 	return 1;
 }
 
-int 
+int
 vtZeroTruncate(int type, uint8_t *buf, int n)
 {
 	uint8_t *p;
