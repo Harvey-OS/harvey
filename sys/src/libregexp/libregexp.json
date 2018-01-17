@@ -1,17 +1,18 @@
 {
-	"Include": [
-		"../lib.json"
-	],
-	"Install": "/$ARCH/lib/",
-	"Library": "libregexp.a",
-	"Name": "libregexp",
-	"SourceFiles": [
-		"regcomp.c",
-		"regerror.c",
-		"regexec.c",
-		"regsub.c",
-		"regaux.c",
-		"rregexec.c",
-		"rregsub.c"
-	]
+	"libregexp": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libregexp.a",
+		"SourceFiles": [
+			"regcomp.c",
+			"regerror.c",
+			"regexec.c",
+			"regsub.c",
+			"regaux.c",
+			"rregexec.c",
+			"rregsub.c"
+		]
+	}
 }

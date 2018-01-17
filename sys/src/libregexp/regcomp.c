@@ -26,7 +26,8 @@ struct Node
 }Node;
 
 /* max character classes per program is nelem(reprog->class) */
-static Reprog	*reprog;
+/* TODO: why does clang think this is never used if we declare it static? */
+/*static */Reprog	*reprog;
 
 /* max rune ranges per character class is nelem(classp->spans)/2 */
 #define NCCRUNE	nelem(classp->spans)
@@ -122,7 +123,7 @@ regerr2(char *s, int c)
 	while(*s)
 		*cp++ = *s++;
 	*cp++ = c;
-	*cp = '\0'; 
+	*cp = '\0';
 	rcerror(buf);
 }
 
