@@ -8,7 +8,7 @@
  */
 
 typedef struct Queue Queue;
-#pragma incomplete Queue
+//#pragma incomplete Queue
 Queue *_vtqalloc(void);
 int _vtqsend(Queue*, void*);
 void *_vtqrecv(Queue*);

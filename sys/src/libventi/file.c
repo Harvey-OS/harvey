@@ -13,7 +13,7 @@
  * The single point of truth for the info about the VtFiles themselves
  * is the block data.  Because of this, there is no explicit locking of
  * VtFile structures, and indeed there may be more than one VtFile
- * structure for a given Venti file.  They synchronize through the 
+ * structure for a given Venti file.  They synchronize through the
  * block cache.
  *
  * This is a bit simpler than fossil because there are no epochs
@@ -58,7 +58,7 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 		epb = p->dsize / VtEntrySize;
 
 	if(b->type != VtDirType){
-		werrstr("bad block type %#uo", b->type);
+		werrstr("bad block type %#o", b->type);
 		return nil;
 	}
 
@@ -77,7 +77,7 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 	}
 
 	if(DEPTH(e.type) < sizetodepth(e.size, e.psize, e.dsize)){
-		fprint(2, "depth %ud size %llud psize %ud dsize %ud\n",
+		fprint(2, "depth %u size %llu psize %u dsize %u\n",
 			DEPTH(e.type), e.size, e.psize, e.dsize);
 		werrstr("bad depth");
 		return nil;
@@ -85,7 +85,7 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 
 	size = vtcacheblocksize(c);
 	if(e.dsize > size || e.psize > size){
-		werrstr("block sizes %ud, %ud bigger than cache block size %ud",
+		werrstr("block sizes %u, %u bigger than cache block size %u",
 			e.psize, e.dsize, size);
 		return nil;
 	}
@@ -198,7 +198,7 @@ _vtfilecreate(VtFile *r, int o, int psize, int dsize, int type)
 	int epb;
 	VtFile *rr;
 	uint32_t offset;
-	
+
 	assert(ISLOCKED(r));
 	assert(psize <= VtMaxLumpSize);
 	assert(dsize <= VtMaxLumpSize);
@@ -584,7 +584,7 @@ growdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 		if(bb == nil)
 			break;
 		memmove(bb->data, b->score, VtScoreSize);
-		memmove(e->score, bb->score, VtScoreSize);	
+		memmove(e->score, bb->score, VtScoreSize);
 		e->type++;
 		e->flags |= VtEntryLocal;
 		vtblockput(b);
@@ -673,7 +673,7 @@ mkindices(VtEntry *e, uint32_t bn, int *index)
 	np = e->psize/VtScoreSize;
 	for(i=0; bn > 0; i++){
 		if(i >= VtPointerDepth){
-			werrstr("bad address 0x%lux", (uint32_t)bn);
+			werrstr("bad address 0x%lx", (uint32_t)bn);
 			return -1;
 		}
 		index[i] = bn % np;
@@ -703,7 +703,7 @@ vtfileblock(VtFile *r, uint32_t bn, int mode)
 		goto Err;
 	if(i > DEPTH(e.type)){
 		if(mode == VtOREAD){
-			werrstr("bad address 0x%lux", (uint32_t)bn);
+			werrstr("bad address 0x%lx", (uint32_t)bn);
 			goto Err;
 		}
 		index[i] = 0;
@@ -727,7 +727,7 @@ assert(b->type == VtDirType);
 		vtblockput(b);
 		b = bb;
 	}
-	b->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
 	return b;
 Err:
 	vtblockput(b);
@@ -841,7 +841,7 @@ fileloadblock(VtFile *r, int mode)
 			b = vtcacheglobal(r->c, r->score, VtDirType);
 			if(b == nil)
 				return nil;
-			b->pc = getcallerpc(&r);
+			b->pc = getcallerpc();
 			return b;
 		}
 		assert(r->parent != nil);
@@ -911,7 +911,7 @@ vtfilelock(VtFile *r, int mode)
 	 */
 	assert(r->b == nil);
 	r->b = b;
-	b->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
 	return 0;
 }
 
@@ -958,8 +958,8 @@ vtfilelock2(VtFile *r, VtFile *rr, int mode)
 	 */
 	r->b = b;
 	rr->b = bb;
-	b->pc = getcallerpc(&r);
-	bb->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
+	bb->pc = getcallerpc();
 	return 0;
 }
 
@@ -995,7 +995,7 @@ sizetodepth(uint64_t s, int psize, int dsize)
 {
 	int np;
 	int d;
-	
+
 	/* determine pointer depth */
 	np = psize/VtScoreSize;
 	s = (s + dsize - 1)/dsize;
@@ -1136,7 +1136,7 @@ flushblock(VtCache *c, VtBlock *bb, uint8_t score[VtScoreSize], int ppb,
 			vtentrypack(&e, b->data, i);
 		}
 		break;
-	
+
 	default:	/* VtPointerTypeX */
 		for(i=0; i<ppb; i++){
 			if(flushblock(c, nil, b->data+VtScoreSize*i, ppb, epb, type-1) < 0)
@@ -1244,13 +1244,13 @@ vtfileflushbefore(VtFile *r, uint64_t offset)
 		}else{
 			/*
 			 * interior node: pointer blocks.
-			 * specifically, b = bi[i] is a block whose index[i-1]'th entry 
-			 * points at bi[i-1].  
+			 * specifically, b = bi[i] is a block whose index[i-1]'th entry
+			 * points at bi[i-1].
 			 */
 			b = bi[i];
 
 			/*
-			 * the index entries up to but not including index[i-1] point at 
+			 * the index entries up to but not including index[i-1] point at
 			 * finished blocks, so flush them for sure.
 			 */
 			for(j=0; j<index[i-1]; j++)
