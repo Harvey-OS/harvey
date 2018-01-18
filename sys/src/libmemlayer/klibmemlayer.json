@@ -1,10 +1,10 @@
 {
-	"libmemlayer": {
+	"KernelLibmemlayer": {
 		"Include": [
-			"../lib.json"
+			"/$ARCH/include/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
-		"Library": "libmemlayer.a",
+		"Library": "klibmemlayer.a",
 		"SourceFiles": [
 			"draw.c",
 			"lalloc.c",
