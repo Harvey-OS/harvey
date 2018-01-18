@@ -22,7 +22,7 @@ vtServerAlloc(VtServerVtbl *vtbl)
 {
 	VtSession *z = vtAlloc();
 	z->vtbl = vtMemAlloc(sizeof(VtServerVtbl));
-	setmalloctag(z->vtbl, getcallerpc(&vtbl));
+	setmalloctag(z->vtbl, getcallerpc());
 	*z->vtbl = *vtbl;
 	return z;
 }
@@ -65,7 +65,7 @@ dispatchHello(VtSession *z, Packet **pkt)
 
 	p = *pkt;
 
-	version = nil;	
+	version = nil;
 	uid = nil;
 	crypto = nil;
 	codec = nil;
@@ -190,7 +190,6 @@ vtExport(VtSession *z)
 		return 1;
 	}
 
-	
 	p = nil;
 	clean = 0;
 	vtAttach();
@@ -198,7 +197,7 @@ vtExport(VtSession *z)
 		goto Exit;
 
 	vtDebug(z, "server connected!\n");
-if(0)	vtSetDebug(z, 1);
+	//vtSetDebug(z, 1);
 
 	for(;;) {
 		p = vtRecvPacket(z);
@@ -273,4 +272,3 @@ Exit:
 	exits(0);
 	return 0;	/* never gets here */
 }
-

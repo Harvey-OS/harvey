@@ -21,7 +21,7 @@ static Packet *vtRPC(VtSession *z, int op, Packet *p);
 VtSession *
 vtClientAlloc(void)
 {
-	VtSession *z = vtAlloc();	
+	VtSession *z = vtAlloc();
 	return z;
 }
 
@@ -33,7 +33,7 @@ vtDial(char *host, int canfail)
 	char *na;
 	char e[ERRMAX];
 
-	if(host == nil) 
+	if(host == nil)
 		host = getenv("venti");
 	if(host == nil)
 		host = "$venti";
@@ -67,7 +67,7 @@ vtRedial(VtSession *z, char *host)
 	int fd;
 	char *na;
 
-	if(host == nil) 
+	if(host == nil)
 		host = getenv("venti");
 	if(host == nil)
 		host = "$venti";
@@ -228,7 +228,7 @@ vtWritePacket(VtSession *z, uint8_t score[VtScoreSize], int type, Packet *p)
 		vtSetError(ELumpSize);
 		goto Err;
 	}
-	
+
 	if(n == 0) {
 		memmove(score, vtZeroScore, VtScoreSize);
 		return 1;
