@@ -36,7 +36,7 @@ ndbreorder(Ndbtuple *t, Ndbtuple *x)
 		for(nt = t; nt->entry != last->line; nt = nt->entry)
 			;
 		nt->entry = nil;
-	
+
 		/* switch */
 		for(nt = last; nt->entry != nil; nt = nt->entry)
 			;
@@ -47,7 +47,7 @@ ndbreorder(Ndbtuple *t, Ndbtuple *x)
 	if(x != last->line){
 
 		/* find entry before x */
-		for(prev = last; prev->line != x; prev = prev->line);
+		for(prev = last; prev->line != x; prev = prev->line)
 			;
 
 		/* detach line */

@@ -23,7 +23,6 @@ enum
 static Ndbtuple*	filter(Ndb *db, Ndbtuple *t, Ndbtuple *f);
 static Ndbtuple*	mkfilter(int argc, char **argv);
 static int		filtercomplete(Ndbtuple *f);
-static Ndbtuple*	toipaddr(Ndb *db, Ndbtuple *t);
 static int		prefixlen(uint8_t *ip);
 static Ndbtuple*	subnet(Ndb *db, uint8_t *net, Ndbtuple *f,
 			       int prefix);
@@ -50,7 +49,7 @@ mkfilter(int argc, char **argv)
 		}
 		strncpy(t->attr, p, sizeof(t->attr)-1);
 	}
-	ndbsetmalloctag(first, getcallerpc(&argc));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }
 
@@ -108,7 +107,7 @@ filter(Ndb *db, Ndbtuple *t, Ndbtuple *f)
 		if(nf->ptr & Ffound)
 			nf->ptr = (nf->ptr & ~Ffound) | Fignore;
 
-	ndbsetmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
 
@@ -156,7 +155,7 @@ subnet(Ndb *db, uint8_t *net, Ndbtuple *f, int prefix)
 		ndbfree(nt);
 		nt = ndbsnext(&s, "ip", netstr);
 	}
-	ndbsetmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
 
@@ -192,7 +191,7 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 		/* none found, make one up */
 		if(strcmp(attr, "ip") != 0) {
 			ndbfree(f);
-			return nil;	
+			return nil;
 		}
 		t = ndbnew("ip", val);
 		t->line = t;
@@ -260,6 +259,6 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	}
 
 	ndbfree(f);
-	ndbsetmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
