@@ -19,12 +19,12 @@ ndbsubstitute(Ndbtuple *t, Ndbtuple *a, Ndbtuple *b)
 	Ndbtuple *nt;
 
 	if(a == b){
-		ndbsetmalloctag(t, getcallerpc(&t));
+		ndbsetmalloctag(t, getcallerpc());
 		return t;
 	}
 	if(b == nil){
 		t = ndbdiscard(t, a);
-		ndbsetmalloctag(t, getcallerpc(&t));
+		ndbsetmalloctag(t, getcallerpc());
 		return t;
 	}
 
@@ -46,10 +46,10 @@ ndbsubstitute(Ndbtuple *t, Ndbtuple *a, Ndbtuple *b)
 	ndbfree(a);
 
 	if(a == t){
-		ndbsetmalloctag(b, getcallerpc(&t));
+		ndbsetmalloctag(b, getcallerpc());
 		return b;
 	}else{
-		ndbsetmalloctag(t, getcallerpc(&t));
+		ndbsetmalloctag(t, getcallerpc());
 		return t;
 	}
 }

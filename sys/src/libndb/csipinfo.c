@@ -43,7 +43,7 @@ csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 			break;
 		p = seprint(p, e, " %s", *list++);
 	}
-	
+
 	if(write(fd, line, strlen(line)) < 0){
 		close(fd);
 		return 0;
@@ -72,6 +72,6 @@ csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 	}
 	close(fd);
 
-	ndbsetmalloctag(first, getcallerpc(&netroot));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }

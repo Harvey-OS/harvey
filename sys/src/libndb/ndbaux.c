@@ -31,7 +31,7 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 		return 0;
 
 	t = ndbnew(nil, nil);
-	setmalloctag(t, getcallerpc(&cp));
+	setmalloctag(t, getcallerpc());
 	*tp = t;
 
 	/* parse attribute */
@@ -69,7 +69,7 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 }
 
 /*
- *  parse all tuples in a line.  we assume that the 
+ *  parse all tuples in a line.  we assume that the
  *  line ends in a '\n'.
  *
  *  the tuples are linked as a list using ->entry and
@@ -95,10 +95,10 @@ _ndbparseline(char *cp)
 		last = t;
 		t->line = 0;
 		t->entry = 0;
-		setmalloctag(t, getcallerpc(&cp));
+		setmalloctag(t, getcallerpc());
 	}
 	if(first)
 		last->line = first;
-	ndbsetmalloctag(first, getcallerpc(&cp));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }
