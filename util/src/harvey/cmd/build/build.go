@@ -1,3 +1,33 @@
+/*
+Copyright 2018 Harvey OS Team
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 // Build builds code as directed by json files.
 // We slurp in the JSON, and recursively process includes.
 // At the end, we issue a single cc command for all the files.
@@ -18,8 +48,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -128,7 +160,6 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 }
 
 var (
-	cwd       string
 	harvey    string
 	regexpAll = []*regexp.Regexp{regexp.MustCompile(".")}
 
@@ -157,10 +188,9 @@ func debug(fmt string, s ...interface{}) {
 	}
 }
 
-// fail with message, if err is not nil
-func failOn(err error) {
+func fail(err error) {
 	if err != nil {
-		log.Fatalf("%v", err)
+		log.Fatalf("%s\n", err.Error())
 	}
 }
 
@@ -181,17 +211,18 @@ func fromRoot(p string) string {
 }
 
 func include(f string, targ string, b *build) {
-       debug("include(%s, %s, %v)", f, targ, b)
+	debug("include(%s, %s, %v)", f, targ, b)
 
 	if b.jsons[f] {
 		return
 	}
 	b.jsons[f] = true
-	log.Printf("Including %v", f)
+
+	log.Printf("Including %s", f)
 	d, err := ioutil.ReadFile(f)
-	failOn(err)
+	fail(err)
 	var builds buildfile
-	failOn(json.Unmarshal(d, &builds))
+	fail(json.Unmarshal(d, &builds))
 
 	for _, build := range builds {
 		t := target(&build)
@@ -202,7 +233,7 @@ func include(f string, targ string, b *build) {
 	}
 
 	for n, build := range builds {
-		log.Printf("Merging %v", n)
+		log.Printf("Merging %s", n)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
 		b.Pre = append(b.Pre, build.Pre...)
@@ -211,8 +242,8 @@ func include(f string, targ string, b *build) {
 		b.Projects = append(b.Projects, build.Projects...)
 		b.Env = append(b.Env, build.Env...)
 		for _, v := range build.SourceFilesCmd {
-			_, targ := cmdTarget(&build, v)
-			if uptodate(targ, append(b.SourceDeps, v)) {
+			_, t := cmdTarget(&build, v)
+			if uptodate(t, append(b.SourceDeps, v)) {
 				continue
 			}
 			b.SourceFilesCmd = append(b.SourceFilesCmd, v)
@@ -248,8 +279,8 @@ func include(f string, targ string, b *build) {
 
 		for _, v := range build.SourceFiles {
 			b.SourceFiles = append(b.SourceFiles, v)
-			f := path.Base(v)
-			o := f[:len(f)-1] + "o"
+			fi := path.Base(v)
+			o := fi[:len(fi)-1] + "o"
 			b.ObjectFiles = append(b.ObjectFiles, o)
 		}
 
@@ -265,22 +296,22 @@ func include(f string, targ string, b *build) {
 	}
 }
 
-func appendIfMissing(s []string, v string) []string {
-	for _, a := range s {
-		if a == v {
-			return s
+func contains(a []string, s string) bool {
+	for i := range a {
+		if a[i] == s {
+			return true
 		}
 	}
-	return append(s, v)
+	return false
 }
 
 func process(f string, r []*regexp.Regexp) []build {
-	log.Printf("Processing %v", f)
+	log.Printf("Processing %s", f)
 	var builds buildfile
 	var results []build
 	d, err := ioutil.ReadFile(f)
-	failOn(err)
-	failOn(json.Unmarshal(d, &builds))
+	fail(err)
+	fail(json.Unmarshal(d, &builds))
 	for n, build := range builds {
 		build.name = n
 		build.jsons = make(map[string]bool)
@@ -294,7 +325,7 @@ func process(f string, r []*regexp.Regexp) []build {
 		if skip {
 			continue
 		}
-		log.Printf("Run %v", build.name)
+		log.Printf("Running %s", build.name)
 		build.jsons[f] = true
 		build.path = path.Dir(f)
 
@@ -333,8 +364,12 @@ func process(f string, r []*regexp.Regexp) []build {
 
 		for _, v := range build.SourceFiles {
 			f := path.Base(v)
-			o := f[:len(f)-1] + "o"
-			build.ObjectFiles = appendIfMissing(build.ObjectFiles, o)
+			l := len(f) - 1
+			o := f[:l]
+			o += "o"
+			if !contains(build.ObjectFiles, o) {
+				build.ObjectFiles = append(build.ObjectFiles, o)
+			}
 		}
 
 		for _, v := range build.Include {
@@ -350,19 +385,7 @@ func buildkernel(b *build) {
 		return
 	}
 	codebuf := confcode(b.path, b.Kernel)
-	failOn(ioutil.WriteFile(b.name+".c", codebuf, 0666))
-}
-
-func wrapInQuote(args []string) []string {
-	var res []string
-	for _, a := range args {
-		if strings.Contains(a, "=") {
-			res = append(res, "'"+a+"'")
-		} else {
-			res = append(res, a)
-		}
-	}
-	return res
+	fail(ioutil.WriteFile(b.name+".c", codebuf, 0666))
 }
 
 func uptodate(n string, d []string) bool {
@@ -480,7 +503,7 @@ func install(b *build) {
 	}
 
 	log.Printf("Installing %s\n", b.name)
-	failOn(os.MkdirAll(b.Install, 0755))
+	fail(os.MkdirAll(b.Install, 0755))
 
 	switch {
 	case len(b.SourceFilesCmd) > 0:
@@ -501,8 +524,8 @@ func move(from, to string) {
 	final := path.Join(to, from)
 	log.Printf("move %s %s\n", from, final)
 	_ = os.Remove(final)
-	failOn(os.Link(from, final))
-	failOn(os.Remove(from))
+	fail(os.Link(from, final))
+	fail(os.Remove(from))
 }
 
 func run(b *build, pipe bool, cmd *exec.Cmd) {
@@ -523,7 +546,14 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 		shell.Stderr = os.Stderr
 		shell.Stdout = os.Stdout
 
-		commandString := strings.Join(cmd.Args, " ")
+		commandString := cmd.Args[0]
+		for _, a := range cmd.Args[1:] {
+			if strings.Contains(a, "=") {
+				commandString += " '" + a + "'"
+			} else {
+				commandString += " " + a
+			}
+		}
 		shStdin, err := shell.StdinPipe()
 		if err != nil {
 			log.Fatalf("cannot pipe [%v] to %s: %v", commandString, sh, err)
@@ -534,29 +564,32 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 		}()
 
 		log.Printf("%q | %s\n", commandString, sh)
-		failOn(shell.Run())
+		fail(shell.Run())
 		return
 	}
 	log.Println(strings.Join(cmd.Args, " "))
-	failOn(cmd.Run())
+	fail(cmd.Run())
 }
 
 func projects(b *build, r []*regexp.Regexp) {
 	for _, v := range b.Projects {
-		log.Printf("Doing %s\n", strings.TrimSuffix(v, ".json"))
-		project(v, r)
+		f, err := findBuildfile(v)
+		log.Printf("Doing %s\n", f)
+		if err != nil {
+			log.Println(err)
+		}
+		project(f, r)
 	}
-
 }
 
 func dirPop(s string) {
 	fmt.Printf("Leaving directory `%v'\n", s)
-	failOn(os.Chdir(s))
+	fail(os.Chdir(s))
 }
 
 func dirPush(s string) {
 	fmt.Printf("Entering directory `%v'\n", s)
-	failOn(os.Chdir(s))
+	fail(os.Chdir(s))
 }
 
 func runCmds(b *build, s []string) {
@@ -579,7 +612,7 @@ func runCmds(b *build, s []string) {
 // assumes we are in the wd of the project.
 func project(bf string, which []*regexp.Regexp) {
 	cwd, err := os.Getwd()
-	failOn(err)
+	fail(err)
 	debug("Start new project cwd is %v", cwd)
 	defer dirPop(cwd)
 	dir := path.Dir(bf)
@@ -602,19 +635,14 @@ func project(bf string, which []*regexp.Regexp) {
 		install(&b)
 		runCmds(&b, b.Post)
 	}
-	install(b)
-	run(b, b.Post)
 }
 
 func main() {
 	// A small amount of setup is done in the paths*.go files. They are
 	// OS-specific path setup/manipulation. "harvey" is set there and $PATH is
 	// adjusted.
-	var err error
 	flag.Parse()
 	findTools(os.Getenv("TOOLPREFIX"))
-	cwd, err = os.Getwd()
-	failOn(err)
 
 	if os.Getenv("CC") == "" {
 		log.Fatalf("You need to set the CC environment variable (e.g. gcc, clang, clang-3.6, ...)")
@@ -637,40 +665,38 @@ func main() {
 		*shellhack = true
 	}
 
-	// If no args, assume 'build.json'
-	// Otherwise the first argument is either
-	// - the path to a json file
-	// - a directory containing a 'build.json' file
-	// - a regular expression to apply assuming 'build.json'
-	// Further arguments are regular expressions.
+	// If there is'n args, we search for a 'build.json' file
+	// Otherwise the first argument could be
+	// A path to a json file
+	// or a directory containing the 'build.json' file
+	// or a regular expression to apply assuming 'build.json'
+	// Further arguments are considered regex.
 	consumedArgs := 0
-	bf := ""
-	if len(flag.Args()) == 0 {
-		f, err := findBuildfile("build.json")
-		failOn(err)
-		bf = f
-	} else {
+	var bf string
+	if flag.NArg() > 0 {
 		f, err := findBuildfile(flag.Arg(0))
-		failOn(err)
+		fail(err)
 
 		if f == "" {
-			f, err := findBuildfile("build.json")
-			failOn(err)
-			bf = f
+			fb, err := findBuildfile("build.json")
+			fail(err)
+			bf = fb
 		} else {
 			consumedArgs = 1
 			bf = f
 		}
+	} else {
+		f, err := findBuildfile("build.json")
+		fail(err)
+		bf = f
 	}
-	bf, err := findBuildfile(f)
-	failOn(err)
 
 	re := []*regexp.Regexp{regexp.MustCompile(".")}
-	if len(flag.Args()) > 1 {
+	if len(flag.Args()) > consumedArgs {
 		re = re[:0]
-		for _, r := range flag.Args()[1:] {
+		for _, r := range flag.Args()[consumedArgs:] {
 			rx, err := regexp.Compile(r)
-			failOn(err)
+			fail(err)
 			re = append(re, rx)
 		}
 	}
@@ -684,17 +710,36 @@ func findTools(toolprefix string) {
 			v = x
 		}
 		v, err = exec.LookPath(toolprefix + v)
-		failOn(err)
+		fail(err)
 		tools[k] = v
 	}
 }
 
+func isDir(f string) (bool, error) {
+	fi, err := os.Stat(f)
+	if err != nil {
+		return false, err
+	}
+	return fi.IsDir(), nil
+}
+
 // disambiguate the buildfile argument
 func findBuildfile(f string) (string, error) {
-	if strings.HasSuffix(f, ".json") {
-		if fi, err := os.Stat(f); err == nil && !fi.IsDir() {
-			return f, nil
+	if !strings.HasSuffix(f, ".json") {
+		b, err := isDir(f)
+		if err != nil {
+			// the path didn't exist
+			return "", errors.New("unable to find buildfile " + f)
+		}
+		if b {
+			f = path.Join(f, "build.json")
+		} else {
+			// this is a file without .json suffix
+			return "", errors.New("buildfile must be a .json file, " + f + " is not a valid name")
 		}
 	}
-	return "", fmt.Errorf("unable to find buildfile (tried %s)", strings.Join(try, ", "))
+	if b, err := isDir(f); err != nil || b {
+		return "", errors.New("unable to find buildfile " + f)
+	}
+	return f, nil
 }

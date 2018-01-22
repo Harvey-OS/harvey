@@ -264,13 +264,6 @@ static uint8_t compressors[] = {
 	CompressionNull,
 };
 
-<<<<<<< HEAD
-static TlsConnection *tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
-				 int (*trace)(char*fmt, ...),
-				 PEMChain *chain);
-static TlsConnection *tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
-				 int (*trace)(char*fmt, ...));
-=======
 static Namedcurve namedcurves[] = {
 	{0x0017, secp256r1},
 	{0x0018, secp384r1},

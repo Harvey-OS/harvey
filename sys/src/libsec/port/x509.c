@@ -1577,17 +1577,6 @@ enum {
 };
 typedef struct Ints7 {
 	int		len;
-<<<<<<< HEAD
-	int		data[7];
-} Ints7;
-static Ints7 oid_rsaEncryption = {7, 1, 2, 840, 113549, 1, 1, 1 };
-static Ints7 oid_md2WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 2 };
-static Ints7 oid_md4WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 3 };
-static Ints7 oid_md5WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 4 };
-static Ints7 oid_sha1WithRSAEncryption ={7, 1, 2, 840, 113549, 1, 1, 5 };
-static Ints7 oid_sha1WithRSAEncryptionOiw ={6, 1, 3, 14, 3, 2, 29 };
-static Ints7 oid_md5 ={6, 1, 2, 840, 113549, 2, 5, 0 };
-=======
 	int		data[15];
 } Ints15;
 
@@ -2554,19 +2543,6 @@ RSApubtoasn1(RSApub *pub, int *keylen)
 		mkel(mkalg(ALG_rsaEncryption),
 		mkel(mkbits(pkbytes->data, pkbytes->len),
 		nil)));
-<<<<<<< HEAD
-	freebytes(pkbytes);
-	if(encode(pubkey, &pkbytes) != ASN_OK)
-		goto errret;
-	if(keylen)
-		*keylen = pkbytes->len;
-	key = malloc(pkbytes->len);
-	memmove(key, pkbytes->data, pkbytes->len);
-	free(pkbytes);
-errret:
-	freevalfields(&pubkey.val);
-	return key;
-=======
 	err = encode(e, &ans);
 	freevalfields(&e.val);
 	if(err != ASN_OK)

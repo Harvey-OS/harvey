@@ -1,3 +1,33 @@
+/*
+Copyright 2018 Harvey OS Team
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 package main
 
 import (
@@ -123,12 +153,12 @@ func data2c(name string, path string) string {
 		elf.Close()
 		cwd, err := os.Getwd()
 		tmpf, err := ioutil.TempFile(cwd, name)
-		failOn(err)
+		fail(err)
 
 		run(nil, *shellhack, exec.Command(tools["strip"], "-o", tmpf.Name(), path))
 
 		in, err = ioutil.ReadAll(tmpf)
-		failOn(err)
+		fail(err)
 
 		tmpf.Close()
 		os.Remove(tmpf.Name())
@@ -137,10 +167,10 @@ func data2c(name string, path string) string {
 		var err error
 
 		file, err = os.Open(path)
-		failOn(err)
+		fail(err)
 
 		in, err = ioutil.ReadAll(file)
-		failOn(err)
+		fail(err)
 
 		file.Close()
 	}
@@ -184,12 +214,12 @@ func confcode(path string, kern *kernel) []byte {
 	}
 	tmpl := template.Must(template.New("kernconf").Parse(kernconfTmpl))
 	codebuf := &bytes.Buffer{}
-	failOn(tmpl.Execute(codebuf, vars))
+	fail(tmpl.Execute(codebuf, vars))
 	fmt.Printf("VGA IS %v len %d\n", vars.Config.VGA, len(vars.Config.VGA))
 	if len(vars.Config.VGA) > 0 {
 		tmpl = template.Must(template.New("vgaconf").Parse(vgaconfTmpl))
 		vgabuf := &bytes.Buffer{}
-		failOn(tmpl.Execute(codebuf, vars))
+		fail(tmpl.Execute(codebuf, vars))
 		codebuf.Write(vgabuf.Bytes())
 	}
 	return codebuf.Bytes()
