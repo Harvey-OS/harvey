@@ -562,7 +562,7 @@ fprint(2, "%s: _cacheLocal want epoch %u got %u\n", argv0, epoch, b->l.epoch);
 		return nil;
 	}
 
-	b->pc = getcallerpc(&c);
+	b->pc = getcallerpc();
 	for(;;){
 		switch(b->iostate){
 		default:
@@ -623,7 +623,7 @@ cacheLocalData(Cache *c, uint32_t addr, int type, uint32_t tag, int mode,
 		blockPut(b);
 		return nil;
 	}
-	b->pc = getcallerpc(&c);
+	b->pc = getcallerpc();
 	return b;
 }
 
@@ -645,7 +645,7 @@ cacheGlobal(Cache *c, uint8_t score[VtScoreSize], int type, uint32_t tag,
 	if(addr != NilBlock){
 		b = cacheLocalData(c, addr, type, tag, mode, 0);
 		if(b)
-			b->pc = getcallerpc(&c);
+			b->pc = getcallerpc();
 		return b;
 	}
 
@@ -685,7 +685,7 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 	bwatchLock(b);
 	vtLock(b->lk);
 	b->nlock = 1;
-	b->pc = getcallerpc(&c);
+	b->pc = getcallerpc();
 
 	switch(b->iostate){
 	default:
@@ -808,7 +808,7 @@ if(0)fprint(2, "%s: fsAlloc %u type=%d tag = %x\n", argv0, addr, type, tag);
 	lastAlloc = addr;
 	fl->nused++;
 	vtUnlock(fl->lk);
-	b->pc = getcallerpc(&c);
+	b->pc = getcallerpc();
 	return b;
 }
 

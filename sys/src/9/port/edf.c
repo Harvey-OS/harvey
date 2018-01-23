@@ -99,7 +99,7 @@ edflock(Proc *p)
 		return nil;
 	ilock(&thelock);
 	if((e = p->edf) && (e->flags & Admitted)){
-		thelock._pc = getcallerpc(&p);
+		thelock._pc = getcallerpc();
 #ifdef EDFCYCLES
 		edfcycles -= lcycles();
 #endif

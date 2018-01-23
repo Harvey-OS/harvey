@@ -102,7 +102,7 @@ lock(Lock *lk)
 	for(;;) {
 		if(canlock(lk))
 			return;
-		iprint("lock loop %ld: val=%d &lock=%ux pc=%p\n", getpid(), lk->key, lk, getcallerpc(&lk));
+		iprint("lock loop %ld: val=%d &lock=%ux pc=%p\n", getpid(), lk->key, lk, getcallerpc());
 		osmsleep(1000);
 	}
 }

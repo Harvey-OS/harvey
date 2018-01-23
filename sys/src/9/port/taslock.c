@@ -129,7 +129,7 @@ lock(Lock *l)
 	uintptr_t pc;
 	uint64_t t0;
 
-	pc = getcallerpc(&l);
+	pc = getcallerpc();
 
 	lockstats.locks++;
 	if(up)
@@ -195,7 +195,7 @@ ilock(Lock *l)
 	uintptr_t pc;
 	uint64_t t0;
 
-	pc = getcallerpc(&l);
+	pc = getcallerpc();
 	lockstats.locks++;
 
 	pl = splhi();
@@ -247,7 +247,7 @@ canlock(Lock *l)
 
 	if(up)
 		up->lastlock = l;
-	l->_pc = getcallerpc(&l);
+	l->_pc = getcallerpc();
 	l->p = up;
 	l->isilock = 0;
 	if(LOCKCYCLES)
@@ -272,11 +272,11 @@ unlock(Lock *l)
 	}
 
 	if(l->key == 0)
-		print("unlock: not locked: pc %#p\n", getcallerpc(&l));
+		print("unlock: not locked: pc %#p\n", getcallerpc());
 	if(l->isilock)
-		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
+		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(), l->_pc);
 	if(l->p != up)
-		print("unlock: up changed: pc %#p, acquired at pc %#p, lock p %#p, unlock up %#p\n", getcallerpc(&l), l->_pc, l->p, up);
+		print("unlock: up changed: pc %#p, acquired at pc %#p, lock p %#p, unlock up %#p\n", getcallerpc(), l->_pc, l->p, up);
 	l->m = nil;
 	l->key = 0;
 	coherence();
@@ -307,14 +307,14 @@ iunlock(Lock *l)
 	}
 
 	if(l->key == 0)
-		print("iunlock: not locked: pc %#p\n", getcallerpc(&l));
+		print("iunlock: not locked: pc %#p\n", getcallerpc());
 	if(!l->isilock)
-		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
+		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(), l->_pc);
 	if(islo())
-		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
+		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(), l->_pc);
 	if(l->m != machp()){
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			machp()->machno, l->m->machno, getcallerpc(&l), l->_pc);
+			machp()->machno, l->m->machno, getcallerpc(), l->_pc);
 	}
 
 	pl = l->pl;

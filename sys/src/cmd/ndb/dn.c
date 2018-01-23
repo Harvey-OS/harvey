@@ -917,7 +917,7 @@ rrcopy(RR *rp, RR **last)
 	if (canlock(&dnlock))
 		abort();	/* rrcopy called with dnlock not held */
 	nrp = rralloc(rp->type);
-	setmalloctag(nrp, getcallerpc(&rp));
+	setmalloctag(nrp, getcallerpc());
 	switch(rp->type){
 	case Ttxt:
 		*nrp = *rp;
@@ -1017,7 +1017,7 @@ rrlookup(DN *dp, int type, int flag)
 		if(rp->auth)
 		if(tsame(type, rp->type)) {
 			last = rrcopy(rp, last);
-			// setmalloctag(*last, getcallerpc(&dp));
+			// setmalloctag(*last, getcallerpc());
 		}
 	}
 	if(first)
@@ -1072,7 +1072,7 @@ out:
 	unlock(&dnlock);
 //	dnslog("rrlookup(%s) -> %#p\t# in-core only", dp->name, first);
 //	if (first)
-//		setmalloctag(first, getcallerpc(&dp));
+//		setmalloctag(first, getcallerpc());
 	return first;
 }
 
@@ -1802,7 +1802,7 @@ emalloc(int size)
 	x = mallocz(size, 1);
 	if(x == nil)
 		abort();
-	setmalloctag(x, getcallerpc(&size));
+	setmalloctag(x, getcallerpc());
 	return x;
 }
 
@@ -1817,7 +1817,7 @@ estrdup(char *s)
 	if(p == nil)
 		abort();
 	memmove(p, s, size);
-	setmalloctag(p, getcallerpc(&s));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -1981,7 +1981,7 @@ rralloc(int type)
 
 	rp = emalloc(sizeof(*rp));
 	rp->magic = RRmagic;
-	rp->pc = getcallerpc(&type);
+	rp->pc = getcallerpc();
 	rp->type = type;
 	if (rp->type != type)
 		dnslog("rralloc: bogus type %d", type);

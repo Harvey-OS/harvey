@@ -76,7 +76,7 @@ dnsquery(char *net, char *val, char *type)
 	 * walking to /net*^/dns.  Must be prepared to re-open it on error.
 	 */
 	close(fd);
-	ndbsetmalloctag(t, getcallerpc(&net));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
 
@@ -165,6 +165,6 @@ doquery(int fd, char *dn, char *type)
 		}
 	}
 
-	ndbsetmalloctag(first, getcallerpc(&fd));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }

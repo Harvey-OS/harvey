@@ -22,7 +22,7 @@ vtServerAlloc(VtServerVtbl *vtbl)
 {
 	VtSession *z = vtAlloc();
 	z->vtbl = vtMemAlloc(sizeof(VtServerVtbl));
-	setmalloctag(z->vtbl, getcallerpc(&vtbl));
+	setmalloctag(z->vtbl, getcallerpc());
 	*z->vtbl = *vtbl;
 	return z;
 }

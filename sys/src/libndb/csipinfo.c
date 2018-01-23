@@ -72,6 +72,6 @@ csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 	}
 	close(fd);
 
-	ndbsetmalloctag(first, getcallerpc(&netroot));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }

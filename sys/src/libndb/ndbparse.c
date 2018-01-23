@@ -53,7 +53,7 @@ ndbparse(Ndb *db)
 		t = _ndbparseline(line);
 		if(t == 0)
 			continue;
-		setmalloctag(t, getcallerpc(&db));
+		setmalloctag(t, getcallerpc());
 		if(first)
 			last->entry = t;
 		else
@@ -62,6 +62,6 @@ ndbparse(Ndb *db)
 		while(last->entry)
 			last = last->entry;
 	}
-	ndbsetmalloctag(first, getcallerpc(&db));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }

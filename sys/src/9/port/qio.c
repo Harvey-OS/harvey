@@ -108,7 +108,7 @@ padblock(Block *bp, int size)
 		}
 
 		if(bp->next)
-			panic("padblock %#p", getcallerpc(&bp));
+			panic("padblock %#p", getcallerpc());
 		n = BLEN(bp);
 		padblockcnt++;
 		nbp = allocb(size+n);
@@ -122,7 +122,7 @@ padblock(Block *bp, int size)
 		size = -size;
 
 		if(bp->next)
-			panic("padblock %#p", getcallerpc(&bp));
+			panic("padblock %#p", getcallerpc());
 
 		if(bp->lim - bp->wp >= size)
 			return bp;
@@ -238,7 +238,7 @@ pullupblock(Block *bp, int n)
 			/* shouldn't happen but why crash if it does */
 			if(i < 0){
 				print("pullupblock -ve length, from %#p\n",
-					getcallerpc(&bp));
+					getcallerpc());
 				i = 0;
 			}
 			memmove(bp->wp, nbp->rp, i);
@@ -1325,7 +1325,7 @@ qwrite(Queue *q, void *vp, int len)
 	uint8_t *p = vp;
 
 	QDEBUG if(!islo())
-		print("qwrite hi %#p\n", getcallerpc(&q));
+		print("qwrite hi %#p\n", getcallerpc());
 
 	sofar = 0;
 	do {

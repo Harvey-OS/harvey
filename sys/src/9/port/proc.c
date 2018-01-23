@@ -930,7 +930,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	lock(&up->rlock);
 	if(r->_p){
 		print("double sleep called from %#p, %d %d\n",
-			getcallerpc(&r), r->_p->pid, up->pid);
+			getcallerpc(), r->_p->pid, up->pid);
 		dumpstack();
 	}
 

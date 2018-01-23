@@ -49,7 +49,7 @@ mkfilter(int argc, char **argv)
 		}
 		strncpy(t->attr, p, sizeof(t->attr)-1);
 	}
-	ndbsetmalloctag(first, getcallerpc(&argc));
+	ndbsetmalloctag(first, getcallerpc());
 	return first;
 }
 
@@ -107,7 +107,7 @@ filter(Ndb *db, Ndbtuple *t, Ndbtuple *f)
 		if(nf->ptr & Ffound)
 			nf->ptr = (nf->ptr & ~Ffound) | Fignore;
 
-	ndbsetmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
 
@@ -155,7 +155,7 @@ subnet(Ndb *db, uint8_t *net, Ndbtuple *f, int prefix)
 		ndbfree(nt);
 		nt = ndbsnext(&s, "ip", netstr);
 	}
-	ndbsetmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }
 
@@ -259,6 +259,6 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	}
 
 	ndbfree(f);
-	ndbsetmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc());
 	return t;
 }

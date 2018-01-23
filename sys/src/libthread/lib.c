@@ -22,7 +22,7 @@ _threadmalloc(int32_t size, int z)
 	m = malloc(size);
 	if (m == nil)
 		sysfatal("Malloc of size %ld failed: %r", size);
-	setmalloctag(m, getcallerpc(&size));
+	setmalloctag(m, getcallerpc());
 	totalmalloc += size;
 	if (size > 100000000) {
 		fprint(2, "Malloc of size %ld, total %ld\n", size, totalmalloc);

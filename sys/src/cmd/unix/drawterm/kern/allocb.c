@@ -69,11 +69,11 @@ allocb(int size)
 	 * Can still error out of here, though.
 	 */
 	if(up == nil)
-		panic("allocb without up: %p\n", getcallerpc(&size));
+		panic("allocb without up: %p\n", getcallerpc());
 	if((b = _allocb(size)) == nil){
 		panic("allocb: no memory for %d bytes\n", size);
 	}
-	setmalloctag(b, getcallerpc(&size));
+	setmalloctag(b, getcallerpc());
 
 	return b;
 }
@@ -97,7 +97,7 @@ iallocb(int size)
 				ialloc.bytes, conf.ialloc);
 		return nil;
 	}
-	setmalloctag(b, getcallerpc(&size));
+	setmalloctag(b, getcallerpc());
 	b->flag = BINTR;
 
 	ilock(&ialloc.lk);
