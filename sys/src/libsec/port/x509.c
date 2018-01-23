@@ -1575,7 +1575,7 @@ enum {
 	ALG_md5,
 	NUMALGS
 };
-typedef struct Ints7 {
+typedef struct Ints15 {
 	int		len;
 	int		data[15];
 } Ints15;
