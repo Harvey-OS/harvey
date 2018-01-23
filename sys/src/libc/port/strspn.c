@@ -15,7 +15,8 @@
 int
 strspn(const char *s, const char *b)
 {
-	char map[N], *os;
+	const char *os;
+	char map[N];
 
 	memset(map, 0, N);
 	while(*b)

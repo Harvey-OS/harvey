@@ -15,7 +15,7 @@
 uint64_t
 strtoull(const char *nptr, char **endptr, int base)
 {
-	char *p;
+	const char *p;
 	uint64_t n, nn, m;
 	int c, ovfl, v, neg, ndig;
 

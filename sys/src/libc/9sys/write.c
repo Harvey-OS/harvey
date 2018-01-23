@@ -1,26 +1,22 @@
 /*
- * This file is part of Harvey.
- *
- * Copyright (C) 2015 Giacomo Tesio <giacomo@tesio.it>	
- *
- * Harvey is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 2 of the License.
- *
- * Harvey is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Harvey.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
  */
 
 #include <u.h>
 #include <libc.h>
 
-int32_t
-write(int fd, const void* buf, int32_t nbytes)
+ssize_t
+write(int d, const void *buf, size_t nbytes)
 {
-	return pwrite(fd, buf, nbytes, ~0LL);
+	int n;
+
+	n = pwrite(d, buf, nbytes, ~0LL);
+	if(n < 0)
+		sysfatal("write failed: %r");
+	return n;
 }

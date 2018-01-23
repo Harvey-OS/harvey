@@ -93,7 +93,7 @@ qunlock(QLock *q)
 	lock(&q->lock);
 	if (q->locked == 0)
 		fprint(2, "qunlock called with qlock not held, from %#p\n",
-			getcallerpc(&q));
+			getcallerpc());
 	p = q->head;
 	if(p != nil){
 		/* wakeup head waiting process */
@@ -208,7 +208,7 @@ wlock(RWLock *q)
 		return;
 	}
 
-	/* wait */
+	/* chain into waiting list */
 	p = q->tail;
 	mp = getqlp();
 	if(p == nil)
@@ -223,6 +223,7 @@ wlock(RWLock *q)
 	/* wait in kernel */
 	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
 		;
+
 	mp->inuse = 0;
 }
 

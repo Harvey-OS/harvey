@@ -5,10 +5,6 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
-
- * Portions of this file are copyright cinap_lenrek <cinap_lenrek@felloff.net>
- * and are made available under the terms of the MIT license that can be found
- * in the LICENSE.mit file.
  */
 
 
@@ -33,10 +29,7 @@ struct mpint
 
 enum
 {
-	MPstatic=	0x01,	/* static constant */
-	MPnorm=		0x02,	/* normalization status */
-	MPtimesafe=	0x04,	/* request time invariant computation */
-	MPfield=	0x08,	/* this mpint is a field modulus */
+	MPstatic=	0x01,
 	Dbytes=		sizeof(mpdigit),	/* bytes per digit */
 	Dbits=		Dbytes*8		/* bits per digit */
 };
@@ -52,7 +45,6 @@ void	mpassign(mpint *old, mpint *new);
 
 /* random bits */
 mpint*	mprand(int bits, void (*gen)(uint8_t*, int), mpint *b);
-mpint* mpnrand(mpint *n, void (*gen)(uint8_t*, int), mpint *b);
 
 /* conversion */
 mpint*	strtomp(char*, char**, int, mpint*);	/* ascii */
@@ -70,7 +62,6 @@ uint64_t	mptouv(mpint*);			/* unsigned vlong */
 mpint*	uvtomp(uint64_t, mpint*);
 int64_t	mptov(mpint*);			/* vlong */
 mpint*	vtomp(int64_t, mpint*);
-void mptober(mpint *b, uint8_t *p, int n);
 
 /* divide 2 digits by one */
 void	mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient);
@@ -84,11 +75,6 @@ void	mpright(mpint *b, int shift, mpint *res);	/* res = b>>shift */
 void	mpmul(mpint *b1, mpint *b2, mpint *prod);	/* prod = b1*b2 */
 void	mpexp(mpint *b, mpint *e, mpint *m, mpint *res);	/* res = b**e mod m */
 void	mpmod(mpint *b, mpint *m, mpint *remainder);	/* remainder = b mod m */
-
-/* modular arithmetic, time invariant when 0≤b1≤m-1 and 0≤b2≤m-1 */
-void	mpmodadd(mpint *b1, mpint *b2, mpint *m, mpint *sum);	/* sum = b1+b2 % m */
-void	mpmodsub(mpint *b1, mpint *b2, mpint *m, mpint *diff);	/* diff = b1-b2 % m */
-void	mpmodmul(mpint *b1, mpint *b2, mpint *m, mpint *prod);	/* prod = b1*b2 % m */
 
 /* quotient = dividend/divisor, remainder = dividend % divisor */
 void	mpdiv(mpint *dividend, mpint *divisor,  mpint *quotient, mpint *remainder);
@@ -159,16 +145,3 @@ void	crtout(CRTpre*, CRTres*, mpint*);	/* convert residues to mpint */
 void	crtprefree(CRTpre*);
 void	crtresfree(CRTres*);
 
-/* fast field arithmetic */
-typedef struct Mfield	Mfield;
-
-struct Mfield
-{
-	mpint mpi;
-	int	(*reduce)(Mfield*, mpint*, mpint*);
-};
-
-mpint *mpfield(mpint*);
-
-Mfield *gmfield(mpint*);
-Mfield *cnfield(mpint*);

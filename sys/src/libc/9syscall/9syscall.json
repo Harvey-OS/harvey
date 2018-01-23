@@ -1,6 +1,5 @@
 {
 	"KernelLibc": {
-		"Library": "klibc.a",
 		"Pre": [
 			"mksys -o sys.h -mode=sys.h /sys/src/sysconf.json",
 			"mksys -o . -mode=syscallfiles /sys/src/sysconf.json"

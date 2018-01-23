@@ -12,7 +12,7 @@
 
 
 int
-execl(char *f, ...)
+execl(const char *f, ...)
 {
 	va_list va, va2;
 	char *arg;

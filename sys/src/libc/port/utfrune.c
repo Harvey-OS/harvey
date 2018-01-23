@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-utfrune(char *s, int32_t c)
+utfrune(const char *s, Rune c)
 {
 	int32_t c1;
 	Rune r;
@@ -26,13 +26,13 @@ utfrune(char *s, int32_t c)
 			if(c1 == 0)
 				return 0;
 			if(c1 == c)
-				return s;
+				return (char*)s;
 			s++;
 			continue;
 		}
 		n = chartorune(&r, s);
 		if(r == c)
-			return s;
+			return (char*)s;
 		s += n;
 	}
 }

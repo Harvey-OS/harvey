@@ -11,7 +11,7 @@
 #include <libc.h>
 
 double
-atof(char *cp)
+atof(const char *cp)
 {
 	return strtod(cp, 0);
 }

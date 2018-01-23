@@ -50,7 +50,7 @@ atexitdont(void (*f)(void))
 }
 
 void
-exits(char *s)
+exits(const char *s)
 {
 	int i, pid;
 	void (*f)(void);
