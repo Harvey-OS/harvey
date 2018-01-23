@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	src	"/sys/src/libregexp"
+#pragma	lib	"libregexp.a"
 
 typedef struct Resub		Resub;
 typedef struct Reclass		Reclass;

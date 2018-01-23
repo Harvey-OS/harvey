@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	lib	"liboventi.a"
+#pragma	src	"/sys/src/liboventi"
 
 typedef struct VtSession	VtSession;
 typedef struct VtSha1		VtSha1;
@@ -17,6 +19,11 @@ typedef struct VtRoot		VtRoot;
 typedef struct VtEntry		VtEntry;
 typedef struct VtServerVtbl	VtServerVtbl;
 
+#pragma incomplete VtSession
+#pragma incomplete VtSha1
+#pragma incomplete Packet
+#pragma incomplete VtLock
+#pragma incomplete VtRendez
 
 enum {
 	VtScoreSize	= 20, /* Venti */
@@ -272,5 +279,8 @@ int vtFdWrite(int, uint8_t*, int);
  * V	a venti score
  * R	venti error
  */
+#pragma	varargck	type	"V"		uchar*
+#pragma	varargck	type	"R"		void
 
+#pragma	varargck	argpos	vtSetError	1
 

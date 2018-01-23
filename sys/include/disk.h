@@ -7,11 +7,13 @@
  * in the LICENSE file.
  */
 
+#pragma src "/sys/src/libdisk"
+#pragma lib "libdisk.a"
 
 /* SCSI interface */
 typedef struct Scsi Scsi;
 struct Scsi {
-	QLock QLock;
+	QLock;
 	char*	inquire;
 	int	rawfd;
 	int	nchange;

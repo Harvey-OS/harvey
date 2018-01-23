@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	src	"/sys/src/libauth"
+#pragma	lib	"libauth.a"
 
 /*
  * Interface for typical callers.
@@ -124,6 +126,7 @@ void	_freeattr(Attr*);
 Attr	*_mkattr(int, char*, char*, Attr*);
 Attr	*_parseattr(char*);
 char	*_strfindattr(Attr*, char*);
+#pragma varargck type "A" Attr*
 
 extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey,
 				    char *params);
@@ -149,3 +152,7 @@ extern void		auth_freerpc(AuthRpc *rpc);
 extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a,
 				    int n);
 extern int		auth_wep(char*, char*, ...);
+#pragma varargck argpos auth_proxy 3
+#pragma varargck argpos auth_challenge 1
+#pragma varargck argpos auth_respond 8
+#pragma varargck argpos auth_getuserpasswd 2

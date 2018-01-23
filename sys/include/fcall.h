@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	src	"/sys/src/libc/9sys"
+#pragma	lib	"libc.a"
 
 #define	VERSION9P	"9P2000"
 
@@ -142,3 +144,6 @@ int	dirmodefmt(Fmt*);
 
 int	read9pmsg(int, void*, uint);
 
+#pragma	varargck	type	"F"	Fcall*
+#pragma	varargck	type	"M"	ulong
+#pragma	varargck	type	"D"	Dir*

@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	src	"/sys/src/libip"
+#pragma	lib	"libip.a"
 
 enum 
 {
@@ -203,3 +205,7 @@ extern uint8_t IPallbits[IPaddrlen];
 
 #define CLASS(p) ((*(uint8_t*)(p))>>6)
 
+#pragma	varargck	type	"I"	uchar*
+#pragma	varargck	type	"V"	uchar*
+#pragma	varargck	type	"E"	uchar*
+#pragma	varargck	type	"M"	uchar*

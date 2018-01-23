@@ -5,11 +5,15 @@
  * part of the UCB release of Plan 9, including this file, may be copied,
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
-
- * Portions of this file are copyright cinap_lenrek <cinap_lenrek@felloff.net>
- * and are made available under the terms of the MIT license that can be found
- * in the LICENSE.mit file.
  */
+
+#pragma	lib	"libsec.a"
+#pragma	src	"/sys/src/libsec"
+
+
+#ifndef _MPINT
+typedef struct mpint mpint;
+#endif
 
 /*
  * AES definitions
@@ -309,8 +313,6 @@ uint8_t*		X509req(RSApriv *priv, char *subj, int *certlen);
 char*		X509verify(uint8_t *cert, int ncert, RSApub *pk);
 void		X509dump(uint8_t *cert, int ncert);
 
-
-
 /*
  * elgamal
  */
@@ -405,18 +407,14 @@ typedef struct TLSconn{
 	char	dir[40];	/* connection directory */
 	uint8_t	*cert;	/* certificate (local on input, remote on output) */
 	uint8_t	*sessionID;
-	uint8_t	*psk;
 	int	certlen;
 	int	sessionIDlen;
-	int	psklen;
 	int	(*trace)(char*fmt, ...);
 	PEMChain*chain;	/* optional extra certificate evidence for servers to present */
 	char	*sessionType;
 	uint8_t	*sessionKey;
 	int	sessionKeylen;
 	char	*sessionConst;
-	char	*serverName;
-	char	*pskID;
 } TLSconn;
 
 /* tlshand.c */
@@ -431,70 +429,3 @@ int	okThumbprint(uint8_t *sha1, Thumbprint *ok);
 /* readcert.c */
 uint8_t	*readcert(char *filename, int *pcertlen);
 PEMChain*readcertchain(char *filename);
-
-/*
- * Diffie-Hellman key exchange
- */
-
-typedef struct DHstate DHstate;
-struct DHstate
-{
-	mpint	*g;	/* base g */
-	mpint	*p;	/* large prime */
-	mpint	*q;	/* subgroup prime */
-	mpint	*x;	/* random secret */
-	mpint	*y;	/* public key y = g**x % p */
-};
-
-/* generate new public key: y = g**x % p */
-mpint* dh_new(DHstate *dh, mpint *p, mpint *q, mpint *g);
-
-/* calculate shared key: k = y**x % p */
-mpint* dh_finish(DHstate *dh, mpint *y);
-
-typedef struct ECpoint ECpoint;
-struct ECpoint{
-	int inf;
-	mpint *x;
-	mpint *y;
-	mpint *z;	/* nil when using affine coordinates */
-};
-
-typedef ECpoint ECpub;
-
-typedef struct ECdomain ECdomain;
-struct ECdomain{
-	mpint *p;
-	mpint *a;
-	mpint *b;
-	ECpoint G;
-	mpint *n;
-	mpint *h;
-};
-
-typedef struct ECpriv ECpriv;
-struct ECpriv{
-	ECpoint ecpoint;
-	mpint *d;
-};
-
-
-void	ecdominit(ECdomain *, void (*init)(mpint *p, mpint *a, mpint *b, mpint *x, mpint *y, mpint *n, mpint *h));
-void	ecdomfree(ECdomain *);
-ECpub*	ecdecodepub(ECdomain *dom, uint8_t *, int);
-int	ecencodepub(ECdomain *dom, ECpub *, uint8_t *, int);
-int	ecdsaverify(ECdomain *, ECpub *, uint8_t *, int, mpint *, mpint *);
-ECpriv*	ecgen(ECdomain *, ECpriv*);
-void	ecmul(ECdomain *, ECpoint *a, mpint *k, ECpoint *s);
-void	ecpubfree(ECpub *);
-
-char*	X509ecdsaverifydigest(uint8_t *sig, int siglen, uint8_t *edigest, int edigestlen, ECdomain *dom, ECpub *pub);
-ECpub* X509toECpub(uint8_t *cert, int ncert, char *name, int nname, ECdomain *dom);
-char* X509rsaverifydigest(uint8_t *sig, int siglen, uint8_t *edigest, int edigestlen, RSApub *pk);
-
-
-int tsmemcmp(void *a1, void *a2, uint32_t n);
-
-//curves
-void	secp256r1(mpint *p, mpint *a, mpint *b, mpint *x, mpint *y, mpint *n, mpint *h);
-void	secp384r1(mpint *p, mpint *a, mpint *b, mpint *x, mpint *y, mpint *n, mpint *h);
