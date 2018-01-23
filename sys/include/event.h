@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma src "/sys/src/libdraw"
+#pragma lib "libdraw.a"
 
 typedef struct	Cursor Cursor;
 typedef struct	Event Event;

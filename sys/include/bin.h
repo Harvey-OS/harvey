@@ -7,9 +7,12 @@
  * in the LICENSE file.
  */
 
+#pragma	lib	"libbin.a"
+#pragma	src	"/sys/src/libbin"
 
 typedef struct Bin	Bin;
 
+#pragma incomplete Bin
 
 void	*binalloc(Bin **, uint32_t size, int zero);
 void	*bingrow(Bin **, void *op, uint32_t osize, uint32_t size,

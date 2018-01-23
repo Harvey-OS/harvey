@@ -51,6 +51,7 @@ extern int	poolcompact(Pool*);
 extern void	poolblockcheck(Pool*, void*);
 
 extern Pool*	mainmem;
+extern Pool*	imagmem;
 
 enum {	/* flags */
 	POOL_ANTAGONISM	= 1<<0,

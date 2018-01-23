@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma src "/sys/src/libmemlayer"
+#pragma lib "libmemlayer.a"
 
 typedef struct Memscreen Memscreen;
 typedef void (*Refreshfn)(Memimage*, Rectangle, void*);

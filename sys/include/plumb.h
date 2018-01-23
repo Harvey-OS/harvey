@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	lib	"libplumb.a"
+#pragma	src	"/sys/src/libplumb"
 
 /*
  * Message format:

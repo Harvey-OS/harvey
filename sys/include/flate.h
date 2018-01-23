@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+#pragma	lib	"libflate.a"
+#pragma	src	"/sys/src/libflate"
 
 /*
  * errors from deflate, deflateinit, deflateblock,

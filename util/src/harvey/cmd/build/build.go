@@ -217,7 +217,6 @@ func include(f string, targ string, b *build) {
 		return
 	}
 	b.jsons[f] = true
-
 	log.Printf("Including %s", f)
 	d, err := ioutil.ReadFile(f)
 	fail(err)

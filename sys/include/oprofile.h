@@ -35,7 +35,6 @@
 #define IBS_FETCH_CODE			13
 #define IBS_OP_CODE			14
 
-//#pragma incomplete Ureg
 
 /**
  * One-time exit/cleanup for the arch.
@@ -86,15 +85,7 @@ void oprofile_cpu_buffer_inc_smpl_lost(void);
  
 /* cpu buffer functions */
 
-/* CPU buffer is composed of samples.
- * As these are extracted from the buffer, they are encapsulated
- * in entries, which include additional info.
- */
-struct op_sample {
-	unsigned long eip;
-	unsigned long event;
-	unsigned long data[0];
-};
+struct op_sample;
 
 struct op_entry {
 	void *event;
