@@ -15,7 +15,7 @@
 uint32_t
 strtoul(const char *nptr, char **endptr, int base)
 {
-	char *p;
+	const char *p;
 	uint32_t n, nn, m;
 	int c, ovfl, neg, v, ndig;
 

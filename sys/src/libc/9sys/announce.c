@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-static int	nettrans(char*, char*, int na, char*, int);
+static int	nettrans(const char*, char*, int na, char*, int);
 
 enum
 {
@@ -22,7 +22,7 @@ enum
  *  announce a network service.
  */
 int
-announce(char *addr, char *dir)
+announce(const char *addr, char *dir)
 {
 	int ctl, n, m;
 	char buf[Maxpath];
@@ -89,7 +89,7 @@ announce(char *addr, char *dir)
  *  listen for an incoming call
  */
 int
-listen(char *dir, char *newdir)
+listen(const char *dir, char *newdir)
 {
 	int ctl, n, m;
 	char buf[Maxpath];
@@ -141,10 +141,10 @@ listen(char *dir, char *newdir)
  *  accept a call, return an fd to the open data file
  */
 int
-accept(int ctl, char *dir)
+accept(int ctl, const char *dir)
 {
 	char buf[Maxpath];
-	char *num;
+	const char *num;
 	int32_t n;
 
 	num = strrchr(dir, '/');
@@ -164,10 +164,10 @@ accept(int ctl, char *dir)
  *  reject a call, tell device the reason for the rejection
  */
 int
-reject(int ctl, char *dir, char *cause)
+reject(int ctl, const char *dir, const char *cause)
 {
 	char buf[Maxpath];
-	char *num;
+	const char *num;
 	int32_t n;
 
 	num = strrchr(dir, '/');
@@ -186,7 +186,7 @@ reject(int ctl, char *dir, char *cause)
  *  perform the identity translation (in case we can't reach cs)
  */
 static int
-identtrans(char *netdir, char *addr, char *naddr, int na,
+identtrans(char *netdir, const char *addr, char *naddr, int na,
 	   char *file, int nf)
 {
 	char proto[Maxpath];
@@ -212,7 +212,7 @@ identtrans(char *netdir, char *addr, char *naddr, int na,
  *  call up the connection server and get a translation
  */
 static int
-nettrans(char *addr, char *naddr, int na, char *file, int nf)
+nettrans(const char *addr, char *naddr, int na, char *file, int nf)
 {
 	int i, fd;
 	char buf[Maxpath];

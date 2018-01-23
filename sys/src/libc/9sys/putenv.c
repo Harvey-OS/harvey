@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-putenv(char *name, char *val)
+putenv(const char *name, const char *val)
 {
 	int f;
 	char ename[100];

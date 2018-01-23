@@ -12,7 +12,6 @@
 		"SourceFiles": [
 			"9sys/access.c",
 			"9sys/announce.c",
-			"9sys/awakened.c",
 			"9sys/convD2M.c",
 			"9sys/convM2D.c",
 			"9sys/convM2S.c",

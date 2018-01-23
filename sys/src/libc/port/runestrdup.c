@@ -18,7 +18,7 @@ runestrdup(const Rune *s)
 	ns = malloc(sizeof(Rune)*(runestrlen(s) + 1));
 	if(ns == 0)
 		return 0;
-	setmalloctag(ns, getcallerpc(&s));
+	setmalloctag(ns, getcallerpc());
 
 	return runestrcpy(ns, s);
 }

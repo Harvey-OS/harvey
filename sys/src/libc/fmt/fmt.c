@@ -130,12 +130,12 @@ fmtfmt(int c)
 }
 
 void*
-_fmtdispatch(Fmt *f, void *fmt, int isrunes)
+_fmtdispatch(Fmt *f, const void *fmt, int isrunes)
 {
 	Rune rune, r;
 	int i, n, w, p;
 	uint32_t fl;
-	void *ret;
+	const void *ret;
 
 	w = f->width;
 	p = f->prec;
@@ -223,5 +223,5 @@ end:
 	f->width = w;
 	f->prec = p;
 	f->flags = fl;
-	return ret;
+	return (void*)ret;
 }

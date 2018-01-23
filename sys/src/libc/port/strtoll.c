@@ -16,7 +16,7 @@
 int64_t
 strtoll(const char *nptr, char **endptr, int base)
 {
-	char *p;
+	const char *p;
 	int64_t n, nn, m;
 	int c, ovfl, v, neg, ndig;
 

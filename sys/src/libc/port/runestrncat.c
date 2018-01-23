@@ -11,7 +11,7 @@
 #include <libc.h>
 
 Rune*
-runestrncat(Rune *s1, Rune *s2, int32_t n)
+runestrncat(Rune *s1, const Rune *s2, int32_t n)
 {
 	Rune *os1;
 

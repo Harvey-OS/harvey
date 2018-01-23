@@ -12,7 +12,7 @@
 
 
 static void
-_sysfatalimpl(char *fmt, va_list arg)
+_sysfatalimpl(const char *fmt, va_list arg)
 {
 	char buf[1024];
 
@@ -24,10 +24,10 @@ _sysfatalimpl(char *fmt, va_list arg)
 	exits(buf);
 }
 
-void (*_sysfatal)(char *fmt, va_list arg) = _sysfatalimpl;
+void (*_sysfatal)(const char *fmt, va_list arg) = _sysfatalimpl;
 
 void
-sysfatal(char *fmt, ...)
+sysfatal(const char *fmt, ...)
 {
 	va_list arg;
 

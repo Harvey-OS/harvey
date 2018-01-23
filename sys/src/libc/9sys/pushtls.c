@@ -48,8 +48,8 @@ finished(int hand, int isclient)
 
 // given a plain fd and secrets established beforehand, return encrypted connection
 int
-pushtls(int fd, char *hashalg, char *encalg, int isclient,
-	char *secret, char *dir)
+pushtls(int fd, const char *hashalg, const char *encalg, int isclient,
+	const char *secret, char *dir)
 {
 	char buf[8];
 	char dname[64];

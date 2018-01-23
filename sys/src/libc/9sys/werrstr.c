@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-werrstr(char *fmt, ...)
+werrstr(const char *fmt, ...)
 {
 	va_list arg;
 	char buf[ERRMAX];
