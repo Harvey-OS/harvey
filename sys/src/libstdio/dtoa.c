@@ -489,46 +489,6 @@ diff(Bigint *a, Bigint *b)
 	return c;
 }
 
-static double	
-ulp(double x)
-{
-	uint32_t L;
-	Ulongs uls;
-
-	uls = double2ulongs(x);
-	L = (uls.hi & Exp_mask) - (P - 1) * Exp_msk1;
-	return ulongs2double((Ulongs){L, 0});
-}
-
-static double	
-b2d(Bigint *a, int *e)
-{
-	unsigned *xa, *xa0, w, y, z;
-	int	k;
-	uint32_t d0, d1;
-
-	xa0 = a->x;
-	xa = xa0 + a->wds;
-	y = *--xa;
-	k = hi0bits(y);
-	*e = 32 - k;
-	if (k < Ebits) {
-		w = xa > xa0 ? *--xa : 0;
-		d1 = y << (32 - Ebits) + k | w >> Ebits - k;
-		return ulongs2double((Ulongs){Exp_1 | y >> Ebits - k, d1});
-	}
-	z = xa > xa0 ? *--xa : 0;
-	if (k -= Ebits) {
-		d0 = Exp_1 | y << k | z >> 32 - k;
-		y = xa > xa0 ? *--xa : 0;
-		d1 = z << k | y >> 32 - k;
-	} else {
-		d0 = Exp_1 | y;
-		d1 = z;
-	}
-	return ulongs2double((Ulongs){d0, d1});
-}
-
 static Bigint *
 d2b(double d, int *e, int *bits)
 {
@@ -562,29 +522,6 @@ d2b(double d, int *e, int *bits)
 	*e = de - Bias - (P - 1) + k;
 	*bits = P - k;
 	return b;
-}
-
-static double	
-ratio(Bigint *a, Bigint *b)
-{
-	double	da, db;
-	int	k, ka, kb;
-	Ulongs uls;
-
-	da = b2d(a, &ka);
-	db = b2d(b, &kb);
-	k = ka - kb + 32 * (a->wds - b->wds);
-	if (k > 0) {
-		uls = double2ulongs(da);
-		uls.hi += k * Exp_msk1;
-		da = ulongs2double(uls);
-	} else {
-		k = -k;
-		uls = double2ulongs(db);
-		uls.hi += k * Exp_msk1;
-		db = ulongs2double(uls);
-	}
-	return da / db;
 }
 
 static const double
