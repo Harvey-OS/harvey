@@ -30,7 +30,6 @@ sys/log
 
 #sys/src/9/port/error.h
 sys/src/9/root/nvram
-sys/src/9/boot/bootk8cpu.c
 
 *.orig
 *_orig
@@ -69,8 +68,6 @@ tools/share
 /tmp
 
 cfg/pxe/tftpboot
-util/third_party/bin
-util/third_party/src/golang.org
 usr/harvey/tmp
 
 build_out
