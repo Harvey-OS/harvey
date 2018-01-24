@@ -116,7 +116,7 @@ flushcache(void)
 
 	lock(&pglock);
 	for(i=0; i<NHASH; i++){
-		if(p=pgtab[i]){
+		if((p=pgtab[i]) != 0) {
 			for(;p->link; p=p->link)
 				;
 			p->link = freelist;
@@ -178,7 +178,7 @@ eiaread(void *v)
 	int i, tries;
 
 	notify(noalarm);
-	while(r = recvp(rchan)){
+	while ((r = recvp(rchan)) != 0) {
 		DBG(2, "got %F: here goes...", &r->ifcall);
 		if(r->ifcall.count > Readlen)
 			r->ifcall.count = Readlen;
@@ -370,14 +370,14 @@ struct {
 	int64_t id;
 	int mode;
 } tab[] = {
-	"ctl",		Xctl,		0222,
-	"fpregs",	Xfpregs,	0666,
-	"kregs",	Xkregs,		0666,
-	"mem",		Xmem,		0666,
-	"proc",		Xproc,		0444,
-	"regs",		Xregs,		0666,
-	"text",		Xtext,		0444,
-	"status",	Xstatus,	0444,
+	{ "ctl",	Xctl,		0222, },
+	{ "fpregs",	Xfpregs,	0666, },
+	{ "kregs",	Xkregs,		0666, },
+	{ "mem",	Xmem,		0666, },
+	{ "proc",	Xproc,		0444, },
+	{ "regs",	Xregs,		0666, },
+	{ "text",	Xtext,		0444, },
+	{ "status",	Xstatus,	0444, },
 };
 
 void

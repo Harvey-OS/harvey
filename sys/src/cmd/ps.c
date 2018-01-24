@@ -166,7 +166,7 @@ cmp(const void *va, const void *vb)
 {
 	Dir **a, **b;
 
-	a = va;
-	b = vb;
+	a = (Dir **)va;
+	b = (Dir **)vb;
 	return atoi((*a)->name) - atoi((*b)->name);
 }

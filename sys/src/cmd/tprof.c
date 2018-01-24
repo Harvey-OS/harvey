@@ -37,8 +37,8 @@ compar(const void *va, const void *vb)
 {
 	struct COUNTER *a, *b;
 
-	a = va;
-	b = vb;
+	a = (struct COUNTER *)va;
+	b = (struct COUNTER *)vb;
 	if(a->time < b->time)
 		return -1;
 	if(a->time == b->time)
