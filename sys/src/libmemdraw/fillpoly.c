@@ -36,18 +36,6 @@ static	void	xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Mem
 static	void	yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int);
 
 static void
-fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
-{
-	int srcval;
-
-	USED(src);
-	srcval = p.x;
-	p.x = left;
-	p.y = y;
-	memset(byteaddr(dst, p), srcval, right-left);
-}
-
-static void
 fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p, int op)
 {
 	Rectangle r;
@@ -483,8 +471,8 @@ ycompare(const void *a, const void *b)
 	Seg **s0, **s1;
 	int32_t y0, y1;
 
-	s0 = a;
-	s1 = b;
+	s0 = (Seg **)a;
+	s1 = (Seg **)b;
 	y0 = (*s0)->p0.y;
 	y1 = (*s1)->p0.y;
 
@@ -501,8 +489,8 @@ xcompare(const void *a, const void *b)
 	Seg **s0, **s1;
 	int32_t x0, x1;
 
-	s0 = a;
-	s1 = b;
+	s0 = (Seg **)a;
+	s1 = (Seg **)b;
 	x0 = (*s0)->p0.x;
 	x1 = (*s1)->p0.x;
 
@@ -519,8 +507,8 @@ zcompare(const void *a, const void *b)
 	Seg **s0, **s1;
 	int32_t z0, z1;
 
-	s0 = a;
-	s1 = b;
+	s0 = (Seg **)a;
+	s1 = (Seg **)b;
 	z0 = (*s0)->z;
 	z1 = (*s1)->z;
 

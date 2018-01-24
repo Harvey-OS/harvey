@@ -520,7 +520,7 @@ ialloc(uint32_t n, int align)
 	palloc = p+n;
 	if(palloc > memend)
 		panic("ialloc(%lud, %d) called from 0x%lux\n",
-			n, align, getcallerpc(&n));
+			n, align, getcallerpc());
 	return memset((void*)p, 0, n);
 }
 
@@ -531,7 +531,7 @@ xspanalloc(uint32_t size, int align, uint32_t span)
 
 	if((palloc + (size+align+span)) > memend)
 		panic("xspanalloc(%lud, %d, 0x%lux) called from 0x%lux\n",
-			size, align, span, getcallerpc(&size));
+			size, align, span, getcallerpc());
 
 	a = (uint32_t)ialloc(size+align+span, 0);
 
@@ -565,7 +565,7 @@ allocb(int size)
 	if(bp == 0){
 		if((palloc + (sizeof(Block)+size+64)) > memend)
 			panic("allocb(%d) called from 0x%lux\n",
-				size, getcallerpc(&size));
+				size, getcallerpc());
 		bp = ialloc(sizeof(Block)+size+64, 0);
 		addr = (uint32_t)bp;
 		addr = ROUNDUP(addr + sizeof(Block), 8);

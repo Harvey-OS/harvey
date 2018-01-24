@@ -177,7 +177,7 @@ emalloc(int n)
 	if(p == nil)
 		sysfatal("out of memory");
 	memset(p, 0, n);
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -1429,7 +1429,7 @@ mkel(Elem e, Elist* tail)
 	Elist* el;
 
 	el = (Elist*)emalloc(sizeof(Elist));
-	setmalloctag(el, getcallerpc(&e));
+	setmalloctag(el, getcallerpc());
 	el->hd = e;
 	el->tl = tail;
 	return el;

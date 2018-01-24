@@ -94,7 +94,6 @@ static uint32_t pixelbits(Memimage*, Point);
 void
 memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask, Point p1, int op)
 {
-	static int n = 0;
 	Memdrawparam par;
 
 	if(mask == nil)
@@ -441,9 +440,6 @@ struct Param {
 	int	convdx;
 };
 
-static uint8_t *drawbuf;
-static int	ndrawbuf;
-static int	mdrawbuf;
 static Readfn	greymaskread, replread, readptr;
 static Writefn	nullwrite;
 static Calcfn	alphacalc0, alphacalc14, alphacalc2810, alphacalc3679, alphacalc5, alphacalc11, alphacalcS;
@@ -455,7 +451,6 @@ static Writefn*	writefn(Memimage*);
 
 static Calcfn*	boolcopyfn(Memimage*, Memimage*);
 static Readfn*	convfn(Memimage*, Param*, Memimage*, Param*, int*);
-static Readfn*	ptrfn(Memimage*);
 
 static Calcfn *alphacalc[Ncomp] =
 {
@@ -1936,20 +1931,6 @@ boolcopyfn(Memimage *img, Memimage *mask)
 	return nil;
 }
 
-/*
- * Optimized draw for filling and scrolling; uses memset and memmove.
- */
-static void
-memsetb(void *vp, uint8_t val, int n)
-{
-	uint8_t *p, *ep;
-
-	p = vp;
-	ep = p+n;
-	while(p<ep)
-		*p++ = val;
-}
-
 static void
 memsets(void *vp, uint16_t val, int n)
 {
@@ -2467,32 +2448,6 @@ DBG print("bsh %d\n", bsh);
 	return 1;
 }
 #undef DBG
-
-
-/*
- * Fill entire byte with replicated (if necessary) copy of source pixel,
- * assuming destination ldepth is >= source ldepth.
- *
- * This code is just plain wrong for >8bpp.
- *
-ulong
-membyteval(Memimage *src)
-{
-	int i, val, bpp;
-	uchar uc;
-
-	unloadmemimage(src, src->r, &uc, 1);
-	bpp = src->depth;
-	uc <<= (src->r.min.x&(7/src->depth))*src->depth;
-	uc &= ~(0xFF>>bpp);
-	/* pixel value is now in high part of byte. repeat throughout byte 
-	val = uc;
-	for(i=bpp; i<8; i<<=1)
-		val |= val>>i;
-	return val;
-}
- * 
- */
 
 void
 memfillcolor(Memimage *i, uint32_t val)

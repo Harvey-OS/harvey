@@ -105,7 +105,7 @@ emalloc(uint32_t n)
 	p = malloc(n);
 	if(p == nil)
 		error("malloc failed");
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	memset(p, 0, n);
 	return p;
 }
@@ -116,7 +116,7 @@ erealloc(void *p, uint32_t n)
 	p = realloc(p, n);
 	if(p == nil)
 		error("realloc failed");
-	setmalloctag(p, getcallerpc(&n));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -130,7 +130,7 @@ erunestrdup(Rune *r)
 	p = runestrdup(r);
 	if(p == nil)
 		error("runestrdup failed");
-	setmalloctag(p, getcallerpc(&r));
+	setmalloctag(p, getcallerpc());
 	return p;
 }
 
@@ -142,7 +142,7 @@ estrdup(char *s)
 	t = strdup(s);
 	if(t == nil)
 		error("strdup failed");
-	setmalloctag(t, getcallerpc(&s));
+	setmalloctag(t, getcallerpc());
 	return t;
 }
 

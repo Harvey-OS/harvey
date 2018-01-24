@@ -374,7 +374,7 @@ vtGetString(Packet *p, char **ret)
 		return 0;
 	}
 	s = vtMemAlloc(n+1);
-	setmalloctag(s, getcallerpc(&p));
+	setmalloctag(s, getcallerpc());
 	if(!packetConsume(p, (uint8_t*)s, n)) {
 		vtMemFree(s);
 		return 0;

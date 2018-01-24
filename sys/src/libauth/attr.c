@@ -47,7 +47,7 @@ _copyattr(Attr *a)
 	la = &na;
 	for(; a; a=a->next){
 		*la = _mkattr(a->type, a->name, a->val, nil);
-		setmalloctag(*la, getcallerpc(&a));
+		setmalloctag(*la, getcallerpc());
 		la = &(*la)->next;
 	}
 	*la = nil;
@@ -111,7 +111,7 @@ _mkattr(int type, char *name, char *val, Attr *next)
 	if(a->name==nil || a->val==nil)
 		sysfatal("_mkattr malloc: %r");
 	a->next = next;
-	setmalloctag(a, getcallerpc(&type));
+	setmalloctag(a, getcallerpc());
 	return a;
 }
 
@@ -156,16 +156,16 @@ _parseattr(char *s)
 		//	}else
 				type = AttrNameval;
 			a = _mkattr(type, t, p, a);
-			setmalloctag(a, getcallerpc(&s));
+			setmalloctag(a, getcallerpc());
 		}
 		else if(t[strlen(t)-1] == '?'){
 			t[strlen(t)-1] = '\0';
 			a = _mkattr(AttrQuery, t, "", a);
-			setmalloctag(a, getcallerpc(&s));
+			setmalloctag(a, getcallerpc());
 		}else{
 			/* really a syntax error, but better to provide some indication */
 			a = _mkattr(AttrNameval, t, "", a);
-			setmalloctag(a, getcallerpc(&s));
+			setmalloctag(a, getcallerpc());
 		}
 	}
 	free(s);

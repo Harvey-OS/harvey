@@ -212,7 +212,7 @@ vtRendezAlloc(VtLock *p)
 
 	q = vtMemAllocZ(sizeof(VtRendez));
 	q->lk = p;
-	setmalloctag(q, getcallerpc(&p));
+	setmalloctag(q, getcallerpc());
 	return q;
 }
 
@@ -248,7 +248,7 @@ vtLock(VtLock *p)
 	Thread *t;
 
 	lock(&p->lk);
-	p->pc = getcallerpc(&p);
+	p->pc = getcallerpc();
 	t = *vtRock;
 	if(p->writer == nil && p->readers == 0) {
 		p->writer = t;

@@ -323,7 +323,7 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t offset)
 
 	USED(offset);
 	if(!islo())
-		print("pipewrite hi %lux\n", getcallerpc(&c));
+		print("pipewrite hi %lux\n", getcallerpc());
 
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */

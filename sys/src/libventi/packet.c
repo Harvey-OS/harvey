@@ -149,7 +149,7 @@ packetfree(Packet *p)
 		return;
 
 	NOTFREE(p);
-	p->pc = getcallerpc(&p);
+	p->pc = getcallerpc();
 
 	for(f=p->first; f!=nil; f=ff) {
 		ff = f->next;
@@ -178,7 +178,7 @@ packetdup(Packet *p, int offset, int n)
 	}
 
 	pp = packetalloc();
-	pp->pc = getcallerpc(&p);
+	pp->pc = getcallerpc();
 	if(n == 0){
 		NOTFREE(pp);
 		return pp;
@@ -229,7 +229,7 @@ packetsplit(Packet *p, int n)
 	}
 
 	pp = packetalloc();
-	pp->pc = getcallerpc(&p);
+	pp->pc = getcallerpc();
 	if(n == 0){
 		NOTFREE(pp);
 		return pp;
@@ -814,7 +814,7 @@ packetforeign(uint8_t *buf, int n, void (*free)(void *a), void *a)
 	Frag *f;
 
 	p = packetalloc();
-	p->pc = getcallerpc(&buf);
+	p->pc = getcallerpc();
 	f = fragalloc(p, 0, 0, nil);
 	f->free = free;
 	f->a = a;

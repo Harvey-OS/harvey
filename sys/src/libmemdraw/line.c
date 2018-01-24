@@ -22,15 +22,6 @@ enum
 
 static
 int
-lmin(int a, int b)
-{
-	if(a < b)
-		return a;
-	return b;
-}
-
-static
-int
 lmax(int a, int b)
 {
 	if(a > b)

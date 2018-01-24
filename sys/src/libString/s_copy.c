@@ -21,7 +21,7 @@ s_copy(char *cp)
 
 	len = strlen(cp)+1;
 	sp = s_newalloc(len);
-	setmalloctag(sp, getcallerpc(&cp));
+	setmalloctag(sp, getcallerpc());
 	strcpy(sp->base, cp);
 	sp->ptr = sp->base + len - 1;		/* point to 0 terminator */
 	return sp;

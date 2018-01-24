@@ -426,7 +426,7 @@ rralloc(int type)
 
 	rp = emalloc(sizeof(*rp));
 	rp->magic = RRmagic;
-	rp->pc = getcallerpc(&type);
+	rp->pc = getcallerpc();
 	rp->type = type;
 	setmalloctag(rp, rp->pc);
 	switch(type){

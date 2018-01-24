@@ -727,7 +727,7 @@ assert(b->type == VtDirType);
 		vtblockput(b);
 		b = bb;
 	}
-	b->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
 	return b;
 Err:
 	vtblockput(b);
@@ -841,7 +841,7 @@ fileloadblock(VtFile *r, int mode)
 			b = vtcacheglobal(r->c, r->score, VtDirType);
 			if(b == nil)
 				return nil;
-			b->pc = getcallerpc(&r);
+			b->pc = getcallerpc();
 			return b;
 		}
 		assert(r->parent != nil);
@@ -911,7 +911,7 @@ vtfilelock(VtFile *r, int mode)
 	 */
 	assert(r->b == nil);
 	r->b = b;
-	b->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
 	return 0;
 }
 
@@ -958,8 +958,8 @@ vtfilelock2(VtFile *r, VtFile *rr, int mode)
 	 */
 	r->b = b;
 	rr->b = bb;
-	b->pc = getcallerpc(&r);
-	bb->pc = getcallerpc(&r);
+	b->pc = getcallerpc();
+	bb->pc = getcallerpc();
 	return 0;
 }
 

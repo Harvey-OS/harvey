@@ -121,7 +121,7 @@ decref(Ref *r)
 	x = --r->ref;
 	unlock(&r->lk);
 	if(x < 0)
-		panic("decref, pc=0x%p", getcallerpc(&r));
+		panic("decref, pc=0x%p", getcallerpc());
 
 	return x;
 }
@@ -181,7 +181,7 @@ kstrdup(char **p, char *s)
 	/* if it's a user, we can wait for memory; if not, something's very wrong */
 	if(up){
 		t = smalloc(n);
-		setmalloctag(t, getcallerpc(&p));
+		setmalloctag(t, getcallerpc());
 	}else{
 		t = malloc(n);
 		if(t == nil)
@@ -363,7 +363,7 @@ void
 cclose(Chan *c)
 {
 	if(c->flag&CFREE)
-		panic("cclose %p", getcallerpc(&c));
+		panic("cclose %p", getcallerpc());
 
 	if(decref(&c->ref))
 		return;

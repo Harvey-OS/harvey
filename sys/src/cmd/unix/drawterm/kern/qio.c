@@ -105,7 +105,7 @@ padblock(Block *bp, int size)
 		}
 
 		if(bp->next)
-			panic("padblock 0x%p", getcallerpc(&bp));
+			panic("padblock 0x%p", getcallerpc());
 		n = BLEN(bp);
 		padblockcnt++;
 		nbp = allocb(size+n);
@@ -119,7 +119,7 @@ padblock(Block *bp, int size)
 		size = -size;
 
 		if(bp->next)
-			panic("padblock 0x%p", getcallerpc(&bp));
+			panic("padblock 0x%p", getcallerpc());
 
 		if(bp->lim - bp->wp >= size)
 			return bp;
@@ -1279,7 +1279,7 @@ qwrite(Queue *q, void *vp, int len)
 	uint8_t *p = vp;
 
 	QDEBUG if(!islo())
-		print("qwrite hi %p\n", getcallerpc(&q));
+		print("qwrite hi %p\n", getcallerpc());
 
 	sofar = 0;
 	do {

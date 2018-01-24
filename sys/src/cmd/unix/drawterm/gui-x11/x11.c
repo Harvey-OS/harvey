@@ -244,7 +244,7 @@ xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 	}
 
 	xm->xi = xi;
-	xm->pc = getcallerpc(&r);
+	xm->pc = getcallerpc();
 	xm->r = r;
 	
 	/*
