@@ -19,7 +19,6 @@ _frdrawtext(Frame *f, Point pt, Image *text, Image *back)
 {
 	Frbox *b;
 	int nb;
-	static int x;
 
 	for(nb=0,b=f->box; nb<f->nbox; nb++, b++){
 		_frcklinewrap(f, &pt, b);
