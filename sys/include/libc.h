@@ -12,9 +12,6 @@
 #define	offsetof(s, m)	(uintptr_t)(&(((s*)0)->m))
 #define	assert(x)	do{if(!(x))_assert(#x);}while(0)
 
-extern void (*_abort)(void);
-#define abort() {if(_abort){_abort();}else{while(*(volatile int*)0);}}
-
 /*
  * mem routines
  */
@@ -591,6 +588,7 @@ struct IOchunk
 
 extern	void	_exits(const char*);
 
+extern	void	abort(void);
 extern	int	access(const char*, int);
 extern	int64_t	alarm(uint64_t);
 extern	int	await(char*, int);
@@ -682,7 +680,7 @@ extern char *argv0;
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
-				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), argc = *(volatile int*)0, (char*)0)))
+				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), argc = abort(), (char*)0)))
 
 #define	ARGC()		_argc
 
