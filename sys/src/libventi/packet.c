@@ -134,7 +134,7 @@ packetalloc(void)
 	p->first = nil;
 	p->last = nil;
 	p->next = nil;
-	p->pc = getcallerpc((char*)&p+8);	/* might not work, but fine */
+	p->pc = getcallerpc();
 
 	NOTFREE(p);
 	return p;
