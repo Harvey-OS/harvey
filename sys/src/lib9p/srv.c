@@ -16,7 +16,6 @@
 
 void (*_forker)(void(*)(void*), void*, int);
 
-static char Ebadattach[] = "unknown specifier in attach";
 static char Ebadoffset[] = "bad offset";
 static char Ebotch[] = "9P protocol botch";
 static char Ecreatenondir[] = "create in non-directory";
