@@ -609,6 +609,7 @@ dumpbuf(char *s, Buffer b, int n)
  * If the buffer is already pointing at the destination, the writing function is a no-op.
  */
 #define DBG if(0)
+
 static int
 alphadraw(Memdrawparam *par)
 {
@@ -774,13 +775,13 @@ alphadraw(Memdrawparam *par)
 		clipy(mask, &masky);
 
 		bsrc = rdsrc(&z->spar, z->spar.bufbase, srcy);
-DBG print("[");
+		DBG print("[");
 		bmask = rdmask(&z->mpar, z->mpar.bufbase, masky);
-DBG print("]\n");
+		DBG print("]\n");
 		bdst = rddst(&z->dpar, z->dpar.bufbase, dsty);
-DBG		dumpbuf("src", bsrc, dx);
-DBG		dumpbuf("mask", bmask, dx);
-DBG		dumpbuf("dst", bdst, dx);
+		DBG		dumpbuf("src", bsrc, dx);
+		DBG		dumpbuf("mask", bmask, dx);
+		DBG		dumpbuf("dst", bdst, dx);
 		bdst = calc(bdst, bsrc, bmask, dx, isgrey, op);
 		wrdst(&z->dpar, z->dpar.bytermin+dsty*z->dpar.bwidth, bdst);
 	}
