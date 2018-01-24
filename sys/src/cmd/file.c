@@ -147,7 +147,6 @@ enum
 } guess;
 
 void	bump_utf_count(Rune);
-int	cistrncmp(char*, char*, int);
 void	filetype(int);
 int	getfontnum(uint8_t*, uint8_t**);
 int	isas(void);

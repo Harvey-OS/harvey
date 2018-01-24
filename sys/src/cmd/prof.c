@@ -114,8 +114,8 @@ acmp(const void *va, const void *vb)
 	Acc *a, *b;
 	uint32_t ua, ub;
 
-	a = va;
-	b = vb;
+	a = (Acc*)va;
+	b = (Acc*)vb;
 	ua = a->ms;
 	ub = b->ms;
 
@@ -260,7 +260,7 @@ sum(uint32_t i)
 {
 	int32_t j, dtime, time;
 	int k;
-	static indent;
+	static int indent;
 
 	if(i >= ndata){
 		fprint(2, "prof: index out of range %ld [max %ld]\n", i, ndata);
