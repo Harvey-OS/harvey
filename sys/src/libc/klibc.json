@@ -10,6 +10,7 @@
 		"Install": "/$ARCH/lib/",
 		"Library": "klibc.a",
 		"SourceFiles": [
+			"9sys/abort.c",
 			"9sys/access.c",
 			"9sys/announce.c",
 			"9sys/convD2M.c",

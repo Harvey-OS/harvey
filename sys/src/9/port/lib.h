@@ -15,9 +15,6 @@
 #define offsetof(s, m)	(uint64_t)(&(((s*)0)->m))
 #define assert(x)	do{if(!(x))_assert(#x);}while(0)
 
-/* there's no reason to support _abort in the kernel */
-#define abort() while(*(int*)0);
-
 /*
  * mem routines
  */
