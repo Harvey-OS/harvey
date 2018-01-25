@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	int doauth, n, fd;
 	char *dbfile, *srv, *na, *nsfile, *keyspec;
 	AuthInfo *ai;
-	ulong initial;
+	uint32_t initial;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
@@ -184,7 +184,7 @@ main(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	USED(argc, argv);
+	USED(argc); USED(argv);
 
 	if(doauth){
 		/*
@@ -300,10 +300,10 @@ main(int argc, char **argv)
 	if(srv == nil && srvfd == -1 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
-	if (readn(netfd, &initial, sizeof(ulong)) < sizeof(ulong))
+	if (readn(netfd, &initial, sizeof(uint32_t)) < sizeof(uint32_t))
 		fatal("can't read initial string: %r\n");
 
-	if (strncmp((char *)&initial, "impo", sizeof(ulong)) == 0) {
+	if (strncmp((char *)&initial, "impo", sizeof(uint32_t)) == 0) {
 		char buf[128], *p, *args[3];
 
 		/* New import.  Read import's parameters... */
@@ -343,8 +343,8 @@ main(int argc, char **argv)
 	}
 
 	if (encproto != Encnone && ealgs && ai) {
-		uchar key[16];
-		uchar digest[SHA1dlen];
+		uint8_t key[16];
+		uint8_t digest[SHA1dlen];
 		char fromclientsecret[21];
 		char fromserversecret[21];
 		int i;
