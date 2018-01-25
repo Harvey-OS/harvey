@@ -71,7 +71,7 @@ struct Draw
 	int		vers;
 	int		softscreen;
 	int		blanked;	/* screen turned off */
-	uint32_t		blanktime;	/* time of last operation */
+	uint64_t		blanktime;	/* time of last operation */
 	uint32_t		savemap[3*256];
 };
 

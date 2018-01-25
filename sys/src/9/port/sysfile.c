@@ -717,10 +717,11 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 }
 
 static int32_t
-read(int ispread, int fd, void *p, int32_t n, int64_t off)
+read(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t nn, nnn;
+	int sequential;
 	Chan *c;
 
 	p = validaddr(p, n, 1);
@@ -741,23 +742,21 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-	if(ispread){
 		if(off == ~0LL){	/* use and maintain channel's offset */
 			off = c->offset;
-			ispread = 0;
-		}
+		sequential = 1;
+	} else {
+		sequential = 0;
 	}
-	else
-		off = c->offset;
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
-		 * clear ispread to always maintain the Chan offset.
+		 * set sequential to always maintain the Chan offset.
 		 */
 		if(off == 0LL){
-			if(!ispread){
+			if(sequential){
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -776,12 +775,12 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 		}
 		nnn = mountfix(c, p, nn, n);
 
-		ispread = 0;
+		sequential = 1;
 	}
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(!ispread){
+	if(sequential){
 		lock(&c->r.l);
 		c->devoffset += nn;
 		c->offset += nnn;
@@ -792,25 +791,6 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	cclose(c);
 
 	return nnn;
-}
-
-void
-sysread(Ar0* ar0, ...)
-{
-	int fd;
-	void *p;
-	int32_t n;
-	int64_t off = ~0ULL;
-	va_list list;
-	va_start(list, ar0);
-	fd = va_arg(list, int);
-	p = va_arg(list, void*);
-	n = va_arg(list, int32_t);
-	va_end(list);
-	/*
-	 * long read(int fd, void* buf, long nbytes);
-	 */
-	ar0->l = read(0, fd, p, n, off);
 }
 
 void
@@ -830,14 +810,15 @@ syspread(Ar0* ar0, ...)
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = read(1, fd, p, n, off);
+	ar0->l = read(fd, p, n, off);
 }
 
 static int32_t
-write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
+write(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t r;
+	int sequential;
 	Chan *c;
 
 	r = n;
@@ -845,8 +826,14 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	p = validaddr(p, n, 0);
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
+
+	if(off == ~0LL)
+		sequential = 1;
+	else
+		sequential = 0;
+
 	if(waserror()) {
-		if(!ispwrite){
+		if(sequential){
 			lock(&c->r.l);
 			c->offset -= n;
 			unlock(&c->r.l);
@@ -860,7 +847,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	n = r;
 
-	if(off == ~0LL){	/* use and maintain channel's offset */
+	if(sequential){	/* use and maintain channel's offset */
 		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
@@ -869,7 +856,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(!ispwrite && r < n){
+	if(sequential && r < n){
 		lock(&c->r.l);
 		c->offset -= n - r;
 		unlock(&c->r.l);
@@ -879,22 +866,6 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	cclose(c);
 
 	return r;
-}
-
-void
-syswrite(Ar0* ar0, ...)
-{
-	va_list list;
-	va_start(list, ar0);
-	int fd = va_arg(list, int);
-	void *buf = va_arg(list, void *);
-	long nbytes = va_arg(list, long);
-	int64_t offset = -1ULL;
-	va_end(list);
-	/*
-	 * long write(int fd, void* buf, long nbytes);
-	 */
-	ar0->l = write(fd, buf, nbytes, offset, 0);
 }
 
 void
@@ -910,7 +881,7 @@ syspwrite(Ar0* ar0, ...)
 	/*
 	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = write(fd, buf, nbytes, offset, 1);
+	ar0->l = write(fd, buf, nbytes, offset);
 }
 
 static int64_t
@@ -971,50 +942,19 @@ void
 sysseek(Ar0* ar0, ...)
 {
 	int fd, whence;
-	int64_t offset, *rv;
+	int64_t offset;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
 	 * int64_t seek(int fd, int64_t n, int type);
-	 *
-	 * The system call actually has 4 arguments,
-	 *	int _seek(int64_t*, int, int64_t, int);
-	 * and the first argument is where the offset
-	 * is returned. The C library arranges the
-	 * argument/return munging if necessary.
 	 */
-	rv = va_arg(list, int64_t*);
-	rv = validaddr(rv, sizeof(int64_t), 1);
-
 	fd = va_arg(list, int);
 	offset = va_arg(list, int64_t);
 	whence = va_arg(list, int);
 	va_end(list);
-	*rv = sseek(fd, offset, whence);
 
-	ar0->i = 0;
-}
-
-void
-sysoseek(Ar0* ar0, ...)
-{
-	int32_t offset;
-	int fd, whence;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * long oseek(int fd, long n, int type);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	offset = va_arg(list, int32_t);
-	whence = va_arg(list, int);
-	va_end(list);
-
-	ar0->l = sseek(fd, offset, whence);
+	ar0->vl = sseek(fd, offset, whence);
 }
 
 void
@@ -1330,30 +1270,6 @@ sysmount(Ar0* ar0, ...)
 }
 
 void
-sys_mount(Ar0* ar0, ...)
-{
-	int fd, flag;
-	char *aname, *old;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int mount(int fd, char *old, int flag, char *aname);
-	 * should be
-	 * long mount(int fd, char *old, int flag, char *aname);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	old = va_arg(list, char*);
-	flag = va_arg(list, int);
-	aname = va_arg(list, char*);
-	va_end(list);
-
-	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
-}
-
-void
 sysunmount(Ar0* ar0, ...)
 {
 	Proc *up = externup();
@@ -1566,173 +1482,4 @@ sysfwstat(Ar0* ar0, ...)
 	va_end(list);
 
 	ar0->l = wstat(c, p, n);
-}
-
-static void
-packoldstat(uint8_t *buf, Dir *d)
-{
-	uint8_t *p;
-	uint32_t q;
-
-	/* lay down old stat buffer - grotty code but it's temporary */
-	p = buf;
-	strncpy((char*)p, d->name, 28);
-	p += 28;
-	strncpy((char*)p, d->uid, 28);
-	p += 28;
-	strncpy((char*)p, d->gid, 28);
-	p += 28;
-	q = d->qid.path & ~DMDIR;	/* make sure doesn't accidentally look like directory */
-	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
-		q |= DMDIR;
-	PBIT32(p, q);
-	p += BIT32SZ;
-	PBIT32(p, d->qid.vers);
-	p += BIT32SZ;
-	PBIT32(p, d->mode);
-	p += BIT32SZ;
-	PBIT32(p, d->atime);
-	p += BIT32SZ;
-	PBIT32(p, d->mtime);
-	p += BIT32SZ;
-	PBIT64(p, d->length);
-	p += BIT64SZ;
-	PBIT16(p, d->type);
-	p += BIT16SZ;
-	PBIT16(p, d->dev);
-}
-
-void
-sys_stat(Ar0* ar0, ...)
-{
-	Proc *up = externup();
-	Chan *c;
-	int32_t l;
-	uint8_t buf[128], *p;
-	char *aname, *name, strs[128];
-	Dir d;
-	char old[] = "old stat system call - recompile";
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int stat(char* name, char* edir);
-	 * should have been
-	 * usize stat(char* name, uchar* edir));
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	aname = va_arg(list, char*);
-	p = va_arg(list, uint8_t*);
-	va_end(list);
-
-	/*
-	 * Old DIRLEN (116) plus a little should be plenty
-	 * for the buffer sizes.
-	 */
-	p = validaddr(p, 116, 1);
-
-	c = namec(validaddr(aname, 1, 0), Aaccess, 0, 0);
-	if(waserror()){
-		cclose(c);
-		nexterror();
-	}
-	l = c->dev->stat(c, buf, sizeof buf);
-
-	/*
-	 * Buf contains a new stat buf; convert to old.
-	 * Yuck.
-	 * If buffer too small, time to face reality.
-	 */
-	if(l <= BIT16SZ)
-		error(old);
-	name = pathlast(c->path);
-	if(name)
-		l = dirsetname(name, strlen(name), buf, l, sizeof buf);
-	l = convM2D(buf, l, &d, strs);
-	if(l == 0)
-		error(old);
-	packoldstat(p, &d);
-
-	poperror();
-	cclose(c);
-
-	ar0->i = 0;
-}
-
-void
-sys_fstat(Ar0* ar0, ...)
-{
-	Proc *up = externup();
-	Chan *c;
-	char *name;
-	int32_t l;
-	uint8_t buf[128], *p;
-	char strs[128];
-	Dir d;
-	int fd;
-	char old[] = "old fstat system call - recompile";
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int fstat(int fd, char* edir);
-	 * should have been
-	 * usize fstat(int fd, uchar* edir));
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t*);
-	va_end(list);
-
-	/*
-	 * Old DIRLEN (116) plus a little should be plenty
-	 * for the buffer sizes.
-	 */
-	p = validaddr(p, 116, 1);
-	c = fdtochan(fd, -1, 0, 1);
-	if(waserror()){
-		cclose(c);
-		nexterror();
-	}
-	l = c->dev->stat(c, buf, sizeof buf);
-
-	/*
-	 * Buf contains a new stat buf; convert to old.
-	 * Yuck.
-	 * If buffer too small, time to face reality.
-	 */
-	if(l <= BIT16SZ)
-		error(old);
-	name = pathlast(c->path);
-	if(name)
-		l = dirsetname(name, strlen(name), buf, l, sizeof buf);
-	l = convM2D(buf, l, &d, strs);
-	if(l == 0)
-		error(old);
-	packoldstat(p, &d);
-
-	poperror();
-	cclose(c);
-
-	ar0->i = 0;
-}
-
-void
-sys_wstat(Ar0* ar0, ...)
-{
-	va_list list;
-	va_start(list, ar0);
-	va_end(list);
-	error("old wstat system call - recompile");
-}
-
-void
-sys_fwstat(Ar0* ar0, ...)
-{
-	va_list list;
-	va_start(list, ar0);
-	va_end(list);
-	error("old fwstat system call - recompile");
 }

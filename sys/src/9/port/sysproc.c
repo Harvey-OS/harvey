@@ -708,18 +708,6 @@ sysexec(Ar0* ar0, ...)
 	execac(ar0, EXTC, file, argv);
 }
 
-void
-sysr1(Ar0* ar, ...)
-{
-	print("sysr1() called. recompile your binary\n");
-}
-
-void
-sysnixsyscall(Ar0* ar, ...)
-{
-	print("nixsyscall() called. recompile your binary\n");
-}
-
 int
 return0(void* v)
 {
@@ -756,7 +744,7 @@ syssleep(Ar0* ar0, ...)
 void
 sysalarm(Ar0* ar0, ...)
 {
-	unsigned long ms;
+	uint64_t ms;
 	va_list list;
 	va_start(list, ar0);
 
@@ -764,10 +752,10 @@ sysalarm(Ar0* ar0, ...)
 	 * long alarm(unsigned long millisecs);
 	 * Odd argument type...
 	 */
-	ms = va_arg(list, unsigned long);
+	ms = va_arg(list, uint64_t);
 	va_end(list);
 
-	ar0->l = procalarm(ms);
+	ar0->vl = procalarm(ms);
 }
 
 void
@@ -801,42 +789,6 @@ sysexits(Ar0* ar0, ...)
 
 	}
 	pexit(status, 1);
-}
-
-void
-sys_wait(Ar0* ar0, ...)
-{
-	int pid;
-	Waitmsg w;
-	OWaitmsg *ow;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int wait(Waitmsg* w);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	ow = va_arg(list, OWaitmsg*);
-	va_end(list);
-	if(ow == nil){
-		ar0->i = pwait(nil);
-		return;
-	}
-
-	ow = validaddr(ow, sizeof(OWaitmsg), 1);
-	evenaddr(PTR2UINT(ow));
-	pid = pwait(&w);
-	if(pid >= 0){
-		readnum(0, ow->pid, NUMSIZE, w.pid, NUMSIZE);
-		readnum(0, ow->time+TUser*NUMSIZE, NUMSIZE, w.time[TUser], NUMSIZE);
-		readnum(0, ow->time+TSys*NUMSIZE, NUMSIZE, w.time[TSys], NUMSIZE);
-		readnum(0, ow->time+TReal*NUMSIZE, NUMSIZE, w.time[TReal], NUMSIZE);
-		strncpy(ow->msg, w.msg, sizeof(ow->msg));
-		ow->msg[sizeof(ow->msg)-1] = '\0';
-	}
-
-	ar0->i = pid;
 }
 
 void
@@ -925,25 +877,6 @@ syserrstr(Ar0* ar0, ...)
 	nerr = va_arg(list, usize);
 	va_end(list);
 	generrstr(err, nerr);
-
-	ar0->i = 0;
-}
-
-void
-sys_errstr(Ar0* ar0, ...)
-{
-	char *p;
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int errstr(char* err);
-	 *
-	 * Deprecated; backwards compatibility only.
-	 */
-	p = va_arg(list, char*);
-	va_end(list);
-	generrstr(p, 64);
 
 	ar0->i = 0;
 }
@@ -1250,11 +1183,11 @@ semacquire(Segment* s, int* addr, int block)
 
 /* Acquire semaphore or time-out */
 static int
-tsemacquire(Segment* s, int* addr, int32_t ms)
+tsemacquire(Segment* s, int* addr, int64_t ms)
 {
 	Proc *up = externup();
 	int acquired;
-	uint32_t t;
+	uint64_t t;
 	Sema phore;
 
 	if(canacquire(addr))
@@ -1324,19 +1257,20 @@ systsemacquire(Ar0* ar0, ...)
 {
 	Proc *up = externup();
 	Segment *s;
-	int *addr, ms;
+	int *addr;
+	uint64_t ms;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
-	 * int tsemacquire(long* addr, uint32_t ms);
+	 * int tsemacquire(long* addr, uint64_t ms);
 	 * should be (and will be implemented below as) perhaps
-	 * int tsemacquire(int* addr, uint32_t ms);
+	 * int tsemacquire(int* addr, uint64_t ms);
 	 */
 	addr = va_arg(list, int*);
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
-	ms = va_arg(list, uint32_t);
+	ms = va_arg(list, uint64_t);
 	va_end(list);
 
 	if((s = seg(up, PTR2UINT(addr), 0)) == nil)

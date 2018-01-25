@@ -1221,7 +1221,7 @@ nameerror(char *name, char *err)
  *
  * Under certain circumstances, opening Aaccess will cause
  * an unnecessary clone in order to get a cunique Chan so it
- * can attach the correct name.  Sysstat and sys_stat need the
+ * can attach the correct name.  Sysstat need the
  * correct name so they can rewrite the stat info.
  */
 Chan*

@@ -185,7 +185,10 @@ hzclock(Ureg *ur)
 		exit(0);
 	}
 
+	if(machp()->machno == 0) {
+		/* since sys->ticks is only updated if machp()->machno == 0 */
 	checkalarms();
+	}
 
 	if(up && up->state == Running)
 		hzsched();	/* in proc.c */
@@ -275,26 +278,8 @@ addclock0link(void (*f)(void), int ms)
 	return nt;
 }
 
-/*
- *  This tk2ms avoids overflows that the macro version is prone to.
- *  It is a LOT slower so shouldn't be used if you're just converting
- *  a delta.
- */
-uint32_t
-tk2ms(uint32_t ticks)
-{
-	uint64_t t, hz;
-
-	t = ticks;
-	hz = HZ;
-	t *= 1000L;
-	t = t/hz;
-	ticks = t;
-	return ticks;
-}
-
-uint32_t
-ms2tk(uint32_t ms)
+uint64_t
+ms2tk(uint64_t ms)
 {
 	/* avoid overflows at the cost of precision */
 	if(ms >= 1000000000/HZ)
