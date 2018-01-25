@@ -184,6 +184,7 @@ main(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
+	USED(argc); USED(argv);
 
 	if(doauth){
 		/*
