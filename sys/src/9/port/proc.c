@@ -1013,7 +1013,7 @@ twakeup(Ureg*_, Timer *t)
 }
 
 void
-tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
+tsleep(Rendez *r, int (*fn)(void*), void *arg, int64_t ms)
 {
 	Proc *up = externup();
 	if (up->Timer.tt){
@@ -1803,7 +1803,7 @@ accounttime(void)
 {
 	Sched *sch;
 	Proc *p;
-	uint32_t n, per;
+	uint64_t n, per;
 
 	sch = machp()->sch;
 	p = machp()->proc;
