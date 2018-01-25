@@ -56,7 +56,6 @@ void	printfile(File*);
 void	setnames(File*);
 void	setusers(void);
 void	skipdir(void);
-char*	strdup(char*);
 int	uptodate(Dir*, char*);
 void	usage(void);
 void	warn(char *, ...);
@@ -497,15 +496,6 @@ mkpath(char *prefix, char *elem)
 	p = emalloc(n);
 	sprint(p, "%s/%s", prefix, elem);
 	return p;
-}
-
-char *
-strdup(char *s)
-{
-	char *t;
-
-	t = emalloc(strlen(s) + 1);
-	return strcpy(t, s);
 }
 
 void
