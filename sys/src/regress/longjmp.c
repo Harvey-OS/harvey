@@ -49,7 +49,6 @@ main(void)
 	}
 	print("FAIL (%d errors)\n", fail);
 	exits("FAIL");
-	return 0;
 }
 
 void
