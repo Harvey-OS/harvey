@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-ssize_t
-read(int d, void *buf, size_t nbytes)
+int32_t
+read(int d, void *buf, int32_t nbytes)
 {
 	int n;
 
