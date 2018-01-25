@@ -545,7 +545,6 @@ void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
-	addarchfile("numcores", 0444, numcoresread, nil);
 	addarchfile("mtags", 0444, mtagsread, nil);
 }
 
@@ -622,7 +621,7 @@ delay(int millisecs)
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
-uint32_t
+uint64_t
 perfticks(void)
 {
 	uint64_t x;

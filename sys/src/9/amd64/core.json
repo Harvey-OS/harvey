@@ -61,7 +61,7 @@
 			"vsvm.c",
 			"l64v.S",
 			"l64fpu.S",
-			"cpuidamd64.S",
+			"cpuid$ARCH.S",
 			"l64acidt.S",
 			"l64idt.S",
 			"l64vsyscall.S",
