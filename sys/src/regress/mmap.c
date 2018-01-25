@@ -4,7 +4,6 @@
 void
 main(int argc, char *argv[])
 {
-	unsigned char *c = (void *)(512ULL * 1024 * 1024 * 1024);
 	int pid;
 	int p[2], mfd;
 	char *name;
