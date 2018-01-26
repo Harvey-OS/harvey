@@ -20,6 +20,7 @@ testvseprint(char *buf, int n, char *fmt, ...)
 	va_end(arg);
 }
 
+void
 main()
 {
 	char buf[1024];
