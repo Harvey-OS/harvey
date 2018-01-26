@@ -45,7 +45,7 @@ semloop(void)
 void
 main(void)
 {
-	int pid, i;
+	int i;
 
 	incr = 0;
 	for(i = 0; i < nprocs; i++){

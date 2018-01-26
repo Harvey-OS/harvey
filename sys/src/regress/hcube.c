@@ -96,7 +96,7 @@ void
 main(int argc, char *argv[])
 {
 	int fd[32];
-	char buf[32], buf2[32];
+	char buf[32]; //, buf2[32];
 	int id;
 	int i;
 
@@ -109,12 +109,12 @@ main(int argc, char *argv[])
 		id = hyperfork(fd, id, i);
 
 	for(i = 0; i < dim; i++){
-		int tlen, rlen, len;
+		int tlen, rlen; //, len;
 		tlen = snprint(buf, sizeof buf, "hello %d\n", id);
 		write(fd[i], buf, tlen);
 		rlen = read(fd[i], buf, sizeof buf-1);
 		buf[rlen] = '\0';
-		len = snprint(buf2, sizeof buf2, "%d: %s", id, buf);
+		//len = snprint(buf2, sizeof buf2, "%d: %s", id, buf);
 		//write(1, buf2, len);
 	}
 

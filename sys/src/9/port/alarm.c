@@ -70,7 +70,7 @@ procalarm(uint64_t time)
 	uint64_t when, old;
 
 	if(up->alarm)
-		old = tk2ms(up->alarm - sys->ticks);
+		old = TK2MS(up->alarm - sys->ticks);
 	else
 		old = 0;
 	if(time == 0) {
