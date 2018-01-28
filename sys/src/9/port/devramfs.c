@@ -8,13 +8,13 @@
  */
 
 #include	"u.h"
-#include       "../port/lib.h"
-#include       "mem.h"
-#include       "dat.h"
-#include       "fns.h"
+#include  "../port/lib.h"
+#include  "mem.h"
+#include  "dat.h"
+#include  "fns.h"
 #include	"../port/error.h"
 
-#define RAM_BLOCK_LEN 32768
+#define RAM_BLOCK_LEN 4080 // 1 page less malloc header
 #define RAM_MAGIC 0xbedabb1e
 #define INVALID_FILE "Invalid ram file"
 
@@ -37,6 +37,7 @@ struct RamFile {
 static struct RamFile *ramroot;
 static QLock ramlock;
 static int devramdebug = 0;
+#define DPRINT	if(!devramdebug){}else print
 
 static void
 printramfile(int offset, struct RamFile* file)
@@ -65,13 +66,16 @@ debugwalkinternal(int offset, struct RamFile* current)
 static void
 debugwalk()
 {
-	print("***********************\n");
-	debugwalkinternal(0, ramroot);
+  if (devramdebug) {
+    print("***********************\n");
+    debugwalkinternal(0, ramroot);
+  }
 }
 
 static void
 raminit(void)
 {
+  DPRINT("raminit\n");
 	ramroot = (struct RamFile *)malloc(sizeof(struct RamFile));
 	if (ramroot == nil) {
                 error(Eperm);
@@ -87,28 +91,30 @@ raminit(void)
 static void
 ramreset(void)
 {
+  DPRINT("ramreset\n");
 }
 
 static Chan*
 ramattach(char *spec)
 {
-        Chan *c;
-        char *buf;
+  Chan *c;
+  char *buf;
+  DPRINT("ramattach\n");
 
-        c = newchan();
-        mkqid(&c->qid, (int64_t)ramroot, 0, QTDIR);
-        c->dev = devtabget('@', 0);
-        if(spec == nil)
-                spec = "";
-        buf = malloc(1+UTFmax+strlen(spec)+1);
+  c = newchan();
+  mkqid(&c->qid, (int64_t)ramroot, 0, QTDIR);
+  c->dev = devtabget('@', 0);
+  if(spec == nil)
+    spec = "";
+  buf = malloc(1+UTFmax+strlen(spec)+1);
 	if (buf == nil) {
-                error(Eperm);
+    error(Eperm);
 	}
-        sprint(buf, "#@%s", spec);
-        c->path = newpath(buf);
+  sprint(buf, "#@%s", spec);
+  c->path = newpath(buf);
 	c->mode = 0777;
-        free(buf);
-        return c;
+  free(buf);
+  return c;
 }
 
 static int
@@ -116,6 +122,8 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 {
 	Qid qid;
 	int i;
+  DPRINT("ramgen pos=%d\n", pos);
+  debugwalk();
 
 	struct RamFile *current = (struct RamFile *)c->qid.path;
 	if(pos == DEVDOTDOT){
@@ -124,12 +132,12 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 			devdir(c, qid, "#@", 0, "harvey", 0555, dp);
 			return 1;
 		} else {
-		        mkqid(&qid, (uintptr_t)current->parent, 0, QTDIR);
-		        devdir(c, qid, current->name, 0, "harvey", 0555, dp);
-		        return 1;
+		  mkqid(&qid, (uintptr_t)current->parent, 0, QTDIR);
+		  devdir(c, qid, current->name, 0, "harvey", 0555, dp);
+		  return 1;
 		}
 	}
-	if(current->perm & QTDIR){
+	if(current->perm & DMDIR){
 		current = current->firstchild;
 		if(current == nil){
 			return -1;
@@ -140,8 +148,8 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 		if (current == nil){
 			return -1;
 		}
-
 	}
+
 	mkqid(&qid, (uintptr_t)current, 0, current->perm & DMDIR ? QTDIR : 0);
 	devdir(c, qid, current->name, current->length, "harvey", current->perm, dp);
 	if(name == nil || strcmp(current->name, name) == 0){
@@ -155,6 +163,7 @@ static Walkqid*
 ramwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Proc *up = externup();
+  DPRINT("ramwalk\n");
 	qlock(&ramlock);
 	if(waserror()){
 		qunlock(&ramlock);
@@ -187,6 +196,7 @@ static Chan*
 ramopen(Chan *c, int omode)
 {
 	Proc *up = externup();
+  DPRINT("ramopen\n");
 	qlock(&ramlock);
 	if(waserror()){
 		qunlock(&ramlock);
@@ -232,17 +242,19 @@ delete(struct RamFile* file)
 static void
 ramclose(Chan* c)
 {
-        struct RamFile* file = (struct RamFile *)c->qid.path;
-	if (file->magic != RAM_MAGIC)
+  DPRINT("ramclose\n");
+  struct RamFile* file = (struct RamFile *)c->qid.path;
+	if(file->magic != RAM_MAGIC)
 		error(INVALID_FILE);
-        if(file->deleteonclose){
-               delete(file);
-        }
+  if(file->deleteonclose){
+     delete(file);
+  }
 }
 
 static int32_t
 ramread(Chan *c, void *buf, int32_t n, int64_t off)
 {
+  DPRINT("ramread\n");
 	qlock(&ramlock);
 	if (c->qid.type == QTDIR){
 		int32_t len =  devdirread(c, buf, n, nil, 0, ramgen);
@@ -266,23 +278,10 @@ ramread(Chan *c, void *buf, int32_t n, int64_t off)
 	return n;
 }
 
-typedef double Align;
-typedef union Header Header;
-
-union Header {
-        struct {
-                Header* next;
-                uint    size;
-        } s;
-        Align   al;
-};
-
-
 static int32_t
 ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 {
-	Header *p;
-
+  DPRINT("ramwrite\n");
 	qlock(&ramlock);
 	struct RamFile *file = (void*)c->qid.path;
 	if (file->magic != RAM_MAGIC)
@@ -302,10 +301,6 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 		}
 		file->length = n+off;
 	}
-	if (devramdebug) {
-		p = (Header*)file->data - 1;
-		print("length of buffer=%d, header size=%d, header next=%x, start of write=%d, end of write=%d\n", file->alloclength, p->s.size, p->s.next, off, off + n);
-	}
 	memmove(file->data + off, v, n);
 	qunlock(&ramlock);
 	return n;
@@ -314,54 +309,57 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 void
 ramcreate(Chan* c, char *name, int omode, int perm)
 {
-        Proc *up = externup();
+  Proc *up = externup();
 
-        if(c->qid.type != QTDIR)
-                error(Eperm);
+  DPRINT("ramcreate\n");
+  if(c->qid.type != QTDIR)
+          error(Eperm);
 
 	struct RamFile* parent = (struct RamFile *)c->qid.path;
 	if (parent->magic != RAM_MAGIC)
 		error(INVALID_FILE);
 
-        omode = openmode(omode);
-        struct RamFile* file = (struct RamFile*)malloc(sizeof(struct RamFile));
+  omode = openmode(omode);
+  struct RamFile* file = (struct RamFile*)malloc(sizeof(struct RamFile));
 	if (file == nil) {
-                error(Eperm);
+     error(Eperm);
 	}
-        file->length = 0;
+  file->length = 0;
 	file->magic = RAM_MAGIC;
-        strcpy(file->name, name);
-        file->perm = perm;
-        file->parent = parent;
+  strcpy(file->name, name);
+  file->perm = perm;
+  file->parent = parent;
 
 	qlock(&ramlock);
-        if(waserror()) {
+  if(waserror()) {
 		free(file->data);
 		free(file);
 		qunlock(&ramlock);
-                nexterror();
-        }
+    nexterror();
+  }
 
 	file->sibling = parent->firstchild;
 	parent->firstchild = file;
 	mkqid(&c->qid, (uintptr_t)file, 0, file->perm & DMDIR ? QTDIR : 0);
 
-        c->offset = 0;
-        c->mode = omode;
-        c->flag |= COPEN;
+  c->offset = 0;
+  c->mode = omode;
+  c->flag |= COPEN;
 	qunlock(&ramlock);
 
-        poperror();
+  poperror();
 }
 
 void
 ramshutdown(void)
 {
+  DPRINT("ramshutdown\n");
 }
 
 void
 ramremove(Chan* c)
 {
+  DPRINT("ramremove\n");
 	struct RamFile* doomed = (struct RamFile *)c->qid.path;
 	if (doomed->magic != RAM_MAGIC)
 		error(INVALID_FILE);
