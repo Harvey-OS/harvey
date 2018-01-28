@@ -17,13 +17,7 @@ read(int d, void *buf, int32_t nbytes)
 
 	if(nbytes <= 0)
 		return 0;
-	if(buf == 0){
-		sysfatal("read failed: %r");
-	}
 
 	n = pread(d, buf, nbytes, ~0LL);
-	if(n < 0)
-		sysfatal("read failed: %r");;
-
 	return n;
 }
