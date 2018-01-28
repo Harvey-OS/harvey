@@ -1932,6 +1932,20 @@ boolcopyfn(Memimage *img, Memimage *mask)
 	return nil;
 }
 
+/*
+ * Optimized draw for filling and scrolling; uses memset and memmove.
+ */
+static void
+memsetb(void *vp, uint8_t val, int n)
+{
+	uint8_t *p, *ep;
+
+	p = vp;
+	ep = p+n;
+	while(p<ep)
+		*p++ = val;
+}
+
 static void
 memsets(void *vp, uint16_t val, int n)
 {
@@ -2147,7 +2161,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 						*dp ^= (v ^ *dp) & lm;
 						dp++;
 					}
-					memset(dp, v, dx);
+					memsetb(dp, v, dx);
 					dp += dx;
 					*dp ^= (v ^ *dp) & rm;
 				}
@@ -2155,7 +2169,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 			return 1;
 		case 8:
 			for(y=0; y<dy; y++, dp+=dwid)
-				memset(dp, v, dx);
+				memsets(dp, v, dx);
 			return 1;
 		case 16:
 			p[0] = v;		/* make little endian */

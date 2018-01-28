@@ -16,7 +16,5 @@ write(int d, const void *buf, int32_t nbytes)
 	int n;
 
 	n = pwrite(d, buf, nbytes, ~0LL);
-	if(n < 0)
-		sysfatal("write failed: %r");
 	return n;
 }
