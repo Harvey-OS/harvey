@@ -20,7 +20,7 @@ char	*eve;
 extern void *mainmem;
 
 void
-_assert(const char *fmt)
+_assert(char *fmt)
 {
 	panic("assert failed: %s", fmt);
 }

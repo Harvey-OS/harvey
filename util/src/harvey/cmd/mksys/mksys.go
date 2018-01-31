@@ -137,7 +137,7 @@ func main() {
 		case "amd64":
 		case "riscv":
 			usage("riscv support is incomplete")
-		default: 
+		default:
 			usage(a + " is not supported.")
 		}
 		syscallargs := []string{"DI", "SI", "DX", "R10", "R8", "R9"}
@@ -230,7 +230,7 @@ TEXT runtime·{{ .Libname }}(SB),NOSPLIT,$0
 		if err != nil {
 			log.Fatal(err)
 		}
-		default: 
+		default:
 			usage(a + " is not supported for system call generation.")
 		}
 
@@ -354,8 +354,7 @@ int nsyscall = nelem(systab);
 
 Method method[] = {
 {{ range . }}{ "{{.Name}}", {{.Config}}, {{.Connect}}, "{{.Arg}}", },
-{{ end }}
-	{ nil },
+{{ end }}{ nil },
 };
 
 int cpuflag = 1;
