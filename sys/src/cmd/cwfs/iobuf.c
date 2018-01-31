@@ -111,7 +111,6 @@ xloop:
 	p->addr = addr;
 	p->dev = d;
 	p->flags = flag;
-//	p->pc = getcallerpc();
 	unlock(hp);
 	if(iobufmap(p))
 		if(flag & Brd) {
