@@ -183,7 +183,7 @@ rcexec(void)
 	if(cmd)
 		execl("/bin/rc", "rc", "-c", cmd, nil);
 	else if(manual || iscpu){
-		execl("/boot/console", "/boot/tty", "/boot/rc", "-m/boot/rcmain", "-i", nil);
+		execl("/boot/rc", "rc", "-m/boot/rcmain", "-i", nil);
 	}else if(strcmp(service, "terminal") == 0)
 		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
 	else
