@@ -18,6 +18,6 @@ read(int d, void *buf, int32_t nbytes)
 	if(nbytes <= 0)
 		return 0;
 
-	n = pread(d, buf, nbytes, ~0LL);
+	n = pread(d, buf, nbytes, -1LL);
 	return n;
 }
