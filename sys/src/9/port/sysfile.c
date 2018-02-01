@@ -742,7 +742,7 @@ read(int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-		if(off == ~0LL){	/* use and maintain channel's offset */
+		if(off == -1LL){	/* use and maintain channel's offset */
 			off = c->offset;
 		sequential = 1;
 	} else {
@@ -827,7 +827,7 @@ write(int fd, void *p, int32_t n, int64_t off)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 
-	if(off == ~0LL)
+	if(off == -1LL)
 		sequential = 1;
 	else
 		sequential = 0;
