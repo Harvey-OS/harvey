@@ -264,20 +264,25 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		fmtprint(&fmt, "%d ", i[0]);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
-		vl = va_arg(list, int64_t);
-		if (what == 'E') {
-			fmtprint(&fmt, "%#P %ld 0x%llx", v, l, vl);
+		fmtprint(&fmt, "%d %#p %ld", i[0], v, l);
+		if(syscallno == PREAD){
+			vl = va_arg(list, int64_t);
+			if (what == 'E') {
+				fmtprint(&fmt, "%#P %ld 0x%llx", v, l, vl);
+			}
 		}
 		break;
 	case PWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
-		vl = va_arg(list, int64_t);
 		fmtprint(&fmt, "%d ", i[0]);
 		len = MIN(l, 64);
-		fmtrwdata(&fmt, v, len, " ");
-		fmtprint(&fmt, "%ld 0x%llx", l, vl);
+		fmtprint(&fmt, "%ld", l);
+		if(syscallno == PWRITE){
+			vl = va_arg(list, int64_t);
+			fmtprint(&fmt, " 0x%llx", vl);
+		}
 		break;
 	}
 	if (what == 'E') {
@@ -353,7 +358,12 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 			fmtprint(&fmt, " %#p/\"\"", v);
 			errstr = up->syserrstr;
 		}
-		fmtprint(&fmt, " %ld 0x%llx = %d", l, vl, ar0->i);
+		fmtprint(&fmt, " %ld", l);
+		if(syscallno == PREAD){
+			vl = va_arg(list, int64_t);
+			fmtprint(&fmt, " 0x%llx", vl);
+		}
+		fmtprint(&fmt, " = %d", ar0->i);
 		break;
 	}
 	fmtprint(&fmt, " %s %#llu %#llu\n", errstr, start, stop);

@@ -382,6 +382,7 @@ void		timerdel(Timer*);
 void		timerintr(Ureg*, int64_t);
 void		timerset(uint64_t);
 void		timersinit(void);
+uint64_t		tk2ms(uint64_t);
 #define		TK2MS(x) ((x)*(1000/HZ))
 uint64_t		tod2fastticks(int64_t);
 int64_t		todget(int64_t*);

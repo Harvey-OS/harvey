@@ -1307,9 +1307,9 @@ pexit(char *exitstr, int freemem)
 		wq->w.pid = up->pid;
 		utime = up->time[TUser] + up->time[TCUser];
 		stime = up->time[TSys] + up->time[TCSys];
-		wq->w.time[TUser] = TK2MS(utime);
-		wq->w.time[TSys] = TK2MS(stime);
-		wq->w.time[TReal] = TK2MS(MACHP(0)->ticks - up->time[TReal]);
+		wq->w.time[TUser] = tk2ms(utime);
+		wq->w.time[TSys] = tk2ms(stime);
+		wq->w.time[TReal] = tk2ms(MACHP(0)->ticks - up->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %d: %s",
 				up->text, up->pid, exitstr);
