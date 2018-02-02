@@ -68,7 +68,7 @@ qlock(QLock *q)
 	}
 
 
-	/* chain into waiting list */
+	/* wait */
 	mp = getqlp();
 	p = q->tail;
 	if(p == nil)
@@ -79,7 +79,7 @@ qlock(QLock *q)
 	mp->state = Queuing;
 	unlock(&q->lock);
 
-	/* wait */
+	/* wait in kernel */
 	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
 		;
 	mp->inuse = 0;

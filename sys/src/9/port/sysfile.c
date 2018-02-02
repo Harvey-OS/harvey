@@ -717,11 +717,10 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 }
 
 static int32_t
-read(int fd, void *p, int32_t n, int64_t off)
+read(int ispread, int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t nn, nnn;
-	int sequential;
 	Chan *c;
 
 	p = validaddr(p, n, 1);
@@ -742,21 +741,23 @@ read(int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-		if(off == -1LL){	/* use and maintain channel's offset */
+	if(ispread){	/* use and maintain channel's offset */
+		if(off == ~0LL){	/* use and maintain channel's offset */
 			off = c->offset;
-		sequential = 1;
-	} else {
-		sequential = 0;
+			ispread = 0;
+		}
 	}
+	else
+		off = c->offset;
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
-		 * set sequential to always maintain the Chan offset.
+		 * clear ispread to always maintain the Chan offset.
 		 */
 		if(off == 0LL){
-			if(sequential){
+			if(!ispread){
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -775,12 +776,12 @@ read(int fd, void *p, int32_t n, int64_t off)
 		}
 		nnn = mountfix(c, p, nn, n);
 
-		sequential = 1;
+		ispread = 0;
 	}
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(sequential){
+	if(!ispread){
 		lock(&c->r.l);
 		c->devoffset += nn;
 		c->offset += nnn;
@@ -791,6 +792,25 @@ read(int fd, void *p, int32_t n, int64_t off)
 	cclose(c);
 
 	return nnn;
+}
+
+void
+sysread(Ar0* ar0, ...)
+{
+	int fd;
+	void *p;
+	int32_t n;
+	int64_t off = ~0ULL;
+	va_list list;
+	va_start(list, ar0);
+	fd = va_arg(list, int);
+	p = va_arg(list, void*);
+	n = va_arg(list, int32_t);
+	va_end(list);
+	/*
+	 * long read(int fd, void* buf, long nbytes);
+	 */
+	ar0->l = read(0, fd, p, n, off);
 }
 
 void
@@ -810,15 +830,14 @@ syspread(Ar0* ar0, ...)
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = read(fd, p, n, off);
+	ar0->l = read(1, fd, p, n, off);
 }
 
 static int32_t
-write(int fd, void *p, int32_t n, int64_t off)
+write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
 	Proc *up = externup();
 	int32_t r;
-	int sequential;
 	Chan *c;
 
 	r = n;
@@ -827,13 +846,8 @@ write(int fd, void *p, int32_t n, int64_t off)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 
-	if(off == -1LL)
-		sequential = 1;
-	else
-		sequential = 0;
-
 	if(waserror()) {
-		if(sequential){
+		if(!ispwrite){
 			lock(&c->r.l);
 			c->offset -= n;
 			unlock(&c->r.l);
@@ -847,7 +861,7 @@ write(int fd, void *p, int32_t n, int64_t off)
 
 	n = r;
 
-	if(sequential){	/* use and maintain channel's offset */
+	if(off == ~0LL){	/* use and maintain channel's offset */
 		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
@@ -856,7 +870,7 @@ write(int fd, void *p, int32_t n, int64_t off)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(sequential && r < n){
+	if(!ispwrite && r < n){
 		lock(&c->r.l);
 		c->offset -= n - r;
 		unlock(&c->r.l);
@@ -866,6 +880,22 @@ write(int fd, void *p, int32_t n, int64_t off)
 	cclose(c);
 
 	return r;
+}
+
+void
+syswrite(Ar0* ar0, ...)
+{
+	va_list list;
+	va_start(list, ar0);
+	int fd = va_arg(list, int);
+	void *buf = va_arg(list, void *);
+	long nbytes = va_arg(list, long);
+	int64_t offset = -1ULL;
+	va_end(list);
+	/*
+	 * long write(int fd, void* buf, long nbytes);
+	 */
+	ar0->l = write(fd, buf, nbytes, offset, 0);
 }
 
 void
@@ -881,7 +911,7 @@ syspwrite(Ar0* ar0, ...)
 	/*
 	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = write(fd, buf, nbytes, offset);
+	ar0->l = write(fd, buf, nbytes, offset, 1);
 }
 
 static int64_t

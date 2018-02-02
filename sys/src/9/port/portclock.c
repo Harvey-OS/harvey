@@ -186,7 +186,6 @@ hzclock(Ureg *ur)
 	}
 
 	if(machp()->machno == 0) {
-		/* since sys->ticks is only updated if machp()->machno == 0 */
 		checkalarms();
 	}
 
@@ -276,6 +275,24 @@ addclock0link(void (*f)(void), int ms)
 		timerset(when);
 	iunlock(&timers[0].l);
 	return nt;
+}
+
+/*
+ *  This tk2ms avoids overflows that the macro version is prone to.
+ *  It is a LOT slower so shouldn't be used if you're just converting
+ *  a delta.
+ */
+uint64_t
+tk2ms(uint64_t ticks)
+{
+	uint64_t t, hz;
+
+	t = ticks;
+	hz = HZ;
+	t *= 1000L;
+	t = t/hz;
+	ticks = t;
+	return ticks;
 }
 
 uint64_t

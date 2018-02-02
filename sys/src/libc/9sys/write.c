@@ -15,6 +15,6 @@ write(int d, const void *buf, int32_t nbytes)
 {
 	int n;
 
-	n = pwrite(d, buf, nbytes, -1LL);
+	n = pwrite(d, buf, nbytes, ~0LL);
 	return n;
 }
