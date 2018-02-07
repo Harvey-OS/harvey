@@ -720,7 +720,7 @@ static int32_t
 read(int ispread, int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
-	int32_t nn, nnn;
+	int32_t nn, nnn, dopread = 1;
 	Chan *c;
 
 	p = validaddr(p, n, 1);
@@ -741,24 +741,21 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-	if(ispread){	/* use and maintain channel's offset */
-		if(off == -1LL){	/* use and maintain channel's offset */
-			off = c->offset;
-			ispread = 0;
-		}
+	if(off == -1LL){	/* use and maintain channel's offset */
+		off = c->offset;
 	}
 	else
-			off = c->offset;
+		dopread = 1;
 
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
-		 * clear ispread to always maintain the Chan offset.
+		 * clear dopread to always maintain the Chan offset.
 		 */
 		if(off == -1LL){
-			if(!ispread){
+			if(dopread){
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -777,12 +774,12 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 		}
 		nnn = mountfix(c, p, nn, n);
 
-		ispread = 0;
+		dopread = 1;
 	}
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(!ispread){
+	if(dopread){
 		lock(&c->r.l);
 		c->devoffset += nn;
 		c->offset += nnn;
@@ -819,7 +816,7 @@ static int32_t
 write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
 	Proc *up = externup();
-	int32_t r;
+	int32_t r, dopwrite = 1;
 	Chan *c;
 
 	r = n;
@@ -828,8 +825,11 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 
+	if(off != -1LL)
+		dopwrite = 1;
+
 	if(waserror()) {
-		if(!ispwrite){
+		if(dopwrite){
 			lock(&c->r.l);
 			c->offset -= n;
 			unlock(&c->r.l);
@@ -843,7 +843,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	n = r;
 
-	if(off == -1LL){	/* use and maintain channel's offset */
+	if(dopwrite){	/* use and maintain channel's offset */
 		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
@@ -852,7 +852,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(!ispwrite && r < n){
+	if(dopwrite && 0 < r && r < n){
 		lock(&c->r.l);
 		c->offset -= n - r;
 		unlock(&c->r.l);
