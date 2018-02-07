@@ -1,2 +1,0 @@
-#!/bin/rc
-{/bin/troff $*|/bin/lp -dstdout|/bin/gs -dNOPAUSE -dQUIET '-sOUTPUTFILE='/fd/1 '-sDEVICE=plan9bm' - quit.ps| crop -c 255 255 255 | togif}  >[2] /dev/null
