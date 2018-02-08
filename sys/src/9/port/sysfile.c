@@ -753,13 +753,13 @@ read(int fd, void *p, int32_t n, int64_t off)
 		 * clear notpread to always maintain the Chan offset.
 		 */
 		if(off == 0LL){
- 			if(notpread){
- 				c->offset = 0;
- 				c->devoffset = 0;
- 			}
- 			mountrewind(c);
- 			unionrewind(c);
- 		}
+			if(notpread){
+				c->offset = 0;
+				c->devoffset = 0;
+			}
+			mountrewind(c);
+			unionrewind(c);
+		}
 
 		if(!mountrockread(c, p, n, &nn)){
 			if(c->umh)
@@ -779,7 +779,7 @@ read(int fd, void *p, int32_t n, int64_t off)
 	lock(&c->r.l);
 	if(nn > 0)
 		c->devoffset += nn;
-	if (nnn > 0)
+	if(nnn > 0)
 		c->offset += nnn;
 	unlock(&c->r.l);
 
