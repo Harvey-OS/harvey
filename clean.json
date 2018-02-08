@@ -1,11 +1,13 @@
 {
-	"amd64cpu": {
+	"clean": {
 		"Pre": [
-			"rm -f -rf $ARCH/lib/*.a $ARCH/bin/*",
-			"git checkout $ARCH/bin"
+			"rm -rf $ARCH/lib/*.a $ARCH/bin/*",
+			"rm -f cfg/pxe/tftpboot/harvey.32bit"
 		],
 		"Projects": [
-			"/sys/src/9/amd64/clean.json"
+			"/sys/src/9/$ARCH/clean.json",
+			"/sys/src/cleanlibs.json",
+			"/sys/src/cmd/clean.json"
 		]
 	}
 }
