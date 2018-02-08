@@ -717,10 +717,11 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 }
 
 static int32_t
-read(int ispread, int fd, void *p, int32_t n, int64_t off)
+read(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
-	int32_t nn, nnn, dopread = 1;
+	int32_t nn, nnn;
+	int notpread = (off == -1LL); // in case it matches: it'll be 1, if not 0
 	Chan *c;
 
 	p = validaddr(p, n, 1);
@@ -741,27 +742,24 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-	if(off == -1LL){	/* use and maintain channel's offset */
+	if(notpread)	/* use and maintain channel's offset */
 		off = c->offset;
-	}
-	else
-		dopread = 1;
 
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
-		 * clear dopread to always maintain the Chan offset.
+		 * clear notpread to always maintain the Chan offset.
 		 */
-		if(off == -1LL){
-			if(dopread){
-				c->offset = 0;
-				c->devoffset = 0;
-			}
-			mountrewind(c);
-			unionrewind(c);
-		}
+		if(off == 0LL){
+ 			if(notpread){
+ 				c->offset = 0;
+ 				c->devoffset = 0;
+ 			}
+ 			mountrewind(c);
+ 			unionrewind(c);
+ 		}
 
 		if(!mountrockread(c, p, n, &nn)){
 			if(c->umh)
@@ -773,18 +771,17 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 			}
 		}
 		nnn = mountfix(c, p, nn, n);
-
-		dopread = 1;
+		notpread = 1;
 	}
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(dopread){
-		lock(&c->r.l);
+	lock(&c->r.l);
+	if(nn > 0)
 		c->devoffset += nn;
+	if (nnn > 0)
 		c->offset += nnn;
-		unlock(&c->r.l);
-	}
+	unlock(&c->r.l);
 
 	poperror();
 	cclose(c);
@@ -809,14 +806,14 @@ syspread(Ar0* ar0, ...)
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = read(1, fd, p, n, off);
+	ar0->l = read(fd, p, n, off);
 }
 
 static int32_t
-write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
+write(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
-	int32_t r, dopwrite = 1;
+	int32_t r;
 	Chan *c;
 
 	r = n;
@@ -825,11 +822,10 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 
-	if(off != -1LL)
-		dopwrite = 1;
+	int notpwrite = (off == -1LL); // in case it matches, it'll be 1, if not 0
 
 	if(waserror()) {
-		if(dopwrite){
+		if(notpwrite){
 			lock(&c->r.l);
 			c->offset -= n;
 			unlock(&c->r.l);
@@ -843,7 +839,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	n = r;
 
-	if(dopwrite){	/* use and maintain channel's offset */
+	if(notpwrite){	/* use and maintain channel's offset */
 		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
@@ -852,7 +848,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(dopwrite && 0 < r && r < n){
+	if(notpwrite && 0 < r && r < n){
 		lock(&c->r.l);
 		c->offset -= n - r;
 		unlock(&c->r.l);
@@ -877,7 +873,7 @@ syspwrite(Ar0* ar0, ...)
 	/*
 	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = write(fd, buf, nbytes, offset, 1);
+	ar0->l = write(fd, buf, nbytes, offset);
 }
 
 static int64_t
