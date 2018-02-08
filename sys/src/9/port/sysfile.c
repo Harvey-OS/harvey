@@ -721,7 +721,7 @@ read(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t nn, nnn;
-	int sequential;
+	int notpread = (off == -1LL); // in case it matches: it'll be 1, if not 0
 	Chan *c;
 
 	p = validaddr(p, n, 1);
@@ -742,21 +742,18 @@ read(int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-		if(off == -1LL){	/* use and maintain channel's offset */
-			off = c->offset;
-		sequential = 1;
-	} else {
-		sequential = 0;
-	}
+	if(notpread)	/* use and maintain channel's offset */
+		off = c->offset;
+
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
-		 * set sequential to always maintain the Chan offset.
+		 * clear notpread to always maintain the Chan offset.
 		 */
 		if(off == 0LL){
-			if(sequential){
+			if(notpread){
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -774,18 +771,17 @@ read(int fd, void *p, int32_t n, int64_t off)
 			}
 		}
 		nnn = mountfix(c, p, nn, n);
-
-		sequential = 1;
+		notpread = 1;
 	}
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(sequential){
-		lock(&c->r.l);
+	lock(&c->r.l);
+	if(nn > 0)
 		c->devoffset += nn;
+	if(nnn > 0)
 		c->offset += nnn;
-		unlock(&c->r.l);
-	}
+	unlock(&c->r.l);
 
 	poperror();
 	cclose(c);
@@ -818,7 +814,6 @@ write(int fd, void *p, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int32_t r;
-	int sequential;
 	Chan *c;
 
 	r = n;
@@ -827,13 +822,10 @@ write(int fd, void *p, int32_t n, int64_t off)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 
-	if(off == -1LL)
-		sequential = 1;
-	else
-		sequential = 0;
+	int notpwrite = (off == -1LL); // in case it matches, it'll be 1, if not 0
 
 	if(waserror()) {
-		if(sequential){
+		if(notpwrite){
 			lock(&c->r.l);
 			c->offset -= n;
 			unlock(&c->r.l);
@@ -847,7 +839,7 @@ write(int fd, void *p, int32_t n, int64_t off)
 
 	n = r;
 
-	if(sequential){	/* use and maintain channel's offset */
+	if(notpwrite){	/* use and maintain channel's offset */
 		lock(&c->r.l);
 		off = c->offset;
 		c->offset += n;
@@ -856,7 +848,7 @@ write(int fd, void *p, int32_t n, int64_t off)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(sequential && r < n){
+	if(notpwrite && 0 < r && r < n){
 		lock(&c->r.l);
 		c->offset -= n - r;
 		unlock(&c->r.l);
