@@ -36,6 +36,15 @@
 #include "debug_core.h"
 #include "gdb.h"
 
+
+// TODO
+Reg gdbregs[] = {
+};
+
+void
+gdb_init_regs(void) {
+}
+
 /* all because gdb has stupid register layouts. Too bad. */
 
 static char *

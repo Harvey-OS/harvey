@@ -8,6 +8,7 @@
 		"SourceFiles": [
 			"$ARCH.S",
 			"regs$ARCH.c",
+			"regs.c",
 			"debug_core.c",
 			"gdbstub.c"
 		]

@@ -1,4 +1,4 @@
-	/*
+/*
  * Kernel Debug Core
  *
  * Maintainer: Jason Wessel <jason.wessel@windriver.com>
@@ -64,34 +64,6 @@ static struct state ks;
  */
 
 static char *hex_asc = "0123456789abcdef";
-
-char* regstrs[] = {
-	[GDB_AX] = "AX",
-	[GDB_BX] = "BX",
-	[GDB_CX] = "CX",
-	[GDB_DX] = "DX",
-	[GDB_SI] = "SI",
-	[GDB_DI] = "DI",
-	[GDB_BP] = "BP",
-	[GDB_SP] = "SP",
-	[GDB_R8] = "R8",
-	[GDB_R9] = "R9",
-	[GDB_R10] = "R10",
-	[GDB_R11] = "R11",
-	[GDB_R12] = "R12",
-	[GDB_R13] = "R13",
-	[GDB_R14] = "R14",
-	[GDB_R15] = "R15",
-	[GDB_PC] = "PC",
-	[GDB_PS] = "PS",
-	[GDB_CS] = "CS",
-	[GDB_SS] = "SS",
-	[GDB_DS] = "DS",
-	[GDB_ES] = "ES",
-	[GDB_FS] = "FS",
-	[GDB_GS] = "GS",
-};
-
 
 // not reentrant, bla bla bla
 char *
@@ -636,20 +608,13 @@ get_reg(Map *map, char *reg)
 {
 	(void)map;
 
-	int reg_idx = -1;
-	for (int i = 0; i < DBG_MAX_REG_NUM; i++) {
-		if (!strcmp(reg, regstrs[i])) {
-			reg_idx = i;
-			break;
-		}
-	}
-
-	if (reg_idx == -1) {
+	Reg *r = gdb_get_reg_by_name(reg);
+	if (reg == nil) {
 		syslog(0, "gdbserver", "get_reg: Unrecognised register %s.", reg);
 		return 0;
 	}
 
-	uint64_t value = arch_get_reg(&ks, reg_idx);
+	uint64_t value = arch_get_reg(&ks, r->idx);
 	return value;
 }
 
@@ -683,14 +648,14 @@ gdb_cmd_getregs(struct state *ks)
 		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1", __func__);
 	}
 	gpr(ks, ks->threadid);
-	mem2hex(ks->gdbregs, (char *)remcom_out_buffer, NUMREGBYTES);
+	mem2hex(ks->gdbregs, (char *)remcom_out_buffer, ks->gdbregsize);
 }
 
 /* Handle the 'G' set registers request */
 static void
 gdb_cmd_setregs(struct state *ks)
 {
-	hex2mem((char *)&remcom_in_buffer[1], ks->gdbregs, NUMREGBYTES);
+	hex2mem((char *)&remcom_in_buffer[1], ks->gdbregs, ks->gdbregsize);
 
 	error_packet(remcom_out_buffer, Einval);
 
@@ -1317,6 +1282,8 @@ main(int argc, char **argv)
 	print("Stopping process...\n", ks.threadid);
 	sendctl(ks.threadid, "stop");
 	print("Process stopped.  Waiting for remote gdb connection...\n");
+
+	gdb_init_regs();
 	attach_to_process(ks.threadid);
 
 	gdb_serial_stub(&ks, atoi(port));

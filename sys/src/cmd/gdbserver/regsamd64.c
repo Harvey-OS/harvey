@@ -36,26 +36,61 @@
 #include "debug_core.h"
 #include "gdb.h"
 
+
+Reg gdbregs[] = {
+	{ GDB_AX,	"AX",	8,	0,	},
+	{ GDB_BX,	"BX",	8, 	0,	},
+	{ GDB_CX,	"CX",	8, 	0,	},
+	{ GDB_DX,	"DX",	8, 	0,	},
+	{ GDB_SI,	"SI",	8, 	0,	},
+	{ GDB_DI,	"DI",	8, 	0,	},
+	{ GDB_BP,	"BP",	8, 	0,	},
+	{ GDB_SP,	"SP",	8, 	0,	},
+	{ GDB_R8,	"R8",	8, 	0,	},
+	{ GDB_R9,	"R9",	8, 	0,	},
+	{ GDB_R10,	"R10",	8, 	0,	},
+	{ GDB_R11,	"R11",	8, 	0,	},
+	{ GDB_R12,	"R12",	8, 	0,	},
+	{ GDB_R13,	"R13",	8, 	0,	},
+	{ GDB_R14,	"R14",	8, 	0,	},
+	{ GDB_R15,	"R15",	8, 	0,	},
+	{ GDB_PC,	"PC",	8, 	0,	},
+	{ GDB_PS,	"PS",	4, 	0,	},
+	{ GDB_CS,	"CS",	4, 	0,	},
+	{ GDB_SS,	"SS",	4, 	0,	},
+	{ GDB_DS,	"DS",	4, 	0,	},
+	{ GDB_ES,	"ES",	4, 	0,	},
+	{ GDB_FS,	"FS",	4, 	0,	},
+	{ GDB_GS,	"GS",	4, 	0,	},
+};
+
+/* 17 64 bit regs and 7 32 bit regs */
+#define NUMGPREGBYTES ((17 * 8) + (7 * 4))
+
+void gdb_init_regs(void) {
+	int offset = 0;
+	for (int i = 0; i < GDB_MAX_REG; i++) {
+		gdbregs[i].offset = offset;
+		offset += gdbregs[i].size;
+	}
+}
+
 /* all because gdb has stupid register layouts. Too bad. */
 
 static char *
 gdb_hex_reg_helper(uintptr_t *gdb_regs, int regnum, char *out)
 {
-	if (regnum <= GDB_PC) {
-		return mem2hex((void *)&gdb_regs[regnum], out, sizeof(uintptr_t));
+	if (regnum >= GDB_MAX_REG) {
+		memset(out, 0, sizeof(uint32_t));
+		return nil;
 	}
 
-	if (regnum <= GDB_GS) {
-		uint32_t* reg32base = (uint32_t*)&gdb_regs[GDB_PS];
-		int reg32idx = regnum - GDB_PS;
-		return mem2hex((void *)&reg32base[reg32idx], out, sizeof(uint32_t));
-	}
-
-	memset(out, 0, sizeof(uint32_t));
-	return nil;
+	Reg *reg = &gdbregs[regnum];
+	uintptr_t regaddr = (uintptr_t)gdb_regs + reg->offset;
+	return mem2hex((void *)regaddr, out, reg->size);
 }
 
-/* Handle the 'p' individual regster get */
+/* Handle the 'p' individual register get */
 void
 gdb_cmd_reg_get(struct state *ks)
 {
@@ -64,13 +99,13 @@ gdb_cmd_reg_get(struct state *ks)
 
 	hex2long(&ptr, &regnum);
 	syslog(0, "gdbserver", "Get reg %p: ", regnum);
-	if (regnum >= DBG_MAX_REG_NUM) {
+	
+	if (gdb_hex_reg_helper(ks->gdbregs, regnum, (char *)ptr)) {
+		syslog(0, "gdbserver", "returns :%s:", ptr);
+	} else {
 		syslog(0, "gdbserver", "fails");
 		error_packet(remcom_out_buffer, Einval);
-		return;
 	}
-	syslog(0, "gdbserver", "returns :%s:", ptr);
-	gdb_hex_reg_helper(ks->gdbregs, regnum, (char *)ptr);
 }
 
 
@@ -105,23 +140,25 @@ gdb_cmd_reg_set(struct state *ks)
 
 uint64_t
 arch_get_reg(struct state *ks, int regnum) {
-	uint64_t value = 0;
-	if (regnum <= GDB_PC) {
-		value = ((uint64_t*)ks->gdbregs)[regnum];
-
-	} else if (regnum <= GDB_GS) {
-		uint32_t* reg32base = (uint32_t*)&(((uint64_t*)ks->gdbregs)[GDB_PS]);
-		int reg32idx = regnum - GDB_PS;
-		value = reg32base[reg32idx];
+	if (regnum >= GDB_MAX_REG) {
+		return 0;
 	}
 
-	return value;
+	Reg *reg = &gdbregs[regnum];
+	uintptr_t regaddr = (uintptr_t)ks->gdbregs + reg->offset;
+	if (reg->size == 4) {
+		return *(uint32_t*)regaddr;
+	} else if (reg->size == 8) {
+		return *(uint64_t*)regaddr;
+	}
+
+	return 0;
 }
 
 uint64_t
 arch_get_pc(struct state *ks)
 {
-	uint64_t pc = ((uint64_t*)ks->gdbregs)[GDB_PC];
+	uint64_t pc = arch_get_reg(ks, GDB_PC);
 	syslog(0, "gdbserver", "get_pc: %p", pc);
 	return pc;
 }
@@ -131,30 +168,36 @@ void arch_set_pc(uintptr_t *regs, unsigned long pc)
 	// not yet.
 }
 
+// Copy GP and FP registers into a single block in state ks.
 char *
 gpr(struct state *ks, int pid)
 {
-	if (ks->gdbregs == nil)
-		ks->gdbregs = malloc(NUMREGBYTES);
+	if (ks->gdbregs == nil) {
+		ks->gdbregs = malloc(NUMGPREGBYTES);
+		ks->gdbregsize = NUMGPREGBYTES;
+	}
 
 	if (pid <= 0) {
 		syslog(0, "gdbserver", "%s: FUCK. pid <= 0", __func__);
 		pid = 1;
 	}
+
+	// Read GP regs
 	char *cp = ks->gdbregs;
 	char *regname = smprint("/proc/%d/gdbregs", pid);
 	int fd = open(regname, 0);
 	if (fd < 0) {
 		syslog(0, "gdbserver", "open(%s, 0): %r", regname);
+		free(regname);
 		return errstring(Enoent);
 	}
+	free(regname);
 
-	if (pread(fd, cp, NUMREGBYTES, 0) < NUMREGBYTES){
+	if (pread(fd, cp, NUMGPREGBYTES, 0) < NUMGPREGBYTES){
 		close(fd);
 		return errstring(Eio);
 	}
 	close(fd);
 
 	return nil;
-
 }
