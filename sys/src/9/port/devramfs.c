@@ -129,7 +129,7 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 		        return 1;
 		}
 	}
-	if(current->perm & QTDIR){
+	if(current->perm & DMDIR){
 		current = current->firstchild;
 		if(current == nil){
 			return -1;

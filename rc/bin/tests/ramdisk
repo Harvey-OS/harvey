@@ -1,0 +1,33 @@
+#!/bin/rc
+mkdir -p ram
+bind -c '#@' ram
+
+echo '1' >ram/file1
+echo '2' >ram/file2
+echo '3' >ram/file3
+rm ram/file2
+rm ram/file99
+cp ram/file1 ram/file2
+cat ram/file2
+cp ram/file3 ram/file1
+cat ram/file1
+ls -l ram
+echo '------'
+rm ram/*
+ls -l ram
+mkdir -p ram/1/2/3
+echo 'deep' >ram/1/2/3/deep
+cat ram/1/2/3/deep
+ls -l ram
+echo '------'
+rm -r ram/1
+ls -l ram
+echo '1234567890' >ram/1
+cat ram/1 ram/1 ram/1 ram/1 ram/1 ram/1 ram/1 ram/1 ram/1 ram/1 ram/1 >ram/2
+ls -l ram
+cat ram/2 ram/2 ram/2 ram/2 ram/2 ram/2 ram/2 ram/2 ram/2 ram/2 ram/2 >ram/3
+ls -l ram
+cat ram/3 ram/3 ram/3 ram/3 ram/3 ram/3 ram/3 ram/3 ram/3 ram/3 ram/3 >ram/4
+ls -l ram
+cat ram/4 ram/4 ram/4 ram/4 ram/4 ram/4 ram/4 ram/4 ram/4 ram/4 ram/4 >ram/5
+ls -l ram
