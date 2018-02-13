@@ -67,39 +67,41 @@ enum bpstate {
  * Please don't add an #ifdef here. Please
  */
 enum regnames {
-	GDB_AX,			/* 0 */
-	GDB_BX,			/* 1 */
-	GDB_CX,			/* 2 */
-	GDB_DX,			/* 3 */
-	GDB_SI,			/* 4 */
-	GDB_DI,			/* 5 */
-	GDB_BP,			/* 6 */
-	GDB_SP,			/* 7 */
-	GDB_R8,			/* 8 */
-	GDB_R9,			/* 9 */
-	GDB_R10,		/* 10 */
-	GDB_R11,		/* 11 */
-	GDB_R12,		/* 12 */
-	GDB_R13,		/* 13 */
-	GDB_R14,		/* 14 */
-	GDB_R15,		/* 15 */
-	GDB_PC,			/* 16 */
-	GDB_PS,			/* 17 */
-	GDB_CS,			/* 18 */
-	GDB_SS,			/* 19 */
-	GDB_DS,			/* 20 */
-	GDB_ES,			/* 21 */
-	GDB_FS,			/* 22 */
-	GDB_GS,			/* 23 */
+	GDB_AX,			// 0
+	GDB_BX,			// 1
+	GDB_CX,			// 2
+	GDB_DX,			// 3
+	GDB_SI,			// 4
+	GDB_DI,			// 5
+	GDB_BP,			// 6
+	GDB_SP,			// 7
+	GDB_R8,			// 8
+	GDB_R9,			// 9
+	GDB_R10,		// 10
+	GDB_R11,		// 11
+	GDB_R12,		// 12
+	GDB_R13,		// 13
+	GDB_R14,		// 14
+	GDB_R15,		// 15
+	GDB_PC,			// 16
+	GDB_PS,			// 17
+	GDB_CS,			// 18
+	GDB_SS,			// 19
+	GDB_DS,			// 20
+	GDB_ES,			// 21
+	GDB_FS,			// 22
+	GDB_GS,			// 23
+	GDB_MAX_REG,
 };
 
-// Again, this is very gdb-specific.
-extern char* regstrs[];
+typedef struct Reg {
+	int	idx;
+	char*	name;
+	int	size;
+	int	offset;
+} Reg;
 
-#define GDB_ORIG_AX		57
-#define DBG_MAX_REG_NUM		24
-/* 17 64 bit regs and 5 32 bit regs */
-#define NUMREGBYTES		((17 * 8) + (5 * 4))
+extern Reg gdbregs[];
 
 struct bkpt {
   unsigned long bpt_addr;
@@ -108,10 +110,12 @@ struct bkpt {
   enum bpstate	state;
 };
 
-extern uint64_t arch_get_pc(struct state *ks);
+void gdb_init_regs(void);
 
-extern char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
-extern int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
+uint64_t arch_get_pc(struct state *ks);
+
+char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
+int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
 
 
 /**
@@ -130,7 +134,7 @@ extern int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
  *	process more packets, and a %0 or %1 if it wants to exit from the
  *	kgdb callback.
  */
-extern int
+int
 arch_handle_exception(int vector, int signo, int err_code,
 		      char *remcom_in_buffer,
 		      char *remcom_out_buffer,
@@ -144,13 +148,13 @@ arch_handle_exception(int vector, int signo, int err_code,
  *	This function handles updating the program counter and requires an
  *	architecture specific implementation.
  */
-extern void arch_set_pc(uintptr_t *regs, unsigned long pc);
+void arch_set_pc(uintptr_t *regs, unsigned long pc);
 
 
 /* Optional functions. */
-extern int validate_break_address(unsigned long addr);
-extern char *arch_set_breakpoint(struct state *ks, struct bkpt *bpt);
-extern char *arch_remove_breakpoint(struct state *ks, struct bkpt *bpt);
+int validate_break_address(unsigned long addr);
+char *arch_set_breakpoint(struct state *ks, struct bkpt *bpt);
+char *arch_remove_breakpoint(struct state *ks, struct bkpt *bpt);
 
 
 // Leave this for now but we should probably just use the chan abstraction
@@ -186,10 +190,10 @@ char *hex2mem(char *buf, unsigned char *mem, int count);
 void gdb_cmd_reg_get(struct state *ks);
 void gdb_cmd_reg_set(struct state *ks);
 uint64_t arch_get_reg(struct state *ks, int regnum);
+Reg *gdb_get_reg_by_name(char *reg);
+Reg *gdb_get_reg_by_id(int id);
 
-extern int isremovedbreak(unsigned long addr);
-extern void schedule_breakpoint(void);
+int isremovedbreak(unsigned long addr);
+void schedule_breakpoint(void);
 
-extern int
-handle_exception(int ex_vector, int signo, int err_code,
-		 uintptr_t *regs);
+int handle_exception(int ex_vector, int signo, int err_code, uintptr_t *regs);

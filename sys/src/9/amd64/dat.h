@@ -68,10 +68,10 @@ enum regnames {
 	GDB_FS,			/* 22 */
 	GDB_GS,			/* 23 */
 };
-#define GDB_ORIG_AX		57
+
 #define DBG_MAX_REG_NUM		24
 /* 17 64 bit regs and 5 32 bit regs */
-#define GDB_NUMREGBYTES		((17 * 8) + (5 * 4))
+#define GDB_NUMREGBYTES		((17 * 8) + (7 * 4))
 
 #define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
 
