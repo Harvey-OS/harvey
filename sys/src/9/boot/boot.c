@@ -95,7 +95,7 @@ boot(int argc, char *argv[])
 	bind("#e", "/env", MBEFORE|MCREATE);
 	bind("#s", "/srv", MREPL|MCREATE);
 	bind("#p", "/proc", MREPL|MCREATE);
-	print("Hello, I am Harvey :-)\n");
+	print("\nHello, I am Harvey :-)\n\n");
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)

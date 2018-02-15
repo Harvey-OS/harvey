@@ -646,9 +646,9 @@ vmap(uintptr_t pa, usize size)
 	uintptr_t va;
 	usize o, sz;
 
-	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
+	if(DBGFLG) print("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
 
-	if(machp()->machno != 0)
+	if(machp()->machno != 0 && DBGFLG)
 		print("vmap: machp()->machno != 0\n");
 
 	/*
@@ -700,7 +700,7 @@ vunmap(void* v, usize size)
 	DBG("vunmap(%#p, %lu)\n", v, size);
 
 	if(machp()->machno != 0)
-		print("vmap: machp()->machno != 0\n");
+		DBG("vmap: machp()->machno != 0\n");
 
 	/*
 	 * See the comments above in vmap.

@@ -9,6 +9,9 @@
 
 #include <acpi.h>
 
+#undef DBG
+#define DBG print
+
 #define MiB (1<<20)
 
 BOOLEAN                        AcpiGbl_DebugTimeout = FALSE;
@@ -113,7 +116,7 @@ ins(uint16_t addr)
 	uint64_t off = addr;
 	uint16_t w;
 	if (pread(acpiio, &w, 2, off) < 2)
-		print("ins(0x%x): %r\n", addr);
+		if(debug) DBG("ins(0x%x): %r\n", addr);
 	return w;
 }
 
@@ -123,7 +126,7 @@ inb(uint16_t addr)
 	uint64_t off = addr;
 	uint16_t b;
 	if (pread(acpiio, &b, 1, off) < 1)
-		print("inb(0x%x): %r\n", addr);
+		if(debug) DBG("inb(0x%x): %r\n", addr);
 	return b;
 }
 
@@ -132,7 +135,7 @@ outl(uint16_t addr, uint32_t val)
 {
 	uint64_t off = addr;
 	if (pwrite(acpiio, &val, 4, off) < 4)
-		print("outl(0x%x): %r\n", addr);
+		if(debug) DBG("outl(0x%x): %r\n", addr);
 }
 
 void
@@ -140,7 +143,7 @@ outs(uint16_t addr, uint16_t val)
 {
 	uint64_t off = addr;
 	if (pwrite(acpiio, &val, 2, off) < 2)
-		print("outs(0x%x): %r\n", addr);
+		if(debug) DBG("outs(0x%x): %r\n", addr);
 }
 
 void
@@ -148,7 +151,7 @@ outb(uint16_t addr, uint8_t val)
 {
 	uint64_t off = addr;
 	if (pwrite(acpiio, &val, 1, off) < 1)
-		print("outb(0x%x): %r\n", addr);
+		if(debug) DBG("outb(0x%x): %r\n", addr);
 }
 
 #define MKBUS(t,b,d,f)	(((t)<<24)|(((b)&0xFF)<<16)|(((d)&0x1F)<<11)|(((f)&0x07)<<8))
