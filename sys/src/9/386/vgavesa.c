@@ -76,7 +76,7 @@ vbecall(Ureg *u)
 	pa = PADDR(RMBUF);
 	cmem->dev->write(cmem, modebuf, sizeof modebuf, pa);
 	u->trap = 0x10;
-	print("vbecall: sizeof u is %d\n", sizeof *u);
+	if(DBGFLG) print("vbecall: sizeof u is %d\n", sizeof *u);
 	creg->dev->write(creg, u, sizeof *u, 0);
 
 	creg->dev->read(creg, u, sizeof *u, 0);
