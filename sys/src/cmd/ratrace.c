@@ -200,6 +200,9 @@ threadmain(int argc, char **argv)
 	 * for the command you are starting.  Just check for -c as argv[1]
 	 * and then take it from there.
 	 */
+  if (argc == 1) {
+    usage();
+  }
 	++argv;
 	--argc;
 	while (argv[0][0] == '-') {
