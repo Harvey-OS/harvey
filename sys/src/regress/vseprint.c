@@ -24,9 +24,11 @@ void
 main()
 {
 	char buf[1024];
-	testvseprint(buf, sizeof(buf), "This is a really long message %d %d %d %d\n", 1, 2, 3, 4);
-	if (strcmp(buf, "This is a really long message 1 2 3 4\n")) {
-		print("FAIL\n");
+	char *str = "message";
+	double dbl = 4.5;
+	testvseprint(buf, sizeof(buf), "This is a really long %s %d %d %d %f", str, 1, 2, 3, dbl);
+	if (strcmp(buf, "This is a really long message 1 2 3 4.500000")) {
+		print("FAIL - incorrect string: '%s'\n", buf);
 		exits("FAIL");
 	}
 
