@@ -67,7 +67,7 @@ int active = -1;
  * can be overriden by architectures when needed:
  */
 char *
-arch_set_breakpoint(struct state *ks, struct bkpt *bpt)
+arch_set_breakpoint(GdbState *ks, struct bkpt *bpt)
 {
 	char *err;
 
@@ -80,7 +80,7 @@ arch_set_breakpoint(struct state *ks, struct bkpt *bpt)
 }
 
 char *
-arch_remove_breakpoint(struct state *ks, struct bkpt *bpt)
+arch_remove_breakpoint(GdbState *ks, struct bkpt *bpt)
 {
 	return wmem(bpt->bpt_addr, ks->threadid, bpt->saved_instr, machdata->bpsize);
 }
@@ -95,7 +95,7 @@ _arch_pc(int exception, uint64_t * regs)
  * SW breakpoint management:
  */
 char *
-dbg_activate_sw_breakpoints(struct state *ks)
+dbg_activate_sw_breakpoints(GdbState *ks)
 {
 	char *error;
 	char *ret = nil;
@@ -118,7 +118,7 @@ dbg_activate_sw_breakpoints(struct state *ks)
 }
 
 char *
-dbg_set_sw_break(struct state *s, unsigned long addr)
+dbg_set_sw_break(GdbState *s, unsigned long addr)
 {
 	int breakno = -1;
 	int i;
@@ -156,7 +156,7 @@ dbg_set_sw_break(struct state *s, unsigned long addr)
 }
 
 char *
-dbg_deactivate_sw_breakpoints(struct state *s)
+dbg_deactivate_sw_breakpoints(GdbState *s)
 {
 	char *error;
 	char *ret = 0;
@@ -178,7 +178,7 @@ dbg_deactivate_sw_breakpoints(struct state *s)
 }
 
 char *
-dbg_remove_sw_break(struct state *s, unsigned long addr)
+dbg_remove_sw_break(GdbState *s, unsigned long addr)
 {
 	char *error;
 	int i;
@@ -219,7 +219,7 @@ isremovedbreak(unsigned long addr)
 }
 
 char *
-dbg_remove_all_break(struct state *s)
+dbg_remove_all_break(GdbState *s)
 {
 	char *error;
 	int i;

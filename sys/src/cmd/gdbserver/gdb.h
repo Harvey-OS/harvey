@@ -67,7 +67,8 @@ enum bpstate {
  * Please don't add an #ifdef here. Please
  */
 enum regnames {
-	GDB_AX,			// 0
+	GDB_AX,			// 0	GP Regs
+	GDB_FIRST_GP_REG = GDB_AX,
 	GDB_BX,			// 1
 	GDB_CX,			// 2
 	GDB_DX,			// 3
@@ -90,13 +91,59 @@ enum regnames {
 	GDB_DS,			// 20
 	GDB_ES,			// 21
 	GDB_FS,			// 22
-	GDB_GS,			// 23
-	GDB_MAX_REG,
+	GDB_GS,			// 23	End of GP regs
+	GDB_LAST_GP_REG = GDB_GS,
+
+	GDB_STMM0,		// 24	Start of FP regs
+	GDB_STMM1,		// 25
+	GDB_STMM2,		// 26
+	GDB_STMM3,		// 27
+	GDB_STMM4,		// 28
+	GDB_STMM5,		// 29
+	GDB_STMM6,		// 30
+	GDB_STMM7,		// 31
+	GDB_FCTRL,		// 32
+	GDB_FCW = GDB_FCTRL,
+	GDB_FSTAT,		// 33
+	GDB_FSW = GDB_FSTAT,
+	GDB_FTAG,		// 34
+	GDB_FTW = GDB_FTAG,
+	GDB_FISEG,		// 35
+	GDB_FPU_CS = GDB_FISEG,
+	GDB_FIOFF,		// 36
+	GDB_IP = GDB_FIOFF,
+	GDB_FOSEG,		// 37
+	GDB_FPU_DS = GDB_FOSEG,
+	GDB_FOOFF,		// 38
+	GDB_DP = GDB_FOOFF,
+	GDB_FOP,		// 39
+	GDB_XMM0,		// 40
+	GDB_XMM1,		// 41
+	GDB_XMM2,		// 42
+	GDB_XMM3,		// 43
+	GDB_XMM4,		// 44
+	GDB_XMM5,		// 45
+	GDB_XMM6,		// 46
+	GDB_XMM7,		// 47
+	GDB_XMM8,		// 48
+	GDB_XMM9,		// 49
+	GDB_XMM10,		// 50
+	GDB_XMM11,		// 51
+	GDB_XMM12,		// 52
+	GDB_XMM13,		// 53
+	GDB_XMM14,		// 54
+	GDB_XMM15,		// 55
+	GDB_MXCSR,		// 56	End of FP regs
+	GDB_ORIGRAX,		// 57
+	GDB_FSBASE,		// 58
+	GDB_GSBASE,		// 59
+	GDB_MAX_REG,		
 };
 
 typedef struct Reg {
 	int	idx;
 	char*	name;
+	int	unsupported;	// Register not supported - return reg value as 0
 	int	size;
 	int	offset;
 } Reg;
@@ -111,8 +158,9 @@ struct bkpt {
 };
 
 void gdb_init_regs(void);
+char *gdb_hex_reg_helper(GdbState *ks, int regnum, char *out);
 
-uint64_t arch_get_pc(struct state *ks);
+uint64_t arch_get_pc(GdbState *ks);
 
 char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
 int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
@@ -153,8 +201,8 @@ void arch_set_pc(uintptr_t *regs, unsigned long pc);
 
 /* Optional functions. */
 int validate_break_address(unsigned long addr);
-char *arch_set_breakpoint(struct state *ks, struct bkpt *bpt);
-char *arch_remove_breakpoint(struct state *ks, struct bkpt *bpt);
+char *arch_set_breakpoint(GdbState *ks, struct bkpt *bpt);
+char *arch_remove_breakpoint(GdbState *ks, struct bkpt *bpt);
 
 
 // Leave this for now but we should probably just use the chan abstraction
@@ -186,10 +234,11 @@ struct io {
 
 int hex2long(char **ptr, unsigned long *long_val);
 char *mem2hex(unsigned char *mem, char *buf, int count);
+char *zerohex(char *buf, int count);
 char *hex2mem(char *buf, unsigned char *mem, int count);
-void gdb_cmd_reg_get(struct state *ks);
-void gdb_cmd_reg_set(struct state *ks);
-uint64_t arch_get_reg(struct state *ks, int regnum);
+void gdb_cmd_reg_get(GdbState *ks);
+void gdb_cmd_reg_set(GdbState *ks);
+uint64_t arch_get_reg(GdbState *ks, int regnum);
 Reg *gdb_get_reg_by_name(char *reg);
 Reg *gdb_get_reg_by_id(int id);
 

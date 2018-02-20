@@ -14,7 +14,7 @@
  */
 
 /* kernel debug core data structures */
-struct state {
+typedef struct GdbState {
 	unsigned long	threadid;
 	int		ex_vector;
 	int		signo;
@@ -23,9 +23,14 @@ struct state {
 	int		pass_exception;
 	char		*pidname;
 	long		usethreadid;
+
 	void		*gdbregs;
 	int 		gdbregsize; // determined by the amount read from /proc/pid/gdbregs
-};
+
+	void		*fpregs;
+	int 		fpregsize; // determined by the amount read from /proc/pid/fpregs
+} GdbState;
+
 
 #define DCPU_SSTEP       0x8 /* CPU is single stepping */
 
@@ -41,11 +46,11 @@ struct debuggerinfo_struct {
 extern struct debuggerinfo_struct info[];
 
 /* kernel debug core break point routines */
-extern char * dbg_remove_all_break(struct state *);
-extern char * dbg_set_sw_break(struct state *, unsigned long addr);
-extern char * dbg_remove_sw_break(struct state *, unsigned long addr);
-extern char * dbg_activate_sw_breakpoints(struct state *);
-extern char * dbg_deactivate_sw_breakpoints(struct state *);
+extern char * dbg_remove_all_break(GdbState *);
+extern char * dbg_set_sw_break(GdbState *, unsigned long addr);
+extern char * dbg_remove_sw_break(GdbState *, unsigned long addr);
+extern char * dbg_activate_sw_breakpoints(GdbState *);
+extern char * dbg_deactivate_sw_breakpoints(GdbState *);
 
 /* polled character access to i/o module */
 extern int dbg_io_get_char(void);
@@ -64,7 +69,7 @@ extern int dbg_switch_cpu;
 extern char remcom_out_buffer[];
 extern char remcom_in_buffer[];
 /* gdbstub interface functions */
-extern int gdb_serial_stub(struct state *ks, int port);
+extern int gdb_serial_stub(GdbState *ks, int port);
 extern void gdbstub_msg_write(const char *s, int len);
 
 // And, yeah, since packets are signed, this takes a signed.
@@ -73,10 +78,10 @@ char *errstring(char *prefix);
 
 
 /* gdbstub functions used for kdb <-> gdbstub transition */
-extern char *gdbstub_state(struct state *ks, char *cmd);
+extern char *gdbstub_state(GdbState *ks, char *cmd);
 extern int dbg_kdb_mode;
 
-char *gpr(struct state *ks, int pid);
+char *gpr(GdbState *ks, int pid);
 char *rmem(void *dest, int pid, uint64_t addr, int size);
 char *wmem(uint64_t dest, int pid, void *addr, int size);
 #define MAX_BREAKPOINTS 32768

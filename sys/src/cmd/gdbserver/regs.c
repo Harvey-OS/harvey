@@ -30,12 +30,55 @@ gdb_get_reg_by_name(char *reg)
 Reg *
 gdb_get_reg_by_id(int id)
 {
-	for (int i = 0; i < GDB_MAX_REG; i++) {
-		Reg *r = &gdbregs[i];
-		if (id == r->idx) {
-			return r;
-		}
+	if (id < GDB_MAX_REG) {
+		return &gdbregs[id];
 	}
-
 	return nil;
+}
+
+/* Handle the 'p' individual register get */
+void
+gdb_cmd_reg_get(GdbState *ks)
+{
+	unsigned long regnum;
+	char *ptr = (char *)&remcom_in_buffer[1];
+
+	hex2long(&ptr, &regnum);
+	syslog(0, "gdbserver", "Get reg %p: ", regnum);
+	
+	if (gdb_hex_reg_helper(ks, regnum, (char *)remcom_out_buffer)) {
+		syslog(0, "gdbserver", "returns :%s:", remcom_out_buffer);
+	} else {
+		syslog(0, "gdbserver", "fails");
+		error_packet(remcom_out_buffer, Einval);
+	}
+}
+
+/* Handle the 'P' individual regster set */
+void
+gdb_cmd_reg_set(GdbState *ks)
+{
+	fprint(2, "%s: NOT YET\n", __func__);
+#if 0 // not yet.
+	unsigned long regnum;
+	char *ptr = &remcom_in_buffer[1];
+	int i = 0;
+
+	hex2long(&ptr, &regnum);
+	if (*ptr++ != '=' ||
+		!dbg_get_reg(regnum, gdb_regs, ks->linux_regs)) {
+		error_packet(remcom_out_buffer, -EINVAL);
+		return;
+	}
+	memset(gdb_regs, 0, sizeof(gdb_regs));
+	while (i < sizeof(gdb_regs) * 2)
+		if (hex_to_bin(ptr[i]) >= 0)
+			i++;
+		else
+			break;
+	i = i / 2;
+	hex2mem(ptr, (char *)gdb_regs, i);
+	dbg_set_reg(regnum, gdb_regs, ks->linux_regs);
+#endif
+	strcpy((char *)remcom_out_buffer, "OK");
 }

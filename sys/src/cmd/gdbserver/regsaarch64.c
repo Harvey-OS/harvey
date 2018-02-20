@@ -44,76 +44,22 @@ Reg gdbregs[] = {
 void gdb_init_regs(void) {
 }
 
-/* all because gdb has stupid register layouts. Too bad. */
-
-static char *
-gdb_hex_reg_helper(uintptr_t *gdb_regs, int regnum, char *out)
+char *
+gdb_hex_reg_helper(GdbState *ks, int regnum, char *out)
 {
-	int offset = 0;
-
-	if (regnum <= GDB_PC)
-		return mem2hex((void *)&gdb_regs[offset], out, sizeof(uintptr_t));
-	if (regnum == GDB_PS)
-		return mem2hex((void *)&gdb_regs[offset], out, sizeof(uint32_t));
+	fprint(2, "%s: NOT YET\n", __func__);
 	memset(out, 0, sizeof(uint32_t));
 	return nil;
 }
 
-/* Handle the 'p' individual regster get */
-void
-gdb_cmd_reg_get(struct state *ks)
-{
-	unsigned long regnum;
-	char *ptr = (char *)&remcom_in_buffer[1];
-
-	hex2long(&ptr, &regnum);
-	syslog(0, "gdbserver", "Get reg %p: ", regnum);
-	if (regnum >= DBG_MAX_REG_NUM) {
-		syslog(0, "gdbserver", "fails\n");
-		error_packet(remcom_out_buffer, Einval);
-		return;
-	}
-	syslog(0, "gdbserver", "returns :%s:\n", ptr);
-	gdb_hex_reg_helper(ks->gdbregs, regnum, (char *)ptr);
-}
-
-/* Handle the 'P' individual regster set */
-void
-gdb_cmd_reg_set(struct state *ks)
-{
-	fprint(2, "%s: NOET YET\n", __func__);
-#if 0 // not yet.
-	unsigned long regnum;
-	char *ptr = &remcom_in_buffer[1];
-	int i = 0;
-
-	hex2long(&ptr, &regnum);
-	if (*ptr++ != '=' ||
-		!dbg_get_reg(regnum, gdb_regs, ks->linux_regs)) {
-		error_packet(remcom_out_buffer, -EINVAL);
-		return;
-	}
-	memset(gdb_regs, 0, sizeof(gdb_regs));
-	while (i < sizeof(gdb_regs) * 2)
-		if (hex_to_bin(ptr[i]) >= 0)
-			i++;
-		else
-			break;
-	i = i / 2;
-	hex2mem(ptr, (char *)gdb_regs, i);
-	dbg_set_reg(regnum, gdb_regs, ks->linux_regs);
-#endif
-	strcpy((char *)remcom_out_buffer, "OK");
-}
-
 uint64_t
-arch_get_reg(struct state *ks, int regnum)
+arch_get_reg(GdbState *ks, int regnum)
 {
 	return 0;
 }
 
 uint64_t
-arch_get_pc(struct state *ks)
+arch_get_pc(GdbState *ks)
 {
 	// not yet.
 	return 0;
@@ -125,7 +71,7 @@ void arch_set_pc(uintptr_t *regs, unsigned long pc)
 }
 
 char *
-gpr(struct state *ks, int pid)
+gpr(GdbState *ks, int pid)
 {
 	if (ks->gdbregs == nil)
 		ks->gdbregs = malloc(NUMREGBYTES);

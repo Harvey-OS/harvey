@@ -56,7 +56,7 @@ int debug = 0;
 int attached_to_existing_pid = 0;
 Map* cormap;
 
-static struct state ks;
+static GdbState ks;
 
 /* support crap */
 /*
@@ -455,6 +455,24 @@ mem2hex(unsigned char *mem, char *buf, int count)
 }
 
 /*
+ * Populate buf with 'count' zeroes, placing result in
+ * buf.  Return a pointer to the last char put in buf (null). May
+ * return an error.
+ */
+char *
+zerohex(char *buf, int count)
+{
+	char *tmp;
+
+	for(tmp = buf; count; tmp += 2, count--){
+		sprint(tmp, "00");
+	}
+
+	*tmp = 0;
+	return tmp;
+}
+
+/*
  * Convert the hex array pointed to by buf into binary to be placed in
  * mem.  Return a pointer to the character AFTER the last byte
  * written.  May return an error.
@@ -531,7 +549,7 @@ ebin2mem(unsigned char *src, unsigned char *dest, int count)
 
 /* Write memory due to an 'M' or 'X' packet. */
 static char *
-write_mem_msg(struct state *ks, int binary)
+write_mem_msg(GdbState *ks, int binary)
 {
 	char *cp = (char *)&remcom_in_buffer[1];
 
@@ -626,7 +644,7 @@ get_reg(Map *map, char *reg)
 
 /* Handle the '?' status packets */
 static void
-gdb_cmd_status(struct state *ks)
+gdb_cmd_status(GdbState *ks)
 {
 	/*
 	 * We know that this packet is only sent
@@ -642,7 +660,7 @@ gdb_cmd_status(struct state *ks)
 
 /* Handle the 'g' get registers request */
 static void
-gdb_cmd_getregs(struct state *ks)
+gdb_cmd_getregs(GdbState *ks)
 {
 	if (ks->threadid <= 0) {
 		syslog(0, "gdbserver", "%s: id <= 0, fuck it, make it 1", __func__);
@@ -653,7 +671,7 @@ gdb_cmd_getregs(struct state *ks)
 
 /* Handle the 'G' set registers request */
 static void
-gdb_cmd_setregs(struct state *ks)
+gdb_cmd_setregs(GdbState *ks)
 {
 	hex2mem((char *)&remcom_in_buffer[1], ks->gdbregs, ks->gdbregsize);
 
@@ -665,7 +683,7 @@ gdb_cmd_setregs(struct state *ks)
 
 /* Handle the 'm' memory read bytes */
 static void
-gdb_cmd_memread(struct state *ks)
+gdb_cmd_memread(GdbState *ks)
 {
 	char *ptr = (char *)&remcom_in_buffer[1];
 	unsigned long length;
@@ -693,7 +711,7 @@ gdb_cmd_memread(struct state *ks)
 
 /* Handle the 'M' memory write bytes */
 static void
-gdb_cmd_memwrite(struct state *ks)
+gdb_cmd_memwrite(GdbState *ks)
 {
 	char *err = write_mem_msg(ks, 0);
 
@@ -705,7 +723,7 @@ gdb_cmd_memwrite(struct state *ks)
 
 /* Handle the 'X' memory binary write bytes */
 static void
-gdb_cmd_binwrite(struct state *ks)
+gdb_cmd_binwrite(GdbState *ks)
 {
 	char *err = write_mem_msg(ks, 1);
 
@@ -717,7 +735,7 @@ gdb_cmd_binwrite(struct state *ks)
 
 /* Handle the 'D', detach packet */
 static void
-gdb_cmd_detach(struct state *ks)
+gdb_cmd_detach(GdbState *ks)
 {
 	char *error;
 
@@ -734,7 +752,7 @@ gdb_cmd_detach(struct state *ks)
 
 /* Handle the 'k' kill packet */
 static void
-gdb_cmd_kill(struct state *ks)
+gdb_cmd_kill(GdbState *ks)
 {
 	sendctl(ks->threadid, "kill");
 	connected = 0;
@@ -743,7 +761,7 @@ gdb_cmd_kill(struct state *ks)
 
 /* Handle the 'R' reboot packets */
 static int
-gdb_cmd_reboot(struct state *ks)
+gdb_cmd_reboot(GdbState *ks)
 {
 	/* For now, only honor R0 */
 	if (strcmp((char *)remcom_in_buffer, "R0") == 0) {
@@ -764,7 +782,7 @@ gdb_cmd_reboot(struct state *ks)
 
 /* Handle the 'q' query packets */
 static void
-gdb_cmd_query(struct state *ks)
+gdb_cmd_query(GdbState *ks)
 {
 	if (strcmp(&remcom_in_buffer[1], "Symbol::") == 0) {
 		strcpy((char *)remcom_out_buffer, "OK");
@@ -814,7 +832,7 @@ gdb_cmd_query(struct state *ks)
 
 /* Handle the 'H' task query packets */
 static void
-gdb_cmd_task(struct state *ks)
+gdb_cmd_task(GdbState *ks)
 {
 	char *ptr;
 	char *err;
@@ -845,7 +863,7 @@ gdb_cmd_task(struct state *ks)
 
 /* Handle the 'T' thread query packets */
 static void
-gdb_cmd_thread(struct state *ks)
+gdb_cmd_thread(GdbState *ks)
 {
 	//char *ptr = (char *)&remcom_in_buffer[1];
 	char *err;
@@ -864,7 +882,7 @@ gdb_cmd_thread(struct state *ks)
 
 /* Handle the 'z' or 'Z' breakpoint remove or set packets */
 static void
-gdb_cmd_break(struct state *ks)
+gdb_cmd_break(GdbState *ks)
 {
 	/*
 	 * Since GDB-5.3, it's been drafted that '0' is a software
@@ -909,7 +927,7 @@ gdb_cmd_break(struct state *ks)
 
 /* Handle the 'C' signal / exception passing packets */
 static int
-gdb_cmd_exception_pass(struct state *ks)
+gdb_cmd_exception_pass(GdbState *ks)
 {
 	/* C09 == pass exception
 	 * C15 == detach kgdb, pass exception
@@ -939,7 +957,7 @@ gdb_cmd_exception_pass(struct state *ks)
 }
 
 static void
-gdb_cmd_continue(struct state *ks)
+gdb_cmd_continue(GdbState *ks)
 {
 	if (strcmp("Stopped", getstatus(ks->threadid)) != 0) {
 		syslog(0, "gdbserver", "Process not stopped - can't activate breakpoints");
@@ -962,7 +980,7 @@ gdb_cmd_continue(struct state *ks)
 }
 
 static void
-gdb_cmd_single_step(struct state *ks)
+gdb_cmd_single_step(GdbState *ks)
 {
 	if (machdata == nil) {
 		syslog(0, "gdbserver", "machdata not set");
@@ -999,7 +1017,7 @@ gdb_cmd_single_step(struct state *ks)
  * This function performs all gdbserial command procesing
  */
 int
-gdb_serial_stub(struct state *ks, int port)
+gdb_serial_stub(GdbState *ks, int port)
 {
 	int error = 0;
 	int tmp;
@@ -1152,7 +1170,7 @@ exit:
 }
 
 char *
-gdbstub_state(struct state *ks, char *cmd)
+gdbstub_state(GdbState *ks, char *cmd)
 {
 	char *error;
 
