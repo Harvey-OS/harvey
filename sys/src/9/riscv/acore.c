@@ -39,9 +39,6 @@
  * saving, so it does not have to be restored.
  */
 
-extern char* acfpunm(Ureg* ureg, void *unused_voidp);
-extern char* acfpumf(Ureg* ureg, void *unused_voidp);
-extern char* acfpuxf(Ureg* ureg, void *unused_voidp);
 extern void acfpusysprocsetup(Proc*);
 
 extern void _acsysret(void);
