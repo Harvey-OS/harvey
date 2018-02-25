@@ -117,15 +117,14 @@ struct Fxsave {
 	unsigned char	st[128];		/* shared 64-bit media and x87 regs */
 	unsigned char	xmm[256];		/* 128-bit media regs */
 	unsigned char	ign[96];		/* reserved, ignored */
-};
+} __attribute__ ((aligned(16)));
 
 /*
  *  FPU stuff in Proc
  */
 struct PFPU {
 	int	fpustate;
-	unsigned char	fxsave[sizeof(Fxsave)+15];
-	void*	fpusave;
+	Fxsave	fxsave;
 };
 
 /*
