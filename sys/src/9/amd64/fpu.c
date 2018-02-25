@@ -307,7 +307,7 @@ fpunote(void)
 	return up->genbuf;
 }
 
-char*
+static char*
 xfpuxf(Ureg* ureg, void* v)
 {
 	Proc *up = externup();
@@ -357,7 +357,7 @@ xfpuxf(Ureg* ureg, void* v)
 	return up->genbuf;
 }
 
-void
+static void
 fpuxf(Ureg *ureg, void *p)
 {
 	Proc *up = externup();
@@ -368,7 +368,7 @@ fpuxf(Ureg *ureg, void *p)
 		postnote(up, 1, n, NDebug);
 }
 
-char*
+static char*
 acfpuxf(Ureg *ureg, void *p)
 {
 	return xfpuxf(ureg, p);
@@ -411,7 +411,7 @@ xfpumf(Ureg* ureg, void* v)
 	return fpunote();
 }
 
-void
+static void
 fpumf(Ureg *ureg, void *p)
 {
 	Proc *up = externup();
@@ -422,7 +422,7 @@ fpumf(Ureg *ureg, void *p)
 		postnote(up, 1, n, NDebug);
 }
 
-char*
+static char*
 acfpumf(Ureg *ureg, void *p)
 {
 	return xfpumf(ureg, p);
@@ -495,7 +495,7 @@ xfpunm(Ureg* ureg, void* v)
 	return nil;
 }
 
-void
+static void
 fpunm(Ureg *ureg, void *p)
 {
 	Proc *up = externup();
@@ -506,7 +506,7 @@ fpunm(Ureg *ureg, void *p)
 		postnote(up, 1, n, NDebug);
 }
 
-char*
+static char*
 acfpunm(Ureg *ureg, void *p)
 {
 	return xfpunm(ureg, p);
