@@ -527,17 +527,29 @@ static int32_t
 cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 {
 	char buf[512], *s, *e;
+	char *vendorid;
+	uint32_t info0[4];
 	int i, k;
 
 	e = buf+sizeof buf;
-	s = seprint(buf, e, "%s %u\n", "AMD64", machp()->cpumhz);
-	k = machp()->CPU.ncpuinfoe - machp()->CPU.ncpuinfos;
-	if(k > 4)
-		k = 4;
-	for(i = 0; i < k; i++)
-		s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x\n",
-			machp()->CPU.cpuinfo[i][0], machp()->CPU.cpuinfo[i][1],
-			machp()->CPU.cpuinfo[i][2], machp()->CPU.cpuinfo[i][3]);
+
+	if(!cpuidinfo(0, 0, info0)) {
+		iprint("cputyperead: cpuidinfo(0, 0) failed, switching to default\n");
+		vendorid = "Generic X86_64";
+	} else
+		vendorid = cpuidname(info0);
+
+	s = seprint(buf, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
+
+	if(DBGFLG) {
+		k = machp()->CPU.ncpuinfoe - machp()->CPU.ncpuinfos;
+		if(k > 4)
+			k = 4;
+		for(i = 0; i < k; i++)
+			s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x\n",
+				machp()->CPU.cpuinfo[i][0], machp()->CPU.cpuinfo[i][1],
+				machp()->CPU.cpuinfo[i][2], machp()->CPU.cpuinfo[i][3]);
+	}
 	return readstr(off, a, n, buf);
 }
 

@@ -47,6 +47,8 @@ void	checkpa(char*, uintmem);
 void	(*coherence)(void);
 int	corecolor(int);
 uint32_t	cpuid(uint32_t, uint32_t, uint32_t[4]);
+int cpuidinfo(uint32_t, uint32_t, uint32_t[4]);
+char *cpuidname(uint32_t *);
 int	dbgprint(char*, ...);
 int	decref(Ref*);
 void	delay(int);

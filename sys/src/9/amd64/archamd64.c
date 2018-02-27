@@ -47,7 +47,7 @@ cpuidinit(void)
 	return 1;
 }
 
-static int
+int
 cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
 	if(machp()->CPU.ncpuinfos == 0 && cpuidinit() == 0)
@@ -65,7 +65,7 @@ cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 	return 1;
 }
 
-static char *
+char *
 cpuidname(uint32_t *info0)
 {
 	char *vendorid;
