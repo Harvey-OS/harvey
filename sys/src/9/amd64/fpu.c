@@ -307,16 +307,14 @@ fpunote(void)
 }
 
 static char*
-xfpuxf(Ureg* ureg, void* v)
+xfpuxm(Ureg* ureg, void* v)
 {
 	Proc *up = externup();
 	uint32_t mxcsr;
 	Fxsave *fxsave;
 	char *cm;
 
-	/*
-	 * #XF - SIMD Floating Point Exception (Vector 18).
-	 */
+	// #XM - SIMD Floating Point Exception (Vector 19).
 
 	/*
 	 * Save FPU state to check out the error.
@@ -327,7 +325,7 @@ xfpuxf(Ureg* ureg, void* v)
 	up->FPU.fpustate = Idle;
 
 	if(ureg->ip & KZERO)
-		panic("#MF: ip=%#p", ureg->ip);
+		panic("#XM: ip=%#p", ureg->ip);
 
 	/*
 	 * Notify the user process.
@@ -357,20 +355,20 @@ xfpuxf(Ureg* ureg, void* v)
 }
 
 static void
-fpuxf(Ureg *ureg, void *p)
+fpuxm(Ureg *ureg, void *p)
 {
 	Proc *up = externup();
 	char *n;
 
-	n = xfpuxf(ureg, p);
+	n = xfpuxm(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
 static char*
-acfpuxf(Ureg *ureg, void *p)
+acfpuxm(Ureg *ureg, void *p)
 {
-	return xfpuxf(ureg, p);
+	return xfpuxm(ureg, p);
 }
 
 static char*
@@ -549,10 +547,10 @@ fpuinit(void)
 	 */
 	trapenable(IdtNM, fpunm, 0, "#NM");
 	trapenable(IdtMF, fpumf, 0, "#MF");
-	trapenable(IdtXF, fpuxf, 0, "#XF");
+	trapenable(IdtXM, fpuxm, 0, "#XM");
 
 	/* Same thing, for the AC */
 	actrapenable(IdtNM, acfpunm, 0, "#NM");
 	actrapenable(IdtMF, acfpumf, 0, "#MF");
-	actrapenable(IdtXF, acfpuxf, 0, "#XF");
+	actrapenable(IdtXM, acfpuxm, 0, "#XM");
 }

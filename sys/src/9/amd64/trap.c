@@ -309,7 +309,7 @@ static char* excname[32] = {
 	"#MF",					/* x87 FPE-Pending */
 	"#AC",					/* Alignment-Check */
 	"#MC",					/* Machine-Check */
-	"#XF",					/* SIMD Floating-Point */
+	"#XM",					/* SIMD Floating-Point */
 	"#20 (reserved)",
 	"#21 (reserved)",
 	"#22 (reserved)",

@@ -115,7 +115,7 @@
 #define IdtMF		16			/* x87 FPE-Pending */
 #define IdtAC		17			/* Alignment-Check */
 #define IdtMC		18			/* Machine-Check */
-#define IdtXF		19			/* SIMD Floating-Point */
+#define IdtXM		19			/* SIMD Floating-Point */
 
 /* Vestigial Segmented Virtual Memory */
 #define SdISTM		0x0000000700000000	/* Interrupt Stack Table Mask */

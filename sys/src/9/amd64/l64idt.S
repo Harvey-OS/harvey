@@ -165,7 +165,7 @@ idthandlers:
 	call _intrp; .byte IdtMF		/* #MF x87 FPE-Pending */
 	call _intre; .byte IdtAC		/* #AC Alignment-Check */
 	call _intrp; .byte IdtMC		/* #MC Machine-Check */
-	call _intrp; .byte IdtXF		/* #XF SIMD Floating-Point */
+	call _intrp; .byte IdtXM		/* #XM SIMD Floating-Point */
 	call _intrp; .byte 0x14		/* reserved */
 	call _intrp; .byte 0x15		/* reserved */
 	call _intrp; .byte 0x16		/* reserved */

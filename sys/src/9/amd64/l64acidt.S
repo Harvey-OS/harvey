@@ -103,7 +103,7 @@ acidthandlers:
 	CALL _acintrp; .byte IdtMF		/* #MF x87 FPE-Pending */
 	CALL _acintre; .byte IdtAC		/* #AC Alignment-Check */
 	CALL _acintrp; .byte IdtMC		/* #MC Machine-Check */
-	CALL _acintrp; .byte IdtXF		/* #XF SIMD Floating-Point */
+	CALL _acintrp; .byte IdtXM		/* #XM SIMD Floating-Point */
 	CALL _acintrp; .byte 0x14		/* reserved */
 	CALL _acintrp; .byte 0x15		/* reserved */
 	CALL _acintrp; .byte 0x16		/* reserved */

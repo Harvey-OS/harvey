@@ -272,7 +272,7 @@ runacore(void)
 				break;
 			case IdtNM:
 			case IdtMF:
-			case IdtXF:
+			case IdtXM:
 				/* these are handled in the AC;
 				 * If we get here, they left in m->NIX.icc->data
 				 * a note to be posted to the process.
