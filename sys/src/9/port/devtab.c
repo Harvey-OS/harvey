@@ -29,7 +29,7 @@ devtabreset(void)
 		for(j = i + 1; devtab[j] != nil; j++) {
 			if (devtab[i]->dc == devtab[j]->dc) {
 				print("Devices %s and %s have the sanme .dc\n", devtab[i]->name, devtab[j]->name);
-				panic("Fix this by change one of them.");
+				panic("Fix this by changing one of them.");
 			}
 		}
 	}
