@@ -17,13 +17,14 @@ fail(const char *msg) {
 
 static float f = 10.0;
 
-int handlenote(void *ureg, char *note)
+int
+handlenote(void *ureg, char *note)
 {
 	if (strstr(note, "Divide-By-Zero")) {
 		pass();
 	}
-	fail("raised exception not divide by zero");
-	return 0;
+	fail("exception raised, but not divide by zero");
+	return 1;
 }
 
 void
@@ -33,3 +34,4 @@ main(void)
 	f = f / 0.0f;
 	fail("divide by zero exception not raised");
 }
+ 
