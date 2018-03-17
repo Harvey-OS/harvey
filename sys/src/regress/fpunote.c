@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-// Test that the FPU can be used in note handlers
+// Test that the FPU can be used in note handler
 
 void
 pass(void) {
@@ -15,20 +15,22 @@ fail(const char *msg) {
 	exits("FAIL");
 }
 
-static float f = 0;
+static float correctnote = 0.0f;
 
-int handlenote(void *ureg, char *note)
+int
+handlenote(void *ureg, char *note)
 {
-	// Use the FPU in the note handler - suicides in case of failure
-	f = 1.0;
-	pass();
-	return 0;
+	if (strstr(note, "mynote")) {
+		// suicide here if no fpu support for note handlers
+		correctnote = 1.2f;
+		pass();
+	}
+	return 1;
 }
 
 void
 main(void)
 {
 	atnotify(handlenote, 1);
-	f = f / 0.0f;
-	fail("divide by zero exception not raised");
+	postnote(PNPROC, getpid(), "mynote");
 }
