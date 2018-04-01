@@ -1,0 +1,42 @@
+#!/bin/rc
+
+# Regression tests for devufs
+
+fn tidyup {
+	if (test -d /dev/ufs/0) echo unmount > /dev/ufs/0/ctl
+	if (test -f $img) rm $img
+}
+
+fn pass {
+	tidyup
+	echo PASS
+	exit PASS	
+}
+
+fn fail {
+	if (! $2 = notidy) tidyup
+	echo FAIL - $1
+	exit FAIL	
+}
+
+
+img=testufsimg
+
+if (test -f $img) fail $img^' already exists' notidy
+if (! test -d /dev/ufs) fail '/dev/ufs does not exist' notidy
+if (test -d /dev/ufs/0) fail '/dev/ufs/0 already exists' notidy
+
+
+# Create and mount
+newfs $img
+if (! ~ $status '') fail 'Could not create fs image'
+
+echo $img > /dev/ufs/mount
+if (! test -d /dev/ufs/0) fail 'Could not mount'
+
+
+# Tests
+cat /dev/ufs/0/stats
+
+
+pass

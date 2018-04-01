@@ -31,6 +31,10 @@
 static int
 countvnodes(vnode* vn)
 {
+	if (vn == nil) {
+		return 0;
+	}
+	
 	check_vnodes_locked(vn->mount);
 	
 	int n = 0;
@@ -44,7 +48,6 @@ newufsmount(Chan *c, int id)
 {
 	MountPoint *mp = mallocz(sizeof(MountPoint), 1);
 	mp->chan = c;
-	mp->free_vnodes = nil;
 	mp->id = id;
 	return mp;
 }
