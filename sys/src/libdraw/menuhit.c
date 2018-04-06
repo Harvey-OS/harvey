@@ -32,29 +32,55 @@ static	Image	*bord;
 static	Image	*text;
 static	Image	*htext;
 
+static void
+setimagemenucolors(Image	*backcolor, Image	*highcolor, Image	*bordercolor, Image	*textcolor, Image	*seltextcolor){
+	if (htext == back){
+		htext = nil;
+	} else {
+		freeimage(htext);
+	}
+	if (back != nil && back != display->white){
+		freeimage(back);
+		freeimage(high);
+		freeimage(bord);
+	}
+	if (text != nil && text != display->black){
+		freeimage(text);
+	}
+	if (backcolor == nil || highcolor == nil || bordercolor == nil || textcolor == nil || seltextcolor == nil){
+		back = display->white;
+		high = display->black;
+		bord = display->black;
+		text = display->black;
+		htext = display->white;
+	} else {
+		back = backcolor;
+		high = highcolor;
+		bord = bordercolor;
+		text = textcolor;
+		htext = seltextcolor;
+	}
+}
+
+void
+setmenucolor(uint32_t backcolor, uint32_t highcolor, uint32_t bordercolor, uint32_t textcolor, uint32_t seltextcolor){
+	setimagemenucolors(allocimage(display, Rect(0,0,1,1), screen->chan, 1, backcolor),
+										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, highcolor),
+										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, bordercolor),
+										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, textcolor),
+										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, seltextcolor)
+									 );
+}
+
 static
 void
 menucolors(void)
 {
 	/* Main tone is greenish, with negative selection */
-	back = allocimagemix(display, DPalegreen, DWhite);
-	high = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkgreen);	/* dark green */
-	bord = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DMedgreen);	/* not as dark green */
-	if(back==nil || high==nil || bord==nil)
-		goto Error;
-	text = display->black;
-	htext = back;
-	return;
-
-    Error:
-	freeimage(back);
-	freeimage(high);
-	freeimage(bord);
-	back = display->white;
-	high = display->black;
-	bord = display->black;
-	text = display->black;
-	htext = display->white;
+	Image *bck = allocimagemix(display, DPalegreen, DWhite);
+	Image *h = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkgreen);	/* dark green */
+	Image *b = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DMedgreen);	/* not as dark green */
+	setimagemenucolors(bck, h, b, display->black, bck);
 }
 
 /*

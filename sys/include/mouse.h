@@ -58,3 +58,4 @@ extern void		setcursor(Mousectl*, Cursor*);
 extern void		drawgetrect(Rectangle, int);
 extern Rectangle	getrect(int, Mousectl*);
 extern int	 		menuhit(int, Mousectl*, Menu*, Screen*);
+extern void setmenucolor(uint32_t backcolor, uint32_t highcolor, uint32_t bordercolor, uint32_t textcolor, uint32_t seltextcolor);

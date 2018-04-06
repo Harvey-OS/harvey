@@ -28,3 +28,15 @@ border(Image *im, Rectangle r, int i, Image *color, Point sp)
 	draw(im, Rect(r.max.x-i, r.min.y+i, r.max.x, r.max.y-i),
 		color, nil, Pt(sp.x+Dx(r)-i, sp.y+i));
 }
+
+void
+border3d(Image *im, Rectangle r, int i, Image *colorup, Image *colordown, Point sp) {
+	draw(im, Rect(r.min.x, r.min.y, r.max.x, r.min.y+i),
+		colorup, nil, sp);
+	draw(im, Rect(r.min.x, r.max.y-i, r.max.x, r.max.y),
+		colordown, nil, Pt(sp.x, sp.y+Dy(r)-i));
+	draw(im, Rect(r.min.x, r.min.y+i, r.min.x+i, r.max.y-i),
+		colorup, nil, Pt(sp.x, sp.y+i));
+	draw(im, Rect(r.max.x-i, r.min.y+i, r.max.x, r.max.y-i),
+		colordown, nil, Pt(sp.x+Dx(r)-i, sp.y+i));
+}
