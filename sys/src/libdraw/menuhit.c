@@ -33,7 +33,7 @@ static	Image	*text;
 static	Image	*htext;
 
 static void
-setimagemenucolors(Image	*backcolor, Image	*highcolor, Image	*bordercolor, Image	*textcolor, Image	*seltextcolor){
+setimagemenucolors(Image *backcolor, Image *highcolor, Image *bordercolor, Image *textcolor, Image *seltextcolor){
 	if (htext == back){
 		htext = nil;
 	} else {
@@ -65,11 +65,11 @@ setimagemenucolors(Image	*backcolor, Image	*highcolor, Image	*bordercolor, Image
 void
 setmenucolor(uint32_t backcolor, uint32_t highcolor, uint32_t bordercolor, uint32_t textcolor, uint32_t seltextcolor){
 	setimagemenucolors(allocimage(display, Rect(0,0,1,1), screen->chan, 1, backcolor),
-										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, highcolor),
-										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, bordercolor),
-										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, textcolor),
-										 allocimage(display, Rect(0,0,1,1), screen->chan, 1, seltextcolor)
-									 );
+	                   allocimage(display, Rect(0,0,1,1), screen->chan, 1, highcolor),
+	                   allocimage(display, Rect(0,0,1,1), screen->chan, 1, bordercolor),
+	                   allocimage(display, Rect(0,0,1,1), screen->chan, 1, textcolor),
+	                   allocimage(display, Rect(0,0,1,1), screen->chan, 1, seltextcolor)
+	                  );
 }
 
 static
