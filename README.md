@@ -40,6 +40,7 @@ _Last updated_: 10th Dec, 2018
 * [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
 * [![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
 
+
 ### Elsewhere
 
 * [Mailing list](https://groups.google.com/forum/#!forum/harvey)
@@ -54,5 +55,5 @@ Harvey is a proud member of [SFC](https://sfconservancy.org/projects/current/) a
 [![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7Q45ZGJBQZZVN)
 
 ## Licenses
-
-* [![License GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/Harvey-OS/harvey/blob/master/LICENSE)
+ 
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHarvey-OS%2Fharvey.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FHarvey-OS%2Fharvey?ref=badge_large)
