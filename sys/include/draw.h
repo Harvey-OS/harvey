@@ -57,7 +57,7 @@ enum
 
 	DNotacolor	= 0xFFFFFF00,
 	DNofill		= DNotacolor,
-	
+
 };
 
 enum
@@ -111,7 +111,7 @@ typedef enum
 } Drawop;
 
 /*
- * image channel descriptors 
+ * image channel descriptors
  */
 enum {
 	CRed = 0,
@@ -306,7 +306,7 @@ struct Font
 	Display		*display;
 	int16_t		height;	/* max height of image, interline spacing */
 	int16_t		ascent;	/* top of image to baseline */
-	int16_t		width;	/* widest so far; used in caching only */	
+	int16_t		width;	/* widest so far; used in caching only */
 	int16_t		nsub;	/* number of subfonts */
 	uint32_t		age;	/* increasing counter; used for LRU */
 	int		maxdepth;	/* maximum depth of all loaded subfonts */
@@ -467,6 +467,7 @@ extern void	arcop(Image*, Point, int, int, int, Image*, Point, int, int, Drawop)
 extern void	fillarc(Image*, Point, int, int, Image*, Point, int, int);
 extern void	fillarcop(Image*, Point, int, int, Image*, Point, int, int, Drawop);
 extern void	border(Image*, Rectangle, int, Image*, Point);
+extern void border3d(Image *im, Rectangle r, int i, Image *colorup, Image *colordown, Point sp);
 extern void	borderop(Image*, Rectangle, int, Image*, Point, Drawop);
 
 /*
@@ -507,7 +508,7 @@ extern void	unlockdisplay(Display*);
 extern int		drawlsetrefresh(uint32_t, int, void*, void*);
 
 /*
- * Predefined 
+ * Predefined
  */
 extern	uint8_t	defontdata[];
 extern	int		sizeofdefont;
