@@ -48,6 +48,7 @@
 			"iostats/build.json",
 			"iozone/fileop.json",
 			"ip/ip.json",
+			"jay/jay.json",
 			"jpg/build.json",
 			"lex/build.json",
 			"map/build.json",

@@ -2161,7 +2161,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 						*dp ^= (v ^ *dp) & lm;
 						dp++;
 					}
-					memsetb(dp, v, dx);
+					memset(dp, v, dx);
 					dp += dx;
 					*dp ^= (v ^ *dp) & rm;
 				}
@@ -2169,7 +2169,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 			return 1;
 		case 8:
 			for(y=0; y<dy; y++, dp+=dwid)
-				memsets(dp, v, dx);
+				memsetb(dp, v, dx);
 			return 1;
 		case 16:
 			p[0] = v;		/* make little endian */
