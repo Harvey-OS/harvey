@@ -1,0 +1,23 @@
+{
+	"jay": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/",
+		"Program": "jay",
+		"SourceFiles": [
+			"config.c",
+			"data.c",
+			"fsys.c",
+			"jay.c",
+			"panel.c",
+			"scrl.c",
+			"smenu.c",
+			"time.c",
+			"util.c",
+			"wctl.c",
+			"wind.c",
+			"xfid.c"
+		]
+	}
+}
