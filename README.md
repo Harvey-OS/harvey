@@ -29,7 +29,7 @@ Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob
 
 #### v0.1
 
-_Last updated_: 10th Dec, 2018
+_Last updated_: 10th Dec, 2017
 
 |   Status    | Milestone                                              | Goals |      ETA      |
 | :---------: | :----------------------------------------------------- | :---: | :-----------: |
