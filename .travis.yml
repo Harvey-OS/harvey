@@ -12,8 +12,8 @@ script:
 - ./util/ci.sh
 compiler:
 - gcc-4.8
-- gcc-5
 - gcc-6
+- gcc-7
 - clang
 - clang-3.8
 - clang-3.9
