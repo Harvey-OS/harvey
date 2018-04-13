@@ -33,7 +33,8 @@ _Last updated_: 10th Dec, 2017
 
 |   Status    | Milestone                                              | Goals |      ETA      |
 | :---------: | :----------------------------------------------------- | :---: | :-----------: |
-| In progress | [Harvey](https://github.com/orgs/Harvey-OS/projects/2) | 0 / 0 | February 2018 |
+| In progress | [Go](https://github.com/orgs/Harvey-OS/projects/1) | 1 / 0 | March 2018 |
+| Done | [Harvey](https://github.com/orgs/Harvey-OS/projects/2) | 1 / 1 | February 2018 |
 
 ### Status
 
