@@ -76,7 +76,7 @@ getuint32property(char *p){
   if (*s == '\0')
     return 0;
   strncpy(aux, s, 10);
-  aux[11] = '\0';
+  aux[10] = '\0';
   return strtoul(aux, nil, 0);
 }
 
