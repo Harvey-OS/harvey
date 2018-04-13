@@ -13,6 +13,8 @@ mkdir -p tmp
 cat <<EOF
 # We support RISC-V, but the default is x86_64 (which we call amd64 for historical reasons):
 export ARCH=amd64
+# You also need to export your C compiler flavor (gcc, clang, gcc-7...)
+export CC=gcc
 # And build:
 ./util/build
 # See \`build -h' for more information on the build tool.
