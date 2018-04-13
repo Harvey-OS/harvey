@@ -29,11 +29,12 @@ Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob
 
 #### v0.1
 
-_Last updated_: 10th Dec, 2018
+_Last updated_: 13th Feb, 2018
 
 |   Status    | Milestone                                              | Goals |      ETA      |
 | :---------: | :----------------------------------------------------- | :---: | :-----------: |
-| In progress | [Harvey](https://github.com/orgs/Harvey-OS/projects/2) | 0 / 0 | February 2018 |
+| In progress | [Go](https://github.com/orgs/Harvey-OS/projects/1) | 1 / 0 | March 2018 |
+| Done | [Harvey](https://github.com/orgs/Harvey-OS/projects/2) | 1 / 1 | February 2018 |
 
 ### Status
 
