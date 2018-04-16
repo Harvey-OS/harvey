@@ -1,0 +1,12 @@
+{
+	"libcontrol": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libjay.a",
+		"SourceFiles": [
+			"panel.c"
+		]
+	}
+}
