@@ -18,6 +18,7 @@
 #include <fcall.h>
 #include <plumb.h>
 #include <complete.h>
+#include <jay.h>
 #include "dat.h"
 #include "fns.h"
 

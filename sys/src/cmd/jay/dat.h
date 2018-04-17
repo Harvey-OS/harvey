@@ -57,7 +57,6 @@ typedef	struct	Xfid Xfid;
 typedef	struct TPanel TPanel;
 typedef struct MenuEntry MenuEntry;
 typedef struct StartMenu StartMenu;
-typedef struct Jayconfig Jayconfig;
 
 enum
 {
@@ -222,38 +221,6 @@ struct Window
 
 	Rectangle originalr;
 	int maximized;
-};
-
-struct Jayconfig{
-	// Task Panel Config
-	uint32_t taskPanelColor;
-
-	// Main Menu Config
-	uint32_t mainMenuColor;
-	uint32_t mainMenuHooverColor;
-
-	// Window Config
-	uint32_t windowTitleColor;
-	uint32_t windowTitleFontColor;
-	uint32_t windowBackgroundColor;
-	uint32_t windowInTopBorder;
-	uint32_t windowInBottomBorder;
-	uint32_t windowSelectedColor;
-	uint32_t windowScrollBarFrontColor;
-	uint32_t windowTextCursorColor;
-	uint32_t windowBackTextColor;
-	uint32_t windowFrontTextColor;
-
-	//Background
-	uint32_t backgroundColor;
-	char *backgroundimgpath;
-
-	//Menu
-	uint32_t  menuBackColor;
-	uint32_t menuHighColor;
-	uint32_t menuBorderColor;
-	uint32_t menuTextColor;
-	uint32_t menuSelTextColor;
 };
 
 int		winborder(Window*, Point);
