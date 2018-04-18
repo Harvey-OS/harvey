@@ -19,7 +19,7 @@ initjayapp(char *name){
     sysfatal("mouse error");
   }
   initdefaultconfig();
-  Widget *w = createPanel("main", screen->r, screen->r.min);
+  Widget *w = createPanel1("main", screen->r, screen->r.min);
   if (w == nil){
     sysfatal("createPanel failed");
   }

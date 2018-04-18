@@ -68,6 +68,8 @@ struct Widget {
   void (*_draw)(Widget *w, Image *dst);
 
   int (*addWidget)(Widget *me, Widget *new, Point pos);
+  int width; //ancho
+  int height;//alto
 
   int hovered;
 };
@@ -102,6 +104,5 @@ struct Label {
 Widget *initjayapp(char *name);
 void startjayapp(Widget * w);
 void initdefaultconfig();
-Widget *createWidget(char *id, Rectangle r, wtype t, void *w);
-Widget *createPanel(char *id, Rectangle r, Point p);
-Widget *createLabel(char *id, Rectangle r);
+Widget *createPanel(char *id, int height, int width, Point p);
+Widget *createLabel(char *id, int height, int width);

@@ -13,16 +13,19 @@ void _setTextLabel(Label *l, const char *t);
 char *_getTextLabel(Label *l);
 
 Widget *
-createLabel(char *id, Rectangle r){
+createLabel(char *id, int height, int width){
   Label *laux = malloc(sizeof(Label));
   if (laux == nil){
     return nil;
   }
-  Widget *w = createWidget(id, r, LABEL, laux);
+  Widget *w = createWidget(id, height, width, LABEL, laux);
   if (w == nil){
     return nil;
   }
-
+  laux->f = openfont(display, jayconfig->fontPath);
+  if (laux->f == nil){
+    return nil;
+  }
   laux->t = nil;
   laux->backColor = jayconfig->mainBackColor;
   laux->textColor = jayconfig->mainTextColor;
@@ -30,7 +33,6 @@ createLabel(char *id, Rectangle r){
   laux->d3 = 0;
   laux->up = 0;
   laux->w = w;
-  laux->f = openfont(display, jayconfig->fontPath);
   laux->gettext=_getTextLabel;
   laux->setText=_setTextLabel;
   w->_hover = _hoverLabel;
@@ -79,15 +81,19 @@ _drawLabel(Widget *w, Image *dst){
   if (l == nil){
     return;
   }
-
   if(w->i != nil){
     freeimage(w->i);
   }
   w->i = allocimage(display, w->r, RGB24, 1, l->backColor);
+  if (w->i == nil){
+    sysfatal("_drawLabel: %r");
+  }
+
   if(l->t != nil){
     //TODO: Calculate correctly the points
     string(w->i, Pt(l->border + 2, l->border + 2), w->i, Pt(l->border + 2, l->border + 2), l->f, l->t);
   }
+
   if (l->border > 0){
     if (l->d3){
       if(l->up){

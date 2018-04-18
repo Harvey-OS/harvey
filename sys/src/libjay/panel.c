@@ -11,16 +11,8 @@ void _unhoverPanel(Widget *w);
 void _drawPanel(Widget *w, Image *dst);
 int _addWidgetToPanel(Widget *me, Widget *new, Point pos);
 
-Widget *
-createPanel(char *id, Rectangle r, Point p){
-  Panel *paux = malloc(sizeof(Panel));
-  if (paux == nil){
-    return nil;
-  }
-  Widget *w = createWidget(id, r, PANEL, paux);
-  if (w == nil){
-    return nil;
-  }
+static void
+genPanel(Widget *w, Panel *paux, Point p){
   paux->w=w;
   paux->l = nil;
   paux->backColor = jayconfig->mainBackColor;
@@ -29,6 +21,33 @@ createPanel(char *id, Rectangle r, Point p){
   w->_draw=_drawPanel;
   w->addWidget=_addWidgetToPanel;
   w->p=p;
+}
+
+Widget *
+createPanel1(char *id, Rectangle r, Point p){
+  Panel *paux = malloc(sizeof(Panel));
+  if (paux == nil){
+    return nil;
+  }
+  Widget *w = createWidget1(id, r, PANEL, paux);
+  if (w == nil){
+    return nil;
+  }
+  genPanel(w, paux, p);
+  return w;
+}
+
+Widget *
+createPanel(char *id, int height, int width, Point p){
+  Panel *paux = malloc(sizeof(Panel));
+  if (paux == nil){
+    return nil;
+  }
+  Widget *w = createWidget(id, height, width, PANEL, paux);
+  if (w == nil){
+    return nil;
+  }
+  genPanel(w, paux, p);
   return w;
 }
 
@@ -82,6 +101,10 @@ _drawPanel(Widget *w, Image *dst) {
     freeimage(w->i);
   }
   w->i = allocimage(display, w->r, RGB24, 1, p->backColor);
+  if(w->i == nil){
+    sysfatal("_drawPanel: %r");
+  }
+
   for (WListElement *e=p->l; e != nil; e=e->next){
     e->w->_draw(e->w, w->i);
   }
@@ -99,10 +122,10 @@ _addWidgetToPanel(Widget *me, Widget *new, Point pos){
     return 0;
   }
 
-  real.x = me->p.x + pos.x;
-  real.y = me->p.y + pos.y;
+  real.x = me->r.min.x + pos.x;
+  real.y = me->r.min.y + pos.y;
   new->p = real;
-  new->r = Rect(new->r.min.x + real.x, new->r.min.y + real.y, new->r.max.x + real.x, new->r.max.y+ real.y);
+  new->r = Rect(real.x, real.y, real.x + new->width, real.y + new->height);
 
   if(p->l == nil){
     p->l = createWListElement(new);
