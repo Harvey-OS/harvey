@@ -45,6 +45,8 @@ struct Jayconfig{
   //Widgets
   uint32_t mainBackColor;
   uint32_t mainTextColor;
+
+  char *fontPath;
 };
 
 struct Widget {
@@ -64,6 +66,8 @@ struct Widget {
   void (*_hover)(Widget *w, Mousectl *m);
   void (*_unhover)(Widget *w);
   void (*_draw)(Widget *w, Image *dst);
+
+  int (*addWidget)(Widget *me, Widget *new, Point pos);
 
   int hovered;
 };
@@ -90,7 +94,14 @@ struct Label {
   int up; // If d3=true then up defines the efect
   uint32_t backColor;
   uint32_t textColor;
+
+  void (*setText)(Label *l, const char *text);
+  char * (*gettext)(Label *l);
 };
 
-Widget *createWidget(char *id, Rectangle r, Point p, wtype t, void *w);
+Widget *initjayapp(char *name);
+void startjayapp(Widget * w);
+void initdefaultconfig();
+Widget *createWidget(char *id, Rectangle r, wtype t, void *w);
 Widget *createPanel(char *id, Rectangle r, Point p);
+Widget *createLabel(char *id, Rectangle r);

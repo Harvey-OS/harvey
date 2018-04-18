@@ -6,6 +6,8 @@
 		"Install": "/$ARCH/lib/",
 		"Library": "libjay.a",
 		"SourceFiles": [
+			"config.c",
+			"label.c",
 			"panel.c",
 			"widget.c",
 			"window.c",

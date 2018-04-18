@@ -1,8 +1,10 @@
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
+#include <thread.h>
 #include <mouse.h>
 #include <jay.h>
+#include "fns.h"
 
 WListElement *
 createWListElement(Widget *w){

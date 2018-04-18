@@ -1,20 +1,24 @@
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
+#include <thread.h>
 #include <mouse.h>
 #include <jay.h>
 #include "fns.h"
 
 void _hoverLabel(Widget *w, Mousectl *m);
 void _unhoverLabel(Widget *w);
+void _drawLabel(Widget *w, Image *dst);
+void _setTextLabel(Label *l, const char *t);
+char *_getTextLabel(Label *l);
 
 Widget *
-createLabel(char *id, Rectangle r, Point p){
+createLabel(char *id, Rectangle r){
   Label *laux = malloc(sizeof(Label));
   if (laux == nil){
     return nil;
   }
-  Widget *w = createWidget(id, r, p, LABEL, laux);
+  Widget *w = createWidget(id, r, LABEL, laux);
   if (w == nil){
     return nil;
   }
@@ -26,8 +30,12 @@ createLabel(char *id, Rectangle r, Point p){
   laux->d3 = 0;
   laux->up = 0;
   laux->w = w;
+  laux->f = openfont(display, jayconfig->fontPath);
+  laux->gettext=_getTextLabel;
+  laux->setText=_setTextLabel;
   w->_hover = _hoverLabel;
   w->_unhover = _unhoverLabel;
+  w->_draw=_drawLabel;
   return w;
 }
 
@@ -88,8 +96,21 @@ _drawLabel(Widget *w, Image *dst){
         border3d(w->i, w->r, l->border, display->black, display->white, ZP);
       }
     } else {
-      border(w->i, w->r, l->border, w->i, ZP);
+      border(w->i, w->r, l->border, display->black, ZP);
     }
   }
   draw(dst, w->r, w->i, nil, w->p);
+}
+
+void
+_setTextLabel(Label *l, const char *t){
+  if (l->t != nil){
+    free(l->t);
+  }
+  l->t=strdup(t);
+}
+
+char *
+_getTextLabel(Label *l){
+  return strdup(l->t);
 }

@@ -422,7 +422,6 @@ Image *wht;
 //Config
 Jayconfig *jayconfig;
 
-void initdefaultconfig();
 char *getjayconfig();
 void setjayconfig(char *conf);
 void jayredraw(void);

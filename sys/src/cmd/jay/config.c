@@ -11,38 +11,6 @@
 #include "dat.h"
 #include "fns.h"
 
-void
-initdefaultconfig(){
-	jayconfig = malloc(sizeof(Jayconfig));
-	jayconfig->taskPanelColor = 0x8C7160FF;
-
-	jayconfig->mainMenuColor = 0x363533FF;
-	jayconfig->mainMenuHooverColor = 0x36A4BFFF;
-
-	jayconfig->windowTitleColor = 0x4D4D4DFF;
-	jayconfig->windowTitleFontColor = DWhite;
-	jayconfig->windowInTopBorder = 0xC4CAC8FF;
-	jayconfig->windowInBottomBorder = DPalegreygreen;
-	jayconfig->windowSelectedColor = 0xCCCCCCFF;
-	jayconfig->windowScrollBarFrontColor = DWhite;//0x999999FF;
-	jayconfig->windowTextCursorColor = DWhite;
-	jayconfig->windowBackgroundColor = DBlack;
-	jayconfig->windowBackTextColor = 0x666666FF;
-	jayconfig->windowFrontTextColor = DWhite;
-
-	jayconfig->backgroundColor = DBlack;
-	jayconfig->backgroundimgpath = "/usr/harvey/lib/background.img";
-
-	jayconfig->menuBackColor = DPalegreyblue;
-	jayconfig->menuHighColor = DGreyblue;
-	jayconfig->menuBorderColor = jayconfig->menuHighColor;
-	jayconfig->menuSelTextColor = DWhite;
-	jayconfig->menuTextColor = DWhite;
-
-	jayconfig->mainBackColor = DWhite;
-	jayconfig->mainTextColor = DBlack;
-}
-
 char *
 getjayconfig(){
   char s[1024];
