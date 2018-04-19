@@ -37,6 +37,9 @@ addWListElement(WListElement *list, Widget *w){
     return 0;
   }
   WListElement *le = createWListElement(w);
+  if(le == nil){
+    return 0;
+  }
   for(WListElement *e = list; e != nil ; e=e->next ){
     if(e->next == nil){
       e->next = le;

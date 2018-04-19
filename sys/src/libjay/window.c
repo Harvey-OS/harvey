@@ -6,6 +6,8 @@
 #include <jay.h>
 #include "fns.h"
 
+void mousethread(void* v);
+
 Mousectl *m;
 
 Widget *
@@ -39,4 +41,9 @@ startjayapp(Widget * w){
     w->_hover(w, m);
     w->_unhover(w);
   }
+}
+
+void
+mousethread(void* v){
+  
 }

@@ -19,6 +19,7 @@ genWidget(char *id, wtype t, void *w){
   wr->t=t;
   wr->w=w;
   wr->i=nil;
+  wr->hovered=0;
   wr->draw=nil;
   wr->hover=nil;
   wr->unhover=nil;
@@ -34,6 +35,11 @@ createWidget(char *id, int height, int width, wtype t, void *w){
   wr->r=ZR;
   wr->height = height;
   wr->width = width;
+  if (height < 0 || width < 0){
+    wr->autosize=1;
+  } else {
+    wr->autosize = 0;
+  }
   return wr;
 }
 
@@ -46,5 +52,6 @@ createWidget1(char *id, Rectangle r, wtype t, void *w){
   wr->r=r;
   wr->height = r.max.y - r.min.y;
   wr->width = r.max.x - r.min.x;
+  wr->autosize=0;
   return wr;
 }

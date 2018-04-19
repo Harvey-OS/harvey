@@ -5,30 +5,48 @@
 #include <mouse.h>
 #include <jay.h>
 
+void onHover(Widget *w){
+  Label *l = w->w;
+  if(w->hovered){
+    l->border=3;
+  } else {
+    l->border=1;
+  }
+}
+
+void onHover2(Widget *w){
+  Label *l = w->w;
+  if(w->hovered){
+    l->up=1;
+  } else {
+    l->up=0;
+  }
+}
+
 void
 threadmain(int argc, char *argv[]) {
-  print("Iniciando labels\n");
   Widget * w = initjayapp("labels");
   if (w==nil){
     sysfatal("Error initial panel");
   }
-  print("min: <%d><%d> Max:<%d><%d>\n", w->r.min.x, w->r.min.y, w->r.max.x, w->r.max.y);
 
-  Widget *l = createLabel("label1", 20, 50);
-  Widget *l2 = createLabel("label2", 20, 70);
+  Widget *l = createLabel("label1", -1, -1);
+  Widget *l2 = createLabel("label2", 20, 100);
 
   Label *aux = l->w;
   aux->setText(aux, "This is a label!!");
   aux->border=1;
+  l->hover=onHover;
+  l->unhover=onHover;
   w->addWidget(w, l, Pt(30,30));
-  print("min: <%d><%d> Max:<%d><%d>\n", l->r.min.x, l->r.min.y, l->r.max.x, l->r.max.y);
-  print("Point: <%d><%d>\n", l->p.x, l->p.y);
 
   aux = l2->w;
   aux->setText(aux, "Other label");
   aux->border=1;
   aux->d3=1;
-  w->addWidget(w, l, Pt(60,60));
+  l2->hover = onHover2;
+  l2->unhover = onHover2;
+  w->addWidget(w, l2, Pt(30,60));
 
   startjayapp(w);
   threadexits(nil);

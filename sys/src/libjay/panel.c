@@ -9,6 +9,7 @@
 void _hoverPanel(Widget *w, Mousectl *m);
 void _unhoverPanel(Widget *w);
 void _drawPanel(Widget *w, Image *dst);
+void _redrawPanel(Widget *w);
 int _addWidgetToPanel(Widget *me, Widget *new, Point pos);
 
 static void
@@ -19,6 +20,7 @@ genPanel(Widget *w, Panel *paux, Point p){
   w->_hover=_hoverPanel;
   w->_unhover=_unhoverPanel;
   w->_draw=_drawPanel;
+  w->_redraw=_redrawPanel;
   w->addWidget=_addWidgetToPanel;
   w->p=p;
 }
@@ -125,15 +127,34 @@ _addWidgetToPanel(Widget *me, Widget *new, Point pos){
   real.x = me->r.min.x + pos.x;
   real.y = me->r.min.y + pos.y;
   new->p = real;
-  new->r = Rect(real.x, real.y, real.x + new->width, real.y + new->height);
-
+  if (!new->autosize){
+    new->r = Rect(real.x, real.y, real.x + new->width, real.y + new->height);
+  }
   if(p->l == nil){
     p->l = createWListElement(new);
     if (p->l == nil){
       return 0;
     }
-    return 1;
+  } else if (!addWListElement(p->l, new)) {
+    return 0;
   }
+  new->father = me;
+  return 1;
+}
 
-  return addWListElement(p->l, new);
+void
+_redrawPanel(Widget *w){
+  if (w->t != PANEL){
+    return;
+  }
+  Panel *p = (Panel *)w->w;
+  if (p == nil){
+    return;
+  }
+  if (w->father==nil){
+    //I'm the main panel
+    w->_draw(w, screen);
+  } else {
+    w->father->_redraw(w->father);
+  }
 }

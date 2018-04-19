@@ -19,7 +19,7 @@ initdefaultconfig(){
 	jayconfig->windowInTopBorder = 0xC4CAC8FF;
 	jayconfig->windowInBottomBorder = DPalegreygreen;
 	jayconfig->windowSelectedColor = 0xCCCCCCFF;
-	jayconfig->windowScrollBarFrontColor = DWhite;//0x999999FF;
+	jayconfig->windowScrollBarFrontColor = DWhite;
 	jayconfig->windowTextCursorColor = DWhite;
 	jayconfig->windowBackgroundColor = DBlack;
 	jayconfig->windowBackTextColor = 0x666666FF;
@@ -37,5 +37,5 @@ initdefaultconfig(){
 	jayconfig->mainBackColor = DWhite;
 	jayconfig->mainTextColor = DBlack;
 
-	jayconfig->fontPath = "/lib/font/bit/lucm/unicode.9.font";
+	jayconfig->fontPath = "/lib/font/bit/go/Go-Mono/Go-Mono.14.font";
 }

@@ -66,12 +66,14 @@ struct Widget {
   void (*_hover)(Widget *w, Mousectl *m);
   void (*_unhover)(Widget *w);
   void (*_draw)(Widget *w, Image *dst);
+  void (*_redraw)(Widget *w);
 
   int (*addWidget)(Widget *me, Widget *new, Point pos);
   int width; //ancho
   int height;//alto
 
   int hovered;
+  int autosize;
 };
 
 struct WListElement {
