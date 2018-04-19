@@ -50,18 +50,14 @@ _hoverLabel(Widget *w, Mousectl *m){
     return;
   }
   Label *l = w->w;
-  if (l == nil){
+  if (l == nil || w->hovered){
     return;
   }
-  w->hovered = 1;
+  w->hovered=1;
   if( w->hover != nil){
     w->hover(w);
     w->_redraw(w);
     flushimage(display, 1);
-  }
-  while (ptinrect(m->xy, w->r)){
-    readmouse(m);
-    yield();
   }
 }
 

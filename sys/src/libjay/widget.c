@@ -19,6 +19,7 @@ genWidget(char *id, wtype t, void *w){
   wr->t=t;
   wr->w=w;
   wr->i=nil;
+  wr->lh=nil;
   wr->hovered=0;
   wr->draw=nil;
   wr->hover=nil;

@@ -51,7 +51,7 @@ struct Jayconfig{
 
 struct Widget {
   char *id;
-  Rectangle r; //Size
+  Rectangle r;
   Point p; //Position
   wtype t; //widget type
   void *w; //The widget
@@ -74,6 +74,8 @@ struct Widget {
 
   int hovered;
   int autosize;
+
+  Widget *lh; //last hover
 };
 
 struct WListElement {

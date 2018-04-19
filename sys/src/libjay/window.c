@@ -8,6 +8,8 @@
 
 void mousethread(void* v);
 
+const unsigned long jaystacksize = 8192;
+
 Mousectl *m;
 
 Widget *
@@ -30,20 +32,40 @@ initjayapp(char *name){
 
 void
 startjayapp(Widget * w){
+  Channel *exitchan;
   if (w == nil){
     sysfatal("startjayapp nil widget");
   }
+  exitchan = chancreate(sizeof(int), 0);
   w->_draw(w, screen);
   flushimage(display, 1);
   yield();
-  for(;;){
-    readmouse(m);
-    w->_hover(w, m);
-    w->_unhover(w);
-  }
+  threadcreate(mousethread, w, jaystacksize);
+  recv(exitchan, nil);
 }
 
 void
 mousethread(void* v){
-  
+  Widget *w = v;
+  threadsetname("mousethread");
+  enum {
+		MReshape,
+		MMouse,
+		NALT
+	};
+	static Alt alts[NALT+1];
+  alts[MReshape].c = m->resizec;
+	alts[MReshape].v = nil;
+	alts[MReshape].op = CHANRCV;
+	alts[MMouse].c = m->c;
+	alts[MMouse].v = (Mouse *)m;
+	alts[MMouse].op = CHANRCV;
+	alts[NALT].op = CHANEND;
+  for(;;){
+    switch(alt(alts)){
+      case MMouse:
+        w->_hover(w, m);
+        ;;
+    }
+  }
 }

@@ -64,20 +64,25 @@ _hoverPanel(Widget *w, Mousectl *m){
     return;
   }
   w->hovered=1;
-  if (w->hover != nil){
-    w->hover(w);
+  if(w->lh != nil){
+    if(ptinrect(m->xy, w->lh->r)){
+      if(w->lh->t == PANEL){
+        //It's a container, so we need to send again the _hover event
+        w->lh->_hover(w->lh, m);
+      }
+      return;
+    }
+    w->lh->_unhover(w->lh);
+    w->lh=nil;
   }
-  while(ptinrect(m->xy, w->r)){
-    readmouse(m);
-    for (WListElement *i=p->l; i != nil; i=i->next){
-      if(ptinrect(m->xy, i->w->r)){
-        if (!i->w->hovered){
-          i->w->_hover(i->w, m);
-          i->w->_unhover(i->w);
-        }
+  for (WListElement *i=p->l; i != nil; i=i->next){
+    if(ptinrect(m->xy, i->w->r)){
+      if (!i->w->hovered){
+        i->w->_hover(i->w, m);
+        w->lh = i->w;
+        return;
       }
     }
-    yield();
   }
 }
 
