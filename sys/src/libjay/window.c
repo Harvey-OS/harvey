@@ -65,7 +65,14 @@ mousethread(void* v){
     switch(alt(alts)){
       case MMouse:
         w->_hover(w, m);
-        ;;
+        break;
+      case MReshape:
+        if (getwindow(display, Refnone)<0){
+          sysfatal("failed to re-attach window");
+        }
+        Point d = Pt(screen->r.min.x - w->p.x, screen->r.min.y - w->p.y);
+        w->_resize(w, d);
+        break;
     }
   }
 }

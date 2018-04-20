@@ -11,6 +11,7 @@ void _unhoverPanel(Widget *w);
 void _drawPanel(Widget *w, Image *dst);
 void _redrawPanel(Widget *w);
 int _addWidgetToPanel(Widget *me, Widget *new, Point pos);
+void _resizePanel(Widget *w, Point d);
 
 static void
 genPanel(Widget *w, Panel *paux, Point p){
@@ -22,6 +23,7 @@ genPanel(Widget *w, Panel *paux, Point p){
   w->_draw=_drawPanel;
   w->_redraw=_redrawPanel;
   w->addWidget=_addWidgetToPanel;
+  w->_resize=_resizePanel;
   w->p=p;
 }
 
@@ -132,6 +134,7 @@ _addWidgetToPanel(Widget *me, Widget *new, Point pos){
   real.x = me->r.min.x + pos.x;
   real.y = me->r.min.y + pos.y;
   new->p = real;
+  new->pos = pos;
   if (!new->autosize){
     new->r = Rect(real.x, real.y, real.x + new->width, real.y + new->height);
   }
@@ -162,4 +165,24 @@ _redrawPanel(Widget *w){
   } else {
     w->father->_redraw(w->father);
   }
+}
+
+void
+_resizePanel(Widget *w, Point d){
+  if (w->t != PANEL){
+    return;
+  }
+  Panel *p = (Panel *)w->w;
+  if (p == nil){
+    return;
+  }
+  _simpleResize(w, d);
+  for (WListElement *e=p->l; e != nil; e=e->next){
+    e->w->_resize(e->w, d);
+  }
+  if(w->father == nil){
+    //I'm the main panel
+    w->_draw(w, screen);
+  }
+  flushimage(display, 1);
 }

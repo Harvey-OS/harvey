@@ -41,6 +41,7 @@ createLabel(char *id, int height, int width){
   w->_unhover = _unhoverLabel;
   w->_draw=_drawLabel;
   w->_redraw=_redrawLabel;
+  w->_resize=_simpleResize;
   return w;
 }
 
