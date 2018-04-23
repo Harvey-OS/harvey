@@ -45,8 +45,9 @@ struct Jayconfig{
   //Widgets
   uint32_t mainBackColor;
   uint32_t mainTextColor;
-
   char *fontPath;
+
+  unsigned int doubleclickTime;
 };
 
 struct Widget {
@@ -63,13 +64,21 @@ struct Widget {
   void (*unhover)(Widget *w);
   void (*draw)(Widget *w);
   void (*resize)(Widget *w);
+  void (*click)(Widget *w, Mouse *);
+  void (*dclick)(Widget *w, Mouse *);
+  void (*mpressdown)(Widget *w, Mouse *);
+  void (*mpressup)(Widget *w, Mouse *);
 
   //For internal use
-  void (*_hover)(Widget *w, Mousectl *m);
+  void (*_hover)(Widget *w, Mouse *m);
   void (*_unhover)(Widget *w);
   void (*_draw)(Widget *w, Image *dst);
   void (*_redraw)(Widget *w);
   void (*_resize)(Widget *w, Point d); //d is the vector that represents the displacement
+  void (*_click)(Widget *w, Mouse *);
+  void (*_dclick)(Widget *w, Mouse *);
+  void (*_mpressdown)(Widget *w, Mouse *);
+  void (*_mpressup)(Widget *w, Mouse *);
 
   int (*addWidget)(Widget *me, Widget *new, Point pos);
   int width; //ancho

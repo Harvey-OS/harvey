@@ -6,12 +6,16 @@
 #include <jay.h>
 #include "fns.h"
 
-void _hoverPanel(Widget *w, Mousectl *m);
+void _hoverPanel(Widget *w, Mouse *m);
 void _unhoverPanel(Widget *w);
 void _drawPanel(Widget *w, Image *dst);
 void _redrawPanel(Widget *w);
 int _addWidgetToPanel(Widget *me, Widget *new, Point pos);
 void _resizePanel(Widget *w, Point d);
+void _clickPanel(Widget *w, Mouse *m);
+void _dclickPanel(Widget *w, Mouse *m);
+void _mPressDownPanel(Widget *w, Mouse *m);
+void _mPressUpPanel(Widget *w, Mouse *m);
 
 static void
 genPanel(Widget *w, Panel *paux, Point p){
@@ -24,6 +28,10 @@ genPanel(Widget *w, Panel *paux, Point p){
   w->_redraw=_redrawPanel;
   w->addWidget=_addWidgetToPanel;
   w->_resize=_resizePanel;
+  w->_click=_clickPanel;
+  w->_dclick=_dclickPanel;
+  w->_mpressdown=_mPressDownPanel;
+  w->_mpressup=_mPressUpPanel;
   w->p=p;
 }
 
@@ -55,16 +63,20 @@ createPanel(char *id, int height, int width, Point p){
   return w;
 }
 
-void
-_hoverPanel(Widget *w, Mousectl *m){
-  if (w->t != PANEL){
-    return;
+static int
+checkPanel(Widget *w){
+  if (w == nil || w->t != PANEL || w->w == nil){
+    return 0;
   }
+  return 1;
+}
 
-  Panel *p = (Panel *)w->w;
-  if (p == nil){
+void
+_hoverPanel(Widget *w, Mouse *m){
+  if(!checkPanel(w)){
     return;
   }
+  Panel *p = (Panel *)w->w;
   w->hovered=1;
   if(w->lh != nil){
     if(ptinrect(m->xy, w->lh->r)){
@@ -90,6 +102,9 @@ _hoverPanel(Widget *w, Mousectl *m){
 
 void
 _unhoverPanel(Widget *w){
+  if(!checkPanel(w)){
+    return;
+  }
   w->hovered = 0;
   if (w->unhover != nil){
     w->unhover(w);
@@ -98,14 +113,11 @@ _unhoverPanel(Widget *w){
 
 void
 _drawPanel(Widget *w, Image *dst) {
-  if (w->t != PANEL){
+  if(!checkPanel(w)){
     return;
   }
-
   Panel *p = (Panel *)w->w;
-  if (p == nil){
-    return;
-  }
+
   if (w->i != nil){
     freeimage(w->i);
   }
@@ -123,13 +135,10 @@ _drawPanel(Widget *w, Image *dst) {
 int
 _addWidgetToPanel(Widget *me, Widget *new, Point pos){
   Point real;
-  if (me->t != PANEL){
+  if(!checkPanel(me)){
     return 0;
   }
   Panel *p = (Panel *)me->w;
-  if (p == nil){
-    return 0;
-  }
 
   real.x = me->r.min.x + pos.x;
   real.y = me->r.min.y + pos.y;
@@ -152,11 +161,7 @@ _addWidgetToPanel(Widget *me, Widget *new, Point pos){
 
 void
 _redrawPanel(Widget *w){
-  if (w->t != PANEL){
-    return;
-  }
-  Panel *p = (Panel *)w->w;
-  if (p == nil){
+  if(!checkPanel(w)){
     return;
   }
   if (w->father==nil){
@@ -169,13 +174,11 @@ _redrawPanel(Widget *w){
 
 void
 _resizePanel(Widget *w, Point d){
-  if (w->t != PANEL){
+  if(!checkPanel(w)){
     return;
   }
   Panel *p = (Panel *)w->w;
-  if (p == nil){
-    return;
-  }
+
   _simpleResize(w, d);
   for (WListElement *e=p->l; e != nil; e=e->next){
     e->w->_resize(e->w, d);
@@ -184,5 +187,81 @@ _resizePanel(Widget *w, Point d){
     //I'm the main panel
     w->_draw(w, screen);
   }
+  flushimage(display, 1);
+}
+
+void
+_clickPanel(Widget *w, Mouse *m){
+  if(!checkPanel(w)){
+    return;
+  }
+
+  w->_hover(w, m);
+
+  if(w->click != nil){
+    w->click(w, m);
+  }
+
+  if (w->lh != nil){
+    w->lh->_click(w->lh, m);
+  }
+  w->_redraw(w);
+  flushimage(display, 1);
+}
+
+void
+_dclickPanel(Widget *w, Mouse *m){
+  if(!checkPanel(w)){
+    return;
+  }
+
+  w->_hover(w, m);
+
+  if(w->dclick != nil){
+    w->dclick(w, m);
+  }
+
+  if (w->lh != nil){
+    w->lh->_dclick(w->lh, m);
+  }
+  w->_redraw(w);
+  flushimage(display, 1);
+}
+
+void
+_mPressDownPanel(Widget *w, Mouse *m){
+  if(!checkPanel(w)){
+    return;
+  }
+
+  w->_hover(w, m);
+
+  if(w->mpressdown != nil){
+    w->mpressdown(w, m);
+  }
+
+  if (w->lh != nil){
+    w->lh->_mpressdown(w->lh, m);
+  }
+  w->_redraw(w);
+  flushimage(display, 1);
+}
+
+void
+_mPressUpPanel(Widget *w, Mouse *m){
+  if(!checkPanel(w)){
+    return;
+  }
+
+  w->_hover(w, m);
+
+  if(w->mpressup != nil){
+    w->mpressup(w, m);
+  }
+
+  if (w->lh != nil){
+    w->lh->_mpressup(w->lh, m);
+  }
+  w->_redraw(w);
   flushimage(display, 1);
 }

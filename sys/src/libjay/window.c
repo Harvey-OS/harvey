@@ -47,6 +47,9 @@ startjayapp(Widget * w){
 void
 mousethread(void* v){
   Widget *w = v;
+  unsigned int msec = 0;
+  int button = 0;
+  int isdown = 0;
   threadsetname("mousethread");
   enum {
 		MReshape,
@@ -64,7 +67,26 @@ mousethread(void* v){
   for(;;){
     switch(alt(alts)){
       case MMouse:
-        w->_hover(w, m);
+        if(m->buttons != 0){
+          if(msec == 0 || button != m->buttons || (m->msec - msec) > jayconfig->doubleclickTime){
+            msec = m->msec;
+            button = m->buttons;
+            isdown = 1;
+            w->_mpressdown(w, (Mouse*)m);
+          } else if(!isdown){
+            w->_dclick(w, (Mouse *)m);
+            msec = 0;
+            button = 0;
+            isdown = 0;
+          }
+        } else if (isdown){
+          msec = m->msec;
+          w->_mpressup(w, (Mouse *)m);
+          w->_click(w, (Mouse *)m);
+          isdown=0;
+        } else {
+          w->_hover(w, (Mouse *)m);
+        }
         break;
       case MReshape:
         if (getwindow(display, Refnone)<0){

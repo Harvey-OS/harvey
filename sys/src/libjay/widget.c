@@ -22,9 +22,21 @@ genWidget(char *id, wtype t, void *w){
   wr->lh=nil;
   wr->hovered=0;
   wr->draw=nil;
+  wr->_draw=nil;
+  wr->_redraw=nil;
   wr->hover=nil;
+  wr->_hover=nil;
   wr->unhover=nil;
+  wr->_unhover=nil;
   wr->resize=nil;
+  wr->click=nil;
+  wr->_click=nil;
+  wr->dclick=nil;
+  wr->_dclick=nil;
+  wr->mpressdown=nil;
+  wr->_mpressdown=nil;
+  wr->mpressup=nil;
+  wr->_mpressup=nil;
   return wr;
 }
 

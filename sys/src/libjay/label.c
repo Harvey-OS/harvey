@@ -6,13 +6,17 @@
 #include <jay.h>
 #include "fns.h"
 
-void _hoverLabel(Widget *w, Mousectl *m);
+void _hoverLabel(Widget *w, Mouse *m);
 void _unhoverLabel(Widget *w);
 void _drawLabel(Widget *w, Image *dst);
 void _redrawLabel(Widget *w);
 void _setTextLabel(Label *l, const char *t);
 char *_getTextLabel(Label *l);
 static Rectangle autosizeLabel(Widget *w);
+void _clickLabel(Widget *w, Mouse *m);
+void _dclickLabel(Widget *w, Mouse *m);
+void _mPressDownLabel(Widget *w, Mouse *m);
+void _mPressUpLabel(Widget *w, Mouse *m);
 
 Widget *
 createLabel(char *id, int height, int width){
@@ -42,18 +46,27 @@ createLabel(char *id, int height, int width){
   w->_draw=_drawLabel;
   w->_redraw=_redrawLabel;
   w->_resize=_simpleResize;
+  w->_click=_clickLabel;
+  w->_dclick=_dclickLabel;
+  w->_mpressdown=_mPressDownLabel;
+  w->_mpressup=_mPressUpLabel;
   return w;
 }
 
+static int
+checkLabel(Widget *w){
+  if (w == nil || w->t != LABEL || w->w == nil){
+    return 0;
+  }
+  return 1;
+}
+
 void
-_hoverLabel(Widget *w, Mousectl *m){
-  if (w->t != LABEL){
+_hoverLabel(Widget *w, Mouse *m){
+  if(!checkLabel(w)){
     return;
   }
-  Label *l = w->w;
-  if (l == nil || w->hovered){
-    return;
-  }
+
   w->hovered=1;
   if( w->hover != nil){
     w->hover(w);
@@ -64,13 +77,10 @@ _hoverLabel(Widget *w, Mousectl *m){
 
 void
 _unhoverLabel(Widget *w){
-  if (w->t != LABEL){
+  if(!checkLabel(w)){
     return;
   }
-  Label *l = w->w;
-  if (l == nil){
-    return;
-  }
+
   w->hovered = 0;
   if (w->unhover != nil){
     w->unhover(w);
@@ -81,13 +91,11 @@ _unhoverLabel(Widget *w){
 
 void
 _drawLabel(Widget *w, Image *dst){
-  if (w->t != LABEL){
+  if(!checkLabel(w)){
     return;
   }
   Label *l = w->w;
-  if (l == nil){
-    return;
-  }
+
   if(w->i != nil){
     freeimage(w->i);
   }
@@ -132,14 +140,10 @@ _drawLabel(Widget *w, Image *dst){
 
 void
 _redrawLabel(Widget *w){
-  if (w->t != LABEL){
+  if(!checkLabel(w)){
     return;
   }
 
-  Panel *p = (Panel *)w->w;
-  if (p == nil){
-    return;
-  }
   w->father->_redraw(w->father);
 }
 
@@ -159,13 +163,11 @@ _getTextLabel(Label *l){
 static Rectangle
 autosizeLabel(Widget *w){
   int fh, fw; //Final heigh, final width
-  if (w->t != LABEL){
+  if(!checkLabel(w)){
     return ZR;
   }
   Label *l = w->w;
-  if (l == nil){
-    return ZR;
-  }
+
   fh = w->height;
   fw = w->width;
   if (l->t == nil || strcmp("", l->t) == 0){
@@ -185,4 +187,48 @@ autosizeLabel(Widget *w){
     }
   }
   return Rect(w->p.x, w->p.y, w->p.x + fw, w->p.y + fh);
+}
+
+void
+_clickLabel(Widget *w, Mouse *m){
+  if(!checkLabel(w)){
+    return;
+  }
+
+  if(w->click != nil){
+    w->click(w, m);
+  }
+}
+
+void
+_dclickLabel(Widget *w, Mouse *m){
+  if(!checkLabel(w)){
+    return;
+  }
+
+  if(w->dclick != nil){
+    w->dclick(w, m);
+  }
+}
+
+void
+_mPressDownLabel(Widget *w, Mouse *m){
+  if(!checkLabel(w)){
+    return;
+  }
+
+  if(w->mpressdown != nil){
+    w->mpressdown(w, m);
+  }
+}
+
+void
+_mPressUpLabel(Widget *w, Mouse *m){
+  if(!checkLabel(w)){
+    return;
+  }
+
+  if(w->mpressup != nil){
+    w->mpressup(w, m);
+  }
 }

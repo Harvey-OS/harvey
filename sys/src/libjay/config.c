@@ -38,4 +38,5 @@ initdefaultconfig(){
 	jayconfig->mainTextColor = DBlack;
 
 	jayconfig->fontPath = "/lib/font/bit/go/Go-Mono/Go-Mono.14.font";
+	jayconfig->doubleclickTime = 500;
 }
