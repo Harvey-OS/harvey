@@ -55,7 +55,7 @@ createLabel(char *id, int height, int width){
 
 static int
 checkLabel(Widget *w){
-  if (w == nil || w->t != LABEL || w->w == nil){
+  if (w == nil || w->t != LABEL || w->w == nil || !w->visible){
     return 0;
   }
   return 1;

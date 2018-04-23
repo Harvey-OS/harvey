@@ -47,6 +47,10 @@ void onClick(Widget *w, Mouse *m){
   }
 }
 
+void onClickDissapear(Widget *w, Mouse *m){
+  w->visible=0;
+}
+
 void onDClick(Widget *w, Mouse *m){
   Label *l = w->w;
   l->setText(l, "Double click");
@@ -71,6 +75,7 @@ threadmain(int argc, char *argv[]) {
 
   Widget *l = createLabel("label1", -1, -1);
   Widget *l2 = createLabel("label2", 20, 120);
+  Widget *l3 = createLabel("label3", 20, 200);
 
   Label *aux = l->w;
   aux->setText(aux, "This is a label with autosize");
@@ -89,6 +94,11 @@ threadmain(int argc, char *argv[]) {
   l2->hover = onHover2;
   l2->unhover = onHover2;
   w->addWidget(w, l2, Pt(30,60));
+
+  aux = l3->w;
+  aux->setText(aux, "Click on me to dissapear");
+  l3->click=onClickDissapear;
+  w->addWidget(w, l3, Pt(30, 90));
 
   startjayapp(w);
   threadexits(nil);

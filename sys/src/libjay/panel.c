@@ -65,7 +65,7 @@ createPanel(char *id, int height, int width, Point p){
 
 static int
 checkPanel(Widget *w){
-  if (w == nil || w->t != PANEL || w->w == nil){
+  if (w == nil || w->t != PANEL || w->w == nil || !w->visible){
     return 0;
   }
   return 1;
@@ -127,7 +127,9 @@ _drawPanel(Widget *w, Image *dst) {
   }
 
   for (WListElement *e=p->l; e != nil; e=e->next){
-    e->w->_draw(e->w, w->i);
+    if(e->w->visible){
+      e->w->_draw(e->w, w->i);
+    }
   }
   draw(dst, w->r, w->i, nil, w->p);
 }
@@ -135,7 +137,7 @@ _drawPanel(Widget *w, Image *dst) {
 int
 _addWidgetToPanel(Widget *me, Widget *new, Point pos){
   Point real;
-  if(!checkPanel(me)){
+  if (me == nil || me->t != PANEL || me->w == nil){
     return 0;
   }
   Panel *p = (Panel *)me->w;
