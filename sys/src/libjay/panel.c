@@ -98,6 +98,10 @@ _hoverPanel(Widget *w, Mouse *m){
       }
     }
   }
+  if(w->hover!=nil){
+    w->hover(w);
+    w->_redraw(w);
+  }
 }
 
 void
@@ -108,6 +112,7 @@ _unhoverPanel(Widget *w){
   w->hovered = 0;
   if (w->unhover != nil){
     w->unhover(w);
+    w->_redraw(w);
   }
 }
 
@@ -166,8 +171,7 @@ _redrawPanel(Widget *w){
   if(!checkPanel(w)){
     return;
   }
-  if (w->father==nil){
-    //I'm the main panel
+  if(w->father==nil || !w->autosize){
     w->_draw(w, screen);
   } else {
     w->father->_redraw(w->father);
@@ -200,15 +204,16 @@ _clickPanel(Widget *w, Mouse *m){
 
   w->_hover(w, m);
 
-  if(w->click != nil){
-    w->click(w, m);
-  }
-
-  if (w->lh != nil){
+  if (w->lh == nil){
+    //Click on the panel
+    if(w->click != nil){
+      w->click(w, m);
+      w->_redraw(w);
+    }
+  }else{
+    //Click on a widget over the panel
     w->lh->_click(w->lh, m);
   }
-  w->_redraw(w);
-  flushimage(display, 1);
 }
 
 void
@@ -219,15 +224,16 @@ _dclickPanel(Widget *w, Mouse *m){
 
   w->_hover(w, m);
 
-  if(w->dclick != nil){
-    w->dclick(w, m);
-  }
-
-  if (w->lh != nil){
+  if (w->lh == nil){
+    //Click on the panel
+    if(w->dclick != nil){
+      w->dclick(w, m);
+      w->_redraw(w);
+    }
+  }else{
+    //Click on a widget over the panel
     w->lh->_dclick(w->lh, m);
   }
-  w->_redraw(w);
-  flushimage(display, 1);
 }
 
 void
@@ -238,15 +244,16 @@ _mPressDownPanel(Widget *w, Mouse *m){
 
   w->_hover(w, m);
 
-  if(w->mpressdown != nil){
-    w->mpressdown(w, m);
-  }
-
-  if (w->lh != nil){
+  if (w->lh == nil){
+    //Press down mouse button on the panel
+    if(w->mpressdown != nil){
+      w->mpressdown(w, m);
+      w->_redraw(w);
+    }
+  }else{
+    //Press down mouse button on a widget over the panel
     w->lh->_mpressdown(w->lh, m);
   }
-  w->_redraw(w);
-  flushimage(display, 1);
 }
 
 void
@@ -257,13 +264,14 @@ _mPressUpPanel(Widget *w, Mouse *m){
 
   w->_hover(w, m);
 
-  if(w->mpressup != nil){
-    w->mpressup(w, m);
-  }
-
-  if (w->lh != nil){
+  if (w->lh == nil){
+    //Press down mouse button on the panel
+    if(w->mpressup != nil){
+      w->mpressup(w, m);
+      w->_redraw(w);
+    }
+  }else{
+    //Press down mouse button on a widget over the panel
     w->lh->_mpressup(w->lh, m);
   }
-  w->_redraw(w);
-  flushimage(display, 1);
 }

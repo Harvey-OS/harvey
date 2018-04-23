@@ -55,7 +55,7 @@ createLabel(char *id, int height, int width){
 
 static int
 checkLabel(Widget *w){
-  if (w == nil || w->t != LABEL || w->w == nil || !w->visible){
+  if (w == nil || w->t != LABEL || w->w == nil || !w->visible || w->father == nil){
     return 0;
   }
   return 1;
@@ -71,7 +71,6 @@ _hoverLabel(Widget *w, Mouse *m){
   if( w->hover != nil){
     w->hover(w);
     w->_redraw(w);
-    flushimage(display, 1);
   }
 }
 
@@ -84,9 +83,8 @@ _unhoverLabel(Widget *w){
   w->hovered = 0;
   if (w->unhover != nil){
     w->unhover(w);
+    w->_redraw(w);
   }
-  w->_redraw(w);
-  flushimage(display, 1);
 }
 
 void
@@ -143,8 +141,14 @@ _redrawLabel(Widget *w){
   if(!checkLabel(w)){
     return;
   }
-
-  w->father->_redraw(w->father);
+  if (w->autosize){
+    Rectangle r = autosizeLabel(w);
+    if(!eqrect(r, w->r)){
+      // The geometry has changed, so we need to redraw all
+      w->father->_redraw(w->father);
+    }
+  }
+  w->_draw(w, screen);
 }
 
 void
@@ -153,6 +157,7 @@ _setTextLabel(Label *l, const char *t){
     free(l->t);
   }
   l->t=strdup(t);
+  l->w->_redraw(l->w);
 }
 
 char *
@@ -197,6 +202,7 @@ _clickLabel(Widget *w, Mouse *m){
 
   if(w->click != nil){
     w->click(w, m);
+    w->_redraw(w);
   }
 }
 
@@ -208,6 +214,7 @@ _dclickLabel(Widget *w, Mouse *m){
 
   if(w->dclick != nil){
     w->dclick(w, m);
+    w->_redraw(w);
   }
 }
 
@@ -219,6 +226,7 @@ _mPressDownLabel(Widget *w, Mouse *m){
 
   if(w->mpressdown != nil){
     w->mpressdown(w, m);
+    w->_redraw(w);
   }
 }
 
@@ -230,5 +238,6 @@ _mPressUpLabel(Widget *w, Mouse *m){
 
   if(w->mpressup != nil){
     w->mpressup(w, m);
+    w->_redraw(w);
   }
 }
