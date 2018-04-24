@@ -17,6 +17,7 @@ void _clickLabel(Widget *w, Mouse *m);
 void _dclickLabel(Widget *w, Mouse *m);
 void _mPressDownLabel(Widget *w, Mouse *m);
 void _mPressUpLabel(Widget *w, Mouse *m);
+void _changeLabel(Widget *w);
 
 Widget *
 createLabel(char *id, int height, int width){
@@ -50,6 +51,7 @@ createLabel(char *id, int height, int width){
   w->_dclick=_dclickLabel;
   w->_mpressdown=_mPressDownLabel;
   w->_mpressup=_mPressUpLabel;
+  w->_change=_changeLabel;
   return w;
 }
 
@@ -156,9 +158,14 @@ _redrawLabel(Widget *w){
 void
 _setTextLabel(Label *l, const char *t){
   if (l->t != nil){
+    if(strcmp(l->t, t) == 0){
+      // If the text is equal, do nothing
+      return;
+    }
     free(l->t);
   }
   l->t=strdup(t);
+  l->w->_change(l->w);
   l->w->_redraw(l->w);
 }
 
@@ -241,5 +248,15 @@ _mPressUpLabel(Widget *w, Mouse *m){
   if(w->mpressup != nil){
     w->mpressup(w, m);
     w->_redraw(w);
+  }
+}
+
+void
+_changeLabel(Widget *w){
+  if(!checkLabel(w)){
+    return;
+  }
+  if (w->change != nil){
+    w->change(w);
   }
 }

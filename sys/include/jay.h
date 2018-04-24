@@ -52,14 +52,12 @@ struct Jayconfig{
 
 struct Widget {
   char *id;
-  Rectangle r;
-  Point p; //Real position
-  Point pos; //Relative position
-  wtype t; //widget type
-  void *w; //The widget
-  Widget *father; //Container
-  Image *i;
-  int visible;
+
+  //Methods
+  int (*addWidget)(Widget *me, Widget *new, Point pos);
+  void (*setVisible)(Widget *w, int visible);
+
+  //User Events:
   void (*hover)(Widget *w);
   void (*unhover)(Widget *w);
   void (*draw)(Widget *w);
@@ -68,6 +66,7 @@ struct Widget {
   void (*dclick)(Widget *w, Mouse *);
   void (*mpressdown)(Widget *w, Mouse *);
   void (*mpressup)(Widget *w, Mouse *);
+  void (*change)(Widget *w);
 
   //For internal use
   void (*_hover)(Widget *w, Mouse *m);
@@ -79,15 +78,20 @@ struct Widget {
   void (*_dclick)(Widget *w, Mouse *);
   void (*_mpressdown)(Widget *w, Mouse *);
   void (*_mpressup)(Widget *w, Mouse *);
+  void (*_change)(Widget *w);
 
-  int (*addWidget)(Widget *me, Widget *new, Point pos);
-  void (*setVisible)(Widget *w, int visible);
   int width; //ancho
   int height;//alto
-
   int hovered;
   int autosize;
-
+  Rectangle r;
+  Point p; //Real position
+  Point pos; //Relative position
+  wtype t; //widget type
+  void *w; //The widget
+  Widget *father; //Container
+  Image *i;
+  int visible;
   Widget *lh; //last hover
 };
 

@@ -47,6 +47,30 @@ void onClick(Widget *w, Mouse *m){
   }
 }
 
+void onClick4(Widget *w, Mouse *m){
+  static int i = 1;
+  Label *l = w->w;
+  if (i){
+    l->setText(l, "Click me to change text and color");
+    i=0;
+  } else {
+    l->setText(l, "Click to change text and color!");
+    i=1;
+  }
+}
+
+void onChange(Widget *w){
+  static int i=1;
+  Label *l = w->w;
+  if (i) {
+    l->textColor=DRed;
+    i=0;
+  } else {
+    l->textColor=DBlack;
+    i=1;
+  }
+}
+
 void onClickDissapear(Widget *w, Mouse *m){
   w->setVisible(w, 0);
 }
@@ -76,6 +100,7 @@ threadmain(int argc, char *argv[]) {
   Widget *l = createLabel("label1", -1, -1);
   Widget *l2 = createLabel("label2", 20, 120);
   Widget *l3 = createLabel("label3", 20, 200);
+  Widget *l4 = createLabel("label4", 20, 200);
 
   Label *aux = l->w;
   aux->setText(aux, "This is a label with autosize");
@@ -99,6 +124,12 @@ threadmain(int argc, char *argv[]) {
   aux->setText(aux, "Click on me to dissapear");
   l3->click=onClickDissapear;
   w->addWidget(w, l3, Pt(30, 90));
+
+  aux = l4->w;
+  aux->setText(aux, "Click to change text and color");
+  l4->change=onChange;
+  l4->click=onClick4;
+  w->addWidget(w, l4, Pt(30, 120));
 
   startjayapp(w);
   threadexits(nil);

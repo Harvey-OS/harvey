@@ -40,6 +40,8 @@ genWidget(char *id, wtype t, void *w){
   wr->_mpressdown=nil;
   wr->mpressup=nil;
   wr->_mpressup=nil;
+  wr->change=nil;
+  wr->_change=nil;
   wr->setVisible=setVisible;
   return wr;
 }
