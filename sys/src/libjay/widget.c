@@ -6,6 +6,7 @@
 #include <jay.h>
 #include "fns.h"
 
+void setVisible(Widget *w, int visible);
 
 static Widget *
 genWidget(char *id, wtype t, void *w){
@@ -20,6 +21,7 @@ genWidget(char *id, wtype t, void *w){
   wr->w=w;
   wr->i=nil;
   wr->lh=nil;
+  wr->father=nil;
   wr->hovered=0;
   wr->visible=1;
   wr->draw=nil;
@@ -38,6 +40,7 @@ genWidget(char *id, wtype t, void *w){
   wr->_mpressdown=nil;
   wr->mpressup=nil;
   wr->_mpressup=nil;
+  wr->setVisible=setVisible;
   return wr;
 }
 
@@ -69,4 +72,26 @@ createWidget1(char *id, Rectangle r, wtype t, void *w){
   wr->width = r.max.x - r.min.x;
   wr->autosize=0;
   return wr;
+}
+
+static int
+checkWidget(Widget *w){
+  if (w == nil || w->w == nil || w->father == nil){
+    return 0;
+  }
+  return 1;
+}
+
+void
+setVisible(Widget *w, int visible){
+  if(!checkWidget(w)){
+    return;
+  }
+  w->visible=visible;
+  if (visible){
+    w->_redraw(w);
+  } else {
+    //To dissapear we need to redraw the father
+    w->father->_redraw(w->father);
+  }
 }

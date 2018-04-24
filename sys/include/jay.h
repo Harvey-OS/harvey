@@ -81,6 +81,7 @@ struct Widget {
   void (*_mpressup)(Widget *w, Mouse *);
 
   int (*addWidget)(Widget *me, Widget *new, Point pos);
+  void (*setVisible)(Widget *w, int visible);
   int width; //ancho
   int height;//alto
 

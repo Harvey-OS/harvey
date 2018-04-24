@@ -55,7 +55,7 @@ createLabel(char *id, int height, int width){
 
 static int
 checkLabel(Widget *w){
-  if (w == nil || w->t != LABEL || w->w == nil || !w->visible || w->father == nil){
+  if (w == nil || w->t != LABEL || w->w == nil){
     return 0;
   }
   return 1;
@@ -89,9 +89,10 @@ _unhoverLabel(Widget *w){
 
 void
 _drawLabel(Widget *w, Image *dst){
-  if(!checkLabel(w)){
+  if(!checkLabel(w) || w->father == nil || !w->visible || !w->father->visible){
     return;
   }
+
   Label *l = w->w;
 
   if(w->i != nil){
@@ -134,11 +135,12 @@ _drawLabel(Widget *w, Image *dst){
   if(w->draw != nil){
     w->draw(w);
   }
+  flushimage(display, 1);
 }
 
 void
 _redrawLabel(Widget *w){
-  if(!checkLabel(w)){
+  if(!checkLabel(w) || w->father == nil || !w->visible || !w->father->visible){
     return;
   }
   if (w->autosize){

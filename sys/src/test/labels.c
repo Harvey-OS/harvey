@@ -48,7 +48,7 @@ void onClick(Widget *w, Mouse *m){
 }
 
 void onClickDissapear(Widget *w, Mouse *m){
-  w->visible=0;
+  w->setVisible(w, 0);
 }
 
 void onDClick(Widget *w, Mouse *m){

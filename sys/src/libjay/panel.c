@@ -137,6 +137,7 @@ _drawPanel(Widget *w, Image *dst) {
     }
   }
   draw(dst, w->r, w->i, nil, w->p);
+  flushimage(display, 1);
 }
 
 int
