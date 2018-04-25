@@ -16,6 +16,7 @@
 #include <keyboard.h>
 #include <frame.h>
 #include <fcall.h>
+#include <jay.h>
 #include "dat.h"
 #include "fns.h"
 

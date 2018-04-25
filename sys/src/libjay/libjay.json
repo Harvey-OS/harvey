@@ -1,0 +1,18 @@
+{
+	"libcontrol": {
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libjay.a",
+		"SourceFiles": [
+			"config.c",
+			"label.c",
+			"panel.c",
+			"utils.c",
+			"widget.c",
+			"window.c",
+			"wlist.c"
+		]
+	}
+}

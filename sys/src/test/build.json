@@ -1,0 +1,13 @@
+{
+  "Tests": {
+		"CFlags": [],
+		"Include": [
+			"../cmd/cmd.json"
+		],
+    "Install": "/usr/harvey/",
+    "Program": "labels",
+    "SourceFiles": [
+			"labels.c"
+		]
+}
+}
