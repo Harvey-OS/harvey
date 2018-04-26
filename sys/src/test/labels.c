@@ -21,8 +21,9 @@ void onClick_L3(Widget *w, Mouse *m);
 void onClick_L4(Widget *w, Mouse *m);
 void onChange_L4(Widget *w);
 
-void onPress(Widget *w, Mouse *m);
-void onRelease(Widget *w, Mouse *m);
+void onClick_L5(Widget *w, Mouse *m);
+
+void onClick_L6(Widget *w, Mouse *m);
 
 void
 threadmain(int argc, char *argv[]) {
@@ -35,6 +36,8 @@ threadmain(int argc, char *argv[]) {
   Widget *l2 = createLabel("label2", 20, 120);
   Widget *l3 = createLabel("label3", 20, 200);
   Widget *l4 = createLabel("label4", 20, 270);
+  Widget *l5 = createLabel("label5", 20, 200);
+  Widget *l6 = createLabel("label6", -1, -1);
 
   Label *aux = l->w;
   aux->setText(aux, "This is a label with autosize");
@@ -63,6 +66,16 @@ threadmain(int argc, char *argv[]) {
   l4->change=onChange_L4;
   l4->click=onClick_L4;
   w->addWidget(w, l4, Pt(30, 120));
+
+  aux = l5->w;
+  aux->setText(aux, "Delete Label");
+  l5->click=onClick_L5;
+  w->addWidget(w, l5, Pt(30, 150));
+
+  aux = l6->w;
+  aux->setText(aux, "List widgets");
+  l6->click=onClick_L6;
+  w->addWidget(w, l6, Pt(30, 180));
 
   startjayapp(w);
   threadexits(nil);
@@ -152,4 +165,19 @@ void onPress(Widget *w, Mouse *m){
 void onRelease(Widget *w, Mouse *m){
   Label *l = w->w;
   l->border.size=1;
+}
+
+void onClick_L5(Widget *w, Mouse *m){
+  w->father->deleteWidget(w->father, w->id);
+}
+
+void onClick_L6(Widget *w, Mouse *m){
+  char buf[512]="";
+  char **l=nil;
+  int n = w->father->listWidgets(w->father, &l);
+  for (int i = 0; i<n; i++){
+    sprint(buf, "%s%s ",buf, *(l+i));
+  }
+  Label *lbl = w->w;
+  lbl->setText(lbl, buf);
 }

@@ -56,7 +56,12 @@ struct Widget {
 
   //Methods
   int (*addWidget)(Widget *me, Widget *new, Point pos);
+  Widget *(*getWidget)(Widget *me, char *id);
+  Widget *(*extractWidget)(Widget *me, char *id);
+  int  (*listWidgets)(Widget *me, char ***list);
+  void (*deleteWidget)(Widget *me, char *id);
   void (*setVisible)(Widget *w, int visible);
+  void (*freeWidget)(Widget *w);
 
   //User Events:
   void (*hover)(Widget *w);
