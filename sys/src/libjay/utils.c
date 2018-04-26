@@ -15,3 +15,8 @@ void _simpleResize(Widget *w, Point d){
     w->resize(w);
   }
 }
+
+Border createBorder(int size, int _3D, int up){
+  Border b = {size, _3D, up};
+  return b;
+}

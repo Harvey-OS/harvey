@@ -38,7 +38,7 @@ threadmain(int argc, char *argv[]) {
 
   Label *aux = l->w;
   aux->setText(aux, "This is a label with autosize");
-  aux->border=1;
+  aux->border=createBorder(1, 0, 0);
   l->hover=onHover_L1;
   l->unhover=onHover_L1;
   l->click=onClick_L1;
@@ -46,8 +46,7 @@ threadmain(int argc, char *argv[]) {
 
   aux = l2->w;
   aux->setText(aux, "Click me");
-  aux->border=1;
-  aux->d3=1;
+  aux->border=createBorder(1, 1, 0);
   l2->click=onClick_L2;
   l2->dclick=onDClick_L2;
   l2->hover = onHover_L2;
@@ -73,18 +72,18 @@ threadmain(int argc, char *argv[]) {
 void onHover_L1(Widget *w){
   Label *l = w->w;
   if(w->hovered){
-    l->border=3;
+    l->border.size=3;
   } else {
-    l->border=1;
+    l->border.size=1;
   }
 }
 
 void onHover_L2(Widget *w){
   Label *l = w->w;
   if(w->hovered){
-    l->up=1;
+    l->border.up=1;
   } else {
-    l->up=0;
+    l->border.up=0;
   }
 }
 
@@ -147,10 +146,10 @@ void onDClick_L2(Widget *w, Mouse *m){
 
 void onPress(Widget *w, Mouse *m){
   Label *l = w->w;
-  l->border=0;
+  l->border.size=0;
 }
 
 void onRelease(Widget *w, Mouse *m){
   Label *l = w->w;
-  l->border=1;
+  l->border.size=1;
 }

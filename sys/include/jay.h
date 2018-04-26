@@ -4,6 +4,7 @@ typedef struct Widget Widget;
 typedef struct WListElement WListElement;
 typedef struct Panel Panel;
 typedef struct Label Label;
+typedef struct Border Border;
 typedef enum wtype wtype;
 
 enum wtype{
@@ -101,6 +102,12 @@ struct WListElement {
   Widget *w;
 };
 
+struct Border{
+  int size;
+  int _3d; // True if border is 3D
+  int up; // Up or Down 3D effect
+};
+
 struct Panel {
   Widget *w;
   uint32_t backColor;
@@ -112,9 +119,7 @@ struct Label {
   char *t;
   Font *f;
 
-  int border;
-  int d3; // 3D Border true/false
-  int up; // If d3=true then up defines the efect
+  Border border;
   uint32_t backColor;
   uint32_t textColor;
 
@@ -125,5 +130,6 @@ struct Label {
 Widget *initjayapp(char *name);
 void startjayapp(Widget * w);
 void initdefaultconfig();
+Border createBorder(int size, int _3D, int up);
 Widget *createPanel(char *id, int height, int width, Point p);
 Widget *createLabel(char *id, int height, int width);
