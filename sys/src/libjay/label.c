@@ -18,6 +18,7 @@ void _dclickLabel(Widget *w, Mouse *m);
 void _mPressDownLabel(Widget *w, Mouse *m);
 void _mPressUpLabel(Widget *w, Mouse *m);
 void _changeLabel(Widget *w);
+void _freeLabel(Widget *w);
 
 Widget *
 createLabel(char *id, int height, int width){
@@ -36,9 +37,7 @@ createLabel(char *id, int height, int width){
   laux->t = nil;
   laux->backColor = jayconfig->mainBackColor;
   laux->textColor = jayconfig->mainTextColor;
-  laux->border = 0;
-  laux->d3 = 0;
-  laux->up = 0;
+  laux->border = createBorder(0, 0, 0);
   laux->w = w;
   laux->gettext=_getTextLabel;
   laux->setText=_setTextLabel;
@@ -52,6 +51,7 @@ createLabel(char *id, int height, int width){
   w->_mpressdown=_mPressDownLabel;
   w->_mpressup=_mPressUpLabel;
   w->_change=_changeLabel;
+  w->freeWidget=_freeLabel;
   return w;
 }
 
@@ -113,24 +113,24 @@ _drawLabel(Widget *w, Image *dst){
 
   if(l->t != nil){
     Image *i = allocimage(display, Rect(0,0,1,1), RGB24, 1, l->textColor);
-    Rectangle r = insetrect(w->r, l->border);
+    Rectangle r = insetrect(w->r, l->border.size);
     Point s = stringsize(l->f, l->t);
     Point p = Pt(r.min.x, r.min.y + ((Dy(r)/2) - (s.y/2) + 1) );
     string(w->i, p, i, p, l->f, l->t);
     freeimage(i);
   }
 
-  if (l->border > 0){
-    if (l->d3){
+  if (l->border.size > 0){
+    if (l->border._3d){
       Image *i=allocimage(display, Rect(0,0,1,1), RGB24, 1, 0xCCCCCCFF);
-      if(l->up){
-        border3d(w->i, w->r, l->border, i, display->black, ZP);
+      if(l->border.up){
+        border3d(w->i, w->r, l->border.size, i, display->black, ZP);
       } else {
-        border3d(w->i, w->r, l->border, display->black, i, ZP);
+        border3d(w->i, w->r, l->border.size, display->black, i, ZP);
       }
       freeimage(i);
     } else {
-      border(w->i, w->r, l->border, display->black, ZP);
+      border(w->i, w->r, l->border.size, display->black, ZP);
     }
   }
   draw(dst, w->r, w->i, nil, w->p);
@@ -194,10 +194,10 @@ autosizeLabel(Widget *w){
   } else {
     Point p = stringsize(l->f, l->t);
     if (fh<0){
-      fh = p.y + (2*l->border); //2*border because is a box, we have 2 sides in this axis.
+      fh = p.y + (2*l->border.size); //2*border because is a box, we have 2 sides in this axis.
     }
     if(fw<0){
-      fw = p.x + (2*l->border); //2*border because is a box, we have 2 sides in this axis.
+      fw = p.x + (2*l->border.size); //2*border because is a box, we have 2 sides in this axis.
     }
   }
   return Rect(w->p.x, w->p.y, w->p.x + fw, w->p.y + fh);
@@ -259,4 +259,17 @@ _changeLabel(Widget *w){
   if (w->change != nil){
     w->change(w);
   }
+}
+
+void
+_freeLabel(Widget *w){
+  if (!checkLabel(w)){
+    return;
+  }
+  Label *l = w->w;
+  free(l->t);
+  freefont(l->f);
+  free(l);
+  w->w=nil;
+  freeWidget(w);
 }

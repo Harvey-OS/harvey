@@ -21,8 +21,9 @@ void onClick_L3(Widget *w, Mouse *m);
 void onClick_L4(Widget *w, Mouse *m);
 void onChange_L4(Widget *w);
 
-void onPress(Widget *w, Mouse *m);
-void onRelease(Widget *w, Mouse *m);
+void onClick_L5(Widget *w, Mouse *m);
+
+void onClick_L6(Widget *w, Mouse *m);
 
 void
 threadmain(int argc, char *argv[]) {
@@ -35,10 +36,12 @@ threadmain(int argc, char *argv[]) {
   Widget *l2 = createLabel("label2", 20, 120);
   Widget *l3 = createLabel("label3", 20, 200);
   Widget *l4 = createLabel("label4", 20, 270);
+  Widget *l5 = createLabel("label5", 20, 200);
+  Widget *l6 = createLabel("label6", -1, -1);
 
   Label *aux = l->w;
   aux->setText(aux, "This is a label with autosize");
-  aux->border=1;
+  aux->border=createBorder(1, 0, 0);
   l->hover=onHover_L1;
   l->unhover=onHover_L1;
   l->click=onClick_L1;
@@ -46,8 +49,7 @@ threadmain(int argc, char *argv[]) {
 
   aux = l2->w;
   aux->setText(aux, "Click me");
-  aux->border=1;
-  aux->d3=1;
+  aux->border=createBorder(1, 1, 0);
   l2->click=onClick_L2;
   l2->dclick=onDClick_L2;
   l2->hover = onHover_L2;
@@ -65,6 +67,16 @@ threadmain(int argc, char *argv[]) {
   l4->click=onClick_L4;
   w->addWidget(w, l4, Pt(30, 120));
 
+  aux = l5->w;
+  aux->setText(aux, "Delete Label");
+  l5->click=onClick_L5;
+  w->addWidget(w, l5, Pt(30, 150));
+
+  aux = l6->w;
+  aux->setText(aux, "List widgets");
+  l6->click=onClick_L6;
+  w->addWidget(w, l6, Pt(30, 180));
+
   startjayapp(w);
   threadexits(nil);
 }
@@ -73,18 +85,18 @@ threadmain(int argc, char *argv[]) {
 void onHover_L1(Widget *w){
   Label *l = w->w;
   if(w->hovered){
-    l->border=3;
+    l->border.size=3;
   } else {
-    l->border=1;
+    l->border.size=1;
   }
 }
 
 void onHover_L2(Widget *w){
   Label *l = w->w;
   if(w->hovered){
-    l->up=1;
+    l->border.up=1;
   } else {
-    l->up=0;
+    l->border.up=0;
   }
 }
 
@@ -147,10 +159,25 @@ void onDClick_L2(Widget *w, Mouse *m){
 
 void onPress(Widget *w, Mouse *m){
   Label *l = w->w;
-  l->border=0;
+  l->border.size=0;
 }
 
 void onRelease(Widget *w, Mouse *m){
   Label *l = w->w;
-  l->border=1;
+  l->border.size=1;
+}
+
+void onClick_L5(Widget *w, Mouse *m){
+  w->father->deleteWidget(w->father, w->id);
+}
+
+void onClick_L6(Widget *w, Mouse *m){
+  char buf[512]="";
+  char **l=nil;
+  int n = w->father->listWidgets(w->father, &l);
+  for (int i = 0; i<n; i++){
+    sprint(buf, "%s%s ",buf, *(l+i));
+  }
+  Label *lbl = w->w;
+  lbl->setText(lbl, buf);
 }

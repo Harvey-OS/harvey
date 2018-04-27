@@ -43,6 +43,11 @@ genWidget(char *id, wtype t, void *w){
   wr->change=nil;
   wr->_change=nil;
   wr->setVisible=setVisible;
+  wr->freeWidget=nil;
+  wr->deleteWidget=nil;
+  wr->getWidget=nil;
+  wr->extractWidget=nil;
+  wr->listWidgets=nil;
   return wr;
 }
 
@@ -74,6 +79,12 @@ createWidget1(char *id, Rectangle r, wtype t, void *w){
   wr->width = r.max.x - r.min.x;
   wr->autosize=0;
   return wr;
+}
+
+void
+freeWidget(Widget *w){
+  freeimage(w->i);
+  free(w->id);
 }
 
 static int

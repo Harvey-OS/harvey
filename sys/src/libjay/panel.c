@@ -16,6 +16,11 @@ void _clickPanel(Widget *w, Mouse *m);
 void _dclickPanel(Widget *w, Mouse *m);
 void _mPressDownPanel(Widget *w, Mouse *m);
 void _mPressUpPanel(Widget *w, Mouse *m);
+void _freePanel(Widget *w);
+void _deleteWidgetPanel(Widget *me, char *id);
+int _listWidgetsPanel(Widget *me, char ***list);
+Widget * _extractWidgetPanel(Widget *me, char *id);
+Widget * _getWidgetPanel(Widget *me, char *id);
 
 static void
 genPanel(Widget *w, Panel *paux, Point p){
@@ -32,6 +37,11 @@ genPanel(Widget *w, Panel *paux, Point p){
   w->_dclick=_dclickPanel;
   w->_mpressdown=_mPressDownPanel;
   w->_mpressup=_mPressUpPanel;
+  w->freeWidget=_freePanel;
+  w->deleteWidget=_deleteWidgetPanel;
+  w->listWidgets=_listWidgetsPanel;
+  w->extractWidget=_extractWidgetPanel;
+  w->getWidget=_getWidgetPanel;
   w->p=p;
 }
 
@@ -275,4 +285,64 @@ _mPressUpPanel(Widget *w, Mouse *m){
     //Press down mouse button on a widget over the panel
     w->lh->_mpressup(w->lh, m);
   }
+}
+
+void
+_freePanel(Widget *w){
+  if(!checkPanel(w)){
+    return;
+  }
+  Panel *p = w->w;
+  destroyWList(p->l);
+  free(p);
+  freeWidget(w);
+}
+
+Widget *
+_getWidgetPanel(Widget *me, char *id){
+  if(!checkPanel(me)){
+    return nil;
+  }
+  Panel *p = me->w;
+  WListElement *e = getWListElementByID(p->l, id);
+  if (e == nil){
+    return nil;
+  }
+  return e->w;
+}
+
+Widget *
+_extractWidgetPanel(Widget *me, char *id){
+  if(!checkPanel(me)){
+    return nil;
+  }
+  Panel *p = me->w;
+  return extractWidgetByID(p->l, id);
+}
+
+int
+_listWidgetsPanel(Widget *me, char ***list){
+  if(!checkPanel(me)){
+    return 0;
+  }
+  Panel *p = me->w;
+  int n = countWListElements(p->l);
+  *list = malloc(n);
+  int i=0;
+  for(WListElement *e = p->l; e != nil ; e=e->next ){
+    *((*list)+i) = strdup(e->w->id);
+    i++;
+  }
+  return n;
+}
+
+void
+_deleteWidgetPanel(Widget *me, char *id){
+  if(!checkPanel(me)){
+    return;
+  }
+  Panel *p = me->w;
+  Widget *w = extractWidgetByID(p->l, id);
+  w->freeWidget(w);
+  me->_redraw(me);
 }
