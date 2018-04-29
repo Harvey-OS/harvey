@@ -123,7 +123,6 @@ struct Fxsave {
  *  FPU stuff in Proc
  */
 struct PFPU {
-	int	fpustate;
 	Fxsave	fxsave;
 };
 
