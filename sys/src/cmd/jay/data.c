@@ -261,8 +261,11 @@ setbackimg(){
 	}
 	int fd = open(jayconfig->backgroundimgpath, OREAD);
 	if (fd > 0){
-		background = readimage(display, fd, 0);
+		background = allocimage(display, screen->r, RGB24, 1, jayconfig->backgroundColor);
+		Image *i = readimage(display, fd, 0);
+		draw(background, screen->r, i, nil, ZP);
 		close(fd);
+		freeimage(i);
 		return 1;
 	}
 	return 0;

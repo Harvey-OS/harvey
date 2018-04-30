@@ -76,3 +76,5 @@ cron/lock
 /util/bldy
 util/third_party/src
 /home
+
+**/*.h.gch

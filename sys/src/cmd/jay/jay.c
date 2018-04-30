@@ -195,7 +195,7 @@ threadmain(int argc, char *argv[])
 	wscreen = allocscreen(screen, background, 0);
 	if(wscreen == nil)
 		error("can't allocate screen");
-	draw(view, viewr, background, nil, ZP);
+	draw(view, viewr, background, nil, viewr.min);
 	flushimage(display, 1);
 
 	exitchan = chancreate(sizeof(int), 0);
@@ -686,7 +686,7 @@ resized(void)
 	wscreen = allocscreen(screen, background, 0);
 	if(wscreen == nil)
 		error("can't re-allocate screen");
-	draw(view, view->r, background, nil, ZP);
+	draw(view, view->r, background, nil, view->r.min);
 	redrawpanel();
 	o = subpt(viewr.max, viewr.min);
 	n = subpt(view->clipr.max, view->clipr.min);
