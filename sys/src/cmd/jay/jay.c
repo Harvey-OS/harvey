@@ -686,7 +686,7 @@ resized(void)
 	wscreen = allocscreen(screen, background, 0);
 	if(wscreen == nil)
 		error("can't re-allocate screen");
-	draw(view, view->r, background, nil, ZP);
+	draw(view, view->r, background, nil, view->r.min);
 	redrawpanel();
 	o = subpt(viewr.max, viewr.min);
 	n = subpt(view->clipr.max, view->clipr.min);

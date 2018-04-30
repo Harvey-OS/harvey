@@ -265,6 +265,7 @@ setbackimg(){
 		Image *i = readimage(display, fd, 0);
 		draw(background, screen->r, i, nil, ZP);
 		close(fd);
+		freeimage(i);
 		return 1;
 	}
 	return 0;
