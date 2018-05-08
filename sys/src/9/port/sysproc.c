@@ -434,7 +434,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * First, the top-of-stack structure.
 	 */
-	tos = (Tos*)stack;
+	tos = (Tos*)(USTKTOP-sizeof(Tos));
 	tos->cyclefreq = sys->cyclefreq;
 	cycles((uint64_t*)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
@@ -660,7 +660,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		up->procctl = Proc_stopme;
 
 	/* we need to compte the value of &argv in user mode and then push that. */
-	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), ((void *)tos) + (USTKTOP-TSTKTOP)/sizeof(void *));
+	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), (void *)(USTKTOP-sizeof(Tos)));
 
 	if(flags == EXAC){
 		up->procctl = Proc_toac;
