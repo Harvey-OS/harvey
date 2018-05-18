@@ -237,9 +237,7 @@ threadmain(int argc, char *argv[])
 
 	threadnotify(shutdown, 1);
 	recvul(cexit);
-	closekeyboard(keyboardctl);
-	closemouse(mousectl);
-	closedisplay(display);
+
 	killprocs();
 	threadexitsall(nil);
 }

@@ -1,13 +1,11 @@
 {
-  "Tests": {
-		"CFlags": [],
+	"Tests": {
 		"Include": [
-			"../cmd/cmd.json"
+			"/sys/src/cmd/cmd.json"
 		],
-    "Install": "/usr/harvey/",
-    "Program": "labels",
-    "SourceFiles": [
-			"labels.c"
+		"Install": "/$ARCH/bin/tests",
+		"SourceFilesCmd": [
+			"*.c"
 		]
-}
+	}
 }
