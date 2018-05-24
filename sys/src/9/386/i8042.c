@@ -474,39 +474,9 @@ struct {
 	int buttons;
 } kbscan;
 
-/*
- *  keyboard interrupt
- */
 static void
-i8042intr(Ureg* u, void* v)
-{
-	int s, c, i;
-	int keyup;
-
-	/*
-	 *  get status
-	 */
-	ilock(&i8042lock);
-	s = inb(Status);
-	if((s&Inready) == 0){
-		iunlock(&i8042lock);
-		return;
-	}
-
-	/*
-	 *  get the character
-	 */
-	c = inb(Data);
-	iunlock(&i8042lock);
-
-	/*
-	 *  if it's the aux port...
-	 */
-	if(s & Minready){
-		if(mouseq != nil)
-			qiwrite(mouseq, &c, 1);
-		return;
-	}
+processKey(int c){
+	int keyup, i;
 
 	/*
 	 *  e0's is the first of a 2 character sequence, e1 the first
@@ -657,6 +627,43 @@ i8042intr(Ureg* u, void* v)
 	kbdputc(keybq, c);
 }
 
+
+/*
+ *  keyboard interrupt
+ */
+static void
+i8042intr(Ureg* u, void* v)
+{
+	int s, c;
+
+	/*
+	 *  get status
+	 */
+	ilock(&i8042lock);
+	s = inb(Status);
+	if((s&Inready) == 0){
+		iunlock(&i8042lock);
+		return;
+	}
+
+	/*
+	 *  get the character
+	 */
+	c = inb(Data);
+	iunlock(&i8042lock);
+
+	/*
+	 *  if it's the aux port...
+	 */
+	if(s & Minready){
+		if(mouseq != nil)
+			qiwrite(mouseq, &c, 1);
+		return;
+	}
+	processKey(c);
+
+}
+
 void
 i8042auxenable(void (*putc)(int, int))
 {
@@ -744,7 +751,7 @@ mousecmds(uint8_t *cmd, int ncmd)
 void
 kbdputsc(int data, int _)
 {
-	qiwrite(keybq, &data, 1);
+	processKey(data);
 }
 
 static char *initfailed = "i8042: keybinit failed\n";
