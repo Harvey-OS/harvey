@@ -1,13 +1,16 @@
 qemu-img create -f qcow2 harvey.qcow2 3G
 sudo modprobe nbd max_part=63
 sudo qemu-nbd -c /dev/nbd0 harvey.qcow2
+sudo dd conv=notrunc bs=440 count=1 if=/usr/lib/syslinux/mbr/mbr.bin of=/dev/nbd0
 sudo fdisk /dev/nbd0
-[Create an ext2 partition]
-sudo extlinux -i /dev/nbd0p1
+[Don't forget making bootable the partition you created!]
+sudo mkfs.ext4 /dev/nbd0p1
 sudo mount /dev/nbd0p1 disk/
+sudo extlinux -i disk/
 sudo cp ../sys/src/9/amd64/harvey.32bit disk/harvey
 
 cd disk/
+sudo mkdir syslinux
 
 $ ls -l
 total 5964
@@ -61,6 +64,7 @@ KERNEL mboot.c32
 APPEND ../harvey
 
 sudo umount disk/
+sudo qemu-nbd -d /dev/nbd0
 
 [Run qemu]
 
