@@ -22,11 +22,20 @@ main(void)
 	if (childpid > 0) {
 		// Sleep a little to ensure the child is in the infinite loop,
 		// then read the fpregs and kill the child
+
+		const char *path = smprint("/proc/%d/ctl", childpid);
+		int ctlfd = open(path, OWRITE);
+		if (ctlfd < 0) {
+			fprint(ctlfd, "kill");
+			fail("Can't open ctl");
+		}
+
 		sleep(1000);
 
-		const char *path = smprint("/proc/%d/fpregs", childpid);
-		int fd = open(path, OREAD);
-		if (fd < 0) {
+		path = smprint("/proc/%d/fpregs", childpid);
+		int fpfd = open(path, OREAD);
+		if (fpfd < 0) {
+			fprint(ctlfd, "kill");
 			fail("Can't open fpregs");
 		}
 
@@ -34,7 +43,8 @@ main(void)
 		// from the file system - update this when it happens
 		const int buflen = 512;
 		char fpregbuf[buflen];
-		if (pread(fd, fpregbuf, buflen, 0) < buflen) {
+		if (pread(fpfd, fpregbuf, buflen, 0) < buflen) {
+			fprint(ctlfd, "kill");
 			fail("Can't read fpregs");
 		}
 
@@ -44,17 +54,11 @@ main(void)
 		int xmm2 = *(int*)(fpregbuf + 192);
 		int xmm3 = *(int*)(fpregbuf + 208);
 		if (xmm0 != 1 && xmm1 != 2 && xmm2 != 3 && xmm3 != 4) {
+			fprint(ctlfd, "kill");
 			fail("unexpected values in child's fpreg buffer");
 		}
 
-		path = smprint("/proc/%d/ctl", childpid);
-		fd = open(path, OWRITE);
-		if (fd < 0) {
-			fail("Can't open ctl");
-		}
-
-		fprint(fd, "kill");
-
+		fprint(ctlfd, "kill");
 		pass();
 
 	} else if (childpid == 0) {

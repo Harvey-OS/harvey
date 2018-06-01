@@ -1935,16 +1935,6 @@ boolcopyfn(Memimage *img, Memimage *mask)
 /*
  * Optimized draw for filling and scrolling; uses memset and memmove.
  */
-static void
-memsetb(void *vp, uint8_t val, int n)
-{
-	uint8_t *p, *ep;
-
-	p = vp;
-	ep = p+n;
-	while(p<ep)
-		*p++ = val;
-}
 
 static void
 memsets(void *vp, uint16_t val, int n)
@@ -2161,7 +2151,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 						*dp ^= (v ^ *dp) & lm;
 						dp++;
 					}
-					memsetb(dp, v, dx);
+					memset(dp, v, dx);
 					dp += dx;
 					*dp ^= (v ^ *dp) & rm;
 				}
@@ -2169,7 +2159,7 @@ DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 			return 1;
 		case 8:
 			for(y=0; y<dy; y++, dp+=dwid)
-				memsets(dp, v, dx);
+				memset(dp, v, dx);
 			return 1;
 		case 16:
 			p[0] = v;		/* make little endian */
@@ -2469,6 +2459,7 @@ memfillcolor(Memimage *i, uint32_t val)
 {
 	uint32_t bits;
 	int d, y;
+	unsigned char p[4];
 
 	if(val == DNofill)
 		return;
@@ -2482,6 +2473,11 @@ memfillcolor(Memimage *i, uint32_t val)
 	default:	/* 1, 2, 4, 8, 16, 32 */
 		for(d=i->depth; d<32; d*=2)
 			bits = (bits << d) | bits;
+		p[0] = bits;		/* make little endian */
+		p[1] = bits>>8;
+		p[2] = bits>>16;
+		p[3] = bits>>24;
+		memmove(&bits, p, 4);
 		memsetl(wordaddr(i, i->r.min), bits, i->width*Dy(i->r));
 		break;
 	}

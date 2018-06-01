@@ -1387,7 +1387,7 @@ textsetorigin(Text *t, uint org, int exact)
 		n = t->org - org;
 		r = runemalloc(n);
 		bufread(&t->file->Buffer, org, r, n);
-		frinsert(&t->Frame, r, r+n, 1);
+		frinsert(&t->Frame, r, r+n, 0);
 		free(r);
 	}else
 		frdelete(&t->Frame, 0, t->Frame.nchars);

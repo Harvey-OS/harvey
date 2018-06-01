@@ -19,6 +19,7 @@
 			"/sys/src/libfreetype/libfreetype.json",
 			"/sys/src/libgeometry/libgeometry.json",
 			"/sys/src/libhttpd/libhttpd.json",
+			"/sys/src/libjay/libjay.json",
 			"/sys/src/liblex/liblex.json",
 			"/sys/src/libmach/libmach.json",
 			"/sys/src/libmemdraw/libmemdraw.json",

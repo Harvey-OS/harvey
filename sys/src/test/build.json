@@ -1,0 +1,11 @@
+{
+	"Tests": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/tests",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+}

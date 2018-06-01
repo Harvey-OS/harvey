@@ -9,6 +9,7 @@
 			"-lavl",
 			"-lcomplete",
 			"-lcontrol",
+			"-ljay",
 			"-ldisk",
 			"-lflate",
 			"-lframe",

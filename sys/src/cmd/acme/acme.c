@@ -237,6 +237,7 @@ threadmain(int argc, char *argv[])
 
 	threadnotify(shutdown, 1);
 	recvul(cexit);
+
 	killprocs();
 	threadexitsall(nil);
 }
