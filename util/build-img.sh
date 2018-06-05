@@ -17,6 +17,7 @@ launch
 part-init /dev/sda mbr
 part-add /dev/sda p 2048 104447
 part-add /dev/sda p 104448 1992704
+part-set-mbr-id /dev/sda 2 57
 mke2fs /dev/sda1
 part-set-bootable /dev/sda 1 true
 
