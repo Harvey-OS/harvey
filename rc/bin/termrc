@@ -12,22 +12,14 @@ mntgen -s slashn && chmod 666 /srv/slashn
 for(i in f t m v L P u U '$' Σ κ C)
 	/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
 
-# ONLY FOR LOCAL DISK! We need better hack checking
-# some variable to distinguish if file server is remote
-# or local disk.
+# set up any partitions
+diskparts
 
-if (! ~ $terminal *ninep*) {
-	# set up any partitions
-	 diskparts
-
-	# start up local swapping
-	disk=`{ls /dev/sd*/swap >[2]/dev/null}
-	if (! ~ $#disk 0)
-		swap $disk(1) >/dev/null >[2=1]
-	rm /env/disk
-}
-
-# END OF ONLY LOCAL
+# start up local swapping
+disk=`{ls /dev/sd*/swap >[2]/dev/null}
+if (! ~ $#disk 0)
+	swap $disk(1) >/dev/null >[2=1]
+rm /env/disk
 
 # we do this before we have a name.  we may need to do network
 # setup so that we can get a name.

@@ -12,6 +12,15 @@ sysname=`{cat /dev/sysname}
 # parallelism for mk
 NPROC = `{wc -l </dev/sysstat}
 
+# set up any partitions
+diskparts
+
+# start up local swapping
+disk=`{ls /dev/sd*/swap >[2]/dev/null}
+if (! ~ $#disk 0)
+	swap $disk(1) >/dev/null >[2=1]
+rm /env/disk
+
 # site-specific startup
 if(test -e /rc/bin/cpurc.local)
 	. /rc/bin/cpurc.local

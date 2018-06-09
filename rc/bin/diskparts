@@ -14,18 +14,20 @@ bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
 # block numbers, so we may have to examine the data file with prep if
 # there's no plan9 file.  beware that `disk/prep -p data' on a disk with
 # no plan 9 partition table will delete all extant partitions.
-for(disk) {
-	if(test -f $disk/data && test -f $disk/ctl)
-		{ fdisk -p $disk/data |
-			grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
-	if(test -f $disk/plan9)
-		parts=($disk/plan9*)
-	if not
-		parts=($disk/data)
-	for(part in $parts)
-		if(test -f $part)
-			 { prep -p $part |
-				grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
+for(disk in /dev/sd?[0-9]) {
+        if(test -f $disk/data && test -f $disk/ctl){
+                disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
+                if(test -f $disk/plan9){
+                        for(part in $disk/plan9*)
+                                disk/prep -p $part >$disk/ctl >[2]/dev/null
+                }
+                if not{
+                        part=$disk/data
+                        if(! disk/prep -p $part>[2=1] | grep -s '^no plan 9')
+                                disk/prep -p $part >$disk/ctl >[2]/dev/null
+                        parts=($disk/data)
+                }
+        }
 }
 
 sysname=`{cat /dev/sysname}
