@@ -2,7 +2,11 @@
 
 # Build a qcow2 image for loading in qemu
 
-SRC=$HARVEY/util/syslinux-bios
+SRC_IMG=$HARVEY/util/img/syslinux-bios
+SRC_SYSLINUX=$SRC_IMG/syslinux
+SRC_MBR=$SRC_IMG/mbr.bin
+SRC_KERNEL=$HARVEY/sys/src/9/amd64/harvey.32bit
+
 DEST=$HARVEY/harvey.qcow2
 
 echo "Creating harvey image $DEST"
@@ -23,11 +27,11 @@ part-set-bootable /dev/sda 1 true
 
 mount /dev/sda1 /
 extlinux /
-copy-in $HARVEY/util/syslinux-bios/syslinux /
-copy-in $HARVEY/sys/src/9/amd64/harvey.32bit /
+copy-in $SRC_SYSLINUX /
+copy-in $SRC_KERNEL /
 rename /harvey.32bit /harvey
 
-copy-in $HARVEY/util/syslinux-bios/mbr.bin /
+copy-in $SRC_MBR /
 copy-file-to-device /mbr.bin /dev/sda size:440
 rm /mbr.bin
 EOF
