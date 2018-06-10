@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+trap : 2
+
+$HARVEY/util/ufs -root=$HARVEY &
+ufspid=$!
+
+export machineflag=q35
+if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
+	export kvmflag='-enable-kvm'
+	export machineflag='pc,accel=kvm'
+	if [ ! -w /dev/kvm ]; then
+		# we don't have access as a regular user
+		export kvmdo=sudo
+	fi
+fi
+
+# The -usb flag is necessary for the system to recognize usb devices
+# To specify a specific device you must follow the following format:
+#      -device usb-host,hostbus='X',hostaddr='Y'
+# The 'X'/'Y' values can be found with lsusb(8) (Linux/BSD)
+# Provided is an example lsusb(8) output:
+#       Bus 002 Device 004: ID 056a:00e6 Wacom Co., Ltd TPCE6
+# Where 'X'== 2 and 'Y'== 4
+read -r cmd <<EOF
+$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 2 -m 2048 $kvmflag \
+-usb \
+-serial stdio \
+--machine $machineflag \
+-net nic,model=rtl8139 \
+-net user,id=user.0,\
+hostfwd=tcp::5555-:1522,\
+hostfwd=tcp::9999-:9,\
+hostfwd=tcp::17010-:17010,\
+hostfwd=tcp::1666-:1666,\
+hostfwd=tcp::5356-:5356,\
+hostfwd=tcp::17013-:17013 \
+-object filter-dump,id=f1,netdev=user.0,file=/tmp/vm0.pcap \
+-drive id=disk,file=$HARVEY/harvey.qcow2,if=none \
+-device ich9-ahci,id=ahci \
+-device ide-drive,drive=disk,bus=ahci.0 \
+$*
+EOF
+
+echo $cmd
+eval $cmd
+
+kill $ufspid
+wait
