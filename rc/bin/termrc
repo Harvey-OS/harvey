@@ -15,12 +15,6 @@ for(i in f t m v L P u U '$' Σ κ C)
 # set up any partitions
 diskparts
 
-# start up local swapping
-disk=`{ls /dev/sd*/swap >[2]/dev/null}
-if (! ~ $#disk 0)
-	swap $disk(1) >/dev/null >[2=1]
-rm /env/disk
-
 # we do this before we have a name.  we may need to do network
 # setup so that we can get a name.
 if(test -e /rc/bin/termrc.local)
