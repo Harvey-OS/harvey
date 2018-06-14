@@ -8,8 +8,7 @@
 		],
 		"IncludeSomeday": [
 			"../ip/ip.json",
-			"../port/port.json",
-			"../ufs/ufs.json"
+			"../port/port.json"
 		],
 		"Kernel": {
 			"Config": {
