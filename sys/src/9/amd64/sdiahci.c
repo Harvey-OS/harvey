@@ -21,6 +21,7 @@
 #include "../port/error.h"
 #include "../port/sd.h"
 #include "ahci.h"
+#include "atomic.h"
 
 enum {
 	Vatiamd = 0x1002,
@@ -942,7 +943,7 @@ updatedrive(Drive *d)
 		name = d->unit->SDperm.name;
 
 	if(p->ci == 0){
-		d->portm.flag |= Fdone;
+		atomic_set(&d->portm.flag, atomic_read(&d->portm.flag) | Fdone);
 		wakeup(&d->portm.Rendez);
 		pr = 0;
 	}else if(cause & Adps)
@@ -955,7 +956,7 @@ updatedrive(Drive *d)
 		if(p->task & (1<<5|1)){
 			dprint("ahci: %s: Adhrs cause %#lx serr %#lx task %#lx\n",
 				name, cause, serr, p->task);
-			d->portm.flag |= Ferror;
+			atomic_set(&d->portm.flag, atomic_read(&d->portm.flag) | Ferror);
 			ewake = 1;
 		}
 		pr = 0;
@@ -994,7 +995,7 @@ updatedrive(Drive *d)
 		if(s0 == Dready && d->state != Dready)
 			idprint("%s: pulled\n", name);		/* wtf? */
 		if(d->state != Dready)
-			d->portm.flag |= Ferror;
+			atomic_set(&d->portm.flag, atomic_read(&d->portm.flag) | Ferror);
 		ewake = 1;
 	}
 	p->serror = serr;
@@ -1070,7 +1071,7 @@ resetdisk(Drive *d)
 	ilock(&d->Lock);
 	state = d->state;
 	if(d->state != Dready || d->state != Dnew)
-		d->portm.flag |= Ferror;
+		atomic_set(&d->portm.flag, atomic_read(&d->portm.flag) | Ferror);
 	clearci(p);			/* satisfy sleep condition. */
 	wakeup(&d->portm.Rendez);
 	if(stat != (Devpresent|Devphycomm)){
@@ -1283,7 +1284,7 @@ portreset:
 		/* device is active */
 		dprint("%s: portreset [%s]: mode %d; status %06#x\n",
 			name, diskstates[d->state], d->mode, s);
-		d->portm.flag |= Ferror;
+		atomic_set(&d->portm.flag, atomic_read(&d->portm.flag) | Ferror);
 		clearci(d->port);
 		wakeup(&d->portm.Rendez);
 		if((s & Devdet) == 0){	/* no device */
@@ -1746,7 +1747,7 @@ retry:
 	/* d->portm qlock held here */
 
 	ilock(&d->Lock);
-	d->portm.flag = 0;
+	atomic_set(&d->portm.flag, 0);
 	iunlock(&d->Lock);
 	p->ci = 1;
 
@@ -1769,7 +1770,7 @@ retry:
 
 	d->active--;
 	ilock(&d->Lock);
-	flag = d->portm.flag;
+	flag = atomic_read(&d->portm.flag);
 	task = d->port->task;
 	iunlock(&d->Lock);
 
@@ -1890,7 +1891,7 @@ retry:
 		}
 		/* d->portm qlock held here */
 		ilock(&d->Lock);
-		d->portm.flag = 0;
+		atomic_set(&d->portm.flag, 0);
 		iunlock(&d->Lock);
 		p->ci = 1;
 
@@ -1913,7 +1914,7 @@ retry:
 
 		d->active--;
 		ilock(&d->Lock);
-		flag = d->portm.flag;
+		flag = atomic_read(&d->portm.flag);
 		task = d->port->task;
 		iunlock(&d->Lock);
 
