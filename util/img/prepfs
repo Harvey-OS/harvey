@@ -1,0 +1,20 @@
+#!/bin/rc
+venti=127.0.0.1
+
+disk/prep -w -a^(nvram fossil arenas bloom isect) /dev/sdE0/plan9
+
+venti/fmtarenas arenas0 /dev/sdE0/arenas
+venti/fmtisect isect0 /dev/sdE0/isect
+venti/fmtindex /util/img/venti.conf
+venti/conf -w /dev/sdE0/arenas < /util/img/venti.conf
+venti/venti -c /dev/sdE0/arenas
+fossil/flfmt /dev/sdE0/fossil
+fossil/conf -w /dev/sdE0/fossil < /util/img/fossil.conf
+fossil/fossil -f /dev/sdE0/fossil
+
+mount -c /srv/fossil /n/fossil
+
+cd /n/fossil
+mkdir x
+cd x
+dircp /root/amd64 .

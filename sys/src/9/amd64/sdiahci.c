@@ -202,6 +202,7 @@ struct Ctlr {
 struct Asleep {
 	Aport	*p;
 	int	i;
+	int	slept;
 };
 
 extern SDifc sdiahciifc;
@@ -279,9 +280,13 @@ esleep(int ms)
 static int
 ahciclear(void *v)
 {
-	Asleep *s;
+	Asleep *s = v;
 
-	s = v;
+	if (!s->slept) {
+		s->slept = 1;
+		return 0;
+	}
+
 	return (s->p->ci & s->i) == 0;
 }
 
@@ -1897,6 +1902,7 @@ retry:
 
 		as.p = p;
 		as.i = 1;
+		as.slept = 0;
 		d->intick = sys->ticks;
 		d->active++;
 
