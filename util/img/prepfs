@@ -15,6 +15,6 @@ fossil/fossil -f /dev/sdE0/fossil
 mount -c /srv/fossil /n/fossil
 
 cd /n/fossil
-mkdir x
-cd x
+mkdir amd64
+cd amd64
 dircp /root/amd64 .
