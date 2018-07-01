@@ -16,5 +16,11 @@ mount -c /srv/fossil /n/fossil
 
 cd /n/fossil
 mkdir amd64
-cd amd64
-dircp /root/amd64 .
+dircp /root/amd64 amd64
+mkdir lib
+dircp /root/lib lib
+mkdir rc
+dircp /root/rc rc
+mkdir adm
+dircp /root/adm adm
+mkdir -p sys/log
