@@ -15,6 +15,8 @@ fossil/fossil -f /dev/sdE0/fossil
 mount -c /srv/fossil /n/fossil
 
 cd /n/fossil
+mkdir -p cfg/$sysname
+dircp /cfg/example cfg/$sysname
 mkdir amd64
 dircp /root/amd64 amd64
 mkdir lib
@@ -23,4 +25,8 @@ mkdir rc
 dircp /root/rc rc
 mkdir adm
 dircp /root/adm adm
-mkdir -p sys/log
+mkdir -p sys/lib
+dircp /sys/lib sys/lib
+mkdir sys/man
+dircp /sys/man sys/man
+mkdir sys/log
