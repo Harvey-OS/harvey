@@ -2212,7 +2212,7 @@ init(Hci *hp)
 	/* guess other ports */
 	for(i = 2; i < 6; i++){
 		sts = INS(PORT(i));
-		if(sts != 0xFFFF && (sts & PSreserved1) == 1){
+		if(sts != 0xFFFF && ((sts & PSreserved1) == PSreserved1)){
 			dprint(" psc%d %#x", i, sts);
 			hp->nports++;
 		}else
