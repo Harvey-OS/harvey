@@ -57,6 +57,39 @@ igfxenable(VGAscr* scr)
 	scr->softscreen = 1;
 }
 
+static void
+igfxblank(VGAscr *scr, int blank)
+{
+	u32int off;
+
+	switch(scr->pci->did){
+	default:
+		return;
+
+	case 0x2a02:	/* GM965 */
+	case 0x2a42:	/* GM45 */
+		off = 0x61204;
+		break;
+
+	case 0x0126:	/* SNB */
+	case 0x0166:	/* IVB */
+		off = 0xC7204;
+		break;
+	}
+
+	/* toggle PP_CONTROL backlight & power state */
+	if(blank)
+		scr->mmio[off/4] &= ~0x5;
+	else
+		scr->mmio[off/4] |= 0x5;
+}
+
+static void
+igfxdrawinit(VGAscr *scr)
+{
+	scr->blank = igfxblank;
+}
+
 VGAdev vgaigfxdev = {
 	"igfx",
 	igfxenable,
@@ -64,124 +97,6 @@ VGAdev vgaigfxdev = {
 	nil,
 	nil,
 	igfxdrawinit,
-};
-
-static void
-igfxcurload(VGAscr* scr, Cursor* curs)
-{
-	uchar set, clr;
-	u32int *p;
-	int i, j;
-
-	if(scr->storage == 0)
-		return;
-	p = (u32int*)((uchar*)scr->vaddr + scr->storage);
-	memset(p, 0, 64*64*4);
-	for(i=0;i<32;i++) {
-		set = curs->set[i];
-		clr = curs->clr[i];
-		for(j=0x80; j; j>>=1){
-			if((set|clr)&j)
-				*p++ = (0xFF<<24) | (set&j ? 0x000000 : 0xFFFFFF);
-			else
-				*p++ = 0;
-		}
-		if(i & 1)
-			p += 64-16;
-	}
-	scr->offset = curs->offset;
-}
-
-enum {
-	CURCTL = 0,
-	CURBASE,
-	CURPOS,
-
-	NPIPE = 4,
-};
-
-static u32int*
-igfxcurregs(VGAscr* scr, int pipe)
-{
-	u32int o;
-
-	if(scr->mmio == nil || scr->storage == 0)
-		return nil;
-	o = pipe == 3 ? 0xf000 : pipe*0x1000;
-	/* check PIPExCONF if enabled */
-	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
-		return nil;
-	switch(scr->pci->did){
-	case 0x2a42:	/* X200 */
-	case 0x2a43:	/* X200s */
-		/* G45 */
-		if(pipe > 1)
-			return nil;
-		o = pipe*0x40;
-		break;
-	default:
-		if(pipe > 0)
-			return nil;
-	}
-	return (u32int*)((uchar*)scr->mmio + (0x70080 + o));
-}
-
-static int
-igfxcurmove(VGAscr* scr, Point p)
-{
-	int i, x, y;
-	u32int *r;
-
-	for(i=0; i<NPIPE; i++){
-		if((r = igfxcurregs(scr, i)) != nil){
-			x = p.x + scr->offset.x;
-			if(x < 0) x = -x | 0x8000;
-			y = p.y + scr->offset.y;
-			if(y < 0) y = -y | 0x8000;
-			r[CURPOS] = (y << 16) | x;
-		}
-	}
-	return 0;
-}
-
-static void
-igfxcurenable(VGAscr* scr)
-{
-	u32int *r;
-	int i;
-
-	igfxenable(scr);
-	igfxcurload(scr, &cursor);
-	igfxcurmove(scr, ZP);
-
-	for(i=0; i<NPIPE; i++){
-		if((r = igfxcurregs(scr, i)) != nil){
-			r[CURCTL] = (r[CURCTL] & ~(3<<28 | 1<<5)) | (i<<28) | 7;
-			r[CURBASE] = scr->storage;
-		}
-	}
-}
-
-static void
-igfxcurdisable(VGAscr* scr)
-{
-	u32int *r;
-	int i;
-
-	for(i=0; i<NPIPE; i++){
-		if((r = igfxcurregs(scr, i)) != nil){
-			r[CURCTL] &= ~(1<<5 | 7);
-			r[CURBASE] = 0;
-		}
-	}
-}
-
-VGAcur vgaigfxcur = {
-	"igfxhwgc",
-	igfxcurenable,
-	igfxcurdisable,
-	igfxcurload,
-	igfxcurmove,
 };
 
 static void
