@@ -68,7 +68,6 @@ igfxblank(VGAscr *scr, int blank)
 
 	case 0x2a02:	/* GM965 */
 	case 0x2a42:	/* GM45 */
-	case 0x2592:	/* GM915 */
 		off = 0x61204;
 		break;
 
