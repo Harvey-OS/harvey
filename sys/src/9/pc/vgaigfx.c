@@ -55,9 +55,46 @@ igfxenable(VGAscr* scr)
 	scr->softscreen = 1;
 }
 
+static void
+igfxblank(VGAscr *scr, int blank)
+{
+	u32int off;
+
+	switch(scr->pci->did){
+	default:
+		return;
+
+	case 0x2a02:	/* GM965 */
+	case 0x2a42:	/* GM45 */
+		off = 0x61204;
+		break;
+
+	case 0x0126:	/* SNB */
+	case 0x0166:	/* IVB */
+		off = 0xC7204;
+		break;
+	}
+
+	/* toggle PP_CONTROL backlight & power state */
+	if(blank)
+		scr->mmio[off/4] &= ~0x5;
+	else
+		scr->mmio[off/4] |= 0x5;
+}
+
+static void
+igfxdrawinit(VGAscr *scr)
+{
+	scr->blank = igfxblank;
+}
+
 VGAdev vgaigfxdev = {
 	"igfx",
 	igfxenable,
+	nil,
+	nil,
+	nil,
+	igfxdrawinit,
 };
 
 static void
