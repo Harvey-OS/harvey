@@ -83,5 +83,9 @@ if(test -e /cfg/$sysname/cpustart)
 echo 'key proto=p9sk1 dom=harvey user=harvey !password=harvey' >/mnt/factotum/ctl
 aux/listen1 -t tcp!*!6666 /bin/cpu -R &
 
+if(test -e /env/onstartup) {
+	eval $onstartup
+}
+
 # echo `{date} $sysname >>/sys/log/boot
 exit ''

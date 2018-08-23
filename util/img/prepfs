@@ -1,13 +1,17 @@
 #!/bin/rc
 venti=127.0.0.1
 
+echo prepfs: prep
 disk/prep -w -a^(nvram fossil arenas bloom isect) /dev/sdE0/plan9
 
+echo prepfs: venti
 venti/fmtarenas arenas0 /dev/sdE0/arenas
 venti/fmtisect isect0 /dev/sdE0/isect
 venti/fmtindex /util/img/venti.conf
 venti/conf -w /dev/sdE0/arenas < /util/img/venti.conf
 venti/venti -c /dev/sdE0/arenas
+
+echo prepfs: fossil
 fossil/flfmt /dev/sdE0/fossil
 fossil/conf -w /dev/sdE0/fossil < /util/img/fossil.conf
 fossil/fossil -f /dev/sdE0/fossil
@@ -15,6 +19,27 @@ fossil/fossil -f /dev/sdE0/fossil
 mount -c /srv/fossil /n/fossil
 
 cd /n/fossil
-mkdir x
-cd x
-dircp /root/amd64 .
+
+echo prepfs: cp cfg
+mkdir -p cfg/$sysname
+dircp /cfg/example cfg/$sysname
+
+echo prepfs: cp amd64
+mkdir amd64
+dircp /root/amd64 amd64
+echo prepfs: cp lib
+mkdir lib
+dircp /root/lib lib
+echo prepfs: cp rc
+mkdir rc
+dircp /root/rc rc
+echo prepfs: cp adm
+mkdir adm
+dircp /root/adm adm
+echo prepfs: cp sys/lib
+mkdir -p sys/lib
+dircp /sys/lib sys/lib
+echo prepfs: cp sys/man
+mkdir sys/man
+dircp /sys/man sys/man
+mkdir sys/log
