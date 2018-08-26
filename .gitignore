@@ -75,6 +75,8 @@ build_out
 cron/lock
 /util/bldy
 util/third_party/src
+util/harvey.qcow2
+util/harvey.raw
 /home
 
 **/*.h.gch
