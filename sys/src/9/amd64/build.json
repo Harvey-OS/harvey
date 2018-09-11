@@ -87,6 +87,7 @@
 			},
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
+				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
 				"crs": "/$ARCH/bin/acpi/crs",
 				"date": "/$ARCH/bin/date",
