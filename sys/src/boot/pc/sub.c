@@ -3,7 +3,13 @@
 #include "fns.h"
 #include "mem.h"
 
-char hex[] = "0123456789abcdef";
+void
+putc(int c)
+{
+	cgaputc(c);
+	if(uart != -1)
+		uartputc(uart, c);
+}
 
 void
 print(char *s)
@@ -20,13 +26,19 @@ readn(void *f, void *data, int len)
 {
 	uchar *p, *e;
 
+	putc(' ');
 	p = data;
 	e = p + len;
 	while(p < e){
+		if(((ulong)p & 0xF000) == 0){
+			putc('\b');
+			putc(hex[((ulong)p>>16)&0xF]);
+		}
 		if((len = read(f, p, e - p)) <= 0)
 			break;
 		p += len;
 	}
+	putc('\b');
 
 	return p - (uchar*)data;
 }
@@ -94,6 +106,17 @@ memset(void *dst, int v, int n)
 		*d++ = v;
 		n--;
 	}
+}
+
+int
+getc(void)
+{
+	int c;
+
+	c = kbdgetc();
+	if(c == 0 && uart != -1)
+		c = uartgetc(uart);
+	return c;
 }
 
 static int
@@ -164,6 +187,11 @@ timeout(int ms)
 
 char *confend;
 
+static void apmconf(int);
+static void e820conf(void);
+static void ramdiskconf(int);
+static void uartconf(char*);
+
 static char*
 getconf(char *s, char *buf)
 {
@@ -222,7 +250,9 @@ Clear:
 
 		confend = BOOTARGS;
 		memset(confend, 0, BOOTARGSLEN);
-		eficonfig(&confend);
+
+		e820conf();
+		ramdiskconf(0);
 	}
 	nowait = 1;
 	inblock = 0;
@@ -258,6 +288,13 @@ Loop:
 			continue;
 		*p++ = 0;
 		delconf(line);
+		if(memcmp("apm", line, 3) == 0){
+			apmconf(line[3] - '0');
+			continue;
+		}
+		if(memcmp("console", line, 8) == 0)
+			uartconf(p);
+
 		s = confend;
 		memmove(confend, line, n = strlen(line)); confend += n;
 		*confend++ = '=';
@@ -286,45 +323,185 @@ Loop:
 	return kern;
 }
 
-static char*
-numfmt(char *s, ulong b, ulong i, ulong a)
+
+static void
+hexfmt(char *s, int i, ulong a)
 {
-	char *r;
-
-	if(i == 0){
-		ulong v = a;
-		while(v != 0){
-			v /= b;
-			i++;
-		}
-		if(i == 0)
-			i = 1;
-	}
-
 	s += i;
-	r = s;
 	while(i > 0){
-		*--s = hex[a % b];
-		a /= b;
+		*--s = hex[a&15];
+		a >>= 4;
 		i--;
 	}
-	return r;
 }
 
-char*
-hexfmt(char *s, int i, uvlong a)
+static void
+addconfx(char *s, int w, ulong v)
 {
-	if(i > 8){
-		s = numfmt(s, 16, i-8, a>>32);
-		i = 8;
+	int n;
+
+	n = strlen(s);
+	memmove(confend, s, n);
+	hexfmt(confend+n, w, v);
+	confend += n+w;
+	*confend = 0;
+}
+
+static void
+apmconf(int id)
+{
+	uchar *a;
+	char *s;
+
+	a = (uchar*)CONFADDR;
+	memset(a, 0, 20);
+
+	apm(id);
+	if(memcmp(a, "APM", 4) != 0)
+		return;
+
+	s = confend;
+
+	addconfx("apm", 1, id);
+	addconfx("=ax=", 4, *((ushort*)(a+4)));
+	addconfx(" ebx=", 8, *((ulong*)(a+12)));
+	addconfx(" cx=", 4, *((ushort*)(a+6)));
+	addconfx(" dx=", 4, *((ushort*)(a+8)));
+	addconfx(" di=", 4, *((ushort*)(a+10)));
+	addconfx(" esi=", 8, *((ulong*)(a+16)));
+
+	*confend++ = '\n';
+	*confend = 0;
+
+	print(s);
+}
+
+static void
+e820conf(void)
+{
+	struct {
+		uvlong	base;
+		uvlong	len;
+		ulong	typ;
+		ulong	ext;
+	} e;
+	uvlong v;
+	ulong bx;
+	char *s;
+
+	bx=0;
+	s = confend;
+
+	do{
+		bx = e820(bx, &e);
+		if(e.len != 0 && (e.ext & 3) == 1){
+			if(confend == s){
+				/* single entry <= 1MB is useless */
+				if(bx == 0 && e.typ == 1 && e.len <= 0x100000)
+					break;
+				memmove(confend, "*e820=", 6);
+				confend += 6;
+			}
+			addconfx("", 1, e.typ);
+			v = e.base;
+			addconfx(" 0x", 8, v>>32);
+			addconfx("", 8, v&0xffffffff);
+			v += e.len;
+			addconfx(" 0x", 8, v>>32);
+			addconfx("", 8, v&0xffffffff);
+			*confend++ = ' ';
+		}
+	} while(bx);
+
+	if(confend == s)
+		return;
+
+	*confend++ = '\n';
+	*confend = 0;
+
+	print(s);
+}
+
+static int
+checksum(void *v, int n)
+{
+	uchar *p, s;
+
+	s = 0;
+	p = v;
+	while(n-- > 0)
+		s += *p++;
+	return s;
+}
+
+static void
+ramdiskconf(int id)
+{
+	struct {
+		/* ACPI header */
+		char	sig[4];
+		u32int	len;
+		uchar	revision;
+		uchar	csum;
+		char	oem_id[6];
+		char	oem_table_id[8];
+		u32int	oem_revision;
+		char	asl_compiler_id[4];
+		u32int	asl_compiler_revision;
+
+		u32int	safe_hook;
+
+		/* MDI structure */
+		u16int	bytes;
+		uchar	version_minor;
+		uchar	version_major;
+		u32int	diskbuf;
+		u32int	disksize;
+		u32int	cmdline;
+		u32int	oldint13;
+		u32int	oldint15;
+		u16int	olddosmem;
+		uchar	bootloaderid;
+		uchar	sector_shift;
+		u16int	dpt_ptr;
+	} *mbft;
+	int shift;
+	char *s;
+
+#define BDA	((uchar*)0x400)
+	mbft = (void*)((((BDA[0x14]<<8) | BDA[0x13])<<10) - 1024);
+	for(; (ulong)&mbft->sector_shift < 0xA0000; mbft = (void*)((ulong)mbft + 16)){
+		if(memcmp("mBFT", mbft, 4) == 0
+		&& mbft->len < 1024 && (uchar*)mbft + mbft->len > &mbft->sector_shift
+		&& checksum(mbft, mbft->len) == 0)
+			goto Found;
 	}
-	return numfmt(s, 16, i, a);
+	return;
+Found:
+	shift = mbft->sector_shift;
+	if(shift == 0)
+		shift = 9;
+
+	s = confend;
+	addconfx("ramdisk", 1, id);
+	addconfx("=0x", 8, mbft->diskbuf);
+	addconfx(" 0x", 8, mbft->disksize<<shift);
+	addconfx(" 0x", 8, 1UL<<shift);
+
+	*confend++ = '\n';
+	*confend = 0;
+
+	print(s);
 }
 
-char*
-decfmt(char *s, int i, ulong a)
+static void
+uartconf(char *s)
 {
-	return numfmt(s, 10, i, a);
+	if(*s >= '0' && *s <= '3'){
+		uart = *s - '0';
+		uartinit(uart, (7<<5) | 3);	/* b9660 l8 s1 */
+	} else
+		uart = -1;
 }
 
 static ulong
@@ -340,6 +517,9 @@ bootkern(void *f)
 	uchar *e, *d, *t;
 	ulong n;
 	Exec ex;
+
+	while(a20() < 0)
+		print("a20 enable failed\n");
 
 	if(readn(f, &ex, sizeof(ex)) != sizeof(ex))
 		return "bad header";
@@ -360,19 +540,20 @@ bootkern(void *f)
 	if(readn(f, t, n) != n)
 		goto Error;
 	t += n;
-	d = (uchar*)PGROUND((uintptr)t);
+	d = (uchar*)PGROUND((ulong)t);
 	memset(t, 0, d - t);
 	n = beswal(ex.data);
 	if(readn(f, d, n) != n)
 		goto Error;
 	d += n;
-	t = (uchar*)PGROUND((uintptr)d);
+	t = (uchar*)PGROUND((ulong)d);
 	t += PGROUND(beswal(ex.bss));
 	memset(d, 0, t - d);
 
 	close(f);
-	print("boot\n");
 	unload();
+
+	print("boot\n");
 
 	jump(e);
 
