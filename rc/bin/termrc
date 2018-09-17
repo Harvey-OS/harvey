@@ -15,7 +15,8 @@ for(i in t m v C)
 # set up any partitions
 diskparts
 
-rm /env/disk
+if(test -e /env/disk)
+        rm /env/disk
 
 # we do this before we have a name.  we may need to do network
 # setup so that we can get a name.
