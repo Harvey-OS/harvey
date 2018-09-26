@@ -4,6 +4,7 @@
 			"-ffreestanding",
 			"-fno-builtin",
 			"-fno-omit-frame-pointer",
+			"-fno-stack-protector",
 			"-g",
 			"-gdwarf-2",
 			"-ggdb",

@@ -2,6 +2,8 @@
 	"core": {
 		"Cflags": [
 			"-fno-stack-protector",
+			"-mindirect-branch=keep",
+			"-mfunction-return=keep",
 			"-mcmodel=kernel",
 			"-O0",
 			"-static",

@@ -6,6 +6,7 @@
 			"-mno-red-zone",
 			"-ffreestanding",
 			"-fno-builtin",
+			"-fno-stack-protector",
 			"-Wall",
 			"-Werror",
 			"-g"
