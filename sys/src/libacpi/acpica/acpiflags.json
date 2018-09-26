@@ -18,6 +18,7 @@
 			"-nostdlib",
 			"-nostdinc",
 			"-fno-builtin",
+			"-fno-stack-protector",
 			"-include",
 			"u.h",
 			"-include",
