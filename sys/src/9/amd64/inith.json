@@ -9,6 +9,7 @@
 			"-mno-red-zone",
 			"-ffreestanding",
 			"-fno-builtin",
+			"-fno-stack-protector",
 			"-mcmodel=small"
 		],
 		"Libs": [
