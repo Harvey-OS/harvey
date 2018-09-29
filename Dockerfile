@@ -1,4 +1,4 @@
-FROM alpine:3.5
+FROM alpine:latest
 
 RUN apk update; apk add git git-perl go gcc bison musl-dev qemu qemu-system-x86_64 curl bash
 ENV HARVEY=/harvey ARCH=amd64 CC=gcc
