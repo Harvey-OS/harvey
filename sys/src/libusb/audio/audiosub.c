@@ -185,9 +185,10 @@ audio_interface(Dev *_1, Desc *dd)
 					if(selectorid[u] >= 0)
 						fprint(2, "Second selector (%d, %d) on %s\n", selectorid[u], b[3], u?"record":"playback");
 					selectorid[u] = b[3];
-					controls[u][Selector_control].readable = 1;
-					controls[u][Selector_control].settable = 1;
-					controls[u][Selector_control].chans = 0;
+					// Currently disabled
+					//controls[u][Selector_control].readable = 1;
+					//controls[u][Selector_control].settable = 1;
+					//controls[u][Selector_control].chans = 0;
 				}
 			}
 			break;

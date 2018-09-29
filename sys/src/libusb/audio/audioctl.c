@@ -415,11 +415,12 @@ setcontrol(int rec, char *name, int32_t *value)
 		control = ctl<<8;
 		index = featureid[rec]<<8;
 		break;
-	case Selector_control:
+	// Selector_control currently disabled
+	/*case Selector_control:
 		type = Rh2d|Rclass|Riface;
 		control = 0;
 		index = selectorid[rec]<<8;
-		break;
+		break;*/
 	case Channel_control:
 		control = findalt(rec, value[0], controls[rec][Resolution_control].value[0], defaultspeed[rec]);
 		if(control < 0 || setaudioalt(rec, c, control) < 0){
@@ -502,11 +503,12 @@ getspecialcontrol(int rec, int ctl, int req, int32_t *value)
 		control = ctl<<8;
 		index = featureid[rec]<<8;
 		break;
-	case Selector_control:
+	// Currently disabled
+	/*case Selector_control:
 		type = Rd2h|Rclass|Riface;
 		control = 0;
 		index = selectorid[rec]<<8;
-		break;
+		break;*/
 	case Mute_control:
 	case Agc_control:
 	case Bassboost_control:

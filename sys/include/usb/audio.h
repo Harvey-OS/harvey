@@ -25,7 +25,7 @@ enum {
 	Channel_control		= 0x0b,
 	Resolution_control	= 0x0c,
 	Ncontrol,
-	Selector_control	= 0x0d,
+	//Selector_control	= 0x0d,		// Currently disabled
 
 	sampling_freq_control	= 0x01,
 
