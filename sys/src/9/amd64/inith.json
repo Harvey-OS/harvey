@@ -18,7 +18,11 @@
 		"Oflags": [
 			"-e_main",
 			"-static",
-			"-Ttext=0x200020"
+			"-Ttext=0x200020",
+			"-z",
+			"noseparate-code",
+			"-z",
+			"max-page-size=0x200000"
 		],
 		"Post": [
 			"elf2c init.h init"
