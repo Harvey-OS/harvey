@@ -15,6 +15,12 @@
 			"-Wall",
 			"-Werror"
 		],
+		"Oflags": [
+			"-z",
+			"noseparate-code",
+			"-z",
+			"max-page-size=0x200000"
+		],
 		"Include": [
 			"/$ARCH/include/$CC.json"
 		]
