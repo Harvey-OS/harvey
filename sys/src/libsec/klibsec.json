@@ -1,7 +1,7 @@
 {
 	"Kernellibsec": {
 		"Include": [
-			"/$ARCH/include/klib.json"
+			"/$ARCH/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "klibsec.a",

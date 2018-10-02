@@ -1,7 +1,7 @@
 {
 	"libthread": {
 		"Include": [
-			"/$ARCH/include/cflags.json",
+			"/$ARCH/cflags.json",
 			"../lib.json"
 		],
 		"Install": "/$ARCH/lib/",
