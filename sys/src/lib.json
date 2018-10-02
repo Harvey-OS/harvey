@@ -1,7 +1,7 @@
 {
 	"Libs": {
 		"Include": [
-			"/$ARCH/include/cflags.json"
+			"/$ARCH/cflags.json"
 		],
 		"Oflags": [
 			"-static"

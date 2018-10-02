@@ -1,7 +1,7 @@
 {
 	"KernelLibip": {
 		"Include": [
-			"/$ARCH/include/klib.json"
+			"/$ARCH/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "klibip.a",
