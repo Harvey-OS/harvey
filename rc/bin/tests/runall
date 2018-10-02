@@ -1,0 +1,16 @@
+#!/bin/rc
+
+# Script to run all tests in 'tests'.  If any test fails, this script fails.
+
+tests=/bin/regress/^(fpuexcept fpunote)
+
+echo 1..$#tests
+
+finalstatus=PASS
+for (test in $tests) {
+	output=PASS
+	$test >[2=1] >/dev/null || {output='FAIL - '^$status; finalstatus=FAIL}
+	echo $output
+}
+
+if (~ $finalstatus FAIL) exit $finalstatus
