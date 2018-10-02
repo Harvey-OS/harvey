@@ -6,13 +6,13 @@
 void
 pass(void) {
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }
 
 void
 fail(const char *msg) {
 	print("FAIL - %s\n", msg);
-	exits("FAIL");
+	exits(msg);
 }
 
 void

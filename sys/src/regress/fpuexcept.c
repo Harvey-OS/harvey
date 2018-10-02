@@ -6,13 +6,13 @@
 void
 pass(void) {
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }
 
 void
 fail(const char *msg) {
 	print("FAIL - %s\n", msg);
-	exits("FAIL");
+	exits(msg);
 }
 
 static float f = 10.0;
@@ -34,4 +34,3 @@ main(void)
 	f = f / 0.0f;
 	fail("divide by zero exception not raised");
 }
- 
