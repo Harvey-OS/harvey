@@ -11,8 +11,9 @@ Harvey is a distributed operating system. It’s most directly descended from [P
 
 ### Getting started
 
-Start by reading the [Getting Started](https://github.com/Harvey-OS/harvey/wiki/Getting-Started)
-guide to learn how to get Harvey up and running.
+Start by reading the [Wiki](https://github.com/Harvey-OS/harvey/wiki).
+There's a [Getting Started](https://github.com/Harvey-OS/harvey/wiki/Getting-Started)
+guide there to learn how to get Harvey up and running and many other things.
 
 ### Contributing
 
@@ -24,17 +25,6 @@ Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob
 
 * [Harvey's wiki](https://github.com/Harvey-OS/harvey/wiki)
 * [Apex's wiki](https://github.com/Harvey-OS/apex/wiki).
-
-### Roadmap
-
-#### v0.1
-
-_Last updated_: 13th Apr, 2018
-
-|   Status    | Milestone                                              | Goals |      ETA      |
-| :---------: | :----------------------------------------------------- | :---: | :-----------: |
-| In progress | [Go](https://github.com/orgs/Harvey-OS/projects/1) | 1 / 0 | March 2018 |
-| Done | [Harvey](https://github.com/orgs/Harvey-OS/projects/2) | 1 / 1 | February 2018 |
 
 ### Status
 
