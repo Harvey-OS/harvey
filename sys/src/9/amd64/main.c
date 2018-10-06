@@ -649,6 +649,7 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 
 	alloc_cpu_buffers();
 
+	acpistart();
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
 	print("schedinit...\n");
