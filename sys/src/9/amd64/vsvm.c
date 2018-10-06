@@ -151,7 +151,7 @@ tssinit(Mach *mach, uintptr_t sp)
 		tss->ist[ist] = sp;
 		tss->ist[ist+1] = sp>>32;
 	}
-	tss->iomap = 0xdfff;
+	tss->iomap = sizeof(*tss);
 }
 
 void acsyscallentry(void)
