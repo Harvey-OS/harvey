@@ -15,8 +15,7 @@ for(i in t m v C)
 # set up any partitions
 diskparts
 
-if(test -e /env/disk)
-        rm /env/disk
+rm -f /env/disk
 
 # we do this before we have a name.  we may need to do network
 # setup so that we can get a name.
@@ -102,7 +101,7 @@ if(test -f /dev/mousectl){
 }
 
 usbstart
-if (test -f /dev/apm)
+if(test -f /dev/apm)
 	aux/apm
 
 dontkill '^(ipconfig|factotum|mntgen|fossil|cs|dns|listen|reboot)$'
