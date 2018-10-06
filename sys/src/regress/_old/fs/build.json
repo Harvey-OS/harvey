@@ -1,11 +1,11 @@
 {
-	"Regress": {
+	"fs": {
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
-		"Install": "/$ARCH/bin/regress/fs",
+		"Install": "/$ARCH/bin/regress/_old/fs",
 		"Post": [
-			"cp fs.rc /$ARCH/bin/regress"
+			"cp fs.rc /$ARCH/bin/regress/_old/fs"
 		],
 		"SourceFilesCmd": [
 			"chdir.c",

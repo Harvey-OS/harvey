@@ -1,0 +1,11 @@
+{
+	"fpu": {
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/fpu",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+}
