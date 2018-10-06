@@ -97,7 +97,7 @@ memset(void *dst, int v, int n)
 }
 
 static int
-readline(void *f, char buf[64])
+readline(void *f, char *buf)
 {
 	static char white[] = "\t ";
 	char *p;
@@ -127,14 +127,6 @@ readline(void *f, char buf[64])
 				break;
 			if(p == buf && strchr(white, *p) != nil)
 				continue;	/* whitespace on start of line */
-			if(p >= buf + 64-1){
-				if(f == nil){
-					putc('\b');
-					putc(' ');
-					putc('\b');
-				}
-				continue;	/* line full do not advance */
-			}
 			p++;
 		}
 		while(p > buf && strchr(white, p[-1]))
@@ -211,7 +203,7 @@ delconf(char *s)
 char*
 configure(void *f, char *path)
 {
-	char line[64], *kern, *s, *p;
+	char *line, *kern, *s, *p;
 	int inblock, nowait, n;
 	static int once = 1;
 
@@ -227,7 +219,7 @@ Clear:
 	nowait = 1;
 	inblock = 0;
 Loop:
-	while(readline(f, line) > 0){
+	while(readline(f, line = confend+1) > 0){
 		if(*line == 0 || strchr("#;=", *line) != nil)
 			continue;
 		if(*line == '['){
