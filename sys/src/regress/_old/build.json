@@ -1,0 +1,17 @@
+{
+	"_old": {
+		"Projects": [
+			"fs"
+		],
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/_old",
+		"NoSourceFilesCmd": [
+			"tls.c"
+		],
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+}

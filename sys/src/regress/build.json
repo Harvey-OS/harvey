@@ -1,14 +1,14 @@
 {
 	"Regress": {
+		"Projects": [
+			"_old",
+			"fpu"
+		],
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
 		"Install": "/$ARCH/bin/regress",
-		"NoSourceFilesCmd": [
-			"tls.c"
-		],
 		"SourceFilesCmd": [
-			"*.c"
 		]
 	}
 }
