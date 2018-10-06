@@ -15,7 +15,8 @@
 		"SourceFilesCmd": [
 			"TestACPISleep.c",
 			"crs.c",
-			"irq.c"
+			"irq.c",
+			"shutdown.c"
 		]
 	}
 }
