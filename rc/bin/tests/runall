@@ -2,15 +2,17 @@
 
 # Script to run all tests in 'tests'.  If any test fails, this script fails.
 
-tests=/bin/regress/^(fpuexcept fpunote)
-
-echo 1..$#tests
+# Skip folders or files beginning in '_'
+tests=`{du -a /bin/regress | awk '{print $2}' | grep -v /_}
 
 finalstatus=PASS
-for (test in $tests) {
-	output=PASS
-	$test >[2=1] >/dev/null || {output='FAIL - '^$status; finalstatus=FAIL}
-	echo $output
+for (file in $tests) {
+	if (test -f $file && test -x $file) {
+		$file >[2=1] >/dev/null
+		teststatus = $status
+		if (! ~ $teststatus '') { echo FAIL $file $teststatus }
+		if not { echo PASS $file; finalstatus=FAIL }
+	}
 }
 
 if (~ $finalstatus FAIL) exit $finalstatus

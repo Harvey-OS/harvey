@@ -1,8 +1,10 @@
 #!/bin/rc
 
-# Script to run all tests and output the results to file
+# Script to run all tests, output the results to file and shutdown
 
 file=/tmp/runallresults.txt
 rm -f $file
 tests/runall >[2=1] > $file
 echo 'DONE' >> $file
+
+acpi/shutdown
