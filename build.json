@@ -7,7 +7,6 @@
 			"/sys/src/games/games.json",
 			"/acme/build.json",
 			"/sys/src/regress",
-			"/sys/src/regress/fs",
 			"/sys/src/9/$ARCH"
 		]
 	}
