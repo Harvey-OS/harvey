@@ -24,6 +24,9 @@
 			"-z",
 			"max-page-size=0x200000"
 		],
+		"Pre": [
+			"rm -f init.h"
+		],
 		"Post": [
 			"elf2c init.h init"
 		],
