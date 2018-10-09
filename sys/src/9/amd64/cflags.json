@@ -22,7 +22,7 @@
 			"max-page-size=0x200000"
 		],
 		"Include": [
-			"/$ARCH/$CC.json"
+			"$CC.json"
 		]
 	}
 }
