@@ -23,7 +23,7 @@
 			"/sys/src/libc/9syscall"
 		],
 		"Include": [
-			"/$ARCH/$CC.json"
+			"$CC.json"
 		],
 		"Libs": [
 			"/$ARCH/lib/klibmemlayer.a",

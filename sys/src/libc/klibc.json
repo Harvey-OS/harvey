@@ -4,7 +4,7 @@
 			"-fasm"
 		],
 		"Include": [
-			"/$ARCH/klib.json",
+			"/sys/src/9/$ARCH/klib.json",
 			"$ARCH/build.json"
 		],
 		"Install": "/$ARCH/lib/",

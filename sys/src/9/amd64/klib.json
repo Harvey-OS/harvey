@@ -12,7 +12,7 @@
 			"-g"
 		],
 		"Include": [
-			"/$ARCH/$CC.json"
+			"$CC.json"
 		],
 		"Oflags": [
 			"-static"
