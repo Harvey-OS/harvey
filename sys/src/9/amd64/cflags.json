@@ -1,0 +1,28 @@
+{
+	"buildflags": {
+		"Cflags": [
+			"-ffreestanding",
+			"-fno-builtin",
+			"-fno-omit-frame-pointer",
+			"-fno-stack-protector",
+			"-g",
+			"-gdwarf-2",
+			"-ggdb",
+			"-mcmodel=small",
+			"-mno-red-zone",
+			"-O0",
+			"-static",
+			"-Wall",
+			"-Werror"
+		],
+		"Oflags": [
+			"-z",
+			"noseparate-code",
+			"-z",
+			"max-page-size=0x200000"
+		],
+		"Include": [
+			"/$ARCH/$CC.json"
+		]
+	}
+}
