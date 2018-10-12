@@ -37,6 +37,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"sort"
 	"text/template"
 )
 
@@ -195,7 +196,16 @@ func data2c(name string, path string) string {
 func confcode(path string, kern *kernel) []byte {
 	var rootcodes []string
 	var rootnames []string
-	for name, path := range kern.Ramfiles {
+
+	// Sort keys so we can guaranteed order of iteration over ramfiles
+	var ramfilenames []string
+	for name := range kern.Ramfiles {
+		ramfilenames = append(ramfilenames, name)
+	}
+	sort.Strings(ramfilenames)
+
+	for _, name := range ramfilenames {
+		path := kern.Ramfiles[name]
 		code := data2c(name, fromRoot(path))
 		rootcodes = append(rootcodes, code)
 		rootnames = append(rootnames, name)
