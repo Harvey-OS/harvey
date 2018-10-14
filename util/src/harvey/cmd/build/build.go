@@ -59,7 +59,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -126,8 +125,6 @@ func globby(s []string) []string {
 	for n := range f {
 		all = append(all, n)
 	}
-	sort.Strings(all)
-
 	debug("Glob of '%v' is '%v'", s, all)
 	return all
 }
@@ -226,15 +223,7 @@ func include(f string, targ string, b *build) {
 	var builds buildfile
 	fail(json.Unmarshal(d, &builds))
 
-	// Sort keys so we can guaranteed order of iteration over builds
-	var buildkeys []string
-	for n := range builds {
-		buildkeys = append(buildkeys, n)
-	}
-	sort.Strings(buildkeys)
-
-	for _, n := range buildkeys {
-		build := builds[n]
+	for _, build := range builds {
 		t := target(&build)
 		if t != "" {
 			targ = t
@@ -242,9 +231,7 @@ func include(f string, targ string, b *build) {
 		}
 	}
 
-	for _, n := range buildkeys {
-		build := builds[n]
-
+	for n, build := range builds {
 		log.Printf("Merging %s", n)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
@@ -324,17 +311,7 @@ func process(f string, r []*regexp.Regexp) []build {
 	d, err := ioutil.ReadFile(f)
 	fail(err)
 	fail(json.Unmarshal(d, &builds))
-
-	// Sort keys so we can guaranteed order of iteration over builds
-	var buildkeys []string
-	for n := range builds {
-		buildkeys = append(buildkeys, n)
-	}
-	sort.Strings(buildkeys)
-
-	for _, n := range buildkeys {
-		build := builds[n]
-
+	for n, build := range builds {
 		build.name = n
 		build.jsons = make(map[string]bool)
 		skip := true
@@ -660,9 +637,6 @@ func project(bf string, which []*regexp.Regexp) {
 }
 
 func main() {
-	// Disable logging timestamps - easier to compare build output
-	log.SetFlags(0)
-
 	// A small amount of setup is done in the paths*.go files. They are
 	// OS-specific path setup/manipulation. "harvey" is set there and $PATH is
 	// adjusted.
