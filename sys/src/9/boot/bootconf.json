@@ -11,11 +11,7 @@
 		],
 		"Oflags": [
 			"-e_main",
-			"-static",
-			"-z",
-			"noseparate-code",
-			"-z",
-			"max-page-size=0x200000"
+			"-static"
 		],
 		"Post": [
 			"rm -f *.o *.a",
