@@ -80,9 +80,9 @@ type kernel struct {
 
 type build struct {
 	// jsons is unexported so can not be set in a .json file
-	jsons map[string]bool
+	jsons []string
 	path  string
-	name  string
+	Name  string
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
 	Projects    []string
@@ -105,7 +105,7 @@ type build struct {
 	Kernel  *kernel
 }
 
-type buildfile map[string]build
+type buildfile []build
 
 func globby(s []string) []string {
 	all := []string{}
@@ -126,14 +126,14 @@ func globby(s []string) []string {
 // UnmarshalJSON works like the stdlib unmarshal would, except it adjusts all
 // paths.
 func (bf *buildfile) UnmarshalJSON(s []byte) error {
-	r := make(map[string]build)
+	r := make([]build, 0)
 	if err := json.Unmarshal(s, &r); err != nil {
 		return err
 	}
 
 	for k, b := range r {
 		// we're getting a copy of the struct, remember.
-		b.jsons = make(map[string]bool)
+		b.jsons = []string{}
 		b.Projects = adjust(b.Projects)
 		b.Libs = adjust(b.Libs)
 		b.SourceDeps = adjust(b.SourceDeps)
@@ -151,6 +151,15 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 	}
 	*bf = r
 	return nil
+}
+
+func (b *build) includedJson(filename string) bool {
+	for _, includedJson := range b.jsons {
+		if includedJson == filename {
+			return true
+		}
+	}
+	return false
 }
 
 var (
@@ -207,14 +216,13 @@ func fromRoot(p string) string {
 func include(f string, targ string, b *build) {
 	debug("include(%s, %s, %v)", f, targ, b)
 
-	if b.jsons[f] {
+	if b.includedJson(f) {
 		return
 	}
-	b.jsons[f] = true
+	b.jsons = append(b.jsons, f)
 
 	log.Printf("Including %s", f)
 	builds := unmarshalBuild(f)
-
 
 	for _, build := range builds {
 		t := target(&build)
@@ -224,8 +232,8 @@ func include(f string, targ string, b *build) {
 		}
 	}
 
-	for n, build := range builds {
-		log.Printf("Merging %s", n)
+	for _, build := range builds {
+		log.Printf("Merging %s", build.Name)
 		b.Cflags = append(b.Cflags, build.Cflags...)
 		b.Oflags = append(b.Oflags, build.Oflags...)
 		b.Pre = append(b.Pre, build.Pre...)
@@ -242,7 +250,7 @@ func include(f string, targ string, b *build) {
 		}
 		if build.Install != "" {
 			if b.Install != "" && build.Install != b.Install {
-				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install: was %s, redefined to %s.", f, n, build.path, build.name, b.Install, build.Install)
+				log.Fatalf("In file %s (target %s) included by %s (target %s): redefined Install: was %s, redefined to %s.", f, b.Name, build.path, build.Name, b.Install, build.Install)
 			}
 			b.Install = build.Install
 		}
@@ -303,9 +311,6 @@ func unmarshalBuild(f string) buildfile {
 
 	var builds buildfile
 	fail(json.Unmarshal(d, &builds))
-	if len(builds) > 1 {
-		log.Fatalf("Error: build file (%v) has > 1 entry", f)
-	}
 	return builds
 }
 
@@ -315,12 +320,11 @@ func process(f string, r []*regexp.Regexp) []build {
 
 	builds := unmarshalBuild(f)
 
-	for n, build := range builds {
-		build.name = n
-		build.jsons = make(map[string]bool)
+	for _, build := range builds {
+		build.jsons = []string{}
 		skip := true
 		for _, re := range r {
-			if re.MatchString(build.name) {
+			if re.MatchString(build.Name) {
 				skip = false
 				break
 			}
@@ -328,8 +332,9 @@ func process(f string, r []*regexp.Regexp) []build {
 		if skip {
 			continue
 		}
-		log.Printf("Running %s", build.name)
-		build.jsons[f] = true
+		log.Printf("Running %s", build.Name)
+
+		build.jsons = append(build.jsons, f)
 		build.path = path.Dir(f)
 
 		// Figure out which of these are up to date.
@@ -388,7 +393,7 @@ func buildkernel(b *build) {
 		return
 	}
 	codebuf := confcode(b.path, b.Kernel)
-	fail(ioutil.WriteFile(b.name+".c", codebuf, 0666))
+	fail(ioutil.WriteFile(b.Name+".c", codebuf, 0666))
 }
 
 func uptodate(n string, d []string) bool {
@@ -449,7 +454,7 @@ func cmdTarget(b *build, n string) (string, string) {
 }
 
 func compile(b *build) {
-	log.Printf("Building %s\n", b.name)
+	log.Printf("Building %s\n", b.Name)
 	// N.B. Plan 9 has a very well defined include structure, just three things:
 	// /amd64/include, /sys/include, .
 	args := []string{
@@ -472,7 +477,7 @@ func compile(b *build) {
 }
 
 func link(b *build) {
-	log.Printf("Linking %s\n", b.name)
+	log.Printf("Linking %s\n", b.Name)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, n := range b.SourceFilesCmd {
 			// Split off the last element of the file
@@ -505,7 +510,7 @@ func install(b *build) {
 		return
 	}
 
-	log.Printf("Installing %s\n", b.name)
+	log.Printf("Installing %s\n", b.Name)
 	fail(os.MkdirAll(b.Install, 0755))
 
 	switch {
@@ -625,7 +630,7 @@ func project(bf string, which []*regexp.Regexp) {
 	builds := process(root, which)
 	debug("Processing %v: %d target", root, len(builds))
 	for _, b := range builds {
-		debug("Processing %v: %v", b.name, b)
+		debug("Processing %v: %v", b.Name, b)
 		projects(&b, regexpAll)
 		runCmds(&b, b.Pre)
 		buildkernel(&b)
