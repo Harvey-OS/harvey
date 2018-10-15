@@ -108,23 +108,17 @@ type build struct {
 type buildfile map[string]build
 
 func globby(s []string) []string {
-	var f = make(map[string]bool)
+	all := []string{}
 
 	for _, n := range s {
 		l, err := filepath.Glob(n)
 		if err != nil || len(l) == 0 {
-			f[n] = true
+			all = append(all, n)
 		} else {
-			for _, n := range l {
-				f[n] = true
-			}
+			all = append(all, l...)
 		}
 	}
 
-	var all []string
-	for n := range f {
-		all = append(all, n)
-	}
 	debug("Glob of '%v' is '%v'", s, all)
 	return all
 }
