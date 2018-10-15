@@ -211,11 +211,10 @@ func include(f string, targ string, b *build) {
 		return
 	}
 	b.jsons[f] = true
+
 	log.Printf("Including %s", f)
-	d, err := ioutil.ReadFile(f)
-	fail(err)
-	var builds buildfile
-	fail(json.Unmarshal(d, &builds))
+	builds := unmarshalBuild(f)
+
 
 	for _, build := range builds {
 		t := target(&build)
@@ -298,13 +297,24 @@ func contains(a []string, s string) bool {
 	return false
 }
 
-func process(f string, r []*regexp.Regexp) []build {
-	log.Printf("Processing %s", f)
-	var builds buildfile
-	var results []build
+func unmarshalBuild(f string) buildfile {
 	d, err := ioutil.ReadFile(f)
 	fail(err)
+
+	var builds buildfile
 	fail(json.Unmarshal(d, &builds))
+	if len(builds) > 1 {
+		log.Fatalf("Error: build file (%v) has > 1 entry", f)
+	}
+	return builds
+}
+
+func process(f string, r []*regexp.Regexp) []build {
+	log.Printf("Processing %s", f)
+	var results []build
+
+	builds := unmarshalBuild(f)
+
 	for n, build := range builds {
 		build.name = n
 		build.jsons = make(map[string]bool)
