@@ -1,5 +1,6 @@
-{
-	"cifs": {
+[
+	{
+		"Name": "cifs",
 		"Include": [
 			"../cmd.json"
 		],
@@ -25,4 +26,4 @@
 			"ping.c"
 		]
 	}
-}
+]

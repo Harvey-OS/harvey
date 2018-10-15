@@ -1,5 +1,6 @@
-{
-	"mkflashfs": {
+[
+	{
+		"Name": "mkflashfs",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"utils.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"sam": {
+[
+	{
+		"Name": "sam",
 		"CFlags": [],
 		"Include": [
 			"../cmd.json"
@@ -29,4 +30,4 @@
 			"xec.c"
 		]
 	}
-}
+]

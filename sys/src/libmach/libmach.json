@@ -1,5 +1,6 @@
-{
-	"libmach": {
+[
+	{
+		"Name": "libmach",
 		"Cflags": [
 			"-I",
 			"/"
@@ -23,4 +24,4 @@
 			"sym.c"
 		]
 	}
-}
+]

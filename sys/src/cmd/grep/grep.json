@@ -1,5 +1,6 @@
-{
-	"grep": {
+[
+	{
+		"Name": "grep",
 		"Include": [
 			"../cmd.json"
 		],
@@ -18,4 +19,4 @@
 			"y.tab.c"
 		]
 	}
-}
+]

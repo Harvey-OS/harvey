@@ -1,5 +1,6 @@
-{
-	"jpg": {
+[
+	{
+		"Name": "gif",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"torgbv.c"
 		]
 	}
-}
+]

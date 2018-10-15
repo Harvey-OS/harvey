@@ -1,5 +1,6 @@
-{
-	"httpdcmds": {
+[
+	{
+		"Name": "httpdcmds",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -21,4 +22,4 @@
 			"wikipost.c"
 		]
 	}
-}
+]

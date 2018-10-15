@@ -1,5 +1,6 @@
-{
-	"Cmd": {
+[
+	{
+		"Name": "Cmd",
 		"CFlags": [],
 		"Include": [
 			"cmd.json"
@@ -9,7 +10,8 @@
 			"*.c"
 		]
 	},
-	"Dirs": {
+	{
+		"Name": "Dirs",
 		"Include": [
 			"cmd.json"
 		],
@@ -78,4 +80,4 @@
 			"zenith/build.json"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"con": {
+[
+	{
+		"Name": "con",
 		"Include": [
 			"../cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"hayes.c"
 		]
 	}
-}
+]

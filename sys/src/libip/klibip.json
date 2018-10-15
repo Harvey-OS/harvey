@@ -1,5 +1,6 @@
-{
-	"KernelLibip": {
+[
+	{
+		"Name": "KernelLibip",
 		"Include": [
 			"/$ARCH/klib.json"
 		],
@@ -19,4 +20,4 @@
 			"ptclbsum.c"
 		]
 	}
-}
+]

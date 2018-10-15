@@ -1,5 +1,6 @@
-{
-	"execnet": {
+[
+	{
+		"Name": "execnet",
 		"Cflags": [
 			"-I$HARVEY/sys/src/libthread"
 		],
@@ -15,4 +16,4 @@
 			"note.c"
 		]
 	}
-}
+]

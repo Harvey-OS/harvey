@@ -1,5 +1,6 @@
-{
-	"Cmd": {
+[
+	{
+		"Name": "cmd",
 		"Include": [
 			"../cmd/cmd.json"
 		],
@@ -13,7 +14,8 @@
 			"juggle.c"
 		]
 	},
-	"Dirs": {
+	{
+		"Name": "dirs",
 		"Include": [
 			"../cmd/cmd.json"
 		],
@@ -24,4 +26,4 @@
 			"mahjongg/mahjongg.json"
 		]
 	}
-}
+]

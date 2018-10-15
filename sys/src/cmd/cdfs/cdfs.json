@@ -1,5 +1,6 @@
-{
-	"cdfs": {
+[
+	{
+		"Name": "cdfs",
 		"Include": [
 			"../cmd.json"
 		],
@@ -12,4 +13,4 @@
 			"scsi.c"
 		]
 	}
-}
+]

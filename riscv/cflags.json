@@ -1,5 +1,6 @@
-{
-	"buildflags": {
+[
+	{
+		"Name": "buildflags",
 		"Cflags": [
 			"-mcmodel=medany",
 			"-ffreestanding",
@@ -19,4 +20,4 @@
 			"--no-relax"
 		]
 	}
-}
+]

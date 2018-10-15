@@ -1,5 +1,6 @@
-{
-	"acme": {
+[
+	{
+		"Name": "acme",
 		"CFlags": [],
 		"Include": [
 			"../cmd.json"
@@ -32,4 +33,4 @@
 			"xfid.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"usbd": {
+[
+	{
+		"Name": "usbd",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -17,4 +18,4 @@
 			"devtab.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"sudoku": {
+[
+	{
+		"Name": "sudoku",
 		"Include": [
 			"../../cmd/cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"sudoku.c"
 		]
 	}
-}
+]

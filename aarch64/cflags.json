@@ -1,5 +1,6 @@
-{
-	"buildflags": {
+[
+	{
+		"Name": "buildflags",
 		"Cflags": [
 			"-ffreestanding",
 			"-fno-builtin",
@@ -13,4 +14,4 @@
 			"-Werror"
 		]
 	}
-}
+]

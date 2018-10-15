@@ -1,5 +1,6 @@
-{
-	"snoopy": {
+[
+	{
+		"Name": "snoopy",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -56,4 +57,4 @@
 			"y.tab.c"
 		]
 	}
-}
+]

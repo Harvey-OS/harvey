@@ -1,5 +1,6 @@
-{
-	"libauthcmd": {
+[
+	{
+		"Name": "libauthcmd",
 		"Cflags": [
 			"-I../"
 		],
@@ -25,4 +26,4 @@
 			"getexpiration.c"
 		]
 	}
-}
+]

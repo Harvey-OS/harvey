@@ -1,7 +1,8 @@
-{
-	"clean": {
+[
+	{
+		"Name": "clean",
 		"Pre": [
 			"rm -f auth/lib/libauthcmd.a ip/httpd/libhttps.a usb/usbd/devtab.c venti/srv/libvs.a"
 		]
 	}
-}
+]

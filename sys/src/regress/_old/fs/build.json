@@ -1,5 +1,6 @@
-{
-	"fs": {
+[
+	{
+		"Name": "fs",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -14,4 +15,4 @@
 			"filecreate.c"
 		]
 	}
-}
+]

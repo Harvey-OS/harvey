@@ -1,5 +1,6 @@
-{
-	"Venti": {
+[
+	{
+		"Name": "venti",
 		"Include": [
 			"../cmd.json"
 		],
@@ -20,4 +21,4 @@
 			"root.c"
 		]
 	}
-}
+]

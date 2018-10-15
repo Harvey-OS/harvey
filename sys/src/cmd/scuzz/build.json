@@ -1,5 +1,6 @@
-{
-	"scuzz": {
+[
+	{
+		"Name": "scuzz",
 		"Include": [
 			"../cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"*.c"
 		]
 	}
-}
+]

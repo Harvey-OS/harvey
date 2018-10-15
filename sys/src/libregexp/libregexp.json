@@ -1,5 +1,6 @@
-{
-	"libregexp": {
+[
+	{
+		"Name": "libregexp",
 		"Include": [
 			"../lib.json"
 		],
@@ -15,4 +16,4 @@
 			"rregsub.c"
 		]
 	}
-}
+]

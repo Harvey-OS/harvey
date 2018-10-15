@@ -1,5 +1,6 @@
-{
-	"Tests": {
+[
+	{
+		"Name": "Tests",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -8,4 +9,4 @@
 			"*.c"
 		]
 	}
-}
+]

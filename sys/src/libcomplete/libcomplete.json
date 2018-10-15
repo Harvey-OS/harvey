@@ -1,5 +1,6 @@
-{
-	"libcomplete": {
+[
+	{
+		"Name": "libcomplete",
 		"Include": [
 			"../lib.json"
 		],
@@ -9,4 +10,4 @@
 			"complete.c"
 		]
 	}
-}
+]

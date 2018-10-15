@@ -1,5 +1,6 @@
-{
-	"libcontrol": {
+[
+	{
+		"Name": "libcontrol",
 		"Include": [
 			"../lib.json"
 		],
@@ -24,4 +25,4 @@
 			"textbutton3.c"
 		]
 	}
-}
+]

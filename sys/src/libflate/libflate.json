@@ -1,5 +1,6 @@
-{
-	"libflate": {
+[
+	{
+		"Name": "libflate",
 		"Include": [
 			"../lib.json"
 		],
@@ -19,4 +20,4 @@
 			"adler.c"
 		]
 	}
-}
+]

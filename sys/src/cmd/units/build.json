@@ -1,5 +1,6 @@
-{
-	"units": {
+[
+	{
+		"Name": "units",
 		"Include": [
 			"../cmd.json"
 		],
@@ -15,4 +16,4 @@
 			"y.tab.c"
 		]
 	}
-}
+]

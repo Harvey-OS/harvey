@@ -1,5 +1,6 @@
-{
-	"factotum": {
+[
+	{
+		"Name": "factotum",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -23,4 +24,4 @@
 			"wep.c"
 		]
 	}
-}
+]

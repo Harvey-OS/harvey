@@ -1,5 +1,6 @@
-{
-	"libsec": {
+[
+	{
+		"Name": "libsec",
 		"Include": [
 			"../lib.json"
 		],
@@ -64,4 +65,4 @@
 			"port/x509.c"
 		]
 	}
-}
+]

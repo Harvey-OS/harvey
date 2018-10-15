@@ -1,5 +1,6 @@
-{
-	"Cmd": {
+[
+	{
+		"Name": "cmd",
 		"Include": [
 			"/$ARCH/cflags.json"
 		],
@@ -48,4 +49,4 @@
 			"rm -f *.tag.*"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"ftpfs": {
+[
+	{
+		"Name": "ftpfs",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"file.c"
 		]
 	}
-}
+]

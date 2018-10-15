@@ -1,5 +1,6 @@
-{
-	"dhcpd": {
+[
+	{
+		"Name": "dhcpd",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -12,4 +13,4 @@
 			"ping.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"Cmd": {
+[
+	{
+		"Name": "cmd",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -9,11 +10,12 @@
 			"spout.c"
 		]
 	},
-	"Dirs": {
+	{
+		"Name": "dirs",
 		"Projects": [
 			"acd/build.json",
 			"adict/build.json",
 			"win/build.json"
 		]
 	}
-}
+]

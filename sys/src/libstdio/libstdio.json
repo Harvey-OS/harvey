@@ -1,5 +1,6 @@
-{
-	"libstdio": {
+[
+	{
+		"Name": "libstdio",
 		"Include": [
 			"../lib.json"
 		],
@@ -57,4 +58,4 @@
 			"vsprintf.c"
 		]
 	}
-}
+]

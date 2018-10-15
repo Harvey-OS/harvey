@@ -1,5 +1,6 @@
-{
-	"core": {
+[
+	{
+		"Name": "core",
 		"Cflags": [
 			"-O0",
 			"-static",
@@ -51,4 +52,4 @@
 			"main.c"
 		]
 	}
-}
+]

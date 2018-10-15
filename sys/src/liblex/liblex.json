@@ -1,5 +1,6 @@
-{
-	"liblex": {
+[
+	{
+		"Name": "liblex",
 		"Include": [
 			"../lib.json"
 		],
@@ -13,4 +14,4 @@
 			"yywrap.c"
 		]
 	}
-}
+]

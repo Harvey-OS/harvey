@@ -1,5 +1,6 @@
-{
-	"KernelLibc": {
+[
+	{
+		"Name": "KernelLibc",
 		"Cflags": [
 			"-fasm"
 		],
@@ -204,4 +205,4 @@
 			"port/u64.c"
 		]
 	}
-}
+]

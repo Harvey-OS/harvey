@@ -1,5 +1,6 @@
-{
-	"rsafill": {
+[
+	{
+		"Name": "rsafill",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"rsa2any.c"
 		]
 	}
-}
+]

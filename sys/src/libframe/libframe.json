@@ -1,5 +1,6 @@
-{
-	"libframe": {
+[
+	{
+		"Name": "libframe",
 		"Include": [
 			"../lib.json"
 		],
@@ -17,4 +18,4 @@
 			"frutil.c"
 		]
 	}
-}
+]

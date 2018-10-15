@@ -1,5 +1,6 @@
-{
-	"gdbserver": {
+[
+	{
+		"Name": "gdbserver",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"gdbstub.c"
 		]
 	}
-}
+]

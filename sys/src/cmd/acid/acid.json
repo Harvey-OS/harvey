@@ -1,5 +1,6 @@
-{
-	"acid": {
+[
+	{
+		"Name": "acid",
 		"CFlags": [
 			"-fplan9-extensions"
 		],
@@ -25,4 +26,4 @@
 			"y.tab.c"
 		]
 	}
-}
+]

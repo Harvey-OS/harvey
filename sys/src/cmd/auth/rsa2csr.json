@@ -1,5 +1,6 @@
-{
-	"rsa2csr": {
+[
+	{
+		"Name": "rsa2csr",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"rsa2any.c"
 		]
 	}
-}
+]

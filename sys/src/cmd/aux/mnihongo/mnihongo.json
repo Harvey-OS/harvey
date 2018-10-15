@@ -1,5 +1,6 @@
-{
-	"mnihongo": {
+[
+	{
+		"Name": "mnihongo",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"mnihongo.c"
 		]
 	}
-}
+]

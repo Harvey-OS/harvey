@@ -1,5 +1,6 @@
-{
-	"aescbc": {
+[
+	{
+		"Name": "aescbc",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -10,4 +11,4 @@
 			"util.c"
 		]
 	}
-}
+]

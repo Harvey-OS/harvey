@@ -1,5 +1,6 @@
-{
-	"libString": {
+[
+	{
+		"Name": "libString",
 		"Include": [
 			"../lib.json"
 		],
@@ -25,4 +26,4 @@
 			"s_unique.c"
 		]
 	}
-}
+]

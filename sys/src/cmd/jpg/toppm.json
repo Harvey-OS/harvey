@@ -1,5 +1,6 @@
-{
-	"jpg": {
+[
+	{
+		"Name": "toppm",
 		"Include": [
 			"../cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"toppm.c"
 		]
 	}
-}
+]

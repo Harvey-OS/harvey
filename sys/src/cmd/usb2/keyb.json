@@ -1,5 +1,6 @@
-{
-	"keyb": {
+[
+	{
+		"Name": "keyb",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"keyb.c"
 		]
 	}
-}
+]

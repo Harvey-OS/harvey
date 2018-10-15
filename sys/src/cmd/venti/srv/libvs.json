@@ -1,5 +1,6 @@
-{
-	"libvs": {
+[
+	{
+		"Name": "libvs",
 		"Cflags": [],
 		"Include": [
 			"/sys/src/lib.json"
@@ -46,4 +47,4 @@
 			"zeropart.c"
 		]
 	}
-}
+]

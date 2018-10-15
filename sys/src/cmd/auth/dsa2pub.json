@@ -1,5 +1,6 @@
-{
-	"dsa2pub": {
+[
+	{
+		"Name": "dsa2pub",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"rsa2any.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"libhttpd": {
+[
+	{
+		"Name": "libhttpd",
 		"Include": [
 			"../lib.json"
 		],
@@ -25,4 +26,4 @@
 			"urlunesc.c"
 		]
 	}
-}
+]

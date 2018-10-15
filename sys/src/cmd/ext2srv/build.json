@@ -1,5 +1,6 @@
-{
-	"ext2srv": {
+[
+	{
+		"Name": "ext2srv",
 		"Include": [
 			"../cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"*.c"
 		]
 	}
-}
+]

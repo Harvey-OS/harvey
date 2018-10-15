@@ -1,5 +1,6 @@
-{
-	"flfmt": {
+[
+	{
+		"Name": "flfmt",
 		"Include": [
 			"../cmd.json"
 		],
@@ -37,4 +38,4 @@
 			"walk.c"
 		]
 	}
-}
+]

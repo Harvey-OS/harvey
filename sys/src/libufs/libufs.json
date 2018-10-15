@@ -1,5 +1,6 @@
-{
-	"libufs": {
+[
+	{
+		"Name": "libufs",
 		"Include": [
 			"../lib.json"
 		],
@@ -15,4 +16,4 @@
 			"type.c"
 		]
 	}
-}
+]

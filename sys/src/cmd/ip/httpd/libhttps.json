@@ -1,5 +1,6 @@
-{
-	"libhttps": {
+[
+	{
+		"Name": "libhttps",
 		"Include": [
 			"../../../lib.json"
 		],
@@ -17,4 +18,4 @@
 			"authorize.c"
 		]
 	}
-}
+]

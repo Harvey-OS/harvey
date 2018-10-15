@@ -1,5 +1,6 @@
-{
-	"acd": {
+[
+	{
+		"Name": "acd",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -15,4 +16,4 @@
 			"win.c"
 		]
 	}
-}
+]

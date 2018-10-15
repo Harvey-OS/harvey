@@ -1,5 +1,6 @@
-{
-	"amd64cpu": {
+[
+	{
+		"Name": "amd64cpu",
 		"Env": [
 			"CONF=amd64cpu"
 		],
@@ -119,4 +120,4 @@
 			"cbvga.c"
 		]
 	}
-}
+]

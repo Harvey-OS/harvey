@@ -1,5 +1,6 @@
-{
-	"realemu": {
+[
+	{
+		"Name": "realemu",
 		"Cflags": [
 			"-I",
 			"/"
@@ -19,4 +20,4 @@
 			"xec.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"Wiki": {
+[
+	{
+		"Name": "wiki",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -12,4 +13,4 @@
 			"win.c"
 		]
 	}
-}
+]

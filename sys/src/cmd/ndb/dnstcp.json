@@ -1,5 +1,6 @@
-{
-	"dnstcp": {
+[
+	{
+		"Name": "dnstcp",
 		"CFlags": [],
 		"Include": [
 			"/sys/src/cmd/cmd.json"
@@ -17,4 +18,4 @@
 			"dnstcp.c"
 		]
 	}
-}
+]

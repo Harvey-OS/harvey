@@ -1,5 +1,6 @@
-{
-	"libplumb": {
+[
+	{
+		"Name": "libplumb",
 		"Include": [
 			"../lib.json"
 		],
@@ -11,4 +12,4 @@
 			"plumbsendtext.c"
 		]
 	}
-}
+]

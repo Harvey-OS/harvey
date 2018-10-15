@@ -1,5 +1,6 @@
-{
-	"map": {
+[
+	{
+		"Name": "map",
 		"Cflags": [
 			"-I$HARVEY/sys/src/cmd/map"
 		],
@@ -25,4 +26,4 @@
 			"sqrt.c"
 		]
 	}
-}
+]

@@ -1,8 +1,9 @@
-{
-	"clean": {
+[
+	{
+		"Name": "clean",
 		"Pre": [
 			"rm -f libc/9syscall/*.s libc/9syscall/sys.h",
 			"rm -f libacpi/*.o"
 		]
 	}
-}
+]

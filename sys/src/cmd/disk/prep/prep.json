@@ -1,5 +1,6 @@
-{
-	"prep": {
+[
+	{
+		"Name": "prep",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -17,4 +18,4 @@
 			"y.tab.c"
 		]
 	}
-}
+]

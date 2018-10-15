@@ -1,5 +1,6 @@
-{
-	"libfreetype": {
+[
+	{
+		"Name": "libfreetype",
 		"Cflags": [
 			"-I",
 			"include"
@@ -96,4 +97,4 @@
 			"src/autohint/ahmodule.c"
 		]
 	}
-}
+]

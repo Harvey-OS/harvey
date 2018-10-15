@@ -1,5 +1,6 @@
-{
-	"liboventi": {
+[
+	{
+		"Name": "liboventi",
 		"Include": [
 			"../lib.json"
 		],
@@ -24,4 +25,4 @@
 			"plan9-thread.c"
 		]
 	}
-}
+]

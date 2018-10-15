@@ -1,5 +1,6 @@
-{
-	"libmap": {
+[
+	{
+		"Name": "libmap",
 		"Cflags": [
 			"-I$HARVEY/sys/src/cmd/map"
 		],
@@ -12,4 +13,4 @@
 			"*.c"
 		]
 	}
-}
+]

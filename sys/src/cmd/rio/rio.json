@@ -1,5 +1,6 @@
-{
-	"rio": {
+[
+	{
+		"Name": "rio",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -17,4 +18,4 @@
 			"xfid.c"
 		]
 	}
-}
+]

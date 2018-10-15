@@ -1,5 +1,6 @@
-{
-	"hoc": {
+[
+	{
+		"Name": "hoc",
 		"Include": [
 			"../cmd.json"
 		],
@@ -19,4 +20,4 @@
 			"y.tab.c"
 		]
 	}
-}
+]

@@ -1,7 +1,8 @@
-{
-	"buildflags": {
+[
+	{
+		"Name": "buildflags",
 		"Cflags": [
 				"-Wno-main
 			]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"Kernellibufs": {
+[
+	{
+		"Name": "Kernellibufs",
 		"Include": [
 			"/$ARCH/klib.json"
 		],
@@ -10,4 +11,4 @@
 			"ffs_tables.c"
 		]
 	}
-}
+]

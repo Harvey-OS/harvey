@@ -1,5 +1,6 @@
-{
-	"libndb": {
+[
+	{
+		"Name": "libndb",
 		"Include": [
 			"../lib.json"
 		],
@@ -27,4 +28,4 @@
 			"ndbsubstitute.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"libbzip2": {
+[
+	{
+		"Name": "libbzip2",
 		"Cflags": [
 			"-DPLAN9"
 		],
@@ -26,4 +27,4 @@
 			"randtable.c"
 		]
 	}
-}
+]

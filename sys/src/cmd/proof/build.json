@@ -1,5 +1,6 @@
-{
-	"proof": {
+[
+	{
+		"Name": "proof",
 		"CFlags": [],
 		"Include": [
 			"../cmd.json"
@@ -13,4 +14,4 @@
 			"screen.c"
 		]
 	}
-}
+]

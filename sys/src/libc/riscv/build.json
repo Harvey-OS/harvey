@@ -1,5 +1,6 @@
-{
-	"archfiles": {
+[
+	{
+		"Name": "archfiles",
 		"SourceFiles": [
 			"$ARCH/notejmp.c",
 			"$ARCH/argv0.c",
@@ -11,4 +12,4 @@
 			"$ARCH/sqrt.c"
 		]
 	}
-}
+]

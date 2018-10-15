@@ -1,5 +1,6 @@
-{
-	"Loadcom": {
+[
+	{
+		"Name": "Loadcom",
 		"Cflags": [
 			"-I",
 			"/"
@@ -12,4 +13,4 @@
 			"loadcom.c"
 		]
 	}
-}
+]

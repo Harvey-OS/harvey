@@ -1,5 +1,6 @@
-{
-	"klibs": {
+[
+	{
+		"Name": "klibs",
 		"Projects": [
 			"/sys/src/libc/klibc.json",
 			"/sys/src/libip/klibip.json",
@@ -9,4 +10,4 @@
 			"/sys/src/libsec/klibsec.json"
 		]
 	}
-}
+]

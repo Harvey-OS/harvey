@@ -1,5 +1,6 @@
-{
-	"gpsevermore": {
+[
+	{
+		"Name": "gpsevermore",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -10,4 +11,4 @@
 			"gpsevermore.c"
 		]
 	}
-}
+]

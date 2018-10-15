@@ -1,5 +1,6 @@
-{
-	"aquarela": {
+[
+	{
+		"Name": "libsmb",
 		"Include": [
 			"../../lib.json"
 		],
@@ -73,4 +74,4 @@
 			"smbtrans2set.c"
 		]
 	}
-}
+]

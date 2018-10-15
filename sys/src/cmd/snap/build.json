@@ -1,5 +1,6 @@
-{
-	"snap": {
+[
+	{
+		"Name": "snap",
 		"Include": [
 			"../cmd.json"
 		],
@@ -17,4 +18,4 @@
 			"write.c"
 		]
 	}
-}
+]

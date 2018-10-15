@@ -1,5 +1,6 @@
-{
-	"Kernellibsec": {
+[
+	{
+		"Name": "Kernellibsec",
 		"Include": [
 			"/$ARCH/klib.json"
 		],
@@ -64,4 +65,4 @@
 			"port/x509.c"
 		]
 	}
-}
+]

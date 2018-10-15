@@ -1,5 +1,6 @@
-{
-	"KernelLibmemdraw": {
+[
+	{
+		"Name": "KernelLibmemdraw",
 		"Include": [
 			"/$ARCH/klib.json"
 		],
@@ -28,4 +29,4 @@
 			"write.c"
 		]
 	}
-}
+]

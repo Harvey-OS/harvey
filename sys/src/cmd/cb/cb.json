@@ -1,5 +1,6 @@
-{
-	"cb": {
+[
+	{
+		"Name": "cb",
 		"Include": [
 			"../cmd.json"
 		],
@@ -10,4 +11,5 @@
 			"cbtype.c"
 		]
 	}
-}
+]
+

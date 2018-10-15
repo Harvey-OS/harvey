@@ -1,5 +1,6 @@
-{
-	"troff2html": {
+[
+	{
+		"Name": "troff2html",
 		"Include": [
 			"../cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"*.c"
 		]
 	}
-}
+]

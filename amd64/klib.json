@@ -1,5 +1,6 @@
-{
-	"KernelLibs": {
+[
+	{
+		"Name": "KernelLibs",
 		"Cflags": [
 			"-mcmodel=kernel",
 			"-O0",
@@ -24,4 +25,4 @@
 			"rm -f -f *.o *.tag.*"
 		]
 	}
-}
+]

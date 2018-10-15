@@ -1,5 +1,6 @@
-{
-	"libgeometry": {
+[
+	{
+		"Name": "libgeometry",
 		"Include": [
 			"../lib.json"
 		],
@@ -14,4 +15,4 @@
 			"tstack.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"vnc": {
+[
+	{
+		"Name": "vncv",
 		"Include": [
 			"../cmd.json"
 		],
@@ -15,4 +16,4 @@
 			"wsys.c"
 		]
 	}
-}
+]

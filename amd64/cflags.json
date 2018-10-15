@@ -1,5 +1,6 @@
-{
-	"buildflags": {
+[
+	{
+		"Name": "buildflags",
 		"Cflags": [
 			"-ffreestanding",
 			"-fno-builtin",
@@ -25,4 +26,4 @@
 			"/$ARCH/$CC.json"
 		]
 	}
-}
+]
