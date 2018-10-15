@@ -641,6 +641,8 @@ func project(bf string, which []*regexp.Regexp) {
 }
 
 func main() {
+	log.SetFlags(0)
+
 	// A small amount of setup is done in the paths*.go files. They are
 	// OS-specific path setup/manipulation. "harvey" is set there and $PATH is
 	// adjusted.
