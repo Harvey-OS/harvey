@@ -1,5 +1,6 @@
-{
-	"testldfs": {
+[
+	{
+		"Name": "testldfs",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -15,4 +16,4 @@
 			"utils.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"News": {
+[
+	{
+		"Name": "news",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"win.c"
 		]
 	}
-}
+]

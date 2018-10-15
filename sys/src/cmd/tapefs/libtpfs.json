@@ -1,5 +1,6 @@
-{
-	"tapefs": {
+[
+	{
+		"Name": "libtpfs",
 		"Include": [
 			"../../lib.json"
 		],
@@ -10,4 +11,4 @@
 			"util.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"port": {
+[
+	{
+		"Name": "port",
 		"#SourceFiles": [
 			"../port/devcec.c"
 		],
@@ -80,4 +81,4 @@
 			"../port/watermarks.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"aquarela": {
+[
+	{
+		"Name": "aquarela",
 		"Include": [
 			"../cmd.json"
 		],
@@ -18,4 +19,4 @@
 			"cifscmd.c"
 		]
 	}
-}
+]

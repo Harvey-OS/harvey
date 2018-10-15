@@ -1,5 +1,6 @@
-{
-	"irq": {
+[
+	{
+		"Name": "irq",
 		"Include": [
 			"/sys/src/libacpi/acpica/acpiflags.json",
 			"/sys/src/cmd/cmd.json"
@@ -19,4 +20,4 @@
 			"shutdown.c"
 		]
 	}
-}
+]

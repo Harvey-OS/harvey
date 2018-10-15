@@ -1,5 +1,6 @@
-{
-	"zenith": {
+[
+	{
+		"Name": "zenith",
 		"CFlags": [],
 		"Include": [
 			"../cmd.json"
@@ -33,4 +34,4 @@
 			"xfid.c"
 		]
 	}
-}
+]

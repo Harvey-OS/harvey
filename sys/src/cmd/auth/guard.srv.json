@@ -1,5 +1,6 @@
-{
-	"guard.srv": {
+[
+	{
+		"Name": "guard.srv",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"secureidcheck.c"
 		]
 	}
-}
+]

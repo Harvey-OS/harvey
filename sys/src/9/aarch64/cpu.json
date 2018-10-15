@@ -1,5 +1,6 @@
-{
-	"aarch64cpu": {
+[
+	{
+		"Name": "aarch64cpu",
 		"Env": [
 			"CONF=aarch64cpu"
 		],
@@ -77,4 +78,4 @@
 			"main.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"libplot": {
+[
+	{
+		"Name": "libplot",
 		"Include": [
 			"../../../lib.json"
 		],
@@ -9,4 +10,4 @@
 			"*.c"
 		]
 	}
-}
+]

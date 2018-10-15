@@ -1,5 +1,6 @@
-{
-	"Libusb": {
+[
+	{
+		"Name": "Libusb",
 		"Cflags": [
 			"-fasm"
 		],
@@ -37,4 +38,4 @@
 			"serial/ucons.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"Libacpi": {
+[
+	{
+		"Name": "libacpi",
 		"#Projects": [
 			"acpica/libacpi.json"
 		],
@@ -24,4 +25,4 @@
 			"/sys/src/libacpi/acpica/common/*.c"
 		]
 	}
-}
+]

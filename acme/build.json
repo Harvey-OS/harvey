@@ -1,5 +1,6 @@
-{
-	"all": {
+[
+	{
+		"Name": "acme",
 		"Projects": [
 			"mail/src/build.json",
 			"news/src/build.json",
@@ -7,4 +8,4 @@
 			"bin/source/build.json"
 		]
 	}
-}
+]

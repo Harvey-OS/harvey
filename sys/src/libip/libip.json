@@ -1,5 +1,6 @@
-{
-	"Libip": {
+[
+	{
+		"Name": "Libip",
 		"Include": [
 			"../lib.json"
 		],
@@ -19,4 +20,4 @@
 			"ptclbsum.c"
 		]
 	}
-}
+]

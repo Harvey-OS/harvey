@@ -1,5 +1,6 @@
-{
-	"tapefs": {
+[
+	{
+		"Name": "tapefs",
 		"Include": [
 			"../cmd.json"
 		],
@@ -14,9 +15,9 @@
 		],
 		"Install": "/$ARCH/bin/",
 		"SourceFilesCmd": [
-      "vac.c",
+			"vac.c",
 			"unvac.c",
 			"vacfs.c"
 		]
 	}
-}
+]

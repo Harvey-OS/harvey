@@ -1,5 +1,6 @@
-{
-	"libmemlayer": {
+[
+	{
+		"Name": "libmemlayer",
 		"Include": [
 			"../lib.json"
 		],
@@ -20,4 +21,4 @@
 			"unload.c"
 		]
 	}
-}
+]

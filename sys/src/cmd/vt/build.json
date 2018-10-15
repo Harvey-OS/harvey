@@ -1,5 +1,6 @@
-{
-	"vt": {
+[
+	{
+		"Name": "vt",
 		"Include": [
 			"../cmd.json"
 		],
@@ -7,9 +8,9 @@
 		"Program": "vt",
 		"SourceFiles": [
 			"consctl.c",
-      "event.c",
-      "main.c",
-      "vt.c"
+		      "event.c",
+		      "main.c",
+		      "vt.c"
 		]
 	}
-}
+]

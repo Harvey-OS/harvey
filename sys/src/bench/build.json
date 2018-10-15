@@ -1,5 +1,6 @@
-{
-	"Bench": {
+[
+	{
+		"Name": "bench",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -8,4 +9,4 @@
 			"error.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"jay": {
+[
+	{
+		"Name": "jay",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -20,4 +21,4 @@
 			"xfid.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"libboot": {
+[
+	{
+		"Name": "libboot",
 		"Cflags": [
 			"-g",
 			"-Wall",
@@ -31,4 +32,4 @@
 			"settime.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"tapefs": {
+[
+	{
+		"Name": "tapefs",
 		"Include": [
 			"../cmd.json"
 		],
@@ -24,4 +25,4 @@
 			"zipfs.c"
 		]
 	}
-}
+]

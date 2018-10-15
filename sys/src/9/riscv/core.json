@@ -1,5 +1,6 @@
-{
-	"core": {
+[
+	{
+		"Name": "core",
 		"Cflags": [
 			"-mcmodel=medany",
 			"-O0",
@@ -67,4 +68,4 @@
 			"uart.c"
 		]
 	}
-}
+]

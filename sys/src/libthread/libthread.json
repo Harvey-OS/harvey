@@ -1,5 +1,6 @@
-{
-	"libthread": {
+[
+	{
+		"Name": "libthread",
 		"Include": [
 			"/$ARCH/cflags.json",
 			"../lib.json"
@@ -34,4 +35,4 @@
 			"sched.c"
 		]
 	}
-}
+]

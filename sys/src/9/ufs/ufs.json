@@ -1,5 +1,6 @@
-{
-	"ufs": {
+[
+	{
+		"Name": "ufs",
 		"Cflags": [
 			"-fasm",
 			"-I",
@@ -33,4 +34,4 @@
 			"../ufs/ufs_harvey_vnode.c"
 		]
 	}
-}
+]

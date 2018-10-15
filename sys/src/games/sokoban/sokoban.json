@@ -1,5 +1,6 @@
-{
-	"sokoban": {
+[
+	{
+		"Name": "sokoban",
 		"Include": [
 			"../../cmd/cmd.json"
 		],
@@ -14,4 +15,4 @@
 			"sokoban.c"
 		]
 	}
-}
+]

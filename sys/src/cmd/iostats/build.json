@@ -1,5 +1,6 @@
-{
-	"iostats": {
+[
+	{
+		"Name": "iostats",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -10,4 +11,4 @@
 			"statsrv.c"
 		]
 	}
-}
+]

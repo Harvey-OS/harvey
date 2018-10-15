@@ -1,5 +1,6 @@
-{
-	"flashfsbin": {
+[
+	{
+		"Name": "flashfsbin",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -16,4 +17,4 @@
 			"utils.c"
 		]
 	}
-}
+]

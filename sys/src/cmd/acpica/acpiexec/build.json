@@ -1,5 +1,6 @@
-{
-	"aeexec": {
+[
+	{
+		"Name": "acpiexec",
 		"Include": [
 			"/sys/src/libacpi/acpica/acpiflags.json",
 			"/sys/src/cmd/cmd.json"
@@ -21,4 +22,4 @@
 			"aetables.c"
 		]
 	}
-}
+]

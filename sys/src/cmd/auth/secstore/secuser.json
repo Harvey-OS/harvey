@@ -1,5 +1,6 @@
-{
-	"secuser": {
+[
+	{
+		"Name": "secuser",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"util.c"
 		]
 	}
-}
+]

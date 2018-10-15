@@ -1,5 +1,6 @@
-{
-	"Mail": {
+[
+	{
+		"Name": "mail",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -14,4 +15,4 @@
 			"win.c"
 		]
 	}
-}
+]

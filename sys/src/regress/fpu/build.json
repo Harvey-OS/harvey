@@ -1,5 +1,6 @@
-{
-	"fpu": {
+[
+	{
+		"Name": "fpu",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -8,4 +9,4 @@
 			"*.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"lex": {
+[
+	{
+		"Name": "lex",
 		"Include": [
 			"../cmd.json"
 		],
@@ -20,4 +21,4 @@
 			"header.c"
 		]
 	}
-}
+]

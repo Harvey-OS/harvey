@@ -1,5 +1,6 @@
-{
-	"plot": {
+[
+	{
+		"Name": "plot",
 		"Include": [
 			"../cmd.json"
 		],
@@ -17,4 +18,4 @@
 			"plot.c"
 		]
 	}
-}
+]

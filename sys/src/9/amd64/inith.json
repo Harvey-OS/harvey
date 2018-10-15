@@ -1,5 +1,6 @@
-{
-	"inith": {
+[
+	{
+		"Name": "inith",
 		"Cflags": [
 			"-g",
 			"-Wall",
@@ -36,4 +37,4 @@
 			"../port/initcode.c"
 		]
 	}
-}
+]

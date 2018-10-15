@@ -1,5 +1,6 @@
-{
-	"plumber": {
+[
+	{
+		"Name": "plumber",
 		"Include": [
 			"../cmd.json"
 		],
@@ -12,4 +13,4 @@
 			"rules.c"
 		]
 	}
-}
+]

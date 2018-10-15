@@ -1,5 +1,6 @@
-{
-	"KernelLibdraw": {
+[
+	{
+		"Name": "KernelLibdraw",
 		"Include": [
 			"/$ARCH/klib.json"
 		],
@@ -64,4 +65,4 @@
 			"writesubfont.c"
 		]
 	}
-}
+]

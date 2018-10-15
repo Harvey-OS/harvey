@@ -1,5 +1,6 @@
-{
-	"Regress": {
+[
+	{
+		"Name": "Regress",
 		"Projects": [
 			"_old",
 			"fpu"
@@ -11,4 +12,4 @@
 		"SourceFilesCmd": [
 		]
 	}
-}
+]

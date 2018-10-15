@@ -1,5 +1,6 @@
-{
-	"Libdraw": {
+[
+	{
+		"Name": "libdraw",
 		"Include": [
 			"../lib.json"
 		],
@@ -64,4 +65,4 @@
 			"writesubfont.c"
 		]
 	}
-}
+]

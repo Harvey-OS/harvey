@@ -1,5 +1,6 @@
-{
-	"libmp": {
+[
+	{
+		"Name": "libmp",
 		"Include": [
 			"../lib.json"
 		],
@@ -40,4 +41,4 @@
 			"port/strtomp.c"
 		]
 	}
-}
+]

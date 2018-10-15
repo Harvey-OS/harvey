@@ -1,5 +1,6 @@
-{
-	"libbin": {
+[
+	{
+		"Name": "libbin",
 		"Include": [
 			"../lib.json"
 		],
@@ -9,4 +10,4 @@
 			"bin.c"
 		]
 	}
-}
+]

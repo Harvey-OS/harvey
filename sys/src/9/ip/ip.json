@@ -1,5 +1,6 @@
-{
-	"ip": {
+[
+	{
+		"Name": "ip",
 		"SourceFiles": [
 			"../ip/arp.c",
 			"../ip/chandial.c",
@@ -26,4 +27,4 @@
 			"../ip/udp.c"
 		]
 	}
-}
+]

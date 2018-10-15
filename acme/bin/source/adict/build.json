@@ -1,5 +1,6 @@
-{
-	"adict": {
+[
+	{
+		"Name": "adict",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -10,4 +11,4 @@
 			"win.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"faces": {
+[
+	{
+		"Name": "faces",
 		"Include": [
 			"../cmd.json"
 		],
@@ -15,4 +16,4 @@
 			"util.c"
 		]
 	}
-}
+]

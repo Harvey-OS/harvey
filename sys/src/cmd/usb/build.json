@@ -1,5 +1,6 @@
-{
-	"USB": {
+[
+	{
+		"Name": "usb",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -19,4 +20,4 @@
 			"serial.c"
 		]
 	}
-}
+]

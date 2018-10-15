@@ -1,5 +1,6 @@
-{
-	"acpiflags": {
+[
+	{
+		"Name": "acpiflags",
 		"Cflags": [
 			"-DACPI_DEBUGGER",
 			"-DACPI_DISASSEMBLER",
@@ -39,4 +40,4 @@
 			"-Werror"
 		]
 	}
-}
+]

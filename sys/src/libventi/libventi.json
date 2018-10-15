@@ -1,5 +1,6 @@
-{
-	"libventi": {
+[
+	{
+		"Name": "libventi",
 		"Include": [
 			"../lib.json"
 		],
@@ -36,4 +37,4 @@
 			"zeroscore.c"
 		]
 	}
-}
+]

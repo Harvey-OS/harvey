@@ -1,5 +1,6 @@
-{
-	"libs.json": {
+[
+	{
+		"Name": "libs.json",
 		"Projects": [
 			"/sys/src/lib9p/lib9p.json",
 			"/sys/src/libacpi",
@@ -37,4 +38,4 @@
 			"/sys/src/libventi/libventi.json"
 		]
 	}
-}
+]

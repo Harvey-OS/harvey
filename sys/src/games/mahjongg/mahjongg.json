@@ -1,5 +1,6 @@
-{
-	"mahjongg": {
+[
+	{
+		"Name": "mahjongg",
 		"Include": [
 			"../../cmd/cmd.json"
 		],
@@ -12,4 +13,4 @@
 			"mahjongg.c"
 		]
 	}
-}
+]

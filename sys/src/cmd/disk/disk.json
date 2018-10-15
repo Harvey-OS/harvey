@@ -1,5 +1,6 @@
-{
-	"disk": {
+[
+	{
+		"Name": "disk",
 		"Include": [
 			"../cmd.json"
 		],
@@ -19,4 +20,4 @@
 			"kfscmd.c"
 		]
 	}
-}
+]

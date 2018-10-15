@@ -1,5 +1,6 @@
-{
-	"archfiles": {
+[
+	{
+		"Name": "archfiles",
 		"SourceFiles": [
 			"$ARCH/ainc.S",
 			"$ARCH/argv0.c",
@@ -12,4 +13,4 @@
 			"$ARCH/tas.S"
 		]
 	}
-}
+]

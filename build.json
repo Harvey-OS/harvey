@@ -1,5 +1,6 @@
-{
-	"all": {
+[
+	{
+		"Name": "all",
 		"Projects": [
 			"/sys/src/klibs.json",
 			"/sys/src/libs.json",
@@ -10,4 +11,4 @@
 			"/sys/src/9/$ARCH"
 		]
 	}
-}
+]

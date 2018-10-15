@@ -1,5 +1,6 @@
-{
-	"clean": {
+[
+	{
+		"Name": "clean",
 		"Pre": [
 			"rm -rf $ARCH/lib/*.a $ARCH/bin/*",
 			"rm -f cfg/pxe/tftpboot/harvey.32bit"
@@ -10,4 +11,4 @@
 			"/sys/src/cmd/clean.json"
 		]
 	}
-}
+]

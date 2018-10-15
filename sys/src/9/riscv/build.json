@@ -1,5 +1,5 @@
-{
-	"riscvcpu": {
+[
+	{
 		"Env": [
 			"CONF=riscvcpu"
 		],
@@ -90,4 +90,4 @@
 			"riscvcpu.c"
 		]
 	}
-}
+]

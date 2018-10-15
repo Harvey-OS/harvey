@@ -1,5 +1,6 @@
-{
-	"dsa2ssh": {
+[
+	{
+		"Name": "dsa2ssh",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"rsa2any.c"
 		]
 	}
-}
+]

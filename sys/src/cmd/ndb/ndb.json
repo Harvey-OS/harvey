@@ -1,5 +1,6 @@
-{
-	"ndb": {
+[
+	{
+		"Name": "ndb",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -21,4 +22,4 @@
 			"query.c"
 		]
 	}
-}
+]

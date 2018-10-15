@@ -1,5 +1,6 @@
-{
-	"core": {
+[
+	{
+		"Name": "core",
 		"Cflags": [
 			"-fno-stack-protector",
 			"-mcmodel=kernel",
@@ -107,4 +108,4 @@
 			"../port/virtio_lib.c"
 		]
 	}
-}
+]

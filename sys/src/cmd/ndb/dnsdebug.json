@@ -1,5 +1,6 @@
-{
-	"dnsdebug": {
+[
+	{
+		"Name": "dnsdebug",
 		"CFlags": [],
 		"Include": [
 			"/sys/src/cmd/cmd.json"
@@ -17,4 +18,4 @@
 			"dnsdebug.c"
 		]
 	}
-}
+]

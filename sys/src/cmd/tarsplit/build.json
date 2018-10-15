@@ -1,5 +1,6 @@
-{
-	"tarsplit": {
+[
+	{
+		"Name": "tarsplit",
 		"Include": [
 			"../cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"tarsub.c"
 		]
 	}
-}
+]

@@ -1,5 +1,6 @@
-{
-	"Srv": {
+[
+	{
+		"Name": "srv",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -38,4 +39,4 @@
 			"wrarena.c"
 		]
 	}
-}
+]

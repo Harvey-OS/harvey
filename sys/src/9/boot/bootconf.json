@@ -1,5 +1,6 @@
-{
-	"bootcpu": {
+[
+	{
+		"Name": "bootcpu",
 		"Include": [
 			"/$ARCH/cflags.json"
 		],
@@ -30,4 +31,4 @@
 			"bootcpu.c"
 		]
 	}
-}
+]

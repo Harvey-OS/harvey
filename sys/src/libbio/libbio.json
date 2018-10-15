@@ -1,5 +1,6 @@
-{
-	"libbio": {
+[
+	{
+		"Name": "libbio",
 		"Include": [
 			"../lib.json"
 		],
@@ -25,4 +26,4 @@
 			"bvprint.c"
 		]
 	}
-}
+]

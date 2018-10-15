@@ -1,5 +1,6 @@
-{
-	"KernelLibmemlayer": {
+[
+	{
+		"Name": "KernelLibmemlayer",
 		"Include": [
 			"/$ARCH/klib.json"
 		],
@@ -20,4 +21,4 @@
 			"unload.c"
 		]
 	}
-}
+]

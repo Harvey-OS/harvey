@@ -1,5 +1,6 @@
-{
-	"ipconfig": {
+[
+	{
+		"Name": "ipconfig",
 		"Include": [
 			"../../cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"ppp.c"
 		]
 	}
-}
+]

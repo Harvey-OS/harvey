@@ -1,5 +1,6 @@
-{
-	"dblook": {
+[
+	{
+		"Name": "dblook",
 		"Include": [
 			"../cmd.json"
 		],
@@ -11,4 +12,4 @@
 			"util.c"
 		]
 	}
-}
+]

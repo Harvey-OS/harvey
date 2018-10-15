@@ -1,5 +1,6 @@
-{
-	"Libs": {
+[
+	{
+		"Name": "Libs",
 		"Include": [
 			"/$ARCH/cflags.json"
 		],
@@ -13,4 +14,4 @@
 			"rm -f *.o *.tag.*"
 		]
 	}
-}
+]

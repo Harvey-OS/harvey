@@ -1,5 +1,6 @@
-{
-	"ipcmds": {
+[
+	{
+		"Name": "ipcmds",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -32,4 +33,4 @@
 			"wol.c"
 		]
 	}
-}
+]

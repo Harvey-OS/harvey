@@ -1,5 +1,6 @@
-{
-	"fileop": {
+[
+	{
+		"Name": "fileop",
 		"Include": [
 			"/sys/src/cmd/cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"fileop.c"
 		]
 	}
-}
+]

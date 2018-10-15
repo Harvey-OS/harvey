@@ -1,5 +1,6 @@
-{
-	"libauth": {
+[
+	{
+		"Name": "libauth",
 		"Include": [
 			"../lib.json"
 		],
@@ -24,4 +25,4 @@
 			"noworld.c"
 		]
 	}
-}
+]

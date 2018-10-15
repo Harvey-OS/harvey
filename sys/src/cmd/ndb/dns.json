@@ -1,5 +1,6 @@
-{
-	"dns": {
+[
+	{
+		"Name": "dns",
 		"CFlags": [],
 		"Include": [
 			"../cmd.json"
@@ -19,4 +20,4 @@
 			"dnudpserver.c"
 		]
 	}
-}
+]

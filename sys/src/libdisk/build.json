@@ -1,5 +1,6 @@
-{
-	"libdisk": {
+[
+	{
+		"Name": "libdisk",
 		"Include": [
 			"../lib.json"
 		],
@@ -12,4 +13,4 @@
 			"scsierrs.c"
 		]
 	}
-}
+]

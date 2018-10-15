@@ -1,5 +1,6 @@
-{
-	"gpsfs": {
+[
+	{
+		"Name": "gpsfs",
 		"CFlags": [],
 		"Include": [
 			"../../cmd.json"
@@ -14,4 +15,4 @@
 			"gpsfs.c"
 		]
 	}
-}
+]

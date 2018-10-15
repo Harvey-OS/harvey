@@ -1,5 +1,6 @@
-{
-	"page": {
+[
+	{
+		"Name": "page",
 		"Include": [
 			"../cmd.json"
 		],
@@ -13,4 +14,4 @@
 			"cat pdfprolog.ps | sed 's/.*/\"&\\n\"/g' >pdfprolog.c_txt"
 		]
 	}
-}
+]

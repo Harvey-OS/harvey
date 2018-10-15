@@ -1,5 +1,6 @@
-{
-	"newfs": {
+[
+	{
+		"Name": "newfs",
 		"CFlags": ["-I", "/sys/src/libufs"],
 		"Include": [
 			"../cmd.json"
@@ -14,4 +15,4 @@
 			"mkfs.c"
 		]
 	}
-}
+]

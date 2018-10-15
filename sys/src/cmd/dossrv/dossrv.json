@@ -1,5 +1,6 @@
-{
-	"dossrv": {
+[
+	{
+		"Name": "dossrv",
 		"Include": [
 			"../cmd.json"
 		],
@@ -16,4 +17,4 @@
 			"devio.c"
 		]
 	}
-}
+]

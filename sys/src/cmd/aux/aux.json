@@ -1,5 +1,6 @@
-{
-	"Aux": {
+[
+	{
+		"Name": "Aux",
 		"CFlags": [],
 		"Include": [
 			"../cmd.json"
@@ -51,4 +52,4 @@
 			"flashfs/flashfs.json"
 		]
 	}
-}
+]

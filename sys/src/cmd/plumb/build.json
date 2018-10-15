@@ -1,5 +1,6 @@
-{
-	"plumb": {
+[
+	{
+		"Name": "plumb",
 		"Include": [
 			"../cmd.json"
 		],
@@ -12,4 +13,4 @@
 			"plumb.c"
 		]
 	}
-}
+]

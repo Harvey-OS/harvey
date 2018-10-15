@@ -1,5 +1,6 @@
-{
-	"htmlroff": {
+[
+	{
+		"Name": "htmlroff",
 		"Include": [
 			"../cmd.json"
 		],
@@ -9,4 +10,4 @@
 			"*.c"
 		]
 	}
-}
+]
