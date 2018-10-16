@@ -2,7 +2,7 @@
 	{
 		"Name": "KernelLibmemdraw",
 		"Include": [
-			"/$ARCH/klib.json"
+			"/sys/src/9/$ARCH/klib.json"
 		],
 		"Install": "/$ARCH/lib/",
 		"Library": "klibmemdraw.a",

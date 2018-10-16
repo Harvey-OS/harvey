@@ -2,6 +2,7 @@
 	{
 		"Name": "buildflags",
 		"Cflags": [
-		]
+				"-Wno-main
+			]
 	}
 ]

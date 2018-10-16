@@ -1,0 +1,12 @@
+[
+	{
+		"Name": "libc",
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/libc",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+]

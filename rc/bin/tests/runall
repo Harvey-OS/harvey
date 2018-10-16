@@ -3,7 +3,7 @@
 # Script to run all tests in 'tests'.  If any test fails, this script fails.
 
 # Skip folders or files beginning in '_'
-tests=`{du -a /bin/regress | awk '{print $2}' | grep -v /_}
+tests=`{du -a /bin/regress | field 2 | grep -v /_}
 
 finalstatus=PASS
 for (file in $tests) {

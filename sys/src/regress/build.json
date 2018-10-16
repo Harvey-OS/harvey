@@ -3,7 +3,8 @@
 		"Name": "Regress",
 		"Projects": [
 			"_old",
-			"fpu"
+			"fpu",
+			"libc"
 		],
 		"Include": [
 			"/sys/src/cmd/cmd.json"

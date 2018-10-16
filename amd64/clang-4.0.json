@@ -2,7 +2,6 @@
 	{
 		"Name": "buildflags",
 		"Cflags": [
-			"-mno-implicit-float"
 		]
 	}
 ]
