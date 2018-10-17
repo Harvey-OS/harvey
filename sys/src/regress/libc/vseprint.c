@@ -10,6 +10,7 @@
 
 #include <u.h>
 #include <libc.h>
+
 void
 testvseprint(char *buf, int n, char *fmt, ...)
 {
@@ -33,5 +34,5 @@ main()
 	}
 
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }
