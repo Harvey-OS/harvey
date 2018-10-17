@@ -10,7 +10,6 @@
 			"-gdwarf-2",
 			"-ggdb",
 			"-mcmodel=small",
-			"-mno-red-zone",
 			"-O0",
 			"-static",
 			"-Wall",
