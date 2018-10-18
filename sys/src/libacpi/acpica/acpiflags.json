@@ -32,9 +32,6 @@
 			"/sys/include/acpi/acpica"
 		],
 		"Include": [
-			"/$ARCH/$CC.json"
-		],
-		"IncludeCanNotUsedWUnusedYet": [
 			"../../lib.json"
 		],
 		"NoCflags": [
