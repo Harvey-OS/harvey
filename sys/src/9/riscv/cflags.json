@@ -1,0 +1,23 @@
+[
+	{
+		"Name": "buildflags",
+		"Cflags": [
+			"-mcmodel=medany",
+			"-ffreestanding",
+			"-fno-builtin",
+			"-fno-omit-frame-pointer",
+			"-g",
+			"-gdwarf-2",
+			"-ggdb",
+			"-O0",
+			"-static",
+			"-Wall",
+			"-Werror"
+		],
+		"Oflags": [
+			"-T",
+			"/$ARCH/prog.ld",
+			"--no-relax"
+		]
+	}
+]
