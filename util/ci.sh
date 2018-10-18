@@ -10,6 +10,11 @@ rm -f $RESULTS
 
 ./util/GO9PCPUREGRESS
 
+if [ ! -f $RESULTS ]; then
+	echo Regression tests failed
+	exit 1
+fi
+
 cat $RESULTS
 
 if tail -1 ./usr/harvey/tmp/runallresults.txt | grep -vq DONE; then
