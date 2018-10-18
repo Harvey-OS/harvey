@@ -1,0 +1,17 @@
+#!/bin/rc
+
+# This script will implement all needed for proper shutdown of the machine
+
+flagfmt='A,C,F,H,L,R,U,a,c,d,f,i,h,l,p,r,s,t,u,1'
+args='[file ...]'
+
+if(! ifs=() eval `{aux/getflags $*}){
+        aux/usage
+        exit usage
+}
+
+if(~ $flagr 1) echo Try "reboot" && exit
+
+echo Shutting down the system...
+sleep 3
+acpi/shutdown $* 
