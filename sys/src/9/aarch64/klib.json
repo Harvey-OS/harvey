@@ -1,5 +1,6 @@
-{
-	"KernelLibs": {
+[
+	{
+		"Name": "KernelLibs",
 		"Cflags": [
 			"-O0",
 			"-ffreestanding",
@@ -18,4 +19,4 @@
 			"rm -f -f *.o *.tag.*"
 		]
 	}
-}
+]
