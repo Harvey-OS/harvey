@@ -7,7 +7,7 @@ before_install:
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main' -y
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main' -y
   - sudo apt-get update
-  - sudo apt-get install -y --force-yes $CC rc golang qemu-user-static
+  - sudo apt-get install -y --force-yes $CC rc golang qemu
 script:
 - ./util/ci.sh
 compiler:
