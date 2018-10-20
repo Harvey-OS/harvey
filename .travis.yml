@@ -9,6 +9,7 @@ before_install:
   - sudo add-apt-repository 'deb http://deb.debian.org/debian/ buster main' -y
   - sudo apt-get update -y
   - sudo apt-get install -y --force-yes $CC rc golang
+  - sudo apt-get install -y --force-yes -t buster/main libc6-dev
   - sudo apt-get install -y --force-yes -t buster/main qemu
 script:
 - ./util/ci.sh
