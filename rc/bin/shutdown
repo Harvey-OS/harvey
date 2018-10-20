@@ -2,15 +2,14 @@
 
 # This script will implement all needed for proper shutdown of the machine
 
-flagfmt='h,r'
-args='[file ...]'
+flagfmt='r'
 
 if(! ifs=() eval `{aux/getflags $*}){
         aux/usage
         exit usage
 }
 
-if(~ $flagr 1) echo Try "reboot" && exit
+if(~ $flagr 1) reboot && exit
 
 echo Shutting down the system...
 sleep 3
