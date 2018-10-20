@@ -2,7 +2,7 @@
 
 # This script will implement all needed for proper shutdown of the machine
 
-flagfmt='A,C,F,H,L,R,U,a,c,d,f,i,h,l,p,r,s,t,u,1'
+flagfmt='h,r'
 args='[file ...]'
 
 if(! ifs=() eval `{aux/getflags $*}){
