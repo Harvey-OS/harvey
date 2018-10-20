@@ -7,10 +7,7 @@ before_install:
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main' -y
   - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main' -y
   - sudo apt-get update -y
-  - sudo apt-get install -y --force-yes $CC rc golang
-  - sudo add-apt-repository 'deb http://deb.debian.org/debian/ stretch main' -y
-  - sudo apt-get update -y
-  - sudo apt-get install -y --force-yes -t stretch/main qemu
+  - sudo apt-get install -y --force-yes $CC rc golang qemu
 script:
 - ./util/ci.sh
 compiler:
