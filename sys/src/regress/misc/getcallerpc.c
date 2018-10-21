@@ -16,7 +16,7 @@ void a(void)
 		b, c, d);
 	if ((d > (uintptr_t)b) && (d < (uintptr_t)c)) {
 		print("PASS\n");
-		exits("PASS");
+		exits(nil);
 		return;
 	}
 	print("FAIL\n");

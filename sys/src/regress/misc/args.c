@@ -34,5 +34,5 @@ main(int argc, char *argv[])
 	fprint(2, "&sum %p\n", &sum);
 	fprint(2, "sum %f\n", sum);
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }

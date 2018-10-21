@@ -40,6 +40,6 @@ int main(int argc, char *argv[])
 	}
 	// if we get here, we have survived. That's a miracle.
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 	return 0;
 }

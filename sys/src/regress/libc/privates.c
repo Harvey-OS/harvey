@@ -74,7 +74,7 @@ main(void)
 	}
 
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 
 	return 0;
 }
