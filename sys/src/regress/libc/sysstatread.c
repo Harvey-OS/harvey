@@ -29,6 +29,8 @@ main(void)
 	}
 	close(fd);
 
-	if(ret)
+	if (ret) {
 		exits("FAIL");
+	}
+	exits(nil);
 }

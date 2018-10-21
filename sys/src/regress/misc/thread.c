@@ -56,5 +56,5 @@ threadmain(int argc, char *argv[])
 	}
 
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }
