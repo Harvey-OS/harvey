@@ -8,7 +8,7 @@ tests=`{du -a /bin/regress | field 2 | grep -v /_}
 finalstatus=PASS
 for (file in $tests) {
 	if (test -f $file && test -x $file) {
-		$file >[2=1] >/dev/null
+		$file >/dev/null >[2=1]
 		teststatus = $status
 		if (! ~ $teststatus '') { echo FAIL $file $teststatus }
 		if not { echo PASS $file; finalstatus=FAIL }
