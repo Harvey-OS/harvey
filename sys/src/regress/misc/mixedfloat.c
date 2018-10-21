@@ -28,4 +28,5 @@ main()
 
 	if(a != A || x != A || b != M || y != M)
 		exits("FAIL");
+	exits(nil);
 }

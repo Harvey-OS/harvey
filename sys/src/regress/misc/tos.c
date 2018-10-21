@@ -8,7 +8,7 @@ main(int argc, char *argv[]){
     exits("FAIL");
   }
   if(getpid() == _tos->pid){
-    exits("OK");
+    exits(nil);
   }
   exits("FAIL");
 }

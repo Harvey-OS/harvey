@@ -12,5 +12,5 @@ main(int argc, char *argv[])
 		exits("FAIL");
 	}
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }

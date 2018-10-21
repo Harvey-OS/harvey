@@ -11,7 +11,7 @@ main(){
 
 	if(!strcmp(result, correct)){
 		print("PASS\n");
-		exits("PASS");
+		exits(nil);
 	}
 	else{
 		print("FAIL\n");
