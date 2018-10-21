@@ -4,7 +4,8 @@
 		"Projects": [
 			"_old",
 			"fpu",
-			"libc"
+			"libc",
+			"misc"
 		],
 		"Include": [
 			"/sys/src/cmd/cmd.json"

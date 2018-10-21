@@ -1,0 +1,12 @@
+[
+	{
+		"Name": "misc",
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/misc",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+]
