@@ -1,0 +1,12 @@
+[
+	{
+		"Name": "kernel",
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/kernel",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+]

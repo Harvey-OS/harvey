@@ -3,6 +3,7 @@
 		"Name": "Regress",
 		"Projects": [
 			"_old",
+			"kernel",
 			"fpu",
 			"libc",
 			"misc"

@@ -21,5 +21,5 @@ main(void)
 		exits("FAIL");
 	}
 	print("PASS\n");
-	exits("PASS");
+	exits(nil);
 }

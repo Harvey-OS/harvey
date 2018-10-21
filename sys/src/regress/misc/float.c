@@ -54,4 +54,6 @@ main(void)
 		exits("FAIL");
 
 	tstdiv(p);
+
+	exits(nil);
 }
