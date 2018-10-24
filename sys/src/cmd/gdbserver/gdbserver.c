@@ -1260,6 +1260,13 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 	return nil;
 }
 
+static void
+usage(void)
+{
+	fprint(2, "usage: gdbserver [-p pid] [-l port] [-d]\n");
+	exits("usage");
+}
+
 void
 main(int argc, char **argv)
 {
@@ -1270,15 +1277,13 @@ main(int argc, char **argv)
 	case 'l':
 		port = ARGF();
 		if (port == nil) {
-			fprint(2, "Please specify a listening port\n");
-			exits("listen");
+			usage();
 		}
 		break;
 	case 'p':
 		pid = ARGF();
 		if (pid == nil) {
-			fprint(2, "Please specify a pid\n");
-			exits("pid");
+			usage();
 		}
 		break;
 	case 'd':
@@ -1289,15 +1294,14 @@ main(int argc, char **argv)
 	} ARGEND
 
 	if (pid == nil) {
-		fprint(2, "Please specify a pid\n");
-		exits("pid");
+		usage();
 	}
 
 	ks.threadid = atoi(pid);
 	// Set to 0 if we eventually support creating a new process
 	attached_to_existing_pid = 1;
 
-	print("Stopping process...\n", ks.threadid);
+	print("Stopping process %d...\n", ks.threadid);
 	sendctl(ks.threadid, "stop");
 	print("Process stopped.  Waiting for remote gdb connection...\n");
 
