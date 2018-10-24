@@ -7,7 +7,6 @@
 		"Install": "/$ARCH/bin",
 		"Program": "gdbserver",
 		"SourceFiles": [
-			"$ARCH.S",
 			"regs$ARCH.c",
 			"regs.c",
 			"debug_core.c",
