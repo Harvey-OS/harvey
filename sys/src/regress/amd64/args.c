@@ -16,23 +16,13 @@
 void
 main(int argc, char *argv[])
 {
-	char *p;
-	int i;
-	double sum;
+	char p[16];
 
 	if(((uintptr_t)&p & 15) != 0){
-		fprint(2, "%p not 16-aligned\n", &p);
-		print("FAIL\n");
-		exits("FAIL");
+		print("%p not 16-byte aligned\n", &p);
+		exits("not 16-byte aligned");
 	}
 
-	sum = 0.0;
-	for(i = 0; i < argc; i++){
-		p = argv[i];
-		sum += strtod(p, nil);
-	}
-	fprint(2, "&sum %p\n", &sum);
-	fprint(2, "sum %f\n", sum);
 	print("PASS\n");
 	exits(nil);
 }

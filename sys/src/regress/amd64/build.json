@@ -1,0 +1,12 @@
+[
+	{
+		"Name": "amd64",
+		"Include": [
+			"/sys/src/cmd/cmd.json"
+		],
+		"Install": "/$ARCH/bin/regress/amd64",
+		"SourceFilesCmd": [
+			"*.c"
+		]
+	}
+]
