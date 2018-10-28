@@ -25,7 +25,7 @@ typedef uint32_t	usize;
 typedef unsigned long size_t;
 typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
-typedef uintptr		jmp_buf[10]; // for registers.
+typedef uint64_t	jmp_buf[10]; // for registers.
 
 #define	JMPBUFSP	6
 #define	JMPBUFPC	7
