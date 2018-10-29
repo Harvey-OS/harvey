@@ -18,6 +18,7 @@ fi
 
 read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 4 -m 2048 $kvmflag \
+-usb \
 -serial stdio \
 --machine $machineflag \
 -net nic,model=rtl8139 \
