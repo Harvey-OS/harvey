@@ -100,8 +100,4 @@ if(test -f /dev/mousectl){
 	}
 }
 
-usbstart
-if(test -f /dev/apm)
-	aux/apm
-
 dontkill '^(ipconfig|factotum|mntgen|fossil|cs|dns|listen|reboot)$'
