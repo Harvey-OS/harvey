@@ -328,7 +328,7 @@ static void
 usbinit(void)
 {
 	static char usbd[] = "/boot/usbd";
-	static char *argv[] = {"usbd"};
+	static char *argv[] = {"usbd", nil};
 
 	if (access(usbd, AEXIST) < 0) {
 		print("usbinit: no %s\n", usbd);
