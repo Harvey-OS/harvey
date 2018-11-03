@@ -118,7 +118,7 @@ static QLock inlck;
 static Kin kbdin =
 {
 	.ref = 0,
-	.name = "#Ι/kbin",
+	.name = "#j/kbin",
 	.fd = -1,
 };
 static Kin ptrin =

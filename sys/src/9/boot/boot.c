@@ -340,8 +340,8 @@ usbinit(void)
 		return;
 	}
 
-	if (bind("#I", "/dev", MAFTER) < 0) {
-		print("usbinit: can't bind #I to /dev: %r\n");
+	if (bind("#j", "/dev", MAFTER) < 0) {
+		print("usbinit: can't bind #j to /dev: %r\n");
 		return;
 	}
 
