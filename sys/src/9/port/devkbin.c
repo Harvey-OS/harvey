@@ -99,7 +99,7 @@ kbinwrite(Chan *c, void *a, int32_t n, int64_t _)
 }
 
 Dev kbindevtab = {
-	.dc = L'Ι',
+	.dc = L'j',
 	.name = "kbin",
 
 	.reset = devreset,

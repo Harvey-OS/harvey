@@ -3,7 +3,7 @@
 kbin \- external keyboard input
 .SH SYNOPSIS
 .nf
-.B bind -a #Ι /dev
+.B bind -a #j /dev
 .sp 0.3v
 .B /dev/kbin
 .fi

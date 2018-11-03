@@ -182,11 +182,11 @@ newhub(char *fn, Dev *d)
 	}
 	devctl(h->dev, "hub");
 	ud = h->dev->usb;
-	if(h->isroot)
-		devctl(h->dev, "info roothub csp %#08ux ports %d",
+	if (h->isroot) {
+		devctl(h->dev, "info roothub csp %#08x ports %d",
 			0x000009, h->nport);
-	else{
-		devctl(h->dev, "info hub csp %#08ulx ports %d %q %q",
+	} else {
+		devctl(h->dev, "info hub csp %#08x ports %d %q %q",
 			ud->csp, h->nport, ud->vendor, ud->product);
 		for(i = 1; i <= h->nport; i++)
 			if(hubfeature(h, i, Fportpower, 1) < 0)
