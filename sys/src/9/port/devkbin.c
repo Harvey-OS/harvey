@@ -28,7 +28,7 @@ int	kbinbusy;
 static Chan *
 kbinattach(char *spec)
 {
-	return devattach(L'Ι', spec);
+	return devattach(L'j', spec);
 }
 
 static Walkqid*
