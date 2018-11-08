@@ -76,18 +76,24 @@ int vfscanf(FILE *f, const char *s, va_list args){
 	fmtp=s;
 	for(;*fmtp;fmtp++) switch(*fmtp){
 	default:
-		if(isspace(*fmtp)){
-			do
+		if (isspace(*fmtp)) {
+			do {
 				c=ngetc(f);
-			while(isspace(c));
-			if(c==EOF) va_end(arg); return ncvt?ncvt:EOF;
+			} while (isspace(c));
+			if (c==EOF) {
+				va_end(arg);
+				return ncvt?ncvt:EOF;
+			}
 			nungetc(c, f);
 			break;
 		}
 	NonSpecial:
 		c=ngetc(f);
-		if(c==EOF) va_end(arg); return ncvt?ncvt:EOF;
-		if(c!=*fmtp){
+		if (c==EOF) {
+			va_end(arg);
+			return ncvt?ncvt:EOF;
+		}
+		if (c!=*fmtp) {
 			nungetc(c, f);
 			va_end(arg);
 			return ncvt;
@@ -95,25 +101,35 @@ int vfscanf(FILE *f, const char *s, va_list args){
 		break;
 	case '%':
 		fmtp++;
-		if(*fmtp!='*') store=1;
-		else{
+		if (*fmtp!='*') {
+			store=1;
+		} else {
 			store=0;
 			fmtp++;
 		}
-		if('0'<=*fmtp && *fmtp<='9'){
+		if ('0'<=*fmtp && *fmtp<='9') {
 			width=0;
-			while('0'<=*fmtp && *fmtp<='9') width=width*10 + *fmtp++ - '0';
+			while('0'<=*fmtp && *fmtp<='9') {
+				width=width*10 + *fmtp++ - '0';
+			}
 		}
-		else
+		else {
 			width=-1;
-		type=*fmtp=='h' || *fmtp=='l' || *fmtp=='L'?*fmtp++:'n';
-		if(!icvt[(uint8_t)(*fmtp)]) goto NonSpecial;
-		if(!(*icvt[(uint8_t)(*fmtp)])(f, &arg, store, width, type)){
+		}
+		type = *fmtp=='h' || *fmtp=='l' || *fmtp=='L'?*fmtp++:'n';
+		if (!icvt[(uint8_t)(*fmtp)]) {
+			goto NonSpecial;
+		}
+		if (!(*icvt[(uint8_t)(*fmtp)])(f, &arg, store, width, type)) {
 			va_end(arg);
 			return ncvt?ncvt:EOF;
 		}
-		if(*fmtp=='\0') break;
-		if(store) ncvt++;
+		if (*fmtp=='\0') {
+			break;
+		}
+		if (store) {
+			ncvt++;
+		}
 	}
 	va_end(arg);
 	return ncvt;

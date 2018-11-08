@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+// irq is a program to configure PCI interrupts, based on the parsed ACPI AML.
+
 #include <acpi.h>
 
 #define CHECK_STATUS(fmt, ...) do { if (ACPI_FAILURE(status)) { \
@@ -63,6 +65,7 @@ main(int argc, char *argv[])
 	ACPI_STATUS status;
 	int verbose = 0;
 	AcpiDbgLevel = 0;
+
 	ARGBEGIN{
 	case 'v':
 		AcpiDbgLevel = ACPI_LV_VERBOSITY1;
@@ -87,7 +90,7 @@ main(int argc, char *argv[])
 		sysfatal("can't set up acpi tables: %d", status);
 
 	if (verbose)
-		print("init dables\n");
+		print("init tables\n");
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);
