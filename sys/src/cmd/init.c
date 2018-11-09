@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	iscpu = strcmp(service, "cpu")==0;
 
 	if(iscpu && manual == 0){
-	        print("init: starting cpurc");
+	        print("init: starting cpurc\n");
 		fexec(cpustart);
 	}
 
@@ -186,7 +186,7 @@ rcexec(void)
 	else if(manual || iscpu){
 		execl("/boot/rc", "rc", "-m/boot/rcmain", "-i", nil);
 	}else if(strcmp(service, "terminal") == 0){
-	        print ("init: starting termrc");
+	        print ("init: starting termrc\n");
 		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
 	}
 	else
