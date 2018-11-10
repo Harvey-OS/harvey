@@ -150,7 +150,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x00000660:		/* kvm over i5 */
 		case 0x00000670:		/* Core 2 Extreme */
 		case 0x00000650:		/* i5 6xx, i3 5xx */
-		case 0x000006c0:		/* i5 4xxx */
+		case 0x000006c0:		/* i5 4xx */
 		case 0x000006a0:		/* i7 paurea... */
 		case 0x000106a0:		/* i7,5,3 9xx */
 		case 0x000106e0:		/* i7,5,3 8xx */
