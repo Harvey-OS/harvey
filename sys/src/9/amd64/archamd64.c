@@ -38,7 +38,7 @@ cpuidinit(void)
 	if((eax = cpuid(0x80000000, 0, info)) >= 0x80000000)
 		machp()->CPU.ncpuinfoe = (eax & ~0x80000000) + 1;
 
-	/* is mnonitor supported? */
+	/* is monitor supported? */
 	if (machp()->CPU.cpuinfo[1][2] & 8) {
 		cpuid(5, 0, machp()->CPU.cpuinfo[2]);
 		mwait = k10mwait;
@@ -153,6 +153,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x000006c0:		/* i5 4xx */
 		case 0x000006a0:		/* i7 paurea... */
 		case 0x000106a0:		/* i7,5,3 9xx */
+		case 0x000106c0:		/* Atom (45nm, 32nm) */
 		case 0x000106e0:		/* i7,5,3 8xx */
 		case 0x000206a0:		/* i7,5,3 2xxx */
 		case 0x000206c0:		/* i7,5,3 4xxx */
@@ -183,6 +184,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			switch(f){
 			default:
 				return 0;
+			case 7:
+				hz =  83000000000ll;
+				break;
 			case 5:
 				hz = 100000000000ll;
 				break;
@@ -253,8 +257,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		}
 		DBG("cpuidhz: %#llx hz %lld\n", msr, hz);
 	}
-	else
+	else {
 		return 0;
+	}
 
 	return hz;
 }
