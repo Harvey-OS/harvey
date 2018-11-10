@@ -232,7 +232,6 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			hz = 200000000ULL*(4 * 2 + r)/2;
 			break;
 		case 0x00100f40:		/* Phenom II X2 && Athlon II X4 559 Processor */
-		case 0x00100f50:		/* Phenom II X2 && Athlon II X4 559 Processor */
 		case 0x00100f20:		/* Phenom II X4 */
 		case 0x00100fa0:		/* Phenom II X6 */
 		case 0x00100f90:		/* K10 Opteron 61xx */
