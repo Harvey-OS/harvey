@@ -1751,7 +1751,7 @@ static unsigned int getbanked(uintptr_t ra, uintptr_t rb, int sz)
 static unsigned int setbanked(uintptr_t ra, uintptr_t rb, int sz, int v)
 {
 	unsigned int r;
-	print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, v);
+	//print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, v);
 
 	r = -1;
 	switch (sz) {
@@ -1851,11 +1851,11 @@ static void acpiintr(Ureg *u, void *v)
 		}
 	sts = getpm1sts();
 	en = getpm1en();
-	print("acpiintr: pm1sts %#p pm1en %#p\n", sts, en);
-	if (sts & en)
-		print("acpiintr: have enabled events\n");
-	if (sts & 1)
-		print("acpiintr: power button\n");
+	//print("acpiintr: pm1sts %#p pm1en %#p\n", sts, en);
+	//if (sts & en)
+	//	print("acpiintr: have enabled events\n");
+	//if (sts & 1)
+	//	print("acpiintr: power button\n");
 	// XXX serve other interrupts here.
 	setpm1sts(sts);
 }
