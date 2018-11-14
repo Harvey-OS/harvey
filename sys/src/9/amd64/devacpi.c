@@ -634,20 +634,14 @@ static char *dumpfadt(char *start, char *end, Fadt *fp)
 	start = seprint(start, end, "acpi: fadt: pmprofile: $%p\n", fp->pmprofile);
 	start = seprint(start, end, "acpi: fadt: sciint: $%p\n", fp->sciint);
 	start = seprint(start, end, "acpi: fadt: smicmd: $%p\n", fp->smicmd);
-	start =
-		seprint(start, end, "acpi: fadt: acpienable: $%p\n", fp->acpienable);
-	start =
-		seprint(start, end, "acpi: fadt: acpidisable: $%p\n", fp->acpidisable);
+	start = seprint(start, end, "acpi: fadt: acpienable: $%p\n", fp->acpienable);
+	start = seprint(start, end, "acpi: fadt: acpidisable: $%p\n", fp->acpidisable);
 	start = seprint(start, end, "acpi: fadt: s4biosreq: $%p\n", fp->s4biosreq);
 	start = seprint(start, end, "acpi: fadt: pstatecnt: $%p\n", fp->pstatecnt);
-	start =
-		seprint(start, end, "acpi: fadt: pm1aevtblk: $%p\n", fp->pm1aevtblk);
-	start =
-		seprint(start, end, "acpi: fadt: pm1bevtblk: $%p\n", fp->pm1bevtblk);
-	start =
-		seprint(start, end, "acpi: fadt: pm1acntblk: $%p\n", fp->pm1acntblk);
-	start =
-		seprint(start, end, "acpi: fadt: pm1bcntblk: $%p\n", fp->pm1bcntblk);
+	start = seprint(start, end, "acpi: fadt: pm1aevtblk: $%p\n", fp->pm1aevtblk);
+	start = seprint(start, end, "acpi: fadt: pm1bevtblk: $%p\n", fp->pm1bevtblk);
+	start = seprint(start, end, "acpi: fadt: pm1acntblk: $%p\n", fp->pm1acntblk);
+	start = seprint(start, end, "acpi: fadt: pm1bcntblk: $%p\n", fp->pm1bcntblk);
 	start = seprint(start, end, "acpi: fadt: pm2cntblk: $%p\n", fp->pm2cntblk);
 	start = seprint(start, end, "acpi: fadt: pmtmrblk: $%p\n", fp->pmtmrblk);
 	start = seprint(start, end, "acpi: fadt: gpe0blk: $%p\n", fp->gpe0blk);
@@ -656,25 +650,20 @@ static char *dumpfadt(char *start, char *end, Fadt *fp)
 	start = seprint(start, end, "acpi: fadt: pm1cntlen: $%p\n", fp->pm1cntlen);
 	start = seprint(start, end, "acpi: fadt: pm2cntlen: $%p\n", fp->pm2cntlen);
 	start = seprint(start, end, "acpi: fadt: pmtmrlen: $%p\n", fp->pmtmrlen);
-	start =
-		seprint(start, end, "acpi: fadt: gpe0blklen: $%p\n", fp->gpe0blklen);
-	start =
-		seprint(start, end, "acpi: fadt: gpe1blklen: $%p\n", fp->gpe1blklen);
+	start = seprint(start, end, "acpi: fadt: gpe0blklen: $%p\n", fp->gpe0blklen);
+	start = seprint(start, end, "acpi: fadt: gpe1blklen: $%p\n", fp->gpe1blklen);
 	start = seprint(start, end, "acpi: fadt: gp1base: $%p\n", fp->gp1base);
 	start = seprint(start, end, "acpi: fadt: cstcnt: $%p\n", fp->cstcnt);
 	start = seprint(start, end, "acpi: fadt: plvl2lat: $%p\n", fp->plvl2lat);
 	start = seprint(start, end, "acpi: fadt: plvl3lat: $%p\n", fp->plvl3lat);
 	start = seprint(start, end, "acpi: fadt: flushsz: $%p\n", fp->flushsz);
-	start =
-		seprint(start, end, "acpi: fadt: flushstride: $%p\n", fp->flushstride);
+	start = seprint(start, end, "acpi: fadt: flushstride: $%p\n", fp->flushstride);
 	start = seprint(start, end, "acpi: fadt: dutyoff: $%p\n", fp->dutyoff);
 	start = seprint(start, end, "acpi: fadt: dutywidth: $%p\n", fp->dutywidth);
 	start = seprint(start, end, "acpi: fadt: dayalrm: $%p\n", fp->dayalrm);
 	start = seprint(start, end, "acpi: fadt: monalrm: $%p\n", fp->monalrm);
 	start = seprint(start, end, "acpi: fadt: century: $%p\n", fp->century);
-	start =
-		seprint(start, end, "acpi: fadt: iapcbootarch: $%p\n",
-				 fp->iapcbootarch);
+	start = seprint(start, end, "acpi: fadt: iapcbootarch: $%p\n", fp->iapcbootarch);
 	start = seprint(start, end, "acpi: fadt: flags: $%p\n", fp->flags);
 	start = dumpGas(start, end, "acpi: fadt: resetreg: ", &fp->resetreg);
 	start = seprint(start, end, "acpi: fadt: resetval: $%p\n", fp->resetval);
@@ -691,8 +680,7 @@ static char *dumpfadt(char *start, char *end, Fadt *fp)
 	return start;
 }
 
-static Atable *parsefadt(Atable *parent,
-								char *name, uint8_t *p, size_t rawsize)
+static Atable *parsefadt(Atable *parent, char *name, uint8_t *p, size_t rawsize)
 {
 	Atable *t;
 	Fadt *fp;
@@ -791,7 +779,7 @@ static char *dumpmsct(char *start, char *end, Atable *table)
 		return start;
 
 	start = seprint(start, end, "acpi: msct: %d doms %d clkdoms %#p maxpa\n",
-					 msct->ndoms, msct->nclkdoms, msct->maxpa);
+		msct->ndoms, msct->nclkdoms, msct->maxpa);
 	for (int i = 0; i < table->nchildren; i++) {
 		Atable *domtbl = table->children[i]->tbl;
 		Mdom *st = domtbl->tbl;
@@ -808,8 +796,7 @@ static char *dumpmsct(char *start, char *end, Atable *table)
  * XXX: should perhaps update our idea of available memory.
  * Else we should remove this code.
  */
-static Atable *parsemsct(Atable *parent,
-                                char *name, uint8_t *raw, size_t rawsize)
+static Atable *parsemsct(Atable *parent, char *name, uint8_t *raw, size_t rawsize)
 {
 	Atable *t;
 	uint8_t *r, *re;
@@ -880,23 +867,21 @@ static char *dumpsrat(char *start, char *end, Atable *table)
 			continue;
 		switch (st->type) {
 			case SRlapic:
-				start =
-					seprint(start, end,
-							 "\tlapic: dom %d apic %d sapic %d clk %d\n",
-							 st->lapic.dom, st->lapic.apic, st->lapic.sapic,
-							 st->lapic.clkdom);
+				start = seprint(start, end,
+					 "\tlapic: dom %d apic %d sapic %d clk %d\n",
+					 st->lapic.dom, st->lapic.apic, st->lapic.sapic,
+					 st->lapic.clkdom);
 				break;
 			case SRmem:
 				start = seprint(start, end, "\tmem: dom %d %#p %#p %c%c\n",
-								 st->mem.dom, st->mem.addr, st->mem.len,
-								 st->mem.hplug ? 'h' : '-',
-								 st->mem.nvram ? 'n' : '-');
+					 st->mem.dom, st->mem.addr, st->mem.len,
+					 st->mem.hplug ? 'h' : '-',
+					 st->mem.nvram ? 'n' : '-');
 				break;
 			case SRlx2apic:
-				start =
-					seprint(start, end, "\tlx2apic: dom %d apic %d clk %d\n",
-							 st->lx2apic.dom, st->lx2apic.apic,
-							 st->lx2apic.clkdom);
+				start = seprint(start, end, "\tlx2apic: dom %d apic %d clk %d\n",
+					 st->lx2apic.dom, st->lx2apic.apic,
+					 st->lx2apic.clkdom);
 				break;
 			default:
 				start = seprint(start, end, "\t<unknown srat entry>\n");
@@ -906,10 +891,8 @@ static char *dumpsrat(char *start, char *end, Atable *table)
 	return start;
 }
 
-static Atable *parsesrat(Atable *parent,
-                                char *name, uint8_t *p, size_t rawsize)
+static Atable *parsesrat(Atable *parent, char *name, uint8_t *p, size_t rawsize)
 {
-
 	Atable *t, *tt;
 	uint8_t *pe;
 	int stlen, flags;
@@ -991,8 +974,8 @@ static char *dumpslit(char *start, char *end, Slit *sl)
 	start = seprint(start, end, "acpi slit:\n");
 	for (i = 0; i < sl->rowlen * sl->rowlen; i++) {
 		start = seprint(start, end,
-						 "slit: %x\n",
-						 sl->e[i / sl->rowlen][i % sl->rowlen].dist);
+			 "slit: %x\n",
+			 sl->e[i / sl->rowlen][i % sl->rowlen].dist);
 	}
 	start = seprint(start, end, "\n");
 	return start;
@@ -1200,8 +1183,7 @@ static char *dumpmadt(char *start, char *end, Atable *apics)
 	return start;
 }
 
-static Atable *parsemadt(Atable *parent,
-                                char *name, uint8_t *p, size_t size)
+static Atable *parsemadt(Atable *parent, char *name, uint8_t *p, size_t size)
 {
 	Atable *t, *tt;
 	uint8_t *pe;
@@ -1331,8 +1313,7 @@ static Atable *parsemadt(Atable *parent,
 	return apics;
 }
 
-static Atable *parsedmar(Atable *parent,
-                                char *name, uint8_t *raw, size_t rawsize)
+static Atable *parsedmar(Atable *parent, char *name, uint8_t *raw, size_t rawsize)
 {
 	Atable *t, *tt;
 	int i;
@@ -1856,27 +1837,25 @@ static void acpiintr(Ureg *u, void *v)
 	int i;
 	unsigned int sts, en;
 
-	print("acpi: intr\n");
-
 	for (i = 0; i < ngpes; i++)
 		if (getgpests(i)) {
-			print("gpe %d on\n", i);
+			print("acpiintr: gpe %d on\n", i);
 			en = getgpeen(i);
 			setgpeen(i, 0);
 			clrgpests(i);
 			if (en != 0)
-				print("acpiitr: calling gpe %d\n", i);
+				print("acpiintr: calling gpe %d\n", i);
 			//  queue gpe for calling gpe->ho in the
 			//  aml process.
 			//  enable it again when it returns.
 		}
 	sts = getpm1sts();
 	en = getpm1en();
-	print("acpiitr: pm1sts %#p pm1en %#p\n", sts, en);
+	print("acpiintr: pm1sts %#p pm1en %#p\n", sts, en);
 	if (sts & en)
-		print("have enabled events\n");
+		print("acpiintr: have enabled events\n");
 	if (sts & 1)
-		print("power button\n");
+		print("acpiintr: power button\n");
 	// XXX serve other interrupts here.
 	setpm1sts(sts);
 }
@@ -2002,7 +1981,6 @@ void acpistart(void)
 int acpiinit(void)
 {
 	static int once = 0;
-	//die("acpiinit");
 	if (! once)
 		acpiinitonce();
 	once++;
@@ -2024,8 +2002,7 @@ static Chan *acpiattach(char *spec)
 	return c;
 }
 
-static Walkqid*acpiwalk(Chan *c, Chan *nc, char **name,
-								int nname)
+static Walkqid*acpiwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	/*
 	 * Note that devwalk hard-codes a test against the location of 'devgen',
@@ -2085,8 +2062,8 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	//print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
 	if (off == 0){
 		uint32_t pa = (uint32_t)PADDR(rsd);
-		print("FIND RSD");
-		print("PA OF rsd is %lx, \n", pa);
+		print("FIND RSD\n");
+		print("PA OF rsd is %lx\n", pa);
 		return readmem(0, a, n, &pa, sizeof(pa));
 	}
 	if (off == PADDR(rsd)) {

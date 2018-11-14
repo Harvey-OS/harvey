@@ -154,7 +154,7 @@ failed:
 		status = RouteIRQ(&id, pin, &irq);
 		print("status %d, irq %d\n", status, irq);
 		AcpiDbgLevel = 0;
-		print("echo %d %d %d %d 0x%x > /dev/irqmap", seg, bus, dev, fn, irq);
+		print("echo %d %d %d %d 0x%x > /dev/irqmap\n", seg, bus, dev, fn, irq);
 
 		//ACPI_STATUS PrintDevices(void);
 		//status = PrintDevices();
