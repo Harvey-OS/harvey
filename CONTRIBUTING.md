@@ -4,7 +4,7 @@ We are glad you are reading this, because we need volunteer developers
 to help this project come to fruition.
 
 If you don't have anything you are working on we have a
-[**list of newbie friendly issues**](https://github.com/Harvey-OS/harvey/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22+label%3A%22newbie+friendly%22)
+[**list of newbie friendly issues**](https://github.com/Harvey-OS/harvey/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22+label%3A%22good+first+issue%22)
 you can help out with.
 
 If you haven't already, come find us on our
