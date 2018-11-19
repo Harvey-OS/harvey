@@ -138,14 +138,14 @@ failed:
 
 	UINT64 pin = 0;
 	while (1) {
-		if (scanf("%x %x", &bus, &dev) < 0)
+		if (scanf("%x %x %x", &bus, &dev, &fn) < 0)
 			break;
 
 		AcpiDbgLevel = 0;
 		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
 		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
 		if (!ACPI_SUCCESS(status)){
-			printf("Can't read pin for bus %d dev %d\n", bus, dev);
+			printf("Can't read pin for bus %d dev %d fn %d\n", bus, dev, fn);
 			continue;
 		}
 
