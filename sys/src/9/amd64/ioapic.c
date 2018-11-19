@@ -78,25 +78,27 @@ static int map_edge_level[4] = {
 
 /* TODO: use the slice library for this. */
 typedef struct {
-	Vctl v;
-	uint32_t lo;
-	int valid;
+	Vctl		v;
+	uint32_t	lo;
+	int		valid;
 } Vinfo;
 static Vinfo todo[1<<13];
+static int todoidx = 0;
 /* this is a guess. */
 static char todostring[1024];
 
 char *readtodo(void)
 {
-	int bus, dev, i;
+	int bus, dev, fn, i;
 	char *p = todostring;
 	char *e = p + sizeof(todostring);
-	for(i = 0; i < nelem(todo); i++) {
+	for(i = 0; i < todoidx; i++) {
 		if (!todo[i].valid)
 			continue;
 		bus = BUSBNO(todo[i].v.Vkey.tbdf);
 		dev = BUSDNO(todo[i].v.Vkey.tbdf);
-		p = seprint(p, e, "0x%x 0x%x\n", bus, dev);
+		fn = BUSFNO(todo[i].v.Vkey.tbdf);
+		p = seprint(p, e, "0x%x 0x%x 0x%x\n", bus, dev, fn);
 	}
 	return todostring;
 }
@@ -274,6 +276,7 @@ static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 			}
 		}
 	}
+	
 	if (st) {
 		pol = map_polarity[st->intovr.flags & AFpmask];
 		if (pol < 0) {
@@ -294,10 +297,13 @@ static int acpi_make_rdt(Vctl *v, int tbdf, int irq, int busno, int devno)
 		} else {
 			/* Need to query ACPI at some point to handle this */
 			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
-			todo[(tbdf>>11)&0x1fff].v = *v;
-			todo[(tbdf>>11)&0x1fff].lo = lo | TMlevel | IPlow | Im;
-			todo[(tbdf>>11)&0x1fff].valid = 1;
-			print("Set todo[0x%x] to valid\n", (tbdf>>11)&0x1fff);
+			print("Bustype: %d\n", BUSTYPE(tbdf));
+			print("todo[%d] b:%d d:%d f:%d\n", todoidx, BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
+			todo[todoidx].v = *v;
+			todo[todoidx].lo = lo | TMlevel | IPlow | Im;
+			todo[todoidx].valid = 1;
+			print("Set todo[0x%x] to valid\n", todoidx);
+			todoidx++;
 			return -1;
 		}
 	}
@@ -358,7 +364,7 @@ ioapicdump(void)
 	Apic *apic;
 	uint32_t hi, lo;
 
-	if(!DBGFLG)
+	//if(!DBGFLG)
 		return;
 	for(i = 0; i < Napic; i++){
 		apic = &xioapic[i];
@@ -748,48 +754,62 @@ int acpiirq(uint32_t tbdf, int gsi)
 	int ioapic_nr;
 	int busno = BUSBNO(tbdf);
 	int pin, devno;
-	int ix = (BUSBNO(tbdf) << 5) | BUSDNO(tbdf);
 	Pcidev *pcidev;
 	Vctl *v;
+	Vinfo *vinfotodo = nil;
+
 	int acpiintrenable(Vctl *v);
+	
 	/* for now we know it's PCI, just ignore what they told us. */
-	tbdf = MKBUS(BusPCI, busno, BUSDNO(tbdf), 0);
-	if((pcidev = pcimatchtbdf(tbdf)) == nil)
+	tbdf = MKBUS(BusPCI, busno, BUSDNO(tbdf), BUSFNO(tbdf));
+	if((pcidev = pcimatchtbdf(tbdf)) == nil) {
 		error("No such device (any more?)");
+	}
 	if((pin = pcicfgr8(pcidev, PciINTP)) == 0)
 		error("no INTP for that device, which is impossible");
 
 //	pcicfgw8(pcidev, PciINTL, gsi);
-	//print("ix is %x\n", ix);
-	if (!todo[ix].valid)
+	for (int i = 0; i < todoidx; i++) {
+		if (todo[i].v.Vkey.tbdf == tbdf) {
+			vinfotodo = &todo[i];
+			break;
+		}
+	}
+
+	print("acpiirq: vinfotodo b:%d d:%d f:%d\n", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
+
+	if (vinfotodo == nil)
+		error("Unknown tbdf");
+	if (!vinfotodo->valid)
 		error("Invalid tbdf");
+
 	v = malloc(sizeof(*v));
 	if (waserror()) {
 		print("well, that went badly\n");
 		free(v);
 		nexterror();
 	}
-	*v = todo[ix].v;
+	*v = vinfotodo->v;
 	v->Vkey.irq = gsi;
 	devno = BUSDNO(v->Vkey.tbdf)<<2|(pin-1);
-	if (DBGFLG)
+	//if (DBGFLG)
 		print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
 	    		v->Vkey.tbdf, busno, devno);
 
 	ioapic_nr = acpi_irq2ioapic(gsi);
-	if (DBGFLG)
+	//if (DBGFLG)
 		print("ioapic_nr for gsi %d is %d\n", gsi, ioapic_nr);
 	if (ioapic_nr < 0) {
 		error("Could not find an IOAPIC for global irq!\n");
 	}
 	//ioapicdump();
 	ioapicintrinit(busno, ioapic_nr, gsi - xioapic[ioapic_nr].Ioapic.gsib,
-	               devno, todo[ix].lo);
-	if (DBGFLG)
+	               devno, vinfotodo->lo);
+	//if (DBGFLG)
 		print("ioapicinrinit seems to have worked\n");
 	poperror();
 
-	todo[ix].valid = 0;
+	vinfotodo->valid = 0;
 	//ioapicdump();
 	acpiintrenable(v);
 	//ioapicdump();

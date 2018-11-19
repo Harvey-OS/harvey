@@ -781,8 +781,8 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 	char *b, *bp, ch, *s, *e;
 	char tmp[512];		/* Qswap is 381 bytes at clu */
 	int i, k, id, send;
-	int32_t offset, nread;
-
+	int32_t nread;
+	int64_t offset;
 
 	if(n <= 0)
 		return n;
