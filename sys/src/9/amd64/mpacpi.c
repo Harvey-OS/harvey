@@ -16,6 +16,7 @@
 
 extern int mpisabusno;
 
+// Initialise all local and IO APICs
 int mpacpi(int ncleft)
 {
 	char *already;
@@ -58,8 +59,9 @@ int mpacpi(int ncleft)
 				} else if (ncleft != 0) {
 					ncleft--;
 					apicinit(st->lapic.id, mt->lapicpa, bp);
-				} else
+				} else {
 					already = "(off)";
+				}
 
 				print("apic proc %d/%d apicid %d %s\n", np - 1, apic->Lapic.machno,
 					   st->lapic.id, already);
@@ -73,14 +75,13 @@ int mpacpi(int ncleft)
 				apic = xioapic + st->ioapic.id;
 				if (apic->useable) {
 					already = "(mp)";
-					goto pr1;
+				} else {
+					ioapicinit(st->ioapic.id, st->ioapic.ibase, st->ioapic.addr);
 				}
-				ioapicinit(st->ioapic.id, st->ioapic.ibase, st->ioapic.addr);
-pr1:
+
 				apic->Ioapic.gsib = st->ioapic.ibase;
 				print("ioapic %d ", st->ioapic.id);
-				print("addr %p ibase %d %s\n", st->ioapic.addr, st->ioapic.ibase,
-					   already);
+				print("addr %p ibase %d %s\n", st->ioapic.addr, st->ioapic.ibase, already);
 				break;
 		}
 	}

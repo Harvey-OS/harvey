@@ -621,6 +621,7 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	trapinit();
 	printinit();
 	apiconline();
+	ioapiconline();
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();

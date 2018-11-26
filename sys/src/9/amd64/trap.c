@@ -54,6 +54,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 {
 	int vno;
 	Vctl *v;
+
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#x for %s\n",
 			irq, tbdf, name);
