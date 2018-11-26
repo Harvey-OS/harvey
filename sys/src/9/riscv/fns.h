@@ -216,8 +216,6 @@ extern void apicpri(int);
 extern void apicsipi(int, uintmem);
 
 extern void ioapicinit(int, uintmem);
-extern void ioapicintrinit(int, int, int, int, uint32_t);
-extern void ioapiconline(void);
 
 /*
  * archamd64.c
