@@ -306,8 +306,6 @@ acpi_make_rdt(Vctl *v, int irq, int bustype, int busno, int devno, int fno)
 		} else {
 			/* Need to query ACPI at some point to handle this */
 			print("Non-ISA IRQ %d not found in MADT, aborting\n", irq);
-			print("Bustype: %d\n", bustype);
-			print("todo[%d] b:%d d:%d f:%d\n", todoidx, busno, devno, fno);
 			todo[todoidx].v = *v;
 			todo[todoidx].lo = lo | TMlevel | IPlow | Im;
 			todo[todoidx].valid = 1;
@@ -373,7 +371,7 @@ ioapicdump(void)
 	Apic *apic;
 	uint32_t hi, lo;
 
-	//if(!DBGFLG)
+	if(!DBGFLG)
 		return;
 	for(i = 0; i < Napic; i++){
 		apic = &xioapic[i];
@@ -808,12 +806,12 @@ acpiirq(uint32_t tbdf, int gsi)
 	*v = vinfotodo->v;
 	v->Vkey.irq = gsi;
 	devno = BUSDNO(v->Vkey.tbdf)<<2|(pin-1);
-	//if (DBGFLG)
+	if (DBGFLG)
 		print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
 	    		v->Vkey.tbdf, busno, devno);
 
 	ioapic_nr = acpi_irq2ioapic(gsi);
-	//if (DBGFLG)
+	if (DBGFLG)
 		print("ioapic_nr for gsi %d is %d\n", gsi, ioapic_nr);
 	if (ioapic_nr < 0) {
 		error("Could not find an IOAPIC for global irq!\n");
@@ -821,7 +819,7 @@ acpiirq(uint32_t tbdf, int gsi)
 	//ioapicdump();
 	ioapicintrinit(busno, ioapic_nr, gsi - xioapic[ioapic_nr].Ioapic.gsib,
 	               devno, BUSFNO(tbdf), vinfotodo->lo);
-	//if (DBGFLG)
+	if (DBGFLG)
 		print("ioapicinrinit seems to have worked\n");
 	poperror();
 
