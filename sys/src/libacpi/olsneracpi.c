@@ -235,15 +235,19 @@ failed:
 }
 
 
-ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE Device)
+ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE device)
 {
 	ACPI_DEVICE_INFO* info = NULL;
-	ACPI_STATUS status = AcpiGetObjectInfo(Device, &info);
+	ACPI_STATUS status = AcpiGetObjectInfo(device, &info);
 	if (ACPI_SUCCESS(status)) {
-		if (DBGFLG) printf("Device %p type %#x\n", Device, info->Type);
+		char objname[5];
+		memmove(objname, &info->Name, sizeof(info->Name));
+		objname[4] = 0;
+
+		print("Device %p name: %s type %#x\n", device, objname, info->Type);
 	}
 
-	//ACPI_FREE(info);
+	ACPI_FREE(info);
 	return_ACPI_STATUS(status);
 }
 
@@ -253,16 +257,16 @@ static ACPI_STATUS PrintDeviceCallback(ACPI_HANDLE Device, UINT32 Depth, void *C
 	return PrintAcpiDevice(Device);
 }
 
-// PNP0C0F = PCI Interrupt Link Device
 // PNP0A03 = PCI Root Bridge
+// PNP0C0F = PCI Interrupt Link Device
 ACPI_STATUS PrintDevices(void) {
 	ACPI_STATUS status = AE_OK;
 
-	if (DBGFLG) printf("Searching for PNP0A03\n");
+	print("Searching for PNP0A03 (PCI Bus)\n");
 	status = AcpiGetDevices("PNP0A03", PrintDeviceCallback, NULL, NULL);
 	CHECK_STATUS("AcpiGetDevices PNP0A03");
 
-	if (DBGFLG) printf("Searching for PNP0C0F\n");
+	print("Searching for PNP0C0F (PCI Interrupt Link Device)\n");
 	status = AcpiGetDevices("PNP0C0F", PrintDeviceCallback, NULL, NULL);
 	CHECK_STATUS("AcpiGetDevices PNP0C0F");
 
