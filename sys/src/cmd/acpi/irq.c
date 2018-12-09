@@ -144,8 +144,8 @@ failed:
 		AcpiDbgLevel = 0;
 		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
 		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
-		if (!ACPI_SUCCESS(status)){
-			printf("Can't read pin for bus %d dev %d fn %d\n", bus, dev, fn);
+		if (!ACPI_SUCCESS(status)) {
+			printf("Can't read pin for bus %d dev %d fn %d status %d\n", bus, dev, fn, status);
 			continue;
 		}
 

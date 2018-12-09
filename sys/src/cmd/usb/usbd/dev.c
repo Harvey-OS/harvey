@@ -213,7 +213,7 @@ writeinfo(Dev *d)
 	ud = d->usb;
 	s = buf;
 	se = buf+sizeof(buf);
-	s = seprint(s, se, "info %s csp %#08ulx", classname(ud->class), ud->csp);
+	s = seprint(s, se, "info %s csp %#08ux", classname(ud->class), ud->csp);
 	for(i = 0; i < ud->nconf; i++){
 		c = ud->conf[i];
 		if(c == nil)
