@@ -20,7 +20,7 @@ extern void *ACPIRootPointer;
 extern int ACPITableSize;
 extern UINT32 AcpiDbgLevel;
 
-extern ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, UINT64 pin, int* irq);
+extern ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, uint32_t pin, int* irq);
 
 void hexdump(void *v, int length)
 {
@@ -159,7 +159,8 @@ failed:
 		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
 		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
 		if (!ACPI_SUCCESS(status)) {
-			print("irq: can't read pin for bus %d dev %d fn %d status %d\n", bus, dev, fn, status);
+			print("irq: can't read pin for bus 0x%d dev 0x%d fn 0x%d status 0x%d\n",
+				bus, dev, fn, status);
 			continue;
 		}
 
@@ -169,10 +170,11 @@ failed:
 
 		int irq;
 		status = RouteIRQ(&id, pin, &irq);
-		if (ACPI_FAILURE(status)) {
-			print("irq: RouteIRQ error: %d.  Skipping\n", status);
+		/*if (ACPI_FAILURE(status)) {
+			print("irq: routing error for bus 0x%d dev 0x%d fn 0x%d pin 0x%d status 0x%d\n",
+				bus, dev, fn, pin, status);
 			continue;
-		}
+		}*/
 
 		AcpiDbgLevel = 0;
 		if (verbose) {
@@ -187,7 +189,7 @@ failed:
 
 	if (verbose) {
 		ACPI_STATUS PrintDevices(void);
-		print("irq: PrintDevices\n");
+		print("irq: ACPI devices:\n");
 		status = PrintDevices();
 	}
 
