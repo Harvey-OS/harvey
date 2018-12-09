@@ -81,6 +81,10 @@ main(int argc, char *argv[])
 		break;
 	}ARGEND;
 
+	if (verbose) {
+		print("irq: acpi/irq\n");
+	}
+
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
 		sysfatal("Error %d\n", status);
@@ -90,7 +94,7 @@ main(int argc, char *argv[])
 		sysfatal("can't set up acpi tables: %d", status);
 
 	if (verbose)
-		print("init tables\n");
+		print("irq: init tables\n");
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status))
 		sysfatal("Can't load ACPI tables: %d", status);
@@ -99,13 +103,13 @@ main(int argc, char *argv[])
     	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
 	AcpiGbl_ReducedHardware = 1;
 	if (verbose)
-		print("LOADED TABLES.\n");
+		print("irq: loaded ACPI tables\n");
         status = AcpiEnableSubsystem(0);
         if (ACPI_FAILURE(status))
 		print("Probably does not matter: Can't enable ACPI subsystem");
 
 	if (verbose)
-		print("enabled subsystem.\n");
+		print("irq: enabled subsystem\n");
         status = AcpiInitializeObjects(0);
         if (ACPI_FAILURE(status))
 		sysfatal("Can't Initialize ACPI objects");
@@ -117,12 +121,12 @@ main(int argc, char *argv[])
 		sysfatal("PANIC: Can't handle picmode 0!");
 	ACPI_STATUS ExecuteOSI(int pic_mode);
 	if (verbose)
-		print("FindIOAPICs returns status %d picmode %d\n", status, picmode);
+		print("irq: FindIOAPICs returns status %d picmode %d\n", status, picmode);
 	status = ExecuteOSI(picmode);
 	CHECK_STATUS("ExecuteOSI");
 failed:
 	if (verbose)
-		print("inited objects.\n");
+		print("irq: initialized objects\n");
 	if (verbose)
 		AcpiDbgLevel |= ACPI_LV_VERBOSITY1 | ACPI_LV_FUNCTIONS;
 
@@ -136,30 +140,55 @@ failed:
 		sysfatal("Error %d\n", status);
 	}
 
-	UINT64 pin = 0;
+	if (verbose) {
+		ACPI_STATUS PrintDevices(void);
+		print("irq: PrintDevices\n");
+		status = PrintDevices();
+	}
+
 	while (1) {
 		if (scanf("%x %x %x", &bus, &dev, &fn) < 0)
 			break;
 
+		if (verbose) {
+			print("irq: to map: bus: 0x%x dev: 0x%x fn: 0x%x\n", bus, dev, fn);
+		}
+
 		AcpiDbgLevel = 0;
+		UINT64 pin = 0;
 		ACPI_PCI_ID id = (ACPI_PCI_ID){seg, bus, dev, fn};
 		status = AcpiOsReadPciConfiguration (&id, 0x3d, &pin, 8);
 		if (!ACPI_SUCCESS(status)) {
-			printf("Can't read pin for bus %d dev %d fn %d status %d\n", bus, dev, fn, status);
+			print("irq: can't read pin for bus %d dev %d fn %d status %d\n", bus, dev, fn, status);
 			continue;
 		}
 
-		print("ROUTE {%d, %d, %d, %d}, pin %llu\n", seg, bus, dev, fn, pin);
+		if (verbose) {
+			print("irq: read pin: 0x%x\n", pin);
+		}
+
 		int irq;
 		status = RouteIRQ(&id, pin, &irq);
-		print("status %d, irq %d\n", status, irq);
-		AcpiDbgLevel = 0;
-		print("echo %d %d %d %d 0x%x > /dev/irqmap\n", seg, bus, dev, fn, irq);
+		if (ACPI_FAILURE(status)) {
+			print("irq: RouteIRQ error: %d.  Skipping\n", status);
+			continue;
+		}
 
-		//ACPI_STATUS PrintDevices(void);
-		//status = PrintDevices();
-		if (set > -1)
+		AcpiDbgLevel = 0;
+		if (verbose) {
+			print("irq: read irq: 0x%x\n", irq);
+		}
+
+		// Write to irqmap
+		if (set > -1) {
 			fprint(set, "%d %d %d %d 0x%x", seg, bus, dev, fn, irq);
+		}
+	}
+
+	if (verbose) {
+		ACPI_STATUS PrintDevices(void);
+		print("irq: PrintDevices\n");
+		status = PrintDevices();
 	}
 
 	/* we're done. Enable the IRQs we might have set up. */
