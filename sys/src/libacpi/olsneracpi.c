@@ -19,161 +19,57 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 #include "acpi.h"
 #include "accommon.h"
 #include "acapps.h"
 #include "actables.h"
 #include "acutils.h"
+
 #define DBGFLG 0
 #define _COMPONENT          ACPI_UTILITIES
 ACPI_MODULE_NAME    ("harvey")
 
-/******************************************************************************
- *
- * Example ACPICA handler and handler installation
- *
- *****************************************************************************/
-#if 0
-static void NotifyHandler (
-    ACPI_HANDLE                 Device,
-    UINT32                      Value,
-    void                        *Context)
-{
-
-    ACPI_INFO ((AE_INFO, "Received a notify 0x%x (device %p, context %p)", Value, Device, Context));
-}
-
-static ACPI_STATUS InstallHandlers (void)
-{
-    ACPI_STATUS             Status;
-
-
-    /* Install global notify handler */
-
-    Status = AcpiInstallNotifyHandler (ACPI_ROOT_OBJECT, ACPI_SYSTEM_NOTIFY,
-                                        NotifyHandler, NULL);
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While installing Notify handler"));
-        return (Status);
-    }
-
-    return (AE_OK);
-}
-
-
-/******************************************************************************
- *
- * Example ACPICA initialization code. This shows a full initialization with
- * no early ACPI table access.
- *
- *****************************************************************************/
-
-static ACPI_STATUS InitializeFullAcpi (void)
-{
-    ACPI_STATUS             Status;
-
-
-    /* Initialize the ACPICA subsystem */
-
-    Status = AcpiInitializeSubsystem ();
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While initializing ACPICA"));
-        return (Status);
-    }
-
-    /* Initialize the ACPICA Table Manager and get all ACPI tables */
-
-    Status = AcpiInitializeTables (NULL, 0, FALSE);
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While initializing Table Manager"));
-        return (Status);
-    }
-
-    /* Create the ACPI namespace from ACPI tables */
-
-    Status = AcpiLoadTables ();
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While loading ACPI tables"));
-        return (Status);
-    }
-
-    /* Install local handlers */
-
-    Status = InstallHandlers ();
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While installing handlers"));
-        return (Status);
-    }
-
-    /* Initialize the ACPI hardware */
-
-    Status = AcpiEnableSubsystem (ACPI_FULL_INITIALIZATION);
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While enabling ACPICA"));
-        return (Status);
-    }
-
-    /* Complete the ACPI namespace object initialization */
-
-    Status = AcpiInitializeObjects (ACPI_FULL_INITIALIZATION);
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While initializing ACPICA objects"));
-        return (Status);
-    }
-
-    return (AE_OK);
-}
-
-
-#endif
 ACPI_STATUS ExecuteOSI(int pic_mode)
 {
-    ACPI_STATUS             Status;
-    ACPI_OBJECT_LIST        ArgList;
-    ACPI_OBJECT             Arg[1];
-    ACPI_BUFFER             ReturnValue;
+	ACPI_STATUS             Status;
+	ACPI_OBJECT_LIST        ArgList;
+	ACPI_OBJECT             Arg[1];
+	ACPI_BUFFER             ReturnValue;
 
+	/* Setup input argument */
 
-    /* Setup input argument */
+	ArgList.Count = 1;
+	ArgList.Pointer = Arg;
 
-    ArgList.Count = 1;
-    ArgList.Pointer = Arg;
+	Arg[0].Type = ACPI_TYPE_INTEGER;
+	Arg[0].Integer.Value = pic_mode;
 
-    Arg[0].Type = ACPI_TYPE_INTEGER;
-    Arg[0].Integer.Value = pic_mode;
+	ACPI_INFO ((AE_INFO, "Executing _PIC(%ld)", pic_mode));
 
-    ACPI_INFO ((AE_INFO, "Executing _PIC(%ld)", Arg[0].Integer.Value));
+	/* Ask ACPICA to allocate space for the return object */
+	ReturnValue.Pointer = 0;
+	ReturnValue.Length = ACPI_ALLOCATE_BUFFER;
 
-    /* Ask ACPICA to allocate space for the return object */
-
-    ReturnValue.Length = ACPI_ALLOCATE_BUFFER;
-
-    Status = AcpiEvaluateObject (NULL, "\\_PIC", &ArgList, &ReturnValue);
+	Status = AcpiEvaluateObject (NULL, "\\_PIC", &ArgList, &ReturnValue);
 	////ACPI_FREE_BUFFER(ReturnValue);
 	if (Status == AE_NOT_FOUND)
 	{
-		if (DBGFLG) printf("\\_PIC was not found. Assuming that's ok.\n");
+		if (DBGFLG) print("\\_PIC was not found. Assuming that's ok.\n");
 		return AE_OK;
 	}
-    if (ACPI_FAILURE (Status))
-    {
-        ACPI_EXCEPTION ((AE_INFO, Status, "While executing _PIC"));
-        return Status;
-    }
+	if (ACPI_FAILURE (Status))
+	{
+		ACPI_EXCEPTION ((AE_INFO, Status, "While executing _PIC"));
+		return Status;
+	}
 
-    if (DBGFLG) printf("_PIC returned.\n");
-    return Status;
+	if (DBGFLG) print("_PIC returned.\n");
+	return Status;
 }
 
 #define CHECK_STATUS(fmt, ...) do { if (ACPI_FAILURE(status)) { \
-	if (DBGFLG) printf("ACPI failed (%d): " fmt "\n", status, ## __VA_ARGS__); \
+	if (DBGFLG) print("ACPI failed (%d): " fmt "\n", status, ## __VA_ARGS__); \
 	goto failed; \
 	} } while(0)
 
@@ -212,10 +108,12 @@ ACPI_STATUS FindIOAPICs(int *pic_mode) {
 		switch (apic->Type)
 		{
 		case ACPI_MADT_TYPE_IO_APIC:
-			if (DBGFLG) printf("Found I/O APIC. ID %#x Addr %#x GSI base %#x.\n",
-				(int)apic->IOApic.Id,
-				apic->IOApic.Address,
-				apic->IOApic.GlobalIrqBase);
+			if (DBGFLG) {
+				print("Found I/O APIC. ID %#x Addr %#x GSI base %#x.\n",
+					(int)apic->IOApic.Id,
+					apic->IOApic.Address,
+					apic->IOApic.GlobalIrqBase);
+			}
 			//AddIOAPIC(&apic->IOApic);
 			*pic_mode = 1;
 			break;
@@ -223,17 +121,16 @@ ACPI_STATUS FindIOAPICs(int *pic_mode) {
 	}
 	if (*pic_mode)
 	{
-		if (DBGFLG) printf("I/O APICs found, setting APIC mode\n");
+		if (DBGFLG) print("I/O APICs found, setting APIC mode\n");
 	}
 	else
 	{
-		if (DBGFLG) printf("I/O APICs NOT found, setting PIC mode\n");
+		if (DBGFLG) print("I/O APICs NOT found, setting PIC mode\n");
 		//AddPIC();
 	}
 failed:
 	return AE_OK;
 }
-
 
 ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE device)
 {
@@ -250,7 +147,6 @@ ACPI_STATUS PrintAcpiDevice(ACPI_HANDLE device)
 	ACPI_FREE(info);
 	return_ACPI_STATUS(status);
 }
-
 
 static ACPI_STATUS PrintDeviceCallback(ACPI_HANDLE Device, UINT32 Depth, void *Context, void** ReturnValue)
 {
@@ -277,7 +173,7 @@ failed:
 typedef struct IRQRouteData
 {
 	ACPI_PCI_ID pci;
-	UINT64 pin;
+	uint32_t pin;
 	int8_t gsi;
 	// triggering: 1 = edge triggered, 0 = level
 	int8_t triggering;
@@ -297,20 +193,20 @@ static ACPI_STATUS RouteIRQLinkDevice(ACPI_HANDLE Device, ACPI_PCI_ROUTING_TABLE
 	ACPI_HANDLE LinkDevice = NULL;
 	ACPI_BUFFER buffer = {0, NULL};
 
-	if (DBGFLG) printf("Routing IRQ Link device %s\n", found->Source);
+	if (DBGFLG) print("Routing IRQ Link device %s\n", found->Source);
 	status = AcpiGetHandle(Device, found->Source, &LinkDevice);
 	CHECK_STATUS("AcpiGetHandle %s", found->Source);
 
 	ResetBuffer(&buffer);
 	status = AcpiGetCurrentResources(LinkDevice, &buffer);
 	CHECK_STATUS("AcpiGetCurrentResources");
-	if (DBGFLG) printf("Got %lu bytes of current resources\n", buffer.Length);
+	if (DBGFLG) print("Got %lu bytes of current resources\n", buffer.Length);
 	ACPI_RESOURCE* resource = (ACPI_RESOURCE*)buffer.Pointer;
 	switch (resource->Type) {
 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
 		// The interrupt count must be 1 when returned from _CRS, supposedly.
 		// I think the "possible resource setting" may list several.
-		if (DBGFLG) printf("Extended IRQ: %d interrupts, first one %#x. %s triggered, Active-%s.\n",
+		if (DBGFLG) print("Extended IRQ: %d interrupts, first one %#x. %s triggered, Active-%s.\n",
 			resource->Data.ExtendedIrq.InterruptCount,
 			resource->Data.ExtendedIrq.Interrupts[0],
 			resource->Data.ExtendedIrq.Triggering ? "Edge" : "Level",
@@ -320,7 +216,7 @@ static ACPI_STATUS RouteIRQLinkDevice(ACPI_HANDLE Device, ACPI_PCI_ROUTING_TABLE
 		data->polarity = resource->Data.ExtendedIrq.Polarity;
 		break;
 	case ACPI_RESOURCE_TYPE_IRQ:
-		if (DBGFLG) printf("IRQ: %d interrupts, first one %#x.\n",
+		if (DBGFLG) print("IRQ: %d interrupts, first one %#x.\n",
 			resource->Data.Irq.InterruptCount,
 			resource->Data.Irq.Interrupts[0]);
 		data->gsi = resource->Data.Irq.Interrupts[0];
@@ -328,7 +224,7 @@ static ACPI_STATUS RouteIRQLinkDevice(ACPI_HANDLE Device, ACPI_PCI_ROUTING_TABLE
 		// I think.
 		break;
 	default:
-		if (DBGFLG) printf("RouteIRQLinkDevice: unknown resource type %d\n", resource->Type);
+		if (DBGFLG) print("RouteIRQLinkDevice: unknown resource type %d\n", resource->Type);
 		status = AE_BAD_DATA;
 		goto failed;
 	}
@@ -369,11 +265,11 @@ resource(ACPI_RESOURCE *r, void *Context)
 }
 
 ACPI_STATUS
-device(ACPI_HANDLE                     Object,
-    UINT32                          NestingLevel,
-    void                            *Context,
-    void                            **ReturnValue)
-
+device(
+	ACPI_HANDLE	Object,
+	UINT32          NestingLevel,
+	void            *Context,
+	void            **ReturnValue)
 {
 	ACPI_STATUS as;
 	ACPI_DEVICE_INFO *info;
@@ -438,7 +334,8 @@ int GetPRT(void)
 	if (DBGFLG) print("acpigetdevices %d\n", as);
 	return AE_OK;
 }
-static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
+
+static int mapit(ACPI_HANDLE dev, IRQRouteData *d, int r)
 {
 	static char path[128];
 	static char buf[1024];
@@ -478,7 +375,7 @@ static int mapit(ACPI_HANDLE dev, IRQRouteData*d, int r)
 	if (nf < 3)
 		sysfatal("BOTCH! the bridge device requires 3 fields, only had %d\n", nf);
 	BridgeDevice = strtoul(f[1], 0, 0);
-	if (DBGFLG) print("BridgeDevice is 0x%x, pin is %llu\n", BridgeDevice, d->pin);
+	if (DBGFLG) print("BridgeDevice is 0x%x, pin is %u\n", BridgeDevice, d->pin);
 
 	/* and the swizzling is fixed, per the PCI standard. take the low 2 bits (for now)
 	 * of device #, add pin, mod3, that's it. */
@@ -507,11 +404,11 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	CHECK_STATUS("AcpiGetObjectInfo");
 
 	if (!(info->Flags & ACPI_PCI_ROOT_BRIDGE)) {
-		if (DBGFLG) printf("RouteIRQCallback: not a root bridge.\n");
+		if (DBGFLG) print("RouteIRQCallback: not a root bridge.\n");
 		goto failed;
 	}
 
-	if (DBGFLG) printf("RouteIRQ: Root bridge with address %#x:\n", info->Address);
+	if (DBGFLG) print("RouteIRQ: Root bridge with address %#x:\n", info->Address);
 	int rootBus = -1;
 
 	// Get _CRS, parse, check if the bus number range includes the one in
@@ -520,19 +417,19 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	// multiple root pci bridges.
 	status = AcpiGetCurrentResources(Device, &buffer);
 	CHECK_STATUS("AcpiGetCurrentResources");
-	if (DBGFLG) printf("Got %lu bytes of current resources\n", buffer.Length);
+	if (DBGFLG) print("Got %lu bytes of current resources\n", buffer.Length);
 	status = AcpiBufferToResource(buffer.Pointer, buffer.Length, &resource);
 	resource = (ACPI_RESOURCE*)buffer.Pointer;
-	if (DBGFLG) printf("Got resources %p (status %#x)\n", resource, status);
+	if (DBGFLG) print("Got resources %p (status %#x)\n", resource, status);
 	//CHECK_STATUS();
 	while (resource->Type != ACPI_RESOURCE_TYPE_END_TAG) {
-		if (DBGFLG) printf("Got resource type %d\n", resource->Type);
+		if (DBGFLG) print("Got resource type %d\n", resource->Type);
 		ACPI_RESOURCE_ADDRESS64 addr64;
 		ACPI_STATUS status = AcpiResourceToAddress64(resource, &addr64);
-		if (DBGFLG) printf("Processed and got type\n",  addr64.ResourceType);
+		if (DBGFLG) print("Processed and got type\n",  addr64.ResourceType);
 		if (status == AE_OK && addr64.ResourceType == ACPI_BUS_NUMBER_RANGE)
 		{
-			if (DBGFLG) printf("RouteIRQ: Root bridge bus range %#x..%#x\n",
+			if (DBGFLG) print("RouteIRQ: Root bridge bus range %#x..%#x\n",
 			       addr64.Address.Minimum,
 					addr64.Address.Maximum);
 			if (data->pci.Bus < addr64.Address.Minimum ||
@@ -549,63 +446,66 @@ static ACPI_STATUS RouteIRQCallback(ACPI_HANDLE Device, UINT32 Depth, void *Cont
 	// dunno!
 	if (rootBus == -1)
 	{
-		if (DBGFLG) printf("Couldn't figure out the bus number for root bridge %#x\n",
+		if (DBGFLG) print("Couldn't figure out the bus number for root bridge %#x\n",
 				info->Address);
 		goto failed;
 	}
 
-	/* this is the easy case, and the most common: it's all on Bus 0
-	 * and it Just Works. */
-	if (rootBus == data->pci.Bus) {
-		ResetBuffer(&buffer);
-		status = AcpiGetIrqRoutingTable(Device, &buffer);
-		CHECK_STATUS("AcpiGetIrqRoutingTable");
-		if (DBGFLG) printf("Got %u bytes of IRQ routing table\n", buffer.Length);
-		ACPI_PCI_ROUTING_TABLE* route = buffer.Pointer;
-		ACPI_PCI_ROUTING_TABLE* const end = buffer.Pointer + buffer.Length;
-		if (DBGFLG) printf("Routing table: %p..%p\n", route, end);
-		UINT64 pciAddr = data->pci.Device;
-		if (DBGFLG) print("pciAddr: 0x%x\n", pciAddr);
-		while (route < end && route->Length) {
-			if (DBGFLG) print("Route: %p, Address: 0x%08x, Pin: %d\n", route, route->Address, route->Pin);
-			if ((route->Address >> 16) == pciAddr && route->Pin == data->pin) {
-				if (DBGFLG) print("FOUND!\n");
-				found = route;
-				break;
-			}
-			if (DBGFLG) print("Route Length 0x%x\n", route->Length);
-			route = (ACPI_PCI_ROUTING_TABLE*)((char*)route + route->Length);
-		}
-		if (!found) {
-			if (DBGFLG) print("NOT FOUND! FAIL!\n");
-			goto failed;
-		}
-
-		if (DBGFLG) printf("RouteIRQ: %02x:%02x.%d pin %d -> %c%c%c%c:%d\n",
-		       data->pci.Bus, data->pci.Device, data->pci.Function,
-		       found->Pin,
-		       found->Source[0],
-		       found->Source[1],
-		       found->Source[2],
-		       found->Source[3],
-		       found->SourceIndex);
-
-		if (found->Source[0]) {
-			status = RouteIRQLinkDevice(Device, found, data);
-			if (DBGFLG) printf("status %#x irq %#x\n", status, data->gsi);
-			CHECK_STATUS("RouteIRQLinkDevice");
-		} else {
-			if (DBGFLG) printf("found->Source[0] is zero since it's PIC 1\n");
-			data->gsi = found->SourceIndex;
-		}
-		data->found = TRUE;
-		status = AE_CTRL_TERMINATE;
-		status = AE_OK;
-		return status;
-	}
 	// This requires us to walk the chain of pci-pci bridges between the
 	// root bridge and the device. Unimplemented.
-	if (DBGFLG) printf("Unimplemented! Device on bus %#x, but root is %#x\n",
+	if (rootBus != data->pci.Bus)
+	{
+		if (DBGFLG) {
+			print("Unimplemented! Device on bus %#x, but root is %#x\n",
+				data->pci.Bus, rootBus);
+		}
+		goto failed;
+	}
+
+	ResetBuffer(&buffer);
+	status = AcpiGetIrqRoutingTable(Device, &buffer);
+	CHECK_STATUS("AcpiGetIrqRoutingTable");
+	if (DBGFLG) print("Got %u bytes of IRQ routing table\n", buffer.Length);
+	ACPI_PCI_ROUTING_TABLE* route = buffer.Pointer;
+	ACPI_PCI_ROUTING_TABLE* const end = buffer.Pointer + buffer.Length;
+	if (DBGFLG) print("Routing table: %p..%p\n", route, end);
+	UINT64 pciAddr = data->pci.Device;
+	if (DBGFLG) print("pciAddr: 0x%x\n", pciAddr);
+	while (route < end && route->Length) {
+		if (DBGFLG) print("Route: %p, Address: 0x%08x, Pin: %d\n", route, route->Address, route->Pin);
+		if ((route->Address >> 16) == pciAddr && route->Pin == data->pin) {
+			if (DBGFLG) print("FOUND!\n");
+			found = route;
+			break;
+		}
+		if (DBGFLG) print("Route Length 0x%x\n", route->Length);
+		route = (ACPI_PCI_ROUTING_TABLE*)((char*)route + route->Length);
+	}
+	if (!found) {
+		if (DBGFLG) print("NOT FOUND! FAIL!\n");
+		goto failed;
+	}
+
+	if (DBGFLG) print("RouteIRQ: %02x:%02x.%d pin %d -> %s:%d\n",
+		data->pci.Bus, data->pci.Device, data->pci.Function,
+		found->Pin,
+		found->Source[0] ? found->Source : NULL,
+		found->SourceIndex);
+
+	if (found->Source[0]) {
+		status = RouteIRQLinkDevice(Device, found, data);
+		if (DBGFLG) print("status %#x irq %#x\n", status, data->gsi);
+		CHECK_STATUS("RouteIRQLinkDevice");
+	} else {
+		if (DBGFLG) print("found->Source[0] is zero since it's PIC 1\n");
+		data->gsi = found->SourceIndex;
+	}
+	data->found = TRUE;
+	status = AE_CTRL_TERMINATE;
+
+	// This requires us to walk the chain of pci-pci bridges between the
+	// root bridge and the device. Unimplemented.
+	if (DBGFLG) print("Unimplemented! Device on bus %#x, but root is %#x\n",
 	       data->pci.Bus, rootBus);
 	status = mapit(Device, data, rootBus);
 
@@ -616,14 +516,14 @@ failed:
 	return_ACPI_STATUS(status);
 }
 
-ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, UINT64 pin, int* irq) {
+ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, uint32_t pin, int* irq) {
 	IRQRouteData data = { *device, pin, 0, 0, 0, FALSE };
 	ACPI_STATUS status = AE_OK;
 
 	status = AcpiGetDevices("PNP0A03", RouteIRQCallback, &data, NULL);
 	if (status == AE_OK)
 	{
-if (DBGFLG) printf("Data f %d 0x%x\n", data.found, data.pci);
+if (DBGFLG) print("Data f %d 0x%x\n", data.found, data.pci);
 		if (data.found)
 		{
 			*irq = data.gsi
@@ -637,207 +537,3 @@ if (DBGFLG) printf("Data f %d 0x%x\n", data.found, data.pci);
 	}
 	return_ACPI_STATUS(status);
 }
-#if 0
-// reserve some virtual memory space (never touched) to keep track pci device
-// handles.
-static const char pci_device_handles[65536] PLACEHOLDER_SECTION;
-
-static void MsgFindPci(uintptr_t rcpt, uintptr_t arg)
-{
-	ACPI_PCI_ID temp = { 0, 0, 0, 0 };
-	u16 vendor = arg >> 16;
-	u16 device = arg;
-	uintptr_t addr = -1;
-	if (DBGFLG) printf("acpica: find pci %#x:%#x.\n", vendor, device);
-	ACPI_STATUS status = FindPCIDevByVendor(vendor, device, &temp);
-	if (ACPI_SUCCESS(status)) {
-		addr = temp.Bus << 16 | temp.Device << 3 | temp.Function;
-	}
-	send1(MSG_ACPI_FIND_PCI, rcpt, addr);
-}
-
-static void MsgClaimPci(uintptr_t rcpt, uintptr_t addr, uintptr_t pins)
-{
-	addr &= 0xffff;
-	ACPI_PCI_ID id = { 0, (addr >> 8) & 0xff, (addr >> 3) & 31, addr & 7 };
-	if (DBGFLG) printf("acpica: claim pci %02x:%02x.%x\n", id.Bus, id.Device, id.Function);
-
-	// Set up whatever stuff to track PCI device drivers in general
-
-	int irqs[4] = {0};
-	for (int pin = 0; pin < 4; pin++) {
-		if (!(pins & (1 << pin))) continue;
-
-		ACPI_STATUS status = RouteIRQ(&id, 0, &irqs[pin]);
-		CHECK_STATUS("RouteIRQ");
-		if (DBGFLG) printf("acpica: %02x:%02x.%x pin %d routed to IRQ %#x\n",
-			id.Bus, id.Device, id.Function,
-			pin, irqs[pin]);
-	}
-
-	if (pins & ACPI_PCI_CLAIM_MASTER) {
-		u64 value;
-		AcpiOsReadPciConfiguration(&id, PCI_COMMAND, &value, 16);
-		if (!(value & PCI_COMMAND_MASTER)) {
-			value |= PCI_COMMAND_MASTER;
-			AcpiOsWritePciConfiguration(&id, PCI_COMMAND, value, 16);
-		}
-	}
-
-	pins = (u64)irqs[3] << 48 | (u64)irqs[2] << 32 | irqs[1] << 16 | irqs[0];
-
-	send2(MSG_ACPI_CLAIM_PCI, rcpt, addr, pins);
-	hmod(rcpt, (uintptr_t)pci_device_handles + addr, 0);
-	return;
-
-failed:
-	send2(MSG_ACPI_CLAIM_PCI, rcpt, 0, 0);
-}
-
-static size_t debugger_buffer_pos = 0;
-
-static void debugger_pre_cmd(void) {
-	debugger_buffer_pos = 0;
-	AcpiGbl_MethodExecuting = FALSE;
-	AcpiGbl_StepToNextCall = FALSE;
-	AcpiDbSetOutputDestination(ACPI_DB_CONSOLE_OUTPUT);
-}
-
-void GlobalEventHandler(UINT32 EventType, ACPI_HANDLE Device,
-		UINT32 EventNumber, void *Context) {
-	if (EventType == ACPI_EVENT_TYPE_FIXED &&
-		EventNumber == ACPI_EVENT_POWER_BUTTON) {
-
-		if (DBGFLG) printf("POWER BUTTON! Shutting down.\n");
-
-		AcpiEnterSleepStatePrep(ACPI_STATE_S5);
-		AcpiEnterSleepState(ACPI_STATE_S5);
-	}
-}
-#endif
-#if 0
-void start() {
-	ACPI_STATUS status = AE_OK;
-
-	if (DBGFLG) printf("ACPICA: start\n");
-
-	// NB! Must be at least as large as physical memory - the ACPI tables could
-	// be anywhere. (Could be handled by AcpiOsMapMemory though.)
-	map(0, MAP_PHYS | PROT_READ | PROT_WRITE | PROT_NO_CACHE,
-		(void*)ACPI_PHYS_BASE, 0, USER_MAP_MAX - ACPI_PHYS_BASE);
-	char* p = ((char*)ACPI_PHYS_BASE) + 0x100000;
-	if (DBGFLG) printf("Testing physical memory access: %p (0x100000): %x\n", p, *(u32*)p);
-
-	__default_section_init();
-	init_heap();
-
-    ACPI_DEBUG_INITIALIZE (); /* For debug version only */
-	status = InitializeFullAcpi ();
-	CHECK_STATUS("InitializeFullAcpi");
-
-    /* Enable debug output, example debug print */
-
-    AcpiDbgLayer = ACPI_EXAMPLE; //ACPI_ALL_COMPONENTS;
-    AcpiDbgLevel = ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_INTERRUPTS;
-
-	int pic_mode = 0; // Default is PIC mode if something fails
-	status = FindIOAPICs(&pic_mode);
-	CHECK_STATUS("Find IOAPIC");
-	status = ExecuteOSI(pic_mode);
-	CHECK_STATUS("ExecuteOSI");
-	// Tables we get in Bochs:
-	// * DSDT: All the AML code
-	// * FACS
-	// * FACP
-	// * APIC (= MADT)
-	// * SSDT: Secondary System Description Table
-	//   Contains more AML code loaded automatically by ACPICA
-	// More tables on qemu:
-	// * Another SSDT (Loaded by ACPICA)
-	// * HPET table
-//	PrintFACSTable();
-//	PrintFACPTable();
-	PrintAPICTable();
-	CHECK_STATUS("PrintAPICTable");
-	// TODO Do something like PrintDevices to disable all pci interrupt link
-	// devices (call _DIS). Then we'll enable them as we go along.
-	PrintDevices();
-	EnumeratePCI();
-
-	AcpiWriteBitRegister(ACPI_BITREG_SCI_ENABLE, 1);
-	//AcpiWriteBitRegister(ACPI_BITREG_POWER_BUTTON_ENABLE, 1);
-	AcpiInstallGlobalEventHandler(GlobalEventHandler, NULL);
-	AcpiEnableEvent(ACPI_EVENT_POWER_BUTTON, 0);
-
-	if (DBGFLG) printf("Waiting for SCI interrupts...\n");
-	for (;;) {
-		uintptr_t rcpt = 0x100;
-		uintptr_t arg = 0;
-		uintptr_t arg2 = 0;
-		uintptr_t msg = recv2(&rcpt, &arg, &arg2);
-		//if (DBGFLG) printf("acpica: Received %#lx from %#lx: %#lx %#lx\n", msg, rcpt, arg, arg2);
-		if (msg == MSG_PULSE) {
-			if (AcpiOsCheckInterrupt(rcpt, arg)) {
-				continue;
-			} else {
-				if (DBGFLG) printf("acpica: Unhandled pulse: %#x from %#lx\n", arg, rcpt);
-			}
-		}
-		switch (msg & 0xff)
-		{
-		case MSG_ACPI_FIND_PCI:
-			MsgFindPci(rcpt, arg);
-			break;
-		case MSG_ACPI_CLAIM_PCI:
-			MsgClaimPci(rcpt, arg, arg2);
-			break;
-		// This feels a bit wrong, but as long as we use PIO access to PCI
-		// configuration space, we need to serialize all accesses.
-		case MSG_ACPI_READ_PCI:
-			arg = PciReadWord((arg & 0x7ffffffc) | 0x80000000);
-			send1(MSG_ACPI_READ_PCI, rcpt, arg);
-			break;
-		case MSG_ACPI_DEBUGGER_INIT:
-			debugger_pre_cmd();
-			send0(MSG_ACPI_DEBUGGER_INIT, rcpt);
-			break;
-		case MSG_ACPI_DEBUGGER_BUFFER:
-			assert(debugger_buffer_pos < ACPI_DB_LINE_BUFFER_SIZE);
-			AcpiGbl_DbLineBuf[debugger_buffer_pos++] = arg;
-			send0(MSG_ACPI_DEBUGGER_BUFFER, rcpt);
-			break;
-		case MSG_ACPI_DEBUGGER_CMD:
-			assert(debugger_buffer_pos < ACPI_DB_LINE_BUFFER_SIZE);
-			AcpiGbl_DbLineBuf[debugger_buffer_pos++] = 0;
-			AcpiDbCommandDispatch(AcpiGbl_DbLineBuf, NULL, NULL);
-			debugger_pre_cmd();
-			send0(MSG_ACPI_DEBUGGER_CMD, rcpt);
-			break;
-		case MSG_ACPI_DEBUGGER_CLR_BUFFER:
-			debugger_pre_cmd();
-			send0(MSG_ACPI_DEBUGGER_CLR_BUFFER, rcpt);
-			break;
-		case MSG_REG_IRQ:
-			RegIRQ(rcpt, arg);
-			continue;
-		case MSG_IRQ_ACK:
-			AckIRQ(rcpt);
-			continue;
-		}
-		// TODO Handle other stuff.
-		if (rcpt == 0x100)
-		{
-			hmod(rcpt, 0, 0);
-		}
-	}
-	status = AcpiTerminate();
-	CHECK_STATUS("AcpiTerminate");
-	if (DBGFLG) printf("Acpi terminated... Halting.\n");
-
-failed:
-	if (DBGFLG) printf("ACPI failed :( (status %x)\n", status);
-	abort();
-}
-
-
-#endif

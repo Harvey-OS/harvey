@@ -790,7 +790,7 @@ acpiirq(uint32_t tbdf, int gsi)
 		}
 	}
 
-	print("acpiirq: vinfotodo b:%d d:%d f:%d gsi:%d\n", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf), gsi);
+	print("acpiirq: writing b:%d d:%d f:%d gsi:%d\n", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf), gsi);
 
 	if (vinfotodo == nil)
 		error("Unknown tbdf");
