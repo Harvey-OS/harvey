@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #ifndef __ACENV_H__
@@ -148,9 +184,11 @@
     (defined ACPI_NAMES_APP)    || \
     (defined ACPI_SRC_APP)      || \
     (defined ACPI_XTRACT_APP)   || \
-    (defined ACPI_EXAMPLE_APP)
+    (defined ACPI_EXAMPLE_APP)  || \
+    (defined ACPI_EFI_HELLO)
 #define ACPI_APPLICATION
 #define ACPI_SINGLE_THREADED
+#define USE_NATIVE_ALLOCATE_ZEROED
 #endif
 
 /* iASL configuration */
@@ -197,7 +235,6 @@
 
 #ifdef ACPI_DUMP_APP
 #define ACPI_USE_NATIVE_MEMORY_MAPPING
-#define USE_NATIVE_ALLOCATE_ZEROED
 #endif
 
 /* AcpiNames/Example configuration. Hardware disabled */
@@ -222,7 +259,6 @@
 /* Common for all ACPICA applications */
 
 #ifdef ACPI_APPLICATION
-#define ACPI_USE_SYSTEM_CLIBRARY
 #define ACPI_USE_LOCAL_CACHE
 #endif
 
@@ -239,9 +275,20 @@
 /******************************************************************************
  *
  * Host configuration files. The compiler configuration files are included
- * by the host files.
+ * first.
  *
  *****************************************************************************/
+
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#include "acgcc.h"
+
+#elif defined(_MSC_VER)
+#include "acmsvc.h"
+
+#elif defined(__INTEL_COMPILER)
+#include "acintel.h"
+
+#endif
 
 #if defined(_LINUX) || defined(__linux__)
 #include "aclinux.h"
@@ -282,20 +329,20 @@
 #elif defined(__OS2__)
 #include "acos2.h"
 
-#elif defined(_AED_EFI)
-#include "acefi.h"
-
-#elif defined(_GNU_EFI)
-#include "acefi.h"
-
 #elif defined(__HAIKU__)
 #include "achaiku.h"
 
 #elif defined(__QNX__)
 #include "acqnx.h"
 
-#elif defined(__HARVEY__)
-#include "acharvey.h"
+/*
+ * EFI applications can be built with -nostdlib, in this case, it must be
+ * included after including all other host environmental definitions, in
+ * order to override the definitions.
+ */
+#elif defined(_AED_EFI) || defined(_GNU_EFI) || defined(_EDK2_EFI)
+#include "acefi.h"
+
 #else
 
 /* Unknown environment */
@@ -351,6 +398,11 @@
 #define ACPI_INLINE
 #endif
 
+/* Use ordered initialization if compiler doesn't support designated. */
+#ifndef ACPI_STRUCT_INIT
+#define ACPI_STRUCT_INIT(field, value)  value
+#endif
+
 /*
  * Configurable calling conventions:
  *
@@ -404,7 +456,8 @@
  * ACPI_USE_SYSTEM_CLIBRARY - Define this if linking to an actual C library.
  *      Otherwise, local versions of string/memory functions will be used.
  * ACPI_USE_STANDARD_HEADERS - Define this if linking to a C library and
- *      the standard header files may be used.
+ *      the standard header files may be used. Defining this implies that
+ *      ACPI_USE_SYSTEM_CLIBRARY has been defined.
  *
  * The ACPICA subsystem only uses low level C library functions that do not
  * call operating system services and may therefore be inlined in the code.
@@ -412,65 +465,27 @@
  * It may be necessary to tailor these include files to the target
  * generation environment.
  */
-#ifdef ACPI_USE_SYSTEM_CLIBRARY
 
 /* Use the standard C library headers. We want to keep these to a minimum. */
 
 #ifdef ACPI_USE_STANDARD_HEADERS
-FUCK
+
 /* Use the standard headers from the standard locations */
 
-#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#if defined (ACPI_APPLICATION) || defined(ACPI_LIBRARY)
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <time.h>
+#include <signal.h>
+#endif
 
 #endif /* ACPI_USE_STANDARD_HEADERS */
 
-/* We will be linking to the standard Clib functions */
-
-#else
-
-/******************************************************************************
- *
- * Not using native C library, use local implementations
- *
- *****************************************************************************/
-
-/*
- * Use local definitions of C library macros and functions. These function
- * implementations may not be as efficient as an inline or assembly code
- * implementation provided by a native C library, but they are functionally
- * equivalent.
- */
-#ifndef va_arg
-
-#ifndef _VALIST
-#define _VALIST
-typedef char *va_list;
-#endif /* _VALIST */
-
-/* Storage alignment properties */
-
-#define  _AUPBND                (sizeof (ACPI_NATIVE_INT) - 1)
-#define  _ADNBND                (sizeof (ACPI_NATIVE_INT) - 1)
-
-/* Variable argument list macro definitions */
-
-#define _Bnd(X, bnd)            (((sizeof (X)) + (bnd)) & (~(bnd)))
-#define va_arg(ap, T)           (*(T *)(((ap) += (_Bnd (T, _AUPBND))) - (_Bnd (T,_ADNBND))))
-#define va_end(ap)              (ap = (va_list) NULL)
-#define va_start(ap, A)         (void) ((ap) = (((char *) &(A)) + (_Bnd (A,_AUPBND))))
-
-#endif /* va_arg */
-
-/* Use the local (ACPICA) definitions of the clib functions */
-
-#endif /* ACPI_USE_SYSTEM_CLIBRARY */
-
-#ifndef ACPI_FILE
 #ifdef ACPI_APPLICATION
-#include <stdio.h>
 #define ACPI_FILE              FILE *
 #define ACPI_FILE_OUT          stdout
 #define ACPI_FILE_ERR          stderr
@@ -479,7 +494,6 @@ typedef char *va_list;
 #define ACPI_FILE_OUT          NULL
 #define ACPI_FILE_ERR          NULL
 #endif /* ACPI_APPLICATION */
-#endif /* ACPI_FILE */
 
 #ifndef ACPI_INIT_FUNCTION
 #define ACPI_INIT_FUNCTION
