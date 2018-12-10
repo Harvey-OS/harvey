@@ -1,4 +1,5 @@
-This version of acpica was based on commit f39a732d2a0575b8a28b3d59f1836c7a3e4aa9cc.
+This version of acpica was based on commit: 37f339a2d04d6ee1ffd9402628bbf69016a91b16.
+The previous version was based on commit:   f39a732d2a0575b8a28b3d59f1836c7a3e4aa9cc.
 
 The acpica includes were added to sys/include/acpi/acpica.
 
@@ -8,6 +9,7 @@ The following new files were added:
 
 Diffs:
   acpica/acapps.h
+  -- not needed for recent version?
         //#include <stdio.h>
         ...
         //#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
@@ -23,10 +25,10 @@ Diffs:
 
         #elif defined(__HARVEY__)
         #include "acharvey.h"
-        #else
+
         ....
         #ifdef ACPI_USE_STANDARD_HEADERS
-        FUCK
+        fuck
         /* Use the standard headers from the standard locations */
   acpica/acenvex.h
         #elif defined(__DragonFly__)

@@ -335,6 +335,9 @@
 #elif defined(__QNX__)
 #include "acqnx.h"
 
+#elif defined(__HARVEY__)
+#include "acharvey.h"
+
 /*
  * EFI applications can be built with -nostdlib, in this case, it must be
  * included after including all other host environmental definitions, in
@@ -469,7 +472,7 @@
 /* Use the standard C library headers. We want to keep these to a minimum. */
 
 #ifdef ACPI_USE_STANDARD_HEADERS
-
+fuck
 /* Use the standard headers from the standard locations */
 
 #include <stdlib.h>
