@@ -43,6 +43,9 @@ The source has added here, but only the following folders:
   common
   components
 
+common/acfileio.c was added as libacpi/acfileio.c.  Mostly commented out.
+components/debugger/dbfileio.c was added as libacpi/dbfileio.c.  Mostly commented out.
+
 The following files from these folders were not added:
   common/acfileio.c
   common/acgetline.c
