@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 /*
@@ -128,6 +164,7 @@
 #include "acdispat.h"
 #include "amlcode.h"
 #include "acinterp.h"
+#include "acnamesp.h"
 
 #define _COMPONENT          ACPI_PARSER
         ACPI_MODULE_NAME    ("psparse")
@@ -186,7 +223,7 @@ AcpiPsPeekOpcode (
     Aml = ParserState->Aml;
     Opcode = (UINT16) ACPI_GET8 (Aml);
 
-    if (Opcode == AML_EXTENDED_OP_PREFIX)
+    if (Opcode == AML_EXTENDED_PREFIX)
     {
         /* Extended opcode, get the second opcode byte */
 
@@ -290,7 +327,7 @@ AcpiPsCompleteThisOp (
                 (Op->Common.Parent->Common.AmlOpcode == AML_BUFFER_OP)       ||
                 (Op->Common.Parent->Common.AmlOpcode == AML_PACKAGE_OP)      ||
                 (Op->Common.Parent->Common.AmlOpcode == AML_BANK_FIELD_OP)   ||
-                (Op->Common.Parent->Common.AmlOpcode == AML_VAR_PACKAGE_OP))
+                (Op->Common.Parent->Common.AmlOpcode == AML_VARIABLE_PACKAGE_OP))
             {
                 ReplacementOp = AcpiPsAllocOp (
                     AML_INT_RETURN_VALUE_OP, Op->Common.Aml);
@@ -304,7 +341,7 @@ AcpiPsCompleteThisOp (
             {
                 if ((Op->Common.AmlOpcode == AML_BUFFER_OP) ||
                     (Op->Common.AmlOpcode == AML_PACKAGE_OP) ||
-                    (Op->Common.AmlOpcode == AML_VAR_PACKAGE_OP))
+                    (Op->Common.AmlOpcode == AML_VARIABLE_PACKAGE_OP))
                 {
                     ReplacementOp = AcpiPsAllocOp (Op->Common.AmlOpcode,
                         Op->Common.Aml);
@@ -539,7 +576,7 @@ AcpiPsParseAml (
 
     if (!WalkState->ParserState.Aml)
     {
-        return_ACPI_STATUS (AE_NULL_OBJECT);
+        return_ACPI_STATUS (AE_BAD_ADDRESS);
     }
 
     /* Create and initialize a new thread state */
@@ -600,6 +637,18 @@ AcpiPsParseAml (
             "Completed one call to walk loop, %s State=%p\n",
             AcpiFormatException (Status), WalkState));
 
+        if (WalkState->MethodPathname && WalkState->MethodIsNested)
+        {
+            /* Optional object evaluation log */
+
+            ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION, "%-26s:  %*s%s\n",
+                "   Exit nested method",
+                (WalkState->MethodNestingDepth + 1) * 3, " ",
+                &WalkState->MethodPathname[1]));
+
+            ACPI_FREE (WalkState->MethodPathname);
+            WalkState->MethodIsNested = FALSE;
+        }
         if (Status == AE_CTRL_TRANSFER)
         {
             /*
@@ -627,8 +676,19 @@ AcpiPsParseAml (
         {
             /* Either the method parse or actual execution failed */
 
-            ACPI_ERROR_METHOD ("Method parse/execution failed",
-                WalkState->MethodNode, NULL, Status);
+            AcpiExExitInterpreter ();
+            if (Status == AE_ABORT_METHOD)
+            {
+                AcpiNsPrintNodePathname (
+                    WalkState->MethodNode, "Method aborted:");
+                AcpiOsPrintf ("\n");
+            }
+            else
+            {
+                ACPI_ERROR_METHOD ("Method parse/execution failed",
+                    WalkState->MethodNode, NULL, Status);
+            }
+            AcpiExEnterInterpreter ();
 
             /* Check for possible multi-thread reentrancy problem */
 
@@ -661,7 +721,8 @@ AcpiPsParseAml (
          * cleanup to do
          */
         if (((WalkState->ParseFlags & ACPI_PARSE_MODE_MASK) ==
-            ACPI_PARSE_EXECUTE) ||
+            ACPI_PARSE_EXECUTE &&
+            !(WalkState->ParseFlags & ACPI_PARSE_MODULE_LEVEL)) ||
             (ACPI_FAILURE (Status)))
         {
             AcpiDsTerminateControlMethod (WalkState->MethodDesc, WalkState);

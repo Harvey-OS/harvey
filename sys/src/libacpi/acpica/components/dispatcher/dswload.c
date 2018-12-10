@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -185,12 +221,10 @@ AcpiDsInitCallbacks (
 
         /* Execution pass */
 
-#ifndef ACPI_NO_METHOD_EXECUTION
         WalkState->ParseFlags        |= ACPI_PARSE_EXECUTE  |
                                         ACPI_PARSE_DELETE_TREE;
         WalkState->DescendingCallback = AcpiDsExecBeginOp;
         WalkState->AscendingCallback  = AcpiDsExecEndOp;
-#endif
         break;
 
     default:
@@ -228,7 +262,7 @@ AcpiDsLoad1BeginOp (
     UINT32                  Flags;
 
 
-    ACPI_FUNCTION_TRACE (DsLoad1BeginOp);
+    ACPI_FUNCTION_TRACE_PTR (DsLoad1BeginOp, WalkState->Op);
 
 
     Op = WalkState->Op;
@@ -289,7 +323,7 @@ AcpiDsLoad1BeginOp (
 #endif
         if (ACPI_FAILURE (Status))
         {
-            ACPI_ERROR_NAMESPACE (Path, Status);
+            ACPI_ERROR_NAMESPACE (WalkState->ScopeInfo, Path, Status);
             return_ACPI_STATUS (Status);
         }
 
@@ -459,7 +493,7 @@ AcpiDsLoad1BeginOp (
 
             if (ACPI_FAILURE (Status))
             {
-                ACPI_ERROR_NAMESPACE (Path, Status);
+                ACPI_ERROR_NAMESPACE (WalkState->ScopeInfo, Path, Status);
                 return_ACPI_STATUS (Status);
             }
         }
@@ -481,8 +515,8 @@ AcpiDsLoad1BeginOp (
 
     /* Initialize the op */
 
-#if (defined (ACPI_NO_METHOD_EXECUTION) || defined (ACPI_CONSTANT_EVAL_ONLY))
-    Op->Named.Path = ACPI_CAST_PTR (UINT8, Path);
+#ifdef ACPI_CONSTANT_EVAL_ONLY
+    Op->Named.Path = Path;
 #endif
 
     if (Node)
@@ -522,6 +556,10 @@ AcpiDsLoad1EndOp (
     ACPI_OBJECT_TYPE        ObjectType;
     ACPI_STATUS             Status = AE_OK;
 
+#ifdef ACPI_ASL_COMPILER
+    UINT8                   ParamCount;
+#endif
+
 
     ACPI_FUNCTION_TRACE (DsLoad1EndOp);
 
@@ -540,7 +578,6 @@ AcpiDsLoad1EndOp (
 
     ObjectType = WalkState->OpInfo->ObjectType;
 
-#ifndef ACPI_NO_METHOD_EXECUTION
     if (WalkState->OpInfo->Flags & AML_FIELD)
     {
         /*
@@ -586,7 +623,6 @@ AcpiDsLoad1EndOp (
             }
         }
     }
-#endif
 
     if (Op->Common.AmlOpcode == AML_NAME_OP)
     {
@@ -605,6 +641,37 @@ AcpiDsLoad1EndOp (
             }
         }
     }
+
+#ifdef ACPI_ASL_COMPILER
+    /*
+     * For external opcode, get the object type from the argument and
+     * get the parameter count from the argument's next.
+     */
+    if (AcpiGbl_DisasmFlag &&
+        Op->Common.Node &&
+        Op->Common.AmlOpcode == AML_EXTERNAL_OP)
+    {
+        /*
+         * Note, if this external is not a method
+         * Op->Common.Value.Arg->Common.Next->Common.Value.Integer == 0
+         * Therefore, ParamCount will be 0.
+         */
+        ParamCount = (UINT8) Op->Common.Value.Arg->Common.Next->Common.Value.Integer;
+        ObjectType = (UINT8) Op->Common.Value.Arg->Common.Value.Integer;
+        Op->Common.Node->Flags |= ANOBJ_IS_EXTERNAL;
+        Op->Common.Node->Type = (UINT8) ObjectType;
+
+        AcpiDmCreateSubobjectForExternal ((UINT8)ObjectType,
+            &Op->Common.Node, ParamCount);
+
+        /*
+         * Add the external to the external list because we may be
+         * emitting code based off of the items within the external list.
+         */
+        AcpiDmAddOpToExternalList (Op, Op->Named.Path, (UINT8)ObjectType, ParamCount,
+           ACPI_EXT_ORIGIN_FROM_OPCODE | ACPI_EXT_RESOLVED_REFERENCE);
+    }
+#endif
 
     /*
      * If we are executing a method, do not create any namespace objects
@@ -653,6 +720,7 @@ AcpiDsLoad1EndOp (
     /* Pop the scope stack (only if loading a table) */
 
     if (!WalkState->MethodNode &&
+        Op->Common.AmlOpcode != AML_EXTERNAL_OP &&
         AcpiNsOpensScope (ObjectType))
     {
         ACPI_DEBUG_PRINT ((ACPI_DB_DISPATCH, "(%s): Popping scope for Op %p\n",

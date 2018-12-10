@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -151,6 +187,10 @@ static ACPI_STATUS
 AcpiDbTestStringType (
     ACPI_NAMESPACE_NODE     *Node,
     UINT32                  ByteLength);
+
+static ACPI_STATUS
+AcpiDbTestPackageType (
+    ACPI_NAMESPACE_NODE     *Node);
 
 static ACPI_STATUS
 AcpiDbReadFromObject (
@@ -420,6 +460,11 @@ AcpiDbTestOneObject (
         BitLength = ByteLength * 8;
         break;
 
+    case ACPI_TYPE_PACKAGE:
+
+        LocalType = ACPI_TYPE_PACKAGE;
+        break;
+
     case ACPI_TYPE_FIELD_UNIT:
     case ACPI_TYPE_BUFFER_FIELD:
     case ACPI_TYPE_LOCAL_REGION_FIELD:
@@ -454,6 +499,7 @@ AcpiDbTestOneObject (
 
     AcpiOsPrintf ("%14s: %4.4s",
         AcpiUtGetTypeName (Node->Type), Node->Name.Ascii);
+
     if (!ObjDesc)
     {
         AcpiOsPrintf (" Ignoring, no attached object\n");
@@ -474,13 +520,12 @@ AcpiDbTestOneObject (
         case ACPI_ADR_SPACE_SYSTEM_MEMORY:
         case ACPI_ADR_SPACE_SYSTEM_IO:
         case ACPI_ADR_SPACE_PCI_CONFIG:
-        case ACPI_ADR_SPACE_EC:
 
             break;
 
         default:
 
-            AcpiOsPrintf ("      %s space is not supported [%4.4s]\n",
+            AcpiOsPrintf ("      %s space is not supported in this command [%4.4s]\n",
                 AcpiUtGetRegionName (RegionObj->Region.SpaceId),
                 RegionObj->Region.Node->Name.Ascii);
             return (AE_OK);
@@ -510,11 +555,24 @@ AcpiDbTestOneObject (
         Status = AcpiDbTestBufferType (Node, BitLength);
         break;
 
+    case ACPI_TYPE_PACKAGE:
+
+        Status = AcpiDbTestPackageType (Node);
+        break;
+
     default:
 
         AcpiOsPrintf (" Ignoring, type not implemented (%2.2X)",
             LocalType);
         break;
+    }
+
+    /* Exit on error, but don't abort the namespace walk */
+
+    if (ACPI_FAILURE (Status))
+    {
+        Status = AE_OK;
+        goto Exit;
     }
 
     switch (Node->Type)
@@ -524,12 +582,14 @@ AcpiDbTestOneObject (
         RegionObj = ObjDesc->Field.RegionObj;
         AcpiOsPrintf (" (%s)",
             AcpiUtGetRegionName (RegionObj->Region.SpaceId));
+
         break;
 
     default:
         break;
     }
 
+Exit:
     AcpiOsPrintf ("\n");
     return (Status);
 }
@@ -588,7 +648,6 @@ AcpiDbTestIntegerType (
     {
         ValueToWrite = 0;
     }
-
     /* Write a new value */
 
     WriteValue.Type = ACPI_TYPE_INTEGER;
@@ -881,6 +940,40 @@ Exit:
 
 /*******************************************************************************
  *
+ * FUNCTION:    AcpiDbTestPackageType
+ *
+ * PARAMETERS:  Node                - Parent NS node for the object
+ *
+ * RETURN:      Status
+ *
+ * DESCRIPTION: Test read for a Package object.
+ *
+ ******************************************************************************/
+
+static ACPI_STATUS
+AcpiDbTestPackageType (
+    ACPI_NAMESPACE_NODE     *Node)
+{
+    ACPI_OBJECT             *Temp1 = NULL;
+    ACPI_STATUS             Status;
+
+
+    /* Read the original value */
+
+    Status = AcpiDbReadFromObject (Node, ACPI_TYPE_PACKAGE, &Temp1);
+    if (ACPI_FAILURE (Status))
+    {
+        return (Status);
+    }
+
+    AcpiOsPrintf (" %8.8X Elements", Temp1->Package.Count);
+    AcpiOsFree (Temp1);
+    return (Status);
+}
+
+
+/*******************************************************************************
+ *
  * FUNCTION:    AcpiDbReadFromObject
  *
  * PARAMETERS:  Node                - Parent NS node for the object
@@ -921,8 +1014,8 @@ AcpiDbReadFromObject (
     AcpiGbl_MethodExecuting = TRUE;
     Status = AcpiEvaluateObject (ReadHandle, NULL,
         &ParamObjects, &ReturnObj);
-    AcpiGbl_MethodExecuting = FALSE;
 
+    AcpiGbl_MethodExecuting = FALSE;
     if (ACPI_FAILURE (Status))
     {
         AcpiOsPrintf ("Could not read from object, %s",
@@ -937,6 +1030,7 @@ AcpiDbReadFromObject (
     case ACPI_TYPE_INTEGER:
     case ACPI_TYPE_BUFFER:
     case ACPI_TYPE_STRING:
+    case ACPI_TYPE_PACKAGE:
         /*
          * Did we receive the type we wanted? Most important for the
          * Integer/Buffer case (when a field is larger than an Integer,
@@ -948,6 +1042,7 @@ AcpiDbReadFromObject (
                 AcpiUtGetTypeName (ExpectedType),
                 AcpiUtGetTypeName (RetValue->Type));
 
+            AcpiOsFree (ReturnObj.Pointer);
             return (AE_TYPE);
         }
 

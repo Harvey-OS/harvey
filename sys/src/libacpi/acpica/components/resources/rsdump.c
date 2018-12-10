@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -178,6 +214,11 @@ AcpiRsDumpShortByteList (
 static void
 AcpiRsDumpResourceSource (
     ACPI_RESOURCE_SOURCE    *ResourceSource);
+
+static void
+AcpiRsDumpResourceLabel (
+    char                   *Title,
+    ACPI_RESOURCE_LABEL    *ResourceLabel);
 
 static void
 AcpiRsDumpAddressCommon (
@@ -495,6 +536,22 @@ AcpiRsDumpDescriptor (
                 ACPI_RESOURCE_SOURCE, Target));
             break;
 
+        case ACPI_RSD_LABEL:
+            /*
+             * ResourceLabel
+             */
+            AcpiRsDumpResourceLabel ("Resource Label", ACPI_CAST_PTR (
+                ACPI_RESOURCE_LABEL, Target));
+            break;
+
+        case ACPI_RSD_SOURCE_LABEL:
+            /*
+             * ResourceSourceLabel
+             */
+            AcpiRsDumpResourceLabel ("Resource Source Label", ACPI_CAST_PTR (
+                ACPI_RESOURCE_LABEL, Target));
+            break;
+
         default:
 
             AcpiOsPrintf ("**** Invalid table opcode [%X] ****\n",
@@ -539,6 +596,32 @@ AcpiRsDumpResourceSource (
     AcpiRsOutString ("Resource Source",
         ResourceSource->StringPtr ?
             ResourceSource->StringPtr : "[Not Specified]");
+}
+
+
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiRsDumpResourceLabel
+ *
+ * PARAMETERS:  Title              - Title of the dumped resource field
+ *              ResourceLabel      - Pointer to a Resource Label struct
+ *
+ * RETURN:      None
+ *
+ * DESCRIPTION: Common routine for dumping the ResourceLabel
+ *
+ ******************************************************************************/
+
+static void
+AcpiRsDumpResourceLabel (
+    char                   *Title,
+    ACPI_RESOURCE_LABEL    *ResourceLabel)
+{
+    ACPI_FUNCTION_ENTRY ();
+
+    AcpiRsOutString (Title,
+        ResourceLabel->StringPtr ?
+            ResourceLabel->StringPtr : "[Not Specified]");
 }
 
 
@@ -685,7 +768,7 @@ AcpiRsDumpByteList (
     UINT16                  Length,
     UINT8                   *Data)
 {
-    UINT8                   i;
+    UINT16                  i;
 
 
     for (i = 0; i < Length; i++)

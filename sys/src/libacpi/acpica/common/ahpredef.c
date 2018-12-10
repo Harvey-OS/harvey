@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -135,7 +171,7 @@
  */
 const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
 {
-    AH_PREDEF ("_ACx",    "Active Cooling", "Returns the active cooling policy threshold values"),
+    AH_PREDEF ("_ACx",    "Active Cooling, x=0-9", "Returns the active cooling policy threshold values"),
     AH_PREDEF ("_ADR",    "Address", "Returns address of a device on parent bus, and resource field"),
     AH_PREDEF ("_AEI",    "ACPI Event Interrupts", "Returns a list of GPIO events to be used as ACPI events"),
     AH_PREDEF ("_ALC",    "Ambient Light Chromaticity", "Returns the ambient light color chromaticity"),
@@ -144,7 +180,7 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_ALP",    "Ambient Light Polling", "Returns the ambient light sensor polling frequency"),
     AH_PREDEF ("_ALR",    "Ambient Light Response", "Returns the ambient light brightness to display brightness mappings"),
     AH_PREDEF ("_ALT",    "Ambient Light Temperature", "Returns the ambient light color temperature"),
-    AH_PREDEF ("_ALx",    "Active List", "Returns a list of active cooling device objects"),
+    AH_PREDEF ("_ALx",    "Active List, x=0-9", "Returns a list of active cooling device objects"),
     AH_PREDEF ("_ART",    "Active Cooling Relationship Table", "Returns thermal relationship information between platform devices and fan devices"),
     AH_PREDEF ("_ASI",    "Address Space Id", "Resource Descriptor field"),
     AH_PREDEF ("_ASZ",    "Access Size", "Resource Descriptor field"),
@@ -201,11 +237,11 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_DSS",    "Device Set State", "Sets the display device state"),
     AH_PREDEF ("_DSW",    "Device Sleep Wake", "Sets the sleep and wake transition states for a device"),
     AH_PREDEF ("_DTI",    "Device Temperature Indication", "Conveys native device temperature to the platform"),
-    AH_PREDEF ("_Exx",    "Edge-Triggered GPE", "Method executed as a result of a general-purpose event"),
+    AH_PREDEF ("_Exx",    "Edge-Triggered GPE, xx=0x00-0xFF", "Method executed as a result of a general-purpose event"),
     AH_PREDEF ("_EC_",    "Embedded Controller", "returns EC offset and query information"),
     AH_PREDEF ("_EDL",    "Eject Device List", "Returns a list of devices that are dependent on a device (docking)"),
     AH_PREDEF ("_EJD",    "Ejection Dependent Device", "Returns the name of dependent (parent) device (docking)"),
-    AH_PREDEF ("_EJx",    "Eject Device", "Begin or cancel a device ejection request (docking)"),
+    AH_PREDEF ("_EJx",    "Eject Device, x=0-9", "Begin or cancel a device ejection request (docking)"),
     AH_PREDEF ("_END",    "Endianness", "Endian orientation, Resource Descriptor field"),
     AH_PREDEF ("_EVT",    "Event", "Event method for GPIO events"),
     AH_PREDEF ("_FDE",    "Floppy Disk Enumerate", "Returns floppy disk configuration information"),
@@ -218,6 +254,7 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_FPS",    "Fan Performance States", "Returns a list of supported fan performance states"),
     AH_PREDEF ("_FSL",    "Fan Set Level", "Control method that sets the fan device's speed level (performance state)"),
     AH_PREDEF ("_FST",    "Fan Status", "Returns current status information for a fan device"),
+    AH_PREDEF ("_FUN",    "Function Number", "Resource descriptor field"),
     AH_PREDEF ("_GAI",    "Get Averaging Interval", "Returns the power meter averaging interval"),
     AH_PREDEF ("_GCP",    "Get Capabilities", "Get device time capabilities"),
     AH_PREDEF ("_GHL",    "Get Hardware Limit", "Returns the hardware limit enforced by the power meter"),
@@ -234,6 +271,7 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_GWS",    "Get Wake Status", "Return status of wake alarms"),
     AH_PREDEF ("_HE_",    "High-Edge", "Interrupt triggering, Resource Descriptor field"),
     AH_PREDEF ("_HID",    "Hardware ID", "Returns a device's Plug and Play Hardware ID"),
+    AH_PREDEF ("_HMA",    "Heterogeneous Memory Attributes", "Returns a list of HMAT structures."),
     AH_PREDEF ("_HOT",    "Hot Temperature", "Returns the critical temperature for sleep (entry to S4)"),
     AH_PREDEF ("_HPP",    "Hot Plug Parameters", "Returns a list of hot-plug information for a PCI device"),
     AH_PREDEF ("_HPX",    "Hot Plug Parameter Extensions", "Returns a list of hot-plug information for a PCI device. Supersedes _HPP"),
@@ -243,7 +281,7 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_INT",    "Interrupts", "Interrupt mask bits, Resource Descriptor field"),
     AH_PREDEF ("_IOR",    "I/O Restriction", "Restriction type, Resource Descriptor field"),
     AH_PREDEF ("_IRC",    "Inrush Current", "Presence indicates that a device has a significant inrush current draw"),
-    AH_PREDEF ("_Lxx",    "Level-Triggered GPE", "Control method executed as a result of a general-purpose event"),
+    AH_PREDEF ("_Lxx",    "Level-Triggered GPE, xx=0x00-0xFF", "Control method executed as a result of a general-purpose event"),
     AH_PREDEF ("_LCK",    "Lock Device", "Locks or unlocks a device (docking)"),
     AH_PREDEF ("_LEN",    "Length", "Range length, Resource Descriptor field"),
     AH_PREDEF ("_LID",    "Lid Status", "Returns the open/closed status of the lid on a mobile system"),
@@ -251,6 +289,9 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_LL_",    "Low Level", "Interrupt polarity, Resource Descriptor field"),
     AH_PREDEF ("_LPD",    "Low Power Dependencies", "Returns a list of dependencies for low power idle entry"),
     AH_PREDEF ("_LPI",    "Low Power Idle States", "Returns a list of supported low power idle states"),
+    AH_PREDEF ("_LSI",    "Label Storage Information", "Returns information about the Label Storage Area associated with the NVDIMM object."),
+    AH_PREDEF ("_LSR",    "Label Storage Read", "Returns label data from the Label Storage Area of the NVDIMM object."),
+    AH_PREDEF ("_LSW",    "Label Storage Write", "Writes label data in to the Label Storage Area of the NVDIMM object."),
     AH_PREDEF ("_MAF",    "Maximum Address Fixed", "Resource Descriptor field"),
     AH_PREDEF ("_MAT",    "Multiple APIC Table Entry", "Returns a list of MADT APIC structure entries"),
     AH_PREDEF ("_MAX",    "Maximum Base Address", "Resource Descriptor field"),
@@ -317,7 +358,7 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_PTS",    "Prepare To Sleep", "Inform the platform of an impending sleep transition"),
     AH_PREDEF ("_PUR",    "Processor Utilization Request", "Returns the number of processors that the platform would like to idle"),
     AH_PREDEF ("_PXM",    "Device Proximity", "Returns a device's proximity domain identifier"),
-    AH_PREDEF ("_Qxx",    "EC Query", "Embedded Controller query and SMBus Alarm control method"),
+    AH_PREDEF ("_Qxx",    "EC Query, xx=0x00-0xFF", "Embedded Controller query and SMBus Alarm control method"),
     AH_PREDEF ("_RBO",    "Register Bit Offset", "Resource Descriptor field"),
     AH_PREDEF ("_RBW",    "Register Bit Width", "Resource Descriptor field"),
     AH_PREDEF ("_RDI",    "Resource Dependencies for Idle", "Returns a list of dependencies for idle states"),
@@ -372,7 +413,7 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_SUB",    "Subsystem ID", "Returns the subsystem ID for a device"),
     AH_PREDEF ("_SUN",    "Slot User Number", "Returns the slot unique ID number"),
     AH_PREDEF ("_SWS",    "System Wake Source", "Returns the source event that caused the system to wake"),
-    AH_PREDEF ("_T_x",    "Emitted by ASL Compiler", "Reserved for use by ASL compilers"),
+    AH_PREDEF ("_T_x",    "Emitted by ASL Compiler, x=0-9, A-Z", "Reserved for use by ASL compilers"),
     AH_PREDEF ("_TC1",    "Thermal Constant 1", "Returns TC1 for the passive cooling formula"),
     AH_PREDEF ("_TC2",    "Thermal Constant 2", "Returns TC2 for the passive cooling formula"),
     AH_PREDEF ("_TDL",    "T-State Depth Limit", "Returns the _TSS entry number of the lowest power throttling state"),
@@ -403,9 +444,10 @@ const AH_PREDEFINED_NAME    AslPredefinedInfo[] =
     AH_PREDEF ("_UPC",    "USB Port Capabilities", "Returns a list of USB port capabilities"),
     AH_PREDEF ("_UPD",    "User Presence Detect", "Returns user detection information"),
     AH_PREDEF ("_UPP",    "User Presence Polling", "Returns the recommended user presence polling interval"),
+    AH_PREDEF ("_VAL",    "Pin Configuration Value", "Resource Descriptor field"),
     AH_PREDEF ("_VEN",    "Vendor Data", "Resource Descriptor field"),
     AH_PREDEF ("_VPO",    "Video Post Options", "Returns the implemented video post options"),
-    AH_PREDEF ("_Wxx",    "Wake Event", "Method executed as a result of a wake event"),
+    AH_PREDEF ("_Wxx",    "Wake Event, xx=0x00-0xFF", "Method executed as a result of a wake event"),
     AH_PREDEF ("_WAK",    "Wake", "Inform AML that the system has just awakened"),
     AH_PREDEF ("_WPC",    "Wireless Power Calibration", "Calibrate power and notify wireless device"),
     AH_PREDEF ("_WPP",    "Wireless Power Polling", "Get recommended polling interval"),
@@ -431,6 +473,15 @@ AcpiAhMatchPredefinedName (
 {
     const AH_PREDEFINED_NAME    *Info;
 
+
+    /* Nameseg must start with an underscore */
+
+    if (*Nameseg != '_')
+    {
+        return (NULL);
+    }
+
+    /* Search for a match in the predefined name table */
 
     for (Info = AslPredefinedInfo; Info->Name; Info++)
     {
