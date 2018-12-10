@@ -116,6 +116,8 @@
 #ifndef __ACHARVEYEX_H__
 #define __ACHARVEYEX_H__
 
+typedef struct acpi_resource ACPI_RESOURCE;
+
 void AcpiRsDumpResourceList(ACPI_RESOURCE*);
 
 #endif /* __ACHARVEYEX_H__ */

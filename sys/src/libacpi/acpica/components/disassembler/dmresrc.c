@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -161,8 +197,12 @@ static ACPI_RESOURCE_HANDLER    AcpiGbl_DmResourceDispatch [] =
     AcpiDmQwordDescriptor,          /* 0x0A, ACPI_RESOURCE_NAME_QWORD_ADDRESS_SPACE */
     AcpiDmExtendedDescriptor,       /* 0x0B, ACPI_RESOURCE_NAME_EXTENDED_ADDRESS_SPACE */
     AcpiDmGpioDescriptor,           /* 0x0C, ACPI_RESOURCE_NAME_GPIO */
-    NULL,                           /* 0x0D, Reserved */
-    AcpiDmSerialBusDescriptor       /* 0x0E, ACPI_RESOURCE_NAME_SERIAL_BUS */
+    AcpiDmPinFunctionDescriptor,    /* 0x0D, ACPI_RESOURCE_NAME_PIN_FUNCTION */
+    AcpiDmSerialBusDescriptor,      /* 0x0E, ACPI_RESOURCE_NAME_SERIAL_BUS */
+    AcpiDmPinConfigDescriptor,      /* 0x0F, ACPI_RESOURCE_NAME_PIN_CONFIG */
+    AcpiDmPinGroupDescriptor,       /* 0x10, ACPI_RESOURCE_NAME_PIN_GROUP */
+    AcpiDmPinGroupFunctionDescriptor, /* 0x11, ACPI_RESOURCE_NAME_PIN_GROUP_FUNCTION */
+    AcpiDmPinGroupConfigDescriptor, /* 0x12, ACPI_RESOURCE_NAME_PIN_GROUP_CONFIG */
 };
 
 
@@ -464,7 +504,8 @@ AcpiDmIsResourceTemplate (
     ACPI_PARSE_OBJECT       *NextOp;
     UINT8                   *Aml;
     UINT8                   *EndAml;
-    ACPI_SIZE               Length;
+    UINT32                  BufferLength;
+    UINT32                  DeclaredBufferLength;
 
 
     /* This op must be a buffer */
@@ -474,14 +515,20 @@ AcpiDmIsResourceTemplate (
         return (AE_TYPE);
     }
 
-    /* Get the ByteData list and length */
-
+    /*
+     * Get the declared length of the buffer.
+     * This is the nn in "Buffer (nn)"
+     */
     NextOp = Op->Common.Value.Arg;
     if (!NextOp)
     {
         AcpiOsPrintf ("NULL byte list in buffer\n");
         return (AE_TYPE);
     }
+
+    DeclaredBufferLength = NextOp->Common.Value.Size;
+
+    /* Get the length of the raw initialization byte list */
 
     NextOp = NextOp->Common.Next;
     if (!NextOp)
@@ -490,11 +537,45 @@ AcpiDmIsResourceTemplate (
     }
 
     Aml = NextOp->Named.Data;
-    Length = (ACPI_SIZE) NextOp->Common.Value.Integer;
+    BufferLength = NextOp->Common.Value.Size;
+
+    /*
+     * Any buffer smaller than one byte cannot possibly be a resource
+     * template. Two bytes could possibly be a "NULL" resource template
+     * with a lone end tag descriptor (as generated via
+     * "ResourceTemplate(){}"), but this would be an extremely unusual
+     * case, as the template would be essentially useless. The disassembler
+     * therefore does not recognize any two-byte buffer as a resource
+     * template.
+     */
+    if (BufferLength <= 2)
+    {
+        return (AE_TYPE);
+    }
+
+    /*
+     * Not a template if declared buffer length != actual length of the
+     * intialization byte list. Because the resource macros will create
+     * a buffer of the exact required length (buffer length will be equal
+     * to the actual length).
+     *
+     * NOTE (April 2017): Resource templates with this issue have been
+     * seen in the field. We still don't want to attempt to disassemble
+     * a buffer like this to a resource template because this output
+     * would not match the original input buffer (it would be shorter
+     * than the original when the disassembled code is recompiled).
+     * Basically, a buffer like this appears to be hand crafted in the
+     * first place, so just emitting a buffer object instead of a
+     * resource template more closely resembles the original ASL code.
+     */
+    if (DeclaredBufferLength != BufferLength)
+    {
+        return (AE_TYPE);
+    }
 
     /* Walk the byte list, abort on any invalid descriptor type or length */
 
-    Status = AcpiUtWalkAmlResources (WalkState, Aml, Length,
+    Status = AcpiUtWalkAmlResources (WalkState, Aml, BufferLength,
         NULL, ACPI_CAST_INDIRECT_PTR (void, &EndAml));
     if (ACPI_FAILURE (Status))
     {
@@ -507,7 +588,7 @@ AcpiDmIsResourceTemplate (
      * of a ResourceTemplate, the buffer must not have any extra data after
      * the EndTag.)
      */
-    if ((Aml + Length - sizeof (AML_RESOURCE_END_TAG)) != EndAml)
+    if ((Aml + BufferLength - sizeof (AML_RESOURCE_END_TAG)) != EndAml)
     {
         return (AE_AML_NO_RESOURCE_END_TAG);
     }

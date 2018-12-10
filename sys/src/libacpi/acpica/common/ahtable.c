@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -123,7 +159,7 @@ const AH_TABLE *
 AcpiAhGetTableInfo (
     char                    *Signature);
 
-extern const AH_TABLE      AcpiSupportedTables[];
+extern const AH_TABLE      AcpiGbl_SupportedTables[];
 
 
 /*******************************************************************************
@@ -145,7 +181,7 @@ AcpiAhGetTableInfo (
     const AH_TABLE      *Info;
 
 
-    for (Info = AcpiSupportedTables; Info->Signature; Info++)
+    for (Info = AcpiGbl_SupportedTables; Info->Signature; Info++)
     {
         if (ACPI_COMPARE_NAME (Signature, Info->Signature))
         {
@@ -161,7 +197,7 @@ AcpiAhGetTableInfo (
  * Note: Any tables added here should be duplicated within AcpiDmTableData
  * in the file common/dmtable.c
  */
-const AH_TABLE      AcpiSupportedTables[] =
+const AH_TABLE      AcpiGbl_SupportedTables[] =
 {
     {ACPI_SIG_ASF,  "Alert Standard Format table"},
     {ACPI_SIG_BERT, "Boot Error Record Table"},
@@ -182,6 +218,7 @@ const AH_TABLE      AcpiSupportedTables[] =
     {ACPI_SIG_FPDT, "Firmware Performance Data Table"},
     {ACPI_SIG_GTDT, "Generic Timer Description Table"},
     {ACPI_SIG_HEST, "Hardware Error Source Table"},
+    {ACPI_SIG_HMAT, "Heterogeneous Memory Attributes Table"},
     {ACPI_SIG_HPET, "High Precision Event Timer table"},
     {ACPI_SIG_IORT, "IO Remapping Table"},
     {ACPI_SIG_IVRS, "I/O Virtualization Reporting Structure"},
@@ -195,12 +232,16 @@ const AH_TABLE      AcpiSupportedTables[] =
     {ACPI_SIG_MTMR, "MID Timer Table"},
     {ACPI_SIG_NFIT, "NVDIMM Firmware Interface Table"},
     {ACPI_SIG_PCCT, "Platform Communications Channel Table"},
+    {ACPI_SIG_PDTT, "Platform Debug Trigger Table"},
     {ACPI_SIG_PMTT, "Platform Memory Topology Table"},
+    {ACPI_SIG_PPTT, "Processor Properties Topology Table"},
     {ACPI_SIG_RASF, "RAS Features Table"},
     {ACPI_RSDP_NAME,"Root System Description Pointer"},
     {ACPI_SIG_RSDT, "Root System Description Table"},
     {ACPI_SIG_S3PT, "S3 Performance Table"},
     {ACPI_SIG_SBST, "Smart Battery Specification Table"},
+    {ACPI_SIG_SDEI, "Software Delegated Exception Interface Table"},
+    {ACPI_SIG_SDEV, "Secure Devices table"},
     {ACPI_SIG_SLIC, "Software Licensing Description Table"},
     {ACPI_SIG_SLIT, "System Locality Information Table"},
     {ACPI_SIG_SPCR, "Serial Port Console Redirection table"},
@@ -217,6 +258,7 @@ const AH_TABLE      AcpiSupportedTables[] =
     {ACPI_SIG_WDDT, "Watchdog Description Table"},
     {ACPI_SIG_WDRT, "Watchdog Resource Table"},
     {ACPI_SIG_WPBT, "Windows Platform Binary Table"},
+    {ACPI_SIG_WSMT, "Windows SMM Security Migrations Table"},
     {ACPI_SIG_XENV, "Xen Environment table"},
     {ACPI_SIG_XSDT, "Extended System Description Table"},
     {NULL,          NULL}

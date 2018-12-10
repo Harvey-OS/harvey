@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2016, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2018, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -111,6 +111,42 @@
  * other governmental approval, or letter of assurance, without first obtaining
  * such license, approval or letter.
  *
+ *****************************************************************************
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * following license:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer,
+ *    without modification.
+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+ *    substantially similar to the "NO WARRANTY" disclaimer below
+ *    ("Disclaimer") and any redistribution must be conditioned upon
+ *    including a substantially similar Disclaimer requirement for further
+ *    binary redistribution.
+ * 3. Neither the names of the above-listed copyright holders nor the names
+ *    of any contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Alternatively, you may choose to be licensed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
  *****************************************************************************/
 
 #include "acpi.h"
@@ -120,6 +156,7 @@
 #include "acinterp.h"
 #include "acnamesp.h"
 #include "acdebug.h"
+#include "acconvert.h"
 
 
 #define _COMPONENT          ACPI_CA_DEBUGGER
@@ -136,6 +173,9 @@ static void
 AcpiDmConvertToElseIf (
     ACPI_PARSE_OBJECT       *Op);
 
+static void
+AcpiDmPromoteSubtree (
+    ACPI_PARSE_OBJECT       *StartOp);
 
 /*******************************************************************************
  *
@@ -488,21 +528,30 @@ AcpiDmFieldPredefinedDescription (
     /* Major cheat: We previously put the Tag ptr in the Node field */
 
     Tag = ACPI_CAST_PTR (char, IndexOp->Common.Node);
-    if (!Tag)
+    if (!Tag || (*Tag == 0))
     {
         return;
     }
 
-    /* Match the name in the info table */
+    /* Is the tag a predefined name? */
 
     Info = AcpiAhMatchPredefinedName (Tag);
-    if (Info)
+    if (!Info)
     {
-        AcpiOsPrintf ("  // %4.4s: %s", Tag,
-            ACPI_CAST_PTR (char, Info->Description));
+        /* Not a predefined name (does not start with underscore) */
+
+        return;
     }
 
+    AcpiOsPrintf ("  // %4.4s: %s", Tag,
+        ACPI_CAST_PTR (char, Info->Description));
+
+    /* String contains the prefix path, free it */
+
+    ACPI_FREE (IndexOp->Common.Value.String);
+    IndexOp->Common.Value.String = NULL;
 #endif
+
     return;
 }
 
@@ -777,15 +826,15 @@ AcpiDmDisassembleOneOp (
         {
             switch (Op->Common.AmlOpcode)
             {
-            case AML_LEQUAL_OP:
+            case AML_LOGICAL_EQUAL_OP:
                 AcpiOsPrintf ("LNotEqual");
                 break;
 
-            case AML_LGREATER_OP:
+            case AML_LOGICAL_GREATER_OP:
                 AcpiOsPrintf ("LLessEqual");
                 break;
 
-            case AML_LLESS_OP:
+            case AML_LOGICAL_LESS_OP:
                 AcpiOsPrintf ("LGreaterEqual");
                 break;
 
@@ -808,12 +857,12 @@ AcpiDmDisassembleOneOp (
 
     switch (Op->Common.AmlOpcode)
     {
-    case AML_LNOT_OP:
+    case AML_LOGICAL_NOT_OP:
 
         Child = Op->Common.Value.Arg;
-        if ((Child->Common.AmlOpcode == AML_LEQUAL_OP) ||
-            (Child->Common.AmlOpcode == AML_LGREATER_OP) ||
-            (Child->Common.AmlOpcode == AML_LLESS_OP))
+        if ((Child->Common.AmlOpcode == AML_LOGICAL_EQUAL_OP) ||
+            (Child->Common.AmlOpcode == AML_LOGICAL_GREATER_OP) ||
+            (Child->Common.AmlOpcode == AML_LOGICAL_LESS_OP))
         {
             Child->Common.DisasmOpcode = ACPI_DASM_LNOT_SUFFIX;
             Op->Common.DisasmOpcode = ACPI_DASM_LNOT_PREFIX;
@@ -942,8 +991,12 @@ AcpiDmDisassembleOneOp (
     case AML_INT_NAMEDFIELD_OP:
 
         Length = AcpiDmDumpName (Op->Named.Name);
-        AcpiOsPrintf (",%*.s  %u", (unsigned) (5 - Length), " ",
+
+        AcpiOsPrintf (",");
+        ASL_CV_PRINT_ONE_COMMENT (Op, AML_NAMECOMMENT, NULL, 0);
+        AcpiOsPrintf ("%*.s  %u", (unsigned) (5 - Length), " ",
             (UINT32) Op->Common.Value.Integer);
+
         AcpiDmCommaIfFieldMember (Op);
 
         Info->BitOffset += (UINT32) Op->Common.Value.Integer;
@@ -984,6 +1037,7 @@ AcpiDmDisassembleOneOp (
 
         AcpiOsPrintf (")");
         AcpiDmCommaIfFieldMember (Op);
+        ASL_CV_PRINT_ONE_COMMENT (Op, AML_COMMENT_END_NODE, NULL, 0);
         break;
 
     case AML_INT_CONNECTION_OP:
@@ -1017,6 +1071,8 @@ AcpiDmDisassembleOneOp (
 
         AcpiOsPrintf (")");
         AcpiDmCommaIfFieldMember (Op);
+        ASL_CV_PRINT_ONE_COMMENT (Op, AML_COMMENT_END_NODE, NULL, 0);
+        ASL_CV_PRINT_ONE_COMMENT (Op, AMLCOMMENT_INLINE, NULL, 0);
         AcpiOsPrintf ("\n");
 
         Op->Common.DisasmFlags |= ACPI_PARSEOP_IGNORE; /* for now, ignore in AcpiDmAscendingOp */
@@ -1036,6 +1092,28 @@ AcpiDmDisassembleOneOp (
         AcpiDmNamestring (Op->Common.Value.Name);
         break;
 
+    case AML_WHILE_OP:
+
+        if (Op->Common.DisasmOpcode == ACPI_DASM_SWITCH)
+        {
+            AcpiOsPrintf ("%s", "Switch");
+            break;
+        }
+
+        AcpiOsPrintf ("%s", OpInfo->Name);
+        break;
+
+    case AML_IF_OP:
+
+        if (Op->Common.DisasmOpcode == ACPI_DASM_CASE)
+        {
+            AcpiOsPrintf ("%s", "Case");
+            break;
+        }
+
+        AcpiOsPrintf ("%s", OpInfo->Name);
+        break;
+
     case AML_ELSE_OP:
 
         AcpiDmConvertToElseIf (Op);
@@ -1045,14 +1123,10 @@ AcpiDmDisassembleOneOp (
 
         if (AcpiGbl_DmEmitExternalOpcodes)
         {
-            AcpiOsPrintf ("/* Opcode 0x15 */ ");
+            AcpiDmEmitExternal (Op, AcpiPsGetArg(Op, 0));
+        }
 
-            /* Fallthrough */
-        }
-        else
-        {
-            break;
-        }
+        break;
 
     default:
 
@@ -1139,19 +1213,64 @@ AcpiDmConvertToElseIf (
      *    be the only blocks under the original Else.
      */
     IfOp = OriginalElseOp->Common.Value.Arg;
+
     if (!IfOp ||
         (IfOp->Common.AmlOpcode != AML_IF_OP) ||
         (IfOp->Asl.Next && (IfOp->Asl.Next->Common.AmlOpcode != AML_ELSE_OP)))
     {
-        /* Not an Else..If sequence, cannot convert to ElseIf */
+        /* Not a proper Else..If sequence, cannot convert to ElseIf */
+
+        if (OriginalElseOp->Common.DisasmOpcode == ACPI_DASM_DEFAULT)
+        {
+            AcpiOsPrintf ("%s", "Default");
+            return;
+        }
 
         AcpiOsPrintf ("%s", "Else");
         return;
     }
 
-    /* Emit ElseIf, mark the IF as now an ELSEIF */
+    /* Cannot have anything following the If...Else block */
 
-    AcpiOsPrintf ("%s", "ElseIf");
+    ElseOp = IfOp->Common.Next;
+    if (ElseOp && ElseOp->Common.Next)
+    {
+        if (OriginalElseOp->Common.DisasmOpcode == ACPI_DASM_DEFAULT)
+        {
+            AcpiOsPrintf ("%s", "Default");
+            return;
+        }
+
+        AcpiOsPrintf ("%s", "Else");
+        return;
+    }
+
+    if (OriginalElseOp->Common.DisasmOpcode == ACPI_DASM_DEFAULT)
+    {
+        /*
+         * There is an ElseIf but in this case the Else is actually
+         * a Default block for a Switch/Case statement. No conversion.
+         */
+        AcpiOsPrintf ("%s", "Default");
+        return;
+    }
+
+    if (OriginalElseOp->Common.DisasmOpcode == ACPI_DASM_CASE)
+    {
+        /*
+         * This ElseIf is actually a Case block for a Switch/Case
+         * statement. Print Case but do not return so that we can
+         * promote the subtree and keep the indentation level.
+         */
+        AcpiOsPrintf ("%s", "Case");
+    }
+    else
+    {
+       /* Emit ElseIf, mark the IF as now an ELSEIF */
+
+        AcpiOsPrintf ("%s", "ElseIf");
+    }
+
     IfOp->Common.DisasmFlags |= ACPI_PARSEOP_ELSEIF;
 
     /* The IF parent will now be the same as the original ELSE parent */
@@ -1172,7 +1291,10 @@ AcpiDmConvertToElseIf (
         /* If an ELSE matches the IF, promote it also */
 
         ElseOp->Common.Parent = OriginalElseOp->Common.Parent;
-        ElseOp->Common.Next = OriginalElseOp->Common.Next;
+
+        /* Promote the entire block under the ElseIf (All Next OPs) */
+
+        AcpiDmPromoteSubtree (OriginalElseOp);
     }
     else
     {
@@ -1193,4 +1315,49 @@ AcpiDmConvertToElseIf (
     /* Insert IF (now ELSEIF) as next peer of the original ELSE */
 
     OriginalElseOp->Common.Next = IfOp;
+}
+
+
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiDmPromoteSubtree
+ *
+ * PARAMETERS:  StartOpOp           - Original parent of the entire subtree
+ *
+ * RETURN:      None
+ *
+ * DESCRIPTION: Promote an entire parse subtree up one level.
+ *
+ ******************************************************************************/
+
+static void
+AcpiDmPromoteSubtree (
+    ACPI_PARSE_OBJECT       *StartOp)
+{
+    ACPI_PARSE_OBJECT       *Op;
+    ACPI_PARSE_OBJECT       *ParentOp;
+
+
+    /* New parent for subtree elements */
+
+    ParentOp = StartOp->Common.Parent;
+
+    /* First child starts the subtree */
+
+    Op = StartOp->Common.Value.Arg;
+
+    /* Walk the top-level elements of the subtree */
+
+    while (Op)
+    {
+        Op->Common.Parent = ParentOp;
+        if (!Op->Common.Next)
+        {
+            /* Last Op in list, update its next field */
+
+            Op->Common.Next = StartOp->Common.Next;
+            break;
+        }
+        Op = Op->Common.Next;
+    }
 }
