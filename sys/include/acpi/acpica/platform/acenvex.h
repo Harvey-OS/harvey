@@ -167,6 +167,9 @@
 #elif defined(__DragonFly__)
 #include "acdragonflyex.h"
 
+#elif defined(__HARVEY__)
+#include "acharveyex.h"
+
 /*
  * EFI applications can be built with -nostdlib, in this case, it must be
  * included after including all other host environmental definitions, in
