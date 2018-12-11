@@ -45,7 +45,7 @@ ACPI_STATUS ExecuteOSI(int pic_mode)
 	Arg[0].Type = ACPI_TYPE_INTEGER;
 	Arg[0].Integer.Value = pic_mode;
 
-	ACPI_INFO ((AE_INFO, "Executing _PIC(%ld)", pic_mode));
+	ACPI_INFO (("Executing _PIC(%d)", pic_mode));
 
 	/* Ask ACPICA to allocate space for the return object */
 	ReturnValue.Pointer = 0;
