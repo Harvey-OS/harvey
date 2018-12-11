@@ -48,4 +48,6 @@
 #define ACPI_USE_SYSTEM_CLIBRARY
 #undef ACPI_USE_STANDARD_HEADERS
 
+#include <stdio.h>
+
 #endif				/* __ACHARVEY_H__ */
