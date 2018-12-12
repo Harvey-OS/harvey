@@ -49,5 +49,6 @@
 #undef ACPI_USE_STANDARD_HEADERS
 
 #include <stdio.h>
+size_t strnlen(const char *s, size_t n);
 
 #endif				/* __ACHARVEY_H__ */

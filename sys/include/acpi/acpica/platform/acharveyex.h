@@ -120,4 +120,20 @@ typedef struct acpi_resource ACPI_RESOURCE;
 
 void AcpiRsDumpResourceList(ACPI_RESOURCE*);
 
+#define AE_OK                           (ACPI_STATUS) 0x0000
+
+static inline ACPI_STATUS
+AcpiOsInitializeDebugger (
+    void)
+{
+    return AE_OK;
+}
+
+static inline void
+AcpiOsTerminateDebugger (
+    void)
+{
+    return;
+}
+
 #endif /* __ACHARVEYEX_H__ */
