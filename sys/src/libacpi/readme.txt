@@ -8,12 +8,6 @@ The following new files were added:
   include/platform/acharveyex.h
 
 Diffs:
-  acpica/acapps.h
-  -- not needed for recent version?
-        //#include <stdio.h>
-        ...
-        //#pragma warning(disable:4100)   /* warning C4100: unreferenced formal parameter */
-        (really?)
   acpica/accommon.h
         #ifndef ACPI_USE_SYSTEM_CLIBRARY
         fuck
@@ -55,39 +49,5 @@ The following files from these folders were not added:
   common/dmtables.c
   components/debugger/dbfileio.c
 
-common/acfileio.c was added as libacpi/acfileio.c.
-Mostly commented out.
-
-components/debugger/dbfileio.c was added as libacpi/dbfileio.c.
-Mostly commented out.
-
-components/debugger/dbinput.c was added as libacpi/hack.c.
-It's not been renamed back to libacpi/dbinput.c  Mostly ifdefed out
-except for the following at the end:
-
-#else
-ACPI_STATUS
-AcpiDbCommandDispatch (
-    char                    *InputBuffer,
-    ACPI_WALK_STATE         *WalkState,
-    ACPI_PARSE_OBJECT       *Op)
-{
-	sysfatal("%s", __func__);
-	return AE_OK;
-}
-void ACPI_SYSTEM_XFACE
-AcpiDbExecuteThread (
-    void                    *Context)
-{
-	sysfatal("%s", __func__);
-}
-char *
-AcpiDbGetNextToken (
-    char                    *String,
-    char                    **Next,
-    ACPI_OBJECT_TYPE        *ReturnType)
-{
-	sysfatal("%s", __func__);
-	return NULL;
-}
-#endif
+common/acfileio.c was mostly commented out.
+components/debugger/dbfileio.c was mostly commented out.
