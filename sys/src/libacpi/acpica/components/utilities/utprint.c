@@ -166,7 +166,7 @@
 
 
 /* Local prototypes */
-
+#if 0
 static ACPI_SIZE
 AcpiUtBoundStringLength (
     const char              *String,
@@ -187,7 +187,7 @@ AcpiUtFormatNumber (
     INT32                   Width,
     INT32                   Precision,
     UINT8                   Type);
-
+#endif
 static char *
 AcpiUtPutNumber (
     char                    *String,
@@ -208,7 +208,7 @@ AcpiUtPutNumber (
  * DESCRIPTION: Calculate the length of a string with boundary.
  *
  ******************************************************************************/
-
+#if 0
 static ACPI_SIZE
 AcpiUtBoundStringLength (
     const char              *String,
@@ -226,7 +226,6 @@ AcpiUtBoundStringLength (
 
     return (Length);
 }
-
 
 /*******************************************************************************
  *
@@ -257,7 +256,7 @@ AcpiUtBoundStringOutput (
     ++String;
     return (String);
 }
-
+#endif
 
 /*******************************************************************************
  *
@@ -393,7 +392,7 @@ AcpiUtPrintNumber (
  * DESCRIPTION: Print an integer into a string with any base and any precision.
  *
  ******************************************************************************/
-
+#if 0
 static char *
 AcpiUtFormatNumber (
     char                    *String,
@@ -520,7 +519,7 @@ AcpiUtFormatNumber (
 
     return (String);
 }
-
+#endif
 
 /*******************************************************************************
  *
@@ -536,7 +535,7 @@ AcpiUtFormatNumber (
  * DESCRIPTION: Formatted output to a string using argument list pointer.
  *
  ******************************************************************************/
-
+#if 0
 int
 vsnprintf (
     char                    *String,
@@ -818,7 +817,7 @@ vsnprintf (
 
     return ((int) ACPI_PTR_DIFF (Pos, String));
 }
-
+#endif
 
 /*******************************************************************************
  *
@@ -833,7 +832,7 @@ vsnprintf (
  * DESCRIPTION: Formatted output to a string.
  *
  ******************************************************************************/
-
+#if 0
 int
 snprintf (
     char                    *String,
@@ -851,7 +850,7 @@ snprintf (
 
     return (Length);
 }
-
+#endif
 
 /*******************************************************************************
  *
@@ -885,6 +884,7 @@ sprintf (
 
 
 #ifdef ACPI_APPLICATION
+#if 0
 /*******************************************************************************
  *
  * FUNCTION:    vprintf
@@ -916,7 +916,7 @@ vprintf (
 
     return (Length);
 }
-
+#endif
 
 /*******************************************************************************
  *
@@ -960,7 +960,7 @@ printf (
  * DESCRIPTION: Formatted output to a file using argument list pointer.
  *
  ******************************************************************************/
-
+#if 0
 int
 vfprintf (
     FILE                    *File,
@@ -980,7 +980,7 @@ vfprintf (
 
     return (Length);
 }
-
+#endif
 
 /*******************************************************************************
  *

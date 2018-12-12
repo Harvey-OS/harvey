@@ -14,11 +14,22 @@
 
 #define MiB (1<<20)
 
-BOOLEAN                        AcpiGbl_DebugTimeout = FALSE;
+//BOOLEAN                        AcpiGbl_DebugTimeout = FALSE;
 static uint32_t rsdp;
 static char *name;
 /* debug prints for this file. You can set this in gdb or at compile time. */
 static int debug;
+
+
+// From aemain.c
+/*
+ * Init file entry
+ */
+typedef struct init_file_entry INIT_FILE_ENTRY;
+
+INIT_FILE_ENTRY             *AcpiGbl_InitEntries = NULL;
+UINT32                      AcpiGbl_InitFileLineCount = 0;
+
 
 #if 0
 static int
@@ -719,7 +730,6 @@ AcpiOsWriteFile(ACPI_FILE File, void *Buffer, ACPI_SIZE Size, ACPI_SIZE Count)
 	return write(1, Buffer, Size * Count);
 }
 
-
 __attribute__ ((weak))
 void hexdump(void *v, int length)
 {
@@ -751,4 +761,19 @@ void hexdump(void *v, int length)
 			print("...\n");
 		}
 	}
+}
+
+ACPI_STATUS AcpiOsEnterSleep(UINT8 SleepState, UINT32 RegA, UINT32 RegB)
+{
+    return AE_OK;
+}
+
+ACPI_STATUS AcpiOsWaitCommandReady()
+{
+    return AE_CTRL_TERMINATE;
+}
+
+ACPI_STATUS AcpiOsNotifyCommandComplete()
+{
+    return AE_CTRL_TERMINATE;
 }
