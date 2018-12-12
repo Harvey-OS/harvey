@@ -98,6 +98,7 @@ static Cmdtab ctls[] = {
 	{CMirq, "irq", 2},
 };
 #endif
+
 static Facs *facs;	/* Firmware ACPI control structure */
 static Fadt *fadt;	/* Fixed ACPI description to reach ACPI regs */
 static Atable *root;
@@ -157,8 +158,8 @@ static Acpilist *findlist(uintptr_t base, uint size)
  * ensures that invariant.
  */
 Atable *mkatable(Atable *parent,
-                        int type, char *name, uint8_t *raw,
-                        size_t rawsize, size_t addsize)
+	int type, char *name, uint8_t *raw,
+	size_t rawsize, size_t addsize)
 {
 	void *m;
 	Atable *t;
@@ -533,33 +534,33 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 		want = endaddress - (uintptr_t)sdt;
 		*n = want;
 	} else {
+		sdt = vmap(pa, sizeof(Sdthdr));
+		if (sdt == nil) {
+			print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
+			return nil;
+		}
+		//hexdump(sdt, sizeof(Sdthdr));
+		//print("sdt %p\n", sdt);
+		//print("get it\n");
+		*n = l32get(sdt->length);
+		//print("*n is %d\n", *n);
+		if (*n == 0) {
+			print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
+			return nil;
+		}
 
-	sdt = vmap(pa, sizeof(Sdthdr));
-	if (sdt == nil) {
-		print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
-		return nil;
-	}
-	//hexdump(sdt, sizeof(Sdthdr));
-	//print("sdt %p\n", sdt);
-	//print("get it\n");
-	*n = l32get(sdt->length);
-	//print("*n is %d\n", *n);
-	if (*n == 0) {
-		print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
-		return nil;
+		sdt = vmap(pa, *n);
+		if (sdt == nil) {
+			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
+			return nil;
+		}
+		//print("check it\n");
+		if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
+			print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
+			return nil;
+		}
 	}
 
-	sdt = vmap(pa, *n);
-	if (sdt == nil) {
-		print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
-		return nil;
-	}
-	//print("check it\n");
-	if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
-		print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
-		return nil;
-	}
-	}
 	//print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
 	//print("malloc'ed %p\n", p);
@@ -578,7 +579,6 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 static int loadfacs(uintptr_t pa)
 {
 	size_t n;
-
 	facs = sdtmap(pa, 0, &n, 0);
 	if (facs == nil)
 		return -1;
@@ -667,8 +667,8 @@ static char *dumpfadt(char *start, char *end, Fadt *fp)
 	start = seprint(start, end, "acpi: fadt: flags: $%p\n", fp->flags);
 	start = dumpGas(start, end, "acpi: fadt: resetreg: ", &fp->resetreg);
 	start = seprint(start, end, "acpi: fadt: resetval: $%p\n", fp->resetval);
-	start = seprint(start, end, "acpi: fadt: xfacs: %p\n", fp->xfacs);
-	start = seprint(start, end, "acpi: fadt: xdsdt: %p\n", fp->xdsdt);
+	start = seprint(start, end, "acpi: fadt: xfacs: $%p\n", fp->xfacs);
+	start = seprint(start, end, "acpi: fadt: xdsdt: $%p\n", fp->xdsdt);
 	start = dumpGas(start, end, "acpi: fadt: xpm1aevtblk:", &fp->xpm1aevtblk);
 	start = dumpGas(start, end, "acpi: fadt: xpm1bevtblk:", &fp->xpm1bevtblk);
 	start = dumpGas(start, end, "acpi: fadt: xpm1acntblk:", &fp->xpm1acntblk);
@@ -735,21 +735,20 @@ static Atable *parsefadt(Atable *parent, char *name, uint8_t *p, size_t rawsize)
 	 * qemu gives us a 116 byte fadt, though i haven't seen any HW do that.
 	 * The right way to do this is to realloc the table and fake it out.
 	 */
-	if (rawsize < 244)
-		return finatable_nochildren(t);
-
-	gasget(&fp->resetreg, p + 116);
-	fp->resetval = p[128];
-	fp->xfacs = l64get(p + 132);
-	fp->xdsdt = l64get(p + 140);
-	gasget(&fp->xpm1aevtblk, p + 148);
-	gasget(&fp->xpm1bevtblk, p + 160);
-	gasget(&fp->xpm1acntblk, p + 172);
-	gasget(&fp->xpm1bcntblk, p + 184);
-	gasget(&fp->xpm2cntblk, p + 196);
-	gasget(&fp->xpmtmrblk, p + 208);
-	gasget(&fp->xgpe0blk, p + 220);
-	gasget(&fp->xgpe1blk, p + 232);
+	if (rawsize >= 244) {
+		gasget(&fp->resetreg, p + 116);
+		fp->resetval = p[128];
+		fp->xfacs = l64get(p + 132);
+		fp->xdsdt = l64get(p + 140);
+		gasget(&fp->xpm1aevtblk, p + 148);
+		gasget(&fp->xpm1bevtblk, p + 160);
+		gasget(&fp->xpm1acntblk, p + 172);
+		gasget(&fp->xpm1bcntblk, p + 184);
+		gasget(&fp->xpm2cntblk, p + 196);
+		gasget(&fp->xpmtmrblk, p + 208);
+		gasget(&fp->xgpe0blk, p + 220);
+		gasget(&fp->xgpe1blk, p + 232);
+	}
 
 	if (fp->xfacs != 0)
 		loadfacs(fp->xfacs);
@@ -1097,9 +1096,8 @@ static char *trigger[] = {
 
 static char *printiflags(char *start, char *end, int flags)
 {
-
 	return seprint(start, end, "[%s,%s]",
-					polarity[flags & AFpmask], trigger[(flags & AFtmask) >> 2]);
+		polarity[flags & AFpmask], trigger[(flags & AFtmask) >> 2]);
 }
 
 static char *dumpmadt(char *start, char *end, Atable *apics)
@@ -2402,7 +2400,6 @@ void outofyourelement(void)
 }
 
 Dev acpidevtab = {
-	//.dc = L'α',
 	.dc = 'Z',
 	.name = "acpi",
 
