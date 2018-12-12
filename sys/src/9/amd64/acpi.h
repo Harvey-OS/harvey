@@ -71,9 +71,9 @@ typedef struct SlEntry SlEntry;
 typedef struct Dmar Dmar;
 typedef struct Drhd Drhd;
 typedef struct DevScope DevScope;
+
 enum
 {
-
 	Sdthdrsz	= 36,	/* size of SDT header */
 
 	/* ACPI regions. Gas ids */
@@ -191,33 +191,33 @@ enum
  * same array.
  */
 struct Atable {
-	Qid qid;             /* QID corresponding to this table. */
-	Qid rqid;			/* This table's 'raw' QID. */
-	Qid pqid;			/* This table's 'pretty' QID. */
-	Qid tqid;			/* This table's 'table' QID. */
-	int type;					/* This table's type */
-	void *tbl;					/* pointer to the converted table, e.g. madt. */
-	char name[16];				/* name of this table */
+	Qid qid;        	/* QID corresponding to this table. */
+	Qid rqid;		/* This table's 'raw' QID. */
+	Qid pqid;		/* This table's 'pretty' QID. */
+	Qid tqid;		/* This table's 'table' QID. */
+	int type;		/* This table's type */
+	void *tbl;		/* pointer to the converted table, e.g. madt. */
+	char name[16];		/* name of this table */
 
 	Atable *parent;		/* Parent pointer */
 	Atable **children;	/* children of this node (an array). */
 	Dirtab *cdirs;		/* child directory entries of this node. */
-	size_t nchildren;			/* count of this node's children */
+	size_t nchildren;	/* count of this node's children */
 	Atable *next;		/* Pointer to the next sibling. */
 
-	size_t rawsize;				/* Total size of raw table */
-	uint8_t *raw;				/* Raw data. */
+	size_t rawsize;		/* Total size of raw table */
+	uint8_t *raw;		/* Raw data. */
 };
 
 struct Gpe
 {
 	uintptr_t	stsio;		/* port used for status */
-	int	stsbit;		/* bit number */
+	int		stsbit;		/* bit number */
 	uintptr_t	enio;		/* port used for enable */
-	int	enbit;		/* bit number */
-	int	nb;		/* event number */
-	char*	obj;		/* handler object  */
-	int	id;		/* id as supplied by user */
+	int		enbit;		/* bit number */
+	int		nb;		/* event number */
+	char*		obj;		/* handler object  */
+	int		id;		/* id as supplied by user */
 };
 
 struct Parse
@@ -227,36 +227,36 @@ struct Parse
 };
 
 struct Regio{
-	void	*arg;
-	uint8_t	(*get8)(uintptr_t, void*);
-	void	(*set8)(uintptr_t, uint8_t, void*);
+	void		*arg;
+	uint8_t		(*get8)(uintptr_t, void*);
+	void		(*set8)(uintptr_t, uint8_t, void*);
 	uint16_t	(*get16)(uintptr_t, void*);
-	void	(*set16)(uintptr_t, uint16_t, void*);
+	void		(*set16)(uintptr_t, uint16_t, void*);
 	uint32_t	(*get32)(uintptr_t, void*);
-	void	(*set32)(uintptr_t, uint32_t, void*);
+	void		(*set32)(uintptr_t, uint32_t, void*);
 	uint64_t	(*get64)(uintptr_t, void*);
-	void	(*set64)(uintptr_t, uint64_t, void*);
+	void		(*set64)(uintptr_t, uint64_t, void*);
 };
 
 struct Reg
 {
-	char*	name;
-	int	spc;		/* io space */
+	char*		name;
+	int		spc;		/* io space */
 	uint64_t	base;		/* address, physical */
 	unsigned char*	p;		/* address, kmapped */
 	uint64_t	len;
-	int	tbdf;
-	int	accsz;		/* access size */
+	int		tbdf;
+	int		accsz;		/* access size */
 };
 
 /* Generic address structure.
  */
 struct Gas
 {
-	uint8_t	spc;	/* address space id */
-	uint8_t	len;	/* register size in bits */
-	uint8_t	off;	/* bit offset */
-	uint8_t	accsz;	/* 1: byte; 2: word; 3: dword; 4: qword */
+	uint8_t		spc;	/* address space id */
+	uint8_t		len;	/* register size in bits */
+	uint8_t		off;	/* bit offset */
+	uint8_t		accsz;	/* 1: byte; 2: word; 3: dword; 4: qword */
 	uint64_t	addr;	/* address (or acpi encoded tbdf + reg) */
 } __attribute__ ((packed));
 
@@ -298,30 +298,31 @@ struct Sdthdr
 	uint8_t	creatorrev[4];
 }  __attribute__ ((packed));
 
-/* Firmware control structure
+/* Firmware ACPI control structure
  */
 struct Facs
 {
-	uint8_t sig[4];
-	uint8_t len[4];
+	uint8_t 	sig[4];
+	uint32_t 	len;
 	uint32_t	hwsig;
 	uint32_t	wakingv;
 	uint32_t	glock;
 	uint32_t	flags;
 	uint64_t	xwakingv;
-	uint8_t	vers;
+	uint8_t		vers;
+	uint8_t		reserved1[3];
 	uint32_t	ospmflags;
+	uint8_t		reserved2[24];
 }  __attribute__ ((packed));
-
 
 /* Maximum System Characteristics table
  */
 struct Msct
 {
-	size_t ndoms;		/* number of discovered domains */
-	int	nclkdoms;	/* number of clock domains */
-	uint64_t	maxpa;	/* max physical address */
-	Mdom*	dom;		/* domain information list */
+	size_t 		ndoms;		/* number of discovered domains */
+	int		nclkdoms;	/* number of clock domains */
+	uint64_t	maxpa;		/* max physical address */
+	Mdom*		dom;		/* domain information list */
 };
 
 struct Mdom
@@ -341,9 +342,9 @@ struct Mdom
  */
 struct Madt
 {
-	uint64_t	lapicpa;		/* local APIC addr */
-	int	pcat;		/* the machine has PC/AT 8259s */
-	Apicst*	st;		/* list of Apic related structures */
+	uint64_t	lapicpa;	/* local APIC addr */
+	int		pcat;		/* the machine has PC/AT 8259s */
+	Apicst*		st;		/* list of Apic related structures */
 };
 
 struct Apicst
@@ -454,13 +455,13 @@ struct Fadt
 	uint32_t	facs;
 	uint32_t	dsdt;
 	/* 1 reserved */
-	uint8_t	pmprofile;
+	uint8_t		pmprofile;
 	uint16_t	sciint;
 	uint32_t	smicmd;
-	uint8_t	acpienable;
-	uint8_t	acpidisable;
-	uint8_t	s4biosreq;
-	uint8_t	pstatecnt;
+	uint8_t		acpienable;
+	uint8_t		acpidisable;
+	uint8_t		s4biosreq;
+	uint8_t		pstatecnt;
 	uint32_t	pm1aevtblk;
 	uint32_t	pm1bevtblk;
 	uint32_t	pm1acntblk;
@@ -469,39 +470,39 @@ struct Fadt
 	uint32_t	pmtmrblk;
 	uint32_t	gpe0blk;
 	uint32_t	gpe1blk;
-	uint8_t	pm1evtlen;
-	uint8_t	pm1cntlen;
-	uint8_t	pm2cntlen;
-	uint8_t	pmtmrlen;
-	uint8_t	gpe0blklen;
-	uint8_t	gpe1blklen;
-	uint8_t	gp1base;
-	uint8_t	cstcnt;
+	uint8_t		pm1evtlen;
+	uint8_t		pm1cntlen;
+	uint8_t		pm2cntlen;
+	uint8_t		pmtmrlen;
+	uint8_t		gpe0blklen;
+	uint8_t		gpe1blklen;
+	uint8_t		gp1base;
+	uint8_t		cstcnt;
 	uint16_t	plvl2lat;
 	uint16_t	plvl3lat;
 	uint16_t	flushsz;
 	uint16_t	flushstride;
-	uint8_t	dutyoff;
-	uint8_t	dutywidth;
-	uint8_t	dayalrm;
-	uint8_t	monalrm;
-	uint8_t	century;
+	uint8_t		dutyoff;
+	uint8_t		dutywidth;
+	uint8_t		dayalrm;
+	uint8_t		monalrm;
+	uint8_t		century;
 	uint16_t	iapcbootarch;
 	/* 1 reserved */
 	uint32_t	flags;
-	Gas	resetreg;
-	uint8_t	resetval;
+	Gas		resetreg;
+	uint8_t		resetval;
 	/* 3 reserved */
 	uint64_t	xfacs;
 	uint64_t	xdsdt;
-	Gas	xpm1aevtblk;
-	Gas	xpm1bevtblk;
-	Gas	xpm1acntblk;
-	Gas	xpm1bcntblk;
-	Gas	xpm2cntblk;
-	Gas	xpmtmrblk;
-	Gas	xgpe0blk;
-	Gas	xgpe1blk;
+	Gas		xpm1aevtblk;
+	Gas		xpm1bevtblk;
+	Gas		xpm1acntblk;
+	Gas		xpm1bcntblk;
+	Gas		xpm2cntblk;
+	Gas		xpmtmrblk;
+	Gas		xgpe0blk;
+	Gas		xgpe1blk;
 };
 
 /* XSDT/RSDT. 4/8 byte addresses starting at p.
