@@ -33,11 +33,6 @@
 		],
 		"Include": [
 			"../../lib.json"
-		],
-		"NoCflags": [
-			"-include",
-			"libc.h",
-			"-Werror"
 		]
 	}
 ]
