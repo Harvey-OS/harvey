@@ -11,12 +11,13 @@ bind #p /proc
 bind -c #s /srv
 bind -a #¤ /dev
 bind -a #S /dev
-bind -b #k /dev
+# k not found - was devfs?
+#bind -b #k /dev
 bind -a #κ /dev
 bind -a #u /dev
 bind -b #P /dev
 bind -b '#$' /dev
-bind -a 'α' /dev
+bind -a '#Z' /dev
 bind -a '#r' /dev
 
 # mount points
