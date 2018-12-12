@@ -270,8 +270,9 @@ AcpiOsGetTimer(void)
 {
 	if (debug)
 		fprint(2, "%s\n", __func__);
-	sysfatal("%s", __func__);
-	return AE_OK;
+	// Return value should be in 100ns units
+	int64_t ns = nsec();
+	return ns / 100;
 }
 
 ACPI_STATUS
@@ -465,8 +466,8 @@ ACPI_STATUS AcpiRunInterrupt(void)
 }
 
 ACPI_STATUS
-AcpiOsInstallInterruptHandler(UINT32 InterruptNumber,
-							  ACPI_OSD_HANDLER ServiceRoutine, void *Context)
+AcpiOsInstallInterruptHandler(
+	UINT32 InterruptNumber, ACPI_OSD_HANDLER ServiceRoutine, void *Context)
 {
 	ihandler.ServiceRoutine = ServiceRoutine;
 	ihandler.Context = Context;
@@ -475,8 +476,7 @@ AcpiOsInstallInterruptHandler(UINT32 InterruptNumber,
 }
 
 ACPI_STATUS
-AcpiOsRemoveInterruptHandler(UINT32 InterruptNumber,
-							 ACPI_OSD_HANDLER ServiceRoutine)
+AcpiOsRemoveInterruptHandler(UINT32 InterruptNumber, ACPI_OSD_HANDLER ServiceRoutine)
 {
 	if (debug)
 		fprint(2, "%s\n", __func__);
@@ -655,9 +655,10 @@ AcpiOsTableOverride(ACPI_TABLE_HEADER * ExistingTable,
 }
 
 ACPI_STATUS
-AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER * ExistingTable,
-							ACPI_PHYSICAL_ADDRESS * NewAddress,
-							UINT32 * NewTableLength)
+AcpiOsPhysicalTableOverride(
+	ACPI_TABLE_HEADER * ExistingTable,
+	ACPI_PHYSICAL_ADDRESS * NewAddress,
+	UINT32 * NewTableLength)
 {
 	if (debug)
 		fprint(2, "%s\n", __func__);
@@ -705,9 +706,10 @@ AeDoObjectOverrides(void)
 /* Stubs for the disassembler */
  __attribute__ ((weak))
 void
-MpSaveGpioInfo(ACPI_PARSE_OBJECT * Op,
-			   AML_RESOURCE * Resource,
-			   UINT32 PinCount, UINT16 * PinList, char *DeviceName)
+MpSaveGpioInfo(
+	ACPI_PARSE_OBJECT * Op,
+	AML_RESOURCE * Resource,
+	UINT32 PinCount, UINT16 * PinList, char *DeviceName)
 {
 	if (debug)
 		fprint(2, "%s\n", __func__);
@@ -715,8 +717,9 @@ MpSaveGpioInfo(ACPI_PARSE_OBJECT * Op,
 
 __attribute__ ((weak))
 void
-MpSaveSerialInfo(ACPI_PARSE_OBJECT * Op,
-				 AML_RESOURCE * Resource, char *DeviceName)
+MpSaveSerialInfo(
+	ACPI_PARSE_OBJECT * Op,
+	AML_RESOURCE * Resource, char *DeviceName)
 {
 	if (debug)
 		fprint(2, "%s\n", __func__);
