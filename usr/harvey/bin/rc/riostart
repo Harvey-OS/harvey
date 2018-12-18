@@ -5,13 +5,13 @@ wid=$scr(11)
 ht=$scr(12)
 
 window 0,0,161,117 stats -lmisce
-window 161,0,560,117 faces -i
+#window 161,0,560,117 faces -i
 
-if(~ `{screensize} small)
-	dump=acme.dump.small
-if not
-	dump=acme.dump
+#if(~ `{screensize} small)
+#	dump=acme.dump.small
+#if not
+#	dump=acme.dump
 
-a=`{echo $wid-35 | hoc }
-window 60,90,$a,$ht acme -l lib/$dump
+#a=`{echo $wid-35 | hoc }
+#window 60,90,$a,$ht acme -l lib/$dump
 window 20,140,610,450 /usr/harvey/lib/first.window
