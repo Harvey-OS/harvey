@@ -310,7 +310,7 @@ swalk(Srv *srv, Req *r)
 		respond(r, Eunknownfid);
 		return;
 	}
-	if(r->fid->omode != -1){
+	if(r->fid->omode != (char)-1){
 		respond(r, "cannot clone open fid");
 		return;
 	}
@@ -368,7 +368,7 @@ sopen(Srv *srv, Req *r)
 		respond(r, Eunknownfid);
 		return;
 	}
-	if(r->fid->omode != -1){
+	if(r->fid->omode != (char)-1){
 		respond(r, Ebotch);
 		return;
 	}
@@ -443,7 +443,7 @@ screate(Srv *srv, Req *r)
 {
 	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil)
 		respond(r, Eunknownfid);
-	else if(r->fid->omode != -1)
+	else if(r->fid->omode != (char)-1)
 		respond(r, Ebotch);
 	else if(!(r->fid->qid.type&QTDIR))
 		respond(r, Ecreatenondir);
