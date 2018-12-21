@@ -15,24 +15,24 @@ typedef struct Intmap	Intmap;
 
 
 Intmap*	allocmap(void (*inc)(void*));
-void		freemap(Intmap*, void (*destroy)(void*));
+void	freemap(Intmap*, void (*destroy)(void*));
 void*	lookupkey(Intmap*, uint32_t);
 void*	insertkey(Intmap*, uint32_t, void*);
-int		caninsertkey(Intmap*, uint32_t, void*);
+int	caninsertkey(Intmap*, uint32_t, void*);
 void*	deletekey(Intmap*, uint32_t);
 
 /*
  * Fid and Request structures.
  */
-typedef struct Fid		Fid;
-typedef struct Req		Req;
+typedef struct Fid	Fid;
+typedef struct Req	Req;
 typedef struct Fidpool	Fidpool;
 typedef struct Reqpool	Reqpool;
-typedef struct File		File;
+typedef struct File	File;
 typedef struct Filelist	Filelist;
-typedef struct Tree		Tree;
+typedef struct Tree	Tree;
 typedef struct Readdir	Readdir;
-typedef struct Srv Srv;
+typedef struct Srv 	Srv;
 
 
 struct Fid
@@ -40,22 +40,22 @@ struct Fid
 	uint32_t	fid;
 	char		omode;	/* -1 = not open */
 	File*		file;
-	char*	uid;
+	char*		uid;
 	Qid		qid;
-	void*	aux;
+	void*		aux;
 
 /* below is implementation-specific; don't use */
 	Readdir*	rdir;
 	Ref		ref;
 	Fidpool*	pool;
-	int64_t	diroffset;
+	int64_t		diroffset;
 	int32_t		dirindex;
 };
 
 struct Req
 {
 	uint32_t	tag;
-	void*	aux;
+	void*		aux;
 	Fcall		ifcall;
 	Fcall		ofcall;
 	Dir		d;
@@ -66,15 +66,15 @@ struct Req
 	Srv*		srv;
 
 /* below is implementation-specific; don't use */
-	QLock	lk;
+	QLock		lk;
 	Ref		ref;
 	Reqpool*	pool;
 	uint8_t*	buf;
-	uint8_t	type;
-	uint8_t	responded;
-	char*	error;
-	void*	rbuf;
-	Req**	flush;
+	uint8_t		type;
+	uint8_t		responded;
+	char*		error;
+	void*		rbuf;
+	Req**		flush;
 	int		nflush;
 };
 
@@ -84,14 +84,14 @@ struct Req
 
 struct Fidpool {
 	Intmap	*map;
-	void		(*destroy)(Fid*);
-	Srv		*srv;
+	void	(*destroy)(Fid*);
+	Srv	*srv;
 };
 
 struct Reqpool {
 	Intmap	*map;
-	void		(*destroy)(Req*);
-	Srv		*srv;
+	void	(*destroy)(Req*);
+	Srv	*srv;
 };
 
 Fidpool*	allocfidpool(void (*destroy)(Fid*));
@@ -121,26 +121,26 @@ struct File {
 	void *aux;
 
 /* below is implementation-specific; don't use */
-	RWLock RWLock;
-	Filelist *filelist;
-	Tree *tree;
-	int nchild;
-	int allocd;
-	int nxchild;
-	Ref readers;
+	RWLock 		RWLock;
+	Filelist	*filelist;
+	Tree 		*tree;
+	int 		nchild;
+	int 		allocd;
+	int 		nxchild;
+	Ref 		readers;
 };
 
 struct Tree {
-	File *root;
-	void	(*destroy)(File *file);
+	File 		*root;
+	void		(*destroy)(File *file);
 
 /* below is implementation-specific; don't use */
-	Lock genlock;
-	uint32_t qidgen;
-	uint32_t dirqidgen;
+	Lock 		genlock;
+	uint32_t 	qidgen;
+	uint32_t 	dirqidgen;
 };
 
-Tree*	alloctree(char*, char*, uint32_t, void(*destroy)(File*));
+Tree*		alloctree(char*, char*, uint32_t, void(*destroy)(File*));
 void		freetree(Tree*);
 File*		createfile(File*, char*, char*, uint32_t, void*);
 int		removefile(File*);
@@ -155,8 +155,8 @@ void		closedirfile(Readdir*);
  */
 typedef struct Cmdbuf Cmdbuf;
 typedef struct Cmdtab Cmdtab;
-Cmdbuf*		parsecmd(char *a, int n);
-void		respondcmderror(Req*, Cmdbuf*, char*, ...);
+Cmdbuf*	parsecmd(char *a, int n);
+void	respondcmderror(Req*, Cmdbuf*, char*, ...);
 Cmdtab*	lookupcmd(Cmdbuf*, Cmdtab*, int);
 struct Cmdbuf
 {
@@ -177,30 +177,30 @@ struct Cmdtab
  */
 struct Srv {
 	Tree*	tree;
-	void		(*destroyfid)(Fid*);
-	void		(*destroyreq)(Req*);
-	void		(*end)(Srv*);
+	void	(*destroyfid)(Fid*);
+	void	(*destroyreq)(Req*);
+	void	(*end)(Srv*);
 	void*	aux;
 
-	void		(*attach)(Req*);
-	void		(*auth)(Req*);
-	void		(*open)(Req*);
-	void		(*create)(Req*);
-	void		(*read)(Req*);
-	void		(*write)(Req*);
-	void		(*remove)(Req*);
-	void		(*flush)(Req*);
-	void		(*stat)(Req*);
-	void		(*wstat)(Req*);
-	void		(*walk)(Req*);
+	void	(*attach)(Req*);
+	void	(*auth)(Req*);
+	void	(*open)(Req*);
+	void	(*create)(Req*);
+	void	(*read)(Req*);
+	void	(*write)(Req*);
+	void	(*remove)(Req*);
+	void	(*flush)(Req*);
+	void	(*stat)(Req*);
+	void	(*wstat)(Req*);
+	void	(*walk)(Req*);
 	char*	(*clone)(Fid*, Fid*);
 	char*	(*walk1)(Fid*, char*, Qid*);
 
-	int		infd;
-	int		outfd;
-	int		nopipe;
-	int		srvfd;
-	int		leavefdsopen;	/* magic for acme win */
+	int	infd;
+	int	outfd;
+	int	nopipe;
+	int	srvfd;
+	int	leavefdsopen;	/* magic for acme win */
 	char*	keyspec;
 
 /* below is implementation-specific; don't use */
@@ -209,11 +209,11 @@ struct Srv {
 	uint		msize;
 
 	uint8_t*	rbuf;
-	QLock	rlock;
+	QLock		rlock;
 	uint8_t*	wbuf;
-	QLock	wlock;
+	QLock		wlock;
 	
-	char*	addr;
+	char*		addr;
 };
 
 void		srv(Srv*);
@@ -231,7 +231,7 @@ void		threadlistensrv(Srv *s, char *addr);
 /*
  * Helper.  Assumes user is same as group.
  */
-int		hasperm(File*, char*, int);
+int	hasperm(File*, char*, int);
 
 void*	emalloc9p(uint32_t);
 void*	erealloc9p(void*, uint32_t);
@@ -241,16 +241,15 @@ enum {
 	OMASK = 3
 };
 
-void		readstr(Req*, char*);
-void		readbuf(Req*, void*, int32_t);
-void		walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), 
-			char*(*clone)(Fid*,Fid*,void*), void*);
+void	readstr(Req*, char*);
+void	readbuf(Req*, void*, int32_t);
+void	walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), 
+		char*(*clone)(Fid*,Fid*,void*), void*);
 
-void		auth9p(Req*);
-void		authread(Req*);
-void		authwrite(Req*);
-void		authdestroy(Fid*);
-int		authattach(Req*);
+void	auth9p(Req*);
+void	authread(Req*);
+void	authwrite(Req*);
+void	authdestroy(Fid*);
+int	authattach(Req*);
 
 extern void (*_forker)(void (*)(void*), void*, int);
-
