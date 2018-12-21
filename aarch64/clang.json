@@ -1,0 +1,8 @@
+[
+        {
+                "Name": "buildflags",
+                "Cflags": [
+                        "--target=aarch64-none-elf"
+                ]
+        }
+]
