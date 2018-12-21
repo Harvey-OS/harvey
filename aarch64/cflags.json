@@ -12,6 +12,9 @@
 			"-static",
 			"-Wall",
 			"-Werror"
+		],
+		"Include": [
+			"/$ARCH/$CC.json"
 		]
 	}
 ]
