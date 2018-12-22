@@ -8,7 +8,7 @@
 			"$ARCH/getcallstack.S",
 			"$ARCH/main9.S",
 			"$ARCH/notejmp.c",
-			"$ARCH/setjmp.c",
+			"$ARCH/setjmp.S",
 			"$ARCH/sqrt.c",
 			"$ARCH/tas.S"
 		]

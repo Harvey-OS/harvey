@@ -11,15 +11,15 @@
 .globl ainc
 ainc:	LDXR	x1, [x0]
 	ADD	x1, x1, #1
-	STLXR	w1, x1, [x0]
-	CBNZ	w1, ainc
+	STLXR	w9, x1, [x0]
+	CBNZ	w9, ainc
 	DMB	ISH
 	RET
 
 .globl adec
 adec:	LDXR	x1, [x0]
 	SUB	x1, x1, #1
-	STLXR	w1, x1, [x0]
-	CBNZ	w1, adec
+	STLXR	w9, x1, [x0]
+	CBNZ	w9, adec
 	DMB	ISH
 	RET

@@ -14,7 +14,7 @@ _tas:
 	MOVZ	w1, #0xbeef
 	LDXR	x2, [x0]
 	CBNZ	x2, 1f
-	STLXR	w1, x1, [x0]
+	STLXR	w9, x1, [x0]
 	DMB	ISH
 1:	MOV	x1, x2
 	RET
