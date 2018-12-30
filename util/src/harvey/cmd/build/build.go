@@ -280,7 +280,8 @@ func include(f string, targ string, b *build) {
 		for _, v := range build.SourceFiles {
 			b.SourceFiles = append(b.SourceFiles, v)
 			fi := path.Base(v)
-			o := fi[:len(fi)-1] + "o"
+			ext := path.Ext(v)
+			o := fi[:len(fi)-len(ext)+1] + "o"
 			b.ObjectFiles = append(b.ObjectFiles, o)
 		}
 
@@ -372,7 +373,8 @@ func process(f string, r []*regexp.Regexp) []build {
 
 		for _, v := range build.SourceFiles {
 			f := path.Base(v)
-			l := len(f) - 1
+			ext := path.Ext(f)
+			l := len(f) - len(ext) + 1
 			o := f[:l]
 			o += "o"
 			if !contains(build.ObjectFiles, o) {
