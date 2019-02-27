@@ -1,5 +1,0 @@
-ARCHS = [
-	"amd64",
-	"riscv",
-	"aarch64",
-]
