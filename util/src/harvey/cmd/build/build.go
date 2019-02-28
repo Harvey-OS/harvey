@@ -206,11 +206,29 @@ func adjust(s []string) []string {
 
 // return the given absolute path as an absolute path rooted at the harvey tree.
 func fromRoot(p string) string {
-	p = os.ExpandEnv(p)
+	expandedPath := os.ExpandEnv(p)
 	if path.IsAbs(p) {
-		return path.Join(harvey, p)
+		expandedPath = path.Join(harvey, expandedPath)
 	}
-	return p
+
+	// Travis has versioned CCs of the form clang-X.Y.  We don't want to have
+	// a file for each version of the compilers, so check if the versioned
+	// file exists first.  If it doesn't, fall back to the unversioned file.
+	expandedCc := os.Getenv("CC")
+	expandedCcTokens := strings.Split(expandedCc, "-")
+	fallbackCc := expandedCcTokens[0]
+	if strings.Contains(expandedPath, "$CC") && len(expandedCcTokens) > 1 {
+		if _, err := os.Stat(expandedPath); err != nil {
+			if os.IsNotExist(err) {
+				oldCc := os.Getenv("CC")
+				os.Setenv("CC", fallbackCc)
+				expandedPath = fromRoot(p)
+				os.Setenv("CC", oldCc)
+			}
+		}
+	}
+
+	return expandedPath
 }
 
 func include(f string, targ string, b *build) {
