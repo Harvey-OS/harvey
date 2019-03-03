@@ -69,7 +69,7 @@ enum {
 #define SKIPS 8
 
 struct {
-	ulong	*dmabase;
+	uint32_t	*dmabase;
 	int		dmacurrent;
 	int		dmaput;
 	int		dmafree;
@@ -90,7 +90,7 @@ nvidiapci(void)
 }
 
 static void
-nvidialinear(VGAscr*, int, int)
+nvidialinear(VGAscr* scr, int size, int align)
 {
 }
 
@@ -98,7 +98,7 @@ static void
 nvidiaenable(VGAscr* scr)
 {
 	Pcidev *p;
-	ulong *q;
+	uint32_t *q;
 	int tmp;
 
 	if(scr->mmio)
@@ -122,7 +122,7 @@ nvidiaenable(VGAscr* scr)
 	switch (scr->id & 0x0ff0) {
 	case 0x0020:
 	case 0x00A0:
-		q = (void*)((uchar*)scr->mmio + Pfb);
+		q = (void*)((uint8_t*)scr->mmio + Pfb);
 		tmp = *q;
 		if (tmp & 0x0100) {
 			scr->storage = ((tmp >> 12) & 0x0F) * 1024 + 1024 * 2;
@@ -145,7 +145,7 @@ nvidiaenable(VGAscr* scr)
 		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
 		break;
 	default:
-		q = (void*)((uchar*)scr->mmio + Pfb + 0x020C);
+		q = (void*)((uint8_t*)scr->mmio + Pfb + 0x020C);
 		tmp = (*q >> 20) & 0xFFF;
 		if (tmp == 0)
 			tmp = 16;
@@ -167,10 +167,10 @@ nvidiacurdisable(VGAscr* scr)
 static void
 nvidiacurload(VGAscr* scr, Cursor* curs)
 {
-	ulong*	p;
+	uint32_t*	p;
 	int	i,j;
-	ushort	c,s;
-	ulong	tmp;
+	uint16_t	c,s;
+	uint32_t	tmp;
 
 	if(scr->mmio == 0)
 		return;
@@ -180,7 +180,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	switch (scr->id & 0x0ff0) {
 	case 0x0020:
 	case 0x00A0:
-		p = (void*)((uchar*)scr->mmio + Pramin + 0x1E00 * 4);
+		p = (void*)((uint8_t*)scr->mmio + Pramin + 0x1E00 * 4);
 		break;
 	default:
 		/*
@@ -189,7 +189,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 		 * expected.
 		 */
 		tmp = scr->apsize - 96*1024;
-		p = (void*)((uchar*)scr->vaddr + tmp);
+		p = (void*)((uint8_t*)scr->vaddr + tmp);
 		vgaxo(Crtx, 0x30, 0x80|(tmp>>17));
 		vgaxo(Crtx, 0x31, (tmp>>11)<<2);
 		vgaxo(Crtx, 0x2F, tmp>>24);
@@ -220,7 +220,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	for (i=0; i<256; i++)
 		*p++ = 0;
 
-	scr->offset = curs->offset;
+	scr->Cursor.offset = curs->offset;
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) | 0x01);
 
 	return;
@@ -229,13 +229,13 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 static int
 nvidiacurmove(VGAscr* scr, Point p)
 {
-	ulong*	cursorpos;
+	uint32_t*	cursorpos;
 
 	if(scr->mmio == 0)
 		return 1;
 
-	cursorpos = (void*)((uchar*)scr->mmio + hwCurPos);
-	*cursorpos = ((p.y+scr->offset.y)<<16)|((p.x+scr->offset.x) & 0xFFFF);
+	cursorpos = (void*)((uint8_t*)scr->mmio + hwCurPos);
+	*cursorpos = ((p.y+scr->Cursor.offset.y)<<16)|((p.x+scr->Cursor.offset.x) & 0xFFFF);
 
 	return 0;
 }
@@ -258,23 +258,23 @@ nvidiacurenable(VGAscr* scr)
 void
 writeput(VGAscr *scr, int data)
 {
-	uchar	*p, scratch;
-	ulong	*fifo;
+	uint8_t	*p, scratch;
+	uint32_t	*fifo;
 
 	outb(0x3D0,0);
 	p = scr->vaddr;
 	scratch = *p;
-	fifo = (void*)((uchar*)scr->mmio + Fifo);
+	fifo = (void*)((uint8_t*)scr->mmio + Fifo);
 	fifo[0x10] = (data << 2);
 	USED(scratch);
 }
 
-ulong
+uint32_t
 readget(VGAscr *scr)
 {
-	ulong	*fifo;
+	uint32_t	*fifo;
 
-	fifo = (void*)((uchar*)scr->mmio + Fifo);
+	fifo = (void*)((uint8_t*)scr->mmio + Fifo);
 	return (fifo[0x0011] >> 2);
 }
 
@@ -288,7 +288,7 @@ nvdmakickoff(VGAscr *scr)
 }
 
 static void
-nvdmanext(ulong data)
+nvdmanext(uint32_t data)
 {
 	nv.dmabase[nv.dmacurrent++] = data;
 }
@@ -324,7 +324,7 @@ nvdmawait(VGAscr *scr, int size)
 
 
 static void
-nvdmastart(VGAscr *scr, ulong tag, int size)
+nvdmastart(VGAscr *scr, uint32_t tag, int size)
 {
 	if (nv.dmafree <= size)
 		nvdmawait(scr, size);
@@ -335,29 +335,29 @@ nvdmastart(VGAscr *scr, ulong tag, int size)
 static void
 waitforidle(VGAscr *scr)
 {
-	ulong*	pgraph;
+	uint32_t*	pgraph;
 	int x;
 
-	pgraph = (void*)((uchar*)scr->mmio + Pgraph);
+	pgraph = (void*)((uint8_t*)scr->mmio + Pgraph);
 
 	x = 0;
 	while((readget(scr) != nv.dmaput) && x++ < 1000000)
 		;
 	if(x >= 1000000)
-		iprint("idle stat %lud put %d scr %#p pc %#p\n", readget(scr), nv.dmaput, scr, getcallerpc(&scr));
+		iprint("idle stat %lud put %d scr %#p pc %#p\n", readget(scr), nv.dmaput, scr, getcallerpc());
 
 	x = 0;
 	while(pgraph[0x00000700/4] & 0x01 && x++ < 1000000)
 		;
 
 	if(x >= 1000000)
-		iprint("idle stat %lud scrio %#p scr %#p pc %#p\n", *pgraph, scr->mmio, scr, getcallerpc(&scr));
+		iprint("idle stat %lud scrio %#p scr %#p pc %#p\n", *pgraph, scr->mmio, scr, getcallerpc());
 }
 
 static void
 nvresetgraphics(VGAscr *scr)
 {
-	ulong	surfaceFormat, patternFormat, rectFormat, lineFormat;
+	uint32_t	surfaceFormat, patternFormat, rectFormat, lineFormat;
 	int		pitch, i;
 
 	pitch = scr->gscreen->width*BY2WD;
@@ -368,7 +368,7 @@ nvresetgraphics(VGAscr *scr)
 	 */
 	if(nv.dmabase == nil){
 		if(scr->storage <= scr->apsize)
-			nv.dmabase = (ulong*)((uchar*)scr->vaddr + scr->storage - 128*1024);
+			nv.dmabase = (uint32_t*)((uint8_t*)scr->vaddr + scr->storage - 128*1024);
 		else{
 			nv.dmabase = (void*)vmap(scr->paddr + scr->storage - 128*1024, 128*1024);
 			if(nv.dmabase == 0){
@@ -458,7 +458,7 @@ nvresetgraphics(VGAscr *scr)
 
 
 static int
-nvidiahwfill(VGAscr *scr, Rectangle r, ulong sval)
+nvidiahwfill(VGAscr *scr, Rectangle r, uint32_t sval)
 {
 	nvdmastart(scr, RECT_SOLID_COLOR, 1);
 	nvdmanext(sval);
@@ -492,9 +492,9 @@ nvidiahwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 }
 
 void
-nvidiablank(VGAscr*, int blank)
+nvidiablank(VGAscr* scr, int blank)
 {
-	uchar seq1, crtc1A;
+	uint8_t seq1, crtc1A;
 
 	seq1 = vgaxi(Seqx, 1) & ~0x20;
 	crtc1A = vgaxi(Crtx, 0x1A) & ~0xC0;
