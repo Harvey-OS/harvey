@@ -66,6 +66,7 @@ igfxblank(VGAscr *scr, int blank)
 
 	case 0x2a02:	/* GM965 */
 	case 0x2a42:	/* GM45 */
+	case 0x2592:	/* GM915 */
 		off = 0x61204;
 		break;
 
@@ -156,6 +157,7 @@ igfxcurregs(VGAscr* scr, int pipe)
 		if(pipe > 2)
 			return nil;
 		break;
+	case 0x2592:	/* GM915 */
 	case 0x2a42:	/* X200 */
 	case 0x29a2:	/* 82P965/G965 HECI desktop */
 	case 0x2a02:	/* CF-R7 */
