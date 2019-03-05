@@ -80,3 +80,5 @@ util/harvey.raw
 /home
 
 **/*.h.gch
+
+.vscode

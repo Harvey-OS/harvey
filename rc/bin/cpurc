@@ -59,7 +59,7 @@ rm -f '#¤/caphash'
 # }
 
 # start listeners if it hasn't already been done (dicey check)
-if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|113|565|17007|17009|17010) .*')
+if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|23|113|565|17007|17009|17010) .*')
 	aux/listen -q tcp
 
 if(! ps|grep -s timesync) {
