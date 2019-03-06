@@ -440,21 +440,18 @@ validaddr(void* addr, int32_t len, int write)
  * Note this won't work for 4*KiB pages!
  */
 void*
-vmemchr(void *s, int c, int n)
+vmemchr(const void *s, int c, uint32_t n)
 {
 	int m;
 	uintptr_t a;
-	char *t;
+	void *t;
 
 	a = PTR2UINT(s);
 	while(ROUNDUP(a, BIGPGSZ) != ROUNDUP(a+n-1, BIGPGSZ)){
 		/* spans pages; handle this page */
 		m = BIGPGSZ - (a & (BIGPGSZ-1));
-//		t = memchr(UINT2PTR(a), c, m);
-		for(t = UINT2PTR(a); m > 0; m--, t++)
-			if (*t == c)
-				break;
-		if(*t == c)
+		t = memchr(UINT2PTR(a), c, m);
+		if(t)
 			return t;
 		a += m;
 		n -= m;
@@ -468,10 +465,8 @@ vmemchr(void *s, int c, int n)
 	}
 
 	/* fits in one page */
-	for(t = UINT2PTR(a); n > 0; n--, t++)
-		if (*t == c)
-			break;
-	if(*t != c)
+	t = memchr(UINT2PTR(a), c, n);
+	if(t == nil)
 		error("Bogus string");
 	return t;
 }
