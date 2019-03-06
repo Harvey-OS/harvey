@@ -13,18 +13,16 @@
 void
 main(void)
 {
-        void *seg = segattach(0, "foo", nil, 1024);
-        print(">seg: %p<\n", seg);
+        void *seg = segattach(0, "shared", nil, 1024);
         if (seg == (void*)-1) {
-		print("FAIL segattach   ");
-		//exits("FAIL");
+		print("FAIL segattach\n");
+		exits("FAIL");
                 return;
         }
 
         int rcode = segdetach(seg);
-        print(">rcode: %d<\n", rcode);
         if (rcode != 0) {
-		print("FAIL segdetach");
+		print("FAIL segdetach\n");
 		exits("FAIL");
         }
 
