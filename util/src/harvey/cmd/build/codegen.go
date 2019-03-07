@@ -124,12 +124,12 @@ VGAcur* vgacur[] = {
 
 Physseg physseg[8] = {
 	{
-		.attr = SG_SHARED,
+		.attr = SG_SHARED|SG_READ|SG_WRITE,
 		.name = "shared",
 		.size = SEGMAXPG,
 	},
 	{
-		.attr = SG_BSS,
+		.attr = SG_BSS|SG_READ|SG_WRITE,
 		.name = "memory",
 		.size = SEGMAXPG,
 	},
