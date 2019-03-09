@@ -229,7 +229,7 @@ strnodlen(char *name, int len)
 	s->string[len] = '\0';
 
 	s->gc.gclink = gcl;
-	gcl = s;
+	gcl = &s->gc;
 
 	return s;
 }
@@ -259,7 +259,7 @@ runenode(Rune *name)
 	memmove(s->string, name, len);
 
 	s->gc.gclink = gcl;
-	gcl = s;
+	gcl = &s->gc;
 
 	return s;
 }
@@ -273,7 +273,7 @@ stradd(String *l, String *r)
 	len = l->len+r->len;
 	s = gmalloc(sizeof(String)+len+1);
 	s->gc.gclink = gcl;
-	gcl = s;
+	gcl = &s->gc;
 	s->len = len;
 	s->string = (char*)s+sizeof(String);
 	memmove(s->string, l->string, l->len);
@@ -290,8 +290,8 @@ straddrune(String *l, Rune r)
 
 	len = l->len+runelen(r);
 	s = gmalloc(sizeof(String)+len+1);
-	s->gclink = gcl;
-	gcl = s;
+	s->gc.gclink = gcl;
+	gcl = &s->gc;
 	s->len = len;
 	s->string = (char*)s+sizeof(String);
 	memmove(s->string, l->string, l->len);

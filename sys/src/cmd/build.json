@@ -18,6 +18,7 @@
 		"Install": "/$ARCH/bin/",
 		"Projects": [
 			"9660srv/9660srv.json",
+			"acid/acid.json",
 			"acpi/build.json",
 			"acpica/",
 			"acme/build.json",
