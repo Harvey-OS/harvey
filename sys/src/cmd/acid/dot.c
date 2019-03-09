@@ -44,26 +44,26 @@ odot(Node *n, Node *r)
 		fatal("dodot: no tag");
 
 	expr(n->left, &res);
-	if(res.comt == 0)
+	if(res.store.comt == 0)
 		error("no type specified for (expr).%s", s);
 
 	if(res.type != TINT)
 		error("pointer must be integer for (expr).%s", s);
 
-	t = srch(res.comt, s);
+	t = srch(res.store.comt, s);
 	if(t == 0)
 		error("no tag for (expr).%s", s);
 
 	/* Propagate types */
 	if(t->type)
-		r->comt = t->type->lt;
+		r->store.comt = t->type->lt;
 
-	addr = res.ival+t->offset;
+	addr = res.store.ival+t->offset;
 	if(t->fmt == 'a') {
 		r->op = OCONST;
-		r->fmt = 'a';
+		r->store.fmt = 'a';
 		r->type = TINT;
-		r->ival = addr;
+		r->store.ival = addr;
 	}
 	else
 		indir(cormap, addr, t->fmt, r);
@@ -96,7 +96,7 @@ buildtype(Node *m, int d)
 		t->depth = d;
 		t->tag = m->sym;
 		t->base = base;
-		t->offset = m->ival;
+		t->offset = m->store.ival;
 		if(m->left) {
 			t->type = m->left->sym;
 			t->fmt = 'a';
@@ -105,7 +105,7 @@ buildtype(Node *m, int d)
 			t->type = 0;
 			if(m->right)
 				t->type = m->right->sym;
-			t->fmt = m->fmt;
+			t->fmt = m->store.fmt;
 		}
 
 		*tail = t;
@@ -136,8 +136,8 @@ decl(Node *n)
 	l = n->left;
 	if(l->op == ONAME) {
 		v = l->sym->v;
-		v->comt = type->lt;
-		v->fmt = 'a';
+		v->store.comt = type->lt;
+		v->store.fmt = 'a';
 		return;
 	}
 

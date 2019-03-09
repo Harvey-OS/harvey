@@ -93,7 +93,7 @@ execute(Node *n)
 	switch(n->op) {
 	default:
 		expr(n, &res);
-		if(ret || (res.type == TLIST && res.l == 0 && n->op != OADD))
+		if(ret || (res.type == TLIST && res.store.l == 0 && n->op != OADD))
 			break;
 		prnt->right = &res;
 		expr(prnt, &xx);
@@ -154,11 +154,11 @@ execute(Node *n)
 		expr(l->left, &res);
 		if(res.type != TINT)
 			error("loop must have integer start");
-		s = res.ival;
+		s = res.store.ival;
 		expr(l->right, &res);
 		if(res.type != TINT)
 			error("loop must have integer end");
-		e = res.ival;
+		e = res.store.ival;
 		for(i = s; i <= e; i++)
 			execute(r);
 		break;
@@ -175,19 +175,19 @@ bool(Node *n)
 
 	switch(n->type) {
 	case TINT:
-		if(n->ival != 0)
+		if(n->store.ival != 0)
 			true = 1;
 		break;
 	case TFLOAT:
-		if(n->fval != 0.0)
+		if(n->store.fval != 0.0)
 			true = 1;
 		break;
 	case TSTRING:
-		if(n->string->len)
+		if(n->store.string->len)
 			true = 1;
 		break;
 	case TLIST:
-		if(n->l)
+		if(n->store.l)
 			true = 1;
 		break;
 	}
@@ -202,12 +202,12 @@ convflt(Node *r, char *flt)
 	c = flt[0];
 	if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
 		r->type = TSTRING;
-		r->fmt = 's';
-		r->string = strnode(flt);
+		r->store.fmt = 's';
+		r->store.string = strnode(flt);
 	}
 	else {
 		r->type = TFLOAT;
-		r->fval = atof(flt);
+		r->store.fval = atof(flt);
 	}
 }
 
@@ -223,7 +223,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	char buf[512], reg[12];
 
 	r->op = OCONST;
-	r->fmt = fmt;
+	r->store.fmt = fmt;
 	switch(fmt) {
 	default:
 		error("bad pointer format '%c' for *", fmt);
@@ -234,7 +234,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		ret = get1(m, addr, &cval, 1);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = cval;
+		r->store.ival = cval;
 		break;
 	case 'x':
 	case 'd':
@@ -246,7 +246,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		ret = get2(m, addr, &sval);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = sval;
+		r->store.ival = sval;
 		break;
 	case 'a':
 	case 'A':
@@ -255,7 +255,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		ret = geta(m, addr, &uvval);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = uvval;
+		r->store.ival = uvval;
 		break;
 	case 'B':
 	case 'X':
@@ -267,7 +267,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		ret = get4(m, addr, &lval);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = lval;
+		r->store.ival = lval;
 		break;
 	case 'V':
 	case 'Y':
@@ -276,7 +276,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		ret = get8(m, addr, &uvval);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = uvval;
+		r->store.ival = uvval;
 		break;
 	case 's':
 		r->type = TSTRING;
@@ -291,7 +291,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		buf[i] = 0;
 		if(i == 0)
 			strcpy(buf, "(null)");
-		r->string = strnode(buf);
+		r->store.string = strnode(buf);
 		break;
 	case 'R':
 		r->type = TSTRING;
@@ -305,15 +305,15 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		}
 		buf[i++] = 0;
 		buf[i] = 0;
-		r->string = runenode((Rune*)buf);
+		r->store.string = runenode((Rune*)buf);
 		break;
 	case 'i':
 	case 'I':
 		if ((*machdata->das)(m, addr, fmt, buf, sizeof(buf)) < 0)
 			error("indir: %r");
 		r->type = TSTRING;
-		r->fmt = 's';
-		r->string = strnode(buf);
+		r->store.fmt = 's';
+		r->store.string = strnode(buf);
 		break;
 	case 'f':
 		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
@@ -328,7 +328,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 			error("indir: %r");
 		machdata->sftos(buf, sizeof(buf), (void*) buf);
 		r->type = TSTRING;
-		r->string = strnode(buf);
+		r->store.string = strnode(buf);
 		break;
 	case 'F':
 		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
@@ -359,7 +359,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 			error("indir: %r");
 		machdata->dftos(buf, sizeof(buf), (void*) buf);
 		r->type = TSTRING;
-		r->string = strnode(buf);
+		r->store.string = strnode(buf);
 		break;
 	}
 }
@@ -386,49 +386,49 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		error("not in write mode");
 
 	r->type = res.type;
-	r->fmt = res.fmt;
-	r->Store = res.Store;
+	r->store.fmt = res.store.fmt;
+	r->store = res.store;
 
-	switch(res.fmt) {
+	switch(res.store.fmt) {
 	default:
-		error("bad pointer format '%c' for */@=", res.fmt);
+		error("bad pointer format '%c' for */@=", res.store.fmt);
 	case 'c':
 	case 'C':
 	case 'b':
-		cval = res.ival;
-		ret = put1(m, aes.ival, &cval, 1);
+		cval = res.store.ival;
+		ret = put1(m, aes.store.ival, &cval, 1);
 		break;
 	case 'r':
 	case 'x':
 	case 'd':
 	case 'u':
 	case 'o':
-		sval = res.ival;
-		ret = put2(m, aes.ival, sval);
-		r->ival = sval;
+		sval = res.store.ival;
+		ret = put2(m, aes.store.ival, sval);
+		r->store.ival = sval;
 		break;
 	case 'a':
 	case 'A':
 	case 'W':
-		ret = puta(m, aes.ival, res.ival);
+		ret = puta(m, aes.store.ival, res.store.ival);
 		break;
 	case 'B':
 	case 'X':
 	case 'D':
 	case 'U':
 	case 'O':
-		lval = res.ival;
-		ret = put4(m, aes.ival, lval);
+		lval = res.store.ival;
+		ret = put4(m, aes.store.ival, lval);
 		break;
 	case 'V':
 	case 'Y':
 	case 'Z':
-		ret = put8(m, aes.ival, res.ival);
+		ret = put8(m, aes.store.ival, res.store.ival);
 		break;
 	case 's':
 	case 'R':
-		ret = put1(m, aes.ival, (uint8_t*)res.string->string,
-		           res.string->len);
+		ret = put1(m, aes.store.ival, (uint8_t*)res.store.string->string,
+		           res.store.string->len);
 		break;
 	}
 	if (ret < 0)
@@ -471,9 +471,9 @@ call(char *fn, Node *parameters, Node *local, Node *body, Node *retexp)
 			s = n->sym;
 			break;
 		case OINDM:
-			res.cc = avp[i];
+			res.store.cc = avp[i];
 			res.type = TCODE;
-			res.comt = 0;
+			res.store.comt = 0;
 			if(n->left->op != ONAME)
 				error("%s: %d formal not a name", fn, i);
 			s = n->left->sym;
@@ -490,7 +490,7 @@ call(char *fn, Node *parameters, Node *local, Node *body, Node *retexp)
 		*(rlab.tail) = s;
 		rlab.tail = &v->scope;
 
-		v->Store = res.Store;
+		v->store = res.store;
 		v->type = res.type;
 		v->set = 1;
 	}

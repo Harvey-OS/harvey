@@ -11,11 +11,11 @@
 
 %union
 {
-	Node	*node;
-	Lsym	*sym;
+	Node		*node;
+	Lsym		*sym;
 	uint64_t	ival;
-	float	fval;
-	String	*string;
+	float		fval;
+	String		*string;
 }
 
 %type <node> expr monexpr term stmnt name args zexpr slist
@@ -93,20 +93,20 @@ mname		: Tid
 
 member		: Tconst Tconst mname ';'
 		{
-			$3->ival = $2;
-			$3->fmt = $1;
+			$3->store.ival = $2;
+			$3->store.fmt = $1;
 			$$ = $3;
 		}
 		| Tconst mname Tconst mname ';'
 		{
-			$4->ival = $3;
-			$4->fmt = $1;
+			$4->store.ival = $3;
+			$4->store.fmt = $1;
 			$4->right = $2;
 			$$ = $4;
 		}
 		| mname Tconst mname ';'
 		{
-			$3->ival = $2;
+			$3->store.ival = $2;
 			$3->left = $1;
 			$$ = $3;
 		}
@@ -376,15 +376,15 @@ term		: '(' expr ')'
 		{
 			$$ = an(OCONST, ZN, ZN);
 			$$->type = TFLOAT;
-			$$->fmt = 'f';
-			$$->fval = $1;
+			$$->store.fmt = 'f';
+			$$->store.fval = $1;
 		}
 		| Tstring
 		{
 			$$ = an(OCONST, ZN, ZN);
 			$$->type = TSTRING;
-			$$->string = $1;
-			$$->fmt = 's';
+			$$->store.string = $1;
+			$$->store.fmt = 's';
 		}
 		| Twhat zname
 		{

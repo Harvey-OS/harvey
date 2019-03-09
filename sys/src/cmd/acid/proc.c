@@ -51,7 +51,7 @@ sproc(int pid)
 	checkqid(symmap->seg[0].fd, pid);
 
 	s = look("pid");
-	s->v->ival = pid;
+	s->v->store.ival = pid;
 
 	nocore();
 	cormap = attachproc(pid, kernel, fcor, &fhdr);
@@ -130,16 +130,16 @@ notes(int pid)
 
 	v->set = 1;
 	v->type = TLIST;
-	v->l = 0;
-	tail = &v->l;
+	v->store.l = 0;
+	tail = &v->store.l;
 	for(;;) {
 		i = read(fd, buf, sizeof(buf));
 		if(i <= 0)
 			break;
 		buf[i] = '\0';
 		l = al(TSTRING);
-		l->string = strnode(buf);
-		l->fmt = 's';
+		l->store.string = strnode(buf);
+		l->store.fmt = 's';
 		*tail = l;
 		tail = &l->next;
 	}
@@ -156,10 +156,10 @@ dostop(int pid)
 	if(s && s->proc) {
 		np = an(ONAME, ZN, ZN);
 		np->sym = s;
-		np->fmt = 'D';
+		np->store.fmt = 'D';
 		np->type = TINT;
 		p = con(pid);
-		p->fmt = 'D';
+		p->store.fmt = 'D';
 		np = an(OCALL, np, p);
 		execute(np);
 	}
@@ -193,10 +193,10 @@ install(int pid)
 
 	s = look("proclist");
 	l = al(TINT);
-	l->fmt = 'D';
-	l->ival = pid;
-	l->next = s->v->l;
-	s->v->l = l;
+	l->store.fmt = 'D';
+	l->store.ival = pid;
+	l->next = s->v->store.l;
+	s->v->store.l = l;
 	s->v->set = 1;
 }
 
@@ -212,16 +212,16 @@ deinstall(int pid)
 			close(ptab[i].ctl);
 			ptab[i].pid = 0;
 			s = look("proclist");
-			d = &s->v->l;
+			d = &s->v->store.l;
 			for(f = *d; f; f = f->next) {
-				if(f->ival == pid) {
+				if(f->store.ival == pid) {
 					*d = f->next;
 					break;
 				}
 			}
 			s = look("pid");
-			if(s->v->ival == pid)
-				s->v->ival = 0;
+			if(s->v->store.ival == pid)
+				s->v->store.ival = 0;
 			return;
 		}
 	}

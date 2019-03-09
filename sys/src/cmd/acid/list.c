@@ -61,7 +61,7 @@ build(Node *n)
 	default:
 		expr(n, &res);
 		l = al(res.type);
-		l->Store = res.Store;
+		l->store = res.store;
 		*tail = l;
 		tail = &l->next;
 	}
@@ -88,21 +88,21 @@ append(Node *r, Node *list, Node *val)
 	List *l, *f;
 
 	l = al(val->type);
-	l->Store = val->Store;
+	l->store = val->store;
 	l->next = 0;
 
 	r->op = OCONST;
 	r->type = TLIST;
 
-	if(list->l == 0) {
-		list->l = l;
-		r->l = l;
+	if(list->store.l == 0) {
+		list->store.l = l;
+		r->store.l = l;
 		return;
 	}
-	for(f = list->l; f->next; f = f->next)
+	for(f = list->store.l; f->next; f = f->next)
 		;
 	f->next = l;
-	r->l = list->l;
+	r->store.l = list->store.l;
 }
 
 int
@@ -118,19 +118,19 @@ listcmp(List *l, List *r)
 			return 0;
 		switch(l->type) {
 		case TINT:
-			if(l->ival != r->ival)
+			if(l->store.ival != r->store.ival)
 				return 0;
 			break;
 		case TFLOAT:
-			if(l->fval != r->fval)
+			if(l->store.fval != r->store.fval)
 				return 0;
 			break;
 		case TSTRING:
-			if(scmp(l->string, r->string) == 0)
+			if(scmp(l->store.string, r->store.string) == 0)
 				return 0;
 			break;
 		case TLIST:
-			if(listcmp(l->l, r->l) == 0)
+			if(listcmp(l->store.l, r->store.l) == 0)
 				return 0;
 			break;
 		}
@@ -154,11 +154,11 @@ nthelem(List *l, int n, Node *res)
 	res->op = OCONST;
 	if(l == 0) {
 		res->type = TLIST;
-		res->l = 0;
+		res->store.l = 0;
 		return;
 	}
 	res->type = l->type;
-	res->Store = l->Store;
+	res->store = l->store;
 }
 
 void
@@ -171,9 +171,9 @@ delete(List *l, int n, Node *res)
 
 	res->op = OCONST;
 	res->type = TLIST;
-	res->l = l;
+	res->store.l = l;
 
-	for(tl = &res->l; l && n--; l = l->next)
+	for(tl = &res->store.l; l && n--; l = l->next)
 		tl = &l->next;
 
 	if(l == 0)
@@ -189,13 +189,13 @@ listvar(char *s, int64_t v)
 	tl = al(TLIST);
 
 	l = al(TSTRING);
-	tl->l = l;
-	l->fmt = 's';
-	l->string = strnode(s);
+	tl->store.l = l;
+	l->store.fmt = 's';
+	l->store.string = strnode(s);
 	l->next = al(TINT);
 	l = l->next;
-	l->fmt = 'X';
-	l->ival = v;
+	l->store.fmt = 'X';
+	l->store.ival = v;
 
 	return tl;
 }
@@ -267,20 +267,20 @@ trlist(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 	tail = &q->next;
 
 	l = al(TINT);			/* Function address */
-	q->l = l;
-	l->ival = sym->value;
-	l->fmt = 'X';
+	q->store.l = l;
+	l->store.ival = sym->value;
+	l->store.fmt = 'X';
 
 	l->next = al(TINT);		/* called from address */
 	l = l->next;
-	l->ival = pc;
-	l->fmt = 'Y';
+	l->store.ival = pc;
+	l->store.fmt = 'Y';
 
 	l->next = al(TLIST);		/* make list of params */
 	l = l->next;
-	l->l = listparams(map, sym, sp);
+	l->store.l = listparams(map, sym, sp);
 
 	l->next = al(TLIST);		/* make list of locals */
 	l = l->next;
-	l->l = listlocals(map, sym, sp);
+	l->store.l = listlocals(map, sym, sp);
 }

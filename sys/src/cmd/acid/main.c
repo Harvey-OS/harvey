@@ -199,8 +199,8 @@ die(void)
 
 	s = look("proclist");
 	if(s && s->v->type == TLIST) {
-		for(f = s->v->l; f; f = f->next)
-			Bprint(bout, "echo kill > /proc/%d/ctl\n", (int)f->ival);
+		for(f = s->v->store.l; f; f = f->next)
+			Bprint(bout, "echo kill > /proc/%d/ctl\n", (int)f->store.ival);
 	}
 	exits(0);
 }
@@ -302,24 +302,24 @@ readtext(char *s)
 	if(mach->sbreg && lookup(0, mach->sbreg, &sym)) {
 		mach->sb = sym.value;
 		l = enter("SB", Tid);
-		l->v->fmt = 'X';
-		l->v->ival = mach->sb;
+		l->v->store.fmt = 'X';
+		l->v->store.ival = mach->sb;
 		l->v->type = TINT;
 		l->v->set = 1;
 	}
 
 	l = mkvar("objtype");
 	v = l->v;
-	v->fmt = 's';
+	v->store.fmt = 's';
 	v->set = 1;
-	v->string = strnode(mach->name);
+	v->store.string = strnode(mach->name);
 	v->type = TSTRING;
 
 	l = mkvar("textfile");
 	v = l->v;
-	v->fmt = 's';
+	v->store.fmt = 's';
 	v->set = 1;
-	v->string = strnode(s);
+	v->store.string = strnode(s);
 	v->type = TSTRING;
 
 	machbytype(fhdr.type);
@@ -333,7 +333,7 @@ an(int op, Node *l, Node *r)
 
 	n = gmalloc(sizeof(Node));
 	memset(n, 0, sizeof(Node));
-	n->gclink = gcl;
+	n->gc.gclink = gcl;
 	gcl = n;
 	n->op = op;
 	n->left = l;
@@ -349,7 +349,7 @@ al(int t)
 	l = gmalloc(sizeof(List));
 	memset(l, 0, sizeof(List));
 	l->type = t;
-	l->gclink = gcl;
+	l->gc.gclink = gcl;
 	gcl = l;
 	return l;
 }
@@ -360,8 +360,8 @@ con(int64_t v)
 	Node *n;
 
 	n = an(OCONST, ZN, ZN);
-	n->ival = v;
-	n->fmt = 'W';
+	n->store.ival = v;
+	n->store.fmt = 'W';
 	n->type = TINT;
 	return n;
 }
@@ -405,19 +405,19 @@ marktree(Node *n)
 	marktree(n->left);
 	marktree(n->right);
 
-	n->gcmark = 1;
+	n->gc.gcmark = 1;
 	if(n->op != OCONST)
 		return;
 
 	switch(n->type) {
 	case TSTRING:
-		n->string->gcmark = 1;
+		n->store.string->gc.gcmark = 1;
 		break;
 	case TLIST:
-		marklist(n->l);
+		marklist(n->store.l);
 		break;
 	case TCODE:
-		marktree(n->cc);
+		marktree(n->store.cc);
 		break;
 	}
 }
@@ -426,16 +426,16 @@ void
 marklist(List *l)
 {
 	while(l) {
-		l->gcmark = 1;
+		l->gc.gcmark = 1;
 		switch(l->type) {
 		case TSTRING:
-			l->string->gcmark = 1;
+			l->store.string->gc.gcmark = 1;
 			break;
 		case TLIST:
-			marklist(l->l);
+			marklist(l->store.l);
 			break;
 		case TCODE:
-			marktree(l->cc);
+			marktree(l->store.cc);
 			break;
 		}
 		l = l->next;
@@ -467,13 +467,13 @@ gc(void)
 			for(v = f->v; v; v = v->pop) {
 				switch(v->type) {
 				case TSTRING:
-					v->string->gcmark = 1;
+					v->store.string->gc.gcmark = 1;
 					break;
 				case TLIST:
-					marklist(v->l);
+					marklist(v->store.l);
 					break;
 				case TCODE:
-					marktree(v->cc);
+					marktree(v->store.cc);
 					break;
 				}
 			}

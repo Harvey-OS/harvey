@@ -1,7 +1,7 @@
 [
 	{
 		"Name": "acid",
-		"CFlags": [
+		"#CFlags": [
 			"-fplan9-extensions"
 		],
 		"Include": [
