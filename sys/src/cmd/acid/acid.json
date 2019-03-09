@@ -1,9 +1,6 @@
 [
 	{
 		"Name": "acid",
-		"#CFlags": [
-			"-fplan9-extensions"
-		],
 		"Include": [
 			"../cmd.json"
 		],
