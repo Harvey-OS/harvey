@@ -334,7 +334,7 @@ an(int op, Node *l, Node *r)
 	n = gmalloc(sizeof(Node));
 	memset(n, 0, sizeof(Node));
 	n->gc.gclink = gcl;
-	gcl = n;
+	gcl = &n->gc;
 	n->op = op;
 	n->left = l;
 	n->right = r;
@@ -350,7 +350,7 @@ al(int t)
 	memset(l, 0, sizeof(List));
 	l->type = t;
 	l->gc.gclink = gcl;
-	gcl = l;
+	gcl = &l->gc;
 	return l;
 }
 
