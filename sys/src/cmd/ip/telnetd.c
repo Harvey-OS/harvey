@@ -551,22 +551,16 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
 }
 
 /*
- *  create a shared segment.  Make is start 2 meg higher than the current
- *  end of process memory.
+ *  create a shared segment.
  */
 void*
 share(uint32_t len)
 {
-	uint8_t *vastart;
-
-	vastart = sbrk(0);
-	if(vastart == (void*)-1)
+	// Let the kernel place the segment
+	void* vastart = segattach(0, "shared", 0, len);
+	if (vastart == (void*)-1) {
 		return 0;
-	vastart += 2*1024*1024;
-
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
-		return 0;
-
+	}
 	return vastart;
 }
 
