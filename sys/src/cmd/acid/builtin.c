@@ -36,6 +36,7 @@ void	startstop(Node*, Node*);
 void	match(Node*, Node*);
 void	status(Node*, Node*);
 void	kill(Node*,Node*);
+void	dosysr0(Node*, Node*);
 void	waitstop(Node*, Node*);
 void	stop(Node*, Node*);
 void	start(Node*, Node*);
@@ -59,41 +60,41 @@ struct Btab
 	void	(*fn)(Node*, Node*);
 } tab[] =
 {
-	"atof",		cvtatof,
-	"atoi",		cvtatoi,
-	"error",	doerror,
-	"file",		getfile,
-	"readfile",	readfile,
-	"access",	doaccess,
-	"filepc",	filepc,
-	"fnbound",	funcbound,
-	"fmt",		fmt,
-	"follow",	follow,
-	"itoa",		cvtitoa,
-	"kill",		kill,
-	"match",	match,
-	"newproc",	newproc,
-	"pcfile",	pcfile,
-	"pcline",	pcline,
-	"print",	bprint,
-	"printto",	printto,
-	"rc",		rc,
-	"reason",	reason,
-	"setproc",	setproc,
-	"start",	start,
-	"startstop",	startstop,
-	"status",	status,
-	"stop",		stop,
-	"strace",	strace,
-	"sysr0",	dosysr0,
-	"waitstop",	waitstop,
-	"map",		map,
-	"interpret",	interpret,
-	"include",	include,
-	"regexp",	regexp,
-	"fmtof",	fmtof,
-	"fmtsize",	dofmtsize,
-	0
+	{ "atof",	cvtatof, },
+	{ "atoi",	cvtatoi, },
+	{ "error",	doerror, },
+	{ "file",	getfile, },
+	{ "readfile",	readfile, },
+	{ "access",	doaccess, },
+	{ "filepc",	filepc, },
+	{ "fnbound",	funcbound, },
+	{ "fmt",	fmt, },
+	{ "follow",	follow, },
+	{ "itoa",	cvtitoa, },
+	{ "kill",	kill, },
+	{ "match",	match, },
+	{ "newproc",	newproc, },
+	{ "pcfile",	pcfile, },
+	{ "pcline",	pcline, },
+	{ "print",	bprint, },
+	{ "printto",	printto, },
+	{ "rc",		rc, },
+	{ "reason",	reason, },
+	{ "setproc",	setproc, },
+	{ "start",	start, },
+	{ "startstop",	startstop, },
+	{ "status",	status, },
+	{ "stop",	stop, },
+	{ "strace",	strace, },
+	{ "sysr0",	dosysr0, },
+	{ "waitstop",	waitstop, },
+	{ "map",	map, },
+	{ "interpret",	interpret, },
+	{ "include",	include, },
+	{ "regexp",	regexp, },
+	{ "fmtof",	fmtof, },
+	{ "fmtsize",	dofmtsize, },
+	{ 0 },
 };
 
 char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
@@ -135,7 +136,7 @@ dosysr0(Node *r, Node*_)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'D';
+	r->store.fmt = 'D';
 	fprint(2, "Thank Giacomo -- no sysr1 -- we'll bring it back\n");
 	//r->ival = sysr1();
 }
@@ -160,28 +161,28 @@ match(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'D';
-	r->ival = -1;
+	r->store.fmt = 'D';
+	r->store.ival = -1;
 
 	i = 0;
-	for(f = resl.l; f; f = f->next) {
+	for(f = resl.store.l; f; f = f->next) {
 		if(resi.type == f->type) {
 			switch(resi.type) {
 			case TINT:
-				if(resi.ival == f->ival) {
-					r->ival = i;
+				if(resi.store.ival == f->store.ival) {
+					r->store.ival = i;
 					return;
 				}
 				break;
 			case TFLOAT:
-				if(resi.fval == f->fval) {
-					r->ival = i;
+				if(resi.store.fval == f->store.fval) {
+					r->store.ival = i;
 					return;
 				}
 				break;
 			case TSTRING:
-				if(scmp(resi.string, f->string)) {
-					r->ival = i;
+				if(scmp(resi.store.string, f->store.string)) {
+					r->store.ival = i;
 					return;
 				}
 				break;
@@ -208,12 +209,12 @@ newproc(Node *r, Node *args)
 		expr(args, &res);
 		if(res.type != TSTRING)
 			error("newproc(): arg not string");
-		if(res.string->len >= sizeof(buf))
+		if(res.store.string->len >= sizeof(buf))
 			error("newproc(): too many arguments");
-		memmove(buf, res.string->string, res.string->len);
-		buf[res.string->len] = '\0';
+		memmove(buf, res.store.string->string, res.store.string->len);
+		buf[res.store.string->len] = '\0';
 		p = buf;
-		e = buf+res.string->len;
+		e = buf+res.store.string->len;
 		for(;;) {
 			while(p < e && (*p == '\t' || *p == ' '))
 				*p++ = '\0';
@@ -229,8 +230,8 @@ newproc(Node *r, Node *args)
 	argv[i] = 0;
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'D';
-	r->ival = nproc(argv);
+	r->store.fmt = 'D';
+	r->store.ival = nproc(argv);
 }
 
 void
@@ -245,9 +246,9 @@ startstop(Node *r, Node *args)
 	if(res.type != TINT)
 		error("startstop(pid): arg type");
 
-	msg(res.ival, "startstop");
-	notes(res.ival);
-	dostop(res.ival);
+	msg(res.store.ival, "startstop");
+	notes(res.store.ival);
+	dostop(res.store.ival);
 }
 
 void
@@ -263,9 +264,9 @@ waitstop(Node *r, Node *args)
 		error("waitstop(pid): arg type");
 
 	Bflush(bout);
-	msg(res.ival, "waitstop");
-	notes(res.ival);
-	dostop(res.ival);
+	msg(res.store.ival, "waitstop");
+	notes(res.store.ival);
+	dostop(res.store.ival);
 }
 
 void
@@ -280,7 +281,7 @@ start(Node *r, Node *args)
 	if(res.type != TINT)
 		error("start(pid): arg type");
 
-	msg(res.ival, "start");
+	msg(res.store.ival, "start");
 }
 
 void
@@ -296,9 +297,9 @@ stop(Node *r, Node *args)
 		error("stop(pid): arg type");
 
 	Bflush(bout);
-	msg(res.ival, "stop");
-	notes(res.ival);
-	dostop(res.ival);
+	msg(res.store.ival, "stop");
+	notes(res.store.ival);
+	dostop(res.store.ival);
 }
 
 void
@@ -313,8 +314,8 @@ kill(Node *r, Node *args)
 	if(res.type != TINT)
 		error("kill(pid): arg type");
 
-	msg(res.ival, "kill");
-	deinstall(res.ival);
+	msg(res.store.ival, "kill");
+	deinstall(res.store.ival);
 }
 
 void
@@ -330,10 +331,10 @@ status(Node *r, Node *args)
 	if(res.type != TINT)
 		error("status(pid): arg type");
 
-	p = getstatus(res.ival);
-	r->string = strnode(p);
+	p = getstatus(res.store.ival);
+	r->store.string = strnode(p);
 	r->op = OCONST;
-	r->fmt = 's';
+	r->store.fmt = 's';
 	r->type = TSTRING;
 }
 
@@ -350,8 +351,8 @@ reason(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TSTRING;
-	r->fmt = 's';
-	r->string = strnode((*machdata->excep)(cormap, rget));
+	r->store.fmt = 's';
+	r->store.string = strnode((*machdata->excep)(cormap, rget));
 }
 
 void
@@ -368,14 +369,14 @@ follow(Node *r, Node *args)
 	if(res.type != TINT)
 		error("follow(addr): arg type");
 
-	n = (*machdata->foll)(cormap, res.ival, rget, f);
+	n = (*machdata->foll)(cormap, res.store.ival, rget, f);
 	if (n < 0)
 		error("follow(addr): %r");
-	tail = &r->l;
+	tail = &r->store.l;
 	for(i = 0; i < n; i++) {
 		l = al(TINT);
-		l->ival = f[i];
-		l->fmt = 'X';
+		l->store.ival = f[i];
+		l->store.fmt = 'X';
 		*tail = l;
 		tail = &l->next;
 	}
@@ -395,16 +396,16 @@ funcbound(Node *r, Node *args)
 	if(res.type != TINT)
 		error("fnbound(addr): arg type");
 
-	n = fnbound(res.ival, bounds);
+	n = fnbound(res.store.ival, bounds);
 	if (n != 0) {
-		r->l = al(TINT);
-		l = r->l;
-		l->ival = bounds[0];
-		l->fmt = 'X';
+		r->store.l = al(TINT);
+		l = r->store.l;
+		l->store.ival = bounds[0];
+		l->store.fmt = 'X';
 		l->next = al(TINT);
 		l = l->next;
-		l->ival = bounds[1];
-		l->fmt = 'X';
+		l->store.ival = bounds[1];
+		l->store.fmt = 'X';
 	}
 }
 
@@ -420,7 +421,7 @@ setproc(Node *r, Node *args)
 	if(res.type != TINT)
 		error("setproc(pid): arg type");
 
-	sproc(res.ival);
+	sproc(res.store.ival);
 }
 
 void
@@ -435,20 +436,20 @@ filepc(Node *r, Node *args)
 	if(res.type != TSTRING)
 		error("filepc(filename:line): arg type");
 
-	p = strchr(res.string->string, ':');
+	p = strchr(res.store.string->string, ':');
 	if(p == 0)
 		error("filepc(filename:line): bad arg format");
 
 	c = *p;
 	*p++ = '\0';
-	r->ival = file2pc(res.string->string, strtol(p, 0, 0));
+	r->store.ival = file2pc(res.store.string->string, strtol(p, 0, 0));
 	p[-1] = c;
-	if(r->ival == ~0)
+	if(r->store.ival == ~0)
 		error("filepc(filename:line): can't find address");
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'V';
+	r->store.fmt = 'V';
 }
 
 void
@@ -467,12 +468,12 @@ interpret(Node *r, Node *args)
 
 	isave = interactive;
 	interactive = 0;
-	r->ival = yyparse();
+	r->store.ival = yyparse();
 	interactive = isave;
 	popio();
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'D';
+	r->store.fmt = 'D';
 }
 
 void
@@ -487,16 +488,16 @@ include(Node *r, Node *args)
 	if(res.type != TSTRING)
 		error("include(string): arg type");
 
-	pushfile(res.string->string);
+	pushfile(res.store.string->string);
 
 	isave = interactive;
 	interactive = 0;
-	r->ival = yyparse();
+	r->store.ival = yyparse();
 	interactive = isave;
 	popio();
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'D';
+	r->store.fmt = 'D';
 }
 
 void
@@ -516,7 +517,7 @@ rc(Node *r, Node *args)
 
 	argv[0] = "/bin/rc";
 	argv[1] = "-c";
-	argv[2] = res.string->string;
+	argv[2] = res.store.string->string;
 	argv[3] = 0;
 
 	pid = fork();
@@ -537,9 +538,9 @@ rc(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TSTRING;
-	r->string = strnode(p);
+	r->store.string = strnode(p);
 	free(w);
-	r->fmt = 's';
+	r->store.fmt = 's';
 }
 
 void
@@ -554,7 +555,7 @@ doerror(Node *r, Node *args)
 	if(res.type != TSTRING)
 		error("error(string): arg type");
 
-	error(res.string->string);
+	error(res.store.string->string);
 }
 
 void
@@ -570,9 +571,9 @@ doaccess(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->ival = 0;
-	if(access(res.string->string, 4) == 0)
-		r->ival = 1;
+	r->store.ival = 0;
+	if(access(res.store.string->string, 4) == 0)
+		r->store.ival = 1;
 }
 
 void
@@ -589,7 +590,7 @@ readfile(Node *r, Node *args)
 	if(res.type != TSTRING)
 		error("readfile(filename): arg type");
 
-	fd = open(res.string->string, OREAD);
+	fd = open(res.store.string->string, OREAD);
 	if(fd < 0)
 		return;
 
@@ -606,8 +607,8 @@ readfile(Node *r, Node *args)
 	if(n > 0) {
 		r->op = OCONST;
 		r->type = TSTRING;
-		r->string = strnodlen(buf, n);
-		r->fmt = 's';
+		r->store.string = strnodlen(buf, n);
+		r->store.fmt = 's';
 	}
 	free(buf);
 	close(fd);
@@ -631,14 +632,14 @@ getfile(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TLIST;
-	r->l = 0;
+	r->store.l = 0;
 
-	p = res.string->string;
+	p = res.store.string->string;
 	bp = Bopen(p, OREAD);
 	if(bp == 0)
 		return;
 
-	l = &r->l;
+	l = &r->store.l;
 	for(;;) {
 		p = Brdline(bp, '\n');
 		n = Blinelen(bp);
@@ -652,8 +653,8 @@ getfile(Node *r, Node *args)
 			s = strnodlen(p, n-1);
 
 		new = al(TSTRING);
-		new->string = s;
-		new->fmt = 's';
+		new->store.string = s;
+		new->store.fmt = 's';
 		*l = new;
 		l = &new->next;
 	}
@@ -673,8 +674,8 @@ cvtatof(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TFLOAT;
-	r->fval = atof(res.string->string);
-	r->fmt = 'f';
+	r->store.fval = atof(res.store.string->string);
+	r->store.fmt = 'f';
 }
 
 void
@@ -690,8 +691,8 @@ cvtatoi(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->ival = strtoull(res.string->string, 0, 0);
-	r->fmt = 'V';
+	r->store.ival = strtoull(res.store.string->string, 0, 0);
+	r->store.fmt = 'V';
 }
 
 static char *fmtflags = "-0123456789. #,u";
@@ -758,21 +759,21 @@ err:
 	expr(av[0], &res);
 	if(res.type != TINT)
 		error("itoa(number [, fmt]): arg type");
-	ival = res.ival;
+	ival = res.store.ival;
 	strncpy(fmt, "%lld", sizeof(fmt));
 	if(na == 2){
 		expr(av[1], &res);
 		if(res.type != TSTRING)
 			error("itoa(number [, fmt]): fmt type");
-		if(acidfmt(res.string->string, fmt, sizeof(buf)))
+		if(acidfmt(res.store.string->string, fmt, sizeof(buf)))
 			error("itoa(number [, fmt]): malformed fmt");
 	}
 
 	snprint(buf, sizeof(buf), fmt, ival);
 	r->op = OCONST;
 	r->type = TSTRING;
-	r->string = strnode(buf);
-	r->fmt = 's';
+	r->store.string = strnode(buf);
+	r->store.fmt = 's';
 }
 
 List*
@@ -788,23 +789,23 @@ mapent(Map *m)
 			continue;
 		l = al(TSTRING);
 		n = al(TLIST);
-		n->l = l;
+		n->store.l = l;
 		*t = n;
 		t = &n->next;
-		l->string = strnode(m->seg[i].name);
-		l->fmt = 's';
+		l->store.string = strnode(m->seg[i].name);
+		l->store.fmt = 's';
 		l->next = al(TINT);
 		l = l->next;
-		l->ival = m->seg[i].b;
-		l->fmt = 'W';
+		l->store.ival = m->seg[i].b;
+		l->store.fmt = 'W';
 		l->next = al(TINT);
 		l = l->next;
-		l->ival = m->seg[i].e;
-		l->fmt = 'W';
+		l->store.ival = m->seg[i].e;
+		l->store.fmt = 'W';
 		l->next = al(TINT);
 		l = l->next;
-		l->ival = m->seg[i].f;
-		l->fmt = 'W';
+		l->store.ival = m->seg[i].f;
+		l->store.fmt = 'W';
 	}
 	return h;
 }
@@ -825,13 +826,13 @@ map(Node *r, Node *args)
 		expr(av[0], &res);
 		if(res.type != TLIST)
 			error("map(list): map needs a list");
-		if(listlen(res.l) != 4)
+		if(listlen(res.store.l) != 4)
 			error("map(list): list must have 4 entries");
 
-		l = res.l;
+		l = res.store.l;
 		if(l->type != TSTRING)
 			error("map name must be a string");
-		ent = l->string->string;
+		ent = l->store.string->string;
 		m = symmap;
 		i = findseg(m, ent);
 		if(i < 0) {
@@ -843,28 +844,28 @@ map(Node *r, Node *args)
 		l = l->next;
 		if(l->type != TINT)
 			error("map entry not int");
-		m->seg[i].b = l->ival;
+		m->seg[i].b = l->store.ival;
 		if (strcmp(ent, "text") == 0)
-			textseg(l->ival, &fhdr);
+			textseg(l->store.ival, &fhdr);
 		l = l->next;
 		if(l->type != TINT)
 			error("map entry not int");
-		m->seg[i].e = l->ival;
+		m->seg[i].e = l->store.ival;
 		l = l->next;
 		if(l->type != TINT)
 			error("map entry not int");
-		m->seg[i].f = l->ival;
+		m->seg[i].f = l->store.ival;
 	}
 
 	r->type = TLIST;
-	r->l = 0;
+	r->store.l = 0;
 	if(symmap)
-		r->l = mapent(symmap);
+		r->store.l = mapent(symmap);
 	if(cormap) {
-		if(r->l == 0)
-			r->l = mapent(cormap);
+		if(r->store.l == 0)
+			r->store.l = mapent(cormap);
 		else {
-			for(l = r->l; l->next; l = l->next)
+			for(l = r->store.l; l->next; l = l->next)
 				;
 			l->next = mapent(cormap);
 		}
@@ -905,13 +906,13 @@ strace(Node *r, Node *args)
 	expr(n, &res);
 	if(res.type != TINT)
 		error("strace(pc, sp, link): pc bad type");
-	pc = res.ival;
+	pc = res.store.ival;
 
 	n = av[1];
 	expr(n, &res);
 	if(res.type != TINT)
 		error("strace(pc, sp, link): sp bad type");
-	sp = res.ival;
+	sp = res.store.ival;
 
 	n = av[2];
 	expr(n, &res);
@@ -919,10 +920,10 @@ strace(Node *r, Node *args)
 		error("strace(pc, sp, link): link bad type");
 
 	tracelist = 0;
-	if ((*machdata->ctrace)(cormap, pc, sp, res.ival, trlist) <= 0)
+	if ((*machdata->ctrace)(cormap, pc, sp, res.store.ival, trlist) <= 0)
 		error("no stack frame: %r");
 	r->type = TLIST;
-	r->l = tracelist;
+	r->store.l = tracelist;
 }
 
 void
@@ -945,7 +946,7 @@ regexp(Node *r, Node *args)
 	expr(av[0], &res);
 	if(res.type != TSTRING)
 		error("regexp(pattern, string): pattern must be string");
-	rp = regcomp(res.string->string);
+	rp = regcomp(res.store.string->string);
 	if(rp == 0)
 		return;
 
@@ -953,9 +954,9 @@ regexp(Node *r, Node *args)
 	if(res.type != TSTRING)
 		error("regexp(pattern, string): bad string");
 
-	r->fmt = 'D';
+	r->store.fmt = 'D';
 	r->type = TINT;
-	r->ival = regexec(rp, res.string->string, 0, 0);
+	r->store.ival = regexec(rp, res.store.string->string, 0, 0);
 	free(rp);
 }
 
@@ -970,10 +971,10 @@ fmt(Node *r, Node *args)
 	if(na != 2)
 		error("fmt(obj, fmt): arg count");
 	expr(av[1], &res);
-	if(res.type != TINT || strchr(vfmt, res.ival) == 0)
-		error("fmt(obj, fmt): bad format '%c'", (char)res.ival);
+	if(res.type != TINT || strchr(vfmt, res.store.ival) == 0)
+		error("fmt(obj, fmt): bad format '%c'", (char)res.store.ival);
 	expr(av[0], r);
-	r->fmt = res.ival;
+	r->store.fmt = res.store.ival;
 }
 
 void
@@ -1100,18 +1101,18 @@ blprint(List *l)
 	while(l) {
 		switch(l->type) {
 		default:
-			patom(l->type, &l->Store);
+			patom(l->type, &l->store);
 			break;
 		case TSTRING:
 			Bputc(bout, '"');
-			patom(l->type, &l->Store);
+			patom(l->type, &l->store);
 			Bputc(bout, '"');
 			break;
 		case TLIST:
-			blprint(l->l);
+			blprint(l->store.l);
 			break;
 		case TCODE:
-			pcode(l->cc, 0);
+			pcode(l->store.cc, 0);
 			break;
 		}
 		l = l->next;
@@ -1127,13 +1128,13 @@ comx(Node res)
 	Lsym *sl;
 	Node *n, xx;
 
-	if(res.fmt != 'a' && res.fmt != 'A')
+	if(res.store.fmt != 'a' && res.store.fmt != 'A')
 		return 0;
 
-	if(res.comt == 0 || res.comt->base == 0)
+	if(res.store.comt == 0 || res.store.comt->base == 0)
 		return 0;
 
-	sl = res.comt->base;
+	sl = res.store.comt->base;
 	if(sl->proc) {
 		res.left = ZN;
 		res.right = ZN;
@@ -1164,13 +1165,13 @@ bprint(Node *r, Node *args)
 		default:
 			if(comx(res))
 				break;
-			patom(res.type, &res.Store);
+			patom(res.type, &res.store);
 			break;
 		case TCODE:
-			pcode(res.cc, 0);
+			pcode(res.store.cc, 0);
 			break;
 		case TLIST:
-			blprint(res.l);
+			blprint(res.store.l);
 			break;
 		}
 	}
@@ -1195,11 +1196,11 @@ printto(Node *r, Node *args)
 	if(res.type != TSTRING)
 		error("printto(string, ...): need string");
 
-	fd = create(res.string->string, OWRITE, 0666);
+	fd = create(res.store.string->string, OWRITE, 0666);
 	if(fd < 0)
-		fd = open(res.string->string, OWRITE);
+		fd = open(res.store.string->string, OWRITE);
 	if(fd < 0)
-		error("printto: open %s: %r", res.string->string);
+		error("printto: open %s: %r", res.store.string->string);
 
 	b = gmalloc(sizeof(Biobuf));
 	Binit(b, fd, OWRITE);
@@ -1214,10 +1215,10 @@ printto(Node *r, Node *args)
 		default:
 			if(comx(res))
 				break;
-			patom(res.type, &res.Store);
+			patom(res.type, &res.store);
 			break;
 		case TLIST:
-			blprint(res.l);
+			blprint(res.store.l);
 			break;
 		}
 	}
@@ -1243,16 +1244,16 @@ pcfile(Node *r, Node *args)
 		error("pcfile(addr): arg type");
 
 	r->type = TSTRING;
-	r->fmt = 's';
-	if(fileline(buf, sizeof(buf), res.ival) == 0) {
-		r->string = strnode("?file?");
+	r->store.fmt = 's';
+	if(fileline(buf, sizeof(buf), res.store.ival) == 0) {
+		r->store.string = strnode("?file?");
 		return;
 	}
 	p = strrchr(buf, ':');
 	if(p == 0)
 		error("pcfile(addr): funny file %s", buf);
 	*p = '\0';
-	r->string = strnode(buf);
+	r->store.string = strnode(buf);
 }
 
 void
@@ -1268,16 +1269,16 @@ pcline(Node *r, Node *args)
 		error("pcline(addr): arg type");
 
 	r->type = TINT;
-	r->fmt = 'D';
-	if(fileline(buf, sizeof(buf), res.ival) == 0) {
-		r->ival = 0;
+	r->store.fmt = 'D';
+	if(fileline(buf, sizeof(buf), res.store.ival) == 0) {
+		r->store.ival = 0;
 		return;
 	}
 
 	p = strrchr(buf, ':');
 	if(p == 0)
 		error("pcline(addr): funny file %s", buf);
-	r->ival = strtol(p+1, 0, 0);
+	r->store.ival = strtol(p+1, 0, 0);
 }
 
 void fmtof(Node *r, Node *args)
@@ -1295,8 +1296,8 @@ void fmtof(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT ;
-	r->ival = res.fmt ;
-	r->fmt = 'c';
+	r->store.ival = res.store.fmt ;
+	r->store.fmt = 'c';
 }
 
 void dofmtsize(Node *r, Node *args)
@@ -1315,11 +1316,11 @@ void dofmtsize(Node *r, Node *args)
 	expr(av[0], &res);
 
 	v.type = res.type ;
-	s = &v.Store ;
-	*s = res.Store ;
+	s = &v.store ;
+	*s = res.store ;
 
 	r->op = OCONST;
 	r->type = TINT ;
-	r->ival = fmtsize(&v) ;
-	r->fmt = 'D';
+	r->store.ival = fmtsize(&v) ;
+	r->store.fmt = 'D';
 }

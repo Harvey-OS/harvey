@@ -54,16 +54,16 @@ fmtsize(Value *v)
 {
 	int ret;
 
-	switch(v->fmt) {
+	switch(v->store.fmt) {
 	default:
-		return  fsize[v->fmt];
+		return  fsize[v->store.fmt];
 	case 'i':
 	case 'I':
 		if(v->type != TINT || machdata == 0)
 			error("no size for i fmt pointer ++/--");
-		ret = (*machdata->instsize)(cormap, v->ival);
+		ret = (*machdata->instsize)(cormap, v->store.ival);
 		if(ret < 0) {
-			ret = (*machdata->instsize)(symmap, v->ival);
+			ret = (*machdata->instsize)(symmap, v->store.ival);
 			if(ret < 0)
 				error("%r");
 		}
@@ -91,7 +91,7 @@ oeval(Node *n, Node *res)
 	expr(n->left, res);
 	if(res->type != TCODE)
 		error("bad type for eval");
-	expr(res->cc, res);
+	expr(res->store.cc, res);
 }
 
 void
@@ -101,8 +101,8 @@ ocast(Node *n, Node *res)
 		error("%s is not a complex type", n->sym->name);
 
 	expr(n->left, res);
-	res->comt = n->sym->lt;
-	res->fmt = 'a';
+	res->store.comt = n->sym->lt;
+	res->store.fmt = 'a';
 }
 
 void
@@ -119,8 +119,8 @@ oindm(Node *n, Node *res)
 		error("bad type for *");
 	if(m == 0)
 		error("no map for *");
-	indir(m, l.ival, l.fmt, res);
-	res->comt = l.comt;
+	indir(m, l.store.ival, l.store.fmt, res);
+	res->store.comt = l.store.comt;
 }
 
 void
@@ -137,8 +137,8 @@ oindc(Node *n, Node *res)
 		error("bad type for @");
 	if(m == 0)
 		error("no map for @");
-	indir(m, l.ival, l.fmt, res);
-	res->comt = l.comt;
+	indir(m, l.store.ival, l.store.fmt, res);
+	res->store.comt = l.store.comt;
 }
 
 void
@@ -156,16 +156,16 @@ oframe(Node *n, Node *res)
 	if(localaddr(cormap, p, lp->sym->name, &ival, rget) < 0)
 		error("colon: %r");
 
-	res->ival = ival;
+	res->store.ival = ival;
 	res->op = OCONST;
-	res->fmt = 'X';
+	res->store.fmt = 'X';
 	res->type = TINT;
 
 	/* Try and set comt */
 	for(f = n->sym->local; f; f = f->next) {
 		if(f->var == lp->sym) {
-			res->comt = f->type;
-			res->fmt = 'a';
+			res->store.comt = f->type;
+			res->store.fmt = 'a';
 			break;
 		}
 	}
@@ -186,23 +186,23 @@ oindex(Node *n, Node *res)
 	default:
 		error("lhs[] has bad type");
 	case TINT:
-		indir(cormap, l.ival+(r.ival*fsize[l.fmt]), l.fmt, res);
-		res->comt = l.comt;
-		res->fmt = l.fmt;
+		indir(cormap, l.store.ival+(r.store.ival*fsize[l.store.fmt]), l.store.fmt, res);
+		res->store.comt = l.store.comt;
+		res->store.fmt = l.store.fmt;
 		break;
 	case TLIST:
-		nthelem(l.l, r.ival, res);
+		nthelem(l.store.l, r.store.ival, res);
 		break;
 	case TSTRING:
-		res->ival = 0;
-		if(r.ival >= 0 && r.ival < l.string->len) {
+		res->store.ival = 0;
+		if(r.store.ival >= 0 && r.store.ival < l.store.string->len) {
 			int xx8;	/* to get around bug in vc */
-			xx8 = r.ival;
-			res->ival = l.string->string[xx8];
+			xx8 = r.store.ival;
+			res->store.ival = l.store.string->string[xx8];
 		}
 		res->op = OCONST;
 		res->type = TINT;
-		res->fmt = 'c';
+		res->store.fmt = 'c';
 		break;
 	}
 }
@@ -218,13 +218,13 @@ oappend(Node *n, Node *res)
 	expr(n->right, &r);
 	if(l.type != TLIST)
 		error("must append to list");
-	empty = (l.l == nil && (n->left->op == ONAME));
+	empty = (l.store.l == nil && (n->left->op == ONAME));
 	append(res, &l, &r);
 	if(empty) {
 		v = n->left->sym->v;
 		v->type = res->type;
-		v->Store = res->Store;
-		v->comt = res->comt;
+		v->store = res->store;
+		v->store.comt = res->store.comt;
 	}
 }
 
@@ -240,7 +240,7 @@ odelete(Node *n, Node *res)
 	if(r.type != TINT)
 		error("delete index must be integer");
 
-	delete(l.l, r.ival, res);
+	delete(l.store.l, r.store.ival, res);
 }
 
 void
@@ -252,13 +252,13 @@ ohead(Node *n, Node *res)
 	if(l.type != TLIST)
 		error("head needs list");
 	res->op = OCONST;
-	if(l.l) {
-		res->type = l.l->type;
-		res->Store = l.l->Store;
+	if(l.store.l) {
+		res->type = l.store.l->type;
+		res->store = l.store.l->store;
 	}
 	else {
 		res->type = TLIST;
-		res->l = 0;
+		res->store.l = 0;
 	}
 }
 
@@ -272,10 +272,10 @@ otail(Node *n, Node *res)
 		error("tail needs list");
 	res->op = OCONST;
 	res->type = TLIST;
-	if(l.l)
-		res->l = l.l->next;
+	if(l.store.l)
+		res->store.l = l.store.l->next;
 	else
-		res->l = 0;
+		res->store.l = 0;
 }
 
 void
@@ -283,8 +283,8 @@ oconst(Node *n, Node *res)
 {
 	res->op = OCONST;
 	res->type = n->type;
-	res->Store = n->Store;
-	res->comt = n->comt;
+	res->store = n->store;
+	res->store.comt = n->store.comt;
 }
 
 void
@@ -297,8 +297,8 @@ oname(Node *n, Node *res)
 		error("%s used but not set", n->sym->name);
 	res->op = OCONST;
 	res->type = v->type;
-	res->Store = v->Store;
-	res->comt = v->comt;
+	res->store = v->store;
+	res->store.comt = v->store.comt;
 }
 
 void
@@ -306,7 +306,7 @@ octruct(Node *n, Node *res)
 {
 	res->op = OCONST;
 	res->type = TLIST;
-	res->l = construct(n->left);
+	res->store.l = construct(n->left);
 }
 
 void
@@ -329,11 +329,11 @@ oasgn(Node *n, Node *res)
 		expr(n->right, &r);
 		v->set = 1;
 		v->type = r.type;
-		v->Store = r.Store;
+		v->store = r.store;
 		res->op = OCONST;
 		res->type = v->type;
-		res->Store = v->Store;
-		res->comt = v->comt;
+		res->store = v->store;
+		res->store.comt = v->store.comt;
 	}
 }
 
@@ -348,7 +348,7 @@ oadd(Node *n, Node *res)
 	}
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TFLOAT;
 	switch(l.type) {
@@ -358,10 +358,10 @@ oadd(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			res->ival = l.ival+r.ival;
+			res->store.ival = l.store.ival+r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.ival+r.fval;
+			res->store.fval = l.store.ival+r.store.fval;
 			break;
 		default:
 			error("bad rhs type +");
@@ -370,10 +370,10 @@ oadd(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval+r.ival;
+			res->store.fval = l.store.fval+r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval+r.fval;
+			res->store.fval = l.store.fval+r.store.fval;
 			break;
 		default:
 			error("bad rhs type +");
@@ -382,14 +382,14 @@ oadd(Node *n, Node *res)
 	case TSTRING:
 		if(r.type == TSTRING) {
 			res->type = TSTRING;
-			res->fmt = 's';
-			res->string = stradd(l.string, r.string);
+			res->store.fmt = 's';
+			res->store.string = stradd(l.store.string, r.store.string);
 			break;
 		}
 		if(r.type == TINT) {
 			res->type = TSTRING;
-			res->fmt = 's';
-			res->string = straddrune(l.string, r.ival);
+			res->store.fmt = 's';
+			res->store.string = straddrune(l.store.string, r.store.ival);
 			break;
 		}
 		error("bad rhs for +");
@@ -397,12 +397,12 @@ oadd(Node *n, Node *res)
 		res->type = TLIST;
 		switch(r.type) {
 		case TLIST:
-			res->l = addlist(l.l, r.l);
+			res->store.l = addlist(l.store.l, r.store.l);
 			break;
 		default:
 			r.left = 0;
 			r.right = 0;
-			res->l = addlist(l.l, construct(&r));
+			res->store.l = addlist(l.store.l, construct(&r));
 			break;
 		}
 	}
@@ -415,7 +415,7 @@ osub(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TFLOAT;
 	switch(l.type) {
@@ -425,10 +425,10 @@ osub(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			res->ival = l.ival-r.ival;
+			res->store.ival = l.store.ival-r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.ival-r.fval;
+			res->store.fval = l.store.ival-r.store.fval;
 			break;
 		default:
 			error("bad rhs type -");
@@ -437,10 +437,10 @@ osub(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval-r.ival;
+			res->store.fval = l.store.fval-r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval-r.fval;
+			res->store.fval = l.store.fval-r.store.fval;
 			break;
 		default:
 			error("bad rhs type -");
@@ -456,7 +456,7 @@ omul(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TFLOAT;
 	switch(l.type) {
@@ -466,10 +466,10 @@ omul(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			res->ival = l.ival*r.ival;
+			res->store.ival = l.store.ival*r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.ival*r.fval;
+			res->store.fval = l.store.ival*r.store.fval;
 			break;
 		default:
 			error("bad rhs type *");
@@ -478,10 +478,10 @@ omul(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval*r.ival;
+			res->store.fval = l.store.fval*r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval*r.fval;
+			res->store.fval = l.store.fval*r.store.fval;
 			break;
 		default:
 			error("bad rhs type *");
@@ -497,7 +497,7 @@ odiv(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TFLOAT;
 	switch(l.type) {
@@ -507,14 +507,14 @@ odiv(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			if(r.ival == 0)
+			if(r.store.ival == 0)
 				error("zero divide");
-			res->ival = l.ival/r.ival;
+			res->store.ival = l.store.ival/r.store.ival;
 			break;
 		case TFLOAT:
-			if(r.fval == 0)
+			if(r.store.fval == 0)
 				error("zero divide");
-			res->fval = l.ival/r.fval;
+			res->store.fval = l.store.ival/r.store.fval;
 			break;
 		default:
 			error("bad rhs type /");
@@ -523,10 +523,10 @@ odiv(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval/r.ival;
+			res->store.fval = l.store.fval/r.store.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval/r.fval;
+			res->store.fval = l.store.fval/r.store.fval;
 			break;
 		default:
 			error("bad rhs type /");
@@ -542,12 +542,12 @@ omod(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type %");
-	res->ival = l.ival%r.ival;
+	res->store.ival = l.store.ival%r.store.ival;
 }
 
 void
@@ -557,12 +557,12 @@ olsh(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type <<");
-	res->ival = l.ival<<r.ival;
+	res->store.ival = l.store.ival<<r.store.ival;
 }
 
 void
@@ -572,12 +572,12 @@ orsh(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type >>");
-	res->ival = (uint64_t)l.ival>>r.ival;
+	res->store.ival = (uint64_t)l.store.ival>>r.store.ival;
 }
 
 void
@@ -588,7 +588,7 @@ olt(Node *n, Node *res)
 	expr(n->left, &l);
 	expr(n->right, &r);
 
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	switch(l.type) {
@@ -597,10 +597,10 @@ olt(Node *n, Node *res)
 	case TINT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.ival < r.ival;
+			res->store.ival = l.store.ival < r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.ival < r.fval;
+			res->store.ival = l.store.ival < r.store.fval;
 			break;
 		default:
 			error("bad rhs type <");
@@ -609,10 +609,10 @@ olt(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.fval < r.ival;
+			res->store.ival = l.store.fval < r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.fval < r.fval;
+			res->store.ival = l.store.fval < r.store.fval;
 			break;
 		default:
 			error("bad rhs type <");
@@ -628,7 +628,7 @@ ogt(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = 'D';
+	res->store.fmt = 'D';
 	res->op = OCONST;
 	res->type = TINT;
 	switch(l.type) {
@@ -637,10 +637,10 @@ ogt(Node *n, Node *res)
 	case TINT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.ival > r.ival;
+			res->store.ival = l.store.ival > r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.ival > r.fval;
+			res->store.ival = l.store.ival > r.store.fval;
 			break;
 		default:
 			error("bad rhs type >");
@@ -649,10 +649,10 @@ ogt(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.fval > r.ival;
+			res->store.ival = l.store.fval > r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.fval > r.fval;
+			res->store.ival = l.store.fval > r.store.fval;
 			break;
 		default:
 			error("bad rhs type >");
@@ -668,7 +668,7 @@ oleq(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = 'D';
+	res->store.fmt = 'D';
 	res->op = OCONST;
 	res->type = TINT;
 	switch(l.type) {
@@ -677,10 +677,10 @@ oleq(Node *n, Node *res)
 	case TINT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.ival <= r.ival;
+			res->store.ival = l.store.ival <= r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.ival <= r.fval;
+			res->store.ival = l.store.ival <= r.store.fval;
 			break;
 		default:
 			error("bad expr type <=");
@@ -689,10 +689,10 @@ oleq(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.fval <= r.ival;
+			res->store.ival = l.store.fval <= r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.fval <= r.fval;
+			res->store.ival = l.store.fval <= r.store.fval;
 			break;
 		default:
 			error("bad expr type <=");
@@ -708,7 +708,7 @@ ogeq(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = 'D';
+	res->store.fmt = 'D';
 	res->op = OCONST;
 	res->type = TINT;
 	switch(l.type) {
@@ -717,10 +717,10 @@ ogeq(Node *n, Node *res)
 	case TINT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.ival >= r.ival;
+			res->store.ival = l.store.ival >= r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.ival >= r.fval;
+			res->store.ival = l.store.ival >= r.store.fval;
 			break;
 		default:
 			error("bad rhs type >=");
@@ -729,10 +729,10 @@ ogeq(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.fval >= r.ival;
+			res->store.ival = l.store.fval >= r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.fval >= r.fval;
+			res->store.ival = l.store.fval >= r.store.fval;
 			break;
 		default:
 			error("bad rhs type >=");
@@ -748,20 +748,20 @@ oeq(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = 'D';
+	res->store.fmt = 'D';
 	res->op = OCONST;
 	res->type = TINT;
-	res->ival = 0;
+	res->store.ival = 0;
 	switch(l.type) {
 	default:
 		break;
 	case TINT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.ival == r.ival;
+			res->store.ival = l.store.ival == r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.ival == r.fval;
+			res->store.ival = l.store.ival == r.store.fval;
 			break;
 		default:
 			break;
@@ -770,10 +770,10 @@ oeq(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->ival = l.fval == r.ival;
+			res->store.ival = l.store.fval == r.store.ival;
 			break;
 		case TFLOAT:
-			res->ival = l.fval == r.fval;
+			res->store.ival = l.store.fval == r.store.fval;
 			break;
 		default:
 			break;
@@ -781,19 +781,19 @@ oeq(Node *n, Node *res)
 		break;
 	case TSTRING:
 		if(r.type == TSTRING) {
-			res->ival = scmp(r.string, l.string);
+			res->store.ival = scmp(r.store.string, l.store.string);
 			break;
 		}
 		break;
 	case TLIST:
 		if(r.type == TLIST) {
-			res->ival = listcmp(l.l, r.l);
+			res->store.ival = listcmp(l.store.l, r.store.l);
 			break;
 		}
 		break;
 	}
 	if(n->op == ONEQ)
-		res->ival = !res->ival;
+		res->store.ival = !res->store.ival;
 }
 
 
@@ -804,12 +804,12 @@ oland(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type &");
-	res->ival = l.ival&r.ival;
+	res->store.ival = l.store.ival&r.store.ival;
 }
 
 void
@@ -819,12 +819,12 @@ oxor(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type ^");
-	res->ival = l.ival^r.ival;
+	res->store.ival = l.store.ival^r.store.ival;
 }
 
 void
@@ -834,12 +834,12 @@ olor(Node *n, Node *res)
 
 	expr(n->left, &l);
 	expr(n->right, &r);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type |");
-	res->ival = l.ival|r.ival;
+	res->store.ival = l.store.ival|r.store.ival;
 }
 
 void
@@ -849,15 +849,15 @@ ocand(Node *n, Node *res)
 
 	res->op = OCONST;
 	res->type = TINT;
-	res->ival = 0;
-	res->fmt = 'D';
+	res->store.ival = 0;
+	res->store.fmt = 'D';
 	expr(n->left, &l);
 	if(bool(&l) == 0)
 		return;
 	expr(n->right, &r);
 	if(bool(&r) == 0)
 		return;
-	res->ival = 1;
+	res->store.ival = 1;
 }
 
 void
@@ -867,11 +867,11 @@ onot(Node *n, Node *res)
 
 	res->op = OCONST;
 	res->type = TINT;
-	res->ival = 0;
+	res->store.ival = 0;
 	expr(n->left, &l);
-	res->fmt = l.fmt;
+	res->store.fmt = l.store.fmt;
 	if(bool(&l) == 0)
-		res->ival = 1;
+		res->store.ival = 1;
 }
 
 void
@@ -881,16 +881,16 @@ ocor(Node *n, Node *res)
 
 	res->op = OCONST;
 	res->type = TINT;
-	res->ival = 0;
-	res->fmt = 'D';
+	res->store.ival = 0;
+	res->store.fmt = 'D';
 	expr(n->left, &l);
 	if(bool(&l)) {
-		res->ival = 1;
+		res->store.ival = 1;
 		return;
 	}
 	expr(n->right, &r);
 	if(bool(&r)) {
-		res->ival = 1;
+		res->store.ival = 1;
 		return;
 	}
 }
@@ -907,20 +907,20 @@ oeinc(Node *n, Node *res)
 	switch(v->type) {
 	case TINT:
 		if(n->op == OEDEC)
-			v->ival -= fmtsize(v);
+			v->store.ival -= fmtsize(v);
 		else
-			v->ival += fmtsize(v);
+			v->store.ival += fmtsize(v);
 		break;
 	case TFLOAT:
 		if(n->op == OEDEC)
-			v->fval--;
+			v->store.fval--;
 		else
-			v->fval++;
+			v->store.fval++;
 		break;
 	default:
 		error("bad type for pre --/++");
 	}
-	res->Store = v->Store;
+	res->store = v->store;
 }
 
 void
@@ -932,19 +932,19 @@ opinc(Node *n, Node *res)
 	v = n->left->sym->v;
 	res->op = OCONST;
 	res->type = v->type;
-	res->Store = v->Store;
+	res->store = v->store;
 	switch(v->type) {
 	case TINT:
 		if(n->op == OPDEC)
-			v->ival -= fmtsize(v);
+			v->store.ival -= fmtsize(v);
 		else
-			v->ival += fmtsize(v);
+			v->store.ival += fmtsize(v);
 		break;
 	case TFLOAT:
 		if(n->op == OPDEC)
-			v->fval--;
+			v->store.fval--;
 		else
-			v->fval++;
+			v->store.fval++;
 		break;
 	default:
 		error("bad type for post --/++");
@@ -959,7 +959,7 @@ ocall(Node *n, Node *res)
 
 	res->op = OCONST;		/* Default return value */
 	res->type = TLIST;
-	res->l = 0;
+	res->store.l = 0;
 
 	chklval(n->left);
 	s = n->left->sym;
@@ -984,7 +984,7 @@ void
 ofmt(Node *n, Node *res)
 {
 	expr(n->left, res);
-	res->fmt = n->right->ival;
+	res->store.fmt = n->right->store.ival;
 }
 
 void
@@ -992,7 +992,7 @@ owhat(Node *n, Node *res)
 {
 	res->op = OCONST;		/* Default return value */
 	res->type = TLIST;
-	res->l = 0;
+	res->store.l = 0;
 	whatis(n->sym);
 }
 

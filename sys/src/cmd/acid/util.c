@@ -89,30 +89,30 @@ varsym(void)
 
 			l->v->set = 1;
 			l->v->type = TINT;
-			l->v->ival = v;
-			if(l->v->comt == 0)
-				l->v->fmt = 'X';
+			l->v->store.ival = v;
+			if(l->v->store.comt == 0)
+				l->v->store.fmt = 'X';
 
 			/* Enter as list of { name, type, value } */
 			list = al(TSTRING);
-			tl->l = list;
-			list->string = strnode(buf);
-			list->fmt = 's';
+			tl->store.l = list;
+			list->store.string = strnode(buf);
+			list->store.fmt = 's';
 			list->next = al(TINT);
 			list = list->next;
-			list->fmt = 'c';
-			list->ival = s->type;
+			list->store.fmt = 'c';
+			list->store.ival = s->type;
 			list->next = al(TINT);
 			list = list->next;
-			list->fmt = 'X';
-			list->ival = v;
+			list->store.fmt = 'X';
+			list->store.ival = v;
 
 		}
 	}
 	l = mkvar("symbols");
 	l->v->set = 1;
 	l->v->type = TLIST;
-	l->v->l = l2;
+	l->v->store.l = l2;
 	if(l2 == 0)
 		print("no symbol information\n");
 }
@@ -129,20 +129,20 @@ varreg(void)
 	v = l->v;
 	v->set = 1;
 	v->type = TLIST;
-	v->l = 0;
-	tail = &v->l;
+	v->store.l = 0;
+	tail = &v->store.l;
 
 	for(r = mach->reglist; r->rname; r++) {
 		l = mkvar(r->rname);
 		v = l->v;
 		v->set = 1;
-		v->ival = r->roffs;
-		v->fmt = r->rformat;
+		v->store.ival = r->roffs;
+		v->store.fmt = r->rformat;
 		v->type = TINT;
 
 		li = al(TSTRING);
-		li->string = strnode(r->rname);
-		li->fmt = 's';
+		li->store.string = strnode(r->rname);
+		li->store.fmt = 's';
 		*tail = li;
 		tail = &li->next;
 	}
@@ -153,12 +153,12 @@ varreg(void)
 	l = mkvar("bpinst");	/* Breakpoint text */
 	v = l->v;
 	v->type = TSTRING;
-	v->fmt = 's';
+	v->store.fmt = 's';
 	v->set = 1;
-	v->string = gmalloc(sizeof(String));
-	v->string->len = machdata->bpsize;
-	v->string->string = gmalloc(machdata->bpsize);
-	memmove(v->string->string, machdata->bpinst, machdata->bpsize);
+	v->store.string = gmalloc(sizeof(String));
+	v->store.string->len = machdata->bpsize;
+	v->store.string->string = gmalloc(machdata->bpsize);
+	memmove(v->store.string->string, machdata->bpinst, machdata->bpsize);
 }
 
 void
@@ -170,16 +170,16 @@ loadvars(void)
 	l =  mkvar("proc");
 	v = l->v;
 	v->type = TINT;
-	v->fmt = 'X';
+	v->store.fmt = 'X';
 	v->set = 1;
-	v->ival = 0;
+	v->store.ival = 0;
 
 	l = mkvar("pid");		/* Current process */
 	v = l->v;
 	v->type = TINT;
-	v->fmt = 'D';
+	v->store.fmt = 'D';
 	v->set = 1;
-	v->ival = 0;
+	v->store.ival = 0;
 
 	mkvar("notes");			/* Pending notes */
 
@@ -199,16 +199,16 @@ rget(Map *map, char *reg)
 	if(s == 0)
 		fatal("rget: %s\n", reg);
 
-	switch(s->v->fmt){
+	switch(s->v->store.fmt){
 	default:
-		ret = get4(map, s->v->ival, &x);
+		ret = get4(map, s->v->store.ival, &x);
 		v = x;
 		break;
 	case 'V':
 	case 'W':
 	case 'Y':
 	case 'Z':
-		ret = get8(map, s->v->ival, &v);
+		ret = get8(map, s->v->store.ival, &v);
 		break;
 	}
 	if(ret < 0)
@@ -228,7 +228,7 @@ strnodlen(char *name, int len)
 		memmove(s->string, name, len);
 	s->string[len] = '\0';
 
-	s->gclink = gcl;
+	s->gc.gclink = gcl;
 	gcl = s;
 
 	return s;
@@ -258,7 +258,7 @@ runenode(Rune *name)
 	s->len = len;
 	memmove(s->string, name, len);
 
-	s->gclink = gcl;
+	s->gc.gclink = gcl;
 	gcl = s;
 
 	return s;
@@ -272,7 +272,7 @@ stradd(String *l, String *r)
 
 	len = l->len+r->len;
 	s = gmalloc(sizeof(String)+len+1);
-	s->gclink = gcl;
+	s->gc.gclink = gcl;
 	gcl = s;
 	s->len = len;
 	s->string = (char*)s+sizeof(String);

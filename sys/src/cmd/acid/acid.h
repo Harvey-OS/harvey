@@ -63,7 +63,7 @@ Extern int	initialising;
 Extern int	quiet;
 
 extern void	(*expop[])(Node*, Node*);
-#define expr(n, r) (r)->comt=0; (*expop[(n)->op])(n, r);
+#define expr(n, r) (r)->store.comt=0; (*expop[(n)->op])(n, r);
 extern int	fmtsize(Value *v) ;
 
 enum
@@ -130,17 +130,17 @@ struct Store
 
 struct List
 {
-	Gc;
+	Gc	gc;
 	List*	next;
 	char	type;
-	Store;
+	Store	store;
 };
 
 struct Value
 {
 	char	set;
 	char	type;
-	Store;
+	Store	store;
 	Value*	pop;
 	Lsym*	scope;
 	Rplace*	ret;
@@ -160,20 +160,20 @@ struct Lsym
 
 struct Node
 {
-	Gc;
+	Gc	gc;
 	uint8_t	op;
 	char	type;
 	Node*	left;
 	Node*	right;
 	Lsym*	sym;
 	int	builtin;
-	Store;
+	Store	store;
 };
 #define ZN	(Node*)0
 
 struct String
 {
-	Gc;
+	Gc	gc;
 	char	*string;
 	int	len;
 };

@@ -117,9 +117,9 @@ whatis(Lsym *l)
 		t = l->v->type;
 		Bprint(bout, "%s variable", typenames[t]);
 		if(t == TINT || t == TFLOAT)
-			Bprint(bout, " format %c", l->v->fmt);
-		if(l->v->comt)
-			Bprint(bout, " complex %s", l->v->comt->base->name);
+			Bprint(bout, " format %c", l->v->store.fmt);
+		if(l->v->store.comt)
+			Bprint(bout, " complex %s", l->v->store.comt->base->name);
 		Bputc(bout, '\n');
 		def = 1;
 	}
@@ -261,13 +261,13 @@ pexpr(Node *n)
 	case OCONST:
 		switch(n->type) {
 		case TINT:
-			Bprint(bout, "%lld", n->ival);
+			Bprint(bout, "%lld", n->store.ival);
 			break;
 		case TFLOAT:
-			Bprint(bout, "%g", n->fval);
+			Bprint(bout, "%g", n->store.fval);
 			break;
 		case TSTRING:
-			pstr(n->string);
+			pstr(n->store.string);
 			break;
 		case TLIST:
 			break;
@@ -391,7 +391,7 @@ pexpr(Node *n)
 		break;
 	case OFMT:
 		pexpr(l);
-		Bprint(bout, "\\%c", (int)r->ival);
+		Bprint(bout, "\\%c", (int)r->store.ival);
 		break;
 	case OEVAL:
 		Bprint(bout, "eval ");

@@ -23,27 +23,27 @@ struct keywd
 }
 keywds[] =
 {
-	"do",		Tdo,
-	"if",		Tif,
-	"then",		Tthen,
-	"else",		Telse,
-	"while",	Twhile,
-	"loop",		Tloop,
-	"head",		Thead,
-	"tail",		Ttail,
-	"append",	Tappend,
-	"defn",		Tfn,
-	"return",	Tret,
-	"local",	Tlocal,
-	"aggr",		Tcomplex,
-	"union",	Tcomplex,
-	"adt",		Tcomplex,
-	"complex",	Tcomplex,
-	"delete",	Tdelete,
-	"whatis",	Twhat,
-	"eval",		Teval,
-	"builtin",	Tbuiltin,
-	0,		0
+	{ "do",		Tdo, },
+	{ "if",		Tif, },
+	{ "then",	Tthen, },
+	{ "else",	Telse, },
+	{ "while",	Twhile, },
+	{ "loop",	Tloop, },
+	{ "head",	Thead, },
+	{ "tail",	Ttail, },
+	{ "append",	Tappend, },
+	{ "defn",	Tfn, },
+	{ "return",	Tret, },
+	{ "local",	Tlocal, },
+	{ "aggr",	Tcomplex, },
+	{ "union",	Tcomplex, },
+	{ "adt",	Tcomplex, },
+	{ "complex",	Tcomplex, },
+	{ "delete",	Tdelete, },
+	{ "whatis",	Twhat, },
+	{ "eval",	Teval, },
+	{ "builtin",	Tbuiltin, },
+	{ 0,		0 },
 };
 
 char cmap[256] =
@@ -126,7 +126,7 @@ pushstr(Node *s)
 		fatal("no memory");
 	io->line = line;
 	line = 1;
-	io->text = strdup(s->string->string);
+	io->text = strdup(s->store.string->string);
 	if(io->text == 0)
 		fatal("no memory");
 	io->ip = io->text;
@@ -581,7 +581,7 @@ enter(char *name, int t)
 	v = gmalloc(sizeof(Value));
 	s->v = v;
 
-	v->fmt = 'X';
+	v->store.fmt = 'X';
 	v->type = TINT;
 	memset(v, 0, sizeof(Value));
 
