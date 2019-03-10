@@ -232,9 +232,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x0390:
 			nv->arch = NV040;
 			break;
-		case 0x0a60:	/* GT218 */
-			nv->arch = NV050;
-			break;
 		default:
 			error("%s: DID %#4.4x - %#x unsupported\n",
 				ctlr->name, nv->did, (nv->did & 0x0ff0));
