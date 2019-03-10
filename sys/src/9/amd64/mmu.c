@@ -470,7 +470,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			*pte |= PtePS;
 			break;
 		default:
-			panic("mmuput: user pages must be 2M or 1G");
+			panic("mmuput: user pages must be 2M or 1G (pgsz:%d)", pgsz);
 		}
 	splx(pl);
 

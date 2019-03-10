@@ -262,10 +262,11 @@ addvgaseg(char *name, uint32_t pa, uint32_t size)
 	Physseg seg;
 
 	memset(&seg, 0, sizeof seg);
-	seg.attr = SG_PHYSICAL;
+	seg.attr = SG_PHYSICAL | SG_READ | SG_WRITE;
 	seg.name = name;
 	seg.pa = pa;
 	seg.size = size;
+	seg.pgszi = -1;		// Default page size
 	addphysseg(&seg);
 }
 

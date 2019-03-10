@@ -55,6 +55,20 @@
 #include "pci.h"
 #include "vga.h"
 
+// Architectures - https://nouveau.freedesktop.org/wiki/CodeNames/
+enum {
+	NV004	= 0x004,	// Fahrenheit
+	NV010	= 0x010,	// Celsius
+	NV020	= 0x020,	// Kelvin
+	NV030	= 0x030,	// Rankine
+	NV040	= 0x040,	// Curie
+	NV050	= 0x050,	// Tesla
+	NV0C0	= 0x0c0,	// Fermi
+	NV0E0	= 0x0e0,	// Kepler
+	NV110	= 0x110,	// Maxwell
+	NV130	= 0x130,	// Pascal
+};
+
 typedef struct Nvidia	Nvidia;
 struct Nvidia {
 	Pcidev*	pci;
@@ -145,6 +159,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->private = alloc(sizeof(Nvidia));
 		nv = vga->private;
 
+		// 10de is the nvidia PCI vendor ID
 		p = nil;
 		while((p = pcimatch(p, 0x10DE, 0)) != nil){
 			if((p->ccru>>8) == 3)
@@ -181,7 +196,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		switch (nv->did & 0x0ff0) {
 		case 0x0020:
 		case 0x00A0:
-			nv->arch = 4;
+			nv->arch = NV004;
 			break;
 		case 0x0100:	/* GeForce 256 */
 		case 0x0110:	/* GeForce2 MX */
@@ -190,19 +205,19 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x0180:	/* GeForce4 MX (8x AGP) */
 		case 0x01A0:	/* nForce */
 		case 0x01F0:	/* nForce2 */
-			nv->arch = 10;
+			nv->arch = NV010;
 			break;
 		case 0x0200:	/* GeForce3 */
 		case 0x0250:	/* GeForce4 Ti */
 		case 0x0280:	/* GeForce4 Ti (8x AGP) */
-			nv->arch = 20;
+			nv->arch = NV020;
 			break;
 		case 0x0300:	/* GeForceFX 5800 */
 		case 0x0310:	/* GeForceFX 5600 */
 		case 0x0320:	/* GeForceFX 5200 */
 		case 0x0330:	/* GeForceFX 5900 */
 		case 0x0340:	/* GeForceFX 5700 */
-			nv->arch = 30;
+			nv->arch = NV030;
 			break;
 		case 0x0040:
 		case 0x0090:
@@ -213,12 +228,15 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x0160:
 		case 0x01D0:
 		case 0x0210:
-		case 0x0290:	/* nvidia 7950 */
+		case 0x0290:	/* GeForce 7950 */
 		case 0x0390:
-			nv->arch = 40;
+			nv->arch = NV040;
+			break;
+		case 0x0a60:	/* GT218 */
+			nv->arch = NV050;
 			break;
 		default:
-			error("%s: DID %#4.4u - %#x unsupported\n",
+			error("%s: DID %#4.4x - %#x unsupported\n",
 				ctlr->name, nv->did, (nv->did & 0x0ff0));
 			break;
 		}
@@ -243,14 +261,14 @@ snarf(Vga* vga, Ctlr* ctlr)
 		if(nv->pextdev[0] & (1 << 22))
 			nv->crystalfreq = 27000000;
 
-	nv->twoheads = (nv->arch >= 10) &&
+	nv->twoheads = (nv->arch >= NV010) &&
 			(implementation != 0x0100) &&
 			(implementation != 0x0150) &&
 			(implementation != 0x01A0) &&
 			(implementation != 0x0200);
 
 	nv->twostagepll = (implementation == 0x0310) ||
-			(implementation == 0x0340) || (nv->arch >= 40);
+			(implementation == 0x0340) || (nv->arch >= NV040);
 
 	if (nv->twoheads && (implementation != 0x0110))
 		if(nv->pextdev[0] & (1 << 22))
@@ -305,7 +323,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		break;
 	}
 
-	if (nv->arch == 4) {
+	if (nv->arch == NV004) {
 		tmp = nv->pfb[0];
 		if (tmp & 0x0100)
 			vga->vmz = ((tmp >> 12) & 0x0F)*1024 + 2*1024;
@@ -366,7 +384,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 	if (nv->pixel & 0x80)
 		nv->islcd = 1;
 
-	if (nv->arch >= 10) {
+	if (nv->arch >= NV010) {
 		if (nv->twoheads) {
 			nv->head = nv->pcrtc[0x0860/4];
 			nv->head2 = nv->pcrtc[0x2860/4];
@@ -494,12 +512,12 @@ init(Vga* vga, Ctlr* ctlr)
 			error("%s: invalid 'lcd' attr\n", ctlr->name);
 	}
 
-	if(nv->arch == 4) {
+	if(nv->arch == NV004) {
 		nv->cursor0 = 0;
 		nv->cursor1 = 0xBC;
 		nv->cursor2 = 0;
 		nv->config = 0x00001114;
-	} else if(nv->arch >= 10) {
+	} else if(nv->arch >= NV010) {
 		cursorstart = vga->vmz - 96 * 1024;
 		nv->cursor0 = 0x80 | (cursorstart >> 17);
 		nv->cursor1 = (cursorstart >> 11) << 2;
@@ -678,9 +696,9 @@ load(Vga* vga, Ctlr* ctlr)
  	nv->ptimer[0x0140] = 0;
  	nv->ptimer[0x0100] = 0xFFFFFFFF;
 
-	if (nv->arch == 4)
+	if (nv->arch == NV004)
 		nv->pfb[0x00000200/4] = nv->config;
-	else if((nv->arch < 40) || ((nv->did & 0xfff0) == 0x0040)){
+	else if((nv->arch < NV040) || ((nv->did & 0xfff0) == 0x0040)){
 		for(i = 0; i < 8; i++){
 			nv->pfb[(0x0240 + (i * 0x10))/4] = 0;
 			nv->pfb[(0x0244 + (i * 0x10))/4] = vga->vmz - 1;;
@@ -701,7 +719,7 @@ load(Vga* vga, Ctlr* ctlr)
 		}
 	}
 
-	if (nv->arch >= 40) {
+	if (nv->arch >= NV040) {
 		nv->pramin[0] = 0x80000010;
 		nv->pramin[0x0001] = 0x00101202;
 		nv->pramin[0x0002] = 0x80000011;
@@ -793,7 +811,7 @@ load(Vga* vga, Ctlr* ctlr)
 		nv->pramin[0x0801] = vga->vmz - 1;
 		nv->pramin[0x0802] = 0x00000002;
 		nv->pramin[0x0803] = 0x00000002;
-		if (nv->arch >= 10)
+		if (nv->arch >= NV010)
 			nv->pramin[0x0804] = 0x01008062;
 		else
 			nv->pramin[0x0804] = 0x01008042;
@@ -833,7 +851,7 @@ load(Vga* vga, Ctlr* ctlr)
 		nv->pramin[0x0826] = (vga->vmz - 128*1024) | 2;
 		nv->pramin[0x0827] = 0x00000002;
 	}
-	if (nv->arch < 10) {
+	if (nv->arch < NV010) {
 		if((nv->did & 0x0fff) == 0x0020) {
 			nv->pramin[0x0824] |= 0x00020000;
 			nv->pramin[0x0826] += nv->pci->mem[1].bar;
@@ -865,7 +883,7 @@ load(Vga* vga, Ctlr* ctlr)
 		nv->pgraph[0x0710/4] &= 0x0007ff00;
 		nv->pgraph[0x0710/4] |= 0x00020100;
 
-		if (nv->arch == 10) {
+		if (nv->arch == NV010) {
 			nv->pgraph[0x0084/4] = 0x00118700;
 			nv->pgraph[0x0088/4] = 0x24E00810;
 			nv->pgraph[0x008C/4] = 0x55DE0030;
@@ -881,7 +899,7 @@ load(Vga* vga, Ctlr* ctlr)
 			nv->pgraph[0x0810/4] = 0;
 			nv->pgraph[0x0608/4] = 0xFFFFFFFF;
 		} else {
-			if (nv->arch >= 40) {
+			if (nv->arch >= NV040) {
 				nv->pgraph[0x0084/4] = 0x401287c0;
 				nv->pgraph[0x008C/4] = 0x60de8051;
 				nv->pgraph[0x0090/4] = 0x00008000;
@@ -947,7 +965,7 @@ load(Vga* vga, Ctlr* ctlr)
 				nv->pgraph[0x0b3c/4] = 0x00006000;
 				nv->pgraph[0x032C/4] = 0x01000000;
 				nv->pgraph[0x0220/4] = 0x00001200;
-			} else if (nv->arch == 30) {
+			} else if (nv->arch == NV030) {
 				nv->pgraph[0x0084/4] = 0x40108700;
 				nv->pgraph[0x0890/4] = 0x00140000;
 				nv->pgraph[0x008C/4] = 0xf00e0431;
@@ -981,7 +999,7 @@ load(Vga* vga, Ctlr* ctlr)
 				}
 			}
 
-			if((nv->arch < 40) || ((nv->did & 0xfff0) == 0x0040)){
+			if((nv->arch < NV040) || ((nv->did & 0xfff0) == 0x0040)){
 				for(i = 0; i < 32; i++) {
 					nv->pgraph[(0x0900/4) + i] = nv->pfb[(0x0240/4) + i];
 					nv->pgraph[(0x6900/4) + i] = nv->pfb[(0x0240/4) + i];
@@ -1008,7 +1026,7 @@ load(Vga* vga, Ctlr* ctlr)
 				}
 			}
 
-			if(nv->arch >= 40) {
+			if(nv->arch >= NV040) {
 				if((nv->did & 0xfff0) == 0x0040) {
 					nv->pgraph[0x09A4/4] = nv->pfb[0x0200/4];
 					nv->pgraph[0x09A8/4] = nv->pfb[0x0204/4];
@@ -1058,13 +1076,13 @@ load(Vga* vga, Ctlr* ctlr)
 	nv->pfifo[0x0141] = 0x00000001;
 	nv->pfifo[0x0480] = 0;
 	nv->pfifo[0x0494] = 0;
-	if (nv->arch >= 40)
+	if (nv->arch >= NV040)
 		nv->pfifo[0x0481] = 0x00010000;
 	else
 		nv->pfifo[0x0481] = 0x00000100;
 	nv->pfifo[0x0490] = 0;
 	nv->pfifo[0x0491] = 0;
-	if (nv->arch >= 40)
+	if (nv->arch >= NV040)
 		nv->pfifo[0x048B] = 0x00001213;
 	else
 		nv->pfifo[0x048B] = 0x00001209;
@@ -1087,7 +1105,7 @@ load(Vga* vga, Ctlr* ctlr)
 	nv->pfifo[0x0495] = 0x00000001;
 	nv->pfifo[0x0140] = 0x00000001;
 
-	if (nv->arch >= 10) {
+	if (nv->arch >= NV010) {
 		if (nv->twoheads) {
 			nv->pcrtc[0x0860/4] = nv->head;
 			nv->pcrtc[0x2860/4] = nv->head2;
@@ -1154,8 +1172,8 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
-	int m, n, p, f;
-	double trouble;
+	int m, n, p, f = 0;
+	double trouble = 0;
 
 	if((nv = vga->private) == 0)
 		return;
@@ -1163,15 +1181,17 @@ dump(Vga* vga, Ctlr* ctlr)
 	p = (nv->vpll >> 16);
 	n = (nv->vpll >> 8) & 0xFF;
 	m = nv->vpll & 0xFF;
-	trouble = nv->crystalfreq;
-	trouble = trouble * n / (m<<p);
-	f = trouble+0.5;
+	if (m<<p != 0) {
+		trouble = nv->crystalfreq;
+		trouble = trouble * n / (m<<p);
+		f = trouble+0.5;
+	} 
 	printitem(ctlr->name, "dclk m n p");
 	Bprint(&stdout, " %d %d - %d %d\n", f, m, n, p);
 	printitem(ctlr->name, "CrystalFreq");
 	Bprint(&stdout, " %d Hz\n", nv->crystalfreq);
 	printitem(ctlr->name, "arch");
-	Bprint(&stdout, " %d\n", nv->arch);
+	Bprint(&stdout, " %.3x\n", nv->arch);
 	printitem(ctlr->name, "did");
 	Bprint(&stdout, " %.4x\n", nv->did);
 	printitem(ctlr->name, "repaint0");
