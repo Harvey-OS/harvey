@@ -25,10 +25,8 @@ struct machtab
 	Machdata	*machdata;		/* machine functions */
 };
 
-extern	Mach		mmips, msparc, m68020, mi386, mamd64,
-			marm, mmips2be, mmips2le, mpower, mpower64, malpha, msparc64;
-extern	Machdata	mipsmach, mipsmachle, sparcmach, m68020mach, i386mach,
-			armmach, mipsmach2le, powermach, alphamach, sparc64mach;
+extern	Mach		mamd64;
+extern	Machdata	i386mach;
 
 /*
  *	machine selection table.  machines with native disassemblers should
