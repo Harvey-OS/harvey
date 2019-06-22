@@ -203,7 +203,7 @@ newproc(Node *r, Node *args)
 	char *argv[Maxarg], buf[Strsize];
 
 	i = 1;
-	argv[0] = aout;
+	argv[0] = exe;
 
 	if(args) {
 		expr(args, &res);
