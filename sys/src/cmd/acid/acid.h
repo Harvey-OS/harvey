@@ -52,7 +52,7 @@ Extern Map*	symmap;
 Extern Lsym*	hash[Hashsize];
 Extern long	dogc;
 Extern Rplace*	ret;
-Extern char*	aout;
+Extern char*	exe;
 Extern int	gotint;
 Extern Gc*	gcl;
 Extern int	stacked;

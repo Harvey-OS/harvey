@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 
 	argv0 = argv[0];
 	pid = 0;
-	aout = "8.out";
+	exe = "8.out";
 	quiet = 1;
 
 	mtype = 0;
@@ -80,27 +80,27 @@ main(int argc, char *argv[])
 
 	if(argc > 0) {
 		if(remote)
-			aout = argv[0];
+			exe = argv[0];
 		else
 		if(isnumeric(argv[0])) {
 			pid = strtol(argv[0], 0, 0);
 			snprint(prog, sizeof(prog), "/proc/%d/text", pid);
-			aout = prog;
+			exe = prog;
 			if(argc > 1)
-				aout = argv[1];
+				exe = argv[1];
 			else if(kernel)
-				aout = system();
+				exe = system();
 		}
 		else {
 			if(kernel) {
 				fprint(2, "acid: -k requires a pid\n");
 				usage();
 			}
-			aout = argv[0];
+			exe = argv[0];
 		}
 	} else
 	if(remote)
-		aout = "/mips/9ch";
+		exe = "/mips/9ch";
 
 	fmtinstall('x', xfmt);
 	fmtinstall('L', Lfmt);
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 	if(mtype && machbyname(mtype) == 0)
 		print("unknown machine %s", mtype);
 
-	if (attachfiles(aout, pid) < 0)
+	if (attachfiles(exe, pid) < 0)
 		varreg();		/* use default register set on error */
 
 	loadmodule("/sys/lib/acid/port");
@@ -168,21 +168,21 @@ main(int argc, char *argv[])
 }
 
 static int
-attachfiles(char *aout, int pid)
+attachfiles(char *exe, int pid)
 {
 	interactive = 0;
 	if(setjmp(err))
 		return -1;
 
-	if(aout) {				/* executable given */
+	if(exe) {				/* executable given */
 		if(wtflag)
-			text = open(aout, ORDWR);
+			text = open(exe, ORDWR);
 		else
-			text = open(aout, OREAD);
+			text = open(exe, OREAD);
 
 		if(text < 0)
-			error("%s: can't open %s: %r\n", argv0, aout);
-		readtext(aout);
+			error("%s: can't open %s: %r\n", argv0, exe);
+		readtext(exe);
 	}
 	if(pid)					/* pid given */
 		sproc(pid);
