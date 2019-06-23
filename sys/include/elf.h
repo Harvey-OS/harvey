@@ -28,14 +28,14 @@ typedef struct {
 } E64hdr;
 
 typedef struct {
-	int	type;		/* entry type */
+	int		type;		/* entry type */
 	uint32_t	offset;		/* file offset */
 	uint32_t	vaddr;		/* virtual address */
 	uint32_t	paddr;		/* physical address */
-	int	filesz;		/* file size */
+	int		filesz;		/* file size */
 	uint32_t	memsz;		/* memory size */
-	int	flags;		/* entry flags */
-	int	align;		/* memory/file alignment */
+	int		flags;		/* entry flags */
+	int		align;		/* memory/file alignment */
 } Phdr;
 
 typedef struct {
