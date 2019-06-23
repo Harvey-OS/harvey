@@ -32,38 +32,38 @@ struct hist {				/* Stack of include files & #line directives */
 };
 
 struct file {				/* Per input file header to history stack */
-	uint64_t	addr;			/* address of first text sym */
+	uint64_t	addr;		/* address of first text sym */
 	union {
 		Txtsym	*txt;		/* first text symbol */
 		Sym	*sym;		/* only during initilization */
 	};
-	int	n;			/* size of history stack */
-	Hist	*hist;			/* history stack */
+	int		n;		/* size of history stack */
+	Hist		*hist;		/* history stack */
 };
 
-static	int	debug = 0;
+static	int		debug = 0;
 
-static	Sym	**autos;		/* Base of auto variables */
-static	File	*files;			/* Base of file arena */
-static	int	fmax;			/* largest file path index */
-static	Sym	**fnames;		/* file names path component table */
-static	Sym	**globals;		/* globals by addr table */
-static	Hist	*hist;			/* base of history stack */
-static	int	isbuilt;		/* internal table init flag */
-static	int32_t	nauto;			/* number of automatics */
-static	int32_t	nfiles;			/* number of files */
-static	int32_t	nglob;			/* number of globals */
-static	int32_t	nhist;			/* number of history stack entries */
-static	int32_t	nsym;			/* number of symbols */
-static	int	ntxt;			/* number of text symbols */
-static	uint8_t	*pcline;		/* start of pc-line state table */
-static	uint8_t 	*pclineend;		/* end of pc-line table */
-static	uint8_t	*spoff;			/* start of pc-sp state table */
-static	uint8_t	*spoffend;		/* end of pc-sp offset table */
-static	Sym	*symbols;		/* symbol table */
-static	Txtsym	*txt;			/* Base of text symbol table */
-static	uint64_t	txtstart;		/* start of text segment */
-static	uint64_t	txtend;			/* end of text segment */
+static	Sym		**autos;	/* Base of auto variables */
+static	File		*files;		/* Base of file arena */
+static	int		fmax;		/* largest file path index */
+static	Sym		**fnames;	/* file names path component table */
+static	Sym		**globals;	/* globals by addr table */
+static	Hist		*hist;		/* base of history stack */
+static	int		isbuilt;	/* internal table init flag */
+static	int32_t		nauto;		/* number of automatics */
+static	int32_t		nfiles;		/* number of files */
+static	int32_t		nglob;		/* number of globals */
+static	int32_t		nhist;		/* number of history stack entries */
+static	int32_t		nsym;		/* number of symbols */
+static	int		ntxt;		/* number of text symbols */
+static	uint8_t		*pcline;	/* start of pc-line state table */
+static	uint8_t 	*pclineend;	/* end of pc-line table */
+static	uint8_t		*spoff;		/* start of pc-sp state table */
+static	uint8_t		*spoffend;	/* end of pc-sp offset table */
+static	Sym		*symbols;	/* symbol table */
+static	Txtsym		*txt;		/* Base of text symbol table */
+static	uint64_t	txtstart;	/* start of text segment */
+static	uint64_t	txtend;		/* end of text segment */
 
 static void	cleansyms(void);
 static int32_t	decodename(Biobuf*, Sym*);
