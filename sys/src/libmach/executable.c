@@ -290,7 +290,7 @@ static int
 elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
 	/* bitswap the header according to the DATA format */
-	E64hdr ep = &hp->e.E64hdr;
+	E64hdr *ep = &hp->e.E64hdr;
 	if(ep->ident[CLASS] == ELFCLASS64)
 		return elf64dotout(fd, fp, hp);
 
