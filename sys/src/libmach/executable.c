@@ -38,10 +38,8 @@ typedef struct {
 
 static	int	elfdotout(int, Fhdr*, ExecHdr*);
 static	void	setsym(Fhdr*, int32_t, int32_t, int32_t, int64_t);
-static	void	setdata(Fhdr*, uint64_t, int32_t, int64_t,
-				  int32_t);
-static	void	settext(Fhdr*, uint64_t, uint64_t, int32_t,
-				  int64_t);
+static	void	setdata(Fhdr*, uint64_t, int32_t, int64_t, int32_t);
+static	void	settext(Fhdr*, uint64_t, uint64_t, int32_t, int64_t);
 static	void	hswal(void*, int, uint32_t(*)(uint32_t));
 
 /*
@@ -49,15 +47,15 @@ static	void	hswal(void*, int, uint32_t(*)(uint32_t));
  */
 
 typedef struct Exectable{
-	int32_t	magic;			/* big-endian magic number of file */
-	char	*name;			/* executable identifier */
-	char	*dlmname;		/* dynamically loadable module identifier */
-	uint8_t	type;			/* Internal code */
-	uint8_t	_magic;			/* _MAGIC() magic */
-	Mach	*mach;			/* Per-machine data */
-	int32_t	hsize;			/* header size */
-	uint32_t	(*swal)(uint32_t);		/* beswal or leswal */
-	int	(*hparse)(int, Fhdr*, ExecHdr*);
+	int32_t		magic;			/* big-endian magic number of file */
+	char		*name;			/* executable identifier */
+	char		*dlmname;		/* dynamically loadable module identifier */
+	uint8_t		type;			/* Internal code */
+	uint8_t		_magic;			/* _MAGIC() magic */
+	Mach		*mach;			/* Per-machine data */
+	int32_t		hsize;			/* header size */
+	uint32_t	(*swal)(uint32_t);	/* beswal or leswal */
+	int		(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
 extern	Mach	mamd64;
@@ -231,10 +229,6 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		fp->type = FAMD64;
 		fp->name = "amd64 ELF64 executable";
 		break;
-	case POWER64:
-		fp->type = FPOWER64;
-		fp->name = "power64 ELF64 executable";
-		break;
 	}
 
 	if(ep->phentsize != sizeof(P64hdr)) {
@@ -295,18 +289,11 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-//	Ehdr *ep;
-	E64hdr *ep;
-
 	/* bitswap the header according to the DATA format */
-	ep = &hp->e.E64hdr;
-//	if(ep->ident[CLASS] == ELFCLASS32)
-//		return elf32dotout(fd, fp, hp);
-//	else if(ep->ident[CLASS] == ELFCLASS64)
+	E64hdr ep = &hp->e.E64hdr;
 	if(ep->ident[CLASS] == ELFCLASS64)
 		return elf64dotout(fd, fp, hp);
 
-//	werrstr("bad ELF class - not 32- nor 64-bit");
 	werrstr("bad ELF class - not 64-bit");
 	return 0;
 }
@@ -340,3 +327,4 @@ setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz,
 	fp->lnpcsz = lnpcsz;
 	fp->lnpcoff = fp->sppcoff+fp->sppcsz;
 }
+ 
