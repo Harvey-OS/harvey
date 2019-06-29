@@ -7,6 +7,8 @@
  * in the LICENSE file.
  */
 
+// TODO rename
+
 typedef	struct	Exec	Exec;
 struct	Exec
 {
@@ -50,7 +52,9 @@ typedef	struct	Sym	Sym;
 struct	Sym
 {
 	int64_t	value;
-	uint	sig;
+	//uint	sig;
 	char	type;
 	char	*name;
+	uint8_t	binding;
+	uint8_t	symtype;
 };

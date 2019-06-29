@@ -75,6 +75,15 @@ typedef struct {
 	uint64_t	entsize;	/* entry size if table */
 } S64hdr;
 
+typedef struct {
+	uint32_t	st_name;	/* Symbol name */
+	uint8_t		st_info;	/* Type and Binding attributes */
+	uint8_t		st_other;	/* Reserved */
+	uint16_t	st_shndx;	/* Section table index */
+	uint64_t	st_value;	/* Symbol value */
+	uint64_t	st_size;	/* Size of object (e.g., common) */
+} E64Sym;
+
 enum {
 	/* Ehdr codes */
 	MAG0 = 0,		/* ident[] indexes */
@@ -136,13 +145,32 @@ enum {
 	X = 0x1,
 
 	/* Shdr Codes */
-	Progbits = 1,	/* section types */
+	Progbits = 1,		/* section types */
+	Symtab = 2,
 	Strtab = 3,
 	Nobits = 8,
 
-	Swrite = 1,	/* section attributes */
+	Swrite = 1,		/* section attributes */
 	Salloc = 2,
 	Sexec = 4,
+
+	STB_LOCAL = 0,		/* Symbol bindings */
+	STB_GLOBAL = 1,
+	STB_WEAK = 2,
+	STB_LOOS = 10,
+	STB_HIOS = 12,
+	STB_LOPROC = 13,
+	STB_HIPROC = 15,
+
+	STT_NOTYPE = 0, 	/* Symbol types */
+	STT_OBJECT = 1,
+	STT_FUNC = 2,
+	STT_SECTION = 3,
+	STT_FILE = 4,
+	STT_LOOS = 10,
+	STT_HIOS = 12,
+	STT_LOPROC = 13,
+	STT_HIPROC = 15,
 };
 
 #define	ELF_MAG		((0x7f<<24) | ('E'<<16) | ('L'<<8) | 'F')
