@@ -187,7 +187,7 @@ objlookup(int id, char *name, int type, uint sig)
 	s = names[id];
 	if(s && strcmp(s->name, name) == 0) {
 		s->type = type;
-		s->sig = sig;
+		//s->sig = sig;
 		return;
 	}
 
@@ -232,7 +232,7 @@ objlookup(int id, char *name, int type, uint sig)
 	sp = malloc(sizeof(Symtab));
 	sp->s.name = name;
 	sp->s.type = type;
-	sp->s.sig = sig;
+	//sp->s.sig = sig;
 	sp->s.value = islocal(type) ? MAXOFF : 0;
 	names[id] = &sp->s;
 	sp->next = hash[h];

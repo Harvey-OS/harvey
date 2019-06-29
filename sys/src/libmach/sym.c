@@ -11,6 +11,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
+#include <elf.h>
 
 #define	HUGEINT	0x7fffffff
 #define	NNAME	20		/* a relic of the past */
@@ -61,12 +62,13 @@ static	uint8_t 	*pclineend;	/* end of pc-line table */
 static	uint8_t		*spoff;		/* start of pc-sp state table */
 static	uint8_t		*spoffend;	/* end of pc-sp offset table */
 static	Sym		*symbols;	/* symbol table */
+static	char		*strings;	/* string table */
 static	Txtsym		*txt;		/* Base of text symbol table */
 static	uint64_t	txtstart;	/* start of text segment */
 static	uint64_t	txtend;		/* end of text segment */
 
 static void	cleansyms(void);
-static int32_t	decodename(Biobuf*, Sym*);
+//static int32_t	decodename(Biobuf*, Sym*);
 static int16_t	*encfname(char*);
 static int 	fline(char*, int, int32_t, Hist*, Hist**);
 static void	fillsym(Sym*, Symbol*);
@@ -78,7 +80,7 @@ static int	hline(File*, int16_t*, int32_t*);
 static void	printhist(char*, Hist*, int);
 static int	buildtbls(void);
 static int	symcomp(const void*, const void*);
-static int	symerrmsg(int, char*);
+//static int	symerrmsg(int, char*);
 static int	txtcomp(const void*, const void*);
 static int	filecomp(const void*, const void*);
 
@@ -88,11 +90,13 @@ static int	filecomp(const void*, const void*);
 int
 syminit(int fd, Fhdr *fp)
 {
-	Sym *p;
-	int32_t i, l, size;
-	int64_t vl;
-	Biobuf b;
-	int svalsz;
+	//Sym *p;
+	//int32_t i, l, size;
+	//int64_t vl;
+
+	uint16_t (*swab)(uint16_t) = fp->bigendian ? beswab : leswab;
+	uint32_t (*swal)(uint32_t) = fp->bigendian ? beswal : leswal;
+	uint64_t (*swav)(uint64_t) = fp->bigendian ? beswav : leswav;
 
 	if(fp->symsz == 0)
 		return 0;
@@ -101,20 +105,92 @@ syminit(int fd, Fhdr *fp)
 
 	cleansyms();
 	textseg(fp->txtaddr, fp);
-		/* minimum symbol record size = 4+1+2 bytes */
-	symbols = malloc((fp->symsz/(4+1+2)+1)*sizeof(Sym));
+	
+	nsym = fp->symsz / sizeof(E64Sym);
+
+	symbols = mallocz(nsym*sizeof(Sym), 1);
 	if(symbols == 0) {
-		werrstr("can't malloc %ld bytes", fp->symsz);
+		werrstr("can't allocate memory for symbol table");
 		return -1;
 	}
+
+	strings = malloc(fp->strsz);
+	if(strings == 0) {
+		werrstr("can't allocate memory to load string table");
+		return -1;
+	}
+
+	E64Sym *esyms = malloc(fp->symsz);
+	if(esyms == 0) {
+		werrstr("can't allocate memory to load symbol table");
+		free(esyms);
+		return -1;
+	}
+
+	Biobuf b;
 	Binit(&b, fd, OREAD);
 	Bseek(&b, fp->symoff, 0);
-	nsym = 0;
-	size = 0;
+	print("sizeof esyms: %d\n", fp->symsz);
+	if (Bread(&b, esyms, fp->symsz) != fp->symsz) {
+		werrstr("can't read symbol table");
+		free(esyms);
+		return -1;
+	}
+
+	print("stroff %p sizeof strings: %d\n", fp->stroff, fp->strsz);
+	Bseek(&b, fp->stroff, 0);
+	if (Bread(&b, strings, fp->strsz) != fp->strsz) {
+		werrstr("can't read string table");
+		free(esyms);
+		return -1;
+	}
+
+	print("symsz: %d, numsyms: %d strings: %p\n", fp->symsz, nsym, strings);
+
+	for (int i = 0; i < nsym; i++) {
+		esyms[i].st_name = swal(esyms[i].st_name);
+		esyms[i].st_shndx = swab(esyms[i].st_shndx);
+		esyms[i].st_value = swav(esyms[i].st_value);
+		esyms[i].st_size = swav(esyms[i].st_size);
+	}
+
+	for (int i = 0; i < nsym; i++) {
+		//print("i: %d val: %llx size: %d type: %d ndx: %d name %p\n", i, esyms[i].st_value, esyms[i].st_size, esyms[i].st_info, esyms[i].st_shndx, esyms[i].st_name);
+		if (esyms[i].st_name) {
+			symbols[i].name = &strings[esyms[i].st_name];
+		}
+		symbols[i].value = esyms[i].st_value;
+
+		symbols[i].binding = esyms[i].st_info >> 4;
+		symbols[i].symtype = esyms[i].st_info & 0xf;
+
+		print("%05d %010lld type %d binding %d %s\n", i, symbols[i].value, symbols[i].symtype, symbols[i].binding, symbols[i].name);
+
+		if (symbols[i].symtype == STT_FILE) {
+			nfiles++;
+		} else if (symbols[i].symtype == STT_FUNC) {
+			if (symbols[i].binding == STB_GLOBAL) {
+				nglob++;
+			} else if (symbols[i].binding == STB_LOCAL) {
+				nauto++;
+			}
+		} else if (symbols[i].symtype == STT_OBJECT) {
+			// Don't see objects handled by acid yet...
+		}
+
+		// TODO fmax?
+		// TODO nhist?
+	}
+
+	free(esyms);
+
+#if 0
+	int svalsz;
 	if((fp->_magic && (fp->magic & HDR_MAGIC)) || mach->szaddr == 8)
 		svalsz = 8;
 	else
 		svalsz = 4;
+
 	for(p = symbols; size < fp->symsz; p++, nsym++) {
 		if(svalsz == 8){
 			if(Bread(&b, &vl, 8) != 8)
@@ -200,9 +276,11 @@ syminit(int fd, Fhdr *fp)
 		}
 		pclineend = pcline+fp->lnpcsz;
 	}
+#endif // 0
 	return nsym;
 }
 
+#if 0
 static int
 symerrmsg(int n, char *table)
 {
@@ -274,7 +352,7 @@ decodename(Biobuf *bp, Sym *p)
 	}
 	return n;
 }
-
+#endif // 0
 /*
  *	free any previously loaded symbol tables
  */
@@ -310,6 +388,9 @@ cleansyms(void)
 	if(symbols)
 		free(symbols);
 	symbols = 0;
+	if(strings)
+		free(strings);
+	strings = 0;
 	nsym = 0;
 	if(spoff)
 		free(spoff);

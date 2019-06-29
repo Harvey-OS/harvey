@@ -231,7 +231,7 @@ struct	Machdata {		/* Machine-dependent debugger support */
 };
 
 /*
- *	Common a.out header describing all architectures
+ *	Common executable header describing all architectures
  */
 typedef struct Fhdr
 {
@@ -255,6 +255,12 @@ typedef struct Fhdr
 	int32_t		symsz;		/* size of symbol table */
 	int32_t		sppcsz;		/* size of sp-pc table */
 	int32_t		lnpcsz;		/* size of line number-pc table */
+
+	// TODO work out which of the above are no longer useful
+	// and which should be uint64
+	int8_t		bigendian;	/* big endian or not */
+	uint64_t	stroff;		/* strtab offset in file */
+	uint64_t	strsz;		/* size of strtab seg */
 } Fhdr;
 
 extern	int	asstype;	/* dissembler type - machdata.c */
