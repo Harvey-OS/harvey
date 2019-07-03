@@ -11,6 +11,7 @@
  *	Architecture-dependent application data
  */
 #include "a.out.h"
+//#include "elf.h"
 /*
  *	Supported architectures:
  *		mips,
@@ -238,7 +239,6 @@ typedef struct Fhdr
 	char		*name;		/* identifier of executable */
 	uint8_t		type;		/* file type - see codes above */
 	uint8_t		hdrsz;		/* header size */
-	uint8_t		_magic;		/* _MAGIC() magic */
 	uint8_t		spare;
 	int32_t		magic;		/* magic number */
 	uint64_t	txtaddr;	/* text address */

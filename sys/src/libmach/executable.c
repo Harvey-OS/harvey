@@ -52,7 +52,6 @@ typedef struct Exectable{
 	char		*name;			/* executable identifier */
 	char		*dlmname;		/* dynamically loadable module identifier */
 	uint8_t		type;			/* Internal code */
-	uint8_t		_magic;			/* _MAGIC() magic */
 	Mach		*mach;			/* Per-machine data */
 	int32_t		hsize;			/* header size */
 	uint32_t	(*swal)(uint32_t);	/* beswal or leswal */
@@ -67,9 +66,6 @@ ExecTable exectab[] =
 		"elf executable",
 		nil,
 		FNONE,
-		0,
-/*		&mi386,
-		sizeof(Ehdr), */
 		&mamd64,
 		sizeof(E64hdr),
 		nil,
@@ -78,28 +74,6 @@ ExecTable exectab[] =
 };
 
 Mach	*mach = &mamd64;
-
-static ExecTable*
-couldbe4k(ExecTable *mp)
-{
-//	Dir *d;
-	ExecTable *f;
-
-/* undefined for use with kernel
-	if((d=dirstat("/proc/1/regs")) == nil)
-		return mp;
-	if(d->length < 32*8){		/ * R3000 * /
-		free(d);
-		return mp;
-	}
-	free(d); */
-	for (f = exectab; f->magic; f++)
-		if(f->magic == M_MAGIC) {
-			f->name = "mips plan 9 executable on mips2 kernel";
-			return f;
-		}
-	return mp;
-}
 
 int
 crackhdr(int fd, Fhdr *fp)
@@ -120,36 +94,12 @@ crackhdr(int fd, Fhdr *fp)
 		if (nb < mp->hsize)
 			continue;
 
-		/*
-		 * The magic number has morphed into something
-		 * with fields (the straw was DYN_MAGIC) so now
-		 * a flag is needed in Fhdr to distinguish _MAGIC()
-		 * magic numbers from foreign magic numbers.
-		 *
-		 * This code is creaking a bit and if it has to
-		 * be modified/extended much more it's probably
-		 * time to step back and redo it all.
-		 */
-		if(mp->_magic){
-			if(mp->magic != (magic & ~DYN_MAGIC))
-				continue;
+		if(mp->magic != magic)
+			continue;
 
-			if(mp->magic == V_MAGIC)
-				mp = couldbe4k(mp);
-
-			if ((magic & DYN_MAGIC) && mp->dlmname != nil)
-				fp->name = mp->dlmname;
-			else
-				fp->name = mp->name;
-		}
-		else{
-			if(mp->magic != magic)
-				continue;
-			fp->name = mp->name;
-		}
+		fp->name = mp->name;
 		fp->type = mp->type;
 		fp->hdrsz = mp->hsize;		/* will be zero on bootables */
-		fp->_magic = mp->_magic;
 		fp->magic = magic;
 
 		mach = mp->mach;
