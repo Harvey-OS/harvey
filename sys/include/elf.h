@@ -84,6 +84,16 @@ typedef struct {
 	uint64_t	st_size;	/* Size of object (e.g., common) */
 } E64Sym;
 
+
+typedef struct Sym {
+	int64_t	value;
+	char	*name;
+	uint8_t	binding;
+	uint8_t	symtype;
+	uint	sig;
+	char	type;
+} Sym;
+
 enum {
 	/* Ehdr codes */
 	MAG0 = 0,		/* ident[] indexes */
@@ -145,10 +155,10 @@ enum {
 	X = 0x1,
 
 	/* Shdr Codes */
-	Progbits = 1,		/* section types */
-	Symtab = 2,
-	Strtab = 3,
-	Nobits = 8,
+	SHT_PROGBITS = 1,	/* section types */
+	SHT_SYMTAB = 2,
+	SHT_STRTAB = 3,
+	SHT_NOBITS = 8,
 
 	Swrite = 1,		/* section attributes */
 	Salloc = 2,

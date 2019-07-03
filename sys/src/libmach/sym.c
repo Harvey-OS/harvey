@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#include <elf.h>
+//#include <elf.h>
 
 #define	HUGEINT	0x7fffffff
 #define	NNAME	20		/* a relic of the past */

@@ -10,8 +10,8 @@
 /*
  *	Architecture-dependent application data
  */
-#include "a.out.h"
-//#include "elf.h"
+//#include "a.out.h"
+#include "elf.h"
 /*
  *	Supported architectures:
  *		mips,
