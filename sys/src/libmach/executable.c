@@ -11,7 +11,7 @@
 #include	<libc.h>
 #include	<bio.h>
 #include	<mach.h>
-#include	"elf.h"
+//#include	"elf.h"
 
 /*
  *	All a.out header types.  The dummy entry allows canonical
@@ -257,12 +257,12 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 
 	int isym = -1, istr = -1;
 	for (int i = 0; i < ep->shnum; i++) {
-		if (sh[i].type == Symtab && isym == -1) {
+		if (sh[i].type == SHT_SYMTAB && isym == -1) {
 			// Assume the first is the one we want for now
 			// There may be more than one if it's dynamic, but we
 			// don't support than, so hopefully this is ok for now
 			isym = i;
-		} else if (sh[i].type == Strtab && istr == -1) {
+		} else if (sh[i].type == SHT_STRTAB && istr == -1) {
 			// Assume first is the one we want for now, but we
 			// should probably check that the name is '.strtab' to
 			// distinguish from .shstrtab.
