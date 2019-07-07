@@ -1011,10 +1011,10 @@ patom(uint8_t type, Store *res)
 		Bprint(bout, "%.2x", (int)res->ival&0xff);
 		break;
 	case 'X':
-		Bprint(bout, "%.8lux", (uint32_t)res->ival);
+		Bprint(bout, "%.8lx", (uint32_t)res->ival);
 		break;
 	case 'x':
-		Bprint(bout, "%.4lux", (uint32_t)res->ival&0xffff);
+		Bprint(bout, "%.4lx", (uint32_t)res->ival&0xffff);
 		break;
 	case 'D':
 		Bprint(bout, "%d", (int)res->ival);
@@ -1035,10 +1035,10 @@ patom(uint8_t type, Store *res)
 		Bprint(bout, "%lld", res->ival);
 		break;
 	case 'W':
-		Bprint(bout, "%.8llux", res->ival);
+		Bprint(bout, "%.8llx", res->ival);
 		break;
 	case 'Y':
-		Bprint(bout, "%.16llux", res->ival);
+		Bprint(bout, "%.16llx", res->ival);
 		break;
 	case 'o':
 		Bprint(bout, "0%.11o", (int)res->ival&0xffff);

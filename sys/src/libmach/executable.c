@@ -11,7 +11,6 @@
 #include	<libc.h>
 #include	<bio.h>
 #include	<mach.h>
-//#include	"elf.h"
 
 /*
  *	All a.out header types.  The dummy entry allows canonical
@@ -41,6 +40,7 @@ static void	setsym(Fhdr*, int32_t, int32_t, int32_t, int64_t);
 static void	setdata(Fhdr*, uint64_t, int32_t, int64_t, int32_t);
 static void	settext(Fhdr*, uint64_t, uint64_t, int32_t, int64_t);
 static void	setstr(Fhdr *fp, int64_t stroff, uint64_t strsz);
+static void	setbssidx(Fhdr *fp, uint16_t bssidx);
 static void	hswal(void*, int, uint32_t(*)(uint32_t));
 
 /*
@@ -255,7 +255,7 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		sh[i].entsize = swav(sh[i].entsize);
 	}
 
-	int isym = -1, istr = -1;
+	int isym = -1, istr = -1, ibss = -1;
 	for (int i = 0; i < ep->shnum; i++) {
 		if (sh[i].type == SHT_SYMTAB && isym == -1) {
 			// Assume the first is the one we want for now
@@ -267,18 +267,24 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 			// should probably check that the name is '.strtab' to
 			// distinguish from .shstrtab.
 			istr = i;
-			break;
+		} else if (sh[i].type == SHT_NOBITS && ibss == -1) {
+			ibss = i;
 		}
 	}
 
 	if (isym != -1) {
-		print("isym: %d\n", isym);
+		//print("isym: %d\n", isym);
 		setsym(fp, sh[isym].size, 0, sh[isym].size, sh[isym].offset);
 	}
 
 	if (istr != -1) {
-		print("istr: %d\n", istr);
+		//print("istr: %d\n", istr);
 		setstr(fp, sh[istr].offset, sh[istr].size);
+	}
+
+	if (ibss != -1) {
+		//print("ibss: %d\n", ibss);
+		setbssidx(fp, ibss);
 	}
 
 	free(sh);
@@ -335,4 +341,10 @@ setstr(Fhdr *fp, int64_t stroff, uint64_t strsz)
 {
 	fp->stroff = stroff;
 	fp->strsz = strsz;
+}
+
+static void
+setbssidx(Fhdr *fp, uint16_t bssidx)
+{
+	fp->bssidx = bssidx;
 }
