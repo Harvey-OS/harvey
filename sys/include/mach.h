@@ -10,7 +10,6 @@
 /*
  *	Architecture-dependent application data
  */
-//#include "a.out.h"
 #include "elf.h"
 /*
  *	Supported architectures:
@@ -261,6 +260,7 @@ typedef struct Fhdr
 	int8_t		bigendian;	/* big endian or not */
 	uint64_t	stroff;		/* strtab offset in file */
 	uint64_t	strsz;		/* size of strtab seg */
+	uint16_t	bssidx;		/* index of bss section */	
 } Fhdr;
 
 extern	int	asstype;	/* dissembler type - machdata.c */

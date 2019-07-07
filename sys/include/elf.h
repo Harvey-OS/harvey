@@ -86,12 +86,10 @@ typedef struct {
 
 
 typedef struct Sym {
-	int64_t	value;
-	char	*name;
-	uint8_t	binding;
-	uint8_t	symtype;
-	uint	sig;
-	char	type;
+	int64_t		value;
+	uint		sig;
+	char		type;
+	char		*name;
 } Sym;
 
 enum {

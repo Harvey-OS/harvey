@@ -11,6 +11,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
+#include <a.out.h>
 
 void
 error(char* fmt, ...)

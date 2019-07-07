@@ -11,6 +11,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
+#include <a.out.h>
 #include <ctype.h>
 
 static	int	rtrace(uint64_t, uint64_t, uint64_t);

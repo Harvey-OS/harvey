@@ -11,7 +11,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-//#include <elf.h>
 
 #define	HUGEINT	0x7fffffff
 #define	NNAME	20		/* a relic of the past */
@@ -154,64 +153,45 @@ syminit(int fd, Fhdr *fp)
 		esyms[i].st_size = swav(esyms[i].st_size);
 	}
 
-	for (int i = 0; i < nsym; i++) {
+	// Skip first null symbol
+	for (int i = 1; i < nsym; i++) {
 		//print("i: %d val: %llx size: %d type: %d ndx: %d name %p\n", i, esyms[i].st_value, esyms[i].st_size, esyms[i].st_info, esyms[i].st_shndx, esyms[i].st_name);
 		if (esyms[i].st_name) {
 			symbols[i].name = &strings[esyms[i].st_name];
 		}
 		symbols[i].value = esyms[i].st_value;
 
-		symbols[i].binding = esyms[i].st_info >> 4;
-		symbols[i].symtype = esyms[i].st_info & 0xf;
+		uint8_t binding = esyms[i].st_info >> 4;
+		uint8_t symtype = esyms[i].st_info & 0xf;
+		uint16_t sectionidx = esyms[i].st_shndx;
 
-		print("%05d %010lld type %d binding %d %s\n", i, symbols[i].value, symbols[i].symtype, symbols[i].binding, symbols[i].name);
-
-		if (symbols[i].symtype == STT_FILE) {
-			nfiles++;
-		} else if (symbols[i].symtype == STT_FUNC) {
-			if (symbols[i].binding == STB_GLOBAL) {
-				nglob++;
-			} else if (symbols[i].binding == STB_LOCAL) {
-				nauto++;
+		// Try to translate ELF binding, symbol type information into
+		// old skool a.out symbol type chars.
+		switch (symtype) {
+		case STT_NOTYPE:
+			symbols[i].type = (binding == STB_GLOBAL) ? 'T' : 't';
+			break;
+		case STT_OBJECT:
+			if (sectionidx == fp->bssidx) {
+				symbols[i].type = (binding == STB_GLOBAL) ? 'B' : 'b';
+			} else {
+				symbols[i].type = (binding == STB_GLOBAL) ? 'D' : 'd';
 			}
-		} else if (symbols[i].symtype == STT_OBJECT) {
-			// Don't see objects handled by acid yet...
+			break;
+		case STT_FUNC:
+			symbols[i].type = (binding == STB_GLOBAL) ? 'T' : 't';
+			break;
+		case STT_SECTION:
+			break;
+		case STT_FILE:
+			symbols[i].type = 'z';
+			break;
+		default:
+			break;
 		}
-
-		// TODO fmax?
-		// TODO nhist?
-	}
-
-	free(esyms);
-
-#if 0
-	int svalsz;
-	if((fp->_magic && (fp->magic & HDR_MAGIC)) || mach->szaddr == 8)
-		svalsz = 8;
-	else
-		svalsz = 4;
-
-	for(p = symbols; size < fp->symsz; p++, nsym++) {
-		if(svalsz == 8){
-			if(Bread(&b, &vl, 8) != 8)
-				return symerrmsg(8, "symbol");
-			p->value = beswav(vl);
-		}
-		else{
-			if(Bread(&b, &l, 4) != 4)
-				return symerrmsg(4, "symbol");
-			p->value = (uint32_t)beswal(l);
-		}
-		if(Bread(&b, &p->type, sizeof(p->type)) != sizeof(p->type))
-			return symerrmsg(sizeof(p->value), "symbol");
-
-		i = decodename(&b, p);
-		if(i < 0)
-			return -1;
-		size += i+svalsz+sizeof(p->type);
 
 		/* count global & auto vars, text symbols, and file names */
-		switch (p->type) {
+		switch (symbols[i].type) {
 		case 'l':
 		case 'L':
 		case 't':
@@ -225,12 +205,13 @@ syminit(int fd, Fhdr *fp)
 			nglob++;
 			break;
 		case 'f':
-			if(strcmp(p->name, ".frame") == 0) {
-				p->type = 'm';
+			// TODO valid?
+			if(strcmp(symbols[i].name, ".frame") == 0) {
+				symbols[i].type = 'm';
 				nauto++;
 			}
-			else if(p->value > fmax)
-				fmax = p->value;	/* highest path index */
+			else if(symbols[i].value > fmax)
+				fmax = symbols[i].value;	/* highest path index */
 			break;
 		case 'a':
 		case 'p':
@@ -238,18 +219,28 @@ syminit(int fd, Fhdr *fp)
 			nauto++;
 			break;
 		case 'z':
-			if(p->value == 1) {		/* one extra per file */
+			// TODO valid?
+			/*if(symbols[i].value == 1) {		// one extra per file
 				nhist++;
 				nfiles++;
-			}
+			}*/
+			nfiles++;
 			nhist++;
 			break;
 		default:
 			break;
 		}
+
+		//print("%05d %010lld type %c symtype %d binding %d %s\n", i, symbols[i].value, symbols[i].type, symtype, binding, symbols[i].name);
 	}
+
+	//print("ntxt: %d, nglob: %d, nauto: %d, fmax: %d, nfiles: %d, nhist: %d\n", ntxt, nglob, nauto, fmax, nfiles, nhist);
+
+	free(esyms);
+
 	if (debug)
 		print("NG: %ld NT: %d NF: %d\n", nglob, ntxt, fmax);
+#if 0
 	if (fp->sppcsz) {			/* pc-sp offset table */
 		spoff = (uint8_t *)malloc(fp->sppcsz);
 		if(spoff == 0) {
@@ -445,6 +436,8 @@ buildtbls(void)
 	Hist *hp;
 	Sym *p, **ap;
 
+	//print("ntxt: %d, nglob: %d, nauto: %d, fmax: %d, nfiles: %d, nhist: %d\n", ntxt, nglob, nauto, fmax, nfiles, nhist);
+
 	if(isbuilt)
 		return 1;
 	isbuilt = 1;
@@ -488,10 +481,12 @@ buildtbls(void)
 	ng = nt = nh = 0;
 	f = 0;
 	tp = 0;
-	i = nsym;
 	hp = hist;
 	ap = autos;
-	for(p = symbols; i-- > 0; p++) {
+
+	// Skip first null symbol
+	for (i = 1; i < nsym; i++) {
+		p = &symbols[i];
 		switch(p->type) {
 		case 'D':
 		case 'd':
@@ -501,35 +496,35 @@ buildtbls(void)
 				print("Global: %s %llx\n", p->name, p->value);
 			globals[ng++] = p;
 			break;
-		case 'z':
-			if(p->value == 1) {		/* New file */
+		/*case 'z':
+			if(p->value == 1) {		// New file
 				if(f) {
 					f->n = nh;
-					f->hist[nh].name = 0;	/* one extra */
+					f->hist[nh].name = 0;	// one extra
 					hp += nh+1;
 					f++;
-				}
-				else
+				} else {
 					f = files;
+				}
 				f->hist = hp;
 				f->sym = 0;
 				f->addr = 0;
 				nh = 0;
 			}
-				/* alloc one slot extra as terminator */
+				// alloc one slot extra as terminator
 			f->hist[nh].name = p->name;
 			f->hist[nh].line = p->value;
 			f->hist[nh].offset = 0;
 			if(debug)
 				printhist("-> ", &f->hist[nh], 1);
 			nh++;
-			break;
+			break;*/
 		case 'Z':
 			if(f && nh > 0)
 				f->hist[nh-1].offset = p->value;
 			break;
 		case 'T':
-		case 't':	/* Text: terminate history if first in file */
+		case 't':	// Text: terminate history if first in file
 		case 'L':
 		case 'l':
 			tp = &txt[nt++];
@@ -537,15 +532,15 @@ buildtbls(void)
 			tp->sym = p;
 			tp->locals = ap;
 			if(debug)
-				print("TEXT: %s at %llx\n", p->name, p->value);
-			if(f && !f->sym) {			/* first  */
+				print("TEXT: %s at %llx (idx: %d)\n", p->name, p->value, i);
+			if(f && !f->sym) {			// first
 				f->sym = p;
 				f->addr = p->value;
 			}
 			break;
 		case 'a':
 		case 'p':
-		case 'm':		/* Local Vars */
+		case 'm':		// Local Vars
 			if(!tp)
 				print("Warning: Free floating local var: %s\n",
 					p->name);
@@ -557,7 +552,7 @@ buildtbls(void)
 				ap++;
 			}
 			break;
-		case 'f':		/* File names */
+		case 'f':		// File names
 			if(debug)
 				print("Fname: %s\n", p->name);
 			fnames[p->value] = p;
@@ -625,9 +620,7 @@ lookup(char *fn, char *var, Symbol *s)
 static int
 findtext(char *name, Symbol *s)
 {
-	int i;
-
-	for(i = 0; i < ntxt; i++) {
+	for(int i = 0; i < ntxt; i++) {
 		if(strcmp(txt[i].sym->name, name) == 0) {
 			fillsym(txt[i].sym, s);
 			s->handle = (void *) &txt[i];
@@ -643,9 +636,7 @@ findtext(char *name, Symbol *s)
 static int
 findglobal(char *name, Symbol *s)
 {
-	int32_t i;
-
-	for(i = 0; i < nglob; i++) {
+	for(int i = 0; i < nglob; i++) {
 		if(strcmp(globals[i]->name, name) == 0) {
 			fillsym(globals[i], s);
 			s->index = i;
@@ -675,18 +666,16 @@ findlocal(Symbol *s1, char *name, Symbol *s2)
 static int
 findlocvar(Symbol *s1, char *name, Symbol *s2)
 {
-	Txtsym *tp;
-	int i;
-
-	tp = (Txtsym *)s1->handle;
+	Txtsym *tp  = (Txtsym *)s1->handle;
 	if(tp && tp->locals) {
-		for(i = 0; i < tp->n; i++)
+		for(int i = 0; i < tp->n; i++) {
 			if (strcmp(tp->locals[i]->name, name) == 0) {
 				fillsym(tp->locals[i], s2);
 				s2->handle = (void *)tp;
 				s2->index = tp->n-1 - i;
 				return 1;
 			}
+		}
 	}
 	return 0;
 }
@@ -697,7 +686,6 @@ findlocvar(Symbol *s1, char *name, Symbol *s2)
 int
 textsym(Symbol *s, int index)
 {
-
 	if(buildtbls() == 0)
 		return 0;
 	if(index < 0 || index >= ntxt)
