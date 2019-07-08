@@ -41,6 +41,7 @@ static void	setdata(Fhdr*, uint64_t, int32_t, int64_t, int32_t);
 static void	settext(Fhdr*, uint64_t, uint64_t, int32_t, int64_t);
 static void	setstr(Fhdr *fp, int64_t stroff, uint64_t strsz);
 static void	setbssidx(Fhdr *fp, uint16_t bssidx);
+static void	setdbglineidx(Fhdr *fp, uint16_t dbglineidx);
 static void	hswal(void*, int, uint32_t(*)(uint32_t));
 
 /*
@@ -212,8 +213,6 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 			it = i;
 		else if(ph[i].type == LOAD && (ph[i].flags & (R|W)) == (R|W) && id == -1)
 			id = i;
-		//else if(ph[i].type == NOPTYPE && is == -1)
-		//	is = i;
 	}
 	if(it == -1 || id == -1) {
 		werrstr("No ELF64 TEXT or DATA sections");
@@ -287,6 +286,46 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		setbssidx(fp, ibss);
 	}
 
+	// Get sections based on names - load the section string table first
+	if (ep->shstrndx != SHN_UNDEF) {
+		uint64_t shstroff = sh[ep->shstrndx].offset;
+		uint64_t shstrsz = sh[ep->shstrndx].size;
+		char *shstrtab = (char *)malloc(shstrsz);
+		if (shstrtab == 0) {
+			werrstr("can't allocate memory to load section string table");
+			free(sh);
+			return 0;
+		}
+
+		Biobuf b;
+		Binit(&b, fd, OREAD);
+		Bseek(&b, shstroff, 0);
+		if (Bread(&b, shstrtab, shstrsz) != shstrsz) {
+			werrstr("can't read section string table");
+			free(shstrtab);
+			free(sh);
+			return 0;
+		}
+
+		int idbg_line = -1;
+		for (int i = 0; i < ep->shnum; i++) {
+			const char *secname = &shstrtab[sh[i].name];
+			print("secname[%d] = %s\n", i, secname);
+			if (sh[i].type == SHT_PROGBITS
+				&& !strcmp(".debug_line", secname)
+				&& idbg_line == -1) {
+				idbg_line = i;
+			}
+		}
+
+		if (idbg_line != -1) {
+			//print("idbg_line: %d\n", idbg_line);
+			setdbglineidx(fp, ibss);
+		}
+
+		free(shstrtab);
+	}
+
 	free(sh);
 
 	return 1;
@@ -347,4 +386,10 @@ static void
 setbssidx(Fhdr *fp, uint16_t bssidx)
 {
 	fp->bssidx = bssidx;
+}
+
+static void
+setdbglineidx(Fhdr *fp, uint16_t dbglineidx)
+{
+	fp->dbglineidx = dbglineidx;
 }

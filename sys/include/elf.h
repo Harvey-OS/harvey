@@ -179,6 +179,8 @@ enum {
 	STT_HIOS = 12,
 	STT_LOPROC = 13,
 	STT_HIPROC = 15,
+
+	SHN_UNDEF = 0,
 };
 
 #define	ELF_MAG		((0x7f<<24) | ('E'<<16) | ('L'<<8) | 'F')

@@ -261,6 +261,7 @@ typedef struct Fhdr
 	uint64_t	stroff;		/* strtab offset in file */
 	uint64_t	strsz;		/* size of strtab seg */
 	uint16_t	bssidx;		/* index of bss section */	
+	uint16_t	dbglineidx;	/* index of debug_line section */
 } Fhdr;
 
 extern	int	asstype;	/* dissembler type - machdata.c */
