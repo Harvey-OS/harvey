@@ -433,7 +433,7 @@ buildtbls(void)
 	int j, nh, ng, nt;
 	File *f;
 	Txtsym *tp;
-	Hist *hp;
+	//Hist *hp;
 	Sym *p, **ap;
 
 	//print("ntxt: %d, nglob: %d, nauto: %d, fmax: %d, nfiles: %d, nhist: %d\n", ntxt, nglob, nauto, fmax, nfiles, nhist);
@@ -481,7 +481,7 @@ buildtbls(void)
 	ng = nt = nh = 0;
 	f = 0;
 	tp = 0;
-	hp = hist;
+	//hp = hist;
 	ap = autos;
 
 	// Skip first null symbol
