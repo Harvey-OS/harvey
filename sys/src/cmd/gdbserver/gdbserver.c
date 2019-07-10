@@ -240,6 +240,7 @@ getstatus(int pid)
 		return nil;
 	}
 
+	syslog(0, "gdbserver", "pid %d status %s", pid, argv[2]);
 	return argv[2];
 }
 
@@ -329,7 +330,8 @@ get_packet(char *buffer)
 		if (ch == '#') {
 			xmitcsum = hex_to_bin(gdbstub_read_wait()) << 4;
 			xmitcsum += hex_to_bin(gdbstub_read_wait());
-if (checksum != xmitcsum) syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x%x", xmitcsum, checksum);
+		if (checksum != xmitcsum)
+			syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x%x", xmitcsum, checksum);
 			if (checksum != xmitcsum)
 				/* failed checksum */
 				write_char('-');
@@ -947,8 +949,8 @@ gdb_cmd_exception_pass(GdbState *ks)
 
 	} else {
 		gdbstub_msg_write("KGDB only knows signal 9 (pass)"
-						  " and 15 (pass and disconnect)\n"
-						  "Executing a continue without signal passing\n", 0);
+			" and 15 (pass and disconnect)\n"
+			"Executing a continue without signal passing\n", 0);
 		remcom_in_buffer[0] = 'c';
 	}
 
@@ -971,12 +973,20 @@ gdb_cmd_continue(GdbState *ks)
 	// Block for the process to stop or receive a note
 	sendctl(ks->threadid, "startstop");
 
-	// Remove the breakpoint note so the process
-	// doesn't suicide
+	// Remove the breakpoint note so the process doesn't suicide
 	remove_note();
 
-	// Send code indicating we've hit a breakpoint
-	strcpy((char *)remcom_out_buffer, "S05");
+	// Check whether it's ended or stopped
+	const char *status = getstatus(ks->threadid);
+	if (status == nil) {
+		// Let's assume for now this means the program has ended
+		// Send code indicating process ended normally
+		strcpy((char *)remcom_out_buffer, "W00");
+	} else {
+		// Let's assume for now this means the program has hit a breakpoint
+		// Send code indicating we've hit a breakpoint
+		strcpy((char *)remcom_out_buffer, "S05");
+	}
 }
 
 static void
@@ -1263,15 +1273,15 @@ wmem(uint64_t dest, int pid, void *addr, int size)
 static void
 usage(void)
 {
-	fprint(2, "usage: gdbserver [-p pid] [-l port] [-d]\n");
+	fprint(2, "usage: gdbserver [-p pid] [-l port] [-d] [exe] [args...]\n");
 	exits("usage");
 }
 
 void
 main(int argc, char **argv)
 {
-	char* pid = nil;
-	char* port = "1666";
+	char *pid = nil;
+	char *port = "1666";
 
 	ARGBEGIN {
 	case 'l':
@@ -1293,20 +1303,59 @@ main(int argc, char **argv)
 		fprint(2, " badflag('%c')", ARGC());
 	} ARGEND
 
-	if (pid == nil) {
+	if (pid == nil && argc == 0) {
 		usage();
 	}
 
-	ks.threadid = atoi(pid);
-	// Set to 0 if we eventually support creating a new process
-	attached_to_existing_pid = 1;
+	if (argc > 0) {
+		// Load process 'exe', then attach
+		ks.threadid = fork();
 
-	print("Stopping process %d...\n", ks.threadid);
-	sendctl(ks.threadid, "stop");
-	print("Process stopped.  Waiting for remote gdb connection...\n");
+		switch (ks.threadid) {
+		case -1:
+			syslog(0, "gdbserver", "fork failed");
+			werrstr("fork failed %r");
+			return;
+		case 0:
+		{
+			// In child process
 
+			// hang the new proc before exec
+			sendctl(getpid(), "hang");
+
+			close(0);
+			close(1);
+			close(2);
+
+			open("/dev/cons", OREAD);
+			open("/dev/cons", OWRITE);
+			open("/dev/cons", OWRITE);
+			exec(argv[0], argv);
+			werrstr("exec failed %r");
+			return;
+		}
+		default:
+			// Fork succeeded, back in gdbserver
+
+			// Set to 0 if we eventually support creating a new
+			// process - really?
+			attached_to_existing_pid = 0;
+			print("Process %d launched.  Waiting for remote gdb connection...\n", ks.threadid);
+			break;
+		}
+	} else if (pid != nil) {
+		// Attach to running process
+		ks.threadid = atoi(pid);
+		// Set to 0 if we eventually support creating a new process
+		attached_to_existing_pid = 1;
+
+		print("Stopping process %d...\n", ks.threadid);
+		sendctl(ks.threadid, "stop");
+		print("Process stopped.  Waiting for remote gdb connection...\n");
+	}
+
+	// Used in both attach and launch exe cases
 	gdb_init_regs();
 	attach_to_process(ks.threadid);
-
 	gdb_serial_stub(&ks, atoi(port));
 }

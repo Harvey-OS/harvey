@@ -310,7 +310,7 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		int idbg_line = -1;
 		for (int i = 0; i < ep->shnum; i++) {
 			const char *secname = &shstrtab[sh[i].name];
-			print("secname[%d] = %s\n", i, secname);
+			//print("secname[%d] = %s\n", i, secname);
 			if (sh[i].type == SHT_PROGBITS
 				&& !strcmp(".debug_line", secname)
 				&& idbg_line == -1) {
