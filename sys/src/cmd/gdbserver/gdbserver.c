@@ -330,14 +330,16 @@ get_packet(char *buffer)
 		if (ch == '#') {
 			xmitcsum = hex_to_bin(gdbstub_read_wait()) << 4;
 			xmitcsum += hex_to_bin(gdbstub_read_wait());
-		if (checksum != xmitcsum)
-			syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x%x", xmitcsum, checksum);
-			if (checksum != xmitcsum)
+			if (checksum != xmitcsum) {
+				syslog(0, "gdbserver", "BAD CSUM Computed 0x%x want 0x%x", xmitcsum, checksum);
+			}
+			if (checksum != xmitcsum) {
 				/* failed checksum */
 				write_char('-');
-			else
+			} else {
 				/* successful transfer */
 				write_char('+');
+			}
 		}
 		buffer[count] = 0;
 	} while (checksum != xmitcsum);
