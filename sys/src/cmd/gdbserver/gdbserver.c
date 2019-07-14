@@ -1355,11 +1355,11 @@ main(int argc, char **argv)
 			// before trying to attach
 			while (1) {
 				const char *status = getstatus(ks.threadid);
-				if (status && strcmp(status, "Stopped")) {
+				if (status && !strcmp(status, "Stopped")) {
 					break;
 				}
 			}
-			print("Process stopped.  Waiting for remote gdb connection...");
+			print("Process stopped.  Waiting for remote gdb connection...\n");
 			break;
 		}
 	} else if (pid != nil) {
