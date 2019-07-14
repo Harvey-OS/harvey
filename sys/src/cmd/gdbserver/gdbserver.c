@@ -1310,6 +1310,13 @@ main(int argc, char **argv)
 	}
 
 	if (argc > 0) {
+		uint8_t statbuf[STATMAX];
+		if (stat(argv[0], statbuf, sizeof(statbuf)) < 0) {
+			print("program does not exist %s\n", argv[0]);
+			werrstr("program does not exist %s", argv[0]);
+			return;
+		}
+
 		// Load process 'exe', then attach
 		ks.threadid = fork();
 
@@ -1342,7 +1349,17 @@ main(int argc, char **argv)
 			// Set to 0 if we eventually support creating a new
 			// process - really?
 			attached_to_existing_pid = 0;
-			print("Process %d launched.  Waiting for remote gdb connection...\n", ks.threadid);
+			print("Process %d launched.\n", ks.threadid);
+
+			// Wait for process to exec and enter Stopped state
+			// before trying to attach
+			while (1) {
+				const char *status = getstatus(ks.threadid);
+				if (status && strcmp(status, "Stopped")) {
+					break;
+				}
+			}
+			print("Process stopped.  Waiting for remote gdb connection...");
 			break;
 		}
 	} else if (pid != nil) {
