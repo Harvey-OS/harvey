@@ -1,8 +1,16 @@
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
 bind -c tmp /tmp
-if(! syscall create /tmp/xxx 1 0666 >[2]/dev/null)
-	ramfs	# in case we're running off a cd
+
+# in case we're running off a read-only medium, use ramfs for tmp
+tmp_check_file=/tmp/test_file_to_check_can_access_tmp
+touch $tmp_check_file >[2]/dev/null
+can_write_tmp_status=$status
+if (~ $can_write_tmp_status '')
+	rm $tmp_check_file
+if (! ~ $can_write_tmp_status '')
+	ramfs
+
 font=/lib/font/bit/go/Go-Mono/Go-Mono.14.font
 fn cd { builtin cd $* && awd }  # for acme
 fn acme { /bin/acme -f $font $* }
