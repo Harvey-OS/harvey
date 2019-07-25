@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <stdio.h>
 
 // Based on TestReadAtOffset in go's test suite.
 // Plan 9 pread had a bug where the channel offset we updated during a call to
@@ -34,7 +33,7 @@ preadn(int fd, char *buf, int32_t nbytes, int64_t offset)
 void
 main(int argc, char *argv[])
 {
-	tmpfilename = tmpnam(nil);
+	tmpfilename = mktemp("readoffset");
 	int fd = create(tmpfilename, ORDWR, 0666);
 	if (fd < 0) {
 		print("FAIL: couldn't create file: %s\n", tmpfilename);
