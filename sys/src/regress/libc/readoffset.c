@@ -5,7 +5,7 @@
 // Plan 9 pread had a bug where the channel offset we updated during a call to
 // pread - this shouldn't have happened.
 
-static char *tmpfilename = nil;
+static char tmpfilename[128] = "readoffsetXXXXX";
 
 static void
 rmtmp(void)
@@ -33,7 +33,7 @@ preadn(int fd, char *buf, int32_t nbytes, int64_t offset)
 void
 main(int argc, char *argv[])
 {
-	tmpfilename = mktemp("readoffset");
+	mktemp(tmpfilename);
 	int fd = create(tmpfilename, ORDWR, 0666);
 	if (fd < 0) {
 		print("FAIL: couldn't create file: %s\n", tmpfilename);
