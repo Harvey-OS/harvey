@@ -776,12 +776,14 @@ read(int fd, void *p, int32_t n, int64_t off)
 	else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	lock(&c->r.l);
-	if(nn > 0)
-		c->devoffset += nn;
-	if(nnn > 0)
-		c->offset += nnn;
-	unlock(&c->r.l);
+	if (notpread) {
+		lock(&c->r.l);
+		if(nn > 0)
+			c->devoffset += nn;
+		if(nnn > 0)
+			c->offset += nnn;
+		unlock(&c->r.l);
+	}
 
 	poperror();
 	cclose(c);
