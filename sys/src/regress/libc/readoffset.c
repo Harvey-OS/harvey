@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	atexit(rmtmp);
 
 	const char *data = "hello, world\n";
-	int nb = write(fd, data, strlen(data));
+	write(fd, data, strlen(data));
 	seek(fd, 0, 0);
 
 	int n = 0;
