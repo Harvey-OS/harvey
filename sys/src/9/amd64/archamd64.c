@@ -103,6 +103,15 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 	DBG("vendorid: %s\n", vendorid);
 	DBG("CPUID Signature: %d\n", info1[0]);
 
+	uint8_t family_ext = (info1[0] & 0xff00000) >> 20;
+	uint8_t model_ext = (info1[0] & 0xf0000) >> 16;
+	uint8_t proctype = (info1[0] & 0x3000) >> 12;
+	uint8_t family = (info1[0] & 0xf00) >> 8;
+	uint8_t model = (info1[0] & 0xf0) >> 4;
+	uint8_t stepping = (info1[0] & 0xf);
+	print("CPUID model %x family %x proctype %x stepping %x model_ext %x family_ext %x\n",
+		model, family, proctype, stepping, model_ext, family_ext);
+
 	if(strcmp("GenuineIntel", vendorid) == 0) {
 		switch(info1[0] & 0x0fff3ff0){
 		default:
@@ -164,7 +173,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x000806e0:		/* i7,5,3 85xx */
 		case 0x000906e0:		/* i7,5,3 77xx 8xxx */
 			/*
-			 * Get the FSB frequemcy.
+			 * Get the FSB frequency.
 			 * If processor has Enhanced Intel Speedstep Technology
 			 * then non-integer bus frequency ratios are possible.
 			 */
@@ -246,8 +255,8 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x00800f10:		/* Ryzen 5 and 7 */
 		case 0x00810f10:		/* Ryzen 3 */
 			msr = rdmsr(0xc0010064);
-			r = msr & 0x1f;
-			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
+			r = msr & 0x1f;		// Core frequency ID - cpu freq multiplier
+			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));	// cpu freq divisor
 			break;
 		case 0x00000620:		/* QEMU64 / Athlon MP/XP */
 			msr = rdmsr(0xc0010064);

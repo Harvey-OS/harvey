@@ -15,6 +15,7 @@
 #include "../port/error.h"
 
 #include "ureg.h"
+#include "cpu_flags.h"
 
 typedef struct IOMap IOMap;
 struct IOMap
@@ -529,7 +530,6 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	char buf[512], *s, *e;
 	char *vendorid;
 	uint32_t info0[4];
-	int i, k;
 
 	e = buf+sizeof buf;
 
@@ -541,15 +541,104 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 
 	s = seprint(buf, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
 
-	if(DBGFLG) {
-		k = machp()->CPU.ncpuinfoe - machp()->CPU.ncpuinfos;
-		if(k > 4)
-			k = 4;
-		for(i = 0; i < k; i++)
-			s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x\n",
-				machp()->CPU.cpuinfo[i][0], machp()->CPU.cpuinfo[i][1],
-				machp()->CPU.cpuinfo[i][2], machp()->CPU.cpuinfo[i][3]);
+	return readstr(off, a, n, buf);
+}
+
+typedef struct Cpuidrecord {
+	uint32_t	eax;
+	uint32_t	ecx;
+	uint32_t	info[4];
+} Cpuidrecord;
+
+static void
+fetch_cpuid_records(Cpuidrecord **out_recs, int *out_num_recs)
+{
+	// Get number of basic and extended records
+	Cpuidrecord r;
+	cpuid(CPUID_EAX_0x00000000, 0, r.info);
+	int num_basic = r.info[0] + 1;
+
+	cpuid(CPUID_EAX_0x80000000, 0, r.info);
+	int num_extended = r.info[0] - CPUID_EAX_0x80000000 + 1;
+
+	int num_recs = num_basic + num_extended;
+	Cpuidrecord *recs = malloc(sizeof(Cpuidrecord) * num_recs);
+
+	for (int i = 0; i < num_recs; i++) {
+		recs[i].eax = (i < num_basic) ? i : i - num_basic + CPUID_EAX_0x80000000;
+		recs[i].ecx = 0;
+
+		if (!cpuid(recs[i].eax, recs[i].ecx, recs[i].info)) {
+			recs[i].info[0] = recs[i].info[1] = 0;
+			recs[i].info[2] = recs[i].info[3] = 0;
+		}
 	}
+
+	*out_recs = recs;
+	*out_num_recs = num_recs;
+}
+
+static int32_t
+cpuidrawread(Chan* c, void *a, int32_t n, int64_t off)
+{
+	char buf[4096];
+	char *s = buf;
+	char *e = buf+sizeof buf;
+
+	Cpuidrecord *recs;
+	int num_recs;
+	fetch_cpuid_records(&recs, &num_recs);
+
+	for (int i = 0; i < num_recs; i++) {
+		Cpuidrecord *r = &recs[i];
+
+		s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x %#8.8x %#8.8x\n",
+			r->eax, r->ecx, r->info[0], r->info[1], r->info[2], r->info[3]);
+	}
+
+	free(recs);
+
+	return readstr(off, a, n, buf);
+}
+
+static int32_t
+cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
+{
+	char buf[4096];
+	char *s = buf;
+	char *e = buf+sizeof buf;
+
+	Cpuidrecord *recs;
+	int num_recs;
+	fetch_cpuid_records(&recs, &num_recs);
+	int num_flags = nelem(cpuflags);
+
+	for (int i = 0; i < num_recs; i++) {
+		Cpuidrecord *r = &recs[i];
+
+		// Extract any flag names if this particular eax contains flags
+		if (r->eax == CPUID_EAX_0x00000000 || r->eax == CPUID_EAX_0x00000001
+			|| r->eax == CPUID_EAX_0x00000006 || r->eax == CPUID_EAX_0x00000007
+			|| r->eax == CPUID_EAX_0x0000000d || r->eax == CPUID_EAX_0x0000000f
+			|| r->eax == CPUID_EAX_0x80000000 || r->eax == CPUID_EAX_0x80000001
+			|| r->eax == CPUID_EAX_0x80000007) {
+			for (int i = 0; i < num_flags; i++) {
+				Cpuflag *flag = &cpuflags[i];
+				if (flag->eax != r->eax) {
+					continue;
+				}
+
+				if (r->info[flag->infoidx] & (1 << flag->bitidx)) {
+					s = seprint(s, e, "%s ", flag->name);
+				}
+			}
+		}
+	}
+
+	s = seprint(s, e, "\n");
+
+	free(recs);
+
 	return readstr(off, a, n, buf);
 }
 
@@ -558,6 +647,8 @@ archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("mtags", 0444, mtagsread, nil);
+	addarchfile("cpuidraw", 0444, cpuidrawread, nil);
+	addarchfile("cpuidflags", 0444, cpuidflagsread, nil);
 }
 
 void
