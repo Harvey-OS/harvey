@@ -539,43 +539,26 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	} else
 		vendorid = cpuidname(info0);
 
-	s = seprint(buf, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
+	s = seprint(buf, e, "%s CPU @ %uMHz\ncpu cores: %d\ncpu brand: %s\n",
+		vendorid, machp()->cpumhz, sys->nmach);
 
 	return readstr(off, a, n, buf);
 }
 
-typedef struct Cpuidrecord {
-	uint32_t	eax;
-	uint32_t	ecx;
-	uint32_t	info[4];
-} Cpuidrecord;
-
 static void
-fetch_cpuid_records(Cpuidrecord **out_recs, int *out_num_recs)
+get_cpuid_limits(int *num_basic, int *num_extended)
 {
-	// Get number of basic and extended records
-	Cpuidrecord r;
-	cpuid(CPUID_EAX_0x00000000, 0, r.info);
-	int num_basic = r.info[0] + 1;
+	uint32_t info[4];
 
-	cpuid(CPUID_EAX_0x80000000, 0, r.info);
-	int num_extended = r.info[0] - CPUID_EAX_0x80000000 + 1;
+	*num_basic = 0;
+	*num_extended = 0;
 
-	int num_recs = num_basic + num_extended;
-	Cpuidrecord *recs = malloc(sizeof(Cpuidrecord) * num_recs);
-
-	for (int i = 0; i < num_recs; i++) {
-		recs[i].eax = (i < num_basic) ? i : i - num_basic + CPUID_EAX_0x80000000;
-		recs[i].ecx = 0;
-
-		if (!cpuid(recs[i].eax, recs[i].ecx, recs[i].info)) {
-			recs[i].info[0] = recs[i].info[1] = 0;
-			recs[i].info[2] = recs[i].info[3] = 0;
-		}
+	if (cpuid(CPUID_EAX_0x00000000, 0, info)) {
+		*num_basic = info[0] + 1;
 	}
-
-	*out_recs = recs;
-	*out_num_recs = num_recs;
+	if (cpuid(CPUID_EAX_0x80000000, 0, info)) {
+		*num_extended = info[0] - CPUID_EAX_0x80000000 + 1;
+	}
 }
 
 static int32_t
@@ -584,19 +567,20 @@ cpuidrawread(Chan* c, void *a, int32_t n, int64_t off)
 	char buf[4096];
 	char *s = buf;
 	char *e = buf+sizeof buf;
+	uint32_t info[4];
 
-	Cpuidrecord *recs;
-	int num_recs;
-	fetch_cpuid_records(&recs, &num_recs);
+	int num_basic = 0, num_ext = 0;
+	get_cpuid_limits(&num_basic, &num_ext);
+	s = seprint(s,e,"basic:%d ext:%d\n", num_basic, num_ext);
 
-	for (int i = 0; i < num_recs; i++) {
-		Cpuidrecord *r = &recs[i];
-
+	for (int i = 0; i < num_basic + num_ext; i++) {
+		uint32_t eax = i < num_basic ? i : i - num_basic + CPUID_EAX_0x80000000;
+		if (!cpuid(eax, 0, info)) {
+			continue;
+		}
 		s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x %#8.8x %#8.8x\n",
-			r->eax, r->ecx, r->info[0], r->info[1], r->info[2], r->info[3]);
+			eax, 0, info[0], info[1], info[2], info[3]);
 	}
-
-	free(recs);
 
 	return readstr(off, a, n, buf);
 }
@@ -607,28 +591,32 @@ cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
 	char buf[4096];
 	char *s = buf;
 	char *e = buf+sizeof buf;
+	uint32_t info[4];
 
-	Cpuidrecord *recs;
-	int num_recs;
-	fetch_cpuid_records(&recs, &num_recs);
+	int num_basic = 0, num_ext = 0;
+	get_cpuid_limits(&num_basic, &num_ext);
+
 	int num_flags = nelem(cpuflags);
 
-	for (int i = 0; i < num_recs; i++) {
-		Cpuidrecord *r = &recs[i];
+	for (int i = 0; i < num_basic + num_ext; i++) {
+		uint32_t eax = i < num_basic ? i : i - num_basic + CPUID_EAX_0x80000000;
+		if (!cpuid(eax, 0, info)) {
+			continue;
+		}
 
 		// Extract any flag names if this particular eax contains flags
-		if (r->eax == CPUID_EAX_0x00000000 || r->eax == CPUID_EAX_0x00000001
-			|| r->eax == CPUID_EAX_0x00000006 || r->eax == CPUID_EAX_0x00000007
-			|| r->eax == CPUID_EAX_0x0000000d || r->eax == CPUID_EAX_0x0000000f
-			|| r->eax == CPUID_EAX_0x80000000 || r->eax == CPUID_EAX_0x80000001
-			|| r->eax == CPUID_EAX_0x80000007) {
-			for (int i = 0; i < num_flags; i++) {
-				Cpuflag *flag = &cpuflags[i];
-				if (flag->eax != r->eax) {
+		if (eax == CPUID_EAX_0x00000000 || eax == CPUID_EAX_0x00000001
+			|| eax == CPUID_EAX_0x00000006 || eax == CPUID_EAX_0x00000007
+			|| eax == CPUID_EAX_0x0000000d || eax == CPUID_EAX_0x0000000f
+			|| eax == CPUID_EAX_0x80000000 || eax == CPUID_EAX_0x80000001
+			|| eax == CPUID_EAX_0x80000007) {
+			for (int fi = 0; fi < num_flags; fi++) {
+				Cpuflag *flag = &cpuflags[fi];
+				if (flag->eax != eax) {
 					continue;
 				}
 
-				if (r->info[flag->infoidx] & (1 << flag->bitidx)) {
+				if (info[flag->infoidx] & (1 << flag->bitidx)) {
 					s = seprint(s, e, "%s ", flag->name);
 				}
 			}
@@ -636,8 +624,6 @@ cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
 	}
 
 	s = seprint(s, e, "\n");
-
-	free(recs);
 
 	return readstr(off, a, n, buf);
 }

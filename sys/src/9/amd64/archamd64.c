@@ -85,9 +85,70 @@ cpuidname(uint32_t *info0)
 		return vendorid;
 	}
 	return vendorid;
-
-
 }
+
+
+// Get the processor brand string.  str must be at least 48 characters long.
+// Also returns clock speed (as described in intel cpuid docs)
+/*static void
+get_cpuid_brand(char str[48], int64_t *hz)
+{
+	uint32_t info[12];
+
+	str[0] = 0;
+	if (!cpuid(0x80000002, 0, info)) {
+		iprint("get_cpuid_brand: couldn't read 0x80000002\n");
+		return;
+	}
+	if (!cpuid(0x80000003, 0, &info[4])) {
+		iprint("get_cpuid_brand: couldn't read 0x80000003\n");
+		return;
+	}
+	if (!cpuid(0x80000004, 0, &info[8])) {
+		iprint("get_cpuid_brand: couldn't read 0x80000004\n");
+		return;
+	}
+
+	const char *infostr = (char*)info;
+	for (int i = 0; i < 48; i++) {
+		str[i] = infostr[i];
+	}
+	// String from cpuid should be null terminated, but lets make sure
+	str[47] = 0;
+
+	char *hzstr = str + strlen(str) - 3;
+	int64_t multiplier = 0;
+	*hz = 0;
+	if (!strcmp(hzstr, "MHz")) {
+		multiplier = 1000000LL;
+	} else if (!strcmp(hzstr, "GHz")) {
+		multiplier = 1000000000LL;
+	} else if (!strcmp(hzstr, "THz")) {
+		multiplier = 1000000000000LL;
+	}
+
+	if (multiplier == 0) {
+		return;
+	}
+	char *freqstr = strrchr(hzstr, ' ');
+	if (!freqstr) {
+		return;
+	}
+
+	// We expect format to be X.YY or XXXX followed by _Hz
+	freqstr++;
+	if (freqstr[1] == '.') {
+		*hz = (int64_t)(freqstr[0] - '0') * multiplier;
+		*hz += (int64_t)(freqstr[2] - '0') * (multiplier / 10);
+		*hz += (int64_t)(freqstr[3] - '0') * (multiplier / 100);
+	} else {
+		*hz = (int64_t)(freqstr[0] - '0') * 1000;
+		*hz += (int64_t)(freqstr[1] - '0') * 100;
+		*hz += (int64_t)(freqstr[2] - '0') * 10;  
+		*hz += (int64_t)(freqstr[3] - '0');    
+		*hz *= multiplier;
+	}
+}*/
 
 static int64_t
 cpuidhz(uint32_t *info0, uint32_t *info1)
@@ -109,11 +170,17 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 	uint8_t family = (info1[0] & 0xf00) >> 8;
 	uint8_t model = (info1[0] & 0xf0) >> 4;
 	uint8_t stepping = (info1[0] & 0xf);
-	print("CPUID model %x family %x proctype %x stepping %x model_ext %x family_ext %x\n",
-		model, family, proctype, stepping, model_ext, family_ext);
+	print("CPUID family %x model %x proctype %x stepping %x model_ext %x family_ext %x\n",
+		family, model, proctype, stepping, model_ext, family_ext);
+
+	//char brandstr[48];
+	//get_cpuid_brand(brandstr, &hz);
 
 	if(strcmp("GenuineIntel", vendorid) == 0) {
-		switch(info1[0] & 0x0fff3ff0){
+		uint32_t cpuSig = info1[0] & 0x0fff3ff0;
+		print("CPU Signature: %x\n", cpuSig);
+
+		switch (cpuSig) {
 		default:
 			return 0;
 		case 0x00000f30:		/* Xeon (MP), Pentium [4D] */
@@ -177,19 +244,19 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			 * If processor has Enhanced Intel Speedstep Technology
 			 * then non-integer bus frequency ratios are possible.
 			 */
-			//print("CPUID EIST: %d\n", (info1[2] & 0x00000080));
-			if(info1[2] & 0x00000080){
+			print("CPUID speedstep (est): %d\n", (info1[2] & 0x00000080));
+			if (info1[2] & 0x00000080) {
 				msr = rdmsr(0x198);
 				r = (msr>>40) & 0x1f;
-			}
-			else{
+			} else {
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
 			f = rdmsr(0xcd) & 0x07;
-//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));
-//iprint("Intel msr.lo %d\n", r);
-//iprint("Intel msr.hi %d\n", f);
+			print("rdmsr Intel: %d\n", rdmsr(0x2a));
+			print("Intel msr.lo %d\n", r);
+			print("Intel msr.hi %d\n", f);
+
 			switch(f){
 			default:
 				return 0;
@@ -233,7 +300,10 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		DBG("cpuidhz: 0x2a: %#llx hz %lld\n", rdmsr(0x2a), hz);
 	}
 	else if(strcmp("AuthenticAMD",vendorid) == 0){
-		switch(info1[0] & 0x0fff0ff0){
+		uint32_t cpuSig = info1[0] & 0x0fff0ff0;
+		print("CPU Signature: %x\n", cpuSig);
+
+		switch (cpuSig) {
 		default:
 			return 0;
 		case 0x00050ff0:		/* K8 Athlon Venice 64 / Qemu64 */
