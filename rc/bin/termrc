@@ -1,6 +1,5 @@
 #!/bin/rc
 # terminal startup
-
 TIMESYNCARGS=(-rLa1000000)
 NDBFILE=/lib/ndb/local
 
