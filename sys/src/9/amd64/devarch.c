@@ -701,6 +701,7 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	char *vendorid;
 	uint32_t info0[4];
 
+	s = buf;
 	e = buf+sizeof buf;
 
 	if(!cpuidinfo(0, 0, info0)) {
@@ -709,7 +710,7 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	} else
 		vendorid = cpuidname(info0);
 
-	s = seprint(buf, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
+	s = seprint(s, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
 
 	return readstr(off, a, n, buf);
 }
