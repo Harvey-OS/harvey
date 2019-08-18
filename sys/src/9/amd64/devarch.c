@@ -15,7 +15,297 @@
 #include "../port/error.h"
 
 #include "ureg.h"
-#include "cpu_flags.h"
+
+typedef struct Cpuflag {
+	const char	*name;		/* short name (linux-like)*/
+	uint32_t	eax;		/* input eax */
+	uint8_t		infoidx;	/* index of info result */
+	uint8_t		bitidx;		/* feature bit in info result */
+} Cpuflag;
+
+// Below infoidxs equate to: 0=eax 1=ebx 2=ecx 3=edx 
+Cpuflag cpuflags[] = {
+	/* name				eax 		info 	bit */
+	{ "fpu",			0x00000001,	3,	0, },
+	{ "vme",			0x00000001,	3,	1, },
+	{ "de",				0x00000001,	3,	2, },
+	{ "pse",			0x00000001,	3,	3, },
+	{ "tsc",			0x00000001,	3,	4, },
+	{ "msr",			0x00000001,	3,	5, },
+	{ "pae",			0x00000001,	3,	6, },
+	{ "mce",			0x00000001,	3,	7, },
+	{ "cx8",			0x00000001,	3,	8, },
+	{ "apic",			0x00000001,	3,	9, },
+	{ "sep",			0x00000001,	3,	11, },
+	{ "mtrr",			0x00000001,	3,	12, },
+	{ "pge",			0x00000001,	3,	13, },
+	{ "mca",			0x00000001,	3,	14, },
+	{ "cmov",			0x00000001,	3,	15, },
+	{ "pat",			0x00000001,	3,	16, },
+	{ "pse36",			0x00000001,	3,	17, },
+	{ "pn",				0x00000001,	3,	18, },
+	{ "clflush",			0x00000001,	3,	19, },
+	{ "dts",			0x00000001,	3,	21, },
+	{ "acpi",			0x00000001,	3,	22, },
+	{ "mmx",			0x00000001,	3,	23, },
+	{ "fxsr",			0x00000001,	3,	24, },
+	{ "sse",			0x00000001,	3,	25, },
+	{ "sse2",			0x00000001,	3,	26, },
+	{ "ss",				0x00000001,	3,	27, },
+	{ "ht",				0x00000001,	3,	28, },
+	{ "tm",				0x00000001,	3,	29, },
+	{ "ia64",			0x00000001,	3,	30, },
+	{ "pbe",			0x00000001,	3,	31, },
+	//{ "syscall",			0x80000001,	32+11, },
+	//{ "mp",				0x80000001,	32+19, },
+	//{ "nx",				0x80000001,	32+20, },
+	//{ "mmxext",			0x80000001,	32+22, },
+	//{ "fxsr_opt",			0x80000001,	32+25, },
+	//{ "gbpages",			0x80000001,	32+26, },
+	//{ "rdtscp",			0x80000001,	32+27, },
+	//{ "lm",				0x80000001,	32+29, },
+	//{ "3dnowext",			0x80000001,	32+30, },
+	//{ "3dnow",			0x80000001,	32+31, },
+	//{ "recovery",			2*32+ 0, },
+	//{ "longrun",			2*32+ 1, },
+	//{ "lrti",			2*32+ 3, },
+	//{ "cxmmx",			3*32+ 0, },
+	//{ "k6_mtrr",			3*32+ 1, },
+	//{ "cyrix_arr",			3*32+ 2, },
+	//{ "centaur_mcr",		3*32+ 3, },
+	//{ "k8",				3*32+ 4, },
+	//{ "k7",				3*32+ 5, },
+	//{ "p3",				3*32+ 6, },
+	//{ "p4",				3*32+ 7, },
+	//{ "constant_tsc",		3*32+ 8, },
+	//{ "up",				3*32+ 9, },
+	//{ "art",			3*32+10, },
+	//{ "arch_perfmon",		3*32+11, },
+	//{ "pebs",			3*32+12, },
+	//{ "bts",			3*32+13, },
+	//{ "syscall32",			3*32+14, },
+	//{ "sysenter32",			3*32+15, },
+	//{ "rep_good",			3*32+16, },
+	//{ "mfence_rdtsc",		3*32+17, },
+	//{ "lfence_rdtsc",		3*32+18, },
+	//{ "acc_power",			3*32+19, },
+	//{ "nopl",			3*32+20, },
+	//{ "always",			3*32+21, },
+	//{ "xtopology",			3*32+22, },
+	//{ "tsc_reliable",		3*32+23, },
+	//{ "nonstop_tsc",		3*32+24, },
+	//{ "cpuid",			3*32+25, },
+	//{ "extd_apicid",		3*32+26, },
+	//{ "amd_dcm",			3*32+27, },
+	//{ "aperfmperf",			3*32+28, },
+	//{ "nonstop_tsc_s3",		3*32+30, },
+	//{ "tsc_known_freq",		3*32+31, },
+	{ "pni",			0x00000001,	2,	0, },
+	{ "pclmulqdq",			0x00000001,	2,	1, },
+	{ "dtes64",			0x00000001,	2,	2, },
+	{ "monitor",			0x00000001,	2,	3, },
+	{ "ds_cpl",			0x00000001,	2,	4, },
+	{ "vmx",			0x00000001,	2,	5, },
+	{ "smx",			0x00000001,	2,	6, },
+	{ "est",			0x00000001,	2,	7, },
+	{ "tm2",			0x00000001,	2,	8, },
+	{ "ssse3",			0x00000001,	2,	9, },
+	{ "cid",			0x00000001,	2,	10, },
+	{ "sdbg",			0x00000001,	2,	11, },
+	{ "fma",			0x00000001,	2,	12, },
+	{ "cx16",			0x00000001,	2,	13, },
+	{ "xtpr",			0x00000001,	2,	14, },
+	{ "pdcm",			0x00000001,	2,	15, },
+	{ "pcid",			0x00000001,	2,	17, },
+	{ "dca",			0x00000001,	2,	18, },
+	{ "sse4_1",			0x00000001,	2,	19, },
+	{ "sse4_2",			0x00000001,	2,	20, },
+	{ "x2apic",			0x00000001,	2,	21, },
+	{ "movbe",			0x00000001,	2,	22, },
+	{ "popcnt",			0x00000001,	2,	23, },
+	{ "tsc_deadline_timer",		0x00000001,	2,	24, },
+	{ "aes",			0x00000001,	2,	25, },
+	{ "xsave",			0x00000001,	2,	26, },
+	{ "osxsave",			0x00000001,	2,	27, },
+	{ "avx",			0x00000001,	2,	28, },
+	{ "f16c",			0x00000001,	2,	29, },
+	{ "rdrand",			0x00000001,	2,	30, },
+	{ "hypervisor",			0x00000001,	2,	31, },
+	//{ "xstore",			5*32+ 2, },
+	//{ "xstore_en",			5*32+ 3, },
+	//{ "xcrypt",			5*32+ 6, },
+	//{ "xcrypt_en",			5*32+ 7, },
+	//{ "ace2",			5*32+ 8, },
+	//{ "ace2_en",			5*32+ 9, },
+	//{ "phe",			5*32+10, },
+	//{ "phe_en",			5*32+11, },
+	//{ "pmm",			5*32+12, },
+	//{ "pmm_en",			5*32+13, },
+	{ "lahf_lm",			0x80000001,	2,	0, },
+	{ "cmp_legacy",			0x80000001,	2,	1, },
+	{ "svm",			0x80000001,	2,	2, },
+	{ "extapic",			0x80000001,	2,	3, },
+	{ "cr8_legacy",			0x80000001,	2,	4, },
+	{ "abm",			0x80000001,	2,	5, },
+	{ "sse4a",			0x80000001,	2,	6, },
+	{ "misalignsse",		0x80000001,	2,	7, },
+	{ "3dnowprefetch",		0x80000001,	2,	8, },
+	{ "osvw",			0x80000001,	2,	9, },
+	{ "ibs",			0x80000001,	2,	10, },
+	{ "xop",			0x80000001,	2,	11, },
+	{ "skinit",			0x80000001,	2,	12, },
+	{ "wdt",			0x80000001,	2,	13, },
+	{ "lwp",			0x80000001,	2,	15, },
+	{ "fma4",			0x80000001,	2,	16, },
+	{ "tce",			0x80000001,	2,	17, },
+	{ "nodeid_msr",			0x80000001,	2,	19, },
+	{ "tbm",			0x80000001,	2,	21, },
+	{ "topoext",			0x80000001,	2,	22, },
+	{ "perfctr_core",		0x80000001,	2,	23, },
+	{ "perfctr_nb",			0x80000001,	2,	24, },
+	{ "bpext",			0x80000001,	2,	26, },
+	{ "ptsc",			0x80000001,	2,	27, },
+	{ "perfctr_llc",		0x80000001,	2,	28, },
+	{ "mwaitx",			0x80000001,	2,	29, },
+	//{ "ring3mwait",			7*32+ 0, },
+	//{ "cpuid_fault",		7*32+ 1, },
+	//{ "cpb",			7*32+ 2, },
+	//{ "epb",			7*32+ 3, },
+	//{ "cat_l3",			7*32+ 4, },
+	//{ "cat_l2",			7*32+ 5, },
+	//{ "cdp_l3",			7*32+ 6, },
+	//{ "invpcid_single",		7*32+ 7, },
+	//{ "hw_pstate",			7*32+ 8, },
+	//{ "proc_feedback",		7*32+ 9, },
+	//{ "sme",			7*32+10, },
+	//{ "pti",			7*32+11, },
+	//{ "retpoline",			7*32+12, },
+	//{ "retpoline_amd",		7*32+13, },
+	//{ "intel_ppin",			7*32+14, },
+	//{ "cdp_l2",			7*32+15, },
+	//{ "msr_spec_ctrl",		7*32+16, },
+	//{ "ssbd",			7*32+17, },
+	//{ "mba",			7*32+18, },
+	//{ "rsb_ctxsw",			7*32+19, },
+	//{ "sev",			7*32+20, },
+	//{ "use_ibpb",			7*32+21, },
+	//{ "use_ibrs_fw",		7*32+22, },
+	//{ "spec_store_bypass_disable",	7*32+23, },
+	//{ "ls_cfg_ssbd",		7*32+24, },
+	//{ "ibrs",			7*32+25, },
+	//{ "ibpb",			7*32+26, },
+	//{ "stibp",			7*32+27, },
+	//{ "zen",			7*32+28, },
+	//{ "l1tf_pteinv",		7*32+29, },
+	//{ "ibrs_enhanced",		7*32+30, },
+	//{ "tpr_shadow",			0x00000007,	8*32+ 0, },
+	//{ "vnmi",			0x00000007,	8*32+ 1, },
+	//{ "flexpriority",		0x00000007,	8*32+ 2, },
+	//{ "ept",			0x00000007,	8*32+ 3, },
+	//{ "vpid",			0x00000007,	8*32+ 4, },
+	//{ "vmmcall",			0x00000007,	8*32+15, },
+	//{ "xenpv",			0x00000007,	8*32+16, },
+	//{ "ept_ad",			0x00000007,	8*32+17, },
+	{ "fsgsbase",			0x00000007,	1,	0, },
+	{ "tsc_adjust",			0x00000007,	1,	1, },
+	{ "bmi1",			0x00000007,	1,	3, },
+	{ "hle",			0x00000007,	1,	4, },
+	{ "avx2",			0x00000007,	1,	5, },
+	{ "smep",			0x00000007,	1,	7, },
+	{ "bmi2",			0x00000007,	1,	8, },
+	{ "erms",			0x00000007,	1,	9, },
+	{ "invpcid",			0x00000007,	1,	10, },
+	{ "rtm",			0x00000007,	1,	11, },
+	{ "cqm",			0x00000007,	1,	12, },
+	{ "mpx",			0x00000007,	1,	14, },
+	{ "rdt_a",			0x00000007,	1,	15, },
+	{ "avx512f",			0x00000007,	1,	16, },
+	{ "avx512dq",			0x00000007,	1,	17, },
+	{ "rdseed",			0x00000007,	1,	18, },
+	{ "adx",			0x00000007,	1,	19, },
+	{ "smap",			0x00000007,	1,	20, },
+	{ "avx512ifma",			0x00000007,	1,	21, },
+	{ "clflushopt",			0x00000007,	1,	23, },
+	{ "clwb",			0x00000007,	1,	24, },
+	{ "intel_pt",			0x00000007,	1,	25, },
+	{ "avx512pf",			0x00000007,	1,	26, },
+	{ "avx512er",			0x00000007,	1,	27, },
+	{ "avx512cd",			0x00000007,	1,	28, },
+	{ "sha_ni",			0x00000007,	1,	29, },
+	{ "avx512bw",			0x00000007,	1,	30, },
+	{ "avx512vl",			0x00000007,	1,	31, },
+	{ "xsaveopt",			0x0000000d,	0,	0, },
+	{ "xsavec",			0x0000000d,	0,	1, },
+	{ "xgetbv1",			0x0000000d,	0,	2, },
+	{ "xsaves",			0x0000000d,	0,	3, },
+	{ "cqm_llc",			0x0000000f,	3,	1, },
+	{ "cqm_occup_llc",		0x0000000f,	3,	0, },
+	{ "cqm_mbm_total",		0x0000000f,	3,	1, },
+	{ "cqm_mbm_local",		0x0000000f,	3,	2, },
+	//{ "clzero",			0x80000008,	1,	0, },
+	//{ "irperf",			0x80000008,	1,	1, },
+	//{ "xsaveerptr",			0x80000008,	1,	2, },
+	//{ "wbnoinvd",			0x80000008,	1,	9, },
+	//{ "amd_ibpb",			0x80000008,	1,	12, },
+	//{ "amd_ibrs",			0x80000008,	1,	14, },
+	//{ "amd_stibp",			0x80000008,	1,	15, },
+	//{ "amd_stibp_always_on",	0x80000008,	1,	17, },
+	//{ "amd_ssbd",			0x80000008,	1,	24, },
+	//{ "virt_ssbd",			0x80000008,	1,	25, },
+	//{ "amd_ssb_no",			0x80000008,	1,	26, },
+	{ "dtherm",			0x00000006,	1,	0, },
+	{ "ida",			0x00000006,	1,	1, },
+	{ "arat",			0x00000006,	1,	2, },
+	{ "pln",			0x00000006,	1,	4, },
+	{ "pts",			0x00000006,	1,	6, },
+	{ "hwp",			0x00000006,	1,	7, },
+	{ "hwp_notify",			0x00000006,	1,	8, },
+	{ "hwp_act_window",		0x00000006,	1,	9, },
+	{ "hwp_epp",			0x00000006,	1,	10, },
+	{ "hwp_pkg_req",		0x00000006,	1,	11, },
+	//{ "npt",			0x8000000a,	3,	0, },
+	//{ "lbrv",			0x8000000a,	3,	1, },
+	//{ "svm_lock",			0x8000000a,	3,	2, },
+	//{ "nrip_save",		0x8000000a,	3,	3, },
+	//{ "tsc_scale",		0x8000000a,	3,	4, },
+	//{ "vmcb_clean",		0x8000000a,	3,	5, },
+	//{ "flushbyasid",		0x8000000a,	3,	6, },
+	//{ "decodeassists",		0x8000000a,	3,	7, },
+	//{ "pausefilter",		0x8000000a,	3,	10, },
+	//{ "pfthreshold",		0x8000000a,	3,	12, },
+	//{ "avic",			0x8000000a,	3,	13, },
+	//{ "v_vmsave_vmload",		0x8000000a,	3,	15, },
+	//{ "vgif",			0x8000000a,	3,	16, },
+	{ "avx512vbmi",			0x00000007,	2,	1, },
+	{ "umip",			0x00000007,	2,	2, },
+	{ "pku",			0x00000007,	2,	3, },
+	{ "ospke",			0x00000007,	2,	4, },
+	{ "avx512_vbmi2",		0x00000007,	2,	6, },
+	{ "gfni",			0x00000007,	2,	8, },
+	{ "vaes",			0x00000007,	2,	9, },
+	{ "vpclmulqdq",			0x00000007,	2,	10, },
+	{ "avx512_vnni",		0x00000007,	2,	11, },
+	{ "avx512_bitalg",		0x00000007,	2,	12, },
+	{ "tme",			0x00000007,	2,	13, },
+	{ "avx512_vpopcntdq",		0x00000007,	2,	14, },
+	{ "la57",			0x00000007,	2,	16, },
+	{ "rdpid",			0x00000007,	2,	22, },
+	{ "cldemote",			0x00000007,	2,	25, },
+	{ "movdiri",			0x00000007,	2,	27, },
+	{ "movdir64b",			0x00000007,	2,	28, },
+	//{ "overflow_recov",		0x80000007,	1,	0, },
+	//{ "succor",			0x80000007,	1,	1, },
+	//{ "smca",			0x80000007,	1,	3, },
+	{ "avx512_4vnniw",		0x00000007,	3,	2, },
+	{ "avx512_4fmaps",		0x00000007,	3,	3, },
+	{ "tsx_force_abort",		0x00000007,	3,	13, },
+	{ "pconfig",			0x00000007,	3,	18, },
+	{ "spec_ctrl",			0x00000007,	3,	26, },
+	{ "intel_stibp",		0x00000007,	3,	27, },
+	{ "flush_l1d",			0x00000007,	3,	28, },
+	{ "arch_capabilities",		0x00000007,	3,	29, },
+	{ "spec_ctrl_ssbd",		0x00000007,	3,	31, },
+};
 
 typedef struct IOMap IOMap;
 struct IOMap
@@ -546,18 +836,35 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 }
 
 static void
-get_cpuid_limits(int *num_basic, int *num_extended)
+get_cpuid_limits(int *num_basic, int *num_hypervisor, int *num_extended)
 {
 	uint32_t info[4];
 
 	*num_basic = 0;
+	*num_hypervisor = 0;
 	*num_extended = 0;
 
-	if (cpuid(CPUID_EAX_0x00000000, 0, info)) {
+	if (cpuid(0x00000000, 0, info)) {
 		*num_basic = info[0] + 1;
 	}
-	if (cpuid(CPUID_EAX_0x80000000, 0, info)) {
-		*num_extended = info[0] - CPUID_EAX_0x80000000 + 1;
+	if (cpuid(0x40000000, 0, info)) {
+		*num_hypervisor = info[0] - 0x40000000 + 1;
+	}
+	if (cpuid(0x80000000, 0, info)) {
+		*num_extended = info[0] - 0x80000000 + 1;
+	}
+}
+
+static int32_t
+itoeax(int i, uint32_t num_basic, uint32_t num_hyp, uint32_t num_ext) {
+	uint32_t first_hyp = num_basic;
+	uint32_t first_ext = num_basic + num_hyp;
+	if (i >= first_ext) {
+		return 0x80000000 + i - first_ext;
+	} else if (i >= first_hyp) {
+		return 0x40000000 + i - first_hyp;
+	} else {
+		return i;
 	}
 }
 
@@ -569,12 +876,11 @@ cpuidrawread(Chan* c, void *a, int32_t n, int64_t off)
 	char *e = buf+sizeof buf;
 	uint32_t info[4];
 
-	int num_basic = 0, num_ext = 0;
-	get_cpuid_limits(&num_basic, &num_ext);
-	s = seprint(s,e,"basic:%d ext:%d\n", num_basic, num_ext);
+	int num_basic = 0, num_hyp = 0, num_ext = 0;
+	get_cpuid_limits(&num_basic, &num_hyp, &num_ext);
 
-	for (int i = 0; i < num_basic + num_ext; i++) {
-		uint32_t eax = i < num_basic ? i : i - num_basic + CPUID_EAX_0x80000000;
+	for (int i = 0; i < num_basic + num_hyp + num_ext; i++) {
+		uint32_t eax = itoeax(i, num_basic, num_hyp, num_ext);
 		if (!cpuid(eax, 0, info)) {
 			continue;
 		}
@@ -593,23 +899,23 @@ cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
 	char *e = buf+sizeof buf;
 	uint32_t info[4];
 
-	int num_basic = 0, num_ext = 0;
-	get_cpuid_limits(&num_basic, &num_ext);
+	int num_basic = 0, num_hyp = 0, num_ext = 0;
+	get_cpuid_limits(&num_basic, &num_hyp, &num_ext);
 
 	int num_flags = nelem(cpuflags);
 
-	for (int i = 0; i < num_basic + num_ext; i++) {
-		uint32_t eax = i < num_basic ? i : i - num_basic + CPUID_EAX_0x80000000;
+	for (int i = 0; i < num_basic + num_hyp + num_ext; i++) {
+		uint32_t eax = itoeax(i, num_basic, num_hyp, num_ext);
 		if (!cpuid(eax, 0, info)) {
 			continue;
 		}
 
 		// Extract any flag names if this particular eax contains flags
-		if (eax == CPUID_EAX_0x00000000 || eax == CPUID_EAX_0x00000001
-			|| eax == CPUID_EAX_0x00000006 || eax == CPUID_EAX_0x00000007
-			|| eax == CPUID_EAX_0x0000000d || eax == CPUID_EAX_0x0000000f
-			|| eax == CPUID_EAX_0x80000000 || eax == CPUID_EAX_0x80000001
-			|| eax == CPUID_EAX_0x80000007) {
+		if (eax == 0x00000000 || eax == 0x00000001
+			|| eax == 0x00000006 || eax == 0x00000007
+			|| eax == 0x0000000d || eax == 0x0000000f
+			|| eax == 0x80000000 || eax == 0x80000001
+			|| eax == 0x80000007) {
 			for (int fi = 0; fi < num_flags; fi++) {
 				Cpuflag *flag = &cpuflags[fi];
 				if (flag->eax != eax) {

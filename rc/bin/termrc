@@ -1,7 +1,5 @@
 #!/bin/rc
 # terminal startup
-cat /dev/cpuidraw
-cat /dev/cpuidflags
 
 TIMESYNCARGS=(-rLa1000000)
 NDBFILE=/lib/ndb/local

@@ -16,6 +16,11 @@
 #undef DBG
 #define DBG iprint
 
+typedef enum CpuHypervisor {
+	CpuHypervisorUnknown = 0,
+	CpuHypervisorKvm,
+} CpuHypervisor;
+
 static int
 cpuidinit(void)
 {
@@ -87,71 +92,32 @@ cpuidname(uint32_t *info0)
 	return vendorid;
 }
 
-
-// Get the processor brand string.  str must be at least 48 characters long.
-// Also returns clock speed (as described in intel cpuid docs)
-/*static void
-get_cpuid_brand(char str[48], int64_t *hz)
+CpuHypervisor
+cpuhypervisor()
 {
-	uint32_t info[12];
-
-	str[0] = 0;
-	if (!cpuid(0x80000002, 0, info)) {
-		iprint("get_cpuid_brand: couldn't read 0x80000002\n");
-		return;
+	uint32_t info[4];
+	if (cpuid(0x40000000, 0, info)) {
+		char *hypname = (char*)&info[1];
+		if (!memcmp("KVMKVMKVM\0\0\0", hypname, 12)) {
+			return CpuHypervisorKvm;
+		}
 	}
-	if (!cpuid(0x80000003, 0, &info[4])) {
-		iprint("get_cpuid_brand: couldn't read 0x80000003\n");
-		return;
-	}
-	if (!cpuid(0x80000004, 0, &info[8])) {
-		iprint("get_cpuid_brand: couldn't read 0x80000004\n");
-		return;
-	}
-
-	const char *infostr = (char*)info;
-	for (int i = 0; i < 48; i++) {
-		str[i] = infostr[i];
-	}
-	// String from cpuid should be null terminated, but lets make sure
-	str[47] = 0;
-
-	char *hzstr = str + strlen(str) - 3;
-	int64_t multiplier = 0;
-	*hz = 0;
-	if (!strcmp(hzstr, "MHz")) {
-		multiplier = 1000000LL;
-	} else if (!strcmp(hzstr, "GHz")) {
-		multiplier = 1000000000LL;
-	} else if (!strcmp(hzstr, "THz")) {
-		multiplier = 1000000000000LL;
-	}
-
-	if (multiplier == 0) {
-		return;
-	}
-	char *freqstr = strrchr(hzstr, ' ');
-	if (!freqstr) {
-		return;
-	}
-
-	// We expect format to be X.YY or XXXX followed by _Hz
-	freqstr++;
-	if (freqstr[1] == '.') {
-		*hz = (int64_t)(freqstr[0] - '0') * multiplier;
-		*hz += (int64_t)(freqstr[2] - '0') * (multiplier / 10);
-		*hz += (int64_t)(freqstr[3] - '0') * (multiplier / 100);
-	} else {
-		*hz = (int64_t)(freqstr[0] - '0') * 1000;
-		*hz += (int64_t)(freqstr[1] - '0') * 100;
-		*hz += (int64_t)(freqstr[2] - '0') * 10;  
-		*hz += (int64_t)(freqstr[3] - '0');    
-		*hz *= multiplier;
-	}
-}*/
+	return CpuHypervisorUnknown;
+}
 
 static int64_t
-cpuidhz(uint32_t *info0, uint32_t *info1)
+cpuidhz_hypervisor()
+{
+	uint32_t info[4];
+	if (cpuid(0x40000010, 0, info)) {
+		return info[0] * 1000;
+	}
+	print("cpuidhz_hypervisor: couldn't read TSC freq for hypervisor\n");
+	return 0;
+}
+
+static int64_t
+cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 {
 	int f, r;
 	int64_t hz;
@@ -170,11 +136,15 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 	uint8_t family = (info1[0] & 0xf00) >> 8;
 	uint8_t model = (info1[0] & 0xf0) >> 4;
 	uint8_t stepping = (info1[0] & 0xf);
-	print("CPUID family %x model %x proctype %x stepping %x model_ext %x family_ext %x\n",
-		family, model, proctype, stepping, model_ext, family_ext);
+	print("CPUID family %x model %x proctype %x stepping %x model_ext %x family_ext %x hypervisor: %d\n",
+		family, model, proctype, stepping, model_ext, family_ext, hypervisor);
 
-	//char brandstr[48];
-	//get_cpuid_brand(brandstr, &hz);
+	if (hypervisor != CpuHypervisorUnknown) {
+		hz = cpuidhz_hypervisor();
+		if (hz > 0) {
+			return hz;
+		}
+	}
 
 	if(strcmp("GenuineIntel", vendorid) == 0) {
 		uint32_t cpuSig = info1[0] & 0x0fff3ff0;
@@ -340,6 +310,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		return 0;
 	}
 
+	hz = 1800000000ULL;
 	return hz;
 }
 
@@ -383,7 +354,11 @@ archhz(void)
 		return 0;
 	}
 
-	hz = cpuidhz(info0, info1);
+	// If we're in a hypervisor, we should try to get the TSC from that
+	// otherwise checking the MSRs below may not be accurate.
+	CpuHypervisor hypervisor = cpuhypervisor();
+
+	hz = cpuidhz(info0, info1, hypervisor);
 	if(hz > 0 || machp()->machno != 0)
 		return hz;
 
