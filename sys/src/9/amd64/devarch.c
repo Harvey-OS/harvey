@@ -56,50 +56,6 @@ Cpuflag cpuflags[] = {
 	{ "tm",				0x00000001,	3,	29, },
 	{ "ia64",			0x00000001,	3,	30, },
 	{ "pbe",			0x00000001,	3,	31, },
-	//{ "syscall",			0x80000001,	32+11, },
-	//{ "mp",				0x80000001,	32+19, },
-	//{ "nx",				0x80000001,	32+20, },
-	//{ "mmxext",			0x80000001,	32+22, },
-	//{ "fxsr_opt",			0x80000001,	32+25, },
-	//{ "gbpages",			0x80000001,	32+26, },
-	//{ "rdtscp",			0x80000001,	32+27, },
-	//{ "lm",				0x80000001,	32+29, },
-	//{ "3dnowext",			0x80000001,	32+30, },
-	//{ "3dnow",			0x80000001,	32+31, },
-	//{ "recovery",			2*32+ 0, },
-	//{ "longrun",			2*32+ 1, },
-	//{ "lrti",			2*32+ 3, },
-	//{ "cxmmx",			3*32+ 0, },
-	//{ "k6_mtrr",			3*32+ 1, },
-	//{ "cyrix_arr",			3*32+ 2, },
-	//{ "centaur_mcr",		3*32+ 3, },
-	//{ "k8",				3*32+ 4, },
-	//{ "k7",				3*32+ 5, },
-	//{ "p3",				3*32+ 6, },
-	//{ "p4",				3*32+ 7, },
-	//{ "constant_tsc",		3*32+ 8, },
-	//{ "up",				3*32+ 9, },
-	//{ "art",			3*32+10, },
-	//{ "arch_perfmon",		3*32+11, },
-	//{ "pebs",			3*32+12, },
-	//{ "bts",			3*32+13, },
-	//{ "syscall32",			3*32+14, },
-	//{ "sysenter32",			3*32+15, },
-	//{ "rep_good",			3*32+16, },
-	//{ "mfence_rdtsc",		3*32+17, },
-	//{ "lfence_rdtsc",		3*32+18, },
-	//{ "acc_power",			3*32+19, },
-	//{ "nopl",			3*32+20, },
-	//{ "always",			3*32+21, },
-	//{ "xtopology",			3*32+22, },
-	//{ "tsc_reliable",		3*32+23, },
-	//{ "nonstop_tsc",		3*32+24, },
-	//{ "cpuid",			3*32+25, },
-	//{ "extd_apicid",		3*32+26, },
-	//{ "amd_dcm",			3*32+27, },
-	//{ "aperfmperf",			3*32+28, },
-	//{ "nonstop_tsc_s3",		3*32+30, },
-	//{ "tsc_known_freq",		3*32+31, },
 	{ "pni",			0x00000001,	2,	0, },
 	{ "pclmulqdq",			0x00000001,	2,	1, },
 	{ "dtes64",			0x00000001,	2,	2, },
@@ -131,16 +87,6 @@ Cpuflag cpuflags[] = {
 	{ "f16c",			0x00000001,	2,	29, },
 	{ "rdrand",			0x00000001,	2,	30, },
 	{ "hypervisor",			0x00000001,	2,	31, },
-	//{ "xstore",			5*32+ 2, },
-	//{ "xstore_en",			5*32+ 3, },
-	//{ "xcrypt",			5*32+ 6, },
-	//{ "xcrypt_en",			5*32+ 7, },
-	//{ "ace2",			5*32+ 8, },
-	//{ "ace2_en",			5*32+ 9, },
-	//{ "phe",			5*32+10, },
-	//{ "phe_en",			5*32+11, },
-	//{ "pmm",			5*32+12, },
-	//{ "pmm_en",			5*32+13, },
 	{ "lahf_lm",			0x80000001,	2,	0, },
 	{ "cmp_legacy",			0x80000001,	2,	1, },
 	{ "svm",			0x80000001,	2,	2, },
@@ -167,45 +113,6 @@ Cpuflag cpuflags[] = {
 	{ "ptsc",			0x80000001,	2,	27, },
 	{ "perfctr_llc",		0x80000001,	2,	28, },
 	{ "mwaitx",			0x80000001,	2,	29, },
-	//{ "ring3mwait",			7*32+ 0, },
-	//{ "cpuid_fault",		7*32+ 1, },
-	//{ "cpb",			7*32+ 2, },
-	//{ "epb",			7*32+ 3, },
-	//{ "cat_l3",			7*32+ 4, },
-	//{ "cat_l2",			7*32+ 5, },
-	//{ "cdp_l3",			7*32+ 6, },
-	//{ "invpcid_single",		7*32+ 7, },
-	//{ "hw_pstate",			7*32+ 8, },
-	//{ "proc_feedback",		7*32+ 9, },
-	//{ "sme",			7*32+10, },
-	//{ "pti",			7*32+11, },
-	//{ "retpoline",			7*32+12, },
-	//{ "retpoline_amd",		7*32+13, },
-	//{ "intel_ppin",			7*32+14, },
-	//{ "cdp_l2",			7*32+15, },
-	//{ "msr_spec_ctrl",		7*32+16, },
-	//{ "ssbd",			7*32+17, },
-	//{ "mba",			7*32+18, },
-	//{ "rsb_ctxsw",			7*32+19, },
-	//{ "sev",			7*32+20, },
-	//{ "use_ibpb",			7*32+21, },
-	//{ "use_ibrs_fw",		7*32+22, },
-	//{ "spec_store_bypass_disable",	7*32+23, },
-	//{ "ls_cfg_ssbd",		7*32+24, },
-	//{ "ibrs",			7*32+25, },
-	//{ "ibpb",			7*32+26, },
-	//{ "stibp",			7*32+27, },
-	//{ "zen",			7*32+28, },
-	//{ "l1tf_pteinv",		7*32+29, },
-	//{ "ibrs_enhanced",		7*32+30, },
-	//{ "tpr_shadow",			0x00000007,	8*32+ 0, },
-	//{ "vnmi",			0x00000007,	8*32+ 1, },
-	//{ "flexpriority",		0x00000007,	8*32+ 2, },
-	//{ "ept",			0x00000007,	8*32+ 3, },
-	//{ "vpid",			0x00000007,	8*32+ 4, },
-	//{ "vmmcall",			0x00000007,	8*32+15, },
-	//{ "xenpv",			0x00000007,	8*32+16, },
-	//{ "ept_ad",			0x00000007,	8*32+17, },
 	{ "fsgsbase",			0x00000007,	1,	0, },
 	{ "tsc_adjust",			0x00000007,	1,	1, },
 	{ "bmi1",			0x00000007,	1,	3, },
@@ -242,17 +149,6 @@ Cpuflag cpuflags[] = {
 	{ "cqm_occup_llc",		0x0000000f,	3,	0, },
 	{ "cqm_mbm_total",		0x0000000f,	3,	1, },
 	{ "cqm_mbm_local",		0x0000000f,	3,	2, },
-	//{ "clzero",			0x80000008,	1,	0, },
-	//{ "irperf",			0x80000008,	1,	1, },
-	//{ "xsaveerptr",			0x80000008,	1,	2, },
-	//{ "wbnoinvd",			0x80000008,	1,	9, },
-	//{ "amd_ibpb",			0x80000008,	1,	12, },
-	//{ "amd_ibrs",			0x80000008,	1,	14, },
-	//{ "amd_stibp",			0x80000008,	1,	15, },
-	//{ "amd_stibp_always_on",	0x80000008,	1,	17, },
-	//{ "amd_ssbd",			0x80000008,	1,	24, },
-	//{ "virt_ssbd",			0x80000008,	1,	25, },
-	//{ "amd_ssb_no",			0x80000008,	1,	26, },
 	{ "dtherm",			0x00000006,	1,	0, },
 	{ "ida",			0x00000006,	1,	1, },
 	{ "arat",			0x00000006,	1,	2, },
@@ -263,19 +159,6 @@ Cpuflag cpuflags[] = {
 	{ "hwp_act_window",		0x00000006,	1,	9, },
 	{ "hwp_epp",			0x00000006,	1,	10, },
 	{ "hwp_pkg_req",		0x00000006,	1,	11, },
-	//{ "npt",			0x8000000a,	3,	0, },
-	//{ "lbrv",			0x8000000a,	3,	1, },
-	//{ "svm_lock",			0x8000000a,	3,	2, },
-	//{ "nrip_save",		0x8000000a,	3,	3, },
-	//{ "tsc_scale",		0x8000000a,	3,	4, },
-	//{ "vmcb_clean",		0x8000000a,	3,	5, },
-	//{ "flushbyasid",		0x8000000a,	3,	6, },
-	//{ "decodeassists",		0x8000000a,	3,	7, },
-	//{ "pausefilter",		0x8000000a,	3,	10, },
-	//{ "pfthreshold",		0x8000000a,	3,	12, },
-	//{ "avic",			0x8000000a,	3,	13, },
-	//{ "v_vmsave_vmload",		0x8000000a,	3,	15, },
-	//{ "vgif",			0x8000000a,	3,	16, },
 	{ "avx512vbmi",			0x00000007,	2,	1, },
 	{ "umip",			0x00000007,	2,	2, },
 	{ "pku",			0x00000007,	2,	3, },
@@ -293,9 +176,6 @@ Cpuflag cpuflags[] = {
 	{ "cldemote",			0x00000007,	2,	25, },
 	{ "movdiri",			0x00000007,	2,	27, },
 	{ "movdir64b",			0x00000007,	2,	28, },
-	//{ "overflow_recov",		0x80000007,	1,	0, },
-	//{ "succor",			0x80000007,	1,	1, },
-	//{ "smca",			0x80000007,	1,	3, },
 	{ "avx512_4vnniw",		0x00000007,	3,	2, },
 	{ "avx512_4fmaps",		0x00000007,	3,	3, },
 	{ "tsx_force_abort",		0x00000007,	3,	13, },
@@ -855,6 +735,8 @@ get_cpuid_limits(int *num_basic, int *num_hypervisor, int *num_extended)
 	}
 }
 
+// Given an index into the valid cpuids, and the number of each range of values,
+// return the appropriate EAX value.
 static int32_t
 itoeax(int i, uint32_t num_basic, uint32_t num_hyp, uint32_t num_ext) {
 	uint32_t first_hyp = num_basic;
@@ -868,6 +750,7 @@ itoeax(int i, uint32_t num_basic, uint32_t num_hyp, uint32_t num_ext) {
 	}
 }
 
+// Output hex values of all valid cpuid values
 static int32_t
 cpuidrawread(Chan* c, void *a, int32_t n, int64_t off)
 {
@@ -891,6 +774,7 @@ cpuidrawread(Chan* c, void *a, int32_t n, int64_t off)
 	return readstr(off, a, n, buf);
 }
 
+// Output cpu flag shortnames from cpuid values
 static int32_t
 cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
 {
@@ -911,20 +795,14 @@ cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
 		}
 
 		// Extract any flag names if this particular eax contains flags
-		if (eax == 0x00000000 || eax == 0x00000001
-			|| eax == 0x00000006 || eax == 0x00000007
-			|| eax == 0x0000000d || eax == 0x0000000f
-			|| eax == 0x80000000 || eax == 0x80000001
-			|| eax == 0x80000007) {
-			for (int fi = 0; fi < num_flags; fi++) {
-				Cpuflag *flag = &cpuflags[fi];
-				if (flag->eax != eax) {
-					continue;
-				}
+		for (int fi = 0; fi < num_flags; fi++) {
+			Cpuflag *flag = &cpuflags[fi];
+			if (flag->eax != eax) {
+				continue;
+			}
 
-				if (info[flag->infoidx] & (1 << flag->bitidx)) {
-					s = seprint(s, e, "%s ", flag->name);
-				}
+			if (info[flag->infoidx] & (1 << flag->bitidx)) {
+				s = seprint(s, e, "%s ", flag->name);
 			}
 		}
 	}
