@@ -16,6 +16,11 @@
 #undef DBG
 #define DBG iprint
 
+typedef enum CpuHypervisor {
+	CpuHypervisorUnknown = 0,
+	CpuHypervisorKvm,
+} CpuHypervisor;
+
 static int
 cpuidinit(void)
 {
@@ -85,12 +90,34 @@ cpuidname(uint32_t *info0)
 		return vendorid;
 	}
 	return vendorid;
+}
 
-
+CpuHypervisor
+cpuhypervisor()
+{
+	uint32_t info[4];
+	if (cpuid(0x40000000, 0, info)) {
+		char *hypname = (char*)&info[1];
+		if (!memcmp("KVMKVMKVM\0\0\0", hypname, 12)) {
+			return CpuHypervisorKvm;
+		}
+	}
+	return CpuHypervisorUnknown;
 }
 
 static int64_t
-cpuidhz(uint32_t *info0, uint32_t *info1)
+cpuidhz_hypervisor()
+{
+	uint32_t info[4];
+	if (cpuid(0x40000010, 0, info)) {
+		return info[0] * 1000;
+	}
+	print("cpuidhz_hypervisor: couldn't read TSC freq for hypervisor\n");
+	return 0;
+}
+
+static int64_t
+cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 {
 	int f, r;
 	int64_t hz;
@@ -103,8 +130,27 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 	DBG("vendorid: %s\n", vendorid);
 	DBG("CPUID Signature: %d\n", info1[0]);
 
+	uint8_t family_ext = (info1[0] & 0xff00000) >> 20;
+	uint8_t model_ext = (info1[0] & 0xf0000) >> 16;
+	uint8_t proctype = (info1[0] & 0x3000) >> 12;
+	uint8_t family = (info1[0] & 0xf00) >> 8;
+	uint8_t model = (info1[0] & 0xf0) >> 4;
+	uint8_t stepping = (info1[0] & 0xf);
+	print("CPUID family %x model %x proctype %x stepping %x model_ext %x family_ext %x hypervisor: %d\n",
+		family, model, proctype, stepping, model_ext, family_ext, hypervisor);
+
+	if (hypervisor != CpuHypervisorUnknown) {
+		hz = cpuidhz_hypervisor();
+		if (hz > 0) {
+			return hz;
+		}
+	}
+
 	if(strcmp("GenuineIntel", vendorid) == 0) {
-		switch(info1[0] & 0x0fff3ff0){
+		uint32_t cpusig = info1[0] & 0x0fff3ff0;
+		print("CPU Signature: %x\n", cpusig);
+
+		switch (cpusig) {
 		default:
 			return 0;
 		case 0x00000f30:		/* Xeon (MP), Pentium [4D] */
@@ -164,16 +210,14 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		case 0x000806e0:		/* i7,5,3 85xx */
 		case 0x000906e0:		/* i7,5,3 77xx 8xxx */
 			/*
-			 * Get the FSB frequemcy.
+			 * Get the FSB frequency.
 			 * If processor has Enhanced Intel Speedstep Technology
 			 * then non-integer bus frequency ratios are possible.
 			 */
-			//print("CPUID EIST: %d\n", (info1[2] & 0x00000080));
-			if(info1[2] & 0x00000080){
+			if (info1[2] & 0x00000080) {
 				msr = rdmsr(0x198);
 				r = (msr>>40) & 0x1f;
-			}
-			else{
+			} else {
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
@@ -181,6 +225,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 //iprint("rdmsr Intel: %d\n", rdmsr(0x2a));
 //iprint("Intel msr.lo %d\n", r);
 //iprint("Intel msr.hi %d\n", f);
+
 			switch(f){
 			default:
 				return 0;
@@ -224,7 +269,10 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		DBG("cpuidhz: 0x2a: %#llx hz %lld\n", rdmsr(0x2a), hz);
 	}
 	else if(strcmp("AuthenticAMD",vendorid) == 0){
-		switch(info1[0] & 0x0fff0ff0){
+		uint32_t cpusig = info1[0] & 0x0fff0ff0;
+		print("CPU Signature: %x\n", cpusig);
+
+		switch (cpusig) {
 		default:
 			return 0;
 		case 0x00050ff0:		/* K8 Athlon Venice 64 / Qemu64 */
@@ -304,7 +352,11 @@ archhz(void)
 		return 0;
 	}
 
-	hz = cpuidhz(info0, info1);
+	// If we're in a hypervisor, we should try to get the TSC from that
+	// otherwise checking the MSRs below may not be accurate.
+	CpuHypervisor hypervisor = cpuhypervisor();
+
+	hz = cpuidhz(info0, info1, hypervisor);
 	if(hz > 0 || machp()->machno != 0)
 		return hz;
 

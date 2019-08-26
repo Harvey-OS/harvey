@@ -23,8 +23,12 @@ fi
 # Provided is an example lsusb(8) output:
 #       Bus 002 Device 004: ID 056a:00e6 Wacom Co., Ltd TPCE6
 # Where 'X'== 2 and 'Y'== 4
+
+# vmware-cpuid-freq=on,+invtsc exposes the 0x40000000 hypervisor cpuid values to
+# the guest, which we can use to identify the TSC frequency
+
 read -r cmd <<EOF
-$kvmdo qemu-system-x86_64 -s -cpu Opteron_G1 -smp 4 -m 2048 $kvmflag \
+$kvmdo qemu-system-x86_64 -s -cpu max,vmware-cpuid-freq=on,+invtsc -smp 4 -m 2048 $kvmflag \
 -usb \
 -serial stdio \
 --machine $machineflag \

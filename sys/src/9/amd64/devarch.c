@@ -16,6 +16,177 @@
 
 #include "ureg.h"
 
+typedef struct Cpuflag {
+	const char	*name;		/* short name (linux-like)*/
+	uint32_t	eax;		/* input eax */
+	uint8_t		infoidx;	/* index of info result */
+	uint8_t		bitidx;		/* feature bit in info result */
+} Cpuflag;
+
+// Below infoidxs equate to: 0=eax 1=ebx 2=ecx 3=edx 
+Cpuflag cpuflags[] = {
+	/* name				eax 		info 	bit */
+	{ "fpu",			0x00000001,	3,	0, },
+	{ "vme",			0x00000001,	3,	1, },
+	{ "de",				0x00000001,	3,	2, },
+	{ "pse",			0x00000001,	3,	3, },
+	{ "tsc",			0x00000001,	3,	4, },
+	{ "msr",			0x00000001,	3,	5, },
+	{ "pae",			0x00000001,	3,	6, },
+	{ "mce",			0x00000001,	3,	7, },
+	{ "cx8",			0x00000001,	3,	8, },
+	{ "apic",			0x00000001,	3,	9, },
+	{ "sep",			0x00000001,	3,	11, },
+	{ "mtrr",			0x00000001,	3,	12, },
+	{ "pge",			0x00000001,	3,	13, },
+	{ "mca",			0x00000001,	3,	14, },
+	{ "cmov",			0x00000001,	3,	15, },
+	{ "pat",			0x00000001,	3,	16, },
+	{ "pse36",			0x00000001,	3,	17, },
+	{ "pn",				0x00000001,	3,	18, },
+	{ "clflush",			0x00000001,	3,	19, },
+	{ "dts",			0x00000001,	3,	21, },
+	{ "acpi",			0x00000001,	3,	22, },
+	{ "mmx",			0x00000001,	3,	23, },
+	{ "fxsr",			0x00000001,	3,	24, },
+	{ "sse",			0x00000001,	3,	25, },
+	{ "sse2",			0x00000001,	3,	26, },
+	{ "ss",				0x00000001,	3,	27, },
+	{ "ht",				0x00000001,	3,	28, },
+	{ "tm",				0x00000001,	3,	29, },
+	{ "ia64",			0x00000001,	3,	30, },
+	{ "pbe",			0x00000001,	3,	31, },
+	{ "pni",			0x00000001,	2,	0, },
+	{ "pclmulqdq",			0x00000001,	2,	1, },
+	{ "dtes64",			0x00000001,	2,	2, },
+	{ "monitor",			0x00000001,	2,	3, },
+	{ "ds_cpl",			0x00000001,	2,	4, },
+	{ "vmx",			0x00000001,	2,	5, },
+	{ "smx",			0x00000001,	2,	6, },
+	{ "est",			0x00000001,	2,	7, },
+	{ "tm2",			0x00000001,	2,	8, },
+	{ "ssse3",			0x00000001,	2,	9, },
+	{ "cid",			0x00000001,	2,	10, },
+	{ "sdbg",			0x00000001,	2,	11, },
+	{ "fma",			0x00000001,	2,	12, },
+	{ "cx16",			0x00000001,	2,	13, },
+	{ "xtpr",			0x00000001,	2,	14, },
+	{ "pdcm",			0x00000001,	2,	15, },
+	{ "pcid",			0x00000001,	2,	17, },
+	{ "dca",			0x00000001,	2,	18, },
+	{ "sse4_1",			0x00000001,	2,	19, },
+	{ "sse4_2",			0x00000001,	2,	20, },
+	{ "x2apic",			0x00000001,	2,	21, },
+	{ "movbe",			0x00000001,	2,	22, },
+	{ "popcnt",			0x00000001,	2,	23, },
+	{ "tsc_deadline_timer",		0x00000001,	2,	24, },
+	{ "aes",			0x00000001,	2,	25, },
+	{ "xsave",			0x00000001,	2,	26, },
+	{ "osxsave",			0x00000001,	2,	27, },
+	{ "avx",			0x00000001,	2,	28, },
+	{ "f16c",			0x00000001,	2,	29, },
+	{ "rdrand",			0x00000001,	2,	30, },
+	{ "hypervisor",			0x00000001,	2,	31, },
+	{ "lahf_lm",			0x80000001,	2,	0, },
+	{ "cmp_legacy",			0x80000001,	2,	1, },
+	{ "svm",			0x80000001,	2,	2, },
+	{ "extapic",			0x80000001,	2,	3, },
+	{ "cr8_legacy",			0x80000001,	2,	4, },
+	{ "abm",			0x80000001,	2,	5, },
+	{ "sse4a",			0x80000001,	2,	6, },
+	{ "misalignsse",		0x80000001,	2,	7, },
+	{ "3dnowprefetch",		0x80000001,	2,	8, },
+	{ "osvw",			0x80000001,	2,	9, },
+	{ "ibs",			0x80000001,	2,	10, },
+	{ "xop",			0x80000001,	2,	11, },
+	{ "skinit",			0x80000001,	2,	12, },
+	{ "wdt",			0x80000001,	2,	13, },
+	{ "lwp",			0x80000001,	2,	15, },
+	{ "fma4",			0x80000001,	2,	16, },
+	{ "tce",			0x80000001,	2,	17, },
+	{ "nodeid_msr",			0x80000001,	2,	19, },
+	{ "tbm",			0x80000001,	2,	21, },
+	{ "topoext",			0x80000001,	2,	22, },
+	{ "perfctr_core",		0x80000001,	2,	23, },
+	{ "perfctr_nb",			0x80000001,	2,	24, },
+	{ "bpext",			0x80000001,	2,	26, },
+	{ "ptsc",			0x80000001,	2,	27, },
+	{ "perfctr_llc",		0x80000001,	2,	28, },
+	{ "mwaitx",			0x80000001,	2,	29, },
+	{ "fsgsbase",			0x00000007,	1,	0, },
+	{ "tsc_adjust",			0x00000007,	1,	1, },
+	{ "bmi1",			0x00000007,	1,	3, },
+	{ "hle",			0x00000007,	1,	4, },
+	{ "avx2",			0x00000007,	1,	5, },
+	{ "smep",			0x00000007,	1,	7, },
+	{ "bmi2",			0x00000007,	1,	8, },
+	{ "erms",			0x00000007,	1,	9, },
+	{ "invpcid",			0x00000007,	1,	10, },
+	{ "rtm",			0x00000007,	1,	11, },
+	{ "cqm",			0x00000007,	1,	12, },
+	{ "mpx",			0x00000007,	1,	14, },
+	{ "rdt_a",			0x00000007,	1,	15, },
+	{ "avx512f",			0x00000007,	1,	16, },
+	{ "avx512dq",			0x00000007,	1,	17, },
+	{ "rdseed",			0x00000007,	1,	18, },
+	{ "adx",			0x00000007,	1,	19, },
+	{ "smap",			0x00000007,	1,	20, },
+	{ "avx512ifma",			0x00000007,	1,	21, },
+	{ "clflushopt",			0x00000007,	1,	23, },
+	{ "clwb",			0x00000007,	1,	24, },
+	{ "intel_pt",			0x00000007,	1,	25, },
+	{ "avx512pf",			0x00000007,	1,	26, },
+	{ "avx512er",			0x00000007,	1,	27, },
+	{ "avx512cd",			0x00000007,	1,	28, },
+	{ "sha_ni",			0x00000007,	1,	29, },
+	{ "avx512bw",			0x00000007,	1,	30, },
+	{ "avx512vl",			0x00000007,	1,	31, },
+	{ "xsaveopt",			0x0000000d,	0,	0, },
+	{ "xsavec",			0x0000000d,	0,	1, },
+	{ "xgetbv1",			0x0000000d,	0,	2, },
+	{ "xsaves",			0x0000000d,	0,	3, },
+	{ "cqm_llc",			0x0000000f,	3,	1, },
+	{ "cqm_occup_llc",		0x0000000f,	3,	0, },
+	{ "cqm_mbm_total",		0x0000000f,	3,	1, },
+	{ "cqm_mbm_local",		0x0000000f,	3,	2, },
+	{ "dtherm",			0x00000006,	1,	0, },
+	{ "ida",			0x00000006,	1,	1, },
+	{ "arat",			0x00000006,	1,	2, },
+	{ "pln",			0x00000006,	1,	4, },
+	{ "pts",			0x00000006,	1,	6, },
+	{ "hwp",			0x00000006,	1,	7, },
+	{ "hwp_notify",			0x00000006,	1,	8, },
+	{ "hwp_act_window",		0x00000006,	1,	9, },
+	{ "hwp_epp",			0x00000006,	1,	10, },
+	{ "hwp_pkg_req",		0x00000006,	1,	11, },
+	{ "avx512vbmi",			0x00000007,	2,	1, },
+	{ "umip",			0x00000007,	2,	2, },
+	{ "pku",			0x00000007,	2,	3, },
+	{ "ospke",			0x00000007,	2,	4, },
+	{ "avx512_vbmi2",		0x00000007,	2,	6, },
+	{ "gfni",			0x00000007,	2,	8, },
+	{ "vaes",			0x00000007,	2,	9, },
+	{ "vpclmulqdq",			0x00000007,	2,	10, },
+	{ "avx512_vnni",		0x00000007,	2,	11, },
+	{ "avx512_bitalg",		0x00000007,	2,	12, },
+	{ "tme",			0x00000007,	2,	13, },
+	{ "avx512_vpopcntdq",		0x00000007,	2,	14, },
+	{ "la57",			0x00000007,	2,	16, },
+	{ "rdpid",			0x00000007,	2,	22, },
+	{ "cldemote",			0x00000007,	2,	25, },
+	{ "movdiri",			0x00000007,	2,	27, },
+	{ "movdir64b",			0x00000007,	2,	28, },
+	{ "avx512_4vnniw",		0x00000007,	3,	2, },
+	{ "avx512_4fmaps",		0x00000007,	3,	3, },
+	{ "tsx_force_abort",		0x00000007,	3,	13, },
+	{ "pconfig",			0x00000007,	3,	18, },
+	{ "spec_ctrl",			0x00000007,	3,	26, },
+	{ "intel_stibp",		0x00000007,	3,	27, },
+	{ "flush_l1d",			0x00000007,	3,	28, },
+	{ "arch_capabilities",		0x00000007,	3,	29, },
+	{ "spec_ctrl_ssbd",		0x00000007,	3,	31, },
+};
+
 typedef struct IOMap IOMap;
 struct IOMap
 {
@@ -529,8 +700,8 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	char buf[512], *s, *e;
 	char *vendorid;
 	uint32_t info0[4];
-	int i, k;
 
+	s = buf;
 	e = buf+sizeof buf;
 
 	if(!cpuidinfo(0, 0, info0)) {
@@ -539,17 +710,105 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	} else
 		vendorid = cpuidname(info0);
 
-	s = seprint(buf, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
+	s = seprint(s, e, "%s CPU @ %uMHz\ncpu cores: %d\n", vendorid, machp()->cpumhz, sys->nmach);
 
-	if(DBGFLG) {
-		k = machp()->CPU.ncpuinfoe - machp()->CPU.ncpuinfos;
-		if(k > 4)
-			k = 4;
-		for(i = 0; i < k; i++)
-			s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x\n",
-				machp()->CPU.cpuinfo[i][0], machp()->CPU.cpuinfo[i][1],
-				machp()->CPU.cpuinfo[i][2], machp()->CPU.cpuinfo[i][3]);
+	return readstr(off, a, n, buf);
+}
+
+static void
+get_cpuid_limits(int *num_basic, int *num_hypervisor, int *num_extended)
+{
+	uint32_t info[4];
+
+	*num_basic = 0;
+	*num_hypervisor = 0;
+	*num_extended = 0;
+
+	if (cpuid(0x00000000, 0, info)) {
+		*num_basic = info[0] + 1;
 	}
+	if (cpuid(0x40000000, 0, info)) {
+		*num_hypervisor = info[0] - 0x40000000 + 1;
+	}
+	if (cpuid(0x80000000, 0, info)) {
+		*num_extended = info[0] - 0x80000000 + 1;
+	}
+}
+
+// Given an index into the valid cpuids, and the number of each range of values,
+// return the appropriate EAX value.
+static int32_t
+itoeax(int i, uint32_t num_basic, uint32_t num_hyp, uint32_t num_ext) {
+	uint32_t first_hyp = num_basic;
+	uint32_t first_ext = num_basic + num_hyp;
+	if (i >= first_ext) {
+		return 0x80000000 + i - first_ext;
+	} else if (i >= first_hyp) {
+		return 0x40000000 + i - first_hyp;
+	} else {
+		return i;
+	}
+}
+
+// Output hex values of all valid cpuid values
+static int32_t
+cpuidrawread(Chan* c, void *a, int32_t n, int64_t off)
+{
+	char buf[4096];
+	char *s = buf;
+	char *e = buf+sizeof buf;
+	uint32_t info[4];
+
+	int num_basic = 0, num_hyp = 0, num_ext = 0;
+	get_cpuid_limits(&num_basic, &num_hyp, &num_ext);
+
+	for (int i = 0; i < num_basic + num_hyp + num_ext; i++) {
+		uint32_t eax = itoeax(i, num_basic, num_hyp, num_ext);
+		if (!cpuid(eax, 0, info)) {
+			continue;
+		}
+		s = seprint(s, e, "%#8.8x %#8.8x %#8.8x %#8.8x %#8.8x %#8.8x\n",
+			eax, 0, info[0], info[1], info[2], info[3]);
+	}
+
+	return readstr(off, a, n, buf);
+}
+
+// Output cpu flag shortnames from cpuid values
+static int32_t
+cpuidflagsread(Chan* c, void *a, int32_t n, int64_t off)
+{
+	char buf[4096];
+	char *s = buf;
+	char *e = buf+sizeof buf;
+	uint32_t info[4];
+
+	int num_basic = 0, num_hyp = 0, num_ext = 0;
+	get_cpuid_limits(&num_basic, &num_hyp, &num_ext);
+
+	int num_flags = nelem(cpuflags);
+
+	for (int i = 0; i < num_basic + num_hyp + num_ext; i++) {
+		uint32_t eax = itoeax(i, num_basic, num_hyp, num_ext);
+		if (!cpuid(eax, 0, info)) {
+			continue;
+		}
+
+		// Extract any flag names if this particular eax contains flags
+		for (int fi = 0; fi < num_flags; fi++) {
+			Cpuflag *flag = &cpuflags[fi];
+			if (flag->eax != eax) {
+				continue;
+			}
+
+			if (info[flag->infoidx] & (1 << flag->bitidx)) {
+				s = seprint(s, e, "%s ", flag->name);
+			}
+		}
+	}
+
+	s = seprint(s, e, "\n");
+
 	return readstr(off, a, n, buf);
 }
 
@@ -558,6 +817,8 @@ archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("mtags", 0444, mtagsread, nil);
+	addarchfile("cpuidraw", 0444, cpuidrawread, nil);
+	addarchfile("cpuidflags", 0444, cpuidflagsread, nil);
 }
 
 void
