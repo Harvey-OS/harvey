@@ -1,3 +1,5 @@
+// +build ignore
+
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -20,15 +22,15 @@ import (
 )
 
 type Embed struct {
-	Name string
+	Name  string
 	Class string
-	CSP [4]string
-	VID string
-	DID string
+	CSP   [4]string
+	VID   string
+	DID   string
 }
 
 type SysConf struct {
-	Embeds  []Embed
+	Embeds []Embed
 }
 
 var outpath = flag.String("o", "", "path/to/output.c")
@@ -68,7 +70,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-		tmpl, err := template.New("usbdb.c").Parse(`
+	tmpl, err := template.New("usbdb.c").Parse(`
 /* machine generated. do not edit */
 #include <u.h>
 #include <libc.h>

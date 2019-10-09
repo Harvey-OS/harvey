@@ -59,7 +59,6 @@ type Record struct {
 	pcs []pc
 }
 
-
 type Symbol struct {
 	Addr uint64
 	Name string
