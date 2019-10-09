@@ -2,9 +2,9 @@
 
 echo Building the build tool...
 
-GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -u github.com/Harvey-OS/ninep/cmd/ufs
-# GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get -f -u bldy.build/bldy
-GOBIN="$(pwd)/util" GOPATH="$(pwd)/util/third_party:$(pwd)/util" go get harvey/cmd/...
+GO111MODULE=on GOBIN="$(pwd)/util" go get -u github.com/Harvey-OS/ninep/cmd/ufs
+# GO111MODULE=on GOBIN="$(pwd)/util" go get -f -u bldy.build/bldy
+GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
 
 
 # this will make booting a VM easier

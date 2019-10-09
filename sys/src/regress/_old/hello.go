@@ -1,18 +1,18 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 )
 
 func main() {
-	tab := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }
+	tab := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 	ch := make(chan bool)
 	for i := 0; i < 10; i++ {
-		go func(i int){
+		go func(i int) {
 			fmt.Printf("hello %s fmt.printf %d/%d\n", tab[i], i, len(tab))
 			ch <- true
-		}(i);
+		}(i)
 	}
 	for i := 0; i < 10; i++ {
 		<-ch

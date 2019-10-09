@@ -100,7 +100,7 @@ func removeempty(n string, jsmap map[string]interface{}) {
 
 func checkname(n string, jsmap map[string]interface{}) {
 	if _, ok := jsmap["Name"]; !ok {
-		log.Print("File %v has no \"Name\" key", n)
+		log.Printf("File %v has no \"Name\" key", n)
 	}
 }
 
@@ -180,7 +180,7 @@ func main() {
 		})
 
 		if err != nil {
-			log.Fatal("%v", err)
+			log.Fatalf("%v", err)
 
 		}
 	}
