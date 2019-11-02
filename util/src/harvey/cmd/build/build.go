@@ -180,9 +180,10 @@ var (
 		"riscv":   true,
 		"aarch64": true,
 	}
-	debugPrint = flag.Bool("debug", false, "enable debug prints")
-	depends    = flag.Bool("D", false, "Do dependency checking")
-	shellhack  = flag.Bool("shellhack", false, "spawn every command in a shell (forced on if LD_PRELOAD is set)")
+	debugPrint     = flag.Bool("debug", false, "enable debug prints")
+	depends        = flag.Bool("D", false, "Do dependency checking")
+	staticAnalysis = flag.Bool("analyze", false, "Do static analysis")
+	shellhack      = flag.Bool("shellhack", false, "spawn every command in a shell (forced on if LD_PRELOAD is set)")
 )
 
 func debug(fmt string, s ...interface{}) {
@@ -478,24 +479,34 @@ func cmdTarget(b *build, n string) (string, string) {
 
 func compile(b *build) {
 	log.Printf("Building %s\n", b.Name)
+
 	// N.B. Plan 9 has a very well defined include structure, just three things:
 	// /amd64/include, /sys/include, .
 	args := []string{
-		"-std=c11", "-c",
+		"-std=c11",
+		"-c",
 		"-I", fromRoot("/$ARCH/include"),
 		"-I", fromRoot("/sys/include"),
 		"-I", ".",
 	}
+
+	ccCommand := tools["cc"]
+	command := ccCommand
+	if *staticAnalysis {
+		command = "scan-build"
+		args = append([]string{ccCommand}, args...)
+	}
+
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
-		for _, i := range b.SourceFilesCmd {
-			cmd := exec.Command(tools["cc"], append(args, i)...)
+		for _, sourceFile := range b.SourceFilesCmd {
+			cmd := exec.Command(command, append(args, sourceFile)...)
 			run(b, *shellhack, cmd)
 		}
 		return
 	}
 	args = append(args, b.SourceFiles...)
-	cmd := exec.Command(tools["cc"], args...)
+	cmd := exec.Command(command, args...)
 	run(b, *shellhack, cmd)
 }
 
@@ -571,7 +582,8 @@ func run(b *build, pipe bool, cmd *exec.Cmd) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if pipe {
-		// Sh sends cmd to a shell. It's needed to enable $LD_PRELOAD tricks, see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
+		// Sh sends cmd to a shell. It's needed to enable $LD_PRELOAD tricks,
+		// see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
 		shell := exec.Command(sh)
 		shell.Env = cmd.Env
 		shell.Stderr = os.Stderr
