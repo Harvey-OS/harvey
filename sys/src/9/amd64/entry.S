@@ -212,22 +212,22 @@ _warp64:
 	cld
 	rep;	stosl				/* stack, P*, vsvm, m, sys */
 
-	movl	%esi, %eax				/* sys-KZERO */
+	movl	%esi, %eax			/* sys-KZERO */
 	addl	$(MACHSTKSZ), %eax		/* PML4 */
-	movl	%eax, %CR3				/* load the mmu */
+	movl	%eax, %CR3			/* load the mmu */
 	movl	%eax, %edx
-	addl	$(PTSZ|PteRW|PteP), %edx		/* PDP at PML4 + PTSZ */
+	addl	$(PTSZ|PteRW|PteP), %edx	/* PDP at PML4 + PTSZ */
 	movl	%edx, PML4O(0)(%eax)		/* PML4E for identity map */
-	movl	%edx, PML4O(KZERO)(%eax)		/* PML4E for KZERO, PMAPADDR */
+	movl	%edx, PML4O(KZERO)(%eax)	/* PML4E for KZERO, PMAPADDR */
 
 	addl	$PTSZ, %eax			/* PDP at PML4 + PTSZ */
 	addl	$PTSZ, %edx			/* PD at PML4 + 2*PTSZ */
-	movl	%edx, PDPO(0)(%eax)			/* PDPE for identity map */
+	movl	%edx, PDPO(0)(%eax)		/* PDPE for identity map */
 	movl	%edx, PDPO(KZERO)(%eax)		/* PDPE for KZERO, PMAPADDR */
 
 	addl	$PTSZ, %eax			/* PD at PML4 + 2*PTSZ */
 	movl	$(PtePS|PteRW|PteP), %edx
-	movl	%edx, PDO(0)(%eax)			/* PDE for identity 0-[24]MiB */
+	movl	%edx, PDO(0)(%eax)		/* PDE for identity 0-[24]MiB */
 	movl	%edx, PDO(KZERO)(%eax)		/* PDE for KZERO 0-[24]MiB */
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+PGLSZ(1))(%eax)	/* PDE for KZERO [24]-[48]MiB */
@@ -242,9 +242,9 @@ _warp64:
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)
 
-	movl	%eax, %edx				/* PD at PML4 + 2*PTSZ */
-	addl	$(PTSZ|PteRW|PteP), %edx		/* PT at PML4 + 3*PTSZ */
-	movl	%edx, PDO(PMAPADDR)(%eax)		/* PDE for PMAPADDR */
+	movl	%eax, %edx			/* PD at PML4 + 2*PTSZ */
+	addl	$(PTSZ|PteRW|PteP), %edx	/* PT at PML4 + 3*PTSZ */
+	movl	%edx, PDO(PMAPADDR)(%eax)	/* PDE for PMAPADDR */
 
 /*
  * Enable and activate Long Mode. From the manual:
@@ -258,7 +258,7 @@ _warp64:
 lme:
 	movl	%cr4, %eax
 	ANDL	$~Pse, %eax			/* Page Size */
-	ORL	$(Pge|Pae), %eax			/* Page Global, Phys. Address */
+	ORL	$(Pge|Pae), %eax		/* Page Global, Phys. Address */
 	movl	%eax, %cr4
 
 	movl	$Efer, %ecx			/* Extended Feature Enable */
@@ -299,19 +299,19 @@ _start64v:
 	lgdt	(%rax)
 
 	XORQ	%rdx, %rdx
-	movw	%dx, %ds				/* not used in long mode */
-	movw	%dx, %es				/* not used in long mode */
+	movw	%dx, %ds			/* not used in long mode */
+	movw	%dx, %es			/* not used in long mode */
 	movw	%dx, %fs
 	movw	%dx, %gs
-	movw	%dx, %ss				/* not used in long mode */
+	movw	%dx, %ss			/* not used in long mode */
 
-	movq	%rsi, %rsi				/* sys-KZERO */
+	movq	%rsi, %rsi			/* sys-KZERO */
 	movq	%rsi, %rax
 	addq	$KZERO, %rax
 	movq	%rax, sys			/* sys */
 
 	addq	$(MACHSTKSZ), %rax		/* PML4 and top of stack */
-	movq	%rax, %rsp				/* set stack */
+	movq	%rax, %rsp			/* set stack */
 
 // Don't undo this until all APs are started. Then we don't need to bother
 // having the APs remap it. Save work.
@@ -325,30 +325,30 @@ _zap0pdp:
 	addq	$PTSZ, %rax			/* PDP at PML4 + PTSZ */
 	cmpq	$PDPO(KZERO), %rdx 		/* KZER0 & 0x0000007fc0000000 */
 	JE	_zap0pd
-	//movq	%rdx, PDPO(0)(%rax)			/* zap identity map PDPE */
+	//movq	%rdx, PDPO(0)(%rax)		/* zap identity map PDPE */
 _zap0pd:
 	addq	$PTSZ, %rax			/* PD at PML4 + 2*PTSZ */
-	cmpq	$PDO(KZERO), %rdx			/* KZER0 & 0x000000003fe00000 */
+	cmpq	$PDO(KZERO), %rdx		/* KZER0 & 0x000000003fe00000 */
 	JE	_zap0done
-	//movq	%rdx, PDO(0)(%rax)			/* zap identity map PDE */
+	//movq	%rdx, PDO(0)(%rax)		/* zap identity map PDE */
 _zap0done:
 	// now for the scary part. In some sense, all page table zapping to date
 	// has been theoretical. This is going to flush it. If we survive this ...
 
 	addq	$(MACHSTKSZ), %rsi		/* PML4-KZERO */
-	movq	%rsi, %CR3				/* flush TLB */
+	movq	%rsi, %CR3			/* flush TLB */
 
 	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
 	movq	%rax, entrym
-	movq	$0, (%rax) 				/* machp()->machno = 0 */
+	movq	$0, (%rax) 			/* machp()->machno = 0 */
 
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ
 
-	movq	%rbx, %rbx				/* push multiboot args */
+	movq	%rbx, %rbx			/* push multiboot args */
 	movq	%rbx, %rsi
 	movq	%rax, %rax
-	movq	%rax, %rdi				/* multiboot magic */
+	movq	%rax, %rdi			/* multiboot magic */
 	xorq	%rbp, %rbp			/* stack trace ends here */
 	CALL	main
 
@@ -509,7 +509,7 @@ _approtected:
 aplme:
 	MOVL	%CR4, %eAX
 	ANDL	$~Pse, %eAX			/* Page Size */
-	ORL	$(Pge|Pae), %eAX			/* Page Global, Phys. Address */
+	ORL	$(Pge|Pae), %eAX		/* Page Global, Phys. Address */
 	MOVL	%eAX, %CR4
 
 	MOVL	$Efer, %eCX			/* Extended Feature Enable */
@@ -544,11 +544,11 @@ _apstart64v:
 
 	lgdt	(%rax)
 	XORQ	%rDX, %rDX
-	MOVW	%DX, %DS				/* not used in long mode */
-	MOVW	%DX, %ES				/* not used in long mode */
+	MOVW	%DX, %DS			/* not used in long mode */
+	MOVW	%DX, %ES			/* not used in long mode */
 	MOVW	%DX, %FS
 	MOVW	%DX, %GS
-	MOVW	%DX, %SS				/* not used in long mode */
+	MOVW	%DX, %SS			/* not used in long mode */
 
 	movq	%rsi, %rsi			/* PML4-KZERO */
 	MOVQ	%rsI, %rAX
@@ -585,7 +585,7 @@ _apstart64v:
 
 	// put this in %rdx so it can be the third argument. We need to write it into
 	// %gs
-	ADDQ	/*$4*PTSZ+$4*KiB*/$0x5000, %raX		/* PML4+PDP+PD+PT+vsvm */
+	ADDQ	/*$4*PTSZ+$4*KiB*/$0x5000, %raX	/* PML4+PDP+PD+PT+vsvm */
 	MOVq	%rbp, %rdi			/* APIC ID */
 	movq	%rax, %rsi			/* Mach * */
 
