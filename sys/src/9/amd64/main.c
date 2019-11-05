@@ -491,6 +491,11 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		panic("mach and machp() are different!!\n");
 	assert(sizeof(Mach) <= PGSZ);
 
+	// The kernel has a limited area identity mapped for it.  If when loaded
+	// it goes beyond that area, we'll have problems.  If the identity
+	// mapping changes, change this assert.
+	assert(((uintptr_t)end - KZERO) < 16*MiB);
+
 	/*
 	 * Check that our data is on the right boundaries.
 	 * This works because the immediate value is in code.
@@ -499,6 +504,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	//for(;;);
 	if (x != 0x123456)
 		panic("Data is not set up correctly\n");
+
+	// Clear BSS
 	memset(edata, 0, end - edata);
 
 // TODO(aki): figure this out.
