@@ -5,7 +5,7 @@
 #endif
 
 // It gets REALLY ugly to try  to link this at some low address and then have the rest of the
-// kernel linked high. Really, really ugly. And that defines any attempt to load at a randome
+// kernel linked high. Really, really ugly. And that defines any attempt to load at a random
 // address. So, you have to learn to write position independent code here.
 // It will make you stronger. Assuming you survive the training.
 .code32
@@ -164,9 +164,9 @@ _endofheader:
 	pushl %eax				/* possible passed-in magic */
 
 /*
- * Make the basic page tables for CPU0 to map 0-4MiB physical
+ * Make the basic page tables for CPU0 to map 0-16MiB physical
  * to KZERO, and include an identity map for the switch from protected
- * to paging mode. There`s an assumption here that the creation and later
+ * to paging mode. There's an assumption here that the creation and later
  * removal of the identity map will not interfere with the KZERO mappings;
  * the conditions for clearing the identity map are
  *	clear PML4 entry when (KZER0 & 0x0000ff8000000000) != 0;
@@ -225,22 +225,27 @@ _warp64:
 	movl	%edx, PDPO(0)(%eax)		/* PDPE for identity map */
 	movl	%edx, PDPO(KZERO)(%eax)		/* PDPE for KZERO, PMAPADDR */
 
-	addl	$PTSZ, %eax			/* PD at PML4 + 2*PTSZ */
+	addl	$PTSZ, %eax				/* PD at PML4 + 2*PTSZ */
 	movl	$(PtePS|PteRW|PteP), %edx
-	movl	%edx, PDO(0)(%eax)		/* PDE for identity 0-[24]MiB */
-	movl	%edx, PDO(KZERO)(%eax)		/* PDE for KZERO 0-[24]MiB */
+	movl	%edx, PDO(0)(%eax)			/* PDE for identity 0-2MiB */
+	movl	%edx, PDO(KZERO)(%eax)			/* PDE for KZERO 0-2MiB */
 	addl	$PGLSZ(1), %edx
-	movl	%edx, PDO(KZERO+PGLSZ(1))(%eax)	/* PDE for KZERO [24]-[48]MiB */
+	movl	%edx, PDO(KZERO+1*PGLSZ(1))(%eax)	/* PDE for KZERO 4-6MiB */
 	addl	$PGLSZ(1), %edx
-	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1))(%eax)	/* PDE for KZERO [4]-[6]MiB */
+	movl	%edx, PDO(KZERO+2*PGLSZ(1))(%eax)	/* PDE for KZERO 4-6MiB */
 	addl	$PGLSZ(1), %edx
-	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)	/* PDE for KZERO [6]-[8]MiB */
-	// and up through 12. This sucks, we'll make it better later. //
+	movl	%edx, PDO(KZERO+3*PGLSZ(1))(%eax)	/* PDE for KZERO 6-8MiB */
+
+	// and up through 12 (and on to 16). This sucks, we'll make it better later. //
 	// We'll just have init the pml2 at compile time. Apologies.
 	addl	$PGLSZ(1), %edx
-	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)
+	movl	%edx, PDO(KZERO+4*PGLSZ(1))(%eax)	/* PDE for KZERO 8-10MiB */
 	addl	$PGLSZ(1), %edx
-	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)
+	movl	%edx, PDO(KZERO+5*PGLSZ(1))(%eax)	/* PDE for KZERO 10-12MiB */
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+6*PGLSZ(1))(%eax)	/* PDE for KZERO 12-14MiB */
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+7*PGLSZ(1))(%eax)	/* PDE for KZERO 14-16MiB */
 
 	movl	%eax, %edx			/* PD at PML4 + 2*PTSZ */
 	addl	$(PTSZ|PteRW|PteP), %edx	/* PT at PML4 + 3*PTSZ */
