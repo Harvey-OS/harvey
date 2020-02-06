@@ -22,7 +22,7 @@ _fnclex:
 
 .globl _fninit
 _fninit:
-	FINIT					/* no WAIT */
+	FNINIT					/* no WAIT */
 	ret
 
 .globl _fxrstor

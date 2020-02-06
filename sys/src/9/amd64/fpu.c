@@ -69,6 +69,7 @@ static Fxsave defaultFxsave;
 
 extern void _fxrstor(Fxsave*);
 extern void _fxsave(Fxsave*);
+extern void _fninit(void);
 
 
 static void
@@ -169,7 +170,8 @@ fpuprocsave(Proc* p)
 
 	// The process is dead so don't save anything
 	if (p->state == Moribund) {
-		return;
+        _fninit();
+	    return;
 	}
 
 	// Save the FPU state without handling pending unmasked exceptions.
@@ -261,6 +263,7 @@ fpuinit(void)
 	cr4 |= Osxmmexcpt|Osfxsr;
 	cr4put(cr4);
 
+    _fninit();
 	memset(&defaultFxsave, 0, sizeof(defaultFxsave));
 
 	fpusave(&defaultFxsave);
