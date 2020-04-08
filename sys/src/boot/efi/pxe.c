@@ -380,6 +380,20 @@ parsedhcp(EFI_PXE_BASE_CODE_DHCPV4_PACKET *dhcp)
 	}
 
 	/* DHCPv6 */
+
+	/*
+	 * some UEFI implementations use random UUID based DUID instead of
+	 * ethernet address, but use ethernet derived link-local addresses.
+	 * so extract the MAC from our IPv6 address as a fallback.
+	 */
+	p = pxe->Mode->StationIp;
+	mymac[0] = p[8] ^ 2;
+	mymac[1] = p[9];
+	mymac[2] = p[10];
+	mymac[3] = p[13];
+	mymac[4] = p[14];
+	mymac[5] = p[15];
+
 	e = (uchar*)dhcp + sizeof(*dhcp);
 	p = (uchar*)dhcp + 4;
 	while(p+4 <= e){
