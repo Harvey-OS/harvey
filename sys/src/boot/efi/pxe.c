@@ -367,6 +367,7 @@ parsedhcp(EFI_PXE_BASE_CODE_DHCPV4_PACKET *dhcp)
 	char *x;
 	int opt;
 	int len;
+	uint type;
 
 	memset(mymac, 0, sizeof(mymac));
 	memset(serverip, 0, sizeof(serverip));
@@ -389,7 +390,15 @@ parsedhcp(EFI_PXE_BASE_CODE_DHCPV4_PACKET *dhcp)
 			break;
 		switch(opt){
 		case 1:	/* Client DUID */
-			memmove(mymac, p+len-6, 6);
+			if(len < 4+6)
+				break;
+			type = p[0]<<24 | p[1]<<16 | p[2]<<8 | p[3];
+			switch(type){
+			case 0x00010001:
+			case 0x00030001:
+				memmove(mymac, p+len-6, 6);
+				break;
+			}
 			break;
 		case 59: /* Boot File URL */
 			for(x = (char*)p; x < (char*)p+len; x++){
@@ -401,6 +410,21 @@ parsedhcp(EFI_PXE_BASE_CODE_DHCPV4_PACKET *dhcp)
 			break;
 		}
 		p += len;
+	}
+
+	/*
+	 * some UEFI implementations use random UUID based DUID instead of
+	 * ethernet address, but use ethernet derived link-local addresses.
+	 * so extract the MAC from our IPv6 address.
+	 */
+	if((mymac[0]|mymac[1]|mymac[2]|mymac[3]|mymac[4]|mymac[5]) == 0){
+		p = pxe->Mode->StationIp;
+		mymac[0] = p[8] ^ 2;
+		mymac[1] = p[9];
+		mymac[2] = p[10];
+		mymac[3] = p[13];
+		mymac[4] = p[14];
+		mymac[5] = p[15];
 	}
 }
 
