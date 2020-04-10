@@ -492,6 +492,21 @@ Cursortocursor(Cursor *c)
 	qunlock(&drawlock);
 }
 
+void
+mouseblankscreen(int blank)
+{
+	static int blanked;
+
+	if(blank == blanked)
+		return;
+	qlock(&drawlock);
+	if(blanked != blank){
+		blankscreen(blank);
+		blanked = blank;
+	}
+	qunlock(&drawlock);
+}
+
 
 /*
  *  called by the clock routine to redraw the cursor
