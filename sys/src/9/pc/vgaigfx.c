@@ -198,7 +198,7 @@ igfxcurenable(VGAscr* scr)
 	int i;
 
 	igfxenable(scr);
-	igfxcurload(scr, &arrow);
+	igfxcurload(scr, &cursor);
 	igfxcurmove(scr, ZP);
 
 	for(i=0; i<NPIPE; i++){

@@ -1,21 +1,13 @@
 typedef struct Cursor Cursor;
-typedef struct Cursorinfo	Cursorinfo;
 typedef struct OScreen OScreen;
 typedef struct Omap3fb Omap3fb;
 typedef struct Settings Settings;
 
-struct Cursorinfo
-{
-	Cursor;
-	Lock;
-};
-
-extern Cursor	arrow;
-extern Cursorinfo cursor;
-
 /* devmouse.c */
-extern void mousetrack(int, int, int, int);
-extern Point mousexy(void);
+extern Cursor	cursor;
+extern void	mousetrack(int, int, int, ulong);
+extern void	absmousetrack(int, int, int, ulong);
+extern Point	mousexy(void);
 
 extern void	mouseaccelerate(int);
 extern void	mouseresize(void);
@@ -31,22 +23,22 @@ extern int	screenaperture(int, int);
 extern Rectangle physgscreenr;	/* actual monitor size */
 extern void	blankscreen(int);
 
-extern void swcursorinit(void);
-extern void swcursorhide(void);
-extern void swcursoravoid(Rectangle);
-extern void swcursorunhide(void);
-
 /* devdraw.c */
 extern void	deletescreenimage(void);
 extern void	resetscreenimage(void);
-extern int		drawhasclients(void);
-extern ulong	blanktime;
 extern void	setscreenimageclipr(Rectangle);
 extern void	drawflush(void);
 extern int drawidletime(void);
 extern QLock	drawlock;
 
 #define ishwimage(i)	0		/* for ../port/devdraw.c */
+
+/* swcursor.c */
+void		swcursorhide(int);
+void		swcursoravoid(Rectangle);
+void		swcursordraw(Point);
+void		swcursorload(Cursor *);
+void		swcursorinit(void);
 
 /* for communication between devdss.c and screen.c */
 

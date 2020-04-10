@@ -21,7 +21,7 @@ dev
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
-	draw		screen vga vgax
+	draw		screen vga vgax vgasoft
 	mouse		mouse
 	vga
 	kbmap
@@ -97,6 +97,7 @@ misc
 	uarti8250
 	uartpci		pci
 
+	vgasoft		=cur swcursor
 	vga3dfx		+cur
 	vgaark2000pv	+cur
 	vgabt485	=cur

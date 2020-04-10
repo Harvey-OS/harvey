@@ -236,7 +236,7 @@ i81xcurenable(VGAscr* scr)
 	/*
 	 * Load, locate and enable the 32x32 cursor in 2bpp mode.
 	 */
-	i81xcurload(scr, &arrow);
+	i81xcurload(scr, &cursor);
 	i81xcurmove(scr, ZP);
 }
 

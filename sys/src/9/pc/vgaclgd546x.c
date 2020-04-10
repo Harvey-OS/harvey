@@ -195,7 +195,7 @@ clgd546xcurenable(VGAscr* scr)
 	/*
 	 * Load, locate and enable the 64x64 cursor.
 	 */
-	clgd546xcurload(scr, &arrow);
+	clgd546xcurload(scr, &cursor);
 	clgd546xcurmove(scr, ZP);
 	cursor546x->enable = 1;
 }

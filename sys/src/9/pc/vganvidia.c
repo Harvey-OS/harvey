@@ -250,7 +250,7 @@ nvidiacurenable(VGAscr* scr)
 
 	vgaxo(Crtx, 0x1F, 0x57);
 
-	nvidiacurload(scr, &arrow);
+	nvidiacurload(scr, &cursor);
 	nvidiacurmove(scr, ZP);
 
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) | 0x01);

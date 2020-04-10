@@ -13,9 +13,7 @@
 #include <cursor.h>
 #include "screen.h"
 
-#define RGB2K(r,g,b)	((156763*(r)+307758*(g)+59769*(b))>>19)
-
-Point ZP = {0, 0};
+extern VGAcur vgasoftcur;
 
 Rectangle physgscreenr;
 
@@ -96,8 +94,10 @@ screensize(int x, int y, int z, ulong chan)
 	if(oldsoft)
 		xfree(oldsoft);
 
-	memimagedraw(gscreen, gscreen->r, memblack, ZP, nil, ZP, S);
-	flushmemscreen(gscreen->r);
+	drawcmap();
+
+	qunlock(&drawlock);
+	poperror();
 
 	if(didswcursorinit)
 		swcursorinit();
@@ -252,11 +252,9 @@ getcolor(ulong p, ulong* pr, ulong* pg, ulong* pb)
 	}
 	p &= x;
 
-	lock(&cursor);
 	*pr = scr->colormap[p][0];
 	*pg = scr->colormap[p][1];
 	*pb = scr->colormap[p][2];
-	unlock(&cursor);
 }
 
 int
@@ -268,7 +266,6 @@ setpalette(ulong p, ulong r, ulong g, ulong b)
 	scr = &vgascreen[0];
 	d = scr->palettedepth;
 
-	lock(&cursor);
 	scr->colormap[p][0] = r;
 	scr->colormap[p][1] = g;
 	scr->colormap[p][2] = b;
@@ -276,7 +273,6 @@ setpalette(ulong p, ulong r, ulong g, ulong b)
 	vgao(Pdata, r>>(32-d));
 	vgao(Pdata, g>>(32-d));
 	vgao(Pdata, b>>(32-d));
-	unlock(&cursor);
 
 	return ~0;
 }
@@ -313,23 +309,16 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 	return setpalette(p, r, g, b);
 }
 
-int
-cursoron(int dolock)
+void
+cursoron(void)
 {
 	VGAscr *scr;
 	int v;
 
 	scr = &vgascreen[0];
-	if(scr->cur == nil || scr->cur->move == nil)
-		return 0;
-
-	if(dolock)
-		lock(&cursor);
-	v = scr->cur->move(scr, mousexy());
-	if(dolock)
-		unlock(&cursor);
-
-	return v;
+	cur = scr->cur;
+	if(cur && cur->move)
+		cur->move(scr, mousexy());
 }
 
 void
@@ -341,12 +330,12 @@ void
 setcursor(Cursor* curs)
 {
 	VGAscr *scr;
+	VGAcur *cur;
 
 	scr = &vgascreen[0];
-	if(scr->cur == nil || scr->cur->load == nil)
-		return;
-
-	scr->cur->load(scr, curs);
+	cur = scr->cur;
+	if(cur && cur->load)
+		cur->load(scr, curs);
 }
 
 int hwaccel = 1;
@@ -368,16 +357,12 @@ hwdraw(Memdrawparam *par)
 		return 0;
 	if((src=par->src) == nil || src->data == nil)
 		return 0;
-	if((mask=par->mask) == nil || mask->data == nil)
-		return 0;
-
-	if(scr->cur == &swcursor){
-		/*
-		 * always calling swcursorhide here doesn't cure
-		 * leaving cursor tracks nor failing to refresh menus
-		 * with the latest libmemdraw/draw.c.
-		 */
-		if(dst->data->bdata == gscreendata.bdata)
+	if((src = par->src) && src->data == nil)
+		src = nil;
+	if((mask = par->mask) && mask->data == nil)
+		mask = nil;
+	if(scr->cur == &vgasoftcur){
+		if(dst->data->bdata == scrd->bdata)
 			swcursoravoid(par->r);
 		if(src->data->bdata == gscreendata.bdata)
 			swcursoravoid(par->sr);
@@ -721,15 +706,8 @@ swcursorinit(void)
 		freememimage(swimg1);
 	}
 
-	swback = allocmemimage(Rect(0,0,32,32), gscreen->chan);
-	swmask = allocmemimage(Rect(0,0,16,16), GREY8);
-	swmask1 = allocmemimage(Rect(0,0,16,16), GREY1);
-	swimg = allocmemimage(Rect(0,0,16,16), GREY8);
-	swimg1 = allocmemimage(Rect(0,0,16,16), GREY1);
-	if(swback==nil || swmask==nil || swmask1==nil || swimg==nil || swimg1 == nil){
-		print("software cursor: allocmemimage fails");
-		return;
-	}
+	scr->cur = &vgasoftcur;
+	scr->cur->enable(scr);
 
 	memfillcolor(swmask, DOpaque);
 	memfillcolor(swmask1, DOpaque);

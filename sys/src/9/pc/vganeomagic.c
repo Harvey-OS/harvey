@@ -232,7 +232,7 @@ neomagiccurenable(VGAscr* scr)
 	/*
 	 * Load, locate and enable the 64x64 cursor.
 	 */
-	neomagiccurload(scr, &arrow);
+	neomagiccurload(scr, &cursor);
 	neomagiccurmove(scr, ZP);
 	cursornm->enable = 1;
 }

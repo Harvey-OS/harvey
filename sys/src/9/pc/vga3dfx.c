@@ -178,7 +178,7 @@ tdfxcurenable(VGAscr* scr)
 	/*
 	 * Load, locate and enable the 64x64 cursor in X11 mode.
 	 */
-	tdfxcurload(scr, &arrow);
+	tdfxcurload(scr, &cursor);
 	tdfxcurmove(scr, ZP);
 	cursor3dfx->vidProcCfg |= 0x08000002;
 }

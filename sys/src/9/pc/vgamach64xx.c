@@ -622,7 +622,7 @@ mach64xxcurenable(VGAscr* scr)
 	/*
 	 * Load, locate and enable the 64x64 cursor.
 	 */
-	mach64xxcurload(scr, &arrow);
+	mach64xxcurload(scr, &cursor);
 	mach64xxcurmove(scr, ZP);
 	iow32(scr, GenTestCntl, 0x80|r);
 }

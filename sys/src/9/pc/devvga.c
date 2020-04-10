@@ -241,36 +241,28 @@ vgactl(Cmdbuf *cb)
 	switch(ct->index){
 	case CMhwgc:
 		if(strcmp(cb->f[1], "off") == 0){
-			lock(&cursor);
+			qlock(&drawlock);
+			cursoroff();
 			if(scr->cur){
 				if(scr->cur->disable)
 					scr->cur->disable(scr);
 				scr->cur = nil;
 			}
-			unlock(&cursor);
-			return;
-		}
-		if(strcmp(cb->f[1], "soft") == 0){
-			lock(&cursor);
-			swcursorinit();
-			if(scr->cur && scr->cur->disable)
-				scr->cur->disable(scr);
-			scr->cur = &swcursor;
-			if(scr->cur->enable)
-				scr->cur->enable(scr);
-			unlock(&cursor);
+			qunlock(&drawlock);
 			return;
 		}
 		for(i = 0; vgacur[i]; i++){
 			if(strcmp(cb->f[1], vgacur[i]->name))
 				continue;
-			lock(&cursor);
+			qlock(&drawlock);
+			cursoroff();
 			if(scr->cur && scr->cur->disable)
 				scr->cur->disable(scr);
 			scr->cur = vgacur[i];
 			if(scr->cur->enable)
 				scr->cur->enable(scr);
-			unlock(&cursor);
+			cursoron();
+			qunlock(&drawlock);
 			return;
 		}
 		break;
@@ -313,8 +305,6 @@ vgactl(Cmdbuf *cb)
 
 		if(chantodepth(chan) != z)
 			error("depth, channel do not match");
-
-		cursoroff(1);
 		deletescreenimage();
 		if(screensize(x, y, z, chan))
 			error(Egreg);
@@ -339,10 +329,9 @@ vgactl(Cmdbuf *cb)
 
 		if(x > scr->gscreen->r.max.x || y > scr->gscreen->r.max.y)
 			error("physical screen bigger than virtual");
-
-		physgscreenr = Rect(0,0,x,y);
-		scr->gscreen->clipr = physgscreenr;
-		return;
+		deletescreenimage();
+		physgscreenr = r;
+		goto Resized;
 	
 	case CMpalettedepth:
 		x = strtoul(cb->f[1], &p, 0);
@@ -352,11 +341,36 @@ vgactl(Cmdbuf *cb)
 		scr->palettedepth = x;
 		return;
 
+	case CMsoftscreen:
+		if(strcmp(cb->f[1], "on") == 0)
+			scr->softscreen = 1;
+		else if(strcmp(cb->f[1], "off") == 0)
+			scr->softscreen = 0;
+		else
+			break;
+		if(scr->gscreen == nil)
+			return;
+		r = physgscreenr;
+		x = scr->gscreen->r.max.x;
+		y = scr->gscreen->r.max.y;
+		z = scr->gscreen->depth;
+		chan = scr->gscreen->chan;
+		deletescreenimage();
+		if(screensize(x, y, z, chan))
+			error(Egreg);
+		physgscreenr = r;
+		/* no break */
 	case CMdrawinit:
 		if(scr->gscreen == nil)
 			error("drawinit: no gscreen");
 		if(scr->dev && scr->dev->drawinit)
 			scr->dev->drawinit(scr);
+		hwblank = scr->blank != nil;
+		hwaccel = scr->fill != nil || scr->scroll != nil;
+	Resized:
+		scr->gscreen->clipr = panning ? scr->gscreen->r : physgscreenr;
+		vgascreenwin(scr);
+		resetscreenimage();
 		return;
 	
 	case CMlinear:
@@ -402,7 +416,10 @@ vgactl(Cmdbuf *cb)
 			panning = 0;
 		}else
 			break;
-		return;
+		if(scr->gscreen == nil)
+			return;
+		deletescreenimage();
+		goto Resized;
 
 	case CMhwaccel:
 		if(strcmp(cb->f[1], "on") == 0)

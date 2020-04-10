@@ -204,7 +204,7 @@ hiqvideocurenable(VGAscr* scr)
 	 * Load, locate and enable the 32x32 cursor.
 	 * Cursor enable in Xr80 better be set already.
 	 */
-	hiqvideocurload(scr, &arrow);
+	hiqvideocurload(scr, &cursor);
 	hiqvideocurmove(scr, ZP);
 	hiqvideoxo(Xrx, 0xA0, 0x11);
 }

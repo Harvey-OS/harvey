@@ -269,7 +269,7 @@ t2r4curenable(VGAscr* scr)
 	/*
 	 * Load, locate and enable the cursor, 64x64, mode 2.
 	 */
-	t2r4curload(scr, &arrow);
+	t2r4curload(scr, &cursor);
 	t2r4curmove(scr, ZP);
 	t2r4xo(scr, CursorCtl, CursorMode);
 }

@@ -205,24 +205,6 @@ static	ulong	rep(ulong, int);
 static	void	screenputc(char *buf);
 static	void	screenwin(void);
 
-/*
- * Software cursor. 
- */
-int	swvisible;	/* is the cursor visible? */
-int	swenabled;	/* is the cursor supposed to be on the screen? */
-Memimage*	swback;	/* screen under cursor */
-Memimage*	swimg;	/* cursor image */
-Memimage*	swmask;	/* cursor mask */
-Memimage*	swimg1;
-Memimage*	swmask1;
-
-Point	swoffset;
-Rectangle	swrect;	/* screen rectangle in swback */
-Point	swpt;	/* desired cursor location */
-Point	swvispt;	/* actual cursor location */
-int	swvers;	/* incremented each time cursor image changes */
-int	swvisvers;	/* the version on the screen */
-
 static void
 lcdoff(void)
 {
@@ -346,105 +328,21 @@ screenpower(int on)
 	blankscreen(on == 0);
 }
 
-/*
- * called with drawlock locked for us, most of the time.
- * kernel prints at inopportune times might mean we don't
- * hold the lock, but memimagedraw is now reentrant so
- * that should be okay: worst case we get cursor droppings.
- */
+/* called from devmouse */
+
 void
 swcursorhide(void)
 {
-	if(swvisible == 0)
-		return;
-	if(swback == nil)
-		return;
-	swvisible = 0;
-	memimagedraw(gscreen, swrect, swback, ZP, memopaque, ZP, S);
-	flushmemscreen(swrect);
-}
-
-void
-swcursoravoid(Rectangle r)
-{
-	if(swvisible && rectXrect(r, swrect))
-		swcursorhide();
+	swcursorhide(0);
+	swcursordraw(mousexy());
 }
 
 void
 swcursordraw(void)
 {
-	if(swvisible)
-		return;
-	if(swenabled == 0)
-		return;
-	if(swback == nil || swimg1 == nil || swmask1 == nil)
-		return;
-//	assert(!canqlock(&drawlock));		// assertion fails on omap
-	swvispt = swpt;
-	swvisvers = swvers;
-	swrect = rectaddpt(Rect(0,0,16,16), swvispt);
-	memimagedraw(swback, swback->r, gscreen, swpt, memopaque, ZP, S);
-	memimagedraw(gscreen, swrect, swimg1, ZP, swmask1, ZP, SoverD);
-	flushmemscreen(swrect);
-	swvisible = 1;
+	swcursorhide(0);
 }
 
-int
-cursoron(int dolock)
-{
-	if (dolock)
-		lock(&oscreen);
-	cursoroff(0);
-	swcursordraw();
-	if (dolock)
-		unlock(&oscreen);
-	return 0;
-}
-
-void
-cursoroff(int dolock)
-{
-	if (dolock)
-		lock(&oscreen);
-	swcursorhide();
-	if (dolock)
-		unlock(&oscreen);
-}
-
-void
-swload(Cursor *curs)
-{
-	uchar *ip, *mp;
-	int i, j, set, clr;
-
-	if(!swimg || !swmask || !swimg1 || !swmask1)
-		return;
-	/*
-	 * Build cursor image and mask.
-	 * Image is just the usual cursor image
-	 * but mask is a transparent alpha mask.
-	 * 
-	 * The 16x16x8 memimages do not have
-	 * padding at the end of their scan lines.
-	 */
-	ip = byteaddr(swimg, ZP);
-	mp = byteaddr(swmask, ZP);
-	for(i=0; i<32; i++){
-		set = curs->set[i];
-		clr = curs->clr[i];
-		for(j=0x80; j; j>>=1){
-			*ip++ = set&j ? 0x00 : 0xFF;
-			*mp++ = (clr|set)&j ? 0xFF : 0x00;
-		}
-	}
-	swoffset = curs->offset;
-	swvers++;
-	memimagedraw(swimg1,  swimg1->r,  swimg,  ZP, memopaque, ZP, S);
-	memimagedraw(swmask1, swmask1->r, swmask, ZP, memopaque, ZP, S);
-}
-
-/* called from devmouse */
 void
 setcursor(Cursor* curs)
 {
@@ -563,10 +461,7 @@ screeninit(void)
 		iprint("screen: frame buffer at %#p for %dx%d\n",
 			framebuf, oscreen.settings->wid, oscreen.settings->ht);
 
-		swenabled = 1;
 		swcursorinit();		/* needs gscreen set */
-		setcursor(&arrow);
-
 		first = 0;
 	}
 }

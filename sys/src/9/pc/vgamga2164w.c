@@ -216,7 +216,7 @@ tvp3026enable(VGAscr* scr)
 	 * Load, locate and enable the
 	 * 64x64 cursor in 3-colour mode.
 	 */
-	tvp3026load(scr, &arrow);
+	tvp3026load(scr, &cursor);
 	tvp3026move(scr, ZP);
 	*(tvp3026+Cctl) = 0x01;
 }

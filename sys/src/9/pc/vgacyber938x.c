@@ -178,7 +178,7 @@ cyber938xcurenable(VGAscr* scr)
 	 * enable is bit 7). Bit 3 needs to be set on 9382
 	 * chips otherwise even the white bits are black.
 	 */
-	cyber938xcurload(scr, &arrow);
+	cyber938xcurload(scr, &cursor);
 	cyber938xcurmove(scr, ZP);
 	vgaxo(Crtx, 0x50, CursorON);
 }

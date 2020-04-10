@@ -214,8 +214,8 @@ radeoncurenable(VGAscr *scr)
 
 	radeoncurdisable(scr);
 	storage = scr->apsize - 1*Meg;
-	scr->storage = (ulong)KADDR(scr->paddr + storage);
-	radeoncurload(scr, &arrow);
+	scr->storage = (uintptr)KADDR(scr->paddr + storage);
+	radeoncurload(scr, &cursor);
 	radeoncurmove(scr, ZP);
 
 	OUTREGP((ulong)scr->mmio, CRTC_GEN_CNTL, CRTC_CUR_EN | 2<<20,

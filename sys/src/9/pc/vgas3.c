@@ -315,7 +315,7 @@ s3enable(VGAscr* scr)
 	 * Load, locate and enable the cursor
 	 * in Microsoft Windows format.
 	 */
-	s3load(scr, &arrow);
+	s3load(scr, &cursor);
 	s3move(scr, ZP);
 	vgaxo(Crtx, 0x55, vgaxi(Crtx, 0x55) & ~0x10);
 	s3vsyncactive();
