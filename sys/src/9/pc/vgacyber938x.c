@@ -53,7 +53,7 @@ cyber938xlinear(VGAscr* scr, int, int)
 	 * Heuristic to detect the MMIO space.  We're flying blind
 	 * here, with only the XFree86 source to guide us.
 	 */
-	if(p->mem[1].size == 0x20000)
+	if(p->mem[1].size == 0x20000 && (p->mem[1].bar & 1) == 0)
 		scr->mmio = vmap(p->mem[1].bar & ~0x0F, p->mem[1].size);
 
 	if(scr->apsize)

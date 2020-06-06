@@ -78,16 +78,19 @@ i81xenable(VGAscr* scr)
 {
 	Pcidev *p;
 	int size;
-	Mach *mach0;
-	ulong *pgtbl, *rp, cursor, *pte, fbuf, fbend;
+	ulong *pgtbl, *rp;
+	uintptr fbuf, fbend;
 	
 	if(scr->mmio)
 		return;
 	p = i81xpcimatch();
 	if(p == nil)
 		return;
+	if((p->mem[0].bar & 1) != 0
+	|| (p->mem[1].bar & 1) != 0)
+		return;
 	scr->mmio = vmap(p->mem[1].bar & ~0x0F, p->mem[1].size);
-	if(scr->mmio == 0)
+	if(scr->mmio == nil)
 		return;
 	addvgaseg("i81xmmio", p->mem[1].bar&~0x0F, p->mem[1].size);
 

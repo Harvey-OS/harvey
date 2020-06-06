@@ -41,18 +41,10 @@ clgd546xenable(VGAscr* scr)
 		return;
 	if((p = pcimatch(nil, 0x1013, 0)) == nil)
 		return;
-	switch(p->did){
-	case 0xD0:
-	case 0xD4:
-	case 0xD6:
-		break;
-	default:
+	if(p->mem[1].bar & 1)
 		return;
-	}
-
-	scr->pci = p;
 	scr->mmio = vmap(p->mem[1].bar&~0x0F, p->mem[1].size);
-	if(scr->mmio == 0)
+	if(scr->mmio == nil)
 		return;
 	addvgaseg("clgd546xmmio", p->mem[1].bar&~0x0F, p->mem[1].size);
 }
@@ -62,7 +54,7 @@ clgd546xcurdisable(VGAscr* scr)
 {
 	Cursor546x *cursor546x;
 
-	if(scr->mmio == 0)
+	if(scr->mmio == nil)
 		return;
 	cursor546x = (Cursor546x*)((uchar*)scr->mmio+CursorMMIO);
 	cursor546x->enable = 0;

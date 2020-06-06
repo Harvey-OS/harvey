@@ -155,10 +155,15 @@ vesalinear(VGAscr *scr, int, int)
 	while(!havesize && (pci = pcimatch(pci, 0, 0)) != nil){
 		if(pci->ccrb != Pcibcdisp)
 			continue;
-		for(i=0; i<nelem(pci->mem); i++)
-			if(paddr == (pci->mem[i].bar&~0x0F)){
-				if(pci->mem[i].size > size)
-					size = pci->mem[i].size;
+		for(i=0; i<nelem(pci->mem); i++){
+			uvlong a, e;
+
+			if(pci->mem[i].size == 0 || (pci->mem[i].bar & 1) != 0)
+				continue;
+			a = pci->mem[i].bar & ~0xF;
+			e = a + pci->mem[i].size;
+			if(m.paddr >= a && (m.paddr+size) <= e){
+				size = e - m.paddr;
 				havesize = 1;
 				break;
 			}

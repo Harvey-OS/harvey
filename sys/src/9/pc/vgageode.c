@@ -32,9 +32,13 @@ geodeenable(VGAscr* scr)
 	if(scr->mmio)
 		return;
 	p = scr->pci;
-	if(!p) return;
+	if(p == nil)
+		return;
+	if((p->mem[1].bar | p->mem[2].bar | p->mem[3].bar) & 1)
+		return;
 	scr->mmio = vmap(p->mem[2].bar&~0x0F, p->mem[2].size);
-	if(!scr->mmio) return;
+	if(scr->mmio == nil)
+		return;
 	addvgaseg("geodegp", p->mem[1].bar&~0x0F, p->mem[1].size);
 	addvgaseg("geodemmio", p->mem[2].bar&~0x0F, p->mem[2].size);
 	addvgaseg("geodevid", p->mem[3].bar&~0x0F, p->mem[3].size);

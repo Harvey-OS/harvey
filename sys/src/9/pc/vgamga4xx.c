@@ -133,17 +133,22 @@ mga4xxenable(VGAscr* scr)
 	if(pci == nil)
 		return;
 
+	/* need to map frame buffer here too, so vga can find memory size */
+	if(pci->did == MGA4xx || pci->did == MGA550)
+		size = 32*MB;
+	else
+		size = 8*MB;
+
+	if((pci->mem[0].bar & 1) != 0 || pci->mem[0].size < size
+	|| (pci->mem[1].bar & 1) != 0 || pci->mem[1].size < 16*1024)
+		return;
+
 	scr->mmio = vmap(pci->mem[1].bar&~0x0F, 16*1024);
 	if(scr->mmio == nil)
 		return;
 	
 	addvgaseg("mga4xxmmio", pci->mem[1].bar&~0x0F, pci->mem[1].size);
 
-	/* need to map frame buffer here too, so vga can find memory size */
-	if(pci->did == MGA4xx || pci->did == MGA550)
-		size = 32*MB;
-	else
-		size = 8*MB;
 	vgalinearaddr(scr, pci->mem[0].bar&~0x0F, size);
 
 	if(scr->paddr){

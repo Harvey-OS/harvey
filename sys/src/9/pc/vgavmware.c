@@ -106,7 +106,7 @@ enum {
 
 typedef struct Vmware	Vmware;
 struct Vmware {
-	ulong	fb;
+	uvlong	fb;
 
 	ulong	ra;
 	ulong	rd;
@@ -150,28 +150,26 @@ vmwarelinear(VGAscr* scr, int, int)
 	char err[64];
 	Pcidev *p;
 
-	err[0] = 0;
-	p = nil;
-	while((p = pcimatch(p, PCIVMWARE, 0)) != nil){
-		if(p->ccrb != Pcibcdisp)
-			continue;
-		switch(p->did){
-		default:
-			snprint(err, sizeof err, "unknown vmware pci did %.4ux",
-				p->did);
-			continue;
-			
-		case VMWARE1:
-			vm->ra = 0x4560;
-			vm->rd = 0x4560 + 4;
-			break;
-	
-		case VMWARE2:
-			vm->ra = p->mem[0].bar & ~3;
-			vm->rd = vm->ra + 1;
-			break;
-		}
-		break;			/* found a card, p is set */
+	p = scr->pci;
+	if(p == nil || p->vid != PCIVMWARE)
+		return;
+	if(p->mem[1].bar & 1)
+		return;
+	switch(p->did){
+	default:
+		return;
+	case VMWARE1:
+		vm->ver = 1;
+		vm->ra = 0x4560;
+		vm->rd = 0x4560 + 4;
+		break;
+	case VMWARE2:
+		if((p->mem[0].bar & 1) == 0)
+			return;
+		vm->ver = 2;
+		vm->ra = p->mem[0].bar & ~3;
+		vm->rd = vm->ra + 1;
+		break;
 	}
 	if(p == nil)
 		error(err[0]? err: "no vmware vga card found");
@@ -183,6 +181,30 @@ vmwarelinear(VGAscr* scr, int, int)
 	vgalinearaddr(scr, vmrd(vm, Rfbstart), 2*vmrd(vm, Rfbsize));
 	if(scr->apsize)
 		addvgaseg("vmwarescreen", scr->paddr, scr->apsize);
+
+	if(scr->mmio==nil){
+		uvlong mmiobase;
+		ulong mmiosize;
+
+		if(p->mem[2].bar & 1)
+			return;
+		// mmiobase = vmrd(vm, Rmemstart);
+		mmiobase = p->mem[2].bar & ~0xF;
+		if(mmiobase == 0)
+			return;
+		mmiosize = vmrd(vm, Rmemsize);
+		scr->mmio = vmap(mmiobase, mmiosize);
+		if(scr->mmio == nil)
+			return;
+		vm->mmio = scr->mmio;
+		vm->mmiosize = mmiosize;
+		addvgaseg("vmwaremmio", mmiobase, mmiosize);
+	}
+	scr->mmio[FifoMin] = 4*sizeof(ulong);
+	scr->mmio[FifoMax] = vm->mmiosize;
+	scr->mmio[FifoNextCmd] = 4*sizeof(ulong);
+	scr->mmio[FifoStop] = 4*sizeof(ulong);
+	vmwr(vm, Rconfigdone, 1);
 }
 
 static void
