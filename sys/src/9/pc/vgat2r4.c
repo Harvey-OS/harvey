@@ -79,6 +79,8 @@ t2r4enable(VGAscr* scr)
 		return;
 	if(p->mem[4].bar & 1)
 		return;
+	if(p->mem[4].bar & 1)
+		return;
 	mmio = vmap(p->mem[4].bar & ~0x0F, p->mem[4].size);
 	if(mmio == nil)
 		return;

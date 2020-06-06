@@ -45,6 +45,8 @@ clgd546xenable(VGAscr* scr)
 		return;
 	if(p->mem[1].bar & 1)
 		return;
+	if(p->mem[1].bar & 1)
+		return;
 	scr->mmio = vmap(p->mem[1].bar&~0x0F, p->mem[1].size);
 	if(scr->mmio == nil)
 		return;
