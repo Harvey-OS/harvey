@@ -58,6 +58,10 @@ mga2164wenable(VGAscr* scr)
 	|| (p->mem[1].bar & 1) != 0)
 		return;
 
+	if((p->mem[0].bar & 1) != 0
+	|| (p->mem[1].bar & 1) != 0)
+		return;
+
 	if(p->did == MGA2064){
 		scr->mmio = vmap(p->mem[0].bar&~0x0F, p->mem[0].size);
 		if(scr->mmio == nil)
