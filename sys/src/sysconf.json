@@ -19,6 +19,7 @@
 			"Name": "local"
 		}
 	],
+	"SyscallBase": 1024,
 	"Syscalls": [
 		{
 			"Id": 0,
