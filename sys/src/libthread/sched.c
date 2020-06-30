@@ -41,7 +41,7 @@ _schedinit(void *arg)
 
 	p = arg;
 	_threadsetproc(p);
-	p->pid = _tos->pid; //getpid();
+	p->pid = _tos->prof.pid; //getpid();
 	while(setjmp(p->sched))
 		;
 	_threaddebug(DBGSCHED, "top of schedinit, _threadexitsallstatus=%p", _threadexitsallstatus);
@@ -99,8 +99,8 @@ needstack(int n)
 
 	if((uint8_t*)&x - n < (uint8_t*)t->stk){
 		fprint(2, "%s %lu: &x=%p n=%d t->stk=%p\n",
-			argv0, _tos->pid, &x, n, t->stk);
-		fprint(2, "%s %lu: stack overflow\n", argv0, _tos->pid);
+			argv0, _tos->prof.pid, &x, n, t->stk);
+		fprint(2, "%s %lu: stack overflow\n", argv0, _tos->prof.pid);
 		abort();
 	}
 }

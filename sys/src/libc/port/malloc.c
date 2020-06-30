@@ -88,7 +88,7 @@ plock(Pool *p)
 	lock(&pv->lk);
 	if(pv->pid != 0)
 		abort();
-	pv->pid = _tos->pid;
+	pv->pid = _tos->prof.pid;
 }
 
 static void
@@ -96,7 +96,7 @@ punlock(Pool *p)
 {
 	Private *pv;
 	pv = p->private;
-	if(pv->pid != _tos->pid)
+	if(pv->pid != _tos->prof.pid)
 		abort();
 	pv->pid = 0;
 	unlock(&pv->lk);

@@ -958,6 +958,9 @@ struct Proc
 	Strace *strace;
 	int strace_on;
 	int strace_inherit;
+
+	/* plan 9 binaries */
+	int plan9;
 };
 
 struct Procalloc

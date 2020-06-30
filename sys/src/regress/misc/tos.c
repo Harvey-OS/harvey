@@ -7,7 +7,7 @@ main(int argc, char *argv[]){
   if (_tos == nil){
     exits("FAIL");
   }
-  if(getpid() == _tos->pid){
+  if(getpid() == _tos->prof.pid){
     exits(nil);
   }
   exits("FAIL");

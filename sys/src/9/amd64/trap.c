@@ -370,7 +370,9 @@ kexit(Ureg* u)
 	cycles(&t);
 	tos->kcycles += t - up->kentry;
 	tos->pcycles = up->pcycles;
-	tos->pid = up->pid;
+	// pid was added to TOS at two different times.
+	// TODO: get rid of nixpid.
+	tos->prof.pid = tos->nixpid = up->pid;
 	if (up->ac != nil)
 		mp = up->ac;
 	else

@@ -15,6 +15,6 @@ main(int argc, char *argv[]){
          "   pid       <%d>\n"
          "   nixtype   <%d>\n"
          "   core      <%d>\n"
-         "}\n",_tos, _tos->cyclefreq, _tos->kcycles, _tos->pcycles, _tos->pid, _tos->nixtype, _tos->core);
+         "}\n",_tos, _tos->cyclefreq, _tos->kcycles, _tos->pcycles, _tos->prof.pid, _tos->nixtype, _tos->core);
   exits(nil);
 }

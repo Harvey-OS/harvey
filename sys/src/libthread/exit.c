@@ -42,7 +42,7 @@ threadexitsall(char *exitstr)
 		exitstr = "";
 	_threadexitsallstatus = exitstr;
 	_threaddebug(DBGSCHED, "_threadexitsallstatus set to %p", _threadexitsallstatus);
-	mypid = _tos->pid; //getpid();
+	mypid = _tos->prof.pid; //getpid();
 
 	/*
 	 * signal others.
