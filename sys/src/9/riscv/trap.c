@@ -377,7 +377,7 @@ kexit(Ureg* u)
 		if (0) print("tos is %p, &tos->kcycles is %p, up is %p\n", tos, &tos->kcycles, up);
 		tos->kcycles += t - up->kentry;
 		tos->pcycles = up->pcycles;
-		tos->pid = up->pid;
+		tos->prof.pid = up->pid;
 
 		if (up->ac != nil)
 			mp = up->ac;

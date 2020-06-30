@@ -45,6 +45,7 @@
 			"../port/edf.c",
 			"../port/elf64.c",
 			"../port/ethermii.c",
+			"../port/execaout.c",
 			"../port/fault.c",
 			"../port/fortuna.c",
 			"../port/getput.c",

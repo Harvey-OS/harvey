@@ -248,13 +248,26 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	uintptr_t a0, a1, a2, a3;
 	uintptr_t a4, a5;
 
-	a0 = ureg->di;
-	a1 = ureg->si;
-	a2 = ureg->dx;
-	a3 = ureg->r10;
-	a4 = ureg->r8;
-	a5 = ureg->r9;
 	Proc *up = externup();
+	if (up->plan9) {
+		uint64_t *a = (void*)ureg->sp;
+		scallnr = ureg->bp + 1024;
+		print("up %p plan9 %d sp %#lx bp %#lx\n", up, up->plan9, ureg->sp, scallnr);
+		int i = 1;
+		a0 = a[i++];
+		a1 = a[i++];
+		a2 = a[i++];
+		a3 = a[i++];
+		a4 = a[i++];
+		a5 = a[i++];
+	} else {
+		a0 = ureg->di;
+		a1 = ureg->si;
+		a2 = ureg->dx;
+		a3 = ureg->r10;
+		a4 = ureg->r8;
+		a5 = ureg->r9;
+	}
 	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
 	uintptr_t	sp;

@@ -297,6 +297,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	char line[64], *progarg[sizeof(line)/2+1];
 	int32_t hdrsz;
 	uintptr_t entry, stack;
+	int plan9 = 0;
 
 
 	file = nil;
@@ -379,11 +380,29 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
-
-	nldseg = elf64ldseg(chan, &entry, &ldseg, cputype, BIGPGSZ);
-	if(nldseg == 0){
-		print("execac: elf64ldseg returned 0 segs!\n");
+	// hook for a.out
+	/* 	magic = l2be(hdr.Exec.magic); */
+	/* if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC) */
+	/* 	error(Ebadexec); */
+	// aoutldseg does no file i/o for its test.
+	// so give it first dibs.
+	// -1 means it's not a.out
+	// 0 means a.out but something did not end well
+	// > 0 means it's a good a.out
+	nldseg = aoutldseg(chan, line, &entry, &ldseg, cputype, BIGPGSZ);
+	switch (nldseg) {
+	default:
+		plan9 = 1;
+		break;
+	case 0:
+		print("execac: execaout returned 0 segs!\n");
 		error(Ebadexec);
+	case -1:
+		nldseg = elf64ldseg(chan, &entry, &ldseg, cputype, BIGPGSZ);
+		if(nldseg == 0){
+			print("execac: elf64ldseg returned 0 segs!\n");
+			error(Ebadexec);
+		}
 	}
 
 	/* TODO(aki): not sure I see the point
@@ -666,6 +685,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		up->procctl = Proc_toac;
 		up->prepagemem = 1;
 	}
+	DBG("up %p: plan 9 proc\n", up);
+	up->plan9 = plan9;
 }
 
 void
