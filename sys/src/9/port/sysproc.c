@@ -135,6 +135,7 @@ sysrfork(Ar0* ar0, ...)
 	p->privatemem = up->privatemem;
 	p->noswap = up->noswap;
 	p->nnote = up->nnote;
+	p->plan9 = up->plan9;
 	p->notified = 0;
 	p->lastnote = up->lastnote;
 	p->notify = up->notify;
