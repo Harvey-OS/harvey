@@ -252,7 +252,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	if (up->plan9) {
 		uint64_t *a = (void*)ureg->sp;
 		scallnr = ureg->bp + 1024;
-		print("up %p plan9 %d sp %#lx bp %#lx\n", up, up->plan9, ureg->sp, scallnr);
+		if (0)
+			print("up %p plan9 %d sp %#lx bp %#lx\n", up, up->plan9, ureg->sp, scallnr);
 		int i = 1;
 		a0 = a[i++];
 		a1 = a[i++];
