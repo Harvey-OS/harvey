@@ -113,7 +113,7 @@ l2be(int32_t l)
  *
  */
 int
-aoutldseg(Chan *c, void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
+aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 {
 	Hdr *hdr = v;
 	Ldseg *ldseg;
