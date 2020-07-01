@@ -164,10 +164,10 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	// NOTE: you can't check textlim. That's the in-memory image limit, which
 	// can be larger than the actual size of text.
 	// The limit is defined by what's in the file!
-	print("%#lx %#lx %#lx %#lx %#lx %#lx \n",
-			textlim, datalim, bsslim,
-			textsz, datasz, bsssz);
-	print("entrypoint %#lx\n", *entryp);
+	if (0) {
+		print("%#lx %#lx %#lx %#lx %#lx %#lx \n", textlim, datalim, bsslim, textsz, datasz, bsssz);
+		print("entrypoint %#lx\n", *entryp);
+	}
 	if(*entryp < UTZERO+hdrsz || *entryp >= UTZERO+hdrsz+textsz){
 		print("Bad entry point\n");
 		return 0;
@@ -198,7 +198,6 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 		return 0;
 	}
 
-
 	/*
 	 * There are three -- count them, three, segments.
 	 * We only need to return info about text and data,
@@ -208,7 +207,6 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	/* Text.  Shared. Attaches to cache image if possible
 	 * but prepaged if EXAC
 	 */
-	/* img = attachimage(SG_TEXT|SG_READ, chan, up->color, UTZERO, (textlim-UTZERO)/BIGPGSZ); */
 	// pagesize is always BIGPGSIZE on harvey.
 	ldseg[0].pgsz = BIGPGSZ;
 	// the memory size is 400000 - 200000 (UTZERO starts 200000)
@@ -217,17 +215,15 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	// whole front of the file into the text segment.
 	ldseg[0].filesz = hdrsz+textsz;
 	// text segment starts at the start of the file.
-	// This is confusing. we have two things that are the same?
 	ldseg[0].pg0fileoff = 0;
+	// pg0off is another ELF thing that lets a segment start in
+	// the middle of the first page. It is always zero for a.out.
 	ldseg[0].pg0off = 0;
 	// our virtual address is UTZERO.
 	ldseg[0].pg0vaddr = UTZERO;
 	ldseg[0].type = SG_LOAD | SG_EXEC | SG_READ;
 
 	/* Data. Shared. */
-	/* s = newseg(SG_DATA, textlim, (datalim-textlim)/BIGPGSZ); */
-	/* s->fstart = hdrsz+textsz; */
-	/* s->flen = datasz; */
 	// big page size, again.
 	ldseg[1].pgsz = BIGPGSZ;
 	// size in mem is 600000 - 400000 = 200000
@@ -237,8 +233,9 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	// Offset in the file is hrdsize + textsiz
 	// TODO: aligned to 32 bits? I think so.
 	// 28 + 8d5fe = 8d626
-	// This is confusing. we have two things that are the same?
 	ldseg[1].pg0fileoff = hdrsz + textsz;
+	// pg0off is another ELF thing that lets a segment start in
+	// the middle of the first page. It is always zero for a.out.
 	ldseg[1].pg0off = 0;
 	// vaddr stars at textlim.
 	ldseg[1].pg0vaddr = textlim;
