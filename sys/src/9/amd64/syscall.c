@@ -247,6 +247,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	// can only handle 6 args right now.
 	uintptr_t a0, a1, a2, a3;
 	uintptr_t a4, a5;
+	uint64_t *retptr;
 
 	Proc *up = externup();
 	if (up->plan9) {
@@ -255,6 +256,13 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		if (0)
 			print("up %p plan9 %d sp %#lx bp %#lx\n", up, up->plan9, ureg->sp, scallnr);
 		int i = 1;
+		// Here is where we get into some of the weird parts of plan 9.
+		switch(scallnr){
+			case SEEK: // oseek
+				retptr = (void *)a[i++];
+				validaddr(retptr, sizeof(uint64_t), 1);
+				break;
+		}
 		a0 = a[i++];
 		a1 = a[i++];
 		a2 = a[i++];
@@ -364,6 +372,13 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
 	if (0) hi("it returned!\n");
 		poperror();
+		if (up->plan9) {
+			switch(scallnr) {
+				case SEEK:
+					*retptr = ar0.p;
+					break;
+			}
+		}
 	}
 	else{
 		/* failure: save the error buffer for errstr */
