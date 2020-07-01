@@ -14,7 +14,7 @@ int	acpiinit(void);
 void	acpistart(void);
 int	mpacpi(int);
 void	actrapenable(int, char* (*)(Ureg*, void*), void*, char*);
-int     aoutldseg(Chan *c, void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz);
+int     aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz);
 void	apicipi(int);
 void	apicpri(int);
 void	acsysret(void);
