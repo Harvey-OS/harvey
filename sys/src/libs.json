@@ -12,6 +12,7 @@
 			"/sys/src/libavl/libavl.json",
 			"/sys/src/libbin/libbin.json",
 			"/sys/src/libbio/libbio.json",
+			"/sys/src/libcc/build.json",
 			"/sys/src/libcomplete/libcomplete.json",
 			"/sys/src/libcontrol/libcontrol.json",
 			"/sys/src/libdisk",
