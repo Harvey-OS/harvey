@@ -1,0 +1,33 @@
+[
+	{
+		"Name": "libcc",
+		"Include": [
+			"../lib.json"
+		],
+		"Install": "/$ARCH/lib/",
+		"Library": "libcc.a",
+		"SourceFiles": [
+				"y.tab.c",
+				"lex.c",
+				"mac.c",
+				"dcl.c",
+				"acid.c",
+				"pickle.c",
+				"bits.c",
+				"com.c",
+				"scon.c",
+				"funct.c",
+				"sub.c",
+				"com64.c",
+				"compat.c",
+				"dpchk.c",
+				"omachcap.c"
+		],
+		"Post": [
+			"rm -f y.tab*"
+		],
+		"Pre": [
+			"yacc -d cc.y"
+		]
+	}
+]
