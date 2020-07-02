@@ -67,7 +67,8 @@ tools/mpfr-3.1.2.tar.bz2
 tools/share
 /tmp
 
-cfg/pxe/tftpboot
+cfg/pxe/tftpboot/harvey.32bit
+cfg/pxe/tftpboot/pxelinux.cfg
 usr/harvey/tmp
 
 build_out
