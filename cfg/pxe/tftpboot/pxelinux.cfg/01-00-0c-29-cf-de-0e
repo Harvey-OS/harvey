@@ -1,6 +1,0 @@
-label akaros 
-	kernel mboot.c32
-	append akaros
-
-default akaros
-      
