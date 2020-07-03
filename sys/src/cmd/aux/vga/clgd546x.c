@@ -282,7 +282,8 @@ init(Vga* vga, Ctlr* ctlr)
 	//if(ctlr->flag & Ulinear)
 	//	laguna->vsc |= 0x10000000;
 	//else
-		laguna->vsc &= ~0x10000000;
+	//	laguna->vsc &= ~0x10000000;
+	laguna->vsc &= ~0x10000000;
 	laguna->format = format;
 	laguna->threshold = (interleave<<14)|(fetches<<8)|0x14;
 	laguna->tilectrl &= 0x3F;

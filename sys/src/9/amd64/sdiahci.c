@@ -1075,7 +1075,7 @@ resetdisk(Drive *d)
 
 	ilock(&d->Lock);
 	state = d->state;
-	if(d->state != Dready || d->state != Dnew)
+	if(d->state != (Dready |Dnew))
 		atomic_set(&d->portm.flag, atomic_read(&d->portm.flag) | Ferror);
 	clearci(p);			/* satisfy sleep condition. */
 	wakeup(&d->portm.Rendez);
