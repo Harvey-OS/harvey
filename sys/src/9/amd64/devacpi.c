@@ -1547,7 +1547,7 @@ static void parsexsdt(Atable *root)
 			}
 		}
 	}
-	kmprint("FINATABLE\n\n\n\n"); delay(1000);
+	kmprint("FINATABLE\n\n\n\n");
 	finatable(root, &slice);
 }
 
