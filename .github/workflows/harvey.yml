@@ -1,0 +1,34 @@
+name: harvey
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        cc:
+          - gcc-9
+#          - clang
+#          - clang-9
+          - clang-10
+    steps:
+    - uses: actions/checkout@v2
+    - name: install deps
+      run: |
+        sudo add-apt-repository ppa:gophers/archive -y
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
+        sudo apt-get update
+        sudo apt-get install -y --force-yes ${{ matrix.cc }} rc golang-1.11-go
+    - name: build
+      env:
+        ARCH: amd64
+        CC: ${{ matrix.cc }}
+      run: ./util/ci.sh
