@@ -69,7 +69,6 @@ type Bootmethods struct {
 }
 
 type Sysconf struct {
-	SyscallBase uint32
 	Syscalls    []Syscall
 	Syserrors   []Syserror
 	Bootmethods []Bootmethods
@@ -117,11 +116,6 @@ func main() {
 	syscalls := sysconf.Syscalls
 	syserrors := sysconf.Syserrors
 	bootmethods := sysconf.Bootmethods
-	// Adjust the syscall # for Harvey system calls to 1024 + number
-	// The plan is that we can then bring in a plan 9 system call interface
-	// and easily run native Plan 9 binaries, including Plan 9 Go binaries.
-	// This is a bit of a hack but OTOH it makes for a pretty easy change.
-	// Boot tested.
 	for i := range syscalls {
 		if syscalls[i].Define == "" {
 			syscalls[i].Define = strings.ToUpper(syscalls[i].Name)
@@ -132,7 +126,6 @@ func main() {
 		if syscalls[i].Libname == "" {
 			syscalls[i].Libname = syscalls[i].Name
 		}
-		syscalls[i].Id += sysconf.SyscallBase
 	}
 
 	switch *mode {
