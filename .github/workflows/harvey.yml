@@ -44,6 +44,7 @@ jobs:
         draft: false
         prerelease: true
     - name: upload harvey 32bit
+      if: ${{ github.event_name == 'push' && startsWith(matrix.cc,'clang') }}      
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,6 +54,7 @@ jobs:
         asset_name: harvey.32bit
         asset_content_type: application/octet-stream
     - name: upload harvey
+      if: ${{ github.event_name == 'push' && startsWith(matrix.cc,'clang') }}      
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
