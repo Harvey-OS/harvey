@@ -33,7 +33,7 @@ jobs:
         CC: ${{ matrix.cc }}
       run: ./util/ci.sh
     - name: Create Release
-      if: startsWith(matrix.cc, "clang")
+      if: ${{startsWith(matrix.cc, "clang")}}
       id: create_release
       uses: actions/create-release@v1
       env:
