@@ -558,11 +558,12 @@ radeon_load_pll_registers(Radeon*radeon)
 			 * setting.
 			 */
 			OUTPLLP(radeon, PPLL_REF_DIV, radeon->ppll_ref_div, 0);
-		else
+		//else
 			/* R300 uses ref_div_acc field as real ref divider */
-			OUTPLLP(radeon, PPLL_REF_DIV,
-			    radeon->ppll_ref_div << R300_PPLL_REF_DIV_ACC_SHIFT,
-				~R300_PPLL_REF_DIV_ACC_MASK);
+			/* BUGGY, who cares about 2002 GPU */
+			//OUTPLLP(radeon, PPLL_REF_DIV,
+			//    radeon->ppll_ref_div << R300_PPLL_REF_DIV_ACC_SHIFT,
+			//	~R300_PPLL_REF_DIV_ACC_MASK);
 	} else
 		OUTPLLP(radeon, PPLL_REF_DIV, radeon->ppll_ref_div,
 			~PPLL_REF_DIV_MASK);

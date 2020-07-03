@@ -210,7 +210,7 @@ malloc(size_t size)
 	void *v;
 
 	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
-	if(Npadlong && v != nil) {
+	if((Npadlong != 0) && (v != nil)) {
 		v = (uintptr_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc());
 		setrealloctag(v, 0);
@@ -224,7 +224,7 @@ mallocz(uint32_t size, int clr)
 	void *v;
 
 	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
-	if(Npadlong && v != nil){
+	if((Npadlong != 0) && (v != nil)){
 		v = (uintptr_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc());
 		setrealloctag(v, 0);
@@ -241,7 +241,7 @@ mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
 
 	v = poolallocalign(mainmem, size+Npadlong*sizeof(uintptr_t), align,
 			   offset-Npadlong*sizeof(uintptr_t), span);
-	if(Npadlong && v != nil){
+	if((Npadlong != 0) && (v != nil)){
 		v = (uintptr_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc());
 		setrealloctag(v, 0);

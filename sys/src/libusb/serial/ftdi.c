@@ -245,7 +245,7 @@ ftdiwrite(Serialport *p, int val, int index, int req)
 
 	ser = p->s;
 
-	if(req != FTGETE2READ || req != FTSETE2ERASE || req != FTSETBAUDRATE)
+	if(req != (FTGETE2READ | FTSETE2ERASE | FTSETBAUDRATE))
 		index |= p->interfc + 1;
 	dsprint(2, "serial: ftdiwrite %#p [%d] req: %#x val: %#x idx:%d\n",
 		p, p->interfc, req, val, index);
