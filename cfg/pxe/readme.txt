@@ -21,8 +21,13 @@ Fetch and build pxeserver:
   go get github.com/u-root/u-root
   go install github.com/u-root/u-root/cmds/exp/pxeserver
 
-Run pxeserver to host pxelinux and harvey (make sure you change the interface to match the one on your server):
-  sudo pxeserver -tftp-dir $HARVEY/cfg/pxe/tftpboot/ -bootfilename lpxelinux.0 -interface enp0s31f6 --http-dir $HARVEY/cfg/pxe/tftpboot
+Run pxeserver to host pxelinux and harvey (make sure you change the interface and IP to match the one on your server):
+  sudo pxeserver \
+      -tftp-dir $HARVEY/cfg/pxe/tftpboot/ \
+      -http-dir $HARVEY/cfg/pxe/tftpboot/ \
+      -bootfilename lpxelinux.0 \
+      -interface enp0s31f6 \
+      -ip 192.168.0.19
 
 Run ufs to host the harvey files over 9p:
   $HARVEY/util/ufs -root $HARVEY
