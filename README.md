@@ -9,6 +9,8 @@ project.
 
 Harvey is a distributed operating system. It’s most directly descended from [Plan 9 from Bell Labs](https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs). This heritage spans from its distributed application architecture all the way down to much of its code. However, Harvey aims to be a more practical, general-purpose operating system, so it also uses ideas and code from other systems.
 
+Starting July 2020, we will be replacing Harvey's user mode programs with programs written in Go. Many of these will come from [u-root](https://u-root.org).
+
 ### Getting started
 
 Start by reading the [Wiki](https://github.com/Harvey-OS/harvey/wiki).
