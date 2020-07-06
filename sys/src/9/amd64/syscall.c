@@ -252,6 +252,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	Proc *up = externup();
 	if (up->plan9) {
 		uint64_t *a = (void*)ureg->sp;
+		scallnr = ureg->bp + 1024;
 		if (0)
 			print("up %p plan9 %d sp %#lx bp %#lx\n", up, up->plan9, ureg->sp, scallnr);
 		int i = 1;
