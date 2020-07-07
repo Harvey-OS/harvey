@@ -10,6 +10,9 @@ GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
 # this will make booting a VM easier
 mkdir -p tmp
 
+# We need this to run go build
+curl -s "https://curl.haxx.se/ca/cacert.pem" > ./sys/lib/tls/ca.pem
+
 cat <<EOF
 # We support RISC-V, but the default is x86_64 (which we call amd64 for historical reasons):
 export ARCH=amd64
