@@ -28,7 +28,67 @@ var (
 	networktype = flag.String("ntype", "tcp4", "Default network type")
 	netaddr     = flag.String("addr", ":5641", "Network address")
 	verbose     = flag.Bool("verbose", false, "Verbose")
+
+	fs *fileSystem
 )
+
+type fileSystem struct {
+	root  *directory
+	dirs  []*directory
+	files []*file
+}
+
+func newFileSystem() *fileSystem {
+	return &fileSystem{newDirectory(), []*directory{}, []*file{}}
+}
+
+func (fs *fileSystem) addFile(filepath string, file *file) error {
+	filecmps := strings.Split(filepath, "/")
+	if dir, err := fs.getOrCreateDir(fs.root, filecmps[:len(filecmps)-1]); err != nil {
+		return err
+	} else {
+		return fs.createFile(dir, filecmps[len(filecmps)-1], file)
+	}
+}
+
+func (fs *fileSystem) getOrCreateDir(d *directory, cmps []string) (*directory, error) {
+	if len(cmps) == 0 {
+		return d, nil
+	}
+
+	cmpname := cmps[0]
+	if entry, exists := d.entries[cmpname]; exists {
+		if dir, ok := entry.(*directory); ok {
+			return fs.getOrCreateDir(dir, cmps[1:])
+		} else {
+			return nil, fmt.Errorf("File already exists with name %s", cmpname)
+		}
+	} else {
+		newDir := newDirectory()
+		d.entries[cmpname] = newDir
+
+		newDir.qid.Type = p9.TypeDir
+		newDir.qid.Path = uint64(len(fs.dirs))
+
+		fs.dirs = append(fs.dirs, newDir)
+
+		return fs.getOrCreateDir(newDir, cmps[1:])
+	}
+}
+
+func (fs *fileSystem) createFile(d *directory, filename string, file *file) error {
+	if _, exists := d.entries[filename]; exists {
+		return fmt.Errorf("File or directory already exists with name %s", filename)
+	}
+	d.entries[filename] = file
+
+	file.qid.Type = p9.TypeRegular
+	file.qid.Path = uint64(len(fs.files))
+
+	fs.files = append(fs.files, file)
+
+	return nil
+}
 
 type entry interface {
 }
@@ -39,6 +99,7 @@ type file struct {
 
 	mode int64         // Permissions
 	data *bytes.Buffer // File contents
+	qid  p9.QID
 }
 
 type directory struct {
@@ -46,65 +107,23 @@ type directory struct {
 	templatefs.ReadOnlyDir
 
 	entries map[string]entry
+	qid     p9.QID
 }
 
 type attacher struct {
-	root entry
+	fs *fileSystem
 }
 
 func newDirectory() *directory {
 	return &directory{entries: map[string]entry{}}
 }
 
-func (d *directory) addFile(filepath string, file *file) error {
-	filecmps := strings.Split(filepath, "/")
-	if dir, err := d.getOrCreateDir(filecmps[:len(filecmps)-1]); err != nil {
-		return err
-	} else {
-		return dir.createFile(filecmps[len(filecmps)-1], file)
-	}
-}
-
-func (d *directory) getOrCreateDir(cmps []string) (*directory, error) {
-	if len(cmps) == 0 {
-		return d, nil
-	}
-
-	cmpname := cmps[0]
-	if entry, exists := d.entries[cmpname]; exists {
-		if dir, ok := entry.(directory); ok {
-			return dir.getOrCreateDir(cmps[1:])
-		} else {
-			return nil, fmt.Errorf("File already exists with name %s", cmpname)
-		}
-	} else {
-		newDir := newDirectory()
-		d.entries[cmpname] = newDir
-		return newDir.getOrCreateDir(cmps[1:])
-	}
-}
-
-func (d *directory) createFile(filename string, file *file) error {
-	if _, exists := d.entries[filename]; exists {
-		return fmt.Errorf("File or directory already exists with name %s", filename)
-	}
-	d.entries[filename] = file
-	return nil
-}
-
-func (d *directory) qid() (p9.QID, error) {
-	var qid p9.QID
-	qid.Type = p9.TypeDir
-	qid.Path = 
-	return qid, nil
-}
-
-func newAttacher(e entry) *attacher {
-	return &attacher{root: e}
+func newAttacher(fs *fileSystem) *attacher {
+	return &attacher{fs}
 }
 
 func (a *attacher) Attach() (p9.File, error) {
-	return a.root, nil
+	return a.fs.root, nil
 }
 
 func main() {
@@ -112,7 +131,7 @@ func main() {
 
 	// Create and add some files to the archive.
 	buf := createTestImage()
-	files := readImage(buf)
+	fs = readImage(buf)
 
 	// Bind and listen on the socket.
 	listener, err := net.Listen(*networktype, *netaddr)
@@ -126,7 +145,7 @@ func main() {
 	}
 
 	// Run the server.
-	server := p9.NewServer(newAttacher(files), opts...)
+	server := p9.NewServer(newAttacher(fs), opts...)
 	server.Serve(listener)
 }
 
@@ -175,7 +194,7 @@ func createTestImage() *bytes.Buffer {
 }
 
 // Read a compressed tar and produce a file hierarchy
-func readImage(buf *bytes.Buffer) entry {
+func readImage(buf *bytes.Buffer) *fileSystem {
 	gzr, err := gzip.NewReader(buf)
 	if err != nil {
 		log.Fatal(err)
@@ -186,7 +205,7 @@ func readImage(buf *bytes.Buffer) entry {
 		}
 	}()
 
-	dir := &directory{}
+	fs := newFileSystem()
 	tr := tar.NewReader(gzr)
 	for {
 		hdr, err := tr.Next()
@@ -206,9 +225,8 @@ func readImage(buf *bytes.Buffer) entry {
 			log.Fatal(err)
 		}
 
-		dir.addFile(filename, file)
-		//files[filename] = file
+		fs.addFile(filename, file)
 	}
 
-	return dir
+	return fs
 }
