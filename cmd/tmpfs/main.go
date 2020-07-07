@@ -97,9 +97,46 @@ type file struct {
 	templatefs.NotDirectoryFile
 	templatefs.ReadOnlyFile
 
-	mode int64         // Permissions
-	data *bytes.Buffer // File contents
+	hdr  *tar.Header
+	data *bytes.Buffer
 	qid  p9.QID
+}
+
+func newFile(hdr *tar.Header) *file {
+	return &file{
+		hdr:  hdr,
+		data: &bytes.Buffer{},
+		qid:  p9.QID{},
+	}
+}
+
+func (f *file) Open(mode p9.OpenFlags) (p9.QID, uint32, error) {
+	return f.qid, 4096, nil
+}
+
+func (f *file) Close() error {
+	return nil
+}
+
+func (f *file) GetAttr(req p9.AttrMask) (p9.QID, p9.AttrMask, p9.Attr, error) {
+	const blockSize = 4096
+	attr := &p9.Attr{
+		Mode:             p9.FileMode(f.hdr.Mode),
+		UID:              0,
+		GID:              0,
+		NLink:            0,
+		RDev:             0,
+		Size:             uint64(f.hdr.Size),
+		BlockSize:        blockSize,
+		Blocks:           uint64(f.hdr.Size / blockSize),
+		ATimeSeconds:     uint64(f.hdr.AccessTime.Unix()),
+		ATimeNanoSeconds: uint64(f.hdr.AccessTime.UnixNano()),
+		MTimeSeconds:     uint64(f.hdr.ModTime.Unix()),
+		MTimeNanoSeconds: uint64(f.hdr.ModTime.UnixNano()),
+		CTimeSeconds:     uint64(f.hdr.ChangeTime.Unix()),
+		CTimeNanoSeconds: uint64(f.hdr.ChangeTime.UnixNano()),
+	}
+	return f.qid, req, *attr, nil
 }
 
 type directory struct {
@@ -110,12 +147,41 @@ type directory struct {
 	qid     p9.QID
 }
 
-type attacher struct {
-	fs *fileSystem
-}
-
 func newDirectory() *directory {
 	return &directory{entries: map[string]entry{}}
+}
+
+func (d *directory) Open(mode p9.OpenFlags) (p9.QID, uint32, error) {
+	return d.qid, 4096, nil
+}
+
+func (d *directory) Close() error {
+	return nil
+}
+
+func (d *directory) GetAttr(req p9.AttrMask) (p9.QID, p9.AttrMask, p9.Attr, error) {
+	const blockSize = 4096
+	attr := &p9.Attr{
+		Mode:             p9.FileMode(f.hdr.Mode),
+		UID:              0,
+		GID:              0,
+		NLink:            0,
+		RDev:             0,
+		Size:             uint64(f.hdr.Size),
+		BlockSize:        blockSize,
+		Blocks:           uint64(f.hdr.Size / blockSize),
+		ATimeSeconds:     uint64(f.hdr.AccessTime.Unix()),
+		ATimeNanoSeconds: uint64(f.hdr.AccessTime.UnixNano()),
+		MTimeSeconds:     uint64(f.hdr.ModTime.Unix()),
+		MTimeNanoSeconds: uint64(f.hdr.ModTime.UnixNano()),
+		CTimeSeconds:     uint64(f.hdr.ChangeTime.Unix()),
+		CTimeNanoSeconds: uint64(f.hdr.ChangeTime.UnixNano()),
+	}
+	return f.qid, req, *attr, nil
+}
+
+type attacher struct {
+	fs *fileSystem
 }
 
 func newAttacher(fs *fileSystem) *attacher {
@@ -217,10 +283,7 @@ func readImage(buf *bytes.Buffer) *fileSystem {
 		}
 
 		filename := hdr.Name
-		file := &file{
-			mode: hdr.Mode,
-			data: &bytes.Buffer{},
-		}
+		file := newFile(hdr)
 		if _, err := io.Copy(file.data, tr); err != nil {
 			log.Fatal(err)
 		}
