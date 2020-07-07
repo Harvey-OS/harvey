@@ -19,6 +19,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/hugelgupf/p9/fsimpl/templatefs"
 	"github.com/hugelgupf/p9/p9"
 	"github.com/u-root/u-root/pkg/ulog"
 )
@@ -33,11 +34,17 @@ type entry interface {
 }
 
 type file struct {
+	templatefs.NotDirectoryFile
+	templatefs.ReadOnlyFile
+
 	mode int64         // Permissions
 	data *bytes.Buffer // File contents
 }
 
 type directory struct {
+	templatefs.IsDir
+	templatefs.ReadOnlyDir
+
 	entries map[string]entry
 }
 
@@ -83,6 +90,13 @@ func (d *directory) createFile(filename string, file *file) error {
 	}
 	d.entries[filename] = file
 	return nil
+}
+
+func (d *directory) qid() (p9.QID, error) {
+	var qid p9.QID
+	qid.Type = p9.TypeDir
+	qid.Path = 
+	return qid, nil
 }
 
 func newAttacher(e entry) *attacher {
