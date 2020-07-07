@@ -2,6 +2,7 @@
 	{
 		"Name": "buildflags",
 		"Cflags": [
+			"-fcommon",
 			"-fno-pie",
 			"-fvar-tracking",
 			"-fvar-tracking-assignments"
