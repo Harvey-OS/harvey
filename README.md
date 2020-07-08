@@ -30,7 +30,7 @@ Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob
 
 ### Status
 
-* [![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
+* ![harvey](https://github.com/Harvey-OS/harvey/workflows/harvey/badge.svg)
 * [![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
 
 ### Elsewhere
