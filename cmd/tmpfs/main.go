@@ -18,9 +18,11 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/hugelgupf/p9/fsimpl/templatefs"
 	"github.com/hugelgupf/p9/p9"
+	"github.com/hugelgupf/p9/sys/linux"
 	"github.com/u-root/u-root/pkg/ulog"
 )
 
@@ -33,13 +35,14 @@ var (
 )
 
 type fileSystem struct {
-	root  *directory
-	dirs  []*directory
-	files []*file
+	root     *directory
+	dirs     []*directory
+	files    []*file
+	openTime time.Time
 }
 
 func newFileSystem() *fileSystem {
-	return &fileSystem{newDirectory(), []*directory{}, []*file{}}
+	return &fileSystem{newDirectory(), []*directory{}, []*file{}, time.Now()}
 }
 
 func (fs *fileSystem) addFile(filepath string, file *file) error {
@@ -96,6 +99,9 @@ type entry interface {
 type file struct {
 	templatefs.NotDirectoryFile
 	templatefs.ReadOnlyFile
+	templatefs.NotSymlinkFile
+	templatefs.NoopRenamed
+	p9.DefaultWalkGetAttr
 
 	hdr  *tar.Header
 	data *bytes.Buffer
@@ -139,9 +145,42 @@ func (f *file) GetAttr(req p9.AttrMask) (p9.QID, p9.AttrMask, p9.Attr, error) {
 	return f.qid, req, *attr, nil
 }
 
+func (f *file) StatFS() (p9.FSStat, error) {
+	return p9.FSStat{}, linux.ENOSYS
+}
+
+func (f *file) Walk(names []string) ([]p9.QID, p9.File, error) {
+	/*var qids []p9.QID
+	last := &Local{path: l.path}
+
+	// A walk with no names is a copy of self.
+	if len(names) == 0 {
+		qid, _, err := l.info()
+		if err != nil {
+			return nil, nil, err
+		}
+		return []p9.QID{qid}, last, nil
+	}
+
+	for _, name := range names {
+		c := &Local{path: path.Join(last.path, name)}
+		qid, _, err := c.info()
+		if err != nil {
+			return nil, nil, err
+		}
+		qids = append(qids, qid)
+		last = c
+	}
+	return qids, last, nil*/
+	return nil, nil, nil
+}
+
 type directory struct {
 	templatefs.IsDir
 	templatefs.ReadOnlyDir
+	templatefs.NotSymlinkFile
+	templatefs.NoopRenamed
+	p9.DefaultWalkGetAttr
 
 	entries map[string]entry
 	qid     p9.QID
@@ -160,24 +199,55 @@ func (d *directory) Close() error {
 }
 
 func (d *directory) GetAttr(req p9.AttrMask) (p9.QID, p9.AttrMask, p9.Attr, error) {
+	const dirSize = 4096
 	const blockSize = 4096
 	attr := &p9.Attr{
-		Mode:             p9.FileMode(f.hdr.Mode),
+		Mode:             0445,
 		UID:              0,
 		GID:              0,
 		NLink:            0,
 		RDev:             0,
-		Size:             uint64(f.hdr.Size),
+		Size:             4096,
 		BlockSize:        blockSize,
-		Blocks:           uint64(f.hdr.Size / blockSize),
-		ATimeSeconds:     uint64(f.hdr.AccessTime.Unix()),
-		ATimeNanoSeconds: uint64(f.hdr.AccessTime.UnixNano()),
-		MTimeSeconds:     uint64(f.hdr.ModTime.Unix()),
-		MTimeNanoSeconds: uint64(f.hdr.ModTime.UnixNano()),
-		CTimeSeconds:     uint64(f.hdr.ChangeTime.Unix()),
-		CTimeNanoSeconds: uint64(f.hdr.ChangeTime.UnixNano()),
+		Blocks:           uint64(dirSize / blockSize),
+		ATimeSeconds:     uint64(fs.openTime.Unix()),
+		ATimeNanoSeconds: uint64(fs.openTime.UnixNano()),
+		MTimeSeconds:     uint64(fs.openTime.Unix()),
+		MTimeNanoSeconds: uint64(fs.openTime.UnixNano()),
+		CTimeSeconds:     uint64(fs.openTime.Unix()),
+		CTimeNanoSeconds: uint64(fs.openTime.UnixNano()),
 	}
-	return f.qid, req, *attr, nil
+	return d.qid, req, *attr, nil
+}
+
+func (d *directory) StatFS() (p9.FSStat, error) {
+	return p9.FSStat{}, linux.ENOSYS
+}
+
+func (d *directory) Walk(names []string) ([]p9.QID, p9.File, error) {
+	/*var qids []p9.QID
+	last := &Local{path: l.path}
+
+	// A walk with no names is a copy of self.
+	if len(names) == 0 {
+		qid, _, err := l.info()
+		if err != nil {
+			return nil, nil, err
+		}
+		return []p9.QID{qid}, last, nil
+	}
+
+	for _, name := range names {
+		c := &Local{path: path.Join(last.path, name)}
+		qid, _, err := c.info()
+		if err != nil {
+			return nil, nil, err
+		}
+		qids = append(qids, qid)
+		last = c
+	}
+	return qids, last, nil*/
+	return nil, nil, nil
 }
 
 type attacher struct {
