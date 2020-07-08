@@ -26,9 +26,15 @@ jobs:
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
         sudo apt-get update
-        sudo apt-get install -y --force-yes ${{ matrix.cc }} rc golang-1.11-go
+        sudo apt-get install -y --force-yes ${{ matrix.cc }} rc golang-1.11-go qemu
+    - name: bootstrap
+      run: ./bootstrap.sh
     - name: build
       env:
         ARCH: amd64
         CC: ${{ matrix.cc }}
       run: ./util/ci.sh
+    - name: boot
+      env:
+        HARVEY: ${{github.workspace}}
+      run: ./util/qtap
