@@ -18,6 +18,8 @@ github.com/google/goexpect v0.0.0-20200703111054-623d5ca06f56 h1:sXtmz0BQBeXxoxC
 github.com/google/goexpect v0.0.0-20200703111054-623d5ca06f56/go.mod h1:qtE5aAEkt0vOSA84DBh8aJsz6riL8ONfqfULY7lBjqc=
 github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f h1:5CjVwnuUcp5adK4gmY6i72gpVFVnZDP2h5TmPScB6u4=
 github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f/go.mod h1:nOFQdrUlIlx6M6ODdSpBj1NVA+VgLC6kmw60mkw34H4=
+github.com/harvey-os/ninep v0.0.0-20200701230449-5148a8f50134 h1:AbUeJIw0z0q9+x0r1rSxjYHYBoz55CQxZkOrwpHhIyY=
+github.com/harvey-os/ninep v0.0.0-20200701230449-5148a8f50134/go.mod h1:5wShoX86uJTusKWHbT1xL9jIPAeeLT5+cg3NgFzh/SM=
 github.com/hugelgupf/p9 v0.0.0-20200707092319-ecc83b974f0f h1:4G8x1XcOS5VJHR9gVbq13fSwOSmWSHSrY/IXfjlCd+0=
 github.com/hugelgupf/p9 v0.0.0-20200707092319-ecc83b974f0f/go.mod h1:GgXeN3NWxZPk9KhI12/Ooi9yctMdac+nyciZp4QN+7A=
 github.com/hugelgupf/socketpair v0.0.0-20190730060125-05d35a94e714 h1:/jC7qQFrv8CrSJVmaolDVOxTfS9kc36uB6H40kdbQq8=
