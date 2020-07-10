@@ -9,8 +9,10 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"sync"
@@ -65,10 +67,8 @@ func (fs *fileServer) Rflush(o protocol.Tag) error {
 
 func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []string) ([]protocol.QID, error) {
 	// Lookup the parent fid
-	fs.filesMutex.Lock()
-	parentEntry, ok := fs.files[fid]
-	fs.filesMutex.Unlock()
-	if !ok {
+	parentEntry, err := fs.getFile(fid)
+	if err != nil {
 		return nil, fmt.Errorf("does not exist")
 	}
 
@@ -91,7 +91,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	var pathcmp string
 	currEntry := parentEntry
 	for i, pathcmp = range paths {
-		currEntry, ok = currEntry.child(pathcmp)
+		currEntry, ok := currEntry.child(pathcmp)
 		if !ok {
 			// From the RFC: If the first element cannot be walked for any
 			// reason, Rerror is returned. Otherwise, the walk will return an
@@ -126,6 +126,137 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	}
 	fs.files[newfid] = currEntry
 	return walkQids, nil
+}
+
+func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
+	// Lookup the parent fid
+	f, err := fs.getFile(fid)
+	if err != nil {
+		return protocol.QID{}, 0, fmt.Errorf("does not exist")
+	}
+
+	return f.qid(), fs.ioUnit, nil
+}
+
+func (fs *fileServer) Rcreate(fid protocol.FID, name string, perm protocol.Perm, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
+	return protocol.QID{}, 0, fmt.Errorf("Filesystem is read-only")
+}
+
+func (fs *fileServer) Rclunk(fid protocol.FID) error {
+	_, err := fs.clunk(fid)
+	return err
+}
+
+func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
+	f, err := fs.getFile(fid)
+	if err != nil {
+		return []byte{}, err
+	}
+	d := f.p9Dir()
+	var b bytes.Buffer
+	protocol.Marshaldir(&b, *d)
+	return b.Bytes(), nil
+}
+
+func (fs *fileServer) Rwstat(fid protocol.FID, b []byte) error {
+	return fmt.Errorf("Filesystem is read-only")
+}
+
+func (fs *fileServer) Rremove(fid protocol.FID) error {
+	return fmt.Errorf("Filesystem is read-only")
+}
+
+func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Count) ([]byte, error) {
+	f, err := fs.getFile(fid)
+	if err != nil {
+		return nil, err
+	}
+
+	if f.qid().Type&protocol.QTDIR != 0 {
+		if o == 0 {
+			f.oflow = nil
+			if err := resetDir(f); err != nil {
+				return nil, err
+			}
+		}
+
+		// We make the assumption that they can always fit at least one
+		// directory entry into a read. If that assumption does not hold
+		// so many things are broken that we can't fix them here.
+		// But we'll drop out of the loop below having returned nothing
+		// anyway.
+		b := bytes.NewBuffer(f.oflow)
+		f.oflow = nil
+		pos := 0
+
+		for {
+			if b.Len() > int(c) {
+				f.oflow = b.Bytes()[pos:]
+				return b.Bytes()[:pos], nil
+			}
+			pos += b.Len()
+			st, err := f.file.Readdir(1)
+			if err == io.EOF {
+				return b.Bytes(), nil
+			}
+			if err != nil {
+				return nil, err
+			}
+
+			d9p, err := dirTo9p2000Dir(st[0])
+			if err != nil {
+				return nil, err
+			}
+			protocol.Marshaldir(b, *d9p)
+			// Seen on linux clients: sometimes the math is wrong and
+			// they end up asking for the last element with not enough data.
+			// Linux bug or bug with this server? Not sure yet.
+			if b.Len() > int(c) {
+				log.Printf("Warning: Server bug? %v, need %d bytes;count is %d: skipping", d9p, b.Len(), c)
+				return nil, nil
+			}
+			// We're not quite doing the array right.
+			// What does work is returning one thing so, for now, do that.
+			return b.Bytes(), nil
+		}
+		return b.Bytes(), nil
+	}
+
+	// N.B. even if they ask for 0 bytes on some file systems it is important to pass
+	// through a zero byte read (not Unix, of course).
+	b := make([]byte, c)
+	n, err := f.file.ReadAt(b, int64(o))
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	return b[:n], nil
+}
+
+func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (protocol.Count, error) {
+	return -1, fmt.Errorf("Filesystem is read-only")
+}
+
+func (fs *fileServer) getFile(fid protocol.FID) (entry, error) {
+	fs.filesMutex.Lock()
+	defer fs.filesMutex.Unlock()
+
+	f, ok := fs.files[fid]
+	if !ok {
+		return nil, fmt.Errorf("does not exist")
+	}
+	return f, nil
+}
+
+func (fs *fileServer) clunk(fid protocol.FID) (entry, error) {
+	fs.filesMutex.Lock()
+	defer fs.filesMutex.Unlock()
+	f, ok := fs.files[fid]
+	if !ok {
+		return nil, fmt.Errorf("does not exist")
+	}
+	delete(fs.files, fid)
+
+	return f, nil
 }
 
 func newTmpfs(arch *archive, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
