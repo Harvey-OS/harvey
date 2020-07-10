@@ -24,6 +24,7 @@ type entry interface {
 	fullName() string
 	child(name string) (entry, bool)
 	qid() protocol.QID
+	p9Dir() *protocol.Dir
 }
 
 type file struct {
@@ -52,14 +53,28 @@ func (f *file) qid() protocol.QID {
 	return f.fileQid
 }
 
+func (f *file) p9Dir() *protocol.Dir {
+	d := &protocol.Dir{}
+	d.QID = f.fileQid
+	d.Mode = uint32(f.hdr.Mode) & 0777
+	d.Atime = uint32(f.hdr.AccessTime.Unix())
+	d.Mtime = uint32(f.hdr.ModTime.Unix())
+	d.Length = uint64(f.hdr.Size)
+	d.Name = f.fullName()
+	d.User = f.hdr.Uname
+	d.Group = f.hdr.Gname
+	return d
+}
+
 type directory struct {
 	dirFullName string
 	entries     map[string]entry
 	dirQid      protocol.QID
+	openTime    time.Time
 }
 
-func newDirectory(fullName string) *directory {
-	return &directory{dirFullName: fullName, entries: map[string]entry{}, dirQid: protocol.QID{}}
+func newDirectory(fullName string, openTime time.Time) *directory {
+	return &directory{dirFullName: fullName, entries: map[string]entry{}, dirQid: protocol.QID{}, openTime: openTime}
 }
 
 func (d *directory) fullName() string {
@@ -73,6 +88,19 @@ func (d *directory) child(name string) (entry, bool) {
 
 func (d *directory) qid() protocol.QID {
 	return d.dirQid
+}
+
+func (d *directory) p9Dir() *protocol.Dir {
+	pd := &protocol.Dir{}
+	pd.QID = d.dirQid
+	pd.Mode = 0444
+	pd.Atime = uint32(d.openTime.Unix())
+	pd.Mtime = uint32(d.openTime.Unix())
+	pd.Length = 4096
+	pd.Name = d.fullName()
+	pd.User = ""
+	pd.Group = ""
+	return pd
 }
 
 func (a *archive) addFile(filepath string, file *file) error {
@@ -97,7 +125,7 @@ func (a *archive) getOrCreateDir(d *directory, cmps []string) (*directory, error
 			return nil, fmt.Errorf("File already exists with name %s", cmpname)
 		}
 	} else {
-		newDir := newDirectory(strings.Join(cmps, "/"))
+		newDir := newDirectory(strings.Join(cmps, "/"), a.openTime)
 		d.entries[cmpname] = newDir
 
 		newDir.dirQid.Type = protocol.QTFILE
@@ -179,7 +207,8 @@ func readImage(buf *bytes.Buffer) *archive {
 		}
 	}()
 
-	fs := &archive{newDirectory(""), []*directory{}, []*file{}, time.Now()}
+	openTime := time.Now()
+	fs := &archive{newDirectory("", openTime), []*directory{}, []*file{}, openTime}
 	tr := tar.NewReader(gzr)
 	for {
 		hdr, err := tr.Next()
