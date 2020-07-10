@@ -172,60 +172,9 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 		return nil, err
 	}
 
-	if f.qid().Type&protocol.QTDIR != 0 {
-		if o == 0 {
-			f.oflow = nil
-			if err := resetDir(f); err != nil {
-				return nil, err
-			}
-		}
-
-		// We make the assumption that they can always fit at least one
-		// directory entry into a read. If that assumption does not hold
-		// so many things are broken that we can't fix them here.
-		// But we'll drop out of the loop below having returned nothing
-		// anyway.
-		b := bytes.NewBuffer(f.oflow)
-		f.oflow = nil
-		pos := 0
-
-		for {
-			if b.Len() > int(c) {
-				f.oflow = b.Bytes()[pos:]
-				return b.Bytes()[:pos], nil
-			}
-			pos += b.Len()
-			st, err := f.file.Readdir(1)
-			if err == io.EOF {
-				return b.Bytes(), nil
-			}
-			if err != nil {
-				return nil, err
-			}
-
-			d9p, err := dirTo9p2000Dir(st[0])
-			if err != nil {
-				return nil, err
-			}
-			protocol.Marshaldir(b, *d9p)
-			// Seen on linux clients: sometimes the math is wrong and
-			// they end up asking for the last element with not enough data.
-			// Linux bug or bug with this server? Not sure yet.
-			if b.Len() > int(c) {
-				log.Printf("Warning: Server bug? %v, need %d bytes;count is %d: skipping", d9p, b.Len(), c)
-				return nil, nil
-			}
-			// We're not quite doing the array right.
-			// What does work is returning one thing so, for now, do that.
-			return b.Bytes(), nil
-		}
-		return b.Bytes(), nil
-	}
-
-	// N.B. even if they ask for 0 bytes on some file systems it is important to pass
-	// through a zero byte read (not Unix, of course).
+	dataReader := bytes.NewReader(f.p9Data().Bytes())
 	b := make([]byte, c)
-	n, err := f.file.ReadAt(b, int64(o))
+	n, err := dataReader.ReadAt(b, int64(o))
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
