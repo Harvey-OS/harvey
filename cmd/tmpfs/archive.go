@@ -23,13 +23,20 @@ type archive struct {
 type entry interface {
 	fullName() string
 	child(name string) (entry, bool)
+
+	// p9 server qid
 	qid() protocol.QID
+
+	// p9 dir structure (stat)
 	p9Dir() *protocol.Dir
+
+	// p9 data representation
+	p9Data() *bytes.Buffer
 }
 
 type file struct {
 	hdr     *tar.Header
-	data    *bytes.Buffer
+	data    *bytes.Buffer // TODO Should this be []byte
 	fileQid protocol.QID
 }
 
@@ -66,15 +73,25 @@ func (f *file) p9Dir() *protocol.Dir {
 	return d
 }
 
+func (f *file) p9Data() *bytes.Buffer {
+	return f.data
+}
+
 type directory struct {
 	dirFullName string
 	entries     map[string]entry
+	data        *bytes.Buffer // TODO Should this be []byte
 	dirQid      protocol.QID
 	openTime    time.Time
 }
 
 func newDirectory(fullName string, openTime time.Time) *directory {
-	return &directory{dirFullName: fullName, entries: map[string]entry{}, dirQid: protocol.QID{}, openTime: openTime}
+	return &directory{
+		dirFullName: fullName,
+		entries:     map[string]entry{},
+		data:        &bytes.Buffer{},
+		dirQid:      protocol.QID{},
+		openTime:    openTime}
 }
 
 func (d *directory) fullName() string {
@@ -103,6 +120,10 @@ func (d *directory) p9Dir() *protocol.Dir {
 	return pd
 }
 
+func (d *directory) p9Data() *bytes.Buffer {
+	return d.data
+}
+
 func (a *archive) addFile(filepath string, file *file) error {
 	filecmps := strings.Split(filepath, "/")
 	if dir, err := a.getOrCreateDir(a.root, filecmps[:len(filecmps)-1]); err != nil {
@@ -126,12 +147,15 @@ func (a *archive) getOrCreateDir(d *directory, cmps []string) (*directory, error
 		}
 	} else {
 		newDir := newDirectory(strings.Join(cmps, "/"), a.openTime)
-		d.entries[cmpname] = newDir
-
 		newDir.dirQid.Type = protocol.QTFILE
 		newDir.dirQid.Path = uint64(len(a.dirs))
 
 		a.dirs = append(a.dirs, newDir)
+
+		// Add the child dir to the parent
+		// Also serialize in p9 marshalled form so we don't need to faff around in Rread
+		d.entries[cmpname] = newDir
+		protocol.Marshaldir(newDir.data, *newDir.p9Dir())
 
 		return a.getOrCreateDir(newDir, cmps[1:])
 	}
@@ -219,13 +243,12 @@ func readImage(buf *bytes.Buffer) *archive {
 			log.Fatal(err)
 		}
 
-		filename := hdr.Name
 		file := newFile(hdr)
 		if _, err := io.Copy(file.data, tr); err != nil {
 			log.Fatal(err)
 		}
 
-		fs.addFile(filename, file)
+		fs.addFile(hdr.Name, file)
 	}
 
 	return fs
