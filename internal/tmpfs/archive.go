@@ -1,4 +1,4 @@
-package main
+package tmpfs
 
 import (
 	"archive/tar"
@@ -13,25 +13,25 @@ import (
 	"github.com/harvey-os/ninep/protocol"
 )
 
-type archive struct {
+type Archive struct {
 	root     *directory
 	dirs     []*directory
 	files    []*file
 	openTime time.Time
 }
 
-type entry interface {
+type Entry interface {
 	fullName() string
-	child(name string) (entry, bool)
+	Child(name string) (Entry, bool)
 
 	// p9 server qid
-	qid() protocol.QID
+	Qid() protocol.QID
 
 	// p9 dir structure (stat)
-	p9Dir() *protocol.Dir
+	P9Dir() *protocol.Dir
 
 	// p9 data representation
-	p9Data() *bytes.Buffer
+	P9Data() *bytes.Buffer
 }
 
 type file struct {
@@ -52,15 +52,15 @@ func (f *file) fullName() string {
 	return f.hdr.Name
 }
 
-func (f *file) child(name string) (entry, bool) {
+func (f *file) Child(name string) (Entry, bool) {
 	return nil, false
 }
 
-func (f *file) qid() protocol.QID {
+func (f *file) Qid() protocol.QID {
 	return f.fileQid
 }
 
-func (f *file) p9Dir() *protocol.Dir {
+func (f *file) P9Dir() *protocol.Dir {
 	d := &protocol.Dir{}
 	d.QID = f.fileQid
 	d.Mode = uint32(f.hdr.Mode) & 0777
@@ -73,13 +73,13 @@ func (f *file) p9Dir() *protocol.Dir {
 	return d
 }
 
-func (f *file) p9Data() *bytes.Buffer {
+func (f *file) P9Data() *bytes.Buffer {
 	return f.data
 }
 
 type directory struct {
 	dirFullName string
-	entries     map[string]entry
+	entries     map[string]Entry
 	data        *bytes.Buffer // TODO Should this be []byte
 	dirQid      protocol.QID
 	openTime    time.Time
@@ -88,7 +88,7 @@ type directory struct {
 func newDirectory(fullName string, openTime time.Time) *directory {
 	return &directory{
 		dirFullName: fullName,
-		entries:     map[string]entry{},
+		entries:     map[string]Entry{},
 		data:        &bytes.Buffer{},
 		dirQid:      protocol.QID{},
 		openTime:    openTime}
@@ -98,16 +98,16 @@ func (d *directory) fullName() string {
 	return d.dirFullName
 }
 
-func (d *directory) child(name string) (entry, bool) {
+func (d *directory) Child(name string) (Entry, bool) {
 	e, ok := d.entries[name]
 	return e, ok
 }
 
-func (d *directory) qid() protocol.QID {
+func (d *directory) Qid() protocol.QID {
 	return d.dirQid
 }
 
-func (d *directory) p9Dir() *protocol.Dir {
+func (d *directory) P9Dir() *protocol.Dir {
 	pd := &protocol.Dir{}
 	pd.QID = d.dirQid
 	pd.Mode = 0444
@@ -120,11 +120,15 @@ func (d *directory) p9Dir() *protocol.Dir {
 	return pd
 }
 
-func (d *directory) p9Data() *bytes.Buffer {
+func (d *directory) P9Data() *bytes.Buffer {
 	return d.data
 }
 
-func (a *archive) addFile(filepath string, file *file) error {
+func (a *Archive) Root() *directory {
+	return a.root
+}
+
+func (a *Archive) addFile(filepath string, file *file) error {
 	filecmps := strings.Split(filepath, "/")
 	if dir, err := a.getOrCreateDir(a.root, filecmps[:len(filecmps)-1]); err != nil {
 		return err
@@ -133,7 +137,7 @@ func (a *archive) addFile(filepath string, file *file) error {
 	}
 }
 
-func (a *archive) getOrCreateDir(d *directory, cmps []string) (*directory, error) {
+func (a *Archive) getOrCreateDir(d *directory, cmps []string) (*directory, error) {
 	if len(cmps) == 0 {
 		return d, nil
 	}
@@ -155,13 +159,13 @@ func (a *archive) getOrCreateDir(d *directory, cmps []string) (*directory, error
 		// Add the child dir to the parent
 		// Also serialize in p9 marshalled form so we don't need to faff around in Rread
 		d.entries[cmpname] = newDir
-		protocol.Marshaldir(newDir.data, *newDir.p9Dir())
+		protocol.Marshaldir(newDir.data, *newDir.P9Dir())
 
 		return a.getOrCreateDir(newDir, cmps[1:])
 	}
 }
 
-func (a *archive) createFile(d *directory, filename string, file *file) error {
+func (a *Archive) createFile(d *directory, filename string, file *file) error {
 	if _, exists := d.entries[filename]; exists {
 		return fmt.Errorf("File or directory already exists with name %s", filename)
 	}
@@ -176,7 +180,7 @@ func (a *archive) createFile(d *directory, filename string, file *file) error {
 }
 
 // Create and add some files to the archive.
-func createTestImage() *bytes.Buffer {
+func CreateTestImage() *bytes.Buffer {
 	var buf bytes.Buffer
 
 	gztw := gzip.NewWriter(&buf)
@@ -220,7 +224,7 @@ func createTestImage() *bytes.Buffer {
 }
 
 // Read a compressed tar and produce a file hierarchy
-func readImage(buf *bytes.Buffer) *archive {
+func ReadImage(buf *bytes.Buffer) *Archive {
 	gzr, err := gzip.NewReader(buf)
 	if err != nil {
 		log.Fatal(err)
@@ -232,7 +236,7 @@ func readImage(buf *bytes.Buffer) *archive {
 	}()
 
 	openTime := time.Now()
-	fs := &archive{newDirectory("", openTime), []*directory{}, []*file{}, openTime}
+	fs := &Archive{newDirectory("", openTime), []*directory{}, []*file{}, openTime}
 	tr := tar.NewReader(gzr)
 	for {
 		hdr, err := tr.Next()
