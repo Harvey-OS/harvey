@@ -17,6 +17,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/Harvey-OS/go/internal/tmpfs"
 	"github.com/harvey-os/ninep/protocol"
 )
 
@@ -27,9 +28,9 @@ var (
 )
 
 type fileServer struct {
-	archive    *archive
+	archive    *tmpfs.Archive
 	filesMutex sync.Mutex
-	files      map[protocol.FID]entry
+	files      map[protocol.FID]tmpfs.Entry
 	ioUnit     protocol.MaxSize
 }
 
@@ -53,12 +54,12 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 		return protocol.QID{}, err
 	}*/
 
-	root := fs.archive.root
+	root := fs.archive.Root()
 	fs.filesMutex.Lock()
 	fs.files[fid] = root
 	fs.filesMutex.Unlock()
 
-	return root.dirQid, nil
+	return root.Qid(), nil
 }
 
 func (fs *fileServer) Rflush(o protocol.Tag) error {
@@ -91,7 +92,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	var pathcmp string
 	currEntry := parentEntry
 	for i, pathcmp = range paths {
-		currEntry, ok := currEntry.child(pathcmp)
+		currEntry, ok := currEntry.Child(pathcmp)
 		if !ok {
 			// From the RFC: If the first element cannot be walked for any
 			// reason, Rerror is returned. Otherwise, the walk will return an
@@ -113,7 +114,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			// so the i should be safe.
 			return walkQids[:i], nil
 		}
-		walkQids[i] = currEntry.qid()
+		walkQids[i] = currEntry.Qid()
 	}
 
 	fs.filesMutex.Lock()
@@ -135,7 +136,7 @@ func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID,
 		return protocol.QID{}, 0, fmt.Errorf("does not exist")
 	}
 
-	return f.qid(), fs.ioUnit, nil
+	return f.Qid(), fs.ioUnit, nil
 }
 
 func (fs *fileServer) Rcreate(fid protocol.FID, name string, perm protocol.Perm, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
@@ -152,7 +153,7 @@ func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	d := f.p9Dir()
+	d := f.P9Dir()
 	var b bytes.Buffer
 	protocol.Marshaldir(&b, *d)
 	return b.Bytes(), nil
@@ -172,7 +173,7 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 		return nil, err
 	}
 
-	dataReader := bytes.NewReader(f.p9Data().Bytes())
+	dataReader := bytes.NewReader(f.P9Data().Bytes())
 	b := make([]byte, c)
 	n, err := dataReader.ReadAt(b, int64(o))
 	if err != nil && err != io.EOF {
@@ -185,7 +186,7 @@ func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (pro
 	return -1, fmt.Errorf("Filesystem is read-only")
 }
 
-func (fs *fileServer) getFile(fid protocol.FID) (entry, error) {
+func (fs *fileServer) getFile(fid protocol.FID) (tmpfs.Entry, error) {
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
 
@@ -196,7 +197,7 @@ func (fs *fileServer) getFile(fid protocol.FID) (entry, error) {
 	return f, nil
 }
 
-func (fs *fileServer) clunk(fid protocol.FID) (entry, error) {
+func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
 	f, ok := fs.files[fid]
@@ -208,10 +209,10 @@ func (fs *fileServer) clunk(fid protocol.FID) (entry, error) {
 	return f, nil
 }
 
-func newTmpfs(arch *archive, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
+func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
 	nsCreator := func() protocol.NineServer {
 		fs := &fileServer{archive: arch}
-		fs.files = make(map[protocol.FID]entry)
+		fs.files = make(map[protocol.FID]tmpfs.Entry)
 		fs.ioUnit = 8192
 
 		// any opts for the ufs layer can be added here too ...
@@ -233,8 +234,8 @@ func main() {
 	flag.Parse()
 
 	// TODO replace with loading from cmd line
-	buf := createTestImage()
-	arch := readImage(buf)
+	buf := tmpfs.CreateTestImage()
+	arch := tmpfs.ReadImage(buf)
 
 	// Bind and listen on the socket.
 	listener, err := net.Listen(*networktype, *netaddr)
