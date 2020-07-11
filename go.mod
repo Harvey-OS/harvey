@@ -2,8 +2,4 @@ module github.com/Harvey-OS/go
 
 go 1.14
 
-require (
-	github.com/harvey-os/ninep v0.0.0-20200701230449-5148a8f50134
-	github.com/hugelgupf/p9 v0.0.0-20200707092319-ecc83b974f0f
-	github.com/u-root/u-root v6.0.1-0.20200118052101-6bcd1cda5996+incompatible
-)
+require github.com/Harvey-OS/ninep v0.0.0-20200711135529-3962032df8f4
