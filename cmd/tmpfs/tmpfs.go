@@ -62,6 +62,7 @@ func (fs *fileServer) Rflush(o protocol.Tag) error {
 }
 
 func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []string) ([]protocol.QID, error) {
+	fmt.Printf("walk paths: %v\n", paths)
 	// Lookup the parent fid
 	parentEntry, err := fs.getFile(fid)
 	if err != nil {
@@ -69,6 +70,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	}
 
 	if len(paths) == 0 {
+		fmt.Printf("walk len(paths): %v\n", len(paths))
 		// Clone fid - point to same entry
 		fs.filesMutex.Lock()
 		defer fs.filesMutex.Unlock()
@@ -86,9 +88,14 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	var i int
 	var pathcmp string
 	currEntry := parentEntry
+	fmt.Printf("walk currEntry: %v\n", currEntry.FullName())
 	for i, pathcmp = range paths {
-		currEntry, ok := currEntry.Child(pathcmp)
+		fmt.Printf("walk i: %v pathcmp: %v\n", i, pathcmp)
+		var ok bool
+		currEntry, ok = currEntry.Child(pathcmp)
 		if !ok {
+			fmt.Printf("walk currEntry (not ok)\n")
+
 			// From the RFC: If the first element cannot be walked for any
 			// reason, Rerror is returned. Otherwise, the walk will return an
 			// Rwalk message containing nwqid qids corresponding, in order, to
@@ -109,8 +116,11 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			// so the i should be safe.
 			return walkQids[:i], nil
 		}
+		fmt.Printf("walk currEntry (ok): %v\n", currEntry.FullName())
 		walkQids[i] = currEntry.Qid()
 	}
+	fn := currEntry.FullName()
+	fmt.Println(fn)
 
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
@@ -125,17 +135,23 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 }
 
 func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
+	if mode&(protocol.OWRITE|protocol.ORDWR|protocol.OTRUNC|protocol.ORCLOSE|protocol.OAPPEND) != 0 {
+		return protocol.QID{}, 0, fmt.Errorf("filesystem is read-only")
+	}
+
 	// Lookup the parent fid
 	f, err := fs.getFile(fid)
 	if err != nil {
 		return protocol.QID{}, 0, fmt.Errorf("does not exist")
 	}
 
+	// TODO Check executable
+
 	return f.Qid(), fs.ioUnit, nil
 }
 
 func (fs *fileServer) Rcreate(fid protocol.FID, name string, perm protocol.Perm, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
-	return protocol.QID{}, 0, fmt.Errorf("Filesystem is read-only")
+	return protocol.QID{}, 0, fmt.Errorf("filesystem is read-only")
 }
 
 func (fs *fileServer) Rclunk(fid protocol.FID) error {
@@ -155,11 +171,11 @@ func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
 }
 
 func (fs *fileServer) Rwstat(fid protocol.FID, b []byte) error {
-	return fmt.Errorf("Filesystem is read-only")
+	return fmt.Errorf("filesystem is read-only")
 }
 
 func (fs *fileServer) Rremove(fid protocol.FID) error {
-	return fmt.Errorf("Filesystem is read-only")
+	return fmt.Errorf("filesystem is read-only")
 }
 
 func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Count) ([]byte, error) {
@@ -167,10 +183,13 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 	if err != nil {
 		return nil, err
 	}
+	fullName := f.FullName()
+	fmt.Printf("read f: %v\n", fullName)
 
 	dataReader := bytes.NewReader(f.P9Data().Bytes())
 	b := make([]byte, c)
 	n, err := dataReader.ReadAt(b, int64(o))
+	fmt.Printf("read b: %v, n: %v\n", b, n)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
@@ -178,7 +197,7 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 }
 
 func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (protocol.Count, error) {
-	return -1, fmt.Errorf("Filesystem is read-only")
+	return -1, fmt.Errorf("filesystem is read-only")
 }
 
 func (fs *fileServer) getFile(fid protocol.FID) (tmpfs.Entry, error) {
@@ -232,7 +251,7 @@ func main() {
 	flag.Parse()
 
 	// TODO replace with loading from cmd line
-	buf := tmpfs.CreateTestImage()
+	buf := tmpfs.CreateTestImageTemp()
 	arch := tmpfs.ReadImage(buf)
 
 	// Bind and listen on the socket.

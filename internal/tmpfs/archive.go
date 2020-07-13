@@ -21,7 +21,7 @@ type Archive struct {
 }
 
 type Entry interface {
-	fullName() string
+	FullName() string
 	Child(name string) (Entry, bool)
 
 	// p9 server qid
@@ -40,15 +40,15 @@ type file struct {
 	fileQid protocol.QID
 }
 
-func newFile(hdr *tar.Header) *file {
+func newFile(hdr *tar.Header, id uint64) *file {
 	return &file{
 		hdr:     hdr,
 		data:    &bytes.Buffer{},
-		fileQid: protocol.QID{},
+		fileQid: protocol.QID{Type: protocol.QTFILE, Version: 0, Path: id},
 	}
 }
 
-func (f *file) fullName() string {
+func (f *file) FullName() string {
 	return f.hdr.Name
 }
 
@@ -67,7 +67,7 @@ func (f *file) P9Dir() *protocol.Dir {
 	d.Atime = uint32(f.hdr.AccessTime.Unix())
 	d.Mtime = uint32(f.hdr.ModTime.Unix())
 	d.Length = uint64(f.hdr.Size)
-	d.Name = f.fullName()
+	d.Name = f.FullName()
 	d.User = f.hdr.Uname
 	d.Group = f.hdr.Gname
 	return d
@@ -85,16 +85,16 @@ type directory struct {
 	openTime    time.Time
 }
 
-func newDirectory(fullName string, openTime time.Time) *directory {
+func newDirectory(fullName string, openTime time.Time, id uint64) *directory {
 	return &directory{
 		dirFullName: fullName,
 		entries:     map[string]Entry{},
 		data:        &bytes.Buffer{},
-		dirQid:      protocol.QID{},
+		dirQid:      protocol.QID{Type: protocol.QTDIR, Version: 0, Path: id},
 		openTime:    openTime}
 }
 
-func (d *directory) fullName() string {
+func (d *directory) FullName() string {
 	return d.dirFullName
 }
 
@@ -114,7 +114,7 @@ func (d *directory) P9Dir() *protocol.Dir {
 	pd.Atime = uint32(d.openTime.Unix())
 	pd.Mtime = uint32(d.openTime.Unix())
 	pd.Length = 4096
-	pd.Name = d.fullName()
+	pd.Name = d.FullName()
 	pd.User = ""
 	pd.Group = ""
 	return pd
@@ -150,10 +150,7 @@ func (a *Archive) getOrCreateDir(d *directory, cmps []string) (*directory, error
 			return nil, fmt.Errorf("File already exists with name %s", cmpname)
 		}
 	} else {
-		newDir := newDirectory(strings.Join(cmps, "/"), a.openTime)
-		newDir.dirQid.Type = protocol.QTFILE
-		newDir.dirQid.Path = uint64(len(a.dirs))
-
+		newDir := newDirectory(strings.Join(cmps, "/"), a.openTime, uint64(len(a.dirs)))
 		a.dirs = append(a.dirs, newDir)
 
 		// Add the child dir to the parent
@@ -171,8 +168,8 @@ func (a *Archive) createFile(d *directory, filename string, file *file) error {
 	}
 	d.entries[filename] = file
 
-	file.fileQid.Type = protocol.QTDIR
-	file.fileQid.Path = uint64(len(a.files))
+	file.fileQid.Type = protocol.QTFILE
+	file.fileQid.Path = uint64(len(a.files) + 1)
 
 	a.files = append(a.files, file)
 
@@ -180,7 +177,7 @@ func (a *Archive) createFile(d *directory, filename string, file *file) error {
 }
 
 // Create and add some files to the archive.
-func CreateTestImage() *bytes.Buffer {
+func CreateTestImageTemp() *bytes.Buffer {
 	var buf bytes.Buffer
 
 	gztw := gzip.NewWriter(&buf)
@@ -236,9 +233,9 @@ func ReadImage(buf *bytes.Buffer) *Archive {
 	}()
 
 	openTime := time.Now()
-	fs := &Archive{newDirectory("", openTime), []*directory{}, []*file{}, openTime}
+	fs := &Archive{newDirectory("", openTime, 0), []*directory{}, []*file{}, openTime}
 	tr := tar.NewReader(gzr)
-	for {
+	for id := 0; ; id++ {
 		hdr, err := tr.Next()
 		if err == io.EOF {
 			break // End of archive
@@ -247,7 +244,7 @@ func ReadImage(buf *bytes.Buffer) *Archive {
 			log.Fatal(err)
 		}
 
-		file := newFile(hdr)
+		file := newFile(hdr, uint64(id))
 		if _, err := io.Copy(file.data, tr); err != nil {
 			log.Fatal(err)
 		}
