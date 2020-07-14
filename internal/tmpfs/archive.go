@@ -156,7 +156,7 @@ func (a *Archive) getOrCreateDir(d *directory, cmps []string) (*directory, error
 		// Add the child dir to the parent
 		// Also serialize in p9 marshalled form so we don't need to faff around in Rread
 		d.entries[cmpname] = newDir
-		protocol.Marshaldir(newDir.data, *newDir.P9Dir())
+		protocol.Marshaldir(d.data, *newDir.P9Dir())
 
 		return a.getOrCreateDir(newDir, cmps[1:])
 	}
@@ -172,6 +172,7 @@ func (a *Archive) createFile(d *directory, filename string, file *file) error {
 	file.fileQid.Path = uint64(len(a.files) + 1)
 
 	a.files = append(a.files, file)
+	protocol.Marshaldir(d.data, *file.P9Dir())
 
 	return nil
 }
