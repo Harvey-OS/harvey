@@ -796,7 +796,7 @@ i8250console(char* cfg)
 		return;
 
 	(*uart->phys->enable)(uart, 0);
-	uartctl(uart, "b9600 l8 pn s1 i1");
+	uartctl(uart, "b115200 l8 pn s1 i1");
 	if(*cmd != '\0')
 		uartctl(uart, cmd);
 
