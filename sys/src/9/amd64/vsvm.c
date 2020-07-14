@@ -174,7 +174,8 @@ vsvminit(int size, int nixtype, Mach *mach)
 
 	sd = &((Sd*)mach->gdt)[SiTSS];
 	*sd = mksd(PTR2UINT(mach->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
-	*(uintptr_t*)mach->stack = STACKGUARD;
+	// Can not do this until multiboot information has been processed!
+	//*(uintptr_t*)mach->stack = STACKGUARD;
 	tssinit(mach, mach->stack+size);
 	gdtput(sizeof(gdt64)-1, PTR2UINT(mach->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 
