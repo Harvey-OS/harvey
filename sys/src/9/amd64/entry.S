@@ -4,6 +4,16 @@
 #define __ASSEMBLER__
 #endif
 
+// N.B. on comments: /**/ are from the original NIX for the most part.
+// // comments are mostly Harvey ca. 2020.
+
+// This file is a pastiche of coreboot and NIX source, done in a way to get SOMETHING
+// that would work in ATT syntax, as opposed to Plan 9 syntax. We took the opportunity
+// to clean some things up. We broke Multiboot support for 5 years as a result.
+// To fix multiboot, the code moves eax, ebp to edi, esi to match the calling convention.
+// DO NOT USE edi and esi, or rdi and rsi, in any part of this code.
+// Yes, there is a stack, but it's best not to count on it being more than 8 bytes deep.
+
 // It gets REALLY ugly to try  to link this at some low address and then have the rest of the
 // kernel linked high. Really, really ugly. And that defines any attempt to load at a random
 // address. So, you have to learn to write position independent code here.
@@ -99,8 +109,10 @@ protected_start:
 	ljmp	$8, $__protected_start
 
 __protected_start:
-	/* Save the BIST value */
-	movl	%eax, %ebp
+	// Save the multiboot args rdi,rsi; this matches
+	// the calling convention.
+	movl	%eax, %edi
+	movl	%ebx, %esi
 	movw	$0x10, %ax
 	movw	%ax, %ds
 	movw	%ax, %es
@@ -203,16 +215,32 @@ _endofheader:
 #define PTO(v)		((PTLX((v), 0))<<3)
 
 _warp64:
+	// WARNING edi and esi usage
+	// We use the stosl below, which requires esi and edi.
+	// We need to save them, and we can not use eax or ecx.
+	// We can, however, use edx and ebp; do so.
+	movl	%edi, %edx
+	// NO CALL OR PUSH/POP AFTER THIS POINT.
+	movl 	%esi, %esp
 	movl	$_protected-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ/*+KZERO*/), %esi
 
+	// Don't zero the lowest two pages, they typically contain
+	// multiboot info. TODO: don't zero the stack. Code that depends
+	// on stack variables being zero'd is buggy by definition.
 	movl	%esi, %edi
+	addl    $8192, %edi
 	xorl	%eax, %eax
 	movl	$((MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ)>>2), %ecx
+	subl    $2048, %ecx
 
 	cld
 	rep;	stosl				/* stack, P*, vsvm, m, sys */
-
 	movl	%esi, %eax			/* sys-KZERO */
+
+	movl	%edx, %edi
+	// END WARNING edi usage.
+	// ESI is still used!
+	// NO CALL OR PUSH/POP UNTIL rsp IS LOADED BELOW
 	addl	$(MACHSTKSZ), %eax		/* PML4 */
 	movl	%eax, %CR3			/* load the mmu */
 	movl	%eax, %edx
@@ -316,7 +344,11 @@ _start64v:
 	movq	%rax, sys			/* sys */
 
 	addq	$(MACHSTKSZ), %rax		/* PML4 and top of stack */
+	// put multiboot args back.
+	// NO USE OF rbp PAST THIS POINT.
+	movq	%rsp, %rbp
 	movq	%rax, %rsp			/* set stack */
+	// YOU CAN NOW USE THE STACK AGAIN.
 
 // Don't undo this until all APs are started. Then we don't need to bother
 // having the APs remap it. Save work.
@@ -350,11 +382,8 @@ _zap0done:
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ
 
-	movq	%rbx, %rbx			/* push multiboot args */
-	movq	%rbx, %rsi
-	movq	%rax, %rax
-	movq	%rax, %rdi			/* multiboot magic */
-	xorq	%rbp, %rbp			/* stack trace ends here */
+	movq	%rbp, %rsi			/* expand multiboot args to 64 bits */
+	movq	%rdi, %rdi			/* multiboot magic */
 	CALL	main
 
 .globl ndnr

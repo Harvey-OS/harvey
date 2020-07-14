@@ -527,7 +527,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	mach->online = 1;
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(sys->machstk);
-	*(uintptr_t*)mach->stack = STACKGUARD;
+	// NOPE. Wipes out multiboot.
+	//*(uintptr_t*)mach->stack = STACKGUARD;
 	mach->vsvm = sys->vsvmpage;
 	mach->externup = nil;
 	active.nonline = 1;
