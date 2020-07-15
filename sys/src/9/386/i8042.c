@@ -837,6 +837,7 @@ keybinit(void)
 		iunlock(&i8042lock);
 		print("keybinit failed 1\n");
 		ccc = 0;
+		return;
 	} else
 		ccc = inb(Data);
 

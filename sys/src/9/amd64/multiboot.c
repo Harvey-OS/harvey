@@ -139,6 +139,18 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 					asmmapinit(addr, len, mmap->type);
 				break;
 			}
+			switch(mmap->type) {
+				case 3:
+					// yuck but hey.
+					if (vflag)
+						print("Would check for RSD from %p to %p:", KADDR(addr), KADDR(addr)+len);
+					else {
+						extern uint64_t acpireclaim;
+						extern int acpireclaimsize;
+						acpireclaim = addr;
+						acpireclaimsize = len;
+					}
+			}
 			if(vflag)
 				print("\n\t%#16.16llx %#16.16llx (%llu)\n",
 					addr, addr+len, len);
