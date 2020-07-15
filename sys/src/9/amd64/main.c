@@ -561,6 +561,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	fmtinit();
 	print("\nHarvey\n");
+	multiboot(mbmagic, mbaddress, 1);
 
 	if(vflag){
 		multiboot(mbmagic, mbaddress, vflag);

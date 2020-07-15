@@ -49,6 +49,10 @@ enum {
 /* what do we need to round up to? */
 #define ATABLEBUFSZ	ROUNDUP(sizeof(Atable), 128)
 
+// This sucks.
+uint64_t acpireclaim;
+int acpireclaimsize;
+
 static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
@@ -1463,15 +1467,25 @@ static char *seprinttable(char *s, char *e, Atable *t)
 
 static void *rsdsearch(char *signature)
 {
-//	uintptr_t p;
-//	uint8_t *bda;
-//	void *rsd;
+	void *highrsd;
+	if (rsd != nil)
+		return rsd;
 
 	/*
 	 * Search for the data structure signature:
 	 * 1) in the BIOS ROM between 0xE0000 and 0xFFFFF.
 	 */
-	return sigscan(KADDR(0xE0000), 0x20000, signature);
+	rsd = sigscan(KADDR(0xE0000), 0x20000, signature);
+	if (rsd != nil)
+		return rsd;
+	if (acpireclaimsize == 0)
+		return nil;
+	highrsd = vmap(acpireclaim, acpireclaimsize);
+	if (highrsd == nil)
+		return nil;
+	rsd = sigscan(highrsd, acpireclaimsize, signature);
+	return rsd;
+
 }
 
 /*
