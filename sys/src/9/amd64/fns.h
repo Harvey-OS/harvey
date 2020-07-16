@@ -34,6 +34,7 @@ uint64_t	asmalloc(uintmem, uintmem, int, int);
 void	asminit(void);
 void	asmmapinit(uintmem, uintmem, int);
 extern void asmmodinit(uint32_t, uint32_t, char*);
+void *asmrsdp(void);
 void	noerrorsleft(void);
 void	archinit(void);
 void	archreset(void);
@@ -148,6 +149,7 @@ void pcishowdev(Pcidev*);
 int	pickcore(int, int);
 void	printcpufreq(void);
 void	putac(Mach*);
+void *rsdsearch(void *start, uintptr_t size);
 void	runapcore(int);
 int	screenprint(char*, ...);			/* debugging */
 void	sfence(void);

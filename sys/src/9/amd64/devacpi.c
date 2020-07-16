@@ -49,10 +49,6 @@ enum {
 /* what do we need to round up to? */
 #define ATABLEBUFSZ	ROUNDUP(sizeof(Atable), 128)
 
-// This sucks.
-uint64_t acpireclaim;
-int acpireclaimsize;
-
 static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
@@ -61,6 +57,7 @@ static Queue *acpiev;
 Dev acpidevtab;
 
 static uint16_t pm1status;
+static int v=1;
 /* Table of ACPI ports we own. We just burn 64k of bss here rather
  * than look them up in a function each time they're used. */
 static uint8_t acpiport[1<<16];
@@ -147,13 +144,13 @@ static Acpilist *acpilists;
 static Acpilist *findlist(uintptr_t base, uint size)
 {
 	Acpilist *a = acpilists;
-	//print("findlist: find %p\n", (void *)base);
+	if(v)print("findlist: find %p\n", (void *)base);
 	for(; a; a = a->next){
 		if ((base >= a->base) && ((base + size) < (a->base + a->size))){
 			return a;
 		}
 	}
-	//print("Can't find list for %p\n", (void *)base);
+	if(v)print("Can't find list for %p\n", (void *)base);
 	return nil;
 }
 /*
@@ -509,10 +506,10 @@ static uint8_t sdtchecksum(void *addr, int len)
 	uint8_t *p, sum;
 
 	sum = 0;
-	//print("check %p %d\n", addr, len);
+	if(v)print("check %p %d\n", addr, len);
 	for (p = addr; len-- > 0; p++)
 		sum += *p;
-	//print("sum is 0x%x\n", sum);
+	if(v)print("sum is 0x%x\n", sum);
 	return sum;
 }
 
@@ -520,7 +517,7 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
-	//print("sdtmap %p\n", (void *)pa);
+	if(v)print("sdtmap %p\n", (void *)pa);
 	if (!pa) {
 		print("sdtmap: nil pa\n");
 		return nil;
@@ -544,10 +541,10 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 			return nil;
 		}
 		//hexdump(sdt, sizeof(Sdthdr));
-		//print("sdt %p\n", sdt);
-		//print("get it\n");
+		if(v)print("sdt %p\n", sdt);
+		if(v)print("get it\n");
 		*n = l32get(sdt->length);
-		//print("*n is %d\n", *n);
+		if(v)print("*n is %d\n", *n);
 		if (*n == 0) {
 			print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 			return nil;
@@ -558,25 +555,25 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
 			return nil;
 		}
-		//print("check it\n");
+		if(v)print("check it\n");
 		if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
-			print("acpi: SDT: bad checksum. pa = %p, len = %lu\n", pa, *n);
+			print("acpi: %c%c%c%c: bad checksum. pa = %p, len = %lu\n", sdt->sig[0], sdt->sig[1], sdt->sig[2], sdt->sig[3], pa, *n);
 			return nil;
 		}
 	}
 
-	//print("now mallocz\n");
+	if(v)print("now mallocz\n");
 	p = mallocz(sizeof(Acpilist) + *n, 1);
-	//print("malloc'ed %p\n", p);
+	if(v)print("malloc'ed %p\n", p);
 	if (p == nil)
 		panic("sdtmap: memory allocation failed for %lu bytes", *n);
-	//print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
+	if(v)print("move (%p, %p, %d)\n", p->raw, (void *)sdt, *n);
 	memmove(p->raw, (void *)sdt, *n);
 	p->base = pa;
 	p->size = *n;
 	p->next = acpilists;
 	acpilists = p;
-	//print("sdtmap: size %d\n", *n);
+	if(v)print("sdtmap: size %d\n", *n);
 	return p->raw;
 }
 
@@ -611,7 +608,7 @@ static void loaddsdt(uintptr_t pa)
 	uint8_t *dsdtp;
 
 	dsdtp = sdtmap(pa, 0, &n, 1);
-	//print("Loaded it\n");
+	if(v)print("Loaded it\n");
 	if (dsdtp == nil) {
 		print("acpi: Failed to map dsdtp.\n");
 		return;
@@ -753,19 +750,21 @@ static Atable *parsefadt(Atable *parent, char *name, uint8_t *p, size_t rawsize)
 		gasget(&fp->xgpe0blk, p + 220);
 		gasget(&fp->xgpe1blk, p + 232);
 	}
+	if(v)print("xfacs %#llx facs %#llx\n", fp->xfacs, fp->facs);
 
 	if (fp->xfacs != 0)
 		loadfacs(fp->xfacs);
 	else
 		loadfacs(fp->facs);
 
-	//print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
+	if(v)print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
 
+	if(v)print("fp->xdsdt %#llx facs %#llx\n", fp->xdsdt, fp->dsdt);
 	if (fp->xdsdt == (uint64_t)fp->dsdt)	/* acpica */
 		loaddsdt(fp->xdsdt);
 	else
 		loaddsdt(fp->dsdt);
-	//print("y\n");
+	if(v)print("y\n");
 
 	return finatable_nochildren(t);
 }
@@ -1465,27 +1464,15 @@ static char *seprinttable(char *s, char *e, Atable *t)
 	return seprint(s, e, "\n\n");
 }
 
-static void *rsdsearch(char *signature)
+void *rsdsearch(void *start, uintptr_t size)
 {
-	void *highrsd;
 	if (rsd != nil)
 		return rsd;
-
-	/*
-	 * Search for the data structure signature:
-	 * 1) in the BIOS ROM between 0xE0000 and 0xFFFFF.
-	 */
-	rsd = sigscan(KADDR(0xE0000), 0x20000, signature);
+	rsd = sigscan(start, size,  RSDPTR);
 	if (rsd != nil)
 		return rsd;
-	if (acpireclaimsize == 0)
-		return nil;
-	highrsd = vmap(acpireclaim, acpireclaimsize);
-	if (highrsd == nil)
-		return nil;
-	rsd = sigscan(highrsd, acpireclaimsize, signature);
+	rsd = asmrsdp();
 	return rsd;
-
 }
 
 /*
@@ -1537,22 +1524,22 @@ static void parsexsdt(Atable *root)
 	uintptr_t dhpa;
 	//Atable *n;
 	uint8_t *tbl;
-	//print("1\n");
+	if(v)print("1\n");
 	psliceinit(&slice);
-	//print("2\n");
-	//print("xsdt %p\n", xsdt);
+	if(v)print("2\n");
+	if(v)print("xsdt %p\n", xsdt);
 	tbl = xsdt->p + sizeof(Sdthdr);
 	end = xsdt->len - sizeof(Sdthdr);
 	print("%s: tbl %p, end %d\n", __func__, tbl, end);
 	for (int i = 0; i < end; i += xsdt->asize) {
 		dhpa = (xsdt->asize == 8) ? l64get(tbl + i) : l32get(tbl + i);
 		sdt = sdtmap(dhpa, 0, &l, 1);
-		kmprint("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
+		if(v)print("sdt for map of %p, %d, 1 is %p\n", (void *)dhpa, l, sdt);
 		if (sdt == nil)
 			continue;
-		kmprint("acpi: %s: addr %#p\n", __func__, sdt);
+		if(v)print("acpi: %s: addr %#p\n", __func__, sdt);
 		for (int j = 0; j < nelem(ptable); j++) {
-			kmprint("tb sig %s\n", ptable[j].sig);
+			if(v)print("tb sig %s\n", ptable[j].sig);
 			if (memcmp(sdt->sig, ptable[j].sig, sizeof(sdt->sig)) == 0) {
 				table = ptable[j].parse(root, ptable[j].sig, (void *)sdt, l);
 				if (table != nil)
@@ -1561,7 +1548,7 @@ static void parsexsdt(Atable *root)
 			}
 		}
 	}
-	kmprint("FINATABLE\n\n\n\n");
+	if(v)print("FINATABLE\n\n\n\n");
 	finatable(root, &slice);
 }
 
@@ -1585,7 +1572,11 @@ static void parsersdptr(void)
 //	static_assert(sizeof(Sdthdr) == 36);
 
 	/* Find the root pointer. */
-	rsd = rsdsearch("RSD PTR ");
+	/*
+	 * Search for the data structure signature:
+	 * 1) in the BIOS ROM between 0xE0000 and 0xFFFFF.
+	 */
+	rsd = rsdsearch(KADDR(0xE0000), 0x20000);
 	if (rsd == nil) {
 		print("NO RSDP\n");
 		return;
@@ -1598,12 +1589,12 @@ static void parsersdptr(void)
 	root = mkatable(nil, XSDT, devname(), nil, 0, sizeof(Xsdt));
 	root->parent = root;
 
-	kmprint("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
+	if (v)print("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
 		   rsd->signature, rsd->rchecksum, rsd->oemid, rsd->revision,
 		   *(uint32_t *)rsd->raddr, *(uint32_t *)rsd->length,
-		   *(uint32_t *)rsd->xaddr, rsd->xchecksum);
+		   *(uint64_t *)rsd->xaddr, rsd->xchecksum);
 
-	kmprint("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
+	if (v)print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
 		   rsd, l32get(rsd->raddr), l32get(rsd->length),
 		   l64get(rsd->xaddr), rsd->revision);
 
@@ -1636,7 +1627,7 @@ static void parsersdptr(void)
 	}
 	if ((xsdt->p[0] != 'R' && xsdt->p[0] != 'X')
 		|| memcmp(xsdt->p + 1, "SDT", 3) != 0) {
-		kmprint("acpi: xsdt sig: %c%c%c%c\n",
+		if(v)print("acpi: xsdt sig: %c%c%c%c\n",
 		       xsdt->p[0], xsdt->p[1], xsdt->p[2], xsdt->p[3]);
 		xsdt = nil;
 		return;
@@ -1644,10 +1635,10 @@ static void parsersdptr(void)
 	xsdt->asize = asize;
 	root->raw = xsdt->p;
 	root->rawsize = xsdt->len;
-	kmprint("acpi: XSDT %#p\n", xsdt);
+	if(v)print("acpi: XSDT %#p\n", xsdt);
 	parsexsdt(root);
-	kmprint("POST PARSE XSDT raw is %p len is 0x%x\n", xsdt->p, xsdt->len);
-	kmprint("parsexdt done: lastpath %d\n", lastpath);
+	if(v)print("POST PARSE XSDT raw is %p len is 0x%x\n", xsdt->p, xsdt->len);
+	if(v)print("parsexdt done: lastpath %d\n", lastpath);
 	atableindex = reallocarray(nil, lastpath, sizeof(Atable *));
 	assert(atableindex != nil);
 	makeindex(root);
@@ -1689,7 +1680,7 @@ static int acpigen(Chan *c, char *name, Dirtab *tab, int ntab,
  */
 static void dumpxsdt(void)
 {
-	kmprint("xsdt: len = %lu, asize = %lu, p = %p\n",
+	if(v)print("xsdt: len = %lu, asize = %lu, p = %p\n",
 	       xsdt->len, xsdt->asize, xsdt->p);
 }
 
@@ -1763,7 +1754,7 @@ static unsigned int getbanked(uintptr_t ra, uintptr_t rb, int sz)
 static unsigned int setbanked(uintptr_t ra, uintptr_t rb, int sz, int v)
 {
 	unsigned int r;
-	//print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, v);
+	if(v)print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, v);
 
 	r = -1;
 	switch (sz) {
@@ -1863,7 +1854,7 @@ static void acpiintr(Ureg *u, void *v)
 		}
 	sts = getpm1sts();
 	en = getpm1en();
-	//print("acpiintr: pm1sts %#p pm1en %#p\n", sts, en);
+	if(v)print("acpiintr: pm1sts %#p pm1en %#p\n", sts, en);
 	//if (sts & en)
 	//	print("acpiintr: have enabled events\n");
 	//if (sts & 1)
@@ -2071,7 +2062,7 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	 * map with sdtmap and only allow reads of those
 	 * areas. But let's see if this idea even works, first.
 	 */
-	//print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
+	if(v)print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
 	if (off == 0){
 		uint32_t pa = (uint32_t)PADDR(rsd);
 		print("FIND RSD\n");
@@ -2079,8 +2070,8 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 		return readmem(0, a, n, &pa, sizeof(pa));
 	}
 	if (off == PADDR(rsd)) {
-		//print("READ RSD");
-		//print("returning for rsd\n");
+		if(v)print("READ RSD");
+		if(v)print("returning for rsd\n");
 		//hexdump(rsd, sizeof(*rsd));
 		return readmem(0, a, n, rsd, sizeof(*rsd));
 	}
@@ -2104,7 +2095,7 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	}
 	//hexdump(l->raw, l->size);
 	ret = readmem(off-l->base, a, n, l->raw, l->size);
-	//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
+	if(v)print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
 	return ret;
 }
 
@@ -2248,7 +2239,7 @@ static int32_t acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	case Qraw:
 		t = genatable(c);
 		ret = readmem(off, a, n, t->raw, t->rawsize);
-		//print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off-l->base, a, n, l->raw, l->size);
+		if(v)print("%d = readmem(0x%lx, %p, %d, %p, %d\n", ret, off, a, n, t->raw, t->rawsize);
 		return ret;
 	case Qtbl:
 		s = ttext;

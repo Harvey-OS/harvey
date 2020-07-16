@@ -140,16 +140,12 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 				break;
 			}
 			switch(mmap->type) {
+				// There is no consistency in which type of e820 segment RSDP is stored in.
 				case 3:
-					// yuck but hey.
+				case 4:
 					if (vflag)
 						print("Would check for RSD from %p to %p:", KADDR(addr), KADDR(addr)+len);
-					else {
-						extern uint64_t acpireclaim;
-						extern int acpireclaimsize;
-						acpireclaim = addr;
-						acpireclaimsize = len;
-					}
+					break;
 			}
 			if(vflag)
 				print("\n\t%#16.16llx %#16.16llx (%llu)\n",

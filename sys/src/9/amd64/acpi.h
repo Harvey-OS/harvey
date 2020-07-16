@@ -270,6 +270,8 @@ struct Gas
  *	- pointers to other tables for apics, etc.
  */
 
+#define RSDPTR "RSD PTR "
+
 struct Rsdp
 {
 	uint8_t	signature[8];			/* "RSD PTR " */

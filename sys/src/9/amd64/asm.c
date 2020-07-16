@@ -19,6 +19,9 @@
 
 #include "amd64.h"
 
+// Sorry.
+#include "acpi.h"
+
 /*
  * Address Space Map.
  * Low duty cycle.
@@ -61,6 +64,32 @@ asmdump(void)
 			assem->addr, assem->addr+assem->size,
 			assem->type, assem->size);
 	}
+}
+
+// The RSDP is extraordinarily important, and we hence pollute asm
+// with a search function.
+void *
+asmrsdp(void)
+{
+	Asm* assem;
+
+	DBG("asm: index %d:\n", asmindex);
+	for(assem = asmlist; assem != nil; assem = assem->next){
+		if ((assem->type != AsmACPIRECLAIM) && (assem->type != AsmACPINVS))
+			continue;
+		void *v = vmap(assem->addr, assem->size), *rsd;
+		if (v == nil) {
+			print("Failed to vmap %#llx for %#llx bytes\n", assem->addr, assem->size);
+			continue;
+		}
+		rsd = sigscan(v, assem->size,  RSDPTR);
+		if (rsd != nil) {
+			print("Found RSD in asm at %p\n", rsd);
+			return rsd;
+		}
+		vunmap(v, assem->size);
+	}
+	return nil;
 }
 
 static Asm*
