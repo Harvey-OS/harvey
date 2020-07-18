@@ -62,29 +62,33 @@ func TestReadArchive(t *testing.T) {
 	}
 
 	// Read readme.txt
-	readme, ok := root.Child("readme.txt")
+	readme, ok := root.ChildByName("readme.txt")
 	if !ok {
 		t.Fatal("couldn't open readme.txt")
 	}
-	readmeData := readme.P9Data().String()
+	readmeFile := readme.(*File)
+	readmeData := string(readmeFile.Data())
 	if readmeData != "This archive contains some text files." {
 		t.Fatalf("readme.txt didn't contain expected string - found '%s'", readmeData)
 	}
 
 	// Read abc/123/sean.txt
-	abc, ok := root.Child("abc")
+	abc, ok := root.ChildByName("abc")
 	if !ok {
 		t.Fatal("couldn't open abc")
 	}
-	dir123, ok := abc.Child("123")
+	abcDir := abc.(*Directory)
+	oneTwoThree, ok := abcDir.ChildByName("123")
 	if !ok {
 		t.Fatal("couldn't open 123")
 	}
-	sean, ok := dir123.Child("sean.txt")
+	oneTwoThreeDir := oneTwoThree.(*Directory)
+	sean, ok := oneTwoThreeDir.ChildByName("sean.txt")
 	if !ok {
 		t.Fatal("couldn't open sean.txt")
 	}
-	seanData := sean.P9Data().String()
+	seanFile := sean.(*File)
+	seanData := string(seanFile.Data())
 	if seanData != "lorem ipshum." {
 		t.Fatalf("sean.txt didn't contain expected string - found '%s'", seanData)
 	}

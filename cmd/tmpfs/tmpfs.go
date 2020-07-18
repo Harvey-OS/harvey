@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"sync"
@@ -25,8 +24,25 @@ type fileServer struct {
 
 	archive    *tmpfs.Archive
 	filesMutex sync.Mutex
-	files      map[protocol.FID]tmpfs.Entry
+	files      map[protocol.FID]*FidEntry
 	ioUnit     protocol.MaxSize
+}
+
+// FidEntry wraps an Entry with the instance data required for a fid reference
+type FidEntry struct {
+	tmpfs.Entry
+
+	// We can't know how big a serialized dentry is until we serialize it.
+	// At that point it might be too big. We save it here if that happens,
+	// and on the next directory read we start with that.
+	oflow []byte
+
+	// Index of next child to return when reading a directory
+	nextChildIdx int
+}
+
+func newFidEntry(entry tmpfs.Entry) *FidEntry {
+	return &FidEntry{Entry: entry, oflow: nil, nextChildIdx: -1}
 }
 
 func (fs *fileServer) Rversion(msize protocol.MaxSize, version string) (protocol.MaxSize, string, error) {
@@ -51,7 +67,7 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 
 	root := fs.archive.Root()
 	fs.filesMutex.Lock()
-	fs.files[fid] = root
+	fs.files[fid] = newFidEntry(root)
 	fs.filesMutex.Unlock()
 
 	return root.Qid(), nil
@@ -79,7 +95,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			return nil, fmt.Errorf("FID in use: clone walk, fid %d newfid %d", fid, newfid)
 		}
 
-		fs.files[newfid] = parentEntry
+		fs.files[newfid] = newFidEntry(parentEntry)
 		return []protocol.QID{}, nil
 	}
 
@@ -87,34 +103,38 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 
 	var i int
 	var pathcmp string
-	currEntry := parentEntry
+	currEntry := parentEntry.Entry
 	fmt.Printf("walk currEntry: %v\n", currEntry.FullName())
 	for i, pathcmp = range paths {
 		fmt.Printf("walk i: %v pathcmp: %v\n", i, pathcmp)
-		var ok bool
-		currEntry, ok = currEntry.Child(pathcmp)
-		if !ok {
-			fmt.Printf("walk currEntry (not ok)\n")
 
-			// From the RFC: If the first element cannot be walked for any
-			// reason, Rerror is returned. Otherwise, the walk will return an
-			// Rwalk message containing nwqid qids corresponding, in order, to
-			// the files that are visited by the nwqid successful elementwise
-			// walks; nwqid is therefore either nwname or the index of the
-			// first elementwise walk that failed. The value of nwqid cannot be
-			// zero unless nwname is zero. Also, nwqid will always be less than
-			// or equal to nwname. Only if it is equal, however, will newfid be
-			// affected, in which case newfid will represent the file reached
-			// by the final elementwise walk requested in the message.
-			//
-			// to sum up: if any walks have succeeded, you return the QIDS for
-			// one more than the last successful walk
-			if i == 0 {
-				return nil, fmt.Errorf("file does not exist")
+		var ok bool
+		var dir *tmpfs.Directory
+		if dir, ok = currEntry.(*tmpfs.Directory); ok {
+			currEntry, ok = dir.ChildByName(pathcmp)
+			if !ok {
+				fmt.Printf("walk currEntry (not ok)\n")
+
+				// From the RFC: If the first element cannot be walked for any
+				// reason, Rerror is returned. Otherwise, the walk will return an
+				// Rwalk message containing nwqid qids corresponding, in order, to
+				// the files that are visited by the nwqid successful elementwise
+				// walks; nwqid is therefore either nwname or the index of the
+				// first elementwise walk that failed. The value of nwqid cannot be
+				// zero unless nwname is zero. Also, nwqid will always be less than
+				// or equal to nwname. Only if it is equal, however, will newfid be
+				// affected, in which case newfid will represent the file reached
+				// by the final elementwise walk requested in the message.
+				//
+				// to sum up: if any walks have succeeded, you return the QIDS for
+				// one more than the last successful walk
+				if i == 0 {
+					return nil, fmt.Errorf("file does not exist")
+				}
+				// we only get here if i is > 0 and less than nwname,
+				// so the i should be safe.
+				return walkQids[:i], nil
 			}
-			// we only get here if i is > 0 and less than nwname,
-			// so the i should be safe.
-			return walkQids[:i], nil
 		}
 		fmt.Printf("walk currEntry (ok): %v\n", currEntry.FullName())
 		walkQids[i] = currEntry.Qid()
@@ -130,7 +150,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			return nil, fmt.Errorf("FID in use: walk to %v, fid %v, newfid %v", paths, fid, newfid)
 		}
 	}
-	fs.files[newfid] = currEntry
+	fs.files[newfid] = newFidEntry(currEntry)
 	return walkQids, nil
 }
 
@@ -183,24 +203,72 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 	if err != nil {
 		return nil, err
 	}
-	fullName := f.FullName()
-	fmt.Printf("read f: %v\n", fullName)
 
-	dataReader := bytes.NewReader(f.P9Data().Bytes())
-	b := make([]byte, c)
-	n, err := dataReader.ReadAt(b, int64(o))
-	fmt.Printf("read b: %v, n: %v\n", b, n)
-	if err != nil && err != io.EOF {
-		return nil, err
+	if dir, ok := f.Entry.(*tmpfs.Directory); ok {
+		if o == 0 {
+			f.oflow = nil
+		}
+
+		// We make the assumption that they can always fit at least one
+		// directory entry into a read. If that assumption does not hold
+		// so many things are broken that we can't fix them here.
+		// But we'll drop out of the loop below having returned nothing
+		// anyway.
+		b := bytes.NewBuffer(f.oflow)
+		f.oflow = nil
+		pos := 0
+
+		for {
+			if b.Len() > int(c) {
+				f.oflow = b.Bytes()[pos:]
+				return b.Bytes()[:pos], nil
+			}
+
+			f.nextChildIdx++
+			pos += b.Len()
+
+			if f.nextChildIdx >= dir.NumChildren() {
+				return b.Bytes(), nil
+			}
+			d9p := dir.Child(f.nextChildIdx).P9Dir()
+			protocol.Marshaldir(b, *d9p)
+
+			// Seen on linux clients: sometimes the math is wrong and
+			// they end up asking for the last element with not enough data.
+			// Linux bug or bug with this server? Not sure yet.
+			if b.Len() > int(c) {
+				log.Printf("Warning: Server bug? %v, need %d bytes;count is %d: skipping", d9p, b.Len(), c)
+				return nil, nil
+			}
+			// We're not quite doing the array right.
+			// What does work is returning one thing so, for now, do that.
+			return b.Bytes(), nil
+		}
+
+	} else if file, ok := f.Entry.(*tmpfs.File); ok {
+
+		// N.B. even if they ask for 0 bytes on some file systems it is important to pass
+		// through a zero byte read (not Unix, of course).
+		/*b := make([]byte, c)
+		n, err := file.Data().ReadAt(b, int64(o))
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
+		return b[:n], nil*/
+
+		// TODO validate
+		end := uint64(o) + uint64(c)
+		return file.Data()[o:end], nil
 	}
-	return b[:n], nil
+	log.Fatalf("Unrecognised FidEntry")
+	return nil, nil
 }
 
 func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (protocol.Count, error) {
 	return -1, fmt.Errorf("filesystem is read-only")
 }
 
-func (fs *fileServer) getFile(fid protocol.FID) (tmpfs.Entry, error) {
+func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
 
@@ -230,7 +298,7 @@ func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.List
 
 	nsCreator := func() protocol.NineServer {
 		fs := &fileServer{archive: arch}
-		fs.files = make(map[protocol.FID]tmpfs.Entry)
+		fs.files = make(map[protocol.FID]*FidEntry)
 		fs.ioUnit = 8192
 
 		var ns protocol.NineServer = fs

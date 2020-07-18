@@ -14,15 +14,14 @@ import (
 )
 
 type Archive struct {
-	root     *directory
-	dirs     []*directory
-	files    []*file
+	root     *Directory   // root directory
+	dirs     []*Directory // array of all directories (idx is qid)
+	files    []*File      // array of all files (idx is qid)
 	openTime time.Time
 }
 
 type Entry interface {
 	FullName() string
-	Child(name string) (Entry, bool)
 
 	// p9 server qid
 	Qid() protocol.QID
@@ -31,36 +30,32 @@ type Entry interface {
 	P9Dir() *protocol.Dir
 
 	// p9 data representation
-	P9Data() *bytes.Buffer
+	//P9Data() []byte
 }
 
-type file struct {
+type File struct {
 	hdr     *tar.Header
-	data    *bytes.Buffer // TODO Should this be []byte
+	data    []byte
 	fileQid protocol.QID
 }
 
-func newFile(hdr *tar.Header, id uint64) *file {
-	return &file{
+func newFile(hdr *tar.Header, id uint64, dataSize uint64) *File {
+	return &File{
 		hdr:     hdr,
-		data:    &bytes.Buffer{},
+		data:    make([]byte, dataSize),
 		fileQid: protocol.QID{Type: protocol.QTFILE, Version: 0, Path: id},
 	}
 }
 
-func (f *file) FullName() string {
+func (f *File) FullName() string {
 	return f.hdr.Name
 }
 
-func (f *file) Child(name string) (Entry, bool) {
-	return nil, false
-}
-
-func (f *file) Qid() protocol.QID {
+func (f *File) Qid() protocol.QID {
 	return f.fileQid
 }
 
-func (f *file) P9Dir() *protocol.Dir {
+func (f *File) P9Dir() *protocol.Dir {
 	d := &protocol.Dir{}
 	d.QID = f.fileQid
 	d.Mode = uint32(f.hdr.Mode) & 0777
@@ -73,41 +68,51 @@ func (f *file) P9Dir() *protocol.Dir {
 	return d
 }
 
-func (f *file) P9Data() *bytes.Buffer {
+func (f *File) Data() []byte {
 	return f.data
 }
 
-type directory struct {
-	dirFullName string
-	entries     map[string]Entry
-	data        *bytes.Buffer // TODO Should this be []byte
-	dirQid      protocol.QID
-	openTime    time.Time
+type Directory struct {
+	dirFullName    string
+	nameToEntryMap map[string]Entry
+	entries        []Entry
+	//data        []byte
+	dirQid   protocol.QID
+	openTime time.Time
 }
 
-func newDirectory(fullName string, openTime time.Time, id uint64) *directory {
-	return &directory{
-		dirFullName: fullName,
-		entries:     map[string]Entry{},
-		data:        &bytes.Buffer{},
-		dirQid:      protocol.QID{Type: protocol.QTDIR, Version: 0, Path: id},
-		openTime:    openTime}
+func newDirectory(fullName string, openTime time.Time, id uint64) *Directory {
+	return &Directory{
+		dirFullName:    fullName,
+		nameToEntryMap: map[string]Entry{},
+		entries:        []Entry{},
+		dirQid:         protocol.QID{Type: protocol.QTDIR, Version: 0, Path: id},
+		openTime:       openTime,
+	}
 }
 
-func (d *directory) FullName() string {
+func (d *Directory) FullName() string {
 	return d.dirFullName
 }
 
-func (d *directory) Child(name string) (Entry, bool) {
-	e, ok := d.entries[name]
+func (d *Directory) ChildByName(name string) (Entry, bool) {
+	e, ok := d.nameToEntryMap[name]
 	return e, ok
 }
 
-func (d *directory) Qid() protocol.QID {
+func (d *Directory) Child(i int) Entry {
+	return d.entries[i]
+}
+
+func (d *Directory) NumChildren() int {
+	return len(d.entries)
+}
+
+func (d *Directory) Qid() protocol.QID {
 	return d.dirQid
 }
 
-func (d *directory) P9Dir() *protocol.Dir {
+func (d *Directory) P9Dir() *protocol.Dir {
 	pd := &protocol.Dir{}
 	pd.QID = d.dirQid
 	pd.Mode = 0444
@@ -120,15 +125,15 @@ func (d *directory) P9Dir() *protocol.Dir {
 	return pd
 }
 
-func (d *directory) P9Data() *bytes.Buffer {
+/*func (d *directory) P9Data() []byte {
 	return d.data
-}
+}*/
 
-func (a *Archive) Root() *directory {
+func (a *Archive) Root() *Directory {
 	return a.root
 }
 
-func (a *Archive) addFile(filepath string, file *file) error {
+func (a *Archive) addFile(filepath string, file *File) error {
 	filecmps := strings.Split(filepath, "/")
 	if dir, err := a.getOrCreateDir(a.root, filecmps[:len(filecmps)-1]); err != nil {
 		return err
@@ -137,14 +142,14 @@ func (a *Archive) addFile(filepath string, file *file) error {
 	}
 }
 
-func (a *Archive) getOrCreateDir(d *directory, cmps []string) (*directory, error) {
+func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error) {
 	if len(cmps) == 0 {
 		return d, nil
 	}
 
 	cmpname := cmps[0]
-	if entry, exists := d.entries[cmpname]; exists {
-		if dir, ok := entry.(*directory); ok {
+	if entry, exists := d.nameToEntryMap[cmpname]; exists {
+		if dir, ok := entry.(*Directory); ok {
 			return a.getOrCreateDir(dir, cmps[1:])
 		} else {
 			return nil, fmt.Errorf("File already exists with name %s", cmpname)
@@ -155,24 +160,29 @@ func (a *Archive) getOrCreateDir(d *directory, cmps []string) (*directory, error
 
 		// Add the child dir to the parent
 		// Also serialize in p9 marshalled form so we don't need to faff around in Rread
-		d.entries[cmpname] = newDir
-		protocol.Marshaldir(d.data, *newDir.P9Dir())
+		d.nameToEntryMap[cmpname] = newDir
+		d.entries = append(d.entries, newDir)
+
+		//buf := bytes.NewBuffer(d.data)
+		//protocol.Marshaldir(buf, *newDir.P9Dir())
 
 		return a.getOrCreateDir(newDir, cmps[1:])
 	}
 }
 
-func (a *Archive) createFile(d *directory, filename string, file *file) error {
-	if _, exists := d.entries[filename]; exists {
+func (a *Archive) createFile(d *Directory, filename string, file *File) error {
+	if _, exists := d.nameToEntryMap[filename]; exists {
 		return fmt.Errorf("File or directory already exists with name %s", filename)
 	}
-	d.entries[filename] = file
+	d.nameToEntryMap[filename] = file
+	d.entries = append(d.entries, file)
 
 	file.fileQid.Type = protocol.QTFILE
 	file.fileQid.Path = uint64(len(a.files) + 1)
 
 	a.files = append(a.files, file)
-	protocol.Marshaldir(d.data, *file.P9Dir())
+	//protocol.Marshaldir(d.data, *file.P9Dir())
+	//d.data.Next(d.data.Len())
 
 	return nil
 }
@@ -234,7 +244,7 @@ func ReadImage(buf *bytes.Buffer) *Archive {
 	}()
 
 	openTime := time.Now()
-	fs := &Archive{newDirectory("", openTime, 0), []*directory{}, []*file{}, openTime}
+	fs := &Archive{newDirectory("", openTime, 0), []*Directory{}, []*File{}, openTime}
 	tr := tar.NewReader(gzr)
 	for id := 0; ; id++ {
 		hdr, err := tr.Next()
@@ -245,8 +255,8 @@ func ReadImage(buf *bytes.Buffer) *Archive {
 			log.Fatal(err)
 		}
 
-		file := newFile(hdr, uint64(id))
-		if _, err := io.Copy(file.data, tr); err != nil {
+		file := newFile(hdr, uint64(id), uint64(hdr.Size))
+		if _, err := io.ReadFull(tr, file.data); err != nil {
 			log.Fatal(err)
 		}
 
