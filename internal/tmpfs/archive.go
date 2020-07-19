@@ -76,15 +76,17 @@ type Directory struct {
 	name           string
 	nameToEntryMap map[string]Entry
 	entries        []Entry
+	parent         Entry
 	dirQid         protocol.QID
 	openTime       time.Time
 }
 
-func newDirectory(name string, openTime time.Time, id uint64) *Directory {
+func newDirectory(name string, parent Entry, openTime time.Time, id uint64) *Directory {
 	return &Directory{
 		name:           name,
 		nameToEntryMap: map[string]Entry{},
 		entries:        []Entry{},
+		parent:         parent,
 		dirQid:         protocol.QID{Type: protocol.QTDIR, Version: 0, Path: id},
 		openTime:       openTime,
 	}
@@ -101,6 +103,10 @@ func (d *Directory) ChildByName(name string) (Entry, bool) {
 
 func (d *Directory) Child(i int) Entry {
 	return d.entries[i]
+}
+
+func (d *Directory) Parent() Entry {
+	return d.parent
 }
 
 func (d *Directory) NumChildren() int {
@@ -150,7 +156,7 @@ func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error
 			return nil, fmt.Errorf("File already exists with name %s", cmpname)
 		}
 	} else {
-		newDir := newDirectory(strings.Join(cmps, "/"), a.openTime, uint64(len(a.dirs)))
+		newDir := newDirectory(strings.Join(cmps, "/"), d, a.openTime, uint64(len(a.dirs)))
 		a.dirs = append(a.dirs, newDir)
 
 		// Add the child dir to the parent
@@ -203,6 +209,7 @@ func CreateTestImageTemp() *bytes.Buffer {
 		{"bar/todo.txt", "Get animal handling license."},
 		{"foo/todo2.txt", "harvey lalal"},
 		{"abc/123/sean.txt", "lorem ipshum."},
+		{"foo/bar/hello.txt", "hello world!"},
 	}
 	for _, file := range files {
 		hdr := &tar.Header{
@@ -234,7 +241,7 @@ func ReadImage(buf *bytes.Buffer) *Archive {
 	}()
 
 	openTime := time.Now()
-	fs := &Archive{newDirectory("", openTime, 0), []*Directory{}, []*File{}, openTime}
+	fs := &Archive{newDirectory("", nil, openTime, 0), []*Directory{}, []*File{}, openTime}
 	tr := tar.NewReader(gzr)
 	for id := 0; ; id++ {
 		hdr, err := tr.Next()

@@ -78,7 +78,6 @@ func (fs *fileServer) Rflush(o protocol.Tag) error {
 }
 
 func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []string) ([]protocol.QID, error) {
-	fmt.Printf("walk paths: %v\n", paths)
 	// Lookup the parent fid
 	parentEntry, err := fs.getFile(fid)
 	if err != nil {
@@ -86,7 +85,6 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	}
 
 	if len(paths) == 0 {
-		fmt.Printf("walk len(paths): %v\n", len(paths))
 		// Clone fid - point to same entry
 		fs.filesMutex.Lock()
 		defer fs.filesMutex.Unlock()
@@ -104,43 +102,40 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	var i int
 	var pathcmp string
 	currEntry := parentEntry.Entry
-	fmt.Printf("walk currEntry: %v\n", currEntry.Name())
 	for i, pathcmp = range paths {
-		fmt.Printf("walk i: %v pathcmp: %v\n", i, pathcmp)
-
 		var ok bool
 		var dir *tmpfs.Directory
 		if dir, ok = currEntry.(*tmpfs.Directory); ok {
-			currEntry, ok = dir.ChildByName(pathcmp)
-			if !ok {
-				fmt.Printf("walk currEntry (not ok)\n")
-
-				// From the RFC: If the first element cannot be walked for any
-				// reason, Rerror is returned. Otherwise, the walk will return an
-				// Rwalk message containing nwqid qids corresponding, in order, to
-				// the files that are visited by the nwqid successful elementwise
-				// walks; nwqid is therefore either nwname or the index of the
-				// first elementwise walk that failed. The value of nwqid cannot be
-				// zero unless nwname is zero. Also, nwqid will always be less than
-				// or equal to nwname. Only if it is equal, however, will newfid be
-				// affected, in which case newfid will represent the file reached
-				// by the final elementwise walk requested in the message.
-				//
-				// to sum up: if any walks have succeeded, you return the QIDS for
-				// one more than the last successful walk
-				if i == 0 {
-					return nil, fmt.Errorf("file does not exist")
+			if pathcmp == ".." {
+				currEntry = dir.Parent()
+			} else {
+				currEntry, ok = dir.ChildByName(pathcmp)
+				if !ok {
+					// From the RFC: If the first element cannot be walked for any
+					// reason, Rerror is returned. Otherwise, the walk will return an
+					// Rwalk message containing nwqid qids corresponding, in order, to
+					// the files that are visited by the nwqid successful elementwise
+					// walks; nwqid is therefore either nwname or the index of the
+					// first elementwise walk that failed. The value of nwqid cannot be
+					// zero unless nwname is zero. Also, nwqid will always be less than
+					// or equal to nwname. Only if it is equal, however, will newfid be
+					// affected, in which case newfid will represent the file reached
+					// by the final elementwise walk requested in the message.
+					//
+					// to sum up: if any walks have succeeded, you return the QIDS for
+					// one more than the last successful walk
+					if i == 0 {
+						return nil, fmt.Errorf("file does not exist")
+					}
+					// we only get here if i is > 0 and less than nwname,
+					// so the i should be safe.
+					return walkQids[:i], nil
 				}
-				// we only get here if i is > 0 and less than nwname,
-				// so the i should be safe.
-				return walkQids[:i], nil
 			}
 		}
-		fmt.Printf("walk currEntry (ok): %v\n", currEntry.Name())
 		walkQids[i] = currEntry.Qid()
 	}
 	fn := currEntry.Name()
-	fmt.Println(fn)
 
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
@@ -205,7 +200,6 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 	}
 
 	if dir, ok := f.Entry.(*tmpfs.Directory); ok {
-		fmt.Printf("read dir\n")
 		if o == 0 {
 			f.oflow = nil
 		}
@@ -248,8 +242,6 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 		}
 
 	} else if file, ok := f.Entry.(*tmpfs.File); ok {
-		fmt.Printf("read file\n")
-
 		end := int(o) + int(c)
 		maxEnd := len(file.Data())
 		if end > maxEnd {
