@@ -27,7 +27,7 @@ type Entry interface {
 	Qid() protocol.QID
 
 	// p9 dir structure (stat)
-	P9Dir() *protocol.Dir
+	P9Dir(uname string) *protocol.Dir
 }
 
 type File struct {
@@ -54,7 +54,7 @@ func (f *File) Qid() protocol.QID {
 	return f.fileQid
 }
 
-func (f *File) P9Dir() *protocol.Dir {
+func (f *File) P9Dir(uname string) *protocol.Dir {
 	d := &protocol.Dir{}
 	d.QID = f.fileQid
 	d.Mode = uint32(f.hdr.Mode) & 0777
@@ -62,8 +62,8 @@ func (f *File) P9Dir() *protocol.Dir {
 	d.Mtime = uint32(f.hdr.ModTime.Unix())
 	d.Length = uint64(f.hdr.Size)
 	d.Name = f.Name()
-	d.User = f.hdr.Uname
-	d.Group = f.hdr.Gname
+	d.User = uname
+	d.Group = uname
 	return d
 }
 
@@ -116,7 +116,7 @@ func (d *Directory) Qid() protocol.QID {
 	return d.dirQid
 }
 
-func (d *Directory) P9Dir() *protocol.Dir {
+func (d *Directory) P9Dir(uname string) *protocol.Dir {
 	pd := &protocol.Dir{}
 	pd.QID = d.dirQid
 	pd.Mode = 0444
@@ -124,8 +124,8 @@ func (d *Directory) P9Dir() *protocol.Dir {
 	pd.Mtime = uint32(d.openTime.Unix())
 	pd.Length = 4096
 	pd.Name = d.Name()
-	pd.User = ""
-	pd.Group = ""
+	pd.User = uname
+	pd.Group = uname
 	return pd
 }
 
