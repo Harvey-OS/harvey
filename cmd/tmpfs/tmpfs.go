@@ -104,7 +104,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	var i int
 	var pathcmp string
 	currEntry := parentEntry.Entry
-	fmt.Printf("walk currEntry: %v\n", currEntry.FullName())
+	fmt.Printf("walk currEntry: %v\n", currEntry.Name())
 	for i, pathcmp = range paths {
 		fmt.Printf("walk i: %v pathcmp: %v\n", i, pathcmp)
 
@@ -136,10 +136,10 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 				return walkQids[:i], nil
 			}
 		}
-		fmt.Printf("walk currEntry (ok): %v\n", currEntry.FullName())
+		fmt.Printf("walk currEntry (ok): %v\n", currEntry.Name())
 		walkQids[i] = currEntry.Qid()
 	}
-	fn := currEntry.FullName()
+	fn := currEntry.Name()
 	fmt.Println(fn)
 
 	fs.filesMutex.Lock()
@@ -250,17 +250,11 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 	} else if file, ok := f.Entry.(*tmpfs.File); ok {
 		fmt.Printf("read file\n")
 
-		// N.B. even if they ask for 0 bytes on some file systems it is important to pass
-		// through a zero byte read (not Unix, of course).
-		/*b := make([]byte, c)
-		n, err := file.Data().ReadAt(b, int64(o))
-		if err != nil && err != io.EOF {
-			return nil, err
+		end := int(o) + int(c)
+		maxEnd := len(file.Data())
+		if end > maxEnd {
+			end = maxEnd
 		}
-		return b[:n], nil*/
-
-		// TODO validate
-		end := uint64(o) + uint64(c)
 		return file.Data()[o:end], nil
 	}
 	log.Fatalf("Unrecognised FidEntry")

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"path"
 	"strings"
 	"time"
 
@@ -21,19 +22,17 @@ type Archive struct {
 }
 
 type Entry interface {
-	FullName() string
+	Name() string
 
 	// p9 server qid
 	Qid() protocol.QID
 
 	// p9 dir structure (stat)
 	P9Dir() *protocol.Dir
-
-	// p9 data representation
-	//P9Data() []byte
 }
 
 type File struct {
+	name    string
 	hdr     *tar.Header
 	data    []byte
 	fileQid protocol.QID
@@ -41,14 +40,15 @@ type File struct {
 
 func newFile(hdr *tar.Header, id uint64, dataSize uint64) *File {
 	return &File{
+		name:    path.Base(hdr.Name),
 		hdr:     hdr,
 		data:    make([]byte, dataSize),
 		fileQid: protocol.QID{Type: protocol.QTFILE, Version: 0, Path: id},
 	}
 }
 
-func (f *File) FullName() string {
-	return f.hdr.Name
+func (f *File) Name() string {
+	return f.name
 }
 
 func (f *File) Qid() protocol.QID {
@@ -62,7 +62,7 @@ func (f *File) P9Dir() *protocol.Dir {
 	d.Atime = uint32(f.hdr.AccessTime.Unix())
 	d.Mtime = uint32(f.hdr.ModTime.Unix())
 	d.Length = uint64(f.hdr.Size)
-	d.Name = f.FullName()
+	d.Name = f.Name()
 	d.User = f.hdr.Uname
 	d.Group = f.hdr.Gname
 	return d
@@ -73,17 +73,16 @@ func (f *File) Data() []byte {
 }
 
 type Directory struct {
-	dirFullName    string
+	name           string
 	nameToEntryMap map[string]Entry
 	entries        []Entry
-	//data        []byte
-	dirQid   protocol.QID
-	openTime time.Time
+	dirQid         protocol.QID
+	openTime       time.Time
 }
 
-func newDirectory(fullName string, openTime time.Time, id uint64) *Directory {
+func newDirectory(name string, openTime time.Time, id uint64) *Directory {
 	return &Directory{
-		dirFullName:    fullName,
+		name:           name,
 		nameToEntryMap: map[string]Entry{},
 		entries:        []Entry{},
 		dirQid:         protocol.QID{Type: protocol.QTDIR, Version: 0, Path: id},
@@ -91,8 +90,8 @@ func newDirectory(fullName string, openTime time.Time, id uint64) *Directory {
 	}
 }
 
-func (d *Directory) FullName() string {
-	return d.dirFullName
+func (d *Directory) Name() string {
+	return d.name
 }
 
 func (d *Directory) ChildByName(name string) (Entry, bool) {
@@ -119,15 +118,11 @@ func (d *Directory) P9Dir() *protocol.Dir {
 	pd.Atime = uint32(d.openTime.Unix())
 	pd.Mtime = uint32(d.openTime.Unix())
 	pd.Length = 4096
-	pd.Name = d.FullName()
+	pd.Name = d.Name()
 	pd.User = ""
 	pd.Group = ""
 	return pd
 }
-
-/*func (d *directory) P9Data() []byte {
-	return d.data
-}*/
 
 func (a *Archive) Root() *Directory {
 	return a.root
@@ -163,9 +158,6 @@ func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error
 		d.nameToEntryMap[cmpname] = newDir
 		d.entries = append(d.entries, newDir)
 
-		//buf := bytes.NewBuffer(d.data)
-		//protocol.Marshaldir(buf, *newDir.P9Dir())
-
 		return a.getOrCreateDir(newDir, cmps[1:])
 	}
 }
@@ -181,8 +173,6 @@ func (a *Archive) createFile(d *Directory, filename string, file *File) error {
 	file.fileQid.Path = uint64(len(a.files) + 1)
 
 	a.files = append(a.files, file)
-	//protocol.Marshaldir(d.data, *file.P9Dir())
-	//d.data.Next(d.data.Len())
 
 	return nil
 }

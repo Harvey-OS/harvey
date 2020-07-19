@@ -146,9 +146,8 @@ func TestMount(t *testing.T) {
 		t.Fatalf("CallTread(1, 0, 8192): want nil, got %v", err)
 	}
 	expectedData := "This archive contains some text files."
-	if string(b) != expectedData {
+	if string(b[:]) != expectedData {
 		t.Fatalf("CallTread(1, 0, 8192): expected '%s', found '%s'", expectedData, string(b))
-
 	}
 
 	reqPath = []string{"foo", "gopher.txt"}
@@ -216,6 +215,21 @@ func TestMount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CallTread(0, 0, 256): want nil, got %v", err)
 	}
+
+	// readdir test (bar)
+	w, err = c.CallTwalk(0, 5, []string{"bar"})
+	if err != nil {
+		t.Fatalf("CallTwalk(0, 3, []string{\"bar\"}): want nil, got %v", err)
+	}
+	barRawDir, err := c.CallTread(5, 0, 256)
+	if err != nil {
+		t.Fatalf("CallTread(5, 0, 256): want nil, got %v", err)
+	}
+	barDir, err := protocol.Unmarshaldir(bytes.NewBuffer(barRawDir))
+	if err != nil {
+		t.Errorf("Unmarshalldir: want nil, got %v", err)
+	}
+	t.Logf("dir read is %v", barDir)
 
 	//t.Fail()
 }
