@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 
 	"github.com/Harvey-OS/go/internal/tmpfs"
@@ -17,6 +18,7 @@ var (
 	networktype = flag.String("ntype", "tcp4", "Default network type")
 	netaddr     = flag.String("addr", ":5641", "Network address")
 	debug       = flag.Int("debug", 0, "Print debug messages")
+	pkg         = flag.String("package", "", "tar.gz package to open")
 )
 
 type fileServer struct {
@@ -135,7 +137,6 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 		}
 		walkQids[i] = currEntry.Qid()
 	}
-	fn := currEntry.Name()
 
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
@@ -307,9 +308,18 @@ func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.List
 func main() {
 	flag.Parse()
 
-	// TODO replace with loading from cmd line
-	buf := tmpfs.CreateTestImageTemp()
-	arch := tmpfs.ReadImage(buf)
+	if *pkg == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	pkfFile, err := os.Open(*pkg)
+	if err != nil {
+		log.Fatalf("Couldn't open package %v error %v", *pkg, err)
+	}
+	defer pkfFile.Close()
+
+	arch := tmpfs.ReadImage(pkfFile)
 
 	// Bind and listen on the socket.
 	listener, err := net.Listen(*networktype, *netaddr)
