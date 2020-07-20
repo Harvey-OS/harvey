@@ -34,15 +34,15 @@ Boot Harvey kernel with local filesystem
 ENDTEXT
 MENU LABEL Harvey OS (Local FS)
 KERNEL mboot.c32
-APPEND ../harvey service=cpu nobootprompt=local!#S/sdE0/ maxcores=1024 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1 mouseport=ps2 vgasize=1024x768x24 monitor=vesa
+APPEND ../harvey service=cpu nobootprompt=local!#S/sdE0/ maxcores=1024 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1 mouseport=ps2 vgasize=1366x768x24 monitor=vesa
 
 LABEL 1
 TEXT HELP
-Boot Harvey kernel with remote filesystem (10.0.2.2)
+Boot Harvey kernel with remote filesystem (192.168.11.111)
 ENDTEXT
 MENU LABEL Harvey OS (Remote FS)
 KERNEL mboot.c32
-APPEND ../harvey service=cpu nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1 mouseport=ps2 vgasize=1024x768x24 monitor=vesa
+APPEND ../harvey service=cpu nobootprompt=tcp maxcores=1024 fs=192.168.11.111 auth=192.168.11.111 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1 mouseport=ps2 vgasize=1366x768x24 monitor=vesa
 
 LABEL 2
 TEXT HELP
