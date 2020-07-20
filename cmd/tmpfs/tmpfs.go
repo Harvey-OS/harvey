@@ -232,6 +232,7 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 				return b.Bytes(), nil
 			}
 			d9p := dir.Child(f.nextChildIdx).P9Dir(f.uname)
+			fmt.Printf("%+v\n", d9p)
 			protocol.Marshaldir(b, *d9p)
 
 			// Seen on linux clients: sometimes the math is wrong and
@@ -295,7 +296,7 @@ func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.List
 	nsCreator := func() protocol.NineServer {
 		fs := &fileServer{archive: arch}
 		fs.files = make(map[protocol.FID]*FidEntry)
-		fs.ioUnit = 8192
+		fs.ioUnit = 1 * 1024 * 1024
 
 		var ns protocol.NineServer = fs
 		if *debug != 0 {
@@ -326,6 +327,9 @@ func main() {
 	defer pkfFile.Close()
 
 	arch := tmpfs.ReadImage(pkfFile)
+	if *debug > 0 {
+		arch.DumpArchive()
+	}
 
 	// Bind and listen on the socket.
 	listener, err := net.Listen(*networktype, *netaddr)
