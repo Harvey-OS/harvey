@@ -735,13 +735,13 @@ i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	p = seprint(p, e, "type: %s\n", tname[ctlr->type]);
 	p = seprint(p, e, "nrbfull (rcv blocks outstanding): %d\n", nrbfull);
 
-//	p = seprint(p, e, "eeprom:");
-//	for(i = 0; i < 0x40; i++){
-//		if(i && ((i & 7) == 0))
-//			p = seprint(p, e, "\n       ");
-//		p = seprint(p, e, " %4.4x", ctlr->eeprom[i]);
-//	}
-//	p = seprint(p, e, "\n");
+	p = seprint(p, e, "eeprom:");
+	for(i = 0; i < 0x40; i++){
+		if(i && ((i & 7) == 0))
+			p = seprint(p, e, "\n       ");
+		p = seprint(p, e, " %4.4x", ctlr->eeprom[i]);
+	}
+	p = seprint(p, e, "\n");
 
 	p = seprintmark(p, e, &ctlr->wmrb);
 	p = seprintmark(p, e, &ctlr->wmrd);
@@ -1796,22 +1796,33 @@ fload16(Ctlr *ctlr)
 	uint16_t sum;
 	Flash f;
 
+	memset(ctlr->eeprom, 0xFF, sizeof(ctlr->eeprom));
 	io = ctlr->pcidev->mem[1].bar & ~0x0f;
 	f.reg = vmap(io, ctlr->pcidev->mem[1].size);
 	if(f.reg == nil)
 		return -1;
 	f.reg32 = (void*)f.reg;
-// FMASK is supposed to be gone by now. What to do?
-#define FMASK(o, w)	(((1<<(w))-1)<<(o))
-	f.base = f.reg32[Bfpr] & FMASK(0, 13);
-	f.lim = (f.reg32[Bfpr]>>16) & FMASK(0, 13);
+	f.base = f.reg32[Bfpr] & 0x1FFF;
+	f.lim = (f.reg32[Bfpr]>>16) & 0x1FFF;
 	if(csr32r(ctlr, Eec) & (1<<22))
 		f.base += (f.lim + 1 - f.base) >> 1;
 	r = f.base << 12;
 
+  /*
+   * I127 datasheet p141
+   * 9.3.2.2 Checksum Word Calculation (Word 0x3F)
+   *
+   * The Checksum word (Word 0x3F, NVM bytes 0x7E and 0x7F) is used to ensure
+   * that the base NVM image is a valid image. The value of this word should be
+   * calculated such that after adding all the words (0x00-0x3F) / bytes
+   * (0x00-0x7F), including the Checksum word itself, the sum should be 0xBABA.
+   * The initial value in the 16 bit summing register should be 0x0000 and the
+   * carry bit should be ignored after each addition.
+   * */
 	sum = 0;
 	for (adr = 0; adr < 0x40; adr++) {
 		data = fread(ctlr, &f, r + adr*2);
+		print("   EEPROM data %#.4u: %#.4ux\n", adr, data);
 		if(data == -1)
 			break;
 		ctlr->eeprom[adr] = data;
@@ -1909,6 +1920,7 @@ i82563reset(Ctlr *ctlr)
 	case i82567:
 	case i82577:
 //	case i82578:			/* not yet implemented */
+  // ich8lan.c#477
 	case i82579:
 	case i217:
 	case i218:
