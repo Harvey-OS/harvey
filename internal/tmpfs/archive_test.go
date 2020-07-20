@@ -66,11 +66,10 @@ func createTestImage() *bytes.Buffer {
 
 func TestReadArchive(t *testing.T) {
 	arch := ReadImage(createTestImage())
-	//arch.DumpArchive()
 
 	// Read root
 	root := arch.Root()
-	if root.Name() != "" {
+	if root.Name() != "/" {
 		t.Fatal("incorrect root name")
 	}
 
@@ -125,5 +124,4 @@ func TestReadArchive(t *testing.T) {
 	if !ok {
 		t.Fatal("couldn't get todo2.txt")
 	}
-	//t.Fail()
 }

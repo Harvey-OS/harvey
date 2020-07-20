@@ -57,7 +57,7 @@ func (f *File) Qid() protocol.QID {
 func (f *File) P9Dir(uname string) *protocol.Dir {
 	d := &protocol.Dir{}
 	d.QID = f.fileQid
-	d.Mode = uint32(f.hdr.Mode) & 0777
+	d.Mode = 0444
 	d.Atime = uint32(f.hdr.AccessTime.Unix())
 	d.Mtime = uint32(f.hdr.ModTime.Unix())
 	d.Length = uint64(f.hdr.Size)
@@ -119,10 +119,10 @@ func (d *Directory) Qid() protocol.QID {
 func (d *Directory) P9Dir(uname string) *protocol.Dir {
 	pd := &protocol.Dir{}
 	pd.QID = d.dirQid
-	pd.Mode = 0444
+	pd.Mode = 0444 | protocol.DMDIR
 	pd.Atime = uint32(d.openTime.Unix())
 	pd.Mtime = uint32(d.openTime.Unix())
-	pd.Length = 4096
+	pd.Length = 0
 	pd.Name = d.Name()
 	pd.User = uname
 	pd.Group = uname
@@ -135,7 +135,6 @@ func (a *Archive) Root() *Directory {
 
 func (a *Archive) addFile(filepath string, file *File) error {
 	filecmps := strings.Split(filepath, "/")
-	//fmt.Println(filecmps)
 
 	isFile := !file.hdr.FileInfo().IsDir()
 	var dirCmps []string
@@ -160,7 +159,6 @@ func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error
 	if len(cmps) == 0 {
 		return d, nil
 	}
-	//fmt.Println(cmps)
 
 	cmpname := cmps[0]
 	if cmpname == "" {
@@ -175,7 +173,7 @@ func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error
 		}
 	} else {
 		newDir := newDirectory(cmpname, d, a.openTime, uint64(len(a.dirs)))
-		fmt.Printf("Adding newDirectory: %v cmps: %v\n", newDir.name, cmpname)
+
 		a.dirs = append(a.dirs, newDir)
 
 		// Add the child dir to the parent
@@ -230,7 +228,7 @@ func ReadImage(r io.Reader) *Archive {
 	}()
 
 	openTime := time.Now()
-	fs := &Archive{newDirectory("", nil, openTime, 0), []*Directory{}, []*File{}, openTime}
+	fs := &Archive{newDirectory("/", nil, openTime, 0), []*Directory{}, []*File{}, openTime}
 	tr := tar.NewReader(gzr)
 	for id := 0; ; id++ {
 		hdr, err := tr.Next()
@@ -241,7 +239,6 @@ func ReadImage(r io.Reader) *Archive {
 			log.Fatal(err)
 		}
 
-		//fmt.Println(hdr.Name)
 		file := newFile(hdr, uint64(id), uint64(hdr.Size))
 		if _, err := io.ReadFull(tr, file.data); err != nil {
 			log.Fatal(err)

@@ -232,7 +232,6 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 				return b.Bytes(), nil
 			}
 			d9p := dir.Child(f.nextChildIdx).P9Dir(f.uname)
-			fmt.Printf("%+v\n", d9p)
 			protocol.Marshaldir(b, *d9p)
 
 			// Seen on linux clients: sometimes the math is wrong and
