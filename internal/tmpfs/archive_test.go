@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"log"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -29,6 +31,8 @@ func createTestImage() *bytes.Buffer {
 	var files = []struct {
 		Name, Body string
 	}{
+		{"emptyDir/", ""},
+		{"emptyFile", ""},
 		{"readme.txt", "This archive contains some text files."},
 		{"foo/gopher.txt", "Gopher names:\nGeorge\nGeoffrey\nGonzo"},
 		{"bar/todo.txt", "Get animal handling license."},
@@ -36,14 +40,22 @@ func createTestImage() *bytes.Buffer {
 		{"abc/123/sean.txt", "lorem ipshum."},
 	}
 	for _, file := range files {
-		hdr := &tar.Header{
-			Name: file.Name,
-			Mode: 0600,
-			Size: int64(len(file.Body)),
+		hdr := &tar.Header{}
+		if strings.HasSuffix(file.Name, "/") {
+			hdr.Name = file.Name[:len(file.Name)-1]
+			hdr.Mode = int64(0777 | os.ModeDir)
+			hdr.Size = 0
+			hdr.Typeflag = tar.TypeDir
+		} else {
+			hdr.Name = file.Name
+			hdr.Mode = 0600
+			hdr.Size = int64(len(file.Body))
+			hdr.Typeflag = tar.TypeReg
 		}
 		if err := tw.WriteHeader(hdr); err != nil {
 			log.Fatal(err)
 		}
+
 		if _, err := tw.Write([]byte(file.Body)); err != nil {
 			log.Fatal(err)
 		}
@@ -54,6 +66,7 @@ func createTestImage() *bytes.Buffer {
 
 func TestReadArchive(t *testing.T) {
 	arch := ReadImage(createTestImage())
+	//arch.DumpArchive()
 
 	// Read root
 	root := arch.Root()
@@ -69,7 +82,7 @@ func TestReadArchive(t *testing.T) {
 	readmeFile := readme.(*File)
 	readmeData := string(readmeFile.Data())
 	if readmeData != "This archive contains some text files." {
-		t.Fatalf("readme.txt didn't contain expected string - found '%s'", readmeData)
+		t.Fatalf("readme.txt didn't contain expected string - found '%s'\n", readmeData)
 	}
 
 	// Read abc/123/sean.txt
@@ -91,6 +104,26 @@ func TestReadArchive(t *testing.T) {
 	seanData := string(seanFile.Data())
 	expectedData := "lorem ipshum."
 	if seanData != expectedData {
-		t.Fatalf("sean.txt didn't contain expected string. expected '%s', found '%s'", expectedData, seanData)
+		t.Fatalf("sean.txt didn't contain expected string. expected '%s', found '%s'\n", expectedData, seanData)
 	}
+
+	// Test that there are the expected children in a directory
+	foo, ok := root.ChildByName("foo")
+	if !ok {
+		t.Fatal("couldn't open foo")
+	}
+	fooDir := foo.(*Directory)
+	numFooChildren := fooDir.NumChildren()
+	if numFooChildren != 2 {
+		t.Fatalf("expected 2 children, found %v\n", numFooChildren)
+	}
+	_, ok = fooDir.ChildByName("gopher.txt")
+	if !ok {
+		t.Fatal("couldn't get gopher.txt")
+	}
+	_, ok = fooDir.ChildByName("todo2.txt")
+	if !ok {
+		t.Fatal("couldn't get todo2.txt")
+	}
+	//t.Fail()
 }
