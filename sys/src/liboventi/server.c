@@ -179,7 +179,7 @@ vtExport(VtSession *z)
 		return 0;
 	}
 
-	/* fork off slave */
+	/* fork off worker */
 	switch(rfork(RFNOWAIT|RFMEM|RFPROC)){
 	case -1:
 		vtOSError();

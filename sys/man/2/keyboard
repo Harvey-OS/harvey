@@ -47,7 +47,7 @@ struct Keyboardctl
 	char	*file;
 	int	consfd;		/* to cons file */
 	int	ctlfd;		/* to ctl file */
-	int	pid;		/* of slave proc */
+	int	pid;		/* of worker proc */
 };
 .EE
 .PP
@@ -86,7 +86,7 @@ with the string
 appended.
 .PP
 .I Closekeyboard
-closes the file descriptors associated with the keyboard, kills the slave processes,
+closes the file descriptors associated with the keyboard, kills the worker processes,
 and frees the
 .B Keyboardctl
 structure.
