@@ -6,8 +6,6 @@ GO111MODULE=on GOBIN="$(pwd)/util" go get -u github.com/Harvey-OS/ninep/cmd/ufs
 # GO111MODULE=on GOBIN="$(pwd)/util" go get -f -u bldy.build/bldy
 GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
 
-GOOS=plan9 GOARCH=amd64 GO111MODULE=on GOBIN="$(pwd)/util" go get golang.org/dl/gotip
-
 
 # this will make booting a VM easier
 mkdir -p tmp
