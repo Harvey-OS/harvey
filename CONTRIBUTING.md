@@ -46,7 +46,7 @@ Harvey uses Github Pull Requests to accept contributions.
 	For example, @keedon selected the branch name `statscrash` for
     issue #70.
 3.  Make changes
-4.  Commit with a descriptive message and [signed-off-by:](https://github.com/docker/Harvey-OS/harvey/master/CONTRIBUTING.md#sign-your-work):
+4.  Commit with a descriptive message and [signed-off-by:](https://github.com/docker/Harvey-OS/harvey/main/CONTRIBUTING.md#sign-your-work):
     ```
     $ git commit -m -s "A brief summary of the commit
     >
@@ -96,7 +96,7 @@ Harvey uses Github Pull Requests to accept contributions.
   and push the changes up to your fork. Github will track the changes
   and update the pull request accordingly.
 - Most of the time, when you are ready to submit your pull request,
-  someone else will have merged something to master, at which point
+  someone else will have merged something to main, at which point
   your branch will have been outdated, GitHub provides a convenient
   way of updating your branch right from your pull request.
   ![build_files_by_sevki_ _pull_request__53_ _harvey-os_harvey](https://cloud.githubusercontent.com/assets/429977/13457994/4d9a3118-e06b-11e5-9898-f8574b5ce11d.png)
@@ -107,7 +107,7 @@ Harvey uses Github Pull Requests to accept contributions.
   branch, you will have to resolve the changes manually before
   submitting the changes.
 
-### Keeping up to date with the master branch
+### Keeping up to date with the main branch
 
 If you're working in a branch that is outdated with respect to the
 master branch, just do a `git pull --rebase`. This will put your

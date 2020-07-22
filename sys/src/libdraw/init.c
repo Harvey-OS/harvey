@@ -386,7 +386,7 @@ _closedisplay(Display *disp, int isshutdown)
 	freeimage(disp->black);
 	close(disp->fd);
 	close(disp->ctlfd);
-	/* should cause refresh slave to shut down */
+	/* should cause refresh worker to shut down */
 	close(disp->reffd);
 	qunlock(&disp->qlock);
 	free(disp);

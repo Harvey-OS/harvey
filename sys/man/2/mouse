@@ -95,7 +95,7 @@ struct Mousectl
 	char	*file;
 	int	mfd;		/* to mouse file */
 	int	cfd;		/* to cursor file */
-	int	pid;		/* of slave proc */
+	int	pid;		/* of worker proc */
 	Image*	image;	/* of associated window/display */
 };
 .EE
@@ -154,7 +154,7 @@ It calls
 before blocking, so any buffered graphics requests are displayed.
 .PP
 .I Closemouse
-closes the file descriptors associated with the mouse, kills the slave processes,
+closes the file descriptors associated with the mouse, kills the worker processes,
 and frees the
 .B Mousectl
 structure.
