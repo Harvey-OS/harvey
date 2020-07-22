@@ -66,9 +66,10 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 	}
 
 	root := fs.archive.Root()
+
 	fs.filesMutex.Lock()
+	defer fs.filesMutex.Unlock()
 	fs.files[fid] = newFidEntry(root, uname)
-	fs.filesMutex.Unlock()
 
 	return root.Qid(), nil
 }
