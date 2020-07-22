@@ -63,13 +63,6 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 		return protocol.QID{}, fmt.Errorf("We don't do auth attach")
 	}
 
-	// There should be no .. or other such junk in the Aname. Clean it up anyway.
-	/*aname = path.Join("/", aname)
-	st, err := os.Stat(aname)
-	if err != nil {
-		return protocol.QID{}, err
-	}*/
-
 	root := fs.archive.Root()
 	fs.filesMutex.Lock()
 	fs.files[fid] = newFidEntry(root, uname)
@@ -104,10 +97,8 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 
 	walkQids := make([]protocol.QID, len(paths))
 
-	var i int
-	var pathcmp string
 	currEntry := parentEntry.Entry
-	for i, pathcmp = range paths {
+	for i, pathcmp := range paths {
 		var ok bool
 		var dir *tmpfs.Directory
 		if dir, ok = currEntry.(*tmpfs.Directory); ok {
