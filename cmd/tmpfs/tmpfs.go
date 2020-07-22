@@ -51,6 +51,7 @@ func newFidEntry(entry tmpfs.Entry, uname string) *FidEntry {
 	return &FidEntry{Entry: entry, uname: uname, oflow: nil, nextChildIdx: -1}
 }
 
+// Rversion initiates the session
 func (fs *fileServer) Rversion(msize protocol.MaxSize, version string) (protocol.MaxSize, string, error) {
 	if version != "9P2000" {
 		return 0, "", fmt.Errorf("%v not supported; only 9P2000", version)
@@ -58,6 +59,7 @@ func (fs *fileServer) Rversion(msize protocol.MaxSize, version string) (protocol
 	return msize, version, nil
 }
 
+// Rattach attaches a fid to the root for the given user.  aname and afid are not used.
 func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string, aname string) (protocol.QID, error) {
 	if afid != protocol.NOFID {
 		return protocol.QID{}, fmt.Errorf("We don't do auth attach")
@@ -71,10 +73,12 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 	return root.Qid(), nil
 }
 
+// Rflush does nothing in tmpfs
 func (fs *fileServer) Rflush(o protocol.Tag) error {
 	return nil
 }
 
+// Rwalk walks the hierarchy from fid, with the walk path determined by paths
 func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []string) ([]protocol.QID, error) {
 	// Lookup the parent fid
 	parentEntry, err := fs.getFile(fid)
@@ -144,6 +148,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	return walkQids, nil
 }
 
+// Ropen opens the file associated with fid
 func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
 	if mode&(protocol.OWRITE|protocol.ORDWR|protocol.OTRUNC|protocol.ORCLOSE|protocol.OAPPEND) != 0 {
 		return protocol.QID{}, 0, fmt.Errorf("filesystem is read-only")
@@ -160,15 +165,18 @@ func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID,
 	return f.Qid(), fs.ioUnit, nil
 }
 
+// Rcreate not supported since it's a read-only filesystem
 func (fs *fileServer) Rcreate(fid protocol.FID, name string, perm protocol.Perm, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
 	return protocol.QID{}, 0, fmt.Errorf("filesystem is read-only")
 }
 
+// Rclunk drops the fid association in the file system
 func (fs *fileServer) Rclunk(fid protocol.FID) error {
 	_, err := fs.clunk(fid)
 	return err
 }
 
+// Rstat returns stat message for the file associated with fid
 func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
 	f, err := fs.getFile(fid)
 	if err != nil {
@@ -182,14 +190,17 @@ func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+// Rwstat not supported since it's a read-only filesystem
 func (fs *fileServer) Rwstat(fid protocol.FID, b []byte) error {
 	return fmt.Errorf("filesystem is read-only")
 }
 
+// Rremove not supported since it's a read-only filesystem
 func (fs *fileServer) Rremove(fid protocol.FID) error {
 	return fmt.Errorf("filesystem is read-only")
 }
 
+// Rread returns up to c bytes from file fid starting at offset o
 func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Count) ([]byte, error) {
 	f, err := fs.getFile(fid)
 	if err != nil {
@@ -250,6 +261,7 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 	return nil, nil
 }
 
+// Rwrite not supported since it's a read-only filesystem
 func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (protocol.Count, error) {
 	return -1, fmt.Errorf("filesystem is read-only")
 }
