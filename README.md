@@ -21,7 +21,7 @@ guide there to learn how to get Harvey up and running and many other things.
 
 You enjoyed playing with Harvey and you want to help out? Great!
 
-Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob/master/CONTRIBUTING.md) it covers a wide variety of topics including the [Harvey coding style](https://github.com/Harvey-OS/harvey/blob/master/CONTRIBUTING.md#coding-conventions), [Code of Conduct](https://github.com/Harvey-OS/harvey/wiki/Code-of-Conduct), where to get help and so on.
+Take a look at our [Contribution Guide](https://github.com/Harvey-OS/harvey/blob/main/CONTRIBUTING.md) it covers a wide variety of topics including the [Harvey coding style](https://github.com/Harvey-OS/harvey/blob/main/CONTRIBUTING.md#coding-conventions), [Code of Conduct](https://github.com/Harvey-OS/harvey/wiki/Code-of-Conduct), where to get help and so on.
 
 ### Docs
 
@@ -48,4 +48,4 @@ Harvey is a proud member of [SFC](https://sfconservancy.org/projects/current/) a
 
 ## Licenses
 
-* [![License GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/Harvey-OS/harvey/blob/master/LICENSE)
+* [![License GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/Harvey-OS/harvey/blob/main/LICENSE)

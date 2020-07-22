@@ -342,7 +342,7 @@ const char                      *AcpiGbl_AmDecode[] =
     "AddressingMode10Bit"
 };
 
-/* I2C serial bus slave mode */
+/* I2C serial bus worker mode */
 
 const char                      *AcpiGbl_SmDecode[] =
 {

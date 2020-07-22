@@ -86,7 +86,7 @@ diskFree(Disk *disk)
 {
 	diskFlush(disk);
 
-	/* kill slave */
+	/* kill worker */
 	vtLock(disk->lk);
 	disk->die = vtRendezAlloc(disk->lk);
 	vtWakeup(disk->starve);

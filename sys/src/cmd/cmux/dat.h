@@ -139,7 +139,7 @@ struct Mousectl
 	char		*file;
 	int		mfd;		/* to mouse file */
 	int		cfd;		/* to cursor file */
-	int		pid;		/* of slave proc */
+	int		pid;		/* of worker proc */
 	Console*	image;	/* of associated window/display */
 };
 

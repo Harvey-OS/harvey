@@ -59,7 +59,7 @@ archInit(Cache *c, Disk *disk, Fs *fs, VtSession *z)
 void
 archFree(Arch *a)
 {
-	/* kill slave */
+	/* kill worker */
 	vtLock(a->lk);
 	a->die = vtRendezAlloc(a->lk);
 	vtWakeup(a->starve);
