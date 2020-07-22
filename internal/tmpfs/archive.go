@@ -13,6 +13,7 @@ import (
 	"github.com/Harvey-OS/ninep/protocol"
 )
 
+// Archive contains the directories and files from a decompressed archive
 type Archive struct {
 	root     *Directory   // root directory
 	dirs     []*Directory // array of all directories (idx is qid)
@@ -20,6 +21,7 @@ type Archive struct {
 	openTime time.Time
 }
 
+// Entry is a common interface for file and directorys
 type Entry interface {
 	Name() string
 
@@ -30,6 +32,7 @@ type Entry interface {
 	P9Dir(uname string) *protocol.Dir
 }
 
+// File describes a file from a tar archive
 type File struct {
 	name    string
 	hdr     *tar.Header
@@ -46,14 +49,17 @@ func newFile(hdr *tar.Header, id uint64, dataSize uint64) *File {
 	}
 }
 
+// Name of the file (no path)
 func (f *File) Name() string {
 	return f.name
 }
 
+// Qid for file
 func (f *File) Qid() protocol.QID {
 	return f.fileQid
 }
 
+// P9Dir generates the Dir message for this file
 func (f *File) P9Dir(uname string) *protocol.Dir {
 	d := &protocol.Dir{}
 	d.QID = f.fileQid
@@ -67,10 +73,12 @@ func (f *File) P9Dir(uname string) *protocol.Dir {
 	return d
 }
 
+// Data returns the data for the given file
 func (f *File) Data() []byte {
 	return f.data
 }
 
+// Directory describes a directory from a tar
 type Directory struct {
 	name           string
 	nameToEntryMap map[string]Entry
@@ -91,31 +99,38 @@ func newDirectory(name string, parent Entry, openTime time.Time, id uint64) *Dir
 	}
 }
 
+// Name of the directory (no path)
 func (d *Directory) Name() string {
 	return d.name
 }
 
+// ChildByName looks up the child in the given directory by name
 func (d *Directory) ChildByName(name string) (Entry, bool) {
 	e, ok := d.nameToEntryMap[name]
 	return e, ok
 }
 
+// Child looks up the child in the given directory by index
 func (d *Directory) Child(i int) Entry {
 	return d.entries[i]
 }
 
+// Parent returns the parent entry
 func (d *Directory) Parent() Entry {
 	return d.parent
 }
 
+// NumChildren returns the number of children in this directory
 func (d *Directory) NumChildren() int {
 	return len(d.entries)
 }
 
+// Qid returns the Qid for this directory
 func (d *Directory) Qid() protocol.QID {
 	return d.dirQid
 }
 
+// P9Dir generates the Dir message for this directory
 func (d *Directory) P9Dir(uname string) *protocol.Dir {
 	pd := &protocol.Dir{}
 	pd.QID = d.dirQid
@@ -129,6 +144,7 @@ func (d *Directory) P9Dir(uname string) *protocol.Dir {
 	return pd
 }
 
+// Root returns the root directory for the archive
 func (a *Archive) Root() *Directory {
 	return a.root
 }
@@ -166,23 +182,24 @@ func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error
 	}
 
 	if entry, exists := d.nameToEntryMap[cmpname]; exists {
+		// this component already exists, so try to walk down the tree
 		if dir, ok := entry.(*Directory); ok {
 			return a.getOrCreateDir(dir, cmps[1:])
-		} else {
-			return nil, fmt.Errorf("File already exists with name %s", cmpname)
 		}
-	} else {
-		newDir := newDirectory(cmpname, d, a.openTime, uint64(len(a.dirs)))
-
-		a.dirs = append(a.dirs, newDir)
-
-		// Add the child dir to the parent
-		// Also serialize in p9 marshalled form so we don't need to faff around in Rread
-		d.nameToEntryMap[cmpname] = newDir
-		d.entries = append(d.entries, newDir)
-
-		return a.getOrCreateDir(newDir, cmps[1:])
+		return nil, fmt.Errorf("File already exists with name %s", cmpname)
 	}
+
+	// Create a new directory
+	newDir := newDirectory(cmpname, d, a.openTime, uint64(len(a.dirs)))
+
+	a.dirs = append(a.dirs, newDir)
+
+	// Add the child dir to the parent
+	// Also serialize in p9 marshalled form so we don't need to faff around in Rread
+	d.nameToEntryMap[cmpname] = newDir
+	d.entries = append(d.entries, newDir)
+
+	return a.getOrCreateDir(newDir, cmps[1:])
 }
 
 func (a *Archive) createFile(d *Directory, filename string, file *File) error {
@@ -200,6 +217,7 @@ func (a *Archive) createFile(d *Directory, filename string, file *File) error {
 	return nil
 }
 
+// DumpEntry will write out the archive hierarchy from the given entry and parentPath
 func (a *Archive) DumpEntry(e Entry, parentPath string) {
 	if dir, isDir := e.(*Directory); isDir {
 		parentPath = path.Join(parentPath, dir.name)
@@ -211,6 +229,7 @@ func (a *Archive) DumpEntry(e Entry, parentPath string) {
 	}
 }
 
+// DumpArchive will write out the archive hierarchy
 func (a *Archive) DumpArchive() {
 	a.DumpEntry(a.root, "")
 }

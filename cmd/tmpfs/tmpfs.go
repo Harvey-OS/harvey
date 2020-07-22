@@ -24,10 +24,11 @@ var (
 type fileServer struct {
 	Versioned bool
 
-	archive    *tmpfs.Archive
+	ioUnit  protocol.MaxSize
+	archive *tmpfs.Archive
+
 	filesMutex sync.Mutex
 	files      map[protocol.FID]*FidEntry
-	ioUnit     protocol.MaxSize
 }
 
 // FidEntry wraps an Entry with the instance data required for a fid reference
@@ -57,7 +58,6 @@ func (fs *fileServer) Rversion(msize protocol.MaxSize, version string) (protocol
 	return msize, version, nil
 }
 
-// TODO handle aname?
 func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string, aname string) (protocol.QID, error) {
 	if afid != protocol.NOFID {
 		return protocol.QID{}, fmt.Errorf("We don't do auth attach")
