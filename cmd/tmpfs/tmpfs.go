@@ -22,13 +22,13 @@ var (
 )
 
 type fileServer struct {
+	sync.Mutex
+
 	Versioned bool
 
 	ioUnit  protocol.MaxSize
 	archive *tmpfs.Archive
-
-	filesMutex sync.Mutex
-	files      map[protocol.FID]*FidEntry
+	files   map[protocol.FID]*FidEntry
 }
 
 // FidEntry wraps an Entry with the instance data required for a fid reference
@@ -67,8 +67,8 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 
 	root := fs.archive.Root()
 
-	fs.filesMutex.Lock()
-	defer fs.filesMutex.Unlock()
+	fs.Lock()
+	defer fs.Unlock()
 	fs.files[fid] = newFidEntry(root, uname)
 
 	return root.Qid(), nil
@@ -89,8 +89,8 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 
 	if len(paths) == 0 {
 		// Clone fid - point to same entry
-		fs.filesMutex.Lock()
-		defer fs.filesMutex.Unlock()
+		fs.Lock()
+		defer fs.Unlock()
 		_, ok := fs.files[newfid]
 		if ok {
 			return nil, fmt.Errorf("FID in use: clone walk, fid %d newfid %d", fid, newfid)
@@ -137,8 +137,8 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 		walkQids[i] = currEntry.Qid()
 	}
 
-	fs.filesMutex.Lock()
-	defer fs.filesMutex.Unlock()
+	fs.Lock()
+	defer fs.Unlock()
 	// this is quite unlikely, which is why we don't bother checking for it first.
 	if fid != newfid {
 		if _, ok := fs.files[newfid]; ok {
@@ -268,8 +268,8 @@ func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (pro
 }
 
 func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
-	fs.filesMutex.Lock()
-	defer fs.filesMutex.Unlock()
+	fs.Lock()
+	defer fs.Unlock()
 
 	f, ok := fs.files[fid]
 	if !ok {
@@ -279,8 +279,8 @@ func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
 }
 
 func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
-	fs.filesMutex.Lock()
-	defer fs.filesMutex.Unlock()
+	fs.Lock()
+	defer fs.Unlock()
 
 	f, ok := fs.files[fid]
 	if !ok {
