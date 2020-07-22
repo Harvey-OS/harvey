@@ -9,8 +9,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/Harvey-OS/go/internal/tmpfs"
 	"github.com/Harvey-OS/ninep/protocol"
+	"harvey-os.org/go/internal/tmpfs"
 )
 
 // Lots of tests shamelessly lifted from the ninep/ufs code

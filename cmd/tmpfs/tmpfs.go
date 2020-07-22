@@ -9,9 +9,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Harvey-OS/go/internal/tmpfs"
 	"github.com/Harvey-OS/ninep/pkg/debugfs"
 	"github.com/Harvey-OS/ninep/protocol"
+	"harvey-os.org/go/internal/tmpfs"
 )
 
 var (
