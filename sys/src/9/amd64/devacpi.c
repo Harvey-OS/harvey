@@ -57,7 +57,7 @@ static Queue *acpiev;
 Dev acpidevtab;
 
 static uint16_t pm1status;
-static int v=1;
+static int v=0;
 /* Table of ACPI ports we own. We just burn 64k of bss here rather
  * than look them up in a function each time they're used. */
 static uint8_t acpiport[1<<16];
