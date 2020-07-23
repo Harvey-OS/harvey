@@ -299,6 +299,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 		case 0x00600f10:		/* K10 Opteron 6272, FX 6xxx/4xxx */
 		case 0x00600f20:		/* K10 Opteron 63xx, FX 3xxx/8xxx/9xxx */
 		case 0x00700f00:		/* Athlon II X4 5xxx */
+		case 0x00730f00:		/* AMD GX-412TC SOC */
 		case 0x00800f10:		/* Ryzen 5 and 7 */
 		case 0x00810f10:		/* Ryzen 3 */
 			msr = rdmsr(0xc0010064);
