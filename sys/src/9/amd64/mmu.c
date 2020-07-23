@@ -836,11 +836,22 @@ mmuinit(void)
 	 *
 	 * This is set up here so meminit can map appropriately.
 	 */
+	// This first case marks off all memory starting at 0 up to pmstart
+	// so as to remove it from the address space map (asm) pool.
+	// A common falure will be something like this:
+	// panic: cpu0: mmuinit: pa 0x0 memstart 0x977000
+	// That often means that the reported memory to the system did not include
+	// the memory the kernel is actually part of.
+	// This can be caused by coreboot tables that trigger bad logic in asmapinit,
+	// e.g. the pc engines apu2 shows a memory region starting at c0000, and asmapinit
+	//  does not like that at present.
 	o = sys->pmstart;
 	sz = ROUNDUP(o, 4*MiB) - o;
 	pa = asmalloc(0, sz, 1, 0);
-	if(pa != o)
+	if(pa != o) {
+		print("sys->pmstart was %#llx, sz is %#llx\n", sys->pmstart, sz);
 		panic("mmuinit: pa %#llx memstart %#llx\n", pa, o);
+	}
 	sys->pmstart += sz;
 
 	sys->vmstart = KSEG0;
