@@ -123,7 +123,10 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 			case 2:
 				if(vflag)
 					print("reserved");
-				else
+				else if (addr == 0) {
+					print("addr 0 is memory, not reserved\n");
+					asmmapinit(addr, len, 1);
+				} else
 					asmmapinit(addr, len, mmap->type);
 				break;
 			case 3:

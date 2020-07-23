@@ -279,7 +279,7 @@ asmmapinit(uintmem addr, uintmem size, int type)
 		 * and how much of it is occupied, might need to be known
 		 * for setting up allocators later.
 		 */
-		if(addr < 1*MiB || addr+size < sys->pmstart)
+		if(addr+size < sys->pmstart)
 			break;
 		if(addr < sys->pmstart){
 			size -= sys->pmstart - addr;
