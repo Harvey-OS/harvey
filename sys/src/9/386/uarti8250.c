@@ -660,7 +660,7 @@ i8250pnp(void)
 		uart = &i8250uart[i];
 		ctlr = uart->regs;
 		csr8o(ctlr, Scr, 0x55);
-		if(csr8r(ctlr, Scr) == 0x55)
+		if(csr8r(ctlr, Scr) != 0x55)
 			continue;
 		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0)
 			continue;
