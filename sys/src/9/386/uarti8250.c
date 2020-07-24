@@ -139,7 +139,7 @@ static Ctlr i8250ctlr[2] = {
 {	.io	= Uart1,
 	.irq	= Uart1IRQ,
 	.tbdf	= -1,
-	.poll	= 0, },
+	.poll	= 1, },
 };
 
 static Uart i8250uart[2] = {
@@ -566,6 +566,11 @@ i8250enable(Uart* uart, int ie)
 	Ctlr *ctlr;
 
 	ctlr = uart->regs;
+
+	// old school uarts, with poll or tbdf = -1, can no longer
+	// be supported for interrupts. Sorry.
+	if (ctlr->poll || (ctlr->tbdf == -1))
+		ie = 0;
 
 	/*
 	 * Check if there is a FIFO.
