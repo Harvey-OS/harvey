@@ -9,8 +9,8 @@ import (
 	"log"
 	"net"
 
-	ufs "github.com/Harvey-OS/ninep/filesystem"
 	"github.com/Harvey-OS/ninep/protocol"
+	"harvey-os.org/internal/ufs"
 )
 
 var (
