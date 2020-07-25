@@ -470,73 +470,52 @@ i8250kick(Uart* uart)
 	}
 }
 
+// This is a much simplified interrupt handler designed to be run
+// from the clock interrupt. We ripped out the ISA interrupt handling
+// many years ago. Also, modem status handling is gone.
+// Now eia0 "interrupts" work again. But serial console still does not.
 static void
 i8250interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Uart *uart;
-	int iir, lsr, old, r;
+	int lsr, r;
 
 	uart = arg;
 
 	ctlr = uart->regs;
-	outb(0x3f8, '.');
-	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
-		switch(iir & IirMASK){
-		case Ims:		/* Ms interrupt */
-			r = csr8r(ctlr, Msr);
-			if(r & Dcts){
-				ilock(&uart->tlock);
-				old = uart->cts;
-				uart->cts = r & Cts;
-				if(old == 0 && uart->cts)
-					uart->ctsbackoff = 2;
-				iunlock(&uart->tlock);
-			}
-		 	if(r & Ddsr){
-				old = r & Dsr;
-				if(uart->hup_dsr && uart->dsr && !old)
-					uart->dohup = 1;
-				uart->dsr = old;
-			}
-		 	if(r & Ddcd){
-				old = r & Dcd;
-				if(uart->hup_dcd && uart->dcd && !old)
-					uart->dohup = 1;
-				uart->dcd = old;
-			}
-			break;
-		case Ithre:		/* Thr Empty */
-			uartkick(uart);
-			break;
-		case Irda:		/* Received Data Available */
-		case Irls:		/* Receiver Line Status */
-		case Ictoi:		/* Character Time-out Indication */
-			/*
-			 * Consume any received data.
-			 * If the received byte came in with a break,
-			 * parity or framing error, throw it away;
-			 * overrun is an indication that something has
-			 * already been tossed.
-			 */
-			while((lsr = csr8r(ctlr, Lsr)) & Dr){
-				if(lsr & (FIFOerr|Oe))
-					uart->oerr++;
-				if(lsr & Pe)
-					uart->perr++;
-				if(lsr & Fe)
-					uart->ferr++;
-				r = csr8r(ctlr, Rbr);
-				outb(0x3f8, 'u');
-				if(!(lsr & (Bi|Fe|Pe)))
-					uartrecv(uart, r);
-			}
-			break;
+	// The old code used to loop on interrupt pending.
+	// But i8250 is an ISA device and we don't support
+	// interrupts for now. And most new hardware has crap
+	// implementations of i8250 with only 3 wires.
+	// What we do instead, here,
+	// consume is consume one character. This is running at clock
+	// interrupt and that is more than enough for 115200.
+	// one for a bit to each characters is probably ok.
+	// Deleted the modem handling code. Nobody has modems any more.
+	// Nobody knows what cts is. None of that matters.
+	// Just kick it for now.
 
-		default:
-			iprint("weird uart interrupt 0x%2.2X\n", iir);
-			break;
-		}
+	lsr = csr8r(ctlr, Lsr);
+	if (lsr & (Thre | Temt))
+		uartkick(uart);
+	/*
+	 * Consume any received data.
+	 * If the received byte came in with a break,
+	 * parity or framing error, throw it away;
+	 * overrun is an indication that something has
+	 * already been tossed.
+	 */
+	if(lsr & (FIFOerr|Oe))
+		uart->oerr++;
+	if(lsr & Pe)
+		uart->perr++;
+	if(lsr & Fe)
+		uart->ferr++;
+	if (lsr & Dr) {
+		r = csr8r(ctlr, Rbr);
+		if(!(lsr & (Bi|Fe|Pe)))
+			uartrecv(uart, r);
 	}
 }
 
