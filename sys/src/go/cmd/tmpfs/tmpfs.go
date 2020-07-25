@@ -9,9 +9,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Harvey-OS/ninep/pkg/debugfs"
 	"github.com/Harvey-OS/ninep/protocol"
 	"harvey-os.org/internal/tmpfs"
+	"harvey-os.org/pkg/ninep"
 )
 
 var (
@@ -296,7 +296,7 @@ func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.List
 
 		var ns protocol.NineServer = fs
 		if *debug != 0 {
-			ns = &debugfs.DebugFileServer{FileServer: fs}
+			ns = &ninep.DebugFileServer{FileServer: fs}
 		}
 		return ns
 	}
