@@ -6,7 +6,6 @@ package ufs
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -40,11 +39,6 @@ type FileServer struct {
 	mu    sync.Mutex
 	files map[protocol.FID]*file
 }
-
-var (
-	debug = flag.Int("debug", 0, "print debug messages")
-	root  = flag.String("root", "/", "Set the root for all attaches")
-)
 
 func stat(s string) (*protocol.Dir, protocol.QID, error) {
 	var q protocol.QID
@@ -446,15 +440,16 @@ func (e *FileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (prot
 	return protocol.Count(n), err
 }
 
-func NewUFS(opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
+func NewUFS(root string, debug int, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
 	nsCreator := func() protocol.NineServer {
 		f := &FileServer{}
 		f.files = make(map[protocol.FID]*file)
-		f.rootPath = *root // for now.
+		f.rootPath = root // for now.
 		f.IOunit = 8192
+
 		// any opts for the ufs layer can be added here too ...
 		var d protocol.NineServer = f
-		if *debug != 0 {
+		if debug != 0 {
 			d = &ninep.DebugFileServer{FileServer: f}
 		}
 		return d

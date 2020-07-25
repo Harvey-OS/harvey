@@ -2,8 +2,7 @@
 
 echo Building the build tool...
 
-GO111MODULE=on GOBIN="$(pwd)/util" go get -u github.com/Harvey-OS/ninep/cmd/ufs
-# GO111MODULE=on GOBIN="$(pwd)/util" go get -f -u bldy.build/bldy
+(cd sys/src/go; GOBIN="$HARVEY/util" go install ./...)
 GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
 
 

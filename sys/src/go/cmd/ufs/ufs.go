@@ -14,8 +14,10 @@ import (
 )
 
 var (
-	ntype = flag.String("ntype", "tcp4", "Default network type")
+	ntype = flag.String("net", "tcp4", "Default network type")
 	naddr = flag.String("addr", ":5640", "Network address")
+	debug = flag.Int("debug", 0, "print debug messages")
+	root  = flag.String("root", "/", "Set the root for all attaches")
 )
 
 func main() {
@@ -26,8 +28,11 @@ func main() {
 		log.Fatalf("Listen failed: %v", err)
 	}
 
-	ufslistener, err := ufs.NewUFS(func(l *protocol.Listener) error {
-		l.Trace = nil // log.Printf
+	ufslistener, err := ufs.NewUFS(*root, *debug, func(l *protocol.Listener) error {
+		l.Trace = nil
+		if *debug > 1 {
+			l.Trace = log.Printf
+		}
 		return nil
 	})
 

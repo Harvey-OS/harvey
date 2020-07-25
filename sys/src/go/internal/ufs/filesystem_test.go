@@ -18,7 +18,7 @@ func print(f string, args ...interface{}) {
 }
 
 func TestNew(t *testing.T) {
-	n, err := NewUFS()
+	n, err := NewUFS("", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func TestMount(t *testing.T) {
 	}
 	t.Logf("Client is %v", c.String())
 
-	n, err := NewUFS(func(l *protocol.Listener) error {
+	n, err := NewUFS("", 0, func(l *protocol.Listener) error {
 		l.Trace = print //t.Logf
 		return nil
 	})
