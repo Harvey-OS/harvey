@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Harvey-OS/ninep/protocol"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 // Archive contains the directories and files from a decompressed archive

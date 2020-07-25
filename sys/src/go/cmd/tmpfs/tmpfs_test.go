@@ -9,8 +9,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/Harvey-OS/ninep/protocol"
 	"harvey-os.org/internal/tmpfs"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 // Lots of tests shamelessly lifted from the ninep/ufs code

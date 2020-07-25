@@ -9,9 +9,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Harvey-OS/ninep/protocol"
 	"harvey-os.org/internal/tmpfs"
 	"harvey-os.org/pkg/ninep"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 var (
