@@ -480,6 +480,7 @@ i8250interrupt(Ureg* ureg, void* arg)
 	uart = arg;
 
 	ctlr = uart->regs;
+	outb(0x3f8, '.');
 	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
 		switch(iir & IirMASK){
 		case Ims:		/* Ms interrupt */
@@ -526,6 +527,7 @@ i8250interrupt(Ureg* ureg, void* arg)
 				if(lsr & Fe)
 					uart->ferr++;
 				r = csr8r(ctlr, Rbr);
+				outb(0x3f8, 'u');
 				if(!(lsr & (Bi|Fe|Pe)))
 					uartrecv(uart, r);
 			}
@@ -651,11 +653,15 @@ i8250alloc(int io, int irq, int tbdf)
 static Uart*
 i8250pnp(void)
 {
-	int i;
+	int i, found = 0;
 	Ctlr *ctlr;
-	Uart *head, *uart;
+	// first is invariant; it points to the first uart
+	// in the least. Head points to the head of known
+	// good uarts. uart is the iterator.
+	Uart *first, *head = nil, *uart;
 
-	head = i8250uart;
+	print("i8250pnp\n");
+	first = i8250uart;
 	for(i = 0; i < nelem(i8250uart); i++){
 		/*
 		 * Does it exist?
@@ -663,18 +669,29 @@ i8250pnp(void)
 		 * and reserve the I/O space.
 		 */
 		uart = &i8250uart[i];
+		print("Check i8250 %s:", uart->name);
 		ctlr = uart->regs;
 		csr8o(ctlr, Scr, 0x55);
-		if(csr8r(ctlr, Scr) != 0x55)
+		if(csr8r(ctlr, Scr) != 0x55) {
+			print("Scr test failed, ignoring it\n");
+			// Take it out of the list, iff it is not the first.
+			if (uart != first)
+				(uart-1)->next = uart->next;
 			continue;
-		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0)
+		}
+		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0) {
+			print("ioalloc(%#x, 8) failed; ignoring it\n", ctlr->io);
+			// Take it out of the list, iff it is not the first.
+			if (uart != first)
+				(uart-1)->next = uart->next;
 			continue;
-		if(uart == head)
-			head = uart->next;
-		else
-			(uart-1)->next = uart->next;
+		}
+		if (head == nil)
+			head = uart;
+		found++;
 	}
 
+	print("Found %d i8250 uarts, returning %p\n", found, head);
 	return head;
 }
 
