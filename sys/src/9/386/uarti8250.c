@@ -139,7 +139,7 @@ static Ctlr i8250ctlr[2] = {
 {	.io	= Uart1,
 	.irq	= Uart1IRQ,
 	.tbdf	= -1,
-	.poll	= 0, },
+	.poll	= 1, },
 };
 
 static Uart i8250uart[2] = {
@@ -470,71 +470,52 @@ i8250kick(Uart* uart)
 	}
 }
 
+// This is a much simplified interrupt handler designed to be run
+// from the clock interrupt. We ripped out the ISA interrupt handling
+// many years ago. Also, modem status handling is gone.
+// Now eia0 "interrupts" work again. But serial console still does not.
 static void
 i8250interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Uart *uart;
-	int iir, lsr, old, r;
+	int lsr, r;
 
 	uart = arg;
 
 	ctlr = uart->regs;
-	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
-		switch(iir & IirMASK){
-		case Ims:		/* Ms interrupt */
-			r = csr8r(ctlr, Msr);
-			if(r & Dcts){
-				ilock(&uart->tlock);
-				old = uart->cts;
-				uart->cts = r & Cts;
-				if(old == 0 && uart->cts)
-					uart->ctsbackoff = 2;
-				iunlock(&uart->tlock);
-			}
-		 	if(r & Ddsr){
-				old = r & Dsr;
-				if(uart->hup_dsr && uart->dsr && !old)
-					uart->dohup = 1;
-				uart->dsr = old;
-			}
-		 	if(r & Ddcd){
-				old = r & Dcd;
-				if(uart->hup_dcd && uart->dcd && !old)
-					uart->dohup = 1;
-				uart->dcd = old;
-			}
-			break;
-		case Ithre:		/* Thr Empty */
-			uartkick(uart);
-			break;
-		case Irda:		/* Received Data Available */
-		case Irls:		/* Receiver Line Status */
-		case Ictoi:		/* Character Time-out Indication */
-			/*
-			 * Consume any received data.
-			 * If the received byte came in with a break,
-			 * parity or framing error, throw it away;
-			 * overrun is an indication that something has
-			 * already been tossed.
-			 */
-			while((lsr = csr8r(ctlr, Lsr)) & Dr){
-				if(lsr & (FIFOerr|Oe))
-					uart->oerr++;
-				if(lsr & Pe)
-					uart->perr++;
-				if(lsr & Fe)
-					uart->ferr++;
-				r = csr8r(ctlr, Rbr);
-				if(!(lsr & (Bi|Fe|Pe)))
-					uartrecv(uart, r);
-			}
-			break;
+	// The old code used to loop on interrupt pending.
+	// But i8250 is an ISA device and we don't support
+	// interrupts for now. And most new hardware has crap
+	// implementations of i8250 with only 3 wires.
+	// What we do instead, here,
+	// consume is consume one character. This is running at clock
+	// interrupt and that is more than enough for 115200.
+	// one for a bit to each characters is probably ok.
+	// Deleted the modem handling code. Nobody has modems any more.
+	// Nobody knows what cts is. None of that matters.
+	// Just kick it for now.
 
-		default:
-			iprint("weird uart interrupt 0x%2.2X\n", iir);
-			break;
-		}
+	lsr = csr8r(ctlr, Lsr);
+	if (lsr & (Thre | Temt))
+		uartkick(uart);
+	/*
+	 * Consume any received data.
+	 * If the received byte came in with a break,
+	 * parity or framing error, throw it away;
+	 * overrun is an indication that something has
+	 * already been tossed.
+	 */
+	if(lsr & (FIFOerr|Oe))
+		uart->oerr++;
+	if(lsr & Pe)
+		uart->perr++;
+	if(lsr & Fe)
+		uart->ferr++;
+	if (lsr & Dr) {
+		r = csr8r(ctlr, Rbr);
+		if(!(lsr & (Bi|Fe|Pe)))
+			uartrecv(uart, r);
 	}
 }
 
@@ -566,6 +547,11 @@ i8250enable(Uart* uart, int ie)
 	Ctlr *ctlr;
 
 	ctlr = uart->regs;
+
+	// old school uarts, with poll or tbdf = -1, can no longer
+	// be supported for interrupts. Sorry.
+	if (ctlr->poll || (ctlr->tbdf == -1))
+		ie = 0;
 
 	/*
 	 * Check if there is a FIFO.
@@ -646,11 +632,15 @@ i8250alloc(int io, int irq, int tbdf)
 static Uart*
 i8250pnp(void)
 {
-	int i;
+	int i, found = 0;
 	Ctlr *ctlr;
-	Uart *head, *uart;
+	// first is invariant; it points to the first uart
+	// in the least. Head points to the head of known
+	// good uarts. uart is the iterator.
+	Uart *first, *head = nil, *uart;
 
-	head = i8250uart;
+	print("i8250pnp\n");
+	first = i8250uart;
 	for(i = 0; i < nelem(i8250uart); i++){
 		/*
 		 * Does it exist?
@@ -658,18 +648,29 @@ i8250pnp(void)
 		 * and reserve the I/O space.
 		 */
 		uart = &i8250uart[i];
+		print("Check i8250 %s:", uart->name);
 		ctlr = uart->regs;
 		csr8o(ctlr, Scr, 0x55);
-		if(csr8r(ctlr, Scr) == 0x55)
+		if(csr8r(ctlr, Scr) != 0x55) {
+			print("Scr test failed, ignoring it\n");
+			// Take it out of the list, iff it is not the first.
+			if (uart != first)
+				(uart-1)->next = uart->next;
 			continue;
-		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0)
+		}
+		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0) {
+			print("ioalloc(%#x, 8) failed; ignoring it\n", ctlr->io);
+			// Take it out of the list, iff it is not the first.
+			if (uart != first)
+				(uart-1)->next = uart->next;
 			continue;
-		if(uart == head)
-			head = uart->next;
-		else
-			(uart-1)->next = uart->next;
+		}
+		if (head == nil)
+			head = uart;
+		found++;
 	}
 
+	print("Found %d i8250 uarts, returning %p\n", found, head);
 	return head;
 }
 

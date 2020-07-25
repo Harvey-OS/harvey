@@ -159,10 +159,15 @@ uartreset(void)
 
 	tail = nil;
 	for(i = 0; physuart[i] != nil; i++){
-		if(physuart[i]->pnp == nil)
+		print("Check uart %s ...", physuart[i]->name);
+		if(physuart[i]->pnp == nil) {
+			print("no pnp, returning\n");
 			continue;
-		if((p = physuart[i]->pnp()) == nil)
+		}
+		if((p = physuart[i]->pnp()) == nil) {
+			print("pnp returns nil, returning\n");
 			continue;
+		}
 		if(uartlist != nil)
 			tail->next = p;
 		else
@@ -172,6 +177,7 @@ uartreset(void)
 		uartnuart++;
 	}
 
+	print("Found %d uarts\n", uartnuart);
 	if(uartnuart)
 		uart = malloc(uartnuart*sizeof(Uart*));
 
