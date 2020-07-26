@@ -9,16 +9,27 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Harvey-OS/ninep/pkg/debugfs"
-	"github.com/Harvey-OS/ninep/protocol"
 	"harvey-os.org/go/internal/tmpfs"
+	"harvey-os.org/go/pkg/ninep"
+	"harvey-os.org/go/pkg/ninep/protocol"
 )
 
 var (
-	networktype = flag.String("ntype", "tcp4", "Default network type")
-	netaddr     = flag.String("addr", ":5641", "Network address")
-	debug       = flag.Int("debug", 0, "Print debug messages")
-	pkg         = flag.String("package", "", "tar.gz package to open")
+	network = flag.String("net", "tcp4", "Default network type")
+	netaddr = flag.String("addr", ":5641", "Network address")
+	debug   = flag.Int("debug", 0, "Print debug messages")
+	pkg     = flag.String("package", "", "tar.gz package to open")
+)
+
+// Constant error messages to match those found in the linux 9p source.
+// These strings are used by linux to map to particular error codes.
+// (See net/9p/error.c in the Linux code)
+const (
+	ErrorAuthFailed   = "authentication failed"
+	ErrorReadOnlyFs   = "Read-only file system"
+	ErrorFileNotFound = "file not found"
+	ErrorFidInUse     = "fid already in use"
+	ErrorFidNotFound  = "fid unknown or out of range"
 )
 
 type fileServer struct {
@@ -62,7 +73,7 @@ func (fs *fileServer) Rversion(msize protocol.MaxSize, version string) (protocol
 // Rattach attaches a fid to the root for the given user.  aname and afid are not used.
 func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string, aname string) (protocol.QID, error) {
 	if afid != protocol.NOFID {
-		return protocol.QID{}, fmt.Errorf("We don't do auth attach")
+		return protocol.QID{}, fmt.Errorf(ErrorAuthFailed)
 	}
 
 	root := fs.archive.Root()
@@ -81,7 +92,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 	// Lookup the parent fid
 	parentEntry, err := fs.getFile(fid)
 	if err != nil {
-		return nil, fmt.Errorf("does not exist")
+		return nil, fmt.Errorf(ErrorFileNotFound)
 	}
 
 	if len(paths) == 0 {
@@ -116,7 +127,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 					// to sum up: if any walks have succeeded, you return the QIDS for
 					// one more than the last successful walk
 					if i == 0 {
-						return nil, fmt.Errorf("file does not exist")
+						return nil, fmt.Errorf(ErrorFileNotFound)
 					}
 					// we only get here if i is > 0 and less than nwname,
 					// so the i should be safe.
@@ -134,13 +145,13 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 // Ropen opens the file associated with fid
 func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
 	if mode&(protocol.OWRITE|protocol.ORDWR|protocol.OTRUNC|protocol.ORCLOSE|protocol.OAPPEND) != 0 {
-		return protocol.QID{}, 0, fmt.Errorf("filesystem is read-only")
+		return protocol.QID{}, 0, fmt.Errorf(ErrorReadOnlyFs)
 	}
 
 	// Lookup the parent fid
 	f, err := fs.getFile(fid)
 	if err != nil {
-		return protocol.QID{}, 0, fmt.Errorf("does not exist")
+		return protocol.QID{}, 0, fmt.Errorf(ErrorFileNotFound)
 	}
 
 	// TODO Check executable
@@ -150,7 +161,7 @@ func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID,
 
 // Rcreate not supported since it's a read-only filesystem
 func (fs *fileServer) Rcreate(fid protocol.FID, name string, perm protocol.Perm, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
-	return protocol.QID{}, 0, fmt.Errorf("filesystem is read-only")
+	return protocol.QID{}, 0, fmt.Errorf(ErrorReadOnlyFs)
 }
 
 // Rclunk drops the fid association in the file system
@@ -175,12 +186,12 @@ func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
 
 // Rwstat not supported since it's a read-only filesystem
 func (fs *fileServer) Rwstat(fid protocol.FID, b []byte) error {
-	return fmt.Errorf("filesystem is read-only")
+	return fmt.Errorf(ErrorReadOnlyFs)
 }
 
 // Rremove not supported since it's a read-only filesystem
 func (fs *fileServer) Rremove(fid protocol.FID) error {
-	return fmt.Errorf("filesystem is read-only")
+	return fmt.Errorf(ErrorReadOnlyFs)
 }
 
 // Rread returns up to c bytes from file fid starting at offset o
@@ -246,7 +257,7 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 
 // Rwrite not supported since it's a read-only filesystem
 func (fs *fileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (protocol.Count, error) {
-	return -1, fmt.Errorf("filesystem is read-only")
+	return -1, fmt.Errorf(ErrorReadOnlyFs)
 }
 
 func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
@@ -255,7 +266,7 @@ func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
 
 	f, ok := fs.files[fid]
 	if !ok {
-		return nil, fmt.Errorf("does not exist")
+		return nil, fmt.Errorf(ErrorFileNotFound)
 	}
 	return f, nil
 }
@@ -265,7 +276,7 @@ func (fs *fileServer) setFile(newfid protocol.FID, entry tmpfs.Entry, uname stri
 	fs.Lock()
 	defer fs.Unlock()
 	if _, ok := fs.files[newfid]; ok {
-		return fmt.Errorf("FID in use: newfid %v", newfid)
+		return fmt.Errorf(ErrorFidInUse)
 	}
 	fs.files[newfid] = newFidEntry(entry, uname)
 	return nil
@@ -277,7 +288,7 @@ func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
 
 	f, ok := fs.files[fid]
 	if !ok {
-		return nil, fmt.Errorf("clunk: FID does not exist: fid %v", fid)
+		return nil, fmt.Errorf(ErrorFidNotFound)
 	}
 	delete(fs.files, fid)
 
@@ -296,7 +307,7 @@ func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.List
 
 		var ns protocol.NineServer = fs
 		if *debug != 0 {
-			ns = &debugfs.DebugFileServer{FileServer: fs}
+			ns = &ninep.DebugFileServer{FileServer: fs}
 		}
 		return ns
 	}
@@ -328,17 +339,20 @@ func main() {
 	}
 
 	// Bind and listen on the socket.
-	listener, err := net.Listen(*networktype, *netaddr)
+	listener, err := net.Listen(*network, *netaddr)
 	if err != nil {
 		log.Fatalf("Listen failed: %v", err)
 	}
 
-	ufslistener, err := newTmpfs(arch, func(l *protocol.Listener) error {
-		l.Trace = nil // log.Printf
+	fsListener, err := newTmpfs(arch, func(l *protocol.Listener) error {
+		l.Trace = nil
+		if *debug > 1 {
+			l.Trace = log.Printf
+		}
 		return nil
 	})
 
-	if err := ufslistener.Serve(listener); err != nil {
+	if err := fsListener.Serve(listener); err != nil {
 		log.Fatal(err)
 	}
 }
