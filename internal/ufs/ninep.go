@@ -10,7 +10,7 @@ import (
 	"flag"
 	"os"
 
-	"harvey-os.org/go/pkg/ninep/protocol"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 var (

@@ -1,3 +1,3 @@
-module harvey-os.org/go
+module harvey-os.org
 
 go 1.14
