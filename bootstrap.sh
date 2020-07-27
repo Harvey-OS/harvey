@@ -2,7 +2,7 @@
 
 echo Building the build tool...
 
-GOBIN="$(pwd)/util" go get -u github.com/Harvey-OS/go/cmd/ufs
+GOBIN="$(pwd)/util" go get -u harvey-os.org/cmd/ufs
 GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
 
 
