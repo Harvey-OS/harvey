@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"harvey-os.org/go/pkg/ninep/protocol"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 func print(f string, args ...interface{}) {

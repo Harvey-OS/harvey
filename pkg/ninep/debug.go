@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"log"
 
-	"harvey-os.org/go/pkg/ninep/protocol"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 type DebugFileServer struct {
