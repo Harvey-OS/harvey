@@ -516,6 +516,16 @@ i8250interrupt(Ureg* ureg, void* arg)
 		r = csr8r(ctlr, Rbr);
 		if(!(lsr & (Bi|Fe|Pe)))
 			uartrecv(uart, r);
+		// This is a kludge but it's turning out to be a
+		// lifesaver until we get consoles to be better.
+		// Long-term, we may want a serialinq but the problem
+		// is it seems the console needs to be open or
+		// polling stops.
+		// So we'd need to walk and open the console
+		// in the kernel and keep the chan around I suppose.
+		if (r == '\r')
+			r = '\n';
+		kbdputc(nil, r);
 	}
 }
 
@@ -750,8 +760,11 @@ static void
 i8250consputs(char *s, int n)
 {
 	int i;
-	for(i = 0; i < n; i++)
+	for(i = 0; i < n; i++) {
+		if (s[i] == '\n')
+			i8250putc(i8250consuart, '\r');
 		i8250putc(i8250consuart,  s[i]);
+	}
 }
 
 void

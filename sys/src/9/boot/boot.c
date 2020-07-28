@@ -267,6 +267,46 @@ findmethod(char *a)
 	return nil;
 }
 
+static void catstuff(void)
+{
+	static char *files[] = {"#c/drivers", "#P/ioalloc", "#P/irqalloc", "#t", nil};
+	static char dat[8192];
+	int rc, ifd, pid;
+	for (int i = 0; files[i]; i++) {
+		memset(dat, 0, sizeof(dat));
+		rc = readfile(files[i], dat, sizeof(dat)-1);
+		if (rc) {
+			print("Reading %s failed\n", files[i]);
+			continue;
+		}
+		print("%s:\n\r%s\n\r", files[i], dat);
+	}
+	pid = fork();
+	if (pid) {
+		print("fork: %d\n", pid);
+		return;
+	}
+	// Open eia0. This will activate the kludge
+	// polling code, which will in turn cause
+	// eia0 characters to find their way into
+	// the coreboot code. TODO: clean this
+	// horrible mess up, once we're done debugging
+	// broken platforms.
+	// The reason to do this as a process is you
+	// can kill it any time if you're concerned about
+	// the overhead. It shows up as a child of init.
+	ifd = open("#t/eia0", ORDWR);
+	if (ifd < 0) {
+		print("can't open eia0!!!\n");
+		return;
+	}
+	print("open: ifd %d\n", ifd);
+	while (1) {
+		sleep(100000);
+	}
+
+	print("all done!\n");
+}
 /*
  *  ask user from whence cometh the root file system
  */
@@ -280,6 +320,9 @@ rootserver(char *arg)
 	char reply[256];
 	int n;
 
+	// Leave this on if you want uart input!
+	if (1)
+		catstuff();
 	/* look for required reply */
 	rc = readfile("#e/nobootprompt", reply, sizeof(reply));
 	if(rc == 0 && reply[0]){
