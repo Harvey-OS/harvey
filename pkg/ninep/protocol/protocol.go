@@ -291,7 +291,7 @@ type RPCReply struct {
 
 /* rpc servers */
 type ClientOpt func(*Client) error
-type ListenerOpt func(*Listener) error
+type NetListenerOpt func(*NetListener) error
 type Tracer func(string, ...interface{})
 
 type NineServer interface {

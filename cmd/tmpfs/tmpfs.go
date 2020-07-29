@@ -5,19 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"sync"
 
 	"harvey-os.org/internal/tmpfs"
-	"harvey-os.org/pkg/ninep"
 	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/pkg/sys"
 )
 
 var (
-	network = flag.String("net", "tcp4", "Default network type")
-	netaddr = flag.String("addr", ":5641", "Network address")
-	debug   = flag.Int("debug", 0, "Print debug messages")
+	srv   = flag.String("s", "tmpfs", "srv name")
+	debug = flag.Bool("d", false, "Print debug messages")
 )
 
 // Constant error messages to match those found in the linux 9p source.
@@ -294,30 +292,6 @@ func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
 	return f, nil
 }
 
-func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
-	if arch == nil {
-		return nil, fmt.Errorf("No archive")
-	}
-
-	nsCreator := func() protocol.NineServer {
-		fs := &fileServer{archive: arch}
-		fs.files = make(map[protocol.FID]*FidEntry)
-		fs.ioUnit = 1 * 1024 * 1024
-
-		var ns protocol.NineServer = fs
-		if *debug != 0 {
-			ns = &ninep.DebugFileServer{FileServer: fs}
-		}
-		return ns
-	}
-
-	l, err := protocol.NewListener(nsCreator, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return l, nil
-}
-
 var usage = func() {
 	fmt.Fprintf(flag.CommandLine.Output(), "Usage: tmpfs [options] <tarfile>\n")
 	flag.PrintDefaults()
@@ -340,26 +314,24 @@ func main() {
 	}
 	defer pkfFile.Close()
 
-	arch := tmpfs.ReadImage(pkfFile)
-	if *debug > 0 {
-		arch.DumpArchive()
-	}
-
-	// Bind and listen on the socket.
-	listener, err := net.Listen(*network, *netaddr)
+	arch, err := tmpfs.ReadImage(pkfFile)
 	if err != nil {
-		log.Fatalf("Listen failed: %v", err)
-	}
-
-	fsListener, err := newTmpfs(arch, func(l *protocol.Listener) error {
-		l.Trace = nil
-		if *debug > 1 {
-			l.Trace = log.Printf
-		}
-		return nil
-	})
-
-	if err := fsListener.Serve(listener); err != nil {
 		log.Fatal(err)
 	}
+	if *debug {
+		arch.DumpArchive()
+		protocol.Debug = log.Printf
+	}
+
+	fd, err := sys.PostPipe(*srv)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fs := &fileServer{archive: arch, files: make(map[protocol.FID]*FidEntry), ioUnit: 1 * 1024 * 1024}
+
+	// TODO: get the tracing back in.
+	// The ninep package was from a long time ago and it's
+	// awkward at best.
+	protocol.ServeFromRWC(os.NewFile(uintptr(fd), *srv), fs, *srv)
 }

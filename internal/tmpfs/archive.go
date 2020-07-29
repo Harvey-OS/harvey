@@ -235,14 +235,14 @@ func (a *Archive) DumpArchive() {
 }
 
 // ReadImage reads a compressed tar to produce a file hierarchy
-func ReadImage(r io.Reader) *Archive {
+func ReadImage(r io.Reader) (*Archive, error) {
 	gzr, err := gzip.NewReader(r)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer func() {
 		if err := gzr.Close(); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	}()
 
@@ -255,18 +255,18 @@ func ReadImage(r io.Reader) *Archive {
 			break // End of archive
 		}
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		file := newFile(hdr, uint64(id), uint64(hdr.Size))
 		if _, err := io.ReadFull(tr, file.data); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		if err = fs.addFile(hdr.Name, file); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 	}
 
-	return fs
+	return fs, nil
 }
