@@ -4,7 +4,6 @@
 
 package protocol
 
-
 // A File is defined by a QID. File Servers never see a FID.
 // There are two channels. The first is for normal requests.
 // The second is for Flushes. File server code always
