@@ -4,10 +4,14 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"harvey-os.org/ninep/protocol"
@@ -18,6 +22,7 @@ import (
 var (
 	srv   = flag.String("s", "tmpfs", "srv name")
 	debug = flag.Bool("d", false, "Print debug messages")
+	ext   = flag.String("ext", "cpio", "file type")
 )
 
 // Constant error messages to match those found in the linux 9p source.
@@ -304,6 +309,38 @@ var usage = func() {
 	os.Exit(1)
 }
 
+func readImage(n string) (*tmpfs.Archive, error) {
+	f, err := os.Open(n)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Print(err)
+		}
+	}()
+	r := io.Reader(f)
+
+	if arch, err := gzip.NewReader(f); err == nil {
+		r = arch
+	}
+
+	if len(*ext) == 0 {
+		*ext = filepath.Ext(n)
+	}
+	if *ext == "tgz" || *ext == "gz" {
+		return tmpfs.ReadImageTar(r)
+	} else if *ext == "cpio" {
+		// This is where Unix people say "but mmap!!!"
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		return tmpfs.ReadImageCpio(bytes.NewReader(b))
+	}
+	return nil, fmt.Errorf("No reader matches suffix %s", *ext)
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
@@ -313,14 +350,7 @@ func main() {
 	if len(a) != 1 {
 		flag.Usage()
 	}
-	pkg := a[0]
-	pkfFile, err := os.Open(pkg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer pkfFile.Close()
-
-	arch, err := tmpfs.ReadImage(pkfFile)
+	arch, err := readImage(a[0])
 	if err != nil {
 		log.Fatal(err)
 	}

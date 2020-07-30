@@ -2,14 +2,15 @@ package tmpfs
 
 import (
 	"archive/tar"
-	"compress/gzip"
 	"fmt"
 	"io"
-	"log"
+	"io/ioutil"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/u-root/u-root/pkg/cpio"
+	"github.com/u-root/u-root/pkg/uio"
 	"harvey-os.org/ninep/protocol"
 )
 
@@ -36,18 +37,22 @@ type Entry interface {
 
 // File describes a file from a tar archive
 type File struct {
-	name    string
-	hdr     *tar.Header
-	data    []byte
-	fileQid protocol.QID
+	name       string
+	data       []byte
+	fileQid    protocol.QID
+	isFile     bool
+	accessTime uint32
+	modTime    uint32
 }
 
-func newFile(hdr *tar.Header, id uint64, dataSize uint64) *File {
+func newFile(name string, id uint64, dataSize uint64, isFile bool, accessTime uint32, modTime uint32) *File {
 	return &File{
-		name:    path.Base(hdr.Name),
-		hdr:     hdr,
-		data:    make([]byte, dataSize),
-		fileQid: protocol.QID{Type: protocol.QTFILE, Version: 0, Path: id},
+		name:       name,
+		data:       make([]byte, dataSize),
+		fileQid:    protocol.QID{Type: protocol.QTFILE, Version: 0, Path: id},
+		isFile:     isFile,
+		accessTime: accessTime,
+		modTime:    modTime,
 	}
 }
 
@@ -66,9 +71,9 @@ func (f *File) P9Dir(uname string) *protocol.Dir {
 	d := &protocol.Dir{}
 	d.QID = f.fileQid
 	d.Mode = 0444
-	d.Atime = uint32(f.hdr.AccessTime.Unix())
-	d.Mtime = uint32(f.hdr.ModTime.Unix())
-	d.Length = uint64(f.hdr.Size)
+	d.Atime = f.accessTime
+	d.Mtime = f.modTime
+	d.Length = uint64(len(f.data))
 	d.Name = f.Name()
 	d.User = uname
 	d.Group = uname
@@ -154,9 +159,8 @@ func (a *Archive) Root() *Directory {
 func (a *Archive) addFile(filepath string, file *File) error {
 	filecmps := strings.Split(filepath, "/")
 
-	isFile := !file.hdr.FileInfo().IsDir()
 	var dirCmps []string
-	if isFile {
+	if file.isFile {
 		dirCmps = filecmps[:len(filecmps)-1]
 	} else {
 		dirCmps = filecmps
@@ -167,7 +171,7 @@ func (a *Archive) addFile(filepath string, file *File) error {
 		return err
 	}
 
-	if isFile {
+	if file.isFile {
 		return a.createFile(dir, filecmps[len(filecmps)-1], file)
 	}
 	return nil
@@ -236,23 +240,13 @@ func (a *Archive) DumpArchive() {
 	a.DumpEntry(a.root, "")
 }
 
-// ReadImage reads a compressed tar to produce a file hierarchy
-func ReadImage(r io.Reader) (*Archive, error) {
-	gzr, err := gzip.NewReader(r)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := gzr.Close(); err != nil {
-			log.Print(err)
-		}
-	}()
-
+// ReadImageTar reads a tar file to produce an archive
+func ReadImageTar(r io.Reader) (*Archive, error) {
 	openTime := time.Now()
 	Debug("Start: %v", openTime)
 	fs := &Archive{newDirectory("/", nil, openTime, 0), []*Directory{}, []*File{}, openTime}
 	Debug("got an fs: %v", fs)
-	tr := tar.NewReader(gzr)
+	tr := tar.NewReader(r)
 	Debug("got a new tar reader: %v", tr)
 	for id := 0; ; id++ {
 		Debug("Do %d", id)
@@ -265,8 +259,13 @@ func ReadImage(r io.Reader) (*Archive, error) {
 			return nil, err
 		}
 
-		file := newFile(hdr, uint64(id), uint64(hdr.Size))
-		Debug("Now read %d bytes\n", hdr.Size)
+		file := newFile(
+			path.Base(hdr.Name),
+			uint64(id),
+			uint64(hdr.Size),
+			!hdr.FileInfo().IsDir(),
+			uint32(hdr.AccessTime.Unix()),
+			uint32(hdr.ModTime.Unix()))
 		if _, err := io.ReadFull(tr, file.data); err != nil {
 			return nil, err
 		}
@@ -279,4 +278,39 @@ func ReadImage(r io.Reader) (*Archive, error) {
 	}
 
 	return fs, nil
+}
+
+// ReadImageCpio reads a cpio archive to produce a file hierarchy
+func ReadImageCpio(r io.ReaderAt) (*Archive, error) {
+	cpioReader := cpio.Newc.Reader(r)
+
+	openTime := time.Now()
+	arch := &Archive{newDirectory("/", nil, openTime, 0), []*Directory{}, []*File{}, openTime}
+
+	records, err := cpio.ReadAllRecords(cpioReader)
+	if err != nil {
+		return nil, err
+	}
+
+	for id, record := range records {
+		file := newFile(
+			path.Base(record.Name),
+			uint64(id),
+			record.Info.FileSize,
+			record.Info.FileSize > 0,
+			uint32(record.Info.MTime),
+			uint32(record.Info.MTime))
+		if record.Info.FileSize > 0 {
+			file.data, err = ioutil.ReadAll(uio.Reader(record))
+			if err != nil && err != io.EOF {
+				return nil, err
+			}
+		}
+
+		if err := arch.addFile(record.Name, file); err != nil {
+			return nil, err
+		}
+	}
+
+	return arch, nil
 }
