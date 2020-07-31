@@ -52,7 +52,7 @@ static int maxcores = 1024;	/* max # of cores given as an argument */
 static int numtcs = 32;		/* initial # of TCs */
 
 char dbgflg[256];
-static int vflag = 1;
+static int vflag;
 
 int nosmp;
 int acpionly = 1;
@@ -132,6 +132,7 @@ options(int argc, char* argv[])
 	char *env[2];
 	int n, o;
 	char envcopy[256];
+	extern int printallsyscalls;
 
 	/*
 	 * Process flags.
@@ -161,6 +162,9 @@ options(int argc, char* argv[])
 			if(strcmp(env[0], "numtcs") == 0){
 				numtcs = strtol(env[1], 0, 0);
 			}
+			if(strcmp(env[0], "printallsyscalls") == 0){
+				printallsyscalls = strtol(env[1], 0, 0);
+			}
 		}
 	}
 	vflag = dbgflg['v'];
@@ -181,7 +185,7 @@ loadenv(int argc, char* argv[])
 			if (gettokens(next, env, 2, "=")  == 2){;
 				ksetenv(env[0], env[1], 0);
 			}else{
-				print("Ignoring parameter with no value: %s\n", env[0]);
+				print("Ignoring parameter (%s) with no value: %s\n", next, env[0]);
 			}
 		}
 	}
@@ -632,6 +636,8 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();
+	} else {
+		print("SMP Disabled by command line\n");
 	}
 //working.
 	teardownidmap(mach);
