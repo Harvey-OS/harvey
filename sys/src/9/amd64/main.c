@@ -164,9 +164,7 @@ options(int argc, char* argv[])
 		}
 	}
 	vflag = dbgflg['v'];
-	// hack.
-	//nosmp = dbgflg['n'];
-	//acpionly = dbgflg['z'];
+	nosmp = dbgflg['n'];
 }
 
 void
