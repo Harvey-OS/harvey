@@ -32,6 +32,7 @@ import (
 	"reflect"
 	"text/template"
 
+	"golang.org/x/tools/imports"
 	"harvey-os.org/pkg/ninep/protocol"
 )
 
@@ -548,8 +549,22 @@ func main() {
 
 	msfunc.Execute(b, dir)
 	usfunc.Execute(b, dir)
+	opts := imports.Options{
+		Fragment:  true,
+		AllErrors: false, // Report all errors (not just the first 10 on different lines)
 
-	if err := ioutil.WriteFile("genout.go", b.Bytes(), 0600); err != nil {
+		Comments:  true, // Print comments (true if nil *Options provided)
+		TabIndent: true, // Use tabs for indent (true if nil *Options provided)
+		TabWidth:  8,    // Tab width (8 if nil *Options provided)
+
+		FormatOnly: false, // Disable the insertion and deletion of imports
+	}
+	fileName := "genout.go"
+	bytz, err := imports.Process(fileName, b.Bytes(), &opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := ioutil.WriteFile(fileName, bytz, 0600); err != nil {
 		log.Fatalf("%v", err)
 	}
 
