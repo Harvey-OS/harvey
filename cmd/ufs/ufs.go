@@ -28,7 +28,7 @@ func main() {
 		log.Fatalf("Listen failed: %v", err)
 	}
 
-	ufslistener, err := ufs.NewUFS(*root, *debug, func(l *protocol.Listener) error {
+	ufslistener, err := ufs.NewUFS(*root, *debug, func(l *protocol.NetListener) error {
 		l.Trace = nil
 		if *debug > 1 {
 			l.Trace = log.Printf
