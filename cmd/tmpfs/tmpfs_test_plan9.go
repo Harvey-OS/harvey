@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"harvey-os.org/internal/tmpfs"
-	"harvey-os.org/pkg/ninep/protocol"
-	"harvey-os.org/pkg/sys"
+	"harvey-os.org/ninep/protocol"
+	"harvey-os.org/ninep/tmpfs"
+	"harvey-os.org/sys"
 )
 
 func TestNwTmpfs(t *testing.T) {

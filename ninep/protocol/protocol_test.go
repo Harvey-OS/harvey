@@ -329,9 +329,9 @@ func TestTManyRPCs(t *testing.T) {
 	}
 	t.Logf("Client is %v", c.String())
 
-	s, err := NewListener(
+	s, err := NewNetListener(
 		func() NineServer { return newEcho() },
-		func(l *Listener) error {
+		func(l *NetListener) error {
 			l.Trace = print
 			return nil
 		})
@@ -368,9 +368,9 @@ func TestTMessages(t *testing.T) {
 	}
 	t.Logf("Client is %v", c.String())
 
-	s, err := NewListener(
+	s, err := NewNetListener(
 		func() NineServer { return newEcho() },
-		func(l *Listener) error {
+		func(l *NetListener) error {
 			l.Trace = print // t.Logf
 			return nil
 		})
@@ -512,7 +512,7 @@ func BenchmarkNull(b *testing.B) {
 	}
 	b.Logf("Client is %v", c.String())
 
-	s, err := NewListener(
+	s, err := NewNetListener(
 		func() NineServer {
 			return newEcho()
 		})

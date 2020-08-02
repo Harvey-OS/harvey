@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/ninep/protocol"
 )
 
 func print(f string, args ...interface{}) {
@@ -79,7 +79,7 @@ func TestMount(t *testing.T) {
 	}
 	t.Logf("Client is %v", c.String())
 
-	n, err := NewUFS("", 0, func(l *protocol.Listener) error {
+	n, err := NewUFS("", 0, func(l *protocol.NetListener) error {
 		l.Trace = print //t.Logf
 		return nil
 	})
