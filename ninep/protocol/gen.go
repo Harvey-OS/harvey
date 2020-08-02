@@ -33,7 +33,7 @@ import (
 	"text/template"
 
 	"golang.org/x/tools/imports"
-	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/ninep/protocol"
 )
 
 const (

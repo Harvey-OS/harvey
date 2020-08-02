@@ -9,8 +9,8 @@ import (
 	"log"
 	"net"
 
-	"harvey-os.org/internal/ufs"
-	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/ninep/protocol"
+	"harvey-os.org/ninep/ufs"
 )
 
 var (
