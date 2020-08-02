@@ -13,6 +13,8 @@ import (
 	"harvey-os.org/ninep/protocol"
 )
 
+var Debug = func(string, ...interface{}) {}
+
 // Archive contains the directories and files from a decompressed archive
 type Archive struct {
 	root     *Directory   // root directory
@@ -225,7 +227,7 @@ func (a *Archive) DumpEntry(e Entry, parentPath string) {
 			a.DumpEntry(child, parentPath)
 		}
 	} else if file, isFile := e.(*File); isFile {
-		log.Printf("%v\n", path.Join(parentPath, file.name))
+		Debug("%v\n", path.Join(parentPath, file.name))
 	}
 }
 
@@ -247,10 +249,15 @@ func ReadImage(r io.Reader) (*Archive, error) {
 	}()
 
 	openTime := time.Now()
+	Debug("Start: %v", openTime)
 	fs := &Archive{newDirectory("/", nil, openTime, 0), []*Directory{}, []*File{}, openTime}
+	Debug("got an fs: %v", fs)
 	tr := tar.NewReader(gzr)
+	Debug("got a new tar reader: %v", tr)
 	for id := 0; ; id++ {
+		Debug("Do %d", id)
 		hdr, err := tr.Next()
+		Debug("read hdr %v err %v", hdr, err)
 		if err == io.EOF {
 			break // End of archive
 		}
@@ -259,13 +266,16 @@ func ReadImage(r io.Reader) (*Archive, error) {
 		}
 
 		file := newFile(hdr, uint64(id), uint64(hdr.Size))
+		Debug("Now read %d bytes\n", hdr.Size)
 		if _, err := io.ReadFull(tr, file.data); err != nil {
 			return nil, err
 		}
 
+		Debug("Now add the file")
 		if err = fs.addFile(hdr.Name, file); err != nil {
 			return nil, err
 		}
+		Debug("bottom of loop")
 	}
 
 	return fs, nil

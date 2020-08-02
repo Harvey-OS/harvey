@@ -18,7 +18,7 @@ func print(f string, args ...interface{}) {
 }
 
 // Create and add some files to the archive.
-func createTestImage() *bytes.Buffer {
+func createTestImage(t *testing.T, base int) *bytes.Buffer {
 	var buf bytes.Buffer
 
 	gztw := gzip.NewWriter(&buf)
@@ -49,21 +49,34 @@ func createTestImage() *bytes.Buffer {
 		hdr := &tar.Header{
 			Name: file.Name,
 			Mode: 0600,
-			Size: int64(1048576 + len(file.Body)),
+			Size: int64(base + len(file.Body)),
 		}
+		t.Logf("Write header for %v", hdr)
 		if err := tw.WriteHeader(hdr); err != nil {
 			log.Fatal(err)
 		}
-		if _, err := tw.Write([]byte(append(make([]byte, 1048576), []byte(file.Body)...))); err != nil {
+		t.Logf("Wrote header for %v", hdr)
+		if _, err := tw.Write([]byte(append(make([]byte, base), []byte(file.Body)...))); err != nil {
 			log.Fatal(err)
 		}
+		t.Logf("Wrote body for %v", hdr)
+		t.Logf("file is now %#x", buf.Len())
 	}
 
 	return &buf
 }
 
 func TestReadImage(t *testing.T) {
-	_, err := tmpfs.ReadImage(createTestImage())
+	tmpfs.Debug = t.Logf
+	_, err := tmpfs.ReadImage(createTestImage(t, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReadImageBig(t *testing.T) {
+	tmpfs.Debug = t.Logf
+	_, err := tmpfs.ReadImage(createTestImage(t, 1048576))
 	if err != nil {
 		t.Fatal(err)
 	}

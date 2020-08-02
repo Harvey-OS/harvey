@@ -13,7 +13,7 @@ import (
 )
 
 func TestNwTmpfs(t *testing.T) {
-	arch, err := tmpfs.ReadImage(createTestImage())
+	arch, err := tmpfs.ReadImage(createTestImage(t, 1048576))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestNwTmpfs(t *testing.T) {
 }
 
 func TestMount(t *testing.T) {
-	arch, err := tmpfs.ReadImage(createTestImage())
+	arch, err := tmpfs.ReadImage(createTestImage(t, 1048576))
 	if err != nil {
 		t.Fatal(err)
 	}
