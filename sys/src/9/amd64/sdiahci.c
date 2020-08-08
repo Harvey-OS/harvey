@@ -1993,16 +1993,17 @@ didtype(Pcidev *p)
 		/*
 		 * 0x27c4 is the intel 82801 in compatibility (not sata) mode.
 		 */
-		if (p->did == 0x1e02 ||			/* c210 */
-		    p->did == 0x24d1 ||			/* 82801eb/er */
+		if (p->did == 0x1e02 ||				/* c210 */
+		    p->did == 0x24d1 ||				/* 82801eb/er */
 		    (p->did & 0xfffb) == 0x27c1 ||	/* 82801g[bh]m ich7 */
-		    p->did == 0x2821 ||			/* 82801h[roh] */
+		    p->did == 0x2821 ||				/* 82801h[roh] */
 		    (p->did & 0xfffe) == 0x2824 ||	/* 82801h[b] */
 		    (p->did & 0xfeff) == 0x2829 ||	/* ich8/9m */
 		    (p->did & 0xfffe) == 0x2922 ||	/* ich9 */
-		    p->did == 0x3a02 ||			/* 82801jd/do */
+		    p->did == 0x3a02 ||				/* 82801jd/do */
 		    (p->did & 0xfefe) == 0x3a22 ||	/* ich10, pch */
-		    (p->did & 0xfff8) == 0x3b28)	/* pchm */
+		    (p->did & 0xfff8) == 0x3b28 ||	/* pchm */
+			p->did == 0xa102)				/* Q170/Q150/B150/H170/H110/Z170/CM236 Chipset SATA Controller [AHCI Mode], pch */
 			return Tich;
 		break;
 	case Vatiamd:
