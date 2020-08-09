@@ -485,6 +485,7 @@ enum {
 	i210,
 	i217,
 	i218,
+	i219,
 };
 
 static char *tname[] = {
@@ -503,6 +504,7 @@ static char *tname[] = {
 [i210] = "i210",
 [i217] = "i217",
 [i218] = "i218",
+[i219] = "i219",
 };
 
 struct Ctlr {
@@ -1933,6 +1935,9 @@ i82563pci(void)
 		case 0x15a3:		/* i218 */
 			type = i218;
 			break;
+		case 0x15b8:		/* i219-v */
+			type = i219;
+			break;
 		}
 
 		io = p->mem[0].bar & ~0x0F;
@@ -2088,6 +2093,12 @@ i218pnp(Ether *e)
 	return pnp(e, i218);
 }
 
+static int
+i219pnp(Ether *e)
+{
+	return pnp(e, i219);
+}
+
 void
 ether82563link(void)
 {
@@ -2102,5 +2113,6 @@ ether82563link(void)
 	addethercard("i210", i210pnp);
 	addethercard("i217", i217pnp);
 	addethercard("i218", i218pnp);
+	addethercard("i219", i219pnp);
 	addethercard("igbepcie", anypnp);
 }
