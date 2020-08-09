@@ -2002,8 +2002,10 @@ didtype(Pcidev *p)
 		    (p->did & 0xfffe) == 0x2922 ||	/* ich9 */
 		    p->did == 0x3a02 ||			/* 82801jd/do */
 		    (p->did & 0xfefe) == 0x3a22 ||	/* ich10, pch */
-		    (p->did & 0xfff8) == 0x3b28)	/* pchm */
+		    (p->did & 0xfff8) == 0x3b28 ||	/* pchm */
+		    p->did == 0xa102) {			/* q170/q150/b150/h170/h110/z170/cm236 */
 			return Tich;
+		}
 		break;
 	case Vatiamd:
 		if(p->did == 0x4380 || p->did == 0x4390 || p->did == 0x4391){
