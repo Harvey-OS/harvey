@@ -10,7 +10,7 @@ import (
 )
 
 // Create and add some files to the archive.
-func createTestImage() *bytes.Buffer {
+func createTestImageTar() *bytes.Buffer {
 	var buf bytes.Buffer
 
 	tw := tar.NewWriter(&buf)
@@ -56,8 +56,8 @@ func createTestImage() *bytes.Buffer {
 	return &buf
 }
 
-func TestReadArchive(t *testing.T) {
-	arch, err := ReadImageTar(createTestImage())
+func TestReadArchiveTar(t *testing.T) {
+	arch, err := ReadImageTar(createTestImageTar())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,10 +68,11 @@ func TestReadArchive(t *testing.T) {
 		t.Fatal("incorrect root name")
 	}
 
+	// This really should be redone with a table.
 	// Read readme.txt
-	readme, ok := root.ChildByName("readme.txt")
-	if !ok {
-		t.Fatal("couldn't open readme.txt")
+	readme, err := root.ChildByName("readme.txt")
+	if err != nil {
+		t.Fatal(err)
 	}
 	readmeFile := readme.(*File)
 	readmeData := string(readmeFile.Data())
@@ -80,19 +81,19 @@ func TestReadArchive(t *testing.T) {
 	}
 
 	// Read abc/123/sean.txt
-	abc, ok := root.ChildByName("abc")
-	if !ok {
-		t.Fatal("couldn't open abc")
+	abc, err := root.ChildByName("abc")
+	if err != nil {
+		t.Fatal(err)
 	}
 	abcDir := abc.(*Directory)
-	oneTwoThree, ok := abcDir.ChildByName("123")
-	if !ok {
-		t.Fatal("couldn't open 123")
+	oneTwoThree, err := abcDir.ChildByName("123")
+	if err != nil {
+		t.Fatal(err)
 	}
 	oneTwoThreeDir := oneTwoThree.(*Directory)
-	sean, ok := oneTwoThreeDir.ChildByName("sean.txt")
-	if !ok {
-		t.Fatal("couldn't open sean.txt")
+	sean, err := oneTwoThreeDir.ChildByName("sean.txt")
+	if err != nil {
+		t.Fatal(err)
 	}
 	seanFile := sean.(*File)
 	seanData := string(seanFile.Data())
@@ -102,21 +103,70 @@ func TestReadArchive(t *testing.T) {
 	}
 
 	// Test that there are the expected children in a directory
-	foo, ok := root.ChildByName("foo")
-	if !ok {
-		t.Fatal("couldn't open foo")
+	foo, err := root.ChildByName("foo")
+	if err != nil {
+		t.Fatal(err)
 	}
 	fooDir := foo.(*Directory)
 	numFooChildren := fooDir.NumChildren()
 	if numFooChildren != 2 {
 		t.Fatalf("expected 2 children, found %v\n", numFooChildren)
 	}
-	_, ok = fooDir.ChildByName("gopher.txt")
-	if !ok {
-		t.Fatal("couldn't get gopher.txt")
+	_, err = fooDir.ChildByName("gopher.txt")
+	if err != nil {
+		t.Fatal(err)
 	}
-	_, ok = fooDir.ChildByName("todo2.txt")
+	_, err = fooDir.ChildByName("todo2.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReadArchiveCpio(t *testing.T) {
+	Debug = t.Logf
+	f, err := os.Open("test.cpio")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	arch, err := ReadImageCpio(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Read root
+	root := arch.Root()
+	if root.Name() != "/" {
+		t.Fatal("incorrect root name")
+	}
+
+	// Read bbin/bb
+	bbin, err := root.ChildByName("bbin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bd, ok := bbin.(*Directory)
 	if !ok {
-		t.Fatal("couldn't get todo2.txt")
+		t.Fatal("cast bbin to directory: got ! ok, want ok")
+	}
+	bb, err := bd.ChildByName("bb")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bbd := string(bb.(*File).Data())
+	if bbd != "hi\n" {
+		t.Fatalf("reading /bbin/bb: got %q, want %q", bbd, "hi\n")
+	}
+
+	for _, n := range []string{"cat", "date"} {
+
+		i, err := bd.ChildByName(n)
+		if err != nil {
+			t.Fatal(err)
+		}
+		d := string(i.(*File).Data())
+		if d != bbd {
+			t.Fatalf("Reading %q: got %q, want %q", n, d, bbd)
+		}
 	}
 }
