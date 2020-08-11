@@ -115,8 +115,8 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			if pathcmp == ".." {
 				currEntry = dir.Parent()
 			} else {
-				currEntry, ok = dir.ChildByName(pathcmp)
-				if !ok {
+				currEntry, err = dir.ChildByName(pathcmp)
+				if err != nil {
 					// From the RFC: If the first element cannot be walked for any
 					// reason, Rerror is returned. Otherwise, the walk will return an
 					// Rwalk message containing nwqid qids corresponding, in order, to
@@ -131,7 +131,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 					// to sum up: if any walks have succeeded, you return the QIDS for
 					// one more than the last successful walk
 					if i == 0 {
-						return nil, fmt.Errorf(ErrorFileNotFound)
+						return nil, err
 					}
 					// we only get here if i is > 0 and less than nwname,
 					// so the i should be safe.
@@ -323,6 +323,10 @@ func readImage(n string) (*tmpfs.Archive, error) {
 
 	if arch, err := gzip.NewReader(f); err == nil {
 		r = arch
+	} else {
+		if _, err := f.Seek(0, 0); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(*ext) == 0 {
@@ -350,15 +354,18 @@ func main() {
 	if len(a) != 1 {
 		flag.Usage()
 	}
+	if *debug {
+		protocol.Debug = log.Printf
+		tmpfs.Debug = log.Printf
+	}
+
 	arch, err := readImage(a[0])
 	if err != nil {
 		log.Fatal(err)
 	}
 	if *debug {
 		arch.DumpArchive()
-		protocol.Debug = log.Printf
 	}
-
 	fd, err := sys.PostPipe(*srv)
 	if err != nil {
 		log.Fatal(err)

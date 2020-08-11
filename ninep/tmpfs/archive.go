@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"harvey-os.org/ninep/protocol"
 )
 
+// Debug can be used to print debug messages.
+// It is compatible with log.Printf
 var Debug = func(string, ...interface{}) {}
 
 // Archive contains the directories and files from a decompressed archive
@@ -43,6 +47,10 @@ type File struct {
 	isFile     bool
 	accessTime uint32
 	modTime    uint32
+	// We keep track of symlinks, even if we treat
+	// them as files.
+	isSymlink bool
+	target    string
 }
 
 func newFile(name string, id uint64, dataSize uint64, isFile bool, accessTime uint32, modTime uint32) *File {
@@ -112,9 +120,12 @@ func (d *Directory) Name() string {
 }
 
 // ChildByName looks up the child in the given directory by name
-func (d *Directory) ChildByName(name string) (Entry, bool) {
+func (d *Directory) ChildByName(name string) (Entry, error) {
 	e, ok := d.nameToEntryMap[name]
-	return e, ok
+	if !ok {
+		return nil, fmt.Errorf("%q: no such file or directory", name)
+	}
+	return e, nil
 }
 
 // Child looks up the child in the given directory by index
@@ -292,7 +303,13 @@ func ReadImageCpio(r io.ReaderAt) (*Archive, error) {
 		return nil, err
 	}
 
+	type fr struct {
+		f *File
+		r *cpio.Record
+	}
+	var files = make(map[string]*File, len(records))
 	for id, record := range records {
+		Debug("Record %q", record)
 		file := newFile(
 			path.Base(record.Name),
 			uint64(id),
@@ -306,8 +323,65 @@ func ReadImageCpio(r io.ReaderAt) (*Archive, error) {
 				return nil, err
 			}
 		}
+		Debug("Add record for %q: %v", record.Name, file)
+		files[record.Name] = file
+	}
 
-		if err := arch.addFile(record.Name, file); err != nil {
+	for _, record := range records {
+		Debug("%v: check %#o is symlink %#o", record, record.Mode, cpio.S_IFLNK)
+		if record.Mode&0170000 != cpio.S_IFLNK {
+			continue
+		}
+		n := record.Name
+		f := files[n]
+		sl := string(f.data)
+		Debug("File %q, target %q", n, sl)
+		if len(sl) == 0 {
+			continue
+		}
+
+		// We traverse symlinks until the first non-symlink
+		// or 32 (EMLINK). If we hit EMLINK, we do nothing.
+		for i := 0; i < 32; i++ {
+			var r string
+			// On each iteration through this loop, we act as though
+			// sl is a symlink. At some point, it will not be, and
+			// our computation of the next symlink will fail.
+			// At that point we know we're at the termination of a chain
+			// of one or more symlinks.
+			// This is essentially like doing a readlink on a path.
+			// It's the easiest way to find that you have a terminal path
+			// and not another symlink. It's much easier than looking at stat
+			// bits.
+			if filepath.IsAbs(sl) {
+				r, err = filepath.Rel("/", sl)
+				if err != nil {
+					log.Printf("Can't make abs path %q relative to '/': %v", sl, err)
+					break
+				}
+			} else {
+				r = filepath.Join(filepath.Dir(n), sl)
+			}
+			Debug("Checking cpio symlink, name %q, target %q", n, r)
+			t, ok := files[r]
+			if ok {
+				f = t
+				sl = r
+				continue
+			}
+			var newf File
+			newf = *f
+			newf.name = filepath.Base(record.Name)
+			Debug("Found it, setting file for %q to file data for %q: %v", n, sl, newf)
+			files[n] = &newf
+			break
+		}
+	}
+
+	for _, r := range records {
+		f := files[r.Name]
+		Debug("Install %q, file %v", r.Name, f)
+		if err := arch.addFile(r.Name, f); err != nil {
 			return nil, err
 		}
 	}
