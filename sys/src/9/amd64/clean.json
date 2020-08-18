@@ -5,7 +5,8 @@
 			"rm -f *.o *.root.c *.out errstr.h init.h init cpu.c",
 			"rm -f ../boot/libboot.a ../boot/*.o ../boot/bootcpu.c ../boot/bootcpu.elf.out boot*.c",
 			"rm -f harvey harvey.32bit",
-			"rm -f systab.c"
+			"rm -f systab.c",
+			"rm -f tmpfs initramfs.cpio.gz"
 		]
 	}
 ]
