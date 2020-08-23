@@ -2,7 +2,10 @@
 	{
 		"Name": "cpu",
 		"Env": [
-			"CONF=cpu"
+			"CONF=cpu",
+			"GOARCH=amd64",
+			"GOOS=plan9",
+			"CGO_ENABLED=0"
 		],
 		"Include": [
 			"core.json",
@@ -114,13 +117,18 @@
 				"sed": "/$ARCH/bin/sed",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
+				"tmpfs": "/$ARCH/bin/tmpfs",
 				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti",
+				"urootcpiogz": "uroot.cpio.gz",
 				"vga": "/$ARCH/bin/aux/vga"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},
 		"Program": "harvey",
+		"Projects": [
+			"uroot.json"
+		],
 		"SourceFiles": [
 			"cga.c",
 			"devacpi.c",
@@ -137,6 +145,9 @@
 			"usbuhci.c",
 			"vga.c",
 			"vgax.c"
+		],
+		"Pre": [
+			"go build -o /$ARCH/bin/tmpfs harvey-os.org/cmd/tmpfs"
 		]
 	}
 ]

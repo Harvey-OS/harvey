@@ -1,0 +1,17 @@
+[
+	{
+		"Name": "uroot",
+		"Env": [
+			"CONF=cpu",
+			"GO111MODULE=off",
+			"GOARCH=amd64",
+			"GOOS=plan9",
+			"CGO_ENABLED=0"
+		],
+		"Pre": [
+			"rm -rf uroot.cpio*",
+			"u-root -o uroot.cpio plan9",
+			"gzip uroot.cpio"
+		]
+	}
+]
