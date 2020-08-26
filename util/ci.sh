@@ -6,6 +6,8 @@ set -e
 : ${ARCH?"Need to set ARCH as aarch64, amd64 or riscv"}
 
 GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
+ls -l */bin util
+
 PATH=$PATH:$(pwd)/$(go env GOHOSTOS)_$(go env GOHOSTARCH)/bin:$(pwd)/util
 echo $PATH
 which build
