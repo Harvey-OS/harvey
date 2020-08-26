@@ -5,8 +5,35 @@ set -e
 : ${CC?"Need to set CC as clang, gcc or a specific version like clang-3.6"}
 : ${ARCH?"Need to set ARCH as aarch64, amd64 or riscv"}
 
-GO111MODULE=on GOBIN="$(pwd)/util" go get ./util/src/harvey/cmd/...
-PATH=$PATH:$(pwd)/$(go env GOHOSTOS)_$(go env GOHOSTARCH)/bin:$(pwd)/util
-echo $PATH
-which build
+# make sure Go is gone
+sudo rm -rf /opt/hostedtoolcache/go/
+# fetch official Go toolchain release as per https://golang.org/doc/install
+TARFILE="go$GO_VERSION.$OS-$ARCH.tar.gz"
+wget "https://golang.org/dl/$TARFILE" -nv # too verbose otherwise
+sudo tar -C /usr/local -xzf "$TARFILE"
+# For some reason, GOROOT was set in GitHub's CI, so we enforce it
+export GOROOT=/usr/local/go/
+export PATH=/usr/local/go/bin:$PATH
+
+# please keep me for debugging CI ;)
+which go
+go env
+pwd # in case you get lost
+
+# bootstrap Harvey build utilities - what you do on your host OS otherwise
+./bootstrap.sh
+
+# not that we really want this, but yea... Go modules
+mkdir -p ~/go/src/github.com/u-root/
+cp -r ~/go/pkg/mod/github.com/u-root/u-root@v*c6181ee* ~/go/src/github.com/u-root/u-root
+chmod +w ~/go/src/github.com/u-root/u-root -R
+(cd ~/go/src/github.com/u-root/u-root && dep ensure)
+
+cp -r ~/go/pkg/mod/harvey-os.org@v*bcfa722* ~/go/src/harvey-os.org
+chmod +w ~/go/src/harvey-os.org -R
+
+# extend PATH to include the build tool and u-root
+PATH=$PATH:$(pwd)/$(go env GOHOSTOS)_$(go env GOHOSTARCH)/bin:~/go/bin
+
+# finally build Harvey :-)
 build build.json
