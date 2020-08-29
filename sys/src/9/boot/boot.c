@@ -298,15 +298,15 @@ static void catstuff(void)
 	ifd = open("#t/eia0", ORDWR);
 	if (ifd < 0) {
 		print("can't open eia0!!!\n");
+		exits("can't open eia0");
 		return;
 	}
 	print("open: ifd %d\n", ifd);
 	while (1) {
 		sleep(100000);
 	}
-
-	print("all done!\n");
 }
+
 /*
  *  ask user from whence cometh the root file system
  */
