@@ -280,6 +280,7 @@ _warp64:
 	// Warning: you've only got 256M to work with. This is a foundational mistake,
 	// and it's way harder to fix than I thought. So, ugly.
 	// 16 -> 32
+	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+8*PGLSZ(1))(%eax)
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+9*PGLSZ(1))(%eax)
@@ -297,6 +298,7 @@ _warp64:
 	movl	%edx, PDO(KZERO+15*PGLSZ(1))(%eax)
 
 	// 32 -> 48
+	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+16*PGLSZ(1))(%eax)
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+17*PGLSZ(1))(%eax)
@@ -314,6 +316,7 @@ _warp64:
 	movl	%edx, PDO(KZERO+23*PGLSZ(1))(%eax)
 
 	// 48 -> 64
+	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+24*PGLSZ(1))(%eax)
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+25*PGLSZ(1))(%eax)
