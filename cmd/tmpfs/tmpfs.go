@@ -4,7 +4,6 @@ package main
 
 import (
 	"bytes"
-	"compress/gzip"
 	"flag"
 	"fmt"
 	"io"
@@ -14,6 +13,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/ulikunitz/xz/lzma"
 	"harvey-os.org/ninep/protocol"
 	"harvey-os.org/ninep/tmpfs"
 	"harvey-os.org/sys"
@@ -321,7 +321,7 @@ func readImage(n string) (*tmpfs.Archive, error) {
 	}()
 	r := io.Reader(f)
 
-	if arch, err := gzip.NewReader(f); err == nil {
+	if arch, err := lzma.NewReader(f); err == nil {
 		r = arch
 	} else {
 		if _, err := f.Seek(0, 0); err != nil {
