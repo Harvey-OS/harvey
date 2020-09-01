@@ -32,10 +32,16 @@ static uintptr_t sp;		/* XXX - must go - user stack of init proc */
 int64_t hz;
 
 uintptr_t kseg0 = KZERO;
+
+// N.B.: sys is initialized in entry.S
+// This nil is a no-op anyway. Compilers see a zero and
+// put it in BSS anyway.
 Sys* sys = nil;
 usize sizeofSys = sizeof(Sys);
 
+// N.B.: entrym is initialized in entry.S
 Mach *entrym;
+
 /*
  * Option arguments from the command line.
  * oargv[0] is the boot file.
@@ -508,13 +514,16 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		panic("Data is not set up correctly\n");
 
 	// Clear BSS
-	memset(edata, 0, end - edata);
-
-// TODO(aki): figure this out.
-	mach = (void *) (KZERO + 1048576 + 11*4096);
-	if(mach != machp()){ cgapost(0x01);for(;;); }
-	sys = (void *) (KZERO + 1048576);
-
+	// N.B. This wipes out the sys variable, which is set in entry.S.
+	// It will also wipe out any other data that entry.S might
+	// set that is not initialized, and hence in bss, such as entrym,
+	// which is why code also had to set mach again. This is why Aki
+	// had the 'figure this out' comment below.
+	// Further, it is not needed. Kexec and other bootloaders will
+	// do this for us. Not sure why this was here. -- RGM.
+	// memset(edata, 0, end - edata);
+	// Score one for ELF -- the bss zeroing comes in by default. That
+	// was not the case in 9load I guess.
 
 	/*
 	 * ilock via i8250enable via i8250console
