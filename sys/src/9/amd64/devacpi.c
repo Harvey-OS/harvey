@@ -1751,30 +1751,30 @@ static unsigned int getbanked(uintptr_t ra, uintptr_t rb, int sz)
 	return r;
 }
 
-static unsigned int setbanked(uintptr_t ra, uintptr_t rb, int sz, int v)
+static unsigned int setbanked(uintptr_t ra, uintptr_t rb, int sz, int val)
 {
 	unsigned int r;
-	if(v)print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, v);
+	if(v)print("setbanked: ra %#x rb %#x sz %d value %#x\n", ra, rb, sz, val);
 
 	r = -1;
 	switch (sz) {
 		case 1:
 			if (ra != 0)
-				outb(ra, v);
+				outb(ra, val);
 			if (rb != 0)
-				outb(rb, v);
+				outb(rb, val);
 			break;
 		case 2:
 			if (ra != 0)
-				outs(ra, v);
+				outs(ra, val);
 			if (rb != 0)
-				outs(rb, v);
+				outs(rb, val);
 			break;
 		case 4:
 			if (ra != 0)
-				outl(ra, v);
+				outl(ra, val);
 			if (rb != 0)
-				outl(rb, v);
+				outl(rb, val);
 			break;
 		default:
 			print("setbanked: wrong size\n");
