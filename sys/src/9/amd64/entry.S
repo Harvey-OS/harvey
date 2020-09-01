@@ -264,8 +264,8 @@ _warp64:
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+3*PGLSZ(1))(%eax)	/* PDE for KZERO 6-8MiB */
 
-	// and up through 12 (and on to 16). This sucks, we'll make it better later. //
-	// We'll just have init the pml2 at compile time. Apologies.
+	// and up through 16 (and on to 64). This sucks, we'll make it better later. //
+	// Note that at some point, we create the whole map.
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+4*PGLSZ(1))(%eax)	/* PDE for KZERO 8-10MiB */
 	addl	$PGLSZ(1), %edx
@@ -274,6 +274,61 @@ _warp64:
 	movl	%edx, PDO(KZERO+6*PGLSZ(1))(%eax)	/* PDE for KZERO 12-14MiB */
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+7*PGLSZ(1))(%eax)	/* PDE for KZERO 14-16MiB */
+
+	// and up to 64! I tried a loop but it's harder than I thought.
+	// better code welcome.
+	// Warning: you've only got 256M to work with. This is a foundational mistake,
+	// and it's way harder to fix than I thought. So, ugly.
+	// 16 -> 32
+	movl	%edx, PDO(KZERO+8*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+9*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+10*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+11*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+12*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+13*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+14*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+15*PGLSZ(1))(%eax)
+
+	// 32 -> 48
+	movl	%edx, PDO(KZERO+16*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+17*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+18*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+19*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+20*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+21*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+22*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+23*PGLSZ(1))(%eax)
+
+	// 48 -> 64
+	movl	%edx, PDO(KZERO+24*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+25*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+26*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+27*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+28*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+29*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+30*PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+31*PGLSZ(1))(%eax)
 
 	movl	%eax, %edx			/* PD at PML4 + 2*PTSZ */
 	addl	$(PTSZ|PteRW|PteP), %edx	/* PT at PML4 + 3*PTSZ */
