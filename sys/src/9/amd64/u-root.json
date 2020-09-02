@@ -1,0 +1,18 @@
+[
+	{
+		"Name": "u-root",
+		"Env": [
+			"GO111MODULE=off",
+			"GOOS=plan9",
+			"GOARCH=amd64"
+		],
+		"Pre": [
+			"u-root -o uroot.cpio -files /amd64/bin:amd64/bin -files /rc/bin:rc/bin -files /lib/ndb:lib/ndb $UROOTEXTRARGS plan9 $UROOTEXTRAPACKAGES",
+			"lzma -f -k uroot.cpio"
+		],
+		"#Pre": [
+			"bash -c 'cd / && u-root -o uroot.cpio -files amd64/bin plan9' ",
+			"lzma -f -k uroot.cpio"
+		]
+	}
+]

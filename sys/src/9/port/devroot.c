@@ -108,6 +108,7 @@ rootreset(void)
 	addrootdir("dev");
 	addrootdir("env");
 	addrootdir("fd");
+	addrootdir("initramfs");
 	addrootdir("mnt");
 	addrootdir("n");
 	addrootdir("net");

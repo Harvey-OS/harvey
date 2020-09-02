@@ -16,7 +16,8 @@
 			"core.json",
 			"../386/386.json",
 			"../ip/ip.json",
-			"../port/port.json"
+			"../port/port.json",
+			"u-root.json"
 		],
 		"Kernel": {
 			"Config": {
@@ -122,11 +123,11 @@
 				"sed": "/$ARCH/bin/sed",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
+				"tmpfs": "/$ARCH/bin/tmpfs",
 				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti",
 				"vga": "/$ARCH/bin/aux/vga",
-				"uroot": "uroot.cpio.gz",
-				"tmpfs":"tmpfs"
+				"uroot": "uroot.cpio.lzma"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},
