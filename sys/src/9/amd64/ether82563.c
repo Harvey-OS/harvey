@@ -1,6 +1,6 @@
 /*
  * Intel Gigabit Ethernet PCI-Express Controllers.
- *	8256[36], 8257[1-79], 21[078]
+ *	8256[36], 8257[1-79], 21[0789]
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
  * is probably different. The reset/initialisation
@@ -781,18 +781,16 @@ static int
 mcasttblsize(Ctlr *ctlr)
 {
 	switch (ctlr->type) {
-	case i210:
-		return 16;
 	/*
 	 * openbsd says all `ich8' versions (ich8, ich9, ich10, pch, pch2 and
-	 * pch_lpt) have 32 longs.  the 218 seems to be an exception.
+	 * pch_lpt) have 32 longs.
 	 */
 	case i82566:
 	case i82567:
 	case i217:
-		return 32;
 	case i218:
-		return 64;
+	case i219:
+		return 32;
 	default:
 		return 128;
 	}
@@ -1037,6 +1035,7 @@ i82563rxinit(Ctlr* ctlr)
 	case i210:
 	case i217:
 	case i218:
+	case i219:
 		csr32w(ctlr, Ert, 1024/8);	/* early rx threshold */
 		break;
 	}
@@ -1740,9 +1739,51 @@ fread(Ctlr *ctlr, Flash *f, int ladr)
 	return f->reg32[Fdata] & 0xffff;
 }
 
+static int
+fread32(Ctlr *c, Flash *f, int ladr, uint32_t *data)
+{
+	uint32_t s;
+	int timeout;
+
+	delay(1);
+	s = f->reg32[Fsts/2];
+	if((s&Fvalid) == 0) {
+		return -1;
+	}
+	f->reg32[Fsts/2] |= Fcerr | Ael;
+	for(timeout = 0; timeout < 10; timeout++){
+		if((s&Scip) == 0) {
+			goto done;
+		}
+		delay(1);
+		s = f->reg32[Fsts/2];
+	}
+	return -1;
+done:
+	f->reg32[Fsts/2] |= Fdone;
+	f->reg32[Faddr] = ladr;
+
+	/* setup flash control register */
+	s = (f->reg32[Fctl/2] >> 16) & ~0x3ff;
+	f->reg32[Fctl/2] = (s | 3<<8 | Fgo) << 16;	/* 4 byte read */
+	timeout = 1000;
+	while((f->reg32[Fsts/2] & Fdone) == 0 && timeout--) {
+		microdelay(5);
+	}
+	if(timeout < 0){
+		print("i82563: fread timeout\n");
+		return -1;
+	}
+	if(f->reg32[Fsts/2] & (Fcerr|Ael)) {
+		return -1;
+	}
+	*data = f->reg32[Fdata];
+	return 0;
+}
+
 /* load flash into ctlr */
 static int
-fload(Ctlr *ctlr)
+fload16(Ctlr *ctlr)
 {
 	uint32_t data, io, r, adr;
 	uint16_t sum;
@@ -1773,6 +1814,35 @@ fload(Ctlr *ctlr)
 	return sum;
 }
 
+/* load flash into ctlr */
+static int
+fload32(Ctlr *c)
+{
+	// nic points to the address pointed to by the first pci BAR
+	Flash f = {
+		.reg32 = (uint32_t*)&c->nic[0xe000/4],
+		.lim = (((csr32r(c, 0xC) >> 1) & 0x1F) + 1) << 12,
+	};
+
+	uint32_t w;
+	int r = f.lim >> 1;
+	if(fread32(c, &f, r + 0x24, &w) == -1  || (w & 0xC000) != 0x8000) {
+		r = 0;
+	}
+
+	uint16_t sum = 0;
+	for (int adr = 0; adr < 0x20; adr++) {
+		if(fread32(c, &f, r + adr*4, &w) == -1) {
+			return -1;
+		}
+		c->eeprom[adr*2+0] = w;
+		c->eeprom[adr*2+1] = w>>16;
+		sum += w & 0xFFFF;
+		sum += w >> 16;
+	}
+	return sum;
+}
+
 static int
 i82563reset(Ctlr *ctlr)
 {
@@ -1793,16 +1863,23 @@ i82563reset(Ctlr *ctlr)
 	case i82579:
 	case i217:
 	case i218:
-		r = fload(ctlr);
+		r = fload16(ctlr);
+		break;
+	case i219:
+		r = fload32(ctlr);
 		break;
 	default:
 		r = eeload(ctlr);
 		break;
 	}
 	if (r != 0 && r != 0xBABA){
-		print("%s: bad EEPROM checksum - %#.4ux\n",
-			tname[type], r);
-		return -1;
+		print("%s: bad EEPROM checksum - %#.4ux", tname[type], r);
+		if (type != i82579 && type != i210 && type != i217 && type != i218 && type != i219) {
+			print("; ignored\n");
+		} else {
+			print("\n");
+			return -1;
+		}
 	}
 
 	/* set mac addr */
@@ -1838,11 +1915,14 @@ macset:
 	 * and maximum frame length, no?
 	 */
 	/* fixed flow control ethernet address 0x0180c2000001 */
-	csr32w(ctlr, Fcal, 0x00C28001);
-	csr32w(ctlr, Fcah, 0x0100);
-	if (type != i82579 && type != i210 && type != i217 && type != i218)
+	if (type != i217 && type != i218 && type != i219) {
+		csr32w(ctlr, Fcal, 0x00C28001);
+		csr32w(ctlr, Fcah, 0x0100);
+	}
+	if (type != i82579 && type != i210 && type != i217 && type != i218 && type != i219) {
 		/* flow control type, dictated by Intel */
 		csr32w(ctlr, Fct, 0x8808);
+	}
 	csr32w(ctlr, Fcttv, 0x0100);		/* for XOFF frame */
 	// ctlr->fcrtl = 0x00002000;		/* rcv low water mark: 8KB */
 	/* rcv high water mark: 16KB, < rcv buffer in PBA & RXA */
@@ -1935,7 +2015,15 @@ i82563pci(void)
 		case 0x15a3:		/* i218 */
 			type = i218;
 			break;
+		case 0x156f:		/* i219-lm */
+		case 0x1570:		/* i219-v */
+		case 0x15b7:		/* i219-lm */
 		case 0x15b8:		/* i219-v */
+		case 0x15b9:		/* i219-lm */
+		case 0x15d6:		/* i219-v */
+		case 0x15d7:		/* i219-lm */
+		case 0x15d8:		/* i219-v */
+		case 0x15e3:		/* i219-lm */
 			type = i219;
 			break;
 		}
