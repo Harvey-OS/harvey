@@ -7,7 +7,24 @@
 			"GOARCH=amd64"
 		],
 		"Pre": [
-			"u-root -o uroot.cpio -files /amd64/bin:amd64/bin -files /rc/bin:rc/bin -files /lib/ndb:lib/ndb $UROOTEXTRARGS plan9 $UROOTEXTRAPACKAGES",
+			"mkdir -p amd64/bin",
+			"rm -rf amd64/bin/fossil amd64/bin/venti  amd64/bin/regress",
+			"rm -f amd64/bin/ttf2subf",
+			"rm -f amd64/bin/tmpfs",
+			"rm -f amd64/bin/zenith",
+			"rm -f amd64/bin/acme",
+			"rm -f amd64/bin/vncs",
+			"rm -f amd64/bin/cifscmd",
+			"rm -f amd64/bin/aquarela",
+			"rm -f amd64/bin/jay",
+			"rm -f amd64/bin/vncv",
+			"rm -f amd64/bin/rio",
+			"rm -f amd64/bin/cifs",
+			"rm -f amd64/bin/scat",
+			"rm -f amd64/bin/vac",
+			"rm -f amd64/bin/vacfs",
+			"rm -f amd64/bin/plot",
+			"u-root -o uroot.cpio -files amd64/bin:amd64/bin -files /rc/bin:rc/bin -files /lib/ndb:lib/ndb $UROOTEXTRARGS plan9 $UROOTEXTRAPACKAGES",
 			"lzma -f -k uroot.cpio"
 		],
 		"#Pre": [

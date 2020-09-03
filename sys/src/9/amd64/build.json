@@ -1,11 +1,6 @@
 [
 	{
 		"Name": "cpu",
-		"Pre": [
-		    "u-root -o uroot.cpio plan9",
-		    "gzip -f -k uroot.cpio",
-		    "go build -o tmpfs harvey-os.org/cmd/tmpfs/"
-		],
 		"Env": [
 			"CONF=cpu",
 			"GO111MODULE=off",
@@ -99,34 +94,11 @@
 			"Ramfiles": {
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
-				"cat": "/$ARCH/bin/cat",
-				"crs": "/$ARCH/bin/acpi/crs",
-				"date": "/$ARCH/bin/date",
-				"echo": "/$ARCH/bin/echo",
-				"ed": "/$ARCH/bin/ed",
-				"factotum": "/$ARCH/bin/auth/factotum",
-				"fdisk": "/$ARCH/bin/disk/fdisk",
-				"fossil": "/$ARCH/bin/fossil/fossil",
-				"grep": "/$ARCH/bin/grep",
-				"ipconfig": "/$ARCH/bin/ip/ipconfig",
-				"irq": "/$ARCH/bin/acpi/irq",
-				"ls": "/$ARCH/bin/ls",
+				"bind": "/$ARCH/bin/bind",
 				"mount": "/$ARCH/bin/mount",
-				"nvram": "/util/nvram",
-				"pci": "/rc/bin/pci",
-				"prep": "/$ARCH/bin/disk/prep",
-				"ps": "/$ARCH/bin/ps",
-				"ratrace": "/$ARCH/bin/ratrace",
 				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
-				"realemu": "/$ARCH/bin/aux/realemu",
-				"sed": "/$ARCH/bin/sed",
-				"srv": "/$ARCH/bin/srv",
-				"startdisk": "startdisk",
 				"tmpfs": "/$ARCH/bin/tmpfs",
-				"usbd": "/$ARCH/bin/usb/usbd",
-				"venti": "/$ARCH/bin/venti/venti",
-				"vga": "/$ARCH/bin/aux/vga",
 				"uroot": "uroot.cpio.lzma"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
