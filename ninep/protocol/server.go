@@ -238,7 +238,7 @@ func (c *conn) serve() {
 
 	for !c.dead {
 		l := make([]byte, 7)
-		if n, err := c.Read(l); err != nil || n < 7 {
+		if _, err := io.ReadFull(c, l); err != nil {
 			c.logf("readNetPackets: short read: %v", err)
 			c.dead = true
 			return
