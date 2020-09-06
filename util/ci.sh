@@ -23,13 +23,18 @@ pwd # in case you get lost
 # bootstrap Harvey build utilities - what you do on your host OS otherwise
 ./bootstrap.sh
 
+GO_MOD_PATH_UROOT=`grep github.com/u-root/u-root go.mod | cut -d " " -f 2`
+GO_MOD_PATH_HARVEY=`grep harvey-os.org go.mod | cut -d " " -f 2`
+echo u-root version: $(GO_MOD_PATH_UROOT)
+echo Harvey version: $(GO_MOD_PATH_HARVEY)
+
 # not that we really want this, but yea... Go modules
 mkdir -p ~/go/src/github.com/u-root/
-cp -r ~/go/pkg/mod/github.com/u-root/u-root@v*c6181ee* ~/go/src/github.com/u-root/u-root
+cp -r ~/go/pkg/mod/github.com/u-root/$(GO_MOD_PATH_UROOT) ~/go/src/github.com/u-root/u-root
 chmod +w ~/go/src/github.com/u-root/u-root -R
 (cd ~/go/src/github.com/u-root/u-root && dep ensure)
 
-cp -r ~/go/pkg/mod/harvey-os.org@v*bcfa722* ~/go/src/harvey-os.org
+cp -r ~/go/pkg/mod/$(GO_MOD_PATH_HARVEY) ~/go/src/harvey-os.org
 chmod +w ~/go/src/harvey-os.org -R
 
 # extend PATH to include the build tool and u-root
