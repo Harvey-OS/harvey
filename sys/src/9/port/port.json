@@ -19,7 +19,6 @@
 			"../port/dev.c",
 			"../port/devcap.c",
 			"../port/devcons.c",
-			"../port/devcoreboot.c",
 			"../port/devdup.c",
 			"../port/devenv.c",
 			"../port/devfdmux.c",

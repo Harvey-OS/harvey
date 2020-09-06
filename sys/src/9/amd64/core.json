@@ -73,7 +73,6 @@
 			"backtrace.c",
 			"../port/dev9p.c",
 			"../port/devbridge.c",
-			"coreboot.c",
 			"ctype.c",
 			"devarch.c",
 			"../port/devdraw.c",
