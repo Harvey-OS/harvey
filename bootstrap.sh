@@ -9,14 +9,14 @@ echo Building the build tool...
 GO111MODULE=on go get ./util/src/harvey/cmd/...
 
 echo Fetching u-root and building it...
-GO111MODULE=on go get github.com/u-root/u-root@c6181ee270c59d542825e89a7c02c8c25b30373b golang.org/x/sys@05986578812163b26672dabd9b425240ae2bb0ad
+GO111MODULE=on go get github.com/u-root/u-root@master
 # Download u-root sources into $GOPATH because that's what u-root expects.
 # See https://github.com/u-root/u-root/issues/805
 # and https://github.com/u-root/u-root/issues/583
 GO111MODULE=off go get -d github.com/u-root/u-root
 
 echo Fetch harvey-os.org commands and build them into $GOBIN
-GO111MODULE=on go get harvey-os.org/cmd/...@bcfa7228c80c35fc627c077fdd5918db2181489e
+GO111MODULE=on go get harvey-os.org/cmd/...@main
 
 echo FIXME -- once we get more architectures, this needs to be done in sys/src/cmds/build.json
 echo Build tmpfs command into amd64 plan 9 bin
