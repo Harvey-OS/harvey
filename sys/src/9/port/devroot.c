@@ -19,7 +19,7 @@ enum
 	Qdir = 0,
 	Qboot = 0x1000,
 
-	Nrootfiles = 32,
+	Nrootfiles = 64,
 	Nbootfiles = 32,
 };
 
@@ -109,6 +109,7 @@ rootreset(void)
 	addrootdir("env");
 	addrootdir("fd");
 	addrootdir("initramfs");
+	addrootdir("lib");
 	addrootdir("mnt");
 	addrootdir("n");
 	addrootdir("net");
