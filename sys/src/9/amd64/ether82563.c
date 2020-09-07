@@ -1856,6 +1856,7 @@ i82563reset(Ctlr *ctlr)
 	if (ctlr->ra[Eaddrlen - 1] != 0)
 		goto macset;
 	switch (type) {
+	case i210:
 	case i82566:
 	case i82567:
 	case i82577:
