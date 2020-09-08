@@ -16,13 +16,13 @@ void	catch(void *c, char*);
 
 char *keyspec = "";
 
-int
-amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
+static int
+amount0(int fd, char *mntpt, int flags, char *attachname, int devspec, char *keyspec)
 {
 	int rv, afd;
 	AuthInfo *ai;
 
-	afd = fauth(fd, aname);
+	afd = fauth(fd, attachname);
 	if(afd >= 0){
 		ai = auth_proxy(afd, amount_getkey, "proto=p9any role=client %s", keyspec);
 		if(ai != nil)
@@ -30,7 +30,7 @@ amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
 		else
 			fprint(2, "%s: auth_proxy: %r\n", argv0);
 	}
-	rv = mount(fd, afd, mntpt, flags, aname, 'M');
+	rv = mount(fd, afd, mntpt, flags, attachname, devspec);
 	if(afd >= 0)
 		close(afd);
 	return rv;
@@ -39,7 +39,8 @@ amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
 void
 main(int argc, char *argv[])
 {
-	char *spec;
+	char *devspec = "M";
+	char *attachname = "";
 	uint32_t flag = 0;
 	int qflag = 0;
 	int noauth = 0;
@@ -61,6 +62,9 @@ main(int argc, char *argv[])
 	case 'k':
 		keyspec = EARGF(usage());
 		break;
+	case 'M':
+		devspec = EARGF(usage());
+		break;
 	case 'n':
 		noauth = 1;
 		break;
@@ -71,11 +75,16 @@ main(int argc, char *argv[])
 		usage();
 	}ARGEND
 
-	spec = 0;
+	// Why do this test here and not in the switch?
+	// In case someone mistakenly messes up the default
+	// value of devspec in its declaration. This is insurance.
+	if (strlen(devspec) > 1) {
+		exits("devspec can only be one UTF-8 character");
+	}
 	if(argc == 2)
-		spec = "";
+		attachname = "";
 	else if(argc == 3)
-		spec = argv[2];
+		attachname = argv[2];
 	else
 		usage();
 
@@ -92,9 +101,9 @@ main(int argc, char *argv[])
 
 	notify(catch);
 	if(noauth)
-		rv = mount(fd, -1, argv[1], flag, spec, 'M');
+		rv = mount(fd, -1, argv[1], flag, attachname, devspec[0]);
 	else
-		rv = amount0(fd, argv[1], flag, spec, keyspec);
+		rv = amount0(fd, argv[1], flag, attachname, devspec[0], keyspec);
 	if(rv < 0){
 		if(qflag)
 			exits(0);
