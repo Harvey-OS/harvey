@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"path/filepath"
 	"sync"
@@ -20,9 +21,11 @@ import (
 )
 
 var (
-	srv   = flag.String("s", "tmpfs", "srv name")
-	debug = flag.Bool("d", false, "Print debug messages")
-	ext   = flag.String("ext", "cpio", "file type")
+	srv     = flag.String("s", "tmpfs", "srv name")
+	debug   = flag.Bool("d", false, "Print debug messages")
+	ext     = flag.String("ext", "cpio", "file type")
+	network = flag.String("net", "tcp", "network used to listen")
+	addr    = flag.String("addr", "", "network address to listen on")
 )
 
 // Constant error messages to match those found in the linux 9p source.
@@ -366,15 +369,31 @@ func main() {
 	if *debug {
 		arch.DumpArchive()
 	}
-	fd, err := sys.PostPipe(*srv)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	fs := &fileServer{archive: arch, files: make(map[protocol.FID]*FidEntry), ioUnit: 1 * 1024 * 1024}
+	nsCreator := func() protocol.NineServer {
+		return &fileServer{archive: arch, files: make(map[protocol.FID]*FidEntry), ioUnit: 1 * 1024 * 1024}
+	}
 
 	// TODO: get the tracing back in.
 	// The ninep package was from a long time ago and it's
 	// awkward at best.
-	protocol.ServeFromRWC(os.NewFile(uintptr(fd), *srv), fs, *srv)
+	if *addr != "" {
+		ln, err := net.Listen(*network, *addr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		netListener, err := protocol.NewNetListener(nsCreator)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := netListener.Serve(ln); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		fd, err := sys.PostPipe(*srv)
+		if err != nil {
+			log.Fatal(err)
+		}
+		protocol.ServeFromRWC(os.NewFile(uintptr(fd), *srv), nsCreator(), *srv)
+	}
 }
