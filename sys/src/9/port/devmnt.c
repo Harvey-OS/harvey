@@ -133,8 +133,9 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 		v = VERSION9P;
 
 	/* validity */
-	if(strncmp(v, VERSION9P, strlen(VERSION9P)) != 0)
-		error("bad 9P version specification");
+	// Let the server tell us. 
+	//if(strncmp(v, VERSION9P, strlen(VERSION9P)) != 0)
+		//error("bad 9P version specification");
 
 	mnt = c->mux;
 
@@ -308,8 +309,8 @@ mntauth(Chan *c, char *spec)
 
 }
 
-static Chan*
-mntattach(char *muxattach)
+Chan*
+mntattachversion(char *muxattach, char *version)
 {
 	Proc *up = externup();
 	Mnt *mnt;
@@ -328,7 +329,7 @@ mntattach(char *muxattach)
 	mnt = c->mux;
 
 	if(mnt == nil){
-		mntversion(c, 0, nil, 0);
+		mntversion(c, 0, version, 0);
 		mnt = c->mux;
 		if(mnt == nil)
 			error(Enoversion);
@@ -373,6 +374,12 @@ mntattach(char *muxattach)
 	if((bogus.flags & MCACHE) && mfcinit != nil)
 		c->flag |= CCACHE;
 	return c;
+}
+
+static Chan*
+mntattach(char *muxattach)
+{
+	return mntattachversion(muxattach, "9P2000");
 }
 
 Chan*

@@ -104,68 +104,7 @@ mntreset(void)
 static Chan*
 mntattach(char *muxattach)
 {
-	Proc *up = externup();
-	Mnt *mnt;
-	Chan *c;
-	Mntrpc *r;
-	struct bogus{
-		Chan	*chan;
-		Chan	*authchan;
-		char	*spec;
-		int	flags;
-	}bogus;
-
-	bogus = *((struct bogus *)muxattach);
-	c = bogus.chan;
-
-	mnt = c->mux;
-
-	if(mnt == nil){
-		mntversion(c, 0, nil, 0);
-		mnt = c->mux;
-		if(mnt == nil)
-			error(Enoversion);
-	}
-
-	c = mntchann();
-	if(waserror()) {
-		/* Close must not be called since it will
-		 * call mnt recursively
-		 */
-		chanfree(c);
-		nexterror();
-	}
-
-	r = mntralloc(0, mnt->msize);
-
-	if(waserror()) {
-		mntfree(r);
-		nexterror();
-	}
-
-	r->request.type = Tattach;
-	r->request.fid = c->fid;
-	if(bogus.authchan == nil)
-		r->request.afid = NOFID;
-	else
-		r->request.afid = bogus.authchan->fid;
-	r->request.uname = up->user;
-	r->request.aname = bogus.spec;
-	mountrpc(mnt, r);
-
-	c->qid = r->reply.qid;
-	c->mchan = mnt->c;
-	incref(&mnt->c->r);
-	c->mqid = c->qid;
-
-	poperror();	/* r */
-	mntfree(r);
-
-	poperror();	/* c */
-
-	if((bogus.flags & MCACHE) && mfcinit != nil)
-		c->flag |= CCACHE;
-	return c;
+	return mntattachversion(muxattach, "9P2000.L");
 }
 
 static Walkqid*
