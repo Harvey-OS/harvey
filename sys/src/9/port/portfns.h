@@ -205,6 +205,7 @@ void		mmuflush(void);
 void		mmuput(uintptr_t, Page*, uint);
 void		mmurelease(Proc*);
 void		mmuswitch(Proc*);
+Chan*		mntattachversion(char *muxattach, char *version);
 Chan*		mntauth(Chan*, char*);
 usize		mntversion(Chan*, uint32_t, char*, usize);
 void		mountfree(Mount*);
