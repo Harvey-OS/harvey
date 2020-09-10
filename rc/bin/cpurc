@@ -87,7 +87,5 @@ if(test -e /env/onstartup) {
 	eval $onstartup
 }
 
-./util/gotip
-
 # echo `{date} $sysname >>/sys/log/boot
 exit ''
