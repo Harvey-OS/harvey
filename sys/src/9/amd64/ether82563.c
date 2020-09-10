@@ -121,6 +121,9 @@ enum {
 	Torl		= 0xC0/4,	/* Total Octets Received */
 	Totl		= 0xC8/4,	/* Total Octets Transmitted */
 	Nstatistics	= 0x124/4,
+
+	/* iNVM (i210, i211) */
+	Invmdata0	= 0x12120,
 };
 
 enum {					/* Ctrl */
@@ -152,6 +155,10 @@ enum {					/* Status */
 	Tbimode		= 1<<5,		/* TBI Mode Indication */
 	Phyra		= 1<<10,	/* PHY Reset Asserted */
 	GIOme		= 1<<19,	/* GIO Master Enable Status */
+};
+
+enum {					/* Eec */
+	Flupd		= 1<<19,
 };
 
 enum {					/* Eerd */
@@ -1844,6 +1851,41 @@ fload32(Ctlr *c)
 }
 
 static int
+invmload(Ctlr *c)
+{
+	int i, a;
+	uint32_t w;
+
+	memset(c->eeprom, 0xFF, sizeof(c->eeprom));
+	for (i = 0; i < 64; i++) {
+		w = csr32r(c, Invmdata0 + i*4);
+		switch (w & 7) {
+		case 0:	// uninitialized structure
+			break;
+		case 1:	// word auto load
+			a = (w & 0xFE00) >> 9;
+			if(a < nelem(c->eeprom)) {
+				c->eeprom[a] = w >> 16;
+			}
+			continue;
+		case 2:	// csr auto load
+			i++;
+		case 3:	// phy auto load
+			continue;
+		case 4:	// rsa key sha256
+			i += 256/32;
+		case 5:	// invalidated structure
+			continue;
+		default:
+			print("invm: %.2x %.8ux\n", i, w);
+			continue;
+		}
+		break;
+	}
+	return 0;
+}
+
+static int
 i82563reset(Ctlr *ctlr)
 {
 	int i, r, type;
@@ -1857,6 +1899,12 @@ i82563reset(Ctlr *ctlr)
 		goto macset;
 	switch (type) {
 	case i210:
+	 	if ((csr32r(ctlr, Eec) & Flupd) == 0) {
+			r = invmload(ctlr);
+		} else {
+			r = fload16(ctlr);
+		}
+		break;
 	case i82566:
 	case i82567:
 	case i82577:
