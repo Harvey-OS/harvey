@@ -61,7 +61,6 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 {
 	uint8_t *p, *ep;
 	uint i, size;
-	uint32_t errno; // ok thank you Linux.
 
 	p = ap;
 	ep = p + nap;
@@ -243,9 +242,8 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 	case Rlerror:
 		if(p+BIT32SZ > ep)
 			return 0;
-		errno = GBIT32(p);
-		print("errno %d\n", errno);
-		return 0;
+		f->errno = GBIT32(p);
+		p += BIT32SZ;
 		break;
 
 	case Rflush:

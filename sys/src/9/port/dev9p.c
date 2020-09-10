@@ -417,6 +417,10 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 		convM2S(msg, n, &f);
 		error(f.ename);
 		break;
+	case Rlerror:
+		convM2S(msg, n, &f);
+		error(errno2str(f.errno));
+		break;
 	case Rversion:
 		convM2S(msg, n, &f);
 		mounts[tidx].version = strdup(f.version);
