@@ -30,6 +30,9 @@ struct	Fcall
 			char	*ename;		/* Rerror */
 		};
 		struct {
+			uint	errno;		/* Rlerror */
+		};
+		struct {
 			Qid	qid;		/* Rattach, Ropen, Rcreate */
 			uint32_t	iounit;		/* Ropen, Rcreate */
 		};

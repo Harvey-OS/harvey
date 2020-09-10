@@ -117,6 +117,7 @@ void		envcpy(Egrp*, Egrp*);
 int		eqchanddq(Chan*, int, uint, Qid, int);
 int		eqqid(Qid, Qid);
 void		error(char*);
+char*		errno2str(uint);
 void		exhausted(char*);
 void		exit(int);
 uint64_t	fastticks(uint64_t*);

@@ -599,6 +599,7 @@ extern	int	chdir(const char*);
 extern	int	close(int);
 extern	int	create(const char*, int, uint32_t);
 extern	int	dup(int, int);
+extern  char*   errno2str(uint errno);
 extern	int	errstr(char*, uint);
 extern	int	exec(const char*, char* const[]);
 extern	int	execl(const char*, ...);

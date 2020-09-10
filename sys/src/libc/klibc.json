@@ -108,6 +108,7 @@
 			"port/configstring.c",
 			"port/ctype.c",
 			"port/encodefmt.c",
+			"port/errno2str.c",
 			"port/execl.c",
 			"port/exp.c",
 			"port/fabs.c",

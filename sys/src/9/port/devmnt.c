@@ -769,6 +769,8 @@ mntvalidreply(Mnt *mnt, Mntrpc *r)
 	switch(t) {
 	case Rerror:
 		error(r->reply.ename);
+	case Rlerror:
+		error(errno2str(r->reply.errno));
 	case Rflush:
 		error(Eintr);
 	default:
