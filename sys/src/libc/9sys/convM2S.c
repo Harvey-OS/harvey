@@ -61,6 +61,7 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 {
 	uint8_t *p, *ep;
 	uint i, size;
+	uint32_t errno; // ok thank you Linux.
 
 	p = ap;
 	ep = p + nap;
@@ -239,6 +240,14 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 		p = gstring(p, ep, &f->ename);
 		break;
 
+	case Rlerror:
+		if(p+BIT32SZ > ep)
+			return 0;
+		errno = GBIT32(p);
+		print("errno %d\n", errno);
+		return 0;
+		break;
+
 	case Rflush:
 		break;
 
@@ -269,6 +278,7 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 		break;
 
 	case Ropen:
+	case Rlopen:
 	case Rcreate:
 		p = gqid(p, ep, &f->qid);
 		if(p == nil)
