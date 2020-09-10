@@ -132,11 +132,6 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	if(v == nil || v[0] == '\0')
 		v = VERSION9P;
 
-	/* validity */
-	// Let the server tell us. 
-	//if(strncmp(v, VERSION9P, strlen(VERSION9P)) != 0)
-		//error("bad 9P version specification");
-
 	mnt = c->mux;
 
 	if(mnt != nil){
@@ -310,7 +305,7 @@ mntauth(Chan *c, char *spec)
 }
 
 Chan*
-mntattachversion(char *muxattach, char *version)
+mntattachversion(char *muxattach, char *version, uint8_t tag, Chan *(*mntchan)(void))
 {
 	Proc *up = externup();
 	Mnt *mnt;
@@ -351,7 +346,7 @@ mntattachversion(char *muxattach, char *version)
 		nexterror();
 	}
 
-	r->request.type = Tattach;
+	r->request.type = tag;
 	r->request.fid = c->fid;
 	if(bogus.authchan == nil)
 		r->request.afid = NOFID;
@@ -379,7 +374,7 @@ mntattachversion(char *muxattach, char *version)
 static Chan*
 mntattach(char *muxattach)
 {
-	return mntattachversion(muxattach, "9P2000");
+	return mntattachversion(muxattach, "9P2000", Tattach, mntchan);
 }
 
 Chan*
@@ -778,6 +773,9 @@ mntvalidreply(Mnt *mnt, Mntrpc *r)
 		error(Eintr);
 	default:
 		if(t == r->request.type+1) // R for T is always T+1.
+			break;
+		// or the DotL hack.
+		if(t == (r->request.type+DotLOffset)+1)
 			break;
 		sn = "?";
 		if(mnt->c->path != nil)

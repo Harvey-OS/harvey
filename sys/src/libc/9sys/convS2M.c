@@ -95,6 +95,14 @@ sizeS2M(Fcall *f)
 		n += stringsz(f->aname);
 		break;
 
+	case Tlattach:
+		n += BIT32SZ;
+		n += BIT32SZ;
+		n += stringsz(f->uname);
+		n += stringsz(f->aname);
+		n += BIT32SZ;
+		break;
+
 	case Twalk:
 		n += BIT32SZ;
 		n += BIT32SZ;
@@ -106,6 +114,11 @@ sizeS2M(Fcall *f)
 	case Topen:
 		n += BIT32SZ;
 		n += BIT8SZ;
+		break;
+
+	case Tlopen:
+		n += BIT32SZ;
+		n += BIT32SZ;
 		break;
 
 	case Tcreate:
@@ -171,6 +184,7 @@ sizeS2M(Fcall *f)
 		break;
 
 	case Ropen:
+	case Rlopen:
 	case Rcreate:
 		n += QIDSZ;
 		n += BIT32SZ;
@@ -207,6 +221,7 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 {
 	uint8_t *p;
 	uint i, size;
+	int t = f->type;
 
 	size = sizeS2M(f);
 	if(size == 0)
@@ -218,7 +233,14 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 
 	PBIT32(p, size);
 	p += BIT32SZ;
-	PBIT8(p, f->type);
+	// The .L spec, weirdly, wants a Tlattach packet
+	// with a Tattach type. Oops.
+	switch (t) {
+		case Tlattach:
+			t = Tattach;
+			break;
+	}
+	PBIT8(p, t);
 	p += BIT8SZ;
 	PBIT16(p, f->tag);
 	p += BIT16SZ;
@@ -255,6 +277,17 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p  = pstring(p, f->aname);
 		break;
 
+	case Tlattach:
+		PBIT32(p, f->fid);
+		p += BIT32SZ;
+		PBIT32(p, f->afid);
+		p += BIT32SZ;
+		p  = pstring(p, f->uname);
+		p  = pstring(p, f->aname);
+		p += BIT32SZ;
+		PBIT32(p, ~0);
+		break;
+
 	case Twalk:
 		PBIT32(p, f->fid);
 		p += BIT32SZ;
@@ -273,6 +306,13 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p += BIT32SZ;
 		PBIT8(p, f->mode);
 		p += BIT8SZ;
+		break;
+
+	case Tlopen:
+		PBIT32(p, f->fid);
+		p += BIT32SZ;
+		PBIT32(p, f->mode);
+		p += BIT32SZ;
 		break;
 
 	case Tcreate:
@@ -358,6 +398,7 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		break;
 
 	case Ropen:
+	case Rlopen:
 	case Rcreate:
 		p = pqid(p, &f->qid);
 		PBIT32(p, f->iounit);

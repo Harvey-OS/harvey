@@ -104,7 +104,7 @@ mntreset(void)
 static Chan*
 mntattach(char *muxattach)
 {
-	return mntattachversion(muxattach, "9P2000.L");
+	return mntattachversion(muxattach, "9P2000.L", Tlattach, mntchann);
 }
 
 static Walkqid*
@@ -226,6 +226,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 	return nstat;
 }
 
+// TODO: can we merge with the one in devmnt.c
 static Chan*
 mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
@@ -271,13 +272,13 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 static Chan*
 mntopen(Chan *c, int omode)
 {
-	return mntopencreate(Topen, c, nil, omode, 0);
+	return mntopencreate(Tlopen, c, nil, omode, 0);
 }
 
 static void
 mntcreate(Chan *c, char *name, int omode, int perm)
 {
-	mntopencreate(Tcreate, c, name, omode, perm);
+	mntopencreate(Tlcreate, c, name, omode, perm);
 }
 
 static void
