@@ -125,6 +125,15 @@ enum
 	Twstat =	126,
 	Rwstat,
 	Tmax,
+	DotLOffset = 100,
+	Tlattach = 	Tattach - DotLOffset,
+	Rlattach,
+	Tlopen =	Topen - DotLOffset,
+	Rlopen,
+	Tlcreate =	Tcreate - DotLOffset,
+	Rlcreate,
+	Tlerror =	Terror - DotLOffset,
+	Rlerror,
 };
 
 uint	convM2S(uint8_t*, uint, Fcall*);
