@@ -69,6 +69,7 @@ tools/share
 
 cfg/pxe/tftpboot/harvey.32bit
 cfg/pxe/tftpboot/pxelinux.cfg
+cfg/pxe/tftpboot/ipxe
 usr/harvey/tmp
 
 build_out
@@ -83,3 +84,4 @@ util/harvey.raw
 **/*.h.gch
 
 .vscode
+linux_amd64/
