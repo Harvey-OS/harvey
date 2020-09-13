@@ -298,6 +298,19 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 		p += f->count;
 		break;
 
+	case Rreaddir:
+		if(p+BIT32SZ > ep) {
+			return 0;
+		}
+		f->count = GBIT32(p);
+		p += BIT32SZ;
+		if(p+f->count > ep) {
+			return 0;
+		}
+		f->data = (char*)p;
+		p += f->count;
+		break;
+
 	case Rwrite:
 		if(p+BIT32SZ > ep)
 			return 0;

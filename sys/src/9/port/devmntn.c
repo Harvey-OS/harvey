@@ -272,6 +272,18 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 static Chan*
 mntopen(Chan *c, int omode)
 {
+	// 9P2000.L differentiates by file type,
+	// unlike Plan 9. We have to treat, e.g.,
+	// directories and files differently (!).
+	// Using different system calls for files
+	// and directories is a great idea, said
+	// no one ever.
+	uint8_t t = c->qid.type;
+	if (t & QTDIR) {
+		print("dir open?");
+	} else if (t) {
+		error("only dirs or regular files, ever");
+	}
 	return mntopencreate(Tlopen, c, nil, omode, 0);
 }
 
@@ -346,9 +358,9 @@ mntwstat(Chan *c, uint8_t *dp, int32_t n)
 static int32_t
 mntread(Chan *c, void *buf, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	uint8_t *p, *e;
 	int nc, cache, isdir;
-	usize dirlen;
 
 	isdir = 0;
 	cache = c->flag & CCACHE;
@@ -377,19 +389,134 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 	if (c->buffend > 0) {
 		mntrdwr(Twrite, c, c->writebuff, c->buffend, c->writeoffset);
 	}
+	// Long story.
+	// Reads on directories have taken a long path. In the original 45 years ago Unix I cut my teeth on,
+	// one could open a file and read it. If it were a directory, data was returned as 14 bytes of name
+	// and 2 bytes of inumber.
+	// There were obvious problems here, the most basic being that the on-disk format was directly
+	// returned to a program. Hence readdir, which was an attempt at an abstraction: it returned
+	// the names and little else. So what happens in, say, ls -l? it looks something like this:
+	// entries := readdir()
+	// for each entry, stat() the entry.
+	// Now it was well known in the 1980s that this is a disaster on a network: there is at
+	// least one packet for each directory entry.
+	// For directory reads, it's much, much better to grow the amount
+	// of data in a packet, even data not used, than to add lots of packets when more
+	// info is needed. Measurement has shown this over and over. Hence NFS3 READDIRPLUS.
+	// Plan 9 and 9P, circa 1991, introduced a major improvement:
+	// directories are like files, and one can now read them again. This is really important:
+	// o means you can import a directory over 9p and just read from it
+	// o removes a need for a readdir system call
+	// o avoids a special op in 9p to read directories
+	// o no need to have the kernel unpack the information, just relay to user space
+	// Were readdir brought into 9P, the addition would impact 9P, the kernel, all user
+	// libraries, and all user programs, in not very good ways.
+	// This is one of the subtle design elements of Plan 9 that not even many Plan 9 users
+	// think about.
+	// Directory reads return stat records, which are an endian- and word-length independent
+	// representation of the file metadata.
+	// 9p supports this kind of read directly.
+	// A read of a directory on Plan 9 returns metadata, in other words, so there are no
+	// extra stats per entry as in the Unix model.
+	// Unix and Linux, sadly, retained the old model. A Linux readdir returns dirents.
+	// If you want to know more, stat each entry. We're back to the bad old days.
+	// What's this look like on 9P?
+	// 1. read the dir
+	// 2. for each element, walk to it.
+	// 3. stat it.
+	// 9P2000.L had a chance to fix this in a way that would have worked well for Plan 9
+	// as well as some hypothetical future Linux with a more powerful readdir model,
+	// but sadly it instead baked in those limitations.
+	// We don't want to reflect that mess to user mode in Harvey, so we have to
+	// convert the 9P2000.L information to plan 9 stat structs, losing information
+	// in the process.
+	// 9P2000.L stat information looks like this:
+	// qid[13] offset[8] type[1] name[s]
+	//
+	// Plan 9 stat looks like this:
+	//
+	// size[2]    total byte count of the following data
+	// type[2]    for kernel use
+	// dev[4]     for kernel use
+	// qid.type[1] the type of the file (directory, etc.), represented as a bit vector corresponding to the high 8 bits of the file's mode word.
+	// qid.vers[4] version number for given path
+	// qid.path[8] the file server's unique identification for the file
+	// mode[4]   permissions and flags
+	// atime[4]   last access time
+	// mtime[4]   last modification time
+	// length[8]   length of file in bytes
+	// name[ s ]   file name; must be / if the file is the root directory of the server
+	// uid[ s ]    owner name
+	// gid[ s ]    group name
+	// muid[ s ]   name of the user who last modified the file
+	//
+	// Important point here: note that in 9P2000.L, they had to add a stat structure.
+	// There is no such thing needed in 9P2000; it's the province of the kernel, not
+	// the protocol. Hopefully this illustrates the differences in the model.
+	//
+	// The size of a 9P stat struct is:
+	// ../../../include/fcall.h:#define STATFIXLEN     (BIT16SZ+QIDSZ+5*BIT16SZ+4*BIT32SZ+1*BIT64SZ)    amount of fixed length data in a stat buffer */
+	//	size + qidsz + what is that 5? type and 4 sizes for strings + dev,mod,atime,mtime + length
+	// Note that for now we can only fill in the name; to better fill this in we'll need to do the
+	// walk/stat operation.
 
-	n = mntrdwr(Tread, c, buf, n, off);
+	// Rough algorithm:
+	// zero buf. Useful so that the default length strings for uid, gid, muid will be empty.
+	// compute length of record.
+	// copy the name out. copy the qid out. copy the record size out. Continue.
+	memset(buf, 0, n);
 	if(isdir) {
-		for(e = &p[n]; p+BIT16SZ < e; p += dirlen){
-			dirlen = BIT16SZ+GBIT16(p);
-			if(p+dirlen > e)
-				break;
-			validstat(p, dirlen);
-			mntdirfix(p, c);
+		uint8_t *b = buf;
+
+		int tot = 0;
+		int a = n/8;
+		if (a == 0)
+			a = 128;
+		uint8_t *m = mallocz(n, 0);
+		if (waserror()) {
+			free(m);
 		}
+		memset(m, 0, n);
+		n = mntrdwr(Treaddir, c, m, a, off);
+		print("mntrdwr: got %d asked for %d\n", n, a);
+		if (n == 0) {
+			free(m);
+			poperror();
+			return tot;
+		}
+		if (n < 4)
+			error(Esbadstat);
+		// TODO: we're going to have to stat each returned
+		// entry because this 9P2000.L design requires us to.
+		// Why is it that way? To match how Linux works.
+		// And Linux works the way Unix worked in 1972.
+		// Fantastic.
+		p = m;
+		e = &m[n];
+		while (p < e) {
+			int namesz = GBIT16(p + 22);
+			// Move the Qid. No need to change it; 9P2000.L and 9P Qids are the same.
+			memmove(b+8, p, sizeof(Qid));
+			// Move the name, including the name's length.
+			memmove(b+41, p+22, namesz + BIT16SZ);
+			// Story the whole record length, not including the
+			// the 16-bit length field.
+			// "size[2]    total byte count of the following data"
+			PBIT16(b, STATFIXLEN + namesz - BIT16SZ);
+			// advance p by the size of the 9P2000.L record
+			p +=  24 + namesz;
+			// advance b by the size of the Plan 9 stat record
+			b += STATFIXLEN + namesz;
+		}
+		n = b - (uint8_t*)buf;
+		poperror();
+		free(m);
 		if(p != e)
 			error(Esbadstat);
+	} else {
+		n = mntrdwr(Tread, c, buf, n, off);
 	}
+
 	return n;
 }
 

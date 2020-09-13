@@ -101,3 +101,45 @@ convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 
 	return p - buf;
 }
+
+uint
+convLM2D(uint8_t *buf, uint nbuf, Dir *d)
+{
+	uint8_t *p, *ebuf;
+
+	if(nbuf < 22)
+		return 0;
+
+	p = buf;
+	ebuf = buf + nbuf;
+	//qid[13] offset[8] type[1] name[s]
+
+	d->qid.type = GBIT8(p);
+	p += BIT8SZ;
+	d->qid.vers = GBIT32(p);
+	p += BIT32SZ;
+	d->qid.path = GBIT64(p);
+	p += BIT64SZ;
+
+	// scarf offset in length
+	d->length = GBIT64(p);
+	p += BIT64SZ;
+
+	d->type = GBIT8(p);
+	p += BIT8SZ;
+	// ignore the offset.
+	// No mode information.
+	d->mode = 0;
+	// No time information.
+	d->atime = 0;
+	d->mtime = 0;
+	// nothing to do with type for now.
+
+	if(p + BIT16SZ > ebuf)
+		return 0;
+	//ns = GBIT16(p);
+	p += BIT16SZ;
+	// TODO: null terminate?
+	d->name =  (char *)p;
+	return p - buf;
+}
