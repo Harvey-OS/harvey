@@ -134,6 +134,12 @@ sizeS2M(Fcall *f)
 		n += BIT32SZ;
 		break;
 
+	case Treaddir:
+		n += BIT32SZ;
+		n += BIT64SZ;
+		n += BIT32SZ;
+		break;
+
 	case Twrite:
 		n += BIT32SZ;
 		n += BIT64SZ;
@@ -326,6 +332,15 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		break;
 
 	case Tread:
+		PBIT32(p, f->fid);
+		p += BIT32SZ;
+		PBIT64(p, f->offset);
+		p += BIT64SZ;
+		PBIT32(p, f->count);
+		p += BIT32SZ;
+		break;
+
+	case Treaddir:
 		PBIT32(p, f->fid);
 		p += BIT32SZ;
 		PBIT64(p, f->offset);

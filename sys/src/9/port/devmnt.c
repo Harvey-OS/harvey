@@ -741,7 +741,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 		if(nr > nreq)
 			nr = nreq;
 
-		if(type == Tread)
+		if((type == Tread) || (type == Treaddir))
 			r->b = bl2mem((uint8_t*)uba, r->b, nr);
 		else if(cache)
 			mfcwrite(c, (uint8_t*)uba, nr, off);
@@ -951,6 +951,9 @@ mntrpcread(Mnt *mnt, Mntrpc *r)
 	t = nb->rp[BIT32SZ];
 	switch(t){
 	case Rread:
+		hlen = BIT32SZ+BIT8SZ+BIT16SZ+BIT32SZ;
+		break;
+	case Rreaddir:
 		hlen = BIT32SZ+BIT8SZ+BIT16SZ+BIT32SZ;
 		break;
 	default:
