@@ -1248,9 +1248,9 @@ sysmount(Ar0* ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int mount(int fd, int afd, char* old, int flag, char* aname);
+	 * int mount(int fd, int afd, char* old, int flag, char* aname, int dc);
 	 * should be
-	 * long mount(int fd, int afd, char* old, int flag, char* aname);
+	 * long mount(int fd, int afd, char* old, int flag, char* aname, int dc);
 	 */
 	fd = va_arg(list, int);
 	afd = va_arg(list, int);
@@ -1260,7 +1260,33 @@ sysmount(Ar0* ar0, ...)
 	dc = va_arg(list, int);
 	va_end(list);
 
+	if(dc == 0){
+		error(Ebadarg);
+	}
 	ar0->i = bindmount(dc, fd, afd, nil, old, flag, aname);
+}
+
+void
+sysmount_(Ar0* ar0, ...)
+{
+	int afd, fd, flag;
+	char *aname, *old;
+	va_list list;
+	va_start(list, ar0);
+
+	/*
+	 * int mount(int fd, int afd, char* old, int flag, char* aname);
+	 *
+	 * Deprecated; should be for backwards compatibility only.
+	 */
+	fd = va_arg(list, int);
+	afd = va_arg(list, int);
+	old = va_arg(list, char*);
+	flag = va_arg(list, int);
+	aname = va_arg(list, char*);
+	va_end(list);
+
+	ar0->i = bindmount('M', fd, afd, nil, old, flag, aname);
 }
 
 void

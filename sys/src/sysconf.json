@@ -365,12 +365,13 @@
 		{
 			"Args": [
 				"int32_t",
+				"int32_t",
 				"char*",
 				"int32_t",
 				"char*"
 			],
 			"Id": 46,
-			"Name": "mount",
+			"Name": "mount_",
 			"Ret": [
 				"int32_t"
 			]
@@ -438,6 +439,21 @@
 			"Name": "nsec",
 			"Ret": [
 				"int64_t"
+			]
+		},
+		{
+			"Args": [
+				"int32_t",
+				"int32_t",
+				"char*",
+				"int32_t",
+				"char*",
+				"int32_t"
+			],
+			"Id": 54,
+			"Name": "mount",
+			"Ret": [
+				"int32_t"
 			]
 		}
 	],
