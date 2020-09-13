@@ -137,6 +137,8 @@ enum
 	Rlcreate,
 	Tlerror =	Terror - DotLOffset,
 	Rlerror,
+	Treaddir = 	40,
+	Rreaddir
 };
 
 uint	convM2S(uint8_t*, uint, Fcall*);
@@ -145,6 +147,7 @@ uint	sizeS2M(Fcall*);
 
 int	statcheck(uint8_t *abuf, uint nbuf);
 uint	convM2D(uint8_t*, uint, Dir*, char*);
+uint	convLM2D(uint8_t*, uint, Dir*);
 uint	convD2M(Dir*, uint8_t*, uint);
 uint	sizeD2M(Dir*);
 
