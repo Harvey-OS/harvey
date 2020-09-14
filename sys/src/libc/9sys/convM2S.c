@@ -322,6 +322,14 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 	case Rremove:
 		break;
 
+	case Rgetattr:
+		if(p+153 > ep)
+			return 0;
+		f->nstat = 153;
+		f->data = (char *)p;
+		p += 153;
+		break;
+
 	case Rstat:
 		if(p+BIT16SZ > ep)
 			return 0;

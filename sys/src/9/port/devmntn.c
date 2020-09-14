@@ -191,13 +191,39 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 	return wq;
 }
 
+// Here is the other place the mistakes in 9P2000.L bite us.
+// Putting all this system-dependent stuff in 9P is nasty but we can take it.
+// size[4] Tgetattr tag[2] fid[4] request_mask[8]
+// size[4] Rgetattr tag[2] valid[8] qid[13] mode[4] uid[4] gid[4] nlink[8]
+//                  rdev[8] size[8] blksize[8] blocks[8]
+//                  atime_sec[8] atime_nsec[8] mtime_sec[8] mtime_nsec[8]
+//                  ctime_sec[8] ctime_nsec[8] btime_sec[8] btime_nsec[8]
+//                  gen[8] data_version[8]
+//
+// 9P:
+// size[2]    total byte count of the following data
+// type[2]    for kernel use
+// dev[4]     for kernel use
+// qid.type[1]the type of the file (directory, etc.), represented as a bit vector corresponding to the high 8 bits of the file's mode word.
+// qid.vers[4]version number for given path
+// qid.path[8]the file server's unique identification for the file
+// mode[4]   permissions and flags
+// atime[4]   last access time
+// mtime[4]   last modification time
+// length[8]   length of file in bytes
+// name[ s ]   file name; must be / if the file is the root directory of the server
+// uid[ s ]    owner name
+// gid[ s ]    group name
+// muid[ s ]   name of the user who last modified the file
 static int32_t
 mntstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
-	usize nstat;
+	usize nstat, nl;
+	char *name;
+	uint8_t *buf;
 
 	if(n < BIT16SZ)
 		error(Eshortstat);
@@ -207,21 +233,102 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		mntfree(r);
 		nexterror();
 	}
-	r->request.type = Tstat;
+	r->request.type = Tgetattr;
 	r->request.fid = c->fid;
 	mountrpc(mnt, r);
-
-	if(r->reply.nstat > n){
+	name = chanpath(c);
+	nl = strlen(name);
+	buf = (uint8_t*) r->reply.data;
+	nstat = STATFIXLEN + nl + 16; // max uid print + 0 null terminator
+	// This looks crazy, right? It's how you tell the
+	// caller there is more data to read. But you give it
+	// no data. That avoids the mess of partial reads of
+	// stat structs. The calling layer will likely hide the
+	// mess under the rock.
+	if(nstat > n){
 		nstat = BIT16SZ;
-		PBIT16(dp, r->reply.nstat-2);
+		PBIT16(dp, nstat-2);
 	}else{
-		nstat = r->reply.nstat;
-		memmove(dp, r->reply.stat, nstat);
+		// N.B. STATFIXLEN includes the strings lengths
+		// AND the leading 16-bit size. The leading 16-bit size
+		// is of a packet with 0 length strings is STATFIXLEN - 2
+		// The offsets below include the leading 16-bit size
+		uint64_t _64;
+		uint32_t _32;
+		int ul;
+		// This is an offset for where the strings go.
+		int o = STATFIXLEN - 4 * BIT16SZ + BIT16SZ;
+		char *base = strrchr(name, '/');
+		// If there is on no /, use the name, else use the
+		// part of the string after the slash. This works
+		// even if the name ends in /.
+		if (base != nil)
+			name = base+1;
+		nl = strlen(name);
+		//hexdump(buf, 149);
+		memset(dp, 0, n);
+		// The Qid format is compatible, so just copy it.
+		memmove(dp + 8, buf + 8, sizeof(Qid));
+		// mode. It needs adjustment for DMDIR.
+		_32 = GBIT32(buf+21);
+		if (buf[8] & QTDIR) {
+			_32 |= DMDIR;
+		}
+		PBIT32(dp+21, _32);
+
+		// The time wire format is compatible but sadly the sizes
+		// differ. We have to get it and put it.
+		// Plan 9 has a y2032 problem!
+		_64 = GBIT64(buf + 48);
+		PBIT32(dp + 25, (uint32_t) _64);
+		_64 = GBIT64(buf + 64);
+		PBIT32(dp + 29, (uint32_t) _64);
+
+		// file length. Compatible bit encoding.
+		memmove(dp+33, buf + 49, sizeof(uint64_t));
+
+		// put the name as a string.
+		sprint((char *)dp + o, "%s", name);
+		// There are four BIT16SZ lengths at the
+		// end. If they are > 0 then the strings are interspersed
+		// between them.
+		PBIT16(dp+o-2, nl);
+		o += nl + BIT16SZ;
+
+		// UID
+		_32 = GBIT32(buf + 25);
+		// The next name is at o
+		sprint((char *)dp + o, "%d", _32);
+		// strlen safe as we zero the buffer?
+		ul = strlen((char *)dp+ o);
+		PBIT16(dp + o - 2, ul);
+		o += ul + BIT16SZ;
+		nstat = o;
+
+		// GID
+		_32 = GBIT32(buf + 29);
+		// The next name is at o
+		sprint((char *)dp + o, "%d", _32);
+		// strlen safe as we zero the buffer?
+		ul = strlen((char *)dp+ o);
+		PBIT16(dp + o - 2, ul);
+		o += ul;
+		nstat = o;
+
+		// MUID is empty
+		nstat += 1 * BIT16SZ;
+
+		// nstat includes whole stat size, but
+		// the size in the record does not.
+		// Subtract BIT16SZ for that reason.
+		PBIT16(dp, nstat-BIT16SZ);
+
 		validstat(dp, nstat);
 		mntdirfix(dp, c);
+		//hexdump(dp,nstat);
 	}
-	poperror();
 	mntfree(r);
+	poperror();
 
 	return nstat;
 }
@@ -280,9 +387,8 @@ mntopen(Chan *c, int omode)
 	// no one ever.
 	uint8_t t = c->qid.type;
 	if (t & QTDIR) {
-		print("dir open?");
 	} else if (t) {
-		error("only dirs or regular files, ever");
+		error("only dirs or regular files");
 	}
 	return mntopencreate(Tlopen, c, nil, omode, 0);
 }
@@ -478,7 +584,6 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 		}
 		memset(m, 0, n);
 		n = mntrdwr(Treaddir, c, m, a, off);
-		print("mntrdwr: got %d asked for %d\n", n, a);
 		if (n == 0) {
 			free(m);
 			poperror();
@@ -508,11 +613,11 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 			// advance b by the size of the Plan 9 stat record
 			b += STATFIXLEN + namesz;
 		}
-		n = b - (uint8_t*)buf;
-		poperror();
-		free(m);
 		if(p != e)
 			error(Esbadstat);
+		n = b - (uint8_t*)buf;
+		free(m);
+		poperror();
 	} else {
 		n = mntrdwr(Tread, c, buf, n, off);
 	}
