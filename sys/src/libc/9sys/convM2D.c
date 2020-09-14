@@ -19,19 +19,22 @@ statcheck(uint8_t *buf, uint nbuf)
 
 	ebuf = buf + nbuf;
 
-	if(nbuf < STATFIXLEN || nbuf != BIT16SZ + GBIT16(buf))
+	if(nbuf < STATFIXLEN || nbuf != BIT16SZ + GBIT16(buf)) {
 		return -1;
+	}
 
 	buf += STATFIXLEN - 4 * BIT16SZ;
 
 	for(i = 0; i < 4; i++){
-		if(buf + BIT16SZ > ebuf)
+		if(buf + BIT16SZ > ebuf) {
 			return -1;
+		}
 		buf += BIT16SZ + GBIT16(buf);
 	}
 
-	if(buf != ebuf)
+	if(buf != ebuf) {
 		return -1;
+	}
 
 	return 0;
 }

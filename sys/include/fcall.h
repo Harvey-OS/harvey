@@ -97,6 +97,30 @@ struct	Fcall
 #define	NOFID		(uint32_t)~0U	/* Dummy fid */
 #define	IOHDRSZ		24	/* ample room for Twrite/Rread header (iounit) */
 
+// 9P2000.L, for some reason, lets callers closely tune what comes from a gettattr.
+// This *may* be because HPC file systems make getting at some types of metadata
+// expensive. Or it may be a pointless over-optimization; we suspect the latter.
+// Just ask for it all. Bandwidth is free.
+
+#define P9_GETATTR_MODE         0x00000001ULL
+#define P9_GETATTR_NLINK        0x00000002ULL
+#define P9_GETATTR_UID          0x00000004ULL
+#define P9_GETATTR_GID          0x00000008ULL
+#define P9_GETATTR_RDEV         0x00000010ULL
+#define P9_GETATTR_ATIME        0x00000020ULL
+#define P9_GETATTR_MTIME        0x00000040ULL
+#define P9_GETATTR_CTIME        0x00000080ULL
+#define P9_GETATTR_INO          0x00000100ULL
+#define P9_GETATTR_SIZE         0x00000200ULL
+#define P9_GETATTR_BLOCKS       0x00000400ULL
+
+#define P9_GETATTR_BTIME        0x00000800ULL
+#define P9_GETATTR_GEN          0x00001000ULL
+#define P9_GETATTR_DATA_VERSION 0x00002000ULL
+
+#define P9_GETATTR_BASIC        0x000007ffULL /* Mask for fields up to BLOCKS */
+#define P9_GETATTR_ALL          0x00003fffULL /* Mask for All fields above */
+
 enum
 {
 	Tversion =	100,
@@ -137,6 +161,8 @@ enum
 	Rlcreate,
 	Tlerror =	Terror - DotLOffset,
 	Rlerror,
+	Tgetattr =	Tstat - DotLOffset,
+	Rgetattr,
 	Treaddir = 	40,
 	Rreaddir
 };
