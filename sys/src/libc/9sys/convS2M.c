@@ -152,6 +152,12 @@ sizeS2M(Fcall *f)
 		n += BIT32SZ;
 		break;
 
+	case Tgetattr:
+		//		fid[4] request_mask[8]
+		n += BIT32SZ;
+		n += BIT64SZ;
+		break;
+
 	case Tstat:
 		n += BIT32SZ;
 		break;
@@ -211,6 +217,45 @@ sizeS2M(Fcall *f)
 	case Rremove:
 		break;
 
+	// 9P2000.L is very plan9-unfriendly, ironically.
+	// They should have done stat in a way compatible with 9p2000.
+	// All they needed to do was append the .L fields to a standard 9p2000 stat
+	// record and then we'd have interoperability. The way they did .L was not great.
+	// Yes, there would have been some unused fields for different kernels but
+	// I think we can afford a few unused bytes per stat.
+	// size[4] Rgetattr tag[2]	valid[8] qid[13] mode[4] uid[4] gid[4] nlink[8]
+	//				rdev[8] size[8] blksize[8] blocks[8]
+	//				atime_sec[8] atime_nsec[8] mtime_sec[8] mtime_nsec[8]
+	//				ctime_sec[8] ctime_nsec[8] btime_sec[8] btime_nsec[8]
+	//				gen[8] data_version[8]
+	case Rgetattr:
+		n += BIT64SZ;
+		n += QIDSZ;
+
+		n += BIT32SZ;
+		n += BIT32SZ;
+		n += BIT32SZ;
+		n += BIT64SZ;
+
+		n += BIT64SZ;
+		n += BIT64SZ;
+		n += BIT64SZ;
+		n += BIT64SZ;
+
+		n += BIT64SZ;
+		n += BIT64SZ;
+		n += BIT64SZ;
+		n += BIT64SZ;
+
+		n += BIT64SZ;
+		n += BIT64SZ;
+		n += BIT64SZ;
+		n += BIT64SZ;
+
+		n += BIT64SZ;
+		n += BIT64SZ;
+		break;
+
 	case Rstat:
 		n += BIT16SZ;
 		n += f->nstat;
@@ -230,10 +275,12 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 	int t = f->type;
 
 	size = sizeS2M(f);
-	if(size == 0)
+	if(size == 0) {
 		return 0;
-	if(size > nap)
+	}
+	if(size > nap) {
 		return 0;
+	}
 
 	p = (uint8_t*)ap;
 
@@ -366,6 +413,15 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p += BIT32SZ;
 		break;
 
+	case Tgetattr:
+		//		fid[4] request_mask[8]
+		PBIT32(p, f->fid);
+		p += BIT32SZ;
+		uint64_t getattr = 0x3fff;
+		PBIT64(p, getattr);
+		p += BIT64SZ;
+		break;
+
 	case Tstat:
 		PBIT32(p, f->fid);
 		p += BIT32SZ;
@@ -448,7 +504,8 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 	case Rwstat:
 		break;
 	}
-	if(size != p-ap)
+	if(size != p-ap) {
 		return 0;
+	}
 	return size;
 }
