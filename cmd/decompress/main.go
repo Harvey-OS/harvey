@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -20,7 +21,9 @@ var (
 )
 
 func decompress(infile io.Reader, outfile io.Writer) error {
-	r, err := lzma.NewReader(infile)
+	bufinfile := bufio.NewReader(infile)
+
+	r, err := lzma.NewReader(bufinfile)
 	if err != nil {
 		return fmt.Errorf("couldn't open lzma file: %w", err)
 	}
