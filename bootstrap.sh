@@ -9,14 +9,14 @@ echo Building the build tool...
 GO111MODULE=on go get ./util/src/harvey/cmd/...
 
 echo Fetching u-root and building it...
-GO111MODULE=on go get github.com/u-root/u-root@master
+GO111MODULE=on go get github.com/u-root/u-root@c370a343c8b0b01faac358c1dafb409e5576ae1a
 # Download u-root sources into $GOPATH because that's what u-root expects.
 # See https://github.com/u-root/u-root/issues/805
 # and https://github.com/u-root/u-root/issues/583
 GO111MODULE=off go get -d github.com/u-root/u-root
 
 echo Fetch harvey-os.org commands and build them into $GOBIN
-GO111MODULE=on go get harvey-os.org/cmd/...@main
+GO111MODULE=on go get harvey-os.org/cmd/...@8978eaed48985e0d89d36e383ece0a6a382eb6b8
 
 echo FIXME -- once we get more architectures, this needs to be done in sys/src/cmds/build.json
 echo Build tmpfs command into amd64 plan 9 bin
@@ -26,6 +26,7 @@ GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o amd64/bin/tmpfs harvey-os.org
 mkdir -p tmp
 
 cat <<EOF
+
 # We support RISC-V, but the default is x86_64 (which we call amd64 for historical reasons):
 export ARCH=amd64
 # You also need to export your C compiler flavor (gcc, clang, gcc-7...)
