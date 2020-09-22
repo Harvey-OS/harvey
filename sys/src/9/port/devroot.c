@@ -20,7 +20,7 @@ enum
 	Qboot = 0x1000,
 
 	Nrootfiles = 32,
-	Nbootfiles = 32,
+	Nbootfiles = 64,
 };
 
 typedef struct Dirlist Dirlist;

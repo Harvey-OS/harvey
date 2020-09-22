@@ -96,6 +96,7 @@
 				"cat": "/$ARCH/bin/cat",
 				"crs": "/$ARCH/bin/acpi/crs",
 				"date": "/$ARCH/bin/date",
+				"decompress": "/plan9_$ARCH/bin/decompress",
 				"echo": "/$ARCH/bin/echo",
 				"ed": "/$ARCH/bin/ed",
 				"factotum": "/$ARCH/bin/auth/factotum",
