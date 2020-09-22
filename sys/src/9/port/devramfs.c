@@ -122,11 +122,11 @@ ramgen(Chan* c, char* name, Dirtab* tab, int ntab, int pos, Dir* dp)
 	if(pos == DEVDOTDOT) {
 		if(current->parent == nil) {
 			mkqid(&qid, (uintptr_t)current, 0, QTDIR);
-			devdir(c, qid, "#@", 0, "harvey", 0555, dp);
+			devdir(c, qid, "#@", 0, "harvey", current->perm, dp);
 			return 1;
 		} else {
 			mkqid(&qid, (uintptr_t)current->parent, 0, QTDIR);
-			devdir(c, qid, current->name, 0, "harvey", 0555, dp);
+			devdir(c, qid, current->name, 0, "harvey", current->perm, dp);
 			return 1;
 		}
 	}
@@ -184,12 +184,51 @@ ramstat(Chan* c, uint8_t* dp, int32_t n)
 	}
 
 	mkqid(&qid, c->qid.path, 0, current->perm & DMDIR ? QTDIR : 0);
-	devdir(c, qid, current->name, current->length, "harvey", 0555, &dir);
+	devdir(c, qid, current->name, current->length, "harvey", current->perm, &dir);
 
 	int32_t ret = convD2M(&dir, dp, n);
 	poperror();
 	qunlock(&ramlock);
 	return ret;
+}
+
+static int32_t
+ramwstat(Chan* c, uint8_t* dp, int32_t n)
+{
+       Proc* up = externup();
+       Dir d;
+       struct RamFile* current = (struct RamFile*)c->qid.path;
+       char *strs;
+
+       if(current->magic != RAM_MAGIC)
+               error(INVALID_FILE);
+
+       qlock(&ramlock);
+       if(waserror()) {
+               qunlock(&ramlock);
+               nexterror();
+       }
+
+       strs = smalloc(n);
+       n = convM2D(dp, n, &d, strs);
+       if(n == 0)
+               error(Eshortstat);
+       if(d.mode != (uint32_t)~0UL)
+               current->perm = d.mode & 0777;
+       /*
+       if(d.uid && *d.uid)
+               kstrdup(&current->owner, d.uid);
+       if(d.name && *d.name && strcmp(current->name, d.name) != 0) {
+               if(strchr(d.name, '/') != nil)
+                       error(Ebadchar);
+               kstrdup(&current->name, d.name);
+       }
+       */
+
+       qunlock(&ramlock);
+       free(strs);
+       poperror();
+       return n;
 }
 
 static Chan*
@@ -416,5 +455,5 @@ Dev ramdevtab = {
     .write = ramwrite,
     .bwrite = devbwrite,
     .remove = ramremove,
-    .wstat = devwstat,
+    .wstat = ramwstat,
 };
