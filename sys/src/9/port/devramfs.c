@@ -122,11 +122,11 @@ ramgen(Chan* c, char* name, Dirtab* tab, int ntab, int pos, Dir* dp)
 	if(pos == DEVDOTDOT) {
 		if(current->parent == nil) {
 			mkqid(&qid, (uintptr_t)current, 0, QTDIR);
-			devdir(c, qid, "#@", 0, "harvey", current->perm, dp);
+			devdir(c, qid, "#@", 0, eve, current->perm, dp);
 			return 1;
 		} else {
 			mkqid(&qid, (uintptr_t)current->parent, 0, QTDIR);
-			devdir(c, qid, current->name, 0, "harvey", current->perm, dp);
+			devdir(c, qid, current->name, 0, eve, current->perm, dp);
 			return 1;
 		}
 	}
@@ -143,7 +143,7 @@ ramgen(Chan* c, char* name, Dirtab* tab, int ntab, int pos, Dir* dp)
 		}
 	}
 	mkqid(&qid, (uintptr_t)current, 0, current->perm & DMDIR ? QTDIR : 0);
-	devdir(c, qid, current->name, current->length, "harvey", current->perm, dp);
+	devdir(c, qid, current->name, current->length, eve, current->perm, dp);
 	if(name == nil || strcmp(current->name, name) == 0) {
 		return 1;
 	} else {
@@ -184,7 +184,7 @@ ramstat(Chan* c, uint8_t* dp, int32_t n)
 	}
 
 	mkqid(&qid, c->qid.path, 0, current->perm & DMDIR ? QTDIR : 0);
-	devdir(c, qid, current->name, current->length, "harvey", current->perm, &dir);
+	devdir(c, qid, current->name, current->length, eve, current->perm, &dir);
 
 	int32_t ret = convD2M(&dir, dp, n);
 	poperror();
@@ -215,15 +215,14 @@ ramwstat(Chan* c, uint8_t* dp, int32_t n)
                error(Eshortstat);
        if(d.mode != (uint32_t)~0UL)
                current->perm = d.mode & 0777;
-       /*
        if(d.uid && *d.uid)
-               kstrdup(&current->owner, d.uid);
+               error(Eperm);
        if(d.name && *d.name && strcmp(current->name, d.name) != 0) {
                if(strchr(d.name, '/') != nil)
                        error(Ebadchar);
-               kstrdup(&current->name, d.name);
+	       // Invalid names should have been caught in convM2D()
+               strncpy(current->name, d.name, sizeof(current->name));
        }
-       */
 
        qunlock(&ramlock);
        free(strs);
