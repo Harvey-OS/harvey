@@ -349,7 +349,12 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 	}
 	r->request.type = type;
 	r->request.fid = c->fid;
-	r->request.mode = omode;
+	// 9P2000.L -- another mess?
+	if (omode == OEXEC)
+		r->request.mode = OREAD;
+	else
+		r->request.mode = omode;
+
 	if(type == Tcreate){
 		r->request.perm = perm;
 		r->request.name = name;
