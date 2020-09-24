@@ -296,7 +296,7 @@ ramclose(Chan* c)
 }
 
 static int32_t
-ramread(Chan* c, void* buf, int32_t n, int64_t off)
+ramreadblock(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	Proc* up = externup();
 	// first block, last block
@@ -338,6 +338,20 @@ ramread(Chan* c, void* buf, int32_t n, int64_t off)
 	poperror();
 	qunlock(&ramlock);
 	return n;
+}
+
+static int32_t
+ramread(Chan* c, void* v, int32_t n, int64_t off)
+{
+	int32_t total = 0, amt;
+
+	while (total < n) {
+		amt = ramreadblock(c, v + total, n - total, off + total);
+		if (amt <= 0)
+			break;
+		total += amt;
+	}
+	return total;
 }
 
 typedef double Align;
