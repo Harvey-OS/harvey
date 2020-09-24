@@ -124,7 +124,6 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	if (magic != AOUT_MAGIC) {
 		return -1;
 	}
-	print("aoutldseg\n");
 	if (magic & HDR_MAGIC) {
 		// 0x0000000000243070 -> 70 30 24 little endian.
 		// BE is easier to read of course.
