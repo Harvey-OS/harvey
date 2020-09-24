@@ -352,7 +352,7 @@ union Header {
 };
 
 static int32_t
-ramwrite(Chan* c, void* v, int32_t n, int64_t off)
+ramwriteblock(Chan* c, void* v, int32_t n, int64_t off)
 {
 	Proc* up = externup();
 	struct RamFile* file = (void*)c->qid.path;
@@ -390,6 +390,28 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 	poperror();
 	qunlock(&ramlock);
 	return n;
+}
+
+static int32_t
+ramwrite(Chan* c, void* v, int32_t n, int64_t off)
+{
+	int32_t total = 0, amt;
+
+	if(devramdebug)
+		print("Write %#x %#x %#x \n", v + total, n - total, off + total);
+	while (total < n) {
+		if(devramdebug)
+			print("Write block %#x %#x %#x total is %#x\n", v + total, n - total, off + total, total);
+		amt = ramwriteblock(c, v + total, n - total, off + total);
+		if(devramdebug)
+			print("amt %#x\n", amt);
+		if (amt <= 0)
+			break;
+		total += amt;
+	}
+	if(devramdebug)
+		print("ramwrite %#x\n", total);
+	return total;
 }
 
 void
