@@ -17,6 +17,7 @@
 #define RAM_BLOCK_LEN 32768
 #define RAM_MAGIC 0xbedabb1e
 #define INVALID_FILE "Invalid ram file"
+#define NBLOCK 4096
 
 struct RamFile {
 	unsigned int magic;
@@ -29,7 +30,7 @@ struct RamFile {
 	int opencount;
 	int deleteonclose;
 	// A file is up to 4K 8192-byte blocks. That's 32M. Enough.
-	void* blocks[4096];
+	void* blocks[NBLOCK];
 	union {
 		struct RamFile* firstchild;
 	};
@@ -37,7 +38,7 @@ struct RamFile {
 
 static struct RamFile* ramroot;
 static QLock ramlock;
-static int devramdebug = 1;
+static int devramdebug = 0;
 
 static void
 printramfile(int offset, struct RamFile* file)
@@ -301,19 +302,21 @@ ramread(Chan* c, void* buf, int32_t n, int64_t off)
 	// first block, last block
 	int fb = off >> 13, fl = (off + n) >> 13, offinblock = off & 0x1fff;
 
-	// we only write one block.
+	// adjust read size and offset.
+	// we only read one block for now.
 	if(fl != fb) {
 		n = 8192 - (off & 0x1fff);
 	}
+
+	if (fb > NBLOCK)
+		return 0;
 
 	qlock(&ramlock);
 	if(waserror()) {
 		qunlock(&ramlock);
 		nexterror();
 	}
-	// For the first pass, we only handle the portion of a write
-	// that fits in a block. Well written software accommodaets partial
-	// writes and the rest we don't care about.
+
 	if(c->qid.type == QTDIR) {
 		int32_t len = devdirread(c, buf, n, nil, 0, ramgen);
 		poperror();
@@ -322,10 +325,16 @@ ramread(Chan* c, void* buf, int32_t n, int64_t off)
 	}
 	// Read file
 	struct RamFile* file = (void*)c->qid.path;
+
+	if (off + n > file->length)
+		n = file->length - off;
+
 	if(file->magic != RAM_MAGIC)
 		error(INVALID_FILE);
-	if(file->blocks[fb])
+	if(n > 0 && off < file->length && file->blocks[fb])
 		memmove(buf, file->blocks[fb] + offinblock, n);
+	else
+		n = 0;
 	poperror();
 	qunlock(&ramlock);
 	return n;
@@ -355,6 +364,9 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 		n = 8192 - (off & 0x1fff);
 	}
 
+	if (fb > NBLOCK)
+		return 0;
+
 	qlock(&ramlock);
 	if(waserror()) {
 		qunlock(&ramlock);
@@ -362,7 +374,8 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 	}
 	if(file->magic != RAM_MAGIC)
 		error(INVALID_FILE);
-	print("ramwrite: v %p n %#x off %#llx\n", v, n, off);
+	if(devramdebug)
+		print("ramwrite: v %p n %#x off %#llx\n", v, n, off);
 	if(!file->blocks[fb]) {
 		file->blocks[fb] = mallocz(8192, 1);
 		if(!file->blocks[fb])
@@ -372,6 +385,8 @@ ramwrite(Chan* c, void* v, int32_t n, int64_t off)
 		print("length of start of write=%do\n", offinblock);
 	}
 	memmove(file->blocks[fb] + offinblock, v, n);
+	if ((off+n)>file->length)
+		file->length=off+n;
 	poperror();
 	qunlock(&ramlock);
 	return n;
