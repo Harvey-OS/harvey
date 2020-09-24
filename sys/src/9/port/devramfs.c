@@ -215,7 +215,7 @@ ramwstat(Chan* c, uint8_t* dp, int32_t n)
        if(n == 0)
                error(Eshortstat);
        if(d.mode != (uint32_t)~0UL)
-               current->perm = d.mode & 0777;
+               current->perm = d.mode;
        if(d.uid && *d.uid)
                error(Eperm);
        if(d.name && *d.name && strcmp(current->name, d.name) != 0) {
