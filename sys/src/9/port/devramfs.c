@@ -21,7 +21,7 @@
 
 struct RamFile {
 	unsigned int magic;
-	char name[KNAMELEN];
+	char *n;
 	struct RamFile* parent;
 	struct RamFile* sibling;
 	uint64_t length;
@@ -48,7 +48,7 @@ printramfile(int offset, struct RamFile* file)
 		print(" ");
 	}
 	print("ramfile: %x, magic:%x, name: %s, parent: %x, sibling:%x, length:%d, alloclength: %d, perm: %o\n",
-	      file, file->magic, file->name, file->parent, file->sibling, file->length, file->alloclength, file->perm);
+	      file, file->magic, file->n, file->parent, file->sibling, file->length, file->alloclength, file->perm);
 }
 
 static void
@@ -78,7 +78,8 @@ raminit(void)
 	if(ramroot == nil) {
 		error(Eperm);
 	}
-	strcpy(ramroot->name, ".");
+	ramroot->n = smalloc(2);
+	kstrdup(&ramroot->n, ".");
 	ramroot->magic = RAM_MAGIC;
 	ramroot->length = 0;
 	ramroot->alloclength = 0;
@@ -127,7 +128,7 @@ ramgen(Chan* c, char* name, Dirtab* tab, int ntab, int pos, Dir* dp)
 			return 1;
 		} else {
 			mkqid(&qid, (uintptr_t)current->parent, 0, QTDIR);
-			devdir(c, qid, current->name, 0, eve, current->perm, dp);
+			devdir(c, qid, current->n, 0, eve, current->perm, dp);
 			return 1;
 		}
 	}
@@ -144,8 +145,8 @@ ramgen(Chan* c, char* name, Dirtab* tab, int ntab, int pos, Dir* dp)
 		}
 	}
 	mkqid(&qid, (uintptr_t)current, 0, current->perm & DMDIR ? QTDIR : 0);
-	devdir(c, qid, current->name, current->length, eve, current->perm, dp);
-	if(name == nil || strcmp(current->name, name) == 0) {
+	devdir(c, qid, current->n, current->length, eve, current->perm, dp);
+	if(name == nil || strcmp(current->n, name) == 0) {
 		return 1;
 	} else {
 		return 0;
@@ -185,7 +186,7 @@ ramstat(Chan* c, uint8_t* dp, int32_t n)
 	}
 
 	mkqid(&qid, c->qid.path, 0, current->perm & DMDIR ? QTDIR : 0);
-	devdir(c, qid, current->name, current->length, eve, current->perm, &dir);
+	devdir(c, qid, current->n, current->length, eve, current->perm, &dir);
 
 	int32_t ret = convD2M(&dir, dp, n);
 	poperror();
@@ -218,11 +219,11 @@ ramwstat(Chan* c, uint8_t* dp, int32_t n)
                current->perm = d.mode;
        if(d.uid && *d.uid)
                error(Eperm);
-       if(d.name && *d.name && strcmp(current->name, d.name) != 0) {
+       if(d.name && *d.name && strcmp(current->n, d.name) != 0) {
                if(strchr(d.name, '/') != nil)
                        error(Ebadchar);
 	       // Invalid names should have been caught in convM2D()
-               strncpy(current->name, d.name, sizeof(current->name));
+	       kstrdup(&current->n, d.name);
        }
 
        qunlock(&ramlock);
@@ -277,6 +278,7 @@ static void delete(struct RamFile* file)
 			free(file->blocks[i]);
 	}
 	file->magic = 0;
+	free(file->n);
 	free(file);
 	if(devramdebug)
 		debugwalk();
@@ -447,12 +449,14 @@ ramcreate(Chan* c, char* name, int omode, int perm)
 	}
 	file->length = 0;
 	file->magic = RAM_MAGIC;
-	strcpy(file->name, name);
+	file->n = smalloc(strlen(name)+1);
+	kstrdup(&file->n, name);
 	file->perm = perm;
 	file->parent = parent;
 
 	qlock(&ramlock);
 	if(waserror()) {
+		free(file->n);
 		free(file);
 		qunlock(&ramlock);
 		nexterror();
