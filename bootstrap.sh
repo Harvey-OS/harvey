@@ -20,8 +20,17 @@ GO111MODULE=on go get harvey-os.org/cmd/...@8978eaed48985e0d89d36e383ece0a6a382e
 
 echo FIXME -- once we get more architectures, this needs to be done in sys/src/cmds/build.json
 echo Build tmpfs command into amd64 plan 9 bin
-GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o plan9_amd64/bin/tmpfs harvey-os.org/cmd/tmpfs
+#GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o plan9_amd64/bin/tmpfs harvey-os.org/cmd/tmpfs
 GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o plan9_amd64/bin/decompress harvey-os.org/cmd/decompress
+GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o plan9_amd64/bin/cpio github.com/u-root/u-root/cmds/core/cpio
+
+# Could use uroot cpio to build the image on the host
+# Maybe create a compress go tool to allow us to use our tools for compression too
+#GO111MODULE=on go install github.com/u-root/u-root/cmds/core/cpio
+
+# Make a test .cpio.lzma
+# TODO put in a better place - we don't know the arch here
+find plan9_amd64/bin -depth -print | cpio -ov --format=newc | xz -z --format=lzma > sys/src/9/amd64/ramdiskarchive.cpio.lzma
 
 # this will make booting a VM easier
 mkdir -p tmp

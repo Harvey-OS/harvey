@@ -94,6 +94,7 @@
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
+				"cpio": "/plan9_$ARCH/bin/cpio",
 				"crs": "/$ARCH/bin/acpi/crs",
 				"date": "/$ARCH/bin/date",
 				"decompress": "/plan9_$ARCH/bin/decompress",
@@ -118,11 +119,10 @@
 				"sed": "/$ARCH/bin/sed",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
-				"tmpfs": "/plan9_$ARCH/bin/tmpfs",
+				"ramdiskarchive": "ramdiskarchive.cpio.lzma",
 				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti",
-				"vga": "/$ARCH/bin/aux/vga",
-				"uroot": "uroot.cpio.lzma"
+				"vga": "/$ARCH/bin/aux/vga"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},

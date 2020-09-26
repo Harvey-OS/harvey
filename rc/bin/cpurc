@@ -5,6 +5,16 @@ date > /env/boottime
 # mount points
 mntgen -s slashn && chmod 666 /srv/slashn
 
+# Decompress the kernel ramdisk image into the kernel
+# Needs to be done in two steps, since cpio can't read
+# directly from decompress using a pipe
+# (This is a demo and should probably all go somewhere else)
+cd '#@'
+decompress /boot/ramdiskarchive > ramdiskarchive.cpio
+cpio i < ramdiskarchive.cpio
+rm -f ramdiskarchive.cpio
+cd ..
+
 # name translation, cs sets /dev/sysname
 ndb/cs
 sysname=`{cat /dev/sysname}
