@@ -3,8 +3,8 @@ set -e
 
 trap : 2
 
-$HARVEY/util/ufs -root=$HARVEY &
-ufspid=$!
+$HARVEY/linux_amd64/bin/centre -i "" -ninep-dir=$HARVEY &
+centrepid=$!
 
 export machineflag=q35
 if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
@@ -48,7 +48,7 @@ EOF
 echo $cmd
 eval $cmd
 
-kill $ufspid
+kill $centrepid
 wait
 
 # TO ENABLE FACTOTUM replace append with this
