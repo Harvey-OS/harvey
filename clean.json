@@ -3,7 +3,9 @@
 		"Name": "clean",
 		"Pre": [
 			"rm -rf $ARCH/lib/*.a $ARCH/bin/*",
-			"rm -f cfg/pxe/tftpboot/harvey.32bit"
+			"rm -f cfg/pxe/tftpboot/harvey.32bit",
+			"rm -rf plan9_$ARCH/bin/*",
+			"rm -rf linux_$ARCH/bin/*"
 		],
 		"Projects": [
 			"/sys/src/9/$ARCH/clean.json",
