@@ -84,4 +84,6 @@ util/harvey.raw
 **/*.h.gch
 
 .vscode
-linux_amd64/
+/linux_amd64/
+/plan9_amd64/
+/usr/harvey/lib/cache/
