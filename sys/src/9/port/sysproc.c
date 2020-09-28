@@ -370,6 +370,11 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		chan = nil;	/* in case namec errors out */
 		USED(chan);
 		chan = namec(p, Aopen, OEXEC, 0);
+		print("#!: namec returns %p, read header\n", chan);
+		hdrsz = chan->dev->read(chan, line, sizeof line, 0);
+		print("...read %d bytes\n", hdrsz);
+		if(hdrsz < 2)
+			error(Ebadexec);
 	}else{
 		chan = ichan;
 		incref(&ichan->r);
