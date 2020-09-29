@@ -295,7 +295,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	Ldseg *ldseg;
 	int argc, i, n, nldseg;
 	char *a, *elem, *file, *p;
-	char line[64], *progarg[sizeof(line)/2+1];
+	// This line array is an accident waiting to happen but ...
+	char line[64], aoutheader[64], *progarg[sizeof(line)/2+1];
 	int32_t hdrsz;
 	uintptr_t entry, stack;
 	int plan9 = 0;
@@ -339,6 +340,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	}
 	kstrdup(&elem, up->genbuf);
 
+	// TODO: we really messed this up at some point. This needs to be a loop.
+	// See 9legacy to get some idea of what it has to look like.
 	/*
 	 * Read the header.
 	 * If it's a #!, fill in progarg[] with info then read a new header
@@ -354,6 +357,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		if(p == nil)
 			error(Ebadexec);
 		*p = '\0';
+		// N.B.: does not copy line array, just sets pointers into it.
 		argc = tokenize(line+2, progarg, nelem(progarg));
 		if(argc == 0)
 			error(Ebadexec);
@@ -370,11 +374,6 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		chan = nil;	/* in case namec errors out */
 		USED(chan);
 		chan = namec(p, Aopen, OEXEC, 0);
-		print("#!: namec returns %p, read header\n", chan);
-		hdrsz = chan->dev->read(chan, line, sizeof line, 0);
-		print("...read %d bytes\n", hdrsz);
-		if(hdrsz < 2)
-			error(Ebadexec);
 	}else{
 		chan = ichan;
 		incref(&ichan->r);
@@ -386,12 +385,19 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
+	// line has the command and arguments as text.
+	// OR it has a file header of a binary.
+	// Just reread it. This entire function needs a redo,
+	// but for now, let's just try to make it work correctly.
 	// aoutldseg does no file i/o for its test.
 	// so give it first dibs.
 	// -1 means it's not a.out
 	// 0 means a.out but something did not end well
 	// > 0 means it's a good a.out
-	nldseg = aoutldseg(line, &entry, &ldseg, cputype, BIGPGSZ);
+	hdrsz = chan->dev->read(chan, aoutheader, sizeof aoutheader, 0);
+	if(hdrsz < 2)
+		error(Ebadexec);
+	nldseg = aoutldseg(aoutheader, &entry, &ldseg, cputype, BIGPGSZ);
 	switch (nldseg) {
 	default:
 		plan9 = 1;
