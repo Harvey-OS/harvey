@@ -218,10 +218,8 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 	uint8_t ct;
 	Pgsza *pa;
 	int i, dontalloc, si;
-	//	static int once;
 
 	si = getpgszi(size);
-//iprint("(remove this print and diea)newpage, size %x, si %d\n", size, si);
 	pa = &pga.pgsza[si];
 
 	lock(&pga.l);
@@ -301,21 +299,7 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 
 	if(clear) {
 		k = kmap(p);
-if (VA(k) == 0xfffffe007d800000ULL) trip++;
-//	if (trip) die("trip before memset");
-		// This will frequently die if we use 3K-1 (3071 -- 0xbff)
-		// it will not if we use 3070.
-		// The fault is a null pointer deref.
-		//memset((void*)VA(k), 0, machp()->pgsz[p->pgszi]);
-		// thinking about it, using memset is stupid.
-		// Don't get upset about this loop;
-		// we make it readable, compilers optimize it.
-		int i;
-		uint64_t *v = (void *)VA(k);
-		if (1)
-		for(i = 0; i < sys->pgsz[p->pgszi]/sizeof(*v); i++)
-			v[i] = 0;
-//if (trip) die("trip");
+		memset((void*)VA(k), 0, sys->pgsz[p->pgszi]);
 		kunmap(k);
 	}
 	DBG("newpage: va %#p pa %#llx pgsz %#x color %d\n",
