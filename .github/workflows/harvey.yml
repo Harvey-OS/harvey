@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
         cc:
           - gcc-9
 #          - clang
@@ -25,9 +25,8 @@ jobs:
     - name: install deps
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
         sudo apt-get update
-        sudo apt-get install -y --force-yes ${{ matrix.cc }} rc qemu go-dep
+        sudo apt-get install -y ${{ matrix.cc }} rc qemu go-dep
     - name: bootstrap and build
       env:
         ARCH: amd64
