@@ -24,10 +24,11 @@ jobs:
     - uses: actions/checkout@v2
     - name: install deps
       run: |
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y # see https://wiki.ubuntu.com/ToolChain
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository 'deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main' -y
         sudo apt-get update
-        sudo apt-get install -y --force-yes ${{ matrix.cc }} rc qemu go-dep
+        sudo apt-get install -y ${{ matrix.cc }} rc qemu go-dep
     - name: bootstrap and build
       env:
         ARCH: amd64
