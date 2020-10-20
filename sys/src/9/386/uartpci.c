@@ -78,8 +78,8 @@ uartpcipnp(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
-		case (0x3253<<16)|0x1c00:	/* WCH CH353 (vid not in pci db) */
-			uart = uartpci(ctlrno, p, 0, 0xc0, 2, 1843200, "WCH-CH353");
+		case (0x3253<<16)|0x1c00:	/* WCH CH382 (vid not in pci db) */
+			uart = uartpci(ctlrno, p, 0, 0xc0, 2, 1843200, "WCH-CH382");
 			if (uart == nil) {
 				continue;
 			}
