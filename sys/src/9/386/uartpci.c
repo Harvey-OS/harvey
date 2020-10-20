@@ -20,14 +20,14 @@ extern PhysUart pciphysuart;
 extern void* i8250alloc(int, int, int);
 
 static Uart*
-uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
+uartpci(int ctlrno, Pcidev* p, int barno, int first_offset, int n, int freq, char* name)
 {
 	int i, io;
 	void *ctlr;
 	char buf[64];
 	Uart *head, *uart;
 
-	io = p->mem[barno].bar & ~0x01;
+	io = (p->mem[barno].bar & ~0x01) + first_offset;
 	snprint(buf, sizeof(buf), "%s%d", pciphysuart.name, ctlrno);
 	if(ioalloc(io, p->mem[barno].size, 0, buf) < 0){
 		print("uartpci: I/O 0x%X in use\n", io);
@@ -78,11 +78,17 @@ uartpcipnp(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
+		case (0x3253<<16)|0x1c00:	/* WCH CH353 (vid not in pci db) */
+			uart = uartpci(ctlrno, p, 0, 0xc0, 2, 1843200, "WCH-CH353");
+			if (uart == nil) {
+				continue;
+			}
+			break;
 		case (0x9835<<16)|0x9710:	/* StarTech PCI2S550 */
-			uart = uartpci(ctlrno, p, 0, 1, 1843200, "PCI2S550-0");
+			uart = uartpci(ctlrno, p, 0, 0, 1, 1843200, "PCI2S550-0");
 			if(uart == nil)
 				continue;
-			uart->next = uartpci(ctlrno, p, 1, 1, 1843200, "PCI2S550-1");
+			uart->next = uartpci(ctlrno, p, 1, 0, 1, 1843200, "PCI2S550-1");
 			break;
 		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
 			/*
@@ -97,7 +103,7 @@ uartpcipnp(void)
 			default:
 				continue;
 			case (0x2000<<16)|0x131F:/* SIIG CyberSerial PCIe */
-				uart = uartpci(ctlrno, p, 0, 1, 18432000, "CyberSerial-1S");
+				uart = uartpci(ctlrno, p, 0, 0, 1, 18432000, "CyberSerial-1S");
 				if(uart == nil)
 					continue;
 				break;
@@ -116,7 +122,7 @@ uartpcipnp(void)
 			default:
 				continue;
 			case (0<<16)|0x1415:	/* StarTech PCI4S550 */
-				uart = uartpci(ctlrno, p, 0, 1, 18432000, "PCI4S550-0");
+				uart = uartpci(ctlrno, p, 0, 0, 1, 18432000, "PCI4S550-0");
 				if(uart == nil)
 					continue;
 				break;
@@ -152,7 +158,7 @@ uartpcipnp(void)
 				name = "Ultraport8";	/* 16C754 UARTs */
 				break;
 			}
-			uart = uartpci(ctlrno, p, 2, n, 7372800, name);
+			uart = uartpci(ctlrno, p, 2, 0, n, 7372800, name);
 			if(uart == nil)
 				continue;
 			break;
