@@ -772,7 +772,6 @@ i8250console(char* cfg)
 {
 	int i;
 	Uart *uart;
-	Ctlr *ctlr;
 	char *cmd, *p;
 
 	/*
@@ -799,20 +798,28 @@ i8250console(char* cfg)
 		break;
 	}
 
+	i8250uartconsole(uart, cmd);
+}
+
+void
+i8250uartconsole(Uart *uart, char *cmd)
+{
 	/*
 	 * Does it exist?
 	 * Should be able to write/read
 	 * the Scratch Pad.
 	 */
-	ctlr = uart->regs;
+	Ctlr *ctlr = uart->regs;
 	csr8o(ctlr, Scr, 0x55);
-	if(csr8r(ctlr, Scr) != 0x55)
+	if (csr8r(ctlr, Scr) != 0x55) {
 		return;
+	}
 
 	(*uart->phys->enable)(uart, 0);
 	uartctl(uart, "b115200 l8 pn s1 i1");
-	if(*cmd != '\0')
+	if (cmd != nil && *cmd != '\0') {
 		uartctl(uart, cmd);
+	}
 
 	i8250consuart = uart;
 	consuartputs = i8250consputs;
