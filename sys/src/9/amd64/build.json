@@ -20,7 +20,9 @@
 					"int cpuserver = 1;",
 					"uint32_t kerndate = 1;"
 				],
+				"#Dev": "devs are in order of initialisation",
 				"Dev": [
+					"uart",
 					"acpi",
 					"arch",
 					"bridge",
@@ -50,7 +52,6 @@
 					"srv",
 					"ssl",
 					"tls",
-					"uart",
 					"usb",
 					"ws",
 					"v9p",

@@ -77,6 +77,7 @@ void	i8042systemreset(void);
 int	mousecmd(int);
 void	mouseenable(void);
 void	i8250console(char*);
+void	i8250uartconsole(Uart*, char *);
 void*	i8250alloc(int, int, int);
 int64_t	i8254hz(uint32_t *info0, uint32_t *info1);
 void	idlehands(void);
