@@ -62,7 +62,31 @@ static int vflag;
 
 int nosmp;
 int acpionly = 1;
+static int showpost = 0;
 
+// Harvey is out of date on many platforms, and frequently the only
+// indication is a brick.
+// Modern systems have extensive logging of outb to port 0x80, as well
+// as serial over lan support. Further, the emulated serial easily runs
+// as fast as the x86 can push it over LPC.
+// This post function is intended only for use in main(), when we are
+// booting and things might be going badly wrong.
+// It is enabled by showpost (see above) and is intended only to be
+// turned on when porting, since it will produce output we don't ordinarily
+// want to see.
+// Don't fall into the trap of using macros for this capability; the Plan 9 rule is that
+// code always compiles, and macros usually break that rule. The cost in space
+// and time of this bit of extra code is so small as to not matter.
+void post(char *msg, uint8_t terminal)
+{
+	if (! showpost)
+		return;
+	for(int i = 0; i < strlen(msg); i++) {
+		outb(0x3f8, msg[i]);
+		outb(0x80, msg[i]);
+	}
+	outb(0x80, terminal);
+}
 void*
 sigscan(uint8_t* address, int length, char* signature)
 {
@@ -489,6 +513,7 @@ teardownidmap(Mach *mach)
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
+	int postterminal = 1;
 	Mach *mach = entrym;
 	/* when we get here, entrym is set to core0 mach. */
 	sys->machptr[mach->machno] = entrym;
@@ -541,9 +566,9 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	active.exiting = 0;
 	active.nbooting = 0;
 
-	asminit();
-	multiboot(mbmagic, mbaddress, 0);
-	options(oargc, oargv);
+	asminit(); post("	asminit();", postterminal++);
+	multiboot(mbmagic, mbaddress, 0); post("	multiboot(mbmagic, mbaddress, 0);", postterminal++);
+	options(oargc, oargv); post("	options(oargc, oargv);", postterminal++);
 
 	/*
 	 * Need something for initial delays
@@ -553,21 +578,21 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	mach->cpumhz = 2000;
 	sys->cyclefreq = mach->cpuhz;
 
-	cgainit();
-	i8250console("0");
+	cgainit(); post("	cgainit();", postterminal++);
+	i8250console("0"); post("	i8250console(\"0\");", postterminal++);
 
 	consputs = cgaconsputs;
 
 	/* It all ends here. */
-	vsvminit(MACHSTKSZ, NIXTC, mach);
+	vsvminit(MACHSTKSZ, NIXTC, mach); post("	vsvminit(MACHSTKSZ, NIXTC, mach);", postterminal++);
 	if (machp() != mach)
 		panic("After vsvminit, m and machp() are different");
 
 	sys->nmach = 1;
 
-	fmtinit();
+	fmtinit(); post("	fmtinit();", postterminal++);
 	print("\nHarvey\n");
-	multiboot(mbmagic, mbaddress, 1);
+	multiboot(mbmagic, mbaddress, postterminal++); post("	multiboot(mbmagic, mbaddress, 1);", 1);
 
 	if(vflag){
 		multiboot(mbmagic, mbaddress, vflag);
@@ -588,14 +613,14 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via machp()->pml4->pa.
 	 */
-	mmuinit();
+	mmuinit(); post("	mmuinit();", postterminal++);
 
-	ioinit();
-	keybinit();
-	meminit();
-	confinit();
-	archinit();
-	mallocinit();
+	ioinit(); post("	ioinit();", postterminal++);
+	keybinit(); post("	keybinit();", postterminal++);
+	meminit(); post("	meminit();", postterminal++);
+	confinit(); post("	confinit();", postterminal++);
+	archinit(); post("	archinit();", postterminal++);
+	mallocinit(); post("	mallocinit();", postterminal++);
 
 	/* test malloc. It's easier to find out it's broken here,
 	 * not deep in some call chain.
@@ -620,7 +645,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 */
 if (1){	acpiinit(); hi("	acpiinit();\n");}
 
-	umeminit();
+	umeminit(); post("	umeminit();", postterminal++);
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -628,15 +653,15 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	 * because the vector base is likely different, causing
 	 * havoc. Do it before any APIC initialisation.
 	 */
-	i8259init(32);
+	i8259init(32); post("	i8259init(32);", postterminal++);
 
-	procinit0();
+	procinit0(); post("	procinit0();", postterminal++);
 	print("before mpacpi, maxcores %d\n", maxcores);
-	mpacpi(maxcores);
-	trapinit();
-	printinit();
-	apiconline();
-	ioapiconline();
+	mpacpi(maxcores); post("	mpacpi(maxcores);", postterminal++);
+	trapinit(); post("	trapinit();", postterminal++);
+	printinit(); post("	printinit();", postterminal++);
+	apiconline(); post("	apiconline();", postterminal++);
+	ioapiconline(); post("	ioapiconline();", postterminal++);
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();
@@ -644,30 +669,30 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 		print("SMP Disabled by command line\n");
 	}
 //working.
-	teardownidmap(mach);
-	timersinit();
-	fpuinit();
-	psinit(conf.nproc);
-	initimage();
-	links();
+	teardownidmap(mach); post("	teardownidmap(mach);", postterminal++);
+	timersinit(); post("	timersinit();", postterminal++);
+	fpuinit(); post("	fpuinit();", postterminal++);
+	psinit(conf.nproc); post("	psinit(conf.nproc);", postterminal++);
+	initimage(); post("	initimage();", postterminal++);
+	links(); post("	links();", postterminal++);
 
 
-	keybenable();
-	mouseenable();
+	keybenable(); post("	keybenable();", postterminal++);
+	mouseenable(); post("	mouseenable();", postterminal++);
 
-	devtabreset();
-	pageinit();
-	swapinit();
-	userinit();
+	devtabreset(); post("	devtabreset();", postterminal++);
+	pageinit(); post("	pageinit();", postterminal++);
+	swapinit(); post("	swapinit();", postterminal++);
+	userinit(); post("	userinit();", postterminal++);
 	/* Forcing to single core if desired */
 	if(!nosmp) {
-		nixsquids();
-		testiccs();
+		nixsquids(); post("		nixsquids();", postterminal++);
+		testiccs(); post("		testiccs();", postterminal++);
 	}
 
-	alloc_cpu_buffers();
+	alloc_cpu_buffers(); post("	alloc_cpu_buffers();", postterminal++);
 
-	acpistart();
+	acpistart(); post("	acpistart();", postterminal++);
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
 	print("schedinit...\n");
