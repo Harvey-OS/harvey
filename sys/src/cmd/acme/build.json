@@ -23,6 +23,7 @@
 			"file.c",
 			"fsys.c",
 			"look.c",
+			"logf.c",
 			"regx.c",
 			"rows.c",
 			"scrl.c",
