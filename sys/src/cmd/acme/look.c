@@ -243,6 +243,7 @@ plumbshow(Plumbmsg *m)
 	winsettag(w);
 	textscrdraw(&w->body);
 	textsetselect(&w->tag, w->tag.file->Buffer.nc, w->tag.file->Buffer.nc);
+	xfidlog(w, "new");
 }
 
 int
@@ -677,6 +678,7 @@ openfile(Text *t, Expand *e)
 			w->autoindent = ow->autoindent;
 		}else
 			w->autoindent = globalautoindent;
+		xfidlog(w, "new");
 	}
 	if(e->a1 == e->a0)
 		eval = FALSE;
@@ -706,6 +708,7 @@ new(Text *et, Text *t, Text *argt, int flag1, int flag2, Rune *arg, int narg)
 	int na, nf;
 	Expand e;
 	Runestr rs;
+	Window *w;
 
 	getarg(argt, FALSE, TRUE, &a, &na);
 	if(a){
@@ -717,8 +720,11 @@ new(Text *et, Text *t, Text *argt, int flag1, int flag2, Rune *arg, int narg)
 	for(ndone=0; ; ndone++){
 		a = findbl(arg, narg, &na);
 		if(a == arg){
-			if(ndone==0 && et->col!=nil)
-				winsettag(coladd(et->col, nil, nil, -1));
+			if(ndone==0 && et->col!=nil) {
+				w = coladd(et->col, nil, nil, -1);
+				winsettag(w);
+				xfidlog(w, "new");
+			}
 			break;
 		}
 		nf = narg-na;

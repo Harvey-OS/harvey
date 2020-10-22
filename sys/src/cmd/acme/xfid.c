@@ -72,6 +72,8 @@ xfidflush(Xfid *x)
 	Column *c;
 	Xfid *wx;
 
+	xfidlogflush(x);
+
 	/* search windows for matching tag */
 	qlock(&row.QLock);
 	for(j=0; j<row.ncol; j++){
@@ -187,6 +189,13 @@ xfidopen(Xfid *x)
 			break;
 		}
 		winunlock(w);
+	} else {
+		q = FILE(x->f->qid);
+		switch(q){
+		case Qlog:
+			xfidlogopen(x);
+			break;
+		}
 	}
 	fc.qid = x->f->qid;
 	fc.iounit = messagesize-IOHDRSZ;
@@ -282,6 +291,9 @@ xfidread(Xfid *x)
 			break;
 		case Qindex:
 			xfidindexread(x);
+			return;
+		case Qlog:
+			xfidlogread(x);
 			return;
 		default:
 			warning(nil, "unknown qid %d\n", q);

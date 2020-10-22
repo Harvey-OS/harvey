@@ -260,6 +260,7 @@ readfile(Column *c, char *s)
 	winsettag(w);
 	textscrdraw(&w->body);
 	textsetselect(&w->tag, w->tag.file->Buffer.nc, w->tag.file->Buffer.nc);
+	xfidlog(w, "new");
 }
 
 char *oknotes[] ={
@@ -773,6 +774,7 @@ newwindowthread(void*v)
 		recvp(cnewwindow);
 		w = makenewwindow(nil);
 		winsettag(w);
+		xfidlog(w, "new");
 		sendp(cnewwindow, w);
 	}
 }
