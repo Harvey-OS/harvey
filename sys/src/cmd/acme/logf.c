@@ -154,6 +154,9 @@ xfidlogflush(Xfid *x)
  *
  * op == "del" for deleted window
  *	- called from winclose
+ *
+ * op == "focus" when a window is focused
+ * 	- called from mousethread
  */
 void
 xfidlog(Window *w, char *op)
