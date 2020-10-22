@@ -706,6 +706,7 @@ rowload(Row *row, char *file, int initing)
 			q0 = q1 = 0;
 		textshow(&w->body, q0, q1, 1);
 		w->maxlines = min(w->body.Frame.nlines, max(w->maxlines, w->body.Frame.maxlines));
+		xfidlog(w, "new");
 	}
 	Bterm(b);
 	fbuffree(buf);

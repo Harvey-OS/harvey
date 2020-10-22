@@ -234,6 +234,7 @@ winclose(Window *w)
 	int i;
 
 	if(decref(&w->Ref) == 0){
+		xfidlog(w, "del");
 		windirfree(w);
 		textclose(&w->tag);
 		textclose(&w->body);
