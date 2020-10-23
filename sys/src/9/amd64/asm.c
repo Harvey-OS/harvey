@@ -225,9 +225,17 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 		if(assem->size == 0){
 			if(pp != nil)
 				pp->next = assem->next;
-			assem->next = asmfreelist;
+			// Bug: What if assem == asmlist (first time in loop)
+			// and the size is 0?
+			// Then when set assem=>next = asmfreelist, you destroy
+			// the asmlist. The original code here failed if
+			// the first region was less than KSEG0 size.
+			if (assem == asmlist)
+				asmlist = assem->next;
+			else
+				assem->next = asmfreelist;
 			asmfreelist = assem;
-		}
+                }
 
 		unlock(&asmlock);
 		if(o != a)
