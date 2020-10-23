@@ -3,7 +3,7 @@
 # Harvey: A distributed operating system
 
 Welcome to Harvey, we are delighted that you are interested in the
-project.
+project.This is one of the intertesting and awesome project.
 
 ## What is harvey?
 
