@@ -818,38 +818,63 @@ countbits(uint32_t u)
 static int
 ahciconf(Ctlr *ctlr)
 {
-	Ahba *h;
-	uint32_t u;
+	Ahba *h = ctlr->hba = (Ahba*)ctlr->mmio;
 
-	h = ctlr->hba = (Ahba*)ctlr->mmio;
-	u = h->cap;
+	// This code makes big assumptions - writing to these PCI registers
+	// for all intel controllers except 0x2681.  This looks specific to ICH9
+	// or thereabouts.  Might be better to just get rid of the controller-specific
+	// code and find a better way to add it for specific controllers if necessary.
+	if (Intel(ctlr) && ctlr->pci->did != 0x2681) {
+		// Do we need to support this?  Looks like old core intel arch?
+		// Well the if above seems for the old arch - maybe not amd64?
 
-	if((u&Hsam) == 0)
+		/* disable cmd block decoding. */
+		pcicfgw16(ctlr->pci, 0x40, pcicfgr16(ctlr->pci, 0x40) & ~(1<<15));
+		pcicfgw16(ctlr->pci, 0x42, pcicfgr16(ctlr->pci, 0x42) & ~(1<<15));
+
+		// Enable ahci mode
 		h->ghc |= Hae;
+		//ctlr->lmmio[0x4/4] |= 1 << 31;	/* enable ahci mode (ghc register) */
+		//c->lmmio[0xc/4] = (1 << 6) - 1;	/* 5 ports. (supposedly ro pi reg.) */
+		//uint32_t numports = ctlr->lmmio[0xc/4];
 
+		// This causes problems on skylake i7
+		/* enable ahci mode and 6 ports; from ich9 datasheet */
+		//pcicfgw16(ctlr->pci, 0x90, 1<<6 | 1<<5);
+
+		/* configure drives 0-5 as ahci sata  (c.f. errata) */
+		pcicfgw16(ctlr->pci, 0x92, pcicfgr16(ctlr->pci, 0x92) | 0xf);
+	}
+
+	// Do we need this if setting Hae above?
+	if ((h->cap & Hsam) == 0) {
+		h->ghc |= Hae;
+	}
+
+	uint32_t u = h->cap;
 	dprint("#S/sd%c: type %s port %#p: sss %ld ncs %ld coal %ld "
 		"%ld ports, led %ld clo %ld ems %ld\n",
 		ctlr->sdev->idno, tname[ctlr->type], h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1,
 		(u & 0x1f) + 1, (u>>25) & 1, (u>>24) & 1, (u>>6) & 1);
-	return countbits(h->pi);
-}
 
-#if 0
-static int
-ahcihbareset(Ahba *h)
-{
-	int wait;
+	int numports = countbits(h->pi);
 
-	h->ghc |= 1;
-	for(wait = 0; wait < 1000; wait += 100){
-		if(h->ghc == 0)
-			return 0;
-		delay(100);
+	// This looks like more controller specific code - still necessary?
+	if (Intel(ctlr)) {
+		/*
+		* configure drives 0-5 as ahci sata (c.f. errata).
+		* what about 6 & 7, as claimed by marvell 0x9123?
+		*/
+		dprint("iaahcimode: %#x %#x %#x\n",
+			pcicfgr8(ctlr->pci, 0x91),
+			pcicfgr8(ctlr->pci, 0x92),
+			pcicfgr8(ctlr->pci, 0x93));
+		pcicfgw16(ctlr->pci, 0x92, pcicfgr16(ctlr->pci, 0x92) | 0x3f);	/* ports 0-5 */
 	}
-	return -1;
+
+	return numports;
 }
-#endif
 
 static void
 idmove(char *p, uint16_t *a, int n)
@@ -1956,33 +1981,6 @@ retry:
 	return SDok;
 }
 
-/*
- * configure drives 0-5 as ahci sata (c.f. errata).
- * what about 6 & 7, as claimed by marvell 0x9123?
- */
-static int
-iaahcimode(Pcidev *p)
-{
-	dprint("iaahcimode: %#x %#x %#x\n", pcicfgr8(p, 0x91), pcicfgr8(p, 92),
-		pcicfgr8(p, 93));
-	pcicfgw16(p, 0x92, pcicfgr16(p, 0x92) | 0x3f);	/* ports 0-5 */
-	return 0;
-}
-
-static void
-iasetupahci(Ctlr *c)
-{
-	/* disable cmd block decoding. */
-	pcicfgw16(c->pci, 0x40, pcicfgr16(c->pci, 0x40) & ~(1<<15));
-	pcicfgw16(c->pci, 0x42, pcicfgr16(c->pci, 0x42) & ~(1<<15));
-
-	c->lmmio[0x4/4] |= 1 << 31;	/* enable ahci mode (ghc register) */
-	c->lmmio[0xc/4] = (1 << 6) - 1;	/* 5 ports. (supposedly ro pi reg.) */
-
-	/* enable ahci mode and 6 ports; from ich9 datasheet */
-	pcicfgw16(c->pci, 0x90, 1<<6 | 1<<5);
-}
-
 static int
 didtype(Pcidev *p)
 {
@@ -2120,12 +2118,7 @@ iapnp(void)
 		s->ctlr = c;
 		c->sdev = s;
 
-		if(Intel(c) && p->did != 0x2681)
-			iasetupahci(c);
 		nunit = ahciconf(c);
-//		ahcihbareset((Ahba*)c->mmio);
-		if(Intel(c) && iaahcimode(p) == -1)
-			break;
 		if(nunit < 1){
 			vunmap(c->mmio, p->mem[Abar].size);
 			continue;
