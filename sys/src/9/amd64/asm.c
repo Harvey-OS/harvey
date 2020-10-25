@@ -232,8 +232,7 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 			// the first region was less than KSEG0 size.
 			if (assem == asmlist)
 				asmlist = assem->next;
-			else
-				assem->next = asmfreelist;
+			assem->next = asmfreelist;
 			asmfreelist = assem;
                 }
 
