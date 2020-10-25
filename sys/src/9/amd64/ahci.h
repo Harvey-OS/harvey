@@ -96,6 +96,8 @@ typedef struct {
 	uint32_t	cccports;
 	uint32_t	emloc;
 	uint32_t	emctl;
+	uint32_t	cap2;		/* host capabilities extended */
+	uint32_t	bohc;		/* bios/os handoff control and status */
 } Ahba;
 
 enum {
@@ -203,9 +205,11 @@ typedef struct {
 	uint32_t	scr1;
 	uint32_t	scr3;
 	uint32_t	ci;		/* command issue */
-	uint32_t	ntf;
-	unsigned char	res2[8];
-	uint32_t	vendor;
+	uint32_t	ntf;		/* scr4 */
+	uint32_t	fbs;		/* FIS-based switching control */
+	uint32_t	devslp;		/* device sleep */
+	unsigned char	res2[40];	/* reserved */
+	unsigned char	vendor[16];
 } Aport;
 
 enum {
