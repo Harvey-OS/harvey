@@ -225,9 +225,18 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 		if(assem->size == 0){
 			if(pp != nil)
 				pp->next = assem->next;
+			// What if assem == asmlist
+			// and the assem->size is now zero, i.e. it is completely used?
+			// Then if the code were to set assem->next = asmfreelist,
+			// it would destroy the asmlist. The original code here failed if
+			// the first region size was less than size requested.
+			// That typically happened when allocating address space
+			// for KSEG0. This if below covers that case.
+			if (assem == asmlist)
+				asmlist = assem->next;
 			assem->next = asmfreelist;
 			asmfreelist = assem;
-		}
+                }
 
 		unlock(&asmlock);
 		if(o != a)
