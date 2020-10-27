@@ -58,22 +58,13 @@ enum {
 	Maxintrspertick = 2000,		/* was 1000 */
 };
 
-/* pci space configuration */
 enum {
-	Pmap	= 0x90,
-	Ppcs	= 0x91,
-	Prev	= 0xa8,
-};
-
-enum {
-	Tesb,
 	Tich,
 	Tsb600,
 	Tunk,
 };
 
 static char *tname[] = {
-	"63xxesb",
 	"ich",
 	"sb600",
 	"unknown",
@@ -820,59 +811,26 @@ ahciconf(Ctlr *ctlr)
 {
 	Ahba *h = ctlr->hba = (Ahba*)ctlr->mmio;
 
-	// This code makes big assumptions - writing to these PCI registers
-	// for all intel controllers except 0x2681.  This looks specific to ICH9
-	// or thereabouts.  Might be better to just get rid of the controller-specific
-	// code and find a better way to add it for specific controllers if necessary.
-	if (Intel(ctlr) && ctlr->pci->did != 0x2681) {
-		// Do we need to support this?  Looks like old core intel arch?
-		// Well the if above seems for the old arch - maybe not amd64?
+	// Enable ahci mode
+	h->ghc |= Hae;
 
-		/* disable cmd block decoding. */
-		pcicfgw16(ctlr->pci, 0x40, pcicfgr16(ctlr->pci, 0x40) & ~(1<<15));
-		pcicfgw16(ctlr->pci, 0x42, pcicfgr16(ctlr->pci, 0x42) & ~(1<<15));
-
-		// Enable ahci mode
-		h->ghc |= Hae;
-		//ctlr->lmmio[0x4/4] |= 1 << 31;	/* enable ahci mode (ghc register) */
-		//c->lmmio[0xc/4] = (1 << 6) - 1;	/* 5 ports. (supposedly ro pi reg.) */
-		//uint32_t numports = ctlr->lmmio[0xc/4];
-
-		// This causes problems on skylake i7
-		/* enable ahci mode and 6 ports; from ich9 datasheet */
-		//pcicfgw16(ctlr->pci, 0x90, 1<<6 | 1<<5);
-
+	if (Intel(ctlr)) {
+		// Port control and status register
+		// Present on ICH9
+		// Not present on 100 series
+		// Enable all ports (also OOB failure retries)
 		/* configure drives 0-5 as ahci sata  (c.f. errata) */
 		pcicfgw16(ctlr->pci, 0x92, pcicfgr16(ctlr->pci, 0x92) | 0xf);
 	}
 
-	// Do we need this if setting Hae above?
-	if ((h->cap & Hsam) == 0) {
-		h->ghc |= Hae;
-	}
-
 	uint32_t u = h->cap;
 	dprint("#S/sd%c: type %s port %#p: sss %ld ncs %ld coal %ld "
-		"%ld ports, led %ld clo %ld ems %ld\n",
+		"%ld ports, led %ld clo %ld ems %ld\n", 
 		ctlr->sdev->idno, tname[ctlr->type], h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1,
 		(u & 0x1f) + 1, (u>>25) & 1, (u>>24) & 1, (u>>6) & 1);
 
 	int numports = countbits(h->pi);
-
-	// This looks like more controller specific code - still necessary?
-	if (Intel(ctlr)) {
-		/*
-		* configure drives 0-5 as ahci sata (c.f. errata).
-		* what about 6 & 7, as claimed by marvell 0x9123?
-		*/
-		dprint("iaahcimode: %#x %#x %#x\n",
-			pcicfgr8(ctlr->pci, 0x91),
-			pcicfgr8(ctlr->pci, 0x92),
-			pcicfgr8(ctlr->pci, 0x93));
-		pcicfgw16(ctlr->pci, 0x92, pcicfgr16(ctlr->pci, 0x92) | 0x3f);	/* ports 0-5 */
-	}
-
 	return numports;
 }
 
@@ -1986,21 +1944,30 @@ didtype(Pcidev *p)
 {
 	switch(p->vid){
 	case Vintel:
-		if((p->did & 0xfffc) == 0x2680)
-			return Tesb;
-		/*
-		 * 0x27c4 is the intel 82801 in compatibility (not sata) mode.
-		 */
 		if (p->did == 0x1e02 ||			/* c210 */
 		    p->did == 0x24d1 ||			/* 82801eb/er */
-		    (p->did & 0xfffb) == 0x27c1 ||	/* 82801g[bh]m ich7 */
+		    p->did == 0x27c1 ||			/* 82801g[bh]m ich7 */
+		    p->did == 0x27c5 ||			/* 82801g[bh]m ich7 */
 		    p->did == 0x2821 ||			/* 82801h[roh] */
-		    (p->did & 0xfffe) == 0x2824 ||	/* 82801h[b] */
-		    (p->did & 0xfeff) == 0x2829 ||	/* ich8/9m */
-		    (p->did & 0xfffe) == 0x2922 ||	/* ich9 */
+		    p->did == 0x2824 ||			/* 82801h[b] */
+		    p->did == 0x2825 ||			/* 82801h[b] */
+		    p->did == 0x2829 ||			/* ich8/9m */
+		    p->did == 0x2929 ||			/* ich8/9m */
+		    p->did == 0x2922 ||			/* ich9 */
+		    p->did == 0x2923 ||			/* ich9 */
 		    p->did == 0x3a02 ||			/* 82801jd/do */
-		    (p->did & 0xfefe) == 0x3a22 ||	/* ich10, pch */
-		    (p->did & 0xfff8) == 0x3b28 ||	/* pchm */
+		    p->did == 0x3a22 ||			/* ich10, pch */
+		    p->did == 0x3a23 ||			/* ich10, pch */
+		    p->did == 0x3b22 ||			/* ich10, pch */
+		    p->did == 0x3b23 ||			/* ich10, pch */
+		    p->did == 0x3b28 ||			/* pchm */
+		    p->did == 0x3b29 ||			/* pchm */
+		    p->did == 0x3b2a ||			/* pchm */
+		    p->did == 0x3b2b ||			/* pchm */
+		    p->did == 0x3b2c ||			/* pchm */
+		    p->did == 0x3b2d ||			/* pchm */
+		    p->did == 0x3b2e ||			/* pchm */
+		    p->did == 0x3b2f ||			/* pchm */
 		    p->did == 0xa102) {			/* q170/q150/b150/h170/h110/z170/cm236 */
 			return Tich;
 		}
