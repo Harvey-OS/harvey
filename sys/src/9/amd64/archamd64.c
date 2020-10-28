@@ -193,6 +193,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 			break;
 		case 0x000306a0:		/* i7,5,3 3xxx */
 		case 0x000206c0:		/* i7,5,3 4xxx */
+		case 0x00050650:		/* i9 7900X */ // Moved here by RGM 10/27/2020
 		case 0x000506e0:		/* i7,5,3 6xxx */
 			// reading msr 0xcd gets a GPF on this CPU.
 			// per the coreboot irc:
@@ -213,7 +214,6 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 		case 0x000106e0:		/* i7,5,3 8xx */
 		case 0x000206a0:		/* i7,5,3 2xxx */
 		case 0x000306f0:		/* i7,5,3 5xxx */
-		case 0x00050650:		/* i9 7900X */
 		case 0x000806e0:		/* i7,5,3 85xx */
 		case 0x000906e0:		/* i7,5,3 77xx 8xxx */
 			/*
@@ -228,12 +228,12 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
+			DBG("rdmsr Intel: %d\n", rdmsr(0x2a));
+			DBG("Intel msr.lo %d\n", r);
+			DBG("Intel msr.hi %d\n", f);
 			if (f < 0) {
 				f = rdmsr(0xcd) & 0x07;
 			}
-//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));
-//iprint("Intel msr.lo %d\n", r);
-//iprint("Intel msr.hi %d\n", f);
 
 			switch(f){
 			default:
