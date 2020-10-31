@@ -64,19 +64,25 @@ enum {
 	Hsalp	= 1<<26,	/* aggressive link pm */
 	Hsal	= 1<<25,	/* activity led */
 	Hsclo	= 1<<24,	/* command-list override */
-	Hiss	= 1<<20,	/* for interface speed */
-//	Hsnzo	= 1<<19,
 	Hsam	= 1<<18,	/* ahci-mode only */
 	Hspm	= 1<<17,	/* port multiplier */
-//	Hfbss	= 1<<16,
+	Hfbss	= 1<<16,	/* fis-based switching */
 	Hpmb	= 1<<15,	/* multiple-block pio */
 	Hssc	= 1<<14,	/* slumber state */
 	Hpsc	= 1<<13,	/* partial-slumber state */
-	Hncs	= 1<<8,		/* n command slots */
 	Hcccs	= 1<<7,		/* coal */
 	Hems	= 1<<6,		/* enclosure mgmt. */
 	Hsxs	= 1<<5,		/* external sata */
-	Hnp	= 1<<0,		/* n ports */
+};
+
+/* cap2 bits: supported features */
+enum {
+	Hdeso	= 1<<5,		/* devsleep entrance from slumber only */
+	Hsadm	= 1<<4,		/* supports aggressive device sleep mgmt */
+	Hsds	= 1<<3,		/* supports sleep device */
+	Hapst	= 1<<2,		/* automatic partial to slumber transitions */
+	Hnvmp	= 1<<1,		/* nvmhci/nvme present */
+	Hboh	= 1<<0,		/* bios/os handoff */
 };
 
 /* ghc bits */

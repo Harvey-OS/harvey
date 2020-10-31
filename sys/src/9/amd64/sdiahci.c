@@ -2348,6 +2348,7 @@ iartopctl(SDev *sdev, char *p, char *e)
 	ctlr = sdev->ctlr;
 	hba = ctlr->hba;
 	p = seprint(p, e, "sd%c ahci port %#p: ", sdev->idno, ctlr->physio);
+
 	cap = hba->cap;
 	has(Hs64a, "64a");
 	has(Hsalp, "alp");
@@ -2364,11 +2365,26 @@ iartopctl(SDev *sdev, char *p, char *e)
 	has(Hssc, "slum");
 	has(Hsss, "ss");
 	has(Hsxs, "sxs");
+	has(Hfbss, "fbss");
+	has(Hpmb, "pmb");
+
+	int iss = (cap>>20) & 0xf;
+	int ncs = (cap>>8) & 0x1f;
+	int np = 1 + (cap & 0x1f);
+
+	cap = hba->cap2;
+	has(Hdeso, "deso");
+	has(Hsadm, "sadm");
+	has(Hsds, "sds");
+	has(Hapst, "apst");
+	has(Hnvmp, "nvmp");
+	has(Hboh, "boh");
+
 	portr(pr, pr + sizeof pr, hba->pi);
+
 	return seprint(p, e,
 		"iss %ld ncs %ld np %ld; ghc %#lx isr %#lx pi %#lx %s ver %#lx\n",
-		(cap>>20) & 0xf, (cap>>8) & 0x1f, 1 + (cap & 0x1f),
-		hba->ghc, hba->isr, hba->pi, pr, hba->ver);
+		iss, ncs, np, hba->ghc, hba->isr, hba->pi, pr, hba->ver);
 #undef has
 }
 
