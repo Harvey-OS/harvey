@@ -2,6 +2,7 @@
 	{
 		"Name": "buildflags",
 		"Cflags": [
+			"-fcommon",
 			"-mstack-alignment=4"
 		]
 	}
