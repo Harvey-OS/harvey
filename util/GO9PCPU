@@ -22,7 +22,7 @@ fi
 read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu max,vmware-cpuid-freq=on,+invtsc -smp 4 -m 2048 $kvmflag \
 -usb \
--serial stdio \
+-nographic \
 --machine $machineflag \
 -net nic,model=rtl8139 \
 -net user,id=user.0,\
