@@ -110,6 +110,7 @@
 				"nvram": "/util/nvram",
 				"pci": "/rc/bin/pci",
 				"prep": "/$ARCH/bin/disk/prep",
+				"p": "/$ARCH/bin/p",
 				"ps": "/$ARCH/bin/ps",
 				"ratrace": "/$ARCH/bin/ratrace",
 				"rc": "/$ARCH/bin/rc",
