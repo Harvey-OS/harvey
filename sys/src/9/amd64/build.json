@@ -11,8 +11,7 @@
 			"core.json",
 			"../386/386.json",
 			"../ip/ip.json",
-			"../port/port.json",
-			"u-root.json"
+			"../port/port.json"
 		],
 		"Kernel": {
 			"Config": {
@@ -122,8 +121,7 @@
 				"tmpfs": "/plan9_$ARCH/bin/tmpfs",
 				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti",
-				"vga": "/$ARCH/bin/aux/vga",
-				"uroot": "uroot.cpio.lzma"
+				"vga": "/$ARCH/bin/aux/vga"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
 		},
