@@ -32,6 +32,12 @@ EFI_GUID EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID = {
 	0xc9, 0x69, 0x72, 0x3b,
 };
 
+static EFI_GUID EFI_LOADED_IMAGE_PROTOCOL_GUID = {
+	0x5b1b31a1, 0x9562, 0x11d2,
+	0x8e, 0x3f, 0x00, 0xa0,
+	0xc9, 0x69, 0x72, 0x3b,
+};
+
 static
 EFI_FILE_PROTOCOL *fsroot;
 
@@ -87,11 +93,42 @@ int
 fsinit(void **pf)
 {
 	EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *fs;
+	EFI_LOADED_IMAGE_PROTOCOL *image;
 	EFI_FILE_PROTOCOL *root;
 	EFI_HANDLE *Handles;
 	void *f;
 	UINTN Count;
 	int i;
+
+	image = nil;
+
+	/* locate kernel and plan9.ini by deriving a fs protocol
+	 * from the device the loader was read from.
+	 * if that fails, fall back to old method.
+	 */
+	if(eficall(ST->BootServices->HandleProtocol, IH,
+		&EFI_LOADED_IMAGE_PROTOCOL_GUID, &image) == 0 &&
+		eficall(ST->BootServices->HandleProtocol, image->DeviceHandle,
+		&EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, &fs) == 0 &&
+		eficall(fs->OpenVolume, fs, &root) == 0){
+
+		fsroot = root;
+		f = fsopen("/plan9.ini");
+		if(f != nil){
+			if(pf != nil)
+				*pf = f;
+			else
+				fsclose(f);
+
+			goto gotit;
+		}
+	}
+
+	Count = 0;
+	Handles = nil;
+	if(eficall(ST->BootServices->LocateHandleBuffer,
+		ByProtocol, &EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, nil, &Count, &Handles))
+		return -1;
 
 	Count = 0;
 	Handles = nil;
@@ -126,6 +163,7 @@ fsinit(void **pf)
 	if(fsroot == nil)
 		return -1;
 
+gotit:
 	read = fsread;
 	close = fsclose;
 	open = fsopen;
