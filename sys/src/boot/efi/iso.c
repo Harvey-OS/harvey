@@ -62,7 +62,7 @@ typedef struct {
 } EFI_BLOCK_IO_PROTOCOL;
 
 static EFI_GUID
-EFI_BLOCK_IO_PROTOCO_GUID = {
+EFI_BLOCK_IO_PROTOCOL_GUID = {
 	0x964e5b21, 0x6459, 0x11d2,
 	0x8e, 0x39, 0x00, 0xa0,
 	0xc9, 0x69, 0x72, 0x3b,
@@ -191,13 +191,13 @@ isoinit(void **fp)
 	Count = 0;
 	Handles = nil;
 	if(eficall(ST->BootServices->LocateHandleBuffer,
-		ByProtocol, &EFI_BLOCK_IO_PROTOCO_GUID, nil, &Count, &Handles))
+		ByProtocol, &EFI_BLOCK_IO_PROTOCOL_GUID, nil, &Count, &Handles))
 		return -1;
 
 	for(i=0; i<Count; i++){
 		bio = nil;
 		if(eficall(ST->BootServices->HandleProtocol,
-			Handles[i], &EFI_BLOCK_IO_PROTOCO_GUID, &bio))
+			Handles[i], &EFI_BLOCK_IO_PROTOCOL_GUID, &bio))
 			continue;
 	
 		media = bio->Media;

@@ -49,6 +49,22 @@ typedef struct {
 } EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 
 typedef struct {
+	UINT32		Revision;
+	EFI_HANDLE	ParentHandle;
+	void		*SystemTable;
+	EFI_HANDLE	DeviceHandle;
+	void		*FilePath;
+	void		*Reserved;
+	UINT32		LoadOptionsSize;
+	void		*LoadOptions;
+	void		*ImageBase;
+	UINT64		ImageSize;
+	UINT32		ImageCodeType;
+	UINT32		ImageDataType;
+	void		*Unload;
+} EFI_LOADED_IMAGE_PROTOCOL;
+
+typedef struct {
 	UINT32		RedMask;
 	UINT32		GreenMask;
 	UINT32		BlueMask;
