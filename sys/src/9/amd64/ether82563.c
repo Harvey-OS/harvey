@@ -1796,6 +1796,8 @@ fload16(Ctlr *ctlr)
 	uint16_t sum;
 	Flash f;
 
+  // TODO: bank detection
+  // ich8lan.c#3120 in Linux
 	memset(ctlr->eeprom, 0xFF, sizeof(ctlr->eeprom));
 	io = ctlr->pcidev->mem[1].bar & ~0x0f;
 	f.reg = vmap(io, ctlr->pcidev->mem[1].size);
