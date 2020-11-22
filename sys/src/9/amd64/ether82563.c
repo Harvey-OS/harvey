@@ -1823,6 +1823,18 @@ fload16(Ctlr *ctlr)
 	for (adr = 0; adr < 0x40; adr++) {
 		data = fread(ctlr, &f, r + adr*2);
 		print("   EEPROM data %#.4u: %#.4ux\n", adr, data);
+    /*
+     * Shared Init Control Word (Word 0x13), first two bits indicate validity
+     * From the I217 datasheet, 9.3.1.9:
+     * A 2-bit valid indication field indicates to the device that there is a
+     * valid NVM present. If the valid field does not equal 10b the integrated
+     * LAN controller does not read the rest of the NVM data and default values
+     * are used for the device configuration.
+     */
+    if (adr == 0x13 && data == 0x05) {
+      print("     UNEXPECTED, fixing to 0xa505");
+      data = 0xa505;
+    }
 		if(data == -1)
 			break;
 		ctlr->eeprom[adr] = data;
