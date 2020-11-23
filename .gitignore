@@ -87,3 +87,4 @@ util/harvey.raw
 /linux_amd64/
 /plan9_amd64/
 /usr/harvey/lib/cache/
+sys/src/9/aarch64/harvey

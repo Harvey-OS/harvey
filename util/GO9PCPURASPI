@@ -1,0 +1,45 @@
+#!/bin/bash
+set -e
+
+trap : 2
+
+$HARVEY/linux_amd64/bin/centre -i "" -ninep-dir=$HARVEY &
+centrepid=$!
+
+export machineflag=raspi3
+
+read -r cmd <<EOF
+$kvmdo qemu-system-aarch64 -s -m 1G \
+-serial stdio \
+--machine $machineflag \
+-append "service=cpu nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1" \
+-kernel $HARVEY/sys/src/9/aarch64/harvey $*
+EOF
+
+echo $cmd
+eval $cmd
+
+kill $centrepid
+wait
+
+# TO ENABLE FACTOTUM replace append with this
+#-append "nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0" \
+
+# -nographic \
+#-S -gdb tcp::1234 \
+# -nographic \
+#-kernel mnt/hdd/kernel $*
+
+# if you need the dump.
+#-object filter-dump,id=f1,netdev=user.0,file=/tmp/vm0.pcap \
+
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 4096 -nographic  \
+#-net nic,model=rtl8139 mnt/hdd268mb.img \
+#-net user,hostfwd=tcp::5555-:23 \
+#-object filter-dump,id=f1,netdev=user.0,file=/tmp/vm0.pcap \
+#-kernel mnt/hdd/kernel $*
+#
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0 -kernel mnt/hdd/kernel $*
+#sudo qemu-system-x86_64 -s -cpu phenom -smp 8 -m 6024 -nographic  -net nic,model=rtl8139 mnt/hdd268mb.img -netdev user,id=mynet0,net=192.168.76.0/24,dhcpstart=192.168.76.9 -kernel mnt/hdd/kernel $*
+
+# 

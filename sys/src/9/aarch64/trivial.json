@@ -6,8 +6,17 @@
 		],
 		"Program": "harvey",
 		"SourceFiles": [
-			"l.S",
+			"entry.S",
 			"main.c"
+		],
+		"Cflags": [
+			"-g"
+		],
+		"Oflags": [
+			"-nostdlib",
+			"-g",
+			"-T",
+			"kernel.ld"
 		]
 	}
 ]
