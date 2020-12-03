@@ -33,7 +33,7 @@ extern	int	strcmp(const char*, const char*);
 extern	char*	strcpy(char*, const char*);
 extern	char*	strecpy(char*, char*, const char*);
 extern	char*	strncat(char*, const char*, int32_t);
-extern	char*	strlcpy(char*, const char*, int32_t);
+extern	size_t	strlcpy(char*, const char*, int32_t);
 extern	char*	strncpy(char*, const char*, int32_t);
 extern	int	strncmp(const char*, const char*, int32_t);
 extern	char*	strrchr(const char*, int);
@@ -261,6 +261,7 @@ struct Zio
 };
 
 extern	char	etext[];
+extern	char	erodata[];
 extern	char	edata[];
 extern	char	end[];
 

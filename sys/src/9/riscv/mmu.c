@@ -824,3 +824,10 @@ mmuinit(void)
 
 	mmuphysaddr(PTR2UINT(end));
 }
+
+// This is a no-op on RISC-V.
+void
+mmuprocinit(Proc *p)
+{
+	USED(p);
+}

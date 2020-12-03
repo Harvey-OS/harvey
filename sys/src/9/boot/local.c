@@ -69,7 +69,6 @@ configlocal(Method *mp)
 	} else {
 		disk = "#s/sdE0/";
 	}
-print("configlocal: disk is %s\n", disk);
 	/* if we've decided on one, pass it on to all programs */
 	if(disk) {
 		setenv("bootdisk", disk);

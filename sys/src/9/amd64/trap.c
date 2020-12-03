@@ -21,14 +21,6 @@
 #include	"io.h"
 #include	"amd64.h"
 
-
-// counters. Set by assembly code.
-// interrupt enter and exit, systecm call enter and exit.
-unsigned long ire, irx, sce, scx;
-// Did we start doing an exit for the interrupts?
-// ir exit entry :-)
-unsigned long irxe;
-
 extern int notify(Ureg*);
 
 static void debugbpt(Ureg*, void*);
@@ -440,7 +432,7 @@ trap(Ureg* ureg)
 	uint64_t gsbase = rdmsr(GSbase);
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
-	if (gsbase < 1ULL<<63)
+	if (gsbase < KZERO)
 		die("bogus gsbase");
 	Proc *up = externup();
 	char buf[ERRMAX];
@@ -606,8 +598,6 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-die("dumpregs");
-
 	dumpgpr(ureg);
 
 	/*
@@ -620,8 +610,6 @@ die("dumpregs");
 	print("cr0\t%#16.16llx\n", cr0get());
 	print("cr2\t%#16.16llx\n", machp()->MMU.cr2);
 	print("cr3\t%#16.16llx\n", cr3get());
-die("dumpregs");
-//	archdumpregs();
 }
 
 /*
@@ -747,17 +735,12 @@ faultamd64(Ureg* ureg, void* v)
 	}
 
 	ftype = (ureg->error&2) ? FT_WRITE : (ureg->error&16) ? FT_EXEC : FT_READ;
-/*
-if (read) hi("read fault\n"); else hi("write fault\n");
-hi("addr "); put64(addr); hi("\n");
- */
 
 	insyscall = up->insyscall;
 	up->insyscall = 1;
 	if (0)hi("call fault\n");
 
 	if(fault(addr, ureg->ip, ftype) < 0){
-iprint("could not %s fault %p\n", faulttypes[ftype], addr);
 		/*
 		 * It is possible to get here with !user if, for example,
 		 * a process was in a system call accessing a shared
@@ -769,8 +752,10 @@ iprint("could not %s fault %p\n", faulttypes[ftype], addr);
 		 * (up->nerrlab != 0) if this is a system call, if not then
 		 * the game's a bogey.
 		 */
-		if(!user && (!insyscall || up->nerrlab == 0))
+		if(!user && (!insyscall || up->nerrlab == 0)){
+			dumpregs(ureg);
 			panic("fault: %#llx\n", addr);
+		}
 		sprint(buf, "sys: trap: fault %s addr=%#llx",
 			faulttypes[ftype], addr);
 		postnote(up, 1, buf, NDebug);

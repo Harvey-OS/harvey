@@ -16,39 +16,40 @@
 #include "apic.h"
 
 #undef DBG
-#define DBG print
+#define DBG if(1)print
 #define SIPIHANDLER	(KZERO+0x3000)
 
 void
 sipi(void)
 {
-	extern int b1978;
+	extern char b1978, e1978;
 	Apic *apic;
-	Mach *mach;
+	volatile Mach *mach;
 	int apicno, i;
-	uint32_t *sipiptr;
+	volatile uint64_t *sipiptr;
 	uintmem sipipa;
-	uint8_t *alloc, *p;
+	uint8_t *p;
 	extern void squidboy(int);
+	usize apsize;
 
 	/*
 	 * Move the startup code into place,
 	 * must be aligned properly.
 	 */
-	sipipa = mmuphysaddr(SIPIHANDLER);
-	if((sipipa & (4*KiB - 1)) || sipipa > (1*MiB - 2*4*KiB))
-		return;
-	sipiptr = UINT2PTR(SIPIHANDLER);
-	memmove(sipiptr, &b1978, 4096);
+	sipipa = mmuphysaddr(UINT2PTR(machp()->MMU.pml4->va), SIPIHANDLER);
+	if((sipipa == 0 || sipipa & (PGSZ - 1)) || sipipa > (1*MiB - 2*PGSZ))
+		panic("sipi: SIPI page improperly aligned or too far away, pa %#p", sipipa);
+	sipiptr = KADDR(sipipa);
 	DBG("sipiptr %#p sipipa %#llx\n", sipiptr, sipipa);
+	memmove((void *)sipiptr, &b1978, &e1978-&b1978);
 
 	/*
-	 * Notes:
-	 * The Universal Startup Algorithm described in the MP Spec. 1.4.
-	 * The data needed per-processor is the sum of the stack, page
-	 * table pages, vsvm page and the Mach page. The layout is similar
-	 * to that described in data.h for the bootstrap processor, but
-	 * with any unused space elided.
+	 * Notes: SMP startup algorithm.
+	 * The data needed per-processor is the sum of the stack,
+	 * vsvm pages and the Mach page. The layout is similar
+	 * to that described in dat.h for the bootstrap processor,
+	 * but with no unused, and we use the page tables from
+	 * early boot.
 	 */
 	for(apicno = 0; apicno < Napic; apicno++){
 		apic = &xlapic[apicno];
@@ -60,16 +61,13 @@ sipi(void)
 		 * bootstrap processor, until the lsipi code is worked out,
 		 * so only the Mach and stack portions are used below.
 		 */
-		alloc = mallocalign(MACHSTKSZ+4*PTSZ+4*KiB+MACHSZ, 4096, 0, 0);
-		if(alloc == nil)
-			continue;
-		memset(alloc, 0, MACHSTKSZ+4*PTSZ+4*KiB+MACHSZ);
-		p = alloc+MACHSTKSZ;
+		apsize = MACHSTKSZ+PTSZ+PGSZ;
+		p = mallocalign(apsize+MACHSZ, PGSZ, 0, 0);
+		if(p == nil)
+			panic("sipi: cannot allocate for apicno %d", apicno);
 
-		sipiptr[-1] = mmuphysaddr(PTR2UINT(p));
-		DBG("p %#p sipiptr[-1] %#x\n", p, sipiptr[-1]);
-
-		p += 4*PTSZ+4*KiB;
+		sipiptr[511] = PTR2UINT(p);
+		DBG("sipi mem for apicid %d is %#p sipiptr[511] %#llx\n", apicno, p, sipiptr[511]);
 
 		/*
 		 * Committed. If the AP startup fails, can't safely
@@ -77,33 +75,25 @@ sipi(void)
 		 * the AP is up to. Perhaps should try to put it
 		 * back into the INIT state?
 		 */
-		mach = (Mach*)p;
+		mach = (volatile Mach*)(p+apsize);
+		mach->self = PTR2UINT(mach);
 		mach->machno = apic->Lapic.machno;		/* NOT one-to-one... */
 		mach->splpc = PTR2UINT(squidboy);
 		mach->apicno = apicno;
-		mach->stack = PTR2UINT(alloc);
-		mach->vsvm = alloc+MACHSTKSZ+4*PTSZ;
-//OH OH		mach->pml4 = (PTE*)(alloc+MACHSTKSZ);
+		mach->stack = PTR2UINT(p);
+		mach->vsvm = p+MACHSTKSZ+PTSZ;
 
-		p = KADDR(0x467);
-		*p++ = sipipa;
-		*p++ = sipipa>>8;
-		*p++ = 0;
-		*p = 0;
-
-		nvramwrite(0x0f, 0x0a);
-		//print("APICSIPI: %d, %p\n", apicno, (void *)sipipa);
+		DBG("APICSIPI: %d, %p\n", apicno, (void *)sipipa);
 		apicsipi(apicno, sipipa);
 
-		for(i = 0; i < 1000; i++){
+		for(i = 0; i < 5000; i++){
 			if(mach->splpc == 0)
 				break;
-			millidelay(5);
+			millidelay(1);
 		}
-		nvramwrite(0x0f, 0x00);
 
-		/*DBG("mach %#p (%#p) apicid %d machno %2d %dMHz\n",
+		DBG("mach %#p (%#p) apicid %d machno %2d %dMHz\n",
 			mach, sys->machptr[mach->machno],
-			apicno, mach->machno, mach->cpumhz);*/
+			apicno, mach->machno, mach->cpumhz);
 	}
 }

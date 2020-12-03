@@ -16,9 +16,9 @@
  * https://sourceware.org/bugzilla/show_bug.cgi?id=190
  */
 #ifndef __ASSEMBLER__
-#define KiB		1024u			/* Kibi 0x0000000000000400 */
-#define MiB		1048576u		/* Mebi 0x0000000000100000 */
-#define GiB		1073741824u		/* Gibi 000000000040000000 */
+#define KiB		1024ull			/* Kibi 0x0000000000000400 */
+#define MiB		1048576ull		/* Mebi 0x0000000000100000 */
+#define GiB		1073741824ull		/* Gibi 000000000040000000 */
 #define TiB		1099511627776ull	/* Tebi 0x0000010000000000 */
 #define PiB		1125899906842624ull	/* Pebi 0x0004000000000000 */
 #define EiB		1152921504606846976ull	/* Exbi 0x1000000000000000 */
@@ -60,7 +60,7 @@
 
 #define MACHSZ		(4*KiB)			/* Mach+stack size */
 #define MACHMAX		32			/* max. number of cpus */
-#define MACHSTKSZ	(6*(4*KiB))		/* Mach stack size */
+#define MACHSTKSZ	(8*(4*KiB))		/* Mach stack size */
 
 #define KSTACK		(16*1024)		/* Size of Proc kernel stack */
 #define STACKALIGN(sp)	((sp) & ~(BY2SE-1))	/* bug: assure with alloc */
@@ -116,25 +116,13 @@
  */
 
 #ifndef __ASSEMBLER__
-#define KSEG2		(0xfffffe0000000000ull)	/* 1TB - KMAP */
-/*			 0xffffff0000000000ull	end of KSEG2 */
-#define VMAP		(0xffffffffe0000000ull)
-#define VMAPSZ		(256*MiB)
-#define KSEG0		(0xfffffffff0000000ull)	/* 256MB - this is confused */
-#define KZERO		(0xfffffffff0000000ull)
-#define KTZERO		(KZERO+1*MiB+64*KiB)
-#define PDMAP		(0xffffffffff800000ull)
-#define PMAPADDR		(0xffffffffffe00000ull)	/* unused as of yet */
-/*			 0xffffffffffffffffull	end of KSEG0 */
+#define KZERO		0xffff800000000000ull
+#define KSYS		(KZERO+1ull*MiB+1ull*PGSZ)
+#define KTZERO		(KZERO+2ull*MiB)
 #else
-#define KSEG2           (0xfffffe0000000000)
-#define VMAPSZ          (256*MiB)
-#define VMAP            (0xffffffffe0000000)
-#define KSEG0           (0xfffffffff0000000)
-#define KZERO           (0xfffffffff0000000)
-#define KTZERO          (KZERO+1*MiB+64*KiB)
-#define PDMAP           (0xffffffffff800000)
-#define PMAPADDR        (0xffffffffffe00000)
+#define KZERO		0xffff800000000000
+#define KSYS		(KZERO+1*MiB+1*PGSZ)
+#define KTZERO		(KZERO+2*MiB)
 #endif
 
 // YUCK.

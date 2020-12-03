@@ -14,7 +14,7 @@
 #include "boot.h"
 
 static	uint8_t	fsip[IPaddrlen];
-	uint8_t	auip[IPaddrlen];
+static	uint8_t	auip[IPaddrlen];
 static	char	mpoint[32];
 
 static int isvalidip(uint8_t*);
@@ -103,6 +103,7 @@ configip(int bargc, char **bargv, int needfs)
 	if(!isvalidip(fsip))
 		netenv("fs", fsip);
 	while(!isvalidip(fsip)){
+		memset(buf, 0, sizeof(buf));
 		outin("filesystem IP address", buf, sizeof(buf));
 		if (parseip(fsip, buf) == -1)
 			fprint(2, "configip: can't parse fs ip %s\n", buf);
@@ -112,6 +113,7 @@ configip(int bargc, char **bargv, int needfs)
 	if(!isvalidip(auip))
 		netenv("auth", auip);
 	while(!isvalidip(auip)){
+		memset(buf, 0, sizeof(buf));
 		outin("authentication server IP address", buf, sizeof(buf));
 		if (parseip(auip, buf) == -1)
 			fprint(2, "configip: can't parse auth ip %s\n", buf);

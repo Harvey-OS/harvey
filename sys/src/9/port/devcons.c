@@ -391,7 +391,8 @@ panic(char *fmt, ...)
 	//prflush();
 	buf[n] = '\n';
 	putstrn(buf, n+1);
-	//dumpstack();
+	dumpstack();
+	stacksnippet();
 	delay(1000);	/* give time to consoles */
 	die("wait forever");
 	exit(1);

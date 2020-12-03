@@ -538,6 +538,4 @@ physinit(uintmem a, uint64_t size)
 
 		iimbchunk(b, addr, addr+len, 0);
 	}
-
-
 }

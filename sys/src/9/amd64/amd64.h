@@ -93,7 +93,7 @@
 #define PteG		0x0000000000000100	/* Global */
 #define Pte2MPAT	0x0000000000001000	/* PDE PAT */
 #define Pte1GPAT	Pte2MPAT		/* PDPE PAT */
-#define PteNX		0x8000000000000000	/* No Execute */
+#define PteNX		0x8000000000000000ULL	/* No Execute */
 
 /* Exceptions */
 #define IdtDE		0			/* Divide-by-Zero Error */

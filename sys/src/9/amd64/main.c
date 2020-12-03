@@ -31,16 +31,7 @@ static uintptr_t sp;		/* XXX - must go - user stack of init proc */
  */
 int64_t hz;
 
-uintptr_t kseg0 = KZERO;
-
-// N.B.: sys is initialized in entry.S
-// This nil is a no-op anyway. Compilers see a zero and
-// put it in BSS anyway.
-Sys* sys = nil;
-usize sizeofSys = sizeof(Sys);
-
-// N.B.: entrym is initialized in entry.S
-Mach *entrym;
+Sys *const sys = UINT2PTR(KSYS);
 
 /*
  * Option arguments from the command line.
@@ -50,8 +41,8 @@ Mach *entrym;
  */
 char *cputype = "amd64";
 static int64_t oargc;
-static char* oargv[20];
-static char oargb[1024];
+static char* oargv[128];
+static char oargb[4096];
 static int oargblen;
 
 static int maxcores = 1024;	/* max # of cores given as an argument */
@@ -60,8 +51,7 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag;
 
-int nosmp;
-int acpionly = 1;
+int nosmp = 0;
 static int showpost = 0;
 
 // Harvey is out of date on many platforms, and frequently the only
@@ -79,7 +69,7 @@ static int showpost = 0;
 // and time of this bit of extra code is so small as to not matter.
 void post(char *msg, uint8_t terminal)
 {
-	if (! showpost)
+	if (!showpost)
 		return;
 	for(int i = 0; i < strlen(msg); i++) {
 		outb(0x3f8, msg[i]);
@@ -111,17 +101,17 @@ sigscan(uint8_t* address, int length, char* signature)
 static int
 ktextaddr(uintptr_t pc)
 {
-	return (pc & 0xfffffffff0000000) == 0xfffffffff0000000;
+	return (pc & KTZERO) == KTZERO;
 }
 
 void
 stacksnippet(void)
 {
 	Stackframe *stkfr;
-	kmprint(" stack:");
+	print("cpu%d stack:", machno());
 	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
-		kmprint(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
-	kmprint("\n");
+		print(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', stkfr->pc);
+	print("\n");
 }
 
 void
@@ -150,7 +140,9 @@ machp_bad(void)
 void
 optionsinit(char* s)
 {
-	oargblen = strecpy(oargb, oargb+sizeof(oargb), s) - oargb;
+	oargblen = strlcpy(oargb, s, sizeof(oargb));
+	if(oargblen>=sizeof(oargb))
+		panic("optionsinit: kernel command line too long");
 	oargc = tokenize(oargb, oargv, nelem(oargv)-1);
 	oargv[oargc] = nil;
 }
@@ -211,12 +203,14 @@ loadenv(int argc, char* argv[])
 	 */
 	while(--argc > 0){
 		char* next = *++argv;
-		if(next[0] !='-'){
-			if (gettokens(next, env, 2, "=")  == 2){;
-				ksetenv(env[0], env[1], 0);
-			}else{
-				print("Ignoring parameter (%s) with no value: %s\n", next, env[0]);
+		if(next[0]!='-'){
+			print("loadenv: processing '%s'\n", next);
+			if(strchr(next, '=') == nil){
+				print("Ignoring parameter (%s) with no value.\n", next);
+				continue;
 			}
+			if (gettokens(next, env, 2, "=") == 2)
+				ksetenv(env[0], env[1], 0);
 		}
 	}
 }
@@ -224,11 +218,11 @@ loadenv(int argc, char* argv[])
 extern int num_cpus;
 
 void
-squidboy(int apicno, Mach *mach)
+squidboy(Mach *mach)
 {
 	// FIX QEMU. extern int64_t hz;
 	int64_t hz;
-	mach->self = (uintptr_t)mach;
+
 	sys->machptr[mach->machno] = mach;
 	/*
 	 * Need something for initial delays
@@ -245,10 +239,9 @@ squidboy(int apicno, Mach *mach)
 
 	// NOTE: you can't do ANYTHING here before vsvminit.
 	// PRINT WILL PANIC. So wait.
-
 	vsvminit(MACHSTKSZ, mach->NIX.nixtype, mach);
 
-	//DBG("Hello squidboy %d %d\n", apicno, machp()->machno);
+	DBG("Hello squidboy APIC %d (cpu%d)\n", mach->apicno, machno());
 
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
@@ -260,7 +253,6 @@ squidboy(int apicno, Mach *mach)
 	mach->cpuhz = hz;
 	mach->cyclefreq = hz;
 	mach->cpumhz = hz/1000000ll;
-
 
 	mmuinit();
 	if(!apiconline())
@@ -404,17 +396,27 @@ HERE(void)
 /* The old plan 9 standby ... wave ... */
 
 /* Keep to debug trap.c */
-void wave(int c)
+void
+wave(int c)
 {
 	outb(0x3f8, c);
 }
 
-void hi(char *s)
+void
+hi(char *s)
 {
 	if (! s)
 		s = "<NULL>";
 	while (*s)
 		wave(*s++);
+}
+
+void
+hihex(uint64_t x)
+{
+	const char *hex = "0123456789abcdef";
+	for (int i = 60; i >= 0; i -= 4)
+		wave(hex[(x>>i)&0xF]);
 }
 
 /*
@@ -441,134 +443,40 @@ void die(char *s)
 	staydead = 1;
 }
 
-/*
-void bmemset(void *p)
+void
+badcall(uint64_t where, uint64_t what)
 {
-	__asm__ __volatile__("1: jmp 1b");
-}
-*/
-
-void debugtouser(void *va)
-{
-	uintptr_t uva = (uintptr_t) va;
-	PTE *pte, *pml4;
-
-	pml4 = UINT2PTR(machp()->MMU.pml4->va);
-	mmuwalk(pml4, uva, 0, &pte, nil);
-	iprint("va %p m %p m>pml4 %p machp()->pml4->va %p pml4 %p PTE 0x%lx\n", va,
-			machp(), machp()->MMU.pml4, machp()->MMU.pml4->va, (void *)pml4, *pte);
-}
-
-/*
-void badcall(uint64_t where, uint64_t what)
-{
-	hi("Bad call from function "); put64(where); hi(" to "); put64(what); hi("\n");
-	while (1)
+	hi("Bad call from function ");
+	hihex(where);
+	hi(" to ");
+	hihex(what); hi("\n");
+	for(;;)
 		;
 }
-*/
 
-void errstr(char *s, int i) {
+void
+errstr(char *s, int i)
+{
 	panic("errstr");
 }
 
 static int x = 0x123456;
 
-/* tear down the identity map we created in assembly. ONLY do this after all the
- * APs have started up (and you know they've done so. But you must do it BEFORE
- * you create address spaces for procs, i.e. userinit()
- */
-static void
-teardownidmap(Mach *mach)
-{
-	int i;
-	uintptr_t va = 0;
-	PTE *p;
-	/* loop on the level 2 because we should not assume we know
-	 * how many there are But stop after 1G no matter what, and
-	 * report if there were that many, as that is odd.
-	 */
-	for(i = 0; i < 512; i++, va += BIGPGSZ) {
-		if (mmuwalk(UINT2PTR(mach->MMU.pml4->va), va, 1, &p, nil) != 1)
-			break;
-		if (! *p)
-			break;
-		iprint("teardown: va %p, pte %p\n", (void *)va, p);
-		*p = 0;
-	}
-	iprint("Teardown: zapped %d PML1 entries\n", i);
-
-	for(i = 2; i < 4; i++) {
-		if (mmuwalk(UINT2PTR(mach->MMU.pml4->va), 0, i, &p, nil) != i) {
-			iprint("weird; 0 not mapped at %d\n", i);
-			continue;
-		}
-		iprint("teardown: zap %p at level %d\n", p, i);
-		if (p)
-			*p = 0;
-	}
-}
-
-
 void
-main(uint32_t mbmagic, uint32_t mbaddress)
+main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 {
 	int postterminal = 1;
-	Mach *mach = entrym;
-	/* when we get here, entrym is set to core0 mach. */
-	sys->machptr[mach->machno] = entrym;
-	// Very special case for BSP only. Too many things
-	// assume this is set.
-	wrmsr(GSbase, PTR2UINT(&sys->machptr[mach->machno]));
-	if (machp() != mach)
-		panic("mach and machp() are different!!\n");
-	assert(sizeof(Mach) <= PGSZ);
+	USED(postterminal);
 
-	/*
-	 * Check that our data is on the right boundaries.
-	 * This works because the immediate value is in code.
-	 */
-	//cgaprint(800, "hello harvey\n");
-	//for(;;);
-	if (x != 0x123456)
-		panic("Data is not set up correctly\n");
+	sys->machptr[mach->machno] = mach;
 
-	// Clear BSS
-	// N.B. This wipes out the sys variable, which is set in entry.S.
-	// It will also wipe out any other data that entry.S might
-	// set that is not initialized, and hence in bss, such as entrym,
-	// which is why code also had to set mach again. This is why Aki
-	// had the 'figure this out' comment below.
-	// Further, it is not needed. Kexec and other bootloaders will
-	// do this for us. Not sure why this was here. -- RGM.
-	// memset(edata, 0, end - edata);
-	// Score one for ELF -- the bss zeroing comes in by default. That
-	// was not the case in 9load I guess.
-
-	/*
-	 * ilock via i8250enable via i8250console
-	 * needs machp()->machno, sys->machptr[] set, and
-	 * also 'up' set to nil.
-	 */
-	cgapost(sizeof(uintptr_t)*8);
-	memset(mach, 0, sizeof(Mach));
-
-	mach->self = (uintptr_t)mach;
+	mach->self = PTR2UINT(mach);
 	mach->machno = 0;
 	mach->online = 1;
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(sys->machstk);
-	// NOPE. Wipes out multiboot.
-	//*(uintptr_t*)mach->stack = STACKGUARD;
 	mach->vsvm = sys->vsvmpage;
 	mach->externup = nil;
-	active.nonline = 1;
-	active.exiting = 0;
-	active.nbooting = 0;
-
-	asminit(); post("	asminit();", postterminal++);
-	multiboot(mbmagic, mbaddress, 0); post("	multiboot(mbmagic, mbaddress, 0);", postterminal++);
-	options(oargc, oargv); post("	options(oargc, oargv);", postterminal++);
 
 	/*
 	 * Need something for initial delays
@@ -576,27 +484,53 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 */
 	mach->cpuhz = 2000000000ll;
 	mach->cpumhz = 2000;
-	sys->cyclefreq = mach->cpuhz;
 
-	cgainit(); post("	cgainit();", postterminal++);
-	i8250console("0"); post("	i8250console(\"0\");", postterminal++);
-
-	consputs = cgaconsputs;
-
-	/* It all ends here. */
-	vsvminit(MACHSTKSZ, NIXTC, mach); post("	vsvminit(MACHSTKSZ, NIXTC, mach);", postterminal++);
+	// Initialize VSM so that we can use interrupts and so forth.
+	vsvminit(MACHSTKSZ, NIXTC, mach);
 	if (machp() != mach)
 		panic("After vsvminit, m and machp() are different");
 
+	// The kernel maps the first 4GiB before entry to main().  If the
+	// image is too big, we will fail to boot properly.
+	if((uintptr_t)end-KZERO > 4ULL*GiB)
+		panic("main: kernel too big: image ends after 4GiB");
+
+	/*
+	 * Check that our data is on the right boundaries.
+	 * This works because the immediate value is in code.
+	 */
+	if (x != 0x123456)
+		panic("Data is not set up correctly\n");
+
+	sys->cyclefreq = mach->cpuhz;
 	sys->nmach = 1;
+	active.nonline = 1;
+	active.exiting = 0;
+	active.nbooting = 0;
 
-	fmtinit(); post("	fmtinit();", postterminal++);
+	/*
+	 * ilock via i8250enable via i8250console
+	 * needs machp()->machno, sys->machptr[] set, and
+	 * also 'up' set to nil.
+	 */
+	cgapost(sizeof(uintptr_t)*8);
+
+	mallocinit();
+	pamapinit();
+	multiboot(mbmagic, mbaddress, 0);
+	options(oargc, oargv);
+	pamapmerge();
+
+	fmtinit();
+
+	cgainit();
+	i8250console("0");
+
+	consputs = cgaconsputs;
+
 	print("\nHarvey\n");
-	multiboot(mbmagic, mbaddress, postterminal++); post("	multiboot(mbmagic, mbaddress, 1);", 1);
-
-	if(vflag){
-		multiboot(mbmagic, mbaddress, vflag);
-	}
+	multiboot(mbmagic, mbaddress, 1);
+	pamapdump();
 
 	mach->perf.period = 1;
 	if((hz = archhz()) != 0ll){
@@ -610,29 +544,15 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	//iprint("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
 
 	/*
-	 * Mmuinit before meminit because it
-	 * flushes the TLB via machp()->pml4->pa.
+	 * Mmuinit before meminit because it flushes the TLB.
 	 */
-	mmuinit(); post("	mmuinit();", postterminal++);
+	mmuinit();
 
-	ioinit(); post("	ioinit();", postterminal++);
-	keybinit(); post("	keybinit();", postterminal++);
-	meminit(); post("	meminit();", postterminal++);
-	confinit(); post("	confinit();", postterminal++);
-	archinit(); post("	archinit();", postterminal++);
-	mallocinit(); post("	mallocinit();", postterminal++);
-
-	/* test malloc. It's easier to find out it's broken here,
-	 * not deep in some call chain.
-	 * See next note.
-	 *
-	 */
-	if (1) {
-		void *v = malloc(1234);
-		hi("allocated\n ");
-		free(v);
-		hi("free ok\n");
-	}
+	ioinit();
+	keybinit();
+	meminit();
+	confinit();
+	archinit();
 
 	/*
 	 * Acpiinit will cause the first malloc
@@ -643,9 +563,9 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-if (1){	acpiinit(); hi("	acpiinit();\n");}
+	acpiinit();
 
-	umeminit(); post("	umeminit();", postterminal++);
+	umeminit();
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -653,46 +573,43 @@ if (1){	acpiinit(); hi("	acpiinit();\n");}
 	 * because the vector base is likely different, causing
 	 * havoc. Do it before any APIC initialisation.
 	 */
-	i8259init(32); post("	i8259init(32);", postterminal++);
+	i8259init(32);
 
-	procinit0(); post("	procinit0();", postterminal++);
+	procinit0();
 	print("before mpacpi, maxcores %d\n", maxcores);
-	mpacpi(maxcores); post("	mpacpi(maxcores);", postterminal++);
-	trapinit(); post("	trapinit();", postterminal++);
-	printinit(); post("	printinit();", postterminal++);
-	apiconline(); post("	apiconline();", postterminal++);
-	ioapiconline(); post("	ioapiconline();", postterminal++);
+	mpacpi(maxcores);
+	trapinit();
+	printinit();
+	apiconline();
+	ioapiconline();
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();
 	} else {
 		print("SMP Disabled by command line\n");
 	}
-//working.
-	teardownidmap(mach); post("	teardownidmap(mach);", postterminal++);
-	timersinit(); post("	timersinit();", postterminal++);
-	fpuinit(); post("	fpuinit();", postterminal++);
-	psinit(conf.nproc); post("	psinit(conf.nproc);", postterminal++);
-	initimage(); post("	initimage();", postterminal++);
-	links(); post("	links();", postterminal++);
+	timersinit();
+	fpuinit();
+	psinit(conf.nproc);
+	initimage();
+	links();
 
+	keybenable();
+	mouseenable();
 
-	keybenable(); post("	keybenable();", postterminal++);
-	mouseenable(); post("	mouseenable();", postterminal++);
-
-	devtabreset(); post("	devtabreset();", postterminal++);
-	pageinit(); post("	pageinit();", postterminal++);
-	swapinit(); post("	swapinit();", postterminal++);
-	userinit(); post("	userinit();", postterminal++);
+	devtabreset();
+	pageinit();
+	swapinit();
+	userinit();
 	/* Forcing to single core if desired */
 	if(!nosmp) {
-		nixsquids(); post("		nixsquids();", postterminal++);
-		testiccs(); post("		testiccs();", postterminal++);
+		nixsquids();
+		testiccs();
 	}
 
-	alloc_cpu_buffers(); post("	alloc_cpu_buffers();", postterminal++);
+	alloc_cpu_buffers();
 
-	acpistart(); post("	acpistart();", postterminal++);
+	acpistart();
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
 	print("schedinit...\n");
@@ -735,7 +652,6 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	//debugtouser((void *)UTZERO);
 	touser(sp);
 }
 
@@ -853,6 +769,11 @@ userinit(void)
 	/* This depends on init having a text segment < 2M. */
 	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)), init_data_out, sizeof(init_data_out));
 	kunmap(k);
+
+	// XXX: Something is faulting when init moves to
+	// another core.
+	//procwired(p, 0);
+
 	ready(p);
 }
 
@@ -874,6 +795,8 @@ shutdown(int ispanic)
 	int ms, once;
 
 	lock(&active.l);
+	if(ispanic)
+		stacksnippet();
 	if(ispanic)
 		active.ispanic = ispanic;
 	else if(machp()->machno == 0 && machp()->online == 0)

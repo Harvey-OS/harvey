@@ -135,9 +135,14 @@ boot(int argc, char *argv[])
 	if(method[0].name == nil)
 		fatal("no boot methods");
 	mp = rootserver(argc ? *argv : 0);
-	(*mp->config)(mp);
-	islocal = strcmp(mp->name, "local") == 0;
-	ishybrid = strcmp(mp->name, "hybrid") == 0;
+	if(mp==nil){
+		configrc(mp);
+		for(;;){}
+	}else{
+		(*mp->config)(mp);
+		islocal = strcmp(mp->name, "local") == 0;
+		ishybrid = strcmp(mp->name, "hybrid") == 0;
+	}
 
 	/*
 	 *  load keymap if it is there.
@@ -269,10 +274,10 @@ findmethod(char *a)
 
 static void catstuff(void)
 {
-	static char *files[] = {"#c/drivers", "#P/ioalloc", "#P/irqalloc", "#t", nil};
-	static char dat[8192];
+	char *files[] = {"#c/drivers", "#P/ioalloc", "#P/irqalloc"};
+	char dat[8192];
 	int rc, ifd, pid;
-	for (int i = 0; files[i]; i++) {
+	for (int i = 0; i < nelem(files); i++) {
 		memset(dat, 0, sizeof(dat));
 		rc = readfile(files[i], dat, sizeof(dat)-1);
 		if (rc) {
@@ -324,6 +329,7 @@ rootserver(char *arg)
 	if (1)
 		catstuff();
 	/* look for required reply */
+	memset(reply, 0, sizeof(reply));
 	rc = readfile("#e/nobootprompt", reply, sizeof(reply));
 	if(rc == 0 && reply[0]){
 		mp = findmethod(reply);
@@ -341,6 +347,7 @@ rootserver(char *arg)
 	sprint(prompt+n, ")");
 
 	/* create default reply */
+	memset(reply, 0, sizeof(reply));
 	readfile("#e/bootargs", reply, sizeof(reply));
 	if(reply[0] == 0 && arg != 0)
 		strcpy(reply, arg);
