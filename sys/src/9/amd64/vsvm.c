@@ -178,18 +178,14 @@ vsvminit(int size, int nixtype, Mach *mach)
 	//*(uintptr_t*)mach->stack = STACKGUARD;
 	tssinit(mach, mach->stack+size);
 	gdtput(sizeof(gdt64)-1, PTR2UINT(mach->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
+	trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
+
+	idtput(sizeof(idt64)-1, PTR2UINT(idt64));
 
 #if 0 // NO ACs YET
-	if(nixtype != NIXAC)
-#endif
-		idtput(sizeof(idt64)-1, PTR2UINT(idt64));
-#if 0
-	else
+	if(nixtype == NIXAC)
 		idtput(sizeof(acidt64)-1, PTR2UINT(acidt64));
 #endif
-	// I have no idea how to do this another way.
-	//trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
-	asm volatile("ltr %w0"::"q" (SSEL(SiTSS, SsTIGDT|SsRPL0)));
 
 	wrmsr(FSbase, 0ull);
 	wrmsr(GSbase, PTR2UINT(mach));

@@ -261,6 +261,7 @@ struct Zio
 };
 
 extern	char	etext[];
+extern	char	erodata[];
 extern	char	edata[];
 extern	char	end[];
 

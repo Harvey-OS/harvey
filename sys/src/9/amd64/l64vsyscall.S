@@ -4,12 +4,13 @@
 #define __ASSEMBLER__
 #endif
 
-.globl sce
-.globl scx
+.text
+.code64
+
 /*
  * starting the user program up. First time.
  */
-	.globl touser
+.globl touser
 touser:
 	CLI
 	SWAPGS
@@ -29,9 +30,8 @@ touser:
 	MOVQ	%RDI, %RSP			/* sp */
 	sysretq
 
-	.globl syscallentry
+.globl syscallentry
 syscallentry:
-	incq	sce
 	SWAPGS
 
 	movq	%r15, %gs:32	/* stash r15 to m->rathole */
@@ -73,15 +73,16 @@ syscallentry:
 	MOVQ	%rsp, %rsi 				/* Ureg* */
 	// system call number is in %rax, as per linux.
 	movq	%rax, %rdi
-	xorq	%rax, %rax
-	pushq	%rax
+	xorl	%eax, %eax
+	pushq	$2
 	popfq			/* clear all flags. is there something else we should clear too? */
-	movq	$0, %rbp	/* stack traces end here */
+	pushq	$0
+	movq	%rsp, %rbp
 	CALL	syscall
+	popq	%rbp
 
-	.globl	syscallreturn
+.globl syscallreturn
 syscallreturn:
-
 	// restore from ureg
 	MOVQ	(0*8)(%rsp),%rAX
 	MOVQ	(1*8)(%rsp),%rBX
@@ -108,10 +109,9 @@ syscallreturn:
 	MOVQ	16(%rsp), %r11			/* flags */
 	MOVQ	24(%rsp), %rSP			/* sp */
 
-	incq	scx
 	sysretq
 
-	.globl sysrforkret
+.globl sysrforkret
 sysrforkret:
-	MOVQ	$0, 0(%rsp)
-	JMP	syscallreturn
+	MOVQ	$0, (0*8)(%rsp)
+	jmp	syscallreturn

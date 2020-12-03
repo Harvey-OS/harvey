@@ -135,9 +135,14 @@ boot(int argc, char *argv[])
 	if(method[0].name == nil)
 		fatal("no boot methods");
 	mp = rootserver(argc ? *argv : 0);
-	(*mp->config)(mp);
-	islocal = strcmp(mp->name, "local") == 0;
-	ishybrid = strcmp(mp->name, "hybrid") == 0;
+	if(mp==nil){
+		configrc(mp);
+		for(;;){}
+	}else{
+		(*mp->config)(mp);
+		islocal = strcmp(mp->name, "local") == 0;
+		ishybrid = strcmp(mp->name, "hybrid") == 0;
+	}
 
 	/*
 	 *  load keymap if it is there.

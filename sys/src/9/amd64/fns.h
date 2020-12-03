@@ -29,12 +29,6 @@ void	acmodeset(int);
 void	archfmtinstall(void);
 void	archidle(void);
 int	archmmu(void);
-int	asmfree(uintmem, uintmem, int);
-uint64_t	asmalloc(uintmem, uintmem, int, int);
-void	asminit(void);
-void	asmmapinit(uintmem, uintmem, int);
-extern void asmmodinit(uint32_t, uint32_t, char*);
-void *asmrsdp(void);
 void	noerrorsleft(void);
 void	archinit(void);
 void	archreset(void);
@@ -113,11 +107,12 @@ void	mapupainit(uint64_t, uint32_t);
 void	meminit(void);
 void	mfence(void);
 void	mmuflushtlb(void);
+void	mmukflushtlb(void);
 void	mmuinit(void);
-uintptr_t	mmukmap(uintptr_t, uintptr_t, usize);
+uintptr	mmukphysmap(uintmem, int, usize);
 int	mmukmapsync(uint64_t);
 uintmem	mmuphysaddr(uintptr_t);
-int	mmuwalk(PTE*, uintptr_t, int, PTE**, PTE (*)(usize));
+int	mmuwalk(uintptr_t, int, PTE**);
 int	multiboot(uint32_t, uint32_t, int);
 void	ndnr(void);
 unsigned char	nvramread(int);
@@ -148,6 +143,10 @@ void	pcisetmwi(Pcidev*);
 int	pcisetpms(Pcidev*, int);
 void pcishowdev(Pcidev*);
 int	pickcore(int, int);
+void	pamapdump(void);
+void	pamapinit(void);
+void	pamapinsert(uintmem, usize, int);
+void	pamapmerge(void);
 void	printcpufreq(void);
 void	putac(Mach*);
 void *rsdsearch(void *start, uintptr_t size);
@@ -183,6 +182,7 @@ extern uint64_t cr0get(void);
 extern void cr0put(uint64_t);
 extern uint64_t cr2get(void);
 extern uint64_t cr3get(void);
+extern uintmem pml4get(void);
 extern void cr3put(uint64_t);
 extern uint64_t cr4get(void);
 extern void cr4put(uint64_t);
@@ -283,9 +283,13 @@ void DONE(void);
 
 /* all these go to 0x3f8 */
 void hi(char *s);
+void hihex(uint64_t x);
 
 Mach *machp(void);
-Proc *externup(void);
+static inline Proc *externup(void)
+{
+	return machp()->externup;
+}
 
 /* temporary. */
 void die(char *);

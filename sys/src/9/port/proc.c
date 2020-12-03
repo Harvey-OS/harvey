@@ -257,6 +257,7 @@ sched(void)
 		machp()->schedticks = machp()->ticks + HZ/10;
 	machp()->readied = 0;
 	machp()->externup = p;
+	assert(p != nil);
 	up = p;
 	up->nqtrap = 0;
 	up->nqsyscall = 0;
@@ -265,7 +266,7 @@ sched(void)
 	machp()->proc = up;
 	mmuswitch(up);
 
-		      assert(!up->wired || up->wired == machp());
+	assert(!up->wired || up->wired == machp());
 	gotolabel(&up->sched);
 }
 
@@ -850,6 +851,7 @@ newproc(void)
 	p->ac = nil;
 	p->nfullq = 0;
 	memset(&p->MMU, 0, sizeof p->MMU);
+	mmuprocinit(p);
 	return p;
 }
 

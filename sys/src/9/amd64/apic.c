@@ -138,7 +138,7 @@ apicinit(int apicno, uintmem pa, int isbp)
 		return;
 	}
 	if(apicbase == nil){
-		if((apicbase = vmap(pa, 1024)) == nil){
+		if((apicbase = vmap(pa, 4096)) == nil){
 			print("apicinit%d: can't map apicbase\n", apicno);
 			return;
 		}
@@ -405,8 +405,7 @@ apictimerset(uint64_t next)
 void
 apicsipi(int apicno, uintmem pa)
 {
-	int i;
-	uint32_t crhi, crlo;
+	uint32_t crhi;
 
 	/*
 	 * SIPI - Start-up IPI.
@@ -419,10 +418,9 @@ apicsipi(int apicno, uintmem pa)
 	apicrput(Iclo, DSnone|TMlevel|MTir);
 	millidelay(10);
 
-	crlo = DSnone|TMedge|MTsipi|((uint32_t)pa/(4*KiB));
-	for(i = 0; i < 2; i++){
+	for(int i = 0; i < 2; i++){
 		apicrput(Ichi, crhi);
-		apicrput(Iclo, crlo);
+		apicrput(Iclo, DSnone|TMedge|MTsipi|((uint32_t)pa/(4*KiB)));
 		microdelay(200);
 	}
 }

@@ -20,6 +20,7 @@ GO111MODULE=on go get harvey-os.org/cmd/...@8978eaed48985e0d89d36e383ece0a6a382e
 
 echo FIXME -- once we get more architectures, this needs to be done in sys/src/cmds/build.json
 echo Build tmpfs command into amd64 plan 9 bin
+mkdir -p plan9_amd64/bin
 GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o plan9_amd64/bin/tmpfs harvey-os.org/cmd/tmpfs
 
 # this will make booting a VM easier

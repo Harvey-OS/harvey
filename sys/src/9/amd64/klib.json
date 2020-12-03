@@ -2,7 +2,7 @@
 	{
 		"Name": "KernelLibs",
 		"Cflags": [
-			"-mcmodel=kernel",
+			"-fpic",
 			"-O0",
 			"-mno-red-zone",
 			"-ffreestanding",

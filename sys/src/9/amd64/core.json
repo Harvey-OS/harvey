@@ -2,8 +2,8 @@
 	{
 		"Name": "core",
 		"Cflags": [
+			"-fpic",
 			"-fno-stack-protector",
-			"-mcmodel=kernel",
 			"-O0",
 			"-static",
 			"-mno-red-zone",
@@ -38,6 +38,7 @@
 			"-z",
 			"max-page-size=0x1000",
 			"-nostdlib",
+			"--no-relax",
 			"-g",
 			"-T",
 			"kernel.ld"
@@ -69,7 +70,6 @@
 			"apic.c",
 			"arch.c",
 			"archamd64.c",
-			"asm.c",
 			"backtrace.c",
 			"../port/dev9p.c",
 			"../port/devbridge.c",
@@ -95,6 +95,7 @@
 			"mpacpi.c",
 			"msi.c",
 			"multiboot.c",
+			"pamap.c",
 			"physalloc.c",
 			"pmcio.c",
 			"qmalloc.c",

@@ -656,12 +656,14 @@ setmalloctag(void* v, uint32_t i)
 void
 mallocinit(void)
 {
+	extern char kheap, ekheap;
+
 	if(tailptr != nil)
 		return;
 
-	tailbase = UINT2PTR(sys->vmunused);
+	tailbase = (Header *)&kheap;
 	tailptr = tailbase;
-	tailnunits = NUNITS(sys->vmend - sys->vmunused);
+	tailnunits = NUNITS(&ekheap-&kheap);
 	print("base %#p ptr %#p nunits %u\n", tailbase, tailptr, tailnunits);
 }
 

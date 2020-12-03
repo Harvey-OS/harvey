@@ -353,7 +353,7 @@ pcireservemem(void)
 	for(p = nil; (p = pcimatch(p, 0, 0)) != nil;)
 		for(i=0; i<nelem(p->mem); i++)
 			if(p->mem[i].bar && (p->mem[i].bar&1) == 0)
-				asmmapinit(p->mem[i].bar&~0x0F, p->mem[i].size, 5);
+				pamapinsert(p->mem[i].bar&~0x0F, p->mem[i].size, PamDEV);
 }
 
 static void

@@ -52,9 +52,11 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 	spllo();
 	for(i = 0;; i++) {
 		s = seg(up, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
-		//print("%s fault seg for %p is %p base %p top %p\n", faulttypes[ftype], addr, s, s->base, s->top);
-		if(s == nil)
+		if(s == nil){
+			//iprint("fault seg is nil\n");
 			goto fail;
+		}
+		//iprint("%s fault seg for %p is %p base %p top %p\n", faulttypes[ftype], addr, s, s->base, s->top);
 		if(ftype == FT_READ && (s->type&SG_READ) == 0)
 			goto fail;
 		if(ftype == FT_WRITE && (s->type&SG_WRITE) == 0)

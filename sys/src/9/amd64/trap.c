@@ -21,14 +21,6 @@
 #include	"io.h"
 #include	"amd64.h"
 
-
-// counters. Set by assembly code.
-// interrupt enter and exit, systecm call enter and exit.
-unsigned long ire, irx, sce, scx;
-// Did we start doing an exit for the interrupts?
-// ir exit entry :-)
-unsigned long irxe;
-
 extern int notify(Ureg*);
 
 static void debugbpt(Ureg*, void*);
@@ -440,7 +432,7 @@ trap(Ureg* ureg)
 	uint64_t gsbase = rdmsr(GSbase);
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
-	if (gsbase < 1ULL<<63)
+	if (gsbase < KZERO)
 		die("bogus gsbase");
 	Proc *up = externup();
 	char buf[ERRMAX];
@@ -606,8 +598,6 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-die("dumpregs");
-
 	dumpgpr(ureg);
 
 	/*
@@ -620,8 +610,6 @@ die("dumpregs");
 	print("cr0\t%#16.16llx\n", cr0get());
 	print("cr2\t%#16.16llx\n", machp()->MMU.cr2);
 	print("cr3\t%#16.16llx\n", cr3get());
-die("dumpregs");
-//	archdumpregs();
 }
 
 /*
