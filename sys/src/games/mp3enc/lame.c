@@ -1521,7 +1521,7 @@ lame_encode_flush(lame_global_flags * gfp,
 
         mp3buffer_size_remaining = mp3buffer_size - mp3count;
 
-        /* if user specifed buffer size = 0, dont check size */
+        /* if user specified buffer size = 0, dont check size */
         if (mp3buffer_size == 0)
             mp3buffer_size_remaining = 0;
 
@@ -1542,7 +1542,7 @@ lame_encode_flush(lame_global_flags * gfp,
     }
 
     mp3buffer_size_remaining = mp3buffer_size - mp3count;
-    /* if user specifed buffer size = 0, dont check size */
+    /* if user specified buffer size = 0, dont check size */
     if (mp3buffer_size == 0)
         mp3buffer_size_remaining = 0;
 
