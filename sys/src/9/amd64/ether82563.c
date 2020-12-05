@@ -1629,6 +1629,9 @@ i82563detach0(Ctlr* ctlr)
 	if(csr32r(ctlr, Ctrl) & Devrst)
 		return -1;
 
+	r = csr32r(ctlr, Ctrl);
+	csr32w(ctlr, Ctrl, Slu|r);
+
 	r = csr32r(ctlr, Ctrlext);
 	csr32w(ctlr, Ctrlext, r|Eerst);
 	delay(1);
@@ -1650,7 +1653,6 @@ i82563detach0(Ctlr* ctlr)
 	if(csr32r(ctlr, Icr))
 		return -1;
 
-	csr32w(ctlr, Ctrl, Slu | csr32r(ctlr, Ctrl));
 	return 0;
 }
 
@@ -1804,8 +1806,8 @@ fload16(Ctlr *ctlr)
 	if(f.reg == nil)
 		return -1;
 	f.reg32 = (void*)f.reg;
-	f.base = f.reg32[Bfpr] & 0x1FFF;
-	f.lim = (f.reg32[Bfpr]>>16) & 0x1FFF;
+	f.base = f.reg32[Bfpr] & 0x1fff;
+	f.lim = (f.reg32[Bfpr]>>16) & 0x1fff;
 	if(csr32r(ctlr, Eec) & (1<<22))
 		f.base += (f.lim + 1 - f.base) >> 1;
 	r = f.base << 12;
