@@ -60,6 +60,7 @@ archetherprobe(int ctlrno, char *type, int (*reset)(Ether *))
 		i += sprint(buf+i, " addr %#p", ether->ISAConf.mem);
 	if(ether->ISAConf.size)
 		i += sprint(buf+i, " size 0x%lX", ether->ISAConf.size);
+	// print the MAC address
 	i += sprint(buf+i, ": %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		ether->ea[0], ether->ea[1], ether->ea[2],
 		ether->ea[3], ether->ea[4], ether->ea[5]);
