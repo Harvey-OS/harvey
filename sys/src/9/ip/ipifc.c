@@ -836,6 +836,7 @@ ipifcinit(Fs *f)
 	f->ipifc = ipifc;	/* hack for ipifcremroute, findipifc, ... */
 	f->self = smalloc(sizeof(Ipselftab));	/* hack for ipforme */
 
+  print("ipifc init\n");
 	Fsproto(f, ipifc);
 }
 
