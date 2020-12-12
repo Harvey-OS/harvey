@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/insomniacslk/dhcp/dhcpv4"
+	"github.com/insomniacslk/dhcp/dhcpv4/bsdp"
 	"github.com/insomniacslk/dhcp/dhcpv4/server4"
 	"github.com/insomniacslk/dhcp/dhcpv6"
 	"github.com/insomniacslk/dhcp/dhcpv6/server6"
@@ -35,6 +36,7 @@ var (
 	ipv4         = flag.Bool("4", true, "IPv4 DHCP server")
 	rootpath     = flag.String("rootpath", "", "RootPath option to serve via DHCPv4")
 	bootfilename = flag.String("bootfilename", "pxelinux.0", "Boot file to serve via DHCPv4")
+	raspi        = flag.Bool("raspi", false, "Configure to boot Raspberry Pi")
 
 	// DHCPv6-specific
 	ipv6           = flag.Bool("6", false, "DHCPv6 server")
@@ -82,7 +84,7 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 
 	// Since this is dserver4, we force it to be an ip4 address.
 	ip := i[0].To4()
-	reply, err := dhcpv4.NewReplyFromRequest(m,
+	modifiers := []dhcpv4.Modifier{
 		dhcpv4.WithMessageType(replyType),
 		dhcpv4.WithServerIP(s.self),
 		dhcpv4.WithRouter(s.self),
@@ -92,7 +94,22 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 		dhcpv4.WithOption(dhcpv4.OptServerIdentifier(s.self)),
 		// RFC 2131, Section 4.3.1. IP lease time: MUST
 		dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(dhcpv4.MaxLeaseTime)),
-	)
+		dhcpv4.WithOption(dhcpv4.OptClassIdentifier("PXEClient")),
+	}
+	if *raspi {
+		// Add option 43, suboption 9 (PXE native boot menu) to allow Raspberry Pi to recognise the offer
+		modifiers = append(modifiers, dhcpv4.WithOption(dhcpv4.Option{
+			Code: dhcpv4.OptionVendorSpecificInformation,
+			Value: bsdp.VendorOptions{Options: dhcpv4.OptionsFromList(
+				// The dhcp package only seems to support Apple BSDP boot menu items,
+				// so we have to craft the option by hand.
+				// \x11 is the length of the 'Raspberry Pi Boot' string...
+				dhcpv4.OptGeneric(dhcpv4.GenericOptionCode(9), []byte("\000\000\x11Raspberry Pi Boot")),
+			)},
+		}))
+	}
+	reply, err := dhcpv4.NewReplyFromRequest(m, modifiers...)
+
 	// RFC 6842, MUST include Client Identifier if client specified one.
 	if val := m.Options.Get(dhcpv4.OptionClientIdentifier); len(val) > 0 {
 		reply.UpdateOption(dhcpv4.OptGeneric(dhcpv4.OptionClientIdentifier, val))
