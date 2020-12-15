@@ -279,7 +279,10 @@ putstrn0(char *str, int n, int usewrite)
 void
 putstrn(char *str, int n)
 {
+	static Lock lock;
+	ilock(&lock);
 	putstrn0(str, n, 0);
+	iunlock(&lock);
 }
 
 int
