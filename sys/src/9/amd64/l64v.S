@@ -142,26 +142,16 @@ gdtput:
 
 .global idtput
 idtput:
-	// save %rdi, since we are going to modify it.
-	pushq	%rdi
-	// Push the two quads onto the stack,
-	// which arranges them in memory.
-	pushq	%rsi
-	shlq	$48, %rdi
-	pushq	%rdi
-	movq	%rsp, %rax
-	addq	$6, %rax
-	lidt	(%rax)
-	popq	%rdi
-	popq	%rsi
-	popq	%rdi
-	RET
+	subq	$16, %rsp
+	movq	%rsi, 8(%rsp)
+	movw	%di, 6(%rsp)
+	lidt	6(%rsp)
+	addq	$16, %rsp
+	ret
 
 .global trput
 trput:
-	// panic
-	mov 0, %rax
-	//ltr	%rdi
+	ltr	%di
 	RET
 
 /*
@@ -514,26 +504,11 @@ _machp_bad:
 	popq %rbp
 	jmp _machp_out
 
-.global externup
-externup:
-	movq	%gs:40, %rax
-	ret
-
-/* not needed.
-.global mul64fract
-mul64fract:
-	MOVQ	%rdi, %rax
-	MULQ	%rsi			/ * a*b *
-	SHRQ	$32, %rax:DX
-	MOVQ	%rax, (%rdi)
-	RET
-*/
-
 ///*
 // * Testing.
 // */
 //.global ud2
 ud2:
-//	BYTE $0x0f; BYTE $0x0b
-//	RET
+	ud2
+	RET
 //

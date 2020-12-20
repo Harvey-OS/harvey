@@ -52,7 +52,7 @@ enum {
 static uint64_t lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
-static Rsdp *rsd;
+static Rsdp *rsd = nil;
 static Queue *acpiev;
 Dev acpidevtab;
 
@@ -467,9 +467,9 @@ static long regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
 	switch (r->spc) {
 		case Rsysmem:
 			if (r->p == nil)
-				r->p = vmap(r->base, len);
+				r->p = KADDR(r->base);
 			if (r->p == nil)
-				error("regio: vmap/KADDR failed");
+				error("regio: KADDR failed");
 			rp = (uintptr_t) r->p + off;
 			rio = memio;
 			break;
@@ -517,17 +517,14 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
+
 	if(v)print("sdtmap %p\n", (void *)pa);
 	if (!pa) {
 		print("sdtmap: nil pa\n");
 		return nil;
 	}
+	sdt = KADDR(pa);
 	if (want) {
-		sdt = vmap(pa, want);
-		if (sdt == nil) {
-			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, want);
-			return nil;
-		}
 		/* realistically, we get a full page, and acpica seems to know that somehow. */
 		uintptr_t endaddress = (uintptr_t) sdt;
 		endaddress += want + 0xfff;
@@ -535,27 +532,16 @@ static void *sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 		want = endaddress - (uintptr_t)sdt;
 		*n = want;
 	} else {
-		sdt = vmap(pa, sizeof(Sdthdr));
-		if (sdt == nil) {
-			print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
-			return nil;
+		if(v){
+			hexdump(sdt, sizeof(Sdthdr));
+			print("sdt %p\n", sdt);
 		}
-		//hexdump(sdt, sizeof(Sdthdr));
-		if(v)print("sdt %p\n", sdt);
-		if(v)print("get it\n");
 		*n = l32get(sdt->length);
 		if(v)print("*n is %d\n", *n);
 		if (*n == 0) {
 			print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 			return nil;
 		}
-
-		sdt = vmap(pa, *n);
-		if (sdt == nil) {
-			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
-			return nil;
-		}
-		if(v)print("check it\n");
 		if (cksum != 0 && sdtchecksum(sdt, *n) != 0) {
 			print("acpi: %c%c%c%c: bad checksum. pa = %p, len = %lu\n", sdt->sig[0], sdt->sig[1], sdt->sig[2], sdt->sig[3], pa, *n);
 			return nil;
@@ -1464,14 +1450,12 @@ static char *seprinttable(char *s, char *e, Atable *t)
 	return seprint(s, e, "\n\n");
 }
 
-void *rsdsearch(void *start, uintptr_t size)
+void *
+rsdsearch(void *start, uintptr_t size)
 {
 	if (rsd != nil)
 		return rsd;
-	rsd = sigscan(start, size,  RSDPTR);
-	if (rsd != nil)
-		return rsd;
-	rsd = asmrsdp();
+	rsd = sigscan(start, size, RSDPTR);
 	return rsd;
 }
 
@@ -1568,8 +1552,6 @@ static void parsersdptr(void)
 {
 	int asize, cksum;
 	uintptr_t sdtpa;
-
-//	static_assert(sizeof(Sdthdr) == 36);
 
 	/* Find the root pointer. */
 	/*

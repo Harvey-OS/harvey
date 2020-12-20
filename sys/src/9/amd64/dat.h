@@ -24,6 +24,7 @@ typedef struct Mach Mach;
 typedef uint64_t Mpl;
 typedef struct Page Page;
 typedef struct Pcidev Pcidev;
+typedef struct PAMap PAMap;
 typedef struct PFPU PFPU;
 typedef struct PmcCtr PmcCtr;
 typedef struct PmcCtl PmcCtl;
@@ -132,7 +133,7 @@ struct PFPU {
 #define NCOLOR 1
 struct PMMU
 {
-	Page*	mmuptp[4];		/* page table pages for each level */
+	Page	*root;
 };
 
 /*
@@ -204,8 +205,6 @@ struct MMMU
 {
 	uintptr_t cr2;
 	Page*	pml4;			/* pml4 for this processor */
-	PTE*	pmap;			/* unused as of yet */
-
 	Page	pml4kludge;		/* NIX KLUDGE: we need a page */
 };
 
@@ -225,10 +224,7 @@ enum
 struct ICC
 {
 	/* fn is kept in its own cache line */
-	union{
-		void	(*fn)(void);
-		unsigned char	_ln1_[ICCLNSZ];
-	};
+	alignas(ICCLNSZ) void	(*fn)(void);
 	int	flushtlb;	/* on the AC, before running fn */
 	int	rc;		/* return code from AC to TC */
 	char*	note;		/* to be posted in the TC after returning */
@@ -346,6 +342,7 @@ struct Mach
 	Sched *sch;
 	int load;
 };
+static_assert(sizeof(Mach) <= PGSZ, "Mach is too big");
 
 struct Stackframe
 {
@@ -354,11 +351,13 @@ struct Stackframe
 };
 
 /*
- * This is the low memory map, between 0x100000 and 0x110000.
- * It is located there to allow fundamental datastructures to be
+ * This is the low memory map, between 1MiB and 2MiB.
+ *
+ * It is located there to allow fundamental data structures to be
  * created and used before knowing where free memory begins
  * (e.g. there may be modules located after the kernel BSS end).
- * The layout is known in the bootstrap code in l32p.s.
+ * The layout is known in the bootstrap code in entry.S
+ *
  * It is logically two parts: the per processor data structures
  * for the bootstrap processor (stack, Mach, vsvm, and page tables),
  * and the global information about the system (syspage, ptrpage).
@@ -366,57 +365,74 @@ struct Stackframe
  * the unions.
  */
 struct Sys {
-	unsigned char	machstk[MACHSTKSZ];
+	alignas(4096) unsigned char machstk[MACHSTKSZ];
 
-	PTE	pml4[PTSZ/sizeof(PTE)];	/*  */
-	PTE	pdp[PTSZ/sizeof(PTE)];
-	PTE	pd[PTSZ/sizeof(PTE)];
-	PTE	pt[PTSZ/sizeof(PTE)];
+	PTE	ipml4[PTSZ/sizeof(PTE)];	// Only used very early in boot
+	PTE	epml4[PTSZ/sizeof(PTE)];	// Only used for ...
+	PTE	epml3[PTSZ/sizeof(PTE)];	// ...BSP initialization...
+	PTE	epml2[PTSZ/sizeof(PTE)][4];	// ...and AP early boot.
+	PTE	pml4[PTSZ/sizeof(PTE)];		// Real PML4
+	PTE	pml3[((128+64)*PTSZ)/sizeof(PTE)];
 
 	unsigned char	vsvmpage[4*KiB];
 
-	union {
-		Mach	mach;
-		unsigned char	machpage[MACHSZ];
-	};
+	alignas(4096)	Mach	mach;
 
-	union {
-		struct {
-			uint64_t	pmstart;	/* physical memory */
-			uint64_t	pmoccupied;	/* how much is occupied */
-			uint64_t	pmend;		/* total span */
+	alignas(4096)	Mach	*machptr[MACHMAX];
 
-			uintptr_t	vmstart;	/* base address for malloc */
-			uintptr_t	vmunused;	/* 1st unused va */
-			uintptr_t	vmunmapped;	/* 1st unmapped va */
-			uintptr_t	vmend;		/* 1st unusable va */
-			uint64_t	epoch;		/* crude time synchronisation */
+	uint64_t	pmstart;	/* physical memory */
+	uint64_t	pmend;		/* total span */
 
-			int		nc[NIXROLES];		/* number of online processors */
-			int		nmach;
-			int		load;
-			uint64_t	ticks;			/* of the clock since boot time */
-		};
-		unsigned char	syspage[4*KiB];
-	};
+	uint64_t	epoch;		/* crude time synchronisation */
 
-	union {
-		Mach*	machptr[MACHMAX];
-		unsigned char	ptrpage[4*KiB];
-	};
+	int		nc[NIXROLES];	/* number of online processors */
+	int		nmach;
+	int		load;
+	uint64_t	ticks;		/* of the clock since boot time */
 
-	uint64_t	cyclefreq;		/* Frequency of user readable cycle counter (mach 0) */
+	uint64_t	cyclefreq;	/* Frequency of user readable cycle counter (mach 0) */
 
 	uint	pgszlg2[NPGSZ];		/* per Mach or per Sys? */
 	uint	pgszmask[NPGSZ];	/* Per sys -aki */
 	uint	pgsz[NPGSZ];
 	int	npgsz;
+};
+static_assert(sizeof(Sys) <= (1*MiB-1*KiB), "Sys is too big");
 
-	unsigned char	_57344_[2][4*KiB];		/* unused */
+extern Sys *const sys;
+#define MACHP(x) (sys->machptr[(x)])
+
+/*
+ * The Physical Address Map.  This describes the physical address
+ * space layout of the machine, also taking into account where the
+ * kernel is loaded, multiboot modules, etc.  Unused regions do not
+ * appear in the map.
+ */
+#define	PHYSADDRSIZE	(1ULL<<46)
+
+struct PAMap {
+	uintmem	addr;
+	usize	size;
+	int	type;
+	PAMap	*next;
 };
 
-extern Sys *sys;
-#define MACHP(x) (sys->machptr[(x)])
+enum {
+	PamNONE = 0,
+	PamMEMORY,
+	PamRESERVED,
+	PamACPI,
+	PamPRESERVE,
+	PamUNUSABLE,
+	PamDEV,
+	PamMODULE,
+	PamKTEXT,
+	PamKRDONLY,
+	PamKRDWR,
+};
+
+extern PAMap *pamap;
+
 /*
  * KMap
  */
@@ -426,8 +442,7 @@ extern KMap* kmap(Page*);
 #define kunmap(k)
 #define VA(k)		PTR2UINT(k)
 
-struct
-{
+struct {
 	Lock l;
 	int	nonline;			/* # of active CPUs */
 	int nbooting;			/* # of CPUs waiting for the bTC to go */
@@ -460,10 +475,7 @@ struct ISAConf {
  * the clock which is only maintained by the bootstrap processor (0).
  */
 
-extern uintptr_t kseg0;
-
-extern char*rolename[];
-
+extern char *rolename[];
 
 
 /*

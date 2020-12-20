@@ -2,6 +2,7 @@
 	{
 		"Name": "buildflags",
 		"Cflags": [
+			"-fpic",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-fno-omit-frame-pointer",
@@ -9,7 +10,6 @@
 			"-g",
 			"-gdwarf-2",
 			"-ggdb",
-			"-mcmodel=small",
 			"-mno-red-zone",
 			"-O0",
 			"-static",

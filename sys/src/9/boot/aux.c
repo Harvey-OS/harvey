@@ -126,7 +126,7 @@ int
 outin(char *prompt, char *def, int len)
 {
 	int n;
-	char buf[256];
+	char *p, buf[256];
 
 	if(len >= sizeof buf)
 		len = sizeof(buf)-1;
@@ -138,17 +138,20 @@ outin(char *prompt, char *def, int len)
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
 	n = read(0, buf, len);
-
 	if(cpuflag){
 		alarm(0);
 		notify(0);
 	}
-
-	if(n < 0){
+	if(n < 0)
 		return 1;
-	}
-	if (n > 1) {
-		strncpy(def, buf, len);
-	}
+	buf[sizeof(buf)-1] = '\0';
+	p = strchr(buf, '\n');
+	if(p != nil)
+		*p = '\0';
+	p = strchr(buf, '\r');
+	if(p != nil)
+		*p = '\0';
+	if(n > 0)
+		strlcpy(def, buf, len);
 	return n;
 }

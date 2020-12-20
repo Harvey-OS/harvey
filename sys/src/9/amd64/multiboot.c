@@ -64,6 +64,35 @@ struct MMap {
 	uint32_t	type;
 };
 
+static int
+mbpamtype(int acpitype)
+{
+	switch(acpitype){
+	case 1: return PamMEMORY;
+	case 2: return PamRESERVED;
+	case 3: return PamACPI;
+	case 4: return PamPRESERVE;
+	case 5: return PamUNUSABLE;
+	default:
+		print("multiboot: unknown memory type %d", acpitype);
+		break;
+	}
+	return PamNONE;
+}
+
+static const char *
+mbtypename(int type)
+{
+	switch(type){
+	case 1: return "Memory";
+	case 2: return "Reserved";
+	case 3: return "ACPI Reclaim Memory";
+	case 4: return "ACPI NVS Memory";
+	default: break;
+	}
+	return "(unknown)";
+}
+
 int
 multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 {
@@ -77,7 +106,7 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 	if(vflag)
 		print("magic %#x pmbi %#x\n", magic, pmbi);
 	if(magic != 0x2badb002)
-		print("no magic in multiboot\n");//return -1;
+		return -1;
 
 	mbi = KADDR(pmbi);
 	if(vflag)
@@ -89,58 +118,16 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 		else
 			optionsinit(p);
 	}
-	if(mbi->flags & Fmods){
-		for(i = 0; i < mbi->modscount; i++){
-			mod = KADDR(mbi->modsaddr + i*16);
-			if(mod->string != 0)
-				p = KADDR(mod->string);
-			else
-				p = "";
-			if(vflag)
-				print("mod %#x %#x <%s>\n",
-					mod->modstart, mod->modend, p);
-			else
-				asmmodinit(mod->modstart, mod->modend, p);
-		}
-	}
 	if(mbi->flags & Fmmap){
 		mmap = KADDR(mbi->mmapaddr);
 		n = 0;
 		while(n < mbi->mmaplength){
 			addr = (((uint64_t)mmap->base[1])<<32)|mmap->base[0];
 			len = (((uint64_t)mmap->length[1])<<32)|mmap->length[0];
-			switch(mmap->type){
-			default:
-				if(vflag)
-					print("type %u", mmap->type);
-				break;
-			case 1:
-				if(vflag)
-					print("Memory");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			case 2:
-				if(vflag)
-					print("reserved");
-				else if (addr == 0) {
-					print("addr 0 is memory, not reserved\n");
-					asmmapinit(addr, len, 1);
-				} else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			case 3:
-				if(vflag)
-					print("ACPI Reclaim Memory");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			case 4:
-				if(vflag)
-					print("ACPI NVS Memory");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
+			if(vflag){
+				print("%s (%u)", mbtypename(mmap->type), mmap->type);
+			}else{
+				pamapinsert(addr, len, mbpamtype(mmap->type));
 			}
 			switch(mmap->type) {
 				// There is no consistency in which type of e820 segment RSDP is stored in.
@@ -151,11 +138,26 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 					break;
 			}
 			if(vflag)
-				print("\n\t%#16.16llx %#16.16llx (%llu)\n",
+				print("\t%#16.16llx %#16.16llx (%llu)\n",
 					addr, addr+len, len);
 
 			n += mmap->size+sizeof(mmap->size);
 			mmap = KADDR(mbi->mmapaddr+n);
+		}
+	}
+	if(mbi->flags & Fmods){
+		for(i = 0; i < mbi->modscount; i++){
+			mod = KADDR(mbi->modsaddr + i*16);
+			p = "";
+			if(mod->string != 0)
+				p = KADDR(mod->string);
+			if(vflag)
+				print("mod %#x %#x <%s>\n",
+					mod->modstart, mod->modend, p);
+			else{
+				usize len = mod->modend-mod->modstart;
+				pamapinsert(mod->modstart, len, PamMODULE);
+			}
 		}
 	}
 	if(vflag && (mbi->flags & Fbootloadername)){

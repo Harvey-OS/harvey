@@ -2,7 +2,6 @@
 	{
 		"Name": "buildflags",
 		"Cflags": [
-			"-mcmodel=medany",
 			"-ffreestanding",
 			"-fno-builtin",
 			"-fno-omit-frame-pointer",

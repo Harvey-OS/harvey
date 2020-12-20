@@ -13,26 +13,16 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa)	UINT2PTR(kseg0+((uintptr)(pa)))
-#define _PADDR(va)	PTR2UINT(((uintptr)(va)) - kseg0)
+#define _KADDR(pa)	UINT2PTR(KZERO+((uintptr)(pa)))
+#define _PADDR(va)	PTR2UINT(((uintptr)(va))-KZERO)
 
-#define TMFM		(64*MiB)
-
-int km, ku, k2;
 void*
 KADDR(uintptr_t pa)
 {
-	uint8_t* va;
+	if (pa < KZERO)
+		return _KADDR(pa);
 
-	va = UINT2PTR(pa);
-	if(pa < TMFM) {
-		km++;
-		return KSEG0+va;
-	}
-
-	assert(pa < KSEG2);
-	k2++;
-	return KSEG2+va;
+	return UINT2PTR(pa);
 }
 
 uintmem
@@ -41,10 +31,8 @@ PADDR(void* va)
 	uintmem pa;
 
 	pa = PTR2UINT(va);
-	if(pa >= KSEG0 && pa < KSEG0+TMFM)
-		return pa-KSEG0;
-	if(pa > KSEG2)
-		return pa-KSEG2;
+	if(pa >= KZERO)
+		return pa-KZERO;
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());
 	return 0;

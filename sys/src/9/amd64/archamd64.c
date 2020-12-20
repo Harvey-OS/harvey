@@ -192,13 +192,16 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 //print("msr 2a is 0x%x >> 22 0x%x\n", rdmsr(0x2a), rdmsr(0x2a)>>22);
 			break;
 		case 0x000306a0:		/* i7,5,3 3xxx */
+		case 0x000306f0:		/* i7,5,3 5xxx and Xeon dev machine */
 		case 0x000206c0:		/* i7,5,3 4xxx */
 		case 0x00050650:		/* i9 7900X */ // Moved here by RGM 10/27/2020
 		case 0x000506e0:		/* i7,5,3 6xxx */
 			// reading msr 0xcd gets a GPF on this CPU.
-			// per the coreboot irc:
-			// <icon[m]> rminnich: if you need the base for the core's clock multiplier, it's 100MHz since sandybridge
-			// Which, going by the Good Book (35-46 volume 3C) is index 5.
+			// From Ron on coreboot irc:
+			// rminnich: "if you need the base for the core's clock
+			//            multiplier, it's 100MHz since sandybridge
+			//            Which, going by the Good Book (35-46 volume 3C)
+			//            is index 5."
 			f = 5;
 			// This will likely be true of many of the CPUs below. FSB died a *long* time ago.
 			// fallthrough
@@ -213,7 +216,6 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 		case 0x000106c0:		/* Atom (45nm, 32nm) */
 		case 0x000106e0:		/* i7,5,3 8xx */
 		case 0x000206a0:		/* i7,5,3 2xxx */
-		case 0x000306f0:		/* i7,5,3 5xxx */
 		case 0x000806e0:		/* i7,5,3 85xx */
 		case 0x000906e0:		/* i7,5,3 77xx 8xxx */
 			/*
