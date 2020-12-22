@@ -203,12 +203,12 @@ notify(Ureg* ureg)
 	nf->arg0 = &nf->ureg;
 	ureg->di = (uintptr)nf->arg0;
 	ureg->si = (uintptr)nf->arg1;
-	//print("Setting di to %p and si to %p\n", ureg->di, ureg->si);
 	ureg->bp = PTR2UINT(nf->arg0);
 	nf->ip = 0;
 
 	ureg->sp = sp;
 	ureg->ip = PTR2UINT(up->notify);
+	//print("NOTIFY: Setting di to %p and si to %p, sp=%#P, pc=%#P\n", ureg->di, ureg->si,ureg->sp, ureg->ip);
 	up->notified = 1;
 	up->nnote--;
 	memmove(&up->lastnote, &note, sizeof(Note));
@@ -532,20 +532,13 @@ sysprocsetup(Proc* p)
 void
 sysrforkchild(Proc* child, Proc* parent)
 {
-	Ureg *cureg;
-// If STACKPAD is 1 things go very bad very quickly.
-// But it is the right value ...
-#define STACKPAD 1 /* for return PC? */
-	/*
-	 * Add STACKPAD*BY2SE to the stack to account for
-	 *  - the return PC
-	 *  (NOT NOW) - trap's arguments (syscallnr, ureg)
-	 */
-	child->sched.sp = PTR2UINT(child->kstack+KSTACK-((sizeof(Ureg)+STACKPAD*BY2SE)));
-	child->sched.pc = PTR2UINT(sysrforkret);
+	char *cureg;
 
-	cureg = (Ureg*)(child->sched.sp+STACKPAD*BY2SE);
+	cureg = child->kstack+KSTACK-sizeof(Ureg);
 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
+
+	child->sched.sp = PTR2UINT(cureg);
+	child->sched.pc = PTR2UINT(sysrforkret);
 
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
