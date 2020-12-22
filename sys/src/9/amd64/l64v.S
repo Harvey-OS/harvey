@@ -414,38 +414,32 @@ _cas32r0:
 	RET
 
 /*
- * Label consists of a stack pointer and a programme counter
- * 0(%rdi) is the SP, 8(%rdi) is the PC
+ * Label consists of a stack pointer, a program counter, and
+ * a frame pointer.
+ *  0(%rdi) is the SP,
+ *  8(%rdi) is the PC,
+ * 16(%rdi) is the FP.
  */
 .global gotolabel
 gotolabel:
-	MOVQ	%rdi, %rax
 	MOVQ	0(%rdi), %rsp
-
-	// Can't kill this quite yet.
-	MOVQ	(16+5*8)(%rdi), %rBP
-
-	MOVQ	8(%rax), %rax			/* put return PC on the stack */
-						/* NOTE: replaces previous caller? */
-	MOVQ	%rax, (%rSP)
+	MOVQ	8(%rdi), %r11
+	MOVQ	16(%rdi), %rbp
 	MOVQ	$1, %rax			/* return 1 */
-	RET
+	JMP	*%r11
 
-	/* save all registers on this stack, the save stack
-	* in the label struct.
-	*/
+/*
+ * save all registers on this stack, the save stack
+ * in the label struct.
+ */
 .global slim_setlabel
 slim_setlabel:
-	// %rax is trashable.
-	MOVQ	0(%rSP), %rax			/* store return PC */
-	MOVQ	%rax, 8(%rdi)
-
-	// Can't kill this quite yet.
-	MOVQ	%rBP, (16+5*8)(%rdi)
-
-	MOVQ	%rSP, 0(%rdi)	/* store SP */
-	MOVL	$0, %eax	/* return 0 */
-	RET
+	MOVQ	%rbp, 16(%rdi)
+	POPQ	%r11		/* Save return PC */
+	MOVQ	%r11, 8(%rdi)
+	MOVQ	%rsp, 0(%rdi)	/* store SP */
+	XORL	%eax, %eax	/* return 0 */
+	JMP	*%r11
 
 .global hardhalt
 hardhalt:
