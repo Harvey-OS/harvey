@@ -436,7 +436,7 @@ rtl8139init(Ether* edev)
 	ctlr->rbstart = alloc;
 	alloc += ctlr->rblen+16;
 	memset(ctlr->rbstart, 0, ctlr->rblen+16);
-	csr32w(ctlr, Rbstart, PCIWADDR(ctlr->rbstart));
+	csr32w(ctlr, Rbstart, PADDR(ctlr->rbstart));
 	ctlr->rcr = Rxfth256|Rblen|Mrxdmaunlimited|Ab|Am|Apm;
 
 	/*
@@ -519,12 +519,12 @@ rtl8139txstart(Ether* edev)
 		if(((int64_t)bp->rp) & 0x03){
 			memmove(td->data, bp->rp, size);
 			freeb(bp);
-			csr32w(ctlr, td->tsad, PCIWADDR(td->data));
+			csr32w(ctlr, td->tsad, PADDR(td->data));
 			ctlr->tunaligned++;
 		}
 		else{
 			td->bp = bp;
-			csr32w(ctlr, td->tsad, PCIWADDR(bp->rp));
+			csr32w(ctlr, td->tsad, PADDR(bp->rp));
 			ctlr->taligned++;
 		}
 		csr32w(ctlr, td->tsd, (ctlr->etxth<<EtxthSHIFT)|size);
@@ -590,7 +590,7 @@ rtl8139receive(Ether* edev)
 			 */
 			cr = csr8r(ctlr, Cr);
 			csr8w(ctlr, Cr, cr & ~Re);
-			csr32w(ctlr, Rbstart, PCIWADDR(ctlr->rbstart));
+			csr32w(ctlr, Rbstart, PADDR(ctlr->rbstart));
 			csr8w(ctlr, Cr, cr);
 			csr32w(ctlr, Rcr, ctlr->rcr);
 
