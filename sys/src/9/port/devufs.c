@@ -25,53 +25,51 @@
 #include "ufs/ufsfns.h"
 
 enum {
-	Qdir = 0,		// #U
-	Qufsdir,		// #U/ufs
-	Qmount,			// #U/ufs/mount
-	Qmountdir,		// #U/ufs/x (x embedded in qid)
-	Qmountctl,		// #U/ufs/x/ctl
-	Qmountstats,		// #U/ufs/x/stats
-	Qsuperblock,		// #U/ufs/x/superblock
-	Qinodesdir,		// #U/ufs/x/inodes (directory of all inodes)
-	Qinodedir,		// #U/ufs/x/inodes/y (directory of single inode)
-	Qinode,			// #U/ufs/x/inodes/y/inode (inode metadata)
-	Qinodedata,		// #U/ufs/x/inodes/y/data (inode data)
+	Qdir = 0,	    // #U
+	Qufsdir,	    // #U/ufs
+	Qmount,		    // #U/ufs/mount
+	Qmountdir,	    // #U/ufs/x (x embedded in qid)
+	Qmountctl,	    // #U/ufs/x/ctl
+	Qmountstats,	    // #U/ufs/x/stats
+	Qsuperblock,	    // #U/ufs/x/superblock
+	Qinodesdir,	    // #U/ufs/x/inodes (directory of all inodes)
+	Qinodedir,	    // #U/ufs/x/inodes/y (directory of single inode)
+	Qinode,		    // #U/ufs/x/inodes/y/inode (inode metadata)
+	Qinodedata,	    // #U/ufs/x/inodes/y/data (inode data)
 };
 
 enum {
 	Qidshift = 6,
-	MaxMounts = 1,			// Maximum possible mounts
+	MaxMounts = 1,	      // Maximum possible mounts
 };
 
 static Dirtab ufsdir[] =
-{
-	{"mount",	{Qmount},	0,	0666},
+	{
+		{"mount", {Qmount}, 0, 0666},
 };
 
 static Dirtab ufsmntdir[] =
-{
-	{"ctl",		{Qmountctl},		0,	0666},
-	{"stats",	{Qmountstats},		0,	0444},
-	{"superblock",	{Qsuperblock},		0,	0444},
-	{"inodes",	{Qinodesdir, 0, QTDIR},	0,	DMDIR|0111},
+	{
+		{"ctl", {Qmountctl}, 0, 0666},
+		{"stats", {Qmountstats}, 0, 0444},
+		{"superblock", {Qsuperblock}, 0, 0444},
+		{"inodes", {Qinodesdir, 0, QTDIR}, 0, DMDIR | 0111},
 };
 
 static Dirtab inodedir[] =
-{
-	{"inode",	{Qinode},		0,	0444},
-	{"data",	{Qinodedata},		0,	0444},
+	{
+		{"inode", {Qinode}, 0, 0444},
+		{"data", {Qinodedata}, 0, 0444},
 };
 
-enum
-{
+enum {
 	CMunmount,
 	CMtestmount,
 };
 
-static
-Cmdtab mountcmds[] = {
-	{CMunmount,	"unmount",	1},
-	{CMtestmount,	"test",		1},
+static Cmdtab mountcmds[] = {
+	{CMunmount, "unmount", 1},
+	{CMtestmount, "test", 1},
 };
 
 // Rather vague errors until we interpret the UFS error codes
@@ -83,22 +81,21 @@ static char Eufsinvalidmp[] = "not a valid mountpoint";
 // Just one possible mountpoint for now.  Replace with a collection later
 static MountPoint *mountpoint = nil;
 
-
 static int
-ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
+ufsgen(Chan *c, char *d, Dirtab *dir, int j, int s, Dir *dp)
 {
 	Qid q;
 	char name[64];
 
 	// The qid has a mount id embedded in it, so we need to mask out the
 	// real qid value.
-	int qid = c->qid.path & ((1 << Qidshift)-1);
+	int qid = c->qid.path & ((1 << Qidshift) - 1);
 	int qidmntid = c->qid.path >> Qidshift;
 
 	//print("ufsgen q %#x s %d qidmntid %d...\n", qid, s, qidmntid);
 
-	if(s == DEVDOTDOT) {
-		if (qid <= Qufsdir) {
+	if(s == DEVDOTDOT){
+		if(qid <= Qufsdir){
 			mkqid(&q, Qdir, 0, QTDIR);
 			devdir(c, q, "#U", 0, eve, 0555, dp);
 		} else {
@@ -108,10 +105,10 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		return 1;
 	}
 
-	switch (qid) {
+	switch(qid){
 	case Qdir:
 		// list #U
-		if (s == 0) {
+		if(s == 0){
 			mkqid(&q, Qufsdir, 0, QTDIR);
 			devdir(c, q, "ufs", 0, eve, 0555, dp);
 			return 1;
@@ -121,7 +118,7 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	case Qmount:
 	case Qufsdir:
 		// list #U/ufs
-		if (s < nelem(ufsdir)) {
+		if(s < nelem(ufsdir)){
 			// Populate with ufsdir table
 			dir = &ufsdir[s];
 			mkqid(&q, dir->qid.path, 0, dir->qid.type);
@@ -129,11 +126,11 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 			return 1;
 		}
 		s -= nelem(ufsdir);
-		if (s < 0 || s >= MaxMounts) {
+		if(s < 0 || s >= MaxMounts){
 			return -1;
 		}
 
-		if (mountpoint == nil) {
+		if(mountpoint == nil){
 			return -1;
 		}
 
@@ -148,12 +145,12 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	case Qsuperblock:
 	case Qmountdir:
 		// Generate #U/ufs/x/...
-		if (s >= nelem(ufsmntdir)) {
+		if(s >= nelem(ufsmntdir)){
 			return -1;
 		}
 
 		// #U/ufs/x/...
-		if (!mountpoint) {
+		if(!mountpoint){
 			return -1;
 		}
 
@@ -162,8 +159,7 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 		devdir(c, q, dir->name, dir->length, eve, dir->perm, dp);
 		return 1;
 
-	case Qinodesdir:
-	{
+	case Qinodesdir: {
 		// Generate #U/ufs/x/inodes/...
 		// We don't allow listing of the inodes folder because the
 		// number of files would be enormous and of limited use.
@@ -175,7 +171,7 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 
 		// Validate
 		char *filename = d;
-		if (strtoll(filename, nil, 10) < 2) {
+		if(strtoll(filename, nil, 10) < 2){
 			error("invalid inode");
 		}
 
@@ -188,7 +184,7 @@ ufsgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	case Qinode:
 	case Qinodedata:
 	case Qinodedir:
-		if (s >= nelem(inodedir)) {
+		if(s >= nelem(inodedir)){
 			return -1;
 		}
 		dir = &inodedir[s];
@@ -213,35 +209,34 @@ ufsshutdown()
 	ffs_uninit();
 }
 
-static Chan*
-ufsattach(char* spec)
+static Chan *
+ufsattach(char *spec)
 {
 	return devattach('U', spec);
 }
 
-Walkqid*
-ufswalk(Chan* c, Chan *nc, char** name, int nname)
+Walkqid *
+ufswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, ufsgen);
 }
 
 static int32_t
-ufsstat(Chan* c, uint8_t* dp, int32_t n)
+ufsstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, nil, 0, ufsgen);
 }
 
-static Chan*
-ufsopen(Chan* c, int omode)
+static Chan *
+ufsopen(Chan *c, int omode)
 {
-	int qid = c->qid.path & ((1 << Qidshift)-1);
+	int qid = c->qid.path & ((1 << Qidshift) - 1);
 
 	c = devopen(c, omode, nil, 0, ufsgen);
 
-	switch (qid) {
+	switch(qid){
 	case Qinode:
-	case Qinodedata:
-	{
+	case Qinodedata: {
 		// We need to get the inode from the last element of the path
 		// We couldn't encode it anywhere, because it'll eventually
 		// be a 64-bit value.
@@ -249,14 +244,14 @@ ufsopen(Chan* c, int omode)
 		strcpy(str, c->path->s);
 
 		char *inoend = strrchr(str, '/');
-		if (!inoend) {
+		if(!inoend){
 			free(str);
 			error("invalid inode");
 		}
 		*inoend = '\0';
 
 		char *inostart = strrchr(str, '/');
-		if (!inostart) {
+		if(!inostart){
 			free(str);
 			error("invalid inode");
 		}
@@ -264,7 +259,7 @@ ufsopen(Chan* c, int omode)
 
 		ino_t ino = strtoll(inostart, nil, 10);
 		free(str);
-		if (ino == 0) {
+		if(ino == 0){
 			error("invalid inode");
 		}
 
@@ -280,18 +275,17 @@ ufsopen(Chan* c, int omode)
 }
 
 static void
-ufsclose(Chan* c)
+ufsclose(Chan *c)
 {
-	int qid = c->qid.path & ((1 << Qidshift)-1);
-	switch (qid) {
+	int qid = c->qid.path & ((1 << Qidshift) - 1);
+	switch(qid){
 	case Qinode:
-	case Qinodedata:
-	{
-		vnode *vn = (vnode*)c->aux;
-		if (!vn) {
+	case Qinodedata: {
+		vnode *vn = (vnode *)c->aux;
+		if(!vn){
 			error("no vnode to close");
 		}
-		releasevnode(vn);		
+		releasevnode(vn);
 		break;
 	}
 	default:
@@ -341,29 +335,27 @@ dumpinode(void *a, int32_t n, int64_t offset, vnode *vn)
 static int32_t
 ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	if (c->qid.type == QTDIR) {
+	if(c->qid.type == QTDIR){
 		return devdirread(c, a, n, nil, 0, ufsgen);
 	}
 
 	int qid = (int)c->qid.path;
 
-	switch (qid) {
+	switch(qid){
 	case Qmountstats:
 		n = dumpstats(a, n, offset, mountpoint);
 		break;
 	case Qsuperblock:
 		n = dumpsuperblock(a, n, offset, mountpoint);
 		break;
-	case Qinode:
-	{
-		vnode *vn = (vnode*)c->aux;
+	case Qinode: {
+		vnode *vn = (vnode *)c->aux;
 		n = dumpinode(a, n, offset, vn);
 		break;
 	}
 
-	case Qinodedata:
-	{
-		vnode *vn = (vnode*)c->aux;
+	case Qinodedata: {
+		vnode *vn = (vnode *)c->aux;
 		n = writeinodedata(a, n, offset, vn);
 		break;
 	}
@@ -375,19 +367,19 @@ ufsread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-static MountPoint*
-mountufs(Chan* c)
+static MountPoint *
+mountufs(Chan *c)
 {
 	// TODO Use real IDs eventually
 	int id = 0;
 	MountPoint *mp = newufsmount(c, id);
-	if (mp == nil) {
+	if(mp == nil){
 		print("couldn't prepare UFS mount\n");
 		error(Eufsmount);
 	}
 
 	int rcode = ffs_mount(mp);
-	if (rcode != 0) {
+	if(rcode != 0){
 		print("couldn't mount as UFS.  Error code: %d\n", rcode);
 		error(Eufsmount);
 	}
@@ -403,7 +395,7 @@ unmountufs()
 	releaseufsmount(mountpoint);
 	mountpoint = nil;
 
-	if (rcode != 0) {
+	if(rcode != 0){
 		print("couldn't unmount UFS.  Error code: %d\n", rcode);
 		error(Eufsunmount);
 	}
@@ -412,7 +404,7 @@ unmountufs()
 static void
 testmount()
 {
-	if (mountpoint == nil) {
+	if(mountpoint == nil){
 		error(Eufsinvalidmp);
 	}
 
@@ -420,36 +412,36 @@ testmount()
 	vnode *vn;
 	char *path = "/";
 	int rcode = lookuppath(mountpoint, path, &vn);
-	if (rcode != 0) {
+	if(rcode != 0){
 		print("couldn't lookup path: %s: %d", path, rcode);
 	}
 }
 
 static void
-mount(char* a, int32_t n)
+mount(char *a, int32_t n)
 {
 	Proc *up = externup();
 
 	// Accept only one mount for now
-	if (mountpoint != nil) {
+	if(mountpoint != nil){
 		error(Eufsnomp);
 	}
 
-	Cmdbuf* cb = parsecmd(a, n);
-	if (waserror()) {
+	Cmdbuf *cb = parsecmd(a, n);
+	if(waserror()){
 		free(cb);
 		nexterror();
 	}
 
 	// TODO Make namec and related functions accept const char*
-	Chan* c = namec(cb->buf, Aopen, ORDWR, 0);
+	Chan *c = namec(cb->buf, Aopen, ORDWR, 0);
 
 	// Don't need cb any more, pop and free
 	poperror();
 	free(cb);
 	cb = nil;
 
-	if (waserror()) {
+	if(waserror()){
 		cclose(c);
 		nexterror();
 	}
@@ -463,12 +455,12 @@ ctlreq(int mntid, void *a, int32_t n)
 {
 	Proc *up = externup();
 
-	if (mountpoint == nil) {
+	if(mountpoint == nil){
 		error(Eufsinvalidmp);
 	}
 
-	Cmdbuf* cb = parsecmd(a, n);
-	if (waserror()) {
+	Cmdbuf *cb = parsecmd(a, n);
+	if(waserror()){
 		print("couldn't parse command: %s: %r", a);
 		free(cb);
 		nexterror();
@@ -478,7 +470,7 @@ ctlreq(int mntid, void *a, int32_t n)
 	Cmdtab *ct = lookupcmd(cb, mountcmds, nelem(mountcmds));
 
 	// TODO HARVEY handle errors here
-	switch (ct->index) {
+	switch(ct->index){
 	case CMunmount:
 		unmountufs();
 		break;
@@ -492,20 +484,20 @@ ctlreq(int mntid, void *a, int32_t n)
 static int32_t
 ufswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	int qid = c->qid.path & ((1 << Qidshift)-1);
+	int qid = c->qid.path & ((1 << Qidshift) - 1);
 	int mntid = c->qid.path >> Qidshift;
 
-	if (c->qid.type == QTDIR) {
+	if(c->qid.type == QTDIR){
 		error(Eisdir);
 	}
 
-	switch (qid) {
+	switch(qid){
 	case Qmount:
-		mount((char*)a, n);
+		mount((char *)a, n);
 		break;
 
 	case Qmountctl:
-		ctlreq(mntid, (char*)a, n);
+		ctlreq(mntid, (char *)a, n);
 		break;
 
 	default:

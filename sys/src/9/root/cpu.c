@@ -21,61 +21,72 @@
 #include <fcall.h>
 #include <libsec.h>
 
-#define	Maxfdata 8192
+#define Maxfdata 8192
 #define MaxStr 128
 
-void	remoteside(int);
-void	fatal(int, char*, ...);
-void	lclnoteproc(int);
-void	rmtnoteproc(void);
-void	catcher(void*, char*);
-void	usage(void);
-void	writestr(int, char*, char*, int);
-int	readstr(int, char*, int);
-char	*rexcall(int*, char*, char*);
-int	setamalg(char*);
+void remoteside(int);
+void fatal(int, char *, ...);
+void lclnoteproc(int);
+void rmtnoteproc(void);
+void catcher(void *, char *);
+void usage(void);
+void writestr(int, char *, char *, int);
+int readstr(int, char *, int);
+char *rexcall(int *, char *, char *);
+int setamalg(char *);
 char *keyspec = "";
 
-int 	notechan;
-int	exportpid;
-char	*system;
-int	cflag;
-int	dbg;
-char	*user;
-char	*patternfile;
+int notechan;
+int exportpid;
+char *system;
+int cflag;
+int dbg;
+char *user;
+char *patternfile;
 
-char	*srvname = "ncpu";
-char	*exportfs = "/bin/exportfs";
-char	*ealgs = "rc4_256 sha1";
+char *srvname = "ncpu";
+char *exportfs = "/bin/exportfs";
+char *ealgs = "rc4_256 sha1";
 
 /* message size for exportfs; may be larger so we can do big graphics in CPU window */
-int	msgsize = Maxfdata+IOHDRSZ;
+int msgsize = Maxfdata + IOHDRSZ;
 
 /* authentication mechanisms */
-static int	netkeyauth(int);
-static int	netkeysrvauth(int, char*);
-static int	p9auth(int);
-static int	srvp9auth(int, char*);
-static int	noauth(int);
-static int	srvnoauth(int, char*);
+static int netkeyauth(int);
+static int netkeysrvauth(int, char *);
+static int p9auth(int);
+static int srvp9auth(int, char *);
+static int noauth(int);
+static int srvnoauth(int, char *);
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
-	char	*name;			/* name of method */
-	int	(*cf)(int);		/* client side authentication */
-	int	(*sf)(int, char*);	/* server side authentication */
+	char *name;		/* name of method */
+	int (*cf)(int);		/* client side authentication */
+	int (*sf)(int, char *); /* server side authentication */
 } authmethod[] =
-{
-	{ "p9",		p9auth,		srvp9auth,},
-	{ "netkey",	netkeyauth,	netkeysrvauth,},
-	{ "none",	noauth,		srvnoauth,},
-	{ nil,		nil,		nil}
-};
-AuthMethod *am = authmethod;	/* default is p9 */
+	{
+		{
+			"p9",
+			p9auth,
+			srvp9auth,
+		},
+		{
+			"netkey",
+			netkeyauth,
+			netkeysrvauth,
+		},
+		{
+			"none",
+			noauth,
+			srvnoauth,
+		},
+		{nil, nil, nil}};
+AuthMethod *am = authmethod; /* default is p9 */
 
 char *p9authproto = "p9any";
 
-int setam(char*);
+int setam(char *);
 
 void
 usage(void)
@@ -95,15 +106,16 @@ main(int argc, char **argv)
 	fd = open("/dev/draw", OREAD);
 	if(fd > 0){
 		ms = iounit(fd);
-		if(msgsize < ms+IOHDRSZ)
-			msgsize = ms+IOHDRSZ;
+		if(msgsize < ms + IOHDRSZ)
+			msgsize = ms + IOHDRSZ;
 		close(fd);
 	}
 
 	user = getuser();
 	if(user == nil)
 		fatal(1, "can't read user name");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		p = EARGF(usage());
 		if(setam(p) < 0)
@@ -122,9 +134,9 @@ main(int argc, char **argv)
 		break;
 	case 'O':
 		p9authproto = "p9sk2";
-		remoteside(1);				/* From listen */
+		remoteside(1); /* From listen */
 		break;
-	case 'R':				/* From listen */
+	case 'R': /* From listen */
 		remoteside(0);
 		break;
 	case 'h':
@@ -134,7 +146,7 @@ main(int argc, char **argv)
 		cflag++;
 		cmd[0] = '!';
 		cmd[1] = '\0';
-		while(p = ARGF()) {
+		while(p = ARGF()){
 			strcat(cmd, " ");
 			strcat(cmd, p);
 		}
@@ -151,13 +163,13 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
-
+	}
+	ARGEND;
 
 	if(argc != 0)
 		usage();
 
-	if(system == nil) {
+	if(system == nil){
 		p = getenv("cpu");
 		if(p == 0)
 			fatal(0, "set $cpu");
@@ -184,7 +196,7 @@ main(int argc, char **argv)
 	 */
 	if(readstr(data, buf, sizeof(buf)) < 0)
 		fatal(1, "waiting for FS: %r");
-	if(strncmp("FS", buf, 2) != 0) {
+	if(strncmp("FS", buf, 2) != 0){
 		print("remote cpu: %s", buf);
 		exits(buf);
 	}
@@ -242,7 +254,7 @@ old9p(int fd)
 	if(pipe(p) < 0)
 		fatal(1, "pipe");
 
-	switch(rfork(RFPROC|RFFDG|RFNAMEG)) {
+	switch(rfork(RFPROC | RFFDG | RFNAMEG)){
 	case -1:
 		fatal(1, "rfork srvold9p");
 	case 0:
@@ -306,7 +318,7 @@ remoteside(int old)
 	gotcmd = 0;
 	if(readstr(fd, xdir, sizeof(xdir)) < 0)
 		fatal(1, "dir/cmd");
-	if(xdir[0] == '!') {
+	if(xdir[0] == '!'){
 		strcpy(cmd, &xdir[1]);
 		gotcmd = 1;
 		if(readstr(fd, xdir, sizeof(xdir)) < 0)
@@ -318,7 +330,7 @@ remoteside(int old)
 	badchdir = 0;
 	if(strcmp(xdir, "NO") == 0)
 		chdir(home);
-	else if(chdir(xdir) < 0) {
+	else if(chdir(xdir) < 0){
 		badchdir = 1;
 		chdir(home);
 	}
@@ -336,9 +348,9 @@ remoteside(int old)
 
 	/* make sure buffers are big by doing fversion explicitly; pick a huge number; other side will trim */
 	strcpy(buf, VERSION9P);
-	if(fversion(fd, 64*1024, buf, sizeof buf) < 0)
+	if(fversion(fd, 64 * 1024, buf, sizeof buf) < 0)
 		exits("fversion failed");
-	if(mount(fd, -1, "/mnt/term", MCREATE|MREPL, "", 'M') < 0)
+	if(mount(fd, -1, "/mnt/term", MCREATE | MREPL, "", 'M') < 0)
 		exits("mount failed");
 
 	close(fd);
@@ -365,7 +377,7 @@ remoteside(int old)
 	fatal(1, "exec shell");
 }
 
-char*
+char *
 rexcall(int *fd, char *host, char *service)
 {
 	char *na;
@@ -405,7 +417,7 @@ writestr(int fd, char *str, char *thing, int ignore)
 	int l, n;
 
 	l = strlen(str);
-	n = write(fd, str, l+1);
+	n = write(fd, str, l + 1);
 	if(!ignore && n < 0)
 		fatal(1, "writing network: %s", thing);
 }
@@ -415,7 +427,7 @@ readstr(int fd, char *str, int len)
 {
 	int n;
 
-	while(len) {
+	while(len){
 		n = read(fd, str, 1);
 		if(n < 0)
 			return -1;
@@ -433,9 +445,9 @@ readln(char *buf, int n)
 	int i;
 	char *p;
 
-	n--;	/* room for \0 */
+	n--; /* room for \0 */
 	p = buf;
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++){
 		if(read(0, p, 1) != 1)
 			break;
 		if(*p == '\n' || *p == '\r')
@@ -443,7 +455,7 @@ readln(char *buf, int n)
 		p++;
 	}
 	*p = '\0';
-	return p-buf;
+	return p - buf;
 }
 
 /*
@@ -455,7 +467,7 @@ netkeyauth(int fd)
 	char chall[32];
 	char resp[32];
 
-	strecpy(chall, chall+sizeof chall, getuser());
+	strecpy(chall, chall + sizeof chall, getuser());
 	print("user[%s]: ", chall);
 	if(readln(resp, sizeof(resp)) < 0)
 		return -1;
@@ -514,7 +526,7 @@ static void
 mksecret(char *t, uint8_t *f)
 {
 	sprint(t, "%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
-		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
+	       f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
 }
 
 /*
@@ -533,7 +545,7 @@ p9auth(int fd)
 	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", p9authproto, keyspec);
 	if(ai == nil)
 		return -1;
-	memmove(key+4, ai->secret, ai->nsecret);
+	memmove(key + 4, ai->secret, ai->nsecret);
 	if(ealgs == nil)
 		return fd;
 
@@ -543,13 +555,13 @@ p9auth(int fd)
 		key[i] = rand();
 	if(write(fd, key, 4) != 4)
 		return -1;
-	if(readn(fd, key+12, 4) != 4)
+	if(readn(fd, key + 12, 4) != 4)
 		return -1;
 
 	/* scramble into two secrets */
 	sha1(key, sizeof(key), digest, nil);
 	mksecret(fromclientsecret, digest);
-	mksecret(fromserversecret, digest+10);
+	mksecret(fromserversecret, digest + 10);
 
 	/* set up encryption */
 	i = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
@@ -568,7 +580,7 @@ noauth(int fd)
 static int
 srvnoauth(int fd, char *user)
 {
-	strecpy(user, user+MaxStr, getuser());
+	strecpy(user, user + MaxStr, getuser());
 	ealgs = nil;
 	return fd;
 }
@@ -580,7 +592,7 @@ loghex(uint8_t *p, int n)
 	int i;
 
 	for(i = 0; i < n; i++)
-		sprint(buf+2*i, "%2.2x", p[i]);
+		sprint(buf + 2 * i, "%2.2x", p[i]);
 	syslog(0, "cpu", buf);
 }
 
@@ -599,8 +611,8 @@ srvp9auth(int fd, char *user)
 		return -1;
 	if(auth_chuid(ai, nil) < 0)
 		return -1;
-	strecpy(user, user+MaxStr, ai->cuid);
-	memmove(key+4, ai->secret, ai->nsecret);
+	strecpy(user, user + MaxStr, ai->cuid);
+	memmove(key + 4, ai->secret, ai->nsecret);
 
 	if(ealgs == nil)
 		return fd;
@@ -608,16 +620,16 @@ srvp9auth(int fd, char *user)
 	/* exchange random numbers */
 	srand(truerand());
 	for(i = 0; i < 4; i++)
-		key[i+12] = rand();
+		key[i + 12] = rand();
 	if(readn(fd, key, 4) != 4)
 		return -1;
-	if(write(fd, key+12, 4) != 4)
+	if(write(fd, key + 12, 4) != 4)
 		return -1;
 
 	/* scramble into two secrets */
 	sha1(key, sizeof(key), digest, nil);
 	mksecret(fromclientsecret, digest);
-	mksecret(fromserversecret, digest+10);
+	mksecret(fromserversecret, digest + 10);
 
 	/* set up encryption */
 	i = pushssl(fd, ealgs, fromserversecret, fromclientsecret, nil);
@@ -664,7 +676,7 @@ rmtnoteproc(void)
 	char buf[256];
 
 	/* new proc returns to start shell */
-	pid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFMEM);
+	pid = rfork(RFPROC | RFFDG | RFNOTEG | RFNAMEG | RFMEM);
 	switch(pid){
 	case -1:
 		syslog(0, "cpu", "cpu -R: can't start noteproc: %r");
@@ -674,7 +686,7 @@ rmtnoteproc(void)
 	}
 
 	/* new proc reads notes from other side and posts them to shell */
-	switch(notepid = rfork(RFPROC|RFFDG|RFMEM)){
+	switch(notepid = rfork(RFPROC | RFFDG | RFMEM)){
 	case -1:
 		syslog(0, "cpu", "cpu -R: can't start wait proc: %r");
 		_exits(0);
@@ -686,7 +698,7 @@ rmtnoteproc(void)
 		}
 
 		for(;;){
-			n = read(fd, buf, sizeof(buf)-1);
+			n = read(fd, buf, sizeof(buf) - 1);
 			if(n <= 0){
 				postnote(PNGROUP, pid, "hangup");
 				_exits(0);
@@ -706,8 +718,7 @@ rmtnoteproc(void)
 	_exits(0);
 }
 
-enum
-{
+enum {
 	Qdir,
 	Qcpunote,
 
@@ -715,35 +726,32 @@ enum
 };
 
 struct {
-	char	*name;
-	Qid	qid;
-	uint32_t	perm;
+	char *name;
+	Qid qid;
+	uint32_t perm;
 } fstab[] =
-{
-	[Qdir] =	{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
-	[Qcpunote] =	{ "cpunote",	{Qcpunote, 0},		0444		},
+	{
+		[Qdir] = {".", {Qdir, 0, QTDIR}, DMDIR | 0555},
+		[Qcpunote] = {"cpunote", {Qcpunote, 0}, 0444},
 };
 
 typedef struct Note Note;
-struct Note
-{
+struct Note {
 	Note *next;
 	char msg[ERRMAX];
 };
 
 typedef struct Request Request;
-struct Request
-{
+struct Request {
 	Request *next;
 	Fcall f;
 };
 
 typedef struct Fid Fid;
-struct Fid
-{
-	int	fid;
-	int	file;
-	int	omode;
+struct Fid {
+	int fid;
+	int file;
+	int omode;
 };
 Fid fids[Nfid];
 
@@ -756,7 +764,7 @@ struct {
 int
 fsreply(int fd, Fcall *f)
 {
-	uint8_t buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ + Maxfdata];
 	int n;
 
 	if(dbg)
@@ -821,7 +829,7 @@ flushreq(int tag)
 	unlock(&nfs);
 }
 
-Fid*
+Fid *
 getfid(int fid)
 {
 	int i, freefid;
@@ -870,7 +878,7 @@ fsread(int fd, Fid *fid, Fcall *f)
 	default:
 		return -1;
 	case Qdir:
-		if(f->offset == 0 && f->count >0){
+		if(f->offset == 0 && f->count > 0){
 			memset(&d, 0, sizeof(d));
 			d.name = fstab[Qcpunote].name;
 			d.uid = user;
@@ -880,7 +888,7 @@ fsread(int fd, Fid *fid, Fcall *f)
 			d.mode = fstab[Qcpunote].perm;
 			d.atime = d.mtime = time(0);
 			f->count = convD2M(&d, buf, sizeof buf);
-			f->data = (char*)buf;
+			f->data = (char *)buf;
 		} else
 			f->count = 0;
 		return fsreply(fd, f);
@@ -896,7 +904,8 @@ fsread(int fd, Fid *fid, Fcall *f)
 			nfs.rlast->next = rp;
 		nfs.rlast = rp;
 		unlock(&nfs);
-		return kick(fd);;
+		return kick(fd);
+		;
 	}
 }
 
@@ -907,7 +916,7 @@ char Enotdir[] = "not a directory";
 void
 notefs(int fd)
 {
-	uint8_t buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ + Maxfdata];
 	int i, j, n, ncpunote;
 	char err[ERRMAX];
 	Fcall f;
@@ -937,7 +946,7 @@ notefs(int fd)
 		doreply = 1;
 		fid = getfid(f.fid);
 		if(fid == nil){
-nofids:
+		nofids:
 			f.type = Rerror;
 			f.ename = Enofile;
 			fsreply(fd, &f);
@@ -952,8 +961,8 @@ nofids:
 			flushreq(f.oldtag);
 			break;
 		case Tversion:
-			if(f.msize > IOHDRSZ+Maxfdata)
-				f.msize = IOHDRSZ+Maxfdata;
+			if(f.msize > IOHDRSZ + Maxfdata)
+				f.msize = IOHDRSZ + Maxfdata;
 			break;
 		case Tauth:
 			f.type = Rerror;
@@ -974,7 +983,7 @@ nofids:
 			}
 
 			f.ename = nil;
-			for(i=0; i<f.nwname; i++){
+			for(i = 0; i < f.nwname; i++){
 				if(i > MAXWELEM){
 					f.type = Rerror;
 					f.ename = "too many name elements";
@@ -993,8 +1002,8 @@ nofids:
 				f.type = Rerror;
 				f.ename = err;
 				strcpy(err, "cpu: file \"");
-				for(j=0; j<=i; j++){
-					if(strlen(err)+1+strlen(f.wname[j])+32 > sizeof err)
+				for(j = 0; j <= i; j++){
+					if(strlen(err) + 1 + strlen(f.wname[j]) + 32 > sizeof err)
 						break;
 					if(j != 0)
 						strcat(err, "/");
@@ -1004,7 +1013,7 @@ nofids:
 				break;
 			}
 			if(nfid != nil && (f.ename != nil || i < f.nwname))
-				nfid ->file = -1;
+				nfid->file = -1;
 			if(f.type != Rerror)
 				f.nwqid = i;
 			break;
@@ -1034,7 +1043,7 @@ nofids:
 		case Tclunk:
 			if(fid->omode != -1 && fid->file == Qcpunote){
 				ncpunote--;
-				if(ncpunote == 0)	/* remote side is done */
+				if(ncpunote == 0) /* remote side is done */
 					goto err;
 			}
 			fid->file = -1;
@@ -1068,16 +1077,16 @@ err:
 	close(fd);
 }
 
-char 	notebuf[ERRMAX];
+char notebuf[ERRMAX];
 
 void
-catcher(void*, char *text)
+catcher(void *, char *text)
 {
 	int n;
 
 	n = strlen(text);
 	if(n >= sizeof(notebuf))
-		n = sizeof(notebuf)-1;
+		n = sizeof(notebuf) - 1;
 	memmove(notebuf, text, n);
 	notebuf[n] = '\0';
 	noted(NCONT);
@@ -1100,7 +1109,7 @@ lclnoteproc(int netfd)
 	}
 
 	/* new proc mounts and returns to start exportfs */
-	switch(pid = rfork(RFPROC|RFNAMEG|RFFDG|RFMEM)){
+	switch(pid = rfork(RFPROC | RFNAMEG | RFFDG | RFMEM)){
 	default:
 		exportpid = pid;
 		break;
@@ -1119,7 +1128,7 @@ lclnoteproc(int netfd)
 	close(pfd[1]);
 
 	/* new proc listens for note file system rpc's */
-	switch(rfork(RFPROC|RFNAMEG|RFMEM)){
+	switch(rfork(RFPROC | RFNAMEG | RFMEM)){
 	case -1:
 		fprint(2, "cpu: can't start note proc: rfork1: %r\n");
 		_exits(0);
@@ -1131,11 +1140,11 @@ lclnoteproc(int netfd)
 	/* original proc waits for notes */
 	notify(catcher);
 	w = nil;
-	for(;;) {
+	for(;;){
 		*notebuf = 0;
 		free(w);
 		w = wait();
-		if(w == nil) {
+		if(w == nil){
 			if(*notebuf == 0)
 				break;
 			np = mallocz(sizeof(Note), 1);
@@ -1158,5 +1167,5 @@ lclnoteproc(int netfd)
 	if(w == nil)
 		exits(nil);
 	exits(0);
-/*	exits(w->msg); */
+	/*	exits(w->msg); */
 }

@@ -19,7 +19,7 @@
 #include "ureg.h"
 #include "io.h"
 
-Lock nixaclock;	/* NIX AC lock; held while assigning procs to cores */
+Lock nixaclock; /* NIX AC lock; held while assigning procs to cores */
 
 /*
  * NIX support for the time sharing core.
@@ -28,7 +28,7 @@ Lock nixaclock;	/* NIX AC lock; held while assigning procs to cores */
 extern void actrapret(void);
 extern void acsysret(void);
 
-Mach*
+Mach *
 getac(Proc *p, int core)
 {
 	Proc *up = externup();
@@ -53,7 +53,7 @@ getac(Proc *p, int core)
 			error("core is not an AC");
 	Found:
 		mp->proc = p;
-	}else{
+	} else {
 		for(i = 0; i < MACHMAX; i++)
 			if((mp = sys->machptr[i]) != nil && mp->online && mp->NIX.nixtype == NIXAC)
 				if(mp->proc == nil)
@@ -127,7 +127,7 @@ stopac(void)
  */
 
 typedef void (*APfunc)(void);
-extern int notify(Ureg*);
+extern int notify(Ureg *);
 
 /*
  * run an arbitrary function with arbitrary args on an ap core
@@ -143,7 +143,7 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 	Proc *up = externup();
 	uint8_t *dpg, *spg;
 
-	if (n > sizeof(mp->NIX.icc->data))
+	if(n > sizeof(mp->NIX.icc->data))
 		panic("runac: args too long");
 
 	if(mp->online == 0)
@@ -196,8 +196,8 @@ fakeretfromsyscall(Ureg *ureg)
 	Proc *up = externup();
 	int s;
 
-	poperror();	/* as syscall() would do if we would return */
-	if(up->procctl == Proc_tracesyscall){	/* Would this work? */
+	poperror();			       /* as syscall() would do if we would return */
+	if(up->procctl == Proc_tracesyscall) { /* Would this work? */
 		up->procctl = Proc_stopme;
 		s = splhi();
 		procctl(up);
@@ -261,7 +261,7 @@ runacore(void)
 			s = splhi();
 			machp()->MMU.cr2 = up->ac->MMU.cr2;
 			DBG("runacore: trap %llu cr2 %#llx ureg %#p\n",
-				ureg->type, machp()->MMU.cr2, ureg);
+			    ureg->type, machp()->MMU.cr2, ureg);
 			switch(ureg->type){
 			case IdtIPI:
 				if(up->procctl || up->nnote)
@@ -281,7 +281,7 @@ runacore(void)
 				n = up->ac->NIX.icc->note;
 				if(n != nil)
 					postnote(up, 1, n, NDebug);
-				ureg->type = IdtIPI;		/* NOP */
+				ureg->type = IdtIPI; /* NOP */
 				break;
 			default:
 				cr3put(machp()->MMU.pml4->pa);
@@ -300,14 +300,14 @@ runacore(void)
 			break;
 		case ICCSYSCALL:
 			DBG("runacore: syscall ax %#llx ureg %#p\n",
-				ureg->ax, ureg);
+			    ureg->ax, ureg);
 			cr3put(machp()->MMU.pml4->pa);
 			//syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;
 			if(0)
-			if(up->nqtrap > 2 || up->nsyscall > 1)
-				goto ToTC;
+				if(up->nqtrap > 2 || up->nsyscall > 1)
+					goto ToTC;
 			if(up->ac == nil)
 				goto ToTC;
 			break;
@@ -330,7 +330,7 @@ ToTC:
 extern ACVctl *acvctl[];
 
 void
-actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
+actrapenable(int vno, char *(*f)(Ureg *, void *), void *a, char *name)
 {
 	ACVctl *v;
 
@@ -341,7 +341,7 @@ actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
 	v->a = a;
 	v->vno = vno;
 	strncpy(v->name, name, KNAMELEN);
-	v->name[KNAMELEN-1] = 0;
+	v->name[KNAMELEN - 1] = 0;
 
 	if(acvctl[vno])
 		panic("AC traps can't be shared");

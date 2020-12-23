@@ -21,7 +21,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
@@ -30,42 +30,100 @@
 #include "corebootscreen.h"
 
 enum {
-	Tabstop	= 4,		/* should be 8 */
-	Scroll	= 8,		/* lines to scroll at one time */
+	Tabstop = 4, /* should be 8 */
+	Scroll = 8,  /* lines to scroll at one time */
 };
 
 extern struct sysinfo_t cbinfo;
-int	drawdebug = 1;
-Point	ZP = {0, 0};
-Cursor	arrow = {
-	{ -1, -1 },
-	{ 0xFF, 0xFF, 0x80, 0x01, 0x80, 0x02, 0x80, 0x0C,
-	  0x80, 0x10, 0x80, 0x10, 0x80, 0x08, 0x80, 0x04,
-	  0x80, 0x02, 0x80, 0x01, 0x80, 0x02, 0x8C, 0x04,
-	  0x92, 0x08, 0x91, 0x10, 0xA0, 0xA0, 0xC0, 0x40,
+int drawdebug = 1;
+Point ZP = {0, 0};
+Cursor arrow = {
+	{-1, -1},
+	{
+		0xFF,
+		0xFF,
+		0x80,
+		0x01,
+		0x80,
+		0x02,
+		0x80,
+		0x0C,
+		0x80,
+		0x10,
+		0x80,
+		0x10,
+		0x80,
+		0x08,
+		0x80,
+		0x04,
+		0x80,
+		0x02,
+		0x80,
+		0x01,
+		0x80,
+		0x02,
+		0x8C,
+		0x04,
+		0x92,
+		0x08,
+		0x91,
+		0x10,
+		0xA0,
+		0xA0,
+		0xC0,
+		0x40,
 	},
-	{ 0x00, 0x00, 0x7F, 0xFE, 0x7F, 0xFC, 0x7F, 0xF0,
-	  0x7F, 0xE0, 0x7F, 0xE0, 0x7F, 0xF0, 0x7F, 0xF8,
-	  0x7F, 0xFC, 0x7F, 0xFE, 0x7F, 0xFC, 0x73, 0xF8,
-	  0x61, 0xF0, 0x60, 0xE0, 0x40, 0x40, 0x00, 0x00,
+	{
+		0x00,
+		0x00,
+		0x7F,
+		0xFE,
+		0x7F,
+		0xFC,
+		0x7F,
+		0xF0,
+		0x7F,
+		0xE0,
+		0x7F,
+		0xE0,
+		0x7F,
+		0xF0,
+		0x7F,
+		0xF8,
+		0x7F,
+		0xFC,
+		0x7F,
+		0xFE,
+		0x7F,
+		0xFC,
+		0x73,
+		0xF8,
+		0x61,
+		0xF0,
+		0x60,
+		0xE0,
+		0x40,
+		0x40,
+		0x00,
+		0x00,
 	},
 };
 
 static Memdata xgdata;
 
 static Memimage xgscreen =
-{
-	{ 0, 0, 1024, 768 },	/* r */
-	{ 0, 0, 1024, 768 },	/* clipr */
-	24,			/* depth */
-	3,			/* nchan */
-	RGB24,			/* chan */
-	nil,			/* cmap */
-	&xgdata,		/* data */
-	0,			/* zero */
-	1024*768, 	/* width in words of a single scan line */
-	0,			/* layer */
-	0,			/* flags */
+	{
+		{0, 0, 1024, 768}, /* r */
+		{0, 0, 1024, 768}, /* clipr */
+		24,		   /* depth */
+		3,		   /* nchan */
+		RGB24,		   /* chan */
+		nil,		   /* cmap */
+		&xgdata,	   /* data */
+		0,		   /* zero */
+		1024 * 768,	   /* width in words of a single scan line */
+		0,		   /* layer */
+		0,		   /* flags */
 };
 
 Memimage *gscreen;
@@ -77,15 +135,15 @@ static Memsubfont *memdefont;
 
 //static Lock screenlock;
 
-static Point	curpos;
-static int	h, w;
-static int	landscape = 0;	/* screen orientation, default is 0: portrait */
+static Point curpos;
+static int h, w;
+static int landscape = 0; /* screen orientation, default is 0: portrait */
 //static uint32_t	*vscreen;	/* virtual screen */
 static Rectangle window;
 
 static struct VGAdev cbvgadev = {
-	.name =  "coreboot",
-/*
+	.name = "coreboot",
+	/*
 
 		void	(*enable)(VGAscr*);
 		void	(*disable)(VGAscr*);
@@ -102,7 +160,7 @@ static struct VGAdev cbvgadev = {
 
 struct VGAcur cbvgacur = {
 	"coreboot",
-/*
+	/*
 	void	(*enable)(VGAscr*);
 	void	(*disable)(VGAscr*);
 	void	(*load)(VGAscr*, Cursor*);
@@ -112,48 +170,47 @@ struct VGAcur cbvgacur = {
 */
 };
 
-
-static int scroll(VGAscr*, Rectangle, Rectangle);
+static int scroll(VGAscr *, Rectangle, Rectangle);
 
 // for devdraw
 VGAscr vgascreen[1] = {
 	{
-	.dev = &cbvgadev,
-	.cur = &cbvgacur,
-	.gscreen = &xgscreen,
-//	.memdefont = memdefont,
-	.scroll = scroll,
+		.dev = &cbvgadev,
+		.cur = &cbvgacur,
+		.gscreen = &xgscreen,
+		//	.memdefont = memdefont,
+		.scroll = scroll,
 	},
 };
 
 //static	void	corebootscreenputs(char *s, int n);
 //static	uint32_t rep(uint32_t, int);
 //static	void	screenputc(char *buf);
-static	void	screenwin(void);
+static void screenwin(void);
 
 /*
  * Software cursor.
  */
-int	swvisible;	/* is the cursor visible? */
-int	swenabled;	/* is the cursor supposed to be on the screen? */
-Memimage*	swback;	/* screen under cursor */
-Memimage*	swimg;	/* cursor image */
-Memimage*	swmask;	/* cursor mask */
-Memimage*	swimg1;
-Memimage*	swmask1;
+int swvisible;	  /* is the cursor visible? */
+int swenabled;	  /* is the cursor supposed to be on the screen? */
+Memimage *swback; /* screen under cursor */
+Memimage *swimg;  /* cursor image */
+Memimage *swmask; /* cursor mask */
+Memimage *swimg1;
+Memimage *swmask1;
 
-Point	swoffset;
-Rectangle	swrect;	/* screen rectangle in swback */
-Point	swpt;	/* desired cursor location */
-Point	swvispt;	/* actual cursor location */
-int	swvers;	/* incremented each time cursor image changes */
-int	swvisvers;	/* the version on the screen */
+Point swoffset;
+Rectangle swrect; /* screen rectangle in swback */
+Point swpt;	  /* desired cursor location */
+Point swvispt;	  /* actual cursor location */
+int swvers;	  /* incremented each time cursor image changes */
+int swvisvers;	  /* the version on the screen */
 
 static void
 lcdoff(void)
 {
 	print("LCD OFF\n");
-	delay(20);			/* worst case for 1 frame, 50Hz */
+	delay(20); /* worst case for 1 frame, 50Hz */
 }
 
 static void
@@ -178,7 +235,6 @@ lcdinit(void)
 	print("%s\n", __func__);
 	print("lcdinit\n");
 	lcdstop();
-
 }
 
 /* Paint the image data with blue pixels */
@@ -188,9 +244,9 @@ screentest(void)
 	int i;
 
 	print("%s\n", __func__);
-	for (i = sizeof(framebuf.pixel)/sizeof(framebuf.pixel[0]) - 1; i >= 0; i--)
-		framebuf.pixel[i] = 0x1f;			/* blue */
-//	memset(framebuf.pixel, ~0, sizeof framebuf.pixel);	/* white */
+	for(i = sizeof(framebuf.pixel) / sizeof(framebuf.pixel[0]) - 1; i >= 0; i--)
+		framebuf.pixel[i] = 0x1f; /* blue */
+					  //	memset(framebuf.pixel, ~0, sizeof framebuf.pixel);	/* white */
 }
 
 void
@@ -237,10 +293,10 @@ swcursordraw(void)
 		return;
 	if(swback == nil || swimg1 == nil || swmask1 == nil)
 		return;
-//	assert(!canqlock(&drawlock));		// assertion fails on omap
+	//	assert(!canqlock(&drawlock));		// assertion fails on omap
 	swvispt = swpt;
 	swvisvers = swvers;
-	swrect = rectaddpt(Rect(0,0,16,16), swvispt);
+	swrect = rectaddpt(Rect(0, 0, 16, 16), swvispt);
 	memimagedraw(swback, swback->r, gscreen, swpt, memopaque, ZP, S);
 	memimagedraw(gscreen, swrect, swimg1, ZP, swmask1, ZP, SoverD);
 	flushmemscreen(swrect);
@@ -251,11 +307,11 @@ int
 cursoron(int dolock)
 {
 	print("%s\n", __func__);
-	if (dolock)
+	if(dolock)
 		lock(&Cbscreen.l);
 	cursoroff(0);
 	swcursordraw();
-	if (dolock)
+	if(dolock)
 		unlock(&Cbscreen.l);
 	return 0;
 }
@@ -263,10 +319,10 @@ cursoron(int dolock)
 void
 cursoroff(int dolock)
 {
-	if (dolock)
+	if(dolock)
 		lock(&Cbscreen.l);
 	swcursorhide();
-	if (dolock)
+	if(dolock)
 		unlock(&Cbscreen.l);
 }
 
@@ -289,23 +345,23 @@ swload(Cursor *curs)
 	 */
 	ip = byteaddr(swimg, ZP);
 	mp = byteaddr(swmask, ZP);
-	for(i=0; i<32; i++){
+	for(i = 0; i < 32; i++){
 		set = curs->set[i];
 		clr = curs->clr[i];
-		for(j=0x80; j; j>>=1){
-			*ip++ = set&j ? 0x00 : 0xFF;
-			*mp++ = (clr|set)&j ? 0xFF : 0x00;
+		for(j = 0x80; j; j >>= 1){
+			*ip++ = set & j ? 0x00 : 0xFF;
+			*mp++ = (clr | set) & j ? 0xFF : 0x00;
 		}
 	}
 	swoffset = curs->offset;
 	swvers++;
-	memimagedraw(swimg1,  swimg1->r,  swimg,  ZP, memopaque, ZP, S);
+	memimagedraw(swimg1, swimg1->r, swimg, ZP, memopaque, ZP, S);
 	memimagedraw(swmask1, swmask1->r, swmask, ZP, memopaque, ZP, S);
 }
 
 /* called from devmouse */
 void
-setcursor(Cursor* curs)
+setcursor(Cursor *curs)
 {
 	print("%s\n", __func__);
 	cursoroff(1);
@@ -331,17 +387,17 @@ swcursorclock(void)
 	if(!swenabled)
 		return;
 	swmove(mousexy());
-	if(swvisible && eqpt(swpt, swvispt) && swvers==swvisvers)
+	if(swvisible && eqpt(swpt, swvispt) && swvers == swvisvers)
 		return;
 
 	x = splhi();
 	if(swenabled)
-	if(!swvisible || !eqpt(swpt, swvispt) || swvers!=swvisvers)
-	if(canqlock(&drawlock)){
-		swcursorhide();
-		swcursordraw();
-		qunlock(&drawlock);
-	}
+		if(!swvisible || !eqpt(swpt, swvispt) || swvers != swvisvers)
+			if(canqlock(&drawlock)){
+				swcursorhide();
+				swcursordraw();
+				qunlock(&drawlock);
+			}
 	splx(x);
 }
 
@@ -363,12 +419,12 @@ swcursorinit(void)
 		freememimage(swimg1);
 	}
 
-	swback  = allocmemimage(Rect(0,0,32,32), gscreen->chan);
-	swmask  = allocmemimage(Rect(0,0,16,16), GREY8);
-	swmask1 = allocmemimage(Rect(0,0,16,16), GREY1);
-	swimg   = allocmemimage(Rect(0,0,16,16), GREY8);
-	swimg1  = allocmemimage(Rect(0,0,16,16), GREY1);
-	if(swback==nil || swmask==nil || swmask1==nil || swimg==nil || swimg1 == nil){
+	swback = allocmemimage(Rect(0, 0, 32, 32), gscreen->chan);
+	swmask = allocmemimage(Rect(0, 0, 16, 16), GREY8);
+	swmask1 = allocmemimage(Rect(0, 0, 16, 16), GREY1);
+	swimg = allocmemimage(Rect(0, 0, 16, 16), GREY8);
+	swimg1 = allocmemimage(Rect(0, 0, 16, 16), GREY1);
+	if(swback == nil || swmask == nil || swmask1 == nil || swimg == nil || swimg1 == nil){
 		print("software cursor: allocmemimage fails\n");
 		return;
 	}
@@ -386,26 +442,26 @@ screeninit(void)
 	static int first = 1;
 	struct cb_framebuffer *fb;
 	print("%s: fb is %p\n", __func__, cbinfo.framebuffer);
-	if (!cbinfo.framebuffer)
+	if(!cbinfo.framebuffer)
 		return -1;
 
 	fb = KADDR((uintptr_t)cbinfo.framebuffer);
-	framebuf.pixel =  KADDR(fb->physical_address);
+	framebuf.pixel = KADDR(fb->physical_address);
 
 	/* should not happen but ...*/
-	if (!framebuf.pixel)
+	if(!framebuf.pixel)
 		return -1;
 
 	print("%s: pixels are %p\n", __func__, fb->physical_address);
 
-	if (first) {
+	if(first){
 		iprint("screeninit...");
 		lcdstop();
 	}
 
 	lcdinit();
 	lcdon(1);
-	if (first) {
+	if(first){
 		memimageinit();
 		memdefont = getmemdefont();
 		screentest();
@@ -421,20 +477,20 @@ screeninit(void)
 	gscreen->width = Wid * (Depth / BI2BY) / BY2WD;
 	flushmemscreen(gscreen->r);
 
-	blanktime = 3;				/* minutes */
+	blanktime = 3; /* minutes */
 
-	if (first) {
+	if(first){
 		iprint("on: blue for 3 seconds...");
-		delay(3*1000);
+		delay(3 * 1000);
 		iprint("\n");
 
-		screenwin();		/* draw border & top orange bar */
+		screenwin(); /* draw border & top orange bar */
 		// ? screenputs = corebootcreenputs;
 		iprint("screen: frame buffer at %#p for %dx%d\n",
-			framebuf.pixel, Cbscreen.wid, Cbscreen.ht);
+		       framebuf.pixel, Cbscreen.wid, Cbscreen.ht);
 
 		swenabled = 1;
-		swcursorinit();		/* needs gscreen set */
+		swcursorinit(); /* needs gscreen set */
 		setcursor(&arrow);
 
 		first = 0;
@@ -449,18 +505,18 @@ flushmemscreen(Rectangle r)
 	print("%s\n", __func__);
 	uintptr_t start, end;
 
-	if (r.min.x < 0)
+	if(r.min.x < 0)
 		r.min.x = 0;
-	if (r.max.x > Wid)
+	if(r.max.x > Wid)
 		r.max.x = Wid;
-	if (r.min.y < 0)
+	if(r.min.y < 0)
 		r.min.y = 0;
-	if (r.max.y > Ht)
+	if(r.max.y > Ht)
 		r.max.y = Ht;
-	if (rectclip(&r, gscreen->r) == 0)
+	if(rectclip(&r, gscreen->r) == 0)
 		return;
-	start = (uintptr_t)&framebuf.pixel[r.min.y*Wid + r.min.x];
-	end   = (uintptr_t)&framebuf.pixel[(r.max.y - 1)*Wid + r.max.x -1];
+	start = (uintptr_t)&framebuf.pixel[r.min.y * Wid + r.min.x];
+	end = (uintptr_t)&framebuf.pixel[(r.max.y - 1) * Wid + r.max.x - 1];
 	print("Flushmemscreen %p %p\n", start, end);
 	// for now. Don't think we need it. cachedwbse((uint32_t *)start, end - start);
 	coherence();
@@ -469,11 +525,11 @@ flushmemscreen(Rectangle r)
 /*
  * export screen to devdraw
  */
-uint8_t*
+uint8_t *
 attachscreen(Rectangle *r, uint32_t *chan, int *d, int *width, int *softscreen)
 {
 	print("%s\n", __func__);
-	if (screeninit() < 0)
+	if(screeninit() < 0)
 		return nil;
 	*r = gscreen->r;
 	*d = gscreen->depth;
@@ -502,7 +558,7 @@ void
 blankscreen(int blank)
 {
 	print("%s\n", __func__);
-	if (blank)
+	if(blank)
 		lcdon(0);
 	else {
 		lcdinit();
@@ -520,16 +576,16 @@ corebootscreenputs(char *s, int n)
 	Rune r;
 	char buf[4];
 
-	if (!islo()) {
+	if (!islo()){
 		/* don't deadlock trying to print in interrupt */
 		if (!canlock(&screenlock))
 			return;			/* discard s */
 	} else
 		lock(&screenlock);
 
-	while (n > 0) {
+	while (n > 0){
 		i = chartorune(&r, s);
-		if (i == 0) {
+		if (i == 0){
 			s++;
 			--n;
 			continue;
@@ -549,7 +605,7 @@ screenwin(void)
 	print("%s\n", __func__);
 	char *greet;
 	Memimage *orange;
-	Point p; //, q;
+	Point p;	//, q;
 	Rectangle r;
 
 	memsetchan(gscreen, RGB16);
@@ -560,8 +616,8 @@ screenwin(void)
 	orange = allocmemimage(Rect(0, 0, 1, 1), RGB16);
 	orange->flags |= Frepl;
 	orange->clipr = gscreen->r;
-	orange->data->bdata[0] = 0x40;		/* magic: colour? */
-	orange->data->bdata[1] = 0xfd;		/* magic: colour? */
+	orange->data->bdata[0] = 0x40; /* magic: colour? */
+	orange->data->bdata[1] = 0xfd; /* magic: colour? */
 
 	w = memdefont->info[' '].width;
 	h = memdefont->height;
@@ -572,8 +628,7 @@ screenwin(void)
 	window = insetrect(r, 4);
 	memimagedraw(gscreen, window, memwhite, ZP, memopaque, ZP, S);
 
-	memimagedraw(gscreen, Rect(window.min.x, window.min.y,
-		window.max.x, window.min.y + h + 5 + 6), orange, ZP, nil, ZP, S);
+	memimagedraw(gscreen, Rect(window.min.x, window.min.y, window.max.x, window.min.y + h + 5 + 6), orange, ZP, nil, ZP, S);
 	freememimage(orange);
 	window = insetrect(window, 5);
 
@@ -588,7 +643,7 @@ screenwin(void)
 }
 
 static int
-scroll(VGAscr* _1, Rectangle _2, Rectangle _3)
+scroll(VGAscr *_1, Rectangle _2, Rectangle _3)
 {
 	print("%s\n", __func__);
 	int o;
@@ -626,7 +681,7 @@ screenputc(char *buf)
 	if (xp < xbuf || xp >= &xbuf[sizeof(xbuf)])
 		xp = xbuf;
 
-	switch (buf[0]) {
+	switch (buf[0]){
 	case '\n':
 		if (curpos.y + h >= window.max.y)
 			scroll();

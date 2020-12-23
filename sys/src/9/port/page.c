@@ -7,37 +7,34 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-enum
-{
+enum {
 	Nstartpgs = 32,
 	Nminfree = 3,
 	Nfreepgs = 512,
 };
 
 typedef struct Pgnd Pgnd;
-enum
-{
+enum {
 	Punused = 0,
 	Pused,
 	Pfreed,
 };
 
-struct Pgnd
-{
+struct Pgnd {
 	uintmem pa;
 	int sts;
 };
 
-#define pghash(daddr)	pga.hash[(daddr>>PGSHFT)&(PGHSIZE-1)]
-Pgalloc pga;		/* new allocator */
+#define pghash(daddr) pga.hash[(daddr >> PGSHFT) & (PGHSIZE - 1)]
+Pgalloc pga; /* new allocator */
 
-char*
+char *
 seprintpagestats(char *s, char *e)
 {
 	int i;
@@ -46,8 +43,8 @@ seprintpagestats(char *s, char *e)
 	for(i = 0; i < sys->npgsz; i++)
 		if(sys->pgsz[i] != 0)
 			s = seprint(s, e, "%lu/%d %dK user pages avail\n",
-				pga.pgsza[i].freecount,
-				pga.pgsza[i].npages.ref, sys->pgsz[i]/KiB);
+				    pga.pgsza[i].freecount,
+				    pga.pgsza[i].npages.ref, sys->pgsz[i] / KiB);
 	unlock(&pga.l);
 	return s;
 }
@@ -77,10 +74,10 @@ pageinit(void)
 			pg = pgalloc(sys->pgsz[si], color);
 			if(pg == nil){
 				DBG("pageinit: pgalloc failed. breaking.\n");
-				break;	/* don't consume more memory */
+				break; /* don't consume more memory */
 			}
 			DBG("pageinit: alloced pa %#P sz %#x color %d\n",
-				pg->pa, sys->pgsz[si], pg->color);
+			    pg->pa, sys->pgsz[si], pg->color);
 			lock(&pga.l);
 			pg->ref = 0;
 			pagechainhead(pg);
@@ -103,7 +100,7 @@ getpgszi(usize size)
 	return -1;
 }
 
-Page*
+Page *
 pgalloc(usize size, int color)
 {
 	Page *pg;
@@ -120,14 +117,14 @@ pgalloc(usize size, int color)
 		free(pg);
 		return nil;
 	}
-	pg->pgszi = si;	/* size index */
+	pg->pgszi = si; /* size index */
 	incref(&pga.pgsza[si].npages);
 	pg->color = color;
 	return pg;
 }
 
 void
-pgfree(Page* pg)
+pgfree(Page *pg)
 {
 	decref(&pga.pgsza[pg->pgszi].npages);
 	physfree(pg->pa, sys->pgsz[pg->pgszi]);
@@ -162,11 +159,10 @@ pagechaintail(Page *p)
 	if(canlock(&pga.l))
 		panic("pagechaintail");
 	pa = &pga.pgsza[p->pgszi];
-	if(pa->tail) {
+	if(pa->tail){
 		p->prev = pa->tail;
 		pa->tail->next = p;
-	}
-	else {
+	} else {
 		pa->head = p;
 		p->prev = 0;
 	}
@@ -183,11 +179,10 @@ pagechainhead(Page *p)
 	if(canlock(&pga.l))
 		panic("pagechainhead");
 	pa = &pga.pgsza[p->pgszi];
-	if(pa->head) {
+	if(pa->head){
 		p->next = pa->head;
 		pa->head->prev = p;
-	}
-	else {
+	} else {
 		pa->tail = p;
 		p->next = 0;
 	}
@@ -196,7 +191,7 @@ pagechainhead(Page *p)
 	pa->freecount++;
 }
 
-static Page*
+static Page *
 findpg(Page *pl, int color)
 {
 	Page *p;
@@ -210,7 +205,7 @@ int trip;
 /*
  * can be called with up == nil during boot.
  */
-Page*
+Page *
 newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 {
 	Page *p;
@@ -255,7 +250,7 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 		unlock(&pga.l);
 
 		dontalloc = 0;
-		if(s && *s) {
+		if(s && *s){
 			qunlock(&((*s)->lk));
 			*s = 0;
 			dontalloc = 1;
@@ -297,13 +292,13 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 	unlock(&p->l);
 	unlock(&pga.l);
 
-	if(clear) {
+	if(clear){
 		k = kmap(p);
-		memset((void*)VA(k), 0, sys->pgsz[p->pgszi]);
+		memset((void *)VA(k), 0, sys->pgsz[p->pgszi]);
 		kunmap(k);
 	}
 	DBG("newpage: va %#p pa %#llx pgsz %#x color %d\n",
-		p->va, p->pa, sys->pgsz[p->pgszi], p->color);
+	    p->va, p->pa, sys->pgsz[p->pgszi], p->color);
 
 	return p;
 }
@@ -320,7 +315,7 @@ putpage(Page *p)
 	if(p->ref == 0)
 		panic("putpage");
 
-	if(--p->ref > 0) {
+	if(--p->ref > 0){
 		unlock(&p->l);
 		unlock(&pga.l);
 		return;
@@ -328,7 +323,7 @@ putpage(Page *p)
 	rlse = 0;
 	if(p->image != nil)
 		pagechaintail(p);
-	else{
+	else {
 		/*
 		 * Free pages if we have plenty in the free list.
 		 */
@@ -352,7 +347,7 @@ putpage(Page *p)
  * Only used by cache.
  * The interface must specify page size.
  */
-Page*
+Page *
 auxpage(usize size)
 {
 	Page *p;
@@ -382,7 +377,7 @@ auxpage(usize size)
 static int dupretries = 15000;
 
 int
-duppage(Page *p)				/* Always call with p locked */
+duppage(Page *p) /* Always call with p locked */
 {
 	Proc *up = externup();
 	Pgsza *pa;
@@ -401,7 +396,6 @@ retry:
 		uncachepage(p);
 		return 1;
 	}
-
 
 	/* don't dup pages with no image */
 	if(p->ref == 0 || p->image == nil || p->image->notext)
@@ -482,13 +476,13 @@ copypage(Page *f, Page *t)
 		panic("copypage");
 	ks = kmap(f);
 	kd = kmap(t);
-	memmove((void*)VA(kd), (void*)VA(ks), sys->pgsz[t->pgszi]);
+	memmove((void *)VA(kd), (void *)VA(ks), sys->pgsz[t->pgszi]);
 	kunmap(ks);
 	kunmap(kd);
 }
 
 void
-uncachepage(Page *p)			/* Always called with a locked page */
+uncachepage(Page *p) /* Always called with a locked page */
 {
 	Page **l, *f;
 
@@ -607,7 +601,7 @@ pagereclaim(Image *i)
 	 */
 	for(p = pga.pgsza[0].tail; p && p->image == i; p = p->prev){
 		if(p->ref == 0 && canlock(&p->l)){
-			if(p->ref == 0) {
+			if(p->ref == 0){
 				uncachepage(p);
 			}
 			unlock(&p->l);
@@ -619,20 +613,20 @@ pagereclaim(Image *i)
 	return ticks;
 }
 
-Pte*
+Pte *
 ptecpy(Segment *s, Pte *old)
 {
 	Pte *new;
 	Page **src, **dst;
 
 	new = ptealloc(s);
-	dst = &new->pages[old->first-old->pages];
+	dst = &new->pages[old->first - old->pages];
 	new->first = dst;
 	for(src = old->first; src <= old->last; src++, dst++)
 		if(*src){
 			if(onswap(*src))
 				panic("ptecpy: no swap");
-			else{
+			else {
 				lock(&(*src)->l);
 				(*src)->ref++;
 				unlock(&(*src)->l);
@@ -644,12 +638,12 @@ ptecpy(Segment *s, Pte *old)
 	return new;
 }
 
-Pte*
+Pte *
 ptealloc(Segment *s)
 {
 	Pte *new;
 
-	new = smalloc(sizeof(Pte) + sizeof(Page*)*s->ptepertab);
+	new = smalloc(sizeof(Pte) + sizeof(Page *) * s->ptepertab);
 	new->first = &new->pages[s->ptepertab];
 	new->last = new->pages;
 	return new;
@@ -659,15 +653,15 @@ void
 freepte(Segment *s, Pte *p)
 {
 	int ref;
-	void (*fn)(Page*);
+	void (*fn)(Page *);
 	Page *pt, **pg, **ptop;
 
-	switch(s->type&SG_TYPE) {
+	switch(s->type & SG_TYPE){
 	case SG_PHYSICAL:
 		fn = s->pseg->pgfree;
 		ptop = &p->pages[s->ptepertab];
-		if(fn) {
-			for(pg = p->pages; pg < ptop; pg++) {
+		if(fn){
+			for(pg = p->pages; pg < ptop; pg++){
 				if(*pg == 0)
 					continue;
 				(*fn)(*pg);
@@ -675,7 +669,7 @@ freepte(Segment *s, Pte *p)
 			}
 			break;
 		}
-		for(pg = p->pages; pg < ptop; pg++) {
+		for(pg = p->pages; pg < ptop; pg++){
 			pt = *pg;
 			if(pt == 0)
 				continue;
@@ -688,7 +682,7 @@ freepte(Segment *s, Pte *p)
 		break;
 	default:
 		for(pg = p->first; pg <= p->last; pg++)
-			if(*pg) {
+			if(*pg){
 				putpage(*pg);
 				*pg = 0;
 			}

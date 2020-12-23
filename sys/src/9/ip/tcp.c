@@ -7,74 +7,73 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"ip.h"
+#include "ip.h"
 
-enum
-{
-	QMAX		= 64*1024-1,
-	IP_TCPPROTO	= 6,
+enum {
+	QMAX = 64 * 1024 - 1,
+	IP_TCPPROTO = 6,
 
-	TCP4_IPLEN	= 8,
-	TCP4_PHDRSIZE	= 12,
-	TCP4_HDRSIZE	= 20,
-	TCP4_TCBPHDRSZ	= 40,
-	TCP4_PKT	= TCP4_IPLEN+TCP4_PHDRSIZE,
+	TCP4_IPLEN = 8,
+	TCP4_PHDRSIZE = 12,
+	TCP4_HDRSIZE = 20,
+	TCP4_TCBPHDRSZ = 40,
+	TCP4_PKT = TCP4_IPLEN + TCP4_PHDRSIZE,
 
-	TCP6_IPLEN	= 0,
-	TCP6_PHDRSIZE	= 40,
-	TCP6_HDRSIZE	= 20,
-	TCP6_TCBPHDRSZ	= 60,
-	TCP6_PKT	= TCP6_IPLEN+TCP6_PHDRSIZE,
+	TCP6_IPLEN = 0,
+	TCP6_PHDRSIZE = 40,
+	TCP6_HDRSIZE = 20,
+	TCP6_TCBPHDRSZ = 60,
+	TCP6_PKT = TCP6_IPLEN + TCP6_PHDRSIZE,
 
-	TcptimerOFF	= 0,
-	TcptimerON	= 1,
-	TcptimerDONE	= 2,
-	MAX_TIME 	= (1<<20),	/* Forever */
-	TCP_ACK		= 50,		/* Timed ack sequence in ms */
-	MAXBACKMS	= 9*60*1000,	/* longest backoff time (ms) before hangup */
+	TcptimerOFF = 0,
+	TcptimerON = 1,
+	TcptimerDONE = 2,
+	MAX_TIME = (1 << 20),	   /* Forever */
+	TCP_ACK = 50,		   /* Timed ack sequence in ms */
+	MAXBACKMS = 9 * 60 * 1000, /* longest backoff time (ms) before hangup */
 
-	URG		= 0x20,		/* Data marked urgent */
-	ACK		= 0x10,		/* Acknowledge is valid */
-	PSH		= 0x08,		/* Whole data pipe is pushed */
-	RST		= 0x04,		/* Reset connection */
-	SYN		= 0x02,		/* Pkt. is synchronise */
-	FIN		= 0x01,		/* Start close down */
+	URG = 0x20, /* Data marked urgent */
+	ACK = 0x10, /* Acknowledge is valid */
+	PSH = 0x08, /* Whole data pipe is pushed */
+	RST = 0x04, /* Reset connection */
+	SYN = 0x02, /* Pkt. is synchronise */
+	FIN = 0x01, /* Start close down */
 
-	EOLOPT		= 0,
-	NOOPOPT		= 1,
-	MSSOPT		= 2,
-	MSS_LENGTH	= 4,		/* Maximum segment size */
-	WSOPT		= 3,
-	WS_LENGTH	= 3,		/* Bits to scale window size by */
-	MSL2		= 10,
-	MSPTICK		= 50,		/* Milliseconds per timer tick */
-	DEF_MSS		= 1460,		/* Default maximum segment */
-	DEF_MSS6	= 1280,		/* Default maximum segment (min) for v6 */
-	DEF_RTT		= 500,		/* Default round trip */
-	DEF_KAT		= 120000,	/* Default time (ms) between keep alives */
-	TCP_LISTEN	= 0,		/* Listen connection */
-	TCP_CONNECT	= 1,		/* Outgoing connection */
-	SYNACK_RXTIMER	= 250,		/* ms between SYNACK retransmits */
+	EOLOPT = 0,
+	NOOPOPT = 1,
+	MSSOPT = 2,
+	MSS_LENGTH = 4, /* Maximum segment size */
+	WSOPT = 3,
+	WS_LENGTH = 3, /* Bits to scale window size by */
+	MSL2 = 10,
+	MSPTICK = 50,	      /* Milliseconds per timer tick */
+	DEF_MSS = 1460,	      /* Default maximum segment */
+	DEF_MSS6 = 1280,      /* Default maximum segment (min) for v6 */
+	DEF_RTT = 500,	      /* Default round trip */
+	DEF_KAT = 120000,     /* Default time (ms) between keep alives */
+	TCP_LISTEN = 0,	      /* Listen connection */
+	TCP_CONNECT = 1,      /* Outgoing connection */
+	SYNACK_RXTIMER = 250, /* ms between SYNACK retransmits */
 
-	TCPREXMTTHRESH	= 3,		/* dupack threshhold for rxt */
+	TCPREXMTTHRESH = 3, /* dupack threshhold for rxt */
 
-	FORCE		= 1,
-	CLONE		= 2,
-	RETRAN		= 4,
-	ACTIVE		= 8,
-	SYNACK		= 16,
+	FORCE = 1,
+	CLONE = 2,
+	RETRAN = 4,
+	ACTIVE = 8,
+	SYNACK = 16,
 
-	LOGAGAIN	= 3,
-	LOGDGAIN	= 2,
+	LOGAGAIN = 3,
+	LOGDGAIN = 2,
 
-	Closed		= 0,		/* Connection states */
+	Closed = 0, /* Connection states */
 	Listen,
 	Syn_sent,
 	Syn_received,
@@ -86,38 +85,36 @@ enum
 	Last_ack,
 	Time_wait,
 
-	Maxlimbo	= 1000,		/* maximum procs waiting for response to SYN ACK */
-	NLHT		= 256,		/* hash table size, must be a power of 2 */
-	LHTMASK		= NLHT-1,
+	Maxlimbo = 1000, /* maximum procs waiting for response to SYN ACK */
+	NLHT = 256,	 /* hash table size, must be a power of 2 */
+	LHTMASK = NLHT - 1,
 
 	/*
 	 * window is 64kb * 2ⁿ
 	 * these factors determine the ultimate bandwidth-delay product.
 	 * 64kb * 2⁵ = 2mb, or 2× overkill for 100mbps * 70ms.
 	 */
-	Maxqscale	= 4,		/* maximum queuing scale */
-	Defadvscale	= 4,		/* default advertisement */
+	Maxqscale = 4,	 /* maximum queuing scale */
+	Defadvscale = 4, /* default advertisement */
 };
 
 /* Must correspond to the enumeration above */
 char *tcpstates[] =
-{
-	"Closed", 	"Listen", 	"Syn_sent", "Syn_received",
-	"Established", 	"Finwait1",	"Finwait2", "Close_wait",
-	"Closing", 	"Last_ack", 	"Time_wait"
-};
+	{
+		"Closed", "Listen", "Syn_sent", "Syn_received",
+		"Established", "Finwait1", "Finwait2", "Close_wait",
+		"Closing", "Last_ack", "Time_wait"};
 
 typedef struct Tcptimer Tcptimer;
-struct Tcptimer
-{
-	Tcptimer	*next;
-	Tcptimer	*prev;
-	Tcptimer	*readynext;
-	int	state;
-	int	start;
-	int	count;
-	void	(*func)(void*);
-	void	*arg;
+struct Tcptimer {
+	Tcptimer *next;
+	Tcptimer *prev;
+	Tcptimer *readynext;
+	int state;
+	int start;
+	int count;
+	void (*func)(void *);
+	void *arg;
 };
 
 /*
@@ -125,51 +122,49 @@ struct Tcptimer
  *  checksuming tcp
  */
 typedef struct Tcp4hdr Tcp4hdr;
-struct Tcp4hdr
-{
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	Unused;
-	uint8_t	proto;
-	uint8_t	tcplen[2];
-	uint8_t	tcpsrc[4];
-	uint8_t	tcpdst[4];
+struct Tcp4hdr {
+	uint8_t vihl;	   /* Version and header length */
+	uint8_t tos;	   /* Type of service */
+	uint8_t length[2]; /* packet length */
+	uint8_t id[2];	   /* Identification */
+	uint8_t frag[2];   /* Fragment information */
+	uint8_t Unused;
+	uint8_t proto;
+	uint8_t tcplen[2];
+	uint8_t tcpsrc[4];
+	uint8_t tcpdst[4];
 	/* same as v6 from here on */
-	uint8_t	tcpsport[2];
-	uint8_t	tcpdport[2];
-	uint8_t	tcpseq[4];
-	uint8_t	tcpack[4];
-	uint8_t	tcpflag[2];
-	uint8_t	tcpwin[2];
-	uint8_t	tcpcksum[2];
-	uint8_t	tcpurg[2];
+	uint8_t tcpsport[2];
+	uint8_t tcpdport[2];
+	uint8_t tcpseq[4];
+	uint8_t tcpack[4];
+	uint8_t tcpflag[2];
+	uint8_t tcpwin[2];
+	uint8_t tcpcksum[2];
+	uint8_t tcpurg[2];
 	/* Options segment */
-	uint8_t	tcpopt[1];
+	uint8_t tcpopt[1];
 };
 
 typedef struct Tcp6hdr Tcp6hdr;
-struct Tcp6hdr
-{
-	uint8_t	vcf[4];
-	uint8_t	ploadlen[2];
-	uint8_t	proto;
-	uint8_t	ttl;
-	uint8_t	tcpsrc[IPaddrlen];
-	uint8_t	tcpdst[IPaddrlen];
+struct Tcp6hdr {
+	uint8_t vcf[4];
+	uint8_t ploadlen[2];
+	uint8_t proto;
+	uint8_t ttl;
+	uint8_t tcpsrc[IPaddrlen];
+	uint8_t tcpdst[IPaddrlen];
 	/* same as v4 from here on */
-	uint8_t	tcpsport[2];
-	uint8_t	tcpdport[2];
-	uint8_t	tcpseq[4];
-	uint8_t	tcpack[4];
-	uint8_t	tcpflag[2];
-	uint8_t	tcpwin[2];
-	uint8_t	tcpcksum[2];
-	uint8_t	tcpurg[2];
+	uint8_t tcpsport[2];
+	uint8_t tcpdport[2];
+	uint8_t tcpseq[4];
+	uint8_t tcpack[4];
+	uint8_t tcpflag[2];
+	uint8_t tcpwin[2];
+	uint8_t tcpcksum[2];
+	uint8_t tcpurg[2];
 	/* Options segment */
-	uint8_t	tcpopt[1];
+	uint8_t tcpopt[1];
 };
 
 /*
@@ -179,19 +174,18 @@ struct Tcp6hdr
  *  a packet in htontcp{4,6}().
  */
 typedef struct Tcp Tcp;
-struct	Tcp
-{
-	uint16_t	source;
-	uint16_t	dest;
-	uint32_t	seq;
-	uint32_t	ack;
-	uint8_t	flags;
-	uint8_t	update;
-	uint16_t	ws;	/* window scale option */
-	uint32_t	wnd;	/* prescaled window*/
-	uint16_t	urg;
-	uint16_t	mss;	/* max segment size option (if not zero) */
-	uint16_t	len;	/* size of data */
+struct Tcp {
+	uint16_t source;
+	uint16_t dest;
+	uint32_t seq;
+	uint32_t ack;
+	uint8_t flags;
+	uint8_t update;
+	uint16_t ws;  /* window scale option */
+	uint32_t wnd; /* prescaled window*/
+	uint16_t urg;
+	uint16_t mss; /* max segment size option (if not zero) */
+	uint16_t len; /* size of data */
 };
 
 /*
@@ -199,88 +193,86 @@ struct	Tcp
  *  waiting to be coalesced
  */
 typedef struct Reseq Reseq;
-struct Reseq
-{
-	Reseq	*next;
-	Tcp	seg;
-	Block	*bp;
-	uint16_t	length;
+struct Reseq {
+	Reseq *next;
+	Tcp seg;
+	Block *bp;
+	uint16_t length;
 };
 
 /*
  *  the qlock in the Conv locks this structure
  */
 typedef struct Tcpctl Tcpctl;
-struct Tcpctl
-{
-	uint8_t	state;			/* Connection state */
-	uint8_t	type;			/* Listening or active connection */
-	uint8_t	code;			/* Icmp code */
+struct Tcpctl {
+	uint8_t state; /* Connection state */
+	uint8_t type;  /* Listening or active connection */
+	uint8_t code;  /* Icmp code */
 	struct {
-		uint32_t	una;		/* Unacked data pointer */
-		uint32_t	nxt;		/* Next sequence expected */
-		uint32_t	ptr;		/* Data pointer */
-		uint32_t	wnd;		/* Tcp send window */
-		uint32_t	urg;		/* Urgent data pointer */
-		uint32_t	wl2;
-		uint	scale;		/* how much to right shift window */
-					/* in xmitted packets */
+		uint32_t una; /* Unacked data pointer */
+		uint32_t nxt; /* Next sequence expected */
+		uint32_t ptr; /* Data pointer */
+		uint32_t wnd; /* Tcp send window */
+		uint32_t urg; /* Urgent data pointer */
+		uint32_t wl2;
+		uint scale; /* how much to right shift window */
+			    /* in xmitted packets */
 		/* to implement tahoe and reno TCP */
-		uint32_t	dupacks;	/* number of duplicate acks rcvd */
-		uint32_t	partialack;
-		int	recovery;	/* loss recovery flag */
-		int	retransmit;	/* retransmit 1 packet @ una flag */
-		int	rto;
-		uint32_t	rxt;		/* right window marker for recovery */
-					/* "recover" rfc3782 */
+		uint32_t dupacks; /* number of duplicate acks rcvd */
+		uint32_t partialack;
+		int recovery;	/* loss recovery flag */
+		int retransmit; /* retransmit 1 packet @ una flag */
+		int rto;
+		uint32_t rxt; /* right window marker for recovery */
+		/* "recover" rfc3782 */
 	} snd;
 	struct {
-		uint32_t	nxt;		/* Receive pointer to next uint8_t slot */
-		uint32_t	wnd;		/* Receive window incoming */
-		uint32_t	wsnt;		/* Last wptr sent.  important to */
-					/* track for large bdp */
-		uint32_t	wptr;
-		uint32_t	urg;		/* Urgent pointer */
-		uint32_t	ackptr;		/* last acked sequence */
-		int	blocked;
-		uint	scale;		/* how much to left shift window in */
-					/* rcv'd packets */
+		uint32_t nxt;  /* Receive pointer to next uint8_t slot */
+		uint32_t wnd;  /* Receive window incoming */
+		uint32_t wsnt; /* Last wptr sent.  important to */
+		/* track for large bdp */
+		uint32_t wptr;
+		uint32_t urg;	 /* Urgent pointer */
+		uint32_t ackptr; /* last acked sequence */
+		int blocked;
+		uint scale; /* how much to left shift window in */
+			    /* rcv'd packets */
 	} rcv;
-	uint32_t	iss;			/* Initial sequence number */
-	uint32_t	cwind;			/* Congestion window */
-	uint32_t	abcbytes;		/* appropriate byte counting rfc 3465 */
-	uint	scale;			/* desired snd.scale */
-	uint32_t	ssthresh;		/* Slow start threshold */
-	int	resent;			/* Bytes just resent */
-	int	irs;			/* Initial received squence */
-	uint16_t	mss;			/* Maximum segment size */
-	int	rerecv;			/* Overlap of data rerecevived */
-	uint32_t	window;			/* Our receive window (queue) */
-	uint	qscale;			/* Log2 of our receive window (queue) */
-	uint8_t	backoff;		/* Exponential backoff counter */
-	int	backedoff;		/* ms we've backed off for rexmits */
-	uint8_t	flags;			/* State flags */
-	Reseq	*reseq;			/* Resequencing queue */
-	int	nreseq;
-	int	reseqlen;
-	Tcptimer	timer;			/* Activity timer */
-	Tcptimer	acktimer;		/* Acknowledge timer */
-	Tcptimer	rtt_timer;		/* Round trip timer */
-	Tcptimer	katimer;		/* keep alive timer */
-	uint32_t	rttseq;			/* Round trip sequence */
-	int	srtt;			/* Smoothed round trip */
-	int	mdev;			/* Mean deviation of round trip */
-	int	kacounter;		/* count down for keep alive */
-	uint	sndsyntime;		/* time syn sent */
-	uint32_t	time;			/* time Finwait2 or Syn_received was sent */
-	uint32_t	timeuna;		/* snd.una when time was set */
-	int	nochecksum;		/* non-zero means don't send checksums */
-	int	flgcnt;			/* number of flags in the sequence (FIN,SEQ) */
+	uint32_t iss;	   /* Initial sequence number */
+	uint32_t cwind;	   /* Congestion window */
+	uint32_t abcbytes; /* appropriate byte counting rfc 3465 */
+	uint scale;	   /* desired snd.scale */
+	uint32_t ssthresh; /* Slow start threshold */
+	int resent;	   /* Bytes just resent */
+	int irs;	   /* Initial received squence */
+	uint16_t mss;	   /* Maximum segment size */
+	int rerecv;	   /* Overlap of data rerecevived */
+	uint32_t window;   /* Our receive window (queue) */
+	uint qscale;	   /* Log2 of our receive window (queue) */
+	uint8_t backoff;   /* Exponential backoff counter */
+	int backedoff;	   /* ms we've backed off for rexmits */
+	uint8_t flags;	   /* State flags */
+	Reseq *reseq;	   /* Resequencing queue */
+	int nreseq;
+	int reseqlen;
+	Tcptimer timer;	    /* Activity timer */
+	Tcptimer acktimer;  /* Acknowledge timer */
+	Tcptimer rtt_timer; /* Round trip timer */
+	Tcptimer katimer;   /* keep alive timer */
+	uint32_t rttseq;    /* Round trip sequence */
+	int srtt;	    /* Smoothed round trip */
+	int mdev;	    /* Mean deviation of round trip */
+	int kacounter;	    /* count down for keep alive */
+	uint sndsyntime;    /* time syn sent */
+	uint32_t time;	    /* time Finwait2 or Syn_received was sent */
+	uint32_t timeuna;   /* snd.una when time was set */
+	int nochecksum;	    /* non-zero means don't send checksums */
+	int flgcnt;	    /* number of flags in the sequence (FIN,SEQ) */
 
 	union {
-		Tcp4hdr	tcp4hdr;
-		Tcp6hdr	tcp6hdr;
-	} protohdr;		/* prototype header */
+		Tcp4hdr tcp4hdr;
+		Tcp6hdr tcp6hdr;
+	} protohdr; /* prototype header */
 };
 
 /*
@@ -297,25 +289,24 @@ struct Tcpctl
  *  there is no hashing of this list.
  */
 typedef struct Limbo Limbo;
-struct Limbo
-{
-	Limbo	*next;
+struct Limbo {
+	Limbo *next;
 
-	uint8_t	laddr[IPaddrlen];
-	uint8_t	raddr[IPaddrlen];
-	uint16_t	lport;
-	uint16_t	rport;
-	uint32_t	irs;		/* initial received sequence */
-	uint32_t	iss;		/* initial sent sequence */
-	uint16_t	mss;		/* mss from the other end */
-	uint16_t	rcvscale;	/* how much to scale rcvd windows */
-	uint16_t	sndscale;	/* how much to scale sent windows */
-	uint32_t	lastsend;	/* last time we sent a synack */
-	uint8_t	version;	/* v4 or v6 */
-	uint8_t	rexmits;	/* number of retransmissions */
+	uint8_t laddr[IPaddrlen];
+	uint8_t raddr[IPaddrlen];
+	uint16_t lport;
+	uint16_t rport;
+	uint32_t irs;	   /* initial received sequence */
+	uint32_t iss;	   /* initial sent sequence */
+	uint16_t mss;	   /* mss from the other end */
+	uint16_t rcvscale; /* how much to scale rcvd windows */
+	uint16_t sndscale; /* how much to scale sent windows */
+	uint32_t lastsend; /* last time we sent a synack */
+	uint8_t version;   /* v4 or v6 */
+	uint8_t rexmits;   /* number of retransmissions */
 };
 
-int	tcp_irtt = DEF_RTT;	/* Initial guess at round trip time */
+int tcp_irtt = DEF_RTT; /* Initial guess at round trip time */
 
 enum {
 	/* MIB stats */
@@ -355,58 +346,57 @@ enum {
 };
 
 static char *statnames[Nstats] =
-{
-[MaxConn] = "MaxConn",
-[Mss] = "MaxSegment",
-[ActiveOpens] = "ActiveOpens",
-[PassiveOpens] = "PassiveOpens",
-[EstabResets] = "EstabResets",
-[CurrEstab] = "CurrEstab",
-[InSegs] = "InSegs",
-[OutSegs] = "OutSegs",
-[RetransSegs] = "RetransSegs",
-[RetransSegsSent] = "RetransSegsSent",
-[RetransTimeouts] = "RetransTimeouts",
-[InErrs] = "InErrs",
-[OutRsts] = "OutRsts",
-[CsumErrs] = "CsumErrs",
-[HlenErrs] = "HlenErrs",
-[LenErrs] = "LenErrs",
-[OutOfOrder] = "OutOfOrder",
-[Resequenced] = "Resequenced",
-[ReseqBytelim] = "ReseqBytelim",
-[ReseqPktlim] = "ReseqPktlim",
-[Delayack] = "Delayack",
-[Wopenack] = "Wopenack",
+	{
+		[MaxConn] = "MaxConn",
+		[Mss] = "MaxSegment",
+		[ActiveOpens] = "ActiveOpens",
+		[PassiveOpens] = "PassiveOpens",
+		[EstabResets] = "EstabResets",
+		[CurrEstab] = "CurrEstab",
+		[InSegs] = "InSegs",
+		[OutSegs] = "OutSegs",
+		[RetransSegs] = "RetransSegs",
+		[RetransSegsSent] = "RetransSegsSent",
+		[RetransTimeouts] = "RetransTimeouts",
+		[InErrs] = "InErrs",
+		[OutRsts] = "OutRsts",
+		[CsumErrs] = "CsumErrs",
+		[HlenErrs] = "HlenErrs",
+		[LenErrs] = "LenErrs",
+		[OutOfOrder] = "OutOfOrder",
+		[Resequenced] = "Resequenced",
+		[ReseqBytelim] = "ReseqBytelim",
+		[ReseqPktlim] = "ReseqPktlim",
+		[Delayack] = "Delayack",
+		[Wopenack] = "Wopenack",
 
-[Recovery] = "Recovery",
-[RecoveryDone] = "RecoveryDone",
-[RecoveryRTO] = "RecoveryRTO",
+		[Recovery] = "Recovery",
+		[RecoveryDone] = "RecoveryDone",
+		[RecoveryRTO] = "RecoveryRTO",
 
-[RecoveryNoSeq] = "RecoveryNoSeq",
-[RecoveryCwind] = "RecoveryCwind",
-[RecoveryPA] = "RecoveryPA",
+		[RecoveryNoSeq] = "RecoveryNoSeq",
+		[RecoveryCwind] = "RecoveryCwind",
+		[RecoveryPA] = "RecoveryPA",
 };
 
 typedef struct Tcppriv Tcppriv;
-struct Tcppriv
-{
+struct Tcppriv {
 	/* List of active timers */
-	QLock 	tl;
+	QLock tl;
 	Tcptimer *timers;
 
 	/* hash table for matching conversations */
-	Ipht	ht;
+	Ipht ht;
 
 	/* calls in limbo waiting for an ACK to our SYN ACK */
-	int	nlimbo;
-	Limbo	*lht[NLHT];
+	int nlimbo;
+	Limbo *lht[NLHT];
 
 	/* for keeping track of tcpackproc */
-	QLock	apl;
-	int	ackprocstarted;
+	QLock apl;
+	int ackprocstarted;
 
-	uint64_t	stats[Nstats];
+	uint64_t stats[Nstats];
 };
 
 /*
@@ -420,27 +410,27 @@ struct Tcppriv
  */
 int tcpporthogdefense = 0;
 
-static	int	addreseq(Fs*, Tcpctl*, Tcppriv*, Tcp*, Block*, uint16_t);
-static	int	dumpreseq(Tcpctl*);
-static	void	getreseq(Tcpctl*, Tcp*, Block**, uint16_t*);
-static	void	limbo(Conv*, uint8_t*, uint8_t*, Tcp*, int);
-static	void	limborexmit(Proto*);
-static	void	localclose(Conv*, char*);
-static	void	procsyn(Conv*, Tcp*);
-static	void	tcpacktimer(void*);
-static	void	tcpiput(Proto*, Ipifc*, Block*);
-static	void	tcpkeepalive(void*);
-static	void	tcpoutput(Conv*);
-static	void	tcprcvwin(Conv*);
-static	void	tcprxmit(Conv*);
-static	void	tcpsetkacounter(Tcpctl*);
-static	void	tcpsetscale(Conv*, Tcpctl*, uint16_t, uint16_t);
-static	void	tcpsettimer(Tcpctl*);
-static	void	tcpsndsyn(Conv*, Tcpctl*);
-static	void	tcpstart(Conv*, int);
-static	void	tcpsynackrtt(Conv*);
-static	void	tcptimeout(void*);
-static	int	tcptrim(Tcpctl*, Tcp*, Block**, uint16_t*);
+static int addreseq(Fs *, Tcpctl *, Tcppriv *, Tcp *, Block *, uint16_t);
+static int dumpreseq(Tcpctl *);
+static void getreseq(Tcpctl *, Tcp *, Block **, uint16_t *);
+static void limbo(Conv *, uint8_t *, uint8_t *, Tcp *, int);
+static void limborexmit(Proto *);
+static void localclose(Conv *, char *);
+static void procsyn(Conv *, Tcp *);
+static void tcpacktimer(void *);
+static void tcpiput(Proto *, Ipifc *, Block *);
+static void tcpkeepalive(void *);
+static void tcpoutput(Conv *);
+static void tcprcvwin(Conv *);
+static void tcprxmit(Conv *);
+static void tcpsetkacounter(Tcpctl *);
+static void tcpsetscale(Conv *, Tcpctl *, uint16_t, uint16_t);
+static void tcpsettimer(Tcpctl *);
+static void tcpsndsyn(Conv *, Tcpctl *);
+static void tcpstart(Conv *, int);
+static void tcpsynackrtt(Conv *);
+static void tcptimeout(void *);
+static int tcptrim(Tcpctl *, Tcp *, Block **, uint16_t *);
 
 static void
 tcpsetstate(Conv *s, uint8_t newstate)
@@ -451,7 +441,7 @@ tcpsetstate(Conv *s, uint8_t newstate)
 
 	tpriv = s->p->priv;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	oldstate = tcb->state;
 	if(oldstate == newstate)
@@ -462,14 +452,14 @@ tcpsetstate(Conv *s, uint8_t newstate)
 	if(newstate == Established)
 		tpriv->stats[CurrEstab]++;
 
-	switch(newstate) {
+	switch(newstate){
 	case Closed:
 		qclose(s->rq);
 		qclose(s->wq);
 		qclose(s->eq);
 		break;
 
-	case Close_wait:		/* Remote closes */
+	case Close_wait: /* Remote closes */
 		qhangup(s->rq, nil);
 		break;
 	}
@@ -480,13 +470,13 @@ tcpsetstate(Conv *s, uint8_t newstate)
 		Fsconnected(s, nil);
 }
 
-static char*
+static char *
 tcpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
 	Tcpctl *tcb;
 
-	tcb = (Tcpctl*)(c->ptcl);
+	tcb = (Tcpctl *)(c->ptcl);
 	if(tcb->state != Closed)
 		return Econinuse;
 
@@ -503,21 +493,21 @@ tcpstate(Conv *c, char *state, int n)
 {
 	Tcpctl *s;
 
-	s = (Tcpctl*)(c->ptcl);
+	s = (Tcpctl *)(c->ptcl);
 
 	return snprint(state, n,
-		"%s qin %d qout %d rq %d.%d srtt %d mdev %d sst %lu cwin %lu "
-		"swin %lu>>%d rwin %lu>>%d qscale %d timer.start %d "
-		"timer.count %d rerecv %d katimer.start %d katimer.count %d\n",
-		tcpstates[s->state],
-		c->rq ? qlen(c->rq) : 0,
-		c->wq ? qlen(c->wq) : 0,
-		s->nreseq, s->reseqlen,
-		s->srtt, s->mdev, s->ssthresh,
-		s->cwind, s->snd.wnd, s->rcv.scale, s->rcv.wnd, s->snd.scale,
-		s->qscale,
-		s->timer.start, s->timer.count, s->rerecv,
-		s->katimer.start, s->katimer.count);
+		       "%s qin %d qout %d rq %d.%d srtt %d mdev %d sst %lu cwin %lu "
+		       "swin %lu>>%d rwin %lu>>%d qscale %d timer.start %d "
+		       "timer.count %d rerecv %d katimer.start %d katimer.count %d\n",
+		       tcpstates[s->state],
+		       c->rq ? qlen(c->rq) : 0,
+		       c->wq ? qlen(c->wq) : 0,
+		       s->nreseq, s->reseqlen,
+		       s->srtt, s->mdev, s->ssthresh,
+		       s->cwind, s->snd.wnd, s->rcv.scale, s->rcv.wnd, s->snd.scale,
+		       s->qscale,
+		       s->timer.start, s->timer.count, s->rerecv,
+		       s->katimer.start, s->katimer.count);
 }
 
 static int
@@ -525,17 +515,17 @@ tcpinuse(Conv *c)
 {
 	Tcpctl *s;
 
-	s = (Tcpctl*)(c->ptcl);
+	s = (Tcpctl *)(c->ptcl);
 	return s->state != Closed;
 }
 
-static char*
+static char *
 tcpannounce(Conv *c, char **argv, int argc)
 {
 	char *e;
 	Tcpctl *tcb;
 
-	tcb = (Tcpctl*)(c->ptcl);
+	tcb = (Tcpctl *)(c->ptcl);
 	if(tcb->state != Closed)
 		return Econinuse;
 
@@ -556,14 +546,14 @@ tcpclose(Conv *c)
 {
 	Tcpctl *tcb;
 
-	tcb = (Tcpctl*)c->ptcl;
+	tcb = (Tcpctl *)c->ptcl;
 
 	qhangup(c->rq, nil);
 	qhangup(c->wq, nil);
 	qhangup(c->eq, nil);
 	qflush(c->rq);
 
-	switch(tcb->state) {
+	switch(tcb->state){
 	case Listen:
 		/*
 		 *  reset any incoming calls to this listener
@@ -599,7 +589,7 @@ tcpkick(void *x)
 	Conv *s = x;
 	Tcpctl *tcb;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	if(waserror()){
 		qunlock(&s->ql);
@@ -607,7 +597,7 @@ tcpkick(void *x)
 	}
 	qlock(&s->ql);
 
-	switch(tcb->state) {
+	switch(tcb->state){
 	case Syn_sent:
 	case Syn_received:
 	case Established:
@@ -629,12 +619,12 @@ tcpkick(void *x)
 static int seq_lt(uint32_t, uint32_t);
 
 static void
-tcprcvwin(Conv *s)				/* Call with tcb locked */
+tcprcvwin(Conv *s) /* Call with tcb locked */
 {
 	int w;
 	Tcpctl *tcb;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	w = tcb->window - qlen(s->rq);
 	if(w < 0)
 		w = 0;
@@ -642,11 +632,11 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 	if(seq_lt(tcb->rcv.nxt + w, tcb->rcv.wptr))
 		w = tcb->rcv.wptr - tcb->rcv.nxt;
 	if(w != tcb->rcv.wnd)
-	if(w>>tcb->rcv.scale == 0 || (tcb->window > 4*tcb->mss && w < tcb->mss/4)){
-		tcb->rcv.blocked = 1;
-		netlog(s->p->f, Logtcp, "tcprcvwin: window %lu qlen %d ws %u lport %d\n",
-			tcb->window, qlen(s->rq), tcb->rcv.scale, s->lport);
-	}
+		if(w >> tcb->rcv.scale == 0 || (tcb->window > 4 * tcb->mss && w < tcb->mss / 4)){
+			tcb->rcv.blocked = 1;
+			netlog(s->p->f, Logtcp, "tcprcvwin: window %lu qlen %d ws %u lport %d\n",
+			       tcb->window, qlen(s->rq), tcb->rcv.scale, s->lport);
+		}
 	tcb->rcv.wnd = w;
 	tcb->rcv.wptr = tcb->rcv.nxt + w;
 }
@@ -659,7 +649,7 @@ tcpacktimer(void *v)
 	Conv *s;
 
 	s = v;
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	if(waserror()){
 		qunlock(&s->ql);
@@ -683,12 +673,12 @@ tcpcongestion(Tcpctl *tcb)
 	if(inflight > tcb->cwind)
 		inflight = tcb->cwind;
 	tcb->ssthresh = inflight / 2;
-	if(tcb->ssthresh < 2*tcb->mss)
-		tcb->ssthresh = 2*tcb->mss;
+	if(tcb->ssthresh < 2 * tcb->mss)
+		tcb->ssthresh = 2 * tcb->mss;
 }
 
 enum {
-	L	= 2,	/* aggressive slow start; legal values ∈ (1.0, 2.0) */
+	L = 2, /* aggressive slow start; legal values ∈ (1.0, 2.0) */
 };
 
 static void
@@ -702,7 +692,7 @@ tcpabcincr(Tcpctl *tcb, uint acked)
 		if(tcb->snd.rto)
 			limit = tcb->mss;
 		else
-			limit = L*tcb->mss;
+			limit = L * tcb->mss;
 		tcb->cwind += MIN(tcb->abcbytes, limit);
 		tcb->abcbytes = 0;
 	} else {
@@ -766,19 +756,19 @@ tcpackproc(void *a)
 	tcp = a;
 	priv = tcp->priv;
 
-	for(;;) {
+	for(;;){
 		tsleep(&up->sleep, return0, 0, MSPTICK);
 
 		qlock(&priv->tl);
 		timeo = nil;
 		loop = 0;
-		for(t = priv->timers; t != nil; t = tp) {
+		for(t = priv->timers; t != nil; t = tp){
 			if(loop++ > 10000)
 				panic("tcpackproc1");
 			tp = t->next;
- 			if(t->state == TcptimerON) {
+			if(t->state == TcptimerON){
 				t->count--;
-				if(t->count == 0) {
+				if(t->count == 0){
 					timerstate(priv, t, TcptimerDONE);
 					t->readynext = timeo;
 					timeo = t;
@@ -788,7 +778,7 @@ tcpackproc(void *a)
 		qunlock(&priv->tl);
 
 		loop = 0;
-		for(t = timeo; t != nil; t = t->readynext) {
+		for(t = timeo; t != nil; t = t->readynext){
 			if(loop++ > 10000)
 				panic("tcpackproc2");
 			if(t->state == TcptimerDONE && t->func != nil && !waserror()){
@@ -831,13 +821,13 @@ backoff(int n)
 }
 
 static void
-localclose(Conv *s, char *reason)	/* called with tcb locked */
+localclose(Conv *s, char *reason) /* called with tcb locked */
 {
 	Tcpctl *tcb;
 	Tcppriv *tpriv;
 
 	tpriv = s->p->priv;
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	iphtrem(&tpriv->ht, s);
 
@@ -894,17 +884,17 @@ static void
 inittcpctl(Conv *s, int mode)
 {
 	Tcpctl *tcb;
-	Tcp4hdr* h4;
-	Tcp6hdr* h6;
+	Tcp4hdr *h4;
+	Tcp6hdr *h6;
 	Tcppriv *tpriv;
 	int mss;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	memset(tcb, 0, sizeof(Tcpctl));
 
-	tcb->ssthresh = QMAX;			/* reset by tcpsetscale() */
-	tcb->srtt = tcp_irtt<<LOGAGAIN;
+	tcb->ssthresh = QMAX; /* reset by tcpsetscale() */
+	tcb->srtt = tcp_irtt << LOGAGAIN;
 	tcb->mdev = 0;
 
 	/* setup timers */
@@ -982,12 +972,12 @@ tcpstart(Conv *s, int mode)
 		qunlock(&tpriv->apl);
 	}
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	inittcpctl(s, mode);
 
 	iphtadd(&tpriv->ht, s);
-	switch(mode) {
+	switch(mode){
 	case TCP_LISTEN:
 		tpriv->stats[PassiveOpens]++;
 		tcb->flags |= CLONE;
@@ -1028,7 +1018,7 @@ tcpflag(char *buf, char *e, uint16_t flag)
 }
 #endif
 
-static Block*
+static Block *
 htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 {
 	int dlen;
@@ -1049,15 +1039,14 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 		hdrlen += optpad;
 	}
 
-	if(data) {
+	if(data){
 		dlen = blocklen(data);
 		data = padblock(data, hdrlen + TCP6_PKT);
 		if(data == nil)
 			return nil;
-	}
-	else {
+	} else {
 		dlen = 0;
-		data = allocb(hdrlen + TCP6_PKT + 64);	/* the 64 pad is to meet mintu's */
+		data = allocb(hdrlen + TCP6_PKT + 64); /* the 64 pad is to meet mintu's */
 		if(data == nil)
 			return nil;
 		data->wp += hdrlen + TCP6_PKT;
@@ -1075,8 +1064,8 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 	/* copy in variable bits */
 	hnputl(h->tcpseq, tcph->seq);
 	hnputl(h->tcpack, tcph->ack);
-	hnputs(h->tcpflag, (hdrlen<<10) | tcph->flags);
-	hnputs(h->tcpwin, tcph->wnd>>(tcb != nil ? tcb->snd.scale : 0));
+	hnputs(h->tcpflag, (hdrlen << 10) | tcph->flags);
+	hnputs(h->tcpwin, tcph->wnd >> (tcb != nil ? tcb->snd.scale : 0));
 	hnputs(h->tcpurg, tcph->urg);
 
 	if(tcph->flags & SYN){
@@ -1099,20 +1088,20 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 	if(tcb != nil && tcb->nochecksum){
 		h->tcpcksum[0] = h->tcpcksum[1] = 0;
 	} else {
-		csum = ptclcsum(data, TCP6_IPLEN, hdrlen+dlen+TCP6_PHDRSIZE);
+		csum = ptclcsum(data, TCP6_IPLEN, hdrlen + dlen + TCP6_PHDRSIZE);
 		hnputs(h->tcpcksum, csum);
 	}
 
 	/* move from pseudo header back to normal ip header */
 	memset(h->vcf, 0, 4);
 	h->vcf[0] = IP_VER6;
-	hnputs(h->ploadlen, hdrlen+dlen);
+	hnputs(h->ploadlen, hdrlen + dlen);
 	h->proto = ph->proto;
 
 	return data;
 }
 
-static Block*
+static Block *
 htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 {
 	int dlen;
@@ -1133,15 +1122,14 @@ htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 		hdrlen += optpad;
 	}
 
-	if(data) {
+	if(data){
 		dlen = blocklen(data);
 		data = padblock(data, hdrlen + TCP4_PKT);
 		if(data == nil)
 			return nil;
-	}
-	else {
+	} else {
 		dlen = 0;
-		data = allocb(hdrlen + TCP4_PKT + 64);	/* the 64 pad is to meet mintu's */
+		data = allocb(hdrlen + TCP4_PKT + 64); /* the 64 pad is to meet mintu's */
 		if(data == nil)
 			return nil;
 		data->wp += hdrlen + TCP4_PKT;
@@ -1155,8 +1143,8 @@ htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 	hnputs(h->tcplen, hdrlen + dlen);
 	hnputl(h->tcpseq, tcph->seq);
 	hnputl(h->tcpack, tcph->ack);
-	hnputs(h->tcpflag, (hdrlen<<10) | tcph->flags);
-	hnputs(h->tcpwin, tcph->wnd>>(tcb != nil ? tcb->snd.scale : 0));
+	hnputs(h->tcpflag, (hdrlen << 10) | tcph->flags);
+	hnputs(h->tcpwin, tcph->wnd >> (tcb != nil ? tcb->snd.scale : 0));
 	hnputs(h->tcpurg, tcph->urg);
 
 	if(tcph->flags & SYN){
@@ -1180,7 +1168,7 @@ htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 	if(tcb != nil && tcb->nochecksum){
 		h->tcpcksum[0] = h->tcpcksum[1] = 0;
 	} else {
-		csum = ptclcsum(data, TCP4_IPLEN, hdrlen+dlen+TCP4_PHDRSIZE);
+		csum = ptclcsum(data, TCP4_IPLEN, hdrlen + dlen + TCP4_PHDRSIZE);
 		hnputs(h->tcpcksum, csum);
 	}
 
@@ -1196,7 +1184,7 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 	uint16_t optlen;
 	int n;
 
-	*bpp = pullupblock(*bpp, TCP6_PKT+TCP6_HDRSIZE);
+	*bpp = pullupblock(*bpp, TCP6_PKT + TCP6_HDRSIZE);
 	if(*bpp == nil)
 		return -1;
 
@@ -1205,8 +1193,8 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 	tcph->dest = nhgets(h->tcpdport);
 	tcph->seq = nhgetl(h->tcpseq);
 	tcph->ack = nhgetl(h->tcpack);
-	hdrlen = (h->tcpflag[0]>>2) & ~3;
-	if(hdrlen < TCP6_HDRSIZE) {
+	hdrlen = (h->tcpflag[0] >> 2) & ~3;
+	if(hdrlen < TCP6_HDRSIZE){
 		freeblist(*bpp);
 		return -1;
 	}
@@ -1219,14 +1207,14 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 	tcph->update = 0;
 	tcph->len = nhgets(h->ploadlen) - hdrlen;
 
-	*bpp = pullupblock(*bpp, hdrlen+TCP6_PKT);
+	*bpp = pullupblock(*bpp, hdrlen + TCP6_PKT);
 	if(*bpp == nil)
 		return -1;
 
 	optr = h->tcpopt;
 	n = hdrlen - TCP6_HDRSIZE;
-	while(n > 0 && *optr != EOLOPT) {
-		if(*optr == NOOPOPT) {
+	while(n > 0 && *optr != EOLOPT){
+		if(*optr == NOOPOPT){
 			n--;
 			optr++;
 			continue;
@@ -1234,14 +1222,14 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 		optlen = optr[1];
 		if(optlen < 2 || optlen > n)
 			break;
-		switch(*optr) {
+		switch(*optr){
 		case MSSOPT:
 			if(optlen == MSS_LENGTH)
-				tcph->mss = nhgets(optr+2);
+				tcph->mss = nhgets(optr + 2);
 			break;
 		case WSOPT:
-			if(optlen == WS_LENGTH && *(optr+2) <= 14)
-				tcph->ws = *(optr+2);
+			if(optlen == WS_LENGTH && *(optr + 2) <= 14)
+				tcph->ws = *(optr + 2);
 			break;
 		}
 		n -= optlen;
@@ -1259,7 +1247,7 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 	uint16_t optlen;
 	int n;
 
-	*bpp = pullupblock(*bpp, TCP4_PKT+TCP4_HDRSIZE);
+	*bpp = pullupblock(*bpp, TCP4_PKT + TCP4_HDRSIZE);
 	if(*bpp == nil)
 		return -1;
 
@@ -1269,8 +1257,8 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 	tcph->seq = nhgetl(h->tcpseq);
 	tcph->ack = nhgetl(h->tcpack);
 
-	hdrlen = (h->tcpflag[0]>>2) & ~3;
-	if(hdrlen < TCP4_HDRSIZE) {
+	hdrlen = (h->tcpflag[0] >> 2) & ~3;
+	if(hdrlen < TCP4_HDRSIZE){
 		freeblist(*bpp);
 		return -1;
 	}
@@ -1283,14 +1271,14 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 	tcph->update = 0;
 	tcph->len = nhgets(h->length) - (hdrlen + TCP4_PKT);
 
-	*bpp = pullupblock(*bpp, hdrlen+TCP4_PKT);
+	*bpp = pullupblock(*bpp, hdrlen + TCP4_PKT);
 	if(*bpp == nil)
 		return -1;
 
 	optr = h->tcpopt;
 	n = hdrlen - TCP4_HDRSIZE;
-	while(n > 0 && *optr != EOLOPT) {
-		if(*optr == NOOPOPT) {
+	while(n > 0 && *optr != EOLOPT){
+		if(*optr == NOOPOPT){
 			n--;
 			optr++;
 			continue;
@@ -1298,14 +1286,14 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 		optlen = optr[1];
 		if(optlen < 2 || optlen > n)
 			break;
-		switch(*optr) {
+		switch(*optr){
 		case MSSOPT:
 			if(optlen == MSS_LENGTH)
-				tcph->mss = nhgets(optr+2);
+				tcph->mss = nhgets(optr + 2);
 			break;
 		case WSOPT:
-			if(optlen == WS_LENGTH && *(optr+2) <= 14)
-				tcph->ws = *(optr+2);
+			if(optlen == WS_LENGTH && *(optr + 2) <= 14)
+				tcph->ws = *(optr + 2);
 			break;
 		}
 		n -= optlen;
@@ -1323,7 +1311,7 @@ tcpsndsyn(Conv *s, Tcpctl *tcb)
 {
 	Tcppriv *tpriv;
 
-	tcb->iss = (nrand(1<<16)<<16)|nrand(1<<16);
+	tcb->iss = (nrand(1 << 16) << 16) | nrand(1 << 16);
 	tcb->rttseq = tcb->iss;
 	tcb->snd.wl2 = tcb->iss;
 	tcb->snd.una = tcb->iss;
@@ -1357,7 +1345,7 @@ sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length, Tcp *seg, ui
 		return;
 
 	/* make pseudo header */
-	switch(version) {
+	switch(version){
 	case V4:
 		memset(&ph4, 0, sizeof(ph4));
 		ph4.vihl = IP_VER4;
@@ -1386,11 +1374,10 @@ sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length, Tcp *seg, ui
 	rflags = RST;
 
 	/* convince the other end that this reset is in band */
-	if(seg->flags & ACK) {
+	if(seg->flags & ACK){
 		seg->seq = seg->ack;
 		seg->ack = 0;
-	}
-	else {
+	} else {
 		rflags |= ACK;
 		seg->ack = seg->seq;
 		seg->seq = 0;
@@ -1405,7 +1392,7 @@ sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length, Tcp *seg, ui
 	seg->urg = 0;
 	seg->mss = 0;
 	seg->ws = 0;
-	switch(version) {
+	switch(version){
 	case V4:
 		hbp = htontcp4(seg, nil, &ph4, nil);
 		if(hbp == nil)
@@ -1427,7 +1414,7 @@ sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length, Tcp *seg, ui
  *  send a reset to the remote side and close the conversation
  *  called with s qlocked
  */
-static char*
+static char *
 tcphangup(Conv *s)
 {
 	Proc *up = externup();
@@ -1435,10 +1422,10 @@ tcphangup(Conv *s)
 	Tcpctl *tcb;
 	Block *hbp;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	if(waserror())
 		return commonerror();
-	if(ipcmp(s->raddr, IPnoaddr) != 0) {
+	if(ipcmp(s->raddr, IPnoaddr) != 0){
 		if(!waserror()){
 			memset(&seg, 0, sizeof seg);
 			seg.flags = RST | ACK;
@@ -1449,7 +1436,7 @@ tcphangup(Conv *s)
 			seg.urg = 0;
 			seg.mss = 0;
 			seg.ws = 0;
-			switch(s->ipversion) {
+			switch(s->ipversion){
 			case V4:
 				tcb->protohdr.tcp4hdr.vihl = IP_VER4;
 				hbp = htontcp4(&seg, nil, &tcb->protohdr.tcp4hdr, tcb);
@@ -1484,7 +1471,7 @@ sndsynack(Proto *tcp, Limbo *lp)
 	uint scale;
 
 	/* make pseudo header */
-	switch(lp->version) {
+	switch(lp->version){
 	case V4:
 		memset(&ph4, 0, sizeof(ph4));
 		ph4.vihl = IP_VER4;
@@ -1511,8 +1498,8 @@ sndsynack(Proto *tcp, Limbo *lp)
 
 	memset(&seg, 0, sizeof seg);
 	seg.seq = lp->iss;
-	seg.ack = lp->irs+1;
-	seg.flags = SYN|ACK;
+	seg.ack = lp->irs + 1;
+	seg.flags = SYN | ACK;
 	seg.urg = 0;
 	seg.mss = tcpmtu(tcp, lp->laddr, lp->version, &scale);
 	seg.wnd = QMAX;
@@ -1526,7 +1513,7 @@ sndsynack(Proto *tcp, Limbo *lp)
 		lp->sndscale = 0;
 	}
 
-	switch(lp->version) {
+	switch(lp->version){
 	case V4:
 		hbp = htontcp4(&seg, nil, &ph4, nil);
 		if(hbp == nil)
@@ -1546,7 +1533,7 @@ sndsynack(Proto *tcp, Limbo *lp)
 	return 0;
 }
 
-#define hashipa(a, p) ( ( (a)[IPaddrlen-2] + (a)[IPaddrlen-1] + p )&LHTMASK )
+#define hashipa(a, p) (((a)[IPaddrlen - 2] + (a)[IPaddrlen - 1] + p) & LHTMASK)
 
 /*
  *  put a call into limbo and respond with a SYN ACK
@@ -1597,7 +1584,7 @@ limbo(Conv *s, uint8_t *source, uint8_t *dest, Tcp *seg, int version)
 		lp->mss = seg->mss;
 		lp->rcvscale = seg->ws;
 		lp->irs = seg->seq;
-		lp->iss = (nrand(1<<16)<<16)|nrand(1<<16);
+		lp->iss = (nrand(1 << 16) << 16) | nrand(1 << 16);
 	}
 
 	if(sndsynack(s->p, lp) < 0){
@@ -1626,10 +1613,10 @@ limborexmit(Proto *tcp)
 	seen = 0;
 	now = NOW;
 	for(h = 0; h < NLHT && seen < tpriv->nlimbo; h++){
-		for(l = &tpriv->lht[h]; *l != nil && seen < tpriv->nlimbo; ){
+		for(l = &tpriv->lht[h]; *l != nil && seen < tpriv->nlimbo;){
 			lp = *l;
 			seen++;
-			if(now - lp->lastsend < (lp->rexmits+1)*SYNACK_RXTIMER)
+			if(now - lp->lastsend < (lp->rexmits + 1) * SYNACK_RXTIMER)
 				continue;
 
 			/* time it out after 1 second */
@@ -1683,7 +1670,7 @@ limborst(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 			continue;
 
 		/* RST can only follow the SYN */
-		if(segp->seq == lp->irs+1){
+		if(segp->seq == lp->irs + 1){
 			tpriv->nlimbo--;
 			*l = lp->next;
 			free(lp);
@@ -1697,11 +1684,11 @@ initialwindow(Tcpctl *tcb)
 {
 	/* RFC 3390 initial window */
 	if(tcb->mss < 1095)
-		tcb->cwind = 4*tcb->mss;
+		tcb->cwind = 4 * tcb->mss;
 	else if(tcb->mss < 2190)
-		tcb->cwind = 2*2190;
+		tcb->cwind = 2 * 2190;
 	else
-		tcb->cwind = 2*tcb->mss;
+		tcb->cwind = 2 * tcb->mss;
 }
 
 /*
@@ -1710,7 +1697,7 @@ initialwindow(Tcpctl *tcb)
  *
  *  called with proto locked
  */
-static Conv*
+static Conv *
 tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 {
 	Conv *new;
@@ -1731,10 +1718,9 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 	h = hashipa(src, segp->source);
 	for(l = &tpriv->lht[h]; (lp = *l) != nil; l = &lp->next){
 		netlog(s->p->f, Logtcp, "tcpincoming s %I!%u/%I!%u d %I!%u/%I!%u v %d/%d\n",
-			src, segp->source, lp->raddr, lp->rport,
-			dst, segp->dest, lp->laddr, lp->lport,
-			version, lp->version
- 		);
+		       src, segp->source, lp->raddr, lp->rport,
+		       dst, segp->dest, lp->laddr, lp->lport,
+		       version, lp->version);
 
 		if(lp->lport != segp->dest || lp->rport != segp->source || lp->version != version)
 			continue;
@@ -1744,9 +1730,9 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 			continue;
 
 		/* we're assuming no data with the initial SYN */
-		if(segp->seq != lp->irs+1 || segp->ack != lp->iss+1){
+		if(segp->seq != lp->irs + 1 || segp->ack != lp->iss + 1){
 			netlog(s->p->f, Logtcp, "tcpincoming s %lx/%lx a %lx %lx\n",
-				segp->seq, lp->irs+1, segp->ack, lp->iss+1);
+			       segp->seq, lp->irs + 1, segp->ack, lp->iss + 1);
 			lp = nil;
 		} else {
 			tpriv->nlimbo--;
@@ -1762,7 +1748,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 		return nil;
 
 	memmove(new->ptcl, s->ptcl, sizeof(Tcpctl));
-	tcb = (Tcpctl*)new->ptcl;
+	tcb = (Tcpctl *)new->ptcl;
 	tcb->flags &= ~CLONE;
 	tcb->timer.arg = new;
 	tcb->timer.state = TcptimerOFF;
@@ -1774,7 +1760,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 	tcb->rtt_timer.state = TcptimerOFF;
 
 	tcb->irs = lp->irs;
-	tcb->rcv.nxt = tcb->irs+1;
+	tcb->rcv.nxt = tcb->irs + 1;
 	tcb->rcv.wptr = tcb->rcv.nxt;
 	tcb->rcv.wsnt = 0;
 	tcb->rcv.urg = tcb->rcv.nxt;
@@ -1782,10 +1768,10 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 	tcb->iss = lp->iss;
 	tcb->rttseq = tcb->iss;
 	tcb->snd.wl2 = tcb->iss;
-	tcb->snd.una = tcb->iss+1;
-	tcb->snd.ptr = tcb->iss+1;
-	tcb->snd.nxt = tcb->iss+1;
-	tcb->snd.rxt = tcb->iss+1;
+	tcb->snd.una = tcb->iss + 1;
+	tcb->snd.ptr = tcb->iss + 1;
+	tcb->snd.nxt = tcb->iss + 1;
+	tcb->snd.rxt = tcb->iss + 1;
 	tcb->flgcnt = 0;
 	tcb->flags |= SYNACK;
 
@@ -1793,7 +1779,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 	tcb->mss = tcpmtu(s->p, s->laddr, s->ipversion, &tcb->scale);
 
 	/* our sending max segment size cannot be bigger than what he asked for */
-	if(lp->mss != 0 && lp->mss < tcb->mss) {
+	if(lp->mss != 0 && lp->mss < tcb->mss){
 		tcb->mss = lp->mss;
 	}
 	tpriv->stats[Mss] = tcb->mss;
@@ -1806,7 +1792,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 	initialwindow(tcb);
 
 	/* set initial round trip time */
-	tcb->sndsyntime = lp->lastsend+lp->rexmits*SYNACK_RXTIMER;
+	tcb->sndsyntime = lp->lastsend + lp->rexmits * SYNACK_RXTIMER;
 	tcpsynackrtt(new);
 
 	free(lp);
@@ -1848,8 +1834,7 @@ seq_within(uint32_t x, uint32_t low, uint32_t high)
 	if(low <= high){
 		if(low <= x && x <= high)
 			return 1;
-	}
-	else {
+	} else {
 		if(x >= low || x <= high)
 			return 1;
 	}
@@ -1859,25 +1844,25 @@ seq_within(uint32_t x, uint32_t low, uint32_t high)
 static int
 seq_lt(uint32_t x, uint32_t y)
 {
-	return (int)(x-y) < 0;
+	return (int)(x - y) < 0;
 }
 
 static int
 seq_le(uint32_t x, uint32_t y)
 {
-	return (int)(x-y) <= 0;
+	return (int)(x - y) <= 0;
 }
 
 static int
 seq_gt(uint32_t x, uint32_t y)
 {
-	return (int)(x-y) > 0;
+	return (int)(x - y) > 0;
 }
 
 static int
 seq_ge(uint32_t x, uint32_t y)
 {
-	return (int)(x-y) >= 0;
+	return (int)(x - y) >= 0;
 }
 
 /*
@@ -1891,12 +1876,12 @@ tcpsynackrtt(Conv *s)
 	int delta;
 	Tcppriv *tpriv;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	tpriv = s->p->priv;
 
 	delta = NOW - tcb->sndsyntime;
-	tcb->srtt = delta<<LOGAGAIN;
-	tcb->mdev = delta<<LOGDGAIN;
+	tcb->srtt = delta << LOGAGAIN;
+	tcb->mdev = delta << LOGDGAIN;
 
 	/* halt round trip timer */
 	tcphalt(tpriv, &tcb->rtt_timer);
@@ -1915,42 +1900,42 @@ update(Conv *s, Tcp *seg)
 	seg->update = 1;
 
 	tpriv = s->p->priv;
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	/* catch zero-window updates, update window & recover */
 	if(tcb->snd.wnd == 0 && seg->wnd > 0 &&
-	    seq_lt(seg->ack, tcb->snd.ptr)){
+	   seq_lt(seg->ack, tcb->snd.ptr)){
 		netlog(s->p->f, Logtcp, "tcp: zwu ack %lu una %lu ptr %lu win %lu\n",
-			seg->ack,  tcb->snd.una, tcb->snd.ptr, seg->wnd);
+		       seg->ack, tcb->snd.una, tcb->snd.ptr, seg->wnd);
 		tcb->snd.wnd = seg->wnd;
 		goto recovery;
 	}
 
 	/* newreno fast retransmit */
 	if(seg->ack == tcb->snd.una && tcb->snd.una != tcb->snd.nxt &&
-	    ++tcb->snd.dupacks == 3){		/* was TCPREXMTTHRESH */
-recovery:
+	   ++tcb->snd.dupacks == 3) { /* was TCPREXMTTHRESH */
+	recovery:
 		if(tcb->snd.recovery){
 			tpriv->stats[RecoveryCwind]++;
 			tcb->cwind += tcb->mss;
-		}else if(seq_le(tcb->snd.rxt, seg->ack)){
+		} else if(seq_le(tcb->snd.rxt, seg->ack)){
 			tpriv->stats[Recovery]++;
 			tcb->abcbytes = 0;
 			tcb->snd.recovery = 1;
 			tcb->snd.partialack = 0;
 			tcb->snd.rxt = tcb->snd.nxt;
 			tcpcongestion(tcb);
-			tcb->cwind = tcb->ssthresh + 3*tcb->mss;
+			tcb->cwind = tcb->ssthresh + 3 * tcb->mss;
 			netlog(s->p->f, Logtcpwin, "recovery inflate %ld ss %ld @%lu\n",
-				tcb->cwind, tcb->ssthresh, tcb->snd.rxt);
+			       tcb->cwind, tcb->ssthresh, tcb->snd.rxt);
 			tcprxmit(s);
-		}else{
+		} else {
 			tpriv->stats[RecoveryNoSeq]++;
 			netlog(s->p->f, Logtcpwin, "!recov %lu not ≤ %lu %ld\n",
-				tcb->snd.rxt, seg->ack, tcb->snd.rxt - seg->ack);
+			       tcb->snd.rxt, seg->ack, tcb->snd.rxt - seg->ack);
 			/* don't enter fast retransmit, don't change ssthresh */
 		}
-	}else if(tcb->snd.recovery){
+	} else if(tcb->snd.recovery){
 		tpriv->stats[RecoveryCwind]++;
 		tcb->cwind += tcb->mss;
 	}
@@ -1958,8 +1943,7 @@ recovery:
 	/*
 	 *  update window
 	 */
-	if(seq_gt(seg->ack, tcb->snd.wl2)
-	|| (tcb->snd.wl2 == seg->ack && seg->wnd > tcb->snd.wnd)){
+	if(seq_gt(seg->ack, tcb->snd.wl2) || (tcb->snd.wl2 == seg->ack && seg->wnd > tcb->snd.wnd)){
 		/* clear dupack if we advance wl2 */
 		if(tcb->snd.wl2 != seg->ack)
 			tcb->snd.dupacks = 0;
@@ -1972,8 +1956,8 @@ recovery:
 		 *  don't let us hangup if sending into a closed window and
 		 *  we're still getting acks
 		 */
-		if((tcb->flags&RETRAN) && tcb->snd.wnd == 0)
-			tcb->backedoff = MAXBACKMS/4;
+		if((tcb->flags & RETRAN) && tcb->snd.wnd == 0)
+			tcb->backedoff = MAXBACKMS / 4;
 		return;
 	}
 
@@ -1981,7 +1965,7 @@ recovery:
 	acked = seg->ack - tcb->snd.una;
 
 	/* avoid slow start and timers for SYN acks */
-	if((tcb->flags & SYNACK) == 0) {
+	if((tcb->flags & SYNACK) == 0){
 		tcb->flags |= SYNACK;
 		acked--;
 		tcb->flgcnt--;
@@ -2001,18 +1985,18 @@ recovery:
 			if(tcb->ssthresh < tcb->cwind)
 				tcb->cwind = tcb->ssthresh;
 			netlog(s->p->f, Logtcpwin, "recovery deflate %ld %ld\n",
-				tcb->cwind, tcb->ssthresh);
+			       tcb->cwind, tcb->ssthresh);
 		} else {
 			/* partial ack; we lost more than one segment */
 			tpriv->stats[RecoveryPA]++;
 			if(tcb->cwind > acked)
 				tcb->cwind -= acked;
-			else{
+			else {
 				netlog(s->p->f, Logtcpwin, "partial ack neg\n");
 				tcb->cwind = tcb->mss;
 			}
 			netlog(s->p->f, Logtcpwin, "partial ack %ld left %ld cwind %ld\n",
-				acked, tcb->snd.rxt - seg->ack, tcb->cwind);
+			       acked, tcb->snd.rxt - seg->ack, tcb->cwind);
 
 			if(acked >= tcb->mss)
 				tcb->cwind += tcb->mss;
@@ -2023,25 +2007,25 @@ recovery:
 
 	/* Adjust the timers according to the round trip time */
 	/* TODO: fix sloppy treatment of overflow cases here. */
-	if(tcb->rtt_timer.state == TcptimerON && seq_ge(seg->ack, tcb->rttseq)) {
+	if(tcb->rtt_timer.state == TcptimerON && seq_ge(seg->ack, tcb->rttseq)){
 		tcphalt(tpriv, &tcb->rtt_timer);
-		if((tcb->flags&RETRAN) == 0) {
+		if((tcb->flags & RETRAN) == 0){
 			tcb->backoff = 0;
 			tcb->backedoff = 0;
 			rtt = tcb->rtt_timer.start - tcb->rtt_timer.count;
 			if(rtt == 0)
 				rtt = 1; /* else all close sys's will rexmit in 0 time */
 			rtt *= MSPTICK;
-			if(tcb->srtt == 0) {
+			if(tcb->srtt == 0){
 				tcb->srtt = rtt << LOGAGAIN;
 				tcb->mdev = rtt << LOGDGAIN;
 			} else {
-				delta = rtt - (tcb->srtt>>LOGAGAIN);
+				delta = rtt - (tcb->srtt >> LOGAGAIN);
 				tcb->srtt += delta;
 				if(tcb->srtt <= 0)
 					tcb->srtt = 1;
 
-				delta = abs(delta) - (tcb->mdev>>LOGDGAIN);
+				delta = abs(delta) - (tcb->mdev >> LOGDGAIN);
 				tcb->mdev += delta;
 				if(tcb->mdev <= 0)
 					tcb->mdev = 1;
@@ -2102,19 +2086,19 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 
 	tpriv->stats[InSegs]++;
 
-	h4 = (Tcp4hdr*)(bp->rp);
-	h6 = (Tcp6hdr*)(bp->rp);
+	h4 = (Tcp4hdr *)(bp->rp);
+	h6 = (Tcp6hdr *)(bp->rp);
 
-	if((h4->vihl&0xF0)==IP_VER4) {
+	if((h4->vihl & 0xF0) == IP_VER4){
 		version = V4;
 		length = nhgets(h4->length);
 		v4tov6(dest, h4->tcpdst);
 		v4tov6(source, h4->tcpsrc);
 
 		h4->Unused = 0;
-		hnputs(h4->tcplen, length-TCP4_PKT);
+		hnputs(h4->tcplen, length - TCP4_PKT);
 		if(!(bp->flag & Btcpck) && (h4->tcpcksum[0] || h4->tcpcksum[1]) &&
-			ptclcsum(bp, TCP4_IPLEN, length-TCP4_IPLEN)) {
+		   ptclcsum(bp, TCP4_IPLEN, length - TCP4_IPLEN)){
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;
 			netlog(f, Logtcp, "bad tcp proto cksum\n");
@@ -2131,16 +2115,15 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 		}
 
 		/* trim the packet to the size claimed by the datagram */
-		length -= hdrlen+TCP4_PKT;
-		bp = trimblock(bp, hdrlen+TCP4_PKT, length);
+		length -= hdrlen + TCP4_PKT;
+		bp = trimblock(bp, hdrlen + TCP4_PKT, length);
 		if(bp == nil){
 			tpriv->stats[LenErrs]++;
 			tpriv->stats[InErrs]++;
 			netlog(f, Logtcp, "tcp len < 0 after trim\n");
 			return;
 		}
-	}
-	else {
+	} else {
 		int ttl = h6->ttl;
 		int proto = h6->proto;
 
@@ -2153,12 +2136,12 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 		h6->ttl = proto;
 		hnputl(h6->vcf, length);
 		if((h6->tcpcksum[0] || h6->tcpcksum[1]) &&
-		    (csum = ptclcsum(bp, TCP6_IPLEN, length+TCP6_PHDRSIZE)) != 0) {
+		   (csum = ptclcsum(bp, TCP6_IPLEN, length + TCP6_PHDRSIZE)) != 0){
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;
 			netlog(f, Logtcp,
-			    "bad tcpv6 proto cksum: got %#x, computed %#x\n",
-				h6->tcpcksum[0]<<8 | h6->tcpcksum[1], csum);
+			       "bad tcpv6 proto cksum: got %#x, computed %#x\n",
+			       h6->tcpcksum[0] << 8 | h6->tcpcksum[1], csum);
 			freeblist(bp);
 			return;
 		}
@@ -2176,7 +2159,7 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 
 		/* trim the packet to the size claimed by the datagram */
 		length -= hdrlen;
-		bp = trimblock(bp, hdrlen+TCP6_PKT, length);
+		bp = trimblock(bp, hdrlen + TCP6_PKT, length);
 		if(bp == nil){
 			tpriv->stats[LenErrs]++;
 			tpriv->stats[InErrs]++;
@@ -2192,8 +2175,8 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 	s = iphtlook(&tpriv->ht, source, seg.source, dest, seg.dest);
 	if(s == nil){
 		netlog(f, Logtcp, "iphtlook(src %I!%d, dst %I!%d) failed\n",
-			source, seg.source, dest, seg.dest);
-reset:
+		       source, seg.source, dest, seg.dest);
+	reset:
 		qunlock(&tcp->ql);
 		sndrst(tcp, source, dest, length, &seg, version, "no conversation");
 		freeblist(bp);
@@ -2201,7 +2184,7 @@ reset:
 	}
 
 	/* if it's a listener, look for the right flags and get a new conv */
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	if(tcb->state == Listen){
 		if(seg.flags & RST){
 			limborst(s, &seg, source, dest, version);
@@ -2231,7 +2214,7 @@ reset:
 	 * locked and implements the state machine directly out of the RFC.
 	 * Out-of-band data is ignored - it was always a bad idea.
 	 */
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	if(waserror()){
 		qunlock(&s->ql);
 		nexterror();
@@ -2245,35 +2228,34 @@ reset:
 	/* every input packet in puts off the keep alive time out */
 	tcpsetkacounter(tcb);
 
-	switch(tcb->state) {
+	switch(tcb->state){
 	case Closed:
 		sndrst(tcp, source, dest, length, &seg, version, "sending to Closed");
 		goto raise;
 	case Syn_sent:
-		if(seg.flags & ACK) {
-			if(!seq_within(seg.ack, tcb->iss+1, tcb->snd.nxt)) {
+		if(seg.flags & ACK){
+			if(!seq_within(seg.ack, tcb->iss + 1, tcb->snd.nxt)){
 				sndrst(tcp, source, dest, length, &seg, version,
-					 "bad seq in Syn_sent");
+				       "bad seq in Syn_sent");
 				goto raise;
 			}
 		}
-		if(seg.flags & RST) {
+		if(seg.flags & RST){
 			if(seg.flags & ACK)
 				localclose(s, Econrefused);
 			goto raise;
 		}
 
-		if(seg.flags & SYN) {
+		if(seg.flags & SYN){
 			procsyn(s, &seg);
 			if(seg.flags & ACK){
 				update(s, &seg);
 				tcpsynackrtt(s);
 				tcpsetstate(s, Established);
 				tcpsetscale(s, tcb, seg.ws, tcb->scale);
-			}
-			else {
+			} else {
 				tcb->time = NOW;
-				tcpsetstate(s, Syn_received);	/* DLP - shouldn't this be a reset? */
+				tcpsetstate(s, Syn_received); /* DLP - shouldn't this be a reset? */
 			}
 
 			if(length != 0 || (seg.flags & FIN))
@@ -2281,8 +2263,7 @@ reset:
 
 			freeblist(bp);
 			goto output;
-		}
-		else
+		} else
 			freeblist(bp);
 
 		qunlock(&s->ql);
@@ -2302,33 +2283,33 @@ reset:
 	 *  corresponding code in tcpsendka().
 	 */
 	if(tcb->state != Syn_received && (seg.flags & RST) == 0){
-		if(tcpporthogdefense
-		&& seq_within(seg.ack, tcb->snd.una-(1<<31), tcb->snd.una-(1<<29))){
+		if(tcpporthogdefense && seq_within(seg.ack, tcb->snd.una - (1 << 31), tcb->snd.una - (1 << 29))){
 			print("stateless hog %I.%d->%I.%d f %x %lx - %lx - %lx\n",
-				source, seg.source, dest, seg.dest, seg.flags,
-				tcb->snd.una-(1<<31), seg.ack, tcb->snd.una-(1<<29));
+			      source, seg.source, dest, seg.dest, seg.flags,
+			      tcb->snd.una - (1 << 31), seg.ack, tcb->snd.una - (1 << 29));
 			localclose(s, "stateless hog");
 		}
 	}
 
 	/* Cut the data to fit the receive window */
 	tcprcvwin(s);
-	if(tcptrim(tcb, &seg, &bp, &length) == -1) {
-		if(seg.seq+1 != tcb->rcv.nxt || length != 1)
-		netlog(f, Logtcp, "tcp: trim: !inwind: seq %lu-%lu win "
-			"%lu-%lu l %d from %I\n", seg.seq,
-			seg.seq + length - 1, tcb->rcv.nxt,
-			tcb->rcv.nxt + tcb->rcv.wnd-1, length, s->raddr);
+	if(tcptrim(tcb, &seg, &bp, &length) == -1){
+		if(seg.seq + 1 != tcb->rcv.nxt || length != 1)
+			netlog(f, Logtcp, "tcp: trim: !inwind: seq %lu-%lu win "
+					  "%lu-%lu l %d from %I\n",
+			       seg.seq,
+			       seg.seq + length - 1, tcb->rcv.nxt,
+			       tcb->rcv.nxt + tcb->rcv.wnd - 1, length, s->raddr);
 		update(s, &seg);
-		if(qlen(s->wq)+tcb->flgcnt == 0 && tcb->state == Closing) {
+		if(qlen(s->wq) + tcb->flgcnt == 0 && tcb->state == Closing){
 			tcphalt(tpriv, &tcb->rtt_timer);
 			tcphalt(tpriv, &tcb->acktimer);
 			tcphalt(tpriv, &tcb->katimer);
 			tcpsetstate(s, Time_wait);
-			tcb->timer.start = MSL2*(1000 / MSPTICK);
+			tcb->timer.start = MSL2 * (1000 / MSPTICK);
 			tcpgo(tpriv, &tcb->timer);
 		}
-		if(!(seg.flags & RST)) {
+		if(!(seg.flags & RST)){
 			tcb->flags |= FORCE;
 			goto output;
 		}
@@ -2338,7 +2319,7 @@ reset:
 	}
 
 	/* Cannot accept so answer with a rst */
-	if(length && tcb->state == Closed) {
+	if(length && tcb->state == Closed){
 		sndrst(tcp, source, dest, length, &seg, version, "sending to Closed");
 		goto raise;
 	}
@@ -2347,14 +2328,14 @@ reset:
 	 * queue the data in the resequence queue
 	 */
 	if(seg.seq != tcb->rcv.nxt)
-	if(length != 0 || (seg.flags & (SYN|FIN))) {
-		update(s, &seg);
-		if(addreseq(f, tcb, tpriv, &seg, bp, length) < 0)
-			print("reseq %I.%d -> %I.%d\n", s->raddr, s->rport,
-				s->laddr, s->lport);
-		tcb->flags |= FORCE;	/* force duplicate ack; RFC 5681 §3.2 */
-		goto output;
-	}
+		if(length != 0 || (seg.flags & (SYN | FIN))){
+			update(s, &seg);
+			if(addreseq(f, tcb, tpriv, &seg, bp, length) < 0)
+				print("reseq %I.%d -> %I.%d\n", s->raddr, s->rport,
+				      s->laddr, s->lport);
+			tcb->flags |= FORCE; /* force duplicate ack; RFC 5681 §3.2 */
+			goto output;
+		}
 
 	if(tcb->nreseq > 0)
 		tcb->flags |= FORCE; /* filled hole in seq. space; RFC 5681 §3.2 */
@@ -2363,29 +2344,29 @@ reset:
 	 *  keep looping till we've processed this packet plus any
 	 *  adjacent packets in the resequence queue
 	 */
-	for(;;) {
-		if(seg.flags & RST) {
-			if(tcb->state == Established) {
+	for(;;){
+		if(seg.flags & RST){
+			if(tcb->state == Established){
 				tpriv->stats[EstabResets]++;
 				if(tcb->rcv.nxt != seg.seq)
 					netlog(f, Logtcp, "out of order RST "
-						"rcvd: %I.%d -> %I.%d, rcv.nxt "
-						"%lx seq %lx\n",
-						s->raddr, s->rport, s->laddr,
-						s->lport, tcb->rcv.nxt, seg.seq);
+							  "rcvd: %I.%d -> %I.%d, rcv.nxt "
+							  "%lx seq %lx\n",
+					       s->raddr, s->rport, s->laddr,
+					       s->lport, tcb->rcv.nxt, seg.seq);
 			}
 			localclose(s, Econrefused);
 			goto raise;
 		}
 
-		if((seg.flags&ACK) == 0)
+		if((seg.flags & ACK) == 0)
 			goto raise;
 
-		switch(tcb->state) {
+		switch(tcb->state){
 		case Syn_received:
-			if(!seq_within(seg.ack, tcb->snd.una+1, tcb->snd.nxt)){
+			if(!seq_within(seg.ack, tcb->snd.una + 1, tcb->snd.nxt)){
 				sndrst(tcp, source, dest, length, &seg, version,
-					"bad seq in Syn_received");
+				       "bad seq in Syn_received");
 				goto raise;
 			}
 			update(s, &seg);
@@ -2396,7 +2377,7 @@ reset:
 			break;
 		case Finwait1:
 			update(s, &seg);
-			if(qlen(s->wq)+tcb->flgcnt == 0){
+			if(qlen(s->wq) + tcb->flgcnt == 0){
 				tcphalt(tpriv, &tcb->rtt_timer);
 				tcphalt(tpriv, &tcb->acktimer);
 				tcpsetkacounter(tcb);
@@ -2411,18 +2392,18 @@ reset:
 			break;
 		case Closing:
 			update(s, &seg);
-			if(qlen(s->wq)+tcb->flgcnt == 0) {
+			if(qlen(s->wq) + tcb->flgcnt == 0){
 				tcphalt(tpriv, &tcb->rtt_timer);
 				tcphalt(tpriv, &tcb->acktimer);
 				tcphalt(tpriv, &tcb->katimer);
 				tcpsetstate(s, Time_wait);
-				tcb->timer.start = MSL2*(1000 / MSPTICK);
+				tcb->timer.start = MSL2 * (1000 / MSPTICK);
 				tcpgo(tpriv, &tcb->timer);
 			}
 			break;
 		case Last_ack:
 			update(s, &seg);
-			if(qlen(s->wq)+tcb->flgcnt == 0) {
+			if(qlen(s->wq) + tcb->flgcnt == 0){
 				localclose(s, nil);
 				goto raise;
 			}
@@ -2432,21 +2413,18 @@ reset:
 				tcpgo(tpriv, &tcb->timer);
 		}
 
-		if((seg.flags&URG) && seg.urg) {
-			if(seq_gt(seg.urg + seg.seq, tcb->rcv.urg)) {
+		if((seg.flags & URG) && seg.urg){
+			if(seq_gt(seg.urg + seg.seq, tcb->rcv.urg)){
 				tcb->rcv.urg = seg.urg + seg.seq;
 				pullblock(&bp, seg.urg);
 			}
-		}
-		else
-		if(seq_gt(tcb->rcv.nxt, tcb->rcv.urg))
+		} else if(seq_gt(tcb->rcv.nxt, tcb->rcv.urg))
 			tcb->rcv.urg = tcb->rcv.nxt;
 
-		if(length == 0) {
+		if(length == 0){
 			if(bp != nil)
 				freeblist(bp);
-		}
-		else {
+		} else {
 			switch(tcb->state){
 			default:
 				/* Ignore segment text */
@@ -2460,7 +2438,7 @@ reset:
 				/* If we still have some data place on
 				 * receive queue
 				 */
-				if(bp) {
+				if(bp){
 					bp = packblock(bp);
 					if(bp == nil)
 						panic("tcp packblock");
@@ -2482,17 +2460,17 @@ reset:
 				if(bp != nil)
 					freeblist(bp);
 				sndrst(tcp, source, dest, length, &seg, version,
-					"send to Finwait2");
+				       "send to Finwait2");
 				qunlock(&s->ql);
 				poperror();
 				return;
 			}
 		}
 
-		if(seg.flags & FIN) {
+		if(seg.flags & FIN){
 			tcb->flags |= FORCE;
 
-			switch(tcb->state) {
+			switch(tcb->state){
 			case Syn_received:
 			case Established:
 				tcb->rcv.nxt++;
@@ -2500,15 +2478,14 @@ reset:
 				break;
 			case Finwait1:
 				tcb->rcv.nxt++;
-				if(qlen(s->wq)+tcb->flgcnt == 0) {
+				if(qlen(s->wq) + tcb->flgcnt == 0){
 					tcphalt(tpriv, &tcb->rtt_timer);
 					tcphalt(tpriv, &tcb->acktimer);
 					tcphalt(tpriv, &tcb->katimer);
 					tcpsetstate(s, Time_wait);
-					tcb->timer.start = MSL2*(1000/MSPTICK);
+					tcb->timer.start = MSL2 * (1000 / MSPTICK);
 					tcpgo(tpriv, &tcb->timer);
-				}
-				else
+				} else
 					tcpsetstate(s, Closing);
 				break;
 			case Finwait2:
@@ -2517,7 +2494,7 @@ reset:
 				tcphalt(tpriv, &tcb->acktimer);
 				tcphalt(tpriv, &tcb->katimer);
 				tcpsetstate(s, Time_wait);
-				tcb->timer.start = MSL2 * (1000/MSPTICK);
+				tcb->timer.start = MSL2 * (1000 / MSPTICK);
 				tcpgo(tpriv, &tcb->timer);
 				break;
 			case Close_wait:
@@ -2534,7 +2511,7 @@ reset:
 		 *  get next adjacent segment from the resequence queue.
 		 *  dump/trim any overlapping segments
 		 */
-		for(;;) {
+		for(;;){
 			if(tcb->reseq == nil)
 				goto output;
 
@@ -2584,11 +2561,11 @@ tcpoutput(Conv *s)
 	tpriv = s->p->priv;
 	version = s->ipversion;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	/* force ack every 2*mss */
 	if((tcb->flags & FORCE) == 0 &&
-	    tcb->rcv.nxt - tcb->rcv.ackptr >= 2*tcb->mss){
+	   tcb->rcv.nxt - tcb->rcv.ackptr >= 2 * tcb->mss){
 		tpriv->stats[Delayack]++;
 		tcb->flags |= FORCE;
 	}
@@ -2596,14 +2573,14 @@ tcpoutput(Conv *s)
 	/* force ack if window opening */
 	if((tcb->flags & FORCE) == 0){
 		tcprcvwin(s);
-		if((int)(tcb->rcv.wptr - tcb->rcv.wsnt) >= 2*tcb->mss){
+		if((int)(tcb->rcv.wptr - tcb->rcv.wsnt) >= 2 * tcb->mss){
 			tpriv->stats[Wopenack]++;
 			tcb->flags |= FORCE;
 		}
 	}
 
-	for(msgs = 0; msgs < 100; msgs++) {
-		switch(tcb->state) {
+	for(msgs = 0; msgs < 100; msgs++){
+		switch(tcb->state){
 		case Listen:
 		case Closed:
 		case Finwait2:
@@ -2621,16 +2598,16 @@ tcpoutput(Conv *s)
 			tcb->flags |= FORCE;
 		}
 
-		sndcnt = qlen(s->wq)+tcb->flgcnt;
+		sndcnt = qlen(s->wq) + tcb->flgcnt;
 		sent = tcb->snd.ptr - tcb->snd.una;
 		ssize = sndcnt;
 		if(tcb->snd.wnd == 0){
 			/* zero window probe */
 			if(sent > 0 && !(tcb->flags & FORCE))
-				break;	/* already probing, rto re-probes */
+				break; /* already probing, rto re-probes */
 			if(ssize < sent)
 				ssize = 0;
-			else{
+			else {
 				ssize -= sent;
 				if(ssize > 0)
 					ssize = 1;
@@ -2656,7 +2633,7 @@ tcpoutput(Conv *s)
 
 		if(!(tcb->flags & FORCE))
 			if(ssize == 0 ||
-			    (ssize < tcb->mss && tcb->snd.nxt == tcb->snd.ptr &&
+			   (ssize < tcb->mss && tcb->snd.nxt == tcb->snd.ptr &&
 			    sent > TCPREXMTTHRESH * tcb->mss))
 				break;
 
@@ -2701,15 +2678,15 @@ tcpoutput(Conv *s)
 
 		/* Pull out data to send */
 		bp = nil;
-		if(dsize != 0) {
+		if(dsize != 0){
 			bp = qcopy(s->wq, dsize, sent);
-			if(BLEN(bp) != dsize) {
+			if(BLEN(bp) != dsize){
 				seg.flags |= FIN;
 				dsize--;
 			}
 		}
 
-		if(sent+dsize == sndcnt && dsize)
+		if(sent + dsize == sndcnt && dsize)
 			seg.flags |= PSH;
 
 		tcb->snd.ptr += ssize;
@@ -2717,7 +2694,7 @@ tcpoutput(Conv *s)
 		/* Pull up the send pointer so we can accept acks
 		 * for this window
 		 */
-		if(seq_gt(tcb->snd.ptr,tcb->snd.nxt))
+		if(seq_gt(tcb->snd.ptr, tcb->snd.nxt))
 			tcb->snd.nxt = tcb->snd.ptr;
 
 		/* Build header, link data and compute cksum */
@@ -2725,7 +2702,7 @@ tcpoutput(Conv *s)
 		case V4:
 			tcb->protohdr.tcp4hdr.vihl = IP_VER4;
 			hbp = htontcp4(&seg, bp, &tcb->protohdr.tcp4hdr, tcb);
-			if(hbp == nil) {
+			if(hbp == nil){
 				freeblist(bp);
 				return;
 			}
@@ -2733,13 +2710,13 @@ tcpoutput(Conv *s)
 		case V6:
 			tcb->protohdr.tcp6hdr.vcf[0] = IP_VER6;
 			hbp = htontcp6(&seg, bp, &tcb->protohdr.tcp6hdr, tcb);
-			if(hbp == nil) {
+			if(hbp == nil){
 				freeblist(bp);
 				return;
 			}
 			break;
 		default:
-			hbp = nil;	/* to suppress a warning */
+			hbp = nil; /* to suppress a warning */
 			panic("tcpoutput: version %d", version);
 		}
 
@@ -2758,11 +2735,11 @@ tcpoutput(Conv *s)
 			 *  transmission time dominates RTT
 			 */
 			if(tcb->snd.retransmit == 0)
-			if(tcb->rtt_timer.state != TcptimerON)
-			if(ssize == tcb->mss) {
-				tcpgo(tpriv, &tcb->rtt_timer);
-				tcb->rttseq = tcb->snd.ptr;
-			}
+				if(tcb->rtt_timer.state != TcptimerON)
+					if(ssize == tcb->mss){
+						tcpgo(tpriv, &tcb->rtt_timer);
+						tcb->rttseq = tcb->snd.ptr;
+					}
 		}
 
 		tpriv->stats[OutSegs]++;
@@ -2790,7 +2767,7 @@ tcpoutput(Conv *s)
 		default:
 			panic("tcpoutput2: version %d", version);
 		}
-		if((msgs%4) == 3){
+		if((msgs % 4) == 3){
 			qunlock(&s->ql);
 			qlock(&s->ql);
 		}
@@ -2805,22 +2782,22 @@ tcpsendka(Conv *s)
 {
 	Tcp seg;
 	Tcpctl *tcb;
-	Block *hbp,*dbp;
+	Block *hbp, *dbp;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	dbp = nil;
 	memset(&seg, 0, sizeof seg);
 	seg.urg = 0;
 	seg.source = s->lport;
 	seg.dest = s->rport;
-	seg.flags = ACK|PSH;
+	seg.flags = ACK | PSH;
 	seg.mss = 0;
 	seg.ws = 0;
 	if(tcpporthogdefense)
-		seg.seq = tcb->snd.una-(1<<30)-nrand(1<<20);
+		seg.seq = tcb->snd.una - (1 << 30) - nrand(1 << 20);
 	else
-		seg.seq = tcb->snd.una-1;
+		seg.seq = tcb->snd.una - 1;
 	seg.ack = tcb->rcv.nxt;
 	tcb->rcv.ackptr = seg.ack;
 	tcprcvwin(s);
@@ -2832,21 +2809,20 @@ tcpsendka(Conv *s)
 		dbp->wp++;
 	}
 
-	if(isv4(s->raddr)) {
+	if(isv4(s->raddr)){
 		/* Build header, link data and compute cksum */
 		tcb->protohdr.tcp4hdr.vihl = IP_VER4;
 		hbp = htontcp4(&seg, dbp, &tcb->protohdr.tcp4hdr, tcb);
-		if(hbp == nil) {
+		if(hbp == nil){
 			freeblist(dbp);
 			return;
 		}
 		ipoput4(s->p->f, hbp, 0, s->ttl, s->tos, s);
-	}
-	else {
+	} else {
 		/* Build header, link data and compute cksum */
 		tcb->protohdr.tcp6hdr.vcf[0] = IP_VER6;
 		hbp = htontcp6(&seg, dbp, &tcb->protohdr.tcp6hdr, tcb);
-		if(hbp == nil) {
+		if(hbp == nil){
 			freeblist(dbp);
 			return;
 		}
@@ -2860,7 +2836,7 @@ tcpsendka(Conv *s)
 static void
 tcpsetkacounter(Tcpctl *tcb)
 {
-	tcb->kacounter = (12 * 60 * 1000) / (tcb->katimer.start*MSPTICK);
+	tcb->kacounter = (12 * 60 * 1000) / (tcb->katimer.start * MSPTICK);
 	if(tcb->kacounter < 3)
 		tcb->kacounter = 3;
 }
@@ -2877,14 +2853,14 @@ tcpkeepalive(void *v)
 	Conv *s;
 
 	s = v;
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	if(waserror()){
 		qunlock(&s->ql);
 		nexterror();
 	}
 	qlock(&s->ql);
 	if(tcb->state != Closed){
-		if(--(tcb->kacounter) <= 0) {
+		if(--(tcb->kacounter) <= 0){
 			localclose(s, Etimedout);
 		} else {
 			tcpsendka(s);
@@ -2898,19 +2874,19 @@ tcpkeepalive(void *v)
 /*
  *  start keepalive timer
  */
-static char*
+static char *
 tcpstartka(Conv *s, char **f, int n)
 {
 	Tcpctl *tcb;
 	int x;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	if(tcb->state != Established)
 		return "connection must be in Establised state";
 	if(n > 1){
 		x = atoi(f[1]);
 		if(x >= MSPTICK)
-			tcb->katimer.start = x/MSPTICK;
+			tcb->katimer.start = x / MSPTICK;
 	}
 	tcpsetkacounter(tcb);
 	tcpgo(s->p->priv, &tcb->katimer);
@@ -2921,12 +2897,12 @@ tcpstartka(Conv *s, char **f, int n)
 /*
  *  turn checksums on/off
  */
-static char*
+static char *
 tcpsetchecksum(Conv *s, char **f, int i)
 {
 	Tcpctl *tcb;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	tcb->nochecksum = !atoi(f[1]);
 
 	return nil;
@@ -2943,8 +2919,8 @@ tcprxmit(Conv *s)
 	Tcppriv *tpriv;
 	uint32_t tcwind, tptr;
 
-	tcb = (Tcpctl*)s->ptcl;
-	tcb->flags |= RETRAN|FORCE;
+	tcb = (Tcpctl *)s->ptcl;
+	tcb->flags |= RETRAN | FORCE;
 
 	tptr = tcb->snd.ptr;
 	tcwind = tcb->cwind;
@@ -2972,9 +2948,9 @@ tcptimeout(void *arg)
 	int maxback;
 	Tcppriv *tpriv;
 
-	s = (Conv*)arg;
+	s = (Conv *)arg;
 	tpriv = s->p->priv;
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 
 	if(waserror()){
 		qunlock(&s->ql);
@@ -2985,18 +2961,18 @@ tcptimeout(void *arg)
 	default:
 		tcb->backoff++;
 		if(tcb->state == Syn_sent)
-			maxback = MAXBACKMS/2;
+			maxback = MAXBACKMS / 2;
 		else
 			maxback = MAXBACKMS;
 		tcb->backedoff += tcb->timer.start * MSPTICK;
-		if(tcb->backedoff >= maxback) {
+		if(tcb->backedoff >= maxback){
 			localclose(s, Etimedout);
 			break;
 		}
 		netlog(s->p->f, Logtcprxmt, "rxm %d/%d %ldms %lu rto %d %lu %s\n",
-			tcb->srtt, tcb->mdev, NOW - tcb->time,
-			tcb->snd.una - tcb->timeuna, tcb->snd.rto, tcb->snd.ptr,
-			tcpstates[s->state]);
+		       tcb->srtt, tcb->mdev, NOW - tcb->time,
+		       tcb->snd.una - tcb->timeuna, tcb->snd.rto, tcb->snd.ptr,
+		       tcpstates[s->state]);
 		tcpsettimer(tcb);
 		if(tcb->snd.rto == 0)
 			tcpcongestion(tcb);
@@ -3007,12 +2983,12 @@ tcptimeout(void *arg)
 		tpriv->stats[RetransTimeouts]++;
 
 		if(tcb->snd.recovery){
-			tcb->snd.dupacks = 0;		/* reno rto */
+			tcb->snd.dupacks = 0; /* reno rto */
 			tcb->snd.recovery = 0;
 			tpriv->stats[RecoveryRTO]++;
 			tcb->snd.rxt = tcb->snd.nxt;
 			netlog(s->p->f, Logtcpwin,
-				"rto recovery rxt @%lu\n", tcb->snd.nxt);
+			       "rto recovery rxt @%lu\n", tcb->snd.nxt);
 		}
 
 		tcb->abcbytes = 0;
@@ -3030,7 +3006,7 @@ tcptimeout(void *arg)
 static int
 inwindow(Tcpctl *tcb, int seq)
 {
-	return seq_within(seq, tcb->rcv.nxt, tcb->rcv.nxt+tcb->rcv.wnd-1);
+	return seq_within(seq, tcb->rcv.nxt, tcb->rcv.nxt + tcb->rcv.wnd - 1);
 }
 
 /*
@@ -3042,7 +3018,7 @@ procsyn(Conv *s, Tcp *seg)
 	Tcpctl *tcb;
 	Tcppriv *tpriv;
 
-	tcb = (Tcpctl*)s->ptcl;
+	tcb = (Tcpctl *)s->ptcl;
 	tcb->flags |= FORCE;
 
 	tcb->rcv.nxt = seg->seq + 1;
@@ -3052,7 +3028,7 @@ procsyn(Conv *s, Tcp *seg)
 	tcb->irs = seg->seq;
 
 	/* our sending max segment size cannot be bigger than what he asked for */
-	if(seg->mss != 0 && seg->mss < tcb->mss) {
+	if(seg->mss != 0 && seg->mss < tcb->mss){
 		tcb->mss = seg->mss;
 		tpriv = s->p->priv;
 		tpriv->stats[Mss] = tcb->mss;
@@ -3093,7 +3069,7 @@ logreseq(Fs *f, Reseq *r, uint32_t n)
 			s = "hole";
 		if(s != nil)
 			netlog(f, Logtcp, "%s %lu-%lu (%ld) %#x\n", s,
-				n, r->seg.seq, r->seg.seq - n, r->seg.flags);
+			       n, r->seg.seq, r->seg.seq - n, r->seg.flags);
 		n = r->seg.seq + r->seg.len;
 	}
 }
@@ -3106,7 +3082,7 @@ addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, uint16_t lengt
 
 	rp = malloc(sizeof *rp);
 	if(rp == nil){
-		freeblist(bp);		/* bp always consumed by addreseq */
+		freeblist(bp); /* bp always consumed by addreseq */
 		return 0;
 	}
 
@@ -3118,7 +3094,7 @@ addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, uint16_t lengt
 	tcb->nreseq++;
 
 	/* Place on reassembly list sorting by starting seq number */
-	for(rr = &tcb->reseq; ; rr = &(*rr)->next)
+	for(rr = &tcb->reseq;; rr = &(*rr)->next)
 		if(*rr == nil || seq_lt(seg->seq, (*rr)->seg.seq)){
 			rp->next = *rr;
 			*rr = rp;
@@ -3131,7 +3107,7 @@ addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, uint16_t lengt
 	qmax = tcb->window;
 	if(tcb->reseqlen > qmax){
 		netlog(f, Logtcp, "tcp: reseq: queue > window: %d > %d; %d packets\n",
-			tcb->reseqlen, qmax, tcb->nreseq);
+		       tcb->reseqlen, qmax, tcb->nreseq);
 		logreseq(f, tcb->reseq, tcb->rcv.nxt);
 		tpriv->stats[ReseqBytelim]++;
 		return dumpreseq(tcb);
@@ -3139,7 +3115,7 @@ addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, uint16_t lengt
 	qmax = tcb->window / tcb->mss; /* ~190 for qscale=2, 390 for qscale=3 */
 	if(tcb->nreseq > qmax){
 		netlog(f, Logtcp, "resequence queue > packets: %d %d; %d bytes\n",
-			tcb->nreseq, qmax, tcb->reseqlen);
+		       tcb->nreseq, qmax, tcb->reseqlen);
 		logreseq(f, tcb->reseq, tcb->rcv.nxt);
 		tpriv->stats[ReseqPktlim]++;
 		return dumpreseq(tcb);
@@ -3182,22 +3158,20 @@ tcptrim(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
 	if(seg->flags & FIN)
 		len++;
 
-	if(tcb->rcv.wnd == 0) {
+	if(tcb->rcv.wnd == 0){
 		if(len == 0 && seg->seq == tcb->rcv.nxt)
 			return 0;
-	}
-	else {
+	} else {
 		/* Some part of the segment should be in the window */
-		if(inwindow(tcb,seg->seq))
+		if(inwindow(tcb, seg->seq))
 			accept++;
-		else
-		if(len != 0) {
-			if(inwindow(tcb, seg->seq+len-1) ||
-			seq_within(tcb->rcv.nxt, seg->seq,seg->seq+len-1))
+		else if(len != 0){
+			if(inwindow(tcb, seg->seq + len - 1) ||
+			   seq_within(tcb->rcv.nxt, seg->seq, seg->seq + len - 1))
 				accept++;
 		}
 	}
-	if(!accept) {
+	if(!accept){
 		freeblist(*bp);
 		return -1;
 	}
@@ -3228,7 +3202,7 @@ tcptrim(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
 		}
 	}
 	excess = seg->seq + *length - (tcb->rcv.nxt + tcb->rcv.wnd);
-	if(excess > 0) {
+	if(excess > 0){
 		tcb->rerecv += excess;
 		*length -= excess;
 		*bp = trimblock(*bp, 0, *length);
@@ -3250,16 +3224,15 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 	uint16_t psource, pdest;
 	Conv *s, **p;
 
-	h4 = (Tcp4hdr*)(bp->rp);
-	h6 = (Tcp6hdr*)(bp->rp);
+	h4 = (Tcp4hdr *)(bp->rp);
+	h6 = (Tcp6hdr *)(bp->rp);
 
-	if((h4->vihl&0xF0)==IP_VER4) {
+	if((h4->vihl & 0xF0) == IP_VER4){
 		v4tov6(dest, h4->tcpdst);
 		v4tov6(source, h4->tcpsrc);
 		psource = nhgets(h4->tcpsport);
 		pdest = nhgets(h4->tcpdport);
-	}
-	else {
+	} else {
 		ipmove(dest, h6->tcpdst);
 		ipmove(source, h6->tcpsrc);
 		psource = nhgets(h6->tcpsport);
@@ -3268,31 +3241,31 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 
 	/* Look for a connection */
 	qlock(&tcp->ql);
-	for(p = tcp->conv; *p; p++) {
+	for(p = tcp->conv; *p; p++){
 		s = *p;
-		tcb = (Tcpctl*)s->ptcl;
+		tcb = (Tcpctl *)s->ptcl;
 		if(s->rport == pdest)
-		if(s->lport == psource)
-		if(tcb->state != Closed)
-		if(ipcmp(s->raddr, dest) == 0)
-		if(ipcmp(s->laddr, source) == 0){
-			qlock(&s->ql);
-			qunlock(&tcp->ql);
-			switch(tcb->state){
-			case Syn_sent:
-				localclose(s, msg);
-				break;
-			}
-			qunlock(&s->ql);
-			freeblist(bp);
-			return;
-		}
+			if(s->lport == psource)
+				if(tcb->state != Closed)
+					if(ipcmp(s->raddr, dest) == 0)
+						if(ipcmp(s->laddr, source) == 0){
+							qlock(&s->ql);
+							qunlock(&tcp->ql);
+							switch(tcb->state){
+							case Syn_sent:
+								localclose(s, msg);
+								break;
+							}
+							qunlock(&s->ql);
+							freeblist(bp);
+							return;
+						}
 	}
 	qunlock(&tcp->ql);
 	freeblist(bp);
 }
 
-static char*
+static char *
 tcpporthogdefensectl(char *val)
 {
 	if(strcmp(val, "on") == 0)
@@ -3305,8 +3278,8 @@ tcpporthogdefensectl(char *val)
 }
 
 /* called with c qlocked */
-static char*
-tcpctl(Conv* c, char** f, int n)
+static char *
+tcpctl(Conv *c, char **f, int n)
 {
 	if(n == 1 && strcmp(f[0], "hangup") == 0)
 		return tcphangup(c);
@@ -3328,7 +3301,7 @@ tcpstats(Proto *tcp, char *buf, int len)
 
 	priv = tcp->priv;
 	p = buf;
-	e = p+len;
+	e = p + len;
 	for(i = 0; i < Nstats; i++)
 		p = seprint(p, e, "%s: %llu\n", statnames[i], priv->stats[i]);
 	return p - buf;
@@ -3350,16 +3323,15 @@ tcpgc(Proto *tcp)
 	int n;
 	Tcpctl *tcb;
 
-
 	n = 0;
 	ep = &tcp->conv[tcp->nc];
-	for(pp = tcp->conv; pp < ep; pp++) {
+	for(pp = tcp->conv; pp < ep; pp++){
 		c = *pp;
 		if(c == nil)
 			break;
 		if(!canqlock(&c->ql))
 			continue;
-		tcb = (Tcpctl*)c->ptcl;
+		tcb = (Tcpctl *)c->ptcl;
 		switch(tcb->state){
 		case Syn_received:
 			if(NOW - tcb->time > 5000){
@@ -3368,7 +3340,7 @@ tcpgc(Proto *tcp)
 			}
 			break;
 		case Finwait2:
-			if(NOW - tcb->time > 5*60*1000){
+			if(NOW - tcb->time > 5 * 60 * 1000){
 				localclose(c, Etimedout);
 				n++;
 			}
@@ -3386,13 +3358,13 @@ tcpsettimer(Tcpctl *tcb)
 
 	/* round trip dependency */
 	x = backoff(tcb->backoff) *
-		(tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
+	    (tcb->mdev + (tcb->srtt >> LOGAGAIN) + MSPTICK) / MSPTICK;
 
 	/* bounded twixt 0.3 and 64 seconds */
-	if(x < 300/MSPTICK)
-		x = 300/MSPTICK;
-	else if(x > (64000/MSPTICK))
-		x = 64000/MSPTICK;
+	if(x < 300 / MSPTICK)
+		x = 300 / MSPTICK;
+	else if(x > (64000 / MSPTICK))
+		x = 64000 / MSPTICK;
 	tcb->timer.start = x;
 }
 
@@ -3443,8 +3415,8 @@ tcpsetscale(Conv *s, Tcpctl *tcb, uint16_t rcvscale, uint16_t sndscale)
 
 	if(rcvscale != tcb->rcv.scale)
 		netlog(s->p->f, Logtcp, "tcpsetscale: window %lu "
-			"qlen %d >> window %u lport %d\n",
-			tcb->window, qlen(s->rq), QMAX<<tcb->qscale, s->lport);
+					"qlen %d >> window %u lport %d\n",
+		       tcb->window, qlen(s->rq), QMAX << tcb->qscale, s->lport);
 	tcb->window = QMAX << tcb->qscale;
 	tcb->ssthresh = tcb->window;
 

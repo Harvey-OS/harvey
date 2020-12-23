@@ -18,7 +18,7 @@ logopen(Log *alog)
 	}
 	if(alog->opens == 0){
 		if(alog->nlog == 0)
-			alog->nlog = 4*1024;
+			alog->nlog = 4 * 1024;
 		if(alog->minread == 0)
 			alog->minread = 1;
 		if(alog->buf == nil && (alog->buf = malloc(alog->nlog)) == nil)
@@ -80,13 +80,12 @@ logread(Log *alog, void *a, int32_t n, int64_t _)
 			alog->len -= n;
 			unlock(&alog->l);
 
-			i = n-d;
+			i = n - d;
 			p = a;
 			memmove(p, rptr, i);
-			memmove(p+i, alog->buf, d);
+			memmove(p + i, alog->buf, d);
 			break;
-		}
-		else
+		} else
 			unlock(&alog->l);
 
 		sleep(&alog->readr, logready, alog);
@@ -98,7 +97,7 @@ logread(Log *alog, void *a, int32_t n, int64_t _)
 	return n;
 }
 
-char*
+char *
 logctl(Log *alog, int argc, char *argv[], Logflag *flags)
 {
 	int i, set;
@@ -181,7 +180,7 @@ log(Log *alog, int mask, char *fmt, ...)
 		return;
 
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf, buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 
 	logn(alog, mask, buf, n);

@@ -22,9 +22,9 @@
 #undef DBG
 #define DBG iprint
 
-Conf conf;			/* XXX - must go - gag */
+Conf conf; /* XXX - must go - gag */
 
-static uintptr_t sp;		/* XXX - must go - user stack of init proc */
+static uintptr_t sp; /* XXX - must go - user stack of init proc */
 
 /* Next time you see a system with cores/sockets running at different clock rates, on x86,
  * let me know. AFAIK, it no longer happens. So the BSP hz is good for the AP hz.
@@ -45,8 +45,8 @@ static char *oargv[128];
 static char oargb[4096];
 static int oargblen;
 
-static int maxcores = 1024;	/* max # of cores given as an argument */
-static int numtcs = 32;		/* initial # of TCs */
+static int maxcores = 1024; /* max # of cores given as an argument */
+static int numtcs = 32;	    /* initial # of TCs */
 
 char dbgflg[256];
 static int vflag;
@@ -176,7 +176,7 @@ options(int argc, char *argv[])
 				argv[0] = p - 1;
 				dbgflg[o] = n;
 			}
-		}else{
+		} else {
 			strncpy(envcopy, next, sizeof envcopy);
 			gettokens(envcopy, env, 2, "=");
 			if(strcmp(env[0], "maxcores") == 0){
@@ -357,7 +357,7 @@ nixsquids(void)
 				sys->nmach++;
 				mach->NIX.nixtype = NIXTC;
 				sys->nc[NIXTC]++;
-			}else
+			} else
 				sys->nc[NIXAC]++;
 			ainc(&active.nbooting);
 		}
@@ -587,7 +587,7 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 	/* Forcing to single core if desired */
 	if(!nosmp){
 		sipi();
-	}else{
+	} else {
 		print("SMP Disabled by command line\n");
 	}
 	timersinit();
@@ -825,7 +825,7 @@ shutdown(int ispanic)
 		else
 			for(;;)
 				halt();
-	}else
+	} else
 		delay(1000);
 }
 

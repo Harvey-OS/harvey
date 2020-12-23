@@ -31,23 +31,27 @@ void lowrisc_flush(int idx);
 extern uint8_t *uart;
 extern uintptr_t uartpa;
 
-static void spike_putchar(uint8_t c)
+static void
+spike_putchar(uint8_t c)
 {
 	*uart = c;
 }
 
 // Get a 7-bit char. < 0 means err.
-static int spike_getchar(void)
+static int
+spike_getchar(void)
 {
-	if (uart[5] & 1) {
+	if(uart[5] & 1){
 		int c = uart[0];
-		if (0) print("getchar: got 0x%x\n", c);
+		if(0)
+			print("getchar: got 0x%x\n", c);
 		return c;
 	}
 	return -1;
 }
 
-void uart_init(void)
+void
+uart_init(void)
 {
 	switch(uartpa){
 	case 0x42000000:
@@ -57,7 +61,8 @@ void uart_init(void)
 	}
 }
 
-void putchar(uint8_t c)
+void
+putchar(uint8_t c)
 {
 	switch(uartpa){
 	case 0x40001000:
@@ -74,7 +79,8 @@ void putchar(uint8_t c)
 }
 
 // Get a 7-bit char. < 0 means err.
-int getchar(void)
+int
+getchar(void)
 {
 	int c;
 	switch(uartpa){
@@ -84,7 +90,7 @@ int getchar(void)
 	case 0x42000000:
 		c = lowrisc_getchar(0);
 		// bug in lowrisc hardware
-		if (c == 0)
+		if(c == 0)
 			return -1;
 		return c;
 		break;

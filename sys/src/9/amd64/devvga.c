@@ -18,7 +18,7 @@
 #include "io.h"
 #include "../port/error.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
@@ -33,11 +33,11 @@ enum {
 };
 
 static Dirtab vgadir[] = {
-	{".",	{ Qdir, 0, QTDIR },		0,	0550},
-	{"vgabios",	{ Qvgabios, 0 },	0x100000, 0440},
-	{"vgactl",		{ Qvgactl, 0 },		0,	0660},
-	{"vgaovl",		{ Qvgaovl, 0 },		0,	0660},
-	{"vgaovlctl",	{ Qvgaovlctl, 0 },	0, 	0660},
+	{".", {Qdir, 0, QTDIR}, 0, 0550},
+	{"vgabios", {Qvgabios, 0}, 0x100000, 0440},
+	{"vgactl", {Qvgactl, 0}, 0, 0660},
+	{"vgaovl", {Qvgaovl, 0}, 0, 0660},
+	{"vgaovlctl", {Qvgaovlctl, 0}, 0, 0660},
 };
 
 enum {
@@ -58,20 +58,20 @@ enum {
 };
 
 static Cmdtab vgactlmsg[] = {
-	{CMactualsize,		"actualsize",	2},
-	{CMblank,		"blank",	1},
-	{CMblanktime,		"blanktime",	2},
-	{CMdrawinit,		"drawinit",	1},
-	{CMhwaccel,		"hwaccel",	2},
-	{CMhwblank,		"hwblank",	2},
-	{CMhwgc,		"hwgc",		2},
-	{CMlinear,		"linear",	0},
-	{CMpalettedepth,	"palettedepth",	2},
-	{CMpanning,		"panning",	2},
-	{CMsize,		"size",		3},
-	{CMtextmode,		"textmode",	1},
-	{CMtype,		"type",		2},
-	{CMunblank,		"unblank",	1},
+	{CMactualsize, "actualsize", 2},
+	{CMblank, "blank", 1},
+	{CMblanktime, "blanktime", 2},
+	{CMdrawinit, "drawinit", 1},
+	{CMhwaccel, "hwaccel", 2},
+	{CMhwblank, "hwblank", 2},
+	{CMhwgc, "hwgc", 2},
+	{CMlinear, "linear", 0},
+	{CMpalettedepth, "palettedepth", 2},
+	{CMpanning, "panning", 2},
+	{CMsize, "size", 3},
+	{CMtextmode, "textmode", 1},
+	{CMtype, "type", 2},
+	{CMunblank, "unblank", 1},
 };
 
 static long
@@ -82,22 +82,22 @@ rmemrw(int isr, void *a, long n, int64_t off)
 	if(isr){
 		if(off >= MB)
 			return 0;
-		if(off+n >= MB)
+		if(off + n >= MB)
 			n = MB - off;
 		memmove(a, KADDR((uintptr_t)off), n);
-	}else{
+	} else {
 		/* realmode buf page ok, allow vga framebuf's access */
 		if(off >= MB)
 			error("Offset > MB");
-		if (off+n > MB)
+		if(off + n > MB)
 			error("off+n > MB");
-		if (off < LORMBUF)
+		if(off < LORMBUF)
 			error("off < LORMBUF");
-		if (off+n > LORMBUF+PGSZ)
+		if(off + n > LORMBUF + PGSZ)
 			error("off+n > LORMBUF+BY2PG");
-		if (off < 0xA0000)
+		if(off < 0xA0000)
 			error("off < 0xa0000");
-		if (off+n > 0xB0000+0x10000)
+		if(off + n > 0xB0000 + 0x10000)
 			error("off+n > 0xb0000+0x10000");
 		memmove(KADDR((uintptr_t)off), a, n);
 	}
@@ -105,13 +105,13 @@ rmemrw(int isr, void *a, long n, int64_t off)
 }
 
 static int32_t
-rmemread(Chan*_, void *a, int32_t n, int64_t off)
+rmemread(Chan *_, void *a, int32_t n, int64_t off)
 {
 	return rmemrw(1, a, n, off);
 }
 
 static int32_t
-rmemwrite(Chan*_, void *a, int32_t n, int64_t off)
+rmemwrite(Chan *_, void *a, int32_t n, int64_t off)
 {
 	return rmemrw(0, a, n, off);
 }
@@ -120,42 +120,42 @@ static void
 vgareset(void)
 {
 	/* reserve the 'standard' vga registers */
-	if(ioalloc(0x2b0, 0x2df-0x2b0+1, 0, "vga") < 0)
+	if(ioalloc(0x2b0, 0x2df - 0x2b0 + 1, 0, "vga") < 0)
 		panic("vga ports already allocated");
-	if(ioalloc(0x3c0, 0x3da-0x3c0+1, 0, "vga") < 0)
+	if(ioalloc(0x3c0, 0x3da - 0x3c0 + 1, 0, "vga") < 0)
 		panic("vga ports already allocated");
 	addarchfile("realmodemem", 0660, rmemread, rmemwrite);
 }
 
-static Chan*
-vgaattach(char* spec)
+static Chan *
+vgaattach(char *spec)
 {
 	if(*spec && strcmp(spec, "0"))
 		error(Eio);
 	return devattach('v', spec);
 }
 
-Walkqid*
-vgawalk(Chan* c, Chan *nc, char** name, int nname)
+Walkqid *
+vgawalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, vgadir, nelem(vgadir), devgen);
 }
 
 static int
-vgastat(Chan* c, unsigned char* dp, int n)
+vgastat(Chan *c, unsigned char *dp, int n)
 {
 	return devstat(c, dp, n, vgadir, nelem(vgadir), devgen);
 }
 
-static Chan*
-vgaopen(Chan* c, int omode)
+static Chan *
+vgaopen(Chan *c, int omode)
 {
 	VGAscr *scr;
 	static char *openctl = "openctl\n";
 
 	scr = &vgascreen[0];
-	if ((uint32_t)c->qid.path == Qvgaovlctl) {
-		if (scr->dev && scr->dev->ovlctl)
+	if((uint32_t)c->qid.path == Qvgaovlctl){
+		if(scr->dev && scr->dev->ovlctl)
 			scr->dev->ovlctl(scr, c, openctl, strlen(openctl));
 		else
 			error(Enonexist);
@@ -164,7 +164,7 @@ vgaopen(Chan* c, int omode)
 }
 
 static void
-vgaclose(Chan* c)
+vgaclose(Chan *c)
 {
 	Proc *up = externup();
 	VGAscr *scr;
@@ -183,7 +183,7 @@ vgaclose(Chan* c)
 }
 
 static int32_t
-vgaread(Chan* c, void* a, int32_t n, int64_t off)
+vgaread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int len;
@@ -200,9 +200,9 @@ vgaread(Chan* c, void* a, int32_t n, int64_t off)
 	case Qvgabios:
 		if(offset >= 0x100000)
 			return 0;
-		if(offset+n >= 0x100000)
+		if(offset + n >= 0x100000)
 			n = 0x100000 - offset;
-		memmove(a, (unsigned char*)KADDR(0)+offset, n);
+		memmove(a, (unsigned char *)KADDR(0) + offset, n);
 		return n;
 
 	case Qvgactl:
@@ -222,25 +222,24 @@ vgaread(Chan* c, void* a, int32_t n, int64_t off)
 			s = scr->dev->name;
 		else
 			s = "cga";
-		len += snprint(p+len, READSTR-len, "type %s\n", s);
+		len += snprint(p + len, READSTR - len, "type %s\n", s);
 
-		if(scr->gscreen) {
-			len += snprint(p+len, READSTR-len, "size %dx%dx%d %s\n",
-				scr->gscreen->r.max.x, scr->gscreen->r.max.y,
-				scr->gscreen->depth, chantostr(chbuf, scr->gscreen->chan));
+		if(scr->gscreen){
+			len += snprint(p + len, READSTR - len, "size %dx%dx%d %s\n",
+				       scr->gscreen->r.max.x, scr->gscreen->r.max.y,
+				       scr->gscreen->depth, chantostr(chbuf, scr->gscreen->chan));
 
-			if(Dx(scr->gscreen->r) != Dx(physgscreenr)
-			|| Dy(scr->gscreen->r) != Dy(physgscreenr))
-				len += snprint(p+len, READSTR-len, "actualsize %dx%d\n",
-					physgscreenr.max.x, physgscreenr.max.y);
+			if(Dx(scr->gscreen->r) != Dx(physgscreenr) || Dy(scr->gscreen->r) != Dy(physgscreenr))
+				len += snprint(p + len, READSTR - len, "actualsize %dx%d\n",
+					       physgscreenr.max.x, physgscreenr.max.y);
 		}
 
-		len += snprint(p+len, READSTR-len, "blank time %lu idle %d state %s\n",
-			blanktime, drawidletime(), scr->isblank ? "off" : "on");
-		len += snprint(p+len, READSTR-len, "hwaccel %s\n", hwaccel ? "on" : "off");
-		len += snprint(p+len, READSTR-len, "hwblank %s\n", hwblank ? "on" : "off");
-		len += snprint(p+len, READSTR-len, "panning %s\n", panning ? "on" : "off");
-		len += snprint(p+len, READSTR-len, "addr p 0x%lx v 0x%p size 0x%x\n", scr->paddr, scr->vaddr, scr->apsize);
+		len += snprint(p + len, READSTR - len, "blank time %lu idle %d state %s\n",
+			       blanktime, drawidletime(), scr->isblank ? "off" : "on");
+		len += snprint(p + len, READSTR - len, "hwaccel %s\n", hwaccel ? "on" : "off");
+		len += snprint(p + len, READSTR - len, "hwblank %s\n", hwblank ? "on" : "off");
+		len += snprint(p + len, READSTR - len, "panning %s\n", panning ? "on" : "off");
+		len += snprint(p + len, READSTR - len, "addr p 0x%lx v 0x%p size 0x%x\n", scr->paddr, scr->vaddr, scr->apsize);
 		USED(len);
 
 		n = readstr(offset, a, n, p);
@@ -377,7 +376,7 @@ vgactl(Cmdbuf *cb)
 		if(x > scr->gscreen->r.max.x || y > scr->gscreen->r.max.y)
 			error("physical screen bigger than virtual");
 
-		physgscreenr = Rect(0,0,x,y);
+		physgscreenr = Rect(0, 0, x, y);
 		scr->gscreen->clipr = physgscreenr;
 		return;
 
@@ -397,7 +396,7 @@ vgactl(Cmdbuf *cb)
 		return;
 
 	case CMlinear:
-		if(cb->nf!=2 && cb->nf!=3)
+		if(cb->nf != 2 && cb->nf != 3)
 			error(Ebadarg);
 		size = strtoul(cb->f[1], 0, 0);
 		if(cb->nf == 2)
@@ -407,7 +406,7 @@ vgactl(Cmdbuf *cb)
 		if(screenaperture(size, align) < 0)
 			error("not enough free address space");
 		return;
-/*
+		/*
 	case CMmemset:
 		memset((void*)strtoul(cb->f[1], 0, 0), atoi(cb->f[2]), atoi(cb->f[3]));
 		return;
@@ -433,11 +432,10 @@ vgactl(Cmdbuf *cb)
 				error("panning not supported");
 			scr->gscreen->clipr = scr->gscreen->r;
 			panning = 1;
-		}
-		else if(strcmp(cb->f[1], "off") == 0){
+		} else if(strcmp(cb->f[1], "off") == 0){
 			scr->gscreen->clipr = physgscreenr;
 			panning = 0;
-		}else
+		} else
 			break;
 		return;
 
@@ -466,7 +464,7 @@ vgactl(Cmdbuf *cb)
 char Enooverlay[] = "No overlay support";
 
 static int32_t
-vgawrite(Chan* c, void* a, int32_t n, int64_t off)
+vgawrite(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	uint32_t offset = off;
@@ -493,7 +491,7 @@ vgawrite(Chan* c, void* a, int32_t n, int64_t off)
 
 	case Qvgaovl:
 		scr = &vgascreen[0];
-		if (scr->dev == nil || scr->dev->ovlwrite == nil) {
+		if(scr->dev == nil || scr->dev->ovlwrite == nil){
 			error(Enooverlay);
 			break;
 		}
@@ -501,7 +499,7 @@ vgawrite(Chan* c, void* a, int32_t n, int64_t off)
 
 	case Qvgaovlctl:
 		scr = &vgascreen[0];
-		if (scr->dev == nil || scr->dev->ovlctl == nil) {
+		if(scr->dev == nil || scr->dev->ovlctl == nil){
 			error(Enooverlay);
 			break;
 		}

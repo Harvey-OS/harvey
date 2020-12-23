@@ -20,30 +20,29 @@
 #include "fns.h"
 #include "acpi.h"
 
-#define ISPOWEROF2(x)	(((x) != 0) && !((x) & ((x)-1)))
-#define UNO		((uintmem)1)
+#define ISPOWEROF2(x) (((x) != 0) && !((x) & ((x)-1)))
+#define UNO ((uintmem)1)
 
 enum {
-	BKmin		= 21,			/* Minimum lg2 */
-	BKmax		= 30,			/* Maximum lg2 */
+	BKmin = 21, /* Minimum lg2 */
+	BKmax = 30, /* Maximum lg2 */
 
-	Ndoms = 16,				/* Max # of domains */
+	Ndoms = 16, /* Max # of domains */
 
 	Used = 0,
 	Avail = 1,
 };
 
-
-#define INDEX(b, v)	((uint)(((v))/(b)->bminsz))
-#define BLOCK(b, i)	((i)-INDEX((b),(b)->memory))
+#define INDEX(b, v) ((uint)(((v)) / (b)->bminsz))
+#define BLOCK(b, i) ((i)-INDEX((b), (b)->memory))
 
 typedef struct Buddy Buddy;
 struct Buddy {
-	int16_t	tag;		/* Used or Avail */
-	int16_t	kval;
-	uint	next;
-	uint	prev;
-	void	*p;
+	int16_t tag; /* Used or Avail */
+	int16_t kval;
+	uint next;
+	uint prev;
+	void *p;
 };
 
 /*
@@ -53,26 +52,26 @@ struct Buddy {
  */
 typedef struct Bal Bal;
 struct Bal {
-	uintmem	base;
-	uint64_t	size;
-	usize	nfree;
-	usize	nblocks;
-	int	kmin;		/* Minimum lg2 */
-	int	kmax;		/* Maximum lg2 */
-	uintmem	bminsz;		/* minimum block sz */
+	uintmem base;
+	uint64_t size;
+	usize nfree;
+	usize nblocks;
+	int kmin;	/* Minimum lg2 */
+	int kmax;	/* Maximum lg2 */
+	uintmem bminsz; /* minimum block sz */
 	uintmem memory;
-	uint	kspan;
+	uint kspan;
 
-	Buddy* blocks;
-	Buddy* avail;
+	Buddy *blocks;
+	Buddy *avail;
 };
 
 static Bal bal[Ndoms];
 static int ndoms;
 static Lock budlock;
 
-char*
-seprintphysstats(char *s,  char *e)
+char *
+seprintphysstats(char *s, char *e)
 {
 	Bal *b;
 	int i;
@@ -82,7 +81,7 @@ seprintphysstats(char *s,  char *e)
 		b = &bal[i];
 		if(b->size > 0)
 			s = seprint(s, e, "%lu/%lu %lluK color %d blocks avail\n",
-				b->nfree, b->nblocks, b->bminsz/KiB, i);
+				    b->nfree, b->nblocks, b->bminsz / KiB, i);
 	}
 	unlock(&budlock);
 	return s;
@@ -105,21 +104,21 @@ xphysfree(Bal *b, uintmem data, uint64_t size)
 
 	if(data == 0 /*|| !ALIGNED(data, b->bminsz)*/)
 		return;
-	i = INDEX(b,data);
+	i = INDEX(b, data);
 
 	lock(&budlock);
 S1:
 	/*
 	 * Find buddy.
 	 */
-	l = &blocks[BLOCK(b,i)];
+	l = &blocks[BLOCK(b, i)];
 	l->p = nil;
 	DBG("\tbsl: BLOCK(b,i) %d index %llu kval %d\n",
-		BLOCK(b,i), BLOCK(b,i)/((1<<l->kval)/b->bminsz), l->kval);
-	if((BLOCK(b,i)/((1<<l->kval)/b->bminsz)) & 1)	/* simpler test? */
-		p = l - (1<<l->kval)/b->bminsz;
+	    BLOCK(b, i), BLOCK(b, i) / ((1 << l->kval) / b->bminsz), l->kval);
+	if((BLOCK(b, i) / ((1 << l->kval) / b->bminsz)) & 1) /* simpler test? */
+		p = l - (1 << l->kval) / b->bminsz;
 	else
-		p = l + (1<<l->kval)/(b->bminsz);
+		p = l + (1 << l->kval) / (b->bminsz);
 	DBG("\tbsl: l @ %ld buddy @ %ld\n", l - blocks, p - blocks);
 
 	/*
@@ -137,14 +136,14 @@ S1:
 		l->next = avail[l->kval].next;
 		l->prev = 0;
 		if(l->next != 0)
-			blocks[BLOCK(b,l->next)].prev = i;
+			blocks[BLOCK(b, l->next)].prev = i;
 		avail[l->kval].next = i;
 
-		b->nfree += size/b->bminsz;
+		b->nfree += size / b->bminsz;
 
 		unlock(&budlock);
 		DBG("bsl: free @ i %d BLOCK(b,i) %d kval %d next %d %s\n",
-			i, BLOCK(b,i), l->kval, l->next, l->tag?"avail":"used");
+		    i, BLOCK(b, i), l->kval, l->next, l->tag ? "avail" : "used");
 		return;
 	}
 
@@ -153,13 +152,12 @@ S1:
 	 * This removes block P from the avail list.
 	 */
 	if(p->prev != 0){
-		blocks[BLOCK(b,p->prev)].next = p->next;
+		blocks[BLOCK(b, p->prev)].next = p->next;
 		p->prev = 0;
-	}
-	else
+	} else
 		avail[p->kval].next = 0;
 	if(p->next != 0){
-		blocks[BLOCK(b,p->next)].prev = p->prev;
+		blocks[BLOCK(b, p->next)].prev = p->prev;
 		p->next = 0;
 	}
 	p->tag = Used;
@@ -171,10 +169,10 @@ S1:
 	DBG("\tbsl: l @ %ld p @ %ld\n", l - blocks, p - blocks);
 	if(p < l)
 		l = p;
-	i = l - blocks + INDEX(b,b->memory);
+	i = l - blocks + INDEX(b, b->memory);
 	l->kval++;
 	DBG("bsl: merge @ i %d BLOCK(b,i) %d kval %d next %d tag %s\n",
-		i, BLOCK(b,i), l->kval, l->next, l->tag?"avail":"used");
+	    i, BLOCK(b, i), l->kval, l->next, l->tag ? "avail" : "used");
 	goto S1;
 }
 
@@ -194,7 +192,7 @@ physfree(uintmem data, uint64_t size)
 	panic("physfree: no bal");
 }
 
-static void*
+static void *
 xphystag(Bal *b, uintmem data)
 {
 	uint i;
@@ -206,11 +204,11 @@ xphystag(Bal *b, uintmem data)
 
 	if(data == 0 /*|| !ALIGNED(data, b->bminsz)*/)
 		return nil;
-	i = INDEX(b,data);
-	return blocks[BLOCK(b,i)].p;
+	i = INDEX(b, data);
+	return blocks[BLOCK(b, i)].p;
 }
 
-void*
+void *
 phystag(uintmem data)
 {
 	Bal *b;
@@ -225,22 +223,262 @@ phystag(uintmem data)
 }
 
 static uint8_t lg2table[256] = {
-	0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
-	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-	5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-	5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+	0,
+	0,
+	1,
+	1,
+	2,
+	2,
+	2,
+	2,
+	3,
+	3,
+	3,
+	3,
+	3,
+	3,
+	3,
+	3,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	4,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
+	7,
 };
 
 static int
@@ -248,23 +486,23 @@ lg2floor(uint64_t w)
 {
 	uint64_t hi, lo;
 
-	if((lo = (w>>48)) != 0){
-		if((hi = (lo>>8)) != 0)
-			return 56+lg2table[hi];
-		return 48+lg2table[lo];
+	if((lo = (w >> 48)) != 0){
+		if((hi = (lo >> 8)) != 0)
+			return 56 + lg2table[hi];
+		return 48 + lg2table[lo];
 	}
-	if((lo = (w>>32)) != 0){
-		if((hi = (lo>>8)) != 0)
-			return 40+lg2table[hi];
-		return 32+lg2table[lo];
+	if((lo = (w >> 32)) != 0){
+		if((hi = (lo >> 8)) != 0)
+			return 40 + lg2table[hi];
+		return 32 + lg2table[lo];
 	}
-	if((lo = (w>>16)) != 0){
-		if((hi = (lo>>8)) != 0)
-			return 24+lg2table[hi];
-		return 16+lg2table[lo];
+	if((lo = (w >> 16)) != 0){
+		if((hi = (lo >> 8)) != 0)
+			return 24 + lg2table[hi];
+		return 16 + lg2table[lo];
 	}
-	if((hi = (w>>8)) != 0)
-		return 8+lg2table[hi];
+	if((hi = (w >> 8)) != 0)
+		return 8 + lg2table[hi];
 	return lg2table[w];
 }
 
@@ -310,9 +548,9 @@ xphysalloc(Bal *b, uint64_t size, void *tag)
 	 * Remove from list.
 	 */
 	i = avail[j].next;
-	l = &blocks[BLOCK(b,i)];
+	l = &blocks[BLOCK(b, i)];
 	DBG("bsr: block @ i %d BLOCK(b,i) %d kval %d next %d %s\n",
-		i, BLOCK(b,i), l->kval, l->next, l->tag?"avail":"used");
+	    i, BLOCK(b, i), l->kval, l->next, l->tag ? "avail" : "used");
 	avail[j].next = l->next;
 	blocks[avail[j].next].prev = 0;
 	l->prev = l->next = 0;
@@ -327,24 +565,24 @@ xphysalloc(Bal *b, uint64_t size, void *tag)
 		 * Split.
 		 */
 		j--;
-		p = &blocks[BLOCK(b,i) + (UNO<<j)/(b->bminsz)];
+		p = &blocks[BLOCK(b, i) + (UNO << j) / (b->bminsz)];
 		p->tag = Avail;
 		p->kval = j;
 		p->next = avail[j].next;
 		p->prev = 0;
 		if(p->next != 0)
-			blocks[BLOCK(b,p->next)].prev = i + (UNO<<j)/(b->bminsz);
-		avail[j].next = i + (UNO<<j)/(b->bminsz);
+			blocks[BLOCK(b, p->next)].prev = i + (UNO << j) / (b->bminsz);
+		avail[j].next = i + (UNO << j) / (b->bminsz);
 		DBG("bsr: split @ i %d BLOCK(b,i) %ld j %d next %d (%d) %s\n",
-			i, p - blocks, j, p->next, BLOCK(b,p->next),
-			p->tag?"avail":"used");
+		    i, p - blocks, j, p->next, BLOCK(b, p->next),
+		    p->tag ? "avail" : "used");
 	}
-	b->nfree -= size/b->bminsz;
+	b->nfree -= size / b->bminsz;
 	unlock(&budlock);
 
-	m = b->memory + b->bminsz*BLOCK(b,i);
+	m = b->memory + b->bminsz * BLOCK(b, i);
 	assert(m >= b->base && m < b->base + b->size);
-	blocks[BLOCK(b,i)].p = tag;
+	blocks[BLOCK(b, i)].p = tag;
 
 	return m;
 }
@@ -409,7 +647,7 @@ physallocdump(void)
 	for(n = 0; n < Ndoms; n++)
 		if(bal[n].size > 0)
 			print("physalloc color=%d base=%#llx size=%#llx\n",
-				n, bal[n].base, bal[n].size);
+			      n, bal[n].base, bal[n].size);
 }
 
 static int
@@ -418,14 +656,13 @@ plop(Bal *b, uintmem a, int k, int type)
 	uint i;
 	Buddy *l;
 
-
 	DBG("plop(a %#p k %d type %d)\n", a, k, type);
 
-	i = INDEX(b,a);
-	l = &b->blocks[BLOCK(b,i)];
+	i = INDEX(b, a);
+	l = &b->blocks[BLOCK(b, i)];
 
 	l->kval = k;
-	xphysfree(b, a, 1<<k);
+	xphysfree(b, a, 1 << k);
 
 	return 1;
 }
@@ -440,9 +677,9 @@ iimbchunk(Bal *b, uintmem a, uintmem e, int type)
 	e = ROUNDDN(e, b->bminsz);
 	DBG("iimbchunk: start a %#P e %#P\n", a, e);
 
-	b->nblocks += (e-a)/b->bminsz;
+	b->nblocks += (e - a) / b->bminsz;
 
-	for(k = b->kmin, s = b->bminsz; a+s < e && k < b->kmax; s <<= 1, k += 1){
+	for(k = b->kmin, s = b->bminsz; a + s < e && k < b->kmax; s <<= 1, k += 1){
 		if(a & s){
 			plop(b, a, k, type);
 			a += s;
@@ -450,14 +687,14 @@ iimbchunk(Bal *b, uintmem a, uintmem e, int type)
 	}
 	DBG("done1 a %#P e %#P s %#x %d\n", a, e, s, k);
 
-	while(a+s <= e){
+	while(a + s <= e){
 		plop(b, a, k, type);
 		a += s;
 	}
 	DBG("done2 a %#P e %#P s %#x %d\n", a, e, s, k);
 
 	for(k -= 1, s >>= 1; a < e; s >>= 1, k -= 1){
-		if(a+s <= e){
+		if(a + s <= e){
 			plop(b, a, k, type);
 			a += s;
 		}
@@ -480,9 +717,9 @@ physinit(uintmem a, uint64_t size)
 
 	DBG("physinit %#llx %#llx\n", a, size);
 
-	for(addr = a; addr < a+size; addr += len){
+	for(addr = a; addr < a + size; addr += len){
 		dom = 0;
-		len = 0; // acpimblocksize(addr, &dom);
+		len = 0;	// acpimblocksize(addr, &dom);
 		/* len can be zero if there's no acpi information about addr */
 		if(len == 0 || addr + len > a + size)
 			len = a + size - addr;
@@ -495,47 +732,47 @@ physinit(uintmem a, uint64_t size)
 		 * that there is no interleaving of domains. Ok by now.
 		 */
 		DBG("physmem block dom %d addr %#llx size %#llx\n",
-			dom, addr, len);
+		    dom, addr, len);
 		if(dom < 0 || dom >= Ndoms){
 			print("physinit: invalid dom %d\n", dom);
 			dom = 0;
 		}
 		b = &bal[dom];
 		if(dom >= ndoms)
-			ndoms = dom+1;
+			ndoms = dom + 1;
 		if(b->kmin == 0){
 			b->base = addr;
 			b->size = len;
 			b->kmin = BKmin;
 			b->kmax = BKmax;
-			b->bminsz = (UNO<<b->kmin);
+			b->bminsz = (UNO << b->kmin);
 			b->memory = sys->pmstart;
 			b->kspan = lg2floor(sys->pmend);
 			if(!ISPOWEROF2(sys->pmend))
 				b->kspan++;
-			dtsz = sizeof(Buddy)*(UNO<<(b->kspan-b->kmin+1));
+			dtsz = sizeof(Buddy) * (UNO << (b->kspan - b->kmin + 1));
 			DBG("kspan %u (arrysz = %llu)\n", b->kspan, dtsz);
 			b->blocks = malloc(dtsz);
 			if(b->blocks == nil)
 				panic("physinit: no blocks");
 			memset(b->blocks, 0, dtsz);
-			b->avail = malloc(sizeof(Buddy)*(b->kmax+1));
+			b->avail = malloc(sizeof(Buddy) * (b->kmax + 1));
 			if(b->avail == nil)
 				panic("physinit: no avail");
-			memset(b->avail, 0, sizeof(Buddy)*(b->kmax+1));
-		}else{
+			memset(b->avail, 0, sizeof(Buddy) * (b->kmax + 1));
+		} else {
 			if(addr < b->base)
 				panic("physinit: decreasing base");
-			if(b->base+b->size < addr + len)
-				b->size = (addr-b->base) + len;
+			if(b->base + b->size < addr + len)
+				b->size = (addr - b->base) + len;
 			for(i = 0; i < Ndoms; i++)
 				if(bal[i].kmin && &bal[i] != b)
-				if(bal[i].base < b->base + b->size &&
-				   bal[i].base + bal[i].size > b->base + b->size)
-					panic("physinit: doms overlap");
+					if(bal[i].base < b->base + b->size &&
+					   bal[i].base + bal[i].size > b->base + b->size)
+						panic("physinit: doms overlap");
 		}
-		assert(addr >= b->base && addr+len <= b->base + b->size);
+		assert(addr >= b->base && addr + len <= b->base + b->size);
 
-		iimbchunk(b, addr, addr+len, 0);
+		iimbchunk(b, addr, addr + len, 0);
 	}
 }

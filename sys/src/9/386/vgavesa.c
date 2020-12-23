@@ -23,7 +23,7 @@
 #include "../port/error.h"
 #include "../../386/include/ureg.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
@@ -36,12 +36,18 @@ enum {
 static void *hardscreen;
 static uint8_t modebuf[0x1000];
 
-#define WORD(p) ((p)[0] | ((p)[1]<<8))
-#define LONG(p) ((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
-#define PWORD(p, v) (p)[0] = (v); (p)[1] = (v)>>8
-#define PLONG(p, v) (p)[0] = (v); (p)[1] = (v)>>8; (p)[2] = (v)>>16; (p)[3] = (v)>>24
+#define WORD(p) ((p)[0] | ((p)[1] << 8))
+#define LONG(p) ((p)[0] | ((p)[1] << 8) | ((p)[2] << 16) | ((p)[3] << 24))
+#define PWORD(p, v)   \
+	(p)[0] = (v); \
+	(p)[1] = (v) >> 8
+#define PLONG(p, v)         \
+	(p)[0] = (v);       \
+	(p)[1] = (v) >> 8;  \
+	(p)[2] = (v) >> 16; \
+	(p)[3] = (v) >> 24
 
-static uint8_t*
+static uint8_t *
 vbesetup(Ureg *u, int ax)
 {
 	// Yes, it's a PA, but it's a real mode PA, and 32 bits are fine.
@@ -51,8 +57,8 @@ vbesetup(Ureg *u, int ax)
 	memset(modebuf, 0, sizeof modebuf);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
-	u->es = (pa>>4)&0xF000;
-	u->di = pa&0xFFFF;
+	u->es = (pa >> 4) & 0xF000;
+	u->di = pa & 0xFFFF;
 	return modebuf;
 }
 
@@ -76,11 +82,12 @@ vbecall(Ureg *u)
 	pa = PADDR(RMBUF);
 	cmem->dev->write(cmem, modebuf, sizeof modebuf, pa);
 	u->trap = 0x10;
-	if(DBGFLG) print("vbecall: sizeof u is %d\n", sizeof *u);
+	if(DBGFLG)
+		print("vbecall: sizeof u is %d\n", sizeof *u);
 	creg->dev->write(creg, u, sizeof *u, 0);
 
 	creg->dev->read(creg, u, sizeof *u, 0);
-	if((u->ax&0xFFFF) != 0x004F)
+	if((u->ax & 0xFFFF) != 0x004F)
 		error("vesa bios error");
 	cmem->dev->read(cmem, modebuf, sizeof modebuf, pa);
 
@@ -97,9 +104,9 @@ vbecheck(void)
 	uint8_t *p;
 
 	p = vbesetup(&u, 0x4F00);
-	strcpy((char*)p, "VBE2");
+	strcpy((char *)p, "VBE2");
 	vbecall(&u);
-	if(memcmp((char*)p, "VESA", 4) != 0)
+	if(memcmp((char *)p, "VESA", 4) != 0)
 		error("bad vesa signature");
 	if(p[5] < 2)
 		error("bad vesa version");
@@ -115,7 +122,7 @@ vbegetmode(void)
 	return u.bx;
 }
 
-static uint8_t*
+static uint8_t *
 vbemodeinfo(int mode)
 {
 	uint8_t *p;
@@ -135,7 +142,7 @@ vesalinear(VGAscr *scr, int _1, int _2)
 	uint32_t paddr;
 	Pcidev *pci;
 
-	if(hardscreen) {
+	if(hardscreen){
 		scr->vaddr = 0;
 		scr->paddr = scr->apsize = 0;
 		return;
@@ -150,13 +157,13 @@ vesalinear(VGAscr *scr, int _1, int _2)
 	 */
 	mode &= 0x3FFF;
 	p = vbemodeinfo(mode);
-	if(!(WORD(p+0) & (1<<4)))
+	if(!(WORD(p + 0) & (1 << 4)))
 		error("not in VESA graphics mode");
-	if(!(WORD(p+0) & (1<<7)))
+	if(!(WORD(p + 0) & (1 << 7)))
 		error("not in linear graphics mode");
 
-	paddr = LONG(p+40);
-	size = WORD(p+20)*WORD(p+16);
+	paddr = LONG(p + 40);
+	size = WORD(p + 20) * WORD(p + 16);
 	size = ROUNDUP(size, PGSZ);
 
 	/*
@@ -168,8 +175,8 @@ vesalinear(VGAscr *scr, int _1, int _2)
 	while(!havesize && (pci = pcimatch(pci, 0, 0)) != nil){
 		if(pci->ccrb != Pcibcdisp)
 			continue;
-		for(i=0; i<nelem(pci->mem); i++)
-			if(paddr == (pci->mem[i].bar&~0x0F)){
+		for(i = 0; i < nelem(pci->mem); i++)
+			if(paddr == (pci->mem[i].bar & ~0x0F)){
 				if(pci->mem[i].size > size)
 					size = pci->mem[i].size;
 				havesize = 1;
@@ -179,13 +186,13 @@ vesalinear(VGAscr *scr, int _1, int _2)
 
 	/* no pci - heuristic guess */
 	if(!havesize){
-		if(size < 4*1024*1024)
-			size = 4*1024*1024;
+		if(size < 4 * 1024 * 1024)
+			size = 4 * 1024 * 1024;
 		else
-			size = ROUND(size, 1024*1024);
+			size = ROUND(size, 1024 * 1024);
 	}
-	if(size > 16*1024*1024)		/* arbitrary */
-		size = 16*1024*1024;
+	if(size > 16 * 1024 * 1024) /* arbitrary */
+		size = 16 * 1024 * 1024;
 
 	vgalinearaddr(scr, paddr, size);
 	if(scr->apsize)
@@ -208,8 +215,8 @@ vesaflush(VGAscr *scr, Rectangle r)
 		return;
 	if(rectclip(&r, scr->gscreen->r) == 0)
 		return;
-	sp = (uint32_t*)(scr->gscreendata->bdata + scr->gscreen->zero);
-	t = (r.max.x * scr->gscreen->depth + 2*BI2WD-1) / BI2WD;
+	sp = (uint32_t *)(scr->gscreendata->bdata + scr->gscreen->zero);
+	t = (r.max.x * scr->gscreen->depth + 2 * BI2WD - 1) / BI2WD;
 	w = (r.min.x * scr->gscreen->depth) / BI2WD;
 	w = (t - w) * BY2WD;
 	wid = scr->gscreen->width;

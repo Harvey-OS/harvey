@@ -16,8 +16,10 @@
 #include "apic.h"
 
 #undef DBG
-#define DBG if(1)print
-#define SIPIHANDLER	(KZERO+0x3000)
+#define DBG   \
+	if(1) \
+	print
+#define SIPIHANDLER (KZERO + 0x3000)
 
 void
 sipi(void)
@@ -37,11 +39,11 @@ sipi(void)
 	 * must be aligned properly.
 	 */
 	sipipa = mmuphysaddr(UINT2PTR(machp()->MMU.pml4->va), SIPIHANDLER);
-	if((sipipa == 0 || sipipa & (PGSZ - 1)) || sipipa > (1*MiB - 2*PGSZ))
+	if((sipipa == 0 || sipipa & (PGSZ - 1)) || sipipa > (1 * MiB - 2 * PGSZ))
 		panic("sipi: SIPI page improperly aligned or too far away, pa %#p", sipipa);
 	sipiptr = KADDR(sipipa);
 	DBG("sipiptr %#p sipipa %#llx\n", sipiptr, sipipa);
-	memmove((void *)sipiptr, &b1978, &e1978-&b1978);
+	memmove((void *)sipiptr, &b1978, &e1978 - &b1978);
 
 	/*
 	 * Notes: SMP startup algorithm.
@@ -61,8 +63,8 @@ sipi(void)
 		 * bootstrap processor, until the lsipi code is worked out,
 		 * so only the Mach and stack portions are used below.
 		 */
-		apsize = MACHSTKSZ+PTSZ+PGSZ;
-		p = mallocalign(apsize+MACHSZ, PGSZ, 0, 0);
+		apsize = MACHSTKSZ + PTSZ + PGSZ;
+		p = mallocalign(apsize + MACHSZ, PGSZ, 0, 0);
 		if(p == nil)
 			panic("sipi: cannot allocate for apicno %d", apicno);
 
@@ -75,13 +77,13 @@ sipi(void)
 		 * the AP is up to. Perhaps should try to put it
 		 * back into the INIT state?
 		 */
-		mach = (volatile Mach*)(p+apsize);
+		mach = (volatile Mach *)(p + apsize);
 		mach->self = PTR2UINT(mach);
-		mach->machno = apic->Lapic.machno;		/* NOT one-to-one... */
+		mach->machno = apic->Lapic.machno; /* NOT one-to-one... */
 		mach->splpc = PTR2UINT(squidboy);
 		mach->apicno = apicno;
 		mach->stack = PTR2UINT(p);
-		mach->vsvm = p+MACHSTKSZ+PTSZ;
+		mach->vsvm = p + MACHSTKSZ + PTSZ;
 
 		DBG("APICSIPI: %d, %p\n", apicno, (void *)sipipa);
 		apicsipi(apicno, sipipa);
@@ -93,7 +95,7 @@ sipi(void)
 		}
 
 		DBG("mach %#p (%#p) apicid %d machno %2d %dMHz\n",
-			mach, sys->machptr[mach->machno],
-			apicno, mach->machno, mach->cpumhz);
+		    mach, sys->machptr[mach->machno],
+		    apicno, mach->machno, mach->cpumhz);
 	}
 }

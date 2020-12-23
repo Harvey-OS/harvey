@@ -16,30 +16,29 @@
 
 #include "ip.h"
 
-static void	netdevbind(Ipifc *ifc, int argc, char **argv);
-static void	netdevunbind(Ipifc *ifc);
-static void	netdevbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
-static void	netdevread(void *a);
+static void netdevbind(Ipifc *ifc, int argc, char **argv);
+static void netdevunbind(Ipifc *ifc);
+static void netdevbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
+static void netdevread(void *a);
 
-typedef struct	Netdevrock Netdevrock;
-struct Netdevrock
-{
-	Fs	*f;		/* file system we belong to */
-	Proc	*readp;		/* reading process */
-	Chan	*mchan;		/* Data channel */
+typedef struct Netdevrock Netdevrock;
+struct Netdevrock {
+	Fs *f;	     /* file system we belong to */
+	Proc *readp; /* reading process */
+	Chan *mchan; /* Data channel */
 };
 
 Medium netdevmedium =
-{
-.name=		"netdev",
-.hsize=		0,
-.mintu=	0,
-.maxtu=	64000,
-.maclen=	0,
-.bind=		netdevbind,
-.unbind=	netdevunbind,
-.bwrite=	netdevbwrite,
-.unbindonclose=	0,
+	{
+		.name = "netdev",
+		.hsize = 0,
+		.mintu = 0,
+		.maxtu = 64000,
+		.maclen = 0,
+		.bind = netdevbind,
+		.unbind = netdevunbind,
+		.bwrite = netdevbwrite,
+		.unbindonclose = 0,
 };
 
 /*
@@ -119,7 +118,7 @@ netdevread(void *a)
 
 	ifc = a;
 	er = ifc->arg;
-	er->readp = up;	/* hide identity under a rock for unbind */
+	er->readp = up; /* hide identity under a rock for unbind */
 	if(waserror()){
 		er->readp = nil;
 		pexit("hangup", 1);

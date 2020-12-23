@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	<authsrv.h>
+#include <authsrv.h>
 
-char	*eve;
-char	hostdomain[DOMLEN];
+char *eve;
+char hostdomain[DOMLEN];
 
 /*
  *  return true if current user is eve
@@ -30,7 +30,7 @@ iseve(void)
 }
 
 void
-sysfversion(Ar0* ar0, ...)
+sysfversion(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Chan *c;
@@ -48,7 +48,7 @@ sysfversion(Ar0* ar0, ...)
 	 */
 	fd = va_arg(list, int);
 	msize = va_arg(list, uint32_t);
-	version = va_arg(list, char*);
+	version = va_arg(list, char *);
 	nversion = va_arg(list, usize);
 	va_end(list);
 	version = validaddr(version, nversion, 1);
@@ -69,7 +69,7 @@ sysfversion(Ar0* ar0, ...)
 }
 
 void
-sysfauth(Ar0* ar0, ...)
+sysfauth(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Chan *c, *ac;
@@ -82,7 +82,7 @@ sysfauth(Ar0* ar0, ...)
 	 * int fauth(int fd, char *aname);
 	 */
 	fd = va_arg(list, int);
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	va_end(list);
 
 	aname = validaddr(aname, 1, 0);
@@ -100,9 +100,9 @@ sysfauth(Ar0* ar0, ...)
 	ac = mntauth(c, aname);
 	/* at this point ac is responsible for keeping c alive */
 	cclose(c);
-	poperror();	/* c */
+	poperror(); /* c */
 	free(aname);
-	poperror();	/* aname */
+	poperror(); /* aname */
 
 	if(waserror()){
 		cclose(ac);
@@ -112,7 +112,7 @@ sysfauth(Ar0* ar0, ...)
 	fd = newfd(ac);
 	if(fd < 0)
 		error(Enofd);
-	poperror();	/* ac */
+	poperror(); /* ac */
 
 	/* always mark it close on exec */
 	ac->flag |= CCEXEC;
@@ -126,7 +126,7 @@ sysfauth(Ar0* ar0, ...)
  *  anyone can become none
  */
 int32_t
-userwrite(char* a, int32_t n)
+userwrite(char *a, int32_t n)
 {
 	Proc *up = externup();
 	if(n != 4 || strncmp(a, "none", 4) != 0)
@@ -143,7 +143,7 @@ userwrite(char* a, int32_t n)
  *  writing hostowner also sets user
  */
 int32_t
-hostownerwrite(char* a, int32_t n)
+hostownerwrite(char *a, int32_t n)
 {
 	Proc *up = externup();
 	char buf[128];
@@ -164,7 +164,7 @@ hostownerwrite(char* a, int32_t n)
 }
 
 int32_t
-hostdomainwrite(char* a, int32_t n)
+hostdomainwrite(char *a, int32_t n)
 {
 	char buf[DOMLEN];
 

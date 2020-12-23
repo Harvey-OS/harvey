@@ -25,79 +25,77 @@ typedef struct Rdt Rdt;
  * parsing and hardware were completely separate. We'll try to
  * clean it up later.
  */
-extern Atable *apics; 		/* APIC info */
+extern Atable *apics; /* APIC info */
 int mpisabusno = -1;
 
 /* Rbus chains, one for each device bus: each rbus matches a device to an rdt */
 struct Rbus {
-	Rbus	*next;
-	int	devno;
-	int	fno;
-	Rdt	*rdt;
+	Rbus *next;
+	int devno;
+	int fno;
+	Rdt *rdt;
 };
-
 
 /* Each rdt describes an ioapic input pin (intin, from the bus/device) */
 struct Rdt {
-	Apic		*apic;
-	int		intin;
-	uint32_t	lo;
-	uint32_t	hi;
+	Apic *apic;
+	int intin;
+	uint32_t lo;
+	uint32_t hi;
 
-	int		ref;			/* could map to multiple busses */
-	int		enabled;		/* times enabled */
+	int ref;     /* could map to multiple busses */
+	int enabled; /* times enabled */
 };
 
-enum {						/* IOAPIC registers */
-	Ioregsel	= 0x00,			/* indirect register address */
-	Iowin		= 0x04,			/* indirect register data */
-	Ioipa		= 0x08,			/* IRQ Pin Assertion */
-	Ioeoi		= 0x10,			/* EOI */
+enum {			/* IOAPIC registers */
+       Ioregsel = 0x00, /* indirect register address */
+       Iowin = 0x04,	/* indirect register data */
+       Ioipa = 0x08,	/* IRQ Pin Assertion */
+       Ioeoi = 0x10,	/* EOI */
 
-	Ioapicid	= 0x00,			/* Identification */
-	Ioapicver	= 0x01,			/* Version */
-	Ioapicarb	= 0x02,			/* Arbitration */
-	Ioabcfg		= 0x03,			/* Boot Coniguration */
-	Ioredtbl	= 0x10,			/* Redirection Table */
+       Ioapicid = 0x00,	 /* Identification */
+       Ioapicver = 0x01, /* Version */
+       Ioapicarb = 0x02, /* Arbitration */
+       Ioabcfg = 0x03,	 /* Boot Coniguration */
+       Ioredtbl = 0x10,	 /* Redirection Table */
 };
 
 static Rdt rdtarray[Nrdt];
 static int nrdtarray;
 static int gsib;
-static Rbus* rdtbus[Nbus];
-static Rdt* rdtvecno[IdtMAX+1];
+static Rbus *rdtbus[Nbus];
+static Rdt *rdtvecno[IdtMAX + 1];
 
 static Lock idtnolock;
 static int idtno = IdtIOAPIC;
 
-Apic	xioapic[Napic];
+Apic xioapic[Napic];
 
 static int map_polarity[4] = {
-	-1, IPhigh, -1, IPlow
-};
+	-1, IPhigh, -1, IPlow};
 
 static int map_edge_level[4] = {
-	-1, TMedge, -1, TMlevel
-};
+	-1, TMedge, -1, TMlevel};
 
 /* TODO: use the slice library for this. */
 typedef struct {
-	Vctl		v;
-	uint32_t	lo;
-	int		valid;
+	Vctl v;
+	uint32_t lo;
+	int valid;
 } Vinfo;
-static Vinfo todo[1<<13];
+static Vinfo todo[1 << 13];
 static int todoidx = 0;
 /* this is a guess. */
 static char todostring[1024];
 
-char *readtodo(void)
+char *
+readtodo(void)
 {
 	int bus, dev, fn, i;
 	char *p = todostring;
 	char *e = p + sizeof(todostring);
-	for(i = 0; i < todoidx; i++) {
-		if (!todo[i].valid)
+	for(i = 0; i < todoidx; i++){
+		if(!todo[i].valid)
 			continue;
 		bus = BUSBNO(todo[i].v.Vkey.tbdf);
 		dev = BUSDNO(todo[i].v.Vkey.tbdf);
@@ -107,40 +105,42 @@ char *readtodo(void)
 	return todostring;
 }
 
-static uint32_t ioapicread(Apic*apic, int reg)
+static uint32_t
+ioapicread(Apic *apic, int reg)
 {
-	volatile uint32_t *sel = apic->Ioapic.addr+Ioregsel;
-	volatile uint32_t *data = apic->Ioapic.addr+Iowin;
+	volatile uint32_t *sel = apic->Ioapic.addr + Ioregsel;
+	volatile uint32_t *data = apic->Ioapic.addr + Iowin;
 	*sel = reg;
 	return *data;
 }
-static void ioapicwrite(Apic*apic, int reg, uint32_t val)
+static void
+ioapicwrite(Apic *apic, int reg, uint32_t val)
 {
-	volatile uint32_t *sel = apic->Ioapic.addr+Ioregsel;
-	volatile uint32_t *data = apic->Ioapic.addr+Iowin;
+	volatile uint32_t *sel = apic->Ioapic.addr + Ioregsel;
+	volatile uint32_t *data = apic->Ioapic.addr + Iowin;
 	*sel = reg;
 	*data = val;
 }
 
 static void
-rtblget(Apic* apic, int sel, uint32_t* hi, uint32_t* lo)
+rtblget(Apic *apic, int sel, uint32_t *hi, uint32_t *lo)
 {
-	sel = Ioredtbl + 2*sel;
+	sel = Ioredtbl + 2 * sel;
 
-	*hi = ioapicread(apic, sel+1);
+	*hi = ioapicread(apic, sel + 1);
 	*lo = ioapicread(apic, sel);
 }
 
 static void
-rtblput(Apic* apic, int sel, uint32_t hi, uint32_t lo)
+rtblput(Apic *apic, int sel, uint32_t hi, uint32_t lo)
 {
-	sel = Ioredtbl + 2*sel;
+	sel = Ioredtbl + 2 * sel;
 
-	ioapicwrite(apic, sel+1, hi);
+	ioapicwrite(apic, sel + 1, hi);
 	ioapicwrite(apic, sel, lo);
 }
 
-static Rdt*
+static Rdt *
 rdtlookup(Apic *apic, int intin)
 {
 	int i;
@@ -161,11 +161,11 @@ compatible(uint32_t new, uint32_t old)
 	uint32_t oldtop = old & ~0xff;
 	uint32_t newvno = new & 0xff;
 	print("compatible: new 0x%x, old 0x%x\n", new, old);
-	if (new == old)
+	if(new == old)
 		return 1;
 
 	print("not the same\n");
-	if ((newvno == 0) && (newtop == oldtop))
+	if((newvno == 0) && (newtop == oldtop))
 		return 1;
 	print("REALLY not the same\n");
 	return 0;
@@ -182,35 +182,35 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, int fno, uint32_t lo
 		print("ioapicintrinit: botch: Busno %d >= Nbus %d\n", busno, Nbus);
 		return;
 	}
-	if (apicno >= Napic) {
+	if(apicno >= Napic){
 		print("ioapicintrinit: botch: acpicno %d >= Napic %d\n", apicno, Napic);
 		return;
 	}
-	if (nrdtarray >= Nrdt){
+	if(nrdtarray >= Nrdt){
 		print("ioapicintrinit: botch: nrdtarray %d >= Nrdt %d\n", nrdtarray, Nrdt);
 		return;
 	}
 
 	apic = &xioapic[apicno];
-	if(!apic->useable) {
+	if(!apic->useable){
 		print("ioapicintrinit: botch: apic %d not marked usable\n", apicno);
 		return;
 	}
-	if (intin >= apic->Ioapic.nrdt){
+	if(intin >= apic->Ioapic.nrdt){
 		print("ioapicintrinit: botch: initin %d >= apic->Ioapic.nrdt %d\n", intin, apic->Ioapic.nrdt);
 		return;
 	}
 
 	rdt = rdtlookup(apic, intin);
-	if (rdt == nil) {
+	if(rdt == nil){
 		rdt = &rdtarray[nrdtarray++];
 		rdt->apic = apic;
 		rdt->intin = intin;
 		rdt->lo = lo;
 	} else {
-		if (!compatible(lo, rdt->lo)) {
+		if(!compatible(lo, rdt->lo)){
 			print("ioapicintrinit: multiple irq botch bus %d %d/%d/%d lo %d vs %d\n",
-				busno, apicno, intin, devno, lo, rdt->lo);
+			      busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
 		print("ioapicintrinit: dup rdt %d %d %d %d %.8x\n", busno, apicno, intin, devno, lo);
@@ -232,11 +232,11 @@ acpi_irq2ioapic(int irq)
 	Apic *apic;
 	/* with acpi, the ioapics map a global interrupt space.  each covers a
 	 * window of the space from [ibase, ibase + nrdt). */
-	for (apic = xioapic; apic < &xioapic[Napic]; apic++, ioapic_idx++) {
+	for(apic = xioapic; apic < &xioapic[Napic]; apic++, ioapic_idx++){
 		/* addr check is just for sanity */
-		if (!apic->useable || !apic->Ioapic.addr)
+		if(!apic->useable || !apic->Ioapic.addr)
 			continue;
-		if ((apic->Ioapic.gsib <= irq) && (irq < apic->Ioapic.gsib + apic->Ioapic.nrdt))
+		if((apic->Ioapic.gsib <= irq) && (irq < apic->Ioapic.gsib + apic->Ioapic.nrdt))
 			return ioapic_idx;
 	}
 	return -1;
@@ -271,36 +271,36 @@ acpi_make_rdt(Vctl *v, int irq, int bustype, int busno, int devno, int fno)
 	Apicst *st, *lst;
 	uint32_t lo = 0;
 	int pol, edge_level, ioapic_nr, gsi_irq;
-//print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
-//die("acpi.make.rdt)\n");
+	//print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
+	//die("acpi.make.rdt)\n");
 
 	at = apics;
 	st = nil;
-	for (int i = 0; i < at->nchildren; i++) {
+	for(int i = 0; i < at->nchildren; i++){
 		lst = at->children[i]->tbl;
-		if (lst->type == ASintovr) {
-			if (lst->intovr.irq == irq) {
+		if(lst->type == ASintovr){
+			if(lst->intovr.irq == irq){
 				st = lst;
 				break;
 			}
 		}
 	}
-	
-	if (st) {
+
+	if(st){
 		pol = map_polarity[st->intovr.flags & AFpmask];
-		if (pol < 0) {
+		if(pol < 0){
 			print("ACPI override had bad polarity\n");
 			return -1;
 		}
 		edge_level = map_edge_level[(st->intovr.flags & AFlevel) >> 2];
-		if (edge_level < 0) {
+		if(edge_level < 0){
 			print("ACPI override had bad edge/level\n");
 			return -1;
 		}
 		lo = pol | edge_level;
 		gsi_irq = st->intovr.intr;
 	} else {
-		if (bustype == BusISA) {
+		if(bustype == BusISA){
 			lo = IPhigh | TMedge;
 			gsi_irq = irq;
 		} else {
@@ -315,12 +315,12 @@ acpi_make_rdt(Vctl *v, int irq, int bustype, int busno, int devno, int fno)
 		}
 	}
 	ioapic_nr = acpi_irq2ioapic(gsi_irq);
-	if (ioapic_nr < 0) {
+	if(ioapic_nr < 0){
 		print("Could not find an IOAPIC for global irq %d!\n", gsi_irq);
 		return -1;
 	}
 	ioapicintrinit(busno, ioapic_nr, gsi_irq - xioapic[ioapic_nr].Ioapic.gsib,
-	               devno, fno, lo);
+		       devno, fno, lo);
 	return 0;
 }
 
@@ -333,7 +333,7 @@ ioapicinit(int id, int ibase, uintptr_t pa)
 	 * Mark the IOAPIC useable if it has a good ID
 	 * and the registers can be mapped.
 	 */
-	if(id >= Napic) {
+	if(id >= Napic){
 		print("NOT setting ioapic %d useable; id must be < %d\n", id, Napic);
 		return;
 	}
@@ -350,15 +350,15 @@ ioapicinit(int id, int ibase, uintptr_t pa)
 	 * responsibility of the O/S to set the APIC ID.
 	 */
 	lock(&apic->Ioapic.l);
-	apic->Ioapic.nrdt = ((ioapicread(apic, Ioapicver)>>16) & 0xff) + 1;
-	if (ibase == -1) {
+	apic->Ioapic.nrdt = ((ioapicread(apic, Ioapicver) >> 16) & 0xff) + 1;
+	if(ibase == -1){
 		apic->Ioapic.gsib = gsib;
 		gsib += apic->Ioapic.nrdt;
 	} else {
 		apic->Ioapic.gsib = ibase;
 	}
 
-	ioapicwrite(apic, Ioapicid, id<<24);
+	ioapicwrite(apic, Ioapicid, id << 24);
 	unlock(&apic->Ioapic.l);
 }
 
@@ -378,7 +378,7 @@ ioapicdump(void)
 		if(!apic->useable || apic->Ioapic.addr == 0)
 			continue;
 		print("ioapic %d addr %#p nrdt %d gsib %d\n",
-			i, apic->Ioapic.addr, apic->Ioapic.nrdt, apic->Ioapic.gsib);
+		      i, apic->Ioapic.addr, apic->Ioapic.nrdt, apic->Ioapic.gsib);
 		for(n = 0; n < apic->Ioapic.nrdt; n++){
 			lock(&apic->Ioapic.l);
 			rtblget(apic, n, &hi, &lo);
@@ -393,8 +393,8 @@ ioapicdump(void)
 		for(; rbus != nil; rbus = rbus->next){
 			rdt = rbus->rdt;
 			print(" apic %ld devno %#x (%d %d) fno %d intin %d lo %#x ref %d\n",
-				rdt->apic-xioapic, rbus->devno, rbus->devno>>2,
-				rbus->devno & 0x03, rbus->fno, rdt->intin, rdt->lo, rdt->ref);
+			      rdt->apic - xioapic, rbus->devno, rbus->devno >> 2,
+			      rbus->devno & 0x03, rbus->fno, rdt->intin, rdt->lo, rdt->ref);
 		}
 	}
 }
@@ -432,7 +432,7 @@ irqenable(void)
 			rtblget(apic, i, &hi, &lo);
 			/* if something is set in the vector, enable the
 			 * rdtentry */
-			if ((lo&0xff) != 0)
+			if((lo & 0xff) != 0)
 				rtblput(apic, i, hi, lo & ~Im);
 			unlock(&apic->Ioapic.l);
 		}
@@ -443,7 +443,7 @@ irqenable(void)
 static int dfpolicy = 0;
 
 static void
-ioapicintrdd(uint32_t* hi, uint32_t* lo)
+ioapicintrdd(uint32_t *hi, uint32_t *lo)
 {
 	int i;
 	static int df;
@@ -466,10 +466,10 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 	 * Interrupt routing policy can be set here.
 	 */
 	switch(dfpolicy){
-	default:				/* noise core 0 */
-		*hi = sys->machptr[0]->apicno<<24;
+	default: /* noise core 0 */
+		*hi = sys->machptr[0]->apicno << 24;
 		break;
-	case 1:					/* round-robin */
+	case 1: /* round-robin */
 		/*
 		 * Assign each interrupt to a different CPU on a round-robin
 		 * Some idea of the packages/cores/thread topology would be
@@ -480,7 +480,7 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 		lock(&dflock);
 		for(;;){
 			i = df++;
-			if(df >= sys->nmach+1)
+			if(df >= sys->nmach + 1)
 				df = 0;
 			if(sys->machptr[i] == nil || !sys->machptr[i]->online)
 				continue;
@@ -490,10 +490,10 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 		}
 		unlock(&dflock);
 
-		*hi = i<<24;
+		*hi = i << 24;
 		break;
 	}
-	*lo |= Pm|MTf;
+	*lo |= Pm | MTf;
 }
 
 static int
@@ -503,7 +503,7 @@ nextvec(void)
 
 	lock(&idtnolock);
 	vecno = idtno;
-	idtno = (idtno+8) % IdtMAX;
+	idtno = (idtno + 8) % IdtMAX;
 	if(idtno < IdtIOAPIC)
 		idtno += IdtIOAPIC;
 	unlock(&idtnolock);
@@ -523,7 +523,7 @@ msimask(Vkey *v, int mask)
 }
 
 static int
-intrenablemsi(Vctl* v, Pcidev *p)
+intrenablemsi(Vctl *v, Pcidev *p)
 {
 	uint vno, lo, hi;
 	uint64_t msivec;
@@ -536,7 +536,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 	if(lo & Lm)
 		lo |= MTlp;
 
-	msivec = (uint64_t)hi<<32 | lo;
+	msivec = (uint64_t)hi << 32 | lo;
 	if(pcimsienable(p, msivec) == -1)
 		return -1;
 	v->isr = apicisr;
@@ -550,7 +550,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 }
 
 int
-disablemsi(Vctl* v, Pcidev *p)
+disablemsi(Vctl *v, Pcidev *p)
 {
 	if(p == nil)
 		return -1;
@@ -593,8 +593,8 @@ static int
 ioapic_exists(void)
 {
 	/* not foolproof, if we called this before parsing */
-	for (int i = 0; i < Napic; i++)
-		if (xioapic[i].useable)
+	for(int i = 0; i < Napic; i++)
+		if(xioapic[i].useable)
 			return 1;
 	return 0;
 }
@@ -603,8 +603,8 @@ static Rdt *
 rbus_get_rdt(int busno, int devno, int fno)
 {
 	Rbus *rbus;
-	for (rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next) {
-		if (rbus->devno == devno && rbus->fno == fno) {
+	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next){
+		if(rbus->devno == devno && rbus->fno == fno){
 			return rbus->rdt;
 		}
 	}
@@ -636,9 +636,9 @@ bus_irq_setup(Vctl *v)
 	int busno = -1, devno = -1, fno = 0, vno;
 	Pcidev *p;
 
-       	if (!ioapic_exists()) {
+	if(!ioapic_exists()){
 		panic("%s: no ioapics?", __func__);
-		switch (bustype) {
+		switch(bustype){
 			//case BusLAPIC:
 			//case BusIPI:
 			//break;
@@ -650,17 +650,17 @@ bus_irq_setup(Vctl *v)
 			//irq_h->route_irq = 0;
 			//irq_h->type = "pic";
 			/* PIC devices have vector = irq + 32 */
-			return -1; //irq_h->dev_irq + IdtPIC;
+			return -1;	  //irq_h->dev_irq + IdtPIC;
 		}
 	}
-	switch (bustype) {
+	switch(bustype){
 	case BusLAPIC:
 		/* nxm used to set the initial 'isr' method (i think equiv to our
 		 * check_spurious) to apiceoi for non-spurious lapic vectors.  in
 		 * effect, i think they were sending the EOI early, and their eoi
 		 * method was 0.  we're not doing that (unless we have to). */
 		//v->check_spurious = lapic_check_spurious;
-		v->eoi = nil; //apiceoi;
+		v->eoi = nil;	     //apiceoi;
 		v->isr = apiceoi;
 		//v->mask = lapic_mask_irq;
 		//v->unmask = lapic_unmask_irq;
@@ -678,7 +678,7 @@ bus_irq_setup(Vctl *v)
 		v->type = "IPI";
 		return v->Vkey.irq;
 	case BusISA:
-		if (mpisabusno == -1)
+		if(mpisabusno == -1)
 			panic("No ISA bus allocated");
 		busno = mpisabusno;
 		/* need to track the irq in devno in PCI interrupt assignment entry
@@ -687,18 +687,18 @@ bus_irq_setup(Vctl *v)
 		break;
 	case BusPCI:
 		p = pcimatchtbdf(v->Vkey.tbdf);
-		if (!p) {
+		if(!p){
 			print("No PCI dev for tbdf %p!", v->Vkey.tbdf);
 			return -1;
 		}
-		if ((vno = intrenablemsi(v, p))!= -1)
+		if((vno = intrenablemsi(v, p)) != -1)
 			return vno;
 		busno = BUSBNO(v->Vkey.tbdf);
 		devno = pcicfgr8(p, PciINTP);
 
 		/* this might not be a big deal - some PCI devices have no INTP.  if
 		 * so, change our devno - 1 below. */
-		if (devno == 0)
+		if(devno == 0)
 			panic("no INTP for tbdf %p", v->Vkey.tbdf);
 		/* remember, devno is the device shifted with irq pin in bits 0-1.
 		 * we subtract 1, since the PCI intp maps 1 -> INTA, 2 -> INTB, etc,
@@ -712,14 +712,14 @@ bus_irq_setup(Vctl *v)
 	/* busno and devno are set, regardless of the bustype, enough to find rdt.
 	 * these may differ from the values in tbdf. */
 	rdt = rbus_get_rdt(busno, devno, fno);
-	if (!rdt) {
+	if(!rdt){
 		/* second chance.  if we didn't find the item the first time, then (if
 		 * it exists at all), it wasn't in the MP tables (or we had no tables).
 		 * So maybe we can figure it out via ACPI. */
 		acpi_make_rdt(v, v->Vkey.irq, bustype, busno, devno, fno);
 		rdt = rbus_get_rdt(busno, devno, fno);
 	}
-	if (!rdt) {
+	if(!rdt){
 		print("Unable to build IOAPIC route for irq %d\n", v->Vkey.irq);
 		return -1;
 	}
@@ -739,7 +739,7 @@ bus_irq_setup(Vctl *v)
 	/* if a destination has already been picked, we store it in the lo.  this
 	 * stays around regardless of enabled/disabled, since we don't reap vectors
 	 * yet.  nor do we really mess with enabled... */
-	if ((rdt->lo & 0xff) == 0) {
+	if((rdt->lo & 0xff) == 0){
 		vno = nextvec();
 		rdt->lo |= vno;
 		rdtvecno[vno] = rdt;
@@ -747,7 +747,7 @@ bus_irq_setup(Vctl *v)
 		print("bus_irq_setup: %p: multiple irq bus %d dev %d\n", v->Vkey.tbdf, busno, devno);
 	}
 	rdt->enabled++;
-	rdt->hi = 0;			/* route to 0 by default */
+	rdt->hi = 0; /* route to 0 by default */
 	rdt->lo |= Pm | MTf;
 	rtblput(rdt->apic, rdt->intin, rdt->hi, rdt->lo);
 	vno = rdt->lo & 0xff;
@@ -772,19 +772,19 @@ acpiirq(uint32_t tbdf, int gsi)
 	Vctl *v;
 	Vinfo *vinfotodo = nil;
 
-	int acpiintrenable(Vctl *v);
-	
+	int acpiintrenable(Vctl * v);
+
 	/* for now we know it's PCI, just ignore what they told us. */
 	tbdf = MKBUS(BusPCI, busno, BUSDNO(tbdf), BUSFNO(tbdf));
-	if((pcidev = pcimatchtbdf(tbdf)) == nil) {
+	if((pcidev = pcimatchtbdf(tbdf)) == nil){
 		error("No such device (any more?)");
 	}
 	if((pin = pcicfgr8(pcidev, PciINTP)) == 0)
 		error("no INTP for that device, which is impossible");
 
-//	pcicfgw8(pcidev, PciINTL, gsi);
-	for (int i = 0; i < todoidx; i++) {
-		if (todo[i].v.Vkey.tbdf == tbdf) {
+	//	pcicfgw8(pcidev, PciINTL, gsi);
+	for(int i = 0; i < todoidx; i++){
+		if(todo[i].v.Vkey.tbdf == tbdf){
 			vinfotodo = &todo[i];
 			break;
 		}
@@ -792,34 +792,34 @@ acpiirq(uint32_t tbdf, int gsi)
 
 	print("acpiirq: writing b:%d d:%d f:%d gsi:%d\n", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf), gsi);
 
-	if (vinfotodo == nil)
+	if(vinfotodo == nil)
 		error("Unknown tbdf");
-	if (!vinfotodo->valid)
+	if(!vinfotodo->valid)
 		error("Invalid tbdf");
 
 	v = malloc(sizeof(*v));
-	if (waserror()) {
+	if(waserror()){
 		print("well, that went badly\n");
 		free(v);
 		nexterror();
 	}
 	*v = vinfotodo->v;
 	v->Vkey.irq = gsi;
-	devno = BUSDNO(v->Vkey.tbdf)<<2|(pin-1);
-	if (DBGFLG)
+	devno = BUSDNO(v->Vkey.tbdf) << 2 | (pin - 1);
+	if(DBGFLG)
 		print("acpiirq: tbdf %#8.8x busno %d devno %d\n",
-	    		v->Vkey.tbdf, busno, devno);
+		      v->Vkey.tbdf, busno, devno);
 
 	ioapic_nr = acpi_irq2ioapic(gsi);
-	if (DBGFLG)
+	if(DBGFLG)
 		print("ioapic_nr for gsi %d is %d\n", gsi, ioapic_nr);
-	if (ioapic_nr < 0) {
+	if(ioapic_nr < 0){
 		error("Could not find an IOAPIC for global irq!\n");
 	}
 	//ioapicdump();
 	ioapicintrinit(busno, ioapic_nr, gsi - xioapic[ioapic_nr].Ioapic.gsib,
-	               devno, BUSFNO(tbdf), vinfotodo->lo);
-	if (DBGFLG)
+		       devno, BUSFNO(tbdf), vinfotodo->lo);
+	if(DBGFLG)
 		print("ioapicinrinit seems to have worked\n");
 	poperror();
 

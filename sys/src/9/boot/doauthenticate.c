@@ -23,25 +23,25 @@ readn(int fd, void *buf, int32_t len)
 
 	p = buf;
 	for(n = 0; n < len; n += m){
-		m = read(fd, p+n, len-n);
+		m = read(fd, p + n, len - n);
 		if(m <= 0)
 			return -1;
 	}
 	return n;
 }
 
-static char*
+static char *
 fromauth(Method *mp, char *trbuf, char *tbuf)
 {
 	int afd;
 	char t;
 	char *msg;
-	static char error[2*ERRMAX];
+	static char error[2 * ERRMAX];
 
 	if(mp->auth == 0)
 		fatal("no method for accessing auth server");
 	afd = (*mp->auth)();
-	if(afd < 0) {
+	if(afd < 0){
 		sprint(error, "%s: %r", ccmsg);
 		return error;
 	}
@@ -54,18 +54,17 @@ fromauth(Method *mp, char *trbuf, char *tbuf)
 	switch(t){
 	case AuthOK:
 		msg = 0;
-		if(readn(afd, tbuf, 2*TICKETLEN) < 0) {
+		if(readn(afd, tbuf, 2 * TICKETLEN) < 0){
 			sprint(error, "%s: %r", pbmsg);
 			msg = error;
 		}
 		break;
 	case AuthErr:
-		if(readn(afd, error, ERRMAX) < 0) {
+		if(readn(afd, error, ERRMAX) < 0){
 			sprint(error, "%s: %r", pbmsg);
 			msg = error;
-		}
-		else {
-			error[ERRMAX-1] = 0;
+		} else {
+			error[ERRMAX - 1] = 0;
 			msg = error;
 		}
 		break;
@@ -83,14 +82,14 @@ doauthenticate(int fd, Method *mp)
 {
 	char *msg;
 	char trbuf[TICKREQLEN];
-	char tbuf[2*TICKETLEN];
+	char tbuf[2 * TICKETLEN];
 
 	print("session...");
 	if(fsession(fd, trbuf, sizeof trbuf) < 0)
 		fatal("session command failed");
 
 	/* no authentication required? */
-	memset(tbuf, 0, 2*TICKETLEN);
+	memset(tbuf, 0, 2 * TICKETLEN);
 	if(trbuf[0] == 0)
 		return;
 
@@ -106,7 +105,7 @@ doauthenticate(int fd, Method *mp)
 	fprint(2, "no authentication server (%s), using your key as server key\n", msg);
 }
 
-char*
+char *
 checkkey(Method *mp, char *name, char *key)
 {
 	char *msg;
@@ -129,7 +128,7 @@ checkkey(Method *mp, char *name, char *key)
 	if(msg)
 		return msg;
 	convM2T(tbuf, &t, key);
-	if(t.num == AuthTc && strcmp(name, t.cuid)==0)
+	if(t.num == AuthTc && strcmp(name, t.cuid) == 0)
 		return 0;
 	return "no match";
 }

@@ -39,7 +39,7 @@
  * saving, so it does not have to be restored.
  */
 
-extern void acfpusysprocsetup(Proc*);
+extern void acfpusysprocsetup(Proc *);
 
 extern void _acsysret(void);
 extern void _actrapret(void);
@@ -53,7 +53,7 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-	print("called: %s\n", ( char *)machp()->NIX.icc->data);
+	print("called: %s\n", (char *)machp()->NIX.icc->data);
 }
 
 void
@@ -68,7 +68,7 @@ testicc(int i)
 		}
 		print("calling core %d... ", i);
 		mp->NIX.icc->flushtlb = 0;
-		snprint(( char *)mp->NIX.icc->data, ICCLNSZ, "<%d>", i);
+		snprint((char *)mp->NIX.icc->data, ICCLNSZ, "<%d>", i);
 		mfence();
 		mp->NIX.icc->fn = testiccfn;
 		mwait(&mp->NIX.icc->fn);
@@ -85,8 +85,8 @@ acstackok(void)
 	char dummy;
 	char *sstart;
 
-	sstart = (char *)machp() - PGSZ - 4*PTSZ - MACHSTKSZ;
-	if(&dummy < sstart + 4*KiB){
+	sstart = (char *)machp() - PGSZ - 4 * PTSZ - MACHSTKSZ;
+	if(&dummy < sstart + 4 * KiB){
 		print("ac kernel stack overflow, cpu%d stopped\n", machp()->machno);
 		DONE();
 	}
@@ -123,7 +123,6 @@ acmmuswitch(void)
 	extern Page mach0root;
 
 	DBG("acmmuswitch mpl4 %#p mach0root %#p m0root %#p\n", machp()->MMU.root->pa, mach0root.pa, sys->machptr[0]->MMU.root->pa);
-
 
 	rootput(machp()->MMU.root->pa);
 }
@@ -275,7 +274,7 @@ acsyscall(void)
 void
 acsysret(void)
 {
-panic("acsysret");
+	panic("acsysret");
 #if 0
 	DBG("acsysret\n");
 	if(m->proc != nil)
@@ -292,11 +291,11 @@ dumpreg(void *u)
 }
 
 char *rolename[] =
-{
-	[NIXAC] = "AC",
-	[NIXTC] = "TC",
-	[NIXKC] = "KC",
-	[NIXXC] = "XC",
+	{
+		[NIXAC] = "AC",
+		[NIXTC] = "TC",
+		[NIXKC] = "KC",
+		[NIXXC] = "XC",
 };
 
 void

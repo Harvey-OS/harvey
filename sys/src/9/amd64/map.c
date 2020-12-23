@@ -13,37 +13,37 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa)	UINT2PTR(KZERO+((uintptr)(pa)))
-#define _PADDR(va)	PTR2UINT(((uintptr)(va))-KZERO)
+#define _KADDR(pa) UINT2PTR(KZERO + ((uintptr)(pa)))
+#define _PADDR(va) PTR2UINT(((uintptr)(va)) - KZERO)
 
-void*
+void *
 KADDR(uintptr_t pa)
 {
-	if (pa < KZERO)
+	if(pa < KZERO)
 		return _KADDR(pa);
 
 	return UINT2PTR(pa);
 }
 
 uintmem
-PADDR(void* va)
+PADDR(void *va)
 {
 	uintmem pa;
 
 	pa = PTR2UINT(va);
 	if(pa >= KZERO)
-		return pa-KZERO;
+		return pa - KZERO;
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());
 	return 0;
 }
 
-KMap*
-kmap(Page* page)
+KMap *
+kmap(Page *page)
 {
 	DBG("kmap(%#llx) @ %#p: %#p %#p\n",
-		page->pa, getcallerpc(),
-		page->pa, KADDR(page->pa));
+	    page->pa, getcallerpc(),
+	    page->pa, KADDR(page->pa));
 
 	return KADDR(page->pa);
 }

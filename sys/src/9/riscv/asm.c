@@ -27,55 +27,59 @@ void msg(char *);
  */
 typedef struct Asm Asm;
 typedef struct Asm {
-	uintmem	addr;
-	uintmem	size;
-	int	type;
-	int	location;
-	Asm*	next;
+	uintmem addr;
+	uintmem size;
+	int type;
+	int location;
+	Asm *next;
 } Asm;
 
 enum {
-	AsmNONE		= 0,
-	AsmMEMORY	= 1,
-	AsmRESERVED	= 2,
-	AsmACPIRECLAIM	= 3,
-	AsmACPINVS	= 4,
+	AsmNONE = 0,
+	AsmMEMORY = 1,
+	AsmRESERVED = 2,
+	AsmACPIRECLAIM = 3,
+	AsmACPINVS = 4,
 
-	AsmDEV		= 5,
+	AsmDEV = 5,
 };
 
 static Lock asmlock;
 static Asm asmarray[64] = {
-	{ 0, ~0, AsmNONE, 0, },
+	{
+		0,
+		~0,
+		AsmNONE,
+		0,
+	},
 };
 static int asmindex = 1;
-static Asm* asmlist = &asmarray[0];
-static Asm* asmfreelist;
+static Asm *asmlist = &asmarray[0];
+static Asm *asmfreelist;
 
 /*static*/ void
 asmdump(void)
 {
-	Asm* assem;
+	Asm *assem;
 
 	DBG("asm: index %d:\n", asmindex);
 	for(assem = asmlist; assem != nil; assem = assem->next){
 		DBG(" %#P %#P %d (%P)\n",
-			assem->addr, assem->addr+assem->size,
-			assem->type, assem->size);
+		    assem->addr, assem->addr + assem->size,
+		    assem->type, assem->size);
 	}
 }
 
-static Asm*
+static Asm *
 asmnew(uintmem addr, uintmem size, int type)
 {
-	Asm * assem;
+	Asm *assem;
 
 	if(asmfreelist != nil){
 		assem = asmfreelist;
 		asmfreelist = assem->next;
 		assem->next = nil;
-	}
-	else{
+	} else {
 		if(asmindex >= nelem(asmarray))
 			return nil;
 		assem = &asmarray[asmindex++];
@@ -109,16 +113,15 @@ asmfree(uintmem addr, uintmem size, int type)
 		ppp = &np->next;
 	}
 
-	if((pp != nil && pp->addr+pp->size > addr)
-	|| (np != nil && addr+size > np->addr)){
+	if((pp != nil && pp->addr + pp->size > addr) || (np != nil && addr + size > np->addr)){
 		unlock(&asmlock);
 		DBG("asmfree: overlap %#Px@%#P, type %d\n", size, addr, type);
 		return -1;
 	}
 
-	if(pp != nil && pp->type == type && pp->addr+pp->size == addr){
+	if(pp != nil && pp->type == type && pp->addr + pp->size == addr){
 		pp->size += size;
-		if(np != nil && np->type == type && addr+size == np->addr){
+		if(np != nil && np->type == type && addr + size == np->addr){
 			pp->size += np->size;
 			pp->next = np->next;
 
@@ -130,7 +133,7 @@ asmfree(uintmem addr, uintmem size, int type)
 		return 0;
 	}
 
-	if(np != nil && np->type == type && addr+size == np->addr){
+	if(np != nil && np->type == type && addr + size == np->addr){
 		np->addr -= size;
 		np->size += size;
 
@@ -158,18 +161,18 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 	Asm *assem, *pp;
 
 	DBG("asmalloc: %p@%p, type %d\n", size, addr, type);
-//msg("before asmlock\n");
+	//msg("before asmlock\n");
 	lock(&asmlock);
-//msg("after lock\n");
+	//msg("after lock\n");
 	for(pp = nil, assem = asmlist; assem != nil; pp = assem, assem = assem->next){
-//msg("loop\n");
+		//msg("loop\n");
 		if(assem->type != type)
 			continue;
 		a = assem->addr;
-//msg("loop 2\n");
+		//msg("loop 2\n");
 
 		if(addr != 0){
-//msg("loop 3\n");
+			//msg("loop 3\n");
 			/*
 			 * A specific address range has been given:
 			 *   if the current map entry is greater then
@@ -192,16 +195,16 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 			a = addr;
 		}
 
-//msg("loop 4\n");
+		//msg("loop 4\n");
 		if(align > 0)
-			a = ((a+align-1)/align)*align;
-		if(assem->addr+assem->size-a < size)
+			a = ((a + align - 1) / align) * align;
+		if(assem->addr + assem->size - a < size)
 			continue;
 
-//msg("loop 5\n");
+		//msg("loop 5\n");
 		o = assem->addr;
-		assem->addr = a+size;
-		assem->size -= a-o+size;
+		assem->addr = a + size;
+		assem->size -= a - o + size;
 		if(assem->size == 0){
 			if(pp != nil)
 				pp->next = assem->next;
@@ -209,16 +212,16 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 			asmfreelist = assem;
 		}
 
-//msg("loop 6\n");
+		//msg("loop 6\n");
 		unlock(&asmlock);
-//msg("loop 7\n");
+		//msg("loop 7\n");
 		if(o != a)
-			asmfree(o, a-o, type);
+			asmfree(o, a - o, type);
 		return a;
 	}
-//msg("loop 8\n");
+	//msg("loop 8\n");
 	unlock(&asmlock);
-//msg("loop 9\n");
+	//msg("loop 9\n");
 
 	return 0;
 }
@@ -263,7 +266,7 @@ asmmapinit(uintmem addr, uintmem size, int type)
 		 * and how much of it is occupied, might need to be known
 		 * for setting up allocators later.
 		 */
-		if(addr < 1*MiB || addr+size < sys->pmstart)
+		if(addr < 1 * MiB || addr + size < sys->pmstart)
 			break;
 		if(addr < sys->pmstart){
 			size -= sys->pmstart - addr;
@@ -271,35 +274,35 @@ asmmapinit(uintmem addr, uintmem size, int type)
 		}
 		asminsert(addr, size, type);
 		sys->pmoccupied += size;
-		if(addr+size > sys->pmend)
-			sys->pmend = addr+size;
+		if(addr + size > sys->pmend)
+			sys->pmend = addr + size;
 		break;
 	}
 }
 
 void
-asmmodinit(uint32_t start, uint32_t end, char* s)
+asmmodinit(uint32_t start, uint32_t end, char *s)
 {
 	DBG("asmmodinit: %#x -> %#x: <%s> %#x\n",
-		start, end, s, ROUNDUP(end, 4096));
+	    start, end, s, ROUNDUP(end, 4096));
 
 	if(start < sys->pmstart)
 		return;
 	end = ROUNDUP(end, 4096);
 	if(end > sys->pmstart){
-		asmalloc(sys->pmstart, end-sys->pmstart, AsmNONE, 0);
+		asmalloc(sys->pmstart, end - sys->pmstart, AsmNONE, 0);
 		sys->pmstart = end;
 	}
 }
 
 static int npg[4];
 
-void*
+void *
 asmbootalloc(usize size)
 {
 	uintptr_t va;
 
-	assert(sys->vmunused+size <= sys->vmunmapped);
+	assert(sys->vmunused + size <= sys->vmunmapped);
 	va = sys->vmunused;
 	sys->vmunused += size;
 	memset(UINT2PTR(va), 0, size);
@@ -311,11 +314,11 @@ asmwalkalloc(usize size)
 {
 	uintmem pa;
 
-	assert(size == PTSZ && sys->vmunused+size <= sys->vmunmapped);
+	assert(size == PTSZ && sys->vmunused + size <= sys->vmunmapped);
 
 	if(!ALIGNED(sys->vmunused, PTSZ)){
 		DBG("asmwalkalloc: %llu wasted\n",
-			ROUNDUP(sys->vmunused, PTSZ) - sys->vmunused);
+		    ROUNDUP(sys->vmunused, PTSZ) - sys->vmunused);
 		sys->vmunused = ROUNDUP(sys->vmunused, PTSZ);
 	}
 	if((pa = mmuphysaddr(sys->vmunused)) != ~0)
@@ -331,7 +334,7 @@ void
 asmmeminit(void)
 {
 	int i, l;
-	Asm* assem;
+	Asm *assem;
 	PTE *pte, *root;
 	uintptr va;
 	uintmem hi, lo, mem, nextmem, pa;
@@ -339,7 +342,7 @@ asmmeminit(void)
 	int cx;
 #endif /* ConfCrap */
 
-	assert(!((sys->vmunmapped|sys->vmend) & sys->pgszmask[1]));
+	assert(!((sys->vmunmapped | sys->vmend) & sys->pgszmask[1]));
 
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
@@ -373,19 +376,19 @@ asmmeminit(void)
 #endif /* ConfCrap */
 	for(assem = asmlist; assem != nil; assem = assem->next){
 		DBG("asm: addr %#P end %#P type %d size %P\n",
-			assem->addr, assem->addr+assem->size,
-			assem->type, assem->size);
-		if((assem->type != AsmMEMORY)&&(assem->type != AsmRESERVED)) {
+		    assem->addr, assem->addr + assem->size,
+		    assem->type, assem->size);
+		if((assem->type != AsmMEMORY) && (assem->type != AsmRESERVED)){
 			DBG("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
 		}
-		va = (uintptr_t)kseg2+assem->addr;
+		va = (uintptr_t)kseg2 + assem->addr;
 		DBG("asm: addr %#P end %#P type %d size %P\n",
-			assem->addr, assem->addr+assem->size,
-			assem->type, assem->size);
+		    assem->addr, assem->addr + assem->size,
+		    assem->type, assem->size);
 
 		lo = assem->addr;
-		hi = assem->addr+assem->size;
+		hi = assem->addr + assem->size;
 		/* Convert a range into pages */
 		for(mem = lo; mem < hi; mem = nextmem){
 			nextmem = (mem + PGLSZ(0)) & ~sys->pgszmask[0];
@@ -402,10 +405,10 @@ asmmeminit(void)
 					panic("asmmeminit 3");
 
 				//print("ASMMEMINIT pte is %p\n", pte);
-				if (assem->type == AsmMEMORY)
-					*pte = mem|PteRW|PteP;
+				if(assem->type == AsmMEMORY)
+					*pte = mem | PteRW | PteP;
 				else
-					*pte = mem|PteP;
+					*pte = mem | PteP;
 
 				if(l > 0)
 					*pte |= PteFinal;
@@ -425,16 +428,16 @@ asmmeminit(void)
 		if(cx >= nelem(conf.mem))
 			continue;
 		lo = ROUNDUP(assem->addr, PGSZ);
-//if(lo >= 600ull*MiB)
-//    continue;
+		//if(lo >= 600ull*MiB)
+		//    continue;
 		conf.mem[cx].base = lo;
 		hi = ROUNDDN(hi, PGSZ);
-//if(hi > 600ull*MiB)
-//  hi = 600*MiB;
-		conf.mem[cx].npage = (hi - lo)/PGSZ;
+		//if(hi > 600ull*MiB)
+		//  hi = 600*MiB;
+		conf.mem[cx].npage = (hi - lo) / PGSZ;
 		conf.npage += conf.mem[cx].npage;
 		DBG("cm %d: addr %#llx npage %lu\n",
-			cx, conf.mem[cx].base, conf.mem[cx].npage);
+		    cx, conf.mem[cx].base, conf.mem[cx].npage);
 		cx++;
 #endif /* ConfCrap */
 	}
@@ -446,10 +449,10 @@ asmmeminit(void)
 	 * This is why I hate Plan 9.
 	 */
 	conf.upages = conf.npage;
-	i = (sys->vmend - sys->vmstart)/PGSZ;		/* close enough */
-	conf.ialloc = (i/2)*PGSZ;
+	i = (sys->vmend - sys->vmstart) / PGSZ; /* close enough */
+	conf.ialloc = (i / 2) * PGSZ;
 	DBG("npage %llu upage %lu kpage %d\n",
-		conf.npage, conf.upages, i);
+	    conf.npage, conf.upages, i);
 
 #endif /* ConfCrap */
 }

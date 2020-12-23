@@ -30,19 +30,19 @@
 #define atomic_read(ptr) (*(volatile __typeof__(*(ptr)) *)(ptr))
 
 #if 0
-# define atomic_add(ptr, inc) ({ \
+#define atomic_add(ptr, inc) ({ \
   long flags = disable_irqsave(); \
   typeof(ptr) res = *(volatile typeof(ptr))(ptr); \
   *(volatile typeof(ptr))(ptr) = res + (inc); \
   enable_irqrestore(flags); \
   res; })
-# define atomic_swap(ptr, swp) ({ \
+#define atomic_swap(ptr, swp) ({ \
   long flags = disable_irqsave(); \
   typeof(*ptr) res = *(volatile typeof(ptr))(ptr); \
   *(volatile typeof(ptr))(ptr) = (swp); \
   enable_irqrestore(flags); \
   res; })
-# define atomic_cas(ptr, cmp, swp) ({ \
+#define atomic_cas(ptr, cmp, swp) ({ \
   long flags = disable_irqsave(); \
   typeof(ptr) res = *(volatile typeof(ptr))(ptr); \
   if (res == (cmp)) *(volatile typeof(ptr))(ptr) = (swp); \

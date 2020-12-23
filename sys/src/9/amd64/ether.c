@@ -18,7 +18,7 @@
 
 #include "etherif.h"
 
-Ether*
+Ether *
 archetherprobe(int ctlrno, char *type, int (*reset)(Ether *))
 {
 	int i, j;
@@ -36,7 +36,7 @@ archetherprobe(int ctlrno, char *type, int (*reset)(Ether *))
 	ether->Netif.mtu = ETHERMAXTU;
 	ether->Netif.maxmtu = ETHERMAXTU;
 
-	if (reset(ether) < 0)
+	if(reset(ether) < 0)
 		return nil;
 
 	/*
@@ -55,15 +55,15 @@ archetherprobe(int ctlrno, char *type, int (*reset)(Ether *))
 		intrenable(ether->ISAConf.irq, ether->interrupt, ether, ether->tbdf, name);
 
 	i = sprint(buf, "#l%d: %s: %dMbps port %#p irq %d tu %d",
-		ctlrno, type, ether->Netif.mbps, ether->ISAConf.port, ether->ISAConf.irq, ether->Netif.mtu);
+		   ctlrno, type, ether->Netif.mbps, ether->ISAConf.port, ether->ISAConf.irq, ether->Netif.mtu);
 	if(ether->ISAConf.mem)
-		i += sprint(buf+i, " addr %#p", ether->ISAConf.mem);
+		i += sprint(buf + i, " addr %#p", ether->ISAConf.mem);
 	if(ether->ISAConf.size)
-		i += sprint(buf+i, " size 0x%lX", ether->ISAConf.size);
-	i += sprint(buf+i, ": %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
-		ether->ea[0], ether->ea[1], ether->ea[2],
-		ether->ea[3], ether->ea[4], ether->ea[5]);
-	sprint(buf+i, "\n");
+		i += sprint(buf + i, " size 0x%lX", ether->ISAConf.size);
+	i += sprint(buf + i, ": %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
+		    ether->ea[0], ether->ea[1], ether->ea[2],
+		    ether->ea[3], ether->ea[4], ether->ea[5]);
+	sprint(buf + i, "\n");
 	print(buf);
 
 	j = ether->Netif.mbps;
@@ -71,7 +71,7 @@ archetherprobe(int ctlrno, char *type, int (*reset)(Ether *))
 		j *= 10;
 	for(i = 0; j >= 100; i++)
 		j /= 10;
-	i = (128<<i)*1024;
+	i = (128 << i) * 1024;
 	netifinit(&ether->Netif, name, Ntypes, i);
 	if(ether->oq == 0)
 		ether->oq = qopen(i, Qmsg, 0, 0);
@@ -88,6 +88,6 @@ void
 archethershutdown(Ether *ether)
 {
 	if(ether->ISAConf.irq >= 0){
-	//	intrdisable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
+		//	intrdisable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 	}
 }

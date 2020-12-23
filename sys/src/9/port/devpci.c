@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
 
 enum {
 	Qtopdir = 0,
@@ -24,12 +24,12 @@ enum {
 	Qpcicap,
 };
 
-#define TYPE(q)		((uint32_t)(q).path & 0x0F)
-#define QID(c, t)	(((c)<<4)|(t))
+#define TYPE(q) ((uint32_t)(q).path & 0x0F)
+#define QID(c, t) (((c) << 4) | (t))
 
 static Dirtab topdir[] = {
-	{".",	{ Qtopdir, 0, QTDIR },	0,	0555},
-	{"pci",	{ Qpcidir, 0, QTDIR },	0,	0555},
+	{".", {Qtopdir, 0, QTDIR}, 0, 0555},
+	{"pci", {Qpcidir, 0, QTDIR}, 0, 0555},
 };
 
 extern Dev pcidevtab;
@@ -41,8 +41,8 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 	Proc *up = externup();
 	Qid q;
 
-	q = (Qid){BUSBDF(tbdf)|t, 0, 0};
-	switch(t) {
+	q = (Qid){BUSBDF(tbdf) | t, 0, 0};
+	switch(t){
 	case Qpcictl:
 		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%dctl",
 			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
@@ -54,8 +54,8 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 		devdir(c, q, up->genbuf, 128, eve, 0664, dp);
 		return 1;
 
-	// Display device capabilities as a directory,
-	// each capability has an entry as a file.
+		// Display device capabilities as a directory,
+		// each capability has an entry as a file.
 
 	case Qpcicap:
 		p = pcimatchtbdf(tbdf);
@@ -64,14 +64,14 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%dcap",
 			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
 		q.type = QTDIR;
-		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+		devdir(c, q, up->genbuf, 0, eve, DMDIR | 0555, dp);
 		return 1;
 	}
 	return -1;
 }
 
 static int
-pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
+pcigen(Chan *c, char *d, Dirtab *dir, int i, int s, Dir *dp)
 {
 	Proc *up = externup();
 	int tbdf;
@@ -95,17 +95,17 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 			return 1;
 		}
 		p = pcimatch(nil, 0, 0);
-		while(s >= 3 && p != nil) {
+		while(s >= 3 && p != nil){
 			p = pcimatch(p, 0, 0);
 			s -= 3;
 		}
 		if(p == nil)
 			return -1;
-		return pcidirgen(c, s+Qpcictl, p->tbdf, dp);
+		return pcidirgen(c, s + Qpcictl, p->tbdf, dp);
 	case Qpcicap:
 	case Qpcictl:
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			return -1;
@@ -121,10 +121,10 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 		// The capabilities files cannot be read or written. They are displayed
 		// for exploratory purposes only.
 
-		if(TYPE(c->qid) == Qpcicap) {
+		if(TYPE(c->qid) == Qpcicap){
 			if(s >= p->capcnt)
 				return -1;
-			q = (Qid){BUSBDF(tbdf)|(Qpcicap + s + 1), 0, 0};
+			q = (Qid){BUSBDF(tbdf) | (Qpcicap + s + 1), 0, 0};
 			Pcicap *pcp = p->capidx[s];
 			snprint(up->genbuf, sizeof up->genbuf, "cap%d.v%d.l%d.t%d.b%d.o%d",
 				s, pcp->vndr, pcp->caplen, pcp->type, pcp->bar, pcp->offset);
@@ -139,28 +139,28 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 	return -1;
 }
 
-static Chan*
+static Chan *
 pciattach(char *spec)
 {
 	return devattach(pcidevtab.dc, spec);
 }
 
-Walkqid*
-pciwalk(Chan* c, Chan *nc, char** name, int nname)
+Walkqid *
+pciwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, pcigen);
 }
 
 static int32_t
-pcistat(Chan* c, uint8_t* dp, int32_t n)
+pcistat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, (Dirtab *)0, 0L, pcigen);
 }
 
-static Chan*
+static Chan *
 pciopen(Chan *c, int omode)
 {
-	c = devopen(c, omode, (Dirtab*)0, 0, pcigen);
+	c = devopen(c, omode, (Dirtab *)0, 0, pcigen);
 	switch(TYPE(c->qid)){
 	default:
 		break;
@@ -169,7 +169,7 @@ pciopen(Chan *c, int omode)
 }
 
 static void
-pciclose(Chan* c)
+pciclose(Chan *c)
 {
 }
 
@@ -188,14 +188,14 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 	case Qpcicap:
 		return devdirread(c, a, n, (Dirtab *)0, 0L, pcigen);
 	case Qpcictl:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
-		ebuf = buf+sizeof buf-1;	/* -1 for newline */
+		ebuf = buf + sizeof buf - 1; /* -1 for newline */
 		w = seprint(buf, ebuf, "%.2x.%.2x.%.2x %.4x/%.4x %3d %s",
-			p->ccrb, p->ccru, p->ccrp, p->vid, p->did, p->intl, p->path);
-		for(i=0; i<nelem(p->mem); i++){
+			    p->ccrb, p->ccru, p->ccrp, p->vid, p->did, p->intl, p->path);
+		for(i = 0; i < nelem(p->mem); i++){
 			if(p->mem[i].size == 0)
 				continue;
 			w = seprint(w, ebuf, " %d:%.8llx %d", i, p->mem[i].bar, p->mem[i].size);
@@ -204,12 +204,12 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 		*w = '\0';
 		return readstr(offset, a, n, buf);
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
-		if(n+offset > 256)
-			n = 256-offset;
+		if(n + offset > 256)
+			n = 256 - offset;
 		if(n < 0)
 			return 0;
 		r = offset;
@@ -223,7 +223,7 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 			PBIT16(a, x);
 			return 2;
 		}
-		for(i = 0; i <  n; i++){
+		for(i = 0; i < n; i++){
 			x = pcicfgr8(p, r);
 			PBIT8(a, x);
 			a++;
@@ -246,21 +246,21 @@ pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
 	Pcidev *p;
 
 	if(n >= sizeof(buf))
-		n = sizeof(buf)-1;
+		n = sizeof(buf) - 1;
 	a = va;
-	strncpy(buf, (char*)a, n);
+	strncpy(buf, (char *)a, n);
 	buf[n] = 0;
 
 	switch(TYPE(c->qid)){
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
 		if(offset > 256)
 			return 0;
-		if(n+offset > 256)
-			n = 256-offset;
+		if(n + offset > 256)
+			n = 256 - offset;
 		r = offset;
 		if(!(r & 3) && n == 4){
 			x = GBIT32(a);
@@ -272,7 +272,7 @@ pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
 			pcicfgw16(p, r, x);
 			return 2;
 		}
-		for(i = 0; i <  n; i++){
+		for(i = 0; i < n; i++){
 			x = GBIT8(a);
 			pcicfgw8(p, r, x);
 			a++;

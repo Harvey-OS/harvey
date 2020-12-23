@@ -7,49 +7,49 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	<tos.h>
-#include	"ureg.h"
-#include	"../port/pmc.h"
+#include <tos.h>
+#include "ureg.h"
+#include "../port/pmc.h"
 
-#include	"io.h"
-#include	"amd64.h"
+#include "io.h"
+#include "amd64.h"
 
-extern int notify(Ureg*);
+extern int notify(Ureg *);
 
-static void debugbpt(Ureg*, void*);
-static void faultamd64(Ureg*, void*);
-static void doublefault(Ureg*, void*);
-static void unexpected(Ureg*, void*);
-static void expected(Ureg*, void*);
-static void dumpstackwithureg(Ureg*);
-extern int bus_irq_setup(Vctl*);
+static void debugbpt(Ureg *, void *);
+static void faultamd64(Ureg *, void *);
+static void doublefault(Ureg *, void *);
+static void unexpected(Ureg *, void *);
+static void expected(Ureg *, void *);
+static void dumpstackwithureg(Ureg *);
+extern int bus_irq_setup(Vctl *);
 
 static Lock vctllock;
 static Vctl *vctl[256];
 
 typedef struct Intrtime Intrtime;
 struct Intrtime {
-	uint64_t	count;
-	uint64_t	cycles;
+	uint64_t count;
+	uint64_t cycles;
 };
 static Intrtime intrtimes[256];
 
-void*
-intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
+void *
+intrenable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 {
 	int vno;
 	Vctl *v;
 
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#x for %s\n",
-			irq, tbdf, name);
+		      irq, tbdf, name);
 		return nil;
 	}
 
@@ -59,23 +59,23 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	v->Vkey.tbdf = tbdf;
 	v->f = f;
 	v->a = a;
-	strncpy(v->name, name, KNAMELEN-1);
-	v->name[KNAMELEN-1] = 0;
+	strncpy(v->name, name, KNAMELEN - 1);
+	v->name[KNAMELEN - 1] = 0;
 
 	ilock(&vctllock);
 	vno = bus_irq_setup(v);
 	if(vno == -1){
 		iunlock(&vctllock);
 		print("intrenable: couldn't enable irq %d, tbdf %#x for %s\n",
-			irq, tbdf, v->name);
+		      irq, tbdf, v->name);
 		free(v);
 		return nil;
 	}
 	if(vctl[vno]){
 		if(vctl[v->vno]->isr != v->isr || vctl[v->vno]->eoi != v->eoi)
 			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
-				vctl[v->vno]->name, v->name,
-				vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
+			      vctl[v->vno]->name, v->name,
+			      vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
 	}
 	v->vno = vno;
 	v->next = vctl[vno];
@@ -93,7 +93,8 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	return v;
 }
 
-int acpiintrenable(Vctl *v)
+int
+acpiintrenable(Vctl *v)
 {
 	int vno;
 	ilock(&vctllock);
@@ -101,15 +102,15 @@ int acpiintrenable(Vctl *v)
 	if(vno == -1){
 		iunlock(&vctllock);
 		print("intrenable: couldn't enable irq %d, tbdf %#x for %s\n",
-			v->Vkey.irq, v->Vkey.tbdf, v->name);
+		      v->Vkey.irq, v->Vkey.tbdf, v->name);
 		free(v);
 		return -1;
 	}
 	if(vctl[vno]){
 		if(vctl[v->vno]->isr != v->isr || vctl[v->vno]->eoi != v->eoi)
 			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
-				vctl[v->vno]->name, v->name,
-				vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
+			      vctl[v->vno]->name, v->name,
+			      vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
 	}
 	v->vno = vno;
 	v->next = vctl[vno];
@@ -123,7 +124,7 @@ int acpiintrenable(Vctl *v)
 }
 
 int
-intrdisable(void* vector)
+intrdisable(void *vector)
 {
 	Vctl *v, *x, **ll;
 	extern int ioapicintrdisable(int);
@@ -132,7 +133,7 @@ intrdisable(void* vector)
 	v = vector;
 	if(v == nil || vctl[v->vno] != v)
 		panic("intrdisable: v %#p", v);
-	for(ll = vctl+v->vno; (x = *ll) != nil; ll = &x->next)
+	for(ll = vctl + v->vno; (x = *ll) != nil; ll = &x->next)
 		if(v == x)
 			break;
 	if(x != v)
@@ -149,14 +150,14 @@ intrdisable(void* vector)
 }
 
 static int32_t
-irqmapread(Chan* c, void *vbuf, int32_t n, int64_t offset)
+irqmapread(Chan *c, void *vbuf, int32_t n, int64_t offset)
 {
 	char *readtodo(void);
 	return readstr(offset, vbuf, n, readtodo());
 }
 
 static int32_t
-irqmapwrite(Chan* c, void *buf, int32_t n, int64_t offset)
+irqmapwrite(Chan *c, void *buf, int32_t n, int64_t offset)
 {
 	int acpiirq(uint32_t tbdf, int irq);
 	int t, b, d, f, irq;
@@ -164,7 +165,7 @@ irqmapwrite(Chan* c, void *buf, int32_t n, int64_t offset)
 	Cmdbuf *cb;
 
 	cb = parsecmd(buf, n);
-	if (cb->nf < nelem(p))
+	if(cb->nf < nelem(p))
 		error("iprqmapwrite t b d f irq");
 	for(int i = 0; i < nelem(p); i++)
 		*p[i] = strtoul(cb->f[i], 0, 0);
@@ -174,7 +175,7 @@ irqmapwrite(Chan* c, void *buf, int32_t n, int64_t offset)
 }
 
 static int32_t
-irqenablewrite(Chan* c, void *vbuf, int32_t n, int64_t offset)
+irqenablewrite(Chan *c, void *vbuf, int32_t n, int64_t offset)
 {
 	void irqenable(void);
 	irqenable();
@@ -182,9 +183,9 @@ irqenablewrite(Chan* c, void *vbuf, int32_t n, int64_t offset)
 }
 
 static int32_t
-irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
+irqallocread(Chan *c, void *vbuf, int32_t n, int64_t offset)
 {
-	char *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
+	char *buf, *p, str[2 * (11 + 1) + 2 * (20 + 1) + (KNAMELEN + 1) + (8 + 1) + 1];
 	int m, vno;
 	int32_t oldn;
 	Intrtime *t;
@@ -195,17 +196,17 @@ irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 
 	oldn = n;
 	buf = vbuf;
-	for(vno=0; vno<nelem(vctl); vno++){
-		for(v=vctl[vno]; v; v=v->next){
+	for(vno = 0; vno < nelem(vctl); vno++){
+		for(v = vctl[vno]; v; v = v->next){
 			t = intrtimes + vno;
 			m = snprint(str, sizeof str, "%11d %11d %20llu %20llu %-*.*s %.*s\n",
-				vno, v->Vkey.irq, t->count, t->cycles, 8, 8, v->type, KNAMELEN, v->name);
-			if(m <= offset)	/* if do not want this, skip entry */
+				    vno, v->Vkey.irq, t->count, t->cycles, 8, 8, v->type, KNAMELEN, v->name);
+			if(m <= offset) /* if do not want this, skip entry */
 				offset -= m;
-			else{
+			else {
 				/* skip offset bytes */
 				m -= offset;
-				p = str+offset;
+				p = str + offset;
 				offset = 0;
 
 				/* write at most max(n,m) bytes */
@@ -224,7 +225,7 @@ irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 }
 
 void
-trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
+trapenable(int vno, void (*f)(Ureg *, void *), void *a, char *name)
 {
 	Vctl *v;
 
@@ -236,7 +237,7 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	v->f = f;
 	v->a = a;
 	strncpy(v->name, name, KNAMELEN);
-	v->name[KNAMELEN-1] = 0;
+	v->name[KNAMELEN - 1] = 0;
 
 	ilock(&vctllock);
 	v->next = vctl[vno];
@@ -252,11 +253,11 @@ nmienable(void)
 	/*
 	 * Hack: should be locked with NVRAM access.
 	 */
-	outb(0x70, 0x80);		/* NMI latch clear */
+	outb(0x70, 0x80); /* NMI latch clear */
 	outb(0x70, 0);
 
-	x = inb(0x61) & 0x07;		/* Enable NMI */
-	outb(0x61, 0x08|x);
+	x = inb(0x61) & 0x07; /* Enable NMI */
+	outb(0x61, 0x08 | x);
 	outb(0x61, x);
 }
 
@@ -282,27 +283,27 @@ trapinit(void)
 	addarchfile("irqenable", 0222, nil, irqenablewrite);
 }
 
-static char* excname[32] = {
-	"#DE",					/* Divide-by-Zero Error */
-	"#DB",					/* Debug */
-	"#NMI",					/* Non-Maskable-Interrupt */
-	"#BP",					/* Breakpoint */
-	"#OF",					/* Overflow */
-	"#BR",					/* Bound-Range */
-	"#UD",					/* Invalid-Opcode */
-	"#NM",					/* Device-Not-Available */
-	"#DF",					/* Double-Fault */
+static char *excname[32] = {
+	"#DE",	/* Divide-by-Zero Error */
+	"#DB",	/* Debug */
+	"#NMI", /* Non-Maskable-Interrupt */
+	"#BP",	/* Breakpoint */
+	"#OF",	/* Overflow */
+	"#BR",	/* Bound-Range */
+	"#UD",	/* Invalid-Opcode */
+	"#NM",	/* Device-Not-Available */
+	"#DF",	/* Double-Fault */
 	"#9 (reserved)",
-	"#TS",					/* Invalid-TSS */
-	"#NP",					/* Segment-Not-Present */
-	"#SS",					/* Stack */
-	"#GP",					/* General-Protection */
-	"#PF",					/* Page-Fault */
+	"#TS", /* Invalid-TSS */
+	"#NP", /* Segment-Not-Present */
+	"#SS", /* Stack */
+	"#GP", /* General-Protection */
+	"#PF", /* Page-Fault */
 	"#15 (reserved)",
-	"#MF",					/* x87 FPE-Pending */
-	"#AC",					/* Alignment-Check */
-	"#MC",					/* Machine-Check */
-	"#XM",					/* SIMD Floating-Point */
+	"#MF", /* x87 FPE-Pending */
+	"#AC", /* Alignment-Check */
+	"#MC", /* Machine-Check */
+	"#XM", /* SIMD Floating-Point */
 	"#20 (reserved)",
 	"#21 (reserved)",
 	"#22 (reserved)",
@@ -347,10 +348,10 @@ void (*_pmcupdate)(Mach *m) = pmcnop;
 
 /* go to user space */
 void
-kexit(Ureg* u)
+kexit(Ureg *u)
 {
- 	Proc *up = externup();
- 	uint64_t t;
+	Proc *up = externup();
+	uint64_t t;
 	Tos *tos;
 	Mach *mp;
 
@@ -358,14 +359,14 @@ kexit(Ureg* u)
 	 * precise time accounting, kernel exit
 	 * initialized in exec, sysproc.c
 	 */
-	tos = (Tos*)(USTKTOP-sizeof(Tos));
+	tos = (Tos *)(USTKTOP - sizeof(Tos));
 	cycles(&t);
 	tos->kcycles += t - up->kentry;
 	tos->pcycles = up->pcycles;
 	// pid was added to TOS at two different times.
 	// TODO: get rid of nixpid.
 	tos->prof.pid = tos->nixpid = up->pid;
-	if (up->ac != nil)
+	if(up->ac != nil)
 		mp = up->ac;
 	else
 		mp = machp();
@@ -387,11 +388,11 @@ kstackok(void)
 	Proc *up = externup();
 
 	if(up == nil){
-		uintptr_t *stk = (uintptr_t*)machp()->stack;
+		uintptr_t *stk = (uintptr_t *)machp()->stack;
 		if(*stk != STACKGUARD)
 			panic("trap: mach %d machstk went through bottom %p\n", machp()->machno, machp()->stack);
 	} else {
-		uintptr_t *stk = (uintptr_t*)up->kstack;
+		uintptr_t *stk = (uintptr_t *)up->kstack;
 		if(*stk != STACKGUARD)
 			panic("trap: proc %d kstack went through bottom %p\n", up->pid, up->kstack);
 	}
@@ -423,7 +424,7 @@ static int lastvno;
  *  Trap is called with interrupts disabled via interrupt-gates.
  */
 void
-trap(Ureg* ureg)
+trap(Ureg *ureg)
 {
 	int clockintr, vno, user;
 	// cache the previous vno to see what might be causing
@@ -432,7 +433,7 @@ trap(Ureg* ureg)
 	uint64_t gsbase = rdmsr(GSbase);
 	//if (sce > scx) iprint("====================");
 	lastvno = vno;
-	if (gsbase < KZERO)
+	if(gsbase < KZERO)
 		die("bogus gsbase");
 	Proc *up = externup();
 	char buf[ERRMAX];
@@ -454,23 +455,25 @@ trap(Ureg* ureg)
 			machp()->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
 				machp()->lastintr = ctl->Vkey.irq;
-		}else
-			if(up)
-				up->nqtrap++;
+		} else if(up)
+			up->nqtrap++;
 
 		if(ctl->isr){
 			ctl->isr(vno);
-			if(islo())print("trap %d: isr %p enabled interrupts\n", vno, ctl->isr);
+			if(islo())
+				print("trap %d: isr %p enabled interrupts\n", vno, ctl->isr);
 		}
 		for(v = ctl; v != nil; v = v->next){
 			if(v->f){
 				v->f(ureg, v->a);
-				if(islo())print("trap %d: ctlf %p enabled interrupts\n", vno, v->f);
+				if(islo())
+					print("trap %d: ctlf %p enabled interrupts\n", vno, v->f);
 			}
 		}
 		if(ctl->eoi){
 			ctl->eoi(vno);
-			if(islo())print("trap %d: eoi %p enabled interrupts\n", vno, ctl->eoi);
+			if(islo())
+				print("trap %d: eoi %p enabled interrupts\n", vno, ctl->eoi);
 		}
 
 		intrtime(vno);
@@ -478,19 +481,17 @@ trap(Ureg* ureg)
 			if(ctl->Vkey.irq == IrqCLOCK || ctl->Vkey.irq == IrqTIMER)
 				clockintr = 1;
 
-			if (ctl->Vkey.irq == IrqTIMER)
+			if(ctl->Vkey.irq == IrqTIMER)
 				oprof_alarm_handler(ureg);
 
 			if(up && !clockintr)
 				preempted();
 		}
-	}
-	else if(vno < nelem(excname) && user){
+	} else if(vno < nelem(excname) && user){
 		spllo();
 		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);
-	}
-	else if(vno >= VectorPIC && vno != VectorSYSCALL){
+	} else if(vno >= VectorPIC && vno != VectorSYSCALL){
 		/*
 		 * An unknown interrupt.
 		 * Check for a default IRQ7. This can happen when
@@ -504,19 +505,19 @@ trap(Ureg* ureg)
 		i8259isr(vno);
 
 		iprint("cpu%d: spurious interrupt %d, last %d\n",
-			machp()->machno, vno, machp()->lastintr);
+		       machp()->machno, vno, machp()->lastintr);
 		intrtime(vno);
 		if(user)
 			kexit(ureg);
 		return;
-	}
-	else{
+	} else {
 		if(vno == VectorNMI){
 			nmienable();
 			if(machp()->machno != 0){
 				iprint("cpu%d: PC %#llx\n",
-					machp()->machno, ureg->ip);
-				for(;;);
+				       machp()->machno, ureg->ip);
+				for(;;)
+					;
 			}
 		}
 		dumpregs(ureg);
@@ -533,18 +534,17 @@ trap(Ureg* ureg)
 	/* delaysched set because we held a lock or because our quantum ended */
 	if(up && up->delaysched && clockintr){
 		if(0)
-		if(user && up->ac == nil && up->nqtrap == 0 && up->nqsyscall == 0){
-			if(!waserror()){
-				up->ac = getac(up, -1);
-				poperror();
-				runacore();
-				return;
+			if(user && up->ac == nil && up->nqtrap == 0 && up->nqsyscall == 0){
+				if(!waserror()){
+					up->ac = getac(up, -1);
+					poperror();
+					runacore();
+					return;
+				}
 			}
-		}
 		sched();
 		splhi();
 	}
-
 
 	if(user){
 		if(up != nil && (up->procctl || up->nnote))
@@ -557,12 +557,12 @@ trap(Ureg* ureg)
  * Dump general registers.
  */
 void
-dumpgpr(Ureg* ureg)
+dumpgpr(Ureg *ureg)
 {
 	Proc *up = externup();
 	if(up != nil)
 		print("cpu%d: registers for %s %d\n",
-			machp()->machno, up->text, up->pid);
+		      machp()->machno, up->text, up->pid);
 	else
 		print("cpu%d: registers for kernel\n", machp()->machno);
 
@@ -596,7 +596,7 @@ dumpgpr(Ureg* ureg)
 }
 
 void
-dumpregs(Ureg* ureg)
+dumpregs(Ureg *ureg)
 {
 	dumpgpr(ureg);
 
@@ -617,7 +617,7 @@ dumpregs(Ureg* ureg)
  * Used by debugging interface rdb.
  */
 void
-callwithureg(void (*fn)(Ureg*))
+callwithureg(void (*fn)(Ureg *))
 {
 	Ureg ureg;
 	ureg.ip = getcallerpc();
@@ -626,14 +626,14 @@ callwithureg(void (*fn)(Ureg*))
 }
 
 static void
-dumpstackwithureg(Ureg* ureg)
+dumpstackwithureg(Ureg *ureg)
 {
 	Proc *up = externup();
 	uintptr_t l, v, i, estack;
-//	extern char etext;
+	//	extern char etext;
 	int x;
 
-	if (0) { //if((s = getconf("*nodumpstack")) != nil && atoi(s) != 0){
+	if(0) {	       //if((s = getconf("*nodumpstack")) != nil && atoi(s) != 0){
 		iprint("dumpstack disabled\n");
 		return;
 	}
@@ -643,12 +643,12 @@ dumpstackwithureg(Ureg* ureg)
 	x += iprint("ktrace %#p %#p\n", ureg->ip, ureg->sp);
 	i = 0;
 	if(up != nil
-//	&& (uintptr)&l >= (uintptr)up->kstack
-	&& (uintptr_t)&l <= (uintptr_t)up->kstack+KSTACK)
-		estack = (uintptr_t)up->kstack+KSTACK;
-	else if((uintptr_t)&l >= machp()->stack && (uintptr_t)&l <= machp()->stack+MACHSTKSZ)
-		estack = machp()->stack+MACHSTKSZ;
-	else{
+	   //	&& (uintptr)&l >= (uintptr)up->kstack
+	   && (uintptr_t)&l <= (uintptr_t)up->kstack + KSTACK)
+		estack = (uintptr_t)up->kstack + KSTACK;
+	else if((uintptr_t)&l >= machp()->stack && (uintptr_t)&l <= machp()->stack + MACHSTKSZ)
+		estack = machp()->stack + MACHSTKSZ;
+	else {
 		if(up != nil)
 			iprint("&up->kstack %#p &l %#p\n", up->kstack, &l);
 		else
@@ -658,9 +658,8 @@ dumpstackwithureg(Ureg* ureg)
 	x += iprint("estackx %#p\n", estack);
 
 	for(l = (uintptr_t)&l; l < estack; l += sizeof(uintptr_t)){
-		v = *(uintptr_t*)l;
-		if((KTZERO < v && v < (uintptr_t)&etext)
-		|| ((uintptr_t)&l < v && v < estack) || estack-l < 256){
+		v = *(uintptr_t *)l;
+		if((KTZERO < v && v < (uintptr_t)&etext) || ((uintptr_t)&l < v && v < estack) || estack - l < 256){
 			x += iprint("%#16.16p=%#16.16p ", l, v);
 			i++;
 		}
@@ -680,7 +679,7 @@ dumpstack(void)
 }
 
 static void
-debugbpt(Ureg* ureg, void* v)
+debugbpt(Ureg *ureg, void *v)
 {
 	Proc *up = externup();
 	char buf[ERRMAX];
@@ -694,25 +693,25 @@ debugbpt(Ureg* ureg, void* v)
 }
 
 static void
-doublefault(Ureg* ureg, void* v)
+doublefault(Ureg *ureg, void *v)
 {
 	iprint("cr2 %p\n", (void *)cr2get());
 	panic("double fault");
 }
 
 static void
-unexpected(Ureg* ureg, void* v)
+unexpected(Ureg *ureg, void *v)
 {
 	iprint("unexpected trap %llu; ignoring\n", ureg->type);
 }
 
 static void
-expected(Ureg* ureg, void* v)
+expected(Ureg *ureg, void *v)
 {
 }
 
 static void
-faultamd64(Ureg* ureg, void* v)
+faultamd64(Ureg *ureg, void *v)
 {
 	Proc *up = externup();
 	uint64_t addr;
@@ -731,14 +730,16 @@ faultamd64(Ureg* ureg, void* v)
 	 */
 	if(up == nil){
 		panic("fault with up == nil; pc %#llx addr %#llx\n",
-			ureg->ip, addr);
+		      ureg->ip, addr);
 	}
 
-	ftype = (ureg->error&2) ? FT_WRITE : (ureg->error&16) ? FT_EXEC : FT_READ;
+	ftype = (ureg->error & 2) ? FT_WRITE : (ureg->error & 16) ? FT_EXEC
+								  : FT_READ;
 
 	insyscall = up->insyscall;
 	up->insyscall = 1;
-	if (0)hi("call fault\n");
+	if(0)
+		hi("call fault\n");
 
 	if(fault(addr, ureg->ip, ftype) < 0){
 		/*
@@ -757,7 +758,7 @@ faultamd64(Ureg* ureg, void* v)
 			panic("fault: %#llx\n", addr);
 		}
 		sprint(buf, "sys: trap: fault %s addr=%#llx",
-			faulttypes[ftype], addr);
+		       faulttypes[ftype], addr);
 		postnote(up, 1, buf, NDebug);
 		if(insyscall)
 			error(buf);
@@ -769,7 +770,7 @@ faultamd64(Ureg* ureg, void* v)
  *  return the userpc the last exception happened at
  */
 uintptr_t
-userpc(Ureg* ureg)
+userpc(Ureg *ureg)
 {
 	Proc *up = externup();
 	if(ureg == nil)
@@ -782,7 +783,7 @@ userpc(Ureg* ureg)
  * TODO: fix this because the segment registers are wrong for 64-bit mode.
  */
 void
-setregisters(Ureg* ureg, char* pureg, char* uva, int n)
+setregisters(Ureg *ureg, char *pureg, char *uva, int n)
 {
 	uint64_t cs, flags, ss;
 
@@ -799,10 +800,10 @@ setregisters(Ureg* ureg, char* pureg, char* uva, int n)
  * a sleeping process
  */
 void
-setkernur(Ureg* ureg, Proc* p)
+setkernur(Ureg *ureg, Proc *p)
 {
 	ureg->ip = p->sched.pc;
-	ureg->sp = p->sched.sp+BY2SE;
+	ureg->sp = p->sched.sp + BY2SE;
 }
 
 uintptr_t

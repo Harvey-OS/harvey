@@ -23,8 +23,8 @@ static Ether *etherxx[MaxEther];
 extern Ether *archetherprobe(int ctlrno, char *type, int (*reset)(Ether *));
 extern void archethershutdown(Ether *ether);
 
-Chan*
-etherattach(char* spec)
+Chan *
+etherattach(char *spec)
 {
 	Proc *up = externup();
 	int ctlrno;
@@ -53,37 +53,37 @@ etherattach(char* spec)
 	return chan;
 }
 
-static Walkqid*
-etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
+static Walkqid *
+etherwalk(Chan *chan, Chan *nchan, char **name, int nname)
 {
 	return netifwalk(&etherxx[chan->devno]->Netif, chan, nchan, name, nname);
 }
 
 static int32_t
-etherstat(Chan* chan, uint8_t* dp, int32_t n)
+etherstat(Chan *chan, uint8_t *dp, int32_t n)
 {
 	return netifstat(&etherxx[chan->devno]->Netif, chan, dp, n);
 }
 
-static Chan*
-etheropen(Chan* chan, int omode)
+static Chan *
+etheropen(Chan *chan, int omode)
 {
 	return netifopen(&etherxx[chan->devno]->Netif, chan, omode);
 }
 
 static void
-ethercreate(Chan* c, char* d, int i, int n)
+ethercreate(Chan *c, char *d, int i, int n)
 {
 }
 
 static void
-etherclose(Chan* chan)
+etherclose(Chan *chan)
 {
 	netifclose(&etherxx[chan->devno]->Netif, chan);
 }
 
 static int32_t
-etherread(Chan* chan, void* buf, int32_t n, int64_t off)
+etherread(Chan *chan, void *buf, int32_t n, int64_t off)
 {
 	Ether *ether;
 	uint32_t offset = off;
@@ -111,20 +111,20 @@ etherread(Chan* chan, void* buf, int32_t n, int64_t off)
 	return netifread(&ether->Netif, chan, buf, n, offset);
 }
 
-static Block*
-etherbread(Chan* chan, int32_t n, int64_t offset)
+static Block *
+etherbread(Chan *chan, int32_t n, int64_t offset)
 {
 	return netifbread(&etherxx[chan->devno]->Netif, chan, n, offset);
 }
 
 static int32_t
-etherwstat(Chan* chan, uint8_t* dp, int32_t n)
+etherwstat(Chan *chan, uint8_t *dp, int32_t n)
 {
 	return netifwstat(&etherxx[chan->devno]->Netif, chan, dp, n);
 }
 
 static void
-etherrtrace(Netfile* f, Etherpkt* pkt, int len)
+etherrtrace(Netfile *f, Etherpkt *pkt, int len)
 {
 	int i, n;
 	Block *bp;
@@ -140,18 +140,18 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 		return;
 	memmove(bp->wp, pkt->d, n);
 	i = TK2MS(sys->ticks);
-	bp->wp[58] = len>>8;
+	bp->wp[58] = len >> 8;
 	bp->wp[59] = len;
-	bp->wp[60] = i>>24;
-	bp->wp[61] = i>>16;
-	bp->wp[62] = i>>8;
+	bp->wp[60] = i >> 24;
+	bp->wp[61] = i >> 16;
+	bp->wp[62] = i >> 8;
 	bp->wp[63] = i;
 	bp->wp += 64;
 	qpass(f->iq, bp);
 }
 
-Block*
-etheriq(Ether* ether, Block* bp, int fromwire)
+Block *
+etheriq(Ether *ether, Block *bp, int fromwire)
 {
 	Etherpkt *pkt;
 	uint16_t type;
@@ -162,9 +162,9 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 
 	ether->Netif.inpackets++;
 
-	pkt = (Etherpkt*)bp->rp;
+	pkt = (Etherpkt *)bp->rp;
 	len = BLEN(bp);
-	type = (pkt->type[0]<<8)|pkt->type[1];
+	type = (pkt->type[0] << 8) | pkt->type[1];
 	fx = 0;
 	ep = &ether->Netif.f[Ntypes];
 
@@ -193,29 +193,29 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	for(fp = ether->Netif.f; fp < ep; fp++){
 		f = *fp;
 		if(f != nil)
-		if(f->type == type || f->type < 0)
-		if(tome || multi || f->prom || (f->bridge & 0x02)){
-			/* Don't want to hear bridged packets */
-			if(f->bridge && !fromwire && !fromme)
-				continue;
-			if(f->headersonly){
-				etherrtrace(f, pkt, len);
-				continue;
-			}
-			if(fromwire && fx == 0){
-				fx = f;
-				continue;
-			}
-			xbp = iallocb(len);
-			if(xbp == nil){
-				ether->Netif.soverflows++;
-				continue;
-			}
-			memmove(xbp->wp, pkt, len);
-			xbp->wp += len;
-			if(qpass(f->iq, xbp) < 0)
-				ether->Netif.soverflows++;
-		}
+			if(f->type == type || f->type < 0)
+				if(tome || multi || f->prom || (f->bridge & 0x02)){
+					/* Don't want to hear bridged packets */
+					if(f->bridge && !fromwire && !fromme)
+						continue;
+					if(f->headersonly){
+						etherrtrace(f, pkt, len);
+						continue;
+					}
+					if(fromwire && fx == 0){
+						fx = f;
+						continue;
+					}
+					xbp = iallocb(len);
+					if(xbp == nil){
+						ether->Netif.soverflows++;
+						continue;
+					}
+					memmove(xbp->wp, pkt, len);
+					xbp->wp += len;
+					if(qpass(f->iq, xbp) < 0)
+						ether->Netif.soverflows++;
+				}
 	}
 
 	if(fx != nil){
@@ -232,7 +232,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 }
 
 static int
-etheroq(Ether* ether, Block* bp)
+etheroq(Ether *ether, Block *bp)
 {
 	int loopback, s;
 	Etherpkt *pkt;
@@ -249,7 +249,7 @@ etheroq(Ether* ether, Block* bp)
 	 * To enable bridging to work, only packets that were originated
 	 * by this interface are fed back.
 	 */
-	pkt = (Etherpkt*)bp->rp;
+	pkt = (Etherpkt *)bp->rp;
 	len = BLEN(bp);
 	loopback = memcmp(pkt->d, ether->ea, sizeof(pkt->d)) == 0;
 	if(loopback || memcmp(pkt->d, ether->Netif.bcast, sizeof(pkt->d)) == 0 || ether->Netif.prom){
@@ -270,7 +270,7 @@ etheroq(Ether* ether, Block* bp)
 }
 
 static int32_t
-etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
+etherwrite(Chan *chan, void *buf, int32_t n, int64_t mm)
 {
 	Proc *up = externup();
 	Ether *ether;
@@ -279,7 +279,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 	Cmdbuf *cb;
 
 	ether = etherxx[chan->devno];
-	if(NETTYPE(chan->qid.path) != Ndataqid) {
+	if(NETTYPE(chan->qid.path) != Ndataqid){
 		nn = netifwrite(&ether->Netif, chan, buf, n);
 		if(nn >= 0)
 			return nn;
@@ -311,7 +311,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 	}
 	memmove(bp->rp, buf, n);
 	if((ether->Netif.f[NETID(chan->qid.path)]->bridge & 2) == 0)
-		memmove(bp->rp+Eaddrlen, ether->ea, Eaddrlen);
+		memmove(bp->rp + Eaddrlen, ether->ea, Eaddrlen);
 	poperror();
 	bp->wp += n;
 
@@ -319,7 +319,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 }
 
 static int32_t
-etherbwrite(Chan* chan, Block* bp, int64_t mm)
+etherbwrite(Chan *chan, Block *bp, int64_t mm)
 {
 	Proc *up = externup();
 	Ether *ether;
@@ -327,7 +327,7 @@ etherbwrite(Chan* chan, Block* bp, int64_t mm)
 
 	n = BLEN(bp);
 	if(NETTYPE(chan->qid.path) != Ndataqid){
-		if(waserror()) {
+		if(waserror()){
 			freeb(bp);
 			nexterror();
 		}
@@ -351,12 +351,12 @@ etherbwrite(Chan* chan, Block* bp, int64_t mm)
 }
 
 static struct {
-	char*	type;
-	int	(*reset)(Ether*);
-} cards[MaxEther+1];
+	char *type;
+	int (*reset)(Ether *);
+} cards[MaxEther + 1];
 
 void
-addethercard(char* t, int (*r)(Ether*))
+addethercard(char *t, int (*r)(Ether *))
 {
 	static int ncard;
 
@@ -390,7 +390,7 @@ parseether(uint8_t *to, char *from)
 	return 0;
 }
 
-static Ether*
+static Ether *
 etherprobe(int cardno, int ctlrno)
 {
 
@@ -433,7 +433,7 @@ ethershutdown(void)
 		ether = etherxx[i];
 		if(ether == nil)
 			continue;
-		if(ether->shutdown == nil) {
+		if(ether->shutdown == nil){
 			print("#l%d: no shutdown function\n", i);
 			continue;
 		}
@@ -442,7 +442,6 @@ ethershutdown(void)
 		(*ether->shutdown)(ether);
 	}
 }
-
 
 #define POLY 0xedb88320
 
@@ -457,7 +456,7 @@ ethercrc(uint8_t *p, int len)
 	for(i = 0; i < len; i++){
 		b = *p++;
 		for(j = 0; j < 8; j++){
-			crc = (crc>>1) ^ (((crc^b) & 1) ? POLY : 0);
+			crc = (crc >> 1) ^ (((crc ^ b) & 1) ? POLY : 0);
 			b >>= 1;
 		}
 	}

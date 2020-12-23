@@ -13,28 +13,29 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-static int32_t lusertime(char*);
+static int32_t lusertime(char *);
 
 char *timeserver = "#s/boot";
 
 static int
-setlocaltime(char* timebuf, int s){
+setlocaltime(char *timebuf, int s)
+{
 	int n, f, t;
-	t=0;
+	t = 0;
 	f = open("#r/rtc", ORDWR);
 	if(f >= 0){
-		if((n = read(f, timebuf, s-1)) > 0){
+		if((n = read(f, timebuf, s - 1)) > 0){
 			timebuf[n] = '\0';
 			t = 1;
 		}
 		close(f);
-	}else do{
-		strcpy(timebuf, "yymmddhhmm[ss]");
-		outin("\ndate/time ", timebuf, s);
-	}while((t=lusertime(timebuf)) <= 0);
+	} else
+		do {
+			strcpy(timebuf, "yymmddhhmm[ss]");
+			outin("\ndate/time ", timebuf, s);
+		} while((t = lusertime(timebuf)) <= 0);
 	return t;
 }
-
 
 void
 settime(int islocal, int afd, char *rp)
@@ -50,7 +51,7 @@ settime(int islocal, int afd, char *rp)
 		/*
 		 *  set the time from the real time clock
 		 */
-		timeset=setlocaltime(timebuf, sizeof(timebuf));
+		timeset = setlocaltime(timebuf, sizeof(timebuf));
 	}
 	if(timeset == 0){
 		/*
@@ -68,13 +69,13 @@ settime(int islocal, int afd, char *rp)
 			close(f);
 			if(stat("/tmp", statbuf, sizeof statbuf) < 0)
 				fatal("stat");
-			convM2D(statbuf, sizeof statbuf, &dir[0], (char*)&dir[1]);
+			convM2D(statbuf, sizeof statbuf, &dir[0], (char *)&dir[1]);
 			sprint(timebuf, "%ld", dir[0].atime);
 			unmount(0, "/tmp");
 		}
 	}
 
-	if((!islocal) && (strcmp(timebuf,"0")==0))
+	if((!islocal) && (strcmp(timebuf, "0") == 0))
 		setlocaltime(timebuf, sizeof(timebuf));
 
 	f = open("#c/time", OWRITE);
@@ -85,15 +86,15 @@ settime(int islocal, int afd, char *rp)
 }
 
 #define SEC2MIN 60L
-#define SEC2HOUR (60L*SEC2MIN)
-#define SEC2DAY (24L*SEC2HOUR)
+#define SEC2HOUR (60L * SEC2MIN)
+#define SEC2DAY (24L * SEC2HOUR)
 
 int
 g2(char **pp)
 {
 	int v;
 
-	v = 10*((*pp)[0]-'0') + (*pp)[1]-'0';
+	v = 10 * ((*pp)[0] - '0') + (*pp)[1] - '0';
 	*pp += 2;
 	return v;
 }
@@ -101,14 +102,10 @@ g2(char **pp)
 /*
  *  days per month plus days/year
  */
-static	int	dmsize[] =
-{
-	365, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
-static	int	ldmsize[] =
-{
-	366, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
+static int dmsize[] = {
+	365, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+static int ldmsize[] = {
+	366, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 /*
  *  return the days/month for the given year
@@ -117,7 +114,7 @@ static int *
 yrsize(int y)
 {
 
-	if((y%4) == 0 && ((y%100) != 0 || (y%400) == 0))
+	if((y % 4) == 0 && ((y % 100) != 0 || (y % 400) == 0))
 		return ldmsize;
 	else
 		return dmsize;
@@ -161,7 +158,7 @@ lusertime(char *argbuf)
 	for(i = 1; i < m; i++)
 		secs += d2m[i] * SEC2DAY;
 
-	secs += (g2(&buf)-1) * SEC2DAY;
+	secs += (g2(&buf) - 1) * SEC2DAY;
 	secs += g2(&buf) * SEC2HOUR;
 	secs += g2(&buf) * SEC2MIN;
 	if(*buf)

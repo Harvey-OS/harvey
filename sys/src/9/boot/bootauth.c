@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-char	*authaddr;
+char *authaddr;
 static void glenda(void);
 
 void
@@ -22,7 +22,7 @@ authentication(int cpuflag)
 	char *argv[16], **av;
 	int ac;
 
-	if(access("/boot/factotum", AEXEC) < 0|| getenv("user") != nil){
+	if(access("/boot/factotum", AEXEC) < 0 || getenv("user") != nil){
 		glenda();
 		return;
 	}
@@ -33,8 +33,8 @@ authentication(int cpuflag)
 	av[ac++] = "factotum";
 	if(getenv("debugfactotum"))
 		av[ac++] = "-p";
-//	av[ac++] = "-d";		/* debug traces */
-//	av[ac++] = "-D";		/* 9p messages */
+	//	av[ac++] = "-d";		/* debug traces */
+	//	av[ac++] = "-D";		/* 9p messages */
 	if(cpuflag)
 		av[ac++] = "-S";
 	else

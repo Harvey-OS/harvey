@@ -28,328 +28,328 @@
 #include "etherif.h"
 #include "../port/ethermii.h"
 
-enum {					/* registers */
-	Idr0		= 0x00,		/* MAC address */
-	Mar0		= 0x08,		/* Multicast address */
-	Dtccr		= 0x10,		/* Dump Tally Counter Command */
-	Tnpds		= 0x20,		/* Transmit Normal Priority Descriptors */
-	Thpds		= 0x28,		/* Transmit High Priority Descriptors */
-	Flash		= 0x30,		/* Flash Memory Read/Write */
-	Erbcr		= 0x34,		/* Early Receive Byte Count */
-	Ersr		= 0x36,		/* Early Receive Status */
-	Cr		= 0x37,		/* Command Register */
-	Tppoll		= 0x38,		/* Transmit Priority Polling */
-	Imr		= 0x3C,		/* Interrupt Mask */
-	Isr		= 0x3E,		/* Interrupt Status */
-	Tcr		= 0x40,		/* Transmit Configuration */
-	Rcr		= 0x44,		/* Receive Configuration */
-	Tctr		= 0x48,		/* Timer Count */
-	Mpc		= 0x4C,		/* Missed Packet Counter */
-	Cr9346		= 0x50,		/* 9346 Command Register */
-	Config0		= 0x51,		/* Configuration Register 0 */
-	Config1		= 0x52,		/* Configuration Register 1 */
-	Config2		= 0x53,		/* Configuration Register 2 */
-	Config3		= 0x54,		/* Configuration Register 3 */
-	Config4		= 0x55,		/* Configuration Register 4 */
-	Config5		= 0x56,		/* Configuration Register 5 */
-	Timerint	= 0x58,		/* Timer Interrupt */
-	Mulint		= 0x5C,		/* Multiple Interrupt Select */
-	Phyar		= 0x60,		/* PHY Access */
-	Tbicsr0		= 0x64,		/* TBI Control and Status */
-	Tbianar		= 0x68,		/* TBI Auto-Negotiation Advertisment */
-	Tbilpar		= 0x6A,		/* TBI Auto-Negotiation Link Partner */
-	Phystatus	= 0x6C,		/* PHY Status */
-	Pmch		= 0x6F,		/* power management */
-	Ldps		= 0x82,		/* link down power saving */
+enum {			 /* registers */
+       Idr0 = 0x00,	 /* MAC address */
+       Mar0 = 0x08,	 /* Multicast address */
+       Dtccr = 0x10,	 /* Dump Tally Counter Command */
+       Tnpds = 0x20,	 /* Transmit Normal Priority Descriptors */
+       Thpds = 0x28,	 /* Transmit High Priority Descriptors */
+       Flash = 0x30,	 /* Flash Memory Read/Write */
+       Erbcr = 0x34,	 /* Early Receive Byte Count */
+       Ersr = 0x36,	 /* Early Receive Status */
+       Cr = 0x37,	 /* Command Register */
+       Tppoll = 0x38,	 /* Transmit Priority Polling */
+       Imr = 0x3C,	 /* Interrupt Mask */
+       Isr = 0x3E,	 /* Interrupt Status */
+       Tcr = 0x40,	 /* Transmit Configuration */
+       Rcr = 0x44,	 /* Receive Configuration */
+       Tctr = 0x48,	 /* Timer Count */
+       Mpc = 0x4C,	 /* Missed Packet Counter */
+       Cr9346 = 0x50,	 /* 9346 Command Register */
+       Config0 = 0x51,	 /* Configuration Register 0 */
+       Config1 = 0x52,	 /* Configuration Register 1 */
+       Config2 = 0x53,	 /* Configuration Register 2 */
+       Config3 = 0x54,	 /* Configuration Register 3 */
+       Config4 = 0x55,	 /* Configuration Register 4 */
+       Config5 = 0x56,	 /* Configuration Register 5 */
+       Timerint = 0x58,	 /* Timer Interrupt */
+       Mulint = 0x5C,	 /* Multiple Interrupt Select */
+       Phyar = 0x60,	 /* PHY Access */
+       Tbicsr0 = 0x64,	 /* TBI Control and Status */
+       Tbianar = 0x68,	 /* TBI Auto-Negotiation Advertisment */
+       Tbilpar = 0x6A,	 /* TBI Auto-Negotiation Link Partner */
+       Phystatus = 0x6C, /* PHY Status */
+       Pmch = 0x6F,	 /* power management */
+       Ldps = 0x82,	 /* link down power saving */
 
-	Rms		= 0xDA,		/* Receive Packet Maximum Size */
-	Cplusc		= 0xE0,		/* C+ Command */
-	Coal		= 0xE2,		/* Interrupt Mitigation (Coalesce) */
-	Rdsar		= 0xE4,		/* Receive Descriptor Start Address */
-	Etx		= 0xEC,		/* Early Transmit Threshold */
+       Rms = 0xDA,    /* Receive Packet Maximum Size */
+       Cplusc = 0xE0, /* C+ Command */
+       Coal = 0xE2,   /* Interrupt Mitigation (Coalesce) */
+       Rdsar = 0xE4,  /* Receive Descriptor Start Address */
+       Etx = 0xEC,    /* Early Transmit Threshold */
 };
 
-enum {					/* Dtccr */
-	Cmd		= 0x00000008,	/* Command */
+enum {			 /* Dtccr */
+       Cmd = 0x00000008, /* Command */
 };
 
-enum {					/* Cr */
-	Te		= 0x04,		/* Transmitter Enable */
-	Re		= 0x08,		/* Receiver Enable */
-	Rst		= 0x10,		/* Software Reset */
+enum {		   /* Cr */
+       Te = 0x04,  /* Transmitter Enable */
+       Re = 0x08,  /* Receiver Enable */
+       Rst = 0x10, /* Software Reset */
 };
 
-enum {					/* Tppoll */
-	Fswint		= 0x01,		/* Forced Software Interrupt */
-	Npq		= 0x40,		/* Normal Priority Queue polling */
-	Hpq		= 0x80,		/* High Priority Queue polling */
+enum {		      /* Tppoll */
+       Fswint = 0x01, /* Forced Software Interrupt */
+       Npq = 0x40,    /* Normal Priority Queue polling */
+       Hpq = 0x80,    /* High Priority Queue polling */
 };
 
-enum {					/* Imr/Isr */
-	Rok		= 0x0001,	/* Receive OK */
-	Rer		= 0x0002,	/* Receive Error */
-	Tok		= 0x0004,	/* Transmit OK */
-	Ter		= 0x0008,	/* Transmit Error */
-	Rdu		= 0x0010,	/* Receive Descriptor Unavailable */
-	Punlc		= 0x0020,	/* Packet Underrun or Link Change */
-	Fovw		= 0x0040,	/* Receive FIFO Overflow */
-	Tdu		= 0x0080,	/* Transmit Descriptor Unavailable */
-	Swint		= 0x0100,	/* Software Interrupt */
-	Timeout		= 0x4000,	/* Timer */
-	Serr		= 0x8000,	/* System Error */
+enum {			 /* Imr/Isr */
+       Rok = 0x0001,	 /* Receive OK */
+       Rer = 0x0002,	 /* Receive Error */
+       Tok = 0x0004,	 /* Transmit OK */
+       Ter = 0x0008,	 /* Transmit Error */
+       Rdu = 0x0010,	 /* Receive Descriptor Unavailable */
+       Punlc = 0x0020,	 /* Packet Underrun or Link Change */
+       Fovw = 0x0040,	 /* Receive FIFO Overflow */
+       Tdu = 0x0080,	 /* Transmit Descriptor Unavailable */
+       Swint = 0x0100,	 /* Software Interrupt */
+       Timeout = 0x4000, /* Timer */
+       Serr = 0x8000,	 /* System Error */
 };
 
-enum {					/* Tcr */
-	MtxdmaSHIFT	= 8,		/* Max. DMA Burst Size */
-	MtxdmaMASK	= 0x00000700,
-	Mtxdmaunlimited	= 0x00000700,
-	Acrc		= 0x00010000,	/* Append CRC (not) */
-	Lbk0		= 0x00020000,	/* Loopback Test 0 */
-	Lbk1		= 0x00040000,	/* Loopback Test 1 */
-	Ifg2		= 0x00080000,	/* Interframe Gap 2 */
-	HwveridSHIFT	= 23,		/* Hardware Version ID */
-	HwveridMASK	= 0x7C800000,
-	Macv01		= 0x00000000,	/* RTL8169 */
-	Macv02		= 0x00800000,	/* RTL8169S/8110S */
-	Macv03		= 0x04000000,	/* RTL8169S/8110S */
-	Macv04		= 0x10000000,	/* RTL8169SB/8110SB */
-	Macv05		= 0x18000000,	/* RTL8169SC/8110SC */
-	Macv07		= 0x24800000,	/* RTL8102e */
-	Macv07a		= 0x34800000,	/* RTL8102e */
-	Macv11		= 0x30000000,	/* RTL8168B/8111B */
-	Macv12		= 0x38000000,	/* RTL8169B/8111B */
-	Macv12a		= 0x3c000000,	/* RTL8169C/8111C */
-	Macv13		= 0x34000000,	/* RTL8101E */
-	Macv14		= 0x30800000,	/* RTL8100E */
-	Macv15		= 0x38800000,	/* RTL8100E */
-//	Macv19		= 0x3c000000,	/* dup Macv12a: RTL8111c-gr */
-	Macv25		= 0x28000000,	/* RTL8168D */
-	Macv26		= 0x48000000,	/* RTL8111/8168B */
-	Macv27		= 0x2c800000,	/* RTL8111e */
-	Macv28		= 0x2c000000,	/* RTL8111/8168B */
-	Macv29		= 0x40800000,	/* RTL8101/8102E */
-	Macv30		= 0x24000000,	/* RTL8101E? (untested) */
-	Macv40		= 0x4c000000,	/* RTL8168G */
-	Macv44		= 0x5c800000,	/* RTL8411B */
-	Macv45		= 0x50800000,	/* RTL8168GU */
-	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
-	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
+enum {			/* Tcr */
+       MtxdmaSHIFT = 8, /* Max. DMA Burst Size */
+       MtxdmaMASK = 0x00000700,
+       Mtxdmaunlimited = 0x00000700,
+       Acrc = 0x00010000, /* Append CRC (not) */
+       Lbk0 = 0x00020000, /* Loopback Test 0 */
+       Lbk1 = 0x00040000, /* Loopback Test 1 */
+       Ifg2 = 0x00080000, /* Interframe Gap 2 */
+       HwveridSHIFT = 23, /* Hardware Version ID */
+       HwveridMASK = 0x7C800000,
+       Macv01 = 0x00000000,  /* RTL8169 */
+       Macv02 = 0x00800000,  /* RTL8169S/8110S */
+       Macv03 = 0x04000000,  /* RTL8169S/8110S */
+       Macv04 = 0x10000000,  /* RTL8169SB/8110SB */
+       Macv05 = 0x18000000,  /* RTL8169SC/8110SC */
+       Macv07 = 0x24800000,  /* RTL8102e */
+       Macv07a = 0x34800000, /* RTL8102e */
+       Macv11 = 0x30000000,  /* RTL8168B/8111B */
+       Macv12 = 0x38000000,  /* RTL8169B/8111B */
+       Macv12a = 0x3c000000, /* RTL8169C/8111C */
+       Macv13 = 0x34000000,  /* RTL8101E */
+       Macv14 = 0x30800000,  /* RTL8100E */
+       Macv15 = 0x38800000,  /* RTL8100E */
+			     //	Macv19		= 0x3c000000,	/* dup Macv12a: RTL8111c-gr */
+       Macv25 = 0x28000000,  /* RTL8168D */
+       Macv26 = 0x48000000,  /* RTL8111/8168B */
+       Macv27 = 0x2c800000,  /* RTL8111e */
+       Macv28 = 0x2c000000,  /* RTL8111/8168B */
+       Macv29 = 0x40800000,  /* RTL8101/8102E */
+       Macv30 = 0x24000000,  /* RTL8101E? (untested) */
+       Macv40 = 0x4c000000,  /* RTL8168G */
+       Macv44 = 0x5c800000,  /* RTL8411B */
+       Macv45 = 0x50800000,  /* RTL8168GU */
+       Ifg0 = 0x01000000,    /* Interframe Gap 0 */
+       Ifg1 = 0x02000000,    /* Interframe Gap 1 */
 };
 
-enum {					/* Rcr */
-	Aap		= 0x00000001,	/* Accept All Packets */
-	Apm		= 0x00000002,	/* Accept Physical Match */
-	Am		= 0x00000004,	/* Accept Multicast */
-	Ab		= 0x00000008,	/* Accept Broadcast */
-	Ar		= 0x00000010,	/* Accept Runt */
-	Aer		= 0x00000020,	/* Accept Error */
-	Sel9356		= 0x00000040,	/* 9356 EEPROM used */
-	MrxdmaSHIFT	= 8,		/* Max. DMA Burst Size */
-	MrxdmaMASK	= 0x00000700,
-	Mrxdmaunlimited	= 0x00000700,
-	RxfthSHIFT	= 13,		/* Receive Buffer Length */
-	RxfthMASK	= 0x0000E000,
-	Rxfth256	= 0x00008000,
-	Rxfthnone	= 0x0000E000,
-	Rer8		= 0x00010000,	/* Accept Error Packets > 8 bytes */
-	MulERINT	= 0x01000000,	/* Multiple Early Interrupt Select */
+enum {			     /* Rcr */
+       Aap = 0x00000001,     /* Accept All Packets */
+       Apm = 0x00000002,     /* Accept Physical Match */
+       Am = 0x00000004,	     /* Accept Multicast */
+       Ab = 0x00000008,	     /* Accept Broadcast */
+       Ar = 0x00000010,	     /* Accept Runt */
+       Aer = 0x00000020,     /* Accept Error */
+       Sel9356 = 0x00000040, /* 9356 EEPROM used */
+       MrxdmaSHIFT = 8,	     /* Max. DMA Burst Size */
+       MrxdmaMASK = 0x00000700,
+       Mrxdmaunlimited = 0x00000700,
+       RxfthSHIFT = 13, /* Receive Buffer Length */
+       RxfthMASK = 0x0000E000,
+       Rxfth256 = 0x00008000,
+       Rxfthnone = 0x0000E000,
+       Rer8 = 0x00010000,     /* Accept Error Packets > 8 bytes */
+       MulERINT = 0x01000000, /* Multiple Early Interrupt Select */
 };
 
-enum {					/* Cr9346 */
-	Eedo		= 0x01,		/* */
-	Eedi		= 0x02,		/* */
-	Eesk		= 0x04,		/* */
-	Eecs		= 0x08,		/* */
-	Eem0		= 0x40,		/* Operating Mode */
-	Eem1		= 0x80,
+enum {		    /* Cr9346 */
+       Eedo = 0x01, /* */
+       Eedi = 0x02, /* */
+       Eesk = 0x04, /* */
+       Eecs = 0x08, /* */
+       Eem0 = 0x40, /* Operating Mode */
+       Eem1 = 0x80,
 };
 
-enum {					/* Phyar */
-	DataMASK	= 0x0000FFFF,	/* 16-bit GMII/MII Register Data */
-	DataSHIFT	= 0,
-	RegaddrMASK	= 0x001F0000,	/* 5-bit GMII/MII Register Address */
-	RegaddrSHIFT	= 16,
-	Flag		= 0x80000000,	/* */
+enum {			      /* Phyar */
+       DataMASK = 0x0000FFFF, /* 16-bit GMII/MII Register Data */
+       DataSHIFT = 0,
+       RegaddrMASK = 0x001F0000, /* 5-bit GMII/MII Register Address */
+       RegaddrSHIFT = 16,
+       Flag = 0x80000000, /* */
 };
 
-enum {					/* Phystatus */
-	Fd		= 0x01,		/* Full Duplex */
-	Linksts		= 0x02,		/* Link Status */
-	Speed10		= 0x04,		/* */
-	Speed100	= 0x08,		/* */
-	Speed1000	= 0x10,		/* */
-	Rxflow		= 0x20,		/* */
-	Txflow		= 0x40,		/* */
-	Entbi		= 0x80,		/* */
+enum {			 /* Phystatus */
+       Fd = 0x01,	 /* Full Duplex */
+       Linksts = 0x02,	 /* Link Status */
+       Speed10 = 0x04,	 /* */
+       Speed100 = 0x08,	 /* */
+       Speed1000 = 0x10, /* */
+       Rxflow = 0x20,	 /* */
+       Txflow = 0x40,	 /* */
+       Entbi = 0x80,	 /* */
 };
 
-enum {					/* Cplusc */
-	Txenb		= 0x0001,	/* enable C+ transmit mode */
-	Rxenb		= 0x0002,	/* enable C+ receive mode */
-	Mulrw		= 0x0008,	/* PCI Multiple R/W Enable */
-	Dac		= 0x0010,	/* PCI Dual Address Cycle Enable */
-	Rxchksum	= 0x0020,	/* Receive Checksum Offload Enable */
-	Rxvlan		= 0x0040,	/* Receive VLAN De-tagging Enable */
-	Macstatdis	= 0x0080,	/* Disable Mac Statistics */
-	Endian		= 0x0200,	/* Endian Mode */
+enum {			    /* Cplusc */
+       Txenb = 0x0001,	    /* enable C+ transmit mode */
+       Rxenb = 0x0002,	    /* enable C+ receive mode */
+       Mulrw = 0x0008,	    /* PCI Multiple R/W Enable */
+       Dac = 0x0010,	    /* PCI Dual Address Cycle Enable */
+       Rxchksum = 0x0020,   /* Receive Checksum Offload Enable */
+       Rxvlan = 0x0040,	    /* Receive VLAN De-tagging Enable */
+       Macstatdis = 0x0080, /* Disable Mac Statistics */
+       Endian = 0x0200,	    /* Endian Mode */
 };
 
-typedef struct D D;			/* Transmit/Receive Descriptor */
+typedef struct D D; /* Transmit/Receive Descriptor */
 struct D {
-	uint32_t	control;
-	uint32_t	vlan;
-	uint32_t	addrlo;
-	uint32_t	addrhi;
+	uint32_t control;
+	uint32_t vlan;
+	uint32_t addrlo;
+	uint32_t addrhi;
 };
 
-enum {					/* Transmit Descriptor control */
-	TxflMASK	= 0x0000FFFF,	/* Transmit Frame Length */
-	TxflSHIFT	= 0,
-	Tcps		= 0x00010000,	/* TCP Checksum Offload */
-	Udpcs		= 0x00020000,	/* UDP Checksum Offload */
-	Ipcs		= 0x00040000,	/* IP Checksum Offload */
-	Lgsen		= 0x08000000,	/* TSO; WARNING: contains lark's vomit */
+enum {			      /* Transmit Descriptor control */
+       TxflMASK = 0x0000FFFF, /* Transmit Frame Length */
+       TxflSHIFT = 0,
+       Tcps = 0x00010000,  /* TCP Checksum Offload */
+       Udpcs = 0x00020000, /* UDP Checksum Offload */
+       Ipcs = 0x00040000,  /* IP Checksum Offload */
+       Lgsen = 0x08000000, /* TSO; WARNING: contains lark's vomit */
 };
 
-enum {					/* Receive Descriptor control */
-	RxflMASK	= 0x00001FFF,	/* Receive Frame Length */
-	Tcpf		= 0x00004000,	/* TCP Checksum Failure */
-	Udpf		= 0x00008000,	/* UDP Checksum Failure */
-	Ipf		= 0x00010000,	/* IP Checksum Failure */
-	Pid0		= 0x00020000,	/* Protocol ID0 */
-	Pid1		= 0x00040000,	/* Protocol ID1 */
-	Crce		= 0x00080000,	/* CRC Error */
-	Runt		= 0x00100000,	/* Runt Packet */
-	Res		= 0x00200000,	/* Receive Error Summary */
-	Rwt		= 0x00400000,	/* Receive Watchdog Timer Expired */
-	Fovf		= 0x00800000,	/* FIFO Overflow */
-	Bovf		= 0x01000000,	/* Buffer Overflow */
-	Bar		= 0x02000000,	/* Broadcast Address Received */
-	Pam		= 0x04000000,	/* Physical Address Matched */
-	Mar		= 0x08000000,	/* Multicast Address Received */
+enum {			      /* Receive Descriptor control */
+       RxflMASK = 0x00001FFF, /* Receive Frame Length */
+       Tcpf = 0x00004000,     /* TCP Checksum Failure */
+       Udpf = 0x00008000,     /* UDP Checksum Failure */
+       Ipf = 0x00010000,      /* IP Checksum Failure */
+       Pid0 = 0x00020000,     /* Protocol ID0 */
+       Pid1 = 0x00040000,     /* Protocol ID1 */
+       Crce = 0x00080000,     /* CRC Error */
+       Runt = 0x00100000,     /* Runt Packet */
+       Res = 0x00200000,      /* Receive Error Summary */
+       Rwt = 0x00400000,      /* Receive Watchdog Timer Expired */
+       Fovf = 0x00800000,     /* FIFO Overflow */
+       Bovf = 0x01000000,     /* Buffer Overflow */
+       Bar = 0x02000000,      /* Broadcast Address Received */
+       Pam = 0x04000000,      /* Physical Address Matched */
+       Mar = 0x08000000,      /* Multicast Address Received */
 };
 
-enum {					/* General Descriptor control */
-	Ls		= 0x10000000,	/* Last Segment Descriptor */
-	Fs		= 0x20000000,	/* First Segment Descriptor */
-	Eor		= 0x40000000,	/* End of Descriptor Ring */
-	Own		= 0x80000000,	/* Ownership */
+enum {			 /* General Descriptor control */
+       Ls = 0x10000000,	 /* Last Segment Descriptor */
+       Fs = 0x20000000,	 /* First Segment Descriptor */
+       Eor = 0x40000000, /* End of Descriptor Ring */
+       Own = 0x80000000, /* Ownership */
 };
 
 /*
  */
-enum {					/* Ring sizes  (<= 1024) */
-	/* were 1024 & 64, but 253 and 9 are ample. */
-	Nrd		= 256,		/* Receive Ring */
-	Ntd		= 32,		/* Transmit Ring */
+enum { /* Ring sizes  (<= 1024) */
+       /* were 1024 & 64, but 253 and 9 are ample. */
+       Nrd = 256, /* Receive Ring */
+       Ntd = 32,  /* Transmit Ring */
 
-	Mtu		= ETHERMAXTU,
-	Mps		= ROUNDUP(ETHERMAXTU+4, 128),
-//	Mps		= Mtu + 8 + 14,	/* if(mtu>ETHERMAXTU) */
+       Mtu = ETHERMAXTU,
+       Mps = ROUNDUP(ETHERMAXTU + 4, 128),
+       //	Mps		= Mtu + 8 + 14,	/* if(mtu>ETHERMAXTU) */
 };
 
 typedef struct Dtcc Dtcc;
 struct Dtcc {
-	uint64_t	txok;
-	uint64_t	rxok;
-	uint64_t	txer;
-	uint32_t	rxer;
-	uint16_t	misspkt;
-	uint16_t	fae;
-	uint32_t	tx1col;
-	uint32_t	txmcol;
-	uint64_t	rxokph;
-	uint64_t	rxokbrd;
-	uint32_t	rxokmu;
-	uint16_t	txabt;
-	uint16_t	txundrn;
+	uint64_t txok;
+	uint64_t rxok;
+	uint64_t txer;
+	uint32_t rxer;
+	uint16_t misspkt;
+	uint16_t fae;
+	uint32_t tx1col;
+	uint32_t txmcol;
+	uint64_t rxokph;
+	uint64_t rxokbrd;
+	uint32_t rxokmu;
+	uint16_t txabt;
+	uint16_t txundrn;
 };
 
-enum {						/* Variants */
-	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E: pci -e */
-	Rtl8169c	= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
-	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
-	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B: pci-e */
-	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */
+enum {					    /* Variants */
+       Rtl8100e = (0x8136 << 16) | 0x10EC,  /* RTL810[01]E: pci -e */
+       Rtl8169c = (0x0116 << 16) | 0x16EC,  /* RTL8169C+ (USR997902) */
+       Rtl8169sc = (0x8167 << 16) | 0x10EC, /* RTL8169SC */
+       Rtl8168b = (0x8168 << 16) | 0x10EC,  /* RTL8168B: pci-e */
+       Rtl8169 = (0x8169 << 16) | 0x10EC,   /* RTL8169 */
 };
 
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
-	int	port;
-	Pcidev*	pcidev;
-	Ctlr*	next;
-	int	active;
+	int port;
+	Pcidev *pcidev;
+	Ctlr *next;
+	int active;
 
-	QLock	alock;			/* attach */
-	Lock	ilock;			/* init */
-	int	init;			/*  */
+	QLock alock; /* attach */
+	Lock ilock;  /* init */
+	int init;    /*  */
 
-	int	pciv;			/*  */
-	int	macv;			/* MAC version */
-	int	phyv;			/* PHY version */
-	int	pcie;			/* flag: pci-express device? */
+	int pciv; /*  */
+	int macv; /* MAC version */
+	int phyv; /* PHY version */
+	int pcie; /* flag: pci-express device? */
 
-	uint64_t	mchash;			/* multicast hash */
+	uint64_t mchash; /* multicast hash */
 
-	Mii*	mii;
+	Mii *mii;
 
-	Lock	tlock;			/* transmit */
-	D*	td;			/* descriptor ring */
-	Block**	tb;			/* transmit buffers */
-	int	ntd;
+	Lock tlock; /* transmit */
+	D *td;	    /* descriptor ring */
+	Block **tb; /* transmit buffers */
+	int ntd;
 
-	int	tdh;			/* head - producer index (host) */
-	int	tdt;			/* tail - consumer index (NIC) */
-	int	ntdfree;
-	int	ntq;
+	int tdh; /* head - producer index (host) */
+	int tdt; /* tail - consumer index (NIC) */
+	int ntdfree;
+	int ntq;
 
-//	int	rbsz;			/* receive buffer size */
+	//	int	rbsz;			/* receive buffer size */
 
-	Lock	rlock;			/* receive */
-	D*	rd;			/* descriptor ring */
-	Block**	rb;			/* receive buffers */
-	int	nrd;
+	Lock rlock; /* receive */
+	D *rd;	    /* descriptor ring */
+	Block **rb; /* receive buffers */
+	int nrd;
 
-	int	rdh;			/* head - producer index (NIC) */
-	int	rdt;			/* tail - consumer index (host) */
-	int	nrdfree;
+	int rdh; /* head - producer index (NIC) */
+	int rdt; /* tail - consumer index (host) */
+	int nrdfree;
 
-	int	tcr;			/* transmit configuration register */
-	int	rcr;			/* receive configuration register */
-	int	imr;
+	int tcr; /* transmit configuration register */
+	int rcr; /* receive configuration register */
+	int imr;
 
-//	Watermark wmrb;
+	//	Watermark wmrb;
 	Watermark wmrd;
 	Watermark wmtd;
 
-	QLock	slock;			/* statistics */
-	Dtcc*	dtcc;
-	uint	txdu;
-	uint	tcpf;
-	uint	udpf;
-	uint	ipf;
-	uint	fovf;
-	uint	ierrs;
-	uint	rer;
-	uint	rdu;
-	uint	punlc;
-	uint	fovw;
-	uint	mcast;
-	uint	frag;			/* partial packets; rb was too small */
+	QLock slock; /* statistics */
+	Dtcc *dtcc;
+	uint txdu;
+	uint tcpf;
+	uint udpf;
+	uint ipf;
+	uint fovf;
+	uint ierrs;
+	uint rer;
+	uint rdu;
+	uint punlc;
+	uint fovw;
+	uint mcast;
+	uint frag; /* partial packets; rb was too small */
 } Ctlr;
 
-static Ctlr* rtl8169ctlrhead;
-static Ctlr* rtl8169ctlrtail;
+static Ctlr *rtl8169ctlrhead;
+static Ctlr *rtl8169ctlrtail;
 
-#define csr8r(c, r)	(inb((c)->port+(r)))
-#define csr16r(c, r)	(ins((c)->port+(r)))
-#define csr32r(c, r)	(inl((c)->port+(r)))
-#define csr8w(c, r, b)	(outb((c)->port+(r), (uint8_t)(b)))
-#define csr16w(c, r, w)	(outs((c)->port+(r), (uint16_t)(w)))
-#define csr32w(c, r, l)	(outl((c)->port+(r), (uint32_t)(l)))
+#define csr8r(c, r) (inb((c)->port + (r)))
+#define csr16r(c, r) (ins((c)->port + (r)))
+#define csr32r(c, r) (inl((c)->port + (r)))
+#define csr8w(c, r, b) (outb((c)->port + (r), (uint8_t)(b)))
+#define csr16w(c, r, w) (outs((c)->port + (r), (uint16_t)(w)))
+#define csr32w(c, r, l) (outl((c)->port + (r), (uint32_t)(l)))
 
 static int
-rtl8169miimir(Mii* mii, int pa, int ra)
+rtl8169miimir(Mii *mii, int pa, int ra)
 {
 	uint r;
 	int timeo;
@@ -359,7 +359,7 @@ rtl8169miimir(Mii* mii, int pa, int ra)
 		return -1;
 	ctlr = mii->ctlr;
 
-	r = (ra<<16) & RegaddrMASK;
+	r = (ra << 16) & RegaddrMASK;
 	csr32w(ctlr, Phyar, r);
 	delay(1);
 	for(timeo = 0; timeo < 2000; timeo++){
@@ -370,11 +370,11 @@ rtl8169miimir(Mii* mii, int pa, int ra)
 	if(!(r & Flag))
 		return -1;
 
-	return (r & DataMASK)>>DataSHIFT;
+	return (r & DataMASK) >> DataSHIFT;
 }
 
 static int
-rtl8169miimiw(Mii* mii, int pa, int ra, int data)
+rtl8169miimiw(Mii *mii, int pa, int ra, int data)
 {
 	uint r;
 	int timeo;
@@ -384,7 +384,7 @@ rtl8169miimiw(Mii* mii, int pa, int ra, int data)
 		return -1;
 	ctlr = mii->ctlr;
 
-	r = Flag|((ra<<16) & RegaddrMASK)|((data<<DataSHIFT) & DataMASK);
+	r = Flag | ((ra << 16) & RegaddrMASK) | ((data << DataSHIFT) & DataMASK);
 	csr32w(ctlr, Phyar, r);
 	delay(1);
 	for(timeo = 0; timeo < 2000; timeo++){
@@ -399,7 +399,7 @@ rtl8169miimiw(Mii* mii, int pa, int ra, int data)
 }
 
 static int
-rtl8169mii(Ctlr* ctlr)
+rtl8169mii(Ctlr *ctlr)
 {
 	MiiPhy *phy;
 
@@ -432,17 +432,17 @@ rtl8169mii(Ctlr* ctlr)
 	 */
 	ctlr->phyv = rtl8169miimir(ctlr->mii, 1, Phyidr2) & 0x0F;
 	if(ctlr->macv == Macv02){
-		csr8w(ctlr, 0x82, 1);				/* magic */
-		rtl8169miimiw(ctlr->mii, 1, 0x0B, 0x0000);	/* magic */
+		csr8w(ctlr, 0x82, 1);			   /* magic */
+		rtl8169miimiw(ctlr->mii, 1, 0x0B, 0x0000); /* magic */
 	}
 
-	if(mii(ctlr->mii, (1<<1)) == 0 || (phy = ctlr->mii->curphy) == nil){
+	if(mii(ctlr->mii, (1 << 1)) == 0 || (phy = ctlr->mii->curphy) == nil){
 		free(ctlr->mii);
 		ctlr->mii = nil;
 		return -1;
 	}
 	print("oui %#x phyno %d, macv = %#8.8x phyv = %#4.4x\n",
-		phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
+	      phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
 
 	miireset(ctlr->mii);
 
@@ -454,10 +454,10 @@ rtl8169mii(Ctlr* ctlr)
 }
 
 static void
-rtl8169promiscuous(void* arg, int on)
+rtl8169promiscuous(void *arg, int on)
 {
 	Ether *edev;
-	Ctlr * ctlr;
+	Ctlr *ctlr;
 
 	edev = arg;
 	ctlr = edev->ctlr;
@@ -474,7 +474,7 @@ rtl8169promiscuous(void* arg, int on)
 enum {
 	/* everyone else uses 0x04c11db7, but they both produce the same crc */
 	Etherpolybe = 0x04c11db6,
-	Bytemask = (1<<8) - 1,
+	Bytemask = (1 << 8) - 1,
 };
 
 static uint32_t
@@ -484,13 +484,13 @@ ethercrcbe(unsigned char *addr, int32_t len)
 	uint32_t c, crc, carry;
 
 	crc = (uint32_t)~0UL;
-	for (i = 0; i < len; i++) {
+	for(i = 0; i < len; i++){
 		c = addr[i];
-		for (j = 0; j < 8; j++) {
-			carry = ((crc & (1UL << 31))? 1: 0) ^ (c & 1);
+		for(j = 0; j < 8; j++){
+			carry = ((crc & (1UL << 31)) ? 1 : 0) ^ (c & 1);
 			crc <<= 1;
 			c >>= 1;
-			if (carry)
+			if(carry)
 				crc = (crc ^ Etherpolybe) | carry;
 		}
 	}
@@ -500,18 +500,18 @@ ethercrcbe(unsigned char *addr, int32_t len)
 static uint32_t
 swabl(uint32_t l)
 {
-	return (l>>24) | ((l>>8)&(Bytemask<<8)) |
-		((l<<8)&(Bytemask<<16)) | (l<<24);
+	return (l >> 24) | ((l >> 8) & (Bytemask << 8)) |
+	       ((l << 8) & (Bytemask << 16)) | (l << 24);
 }
 
 static void
-rtl8169multicast(void* ether, unsigned char *eaddr, int add)
+rtl8169multicast(void *ether, unsigned char *eaddr, int add)
 {
 	Ether *edev;
 	Ctlr *ctlr;
 
-	if (!add)
-		return;	/* ok to keep receiving on old mcast addrs */
+	if(!add)
+		return; /* ok to keep receiving on old mcast addrs */
 
 	edev = ether;
 	ctlr = edev->ctlr;
@@ -523,19 +523,19 @@ rtl8169multicast(void* ether, unsigned char *eaddr, int add)
 	csr32w(ctlr, Rcr, ctlr->rcr);
 
 	/* pci-e variants reverse the order of the hash byte registers */
-	if (ctlr->pcie) {
-		csr32w(ctlr, Mar0,   swabl(ctlr->mchash>>32));
-		csr32w(ctlr, Mar0+4, swabl(ctlr->mchash));
+	if(ctlr->pcie){
+		csr32w(ctlr, Mar0, swabl(ctlr->mchash >> 32));
+		csr32w(ctlr, Mar0 + 4, swabl(ctlr->mchash));
 	} else {
-		csr32w(ctlr, Mar0,   ctlr->mchash);
-		csr32w(ctlr, Mar0+4, ctlr->mchash>>32);
+		csr32w(ctlr, Mar0, ctlr->mchash);
+		csr32w(ctlr, Mar0 + 4, ctlr->mchash >> 32);
 	}
 
 	iunlock(&ctlr->ilock);
 }
 
 static int32_t
-rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
+rtl8169ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 {
 	Proc *up = externup();
 	char *p, *s, *e;
@@ -555,8 +555,8 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 
 	dtcc = ctlr->dtcc;
 	assert(dtcc);
-	csr32w(ctlr, Dtccr+4, (PADDR(dtcc)|Cmd) >> 32);
-	csr32w(ctlr, Dtccr, PADDR(dtcc)|Cmd);
+	csr32w(ctlr, Dtccr + 4, (PADDR(dtcc) | Cmd) >> 32);
+	csr32w(ctlr, Dtccr, PADDR(dtcc) | Cmd);
 	for(timeo = 0; timeo < 1000; timeo++){
 		if(!(csr32r(ctlr, Dtccr) & Cmd))
 			break;
@@ -569,7 +569,7 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	edev->Netif.crcs = dtcc->rxer;
 	edev->Netif.frames = dtcc->fae;
 	edev->Netif.buffs = dtcc->misspkt;
-	edev->Netif.overflows = ctlr->txdu+ctlr->rdu;
+	edev->Netif.overflows = ctlr->txdu + ctlr->rdu;
 
 	if(n == 0){
 		qunlock(&ctlr->slock);
@@ -582,46 +582,46 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	e = p + READSTR;
 
 	l = snprint(p, READSTR, "TxOk: %llu\n", dtcc->txok);
-	l += snprint(p+l, READSTR-l, "RxOk: %llu\n", dtcc->rxok);
-	l += snprint(p+l, READSTR-l, "TxEr: %llu\n", dtcc->txer);
-	l += snprint(p+l, READSTR-l, "RxEr: %u\n", dtcc->rxer);
-	l += snprint(p+l, READSTR-l, "MissPkt: %u\n", dtcc->misspkt);
-	l += snprint(p+l, READSTR-l, "FAE: %u\n", dtcc->fae);
-	l += snprint(p+l, READSTR-l, "Tx1Col: %u\n", dtcc->tx1col);
-	l += snprint(p+l, READSTR-l, "TxMCol: %u\n", dtcc->txmcol);
-	l += snprint(p+l, READSTR-l, "RxOkPh: %llu\n", dtcc->rxokph);
-	l += snprint(p+l, READSTR-l, "RxOkBrd: %llu\n", dtcc->rxokbrd);
-	l += snprint(p+l, READSTR-l, "RxOkMu: %u\n", dtcc->rxokmu);
-	l += snprint(p+l, READSTR-l, "TxAbt: %u\n", dtcc->txabt);
-	l += snprint(p+l, READSTR-l, "TxUndrn: %u\n", dtcc->txundrn);
+	l += snprint(p + l, READSTR - l, "RxOk: %llu\n", dtcc->rxok);
+	l += snprint(p + l, READSTR - l, "TxEr: %llu\n", dtcc->txer);
+	l += snprint(p + l, READSTR - l, "RxEr: %u\n", dtcc->rxer);
+	l += snprint(p + l, READSTR - l, "MissPkt: %u\n", dtcc->misspkt);
+	l += snprint(p + l, READSTR - l, "FAE: %u\n", dtcc->fae);
+	l += snprint(p + l, READSTR - l, "Tx1Col: %u\n", dtcc->tx1col);
+	l += snprint(p + l, READSTR - l, "TxMCol: %u\n", dtcc->txmcol);
+	l += snprint(p + l, READSTR - l, "RxOkPh: %llu\n", dtcc->rxokph);
+	l += snprint(p + l, READSTR - l, "RxOkBrd: %llu\n", dtcc->rxokbrd);
+	l += snprint(p + l, READSTR - l, "RxOkMu: %u\n", dtcc->rxokmu);
+	l += snprint(p + l, READSTR - l, "TxAbt: %u\n", dtcc->txabt);
+	l += snprint(p + l, READSTR - l, "TxUndrn: %u\n", dtcc->txundrn);
 
-	l += snprint(p+l, READSTR-l, "txdu: %u\n", ctlr->txdu);
-	l += snprint(p+l, READSTR-l, "tcpf: %u\n", ctlr->tcpf);
-	l += snprint(p+l, READSTR-l, "udpf: %u\n", ctlr->udpf);
-	l += snprint(p+l, READSTR-l, "ipf: %u\n", ctlr->ipf);
-	l += snprint(p+l, READSTR-l, "fovf: %u\n", ctlr->fovf);
-	l += snprint(p+l, READSTR-l, "ierrs: %u\n", ctlr->ierrs);
-	l += snprint(p+l, READSTR-l, "rer: %u\n", ctlr->rer);
-	l += snprint(p+l, READSTR-l, "rdu: %u\n", ctlr->rdu);
-	l += snprint(p+l, READSTR-l, "punlc: %u\n", ctlr->punlc);
-	l += snprint(p+l, READSTR-l, "fovw: %u\n", ctlr->fovw);
+	l += snprint(p + l, READSTR - l, "txdu: %u\n", ctlr->txdu);
+	l += snprint(p + l, READSTR - l, "tcpf: %u\n", ctlr->tcpf);
+	l += snprint(p + l, READSTR - l, "udpf: %u\n", ctlr->udpf);
+	l += snprint(p + l, READSTR - l, "ipf: %u\n", ctlr->ipf);
+	l += snprint(p + l, READSTR - l, "fovf: %u\n", ctlr->fovf);
+	l += snprint(p + l, READSTR - l, "ierrs: %u\n", ctlr->ierrs);
+	l += snprint(p + l, READSTR - l, "rer: %u\n", ctlr->rer);
+	l += snprint(p + l, READSTR - l, "rdu: %u\n", ctlr->rdu);
+	l += snprint(p + l, READSTR - l, "punlc: %u\n", ctlr->punlc);
+	l += snprint(p + l, READSTR - l, "fovw: %u\n", ctlr->fovw);
 
-	l += snprint(p+l, READSTR-l, "tcr: %#8.8x\n", ctlr->tcr);
-	l += snprint(p+l, READSTR-l, "rcr: %#8.8x\n", ctlr->rcr);
-	l += snprint(p+l, READSTR-l, "multicast: %u\n", ctlr->mcast);
+	l += snprint(p + l, READSTR - l, "tcr: %#8.8x\n", ctlr->tcr);
+	l += snprint(p + l, READSTR - l, "rcr: %#8.8x\n", ctlr->rcr);
+	l += snprint(p + l, READSTR - l, "multicast: %u\n", ctlr->mcast);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
-		l += snprint(p+l, READSTR, "phy:   ");
+		l += snprint(p + l, READSTR, "phy:   ");
 		for(i = 0; i < NMiiPhyr; i++){
 			if(i && ((i & 0x07) == 0))
-				l += snprint(p+l, READSTR-l, "\n       ");
+				l += snprint(p + l, READSTR - l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, READSTR-l, " %4.4x", r);
+			l += snprint(p + l, READSTR - l, " %4.4x", r);
 		}
-		snprint(p+l, READSTR-l, "\n");
+		snprint(p + l, READSTR - l, "\n");
 	}
 	s = p + l + 1;
-//	s = seprintmark(s, e, &ctlr->wmrb);
+	//	s = seprintmark(s, e, &ctlr->wmrb);
 	s = seprintmark(s, e, &ctlr->wmrd);
 	s = seprintmark(s, e, &ctlr->wmtd);
 	USED(s);
@@ -636,7 +636,7 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 }
 
 static void
-rtl8169halt(Ctlr* ctlr)
+rtl8169halt(Ctlr *ctlr)
 {
 	csr32w(ctlr, Timerint, 0);
 	csr8w(ctlr, Cr, 0);
@@ -645,7 +645,7 @@ rtl8169halt(Ctlr* ctlr)
 }
 
 static int
-rtl8169reset(Ctlr* ctlr)
+rtl8169reset(Ctlr *ctlr)
 {
 	uint32_t r;
 	int timeo;
@@ -674,7 +674,7 @@ rtl8169shutdown(Ether *ether)
 }
 
 static void
-rtl8169replenish(Ctlr* ctlr)
+rtl8169replenish(Ctlr *ctlr)
 {
 	D *d;
 	int rdt;
@@ -697,9 +697,9 @@ rtl8169replenish(Ctlr* ctlr)
 			d->addrlo = (uint32_t)PADDR(bp->rp);
 			d->addrhi = (uint32_t)(PADDR(bp->rp) >> 32);
 			coherence();
-		}else
+		} else
 			iprint("i8169: rx overrun\n");
-		d->control |= Own|Mps;
+		d->control |= Own | Mps;
 		rdt = NEXT(rdt, ctlr->nrd);
 		ctlr->nrdfree++;
 	}
@@ -707,7 +707,7 @@ rtl8169replenish(Ctlr* ctlr)
 }
 
 static int
-rtl8169init(Ether* edev)
+rtl8169init(Ether *edev)
 {
 	int i;
 	uint32_t r;
@@ -724,14 +724,14 @@ rtl8169init(Ether* edev)
 	 * MAC Address is not settable on some (all?) chips.
 	 * Must put chip into config register write enable mode.
 	 */
-	csr8w(ctlr, Cr9346, Eem1|Eem0);
+	csr8w(ctlr, Cr9346, Eem1 | Eem0);
 
 	/*
 	 * Transmitter.
 	 */
-	memset(ctlr->td, 0, sizeof(D)*ctlr->ntd);
+	memset(ctlr->td, 0, sizeof(D) * ctlr->ntd);
 	ctlr->tdh = ctlr->tdt = ctlr->ntq = 0;
-	ctlr->td[ctlr->ntd-1].control = Eor;
+	ctlr->td[ctlr->ntd - 1].control = Eor;
 	for(i = 0; i < ctlr->ntd; i++)
 		if((bp = ctlr->tb[i]) != nil){
 			ctlr->tb[i] = nil;
@@ -742,9 +742,9 @@ rtl8169init(Ether* edev)
 	 * Receiver.
 	 * Need to do something here about the multicast filter.
 	 */
-	memset(ctlr->rd, 0, sizeof(D)*ctlr->nrd);
+	memset(ctlr->rd, 0, sizeof(D) * ctlr->nrd);
 	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
-	ctlr->rd[ctlr->nrd-1].control = Eor;
+	ctlr->rd[ctlr->nrd - 1].control = Eor;
 	for(i = 0; i < ctlr->nrd; i++)
 		if((bp = ctlr->rb[i]) != nil){
 			ctlr->rb[i] = nil;
@@ -752,23 +752,23 @@ rtl8169init(Ether* edev)
 		}
 
 	rtl8169replenish(ctlr);
-	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Am|Apm;
+	ctlr->rcr = Rxfthnone | Mrxdmaunlimited | Ab | Am | Apm;
 
 	/*
 	 * Setting Mulrw in Cplusc disables the Tx/Rx DMA burst
 	 * settings in Tcr/Rcr; the (1<<14) is magic.
 	 */
-	cplusc = csr16r(ctlr, Cplusc) & ~(1<<14);
-	cplusc |= /*Rxchksum|*/Mulrw;
+	cplusc = csr16r(ctlr, Cplusc) & ~(1 << 14);
+	cplusc |= /*Rxchksum|*/ Mulrw;
 	switch(ctlr->macv){
 	default:
 		panic("ether8169: unknown macv %#08x for vid %#x did %#x",
-			ctlr->macv, ctlr->pcidev->vid, ctlr->pcidev->did);
+		      ctlr->macv, ctlr->pcidev->vid, ctlr->pcidev->did);
 	case Macv01:
 		break;
 	case Macv02:
 	case Macv03:
-		cplusc |= 1<<14;			/* magic */
+		cplusc |= 1 << 14; /* magic */
 		break;
 	case Macv05:
 		/*
@@ -778,9 +778,9 @@ rtl8169init(Ether* edev)
 		 */
 		r = csr8r(ctlr, Config2) & 0x07;
 		if(r == 0x01)				/* 66MHz PCI */
-			csr32w(ctlr, 0x7C, 0x0007FFFF);	/* magic */
+			csr32w(ctlr, 0x7C, 0x0007FFFF); /* magic */
 		else
-			csr32w(ctlr, 0x7C, 0x0007FF00);	/* magic */
+			csr32w(ctlr, 0x7C, 0x0007FF00); /* magic */
 		pciclrmwi(ctlr->pcidev);
 		break;
 	case Macv13:
@@ -789,8 +789,8 @@ rtl8169init(Ether* edev)
 		 * in the manufacturer-supplied driver, it could
 		 * be wrong. Untested.
 		 */
-		pcicfgw8(ctlr->pcidev, 0x68, 0x00);	/* magic */
-		pcicfgw8(ctlr->pcidev, 0x69, 0x08);	/* magic */
+		pcicfgw8(ctlr->pcidev, 0x68, 0x00); /* magic */
+		pcicfgw8(ctlr->pcidev, 0x69, 0x08); /* magic */
 		break;
 	case Macv04:
 	case Macv07:
@@ -820,11 +820,11 @@ rtl8169init(Ether* edev)
 	 */
 	switch(ctlr->pciv){
 	default:
-		csr8w(ctlr, Cr, Te|Re);
-		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr8w(ctlr, Cr, Te | Re);
+		csr32w(ctlr, Tcr, Ifg1 | Ifg0 | Mtxdmaunlimited);
 		csr32w(ctlr, Rcr, ctlr->rcr);
-		csr32w(ctlr, Mar0,   0);
-		csr32w(ctlr, Mar0+4, 0);
+		csr32w(ctlr, Mar0, 0);
+		csr32w(ctlr, Mar0 + 4, 0);
 		ctlr->mchash = 0;
 	case Rtl8169sc:
 	case Rtl8168b:
@@ -838,7 +838,7 @@ rtl8169init(Ether* edev)
 	 * doesn't really need to ever be on.
 	 */
 	csr32w(ctlr, Timerint, 0);
-	ctlr->imr = Serr|Timeout|Fovw|Punlc|Rdu|Ter|Rer|Rok;
+	ctlr->imr = Serr | Timeout | Fovw | Punlc | Rdu | Ter | Rer | Rok;
 	csr16w(ctlr, Imr, ctlr->imr);
 
 	/*
@@ -854,13 +854,13 @@ rtl8169init(Ether* edev)
 	 * rx buffers.
 	 */
 	csr32w(ctlr, Mpc, 0);
-	csr8w(ctlr, Etx, 0x3f);			/* magic */
-	csr32w(ctlr, Tnpds+4, PADDR(ctlr->td) >> 32);
+	csr8w(ctlr, Etx, 0x3f); /* magic */
+	csr32w(ctlr, Tnpds + 4, PADDR(ctlr->td) >> 32);
 	csr32w(ctlr, Tnpds, PADDR(ctlr->td));
-	csr32w(ctlr, Rdsar+4, PADDR(ctlr->rd) >> 32);
+	csr32w(ctlr, Rdsar + 4, PADDR(ctlr->rd) >> 32);
 	csr32w(ctlr, Rdsar, PADDR(ctlr->rd));
-	csr16w(ctlr, Rms, 16383);		/* was Mps; see above comment */
-	r = csr16r(ctlr, Mulint) & 0xF000;	/* no early rx interrupts */
+	csr16w(ctlr, Rms, 16383);	   /* was Mps; see above comment */
+	r = csr16r(ctlr, Mulint) & 0xF000; /* no early rx interrupts */
 	csr16w(ctlr, Mulint, r);
 	csr16w(ctlr, Cplusc, cplusc);
 	csr16w(ctlr, Coal, 0);
@@ -870,15 +870,15 @@ rtl8169init(Ether* edev)
 	 */
 	switch(ctlr->pciv){
 	case Rtl8169sc:
-		csr8w(ctlr, Cr, Te|Re);
-		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr8w(ctlr, Cr, Te | Re);
+		csr32w(ctlr, Tcr, Ifg1 | Ifg0 | Mtxdmaunlimited);
 		csr32w(ctlr, Rcr, ctlr->rcr);
 		break;
 	case Rtl8168b:
 	case Rtl8169c:
-		csr16w(ctlr, Cplusc, 0x2000);		/* magic */
-		csr8w(ctlr, Cr, Te|Re);
-		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr16w(ctlr, Cplusc, 0x2000); /* magic */
+		csr8w(ctlr, Cr, Te | Re);
+		csr32w(ctlr, Tcr, Ifg1 | Ifg0 | Mtxdmaunlimited);
 		csr32w(ctlr, Rcr, ctlr->rcr);
 		break;
 	}
@@ -887,13 +887,13 @@ rtl8169init(Ether* edev)
 
 	iunlock(&ctlr->ilock);
 
-//	rtl8169mii(ctlr);
+	//	rtl8169mii(ctlr);
 
 	return 0;
 }
 
 static void
-rtl8169attach(Ether* edev)
+rtl8169attach(Ether *edev)
 {
 	int timeo;
 	Ctlr *ctlr;
@@ -901,15 +901,15 @@ rtl8169attach(Ether* edev)
 	ctlr = edev->ctlr;
 	qlock(&ctlr->alock);
 	if(ctlr->init == 0){
-		ctlr->td = mallocalign(sizeof(D)*Ntd, 256, 0, 0);
-		ctlr->tb = malloc(Ntd*sizeof(Block*));
+		ctlr->td = mallocalign(sizeof(D) * Ntd, 256, 0, 0);
+		ctlr->tb = malloc(Ntd * sizeof(Block *));
 		ctlr->ntd = Ntd;
-		ctlr->rd = mallocalign(sizeof(D)*Nrd, 256, 0, 0);
-		ctlr->rb = malloc(Nrd*sizeof(Block*));
+		ctlr->rd = mallocalign(sizeof(D) * Nrd, 256, 0, 0);
+		ctlr->rb = malloc(Nrd * sizeof(Block *));
 		ctlr->nrd = Nrd;
 		ctlr->dtcc = mallocalign(sizeof(Dtcc), 64, 0, 0);
 		if(ctlr->td == nil || ctlr->tb == nil || ctlr->rd == nil ||
-		   ctlr->rb == nil || ctlr->dtcc == nil) {
+		   ctlr->rb == nil || ctlr->dtcc == nil){
 			free(ctlr->td);
 			free(ctlr->tb);
 			free(ctlr->rd);
@@ -919,9 +919,9 @@ rtl8169attach(Ether* edev)
 			error(Enomem);
 		}
 		rtl8169init(edev);
-//		initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
-		initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
-		initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
+		//		initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
+		initmark(&ctlr->wmrd, Nrd - 1, "rcv descrs processed at once");
+		initmark(&ctlr->wmtd, Ntd - 1, "xmit descr queue len");
 		ctlr->init = 1;
 	}
 	qunlock(&ctlr->alock);
@@ -930,12 +930,12 @@ rtl8169attach(Ether* edev)
 	for(timeo = 0; timeo < 10; timeo++){
 		if(miistatus(ctlr->mii) == 0)
 			break;
-		delay(100);		/* print fewer miistatus messages */
+		delay(100); /* print fewer miistatus messages */
 	}
 }
 
 static void
-rtl8169link(Ether* edev)
+rtl8169link(Ether *edev)
 {
 	uint r;
 	int limit;
@@ -953,10 +953,10 @@ rtl8169link(Ether* edev)
 	}
 	edev->Netif.link = 1;
 
-	limit = 256*1024;
+	limit = 256 * 1024;
 	if(r & Speed10){
 		edev->Netif.mbps = 10;
-		limit = 65*1024;
+		limit = 65 * 1024;
 	} else if(r & Speed100)
 		edev->Netif.mbps = 100;
 	else if(r & Speed1000)
@@ -967,7 +967,7 @@ rtl8169link(Ether* edev)
 }
 
 static void
-rtl8169transmit(Ether* edev)
+rtl8169transmit(Ether *edev)
 {
 	D *d;
 	Block *bp;
@@ -1002,7 +1002,7 @@ rtl8169transmit(Ether* edev)
 	ctlr->tdh = x;
 
 	x = ctlr->tdt;
-	while(ctlr->ntq < (ctlr->ntd-1)){
+	while(ctlr->ntq < (ctlr->ntd - 1)){
 		if((bp = qget(edev->oq)) == nil)
 			break;
 
@@ -1021,15 +1021,14 @@ rtl8169transmit(Ether* edev)
 	if(x != ctlr->tdt){
 		ctlr->tdt = x;
 		csr8w(ctlr, Tppoll, Npq);
-	}
-	else if(ctlr->ntq >= (ctlr->ntd-1))
+	} else if(ctlr->ntq >= (ctlr->ntd - 1))
 		ctlr->txdu++;
 
 	iunlock(&ctlr->tlock);
 }
 
 static void
-rtl8169receive(Ether* edev)
+rtl8169receive(Ether *edev)
 {
 	D *d;
 	int rdh, passed;
@@ -1048,7 +1047,7 @@ rtl8169receive(Ether* edev)
 			break;
 
 		control = d->control;
-		if((control & (Fs|Ls|Res)) == (Fs|Ls)){
+		if((control & (Fs | Ls | Res)) == (Fs | Ls)){
 			bp = ctlr->rb[rdh];
 			bp->wp = bp->rp + (control & RxflMASK) - 4;
 
@@ -1057,7 +1056,7 @@ rtl8169receive(Ether* edev)
 			if(control & Mar)
 				ctlr->mcast++;
 
-			switch(control & (Pid1|Pid0)){
+			switch(control & (Pid1 | Pid0)){
 			default:
 				break;
 			case Pid0:
@@ -1074,7 +1073,7 @@ rtl8169receive(Ether* edev)
 				}
 				bp->flag |= Budpck;
 				break;
-			case Pid1|Pid0:
+			case Pid1 | Pid0:
 				if(control & Ipf){
 					ctlr->ipf++;
 					break;
@@ -1084,7 +1083,7 @@ rtl8169receive(Ether* edev)
 			}
 			etheriq(edev, bp, 1);
 			passed++;
-		}else{
+		} else {
 			if(!(control & Res))
 				ctlr->frag++;
 			/* iprint("i8169: control %#.8ux\n", control); */
@@ -1095,7 +1094,7 @@ rtl8169receive(Ether* edev)
 		ctlr->nrdfree--;
 		rdh = NEXT(rdh, ctlr->nrd);
 
-		if(ctlr->nrdfree < ctlr->nrd/2)
+		if(ctlr->nrdfree < ctlr->nrd / 2)
 			rtl8169replenish(ctlr);
 	}
 	/* note how many rds had full buffers */
@@ -1104,7 +1103,7 @@ rtl8169receive(Ether* edev)
 }
 
 static void
-rtl8169interrupt(Ureg *u, void* arg)
+rtl8169interrupt(Ureg *u, void *arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
@@ -1117,9 +1116,9 @@ rtl8169interrupt(Ureg *u, void* arg)
 		csr16w(ctlr, Isr, isr);
 		if((isr & ctlr->imr) == 0)
 			break;
-		if(isr & (Fovw|Punlc|Rdu|Rer|Rok)){
+		if(isr & (Fovw | Punlc | Rdu | Rer | Rok)){
 			rtl8169receive(edev);
-			if(!(isr & (Punlc|Rok)))
+			if(!(isr & (Punlc | Rok)))
 				ctlr->ierrs++;
 			if(isr & Rer)
 				ctlr->rer++;
@@ -1129,12 +1128,12 @@ rtl8169interrupt(Ureg *u, void* arg)
 				ctlr->punlc++;
 			if(isr & Fovw)
 				ctlr->fovw++;
-			isr &= ~(Fovw|Rdu|Rer|Rok);
+			isr &= ~(Fovw | Rdu | Rer | Rok);
 		}
 
-		if(isr & (Tdu|Ter|Tok)){
+		if(isr & (Tdu | Ter | Tok)){
 			rtl8169transmit(edev);
-			isr &= ~(Tdu|Ter|Tok);
+			isr &= ~(Tdu | Ter | Tok);
 		}
 
 		if(isr & Punlc){
@@ -1145,9 +1144,9 @@ rtl8169interrupt(Ureg *u, void* arg)
 		/*
 		 * Some of the reserved bits get set sometimes...
 		 */
-		if(isr & (Serr|Timeout|Tdu|Fovw|Punlc|Rdu|Ter|Tok|Rer|Rok))
+		if(isr & (Serr | Timeout | Tdu | Fovw | Punlc | Rdu | Ter | Tok | Rer | Rok))
 			panic("rtl8169interrupt: imr %#4.4x isr %#4.4x",
-				csr16r(ctlr, Imr), isr);
+			      csr16r(ctlr, Imr), isr);
 	}
 }
 
@@ -1199,18 +1198,18 @@ rtl8169pci(void)
 			continue;
 
 		pcie = 0;
-		switch(i = ((p->did<<16)|p->vid)){
+		switch(i = ((p->did << 16) | p->vid)){
 		default:
 			continue;
-		case Rtl8100e:			/* RTL810[01]E ? */
-		case Rtl8168b:			/* RTL8168B */
+		case Rtl8100e: /* RTL810[01]E ? */
+		case Rtl8168b: /* RTL8168B */
 			pcie = 1;
 			break;
-		case Rtl8169c:			/* RTL8169C */
-		case Rtl8169sc:			/* RTL8169SC */
-		case Rtl8169:			/* RTL8169 */
+		case Rtl8169c:	/* RTL8169C */
+		case Rtl8169sc: /* RTL8169SC */
+		case Rtl8169:	/* RTL8169 */
 			break;
-		case (0xC107<<16)|0x1259:	/* Corega CG-LAPCIGT */
+		case(0xC107 << 16) | 0x1259: /* Corega CG-LAPCIGT */
 			i = Rtl8169;
 			break;
 		}
@@ -1239,7 +1238,7 @@ rtl8169pci(void)
 			pcisetpms(p, 0);
 
 			for(i = 0; i < 6; i++)
-				pcicfgw32(p, PciBAR0+i*4, p->mem[i].bar);
+				pcicfgw32(p, PciBAR0 + i * 4, p->mem[i].bar);
 			pcicfgw8(p, PciINTL, p->intl);
 			pcicfgw8(p, PciLTR, p->ltr);
 			pcicfgw8(p, PciCLS, p->cls);
@@ -1272,7 +1271,7 @@ rtl8169pci(void)
 }
 
 static int
-rtl8169pnp(Ether* edev)
+rtl8169pnp(Ether *edev)
 {
 	uint32_t r;
 	Ctlr *ctlr;
@@ -1314,12 +1313,12 @@ rtl8169pnp(Ether* edev)
 	if(memcmp(ea, edev->ea, Eaddrlen) == 0){
 		r = csr32r(ctlr, Idr0);
 		edev->ea[0] = r;
-		edev->ea[1] = r>>8;
-		edev->ea[2] = r>>16;
-		edev->ea[3] = r>>24;
-		r = csr32r(ctlr, Idr0+4);
+		edev->ea[1] = r >> 8;
+		edev->ea[2] = r >> 16;
+		edev->ea[3] = r >> 24;
+		r = csr32r(ctlr, Idr0 + 4);
 		edev->ea[4] = r;
-		edev->ea[5] = r>>8;
+		edev->ea[5] = r >> 8;
 	}
 
 	edev->attach = rtl8169attach;

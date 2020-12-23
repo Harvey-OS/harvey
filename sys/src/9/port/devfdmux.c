@@ -12,39 +12,37 @@
  * Access to fd[1] is controlled by which process group a process is in.
  * We are not fooling with SIGHUP yet. Need to think on that.
  */
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-typedef struct Fdmux	Fdmux;
-struct Fdmux
-{
+typedef struct Fdmux Fdmux;
+struct Fdmux {
 	QLock QLock;
-	Fdmux	*next;
-	int	ref;
-	uint32_t	path;
-	Queue	*q[2];
-	int	qref[2];
-	int	owner; // pid of owner, e.g. regress/fdmux.
-	int	pgrpid; // id of processes allowed to read/write fd[1]. If they do not match, they slep
-	int	slpid;	// session leader. If > 0, we send them a note if anyone blocks on read/write.
-	int	active; // The active pid. Useful for interrupt.
-	int 	dead;
-	int	debug;
+	Fdmux *next;
+	int ref;
+	uint32_t path;
+	Queue *q[2];
+	int qref[2];
+	int owner;	   // pid of owner, e.g. regress/fdmux.
+	int pgrpid;	   // id of processes allowed to read/write fd[1]. If they do not match, they slep
+	int slpid;	   // session leader. If > 0, we send them a note if anyone blocks on read/write.
+	int active;	   // The active pid. Useful for interrupt.
+	int dead;
+	int debug;
 	Rendez r;
 };
 
 struct
 {
 	Lock Lock;
-	uint32_t	path;
+	uint32_t path;
 } fdmuxalloc;
 
-enum
-{
+enum {
 	Qdir,
 	Qdata0,
 	Qdata1,
@@ -55,32 +53,31 @@ enum
  * /dev/cons* will get our version.
  */
 Dirtab fdmuxdir[] =
-{
-	{".",		{Qdir,0,QTDIR},	0,		DMDIR|0500},
-	{"m",		{Qdata0},	0,		0600},
-	{"cons",	{Qdata1},	0,		0600},
-	{"consctl",		{Qctl},	0,		0600},
+	{
+		{".", {Qdir, 0, QTDIR}, 0, DMDIR | 0500},
+		{"m", {Qdata0}, 0, 0600},
+		{"cons", {Qdata1}, 0, 0600},
+		{"consctl", {Qctl}, 0, 0600},
 };
 #define NFDMUXDIR 4
 
-#define FDMUXTYPE(x)	(((unsigned)x)&0x1f)
-#define FDMUXID(x)	((((unsigned)x))>>5)
-#define FDMUXQID(i, t)	((((unsigned)i)<<5)|(t))
+#define FDMUXTYPE(x) (((unsigned)x) & 0x1f)
+#define FDMUXID(x) ((((unsigned)x)) >> 5)
+#define FDMUXQID(i, t) ((((unsigned)i) << 5) | (t))
 
-
-enum
-{
+enum {
 	/* Plan 9 default for nmach > 1 */
-	Fdmuxqsize = 256*1024
+	Fdmuxqsize = 256 * 1024
 };
 
-static int testready(void *v)
+static int
+testready(void *v)
 {
 	Chan *c = v;
 	Proc *up = externup();
 	Fdmux *p;
 	p = c->aux;
-	if (up->pgrp->pgrpid == p->pgrpid)
+	if(up->pgrp->pgrpid == p->pgrpid)
 		return 1;
 	return 0;
 }
@@ -93,7 +90,7 @@ fdmuxinit(void)
 /*
  *  create a fdmux, no streams are created until an open
  */
-static Chan*
+static Chan *
 fdmuxattach(char *spec)
 {
 	Fdmux *p;
@@ -123,25 +120,25 @@ fdmuxattach(char *spec)
 	p->path = ++fdmuxalloc.path;
 	unlock(&fdmuxalloc.Lock);
 
-	mkqid(&c->qid, FDMUXQID(2*p->path, Qdir), 0, QTDIR);
+	mkqid(&c->qid, FDMUXQID(2 * p->path, Qdir), 0, QTDIR);
 	c->aux = p;
 	c->devno = 0;
 	return c;
 }
 
 static int
-fdmuxgen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
+fdmuxgen(Chan *c, char *d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
 	Fdmux *p;
 
 	if(i == DEVDOTDOT){
-		devdir(c, c->qid, "#|", 0, eve, DMDIR|0555, dp);
+		devdir(c, c->qid, "#|", 0, eve, DMDIR | 0555, dp);
 		return 1;
 	}
-	i++;	/* skip . */
-	if(tab==0 || i>=ntab)
+	i++; /* skip . */
+	if(tab == 0 || i >= ntab)
 		return -1;
 
 	tab += i;
@@ -162,8 +159,7 @@ fdmuxgen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 	return 1;
 }
 
-
-static Walkqid*
+static Walkqid *
 fdmuxwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
@@ -200,7 +196,7 @@ fdmuxstat(Chan *c, uint8_t *db, int32_t n)
 
 	switch(FDMUXTYPE(c->qid.path)){
 	case Qdir:
-		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
+		devdir(c, c->qid, ".", 0, eve, DMDIR | 0555, &dir);
 		break;
 	case Qdata0:
 		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
@@ -220,7 +216,7 @@ fdmuxstat(Chan *c, uint8_t *db, int32_t n)
 /*
  *  if the stream doesn't exist, create it
  */
-static Chan*
+static Chan *
 fdmuxopen(Chan *c, int omode)
 {
 	Fdmux *p;
@@ -322,28 +318,28 @@ fdmuxread(Chan *c, void *va, int32_t n, int64_t m)
 		n = readstr(m, va, n, buf);
 		return n;
 	case Qdata0:
-		if (p->debug)
+		if(p->debug)
 			print("pid %d reads m\n", up->pid);
-		if (p->dead)
+		if(p->dead)
 			return -1;
 		return qread(p->q[0], va, n);
 	case Qdata1:
 		/* TODO: proper locking */
-		if (p->dead)
+		if(p->dead)
 			return -1;
-		if (up->pgrp->pgrpid != p->pgrpid)
+		if(up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
 		p->active = up->pid;
-		if (p->debug)
+		if(p->debug)
 			print("pid %d reads s\n", up->pid);
 		return qread(p->q[1], va, n);
 	default:
 		panic("fdmuxread");
 	}
-	return -1;	/* not reached */
+	return -1; /* not reached */
 }
 
-static Block*
+static Block *
 fdmuxbread(Chan *c, int32_t n, int64_t offset)
 {
 	Proc *up = externup();
@@ -361,14 +357,14 @@ fdmuxbread(Chan *c, int32_t n, int64_t offset)
 		return b;
 
 	case Qdata0:
-		if (p->dead)
+		if(p->dead)
 			return nil;
 		return qbread(p->q[0], n);
 	case Qdata1:
-		if (p->dead)
+		if(p->dead)
 			return nil;
 		/* TODO: proper locking */
-		if (up->pgrp->pgrpid != p->pgrpid)
+		if(up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
 		return qbread(p->q[1], n);
 	}
@@ -392,10 +388,11 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 	char *signal = "interrupt";
 	int siglen = 9;
 
-	if(0)if(!islo())
-		print("fdmuxwrite hi %#p\n", getcallerpc()); // devmnt?
+	if(0)
+		if(!islo())
+			print("fdmuxwrite hi %#p\n", getcallerpc());	    // devmnt?
 
-	if(waserror()) {
+	if(waserror()){
 		/* avoid notes when fdmux is a mounted queue */
 		if((c->flag & CMSG) == 0)
 			postnote(up, 1, "sys: write on closed fdmux", NUser);
@@ -408,78 +405,78 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 	/* single letter command a number. */
 	case Qctl:
 		if(n >= sizeof(buf))
-			n = sizeof(buf)-1;
+			n = sizeof(buf) - 1;
 		strncpy(buf, va, n);
 		buf[n] = 0;
 		id = strtoul(&buf[1], 0, 0);
-		switch(buf[0]) {
-			case 'd':
-				break;
-			case 'k':
-				break;
-			case 'p':
-			case 'l':
-				break;
-			case 'n':
-				if (id == 0)
-					id = p->active;
-				break;
-			case 's':
-				signal = "stop";
-				siglen = 4;
-				if (id == 0)
-					id = p->slpid;
+		switch(buf[0]){
+		case 'd':
 			break;
-			default:
-				print("usage: k (kill) or d (debug) or [lnps][optional number]");
-				break;
+		case 'k':
+			break;
+		case 'p':
+		case 'l':
+			break;
+		case 'n':
+			if(id == 0)
+				id = p->active;
+			break;
+		case 's':
+			signal = "stop";
+			siglen = 4;
+			if(id == 0)
+				id = p->slpid;
+			break;
+		default:
+			print("usage: k (kill) or d (debug) or [lnps][optional number]");
+			break;
 		}
-		if (p->debug)
+		if(p->debug)
 			print("pid %d writes cmd :%s:\n", up->pid, buf);
-		switch(buf[0]) {
-			case 'd':
-				p->debug++;
-				break;
-			case 'k':
-				p->dead++;
-				break;
-			case 'p':
-				// NO checking. How would we know?
-				if (p->debug)
-					print("Set pgrpid to %d\n", id);
-				p->pgrpid = id;
-				break;
-			case 'l':
-				if (p->debug)
-					print("Set sleader to %d\n", id);
-				p->slpid = id;
-				break;
-			case 'n':
-				l = snprint(notename, sizeof(notename), "#p/%d/note", id);
-				c = namec(notename, Aopen, ORDWR, 0);
-				if (p->debug)
-					print("send note %s to %d c %p\n", notename, id, c);
-				if (! c)
-					error(notename);
-				if (waserror()) {
-					cclose(c);
-					nexterror();
-				}
-				n = c->dev->write(c, signal, siglen, 0);
-				poperror();
-				if (p->debug)
-					print("Wrote %s len %d res %d\n", notename, l, n);
+		switch(buf[0]){
+		case 'd':
+			p->debug++;
+			break;
+		case 'k':
+			p->dead++;
+			break;
+		case 'p':
+			// NO checking. How would we know?
+			if(p->debug)
+				print("Set pgrpid to %d\n", id);
+			p->pgrpid = id;
+			break;
+		case 'l':
+			if(p->debug)
+				print("Set sleader to %d\n", id);
+			p->slpid = id;
+			break;
+		case 'n':
+			l = snprint(notename, sizeof(notename), "#p/%d/note", id);
+			c = namec(notename, Aopen, ORDWR, 0);
+			if(p->debug)
+				print("send note %s to %d c %p\n", notename, id, c);
+			if(!c)
+				error(notename);
+			if(waserror()){
 				cclose(c);
-				break;
-			default:
-				print("ignoring unsupported command :%s:\n", buf);
-				break;
+				nexterror();
+			}
+			n = c->dev->write(c, signal, siglen, 0);
+			poperror();
+			if(p->debug)
+				print("Wrote %s len %d res %d\n", notename, l, n);
+			cclose(c);
+			break;
+		default:
+			print("ignoring unsupported command :%s:\n", buf);
+			break;
 		}
 		break;
 	case Qdata0:
-		if (p->debug)
+		if(p->debug)
 			print("pid %d writes m\n", up->pid);
-		if (p->dead) {
+		if(p->dead){
 			n = -1;
 			break;
 		}
@@ -488,14 +485,14 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 
 	case Qdata1:
 		/* TODO: proper locking */
-		if (p->dead) {
+		if(p->dead){
 			n = -1;
 			break;
 		}
-		if (up->pgrp->pgrpid != p->pgrpid)
+		if(up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
 		p->active = up->pid;
-		if (p->debug)
+		if(p->debug)
 			print("pid %d writes s\n", up->pid);
 		n = qwrite(p->q[0], va, n);
 		break;
@@ -515,7 +512,7 @@ fdmuxbwrite(Chan *c, Block *bp, int64_t mm)
 	int32_t n;
 	Fdmux *p;
 
-	if(waserror()) {
+	if(waserror()){
 		/* avoid notes when fdmux is a mounted queue */
 		if((c->flag & CMSG) == 0)
 			postnote(up, 1, "sys: write on closed fdmux", NUser);
@@ -525,7 +522,7 @@ fdmuxbwrite(Chan *c, Block *bp, int64_t mm)
 	p = c->aux;
 	switch(FDMUXTYPE(c->qid.path)){
 	case Qdata0:
-		if (p->dead) {
+		if(p->dead){
 			n = -1;
 			break;
 		}
@@ -533,12 +530,12 @@ fdmuxbwrite(Chan *c, Block *bp, int64_t mm)
 		break;
 
 	case Qdata1:
-		if (p->dead) {
+		if(p->dead){
 			n = -1;
 			break;
 		}
 		/* TODO: proper locking */
-		if (up->pgrp->pgrpid != p->pgrpid)
+		if(up->pgrp->pgrpid != p->pgrpid)
 			tsleep(&p->r, testready, c, 1000);
 		n = qbwrite(p->q[0], bp);
 		break;

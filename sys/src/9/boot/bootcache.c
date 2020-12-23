@@ -32,8 +32,8 @@ cache(int fd)
 			if(strcmp(argv[i], "off") == 0)
 				return fd;
 			else if(stat(argv[i], statbuf, sizeof statbuf) >= 0){
-				strncpy(partition, argv[i], sizeof(partition)-1);
-				partition[sizeof(partition)-1] = 0;
+				strncpy(partition, argv[i], sizeof(partition) - 1);
+				partition[sizeof(partition) - 1] = 0;
 			}
 		}
 	}
@@ -45,12 +45,12 @@ cache(int fd)
 				*pp = 0;
 			/* damned artificial intelligence */
 			i = strlen(bd);
-			if(strcmp("disk", &bd[i-4]) == 0)
-				bd[i-4] = 0;
-			else if(strcmp("fs", &bd[i-2]) == 0)
-				bd[i-2] = 0;
-			else if(strcmp("fossil", &bd[i-6]) == 0)
-				bd[i-6] = 0;
+			if(strcmp("disk", &bd[i - 4]) == 0)
+				bd[i - 4] = 0;
+			else if(strcmp("fs", &bd[i - 2]) == 0)
+				bd[i - 2] = 0;
+			else if(strcmp("fossil", &bd[i - 6]) == 0)
+				bd[i - 6] = 0;
 			sprint(partition, "%scache", bd);
 			if(stat(partition, statbuf, sizeof statbuf) < 0)
 				*bd = 0;
@@ -63,7 +63,7 @@ cache(int fd)
 	}
 
 	print("cfs...");
-	if(pipe(p)<0)
+	if(pipe(p) < 0)
 		fatal("pipe");
 	switch(fork()){
 	case -1:

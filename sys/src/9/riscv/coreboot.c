@@ -37,7 +37,8 @@
 #include "coreboot.h"
 
 /* this implements the architecture-dependent call needed for port/devcoreboot.c */
-int get_coreboot_info(struct sysinfo_t *info)
+int
+get_coreboot_info(struct sysinfo_t *info)
 {
 	return -1;
 }

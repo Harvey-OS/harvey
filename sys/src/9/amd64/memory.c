@@ -22,8 +22,8 @@ meminit(void)
 
 	for(PAMap *m = pamap; m != nil; m = m->next){
 		DBG("meminit: addr %#P end %#P type %d size %P\n",
-			m->addr, m->addr+m->size,
-			m->type, m->size);
+		    m->addr, m->addr + m->size,
+		    m->type, m->size);
 		PTE pgattrs = PteP;
 		switch(m->type){
 		default:
@@ -48,17 +48,17 @@ meminit(void)
 		/*
 		 * Fill in conf data.
 		 */
-		if (m->type != PamMEMORY)
+		if(m->type != PamMEMORY)
 			continue;
 		if(cx >= nelem(conf.mem))
 			continue;
 		uintmem lo = ROUNDUP(m->addr, PGSZ);
 		conf.mem[cx].base = lo;
 		uintmem hi = ROUNDDN(m->addr + m->size, PGSZ);
-		conf.mem[cx].npage = (hi - lo)/PGSZ;
+		conf.mem[cx].npage = (hi - lo) / PGSZ;
 		conf.npage += conf.mem[cx].npage;
 		DBG("cm %d: addr %#llx npage %lu\n",
-			cx, conf.mem[cx].base, conf.mem[cx].npage);
+		    cx, conf.mem[cx].base, conf.mem[cx].npage);
 		cx++;
 	}
 	mmukflushtlb();
@@ -68,7 +68,7 @@ meminit(void)
 	 * This is why I hate Plan 9.
 	 */
 	conf.upages = conf.npage;
-	conf.ialloc = 64*MiB;	// Arbitrary.
+	conf.ialloc = 64 * MiB;	       // Arbitrary.
 	DBG("npage %llu upage %lu\n", conf.npage, conf.upages);
 }
 
@@ -77,13 +77,13 @@ setphysmembounds(void)
 {
 	uintmem pmstart, pmend;
 
-	pmstart = ROUNDUP(PADDR(end), 2*MiB);
+	pmstart = ROUNDUP(PADDR(end), 2 * MiB);
 	pmend = pmstart;
 	for(PAMap *m = pamap; m != nil; m = m->next){
-		if(m->type == PamMODULE && m->addr+m->size > pmstart)
-			pmstart = ROUNDUP(m->addr+m->size, 2*MiB);
-		if(m->type == PamMEMORY && m->addr+m->size > pmend)
-			pmend = ROUNDDN(m->addr+m->size, 2*MiB);
+		if(m->type == PamMODULE && m->addr + m->size > pmstart)
+			pmstart = ROUNDUP(m->addr + m->size, 2 * MiB);
+		if(m->type == PamMEMORY && m->addr + m->size > pmend)
+			pmend = ROUNDDN(m->addr + m->size, 2 * MiB);
 	}
 	sys->pmstart = pmstart;
 	sys->pmend = pmend;
@@ -98,7 +98,7 @@ umeminit(void)
 	for(PAMap *m = pamap; m != nil; m = m->next){
 		if(m->type != PamMEMORY)
 			continue;
-		if(m->addr < 2*MiB)
+		if(m->addr < 2 * MiB)
 			continue;
 		// if(m->size < 2*MiB)
 		// 	continue;

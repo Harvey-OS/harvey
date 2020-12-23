@@ -46,7 +46,7 @@ Cpp11BracedListStyle: true
 Standard:        Cpp11
 IndentWidth:     8
 TabWidth:        8
-UseTab: ForIndentation
+UseTab: Always
 BreakBeforeBraces: Linux
 ReflowComments: true
 SortIncludes: false
@@ -58,7 +58,7 @@ SpacesInCStyleCastParentheses: false
 SpaceAfterCStyleCast: false
 SpacesInContainerLiterals: true
 SpaceBeforeAssignmentOperators: true
-ContinuationIndentWidth: 4
+ContinuationIndentWidth: 8
 CommentPragmas:  '^ IWYU pragma:'
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
 SpaceBeforeParens: Never

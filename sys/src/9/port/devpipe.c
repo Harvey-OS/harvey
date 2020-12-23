@@ -7,54 +7,50 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-typedef struct Pipe	Pipe;
-struct Pipe
-{
+typedef struct Pipe Pipe;
+struct Pipe {
 	QLock QLock;
-	Pipe	*next;
-	int	ref;
-	uint32_t	path;
-	Queue	*q[2];
-	int	qref[2];
+	Pipe *next;
+	int ref;
+	uint32_t path;
+	Queue *q[2];
+	int qref[2];
 };
 
 struct
 {
 	Lock Lock;
-	uint32_t	path;
+	uint32_t path;
 } pipealloc;
 
-enum
-{
+enum {
 	Qdir,
 	Qdata0,
 	Qdata1,
 };
 
 Dirtab pipedir[] =
-{
-	{".",		{Qdir,0,QTDIR},	0,		DMDIR|0500},
-	{"data",	{Qdata0},	0,		0600},
-	{"data1",	{Qdata1},	0,		0600},
+	{
+		{".", {Qdir, 0, QTDIR}, 0, DMDIR | 0500},
+		{"data", {Qdata0}, 0, 0600},
+		{"data1", {Qdata1}, 0, 0600},
 };
 #define NPIPEDIR 3
 
-#define PIPETYPE(x)	(((unsigned)x)&0x1f)
-#define PIPEID(x)	((((unsigned)x))>>5)
-#define PIPEQID(i, t)	((((unsigned)i)<<5)|(t))
+#define PIPETYPE(x) (((unsigned)x) & 0x1f)
+#define PIPEID(x) ((((unsigned)x)) >> 5)
+#define PIPEQID(i, t) ((((unsigned)i) << 5) | (t))
 
-
-enum
-{
+enum {
 	/* Plan 9 default for nmach > 1 */
-	Pipeqsize = 256*1024
+	Pipeqsize = 256 * 1024
 };
 
 static void
@@ -65,7 +61,7 @@ pipeinit(void)
 /*
  *  create a pipe, no streams are created until an open
  */
-static Chan*
+static Chan *
 pipeattach(char *spec)
 {
 	Pipe *p;
@@ -93,25 +89,25 @@ pipeattach(char *spec)
 	p->path = ++pipealloc.path;
 	unlock(&pipealloc.Lock);
 
-	mkqid(&c->qid, PIPEQID(2*p->path, Qdir), 0, QTDIR);
+	mkqid(&c->qid, PIPEQID(2 * p->path, Qdir), 0, QTDIR);
 	c->aux = p;
 	c->devno = 0;
 	return c;
 }
 
 static int
-pipegen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, char *d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
 	Pipe *p;
 
 	if(i == DEVDOTDOT){
-		devdir(c, c->qid, "#|", 0, eve, DMDIR|0555, dp);
+		devdir(c, c->qid, "#|", 0, eve, DMDIR | 0555, dp);
 		return 1;
 	}
-	i++;	/* skip . */
-	if(tab==0 || i>=ntab)
+	i++; /* skip . */
+	if(tab == 0 || i >= ntab)
 		return -1;
 
 	tab += i;
@@ -132,8 +128,7 @@ pipegen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 	return 1;
 }
 
-
-static Walkqid*
+static Walkqid *
 pipewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
@@ -170,7 +165,7 @@ pipestat(Chan *c, uint8_t *db, int32_t n)
 
 	switch(PIPETYPE(c->qid.path)){
 	case Qdir:
-		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
+		devdir(c, c->qid, ".", 0, eve, DMDIR | 0555, &dir);
 		break;
 	case Qdata0:
 		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
@@ -190,7 +185,7 @@ pipestat(Chan *c, uint8_t *db, int32_t n)
 /*
  *  if the stream doesn't exist, create it
  */
-static Chan*
+static Chan *
 pipeopen(Chan *c, int omode)
 {
 	Pipe *p;
@@ -253,7 +248,6 @@ pipeclose(Chan *c)
 		}
 	}
 
-
 	/*
 	 *  if both sides are closed, they are reusable
 	 */
@@ -292,10 +286,10 @@ piperead(Chan *c, void *va, int32_t n, int64_t m)
 	default:
 		panic("piperead");
 	}
-	return -1;	/* not reached */
+	return -1; /* not reached */
 }
 
-static Block*
+static Block *
 pipebread(Chan *c, int32_t n, int64_t offset)
 {
 	Pipe *p;
@@ -322,10 +316,11 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 	Proc *up = externup();
 	Pipe *p;
 
-	if(0)if(!islo())
-		print("pipewrite hi %#p\n", getcallerpc()); // devmnt?
+	if(0)
+		if(!islo())
+			print("pipewrite hi %#p\n", getcallerpc());	   // devmnt?
 
-	if(waserror()) {
+	if(waserror()){
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
 			postnote(up, 1, "sys: write on closed pipe", NUser);
@@ -358,7 +353,7 @@ pipebwrite(Chan *c, Block *bp, int64_t mm)
 	int32_t n;
 	Pipe *p;
 
-	if(waserror()) {
+	if(waserror()){
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
 			postnote(up, 1, "sys: write on closed pipe", NUser);

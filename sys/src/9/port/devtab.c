@@ -17,7 +17,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
-extern Dev* devtab[];
+extern Dev *devtab[];
 
 void
 devtabreset(void)
@@ -25,18 +25,16 @@ devtabreset(void)
 	int i, j;
 
 	/* this is a good time to look for a bad mistake. */
-	for(i = 0; devtab[i] != nil; i++) {
-		for(j = i + 1; devtab[j] != nil; j++) {
-			if (devtab[i]->dc == devtab[j]->dc) {
+	for(i = 0; devtab[i] != nil; i++){
+		for(j = i + 1; devtab[j] != nil; j++){
+			if(devtab[i]->dc == devtab[j]->dc){
 				print("Devices %s and %s have the sanme .dc\n", devtab[i]->name, devtab[j]->name);
 				panic("Fix this by change one of them.");
 			}
 		}
 	}
 
-
-
-	for(i = 0; devtab[i] != nil; i++) {
+	for(i = 0; devtab[i] != nil; i++){
 		devtab[i]->reset();
 	}
 }
@@ -46,7 +44,7 @@ devtabinit(void)
 {
 	int i;
 
-	for(i = 0; devtab[i] != nil; i++) {
+	for(i = 0; devtab[i] != nil; i++){
 		devtab[i]->init();
 	}
 }
@@ -65,8 +63,7 @@ devtabshutdown(void)
 		devtab[i]->shutdown();
 }
 
-
-Dev*
+Dev *
 devtabget(int dc, int user)
 {
 	int i;
@@ -83,7 +80,7 @@ devtabget(int dc, int user)
 }
 
 int32_t
-devtabread(Chan* c, void* buf, int32_t n, int64_t off)
+devtabread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int i;

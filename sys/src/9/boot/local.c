@@ -14,7 +14,8 @@
 static char diskname[64];
 static char *disk;
 
-void shell(char *c, char *d)
+void
+shell(char *c, char *d)
 {
 	char *argv[] = {"rc", "-m", "/boot/rcmain", 0, 0, 0};
 	print("Shell: Run %s %s\n", c, d);
@@ -51,7 +52,7 @@ configlocal(Method *mp)
 		 *  scsi logical unit number
 		 */
 		p = strchr(argv0, ',');
-		n = strtoul(p+1, 0, 10);
+		n = strtoul(p + 1, 0, 10);
 		sprint(diskname, "#w%d/sd%dfs", n, n);
 		disk = diskname;
 	} else if(mp->arg){
@@ -70,19 +71,17 @@ configlocal(Method *mp)
 		disk = "#s/sdE0/";
 	}
 	/* if we've decided on one, pass it on to all programs */
-	if(disk) {
+	if(disk){
 		setenv("bootdisk", disk);
 		setenv("nvram", smprint("%s/nvram", disk));
 		setenv("venti", smprint("%s/arenas", disk));
 	}
-
 
 	shell("-c", smprint("/boot/fdisk -p '%s/data' > '%s/ctl'", disk, disk));
 	shell("-c", smprint("/boot/prep -p '%s/plan9' > '%s/ctl'", disk, disk));
 	//shell("-i", nil);
 	USED(mp);
 }
-
 
 static int
 print1(int fd, char *s)
@@ -100,8 +99,7 @@ configloopback(void)
 		if((fd = open("/net/ipifc/clone", ORDWR)) < 0)
 			fatal("open /net/ipifc/clone for loopback");
 	}
-	if(print1(fd, "bind loopback /dev/null") < 0
-	|| print1(fd, "add 127.0.0.1 255.255.255.255") < 0)
+	if(print1(fd, "bind loopback /dev/null") < 0 || print1(fd, "add 127.0.0.1 255.255.255.255") < 0)
 		fatal("write /net/ipifc/clone for loopback");
 	close(fd);
 }
@@ -129,7 +127,7 @@ connectlocalfossil(void)
 			return -1;
 	}
 	memset(buf, 0, sizeof buf);
-	pread(fd, buf, 512, 127*1024);
+	pread(fd, buf, 512, 127 * 1024);
 	close(fd);
 	if(memcmp(buf, "fossil config\n", 14) != 0){
 		if(strstr(partition, "/fossil"))
@@ -141,11 +139,11 @@ connectlocalfossil(void)
 
 	/* make venti available */
 	if((venti = getenv("venti")) && (nf = tokenize(venti, f, nelem(f)))){
-print("VENTI on %s\n", f[0]);
+		print("VENTI on %s\n", f[0]);
 		if((fd = open(f[0], OREAD)) >= 0){
 			print("venti...");
 			memset(buf, 0, sizeof buf);
-			pread(fd, buf, 512, 248*1024);
+			pread(fd, buf, 512, 248 * 1024);
 			close(fd);
 			if(memcmp(buf, "venti config\n", 13) != 0){
 				print("no venti config found on %s\n", f[0]);
@@ -169,12 +167,12 @@ print("VENTI on %s\n", f[0]);
 			 */
 			if((p = strstr(f[1], "!*!")) != 0){
 				*p = 0;
-				snprint(buf, sizeof buf, "%s!127.1!%s", f[1], p+3);
+				snprint(buf, sizeof buf, "%s!127.1!%s", f[1], p + 3);
 				f[1] = buf;
 			}
 			setenv("venti", f[1]);
-		}else{
-print("NO VENTI?\n");
+		} else {
+			print("NO VENTI?\n");
 			/* set up the network so we can talk to the venti server */
 			/* this is such a crock. */
 			configip(nf, f, 0);
@@ -190,7 +188,7 @@ print("NO VENTI?\n");
 		print("open #s/fboot: %r\n");
 		return -1;
 	}
-	remove("#s/fboot");	/* we'll repost as #s/boot */
+	remove("#s/fboot"); /* we'll repost as #s/boot */
 	return fd;
 }
 

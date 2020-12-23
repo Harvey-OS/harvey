@@ -35,7 +35,7 @@ typedef uint64_t PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
 typedef struct Stackframe Stackframe;
-typedef uint64_t uintmem;				/* Physical address (hideous) */
+typedef uint64_t uintmem; /* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 
@@ -44,130 +44,122 @@ typedef struct Vctl Vctl;
  * in the outside world.
  */
 enum regnames {
-	GDB_AX,			/* 0 */
-	GDB_BX,			/* 1 */
-	GDB_CX,			/* 2 */
-	GDB_DX,			/* 3 */
-	GDB_SI,			/* 4 */
-	GDB_DI,			/* 5 */
-	GDB_BP,			/* 6 */
-	GDB_SP,			/* 7 */
-	GDB_R8,			/* 8 */
-	GDB_R9,			/* 9 */
-	GDB_R10,		/* 10 */
-	GDB_R11,		/* 11 */
-	GDB_R12,		/* 12 */
-	GDB_R13,		/* 13 */
-	GDB_R14,		/* 14 */
-	GDB_R15,		/* 15 */
-	GDB_PC,			/* 16 */
-	GDB_PS,			/* 17 */
-	GDB_CS,			/* 18 */
-	GDB_SS,			/* 19 */
-	GDB_DS,			/* 20 */
-	GDB_ES,			/* 21 */
-	GDB_FS,			/* 22 */
-	GDB_GS,			/* 23 */
+	GDB_AX,	 /* 0 */
+	GDB_BX,	 /* 1 */
+	GDB_CX,	 /* 2 */
+	GDB_DX,	 /* 3 */
+	GDB_SI,	 /* 4 */
+	GDB_DI,	 /* 5 */
+	GDB_BP,	 /* 6 */
+	GDB_SP,	 /* 7 */
+	GDB_R8,	 /* 8 */
+	GDB_R9,	 /* 9 */
+	GDB_R10, /* 10 */
+	GDB_R11, /* 11 */
+	GDB_R12, /* 12 */
+	GDB_R13, /* 13 */
+	GDB_R14, /* 14 */
+	GDB_R15, /* 15 */
+	GDB_PC,	 /* 16 */
+	GDB_PS,	 /* 17 */
+	GDB_CS,	 /* 18 */
+	GDB_SS,	 /* 19 */
+	GDB_DS,	 /* 20 */
+	GDB_ES,	 /* 21 */
+	GDB_FS,	 /* 22 */
+	GDB_GS,	 /* 23 */
 };
 
-#define DBG_MAX_REG_NUM		24
+#define DBG_MAX_REG_NUM 24
 /* 17 64 bit regs and 5 32 bit regs */
-#define GDB_NUMREGBYTES		((17 * 8) + (7 * 4))
+#define GDB_NUMREGBYTES ((17 * 8) + (7 * 4))
 
-#define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
+#define MAXSYSARG 5 /* for mount(fd, afd, mpt, flag, arg) */
 
 /*
  *  parameters for sysproc.c
  */
-#define AOUT_MAGIC	(S_MAGIC)
-#define ELF_MAGIC	(ELF_MAG)
+#define AOUT_MAGIC (S_MAGIC)
+#define ELF_MAGIC (ELF_MAG)
 
 /*
  *  machine dependent definitions used by ../port/portdat.h
  */
 
-
-struct Lock
-{
-	uint32_t	key;
-	int	isilock;
-	Mpl	pl;
-	uintptr_t	_pc;
-	Proc*	p;
-	Mach*	m;
-	uint64_t	lockcycles;
+struct Lock {
+	uint32_t key;
+	int isilock;
+	Mpl pl;
+	uintptr_t _pc;
+	Proc *p;
+	Mach *m;
+	uint64_t lockcycles;
 };
 
-struct Label
-{
-	uintptr_t	sp;
-	uintptr_t	pc;
-	uintptr_t	fp;
-	uintptr_t	_pad[13];
+struct Label {
+	uintptr_t sp;
+	uintptr_t pc;
+	uintptr_t fp;
+	uintptr_t _pad[13];
 };
 
 struct Fxsave {
-	uint16_t	fcw;			/* x87 control word */
-	uint16_t	fsw;			/* x87 status word */
-	uint8_t	ftw;			/* x87 tag word */
-	uint8_t	zero;			/* 0 */
-	uint16_t	fop;			/* last x87 opcode */
-	uint64_t	rip;			/* last x87 instruction pointer */
-	uint64_t	rdp;			/* last x87 data pointer */
-	uint32_t	mxcsr;			/* MMX control and status */
-	uint32_t	mxcsrmask;		/* supported MMX feature bits */
-	unsigned char	st[128];		/* shared 64-bit media and x87 regs */
-	unsigned char	xmm[256];		/* 128-bit media regs */
-	unsigned char	ign[96];		/* reserved, ignored */
-} __attribute__ ((aligned(16)));
+	uint16_t fcw;		/* x87 control word */
+	uint16_t fsw;		/* x87 status word */
+	uint8_t ftw;		/* x87 tag word */
+	uint8_t zero;		/* 0 */
+	uint16_t fop;		/* last x87 opcode */
+	uint64_t rip;		/* last x87 instruction pointer */
+	uint64_t rdp;		/* last x87 data pointer */
+	uint32_t mxcsr;		/* MMX control and status */
+	uint32_t mxcsrmask;	/* supported MMX feature bits */
+	unsigned char st[128];	/* shared 64-bit media and x87 regs */
+	unsigned char xmm[256]; /* 128-bit media regs */
+	unsigned char ign[96];	/* reserved, ignored */
+} __attribute__((aligned(16)));
 
 /*
  *  FPU stuff in Proc
  */
 struct PFPU {
-	Fxsave	fxsave;
+	Fxsave fxsave;
 };
 
 /*
  *  MMU stuff in Proc
  */
 #define NCOLOR 1
-struct PMMU
-{
-	Page	*root;
+struct PMMU {
+	Page *root;
 };
 
 /*
  *  things saved in the Proc structure during a notify
  */
-struct PNOTIFY
-{
-//	void	emptiness;
-	char	emptiness;
+struct PNOTIFY {
+	//	void	emptiness;
+	char emptiness;
 };
 
-struct Confmem
-{
-	uintptr_t	base;
-	usize	npage;
-	uintptr_t	kbase;
-	uintptr_t	klimit;
+struct Confmem {
+	uintptr_t base;
+	usize npage;
+	uintptr_t kbase;
+	uintptr_t klimit;
 };
 
-struct Conf
-{
-	uint32_t	nproc;		/* processes */
-	Confmem	mem[4];		/* physical memory */
-	uint64_t	npage;		/* total physical pages of memory */
-	usize	upages;		/* user page pool */
-	uint32_t	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	uint32_t	ialloc;		/* max interrupt time allocation in bytes */
-	uint32_t	nimage;		/* number of page cache image headers */
+struct Conf {
+	uint32_t nproc;	   /* processes */
+	Confmem mem[4];	   /* physical memory */
+	uint64_t npage;	   /* total physical pages of memory */
+	usize upages;	   /* user page pool */
+	uint32_t copymode; /* 0 is copy on write, 1 is copy on reference */
+	uint32_t ialloc;   /* max interrupt time allocation in bytes */
+	uint32_t nimage;   /* number of page cache image headers */
 };
 
-enum
-{
-	NPGSZ = 4	/* # of supported  pages sizes in Mach */
+enum {
+	NPGSZ = 4 /* # of supported  pages sizes in Mach */
 };
 
 #include "../port/portdat.h"
@@ -175,61 +167,54 @@ enum
 /*
  *  CPU stuff in Mach.
  */
-struct MCPU
-{
-	uint32_t	cpuinfo[3][4];			/*  CPUID Functions 0, 1, and 5 (n.b.: 2-4 are invalid) */
-	int	ncpuinfos;			/* number of standard entries */
-	int	ncpuinfoe;			/* number of extended entries */
-	int	isintelcpu;			/*  */
+struct MCPU {
+	uint32_t cpuinfo[3][4]; /*  CPUID Functions 0, 1, and 5 (n.b.: 2-4 are invalid) */
+	int ncpuinfos;		/* number of standard entries */
+	int ncpuinfoe;		/* number of extended entries */
+	int isintelcpu;		/*  */
 };
 
 /*
  *  FPU stuff in Mach.
  */
-struct MFPU
-{
-	uint16_t	fcw;			/* x87 control word */
-	uint32_t	mxcsr;			/* MMX control and status */
-	uint32_t	mxcsrmask;		/* supported MMX feature bits */
+struct MFPU {
+	uint16_t fcw;	    /* x87 control word */
+	uint32_t mxcsr;	    /* MMX control and status */
+	uint32_t mxcsrmask; /* supported MMX feature bits */
 };
 
-struct NIX
-{
-	ICC*	icc;			/* inter-core call */
-	int	nixtype;
+struct NIX {
+	ICC *icc; /* inter-core call */
+	int nixtype;
 };
 
 /*
  *  MMU stuff in Mach.
  */
-struct MMMU
-{
+struct MMMU {
 	uintptr_t cr2;
-	Page*	pml4;			/* pml4 for this processor */
-	Page	pml4kludge;		/* NIX KLUDGE: we need a page */
+	Page *pml4;	 /* pml4 for this processor */
+	Page pml4kludge; /* NIX KLUDGE: we need a page */
 };
 
 /*
  * Inter core calls
  */
-enum
-{
-	ICCLNSZ =	128,	/* Cache line size for inter core calls */
+enum {
+	ICCLNSZ = 128, /* Cache line size for inter core calls */
 
-
-	ICCOK = 0,		/* Return codes: Ok; trap; syscall */
+	ICCOK = 0, /* Return codes: Ok; trap; syscall */
 	ICCTRAP,
 	ICCSYSCALL
 };
 
-struct ICC
-{
+struct ICC {
 	/* fn is kept in its own cache line */
-	alignas(ICCLNSZ) void	(*fn)(void);
-	int	flushtlb;	/* on the AC, before running fn */
-	int	rc;		/* return code from AC to TC */
-	char*	note;		/* to be posted in the TC after returning */
-	unsigned char	data[ICCLNSZ];	/* sent to the AC */
+	alignas(ICCLNSZ) void (*fn)(void);
+	int flushtlb;		     /* on the AC, before running fn */
+	int rc;			     /* return code from AC to TC */
+	char *note;		     /* to be posted in the TC after returning */
+	unsigned char data[ICCLNSZ]; /* sent to the AC */
 };
 
 /*
@@ -246,13 +231,13 @@ struct PmcCtl {
 	int reset;
 };
 
-struct PmcWait{
+struct PmcWait {
 	Ref r;
 	Rendez rend;
-	PmcWait*	next;
+	PmcWait *next;
 };
 
-struct PmcCtr{
+struct PmcCtr {
 	int stale;
 	PmcWait *wq;
 	uint64_t ctr;
@@ -279,60 +264,59 @@ enum {
  *	stack	- acsyscall
  *	externup - externup()
  */
-struct Mach
-{
+struct Mach {
 	/* WARNING! Known to assembly! */
-	uintptr_t	self;			/* %gs:0 still gives us a Mach* */
-	uint64_t	splpc;			/* pc of last caller to splhi */
+	uintptr_t self; /* %gs:0 still gives us a Mach* */
+	uint64_t splpc; /* pc of last caller to splhi */
 
-	Proc*	proc;			/* current process on this processor */
-	uintptr_t	stack;		/* mach stack, kstack is in proc->kstack */
-	uintptr_t	rathole;	/* to save a reg in syscallentry */
-	Proc*	externup;		/* Forsyth recommends we replace the global up with this. */
+	Proc *proc;	   /* current process on this processor */
+	uintptr_t stack;   /* mach stack, kstack is in proc->kstack */
+	uintptr_t rathole; /* to save a reg in syscallentry */
+	Proc *externup;	   /* Forsyth recommends we replace the global up with this. */
 	/* end warning, I think */
 
-	int	machno;			/* physical id of processor */
+	int machno; /* physical id of processor */
 
-	int	apicno;
-	int	online;
+	int apicno;
+	int online;
 
 	MMMU MMU;
 
-	unsigned char*	vsvm;
-	void*	gdt;
-	void*	tss;
+	unsigned char *vsvm;
+	void *gdt;
+	void *tss;
 
-	uint64_t	ticks;			/* of the clock since boot time */
-	Label	sched;			/* scheduler wakeup */
-	Lock	alarmlock;		/* access to alarm list */
-	void*	alarm;			/* alarms bound to this clock */
-	int	inclockintr;
+	uint64_t ticks; /* of the clock since boot time */
+	Label sched;	/* scheduler wakeup */
+	Lock alarmlock; /* access to alarm list */
+	void *alarm;	/* alarms bound to this clock */
+	int inclockintr;
 
-	Proc*	readied;		/* old runproc, only relevant if kernel booted with nosmp (-n append) */
-	uint64_t   schedticks;		/* next forced context switch, same as above */
-	uint64_t	qstart;			/* time when up started running */
-	int	qexpired;		/* quantum expired */
+	Proc *readied;	     /* old runproc, only relevant if kernel booted with nosmp (-n append) */
+	uint64_t schedticks; /* next forced context switch, same as above */
+	uint64_t qstart;     /* time when up started running */
+	int qexpired;	     /* quantum expired */
 
-	int	tlbfault;
-	int	tlbpurge;
-	int	pfault;
-	int	cs;
-	int	syscall;
-	int	intr;
-	int	mmuflush;		/* make current proc flush it's mmu state */
-	int	ilockdepth;
-	Perf	perf;			/* performance counters */
-	int	inidle;			/* profiling */
-	int	lastintr;
+	int tlbfault;
+	int tlbpurge;
+	int pfault;
+	int cs;
+	int syscall;
+	int intr;
+	int mmuflush; /* make current proc flush it's mmu state */
+	int ilockdepth;
+	Perf perf;  /* performance counters */
+	int inidle; /* profiling */
+	int lastintr;
 
-	Lock	apictimerlock;
-	uint64_t	cyclefreq;		/* Frequency of user readable cycle counter */
-	int64_t	cpuhz;
-	int	cpumhz;
-	uint64_t	rdtsc;
+	Lock apictimerlock;
+	uint64_t cyclefreq; /* Frequency of user readable cycle counter */
+	int64_t cpuhz;
+	int cpumhz;
+	uint64_t rdtsc;
 
-	Lock	pmclock;
-	PmcCtr	pmc[PmcMaxCtrs];
+	Lock pmclock;
+	PmcCtr pmc[PmcMaxCtrs];
 
 	MFPU FPU;
 	MCPU CPU;
@@ -345,8 +329,7 @@ struct Mach
 };
 static_assert(sizeof(Mach) <= PGSZ, "Mach is too big");
 
-struct Stackframe
-{
+struct Stackframe {
 	Stackframe *next;
 	uintptr_t pc;
 };
@@ -368,37 +351,37 @@ struct Stackframe
 struct Sys {
 	alignas(4096) unsigned char machstk[MACHSTKSZ];
 
-	PTE	ipml4[PTSZ/sizeof(PTE)];	// Only used very early in boot
-	PTE	epml4[PTSZ/sizeof(PTE)];	// Only used for ...
-	PTE	epml3[PTSZ/sizeof(PTE)];	// ...BSP initialization...
-	PTE	epml2[PTSZ/sizeof(PTE)][4];	// ...and AP early boot.
-	PTE	pml4[PTSZ/sizeof(PTE)];		// Real PML4
-	PTE	pml3[((128+64)*PTSZ)/sizeof(PTE)];
+	PTE ipml4[PTSZ / sizeof(PTE)];		 // Only used very early in boot
+	PTE epml4[PTSZ / sizeof(PTE)];		 // Only used for ...
+	PTE epml3[PTSZ / sizeof(PTE)];		 // ...BSP initialization...
+	PTE epml2[PTSZ / sizeof(PTE)][4];	 // ...and AP early boot.
+	PTE pml4[PTSZ / sizeof(PTE)];		 // Real PML4
+	PTE pml3[((128 + 64) * PTSZ) / sizeof(PTE)];
 
-	unsigned char	vsvmpage[4*KiB];
+	unsigned char vsvmpage[4 * KiB];
 
-	alignas(4096)	Mach	mach;
+	alignas(4096) Mach mach;
 
-	alignas(4096)	Mach	*machptr[MACHMAX];
+	alignas(4096) Mach *machptr[MACHMAX];
 
-	uint64_t	pmstart;	/* physical memory */
-	uint64_t	pmend;		/* total span */
+	uint64_t pmstart; /* physical memory */
+	uint64_t pmend;	  /* total span */
 
-	uint64_t	epoch;		/* crude time synchronisation */
+	uint64_t epoch; /* crude time synchronisation */
 
-	int		nc[NIXROLES];	/* number of online processors */
-	int		nmach;
-	int		load;
-	uint64_t	ticks;		/* of the clock since boot time */
+	int nc[NIXROLES]; /* number of online processors */
+	int nmach;
+	int load;
+	uint64_t ticks; /* of the clock since boot time */
 
-	uint64_t	cyclefreq;	/* Frequency of user readable cycle counter (mach 0) */
+	uint64_t cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
 
-	uint	pgszlg2[NPGSZ];		/* per Mach or per Sys? */
-	uint	pgszmask[NPGSZ];	/* Per sys -aki */
-	uint	pgsz[NPGSZ];
-	int	npgsz;
+	uint pgszlg2[NPGSZ];  /* per Mach or per Sys? */
+	uint pgszmask[NPGSZ]; /* Per sys -aki */
+	uint pgsz[NPGSZ];
+	int npgsz;
 };
-static_assert(sizeof(Sys) <= (1*MiB-1*KiB), "Sys is too big");
+static_assert(sizeof(Sys) <= (1 * MiB - 1 * KiB), "Sys is too big");
 
 extern Sys *const sys;
 #define MACHP(x) (sys->machptr[(x)])
@@ -409,13 +392,13 @@ extern Sys *const sys;
  * kernel is loaded, multiboot modules, etc.  Unused regions do not
  * appear in the map.
  */
-#define	PHYSADDRSIZE	(1ULL<<46)
+#define PHYSADDRSIZE (1ULL << 46)
 
 struct PAMap {
-	uintmem	addr;
-	usize	size;
-	int	type;
-	PAMap	*next;
+	uintmem addr;
+	usize size;
+	int type;
+	PAMap *next;
 };
 
 enum {
@@ -438,36 +421,36 @@ extern PAMap *pamap;
  * KMap
  */
 typedef void KMap;
-extern KMap* kmap(Page*);
+extern KMap *kmap(Page *);
 
 #define kunmap(k)
-#define VA(k)		PTR2UINT(k)
+#define VA(k) PTR2UINT(k)
 
 struct {
 	Lock l;
-	int	nonline;			/* # of active CPUs */
-	int nbooting;			/* # of CPUs waiting for the bTC to go */
-	int	exiting;			/* shutdown */
-	int	ispanic;			/* shutdown in response to a panic */
-	int	thunderbirdsarego;	/* lets the added processors continue */
-}active;
+	int nonline;	       /* # of active CPUs */
+	int nbooting;	       /* # of CPUs waiting for the bTC to go */
+	int exiting;	       /* shutdown */
+	int ispanic;	       /* shutdown in response to a panic */
+	int thunderbirdsarego; /* lets the added processors continue */
+} active;
 
 /*
  *  a parsed plan9.ini line
  */
-#define NISAOPT		8
+#define NISAOPT 8
 
 struct ISAConf {
-	char	*type;
-	uintptr_t	port;
-	int	irq;
-	uint32_t	dma;
-	uintptr_t	mem;
-	usize	size;
-	uint32_t	freq;
+	char *type;
+	uintptr_t port;
+	int irq;
+	uint32_t dma;
+	uintptr_t mem;
+	usize size;
+	uint32_t freq;
 
-	int	nopt;
-	char	*opt[NISAOPT];
+	int nopt;
+	char *opt[NISAOPT];
 };
 
 /*
@@ -478,7 +461,6 @@ struct ISAConf {
 
 extern char *rolename[];
 
-
 /*
  * Horrid.
  */
@@ -486,13 +468,17 @@ extern char *rolename[];
 // Talk to Ron before you condemn it.
 
 #ifdef _DBGC_
-#define DBGFLG		(dbgflg[_DBGC_])
+#define DBGFLG (dbgflg[_DBGC_])
 #else
-#define DBGFLG		(0)
+#define DBGFLG (0)
 #endif /* _DBGC_ */
 
-#define DBG(...)	do{if(DBGFLG)dbgprint(__VA_ARGS__);}while(0)
+#define DBG(...)                               \
+	do {                                   \
+		if(DBGFLG)                     \
+			dbgprint(__VA_ARGS__); \
+	} while(0)
 
 extern char dbgflg[256];
 
-#define dbgprint	print		/* for now */
+#define dbgprint print /* for now */

@@ -19,25 +19,27 @@
 #include "ureg.h"
 #include <tos.h>
 
-
 int cpuserver = 1;
 
-extern void (*consuartputs)(char*, int);
+extern void (*consuartputs)(char *, int);
 void query_mem(const char *config_string, uintptr_t *base, size_t *size);
 void query_rtc(const char *config_string, uintptr_t *mtime);
 void query_uint(const char *config_string, char *name, uintptr_t *val);
 
 void putchar(uint8_t c);
 
-void msg(char *s)
+void
+msg(char *s)
 {
-	while (*s)
+	while(*s)
 		putchar(*s++);
 }
-void die(char *s)
+void
+die(char *s)
 {
 	msg(s);
-	while (1);
+	while(1)
+		;
 }
 
 void
@@ -46,9 +48,10 @@ ndnr(void)
 	die("ndnr");
 }
 
-static void puts(char * s, int n)
+static void
+puts(char *s, int n)
 {
-	while (n--)
+	while(n--)
 		putchar(*s++);
 }
 
@@ -58,7 +61,7 @@ static void puts(char * s, int n)
 uint64_t m0stack[4096];
 Mach m0;
 
-Sys asys, *sys=&asys;
+Sys asys, *sys = &asys;
 Conf conf;
 uintptr_t kseg0 = KZERO;
 char *cputype = "riscv";
@@ -81,13 +84,14 @@ void *kseg2;
 
 char *configstring; /* from coreboot, first arg to main */
 
-static uintptr_t sp;		/* XXX - must go - user stack of init proc */
+static uintptr_t sp; /* XXX - must go - user stack of init proc */
 
 /* general purpose hart startup. We call this via startmach.
  * When we enter here, the machp() function is usable.
  */
 
-void hart(void)
+void
+hart(void)
 {
 	//Mach *mach = machp();
 	die("not yet");
@@ -97,15 +101,15 @@ uint64_t
 rdtsc(void)
 {
 	uint64_t cycles;
-//	msg("rdtsc\n");
-	cycles = read_csr(/*s*/cycle);
-//print("cycles in rdtsc is 0x%llx\n", cycles);
-//	msg("done rdts\n");
+	//	msg("rdtsc\n");
+	cycles = read_csr(/*s*/ cycle);
+	//print("cycles in rdtsc is 0x%llx\n", cycles);
+	//	msg("done rdts\n");
 	return cycles;
 }
 
 void
-loadenv(int argc, char* argv[])
+loadenv(int argc, char *argv[])
 {
 	char *env[2];
 
@@ -113,11 +117,12 @@ loadenv(int argc, char* argv[])
 	 * Process command line env options
 	 */
 	while(--argc > 0){
-		char* next = *++argv;
-		if(next[0] !='-'){
-			if (gettokens(next, env, 2, "=")  == 2){;
+		char *next = *++argv;
+		if(next[0] != '-'){
+			if(gettokens(next, env, 2, "=") == 2){
+				;
 				ksetenv(env[0], env[1], 0);
-			}else{
+			} else {
 				print("Ignoring parameter with no value: %s\n", env[0]);
 			}
 		}
@@ -128,7 +133,7 @@ void
 init0(void)
 {
 	Proc *up = externup();
-	char buf[2*KNAMELEN];
+	char buf[2 * KNAMELEN];
 	Ureg u;
 
 	up->nerrlab = 0;
@@ -143,18 +148,18 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-print("init0: up is %p\n", up);
+	print("init0: up is %p\n", up);
 	up->slash = namec("#/", Atodir, 0, 0);
-print("1\n");
+	print("1\n");
 	pathclose(up->slash->path);
-print("1\n");
+	print("1\n");
 	up->slash->path = newpath("/");
-print("1\n");
+	print("1\n");
 	up->dot = cclone(up->slash);
-print("1\n");
+	print("1\n");
 
 	devtabinit();
-print("1\n");
+	print("1\n");
 
 	if(!waserror()){
 		//snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
@@ -173,9 +178,9 @@ print("1\n");
 	memset(&u, 0, sizeof(u));
 	u.ip = (uintptr_t)init_main;
 	u.sp = sp;
-	u.a2 = USTKTOP-sizeof(Tos);
+	u.a2 = USTKTOP - sizeof(Tos);
 	print("sstatus is 0x%x, sip is 0x%x, sie is 0x%x\n", read_csr(sstatus),
-			read_csr(sip), read_csr(sie));
+	      read_csr(sip), read_csr(sie));
 	print("*mtimecmp is 0x%llx *mtime is 0x%llx\n", *mtimecmp, *mtime);
 	touser(&u);
 }
@@ -186,7 +191,7 @@ print("1\n");
  * TODO: do it.
  */
 static int64_t oargc;
-static char* oargv[20];
+static char *oargv[20];
 static char oargb[1024];
 static int oargblen;
 
@@ -203,8 +208,8 @@ bootargs(uintptr_t base)
 	 * because there are fewer than the maximum number of
 	 * args by subtracting sizeof(up->arg).
 	 */
-	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc*)0)->arg) - i));
+	i = oargblen + 1;
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc *)0)->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -216,10 +221,10 @@ bootargs(uintptr_t base)
 	 * not the usual (int argc, char* argv[]), but argv0 is
 	 * unused so it doesn't matter (at the moment...).
 	 */
-	av = (char**)(p - (oargc+2)*sizeof(char*));
+	av = (char **)(p - (oargc + 2) * sizeof(char *));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
 	print("Stack size in boot args is %p\n", ssize);
-	*av++ = (char*)oargc;
+	*av++ = (char *)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;
@@ -259,7 +264,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -271,10 +276,10 @@ userinit(void)
 	 * shouldn't be the case here.
 	 */
 	sno = 0;
-	print("newseg(0x%x, %p, 0x%llx)\n", SG_STACK|SG_READ|SG_WRITE, (void *)USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
-	s = newseg(SG_STACK|SG_READ|SG_WRITE, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
+	print("newseg(0x%x, %p, 0x%llx)\n", SG_STACK | SG_READ | SG_WRITE, (void *)USTKTOP - USTKSIZE, USTKSIZE / BIGPGSZ);
+	s = newseg(SG_STACK | SG_READ | SG_WRITE, USTKTOP - USTKSIZE, USTKSIZE / BIGPGSZ);
 	p->seg[sno++] = s;
-	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
+	pg = newpage(1, 0, USTKTOP - BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
@@ -283,7 +288,7 @@ userinit(void)
 	/*
 	 * Text
 	 */
-	s = newseg(SG_TEXT|SG_READ|SG_EXEC, UTZERO, 1);
+	s = newseg(SG_TEXT | SG_READ | SG_EXEC, UTZERO, 1);
 	s->flushme++;
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
@@ -297,7 +302,7 @@ userinit(void)
 	/*
 	 * Data
 	 */
-	s = newseg(SG_DATA|SG_READ|SG_WRITE, UTZERO + BIGPGSZ, 1);
+	s = newseg(SG_DATA | SG_READ | SG_WRITE, UTZERO + BIGPGSZ, 1);
 	s->flushme++;
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
@@ -317,7 +322,7 @@ confinit(void)
 	int i;
 
 	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
+	for(i = 0; i < nelem(conf.mem); i++)
 		conf.npage += conf.mem[i].npage;
 	conf.nproc = 1000;
 	conf.nimage = 200;
@@ -338,69 +343,68 @@ check(void)
 	int x = cas32(&t, 0, 1);
 
 	print("cas32 done x %d (want 1) t %d (want 1)\n", x, t);
-	if ((t != 1) || (x != 1))
+	if((t != 1) || (x != 1))
 		fail++;
 
 	x = cas32(&t, 0, 1);
 	print("cas32 done x %d (want 0) t %d (want 1)\n", x, t);
-	if ((t != 1) || (x != 0))
+	if((t != 1) || (x != 0))
 		fail++;
 
 	print("t is now %d before final cas32\n", t);
 	x = cas32(&t, 1, 2);
 	print("cas32 done x %d (want 1) t %d (want 2)\n", x, t);
-	if ((t != 2) || (x != 1))
+	if((t != 2) || (x != 1))
 		fail++;
 
 	t = 0;
 	x = tas32(&t);
 	print("tas done x %d (want 0) t %d (want 1)\n", x, t);
-	if ((t != 1) || (x != 0))
+	if((t != 1) || (x != 0))
 		fail++;
 
 	x = tas32(&t);
 	print("tas done x %d (want 1) t %d (want 1)\n", x, t);
-	if ((t != 1) || (x != 1))
+	if((t != 1) || (x != 1))
 		fail++;
 
 	t = 0;
 	x = tas32(&t);
 	print("tas done x %d (want ) t %d (want 1)\n", x, t);
-	if ((t != 1) || (x != 0))
+	if((t != 1) || (x != 0))
 		fail++;
 
 	b = ainc(&a);
 	print("after ainc a is %d (want 43) b is %d (want 43)\n", a, b);
-	if ((b != _42 + 1) || (a != _42 + 1))
+	if((b != _42 + 1) || (a != _42 + 1))
 		fail++;
 
 	b = ainc(&a);
 	print("after ainc a is %d (want 44) b is %d (want 44)\n", a, b);
-	if ((b != _42 + 2) || (a != _42 + 2))
+	if((b != _42 + 2) || (a != _42 + 2))
 		fail++;
 
 	b = adec(&a);
 	print("after ainc a is %d (want 43) b is %d (want 43)\n", a, b);
-	if ((b != _42 + 1) || (a != _42 + 1))
+	if((b != _42 + 1) || (a != _42 + 1))
 		fail++;
 
-	if (fail) {
+	if(fail){
 		print("%d failures in check();\n", fail);
 		panic("FIX ME");
 	}
 
 	f2ns = fastticks2ns(10);
-	if ((f2ns < 1) || (f2ns > 10)) {
+	if((f2ns < 1) || (f2ns > 10)){
 		print("fastticks2ns(1) is nuts: %d\n", f2ns);
 		panic("Should be in the range 1 to 10, realistically");
 	}
 
 	f2ns = ns2fastticks(1);
-	if ((f2ns < 2) || (f2ns > 100)) {
+	if((f2ns < 2) || (f2ns > 100)){
 		print("ns2fastticks(1) is nuts: %d\n", f2ns);
 		panic("Should be in the range 2 to 100, realistically");
 	}
-
 }
 
 // Note: any message you try to print before the uart is determined from
@@ -408,13 +412,14 @@ check(void)
 // serious problems by, e.g., setting uart to 0xffffffff40001000
 // in this function. Hence, I've left some messages in that won't
 // print as an example of debugging.
-void bsp(void *stack, uintptr_t _configstring)
+void
+bsp(void *stack, uintptr_t _configstring)
 {
 	msg("BSP starting\n");
 	kseg2 = findKSeg2();
 	configstring = KADDR(_configstring);
 	Mach *mach = machp();
-	if (mach != &m0)
+	if(mach != &m0)
 		die("MACH NOT MATCH");
 	msg("memset mach\n");
 	memset(mach, 0, sizeof(Mach));
@@ -428,7 +433,7 @@ void bsp(void *stack, uintptr_t _configstring)
 	mach->online = 1;
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(stack);
-	*(uintptr_t*)mach->stack = STACKGUARD;
+	*(uintptr_t *)mach->stack = STACKGUARD;
 	msg(configstring);
 	mach->externup = nil;
 	active.nonline = 1;
@@ -461,7 +466,7 @@ void bsp(void *stack, uintptr_t _configstring)
 		mach->cpuhz = hz;
 		mach->cyclefreq = hz;
 		sys->cyclefreq = hz;
-		mach->cpumhz = hz/1000000ll;
+		mach->cpumhz = hz / 1000000ll;
 	}
 
 	/*
@@ -470,29 +475,34 @@ void bsp(void *stack, uintptr_t _configstring)
 	 */
 	mmuinit();
 
-	ioinit(); print("ioinit\n");
-print("IOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIO\n");
-	meminit();print("meminit\n");
-print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
-	confinit();print("confinit\n");
-print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
-	archinit();print("archinit\n");
-print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
-	mallocinit();print("mallocinit\n");
+	ioinit();
+	print("ioinit\n");
+	print("IOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIOIO\n");
+	meminit();
+	print("meminit\n");
+	print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
+	confinit();
+	print("confinit\n");
+	print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n");
+	archinit();
+	print("archinit\n");
+	print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+	mallocinit();
+	print("mallocinit\n");
 
 	/* test malloc. It's easier to find out it's broken here,
 	 * not deep in some call chain.
 	 * See next note.
 	 *
 	 */
-	if (1) {
+	if(1){
 		void *v = malloc(1234);
 		msg("allocated\n ");
 		free(v);
 		msg("free ok\n");
 	}
 
-	query_uint(configstring, "uart{addr", (uintptr_t*)&uartpa);
+	query_uint(configstring, "uart{addr", (uintptr_t *)&uartpa);
 	uart = KADDR(uartpa);
 	print("\nHarvey\n");
 	/* you're going to love this. Print does not print the whole
@@ -505,9 +515,9 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	query_rtc(configstring, &rtc);
 	print("rtc: %p\n", rtc);
 
-	query_uint(configstring, "rtc{addr", (uintptr_t*)&mtimepa);
+	query_uint(configstring, "rtc{addr", (uintptr_t *)&mtimepa);
 	mtime = KADDR(mtimepa);
-	query_uint(configstring, "core{0{0{timecmp", (uintptr_t*)&mtimecmppa);
+	query_uint(configstring, "core{0{0{timecmp", (uintptr_t *)&mtimecmppa);
 	mtimecmp = KADDR(mtimecmppa);
 
 	print("mtime is %p and mtimecmp is %p\n", mtime, mtimecmp);
@@ -518,23 +528,30 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	trapinit();
 	print("trapinit done\n");
 	/* Forcing to single core if desired */
-	if(!nosmp) {
+	if(!nosmp){
 		// smp startup
 	}
-//working.
+	//working.
 	// not needed. teardownidmap(mach);
-	timersinit();print("	timersinit();\n");
+	timersinit();
+	print("	timersinit();\n");
 	// ? fpuinit();
-	psinit(conf.nproc);print("	psinit(conf.nproc);\n");
-	initimage();print("	initimage();\n");
+	psinit(conf.nproc);
+	print("	psinit(conf.nproc);\n");
+	initimage();
+	print("	initimage();\n");
 	links();
 
-	devtabreset();print("	devtabreset();\n");
-	pageinit();print("	pageinit();\n");
-	swapinit();print("	swapinit();\n");
-	userinit();print("	userinit();\n");
+	devtabreset();
+	print("	devtabreset();\n");
+	pageinit();
+	print("	pageinit();\n");
+	swapinit();
+	print("	swapinit();\n");
+	userinit();
+	print("	userinit();\n");
 	/* Forcing to single core if desired */
-	if(!nosmp) {
+	if(!nosmp){
 		//nixsquids();
 		//testiccs();
 	}
@@ -545,7 +562,7 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 	// set the trap vector
 	void *supervisor_trap_entry(void);
-	write_csr(/*stvec*/0x105, supervisor_trap_entry);
+	write_csr(/*stvec*/ 0x105, supervisor_trap_entry);
 	// enable all interrupt sources.
 	uint64_t ints = read_csr(sie);
 	ints |= 0x666;
@@ -565,19 +582,23 @@ print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 }
 
 /* stubs until we implement in assembly */
-int corecolor(int _)
+int
+corecolor(int _)
 {
 	return -1;
 }
 
-Proc *externup(void)
+Proc *
+externup(void)
 {
-	if (! machp())
+	if(!machp())
 		return nil;
 	return machp()->externup;
 }
 
-void errstr(char *s, int i) {
+void
+errstr(char *s, int i)
+{
 	panic("errstr");
 }
 
@@ -594,10 +615,10 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 }
 
 int
-userureg(Ureg*u)
+userureg(Ureg *u)
 {
 	int64_t ip = (int64_t)u->ip;
-	if (ip < 0) {
+	if(ip < 0){
 		//print("RETURNING 0 for userureg\n");
 		return 0;
 	}
@@ -605,73 +626,84 @@ userureg(Ureg*u)
 	return 1;
 }
 
-void    exit(int _)
+void
+exit(int _)
 {
 	panic((char *)__func__);
 }
 
-void fpunoted(void)
+void
+fpunoted(void)
 {
 	print((char *)__func__);
 	print("NOT DOING IT. IT WILL HURT LATER\n");
 }
 
-void fpunotify(Ureg*_)
+void
+fpunotify(Ureg *_)
 {
 	print("fpunotify: doing nothing since FPU is disabled\n");
 }
 
-void fpusysrfork(Ureg*_)
+void
+fpusysrfork(Ureg *_)
 {
 	print((char *)__func__);
 	print("IGNORING\n");
 }
 
-void sysrforkret(void)
+void
+sysrforkret(void)
 {
 	void *stack(void);
 	void *sp = stack();
-	if(0) print("sysrforkret: stack is %p\n", sp);
-	if(0) dumpgpr((Ureg *)sp);
-void _sysrforkret();
+	if(0)
+		print("sysrforkret: stack is %p\n", sp);
+	if(0)
+		dumpgpr((Ureg *)sp);
+	void _sysrforkret();
 	_sysrforkret();
 }
 
 void
-reboot(void*_, void*__, int32_t ___)
+reboot(void *_, void *__, int32_t ___)
 {
 	panic("reboot");
 }
 
-void fpusysprocsetup(Proc *_)
+void
+fpusysprocsetup(Proc *_)
 {
 	print((char *)__func__);
 	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");
 }
 
-void     fpusysrforkchild(Proc*_, Proc*__)
+void
+fpusysrforkchild(Proc *_, Proc *__)
 {
 	print((char *)__func__);
 	print("THIS IS GONNA SCREW YOU IF YOU DO NOT FIX IT\n");
 }
 
 int
-fpudevprocio(Proc*p, void*v, int32_t _, uintptr_t __, int ___)
+fpudevprocio(Proc *p, void *v, int32_t _, uintptr_t __, int ___)
 {
 	panic((char *)__func__);
 	return -1;
 }
 
-void cycles(uint64_t *p)
+void
+cycles(uint64_t *p)
 {
 	*p = rdtsc();
 }
 
-int islo(void)
+int
+islo(void)
 {
-//	msg("isloc\n");
+	//	msg("isloc\n");
 	uint64_t ms = read_csr(sstatus);
-//	msg("read it\n");
+	//	msg("read it\n");
 	return ms & MSTATUS_SIE;
 }
 
@@ -680,11 +712,10 @@ stacksnippet(void)
 {
 	//Stackframe *stkfr;
 	kmprint(" stack:");
-//	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
-//		kmprint(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
+	//	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
+	//		kmprint(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
 	kmprint("\n");
 }
-
 
 /* crap. */
 /* this should come from build but it's intimately tied in to VGA. Crap. */
@@ -712,15 +743,17 @@ HERE(void)
 /* The old plan 9 standby ... wave ... */
 
 /* Keep to debug trap.c */
-void wave(int c)
+void
+wave(int c)
 {
 	putchar(c);
 }
 
-void hi(char *s)
+void
+hi(char *s)
 {
-	if (! s)
+	if(!s)
 		s = "<NULL>";
-	while (*s)
+	while(*s)
 		wave(*s++);
 }

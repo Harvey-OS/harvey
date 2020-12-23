@@ -25,19 +25,19 @@
 extern int nosmp;
 
 typedef struct {
-	uintptr_t	ip;
-	Ureg*	arg0;
-	char*	arg1;
-	char	msg[ERRMAX];
-	Ureg*	old;
-	Ureg	ureg;
+	uintptr_t ip;
+	Ureg *arg0;
+	char *arg1;
+	char msg[ERRMAX];
+	Ureg *old;
+	Ureg ureg;
 } NFrame;
 
 /*
  *   Return user to state before notify()
  */
 void
-noted(Ureg* cur, uintptr_t arg0)
+noted(Ureg *cur, uintptr_t arg0)
 {
 	Proc *up = externup();
 	NFrame *nf;
@@ -66,18 +66,17 @@ noted(Ureg* cur, uintptr_t arg0)
 	 * Check the segment selectors are all valid.
 	 */
 	nur = &nf->ureg;
-	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
+	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)){
 		qunlock(&up->debug);
 		pprint("noted: suicide: bad segment selector (cs %p want %p, ss %p want %p), in noted\n",
-			nur->cs, SSEL(SiUCS, SsRPL3),
-			nur->ss, SSEL(SiUDS, SsRPL3)
-		);
+		       nur->cs, SSEL(SiUCS, SsRPL3),
+		       nur->ss, SSEL(SiUDS, SsRPL3));
 		pexit("Suicide in noted", 0);
 	}
 
 	/* don't let user change system flags */
-	nur->flags &= (Of|Df|Sf|Zf|Af|Pf|Cf);
-	nur->flags |= cur->flags & ~(Of|Df|Sf|Zf|Af|Pf|Cf);
+	nur->flags &= (Of | Df | Sf | Zf | Af | Pf | Cf);
+	nur->flags |= cur->flags & ~(Of | Df | Sf | Zf | Af | Pf | Cf);
 
 	memmove(cur, nur, sizeof(Ureg));
 
@@ -87,7 +86,7 @@ noted(Ureg* cur, uintptr_t arg0)
 		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
-				nur->ip, nur->sp);
+			       nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
 		up->ureg = nf->old;
@@ -97,7 +96,7 @@ noted(Ureg* cur, uintptr_t arg0)
 		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
-				nur->ip, nur->sp);
+			       nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
 		qunlock(&up->debug);
@@ -106,9 +105,9 @@ noted(Ureg* cur, uintptr_t arg0)
 		nf->arg1 = nf->msg;
 		nf->arg0 = &nf->ureg;
 		cur->bp = PTR2UINT(nf->arg0);
-	//	nf->ip = 0;
-		cur->di = (uint64_t) nf->arg0;
-		cur->si = (uint64_t) nf->arg1;
+		//	nf->ip = 0;
+		cur->di = (uint64_t)nf->arg0;
+		cur->si = (uint64_t)nf->arg1;
 		cur->sp = PTR2UINT(nf);
 		break;
 	default:
@@ -132,7 +131,7 @@ noted(Ureg* cur, uintptr_t arg0)
  *  Pass user the Ureg struct and the note on his stack.
  */
 int
-notify(Ureg* ureg)
+notify(Ureg *ureg)
 {
 	Proc *up = externup();
 	int l;
@@ -158,9 +157,9 @@ notify(Ureg* ureg)
 	memmove(&note, &up->note[0], sizeof(Note));
 	if(strncmp(note.msg, "sys:", 4) == 0){
 		l = strlen(note.msg);
-		if(l > ERRMAX-sizeof(" pc=0x0123456789abcdef"))
-			l = ERRMAX-sizeof(" pc=0x0123456789abcdef");
-		sprint(note.msg+l, " pc=%#p", ureg->ip);
+		if(l > ERRMAX - sizeof(" pc=0x0123456789abcdef"))
+			l = ERRMAX - sizeof(" pc=0x0123456789abcdef");
+		sprint(note.msg + l, " pc=%#p", ureg->ip);
 	}
 
 	if(note.flag != NUser && (up->notified || up->notify == nil)){
@@ -183,11 +182,11 @@ notify(Ureg* ureg)
 	if(!okaddr(PTR2UINT(up->notify), sizeof(ureg->ip), 0)){
 		qunlock(&up->debug);
 		pprint("suicide: bad function address %#p in notify\n",
-			up->notify);
+		       up->notify);
 		pexit("Suicide", 0);
 	}
 
-	sp = ureg->sp - ROUNDUP(sizeof(NFrame), 16) - 128; // amd64 red zone, also wanted by go stack traces
+	sp = ureg->sp - ROUNDUP(sizeof(NFrame), 16) - 128;	  // amd64 red zone, also wanted by go stack traces
 	if(!okaddr(sp, sizeof(NFrame), 1)){
 		qunlock(&up->debug);
 		pprint("suicide: bad stack address %#p in notify\n", sp);
@@ -197,7 +196,7 @@ notify(Ureg* ureg)
 	nf = UINT2PTR(sp);
 	memmove(&nf->ureg, ureg, sizeof(Ureg));
 	nf->old = up->ureg;
-	up->ureg = nf;	/* actually the NFrame, for noted */
+	up->ureg = nf; /* actually the NFrame, for noted */
 	memmove(nf->msg, note.msg, ERRMAX);
 	nf->arg1 = nf->msg;
 	nf->arg0 = &nf->ureg;
@@ -212,7 +211,7 @@ notify(Ureg* ureg)
 	up->notified = 1;
 	up->nnote--;
 	memmove(&up->lastnote, &note, sizeof(Note));
-	memmove(&up->note[0], &up->note[1], up->nnote*sizeof(Note));
+	memmove(&up->note[0], &up->note[1], up->nnote * sizeof(Note));
 
 	qunlock(&up->debug);
 	splx(pl);
@@ -234,7 +233,7 @@ noerrorsleft(void)
 		print("bad errstack: %d extra\n", up->nerrlab);
 		for(i = 0; i < NERR; i++)
 			print("sp=%#p pc=%#p\n",
-				up->errlab[i].sp, up->errlab[i].pc);
+			      up->errlab[i].sp, up->errlab[i].pc);
 		panic("error stack");
 	}
 }
@@ -250,18 +249,18 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	uint64_t *retptr;
 
 	Proc *up = externup();
-	if (up->plan9) {
-		uint64_t *a = (void*)ureg->sp;
+	if(up->plan9){
+		uint64_t *a = (void *)ureg->sp;
 		scallnr = ureg->bp + 1024;
-		if (0)
+		if(0)
 			print("up %p plan9 %d sp %#lx bp %#lx\n", up, up->plan9, ureg->sp, scallnr);
 		int i = 1;
 		// Here is where we get into some of the weird parts of plan 9.
 		switch(scallnr){
-			case SEEK: // oseek
-				retptr = (void *)a[i++];
-				validaddr(retptr, sizeof(uint64_t), 1);
-				break;
+		case SEEK:	  // oseek
+			retptr = (void *)a[i++];
+			validaddr(retptr, sizeof(uint64_t), 1);
+			break;
 		}
 		a0 = a[i++];
 		a1 = a[i++];
@@ -277,9 +276,10 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		a4 = ureg->r8;
 		a5 = ureg->r9;
 	}
-	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
+	if(0)
+		iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
-	uintptr_t	sp;
+	uintptr_t sp;
 	int s;
 	int64_t startns, stopns;
 	Ar0 ar0;
@@ -298,10 +298,11 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	up->dbgreg = ureg;
 	sp = ureg->sp;
 	startns = stopns = 0;
-	if (0) hi("so far syscall!\n");
-	if (up->pid == 0 || printallsyscalls) {
+	if(0)
+		hi("so far syscall!\n");
+	if(up->pid == 0 || printallsyscalls){
 		syscallfmt('E', scallnr, nil, startns, stopns, a0, a1, a2, a3, a4, a5);
-		if(up->syscalltrace) {
+		if(up->syscalltrace){
 			print("E %s\n", up->syscalltrace);
 			free(up->syscalltrace);
 			up->syscalltrace = nil;
@@ -316,8 +317,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		 * than an error if there's a problem; that might
 		 * change in the future.
 		 */
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		if(sp < (USTKTOP - BIGPGSZ) || sp > (USTKTOP - sizeof(up->arg) - BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg) + BY2SE, 0);
 
 		syscallfmt('E', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		up->procctl = Proc_stopme;
@@ -327,7 +328,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
-	if(up->strace_on) {
+	if(up->strace_on){
 		/*
 		 * Redundant validaddr.  Do we care?
 		 * Tracing syscalls is not exactly a fast path...
@@ -335,8 +336,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		 * than an error if there's a problem; that might
 		 * change in the future.
 		 */
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		if(sp < (USTKTOP - BIGPGSZ) || sp > (USTKTOP - sizeof(up->arg) - BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg) + BY2SE, 0);
 
 		syscallfmt('E', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		// TODO: make this all use blocks so we have zero copy.
@@ -346,7 +347,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
-	if (0) hi("more syscall!\n");
+	if(0)
+		hi("more syscall!\n");
 	up->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
@@ -358,36 +360,37 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	if(!waserror()){
 		if(scallnr >= nsyscall || systab[scallnr].f == nil){
 			pprint("bad sys call number %d pc %#llx\n",
-				scallnr, ureg->ip);
+			       scallnr, ureg->ip);
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);
 		}
 
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		if(sp < (USTKTOP - BIGPGSZ) || sp > (USTKTOP - sizeof(up->arg) - BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg) + BY2SE, 0);
 
-		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
+		memmove(up->arg, UINT2PTR(sp + BY2SE), sizeof(up->arg));
 		up->psstate = systab[scallnr].n;
-	if (0) hi("call syscall!\n");
+		if(0)
+			hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
-	if (0) hi("it returned!\n");
+		if(0)
+			hi("it returned!\n");
 		poperror();
-		if (up->plan9) {
-			switch(scallnr) {
-				case SEEK:
-					*retptr = ar0.p;
-					break;
+		if(up->plan9){
+			switch(scallnr){
+			case SEEK:
+				*retptr = ar0.p;
+				break;
 			}
 		}
-	}
-	else{
+	} else {
 		/* failure: save the error buffer for errstr */
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
 		up->errstr = e;
 		if(DBGFLG && up->pid == 1)
 			iprint("%s: syscall %s error %s\n",
-				up->text, systab[scallnr].n, up->syserrstr);
+			       up->text, systab[scallnr].n, up->syserrstr);
 		ar0 = systab[scallnr].r;
 	}
 
@@ -404,20 +407,20 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	 */
 	ureg->ax = ar0.p;
 
-	if (up->pid == 0 || printallsyscalls) {
+	if(up->pid == 0 || printallsyscalls){
 		stopns = todget(nil);
 		syscallfmt('X', scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
-		if(up->syscalltrace) {
+		if(up->syscalltrace){
 			print("X %s\n", up->syscalltrace);
 			free(up->syscalltrace);
 			up->syscalltrace = nil;
 		}
 	}
 
-	if(up->strace_on) {
+	if(up->strace_on){
 		uint8_t what = 'X';
 		stopns = todget(nil);
-		if (scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
+		if(scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
 			what = 'F';
 		syscallfmt(what, scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		qwrite(up->strace->q, up->syscalltrace, strlen(up->syscalltrace));
@@ -429,7 +432,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		uint8_t what = 'X';
 		stopns = todget(nil);
 		up->procctl = Proc_stopme;
-		if (scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
+		if(scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
 			what = 'F';
 		syscallfmt(what, scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		s = splhi();
@@ -438,17 +441,19 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		if(up->syscalltrace)
 			free(up->syscalltrace);
 		up->syscalltrace = nil;
-	}else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
+	} else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
 		procctl(up);
 
-	if (0) hi("past sysretfmt\n");
+	if(0)
+		hi("past sysretfmt\n");
 	up->insyscall = 0;
 	up->psstate = 0;
 
 	if(scallnr == NOTED)
 		noted(ureg, a0);
 
-	if (0) hi("now to splhi\n");
+	if(0)
+		hi("now to splhi\n");
 	splhi();
 	if(scallnr != RFORK && (up->procctl || up->nnote))
 		notify(ureg);
@@ -459,7 +464,8 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		splhi();
 	}
 	kexit(ureg);
-	if (0) hi("done kexit\n");
+	if(0)
+		hi("done kexit\n");
 }
 
 uintptr_t
@@ -488,7 +494,7 @@ sysexecstack(uintptr_t stack, int argc)
 	 * are pushed. So if we have odd arguments, we need an odd-8-byte
 	 * aligned stack; else, an even aligned stack.
 	 */
-	if (argc & 1)
+	if(argc & 1)
 		sp -= sp & 8 ? 0 : 8;
 	else
 		sp -= sp & 8 ? 8 : 0;
@@ -496,7 +502,7 @@ sysexecstack(uintptr_t stack, int argc)
 	return sp;
 }
 
-void*
+void *
 sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 {
 	Proc *up = externup();
@@ -504,37 +510,37 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 	Ureg *ureg;
 
 	// We made sure it was correctly aligned in sysexecstack, above.
-	if (ssize & 0xf) {
+	if(ssize & 0xf){
 		print("your stack is wrong: stacksize is not 16-byte aligned: %d\n", ssize);
 		panic("misaligned stack in sysexecregs");
 	}
-	sp = (uintptr_t*)(USTKTOP - ssize);
+	sp = (uintptr_t *)(USTKTOP - ssize);
 
 	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
-	ureg->type = 64;			/* fiction for acid */
+	ureg->type = 64; /* fiction for acid */
 	ureg->dx = (uintptr_t)tos;
 
 	/*
 	 * return the address of kernel/user shared data
 	 * (e.g. clock stuff)
 	 */
-	return UINT2PTR(USTKTOP-sizeof(Tos));
+	return UINT2PTR(USTKTOP - sizeof(Tos));
 }
 
 void
-sysprocsetup(Proc* p)
+sysprocsetup(Proc *p)
 {
 	fpusysprocsetup(p);
 }
 
 void
-sysrforkchild(Proc* child, Proc* parent)
+sysrforkchild(Proc *child, Proc *parent)
 {
 	char *cureg;
 
-	cureg = child->kstack+KSTACK-sizeof(Ureg);
+	cureg = child->kstack + KSTACK - sizeof(Ureg);
 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
 
 	child->sched.sp = PTR2UINT(cureg);

@@ -19,7 +19,7 @@
  * Print functions for system call tracing.
  */
 static void
-fmtrwdata(Fmt* f, char* a, int n, char* suffix)
+fmtrwdata(Fmt *f, char *a, int n, char *suffix)
 {
 	int i;
 	char *t;
@@ -33,7 +33,7 @@ fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 		return;
 	}
 	a = validaddr(a, n, 0);
-	t = smalloc(n+1);
+	t = smalloc(n + 1);
 	for(i = 0; i < n; i++){
 		if(a[i] > 0x20 && a[i] < 0x7f)
 			t[i] = a[i];
@@ -46,7 +46,7 @@ fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 }
 
 static void
-fmtuserstring(Fmt* f, char* a, char* suffix)
+fmtuserstring(Fmt *f, char *a, char *suffix)
 {
 	int len;
 	char *t;
@@ -56,8 +56,8 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 		return;
 	}
 	a = validaddr(a, 1, 0);
-	len = ((char*)vmemchr(a, 0, 0x7fffffff) - a);
-	t = smalloc(len+1);
+	len = ((char *)vmemchr(a, 0, 0x7fffffff) - a);
+	t = smalloc(len + 1);
 	memmove(t, a, len);
 	t[len] = 0;
 	fmtprint(f, "%#p/\"%s\"%s", a, t, suffix);
@@ -95,16 +95,16 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case CHDIR:
 	case EXITS:
 	case REMOVE:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case BIND:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
-		fmtprint(&fmt, "%#x",  i[0]);
+		fmtprint(&fmt, "%#x", i[0]);
 		break;
 	case CLOSE:
 	case NOTED:
@@ -122,14 +122,14 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		fmtprint(&fmt, "%#lu ", l);
 		break;
 	case EXEC:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, "");
-		argv = va_arg(list, char**);
+		argv = va_arg(list, char **);
 		evenaddr(PTR2UINT(argv));
 		for(;;){
-			if (! okaddr((uintptr_t)argv, sizeof(char**), 0))
+			if(!okaddr((uintptr_t)argv, sizeof(char **), 0))
 				break;
-			a = *(char**)validaddr(argv, sizeof(char**), 0);
+			a = *(char **)validaddr(argv, sizeof(char **), 0);
 			if(a == nil)
 				break;
 			fmtprint(&fmt, " ");
@@ -139,19 +139,19 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		break;
 	case FAUTH:
 		i[0] = va_arg(list, int);
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtprint(&fmt, "%d", i[0]);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case SEGBRK:
 	case RENDEZVOUS:
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		fmtprint(&fmt, "%#p ", v);
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		fmtprint(&fmt, "%#p", v);
 		break;
 	case OPEN:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#x", i[0]);
@@ -162,11 +162,11 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		break;
 	case PIPE:
 	case BRK_:
-		v = va_arg(list, int*);
+		v = va_arg(list, int *);
 		fmtprint(&fmt, "%#p", v);
 		break;
 	case CREATE:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		i[1] = va_arg(list, int);
@@ -176,41 +176,41 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case FSTAT:
 	case FWSTAT:
 		i[0] = va_arg(list, int);
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%d %#p %lu", i[0], a, l);
 		break;
 	case NOTIFY:
 	case SEGDETACH:
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		fmtprint(&fmt, "%#p", v);
 		break;
 	case SEGATTACH:
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d ", i[0]);
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
 		/*FALLTHROUGH*/
 	case SEGFREE:
 	case SEGFLUSH:
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#p %lu", v, l);
 		break;
 	case UNMOUNT:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case SEMACQUIRE:
 	case SEMRELEASE:
-		v = va_arg(list, int*);
+		v = va_arg(list, int *);
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#p %d", v, i[0]);
 		break;
 	case TSEMACQUIRE:
-		v = va_arg(list, int*);
+		v = va_arg(list, int *);
 		l = va_arg(list, uint32_t);
 		fmtprint(&fmt, "%#p %ld", v, l);
 		break;
@@ -224,27 +224,27 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		i[0] = va_arg(list, int);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%d %d ", i[0], i[1]);
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%lu", l);
 		break;
 	case WSTAT:
 	case STAT:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#p %lu", v, l);
 		break;
 	case ERRSTR:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		l = va_arg(list, unsigned long);
 		fmtuserstring(&fmt, a, " ");
 		fmtprint(&fmt, "%lu", l);
 		break;
 	case AWAIT:
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#p %lu", a, l);
 		break;
@@ -252,26 +252,26 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		i[0] = va_arg(list, int);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%d %d ", i[0], i[1]);
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#x ", i[0]);
-		a = va_arg(list, char*);
+		a = va_arg(list, char *);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case PREAD:
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d ", i[0]);
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		l = va_arg(list, int32_t);
 		vl = va_arg(list, int64_t);
-		if (what == 'E') {
+		if(what == 'E'){
 			fmtprint(&fmt, "%#P %ld 0x%llx", v, l, vl);
 		}
 		break;
 	case PWRITE:
 		i[0] = va_arg(list, int);
-		v = va_arg(list, void*);
+		v = va_arg(list, void *);
 		l = va_arg(list, int32_t);
 		vl = va_arg(list, int64_t);
 		fmtprint(&fmt, "%d ", i[0]);
@@ -280,7 +280,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		fmtprint(&fmt, "%ld 0x%llx", l, vl);
 		break;
 	}
-	if (what == 'E') {
+	if(what == 'E'){
 		fmtprint(&fmt, "\n");
 		up->syscalltrace = fmtstrflush(&fmt);
 		return;
@@ -311,12 +311,12 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case SEGBRK:
 	case SEGATTACH:
 	case RENDEZVOUS:
-		if(ar0->v == (void*)-1)
+		if(ar0->v == (void *)-1)
 			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
 	case RFORK:
-		if(ar0->v == (void*)-1)
+		if(ar0->v == (void *)-1)
 			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %d", ar0->v);
 		break;
@@ -324,8 +324,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
 			fmtprint(&fmt, "%lu = %d", l, ar0->i);
-		}
-		else{
+		} else {
 			fmtprint(&fmt, "%#p/\"\" %lu = %d", a, l, ar0->i);
 			errstr = up->syserrstr;
 		}
@@ -338,8 +337,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
 			fmtprint(&fmt, "%lu = %d", l, ar0->i);
-		}
-		else{
+		} else {
 			fmtprint(&fmt, "\"\" %lu = %d", l, ar0->i);
 			errstr = up->syserrstr;
 		}
@@ -348,8 +346,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		if(ar0->l >= 0){
 			len = MIN(ar0->l, 64);
 			fmtrwdata(&fmt, v, len, "");
-		}
-		else{
+		} else {
 			fmtprint(&fmt, " %#p/\"\"", v);
 			errstr = up->syserrstr;
 		}

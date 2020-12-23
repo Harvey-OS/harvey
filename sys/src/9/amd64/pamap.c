@@ -31,17 +31,17 @@ const char *
 pamtypename(int type)
 {
 	const char *names[] = {
-	[PamNONE] 	= "NONE",
-	[PamMEMORY]	= "MEMORY",
-	[PamRESERVED]	= "RESERVED",
-	[PamACPI]	= "ACPI",
-	[PamPRESERVE]	= "PRESERVE",
-	[PamUNUSABLE]	= "UNUSABLE",
-	[PamDEV]	= "DEV",
-	[PamMODULE]	= "MODULE",
-	[PamKTEXT]	= "KTEXT",
-	[PamKRDONLY]	= "KRDONLY",
-	[PamKRDWR]	= "KRDWR",
+		[PamNONE] = "NONE",
+		[PamMEMORY] = "MEMORY",
+		[PamRESERVED] = "RESERVED",
+		[PamACPI] = "ACPI",
+		[PamPRESERVE] = "PRESERVE",
+		[PamUNUSABLE] = "UNUSABLE",
+		[PamDEV] = "DEV",
+		[PamMODULE] = "MODULE",
+		[PamKTEXT] = "KTEXT",
+		[PamKRDONLY] = "KRDONLY",
+		[PamKRDWR] = "KRDWR",
 	};
 	assert(type < nelem(names));
 	return names[type];
@@ -54,8 +54,8 @@ pamapdump(void)
 	for(PAMap *p = pamap; p != nil; p = p->next){
 		assert(p->type <= PamKRDWR);
 		print("    [%#P, %#P) %-8s (%llu)\n",
-			p->addr, p->addr + p->size,
-			pamtypename(p->type), p->size);
+		      p->addr, p->addr + p->size,
+		      pamtypename(p->type), p->size);
 	}
 	print("}\n");
 }
@@ -79,11 +79,11 @@ pamapclearrange(uintmem addr, usize size, int type)
 {
 	PAMap **ppp = &pamap, *np = pamap;
 	while(np != nil && size > 0){
-		if(addr+size <= np->addr)
-			break;		// The range isn't in the list.
+		if(addr + size <= np->addr)
+			break;	      // The range isn't in the list.
 
 		// Are we there yet?
-		if(np->addr < addr && np->addr+np->size <= addr){
+		if(np->addr < addr && np->addr + np->size <= addr){
 			ppp = &np->next;
 			np = np->next;
 			continue;
@@ -114,7 +114,7 @@ pamapclearrange(uintmem addr, usize size, int type)
 			np->next = tp;
 			ppp = &np->next;
 			np = tp;
-		}else if(addr < np->addr){
+		} else if(addr < np->addr){
 			assert(np->addr < addr + size);
 			usize delta = np->addr - addr;
 			addr += delta;
@@ -122,7 +122,7 @@ pamapclearrange(uintmem addr, usize size, int type)
 		}
 		if(addr == np->addr){
 			usize delta = size;
-			if (delta > np->size)
+			if(delta > np->size)
 				delta = np->size;
 			np->size -= delta;
 			np->addr += delta;
@@ -175,12 +175,12 @@ pamapinsert(uintmem addr, usize size, int type)
 	}
 
 	// See if we can combine with previous region.
-	if(pp != nil && pp->type == type && pp->addr+pp->size == addr){
+	if(pp != nil && pp->type == type && pp->addr + pp->size == addr){
 		pp->size += size;
 
 		// And successor region?  If we do it here,
 		// we free the successor node.
-		if(np != nil && np->type == type && addr+size == np->addr){
+		if(np != nil && np->type == type && addr + size == np->addr){
 			pp->size += np->size;
 			pp->next = np->next;
 			free(np);
@@ -190,7 +190,7 @@ pamapinsert(uintmem addr, usize size, int type)
 	}
 
 	// Can we combine with the successor region?
-	if(np != nil && np->type == type && addr+size == np->addr){
+	if(np != nil && np->type == type && addr + size == np->addr){
 		np->addr = addr;
 		np->size += size;
 		return;
@@ -206,19 +206,19 @@ void
 pamapmerge(void)
 {
 	// Extended BIOS Data Area
-	pamapinsert(0x80000, 0xA0000-0x80000, PamKRDWR);
+	pamapinsert(0x80000, 0xA0000 - 0x80000, PamKRDWR);
 
 	// VGA/CGA MMIO region
-	pamapinsert(0xA0000, 0xC0000-0xA0000, PamDEV);
+	pamapinsert(0xA0000, 0xC0000 - 0xA0000, PamDEV);
 
 	// BIOS ROM stuff
-	pamapinsert(0xC0000, 0xF0000-0xC0000, PamKRDONLY);
-	pamapinsert(0xF0000, 0x100000-0xF0000, PamKRDONLY);
+	pamapinsert(0xC0000, 0xF0000 - 0xC0000, PamKRDONLY);
+	pamapinsert(0xF0000, 0x100000 - 0xF0000, PamKRDONLY);
 
 	// Add the kernel segments.
-	pamapinsert(PADDR((void*)KSYS), KTZERO-KSYS, PamKRDWR);
-	pamapinsert(PADDR((void*)KTZERO), etext-(char*)KTZERO, PamKTEXT);
-	pamapinsert(PADDR(etext), erodata-etext, PamKRDONLY);
-	pamapinsert(PADDR(erodata), edata-erodata, PamKRDWR);
-	pamapinsert(PADDR(edata), end-edata, PamKRDWR);
+	pamapinsert(PADDR((void *)KSYS), KTZERO - KSYS, PamKRDWR);
+	pamapinsert(PADDR((void *)KTZERO), etext - (char *)KTZERO, PamKTEXT);
+	pamapinsert(PADDR(etext), erodata - etext, PamKRDONLY);
+	pamapinsert(PADDR(erodata), edata - erodata, PamKRDWR);
+	pamapinsert(PADDR(edata), end - edata, PamKRDWR);
 }

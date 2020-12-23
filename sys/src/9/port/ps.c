@@ -66,7 +66,7 @@ psindex(int pid)
 	return s;
 }
 
-Proc*
+Proc *
 psincref(int i)
 {
 	/*
@@ -87,20 +87,20 @@ psdecref(Proc *p)
 }
 
 void
-psrelease(Proc* p)
+psrelease(Proc *p)
 {
 	p->qnext = procalloc.free;
 	procalloc.free = p;
 	procalloc.nproc--;
 }
 
-Proc*
+Proc *
 psalloc(void)
 {
 	Proc *p;
 
 	lock(&procalloc.l);
-	for(;;) {
+	for(;;){
 		if((p = procalloc.free) != nil)
 			break;
 
@@ -121,14 +121,14 @@ psinit(int nproc)
 	Proc *p;
 	int i;
 
-	procalloc.free = malloc(nproc*sizeof(Proc));
+	procalloc.free = malloc(nproc * sizeof(Proc));
 	if(procalloc.free == nil)
-		panic("cannot allocate %u procs (%uMB)\n", nproc, nproc*sizeof(Proc)/(1024*1024));
+		panic("cannot allocate %u procs (%uMB)\n", nproc, nproc * sizeof(Proc) / (1024 * 1024));
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;
-	for(i=0; i<nproc-1; i++,p++){
-		p->qnext = p+1;
+	for(i = 0; i < nproc - 1; i++, p++){
+		p->qnext = p + 1;
 		p->index = i;
 	}
 	p->qnext = 0;

@@ -13,59 +13,59 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-char	cputype[64];
-char	service[64];
-char	sys[2*64];
-int	printcol;
-int	mflag;
-int	fflag;
-int	kflag;
+char cputype[64];
+char service[64];
+char sys[2 * 64];
+int printcol;
+int mflag;
+int fflag;
+int kflag;
 
-char	*bargv[Nbarg];
-int	bargc;
+char *bargv[Nbarg];
+int bargc;
 
-static Method	*rootserver(char*);
-static void	usbinit(void);
-static void	kbmap(void);
+static Method *rootserver(char *);
+static void usbinit(void);
+static void kbmap(void);
 
-static void acpiirq(void)
+static void
+acpiirq(void)
 {
 	static char *devs[] = {"#Z", "#$", "#P"};
 	int i, pid, irqmap;
 	Waitmsg *w;
 
-	for (i = 0; i < nelem(devs); i++){
+	for(i = 0; i < nelem(devs); i++){
 		if(bind(devs[i], "/dev", MAFTER) < 0){
 			fprint(2, "Can't bind %s: %r", devs[i]);
 			return;
 		}
 	}
 	irqmap = open("/dev/irqmap", OREAD);
-	if (irqmap < 0) {
+	if(irqmap < 0){
 		warning("can't open /dev/irqmap");
 		return;
 	}
 
 	pid = fork();
-	if (pid < 0){
+	if(pid < 0){
 		warning("Can't fork: %r");
 		close(irqmap);
 		return;
 	}
-	if (pid > 0) {
+	if(pid > 0){
 		close(irqmap);
 		w = wait();
-		if (w && w->msg && w->msg[0])
+		if(w && w->msg && w->msg[0])
 			warning(w->msg);
 		return;
 	}
 	dup(irqmap, 0);
 	close(irqmap);
-	if (execl("/boot/irq", "irq", "-s", nil)) {
+	if(execl("/boot/irq", "irq", "-s", nil)){
 		print("note: can't start /boot/irq");
 	}
 	exits(nil);
-
 }
 void
 boot(int argc, char *argv[])
@@ -92,18 +92,19 @@ boot(int argc, char *argv[])
 	 * #ec gets us plan9.ini settings (*var variables).
 	 */
 	bind("#ec", "/env", MREPL);
-	bind("#e", "/env", MBEFORE|MCREATE);
-	bind("#s", "/srv", MREPL|MCREATE);
-	bind("#p", "/proc", MREPL|MCREATE);
+	bind("#e", "/env", MBEFORE | MCREATE);
+	bind("#s", "/srv", MREPL | MCREATE);
+	bind("#p", "/proc", MREPL | MCREATE);
 	print("\nHello, I am Harvey :-)\n\n");
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)
 		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
-#endif //DEBUG
+#endif	      //DEBUG
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'k':
 		kflag = 1;
 		break;
@@ -113,14 +114,15 @@ boot(int argc, char *argv[])
 	case 'f':
 		fflag = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 	readfile("#e/cputype", cputype, sizeof(cputype));
 	readfile("#e/service", service, sizeof(service));
 
 	/* Do the initial ACPI interrupt setup work.
 	 * If we don't do this we may not get needed
 	 * interfaces. */
-	if (getenv("acpiirq"))
+	if(getenv("acpiirq"))
 		acpiirq();
 
 	/*
@@ -135,10 +137,11 @@ boot(int argc, char *argv[])
 	if(method[0].name == nil)
 		fatal("no boot methods");
 	mp = rootserver(argc ? *argv : 0);
-	if(mp==nil){
+	if(mp == nil){
 		configrc(mp);
-		for(;;){}
-	}else{
+		for(;;){
+		}
+	} else {
 		(*mp->config)(mp);
 		islocal = strcmp(mp->name, "local") == 0;
 		ishybrid = strcmp(mp->name, "hybrid") == 0;
@@ -189,27 +192,27 @@ boot(int argc, char *argv[])
 		if(ai == nil)
 			print("authentication failed (%r), trying mount anyways\n");
 	}
-	if(mount(fd, afd, "/root", MREPL|MCREATE, rp, 'M') < 0)
+	if(mount(fd, afd, "/root", MREPL | MCREATE, rp, 'M') < 0)
 		fatal("mount /");
 	rsp = rp;
 	rp = getenv("rootdir");
 	if(rp == nil)
 		rp = rootdir;
-	if(bind(rp, "/", MAFTER|MCREATE) < 0){
+	if(bind(rp, "/", MAFTER | MCREATE) < 0){
 		if(strncmp(rp, "/root", 5) == 0){
 			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
 			fatal("second bind /");
 		}
 		snprint(rootbuf, sizeof rootbuf, "/root/%s", rp);
 		rp = rootbuf;
-		if(bind(rp, "/", MAFTER|MCREATE) < 0){
+		if(bind(rp, "/", MAFTER | MCREATE) < 0){
 			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
 			if(strcmp(rootbuf, "/root//plan9") == 0){
 				fprint(2, "**** warning: remove rootdir=/plan9 entry from plan9.ini\n");
 				rp = "/root";
-				if(bind(rp, "/", MAFTER|MCREATE) < 0)
+				if(bind(rp, "/", MAFTER | MCREATE) < 0)
 					fatal("second bind /");
-			}else
+			} else
 				fatal("second bind /");
 		}
 	}
@@ -223,17 +226,17 @@ boot(int argc, char *argv[])
 	cmd = getenv("init");
 	srvt = strcmp(service, "terminal");
 	if(cmd == nil){
-		if(!srvt) {
+		if(!srvt){
 			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
-				"t", mflag ? "m" : "");
+			       "t", mflag ? "m" : "");
 			cmd = cmdbuf;
 		} else {
 			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
-				"c", mflag ? "m" : "");
+			       "c", mflag ? "m" : "");
 			cmd = cmdbuf;
 		}
 	}
-	iargc = tokenize(cmd, iargv, nelem(iargv)-1);
+	iargc = tokenize(cmd, iargv, nelem(iargv) - 1);
 	cmd = iargv[0];
 
 	/* make iargv[0] basename(iargv[0]) */
@@ -248,7 +251,7 @@ boot(int argc, char *argv[])
 	fatal(cmd);
 }
 
-static Method*
+static Method *
 findmethod(char *a)
 {
 	Method *mp;
@@ -272,22 +275,23 @@ findmethod(char *a)
 	return nil;
 }
 
-static void catstuff(void)
+static void
+catstuff(void)
 {
 	char *files[] = {"#c/drivers", "#P/ioalloc", "#P/irqalloc"};
 	char dat[8192];
 	int rc, ifd, pid;
-	for (int i = 0; i < nelem(files); i++) {
+	for(int i = 0; i < nelem(files); i++){
 		memset(dat, 0, sizeof(dat));
-		rc = readfile(files[i], dat, sizeof(dat)-1);
-		if (rc) {
+		rc = readfile(files[i], dat, sizeof(dat) - 1);
+		if(rc){
 			print("Reading %s failed\n", files[i]);
 			continue;
 		}
 		print("%s:\n\r%s\n\r", files[i], dat);
 	}
 	pid = fork();
-	if (pid) {
+	if(pid){
 		print("fork: %d\n", pid);
 		return;
 	}
@@ -301,13 +305,13 @@ static void catstuff(void)
 	// can kill it any time if you're concerned about
 	// the overhead. It shows up as a child of init.
 	ifd = open("#t/eia0", ORDWR);
-	if (ifd < 0) {
+	if(ifd < 0){
 		print("can't open eia0!!!\n");
 		exits("can't open eia0");
 		return;
 	}
 	print("open: ifd %d\n", ifd);
-	while (1) {
+	while(1){
 		sleep(100000);
 	}
 }
@@ -315,7 +319,7 @@ static void catstuff(void)
 /*
  *  ask user from whence cometh the root file system
  */
-static Method*
+static Method *
 rootserver(char *arg)
 {
 	char prompt[256];
@@ -326,7 +330,7 @@ rootserver(char *arg)
 	int n;
 
 	// Leave this on if you want uart input!
-	if (1)
+	if(1)
 		catstuff();
 	/* look for required reply */
 	memset(reply, 0, sizeof(reply));
@@ -343,8 +347,8 @@ rootserver(char *arg)
 	mp = method;
 	n = sprint(prompt, "root is from (%s", mp->name);
 	for(mp++; mp->name; mp++)
-		n += sprint(prompt+n, ", %s", mp->name);
-	sprint(prompt+n, ")");
+		n += sprint(prompt + n, ", %s", mp->name);
+	sprint(prompt + n, ")");
 
 	/* create default reply */
 	memset(reply, 0, sizeof(reply));
@@ -360,17 +364,17 @@ rootserver(char *arg)
 		strcpy(reply, method->name);
 
 	/* parse replies */
-	do{
+	do {
 		outin(prompt, reply, sizeof(reply));
 		mp = findmethod(reply);
-	}while(mp == nil);
+	} while(mp == nil);
 
 HaveMethod:
-	bargc = tokenize(reply, bargv, Nbarg-2);
+	bargc = tokenize(reply, bargv, Nbarg - 2);
 	bargv[bargc] = nil;
 	cp = strchr(reply, '!');
 	if(cp)
-		strcpy(sys, cp+1);
+		strcpy(sys, cp + 1);
 	return mp;
 }
 
@@ -380,7 +384,7 @@ usbinit(void)
 	static char usbd[] = "/boot/usbd";
 	static char *argv[] = {"usbd", nil};
 
-	if (access(usbd, AEXIST) < 0) {
+	if(access(usbd, AEXIST) < 0){
 		print("usbinit: no %s\n", usbd);
 		return;
 	}
@@ -390,12 +394,12 @@ usbinit(void)
 		return;
 	}
 
-	if (bind("#j", "/dev", MAFTER) < 0) {
+	if(bind("#j", "/dev", MAFTER) < 0){
 		print("usbinit: can't bind #j to /dev: %r\n");
 		return;
 	}
 
-	if (bind("#u", "/dev", MAFTER) < 0) {
+	if(bind("#u", "/dev", MAFTER) < 0){
 		print("usbinit: can't bind #u to /dev: %r\n");
 		return;
 	}
@@ -432,7 +436,7 @@ kbmap(void)
 		return;
 	}
 	out = open("/dev/kbmap", OWRITE);
-	if(out < 0) {
+	if(out < 0){
 		warning("can't open /dev/kbmap");
 		close(in);
 		return;

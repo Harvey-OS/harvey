@@ -7,22 +7,22 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"ip.h"
-#include	"ipv6.h"
+#include "ip.h"
+#include "ipv6.h"
 
+#define DPRINT \
+	if(0)  \
+	print
 
-#define DPRINT if(0)print
-
-enum
-{
-	UDP_UDPHDR_SZ	= 8,
+enum {
+	UDP_UDPHDR_SZ = 8,
 
 	UDP4_PHDR_OFF = 8,
 	UDP4_PHDR_SZ = 12,
@@ -31,34 +31,33 @@ enum
 	UDP6_PHDR_SZ = 40,
 	UDP6_PHDR_OFF = 0,
 
-	IP_UDPPROTO	= 17,
-	UDP_USEAD7	= 52,
+	IP_UDPPROTO = 17,
+	UDP_USEAD7 = 52,
 
-	Udprxms		= 200,
-	Udptickms	= 100,
-	Udpmaxxmit	= 10,
+	Udprxms = 200,
+	Udptickms = 100,
+	Udpmaxxmit = 10,
 };
 
 typedef struct Udp4hdr Udp4hdr;
-struct Udp4hdr
-{
+struct Udp4hdr {
 	/* ip header */
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	Unused;
-	uint8_t	udpproto;	/* Protocol */
-	uint8_t	udpplen[2];	/* Header plus data length */
-	uint8_t	udpsrc[IPv4addrlen];	/* Ip source */
-	uint8_t	udpdst[IPv4addrlen];	/* Ip destination */
+	uint8_t vihl;	   /* Version and header length */
+	uint8_t tos;	   /* Type of service */
+	uint8_t length[2]; /* packet length */
+	uint8_t id[2];	   /* Identification */
+	uint8_t frag[2];   /* Fragment information */
+	uint8_t Unused;
+	uint8_t udpproto;	     /* Protocol */
+	uint8_t udpplen[2];	     /* Header plus data length */
+	uint8_t udpsrc[IPv4addrlen]; /* Ip source */
+	uint8_t udpdst[IPv4addrlen]; /* Ip destination */
 
 	/* udp header */
-	uint8_t	udpsport[2];	/* Source port */
-	uint8_t	udpdport[2];	/* Destination port */
-	uint8_t	udplen[2];	/* data length */
-	uint8_t	udpcksum[2];	/* Checksum */
+	uint8_t udpsport[2]; /* Source port */
+	uint8_t udpdport[2]; /* Destination port */
+	uint8_t udplen[2];   /* data length */
+	uint8_t udpcksum[2]; /* Checksum */
 };
 
 typedef struct Udp6hdr Udp6hdr;
@@ -71,33 +70,31 @@ struct Udp6hdr {
 	uint8_t udpdst[IPaddrlen];
 
 	/* udp header */
-	uint8_t	udpsport[2];	/* Source port */
-	uint8_t	udpdport[2];	/* Destination port */
-	uint8_t	udplen[2];	/* data length */
-	uint8_t	udpcksum[2];	/* Checksum */
+	uint8_t udpsport[2]; /* Source port */
+	uint8_t udpdport[2]; /* Destination port */
+	uint8_t udplen[2];   /* data length */
+	uint8_t udpcksum[2]; /* Checksum */
 };
 
 /* MIB II counters */
 typedef struct Udpstats Udpstats;
-struct Udpstats
-{
-	uint64_t	udpInDatagrams;
-	uint32_t	udpNoPorts;
-	uint32_t	udpInErrors;
-	uint64_t	udpOutDatagrams;
+struct Udpstats {
+	uint64_t udpInDatagrams;
+	uint32_t udpNoPorts;
+	uint32_t udpInErrors;
+	uint64_t udpOutDatagrams;
 };
 
 typedef struct Udppriv Udppriv;
-struct Udppriv
-{
-	Ipht		ht;
+struct Udppriv {
+	Ipht ht;
 
 	/* MIB counters */
-	Udpstats	ustats;
+	Udpstats ustats;
 
 	/* non-MIB stats */
-	uint32_t		csumerr;		/* checksum errors */
-	uint32_t		lenerr;			/* short packet */
+	uint32_t csumerr; /* checksum errors */
+	uint32_t lenerr;  /* short packet */
 };
 
 void (*etherprofiler)(char *name, int qlen);
@@ -107,13 +104,12 @@ void udpkick(void *x, Block *bp);
  *  protocol specific part of Conv
  */
 typedef struct Udpcb Udpcb;
-struct Udpcb
-{
+struct Udpcb {
 	QLock ql;
-	uint8_t	headers;
+	uint8_t headers;
 };
 
-static char*
+static char *
 udpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
@@ -129,19 +125,17 @@ udpconnect(Conv *c, char **argv, int argc)
 	return nil;
 }
 
-
 static int
 udpstate(Conv *c, char *state, int n)
 {
 	return snprint(state, n, "%s qin %d qout %d\n",
-		c->inuse ? "Open" : "Closed",
-		c->rq ? qlen(c->rq) : 0,
-		c->wq ? qlen(c->wq) : 0
-	);
+		       c->inuse ? "Open" : "Closed",
+		       c->rq ? qlen(c->rq) : 0,
+		       c->wq ? qlen(c->wq) : 0);
 }
 
-static char*
-udpannounce(Conv *c, char** argv, int argc)
+static char *
+udpannounce(Conv *c, char **argv, int argc)
 {
 	char *e;
 	Udppriv *upriv;
@@ -159,7 +153,7 @@ udpannounce(Conv *c, char** argv, int argc)
 static void
 udpcreate(Conv *c)
 {
-	c->rq = qopen(128*1024, Qmsg, 0, 0);
+	c->rq = qopen(128 * 1024, Qmsg, 0, 0);
 	c->wq = qbypass(udpkick, c);
 }
 
@@ -181,7 +175,7 @@ udpclose(Conv *c)
 	c->lport = 0;
 	c->rport = 0;
 
-	ucb = (Udpcb*)c->ptcl;
+	ucb = (Udpcb *)c->ptcl;
 	ucb->headers = 0;
 }
 
@@ -203,12 +197,12 @@ udpkick(void *x, Block *bp)
 	upriv = c->p->priv;
 	f = c->p->f;
 
-//	netlog(c->p->f, Logudp, "udp: kick\n");	/* frequent and uninteresting */
+	//	netlog(c->p->f, Logudp, "udp: kick\n");	/* frequent and uninteresting */
 	if(bp == nil)
 		return;
 
-	ucb = (Udpcb*)c->ptcl;
-	switch(ucb->headers) {
+	ucb = (Udpcb *)c->ptcl;
+	switch(ucb->headers){
 	case 7:
 		/* get user specified addresses */
 		bp = pullupblock(bp, UDP_USEAD7);
@@ -221,25 +215,24 @@ udpkick(void *x, Block *bp)
 		/* pick interface closest to dest */
 		if(ipforme(f, laddr) != Runi)
 			findlocalip(f, laddr, raddr);
-		bp->rp += IPaddrlen;		/* Ignore ifc address */
+		bp->rp += IPaddrlen; /* Ignore ifc address */
 		rport = nhgets(bp->rp);
-		bp->rp += 2+2;			/* Ignore local port */
+		bp->rp += 2 + 2; /* Ignore local port */
 		break;
 	default:
 		rport = 0;
 		break;
 	}
 
-	if(ucb->headers) {
-		if(memcmp(laddr, v4prefix, IPv4off) == 0
-		|| ipcmp(laddr, IPnoaddr) == 0)
+	if(ucb->headers){
+		if(memcmp(laddr, v4prefix, IPv4off) == 0 || ipcmp(laddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
 	} else {
-		if( (memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
-			memcmp(c->laddr, v4prefix, IPv4off) == 0)
-			|| ipcmp(c->raddr, IPnoaddr) == 0)
+		if((memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
+		    memcmp(c->laddr, v4prefix, IPv4off) == 0) ||
+		   ipcmp(c->raddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
@@ -250,7 +243,7 @@ udpkick(void *x, Block *bp)
 	/* fill in pseudo header and compute checksum */
 	switch(version){
 	case V4:
-		bp = padblock(bp, UDP4_IPHDR_SZ+UDP_UDPHDR_SZ);
+		bp = padblock(bp, UDP4_IPHDR_SZ + UDP_UDPHDR_SZ);
 		if(bp == nil)
 			return;
 
@@ -261,7 +254,7 @@ udpkick(void *x, Block *bp)
 		uh4->frag[0] = 0;
 		uh4->frag[1] = 0;
 		hnputs(uh4->udpplen, ptcllen);
-		if(ucb->headers) {
+		if(ucb->headers){
 			v6tov4(uh4->udpdst, raddr);
 			hnputs(uh4->udpdport, rport);
 			v6tov4(uh4->udpsrc, laddr);
@@ -279,13 +272,13 @@ udpkick(void *x, Block *bp)
 		uh4->udpcksum[0] = 0;
 		uh4->udpcksum[1] = 0;
 		hnputs(uh4->udpcksum,
-		       ptclcsum(bp, UDP4_PHDR_OFF, dlen+UDP_UDPHDR_SZ+UDP4_PHDR_SZ));
+		       ptclcsum(bp, UDP4_PHDR_OFF, dlen + UDP_UDPHDR_SZ + UDP4_PHDR_SZ));
 		uh4->vihl = IP_VER4;
 		ipoput4(f, bp, 0, c->ttl, c->tos, rc);
 		break;
 
 	case V6:
-		bp = padblock(bp, UDP6_IPHDR_SZ+UDP_UDPHDR_SZ);
+		bp = padblock(bp, UDP6_IPHDR_SZ + UDP_UDPHDR_SZ);
 		if(bp == nil)
 			return;
 
@@ -298,7 +291,7 @@ udpkick(void *x, Block *bp)
 		ptcllen = dlen + UDP_UDPHDR_SZ;
 		hnputl(uh6->viclfl, ptcllen);
 		uh6->hoplimit = IP_UDPPROTO;
-		if(ucb->headers) {
+		if(ucb->headers){
 			ipmove(uh6->udpdst, raddr);
 			hnputs(uh6->udpdport, rport);
 			ipmove(uh6->udpsrc, laddr);
@@ -316,7 +309,7 @@ udpkick(void *x, Block *bp)
 		uh6->udpcksum[0] = 0;
 		uh6->udpcksum[1] = 0;
 		hnputs(uh6->udpcksum,
-		       ptclcsum(bp, UDP6_PHDR_OFF, dlen+UDP_UDPHDR_SZ+UDP6_PHDR_SZ));
+		       ptclcsum(bp, UDP6_PHDR_OFF, dlen + UDP_UDPHDR_SZ + UDP6_PHDR_SZ));
 		memset(uh6, 0, 8);
 		uh6->viclfl[0] = IP_VER6;
 		hnputs(uh6->len, ptcllen);
@@ -350,12 +343,12 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	f = udp->f;
 	upriv->ustats.udpInDatagrams++;
 
-	uh4 = (Udp4hdr*)(bp->rp);
-	version = ((uh4->vihl&0xF0)==IP_VER6) ? 6 : 4;
+	uh4 = (Udp4hdr *)(bp->rp);
+	version = ((uh4->vihl & 0xF0) == IP_VER6) ? 6 : 4;
 
 	/* Put back pseudo header for checksum
 	 * (remember old values for icmpnoconv()) */
-	switch(version) {
+	switch(version){
 	case V4:
 		ottl = uh4->Unused;
 		uh4->Unused = 0;
@@ -368,8 +361,8 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		lport = nhgets(uh4->udpdport);
 		rport = nhgets(uh4->udpsport);
 
-		if(nhgets(uh4->udpcksum)) {
-			if(ptclcsum(bp, UDP4_PHDR_OFF, len+UDP4_PHDR_SZ)) {
+		if(nhgets(uh4->udpcksum)){
+			if(ptclcsum(bp, UDP4_PHDR_OFF, len + UDP4_PHDR_SZ)){
 				upriv->ustats.udpInErrors++;
 				netlog(f, Logudp, "udp: checksum error %I\n", raddr);
 				DPRINT("udp: checksum error %I\n", raddr);
@@ -381,7 +374,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		hnputs(uh4->udpplen, olen);
 		break;
 	case V6:
-		uh6 = (Udp6hdr*)(bp->rp);
+		uh6 = (Udp6hdr *)(bp->rp);
 		len = nhgets(uh6->udplen);
 		oviclfl = nhgetl(uh6->viclfl);
 		olen = nhgets(uh6->len);
@@ -393,7 +386,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		memset(uh6, 0, 8);
 		hnputl(uh6->viclfl, len);
 		uh6->hoplimit = IP_UDPPROTO;
-		if(ptclcsum(bp, UDP6_PHDR_OFF, len+UDP6_PHDR_SZ)) {
+		if(ptclcsum(bp, UDP6_PHDR_OFF, len + UDP6_PHDR_SZ)){
 			upriv->ustats.udpInErrors++;
 			netlog(f, Logudp, "udp: checksum error %I\n", raddr);
 			DPRINT("udp: checksum error %I\n", raddr);
@@ -407,7 +400,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		break;
 	default:
 		panic("udpiput: version %d", version);
-		return;	/* to avoid a warning */
+		return; /* to avoid a warning */
 	}
 
 	qlock(&udp->ql);
@@ -434,12 +427,12 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		freeblist(bp);
 		return;
 	}
-	ucb = (Udpcb*)c->ptcl;
+	ucb = (Udpcb *)c->ptcl;
 
 	if(c->state == Announced){
 		if(ucb->headers == 0){
 			/* create a new conversation */
-			if(ipforme(f, laddr) != Runi) {
+			if(ipforme(f, laddr) != Runi){
 				switch(version){
 				case V4:
 					v4tov6(laddr, ifc->lifc->local);
@@ -458,7 +451,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 				return;
 			}
 			iphtadd(&upriv->ht, c);
-			ucb = (Udpcb*)c->ptcl;
+			ucb = (Udpcb *)c->ptcl;
 		}
 	}
 
@@ -471,10 +464,10 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	len -= UDP_UDPHDR_SZ;
 	switch(version){
 	case V4:
-		bp = trimblock(bp, UDP4_IPHDR_SZ+UDP_UDPHDR_SZ, len);
+		bp = trimblock(bp, UDP4_IPHDR_SZ + UDP_UDPHDR_SZ, len);
 		break;
 	case V6:
-		bp = trimblock(bp, UDP6_IPHDR_SZ+UDP_UDPHDR_SZ, len);
+		bp = trimblock(bp, UDP6_IPHDR_SZ + UDP_UDPHDR_SZ, len);
 		break;
 	default:
 		bp = nil;
@@ -496,10 +489,14 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		/* pass the src address */
 		bp = padblock(bp, UDP_USEAD7);
 		p = bp->rp;
-		ipmove(p, raddr); p += IPaddrlen;
-		ipmove(p, laddr); p += IPaddrlen;
-		ipmove(p, ifc->lifc->local); p += IPaddrlen;
-		hnputs(p, rport); p += 2;
+		ipmove(p, raddr);
+		p += IPaddrlen;
+		ipmove(p, laddr);
+		p += IPaddrlen;
+		ipmove(p, ifc->lifc->local);
+		p += IPaddrlen;
+		hnputs(p, rport);
+		p += 2;
 		hnputs(p, lport);
 		break;
 	}
@@ -517,18 +514,17 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 
 	qpass(c->rq, bp);
 	qunlock(&c->ql);
-
 }
 
-char*
+char *
 udpctl(Conv *c, char **f, int n)
 {
 	Udpcb *ucb;
 
-	ucb = (Udpcb*)c->ptcl;
+	ucb = (Udpcb *)c->ptcl;
 	if(n == 1){
 		if(strcmp(f[0], "headers") == 0){
-			ucb->headers = 7;	/* new headers format */
+			ucb->headers = 7; /* new headers format */
 			return nil;
 		}
 	}
@@ -545,10 +541,10 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 	Conv *s, **p;
 	int version;
 
-	h4 = (Udp4hdr*)(bp->rp);
-	version = ((h4->vihl&0xF0)==IP_VER6) ? 6 : 4;
+	h4 = (Udp4hdr *)(bp->rp);
+	version = ((h4->vihl & 0xF0) == IP_VER6) ? 6 : 4;
 
-	switch(version) {
+	switch(version){
 	case V4:
 		v4tov6(dest, h4->udpdst);
 		v4tov6(source, h4->udpsrc);
@@ -556,7 +552,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		pdest = nhgets(h4->udpdport);
 		break;
 	case V6:
-		h6 = (Udp6hdr*)(bp->rp);
+		h6 = (Udp6hdr *)(bp->rp);
 		ipmove(dest, h6->udpdst);
 		ipmove(source, h6->udpsrc);
 		psource = nhgets(h6->udpsport);
@@ -564,27 +560,27 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		break;
 	default:
 		panic("udpadvise: version %d", version);
-		return;  /* to avoid a warning */
+		return; /* to avoid a warning */
 	}
 
 	/* Look for a connection */
 	qlock(&udp->ql);
-	for(p = udp->conv; *p; p++) {
+	for(p = udp->conv; *p; p++){
 		s = *p;
 		if(s->rport == pdest)
-		if(s->lport == psource)
-		if(ipcmp(s->raddr, dest) == 0)
-		if(ipcmp(s->laddr, source) == 0){
-			if(s->ignoreadvice)
-				break;
-			qlock(&s->ql);
-			qunlock(&udp->ql);
-			qhangup(s->rq, msg);
-			qhangup(s->wq, msg);
-			qunlock(&s->ql);
-			freeblist(bp);
-			return;
-		}
+			if(s->lport == psource)
+				if(ipcmp(s->raddr, dest) == 0)
+					if(ipcmp(s->laddr, source) == 0){
+						if(s->ignoreadvice)
+							break;
+						qlock(&s->ql);
+						qunlock(&udp->ql);
+						qhangup(s->rq, msg);
+						qhangup(s->wq, msg);
+						qunlock(&s->ql);
+						freeblist(bp);
+						return;
+					}
 	}
 	qunlock(&udp->ql);
 	freeblist(bp);
@@ -597,11 +593,11 @@ udpstats(Proto *udp, char *buf, int len)
 
 	upriv = udp->priv;
 	return snprint(buf, len, "InDatagrams: %llu\nNoPorts: %lu\n"
-		"InErrors: %lu\nOutDatagrams: %llu\n",
-		upriv->ustats.udpInDatagrams,
-		upriv->ustats.udpNoPorts,
-		upriv->ustats.udpInErrors,
-		upriv->ustats.udpOutDatagrams);
+				 "InErrors: %lu\nOutDatagrams: %llu\n",
+		       upriv->ustats.udpInDatagrams,
+		       upriv->ustats.udpNoPorts,
+		       upriv->ustats.udpInErrors,
+		       upriv->ustats.udpOutDatagrams);
 }
 
 void

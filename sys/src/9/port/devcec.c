@@ -23,19 +23,18 @@
 
 extern Dev cecdevtab;
 
-
 enum {
-	Namelen	= 128,
-	Ncbuf 	= 8192,
-	Ncmask 	= Ncbuf-1,
-	Nconns	= 20,
-	Size	= READSTR,
+	Namelen = 128,
+	Ncbuf = 8192,
+	Ncmask = Ncbuf - 1,
+	Nconns = 20,
+	Size = READSTR,
 };
 
 enum {
-	Hdrsz	= 18,
+	Hdrsz = 18,
 
-	Tinita 	= 0,
+	Tinita = 0,
 	Tinitb,
 	Tinitc,
 	Tdata,
@@ -45,7 +44,7 @@ enum {
 	Treset,
 	Tlast,
 
-	Cunused	= 0,
+	Cunused = 0,
 	Cinitb,
 	Clogin,
 	Copen,
@@ -55,46 +54,45 @@ static char *cstate[] = {
 	"unused",
 	"initb",
 	"login",
-	"open"
-};
+	"open"};
 
 typedef struct {
-	Chan	*dc;
-	Chan	*cc;
-	Dev	*d;
-	uint8_t	ea[6];
-	char	path[32];
+	Chan *dc;
+	Chan *cc;
+	Dev *d;
+	uint8_t ea[6];
+	char path[32];
 } If;
 
 typedef struct {
-	uint8_t	dst[6];
-	uint8_t	src[6];
-	uint8_t	etype[2];
-	uint8_t	type;
-	uint8_t	conn;
-	uint8_t	seq;
-	uint8_t	len;
-	uint8_t	data[0x100];
+	uint8_t dst[6];
+	uint8_t src[6];
+	uint8_t etype[2];
+	uint8_t type;
+	uint8_t conn;
+	uint8_t seq;
+	uint8_t len;
+	uint8_t data[0x100];
 } Pkt;
 
 typedef struct {
 	QLock;
 	Lock;
-	unsigned char	ea[6];		/* along with cno, the key to the connection */
-	unsigned char	cno;		/* connection number on remote host */
-	unsigned char	stalled;		/* cectimer needs to kick it */
-	int	state;		/* connection state */
-	int	idle;		/* idle ticks */
-	int	to;		/* ticks to timeout */
-	int	retries;		/* remaining retries */
-	Block	*bp;		/* unacked message */
-	If	*ifc;		/* interface for this connection */
-	unsigned char	sndseq;		/* sequence number of last sent message */
-	unsigned char	rcvseq;		/* sequence number of last rcv'd message */
-	char	cbuf[Ncbuf];	/* curcular buffer */
-	int	r, w;		/* indexes into cbuf */
-	int	pwi;		/* index into passwd; */
-	char	passwd[32];	/* password typed by connection */
+	unsigned char ea[6];   /* along with cno, the key to the connection */
+	unsigned char cno;     /* connection number on remote host */
+	unsigned char stalled; /* cectimer needs to kick it */
+	int state;	       /* connection state */
+	int idle;	       /* idle ticks */
+	int to;		       /* ticks to timeout */
+	int retries;	       /* remaining retries */
+	Block *bp;	       /* unacked message */
+	If *ifc;	       /* interface for this connection */
+	unsigned char sndseq;  /* sequence number of last sent message */
+	unsigned char rcvseq;  /* sequence number of last rcv'd message */
+	char cbuf[Ncbuf];      /* curcular buffer */
+	int r, w;	       /* indexes into cbuf */
+	int pwi;	       /* index into passwd; */
+	char passwd[32];       /* password typed by connection */
 } Conn;
 
 extern int parseether(uint8_t *, char *);
@@ -117,35 +115,35 @@ enum {
 	CMwrite,
 };
 
-static 	If 	ifs[4];
-static 	char 	name[Namelen];
-static	int	shelf = -1;
-static 	Conn 	conn[Nconns];
-static	int	tflag;
-static	char	passwd[Namelen];
-static	int	xmit;
-static	int	rsnd;
-static	Rendez	trendez;
-static	int	tcond;
-static	uint8_t	broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-static 	Dirtab	cecdir[] = {
-	{".",		{ Qdir, 0, QTDIR },	0,	DMDIR | 0555},
-	{"cecstat",	{ Qstat},		1,	0444},
-	{"cecctl",	{ Qctl},		1,	0777},
-//	{"cecctl",	{ Qctl},		1,	0664},
+static If ifs[4];
+static char name[Namelen];
+static int shelf = -1;
+static Conn conn[Nconns];
+static int tflag;
+static char passwd[Namelen];
+static int xmit;
+static int rsnd;
+static Rendez trendez;
+static int tcond;
+static uint8_t broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+static Dirtab cecdir[] = {
+	{".", {Qdir, 0, QTDIR}, 0, DMDIR | 0555},
+	{"cecstat", {Qstat}, 1, 0444},
+	{"cecctl", {Qctl}, 1, 0777},
+	//	{"cecctl",	{ Qctl},		1,	0664},
 
-	{"cecdbg",	{ Qdbg }, 		1,	0444},
-	{"ceccfg",	{ Qcfg },		1,	0444},
+	{"cecdbg", {Qdbg}, 1, 0444},
+	{"ceccfg", {Qcfg}, 1, 0444},
 };
-static	Cmdtab	ceccmd[] = {
-	{CMsetname,	"name",	2},
-	{CMtraceon,	"traceon",	1},
-	{CMtraceoff,	"traceoff",	1},
-	{CMsetpasswd,	"password",	2},
-	{CMcecon,		"cecon",		2},
-	{CMcecoff,		"cecoff",		2},
-	{CMsetshelf,	"shelf",	2},
-	{CMwrite,	"write",	-1},
+static Cmdtab ceccmd[] = {
+	{CMsetname, "name", 2},
+	{CMtraceon, "traceon", 1},
+	{CMtraceoff, "traceoff", 1},
+	{CMsetpasswd, "password", 2},
+	{CMcecon, "cecon", 2},
+	{CMcecoff, "cecoff", 2},
+	{CMsetshelf, "shelf", 2},
+	{CMwrite, "write", -1},
 };
 
 /*
@@ -159,7 +157,7 @@ cecprint(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, arg)-buf;
+	n = vseprint(buf, buf + sizeof buf, fmt, arg) - buf;
 	va_end(arg);
 	uartputs(buf, n);
 	return n;
@@ -169,13 +167,13 @@ static void
 getaddr(char *path, uint8_t *ea)
 {
 	Proc *up = externup();
-	char buf[6*2];
+	char buf[6 * 2];
 	int n;
 	Chan *c;
 
 	snprint(up->genbuf, sizeof up->genbuf, "%s/addr", path);
 	c = namec(up->genbuf, Aopen, OREAD, 0);
-	if(waserror()) {
+	if(waserror()){
 		cclose(c);
 		nexterror();
 	}
@@ -188,9 +186,16 @@ getaddr(char *path, uint8_t *ea)
 	cclose(c);
 }
 
-static char *types[Tlast+1] = {
-	"Tinita", "Tinitb", "Tinitc", "Tdata", "Tack",
-	"Tdiscover", "Toffer", "Treset", "*GOK*",
+static char *types[Tlast + 1] = {
+	"Tinita",
+	"Tinitb",
+	"Tinitc",
+	"Tdata",
+	"Tack",
+	"Tdiscover",
+	"Toffer",
+	"Treset",
+	"*GOK*",
 };
 
 static int
@@ -201,17 +206,17 @@ cbget(Conn *cp)
 	if(cp->r == cp->w)
 		return -1;
 	c = cp->cbuf[cp->r];
-	cp->r = cp->r+1 & Ncmask;
+	cp->r = cp->r + 1 & Ncmask;
 	return c;
 }
 
 static void
 cbput(Conn *cp, int c)
 {
-	if(cp->r == (cp->w+1 & Ncmask))
+	if(cp->r == (cp->w + 1 & Ncmask))
 		return;
 	cp->cbuf[cp->w] = c;
-	cp->w = cp->w+1 & Ncmask;
+	cp->w = cp->w + 1 & Ncmask;
 }
 
 static void
@@ -225,12 +230,12 @@ trace(Block *bp)
 	p = (Pkt *)bp->rp;
 	type = p->type;
 	if(type > Treset)
-		type = Treset+1;
+		type = Treset + 1;
 	cecprint("%E > %E) seq %d, type %s, len %d, conn %d\n",
-		p->src, p->dst, p->seq, types[type], p->len, p->conn);
+		 p->src, p->dst, p->seq, types[type], p->len, p->conn);
 }
 
-static Block*
+static Block *
 sethdr(If *ifc, uint8_t *ea, Pkt **npp, int len)
 {
 	Block *bp;
@@ -240,7 +245,7 @@ sethdr(If *ifc, uint8_t *ea, Pkt **npp, int len)
 	if(len < 60)
 		len = 60;
 	bp = allocb(len);
-	bp->wp = bp->rp+len;
+	bp->wp = bp->rp + len;
 	np = (Pkt *)bp->rp;
 	memmove(np->dst, ea, 6);
 	memmove(np->src, ifc->ea, 6);
@@ -350,13 +355,13 @@ cecputs(char *str, int n)
 	Conn *cp;
 
 	wake = 0;
-	for(cp = conn; cp < conn+Nconns; cp++){
+	for(cp = conn; cp < conn + Nconns; cp++){
 		ilock(cp);
 		if(cp->state == Copen){
-			for (i = 0; i < n; i++){
+			for(i = 0; i < n; i++){
 				c = str[i];
 				if(c == 0)
-					continue;	/* BOTCH */
+					continue; /* BOTCH */
 				if(c == '\n')
 					cbput(cp, '\r');
 				cbput(cp, c);
@@ -380,13 +385,13 @@ conputs(Conn *c, char *s)
 }
 
 static int
-icansleep(void* v)
+icansleep(void *v)
 {
 	return tcond != 0;
 }
 
 static void
-cectimer(void * v)
+cectimer(void *v)
 {
 	Conn *cp;
 
@@ -400,11 +405,11 @@ cectimer(void * v)
 					if(--cp->retries <= 0){
 						freeb(cp->bp);
 						cp->bp = 0;
-//						cp->state = Cunused;
-					}else
+						//						cp->state = Cunused;
+					} else
 						resend(cp);
 				}
-			}else if(cp->stalled){
+			} else if(cp->stalled){
 				cp->stalled = 0;
 				start(cp);
 			}
@@ -459,7 +464,7 @@ discover(If *ifc, Pkt *p)
 	ifc->d->bwrite(ifc->dc, bp, 0);
 }
 
-static Conn*
+static Conn *
 connidx(int cno)
 {
 	Conn *c;
@@ -472,7 +477,7 @@ connidx(int cno)
 	return nil;
 }
 
-static Conn*
+static Conn *
 findconn(uint8_t *ea, uint8_t cno)
 {
 	Conn *cp, *ncp;
@@ -501,7 +506,7 @@ checkpw(Conn *cp, char *str, int len)
 	for(i = 0; i < len; i++){
 		c = str[i];
 		if(c != '\n' && c != '\r'){
-			if(cp->pwi < (sizeof cp->passwd)-1)
+			if(cp->pwi < (sizeof cp->passwd) - 1)
 				cp->passwd[cp->pwi++] = c;
 			cbput(cp, '#');
 			cecprint("%c", c);
@@ -513,7 +518,7 @@ checkpw(Conn *cp, char *str, int len)
 			cp->state = Copen;
 			cp->pwi = 0;
 			print("\r\n%E logged in\r\n", cp->ea);
-		}else{
+		} else {
 			conputs(cp, "\r\nBad password\r\npassword: ");
 			cp->pwi = 0;
 		}
@@ -547,9 +552,9 @@ incoming(Conn *cp, If *ifc, Pkt *p)
 
 	cp->rcvseq = p->seq;
 	if(cp->state == Copen){
-		for (i = 0; i < p->len; i++)
+		for(i = 0; i < p->len; i++)
 			kbdcr2nl(nil, (char)p->data[i]);
-	}else if(cp->state == Clogin)
+	} else if(cp->state == Clogin)
 		checkpw(cp, (char *)p->data, p->len);
 }
 
@@ -570,7 +575,6 @@ inita(Conn *ncp, If *ifc, Pkt *p)
 	send(ncp, bp);
 }
 
-
 static void
 cecrdr(void *vp)
 {
@@ -586,7 +590,7 @@ cecrdr(void *vp)
 
 	discover(ifc, 0);
 	for(;;){
-		bp = ifc->d->bread(ifc->dc, 1514, 0); // do we care about making the MTU non magic?
+		bp = ifc->d->bread(ifc->dc, 1514, 0);	     // do we care about making the MTU non magic?
 		if(bp == nil)
 			nexterror();
 		p = (Pkt *)bp->rp;
@@ -601,7 +605,7 @@ cecrdr(void *vp)
 			freeb(bp);
 			continue;
 		}
-		if (waserror()){
+		if(waserror()){
 			freeb(bp);
 			qunlock(cp);
 			continue;
@@ -625,7 +629,7 @@ cecrdr(void *vp)
 					cp->state = Clogin;
 					conputs(cp, "password: ");
 					start(cp);
-				}else
+				} else
 					cp->state = Copen;
 			}
 			break;
@@ -658,7 +662,7 @@ cecrdr(void *vp)
 	}
 
 exit:
-	for(cp = conn; cp < conn+nelem(conn); cp++)
+	for(cp = conn; cp < conn + nelem(conn); cp++)
 		if(cp->ifc == ifc){
 			if(cp->bp)
 				freeb(cp->bp);
@@ -688,7 +692,7 @@ cecattach(char *spec)
 	return c;
 }
 
-static Walkqid*
+static Walkqid *
 cecwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, cecdir, nelem(cecdir), devgen);
@@ -700,14 +704,14 @@ cecstat(Chan *c, uint8_t *dp, int32_t n)
 	return devstat(c, dp, n, cecdir, nelem(cecdir), devgen);
 }
 
-static Chan*
+static Chan *
 cecopen(Chan *c, int omode)
 {
 	return devopen(c, omode, cecdir, nelem(cecdir), devgen);
 }
 
 static void
-cecclose(Chan* c)
+cecclose(Chan *c)
 {
 }
 
@@ -725,12 +729,12 @@ cecread(Chan *c, void *a, int32_t n, int64_t offset)
 	case Qstat:
 		p = smalloc(Size);
 		j = 0;
-		for(cp = conn; cp < conn+Nconns; cp++)
+		for(cp = conn; cp < conn + Nconns; cp++)
 			if(cp->state != Cunused)
-			j += snprint(p+j, Size-j,
-				"%E %3d %-6s %12d %d %d %.8lux\n",
-				cp->ea, cp->cno, cstate[cp->state], cp->idle,
-				cp->to, cp->retries, (uintptr_t)cp->bp);
+				j += snprint(p + j, Size - j,
+					     "%E %3d %-6s %12d %d %d %.8lux\n",
+					     cp->ea, cp->cno, cstate[cp->state], cp->idle,
+					     cp->to, cp->retries, (uintptr_t)cp->bp);
 		n = readstr(offset, a, n, p);
 		free(p);
 		return n;
@@ -741,9 +745,9 @@ cecread(Chan *c, void *a, int32_t n, int64_t offset)
 	case Qctl:
 		p = smalloc(Size);
 		j = 0;
-		for(ifc = ifs; ifc < ifs+nelem(ifs); ifc++)
+		for(ifc = ifs; ifc < ifs + nelem(ifs); ifc++)
 			if(ifc->d)
-				j += snprint(p+j, Size-j, "%s\n", ifc->path);
+				j += snprint(p + j, Size - j, "%s\n", ifc->path);
 		n = readstr(offset, a, n, p);
 		free(p);
 		return n;
@@ -777,7 +781,7 @@ cecon(char *path)
 	If *ifc, *nifc;
 
 	nifc = nil;
-	for(ifc = ifs; ifc < ifs+nelem(ifs); ifc++)
+	for(ifc = ifs; ifc < ifs + nelem(ifs); ifc++)
 		if(ifc->d == nil)
 			nifc = ifc;
 		else if(strcmp(ifc->path, path) == 0)
@@ -790,9 +794,9 @@ cecon(char *path)
 	snprint(buf, sizeof buf, "%s!0xbcbc", path);
 	dc = chandial(buf, nil, nil, &cc);
 	if(dc == nil || cc == nil){
-		if (cc)
+		if(cc)
 			cclose(cc);
-		if (dc)
+		if(dc)
 			cclose(dc);
 		snprint(up->genbuf, sizeof up->genbuf, "can't dial %s", buf);
 		error(up->genbuf);
@@ -815,7 +819,7 @@ cecoff(char *path)
 	all = strcmp(path, "*") == 0;
 	n = 0;
 	ifc = ifs;
-	e = ifc+nelem(ifs);
+	e = ifc + nelem(ifs);
 	for(; ifc < e; ifc++)
 		if(ifc->d && (all || strcmp(path, ifc->path) == 0)){
 			cclose(ifc->cc);
@@ -855,7 +859,7 @@ cecwrite(Chan *c, void *a, int32_t n, int64_t mm)
 		cp = lookupcmd(cb, ceccmd, nelem(ceccmd));
 		switch(cp->index){
 		case CMsetname:
-			strecpy(name, name+sizeof name-1, cb->f[1]);
+			strecpy(name, name + sizeof name - 1, cb->f[1]);
 			break;
 		case CMtraceon:
 			tflag = 1;
@@ -876,7 +880,7 @@ cecwrite(Chan *c, void *a, int32_t n, int64_t mm)
 			shelf = atoi(cb->f[1]);
 			break;
 		case CMwrite:
-			cecputs((char*)a+6,n-6);
+			cecputs((char *)a + 6, n - 6);
 			break;
 		case CMreset:
 			rst(connidx(atoi(cb->f[1])));

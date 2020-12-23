@@ -15,7 +15,7 @@
 #include "../port/error.h"
 #include "io.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
@@ -24,11 +24,10 @@
 /*
  *  mouse types
  */
-enum
-{
-	Mouseother=	0,
-	Mouseserial=	1,
-	MousePS2=	2,
+enum {
+	Mouseother = 0,
+	Mouseserial = 1,
+	MousePS2 = 2,
 };
 
 extern int mouseshifted;
@@ -41,8 +40,7 @@ static int resolution;
 static int accelerated;
 static int mousehwaccel;
 
-enum
-{
+enum {
 	CMaccelerated,
 	CMhwaccel,
 	CMintellimouse,
@@ -55,16 +53,16 @@ enum
 };
 
 static Cmdtab mousectlmsg[] =
-{
-	{CMaccelerated,		"accelerated",		0},
-	{CMhwaccel,		"hwaccel",		2},
-	{CMintellimouse,	"intellimouse",		1},
-	{CMlinear,		"linear",		1},
-	{CMps2,			"ps2",			1},
-	{CMps2intellimouse,	"ps2intellimouse",	1},
-	{CMres,			"res",			0},
-	{CMreset,		"reset",		1},
-	{CMserial,		"serial",		0},
+	{
+		{CMaccelerated, "accelerated", 0},
+		{CMhwaccel, "hwaccel", 2},
+		{CMintellimouse, "intellimouse", 1},
+		{CMlinear, "linear", 1},
+		{CMps2, "ps2", 1},
+		{CMps2intellimouse, "ps2intellimouse", 1},
+		{CMres, "res", 0},
+		{CMreset, "reset", 1},
+		{CMserial, "serial", 0},
 };
 
 /*
@@ -103,7 +101,7 @@ ps2mouse(void)
 	if(mousetype == MousePS2)
 		return;
 
-	if (0) /* For now, this is done in main.c */
+	if(0) /* For now, this is done in main.c */
 		mouseenable();
 	/* make mouse streaming, enabled */
 	mousecmd(0xEA);
@@ -172,11 +170,11 @@ setintellimouse(void)
 	packetsize = 4;
 	switch(mousetype){
 	case MousePS2:
-		mousecmd(0xF3);	/* set sample */
+		mousecmd(0xF3); /* set sample */
 		mousecmd(0xC8);
-		mousecmd(0xF3);	/* set sample */
+		mousecmd(0xF3); /* set sample */
 		mousecmd(0x64);
-		mousecmd(0xF3);	/* set sample */
+		mousecmd(0xF3); /* set sample */
 		mousecmd(0x50);
 		break;
 	}
@@ -189,10 +187,10 @@ resetmouse(void)
 	switch(mousetype){
 	case MousePS2:
 		mousecmd(0xF6);
-		mousecmd(0xEA);	/* streaming */
-		mousecmd(0xE8);	/* set resolution */
+		mousecmd(0xEA); /* streaming */
+		mousecmd(0xE8); /* set resolution */
 		mousecmd(3);
-		mousecmd(0xF4);	/* enabled */
+		mousecmd(0xF4); /* enabled */
 		break;
 	}
 }
@@ -244,9 +242,9 @@ mousectl(Cmdbuf *cb)
 			setintellimouse();
 		break;
 	case CMhwaccel:
-		if(strcmp(cb->f[1], "on")==0)
+		if(strcmp(cb->f[1], "on") == 0)
 			mousehwaccel = 1;
-		else if(strcmp(cb->f[1], "off")==0)
+		else if(strcmp(cb->f[1], "off") == 0)
 			mousehwaccel = 0;
 		else
 			cmderror(cb, "bad mouse control message");

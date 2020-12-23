@@ -3,14 +3,14 @@
  *  to avoid duplication of keyboard map processing for usb.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-extern	void kbdputsc(int, int);
+extern void kbdputsc(int, int);
 
 enum {
 	Qdir,
@@ -18,12 +18,12 @@ enum {
 };
 
 Dirtab kbintab[] = {
-	{".",		{Qdir, 0, QTDIR},	0,	0555},
-	{"kbin",	{Qkbd, 0},		0,	0200},
+	{".", {Qdir, 0, QTDIR}, 0, 0555},
+	{"kbin", {Qkbd, 0}, 0, 0200},
 };
 
-Lock	kbinlck;
-int	kbinbusy;
+Lock kbinlck;
+int kbinbusy;
 
 static Chan *
 kbinattach(char *spec)
@@ -31,7 +31,7 @@ kbinattach(char *spec)
 	return devattach(L'j', spec);
 }
 
-static Walkqid*
+static Walkqid *
 kbinwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, kbintab, nelem(kbintab), devgen);
@@ -43,7 +43,7 @@ kbinstat(Chan *c, uint8_t *dp, int n)
 	return devstat(c, dp, n, kbintab, nelem(kbintab), devgen);
 }
 
-static Chan*
+static Chan *
 kbinopen(Chan *c, int omode)
 {
 	if(!iseve())
@@ -90,7 +90,7 @@ kbinwrite(Chan *c, void *a, int32_t n, int64_t _)
 	switch((int)c->qid.path){
 	case Qkbd:
 		for(i = 0; i < n; i++)
-			kbdputsc(*p++, 1);	/* external source */
+			kbdputsc(*p++, 1); /* external source */
 		break;
 	default:
 		error(Egreg);

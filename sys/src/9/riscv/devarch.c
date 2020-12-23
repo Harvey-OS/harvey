@@ -19,23 +19,22 @@
 
 /* leave this for now; we might want to keep track of MMIO apart from memory. */
 typedef struct IOMap IOMap;
-struct IOMap
-{
-	IOMap	*next;
-	int	reserved;
-	char	tag[13];
-	uintptr_t	start;
-	uintptr_t	end;
+struct IOMap {
+	IOMap *next;
+	int reserved;
+	char tag[13];
+	uintptr_t start;
+	uintptr_t end;
 };
 
 static struct
 {
 	Lock l;
-	IOMap	*map;
-	IOMap	*free;
-	IOMap	maps[32];		// some initial free maps
+	IOMap *map;
+	IOMap *free;
+	IOMap maps[32];	       // some initial free maps
 
-	QLock	ql;			// lock for reading map
+	QLock ql;	 // lock for reading map
 } iomap;
 
 enum {
@@ -50,21 +49,21 @@ enum {
 	Qmax = 16,
 };
 
-typedef int32_t Rdwrfn(Chan*, void*, int32_t, int64_t);
+typedef int32_t Rdwrfn(Chan *, void *, int32_t, int64_t);
 
 static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
 
 static Dirtab archdir[Qmax] = {
-	{".",		{ Qdir, 0, QTDIR },	0,	0555},
-	{"ioalloc",	{ Qioalloc, 0 },	0,	0444},
+	{".", {Qdir, 0, QTDIR}, 0, 0555},
+	{"ioalloc", {Qioalloc, 0}, 0, 0444},
 	/* NOTE: kludge until we have real permissions. */
-	{"iob",		{ Qiob, 0 },		0,	0660 | 6},
-	{"iow",		{ Qiow, 0 },		0,	0660 | 6},
-	{"iol",		{ Qiol, 0 },		0,	0660 | 6},
-	{"mapram",	{ Qmapram, 0 },	0,	0444},
+	{"iob", {Qiob, 0}, 0, 0660 | 6},
+	{"iow", {Qiow, 0}, 0, 0660 | 6},
+	{"iol", {Qiol, 0}, 0, 0660 | 6},
+	{"mapram", {Qmapram, 0}, 0, 0444},
 };
-Lock archwlock;	/* the lock is only for changing archdir */
+Lock archwlock; /* the lock is only for changing archdir */
 int narchdir = Qbase;
 
 /*
@@ -73,7 +72,7 @@ int narchdir = Qbase;
  * and you get a pointer to the Dirtab entry so you can do things
  * like change the Qid version.  Changing the Qid path is disallowed.
  */
-Dirtab*
+Dirtab *
 addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 {
 	int i;
@@ -90,7 +89,7 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 		return nil;
 	}
 
-	for(i=0; i<narchdir; i++)
+	for(i = 0; i < narchdir; i++)
 		if(strcmp(archdir[i].name, name) == 0){
 			unlock(&archwlock);
 			return nil;
@@ -111,8 +110,8 @@ ioinit(void)
 {
 	int i;
 
-	for(i = 0; i < nelem(iomap.maps)-1; i++)
-		iomap.maps[i].next = &iomap.maps[i+1];
+	for(i = 0; i < nelem(iomap.maps) - 1; i++)
+		iomap.maps[i].next = &iomap.maps[i + 1];
 	iomap.maps[i].next = nil;
 	iomap.free = iomap.maps;
 }
@@ -213,7 +212,7 @@ ioalloc(int port, int size, int align, char *tag)
 			map = *l;
 			if(map->end <= port)
 				continue;
-			if(map->reserved && map->start == port && map->end == port + size) {
+			if(map->reserved && map->start == port && map->end == port + size){
 				map->reserved = 0;
 				unlock(&iomap.l);
 				return map->start;
@@ -276,8 +275,7 @@ iounused(int start, int end)
 	IOMap *map;
 
 	for(map = iomap.map; map; map = map->next){
-		if((start >= map->start && start < map->end)
-		|| (start <= map->start && end > map->start))
+		if((start >= map->start && start < map->end) || (start <= map->start && end > map->start))
 			return 0;
 	}
 	return 1;
@@ -293,38 +291,37 @@ checkport(int start, int end)
 }
 #endif
 
-static Chan*
-archattach(char* spec)
+static Chan *
+archattach(char *spec)
 {
 	return devattach('P', spec);
 }
 
-Walkqid*
-archwalk(Chan* c, Chan *nc, char** name, int nname)
+Walkqid *
+archwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, archdir, narchdir, devgen);
 }
 
 static int32_t
-archstat(Chan* c, uint8_t* dp, int32_t n)
+archstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, archdir, narchdir, devgen);
 }
 
-static Chan*
-archopen(Chan* c, int omode)
+static Chan *
+archopen(Chan *c, int omode)
 {
 	return devopen(c, omode, archdir, narchdir, devgen);
 }
 
 static void
-archclose(Chan* c)
+archclose(Chan *c)
 {
 }
 
-enum
-{
-	Linelen= 31,
+enum {
+	Linelen = 31,
 };
 
 static int32_t
@@ -383,8 +380,8 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 	if((buf = malloc(n)) == nil)
 		error(Enomem);
 	p = buf;
-	n = n/Linelen;
-	offset = offset/Linelen;
+	n = n / Linelen;
+	offset = offset / Linelen;
 
 	switch((uint32_t)c->qid.path){
 	case Qioalloc:
@@ -392,7 +389,7 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 		for(map = iomap.map; n > 0 && map != nil; map = map->next){
 			if(offset-- > 0)
 				continue;
-			sprint(p, "%#8lx %#8lx %-12.12s\n", map->start, map->end-1, map->tag);
+			sprint(p, "%#8lx %#8lx %-12.12s\n", map->start, map->end - 1, map->tag);
 			p += Linelen;
 			n--;
 		}
@@ -405,13 +402,12 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 			/*
 			 * Up to MemMinMiB is already set up.
 			 */
-			if(mp->addr < MemMinMiB*MiB){
-				if(mp->addr+mp->size <= MemMinMiB*MiB)
+			if(mp->addr < MemMinMiB * MiB){
+				if(mp->addr + mp->size <= MemMinMiB * MiB)
 					continue;
-				pa = MemMinMiB*MiB;
-				size = mp->size - MemMinMiB*MiB-mp->addr;
-			}
-			else{
+				pa = MemMinMiB * MiB;
+				size = mp->size - MemMinMiB * MiB - mp->addr;
+			} else {
 				pa = mp->addr;
 				size = mp->size;
 			}
@@ -507,13 +503,13 @@ nop(void)
 void (*coherence)(void) = mfence;
 
 static int32_t
-cputyperead(Chan* c, void *a, int32_t n, int64_t off)
+cputyperead(Chan *c, void *a, int32_t n, int64_t off)
 {
 	return readstr(off, a, n, "riscv");
 }
 
 static int32_t
-cpucoresread(Chan* c, void *a, int32_t n, int64_t off)
+cpucoresread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	char buf[8];
 	snprint(buf, 8, "%d\n", sys->nmach);
@@ -530,19 +526,19 @@ kbdputsc(int data, int _)
 	static int len;
 	putchar(data);
 	line[len++] = data;
-	if (keybq && (data == '\n')) {
+	if(keybq && (data == '\n')){
 		qiwrite(keybq, line, len);
 		len = 0;
 	}
 }
 
 static int32_t
-consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+consoleread(Chan *c, void *vbuf, int32_t len, int64_t off64)
 {
 	int amt;
-	if (!keybq) {
+	if(!keybq){
 		keybq = qopen(32, 0, 0, 0);
-		if (!keybq)
+		if(!keybq)
 			panic("keyboard queue alloc failed");
 	}
 	amt = qread(keybq, vbuf, len);
@@ -550,7 +546,7 @@ consoleread(Chan* c, void *vbuf, int32_t len, int64_t off64)
 }
 
 static int32_t
-consolewrite(Chan* _, void *vbuf, int32_t len, int64_t off64)
+consolewrite(Chan *_, void *vbuf, int32_t len, int64_t off64)
 {
 	char *c = vbuf;
 
@@ -558,7 +554,6 @@ consolewrite(Chan* _, void *vbuf, int32_t len, int64_t off64)
 		putchar(c[i]);
 	return len;
 }
-
 
 void
 archinit(void)
@@ -572,14 +567,13 @@ void
 archreset(void)
 {
 	panic("archreset");
-
 }
 
 /*
  *  return value and speed of timer
  */
 uint64_t
-fastticks(uint64_t* hz)
+fastticks(uint64_t *hz)
 {
 	if(hz != nil)
 		*hz = machp()->cpuhz;
@@ -618,10 +612,10 @@ timerset(uint64_t x)
 	delta = x - now;
 	//print("delta is %llx\n", delta);
 	delta /= 1000;
-	if (delta < 1) {
-		if (++bust == 0)
+	if(delta < 1){
+		if(++bust == 0)
 			print("timerset: delta was < 1 256 times\n");
-		delta = 10 /* one microsecond */ * 1000 /* one millisecond */ ;
+		delta = 10 /* one microsecond */ * 1000 /* one millisecond */;
 	}
 	//print("adjest x to timer ticks, divide by 500 ... 0x%llx %llx %llx \n", *mtime , delta, *mtime + delta);
 	sbi_set_mtimecmp(*mtime + delta);
@@ -635,7 +629,7 @@ delay(int millisecs)
 	if(millisecs <= 0)
 		millisecs = 1;
 	cycles(&r);
-	for(t = r + (sys->cyclefreq*millisecs)/1000ull; r < t; cycles(&r))
+	for(t = r + (sys->cyclefreq * millisecs) / 1000ull; r < t; cycles(&r))
 		;
 }
 
@@ -648,9 +642,9 @@ perfticks(void)
 {
 	uint64_t x;
 
-//	if(m->havetsc)
-		cycles(&x);
-//	else
-//		x = 0;
+	//	if(m->havetsc)
+	cycles(&x);
+	//	else
+	//		x = 0;
 	return x;
 }

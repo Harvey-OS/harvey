@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 static Ref pgrpid;
 static Ref mountid;
@@ -25,7 +25,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	Proc *p;
 	char buf[ERRMAX];
 
-	if(n >= ERRMAX-1)
+	if(n >= ERRMAX - 1)
 		error(Etoobig);
 
 	memmove(buf, a, n);
@@ -41,7 +41,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 			psdecref(p);
 			continue;
 		}
-		if(!waserror()) {
+		if(!waserror()){
 			postnote(p, 0, buf, flag);
 			poperror();
 		}
@@ -50,7 +50,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	}
 }
 
-Pgrp*
+Pgrp *
 newpgrp(void)
 {
 	Pgrp *p;
@@ -61,7 +61,7 @@ newpgrp(void)
 	return p;
 }
 
-Rgrp*
+Rgrp *
 newrgrp(void)
 {
 	Rgrp *r;
@@ -91,8 +91,8 @@ closepgrp(Pgrp *p)
 	p->pgrpid = -1;
 
 	e = &p->mnthash[MNTHASH];
-	for(h = p->mnthash; h < e; h++) {
-		for(f = *h; f; f = next) {
+	for(h = p->mnthash; h < e; h++){
+		for(f = *h; f; f = next){
 			wlock(&f->lock);
 			cclose(f->from);
 			mountfree(f->mount);
@@ -113,12 +113,12 @@ pgrpinsert(Mount **order, Mount *mount)
 	Mount *f;
 
 	mount->order = 0;
-	if(*order == 0) {
+	if(*order == 0){
 		*order = mount;
 		return;
 	}
-	for(f = *order; f; f = f->order) {
-		if(mount->mountid < f->mountid) {
+	for(f = *order; f; f = f->order){
+		if(mount->mountid < f->mountid){
 			mount->order = f;
 			*order = mount;
 			return;
@@ -141,15 +141,15 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	wlock(&from->ns);
 	order = 0;
 	tom = to->mnthash;
-	for(i = 0; i < MNTHASH; i++) {
+	for(i = 0; i < MNTHASH; i++){
 		l = tom++;
-		for(f = from->mnthash[i]; f; f = f->hash) {
+		for(f = from->mnthash[i]; f; f = f->hash){
 			rlock(&f->lock);
 			mh = newmhead(f->from);
 			*l = mh;
 			l = &mh->hash;
 			link = &mh->mount;
-			for(mount = f->mount; mount != nil; mount = mount->next) {
+			for(mount = f->mount; mount != nil; mount = mount->next){
 				n = newmount(mh, mount->to, mount->mflag, mount->spec);
 				mount->copy = n;
 				pgrpinsert(&order, mount);
@@ -169,7 +169,7 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	wunlock(&from->ns);
 }
 
-Fgrp*
+Fgrp *
 dupfgrp(Fgrp *f)
 {
 	Fgrp *new;
@@ -178,7 +178,7 @@ dupfgrp(Fgrp *f)
 
 	new = smalloc(sizeof(Fgrp));
 	if(f == nil){
-		new->fd = smalloc(DELTAFD*sizeof(Chan*));
+		new->fd = smalloc(DELTAFD * sizeof(Chan *));
 		new->nfd = DELTAFD;
 		new->r.ref = 1;
 		return new;
@@ -186,11 +186,11 @@ dupfgrp(Fgrp *f)
 
 	lock(&f->r.l);
 	/* Make new fd list shorter if possible, preserving quantization */
-	new->nfd = f->maxfd+1;
-	i = new->nfd%DELTAFD;
+	new->nfd = f->maxfd + 1;
+	i = new->nfd % DELTAFD;
 	if(i != 0)
 		new->nfd += DELTAFD - i;
-	new->fd = malloc(new->nfd*sizeof(Chan*));
+	new->fd = malloc(new->nfd * sizeof(Chan *));
 	if(new->fd == nil){
 		unlock(&f->r.l);
 		free(new);
@@ -199,7 +199,7 @@ dupfgrp(Fgrp *f)
 	new->r.ref = 1;
 
 	new->maxfd = f->maxfd;
-	for(i = 0; i <= f->maxfd; i++) {
+	for(i = 0; i <= f->maxfd; i++){
 		if((c = f->fd[i]) != nil){
 			incref(&c->r);
 			new->fd[i] = c;
@@ -272,7 +272,7 @@ forceclosefgrp(void)
 	}
 }
 
-Mount*
+Mount *
 newmount(Mhead *mh, Chan *to, int flag, char *spec)
 {
 	Mount *mount;
@@ -294,7 +294,7 @@ mountfree(Mount *mount)
 {
 	Mount *f;
 
-	while(mount != nil) {
+	while(mount != nil){
 		f = mount->next;
 		cclose(mount->to);
 		mount->mountid = 0;
@@ -314,7 +314,7 @@ resrcwait(char *reason)
 		panic("resrcwait");
 
 	p = up->psstate;
-	if(reason) {
+	if(reason){
 		up->psstate = reason;
 		print("%s\n", reason);
 	}

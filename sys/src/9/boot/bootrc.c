@@ -14,12 +14,18 @@
 #include "boot.h"
 
 void
-configrc(Method* m)
+configrc(Method *m)
 {
 	void configloopback(void);
 	configloopback();
 	bind("#S", "/dev", MAFTER);
-	char *argv[] = {"rc", "-m", "/boot/rcmain", "-i", 0,};
+	char *argv[] = {
+		"rc",
+		"-m",
+		"/boot/rcmain",
+		"-i",
+		0,
+	};
 	print("Step 1. Run an rc. Set things up.\n");
 	switch(fork()){
 	case -1:
@@ -56,7 +62,7 @@ connectrc(void)
 	// Later, make this anything.
 	snprint(buf, sizeof buf, "/srv/fossil");
 	fd = open("#s/fossil", 2);
-	if (fd < 0)
+	if(fd < 0)
 		werrstr("dial %s: %r", buf);
 	return fd;
 }

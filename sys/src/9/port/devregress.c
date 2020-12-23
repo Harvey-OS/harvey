@@ -17,42 +17,42 @@ enum {
 };
 
 static Dirtab regressdir[Qmax] = {
-	{".",		{ Qdir, 0, QTDIR },	0,	0555},
-	{"regressctl",	{ Qctl, 0 },	0,	0666},
-	{"malloc",	{ Qmalloc, 0 },	0,	0666},
-	{"tsleep",	{ Qtsleep, 0 },	0,	0666},
-	{"qlock",	{ Qlock, 0 },	0,	0666},
+	{".", {Qdir, 0, QTDIR}, 0, 0555},
+	{"regressctl", {Qctl, 0}, 0, 0666},
+	{"malloc", {Qmalloc, 0}, 0, 0666},
+	{"tsleep", {Qtsleep, 0}, 0, 0666},
+	{"qlock", {Qlock, 0}, 0, 0666},
 };
 
 int verbose = 0;
 static QLock testlock;
 
-static Chan*
-regressattach(char* spec)
+static Chan *
+regressattach(char *spec)
 {
 	return devattach('Z', spec);
 }
 
-Walkqid*
-regresswalk(Chan* c, Chan *nc, char** name, int nname)
+Walkqid *
+regresswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, regressdir, Qmax, devgen);
 }
 
 static int32_t
-regressstat(Chan* c, uint8_t* dp, int32_t n)
+regressstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, regressdir, Qmax, devgen);
 }
 
-static Chan*
-regressopen(Chan* c, int omode)
+static Chan *
+regressopen(Chan *c, int omode)
 {
 	return devopen(c, omode, regressdir, Qmax, devgen);
 }
 
 static void
-regressclose(Chan*unused)
+regressclose(Chan *unused)
 {
 }
 
@@ -95,32 +95,32 @@ regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 	case Qmalloc:
 		p = a;
 		amt = strtoull(p, 0, 0);
-		if (verbose)
+		if(verbose)
 			print("Malloc %d\n", amt);
 		p = malloc(amt);
-		if (verbose)
+		if(verbose)
 			print("Got %p\n", p);
 		free(p);
-		if (verbose)
+		if(verbose)
 			print("Freed %p\n", p);
 		return n;
 
 	case Qtsleep:
 		p = a;
 		amt = strtoull(p, 0, 0);
-		if (verbose)
+		if(verbose)
 			print("tsleep %d\n", amt);
 		tsleep(&up->sleep, return0, 0, amt);
-		if (verbose)
+		if(verbose)
 			print("done tsleep\n");
 		return n;
 
 	case Qctl:
 		p = a;
-		if (*p == 'v'){
-			if (verbose)
+		if(*p == 'v'){
+			if(verbose)
 				verbose--;
-		} else if (*p == 'V')
+		} else if(*p == 'V')
 			verbose++;
 		else
 			error("Only v or V");
