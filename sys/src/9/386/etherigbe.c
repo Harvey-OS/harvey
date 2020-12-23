@@ -950,8 +950,8 @@ igbetxinit(Ctlr* ctlr)
 	csr32w(ctlr, Ait, 0);
 	csr32w(ctlr, Txdmac, 0);
 
-	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
-	csr32w(ctlr, Tdbah, 0);
+	csr32w(ctlr, Tdbal, PADDR(ctlr->tdba));
+	csr32w(ctlr, Tdbah, PADDR(ctlr->tdba) >> 32);
 	csr32w(ctlr, Tdlen, ctlr->ntd*sizeof(Td));
 	ctlr->tdh = PREV(0, ctlr->ntd);
 	csr32w(ctlr, Tdh, 0);
@@ -1032,7 +1032,8 @@ igbetransmit(Ether* edev)
 		if((bp = qget(edev->oq)) == nil)
 			break;
 		td = &ctlr->tdba[tdt];
-		td->addr[0] = PCIWADDR(bp->rp);
+		td->addr[0] = (uint32_t)PADDR(bp->rp);
+		td->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
 		td->control = ((BLEN(bp) & LenMASK)<<LenSHIFT);
 		td->control |= Dext|Ifcs|Teop|DtypeDD;
 		ctlr->tb[tdt] = bp;
@@ -1072,8 +1073,8 @@ igbereplenish(Ctlr* ctlr)
 				break;
 			}
 			ctlr->rb[rdt] = bp;
-			rd->addr[0] = PCIWADDR(bp->rp);
-			rd->addr[1] = 0;
+			rd->addr[0] = (uint32_t)PADDR(bp->rp);
+			rd->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
 		}
 		coherence();
 		rd->status = 0;
@@ -1093,8 +1094,8 @@ igberxinit(Ctlr* ctlr)
 	/* temporarily keep Mpe on */
 	csr32w(ctlr, Rctl, Dpf|Bsize2048|Bam|RdtmsHALF|Mpe);
 
-	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
-	csr32w(ctlr, Rdbah, 0);
+	csr32w(ctlr, Rdbal, PADDR(ctlr->rdba));
+	csr32w(ctlr, Rdbah, PADDR(ctlr->rdba) >> 32);
 	csr32w(ctlr, Rdlen, ctlr->nrd*sizeof(Rd));
 	ctlr->rdh = 0;
 	csr32w(ctlr, Rdh, 0);

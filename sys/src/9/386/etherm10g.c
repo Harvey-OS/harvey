@@ -854,7 +854,7 @@ setmem(Pcidev *p, Ctlr *c)
 	c->port = raddr;
 	c->ram = mem;
 	c->cmd = malign(sizeof *c->cmd);
-	c->cprt = PCIWADDR(c->cmd);
+	c->cprt = PADDR(c->cmd);
 
 	d = &c->done;
 	d->n = Maxslots;
@@ -862,11 +862,11 @@ setmem(Pcidev *p, Ctlr *c)
 	i = d->n * sizeof *d->entry;
 	d->entry = malign(i);
 	memset(d->entry, 0, i);
-	d->busaddr = PCIWADDR(d->entry);
+	d->busaddr = PADDR(d->entry);
 
 	c->stats = malign(sizeof *c->stats);
 	memset(c->stats, 0, sizeof *c->stats);
-	c->statsprt = PCIWADDR(c->stats);
+	c->statsprt = PADDR(c->stats);
 
 	memmove(c->eprom, c->ram + c->ramsz - Epromsz, Epromsz-2);
 	return setpcie(p) || parseeprom(c);
@@ -946,8 +946,8 @@ replenish(Rx *rx)
 		idx = rx->cnt & rx->m;
 		for(i = 0; i < 8; i++){
 			b = balloc(rx);
-			buf[i*2]   = pbit32((uint64_t)PCIWADDR(b->wp) >> 32);
-			buf[i*2+1] = pbit32(PCIWADDR(b->wp));
+			buf[i*2]   = pbit32((uint64_t)PADDR(b->wp) >> 32);
+			buf[i*2+1] = pbit32(PADDR(b->wp));
 			rx->host[idx+i] = b;
 			assert(b);
 		}
@@ -1204,7 +1204,7 @@ nsegments(Block *b, int segsz)
 	uintptr_t bus, end, slen, len;
 	int i;
 
-	bus = PCIWADDR(b->rp);
+	bus = PADDR(b->rp);
 	i = 0;
 	for(len = BLEN(b); len; len -= slen){
 		end = (bus + segsz) & ~(segsz-1);
@@ -1246,7 +1246,7 @@ m10gtransmit(Ether *e)
 		if((len = BLEN(b)) < 1520)
 			flags |= SFsmall;
 		rdma = nseg = nsegments(b, segsz);
-		bus = PCIWADDR(b->rp);
+		bus = PADDR(b->rp);
 		for(; len; len -= slen){
 			end = (bus + segsz) & ~(segsz-1);
 			slen = end - bus;

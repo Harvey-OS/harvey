@@ -289,7 +289,7 @@ struct Td
 #define	OUTS(x, v)	outs(ctlr->port+(x), (v))
 #define OUTL(x, v)	outl(ctlr->port+(x), (v))
 #define TRUNC(x, sz)	((x) & ((sz)-1))
-#define PTR(q)		((void*)KADDR((uint32_t)(q) & ~ (0xF|PCIWINDOW)))
+#define PTR(q)		((void*)KADDR((uintmem)(q) & ~0xFULL))
 #define QPTR(q)		((Qh*)PTR(q))
 #define TPTR(q)		((Td*)PTR(q))
 #define PORT(p)		(Portsc0 + 2*(p))
@@ -456,7 +456,7 @@ isodump(Isoio *iso, int all)
 }
 
 static int
-sameptr(void *p, uint32_t l)
+sameptr(void *p, uintmem l)
 {
 	if(l & QHterm)
 		return p == nil;
@@ -492,7 +492,7 @@ qhdump(Qh *qh, char *pref)
 	char buf[256];
 	char *s;
 	char *se;
-	uint32_t td;
+	uintmem td;
 	int i;
 
 	s = buf;
@@ -639,7 +639,7 @@ qhlinkqh(Qh* qh, Qh* next)
 	else{
 		next->link = qh->link;
 		next->next = qh->next;
-		qh->link = PCIWADDR(next)|QHlinkqh;
+		qh->link = PADDR(next)|QHlinkqh;
 	}
 	qh->next = next;
 }
@@ -651,7 +651,7 @@ qhlinktd(Qh *qh, Td *td)
 	if(td == nil)
 		qh->elink = QHvf|QHterm;
 	else
-		qh->elink = PCIWADDR(td);
+		qh->elink = PADDR(td);
 }
 
 static void
@@ -661,7 +661,7 @@ tdlinktd(Td *td, Td *next)
 	if(next == nil)
 		td->link = Tdterm;
 	else
-		td->link = PCIWADDR(next)|Tdvf;
+		td->link = PADDR(next)|Tdvf;
 }
 
 static Qh*
@@ -1180,7 +1180,7 @@ epgettd(Ep *ep, Qio *io, int flags, void *a, int count)
 		td->data = td->sbuff;
 	else
 		td->data = td->buff = smalloc(ep->maxpkt);
-	td->buffer = PCIWADDR(td->data);
+	td->buffer = PADDR(td->data);
 	td->ndata = count;
 	if(a != nil && count > 0)
 		memmove(td->data, a, count);
@@ -1691,7 +1691,7 @@ isoopen(Ep *ep)
 			td->data = iso->data + i * ep->maxpkt;
 		else
 			td->data = td->sbuff;
-		td->buffer = PCIWADDR(td->data);
+		td->buffer = PADDR(td->data);
 		tdisoinit(iso, td, size);
 		if(ltd != nil)
 			ltd->next = td;
@@ -1710,7 +1710,7 @@ isoopen(Ep *ep)
 	coherence();
 	frno = iso->td0frno;
 	for(i = 0; i < iso->nframes; i++){
-		ctlr->frames[frno] = PCIWADDR(iso->tdps[frno]);
+		ctlr->frames[frno] = PADDR(iso->tdps[frno]);
 		frno = TRUNC(frno+ep->pollival, Nframes);
 	}
 	iso->next = ctlr->iso;
@@ -2169,14 +2169,14 @@ uhcimeminit(Ctlr *ctlr)
 	/* This is a workaround for PIIX4 errata 29773804.pdf */
 	qh = qhalloc(ctlr, ctlr->qh[Tbulk], nil, "BWS");
 	td = tdalloc();
-	td->link = PCIWADDR(td);
+	td->link = PADDR(td);
 	qhlinktd(qh, td);
 
 	/* loop (hw only) from the last qh back to control xfers.
 	 * this may be done only for some of them. Disable until ehci comes.
 	 */
 	if(0)
-	qh->link = PCIWADDR(ctlr->qhs);
+	qh->link = PADDR(ctlr->qhs);
 
 	frsize = Nframes*sizeof(uint32_t);
 	ctlr->frames = mallocalign(frsize, frsize, 0, 0);
@@ -2185,8 +2185,8 @@ uhcimeminit(Ctlr *ctlr)
 
 	ctlr->iso = nil;
 	for(i = 0; i < Nframes; i++)
-		ctlr->frames[i] = PCIWADDR(ctlr->qhs)|QHlinkqh;
-	OUTL(Flbaseadd, PCIWADDR(ctlr->frames));
+		ctlr->frames[i] = PADDR(ctlr->qhs)|QHlinkqh;
+	OUTL(Flbaseadd, PADDR(ctlr->frames));
 	OUTS(Frnum, 0);
 	dprint("uhci %#x flb %#lx frno %#x\n", ctlr->port,
 		INL(Flbaseadd), INS(Frnum));

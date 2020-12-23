@@ -893,8 +893,8 @@ i82563txinit(Ctlr* ctlr)
 		}
 	memset(ctlr->tdba, 0, Ntd * sizeof(Td));
 	coherence();
-	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
-	csr32w(ctlr, Tdbah, 0);				/* 32-bit system */
+	csr32w(ctlr, Tdbal, (uint32_t)PADDR(ctlr->tdba));
+	csr32w(ctlr, Tdbah, (uint32_t)(PADDR(ctlr->tdba) >> 32));
 	csr32w(ctlr, Tdlen, Ntd * sizeof(Td));
 	ctlr->tdh = PREV(0, Ntd);
 	csr32w(ctlr, Tdh, 0);
@@ -965,7 +965,8 @@ i82563transmit(Ether* edev)
 		if((bp = qget(edev->oq)) == nil)
 			break;
 		td = &ctlr->tdba[tdt];
-		td->addr[0] = PCIWADDR(bp->rp);
+		td->addr[0] = (uint32_t)PADDR(bp->rp);
+		td->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
 		td->control = Ide|Rs|Ifcs|Teop|BLEN(bp);
 		ctlr->tb[tdt] = bp;
 		/* note size of queue of tds awaiting transmission */
@@ -1005,8 +1006,8 @@ i82563replenish(Ctlr* ctlr)
 			panic("#l%d: 82563: all %d rx buffers in use, nrbfull %d",
 				ctlr->edev->ctlrno, Nrb, nrbfull);
 		ctlr->rb[rdt] = bp;
-		rd->addr[0] = PCIWADDR(bp->rp);
-//		rd->addr[1] = 0;
+		rd->addr[0] = (uint32_t)PADDR(bp->rp);
+		rd->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
 		rd->status = 0;
 		ctlr->rdfree++;
 		rdt = NEXT(rdt, Nrd);
@@ -1047,8 +1048,8 @@ i82563rxinit(Ctlr* ctlr)
 		break;
 	}
 
-	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
-	csr32w(ctlr, Rdbah, 0);			/* 32-bit system */
+	csr32w(ctlr, Rdbal, (uint32_t)PADDR(ctlr->rdba));
+	csr32w(ctlr, Rdbah, (uint32_t)(PADDR(ctlr->rdba) >> 32));
 	csr32w(ctlr, Rdlen, Nrd * sizeof(Rd));
 	ctlr->rdh = ctlr->rdt = 0;
 	csr32w(ctlr, Rdh, 0);
