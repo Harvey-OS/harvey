@@ -449,7 +449,7 @@ struct v6params {
 	Hostparams hp;
 	v6router v6rlist[3]; /* max 3 default routers, currently */
 	int cdrouter;	     /* uses only v6rlist[cdrouter] if   */
-	/* cdrouter >= 0. */
+			     /* cdrouter >= 0. */
 };
 
 int Fsconnected(Conv *, char *);

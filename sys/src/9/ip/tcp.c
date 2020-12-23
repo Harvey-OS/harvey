@@ -224,7 +224,7 @@ struct Tcpctl {
 		int retransmit; /* retransmit 1 packet @ una flag */
 		int rto;
 		uint32_t rxt; /* right window marker for recovery */
-		/* "recover" rfc3782 */
+			      /* "recover" rfc3782 */
 	} snd;
 	struct {
 		uint32_t nxt;  /* Receive pointer to next uint8_t slot */
