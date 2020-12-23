@@ -41,7 +41,7 @@ Sys *const sys = UINT2PTR(KSYS);
  */
 char *cputype = "amd64";
 static int64_t oargc;
-static char* oargv[128];
+static char *oargv[128];
 static char oargb[4096];
 static int oargblen;
 
@@ -67,25 +67,26 @@ static int showpost = 0;
 // Don't fall into the trap of using macros for this capability; the Plan 9 rule is that
 // code always compiles, and macros usually break that rule. The cost in space
 // and time of this bit of extra code is so small as to not matter.
-void post(char *msg, uint8_t terminal)
+void
+post(char *msg, uint8_t terminal)
 {
-	if (!showpost)
+	if(!showpost)
 		return;
-	for(int i = 0; i < strlen(msg); i++) {
+	for(int i = 0; i < strlen(msg); i++){
 		outb(0x3f8, msg[i]);
 		outb(0x80, msg[i]);
 	}
 	outb(0x80, terminal);
 }
-void*
-sigscan(uint8_t* address, int length, char* signature)
+void *
+sigscan(uint8_t *address, int length, char *signature)
 {
 	uint8_t *e, *p;
 	int siglength;
 
-	e = address+length;
+	e = address + length;
 	siglength = strlen(signature);
-	for(p = address; p+siglength < e; p += 16){
+	for(p = address; p + siglength < e; p += 16){
 		if(memcmp(p, signature, siglength))
 			continue;
 		return p;
@@ -138,17 +139,17 @@ machp_bad(void)
 }
 
 void
-optionsinit(char* s)
+optionsinit(char *s)
 {
 	oargblen = strlcpy(oargb, s, sizeof(oargb));
-	if(oargblen>=sizeof(oargb))
+	if(oargblen >= sizeof(oargb))
 		panic("optionsinit: kernel command line too long");
-	oargc = tokenize(oargb, oargv, nelem(oargv)-1);
+	oargc = tokenize(oargb, oargv, nelem(oargv) - 1);
 	oargv[oargc] = nil;
 }
 
 static void
-options(int argc, char* argv[])
+options(int argc, char *argv[])
 {
 	char *p;
 	char *env[2];
@@ -164,15 +165,15 @@ options(int argc, char* argv[])
 	 * '--' ends flag processing.
 	 */
 	while(--argc > 0){
-		char* next = *++argv;
-		if(next[0] =='-' && next[1] != '-'){
+		char *next = *++argv;
+		if(next[0] == '-' && next[1] != '-'){
 			while((o = *++argv[0]) != '\0'){
 				if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
 					continue;
-				n = strtol(argv[0]+1, &p, 0);
-				if(p == argv[0]+1 || n < 1 || n > 127)
+				n = strtol(argv[0] + 1, &p, 0);
+				if(p == argv[0] + 1 || n < 1 || n > 127)
 					n = 1;
-				argv[0] = p-1;
+				argv[0] = p - 1;
 				dbgflg[o] = n;
 			}
 		}else{
@@ -194,7 +195,7 @@ options(int argc, char* argv[])
 }
 
 void
-loadenv(int argc, char* argv[])
+loadenv(int argc, char *argv[])
 {
 	char *env[2];
 
@@ -202,14 +203,14 @@ loadenv(int argc, char* argv[])
 	 * Process command line env options
 	 */
 	while(--argc > 0){
-		char* next = *++argv;
-		if(next[0]!='-'){
+		char *next = *++argv;
+		if(next[0] != '-'){
 			print("loadenv: processing '%s'\n", next);
 			if(strchr(next, '=') == nil){
 				print("Ignoring parameter (%s) with no value.\n", next);
 				continue;
 			}
-			if (gettokens(next, env, 2, "=") == 2)
+			if(gettokens(next, env, 2, "=") == 2)
 				ksetenv(env[0], env[1], 0);
 		}
 	}
@@ -236,7 +237,6 @@ squidboy(Mach *mach)
 	// no NIXAC for now.
 	mach->NIX.nixtype = NIXTC;
 
-
 	// NOTE: you can't do ANYTHING here before vsvminit.
 	// PRINT WILL PANIC. So wait.
 	vsvminit(MACHSTKSZ, mach->NIX.nixtype, mach);
@@ -252,7 +252,7 @@ squidboy(Mach *mach)
 		hz = 2000000000ll;
 	mach->cpuhz = hz;
 	mach->cyclefreq = hz;
-	mach->cpumhz = hz/1000000ll;
+	mach->cpumhz = hz / 1000000ll;
 
 	mmuinit();
 	if(!apiconline())
@@ -275,8 +275,8 @@ squidboy(Mach *mach)
 	mach->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		mach->machno, corecolor(mach->machno), rolename[mach->NIX.nixtype], mach->rdtsc);
-	if (mach->machno + 1 > num_cpus){
+	      mach->machno, corecolor(mach->machno), rolename[mach->NIX.nixtype], mach->rdtsc);
+	if(mach->machno + 1 > num_cpus){
 		num_cpus = mach->machno + 1;
 	}
 	switch(mach->NIX.nixtype){
@@ -284,7 +284,7 @@ squidboy(Mach *mach)
 		acmmuswitch();
 		acinit();
 		adec(&active.nbooting);
-		ainc(&active.nonline);	/* this was commented out */
+		ainc(&active.nonline); /* this was commented out */
 		acsched();
 		panic("squidboy");
 		break;
@@ -357,7 +357,7 @@ nixsquids(void)
 				sys->nmach++;
 				mach->NIX.nixtype = NIXTC;
 				sys->nc[NIXTC]++;
-			} else
+			}else
 				sys->nc[NIXAC]++;
 			ainc(&active.nbooting);
 		}
@@ -367,10 +367,9 @@ nixsquids(void)
 	machp()->rdtsc = rdtsc();
 	active.thunderbirdsarego = 1;
 	start = fastticks2us(fastticks(nil));
-	do{
+	do {
 		now = fastticks2us(fastticks(nil));
-	}while(active.nbooting > 0 && now - start < 1000000)
-		;
+	} while(active.nbooting > 0 && now - start < 1000000);
 	if(active.nbooting > 0)
 		print("cpu0: %d cores couldn't start\n", active.nbooting);
 	active.nbooting = 0;
@@ -405,9 +404,9 @@ wave(int c)
 void
 hi(char *s)
 {
-	if (! s)
+	if(!s)
 		s = "<NULL>";
-	while (*s)
+	while(*s)
 		wave(*s++);
 }
 
@@ -415,8 +414,8 @@ void
 hihex(uint64_t x)
 {
 	const char *hex = "0123456789abcdef";
-	for (int i = 60; i >= 0; i -= 4)
-		wave(hex[(x>>i)&0xF]);
+	for(int i = 60; i >= 0; i -= 4)
+		wave(hex[(x >> i) & 0xF]);
 }
 
 /*
@@ -432,14 +431,16 @@ hihex(uint64_t x)
  */
 
 int staydead = 1;
-void die(char *s)
+void
+die(char *s)
 {
 	wave('d');
 	wave('i');
 	wave('e');
 	wave(':');
 	hi(s);
-	while(staydead);
+	while(staydead)
+		;
 	staydead = 1;
 }
 
@@ -449,7 +450,8 @@ badcall(uint64_t where, uint64_t what)
 	hi("Bad call from function ");
 	hihex(where);
 	hi(" to ");
-	hihex(what); hi("\n");
+	hihex(what);
+	hi("\n");
 	for(;;)
 		;
 }
@@ -487,19 +489,19 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 
 	// Initialize VSM so that we can use interrupts and so forth.
 	vsvminit(MACHSTKSZ, NIXTC, mach);
-	if (machp() != mach)
+	if(machp() != mach)
 		panic("After vsvminit, m and machp() are different");
 
 	// The kernel maps the first 4GiB before entry to main().  If the
 	// image is too big, we will fail to boot properly.
-	if((uintptr_t)end-KZERO > 4ULL*GiB)
+	if((uintptr_t)end - KZERO > 4ULL * GiB)
 		panic("main: kernel too big: image ends after 4GiB");
 
 	/*
 	 * Check that our data is on the right boundaries.
 	 * This works because the immediate value is in code.
 	 */
-	if (x != 0x123456)
+	if(x != 0x123456)
 		panic("Data is not set up correctly\n");
 
 	sys->cyclefreq = mach->cpuhz;
@@ -513,7 +515,7 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr_t)*8);
+	cgapost(sizeof(uintptr_t) * 8);
 
 	mallocinit();
 	pamapinit();
@@ -537,7 +539,7 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 		mach->cpuhz = hz;
 		mach->cyclefreq = hz;
 		sys->cyclefreq = hz;
-		mach->cpumhz = hz/1000000ll;
+		mach->cpumhz = hz / 1000000ll;
 	}
 	//iprint("archhz returns 0x%lld\n", hz);
 	//iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
@@ -583,9 +585,9 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 	apiconline();
 	ioapiconline();
 	/* Forcing to single core if desired */
-	if(!nosmp) {
+	if(!nosmp){
 		sipi();
-	} else {
+	}else{
 		print("SMP Disabled by command line\n");
 	}
 	timersinit();
@@ -602,7 +604,7 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 	swapinit();
 	userinit();
 	/* Forcing to single core if desired */
-	if(!nosmp) {
+	if(!nosmp){
 		nixsquids();
 		testiccs();
 	}
@@ -621,7 +623,7 @@ void
 init0(void)
 {
 	Proc *up = externup();
-	char buf[2*KNAMELEN];
+	char buf[2 * KNAMELEN];
 
 	up->nerrlab = 0;
 
@@ -668,8 +670,8 @@ bootargs(uintptr_t base)
 	 * because there are fewer than the maximum number of
 	 * args by subtracting sizeof(up->arg).
 	 */
-	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc*)0)->arg) - i));
+	i = oargblen + 1;
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc *)0)->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -681,9 +683,9 @@ bootargs(uintptr_t base)
 	 * not the usual (int argc, char* argv[]), but argv0 is
 	 * unused so it doesn't matter (at the moment...).
 	 */
-	av = (char**)(p - (oargc+2)*sizeof(char*));
+	av = (char **)(p - (oargc + 2) * sizeof(char *));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
-	*av++ = (char*)oargc;
+	*av++ = (char *)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;
@@ -722,7 +724,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -734,9 +736,9 @@ userinit(void)
 	 * shouldn't be the case here.
 	 */
 	sno = 0;
-	s = newseg(SG_STACK|SG_READ|SG_WRITE, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
+	s = newseg(SG_STACK | SG_READ | SG_WRITE, USTKTOP - USTKSIZE, USTKSIZE / BIGPGSZ);
 	p->seg[sno++] = s;
-	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
+	pg = newpage(1, 0, USTKTOP - BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
@@ -745,7 +747,7 @@ userinit(void)
 	/*
 	 * Text
 	 */
-	s = newseg(SG_TEXT|SG_READ|SG_EXEC, UTZERO, 1);
+	s = newseg(SG_TEXT | SG_READ | SG_EXEC, UTZERO, 1);
 	s->flushme++;
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
@@ -759,7 +761,7 @@ userinit(void)
 	/*
 	 * Data
 	 */
-	s = newseg(SG_DATA|SG_READ|SG_WRITE, UTZERO + BIGPGSZ, 1);
+	s = newseg(SG_DATA | SG_READ | SG_WRITE, UTZERO + BIGPGSZ, 1);
 	s->flushme++;
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
@@ -783,7 +785,7 @@ confinit(void)
 	int i;
 
 	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
+	for(i = 0; i < nelem(conf.mem); i++)
 		conf.npage += conf.mem[i].npage;
 	conf.nproc = 1000;
 	conf.nimage = 200;
@@ -811,7 +813,7 @@ shutdown(int ispanic)
 		iprint("cpu%d: exiting\n", machp()->machno);
 
 	spllo();
-	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
+	for(ms = 5 * 1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
 		if(active.nonline == 0 && consactive() == 0)
 			break;
@@ -823,13 +825,12 @@ shutdown(int ispanic)
 		else
 			for(;;)
 				halt();
-	}
-	else
+	}else
 		delay(1000);
 }
 
 void
-reboot(void* v, void* w, int32_t i)
+reboot(void *v, void *w, int32_t i)
 {
 	panic("reboot\n");
 }
