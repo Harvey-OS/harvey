@@ -13,50 +13,50 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa)	UINT2PTR(kseg0+((uintptr)(pa)))
-#define _PADDR(va)	PTR2UINT(((uintptr)(va)) - kseg0)
+#define _KADDR(pa) UINT2PTR(kseg0 + ((uintptr)(pa)))
+#define _PADDR(va) PTR2UINT(((uintptr)(va)) - kseg0)
 
 /* physical is from 2 -> 4 GiB */
-#define TMFM		(4ULL*GiB)
+#define TMFM (4ULL * GiB)
 
 /* the wacko hole in RISCV address space makes KADDR a bit more complex. */
 int km, ku, k2;
-void*
+void *
 KADDR(uintptr_t pa)
 {
-	if((pa > 2 * GiB) && (pa < TMFM)) {
+	if((pa > 2 * GiB) && (pa < TMFM)){
 		km++;
-		return (void *)(KSEG0|pa);
+		return (void *)(KSEG0 | pa);
 	}
 
 	assert(pa < (uintptr_t)kseg2);
 	k2++;
-	return (void *)((uintptr_t)kseg2|pa);
+	return (void *)((uintptr_t)kseg2 | pa);
 }
 
 uintmem
-PADDR(void* va)
+PADDR(void *va)
 {
 	uintmem pa;
 
 	pa = PTR2UINT(va);
-	if(pa >= KSEG0) {
-		return (uintmem)(uint32_t)pa; //-KSEG0;
+	if(pa >= KSEG0){
+		return (uintmem)(uint32_t)pa;	     //-KSEG0;
 	}
-	if(pa > (uintptr_t)kseg2) {
-		return pa-(uintptr_t)kseg2;
+	if(pa > (uintptr_t)kseg2){
+		return pa - (uintptr_t)kseg2;
 	}
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());
 	return 0;
 }
 
-KMap*
-kmap(Page* page)
+KMap *
+kmap(Page *page)
 {
 	DBG("kmap(%#llx) @ %#p: %#p %#p\n",
-		page->pa, getcallerpc(),
-		page->pa, KADDR(page->pa));
+	    page->pa, getcallerpc(),
+	    page->pa, KADDR(page->pa));
 
 	return KADDR(page->pa);
 }

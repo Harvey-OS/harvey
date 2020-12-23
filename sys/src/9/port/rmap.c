@@ -15,21 +15,21 @@
 
 typedef struct Map Map;
 struct Map {
-        uint32_t   size;
-        uint32_t   addr;
+	uint32_t size;
+	uint32_t addr;
 };
 
 typedef struct RMap RMap;
 struct RMap {
-        char*   name;
-        Map*    map;
-        Map*    mapend;
+	char *name;
+	Map *map;
+	Map *mapend;
 
-        Lock Lock;
+	Lock Lock;
 };
 
 void
-rmapfree(RMap* rmap, uintptr_t addr, uint size)
+rmapfree(RMap *rmap, uintptr_t addr, uint size)
 {
 	Map *mp;
 	uint t;
@@ -41,22 +41,22 @@ rmapfree(RMap* rmap, uintptr_t addr, uint size)
 	for(mp = rmap->map; mp->addr <= addr && mp->size; mp++)
 		;
 
-	if(mp > rmap->map && (mp-1)->addr+(mp-1)->size == addr){
-		(mp-1)->size += size;
-		if(addr+size == mp->addr){
-			(mp-1)->size += mp->size;
+	if(mp > rmap->map && (mp - 1)->addr + (mp - 1)->size == addr){
+		(mp - 1)->size += size;
+		if(addr + size == mp->addr){
+			(mp - 1)->size += mp->size;
 			while(mp->size){
 				mp++;
-				(mp-1)->addr = mp->addr;
-				(mp-1)->size = mp->size;
+				(mp - 1)->addr = mp->addr;
+				(mp - 1)->size = mp->size;
 			}
 		}
-	}else{
-		if(addr+size == mp->addr && mp->size){
+	} else {
+		if(addr + size == mp->addr && mp->size){
 			mp->addr -= size;
 			mp->size += size;
-		}else{
-			do{
+		} else {
+			do {
 				if(mp >= rmap->mapend){
 					print("mapfree: %s: losing 0x%lX, %u\n", rmap->name, addr, size);
 					break;
@@ -67,14 +67,14 @@ rmapfree(RMap* rmap, uintptr_t addr, uint size)
 				t = mp->size;
 				mp->size = size;
 				mp++;
-			}while((size = t) != 0);
+			} while((size = t) != 0);
 		}
 	}
 	unlock(&rmap->Lock);
 }
 
 uintptr_t
-rmapalloc(RMap* rmap, uintptr_t addr, uint size, int align)
+rmapalloc(RMap *rmap, uintptr_t addr, uint size, int align)
 {
 	Map *mp;
 	uint32_t maddr, oaddr;
@@ -97,31 +97,31 @@ rmapalloc(RMap* rmap, uintptr_t addr, uint size, int align)
 			 */
 			if(maddr > addr)
 				break;
-			if(mp->size < addr - maddr)	/* maddr+mp->size < addr, but no overflow */
+			if(mp->size < addr - maddr) /* maddr+mp->size < addr, but no overflow */
 				continue;
-			if(addr - maddr > mp->size - size)	/* addr+size > maddr+mp->size, but no overflow */
+			if(addr - maddr > mp->size - size) /* addr+size > maddr+mp->size, but no overflow */
 				break;
 			maddr = addr;
 		}
 
 		if(align > 0)
-			maddr = ((maddr+align-1)/align)*align;
-		if(mp->addr+mp->size-maddr < size)
+			maddr = ((maddr + align - 1) / align) * align;
+		if(mp->addr + mp->size - maddr < size)
 			continue;
 
 		oaddr = mp->addr;
-		mp->addr = maddr+size;
-		mp->size -= maddr-oaddr+size;
+		mp->addr = maddr + size;
+		mp->size -= maddr - oaddr + size;
 		if(mp->size == 0){
-			do{
+			do {
 				mp++;
-				(mp-1)->addr = mp->addr;
-			}while(((mp-1)->size = mp->size) != 0);
+				(mp - 1)->addr = mp->addr;
+			} while(((mp - 1)->size = mp->size) != 0);
 		}
 
 		unlock(&rmap->Lock);
 		if(oaddr != maddr)
-			rmapfree(rmap, oaddr, maddr-oaddr);
+			rmapfree(rmap, oaddr, maddr - oaddr);
 
 		return maddr;
 	}

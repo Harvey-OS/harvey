@@ -16,34 +16,31 @@
 
 #include "ip.h"
 
-enum
-{
-	Maxtu=	16*1024,
+enum {
+	Maxtu = 16 * 1024,
 };
 
 typedef struct LB LB;
-struct LB
-{
-	Proc	*readp;
-	Queue	*q;
-	Fs	*f;
+struct LB {
+	Proc *readp;
+	Queue *q;
+	Fs *f;
 };
 
 static void loopbackread(void *a);
 
 static void
-loopbackbind(Ipifc *ifc, int i, char**argv)
+loopbackbind(Ipifc *ifc, int i, char **argv)
 {
 	LB *lb;
 
 	lb = smalloc(sizeof(*lb));
 	lb->f = ifc->conv->p->f;
-	lb->q = qopen(1024*1024, Qmsg, nil, nil);
+	lb->q = qopen(1024 * 1024, Qmsg, nil, nil);
 	ifc->arg = lb;
 	ifc->mbps = 1000;
 
 	kproc("loopbackread", loopbackread, ifc);
-
 }
 
 static void
@@ -85,7 +82,7 @@ loopbackread(void *a)
 
 	ifc = a;
 	lb = ifc->arg;
-	lb->readp = up;	/* hide identity under a rock for unbind */
+	lb->readp = up; /* hide identity under a rock for unbind */
 	if(waserror()){
 		lb->readp = 0;
 		pexit("hangup", 1);
@@ -113,15 +110,15 @@ loopbackread(void *a)
 }
 
 Medium loopbackmedium =
-{
-.hsize=		0,
-.mintu=		0,
-.maxtu=		Maxtu,
-.maclen=	0,
-.name=		"loopback",
-.bind=		loopbackbind,
-.unbind=	loopbackunbind,
-.bwrite=	loopbackbwrite,
+	{
+		.hsize = 0,
+		.mintu = 0,
+		.maxtu = Maxtu,
+		.maclen = 0,
+		.name = "loopback",
+		.bind = loopbackbind,
+		.unbind = loopbackunbind,
+		.bwrite = loopbackbwrite,
 };
 
 void

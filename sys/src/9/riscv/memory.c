@@ -18,7 +18,7 @@ meminit(void)
 {
 	extern void asmmeminit(void);
 
-print("meminit\n");
+	print("meminit\n");
 	asmmeminit();
 }
 

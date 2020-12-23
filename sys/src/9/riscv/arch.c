@@ -56,9 +56,11 @@ decref(Ref *r)
 	return x;
 }
 
-void fpuprocrestore(Proc *p)
+void
+fpuprocrestore(Proc *p)
 {
-	if (0)print("NOT DOING fpuprocrestore");
+	if(0)
+		print("NOT DOING fpuprocrestore");
 }
 
 void
@@ -107,7 +109,7 @@ linkproc(void)
 }
 
 void
-kprocchild(Proc* p, void (*func)(void*), void* arg)
+kprocchild(Proc *p, void (*func)(void *), void *arg)
 {
 	/*
 	 * gotolabel() needs a word on the stack in
@@ -115,7 +117,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 	 * to linkproc().
 	 */
 	p->sched.pc = PTR2UINT(linkproc);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-BY2SE);
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - BY2SE);
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	p->kpfun = func;
@@ -145,8 +147,8 @@ idlehands(void)
 		timerset(0);
 	 */
 	sip = (uint32_t)read_csr(sip);
-	for(i = 0; *mtimecmp < *mtime; i++) {
-		if (sip & 0x666)
+	for(i = 0; *mtimecmp < *mtime; i++){
+		if(sip & 0x666)
 			break;
 		sip = (uint32_t)read_csr(sip);
 	}

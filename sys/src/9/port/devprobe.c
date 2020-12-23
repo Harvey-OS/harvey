@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"probe.h"
+#include "probe.h"
 
 enum {
 	Qdir,
@@ -57,13 +57,12 @@ static unsigned long logsize = defaultlogsize, logmask = defaultlogsize - 1;
 
 static char eventname[] = {
 	[ProbeEntry] = 'E',
-	[ProbeExit] = 'X'
-};
+	[ProbeExit] = 'X'};
 
-static Dirtab probedir[]={
-	{".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555},
-	{"probectl",	{Qctl},		0,		0664},
-	{"probe",	{Qdata},	0,		0440},
+static Dirtab probedir[] = {
+	{".", {Qdir, 0, QTDIR}, 0, DMDIR | 0555},
+	{"probectl", {Qctl}, 0, 0664},
+	{"probe", {Qdata}, 0, 0440},
 };
 
 char hex[] = {
@@ -91,7 +90,7 @@ hex32(uint32_t l, char *c)
 {
 	int i;
 	for(i = 8; i; i--){
-		c[i-1] = hex[l&0xf];
+		c[i - 1] = hex[l & 0xf];
 		l >>= 4;
 	}
 }
@@ -99,7 +98,7 @@ hex32(uint32_t l, char *c)
 void
 hex64(uint64_t l, char *c)
 {
-	hex32(l>>32, c);
+	hex32(l >> 32, c);
 	hex32(l, &c[8]);
 }
 static int
@@ -126,7 +125,7 @@ newpl(void)
 {
 	uint32_t index;
 
-	if (logfull()){
+	if(logfull()){
 		wakeup(&probesleep);
 		return nil;
 	}
@@ -136,16 +135,15 @@ newpl(void)
 	iunlock(&loglk);
 
 	return &probelog[idx(index)];
-
 }
 
 static void
 probeentry(Probe *p)
 {
 	struct Probelog *pl;
-//print("probeentry %p p %p func %p argp %p\n", &p, p, p->func, p->argp);
+	//print("probeentry %p p %p func %p argp %p\n", &p, p, p->func, p->argp);
 	pl = newpl();
-	if (! pl)
+	if(!pl)
 		return;
 	cycles(&pl->ticks);
 	pl->pc = (uint32_t)p->func;
@@ -159,10 +157,10 @@ probeentry(Probe *p)
 static void
 probeexit(Probe *p)
 {
-//print("probeexit %p p %p func %p argp %p\n", &p, p, p->func, p->argp);
+	//print("probeexit %p p %p func %p argp %p\n", &p, p, p->func, p->argp);
 	struct Probelog *pl;
 	pl = newpl();
-	if (! pl)
+	if(!pl)
 		return;
 	cycles(&pl->ticks);
 	pl->pc = (uint32_t)p->func;
@@ -170,13 +168,13 @@ probeexit(Probe *p)
 	pl->info = ProbeExit;
 }
 
-static Chan*
+static Chan *
 probeattach(char *spec)
 {
 	return devattach('+', spec);
 }
 
-static Walkqid*
+static Walkqid *
 probewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, probedir, nelem(probedir), devgen);
@@ -188,16 +186,16 @@ probestat(Chan *c, uint8_t *db, int32_t n)
 	return devstat(c, db, n, probedir, nelem(probedir), devgen);
 }
 
-static Chan*
+static Chan *
 probeopen(Chan *c, int omode)
 {
 	/* if there is no probelog, allocate one. Open always fails
 	  * if the basic alloc fails. You can resize it later.
 	  */
-	if (! probelog)
-		probelog = malloc(sizeof(*probelog)*logsize);
+	if(!probelog)
+		probelog = malloc(sizeof(*probelog) * logsize);
 	/* I guess malloc doesn't toss an error */
-	if (! probelog)
+	if(!probelog)
 		error("probelog malloc failed");
 
 	c = devopen(c, omode, probedir, nelem(probedir), devgen);
@@ -230,14 +228,14 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 		i += snprint(buf + i, READSTR - i, "logsize %lu\n", logsize);
 		for(p = probes; p != nil; p = p->next)
 			i += snprint(buf + i, READSTR - i, "probe %p new %s\n",
-				p->func, p->name);
+				     p->func, p->name);
 
 		for(p = probes; p != nil; p = p->next)
-			if (p->enabled)
+			if(p->enabled)
 				i += snprint(buf + i, READSTR - i, "probe %s on\n",
-				p->name);
+					     p->name);
 		i += snprint(buf + i, READSTR - i, "#probehits %lu, in queue %lu\n",
-				pw, pw-pr);
+			     pw, pw - pr);
 		snprint(buf + i, READSTR - i, "#probelog %p\n", probelog);
 		qunlock(&probeslk);
 		n = readstr(offset, a, n, buf);
@@ -256,11 +254,11 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 			int j;
 			pl = probelog + idx(pr);
 
-			if ((i + printsize) >= n)
+			if((i + printsize) >= n)
 				break;
 			/* simple format */
 			cp[0] = eventname[pl->info];
-			cp ++;
+			cp++;
 			*cp++ = ' ';
 			hex32(pl->pc, cp);
 			cp[8] = ' ';
@@ -298,7 +296,8 @@ probewrite(Chan *c, void *a, int32_t n, int64_t)
 	qlock(&probeslk);
 	if(waserror()){
 		qunlock(&probeslk);
-		if(s != nil) free(s);
+		if(s != nil)
+			free(s);
 		nexterror();
 	}
 	switch((uint32_t)c->qid.path){
@@ -309,7 +308,7 @@ probewrite(Chan *c, void *a, int32_t n, int64_t)
 		memmove(s, a, n);
 		s[n] = 0;
 		ntok = tokenize(s, tok, nelem(tok));
-		if(!strcmp(tok[0], "probe")){	/* 'probe' ktextaddr 'on'|'off'|'mk'|'del' [name] */
+		if(!strcmp(tok[0], "probe")) { /* 'probe' ktextaddr 'on'|'off'|'mk'|'del' [name] */
 			if(ntok < 3)
 				error("devprobe: usage: 'probe' [ktextaddr|name] 'on'|'off'|'mk'|'del' [name]");
 			for(pp = &probes; *pp != nil; pp = &(*pp)->next)
@@ -320,11 +319,11 @@ probewrite(Chan *c, void *a, int32_t n, int64_t)
 				uint32_t addr;
 				void *func;
 				addr = strtoul(tok[1], &ep, 0);
-				func = (void*)addr;
+				func = (void *)addr;
 				if(*ep)
 					error("devprobe: address not in recognized format");
-			//	if(addr < ((uint32_t) start) || addr > ((uint32_t) end))
-			//		error("devprobe: address out of bounds");
+				//	if(addr < ((uint32_t) start) || addr > ((uint32_t) end))
+				//		error("devprobe: address out of bounds");
 				if(p != nil)
 					error("devprobe: 0x%p already has probe");
 				p = mkprobe(func, probeentry, probeexit);
@@ -339,7 +338,7 @@ probewrite(Chan *c, void *a, int32_t n, int64_t)
 					error("devprobe: probe not found");
 				if(!p->enabled)
 					probeinstall(p);
-print("probeinstall in devprobe\n");
+				print("probeinstall in devprobe\n");
 				probesactive++;
 			} else if(!strcmp(tok[2], "off")){
 				if(p == nil)
@@ -371,7 +370,7 @@ print("probeinstall in devprobe\n");
 			size = 1 << l;
 			/* sort of foolish. Alloc new probe first, then free old. */
 			/* and too bad if there are unread probes */
-			newprobelog = malloc(sizeof(*newprobelog)*size);
+			newprobelog = malloc(sizeof(*newprobelog) * size);
 			/* does malloc throw waserror? I don't know */
 			free(probelog);
 			probelog = newprobelog;

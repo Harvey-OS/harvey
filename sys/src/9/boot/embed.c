@@ -52,18 +52,18 @@ connectembed(void)
 		fatal("bind #c");
 	if(bind("#p", "/proc", MREPL) < 0)
 		fatal("bind #p");
-	if(pipe(p)<0)
+	if(pipe(p) < 0)
 		fatal("pipe");
 	switch(fork()){
 	case -1:
 		fatal("fork");
 	case 0:
-		arg = malloc((bargc+5)*sizeof(char*));
+		arg = malloc((bargc + 5) * sizeof(char *));
 		argp = arg;
 		*argp++ = "/boot/paqfs";
 		*argp++ = "-iv";
 		*argp++ = paqfile;
-		for(i=1; i<bargc; i++)
+		for(i = 1; i < bargc; i++)
 			*argp++ = bargv[i];
 		*argp = 0;
 

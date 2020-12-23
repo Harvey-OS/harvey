@@ -13,14 +13,13 @@
 
 #include "boot.h"
 
-static	uint8_t	fsip[IPaddrlen];
-static	uint8_t	auip[IPaddrlen];
-static	char	mpoint[32];
+static uint8_t fsip[IPaddrlen];
+static uint8_t auip[IPaddrlen];
+static char mpoint[32];
 
-static int isvalidip(uint8_t*);
-static void netndb(char*, uint8_t*);
-static void netenv(char*, uint8_t*);
-
+static int isvalidip(uint8_t *);
+static void netndb(char *, uint8_t *);
+static void netenv(char *, uint8_t *);
 
 void
 configip(int bargc, char **bargv, int needfs)
@@ -33,17 +32,18 @@ configip(int bargc, char **bargv, int needfs)
 	fmtinstall('M', eipfmt);
 	fmtinstall('E', eipfmt);
 
-	arg = malloc((bargc+1) * sizeof(char*));
+	arg = malloc((bargc + 1) * sizeof(char *));
 	if(arg == nil)
 		fatal("malloc");
-	memmove(arg, bargv, bargc * sizeof(char*));
+	memmove(arg, bargv, bargc * sizeof(char *));
 	arg[bargc] = 0;
 
 	print("ipconfig...");
 	argc = bargc;
 	argv = arg;
 	strcpy(mpoint, "/net");
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'x':
 		p = ARGF();
 		if(p != nil)
@@ -56,7 +56,8 @@ configip(int bargc, char **bargv, int needfs)
 		p = ARGF();
 		USED(p);
 		break;
-	} ARGEND;
+	}
+	ARGEND;
 
 	/* bind in an ip interface */
 	if(bind("#I", mpoint, MAFTER) < 0)
@@ -105,7 +106,7 @@ configip(int bargc, char **bargv, int needfs)
 	while(!isvalidip(fsip)){
 		memset(buf, 0, sizeof(buf));
 		outin("filesystem IP address", buf, sizeof(buf));
-		if (parseip(fsip, buf) == -1)
+		if(parseip(fsip, buf) == -1)
 			fprint(2, "configip: can't parse fs ip %s\n", buf);
 	}
 
@@ -115,7 +116,7 @@ configip(int bargc, char **bargv, int needfs)
 	while(!isvalidip(auip)){
 		memset(buf, 0, sizeof(buf));
 		outin("authentication server IP address", buf, sizeof(buf));
-		if (parseip(auip, buf) == -1)
+		if(parseip(auip, buf) == -1)
 			fprint(2, "configip: can't parse auth ip %s\n", buf);
 	}
 	free(arg);
@@ -131,7 +132,7 @@ setauthaddr(char *proto, int port)
 }
 
 void
-configtcp(Method* m)
+configtcp(Method *m)
 {
 	configip(bargc, bargv, 1);
 	setauthaddr("tcp", 567);
@@ -145,7 +146,7 @@ connecttcp(void)
 
 	snprint(buf, sizeof buf, "tcp!%I!5640", fsip);
 	fd = dial(buf, 0, 0, 0);
-	if (fd < 0)
+	if(fd < 0)
 		werrstr("dial %s: %r", buf);
 	return fd;
 }
@@ -172,10 +173,10 @@ netenv(char *attr, uint8_t *ip)
 	if(fd < 0)
 		return;
 
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	if(n > 0){
 		buf[n] = 0;
-		if (parseip(ip, buf) == -1)
+		if(parseip(ip, buf) == -1)
 			fprint(2, "netenv: can't parse ip %s\n", buf);
 	}
 	close(fd);
@@ -193,20 +194,20 @@ netndb(char *attr, uint8_t *ip)
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return;
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	close(fd);
 	if(n <= 0)
 		return;
 	buf[n] = 0;
 	n = strlen(attr);
-	for(p = buf; ; p++){
+	for(p = buf;; p++){
 		p = strstr(p, attr);
 		if(p == nil)
 			break;
-		c = *(p-1);
+		c = *(p - 1);
 		if(*(p + n) == '=' && (p == buf || c == '\n' || c == ' ' || c == '\t')){
-			p += n+1;
-			if (parseip(ip, p) == -1)
+			p += n + 1;
+			if(parseip(ip, p) == -1)
 				fprint(2, "netndb: can't parse ip %s\n", p);
 			return;
 		}

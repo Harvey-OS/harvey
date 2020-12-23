@@ -25,7 +25,7 @@ cpuiddump(void)
 int64_t
 archhz(void)
 {
-	return 1000*1000*1000*2ULL;
+	return 1000 * 1000 * 1000 * 2ULL;
 }
 
 int
@@ -46,28 +46,28 @@ archmmu(void)
 	 * Always have 4*KiB, but need to check
 	 * configured correctly.
 	 */
-	assert(PGSZ == 4*KiB);
+	assert(PGSZ == 4 * KiB);
 
 	sys->pgszlg2[0] = 12;
-	sys->pgszmask[0] = (1<<12)-1;
-	sys->pgsz[0] = 1<<12;
+	sys->pgszmask[0] = (1 << 12) - 1;
+	sys->pgsz[0] = 1 << 12;
 	sys->npgsz = 1;
 
 	sys->pgszlg2[1] = 21;
-	sys->pgszmask[1] = (1<<21)-1;
-	sys->pgsz[1] = 1<<21;
+	sys->pgszmask[1] = (1 << 21) - 1;
+	sys->pgsz[1] = 1 << 21;
 	sys->npgsz = 2;
 
-		sys->pgszlg2[2] = 30;
-		sys->pgszmask[2] = (1<<30)-1;
-		sys->pgsz[2] = 1<<30;
-		sys->npgsz = 3;
+	sys->pgszlg2[2] = 30;
+	sys->pgszmask[2] = (1 << 30) - 1;
+	sys->pgsz[2] = 1 << 30;
+	sys->npgsz = 3;
 
 	return sys->npgsz;
 }
 
 static int
-fmtP(Fmt* f)
+fmtP(Fmt *f)
 {
 	uintmem pa;
 
@@ -80,7 +80,7 @@ fmtP(Fmt* f)
 }
 
 static int
-fmtL(Fmt* f)
+fmtL(Fmt *f)
 {
 	Mpl pl;
 
@@ -90,7 +90,7 @@ fmtL(Fmt* f)
 }
 
 static int
-fmtR(Fmt* f)
+fmtR(Fmt *f)
 {
 	uint64_t r;
 
@@ -107,9 +107,8 @@ fmtW(Fmt *f)
 
 	va = va_arg(f->args, uint64_t);
 	return fmtprint(f, "%#llx=0x[%llx][%llx][%llx][%llx][%llx]", va,
-		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
-		va & ((1<<PGSHFT)-1));
-
+			PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
+			va & ((1 << PGSHFT) - 1));
 }
 
 void
@@ -135,14 +134,14 @@ archfmtinstall(void)
 void
 archidle(void)
 {
-panic("archidle"); //	halt();
+	panic("archidle");	  //	halt();
 }
 
 void
 microdelay(int microsecs)
 {
-print("microdelay\n");
-/*
+	print("microdelay\n");
+	/*
 	uint64_t r, t;
 
 	r = rdtsc();
@@ -154,8 +153,8 @@ print("microdelay\n");
 void
 millidelay(int millisecs)
 {
-print("millidelay\n");
-/*
+	print("millidelay\n");
+	/*
 	uint64_t r, t;
 
 	r = rdtsc();

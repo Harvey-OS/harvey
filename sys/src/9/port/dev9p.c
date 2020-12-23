@@ -10,28 +10,27 @@
 
 // dev9p.c ('#9'): a virtio9p protocol translation driver to use QEMU's built-in 9p.
 
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
+#include "virtio_ring.h"
 
-#include	"virtio_ring.h"
+#include "virtio_config.h"
+#include "virtio_9p.h"
+#include "virtio_pci.h"
 
-#include	"virtio_config.h"
-#include	"virtio_9p.h"
-#include	"virtio_pci.h"
+#include "virtio_lib.h"
 
-#include	"virtio_lib.h"
-
-char* strdup(char *s);
+char *strdup(char *s);
 
 // Functions from devmnt.c
 
-int32_t	mntrdwr(int, Chan*, void*, int32_t, int64_t);
+int32_t mntrdwr(int, Chan *, void *, int32_t, int64_t);
 
 void mntdirfix(uint8_t *dirbuf, Chan *c);
 
@@ -39,11 +38,11 @@ extern char Esbadstat[];
 
 // We use this version string to communicate with QEMU virtio-9P.
 
-#define    VERSION9PU       "9P2000.u"
+#define VERSION9PU "9P2000.u"
 
 // Same as in devmnt.c
 
-#define MAXRPC (IOHDRSZ+128*1024)
+#define MAXRPC (IOHDRSZ + 128 * 1024)
 
 // Buffer size
 
@@ -80,16 +79,15 @@ static int initdone;
 // read request. Write request will return immediately, but the buffer will be only held until read request
 // comes. Then both buffers are sent to virtqueue, and the result is returned to the caller.
 
-struct holdbuf
-{
-	void *rdbuf;				// read buffer (response)
-	int32_t rdlen;				// read length (allocated)
-	int32_t rfree;				// if true then read buffer was malloc'd and needs to be freed
-	void *wrbuf;				// write buffer (request)
-	int32_t wrlen;				// write length (supplied)
-	int32_t wfree;				// if true then write buffer was malloc'd and needs to be freed
-	Proc *proc;					// holding process
-	int descr;					// virtqueue descriptor index for the request
+struct holdbuf {
+	void *rdbuf;	      // read buffer (response)
+	int32_t rdlen;	      // read length (allocated)
+	int32_t rfree;	      // if true then read buffer was malloc'd and needs to be freed
+	void *wrbuf;	      // write buffer (request)
+	int32_t wrlen;	      // write length (supplied)
+	int32_t wfree;	      // if true then write buffer was malloc'd and needs to be freed
+	Proc *proc;	      // holding process
+	int descr;	      // virtqueue descriptor index for the request
 };
 
 // PID cache structure. We need a way to find the currently held buffer by a calling process fast.
@@ -100,29 +98,27 @@ struct holdbuf
 #define PIDCSIZE 16
 #define PIDCMASK 0x0F
 
-struct pidcache
-{
-	int pid;					// actual PID
-	struct holdbuf *hb;			// hold buffer structure pointer
+struct pidcache {
+	int pid;		   // actual PID
+	struct holdbuf *hb;	   // hold buffer structure pointer
 };
 
 // Per-mount (virtqueue) structure. It holds an array of hold buffer structures of the same
 // length as the number of descriptors in the queue.
 
-static struct v9pmnt
-{
-	char *tag;					// mount tag (from host)
+static struct v9pmnt {
+	char *tag;				// mount tag (from host)
 	char *version;				// 9p version (from host)
 	uint32_t msize;				// message size (need this to pad short buffers otherwise QEMU errors out)
-	Virtq *vq;					// associated virtqueue
-	struct holdbuf *hbufs;		// hold buffers
+	Virtq *vq;				// associated virtqueue
+	struct holdbuf *hbufs;			// hold buffers
 	struct pidcache pidch[PIDCSIZE];	// PID cache
 	Lock pclock;				// PID cache lock
-	int pcuse;					// cache usage counter (entering processes)
-	int pchit;					// cache hits counter
-	int pcmiss;					// cache misses counter
+	int pcuse;				// cache usage counter (entering processes)
+	int pchit;				// cache hits counter
+	int pcmiss;				// cache misses counter
 	uint mounted;				// true if mounted
-} *mounts;
+} * mounts;
 
 // Find a hold buffer structure by PID. Nil is returned if no process found.
 // First lookup in the cache, then linearly over the whole array.
@@ -132,9 +128,9 @@ hbbypid(int tidx, int pid)
 {
 	struct holdbuf *ret = nil;
 	lock(&mounts[tidx].pclock);
-	if(mounts[tidx].pidch[pid & PIDCMASK].pid == pid) {
+	if(mounts[tidx].pidch[pid & PIDCMASK].pid == pid){
 		ret = mounts[tidx].pidch[pid & PIDCMASK].hb;
-		if(ret->proc->pid == pid) {	// != is unlikely mb corruption but we have to get around
+		if(ret->proc->pid == pid) {	   // != is unlikely mb corruption but we have to get around
 			mounts[tidx].pchit++;
 			unlock(&mounts[tidx].pclock);
 			return ret;
@@ -142,8 +138,8 @@ hbbypid(int tidx, int pid)
 	}
 	unlock(&mounts[tidx].pclock);
 	mounts[tidx].pcmiss++;
-	for(int i = 0; i < PIDCSIZE; i++) {
-		if(mounts[tidx].hbufs[i].proc->pid == pid) {
+	for(int i = 0; i < PIDCSIZE; i++){
+		if(mounts[tidx].hbufs[i].proc->pid == pid){
 			ret = &mounts[tidx].hbufs[i];
 			return ret;
 		}
@@ -156,14 +152,12 @@ hbbypid(int tidx, int pid)
 static int
 findtag(char *tag)
 {
-	for(int i = 0; i < nv9p; i++)
-	{
+	for(int i = 0; i < nv9p; i++){
 		if(mounts[i].tag && (!strcmp(mounts[i].tag, tag)))
 			return i;
 	}
 	return -1;
 }
-
 
 static void
 v9pinit(void)
@@ -172,7 +166,7 @@ v9pinit(void)
 
 	print("virtio-9p initializing\n");
 	mdevtab = devtabget('M', 1);
-	if(mdevtab == nil) {
+	if(mdevtab == nil){
 		print("no #M device found, cannot initialize virtio-9p");
 		return;
 	}
@@ -180,7 +174,7 @@ v9pinit(void)
 	if(nvdev <= 0)
 		return;
 	v9ps = mallocz(nvdev * sizeof(Vqctl *), 1);
-	if(v9ps == nil) {
+	if(v9ps == nil){
 		print("no memory to allocate v9p\n");
 		return;
 	}
@@ -189,12 +183,12 @@ v9pinit(void)
 	if(nv9p <= 0)
 		return;
 	mounts = mallocz(sizeof(struct v9pmnt) * nv9p, 1);
-	if(mounts == nil) {
+	if(mounts == nil){
 		print("no memory to allocate v9p\n");
 		return;
 	}
 	print("virtio 9p mounts found: %d\n", nv9p);
-	for(int i = 0; i < nv9p; i++) {
+	for(int i = 0; i < nv9p; i++){
 		struct virtio_9p_config vcfg;
 		int rc = readvdevcfg(v9ps[i], &vcfg, sizeof(vcfg), 0);
 		if(rc < 0)
@@ -220,24 +214,19 @@ do_request(int gdescr, int tidx, void *inbuf, int32_t inlen, void *outbuf, int32
 {
 	uint16_t descr[1];
 	Virtq *vq = v9ps[tidx]->vqs[0];
-	if(vq == nil) {
+	if(vq == nil){
 		error("No virtqueue (nil address)");
 	}
 	descr[0] = gdescr;
 	struct vring_desc req[2] = {
-		{
-			.addr = PADDR(outbuf),
-			.len = outlen,
-			.flags = VRING_DESC_F_NEXT,
-			.next = 1
-		},
-		{
-			.addr = PADDR(inbuf),
-			.len = inlen,
-			.flags = VRING_DESC_F_WRITE,
-			.next = 0
-		}
-	};
+		{.addr = PADDR(outbuf),
+		 .len = outlen,
+		 .flags = VRING_DESC_F_NEXT,
+		 .next = 1},
+		{.addr = PADDR(inbuf),
+		 .len = inlen,
+		 .flags = VRING_DESC_F_WRITE,
+		 .next = 0}};
 	q2descr(vq, descr[0])->addr = PADDR(&req);
 	q2descr(vq, descr[0])->len = sizeof(req);
 	q2descr(vq, descr[0])->flags = VRING_DESC_F_INDIRECT;
@@ -264,22 +253,20 @@ phwrite(Chan *c, void *va, int32_t n, int64_t offset)
 	void *nva;
 	int lnva;
 	int alloc;
-	switch(mtype)
-	{
+	switch(mtype){
 	case Tversion:
-			alloc = 1;
-			Fcall f = {
-				.type = mtype,
-				.tag = GBIT16(msg + 5),
-				.msize = GBIT32(msg + 7),
-				.version = VERSION9PU
-			};
-			lnva = IOHDRSZ + strlen(f.version) + 20;
-			nva = mallocz(lnva, 1);
-			convS2M(&f, nva, lnva);
+		alloc = 1;
+		Fcall f = {
+			.type = mtype,
+			.tag = GBIT16(msg + 5),
+			.msize = GBIT32(msg + 7),
+			.version = VERSION9PU};
+		lnva = IOHDRSZ + strlen(f.version) + 20;
+		nva = mallocz(lnva, 1);
+		convS2M(&f, nva, lnva);
 		break;
 	default:
-		if(n >= mounts[tidx].msize) {
+		if(n >= mounts[tidx].msize){
 			nva = va;
 			lnva = n;
 			alloc = 0;
@@ -293,7 +280,7 @@ phwrite(Chan *c, void *va, int32_t n, int64_t offset)
 	uint16_t descr[1];
 	struct v9pmnt *pm = mounts + tidx;
 	int rc = getdescr(pm->vq, 1, descr);
-	if(rc < 1) {
+	if(rc < 1){
 		if(alloc)
 			free(nva);
 		error("not enough virtqueue descriptors");
@@ -326,15 +313,15 @@ v9pread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	isdir = 0;
 	cache = c->flag & CCACHE;
-	if(c->qid.type & QTDIR) {
+	if(c->qid.type & QTDIR){
 		cache = 0;
 		isdir = 1;
 	}
 
 	p = buf;
-	if(cache) {
+	if(cache){
 		nc = mfcread(c, buf, n, off);
-		if(nc > 0) {
+		if(nc > 0){
 			n -= nc;
 			if(n == 0)
 				return nc;
@@ -347,18 +334,18 @@ v9pread(Chan *c, void *buf, int32_t n, int64_t off)
 	}
 
 	n = mntrdwr(Tread, c, buf, n, off);
-	if(isdir) {
+	if(isdir){
 		uint8_t *nbuf = malloc(n);
 		if(nbuf == nil)
 			error(Enomem);
 		uint8_t *xnbuf = nbuf;
-		for(e = &p[n]; p+BIT16SZ < e; p += dirlen){
-			dirlen = BIT16SZ+GBIT16(p);
-			if(p+dirlen > e)
+		for(e = &p[n]; p + BIT16SZ < e; p += dirlen){
+			dirlen = BIT16SZ + GBIT16(p);
+			if(p + dirlen > e)
 				break;
 			uint8_t *pn = p + 41;
 			uint lstrs = 0;
-			for(int i = 0; i < 4; i++) {
+			for(int i = 0; i < 4; i++){
 				int ns = GBIT16(pn);
 				lstrs += ns + 1;
 				pn += ns + BIT16SZ;
@@ -383,7 +370,6 @@ v9pread(Chan *c, void *buf, int32_t n, int64_t off)
 	}
 	return n;
 }
-
 
 // We expect only 9p messages to be received.
 // Some messages need massaging (like Rversion because QEMU does not support vanilla 9P2000
@@ -411,8 +397,7 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 	int mtype = GBIT8(msg + 4);
 	uint32_t mlen = GBIT32(msg);
 	Fcall f;
-	switch(mtype)
-	{
+	switch(mtype){
 	case Rerror:
 		convM2S(msg, n, &f);
 		error(f.ename);
@@ -436,7 +421,7 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 		Dir d;
 		uint8_t *pn = buf + 41;
 		uint lstrs = 0;
-		for(int i = 0; i < 4; i++) {
+		for(int i = 0; i < 4; i++){
 			int ns = GBIT16(pn);
 			lstrs += ns + 1;
 			pn += ns + BIT16SZ;
@@ -452,8 +437,7 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 			mlen = 9 + dms;
 			PBIT32(msg, mlen);
 		}
-	default:
-		;
+	default:;
 	}
 	return mlen;
 }
@@ -464,15 +448,15 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 // It will not be used, cf. "mount none" in Linux. Use "-d '#9'" to use
 // proper mount device methods.
 
-static Chan*
+static Chan *
 v9pattach(char *spec)
 {
-	struct bogus{
-		Chan	*chan;
-		Chan	*authchan;
-		char	*spec;
-		int	flags;
-	}bogus;
+	struct bogus {
+		Chan *chan;
+		Chan *authchan;
+		char *spec;
+		int flags;
+	} bogus;
 	bogus = *((struct bogus *)spec);
 	int tidx = findtag(bogus.spec);
 	if(tidx < 0)
@@ -487,26 +471,26 @@ v9pattach(char *spec)
 	return mc;
 }
 
-static Chan*
+static Chan *
 v9popen(Chan *c, int omode)
 {
 	return mdevtab->open(c, omode);
 }
 
-static Walkqid*
-v9pwalk(Chan* c, Chan *nc, char** name, int nname)
+static Walkqid *
+v9pwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return mdevtab->walk(c, nc, name, nname);
 }
 
 static int32_t
-v9pstat(Chan* c, uint8_t* dp, int32_t n)
+v9pstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return mdevtab->stat(c, dp, n);
 }
 
 static void
-v9pclose(Chan* c)
+v9pclose(Chan *c)
 {
 	int tidx = findtag(chanpath(c));
 	if(tidx >= 0 && tidx < nv9p)
@@ -538,27 +522,26 @@ v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
 	return mdevtab->write(c, va, n, offset);
 }
 
-
 // Phantom device. It is used only for read/write operations. It is not registered in the
 // global table or devices, and is not addressable in any other way. It is only needed to
 // pass the reference to the read/write methods to the mount driver.
 
-static Chan*
+static Chan *
 phattach(char *spec)
 {
 	error(Edonotcall(__FUNCTION__));
 	return nil;
 }
 
-static Walkqid*
-phwalk(Chan* c, Chan *nc, char** name, int nname)
+static Walkqid *
+phwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	error(Edonotcall(__FUNCTION__));
 	return nil;
 }
 
 static int32_t
-phstat(Chan* c, uint8_t* dp, int32_t n)
+phstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	error(Edonotcall(__FUNCTION__));
 	return -1;
@@ -571,7 +554,7 @@ phwstat(Chan *c, uint8_t *dp, int32_t n)
 	return -1;
 }
 
-static Chan*
+static Chan *
 phopen(Chan *c, int omode)
 {
 	error(Edonotcall(__FUNCTION__));
@@ -579,7 +562,7 @@ phopen(Chan *c, int omode)
 }
 
 static void
-phclose(Chan* c)
+phclose(Chan *c)
 {
 	error(Edonotcall(__FUNCTION__));
 }
@@ -600,7 +583,7 @@ phremove(Chan *c)
 // tag:- for non-mounted.
 
 int32_t
-mtagsread(Chan* c, void* buf, int32_t n, int64_t off)
+mtagsread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	int i;
@@ -610,11 +593,10 @@ mtagsread(Chan* c, void* buf, int32_t n, int64_t off)
 		error(Enomem);
 	p = alloc;
 	e = p + READSTR;
-	for(i = 0; i < nv9p; i++) {
-		p = mounts[i].mounted?seprint(p, e, "%s:%s:%d:%d:%d\n", mounts[i].tag, mounts[i].version, mounts[i].msize, mounts[i].pcuse, mounts[i].pchit, mounts[i].pcmiss):
-							  seprint(p, e, "%s:-\n", mounts[i].tag);
+	for(i = 0; i < nv9p; i++){
+		p = mounts[i].mounted ? seprint(p, e, "%s:%s:%d:%d:%d\n", mounts[i].tag, mounts[i].version, mounts[i].msize, mounts[i].pcuse, mounts[i].pchit, mounts[i].pcmiss) : seprint(p, e, "%s:-\n", mounts[i].tag);
 	}
-	if(waserror()) {
+	if(waserror()){
 		free(alloc);
 		nexterror();
 	}
@@ -625,7 +607,7 @@ mtagsread(Chan* c, void* buf, int32_t n, int64_t off)
 }
 
 Dev phdevtab = {
-	.dc = 2151,			/* 1/9 */
+	.dc = 2151, /* 1/9 */
 	.name = "9phantom",
 
 	.reset = devreset,
@@ -644,7 +626,6 @@ Dev phdevtab = {
 	.remove = phremove,
 	.wstat = phwstat,
 };
-
 
 Dev v9pdevtab = {
 	.dc = '9',

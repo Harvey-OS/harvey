@@ -7,59 +7,59 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"io.h"
+#include "io.h"
 
 enum {
-	Data=		0x60,		/* data port */
+	Data = 0x60, /* data port */
 
-	Status=		0x64,		/* status port */
-	 Inready=	0x01,		/*  input character ready */
-	 Outbusy=	0x02,		/*  output busy */
-	 Sysflag=	0x04,		/*  system flag */
-	 Cmddata=	0x08,		/*  cmd==0, data==1 */
-	 Inhibit=	0x10,		/*  keyboard/mouse inhibited */
-	 Minready=	0x20,		/*  mouse character ready */
-	 Rtimeout=	0x40,		/*  general timeout */
-	 Parity=	0x80,
+	Status = 0x64,	 /* status port */
+	Inready = 0x01,	 /*  input character ready */
+	Outbusy = 0x02,	 /*  output busy */
+	Sysflag = 0x04,	 /*  system flag */
+	Cmddata = 0x08,	 /*  cmd==0, data==1 */
+	Inhibit = 0x10,	 /*  keyboard/mouse inhibited */
+	Minready = 0x20, /*  mouse character ready */
+	Rtimeout = 0x40, /*  general timeout */
+	Parity = 0x80,
 
-	Cmd=		0x64,		/* command port (write only) */
+	Cmd = 0x64, /* command port (write only) */
 
-	Spec=		0xF800,		/* Unicode private space */
-	PF=		Spec|0x20,	/* num pad function key */
-	View=		Spec|0x00,	/* view (shift window up) */
-	KF=		0xF000,		/* function key (begin Unicode private space) */
-	Shift=		Spec|0x60,
-	Break=		Spec|0x61,
-	Ctrl=		Spec|0x62,
-	Latin=		Spec|0x63,
-	Caps=		Spec|0x64,
-	Num=		Spec|0x65,
-	Middle=		Spec|0x66,
-	Altgr=		Spec|0x67,
-	Kmouse=		Spec|0x100,
-	No=		0x00,		/* peter */
+	Spec = 0xF800,	    /* Unicode private space */
+	PF = Spec | 0x20,   /* num pad function key */
+	View = Spec | 0x00, /* view (shift window up) */
+	KF = 0xF000,	    /* function key (begin Unicode private space) */
+	Shift = Spec | 0x60,
+	Break = Spec | 0x61,
+	Ctrl = Spec | 0x62,
+	Latin = Spec | 0x63,
+	Caps = Spec | 0x64,
+	Num = Spec | 0x65,
+	Middle = Spec | 0x66,
+	Altgr = Spec | 0x67,
+	Kmouse = Spec | 0x100,
+	No = 0x00, /* peter */
 
-	Home=		KF|13,
-	Up=		KF|14,
-	Pgup=		KF|15,
-	Print=		KF|16,
-	Left=		KF|17,
-	Right=		KF|18,
-	End=		KF|24,
-	Down=		View,
-	Pgdown=		KF|19,
-	Ins=		KF|20,
-	Del=		0x7F,
-	Scroll=		KF|21,
+	Home = KF | 13,
+	Up = KF | 14,
+	Pgup = KF | 15,
+	Print = KF | 16,
+	Left = KF | 17,
+	Right = KF | 18,
+	End = KF | 24,
+	Down = View,
+	Pgdown = KF | 19,
+	Ins = KF | 20,
+	Del = 0x7F,
+	Scroll = KF | 21,
 
-	Nscan=	128,
+	Nscan = 128,
 };
 
 /*
@@ -67,83 +67,531 @@ enum {
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
 Rune kbtab[Nscan] =
-{
-[0x00] =	No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
-[0x08] =	'7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',
-[0x10] =	'q',	'w',	'e',	'r',	't',	'y',	'u',	'i',
-[0x18] =	'o',	'p',	'[',	']',	'\n',	Ctrl,	'a',	's',
-[0x20] =	'd',	'f',	'g',	'h',	'j',	'k',	'l',	';',
-[0x28] =	'\'',	'`',	Shift,	'\\',	'z',	'x',	'c',	'v',
-[0x30] =	'b',	'n',	'm',	',',	'.',	'/',	Shift,	'*',
-[0x38] =	Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
-[0x40] =	KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	Scroll,	'7',
-[0x48] =	'8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
-[0x50] =	'2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
-[0x58] =	KF|12,	No,	No,	No,	No,	No,	No,	No,
-[0x60] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78] =	No,	View,	No,	Up,	No,	No,	No,	No,
+	{
+		[0x00] = No,
+		0x1b,
+		'1',
+		'2',
+		'3',
+		'4',
+		'5',
+		'6',
+		[0x08] = '7',
+		'8',
+		'9',
+		'0',
+		'-',
+		'=',
+		'\b',
+		'\t',
+		[0x10] = 'q',
+		'w',
+		'e',
+		'r',
+		't',
+		'y',
+		'u',
+		'i',
+		[0x18] = 'o',
+		'p',
+		'[',
+		']',
+		'\n',
+		Ctrl,
+		'a',
+		's',
+		[0x20] = 'd',
+		'f',
+		'g',
+		'h',
+		'j',
+		'k',
+		'l',
+		';',
+		[0x28] = '\'',
+		'`',
+		Shift,
+		'\\',
+		'z',
+		'x',
+		'c',
+		'v',
+		[0x30] = 'b',
+		'n',
+		'm',
+		',',
+		'.',
+		'/',
+		Shift,
+		'*',
+		[0x38] = Latin,
+		' ',
+		Ctrl,
+		KF | 1,
+		KF | 2,
+		KF | 3,
+		KF | 4,
+		KF | 5,
+		[0x40] = KF | 6,
+		KF | 7,
+		KF | 8,
+		KF | 9,
+		KF | 10,
+		Num,
+		Scroll,
+		'7',
+		[0x48] = '8',
+		'9',
+		'-',
+		'4',
+		'5',
+		'6',
+		'+',
+		'1',
+		[0x50] = '2',
+		'3',
+		'0',
+		'.',
+		No,
+		No,
+		No,
+		KF | 11,
+		[0x58] = KF | 12,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x60] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x68] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x70] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x78] = No,
+		View,
+		No,
+		Up,
+		No,
+		No,
+		No,
+		No,
 };
 
 Rune kbtabshift[Nscan] =
-{
-[0x00] =	No,	0x1b,	'!',	'@',	'#',	'$',	'%',	'^',
-[0x08] =	'&',	'*',	'(',	')',	'_',	'+',	'\b',	'\t',
-[0x10] =	'Q',	'W',	'E',	'R',	'T',	'Y',	'U',	'I',
-[0x18] =	'O',	'P',	'{',	'}',	'\n',	Ctrl,	'A',	'S',
-[0x20] =	'D',	'F',	'G',	'H',	'J',	'K',	'L',	':',
-[0x28] =	'"',	'~',	Shift,	'|',	'Z',	'X',	'C',	'V',
-[0x30] =	'B',	'N',	'M',	'<',	'>',	'?',	Shift,	'*',
-[0x38] =	Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
-[0x40] =	KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	Scroll,	'7',
-[0x48] =	'8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
-[0x50] =	'2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
-[0x58] =	KF|12,	No,	No,	No,	No,	No,	No,	No,
-[0x60] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78] =	No,	Up,	No,	Up,	No,	No,	No,	No,
+	{
+		[0x00] = No,
+		0x1b,
+		'!',
+		'@',
+		'#',
+		'$',
+		'%',
+		'^',
+		[0x08] = '&',
+		'*',
+		'(',
+		')',
+		'_',
+		'+',
+		'\b',
+		'\t',
+		[0x10] = 'Q',
+		'W',
+		'E',
+		'R',
+		'T',
+		'Y',
+		'U',
+		'I',
+		[0x18] = 'O',
+		'P',
+		'{',
+		'}',
+		'\n',
+		Ctrl,
+		'A',
+		'S',
+		[0x20] = 'D',
+		'F',
+		'G',
+		'H',
+		'J',
+		'K',
+		'L',
+		':',
+		[0x28] = '"',
+		'~',
+		Shift,
+		'|',
+		'Z',
+		'X',
+		'C',
+		'V',
+		[0x30] = 'B',
+		'N',
+		'M',
+		'<',
+		'>',
+		'?',
+		Shift,
+		'*',
+		[0x38] = Latin,
+		' ',
+		Ctrl,
+		KF | 1,
+		KF | 2,
+		KF | 3,
+		KF | 4,
+		KF | 5,
+		[0x40] = KF | 6,
+		KF | 7,
+		KF | 8,
+		KF | 9,
+		KF | 10,
+		Num,
+		Scroll,
+		'7',
+		[0x48] = '8',
+		'9',
+		'-',
+		'4',
+		'5',
+		'6',
+		'+',
+		'1',
+		[0x50] = '2',
+		'3',
+		'0',
+		'.',
+		No,
+		No,
+		No,
+		KF | 11,
+		[0x58] = KF | 12,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x60] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x68] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x70] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x78] = No,
+		Up,
+		No,
+		Up,
+		No,
+		No,
+		No,
+		No,
 };
 
 Rune kbtabesc1[Nscan] =
-{
-[0x00] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x08] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x10] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x18] =	No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
-[0x20] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x28] =	No,	No,	Shift,	No,	No,	No,	No,	No,
-[0x30] =	No,	No,	No,	No,	No,	'/',	No,	Print,
-[0x38] =	Altgr,	No,	No,	No,	No,	No,	No,	No,
-[0x40] =	No,	No,	No,	No,	No,	No,	Break,	Home,
-[0x48] =	Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
-[0x50] =	Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
-[0x58] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x60] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78] =	No,	Up,	No,	No,	No,	No,	No,	No,
+	{
+		[0x00] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x08] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x10] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x18] = No,
+		No,
+		No,
+		No,
+		'\n',
+		Ctrl,
+		No,
+		No,
+		[0x20] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x28] = No,
+		No,
+		Shift,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x30] = No,
+		No,
+		No,
+		No,
+		No,
+		'/',
+		No,
+		Print,
+		[0x38] = Altgr,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x40] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		Break,
+		Home,
+		[0x48] = Up,
+		Pgup,
+		No,
+		Left,
+		No,
+		Right,
+		No,
+		End,
+		[0x50] = Down,
+		Pgdown,
+		Ins,
+		Del,
+		No,
+		No,
+		No,
+		No,
+		[0x58] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x60] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x68] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x70] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x78] = No,
+		Up,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
 };
 
 Rune kbtabaltgr[Nscan] =
-{
-[0x00] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x08] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x10] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x18] =	No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
-[0x20] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x28] =	No,	No,	Shift,	No,	No,	No,	No,	No,
-[0x30] =	No,	No,	No,	No,	No,	'/',	No,	Print,
-[0x38] =	Altgr,	No,	No,	No,	No,	No,	No,	No,
-[0x40] =	No,	No,	No,	No,	No,	No,	Break,	Home,
-[0x48] =	Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
-[0x50] =	Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
-[0x58] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x60] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78] =	No,	Up,	No,	No,	No,	No,	No,	No,
+	{
+		[0x00] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x08] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x10] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x18] = No,
+		No,
+		No,
+		No,
+		'\n',
+		Ctrl,
+		No,
+		No,
+		[0x20] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x28] = No,
+		No,
+		Shift,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x30] = No,
+		No,
+		No,
+		No,
+		No,
+		'/',
+		No,
+		Print,
+		[0x38] = Altgr,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x40] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		Break,
+		Home,
+		[0x48] = Up,
+		Pgup,
+		No,
+		Left,
+		No,
+		Right,
+		No,
+		End,
+		[0x50] = Down,
+		Pgdown,
+		Ins,
+		Del,
+		No,
+		No,
+		No,
+		No,
+		[0x58] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x60] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x68] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x70] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x78] = No,
+		Up,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
 };
 
 /*
@@ -173,34 +621,145 @@ Rune kbtabctrl[] =
 */
 
 static Rune kbtabctrl[256] =
-{
-[0x00] =	No,	'\x1b',	'\x11',	'\x12',	'\x13',	'\x14',	'\x15',	'\x16',
-[0x08] =	'\x17',	'\x18',	'\x19',	'\x10',	'\n',	'\x1d',	'\b',	'\t',
-[0x10] =	'\x11',	'\x17',	'\x05',	'\x12',	'\x14',	'\x19',	'\x15',	'\t',
-[0x18] =	'\x0f',	'\x10',	'\x1b',	'\x1d',	'\n',	Ctrl,	'\x01',	'\x13',
-[0x20] =	'\x04',	'\x06',	'\x07',	'\b',	'\n',	'\x0b',	'\x0c',	'\x1b',
-[0x28] =	'\x07',	No,	Shift,	'\x1c',	'\x1a',	'\x18',	'\x03',	'\x16',
-[0x30] =	'\x02',	'\x0e',	'\n',	'\x0c',	'\x0e',	'\x0f',	Shift,	'\n',
-[0x38] =	Latin,	No,	Ctrl,	'\x05',	'\x06',	'\x07',	'\x04',	'\x05',
-[0x40] =	'\x06',	'\x07',	'\x0c',	'\n',	'\x0e',	'\x05',	'\x06',	'\x17',
-[0x48] =	'\x18',	'\x19',	'\n',	'\x14',	'\x15',	'\x16',	'\x0b',	'\x11',
-[0x50] =	'\x12',	'\x13',	'\x10',	'\x0e',	No,	No,	No,	'\x0f',
-[0x58] =	'\x0c',	No,	No,	No,	No,	No,	No,	No,
-[0x60] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x68] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x70] =	No,	No,	No,	No,	No,	No,	No,	No,
-[0x78] =	No,	'\x07',	No,	'\b',	No,	No,	No,	No,
+	{
+		[0x00] = No,
+		'\x1b',
+		'\x11',
+		'\x12',
+		'\x13',
+		'\x14',
+		'\x15',
+		'\x16',
+		[0x08] = '\x17',
+		'\x18',
+		'\x19',
+		'\x10',
+		'\n',
+		'\x1d',
+		'\b',
+		'\t',
+		[0x10] = '\x11',
+		'\x17',
+		'\x05',
+		'\x12',
+		'\x14',
+		'\x19',
+		'\x15',
+		'\t',
+		[0x18] = '\x0f',
+		'\x10',
+		'\x1b',
+		'\x1d',
+		'\n',
+		Ctrl,
+		'\x01',
+		'\x13',
+		[0x20] = '\x04',
+		'\x06',
+		'\x07',
+		'\b',
+		'\n',
+		'\x0b',
+		'\x0c',
+		'\x1b',
+		[0x28] = '\x07',
+		No,
+		Shift,
+		'\x1c',
+		'\x1a',
+		'\x18',
+		'\x03',
+		'\x16',
+		[0x30] = '\x02',
+		'\x0e',
+		'\n',
+		'\x0c',
+		'\x0e',
+		'\x0f',
+		Shift,
+		'\n',
+		[0x38] = Latin,
+		No,
+		Ctrl,
+		'\x05',
+		'\x06',
+		'\x07',
+		'\x04',
+		'\x05',
+		[0x40] = '\x06',
+		'\x07',
+		'\x0c',
+		'\n',
+		'\x0e',
+		'\x05',
+		'\x06',
+		'\x17',
+		[0x48] = '\x18',
+		'\x19',
+		'\n',
+		'\x14',
+		'\x15',
+		'\x16',
+		'\x0b',
+		'\x11',
+		[0x50] = '\x12',
+		'\x13',
+		'\x10',
+		'\x0e',
+		No,
+		No,
+		No,
+		'\x0f',
+		[0x58] = '\x0c',
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x60] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x68] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x70] = No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		No,
+		[0x78] = No,
+		'\x07',
+		No,
+		'\b',
+		No,
+		No,
+		No,
+		No,
 };
 
-enum
-{
+enum {
 	/* controller command byte */
-	Cscs1=		(1<<6),		/* scan code set 1 */
-	Cauxdis=	(1<<5),		/* mouse disable */
-	Ckeybdis=	(1<<4),		/* kbd disable */
-	Csf=		(1<<2),		/* system flag */
-	Cauxint=	(1<<1),		/* mouse interrupt enable */
-	Ckeybint=	(1<<0),		/* kbd interrupt enable */
+	Cscs1 = (1 << 6),    /* scan code set 1 */
+	Cauxdis = (1 << 5),  /* mouse disable */
+	Ckeybdis = (1 << 4), /* kbd disable */
+	Csf = (1 << 2),	     /* system flag */
+	Cauxint = (1 << 1),  /* mouse interrupt enable */
+	Ckeybint = (1 << 0), /* kbd interrupt enable */
 };
 
 static Queue *keybq;
@@ -215,16 +774,16 @@ static uint8_t ccc;
 static void (*auxputc)(int, int);
 
 enum {
-	MaxDKResults 	= 28,
-	MaxDK 				= 10,
+	MaxDKResults = 28,
+	MaxDK = 10,
 };
 typedef struct DeadKey DeadKey;
 typedef struct DeadKeys DeadKeys;
 
 struct DeadKey {
-	Rune key;						//Rune that represents the dead key (i.e. ^)
-	Rune baseKey[MaxDKResults];		//Rune that represents the base letter (i.e. a)
-	Rune resultKey[MaxDKResults];	//Sum of both keys (i.e. â)
+	Rune key;			     //Rune that represents the dead key (i.e. ^)
+	Rune baseKey[MaxDKResults];	     //Rune that represents the base letter (i.e. a)
+	Rune resultKey[MaxDKResults];	     //Sum of both keys (i.e. â)
 };
 
 struct DeadKeys {
@@ -239,11 +798,12 @@ static DeadKeys kbdeadkeys;
  * Allow to reset dead keys when we load a non deadkeys kbmap
  */
 void
-initDeadKeys(){
+initDeadKeys()
+{
 	DeadKey k;
 	k.key = No;
 	memset(k.baseKey, No, sizeof(k.baseKey));
-	for (int i=0; i<MaxDK;i++){
+	for(int i = 0; i < MaxDK; i++){
 		kbdeadkeys.deadKey[i] = k;
 	}
 	kbdeadkeys.max = kbdeadkeys.min = 0;
@@ -253,38 +813,39 @@ initDeadKeys(){
  * Adds new element to dead keys table.
  */
 void
-kdbputdeadkey(Rune deadkey, Rune basekey, Rune finalkey){
-	DeadKey *k=nil;
-	for (int i=0; i<MaxDK; i++){
-		if (kbdeadkeys.deadKey[i].key == deadkey || kbdeadkeys.deadKey[i].key == No){
-			k=&kbdeadkeys.deadKey[i];
+kdbputdeadkey(Rune deadkey, Rune basekey, Rune finalkey)
+{
+	DeadKey *k = nil;
+	for(int i = 0; i < MaxDK; i++){
+		if(kbdeadkeys.deadKey[i].key == deadkey || kbdeadkeys.deadKey[i].key == No){
+			k = &kbdeadkeys.deadKey[i];
 			break;
 		}
 	}
-	if (k==nil){
+	if(k == nil){
 		print("No more space on kbdeadkeys, MaxDK is too small\n");
 		error(Ebadarg);
 		return;
 	}
-	k->key=deadkey;
+	k->key = deadkey;
 	int i;
-	for(i=0; i<MaxDKResults;i++){
+	for(i = 0; i < MaxDKResults; i++){
 		if(k->baseKey[i] == basekey || k->baseKey[i] == No){
 			k->baseKey[i] = basekey;
 			k->resultKey[i] = finalkey;
 			break;
 		}
 	}
-	if(i==MaxDKResults){
+	if(i == MaxDKResults){
 		print("No more space on DeadKey %d, MaxDKResults is too small\n", deadkey);
 		error(Ebadarg);
 		return;
 	}
-	if(deadkey>kbdeadkeys.max){
-		kbdeadkeys.max=deadkey;
+	if(deadkey > kbdeadkeys.max){
+		kbdeadkeys.max = deadkey;
 	}
-	if(deadkey<kbdeadkeys.min || kbdeadkeys.min==0){
-		kbdeadkeys.min=deadkey;
+	if(deadkey < kbdeadkeys.min || kbdeadkeys.min == 0){
+		kbdeadkeys.min = deadkey;
 	}
 }
 
@@ -292,23 +853,24 @@ kdbputdeadkey(Rune deadkey, Rune basekey, Rune finalkey){
  * Process dead keys
  */
 static Rune
-processdeadkey(Rune c){
+processdeadkey(Rune c)
+{
 	static DeadKey *k = nil;
 	// shift must be ignored
-	if (c == Shift){
+	if(c == Shift){
 		return c;
 	}
-	if (k != nil) {
+	if(k != nil){
 		// We pressed a dead key before this
-		if (k->key == c){
+		if(k->key == c){
 			// Press two times the same DeadKey = print the dead key
-			k=nil;
+			k = nil;
 			return c;
 		}
-		for (int i=0; i<MaxDKResults && k->baseKey[i]!=No; i++){
+		for(int i = 0; i < MaxDKResults && k->baseKey[i] != No; i++){
 			if(k->baseKey[i] == c){
 				c = k->resultKey[i];
-				k=nil;
+				k = nil;
 				return c;
 			}
 		}
@@ -317,12 +879,12 @@ processdeadkey(Rune c){
 		 * combined with last dead key or two differents dead keys.
 		 * Both cases are illegal and anulate last dead key.
 		 */
-		 k=nil;
-		 c=No;
+		k = nil;
+		c = No;
 	}
-	if (c <= kbdeadkeys.max && c >= kbdeadkeys.min){
+	if(c <= kbdeadkeys.max && c >= kbdeadkeys.min){
 		// It could be a dead key, let's search it
-		for(int i=0; i<MaxDK && kbdeadkeys.deadKey[i].key != No; i++){
+		for(int i = 0; i < MaxDK && kbdeadkeys.deadKey[i].key != No; i++){
 			if(kbdeadkeys.deadKey[i].key == c){
 				k = &kbdeadkeys.deadKey[i];
 				c = No;
@@ -336,8 +898,9 @@ processdeadkey(Rune c){
  * true if the kbmap has dead keys
  */
 static int
-hasdeadkeys(){
-	return !(kbdeadkeys.max==0 && kbdeadkeys.min==0);
+hasdeadkeys()
+{
+	return !(kbdeadkeys.max == 0 && kbdeadkeys.min == 0);
 }
 
 /*
@@ -384,7 +947,7 @@ i8042systemreset(void)
 	if(nokeyb)
 		return;
 
-	*s = 0x1234;		/* BIOS warm-boot flag */
+	*s = 0x1234; /* BIOS warm-boot flag */
 
 	/*
 	 *  newer reset the machine command
@@ -402,7 +965,7 @@ i8042systemreset(void)
 		outready();
 		outb(Cmd, 0xD1);
 		outready();
-		outb(Data, x);	/* toggle reset */
+		outb(Data, x); /* toggle reset */
 		delay(100);
 	}
 }
@@ -417,7 +980,7 @@ i8042auxcmd(int cmd)
 	tries = 0;
 
 	ilock(&i8042lock);
-	do{
+	do {
 		if(tries++ > 2)
 			break;
 		if(outready() < 0)
@@ -447,7 +1010,7 @@ i8042auxcmds(uint8_t *cmd, int ncmd)
 	int i;
 
 	ilock(&i8042lock);
-	for(i=0; i<ncmd; i++){
+	for(i = 0; i < ncmd; i++){
 		if(outready() < 0)
 			break;
 		outb(Cmd, 0xD4);
@@ -475,7 +1038,8 @@ struct {
 } kbscan;
 
 static void
-processKey(int c){
+processKey(int c)
+{
 	int keyup, i;
 
 	/*
@@ -490,11 +1054,11 @@ processKey(int c){
 		return;
 	}
 
-	keyup = c&0x80;
+	keyup = c & 0x80;
 	c &= 0x7f;
 	if(c > sizeof kbtab){
 		c |= keyup;
-		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
+		if(c != 0xFF) /* these come fairly often: CAPSLOCK U Y */
 			print("unknown key %ux\n", c);
 		return;
 	}
@@ -514,13 +1078,13 @@ processKey(int c){
 	else
 		c = kbtab[c];
 
-	if(kbscan.caps && c<='z' && c>='a')
+	if(kbscan.caps && c <= 'z' && c >= 'a')
 		c += 'A' - 'a';
 
 	/*
 	 * Process dead keys
 	 */
-	if (hasdeadkeys() && !keyup){
+	if(hasdeadkeys() && !keyup){
 		c = processdeadkey(c);
 	}
 
@@ -542,12 +1106,12 @@ processKey(int c){
 		case Altgr:
 			kbscan.altgr = 0;
 			break;
-		case Kmouse|1:
-		case Kmouse|2:
-		case Kmouse|3:
-		case Kmouse|4:
-		case Kmouse|5:
-			kbscan.buttons &= ~(1<<(c-Kmouse-1));
+		case Kmouse | 1:
+		case Kmouse | 2:
+		case Kmouse | 3:
+		case Kmouse | 4:
+		case Kmouse | 5:
+			kbscan.buttons &= ~(1 << (c - Kmouse - 1));
 			if(kbdmouse)
 				kbdmouse(kbscan.buttons);
 			break;
@@ -558,7 +1122,7 @@ processKey(int c){
 	/*
  	 *  normal character
 	 */
-	if(!(c & (Spec|KF))){
+	if(!(c & (Spec | KF))){
 		if(kbscan.ctl)
 			if(kbscan.alt && c == Del)
 				exit(0);
@@ -568,12 +1132,12 @@ processKey(int c){
 		}
 		kbscan.kc[kbscan.nk++] = c;
 		c = latin1(kbscan.kc, kbscan.nk);
-		if(c < -1)	/* need more keystrokes */
+		if(c < -1) /* need more keystrokes */
 			return;
-		if(c != -1)	/* valid sequence */
+		if(c != -1) /* valid sequence */
 			kbdputc(keybq, c);
-		else	/* dump characters */
-			for(i=0; i<kbscan.nk; i++)
+		else /* dump characters */
+			for(i = 0; i < kbscan.nk; i++)
 				kbdputc(keybq, kbscan.kc[i]);
 		kbscan.nk = 0;
 		kbscan.collecting = 0;
@@ -613,12 +1177,12 @@ processKey(int c){
 		case Altgr:
 			kbscan.altgr = 1;
 			return;
-		case Kmouse|1:
-		case Kmouse|2:
-		case Kmouse|3:
-		case Kmouse|4:
-		case Kmouse|5:
-			kbscan.buttons |= 1<<(c-Kmouse-1);
+		case Kmouse | 1:
+		case Kmouse | 2:
+		case Kmouse | 3:
+		case Kmouse | 4:
+		case Kmouse | 5:
+			kbscan.buttons |= 1 << (c - Kmouse - 1);
 			if(kbdmouse)
 				kbdmouse(kbscan.buttons);
 			return;
@@ -627,12 +1191,11 @@ processKey(int c){
 	kbdputc(keybq, c);
 }
 
-
 /*
  *  keyboard interrupt
  */
 static void
-i8042intr(Ureg* u, void* v)
+i8042intr(Ureg *u, void *v)
 {
 	int s, c;
 
@@ -641,7 +1204,7 @@ i8042intr(Ureg* u, void* v)
 	 */
 	ilock(&i8042lock);
 	s = inb(Status);
-	if((s&Inready) == 0){
+	if((s & Inready) == 0){
 		iunlock(&i8042lock);
 		return;
 	}
@@ -661,7 +1224,6 @@ i8042intr(Ureg* u, void* v)
 		return;
 	}
 	processKey(c);
-
 }
 
 void
@@ -676,13 +1238,13 @@ i8042auxenable(void (*putc)(int, int))
 	ilock(&i8042lock);
 	if(outready() < 0)
 		print(err);
-	outb(Cmd, 0x60);			/* write control register */
+	outb(Cmd, 0x60); /* write control register */
 	if(outready() < 0)
 		print(err);
 	outb(Data, ccc);
 	if(outready() < 0)
 		print(err);
-	outb(Cmd, 0xA8);			/* auxilliary device enable */
+	outb(Cmd, 0xA8); /* auxilliary device enable */
 	if(outready() < 0){
 		iunlock(&i8042lock);
 		return;
@@ -705,7 +1267,7 @@ mousecmd(int cmd)
 	tries = 0;
 
 	ilock(&i8042lock);
-	do{
+	do {
 		if(tries++ > 2)
 			break;
 		if(outready() < 0)
@@ -724,7 +1286,7 @@ mousecmd(int cmd)
 
 	if(c != 0xFA){
 		print("mousecmd: %2.2x returned to the %2.2x command\n", c, cmd);
-		badkbd = 1;	/* don't keep trying; there might not be one */
+		badkbd = 1; /* don't keep trying; there might not be one */
 		return -1;
 	}
 	return 0;
@@ -736,7 +1298,7 @@ mousecmds(uint8_t *cmd, int ncmd)
 	int i;
 
 	ilock(&i8042lock);
-	for(i=0; i<ncmd; i++){
+	for(i = 0; i < ncmd; i++){
 		if(outready() == -1)
 			break;
 		outb(Cmd, 0xD4);
@@ -760,7 +1322,7 @@ static int
 outbyte(int port, int c)
 {
 	outb(port, c);
-	if(outready() < 0) {
+	if(outready() < 0){
 		print(initfailed);
 		return -1;
 	}
@@ -768,13 +1330,13 @@ outbyte(int port, int c)
 }
 
 static int32_t
-mouserwrite(Chan* c, void *vbuf, int32_t len, int64_t off64)
+mouserwrite(Chan *c, void *vbuf, int32_t len, int64_t off64)
 {
 	return mousecmds(vbuf, len);
 }
 
 static int32_t
-mouseread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+mouseread(Chan *c, void *vbuf, int32_t len, int64_t off64)
 {
 	return qread(mouseq, vbuf, len);
 }
@@ -793,13 +1355,13 @@ mouseenable(void)
 	ilock(&i8042lock);
 	if(outready() == -1)
 		iprint("mouseenable: failed 0\n");
-	outb(Cmd, 0x60);	/* write control register */
+	outb(Cmd, 0x60); /* write control register */
 	if(outready() == -1)
 		iprint("mouseenable: failed 1\n");
 	outb(Data, ccc);
 	if(outready() == -1)
 		iprint("mouseenable: failed 2\n");
-	outb(Cmd, 0xA8);	/* auxilliary device enable */
+	outb(Cmd, 0xA8); /* auxilliary device enable */
 	if(outready() == -1){
 		iprint("mouseenable: failed 3\n");
 		iunlock(&i8042lock);
@@ -820,12 +1382,12 @@ keybinit(void)
 	ilock(&i8042lock);
 
 	try = 1000;
-	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
+	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)){
 		if(c & Inready)
 			inb(Data);
 		delay(1);
 	}
-	if (try <= 0) {
+	if(try <= 0){
 		iunlock(&i8042lock);
 		print("keybinit failed 0\n");
 		return;
@@ -844,18 +1406,18 @@ keybinit(void)
 	/* enable keyb xfers and interrupts */
 	ccc &= ~(Ckeybdis);
 	ccc |= Csf | Ckeybint | Cscs1;
-	if(outready() == -1) {
+	if(outready() == -1){
 		iunlock(&i8042lock);
 		print("keybinit failed 2\n");
 		return;
 	}
 
-	if (outbyte(Cmd, 0x60) == -1){
+	if(outbyte(Cmd, 0x60) == -1){
 		iunlock(&i8042lock);
 		print("keybinit failed 3\n");
 		return;
 	}
-	if (outbyte(Data, ccc) == -1){
+	if(outbyte(Data, ccc) == -1){
 		iunlock(&i8042lock);
 		print("keybinit failed 4\n");
 		return;
@@ -869,7 +1431,7 @@ keybinit(void)
 }
 
 static int32_t
-keybread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+keybread(Chan *c, void *vbuf, int32_t len, int64_t off64)
 {
 	return qread(keybq, vbuf, len);
 }
@@ -896,7 +1458,7 @@ kbdputmap(uint16_t m, uint16_t scanc, Rune r)
 {
 	if(scanc >= Nscan)
 		error(Ebadarg);
-	switch(m) {
+	switch(m){
 	default:
 		error(Ebadarg);
 	case 0:
@@ -920,11 +1482,11 @@ kbdputmap(uint16_t m, uint16_t scanc, Rune r)
 int
 kbdgetmap(int offset, int *t, int *sc, Rune *r)
 {
-	*t = offset/Nscan;
-	*sc = offset%Nscan;
+	*t = offset / Nscan;
+	*sc = offset % Nscan;
 	if(*t < 0 || *sc < 0)
 		error(Ebadarg);
-	switch(*t) {
+	switch(*t){
 	default:
 		return 0;
 	case 0:

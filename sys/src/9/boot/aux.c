@@ -54,7 +54,7 @@ readfile(char *name, char *buf, int len)
 		fprint(2, "readfile: cannot open %s (%r)\n", name);
 		return -1;
 	}
-	n = read(f, buf, len-1);
+	n = read(f, buf, len - 1);
 	if(n >= 0)
 		buf[n] = 0;
 	close(f);
@@ -129,11 +129,11 @@ outin(char *prompt, char *def, int len)
 	char *p, buf[256];
 
 	if(len >= sizeof buf)
-		len = sizeof(buf)-1;
+		len = sizeof(buf) - 1;
 
 	if(cpuflag){
 		notify(catchint);
-		alarm(15*1000);
+		alarm(15 * 1000);
 	}
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
@@ -144,7 +144,7 @@ outin(char *prompt, char *def, int len)
 	}
 	if(n < 0)
 		return 1;
-	buf[sizeof(buf)-1] = '\0';
+	buf[sizeof(buf) - 1] = '\0';
 	p = strchr(buf, '\n');
 	if(p != nil)
 		*p = '\0';

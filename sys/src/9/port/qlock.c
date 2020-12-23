@@ -50,7 +50,7 @@ qlock(QLock *q)
 		slockstat(getcallerpc(), t0);
 	}
 	qlockstats.qlock++;
-	if(!q->locked) {
+	if(!q->locked){
 		q->locked = 1;
 		q->pc = getcallerpc();
 		unlock(&q->use);
@@ -102,9 +102,9 @@ qunlock(QLock *q)
 		lock(&q->use);
 		slockstat(getcallerpc(), t0);
 	}
-	if (q->locked == 0)
+	if(q->locked == 0)
 		print("qunlock called with qlock not held, from %#p\n",
-			getcallerpc());
+		      getcallerpc());
 	p = q->head;
 	if(p){
 		q->head = p->qnext;

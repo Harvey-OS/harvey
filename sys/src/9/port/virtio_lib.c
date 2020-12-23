@@ -8,29 +8,29 @@
  * contained in the LICENSE.gpl file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
 
 // Include the definitions from VIRTIO spec v1.0
 // http://docs.oasis-open.org/virtio/virtio/v1.0/csprd02/listings/virtio_ring.h
 
-#include	"virtio_ring.h"
+#include "virtio_ring.h"
 
-#include	"virtio_config.h"
-#include	"virtio_pci.h"
+#include "virtio_config.h"
+#include "virtio_pci.h"
 
-#include	"virtio_lib.h"
+#include "virtio_lib.h"
 
-#define MAXVQS 8 			// maximal detectable number of VQs per device
+#define MAXVQS 8	// maximal detectable number of VQs per device
 
-static uint32_t nvq;		// number of the detected virtio9p devices
+static uint32_t nvq;	    // number of the detected virtio9p devices
 
-static Vqctl **cvq;			// array of device control structure pointers, length = nvq
+static Vqctl **cvq;	   // array of device control structure pointers, length = nvq
 
 // Map device identifiers to descriptive strings to display in IO port
 // and interrupt allocation maps.
@@ -48,8 +48,7 @@ static didmap dmtab[] = {
 	{PCI_DEVICE_ID_VIRTIO_CONSOLE, "virtio-console"},
 	{PCI_DEVICE_ID_VIRTIO_SCSI, "virtio-scsi"},
 	{PCI_DEVICE_ID_VIRTIO_RNG, "virtio-rng"},
-	{PCI_DEVICE_ID_VIRTIO_9P, "virtio-9p"}
-};
+	{PCI_DEVICE_ID_VIRTIO_9P, "virtio-9p"}};
 
 // Find a device type by its PCI device identifier, used to assign device name in the filesystem,
 // and to determine the flavor of read-write operations.
@@ -57,8 +56,8 @@ static didmap dmtab[] = {
 static didmap *
 finddev(Vqctl *vc)
 {
-	for(int i = 0; i < nelem(dmtab) ; i++) {
-		if(vc->pci->did == dmtab[i].did) {
+	for(int i = 0; i < nelem(dmtab); i++){
+		if(vc->pci->did == dmtab[i].did){
 			return (dmtab + i);
 		}
 	}
@@ -80,7 +79,7 @@ mapdev(Vqctl *vc)
 static int
 viodone(void *arg)
 {
-	return ((Rock*)arg)->done;
+	return ((Rock *)arg)->done;
 }
 
 static void
@@ -98,11 +97,11 @@ vqintr(Ureg *x, void *arg)
 {
 	Vqctl *dev = arg;
 	uint8_t isr = inb(dev->port + VIRTIO_PCI_ISR);
-	if(isr & 2) {
+	if(isr & 2){
 		dev->dcmtime = seconds();
 		return;
-	} else if(isr & 1) {
-		for(int i = 0; i < dev->nqs; i++) {
+	} else if(isr & 1){
+		for(int i = 0; i < dev->nqs; i++){
 			vqinterrupt(dev->vqs[i]);
 		}
 	}
@@ -119,12 +118,12 @@ vqinterrupt(Virtq *q)
 	Rendez *z;
 	m = q->vr.num - 1;
 	ilock(&q->l);
-	while((q->lastused ^ q->vr.used->idx) & m) {
+	while((q->lastused ^ q->vr.used->idx) & m){
 		id = q->vr.used->ring[q->lastused++ & m].id;
 		if((r = q->rock[id]) != nil){
 			q->rock[id] = nil;
 			z = r->sleep;
-			r->done = 1;	/* hands off */
+			r->done = 1; /* hands off */
 			if(z != nil)
 				wakeup(z);
 		}
@@ -138,7 +137,7 @@ void
 reldescr(Virtq *q, int n, uint16_t *descr)
 {
 	ilock(&q->l);
-	for(int i = 0; i < n; i++) {
+	for(int i = 0; i < n; i++){
 		q2descr(q, descr[i])->next = q->free;
 		q->free = descr[i];
 		q->nfree++;
@@ -160,14 +159,14 @@ getdescr(Virtq *q, int n, uint16_t *descr)
 		return -1;
 	Proc *up = externup();
 	ilock(&q->l);
-	while(q->nfree < n) {
+	while(q->nfree < n){
 		iunlock(&q->l);
 		if(!waserror())
 			tsleep(&up->sleep, return0, 0, 500);
 		poperror();
 		ilock(&q->l);
 	}
-	for(int i = 0; i < n; i++) {
+	for(int i = 0; i < n; i++){
 		int di = q->free;
 		descr[i] = di;
 		struct vring_desc *d = &q->vr.desc[di];
@@ -175,7 +174,7 @@ getdescr(Virtq *q, int n, uint16_t *descr)
 		q->nfree--;
 		d->flags = 0;
 		d->next = 0;
-		if(i > 0) {
+		if(i > 0){
 			struct vring_desc *pd = &q->vr.desc[descr[i - 1]];
 			pd->flags = VRING_DESC_F_NEXT;
 			pd->next = di;
@@ -196,23 +195,23 @@ queuedescr(Virtq *q, int n, uint16_t *descr)
 {
 	Proc *up = externup();
 	int head = descr[0];
-	uint16_t mask = q->vr.num - 1;			// q->num is power of 2 so mask has all bits set
-	Rock rock;								// the sleep-wakeup semaphore on the process stack
+	uint16_t mask = q->vr.num - 1;	      // q->num is power of 2 so mask has all bits set
+	Rock rock;			      // the sleep-wakeup semaphore on the process stack
 	rock.done = 0;
 	rock.sleep = &up->sleep;
 	ilock(&q->l);
 	q->rock[head] = &rock;
-	for(int i = 0; i < n; i++) {
+	for(int i = 0; i < n; i++){
 		q->vr.avail->ring[q->vr.avail->idx & mask] = descr[i];
 		q->vr.avail->idx++;
 	}
 	coherence();
 	iunlock(&q->l);
-	if((q->vr.used->flags & VRING_USED_F_NO_NOTIFY) == 0) {
+	if((q->vr.used->flags & VRING_USED_F_NO_NOTIFY) == 0){
 		uint32_t nport = ((Vqctl *)(q->pdev))->port + VIRTIO_PCI_QUEUE_NOTIFY;
 		outs(nport, q->idx);
 	}
-	while(!rock.done) {
+	while(!rock.done){
 		sleep(rock.sleep, viodone, &rock);
 	}
 	return 0;
@@ -237,7 +236,7 @@ vqalloc(Virtq **pq, int qs)
 	vring_init(&q->vr, qs, q->vq, PGSZ);
 	q->free = -1;
 	q->nfree = qs;
-	for(int i = 0; i < qs; i++) {
+	for(int i = 0; i < qs; i++){
 		q->vr.desc[i].next = q->free;
 		q->free = i;
 	}
@@ -256,20 +255,20 @@ static int
 findvqs(uint32_t port, int nvq, Virtq **vqs)
 {
 	int cnt = 0;
-	while(1) {
+	while(1){
 		outs(port + VIRTIO_PCI_QUEUE_SEL, cnt);
 		int qs = ins(port + VIRTIO_PCI_QUEUE_NUM);
-		if(cnt >= MAXVQS || qs == 0 || (qs & (qs-1)) != 0)
+		if(cnt >= MAXVQS || qs == 0 || (qs & (qs - 1)) != 0)
 			break;
-		if(vqs != nil) {
+		if(vqs != nil){
 			// Allocate vq's descriptor space, used and available spaces, all page-aligned.
-			if(vqalloc(&vqs[cnt], qs) < 0) {
+			if(vqalloc(&vqs[cnt], qs) < 0){
 				print("no memory to allocate a virtqueue\n");
 				break;
 			}
 			coherence();
-			uint64_t paddr=PADDR(vqs[cnt]->vq);
-			outl(port + VIRTIO_PCI_QUEUE_PFN, paddr/PGSZ);
+			uint64_t paddr = PADDR(vqs[cnt]->vq);
+			outl(port + VIRTIO_PCI_QUEUE_PFN, paddr / PGSZ);
 		}
 		cnt++;
 	}
@@ -292,10 +291,10 @@ initvdevs(Vqctl **vcs)
 	int msix_enabled = 0;
 	Pcidev *p;
 	// Scan the collected PCI devices info, find possible 9p devices
-	for(p = nil; (p = pcimatch(p, PCI_VENDOR_ID_REDHAT_QUMRANET, 0)) != nil;) {
-		if(vcs != nil) {
+	for(p = nil; (p = pcimatch(p, PCI_VENDOR_ID_REDHAT_QUMRANET, 0)) != nil;){
+		if(vcs != nil){
 			vcs[cnt] = mallocz(sizeof(Vqctl), 1);
-			if(vcs[cnt] == nil) {
+			if(vcs[cnt] == nil){
 				return cnt;
 			}
 			// Use the legacy interface
@@ -304,22 +303,22 @@ initvdevs(Vqctl **vcs)
 			vc->pci = p;
 			vc->port = p->mem[0].bar & ~0x1;
 			char *dmap = mapdev(vc);
-			snprint(vc->devname, sizeof(vc->devname), "%s-%d", dmap?dmap:"virtio-pci", cnt);
-			if(ioalloc(vc->port, p->mem[0].size, 0, vc->devname) < 0) {
+			snprint(vc->devname, sizeof(vc->devname), "%s-%d", dmap ? dmap : "virtio-pci", cnt);
+			if(ioalloc(vc->port, p->mem[0].size, 0, vc->devname) < 0){
 				free(vc);
 				vcs[cnt] = nil;
 				return cnt;
 			}
 			// Device reset
 			outb(vc->port + VIRTIO_PCI_STATUS, 0);
-			outb(vc->port + VIRTIO_PCI_STATUS, VIRTIO_CONFIG_S_ACKNOWLEDGE|VIRTIO_CONFIG_S_DRIVER);
+			outb(vc->port + VIRTIO_PCI_STATUS, VIRTIO_CONFIG_S_ACKNOWLEDGE | VIRTIO_CONFIG_S_DRIVER);
 			int nqs = findvqs(vc->port, 0, nil);
 			// For each vq allocate and populate its descriptor
-			if(nqs > 0) {
+			if(nqs > 0){
 				vc->vqs = mallocz(nqs * sizeof(Virtq *), 1);
 				vc->nqs = nqs;
 				findvqs(vc->port, nqs, vc->vqs);
-				for(int i = 0; i < nqs; i++) {
+				for(int i = 0; i < nqs; i++){
 					Virtq *q = vc->vqs[i];
 					q->idx = i;
 					q->pdev = vc;
@@ -350,11 +349,11 @@ acceptallfeat(uint32_t feat)
 // the same in the device control structure.
 
 uint32_t
-vdevfeat(Vqctl *vc, uint32_t(*ffltr)(uint32_t))
+vdevfeat(Vqctl *vc, uint32_t (*ffltr)(uint32_t))
 {
 	uint32_t feat = inl(vc->port + VIRTIO_PCI_HOST_FEATURES);
-	uint32_t rfeat = ffltr?(*ffltr)(feat):acceptallfeat(feat);
-	rfeat &= feat;					// do not introduce new bits, we can only reject existing
+	uint32_t rfeat = ffltr ? (*ffltr)(feat) : acceptallfeat(feat);
+	rfeat &= feat;	      // do not introduce new bits, we can only reject existing
 	vc->feat = rfeat;
 	outl(vc->port + VIRTIO_PCI_GUEST_FEATURES, rfeat);
 	return rfeat;
@@ -369,8 +368,8 @@ vdevfeat(Vqctl *vc, uint32_t(*ffltr)(uint32_t))
 void
 finalinitvdev(Vqctl *vc)
 {
-			intrenable(vc->pci->intl, vqintr, vc, vc->pci->tbdf, vc->devname);
-			outb(vc->port + VIRTIO_PCI_STATUS, inb(vc->port + VIRTIO_PCI_STATUS) | VIRTIO_CONFIG_S_DRIVER_OK);
+	intrenable(vc->pci->intl, vqintr, vc, vc->pci->tbdf, vc->devname);
+	outb(vc->port + VIRTIO_PCI_STATUS, inb(vc->port + VIRTIO_PCI_STATUS) | VIRTIO_CONFIG_S_DRIVER_OK);
 }
 
 // Read device configuration area into the given buffer at the given offset in the area.
@@ -383,7 +382,7 @@ readvdevcfg(Vqctl *vc, void *va, int32_t n, int64_t offset)
 	int8_t *a = va;
 	uint32_t r = offset;
 	int i;
-	for(i = 0; i < n; a++, i++) {
+	for(i = 0; i < n; a++, i++){
 		if(i + r >= vc->dcfglen)
 			break;
 		uint8_t b = inb(vc->port + vc->dcfgoff + i + r);
@@ -398,15 +397,15 @@ void
 virtiosetup()
 {
 	if(nvq != 0 || cvq != nil)
-		return;						// avoid repeated calls
+		return;	       // avoid repeated calls
 	print("virtio: initializing\n");
 	nvq = initvdevs(nil);
-	if(nvq == 0) {
+	if(nvq == 0){
 		print("virtio: no devices\n");
-		return;						// nothing found
+		return;	       // nothing found
 	}
 	cvq = mallocz(nvq * sizeof(Vqctl *), 1);
-	if(cvq == nil) {
+	if(cvq == nil){
 		print("virtiosetup: failed to allocate control structures\n");
 		nvq = 0;
 		return;
@@ -443,7 +442,7 @@ getvdevsbypciid(int pciid, Vqctl **vqs, uint32_t n)
 	uint32_t j = 0;
 	if(n < 1 || nvq <= 0)
 		return 0;
-	for(int i = 0; i < nvq ; i++) {
+	for(int i = 0; i < nvq; i++){
 		if(cvq[i]->pci->did == pciid)
 			vqs[j++] = cvq[i];
 		if(j >= n)

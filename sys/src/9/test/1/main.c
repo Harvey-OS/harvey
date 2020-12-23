@@ -16,17 +16,18 @@
 #include "init.h"
 #include "io.h"
 
-static int	initialTCs = 16;;	/* default # of TCs */
+static int initialTCs = 16;
+; /* default # of TCs */
 
-Conf conf;			/* XXX - must go - gag */
+Conf conf; /* XXX - must go - gag */
 
-extern void crapoptions(void);	/* XXX - must go */
-extern void confsetenv(void);	/* XXX - must go */
+extern void crapoptions(void); /* XXX - must go */
+extern void confsetenv(void);  /* XXX - must go */
 
-static uintptr sp;		/* XXX - must go - user stack of init proc */
+static uintptr sp; /* XXX - must go - user stack of init proc */
 
 uintptr kseg0 = KZERO;
-Sys* sys = nil;
+Sys *sys = nil;
 usize sizeofSys = sizeof(Sys);
 
 /*
@@ -36,25 +37,25 @@ usize sizeofSys = sizeof(Sys);
  * set it all up.
  */
 static int oargc;
-static char* oargv[20];
+static char *oargv[20];
 static char oargb[128];
 static int oargblen;
 
-static int maxcores = 1024;	/* max # of cores given as an argument */
+static int maxcores = 1024; /* max # of cores given as an argument */
 
 char dbgflg[256];
 static int vflag = 0;
 
 void
-optionsinit(char* s)
+optionsinit(char *s)
 {
-	oargblen = strecpy(oargb, oargb+sizeof(oargb), s) - oargb;
-	oargc = tokenize(oargb, oargv, nelem(oargv)-1);
+	oargblen = strecpy(oargb, oargb + sizeof(oargb), s) - oargb;
+	oargc = tokenize(oargb, oargv, nelem(oargv) - 1);
 	oargv[oargc] = nil;
 }
 
 static void
-options(int argc, char* argv[])
+options(int argc, char *argv[])
 {
 	char *p;
 	int n, o;
@@ -70,10 +71,10 @@ options(int argc, char* argv[])
 		while(o = *++argv[0]){
 			if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
 				continue;
-			n = strtol(argv[0]+1, &p, 0);
-			if(p == argv[0]+1 || n < 1 || n > 127)
+			n = strtol(argv[0] + 1, &p, 0);
+			if(p == argv[0] + 1 || n < 1 || n > 127)
 				n = 1;
-			argv[0] = p-1;
+			argv[0] = p - 1;
 			dbgflg[o] = n;
 		}
 	}
@@ -90,7 +91,7 @@ options(int argc, char* argv[])
 	}
 }
 
-extern void setmachsched(Mach*);
+extern void setmachsched(Mach *);
 
 void
 squidboy(int apicno)
@@ -98,8 +99,7 @@ squidboy(int apicno)
 	char *n[] = {
 		[NIXAC] = "AC",
 		[NIXTC] = "TC",
-		[NIXKC] = "KC"
-	};
+		[NIXKC] = "KC"};
 	vlong hz;
 
 	sys->machptr[machp()->machno] = m;
@@ -126,7 +126,7 @@ squidboy(int apicno)
 		ndnr();
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
-	m->cpumhz = hz/1000000ll;
+	m->cpumhz = hz / 1000000ll;
 
 	mmuinit();
 	if(!apiconline())
@@ -147,13 +147,13 @@ squidboy(int apicno)
 	m->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		machp()->machno, corecolor(machp()->machno), n[m->nixtype], m->rdtsc);
+	      machp()->machno, corecolor(machp()->machno), n[m->nixtype], m->rdtsc);
 	switch(m->nixtype){
 	case NIXAC:
 		acmmuswitch();
 		acinit();
 		adec(&active.nbooting);
-		ainc(&active.nonline);	/* this was commented out */
+		ainc(&active.nonline); /* this was commented out */
 		acsched();
 		panic("squidboy");
 		break;
@@ -172,7 +172,7 @@ squidboy(int apicno)
 
 		timersinit();
 		adec(&active.nbooting);
-		ainc(&active.nonline);	/* this was commented out */
+		ainc(&active.nonline); /* this was commented out */
 
 		schedinit();
 		break;
@@ -229,10 +229,9 @@ nixsquids(void)
 	m->rdtsc = rdtsc();
 	active.thunderbirdsarego = 1;
 	start = fastticks2us(fastticks(nil));
-	do{
+	do {
 		now = fastticks2us(fastticks(nil));
-	}while(active.nbooting > 0 && now - start < 1000000)
-		;
+	} while(active.nbooting > 0 && now - start < 1000000);
 	if(active.nbooting > 0)
 		print("cpu0: %d cores couldn't start\n", active.nbooting);
 	active.nbooting = 0;
@@ -267,7 +266,7 @@ main(uint32_t ax, uint32_t bx)
 	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr)*8);
+	cgapost(sizeof(uintptr) * 8);
 	memset(m, 0, sizeof(Mach));
 	machp()->machno = 0;
 	m->online = 1;
@@ -310,7 +309,7 @@ main(uint32_t ax, uint32_t bx)
 	if((hz = archhz()) != 0ll){
 		m->cpuhz = hz;
 		m->cyclefreq = hz;
-		m->cpumhz = hz/1000000ll;
+		m->cpumhz = hz / 1000000ll;
 	}
 
 	/*
@@ -349,7 +348,6 @@ main(uint32_t ax, uint32_t bx)
 	 */
 	i8259init(32);
 
-
 	procinit0();
 	mpsinit(maxcores);
 	apiconline();
@@ -366,20 +364,20 @@ main(uint32_t ax, uint32_t bx)
 	swapinit();
 	userinit();
 	nixsquids();
-testiccs();
-print("schedinit...\n");
+	testiccs();
+	print("schedinit...\n");
 	schedinit();
 }
 
 void
 init0(void)
 {
-	char buf[2*KNAMELEN];
+	char buf[2 * KNAMELEN];
 
 	up->nerrlab = 0;
 
-//	if(consuart == nil)
-//		i8250console("0");
+	//	if(consuart == nil)
+	//		i8250console("0");
 	spllo();
 
 	/*
@@ -422,7 +420,7 @@ bootargs(uintptr base)
 	 * because there are fewer than the maximum number of
 	 * args by subtracting sizeof(up->arg).
 	 */
-	i = oargblen+1;
+	i = oargblen + 1;
 	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(up->arg) - i));
 	memmove(p, oargb, i);
 
@@ -435,9 +433,9 @@ bootargs(uintptr base)
 	 * not the usual (int argc, char* argv[]), but argv0 is
 	 * unused so it doesn't matter (at the moment...).
 	 */
-	av = (char**)(p - (oargc+2)*sizeof(char*));
+	av = (char **)(p - (oargc + 2) * sizeof(char *));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
-	*av++ = (char*)oargc;
+	*av++ = (char *)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;
@@ -474,7 +472,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -485,10 +483,10 @@ userinit(void)
 	 * try to sleep if there are no pages available, but that
 	 * shouldn't be the case here.
 	 */
-	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
+	s = newseg(SG_STACK, USTKTOP - USTKSIZE, USTKSIZE / BIGPGSZ);
 	p->seg[SSEG] = s;
 
-	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
+	pg = newpage(1, 0, USTKTOP - BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
@@ -516,16 +514,16 @@ confinit(void)
 	int i;
 
 	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
+	for(i = 0; i < nelem(conf.mem); i++)
 		conf.npage += conf.mem[i].npage;
 
-	conf.nproc = 100 + ((conf.npage*PGSZ)/MB)*5;
+	conf.nproc = 100 + ((conf.npage * PGSZ) / MB) * 5;
 	if(cpuserver)
 		conf.nproc *= 3;
 	if(conf.nproc > 1000)
 		conf.nproc = 1000;
 	conf.nimage = 200;
-	conf.nswap = conf.nproc*80;
+	conf.nswap = conf.nproc * 80;
 	conf.nswppo = 4096;
 }
 
@@ -549,7 +547,7 @@ shutdown(int ispanic)
 		iprint("cpu%d: exiting\n", machp()->machno);
 
 	spllo();
-	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
+	for(ms = 5 * 1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
 		if(active.nonline == 0 && consactive() == 0)
 			break;
@@ -561,13 +559,12 @@ shutdown(int ispanic)
 		else
 			for(;;)
 				halt();
-	}
-	else
+	} else
 		delay(1000);
 }
 
 void
-reboot(void*, void*, int32_t)
+reboot(void *, void *, int32_t)
 {
 	panic("reboot\n");
 }

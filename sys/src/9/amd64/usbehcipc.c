@@ -13,44 +13,44 @@
  * High speed USB 2.0.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
-#include	"../port/usb.h"
-#include	"../port/portusbehci.h"
-#include	"usbehci.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
+#include "../port/usb.h"
+#include "../port/portusbehci.h"
+#include "usbehci.h"
 
-static Ctlr* ctlrs[Nhcis];
+static Ctlr *ctlrs[Nhcis];
 
 /* Isn't this cap list search in a helper function? */
 static void
-getehci(Ctlr* ctlr)
+getehci(Ctlr *ctlr)
 {
 	int i, ptr, cap, sem;
 
 	ptr = (ctlr->capio->capparms >> Ceecpshift) & Ceecpmask;
-	for(; ptr != 0; ptr = pcicfgr8(ctlr->pcidev, ptr+1)){
+	for(; ptr != 0; ptr = pcicfgr8(ctlr->pcidev, ptr + 1)){
 		if(ptr < 0x40 || (ptr & ~0xFC))
 			break;
 		cap = pcicfgr8(ctlr->pcidev, ptr);
 		if(cap != Clegacy)
 			continue;
-		sem = pcicfgr8(ctlr->pcidev, ptr+CLbiossem);
+		sem = pcicfgr8(ctlr->pcidev, ptr + CLbiossem);
 		if(sem == 0)
 			continue;
-		pcicfgw8(ctlr->pcidev, ptr+CLossem, 1);
+		pcicfgw8(ctlr->pcidev, ptr + CLossem, 1);
 		for(i = 0; i < 100; i++){
-			if(pcicfgr8(ctlr->pcidev, ptr+CLbiossem) == 0)
+			if(pcicfgr8(ctlr->pcidev, ptr + CLbiossem) == 0)
 				break;
 			delay(10);
 		}
 		if(i == 100)
 			dprint("ehci %#p: bios timed out\n", ctlr->capio);
-		pcicfgw32(ctlr->pcidev, ptr+CLcontrol, 0);	/* no SMIs */
+		pcicfgw32(ctlr->pcidev, ptr + CLcontrol, 0); /* no SMIs */
 		ctlr->opio->config = 0;
 		coherence();
 		return;
@@ -89,7 +89,7 @@ ehcireset(Ctlr *ctlr)
 	}
 
 	if(ehcidebugcapio != ctlr->capio){
-		opio->cmd |= Chcreset;	/* controller reset */
+		opio->cmd |= Chcreset; /* controller reset */
 		coherence();
 		for(i = 0; i < 100; i++){
 			if((opio->cmd & Chcreset) == 0)
@@ -102,7 +102,7 @@ ehcireset(Ctlr *ctlr)
 
 	/* requesting more interrupts per µframe may miss interrupts */
 	opio->cmd &= ~Citcmask;
-	opio->cmd |= 1 << Citcshift;		/* max of 1 intr. per 125 µs */
+	opio->cmd |= 1 << Citcshift; /* max of 1 intr. per 125 µs */
 	coherence();
 	switch(opio->cmd & Cflsmask){
 	case Cfls1024:
@@ -137,7 +137,7 @@ shutdown(Hci *hp)
 	ctlr = hp->Hciimpl.aux;
 	ilock(&ctlr->l);
 	opio = ctlr->opio;
-	opio->cmd |= Chcreset;		/* controller reset */
+	opio->cmd |= Chcreset; /* controller reset */
 	coherence();
 	for(i = 0; i < 100; i++){
 		if((opio->cmd & Chcreset) == 0)
@@ -166,7 +166,7 @@ scanpci(void)
 		return;
 	already = 1;
 	p = nil;
-	while ((p = pcimatch(p, 0, 0)) != nil) {
+	while((p = pcimatch(p, 0, 0)) != nil){
 		/*
 		 * Find EHCI controllers (Programming Interface = 0x20).
 		 */
@@ -179,29 +179,29 @@ scanpci(void)
 		default:
 			continue;
 		}
-		//if(0 && p->vid == Vintel && p->did == 0x3b34) {
+		//if(0 && p->vid == Vintel && p->did == 0x3b34){
 		//	print("usbehci: ignoring known bad ctlr %#x/%#x\n",
 		//		p->vid, p->did);
 		//	continue;
 		//}
 		if(io == 0){
 			print("usbehci: %x %x: failed to map registers\n",
-				p->vid, p->did);
+			      p->vid, p->did);
 			continue;
 		}
-		if(p->intl == 0xff || p->intl == 0) {
+		if(p->intl == 0xff || p->intl == 0){
 			print("usbehci: no irq assigned for port %#lx\n", io);
 			continue;
 		}
 		dprint("usbehci: %#x %#x: port %#lx size %#x irq %d\n",
-			p->vid, p->did, io, p->mem[0].size, p->intl);
+		       p->vid, p->did, io, p->mem[0].size, p->intl);
 
 		ctlr = malloc(sizeof(Ctlr));
-		if (ctlr == nil)
+		if(ctlr == nil)
 			panic("usbehci: out of memory");
 		ctlr->pcidev = p;
 		capio = ctlr->capio = vmap(io, p->mem[0].size);
-		ctlr->opio = (Eopio*)((uintptr)capio + (capio->cap & 0xff));
+		ctlr->opio = (Eopio *)((uintptr)capio + (capio->cap & 0xff));
 		pcisetbme(p);
 		pcisetpms(p, 0);
 		for(i = 0; i < Nhcis; i++)
@@ -211,7 +211,6 @@ scanpci(void)
 			}
 		if(i >= Nhcis)
 			print("ehci: bug: more than %d controllers\n", Nhcis);
-
 	}
 }
 
@@ -236,10 +235,10 @@ reset(Hci *hp)
 	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
 		ctlr = ctlrs[i];
 		if(ctlr->active == 0)
-		if(hp->ISAConf.port == 0 || hp->ISAConf.port == (uintptr)ctlr->capio){
-			ctlr->active = 1;
-			break;
-		}
+			if(hp->ISAConf.port == 0 || hp->ISAConf.port == (uintptr)ctlr->capio){
+				ctlr->active = 1;
+				break;
+			}
 	}
 	iunlock(&resetlck);
 	if(i >= Nhcis || ctlrs[i] == nil)

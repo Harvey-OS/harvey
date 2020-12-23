@@ -7,20 +7,20 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
 static QLock rl;
-
 
 /*
  * Add entropy
  */
- void
- random_add(void *xp){
+void
+random_add(void *xp)
+{
 	Proc *up = externup();
 
 	if(waserror()){
@@ -33,14 +33,14 @@ static QLock rl;
 	qunlock(&rl);
 
 	poperror();
- }
-
+}
 
 /*
  *  consume random bytes
  */
 uint32_t
-randomread(void *xp, uint32_t n){
+randomread(void *xp, uint32_t n)
+{
 	Proc *up = externup();
 
 	if(waserror()){
@@ -61,11 +61,12 @@ randomread(void *xp, uint32_t n){
  * Fast random generator
  **/
 uint32_t
-urandomread(void *xp, uint32_t n){
+urandomread(void *xp, uint32_t n)
+{
 	Proc *up = externup();
 	uint64_t seed[16];
 	uint8_t *e, *p;
-	uint32_t x=0;
+	uint32_t x = 0;
 	uint64_t s0;
 	uint64_t s1;
 
@@ -75,13 +76,13 @@ urandomread(void *xp, uint32_t n){
 	//The initial seed is from a good random pool.
 	randomread(seed, sizeof(seed));
 	p = xp;
-	for(e = p + n; p < e; ){
-		s0 = seed[ x ];
-		s1 = seed[ x = (x+1) & 15 ];
+	for(e = p + n; p < e;){
+		s0 = seed[x];
+		s1 = seed[x = (x + 1) & 15];
 		s1 ^= s1 << 31;
 		s1 ^= s1 >> 11;
 		s0 ^= s0 >> 30;
-		*p++=( seed[x] = s0 ^ s1 ) * 1181783497276652981LL;
+		*p++ = (seed[x] = s0 ^ s1) * 1181783497276652981LL;
 	}
 	poperror();
 	return n;

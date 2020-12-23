@@ -7,42 +7,39 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 #include <mp.h>
-#include	<libsec.h>
+#include <libsec.h>
 
-enum
-{
-	Hashlen=	SHA1dlen,
-	Maxhash=	256,
+enum {
+	Hashlen = SHA1dlen,
+	Maxhash = 256,
 };
 
 /*
  *  if a process knows cap->cap, it can change user
  *  to capabilty->user.
  */
-typedef struct Caphash	Caphash;
-struct Caphash
-{
-	Caphash	*next;
-	char		hash[Hashlen];
+typedef struct Caphash Caphash;
+struct Caphash {
+	Caphash *next;
+	char hash[Hashlen];
 };
 
 struct
 {
 	QLock QLock;
-	Caphash	*first;
-	int	nhash;
+	Caphash *first;
+	int nhash;
 } capalloc;
 
-enum
-{
+enum {
 	Qdir,
 	Qhash,
 	Quse,
@@ -50,20 +47,20 @@ enum
 
 /* caphash must be last */
 Dirtab capdir[] =
-{
-	{".",		{Qdir,0,QTDIR},	0,		DMDIR|0500},
-	{"capuse",	{Quse},		0,		0222},
-	{"caphash",	{Qhash},	0,		0200},
+	{
+		{".", {Qdir, 0, QTDIR}, 0, DMDIR | 0500},
+		{"capuse", {Quse}, 0, 0222},
+		{"caphash", {Qhash}, 0, 0200},
 };
 int ncapdir = nelem(capdir);
 
-static Chan*
+static Chan *
 capattach(char *spec)
 {
 	return devattach(L'¤', spec);
 }
 
-static Walkqid*
+static Walkqid *
 capwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, capdir, ncapdir, devgen);
@@ -73,11 +70,10 @@ static void
 capremove(Chan *c)
 {
 	if(iseve() && c->qid.path == Qhash)
-		ncapdir = nelem(capdir)-1;
+		ncapdir = nelem(capdir) - 1;
 	else
 		error(Eperm);
 }
-
 
 static int32_t
 capstat(Chan *c, uint8_t *db, int32_t n)
@@ -88,7 +84,7 @@ capstat(Chan *c, uint8_t *db, int32_t n)
 /*
  *  if the stream doesn't exist, create it
  */
-static Chan*
+static Chan *
 capopen(Chan *c, int omode)
 {
 	if(c->qid.type & QTDIR){
@@ -127,7 +123,7 @@ hashstr(uchar *hash)
 }
  */
 
-static Caphash*
+static Caphash *
 remcap(uint8_t *hash)
 {
 	Caphash *t, **l;
@@ -183,7 +179,7 @@ addcap(uint8_t *hash)
 }
 
 static void
-capclose(Chan* c)
+capclose(Chan *c)
 {
 }
 
@@ -228,7 +224,7 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 			free(cp);
 			nexterror();
 		}
-		cp = smalloc(n+1);
+		cp = smalloc(n + 1);
 		memmove(cp, va, n);
 		cp[n] = 0;
 
@@ -237,7 +233,7 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 		if(key == nil)
 			error(Eshort);
 		*key++ = 0;
-		hmac_sha1((uint8_t*)from, strlen(from), (uint8_t*)key, strlen(key), hash, nil);
+		hmac_sha1((uint8_t *)from, strlen(from), (uint8_t *)key, strlen(key), hash, nil);
 
 		p = remcap(hash);
 		if(p == nil){
@@ -290,5 +286,4 @@ Dev capdevtab = {
 	.write = capwrite,
 	.bwrite = devbwrite,
 	.remove = capremove,
-	.wstat = devwstat
-};
+	.wstat = devwstat};

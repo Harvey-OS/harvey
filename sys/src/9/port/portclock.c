@@ -15,10 +15,9 @@
 
 #include "ureg.h"
 
-struct Timers
-{
+struct Timers {
 	Lock l;
-	Timer	*head;
+	Timer *head;
 };
 
 static Timers timers[MACHMAX];
@@ -132,7 +131,6 @@ timeradd(Timer *nt)
 	iunlock(&nt->l);
 }
 
-
 void
 timerdel(Timer *dt)
 {
@@ -180,18 +178,18 @@ hzclock(Ureg *ur)
 	if(machp()->online == 0)
 		return;
 
-	if(active.exiting) {
+	if(active.exiting){
 		print("someone's exiting\n");
 		exit(0);
 	}
 
-	if(machp()->machno == 0) {
+	if(machp()->machno == 0){
 		/* since sys->ticks is only updated if machp()->machno == 0 */
 		checkalarms();
 	}
 
 	if(up && up->state == Running)
-		hzsched();	/* in proc.c */
+		hzsched(); /* in proc.c */
 }
 
 void
@@ -250,12 +248,12 @@ timersinit(void)
 	t = malloc(sizeof(*t));
 	t->tmode = Tperiodic;
 	t->tt = nil;
-	t->tns = 1000000000/HZ;
+	t->tns = 1000000000 / HZ;
 	t->tf = nil;
 	timeradd(t);
 }
 
-Timer*
+Timer *
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
@@ -264,11 +262,11 @@ addclock0link(void (*f)(void), int ms)
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
 	if(ms == 0)
-		ms = 1000/HZ;
-	nt->tns = (int64_t)ms*1000000LL;
+		ms = 1000 / HZ;
+	nt->tns = (int64_t)ms * 1000000LL;
 	nt->tmode = Tperiodic;
 	nt->tt = nil;
-	nt->tf = (void (*)(Ureg*, Timer*))f;
+	nt->tf = (void (*)(Ureg *, Timer *))f;
 
 	ilock(&timers[0].l);
 	when = tadd(&timers[0], nt);
@@ -282,7 +280,7 @@ uint64_t
 ms2tk(uint64_t ms)
 {
 	/* avoid overflows at the cost of precision */
-	if(ms >= 1000000000/HZ)
-		return (ms/1000)*HZ;
-	return (ms*HZ+500)/1000;
+	if(ms >= 1000000000 / HZ)
+		return (ms / 1000) * HZ;
+	return (ms * HZ + 500) / 1000;
 }

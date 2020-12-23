@@ -1,6 +1,6 @@
 /* Portions of this file derived from work with the following copyright */
 
- /***************************************************************************\
+/***************************************************************************\
 |*                                                                           *|
 |*       Copyright 2003 NVIDIA, Corporation.  All rights reserved.           *|
 |*                                                                           *|
@@ -47,7 +47,7 @@
 #include "io.h"
 #include "../port/error.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
@@ -69,33 +69,33 @@ enum {
 #define SKIPS 8
 
 struct {
-	uint32_t	*dmabase;
-	int		dmacurrent;
-	int		dmaput;
-	int		dmafree;
-	int		dmamax;
+	uint32_t *dmabase;
+	int dmacurrent;
+	int dmaput;
+	int dmafree;
+	int dmamax;
 } nv;
 
-static Pcidev*
+static Pcidev *
 nvidiapci(void)
 {
 	Pcidev *p;
 
 	p = nil;
 	while((p = pcimatch(p, 0x10DE, 0)) != nil){
-		if(p->did >= 0x20 && p->ccrb == 3)	/* video card */
+		if(p->did >= 0x20 && p->ccrb == 3) /* video card */
 			return p;
 	}
 	return nil;
 }
 
 static void
-nvidialinear(VGAscr* scr, int size, int align)
+nvidialinear(VGAscr *scr, int size, int align)
 {
 }
 
 static void
-nvidiaenable(VGAscr* scr)
+nvidiaenable(VGAscr *scr)
 {
 	Pcidev *p;
 	uint32_t *q;
@@ -112,26 +112,26 @@ nvidiaenable(VGAscr* scr)
 	scr->mmio = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
 	if(scr->mmio == nil)
 		return;
-	addvgaseg("nvidiammio", p->mem[0].bar&~0x0F, p->mem[0].size);
+	addvgaseg("nvidiammio", p->mem[0].bar & ~0x0F, p->mem[0].size);
 
 	vgalinearpci(scr);
 	if(scr->apsize)
 		addvgaseg("nvidiascreen", scr->paddr, scr->apsize);
 
 	/* find video memory size */
-	switch (scr->id & 0x0ff0) {
+	switch(scr->id & 0x0ff0){
 	case 0x0020:
 	case 0x00A0:
-		q = (void*)((uint8_t*)scr->mmio + Pfb);
+		q = (void *)((uint8_t *)scr->mmio + Pfb);
 		tmp = *q;
-		if (tmp & 0x0100) {
+		if(tmp & 0x0100){
 			scr->storage = ((tmp >> 12) & 0x0F) * 1024 + 1024 * 2;
 		} else {
 			tmp &= 0x03;
-			if (tmp)
-				scr->storage = (1024*1024*2) << tmp;
+			if(tmp)
+				scr->storage = (1024 * 1024 * 2) << tmp;
 			else
-				scr->storage = 1024*1024*32;
+				scr->storage = 1024 * 1024 * 32;
 		}
 		break;
 	case 0x01A0:
@@ -145,17 +145,17 @@ nvidiaenable(VGAscr* scr)
 		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
 		break;
 	default:
-		q = (void*)((uint8_t*)scr->mmio + Pfb + 0x020C);
+		q = (void *)((uint8_t *)scr->mmio + Pfb + 0x020C);
 		tmp = (*q >> 20) & 0xFFF;
-		if (tmp == 0)
+		if(tmp == 0)
 			tmp = 16;
-		scr->storage = tmp*1024*1024;
+		scr->storage = tmp * 1024 * 1024;
 		break;
 	}
 }
 
 static void
-nvidiacurdisable(VGAscr* scr)
+nvidiacurdisable(VGAscr *scr)
 {
 	if(scr->mmio == 0)
 		return;
@@ -163,24 +163,23 @@ nvidiacurdisable(VGAscr* scr)
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
 }
 
-
 static void
-nvidiacurload(VGAscr* scr, Cursor* curs)
+nvidiacurload(VGAscr *scr, Cursor *curs)
 {
-	uint32_t*	p;
-	int	i,j;
-	uint16_t	c,s;
-	uint32_t	tmp;
+	uint32_t *p;
+	int i, j;
+	uint16_t c, s;
+	uint32_t tmp;
 
 	if(scr->mmio == 0)
 		return;
 
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
 
-	switch (scr->id & 0x0ff0) {
+	switch(scr->id & 0x0ff0){
 	case 0x0020:
 	case 0x00A0:
-		p = (void*)((uint8_t*)scr->mmio + Pramin + 0x1E00 * 4);
+		p = (void *)((uint8_t *)scr->mmio + Pramin + 0x1E00 * 4);
 		break;
 	default:
 		/*
@@ -188,36 +187,36 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 		 * have allocated less storage than aux/vga
 		 * expected.
 		 */
-		tmp = scr->apsize - 96*1024;
-		p = (void*)((uint8_t*)scr->vaddr + tmp);
-		vgaxo(Crtx, 0x30, 0x80|(tmp>>17));
-		vgaxo(Crtx, 0x31, (tmp>>11)<<2);
-		vgaxo(Crtx, 0x2F, tmp>>24);
+		tmp = scr->apsize - 96 * 1024;
+		p = (void *)((uint8_t *)scr->vaddr + tmp);
+		vgaxo(Crtx, 0x30, 0x80 | (tmp >> 17));
+		vgaxo(Crtx, 0x31, (tmp >> 11) << 2);
+		vgaxo(Crtx, 0x2F, tmp >> 24);
 		break;
 	}
 
-	for(i=0; i<16; i++) {
-		c = (curs->clr[2 * i] << 8) | curs->clr[2 * i+1];
-		s = (curs->set[2 * i] << 8) | curs->set[2 * i+1];
+	for(i = 0; i < 16; i++){
+		c = (curs->clr[2 * i] << 8) | curs->clr[2 * i + 1];
+		s = (curs->set[2 * i] << 8) | curs->set[2 * i + 1];
 		tmp = 0;
-		for (j=0; j<16; j++){
-			if(s&0x8000)
+		for(j = 0; j < 16; j++){
+			if(s & 0x8000)
 				tmp |= 0x80000000;
-			else if(c&0x8000)
+			else if(c & 0x8000)
 				tmp |= 0xFFFF0000;
-			if (j&0x1){
+			if(j & 0x1){
 				*p++ = tmp;
 				tmp = 0;
 			} else {
-				tmp>>=16;
+				tmp >>= 16;
 			}
-			c<<=1;
-			s<<=1;
+			c <<= 1;
+			s <<= 1;
 		}
-		for (j=0; j<8; j++)
+		for(j = 0; j < 8; j++)
 			*p++ = 0;
 	}
-	for (i=0; i<256; i++)
+	for(i = 0; i < 256; i++)
 		*p++ = 0;
 
 	scr->Cursor.offset = curs->offset;
@@ -227,21 +226,21 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 }
 
 static int
-nvidiacurmove(VGAscr* scr, Point p)
+nvidiacurmove(VGAscr *scr, Point p)
 {
-	uint32_t*	cursorpos;
+	uint32_t *cursorpos;
 
 	if(scr->mmio == 0)
 		return 1;
 
-	cursorpos = (void*)((uint8_t*)scr->mmio + hwCurPos);
-	*cursorpos = ((p.y+scr->Cursor.offset.y)<<16)|((p.x+scr->Cursor.offset.x) & 0xFFFF);
+	cursorpos = (void *)((uint8_t *)scr->mmio + hwCurPos);
+	*cursorpos = ((p.y + scr->Cursor.offset.y) << 16) | ((p.x + scr->Cursor.offset.x) & 0xFFFF);
 
 	return 0;
 }
 
 static void
-nvidiacurenable(VGAscr* scr)
+nvidiacurenable(VGAscr *scr)
 {
 	nvidiaenable(scr);
 	if(scr->mmio == 0)
@@ -258,13 +257,13 @@ nvidiacurenable(VGAscr* scr)
 void
 writeput(VGAscr *scr, int data)
 {
-	uint8_t	*p, scratch;
-	uint32_t	*fifo;
+	uint8_t *p, scratch;
+	uint32_t *fifo;
 
-	outb(0x3D0,0);
+	outb(0x3D0, 0);
 	p = scr->vaddr;
 	scratch = *p;
-	fifo = (void*)((uint8_t*)scr->mmio + Fifo);
+	fifo = (void *)((uint8_t *)scr->mmio + Fifo);
 	fifo[0x10] = (data << 2);
 	USED(scratch);
 }
@@ -272,16 +271,16 @@ writeput(VGAscr *scr, int data)
 uint32_t
 readget(VGAscr *scr)
 {
-	uint32_t	*fifo;
+	uint32_t *fifo;
 
-	fifo = (void*)((uint8_t*)scr->mmio + Fifo);
+	fifo = (void *)((uint8_t *)scr->mmio + Fifo);
 	return (fifo[0x0011] >> 2);
 }
 
 void
 nvdmakickoff(VGAscr *scr)
 {
-	if(nv.dmacurrent != nv.dmaput) {
+	if(nv.dmacurrent != nv.dmaput){
 		nv.dmaput = nv.dmacurrent;
 		writeput(scr, nv.dmaput);
 	}
@@ -300,18 +299,19 @@ nvdmawait(VGAscr *scr, int size)
 
 	size++;
 
-	while(nv.dmafree < size) {
+	while(nv.dmafree < size){
 		dmaget = readget(scr);
 
-		if(nv.dmaput >= dmaget) {
+		if(nv.dmaput >= dmaget){
 			nv.dmafree = nv.dmamax - nv.dmacurrent;
-			if(nv.dmafree < size) {
+			if(nv.dmafree < size){
 				nvdmanext(0x20000000);
-				if(dmaget <= SKIPS) {
-					if (nv.dmaput <= SKIPS) /* corner case - will be idle */
+				if(dmaget <= SKIPS){
+					if(nv.dmaput <= SKIPS) /* corner case - will be idle */
 						writeput(scr, SKIPS + 1);
-					do { dmaget = readget(scr); }
-					while(dmaget <= SKIPS);
+					do {
+						dmaget = readget(scr);
+					} while(dmaget <= SKIPS);
 				}
 				writeput(scr, SKIPS);
 				nv.dmacurrent = nv.dmaput = SKIPS;
@@ -322,11 +322,10 @@ nvdmawait(VGAscr *scr, int size)
 	}
 }
 
-
 static void
 nvdmastart(VGAscr *scr, uint32_t tag, int size)
 {
-	if (nv.dmafree <= size)
+	if(nv.dmafree <= size)
 		nvdmawait(scr, size);
 	nvdmanext((size << 18) | tag);
 	nv.dmafree -= (size + 1);
@@ -335,10 +334,10 @@ nvdmastart(VGAscr *scr, uint32_t tag, int size)
 static void
 waitforidle(VGAscr *scr)
 {
-	uint32_t*	pgraph;
+	uint32_t *pgraph;
 	int x;
 
-	pgraph = (void*)((uint8_t*)scr->mmio + Pgraph);
+	pgraph = (void *)((uint8_t *)scr->mmio + Pgraph);
 
 	x = 0;
 	while((readget(scr) != nv.dmaput) && x++ < 1000000)
@@ -347,7 +346,7 @@ waitforidle(VGAscr *scr)
 		iprint("idle stat %lud put %d scr %#p pc %#p\n", readget(scr), nv.dmaput, scr, getcallerpc());
 
 	x = 0;
-	while(pgraph[0x00000700/4] & 0x01 && x++ < 1000000)
+	while(pgraph[0x00000700 / 4] & 0x01 && x++ < 1000000)
 		;
 
 	if(x >= 1000000)
@@ -357,10 +356,10 @@ waitforidle(VGAscr *scr)
 static void
 nvresetgraphics(VGAscr *scr)
 {
-	uint32_t	surfaceFormat, patternFormat, rectFormat, lineFormat;
-	int		pitch, i;
+	uint32_t surfaceFormat, patternFormat, rectFormat, lineFormat;
+	int pitch, i;
 
-	pitch = scr->gscreen->width*BY2WD;
+	pitch = scr->gscreen->width * BY2WD;
 
 	/*
 	 * DMA is at the end of the virtual window,
@@ -368,9 +367,9 @@ nvresetgraphics(VGAscr *scr)
 	 */
 	if(nv.dmabase == nil){
 		if(scr->storage <= scr->apsize)
-			nv.dmabase = (uint32_t*)((uint8_t*)scr->vaddr + scr->storage - 128*1024);
-		else{
-			nv.dmabase = (void*)vmap(scr->paddr + scr->storage - 128*1024, 128*1024);
+			nv.dmabase = (uint32_t *)((uint8_t *)scr->vaddr + scr->storage - 128 * 1024);
+		else {
+			nv.dmabase = (void *)vmap(scr->paddr + scr->storage - 128 * 1024, 128 * 1024);
 			if(nv.dmabase == 0){
 				hwaccel = 0;
 				hwblank = 0;
@@ -380,7 +379,7 @@ nvresetgraphics(VGAscr *scr)
 		}
 	}
 
-	for(i=0; i<SKIPS; i++)
+	for(i = 0; i < SKIPS; i++)
 		nv.dmabase[i] = 0x00000000;
 
 	nv.dmabase[0x0 + SKIPS] = 0x00040000;
@@ -405,7 +404,7 @@ nvresetgraphics(VGAscr *scr)
 	nv.dmamax = 8191;
 	nv.dmafree = nv.dmamax - nv.dmacurrent;
 
-	switch(scr->gscreen->depth) {
+	switch(scr->gscreen->depth){
 	case 32:
 	case 24:
 		surfaceFormat = SURFACE_FORMAT_DEPTH24;
@@ -456,7 +455,6 @@ nvresetgraphics(VGAscr *scr)
 	waitforidle(scr);
 }
 
-
 static int
 nvidiahwfill(VGAscr *scr, Rectangle r, uint32_t sval)
 {
@@ -468,7 +466,7 @@ nvidiahwfill(VGAscr *scr, Rectangle r, uint32_t sval)
 	nvdmanext((Dx(r) << 16) | Dy(r));
 
 	//if ( (Dy(r) * Dx(r)) >= 512)
-		nvdmakickoff(scr);
+	nvdmakickoff(scr);
 
 	waitforidle(scr);
 
@@ -484,7 +482,7 @@ nvidiahwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 	nvdmanext((Dy(r) << 16) | Dx(r));
 
 	//if ( (Dy(r) * Dx(r)) >= 512)
-		nvdmakickoff(scr);
+	nvdmakickoff(scr);
 
 	waitforidle(scr);
 
@@ -492,7 +490,7 @@ nvidiahwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 }
 
 void
-nvidiablank(VGAscr* scr, int blank)
+nvidiablank(VGAscr *scr, int blank)
 {
 	uint8_t seq1, crtc1A;
 
@@ -501,7 +499,7 @@ nvidiablank(VGAscr* scr, int blank)
 
 	if(blank){
 		seq1 |= 0x20;
-//		crtc1A |= 0xC0;
+		//		crtc1A |= 0xC0;
 		crtc1A |= 0x80;
 	}
 

@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-#include 	<elf.h>
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
+#include <elf.h>
 
 /* some day we will want these.
 void
@@ -23,7 +23,7 @@ readn(Chan *c, void *vp, int32_t n)
 	int32_t nn;
 
 	p = vp;
-	while(n > 0) {
+	while(n > 0){
 		nn = c->dev->read(c, p, n, c->offset);
 		if(nn == 0)
 			error(Eshort);
@@ -55,7 +55,7 @@ setbootcmd(int argc, char *argv[])
 void
 rebootcmd(int argc, char *argv[])
 {
-	if (argc == 0)
+	if(argc == 0)
 		exit(0);
 
 	error("Reboot with a file is not supported yet");

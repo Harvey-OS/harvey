@@ -18,7 +18,7 @@
 /*
  * measure max lock cycles and max lock waiting time.
  */
-#define	LOCKCYCLES	0
+#define LOCKCYCLES 0
 
 uint64_t maxlockcycles;
 uint64_t maxilockcycles;
@@ -47,7 +47,7 @@ startwaitstats(int on)
 	newwaitstats();
 	mfence();
 	waitstats.on = on;
-	print("lockstats %s\n", on?"on":"off");
+	print("lockstats %s\n", on ? "on" : "off");
 }
 
 void
@@ -75,8 +75,8 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 		if(waitstats.pcs[i] == pc){
 			ainc(&waitstats.ns[i]);
 			if(w > waitstats.wait[i])
-				waitstats.wait[i] = w;	/* race but ok */
-			waitstats.total[i] += w;		/* race but ok */
+				waitstats.wait[i] = w; /* race but ok */
+			waitstats.total[i] += w;       /* race but ok */
 			return;
 		}
 	if(!canlock(&waitstatslk))
@@ -86,7 +86,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 		if(waitstats.pcs[i] == pc){
 			ainc(&waitstats.ns[i]);
 			if(w > waitstats.wait[i])
-				waitstats.wait[i] = w;	/* race but ok */
+				waitstats.wait[i] = w; /* race but ok */
 			waitstats.total[i] += w;
 			unlock(&waitstatslk);
 			return;
@@ -115,7 +115,7 @@ lockloop(Lock *l, uintptr_t pc)
 
 	p = l->p;
 	print("lock %#p loop key %#x pc %#p held by pc %#p proc %d\n",
-		l, l->key, pc, l->_pc, p ? p->pid : 0);
+	      l, l->key, pc, l->_pc, p ? p->pid : 0);
 	dumpaproc(up);
 	if(p != nil)
 		dumpaproc(p);
@@ -133,7 +133,7 @@ lock(Lock *l)
 
 	lockstats.locks++;
 	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
+		ainc(&up->nlocks); /* prevent being scheded */
 	if(TAS(&l->key) == 0){
 		if(up)
 			up->lastlock = l;
@@ -160,8 +160,8 @@ lock(Lock *l)
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? up->pid : 0, l->_pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */
+				      l, pc, up ? up->pid : 0, l->_pc, l->p ? l->p->pid : 0);
+				up->edf->d = todget(nil); /* yield to process with lock */
 			}
 			if(i++ > 100000000){
 				i = 0;
@@ -315,7 +315,7 @@ iunlock(Lock *l)
 		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(), l->_pc);
 	if(l->m != machp()){
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			machp()->machno, l->m->machno, getcallerpc(), l->_pc);
+		      machp()->machno, l->m->machno, getcallerpc(), l->_pc);
 	}
 
 	pl = l->pl;
@@ -332,7 +332,7 @@ iunlock(Lock *l)
 void
 portmwait(void *value)
 {
-	while (*(void**)value == nil)
+	while(*(void **)value == nil)
 		;
 }
 

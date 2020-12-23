@@ -7,15 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /* Segment type from portdat.h */
-char *segtypes[SG_TYPE]={
+char *segtypes[SG_TYPE] = {
 	[SG_BAD0] = "Bad0",
 	[SG_TEXT] = "Text",
 	[SG_DATA] = "Data",
@@ -23,9 +23,7 @@ char *segtypes[SG_TYPE]={
 	[SG_STACK] = "Stack",
 	[SG_SHARED] = "Shared",
 	[SG_PHYSICAL] = "Phys",
-	[SG_LOAD] = "Load"
-};
-
+	[SG_LOAD] = "Load"};
 
 uintmem
 segppn(Segment *s, uintmem pa)
@@ -33,7 +31,7 @@ segppn(Segment *s, uintmem pa)
 	uintmem pgsz;
 
 	pgsz = sys->pgsz[s->pgszi];
-	pa &= ~(pgsz-1);
+	pa &= ~(pgsz - 1);
 	return pa;
 }
 
@@ -50,22 +48,22 @@ newseg(int type, uintptr_t base, uint64_t size)
 	int mapsize;
 	uint pgsz;
 
-	if(size > SEGMAPSIZE*(PTEMAPMEM/BIGPGSZ))
+	if(size > SEGMAPSIZE * (PTEMAPMEM / BIGPGSZ))
 		error(Enovmem);
 
 	pgsz = BIGPGSZ;
-	if (0) // TODO: re enable this on a per-process basis via a write to /proc/pid/ctl.
-	if(size*BIGPGSZ >= 1*GiB && getpgszi(1*GiB) >= 0 &&
-	   (base&(1ULL*GiB-1)) == 0 && ((size*BIGPGSZ)&(1ULL*GiB-1)) == 0){
-		DBG("newseg: using 1G pages\n");
-		pgsz = 1*GiB;
-	}
+	if(0)	     // TODO: re enable this on a per-process basis via a write to /proc/pid/ctl.
+		if(size * BIGPGSZ >= 1 * GiB && getpgszi(1 * GiB) >= 0 &&
+		   (base & (1ULL * GiB - 1)) == 0 && ((size * BIGPGSZ) & (1ULL * GiB - 1)) == 0){
+			DBG("newseg: using 1G pages\n");
+			pgsz = 1 * GiB;
+		}
 	s = smalloc(sizeof(Segment));
 	s->r.ref = 1;
 	s->type = type;
 	s->base = base;
-	s->ptepertab = PTEMAPMEM/pgsz;
-	s->top = base+(size*BIGPGSZ);
+	s->ptepertab = PTEMAPMEM / pgsz;
+	s->top = base + (size * BIGPGSZ);
 	s->size = size;
 	s->pgszi = getpgszi(pgsz);
 	if(s->pgszi < 0)
@@ -74,15 +72,14 @@ newseg(int type, uintptr_t base, uint64_t size)
 	s->sema.next = &s->sema;
 	s->color = NOCOLOR;
 
-	mapsize = HOWMANY(size*BIGPGSZ/pgsz, s->ptepertab);
+	mapsize = HOWMANY(size * BIGPGSZ / pgsz, s->ptepertab);
 	if(mapsize > nelem(s->ssegmap)){
 		mapsize *= 2;
-		if(mapsize > (SEGMAPSIZE*s->ptepertab))
-			mapsize = (SEGMAPSIZE*s->ptepertab);
-		s->map = smalloc(mapsize*sizeof(Pte*));
+		if(mapsize > (SEGMAPSIZE * s->ptepertab))
+			mapsize = (SEGMAPSIZE * s->ptepertab);
+		s->map = smalloc(mapsize * sizeof(Pte *));
 		s->mapsize = mapsize;
-	}
-	else{
+	} else {
 		s->map = s->ssegmap;
 		s->mapsize = nelem(s->ssegmap);
 	}
@@ -95,24 +92,23 @@ putseg(Segment *s)
 {
 	Pte **pp, **emap;
 	Image *i;
-	extern void freezseg(Segment*);
+	extern void freezseg(Segment *);
 
 	if(s == 0)
 		return;
 
 	i = s->image;
-	if(i != 0) {
+	if(i != 0){
 		lock(&i->r.l);
 		lock(&s->r.l);
 		if(i->s == s && s->r.ref == 1)
 			i->s = 0;
 		unlock(&i->r.l);
-	}
-	else
+	} else
 		lock(&s->r.l);
 
 	s->r.ref--;
-	if(s->r.ref != 0) {
+	if(s->r.ref != 0){
 		unlock(&s->r.l);
 		return;
 	}
@@ -132,7 +128,7 @@ putseg(Segment *s)
 		free(s->map);
 	if(s->profile != 0)
 		free(s->profile);
-	if(s->type&SG_ZIO)
+	if(s->type & SG_ZIO)
 		freezseg(s);
 	free(s);
 }
@@ -144,18 +140,18 @@ relocateseg(Segment *s, uintptr_t offset)
 	Pte *pte, **p, **endpte;
 
 	endpte = &s->map[s->mapsize];
-	for(p = s->map; p < endpte; p++) {
+	for(p = s->map; p < endpte; p++){
 		if(*p == 0)
 			continue;
 		pte = *p;
-		for(pg = pte->first; pg <= pte->last; pg++) {
+		for(pg = pte->first; pg <= pte->last; pg++){
 			if((x = *pg) != nil)
 				x->va += offset;
 		}
 	}
 }
 
-Segment*
+Segment *
 dupseg(Segment **seg, int segno, int share)
 {
 	Proc *up = externup();
@@ -171,8 +167,8 @@ dupseg(Segment **seg, int segno, int share)
 		qunlock(&s->lk);
 		nexterror();
 	}
-	switch(s->type&SG_TYPE) {
-	case SG_TEXT:		/* New segment shares pte set */
+	switch(s->type & SG_TYPE){
+	case SG_TEXT: /* New segment shares pte set */
 	case SG_SHARED:
 	case SG_PHYSICAL:
 	case SG_MMAP:
@@ -182,7 +178,7 @@ dupseg(Segment **seg, int segno, int share)
 		n = newseg(s->type, s->base, s->size);
 		break;
 
-	case SG_BSS:		/* Just copy on write */
+	case SG_BSS: /* Just copy on write */
 		if(share)
 			goto sameseg;
 		n = newseg(s->type, s->base, s->size);
@@ -191,7 +187,7 @@ dupseg(Segment **seg, int segno, int share)
 	case SG_LOAD:
 		if((s->type & SG_EXEC) != 0 && (s->type & SG_WRITE) == 0)
 			goto sameseg;
-	case SG_DATA:		/* Copy on write plus demand load info */
+	case SG_DATA: /* Copy on write plus demand load info */
 		if((s->type & SG_EXEC) != 0){
 			poperror();
 			qunlock(&s->lk);
@@ -241,7 +237,7 @@ segpage(Segment *s, Page *p)
 		s->pgszi = p->pgszi;
 	if(s->color == NOCOLOR)
 		s->color = p->color;
-	if(s->pgszi != p->pgszi) {
+	if(s->pgszi != p->pgszi){
 		iprint("s %p s->pgszi %d p %p p->pgszi %p\n", s, s->pgszi, p, p->pgszi);
 		panic("segpage: s->pgszi != p->pgszi");
 	}
@@ -250,11 +246,11 @@ segpage(Segment *s, Page *p)
 		panic("segpage: p->va < s->base || p->va >= s->top");
 
 	soff = p->va - s->base;
-	pte = &s->map[soff/PTEMAPMEM];
+	pte = &s->map[soff / PTEMAPMEM];
 	if(*pte == 0)
 		*pte = ptealloc(s);
 	pgsz = sys->pgsz[s->pgszi];
-	pg = &(*pte)->pages[(soff&(PTEMAPMEM-1))/pgsz];
+	pg = &(*pte)->pages[(soff & (PTEMAPMEM - 1)) / pgsz];
 	*pg = p;
 	if(pg < (*pte)->first)
 		(*pte)->first = pg;
@@ -275,20 +271,20 @@ mfreeseg(Segment *s, uintptr_t start, int pages)
 	Page *list;
 
 	pgsz = sys->pgsz[s->pgszi];
-	soff = start-s->base;
-	j = (soff&(PTEMAPMEM-1))/pgsz;
+	soff = start - s->base;
+	j = (soff & (PTEMAPMEM - 1)) / pgsz;
 
 	size = s->mapsize;
 	list = nil;
-	for(i = soff/PTEMAPMEM; i < size; i++) {
+	for(i = soff / PTEMAPMEM; i < size; i++){
 		if(pages <= 0)
 			break;
-		if(s->map[i] == 0) {
-			pages -= s->ptepertab-j;
+		if(s->map[i] == 0){
+			pages -= s->ptepertab - j;
 			j = 0;
 			continue;
 		}
-		while(j < s->ptepertab) {
+		while(j < s->ptepertab){
 			pg = s->map[i]->pages[j];
 			/*
 			 * We want to zero s->map[i]->page[j] and putpage(pg),
@@ -304,7 +300,7 @@ mfreeseg(Segment *s, uintptr_t start, int pages)
 			if(pg){
 				if(onswap(pg))
 					putswap(pg);
-				else{
+				else {
 					pg->next = list;
 					list = pg;
 				}
@@ -328,15 +324,15 @@ out:
 	}
 }
 
-Segment*
-isoverlap(Proc* p, uintptr_t va, usize len)
+Segment *
+isoverlap(Proc *p, uintptr_t va, usize len)
 {
 	int i;
 	Segment *ns;
 	uintptr_t newtop;
 
-	newtop = va+len;
-	for(i = 0; i < NSEG; i++) {
+	newtop = va + len;
+	for(i = 0; i < NSEG; i++){
 		ns = p->seg[i];
 		if(ns == 0)
 			continue;
@@ -361,9 +357,9 @@ segclock(uintptr_t pc)
 		if((s->type & SG_EXEC) == 0 || s->profile == 0)
 			continue;
 		s->profile[0] += TK2MS(1);
-		if(pc >= s->base && pc < s->top) {
+		if(pc >= s->base && pc < s->top){
 			pc -= s->base;
-			s->profile[pc>>LRESPROF] += TK2MS(1);
+			s->profile[pc >> LRESPROF] += TK2MS(1);
 		}
 	}
 }

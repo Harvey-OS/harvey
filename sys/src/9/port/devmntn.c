@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  * References are managed as follows:
@@ -25,89 +25,85 @@
  * connection.
  */
 
-#define MAXRPC (IOHDRSZ+128*1024)
+#define MAXRPC (IOHDRSZ + 128 * 1024)
 
-struct Mntrpc
-{
-	Chan*	c;		/* Channel for whom we are working */
-	Mntrpc*	list;		/* Free/pending list */
-	Fcall	request;	/* Outgoing file system protocol message */
-	Fcall 	reply;		/* Incoming reply */
-	Mnt*	m;		/* Mount device during rpc */
-	Rendez	r;		/* Place to hang out */
-	uint8_t*	rpc;		/* I/O Data buffer */
-	uint	rpclen;		/* len of buffer */
-	Block	*b;		/* reply blocks */
-	char	done;		/* Rpc completed */
-	uint64_t	stime;		/* start time for mnt statistics */
-	uint32_t	reqlen;		/* request length for mnt statistics */
-	uint32_t	replen;		/* reply length for mnt statistics */
-	Mntrpc*	flushed;	/* message this one flushes */
+struct Mntrpc {
+	Chan *c;	 /* Channel for whom we are working */
+	Mntrpc *list;	 /* Free/pending list */
+	Fcall request;	 /* Outgoing file system protocol message */
+	Fcall reply;	 /* Incoming reply */
+	Mnt *m;		 /* Mount device during rpc */
+	Rendez r;	 /* Place to hang out */
+	uint8_t *rpc;	 /* I/O Data buffer */
+	uint rpclen;	 /* len of buffer */
+	Block *b;	 /* reply blocks */
+	char done;	 /* Rpc completed */
+	uint64_t stime;	 /* start time for mnt statistics */
+	uint32_t reqlen; /* request length for mnt statistics */
+	uint32_t replen; /* reply length for mnt statistics */
+	Mntrpc *flushed; /* message this one flushes */
 };
 
-enum
-{
-	TAGSHIFT = 5,			/* uint32_t has to be 32 bits */
-	TAGMASK = (1<<TAGSHIFT)-1,
-	NMASK = (64*1024)>>TAGSHIFT,
+enum {
+	TAGSHIFT = 5, /* uint32_t has to be 32 bits */
+	TAGMASK = (1 << TAGSHIFT) - 1,
+	NMASK = (64 * 1024) >> TAGSHIFT,
 };
 
-struct Mntalloc
-{
+struct Mntalloc {
 	Lock Lock;
-	Mnt*	list;		/* Mount devices in use */
-	Mnt*	mntfree;	/* Free list */
-	Mntrpc*	rpcfree;
-	int	nrpcfree;
-	int	nrpcused;
-	uint	id;
-	uint32_t	tagmask[NMASK];
-}mntalloc;
+	Mnt *list;    /* Mount devices in use */
+	Mnt *mntfree; /* Free list */
+	Mntrpc *rpcfree;
+	int nrpcfree;
+	int nrpcused;
+	uint id;
+	uint32_t tagmask[NMASK];
+} mntalloc;
 
-Mnt*	mntchk(Chan*);
-void	mntdirfix(uint8_t*, Chan*);
-Mntrpc*	mntflushalloc(Mntrpc*, uint32_t);
-void	mntflushfree(Mnt*, Mntrpc*);
-void	mntfree(Mntrpc*);
-void	mntgate(Mnt*);
-void	mntpntfree(Mnt*);
-void	mntqrm(Mnt*, Mntrpc*);
-Mntrpc*	mntralloc(Chan*, uint32_t);
-int32_t	mntrdwr(int, Chan*, void*, int32_t, int64_t);
-int	mntrpcread(Mnt*, Mntrpc*);
-void	mountio(Mnt*, Mntrpc*);
-void	mountmux(Mnt*, Mntrpc*);
-void	mountrpc(Mnt*, Mntrpc*);
-int	rpcattn(void*);
-Chan*	mntchann(void);
+Mnt *mntchk(Chan *);
+void mntdirfix(uint8_t *, Chan *);
+Mntrpc *mntflushalloc(Mntrpc *, uint32_t);
+void mntflushfree(Mnt *, Mntrpc *);
+void mntfree(Mntrpc *);
+void mntgate(Mnt *);
+void mntpntfree(Mnt *);
+void mntqrm(Mnt *, Mntrpc *);
+Mntrpc *mntralloc(Chan *, uint32_t);
+int32_t mntrdwr(int, Chan *, void *, int32_t, int64_t);
+int mntrpcread(Mnt *, Mntrpc *);
+void mountio(Mnt *, Mntrpc *);
+void mountmux(Mnt *, Mntrpc *);
+void mountrpc(Mnt *, Mntrpc *);
+int rpcattn(void *);
+Chan *mntchann(void);
 
-extern char	Esbadstat[];
-extern char	Enoversion[];
+extern char Esbadstat[];
+extern char Enoversion[];
 
-
-void (*mntstats)(int, Chan*, uint64_t, uint32_t);
+void (*mntstats)(int, Chan *, uint64_t, uint32_t);
 
 static void
 mntreset(void)
 {
 	mntalloc.id = 1;
-	mntalloc.tagmask[0] = 1;			/* don't allow 0 as a tag */
-	mntalloc.tagmask[NMASK-1] = 0x80000000UL;	/* don't allow NOTAG */
+	mntalloc.tagmask[0] = 1;		    /* don't allow 0 as a tag */
+	mntalloc.tagmask[NMASK - 1] = 0x80000000UL; /* don't allow NOTAG */
 	fmtinstall('F', fcallfmt);
 	fmtinstall('D', dirfmt);
-/* We can't install %M since eipfmt does and is used in the kernel [sape] */
+	/* We can't install %M since eipfmt does and is used in the kernel [sape] */
 
 	if(mfcinit != nil)
 		mfcinit();
 }
 
-static Chan*
+static Chan *
 mntattach(char *muxattach)
 {
 	return mntattachversion(muxattach, "9P2000.L", Tlattach, mntchann);
 }
 
-static Walkqid*
+static Walkqid *
 mntwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Proc *up = externup();
@@ -121,9 +117,9 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 	if(nname > MAXWELEM)
 		error("devmnt: too many name elements");
 	alloc = 0;
-	wq = smalloc(sizeof(Walkqid)+(nname-1)*sizeof(Qid));
+	wq = smalloc(sizeof(Walkqid) + (nname - 1) * sizeof(Qid));
 	if(waserror()){
-		if(alloc && wq->clone!=nil)
+		if(alloc && wq->clone != nil)
 			cclose(wq->clone);
 		free(wq);
 		return nil;
@@ -143,7 +139,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 	}
 	wq->clone = nc;
 
-	if(waserror()) {
+	if(waserror()){
 		mntfree(r);
 		nexterror();
 	}
@@ -151,7 +147,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 	r->request.fid = c->fid;
 	r->request.newfid = nc->fid;
 	r->request.nwname = nname;
-	memmove(r->request.wname, name, nname*sizeof(char*));
+	memmove(r->request.wname, name, nname * sizeof(char *));
 
 	mountrpc(mnt, r);
 
@@ -178,13 +174,13 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 			incref(&c->mchan->r);
 		}
 		if(r->reply.nwqid > 0)
-			wq->clone->qid = r->reply.wqid[r->reply.nwqid-1];
+			wq->clone->qid = r->reply.wqid[r->reply.nwqid - 1];
 	}
 	wq->nqid = r->reply.nwqid;
-	for(i=0; i<wq->nqid; i++)
+	for(i = 0; i < wq->nqid; i++)
 		wq->qid[i] = r->reply.wqid[i];
 
-    Return:
+Return:
 	poperror();
 	mntfree(r);
 	poperror();
@@ -229,7 +225,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		error(Eshortstat);
 	mnt = mntchk(c);
 	r = mntralloc(c, mnt->msize);
-	if(waserror()) {
+	if(waserror()){
 		mntfree(r);
 		nexterror();
 	}
@@ -238,8 +234,8 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 	mountrpc(mnt, r);
 	name = chanpath(c);
 	nl = strlen(name);
-	buf = (uint8_t*) r->reply.data;
-	nstat = STATFIXLEN + nl + 16; // max uid print + 0 null terminator
+	buf = (uint8_t *)r->reply.data;
+	nstat = STATFIXLEN + nl + 16;	     // max uid print + 0 null terminator
 	// This looks crazy, right? It's how you tell the
 	// caller there is more data to read. But you give it
 	// no data. That avoids the mess of partial reads of
@@ -247,8 +243,8 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 	// mess under the rock.
 	if(nstat > n){
 		nstat = BIT16SZ;
-		PBIT16(dp, nstat-2);
-	}else{
+		PBIT16(dp, nstat - 2);
+	} else {
 		// N.B. STATFIXLEN includes the strings lengths
 		// AND the leading 16-bit size. The leading 16-bit size
 		// is of a packet with 0 length strings is STATFIXLEN - 2
@@ -262,37 +258,37 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		// If there is on no /, use the name, else use the
 		// part of the string after the slash. This works
 		// even if the name ends in /.
-		if (base != nil)
-			name = base+1;
+		if(base != nil)
+			name = base + 1;
 		nl = strlen(name);
 		//hexdump(buf, 149);
 		memset(dp, 0, n);
 		// The Qid format is compatible, so just copy it.
 		memmove(dp + 8, buf + 8, sizeof(Qid));
 		// mode. It needs adjustment for DMDIR.
-		_32 = GBIT32(buf+21);
-		if (buf[8] & QTDIR) {
+		_32 = GBIT32(buf + 21);
+		if(buf[8] & QTDIR){
 			_32 |= DMDIR;
 		}
-		PBIT32(dp+21, _32);
+		PBIT32(dp + 21, _32);
 
 		// The time wire format is compatible but sadly the sizes
 		// differ. We have to get it and put it.
 		// Plan 9 has a y2032 problem!
 		_64 = GBIT64(buf + 48);
-		PBIT32(dp + 25, (uint32_t) _64);
+		PBIT32(dp + 25, (uint32_t)_64);
 		_64 = GBIT64(buf + 64);
-		PBIT32(dp + 29, (uint32_t) _64);
+		PBIT32(dp + 29, (uint32_t)_64);
 
 		// file length. Compatible bit encoding.
-		memmove(dp+33, buf + 49, sizeof(uint64_t));
+		memmove(dp + 33, buf + 49, sizeof(uint64_t));
 
 		// put the name as a string.
 		sprint((char *)dp + o, "%s", name);
 		// There are four BIT16SZ lengths at the
 		// end. If they are > 0 then the strings are interspersed
 		// between them.
-		PBIT16(dp+o-2, nl);
+		PBIT16(dp + o - 2, nl);
 		o += nl + BIT16SZ;
 
 		// UID
@@ -300,7 +296,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		// The next name is at o
 		sprint((char *)dp + o, "%d", _32);
 		// strlen safe as we zero the buffer?
-		ul = strlen((char *)dp+ o);
+		ul = strlen((char *)dp + o);
 		PBIT16(dp + o - 2, ul);
 		o += ul + BIT16SZ;
 		nstat = o;
@@ -310,7 +306,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		// The next name is at o
 		sprint((char *)dp + o, "%d", _32);
 		// strlen safe as we zero the buffer?
-		ul = strlen((char *)dp+ o);
+		ul = strlen((char *)dp + o);
 		PBIT16(dp + o - 2, ul);
 		o += ul;
 		nstat = o;
@@ -321,7 +317,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		// nstat includes whole stat size, but
 		// the size in the record does not.
 		// Subtract BIT16SZ for that reason.
-		PBIT16(dp, nstat-BIT16SZ);
+		PBIT16(dp, nstat - BIT16SZ);
 
 		validstat(dp, nstat);
 		mntdirfix(dp, c);
@@ -334,7 +330,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 }
 
 // TODO: can we merge with the one in devmnt.c
-static Chan*
+static Chan *
 mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
 	Proc *up = externup();
@@ -343,14 +339,14 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 
 	mnt = mntchk(c);
 	r = mntralloc(c, mnt->msize);
-	if(waserror()) {
+	if(waserror()){
 		mntfree(r);
 		nexterror();
 	}
 	r->request.type = type;
 	r->request.fid = c->fid;
 	// 9P2000.L -- another mess?
-	if (omode == OEXEC)
+	if(omode == OEXEC)
 		r->request.mode = OREAD;
 	else
 		r->request.mode = omode;
@@ -369,8 +365,8 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 	c->buffend = 0;
 	c->writebuff = nil;
 	c->buffsize = mnt->msize;
-	if(c->iounit == 0 || c->iounit > mnt->msize-IOHDRSZ)
-		c->iounit = mnt->msize-IOHDRSZ;
+	if(c->iounit == 0 || c->iounit > mnt->msize - IOHDRSZ)
+		c->iounit = mnt->msize - IOHDRSZ;
 	c->flag |= COPEN;
 	poperror();
 	mntfree(r);
@@ -381,7 +377,7 @@ mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 	return c;
 }
 
-static Chan*
+static Chan *
 mntopen(Chan *c, int omode)
 {
 	// 9P2000.L differentiates by file type,
@@ -391,8 +387,8 @@ mntopen(Chan *c, int omode)
 	// and directories is a great idea, said
 	// no one ever.
 	uint8_t t = c->qid.type;
-	if (t & QTDIR) {
-	} else if (t) {
+	if(t & QTDIR){
+	} else if(t){
 		error("only dirs or regular files");
 	}
 	return mntopencreate(Tlopen, c, nil, omode, 0);
@@ -428,7 +424,7 @@ mntclunk(Chan *c, int t)
 static void
 mntclose(Chan *c)
 {
-	if (c->buffend > 0) {
+	if(c->buffend > 0){
 		mntrdwr(Twrite, c, c->writebuff, c->buffend, c->writeoffset);
 	}
 	c->buffend = 0;
@@ -452,7 +448,7 @@ mntwstat(Chan *c, uint8_t *dp, int32_t n)
 
 	mnt = mntchk(c);
 	r = mntralloc(c, mnt->msize);
-	if(waserror()) {
+	if(waserror()){
 		mntfree(r);
 		nexterror();
 	}
@@ -475,15 +471,15 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	isdir = 0;
 	cache = c->flag & CCACHE;
-	if(c->qid.type & QTDIR) {
+	if(c->qid.type & QTDIR){
 		cache = 0;
 		isdir = 1;
 	}
 
 	p = buf;
-	if(cache) {
+	if(cache){
 		nc = mfcread(c, buf, n, off);
-		if(nc > 0) {
+		if(nc > 0){
 			n -= nc;
 			if(n == 0)
 				return nc;
@@ -497,7 +493,7 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	// Flush if we're reading this file.  Would be nice to see if
 	// read could be satisfied from buffer.
-	if (c->buffend > 0) {
+	if(c->buffend > 0){
 		mntrdwr(Twrite, c, c->writebuff, c->buffend, c->writeoffset);
 	}
 	// Long story.
@@ -576,25 +572,25 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 	// compute length of record.
 	// copy the name out. copy the qid out. copy the record size out. Continue.
 	memset(buf, 0, n);
-	if(isdir) {
+	if(isdir){
 		uint8_t *b = buf;
 
 		int tot = 0;
-		int a = n/8;
-		if (a == 0)
+		int a = n / 8;
+		if(a == 0)
 			a = 128;
 		uint8_t *m = mallocz(n, 0);
-		if (waserror()) {
+		if(waserror()){
 			free(m);
 		}
 		memset(m, 0, n);
 		n = mntrdwr(Treaddir, c, m, a, off);
-		if (n == 0) {
+		if(n == 0){
 			free(m);
 			poperror();
 			return tot;
 		}
-		if (n < 4)
+		if(n < 4)
 			error(Esbadstat);
 		// TODO: we're going to have to stat each returned
 		// entry because this 9P2000.L design requires us to.
@@ -603,24 +599,24 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 		// Fantastic.
 		p = m;
 		e = &m[n];
-		while (p < e) {
+		while(p < e){
 			int namesz = GBIT16(p + 22);
 			// Move the Qid. No need to change it; 9P2000.L and 9P Qids are the same.
-			memmove(b+8, p, sizeof(Qid));
+			memmove(b + 8, p, sizeof(Qid));
 			// Move the name, including the name's length.
-			memmove(b+41, p+22, namesz + BIT16SZ);
+			memmove(b + 41, p + 22, namesz + BIT16SZ);
 			// Story the whole record length, not including the
 			// the 16-bit length field.
 			// "size[2]    total byte count of the following data"
 			PBIT16(b, STATFIXLEN + namesz - BIT16SZ);
 			// advance p by the size of the 9P2000.L record
-			p +=  24 + namesz;
+			p += 24 + namesz;
 			// advance b by the size of the Plan 9 stat record
 			b += STATFIXLEN + namesz;
 		}
 		if(p != e)
 			error(Esbadstat);
-		n = b - (uint8_t*)buf;
+		n = b - (uint8_t *)buf;
 		free(m);
 		poperror();
 	} else {
@@ -635,8 +631,8 @@ mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	int result = n;
 	int offset = 0;
-	if (c->writebuff == nil){
-		c->writebuff = (unsigned char*)malloc(c->buffsize);
+	if(c->writebuff == nil){
+		c->writebuff = (unsigned char *)malloc(c->buffsize);
 		if(c->writebuff == nil){
 			print("devmntn: write buffer allocation of %d bytes failed\n", c->buffsize);
 			return mntrdwr(Twrite, c, buf, n, off);
@@ -648,7 +644,7 @@ mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 		c->buffend = 0;
 		c->writeoffset = off;
 	}
-	while (n + c->buffend >= c->buffsize){
+	while(n + c->buffend >= c->buffsize){
 		offset = c->mux->msize - c->buffend;
 		n -= offset;
 		memmove(&c->writebuff[c->buffend], buf, offset);
@@ -660,19 +656,19 @@ mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 	return result;
 }
 
-Chan*
+Chan *
 mntchann(void)
 {
-        Chan *c;
+	Chan *c;
 
-        c = devattach('N', 0);
-        lock(&mntalloc.Lock);
-        c->devno = mntalloc.id++;
-        unlock(&mntalloc.Lock);
+	c = devattach('N', 0);
+	lock(&mntalloc.Lock);
+	c->devno = mntalloc.id++;
+	unlock(&mntalloc.Lock);
 
-        if(c->mchan)
-                panic("mntchan non-zero %#p", c->mchan);
-        return c;
+	if(c->mchan)
+		panic("mntchan non-zero %#p", c->mchan);
+	return c;
 }
 
 Dev mntndevtab = {

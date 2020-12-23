@@ -7,18 +7,18 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"tos.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "tos.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"../port/edf.h"
-#include	<trace.h>
+#include "../port/edf.h"
+#include <trace.h>
 
-#include	<a.out.h>
+#include <a.out.h>
 
 // These comments in // distinguish new from original information.
 // Let's go over a.out. a.out format has a header which defines the three segments
@@ -89,9 +89,8 @@ vl2be(uint64_t v)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&v;
-	return ((uint64_t)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
-	      |((uint64_t)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
+	p = (uint8_t *)&v;
+	return ((uint64_t)((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) << 32) | ((uint64_t)(p[4] << 24) | (p[5] << 16) | (p[6] << 8) | p[7]);
 }
 
 static uint32_t
@@ -99,8 +98,8 @@ l2be(int32_t l)
 {
 	uint8_t *cp;
 
-	cp = (uint8_t*)&l;
-	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
+	cp = (uint8_t *)&l;
+	return (cp[0] << 24) | (cp[1] << 16) | (cp[2] << 8) | cp[3];
 }
 
 /*
@@ -121,34 +120,33 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	uintptr_t textlim, datalim, bsslim;
 
 	magic = l2be(hdr->Exec.magic);
-	if (magic != AOUT_MAGIC) {
+	if(magic != AOUT_MAGIC){
 		return -1;
 	}
-	if (magic & HDR_MAGIC) {
+	if(magic & HDR_MAGIC){
 		// 0x0000000000243070 -> 70 30 24 little endian.
 		// BE is easier to read of course.
 		*entryp = vl2be(hdr->hdr[0]);
 		// Expanded header, so size is size of the header
 		// struct above, i.e. 40 (0x28)
 		hdrsz = sizeof(Hdr);
-	}
-	else{
+	} else {
 		*entryp = l2be(hdr->Exec.entry);
 		hdrsz = sizeof(Exec);
 	}
 	// From here on out, all is hex.
-	textsz = l2be(hdr->Exec.text); // 8d5fe
-	datasz = l2be(hdr->Exec.data); // 2140
-	bsssz = l2be(hdr->Exec.bss);   // 1e660
+	textsz = l2be(hdr->Exec.text);	      // 8d5fe
+	datasz = l2be(hdr->Exec.data);	      // 2140
+	bsssz = l2be(hdr->Exec.bss);	      // 1e660
 
 	// This is the highest address of text. Text is loaded at
 	// 200000 virtual on most architectures. textsz is from the file.
 	// Since we load the header in the text segment, we add that in too.
-	textlim = UTROUND(UTZERO+hdrsz+textsz); // UTROUND(200000 + 28 + 8d5fe)
-	                                        // = UTROUND(28d626) = 400000
-	datalim = BIGPGROUND(textlim+datasz);   // BIGPGROUND(400000 + 2140) = 600000
-	bsslim = BIGPGROUND(textlim+datasz+bsssz); // BIGPGROUND(400000 + 2140 + 1e660)
-	                                           // = 600000
+	textlim = UTROUND(UTZERO + hdrsz + textsz);	      // UTROUND(200000 + 28 + 8d5fe)
+							      // = UTROUND(28d626) = 400000
+	datalim = BIGPGROUND(textlim + datasz);		      // BIGPGROUND(400000 + 2140) = 600000
+	bsslim = BIGPGROUND(textlim + datasz + bsssz);	      // BIGPGROUND(400000 + 2140 + 1e660)
+							      // = 600000
 	// bsslim and datalim can be the same. bss can be the zeros that
 	// fill the last page in the data segment.
 
@@ -163,11 +161,11 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	// NOTE: you can't check textlim. That's the in-memory image limit, which
 	// can be larger than the actual size of text.
 	// The limit is defined by what's in the file!
-	if (0) {
+	if(0){
 		print("%#lx %#lx %#lx %#lx %#lx %#lx \n", textlim, datalim, bsslim, textsz, datasz, bsssz);
 		print("entrypoint %#lx\n", *entryp);
 	}
-	if(*entryp < UTZERO+hdrsz || *entryp >= UTZERO+hdrsz+textsz){
+	if(*entryp < UTZERO + hdrsz || *entryp >= UTZERO + hdrsz + textsz){
 		print("Bad entry point\n");
 		return 0;
 	}
@@ -184,7 +182,7 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	   // if 600000 is < 600000 that's bad.
 	   // Note this last test covers the case that bss starts in the
 	   // middle of a data text page. That's ok.
-	   || datalim < textlim || bsslim < datalim) {
+	   || datalim < textlim || bsslim < datalim){
 		return 0;
 	}
 
@@ -212,7 +210,7 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	ldseg[0].memsz = textlim - UTZERO;
 	// the file size is the header size and text size; we read the
 	// whole front of the file into the text segment.
-	ldseg[0].filesz = hdrsz+textsz;
+	ldseg[0].filesz = hdrsz + textsz;
 	// text segment starts at the start of the file.
 	ldseg[0].pg0fileoff = 0;
 	// pg0off is another ELF thing that lets a segment start in
@@ -243,4 +241,3 @@ aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 	*rp = ldseg;
 	return 2;
 }
-

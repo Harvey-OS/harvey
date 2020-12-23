@@ -15,13 +15,13 @@
 #include "io.h"
 #include "../port/error.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
 #include "screen.h"
 
-static Lock vgaxlock;			/* access to index registers */
+static Lock vgaxlock; /* access to index registers */
 
 int
 vgaxi(int32_t port, unsigned char index)
@@ -35,7 +35,7 @@ vgaxi(int32_t port, unsigned char index)
 	case Crtx:
 	case Grx:
 		outb(port, index);
-		data = inb(port+1);
+		data = inb(port + 1);
 		break;
 
 	case Attrx:
@@ -51,13 +51,12 @@ vgaxi(int32_t port, unsigned char index)
 		inb(Status1);
 		if(index < 0x10){
 			outb(Attrx, index);
-			data = inb(Attrx+1);
+			data = inb(Attrx + 1);
 			inb(Status1);
-			outb(Attrx, 0x20|index);
-		}
-		else{
-			outb(Attrx, 0x20|index);
-			data = inb(Attrx+1);
+			outb(Attrx, 0x20 | index);
+		} else {
+			outb(Attrx, 0x20 | index);
+			data = inb(Attrx + 1);
 		}
 		break;
 
@@ -85,7 +84,7 @@ vgaxo(int32_t port, unsigned char index, unsigned char data)
 		 * registers.
 		 */
 		outb(port, index);
-		outb(port+1, data);
+		outb(port + 1, data);
 		break;
 
 	case Attrx:
@@ -94,10 +93,9 @@ vgaxo(int32_t port, unsigned char index, unsigned char data)
 			outb(Attrx, index);
 			outb(Attrx, data);
 			inb(Status1);
-			outb(Attrx, 0x20|index);
-		}
-		else{
-			outb(Attrx, 0x20|index);
+			outb(Attrx, 0x20 | index);
+		} else {
+			outb(Attrx, 0x20 | index);
 			outb(Attrx, data);
 		}
 		break;

@@ -18,7 +18,7 @@
 #include "io.h"
 #include "../port/error.h"
 
-#define	Image	IMAGE
+#define Image IMAGE
 #include <draw.h>
 #include <memdraw.h>
 #include <cursor.h>
@@ -30,8 +30,8 @@ enum {
 };
 
 static Dirtab iigdir[] = {
-	{".",		{ Qdir, 0, QTDIR },	0,	0550},
-	{"iigctl",	{ Qiigctl, 0 },		0,	0660},
+	{".", {Qdir, 0, QTDIR}, 0, 0550},
+	{"iigctl", {Qiigctl, 0}, 0, 0660},
 };
 
 enum {
@@ -41,9 +41,9 @@ enum {
 };
 
 static Cmdtab iigctlmsg[] = {
-	{CMsize,	"size",		1},
-	{CMblank,	"blank",	1},
-	{CMunblank,	"unblank",	1},
+	{CMsize, "size", 1},
+	{CMblank, "blank", 1},
+	{CMunblank, "unblank", 1},
 };
 typedef struct Iig Iig;
 
@@ -56,7 +56,7 @@ static void
 iigreset(void)
 {
 	iig.scr.pci = pcimatch(nil, 0x8086, 0x0116);
-	if (iig.scr.pci)
+	if(iig.scr.pci)
 		print("Found sandybridge at 0x%x\n", iig.scr.pci->tbdf);
 	else {
 		print("NO sandybridge found\n");
@@ -68,46 +68,46 @@ iigreset(void)
 	 */
 	void *x = vmap(iig.scr.pci->mem[1].bar, iig.scr.pci->mem[1].size);
 	print("x is THIS! %p\n", x);
-	if (x) {
+	if(x){
 		iig.scr.vaddr = x;
 		iig.scr.paddr = iig.scr.pci->mem[1].bar;
 		iig.scr.apsize = iig.scr.pci->mem[1].size;
 	}
 }
 
-static Chan*
-iigattach(char* spec)
+static Chan *
+iigattach(char *spec)
 {
 	if(*spec && strcmp(spec, "0"))
 		error(Eio);
 	return devattach('G', spec);
 }
 
-Walkqid*
-iigwalk(Chan* c, Chan *nc, char** name, int nname)
+Walkqid *
+iigwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, iigdir, nelem(iigdir), devgen);
 }
 
 static int
-iigstat(Chan* c, unsigned char* dp, int n)
+iigstat(Chan *c, unsigned char *dp, int n)
 {
 	return devstat(c, dp, n, iigdir, nelem(iigdir), devgen);
 }
 
-static Chan*
-iigopen(Chan* c, int omode)
+static Chan *
+iigopen(Chan *c, int omode)
 {
 	return devopen(c, omode, iigdir, nelem(iigdir), devgen);
 }
 
 static void
-iigclose(Chan* c)
+iigclose(Chan *c)
 {
 }
 
 static int32_t
-iigread(Chan* c, void* a, int32_t n, int64_t off)
+iigread(Chan *c, void *a, int32_t n, int64_t off)
 {
 
 	switch((uint32_t)c->qid.path){
@@ -147,7 +147,7 @@ iigctl(Cmdbuf *cb)
 }
 
 static int32_t
-iigwrite(Chan* c, void* a, int32_t n, int64_t off)
+iigwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Proc *up = externup();
 	Cmdbuf *cb;

@@ -37,43 +37,46 @@ void msg(char *);
  */
 
 /* strike off 2M so it won't wrap to 0. Sleazy. */
-#define TMFM		(2*GiB-2*MiB)		/* kernel memory */
+#define TMFM (2 * GiB - 2 * MiB) /* kernel memory */
 
-#define PPN(x)		((x)&~(PGSZ-1))
-#define PTE2PPN(p) ((p)>>10)
-#define PTE2PA(p) (((p)>>10)<<12)
-
+#define PPN(x) ((x) & ~(PGSZ - 1))
+#define PTE2PPN(p) ((p) >> 10)
+#define PTE2PA(p) (((p) >> 10) << 12)
 
 #if 0
 /* Print the page table structures to the console */
-void print_page_table(void) {
+void print_page_table(void){
 	print_page_table_at((void *)(read_csr(sptbr) << RISCV_PGSHIFT), 0, 0);
 }
 #endif
 
-void flush_tlb(void)
+void
+flush_tlb(void)
 {
 	asm volatile("sfence.vm");
 }
 
-size_t pte_ppn(uint64_t pte)
+size_t
+pte_ppn(uint64_t pte)
 {
 	return pte >> PTE_PPN_SHIFT;
 }
 
-uint64_t ptd_create(uintptr_t ppn)
+uint64_t
+ptd_create(uintptr_t ppn)
 {
 	return (ppn << PTE_PPN_SHIFT) | PTE_V;
 }
 
-uint64_t pte_create(uintptr_t ppn, int prot, int user)
+uint64_t
+pte_create(uintptr_t ppn, int prot, int user)
 {
 	uint64_t pte = (ppn << PTE_PPN_SHIFT) | PTE_R | PTE_V;
-	if (prot & PTE_W)
+	if(prot & PTE_W)
 		pte |= PTE_W;
-	if (prot & PTE_X)
+	if(prot & PTE_X)
 		pte |= PTE_X;
-	if (user)
+	if(user)
 		pte |= PTE_U;
 	return pte;
 }
@@ -84,9 +87,9 @@ rootput(uintptr_t root)
 	Proc *up = externup();
 	uintptr_t ptbr = root >> RISCV_PGSHIFT;
 
-	if (0) print("rootput %p pid %d\n", root, up ? up->pid : -1);
+	if(0)
+		print("rootput %p pid %d\n", root, up ? up->pid : -1);
 	write_csr(sptbr, ptbr);
-
 }
 void
 mmuflushtlb(void)
@@ -94,10 +97,10 @@ mmuflushtlb(void)
 
 	machp()->tlbpurge++;
 	if(machp()->MMU.root->daddr){
-		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
+		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr * sizeof(PTE));
 		machp()->MMU.root->daddr = 0;
 	}
-	rootput((uintptr_t) machp()->MMU.root->pa);
+	rootput((uintptr_t)machp()->MMU.root->pa);
 }
 
 void
@@ -113,20 +116,22 @@ mmuflush(void)
 }
 
 static void
-mmuptpfree(Proc* proc, int clear)
+mmuptpfree(Proc *proc, int clear)
 {
 	int l;
 	PTE *pte;
 	Page **last, *page;
 
-	if (0) print("MMUPTPFREE: proc %p, pid %d\n", proc, proc->pid);
+	if(0)
+		print("MMUPTPFREE: proc %p, pid %d\n", proc, proc->pid);
 	for(l = 1; l < 3; l++){
 		last = &proc->MMU.mmuptp[l];
-		if (0) print("%s: level %d: last is %p\n", __func__, l, *last);
+		if(0)
+			print("%s: level %d: last is %p\n", __func__, l, *last);
 		if(*last == nil)
 			continue;
 		for(page = *last; page != nil; page = page->next){
-//what is right here? 2 or 1?
+			//what is right here? 2 or 1?
 			if(l <= 2 && clear)
 				memset(UINT2PTR(page->va), 0, PTSZ);
 			pte = UINT2PTR(page->prev->va);
@@ -158,19 +163,19 @@ dumpptepg(int lvl, uintptr_t pa)
 
 	tab = 4 - lvl;
 	pte = UINT2PTR(KADDR(pa));
-	for(i = 0; i < PTSZ/sizeof(PTE); i++)
+	for(i = 0; i < PTSZ / sizeof(PTE); i++)
 		if(pte[i] & PteP){
 			tabs(tab);
 			print("l%d %#p[%#05x]: %#llx\n", lvl, pa, i, pte[i]);
 
 			/* skip kernel mappings */
-			if((pte[i]&PteU) == 0){
-				tabs(tab+1);
+			if((pte[i] & PteU) == 0){
+				tabs(tab + 1);
 				print("...kern...\n");
 				continue;
 			}
 			if(lvl > 2)
-				dumpptepg(lvl-1, PPN(pte[i]));
+				dumpptepg(lvl - 1, PPN(pte[i]));
 		}
 }
 
@@ -185,8 +190,8 @@ dumpmmu(Proc *p)
 		print("mmuptp[%d]:\n", i);
 		for(pg = p->MMU.mmuptp[i]; pg != nil; pg = pg->next)
 			print("\tpg %#p = va %#llx pa %#llx"
-				" daddr %#lx next %#p prev %#p\n",
-				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
+			      " daddr %#lx next %#p prev %#p\n",
+			      pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
 	}
 	print("root %#llx\n", machp()->MMU.root->pa);
 }
@@ -199,28 +204,28 @@ dumpmmuwalk(uint64_t addr)
 
 	root = UINT2PTR(machp()->MMU.root->va);
 	print("root is %p\n", root);
-	if((l = mmuwalk(root, addr, 2, &pte, nil)) >= 0) {
+	if((l = mmuwalk(root, addr, 2, &pte, nil)) >= 0){
 		print("\tcpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
 		print("%llx, PA is %llx\n", *pte, PTE2PA(*pte));
 	}
-	if((l = mmuwalk(root, addr, 1, &pte, nil)) >= 0) {
+	if((l = mmuwalk(root, addr, 1, &pte, nil)) >= 0){
 		print("\tcpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
 		print("%llx, PA is %llx\n", *pte, PTE2PA(*pte));
 	}
-	if((l = mmuwalk(root, addr, 0, &pte, nil)) >= 0) {
+	if((l = mmuwalk(root, addr, 0, &pte, nil)) >= 0){
 		print("\tcpu%d: mmu l%d pte %#p = ", machp()->machno, l, pte);
 		print("%llx, PA is %llx\n", *pte, PTE2PA(*pte));
 	}
-	if (PTE2PA(*pte) != 0)
+	if(PTE2PA(*pte) != 0)
 		hexdump(KADDR(PTE2PA(*pte)), 32);
 }
 
 static Page mmuptpfreelist;
 
-static Page*
+static Page *
 mmuptpalloc(void)
 {
-	void* va;
+	void *va;
 	Page *page;
 
 	/*
@@ -247,12 +252,14 @@ mmuptpalloc(void)
 	unlock(&mmuptpfreelist.l);
 
 	if((page = malloc(sizeof(Page))) == nil){
-		if (0) print("mmuptpalloc Page\n");
+		if(0)
+			print("mmuptpalloc Page\n");
 
 		return nil;
 	}
 	if((va = mallocalign(PTSZ, PTSZ, 0, 0)) == nil){
-		if (0) print("mmuptpalloc va\n");
+		if(0)
+			print("mmuptpalloc va\n");
 		free(page);
 
 		return nil;
@@ -268,7 +275,7 @@ mmuptpalloc(void)
 }
 
 void
-mmuswitch(Proc* proc)
+mmuswitch(Proc *proc)
 {
 	PTE *pte;
 	Page *page;
@@ -287,33 +294,38 @@ mmuswitch(Proc* proc)
 
 	/* daddr is the number of user PTEs in use in the root. */
 	if(machp()->MMU.root->daddr){
-		if (0) print("MMUSWITCH: memset(%p, 0, %d\n", UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
-		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr*sizeof(PTE));
+		if(0)
+			print("MMUSWITCH: memset(%p, 0, %d\n", UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr * sizeof(PTE));
+		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr * sizeof(PTE));
 		machp()->MMU.root->daddr = 0;
 	}
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 
-	if (0)print("pte %p\n", pte);
+	if(0)
+		print("pte %p\n", pte);
 	/* N.B. On RISCV, we DO NOT SET any of X, R, W  bits at this level since
 	 * that we point to page table pages on level down.  Also, these are
 	 * explicitly user level pages, so PteU is set. */
 	for(page = proc->MMU.mmuptp[3]; page != nil; page = page->next){
-		if (0) print("MMUSWITCH: mmuptp[3]? page->pa is %p\n", page->pa);
-		pte[page->daddr] = PPN(page->pa)|PteU|PteP;
+		if(0)
+			print("MMUSWITCH: mmuptp[3]? page->pa is %p\n", page->pa);
+		pte[page->daddr] = PPN(page->pa) | PteU | PteP;
 		if(page->daddr >= machp()->MMU.root->daddr)
-			machp()->MMU.root->daddr = page->daddr+1;
+			machp()->MMU.root->daddr = page->daddr + 1;
 		page->prev = machp()->MMU.root;
 	}
 
-	if (0)print("rootput %p\n", (void *)(uintptr_t) machp()->MMU.root->pa);
-	rootput((uintptr_t) machp()->MMU.root->pa);
-	if (0)print("splx\n");
+	if(0)
+		print("rootput %p\n", (void *)(uintptr_t)machp()->MMU.root->pa);
+	rootput((uintptr_t)machp()->MMU.root->pa);
+	if(0)
+		print("splx\n");
 	splx(pl);
 }
 
 void
-mmurelease(Proc* proc)
+mmurelease(Proc *proc)
 {
 	Page *page, *next;
 
@@ -350,31 +362,30 @@ checkpte(uintmem ppn, void *a)
 	pte = 0;
 	s = buf;
 	*s = 0;
-	if((l = mmuwalk(root, addr, 2, &pte, nil)) < 0 || (*pte&PteP) == 0)
+	if((l = mmuwalk(root, addr, 2, &pte, nil)) < 0 || (*pte & PteP) == 0)
 		goto Panic;
-	s = seprint(s, buf+sizeof buf,
-		"check2: l%d  pte %#p = %llx\n",
-		l, pte, pte?*pte:~0);
-	if(*pte&PteFinal)
+	s = seprint(s, buf + sizeof buf,
+		    "check2: l%d  pte %#p = %llx\n",
+		    l, pte, pte ? *pte : ~0);
+	if(*pte & PteFinal)
 		return;
-	if((l = mmuwalk(root, addr, 1, &pte, nil)) < 0 || (*pte&PteP) == 0)
+	if((l = mmuwalk(root, addr, 1, &pte, nil)) < 0 || (*pte & PteP) == 0)
 		goto Panic;
-	seprint(s, buf+sizeof buf,
+	seprint(s, buf + sizeof buf,
 		"check1: l%d  pte %#p = %llx\n",
-		l, pte, pte?*pte:~0);
+		l, pte, pte ? *pte : ~0);
 	return;
 Panic:
 
-	seprint(s, buf+sizeof buf,
+	seprint(s, buf + sizeof buf,
 		"checkpte: l%d addr %#p ppn %#llx kaddr %#p pte %#p = %llx",
-		l, a, ppn, KADDR(ppn), pte, pte?*pte:~0);
+		l, a, ppn, KADDR(ppn), pte, pte ? *pte : ~0);
 	print("%s\n", buf);
-	seprint(buf, buf+sizeof buf, "start %#llx unused %#llx"
-		" unmap %#llx end %#llx\n",
+	seprint(buf, buf + sizeof buf, "start %#llx unused %#llx"
+				       " unmap %#llx end %#llx\n",
 		sys->vmstart, sys->vmunused, sys->vmunmapped, sys->vmend);
 	panic("%s", buf);
 }
-
 
 static void
 mmuptpcheck(Proc *proc)
@@ -413,7 +424,6 @@ mmuptpcheck(Proc *proc)
 				panic("ptpcheck: wrong prev");
 			}
 		}
-
 	}
 	npgs = 0;
 	for(fp = proc->MMU.mmuptp[0]; fp != nil; fp = fp->next){
@@ -430,19 +440,19 @@ pteflags(uint attr)
 	uintmem flags;
 
 	flags = 0;
-	if(attr & ~(PTEVALID|PTEWRITE|PTERONLY|PTEUSER|PTEUNCACHED|PTENOEXEC))
+	if(attr & ~(PTEVALID | PTEWRITE | PTERONLY | PTEUSER | PTEUNCACHED | PTENOEXEC))
 		panic("mmuput: wrong attr bits: %#x\n", attr);
-	if(attr&PTEVALID)
+	if(attr & PTEVALID)
 		flags |= PteP;
-	if(attr&PTEWRITE)
+	if(attr & PTEWRITE)
 		flags |= PteRW;
-	if(attr&PTEUSER)
+	if(attr & PTEUSER)
 		flags |= PteU;
 	/* Can't do this -- what do we do?
 	if(attr&PTEUNCACHED)
 		flags |= PtePCD;
 	*/
-	if(attr&PTENOEXEC)
+	if(attr & PTENOEXEC)
 		flags &= ~PteX;
 	return flags;
 }
@@ -451,7 +461,8 @@ void
 invlpg(uintptr_t _)
 {
 	// TOODO
-	if (0) print("invlpage is not implemented, continuing anyway (addr is %p)\n", _);
+	if(0)
+		print("invlpage is not implemented, continuing anyway (addr is %p)\n", _);
 }
 
 /*
@@ -473,15 +484,15 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	uint64_t pteattr = 0;
 
 	/* clear attributes base on attr. */
-	if (attr & PTEVALID) {
+	if(attr & PTEVALID){
 		pteattr = PTE_V | PTE_R | PTE_X;
-		if (attr & PTENOEXEC)
+		if(attr & PTENOEXEC)
 			pteattr &= ~PTE_X;
-		if (attr & PTEWRITE)
+		if(attr & PTEWRITE)
 			pteattr |= PTE_W;
 	}
 
-	if (DBGFLG) {
+	if(DBGFLG){
 		print("mmuput: va %p, pa %p, attr 0x%x\n", va, pg->pa, attr);
 		dumpmmuwalk(va);
 		print("now try the put");
@@ -498,13 +509,13 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			machp()->machno, up, va, pa, attr);
 		print("%s", buf);
 	}
-	if (pg->pgszi < 0) {
+	if(pg->pgszi < 0){
 		print("mmuput(%p, %p, 0x%x): bad pgszi %d for pa %p\n",
-			va, pg, attr, pg->pgszi, pa);
+		      va, pg, attr, pg->pgszi, pa);
 		assert(pg->pgszi >= 0);
 	}
 	pgsz = sys->pgsz[pg->pgszi];
-	if(pa & (pgsz-1))
+	if(pa & (pgsz - 1))
 		panic("mmuput: pa offset non zero: %#llx\n", pa);
 	pa |= pteflags(attr);
 
@@ -513,74 +524,86 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		mmuptpcheck(up);
 	user = (va < KZERO);
 	x = PTLX(va, 2);
-	if (DBGFLG) print("user is %d, index for %p is 0x%x, ", user, va, x);
+	if(DBGFLG)
+		print("user is %d, index for %p is 0x%x, ", user, va, x);
 
 	pte = UINT2PTR(machp()->MMU.root->va);
 	pte += x;
 	prev = machp()->MMU.root;
 
-	if (DBGFLG) print("starting PTE at l2 is %p\n", pte);
+	if(DBGFLG)
+		print("starting PTE at l2 is %p\n", pte);
 	for(lvl = 2; lvl >= 0; lvl--){
 		if(user){
-			if(pgsz == 2*MiB && lvl == 1)	 /* use 2M */
+			if(pgsz == 2 * MiB && lvl == 1) /* use 2M */
 				break;
-			if(pgsz == 1ull*GiB && lvl == 2)	/* use 1G */
+			if(pgsz == 1ull * GiB && lvl == 2) /* use 1G */
 				break;
 		}
 		for(page = up->MMU.mmuptp[lvl]; page != nil; page = page->next)
 			if(page->prev == prev && page->daddr == x){
 				if(*pte == 0){
 					print("mmu: jmk and nemo had fun\n");
-					*pte = (PPN(page->pa)>>2)|PteP;
-					if (DBGFLG) print("level %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, pa);
+					*pte = (PPN(page->pa) >> 2) | PteP;
+					if(DBGFLG)
+						print("level %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, pa);
 				}
 				break;
 			}
 
 		if(page == nil){
-			if(up->MMU.mmuptp[0] == nil) {
+			if(up->MMU.mmuptp[0] == nil){
 				page = mmuptpalloc();
-				if (DBGFLG) print("\tallocated page %p\n", page);
+				if(DBGFLG)
+					print("\tallocated page %p\n", page);
 			} else {
 				page = up->MMU.mmuptp[0];
 				up->MMU.mmuptp[0] = page->next;
-				if (DBGFLG) print("\tReused page %p\n", page);
+				if(DBGFLG)
+					print("\tReused page %p\n", page);
 			}
 			page->daddr = x;
 			page->next = up->MMU.mmuptp[lvl];
 			up->MMU.mmuptp[lvl] = page;
 			page->prev = prev;
-			*pte = (PPN(page->pa)>>2)|PteP;
-			if (DBGFLG) print("\tlevel %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, PPN(page->pa));
+			*pte = (PPN(page->pa) >> 2) | PteP;
+			if(DBGFLG)
+				print("\tlevel %d: set pte %p to 0x%llx for pa %p\n", lvl, pte, *pte, PPN(page->pa));
 			if(lvl == 2 && x >= machp()->MMU.root->daddr)
-				machp()->MMU.root->daddr = x+1;
+				machp()->MMU.root->daddr = x + 1;
 		}
-		x = PTLX(va, lvl-1);
-		if (DBGFLG) print("\tptlx(%p,%d) is %p\n", va, lvl-1,x);
+		x = PTLX(va, lvl - 1);
+		if(DBGFLG)
+			print("\tptlx(%p,%d) is %p\n", va, lvl - 1, x);
 
 		ppage = PTE2PA(*pte);
-		if (DBGFLG) print("\tpa for pte %p val 0x%llx ppage %p\n", pte, *pte, ppage);
+		if(DBGFLG)
+			print("\tpa for pte %p val 0x%llx ppage %p\n", pte, *pte, ppage);
 		if(ppage == 0)
 			panic("mmuput: ppn=0 l%d pte %#p = %#P\n", lvl, pte, *pte);
 
 		pte = UINT2PTR(KADDR(ppage));
 		pte += x;
-		if (DBGFLG) print("\tpte for next iteration is %p\n", pte);
+		if(DBGFLG)
+			print("\tpte for next iteration is %p\n", pte);
 		prev = page;
 	}
 
-	if (DBGFLG) print("\tAFTER LOOP pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
+	if(DBGFLG)
+		print("\tAFTER LOOP pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
 	if(DBGFLG)
 		checkpte(ppage, pte);
-	*pte = (pa>>2)|PteU;
-	if (DBGFLG) print("\tAFTER SET pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
+	*pte = (pa >> 2) | PteU;
+	if(DBGFLG)
+		print("\tAFTER SET pte %p val 0x%llx ppn %p\n", pte, *pte, pa);
 
 	if(user)
 		switch(pgsz){
-		case 2*MiB:
-		case 1*GiB:
+		case 2 * MiB:
+		case 1 * GiB:
 			*pte |= pteattr | PteFinal | PteP;
-			if (DBGFLG) print("\tUSER PAGE pte %p val 0x%llx\n", pte, *pte);
+			if(DBGFLG)
+				print("\tUSER PAGE pte %p val 0x%llx\n", pte, *pte);
 			break;
 		default:
 			panic("\tmmuput: user pages must be 2M or 1G");
@@ -589,24 +612,25 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	if(DBGFLG){
 		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llx\n",
-			machp()->machno, up, pte, pte?*pte:~0);
+			machp()->machno, up, pte, pte ? *pte : ~0);
 		print("%s", buf);
 	}
 
-	invlpg(va);			/* only if old entry valid? */
+	invlpg(va); /* only if old entry valid? */
 	//dumpmmuwalk(va);
 	//hexdump((void *)va, 16);
-	if (DBGFLG) print("returning from mmuput\n");
+	if(DBGFLG)
+		print("returning from mmuput\n");
 }
 
 #if 0
 static Lock mmukmaplock;
 #endif
 
-#define PML4X(v)	PTLX((v), 3)
-#define PDPX(v)		PTLX((v), 2)
-#define PDX(v)		PTLX((v), 1)
-#define PTX(v)		PTLX((v), 0)
+#define PML4X(v) PTLX((v), 3)
+#define PDPX(v) PTLX((v), 2)
+#define PDX(v) PTLX((v), 1)
+#define PTX(v) PTLX((v), 0)
 
 int
 mmukmapsync(uint64_t va)
@@ -627,7 +651,7 @@ findKSeg2(void)
 {
 	// return the Sv39 address that we know coreboot
 	// set up.
-	return (void *)(~0ULL<<38);
+	return (void *)(~0ULL << 38);
 }
 /* mmuwalk will walk the page tables as far as we ask (level)
  * or as far as possible (you might hit a tera/giga/mega PTE).
@@ -635,7 +659,7 @@ findKSeg2(void)
  * validity by testing PetP. To see how far it got, check
  * the return value. */
 int
-mmuwalk(PTE* root, uintptr_t va, int level, PTE** ret,
+mmuwalk(PTE *root, uintptr_t va, int level, PTE **ret,
 	uint64_t (*alloc)(usize))
 {
 	int l;
@@ -644,13 +668,13 @@ mmuwalk(PTE* root, uintptr_t va, int level, PTE** ret,
 
 	Mpl pl;
 	pl = splhi();
-	if(DBGFLG > 1) {
+	if(DBGFLG > 1){
 		print("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
-		print("PTLX(%p, 2) is 0x%x\n", va, PTLX(va,2));
+		print("PTLX(%p, 2) is 0x%x\n", va, PTLX(va, 2));
 		print("root is %p\n", root);
 	}
 	pte = &root[PTLX(va, 2)];
-	if(DBGFLG > 1) {
+	if(DBGFLG > 1){
 		print("pte is %p\n", pte);
 		print("*pte is %p\n", *pte);
 	}
@@ -664,15 +688,14 @@ mmuwalk(PTE* root, uintptr_t va, int level, PTE** ret,
 			if(pa == ~0)
 				return -1;
 			memset(UINT2PTR(KADDR(pa)), 0, PTSZ);
-			*pte = pa|PteRW|PteP;
-		}
-		else if(*pte & PteFinal)
+			*pte = pa | PteRW | PteP;
+		} else if(*pte & PteFinal)
 			break;
-		pte = UINT2PTR(KADDR((*pte&~0x3ff)<<2)); // PPN(*pte)));
-		if (DBGFLG > 1)
+		pte = UINT2PTR(KADDR((*pte & ~0x3ff) << 2));	    // PPN(*pte)));
+		if(DBGFLG > 1)
 			print("pte is %p: ", pte);
-		pte += PTLX(va, l-1);
-		if (DBGFLG > 1)
+		pte += PTLX(va, l - 1);
+		if(DBGFLG > 1)
 			print("and pte after index is %p\n", pte);
 	}
 	*ret = pte;
@@ -688,7 +711,7 @@ mmuphysaddr(uintptr_t va)
 	uint64_t ppn;
 	uintmem mask, pa;
 
-msg("mmyphysaddr\n");
+	msg("mmyphysaddr\n");
 	/*
 	 * Given a VA, find the PA.
 	 * This is probably not the right interface,
@@ -706,7 +729,7 @@ msg("mmyphysaddr\n");
 
 	ppn = (*pte & ~0x3ff) << 2;
 	print("PPN from PTE is %llx\n", ppn);
-	mask = PGLSZ(l)-1;
+	mask = PGLSZ(l) - 1;
 	pa = (ppn & ~mask) + (va & mask);
 	print("physaddr: mask is %llx, ~mask %llx, ppn & ~mask %llx, \n", mask, ~mask, ppn & ~mask);
 
@@ -751,7 +774,7 @@ mmuinit(void)
 
 	machp()->MMU.root = &sys->root;
 
-	uintptr_t PhysicalRoot = read_csr(sptbr)<<12;
+	uintptr_t PhysicalRoot = read_csr(sptbr) << 12;
 	PTE *root = KADDR(PhysicalRoot);
 	print("Physical root is 0x%llx and root 0x %p\n", PhysicalRoot, root);
 	PTE *KzeroPTE;
@@ -760,19 +783,19 @@ mmuinit(void)
 	 * information to know what to do. Further, KSEG0 is the last 2M so this will
 	 * get us the last PTE on either an L3 or L2 pte page */
 	int l;
-	if((l = mmuwalk(root, KSEG0, 2, &KzeroPTE, nil)) < 0) {
+	if((l = mmuwalk(root, KSEG0, 2, &KzeroPTE, nil)) < 0){
 		panic("Can't walk to PtePML2");
 	}
 	print("KzeroPTE is 0x%llx, *KzeroPTE is 0x%llx\n", KzeroPTE, *KzeroPTE);
-	int PTLevels = (*KzeroPTE>>7)&3;
-	switch(PTLevels) {
+	int PTLevels = (*KzeroPTE >> 7) & 3;
+	switch(PTLevels){
 	default:
 		panic("unsupported number of page table levels: %d", PTLevels);
 		break;
 	case 0:
 		machp()->MMU.root->pa = PhysicalRoot;
 		print("root is 0x%x\n", machp()->MMU.root->pa);
-		machp()->MMU.root->va = (uintptr_t) KADDR(machp()->MMU.root->pa);
+		machp()->MMU.root->va = (uintptr_t)KADDR(machp()->MMU.root->pa);
 		break;
 	}
 
@@ -793,7 +816,7 @@ mmuinit(void)
 	 * This is set up here so meminit can map appropriately.
 	 */
 	o = sys->pmstart;
-	sz = ROUNDUP(o, 4*MiB) - o;
+	sz = ROUNDUP(o, 4 * MiB) - o;
 	pa = asmalloc(0, sz, 1, 0);
 	if(pa != o)
 		panic("mmuinit: pa %#llx memstart %#llx\n", pa, o);
@@ -802,7 +825,7 @@ mmuinit(void)
 	sys->vmstart = KSEG0;
 	/* more issues with arithmetic since physmem is at 80000000 */
 	o &= 0x7fffffff;
-	sys->vmunused = sys->vmstart + ROUNDUP(o, 4*KiB);
+	sys->vmunused = sys->vmstart + ROUNDUP(o, 4 * KiB);
 	sys->vmend = sys->vmstart + TMFM;
 
 	// on amd64, this was set to just the end of the kernel, because
@@ -819,7 +842,7 @@ mmuinit(void)
 	sys->vmunmapped = sys->vmend;
 
 	print("mmuinit: vmstart %#p vmunused %#p vmunmapped %#p vmend %#p\n",
-		sys->vmstart, sys->vmunused, sys->vmunmapped, sys->vmend);
+	      sys->vmstart, sys->vmunused, sys->vmunmapped, sys->vmend);
 	dumpmmuwalk(KZERO);
 
 	mmuphysaddr(PTR2UINT(end));

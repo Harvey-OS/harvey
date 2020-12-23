@@ -28,26 +28,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 //TODO: replace this with the one in ip, if possible.
-unsigned short ipchksum(const void *vptr, unsigned long nbytes)
+unsigned short
+ipchksum(const void *vptr, unsigned long nbytes)
 {
 	int sum, oddbyte;
 	const unsigned short *ptr = vptr;
 
 	sum = 0;
-	while (nbytes > 1) {
+	while(nbytes > 1){
 		sum += *ptr++;
 		nbytes -= 2;
 	}
-	if (nbytes == 1) {
+	if(nbytes == 1){
 		oddbyte = 0;
-		((uint8_t *) & oddbyte)[0] = *(uint8_t *) ptr;
-		((uint8_t *) & oddbyte)[1] = 0;
+		((uint8_t *)&oddbyte)[0] = *(uint8_t *)ptr;
+		((uint8_t *)&oddbyte)[1] = 0;
 		sum += oddbyte;
 	}
 	sum = (sum >> 16) + (sum & 0xffff);

@@ -50,26 +50,26 @@
 #include <libc.h>
 #include <ip.h>
 
-#define ADDCARRY(x)  (x > 65535 ? x -= 65535 : x)
-#define REDUCE32							  \
-    {									  \
-	q_util.q = sum;							  \
-	sum = q_util.s[0] + q_util.s[1] + q_util.s[2] + q_util.s[3];	  \
-    }
-#define REDUCE16							  \
-    {									  \
-	q_util.q = sum;							  \
-	l_util.l = q_util.s[0] + q_util.s[1] + q_util.s[2] + q_util.s[3]; \
-	sum = l_util.s[0] + l_util.s[1];				  \
-	ADDCARRY(sum);							  \
-    }
+#define ADDCARRY(x) (x > 65535 ? x -= 65535 : x)
+#define REDUCE32                                                             \
+	{                                                                    \
+		q_util.q = sum;                                              \
+		sum = q_util.s[0] + q_util.s[1] + q_util.s[2] + q_util.s[3]; \
+	}
+#define REDUCE16                                                                  \
+	{                                                                         \
+		q_util.q = sum;                                                   \
+		l_util.l = q_util.s[0] + q_util.s[1] + q_util.s[2] + q_util.s[3]; \
+		sum = l_util.s[0] + l_util.s[1];                                  \
+		ADDCARRY(sum);                                                    \
+	}
 
 static const uint32_t in_masks[] = {
-	/*0 bytes*/ /*1 byte*/	/*2 bytes*/ /*3 bytes*/
-	0x00000000, 0x000000FF, 0x0000FFFF, 0x00FFFFFF,	/* offset 0 */
-	0x00000000, 0x0000FF00, 0x00FFFF00, 0xFFFFFF00,	/* offset 1 */
-	0x00000000, 0x00FF0000, 0xFFFF0000, 0xFFFF0000,	/* offset 2 */
-	0x00000000, 0xFF000000, 0xFF000000, 0xFF000000,	/* offset 3 */
+	/*0 bytes*/ /*1 byte*/ /*2 bytes*/		/*3 bytes*/
+	0x00000000, 0x000000FF, 0x0000FFFF, 0x00FFFFFF, /* offset 0 */
+	0x00000000, 0x0000FF00, 0x00FFFF00, 0xFFFFFF00, /* offset 1 */
+	0x00000000, 0x00FF0000, 0xFFFF0000, 0xFFFF0000, /* offset 2 */
+	0x00000000, 0xFF000000, 0xFF000000, 0xFF000000, /* offset 3 */
 };
 
 union l_util {
@@ -85,24 +85,24 @@ union q_util {
 static uint64_t
 in_cksumdata(const void *buf, int len)
 {
-	const uint32_t *lw = (const uint32_t *) buf;
+	const uint32_t *lw = (const uint32_t *)buf;
 	uint64_t sum = 0;
 	uint64_t prefilled;
 	int offset;
 	union q_util q_util;
 
-	if ((3 & (long) lw) == 0 && len == 20) {
-	     sum = (uint64_t) lw[0] + lw[1] + lw[2] + lw[3] + lw[4];
-	     REDUCE32;
-	     return sum;
+	if((3 & (long)lw) == 0 && len == 20){
+		sum = (uint64_t)lw[0] + lw[1] + lw[2] + lw[3] + lw[4];
+		REDUCE32;
+		return sum;
 	}
 
-	if ((offset = 3 & (long) lw) != 0) {
+	if((offset = 3 & (long)lw) != 0){
 		const uint32_t *masks = in_masks + (offset << 2);
-		lw = (uint32_t *) (((long) lw) - offset);
+		lw = (uint32_t *)(((long)lw) - offset);
 		sum = *lw++ & masks[len >= 3 ? 3 : len];
 		len -= 4 - offset;
-		if (len <= 0) {
+		if(len <= 0){
 			REDUCE32;
 			return sum;
 		}
@@ -112,17 +112,17 @@ in_cksumdata(const void *buf, int len)
 	 * Force to cache line boundary.
 	 */
 	offset = 32 - (0x1f & (long) lw);
-	if (offset < 32 && len > offset) {
+	if (offset < 32 && len > offset){
 		len -= offset;
-		if (4 & offset) {
+		if (4 & offset){
 			sum += (uint64_t) lw[0];
 			lw += 1;
 		}
-		if (8 & offset) {
+		if (8 & offset){
 			sum += (uint64_t) lw[0] + lw[1];
 			lw += 2;
 		}
-		if (16 & offset) {
+		if (16 & offset){
 			sum += (uint64_t) lw[0] + lw[1] + lw[2] + lw[3];
 			lw += 4;
 		}
@@ -134,40 +134,39 @@ in_cksumdata(const void *buf, int len)
 	 * save result of prefilling for loop iteration.
 	 */
 	prefilled = lw[0];
-	while ((len -= 32) >= 4) {
+	while((len -= 32) >= 4){
 		uint64_t prefilling = lw[8];
-		sum += prefilled + lw[1] + lw[2] + lw[3]
-			+ lw[4] + lw[5] + lw[6] + lw[7];
+		sum += prefilled + lw[1] + lw[2] + lw[3] + lw[4] + lw[5] + lw[6] + lw[7];
 		lw += 8;
 		prefilled = prefilling;
 	}
-	if (len >= 0) {
-		sum += prefilled + lw[1] + lw[2] + lw[3]
-			+ lw[4] + lw[5] + lw[6] + lw[7];
+	if(len >= 0){
+		sum += prefilled + lw[1] + lw[2] + lw[3] + lw[4] + lw[5] + lw[6] + lw[7];
 		lw += 8;
 	} else {
 		len += 32;
 	}
-	while ((len -= 16) >= 0) {
-		sum += (uint64_t) lw[0] + lw[1] + lw[2] + lw[3];
+	while((len -= 16) >= 0){
+		sum += (uint64_t)lw[0] + lw[1] + lw[2] + lw[3];
 		lw += 4;
 	}
 	len += 16;
-	while ((len -= 4) >= 0) {
-		sum += (uint64_t) *lw++;
+	while((len -= 4) >= 0){
+		sum += (uint64_t)*lw++;
 	}
 	len += 4;
-	if (len > 0)
-		sum += (uint64_t) (in_masks[len] & *lw);
+	if(len > 0)
+		sum += (uint64_t)(in_masks[len] & *lw);
 	REDUCE32;
 	return sum;
 }
-uint16_t ptclbsum(uint8_t * addr, int len)
+uint16_t
+ptclbsum(uint8_t *addr, int len)
 {
 	uint64_t sum = in_cksumdata(addr, len);
 	union q_util q_util;
 	union l_util l_util;
 	REDUCE16;
-	return  ((sum & (uint16_t)0x00ffU) << 8) |
-	        ((sum & (uint16_t)0xff00U) >> 8);
+	return ((sum & (uint16_t)0x00ffU) << 8) |
+	       ((sum & (uint16_t)0xff00U) >> 8);
 }

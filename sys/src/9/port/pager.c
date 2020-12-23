@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  * There's no pager process here.
@@ -20,12 +20,11 @@
  * during the call to kickpager()
  */
 
-enum
-{
+enum {
 	Minpages = 2
 };
 
-static QLock	pagerlck;
+static QLock pagerlck;
 static struct
 {
 	uint32_t ntext;
@@ -39,13 +38,13 @@ swapinit(void)
 }
 
 void
-putswap(Page* p)
+putswap(Page *p)
 {
 	panic("putswap");
 }
 
 void
-dupswap(Page* p)
+dupswap(Page *p)
 {
 	panic("dupswap");
 }
@@ -63,7 +62,7 @@ canflush(Proc *p, Segment *s)
 	int i, x;
 
 	lock(&s->r.l);
-	if(s->r.ref == 1) {		/* Easy if we are the only user */
+	if(s->r.ref == 1) { /* Easy if we are the only user */
 		s->r.ref++;
 		unlock(&s->r.l);
 		return canpage(p);
@@ -75,7 +74,7 @@ canflush(Proc *p, Segment *s)
 	 * entries for this segment will be flushed if we succeed in paging it out
 	 */
 	for(x = 0; (p = psincref(x)) != nil; x++){
-		if(p->state != Dead) {
+		if(p->state != Dead){
 			for(i = 0; i < NSEG; i++){
 				if(p->seg[i] == s && !canpage(p)){
 					psdecref(p);
@@ -96,18 +95,18 @@ pageout(Proc *p, Segment *s)
 	Pte *l;
 	Page **pg, *entry;
 
-	if((s->type&SG_TYPE) != SG_LOAD && (s->type&SG_TYPE) != SG_TEXT)
+	if((s->type & SG_TYPE) != SG_LOAD && (s->type & SG_TYPE) != SG_TEXT)
 		panic("pageout");
 
-	if(!canqlock(&s->lk))	/* We cannot afford to wait, we will surely deadlock */
+	if(!canqlock(&s->lk)) /* We cannot afford to wait, we will surely deadlock */
 		return 0;
 
-	if(s->steal){		/* Protected by /dev/proc */
+	if(s->steal) { /* Protected by /dev/proc */
 		qunlock(&s->lk);
 		return 0;
 	}
 
-	if(!canflush(p, s)){	/* Able to invalidate all tlbs with references */
+	if(!canflush(p, s)) { /* Able to invalidate all tlbs with references */
 		qunlock(&s->lk);
 		putseg(s);
 		return 0;
@@ -165,20 +164,20 @@ pageouttext(int pgszi, int color)
 	 * then from anyone.
 	 */
 Again:
-	do{
+	do {
 		if((p = psincref(x)) == nil)
 			break;
 		np = 0;
 		if(p->prepagemem == 0 || prepaged != 0)
-		if(p->state != Dead && p->noswap == 0 && canqlock(&p->seglock)){
-			for(i = 0; i < NSEG; i++){
-				if((s = p->seg[i]) == nil)
-					continue;
-				if((s->type&SG_TYPE) == SG_TEXT)
-					np = pageout(p, s);
+			if(p->state != Dead && p->noswap == 0 && canqlock(&p->seglock)){
+				for(i = 0; i < NSEG; i++){
+					if((s = p->seg[i]) == nil)
+						continue;
+					if((s->type & SG_TYPE) == SG_TEXT)
+						np = pageout(p, s);
+				}
+				qunlock(&p->seglock);
 			}
-			qunlock(&p->seglock);
-		}
 		/*
 		 * else process dead or locked or changing its segments
 		 */
@@ -187,7 +186,7 @@ Again:
 		if(np > 0)
 			DBG("pager: %d from proc #%d %#p\n", np, x, p);
 		x++;
-	}while(pa->freecount < Minpages);
+	} while(pa->freecount < Minpages);
 
 	if(pa->freecount < Minpages && prepaged++ == 0)
 		goto Again;
@@ -204,7 +203,7 @@ freepages(int si, int once)
 		pa = &pga.pgsza[si];
 		if(pa->freecount > 0){
 			DBG("kickpager() up %#p: releasing %uK pages\n",
-				up, sys->pgsz[si]/KiB);
+			    up, sys->pgsz[si] / KiB);
 			lock(&pga.l);
 			if(pa->freecount == 0){
 				unlock(&pga.l);
@@ -265,7 +264,7 @@ kickpager(int pgszi, int color)
 	Proc *up = externup();
 	Pgsza *pa;
 
-	if(DBGFLG>1)
+	if(DBGFLG > 1)
 		DBG("kickpager() %#p\n", up);
 	if(waserror())
 		panic("error in kickpager");
@@ -288,7 +287,7 @@ kickpager(int pgszi, int color)
 	/*
 	 * If pgszi is <= text page size, try releasing text pages.
 	 */
-	if(sys->pgsz[pgszi] <= 2*MiB){
+	if(sys->pgsz[pgszi] <= 2 * MiB){
 		pstats.ntext++;
 		DBG("kickpager() up %#p: reclaiming text pages\n", up);
 		pageouttext(pgszi, color);
@@ -303,7 +302,7 @@ kickpager(int pgszi, int color)
 	 * Try releasing memory from bigger pages.
 	 */
 	pstats.nbig++;
-	freepages(pgszi+1, 1);
+	freepages(pgszi + 1, 1);
 	tryalloc(pgszi, color);
 	if(hascolor(pa->head, color)){
 		DBG("kickpager() found %lu free\n", pa->freecount);
@@ -334,7 +333,7 @@ kickpager(int pgszi, int color)
 Done:
 	poperror();
 	qunlock(&pagerlck);
-	if(DBGFLG>1)
+	if(DBGFLG > 1)
 		DBG("kickpager() done %#p\n", up);
 }
 
@@ -342,6 +341,6 @@ void
 pagersummary(void)
 {
 	print("ntext %lu nbig %lu nall %lu\n",
-		pstats.ntext, pstats.nbig, pstats.nall);
+	      pstats.ntext, pstats.nbig, pstats.nall);
 	print("no swap\n");
 }

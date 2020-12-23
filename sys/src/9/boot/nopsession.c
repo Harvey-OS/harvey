@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-static Fcall	hdr;
+static Fcall hdr;
 
 static void
 rpc(int fd, int type)
@@ -30,7 +30,7 @@ rpc(int fd, int type)
 	print("...");
 	p = buf;
 	l = 0;
-	while(l < 3) {
+	while(l < 3){
 		n = read(fd, p, 3);
 		if(n <= 0)
 			fatal("read rpc");
@@ -49,7 +49,7 @@ rpc(int fd, int type)
 		print("error %s;", hdr.ename);
 		fatal("remote error");
 	}
-	if(hdr.type != type+1)
+	if(hdr.type != type + 1)
 		fatal("not reply");
 }
 

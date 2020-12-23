@@ -20,26 +20,26 @@
 #include "ip.h"
 
 enum {
-	GRE_IPONLY	= 12,		/* size of ip header */
-	GRE_IPPLUSGRE	= 12,		/* minimum size of GRE header */
-	IP_GREPROTO	= 47,
+	GRE_IPONLY = 12,    /* size of ip header */
+	GRE_IPPLUSGRE = 12, /* minimum size of GRE header */
+	IP_GREPROTO = 47,
 
-	GRErxms		= 200,
-	GREtickms	= 100,
-	GREmaxxmit	= 10,
+	GRErxms = 200,
+	GREtickms = 100,
+	GREmaxxmit = 10,
 
-	K		= 1024,
-	GREqlen		= 256 * K,
+	K = 1024,
+	GREqlen = 256 * K,
 
-	GRE_cksum	= 0x8000,
-	GRE_routing	= 0x4000,
-	GRE_key		= 0x2000,
-	GRE_seq		= 0x1000,
+	GRE_cksum = 0x8000,
+	GRE_routing = 0x4000,
+	GRE_key = 0x2000,
+	GRE_seq = 0x1000,
 
-	Nring		= 1 << 10,	/* power of two, please */
-	Ringmask	= Nring - 1,
+	Nring = 1 << 10, /* power of two, please */
+	Ringmask = Nring - 1,
 
-	GREctlraw	= 0,
+	GREctlraw = 0,
 	GREctlcooked,
 	GREctlretunnel,
 	GREctlreport,
@@ -53,61 +53,61 @@ enum {
 };
 
 typedef struct GREhdr GREhdr;
-struct GREhdr{
+struct GREhdr {
 	/* ip header */
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	len[2];		/* packet length (including headers) */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;
-	uint8_t	proto;		/* Protocol */
-	uint8_t	cksum[2];	/* checksum */
-	uint8_t	src[4];		/* Ip source */
-	uint8_t	dst[4];		/* Ip destination */
+	uint8_t vihl;	 /* Version and header length */
+	uint8_t tos;	 /* Type of service */
+	uint8_t len[2];	 /* packet length (including headers) */
+	uint8_t id[2];	 /* Identification */
+	uint8_t frag[2]; /* Fragment information */
+	uint8_t ttl;
+	uint8_t proto;	  /* Protocol */
+	uint8_t cksum[2]; /* checksum */
+	uint8_t src[4];	  /* Ip source */
+	uint8_t dst[4];	  /* Ip destination */
 
 	/* gre header */
-	uint8_t	flags[2];
-	uint8_t	eproto[2];	/* encapsulation protocol */
+	uint8_t flags[2];
+	uint8_t eproto[2]; /* encapsulation protocol */
 };
 
 typedef struct GREpriv GREpriv;
-struct GREpriv{
+struct GREpriv {
 	/* non-MIB stats */
-	uint32_t	lenerr;			/* short packet */
+	uint32_t lenerr; /* short packet */
 };
 
-typedef struct Bring	Bring;
-struct Bring{
-	Block	*ring[Nring];
-	int32_t	produced;
-	int32_t	consumed;
+typedef struct Bring Bring;
+struct Bring {
+	Block *ring[Nring];
+	int32_t produced;
+	int32_t consumed;
 };
 
-typedef struct GREconv	GREconv;
-struct GREconv{
-	int	raw;
+typedef struct GREconv GREconv;
+struct GREconv {
+	int raw;
 
 	/* Retunnelling information.  v4 only */
-	uint8_t	north[4];			/* HA */
-	uint8_t	south[4];			/* Base station */
-	uint8_t	hoa[4];				/* Home address */
-	uint8_t	coa[4];				/* Careof address */
-	uint32_t	seq;				/* Current sequence # */
-	int	dlsusp;				/* Downlink suspended? */
-	int	ulsusp;				/* Uplink suspended? */
-	uint32_t	ulkey;				/* GRE key */
+	uint8_t north[4]; /* HA */
+	uint8_t south[4]; /* Base station */
+	uint8_t hoa[4];	  /* Home address */
+	uint8_t coa[4];	  /* Careof address */
+	uint32_t seq;	  /* Current sequence # */
+	int dlsusp;	  /* Downlink suspended? */
+	int ulsusp;	  /* Uplink suspended? */
+	uint32_t ulkey;	  /* GRE key */
 
-	QLock	lock;				/* Lock for rings */
-	Bring	dlpending;			/* Ring of pending packets */
-	Bring	dlbuffered;			/* Received while suspended */
-	Bring	ulbuffered;			/* Received while suspended */
+	QLock lock;	  /* Lock for rings */
+	Bring dlpending;  /* Ring of pending packets */
+	Bring dlbuffered; /* Received while suspended */
+	Bring ulbuffered; /* Received while suspended */
 };
 
 typedef struct Metablock Metablock;
-struct Metablock{
-	uint8_t	*rp;
-	uint32_t	seq;
+struct Metablock {
+	uint8_t *rp;
+	uint32_t seq;
 };
 
 static char *grectlcooked(Conv *, int, char **);
@@ -121,21 +121,61 @@ static char *grectlulkey(Conv *, int, char **);
 static char *grectlulresume(Conv *, int, char **);
 static char *grectlulsuspend(Conv *, int, char **);
 
-static struct{
-	char	*cmd;
-	int	argc;
-	char	*(*f)(Conv *, int, char **);
+static struct {
+	char *cmd;
+	int argc;
+	char *(*f)(Conv *, int, char **);
 } grectls[Ncmds] = {
-[GREctlraw]	=	{	"raw",		1,	grectlraw,	},
-[GREctlcooked]	=	{	"cooked",	1,	grectlcooked,	},
-[GREctlretunnel]=	{	"retunnel",	5,	grectlretunnel,	},
-[GREctlreport]	=	{	"report",	2,	grectlreport,	},
-[GREctldlsuspend]=	{	"dlsuspend",	1,	grectldlsuspend,},
-[GREctlulsuspend]=	{	"ulsuspend",	1,	grectlulsuspend,},
-[GREctldlresume]=	{	"dlresume",	1,	grectldlresume,	},
-[GREctlulresume]=	{	"ulresume",	1,	grectlulresume,	},
-[GREctlforward]	=	{	"forward",	2,	grectlforward,	},
-[GREctlulkey]	=	{	"ulkey",	2,	grectlulkey,	},
+	[GREctlraw] = {
+		"raw",
+		1,
+		grectlraw,
+	},
+	[GREctlcooked] = {
+		"cooked",
+		1,
+		grectlcooked,
+	},
+	[GREctlretunnel] = {
+		"retunnel",
+		5,
+		grectlretunnel,
+	},
+	[GREctlreport] = {
+		"report",
+		2,
+		grectlreport,
+	},
+	[GREctldlsuspend] = {
+		"dlsuspend",
+		1,
+		grectldlsuspend,
+	},
+	[GREctlulsuspend] = {
+		"ulsuspend",
+		1,
+		grectlulsuspend,
+	},
+	[GREctldlresume] = {
+		"dlresume",
+		1,
+		grectldlresume,
+	},
+	[GREctlulresume] = {
+		"ulresume",
+		1,
+		grectlulresume,
+	},
+	[GREctlforward] = {
+		"forward",
+		2,
+		grectlforward,
+	},
+	[GREctlulkey] = {
+		"ulkey",
+		2,
+		grectlulkey,
+	},
 };
 
 static uint8_t nulladdr[4];
@@ -228,24 +268,24 @@ grestate(Conv *c, char *state, int n)
 	char *ep, *p;
 
 	grec = c->ptcl;
-	p    = state;
-	ep   = p + n;
-	p    = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %lx "
-	 "pending %lu  %lu buffered dl %lu %lu ul %lu %lu ulkey %.8lx\n",
-			c->inuse? "Open ": "Closed ",
-			grec->raw? "raw ": "",
-			grec->dlsusp? "DL suspended ": "",
-			grec->ulsusp? "UL suspended ": "",
-			grec->hoa, grec->north, grec->south, grec->seq,
-			grec->dlpending.consumed, grec->dlpending.produced,
-			grec->dlbuffered.consumed, grec->dlbuffered.produced,
-			grec->ulbuffered.consumed, grec->ulbuffered.produced,
-			grec->ulkey);
+	p = state;
+	ep = p + n;
+	p = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %lx "
+			   "pending %lu  %lu buffered dl %lu %lu ul %lu %lu ulkey %.8lx\n",
+		    c->inuse ? "Open " : "Closed ",
+		    grec->raw ? "raw " : "",
+		    grec->dlsusp ? "DL suspended " : "",
+		    grec->ulsusp ? "UL suspended " : "",
+		    grec->hoa, grec->north, grec->south, grec->seq,
+		    grec->dlpending.consumed, grec->dlpending.produced,
+		    grec->dlbuffered.consumed, grec->dlbuffered.produced,
+		    grec->ulbuffered.consumed, grec->ulbuffered.produced,
+		    grec->ulkey);
 	return p - state;
 }
 
-static char*
-greannounce(Conv* conv, char** c, int i)
+static char *
+greannounce(Conv *conv, char **c, int i)
 {
 	return "gre does not support announce";
 }
@@ -301,7 +341,7 @@ grekick(void *x, Block *bp)
 	if(bp == nil)
 		return;
 
-	c    = x;
+	c = x;
 	grec = c->ptcl;
 
 	/* Make space to fit ip header (gre header already there) */
@@ -310,7 +350,7 @@ grekick(void *x, Block *bp)
 		return;
 
 	/* make sure the message has a GRE header */
-	bp = pullupblock(bp, GRE_IPONLY+GRE_IPPLUSGRE);
+	bp = pullupblock(bp, GRE_IPONLY + GRE_IPPLUSGRE);
 	if(bp == nil)
 		return;
 
@@ -360,8 +400,8 @@ gredownlink(Conv *c, Block *bp)
 	 * re-adjust the packet header to strip all unwanted parts
 	 * but leave room for only a sequence number.
 	 */
-	grec   = c->ptcl;
-	flags  = nhgets(gre->flags);
+	grec = c->ptcl;
+	flags = nhgets(gre->flags);
 	hdrlen = 0;
 	if(flags & GRE_cksum)
 		hdrlen += 2;
@@ -370,8 +410,8 @@ gredownlink(Conv *c, Block *bp)
 		freeb(bp);
 		return;
 	}
-	if(flags & (GRE_cksum|GRE_routing))
-		hdrlen += 2;			/* Offset field */
+	if(flags & (GRE_cksum | GRE_routing))
+		hdrlen += 2; /* Offset field */
 	if(flags & GRE_key)
 		hdrlen += 4;
 	if(flags & GRE_seq)
@@ -403,7 +443,7 @@ gredownlink(Conv *c, Block *bp)
 	 */
 	assert(bp->rp - bp->base >= sizeof(Metablock));
 	m = (Metablock *)bp->base;
-	m->rp  = bp->rp;
+	m->rp = bp->rp;
 	m->seq = seq;
 
 	/*
@@ -461,7 +501,7 @@ restart:
 	 * Now make sure we didn't do the wrong thing.
 	 */
 	if(!canqlock(&grec->lock)){
-		freeb(bp);		/* The packet just goes away */
+		freeb(bp); /* The packet just goes away */
 		return;
 	}
 
@@ -490,9 +530,9 @@ greuplink(Conv *c, Block *bp)
 	 */
 	if(grec->ulkey){
 		flags = nhgets(gre->flags);
-		if(flags & (GRE_cksum|GRE_routing)){
+		if(flags & (GRE_cksum | GRE_routing)){
 			print("%V routing info present.  Discarding packet\n",
-				gre->src);
+			      gre->src);
 			freeb(bp);
 			return;
 		}
@@ -523,7 +563,7 @@ greuplink(Conv *c, Block *bp)
 
 	if(grec->ulsusp)
 		addring(&grec->ulbuffered, bp);
-	else{
+	else {
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
 		grepuout++;
 		grebuout += BLEN(bp);
@@ -550,7 +590,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 */
 	if(bp->next){
 		len = blocklen(bp);
-		bp  = pullupblock(bp, len);
+		bp = pullupblock(bp, len);
 		assert(BLEN(bp) == len && bp->next == nil);
 	}
 
@@ -562,7 +602,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 
 	v4tov6(raddr, gre->src);
 	eproto = nhgets(gre->eproto);
-	flags  = nhgets(gre->flags);
+	flags = nhgets(gre->flags);
 	hdrlen = sizeof(GREhdr);
 
 	if(flags & GRE_cksum)
@@ -572,8 +612,8 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 		freeb(bp);
 		return;
 	}
-	if(flags & (GRE_cksum|GRE_routing))
-		hdrlen += 2;			/* Offset field */
+	if(flags & (GRE_cksum | GRE_routing))
+		hdrlen += 2; /* Offset field */
 	if(flags & GRE_key)
 		hdrlen += 4;
 	if(flags & GRE_seq)
@@ -581,7 +621,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 
 	if(BLEN(bp) - hdrlen < sizeof(Ip4hdr)){
 		print("greretunnel: packet too short (s=%V d=%V)\n",
-			gre->src, gre->dst);
+		      gre->src, gre->dst);
 		freeb(bp);
 		return;
 	}
@@ -592,7 +632,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 * Look for a conversation structure for this port and address, or
 	 * match the retunnel part, or match on the raw flag.
 	 */
-	for(p = proto->conv; *p; p++) {
+	for(p = proto->conv; *p; p++){
 		c = *p;
 
 		if(c->inuse == 0)
@@ -624,7 +664,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 * when we get here, none of the forwarding tunnels matched.  now
 	 * try to match on raw and conversational sessions.
 	 */
-	for(c = nil, p = proto->conv; *p; p++) {
+	for(c = nil, p = proto->conv; *p; p++){
 		c = *p;
 
 		if(c->inuse == 0)
@@ -636,7 +676,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 		 */
 		grec = c->ptcl;
 		if(c->rport == eproto &&
-		    (grec->raw || ipcmp(c->raddr, raddr) == 0))
+		   (grec->raw || ipcmp(c->raddr, raddr) == 0))
 			break;
 	}
 
@@ -668,7 +708,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 */
 	if(qlen(c->rq) > GREqlen)
 		freeb(bp);
-	else{
+	else {
 		bp = concatblock(bp);
 		if(bp == 0)
 			panic("greiput");
@@ -683,9 +723,9 @@ grestats(Proto *gre, char *buf, int len)
 
 	gpriv = gre->priv;
 	return snprint(buf, len,
-		"gre: %lu %lu %lu %lu %lu %lu %lu %lu, lenerrs %lu\n",
-		grepdin, grepdout, grepuin, grepuout,
-		grebdin, grebdout, grebuin, grebuout, gpriv->lenerr);
+		       "gre: %lu %lu %lu %lu %lu %lu %lu %lu, lenerrs %lu\n",
+		       grepdin, grepdout, grepuin, grepuout,
+		       grebdin, grebdout, grebuin, grebuout, gpriv->lenerr);
 }
 
 static char *
@@ -744,7 +784,7 @@ grectlreport(Conv *c, int i, char **argv)
 	Metablock *m;
 
 	grec = c->ptcl;
-	seq  = strtoul(argv[1], nil, 0);
+	seq = strtoul(argv[1], nil, 0);
 
 	qlock(&grec->lock);
 	r = &grec->dlpending;
@@ -887,9 +927,8 @@ grectlforward(Conv *c, int i, char **argv)
 			memmove(nbp->wp, m->rp, len);
 			nbp->wp += len;
 			freeb(bp);
-			bp  = nbp;
-		}
-		else{
+			bp = nbp;
+		} else {
 			/* Patch up rp */
 			bp->rp = m->rp;
 		}

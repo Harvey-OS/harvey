@@ -7,12 +7,14 @@
  * in the LICENSE file.
  */
 
-extern void startboot(char*, char**);
+extern void startboot(char *, char **);
 
 void
-main(char* argv0)
+main(char *argv0)
 {
-	char *ar[2] = {"boot", };
+	char *ar[2] = {
+		"boot",
+	};
 #if 0
 	// let's do this later when we want true hell.
 	extern int _gp;
@@ -26,6 +28,6 @@ main(char* argv0)
 	char a[1];
 	a[1] = '0';
 	write(1, a, 1);
-	startboot("*init*", ar); //argv0, &argv0);
-//	while(1) write(1, "hi\n", 3);
+	startboot("*init*", ar);	//argv0, &argv0);
+					//	while(1) write(1, "hi\n", 3);
 }

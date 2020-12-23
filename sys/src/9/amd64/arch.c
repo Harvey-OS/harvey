@@ -95,7 +95,7 @@ linkproc(void)
 }
 
 void
-kprocchild(Proc* p, void (*func)(void*), void* arg)
+kprocchild(Proc *p, void (*func)(void *), void *arg)
 {
 	/*
 	 * gotolabel() needs a word on the stack in
@@ -103,7 +103,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 	 * to linkproc().
 	 */
 	p->sched.pc = PTR2UINT(linkproc);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-BY2SE);
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - BY2SE);
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	p->kpfun = func;
@@ -121,7 +121,7 @@ void
 idlehands(void)
 {
 	if(machp()->NIX.nixtype != NIXAC)
- 		halt();
+		halt();
 }
 
 void
@@ -148,13 +148,13 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 	/* it's weird, docs say 5 32-bit fields
 	 * but I count 4 if we pack these. Fix me
 	 */
-	g[GDB_PS] = 0; // u->PS;
-	g[GDB_CS] = 0; // u->CS;
-	g[GDB_SS] = 0; // u->SS;
-	g[GDB_DS] = 0; // u->DS;
-	g[GDB_ES] = 0; // u->ES;
-	g[GDB_FS] = 0; // u->FS;
-	g[GDB_GS] = 0; // u->GS;
+	g[GDB_PS] = 0;	      // u->PS;
+	g[GDB_CS] = 0;	      // u->CS;
+	g[GDB_SS] = 0;	      // u->SS;
+	g[GDB_DS] = 0;	      // u->DS;
+	g[GDB_ES] = 0;	      // u->ES;
+	g[GDB_FS] = 0;	      // u->FS;
+	g[GDB_GS] = 0;	      // u->GS;
 }
 
 void

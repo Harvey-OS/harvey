@@ -21,17 +21,17 @@
  *	mmuptcopy (PteSHARED trick?);
  */
 
-#define	PML4X(va)	(PTLX(va, 3))
-#define	PML3X(va)	(PTLX(va, 2))
-#define	PML2X(va)	(PTLX(va, 1))
-#define	PML1X(va)	(PTLX(va, 0))
+#define PML4X(va) (PTLX(va, 3))
+#define PML3X(va) (PTLX(va, 2))
+#define PML2X(va) (PTLX(va, 1))
+#define PML1X(va) (PTLX(va, 0))
 
-#define	PGSZHUGE	(PGLSZ(2))
-#define	PGSZLARGE	(PGLSZ(1))
+#define PGSZHUGE (PGLSZ(2))
+#define PGSZLARGE (PGLSZ(1))
 
-#define PPNHUGE(x)	((x)&~(PteNX|(PGSZHUGE-1)))
-#define PPNLARGE(x)	((x)&~(PteNX|(PGSZLARGE-1)))
-#define PPN(x)		((x)&~(PteNX|(PGSZ-1)))
+#define PPNHUGE(x) ((x) & ~(PteNX | (PGSZHUGE - 1)))
+#define PPNLARGE(x) ((x) & ~(PteNX | (PGSZLARGE - 1)))
+#define PPN(x) ((x) & ~(PteNX | (PGSZ - 1)))
 
 void
 mmukflushtlb(void)
@@ -62,11 +62,11 @@ mmuflush(void)
 }
 
 static void
-mmuptpunmap(Proc* proc)
+mmuptpunmap(Proc *proc)
 {
 	Page *page, *next;
 
-	memset(UINT2PTR(proc->MMU.root->va), 0, PTSZ/2);
+	memset(UINT2PTR(proc->MMU.root->va), 0, PTSZ / 2);
 	for(next = nil, page = proc->MMU.root->next; page != nil; page = next){
 		next = page->next;
 		page->daddr = 0;
@@ -94,19 +94,19 @@ dumpptepg(int lvl, uintptr_t pa)
 
 	tab = 4 - lvl;
 	pte = KADDR(pa);
-	for(i = 0; i < PTSZ/sizeof(PTE); i++)
+	for(i = 0; i < PTSZ / sizeof(PTE); i++)
 		if(pte[i] & PteP){
 			tabs(tab);
 			print("l%d %#p[%#05x]: %#llx\n", lvl, pa, i, pte[i]);
 
 			/* skip kernel mappings */
-			if((pte[i]&PteU) == 0){
-				tabs(tab+1);
+			if((pte[i] & PteU) == 0){
+				tabs(tab + 1);
 				print("...kern...\n");
 				continue;
 			}
 			if(lvl > 2)
-				dumpptepg(lvl-1, PPN(pte[i]));
+				dumpptepg(lvl - 1, PPN(pte[i]));
 		}
 }
 
@@ -123,11 +123,12 @@ dumpmmu(Proc *p)
 			if(pg->daddr != i)
 				continue;
 			print("\tpg %#p = va %#llx pa %#llx"
-				" daddr %#lx next %#p prev %#p\n",
-				pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
+			      " daddr %#lx next %#p prev %#p\n",
+			      pg, pg->va, pg->pa, pg->daddr, pg->next, pg->prev);
 		}
 	}
-	if(0)dumpptepg(4, machp()->MMU.pml4->pa);
+	if(0)
+		dumpptepg(4, machp()->MMU.pml4->pa);
 }
 
 void
@@ -159,10 +160,10 @@ allocapage(void)
 		const int npage = 3;
 		char *pp = mallocalign(npage * PTSZ, PTSZ, 0, 0);
 		assert(pp != nil);
-		p = pp + (npage / 2)*PTSZ;
-	}else{
+		p = pp + (npage / 2) * PTSZ;
+	} else {
 
-		static alignas(4096) unsigned char alloc[16*MiB];
+		static alignas(4096) unsigned char alloc[16 * MiB];
 		static usize offset = 0;
 
 		if(offset >= sizeof(alloc))
@@ -176,10 +177,10 @@ allocapage(void)
 
 static Page mmuptpfreelist;
 
-static Page*
+static Page *
 mmuptpalloc(void)
 {
-	void* va;
+	void *va;
 	Page *page;
 
 	/*
@@ -219,7 +220,7 @@ mmuptpalloc(void)
 }
 
 void
-mmuswitch(Proc* proc)
+mmuswitch(Proc *proc)
 {
 	Mpl pl;
 
@@ -235,13 +236,13 @@ mmuswitch(Proc* proc)
 		proc->newtlb = 0;
 	}
 
-	tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
+	tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack + KSTACK)));
 	cr3put(proc->MMU.root->pa);
 	splx(pl);
 }
 
 void
-mmurelease(Proc* proc)
+mmurelease(Proc *proc)
 {
 	Page *page, *next;
 	int freed = 0;
@@ -272,7 +273,7 @@ mmurelease(Proc* proc)
 	if(freed && pga.rend.l.p)
 		wakeup(&pga.rend);
 
-	tssrsp0(machp(), STACKALIGN(machp()->stack+MACHSTKSZ));
+	tssrsp0(machp(), STACKALIGN(machp()->stack + MACHSTKSZ));
 	cr3put(machp()->MMU.pml4->pa);
 }
 
@@ -288,29 +289,29 @@ checkpte(const PTE *pml4, uintmem ppn, void *a)
 	pte = 0;
 	s = buf;
 	*s = 0;
-	if((l = mmuwalk(pml4, addr, 3, &pte)) < 0 || (*pte&PteP) == 0)
+	if((l = mmuwalk(pml4, addr, 3, &pte)) < 0 || (*pte & PteP) == 0)
 		goto Panic;
-	s = seprint(buf, buf+sizeof buf,
-		"check3: l%d pte %#p = %llx\n",
-		l, pte, pte?*pte:~0);
-	if((l = mmuwalk(pml4, addr, 2, &pte)) < 0 || (*pte&PteP) == 0)
+	s = seprint(buf, buf + sizeof buf,
+		    "check3: l%d pte %#p = %llx\n",
+		    l, pte, pte ? *pte : ~0);
+	if((l = mmuwalk(pml4, addr, 2, &pte)) < 0 || (*pte & PteP) == 0)
 		goto Panic;
-	s = seprint(s, buf+sizeof buf,
-		"check2: l%d  pte %#p = %llx\n",
-		l, pte, pte?*pte:~0);
-	if(*pte&PtePS)
+	s = seprint(s, buf + sizeof buf,
+		    "check2: l%d  pte %#p = %llx\n",
+		    l, pte, pte ? *pte : ~0);
+	if(*pte & PtePS)
 		return;
-	if((l = mmuwalk(pml4, addr, 1, &pte)) < 0 || (*pte&PteP) == 0)
+	if((l = mmuwalk(pml4, addr, 1, &pte)) < 0 || (*pte & PteP) == 0)
 		goto Panic;
-	seprint(s, buf+sizeof buf,
+	seprint(s, buf + sizeof buf,
 		"check1: l%d  pte %#p = %llx\n",
-		l, pte, pte?*pte:~0);
+		l, pte, pte ? *pte : ~0);
 	return;
 
 Panic:
-	seprint(s, buf+sizeof buf,
+	seprint(s, buf + sizeof buf,
 		"checkpte: l%d addr %#p ppn %#llx kaddr %#p pte %#p = %llx",
-		l, a, ppn, KADDR(ppn), pte, pte?*pte:~0);
+		l, a, ppn, KADDR(ppn), pte, pte ? *pte : ~0);
 	panic("%s", buf);
 }
 
@@ -320,17 +321,17 @@ pteflags(uint attr)
 	uintmem flags;
 
 	flags = 0;
-	if(attr & ~(PTEVALID|PTEWRITE|PTERONLY|PTEUSER|PTEUNCACHED|PTENOEXEC))
+	if(attr & ~(PTEVALID | PTEWRITE | PTERONLY | PTEUSER | PTEUNCACHED | PTENOEXEC))
 		panic("pteflags: wrong attr bits: %#x\n", attr);
-	if(attr&PTEVALID)
+	if(attr & PTEVALID)
 		flags |= PteP;
-	if(attr&PTEWRITE)
+	if(attr & PTEWRITE)
 		flags |= PteRW;
-	if(attr&PTEUSER)
+	if(attr & PTEUSER)
 		flags |= PteU;
-	if(attr&PTEUNCACHED)
+	if(attr & PTEUNCACHED)
 		flags |= PtePCD;
-	if(attr&PTENOEXEC)
+	if(attr & PTENOEXEC)
 		flags |= PteNX;
 	return flags;
 }
@@ -349,7 +350,7 @@ allocptpage(Proc *p, int level)
 	page->next = p->MMU.root->next;
 	p->MMU.root->next = page;
 
-	return PPN(page->pa)|PteU|PteRW|PteP;
+	return PPN(page->pa) | PteU | PteRW | PteP;
 }
 
 /*
@@ -381,12 +382,12 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	if(pg->pgszi < 0)
 		panic("mmuput: page size index out of bounds (%d)\n", pg->pgszi);
 	pgsz = sys->pgsz[pg->pgszi];
-	if(pg->pa & (pgsz-1))
+	if(pg->pa & (pgsz - 1))
 		panic("mmumappage: pa offset non zero: %#llx\n", pg->pa);
 	if(0x0000800000000000 <= va && va < KZERO)
 		panic("mmumappage: va %#P is non-canonical", va);
 
-	entry = pg->pa|pteflags(attr)|PteU;
+	entry = pg->pa | pteflags(attr) | PteU;
 	pml4 = UINT2PTR(up->MMU.root->va);
 	p4e = &pml4[PML4X(va)];
 	if(p4e == nil)
@@ -397,8 +398,8 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	p3e = &ptp[PML3X(va)];
 	if(p3e == nil)
 		panic("mmuput: PML3 is nil");
-	if(pgsz == 1*GiB){
-		*p3e = entry|PtePS;
+	if(pgsz == 1 * GiB){
+		*p3e = entry | PtePS;
 		splx(pl);
 		DBG("cpu%d: up %#p new 1GiB pte %#p = %#llx\n",
 		    machp()->machno, up, p3e, *p3e);
@@ -410,8 +411,8 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	p2e = &ptp[PML2X(va)];
 	if(p2e == nil)
 		panic("mmuput: PML2 is nil");
-	if(pgsz == 2*MiB){
-		*p2e = entry|PtePS;
+	if(pgsz == 2 * MiB){
+		*p2e = entry | PtePS;
 		splx(pl);
 		DBG("cpu%d: up %#p new 2MiB pte %#p = %#llx\n",
 		    machp()->machno, up, p2e, *p2e);
@@ -424,7 +425,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	if(p1e == nil)
 		panic("mmuput: PML1 is nil");
 	*p1e = entry;
-	invlpg(va);			/* only if old entry valid? */
+	invlpg(va); /* only if old entry valid? */
 	splx(pl);
 
 	DBG("cpu%d: up %#p new pte %#p = %#llx\n",
@@ -447,7 +448,7 @@ static PTE *
 mmukpmap4(PTE *pml4, uintptr va)
 {
 	PTE p4e = pml4[PML4X(va)];
-	if((p4e&PteP) == 0)
+	if((p4e & PteP) == 0)
 		panic("mmukphysmap: PML4E for va %#P is missing", va);
 	return KADDR(PPN(p4e));
 }
@@ -459,30 +460,29 @@ mmukpmap3(PTE *pml3, uintmem pa, uintptr va, PTE attr, usize size)
 
 	// Suitable for a huge page?
 	if(ALIGNED(pa, PGSZHUGE) &&
-	    ALIGNED(va, PGSZHUGE) &&
-	    size >= PGSZHUGE &&
-	    (p3e == 0 || (p3e&PtePS) == PtePS))
-	{
-		if((p3e&PteP) != 0 && PPNHUGE(p3e) != pa)
+	   ALIGNED(va, PGSZHUGE) &&
+	   size >= PGSZHUGE &&
+	   (p3e == 0 || (p3e & PtePS) == PtePS)){
+		if((p3e & PteP) != 0 && PPNHUGE(p3e) != pa)
 			panic("mmukphysmap: remapping kernel direct address at va %#P (old PML3E %#P, new %#P)",
-			    va, p3e, pa|attr|PtePS|PteP);
-		pml3[PML3X(va)] = pa|attr|PtePS|PteP;
+			      va, p3e, pa | attr | PtePS | PteP);
+		pml3[PML3X(va)] = pa | attr | PtePS | PteP;
 		return nil;
-	}else if((p3e&(PtePS|PteP)) == (PtePS|PteP)){
+	} else if((p3e & (PtePS | PteP)) == (PtePS | PteP)){
 		PTE *pml2 = allocapage();
 		if(pml2 == nil)
 			panic("mmukphysmap: cannot allocate PML2 to splinter");
-		PTE entry = p3e&~(PteD|PteA);
-		for(int i=0; i<PTSZ/sizeof(PTE); i++)
-			pml2[i] = entry+i*PGSZLARGE;
-		p3e = PADDR(pml2)|PteRW|PteP;
+		PTE entry = p3e & ~(PteD | PteA);
+		for(int i = 0; i < PTSZ / sizeof(PTE); i++)
+			pml2[i] = entry + i * PGSZLARGE;
+		p3e = PADDR(pml2) | PteRW | PteP;
 		pml3[PML3X(va)] = p3e;
 	}
-	if((p3e&PteP) == 0){
+	if((p3e & PteP) == 0){
 		PTE *pml2 = allocapage();
 		if(pml2 == nil)
 			panic("mmukphysmap: cannot allocate PML2");
-		p3e = PADDR(pml2)|PteRW|PteP;
+		p3e = PADDR(pml2) | PteRW | PteP;
 		pml3[PML3X(va)] = p3e;
 	}
 
@@ -496,30 +496,29 @@ mmukpmap2(PTE *pml2, uintmem pa, uintptr va, PTE attr, usize size)
 
 	// Suitable for a large page?
 	if(ALIGNED(pa, PGSZLARGE) &&
-	    ALIGNED(va, PGSZLARGE) &&
-	    size >= PGSZLARGE &&
-	    ((p2e&PteP) == 0 || (p2e&(PtePS|PteP)) == (PtePS|PteP)))
-	{
-		if((p2e&PteP) != 0 && PPNLARGE(p2e) != pa)
+	   ALIGNED(va, PGSZLARGE) &&
+	   size >= PGSZLARGE &&
+	   ((p2e & PteP) == 0 || (p2e & (PtePS | PteP)) == (PtePS | PteP))){
+		if((p2e & PteP) != 0 && PPNLARGE(p2e) != pa)
 			panic("mmukphysmap: remapping kernel direct address at va %#P (old PML2E %#P, new %#P)",
-			    va, p2e, pa|attr|PtePS|PteP);
-		pml2[PML2X(va)] = pa|attr|PtePS|PteP;
+			      va, p2e, pa | attr | PtePS | PteP);
+		pml2[PML2X(va)] = pa | attr | PtePS | PteP;
 		return nil;
-	} else if((p2e&(PtePS|PteP)) == (PtePS|PteP)){
+	} else if((p2e & (PtePS | PteP)) == (PtePS | PteP)){
 		PTE *pml1 = allocapage();
 		if(pml1 == nil)
 			panic("mmukphysmap: cannot allocate PML1 to splinter");
-		PTE entry = p2e&~(PtePS|PteD|PteA);
-		for(int i=0; i<PTSZ/sizeof(PTE); i++)
-			pml1[i] = entry+i*PGSZ;
-		p2e = PADDR(pml1)|PteRW|PteP;
+		PTE entry = p2e & ~(PtePS | PteD | PteA);
+		for(int i = 0; i < PTSZ / sizeof(PTE); i++)
+			pml1[i] = entry + i * PGSZ;
+		p2e = PADDR(pml1) | PteRW | PteP;
 		pml2[PML2X(va)] = p2e;
 	}
-	if((p2e&PteP) == 0){
+	if((p2e & PteP) == 0){
 		PTE *pml1 = allocapage();
 		if(pml1 == nil)
 			panic("mmukphysmap: cannot allocate PML1");
-		p2e = PPN(PADDR(pml1))|PteRW|PteP;
+		p2e = PPN(PADDR(pml1)) | PteRW | PteP;
 		pml2[PML2X(va)] = p2e;
 	}
 
@@ -530,10 +529,10 @@ static void
 mmukpmap1(PTE *pml1, uintmem pa, uintptr va, PTE attr)
 {
 	PTE p1e = pml1[PML1X(va)];
-	if((p1e&PteP) != 0 && PPN(p1e) != pa)
+	if((p1e & PteP) != 0 && PPN(p1e) != pa)
 		panic("mmukphysmap: remapping kernel direct address at va %#P (pml1 %#P old %#P new %#P)",
-		    va, pml1, p1e, pa|attr|PteP);
-	pml1[PML1X(va)] = pa|attr|PteP;
+		      va, pml1, p1e, pa | attr | PteP);
+	pml1[PML1X(va)] = pa | attr | PteP;
 }
 
 /*
@@ -546,7 +545,7 @@ mmukphysmap(PTE *pml4, uintmem pa, PTE attr, usize size)
 	usize pgsz = 0;
 	Mpl pl;
 
-	if (pa >= PHYSADDRSIZE)
+	if(pa >= PHYSADDRSIZE)
 		panic("mapping nonexistent physical address");
 
 	pl = splhi();
@@ -580,7 +579,7 @@ mmukphysmap(PTE *pml4, uintmem pa, PTE attr, usize size)
  * in particular we would like to disable caching.
  * vmap() is required to access them.
  */
-void*
+void *
 vmap(uintptr_t pa, usize size)
 {
 	uintptr_t va;
@@ -601,9 +600,9 @@ vmap(uintptr_t pa, usize size)
 	 * mappings; perhaps something like kmap, but kmap probably
 	 * can't be used early enough for some of the uses.
 	 */
-	if(pa+size < 1ull*MiB)
+	if(pa + size < 1ull * MiB)
 		return KADDR(pa);
-	if(pa < 1ull*MiB)
+	if(pa < 1ull * MiB)
 		return nil;
 
 	/*
@@ -613,7 +612,7 @@ vmap(uintptr_t pa, usize size)
 	 */
 	o = pa % PGSZ;
 	pa -= o;
-	sz = ROUNDUP(size+o, PGSZ);
+	sz = ROUNDUP(size + o, PGSZ);
 
 	if(pa == 0){
 		print("vmap(0, %lu) pc=%#p\n", size, getcallerpc());
@@ -621,16 +620,16 @@ vmap(uintptr_t pa, usize size)
 	}
 	ilock(&vmaplock);
 	va = (uintptr)KADDR(pa);
-	mmukphysmap(sys->pml4, pa, PteNX|PtePCD|PteRW, sz);
+	mmukphysmap(sys->pml4, pa, PteNX | PtePCD | PteRW, sz);
 	iunlock(&vmaplock);
 
-	DBG("vmap(%#p, %lu) => %#p\n", pa+o, size, va+o);
+	DBG("vmap(%#p, %lu) => %#p\n", pa + o, size, va + o);
 
 	return UINT2PTR(va + o);
 }
 
 void
-vunmap(void* v, usize size)
+vunmap(void *v, usize size)
 {
 	uintptr_t va;
 
@@ -643,7 +642,7 @@ vunmap(void* v, usize size)
 	 * See the comments above in vmap.
 	 */
 	va = PTR2UINT(v);
-	if(va >= KZERO && va+size < KZERO+1ull*MiB)
+	if(va >= KZERO && va + size < KZERO + 1ull * MiB)
 		return;
 
 	/*
@@ -664,28 +663,28 @@ mmuwalk(const PTE *pml4, uintptr_t va, int level, const PTE **ret)
 		DBG("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
 	const PTE *pte = &pml4[PML4X(va)];
 	assert(pte != nil);
-	if (level == 3 || !(*pte & PteP)){
+	if(level == 3 || !(*pte & PteP)){
 		*ret = pte;
 		splx(pl);
 		return 3;
 	}
 	const PTE *ptp = KADDR(PPN(*pte));
 	pte = &ptp[PML3X(va)];
-	if (level == 2 || (!(*pte & PteP) || (*pte & PtePS))){
+	if(level == 2 || (!(*pte & PteP) || (*pte & PtePS))){
 		*ret = pte;
 		splx(pl);
 		return 2;
 	}
 	ptp = KADDR(PPN(*pte));
 	pte = &ptp[PML2X(va)];
-	if (level == 1 || (!(*pte & PteP) || (*pte & PtePS))){
+	if(level == 1 || (!(*pte & PteP) || (*pte & PtePS))){
 		*ret = pte;
 		splx(pl);
 		return 1;
 	}
 	ptp = KADDR(PPN(*pte));
 	pte = &ptp[PML1X(va)];
-	if (level == 0 || (*pte & PteP)){
+	if(level == 0 || (*pte & PteP)){
 		*ret = pte;
 		splx(pl);
 		return 0;
@@ -717,8 +716,8 @@ mmuphysaddr(const PTE *pml4, uintptr va)
 	if(l < 0)
 		return ~0;
 
-	mask = PGLSZ(l)-1;
-	pa = (*pte & ~(PteNX|mask)) + (va & mask);
+	mask = PGLSZ(l) - 1;
+	pa = (*pte & ~(PteNX | mask)) + (va & mask);
 
 	DBG("physaddr: l %d pte %#P va %#p pa %#llx\n", l, *pte, va, pa);
 
@@ -744,7 +743,7 @@ mmuinit(void)
 		p = UINT2PTR(machp()->stack);
 		p += MACHSTKSZ;
 
-		memmove(p + PTSZ/2, &sys->pml4[PTSZ/(2*sizeof(PTE))], PTSZ/4 + PTSZ/8);
+		memmove(p + PTSZ / 2, &sys->pml4[PTSZ / (2 * sizeof(PTE))], PTSZ / 4 + PTSZ / 8);
 		machp()->MMU.pml4 = &machp()->MMU.pml4kludge;
 		machp()->MMU.pml4->va = PTR2UINT(p);
 		machp()->MMU.pml4->pa = PADDR(p);
@@ -775,6 +774,6 @@ void
 mmuprocinit(Proc *p)
 {
 	Page *pg = mmuptpalloc();
-	memmove(UINT2PTR(pg->va+PTSZ/2), UINT2PTR(machp()->MMU.pml4->va+PTSZ/2), PTSZ/4+PTSZ/8);
+	memmove(UINT2PTR(pg->va + PTSZ / 2), UINT2PTR(machp()->MMU.pml4->va + PTSZ / 2), PTSZ / 4 + PTSZ / 8);
 	p->MMU.root = pg;
 }
