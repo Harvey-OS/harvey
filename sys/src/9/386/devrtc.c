@@ -352,9 +352,35 @@ Dev rtcdevtab = {
  *  days per month plus days/year
  */
 static int dmsize[] = {
-	365, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	365,
+	31,
+	28,
+	31,
+	30,
+	31,
+	30,
+	31,
+	31,
+	30,
+	31,
+	30,
+	31,
+};
 static int ldmsize[] = {
-	366, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	366,
+	31,
+	29,
+	31,
+	30,
+	31,
+	30,
+	31,
+	31,
+	30,
+	31,
+	30,
+	31,
+};
 
 /*
  *  return the days/month for the given year
