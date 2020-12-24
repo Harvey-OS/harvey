@@ -48,7 +48,7 @@ static char *statnames[] =
  */
 #define BKFG(xp) ((Ipfrag *)((xp)->base))
 
-uint16_t ipcsum(uint8_t *);
+u16 ipcsum(u8 *);
 Block *ip4reassemble(IP *, int, Block *, Ip4hdr *);
 void ipfragfree4(IP *, Fragment4 *);
 Fragment4 *ipfragallo4(IP *);
@@ -131,8 +131,8 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
 	Proc *up = externup();
 	Ipifc *ifc;
-	uint8_t *gate;
-	uint32_t fragoff;
+	u8 *gate;
+	u32 fragoff;
 	Block *xp, *nb;
 	Ip4hdr *eh, *feh;
 	int lid, len, seglen, chunk, dlen, blklen, offset, medialen;
@@ -320,9 +320,9 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 	int hop, tos, proto, olen;
 	Ip4hdr *h;
 	Proto *p;
-	uint16_t frag;
+	u16 frag;
 	int notforme;
-	uint8_t *dp, v6dst[IPaddrlen];
+	u8 *dp, v6dst[IPaddrlen];
 	IP *ip;
 	Route *r;
 	Conv conv;
@@ -481,9 +481,9 @@ Block *
 ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 {
 	int fend;
-	uint16_t id;
+	u16 id;
 	Fragment4 *f, *fnext;
-	uint32_t src, dst;
+	u32 src, dst;
 	Block *bl, **l, *last, *prev;
 	int ovlap, len, fragsize, pktposn;
 
@@ -692,11 +692,11 @@ ipfragallo4(IP *ip)
 	return f;
 }
 
-uint16_t
-ipcsum(uint8_t *addr)
+u16
+ipcsum(u8 *addr)
 {
 	int len;
-	uint32_t sum;
+	u32 sum;
 
 	sum = 0;
 	len = (addr[0] & 0xf) << 2;

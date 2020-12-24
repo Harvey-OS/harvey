@@ -20,8 +20,8 @@ typedef struct Apic Apic;
 
 struct Ioapic {
 	Lock l;		 /* IOAPIC: register access */
-	uint32_t *addr;	 /* IOAPIC: register base */
-	uintptr_t paddr; /* physical address */
+	u32 *addr;	 /* IOAPIC: register base */
+	uintptr paddr; /* physical address */
 	int nrdt;	 /* IOAPIC: size of RDT */
 	int gsib;	 /* IOAPIC: global RDT index */
 };
@@ -29,14 +29,14 @@ struct Ioapic {
 struct Lapic {
 	int machno; /* APIC */
 
-	uint32_t lvt[6];
+	u32 lvt[6];
 	int nlvt;
 	int ver;
 
-	int64_t hz; /* APIC Timer frequency */
-	int64_t max;
-	int64_t min;
-	int64_t div;
+	i64 hz; /* APIC Timer frequency */
+	i64 max;
+	i64 min;
+	i64 div;
 };
 
 struct Apic {
@@ -91,12 +91,12 @@ extern Apic xioapic[Napic];
 extern Mach *xlapicmachptr[Napic]; /* maintained, but unused */
 
 #define l16get(p) (((p)[1] << 8) | (p)[0])
-#define l32get(p) (((uint32_t)l16get(p + 2) << 16) | l16get(p))
-#define l64get(p) (((uint64_t)l32get(p + 4) << 32) | l32get(p))
+#define l32get(p) (((u32)l16get(p + 2) << 16) | l16get(p))
+#define l64get(p) (((u64)l32get(p + 4) << 32) | l32get(p))
 
 extern void apicdump(void);
 extern void apictimerenab(void);
 extern void ioapicdump(void);
 
-extern int pcimsienable(Pcidev *, uint64_t);
+extern int pcimsienable(Pcidev *, u64);
 extern int pcimsimask(Pcidev *, int);

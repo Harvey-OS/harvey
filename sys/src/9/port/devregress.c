@@ -39,8 +39,8 @@ regresswalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, regressdir, Qmax, devgen);
 }
 
-static int32_t
-regressstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+regressstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, regressdir, Qmax, devgen);
 }
@@ -56,10 +56,10 @@ regressclose(Chan *unused)
 {
 }
 
-static int32_t
-regressread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+regressread(Chan *c, void *a, i32 n, i64 offset)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, regressdir, Qmax, devgen);
@@ -83,14 +83,14 @@ regressread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-static int32_t
-regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+regresswrite(Chan *c, void *a, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	char *p;
 	unsigned long amt;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qmalloc:
 		p = a;

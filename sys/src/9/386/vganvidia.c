@@ -69,7 +69,7 @@ enum {
 #define SKIPS 8
 
 struct {
-	uint32_t *dmabase;
+	u32 *dmabase;
 	int dmacurrent;
 	int dmaput;
 	int dmafree;
@@ -98,7 +98,7 @@ static void
 nvidiaenable(VGAscr *scr)
 {
 	Pcidev *p;
-	uint32_t *q;
+	u32 *q;
 	int tmp;
 
 	if(scr->mmio)
@@ -122,7 +122,7 @@ nvidiaenable(VGAscr *scr)
 	switch(scr->id & 0x0ff0){
 	case 0x0020:
 	case 0x00A0:
-		q = (void *)((uint8_t *)scr->mmio + Pfb);
+		q = (void *)((u8 *)scr->mmio + Pfb);
 		tmp = *q;
 		if(tmp & 0x0100){
 			scr->storage = ((tmp >> 12) & 0x0F) * 1024 + 1024 * 2;
@@ -145,7 +145,7 @@ nvidiaenable(VGAscr *scr)
 		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
 		break;
 	default:
-		q = (void *)((uint8_t *)scr->mmio + Pfb + 0x020C);
+		q = (void *)((u8 *)scr->mmio + Pfb + 0x020C);
 		tmp = (*q >> 20) & 0xFFF;
 		if(tmp == 0)
 			tmp = 16;
@@ -166,10 +166,10 @@ nvidiacurdisable(VGAscr *scr)
 static void
 nvidiacurload(VGAscr *scr, Cursor *curs)
 {
-	uint32_t *p;
+	u32 *p;
 	int i, j;
-	uint16_t c, s;
-	uint32_t tmp;
+	u16 c, s;
+	u32 tmp;
 
 	if(scr->mmio == 0)
 		return;
@@ -179,7 +179,7 @@ nvidiacurload(VGAscr *scr, Cursor *curs)
 	switch(scr->id & 0x0ff0){
 	case 0x0020:
 	case 0x00A0:
-		p = (void *)((uint8_t *)scr->mmio + Pramin + 0x1E00 * 4);
+		p = (void *)((u8 *)scr->mmio + Pramin + 0x1E00 * 4);
 		break;
 	default:
 		/*
@@ -188,7 +188,7 @@ nvidiacurload(VGAscr *scr, Cursor *curs)
 		 * expected.
 		 */
 		tmp = scr->apsize - 96 * 1024;
-		p = (void *)((uint8_t *)scr->vaddr + tmp);
+		p = (void *)((u8 *)scr->vaddr + tmp);
 		vgaxo(Crtx, 0x30, 0x80 | (tmp >> 17));
 		vgaxo(Crtx, 0x31, (tmp >> 11) << 2);
 		vgaxo(Crtx, 0x2F, tmp >> 24);
@@ -228,12 +228,12 @@ nvidiacurload(VGAscr *scr, Cursor *curs)
 static int
 nvidiacurmove(VGAscr *scr, Point p)
 {
-	uint32_t *cursorpos;
+	u32 *cursorpos;
 
 	if(scr->mmio == 0)
 		return 1;
 
-	cursorpos = (void *)((uint8_t *)scr->mmio + hwCurPos);
+	cursorpos = (void *)((u8 *)scr->mmio + hwCurPos);
 	*cursorpos = ((p.y + scr->Cursor.offset.y) << 16) | ((p.x + scr->Cursor.offset.x) & 0xFFFF);
 
 	return 0;
@@ -257,23 +257,23 @@ nvidiacurenable(VGAscr *scr)
 void
 writeput(VGAscr *scr, int data)
 {
-	uint8_t *p, scratch;
-	uint32_t *fifo;
+	u8 *p, scratch;
+	u32 *fifo;
 
 	outb(0x3D0, 0);
 	p = scr->vaddr;
 	scratch = *p;
-	fifo = (void *)((uint8_t *)scr->mmio + Fifo);
+	fifo = (void *)((u8 *)scr->mmio + Fifo);
 	fifo[0x10] = (data << 2);
 	USED(scratch);
 }
 
-uint32_t
+u32
 readget(VGAscr *scr)
 {
-	uint32_t *fifo;
+	u32 *fifo;
 
-	fifo = (void *)((uint8_t *)scr->mmio + Fifo);
+	fifo = (void *)((u8 *)scr->mmio + Fifo);
 	return (fifo[0x0011] >> 2);
 }
 
@@ -287,7 +287,7 @@ nvdmakickoff(VGAscr *scr)
 }
 
 static void
-nvdmanext(uint32_t data)
+nvdmanext(u32 data)
 {
 	nv.dmabase[nv.dmacurrent++] = data;
 }
@@ -323,7 +323,7 @@ nvdmawait(VGAscr *scr, int size)
 }
 
 static void
-nvdmastart(VGAscr *scr, uint32_t tag, int size)
+nvdmastart(VGAscr *scr, u32 tag, int size)
 {
 	if(nv.dmafree <= size)
 		nvdmawait(scr, size);
@@ -334,10 +334,10 @@ nvdmastart(VGAscr *scr, uint32_t tag, int size)
 static void
 waitforidle(VGAscr *scr)
 {
-	uint32_t *pgraph;
+	u32 *pgraph;
 	int x;
 
-	pgraph = (void *)((uint8_t *)scr->mmio + Pgraph);
+	pgraph = (void *)((u8 *)scr->mmio + Pgraph);
 
 	x = 0;
 	while((readget(scr) != nv.dmaput) && x++ < 1000000)
@@ -356,7 +356,7 @@ waitforidle(VGAscr *scr)
 static void
 nvresetgraphics(VGAscr *scr)
 {
-	uint32_t surfaceFormat, patternFormat, rectFormat, lineFormat;
+	u32 surfaceFormat, patternFormat, rectFormat, lineFormat;
 	int pitch, i;
 
 	pitch = scr->gscreen->width * BY2WD;
@@ -367,7 +367,7 @@ nvresetgraphics(VGAscr *scr)
 	 */
 	if(nv.dmabase == nil){
 		if(scr->storage <= scr->apsize)
-			nv.dmabase = (uint32_t *)((uint8_t *)scr->vaddr + scr->storage - 128 * 1024);
+			nv.dmabase = (u32 *)((u8 *)scr->vaddr + scr->storage - 128 * 1024);
 		else {
 			nv.dmabase = (void *)vmap(scr->paddr + scr->storage - 128 * 1024, 128 * 1024);
 			if(nv.dmabase == 0){
@@ -456,7 +456,7 @@ nvresetgraphics(VGAscr *scr)
 }
 
 static int
-nvidiahwfill(VGAscr *scr, Rectangle r, uint32_t sval)
+nvidiahwfill(VGAscr *scr, Rectangle r, u32 sval)
 {
 	nvdmastart(scr, RECT_SOLID_COLOR, 1);
 	nvdmanext(sval);
@@ -492,7 +492,7 @@ nvidiahwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 void
 nvidiablank(VGAscr *scr, int blank)
 {
-	uint8_t seq1, crtc1A;
+	u8 seq1, crtc1A;
 
 	seq1 = vgaxi(Seqx, 1) & ~0x20;
 	crtc1A = vgaxi(Crtx, 0x1A) & ~0xC0;

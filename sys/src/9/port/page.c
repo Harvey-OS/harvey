@@ -27,7 +27,7 @@ enum {
 };
 
 struct Pgnd {
-	uintmem pa;
+	u64 pa;
 	int sts;
 };
 
@@ -206,11 +206,11 @@ int trip;
  * can be called with up == nil during boot.
  */
 Page *
-newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
+newpage(int clear, Segment **s, uintptr va, usize size, int color)
 {
 	Page *p;
 	KMap *k;
-	uint8_t ct;
+	u8 ct;
 	Pgsza *pa;
 	int i, dontalloc, si;
 
@@ -527,7 +527,7 @@ cachepage(Page *p, Image *i)
 }
 
 void
-cachedel(Image *i, uint32_t daddr)
+cachedel(Image *i, u32 daddr)
 {
 	Page *f, **l;
 
@@ -551,7 +551,7 @@ cachedel(Image *i, uint32_t daddr)
 }
 
 Page *
-lookpage(Image *i, uint32_t daddr)
+lookpage(Image *i, u32 daddr)
 {
 	Page *f;
 
@@ -585,11 +585,11 @@ lookpage(Image *i, uint32_t daddr)
  * The argument shows the preferred image to release pages from.
  * All images will be tried, from lru to mru.
  */
-uint64_t
+u64
 pagereclaim(Image *i)
 {
 	Page *p;
-	uint64_t ticks;
+	u64 ticks;
 
 	lock(&pga.l);
 	ticks = fastticks(nil);

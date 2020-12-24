@@ -39,8 +39,8 @@ typedef struct Map Map;
 struct Map {
 	Map *next;
 	int free;
-	uintptr_t addr;
-	uint64_t size;
+	uintptr addr;
+	u64 size;
 };
 
 struct ZMap {
@@ -50,8 +50,8 @@ struct ZMap {
 
 static int inited;
 
-static void zmapfree(ZMap *rmap, uintptr_t addr);
-static uintptr_t zmapalloc(ZMap *rmap, usize size);
+static void zmapfree(ZMap *rmap, uintptr addr);
+static uintptr zmapalloc(ZMap *rmap, usize size);
 
 static void
 zioinit(void)
@@ -141,7 +141,7 @@ zgrow(Segment *s)
 	zioinit();
 	zs = &s->zseg;
 	zs->naddr += Incr;
-	zs->addr = realloc(zs->addr, zs->naddr * sizeof(uintptr_t));
+	zs->addr = realloc(zs->addr, zs->naddr * sizeof(uintptr));
 	if(zs->addr == nil)
 		panic("zgrow: no memory");
 }
@@ -149,11 +149,11 @@ zgrow(Segment *s)
 /*
  * Find an address in s's zseg; s is qlocked
  */
-uintptr_t
+uintptr
 zgetaddr(Segment *s)
 {
 	Zseg *zs;
-	uintptr_t va;
+	uintptr va;
 
 	zs = &s->zseg;
 	if(zs->end == 0)
@@ -172,7 +172,7 @@ zgetaddr(Segment *s)
  * wakeup any reader if it's waiting.
  */
 int
-zputaddr(Segment *s, uintptr_t va)
+zputaddr(Segment *s, uintptr va)
 {
 	Zseg *zs;
 
@@ -196,10 +196,10 @@ zputaddr(Segment *s, uintptr_t va)
 }
 
 void *
-alloczio(Segment *s, int32_t len)
+alloczio(Segment *s, i32 len)
 {
 	Zseg *zs;
-	uintptr_t va;
+	uintptr va;
 
 	zs = &s->zseg;
 	va = zmapalloc(zs->map, len);
@@ -238,10 +238,10 @@ getzkseg(void)
  * This is the counterpart of devzread in some sense,
  * it reads in the traditional way from io[].
  */
-int32_t
-readzio(Kzio *io, int nio, void *a, int32_t count)
+i32
+readzio(Kzio *io, int nio, void *a, i32 count)
 {
-	int32_t tot, nr;
+	i32 tot, nr;
 	char *p;
 
 	p = a;
@@ -266,7 +266,7 @@ readzio(Kzio *io, int nio, void *a, int32_t count)
 }
 
 int
-devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
+devzread(Chan *c, Kzio io[], int nio, usize tot, i64 offset)
 {
 	Proc *up = externup();
 	Segment *s;
@@ -291,11 +291,11 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 }
 
 int
-devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
+devzwrite(Chan *c, Kzio io[], int nio, i64 offset)
 {
 	Proc *up = externup();
 	int i, j;
-	int32_t tot;
+	i32 tot;
 	Block *bp;
 
 	DBG("devzwrite %#p[%d]\n", io, nio);
@@ -376,7 +376,7 @@ kernzio(Kzio *io)
  * is asking the system to allocate memory as needed (mread only).
  */
 static int
-ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
+ziorw(int fd, Zio *io, int nio, usize count, i64 offset, int iswrite)
 {
 	Proc *up = externup();
 	int i, n, isprw;
@@ -478,8 +478,8 @@ void
 sysziopread(Ar0 *ar0, ...)
 {
 	int fd, nio;
-	int32_t count;
-	int64_t offset;
+	i32 count;
+	i64 offset;
 	Zio *io;
 	va_list list;
 	va_start(list, ar0);
@@ -491,7 +491,7 @@ sysziopread(Ar0 *ar0, ...)
 	io = va_arg(list, Zio *);
 	nio = va_arg(list, int);
 	count = va_arg(list, usize);
-	offset = va_arg(list, int64_t);
+	offset = va_arg(list, i64);
 	va_end(list);
 	ar0->i = ziorw(fd, io, nio, count, offset, 0);
 }
@@ -500,7 +500,7 @@ void
 sysziopwrite(Ar0 *ar0, ...)
 {
 	int fd, nio;
-	int64_t offset;
+	i64 offset;
 	Zio *io;
 	va_list list;
 	va_start(list, ar0);
@@ -511,7 +511,7 @@ sysziopwrite(Ar0 *ar0, ...)
 	fd = va_arg(list, int);
 	io = va_arg(list, Zio *);
 	nio = va_arg(list, int);
-	offset = va_arg(list, int64_t);
+	offset = va_arg(list, i64);
 	va_end(list);
 	ar0->i = ziorw(fd, io, nio, 0, offset, 1);
 }
@@ -579,7 +579,7 @@ newzmap(Segment *s)
 }
 
 static void
-zmapfree(ZMap *rmap, uintptr_t addr)
+zmapfree(ZMap *rmap, uintptr addr)
 {
 	Proc *up = externup();
 	Map *mp, *prev, *next;
@@ -620,7 +620,7 @@ zmapfree(ZMap *rmap, uintptr_t addr)
 	}
 }
 
-static uintptr_t
+static uintptr
 zmapalloc(ZMap *rmap, usize size)
 {
 	Proc *up = externup();

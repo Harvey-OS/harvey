@@ -196,10 +196,10 @@ enum {			    /* Cplusc */
 
 typedef struct D D; /* Transmit/Receive Descriptor */
 struct D {
-	uint32_t control;
-	uint32_t vlan;
-	uint32_t addrlo;
-	uint32_t addrhi;
+	u32 control;
+	u32 vlan;
+	u32 addrlo;
+	u32 addrhi;
 };
 
 enum {			      /* Transmit Descriptor control */
@@ -250,19 +250,19 @@ enum { /* Ring sizes  (<= 1024) */
 
 typedef struct Dtcc Dtcc;
 struct Dtcc {
-	uint64_t txok;
-	uint64_t rxok;
-	uint64_t txer;
-	uint32_t rxer;
-	uint16_t misspkt;
-	uint16_t fae;
-	uint32_t tx1col;
-	uint32_t txmcol;
-	uint64_t rxokph;
-	uint64_t rxokbrd;
-	uint32_t rxokmu;
-	uint16_t txabt;
-	uint16_t txundrn;
+	u64 txok;
+	u64 rxok;
+	u64 txer;
+	u32 rxer;
+	u16 misspkt;
+	u16 fae;
+	u32 tx1col;
+	u32 txmcol;
+	u64 rxokph;
+	u64 rxokbrd;
+	u32 rxokmu;
+	u16 txabt;
+	u16 txundrn;
 };
 
 enum {					    /* Variants */
@@ -289,7 +289,7 @@ typedef struct Ctlr {
 	int phyv; /* PHY version */
 	int pcie; /* flag: pci-express device? */
 
-	uint64_t mchash; /* multicast hash */
+	u64 mchash; /* multicast hash */
 
 	Mii *mii;
 
@@ -345,8 +345,8 @@ static Ctlr *rtl8169ctlrtail;
 #define csr16r(c, r) (ins((c)->port + (r)))
 #define csr32r(c, r) (inl((c)->port + (r)))
 #define csr8w(c, r, b) (outb((c)->port + (r), (uint8_t)(b)))
-#define csr16w(c, r, w) (outs((c)->port + (r), (uint16_t)(w)))
-#define csr32w(c, r, l) (outl((c)->port + (r), (uint32_t)(l)))
+#define csr16w(c, r, w) (outs((c)->port + (r), (u16)(w)))
+#define csr32w(c, r, l) (outl((c)->port + (r), (u32)(l)))
 
 static int
 rtl8169miimir(Mii *mii, int pa, int ra)
@@ -477,13 +477,13 @@ enum {
 	Bytemask = (1 << 8) - 1,
 };
 
-static uint32_t
-ethercrcbe(unsigned char *addr, int32_t len)
+static u32
+ethercrcbe(unsigned char *addr, i32 len)
 {
 	int i, j;
-	uint32_t c, crc, carry;
+	u32 c, crc, carry;
 
-	crc = (uint32_t)~0UL;
+	crc = (u32)~0UL;
 	for(i = 0; i < len; i++){
 		c = addr[i];
 		for(j = 0; j < 8; j++){
@@ -497,8 +497,8 @@ ethercrcbe(unsigned char *addr, int32_t len)
 	return crc;
 }
 
-static uint32_t
-swabl(uint32_t l)
+static u32
+swabl(u32 l)
 {
 	return (l >> 24) | ((l >> 8) & (Bytemask << 8)) |
 	       ((l << 8) & (Bytemask << 16)) | (l << 24);
@@ -534,8 +534,8 @@ rtl8169multicast(void *ether, unsigned char *eaddr, int add)
 	iunlock(&ctlr->ilock);
 }
 
-static int32_t
-rtl8169ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
+static i32
+rtl8169ifstat(Ether *edev, void *a, i32 n, u32 offset)
 {
 	Proc *up = externup();
 	char *p, *s, *e;
@@ -647,7 +647,7 @@ rtl8169halt(Ctlr *ctlr)
 static int
 rtl8169reset(Ctlr *ctlr)
 {
-	uint32_t r;
+	u32 r;
 	int timeo;
 
 	/*
@@ -694,8 +694,8 @@ rtl8169replenish(Ctlr *ctlr)
 				break;
 			}
 			ctlr->rb[rdt] = bp;
-			d->addrlo = (uint32_t)PADDR(bp->rp);
-			d->addrhi = (uint32_t)(PADDR(bp->rp) >> 32);
+			d->addrlo = (u32)PADDR(bp->rp);
+			d->addrhi = (u32)(PADDR(bp->rp) >> 32);
 			coherence();
 		} else
 			iprint("i8169: rx overrun\n");
@@ -710,10 +710,10 @@ static int
 rtl8169init(Ether *edev)
 {
 	int i;
-	uint32_t r;
+	u32 r;
 	Block *bp;
 	Ctlr *ctlr;
-	uint8_t cplusc;
+	u8 cplusc;
 
 	ctlr = edev->ctlr;
 	ilock(&ctlr->ilock);
@@ -1007,8 +1007,8 @@ rtl8169transmit(Ether *edev)
 			break;
 
 		d = &ctlr->td[x];
-		d->addrlo = (uint32_t)PADDR(bp->rp);
-		d->addrhi = (uint32_t)(PADDR(bp->rp) >> 32);
+		d->addrlo = (u32)PADDR(bp->rp);
+		d->addrhi = (u32)(PADDR(bp->rp) >> 32);
 		ctlr->tb[x] = bp;
 		coherence();
 		d->control |= Own | Fs | Ls | BLEN(bp);
@@ -1034,7 +1034,7 @@ rtl8169receive(Ether *edev)
 	int rdh, passed;
 	Block *bp;
 	Ctlr *ctlr;
-	uint32_t control;
+	u32 control;
 
 	ctlr = edev->ctlr;
 
@@ -1107,7 +1107,7 @@ rtl8169interrupt(Ureg *u, void *arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	uint32_t isr;
+	u32 isr;
 
 	edev = arg;
 	ctlr = edev->ctlr;
@@ -1273,7 +1273,7 @@ rtl8169pci(void)
 static int
 rtl8169pnp(Ether *edev)
 {
-	uint32_t r;
+	u32 r;
 	Ctlr *ctlr;
 	unsigned char ea[Eaddrlen];
 	static int once;

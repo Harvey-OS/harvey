@@ -20,7 +20,7 @@ typedef struct MFPU MFPU;
 typedef struct MMMU MMMU;
 typedef struct NIX NIX;
 typedef struct Mach Mach;
-typedef uint64_t Mpl;
+typedef u64 Mpl;
 typedef struct Page Page;
 typedef struct PFPU PFPU;
 typedef struct PmcCtr PmcCtr;
@@ -28,11 +28,11 @@ typedef struct PmcCtl PmcCtl;
 typedef struct PmcWait PmcWait;
 typedef struct PMMU PMMU;
 typedef struct PNOTIFY PNOTIFY;
-typedef uint64_t PTE;
+typedef u64 PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
 typedef struct Stackframe Stackframe;
-typedef uint64_t uintmem; /* Physical address (hideous) */
+typedef u64 uintmem; /* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 
@@ -65,21 +65,21 @@ struct ISAConf {
 /* End Crap. */
 
 struct Lock {
-	uint32_t key;
+	u32 key;
 	int isilock;
 	Mpl pl;
-	uintptr_t _pc;
+	uintptr _pc;
 	Proc *p;
 	Mach *m;
-	uint64_t lockcycles;
+	u64 lockcycles;
 };
 
 struct Label {
 	/* order known to assembly */
-	uintptr_t sp;
-	uintptr_t pc;
-	uintptr_t fp;
-	uintptr_t x[32];
+	uintptr sp;
+	uintptr pc;
+	uintptr fp;
+	uintptr x[32];
 };
 
 struct Fxsave {
@@ -112,20 +112,20 @@ struct PNOTIFY {
 };
 
 struct Confmem {
-	uintptr_t base;
+	uintptr base;
 	usize npage;
-	uintptr_t kbase;
-	uintptr_t klimit;
+	uintptr kbase;
+	uintptr klimit;
 };
 
 struct Conf {
-	uint32_t nproc;	   /* processes */
+	u32 nproc;	   /* processes */
 	Confmem mem[4];	   /* physical memory */
-	uint64_t npage;	   /* total physical pages of memory */
+	u64 npage;	   /* total physical pages of memory */
 	usize upages;	   /* user page pool */
-	uint32_t copymode; /* 0 is copy on write, 1 is copy on reference */
-	uint32_t ialloc;   /* max interrupt time allocation in bytes */
-	uint32_t nimage;   /* number of page cache image headers */
+	u32 copymode; /* 0 is copy on write, 1 is copy on reference */
+	u32 ialloc;   /* max interrupt time allocation in bytes */
+	u32 nimage;   /* number of page cache image headers */
 };
 
 enum {
@@ -157,7 +157,7 @@ struct NIX {
  *  MMU stuff in Mach.
  */
 struct MMMU {
-	uintptr_t badaddr;
+	uintptr badaddr;
 	Page *root; /* root for this processor */
 	PTE *pmap;  /* unused as of yet */
 
@@ -192,7 +192,7 @@ struct ICC {
  */
 struct PmcCtl {
 	Ref r;
-	uint32_t _coreno;
+	u32 _coreno;
 	int enab;
 	int user;
 	int os;
@@ -210,7 +210,7 @@ struct PmcWait {
 struct PmcCtr {
 	int stale;
 	PmcWait *wq;
-	uint64_t ctr;
+	u64 ctr;
 	int ctrset;
 	PmcCtl PmcCtl;
 	int ctlset;
@@ -238,12 +238,12 @@ enum {
  */
 struct Mach {
 	/* WARNING! Known to assembly! */
-	uintptr_t self; /* %gs:0 still gives us a Mach* */
-	uint64_t splpc; /* pc of last caller to splhi */
+	uintptr self; /* %gs:0 still gives us a Mach* */
+	u64 splpc; /* pc of last caller to splhi */
 
 	Proc *proc;	   /* current process on this processor */
-	uintptr_t stack;   /* mach stack, kstack is in proc->kstack */
-	uintptr_t rathole; /* to save a reg in syscallentry */
+	uintptr stack;   /* mach stack, kstack is in proc->kstack */
+	uintptr rathole; /* to save a reg in syscallentry */
 	Proc *externup;	   /* Forsyth recommends we replace the global up with this. */
 	/* end warning, I think */
 
@@ -253,15 +253,15 @@ struct Mach {
 
 	MMMU MMU;
 
-	uint64_t ticks; /* of the clock since boot time */
+	u64 ticks; /* of the clock since boot time */
 	Label sched;	/* scheduler wakeup */
 	Lock alarmlock; /* access to alarm list */
 	void *alarm;	/* alarms bound to this clock */
 	int inclockintr;
 
 	Proc *readied;	     /* old runproc, only relevant if kernel booted with nosmp (-n append) */
-	uint64_t schedticks; /* next forced context switch, same as above */
-	uint64_t qstart;     /* time when up started running */
+	u64 schedticks; /* next forced context switch, same as above */
+	u64 qstart;     /* time when up started running */
 	int qexpired;	     /* quantum expired */
 
 	int tlbfault;
@@ -276,10 +276,10 @@ struct Mach {
 	int inidle; /* profiling */
 	int lastintr;
 
-	uint64_t cyclefreq; /* Frequency of user readable cycle counter */
-	int64_t cpuhz;
+	u64 cyclefreq; /* Frequency of user readable cycle counter */
+	i64 cpuhz;
 	int cpumhz;
-	uint64_t rdtsc;
+	u64 rdtsc;
 
 	Lock pmclock;
 	PmcCtr pmc[PmcMaxCtrs];
@@ -296,7 +296,7 @@ struct Mach {
 
 struct Stackframe {
 	Stackframe *next;
-	uintptr_t pc;
+	uintptr pc;
 };
 
 /*
@@ -314,20 +314,20 @@ struct Sys {
 
 	union {
 		struct {
-			uint64_t pmstart;    /* physical memory */
-			uint64_t pmoccupied; /* how much is occupied */
-			uint64_t pmend;	     /* total span */
+			u64 pmstart;    /* physical memory */
+			u64 pmoccupied; /* how much is occupied */
+			u64 pmend;	     /* total span */
 
-			uintptr_t vmstart;    /* base address for malloc */
-			uintptr_t vmunused;   /* 1st unused va */
-			uintptr_t vmunmapped; /* 1st unmapped va */
-			uintptr_t vmend;      /* 1st unusable va */
-			uint64_t epoch;	      /* crude time synchronisation */
+			uintptr vmstart;    /* base address for malloc */
+			uintptr vmunused;   /* 1st unused va */
+			uintptr vmunmapped; /* 1st unmapped va */
+			uintptr vmend;      /* 1st unusable va */
+			u64 epoch;	      /* crude time synchronisation */
 
 			int nc[NIXROLES]; /* number of online processors */
 			int nmach;
 			int load;
-			uint64_t ticks; /* of the clock since boot time */
+			u64 ticks; /* of the clock since boot time */
 		};
 		unsigned char syspage[4 * KiB];
 	};
@@ -337,7 +337,7 @@ struct Sys {
 		unsigned char ptrpage[4 * KiB];
 	};
 
-	uint64_t cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
+	u64 cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
 
 	uint pgszlg2[NPGSZ];  /* per Mach or per Sys? */
 	uint pgszmask[NPGSZ]; /* Per sys -aki */
@@ -374,7 +374,7 @@ struct
  * the clock which is only maintained by the bootstrap processor (0).
  */
 
-extern uintptr_t kseg0;
+extern uintptr kseg0;
 
 extern char *rolename[];
 extern void *kseg2;

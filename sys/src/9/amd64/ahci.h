@@ -93,17 +93,17 @@ enum {
 };
 
 typedef struct {
-	uint32_t cap;
-	uint32_t ghc;
-	uint32_t isr;
-	uint32_t pi; /* ports implemented */
-	uint32_t ver;
-	uint32_t ccc; /* coaleasing control */
-	uint32_t cccports;
-	uint32_t emloc;
-	uint32_t emctl;
-	uint32_t cap2; /* host capabilities extended */
-	uint32_t bohc; /* bios/os handoff control and status */
+	u32 cap;
+	u32 ghc;
+	u32 isr;
+	u32 pi; /* ports implemented */
+	u32 ver;
+	u32 ccc; /* coaleasing control */
+	u32 cccports;
+	u32 emloc;
+	u32 emctl;
+	u32 cap2; /* host capabilities extended */
+	u32 bohc; /* bios/os handoff control and status */
 } Ahba;
 
 enum {
@@ -196,24 +196,24 @@ enum {
 #define sactive scr3
 
 typedef struct {
-	uint32_t list; /* PxCLB must be 1kb aligned. */
-	uint32_t listhi;
-	uint32_t fis; /* 256-byte aligned */
-	uint32_t fishi;
-	uint32_t isr;
-	uint32_t ie; /* interrupt enable */
-	uint32_t cmd;
-	uint32_t res1;
-	uint32_t task;
-	uint32_t sig;
-	uint32_t scr0;
-	uint32_t scr2;
-	uint32_t scr1;
-	uint32_t scr3;
-	uint32_t ci;		/* command issue */
-	uint32_t ntf;		/* scr4 */
-	uint32_t fbs;		/* FIS-based switching control */
-	uint32_t devslp;	/* device sleep */
+	u32 list; /* PxCLB must be 1kb aligned. */
+	u32 listhi;
+	u32 fis; /* 256-byte aligned */
+	u32 fishi;
+	u32 isr;
+	u32 ie; /* interrupt enable */
+	u32 cmd;
+	u32 res1;
+	u32 task;
+	u32 sig;
+	u32 scr0;
+	u32 scr2;
+	u32 scr1;
+	u32 scr3;
+	u32 ci;		/* command issue */
+	u32 ntf;		/* scr4 */
+	u32 fbs;		/* FIS-based switching control */
+	u32 devslp;	/* device sleep */
 	unsigned char res2[40]; /* reserved */
 	unsigned char vendor[16];
 } Aport;
@@ -243,7 +243,7 @@ typedef struct {
 	unsigned char *p;
 	unsigned char *r;
 	unsigned char *u;
-	uint32_t *devicebits;
+	u32 *devicebits;
 } Afis;
 
 enum {
@@ -260,18 +260,18 @@ enum {
 
 /* in hosts memory; memory mapped */
 typedef struct {
-	uint32_t flags;
-	uint32_t len;
-	uint32_t ctab;
-	uint32_t ctabhi;
+	u32 flags;
+	u32 len;
+	u32 ctab;
+	u32 ctabhi;
 	unsigned char reserved[16];
 } Alist;
 
 typedef struct {
-	uint32_t dba;
-	uint32_t dbahi;
-	uint32_t pad;
-	uint32_t count;
+	u32 dba;
+	u32 dbahi;
+	u32 pad;
+	u32 count;
 } Aprdt;
 
 typedef struct {

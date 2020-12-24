@@ -207,7 +207,7 @@ nixsquids(void)
 {
 	Mach *mp;
 	int i;
-	uint64_t now, start;
+	u64 now, start;
 
 	for(i = 1; i < MACHMAX; i++)
 		if((mp = sys->machptr[i]) != nil && mp->online != 0){
@@ -255,9 +255,9 @@ HERE(void)
 }
 
 void
-main(uint32_t ax, uint32_t bx)
+main(u32 ax, u32 bx)
 {
-	int64_t hz;
+	i64 hz;
 
 	memset(edata, 0, end - edata);
 
@@ -411,7 +411,7 @@ void
 bootargs(uintptr base)
 {
 	int i;
-	uint32_t ssize;
+	u32 ssize;
 	char **av, *p;
 
 	/*
@@ -564,7 +564,7 @@ shutdown(int ispanic)
 }
 
 void
-reboot(void *, void *, int32_t)
+reboot(void *, void *, i32)
 {
 	panic("reboot\n");
 }

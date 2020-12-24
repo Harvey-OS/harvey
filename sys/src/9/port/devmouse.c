@@ -33,8 +33,8 @@ typedef struct Mousestate Mousestate;
 struct Mousestate {
 	Point xy;	  /* mouse.xy */
 	int buttons;	  /* mouse.buttons */
-	uint32_t counter; /* increments every update */
-	uint32_t msec;	  /* time of last event */
+	u32 counter; /* increments every update */
+	u32 msec;	  /* time of last event */
 };
 
 struct Mouseinfo {
@@ -44,9 +44,9 @@ struct Mouseinfo {
 	int dy;
 	int track;	      /* dx & dy updated */
 	int redraw;	      /* update cursor on screen */
-	uint32_t lastcounter; /* value when /dev/mouse read */
-	uint32_t lastresize;
-	uint32_t resize;
+	u32 lastcounter; /* value when /dev/mouse read */
+	u32 lastresize;
+	u32 resize;
 	Rendez rend;
 	Ref r;
 	QLock ql;
@@ -114,10 +114,10 @@ static unsigned char buttonmap[8] = {
 };
 static int mouseswap;
 static int scrollswap;
-static uint32_t mousetime;
+static u32 mousetime;
 
 extern Memimage *gscreen;
-extern uint32_t kerndate;
+extern u32 kerndate;
 
 static void
 mousereset(void)
@@ -186,7 +186,7 @@ mousestat(Chan *c, unsigned char *db, int n)
 static Chan *
 mouseopen(Chan *c, int omode)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		if(omode != OREAD)
 			error(Eperm);
@@ -240,18 +240,18 @@ mouseclose(Chan *c)
 	}
 }
 
-static int32_t
-mouseread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+mouseread(Chan *c, void *va, i32 n, i64 off)
 {
 	Proc *up = externup();
 	char buf[1 + 4 * 12 + 1];
 	unsigned char *p;
-	uint32_t offset = off;
+	u32 offset = off;
 	Mousestate m;
 	int b;
 
 	p = va;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, mousedir, nelem(mousedir), mousedevgen);
 
@@ -362,8 +362,8 @@ setbuttonmap(char *map)
 	}
 }
 
-static int32_t
-mousewrite(Chan *c, void *va, int32_t n, int64_t r)
+static i32
+mousewrite(Chan *c, void *va, i32 n, i64 r)
 {
 	Proc *up = externup();
 	char *p;
@@ -374,7 +374,7 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t r)
 	int b, msec;
 
 	p = va;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		error(Eisdir);
 
@@ -627,8 +627,8 @@ m3mouseputc(Queue *queue, int c)
 	static unsigned char b[] = {0, 4, 1, 5, 0, 2, 1, 3};
 	short x;
 	int dx, dy, newbuttons;
-	static uint64_t lasttick;
-	uint64_t m;
+	static u64 lasttick;
+	u64 m;
 
 	/* Resynchronize in stream with timing. */
 	m = machp()->ticks;
@@ -681,8 +681,8 @@ m5mouseputc(Queue *queue, int c)
 {
 	static unsigned char msg[8];
 	static int nb;
-	static uint64_t lasttick;
-	uint64_t m;
+	static u64 lasttick;
+	u64 m;
 
 	/* Resynchronize in stream with timing. */
 	m = machp()->ticks;
@@ -717,8 +717,8 @@ mouseputc(Queue *queue, int c)
 	static int nb;
 	static unsigned char b[] = {0, 4, 2, 6, 1, 5, 3, 7, 0, 2, 2, 6, 1, 3, 3, 7};
 	int dx, dy, newbuttons;
-	static uint64_t lasttick;
-	uint64_t m;
+	static u64 lasttick;
+	u64 m;
 
 	/* Resynchronize in stream with timing. */
 	m = machp()->ticks;

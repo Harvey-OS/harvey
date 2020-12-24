@@ -1,7 +1,7 @@
 #include "u.h"
 
 void
-put64be(uint8_t *p, uint64_t x)
+put64be(u8 *p, u64 x)
 {
 	p[0] = x >> 56;
 	p[1] = x >> 48;
@@ -14,7 +14,7 @@ put64be(uint8_t *p, uint64_t x)
 }
 
 void
-put32be(uint8_t *p, uint32_t x)
+put32be(u8 *p, u32 x)
 {
 	p[0] = x >> 24;
 	p[1] = x >> 16;
@@ -23,7 +23,7 @@ put32be(uint8_t *p, uint32_t x)
 }
 
 void
-put24be(uint8_t *p, int x)
+put24be(u8 *p, int x)
 {
 	p[0] = x >> 16;
 	p[1] = x >> 8;
@@ -31,39 +31,39 @@ put24be(uint8_t *p, int x)
 }
 
 void
-put16be(uint8_t *p, int x)
+put16be(u8 *p, int x)
 {
 	p[0] = x >> 8;
 	p[1] = x;
 }
 
-uint64_t
-get64be(uint8_t *p)
+u64
+get64be(u8 *p)
 {
-	return ((uint64_t)p[0] << 56) | ((uint64_t)p[1] << 48) | ((uint64_t)p[2] << 40) | (uint64_t)p[3] << 32 |
-	       ((uint64_t)p[4] << 24) | ((uint64_t)p[5] << 16) | ((uint64_t)p[6] << 8) | (uint64_t)p[7];
+	return ((u64)p[0] << 56) | ((u64)p[1] << 48) | ((u64)p[2] << 40) | (u64)p[3] << 32 |
+	       ((u64)p[4] << 24) | ((u64)p[5] << 16) | ((u64)p[6] << 8) | (u64)p[7];
 }
 
-uint32_t
-get32be(uint8_t *p)
+u32
+get32be(u8 *p)
 {
-	return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | (uint32_t)p[3];
+	return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | (u32)p[3];
 }
 
-uint32_t
-get24be(uint8_t *p)
+u32
+get24be(u8 *p)
 {
-	return ((uint32_t)p[0] << 16) | ((uint32_t)p[1] << 8) | (uint32_t)p[2];
+	return ((u32)p[0] << 16) | ((u32)p[1] << 8) | (u32)p[2];
 }
 
-uint16_t
-get16be(uint8_t *p)
+u16
+get16be(u8 *p)
 {
-	return ((uint16_t)p[0] << 8) | (uint16_t)p[1];
+	return ((u16)p[0] << 8) | (u16)p[1];
 }
 
 void
-put64le(uint8_t *p, uint64_t x)
+put64le(u8 *p, u64 x)
 {
 	p[0] = x;
 	p[1] = x >> 8;
@@ -76,7 +76,7 @@ put64le(uint8_t *p, uint64_t x)
 }
 
 void
-put32le(uint8_t *p, uint32_t x)
+put32le(u8 *p, u32 x)
 {
 	p[0] = x;
 	p[1] = x >> 8;
@@ -85,7 +85,7 @@ put32le(uint8_t *p, uint32_t x)
 }
 
 void
-put24le(uint8_t *p, int x)
+put24le(u8 *p, int x)
 {
 	p[0] = x;
 	p[1] = x >> 8;
@@ -93,33 +93,33 @@ put24le(uint8_t *p, int x)
 }
 
 void
-put16le(uint8_t *p, int x)
+put16le(u8 *p, int x)
 {
 	p[0] = x;
 	p[1] = x >> 8;
 }
 
-uint64_t
-get64le(uint8_t *p)
+u64
+get64le(u8 *p)
 {
-	return ((uint64_t)p[0]) | ((uint64_t)p[1] << 8) | ((uint64_t)p[2] << 16) | (uint64_t)p[3] << 24 |
-	       ((uint64_t)p[4] << 32) | ((uint64_t)p[5] << 40) | ((uint64_t)p[6] << 48) | (uint64_t)p[7] << 56;
+	return ((u64)p[0]) | ((u64)p[1] << 8) | ((u64)p[2] << 16) | (u64)p[3] << 24 |
+	       ((u64)p[4] << 32) | ((u64)p[5] << 40) | ((u64)p[6] << 48) | (u64)p[7] << 56;
 }
 
-uint32_t
-get32le(uint8_t *p)
+u32
+get32le(u8 *p)
 {
-	return ((uint32_t)p[0]) | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | (uint32_t)p[3] << 24;
+	return ((u32)p[0]) | ((u32)p[1] << 8) | ((u32)p[2] << 16) | (u32)p[3] << 24;
 }
 
-uint32_t
-get24le(uint8_t *p)
+u32
+get24le(u8 *p)
 {
-	return ((uint32_t)p[0]) | ((uint32_t)p[1] << 8) | (uint32_t)p[2] << 16;
+	return ((u32)p[0]) | ((u32)p[1] << 8) | (u32)p[2] << 16;
 }
 
-uint16_t
-get16le(uint8_t *p)
+u16
+get16le(u8 *p)
 {
-	return ((uint16_t)p[0]) | (uint16_t)p[1] << 8;
+	return ((u16)p[0]) | (u16)p[1] << 8;
 }

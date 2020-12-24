@@ -66,7 +66,7 @@ fpuprocrestore(Proc *p)
 void
 procrestore(Proc *p)
 {
-	uint64_t t;
+	u64 t;
 
 	if(p->kp)
 		return;
@@ -91,7 +91,7 @@ fpuprocsave(Proc *p)
 void
 procsave(Proc *p)
 {
-	uint64_t t;
+	u64 t;
 
 	cycles(&t);
 	p->pcycles += t;
@@ -134,10 +134,10 @@ kprocchild(Proc *p, void (*func)(void *), void *arg)
 void
 idlehands(void)
 {
-	uint32_t sip = 0;
+	u32 sip = 0;
 	int i;
-	extern uint64_t *mtimecmp;
-	extern uint64_t *mtime;
+	extern u64 *mtimecmp;
+	extern u64 *mtime;
 	//print("idlehands, mtime is 0x%llx mtimecmp is 0x%llx\n", *mtime, *mtimecmp);
 	//print("spin waiting for an interrupt or until mtimecmp passes mtime. \n");
 	/* toolchain is broken. Again. Puts an sret in for a wfi. Bad idea.
@@ -146,11 +146,11 @@ idlehands(void)
 	if (*mtimecmp < *mtime)
 		timerset(0);
 	 */
-	sip = (uint32_t)read_csr(sip);
+	sip = (u32)read_csr(sip);
 	for(i = 0; *mtimecmp < *mtime; i++){
 		if(sip & 0x666)
 			break;
-		sip = (uint32_t)read_csr(sip);
+		sip = (u32)read_csr(sip);
 	}
 	//print("idlehands, mtime is 0x%llx mtimecmp is 0x%llx\n", *mtime, *mtimecmp);
 	//print("Leaving idlehands. sip is 0x%x, i is %d\n", sip, i);

@@ -33,34 +33,34 @@ void acmodeset(int);
 void archfmtinstall(void);
 void archidle(void);
 int archmmu(void);
-int asmfree(uintmem, uintmem, int);
-uint64_t asmalloc(uintmem, uintmem, int, int);
+int asmfree(u64, u64, int);
+u64 asmalloc(u64, u64, int, int);
 void asminit(void);
-void asmmapinit(uintmem, uintmem, int);
-extern void asmmodinit(uint32_t, uint32_t, char *);
+void asmmapinit(u64, u64, int);
+extern void asmmodinit(u32, u32, char *);
 void noerrorsleft(void);
 void archinit(void);
 void archreset(void);
-int64_t archhz(void);
+i64 archhz(void);
 int cgaprint(int off, char *fmt, ...);
 int cgaclearln(int off, int c);
 void cgaconsputs(char *, int);
 void cgainit(void);
 void cgapost(int);
-void checkpa(char *, uintmem);
+void checkpa(char *, u64);
 #define clearmmucache() /* x86 doesn't have one */
 void (*coherence)(void);
 int corecolor(int);
-uint32_t cpuid(uint32_t, uint32_t, uint32_t[4]);
+u32 cpuid(u32, u32, u32[4]);
 int dbgprint(char *, ...);
 int decref(Ref *);
 void delay(int);
 void dumpmmu(Proc *);
-void dumpmmuwalk(uint64_t pa);
-void dumpptepg(int lvl, uintptr_t pa);
+void dumpmmuwalk(u64 pa);
+void dumpptepg(int lvl, uintptr pa);
 #define evenaddr(x) /* x86 doesn't care */
 void *findKSeg2(void);
-int fpudevprocio(Proc *, void *, int32_t, uintptr_t, int);
+int fpudevprocio(Proc *, void *, i32, uintptr, int);
 void fpuinit(void);
 void fpunoted(void);
 void fpunotify(Ureg *);
@@ -71,7 +71,7 @@ void fpusysrfork(Ureg *);
 void fpusysrforkchild(Proc *, Proc *);
 Mach *getac(Proc *, int);
 char *getconf(char *);
-void gdb2ureg(uintptr_t *g, Ureg *u);
+void gdb2ureg(uintptr *g, Ureg *u);
 void halt(void);
 void hardhalt(void);
 void mouseenable(void);
@@ -80,20 +80,20 @@ int mousecmd(int);
 void mouseenable(void);
 void i8250console(char *);
 void *i8250alloc(int, int, int);
-int64_t i8254hz(uint32_t *info0, uint32_t *info1);
+i64 i8254hz(u32 *info0, u32 *info1);
 void idlehands(void);
 void acidthandlers(void);
 void idthandlers(void);
 int inb(int);
 int incref(Ref *);
 void insb(int, void *, int);
-uint16_t ins(int);
+u16 ins(int);
 void inss(int, void *, int);
-uint32_t inl(int);
+u32 inl(int);
 void insl(int, void *, int);
 int intrdisable(void *);
 void *intrenable(int, void (*)(Ureg *, void *), void *, int, char *);
-void invlpg(uintptr_t);
+void invlpg(uintptr);
 void iofree(int);
 void ioinit(void);
 int iounused(int, int);
@@ -109,26 +109,26 @@ void lfence(void);
 void links(void);
 void machinit(void);
 void mach0init(void);
-void mapraminit(uint64_t, uint64_t);
-void mapupainit(uint64_t, uint32_t);
+void mapraminit(u64, u64);
+void mapupainit(u64, u32);
 void meminit(void);
 void mfence(void);
 void mmuflushtlb(void);
 void mmuinit(void);
-uintptr_t mmukmap(uintptr_t, uintptr_t, usize);
-int mmukmapsync(uint64_t);
-uintmem mmuphysaddr(uintptr_t);
-int mmuwalk(PTE *, uintptr_t, int, PTE **, PTE (*)(usize));
-int multiboot(uint32_t, uint32_t, int);
+uintptr mmukmap(uintptr, uintptr, usize);
+int mmukmapsync(u64);
+u64 mmuphysaddr(uintptr);
+int mmuwalk(PTE *, uintptr, int, PTE **, PTE (*)(usize));
+int multiboot(u32, u32, int);
 void ndnr(void);
 unsigned char nvramread(int);
 void nvramwrite(int, unsigned char);
 void optionsinit(char *);
 void outb(int, int);
 void outsb(int, void *, int);
-void outs(int, uint16_t);
+void outs(int, u16);
 void outss(int, void *, int);
-void outl(int, uint32_t);
+void outl(int, u32);
 void outsl(int, void *, int);
 void pcireset(void);
 int pickcore(int, int);
@@ -138,34 +138,34 @@ void runapcore(int);
 int screenprint(char *, ...); /* debugging */
 void sfence(void);
 void spldone(void);
-uint64_t splhi(void);
-uint64_t spllo(void);
-void splx(uint64_t);
-void splxpc(uint64_t);
+u64 splhi(void);
+u64 spllo(void);
+void splx(u64);
+void splxpc(u64);
 void kstackok(void);	      /* panic if kstack guards garbaged, works with and without externup */
 Stackframe *stackframe(void); /* asm.S */
 void stacksnippet(void);
 void stopac(void);
 void syncclock(void);
 void syscall(unsigned int scallnr, Ureg *ureg);
-void *sysexecregs(uintptr_t, uint32_t, void *);
-uintptr_t sysexecstack(uintptr_t, int);
+void *sysexecregs(uintptr, u32, void *);
+uintptr sysexecstack(uintptr, int);
 void sysprocsetup(Proc *);
-void tssrsp0(Mach *, uint64_t);
+void tssrsp0(Mach *, u64);
 void trapenable(int, void (*)(Ureg *, void *), void *, char *);
 void trapinit(void);
 void trap(Ureg *);
 void umeminit(void);
-void ureg2gdb(Ureg *u, uintptr_t *g);
+void ureg2gdb(Ureg *u, uintptr *g);
 int userureg(Ureg *);
-void *vmap(uintptr_t, usize);
+void *vmap(uintptr, usize);
 void vsvminit(int, int, Mach *);
 void vunmap(void *, usize);
 
-extern uint64_t rootget(void);
-extern void rootput(uintptr_t);
-extern void idtput(int, uint64_t);
-extern uint64_t rdtsc(void);
+extern u64 rootget(void);
+extern void rootput(uintptr);
+extern void idtput(int, u64);
+extern u64 rdtsc(void);
 
 extern int islo(void);
 extern void spldone(void);
@@ -173,17 +173,17 @@ extern Mpl splhi(void);
 extern Mpl spllo(void);
 extern void splx(Mpl);
 
-int cas32(void *, uint32_t, uint32_t);
-int cas64(void *, uint64_t, uint64_t);
+int cas32(void *, u32, u32);
+int cas64(void *, u64, u64);
 int tas32(void *);
-uint64_t fas64(uint64_t *, uint64_t);
+u64 fas64(u64 *, u64);
 
-#define CASU(p, e, n) cas64((p), (uint64_t)(e), (uint64_t)(n))
-#define CASV(p, e, n) cas64((p), (uint64_t)(e), (uint64_t)(n))
-#define CASP(p, e, n) cas64((p), (uint64_t)(e), (uint64_t)(n))
+#define CASU(p, e, n) cas64((p), (u64)(e), (u64)(n))
+#define CASV(p, e, n) cas64((p), (u64)(e), (u64)(n))
+#define CASP(p, e, n) cas64((p), (u64)(e), (u64)(n))
 #define CASW(p, e, n) cas32((p), (e), (n))
 #define TAS(addr) tas32((addr))
-#define FASP(p, v) ((void *)fas64((uint64_t *)(p), (uint64_t)(v)))
+#define FASP(p, v) ((void *)fas64((u64 *)(p), (u64)(v)))
 
 void touser(Ureg *);
 void syscallentry(void);
@@ -196,11 +196,11 @@ void sysrforkret(void);
 
 #define dcflush(a, b)
 
-#define PTR2UINT(p) ((uintptr_t)(p))
+#define PTR2UINT(p) ((uintptr)(p))
 #define UINT2PTR(i) ((void *)(i))
 
-void *KADDR(uintptr_t);
-uintmem PADDR(void *);
+void *KADDR(uintptr);
+u64 PADDR(void *);
 
 #define BIOSSEG(a) KADDR(((uint)(a)) << 4)
 
@@ -209,13 +209,13 @@ uintmem PADDR(void *);
  */
 extern int apiceoi(int);
 extern void apicipi(int);
-extern void apicinit(int, uintmem, int);
+extern void apicinit(int, u64, int);
 extern int apicisr(int);
 extern int apiconline(void);
 extern void apicpri(int);
-extern void apicsipi(int, uintmem);
+extern void apicsipi(int, u64);
 
-extern void ioapicinit(int, uintmem);
+extern void ioapicinit(int, u64);
 
 /*
  * archamd64.c
@@ -258,7 +258,7 @@ void die(char *);
 void dumpgpr(Ureg *ureg);
 
 /* debug support. */
-int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots);
+int backtrace_list(uintptr pc, uintptr fp, uintptr *pcs, usize nr_slots);
 
 /* horror */
 static inline void
@@ -280,4 +280,4 @@ int slim_setlabel(Label *) __attribute__((returns_twice));
                     err; })
 
 /* sbi calls. They are all too different to bother with a typedef. */
-void sbi_set_mtimecmp(uint64_t t);
+void sbi_set_mtimecmp(u64 t);

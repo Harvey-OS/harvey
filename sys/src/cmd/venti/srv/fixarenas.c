@@ -413,7 +413,7 @@ zerorange(int64_t offset, int len)
  * read/write integers
  *
 static void
-p16(unsigned char *p, uint16_t u)
+asp16(unsigned char *p, uint16_t u)
 {
 	p[0] = (u>>8) & 0xFF;
 	p[1] = u & 0xFF;
@@ -421,13 +421,13 @@ p16(unsigned char *p, uint16_t u)
 */
 
 static uint16_t
-u16(uint8_t *p)
+asu16(uint8_t *p)
 {
 	return (p[0]<<8)|p[1];
 }
 
 static void
-p32(uint8_t *p, uint32_t u)
+asp32(uint8_t *p, uint32_t u)
 {
 	p[0] = (u>>24) & 0xFF;
 	p[1] = (u>>16) & 0xFF;
@@ -436,24 +436,24 @@ p32(uint8_t *p, uint32_t u)
 }
 
 static uint32_t
-u32(uint8_t *p)
+asu32(uint8_t *p)
 {
 	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
 }
 
 /*
 static void
-p64(unsigned char *p, uint64_t u)
+asp64(unsigned char *p, uint64_t u)
 {
-	p32(p, u>>32);
-	p32(p, u);
+	asp32(p, u>>32);
+	asp32(p, u);
 }
 */
 
 static uint64_t
-u64(uint8_t *p)
+asu64(uint8_t *p)
 {
-	return ((uint64_t)u32(p)<<32) | u32(p+4);
+	return ((uint64_t)asu32(p)<<32) | asu32(p+4);
 }
 
 static int
@@ -606,28 +606,28 @@ showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
 				break;
 			case 4:
 				print("\t%s: correct=%#x disk=%#x\n",
-					info->name, u32(want), u32(have));
+					info->name, asu32(want), asu32(have));
 				break;
 			case D|4:
 				print("\t%s: correct=%,u disk=%,u\n",
-					info->name, u32(want), u32(have));
+					info->name, asu32(want), asu32(have));
 				break;
 			case T|4:
 				print("\t%s: correct=%t\n\t\tdisk=%t\n",
-					info->name, u32(want), u32(have));
+					info->name, asu32(want), asu32(have));
 				break;
 			case Z|4:
 				print("\t%s: correct=%z disk=%z\n",
-					info->name, (uint64_t)u32(want),
-				      (uint64_t)u32(have));
+					info->name, (uint64_t)asu32(want),
+				      (uint64_t)asu32(have));
 				break;
 			case D|8:
 				print("\t%s: correct=%,lld disk=%,lld\n",
-					info->name, u64(want), u64(have));
+					info->name, asu64(want), asu64(have));
 				break;
 			case Z|8:
 				print("\t%s: correct=%z disk=%z\n",
-					info->name, u64(want), u64(have));
+					info->name, asu64(want), asu64(have));
 				break;
 			case S|ANameSize:
 				print("\t%s: correct=%s disk=%.*s\n",
@@ -664,7 +664,7 @@ showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
 int
 isonearena(void)
 {
-	return u32(pagein(0, Block)) == ArenaHeadMagic;
+	return asu32(pagein(0, Block)) == ArenaHeadMagic;
 }
 
 static int tabsizes[] = { 16*1024, 64*1024, 512*1024, 768*1024, };
@@ -695,12 +695,12 @@ guessgeometry(void)
 		for(offset=PartBlank; offset<partend; offset+=4*M){
 			p = pagein(offset, 4*M);
 			for(sp=p, ep=p+4*M; p<ep; p+=K){
-				if(u32(p) == ArenaHeadMagic && nhead < nelem(head)){
+				if(asu32(p) == ArenaHeadMagic && nhead < nelem(head)){
 					if(verbose)
 						print("arena head at %#llx\n", offset+(p-sp));
 					head[nhead++] = offset+(p-sp);
 				}
-				if(u32(p) == ArenaMagic && ntail < nelem(tail)){
+				if(asu32(p) == ArenaMagic && ntail < nelem(tail)){
 					tail[ntail++] = offset+(p-sp);
 					if(verbose)
 						print("arena tail at %#llx\n", offset+(p-sp));
@@ -818,13 +818,13 @@ guessgeometry(void)
 		for(i=0; i<nelem(tabsizes); i++){
 			ap.arenabase = ROUNDUP(PartBlank+HeadSize+tabsizes[i], ap.blocksize);
 			p = pagein(ap.arenabase, Block);
-			if(u32(p) == ArenaHeadMagic)
+			if(asu32(p) == ArenaHeadMagic)
 				break;
 		}
 	}
 	p = pagein(ap.arenabase, Block);
 	print("arena base likely %z%s\n", (int64_t)ap.arenabase,
-		u32(p)!=ArenaHeadMagic ? " (but no arena head there)" : "");
+		asu32(p)!=ArenaHeadMagic ? " (but no arena head there)" : "");
 
 	ap.tabsize = ap.arenabase - ap.tabbase;
 }
@@ -903,7 +903,7 @@ isclump(uint8_t *p, Clump *cl, uint32_t *pmagic)
 	uint8_t ubuf[70*1024];
 
 	bp = p;
-	magic = u32(p);
+	magic = asu32(p);
 	if(magic == 0)
 		return 0;
 	p += U32Size;
@@ -912,9 +912,9 @@ isclump(uint8_t *p, Clump *cl, uint32_t *pmagic)
 	if(cl->info.type == 0xFF)
 		return 0;
 	p++;
-	cl->info.size = u16(p);
+	cl->info.size = asu16(p);
 	p += U16Size;
-	cl->info.uncsize = u16(p);
+	cl->info.uncsize = asu16(p);
 	if(cl->info.size > cl->info.uncsize)
 		return 0;
 	p += U16Size;
@@ -922,9 +922,9 @@ isclump(uint8_t *p, Clump *cl, uint32_t *pmagic)
 	p += VtScoreSize;
 	cl->encoding = *p;
 	p++;
-	cl->creator = u32(p);
+	cl->creator = asu32(p);
 	p += U32Size;
-	cl->time = u32(p);
+	cl->time = asu32(p);
 	p += U32Size;
 
 	switch(cl->encoding){
@@ -1049,9 +1049,9 @@ matchci(ClumpInfo *ci, uint8_t *p)
 {
 	if(ci->type != vtfromdisktype(p[0]))
 		return 0;
-	if(ci->size != u16(p+1))
+	if(ci->size != asu16(p+1))
 		return 0;
-	if(ci->uncsize != u16(p+3))
+	if(ci->uncsize != asu16(p+3))
 		return 0;
 	if(scorecmp(ci->score, p+5) != 0)
 		return 0;
@@ -1063,7 +1063,7 @@ sealedarena(uint8_t *p, int blocksize)
 {
 	int v, n;
 
-	v = u32(p+4);
+	v = asu32(p+4);
 	switch(v){
 	default:
 		return 0;
@@ -1423,7 +1423,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 					arena->version = ArenaVersion5;
 			}
 			if(magic != arena->clumpmagic)
-				p32(p, arena->clumpmagic);
+				asp32(p, arena->clumpmagic);
 			if(clumps == 0)
 				arena->ctime = cl.time;
 

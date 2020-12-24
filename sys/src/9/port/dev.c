@@ -14,10 +14,10 @@
 #include "fns.h"
 #include "../port/error.h"
 
-extern uint32_t kerndate;
+extern u32 kerndate;
 
 void
-mkqid(Qid *q, int64_t path, uint32_t vers, int type)
+mkqid(Qid *q, i64 path, u32 vers, int type)
 {
 	if(0)
 		print_func_entry();
@@ -29,8 +29,8 @@ mkqid(Qid *q, int64_t path, uint32_t vers, int type)
 }
 
 void
-devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
-       int32_t perm,
+devdir(Chan *c, Qid qid, char *n, i64 length, char *user,
+       i32 perm,
        Dir *db)
 {
 	if(0)
@@ -337,8 +337,8 @@ Done:
 	return wq;
 }
 
-int32_t
-devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
+i32
+devstat(Chan *c, u8 *db, i32 n, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
 	if(0)
@@ -389,13 +389,13 @@ devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
 		print_func_exit();
 }
 
-int32_t
-devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
+i32
+devdirread(Chan *c, char *d, i32 n, Dirtab *tab, int ntab,
 	   Devgen *gen)
 {
 	if(0)
 		print_func_entry();
-	int32_t m, dsz;
+	i32 m, dsz;
 	Dir dir;
 
 	for(m = 0; m < n; c->dri++){
@@ -409,7 +409,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 			break;
 
 		case 1:
-			dsz = convD2M(&dir, (uint8_t *)d, n - m);
+			dsz = convD2M(&dir, (u8 *)d, n - m);
 			if(dsz <= BIT16SZ) { /* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					error(Eshort);
@@ -498,7 +498,7 @@ devcreate(Chan *c, char *d, int i, int n)
 }
 
 Block *
-devbread(Chan *c, int32_t n, int64_t offset)
+devbread(Chan *c, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	if(0)
@@ -519,13 +519,13 @@ devbread(Chan *c, int32_t n, int64_t offset)
 	return bp;
 }
 
-int32_t
-devbwrite(Chan *c, Block *bp, int64_t offset)
+i32
+devbwrite(Chan *c, Block *bp, i64 offset)
 {
 	Proc *up = externup();
 	if(0)
 		print_func_entry();
-	int32_t n;
+	i32 n;
 
 	if(waserror()){
 		freeb(bp);
@@ -550,8 +550,8 @@ devremove(Chan *c)
 		print_func_exit();
 }
 
-int32_t
-devwstat(Chan *c, uint8_t *i, int32_t n)
+i32
+devwstat(Chan *c, u8 *i, i32 n)
 {
 	if(0)
 		print_func_entry();

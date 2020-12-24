@@ -60,19 +60,19 @@ typedef struct {
 	Chan *dc;
 	Chan *cc;
 	Dev *d;
-	uint8_t ea[6];
+	u8 ea[6];
 	char path[32];
 } If;
 
 typedef struct {
-	uint8_t dst[6];
-	uint8_t src[6];
-	uint8_t etype[2];
-	uint8_t type;
-	uint8_t conn;
-	uint8_t seq;
-	uint8_t len;
-	uint8_t data[0x100];
+	u8 dst[6];
+	u8 src[6];
+	u8 etype[2];
+	u8 type;
+	u8 conn;
+	u8 seq;
+	u8 len;
+	u8 data[0x100];
 } Pkt;
 
 typedef struct {
@@ -95,7 +95,7 @@ typedef struct {
 	char passwd[32];       /* password typed by connection */
 } Conn;
 
-extern int parseether(uint8_t *, char *);
+extern int parseether(u8 *, char *);
 extern Chan *chandial(char *, char *, char *, Chan **);
 
 enum {
@@ -125,7 +125,7 @@ static int xmit;
 static int rsnd;
 static Rendez trendez;
 static int tcond;
-static uint8_t broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+static u8 broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 static Dirtab cecdir[] = {
 	{".", {Qdir, 0, QTDIR}, 0, DMDIR | 0555},
 	{"cecstat", {Qstat}, 1, 0444},
@@ -164,7 +164,7 @@ cecprint(char *fmt, ...)
 }
 
 static void
-getaddr(char *path, uint8_t *ea)
+getaddr(char *path, u8 *ea)
 {
 	Proc *up = externup();
 	char buf[6 * 2];
@@ -236,7 +236,7 @@ trace(Block *bp)
 }
 
 static Block *
-sethdr(If *ifc, uint8_t *ea, Pkt **npp, int len)
+sethdr(If *ifc, u8 *ea, Pkt **npp, int len)
 {
 	Block *bp;
 	Pkt *np;
@@ -448,7 +448,7 @@ cecqlen(void* v)
 static void
 discover(If *ifc, Pkt *p)
 {
-	uint8_t *addr;
+	u8 *addr;
 	Block *bp;
 	Pkt *np;
 
@@ -478,7 +478,7 @@ connidx(int cno)
 }
 
 static Conn *
-findconn(uint8_t *ea, uint8_t cno)
+findconn(u8 *ea, u8 cno)
 {
 	Conn *cp, *ncp;
 
@@ -698,8 +698,8 @@ cecwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, cecdir, nelem(cecdir), devgen);
 }
 
-static int32_t
-cecstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+cecstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, cecdir, nelem(cecdir), devgen);
 }
@@ -715,8 +715,8 @@ cecclose(Chan *c)
 {
 }
 
-static int32_t
-cecread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+cecread(Chan *c, void *a, i32 n, i64 offset)
 {
 	char *p;
 	int j;
@@ -734,7 +734,8 @@ cecread(Chan *c, void *a, int32_t n, int64_t offset)
 				j += snprint(p + j, Size - j,
 					     "%E %3d %-6s %12d %d %d %.8lux\n",
 					     cp->ea, cp->cno, cstate[cp->state], cp->idle,
-					     cp->to, cp->retries, (uintptr_t)cp->bp);
+					     cp->to, cp->retries,
+					     (uintptr)cp->bp);
 		n = readstr(offset, a, n, p);
 		free(p);
 		return n;
@@ -776,7 +777,7 @@ cecon(char *path)
 {
 	Proc *up = externup();
 	char buf[64];
-	uint8_t ea[6];
+	u8 ea[6];
 	Chan *dc, *cc;
 	If *ifc, *nifc;
 
@@ -843,8 +844,8 @@ rst(Conn *c)
 	qunlock(c);
 }
 
-static int32_t
-cecwrite(Chan *c, void *a, int32_t n, int64_t mm)
+static i32
+cecwrite(Chan *c, void *a, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Cmdbuf *cb;

@@ -21,7 +21,7 @@ typedef struct MFPU MFPU;
 typedef struct MMMU MMMU;
 typedef struct NIX NIX;
 typedef struct Mach Mach;
-typedef uint64_t Mpl;
+typedef u64 Mpl;
 typedef struct Page Page;
 typedef struct Pcidev Pcidev;
 typedef struct PAMap PAMap;
@@ -31,11 +31,11 @@ typedef struct PmcCtl PmcCtl;
 typedef struct PmcWait PmcWait;
 typedef struct PMMU PMMU;
 typedef struct PNOTIFY PNOTIFY;
-typedef uint64_t PTE;
+typedef u64 PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
 typedef struct Stackframe Stackframe;
-typedef uint64_t uintmem; /* Physical address (hideous) */
+typedef u64 uintmem; /* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 
@@ -87,32 +87,32 @@ enum regnames {
  */
 
 struct Lock {
-	uint32_t key;
+	u32 key;
 	int isilock;
 	Mpl pl;
-	uintptr_t _pc;
+	uintptr _pc;
 	Proc *p;
 	Mach *m;
-	uint64_t lockcycles;
+	u64 lockcycles;
 };
 
 struct Label {
-	uintptr_t sp;
-	uintptr_t pc;
-	uintptr_t fp;
-	uintptr_t _pad[13];
+	uintptr sp;
+	uintptr pc;
+	uintptr fp;
+	uintptr _pad[13];
 };
 
 struct Fxsave {
-	uint16_t fcw;		/* x87 control word */
-	uint16_t fsw;		/* x87 status word */
-	uint8_t ftw;		/* x87 tag word */
-	uint8_t zero;		/* 0 */
-	uint16_t fop;		/* last x87 opcode */
-	uint64_t rip;		/* last x87 instruction pointer */
-	uint64_t rdp;		/* last x87 data pointer */
-	uint32_t mxcsr;		/* MMX control and status */
-	uint32_t mxcsrmask;	/* supported MMX feature bits */
+	u16 fcw;		/* x87 control word */
+	u16 fsw;		/* x87 status word */
+	u8 ftw;		/* x87 tag word */
+	u8 zero;		/* 0 */
+	u16 fop;		/* last x87 opcode */
+	u64 rip;		/* last x87 instruction pointer */
+	u64 rdp;		/* last x87 data pointer */
+	u32 mxcsr;		/* MMX control and status */
+	u32 mxcsrmask;	/* supported MMX feature bits */
 	unsigned char st[128];	/* shared 64-bit media and x87 regs */
 	unsigned char xmm[256]; /* 128-bit media regs */
 	unsigned char ign[96];	/* reserved, ignored */
@@ -142,20 +142,20 @@ struct PNOTIFY {
 };
 
 struct Confmem {
-	uintptr_t base;
+	uintptr base;
 	usize npage;
-	uintptr_t kbase;
-	uintptr_t klimit;
+	uintptr kbase;
+	uintptr klimit;
 };
 
 struct Conf {
-	uint32_t nproc;	   /* processes */
+	u32 nproc;	   /* processes */
 	Confmem mem[4];	   /* physical memory */
-	uint64_t npage;	   /* total physical pages of memory */
+	u64 npage;	   /* total physical pages of memory */
 	usize upages;	   /* user page pool */
-	uint32_t copymode; /* 0 is copy on write, 1 is copy on reference */
-	uint32_t ialloc;   /* max interrupt time allocation in bytes */
-	uint32_t nimage;   /* number of page cache image headers */
+	u32 copymode; /* 0 is copy on write, 1 is copy on reference */
+	u32 ialloc;   /* max interrupt time allocation in bytes */
+	u32 nimage;   /* number of page cache image headers */
 };
 
 enum {
@@ -168,7 +168,7 @@ enum {
  *  CPU stuff in Mach.
  */
 struct MCPU {
-	uint32_t cpuinfo[3][4]; /*  CPUID Functions 0, 1, and 5 (n.b.: 2-4 are invalid) */
+	u32 cpuinfo[3][4]; /*  CPUID Functions 0, 1, and 5 (n.b.: 2-4 are invalid) */
 	int ncpuinfos;		/* number of standard entries */
 	int ncpuinfoe;		/* number of extended entries */
 	int isintelcpu;		/*  */
@@ -178,9 +178,9 @@ struct MCPU {
  *  FPU stuff in Mach.
  */
 struct MFPU {
-	uint16_t fcw;	    /* x87 control word */
-	uint32_t mxcsr;	    /* MMX control and status */
-	uint32_t mxcsrmask; /* supported MMX feature bits */
+	u16 fcw;	    /* x87 control word */
+	u32 mxcsr;	    /* MMX control and status */
+	u32 mxcsrmask; /* supported MMX feature bits */
 };
 
 struct NIX {
@@ -192,7 +192,7 @@ struct NIX {
  *  MMU stuff in Mach.
  */
 struct MMMU {
-	uintptr_t cr2;
+	uintptr cr2;
 	Page *pml4;	 /* pml4 for this processor */
 	Page pml4kludge; /* NIX KLUDGE: we need a page */
 };
@@ -222,7 +222,7 @@ struct ICC {
  */
 struct PmcCtl {
 	Ref r;
-	uint32_t _coreno;
+	u32 _coreno;
 	int enab;
 	int user;
 	int os;
@@ -240,7 +240,7 @@ struct PmcWait {
 struct PmcCtr {
 	int stale;
 	PmcWait *wq;
-	uint64_t ctr;
+	u64 ctr;
 	int ctrset;
 	PmcCtl PmcCtl;
 	int ctlset;
@@ -266,12 +266,12 @@ enum {
  */
 struct Mach {
 	/* WARNING! Known to assembly! */
-	uintptr_t self; /* %gs:0 still gives us a Mach* */
-	uint64_t splpc; /* pc of last caller to splhi */
+	uintptr self; /* %gs:0 still gives us a Mach* */
+	u64 splpc; /* pc of last caller to splhi */
 
 	Proc *proc;	   /* current process on this processor */
-	uintptr_t stack;   /* mach stack, kstack is in proc->kstack */
-	uintptr_t rathole; /* to save a reg in syscallentry */
+	uintptr stack;   /* mach stack, kstack is in proc->kstack */
+	uintptr rathole; /* to save a reg in syscallentry */
 	Proc *externup;	   /* Forsyth recommends we replace the global up with this. */
 	/* end warning, I think */
 
@@ -286,15 +286,15 @@ struct Mach {
 	void *gdt;
 	void *tss;
 
-	uint64_t ticks; /* of the clock since boot time */
+	u64 ticks; /* of the clock since boot time */
 	Label sched;	/* scheduler wakeup */
 	Lock alarmlock; /* access to alarm list */
 	void *alarm;	/* alarms bound to this clock */
 	int inclockintr;
 
 	Proc *readied;	     /* old runproc, only relevant if kernel booted with nosmp (-n append) */
-	uint64_t schedticks; /* next forced context switch, same as above */
-	uint64_t qstart;     /* time when up started running */
+	u64 schedticks; /* next forced context switch, same as above */
+	u64 qstart;     /* time when up started running */
 	int qexpired;	     /* quantum expired */
 
 	int tlbfault;
@@ -310,10 +310,10 @@ struct Mach {
 	int lastintr;
 
 	Lock apictimerlock;
-	uint64_t cyclefreq; /* Frequency of user readable cycle counter */
-	int64_t cpuhz;
+	u64 cyclefreq; /* Frequency of user readable cycle counter */
+	i64 cpuhz;
 	int cpumhz;
-	uint64_t rdtsc;
+	u64 rdtsc;
 
 	Lock pmclock;
 	PmcCtr pmc[PmcMaxCtrs];
@@ -331,7 +331,7 @@ static_assert(sizeof(Mach) <= PGSZ, "Mach is too big");
 
 struct Stackframe {
 	Stackframe *next;
-	uintptr_t pc;
+	uintptr pc;
 };
 
 /*
@@ -395,7 +395,7 @@ extern Sys *const sys;
 #define PHYSADDRSIZE (1ULL << 46)
 
 struct PAMap {
-	uintmem addr;
+	u64 addr;
 	usize size;
 	int type;
 	PAMap *next;
@@ -442,12 +442,12 @@ struct {
 
 struct ISAConf {
 	char *type;
-	uintptr_t port;
+	uintptr port;
 	int irq;
-	uint32_t dma;
-	uintptr_t mem;
+	u32 dma;
+	uintptr mem;
 	usize size;
-	uint32_t freq;
+	u32 freq;
 
 	int nopt;
 	char *opt[NISAOPT];

@@ -58,7 +58,7 @@ decref(Ref *r)
 void
 procrestore(Proc *p)
 {
-	uint64_t t;
+	u64 t;
 
 	if(p->kp)
 		return;
@@ -77,7 +77,7 @@ procrestore(Proc *p)
 void
 procsave(Proc *p)
 {
-	uint64_t t;
+	u64 t;
 
 	cycles(&t);
 	p->pcycles += t;
@@ -125,7 +125,7 @@ idlehands(void)
 }
 
 void
-ureg2gdb(Ureg *u, uintptr_t *g)
+ureg2gdb(Ureg *u, uintptr *g)
 {
 	g[GDB_AX] = u->ax;
 	g[GDB_BX] = u->bx;
@@ -158,7 +158,7 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 }
 
 void
-gdb2ureg(uintptr_t *g, Ureg *u)
+gdb2ureg(uintptr *g, Ureg *u)
 {
 	u->ax = g[GDB_AX];
 	u->bx = g[GDB_BX];

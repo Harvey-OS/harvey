@@ -39,7 +39,7 @@ scsiverify(SDunit *unit)
 {
 	SDreq *r;
 	int i, status;
-	uint8_t *inquiry;
+	u8 *inquiry;
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		return 0;
@@ -189,7 +189,7 @@ int
 scsionline(SDunit *unit)
 {
 	SDreq *r;
-	uint8_t *p;
+	u8 *p;
 	int ok, retries;
 
 	if((r = malloc(sizeof(SDreq))) == nil)
@@ -264,7 +264,7 @@ scsionline(SDunit *unit)
 }
 
 int
-scsiexec(SDunit *unit, int write, uint8_t *cmd, int clen, void *data,
+scsiexec(SDunit *unit, int write, u8 *cmd, int clen, void *data,
 	 int *dlen)
 {
 	SDreq *r;
@@ -315,9 +315,9 @@ scsiexec(SDunit *unit, int write, uint8_t *cmd, int clen, void *data,
 }
 
 static void
-scsifmt10(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
+scsifmt10(SDreq *r, int write, int lun, u32 nb, u64 bno)
 {
-	uint8_t *c;
+	u8 *c;
 
 	c = r->cmd;
 	if(write == 0)
@@ -338,9 +338,9 @@ scsifmt10(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 }
 
 static void
-scsifmt16(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
+scsifmt16(SDreq *r, int write, int lun, u32 nb, u64 bno)
 {
-	uint8_t *c;
+	u8 *c;
 
 	c = r->cmd;
 	if(write == 0)
@@ -366,12 +366,12 @@ scsifmt16(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 	r->clen = 16;
 }
 
-int32_t
-scsibio(SDunit *unit, int lun, int write, void *data, int32_t nb,
-	uint64_t bno)
+i32
+scsibio(SDunit *unit, int lun, int write, void *data, i32 nb,
+	u64 bno)
 {
 	SDreq *r;
-	int32_t rlen;
+	i32 rlen;
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		error(Enomem);

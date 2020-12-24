@@ -28,12 +28,12 @@ enum {
 	} else          \
 		print
 
-static int32_t now; /* Low order 32 bits of time in µs */
+static i32 now; /* Low order 32 bits of time in µs */
 
 /* Statistics stuff */
-uint32_t nilcount;
-uint32_t scheds;
-uint32_t edfnrun;
+u32 nilcount;
+u32 scheds;
+u32 edfnrun;
 int misseddeadlines;
 
 /* Edfschedlock protects modification of admission params */
@@ -60,7 +60,7 @@ static int
 timeconv(Fmt *f)
 {
 	char buf[128], *sign;
-	int64_t t;
+	i64 t;
 
 	buf[0] = 0;
 	switch(f->r){
@@ -68,7 +68,7 @@ timeconv(Fmt *f)
 		t = va_arg(f->args, uint64_t);
 		break;
 	case 't': /* int64_t in nanoseconds */
-		t = va_arg(f->args, int32_t);
+		t = va_arg(f->args, i32);
 		break;
 	default:
 		return fmtstrcpy(f, "(timeconv)");
@@ -90,7 +90,7 @@ timeconv(Fmt *f)
 	return fmtstrcpy(f, buf);
 }
 
-int32_t edfcycles;
+i32 edfcycles;
 
 Edf *
 edflock(Proc *p)
@@ -174,8 +174,8 @@ release(Proc *p)
 {
 	/* Called with edflock held */
 	Edf *e;
-	int32_t n;
-	int64_t nowns;
+	i32 n;
+	i64 nowns;
 
 	e = p->edf;
 	e->flags &= ~Yield;
@@ -281,7 +281,7 @@ releaseintr(Ureg *ureg, Timer *t)
 void
 edfrecord(Proc *p)
 {
-	int32_t used;
+	i32 used;
 	Edf *e;
 
 	if((e = edflock(p)) == nil)
@@ -309,7 +309,7 @@ void
 edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
-	int32_t tns;
+	i32 tns;
 	Sched *sch;
 
 	e = p->edf;
@@ -356,7 +356,7 @@ edfadmit(Proc *p)
 	Edf *e;
 	int i;
 	Proc *r;
-	int32_t tns;
+	i32 tns;
 
 	e = p->edf;
 	if(e->flags & Admitted)
@@ -476,7 +476,7 @@ edfyield(void)
 	Proc *up = externup();
 	/* sleep until next release */
 	Edf *e;
-	int32_t n;
+	i32 n;
 
 	if((e = edflock(up)) == nil)
 		return;
@@ -514,7 +514,7 @@ edfready(Proc *p)
 	Sched *sch;
 	Schedq *rq;
 	Proc *l, *pp;
-	int32_t n;
+	i32 n;
 
 	if((e = edflock(p)) == nil)
 		return 0;
@@ -632,7 +632,7 @@ static char *
 testschedulability(Proc *theproc)
 {
 	Proc *p;
-	int32_t H, G, Cb, ticks;
+	i32 H, G, Cb, ticks;
 	int steps, i;
 
 	/* initialize */

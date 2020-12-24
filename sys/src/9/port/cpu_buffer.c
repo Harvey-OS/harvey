@@ -601,7 +601,7 @@ oprofile_add_data(struct op_entry *entry, unsigned long val)
 }
 
 int
-oprofile_add_data64(struct op_entry *entry, uint64_t val)
+oprofile_add_data64(struct op_entry *entry, u64 val)
 {
 	//print_func_entry();
 	if(!entry->event){
@@ -617,12 +617,12 @@ oprofile_add_data64(struct op_entry *entry, uint64_t val)
 		//print_func_exit();
 		return 0;
 	}
-	if(!op_cpu_buffer_add_data(entry, (uint32_t)val)){
+	if(!op_cpu_buffer_add_data(entry, (u32)val)){
 		//print_func_exit();
 		return 0;
 	}
 	//print_func_exit();
-	return op_cpu_buffer_add_data(entry, (uint32_t)(val >> 32));
+	return op_cpu_buffer_add_data(entry, (u32)(val >> 32));
 }
 
 int
@@ -691,10 +691,10 @@ fail:
  * Third and following words are PCs, there must be at least one of them.
  */
 void
-oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
+oprofile_add_backtrace(uintptr pc, uintptr fp)
 {
 	/* version 1. */
-	uint64_t descriptor = 0xee01ULL << 48;
+	u64 descriptor = 0xee01ULL << 48;
 	if(!op_cpu_buffer)
 		return;
 	//print_func_entry();
@@ -708,9 +708,9 @@ oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
 	struct op_entry entry;
 	struct op_sample *sample;
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
-	uint64_t event = fastticks2ns(rdtsc());
+	u64 event = fastticks2ns(rdtsc());
 
-	uintptr_t bt_pcs[oprofile_backtrace_depth];
+	uintptr bt_pcs[oprofile_backtrace_depth];
 
 	int nr_pcs;
 	nr_pcs = backtrace_list(pc, fp, bt_pcs, oprofile_backtrace_depth);
@@ -728,20 +728,20 @@ oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
 	sample = entry.sample;
 	sample->eip = descriptor;
 	sample->event = event;
-	memmove(sample->data, bt_pcs, sizeof(uintptr_t) * nr_pcs);
+	memmove(sample->data, bt_pcs, sizeof(uintptr) * nr_pcs);
 
 	//print_func_exit();
 	return;
 }
 
 void
-oprofile_add_userpc(uintptr_t pc)
+oprofile_add_userpc(uintptr pc)
 {
 	struct oprofile_cpu_buffer *cpu_buf;
-	uint32_t pcoreid = machp()->machno;
+	u32 pcoreid = machp()->machno;
 	struct op_entry entry;
 	// Block *b; this gets some bizarre gcc set but not used error.
-	uint64_t descriptor = (0xee01ULL << 48) | (pcoreid << 16) | 1;
+	u64 descriptor = (0xee01ULL << 48) | (pcoreid << 16) | 1;
 
 	if(!op_cpu_buffer)
 		return;

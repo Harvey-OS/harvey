@@ -22,11 +22,11 @@
 int cpuserver = 1;
 
 extern void (*consuartputs)(char *, int);
-void query_mem(const char *config_string, uintptr_t *base, size_t *size);
-void query_rtc(const char *config_string, uintptr_t *mtime);
-void query_uint(const char *config_string, char *name, uintptr_t *val);
+void query_mem(const char *config_string, uintptr *base, usize *size);
+void query_rtc(const char *config_string, uintptr *mtime);
+void query_uint(const char *config_string, char *name, uintptr *val);
 
-void putchar(uint8_t c);
+void putchar(u8 c);
 
 void
 msg(char *s)
@@ -58,23 +58,23 @@ puts(char *s, int n)
 /* mach info for hart 0. */
 /* in many plan 9 implementations this stuff is all reserved in early assembly.
  * we don't have to do that. */
-uint64_t m0stack[4096];
+u64 m0stack[4096];
 Mach m0;
 
 Sys asys, *sys = &asys;
 Conf conf;
-uintptr_t kseg0 = KZERO;
+uintptr kseg0 = KZERO;
 char *cputype = "riscv";
-int64_t hz;
-uintptr_t rtc;
+i64 hz;
+uintptr rtc;
 
 /* I forget where this comes from and I don't care just now. */
-uint32_t kerndate;
+u32 kerndate;
 int maxcores = 1;
 int nosmp = 1;
-uint64_t mtimepa, mtimecmppa, uartpa;
-uint64_t *mtime, *mtimecmp;
-uint64_t *uart;
+u64 mtimepa, mtimecmppa, uartpa;
+u64 *mtime, *mtimecmp;
+u64 *uart;
 /*
  * kseg2 is the base of the virtual address space.
  * it is not a constant as in amd64; in riscv there are many possible
@@ -84,7 +84,7 @@ void *kseg2;
 
 char *configstring; /* from coreboot, first arg to main */
 
-static uintptr_t sp; /* XXX - must go - user stack of init proc */
+static uintptr sp; /* XXX - must go - user stack of init proc */
 
 /* general purpose hart startup. We call this via startmach.
  * When we enter here, the machp() function is usable.
@@ -97,10 +97,10 @@ hart(void)
 	die("not yet");
 }
 
-uint64_t
+u64
 rdtsc(void)
 {
-	uint64_t cycles;
+	u64 cycles;
 	//	msg("rdtsc\n");
 	cycles = read_csr(/*s*/ cycle);
 	//print("cycles in rdtsc is 0x%llx\n", cycles);
@@ -176,7 +176,7 @@ init0(void)
 
 	//debugtouser((void *)UTZERO);
 	memset(&u, 0, sizeof(u));
-	u.ip = (uintptr_t)init_main;
+	u.ip = (uintptr)init_main;
 	u.sp = sp;
 	u.a2 = USTKTOP - sizeof(Tos);
 	print("sstatus is 0x%x, sip is 0x%x, sie is 0x%x\n", read_csr(sstatus),
@@ -190,16 +190,16 @@ init0(void)
  * oargv[0] is the boot file.
  * TODO: do it.
  */
-static int64_t oargc;
+static i64 oargc;
 static char *oargv[20];
 static char oargb[1024];
 static int oargblen;
 
 void
-bootargs(uintptr_t base)
+bootargs(uintptr base)
 {
 	int i;
-	uint32_t ssize;
+	u32 ssize;
 	char **av, *p;
 
 	/*
@@ -264,7 +264,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -334,9 +334,9 @@ confinit(void)
 static void
 check(void)
 {
-	uint64_t f2ns;
+	u64 f2ns;
 	// cas test
-	uint32_t t = 0;
+	u32 t = 0;
 	int fail = 0;
 	int _42 = 42;
 	int a = _42, b;
@@ -413,7 +413,7 @@ check(void)
 // in this function. Hence, I've left some messages in that won't
 // print as an example of debugging.
 void
-bsp(void *stack, uintptr_t _configstring)
+bsp(void *stack, uintptr _configstring)
 {
 	msg("BSP starting\n");
 	kseg2 = findKSeg2();
@@ -427,13 +427,13 @@ bsp(void *stack, uintptr_t _configstring)
 	MACHP(0) = mach;
 
 	msg(configstring);
-	mach->self = (uintptr_t)mach;
+	mach->self = (uintptr)mach;
 	msg("SET SELF OK\n");
 	mach->machno = 0;
 	mach->online = 1;
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(stack);
-	*(uintptr_t *)mach->stack = STACKGUARD;
+	*(uintptr *)mach->stack = STACKGUARD;
 	msg(configstring);
 	mach->externup = nil;
 	active.nonline = 1;
@@ -502,7 +502,7 @@ bsp(void *stack, uintptr_t _configstring)
 		msg("free ok\n");
 	}
 
-	query_uint(configstring, "uart{addr", (uintptr_t *)&uartpa);
+	query_uint(configstring, "uart{addr", (uintptr *)&uartpa);
 	uart = KADDR(uartpa);
 	print("\nHarvey\n");
 	/* you're going to love this. Print does not print the whole
@@ -515,9 +515,9 @@ bsp(void *stack, uintptr_t _configstring)
 	query_rtc(configstring, &rtc);
 	print("rtc: %p\n", rtc);
 
-	query_uint(configstring, "rtc{addr", (uintptr_t *)&mtimepa);
+	query_uint(configstring, "rtc{addr", (uintptr *)&mtimepa);
 	mtime = KADDR(mtimepa);
-	query_uint(configstring, "core{0{0{timecmp", (uintptr_t *)&mtimecmppa);
+	query_uint(configstring, "core{0{0{timecmp", (uintptr *)&mtimecmppa);
 	mtimecmp = KADDR(mtimecmppa);
 
 	print("mtime is %p and mtimecmp is %p\n", mtime, mtimecmp);
@@ -564,7 +564,7 @@ bsp(void *stack, uintptr_t _configstring)
 	void *supervisor_trap_entry(void);
 	write_csr(/*stvec*/ 0x105, supervisor_trap_entry);
 	// enable all interrupt sources.
-	uint64_t ints = read_csr(sie);
+	u64 ints = read_csr(sie);
 	ints |= 0x666;
 	write_csr(sie, ints);
 
@@ -609,7 +609,7 @@ hardhalt(void)
 }
 
 void
-ureg2gdb(Ureg *u, uintptr_t *g)
+ureg2gdb(Ureg *u, uintptr *g)
 {
 	panic((char *)__func__);
 }
@@ -617,7 +617,7 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 int
 userureg(Ureg *u)
 {
-	int64_t ip = (int64_t)u->ip;
+	i64 ip = (i64)u->ip;
 	if(ip < 0){
 		//print("RETURNING 0 for userureg\n");
 		return 0;
@@ -666,7 +666,7 @@ sysrforkret(void)
 }
 
 void
-reboot(void *_, void *__, int32_t ___)
+reboot(void *_, void *__, i32 ___)
 {
 	panic("reboot");
 }
@@ -686,14 +686,14 @@ fpusysrforkchild(Proc *_, Proc *__)
 }
 
 int
-fpudevprocio(Proc *p, void *v, int32_t _, uintptr_t __, int ___)
+fpudevprocio(Proc *p, void *v, i32 _, uintptr __, int ___)
 {
 	panic((char *)__func__);
 	return -1;
 }
 
 void
-cycles(uint64_t *p)
+cycles(u64 *p)
 {
 	*p = rdtsc();
 }
@@ -702,7 +702,7 @@ int
 islo(void)
 {
 	//	msg("isloc\n");
-	uint64_t ms = read_csr(sstatus);
+	u64 ms = read_csr(sstatus);
 	//	msg("read it\n");
 	return ms & MSTATUS_SIE;
 }

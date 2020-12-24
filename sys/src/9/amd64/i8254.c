@@ -87,12 +87,12 @@ i8254set(int port, int hz)
 	}
 }
 
-int64_t
-i8254hz(uint32_t *info0, uint32_t *info1)
+i64
+i8254hz(u32 *info0, u32 *info1)
 {
-	uint32_t ax;
-	uint64_t a, b;
-	int64_t aamcycles, incr, loops, x, y;
+	u32 ax;
+	u64 a, b;
+	i64 aamcycles, incr, loops, x, y;
 
 	/*
 	 * Use the cpuid family info to get the

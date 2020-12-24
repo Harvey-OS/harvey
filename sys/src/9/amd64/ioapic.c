@@ -40,8 +40,8 @@ struct Rbus {
 struct Rdt {
 	Apic *apic;
 	int intin;
-	uint32_t lo;
-	uint32_t hi;
+	u32 lo;
+	u32 hi;
 
 	int ref;     /* could map to multiple busses */
 	int enabled; /* times enabled */
@@ -80,7 +80,7 @@ static int map_edge_level[4] = {
 /* TODO: use the slice library for this. */
 typedef struct {
 	Vctl v;
-	uint32_t lo;
+	u32 lo;
 	int valid;
 } Vinfo;
 static Vinfo todo[1 << 13];
@@ -105,25 +105,25 @@ readtodo(void)
 	return todostring;
 }
 
-static uint32_t
+static u32
 ioapicread(Apic *apic, int reg)
 {
-	volatile uint32_t *sel = apic->Ioapic.addr + Ioregsel;
-	volatile uint32_t *data = apic->Ioapic.addr + Iowin;
+	volatile u32 *sel = apic->Ioapic.addr + Ioregsel;
+	volatile u32 *data = apic->Ioapic.addr + Iowin;
 	*sel = reg;
 	return *data;
 }
 static void
-ioapicwrite(Apic *apic, int reg, uint32_t val)
+ioapicwrite(Apic *apic, int reg, u32 val)
 {
-	volatile uint32_t *sel = apic->Ioapic.addr + Ioregsel;
-	volatile uint32_t *data = apic->Ioapic.addr + Iowin;
+	volatile u32 *sel = apic->Ioapic.addr + Ioregsel;
+	volatile u32 *data = apic->Ioapic.addr + Iowin;
 	*sel = reg;
 	*data = val;
 }
 
 static void
-rtblget(Apic *apic, int sel, uint32_t *hi, uint32_t *lo)
+rtblget(Apic *apic, int sel, u32 *hi, u32 *lo)
 {
 	sel = Ioredtbl + 2 * sel;
 
@@ -132,7 +132,7 @@ rtblget(Apic *apic, int sel, uint32_t *hi, uint32_t *lo)
 }
 
 static void
-rtblput(Apic *apic, int sel, uint32_t hi, uint32_t lo)
+rtblput(Apic *apic, int sel, u32 hi, u32 lo)
 {
 	sel = Ioredtbl + 2 * sel;
 
@@ -155,11 +155,11 @@ rdtlookup(Apic *apic, int intin)
 }
 
 static int
-compatible(uint32_t new, uint32_t old)
+compatible(u32 new, u32 old)
 {
-	uint32_t newtop = new & ~0xff;
-	uint32_t oldtop = old & ~0xff;
-	uint32_t newvno = new & 0xff;
+	u32 newtop = new & ~0xff;
+	u32 oldtop = old & ~0xff;
+	u32 newvno = new & 0xff;
 	print("compatible: new 0x%x, old 0x%x\n", new, old);
 	if(new == old)
 		return 1;
@@ -172,7 +172,7 @@ compatible(uint32_t new, uint32_t old)
 }
 
 static void
-ioapicintrinit(int busno, int apicno, int intin, int devno, int fno, uint32_t lo)
+ioapicintrinit(int busno, int apicno, int intin, int devno, int fno, u32 lo)
 {
 	Rbus *rbus;
 	Rdt *rdt;
@@ -269,7 +269,7 @@ acpi_make_rdt(Vctl *v, int irq, int bustype, int busno, int devno, int fno)
 {
 	Atable *at;
 	Apicst *st, *lst;
-	uint32_t lo = 0;
+	u32 lo = 0;
 	int pol, edge_level, ioapic_nr, gsi_irq;
 	//print("acpi_make_rdt(0x%x %d %d 0x%x)\n", tbdf, irq, busno, devno);
 	//die("acpi.make.rdt)\n");
@@ -325,7 +325,7 @@ acpi_make_rdt(Vctl *v, int irq, int bustype, int busno, int devno, int fno)
 }
 
 void
-ioapicinit(int id, int ibase, uintptr_t pa)
+ioapicinit(int id, int ibase, uintptr pa)
 {
 	Apic *apic;
 
@@ -369,7 +369,7 @@ ioapicdump(void)
 	Rbus *rbus;
 	Rdt *rdt;
 	Apic *apic;
-	uint32_t hi, lo;
+	u32 hi, lo;
 
 	if(!DBGFLG)
 		return;
@@ -422,7 +422,7 @@ irqenable(void)
 {
 	int i;
 	Apic *apic;
-	uint32_t hi, lo;
+	u32 hi, lo;
 
 	for(apic = xioapic; apic < &xioapic[Napic]; apic++){
 		if(!apic->useable || apic->Ioapic.addr == nil)
@@ -443,7 +443,7 @@ irqenable(void)
 static int dfpolicy = 0;
 
 static void
-ioapicintrdd(uint32_t *hi, uint32_t *lo)
+ioapicintrdd(u32 *hi, u32 *lo)
 {
 	int i;
 	static int df;
@@ -526,7 +526,7 @@ static int
 intrenablemsi(Vctl *v, Pcidev *p)
 {
 	uint vno, lo, hi;
-	uint64_t msivec;
+	u64 msivec;
 
 	vno = nextvec();
 
@@ -536,7 +536,7 @@ intrenablemsi(Vctl *v, Pcidev *p)
 	if(lo & Lm)
 		lo |= MTlp;
 
-	msivec = (uint64_t)hi << 32 | lo;
+	msivec = (u64)hi << 32 | lo;
 	if(pcimsienable(p, msivec) == -1)
 		return -1;
 	v->isr = apicisr;
@@ -762,7 +762,7 @@ bus_irq_setup(Vctl *v)
 }
 
 int
-acpiirq(uint32_t tbdf, int gsi)
+acpiirq(u32 tbdf, int gsi)
 {
 	Proc *up = externup();
 	int ioapic_nr;

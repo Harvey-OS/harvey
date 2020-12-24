@@ -349,12 +349,12 @@ typedef struct Rd Rd;
 typedef struct Td Td;
 
 struct Rd { /* Receive Descriptor */
-	uint32_t addr[2];
-	uint16_t length;
-	uint16_t checksum;
-	uint8_t status;
-	uint8_t errors;
-	uint16_t special;
+	u32 addr[2];
+	u16 length;
+	u16 checksum;
+	u8 status;
+	u8 errors;
+	u16 special;
 };
 
 enum {		     /* Rd status */
@@ -378,9 +378,9 @@ enum {		    /* Rd errors */
 };
 
 struct Td {		  /* Transmit Descriptor */
-	uint32_t addr[2]; /* Data */
-	uint32_t control;
-	uint32_t status;
+	u32 addr[2]; /* Data */
+	u32 control;
+	u32 status;
 };
 
 enum {			     /* Tdesc control */
@@ -410,10 +410,10 @@ enum {			 /* Tdesc status */
 };
 
 typedef struct {
-	uint16_t *reg;
-	uint32_t *reg32;
-	uint16_t base;
-	uint16_t lim;
+	u16 *reg;
+	u32 *reg32;
+	u16 base;
+	u16 lim;
 } Flash;
 
 enum {
@@ -521,7 +521,7 @@ struct Ctlr {
 	Ether *edev;
 	int active;
 	int type;
-	uint16_t eeprom[0x40];
+	u16 eeprom[0x40];
 
 	QLock alock; /* attach */
 	int attached;
@@ -552,8 +552,8 @@ struct Ctlr {
 	uint tcpcs;
 	uint speeds[4];
 
-	uint8_t ra[Eaddrlen]; /* receive address */
-	uint32_t mta[128];    /* multicast table array */
+	u8 ra[Eaddrlen]; /* receive address */
+	u32 mta[128];    /* multicast table array */
 
 	Rendez rrendez;
 	int rim;
@@ -668,13 +668,13 @@ static char *statistics[] = {
 
 static int i82563reset(Ctlr *);
 
-static int32_t
-i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
+static i32
+i82563ifstat(Ether *edev, void *a, i32 n, u32 offset)
 {
 	Ctlr *ctlr;
 	char *s, *p, *e, *stat;
 	int i, r;
-	uint64_t tuvl, ruvl;
+	u64 tuvl, ruvl;
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
@@ -695,10 +695,10 @@ i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 		case Torl:
 		case Totl:
 			ruvl = r;
-			ruvl += (uint64_t)csr32r(ctlr, Statistics + (i + 1) * 4) << 32;
+			ruvl += (u64)csr32r(ctlr, Statistics + (i + 1) * 4) << 32;
 			tuvl = ruvl;
 			tuvl += ctlr->statistics[i];
-			tuvl += (uint64_t)ctlr->statistics[i + 1] << 32;
+			tuvl += (u64)ctlr->statistics[i + 1] << 32;
 			if(tuvl == 0)
 				continue;
 			ctlr->statistics[i] = tuvl;
@@ -754,8 +754,8 @@ i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 	return n;
 }
 
-static int32_t
-i82563ctl(Ether *_1, void *_2, int32_t _3)
+static i32
+i82563ctl(Ether *_1, void *_2, i32 _3)
 {
 	error(Enonexist);
 	return 0;
@@ -803,7 +803,7 @@ mcasttblsize(Ctlr *ctlr)
 }
 
 static void
-i82563multicast(void *arg, uint8_t *addr, int on)
+i82563multicast(void *arg, u8 *addr, int on)
 {
 	int bit, x;
 	Ctlr *ctlr;
@@ -847,7 +847,7 @@ i82563rballoc(void)
 static void
 i82563rbfree(Block *b)
 {
-	b->rp = b->wp = (uint8_t *)PGROUND((uintptr)b->base);
+	b->rp = b->wp = (u8 *)PGROUND((uintptr)b->base);
 	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
@@ -892,8 +892,8 @@ i82563txinit(Ctlr *ctlr)
 		}
 	memset(ctlr->tdba, 0, Ntd * sizeof(Td));
 	coherence();
-	csr32w(ctlr, Tdbal, (uint32_t)PADDR(ctlr->tdba));
-	csr32w(ctlr, Tdbah, (uint32_t)(PADDR(ctlr->tdba) >> 32));
+	csr32w(ctlr, Tdbal, (u32)PADDR(ctlr->tdba));
+	csr32w(ctlr, Tdbah, (u32)(PADDR(ctlr->tdba) >> 32));
 	csr32w(ctlr, Tdlen, Ntd * sizeof(Td));
 	ctlr->tdh = PREV(0, Ntd);
 	csr32w(ctlr, Tdh, 0);
@@ -964,8 +964,8 @@ i82563transmit(Ether *edev)
 		if((bp = qget(edev->oq)) == nil)
 			break;
 		td = &ctlr->tdba[tdt];
-		td->addr[0] = (uint32_t)PADDR(bp->rp);
-		td->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
+		td->addr[0] = (u32)PADDR(bp->rp);
+		td->addr[1] = (u32)(PADDR(bp->rp) >> 32);
 		td->control = Ide | Rs | Ifcs | Teop | BLEN(bp);
 		ctlr->tb[tdt] = bp;
 		/* note size of queue of tds awaiting transmission */
@@ -1005,8 +1005,8 @@ i82563replenish(Ctlr *ctlr)
 			panic("#l%d: 82563: all %d rx buffers in use, nrbfull %d",
 			      ctlr->edev->ctlrno, Nrb, nrbfull);
 		ctlr->rb[rdt] = bp;
-		rd->addr[0] = (uint32_t)PADDR(bp->rp);
-		rd->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
+		rd->addr[0] = (u32)PADDR(bp->rp);
+		rd->addr[1] = (u32)(PADDR(bp->rp) >> 32);
 		rd->status = 0;
 		ctlr->rdfree++;
 		rdt = NEXT(rdt, Nrd);
@@ -1047,8 +1047,8 @@ i82563rxinit(Ctlr *ctlr)
 		break;
 	}
 
-	csr32w(ctlr, Rdbal, (uint32_t)PADDR(ctlr->rdba));
-	csr32w(ctlr, Rdbah, (uint32_t)(PADDR(ctlr->rdba) >> 32));
+	csr32w(ctlr, Rdbal, (u32)PADDR(ctlr->rdba));
+	csr32w(ctlr, Rdbah, (u32)(PADDR(ctlr->rdba) >> 32));
 	csr32w(ctlr, Rdlen, Nrd * sizeof(Rd));
 	ctlr->rdh = ctlr->rdt = 0;
 	csr32w(ctlr, Rdh, 0);
@@ -1239,7 +1239,7 @@ phyread(Ctlr *ctlr, int reg)
 }
 
 static uint
-phywrite(Ctlr *ctlr, int reg, uint16_t val)
+phywrite(Ctlr *ctlr, int reg, u16 val)
 {
 	uint phy, i;
 
@@ -1258,8 +1258,8 @@ phywrite(Ctlr *ctlr, int reg, uint16_t val)
 	return 0;
 }
 
-static uint32_t
-kmrnread(Ctlr *ctlr, uint32_t reg_addr)
+static u32
+kmrnread(Ctlr *ctlr, u32 reg_addr)
 {
 	csr32w(ctlr, Kumctrlsta, ((reg_addr << Kumctrlstaoffshift) & Kumctrlstaoff) | Kumctrlstaren); /* write register address */
 	microdelay(2);
@@ -1267,7 +1267,7 @@ kmrnread(Ctlr *ctlr, uint32_t reg_addr)
 }
 
 static void
-kmrnwrite(Ctlr *ctlr, uint32_t reg_addr, uint16_t data)
+kmrnwrite(Ctlr *ctlr, u32 reg_addr, u16 data)
 {
 	csr32w(ctlr, Kumctrlsta, ((reg_addr << Kumctrlstaoffshift) & Kumctrlstaoff) | data);
 	microdelay(2);
@@ -1300,8 +1300,8 @@ static void
 k1fix(Ctlr *ctlr)
 {
 	int txtmout; /* units of 10µs */
-	uint32_t fextnvm6, status;
-	uint16_t reg;
+	u32 fextnvm6, status;
+	u16 reg;
 	Ether *edev;
 
 	edev = ctlr->edev;
@@ -1606,7 +1606,7 @@ i82563detach0(Ctlr *ctlr)
 		break;
 	case i218:
 		// after pxe or 9fat boot, pba is always 0xe0012 on i218 => 32K
-		ctlr->pbs = (ctlr->pba >> 16) + (uint16_t)ctlr->pba;
+		ctlr->pbs = (ctlr->pba >> 16) + (u16)ctlr->pba;
 		csr32w(ctlr, Pbs, ctlr->pbs);
 		break;
 	}
@@ -1667,10 +1667,10 @@ i82563shutdown(Ether *ether)
 	i82563detach(ether->ctlr);
 }
 
-static uint16_t
+static u16
 eeread(Ctlr *ctlr, int adr)
 {
-	uint32_t n;
+	u32 n;
 
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
 	for(n = 1000000; (csr32r(ctlr, Eerd) & EEdone) == 0 && n-- > 0;)
@@ -1684,7 +1684,7 @@ eeread(Ctlr *ctlr, int adr)
 static int
 eeload(Ctlr *ctlr)
 {
-	uint16_t sum;
+	u16 sum;
 	int data, adr;
 
 	sum = 0;
@@ -1699,7 +1699,7 @@ eeload(Ctlr *ctlr)
 static int
 fcycle(Ctlr *_, Flash *f)
 {
-	uint16_t s, i;
+	u16 s, i;
 
 	s = f->reg[Fsts];
 	if((s & Fvalid) == 0)
@@ -1717,8 +1717,8 @@ fcycle(Ctlr *_, Flash *f)
 static int
 fread(Ctlr *ctlr, Flash *f, int ladr)
 {
-	uint16_t s;
-	uint32_t n;
+	u16 s;
+	u32 n;
 
 	delay(1);
 	if(fcycle(ctlr, f) == -1)
@@ -1742,9 +1742,9 @@ fread(Ctlr *ctlr, Flash *f, int ladr)
 }
 
 static int
-fread32(Ctlr *c, Flash *f, int ladr, uint32_t *data)
+fread32(Ctlr *c, Flash *f, int ladr, u32 *data)
 {
-	uint32_t s;
+	u32 s;
 	int timeout;
 
 	delay(1);
@@ -1787,8 +1787,8 @@ done:
 static int
 fload16(Ctlr *ctlr)
 {
-	uint32_t data, io, r, adr;
-	uint16_t sum;
+	u32 data, io, r, adr;
+	u16 sum;
 	Flash f;
 
 	io = ctlr->pcidev->mem[1].bar & ~0x0f;
@@ -1822,17 +1822,17 @@ fload32(Ctlr *c)
 {
 	// nic points to the address pointed to by the first pci BAR
 	Flash f = {
-		.reg32 = (uint32_t *)&c->nic[0xe000 / 4],
+		.reg32 = (u32 *)&c->nic[0xe000 / 4],
 		.lim = (((csr32r(c, 0xC) >> 1) & 0x1F) + 1) << 12,
 	};
 
-	uint32_t w;
+	u32 w;
 	int r = f.lim >> 1;
 	if(fread32(c, &f, r + 0x24, &w) == -1 || (w & 0xC000) != 0x8000){
 		r = 0;
 	}
 
-	uint16_t sum = 0;
+	u16 sum = 0;
 	for(int adr = 0; adr < 0x20; adr++){
 		if(fread32(c, &f, r + adr * 4, &w) == -1){
 			return -1;
@@ -1849,7 +1849,7 @@ static int
 invmload(Ctlr *c)
 {
 	int i, a;
-	uint32_t w;
+	u32 w;
 
 	memset(c->eeprom, 0xFF, sizeof(c->eeprom));
 	for(i = 0; i < 64; i++){
@@ -1980,7 +1980,7 @@ static void
 i82563pci(void)
 {
 	int type;
-	uint32_t io;
+	u32 io;
 	void *mem;
 	Pcidev *p;
 	Ctlr *ctlr;

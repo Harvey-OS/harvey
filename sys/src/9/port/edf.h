@@ -43,14 +43,14 @@ struct Edf {
 	long testtime;
 	Proc *testnext;
 	/* other */
-	uint16_t flags;
+	u16 flags;
 	Timer Timer;
 	/* Stats */
 	long edfused;
 	long extraused;
 	long aged;
-	uint32_t periods;
-	uint32_t missed;
+	u32 periods;
+	u32 missed;
 };
 
 extern Lock edftestlock; /* for atomic admitting/expelling */

@@ -123,48 +123,48 @@ struct Tcptimer {
  */
 typedef struct Tcp4hdr Tcp4hdr;
 struct Tcp4hdr {
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* Identification */
-	uint8_t frag[2];   /* Fragment information */
-	uint8_t Unused;
-	uint8_t proto;
-	uint8_t tcplen[2];
-	uint8_t tcpsrc[4];
-	uint8_t tcpdst[4];
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* Identification */
+	u8 frag[2];   /* Fragment information */
+	u8 Unused;
+	u8 proto;
+	u8 tcplen[2];
+	u8 tcpsrc[4];
+	u8 tcpdst[4];
 	/* same as v6 from here on */
-	uint8_t tcpsport[2];
-	uint8_t tcpdport[2];
-	uint8_t tcpseq[4];
-	uint8_t tcpack[4];
-	uint8_t tcpflag[2];
-	uint8_t tcpwin[2];
-	uint8_t tcpcksum[2];
-	uint8_t tcpurg[2];
+	u8 tcpsport[2];
+	u8 tcpdport[2];
+	u8 tcpseq[4];
+	u8 tcpack[4];
+	u8 tcpflag[2];
+	u8 tcpwin[2];
+	u8 tcpcksum[2];
+	u8 tcpurg[2];
 	/* Options segment */
-	uint8_t tcpopt[1];
+	u8 tcpopt[1];
 };
 
 typedef struct Tcp6hdr Tcp6hdr;
 struct Tcp6hdr {
-	uint8_t vcf[4];
-	uint8_t ploadlen[2];
-	uint8_t proto;
-	uint8_t ttl;
-	uint8_t tcpsrc[IPaddrlen];
-	uint8_t tcpdst[IPaddrlen];
+	u8 vcf[4];
+	u8 ploadlen[2];
+	u8 proto;
+	u8 ttl;
+	u8 tcpsrc[IPaddrlen];
+	u8 tcpdst[IPaddrlen];
 	/* same as v4 from here on */
-	uint8_t tcpsport[2];
-	uint8_t tcpdport[2];
-	uint8_t tcpseq[4];
-	uint8_t tcpack[4];
-	uint8_t tcpflag[2];
-	uint8_t tcpwin[2];
-	uint8_t tcpcksum[2];
-	uint8_t tcpurg[2];
+	u8 tcpsport[2];
+	u8 tcpdport[2];
+	u8 tcpseq[4];
+	u8 tcpack[4];
+	u8 tcpflag[2];
+	u8 tcpwin[2];
+	u8 tcpcksum[2];
+	u8 tcpurg[2];
 	/* Options segment */
-	uint8_t tcpopt[1];
+	u8 tcpopt[1];
 };
 
 /*
@@ -175,17 +175,17 @@ struct Tcp6hdr {
  */
 typedef struct Tcp Tcp;
 struct Tcp {
-	uint16_t source;
-	uint16_t dest;
-	uint32_t seq;
-	uint32_t ack;
-	uint8_t flags;
-	uint8_t update;
-	uint16_t ws;  /* window scale option */
-	uint32_t wnd; /* prescaled window*/
-	uint16_t urg;
-	uint16_t mss; /* max segment size option (if not zero) */
-	uint16_t len; /* size of data */
+	u16 source;
+	u16 dest;
+	u32 seq;
+	u32 ack;
+	u8 flags;
+	u8 update;
+	u16 ws;  /* window scale option */
+	u32 wnd; /* prescaled window*/
+	u16 urg;
+	u16 mss; /* max segment size option (if not zero) */
+	u16 len; /* size of data */
 };
 
 /*
@@ -197,7 +197,7 @@ struct Reseq {
 	Reseq *next;
 	Tcp seg;
 	Block *bp;
-	uint16_t length;
+	u16 length;
 };
 
 /*
@@ -205,53 +205,53 @@ struct Reseq {
  */
 typedef struct Tcpctl Tcpctl;
 struct Tcpctl {
-	uint8_t state; /* Connection state */
-	uint8_t type;  /* Listening or active connection */
-	uint8_t code;  /* Icmp code */
+	u8 state; /* Connection state */
+	u8 type;  /* Listening or active connection */
+	u8 code;  /* Icmp code */
 	struct {
-		uint32_t una; /* Unacked data pointer */
-		uint32_t nxt; /* Next sequence expected */
-		uint32_t ptr; /* Data pointer */
-		uint32_t wnd; /* Tcp send window */
-		uint32_t urg; /* Urgent data pointer */
-		uint32_t wl2;
+		u32 una; /* Unacked data pointer */
+		u32 nxt; /* Next sequence expected */
+		u32 ptr; /* Data pointer */
+		u32 wnd; /* Tcp send window */
+		u32 urg; /* Urgent data pointer */
+		u32 wl2;
 		uint scale; /* how much to right shift window */
 			    /* in xmitted packets */
 		/* to implement tahoe and reno TCP */
-		uint32_t dupacks; /* number of duplicate acks rcvd */
-		uint32_t partialack;
+		u32 dupacks; /* number of duplicate acks rcvd */
+		u32 partialack;
 		int recovery;	/* loss recovery flag */
 		int retransmit; /* retransmit 1 packet @ una flag */
 		int rto;
-		uint32_t rxt; /* right window marker for recovery */
+		u32 rxt; /* right window marker for recovery */
 			      /* "recover" rfc3782 */
 	} snd;
 	struct {
-		uint32_t nxt;  /* Receive pointer to next uint8_t slot */
-		uint32_t wnd;  /* Receive window incoming */
-		uint32_t wsnt; /* Last wptr sent.  important to */
+		u32 nxt;  /* Receive pointer to next uint8_t slot */
+		u32 wnd;  /* Receive window incoming */
+		u32 wsnt; /* Last wptr sent.  important to */
 		/* track for large bdp */
-		uint32_t wptr;
-		uint32_t urg;	 /* Urgent pointer */
-		uint32_t ackptr; /* last acked sequence */
+		u32 wptr;
+		u32 urg;	 /* Urgent pointer */
+		u32 ackptr; /* last acked sequence */
 		int blocked;
 		uint scale; /* how much to left shift window in */
 			    /* rcv'd packets */
 	} rcv;
-	uint32_t iss;	   /* Initial sequence number */
-	uint32_t cwind;	   /* Congestion window */
-	uint32_t abcbytes; /* appropriate byte counting rfc 3465 */
+	u32 iss;	   /* Initial sequence number */
+	u32 cwind;	   /* Congestion window */
+	u32 abcbytes; /* appropriate byte counting rfc 3465 */
 	uint scale;	   /* desired snd.scale */
-	uint32_t ssthresh; /* Slow start threshold */
+	u32 ssthresh; /* Slow start threshold */
 	int resent;	   /* Bytes just resent */
 	int irs;	   /* Initial received squence */
-	uint16_t mss;	   /* Maximum segment size */
+	u16 mss;	   /* Maximum segment size */
 	int rerecv;	   /* Overlap of data rerecevived */
-	uint32_t window;   /* Our receive window (queue) */
+	u32 window;   /* Our receive window (queue) */
 	uint qscale;	   /* Log2 of our receive window (queue) */
-	uint8_t backoff;   /* Exponential backoff counter */
+	u8 backoff;   /* Exponential backoff counter */
 	int backedoff;	   /* ms we've backed off for rexmits */
-	uint8_t flags;	   /* State flags */
+	u8 flags;	   /* State flags */
 	Reseq *reseq;	   /* Resequencing queue */
 	int nreseq;
 	int reseqlen;
@@ -259,13 +259,13 @@ struct Tcpctl {
 	Tcptimer acktimer;  /* Acknowledge timer */
 	Tcptimer rtt_timer; /* Round trip timer */
 	Tcptimer katimer;   /* keep alive timer */
-	uint32_t rttseq;    /* Round trip sequence */
+	u32 rttseq;    /* Round trip sequence */
 	int srtt;	    /* Smoothed round trip */
 	int mdev;	    /* Mean deviation of round trip */
 	int kacounter;	    /* count down for keep alive */
 	uint sndsyntime;    /* time syn sent */
-	uint32_t time;	    /* time Finwait2 or Syn_received was sent */
-	uint32_t timeuna;   /* snd.una when time was set */
+	u32 time;	    /* time Finwait2 or Syn_received was sent */
+	u32 timeuna;   /* snd.una when time was set */
 	int nochecksum;	    /* non-zero means don't send checksums */
 	int flgcnt;	    /* number of flags in the sequence (FIN,SEQ) */
 
@@ -292,18 +292,18 @@ typedef struct Limbo Limbo;
 struct Limbo {
 	Limbo *next;
 
-	uint8_t laddr[IPaddrlen];
-	uint8_t raddr[IPaddrlen];
-	uint16_t lport;
-	uint16_t rport;
-	uint32_t irs;	   /* initial received sequence */
-	uint32_t iss;	   /* initial sent sequence */
-	uint16_t mss;	   /* mss from the other end */
-	uint16_t rcvscale; /* how much to scale rcvd windows */
-	uint16_t sndscale; /* how much to scale sent windows */
-	uint32_t lastsend; /* last time we sent a synack */
-	uint8_t version;   /* v4 or v6 */
-	uint8_t rexmits;   /* number of retransmissions */
+	u8 laddr[IPaddrlen];
+	u8 raddr[IPaddrlen];
+	u16 lport;
+	u16 rport;
+	u32 irs;	   /* initial received sequence */
+	u32 iss;	   /* initial sent sequence */
+	u16 mss;	   /* mss from the other end */
+	u16 rcvscale; /* how much to scale rcvd windows */
+	u16 sndscale; /* how much to scale sent windows */
+	u32 lastsend; /* last time we sent a synack */
+	u8 version;   /* v4 or v6 */
+	u8 rexmits;   /* number of retransmissions */
 };
 
 int tcp_irtt = DEF_RTT; /* Initial guess at round trip time */
@@ -396,7 +396,7 @@ struct Tcppriv {
 	QLock apl;
 	int ackprocstarted;
 
-	uint64_t stats[Nstats];
+	u64 stats[Nstats];
 };
 
 /*
@@ -410,10 +410,10 @@ struct Tcppriv {
  */
 int tcpporthogdefense = 0;
 
-static int addreseq(Fs *, Tcpctl *, Tcppriv *, Tcp *, Block *, uint16_t);
+static int addreseq(Fs *, Tcpctl *, Tcppriv *, Tcp *, Block *, u16);
 static int dumpreseq(Tcpctl *);
-static void getreseq(Tcpctl *, Tcp *, Block **, uint16_t *);
-static void limbo(Conv *, uint8_t *, uint8_t *, Tcp *, int);
+static void getreseq(Tcpctl *, Tcp *, Block **, u16 *);
+static void limbo(Conv *, u8 *, u8 *, Tcp *, int);
 static void limborexmit(Proto *);
 static void localclose(Conv *, char *);
 static void procsyn(Conv *, Tcp *);
@@ -424,19 +424,19 @@ static void tcpoutput(Conv *);
 static void tcprcvwin(Conv *);
 static void tcprxmit(Conv *);
 static void tcpsetkacounter(Tcpctl *);
-static void tcpsetscale(Conv *, Tcpctl *, uint16_t, uint16_t);
+static void tcpsetscale(Conv *, Tcpctl *, u16, u16);
 static void tcpsettimer(Tcpctl *);
 static void tcpsndsyn(Conv *, Tcpctl *);
 static void tcpstart(Conv *, int);
 static void tcpsynackrtt(Conv *);
 static void tcptimeout(void *);
-static int tcptrim(Tcpctl *, Tcp *, Block **, uint16_t *);
+static int tcptrim(Tcpctl *, Tcp *, Block **, u16 *);
 
 static void
-tcpsetstate(Conv *s, uint8_t newstate)
+tcpsetstate(Conv *s, u8 newstate)
 {
 	Tcpctl *tcb;
-	uint8_t oldstate;
+	u8 oldstate;
 	Tcppriv *tpriv;
 
 	tpriv = s->p->priv;
@@ -616,7 +616,7 @@ tcpkick(void *x)
 	poperror();
 }
 
-static int seq_lt(uint32_t, uint32_t);
+static int seq_lt(u32, u32);
 
 static void
 tcprcvwin(Conv *s) /* Call with tcb locked */
@@ -667,7 +667,7 @@ tcpacktimer(void *v)
 static void
 tcpcongestion(Tcpctl *tcb)
 {
-	uint32_t inflight;
+	u32 inflight;
 
 	inflight = tcb->snd.nxt - tcb->snd.una;
 	if(inflight > tcb->cwind)
@@ -852,7 +852,7 @@ localclose(Conv *s, char *reason) /* called with tcb locked */
 
 /* mtu (- TCP + IP hdr len) of 1st hop */
 static int
-tcpmtu(Proto *tcp, uint8_t *addr, int version, uint *scale)
+tcpmtu(Proto *tcp, u8 *addr, int version, uint *scale)
 {
 	Ipifc *ifc;
 	int mtu;
@@ -1023,9 +1023,9 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 {
 	int dlen;
 	Tcp6hdr *h;
-	uint16_t csum;
-	uint16_t hdrlen, optpad = 0;
-	uint8_t *opt;
+	u16 csum;
+	u16 hdrlen, optpad = 0;
+	u8 *opt;
 
 	hdrlen = TCP6_HDRSIZE;
 	if(tcph->flags & SYN){
@@ -1106,9 +1106,9 @@ htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 {
 	int dlen;
 	Tcp4hdr *h;
-	uint16_t csum;
-	uint16_t hdrlen, optpad = 0;
-	uint8_t *opt;
+	u16 csum;
+	u16 hdrlen, optpad = 0;
+	u8 *opt;
 
 	hdrlen = TCP4_HDRSIZE;
 	if(tcph->flags & SYN){
@@ -1179,9 +1179,9 @@ static int
 ntohtcp6(Tcp *tcph, Block **bpp)
 {
 	Tcp6hdr *h;
-	uint8_t *optr;
-	uint16_t hdrlen;
-	uint16_t optlen;
+	u8 *optr;
+	u16 hdrlen;
+	u16 optlen;
 	int n;
 
 	*bpp = pullupblock(*bpp, TCP6_PKT + TCP6_HDRSIZE);
@@ -1242,9 +1242,9 @@ static int
 ntohtcp4(Tcp *tcph, Block **bpp)
 {
 	Tcp4hdr *h;
-	uint8_t *optr;
-	uint16_t hdrlen;
-	uint16_t optlen;
+	u8 *optr;
+	u16 hdrlen;
+	u16 optlen;
 	int n;
 
 	*bpp = pullupblock(*bpp, TCP4_PKT + TCP4_HDRSIZE);
@@ -1329,10 +1329,11 @@ tcpsndsyn(Conv *s, Tcpctl *tcb)
 }
 
 void
-sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length, Tcp *seg, uint8_t version, char *reason)
+sndrst(Proto *tcp, u8 *source, u8 *dest, u16 length, Tcp *seg,
+       u8 version, char *reason)
 {
 	Block *hbp;
-	uint8_t rflags;
+	u8 rflags;
 	Tcppriv *tpriv;
 	Tcp4hdr ph4;
 	Tcp6hdr ph6;
@@ -1541,7 +1542,7 @@ sndsynack(Proto *tcp, Limbo *lp)
  *  called with proto locked
  */
 static void
-limbo(Conv *s, uint8_t *source, uint8_t *dest, Tcp *seg, int version)
+limbo(Conv *s, u8 *source, u8 *dest, Tcp *seg, int version)
 {
 	Limbo *lp, **l;
 	Tcppriv *tpriv;
@@ -1604,7 +1605,7 @@ limborexmit(Proto *tcp)
 	Limbo **l, *lp;
 	int h;
 	int seen;
-	uint32_t now;
+	u32 now;
 
 	tpriv = tcp->priv;
 
@@ -1650,7 +1651,7 @@ limborexmit(Proto *tcp)
  *  called with proto locked
  */
 static void
-limborst(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
+limborst(Conv *s, Tcp *segp, u8 *src, u8 *dst, u8 version)
 {
 	Limbo *lp, **l;
 	int h;
@@ -1698,7 +1699,7 @@ initialwindow(Tcpctl *tcb)
  *  called with proto locked
  */
 static Conv *
-tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
+tcpincoming(Conv *s, Tcp *segp, u8 *src, u8 *dst, u8 version)
 {
 	Conv *new;
 	Tcpctl *tcb;
@@ -1829,7 +1830,7 @@ tcpincoming(Conv *s, Tcp *segp, uint8_t *src, uint8_t *dst, uint8_t version)
 }
 
 static int
-seq_within(uint32_t x, uint32_t low, uint32_t high)
+seq_within(u32 x, u32 low, u32 high)
 {
 	if(low <= high){
 		if(low <= x && x <= high)
@@ -1842,25 +1843,25 @@ seq_within(uint32_t x, uint32_t low, uint32_t high)
 }
 
 static int
-seq_lt(uint32_t x, uint32_t y)
+seq_lt(u32 x, u32 y)
 {
 	return (int)(x - y) < 0;
 }
 
 static int
-seq_le(uint32_t x, uint32_t y)
+seq_le(u32 x, u32 y)
 {
 	return (int)(x - y) <= 0;
 }
 
 static int
-seq_gt(uint32_t x, uint32_t y)
+seq_gt(u32 x, u32 y)
 {
 	return (int)(x - y) > 0;
 }
 
 static int
-seq_ge(uint32_t x, uint32_t y)
+seq_ge(u32 x, u32 y)
 {
 	return (int)(x - y) >= 0;
 }
@@ -1892,7 +1893,7 @@ update(Conv *s, Tcp *seg)
 {
 	int rtt, delta;
 	Tcpctl *tcb;
-	uint32_t acked;
+	u32 acked;
 	Tcppriv *tpriv;
 
 	if(seg->update)
@@ -2074,12 +2075,12 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 	Tcp6hdr *h6;
 	int hdrlen;
 	Tcpctl *tcb;
-	uint16_t length, csum;
-	uint8_t source[IPaddrlen], dest[IPaddrlen];
+	u16 length, csum;
+	u8 source[IPaddrlen], dest[IPaddrlen];
 	Conv *s;
 	Fs *f;
 	Tcppriv *tpriv;
-	uint8_t version;
+	u8 version;
 
 	f = tcp->f;
 	tpriv = tcp->priv;
@@ -2552,10 +2553,10 @@ tcpoutput(Conv *s)
 	Tcpctl *tcb;
 	Block *hbp, *bp;
 	int sndcnt;
-	uint32_t ssize, dsize, sent;
+	u32 ssize, dsize, sent;
 	Fs *f;
 	Tcppriv *tpriv;
-	uint8_t version;
+	u8 version;
 
 	f = s->p->f;
 	tpriv = s->p->priv;
@@ -2917,7 +2918,7 @@ tcprxmit(Conv *s)
 {
 	Tcpctl *tcb;
 	Tcppriv *tpriv;
-	uint32_t tcwind, tptr;
+	u32 tcwind, tptr;
 
 	tcb = (Tcpctl *)s->ptcl;
 	tcb->flags |= RETRAN | FORCE;
@@ -3055,7 +3056,7 @@ dumpreseq(Tcpctl *tcb)
 }
 
 static void
-logreseq(Fs *f, Reseq *r, uint32_t n)
+logreseq(Fs *f, Reseq *r, u32 n)
 {
 	char *s;
 
@@ -3075,7 +3076,7 @@ logreseq(Fs *f, Reseq *r, uint32_t n)
 }
 
 static int
-addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, uint16_t length)
+addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, u16 length)
 {
 	Reseq *rp, **rr;
 	int qmax;
@@ -3124,7 +3125,7 @@ addreseq(Fs *f, Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, uint16_t lengt
 }
 
 static void
-getreseq(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
+getreseq(Tcpctl *tcb, Tcp *seg, Block **bp, u16 *length)
 {
 	Reseq *rp;
 
@@ -3145,10 +3146,10 @@ getreseq(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
 }
 
 static int
-tcptrim(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
+tcptrim(Tcpctl *tcb, Tcp *seg, Block **bp, u16 *length)
 {
-	uint16_t len;
-	uint8_t accept;
+	u16 len;
+	u8 accept;
 	int dupcnt, excess;
 
 	accept = 0;
@@ -3189,7 +3190,7 @@ tcptrim(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
 			dupcnt--;
 		}
 		if(dupcnt > 0){
-			pullblock(bp, (uint16_t)dupcnt);
+			pullblock(bp, (u16)dupcnt);
 			seg->seq += dupcnt;
 			*length -= dupcnt;
 
@@ -3219,9 +3220,9 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 	Tcp4hdr *h4;
 	Tcp6hdr *h6;
 	Tcpctl *tcb;
-	uint8_t source[IPaddrlen];
-	uint8_t dest[IPaddrlen];
-	uint16_t psource, pdest;
+	u8 source[IPaddrlen];
+	u8 dest[IPaddrlen];
+	u16 psource, pdest;
 	Conv *s, **p;
 
 	h4 = (Tcp4hdr *)(bp->rp);
@@ -3397,7 +3398,7 @@ tcpinit(Fs *fs)
 }
 
 static void
-tcpsetscale(Conv *s, Tcpctl *tcb, uint16_t rcvscale, uint16_t sndscale)
+tcpsetscale(Conv *s, Tcpctl *tcb, u16 rcvscale, u16 sndscale)
 {
 	/*
 	 * guess at reasonable queue sizes.  there's no current way

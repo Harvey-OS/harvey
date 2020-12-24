@@ -115,13 +115,13 @@ typedef SHA256Ctx mdCtx;
 typedef rijndaelCtx ciphCtx;
 
 struct FState {
-	uint8_t counter[ciphBlock];
-	uint8_t result[ciphBlock];
-	uint8_t key[block];
+	u8 counter[ciphBlock];
+	u8 result[ciphBlock];
+	u8 key[block];
 	mdCtx pool[numPools];
 	ciphCtx ciph;
 	unsigned reseedCount;
-	int32_t lastReseedTime;
+	i32 lastReseedTime;
 	unsigned pool0Bytes;
 	unsigned rndPos;
 	int tricksDone;
@@ -137,15 +137,15 @@ typedef struct FState FState;
  */
 
 static void
-ciph_init(ciphCtx *ctx, const uint8_t *key, int klen)
+ciph_init(ciphCtx *ctx, const u8 *key, int klen)
 {
-	rijndael_set_key(ctx, (const uint32_t *)key, klen, 1);
+	rijndael_set_key(ctx, (const u32 *)key, klen, 1);
 }
 
 static void
-ciph_encrypt(ciphCtx *ctx, const uint8_t *in, uint8_t *out)
+ciph_encrypt(ciphCtx *ctx, const u8 *in, u8 *out)
 {
-	rijndael_encrypt(ctx, (const uint32_t *)in, (uint32_t *)out);
+	rijndael_encrypt(ctx, (const u32 *)in, (u32 *)out);
 }
 
 static void
@@ -155,13 +155,13 @@ md_init(mdCtx *ctx)
 }
 
 static void
-md_update(mdCtx *ctx, const uint8_t *data, int len)
+md_update(mdCtx *ctx, const u8 *data, int len)
 {
 	SHA256_Update(ctx, data, len);
 }
 
 static void
-md_result(mdCtx *ctx, uint8_t *dst)
+md_result(mdCtx *ctx, u8 *dst)
 {
 	SHA256Ctx tmp;
 
@@ -190,7 +190,7 @@ init_state(FState *st)
 static void
 inc_counter(FState *st)
 {
-	uint32_t *val = (uint32_t *)st->counter;
+	u32 *val = (u32 *)st->counter;
 
 	if(++val[0])
 		return;
@@ -205,7 +205,7 @@ inc_counter(FState *st)
  * This is called 'cipher in counter mode'.
  */
 static void
-encrypt_counter(FState *st, uint8_t *dst)
+encrypt_counter(FState *st, u8 *dst)
 {
 	ciph_encrypt(&st->ciph, st->counter, dst);
 	inc_counter(st);
@@ -219,8 +219,8 @@ static int
 enough_time_passed(FState *st)
 {
 	int ok;
-	int32_t now;
-	int32_t last = st->lastReseedTime;
+	i32 now;
+	i32 last = st->lastReseedTime;
 
 	now = seconds();
 
@@ -245,7 +245,7 @@ reseed(FState *st)
 	unsigned k;
 	unsigned n;
 	mdCtx key_md;
-	uint8_t buf[block];
+	u8 buf[block];
 
 	/* set pool as empty */
 	st->pool0Bytes = 0;
@@ -305,10 +305,10 @@ get_rand_pool(FState *st)
  * update pools
  */
 static void
-add_entropy(FState *st, const uint8_t *data, unsigned len)
+add_entropy(FState *st, const u8 *data, unsigned len)
 {
 	unsigned pos;
-	uint8_t hash[block];
+	u8 hash[block];
 	mdCtx md;
 
 	/* hash given data */
@@ -353,7 +353,7 @@ static void
 startup_tricks(FState *st)
 {
 	int i;
-	uint8_t buf[block];
+	u8 buf[block];
 
 	/* Use next block as counter. */
 	encrypt_counter(st, st->counter);
@@ -374,7 +374,7 @@ startup_tricks(FState *st)
 }
 
 static void
-extract_data(FState *st, unsigned count, uint8_t *dst)
+extract_data(FState *st, unsigned count, u8 *dst)
 {
 	unsigned n;
 	unsigned block_nr = 0;
@@ -427,7 +427,7 @@ init()
  */
 
 void
-fortuna_add_entropy(const uint8_t *data, unsigned len)
+fortuna_add_entropy(const u8 *data, unsigned len)
 {
 	if(!initDone){
 		init();
@@ -438,7 +438,7 @@ fortuna_add_entropy(const uint8_t *data, unsigned len)
 }
 
 void
-fortuna_get_bytes(unsigned len, uint8_t *dst)
+fortuna_get_bytes(unsigned len, u8 *dst)
 {
 	if(!initDone){
 		init();

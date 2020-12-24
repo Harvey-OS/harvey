@@ -68,16 +68,16 @@ isphysseg(char *name)
 }
 
 /* Needs to be non-static for BGP support */
-uintptr_t
-ibrk(uintptr_t addr, int seg)
+uintptr
+ibrk(uintptr addr, int seg)
 {
 	Proc *up = externup();
 	Segment *s, *ns;
-	uintptr_t newtop, rtop;
-	int32_t newsize;
+	uintptr newtop, rtop;
+	i32 newsize;
 	int i, mapsize;
 	Pte **map;
-	uintmem pgsz;
+	u64 pgsz;
 
 	s = up->seg[seg];
 	if(s == 0)
@@ -150,7 +150,7 @@ syssegbrk(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	int i;
-	uintptr_t addr;
+	uintptr addr;
 	Segment *s;
 	va_list list;
 	va_start(list, ar0);
@@ -199,7 +199,7 @@ void
 sysbrk_(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
-	uintptr_t addr;
+	uintptr addr;
 	va_list list;
 	va_start(list, ar0);
 	int i;
@@ -222,8 +222,8 @@ sysbrk_(Ar0 *ar0, ...)
 	ar0->i = -1;
 }
 
-static uintptr_t
-segattach(Proc *p, int attr, char *name, uintptr_t va, usize len)
+static uintptr
+segattach(Proc *p, int attr, char *name, uintptr va, usize len)
 {
 	Proc *up = externup();
 	int sno;
@@ -330,7 +330,7 @@ syssegattach(Ar0 *ar0, ...)
 	Proc *up = externup();
 	int attr;
 	char *name;
-	uintptr_t va;
+	uintptr va;
 	usize len;
 	va_list list;
 	va_start(list, ar0);
@@ -354,7 +354,7 @@ syssegdetach(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	int i;
-	uintptr_t addr;
+	uintptr addr;
 	Segment *s;
 	va_list list;
 	va_start(list, ar0);
@@ -411,7 +411,7 @@ syssegfree(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Segment *s;
-	uintptr_t from, to;
+	uintptr from, to;
 	usize len;
 	va_list list;
 	va_start(list, ar0);
@@ -459,7 +459,7 @@ syssegflush(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Segment *s;
-	uintptr_t addr;
+	uintptr addr;
 	Pte *pte;
 	usize chunk, l, len, pe, ps;
 	va_list list;

@@ -18,14 +18,14 @@ struct Ether {
 
 	int ctlrno;
 	int tbdf; /* type+busno+devno+funcno */
-	uint8_t ea[Eaddrlen];
+	u8 ea[Eaddrlen];
 
 	void (*attach)(Ether *); /* filled in by reset routine */
 	void (*detach)(Ether *);
 	void (*transmit)(Ether *);
 	void (*interrupt)(Ureg *, void *);
-	int32_t (*ifstat)(Ether *, void *, int32_t, uint32_t);
-	int32_t (*ctl)(Ether *, void *, int32_t); /* custom ctl messages */
+	i32 (*ifstat)(Ether *, void *, i32, u32);
+	i32 (*ctl)(Ether *, void *, i32); /* custom ctl messages */
 	void (*power)(Ether *, int);		  /* power on/off */
 	void (*shutdown)(Ether *);		  /* shutdown hardware before reboot */
 	void *ctlr;
@@ -37,7 +37,7 @@ struct Ether {
 
 extern Block *etheriq(Ether *, Block *, int);
 extern void addethercard(char *, int (*)(Ether *));
-extern uint32_t ethercrc(unsigned char *, int);
+extern u32 ethercrc(unsigned char *, int);
 extern int parseether(unsigned char *, char *);
 
 #define NEXT(x, l) (((x) + 1) % (l))

@@ -27,8 +27,8 @@ void msg(char *);
  */
 typedef struct Asm Asm;
 typedef struct Asm {
-	uintmem addr;
-	uintmem size;
+	u64 addr;
+	u64 size;
 	int type;
 	int location;
 	Asm *next;
@@ -71,7 +71,7 @@ asmdump(void)
 }
 
 static Asm *
-asmnew(uintmem addr, uintmem size, int type)
+asmnew(u64 addr, u64 size, int type)
 {
 	Asm *assem;
 
@@ -92,7 +92,7 @@ asmnew(uintmem addr, uintmem size, int type)
 }
 
 int
-asmfree(uintmem addr, uintmem size, int type)
+asmfree(u64 addr, u64 size, int type)
 {
 	Asm *np, *pp, **ppp;
 
@@ -154,10 +154,10 @@ asmfree(uintmem addr, uintmem size, int type)
 	return 0;
 }
 
-uintmem
-asmalloc(uintmem addr, uintmem size, int type, int align)
+u64
+asmalloc(u64 addr, u64 size, int type, int align)
 {
-	uintmem a, o;
+	u64 a, o;
 	Asm *assem, *pp;
 
 	DBG("asmalloc: %p@%p, type %d\n", size, addr, type);
@@ -227,7 +227,7 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 }
 
 static void
-asminsert(uintmem addr, uintmem size, int type)
+asminsert(u64 addr, u64 size, int type)
 {
 	if(type == AsmNONE || asmalloc(addr, size, AsmNONE, 0) == 0)
 		return;
@@ -251,7 +251,7 @@ asminit(void)
  * Multiboot defines the alignment of modules as 4096.
  */
 void
-asmmapinit(uintmem addr, uintmem size, int type)
+asmmapinit(u64 addr, u64 size, int type)
 {
 	switch(type){
 	default:
@@ -281,7 +281,7 @@ asmmapinit(uintmem addr, uintmem size, int type)
 }
 
 void
-asmmodinit(uint32_t start, uint32_t end, char *s)
+asmmodinit(u32 start, u32 end, char *s)
 {
 	DBG("asmmodinit: %#x -> %#x: <%s> %#x\n",
 	    start, end, s, ROUNDUP(end, 4096));
@@ -300,7 +300,7 @@ static int npg[4];
 void *
 asmbootalloc(usize size)
 {
-	uintptr_t va;
+	uintptr va;
 
 	assert(sys->vmunused + size <= sys->vmunmapped);
 	va = sys->vmunused;
@@ -312,7 +312,7 @@ asmbootalloc(usize size)
 static PTE
 asmwalkalloc(usize size)
 {
-	uintmem pa;
+	u64 pa;
 
 	assert(size == PTSZ && sys->vmunused + size <= sys->vmunmapped);
 
@@ -337,7 +337,7 @@ asmmeminit(void)
 	Asm *assem;
 	PTE *pte, *root;
 	uintptr va;
-	uintmem hi, lo, mem, nextmem, pa;
+	u64 hi, lo, mem, nextmem, pa;
 #ifdef ConfCrap
 	int cx;
 #endif /* ConfCrap */
@@ -382,7 +382,7 @@ asmmeminit(void)
 			DBG("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
 		}
-		va = (uintptr_t)kseg2 + assem->addr;
+		va = (uintptr)kseg2 + assem->addr;
 		DBG("asm: addr %#P end %#P type %d size %P\n",
 		    assem->addr, assem->addr + assem->size,
 		    assem->type, assem->size);

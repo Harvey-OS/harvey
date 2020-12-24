@@ -50,53 +50,53 @@ enum {
 typedef struct Udphdr Udphdr;
 struct Udphdr {
 	/* ip header */
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* Identification */
-	uint8_t frag[2];   /* Fragment information */
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* Identification */
+	u8 frag[2];   /* Fragment information */
 
 	/* pseudo header starts here */
-	uint8_t Unused;
-	uint8_t udpproto;   /* Protocol */
-	uint8_t udpplen[2]; /* Header plus data length */
-	uint8_t udpsrc[4];  /* Ip source */
-	uint8_t udpdst[4];  /* Ip destination */
+	u8 Unused;
+	u8 udpproto;   /* Protocol */
+	u8 udpplen[2]; /* Header plus data length */
+	u8 udpsrc[4];  /* Ip source */
+	u8 udpdst[4];  /* Ip destination */
 
 	/* udp header */
-	uint8_t udpsport[2]; /* Source port */
-	uint8_t udpdport[2]; /* Destination port */
-	uint8_t udplen[2];   /* data length */
-	uint8_t udpcksum[2]; /* Checksum */
+	u8 udpsport[2]; /* Source port */
+	u8 udpdport[2]; /* Destination port */
+	u8 udplen[2];   /* data length */
+	u8 udpcksum[2]; /* Checksum */
 };
 
 typedef struct Rudphdr Rudphdr;
 struct Rudphdr {
 	/* ip header */
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* Identification */
-	uint8_t frag[2];   /* Fragment information */
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* Identification */
+	u8 frag[2];   /* Fragment information */
 
 	/* pseudo header starts here */
-	uint8_t Unused;
-	uint8_t udpproto;   /* Protocol */
-	uint8_t udpplen[2]; /* Header plus data length */
-	uint8_t udpsrc[4];  /* Ip source */
-	uint8_t udpdst[4];  /* Ip destination */
+	u8 Unused;
+	u8 udpproto;   /* Protocol */
+	u8 udpplen[2]; /* Header plus data length */
+	u8 udpsrc[4];  /* Ip source */
+	u8 udpdst[4];  /* Ip destination */
 
 	/* udp header */
-	uint8_t udpsport[2]; /* Source port */
-	uint8_t udpdport[2]; /* Destination port */
-	uint8_t udplen[2];   /* data length (includes rudp header) */
-	uint8_t udpcksum[2]; /* Checksum */
+	u8 udpsport[2]; /* Source port */
+	u8 udpdport[2]; /* Destination port */
+	u8 udplen[2];   /* data length (includes rudp header) */
+	u8 udpcksum[2]; /* Checksum */
 
 	/* rudp header */
-	uint8_t relseq[4];  /* id of this packet (or 0) */
-	uint8_t relsgen[4]; /* generation/time stamp */
-	uint8_t relack[4];  /* packet being acked (or 0) */
-	uint8_t relagen[4]; /* generation/time stamp */
+	u8 relseq[4];  /* id of this packet (or 0) */
+	u8 relsgen[4]; /* generation/time stamp */
+	u8 relack[4];  /* packet being acked (or 0) */
+	u8 relagen[4]; /* generation/time stamp */
 };
 
 /*
@@ -108,8 +108,8 @@ struct Reliable {
 
 	Reliable *next;
 
-	uint8_t addr[IPaddrlen]; /* always V6 when put here */
-	uint16_t port;
+	u8 addr[IPaddrlen]; /* always V6 when put here */
+	u16 port;
 
 	Block *unacked;	    /* unacked msg list */
 	Block *unackedtail; /*  and its tail */
@@ -117,14 +117,14 @@ struct Reliable {
 	int timeout; /* time since first unacked msg sent */
 	int xmits;   /* number of times first unacked msg sent */
 
-	uint32_t sndseq; /* next packet to be sent */
-	uint32_t sndgen; /*  and its generation */
+	u32 sndseq; /* next packet to be sent */
+	u32 sndgen; /*  and its generation */
 
-	uint32_t rcvseq; /* last packet received */
-	uint32_t rcvgen; /*  and its generation */
+	u32 rcvseq; /* last packet received */
+	u32 rcvgen; /*  and its generation */
 
-	uint32_t acksent; /* last ack sent */
-	uint32_t ackrcvd; /* last msg for which ack was rcvd */
+	u32 acksent; /* last ack sent */
+	u32 ackrcvd; /* last msg for which ack was rcvd */
 
 	/* flow control */
 	QLock lock;
@@ -135,10 +135,10 @@ struct Reliable {
 /* MIB II counters */
 typedef struct Rudpstats Rudpstats;
 struct Rudpstats {
-	uint32_t rudpInDatagrams;
-	uint32_t rudpNoPorts;
-	uint32_t rudpInErrors;
-	uint32_t rudpOutDatagrams;
+	u32 rudpInDatagrams;
+	u32 rudpNoPorts;
+	u32 rudpInErrors;
+	u32 rudpOutDatagrams;
 };
 
 typedef struct Rudppriv Rudppriv;
@@ -149,17 +149,17 @@ struct Rudppriv {
 	Rudpstats ustats;
 
 	/* non-MIB stats */
-	uint32_t csumerr; /* checksum errors */
-	uint32_t lenerr;  /* short packet */
-	uint32_t rxmits;  /* # of retransmissions */
-	uint32_t orders;  /* # of out of order pkts */
+	u32 csumerr; /* checksum errors */
+	u32 lenerr;  /* short packet */
+	u32 rxmits;  /* # of retransmissions */
+	u32 orders;  /* # of out of order pkts */
 
 	/* keeping track of the ack kproc */
 	int ackprocstarted;
 	QLock apl;
 };
 
-static uint32_t generation = 0;
+static u32 generation = 0;
 //static Rendez rend;
 
 /*
@@ -168,8 +168,8 @@ static uint32_t generation = 0;
 typedef struct Rudpcb Rudpcb;
 struct Rudpcb {
 	QLock ql;
-	uint8_t headers;
-	uint8_t randdrop;
+	u8 headers;
+	u8 randdrop;
 	Reliable *r;
 };
 
@@ -177,10 +177,10 @@ struct Rudpcb {
  * local functions
  */
 void relsendack(Conv *, Reliable *, int);
-int reliput(Conv *, Block *, uint8_t *, uint16_t);
-Reliable *relstate(Rudpcb *, uint8_t *, uint16_t, char *);
+int reliput(Conv *, Block *, u8 *, u16);
+Reliable *relstate(Rudpcb *, u8 *, u16, char *);
 void relput(Reliable *);
-void relforget(Conv *, uint8_t *, int, int);
+void relforget(Conv *, u8 *, int, int);
 void relackproc(void *);
 void relackq(Reliable *, Block *);
 void relhangup(Conv *, Reliable *);
@@ -334,8 +334,8 @@ rudpkick(void *x)
 	Proc *up = externup();
 	Conv *c = x;
 	Udphdr *uh;
-	uint16_t rport;
-	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
+	u16 rport;
+	u8 laddr[IPaddrlen], raddr[IPaddrlen];
 	Block *bp;
 	Rudpcb *ucb;
 	Rudphdr *rh;
@@ -464,11 +464,11 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	Udphdr *uh;
 	Conv *c;
 	Rudpcb *ucb;
-	uint8_t raddr[IPaddrlen], laddr[IPaddrlen];
-	uint16_t rport, lport;
+	u8 raddr[IPaddrlen], laddr[IPaddrlen];
+	u16 rport, lport;
 	Rudppriv *upriv;
 	Fs *f;
-	uint8_t *p;
+	u8 *p;
 
 	upriv = rudp->priv;
 	f = rudp->f;
@@ -594,7 +594,7 @@ char *
 rudpctl(Conv *c, char **f, int n)
 {
 	Rudpcb *ucb;
-	uint8_t ip[IPaddrlen];
+	u8 ip[IPaddrlen];
 	int x;
 
 	ucb = (Rudpcb *)c->ptcl;
@@ -630,8 +630,8 @@ void
 rudpadvise(Proto *rudp, Block *bp, char *msg)
 {
 	Udphdr *h;
-	uint8_t source[IPaddrlen], dest[IPaddrlen];
-	uint16_t psource, pdest;
+	u8 source[IPaddrlen], dest[IPaddrlen];
+	u16 psource, pdest;
 	Conv *s, **p;
 
 	h = (Udphdr *)(bp->rp);
@@ -760,7 +760,7 @@ loop:
  *  get the state record for a conversation
  */
 Reliable *
-relstate(Rudpcb *ucb, uint8_t *addr, uint16_t port, char *from)
+relstate(Rudpcb *ucb, u8 *addr, u16 port, char *from)
 {
 	Reliable *r, **l;
 
@@ -815,7 +815,7 @@ relput(Reliable *r)
  *  forget a Reliable state
  */
 void
-relforget(Conv *c, uint8_t *ip, int port, int originator)
+relforget(Conv *c, u8 *ip, int port, int originator)
 {
 	Rudpcb *ucb;
 	Reliable *r, **l;
@@ -843,7 +843,7 @@ relforget(Conv *c, uint8_t *ip, int port, int originator)
  *  called with ucb locked.
  */
 int
-reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
+reliput(Conv *c, Block *bp, u8 *addr, u16 port)
 {
 	Block *nbp;
 	Rudpcb *ucb;
@@ -851,7 +851,7 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 	Udphdr *uh;
 	Reliable *r;
 	Rudphdr *rh;
-	uint32_t seq, ack, sgen, agen, ackreal;
+	u32 seq, ack, sgen, agen, ackreal;
 	int rv = -1;
 
 	/* get fields */

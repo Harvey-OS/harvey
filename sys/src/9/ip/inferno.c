@@ -33,7 +33,7 @@ commonerror(void)
 }
 
 int
-bootpread(char *c, uint32_t u, int i)
+bootpread(char *c, u32 u, int i)
 {
 	return 0;
 }

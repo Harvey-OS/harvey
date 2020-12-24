@@ -330,7 +330,7 @@ void
 swload(Cursor *curs)
 {
 	print("%s\n", __func__);
-	uint8_t *ip, *mp;
+	u8 *ip, *mp;
 	int i, j, set, clr;
 
 	if(!swimg || !swmask || !swimg1 || !swmask1)
@@ -445,7 +445,7 @@ screeninit(void)
 	if(!cbinfo.framebuffer)
 		return -1;
 
-	fb = KADDR((uintptr_t)cbinfo.framebuffer);
+	fb = KADDR((uintptr)cbinfo.framebuffer);
 	framebuf.pixel = KADDR(fb->physical_address);
 
 	/* should not happen but ...*/
@@ -468,7 +468,7 @@ screeninit(void)
 	}
 
 	xgdata.ref = 1;
-	xgdata.bdata = (uint8_t *)framebuf.pixel;
+	xgdata.bdata = (u8 *)framebuf.pixel;
 
 	gscreen = &xgscreen;
 	gscreen->r = Rect(0, 0, Wid, Ht);
@@ -503,7 +503,7 @@ void
 flushmemscreen(Rectangle r)
 {
 	print("%s\n", __func__);
-	uintptr_t start, end;
+	uintptr start, end;
 
 	if(r.min.x < 0)
 		r.min.x = 0;
@@ -515,8 +515,8 @@ flushmemscreen(Rectangle r)
 		r.max.y = Ht;
 	if(rectclip(&r, gscreen->r) == 0)
 		return;
-	start = (uintptr_t)&framebuf.pixel[r.min.y * Wid + r.min.x];
-	end = (uintptr_t)&framebuf.pixel[(r.max.y - 1) * Wid + r.max.x - 1];
+	start = (uintptr)&framebuf.pixel[r.min.y * Wid + r.min.x];
+	end = (uintptr)&framebuf.pixel[(r.max.y - 1) * Wid + r.max.x - 1];
 	print("Flushmemscreen %p %p\n", start, end);
 	// for now. Don't think we need it. cachedwbse((uint32_t *)start, end - start);
 	coherence();
@@ -525,8 +525,8 @@ flushmemscreen(Rectangle r)
 /*
  * export screen to devdraw
  */
-uint8_t *
-attachscreen(Rectangle *r, uint32_t *chan, int *d, int *width, int *softscreen)
+u8 *
+attachscreen(Rectangle *r, u32 *chan, int *d, int *width, int *softscreen)
 {
 	print("%s\n", __func__);
 	if(screeninit() < 0)
@@ -536,18 +536,18 @@ attachscreen(Rectangle *r, uint32_t *chan, int *d, int *width, int *softscreen)
 	*chan = gscreen->chan;
 	*width = gscreen->width;
 	*softscreen = (landscape == 0);
-	return (uint8_t *)gscreen->data->bdata;
+	return (u8 *)gscreen->data->bdata;
 }
 
 void
-getcolor(uint32_t p, uint32_t *pr, uint32_t *pg, uint32_t *pb)
+getcolor(u32 p, u32 *pr, u32 *pg, u32 *pb)
 {
 	print("%s\n", __func__);
 	//USED(p, pr, pg, pb);
 }
 
 int
-setcolor(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
+setcolor(u32 p, u32 r, u32 g, u32 b)
 {
 	print("%s\n", __func__);
 	//USED(p, r, g, b);

@@ -111,33 +111,33 @@ enum {
 struct Fragment4 {
 	Block *blist;
 	Fragment4 *next;
-	uint32_t src;
-	uint32_t dst;
-	uint16_t id;
-	uint32_t age;
+	u32 src;
+	u32 dst;
+	u16 id;
+	u32 age;
 };
 
 struct Fragment6 {
 	Block *blist;
 	Fragment6 *next;
-	uint8_t src[IPaddrlen];
-	uint8_t dst[IPaddrlen];
+	u8 src[IPaddrlen];
+	u8 dst[IPaddrlen];
 	uint id;
-	uint32_t age;
+	u32 age;
 };
 
 struct Ipfrag {
-	uint16_t foff;
-	uint16_t flen;
+	u16 foff;
+	u16 flen;
 
-	uint8_t payload[];
+	u8 payload[];
 };
 
 #define IPFRAGSZ offsetof(Ipfrag, payload[0])
 
 /* an instance of IP */
 struct IP {
-	uint64_t stats[Nipstats];
+	u64 stats[Nipstats];
 
 	QLock fraglock4;
 	Fragment4 *flisthead4;
@@ -154,16 +154,16 @@ struct IP {
 
 /* on the wire packet header */
 struct Ip4hdr {
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* ip->identification */
-	uint8_t frag[2];   /* Fragment information */
-	uint8_t ttl;	   /* Time to live */
-	uint8_t proto;	   /* Protocol */
-	uint8_t cksum[2];  /* Header checksum */
-	uint8_t src[4];	   /* IP source */
-	uint8_t dst[4];	   /* IP destination */
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* ip->identification */
+	u8 frag[2];   /* Fragment information */
+	u8 ttl;	   /* Time to live */
+	u8 proto;	   /* Protocol */
+	u8 cksum[2];  /* Header checksum */
+	u8 src[4];	   /* IP source */
+	u8 dst[4];	   /* IP destination */
 };
 
 /*
@@ -180,11 +180,11 @@ struct Conv {
 	uint tos;	  /* type of service */
 	int ignoreadvice; /* don't terminate connection on icmp errors */
 
-	uint8_t ipversion;
-	uint8_t laddr[IPaddrlen]; /* local IP address */
-	uint8_t raddr[IPaddrlen]; /* remote IP address */
-	uint16_t lport;		  /* local port number */
-	uint16_t rport;		  /* remote port number */
+	u8 ipversion;
+	u8 laddr[IPaddrlen]; /* local IP address */
+	u8 raddr[IPaddrlen]; /* remote IP address */
+	u16 lport;		  /* local port number */
+	u16 rport;		  /* remote port number */
 
 	char *owner; /* protections */
 	int perm;
@@ -219,7 +219,7 @@ struct Conv {
 	void *ptcl; /* protocol specific stuff */
 
 	Route *r;      /* last route used */
-	uint32_t rgen; /* routetable generation for *r */
+	u32 rgen; /* routetable generation for *r */
 };
 
 struct Medium {
@@ -230,46 +230,46 @@ struct Medium {
 	int maclen; /* mac address length  */
 	void (*bind)(Ipifc *, int, char **);
 	void (*unbind)(Ipifc *);
-	void (*bwrite)(Ipifc *ifc, Block *b, int version, uint8_t *ip);
+	void (*bwrite)(Ipifc *ifc, Block *b, int version, u8 *ip);
 
 	/* for arming interfaces to receive multicast */
-	void (*addmulti)(Ipifc *ifc, uint8_t *a, uint8_t *ia);
-	void (*remmulti)(Ipifc *ifc, uint8_t *a, uint8_t *ia);
+	void (*addmulti)(Ipifc *ifc, u8 *a, u8 *ia);
+	void (*remmulti)(Ipifc *ifc, u8 *a, u8 *ia);
 
 	/* process packets written to 'data' */
 	void (*pktin)(Fs *f, Ipifc *ifc, Block *bp);
 
 	/* routes for router boards */
-	void (*addroute)(Ipifc *ifc, int, uint8_t *, uint8_t *, uint8_t *, int);
-	void (*remroute)(Ipifc *ifc, int, uint8_t *, uint8_t *);
+	void (*addroute)(Ipifc *ifc, int, u8 *, u8 *, u8 *, int);
+	void (*remroute)(Ipifc *ifc, int, u8 *, u8 *);
 	void (*flushroutes)(Ipifc *ifc);
 
 	/* for routing multicast groups */
-	void (*joinmulti)(Ipifc *ifc, uint8_t *a, uint8_t *ia);
-	void (*leavemulti)(Ipifc *ifc, uint8_t *a, uint8_t *ia);
+	void (*joinmulti)(Ipifc *ifc, u8 *a, u8 *ia);
+	void (*leavemulti)(Ipifc *ifc, u8 *a, u8 *ia);
 
 	/* address resolution */
-	void (*ares)(Fs *, int, uint8_t *, uint8_t *, int, int); /* resolve */
-	void (*areg)(Ipifc *, uint8_t *);			 /* register */
+	void (*ares)(Fs *, int, u8 *, u8 *, int, int); /* resolve */
+	void (*areg)(Ipifc *, u8 *);			 /* register */
 
 	/* v6 address generation */
-	void (*pref2addr)(uint8_t *pref, uint8_t *ea);
+	void (*pref2addr)(u8 *pref, u8 *ea);
 
 	int unbindonclose; /* if non-zero, unbind on last close */
 };
 
 /* logical interface associated with a physical one */
 struct Iplifc {
-	uint8_t local[IPaddrlen];
-	uint8_t mask[IPaddrlen];
-	uint8_t remote[IPaddrlen];
-	uint8_t net[IPaddrlen];
-	uint8_t tentative; /* =1 => v6 dup disc on, =0 => confirmed unique */
-	uint8_t onlink;	   /* =1 => onlink, =0 offlink. */
-	uint8_t autoflag;  /* v6 autonomous flag */
-	int32_t validlt;   /* v6 valid lifetime */
-	int32_t preflt;	   /* v6 preferred lifetime */
-	int32_t origint;   /* time when addr was added */
+	u8 local[IPaddrlen];
+	u8 mask[IPaddrlen];
+	u8 remote[IPaddrlen];
+	u8 net[IPaddrlen];
+	u8 tentative; /* =1 => v6 dup disc on, =0 => confirmed unique */
+	u8 onlink;	   /* =1 => onlink, =0 offlink. */
+	u8 autoflag;  /* v6 autonomous flag */
+	i32 validlt;   /* v6 valid lifetime */
+	i32 preflt;	   /* v6 preferred lifetime */
+	i32 origint;   /* time when addr was added */
 	Iplink *link;	   /* addresses linked to this lifc */
 	Iplifc *next;
 };
@@ -280,7 +280,7 @@ struct Iplink {
 	Iplifc *lifc;
 	Iplink *selflink; /* next link for this local address */
 	Iplink *lifclink; /* next link for this ifc */
-	uint32_t expire;
+	u32 expire;
 	Iplink *next; /* free list */
 	int ref;
 };
@@ -318,20 +318,20 @@ struct Ipifc {
 
 	/* these are used so that we can unbind on the fly */
 	Lock idlock;
-	uint8_t ifcid; /* incremented each 'bind/unbind/add/remove' */
+	u8 ifcid; /* incremented each 'bind/unbind/add/remove' */
 	int ref;       /* number of proc's using this ipifc */
 	Rendez wait;   /* where unbinder waits for ref == 0 */
 	int unbinding;
 
-	uint8_t mac[MAClen]; /* MAC address */
+	u8 mac[MAClen]; /* MAC address */
 
 	Iplifc *lifc; /* logical interfaces on this physical one */
 
-	uint32_t in, out;	/* message statistics */
-	uint32_t inerr, outerr; /* ... */
+	u32 in, out;	/* message statistics */
+	u32 inerr, outerr; /* ... */
 
-	uint8_t sendra6; /* flag: send router advs on this ifc */
-	uint8_t recvra6; /* flag: recv router advs on this ifc */
+	u8 sendra6; /* flag: send router advs on this ifc */
+	u8 recvra6; /* flag: recv router advs on this ifc */
 	Routerparams rp; /* router parameters as in RFC 2461, pp.40—43.
 					used only if node is router */
 };
@@ -340,8 +340,8 @@ struct Ipifc {
  *  one per multicast-lifc pair used by a Conv
  */
 struct Ipmulti {
-	uint8_t ma[IPaddrlen];
-	uint8_t ia[IPaddrlen];
+	u8 ma[IPaddrlen];
+	u8 ia[IPaddrlen];
 	Ipmulti *next;
 };
 
@@ -368,7 +368,7 @@ struct Ipht {
 };
 void iphtadd(Ipht *, Conv *);
 void iphtrem(Ipht *, Conv *);
-Conv *iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp);
+Conv *iphtlook(Ipht *ht, u8 *sa, u16 sp, u8 *da, u16 dp);
 
 /*
  *  one per multiplexed protocol
@@ -400,7 +400,7 @@ struct Proto {
 	int nc;	      /* number of conversations */
 	int ac;
 	Qid qid; /* qid for protocol directory */
-	uint16_t nextrport;
+	u16 nextrport;
 
 	void *priv;
 };
@@ -431,16 +431,16 @@ struct Fs {
 
 	char ndb[1024]; /* an ndb entry for this interface */
 	int ndbvers;
-	int32_t ndbmtime;
+	i32 ndbmtime;
 };
 
 /* one per default router known to host */
 struct v6router {
-	uint8_t inuse;
+	u8 inuse;
 	Ipifc *ifc;
 	int ifcid;
-	uint8_t routeraddr[IPaddrlen];
-	int32_t ltorigin;
+	u8 routeraddr[IPaddrlen];
+	i32 ltorigin;
 	Routerparams rp;
 };
 
@@ -453,17 +453,17 @@ struct v6params {
 };
 
 int Fsconnected(Conv *, char *);
-Conv *Fsnewcall(Conv *, uint8_t *, uint16_t, uint8_t *, uint16_t, uint8_t);
+Conv *Fsnewcall(Conv *, u8 *, u16, u8 *, u16, u8);
 int Fspcolstats(char *, int);
 int Fsproto(Fs *, Proto *);
-int Fsbuiltinproto(Fs *, uint8_t);
+int Fsbuiltinproto(Fs *, u8);
 Conv *Fsprotoclone(Proto *, char *);
-Proto *Fsrcvpcol(Fs *, uint8_t);
-Proto *Fsrcvpcolx(Fs *, uint8_t);
+Proto *Fsrcvpcol(Fs *, u8);
+Proto *Fsrcvpcolx(Fs *, u8);
 char *Fsstdconnect(Conv *, char **, int);
 char *Fsstdannounce(Conv *, char **, int);
 char *Fsstdbind(Conv *, char **, int);
-uint32_t scalednconv(void);
+u32 scalednconv(void);
 void closeconv(Conv *);
 /*
  *  logging
@@ -491,11 +491,11 @@ void netloginit(Fs *);
 void netlogopen(Fs *);
 void netlogclose(Fs *);
 void netlogctl(Fs *, char *, int);
-int32_t netlogread(Fs *, void *, uint32_t, int32_t);
+i32 netlogread(Fs *, void *, u32, i32);
 void netlog(Fs *, int, char *, ...);
 void ifcloginit(Fs *);
-int32_t ifclogread(Fs *, Chan *, void *, uint32_t, int32_t);
-void ifclog(Fs *, uint8_t *, int);
+i32 ifclogread(Fs *, Chan *, void *, u32, i32);
+void ifclog(Fs *, u8 *, int);
 void ifclogopen(Fs *, Chan *);
 void ifclogclose(Fs *, Chan *);
 
@@ -534,24 +534,24 @@ struct RouteTree {
 	Route *right;
 	Route *left;
 	Route *mid;
-	uint8_t depth;
-	uint8_t type;
-	uint8_t ifcid; /* must match ifc->id */
+	u8 depth;
+	u8 type;
+	u8 ifcid; /* must match ifc->id */
 	Ipifc *ifc;
 	char tag[4];
 	int ref;
 };
 
 struct V4route {
-	uint32_t address;
-	uint32_t endaddress;
-	uint8_t gate[IPv4addrlen];
+	u32 address;
+	u32 endaddress;
+	u8 gate[IPv4addrlen];
 };
 
 struct V6route {
-	uint32_t address[IPllen];
-	uint32_t endaddress[IPllen];
-	uint8_t gate[IPaddrlen];
+	u32 address[IPllen];
+	u32 endaddress[IPllen];
+	u8 gate[IPaddrlen];
 };
 
 struct Route {
@@ -562,17 +562,17 @@ struct Route {
 		V4route v4;
 	};
 };
-extern void v4addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type);
-extern void v6addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type);
-extern void v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock);
-extern void v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock);
-extern Route *v4lookup(Fs *f, uint8_t *a, Conv *c);
-extern Route *v6lookup(Fs *f, uint8_t *a, Conv *c);
-extern int32_t routeread(Fs *f, char *, uint32_t, int);
-extern int32_t routewrite(Fs *f, Chan *, char *, int);
+extern void v4addroute(Fs *f, char *tag, u8 *a, u8 *mask, u8 *gate, int type);
+extern void v6addroute(Fs *f, char *tag, u8 *a, u8 *mask, u8 *gate, int type);
+extern void v4delroute(Fs *f, u8 *a, u8 *mask, int dolock);
+extern void v6delroute(Fs *f, u8 *a, u8 *mask, int dolock);
+extern Route *v4lookup(Fs *f, u8 *a, Conv *c);
+extern Route *v6lookup(Fs *f, u8 *a, Conv *c);
+extern i32 routeread(Fs *f, char *, u32, int);
+extern i32 routewrite(Fs *f, Chan *, char *, int);
 extern void routetype(int, char *);
 extern void ipwalkroutes(Fs *, Routewalk *);
-extern void convroute(Route *, uint8_t *, uint8_t *, uint8_t *, char *, int *);
+extern void convroute(Route *, u8 *, u8 *, u8 *, char *, int *);
 
 /*
  *  devip.c
@@ -593,56 +593,58 @@ extern IPaux *newipaux(char *, char *);
  *  arp.c
  */
 struct Arpent {
-	uint8_t ip[IPaddrlen];
-	uint8_t mac[MAClen];
+	u8 ip[IPaddrlen];
+	u8 mac[MAClen];
 	Medium *type; /* media type */
 	Arpent *hash;
 	Block *hold;
 	Block *last;
 	uint ctime; /* time entry was created or refreshed */
 	uint utime; /* time entry was last used */
-	uint8_t state;
+	u8 state;
 	Arpent *nextrxt; /* re-transmit chain */
 	uint rtime;	 /* time for next retransmission */
-	uint8_t rxtsrem;
+	u8 rxtsrem;
 	Ipifc *ifc;
-	uint8_t ifcid; /* must match ifc->id */
+	u8 ifcid; /* must match ifc->id */
 };
 
 extern void arpinit(Fs *);
-extern int arpread(Arp *, char *, uint32_t, int);
+extern int arpread(Arp *, char *, u32, int);
 extern int arpwrite(Fs *, char *, int);
-extern Arpent *arpget(Arp *, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *h);
+extern Arpent *arpget(Arp *, Block *bp, int version, Ipifc *ifc, u8 *ip,
+		      u8 *h);
 extern void arprelease(Arp *, Arpent *a);
-extern Block *arpresolve(Arp *, Arpent *a, Medium *type, uint8_t *mac);
-extern void arpenter(Fs *, int version, uint8_t *ip, uint8_t *mac, int len, int norefresh);
+extern Block *arpresolve(Arp *, Arpent *a, Medium *type, u8 *mac);
+extern void arpenter(Fs *, int version, u8 *ip, u8 *mac, int len,
+		     int norefresh);
 
 /*
  * ipaux.c
  */
 
-extern int myetheraddr(uint8_t *, char *);
-extern int64_t parseip(uint8_t *, char *);
-extern int64_t parseipmask(uint8_t *, char *);
-extern char *v4parseip(uint8_t *, char *);
-extern void maskip(uint8_t *from, uint8_t *mask, uint8_t *to);
-extern int parsemac(uint8_t *to, char *from, int len);
-extern uint8_t *defmask(uint8_t *);
-extern int isv4(uint8_t *);
-extern void v4tov6(uint8_t *v6, uint8_t *v4);
-extern int v6tov4(uint8_t *v4, uint8_t *v6);
+extern int myetheraddr(u8 *, char *);
+extern i64 parseip(u8 *, char *);
+extern i64 parseipmask(u8 *, char *);
+extern char *v4parseip(u8 *, char *);
+extern void maskip(u8 *from, u8 *mask, u8 *to);
+extern int parsemac(u8 *to, char *from, int len);
+extern u8 *defmask(u8 *);
+extern int isv4(u8 *);
+extern void v4tov6(u8 *v6, u8 *v4);
+extern int v6tov4(u8 *v4, u8 *v6);
 extern int eipfmt(Fmt *);
 
 #define ipmove(x, y) memmove(x, y, IPaddrlen)
 #define ipcmp(x, y) ((x)[IPaddrlen - 1] != (y)[IPaddrlen - 1] || memcmp(x, y, IPaddrlen))
 
-extern uint8_t IPv4bcast[IPaddrlen];
-extern uint8_t IPv4bcastobs[IPaddrlen];
-extern uint8_t IPv4allsys[IPaddrlen];
-extern uint8_t IPv4allrouter[IPaddrlen];
-extern uint8_t IPnoaddr[IPaddrlen];
-extern uint8_t v4prefix[IPaddrlen];
-extern uint8_t IPallbits[IPaddrlen];
+extern u8 IPv4bcast[IPaddrlen];
+extern u8 IPv4bcastobs[IPaddrlen];
+extern u8 IPv4allsys[IPaddrlen];
+extern u8 IPv4allrouter[IPaddrlen];
+extern u8 IPnoaddr[IPaddrlen];
+extern u8 v4prefix[IPaddrlen];
+extern u8 IPallbits[IPaddrlen];
 
 #define NOW TK2MS(sys->machptr[0]->ticks)
 
@@ -658,29 +660,29 @@ extern Medium pktmedium;
  */
 extern Medium *ipfindmedium(char *name);
 extern void addipmedium(Medium *med);
-extern int ipforme(Fs *, uint8_t *addr);
-extern int iptentative(Fs *, uint8_t *addr);
-extern int ipisbm(uint8_t *);
-extern int ipismulticast(uint8_t *);
-extern Ipifc *findipifc(Fs *, uint8_t *remote, int type);
-extern void findlocalip(Fs *, uint8_t *local, uint8_t *remote);
-extern int ipv4local(Ipifc *ifc, uint8_t *addr);
-extern int ipv6local(Ipifc *ifc, uint8_t *addr);
-extern int ipv6anylocal(Ipifc *ifc, uint8_t *addr);
-extern Iplifc *iplocalonifc(Ipifc *ifc, uint8_t *ip);
-extern int ipproxyifc(Fs *f, Ipifc *ifc, uint8_t *ip);
-extern int ipismulticast(uint8_t *ip);
+extern int ipforme(Fs *, u8 *addr);
+extern int iptentative(Fs *, u8 *addr);
+extern int ipisbm(u8 *);
+extern int ipismulticast(u8 *);
+extern Ipifc *findipifc(Fs *, u8 *remote, int type);
+extern void findlocalip(Fs *, u8 *local, u8 *remote);
+extern int ipv4local(Ipifc *ifc, u8 *addr);
+extern int ipv6local(Ipifc *ifc, u8 *addr);
+extern int ipv6anylocal(Ipifc *ifc, u8 *addr);
+extern Iplifc *iplocalonifc(Ipifc *ifc, u8 *ip);
+extern int ipproxyifc(Fs *f, Ipifc *ifc, u8 *ip);
+extern int ipismulticast(u8 *ip);
 extern int ipisbooting(void);
 extern int ipifccheckin(Ipifc *ifc, Medium *med);
 extern void ipifccheckout(Ipifc *ifc);
 extern int ipifcgrab(Ipifc *ifc);
-extern void ipifcaddroute(Fs *, int, uint8_t *, uint8_t *, uint8_t *, int);
-extern void ipifcremroute(Fs *, int, uint8_t *, uint8_t *);
-extern void ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia);
-extern void ipifcaddmulti(Conv *c, uint8_t *ma, uint8_t *ia);
+extern void ipifcaddroute(Fs *, int, u8 *, u8 *, u8 *, int);
+extern void ipifcremroute(Fs *, int, u8 *, u8 *);
+extern void ipifcremmulti(Conv *c, u8 *ma, u8 *ia);
+extern void ipifcaddmulti(Conv *c, u8 *ma, u8 *ia);
 extern char *ipifcrem(Ipifc *ifc, char **argv, int argc);
 extern char *ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp);
-extern int32_t ipselftabread(Fs *, char *a, uint32_t offset, int n);
+extern i32 ipselftabread(Fs *, char *a, u32 offset, int n);
 extern char *ipifcadd6(Ipifc *ifc, char **argv, int argc);
 /*
  *  ip.c
@@ -688,22 +690,22 @@ extern char *ipifcadd6(Ipifc *ifc, char **argv, int argc);
 extern void iprouting(Fs *, int);
 extern void icmpnoconv(Fs *, Block *);
 extern void icmpcantfrag(Fs *, Block *, int);
-extern void icmpttlexceeded(Fs *, uint8_t *, Block *);
-extern uint16_t ipcsum(uint8_t *);
+extern void icmpttlexceeded(Fs *, u8 *, Block *);
+extern u16 ipcsum(u8 *);
 extern void ipiput4(Fs *, Ipifc *, Block *);
 extern void ipiput6(Fs *, Ipifc *, Block *);
 extern int ipoput4(Fs *, Block *, int, int, int, Conv *);
 extern int ipoput6(Fs *, Block *, int, int, int, Conv *);
 extern int ipstats(Fs *, char *, int);
-extern uint16_t ptclbsum(uint8_t *, int);
-extern uint16_t ptclcsum(Block *, int, int);
+extern u16 ptclbsum(u8 *, int);
+extern u16 ptclcsum(Block *, int, int);
 extern void ip_init(Fs *);
-extern void update_mtucache(uint8_t *, uint32_t);
-extern uint32_t restrict_mtu(uint8_t *, uint32_t);
+extern void update_mtucache(u8 *, u32);
+extern u32 restrict_mtu(u8 *, u32);
 /*
  * bootp.c
  */
-extern int bootpread(char *, uint32_t, int);
+extern int bootpread(char *, u32, int);
 
 /*
  *  resolving inferno/plan9 differences
@@ -719,4 +721,4 @@ extern Chan *chandial(char *, char *, char *, Chan **);
 /*
  *  global to all of the stack
  */
-extern void (*igmpreportfn)(Ipifc *, uint8_t *);
+extern void (*igmpreportfn)(Ipifc *, u8 *);

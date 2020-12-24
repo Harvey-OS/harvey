@@ -107,10 +107,10 @@ tbdffmt(Fmt *fmt)
 	return r;
 }
 
-static uint32_t
+static u32
 pcibarsize(Pcidev *p, int rno)
 {
-	uint32_t v, size;
+	u32 v, size;
 
 	v = pcicfgr32(p, rno);
 	pcicfgw32(p, rno, 0xFFFFFFF0);
@@ -311,33 +311,33 @@ pcilscan(int bno, char *path, Pcidev **list)
 
 typedef struct Bridge Bridge;
 struct Bridge {
-	uint16_t vid;
-	uint16_t did;
-	uint8_t (*get)(Pcidev *, uint8_t);
-	void (*set)(Pcidev *, uint8_t, uint8_t);
+	u16 vid;
+	u16 did;
+	u8 (*get)(Pcidev *, u8);
+	void (*set)(Pcidev *, u8, u8);
 };
 
 typedef struct Slot Slot;
 struct Slot {
-	uint8_t bus;		 // Pci bus number
-	uint8_t dev;		 // Pci device number
-	uint8_t maps[12];	 // Avoid structs!  Link and mask.
-	uint8_t slot;		 // Add-in/built-in slot
-	uint8_t reserved;
+	u8 bus;		 // Pci bus number
+	u8 dev;		 // Pci device number
+	u8 maps[12];	 // Avoid structs!  Link and mask.
+	u8 slot;		 // Add-in/built-in slot
+	u8 reserved;
 };
 
 typedef struct Router Router;
 struct Router {
-	uint8_t signature[4];	     // Routing table signature
-	uint8_t version[2];	     // Version number
-	uint8_t size[2];	     // Total table size
-	uint8_t bus;		     // Interrupt router bus number
-	uint8_t devfn;		     // Router's devfunc
-	uint8_t pciirqs[2];	     // Exclusive PCI irqs
-	uint8_t compat[4];	     // Compatible PCI interrupt router
-	uint8_t miniport[4];	     // Miniport data
-	uint8_t reserved[11];
-	uint8_t checksum;
+	u8 signature[4];	     // Routing table signature
+	u8 version[2];	     // Version number
+	u8 size[2];	     // Total table size
+	u8 bus;		     // Interrupt router bus number
+	u8 devfn;		     // Router's devfunc
+	u8 pciirqs[2];	     // Exclusive PCI irqs
+	u8 compat[4];	     // Compatible PCI interrupt router
+	u8 miniport[4];	     // Miniport data
+	u8 reserved[11];
+	u8 checksum;
 };
 
 static void

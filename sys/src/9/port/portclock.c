@@ -22,13 +22,13 @@ struct Timers {
 
 static Timers timers[MACHMAX];
 
-uint32_t intrcount[MACHMAX];
-uint32_t fcallcount[MACHMAX];
+u32 intrcount[MACHMAX];
+u32 fcallcount[MACHMAX];
 
-static int64_t
+static i64
 tadd(Timers *tt, Timer *nt)
 {
-	int64_t when;
+	i64 when;
 	Timer *t, **last;
 
 	/* Called with tt locked */
@@ -86,7 +86,7 @@ tadd(Timers *tt, Timer *nt)
 	return 0;
 }
 
-static int64_t
+static i64
 tdel(Timer *dt)
 {
 	Timer *t, **last;
@@ -113,7 +113,7 @@ void
 timeradd(Timer *nt)
 {
 	Timers *tt;
-	int64_t when;
+	i64 when;
 
 	/* Must lock Timer struct before Timers struct */
 	ilock(&nt->l);
@@ -135,7 +135,7 @@ void
 timerdel(Timer *dt)
 {
 	Timers *tt;
-	int64_t when;
+	i64 when;
 
 	ilock(&dt->l);
 	if((tt = dt->tt) != nil){
@@ -152,7 +152,7 @@ void
 hzclock(Ureg *ur)
 {
 	Proc *up = externup();
-	uintptr_t pc;
+	uintptr pc;
 
 	machp()->ticks++;
 	if(machp()->machno == 0)
@@ -193,11 +193,11 @@ hzclock(Ureg *ur)
 }
 
 void
-timerintr(Ureg *u, int64_t j)
+timerintr(Ureg *u, i64 j)
 {
 	Timer *t;
 	Timers *tt;
-	int64_t when, now;
+	i64 when, now;
 	int callhzclock;
 
 	intrcount[machp()->machno]++;
@@ -257,13 +257,13 @@ Timer *
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
-	int64_t when;
+	i64 when;
 
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
 	if(ms == 0)
 		ms = 1000 / HZ;
-	nt->tns = (int64_t)ms * 1000000LL;
+	nt->tns = (i64)ms * 1000000LL;
 	nt->tmode = Tperiodic;
 	nt->tt = nil;
 	nt->tf = (void (*)(Ureg *, Timer *))f;
@@ -276,8 +276,8 @@ addclock0link(void (*f)(void), int ms)
 	return nt;
 }
 
-uint64_t
-ms2tk(uint64_t ms)
+u64
+ms2tk(u64 ms)
 {
 	/* avoid overflows at the cost of precision */
 	if(ms >= 1000000000 / HZ)

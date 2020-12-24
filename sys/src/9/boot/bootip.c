@@ -13,13 +13,13 @@
 
 #include "boot.h"
 
-static uint8_t fsip[IPaddrlen];
-static uint8_t auip[IPaddrlen];
+static u8 fsip[IPaddrlen];
+static u8 auip[IPaddrlen];
 static char mpoint[32];
 
-static int isvalidip(uint8_t *);
-static void netndb(char *, uint8_t *);
-static void netenv(char *, uint8_t *);
+static int isvalidip(u8 *);
+static void netndb(char *, u8 *);
+static void netenv(char *, u8 *);
 
 void
 configip(int bargc, char **bargv, int needfs)
@@ -152,7 +152,7 @@ connecttcp(void)
 }
 
 static int
-isvalidip(uint8_t *ip)
+isvalidip(u8 *ip)
 {
 	if(ipcmp(ip, IPnoaddr) == 0)
 		return 0;
@@ -162,7 +162,7 @@ isvalidip(uint8_t *ip)
 }
 
 static void
-netenv(char *attr, uint8_t *ip)
+netenv(char *attr, u8 *ip)
 {
 	int fd, n;
 	char buf[128];
@@ -183,7 +183,7 @@ netenv(char *attr, uint8_t *ip)
 }
 
 static void
-netndb(char *attr, uint8_t *ip)
+netndb(char *attr, u8 *ip)
 {
 	int fd, n, c;
 	char buf[1024];

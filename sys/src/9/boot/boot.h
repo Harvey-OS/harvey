@@ -44,7 +44,7 @@ extern void key(int, Method *);
 extern int outin(char *, char *, int);
 extern int plumb(char *, char *, int *, char *);
 extern int readfile(char *, char *, int);
-extern int32_t readn(int, void *, int32_t);
+extern i32 readn(int, void *, i32);
 extern void run(char *file, ...);
 extern int sendmsg(int, char *);
 extern void setenv(char *, char *);

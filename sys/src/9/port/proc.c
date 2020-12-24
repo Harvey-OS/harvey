@@ -571,7 +571,7 @@ rebalance(void)
 {
 	Mpl pl;
 	int pri, npri;
-	int64_t t;
+	i64 t;
 	Sched *sch;
 	Schedq *rq;
 	Proc *p;
@@ -684,7 +684,7 @@ runproc(void)
 	Schedq *rq;
 	Sched *sch;
 	Proc *p;
-	uint64_t start, now;
+	u64 start, now;
 	int i;
 
 	start = perfticks();
@@ -1015,7 +1015,7 @@ twakeup(Ureg *_, Timer *t)
 }
 
 void
-tsleep(Rendez *r, int (*fn)(void *), void *arg, int64_t ms)
+tsleep(Rendez *r, int (*fn)(void *), void *arg, i64 ms)
 {
 	Proc *up = externup();
 	if(up->Timer.tt){
@@ -1239,7 +1239,7 @@ pexit(char *exitstr, int freemem)
 	Proc *up = externup();
 	Proc *p;
 	Segment **s, **es;
-	uint64_t utime, stime;
+	u64 utime, stime;
 	Waitq *wq, *f, *next;
 	Fgrp *fgrp;
 	Egrp *egrp;
@@ -1728,7 +1728,7 @@ killbig(char *why)
 {
 	int i, x;
 	Segment *s;
-	uint32_t l, max;
+	u32 l, max;
 	Proc *p, *kp;
 
 	max = 0;
@@ -1804,7 +1804,7 @@ accounttime(void)
 {
 	Sched *sch;
 	Proc *p;
-	uint64_t n, per;
+	u64 n, per;
 
 	sch = machp()->sch;
 	p = machp()->proc;

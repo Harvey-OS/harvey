@@ -105,7 +105,7 @@ pcigen(Chan *c, char *d, Dirtab *dir, int i, int s, Dir *dp)
 	case Qpcicap:
 	case Qpcictl:
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((u32)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			return -1;
@@ -151,8 +151,8 @@ pciwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, pcigen);
 }
 
-static int32_t
-pcistat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+pcistat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, (Dirtab *)0, 0L, pcigen);
 }
@@ -173,12 +173,12 @@ pciclose(Chan *c)
 {
 }
 
-static int32_t
-pciread(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+pciread(Chan *c, void *va, i32 n, i64 offset)
 {
 	char buf[256], *ebuf, *w, *a;
 	int i, tbdf, r;
-	uint32_t x;
+	u32 x;
 	Pcidev *p;
 
 	a = va;
@@ -188,7 +188,7 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 	case Qpcicap:
 		return devdirread(c, a, n, (Dirtab *)0, 0L, pcigen);
 	case Qpcictl:
-		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((u32)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
@@ -204,7 +204,7 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 		*w = '\0';
 		return readstr(offset, a, n, buf);
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((u32)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
@@ -236,13 +236,13 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 	return n;
 }
 
-static int32_t
-pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+pciwrite(Chan *c, void *va, i32 n, i64 offset)
 {
 	char buf[256];
-	uint8_t *a;
+	u8 *a;
 	int i, r, tbdf;
-	uint32_t x;
+	u32 x;
 	Pcidev *p;
 
 	if(n >= sizeof(buf))
@@ -253,7 +253,7 @@ pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
 
 	switch(TYPE(c->qid)){
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((uint32_t)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0) | BUSBDF((u32)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);

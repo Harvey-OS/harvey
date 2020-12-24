@@ -81,7 +81,7 @@ enum {
 			 ((p) << PartSHIFT) | ((t) << TypeSHIFT))
 
 void
-sdaddpart(SDunit *unit, char *name, uint64_t start, uint64_t end)
+sdaddpart(SDunit *unit, char *name, u64 start, u64 end)
 {
 	SDpart *pp;
 	int i, partno;
@@ -417,7 +417,7 @@ static int
 sd2gen(Chan *c, int i, Dir *dp)
 {
 	Qid q;
-	uint64_t l;
+	u64 l;
 	SDpart *pp;
 	SDperm *perm;
 	SDunit *unit;
@@ -489,7 +489,7 @@ sdgen(Chan *c, char *d, Dirtab *dir, int j, int s, Dir *dp)
 {
 	Proc *up = externup();
 	Qid q = {};
-	int64_t l;
+	i64 l;
 	int i, r;
 	SDpart *pp;
 	SDunit *unit;
@@ -589,7 +589,7 @@ sdgen(Chan *c, char *d, Dirtab *dir, int j, int s, Dir *dp)
 			decref(&sdev->r);
 			return 0;
 		}
-		l = (pp->end - pp->start) * (int64_t)unit->secsize;
+		l = (pp->end - pp->start) * (i64)unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), i, Qpart),
 		      unit->vers + pp->vers, QTFILE);
 		if(emptystr(pp->SDperm.user))
@@ -661,8 +661,8 @@ sdwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, nil, 0, sdgen);
 }
 
-static int32_t
-sdstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+sdstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, nil, 0, sdgen);
 }
@@ -674,7 +674,7 @@ sdopen(Chan *c, int omode)
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
-	uint8_t tp;
+	u8 tp;
 
 	c = devopen(c, omode, 0, 0, sdgen);
 	if((tp = TYPE(c->qid)) != Qctl && tp != Qraw && tp != Qpart)
@@ -742,17 +742,17 @@ sdclose(Chan *c)
 	}
 }
 
-static int32_t
-sdbio(Chan *c, int write, char *a, int32_t len, int64_t off)
+static i32
+sdbio(Chan *c, int write, char *a, i32 len, i64 off)
 {
 	Proc *up = externup();
 	int nchange;
-	uint8_t *b;
+	u8 *b;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
-	int64_t bno;
-	int32_t l, max, nb, offset;
+	i64 bno;
+	i32 l, max, nb, offset;
 
 	sdev = sdgetdev(DEV(c->qid));
 	if(sdev == nil){
@@ -867,8 +867,8 @@ sdbio(Chan *c, int write, char *a, int32_t len, int64_t off)
 	return len;
 }
 
-static int32_t
-sdrio(SDreq *r, void *a, int32_t n)
+static i32
+sdrio(SDreq *r, void *a, i32 n)
 {
 	Proc *up = externup();
 	void *data;
@@ -935,10 +935,10 @@ sdsetsense(SDreq *r, int status, int key, int asc, int ascq)
 }
 
 int
-sdmodesense(SDreq *r, uint8_t *cmd, void *info, int ilen)
+sdmodesense(SDreq *r, u8 *cmd, void *info, int ilen)
 {
 	int len;
-	uint8_t *data;
+	u8 *data;
 
 	/*
 	 * Fake a vendor-specific request with page code 0,
@@ -966,8 +966,8 @@ sdmodesense(SDreq *r, uint8_t *cmd, void *info, int ilen)
 int
 sdfakescsi(SDreq *r, void *info, int ilen)
 {
-	uint8_t *cmd, *p;
-	uint64_t len;
+	u8 *cmd, *p;
+	u64 len;
 	SDunit *unit;
 
 	cmd = r->cmd;
@@ -1056,7 +1056,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		*p++ = len >> 16;
 		*p++ = len >> 8;
 		*p++ = len;
-		r->rlen = p - (uint8_t *)r->data;
+		r->rlen = p - (u8 *)r->data;
 		return sdsetsense(r, SDok, 0, 0, 0);
 
 	case 0x9E: /* long read capacity */
@@ -1082,7 +1082,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		*p++ = len >> 16;
 		*p++ = len >> 8;
 		*p++ = len;
-		r->rlen = p - (uint8_t *)r->data;
+		r->rlen = p - (u8 *)r->data;
 		return sdsetsense(r, SDok, 0, 0, 0);
 
 	case 0x5A: /* mode sense */
@@ -1096,15 +1096,15 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	}
 }
 
-static int32_t
-sdread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+sdread(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	char *p, *e, *buf;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
-	int32_t offset;
+	i32 offset;
 	int i, l, mm, status;
 
 	offset = off;
@@ -1209,13 +1209,13 @@ sdread(Chan *c, void *a, int32_t n, int64_t off)
 
 static void legacytopctl(Cmdbuf *);
 
-static int32_t
-sdwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+sdwrite(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	char *f0;
 	int i;
-	uint64_t end, start;
+	u64 end, start;
 	Cmdbuf *cb;
 	SDifc *ifc;
 	SDreq *req;
@@ -1376,8 +1376,8 @@ sdwrite(Chan *c, void *a, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-sdwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+sdwstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Dir *d;
@@ -1428,7 +1428,7 @@ sdwstat(Chan *c, uint8_t *dp, int32_t n)
 		error(Eshortstat);
 	if(!emptystr(d[0].uid))
 		kstrdup(&perm->user, d[0].uid);
-	if(d[0].mode != (uint32_t)~0UL)
+	if(d[0].mode != (u32)~0UL)
 		perm->perm = (perm->perm & ~0777) | (d[0].mode & 0777);
 
 	free(d);
@@ -1584,7 +1584,7 @@ getnewport(DevConf *dc)
 	dc->ports = p;
 	p = &dc->ports[dc->nports++];
 	p->size = -1;
-	p->port = (uint32_t)-1;
+	p->port = (u32)-1;
 	return p;
 }
 
@@ -1594,7 +1594,7 @@ parseport(Confdata *cd, char *option)
 	char *e;
 	Devport *p;
 
-	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports - 1].port != (uint32_t)-1)
+	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports - 1].port != (u32)-1)
 		p = getnewport(&cd->cf);
 	else
 		p = &cd->cf.ports[cd->cf.nports - 1];

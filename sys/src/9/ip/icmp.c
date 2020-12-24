@@ -17,22 +17,22 @@
 #include "ip.h"
 
 typedef struct Icmp {
-	uint8_t vihl;	    /* Version and header length */
-	uint8_t tos;	    /* Type of service */
-	uint8_t length[2];  /* packet length */
-	uint8_t id[2];	    /* Identification */
-	uint8_t frag[2];    /* Fragment information */
-	uint8_t ttl;	    /* Time to live */
-	uint8_t proto;	    /* Protocol */
-	uint8_t ipcksum[2]; /* Header checksum */
-	uint8_t src[4];	    /* Ip source */
-	uint8_t dst[4];	    /* Ip destination */
-	uint8_t type;
-	uint8_t code;
-	uint8_t cksum[2];
-	uint8_t icmpid[2];
-	uint8_t seq[2];
-	uint8_t data[1];
+	u8 vihl;	    /* Version and header length */
+	u8 tos;	    /* Type of service */
+	u8 length[2];  /* packet length */
+	u8 id[2];	    /* Identification */
+	u8 frag[2];    /* Fragment information */
+	u8 ttl;	    /* Time to live */
+	u8 proto;	    /* Protocol */
+	u8 ipcksum[2]; /* Header checksum */
+	u8 src[4];	    /* Ip source */
+	u8 dst[4];	    /* Ip destination */
+	u8 type;
+	u8 code;
+	u8 cksum[2];
+	u8 icmpid[2];
+	u8 seq[2];
+	u8 data[1];
 } Icmp;
 
 enum { /* Packet Types */
@@ -103,11 +103,11 @@ static char *statnames[Nstats] =
 
 typedef struct Icmppriv Icmppriv;
 struct Icmppriv {
-	uint32_t stats[Nstats];
+	u32 stats[Nstats];
 
 	/* message counts */
-	uint32_t in[Maxtype + 1];
-	uint32_t out[Maxtype + 1];
+	u32 in[Maxtype + 1];
+	u32 out[Maxtype + 1];
 };
 
 static void icmpkick(void *x, Block *);
@@ -196,7 +196,7 @@ icmpkick(void *x, Block *bp)
 }
 
 extern void
-icmpttlexceeded(Fs *f, uint8_t *ia, Block *bp)
+icmpttlexceeded(Fs *f, u8 *ia, Block *bp)
 {
 	Block *nbp;
 	Icmp *p, *np;
@@ -227,7 +227,7 @@ icmpunreachable(Fs *f, Block *bp, int code, int seq)
 	Block *nbp;
 	Icmp *p, *np;
 	int i;
-	uint8_t addr[IPaddrlen];
+	u8 addr[IPaddrlen];
 
 	p = (Icmp *)bp->rp;
 
@@ -276,8 +276,8 @@ goticmpkt(Proto *icmp, Block *bp)
 {
 	Conv **c, *s;
 	Icmp *p;
-	uint8_t dst[IPaddrlen];
-	uint16_t recid;
+	u8 dst[IPaddrlen];
+	u16 recid;
 
 	p = (Icmp *)bp->rp;
 	v4tov6(dst, p->src);
@@ -300,7 +300,7 @@ static Block *
 mkechoreply(Block *bp)
 {
 	Icmp *q;
-	uint8_t ip[4];
+	u8 ip[4];
 
 	q = (Icmp *)bp->rp;
 	q->vihl = IP_VER4;
@@ -430,8 +430,8 @@ icmpadvise(Proto *icmp, Block *bp, char *msg)
 {
 	Conv **c, *s;
 	Icmp *p;
-	uint8_t dst[IPaddrlen];
-	uint16_t recid;
+	u8 dst[IPaddrlen];
+	u16 recid;
 
 	p = (Icmp *)bp->rp;
 	v4tov6(dst, p->dst);

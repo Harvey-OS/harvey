@@ -170,12 +170,12 @@ static Uart i8250uart[2] = {
 #define csr8w(c, r, v) outb((c)->io + (r), (c)->sticky[(r)] | (v))
 #define csr8o(c, r, v) outb((c)->io + (r), (v))
 
-static int32_t
-i8250status(Uart *uart, void *buf, int32_t n, int32_t offset)
+static i32
+i8250status(Uart *uart, void *buf, i32 n, i32 offset)
 {
 	char *p;
 	Ctlr *ctlr;
-	uint8_t ier, lcr, mcr, msr;
+	u8 ier, lcr, mcr, msr;
 
 	ctlr = uart->regs;
 	p = malloc(READSTR);
@@ -410,7 +410,7 @@ i8250bits(Uart *uart, int bits)
 static int
 i8250baud(Uart *uart, int baud)
 {
-	uint32_t bgc;
+	u32 bgc;
 	Ctlr *ctlr;
 
 	/*

@@ -100,7 +100,7 @@ static Dirtab *dirtab[MaxQ];
 #define QID(x, y) (((x) << 8) | (y))
 
 struct Centry {
-	uint8_t d[Eaddrlen];
+	u8 d[Eaddrlen];
 	int port;
 	long expire;	    // entry expires this many seconds after bootime
 	long src;
@@ -161,27 +161,27 @@ enum {
 };
 
 struct Iphdr {
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* ip->identification */
-	uint8_t frag[2];   /* Fragment information */
-	uint8_t ttl;	   /* Time to live */
-	uint8_t proto;	   /* Protocol */
-	uint8_t cksum[2];  /* Header checksum */
-	uint8_t src[4];	   /* IP source */
-	uint8_t dst[4];	   /* IP destination */
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* ip->identification */
+	u8 frag[2];   /* Fragment information */
+	u8 ttl;	   /* Time to live */
+	u8 proto;	   /* Protocol */
+	u8 cksum[2];  /* Header checksum */
+	u8 src[4];	   /* IP source */
+	u8 dst[4];	   /* IP destination */
 };
 
 struct Tcphdr {
-	uint8_t sport[2];
-	uint8_t dport[2];
-	uint8_t seq[4];
-	uint8_t ack[4];
-	uint8_t flag[2];
-	uint8_t win[2];
-	uint8_t cksum[2];
-	uint8_t urg[2];
+	u8 sport[2];
+	u8 dport[2];
+	u8 seq[4];
+	u8 ack[4];
+	u8 flag[2];
+	u8 win[2];
+	u8 cksum[2];
+	u8 urg[2];
 };
 
 static Bridge bridgetab[Maxbridge];
@@ -241,7 +241,7 @@ bridgewalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-bridgestat(Chan *c, uint8_t *db, int n)
+bridgestat(Chan *c, u8 *db, int n)
 {
 	return devstat(c, db, n, (Dirtab *)0, 0L, bridgegen);
 }
@@ -292,8 +292,8 @@ bridgeclose(Chan *c)
 	}
 }
 
-static int32_t
-bridgeread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+bridgeread(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	char buf[256];
@@ -371,8 +371,8 @@ bridgeoption(Bridge *b, char *option, int value)
 		error("unknown bridge option");
 }
 
-static int32_t
-bridgewrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+bridgewrite(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	Bridge *b = bridgetab + c->devno;
@@ -502,7 +502,7 @@ bridgegen(Chan *c, char *_, Dirtab *__, int ___, int s, Dir *dp)
 
 // parse mac address; also in netif.c
 int
-parseaddr(uint8_t *to, char *from, int alen)
+parseaddr(u8 *to, char *from, int alen)
 {
 	char nip[4];
 	char *p;
@@ -689,7 +689,7 @@ portunbind(Bridge *b, int argc, char *argv[])
 
 // assumes b is locked
 static Centry *
-cachelookup(Bridge *b, uint8_t d[Eaddrlen])
+cachelookup(Bridge *b, u8 d[Eaddrlen])
 {
 	int i;
 	uint h;
@@ -726,7 +726,7 @@ cachelookup(Bridge *b, uint8_t d[Eaddrlen])
 
 // assumes b is locked
 static void
-cacheupdate(Bridge *b, uint8_t d[Eaddrlen], int port)
+cacheupdate(Bridge *b, u8 d[Eaddrlen], int port)
 {
 	int i;
 	uint h;
@@ -881,7 +881,7 @@ tcpmsshack(Etherpkt *epkt, int n)
 	Iphdr *iphdr;
 	Tcphdr *tcphdr;
 	unsigned long mss, cksum;
-	uint8_t *optr;
+	u8 *optr;
 
 	/* ignore non-ipv4 packets */
 	if(nhgets(epkt->type) != ETIP4)
@@ -905,7 +905,7 @@ tcpmsshack(Etherpkt *epkt, int n)
 	n -= hl;
 	if(n < sizeof(Tcphdr))
 		return;
-	tcphdr = (Tcphdr *)((uint8_t *)(iphdr) + hl);
+	tcphdr = (Tcphdr *)((u8 *)(iphdr) + hl);
 	// MSS can only appear in SYN packet
 	if(!(tcphdr->flag[1] & SYN))
 		return;
@@ -914,7 +914,7 @@ tcpmsshack(Etherpkt *epkt, int n)
 		return;
 
 	// check for MSS option
-	optr = (uint8_t *)tcphdr + sizeof(Tcphdr);
+	optr = (u8 *)tcphdr + sizeof(Tcphdr);
 	n = hl - sizeof(Tcphdr);
 	for(;;){
 		if(n <= 0 || *optr == EOLOPT)
@@ -938,7 +938,7 @@ tcpmsshack(Etherpkt *epkt, int n)
 		return;
 	// fit checksum
 	cksum = nhgets(tcphdr->cksum);
-	if((optr - (uint8_t *)tcphdr) & 1){
+	if((optr - (u8 *)tcphdr) & 1){
 		print("tcpmsshack: odd alignment!\n");
 		// odd alignments are a pain
 		cksum += nhgets(optr + 1);

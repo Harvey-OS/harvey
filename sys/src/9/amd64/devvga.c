@@ -75,7 +75,7 @@ static Cmdtab vgactlmsg[] = {
 };
 
 static long
-rmemrw(int isr, void *a, long n, int64_t off)
+rmemrw(int isr, void *a, long n, i64 off)
 {
 	if(off < 0 || n < 0)
 		error("bad offset/count");
@@ -84,7 +84,7 @@ rmemrw(int isr, void *a, long n, int64_t off)
 			return 0;
 		if(off + n >= MB)
 			n = MB - off;
-		memmove(a, KADDR((uintptr_t)off), n);
+		memmove(a, KADDR((uintptr)off), n);
 	} else {
 		/* realmode buf page ok, allow vga framebuf's access */
 		if(off >= MB)
@@ -99,19 +99,19 @@ rmemrw(int isr, void *a, long n, int64_t off)
 			error("off < 0xa0000");
 		if(off + n > 0xB0000 + 0x10000)
 			error("off+n > 0xb0000+0x10000");
-		memmove(KADDR((uintptr_t)off), a, n);
+		memmove(KADDR((uintptr)off), a, n);
 	}
 	return n;
 }
 
-static int32_t
-rmemread(Chan *_, void *a, int32_t n, int64_t off)
+static i32
+rmemread(Chan *_, void *a, i32 n, i64 off)
 {
 	return rmemrw(1, a, n, off);
 }
 
-static int32_t
-rmemwrite(Chan *_, void *a, int32_t n, int64_t off)
+static i32
+rmemwrite(Chan *_, void *a, i32 n, i64 off)
 {
 	return rmemrw(0, a, n, off);
 }
@@ -154,7 +154,7 @@ vgaopen(Chan *c, int omode)
 	static char *openctl = "openctl\n";
 
 	scr = &vgascreen[0];
-	if((uint32_t)c->qid.path == Qvgaovlctl){
+	if((u32)c->qid.path == Qvgaovlctl){
 		if(scr->dev && scr->dev->ovlctl)
 			scr->dev->ovlctl(scr, c, openctl, strlen(openctl));
 		else
@@ -171,7 +171,7 @@ vgaclose(Chan *c)
 	static char *closectl = "closectl\n";
 
 	scr = &vgascreen[0];
-	if((uint32_t)c->qid.path == Qvgaovlctl)
+	if((u32)c->qid.path == Qvgaovlctl)
 		if(scr->dev && scr->dev->ovlctl){
 			if(waserror()){
 				print("ovlctl error: %s\n", up->errstr);
@@ -182,17 +182,17 @@ vgaclose(Chan *c)
 		}
 }
 
-static int32_t
-vgaread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+vgaread(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	int len;
 	char *p, *s;
 	VGAscr *scr;
-	uint32_t offset = off;
+	u32 offset = off;
 	char chbuf[30];
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, vgadir, nelem(vgadir), devgen);
@@ -463,15 +463,15 @@ vgactl(Cmdbuf *cb)
 
 char Enooverlay[] = "No overlay support";
 
-static int32_t
-vgawrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+vgawrite(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
-	uint32_t offset = off;
+	u32 offset = off;
 	Cmdbuf *cb;
 	VGAscr *scr;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qdir:
 		error(Eperm);

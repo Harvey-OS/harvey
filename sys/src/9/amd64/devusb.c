@@ -810,13 +810,13 @@ usbstat(Chan *c, unsigned char *db, int n)
  * Only when we are sure we
  * are not exceeding b/w might we consider adjusting it.
  */
-static uint32_t
+static u32
 usbload(int speed, int maxpkt)
 {
 	enum { Hostns = 1000,
 	       Hubns = 333 };
-	uint32_t l;
-	uint32_t bs;
+	u32 l;
+	u32 bs;
 
 	l = 0;
 	bs = 10UL * maxpkt;
@@ -941,8 +941,8 @@ usbclose(Chan *c)
 	putep(ep);
 }
 
-static int32_t
-ctlread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+ctlread(Chan *c, void *a, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	int q;
@@ -1002,8 +1002,8 @@ ctlread(Chan *c, void *a, int32_t n, int64_t offset)
 /*
  * Fake root hub emulation.
  */
-static int32_t
-rhubread(Ep *ep, void *a, int32_t n)
+static i32
+rhubread(Ep *ep, void *a, i32 n)
 {
 	char *b;
 
@@ -1019,8 +1019,8 @@ rhubread(Ep *ep, void *a, int32_t n)
 	return n;
 }
 
-static int32_t
-rhubwrite(Ep *ep, void *a, int32_t n)
+static i32
+rhubwrite(Ep *ep, void *a, i32 n)
 {
 	unsigned char *s;
 	int cmd;
@@ -1058,8 +1058,8 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 	return n;
 }
 
-static int32_t
-usbread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+usbread(Chan *c, void *a, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	int q;
@@ -1105,7 +1105,7 @@ usbread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-static int32_t
+static i32
 pow2(int n)
 {
 	return 1 << n;
@@ -1114,7 +1114,7 @@ pow2(int n)
 static void
 setmaxpkt(Ep *ep, char *s)
 {
-	int32_t spp; /* samples per packet */
+	i32 spp; /* samples per packet */
 
 	if(ep->dev->speed == Highspeed)
 		spp = (ep->hz * ep->pollival * ep->ntds + 7999) / 8000;
@@ -1137,8 +1137,8 @@ setmaxpkt(Ep *ep, char *s)
  * of the endpoint. The actual controller driver will look
  * at them to setup the endpoints as dictated.
  */
-static int32_t
-epctl(Ep *ep, Chan *c, void *a, int32_t n)
+static i32
+epctl(Ep *ep, Chan *c, void *a, i32 n)
 {
 	Proc *up = externup();
 	int i, l, mode, nb, tt;
@@ -1350,8 +1350,8 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 	return n;
 }
 
-static int32_t
-usbctl(void *a, int32_t n)
+static i32
+usbctl(void *a, i32 n)
 {
 	Proc *up = externup();
 	Cmdtab *ct;
@@ -1390,8 +1390,8 @@ usbctl(void *a, int32_t n)
 	return n;
 }
 
-static int32_t
-ctlwrite(Chan *c, void *a, int32_t n)
+static i32
+ctlwrite(Chan *c, void *a, i32 n)
 {
 	Proc *up = externup();
 	int q;
@@ -1422,8 +1422,8 @@ ctlwrite(Chan *c, void *a, int32_t n)
 	return n;
 }
 
-static int32_t
-usbwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+usbwrite(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	int nr, q;

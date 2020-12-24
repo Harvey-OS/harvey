@@ -18,7 +18,7 @@
 
 static void pktbind(Ipifc *, int, char **);
 static void pktunbind(Ipifc *);
-static void pktbwrite(Ipifc *, Block *, int, uint8_t *);
+static void pktbwrite(Ipifc *, Block *, int, u8 *);
 static void pktin(Fs *, Ipifc *, Block *);
 
 Medium pktmedium =
@@ -57,7 +57,7 @@ pktunbind(Ipifc *ipifc)
  *  called by ipoput with a single packet to write
  */
 static void
-pktbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
+pktbwrite(Ipifc *ifc, Block *bp, int i, u8 *c)
 {
 	/* enqueue onto the conversation's rq */
 	bp = concatblock(bp);

@@ -17,7 +17,7 @@
 #define _PADDR(va) PTR2UINT(((uintptr)(va)) - KZERO)
 
 void *
-KADDR(uintptr_t pa)
+KADDR(uintptr pa)
 {
 	if(pa < KZERO)
 		return _KADDR(pa);
@@ -25,10 +25,10 @@ KADDR(uintptr_t pa)
 	return UINT2PTR(pa);
 }
 
-uintmem
+u64
 PADDR(void *va)
 {
-	uintmem pa;
+	u64 pa;
 
 	pa = PTR2UINT(va);
 	if(pa >= KZERO)

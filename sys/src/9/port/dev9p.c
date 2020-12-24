@@ -30,9 +30,9 @@ char *strdup(char *s);
 
 // Functions from devmnt.c
 
-int32_t mntrdwr(int, Chan *, void *, int32_t, int64_t);
+i32 mntrdwr(int, Chan *, void *, i32, i64);
 
-void mntdirfix(uint8_t *dirbuf, Chan *c);
+void mntdirfix(u8 *dirbuf, Chan *c);
 
 extern char Esbadstat[];
 
@@ -66,7 +66,7 @@ static Dev *mdevtab;
 
 // Array of defined 9p mounts and their number
 
-static uint32_t nv9p;
+static u32 nv9p;
 
 static Vqctl **v9ps;
 
@@ -81,11 +81,11 @@ static int initdone;
 
 struct holdbuf {
 	void *rdbuf;	      // read buffer (response)
-	int32_t rdlen;	      // read length (allocated)
-	int32_t rfree;	      // if true then read buffer was malloc'd and needs to be freed
+	i32 rdlen;	      // read length (allocated)
+	i32 rfree;	      // if true then read buffer was malloc'd and needs to be freed
 	void *wrbuf;	      // write buffer (request)
-	int32_t wrlen;	      // write length (supplied)
-	int32_t wfree;	      // if true then write buffer was malloc'd and needs to be freed
+	i32 wrlen;	      // write length (supplied)
+	i32 wfree;	      // if true then write buffer was malloc'd and needs to be freed
 	Proc *proc;	      // holding process
 	int descr;	      // virtqueue descriptor index for the request
 };
@@ -109,7 +109,7 @@ struct pidcache {
 static struct v9pmnt {
 	char *tag;				// mount tag (from host)
 	char *version;				// 9p version (from host)
-	uint32_t msize;				// message size (need this to pad short buffers otherwise QEMU errors out)
+	u32 msize;				// message size (need this to pad short buffers otherwise QEMU errors out)
 	Virtq *vq;				// associated virtqueue
 	struct holdbuf *hbufs;			// hold buffers
 	struct pidcache pidch[PIDCSIZE];	// PID cache
@@ -162,7 +162,7 @@ findtag(char *tag)
 static void
 v9pinit(void)
 {
-	uint32_t nvdev;
+	u32 nvdev;
 
 	print("virtio-9p initializing\n");
 	mdevtab = devtabget('M', 1);
@@ -209,10 +209,11 @@ v9pinit(void)
 // system heap, not in any application's address space). The request will be made in the
 // indirect mode because this is the only way that work properly with QEMU 9p.
 
-static int32_t
-do_request(int gdescr, int tidx, void *inbuf, int32_t inlen, void *outbuf, int32_t outlen)
+static i32
+do_request(int gdescr, int tidx, void *inbuf, i32 inlen, void *outbuf,
+	   i32 outlen)
 {
-	uint16_t descr[1];
+	u16 descr[1];
 	Virtq *vq = v9ps[tidx]->vqs[0];
 	if(vq == nil){
 		error("No virtqueue (nil address)");
@@ -241,14 +242,14 @@ do_request(int gdescr, int tidx, void *inbuf, int32_t inlen, void *outbuf, int32
 // and we have to cheat here about the protocol version). In such case some additional logic
 // applies based on the extracted message type.
 
-static int32_t
-phwrite(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+phwrite(Chan *c, void *va, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	int tidx = findtag(chanpath(c));
 	if(tidx < 0 || tidx >= nv9p)
 		error(Enonexist);
-	uint8_t *msg = va;
+	u8 *msg = va;
 	int mtype = GBIT8(msg + 4);
 	void *nva;
 	int lnva;
@@ -277,7 +278,7 @@ phwrite(Chan *c, void *va, int32_t n, int64_t offset)
 			memmove(nva, va, n);
 		}
 	}
-	uint16_t descr[1];
+	u16 descr[1];
 	struct v9pmnt *pm = mounts + tidx;
 	int rc = getdescr(pm->vq, 1, descr);
 	if(rc < 1){
@@ -304,10 +305,10 @@ phwrite(Chan *c, void *va, int32_t n, int64_t offset)
 // Override the devmnt's read method. It is necessary to fix the incorrectly packed
 // stat structures when reading from a directory.
 
-static int32_t
-v9pread(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+v9pread(Chan *c, void *buf, i32 n, i64 off)
 {
-	uint8_t *p, *e;
+	u8 *p, *e;
 	int nc, cache, isdir;
 	usize dirlen;
 
@@ -335,15 +336,15 @@ v9pread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	n = mntrdwr(Tread, c, buf, n, off);
 	if(isdir){
-		uint8_t *nbuf = malloc(n);
+		u8 *nbuf = malloc(n);
 		if(nbuf == nil)
 			error(Enomem);
-		uint8_t *xnbuf = nbuf;
+		u8 *xnbuf = nbuf;
 		for(e = &p[n]; p + BIT16SZ < e; p += dirlen){
 			dirlen = BIT16SZ + GBIT16(p);
 			if(p + dirlen > e)
 				break;
-			uint8_t *pn = p + 41;
+			u8 *pn = p + 41;
 			uint lstrs = 0;
 			for(int i = 0; i < 4; i++){
 				int ns = GBIT16(pn);
@@ -378,8 +379,8 @@ v9pread(Chan *c, void *buf, int32_t n, int64_t off)
 // absence of such is an error. The length returned may length extracted from the first
 // 4 bytes of the message in some cases.
 
-static int32_t
-phread(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+phread(Chan *c, void *va, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	int tidx = findtag(chanpath(c));
@@ -393,9 +394,9 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 	do_request(hb->descr, tidx, hb->rdbuf, hb->rdlen, hb->wrbuf, hb->wrlen);
 	if(hb->wfree)
 		free(hb->wrbuf);
-	uint8_t *msg = va;
+	u8 *msg = va;
 	int mtype = GBIT8(msg + 4);
-	uint32_t mlen = GBIT32(msg);
+	u32 mlen = GBIT32(msg);
 	Fcall f;
 	switch(mtype){
 	case Rerror:
@@ -417,9 +418,9 @@ phread(Chan *c, void *va, int32_t n, int64_t offset)
 	case Rstat:
 		mlen = GBIT16(msg);
 		uint nbuf = GBIT16(msg + 9);
-		uint8_t *buf = msg + 9;
+		u8 *buf = msg + 9;
 		Dir d;
-		uint8_t *pn = buf + 41;
+		u8 *pn = buf + 41;
 		uint lstrs = 0;
 		for(int i = 0; i < 4; i++){
 			int ns = GBIT16(pn);
@@ -483,8 +484,8 @@ v9pwalk(Chan *c, Chan *nc, char **name, int nname)
 	return mdevtab->walk(c, nc, name, nname);
 }
 
-static int32_t
-v9pstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+v9pstat(Chan *c, u8 *dp, i32 n)
 {
 	return mdevtab->stat(c, dp, n);
 }
@@ -510,14 +511,14 @@ v9premove(Chan *c)
 	mdevtab->remove(c);
 }
 
-static int32_t
-v9pwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+v9pwstat(Chan *c, u8 *dp, i32 n)
 {
 	return mdevtab->wstat(c, dp, n);
 }
 
-static int32_t
-v9pwrite(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+v9pwrite(Chan *c, void *va, i32 n, i64 offset)
 {
 	return mdevtab->write(c, va, n, offset);
 }
@@ -540,15 +541,15 @@ phwalk(Chan *c, Chan *nc, char **name, int nname)
 	return nil;
 }
 
-static int32_t
-phstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+phstat(Chan *c, u8 *dp, i32 n)
 {
 	error(Edonotcall(__FUNCTION__));
 	return -1;
 }
 
-static int32_t
-phwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+phwstat(Chan *c, u8 *dp, i32 n)
 {
 	error(Edonotcall(__FUNCTION__));
 	return -1;
@@ -582,8 +583,8 @@ phremove(Chan *c)
 // Read mount tags information as tag:version:msize:pcuse:pchit:pcmiss for mounted tags, and
 // tag:- for non-mounted.
 
-int32_t
-mtagsread(Chan *c, void *buf, int32_t n, int64_t off)
+i32
+mtagsread(Chan *c, void *buf, i32 n, i64 off)
 {
 	Proc *up = externup();
 	int i;

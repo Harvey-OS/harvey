@@ -57,9 +57,9 @@ enum {
 };
 
 struct Esphdr {
-	uint8_t espspi[4]; /* Security parameter index */
-	uint8_t espseq[4]; /* Sequence number */
-	uint8_t payload[];
+	u8 espspi[4]; /* Security parameter index */
+	u8 espseq[4]; /* Sequence number */
+	u8 payload[];
 };
 
 /*
@@ -73,16 +73,16 @@ struct Esphdr {
  */
 struct Esp4hdr {
 	/* ipv4 header */
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* Identification */
-	uint8_t frag[2];   /* Fragment information */
-	uint8_t Unused;
-	uint8_t espproto;   /* Protocol */
-	uint8_t espplen[2]; /* Header plus data length */
-	uint8_t espsrc[4];  /* Ip source */
-	uint8_t espdst[4];  /* Ip destination */
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* Identification */
+	u8 frag[2];   /* Fragment information */
+	u8 Unused;
+	u8 espproto;   /* Protocol */
+	u8 espplen[2]; /* Header plus data length */
+	u8 espsrc[4];  /* Ip source */
+	u8 espdst[4];  /* Ip destination */
 
 	Esphdr;
 };
@@ -94,30 +94,30 @@ struct Esp6hdr {
 };
 
 struct Esptail {
-	uint8_t pad;
-	uint8_t nexthdr;
+	u8 pad;
+	u8 nexthdr;
 };
 
 /* IP-version-dependent data */
 typedef struct Versdep Versdep;
 struct Versdep {
-	uint32_t version;
-	uint32_t iphdrlen;
-	uint32_t hdrlen; /* iphdrlen + esp hdr len */
-	uint32_t spi;
-	uint8_t laddr[IPaddrlen];
-	uint8_t raddr[IPaddrlen];
+	u32 version;
+	u32 iphdrlen;
+	u32 hdrlen; /* iphdrlen + esp hdr len */
+	u32 spi;
+	u8 laddr[IPaddrlen];
+	u8 raddr[IPaddrlen];
 };
 
 /* header as seen by the user */
 struct Userhdr {
-	uint8_t nexthdr; /* next protocol */
-	uint8_t unused[3];
+	u8 nexthdr; /* next protocol */
+	u8 unused[3];
 };
 
 struct Esppriv {
-	uint64_t in;
-	uint32_t inerrors;
+	u64 in;
+	u32 inerrors;
 };
 
 /*
@@ -126,44 +126,44 @@ struct Esppriv {
 struct Espcb {
 	int incoming;
 	int header; /* user-level header */
-	uint32_t spi;
-	uint32_t seq;	 /* last seq sent */
-	uint32_t window; /* for replay attacks */
+	u32 spi;
+	u32 seq;	 /* last seq sent */
+	u32 window; /* for replay attacks */
 
 	char *espalg;
 	void *espstate; /* other state for esp */
 	int espivlen;	/* in bytes */
 	int espblklen;
-	int (*cipher)(Espcb *, uint8_t *buf, int len);
+	int (*cipher)(Espcb *, u8 *buf, int len);
 
 	char *ahalg;
 	void *ahstate; /* other state for esp */
 	int ahlen;     /* auth data length in bytes */
 	int ahblklen;
-	int (*auth)(Espcb *, uint8_t *buf, int len, uint8_t *hash);
+	int (*auth)(Espcb *, u8 *buf, int len, u8 *hash);
 	DigestState *ds;
 };
 
 struct Algorithm {
 	char *name;
 	int keylen; /* in bits */
-	void (*init)(Espcb *, char *name, uint8_t *key, unsigned keylen);
+	void (*init)(Espcb *, char *name, u8 *key, unsigned keylen);
 };
 
-static Conv *convlookup(Proto *esp, uint32_t spi);
+static Conv *convlookup(Proto *esp, u32 spi);
 static char *setalg(Espcb *ecb, char **f, int n, Algorithm *alg);
 static void espkick(void *x);
 
-static void nullespinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void des3espinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void aescbcespinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void aesctrespinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void desespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n);
+static void nullespinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void des3espinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void aescbcespinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void aesctrespinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void desespinit(Espcb *ecb, char *name, u8 *k, unsigned n);
 
-static void nullahinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void shaahinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void aesahinit(Espcb *, char *, uint8_t *key, unsigned keylen);
-static void md5ahinit(Espcb *, char *, uint8_t *key, unsigned keylen);
+static void nullahinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void shaahinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void aesahinit(Espcb *, char *, u8 *key, unsigned keylen);
+static void md5ahinit(Espcb *, char *, u8 *key, unsigned keylen);
 
 static Algorithm espalg[] =
 	{
@@ -212,7 +212,7 @@ static char *
 espconnect(Conv *c, char **argv, int argc)
 {
 	char *p, *pp, *e = nil;
-	uint32_t spi;
+	u32 spi;
 	Espcb *ecb = (Espcb *)c->ptcl;
 
 	switch(argc){
@@ -335,7 +335,7 @@ getverslens(int version, Versdep *vp)
 }
 
 static void
-getpktspiaddrs(uint8_t *pkt, Versdep *vp)
+getpktspiaddrs(u8 *pkt, Versdep *vp)
 {
 	Esp4hdr *eh4;
 	Esp6hdr *eh6;
@@ -366,7 +366,7 @@ static void
 espkick(void *x)
 {
 	int nexthdr, payload, pad, align;
-	uint8_t *auth;
+	u8 *auth;
 	Block *bp;
 	Conv *c = x;
 	Esp4hdr *eh4;
@@ -472,7 +472,7 @@ espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 {
 	Proc *up = externup();
 	int payload, nexthdr;
-	uint8_t *auth, *espspi;
+	u8 *auth, *espspi;
 	Conv *c;
 	Espcb *ecb;
 	Esptail *et;
@@ -669,7 +669,7 @@ espremote(Conv *c, char *buf, int len)
 }
 
 static Conv *
-convlookup(Proto *esp, uint32_t spi)
+convlookup(Proto *esp, u32 spi)
 {
 	Conv *c, **p;
 	Espcb *ecb;
@@ -686,7 +686,7 @@ convlookup(Proto *esp, uint32_t spi)
 static char *
 setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
 {
-	uint8_t *key;
+	u8 *key;
 	int c, nbyte, nchar;
 	uint i;
 
@@ -736,13 +736,13 @@ setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
  */
 
 static int
-nullcipher(Espcb *espcb, uint8_t *c, int i)
+nullcipher(Espcb *espcb, u8 *c, int i)
 {
 	return 1;
 }
 
 static void
-nullespinit(Espcb *ecb, char *name, uint8_t *c, unsigned keylen)
+nullespinit(Espcb *ecb, char *name, u8 *c, unsigned keylen)
 {
 	ecb->espalg = name;
 	ecb->espblklen = 1;
@@ -751,13 +751,13 @@ nullespinit(Espcb *ecb, char *name, uint8_t *c, unsigned keylen)
 }
 
 static int
-nullauth(Espcb *espcb, uint8_t *c, int i, uint8_t *d)
+nullauth(Espcb *espcb, u8 *c, int i, u8 *d)
 {
 	return 1;
 }
 
 static void
-nullahinit(Espcb *ecb, char *name, uint8_t *c, unsigned keylen)
+nullahinit(Espcb *ecb, char *name, u8 *c, unsigned keylen)
 {
 	ecb->ahalg = name;
 	ecb->ahblklen = 1;
@@ -770,10 +770,11 @@ nullahinit(Espcb *ecb, char *name, uint8_t *c, unsigned keylen)
  */
 
 static void
-seanq_hmac_sha1(uint8_t hash[SHA1dlen], uint8_t *t, int32_t tlen, uint8_t *key, int32_t klen)
+seanq_hmac_sha1(u8 hash[SHA1dlen], u8 *t, i32 tlen, u8 *key,
+		i32 klen)
 {
 	int i;
-	uint8_t ipad[Hmacblksz + 1], opad[Hmacblksz + 1], innerhash[SHA1dlen];
+	u8 ipad[Hmacblksz + 1], opad[Hmacblksz + 1], innerhash[SHA1dlen];
 	DigestState *digest;
 
 	memset(ipad, 0x36, Hmacblksz);
@@ -790,20 +791,20 @@ seanq_hmac_sha1(uint8_t hash[SHA1dlen], uint8_t *t, int32_t tlen, uint8_t *key, 
 }
 
 static int
-shaauth(Espcb *ecb, uint8_t *t, int tlen, uint8_t *auth)
+shaauth(Espcb *ecb, u8 *t, int tlen, u8 *auth)
 {
 	int r;
-	uint8_t hash[SHA1dlen];
+	u8 hash[SHA1dlen];
 
 	memset(hash, 0, SHA1dlen);
-	seanq_hmac_sha1(hash, t, tlen, (uint8_t *)ecb->ahstate, BITS2BYTES(128));
+	seanq_hmac_sha1(hash, t, tlen, (u8 *)ecb->ahstate, BITS2BYTES(128));
 	r = memcmp(auth, hash, ecb->ahlen) == 0;
 	memmove(auth, hash, ecb->ahlen);
 	return r;
 }
 
 static void
-shaahinit(Espcb *ecb, char *name, uint8_t *key, unsigned klen)
+shaahinit(Espcb *ecb, char *name, u8 *key, unsigned klen)
 {
 	if(klen != 128)
 		panic("shaahinit: bad keylen");
@@ -823,13 +824,13 @@ shaahinit(Espcb *ecb, char *name, uint8_t *key, unsigned klen)
 
 /* ah_aes_xcbc_mac_96, rfc3566 */
 static int
-aesahauth(Espcb *ecb, uint8_t *t, int tlen, uint8_t *auth)
+aesahauth(Espcb *ecb, u8 *t, int tlen, u8 *auth)
 {
 	int r;
-	uint8_t hash[AESdlen];
+	u8 hash[AESdlen];
 
 	memset(hash, 0, AESdlen);
-	ecb->ds = hmac_aes(t, tlen, (uint8_t *)ecb->ahstate, BITS2BYTES(96), hash,
+	ecb->ds = hmac_aes(t, tlen, (u8 *)ecb->ahstate, BITS2BYTES(96), hash,
 			   ecb->ds);
 	r = memcmp(auth, hash, ecb->ahlen) == 0;
 	memmove(auth, hash, ecb->ahlen);
@@ -837,7 +838,7 @@ aesahauth(Espcb *ecb, uint8_t *t, int tlen, uint8_t *auth)
 }
 
 static void
-aesahinit(Espcb *ecb, char *name, uint8_t *key, unsigned klen)
+aesahinit(Espcb *ecb, char *name, u8 *key, unsigned klen)
 {
 	if(klen != 128)
 		panic("aesahinit: keylen not 128");
@@ -852,10 +853,10 @@ aesahinit(Espcb *ecb, char *name, uint8_t *key, unsigned klen)
 }
 
 static int
-aescbccipher(Espcb *ecb, uint8_t *p, int n) /* 128-bit blocks */
+aescbccipher(Espcb *ecb, u8 *p, int n) /* 128-bit blocks */
 {
-	uint8_t tmp[AESbsize], q[AESbsize];
-	uint8_t *pp, *tp, *ip, *eip, *ep;
+	u8 tmp[AESbsize], q[AESbsize];
+	u8 *pp, *tp, *ip, *eip, *ep;
 	AESstate *ds = ecb->espstate;
 
 	ep = p + n;
@@ -889,9 +890,9 @@ aescbccipher(Espcb *ecb, uint8_t *p, int n) /* 128-bit blocks */
 }
 
 static void
-aescbcespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
+aescbcespinit(Espcb *ecb, char *name, u8 *k, unsigned n)
 {
-	uint8_t key[Aeskeysz], ivec[Aeskeysz];
+	u8 key[Aeskeysz], ivec[Aeskeysz];
 	int i;
 
 	n = BITS2BYTES(n);
@@ -910,10 +911,10 @@ aescbcespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
 }
 
 static int
-aesctrcipher(Espcb *ecb, uint8_t *p, int n) /* 128-bit blocks */
+aesctrcipher(Espcb *ecb, u8 *p, int n) /* 128-bit blocks */
 {
-	uint8_t tmp[AESbsize], q[AESbsize];
-	uint8_t *pp, *tp, *ip, *eip, *ep;
+	u8 tmp[AESbsize], q[AESbsize];
+	u8 *pp, *tp, *ip, *eip, *ep;
 	AESstate *ds = ecb->espstate;
 
 	ep = p + n;
@@ -947,9 +948,9 @@ aesctrcipher(Espcb *ecb, uint8_t *p, int n) /* 128-bit blocks */
 }
 
 static void
-aesctrespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
+aesctrespinit(Espcb *ecb, char *name, u8 *k, unsigned n)
 {
-	uint8_t key[Aesblk], ivec[Aesblk];
+	u8 key[Aesblk], ivec[Aesblk];
 	int i;
 
 	n = BITS2BYTES(n);
@@ -972,10 +973,11 @@ aesctrespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
  */
 
 static void
-seanq_hmac_md5(uint8_t hash[MD5dlen], uint8_t *t, int32_t tlen, uint8_t *key, int32_t klen)
+seanq_hmac_md5(u8 hash[MD5dlen], u8 *t, i32 tlen, u8 *key,
+	       i32 klen)
 {
 	int i;
-	uint8_t ipad[Hmacblksz + 1], opad[Hmacblksz + 1], innerhash[MD5dlen];
+	u8 ipad[Hmacblksz + 1], opad[Hmacblksz + 1], innerhash[MD5dlen];
 	DigestState *digest;
 
 	memset(ipad, 0x36, Hmacblksz);
@@ -992,20 +994,20 @@ seanq_hmac_md5(uint8_t hash[MD5dlen], uint8_t *t, int32_t tlen, uint8_t *key, in
 }
 
 static int
-md5auth(Espcb *ecb, uint8_t *t, int tlen, uint8_t *auth)
+md5auth(Espcb *ecb, u8 *t, int tlen, u8 *auth)
 {
-	uint8_t hash[MD5dlen];
+	u8 hash[MD5dlen];
 	int r;
 
 	memset(hash, 0, MD5dlen);
-	seanq_hmac_md5(hash, t, tlen, (uint8_t *)ecb->ahstate, BITS2BYTES(128));
+	seanq_hmac_md5(hash, t, tlen, (u8 *)ecb->ahstate, BITS2BYTES(128));
 	r = memcmp(auth, hash, ecb->ahlen) == 0;
 	memmove(auth, hash, ecb->ahlen);
 	return r;
 }
 
 static void
-md5ahinit(Espcb *ecb, char *name, uint8_t *key, unsigned klen)
+md5ahinit(Espcb *ecb, char *name, u8 *key, unsigned klen)
 {
 	if(klen != 128)
 		panic("md5ahinit: bad keylen");
@@ -1023,7 +1025,7 @@ md5ahinit(Espcb *ecb, char *name, uint8_t *key, unsigned klen)
  */
 
 static int
-descipher(Espcb *ecb, uint8_t *p, int n)
+descipher(Espcb *ecb, u8 *p, int n)
 {
 	DESstate *ds = ecb->espstate;
 
@@ -1038,7 +1040,7 @@ descipher(Espcb *ecb, uint8_t *p, int n)
 }
 
 static int
-des3cipher(Espcb *ecb, uint8_t *p, int n)
+des3cipher(Espcb *ecb, u8 *p, int n)
 {
 	DES3state *ds = ecb->espstate;
 
@@ -1053,9 +1055,9 @@ des3cipher(Espcb *ecb, uint8_t *p, int n)
 }
 
 static void
-desespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
+desespinit(Espcb *ecb, char *name, u8 *k, unsigned n)
 {
-	uint8_t key[Desblk], ivec[Desblk];
+	u8 key[Desblk], ivec[Desblk];
 	int i;
 
 	n = BITS2BYTES(n);
@@ -1075,9 +1077,9 @@ desespinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
 }
 
 static void
-des3espinit(Espcb *ecb, char *name, uint8_t *k, unsigned n)
+des3espinit(Espcb *ecb, char *name, u8 *k, unsigned n)
 {
-	uint8_t key[3][Desblk], ivec[Desblk];
+	u8 key[3][Desblk], ivec[Desblk];
 	int i;
 
 	n = BITS2BYTES(n);

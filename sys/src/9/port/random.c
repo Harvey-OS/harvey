@@ -38,8 +38,8 @@ random_add(void *xp)
 /*
  *  consume random bytes
  */
-uint32_t
-randomread(void *xp, uint32_t n)
+u32
+randomread(void *xp, u32 n)
 {
 	Proc *up = externup();
 
@@ -60,15 +60,15 @@ randomread(void *xp, uint32_t n)
 /**
  * Fast random generator
  **/
-uint32_t
-urandomread(void *xp, uint32_t n)
+u32
+urandomread(void *xp, u32 n)
 {
 	Proc *up = externup();
-	uint64_t seed[16];
-	uint8_t *e, *p;
-	uint32_t x = 0;
-	uint64_t s0;
-	uint64_t s1;
+	u64 seed[16];
+	u8 *e, *p;
+	u32 x = 0;
+	u64 s0;
+	u64 s1;
 
 	if(waserror()){
 		nexterror();

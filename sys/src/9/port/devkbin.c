@@ -38,7 +38,7 @@ kbinwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-kbinstat(Chan *c, uint8_t *dp, int n)
+kbinstat(Chan *c, u8 *dp, int n)
 {
 	return devstat(c, dp, n, kbintab, nelem(kbintab), devgen);
 }
@@ -71,19 +71,19 @@ kbinclose(Chan *c)
 		kbinbusy = 0;
 }
 
-static int32_t
-kbinread(Chan *c, void *a, int32_t n, int64_t _)
+static i32
+kbinread(Chan *c, void *a, i32 n, i64 _)
 {
 	if(c->qid.type == QTDIR)
 		return devdirread(c, a, n, kbintab, nelem(kbintab), devgen);
 	return 0;
 }
 
-static int32_t
-kbinwrite(Chan *c, void *a, int32_t n, int64_t _)
+static i32
+kbinwrite(Chan *c, void *a, i32 n, i64 _)
 {
 	int i;
-	uint8_t *p = a;
+	u8 *p = a;
 
 	if(c->qid.type == QTDIR)
 		error(Eisdir);

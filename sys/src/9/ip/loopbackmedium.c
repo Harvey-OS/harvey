@@ -62,7 +62,7 @@ loopbackunbind(Ipifc *ifc)
 }
 
 static void
-loopbackbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
+loopbackbwrite(Ipifc *ifc, Block *bp, int i, u8 *c)
 {
 	LB *lb;
 

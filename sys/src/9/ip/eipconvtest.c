@@ -27,16 +27,16 @@ uint8_t prefixvals[256] =
 		[0xFF] 8 | Isprefix,
 };
 
-uint8_t v4prefix[16] = {
+u8 v4prefix[16] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	0, 0, 0, 0};
 
 void
-hnputl(void *p, uint32_t v)
+hnputl(void *p, u32 v)
 {
-	uint8_t *a;
+	u8 *a;
 
 	a = p;
 	a[0] = v >> 24;
@@ -51,18 +51,18 @@ eipconv(va_list *arg, Fconv *f)
 	char buf[8 * 5];
 	static char *efmt = "%.2lux%.2lux%.2lux%.2lux%.2lux%.2lux";
 	static char *ifmt = "%d.%d.%d.%d";
-	uint8_t *p, ip[16];
-	uint32_t *lp;
-	uint16_t s;
+	u8 *p, ip[16];
+	u32 *lp;
+	u16 s;
 	int i, j, n, eln, eli;
 
 	switch(f->chr){
 	case 'E': /* Ethernet address */
-		p = va_arg(*arg, uint8_t *);
+		p = va_arg(*arg, u8 *);
 		sprint(buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
 		break;
 	case 'I': /* Ip address */
-		p = va_arg(*arg, uint8_t *);
+		p = va_arg(*arg, u8 *);
 	common:
 		if(memcmp(p, v4prefix, 12) == 0)
 			sprint(buf, ifmt, p[12], p[13], p[14], p[15]);
@@ -95,17 +95,17 @@ eipconv(va_list *arg, Fconv *f)
 		}
 		break;
 	case 'i': /* v6 address as 4 longs */
-		lp = va_arg(*arg, uint32_t *);
+		lp = va_arg(*arg, u32 *);
 		for(i = 0; i < 4; i++)
 			hnputl(ip + 4 * i, *lp++);
 		p = ip;
 		goto common;
 	case 'V': /* v4 ip address */
-		p = va_arg(*arg, uint8_t *);
+		p = va_arg(*arg, u8 *);
 		sprint(buf, ifmt, p[0], p[1], p[2], p[3]);
 		break;
 	case 'M': /* ip mask */
-		p = va_arg(*arg, uint8_t *);
+		p = va_arg(*arg, u8 *);
 
 		/* look for a prefix mask */
 		for(i = 0; i < 16; i++)
@@ -128,10 +128,10 @@ eipconv(va_list *arg, Fconv *f)
 		strcpy(buf, "(eipconv)");
 	}
 	strconv(buf, f);
-	return sizeof(uint8_t *);
+	return sizeof(u8 *);
 }
 
-uint8_t testvec[11][16] =
+u8 testvec[11][16] =
 	{
 		{
 			0,

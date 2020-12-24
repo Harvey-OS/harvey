@@ -110,7 +110,7 @@ int didswcursorinit;
 static void *softscreen;
 
 int
-screensize(int x, int y, int z, uint32_t chan)
+screensize(int x, int y, int z, u32 chan)
 {
 	Proc *up = externup();
 	VGAscr *scr;
@@ -195,7 +195,7 @@ screenaperture(int size, int align)
 	 * The driver will tell the card to use it.
 	 */
 	size = ROUNDUP(sizeof(size), 4 * KiB);
-	scr->paddr = (uint64_t)malloc(size);
+	scr->paddr = (u64)malloc(size);
 	if(scr->paddr == 0)
 		return -1;
 	scr->vaddr = vmap(scr->paddr, size);
@@ -207,7 +207,7 @@ screenaperture(int size, int align)
 }
 
 unsigned char *
-attachscreen(Rectangle *r, uint32_t *chan, int *d, int *width, int *softscreen)
+attachscreen(Rectangle *r, u32 *chan, int *d, int *width, int *softscreen)
 {
 	VGAscr *scr;
 
@@ -298,10 +298,10 @@ flushmemscreen(Rectangle r)
 }
 
 void
-getcolor(uint32_t p, uint32_t *pr, uint32_t *pg, uint32_t *pb)
+getcolor(u32 p, u32 *pr, u32 *pg, u32 *pb)
 {
 	VGAscr *scr;
-	uint32_t x;
+	u32 x;
 
 	scr = &vgascreen[0];
 	if(scr->gscreen == nil)
@@ -325,7 +325,7 @@ getcolor(uint32_t p, uint32_t *pr, uint32_t *pg, uint32_t *pb)
 }
 
 int
-setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
+setpalette(u32 p, u32 r, u32 g, u32 b)
 {
 	VGAscr *scr;
 	int d;
@@ -352,7 +352,7 @@ setpalette(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
  * is trying to set a colormap and the card is in one of these modes.
  */
 int
-setcolor(uint32_t p, uint32_t r, uint32_t g, uint32_t b)
+setcolor(u32 p, u32 r, u32 g, u32 b)
 {
 	VGAscr *scr;
 	int x;
@@ -514,7 +514,7 @@ vgalinearpciid(VGAscr *scr, int vid, int did)
 void
 vgalinearpci(VGAscr *scr)
 {
-	uint32_t paddr;
+	u32 paddr;
 	int i, size, best;
 	Pcidev *p;
 
@@ -552,10 +552,10 @@ vgalinearpci(VGAscr *scr)
 }
 
 void
-vgalinearaddr(VGAscr *scr, uint32_t paddr, int size)
+vgalinearaddr(VGAscr *scr, u32 paddr, int size)
 {
 	int x, nsize;
-	uint32_t npaddr;
+	u32 npaddr;
 
 	/*
 	 * new approach.  instead of trying to resize this

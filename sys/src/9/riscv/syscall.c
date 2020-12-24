@@ -24,7 +24,7 @@
 extern int nosmp;
 
 typedef struct {
-	uintptr_t ip;
+	uintptr ip;
 	Ureg *arg0;
 	char *arg1;
 	char msg[ERRMAX];
@@ -36,7 +36,7 @@ typedef struct {
  *   Return user to state before notify()
  */
 void
-noted(Ureg *cur, uintptr_t arg0)
+noted(Ureg *cur, uintptr arg0)
 {
 	Proc *up = externup();
 	NFrame *nf;
@@ -124,7 +124,7 @@ notify(Ureg *ureg)
 	int l;
 	Mpl pl;
 	Note note;
-	uintptr_t sp;
+	uintptr sp;
 	NFrame *nf;
 
 	/*
@@ -231,8 +231,8 @@ void
 syscall(unsigned int scallnr, Ureg *ureg)
 {
 	// can only handle 6 args right now.
-	uintptr_t a0, a1, a2, a3;
-	uintptr_t a4, a5;
+	uintptr a0, a1, a2, a3;
+	uintptr a4, a5;
 	if(0 && printallsyscalls)
 		dumpgpr(ureg);
 
@@ -246,9 +246,9 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	if(1)
 		iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
-	uintptr_t sp;
+	uintptr sp;
 	int s;
-	int64_t startns, stopns;
+	i64 startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
 
@@ -364,7 +364,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	}
 
 	if(up->procctl == Proc_tracesyscall){
-		uint8_t what = 'X';
+		u8 what = 'X';
 		stopns = todget(nil);
 		up->procctl = Proc_stopme;
 		if(scallnr == RFORK && a0 & RFPROC && ar0.i > 0)
@@ -405,10 +405,10 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		hi("done kexit\n");
 }
 
-uintptr_t
-sysexecstack(uintptr_t stack, int argc)
+uintptr
+sysexecstack(uintptr stack, int argc)
 {
-	uintptr_t sp;
+	uintptr sp;
 	/*
 	 * Given a current bottom-of-stack and a count
 	 * of pointer arguments to be pushed onto it followed
@@ -440,10 +440,10 @@ sysexecstack(uintptr_t stack, int argc)
 }
 
 void *
-sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
+sysexecregs(uintptr entry, u32 ssize, void *tos)
 {
 	Proc *up = externup();
-	uintptr_t *sp;
+	uintptr *sp;
 	Ureg *ureg;
 
 	// We made sure it was correctly aligned in sysexecstack, above.
@@ -451,7 +451,7 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 		print("your stack is wrong: stacksize is not 16-byte aligned: %d\n", ssize);
 		panic("misaligned stack in sysexecregs");
 	}
-	sp = (uintptr_t *)(USTKTOP - ssize);
+	sp = (uintptr *)(USTKTOP - ssize);
 	if(0)
 		print("sysexecregs: entry %p sp %p tos %p\n", entry, sp, tos);
 	ureg = up->dbgreg;

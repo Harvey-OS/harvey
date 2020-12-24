@@ -165,20 +165,20 @@ enum {
  * Capability registers (hw)
  */
 struct Ecapio {
-	uint32_t cap;	    /* 00 controller capability register */
-	uint32_t parms;	    /* 04 structural parameters register */
-	uint32_t capparms;  /* 08 capability parameters */
-	uint32_t portroute; /* 0c not on the CS5536 */
+	u32 cap;	    /* 00 controller capability register */
+	u32 parms;	    /* 04 structural parameters register */
+	u32 capparms;  /* 08 capability parameters */
+	u32 portroute; /* 0c not on the CS5536 */
 };
 
 /*
  * Debug port registers (hw)
  */
 struct Edbgio {
-	uint32_t csw;	       /* control and status */
-	uint32_t pid;	       /* USB pid */
+	u32 csw;	       /* control and status */
+	u32 pid;	       /* USB pid */
 	unsigned char data[8]; /* data buffer */
-	uint32_t addr;	       /* device and endpoint addresses */
+	u32 addr;	       /* device and endpoint addresses */
 };
 #endif
 
@@ -199,14 +199,14 @@ struct Ctlr {
 	Eopio *opio;   /* Operational i/o regs */
 
 	int nframes;	  /* 1024, 512, or 256 frames in the list */
-	uint32_t *frames; /* periodic frame list (hw) */
+	u32 *frames; /* periodic frame list (hw) */
 	Qh *qhs;	  /* async Qh circular list for bulk/ctl */
 	Qtree *tree;	  /* tree of Qhs for the periodic list */
 	int ntree;	  /* number of dummy qhs in tree */
 	Qh *intrqhs;	  /* list of (not dummy) qhs in tree  */
 	Isoio *iso;	  /* list of active Iso I/O */
-	uint32_t load;
-	uint32_t isoload;
+	u32 load;
+	u32 isoload;
 	int nintr;    /* number of interrupts attended */
 	int ntdintr;  /* number of intrs. with something to do */
 	int nqhintr;  /* number of async td intrs. */
@@ -223,16 +223,16 @@ struct Ctlr {
  * Operational registers (hw)
  */
 struct Eopio {
-	uint32_t cmd;			/* 00 command */
-	uint32_t sts;			/* 04 status */
-	uint32_t intr;			/* 08 interrupt enable */
-	uint32_t frno;			/* 0c frame index */
-	uint32_t seg;			/* 10 bits 63:32 of EHCI datastructs (unused) */
-	uint32_t frbase;		/* 14 frame list base addr, 4096-byte boundary */
-	uint32_t link;			/* 18 link for async list */
+	u32 cmd;			/* 00 command */
+	u32 sts;			/* 04 status */
+	u32 intr;			/* 08 interrupt enable */
+	u32 frno;			/* 0c frame index */
+	u32 seg;			/* 10 bits 63:32 of EHCI datastructs (unused) */
+	u32 frbase;		/* 14 frame list base addr, 4096-byte boundary */
+	u32 link;			/* 18 link for async list */
 	unsigned char d2c[0x40 - 0x1c]; /* 1c dummy */
-	uint32_t config;		/* 40 1: all ports default-routed to this HC */
-	uint32_t portsc[1];		/* 44 Port status and control, one per port */
+	u32 config;		/* 40 1: all ports default-routed to this HC */
+	u32 portsc[1];		/* 44 Port status and control, one per port */
 };
 
 extern int ehcidebug;

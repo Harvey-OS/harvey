@@ -28,7 +28,7 @@ fmtrwdata(Fmt *f, char *a, int n, char *suffix)
 		fmtprint(f, "0x0%s", suffix);
 		return;
 	}
-	if(!okaddr((uintptr_t)a, n, 0)){
+	if(!okaddr((uintptr)a, n, 0)){
 		fmtprint(f, "(BAD %p)%s", a, suffix);
 		return;
 	}
@@ -67,15 +67,15 @@ fmtuserstring(Fmt *f, char *a, char *suffix)
 /*
  */
 void
-syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop, ...)
+syscallfmt(u8 what, int syscallno, Ar0 *ar0, u64 start, u64 stop, ...)
 {
 	Proc *up = externup();
 	void *errstr = nil;
 	va_list list;
-	int32_t l;
+	i32 l;
 	Fmt fmt;
 	void *v;
-	int64_t vl;
+	i64 vl;
 	int i[2], len;
 	char *a, **argv;
 	va_start(list, stop);
@@ -127,7 +127,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		argv = va_arg(list, char **);
 		evenaddr(PTR2UINT(argv));
 		for(;;){
-			if(!okaddr((uintptr_t)argv, sizeof(char **), 0))
+			if(!okaddr((uintptr)argv, sizeof(char **), 0))
 				break;
 			a = *(char **)validaddr(argv, sizeof(char **), 0);
 			if(a == nil)
@@ -216,7 +216,7 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		break;
 	case SEEK:
 		i[0] = va_arg(list, int);
-		vl = va_arg(list, int64_t);
+		vl = va_arg(list, i64);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%d %#llx %d", i[0], vl, i[1]);
 		break;
@@ -263,8 +263,8 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d ", i[0]);
 		v = va_arg(list, void *);
-		l = va_arg(list, int32_t);
-		vl = va_arg(list, int64_t);
+		l = va_arg(list, i32);
+		vl = va_arg(list, i64);
 		if(what == 'E'){
 			fmtprint(&fmt, "%#P %ld 0x%llx", v, l, vl);
 		}
@@ -272,8 +272,8 @@ syscallfmt(uint8_t what, int syscallno, Ar0 *ar0, uint64_t start, uint64_t stop,
 	case PWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void *);
-		l = va_arg(list, int32_t);
-		vl = va_arg(list, int64_t);
+		l = va_arg(list, i32);
+		vl = va_arg(list, i64);
 		fmtprint(&fmt, "%d ", i[0]);
 		len = MIN(l, 64);
 		fmtrwdata(&fmt, v, len, " ");

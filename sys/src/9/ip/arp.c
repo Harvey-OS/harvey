@@ -72,7 +72,7 @@ arpinit(Fs *f)
  *  create a new arp entry for an ip address.
  */
 static Arpent *
-newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
+newarp6(Arp *arp, u8 *ip, Ipifc *ifc, int addrxt)
 {
 	uint t;
 	Block *next, *xp;
@@ -210,12 +210,12 @@ cleanarpent(Arp *arp, Arpent *a)
  *  waiting for ip->mac to be resolved.
  */
 Arpent *
-arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
+arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, u8 *ip, u8 *mac)
 {
 	int hash;
 	Arpent *a;
 	Medium *type = ifc->medium;
-	uint8_t v6ip[IPaddrlen];
+	u8 v6ip[IPaddrlen];
 
 	if(version == V4){
 		v4tov6(v6ip, ip);
@@ -273,7 +273,7 @@ arprelease(Arp *arp, Arpent *arpen)
  * called with arp locked
  */
 Block *
-arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
+arpresolve(Arp *arp, Arpent *a, Medium *type, u8 *mac)
 {
 	Block *bp;
 	Arpent *f, **l;
@@ -301,7 +301,7 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 }
 
 void
-arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
+arpenter(Fs *fs, int version, u8 *ip, u8 *mac, int n, int refresh)
 {
 	Proc *up = externup();
 	Arp *arp;
@@ -310,7 +310,7 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 	Ipifc *ifc;
 	Medium *type;
 	Block *bp, *next;
-	uint8_t v6ip[IPaddrlen];
+	u8 v6ip[IPaddrlen];
 
 	arp = fs->arp;
 
@@ -415,7 +415,7 @@ arpwrite(Fs *fs, char *s, int len)
 	Arpent *a, *fl, **l;
 	Medium *medium;
 	char *f[4], buf[256];
-	uint8_t ip[IPaddrlen], mac[MAClen];
+	u8 ip[IPaddrlen], mac[MAClen];
 
 	arp = fs->arp;
 
@@ -529,14 +529,14 @@ enum {
 char *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
 
 static void
-convmac(char *p, char *ep, uint8_t *mac, int n)
+convmac(char *p, char *ep, u8 *mac, int n)
 {
 	while(n-- > 0)
 		p = seprint(p, ep, "%2.2x", *mac++);
 }
 
 int
-arpread(Arp *arp, char *p, uint32_t offset, int len)
+arpread(Arp *arp, char *p, u32 offset, int len)
 {
 	Arpent *a;
 	int n;
@@ -574,9 +574,9 @@ rxmitsols(Arp *arp)
 	Block *next, *xp;
 	Arpent *a, *b, **l;
 	Fs *f;
-	uint8_t ipsrc[IPaddrlen];
+	u8 ipsrc[IPaddrlen];
 	Ipifc *ifc = nil;
-	int32_t nrxt;
+	i32 nrxt;
 
 	qlock(&arp->ql);
 	f = arp->f;
@@ -671,7 +671,7 @@ rxmitproc(void *v)
 {
 	Proc *up = externup();
 	Arp *arp = v;
-	int32_t wakeupat;
+	i32 wakeupat;
 
 	arp->rxmitp = up;
 	//print("arp rxmitproc started\n");

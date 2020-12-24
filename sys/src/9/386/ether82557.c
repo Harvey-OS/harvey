@@ -111,12 +111,12 @@ enum {			      /* Mcr */
 
 typedef struct Rfd {
 	int field;
-	uint32_t link;
-	uint32_t rbd;
-	uint16_t count;
-	uint16_t size;
+	u32 link;
+	u32 rbd;
+	u16 count;
+	u16 size;
 
-	uint8_t data[1700];
+	u8 data[1700];
 } Rfd;
 
 enum { /* field */
@@ -147,20 +147,20 @@ enum { /* count */
 
 typedef struct Cb Cb;
 typedef struct Cb {
-	uint16_t status;
-	uint16_t command;
-	uint32_t link;
+	u16 status;
+	u16 command;
+	u32 link;
 	union {
-		uint8_t data[24]; /* CbIAS + CbConfigure */
+		u8 data[24]; /* CbIAS + CbConfigure */
 		struct {
-			uint32_t tbd;
-			uint16_t count;
-			uint8_t threshold;
-			uint8_t number;
+			u32 tbd;
+			u16 count;
+			u8 threshold;
+			u8 number;
 
-			uint32_t tba;
-			uint16_t tbasz;
-			uint16_t pad;
+			u32 tba;
+			u16 tbasz;
+			u16 pad;
 		};
 	};
 
@@ -204,7 +204,7 @@ typedef struct Ctlr {
 	int active;
 
 	int eepromsz; /* address size in bits */
-	uint16_t *eeprom;
+	u16 *eeprom;
 
 	Lock miilock;
 
@@ -220,7 +220,7 @@ typedef struct Ctlr {
 	Lock cblock; /* transmit side */
 	int action;
 	int nop;
-	uint8_t configdata[24];
+	u8 configdata[24];
 	int threshold;
 	int ncb;
 	Cb *cbr;
@@ -231,13 +231,13 @@ typedef struct Ctlr {
 	int cbqmaxhw;
 
 	Lock dlock; /* dump statistical counters */
-	uint32_t dump[17];
+	u32 dump[17];
 } Ctlr;
 
 static Ctlr *ctlrhead;
 static Ctlr *ctlrtail;
 
-static uint8_t configdata[24] = {
+static u8 configdata[24] = {
 	0x16, /* byte count */
 	0x08, /* Rx/Tx FIFO limit */
 	0x00, /* adaptive IFS */
@@ -268,8 +268,8 @@ static uint8_t configdata[24] = {
 #define csr16r(c, r) (ins((c)->port + (r)))
 #define csr32r(c, r) (inl((c)->port + (r)))
 #define csr8w(c, r, b) (outb((c)->port + (r), (int)(b)))
-#define csr16w(c, r, w) (outs((c)->port + (r), (uint16_t)(w)))
-#define csr32w(c, r, l) (outl((c)->port + (r), (uint32_t)(l)))
+#define csr16w(c, r, w) (outs((c)->port + (r), (u16)(w)))
+#define csr32w(c, r, l) (outl((c)->port + (r), (u32)(l)))
 
 static void
 command(Ctlr *ctlr, int c, int v)
@@ -332,7 +332,7 @@ command(Ctlr *ctlr, int c, int v)
 }
 
 static Block *
-rfdalloc(uint32_t link)
+rfdalloc(u32 link)
 {
 	Block *bp;
 	Rfd *rfd;
@@ -413,13 +413,13 @@ attach(Ether *ether)
 
 static int miir(Ctlr *, int, int);
 
-static int32_t
-ifstat(Ether *ether, void *a, int32_t n, uint32_t offset)
+static i32
+ifstat(Ether *ether, void *a, i32 n, u32 offset)
 {
 	char *p;
 	int i, len, phyaddr;
 	Ctlr *ctlr;
-	uint32_t dump[17];
+	u32 dump[17];
 
 	ctlr = ether->ctlr;
 	lock(&ctlr->dlock);
@@ -593,7 +593,7 @@ promiscuous(void *arg, int on)
 }
 
 static void
-multicast(void *ether, uint8_t *addr, int add)
+multicast(void *ether, u8 *addr, int add)
 {
 	USED(addr);
 	/*
@@ -771,7 +771,7 @@ ctlrinit(Ctlr *ctlr)
 	int i;
 	Block *bp;
 	Rfd *rfd;
-	uint32_t link;
+	u32 link;
 
 	/*
 	 * Create the Receive Frame Area (RFA) as a ring of allocated
@@ -917,7 +917,7 @@ reread:
 
 	if(ctlr->eepromsz == 0){
 		ctlr->eepromsz = 8 - size;
-		ctlr->eeprom = malloc((1 << ctlr->eepromsz) * sizeof(uint16_t));
+		ctlr->eeprom = malloc((1 << ctlr->eepromsz) * sizeof(u16));
 		goto reread;
 	}
 
@@ -1044,7 +1044,7 @@ reset(Ether *ether)
 {
 	int anar, anlpar, bmcr, bmsr, i, k, medium, phyaddr, x;
 	unsigned short sum;
-	uint8_t ea[Eaddrlen];
+	u8 ea[Eaddrlen];
 	Ctlr *ctlr;
 
 	if(ctlrhead == nil)

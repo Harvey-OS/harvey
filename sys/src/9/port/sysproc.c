@@ -295,8 +295,8 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 	char *a, *elem, *file, *p;
 	// This line array is an accident waiting to happen but ...
 	char line[64], aoutheader[64], *progarg[sizeof(line) / 2 + 1];
-	int32_t hdrsz;
-	uintptr_t entry, stack;
+	i32 hdrsz;
+	uintptr entry, stack;
 	int plan9 = 0;
 
 	file = nil;
@@ -460,7 +460,7 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 	 */
 	tos = (Tos *)(USTKTOP - sizeof(Tos));
 	tos->cyclefreq = sys->cyclefreq;
-	cycles((uint64_t *)&tos->pcycles);
+	cycles((u64 *)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
 	tos->kcycles = tos->pcycles;
 	tos->clock = 0;
@@ -536,7 +536,7 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 		*--argv = p + (USTKTOP - TSTKTOP);
 		p += strlen(p) + 1;
 	}
-	*--argv = (void *)(uintptr_t)argc;
+	*--argv = (void *)(uintptr)argc;
 
 	/*
 	 * Make a good faith copy of the args in up->args using the strings
@@ -598,7 +598,7 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 	relocateseg(s, USTKTOP - TSTKTOP);
 
 	img = nil;
-	uintptr_t datalim;
+	uintptr datalim;
 	datalim = 0;
 	for(i = 0; i < nldseg; i++){
 
@@ -740,14 +740,14 @@ void
 syssleep(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
-	int64_t ms;
+	i64 ms;
 	va_list list;
 	va_start(list, ar0);
 
 	/*
 	 * int sleep(long millisecs);
 	 */
-	ms = va_arg(list, int64_t);
+	ms = va_arg(list, i64);
 	va_end(list);
 
 	ar0->i = 0;
@@ -766,7 +766,7 @@ syssleep(Ar0 *ar0, ...)
 void
 sysalarm(Ar0 *ar0, ...)
 {
-	uint64_t ms;
+	u64 ms;
 	va_list list;
 	va_start(list, ar0);
 
@@ -774,7 +774,7 @@ sysalarm(Ar0 *ar0, ...)
 	 * long alarm(unsigned long millisecs);
 	 * Odd argument type...
 	 */
-	ms = va_arg(list, uint64_t);
+	ms = va_arg(list, u64);
 	va_end(list);
 
 	ar0->vl = procalarm(ms);
@@ -829,7 +829,7 @@ sysawait(Ar0 *ar0, ...)
 	 * usize await(char* s, usize n);
 	 */
 	p = va_arg(list, char *);
-	n = va_arg(list, int32_t);
+	n = va_arg(list, i32);
 	va_end(list);
 	p = validaddr(p, n, 1);
 
@@ -861,7 +861,7 @@ werrstr(char *fmt, ...)
 }
 
 static void
-generrstr(char *buf, int32_t n)
+generrstr(char *buf, i32 n)
 {
 	Proc *up = externup();
 	char *p, tmp[ERRMAX];
@@ -956,7 +956,7 @@ sysrendezvous(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Proc *p, **l;
-	uintptr_t tag, val;
+	uintptr tag, val;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1204,11 +1204,11 @@ semacquire(Segment *s, int *addr, int block)
 
 /* Acquire semaphore or time-out */
 static int
-tsemacquire(Segment *s, int *addr, int64_t ms)
+tsemacquire(Segment *s, int *addr, i64 ms)
 {
 	Proc *up = externup();
 	int acquired;
-	uint64_t t;
+	u64 t;
 	Sema phore;
 
 	if(canacquire(addr))
@@ -1279,7 +1279,7 @@ systsemacquire(Ar0 *ar0, ...)
 	Proc *up = externup();
 	Segment *s;
 	int *addr;
-	uint64_t ms;
+	u64 ms;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1291,7 +1291,7 @@ systsemacquire(Ar0 *ar0, ...)
 	addr = va_arg(list, int *);
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
-	ms = va_arg(list, uint64_t);
+	ms = va_arg(list, u64);
 	va_end(list);
 
 	if((s = seg(up, PTR2UINT(addr), 0)) == nil)

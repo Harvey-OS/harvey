@@ -24,24 +24,24 @@
 #include "ureg.h"
 
 typedef struct Gd Gd;
-typedef uint64_t Sd;
-typedef uint16_t Ss;
+typedef u64 Sd;
+typedef u16 Ss;
 typedef struct Tss Tss;
 
 struct Gd {
 	Sd sd;
-	uint64_t hi;
+	u64 hi;
 };
 
 struct Tss {
-	uint32_t _0_;
-	uint32_t rsp0[2];
-	uint32_t rsp1[2];
-	uint32_t rsp2[2];
-	uint32_t _28_[2];
-	uint32_t ist[14];
-	uint16_t _92_[5];
-	uint16_t iomap;
+	u32 _0_;
+	u32 rsp0[2];
+	u32 rsp1[2];
+	u32 rsp2[2];
+	u32 _28_[2];
+	u32 ist[14];
+	u16 _92_[5];
+	u16 iomap;
 };
 
 enum {
@@ -69,7 +69,7 @@ static Gd idt64[Nidt];
 static Gd acidt64[Nidt]; /* NIX application core IDT */
 
 static Sd
-mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t *upper)
+mksd(u64 base, u64 limit, u64 bits, u64 *upper)
 {
 	Sd sd;
 
@@ -83,7 +83,7 @@ mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t *upper)
 }
 
 static void
-mkgd(Gd *gd, uint64_t offset, Ss ss, uint64_t bits, int ist)
+mkgd(Gd *gd, u64 offset, Ss ss, u64 bits, int ist)
 {
 	Sd sd;
 
@@ -96,10 +96,10 @@ mkgd(Gd *gd, uint64_t offset, Ss ss, uint64_t bits, int ist)
 }
 
 static void
-idtinit(Gd *gd, uintptr_t offset)
+idtinit(Gd *gd, uintptr offset)
 {
 	int ist, v;
-	uint64_t dpl;
+	u64 dpl;
 
 	for(v = 0; v < Nidt; v++){
 		ist = 0;
@@ -122,7 +122,7 @@ idtinit(Gd *gd, uintptr_t offset)
 }
 
 void
-tssrsp0(Mach *mach, uintptr_t sp)
+tssrsp0(Mach *mach, uintptr sp)
 {
 	Tss *tss;
 
@@ -132,7 +132,7 @@ tssrsp0(Mach *mach, uintptr_t sp)
 }
 
 static void
-tssinit(Mach *mach, uintptr_t sp)
+tssinit(Mach *mach, uintptr sp)
 {
 	int ist;
 	Tss *tss;
@@ -160,7 +160,7 @@ void
 vsvminit(int size, int nixtype, Mach *mach)
 {
 	Sd *sd;
-	uint64_t r;
+	u64 r;
 	if(mach->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
 		idtinit(acidt64, PTR2UINT(acidthandlers));
@@ -200,8 +200,8 @@ vsvminit(int size, int nixtype, Mach *mach)
 	 * as-is. For the SS, 8 is added and you get the DS
 	 * shown above.
 	 */
-	r = ((uint64_t)SSEL(SiU32CS, SsRPL3)) << 48;
-	r |= ((uint64_t)SSEL(SiCS, SsRPL0)) << 32;
+	r = ((u64)SSEL(SiU32CS, SsRPL3)) << 48;
+	r |= ((u64)SSEL(SiCS, SsRPL0)) << 32;
 	wrmsr(Star, r);
 
 	if(nixtype != NIXAC)

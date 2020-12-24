@@ -50,8 +50,8 @@ wdwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, wddir, nelem(wddir), devgen);
 }
 
-static int32_t
-wdstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+wdstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, wddir, nelem(wddir), devgen);
 }
@@ -67,14 +67,14 @@ wdclose(Chan *c)
 {
 }
 
-static int32_t
-wdread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+wdread(Chan *c, void *a, i32 n, i64 off)
 {
-	int32_t offset;
+	i32 offset;
 	char s[READSTR];
 
 	offset = off;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		return devdirread(c, a, n, wddir, nelem(wddir), devgen);
 
@@ -92,12 +92,12 @@ wdread(Chan *c, void *a, int32_t n, int64_t off)
 	return 0;
 }
 
-static int32_t
-wdwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+wdwrite(Chan *c, void *a, i32 n, i64 off)
 {
 	char *p;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		error(Eperm);
 

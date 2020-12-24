@@ -56,16 +56,16 @@ typedef signed long long int_fast64_t;
 typedef long long int intmax_t;
 typedef unsigned long long uintmax_t;
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
+typedef u8 u8;
+typedef u16 u16;
+typedef u32 u32;
+typedef u64 u64;
+typedef i8 s8;
+typedef i16 s16;
+typedef i32 s32;
+typedef i64 s64;
 
-typedef uint8_t bool;
+typedef u8 bool;
 #define true 1
 #define false 0
 

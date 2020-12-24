@@ -82,13 +82,13 @@ enum {
  */
 typedef struct Tpkt Tpkt;
 struct Tpkt {
-	uint8_t sk;	/* Skip Checksum Control */
-	uint8_t hint;	/* Hint|Dp|Pid0 */
-	uint8_t size;	/* Size|Pid1|Dm|Dy|VC */
-	uint8_t dst[N]; /* Destination Coordinates */
-	uint8_t _6_[2]; /* reserved */
-	uint8_t _8_[8]; /* protocol header */
-	uint8_t payload[];
+	u8 sk;	/* Skip Checksum Control */
+	u8 hint;	/* Hint|Dp|Pid0 */
+	u8 size;	/* Size|Pid1|Dm|Dy|VC */
+	u8 dst[N]; /* Destination Coordinates */
+	u8 _6_[2]; /* reserved */
+	u8 _8_[8]; /* protocol header */
+	u8 payload[];
 };
 
 /*
@@ -123,7 +123,7 @@ enum {
 };
 
 static int
-torusparse(uint8_t d[3], char *item, char *buf)
+torusparse(u8 d[3], char *item, char *buf)
 {
 	int n;
 	char *p;
@@ -152,7 +152,7 @@ torusparse(uint8_t d[3], char *item, char *buf)
 static void
 dumptpkt(Tpkt *tpkt, int hflag, int dflag)
 {
-	uint8_t *t;
+	u8 *t;
 	int i, j, n;
 	char buf[512], *e, *p;
 
@@ -173,14 +173,14 @@ dumptpkt(Tpkt *tpkt, int hflag, int dflag)
 			    tpkt->_6_[0], tpkt->_6_[0]);
 		p = seprint(p, e, " _6_[1] %#2.2ux (crc)\n", tpkt->_6_[1]);
 #else
-		t = (uint8_t *)tpkt;
+		t = (u8 *)tpkt;
 		for(i = 0; i < 8; i++)
 			p = seprint(p, e, " %2.2x", t[i]);
 		p = seprint(p, e, "\n");
 #endif /* notdef */
 
 		p = seprint(p, e, "Sw:");
-		t = (uint8_t *)tpkt->_8_;
+		t = (u8 *)tpkt->_8_;
 		for(i = 0; i < 8; i++)
 			p = seprint(p, e, " %#2.2ux", t[i]);
 		print("%s\n", buf);

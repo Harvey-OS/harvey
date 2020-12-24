@@ -117,16 +117,16 @@ struct Ndpkt {
 #define NDPKTSZ offsetof(Ndpkt, payload[0])
 
 typedef struct Icmppriv6 {
-	uint32_t stats[Nstats6];
+	u32 stats[Nstats6];
 
 	/* message counts */
-	uint32_t in[Maxtype6 + 1];
-	uint32_t out[Maxtype6 + 1];
+	u32 in[Maxtype6 + 1];
+	u32 out[Maxtype6 + 1];
 } Icmppriv6;
 
 typedef struct Icmpcb6 {
 	QLock ql;
-	uint8_t headers;
+	u8 headers;
 } Icmpcb6;
 
 char *icmpnames6[Maxtype6 + 1] =
@@ -220,7 +220,7 @@ newIPICMP(int packetlen)
 void
 icmpadvise6(Proto *icmp, Block *bp, char *msg)
 {
-	uint16_t recid;
+	u16 recid;
 	Conv **c, *s;
 	IPICMP *p;
 
@@ -241,7 +241,7 @@ icmpadvise6(Proto *icmp, Block *bp, char *msg)
 static void
 icmpkick6(void *x, Block *bp)
 {
-	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
+	u8 laddr[IPaddrlen], raddr[IPaddrlen];
 	Conv *c = x;
 	IPICMP *p;
 	Icmppriv6 *ipriv = c->p->priv;
@@ -300,8 +300,8 @@ icmpctl6(Conv *c, char **argv, int argc)
 static void
 goticmpkt6(Proto *icmp, Block *bp, int muxkey)
 {
-	uint16_t recid;
-	uint8_t *addr;
+	u16 recid;
+	u8 *addr;
 	Conv **c, *s;
 	IPICMP *p = (IPICMP *)bp->rp;
 
@@ -329,7 +329,7 @@ goticmpkt6(Proto *icmp, Block *bp, int muxkey)
 static Block *
 mkechoreply6(Block *bp, Ipifc *ifc)
 {
-	uint8_t addr[IPaddrlen];
+	u8 addr[IPaddrlen];
 	IPICMP *p = (IPICMP *)(bp->rp);
 
 	ipmove(addr, p->src);
@@ -350,7 +350,7 @@ mkechoreply6(Block *bp, Ipifc *ifc)
  * 	and tuni == TARG_UNI => neighbor reachability.
  */
 extern void
-icmpns(Fs *f, uint8_t *src, int suni, uint8_t *targ, int tuni, uint8_t *mac)
+icmpns(Fs *f, u8 *src, int suni, u8 *targ, int tuni, u8 *mac)
 {
 	Block *nbp;
 	Ndpkt *np;
@@ -393,7 +393,7 @@ icmpns(Fs *f, uint8_t *src, int suni, uint8_t *targ, int tuni, uint8_t *mac)
  * sends out an ICMPv6 neighbor advertisement. pktflags == RSO flags.
  */
 extern void
-icmpna(Fs *f, uint8_t *src, uint8_t *dst, uint8_t *targ, uint8_t *mac, uint8_t flags)
+icmpna(Fs *f, u8 *src, u8 *dst, u8 *targ, u8 *mac, u8 flags)
 {
 	Block *nbp;
 	Ndpkt *np;
@@ -556,7 +556,7 @@ static int
 valid(Proto *icmp, Ipifc *ipifc, Block *bp, Icmppriv6 *ipriv)
 {
 	int sz, osz, unsp, n, ttl, iplen, pktsz;
-	uint8_t *packet;
+	u8 *packet;
 	IPICMP *p;
 	Ndpkt *np;
 
@@ -676,7 +676,7 @@ err:
 }
 
 static int
-targettype(Fs *f, Ipifc *ifc, uint8_t *target)
+targettype(Fs *f, Ipifc *ifc, u8 *target)
 {
 	Iplifc *lifc;
 	int t;
@@ -704,9 +704,9 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 {
 	int type;
 	char *msg, m2[128];
-	uint8_t pktflags;
-	uint8_t *packet, *src;
-	uint8_t lsrc[IPaddrlen];
+	u8 pktflags;
+	u8 *packet, *src;
+	u8 lsrc[IPaddrlen];
 	Block *r;
 	IPICMP *p;
 	Icmppriv6 *ipriv;

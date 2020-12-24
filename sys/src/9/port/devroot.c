@@ -26,7 +26,7 @@ typedef struct Dirlist Dirlist;
 struct Dirlist {
 	uint base;
 	Dirtab *dir;
-	uint8_t **data;
+	u8 **data;
 	int ndir;
 	int mdir;
 };
@@ -35,7 +35,7 @@ static Dirtab rootdir[Nrootfiles] = {
 	{"#/", {Qdir, 0, QTDIR}, 0, DMDIR | 0555},
 	{"boot", {Qboot, 0, QTDIR}, 0, DMDIR | 0555},
 };
-static uint8_t *rootdata[Nrootfiles];
+static u8 *rootdata[Nrootfiles];
 static Dirlist rootlist =
 	{
 		0,
@@ -47,7 +47,7 @@ static Dirlist rootlist =
 static Dirtab bootdir[Nbootfiles] = {
 	{"boot", {Qboot, 0, QTDIR}, 0, DMDIR | 0555},
 };
-static uint8_t *bootdata[Nbootfiles];
+static u8 *bootdata[Nbootfiles];
 static Dirlist bootlist =
 	{
 		Qboot,
@@ -60,7 +60,7 @@ static Dirlist bootlist =
  *  add a file to the list
  */
 static void
-addlist(Dirlist *l, char *name, uint8_t *contents, uint32_t len,
+addlist(Dirlist *l, char *name, u8 *contents, u32 len,
 	int perm)
 {
 	Dirtab *d;
@@ -83,7 +83,7 @@ addlist(Dirlist *l, char *name, uint8_t *contents, uint32_t len,
  *  add a root file
  */
 void
-addbootfile(char *name, uint8_t *contents, uint32_t len)
+addbootfile(char *name, u8 *contents, u32 len)
 {
 	addlist(&bootlist, name, contents, len, 0555);
 }
@@ -176,8 +176,8 @@ rootwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, nil, 0, rootgen);
 }
 
-static int32_t
-rootstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+rootstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, nil, 0, rootgen);
 }
@@ -196,14 +196,14 @@ rootclose(Chan *c)
 {
 }
 
-static int32_t
-rootread(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+rootread(Chan *c, void *buf, i32 n, i64 off)
 {
-	uint32_t t;
+	u32 t;
 	Dirtab *d;
 	Dirlist *l;
-	uint8_t *data;
-	uint32_t offset = off;
+	u8 *data;
+	u32 offset = off;
 
 	t = c->qid.path;
 	switch(t){
@@ -233,8 +233,8 @@ rootread(Chan *c, void *buf, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-rootwrite(Chan *c, void *v, int32_t n, int64_t m)
+static i32
+rootwrite(Chan *c, void *v, i32 n, i64 m)
 {
 	error(Egreg);
 	return 0;

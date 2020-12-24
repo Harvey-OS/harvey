@@ -48,11 +48,11 @@ cwrite(int fd, char *path, char *cmd, int len)
 void
 reader(void *v)
 {
-	uintptr_t cfd, tfd, forking = 0, pid, newpid;
+	uintptr cfd, tfd, forking = 0, pid, newpid;
 	char *ctl, *truss;
 	Str *s;
 
-	pid = (int)(uintptr_t)v;
+	pid = (int)(uintptr)v;
 	ctl = smprint("/proc/%d/ctl", pid);
 	if((cfd = open(ctl, OWRITE)) < 0)
 		die(smprint("%s: %r", ctl));
@@ -83,7 +83,7 @@ reader(void *v)
 
 			rf = strdup(s->buf);
 			if(tokenize(rf, a, 8) == 5){
-				uint32_t flags;
+				u32 flags;
 
 				flags = strtoul(a[4], 0, 16);
 				if(flags & RFPROC)
@@ -149,7 +149,7 @@ usage(void)
 void
 threadmain(int argc, char **argv)
 {
-	uintptr_t pid;
+	uintptr pid;
 	char *cmd = nil;
 	char **args = nil;
 
@@ -191,7 +191,7 @@ threadmain(int argc, char **argv)
 
 	out = chancreate(sizeof(char *), 0);
 	quit = chancreate(sizeof(char *), 0);
-	forkc = chancreate(sizeof(uint32_t *), 0);
+	forkc = chancreate(sizeof(u32 *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);
 	reader((void *)pid);

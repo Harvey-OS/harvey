@@ -9,9 +9,9 @@
 #include "amd64.h"
 
 int
-backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
+backtrace_list(uintptr pc, uintptr fp, uintptr *pcs, usize nr_slots)
 {
-	size_t nr_pcs = 0;
+	usize nr_pcs = 0;
 	while(fp && nr_pcs < nr_slots){
 		/* could put some sanity checks in here... */
 		pcs[nr_pcs++] = pc;
@@ -22,8 +22,8 @@ backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
 		 * function that called us.  this was necessary in case we called as the
 		 * last instruction in a function (would have to never return).  not
 		 * sure how necessary this still is. */
-		pc = *(uintptr_t *)(fp + sizeof(uintptr_t)) - 1;
-		fp = *(uintptr_t *)fp;
+		pc = *(uintptr *)(fp + sizeof(uintptr)) - 1;
+		fp = *(uintptr *)fp;
 	}
 	return nr_pcs;
 }

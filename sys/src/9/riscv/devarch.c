@@ -23,8 +23,8 @@ struct IOMap {
 	IOMap *next;
 	int reserved;
 	char tag[13];
-	uintptr_t start;
-	uintptr_t end;
+	uintptr start;
+	uintptr end;
 };
 
 static struct
@@ -49,7 +49,7 @@ enum {
 	Qmax = 16,
 };
 
-typedef int32_t Rdwrfn(Chan *, void *, int32_t, int64_t);
+typedef i32 Rdwrfn(Chan *, void *, i32, i64);
 
 static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
@@ -303,8 +303,8 @@ archwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, archdir, narchdir, devgen);
 }
 
-static int32_t
-archstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+archstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, archdir, narchdir, devgen);
 }
@@ -324,8 +324,8 @@ enum {
 	Linelen = 31,
 };
 
-static int32_t
-archread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+archread(Chan *c, void *a, i32 n, i64 offset)
 {
 	char *buf, *p;
 	//int port;
@@ -334,7 +334,7 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 	IOMap *map;
 	Rdwrfn *fn;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, archdir, narchdir, devgen);
@@ -383,7 +383,7 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 	n = n / Linelen;
 	offset = offset / Linelen;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qioalloc:
 		lock(&iomap.l);
 		for(map = iomap.map; n > 0 && map != nil; map = map->next){
@@ -425,8 +425,8 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-static int32_t
-archwrite(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+archwrite(Chan *c, void *a, i32 n, i64 offset)
 {
 	//char *p;
 	//int port;
@@ -434,7 +434,7 @@ archwrite(Chan *c, void *a, int32_t n, int64_t offset)
 	//uint32_t *lp;
 	Rdwrfn *fn;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 #if 0
 
 	case Qiob:
@@ -502,14 +502,14 @@ nop(void)
 
 void (*coherence)(void) = mfence;
 
-static int32_t
-cputyperead(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+cputyperead(Chan *c, void *a, i32 n, i64 off)
 {
 	return readstr(off, a, n, "riscv");
 }
 
-static int32_t
-cpucoresread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+cpucoresread(Chan *c, void *a, i32 n, i64 off)
 {
 	char buf[8];
 	snprint(buf, 8, "%d\n", sys->nmach);
@@ -532,8 +532,8 @@ kbdputsc(int data, int _)
 	}
 }
 
-static int32_t
-consoleread(Chan *c, void *vbuf, int32_t len, int64_t off64)
+static i32
+consoleread(Chan *c, void *vbuf, i32 len, i64 off64)
 {
 	int amt;
 	if(!keybq){
@@ -545,8 +545,8 @@ consoleread(Chan *c, void *vbuf, int32_t len, int64_t off64)
 	return amt;
 }
 
-static int32_t
-consolewrite(Chan *_, void *vbuf, int32_t len, int64_t off64)
+static i32
+consolewrite(Chan *_, void *vbuf, i32 len, i64 off64)
 {
 	char *c = vbuf;
 
@@ -572,15 +572,15 @@ archreset(void)
 /*
  *  return value and speed of timer
  */
-uint64_t
-fastticks(uint64_t *hz)
+u64
+fastticks(u64 *hz)
 {
 	if(hz != nil)
 		*hz = machp()->cpuhz;
 	return rdtsc();
 }
 
-uint32_t
+u32
 ms(void)
 {
 	return fastticks2us(rdtsc());
@@ -595,14 +595,14 @@ ms(void)
  *  mtimecmp.
  */
 void
-timerset(uint64_t x)
+timerset(u64 x)
 {
-	extern uint64_t *mtime;
-	uint64_t now;
-	int64_t delta;
+	extern u64 *mtime;
+	u64 now;
+	i64 delta;
 	// bust is the number of times that we are called
 	// with a delta < 0
-	static uint8_t bust;
+	static u8 bust;
 
 	now = rdtsc();
 	//print("now 0x%llx timerset to 0x%llx\n", now , x);
@@ -624,7 +624,7 @@ timerset(uint64_t x)
 void
 delay(int millisecs)
 {
-	uint64_t r, t;
+	u64 r, t;
 
 	if(millisecs <= 0)
 		millisecs = 1;
@@ -637,10 +637,10 @@ delay(int millisecs)
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
-uint64_t
+u64
 perfticks(void)
 {
-	uint64_t x;
+	u64 x;
 
 	//	if(m->havetsc)
 	cycles(&x);

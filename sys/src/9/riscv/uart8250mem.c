@@ -133,26 +133,26 @@ udelay(int d)
 
 // These functions are here as we may need to get tricky
 // for riscv with memory barriers and such.
-uint8_t
-read8(uint32_t *p)
+u8
+read8(u32 *p)
 {
 	return *p;
 }
 
 void
-write8(uint32_t *p, uint8_t val)
+write8(u32 *p, u8 val)
 {
 	*p = val;
 }
 
-static uint8_t
-uart8250_read(uint32_t *base, uint8_t reg)
+static u8
+uart8250_read(u32 *base, u8 reg)
 {
 	return read8(base + reg);
 }
 
 static void
-uart8250_write(uint32_t *base, uint8_t reg, uint8_t data)
+uart8250_write(u32 *base, u8 reg, u8 data)
 {
 	write8(base + reg, data);
 }
@@ -190,7 +190,7 @@ static int
 uart8250_mem_rx_byte(void *base)
 {
 	unsigned long int i = SINGLE_CHAR_TIMEOUT;
-	uint8_t c;
+	u8 c;
 	while(i-- && !uart8250_mem_can_rx_byte(base))
 		udelay(1);
 	if(0)

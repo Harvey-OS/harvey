@@ -36,7 +36,7 @@ sysfversion(Ar0 *ar0, ...)
 	Chan *c;
 	char *version;
 	int fd;
-	uint32_t msize;
+	u32 msize;
 	usize nversion;
 	va_list list;
 	va_start(list, ar0);
@@ -47,7 +47,7 @@ sysfversion(Ar0 *ar0, ...)
 	 * usize fversion(int fd, u32int msize, char *version, usize nversion);
 	 */
 	fd = va_arg(list, int);
-	msize = va_arg(list, uint32_t);
+	msize = va_arg(list, u32);
 	version = va_arg(list, char *);
 	nversion = va_arg(list, usize);
 	va_end(list);
@@ -125,8 +125,8 @@ sysfauth(Ar0 *ar0, ...)
  *
  *  anyone can become none
  */
-int32_t
-userwrite(char *a, int32_t n)
+i32
+userwrite(char *a, i32 n)
 {
 	Proc *up = externup();
 	if(n != 4 || strncmp(a, "none", 4) != 0)
@@ -142,8 +142,8 @@ userwrite(char *a, int32_t n)
  *
  *  writing hostowner also sets user
  */
-int32_t
-hostownerwrite(char *a, int32_t n)
+i32
+hostownerwrite(char *a, i32 n)
 {
 	Proc *up = externup();
 	char buf[128];
@@ -163,8 +163,8 @@ hostownerwrite(char *a, int32_t n)
 	return n;
 }
 
-int32_t
-hostdomainwrite(char *a, int32_t n)
+i32
+hostdomainwrite(char *a, i32 n)
 {
 	char buf[DOMLEN];
 

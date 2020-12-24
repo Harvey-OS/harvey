@@ -81,8 +81,8 @@ wswalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, Wstab, nelem(Wstab), devgen);
 }
 
-static int32_t
-wsstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+wsstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, Wstab, nelem(Wstab), devgen);
 }
@@ -109,8 +109,8 @@ wsclose(Chan *c)
 	free(c->aux);
 }
 
-static int32_t
-wsread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+wsread(Chan *c, void *va, i32 n, i64 off)
 {
 
 	switch((int)c->qid.path){
@@ -126,8 +126,8 @@ wsread(Chan *c, void *va, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-wswrite(Chan *c, void *a, int32_t n, int64_t m)
+static i32
+wswrite(Chan *c, void *a, i32 n, i64 m)
 {
 	char *buf;
 

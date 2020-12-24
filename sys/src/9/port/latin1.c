@@ -50,7 +50,7 @@ unicode(Rune *k)
  * failure, or something < -1 if n is too small.  In the latter case, the result
  * is minus the required n.
  */
-int32_t
+i32
 latin1(Rune *k, int n)
 {
 	struct cvlist *l;

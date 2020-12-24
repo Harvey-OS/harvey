@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-static int32_t lusertime(char *);
+static i32 lusertime(char *);
 
 char *timeserver = "#s/boot";
 
@@ -149,11 +149,11 @@ yrsize(int y)
 /*
  *  compute seconds since Jan 1 1970
  */
-static int32_t
+static i32
 lusertime(char *argbuf)
 {
 	char *buf;
-	uint32_t secs;
+	u32 secs;
 	int i, y, m;
 	int *d2m;
 
