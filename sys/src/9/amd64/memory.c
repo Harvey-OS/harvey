@@ -52,9 +52,9 @@ meminit(void)
 			continue;
 		if(cx >= nelem(conf.mem))
 			continue;
-		uintmem lo = ROUNDUP(m->addr, PGSZ);
+		u64 lo = ROUNDUP(m->addr, PGSZ);
 		conf.mem[cx].base = lo;
-		uintmem hi = ROUNDDN(m->addr + m->size, PGSZ);
+		u64 hi = ROUNDDN(m->addr + m->size, PGSZ);
 		conf.mem[cx].npage = (hi - lo) / PGSZ;
 		conf.npage += conf.mem[cx].npage;
 		DBG("cm %d: addr %#llx npage %lu\n",
@@ -75,7 +75,7 @@ meminit(void)
 static void
 setphysmembounds(void)
 {
-	uintmem pmstart, pmend;
+	u64 pmstart, pmend;
 
 	pmstart = ROUNDUP(PADDR(end), 2 * MiB);
 	pmend = pmstart;

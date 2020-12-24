@@ -22,7 +22,7 @@ cpuiddump(void)
 	print("riscv\n");
 }
 
-int64_t
+i64
 archhz(void)
 {
 	return 1000 * 1000 * 1000 * 2ULL;
@@ -69,9 +69,9 @@ archmmu(void)
 static int
 fmtP(Fmt *f)
 {
-	uintmem pa;
+	u64 pa;
 
-	pa = va_arg(f->args, uintmem);
+	pa = va_arg(f->args, u64);
 
 	if(f->flags & FmtSharp)
 		return fmtprint(f, "%#16.16llx", pa);
@@ -92,9 +92,9 @@ fmtL(Fmt *f)
 static int
 fmtR(Fmt *f)
 {
-	uint64_t r;
+	u64 r;
 
-	r = va_arg(f->args, uint64_t);
+	r = va_arg(f->args, u64);
 
 	return fmtprint(f, "%#16.16llx", r);
 }
@@ -103,9 +103,9 @@ fmtR(Fmt *f)
 static int
 fmtW(Fmt *f)
 {
-	uint64_t va;
+	u64 va;
 
-	va = va_arg(f->args, uint64_t);
+	va = va_arg(f->args, u64);
 	return fmtprint(f, "%#llx=0x[%llx][%llx][%llx][%llx][%llx]", va,
 			PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 			va & ((1 << PGSHFT) - 1));

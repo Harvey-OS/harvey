@@ -28,7 +28,7 @@ nullunbind(Ipifc *ipifc)
 }
 
 static void
-nullbwrite(Ipifc *ipifc, Block *block, int i, uint8_t *c)
+nullbwrite(Ipifc *ipifc, Block *block, int i, u8 *c)
 {
 	error("nullbwrite");
 }

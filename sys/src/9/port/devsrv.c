@@ -18,10 +18,10 @@ typedef struct Srv Srv;
 struct Srv {
 	char *name;
 	char *owner;
-	uint32_t perm;
+	u32 perm;
 	Chan *chan;
 	Srv *link;
-	uint32_t path;
+	u32 path;
 };
 
 static QLock srvlk;
@@ -78,7 +78,7 @@ srvwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static Srv *
-srvlookup(char *name, uint32_t qidpath)
+srvlookup(char *name, u32 qidpath)
 {
 	Srv *sp;
 	for(sp = srv; sp; sp = sp->link)
@@ -87,10 +87,10 @@ srvlookup(char *name, uint32_t qidpath)
 	return nil;
 }
 
-static int32_t
-srvstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+srvstat(Chan *c, u8 *db, i32 n)
 {
-	int32_t r;
+	i32 r;
 
 	qlock(&srvlk);
 	r = devstat(c, db, n, 0, 0, srvgen);
@@ -247,8 +247,8 @@ srvremove(Chan *c)
 	free(sp);
 }
 
-static int32_t
-srvwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+srvwstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Dir d;
@@ -277,7 +277,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 	n = convM2D(dp, n, &d, strs);
 	if(n == 0)
 		error(Eshortstat);
-	if(d.mode != (uint32_t)~0UL)
+	if(d.mode != (u32)~0UL)
 		sp->perm = d.mode & 0777;
 	if(d.uid && *d.uid)
 		kstrdup(&sp->owner, d.uid);
@@ -310,10 +310,10 @@ srvclose(Chan *c)
 	}
 }
 
-static int32_t
-srvread(Chan *c, void *va, int32_t n, int64_t m)
+static i32
+srvread(Chan *c, void *va, i32 n, i64 m)
 {
-	int32_t r;
+	i32 r;
 
 	isdir(c);
 	qlock(&srvlk);
@@ -322,8 +322,8 @@ srvread(Chan *c, void *va, int32_t n, int64_t m)
 	return r;
 }
 
-static int32_t
-srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
+static i32
+srvwrite(Chan *c, void *va, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Srv *sp;

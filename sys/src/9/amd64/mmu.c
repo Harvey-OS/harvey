@@ -87,7 +87,7 @@ tabs(int n)
 }
 
 void
-dumpptepg(int lvl, uintptr_t pa)
+dumpptepg(int lvl, uintptr pa)
 {
 	PTE *pte;
 	int tab, i;
@@ -278,11 +278,11 @@ mmurelease(Proc *proc)
 }
 
 static void
-checkpte(const PTE *pml4, uintmem ppn, void *a)
+checkpte(const PTE *pml4, u64 ppn, void *a)
 {
 	int l;
 	const PTE *pte;
-	uint64_t addr;
+	u64 addr;
 	char buf[240], *s;
 
 	addr = PTR2UINT(a);
@@ -315,10 +315,10 @@ Panic:
 	panic("%s", buf);
 }
 
-static uintmem
+static u64
 pteflags(uint attr)
 {
-	uintmem flags;
+	u64 flags;
 
 	flags = 0;
 	if(attr & ~(PTEVALID | PTEWRITE | PTERONLY | PTEUSER | PTEUNCACHED | PTENOEXEC))
@@ -360,7 +360,7 @@ allocptpage(Proc *p, int level)
  * For 1*GiB pages, we use two levels.
  */
 void
-mmuput(uintptr_t va, Page *pg, uint attr)
+mmuput(uintptr va, Page *pg, uint attr)
 {
 	Proc *up;
 	int pgsz;
@@ -437,7 +437,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 static Lock vmaplock;
 
 int
-mmukmapsync(uint64_t va)
+mmukmapsync(u64 va)
 {
 	USED(va);
 
@@ -454,7 +454,7 @@ mmukpmap4(PTE *pml4, uintptr va)
 }
 
 static PTE *
-mmukpmap3(PTE *pml3, uintmem pa, uintptr va, PTE attr, usize size)
+mmukpmap3(PTE *pml3, u64 pa, uintptr va, PTE attr, usize size)
 {
 	PTE p3e = pml3[PML3X(va)];
 
@@ -490,7 +490,7 @@ mmukpmap3(PTE *pml3, uintmem pa, uintptr va, PTE attr, usize size)
 }
 
 static PTE *
-mmukpmap2(PTE *pml2, uintmem pa, uintptr va, PTE attr, usize size)
+mmukpmap2(PTE *pml2, u64 pa, uintptr va, PTE attr, usize size)
 {
 	PTE p2e = pml2[PML2X(va)];
 
@@ -526,7 +526,7 @@ mmukpmap2(PTE *pml2, uintmem pa, uintptr va, PTE attr, usize size)
 }
 
 static void
-mmukpmap1(PTE *pml1, uintmem pa, uintptr va, PTE attr)
+mmukpmap1(PTE *pml1, u64 pa, uintptr va, PTE attr)
 {
 	PTE p1e = pml1[PML1X(va)];
 	if((p1e & PteP) != 0 && PPN(p1e) != pa)
@@ -540,7 +540,7 @@ mmukpmap1(PTE *pml1, uintmem pa, uintptr va, PTE attr)
  * Called only after the va range is known to be unoccupied.
  */
 void
-mmukphysmap(PTE *pml4, uintmem pa, PTE attr, usize size)
+mmukphysmap(PTE *pml4, u64 pa, PTE attr, usize size)
 {
 	usize pgsz = 0;
 	Mpl pl;
@@ -580,9 +580,9 @@ mmukphysmap(PTE *pml4, uintmem pa, PTE attr, usize size)
  * vmap() is required to access them.
  */
 void *
-vmap(uintptr_t pa, usize size)
+vmap(uintptr pa, usize size)
 {
-	uintptr_t va;
+	uintptr va;
 	usize o, sz;
 
 	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
@@ -631,7 +631,7 @@ vmap(uintptr_t pa, usize size)
 void
 vunmap(void *v, usize size)
 {
-	uintptr_t va;
+	uintptr va;
 
 	DBG("vunmap(%#p, %lu)\n", v, size);
 
@@ -654,7 +654,7 @@ vunmap(void *v, usize size)
 }
 
 int
-mmuwalk(const PTE *pml4, uintptr_t va, int level, const PTE **ret)
+mmuwalk(const PTE *pml4, uintptr va, int level, const PTE **ret)
 {
 	Mpl pl;
 
@@ -700,7 +700,7 @@ mmuphysaddr(const PTE *pml4, uintptr va)
 {
 	int l;
 	const PTE *pte;
-	uintmem mask, pa;
+	u64 mask, pa;
 
 	/*
 	 * Given a VA, find the PA.
@@ -729,9 +729,9 @@ Page mach0pml4;
 void
 mmuinit(void)
 {
-	uint8_t *p;
+	u8 *p;
 	Page *page;
-	uint64_t r;
+	u64 r;
 
 	archmmu();
 	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->MMU.pml4, sys->npgsz);

@@ -103,7 +103,7 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 {
 	Proc *up = externup();
 	int i;
-	int32_t tot, nr;
+	i32 tot, nr;
 	Kzio *qio;
 	Segment *s;
 	char *p;
@@ -166,7 +166,7 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
  * of buffering at some point, which also provides
  * flow control somehow.
  */
-static int32_t
+static i32
 zqwrite(Zq *q, Kzio io[], int nio)
 {
 	Proc *up = externup();
@@ -296,7 +296,7 @@ zpgen(Chan *c, char *d, Dirtab *tab, int ntab, int i, Dir *dp)
 
 	tab += i;
 	p = c->aux;
-	switch((uint32_t)tab->qid.path){
+	switch((u32)tab->qid.path){
 	case Qdata0:
 		len = ZQLEN(&p->q[0]);
 		break;
@@ -339,8 +339,8 @@ zpwalk(Chan *c, Chan *nc, char **name, int nname)
 	return wq;
 }
 
-static int32_t
-zpstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+zpstat(Chan *c, u8 *db, i32 n)
 {
 	ZPipe *p;
 	Dir dir;
@@ -451,8 +451,8 @@ zpclose(Chan *c)
 		qunlock(p);
 }
 
-static int32_t
-zpread(Chan *c, void *va, int32_t n, int64_t mm)
+static i32
+zpread(Chan *c, void *va, i32 n, i64 mm)
 {
 	ZPipe *p;
 	Kzio io[32]; /* might read less than we could */
@@ -476,7 +476,7 @@ zpread(Chan *c, void *va, int32_t n, int64_t mm)
 }
 
 static int
-zpzread(Chan *c, Kzio io[], int nio, usize n, int64_t offset)
+zpzread(Chan *c, Kzio io[], int nio, usize n, i64 offset)
 {
 	ZPipe *p;
 
@@ -501,13 +501,13 @@ zpzread(Chan *c, Kzio io[], int nio, usize n, int64_t offset)
  *  If the data is already in a SG_ZIO segment, we shouldn't
  *  be copying it again, probably.
  */
-static int32_t
-zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
+static i32
+zpwrite(Chan *c, void *va, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	ZPipe *p;
 	Kzio io; /* might write less than we could */
-	int32_t tot, nw;
+	i32 tot, nw;
 	Segment *s;
 	Zq *q;
 	char *cp;
@@ -551,7 +551,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 }
 
 static int
-zpzwrite(Chan *c, Kzio io[], int nio, int64_t mm)
+zpzwrite(Chan *c, Kzio io[], int nio, i64 mm)
 {
 	ZPipe *p;
 

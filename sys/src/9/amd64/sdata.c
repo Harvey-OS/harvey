@@ -264,7 +264,7 @@ typedef struct Ctlr Ctlr;
 typedef struct Drive Drive;
 
 typedef struct Prd { /* Physical Region Descriptor */
-	uint32_t pa; /* Physical Base Address */
+	u32 pa; /* Physical Base Address */
 	int count;
 } Prd;
 
@@ -301,9 +301,9 @@ typedef struct Ctlr {
 	int done;
 
 	/* interrupt counts */
-	uint32_t intnil;  /* no drive */
-	uint32_t intbusy; /* controller still busy */
-	uint32_t intok;	  /* normal */
+	u32 intnil;  /* no drive */
+	u32 intbusy; /* controller still busy */
+	u32 intok;	  /* normal */
 
 	Lock l; /* register access */
 } Ctlr;
@@ -312,11 +312,11 @@ typedef struct Drive {
 	Ctlr *ctlr;
 
 	int dev;
-	uint16_t info[256];
+	u16 info[256];
 	int c;		 /* cylinder */
 	int h;		 /* head */
 	int s;		 /* sector */
-	int64_t sectors; /* total */
+	i64 sectors; /* total */
 	int secsize;	 /* sector size */
 
 	int dma; /* DMA R/W possible */
@@ -325,18 +325,18 @@ typedef struct Drive {
 	int rwmctl;
 
 	int pkt; /* PACKET device, length of pktcmd */
-	uint8_t pktcmd[16];
+	u8 pktcmd[16];
 	int pktdma; /* this PACKET command using dma */
 
-	uint8_t sense[18];
-	uint8_t inquiry[48];
+	u8 sense[18];
+	u8 inquiry[48];
 
 	QLock ql;    /* drive access */
 	int command; /* current command */
 	int write;
-	uint8_t *data;
+	u8 *data;
 	int dlen;
-	uint8_t *limit;
+	u8 *limit;
 	int count; /* sectors */
 	int block; /* R/W bytes per block */
 	int status;
@@ -344,9 +344,9 @@ typedef struct Drive {
 	int flags; /* internal flags */
 
 	/* interrupt counts */
-	uint32_t intcmd; /* commands */
-	uint32_t intrd;	 /* reads */
-	uint32_t intwr;	 /* writes */
+	u32 intcmd; /* commands */
+	u32 intrd;	 /* reads */
+	u32 intwr;	 /* writes */
 } Drive;
 
 enum {			  /* internal flags */
@@ -376,7 +376,7 @@ pc87415ienable(Ctlr *ctlr)
 }
 
 static void
-atadumpstate(Drive *drive, uint8_t *cmd, int64_t lba, int count)
+atadumpstate(Drive *drive, u8 *cmd, i64 lba, int count)
 {
 	Prd *prd;
 	Pcidev *p;
@@ -625,9 +625,9 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void *info)
 
 	if(DEBUG & DbgIDENTIFY){
 		int i;
-		uint16_t *sp;
+		u16 *sp;
 
-		sp = (uint16_t *)info;
+		sp = (u16 *)info;
 		for(i = 0; i < 256; i++){
 			if(i && (i % 16) == 0)
 				print("\n");
@@ -645,9 +645,9 @@ atadrive(int cmdport, int ctlport, int dev)
 {
 	Drive *drive;
 	int as, i, pkt;
-	static uint8_t buf[512];
-	uint8_t *p;
-	uint16_t iconfig, *sp;
+	static u8 buf[512];
+	u8 *p;
+	u16 iconfig, *sp;
 
 	atadebug(0, 0, "identify: port 0x%X dev 0x%2.2X\n", cmdport, dev);
 	pkt = 1;
@@ -707,7 +707,7 @@ retry:
 		}
 		if(drive->info[Icapabilities] & Mlba){
 			if(drive->info[Icsfs + 1] & Maddr48){
-				drive->sectors = drive->info[Ilba48] | (drive->info[Ilba48 + 1] << 16) | ((int64_t)drive->info[Ilba48 + 2] << 32);
+				drive->sectors = drive->info[Ilba48] | (drive->info[Ilba48 + 1] << 16) | ((i64)drive->info[Ilba48 + 2] << 32);
 				drive->flags |= Lba48;
 			} else {
 				drive->sectors = (drive->info[Ilba + 1] << 16) | drive->info[Ilba];
@@ -991,7 +991,7 @@ atasetsense(Drive *drive, int status, int key, int asc, int ascq)
 }
 
 static int
-atamodesense(Drive *drive, uint8_t *cmd)
+atamodesense(Drive *drive, u8 *cmd)
 {
 	int len;
 
@@ -1010,7 +1010,7 @@ atamodesense(Drive *drive, uint8_t *cmd)
 		return atasetsense(drive, SDcheck, 0x05, 0x20, 1);
 	memset(drive->data, 0, 8);
 	drive->data[0] = sizeof(drive->info) >> 8;
-	drive->data[1] = (uint8_t)sizeof(drive->info);
+	drive->data[1] = (u8)sizeof(drive->info);
 	memmove(drive->data + 8, drive->info, sizeof(drive->info));
 	drive->data += 8 + sizeof(drive->info);
 
@@ -1107,7 +1107,7 @@ static int
 atadmasetup(Drive *drive, int len)
 {
 	Prd *prd;
-	uint32_t pa;
+	u32 pa;
 	Ctlr *ctlr;
 	int bmiba, bmisx, count, i, span;
 
@@ -1267,7 +1267,7 @@ atapktinterrupt(Drive *drive)
 }
 
 static int
-atapktio(Drive *drive, uint8_t *cmd, int clen)
+atapktio(Drive *drive, u8 *cmd, int clen)
 {
 	Proc *up = externup();
 	Ctlr *ctlr;
@@ -1362,7 +1362,7 @@ atapktio(Drive *drive, uint8_t *cmd, int clen)
 	return r;
 }
 
-static uint8_t cmd48[256] = {
+static u8 cmd48[256] = {
 	[Crs] = Crs48,
 	[Crd] = Crd48,
 	[Crdq] = Crdq48,
@@ -1374,10 +1374,10 @@ static uint8_t cmd48[256] = {
 };
 
 static int
-atageniostart(Drive *drive, uint64_t lba)
+atageniostart(Drive *drive, u64 lba)
 {
 	Ctlr *ctlr;
-	uint8_t cmd;
+	u8 cmd;
 	int as, c, cmdport, ctlport, h, len, s, use48;
 
 	use48 = 0;
@@ -1490,12 +1490,12 @@ atagenioretry(Drive *drive)
 }
 
 static int
-atagenio(Drive *drive, uint8_t *cmd, int clen)
+atagenio(Drive *drive, u8 *cmd, int clen)
 {
 	Proc *up = externup();
-	uint8_t *p;
+	u8 *p;
 	Ctlr *ctlr;
-	int64_t lba, len;
+	i64 lba, len;
 	int count, maxio;
 
 	/*
@@ -1606,7 +1606,7 @@ atagenio(Drive *drive, uint8_t *cmd, int clen)
 		/* ata commands only go to 48-bit lba */
 		if(cmd[2] || cmd[3])
 			return atasetsense(drive, SDcheck, 3, 0xc, 2);
-		lba = (uint64_t)cmd[4] << 40 | (uint64_t)cmd[5] << 32;
+		lba = (u64)cmd[4] << 40 | (u64)cmd[5] << 32;
 		lba |= cmd[6] << 24 | cmd[7] << 16 | cmd[8] << 8 | cmd[9];
 		count = cmd[10] << 24 | cmd[11] << 16 | cmd[12] << 8 | cmd[13];
 	} else {
@@ -1672,7 +1672,7 @@ atario(SDreq *r)
 	Ctlr *ctlr;
 	Drive *drive;
 	SDunit *unit;
-	uint8_t cmd10[10], *cmdp, *p;
+	u8 cmd10[10], *cmdp, *p;
 	int clen, reqstatus, status;
 
 	unit = r->unit;

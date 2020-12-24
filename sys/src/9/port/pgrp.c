@@ -18,7 +18,7 @@ static Ref pgrpid;
 static Ref mountid;
 
 void
-pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
+pgrpnote(u32 noteid, char *a, i32 n, int flag)
 {
 	Proc *up = externup();
 	int i;

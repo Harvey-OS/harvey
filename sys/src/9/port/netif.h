@@ -31,9 +31,9 @@ enum {
 /*
  *  Macros to manage Qid's used for multiplexed devices
  */
-#define NETTYPE(x) (((uint32_t)x) & 0x1f)
-#define NETID(x) ((((uint32_t)x)) >> 5)
-#define NETQID(i, t) ((((uint32_t)i) << 5) | (t))
+#define NETTYPE(x) (((u32)x) & 0x1f)
+#define NETID(x) ((((u32)x)) >> 5)
+#define NETQID(i, t) ((((u32)i) << 5) | (t))
 
 /*
  *  one per multiplexed connection
@@ -42,7 +42,7 @@ struct Netfile {
 	QLock q;
 
 	int inuse;
-	uint32_t mode;
+	u32 mode;
 	char owner[KNAMELEN];
 
 	int type;	  /* multiplexor type */
@@ -50,7 +50,7 @@ struct Netfile {
 	int scan;	  /* base station scanning interval */
 	int bridge;	  /* bridge mode */
 	int headersonly;  /* headers only - no data */
-	uint8_t maddr[8]; /* bitmask of multicast addresses requested */
+	u8 maddr[8]; /* bitmask of multicast addresses requested */
 	int nmaddr;	  /* number of multicast addresses */
 
 	Queue *iq; /* input */
@@ -62,7 +62,7 @@ struct Netfile {
 struct Netaddr {
 	Netaddr *next; /* allocation chain */
 	Netaddr *hnext;
-	uint8_t addr[Nmaxaddr];
+	u8 addr[Nmaxaddr];
 	int ref;
 };
 
@@ -85,8 +85,8 @@ struct Netif {
 	int minmtu;
 	int maxmtu;
 	int mtu;
-	uint8_t addr[Nmaxaddr];
-	uint8_t bcast[Nmaxaddr];
+	u8 addr[Nmaxaddr];
+	u8 bcast[Nmaxaddr];
 	Netaddr *maddr;		/* known multicast addresses */
 	int nmaddr;		/* number of known multicast addresses */
 	Netaddr *mhash[Nmhash]; /* hash table of multicast addresses */
@@ -95,33 +95,33 @@ struct Netif {
 	int all;		/* number of -1 multiplexors */
 
 	/* statistics */
-	uint64_t misses;
-	uint64_t inpackets;
-	uint64_t outpackets;
-	uint64_t crcs;	     /* input crc errors */
-	uint64_t oerrs;	     /* output errors */
-	uint64_t frames;     /* framing errors */
-	uint64_t overflows;  /* packet overflows */
-	uint64_t buffs;	     /* buffering errors */
-	uint64_t soverflows; /* software overflow */
+	u64 misses;
+	u64 inpackets;
+	u64 outpackets;
+	u64 crcs;	     /* input crc errors */
+	u64 oerrs;	     /* output errors */
+	u64 frames;     /* framing errors */
+	u64 overflows;  /* packet overflows */
+	u64 buffs;	     /* buffering errors */
+	u64 soverflows; /* software overflow */
 
 	/* routines for touching the hardware */
 	void *arg;
 	void (*promiscuous)(void *, int);
-	void (*multicast)(void *, uint8_t *, int);
+	void (*multicast)(void *, u8 *, int);
 	int (*hwmtu)(void *, int);    /* get/set mtu */
 	void (*scanbs)(void *, uint); /* scan for base stations */
 };
 
-void netifinit(Netif *, char *, int, uint32_t);
+void netifinit(Netif *, char *, int, u32);
 Walkqid *netifwalk(Netif *, Chan *, Chan *, char **, int);
 Chan *netifopen(Netif *, Chan *, int);
 void netifclose(Netif *, Chan *);
-int32_t netifread(Netif *, Chan *, void *, int32_t, int64_t);
-Block *netifbread(Netif *, Chan *, int32_t, int64_t);
-int32_t netifwrite(Netif *, Chan *, void *, int32_t);
-int32_t netifwstat(Netif *, Chan *, unsigned char *, int32_t);
-int32_t netifstat(Netif *, Chan *, unsigned char *, int32_t);
+i32 netifread(Netif *, Chan *, void *, i32, i64);
+Block *netifbread(Netif *, Chan *, i32, i64);
+i32 netifwrite(Netif *, Chan *, void *, i32);
+i32 netifwstat(Netif *, Chan *, unsigned char *, i32);
+i32 netifstat(Netif *, Chan *, unsigned char *, i32);
 int activemulti(Netif *, unsigned char *, int);
 
 /*
@@ -140,8 +140,8 @@ enum {
 };
 
 struct Etherpkt {
-	uint8_t d[Eaddrlen];
-	uint8_t s[Eaddrlen];
-	uint8_t type[2];
-	uint8_t data[1500];
+	u8 d[Eaddrlen];
+	u8 s[Eaddrlen];
+	u8 type[2];
+	u8 data[1500];
 };

@@ -47,7 +47,7 @@ pmcnregs(void)
 static int
 pmcuserenab(int enable)
 {
-	uint64_t cr4;
+	u64 cr4;
 
 	cr4 = cr4get();
 	if(enable){
@@ -101,9 +101,9 @@ pmctrans(PmcCtl *p)
 }
 
 static int
-getctl(PmcCtl *p, uint32_t regno)
+getctl(PmcCtl *p, u32 regno)
 {
-	uint64_t r, e, u;
+	u64 r, e, u;
 
 	r = rdmsr(regno + PerfEvtbase);
 	p->enab = (r & PeCtEna) != 0;
@@ -138,7 +138,7 @@ extern int pmcdebug;
 static int
 setctl(PmcCtl *p, int regno)
 {
-	uint64_t v, e, u;
+	u64 v, e, u;
 	char *toks[2];
 	char str[KNAMELEN];
 
@@ -232,14 +232,14 @@ pmcdescstr(char *str, int nstr)
 	return ns;
 }
 
-static uint64_t
-getctr(uint32_t regno)
+static u64
+getctr(u32 regno)
 {
 	return rdmsr(regno + PerfCtrbase);
 }
 
 static int
-setctr(uint64_t v, uint32_t regno)
+setctr(u64 v, u32 regno)
 {
 	wrmsr(regno + PerfCtrbase, v);
 	return 0;
@@ -328,12 +328,12 @@ shouldipi(Mach *mp)
 	return 1;
 }
 
-uint64_t
-pmcgetctr(uint32_t coreno, uint32_t regno)
+u64
+pmcgetctr(u32 coreno, u32 regno)
 {
 	PmcCtr *p;
 	Mach *mp;
-	uint64_t v;
+	u64 v;
 
 	if(coreno == machp()->machno){
 		v = getctr(regno);
@@ -360,7 +360,7 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 }
 
 int
-pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
+pmcsetctr(u32 coreno, u64 v, u32 regno)
 {
 	PmcCtr *p;
 	Mach *mp;
@@ -403,7 +403,7 @@ ctl2ctl(PmcCtl *dctl, PmcCtl *sctl)
 }
 
 int
-pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
+pmcsetctl(u32 coreno, PmcCtl *pctl, u32 regno)
 {
 	PmcCtr *p;
 	Mach *mp;
@@ -424,7 +424,7 @@ pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 }
 
 int
-pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
+pmcgetctl(u32 coreno, PmcCtl *pctl, u32 regno)
 {
 	PmcCtr *p;
 	Mach *mp;

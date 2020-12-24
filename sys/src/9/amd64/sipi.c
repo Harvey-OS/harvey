@@ -28,9 +28,9 @@ sipi(void)
 	Apic *apic;
 	volatile Mach *mach;
 	int apicno, i;
-	volatile uint64_t *sipiptr;
-	uintmem sipipa;
-	uint8_t *p;
+	volatile u64 *sipiptr;
+	u64 sipipa;
+	u8 *p;
 	extern void squidboy(int);
 	usize apsize;
 

@@ -69,7 +69,7 @@ blacklist(Pcidev *p)
 }
 
 int
-pcimsienable(Pcidev *p, uint64_t vec)
+pcimsienable(Pcidev *p, u64 vec)
 {
 	uint c, f, d, datao, lopri, dmode, logical;
 

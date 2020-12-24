@@ -1142,9 +1142,9 @@ parsename(char *aname, Elemlist *e)
 }
 
 static void *
-memrchr(void *va, int c, int32_t n)
+memrchr(void *va, int c, i32 n)
 {
-	uint8_t *a, *e;
+	u8 *a, *e;
 
 	a = va;
 	for(e = a + n - 1; e > a; e--)
@@ -1651,7 +1651,7 @@ char isfrog[256] = {
  * to access unchecked addresses.)
  */
 static char *
-validname0(char *aname, int slashok, int dup, uintptr_t pc)
+validname0(char *aname, int slashok, int dup, uintptr pc)
 {
 	Proc *up = externup();
 	char *ename, *name, *s;
@@ -1682,7 +1682,7 @@ validname0(char *aname, int slashok, int dup, uintptr_t pc)
 
 	while(*name){
 		/* all characters above '~' are ok */
-		c = *(uint8_t *)name;
+		c = *(u8 *)name;
 		if(c >= Runeself)
 			name += chartorune(&r, name);
 		else {

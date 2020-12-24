@@ -46,7 +46,7 @@ struct Globalseg {
 
 	char *name;
 	char *uid;
-	int64_t length;
+	i64 length;
 	long perm;
 
 	Freemsg *free;
@@ -117,7 +117,7 @@ segmentgen(Chan *c, char *d, Dirtab *dir, int i, int s, Dir *dp)
 	Proc *up = externup();
 	Qid q;
 	Globalseg *g;
-	uint32_t size;
+	u32 size;
 
 	switch(TYPE(c)){
 	case Qtopdir:
@@ -212,8 +212,8 @@ segmentwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, 0, 0, segmentgen);
 }
 
-static int32_t
-segmentstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+segmentstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, 0, 0, segmentgen);
 }
@@ -363,7 +363,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 
 enum { PTRSIZE = 19 }; /* "0x1234567812345678 " */
 static int
-readptr(char *buf, int32_t n, uintptr_t val)
+readptr(char *buf, i32 n, uintptr val)
 {
 	if(n < PTRSIZE)
 		return 0;
@@ -381,15 +381,15 @@ znotempty(void *x)
 	return zs->end != 0;
 }
 
-static int32_t
-segmentread(Chan *c, void *a, int32_t n, int64_t voff)
+static i32
+segmentread(Chan *c, void *a, i32 n, i64 voff)
 {
 	Proc *up = externup();
 	Globalseg *g;
 	Zseg *zs;
-	uintptr_t va;
+	uintptr va;
 	char *p, *s;
-	int32_t tot;
+	i32 tot;
 	char buf[64];
 
 	if(c->qid.type == QTDIR)
@@ -432,7 +432,7 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 		else
 			s = "addr";
 		snprint(buf, sizeof(buf), "%s %#p %#p\n",
-			s, g->s->base, (uintptr_t)(g->s->top - g->s->base));
+			s, g->s->base, (uintptr)(g->s->top - g->s->base));
 		return readstr(voff, a, n, buf);
 	case Qdata:
 		if(voff < 0)
@@ -474,12 +474,12 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
  * back when the segment is destroyed.
  * BUG: what if we overlap other segments attached by the user?
  */
-static uintptr_t
-placeseg(uintptr_t len)
+static uintptr
+placeseg(uintptr len)
 {
 	static Lock lck;
-	static uintptr_t va = HEAPTOP;
-	uintptr_t v;
+	static uintptr va = HEAPTOP;
+	uintptr v;
 
 	len += BIGPGSZ; /* so we fault upon overflows */
 	lock(&lck);
@@ -491,13 +491,13 @@ placeseg(uintptr_t len)
 	return v;
 }
 
-static int32_t
-segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
+static i32
+segmentwrite(Chan *c, void *a, i32 n, i64 voff)
 {
 	Proc *up = externup();
 	Cmdbuf *cb;
 	Globalseg *g;
-	uintptr_t va, len, top;
+	uintptr va, len, top;
 	int i;
 	struct {
 		char *name;
@@ -593,8 +593,8 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 	return n;
 }
 
-static int32_t
-segmentwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+segmentwstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Globalseg *g;
@@ -619,7 +619,7 @@ segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 	n = convM2D(dp, n, &d[0], (char *)&d[1]);
 	if(!emptystr(d->uid) && strcmp(d->uid, g->uid) != 0)
 		kstrdup(&g->uid, d->uid);
-	if(d->mode != (uint32_t)~0UL)
+	if(d->mode != (u32)~0UL)
 		g->perm = d->mode & 0777;
 	poperror();
 	free(d);

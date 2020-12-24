@@ -61,8 +61,8 @@ dupwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, dupgen);
 }
 
-static int32_t
-dupstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+dupstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, (Dirtab *)0, 0L, dupgen);
 }
@@ -106,8 +106,8 @@ dupclose(Chan *c)
 {
 }
 
-static int32_t
-dupread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+dupread(Chan *c, void *va, i32 n, i64 off)
 {
 	char buf[256];
 	int fd, twicefd;
@@ -126,8 +126,8 @@ dupread(Chan *c, void *va, int32_t n, int64_t off)
 	return 0;
 }
 
-static int32_t
-dupwrite(Chan *c, void *v, int32_t i, int64_t n)
+static i32
+dupwrite(Chan *c, void *v, i32 i, i64 n)
 {
 	error(Eperm);
 	return 0; /* not reached */

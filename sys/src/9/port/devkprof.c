@@ -25,7 +25,7 @@ struct
 	uintptr maxpc;
 	int nbuf;
 	int time;
-	uint32_t *buf;
+	u32 *buf;
 	Lock l;
 } kprof;
 
@@ -56,7 +56,7 @@ oprof_alarm_handler(Ureg *u)
 static Chan *
 kprofattach(char *spec)
 {
-	uint32_t n;
+	u32 n;
 
 	/* allocate when first used */
 	kprof.minpc = KTZERO;
@@ -76,7 +76,7 @@ kprofattach(char *spec)
 }
 
 static void
-_kproftimer(uintptr_t pc)
+_kproftimer(uintptr pc)
 {
 	if(kprof.time == 0)
 		return;
@@ -118,8 +118,8 @@ kprofwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, kproftab, nelem(kproftab), devgen);
 }
 
-static int32_t
-kprofstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+kprofstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, kproftab, nelem(kproftab), devgen);
 }
@@ -142,13 +142,13 @@ kprofclose(Chan *c)
 {
 }
 
-static int32_t
-kprofread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+kprofread(Chan *c, void *va, i32 n, i64 off)
 {
-	uint32_t end;
-	uint32_t w, *bp;
-	uint8_t *a, *ea;
-	uint32_t offset = off;
+	u32 end;
+	u32 w, *bp;
+	u8 *a, *ea;
+	u32 offset = off;
 
 	switch((int)c->qid.path){
 	case Kprofdirqid:
@@ -188,8 +188,8 @@ kprofread(Chan *c, void *va, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-kprofwrite(Chan *c, void *a, int32_t n, int64_t m)
+static i32
+kprofwrite(Chan *c, void *a, i32 n, i64 m)
 {
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:

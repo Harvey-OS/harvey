@@ -33,7 +33,7 @@ Fragment6 *ipfragallo6(IP *);
 void ipfragfree6(IP *, Fragment6 *);
 Block *procopts(Block *bp);
 static Block *procxtns(IP *ip, Block *bp, int doreasm);
-int unfraglen(Block *bp, uint8_t *nexthdr, int setfh);
+int unfraglen(Block *bp, u8 *nexthdr, int setfh);
 
 int
 ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
@@ -41,7 +41,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	Proc *up = externup();
 	int medialen, len, chunk, uflen, flen, seglen, lid, offset, fragoff;
 	int morefrags, blklen, rv = 0, tentative;
-	uint8_t *gate, nexthdr;
+	u8 *gate, nexthdr;
 	Block *xp, *nb;
 	Fraghdr6 fraghdr;
 	IP *ip;
@@ -234,8 +234,8 @@ void
 ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 {
 	int hl, hop, tos, notforme, tentative;
-	uint8_t proto;
-	uint8_t v6dst[IPaddrlen];
+	u8 proto;
+	u8 v6dst[IPaddrlen];
 	IP *ip;
 	Ip6hdr *h;
 	Proto *p;
@@ -401,7 +401,7 @@ static Block *
 procxtns(IP *ip, Block *bp, int doreasm)
 {
 	int offset;
-	uint8_t proto;
+	u8 proto;
 	Ip6hdr *h;
 
 	h = (Ip6hdr *)bp->rp;
@@ -426,9 +426,9 @@ procxtns(IP *ip, Block *bp, int doreasm)
  * field of the last header in the "Unfragmentable part" is set to FH.
  */
 int
-unfraglen(Block *bp, uint8_t *nexthdr, int setfh)
+unfraglen(Block *bp, u8 *nexthdr, int setfh)
 {
-	uint8_t *p, *q;
+	u8 *p, *q;
 	int ufl, hs;
 
 	p = bp->rp;
@@ -463,7 +463,7 @@ ip6reassemble(IP *ip, int uflen, Block *bp, Ip6hdr *ih)
 {
 	int fend, offset, ovlap, len, fragsize, pktposn;
 	uint id;
-	uint8_t src[IPaddrlen], dst[IPaddrlen];
+	u8 src[IPaddrlen], dst[IPaddrlen];
 	Block *bl, **l, *last, *prev;
 	Fraghdr6 *fraghdr;
 	Fragment6 *f, *fnext;

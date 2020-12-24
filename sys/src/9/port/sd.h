@@ -21,15 +21,15 @@ typedef struct SDunit SDunit;
 struct SDperm {
 	char *name;
 	char *user;
-	uint32_t perm;
+	u32 perm;
 };
 
 struct SDpart {
-	uint64_t start;
-	uint64_t end;
+	u64 start;
+	u64 end;
 	SDperm SDperm;
 	int valid;
-	uint32_t vers;
+	u32 vers;
 };
 
 struct SDunit {
@@ -40,15 +40,15 @@ struct SDunit {
 	SDperm SDperm;
 
 	QLock ctl;
-	uint64_t sectors;
-	uint32_t secsize;
+	u64 sectors;
+	u32 secsize;
 	SDpart *part; /* nil or array of size npart */
 	int npart;
-	uint32_t vers;
+	u32 vers;
 	SDperm ctlperm;
 
 	QLock raw;	   /* raw read or write in progress */
-	uint32_t rawinuse; /* really just a test-and-set */
+	u32 rawinuse; /* really just a test-and-set */
 	int state;
 	SDreq *req;
 	SDperm rawperm;
@@ -87,7 +87,7 @@ struct SDifc {
 	int (*rctl)(SDunit *, char *, int);
 	int (*wctl)(SDunit *, Cmdbuf *);
 
-	int32_t (*bio)(SDunit *, int, int, void *, int32_t, uint64_t);
+	i32 (*bio)(SDunit *, int, int, void *, i32, u64);
 	SDev *(*probe)(DevConf *);
 	void (*clear)(SDev *);
 	char *(*rtopctl)(SDev *, char *, char *);
@@ -106,7 +106,7 @@ struct SDreq {
 	int flags;
 
 	int status;
-	int32_t rlen;
+	i32 rlen;
 	unsigned char sense[256];
 };
 
@@ -164,7 +164,7 @@ struct SDio {
 	int (*init)(void);
 	void (*enable)(void);
 	int (*inquiry)(char *, int);
-	int (*cmd)(uint32_t, uint32_t, uint32_t *);
+	int (*cmd)(u32, u32, u32 *);
 	void (*iosetup)(int, void *, int, int);
 	void (*io)(int, unsigned char *, int);
 };
@@ -175,7 +175,7 @@ extern SDio sdio;
 extern void sdadddevs(SDev *);
 extern void sdaddconf(SDunit *);
 extern void sdaddallconfs(void (*f)(SDunit *));
-extern void sdaddpart(SDunit *, char *, uint64_t, uint64_t);
+extern void sdaddpart(SDunit *, char *, u64, u64);
 extern int sdsetsense(SDreq *, int, int, int, int);
 extern int sdmodesense(SDreq *, unsigned char *, void *, int);
 extern int sdfakescsi(SDreq *, void *, int);
@@ -183,19 +183,19 @@ extern int sdfakescsi(SDreq *, void *, int);
 /* sdscsi.c */
 extern int scsiverify(SDunit *);
 extern int scsionline(SDunit *);
-extern int32_t scsibio(SDunit *, int, int, void *, int32_t, uint64_t);
+extern i32 scsibio(SDunit *, int, int, void *, i32, u64);
 extern SDev *scsiid(SDev *, SDifc *);
 
 /*
  *  hardware info about a device
  */
 typedef struct {
-	uint32_t port;
+	u32 port;
 	int size;
 } Devport;
 
 struct DevConf {
-	uint32_t intnum; /* interrupt number */
+	u32 intnum; /* interrupt number */
 	char *type;	 /* card type, malloced */
 	int nports;	 /* Number of ports */
 	Devport *ports;	 /* The ports themselves */

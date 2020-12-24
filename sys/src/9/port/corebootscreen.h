@@ -24,12 +24,12 @@ extern void mouseaccelerate(int);
 extern void mouseresize(void);
 
 /* screen.c */
-extern uint8_t *attachscreen(Rectangle *, uint32_t *, int *, int *, int *);
+extern u8 *attachscreen(Rectangle *, u32 *, int *, int *, int *);
 extern void flushmemscreen(Rectangle);
 extern int cursoron(int);
 extern void cursoroff(int);
 extern void setcursor(Cursor *);
-extern int screensize(int, int, int, uint32_t);
+extern int screensize(int, int, int, u32);
 extern int screenaperture(int, int);
 extern Rectangle physgscreenr; /* actual monitor size */
 extern void blankscreen(int);
@@ -43,7 +43,7 @@ extern void swcursorunhide(void);
 extern void deletescreenimage(void);
 extern void resetscreenimage(void);
 extern int drawhasclients(void);
-extern uint32_t blanktime;
+extern u32 blanktime;
 extern void setscreenimageclipr(Rectangle);
 extern void drawflush(void);
 extern int drawidletime(void);
@@ -67,5 +67,5 @@ struct CorebootScreen {
 };
 
 struct Corebootfb { /* frame buffer for 24-bit active color */
-	uint8_t *pixel;
+	u8 *pixel;
 };

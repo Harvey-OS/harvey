@@ -24,12 +24,12 @@
 
 Conf conf; /* XXX - must go - gag */
 
-static uintptr_t sp; /* XXX - must go - user stack of init proc */
+static uintptr sp; /* XXX - must go - user stack of init proc */
 
 /* Next time you see a system with cores/sockets running at different clock rates, on x86,
  * let me know. AFAIK, it no longer happens. So the BSP hz is good for the AP hz.
  */
-int64_t hz;
+i64 hz;
 
 Sys *const sys = UINT2PTR(KSYS);
 
@@ -40,7 +40,7 @@ Sys *const sys = UINT2PTR(KSYS);
  * set it all up.
  */
 char *cputype = "amd64";
-static int64_t oargc;
+static i64 oargc;
 static char *oargv[128];
 static char oargb[4096];
 static int oargblen;
@@ -68,7 +68,7 @@ static int showpost = 0;
 // code always compiles, and macros usually break that rule. The cost in space
 // and time of this bit of extra code is so small as to not matter.
 void
-post(char *msg, uint8_t terminal)
+post(char *msg, u8 terminal)
 {
 	if(!showpost)
 		return;
@@ -79,9 +79,9 @@ post(char *msg, uint8_t terminal)
 	outb(0x80, terminal);
 }
 void *
-sigscan(uint8_t *address, int length, char *signature)
+sigscan(u8 *address, int length, char *signature)
 {
-	uint8_t *e, *p;
+	u8 *e, *p;
 	int siglength;
 
 	e = address + length;
@@ -100,7 +100,7 @@ sigscan(uint8_t *address, int length, char *signature)
  *	pretty printing below, so it doesn't need to be accurate
  */
 static int
-ktextaddr(uintptr_t pc)
+ktextaddr(uintptr pc)
 {
 	return (pc & KTZERO) == KTZERO;
 }
@@ -118,11 +118,11 @@ stacksnippet(void)
 void
 machp_bad(void)
 {
-	static uintptr_t trace[256];
-	uintptr_t badpc;
+	static uintptr trace[256];
+	uintptr badpc;
 	int i;
 
-	badpc = (uintptr_t)getcallerpc();
+	badpc = (uintptr)getcallerpc();
 	for(i = 0; i < nelem(trace); i++){
 		if(trace[i] == badpc)
 			return;
@@ -222,7 +222,7 @@ void
 squidboy(Mach *mach)
 {
 	// FIX QEMU. extern int64_t hz;
-	int64_t hz;
+	i64 hz;
 
 	sys->machptr[mach->machno] = mach;
 	/*
@@ -341,7 +341,7 @@ nixsquids(void)
 {
 	Mach *mach;
 	int i;
-	uint64_t now, start;
+	u64 now, start;
 
 	/* Not AC for now :-) */
 	numtcs = MACHMAX;
@@ -411,7 +411,7 @@ hi(char *s)
 }
 
 void
-hihex(uint64_t x)
+hihex(u64 x)
 {
 	const char *hex = "0123456789abcdef";
 	for(int i = 60; i >= 0; i -= 4)
@@ -445,7 +445,7 @@ die(char *s)
 }
 
 void
-badcall(uint64_t where, uint64_t what)
+badcall(u64 where, u64 what)
 {
 	hi("Bad call from function ");
 	hihex(where);
@@ -465,7 +465,7 @@ errstr(char *s, int i)
 static int x = 0x123456;
 
 void
-main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
+main(Mach *mach, u32 mbmagic, u32 mbaddress)
 {
 	int postterminal = 1;
 	USED(postterminal);
@@ -494,7 +494,7 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 
 	// The kernel maps the first 4GiB before entry to main().  If the
 	// image is too big, we will fail to boot properly.
-	if((uintptr_t)end - KZERO > 4ULL * GiB)
+	if((uintptr)end - KZERO > 4ULL * GiB)
 		panic("main: kernel too big: image ends after 4GiB");
 
 	/*
@@ -515,7 +515,7 @@ main(Mach *mach, uint32_t mbmagic, uint32_t mbaddress)
 	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr_t) * 8);
+	cgapost(sizeof(uintptr) * 8);
 
 	mallocinit();
 	pamapinit();
@@ -658,10 +658,10 @@ init0(void)
 }
 
 void
-bootargs(uintptr_t base)
+bootargs(uintptr base)
 {
 	int i;
-	uint32_t ssize;
+	u32 ssize;
 	char **av, *p;
 
 	/*
@@ -724,7 +724,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -830,7 +830,7 @@ shutdown(int ispanic)
 }
 
 void
-reboot(void *v, void *w, int32_t i)
+reboot(void *v, void *w, i32 i)
 {
 	panic("reboot\n");
 }

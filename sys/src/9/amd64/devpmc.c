@@ -32,9 +32,9 @@ enum {
 	PmcCtlRdStr = 4 * 1024,
 };
 
-#define PMCTYPE(x) (((uintptr_t)x) & 0xffful)
-#define PMCID(x) (((uintptr_t)x) >> 12)
-#define PMCQID(i, t) ((((uintptr_t)i) << 12) | (t))
+#define PMCTYPE(x) (((uintptr)x) & 0xffful)
+#define PMCID(x) (((uintptr)x) >> 12)
+#define PMCQID(i, t) ((((uintptr)i) << 12) | (t))
 
 Dirtab *pmctab;
 static int npmctab;
@@ -190,8 +190,8 @@ pmcwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, nil, 0, pmcgen);
 }
 
-static int32_t
-pmcstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+pmcstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, nil, 0, pmcgen);
 }
@@ -209,15 +209,15 @@ pmcclose(Chan *c)
 {
 }
 
-static int32_t
-pmcread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+pmcread(Chan *c, void *a, i32 n, i64 offset)
 {
 	Proc *up = externup();
-	uint32_t type, id;
+	u32 type, id;
 	PmcCtl p;
 	char *s;
-	uint64_t v;
-	uint64_t coreno;
+	u64 v;
+	u64 coreno;
 
 	type = PMCTYPE(c->qid.path);
 	id = PMCID(c->qid.path);
@@ -234,7 +234,7 @@ pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 		free(s);
 		nexterror();
 	}
-	coreno = (uint64_t)c->aux;
+	coreno = (u64)c->aux;
 	p._coreno = coreno;
 	switch(type){
 	case Qdata:
@@ -296,7 +296,7 @@ typedef struct AcCtrArg AcCtrArg;
 struct AcCtrArg {
 	int regno;
 	int coreno;
-	uint64_t v;
+	u64 v;
 };
 
 void
@@ -327,17 +327,17 @@ acpmcsetctr(void)
 	return;
 }
 
-static int32_t
-pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
+static i32
+pmcwrite(Chan *c, void *a, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Cmdbuf *cb;
 	Cmdtab *ct;
-	uint32_t type;
+	u32 type;
 	char str[64]; /* 0x0000000000000000\0 */
 	AcPmcArg p;
 	AcCtrArg ctr;
-	uint64_t coreno;
+	u64 coreno;
 	Mach *mp;
 
 	if(c->qid.type == QTDIR)
@@ -348,7 +348,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 		error(Ebadctl);
 
 	pmcnull(&p.PmcCtl);
-	coreno = (uint64_t)c->aux;
+	coreno = (u64)c->aux;
 	p.coreno = coreno;
 	type = PMCTYPE(c->qid.path);
 	p.regno = PMCID(c->qid.path);

@@ -155,9 +155,9 @@ struct Ctlr {
 	Qh *qhs;	  /* list of Qhs for this controller */
 	Qh *qh[Tmax];	  /* Dummy Qhs to insert Qhs after */
 	Isoio *iso;	  /* list of active iso I/O */
-	uint32_t *frames; /* frame list (used by hw) */
-	uint32_t load;	  /* max load for a single frame */
-	uint32_t isoload; /* max iso load for a single frame */
+	u32 *frames; /* frame list (used by hw) */
+	u32 load;	  /* max load for a single frame */
+	u32 isoload; /* max iso load for a single frame */
 	int nintr;	  /* number of interrupts attended */
 	int ntdintr;	  /* number of intrs. with something to do */
 	int nqhintr;	  /* number of intrs. for Qhs */
@@ -171,7 +171,7 @@ struct Qio {
 	int usbid;	 /* usb address for endpoint/device */
 	int toggle;	 /* Tddata0/Tddata1 */
 	int tok;	 /* Tdtoksetup, Tdtokin, Tdtokout */
-	uint32_t iotime; /* time of last I/O */
+	u32 iotime; /* time of last I/O */
 	int debug;	 /* debug flag from the endpoint */
 	char *err;	 /* error string */
 };
@@ -195,7 +195,7 @@ struct Isoio {
 	Td *tdi;	     /* next td processed by interrupt */
 	char *err;	     /* error string */
 	int nerrs;	     /* nb of consecutive I/O errors */
-	int32_t nleft;	     /* number of bytes left from last write */
+	i32 nleft;	     /* number of bytes left from last write */
 	int debug;	     /* debug flag from the endpoint */
 	Isoio *next;	     /* in list of active Isoios */
 	Td *tdps[Nframes];   /* pointer to Td used for i-th frame or nil */
@@ -236,11 +236,11 @@ struct Qhpool {
  * The Ctlr lock protects change of state for Qhs in use.
  */
 struct Qh {
-	uint32_t link;	/* link to next horiz. item (eg. Qh) */
-	uint32_t elink; /* link to element (eg. Td; updated by hw) */
+	u32 link;	/* link to next horiz. item (eg. Qh) */
+	u32 elink; /* link to element (eg. Td; updated by hw) */
 
-	uint32_t state; /* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
-	uint32_t _32;
+	u32 state; /* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
+	u32 _32;
 
 	Qio *io;  /* for this queue */
 	Qh *next; /* in active or free list */
@@ -260,13 +260,13 @@ struct Qh {
  * is free to use it and can be the only one using it.
  */
 struct Td {
-	uint32_t link;	 /* Link to next Td or Qh */
-	uint32_t csw;	 /* control and status word (updated by hw) */
-	uint32_t token;	 /* endpt, device, pid */
-	uint32_t buffer; /* buffer pointer */
+	u32 link;	 /* Link to next Td or Qh */
+	u32 csw;	 /* control and status word (updated by hw) */
+	u32 token;	 /* endpt, device, pid */
+	u32 buffer; /* buffer pointer */
 
 	Td *next;	     /* in qh or Isoio or free list */
-	uint32_t ndata;	     /* bytes available/used at data */
+	u32 ndata;	     /* bytes available/used at data */
 	unsigned char *data; /* pointer to actual data */
 	void *buff;	     /* allocated data, for large transfers */
 
@@ -455,7 +455,7 @@ isodump(Isoio *iso, int all)
 }
 
 static int
-sameptr(void *p, uintmem l)
+sameptr(void *p, u64 l)
 {
 	if(l & QHterm)
 		return p == nil;
@@ -491,7 +491,7 @@ qhdump(Qh *qh, char *pref)
 	char buf[256];
 	char *s;
 	char *se;
-	uintmem td;
+	u64 td;
 	int i;
 
 	s = buf;
@@ -611,7 +611,7 @@ tdalloc(void)
 
 	memset(td, 0, sizeof(Td));
 	td->link = Tdterm;
-	assert(((uint64_t)td & 0xF) == 0);
+	assert(((u64)td & 0xF) == 0);
 	return td;
 }
 
@@ -706,7 +706,7 @@ qhalloc(Ctlr *ctlr, Qh *prev, Qio *io, char *tag)
 		iunlock(&ctlr->l);
 	}
 
-	if(((uint64_t)qh & 0xF) != 0)
+	if(((u64)qh & 0xF) != 0)
 		panic("usbuhci: qhalloc qh 0x%p (not 16-aligned)", qh);
 	return qh;
 }
@@ -788,7 +788,7 @@ isocanwrite(void *a)
 }
 
 static void
-tdisoinit(Isoio *iso, Td *td, int32_t count)
+tdisoinit(Isoio *iso, Td *td, i32 count)
 {
 	td->ndata = count;
 	td->token = ((count - 1) << 21) | ((iso->usbid & 0x7FF) << 8) | iso->tok;
@@ -981,11 +981,11 @@ interrupt(Ureg *ureg, void *a)
  * iso->tdu is the next place to put data. When it gets full
  * it is activated and tdu advanced.
  */
-static int32_t
-putsamples(Isoio *iso, unsigned char *b, int32_t count)
+static i32
+putsamples(Isoio *iso, unsigned char *b, i32 count)
 {
-	int32_t tot;
-	int32_t n;
+	i32 tot;
+	i32 n;
 
 	for(tot = 0; isocanwrite(iso) && tot < count; tot += n){
 		n = count - tot;
@@ -1006,8 +1006,8 @@ putsamples(Isoio *iso, unsigned char *b, int32_t count)
  * Queue data for writing and return error status from
  * last writes done, to maintain buffered data.
  */
-static int32_t
-episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
+static i32
+episowrite(Ep *ep, Isoio *iso, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlr *ctlr;
@@ -1074,7 +1074,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 /*
  * Available data is kept at tdu and following tds, up to tdi (excluded).
  */
-static int32_t
+static i32
 episoread(Ep *ep, Isoio *iso, void *a, int count)
 {
 	Proc *up = externup();
@@ -1219,7 +1219,7 @@ epiodone(void *a)
 }
 
 static void
-epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t load)
+epiowait(Ctlr *ctlr, Qio *io, int tmout, u32 load)
 {
 	Proc *up = externup();
 	Qh *qh;
@@ -1265,18 +1265,18 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t load)
  * To make it work for control transfers, the caller may
  * lock the Qio for the entire control transfer.
  */
-static int32_t
-epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
+static i32
+epio(Ep *ep, Qio *io, void *a, i32 count, int mustlock)
 {
 	Proc *up = externup();
 	Td *td, *ltd, *td0, *ntd;
 	Ctlr *ctlr;
 	Qh *qh;
-	int32_t n, tot;
+	i32 n, tot;
 	char buf[128];
 	unsigned char *c;
 	int saved, ntds, tmout;
-	uint32_t load;
+	u32 load;
 	char *err;
 
 	qh = io->qh;
@@ -1414,15 +1414,15 @@ clrhalt(Ep *ep)
 	}
 }
 
-static int32_t
-epread(Ep *ep, void *a, int32_t count)
+static i32
+epread(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlio *cio;
 	Qio *io;
 	Isoio *iso;
 	char buf[160];
-	uint32_t delta;
+	u32 delta;
 
 	ddeprint("uhci: epread\n");
 	if(ep->aux == nil)
@@ -1494,12 +1494,12 @@ epread(Ep *ep, void *a, int32_t count)
  * Upon errors on the data phase we must still run the status
  * phase or the device may cease responding in the future.
  */
-static int32_t
-epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
+static i32
+epctlio(Ep *ep, Ctlio *cio, void *a, i32 count)
 {
 	Proc *up = externup();
 	unsigned char *c;
-	int32_t len;
+	i32 len;
 
 	ddeprint("epctlio: cio %#p ep%d.%d count %ld\n",
 		 cio, ep->dev->nb, ep->nb, count);
@@ -1569,14 +1569,14 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 	return count;
 }
 
-static int32_t
-epwrite(Ep *ep, void *a, int32_t count)
+static i32
+epwrite(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlio *cio;
 	Isoio *iso;
 	Qio *io;
-	uint32_t delta;
+	u32 delta;
 	char *b;
 	int tot;
 	int nw;
@@ -1829,11 +1829,11 @@ cancelio(Ctlr *ctlr, Qio *io)
 }
 
 static void
-cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
+cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, u32 load)
 {
 	Proc *up = externup();
 	Isoio **il;
-	uint32_t *lp;
+	u32 *lp;
 	int i;
 	int frno;
 	Td *td;
@@ -2175,7 +2175,7 @@ uhcimeminit(Ctlr *ctlr)
 	if(0)
 		qh->link = PADDR(ctlr->qhs);
 
-	frsize = Nframes * sizeof(uint32_t);
+	frsize = Nframes * sizeof(u32);
 	ctlr->frames = mallocalign(frsize, frsize, 0, 0);
 	if(ctlr->frames == nil)
 		panic("uhci reset: no memory");

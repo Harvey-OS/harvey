@@ -59,8 +59,8 @@ etherwalk(Chan *chan, Chan *nchan, char **name, int nname)
 	return netifwalk(&etherxx[chan->devno]->Netif, chan, nchan, name, nname);
 }
 
-static int32_t
-etherstat(Chan *chan, uint8_t *dp, int32_t n)
+static i32
+etherstat(Chan *chan, u8 *dp, i32 n)
 {
 	return netifstat(&etherxx[chan->devno]->Netif, chan, dp, n);
 }
@@ -82,11 +82,11 @@ etherclose(Chan *chan)
 	netifclose(&etherxx[chan->devno]->Netif, chan);
 }
 
-static int32_t
-etherread(Chan *chan, void *buf, int32_t n, int64_t off)
+static i32
+etherread(Chan *chan, void *buf, i32 n, i64 off)
 {
 	Ether *ether;
-	uint32_t offset = off;
+	u32 offset = off;
 
 	ether = etherxx[chan->devno];
 	if((chan->qid.type & QTDIR) == 0 && ether->ifstat){
@@ -112,13 +112,13 @@ etherread(Chan *chan, void *buf, int32_t n, int64_t off)
 }
 
 static Block *
-etherbread(Chan *chan, int32_t n, int64_t offset)
+etherbread(Chan *chan, i32 n, i64 offset)
 {
 	return netifbread(&etherxx[chan->devno]->Netif, chan, n, offset);
 }
 
-static int32_t
-etherwstat(Chan *chan, uint8_t *dp, int32_t n)
+static i32
+etherwstat(Chan *chan, u8 *dp, i32 n)
 {
 	return netifwstat(&etherxx[chan->devno]->Netif, chan, dp, n);
 }
@@ -154,11 +154,11 @@ Block *
 etheriq(Ether *ether, Block *bp, int fromwire)
 {
 	Etherpkt *pkt;
-	uint16_t type;
+	u16 type;
 	int multi, tome, fromme;
 	Netfile **ep, *f, **fp, *fx;
 	Block *xbp;
-	size_t len;
+	usize len;
 
 	ether->Netif.inpackets++;
 
@@ -236,7 +236,7 @@ etheroq(Ether *ether, Block *bp)
 {
 	int loopback, s;
 	Etherpkt *pkt;
-	size_t len;
+	usize len;
 
 	ether->Netif.outpackets++;
 
@@ -269,8 +269,8 @@ etheroq(Ether *ether, Block *bp)
 	return len;
 }
 
-static int32_t
-etherwrite(Chan *chan, void *buf, int32_t n, int64_t mm)
+static i32
+etherwrite(Chan *chan, void *buf, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Ether *ether;
@@ -318,12 +318,12 @@ etherwrite(Chan *chan, void *buf, int32_t n, int64_t mm)
 	return etheroq(ether, bp);
 }
 
-static int32_t
-etherbwrite(Chan *chan, Block *bp, int64_t mm)
+static i32
+etherbwrite(Chan *chan, Block *bp, i64 mm)
 {
 	Proc *up = externup();
 	Ether *ether;
-	size_t n;
+	usize n;
 
 	n = BLEN(bp);
 	if(NETTYPE(chan->qid.path) != Ndataqid){
@@ -368,7 +368,7 @@ addethercard(char *t, int (*r)(Ether *))
 }
 
 int
-parseether(uint8_t *to, char *from)
+parseether(u8 *to, char *from)
 {
 	char nip[4];
 	char *p;
@@ -446,11 +446,11 @@ ethershutdown(void)
 #define POLY 0xedb88320
 
 /* really slow 32 bit crc for ethers */
-uint32_t
-ethercrc(uint8_t *p, int len)
+u32
+ethercrc(u8 *p, int len)
 {
 	int i, j;
-	uint32_t crc, b;
+	u32 crc, b;
 
 	crc = 0xffffffff;
 	for(i = 0; i < len; i++){

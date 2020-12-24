@@ -138,10 +138,10 @@ extern int notify(Ureg *);
  * interrupted while issuing the ICC.
  */
 int
-runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
+runac(Mach *mp, APfunc func, int flushtlb, void *a, i32 n)
 {
 	Proc *up = externup();
-	uint8_t *dpg, *spg;
+	u8 *dpg, *spg;
 
 	if(n > sizeof(mp->NIX.icc->data))
 		panic("runac: args too long");
@@ -241,7 +241,7 @@ runacore(void)
 	void (*fn)(void);
 	int rc, flush, s;
 	char *n;
-	uint64_t t1;
+	u64 t1;
 
 	if(waserror())
 		panic("runacore: error: %s\n", up->errstr);

@@ -13,7 +13,7 @@
 void
 main(int argc, char *argv[])
 {
-	uint32_t num = 1;
+	u32 num = 1;
 	int i;
 
 	if(argc > 1)

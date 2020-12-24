@@ -97,27 +97,27 @@ struct Waitstats {
 	int on;
 	int npcs;
 	int *type;
-	uintptr_t *pcs;
+	uintptr *pcs;
 	int *ns;
-	uint64_t *wait;
-	uint64_t *total;
+	u64 *wait;
+	u64 *total;
 };
 extern Waitstats waitstats;
 
 struct Lockstats {
-	uint32_t locks;
-	uint32_t glare;
-	uint32_t inglare;
+	u32 locks;
+	u32 glare;
+	u32 inglare;
 };
 extern Lockstats lockstats;
 
 struct QLockstats {
-	uint32_t rlock;
-	uint32_t rlockq;
-	uint32_t wlock;
-	uint32_t wlockq;
-	uint32_t qlock;
-	uint32_t qlockq;
+	u32 rlock;
+	u32 rlockq;
+	u32 wlock;
+	u32 wlockq;
+	u32 qlock;
+	u32 qlockq;
 };
 extern QLockstats qlockstats;
 
@@ -126,14 +126,14 @@ struct QLock {
 	Proc *head; /* next process waiting for object */
 	Proc *tail; /* last process waiting for object */
 	int locked; /* flag */
-	uintptr_t pc;
+	uintptr pc;
 };
 
 struct RWlock {
 	Lock use;
 	Proc *head; /* list of waiting processes */
 	Proc *tail;
-	uintptr_t wpc; /* pc of writer */
+	uintptr wpc; /* pc of writer */
 	Proc *wproc;   /* writing proc */
 	int readers;   /* number of readers */
 	int writer;    /* number of writers */
@@ -176,7 +176,7 @@ enum {
 };
 
 struct Block {
-	int32_t ref;
+	i32 ref;
 	Block *next;
 	Block *list;
 	unsigned char *rp;   /* first unconsumed byte */
@@ -184,9 +184,9 @@ struct Block {
 	unsigned char *lim;  /* 1 past the end of the buffer */
 	unsigned char *base; /* start of the buffer */
 	void (*free)(Block *);
-	uint16_t flag;
-	uint16_t checksum; /* IP checksum of complete packet (minus media header) */
-	uint32_t magic;
+	u16 flag;
+	u16 checksum; /* IP checksum of complete packet (minus media header) */
+	u32 magic;
 };
 #define BLEN(s) ((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
@@ -195,15 +195,15 @@ struct Chan {
 	Ref r;	    /* the Lock in this Ref is also Chan's lock */
 	Chan *next; /* allocation */
 	Chan *link;
-	int64_t offset;	   /* in fd */
-	int64_t devoffset; /* in underlying device; see read */
+	i64 offset;	   /* in fd */
+	i64 devoffset; /* in underlying device; see read */
 	Dev *dev;
 	uint devno;
-	uint16_t mode; /* read/write */
-	uint16_t flag;
+	u16 mode; /* read/write */
+	u16 flag;
 	Qid qid;
 	int fid;		/* for devmnt */
-	uint32_t iounit;	/* chunk size for i/o; 0==default */
+	u32 iounit;	/* chunk size for i/o; 0==default */
 	Mhead *umh;		/* mount point that derived Chan; used in unionread */
 	Chan *umc;		/* channel in union; held for union read */
 	QLock umqlock;		/* serialize unionreads */
@@ -219,7 +219,7 @@ struct Chan {
 	union {
 		void *aux;
 		Qid pgrpid;   /* for #p/notepg */
-		uint32_t mid; /* for ns in devproc */
+		u32 mid; /* for ns in devproc */
 	};
 	Chan *mchan; /* channel to mounted server */
 	Qid mqid;    /* qid of root of mount point */
@@ -249,27 +249,27 @@ struct Dev {
 	void (*shutdown)(void);
 	Chan *(*attach)(char *);
 	Walkqid *(*walk)(Chan *, Chan *, char **, int);
-	int32_t (*stat)(Chan *, unsigned char *, int32_t);
+	i32 (*stat)(Chan *, unsigned char *, i32);
 	Chan *(*open)(Chan *, int);
 	void (*create)(Chan *, char *, int, int);
 	void (*close)(Chan *);
-	int32_t (*read)(Chan *, void *, int32_t, int64_t);
-	Block *(*bread)(Chan *, int32_t, int64_t);
-	int32_t (*write)(Chan *, void *, int32_t, int64_t);
-	int32_t (*bwrite)(Chan *, Block *, int64_t);
+	i32 (*read)(Chan *, void *, i32, i64);
+	Block *(*bread)(Chan *, i32, i64);
+	i32 (*write)(Chan *, void *, i32, i64);
+	i32 (*bwrite)(Chan *, Block *, i64);
 	void (*remove)(Chan *);
-	int32_t (*wstat)(Chan *, unsigned char *, int32_t);
+	i32 (*wstat)(Chan *, unsigned char *, i32);
 	void (*power)(int);		       /* power mgt: power(1) => on, power (0) => off */
 	int (*config)(int, char *, DevConf *); /* returns 0 on error */
-	int (*zread)(Chan *, Kzio *, int, usize, int64_t);
-	int (*zwrite)(Chan *, Kzio *, int, int64_t);
+	int (*zread)(Chan *, Kzio *, int, usize, i64);
+	int (*zwrite)(Chan *, Kzio *, int, i64);
 };
 
 struct Dirtab {
 	char name[KNAMELEN];
 	Qid qid;
-	int64_t length;
-	int32_t perm;
+	i64 length;
+	i32 perm;
 };
 
 struct Walkqid {
@@ -347,9 +347,9 @@ enum {
 
 struct Page {
 	Lock l;
-	uintmem pa;		/* Physical address in memory */
-	uintptr_t va;		/* Virtual address for user */
-	uint32_t daddr;		/* Disc address on swap */
+	u64 pa;		/* Physical address in memory */
+	uintptr va;		/* Virtual address for user */
+	u32 daddr;		/* Disc address on swap */
 	int ref;		/* Reference count */
 	unsigned char modref;	/* Simulated modify/reference bits */
 	int color;		/* Cache coloring */
@@ -442,14 +442,14 @@ extern char *faulttypes[]; /* port/fault.c */
 #define SEGMAXPG (SEGMAPSIZE)
 
 struct Physseg {
-	uint32_t attr;				/* Segment attributes */
+	u32 attr;				/* Segment attributes */
 	char *name;				/* Attach name */
-	uintmem pa;				/* Physical address */
+	u64 pa;				/* Physical address */
 	usize size;				/* Maximum segment size in pages */
 	int pgszi;				/* Page size index in Mach  */
-	Page *(*pgalloc)(Segment *, uintptr_t); /* Allocation if we need it */
+	Page *(*pgalloc)(Segment *, uintptr); /* Allocation if we need it */
 	void (*pgfree)(Page *);
-	uintptr_t gva; /* optional global virtual address */
+	uintptr gva; /* optional global virtual address */
 };
 
 struct Sema {
@@ -463,7 +463,7 @@ struct Sema {
 /* Zero copy per-segment information (locked using Segment.lk) */
 struct Zseg {
 	void *map;	 /* memory map for buffers within this segment */
-	uintptr_t *addr; /* array of addresses released */
+	uintptr *addr; /* array of addresses released */
 	int naddr;	 /* size allocated for the array */
 	int end;	 /* 1+ last used index in addr */
 	Rendez rr;	 /* process waiting to read free addresses */
@@ -473,31 +473,31 @@ struct Zseg {
 
 /* demand loading params of a segment */
 struct Ldseg {
-	int64_t memsz;
-	int64_t filesz;
-	int64_t pg0fileoff;
-	uintptr_t pg0vaddr;
-	uint32_t pg0off;
-	uint32_t pgsz;
-	uint16_t type;
+	i64 memsz;
+	i64 filesz;
+	i64 pg0fileoff;
+	uintptr pg0vaddr;
+	u32 pg0off;
+	u32 pgsz;
+	u16 type;
 };
 
 struct Segment {
 	Ref r;
 	QLock lk;
-	uint16_t steal; /* Page stealer lock */
-	uint16_t type;	/* segment type */
+	u16 steal; /* Page stealer lock */
+	u16 type;	/* segment type */
 	int pgszi;	/* page size index in Mach MMMU */
 	uint ptepertab;
 	int color;
-	uintptr_t base; /* virtual base */
-	uintptr_t top;	/* virtual top */
+	uintptr base; /* virtual base */
+	uintptr top;	/* virtual top */
 	usize size;	/* size in pages */
 	Ldseg ldseg;
 	int flushme;  /* maintain icache for this segment */
 	Image *image; /* text in file attached to this segment */
 	Physseg *pseg;
-	uint32_t *profile; /* Tick profile area */
+	u32 *profile; /* Tick profile area */
 	Pte **map;
 	int mapsize;
 	Pte *ssegmap[SSEGMAPSIZE];
@@ -529,7 +529,7 @@ enum {
 struct Pgrp {
 	Ref r; /* also used as a lock when mounting */
 	int noattach;
-	uint32_t pgrpid;
+	u32 pgrpid;
 	QLock debug; /* single access via devproc.c */
 	RWlock ns;   /* Namespace n read/one write lock */
 	Mhead *mnthash[MNTHASH];
@@ -546,8 +546,8 @@ struct Egrp {
 	Evalue **ent;
 	int nent;
 	int ment;
-	uint32_t path; /* qid.path of next Evalue to be allocated */
-	uint32_t vers; /* of Egrp */
+	u32 path; /* qid.path of next Evalue to be allocated */
+	u32 vers; /* of Egrp */
 };
 
 struct Evalue {
@@ -571,7 +571,7 @@ enum {
 };
 
 struct Pgsza {
-	uint32_t freecount; /* how many pages in the free list? */
+	u32 freecount; /* how many pages in the free list? */
 	Ref npages;	    /* how many pages of this size? */
 	Page *head;	    /* MRU */
 	Page *tail;	    /* LRU */
@@ -604,13 +604,13 @@ enum {
 struct Timer {
 	/* Public interface */
 	int tmode;   /* See above */
-	int64_t tns; /* meaning defined by mode */
+	i64 tns; /* meaning defined by mode */
 	void (*tf)(Ureg *, Timer *);
 	void *ta;
 	/* Internal */
 	Lock l;
 	Timers *tt;    /* Timers queue this timer runs on */
-	int64_t twhen; /* ns represented in fastticks */
+	i64 twhen; /* ns represented in fastticks */
 	Timer *tnext;
 };
 
@@ -701,25 +701,25 @@ struct Schedq {
 struct Sched {
 	Lock l; /* runq */
 	int nrdy;
-	uint32_t delayedscheds; /* statistics */
-	int32_t skipscheds;
-	int32_t preempts;
+	u32 delayedscheds; /* statistics */
+	i32 skipscheds;
+	i32 preempts;
 	int schedgain;
-	uint32_t balancetime;
+	u32 balancetime;
 	Schedq runq[Nrq];
-	uint32_t runvec;
+	u32 runvec;
 	int nmach;     /* # of cores with this color */
-	uint32_t nrun; /* to compute load */
+	u32 nrun; /* to compute load */
 };
 
 typedef union Ar0 Ar0;
 union Ar0 {
 	intptr_t i;
-	int32_t l;
-	uintptr_t p;
+	i32 l;
+	uintptr p;
 	usize u;
 	void *v;
-	int64_t vl;
+	i64 vl;
 };
 
 typedef struct Nixpctl Nixpctl;
@@ -737,7 +737,7 @@ struct Proc {
 	Label sched;   /* known to l.s */
 	char *kstack;  /* known to l.s */
 	void *dbgreg;  /* known to l.s User registers for devproc */
-	uintptr_t tls; /* known to l.s thread local storage */
+	uintptr tls; /* known to l.s thread local storage */
 	Mach *mach;    /* machine running this proc */
 	char *text;
 	char *user;
@@ -772,9 +772,9 @@ struct Proc {
 	Fgrp *closingfgrp; /* used during teardown */
 
 	int parentpid;
-	uint64_t time[6]; /* User, Sys, Real; child U, S, R */
+	u64 time[6]; /* User, Sys, Real; child U, S, R */
 
-	uint64_t kentry; /* Kernel entry time stamp (for profiling) */
+	u64 kentry; /* Kernel entry time stamp (for profiling) */
 	/*
 	 * pcycles: cycles spent in this process (updated on procsave/restore)
 	 * when this is the current proc and we're in the kernel
@@ -783,14 +783,14 @@ struct Proc {
 	 * when this is not the current process or we're in user mode
 	 * (procrestores and procsaves balance), it is pcycles.
 	 */
-	int64_t pcycles;
+	i64 pcycles;
 
 	int insyscall;
 
 	QLock debug;	     /* to access debugging elements of User */
 	Proc *pdbg;	     /* the debugging process */
-	uint32_t procmode;   /* proc device file mode */
-	uint32_t privatemem; /* proc does not let anyone read mem */
+	u32 procmode;   /* proc device file mode */
+	u32 privatemem; /* proc does not let anyone read mem */
 	int hang;	     /* hang at next exec for debug */
 	int procctl;	     /* Control for /proc debugging */
 	uintptr pc;	     /* DEBUG only */
@@ -801,7 +801,7 @@ struct Proc {
 	int notepending; /* note issued but not acted on */
 	int kp;		 /* true if a kernel process */
 	Proc *palarm;	 /* Next alarm time */
-	uint32_t alarm;	 /* Time of call */
+	u32 alarm;	 /* Time of call */
 	int newtlb;	 /* Pager has changed my pte's, I must flush */
 	int noswap;	 /* process is not swappable */
 
@@ -840,14 +840,14 @@ struct Proc {
 	Mach *wired;
 	Mach *mp;   /* machine this process last ran on */
 	int nlocks; /* number of locks held by proc */
-	uint32_t delaysched;
-	uint32_t priority; /* priority level */
-	uint32_t basepri;  /* base priority level */
+	u32 delaysched;
+	u32 priority; /* priority level */
+	u32 basepri;  /* base priority level */
 	int fixedpri;	   /* priority level does not change */
-	uint64_t cpu;	   /* cpu average */
-	uint64_t lastupdate;
-	uint64_t readytime; /* time process came ready */
-	uint64_t movetime;  /* last time process switched processors */
+	u64 cpu;	   /* cpu average */
+	u64 lastupdate;
+	u64 readytime; /* time process came ready */
+	u64 movetime;  /* last time process switched processors */
 	int preempted;	    /* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
@@ -877,9 +877,9 @@ struct Proc {
 	uint nactrap;	  /* # of traps in the AC for this process */
 	uint nacsyscall;  /* # of syscalls in the AC for this process */
 	uint nicc;	  /* # of ICCs for the process */
-	uint64_t actime1; /* ticks as of last call in AC */
-	uint64_t actime;  /* ∑time from call in AC to ret to AC, and... */
-	uint64_t tctime;  /* ∑time from call received to call handled */
+	u64 actime1; /* ticks as of last call in AC */
+	u64 actime;  /* ∑time from call in AC to ret to AC, and... */
+	u64 tctime;  /* ∑time from call received to call handled */
 	int nqtrap;	  /* # of traps in last quantum */
 	int nqsyscall;	  /* # of syscalls in the last quantum */
 	int nfullq;
@@ -933,7 +933,7 @@ extern char *cputype;
 extern int cpuserver;
 extern char *eve;
 extern char hostdomain[];
-extern uint8_t initcode[];
+extern u8 initcode[];
 extern int kbdbuttons;
 extern Ref noteidalloc;
 extern int nphysseg;
@@ -1015,7 +1015,7 @@ struct PhysUart {
 	void (*modemctl)(Uart *, int);
 	void (*rts)(Uart *, int);
 	void (*dtr)(Uart *, int);
-	int32_t (*status)(Uart *, void *, int32_t, int32_t);
+	i32 (*status)(Uart *, void *, i32, i32);
 	void (*fifo)(Uart *, int);
 	void (*power)(Uart *, int);
 	int (*getc)(Uart *);	   /* polling version for rdb */
@@ -1034,7 +1034,7 @@ struct Uart {
 	void *regs;	/* hardware stuff */
 	void *saveregs; /* place to put registers on power down */
 	char *name;	/* internal name */
-	uint32_t freq;	/* clock frequency */
+	u32 freq;	/* clock frequency */
 	int bits;	/* bits per character */
 	int stop;	/* stop bits */
 	int parity;	/* even, odd or no parity */
@@ -1092,13 +1092,13 @@ extern Uart *consuart;
  *  performance timers, all units in perfticks
  */
 struct Perf {
-	uint64_t intrts;     /* time of last interrupt */
-	uint64_t inintr;     /* time since last clock tick in interrupt handlers */
-	uint64_t avg_inintr; /* avg time per clock tick in interrupt handlers */
-	uint64_t inidle;     /* time since last clock tick in idle loop */
-	uint64_t avg_inidle; /* avg time per clock tick in idle loop */
-	uint64_t last;	     /* value of perfticks() at last clock tick */
-	uint64_t period;     /* perfticks() per clock tick */
+	u64 intrts;     /* time of last interrupt */
+	u64 inintr;     /* time since last clock tick in interrupt handlers */
+	u64 avg_inintr; /* avg time per clock tick in interrupt handlers */
+	u64 inidle;     /* time since last clock tick in idle loop */
+	u64 avg_inidle; /* avg time per clock tick in idle loop */
+	u64 last;	     /* value of perfticks() at last clock tick */
+	u64 period;     /* perfticks() per clock tick */
 };
 
 struct Watchdog {
@@ -1134,7 +1134,7 @@ struct Fastcall {
 	void (*fun)(Ar0 *, Fastcall *);
 	void *buf;
 	int n;
-	int64_t offset;
+	i64 offset;
 };
 
 #define DEVDOTDOT -1

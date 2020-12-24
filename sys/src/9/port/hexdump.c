@@ -37,8 +37,8 @@ void
 hexdump(void *v, int length)
 {
 	int i;
-	uint8_t *m = v;
-	uintptr_t memory = (uintptr_t)v;
+	u8 *m = v;
+	uintptr memory = (uintptr)v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);
 	for(i = 0; i < length; i += 16){
@@ -67,7 +67,7 @@ hexdump(void *v, int length)
 }
 
 void
-pahexdump(uintptr_t pa, int len)
+pahexdump(uintptr pa, int len)
 {
 	void *v = KADDR(pa);
 	hexdump(v, len);
@@ -75,7 +75,7 @@ pahexdump(uintptr_t pa, int len)
 
 /* Print a string, with printables preserved, and \xxx where not possible. */
 int
-printdump(char *buf, int buflen, uint8_t *data)
+printdump(char *buf, int buflen, u8 *data)
 {
 	int ret = 0;
 	int ix = 0;

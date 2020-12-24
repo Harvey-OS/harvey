@@ -72,7 +72,7 @@ cgablinkoff(void)
 static void
 cgacursor(void)
 {
-	uint8_t *cga;
+	u8 *cga;
 
 	cgaregw(0x0e, (cgapos / 2 >> 8) & 0xff);
 	cgaregw(0x0f, cgapos / 2 & 0xff);
@@ -89,7 +89,7 @@ void
 cgaputc(int c)
 {
 	int i;
-	uint8_t *cga, *p;
+	u8 *cga, *p;
 
 	cga = CGA;
 
@@ -126,7 +126,7 @@ cgaprint(int off, char *fmt, ...)
 {
 	va_list va;
 	char buf[128];
-	uint8_t *cga;
+	u8 *cga;
 	int i, n;
 
 	va_start(va, fmt);
@@ -144,7 +144,7 @@ cgaprint(int off, char *fmt, ...)
 int
 cgaclearln(int off, int c)
 {
-	uint8_t *cga;
+	u8 *cga;
 	int i;
 
 	cga = CGA;
@@ -159,7 +159,7 @@ cgaclearln(int off, int c)
  * debug
  */
 void
-cgaprinthex(uintptr_t x)
+cgaprinthex(uintptr x)
 {
 	char str[30];
 	char *s;
@@ -188,7 +188,7 @@ cgaconsputs(char *s, int n)
 void
 cgapost(int code)
 {
-	uint8_t *cga;
+	u8 *cga;
 
 	static char hex[] = "0123456789ABCDEF";
 
@@ -199,10 +199,10 @@ cgapost(int code)
 	cga[Width * Height - Postcodelen * 2 + 3] = Attr;
 }
 
-static int32_t
-cgaread(Chan *c, void *vbuf, int32_t len, int64_t off)
+static i32
+cgaread(Chan *c, void *vbuf, i32 len, i64 off)
 {
-	uint8_t *cga;
+	u8 *cga;
 	extern int panicking;
 	if(panicking)
 		error("cgaread: kernel panic");
@@ -215,10 +215,10 @@ cgaread(Chan *c, void *vbuf, int32_t len, int64_t off)
 	return len;
 }
 
-static int32_t
-cgawrite(Chan *c, void *vbuf, int32_t len, int64_t off)
+static i32
+cgawrite(Chan *c, void *vbuf, i32 len, i64 off)
 {
-	uint8_t *cga;
+	u8 *cga;
 	extern int panicking;
 	if(panicking)
 		error("cgawrite: kernel panic");

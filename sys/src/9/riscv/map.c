@@ -22,29 +22,29 @@
 /* the wacko hole in RISCV address space makes KADDR a bit more complex. */
 int km, ku, k2;
 void *
-KADDR(uintptr_t pa)
+KADDR(uintptr pa)
 {
 	if((pa > 2 * GiB) && (pa < TMFM)){
 		km++;
 		return (void *)(KSEG0 | pa);
 	}
 
-	assert(pa < (uintptr_t)kseg2);
+	assert(pa < (uintptr)kseg2);
 	k2++;
-	return (void *)((uintptr_t)kseg2 | pa);
+	return (void *)((uintptr)kseg2 | pa);
 }
 
-uintmem
+u64
 PADDR(void *va)
 {
-	uintmem pa;
+	u64 pa;
 
 	pa = PTR2UINT(va);
 	if(pa >= KSEG0){
-		return (uintmem)(uint32_t)pa;	     //-KSEG0;
+		return (u64)(u32)pa;	     //-KSEG0;
 	}
-	if(pa > (uintptr_t)kseg2){
-		return pa - (uintptr_t)kseg2;
+	if(pa > (uintptr)kseg2){
+		return pa - (uintptr)kseg2;
 	}
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());

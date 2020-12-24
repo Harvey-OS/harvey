@@ -19,7 +19,7 @@ struct Pipe {
 	QLock QLock;
 	Pipe *next;
 	int ref;
-	uint32_t path;
+	u32 path;
 	Queue *q[2];
 	int qref[2];
 };
@@ -27,7 +27,7 @@ struct Pipe {
 struct
 {
 	Lock Lock;
-	uint32_t path;
+	u32 path;
 } pipealloc;
 
 enum {
@@ -112,7 +112,7 @@ pipegen(Chan *c, char *d, Dirtab *tab, int ntab, int i, Dir *dp)
 
 	tab += i;
 	p = c->aux;
-	switch((uint32_t)tab->qid.path){
+	switch((u32)tab->qid.path){
 	case Qdata0:
 		len = qlen(p->q[0]);
 		break;
@@ -155,8 +155,8 @@ pipewalk(Chan *c, Chan *nc, char **name, int nname)
 	return wq;
 }
 
-static int32_t
-pipestat(Chan *c, uint8_t *db, int32_t n)
+static i32
+pipestat(Chan *c, u8 *db, i32 n)
 {
 	Pipe *p;
 	Dir dir;
@@ -269,8 +269,8 @@ pipeclose(Chan *c)
 		qunlock(&p->QLock);
 }
 
-static int32_t
-piperead(Chan *c, void *va, int32_t n, int64_t m)
+static i32
+piperead(Chan *c, void *va, i32 n, i64 m)
 {
 	Pipe *p;
 
@@ -290,7 +290,7 @@ piperead(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 static Block *
-pipebread(Chan *c, int32_t n, int64_t offset)
+pipebread(Chan *c, i32 n, i64 offset)
 {
 	Pipe *p;
 
@@ -310,8 +310,8 @@ pipebread(Chan *c, int32_t n, int64_t offset)
  *  a write to a closed pipe causes a note to be sent to
  *  the process.
  */
-static int32_t
-pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
+static i32
+pipewrite(Chan *c, void *va, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Pipe *p;
@@ -346,11 +346,11 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 	return n;
 }
 
-static int32_t
-pipebwrite(Chan *c, Block *bp, int64_t mm)
+static i32
+pipebwrite(Chan *c, Block *bp, i64 mm)
 {
 	Proc *up = externup();
-	int32_t n;
+	i32 n;
 	Pipe *p;
 
 	if(waserror()){

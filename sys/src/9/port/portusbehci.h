@@ -133,18 +133,18 @@ enum {
  * Capability registers (hw)
  */
 struct Ecapio {
-	uint32_t cap;	    /* 00 controller capability register */
-	uint32_t parms;	    /* 04 structural parameters register */
-	uint32_t capparms;  /* 08 capability parameters */
-	uint32_t portroute; /* 0c not on the CS5536 */
+	u32 cap;	    /* 00 controller capability register */
+	u32 parms;	    /* 04 structural parameters register */
+	u32 capparms;  /* 08 capability parameters */
+	u32 portroute; /* 0c not on the CS5536 */
 };
 
 /*
  * Debug port registers (hw)
  */
 struct Edbgio {
-	uint32_t csw;	       /* control and status */
-	uint32_t pid;	       /* USB pid */
+	u32 csw;	       /* control and status */
+	u32 pid;	       /* USB pid */
 	unsigned char data[8]; /* data buffer */
-	uint32_t addr;	       /* device and endpoint addresses */
+	u32 addr;	       /* device and endpoint addresses */
 };

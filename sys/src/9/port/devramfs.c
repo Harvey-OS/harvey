@@ -24,8 +24,8 @@ struct RamFile {
 	char *n;
 	struct RamFile *parent;
 	struct RamFile *sibling;
-	uint64_t length;
-	uint64_t alloclength;
+	u64 length;
+	u64 alloclength;
 	int perm;
 	int opencount;
 	int deleteonclose;
@@ -99,7 +99,7 @@ ramattach(char *spec)
 	char *buf;
 
 	c = newchan();
-	mkqid(&c->qid, (int64_t)ramroot, 0, QTDIR);
+	mkqid(&c->qid, (i64)ramroot, 0, QTDIR);
 	c->dev = devtabget('@', 0);
 	if(spec == nil)
 		spec = "";
@@ -123,11 +123,11 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 	struct RamFile *current = (struct RamFile *)c->qid.path;
 	if(pos == DEVDOTDOT){
 		if(current->parent == nil){
-			mkqid(&qid, (uintptr_t)current, 0, QTDIR);
+			mkqid(&qid, (uintptr)current, 0, QTDIR);
 			devdir(c, qid, "#@", 0, eve, current->perm, dp);
 			return 1;
 		} else {
-			mkqid(&qid, (uintptr_t)current->parent, 0, QTDIR);
+			mkqid(&qid, (uintptr)current->parent, 0, QTDIR);
 			devdir(c, qid, current->n, 0, eve, current->perm, dp);
 			return 1;
 		}
@@ -144,7 +144,7 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 			return -1;
 		}
 	}
-	mkqid(&qid, (uintptr_t)current, 0, current->perm & DMDIR ? QTDIR : 0);
+	mkqid(&qid, (uintptr)current, 0, current->perm & DMDIR ? QTDIR : 0);
 	devdir(c, qid, current->n, current->length, eve, current->perm, dp);
 	if(name == nil || strcmp(current->n, name) == 0){
 		return 1;
@@ -168,8 +168,8 @@ ramwalk(Chan *c, Chan *nc, char **name, int nname)
 	return wqid;
 }
 
-static int32_t
-ramstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+ramstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Dir dir;
@@ -188,14 +188,14 @@ ramstat(Chan *c, uint8_t *dp, int32_t n)
 	mkqid(&qid, c->qid.path, 0, current->perm & DMDIR ? QTDIR : 0);
 	devdir(c, qid, current->n, current->length, eve, current->perm, &dir);
 
-	int32_t ret = convD2M(&dir, dp, n);
+	i32 ret = convD2M(&dir, dp, n);
 	poperror();
 	qunlock(&ramlock);
 	return ret;
 }
 
-static int32_t
-ramwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+ramwstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Dir d;
@@ -215,7 +215,7 @@ ramwstat(Chan *c, uint8_t *dp, int32_t n)
 	n = convM2D(dp, n, &d, strs);
 	if(n == 0)
 		error(Eshortstat);
-	if(d.mode != (uint32_t)~0UL)
+	if(d.mode != (u32)~0UL)
 		current->perm = d.mode;
 	if(d.uid && *d.uid)
 		error(Eperm);
@@ -297,8 +297,8 @@ ramclose(Chan *c)
 	}
 }
 
-static int32_t
-ramreadblock(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+ramreadblock(Chan *c, void *buf, i32 n, i64 off)
 {
 	Proc *up = externup();
 	// first block, last block
@@ -320,7 +320,7 @@ ramreadblock(Chan *c, void *buf, int32_t n, int64_t off)
 	}
 
 	if(c->qid.type == QTDIR){
-		int32_t len = devdirread(c, buf, n, nil, 0, ramgen);
+		i32 len = devdirread(c, buf, n, nil, 0, ramgen);
 		poperror();
 		qunlock(&ramlock);
 		return len;
@@ -342,10 +342,10 @@ ramreadblock(Chan *c, void *buf, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-ramread(Chan *c, void *v, int32_t n, int64_t off)
+static i32
+ramread(Chan *c, void *v, i32 n, i64 off)
 {
-	int32_t total = 0, amt;
+	i32 total = 0, amt;
 
 	while(total < n){
 		amt = ramreadblock(c, v + total, n - total, off + total);
@@ -367,8 +367,8 @@ union Header {
 	Align al;
 };
 
-static int32_t
-ramwriteblock(Chan *c, void *v, int32_t n, int64_t off)
+static i32
+ramwriteblock(Chan *c, void *v, i32 n, i64 off)
 {
 	Proc *up = externup();
 	struct RamFile *file = (void *)c->qid.path;
@@ -408,10 +408,10 @@ ramwriteblock(Chan *c, void *v, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-ramwrite(Chan *c, void *v, int32_t n, int64_t off)
+static i32
+ramwrite(Chan *c, void *v, i32 n, i64 off)
 {
-	int32_t total = 0, amt;
+	i32 total = 0, amt;
 
 	if(devramdebug)
 		print("Write %#x %#x %#x \n", v + total, n - total, off + total);
@@ -464,7 +464,7 @@ ramcreate(Chan *c, char *name, int omode, int perm)
 
 	file->sibling = parent->firstchild;
 	parent->firstchild = file;
-	mkqid(&c->qid, (uintptr_t)file, 0, file->perm & DMDIR ? QTDIR : 0);
+	mkqid(&c->qid, (uintptr)file, 0, file->perm & DMDIR ? QTDIR : 0);
 
 	c->offset = 0;
 	c->mode = omode;

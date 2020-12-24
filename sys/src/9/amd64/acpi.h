@@ -200,17 +200,17 @@ struct Atable {
 	Atable *parent;	   /* Parent pointer */
 	Atable **children; /* children of this node (an array). */
 	Dirtab *cdirs;	   /* child directory entries of this node. */
-	size_t nchildren;  /* count of this node's children */
+	usize nchildren;  /* count of this node's children */
 	Atable *next;	   /* Pointer to the next sibling. */
 
-	size_t rawsize; /* Total size of raw table */
-	uint8_t *raw;	/* Raw data. */
+	usize rawsize; /* Total size of raw table */
+	u8 *raw;	/* Raw data. */
 };
 
 struct Gpe {
-	uintptr_t stsio; /* port used for status */
+	uintptr stsio; /* port used for status */
 	int stsbit;	 /* bit number */
-	uintptr_t enio;	 /* port used for enable */
+	uintptr enio;	 /* port used for enable */
 	int enbit;	 /* bit number */
 	int nb;		 /* event number */
 	char *obj;	 /* handler object  */
@@ -224,22 +224,22 @@ struct Parse {
 
 struct Regio {
 	void *arg;
-	uint8_t (*get8)(uintptr_t, void *);
-	void (*set8)(uintptr_t, uint8_t, void *);
-	uint16_t (*get16)(uintptr_t, void *);
-	void (*set16)(uintptr_t, uint16_t, void *);
-	uint32_t (*get32)(uintptr_t, void *);
-	void (*set32)(uintptr_t, uint32_t, void *);
-	uint64_t (*get64)(uintptr_t, void *);
-	void (*set64)(uintptr_t, uint64_t, void *);
+	u8 (*get8)(uintptr, void *);
+	void (*set8)(uintptr, u8, void *);
+	u16 (*get16)(uintptr, void *);
+	void (*set16)(uintptr, u16, void *);
+	u32 (*get32)(uintptr, void *);
+	void (*set32)(uintptr, u32, void *);
+	u64 (*get64)(uintptr, void *);
+	void (*set64)(uintptr, u64, void *);
 };
 
 struct Reg {
 	char *name;
 	int spc;	  /* io space */
-	uint64_t base;	  /* address, physical */
+	u64 base;	  /* address, physical */
 	unsigned char *p; /* address, kmapped */
-	uint64_t len;
+	u64 len;
 	int tbdf;
 	int accsz; /* access size */
 };
@@ -247,11 +247,11 @@ struct Reg {
 /* Generic address structure.
  */
 struct Gas {
-	uint8_t spc;   /* address space id */
-	uint8_t len;   /* register size in bits */
-	uint8_t off;   /* bit offset */
-	uint8_t accsz; /* 1: byte; 2: word; 3: dword; 4: qword */
-	uint64_t addr; /* address (or acpi encoded tbdf + reg) */
+	u8 spc;   /* address space id */
+	u8 len;   /* register size in bits */
+	u8 off;   /* bit offset */
+	u8 accsz; /* 1: byte; 2: word; 3: dword; 4: qword */
+	u64 addr; /* address (or acpi encoded tbdf + reg) */
 } __attribute__((packed));
 
 /* Root system description table pointer.
@@ -267,53 +267,53 @@ struct Gas {
 #define RSDPTR "RSD PTR "
 
 struct Rsdp {
-	uint8_t signature[8]; /* "RSD PTR " */
-	uint8_t rchecksum;
-	uint8_t oemid[6];
-	uint8_t revision;
-	uint8_t raddr[4]; /* RSDT */
-	uint8_t length[4];
-	uint8_t xaddr[8];  /* XSDT */
-	uint8_t xchecksum; /* XSDT */
-	uint8_t _33_[3];   /* reserved */
+	u8 signature[8]; /* "RSD PTR " */
+	u8 rchecksum;
+	u8 oemid[6];
+	u8 revision;
+	u8 raddr[4]; /* RSDT */
+	u8 length[4];
+	u8 xaddr[8];  /* XSDT */
+	u8 xchecksum; /* XSDT */
+	u8 _33_[3];   /* reserved */
 } __attribute__((packed));
 
 /* Header for ACPI description tables
  */
 struct Sdthdr {
-	uint8_t sig[4]; /* "FACP" or whatever */
-	uint8_t length[4];
-	uint8_t rev;
-	uint8_t csum;
-	uint8_t oemid[6];
-	uint8_t oemtblid[8];
-	uint8_t oemrev[4];
-	uint8_t creatorid[4];
-	uint8_t creatorrev[4];
+	u8 sig[4]; /* "FACP" or whatever */
+	u8 length[4];
+	u8 rev;
+	u8 csum;
+	u8 oemid[6];
+	u8 oemtblid[8];
+	u8 oemrev[4];
+	u8 creatorid[4];
+	u8 creatorrev[4];
 } __attribute__((packed));
 
 /* Firmware ACPI control structure
  */
 struct Facs {
-	uint8_t sig[4];
-	uint32_t len;
-	uint32_t hwsig;
-	uint32_t wakingv;
-	uint32_t glock;
-	uint32_t flags;
-	uint64_t xwakingv;
-	uint8_t vers;
-	uint8_t reserved1[3];
-	uint32_t ospmflags;
-	uint8_t reserved2[24];
+	u8 sig[4];
+	u32 len;
+	u32 hwsig;
+	u32 wakingv;
+	u32 glock;
+	u32 flags;
+	u64 xwakingv;
+	u8 vers;
+	u8 reserved1[3];
+	u32 ospmflags;
+	u8 reserved2[24];
 } __attribute__((packed));
 
 /* Maximum System Characteristics table
  */
 struct Msct {
-	size_t ndoms;	/* number of discovered domains */
+	usize ndoms;	/* number of discovered domains */
 	int nclkdoms;	/* number of clock domains */
-	uint64_t maxpa; /* max physical address */
+	u64 maxpa; /* max physical address */
 	Mdom *dom;	/* domain information list */
 };
 
@@ -322,7 +322,7 @@ struct Mdom {
 	int start;	 /* start dom id */
 	int end;	 /* end dom id */
 	int maxproc;	 /* max processor capacity */
-	uint64_t maxmem; /* max memory capacity */
+	u64 maxmem; /* max memory capacity */
 };
 
 /* Multiple APIC description table
@@ -332,7 +332,7 @@ struct Mdom {
  * Only enabled devices are linked, others are filtered out.
  */
 struct Madt {
-	uint64_t lapicpa; /* local APIC addr */
+	u64 lapicpa; /* local APIC addr */
 	int pcat;	  /* the machine has PC/AT 8259s */
 	Apicst *st;	  /* list of Apic related structures */
 };
@@ -347,8 +347,8 @@ struct Apicst {
 		} lapic;
 		struct {
 			int id;		/* io apic id */
-			uint32_t ibase; /* interrupt base addr. */
-			uint64_t addr;	/* base address */
+			u32 ibase; /* interrupt base addr. */
+			u64 addr;	/* base address */
 		} ioapic, iosapic;
 		struct {
 			int irq;   /* bus intr. source (ISA only) */
@@ -406,8 +406,8 @@ struct Srat {
 		} lapic;
 		struct {
 			int dom;       /* proximity domain */
-			uint64_t addr; /* base address */
-			uint64_t len;
+			u64 addr; /* base address */
+			u64 len;
 			int hplug; /* hot pluggable */
 			int nvram; /* non volatile */
 		} mem;
@@ -422,7 +422,7 @@ struct Srat {
 /* System locality information table
  */
 struct Slit {
-	uint64_t rowlen;
+	u64 rowlen;
 	SlEntry **e;
 };
 
@@ -439,49 +439,49 @@ struct SlEntry {
  * Has address for the DSDT.
  */
 struct Fadt {
-	uint32_t facs;
-	uint32_t dsdt;
+	u32 facs;
+	u32 dsdt;
 	/* 1 reserved */
-	uint8_t pmprofile;
-	uint16_t sciint;
-	uint32_t smicmd;
-	uint8_t acpienable;
-	uint8_t acpidisable;
-	uint8_t s4biosreq;
-	uint8_t pstatecnt;
-	uint32_t pm1aevtblk;
-	uint32_t pm1bevtblk;
-	uint32_t pm1acntblk;
-	uint32_t pm1bcntblk;
-	uint32_t pm2cntblk;
-	uint32_t pmtmrblk;
-	uint32_t gpe0blk;
-	uint32_t gpe1blk;
-	uint8_t pm1evtlen;
-	uint8_t pm1cntlen;
-	uint8_t pm2cntlen;
-	uint8_t pmtmrlen;
-	uint8_t gpe0blklen;
-	uint8_t gpe1blklen;
-	uint8_t gp1base;
-	uint8_t cstcnt;
-	uint16_t plvl2lat;
-	uint16_t plvl3lat;
-	uint16_t flushsz;
-	uint16_t flushstride;
-	uint8_t dutyoff;
-	uint8_t dutywidth;
-	uint8_t dayalrm;
-	uint8_t monalrm;
-	uint8_t century;
-	uint16_t iapcbootarch;
+	u8 pmprofile;
+	u16 sciint;
+	u32 smicmd;
+	u8 acpienable;
+	u8 acpidisable;
+	u8 s4biosreq;
+	u8 pstatecnt;
+	u32 pm1aevtblk;
+	u32 pm1bevtblk;
+	u32 pm1acntblk;
+	u32 pm1bcntblk;
+	u32 pm2cntblk;
+	u32 pmtmrblk;
+	u32 gpe0blk;
+	u32 gpe1blk;
+	u8 pm1evtlen;
+	u8 pm1cntlen;
+	u8 pm2cntlen;
+	u8 pmtmrlen;
+	u8 gpe0blklen;
+	u8 gpe1blklen;
+	u8 gp1base;
+	u8 cstcnt;
+	u16 plvl2lat;
+	u16 plvl3lat;
+	u16 flushsz;
+	u16 flushstride;
+	u8 dutyoff;
+	u8 dutywidth;
+	u8 dayalrm;
+	u8 monalrm;
+	u8 century;
+	u16 iapcbootarch;
 	/* 1 reserved */
-	uint32_t flags;
+	u32 flags;
 	Gas resetreg;
-	uint8_t resetval;
+	u8 resetval;
 	/* 3 reserved */
-	uint64_t xfacs;
-	uint64_t xdsdt;
+	u64 xfacs;
+	u64 xdsdt;
 	Gas xpm1aevtblk;
 	Gas xpm1bevtblk;
 	Gas xpm1acntblk;
@@ -495,9 +495,9 @@ struct Fadt {
 /* XSDT/RSDT. 4/8 byte addresses starting at p.
  */
 struct Xsdt {
-	size_t len;
-	size_t asize;
-	uint8_t *p;
+	usize len;
+	usize asize;
+	u8 *p;
 };
 
 /* DMAR.
@@ -518,9 +518,9 @@ struct DevScope {
 struct Drhd {
 	int flags;
 	int segment;
-	uintptr_t rba;
-	uintptr_t all;	      // This drhd scope is for everything.
-	size_t nscope;
+	uintptr rba;
+	uintptr all;	      // This drhd scope is for everything.
+	usize nscope;
 	struct DevScope *scopes;
 };
 
@@ -535,8 +535,8 @@ struct Dmar {
 
 int acpiinit(void);
 Atable *mkatable(Atable *parent,
-		 int type, char *name, uint8_t *raw,
-		 size_t rawsize, size_t addsize);
+		 int type, char *name, u8 *raw,
+		 usize rawsize, usize addsize);
 Atable *finatable(Atable *t, PSlice *slice);
 Atable *finatable_nochildren(Atable *t);
 
@@ -544,4 +544,4 @@ extern Atable *apics;
 extern Atable *dmar;
 extern Atable *srat;
 
-extern uintmem acpimblocksize(uintmem, int *);
+extern u64 acpimblocksize(u64, int *);

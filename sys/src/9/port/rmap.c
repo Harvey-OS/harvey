@@ -15,8 +15,8 @@
 
 typedef struct Map Map;
 struct Map {
-	uint32_t size;
-	uint32_t addr;
+	u32 size;
+	u32 addr;
 };
 
 typedef struct RMap RMap;
@@ -29,7 +29,7 @@ struct RMap {
 };
 
 void
-rmapfree(RMap *rmap, uintptr_t addr, uint size)
+rmapfree(RMap *rmap, uintptr addr, uint size)
 {
 	Map *mp;
 	uint t;
@@ -73,11 +73,11 @@ rmapfree(RMap *rmap, uintptr_t addr, uint size)
 	unlock(&rmap->Lock);
 }
 
-uintptr_t
-rmapalloc(RMap *rmap, uintptr_t addr, uint size, int align)
+uintptr
+rmapalloc(RMap *rmap, uintptr addr, uint size, int align)
 {
 	Map *mp;
-	uint32_t maddr, oaddr;
+	u32 maddr, oaddr;
 
 	lock(&rmap->Lock);
 	for(mp = rmap->map; mp->size; mp++){

@@ -24,7 +24,7 @@ typedef enum CpuHypervisor {
 static int
 cpuidinit(void)
 {
-	uint32_t eax, info[4];
+	u32 eax, info[4];
 
 	/*
 	 * Standard CPUID functions.
@@ -53,7 +53,7 @@ cpuidinit(void)
 }
 
 int
-cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
+cpuidinfo(u32 eax, u32 ecx, u32 info[4])
 {
 	if(machp()->CPU.ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
@@ -70,7 +70,7 @@ cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 }
 
 char *
-cpuidname(uint32_t *info0)
+cpuidname(u32 *info0)
 {
 	char *vendorid;
 
@@ -92,7 +92,7 @@ cpuidname(uint32_t *info0)
 CpuHypervisor
 cpuhypervisor()
 {
-	uint32_t info[4];
+	u32 info[4];
 	if(cpuid(0x40000000, 0, info)){
 		char *hypname = (char *)&info[1];
 		if(!memcmp("KVMKVMKVM\0\0\0", hypname, 12)){
@@ -102,10 +102,10 @@ cpuhypervisor()
 	return CpuHypervisorUnknown;
 }
 
-static int64_t
+static i64
 cpuidhz_hypervisor()
 {
-	uint32_t info[4];
+	u32 info[4];
 	if(cpuid(0x40000010, 0, info)){
 		return info[0] * 1000;
 	}
@@ -113,12 +113,12 @@ cpuidhz_hypervisor()
 	return 0;
 }
 
-static int64_t
-cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
+static i64
+cpuidhz(u32 *info0, u32 *info1, CpuHypervisor hypervisor)
 {
 	int f = -1, r;
-	int64_t hz;
-	uint64_t msr;
+	i64 hz;
+	u64 msr;
 	char *vendorid;
 
 	vendorid = cpuidname(info0);
@@ -127,12 +127,12 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 	DBG("vendorid: %s\n", vendorid);
 	DBG("CPUID Signature: %d\n", info1[0]);
 
-	uint8_t family_ext = (info1[0] & 0xff00000) >> 20;
-	uint8_t model_ext = (info1[0] & 0xf0000) >> 16;
-	uint8_t proctype = (info1[0] & 0x3000) >> 12;
-	uint8_t family = (info1[0] & 0xf00) >> 8;
-	uint8_t model = (info1[0] & 0xf0) >> 4;
-	uint8_t stepping = (info1[0] & 0xf);
+	u8 family_ext = (info1[0] & 0xff00000) >> 20;
+	u8 model_ext = (info1[0] & 0xf0000) >> 16;
+	u8 proctype = (info1[0] & 0x3000) >> 12;
+	u8 family = (info1[0] & 0xf00) >> 8;
+	u8 model = (info1[0] & 0xf0) >> 4;
+	u8 stepping = (info1[0] & 0xf);
 	print("CPUID family %x model %x proctype %x stepping %x model_ext %x family_ext %x hypervisor: %d\n",
 	      family, model, proctype, stepping, model_ext, family_ext, hypervisor);
 
@@ -144,7 +144,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 	}
 
 	if(strcmp("GenuineIntel", vendorid) == 0){
-		uint32_t cpusig = info1[0] & 0x0fff3ff0;
+		u32 cpusig = info1[0] & 0x0fff3ff0;
 		print("CPU Signature: %x\n", cpusig);
 
 		switch(cpusig){
@@ -276,7 +276,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1, CpuHypervisor hypervisor)
 		}
 		DBG("cpuidhz: 0x2a: %#llx hz %lld\n", rdmsr(0x2a), hz);
 	} else if(strcmp("AuthenticAMD", vendorid) == 0){
-		uint32_t cpusig = info1[0] & 0x0fff0ff0;
+		u32 cpusig = info1[0] & 0x0fff0ff0;
 		print("CPU Signature: %x\n", cpusig);
 
 		switch(cpusig){
@@ -323,7 +323,7 @@ void
 cpuiddump(void)
 {
 	int i;
-	uint32_t info[4];
+	u32 info[4];
 
 	if(!DBGFLG)
 		return;
@@ -343,11 +343,11 @@ cpuiddump(void)
 	}
 }
 
-int64_t
+i64
 archhz(void)
 {
-	int64_t hz;
-	uint32_t info0[4], info1[4];
+	i64 hz;
+	u32 info0[4], info1[4];
 
 	if(!cpuidinfo(0, 0, info0)){
 		iprint("archhz: cpuidinfo(0, 0) failed\n");
@@ -374,7 +374,7 @@ archhz(void)
 int
 archmmu(void)
 {
-	uint32_t info[4];
+	u32 info[4];
 
 	/*
 	 * Should the check for machp()->machno != 0 be here
@@ -426,9 +426,9 @@ archmmu(void)
 static int
 fmtP(Fmt *f)
 {
-	uintmem pa;
+	u64 pa;
 
-	pa = va_arg(f->args, uintmem);
+	pa = va_arg(f->args, u64);
 
 	if(f->flags & FmtSharp)
 		return fmtprint(f, "%#16.16llx", pa);
@@ -449,9 +449,9 @@ fmtL(Fmt *f)
 static int
 fmtR(Fmt *f)
 {
-	uint64_t r;
+	u64 r;
 
-	r = va_arg(f->args, uint64_t);
+	r = va_arg(f->args, u64);
 
 	return fmtprint(f, "%#16.16llx", r);
 }
@@ -460,9 +460,9 @@ fmtR(Fmt *f)
 static int
 fmtW(Fmt *f)
 {
-	uint64_t va;
+	u64 va;
 
-	va = va_arg(f->args, uint64_t);
+	va = va_arg(f->args, u64);
 	return fmtprint(f, "%#llx=0x[%llx][%llx][%llx][%llx][%llx]", va,
 			PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 			va & ((1 << PGSHFT) - 1));
@@ -497,7 +497,7 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
-	uint64_t r, t;
+	u64 r, t;
 
 	r = rdtsc();
 	for(t = r + (sys->cyclefreq * microsecs) / 1000000ull; r < t; r = rdtsc())
@@ -507,7 +507,7 @@ microdelay(int microsecs)
 void
 millidelay(int millisecs)
 {
-	uint64_t r, t;
+	u64 r, t;
 
 	r = rdtsc();
 	for(t = r + (sys->cyclefreq * millisecs) / 1000ull; r < t; r = rdtsc())

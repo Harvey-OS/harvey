@@ -18,9 +18,9 @@
 
 typedef struct Cpuflag {
 	const char *name; /* short name (linux-like)*/
-	uint32_t eax;	  /* input eax */
-	uint8_t infoidx;  /* index of info result */
-	uint8_t bitidx;	  /* feature bit in info result */
+	u32 eax;	  /* input eax */
+	u8 infoidx;  /* index of info result */
+	u8 bitidx;	  /* feature bit in info result */
 } Cpuflag;
 
 // Below infoidxs equate to: 0=eax 1=ebx 2=ecx 3=edx
@@ -987,8 +987,8 @@ struct IOMap {
 	IOMap *next;
 	int reserved;
 	char tag[13];
-	uint32_t start;
-	uint32_t end;
+	u32 start;
+	u32 end;
 };
 
 static struct
@@ -1013,7 +1013,7 @@ enum {
 	Qmax = 32,
 };
 
-typedef int32_t Rdwrfn(Chan *, void *, int32_t, int64_t);
+typedef i32 Rdwrfn(Chan *, void *, i32, i64);
 
 static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
@@ -1290,8 +1290,8 @@ archwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, archdir, narchdir, devgen);
 }
 
-static int32_t
-archstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+archstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, archdir, narchdir, devgen);
 }
@@ -1311,17 +1311,17 @@ enum {
 	Linelen = 31,
 };
 
-static int32_t
-archread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+archread(Chan *c, void *a, i32 n, i64 offset)
 {
 	char *buf, *p;
 	int port;
-	uint16_t *sp;
-	uint32_t *lp;
+	u16 *sp;
+	u32 *lp;
 	IOMap *map;
 	Rdwrfn *fn;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, archdir, narchdir, devgen);
@@ -1367,7 +1367,7 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 	n = n / Linelen;
 	offset = offset / Linelen;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qioalloc:
 		lock(&iomap.l);
 		for(map = iomap.map; n > 0 && map != nil; map = map->next){
@@ -1409,16 +1409,16 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-static int32_t
-archwrite(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+archwrite(Chan *c, void *a, i32 n, i64 offset)
 {
 	char *p;
 	int port;
-	uint16_t *sp;
-	uint32_t *lp;
+	u16 *sp;
+	u32 *lp;
 	Rdwrfn *fn;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qiob:
 		p = a;
@@ -1484,12 +1484,12 @@ nop(void)
 
 void (*coherence)(void) = mfence;
 
-static int32_t
-cputyperead(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+cputyperead(Chan *c, void *a, i32 n, i64 off)
 {
 	char buf[512], *s, *e;
 	char *vendorid;
-	uint32_t info0[4];
+	u32 info0[4];
 
 	s = buf;
 	e = buf + sizeof buf;
@@ -1508,7 +1508,7 @@ cputyperead(Chan *c, void *a, int32_t n, int64_t off)
 static void
 get_cpuid_limits(int *num_basic, int *num_hypervisor, int *num_extended)
 {
-	uint32_t info[4];
+	u32 info[4];
 
 	*num_basic = 0;
 	*num_hypervisor = 0;
@@ -1527,11 +1527,11 @@ get_cpuid_limits(int *num_basic, int *num_hypervisor, int *num_extended)
 
 // Given an index into the valid cpuids, and the number of each range of values,
 // return the appropriate EAX value.
-static int32_t
-itoeax(int i, uint32_t num_basic, uint32_t num_hyp, uint32_t num_ext)
+static i32
+itoeax(int i, u32 num_basic, u32 num_hyp, u32 num_ext)
 {
-	uint32_t first_hyp = num_basic;
-	uint32_t first_ext = num_basic + num_hyp;
+	u32 first_hyp = num_basic;
+	u32 first_ext = num_basic + num_hyp;
 	if(i >= first_ext){
 		return 0x80000000 + i - first_ext;
 	} else if(i >= first_hyp){
@@ -1542,19 +1542,19 @@ itoeax(int i, uint32_t num_basic, uint32_t num_hyp, uint32_t num_ext)
 }
 
 // Output hex values of all valid cpuid values
-static int32_t
-cpuidrawread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+cpuidrawread(Chan *c, void *a, i32 n, i64 off)
 {
 	char buf[4096];
 	char *s = buf;
 	char *e = buf + sizeof buf;
-	uint32_t info[4];
+	u32 info[4];
 
 	int num_basic = 0, num_hyp = 0, num_ext = 0;
 	get_cpuid_limits(&num_basic, &num_hyp, &num_ext);
 
 	for(int i = 0; i < num_basic + num_hyp + num_ext; i++){
-		uint32_t eax = itoeax(i, num_basic, num_hyp, num_ext);
+		u32 eax = itoeax(i, num_basic, num_hyp, num_ext);
 		if(!cpuid(eax, 0, info)){
 			continue;
 		}
@@ -1566,13 +1566,13 @@ cpuidrawread(Chan *c, void *a, int32_t n, int64_t off)
 }
 
 // Output cpu flag shortnames from cpuid values
-static int32_t
-cpuidflagsread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+cpuidflagsread(Chan *c, void *a, i32 n, i64 off)
 {
 	char buf[4096];
 	char *s = buf;
 	char *e = buf + sizeof buf;
-	uint32_t info[4];
+	u32 info[4];
 
 	int num_basic = 0, num_hyp = 0, num_ext = 0;
 	get_cpuid_limits(&num_basic, &num_hyp, &num_ext);
@@ -1580,7 +1580,7 @@ cpuidflagsread(Chan *c, void *a, int32_t n, int64_t off)
 	int num_flags = nelem(cpuflags);
 
 	for(int i = 0; i < num_basic + num_hyp + num_ext; i++){
-		uint32_t eax = itoeax(i, num_basic, num_hyp, num_ext);
+		u32 eax = itoeax(i, num_basic, num_hyp, num_ext);
 		if(!cpuid(eax, 0, info)){
 			continue;
 		}
@@ -1638,15 +1638,15 @@ archreset(void)
 /*
  *  return value and speed of timer
  */
-uint64_t
-fastticks(uint64_t *hz)
+u64
+fastticks(u64 *hz)
 {
 	if(hz != nil)
 		*hz = machp()->cpuhz;
 	return rdtsc();
 }
 
-uint32_t
+u32
 ms(void)
 {
 	return fastticks2us(rdtsc());
@@ -1656,15 +1656,15 @@ ms(void)
  *  set next timer interrupt
  */
 void
-timerset(uint64_t x)
+timerset(u64 x)
 {
-	extern void apictimerset(uint64_t);
+	extern void apictimerset(u64);
 
 	apictimerset(x);
 }
 
 void
-cycles(uint64_t *t)
+cycles(u64 *t)
 {
 	*t = rdtsc();
 }
@@ -1672,7 +1672,7 @@ cycles(uint64_t *t)
 void
 delay(int millisecs)
 {
-	uint64_t r, t;
+	u64 r, t;
 
 	if(millisecs <= 0)
 		millisecs = 1;
@@ -1685,10 +1685,10 @@ delay(int millisecs)
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
-uint64_t
+u64
 perfticks(void)
 {
-	uint64_t x;
+	u64 x;
 
 	//	if(m->havetsc)
 	cycles(&x);

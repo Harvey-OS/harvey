@@ -133,10 +133,10 @@ struct Private {
 #define QLIST quicklist
 
 static void *
-qmallocalign(usize nbytes, uintptr_t align, int32_t offset, usize span)
+qmallocalign(usize nbytes, uintptr align, i32 offset, usize span)
 {
 	Qlist *qlist;
-	uintptr_t aligned;
+	uintptr aligned;
 	Header **pp, *p, *q, *r;
 	uint naligned, nunits, n;
 
@@ -377,7 +377,7 @@ qfreeinternal(void *ap)
 	rover = q;
 }
 
-uint32_t
+u32
 msize(void *ap)
 {
 	Header *p;
@@ -405,9 +405,9 @@ mallocreadfmt(char *s, char *e)
 		    "%llu memory\n"
 		    "%d pagesize\n"
 		    "%llu kernel\n",
-		    (uint64_t)conf.npage * PGSZ,
+		    (u64)conf.npage * PGSZ,
 		    PGSZ,
-		    (uint64_t)conf.npage - conf.upages);
+		    (u64)conf.npage - conf.upages);
 
 	t = 0;
 	for(i = 0; i <= NQUICK; i++){
@@ -451,8 +451,8 @@ mallocreadfmt(char *s, char *e)
 	MUNLOCK;
 }
 
-int32_t
-mallocreadsummary(Chan *c, void *a, int32_t n, int32_t offset)
+i32
+mallocreadsummary(Chan *c, void *a, i32 n, i32 offset)
 {
 	char *alloc;
 
@@ -520,7 +520,7 @@ free(void *ap)
 }
 
 void *
-malloc(uint32_t size)
+malloc(u32 size)
 {
 	void *v;
 
@@ -531,7 +531,7 @@ malloc(uint32_t size)
 }
 
 void *
-mallocz(uint32_t size, int clr)
+mallocz(u32 size, int clr)
 {
 	void *v;
 
@@ -542,7 +542,7 @@ mallocz(uint32_t size, int clr)
 }
 
 void *
-mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
+mallocalign(u32 nbytes, u32 align, i32 offset, u32 span)
 {
 	void *v;
 
@@ -556,7 +556,7 @@ mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 }
 
 void *
-smalloc(uint32_t size)
+smalloc(u32 size)
 {
 	Proc *up = externup();
 	void *v;
@@ -567,11 +567,11 @@ smalloc(uint32_t size)
 }
 
 void *
-realloc(void *ap, uint32_t size)
+realloc(void *ap, u32 size)
 {
 	void *v;
 	Header *p;
-	uint32_t osize;
+	u32 osize;
 	uint nunits, ounits;
 
 	/*
@@ -647,7 +647,7 @@ realloc(void *ap, uint32_t size)
 }
 
 void
-setmalloctag(void *v, uint32_t i)
+setmalloctag(void *v, u32 i)
 {
 }
 

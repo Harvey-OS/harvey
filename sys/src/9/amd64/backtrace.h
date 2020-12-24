@@ -20,16 +20,16 @@ typedef struct eipdebuginfo {
 	const char *eip_fn_name;	// Name of function containing EIP
 					//  - Note: not null terminated!
 	int eip_fn_namelen;		// Length of function name
-	uintptr_t eip_fn_addr;		// Address of start of function
+	uintptr eip_fn_addr;		// Address of start of function
 	int eip_fn_narg;		// Number of function arguments
 } eipdebuginfo_t;
 
-int debuginfo_eip(uintptr_t eip, eipdebuginfo_t *info);
+int debuginfo_eip(uintptr eip, eipdebuginfo_t *info);
 void *debug_get_fn_addr(char *fn_name);
 
 /* Returns a PC/EIP in the function that called us, preferably near the call
  * site.  Returns 0 when we can't jump back any farther. */
-static inline uintptr_t
+static inline uintptr
 get_caller_pc(void)
 {
 	unsigned long *ebp = (unsigned long *)read_bp();

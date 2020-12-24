@@ -55,33 +55,33 @@ enum {
 typedef struct GREhdr GREhdr;
 struct GREhdr {
 	/* ip header */
-	uint8_t vihl;	 /* Version and header length */
-	uint8_t tos;	 /* Type of service */
-	uint8_t len[2];	 /* packet length (including headers) */
-	uint8_t id[2];	 /* Identification */
-	uint8_t frag[2]; /* Fragment information */
-	uint8_t ttl;
-	uint8_t proto;	  /* Protocol */
-	uint8_t cksum[2]; /* checksum */
-	uint8_t src[4];	  /* Ip source */
-	uint8_t dst[4];	  /* Ip destination */
+	u8 vihl;	 /* Version and header length */
+	u8 tos;	 /* Type of service */
+	u8 len[2];	 /* packet length (including headers) */
+	u8 id[2];	 /* Identification */
+	u8 frag[2]; /* Fragment information */
+	u8 ttl;
+	u8 proto;	  /* Protocol */
+	u8 cksum[2]; /* checksum */
+	u8 src[4];	  /* Ip source */
+	u8 dst[4];	  /* Ip destination */
 
 	/* gre header */
-	uint8_t flags[2];
-	uint8_t eproto[2]; /* encapsulation protocol */
+	u8 flags[2];
+	u8 eproto[2]; /* encapsulation protocol */
 };
 
 typedef struct GREpriv GREpriv;
 struct GREpriv {
 	/* non-MIB stats */
-	uint32_t lenerr; /* short packet */
+	u32 lenerr; /* short packet */
 };
 
 typedef struct Bring Bring;
 struct Bring {
 	Block *ring[Nring];
-	int32_t produced;
-	int32_t consumed;
+	i32 produced;
+	i32 consumed;
 };
 
 typedef struct GREconv GREconv;
@@ -89,14 +89,14 @@ struct GREconv {
 	int raw;
 
 	/* Retunnelling information.  v4 only */
-	uint8_t north[4]; /* HA */
-	uint8_t south[4]; /* Base station */
-	uint8_t hoa[4];	  /* Home address */
-	uint8_t coa[4];	  /* Careof address */
-	uint32_t seq;	  /* Current sequence # */
+	u8 north[4]; /* HA */
+	u8 south[4]; /* Base station */
+	u8 hoa[4];	  /* Home address */
+	u8 coa[4];	  /* Careof address */
+	u32 seq;	  /* Current sequence # */
 	int dlsusp;	  /* Downlink suspended? */
 	int ulsusp;	  /* Uplink suspended? */
-	uint32_t ulkey;	  /* GRE key */
+	u32 ulkey;	  /* GRE key */
 
 	QLock lock;	  /* Lock for rings */
 	Bring dlpending;  /* Ring of pending packets */
@@ -106,8 +106,8 @@ struct GREconv {
 
 typedef struct Metablock Metablock;
 struct Metablock {
-	uint8_t *rp;
-	uint32_t seq;
+	u8 *rp;
+	u32 seq;
 };
 
 static char *grectlcooked(Conv *, int, char **);
@@ -178,14 +178,14 @@ static struct {
 	},
 };
 
-static uint8_t nulladdr[4];
+static u8 nulladdr[4];
 static char *sessend = "session end";
 
 static void grekick(void *x, Block *bp);
 //static char *gresetup(Conv *, char *, char *, char *);
 
-uint32_t grepdin, grepdout, grebdin, grebdout;
-uint32_t grepuin, grepuout, grebuin, grebuout;
+u32 grepdin, grepdout, grebdin, grebdout;
+u32 grepuin, grepuout, grebuin, grebuout;
 
 static Block *
 getring(Bring *r)
@@ -336,7 +336,7 @@ grekick(void *x, Block *bp)
 	Conv *c;
 	GREconv *grec;
 	GREhdr *gre;
-	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
+	u8 laddr[IPaddrlen], raddr[IPaddrlen];
 
 	if(bp == nil)
 		return;
@@ -386,8 +386,8 @@ gredownlink(Conv *c, Block *bp)
 	GREconv *grec;
 	GREhdr *gre;
 	int hdrlen, suspended, extra;
-	uint16_t flags;
-	uint32_t seq;
+	u16 flags;
+	u32 seq;
 
 	gre = (GREhdr *)bp->rp;
 	if(gre->ttl == 1){
@@ -421,8 +421,8 @@ gredownlink(Conv *c, Block *bp)
 	 * The outgoing packet only has the sequence number set.  Make room
 	 * for the sequence number.
 	 */
-	if(hdrlen != sizeof(uint32_t)){
-		extra = hdrlen - sizeof(uint32_t);
+	if(hdrlen != sizeof(u32)){
+		extra = hdrlen - sizeof(u32);
 		if(extra < 0 && bp->rp - bp->base < -extra){
 			print("gredownlink: cannot add sequence number\n");
 			freeb(bp);
@@ -430,7 +430,7 @@ gredownlink(Conv *c, Block *bp)
 		}
 		memmove(bp->rp + extra, bp->rp, sizeof(GREhdr));
 		bp->rp += extra;
-		assert(BLEN(bp) >= sizeof(GREhdr) + sizeof(uint32_t));
+		assert(BLEN(bp) >= sizeof(GREhdr) + sizeof(u32));
 		gre = (GREhdr *)bp->rp;
 	}
 	seq = grec->seq++;
@@ -515,7 +515,7 @@ greuplink(Conv *c, Block *bp)
 {
 	GREconv *grec;
 	GREhdr *gre;
-	uint16_t flags;
+	u16 flags;
 
 	gre = (GREhdr *)bp->rp;
 	if(gre->ttl == 1)
@@ -539,7 +539,7 @@ greuplink(Conv *c, Block *bp)
 
 		if((flags & GRE_key) == 0){
 			/* Make room for the key */
-			if(bp->rp - bp->base < sizeof(uint32_t)){
+			if(bp->rp - bp->base < sizeof(u32)){
 				print("%V can't add key\n", gre->src);
 				freeb(bp);
 				return;
@@ -575,8 +575,8 @@ static void
 greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 {
 	int len, hdrlen;
-	uint16_t eproto, flags;
-	uint8_t raddr[IPaddrlen];
+	u16 eproto, flags;
+	u8 raddr[IPaddrlen];
 	Conv *c, **p;
 	GREconv *grec;
 	GREhdr *gre;
@@ -752,7 +752,7 @@ static char *
 grectlretunnel(Conv *c, int i, char **argv)
 {
 	GREconv *grec;
-	uint8_t ipaddr[4];
+	u8 ipaddr[4];
 
 	grec = c->ptcl;
 	if(memcmp(grec->hoa, nulladdr, sizeof grec->hoa))
@@ -777,7 +777,7 @@ grectlretunnel(Conv *c, int i, char **argv)
 static char *
 grectlreport(Conv *c, int i, char **argv)
 {
-	uint32_t seq;
+	u32 seq;
 	Block *bp;
 	Bring *r;
 	GREconv *grec;
@@ -793,7 +793,7 @@ grectlreport(Conv *c, int i, char **argv)
 
 		assert(bp && bp->rp - bp->base >= sizeof(Metablock));
 		m = (Metablock *)bp->base;
-		if((int32_t)(seq - m->seq) <= 0)
+		if((i32)(seq - m->seq) <= 0)
 			break;
 
 		r->ring[r->consumed & Ringmask] = nil;

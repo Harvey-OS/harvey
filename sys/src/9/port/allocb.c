@@ -21,14 +21,14 @@ enum {
 struct
 {
 	Lock Lock;
-	uint32_t bytes;
+	u32 bytes;
 } ialloc;
 
 static Block *
 _allocb(int size)
 {
 	Block *b;
-	uint8_t *p;
+	u8 *p;
 	int n;
 
 	n = BLOCKALIGN + ROUNDUP(size + Hdrspc, BLOCKALIGN) + sizeof(Block);
@@ -43,7 +43,7 @@ _allocb(int size)
 	b->flag = 0;
 
 	/* align base and bounds of data */
-	b->lim = (uint8_t *)(PTR2UINT(b) & ~(BLOCKALIGN - 1));
+	b->lim = (u8 *)(PTR2UINT(b) & ~(BLOCKALIGN - 1));
 
 	/* align start of writable data, leaving space below for added headers */
 	b->rp = b->lim - ROUNDUP(size, BLOCKALIGN);
@@ -117,7 +117,7 @@ void
 freeb(Block *b)
 {
 	void *dead = (void *)Bdead;
-	uint8_t *p;
+	u8 *p;
 
 	if(b == nil)
 		return;

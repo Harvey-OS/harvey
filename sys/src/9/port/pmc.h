@@ -19,13 +19,13 @@ struct PmcCtlCtrId {
 };
 
 int pmcnregs(void);
-int pmcsetctl(uint32_t coreno, PmcCtl *p, uint32_t regno);
+int pmcsetctl(u32 coreno, PmcCtl *p, u32 regno);
 int pmctrans(PmcCtl *p);
-int pmcgetctl(uint32_t coreno, PmcCtl *p, uint32_t regno);
+int pmcgetctl(u32 coreno, PmcCtl *p, u32 regno);
 int pmcdescstr(char *str, int nstr);
 int pmcctlstr(char *str, int nstr, PmcCtl *p);
-uint64_t pmcgetctr(uint32_t coreno, uint32_t regno);
-int pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno);
+u64 pmcgetctr(u32 coreno, u32 regno);
+int pmcsetctr(u32 coreno, u64 v, u32 regno);
 
 void pmcupdate(Mach *m);
 extern void (*_pmcupdate)(Mach *m);

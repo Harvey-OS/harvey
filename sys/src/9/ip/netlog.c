@@ -31,7 +31,7 @@ struct Netlog {
 	int len;
 
 	int logmask;		   /* mask of things to debug */
-	uint8_t iponly[IPaddrlen]; /* ip address to print debugging for */
+	u8 iponly[IPaddrlen]; /* ip address to print debugging for */
 	int iponlyset;
 
 	QLock ql;
@@ -171,8 +171,8 @@ netlogready(void *a)
 	return f->alog->len;
 }
 
-int32_t
-netlogread(Fs *f, void *a, uint32_t u, int32_t n)
+i32
+netlogread(Fs *f, void *a, u32 u, i32 n)
 {
 	Proc *up = externup();
 	int i, d;

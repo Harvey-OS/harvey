@@ -90,21 +90,21 @@ enum {
 struct Secret {
 	char *encalg;  /* name of encryption alg */
 	char *hashalg; /* name of hash alg */
-	int (*enc)(Secret *, uint8_t *, int);
-	int (*dec)(Secret *, uint8_t *, int);
-	int (*unpad)(uint8_t *, int, int);
-	DigestState *(*mac)(uint8_t *, uint32_t, uint8_t *, uint32_t,
-			    uint8_t *, DigestState *);
+	int (*enc)(Secret *, u8 *, int);
+	int (*dec)(Secret *, u8 *, int);
+	int (*unpad)(u8 *, int, int);
+	DigestState *(*mac)(u8 *, u32, u8 *, u32,
+			    u8 *, DigestState *);
 	int block; /* encryption block len, 0 if none */
 	int maclen;
 	void *enckey;
-	uint8_t mackey[MaxMacLen];
+	u8 mackey[MaxMacLen];
 };
 
 struct OneWay {
 	QLock io;      /* locks io access */
 	QLock seclock; /* locks secret paramaters */
-	uint32_t seq;
+	u32 seq;
 	Secret *sec; /* cipher in use */
 	Secret *new; /* cipher waiting for enable */
 };
@@ -116,18 +116,18 @@ struct TlsRec {
 	char verset;	  /* version has been set */
 	char opened;	  /* opened command every issued? */
 	char err[ERRMAX]; /* error message to return to handshake requests */
-	int64_t handin;	  /* bytes communicated by the record layer */
-	int64_t handout;
-	int64_t datain;
-	int64_t dataout;
+	i64 handin;	  /* bytes communicated by the record layer */
+	i64 handout;
+	i64 datain;
+	i64 dataout;
 
 	Lock statelk;
 	int state;
 	int debug;
 
 	/* record layer mac functions for different protocol versions */
-	void (*packMac)(Secret *, uint8_t *, uint8_t *,
-			uint8_t *, uint8_t *, int, uint8_t *);
+	void (*packMac)(Secret *, u8 *, u8 *,
+			u8 *, u8 *, int, u8 *);
 
 	/* input side -- protected by in.io */
 	OneWay in;
@@ -217,43 +217,43 @@ enum {
 
 static void checkstate(TlsRec *, int, int);
 static void ensure(TlsRec *, Block **, int);
-static void consume(Block **, uint8_t *, int);
+static void consume(Block **, u8 *, int);
 static Chan *buftochan(char *);
 static void tlshangup(TlsRec *);
 static void tlsError(TlsRec *, char *);
 static void alertHand(TlsRec *, char *);
 static TlsRec *newtls(Chan *c);
 static TlsRec *mktlsrec(void);
-static DigestState *sslmac_md5(uint8_t *p, uint32_t len, uint8_t *key,
-			       uint32_t klen, uint8_t *digest, DigestState *s);
-static DigestState *sslmac_sha1(uint8_t *p, uint32_t len, uint8_t *key,
-				uint32_t klen, uint8_t *digest,
+static DigestState *sslmac_md5(u8 *p, u32 len, u8 *key,
+			       u32 klen, u8 *digest, DigestState *s);
+static DigestState *sslmac_sha1(u8 *p, u32 len, u8 *key,
+				u32 klen, u8 *digest,
 				DigestState *s);
-static DigestState *nomac(uint8_t *p, uint32_t len, uint8_t *key,
-			  uint32_t klen,
-			  uint8_t *digest, DigestState *s);
-static void sslPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq,
-		       uint8_t *header, uint8_t *body, int len,
-		       uint8_t *mac);
-static void tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq,
-		       uint8_t *header, uint8_t *body, int len,
-		       uint8_t *mac);
-static void put64(uint8_t *p, int64_t x);
-static void put32(uint8_t *p, uint32_t);
-static void put24(uint8_t *p, int);
-static void put16(uint8_t *p, int);
+static DigestState *nomac(u8 *p, u32 len, u8 *key,
+			  u32 klen,
+			  u8 *digest, DigestState *s);
+static void sslPackMac(Secret *sec, u8 *mackey, u8 *seq,
+		       u8 *header, u8 *body, int len,
+		       u8 *mac);
+static void tlsPackMac(Secret *sec, u8 *mackey, u8 *seq,
+		       u8 *header, u8 *body, int len,
+		       u8 *mac);
+static void put64(u8 *p, i64 x);
+static void put32(u8 *p, u32);
+static void put24(u8 *p, int);
+static void put16(u8 *p, int);
 //static uint32_t	get32(uint8_t *p);
-static int get16(uint8_t *p);
+static int get16(u8 *p);
 static void tlsSetState(TlsRec *tr, int new, int old);
 static void rcvAlert(TlsRec *tr, int err);
 static void sendAlert(TlsRec *tr, int err);
 static void rcvError(TlsRec *tr, int err, char *msg, ...);
-static int rc4enc(Secret *sec, uint8_t *buf, int n);
-static int des3enc(Secret *sec, uint8_t *buf, int n);
-static int des3dec(Secret *sec, uint8_t *buf, int n);
-static int noenc(Secret *sec, uint8_t *buf, int n);
-static int sslunpad(uint8_t *buf, int n, int block);
-static int tlsunpad(uint8_t *buf, int n, int block);
+static int rc4enc(Secret *sec, u8 *buf, int n);
+static int des3enc(Secret *sec, u8 *buf, int n);
+static int des3dec(Secret *sec, u8 *buf, int n);
+static int noenc(Secret *sec, u8 *buf, int n);
+static int sslunpad(u8 *buf, int n, int block);
+static int tlsunpad(u8 *buf, int n, int block);
 static void freeSec(Secret *sec);
 static char *tlsstate(int s);
 static void pdump(int, void *, char *);
@@ -413,8 +413,8 @@ tlswalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, nil, 0, tlsgen);
 }
 
-static int32_t
-tlsstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+tlsstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, nil, 0, tlsgen);
 }
@@ -505,8 +505,8 @@ tlsopen(Chan *c, int omode)
 	return c;
 }
 
-static int32_t
-tlswstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+tlswstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Dir *d;
@@ -533,7 +533,7 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 		error(Eshortstat);
 	if(!emptystr(d->uid))
 		kstrdup(&tr->user, d->uid);
-	if(d->mode != (uint32_t)~0UL)
+	if(d->mode != (u32)~0UL)
 		tr->perm = d->mode;
 
 	free(d);
@@ -650,7 +650,7 @@ ensure(TlsRec *s, Block **l, int n)
  *  the bytes in 'l'
  */
 static void
-consume(Block **l, uint8_t *p, int n)
+consume(Block **l, u8 *p, int n)
 {
 	Block *b;
 	int i;
@@ -676,7 +676,7 @@ consume(Block **l, uint8_t *p, int n)
  *  give back n bytes
  */
 static void
-regurgitate(TlsRec *s, uint8_t *p, int n)
+regurgitate(TlsRec *s, u8 *p, int n)
 {
 	Block *b;
 
@@ -750,7 +750,7 @@ tlsrecread(TlsRec *tr)
 	Proc *up = externup();
 	OneWay *volatile in;
 	Block *volatile b;
-	uint8_t *p, seq[8], header[RecHdrLen], hmac[MD5dlen];
+	u8 *p, seq[8], header[RecHdrLen], hmac[MD5dlen];
 	int volatile nconsumed;
 	int len, type, ver, unpad_len;
 
@@ -1069,7 +1069,7 @@ checkstate(TlsRec *tr, int ishand, int ok)
 }
 
 static Block *
-tlsbread(Chan *c, int32_t n, int64_t offset)
+tlsbread(Chan *c, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	int ty;
@@ -1145,16 +1145,16 @@ tlsbread(Chan *c, int32_t n, int64_t offset)
 	return b;
 }
 
-static int32_t
-tlsread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+tlsread(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	Block *volatile b;
 	Block *nb;
-	uint8_t *va;
+	u8 *va;
 	int i, ty;
 	char *buf, *s, *e;
-	int32_t offset;
+	i32 offset;
 	TlsRec *tr;
 
 	if(c->qid.type & QTDIR)
@@ -1242,7 +1242,7 @@ tlsrecwrite(TlsRec *tr, int type, Block *b)
 	Proc *up = externup();
 	Block *volatile bb;
 	Block *nb;
-	uint8_t *p, seq[8];
+	u8 *p, seq[8];
 	OneWay *volatile out;
 	int n, maclen, pad, ok;
 
@@ -1345,11 +1345,11 @@ tlsrecwrite(TlsRec *tr, int type, Block *b)
 	poperror();
 }
 
-static int32_t
-tlsbwrite(Chan *c, Block *b, int64_t offset)
+static i32
+tlsbwrite(Chan *c, Block *b, i64 offset)
 {
 	int ty;
-	uint32_t n;
+	u32 n;
 	TlsRec *tr;
 
 	n = BLEN(b);
@@ -1380,11 +1380,11 @@ typedef struct Hashalg Hashalg;
 struct Hashalg {
 	char *name;
 	int maclen;
-	void (*initkey)(Hashalg *, int, Secret *, uint8_t *);
+	void (*initkey)(Hashalg *, int, Secret *, u8 *);
 };
 
 static void
-initmd5key(Hashalg *ha, int version, Secret *s, uint8_t *p)
+initmd5key(Hashalg *ha, int version, Secret *s, u8 *p)
 {
 	s->maclen = ha->maclen;
 	if(version == SSL3Version)
@@ -1395,14 +1395,14 @@ initmd5key(Hashalg *ha, int version, Secret *s, uint8_t *p)
 }
 
 static void
-initclearmac(Hashalg *ha, int version, Secret *s, uint8_t *p)
+initclearmac(Hashalg *ha, int version, Secret *s, u8 *p)
 {
 	s->maclen = 0;
 	s->mac = nomac;
 }
 
 static void
-initsha1key(Hashalg *ha, int version, Secret *s, uint8_t *p)
+initsha1key(Hashalg *ha, int version, Secret *s, u8 *p)
 {
 	s->maclen = ha->maclen;
 	if(version == SSL3Version)
@@ -1448,11 +1448,11 @@ struct Encalg {
 	char *name;
 	int keylen;
 	int ivlen;
-	void (*initkey)(Encalg *ea, Secret *, uint8_t *, uint8_t *);
+	void (*initkey)(Encalg *ea, Secret *, u8 *, u8 *);
 };
 
 static void
-initRC4key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
+initRC4key(Encalg *ea, Secret *s, u8 *p, u8 *iv)
 {
 	s->enckey = smalloc(sizeof(RC4state));
 	s->enc = rc4enc;
@@ -1462,17 +1462,17 @@ initRC4key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
 }
 
 static void
-initDES3key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
+initDES3key(Encalg *ea, Secret *s, u8 *p, u8 *iv)
 {
 	s->enckey = smalloc(sizeof(DES3state));
 	s->enc = des3enc;
 	s->dec = des3dec;
 	s->block = 8;
-	setupDES3state(s->enckey, (uint8_t(*)[8])p, iv);
+	setupDES3state(s->enckey, (u8(*)[8])p, iv);
 }
 
 static void
-initclearenc(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
+initclearenc(Encalg *ea, Secret *s, u8 *p, u8 *iv)
 {
 	s->enc = noenc;
 	s->dec = noenc;
@@ -1498,8 +1498,8 @@ parseencalg(char *p)
 	return nil;
 }
 
-static int32_t
-tlswrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+tlswrite(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	Encalg *ea;
@@ -1510,8 +1510,8 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 	Cmdbuf *volatile cb;
 	int m, ty;
 	char *p, *e;
-	uint8_t *volatile x;
-	uint32_t offset = off;
+	u8 *volatile x;
+	u32 offset = off;
 
 	tr = tlsdevs[CONV(c->qid)];
 	if(tr == nil)
@@ -1997,20 +1997,20 @@ freeSec(Secret *s)
 }
 
 static int
-noenc(Secret *sec, uint8_t *buf, int n)
+noenc(Secret *sec, u8 *buf, int n)
 {
 	return n;
 }
 
 static int
-rc4enc(Secret *sec, uint8_t *buf, int n)
+rc4enc(Secret *sec, u8 *buf, int n)
 {
 	rc4(sec->enckey, buf, n);
 	return n;
 }
 
 static int
-tlsunpad(uint8_t *buf, int n, int block)
+tlsunpad(u8 *buf, int n, int block)
 {
 	int pad, nn;
 
@@ -2025,7 +2025,7 @@ tlsunpad(uint8_t *buf, int n, int block)
 }
 
 static int
-sslunpad(uint8_t *buf, int n, int block)
+sslunpad(u8 *buf, int n, int block)
 {
 	int pad, nn;
 
@@ -2037,7 +2037,7 @@ sslunpad(uint8_t *buf, int n, int block)
 }
 
 static int
-blockpad(uint8_t *buf, int n, int block)
+blockpad(u8 *buf, int n, int block)
 {
 	int pad, nn;
 
@@ -2050,7 +2050,7 @@ blockpad(uint8_t *buf, int n, int block)
 }
 
 static int
-des3enc(Secret *sec, uint8_t *buf, int n)
+des3enc(Secret *sec, u8 *buf, int n)
 {
 	n = blockpad(buf, n, 8);
 	des3CBCencrypt(buf, n, sec->enckey);
@@ -2058,13 +2058,13 @@ des3enc(Secret *sec, uint8_t *buf, int n)
 }
 
 static int
-des3dec(Secret *sec, uint8_t *buf, int n)
+des3dec(Secret *sec, u8 *buf, int n)
 {
 	des3CBCdecrypt(buf, n, sec->enckey);
 	return (*sec->unpad)(buf, n, 8);
 }
 static DigestState *
-nomac(uint8_t *i, uint32_t j, uint8_t *k, uint32_t l, uint8_t *m, DigestState *ds)
+nomac(u8 *i, u32 j, u8 *k, u32 l, u8 *m, DigestState *ds)
 {
 	return nil;
 }
@@ -2073,15 +2073,15 @@ nomac(uint8_t *i, uint32_t j, uint8_t *k, uint32_t l, uint8_t *m, DigestState *d
  * sslmac: mac calculations for ssl 3.0 only; tls 1.0 uses the standard hmac.
  */
 static DigestState *
-sslmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	 uint8_t *digest,
+sslmac_x(u8 *p, u32 len, u8 *key, u32 klen,
+	 u8 *digest,
 	 DigestState *s,
-	 DigestState *(*x)(uint8_t *, uint32_t, uint8_t *, DigestState *),
+	 DigestState *(*x)(u8 *, u32, u8 *, DigestState *),
 	 int xlen,
 	 int padlen)
 {
 	int i;
-	uint8_t pad[48], innerdigest[20];
+	u8 pad[48], innerdigest[20];
 
 	if(xlen > sizeof(innerdigest) || padlen > sizeof(pad))
 		return nil;
@@ -2114,25 +2114,25 @@ sslmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 }
 
 static DigestState *
-sslmac_sha1(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	    uint8_t *digest, DigestState *s)
+sslmac_sha1(u8 *p, u32 len, u8 *key, u32 klen,
+	    u8 *digest, DigestState *s)
 {
 	return sslmac_x(p, len, key, klen, digest, s, sha1, SHA1dlen, 40);
 }
 
 static DigestState *
-sslmac_md5(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	   uint8_t *digest, DigestState *s)
+sslmac_md5(u8 *p, u32 len, u8 *key, u32 klen,
+	   u8 *digest, DigestState *s)
 {
 	return sslmac_x(p, len, key, klen, digest, s, md5, MD5dlen, 48);
 }
 
 static void
-sslPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq, uint8_t *header,
-	   uint8_t *body, int len, uint8_t *mac)
+sslPackMac(Secret *sec, u8 *mackey, u8 *seq, u8 *header,
+	   u8 *body, int len, u8 *mac)
 {
 	DigestState *s;
-	uint8_t buf[11];
+	u8 buf[11];
 
 	memmove(buf, seq, 8);
 	buf[8] = header[0];
@@ -2144,11 +2144,11 @@ sslPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq, uint8_t *header,
 }
 
 static void
-tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq, uint8_t *header,
-	   uint8_t *body, int len, uint8_t *mac)
+tlsPackMac(Secret *sec, u8 *mackey, u8 *seq, u8 *header,
+	   u8 *body, int len, u8 *mac)
 {
 	DigestState *s;
-	uint8_t buf[13];
+	u8 buf[13];
 
 	memmove(buf, seq, 8);
 	memmove(&buf[8], header, 5);
@@ -2158,7 +2158,7 @@ tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq, uint8_t *header,
 }
 
 static void
-put32(uint8_t *p, uint32_t x)
+put32(u8 *p, u32 x)
 {
 	p[0] = x >> 24;
 	p[1] = x >> 16;
@@ -2167,14 +2167,14 @@ put32(uint8_t *p, uint32_t x)
 }
 
 static void
-put64(uint8_t *p, int64_t x)
+put64(u8 *p, i64 x)
 {
-	put32(p, (uint32_t)(x >> 32));
-	put32(p + 4, (uint32_t)x);
+	put32(p, (u32)(x >> 32));
+	put32(p + 4, (u32)x);
 }
 
 static void
-put24(uint8_t *p, int x)
+put24(u8 *p, int x)
 {
 	p[0] = x >> 16;
 	p[1] = x >> 8;
@@ -2182,7 +2182,7 @@ put24(uint8_t *p, int x)
 }
 
 static void
-put16(uint8_t *p, int x)
+put16(u8 *p, int x)
 {
 	p[0] = x >> 8;
 	p[1] = x;
@@ -2197,7 +2197,7 @@ get32(uint8_t *p)
 #endif
 
 static int
-get16(uint8_t *p)
+get16(u8 *p)
 {
 	return (p[0] << 8) | p[1];
 }
@@ -2207,7 +2207,7 @@ static char *charmap = "0123456789abcdef";
 static void
 pdump(int len, void *a, char *tag)
 {
-	uint8_t *p;
+	u8 *p;
 	int i;
 	char buf[65 + 32];
 	char *q;

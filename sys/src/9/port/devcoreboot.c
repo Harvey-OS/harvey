@@ -84,7 +84,7 @@ cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
 	kmprint("%s\n", __func__);
 	struct cb_range *vbho = (struct cb_range *)ptr;
 
-	info->vboot_handoff = (void *)(uintptr_t)vbho->range_start;
+	info->vboot_handoff = (void *)(uintptr)vbho->range_start;
 	info->vboot_handoff_size = vbho->range_size;
 }
 
@@ -221,10 +221,10 @@ cb_parse_header(void *addr, int len, struct sysinfo_t *info)
 		return 0;
 	I_AM_HERE;
 	/* Make sure the checksums match. */
-	if(ipchksum((uint8_t *)header, sizeof(*header)) != 0)
+	if(ipchksum((u8 *)header, sizeof(*header)) != 0)
 		return -1;
 	I_AM_HERE;
-	if(ipchksum((uint8_t *)(ptr + sizeof(*header)),
+	if(ipchksum((u8 *)(ptr + sizeof(*header)),
 		    header->table_bytes) != header->table_checksum)
 		return -1;
 	I_AM_HERE;
@@ -381,7 +381,7 @@ corebootstat(Chan *c, unsigned char *db, int n)
 static Chan *
 corebootopen(Chan *c, int omode)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		if(omode != OREAD)
 			error(Eperm);
@@ -410,10 +410,10 @@ corebootclose(Chan *c)
 	/* anything to do? */
 }
 
-static int32_t
-corebootread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+corebootread(Chan *c, void *va, i32 n, i64 off)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, corebootdir, nelem(corebootdir), corebootdevgen);
 	case Qtable:
@@ -423,10 +423,10 @@ corebootread(Chan *c, void *va, int32_t n, int64_t off)
 	return 0;
 }
 
-static int32_t
-corebootwrite(Chan *c, void *va, int32_t n, int64_t r)
+static i32
+corebootwrite(Chan *c, void *va, i32 n, i64 r)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		error(Eisdir);
 		break;

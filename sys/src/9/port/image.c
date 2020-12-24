@@ -34,8 +34,8 @@ static struct Imagealloc {
 static struct {
 	int calls;	/* times imagereclaim was called */
 	int loops;	/* times the main loop was run */
-	uint64_t ticks; /* total time in the main loop */
-	uint64_t maxt;	/* longest time in main loop */
+	u64 ticks; /* total time in the main loop */
+	u64 maxt;	/* longest time in main loop */
 	int noluck;	/* # of times we couldn't get one */
 	int nolock;	/* # of times we couldn't get the lock */
 } irstats;
@@ -134,7 +134,7 @@ static void
 imagereclaim(void)
 {
 	Image *i;
-	uint64_t ticks0, ticks;
+	u64 ticks0, ticks;
 
 	irstats.calls++;
 	/* Somebody is already cleaning the page cache */
@@ -211,7 +211,7 @@ imagechanreclaim(void)
 }
 
 Image *
-attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
+attachimage(int type, Chan *c, int color, uintptr base, usize len)
 {
 	Proc *up = externup();
 	Image *i, **l;

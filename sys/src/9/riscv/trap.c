@@ -69,8 +69,8 @@ static Vctl *vctl[256];
 
 typedef struct Intrtime Intrtime;
 struct Intrtime {
-	uint64_t count;
-	uint64_t cycles;
+	u64 count;
+	u64 cycles;
 };
 static Intrtime intrtimes[256];
 
@@ -248,12 +248,12 @@ intrdisable(void *vector)
 	return 0;
 }
 
-static int32_t
-irqallocread(Chan *c, void *vbuf, int32_t n, int64_t offset)
+static i32
+irqallocread(Chan *c, void *vbuf, i32 n, i64 offset)
 {
 	char *buf, *p, str[2 * (11 + 1) + 2 * (20 + 1) + (KNAMELEN + 1) + (8 + 1) + 1];
 	int m, vno;
-	int32_t oldn;
+	i32 oldn;
 	Intrtime *t;
 	Vctl *v;
 
@@ -341,7 +341,7 @@ void
 intrtime(int vno)
 {
 	Proc *up = externup();
-	uint64_t diff, x;
+	u64 diff, x;
 
 	x = perfticks();
 	diff = x - machp()->perf.intrts;
@@ -367,7 +367,7 @@ void
 kexit(Ureg *u)
 {
 	Proc *up = externup();
-	uint64_t t;
+	u64 t;
 	Tos *tos;
 	Mach *mp;
 
@@ -417,11 +417,11 @@ kstackok(void)
 	Proc *up = externup();
 
 	if(up == nil){
-		uintptr_t *stk = (uintptr_t *)machp()->stack;
+		uintptr *stk = (uintptr *)machp()->stack;
 		if(*stk != STACKGUARD)
 			panic("trap: mach %d machstk went through bottom %p\n", machp()->machno, machp()->stack);
 	} else {
-		uintptr_t *stk = (uintptr_t *)up->kstack;
+		uintptr *stk = (uintptr *)up->kstack;
 		if(*stk != STACKGUARD)
 			panic("trap: proc %d kstack went through bottom %p\n", up->pid, up->kstack);
 	}
@@ -712,7 +712,7 @@ static void
 dumpstackwithureg(Ureg *ureg)
 {
 	Proc *up = externup();
-	uintptr_t l, v, i, estack;
+	uintptr l, v, i, estack;
 	//	extern char etext;
 	int x;
 
@@ -727,9 +727,9 @@ dumpstackwithureg(Ureg *ureg)
 	i = 0;
 	if(up != nil
 	   //	&& (uintptr)&l >= (uintptr)up->kstack
-	   && (uintptr_t)&l <= (uintptr_t)up->kstack + KSTACK)
-		estack = (uintptr_t)up->kstack + KSTACK;
-	else if((uintptr_t)&l >= machp()->stack && (uintptr_t)&l <= machp()->stack + MACHSTKSZ)
+	   && (uintptr)&l <= (uintptr)up->kstack + KSTACK)
+		estack = (uintptr)up->kstack + KSTACK;
+	else if((uintptr)&l >= machp()->stack && (uintptr)&l <= machp()->stack + MACHSTKSZ)
 		estack = machp()->stack + MACHSTKSZ;
 	else {
 		if(up != nil)
@@ -740,9 +740,9 @@ dumpstackwithureg(Ureg *ureg)
 	}
 	x += iprint("estackx %#p\n", estack);
 
-	for(l = (uintptr_t)&l; l < estack; l += sizeof(uintptr_t)){
-		v = *(uintptr_t *)l;
-		if((KTZERO < v && v < (uintptr_t)&etext) || ((uintptr_t)&l < v && v < estack) || estack - l < 256){
+	for(l = (uintptr)&l; l < estack; l += sizeof(uintptr)){
+		v = *(uintptr *)l;
+		if((KTZERO < v && v < (uintptr)&etext) || ((uintptr)&l < v && v < estack) || estack - l < 256){
 			x += iprint("%#16.16p=%#16.16p ", l, v);
 			i++;
 		}
@@ -800,7 +800,7 @@ void
 faultarch(Ureg *ureg)
 {
 	Proc *up = externup();
-	uint64_t addr;
+	u64 addr;
 	int ftype = ureg->ftype, user, insyscall;
 	char buf[ERRMAX];
 
@@ -851,7 +851,7 @@ faultarch(Ureg *ureg)
 /*
  *  return the userpc the last exception happened at
  */
-uintptr_t
+uintptr
 userpc(Ureg *ureg)
 {
 	Proc *up = externup();
@@ -890,7 +890,7 @@ setkernur(Ureg *ureg, Proc *p)
 	ureg->sp = p->sched.sp + BY2SE;
 }
 
-uintptr_t
+uintptr
 dbgpc(Proc *p)
 {
 	Ureg *ureg;

@@ -56,22 +56,22 @@ flush_tlb(void)
 	asm volatile("sfence.vm");
 }
 
-size_t
-pte_ppn(uint64_t pte)
+usize
+pte_ppn(u64 pte)
 {
 	return pte >> PTE_PPN_SHIFT;
 }
 
-uint64_t
-ptd_create(uintptr_t ppn)
+u64
+ptd_create(uintptr ppn)
 {
 	return (ppn << PTE_PPN_SHIFT) | PTE_V;
 }
 
-uint64_t
-pte_create(uintptr_t ppn, int prot, int user)
+u64
+pte_create(uintptr ppn, int prot, int user)
 {
-	uint64_t pte = (ppn << PTE_PPN_SHIFT) | PTE_R | PTE_V;
+	u64 pte = (ppn << PTE_PPN_SHIFT) | PTE_R | PTE_V;
 	if(prot & PTE_W)
 		pte |= PTE_W;
 	if(prot & PTE_X)
@@ -82,10 +82,10 @@ pte_create(uintptr_t ppn, int prot, int user)
 }
 
 void
-rootput(uintptr_t root)
+rootput(uintptr root)
 {
 	Proc *up = externup();
-	uintptr_t ptbr = root >> RISCV_PGSHIFT;
+	uintptr ptbr = root >> RISCV_PGSHIFT;
 
 	if(0)
 		print("rootput %p pid %d\n", root, up ? up->pid : -1);
@@ -100,7 +100,7 @@ mmuflushtlb(void)
 		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr * sizeof(PTE));
 		machp()->MMU.root->daddr = 0;
 	}
-	rootput((uintptr_t)machp()->MMU.root->pa);
+	rootput((uintptr)machp()->MMU.root->pa);
 }
 
 void
@@ -156,7 +156,7 @@ tabs(int n)
 }
 
 void
-dumpptepg(int lvl, uintptr_t pa)
+dumpptepg(int lvl, uintptr pa)
 {
 	PTE *pte;
 	int tab, i;
@@ -197,7 +197,7 @@ dumpmmu(Proc *p)
 }
 
 void
-dumpmmuwalk(uint64_t addr)
+dumpmmuwalk(u64 addr)
 {
 	int l;
 	PTE *pte, *root;
@@ -317,8 +317,8 @@ mmuswitch(Proc *proc)
 	}
 
 	if(0)
-		print("rootput %p\n", (void *)(uintptr_t)machp()->MMU.root->pa);
-	rootput((uintptr_t)machp()->MMU.root->pa);
+		print("rootput %p\n", (void *)(uintptr)machp()->MMU.root->pa);
+	rootput((uintptr)machp()->MMU.root->pa);
 	if(0)
 		print("splx\n");
 	splx(pl);
@@ -350,11 +350,11 @@ mmurelease(Proc *proc)
 }
 
 static void
-checkpte(uintmem ppn, void *a)
+checkpte(u64 ppn, void *a)
 {
 	int l;
 	PTE *pte, *root;
-	uint64_t addr;
+	u64 addr;
 	char buf[240], *s;
 
 	addr = PTR2UINT(a);
@@ -434,10 +434,10 @@ mmuptpcheck(Proc *proc)
 	}
 }
 
-static uintmem
+static u64
 pteflags(uint attr)
 {
-	uintmem flags;
+	u64 flags;
 
 	flags = 0;
 	if(attr & ~(PTEVALID | PTEWRITE | PTERONLY | PTEUSER | PTEUNCACHED | PTENOEXEC))
@@ -458,7 +458,7 @@ pteflags(uint attr)
 }
 
 void
-invlpg(uintptr_t _)
+invlpg(uintptr _)
 {
 	// TOODO
 	if(0)
@@ -472,16 +472,16 @@ invlpg(uintptr_t _)
  * For 1*GiB pages, we use two levels.
  */
 void
-mmuput(uintptr_t va, Page *pg, uint attr)
+mmuput(uintptr va, Page *pg, uint attr)
 {
 	Proc *up = externup();
 	int lvl, user, x, pgsz;
 	PTE *pte;
 	Page *page, *prev;
 	Mpl pl;
-	uintmem pa, ppage;
+	u64 pa, ppage;
 	char buf[80];
-	uint64_t pteattr = 0;
+	u64 pteattr = 0;
 
 	/* clear attributes base on attr. */
 	if(attr & PTEVALID){
@@ -633,7 +633,7 @@ static Lock mmukmaplock;
 #define PTX(v) PTLX((v), 0)
 
 int
-mmukmapsync(uint64_t va)
+mmukmapsync(u64 va)
 {
 	USED(va);
 
@@ -659,11 +659,11 @@ findKSeg2(void)
  * validity by testing PetP. To see how far it got, check
  * the return value. */
 int
-mmuwalk(PTE *root, uintptr_t va, int level, PTE **ret,
-	uint64_t (*alloc)(usize))
+mmuwalk(PTE *root, uintptr va, int level, PTE **ret,
+	u64 (*alloc)(usize))
 {
 	int l;
-	uintmem pa;
+	u64 pa;
 	PTE *pte;
 
 	Mpl pl;
@@ -703,13 +703,13 @@ mmuwalk(PTE *root, uintptr_t va, int level, PTE **ret,
 	return l;
 }
 
-uintmem
-mmuphysaddr(uintptr_t va)
+u64
+mmuphysaddr(uintptr va)
 {
 	int l;
 	PTE *pte;
-	uint64_t ppn;
-	uintmem mask, pa;
+	u64 ppn;
+	u64 mask, pa;
 
 	msg("mmyphysaddr\n");
 	/*
@@ -745,8 +745,8 @@ mmuphysaddr(uintptr_t va)
 void
 mmuinit(void)
 {
-	uint8_t *p;
-	uint64_t o, pa, sz, n;
+	u8 *p;
+	u64 o, pa, sz, n;
 
 	n = archmmu();
 	print("%d page sizes\n", n);
@@ -774,7 +774,7 @@ mmuinit(void)
 
 	machp()->MMU.root = &sys->root;
 
-	uintptr_t PhysicalRoot = read_csr(sptbr) << 12;
+	uintptr PhysicalRoot = read_csr(sptbr) << 12;
 	PTE *root = KADDR(PhysicalRoot);
 	print("Physical root is 0x%llx and root 0x %p\n", PhysicalRoot, root);
 	PTE *KzeroPTE;
@@ -795,7 +795,7 @@ mmuinit(void)
 	case 0:
 		machp()->MMU.root->pa = PhysicalRoot;
 		print("root is 0x%x\n", machp()->MMU.root->pa);
-		machp()->MMU.root->va = (uintptr_t)KADDR(machp()->MMU.root->pa);
+		machp()->MMU.root->va = (uintptr)KADDR(machp()->MMU.root->pa);
 		break;
 	}
 

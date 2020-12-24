@@ -35,24 +35,24 @@ enum {
 typedef struct IGMPpkt IGMPpkt;
 struct IGMPpkt {
 	/* ip header */
-	uint8_t vihl;	 /* Version and header length */
-	uint8_t tos;	 /* Type of service */
-	uint8_t len[2];	 /* packet length (including headers) */
-	uint8_t id[2];	 /* Identification */
-	uint8_t frag[2]; /* Fragment information */
-	uint8_t Unused;
-	uint8_t proto;		/* Protocol */
-	uint8_t cksum[2];	/* checksum of ip portion */
-	uint8_t src[IPaddrlen]; /* Ip source */
-	uint8_t dst[IPaddrlen]; /* Ip destination */
+	u8 vihl;	 /* Version and header length */
+	u8 tos;	 /* Type of service */
+	u8 len[2];	 /* packet length (including headers) */
+	u8 id[2];	 /* Identification */
+	u8 frag[2]; /* Fragment information */
+	u8 Unused;
+	u8 proto;		/* Protocol */
+	u8 cksum[2];	/* checksum of ip portion */
+	u8 src[IPaddrlen]; /* Ip source */
+	u8 dst[IPaddrlen]; /* Ip destination */
 
 	/* igmp header */
-	uint8_t vertype; /* version and type */
-	uint8_t unused;
-	uint8_t igmpcksum[2];	  /* checksum of igmp portion */
-	uint8_t group[IPaddrlen]; /* multicast group */
+	u8 vertype; /* version and type */
+	u8 unused;
+	u8 igmpcksum[2];	  /* checksum of igmp portion */
+	u8 group[IPaddrlen]; /* multicast group */
 
-	uint8_t payload[];
+	u8 payload[];
 };
 
 #define IGMPPKTSZ offsetof(IGMPpkt, payload[0])
@@ -81,14 +81,14 @@ Proto igmp;
 extern Fs fs;
 
 static struct Stats {
-	uint32_t inqueries;
-	uint32_t outqueries;
-	uint32_t inreports;
-	uint32_t outreports;
+	u32 inqueries;
+	u32 outqueries;
+	u32 inreports;
+	u32 outreports;
 } stats;
 
 void
-igmpsendreport(Medium *m, uint8_t *addr)
+igmpsendreport(Medium *m, u8 *addr)
 {
 	IGMPpkt *p;
 	Block *bp;
@@ -123,7 +123,7 @@ igmpproc(void *a)
 {
 	IGMPrep *rp, **lrp;
 	Multicast *mp, **lmp;
-	uint8_t ip[IPaddrlen];
+	u8 ip[IPaddrlen];
 
 	USED(a);
 

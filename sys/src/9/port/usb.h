@@ -130,8 +130,8 @@ struct Hciimpl {
 	void (*interrupt)(Ureg *, void *);	   /* service interrupt */
 	void (*epopen)(Ep *);			   /* prepare ep. for I/O */
 	void (*epclose)(Ep *);			   /* terminate I/O on ep. */
-	int32_t (*epread)(Ep *, void *, int32_t);  /* transmit data for ep */
-	int32_t (*epwrite)(Ep *, void *, int32_t); /* receive data for ep */
+	i32 (*epread)(Ep *, void *, i32);  /* transmit data for ep */
+	i32 (*epwrite)(Ep *, void *, i32); /* receive data for ep */
 	char *(*seprintep)(char *, char *, Ep *);  /* debug */
 	int (*portenable)(Hci *, int, int);	   /* enable/disable port */
 	int (*portreset)(Hci *, int, int);	   /* set/clear port reset */
@@ -176,15 +176,15 @@ struct Ep {
 	int clrhalt;	  /* true if halt was cleared on ep. */
 	int debug;	  /* per endpoint debug flag */
 	char *info;	  /* for humans to read */
-	int32_t maxpkt;	  /* maximum packet size */
+	i32 maxpkt;	  /* maximum packet size */
 	int ttype;	  /* tranfer type */
-	uint32_t load;	  /* in µs, for a fransfer of maxpkt bytes */
+	u32 load;	  /* in µs, for a fransfer of maxpkt bytes */
 	void *aux;	  /* for controller specific info */
 	int rhrepl;	  /* fake root hub replies */
 	int toggle[2];	  /* saved toggles (while ep is not in use) */
-	int32_t pollival; /* poll interval ([µ]frames; intr/iso) */
-	int32_t hz;	  /* poll frequency (iso) */
-	int32_t samplesz; /* sample size (iso) */
+	i32 pollival; /* poll interval ([µ]frames; intr/iso) */
+	i32 hz;	  /* poll frequency (iso) */
+	i32 samplesz; /* sample size (iso) */
 	int ntds;	  /* nb. of Tds per µframe */
 	int tmout;	  /* 0 or timeout for transfers (ms) */
 };

@@ -372,11 +372,11 @@ enum {			       /* Receive Delay Timer Ring */
 
 typedef struct Rd { /* Receive Descriptor */
 	uint addr[2];
-	uint16_t length;
-	uint16_t checksum;
+	u16 length;
+	u16 checksum;
 	unsigned char status;
 	unsigned char errors;
-	uint16_t special;
+	u16 special;
 } Rd;
 
 enum {		     /* Rd status */
@@ -406,10 +406,10 @@ struct Td { /* Transmit Descriptor */
 		struct {      /* Context */
 			unsigned char ipcss;
 			unsigned char ipcso;
-			uint16_t ipcse;
+			u16 ipcse;
 			unsigned char tucss;
 			unsigned char tucso;
-			uint16_t tucse;
+			u16 tucse;
 		};
 	};
 	uint control;
@@ -469,7 +469,7 @@ struct Ctlr {
 	int started;
 	int id;
 	int cls;
-	uint16_t eeprom[0x40];
+	u16 eeprom[0x40];
 
 	QLock alock; /* attach */
 	void *alloc; /* receive/transmit descriptors */
@@ -504,7 +504,7 @@ struct Ctlr {
 	uint tcpcs;
 
 	unsigned char ra[Eaddrlen]; /* receive address */
-	uint32_t mta[128];	    /* multicast table array */
+	u32 mta[128];	    /* multicast table array */
 
 	Rendez rrendez;
 	int rim;
@@ -604,13 +604,13 @@ static char *statistics[Nstatistics] = {
 	"TCP Segmentation Context Fail",
 };
 
-static int32_t
-igbeifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
+static i32
+igbeifstat(Ether *edev, void *a, i32 n, u32 offset)
 {
 	Ctlr *ctlr;
 	char *p, *s, *e;
 	int i, l, r;
-	uint64_t tuvl, ruvl;
+	u64 tuvl, ruvl;
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
@@ -630,10 +630,10 @@ igbeifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 		case Torl:
 		case Totl:
 			ruvl = r;
-			ruvl += ((uint64_t)csr32r(ctlr, Statistics + (i + 1) * 4)) << 32;
+			ruvl += ((u64)csr32r(ctlr, Statistics + (i + 1) * 4)) << 32;
 			tuvl = ruvl;
 			tuvl += ctlr->statistics[i];
-			tuvl += ((uint64_t)ctlr->statistics[i + 1]) << 32;
+			tuvl += ((u64)ctlr->statistics[i + 1]) << 32;
 			if(tuvl == 0)
 				continue;
 			ctlr->statistics[i] = tuvl;
@@ -704,8 +704,8 @@ static Cmdtab igbectlmsg[] = {
 	{CMrdtr, "rdtr", 2},
 };
 
-static int32_t
-igbectl(Ether *edev, void *buf, int32_t n)
+static i32
+igbectl(Ether *edev, void *buf, i32 n)
 {
 	Proc *up = externup();
 	int v;
@@ -1032,8 +1032,8 @@ igbetransmit(Ether *edev)
 		if((bp = qget(edev->oq)) == nil)
 			break;
 		td = &ctlr->tdba[tdt];
-		td->addr[0] = (uint32_t)PADDR(bp->rp);
-		td->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
+		td->addr[0] = (u32)PADDR(bp->rp);
+		td->addr[1] = (u32)(PADDR(bp->rp) >> 32);
 		td->control = ((BLEN(bp) & LenMASK) << LenSHIFT);
 		td->control |= Dext | Ifcs | Teop | DtypeDD;
 		ctlr->tb[tdt] = bp;
@@ -1073,8 +1073,8 @@ igbereplenish(Ctlr *ctlr)
 				break;
 			}
 			ctlr->rb[rdt] = bp;
-			rd->addr[0] = (uint32_t)PADDR(bp->rp);
-			rd->addr[1] = (uint32_t)(PADDR(bp->rp) >> 32);
+			rd->addr[0] = (u32)PADDR(bp->rp);
+			rd->addr[1] = (u32)(PADDR(bp->rp) >> 32);
 		}
 		coherence();
 		rd->status = 0;
@@ -1687,7 +1687,7 @@ at93c46io(Ctlr *ctlr, char *op, int data)
 static int
 at93c46r(Ctlr *ctlr)
 {
-	uint16_t sum;
+	u16 sum;
 	char rop[20];
 	int addr, areq, bits, data, eecd, i;
 

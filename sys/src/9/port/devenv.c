@@ -24,7 +24,7 @@ static int envwriteable(Chan *c);
 static Egrp confegrp; /* global environment group containing the kernel configuration */
 
 static Evalue *
-envlookup(Egrp *eg, char *name, uint32_t qidpath)
+envlookup(Egrp *eg, char *name, u32 qidpath)
 {
 	Evalue *e;
 	int i;
@@ -93,8 +93,8 @@ envwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, 0, 0, envgen);
 }
 
-static int32_t
-envstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+envstat(Chan *c, u8 *db, i32 n)
 {
 	if(c->qid.type & QTDIR)
 		c->qid.vers = envgrp(c)->vers;
@@ -237,12 +237,12 @@ envclose(Chan *c)
 		envremove(c);
 }
 
-static int32_t
-envread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+envread(Chan *c, void *a, i32 n, i64 off)
 {
 	Egrp *eg;
 	Evalue *e;
-	int32_t offset;
+	i32 offset;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, envgen);
@@ -268,13 +268,13 @@ envread(Chan *c, void *a, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-envwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+envwrite(Chan *c, void *a, i32 n, i64 off)
 {
 	char *s;
 	Egrp *eg;
 	Evalue *e;
-	int32_t len, offset;
+	i32 len, offset;
 
 	if(n <= 0)
 		return 0;

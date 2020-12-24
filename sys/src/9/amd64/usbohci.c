@@ -181,10 +181,10 @@ enum {
  * Endpoint descriptor. (first 4 words used by hardware)
  */
 struct Ed {
-	uint32_t ctrl;
-	uint32_t tail; /* transfer descriptor */
-	uint32_t head;
-	uint32_t nexted;
+	u32 ctrl;
+	u32 tail; /* transfer descriptor */
+	u32 head;
+	u32 nexted;
 
 	Ed *next;  /* sw; in free list or next in list */
 	Td *tds;   /* in use by current xfer; all for iso */
@@ -201,13 +201,13 @@ struct Qio {
 	Ed *ed;		/* to place Tds on it */
 	int sched;	/* queue number (intr/iso) */
 	int toggle;	/* Tddata0/Tddata1 */
-	uint32_t usbid; /* device/endpoint address */
+	u32 usbid; /* device/endpoint address */
 	int tok;	/* Tdsetup, Tdtokin, Tdtokout */
-	int64_t iotime; /* last I/O time; to hold interrupt polls */
+	i64 iotime; /* last I/O time; to hold interrupt polls */
 	int debug;	/* for the endpoint */
 	char *err;	/* error status */
 	int state;	/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
-	int32_t bw;	/* load (intr/iso) */
+	i32 bw;	/* load (intr/iso) */
 };
 
 struct Ctlio {
@@ -221,8 +221,8 @@ struct Isoio {
 	int nframes;   /* number of frames for a full second */
 	Td *atds;      /* Tds avail for further I/O */
 	int navail;    /* number of avail Tds */
-	uint32_t frno; /* next frame number avail for I/O */
-	uint32_t left; /* remainder after rounding Hz to samples/ms */
+	u32 frno; /* next frame number avail for I/O */
+	u32 left; /* remainder after rounding Hz to samples/ms */
 	int nerrs;     /* consecutive errors on iso I/O */
 };
 
@@ -231,33 +231,33 @@ struct Isoio {
  * First block is used by hardware (aligned to 32).
  */
 struct Td {
-	uint32_t ctrl;
-	uint32_t cbp; /* current buffer pointer */
-	uint32_t nexttd;
-	uint32_t be;
-	uint16_t offsets[8]; /* used by Iso Tds only */
+	u32 ctrl;
+	u32 cbp; /* current buffer pointer */
+	u32 nexttd;
+	u32 be;
+	u16 offsets[8]; /* used by Iso Tds only */
 
-	uint32_t nbytes; /* bytes in this Td */
-	uint32_t cbp0;	 /* initial value for cbp */
-	uint32_t last;	 /* true for last Td in Qio */
-	uint32_t _160[5];
+	u32 nbytes; /* bytes in this Td */
+	u32 cbp0;	 /* initial value for cbp */
+	u32 last;	 /* true for last Td in Qio */
+	u32 _160[5];
 
 	Td *next;  /* in free or Ed tds list */
 	Td *anext; /* in avail td list (iso) */
 	Ep *ep;	   /* using this Td for I/O */
 	Qio *io;   /* using this Td for I/O */
 	Block *bp; /* data for this Td */
-	uint64_t _64[3];
+	u64 _64[3];
 };
 
 /*
  * Host controller communication area (hardware)
  */
 struct Hcca {
-	uint32_t intrtable[32];
-	uint16_t framenumber;
-	uint16_t _16;
-	uint32_t donehead;
+	u32 intrtable[32];
+	u16 framenumber;
+	u16 _16;
+	u32 donehead;
 	unsigned char reserved[116];
 };
 
@@ -266,44 +266,44 @@ struct Hcca {
  */
 struct Ohci {
 	/* control and status group */
-	uint32_t revision;    /*00*/
-	uint32_t control;     /*04*/
-	uint32_t cmdsts;      /*08*/
-	uint32_t intrsts;     /*0c*/
-	uint32_t intrenable;  /*10*/
-	uint32_t intrdisable; /*14*/
+	u32 revision;    /*00*/
+	u32 control;     /*04*/
+	u32 cmdsts;      /*08*/
+	u32 intrsts;     /*0c*/
+	u32 intrenable;  /*10*/
+	u32 intrdisable; /*14*/
 
 	/* memory pointer group */
-	uint32_t hcca;	       /*18*/
-	uint32_t periodcurred; /*1c*/
-	uint32_t ctlheaded;    /*20*/
-	uint32_t ctlcurred;    /*24*/
-	uint32_t bulkheaded;   /*28*/
-	uint32_t bulkcurred;   /*2c*/
-	uint32_t donehead;     /*30*/
+	u32 hcca;	       /*18*/
+	u32 periodcurred; /*1c*/
+	u32 ctlheaded;    /*20*/
+	u32 ctlcurred;    /*24*/
+	u32 bulkheaded;   /*28*/
+	u32 bulkcurred;   /*2c*/
+	u32 donehead;     /*30*/
 
 	/* frame counter group */
-	uint32_t fminterval;	/*34*/
-	uint32_t fmremaining;	/*38*/
-	uint32_t fmnumber;	/*3c*/
-	uint32_t periodicstart; /*40*/
-	uint32_t lsthreshold;	/*44*/
+	u32 fminterval;	/*34*/
+	u32 fmremaining;	/*38*/
+	u32 fmnumber;	/*3c*/
+	u32 periodicstart; /*40*/
+	u32 lsthreshold;	/*44*/
 
 	/* root hub group */
-	uint32_t rhdesca;	/*48*/
-	uint32_t rhdescb;	/*4c*/
-	uint32_t rhsts;		/*50*/
-	uint32_t rhportsts[15]; /*54*/
-	uint32_t _640[20];	/*90*/
+	u32 rhdesca;	/*48*/
+	u32 rhdescb;	/*4c*/
+	u32 rhsts;		/*50*/
+	u32 rhportsts[15]; /*54*/
+	u32 _640[20];	/*90*/
 
 	/* unknown */
-	uint32_t hostueaddr;	  /*e0*/
-	uint32_t hostuests;	  /*e4*/
-	uint32_t hosttimeoutctrl; /*e8*/
-	uint32_t _32_1;		  /*ec*/
-	uint32_t _32_2;		  /*f0*/
-	uint32_t hostrevision;	  /*f4*/
-	uint32_t _64[2];
+	u32 hostueaddr;	  /*e0*/
+	u32 hostuests;	  /*e4*/
+	u32 hosttimeoutctrl; /*e8*/
+	u32 _32_1;		  /*ec*/
+	u32 _32_2;		  /*f0*/
+	u32 hostrevision;	  /*f4*/
+	u32 _64[2];
 	/*100*/
 };
 
@@ -313,7 +313,7 @@ struct Ohci {
 struct Qtree {
 	int nel;
 	int depth;
-	uint32_t *bw;
+	u32 *bw;
 	Ed **root;
 };
 
@@ -400,7 +400,7 @@ static char *errmsgs[] =
 		[Tdnotacc] = "not accessed"};
 
 static void *
-pa2ptr(uint32_t pa)
+pa2ptr(u32 pa)
 {
 	if(pa == 0)
 		return nil;
@@ -408,7 +408,7 @@ pa2ptr(uint32_t pa)
 		return KADDR(pa);
 }
 
-static uint32_t
+static u32
 ptr2pa(void *p)
 {
 	if(p == nil)
@@ -528,9 +528,9 @@ unlinkbulk(Ctlr *ctlr, Ed *ed)
 }
 
 static void
-edsetaddr(Ed *ed, uint32_t addr)
+edsetaddr(Ed *ed, u32 addr)
 {
-	uint32_t ctrl;
+	u32 ctrl;
 
 	ctrl = ed->ctrl & ~((Epmax << 7) | Devmax);
 	ctrl |= (addr & ((Epmax << 7) | Devmax));
@@ -569,7 +569,7 @@ edmaxpkt(Ed *ed)
 static void
 edsetmaxpkt(Ed *ed, int m)
 {
-	uint32_t c;
+	u32 c;
 
 	c = ed->ctrl & ~(Edmpsmask << Edmpsshift);
 	ed->ctrl = c | ((m & Edmpsmask) << Edmpsshift);
@@ -615,7 +615,7 @@ tdalloc(void)
 	memset(td, 0, sizeof(Td));
 	unlock(&tdpool.l);
 
-	if(((uint64_t)td & 0xF) != 0)
+	if(((u64)td & 0xF) != 0)
 		panic("usbohci: tdalloc td 0x%p (not 16-aligned)", td);
 	return td;
 }
@@ -724,10 +724,10 @@ flog2lower(int n)
 }
 
 static int
-pickschedq(Qtree *qt, int pollival, uint32_t bw, uint32_t limit)
+pickschedq(Qtree *qt, int pollival, u32 bw, u32 limit)
 {
 	int i, j, d, upperb, q;
-	uint32_t best, worst, total;
+	u32 best, worst, total;
 
 	d = flog2lower(pollival);
 	if(d > qt->depth)
@@ -979,7 +979,7 @@ seprintep(char *s, char *e, Ep *ep)
 }
 
 static char *
-seprintctl(char *s, char *se, uint32_t ctl)
+seprintctl(char *s, char *se, u32 ctl)
 {
 	s = seprint(s, se, "en=");
 	if((ctl & Cple) != 0)
@@ -1057,7 +1057,7 @@ static void
 isodtdinit(Ep *ep, Isoio *iso, Td *td)
 {
 	Block *bp;
-	int32_t size;
+	i32 size;
 	int i;
 
 	bp = td->bp;
@@ -1269,7 +1269,7 @@ interrupt(Ureg *ureg, void *arg)
 	Td *td, *ntd;
 	Hci *hp;
 	Ctlr *ctlr;
-	uint32_t status, curred;
+	u32 status, curred;
 	int i, frno;
 
 	hp = arg;
@@ -1409,7 +1409,7 @@ epiodone(void *a)
 }
 
 static void
-epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
+epiowait(Ctlr *ctlr, Qio *io, int tmout, u32 n)
 {
 	Proc *up = externup();
 	Ed *ed;
@@ -1455,8 +1455,8 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
  * To make it work for control transfers, the caller may
  * lock the Qio for the entire control transfer.
  */
-static int32_t
-epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
+static i32
+epio(Ep *ep, Qio *io, void *a, i32 count, int mustlock)
 {
 	Proc *up = externup();
 	Ed *ed;
@@ -1466,8 +1466,8 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	unsigned char *c;
 	Td *td, *ltd, *ntd, *td0;
 	int last, ntds, tmout;
-	int32_t tot, n;
-	uint32_t load;
+	i32 tot, n;
+	u32 load;
 
 	ed = io->ed;
 	ctlr = ep->hp->Hciimpl.aux;
@@ -1607,14 +1607,14 @@ clrhalt(Ep *ep)
 	}
 }
 
-static int32_t
-epread(Ep *ep, void *a, int32_t count)
+static i32
+epread(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlio *cio;
 	Qio *io;
 	char buf[80];
-	uint64_t delta;
+	u64 delta;
 
 	if(ep->aux == nil)
 		panic("epread: not open");
@@ -1685,12 +1685,12 @@ epread(Ep *ep, void *a, int32_t count)
  * Upon errors on the data phase we must still run the status
  * phase or the device may cease responding in the future.
  */
-static int32_t
-epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
+static i32
+epctlio(Ep *ep, Ctlio *cio, void *a, i32 count)
 {
 	Proc *up = externup();
 	unsigned char *c;
-	int32_t len;
+	i32 len;
 
 	ddeprint("epctlio: cio %#p ep%d.%d count %ld\n",
 		 cio, ep->dev->nb, ep->nb, count);
@@ -1770,11 +1770,11 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
  * Put new samples in the dummy Td.
  * BUG: This does only a transfer per Td. We could do up to 8.
  */
-static int32_t
-putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
+static i32
+putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, i32 count)
 {
 	Td *td;
-	uint32_t n;
+	u32 n;
 
 	td = pa2ptr(iso->Qio.ed->tail);
 	n = count;
@@ -1791,11 +1791,11 @@ putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
 	return n;
 }
 
-static int32_t
-episowrite(Ep *ep, void *a, int32_t count)
+static i32
+episowrite(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
-	int32_t tot, nw;
+	i32 tot, nw;
 	char *err;
 	unsigned char *b;
 	Ctlr *ctlr;
@@ -1857,15 +1857,15 @@ episowrite(Ep *ep, void *a, int32_t count)
 	return tot;
 }
 
-static int32_t
-epwrite(Ep *ep, void *a, int32_t count)
+static i32
+epwrite(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
 	Qio *io;
 	Ctlio *cio;
-	uint32_t delta;
+	u32 delta;
 	unsigned char *b;
-	int32_t tot, nw;
+	i32 tot, nw;
 
 	if(ep->aux == nil)
 		panic("ohci: epwrite: not open");
@@ -2028,7 +2028,7 @@ epopen(Ep *ep)
 	Ctlr *ctlr;
 	Qio *io;
 	Ctlio *cio;
-	uint32_t usbid;
+	u32 usbid;
 
 	ctlr = ep->hp->Hciimpl.aux;
 	deprint("ohci: epopen ep%d.%d\n", ep->dev->nb, ep->nb);
@@ -2251,7 +2251,7 @@ portstatus(Hci *hp, int port)
 {
 	int v;
 	Ctlr *ub;
-	uint32_t ohcistatus;
+	u32 ohcistatus;
 
 	/*
 	 * We must return status bits as a
@@ -2290,11 +2290,11 @@ static void
 dumpohci(Ctlr *ctlr)
 {
 	int i;
-	uint32_t *ohci;
+	u32 *ohci;
 
 	ohci = &ctlr->ohci->revision;
 	print("ohci registers: \n");
-	for(i = 0; i < sizeof(Ohci) / sizeof(uint32_t); i++)
+	for(i = 0; i < sizeof(Ohci) / sizeof(u32); i++)
 		if(i < 3 || ohci[i] != 0)
 			print("\t[%#2.2x]\t%#8.8lx\n", i * 4, ohci[i]);
 	print("\n");
@@ -2306,7 +2306,7 @@ init(Hci *hp)
 	Ctlr *ctlr;
 	Ohci *ohci;
 	int i;
-	uint32_t ival, ctrl, fmi;
+	u32 ival, ctrl, fmi;
 
 	ctlr = hp->Hciimpl.aux;
 	dprint("ohci %#p init\n", ctlr->ohci);
@@ -2369,7 +2369,7 @@ init(Hci *hp)
 static void
 scanpci(void)
 {
-	uint32_t mem;
+	u32 mem;
 	Ctlr *ctlr;
 	Pcidev *p;
 	int i;

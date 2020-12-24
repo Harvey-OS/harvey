@@ -32,7 +32,7 @@ Lock vgascreenlock;
 int drawdebug;
 
 void
-vgaimageinit(uint32_t chan)
+vgaimageinit(u32 chan)
 {
 	if(back == nil){
 		back = allocmemimage(Rect(0, 0, 1, 1), chan); /* RSC BUG */
@@ -256,7 +256,7 @@ vgablank(VGAscr *scr, int blank)
 }
 
 void
-addvgaseg(char *name, uint32_t pa, uint32_t size)
+addvgaseg(char *name, u32 pa, u32 size)
 {
 	Physseg seg;
 

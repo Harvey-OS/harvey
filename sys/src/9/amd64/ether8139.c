@@ -198,7 +198,7 @@ typedef struct Ctlr {
 
 	int pcie; /* flag: pci-express device? */
 
-	uint64_t mchash; /* multicast hash */
+	u64 mchash; /* multicast hash */
 
 	int rcr;		/* receive configuration register */
 	unsigned char *rbstart; /* receive buffer */
@@ -254,11 +254,11 @@ enum {
 	Bytemask = (1 << 8) - 1,
 };
 
-static uint32_t
-ethercrcbe(unsigned char *addr, int32_t len)
+static u32
+ethercrcbe(unsigned char *addr, i32 len)
 {
 	int i, j;
-	uint64_t c, crc, carry;
+	u64 c, crc, carry;
 
 	crc = ~0UL;
 	for(i = 0; i < len; i++){
@@ -274,8 +274,8 @@ ethercrcbe(unsigned char *addr, int32_t len)
 	return crc;
 }
 
-static uint32_t
-swabl(uint32_t l)
+static u32
+swabl(u32 l)
 {
 	return (l >> 24) | ((l >> 8) & (Bytemask << 8)) |
 	       ((l << 8) & (Bytemask << 16)) | (l << 24);
@@ -311,8 +311,8 @@ rtl8139multicast(void *ether, unsigned char *eaddr, int add)
 	iunlock(&ctlr->ilock);
 }
 
-static int32_t
-rtl8139ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
+static i32
+rtl8139ifstat(Ether *edev, void *a, i32 n, u32 offset)
 {
 	int l;
 	char *p;
@@ -412,7 +412,7 @@ static void
 rtl8139init(Ether *edev)
 {
 	int i;
-	uint32_t r;
+	u32 r;
 	Ctlr *ctlr;
 	unsigned char *alloc;
 
@@ -432,7 +432,7 @@ rtl8139init(Ether *edev)
 	/*
 	 * Receiver
 	 */
-	alloc = (unsigned char *)ROUNDUP((uint64_t)ctlr->alloc, 32);
+	alloc = (unsigned char *)ROUNDUP((u64)ctlr->alloc, 32);
 	ctlr->rbstart = alloc;
 	alloc += ctlr->rblen + 16;
 	memset(ctlr->rbstart, 0, ctlr->rblen + 16);
@@ -516,7 +516,7 @@ rtl8139txstart(Ether *edev)
 		size = BLEN(bp);
 
 		td = &ctlr->td[ctlr->tdh];
-		if(((int64_t)bp->rp) & 0x03){
+		if(((i64)bp->rp) & 0x03){
 			memmove(td->data, bp->rp, size);
 			freeb(bp);
 			csr32w(ctlr, td->tsad, PADDR(td->data));
@@ -549,7 +549,7 @@ rtl8139receive(Ether *edev)
 {
 	Block *bp;
 	Ctlr *ctlr;
-	uint16_t capr;
+	u16 capr;
 	unsigned char cr, *p;
 	int l, length, status;
 
@@ -651,7 +651,7 @@ rtl8139interrupt(Ureg *ureg, void *arg)
 		if(ctlr->alloc == nil){
 			print("rtl8139interrupt: interrupt for unattached Ctlr "
 			      "%#p port %#p\n",
-			      ctlr, (void *)(int64_t)ctlr->port);
+			      ctlr, (void *)(i64)ctlr->port);
 			return; /* not attached yet (shouldn't happen) */
 		}
 		if(isr & (Fovw | PunLc | Rxovw | Rer | Rok)){

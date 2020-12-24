@@ -21,7 +21,7 @@
 #include "acpi.h"
 
 #define ISPOWEROF2(x) (((x) != 0) && !((x) & ((x)-1)))
-#define UNO ((uintmem)1)
+#define UNO ((u64)1)
 
 enum {
 	BKmin = 21, /* Minimum lg2 */
@@ -38,8 +38,8 @@ enum {
 
 typedef struct Buddy Buddy;
 struct Buddy {
-	int16_t tag; /* Used or Avail */
-	int16_t kval;
+	i16 tag; /* Used or Avail */
+	i16 kval;
 	uint next;
 	uint prev;
 	void *p;
@@ -52,14 +52,14 @@ struct Buddy {
  */
 typedef struct Bal Bal;
 struct Bal {
-	uintmem base;
-	uint64_t size;
+	u64 base;
+	u64 size;
 	usize nfree;
 	usize nblocks;
 	int kmin;	/* Minimum lg2 */
 	int kmax;	/* Maximum lg2 */
-	uintmem bminsz; /* minimum block sz */
-	uintmem memory;
+	u64 bminsz; /* minimum block sz */
+	u64 memory;
 	uint kspan;
 
 	Buddy *blocks;
@@ -88,7 +88,7 @@ seprintphysstats(char *s, char *e)
 }
 
 static void
-xphysfree(Bal *b, uintmem data, uint64_t size)
+xphysfree(Bal *b, u64 data, u64 size)
 {
 	uint i;
 	Buddy *l, *p;
@@ -177,7 +177,7 @@ S1:
 }
 
 void
-physfree(uintmem data, uint64_t size)
+physfree(u64 data, u64 size)
 {
 	Bal *b;
 	int i;
@@ -193,7 +193,7 @@ physfree(uintmem data, uint64_t size)
 }
 
 static void *
-xphystag(Bal *b, uintmem data)
+xphystag(Bal *b, u64 data)
 {
 	uint i;
 	Buddy *blocks;
@@ -209,7 +209,7 @@ xphystag(Bal *b, uintmem data)
 }
 
 void *
-phystag(uintmem data)
+phystag(u64 data)
 {
 	Bal *b;
 	int i;
@@ -222,7 +222,7 @@ phystag(uintmem data)
 	return nil;
 }
 
-static uint8_t lg2table[256] = {
+static u8 lg2table[256] = {
 	0,
 	0,
 	1,
@@ -482,9 +482,9 @@ static uint8_t lg2table[256] = {
 };
 
 static int
-lg2floor(uint64_t w)
+lg2floor(u64 w)
 {
-	uint64_t hi, lo;
+	u64 hi, lo;
 
 	if((lo = (w >> 48)) != 0){
 		if((hi = (lo >> 8)) != 0)
@@ -506,13 +506,13 @@ lg2floor(uint64_t w)
 	return lg2table[w];
 }
 
-static uintmem
-xphysalloc(Bal *b, uint64_t size, void *tag)
+static u64
+xphysalloc(Bal *b, u64 size, void *tag)
 {
 	uint i, j, k;
 	Buddy *l, *p;
 	Buddy *avail, *blocks;
-	uintmem m;
+	u64 m;
 
 	DBG("physalloc\n");
 	assert(b->size > 0);
@@ -587,11 +587,11 @@ xphysalloc(Bal *b, uint64_t size, void *tag)
 	return m;
 }
 
-uintmem
-physalloc(uint64_t size, int *colorp, void *tag)
+u64
+physalloc(u64 size, int *colorp, void *tag)
 {
 	int i, color;
-	uintmem m;
+	u64 m;
 
 	m = 0;
 
@@ -651,7 +651,7 @@ physallocdump(void)
 }
 
 static int
-plop(Bal *b, uintmem a, int k, int type)
+plop(Bal *b, u64 a, int k, int type)
 {
 	uint i;
 	Buddy *l;
@@ -668,7 +668,7 @@ plop(Bal *b, uintmem a, int k, int type)
 }
 
 static int
-iimbchunk(Bal *b, uintmem a, uintmem e, int type)
+iimbchunk(Bal *b, u64 a, u64 e, int type)
 {
 	int k;
 	uint s;
@@ -708,12 +708,12 @@ iimbchunk(Bal *b, uintmem a, uintmem e, int type)
  * Called from umeminit to initialize user memory allocators.
  */
 void
-physinit(uintmem a, uint64_t size)
+physinit(u64 a, u64 size)
 {
-	uintmem dtsz;
+	u64 dtsz;
 	Bal *b;
 	int i, dom;
-	uintmem addr, len;
+	u64 addr, len;
 
 	DBG("physinit %#llx %#llx\n", a, size);
 

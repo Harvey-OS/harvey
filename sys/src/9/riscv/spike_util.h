@@ -50,7 +50,7 @@ typedef struct {
 } hls_t;
 
 #define MACHINE_STACK_TOP() ({ \
-  register uintptr_t sp __asm__ ("sp"); \
+  register uintptr sp __asm__ ("sp"); \
   (void*)((sp + RISCV_PGSIZE) & -RISCV_PGSIZE); })
 
 // hart-local storage, at top of stack
@@ -59,16 +59,16 @@ typedef struct {
 
 #define MACHINE_STACK_SIZE RISCV_PGSIZE
 
-uintptr_t translate_address(uintptr_t vAddr);
-uintptr_t mcall_query_memory(uintptr_t id, memory_block_info *p);
-uintptr_t mcall_hart_id(void);
-uintptr_t htif_interrupt(uintptr_t mcause, uintptr_t *regs);
-uintptr_t mcall_console_putchar(uint8_t ch);
+uintptr translate_address(uintptr vAddr);
+uintptr mcall_query_memory(uintptr id, memory_block_info *p);
+uintptr mcall_hart_id(void);
+uintptr htif_interrupt(uintptr mcause, uintptr *regs);
+uintptr mcall_console_putchar(u8 ch);
 void putchar(void);
-uintptr_t mcall_dev_req(sbi_device_message *m);
-uintptr_t mcall_dev_resp(void);
-uintptr_t mcall_set_timer(unsigned long long when);
-uintptr_t mcall_clear_ipi(void);
-uintptr_t mcall_send_ipi(uintptr_t recipient);
-uintptr_t mcall_shutdown(void);
-void hls_init(uint32_t hart_id);	// need to call this before launching linux
+uintptr mcall_dev_req(sbi_device_message *m);
+uintptr mcall_dev_resp(void);
+uintptr mcall_set_timer(unsigned long long when);
+uintptr mcall_clear_ipi(void);
+uintptr mcall_send_ipi(uintptr recipient);
+uintptr mcall_shutdown(void);
+void hls_init(u32 hart_id);	// need to call this before launching linux

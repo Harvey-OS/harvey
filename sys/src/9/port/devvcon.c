@@ -41,16 +41,16 @@ extern Dev vcondevtab;
 
 // Array of defined virtconsoles and their number
 
-static uint32_t nvcon;
+static u32 nvcon;
 
 static Vqctl **vcons;
 
 // Read-write common code
 
 static int
-rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
+rwcommon(Vqctl *d, void *va, i32 n, int qidx)
 {
-	uint16_t descr[1];
+	u16 descr[1];
 	Virtq *vq = d->vqs[qidx];
 	if(vq == nil){
 		error("virtcon: no virtqueue");
@@ -60,7 +60,7 @@ rwcommon(Vqctl *d, void *va, int32_t n, int qidx)
 		error("virtcon: queue low");
 		return -1;
 	}
-	uint8_t *buf = malloc(n);
+	u8 *buf = malloc(n);
 	if(buf == nil){
 		error("devvcon: no memory to allocate the exchange buffer");
 		return -1;
@@ -129,8 +129,8 @@ vconwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, vcongen);
 }
 
-static int32_t
-vconstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+vconstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, (Dirtab *)0, 0L, vcongen);
 }
@@ -150,8 +150,8 @@ vconopen(Chan *c, int omode)
 	return c;
 }
 
-static int32_t
-vconread(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+vconread(Chan *c, void *va, i32 n, i64 offset)
 {
 	int vdidx = DEV(c->qid);
 	if(vdidx >= nvcon)
@@ -166,8 +166,8 @@ vconread(Chan *c, void *va, int32_t n, int64_t offset)
 	return -1;
 }
 
-static int32_t
-vconwrite(Chan *c, void *va, int32_t n, int64_t offset)
+static i32
+vconwrite(Chan *c, void *va, i32 n, i64 offset)
 {
 	int vdidx = DEV(c->qid);
 	if(vdidx >= nvcon)
@@ -188,8 +188,8 @@ vconclose(Chan *c)
 {
 }
 
-static uint32_t
-wantfeat(uint32_t f)
+static u32
+wantfeat(u32 f)
 {
 	return VIRTIO_CONSOLE_F_SIZE;	     // We want only console size, but not multiport for simplicity
 }
@@ -197,7 +197,7 @@ wantfeat(uint32_t f)
 static void
 vconinit(void)
 {
-	uint32_t nvdev;
+	u32 nvdev;
 
 	print("virtio-serial-pci initializing\n");
 	nvdev = getvdevnum();
@@ -213,7 +213,7 @@ vconinit(void)
 	print("virtio consoles found: %d\n", nvcon);
 	for(int i = 0; i < nvcon; i++){
 		print("initializing virtual console %d\n", i);
-		uint32_t feat = vdevfeat(vcons[i], wantfeat);
+		u32 feat = vdevfeat(vcons[i], wantfeat);
 		print("features: 0x%08x\n", feat);
 		struct virtio_console_config vcfg;
 		int rc = readvdevcfg(vcons[i], &vcfg, sizeof(vcfg), 0);

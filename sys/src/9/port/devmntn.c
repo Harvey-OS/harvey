@@ -34,13 +34,13 @@ struct Mntrpc {
 	Fcall reply;	 /* Incoming reply */
 	Mnt *m;		 /* Mount device during rpc */
 	Rendez r;	 /* Place to hang out */
-	uint8_t *rpc;	 /* I/O Data buffer */
+	u8 *rpc;	 /* I/O Data buffer */
 	uint rpclen;	 /* len of buffer */
 	Block *b;	 /* reply blocks */
 	char done;	 /* Rpc completed */
-	uint64_t stime;	 /* start time for mnt statistics */
-	uint32_t reqlen; /* request length for mnt statistics */
-	uint32_t replen; /* reply length for mnt statistics */
+	u64 stime;	 /* start time for mnt statistics */
+	u32 reqlen; /* request length for mnt statistics */
+	u32 replen; /* reply length for mnt statistics */
 	Mntrpc *flushed; /* message this one flushes */
 };
 
@@ -58,19 +58,19 @@ struct Mntalloc {
 	int nrpcfree;
 	int nrpcused;
 	uint id;
-	uint32_t tagmask[NMASK];
+	u32 tagmask[NMASK];
 } mntalloc;
 
 Mnt *mntchk(Chan *);
-void mntdirfix(uint8_t *, Chan *);
-Mntrpc *mntflushalloc(Mntrpc *, uint32_t);
+void mntdirfix(u8 *, Chan *);
+Mntrpc *mntflushalloc(Mntrpc *, u32);
 void mntflushfree(Mnt *, Mntrpc *);
 void mntfree(Mntrpc *);
 void mntgate(Mnt *);
 void mntpntfree(Mnt *);
 void mntqrm(Mnt *, Mntrpc *);
-Mntrpc *mntralloc(Chan *, uint32_t);
-int32_t mntrdwr(int, Chan *, void *, int32_t, int64_t);
+Mntrpc *mntralloc(Chan *, u32);
+i32 mntrdwr(int, Chan *, void *, i32, i64);
 int mntrpcread(Mnt *, Mntrpc *);
 void mountio(Mnt *, Mntrpc *);
 void mountmux(Mnt *, Mntrpc *);
@@ -81,7 +81,7 @@ Chan *mntchann(void);
 extern char Esbadstat[];
 extern char Enoversion[];
 
-void (*mntstats)(int, Chan *, uint64_t, uint32_t);
+void (*mntstats)(int, Chan *, u64, u32);
 
 static void
 mntreset(void)
@@ -211,15 +211,15 @@ Return:
 // uid[ s ]    owner name
 // gid[ s ]    group name
 // muid[ s ]   name of the user who last modified the file
-static int32_t
-mntstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+mntstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
 	usize nstat, nl;
 	char *name;
-	uint8_t *buf;
+	u8 *buf;
 
 	if(n < BIT16SZ)
 		error(Eshortstat);
@@ -234,7 +234,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 	mountrpc(mnt, r);
 	name = chanpath(c);
 	nl = strlen(name);
-	buf = (uint8_t *)r->reply.data;
+	buf = (u8 *)r->reply.data;
 	nstat = STATFIXLEN + nl + 16;	     // max uid print + 0 null terminator
 	// This looks crazy, right? It's how you tell the
 	// caller there is more data to read. But you give it
@@ -249,8 +249,8 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		// AND the leading 16-bit size. The leading 16-bit size
 		// is of a packet with 0 length strings is STATFIXLEN - 2
 		// The offsets below include the leading 16-bit size
-		uint64_t _64;
-		uint32_t _32;
+		u64 _64;
+		u32 _32;
 		int ul;
 		// This is an offset for where the strings go.
 		int o = STATFIXLEN - 4 * BIT16SZ + BIT16SZ;
@@ -276,12 +276,12 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 		// differ. We have to get it and put it.
 		// Plan 9 has a y2032 problem!
 		_64 = GBIT64(buf + 48);
-		PBIT32(dp + 25, (uint32_t)_64);
+		PBIT32(dp + 25, (u32)_64);
 		_64 = GBIT64(buf + 64);
-		PBIT32(dp + 29, (uint32_t)_64);
+		PBIT32(dp + 29, (u32)_64);
 
 		// file length. Compatible bit encoding.
-		memmove(dp + 33, buf + 49, sizeof(uint64_t));
+		memmove(dp + 33, buf + 49, sizeof(u64));
 
 		// put the name as a string.
 		sprint((char *)dp + o, "%s", name);
@@ -386,7 +386,7 @@ mntopen(Chan *c, int omode)
 	// Using different system calls for files
 	// and directories is a great idea, said
 	// no one ever.
-	uint8_t t = c->qid.type;
+	u8 t = c->qid.type;
 	if(t & QTDIR){
 	} else if(t){
 		error("only dirs or regular files");
@@ -439,8 +439,8 @@ mntremove(Chan *c)
 	mntclunk(c, Tremove);
 }
 
-static int32_t
-mntwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+mntwstat(Chan *c, u8 *dp, i32 n)
 {
 	Proc *up = externup();
 	Mnt *mnt;
@@ -462,11 +462,11 @@ mntwstat(Chan *c, uint8_t *dp, int32_t n)
 	return n;
 }
 
-static int32_t
-mntread(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+mntread(Chan *c, void *buf, i32 n, i64 off)
 {
 	Proc *up = externup();
-	uint8_t *p, *e;
+	u8 *p, *e;
 	int nc, cache, isdir;
 
 	isdir = 0;
@@ -573,13 +573,13 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 	// copy the name out. copy the qid out. copy the record size out. Continue.
 	memset(buf, 0, n);
 	if(isdir){
-		uint8_t *b = buf;
+		u8 *b = buf;
 
 		int tot = 0;
 		int a = n / 8;
 		if(a == 0)
 			a = 128;
-		uint8_t *m = mallocz(n, 0);
+		u8 *m = mallocz(n, 0);
 		if(waserror()){
 			free(m);
 		}
@@ -616,7 +616,7 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 		}
 		if(p != e)
 			error(Esbadstat);
-		n = b - (uint8_t *)buf;
+		n = b - (u8 *)buf;
 		free(m);
 		poperror();
 	} else {
@@ -626,8 +626,8 @@ mntread(Chan *c, void *buf, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+mntwrite(Chan *c, void *buf, i32 n, i64 off)
 {
 	int result = n;
 	int offset = 0;

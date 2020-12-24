@@ -22,11 +22,11 @@
 /*
  * mem routines
  */
-extern void *memccpy(void *, void *, int, uint32_t);
-extern void *memset(void *, int, uint32_t);
-extern int memcmp(void *, void *, uint32_t);
-extern void *memmove(void *, void *, uint32_t);
-extern void *memchr(void *, int, uint32_t);
+extern void *memccpy(void *, void *, int, u32);
+extern void *memset(void *, int, u32);
+extern int memcmp(void *, void *, u32);
+extern void *memmove(void *, void *, u32);
+extern void *memchr(void *, int, u32);
 
 /*
  * string routines
@@ -36,10 +36,10 @@ extern char *strchr(const char *, int);
 extern int strcmp(const char *, const char *);
 extern char *strcpy(char *, const char *);
 extern char *strecpy(char *, char *, const char *);
-extern char *strncat(char *, const char *, int32_t);
-extern size_t strlcpy(char *, const char *, int32_t);
-extern char *strncpy(char *, const char *, int32_t);
-extern int strncmp(const char *, const char *, int32_t);
+extern char *strncat(char *, const char *, i32);
+extern usize strlcpy(char *, const char *, i32);
+extern char *strncpy(char *, const char *, i32);
+extern int strncmp(const char *, const char *, i32);
 extern char *strrchr(const char *, int);
 extern int strlen(const char *);
 extern char *strstr(const char *, const char *);
@@ -59,27 +59,27 @@ enum {
  */
 extern int runetochar(char *, Rune *);
 extern int chartorune(Rune *, char *);
-extern int runelen(int32_t);
+extern int runelen(i32);
 extern int fullrune(char *, int);
 extern int utflen(char *);
-extern int utfnlen(char *, int32_t);
-extern char *utfrune(char *, int32_t);
+extern int utfnlen(char *, i32);
+extern char *utfrune(char *, i32);
 
 /*
  * malloc
  */
-extern void *malloc(uint32_t);
-extern void *mallocz(uint32_t, int);
+extern void *malloc(u32);
+extern void *mallocz(u32, int);
 extern void free(void *);
-extern uint32_t msize(void *);
-extern void *mallocalign(uint32_t, uint32_t, int32_t, uint32_t);
-extern void setmalloctag(void *, uint32_t);
-extern void setrealloctag(void *, uint32_t);
-extern uint32_t getmalloctag(void *);
-extern uint32_t getrealloctag(void *);
-extern void *realloc(void *, uint32_t);
+extern u32 msize(void *);
+extern void *mallocalign(u32, u32, i32, u32);
+extern void setmalloctag(void *, u32);
+extern void setrealloctag(void *, u32);
+extern u32 getmalloctag(void *);
+extern u32 getrealloctag(void *);
+extern void *realloc(void *, u32);
 /* from BSD */
-void *reallocarray(void *base, size_t nel, size_t size);
+void *reallocarray(void *base, usize nel, usize size);
 
 /*
  * print routines
@@ -97,7 +97,7 @@ struct Fmt {
 	int r;		     /* % format Rune */
 	int width;
 	int prec;
-	uint32_t flags;
+	u32 flags;
 };
 
 enum {
@@ -139,7 +139,7 @@ extern void quotefmtinstall(void);
 /*
  * Time-of-day
  */
-extern void cycles(uint64_t *); /* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+extern void cycles(u64 *); /* 64-bit value of the cycle counter if there is one, 0 if there isn't */
 
 /*
  * NIX core types
@@ -161,11 +161,11 @@ extern char *cleanname(char *);
 extern int dec64(unsigned char *, int, char *, int);
 extern int getfields(char *, char **, int, int, char *);
 extern int gettokens(char *, char **, int, char *);
-extern int32_t strtol(char *, char **, int);
-extern uint32_t strtoul(char *, char **, int);
-extern int64_t strtoll(char *, char **, int);
-extern uint64_t strtoull(char *, char **, int);
-extern void qsort(void *, int32_t, int32_t,
+extern i32 strtol(char *, char **, int);
+extern u32 strtoul(char *, char **, int);
+extern i64 strtoll(char *, char **, int);
+extern u64 strtoull(char *, char **, int);
+extern void qsort(void *, i32, i32,
 		  int (*)(const void *, const void *));
 /*
  * Syscall data structures
@@ -220,21 +220,21 @@ typedef struct Waitmsg Waitmsg;
 #define DMEXEC 0x1 /* mode bit for execute permission */
 
 struct Qid {
-	uint64_t path;
-	uint32_t vers;
+	u64 path;
+	u32 vers;
 	unsigned char type;
 };
 
 struct Dir {
 	/* system-modified data */
-	uint16_t type; /* server type */
+	u16 type; /* server type */
 	uint dev;      /* server subtype */
 	/* file data */
 	Qid qid;	/* unique id from server */
-	uint32_t mode;	/* permissions */
-	uint32_t atime; /* last read time */
-	uint32_t mtime; /* last write time */
-	int64_t length; /* file length: see <u.h> */
+	u32 mode;	/* permissions */
+	u32 atime; /* last read time */
+	u32 mtime; /* last write time */
+	i64 length; /* file length: see <u.h> */
 	char *name;	/* last element of path */
 	char *uid;	/* owner name */
 	char *gid;	/* group name */
@@ -243,7 +243,7 @@ struct Dir {
 
 struct Waitmsg {
 	int pid;	  /* of loved one */
-	uint32_t time[3]; /* of loved one and descendants */
+	u32 time[3]; /* of loved one and descendants */
 	char msg[ERRMAX]; /* actually variable-size in user mode */
 };
 
@@ -254,7 +254,7 @@ typedef struct Zio Zio;
 
 struct Zio {
 	void *data;
-	uint32_t size;
+	u32 size;
 };
 
 extern char etext[];
@@ -287,16 +287,16 @@ typedef struct PSlice PSlice;
 
 struct PSlice {
 	void **ptrs;
-	size_t len;
-	size_t capacity;
+	usize len;
+	usize capacity;
 };
 
 void psliceinit(PSlice *slice);
 void psliceclear(PSlice *slice);
-void *psliceget(PSlice *slice, size_t i);
-int psliceput(PSlice *slice, size_t i, void *p);
-int pslicedel(PSlice *slice, size_t i);
+void *psliceget(PSlice *slice, usize i);
+int psliceput(PSlice *slice, usize i, void *p);
+int pslicedel(PSlice *slice, usize i);
 void psliceappend(PSlice *s, void *p);
-size_t pslicelen(PSlice *slice);
+usize pslicelen(PSlice *slice);
 void **pslicefinalize(PSlice *slice);
 void pslicedestroy(PSlice *slice);

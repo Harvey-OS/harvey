@@ -61,7 +61,7 @@ pamapdump(void)
 }
 
 PAMap *
-pamapnew(uintmem addr, usize size, int type)
+pamapnew(u64 addr, usize size, int type)
 {
 	PAMap *m = malloc(sizeof(*m));
 	assert(m != nil);
@@ -75,7 +75,7 @@ pamapnew(uintmem addr, usize size, int type)
 }
 
 static void
-pamapclearrange(uintmem addr, usize size, int type)
+pamapclearrange(u64 addr, usize size, int type)
 {
 	PAMap **ppp = &pamap, *np = pamap;
 	while(np != nil && size > 0){
@@ -107,7 +107,7 @@ pamapclearrange(uintmem addr, usize size, int type)
 		// it becomes empty.
 		if(np->addr < addr){
 			assert(addr < np->addr + np->size);
-			uintmem osize = np->size;
+			u64 osize = np->size;
 			np->size = addr - np->addr;
 			PAMap *tp = pamapnew(addr, osize - np->size, np->type);
 			tp->next = np->next;
@@ -144,7 +144,7 @@ pamapclearrange(uintmem addr, usize size, int type)
 }
 
 void
-pamapinsert(uintmem addr, usize size, int type)
+pamapinsert(u64 addr, usize size, int type)
 {
 	PAMap *np, *pp, **ppp;
 

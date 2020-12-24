@@ -45,11 +45,11 @@ enum {
 /* This represents a trace "hit" or event */
 typedef struct Tracelog Tracelog;
 struct Tracelog {
-	uint64_t ticks;
+	u64 ticks;
 	int info;
-	uintptr_t pc;
+	uintptr pc;
 	/* these are different depending on type */
-	uintptr_t dat[5];
+	uintptr dat[5];
 	int machno;
 };
 
@@ -118,7 +118,7 @@ char hex[] = {
 
 /* big-endian ... */
 void
-hex8(uint32_t l, char *c)
+hex8(u32 l, char *c)
 {
 	int i;
 	for(i = 2; i; i--){
@@ -128,7 +128,7 @@ hex8(uint32_t l, char *c)
 }
 
 void
-hex16(uint32_t l, char *c)
+hex16(u32 l, char *c)
 {
 	int i;
 	for(i = 4; i; i--){
@@ -138,7 +138,7 @@ hex16(uint32_t l, char *c)
 }
 
 void
-hex32(uint32_t l, char *c)
+hex32(u32 l, char *c)
 {
 	int i;
 	for(i = 8; i; i--){
@@ -148,7 +148,7 @@ hex32(uint32_t l, char *c)
 }
 
 void
-hex64(uint64_t l, char *c)
+hex64(u64 l, char *c)
 {
 	hex32(l >> 32, c);
 	hex32(l, &c[8]);
@@ -168,8 +168,8 @@ logfull(void)
 }
 #endif
 
-static uint64_t
-idx(uint64_t f)
+static u64
+idx(u64 f)
 {
 	return f & logmask;
 }
@@ -213,7 +213,7 @@ traceslot(char *pc, int dopanic)
 		print("Invalid PC %p\n", pc);
 		return nil;
 	}
-	index = (int)((uintptr_t)pc - KTZERO);
+	index = (int)((uintptr)pc - KTZERO);
 	if(index > codesize){
 		if(dopanic){
 			panic("Bad PC %p", pc);
@@ -346,7 +346,7 @@ newpl(void)
 /* Called every time a (traced) function starts */
 /* this is not really smp safe. FIX */
 void
-tracein(void *pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
+tracein(void *pc, uintptr a1, uintptr a2, uintptr a3, uintptr a4)
 {
 	Proc *up = externup();
 	struct Tracelog *pl;
@@ -376,7 +376,7 @@ tracein(void *pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 
 	cycles(&pl->ticks);
 
-	pl->pc = (uintptr_t)pc;
+	pl->pc = (uintptr)pc;
 	if(up)
 		pl->dat[0] = up->pid;
 	else
@@ -394,7 +394,7 @@ tracein(void *pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 
 /* Called every time a traced function exits */
 void
-traceout(void *pc, uintptr_t retval)
+traceout(void *pc, uintptr retval)
 {
 	Proc *up = externup();
 	struct Tracelog *pl;
@@ -419,7 +419,7 @@ traceout(void *pc, uintptr_t retval)
 
 	cycles(&pl->ticks);
 
-	pl->pc = (uintptr_t)pc;
+	pl->pc = (uintptr)pc;
 	if(up)
 		pl->dat[0] = up->pid;
 	else
@@ -467,8 +467,8 @@ tracewalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, tracedir, nelem(tracedir), devgen);
 }
 
-static int32_t
-tracestat(Chan *c, uint8_t *db, int32_t n)
+static i32
+tracestat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, tracedir, nelem(tracedir), devgen);
 }
@@ -481,7 +481,7 @@ traceopen(Chan *c, int omode)
 	 * if the basic alloc fails. You can resize it later.
 	 */
 
-	codesize = (uintptr_t)etext - (uintptr_t)KTZERO;
+	codesize = (uintptr)etext - (uintptr)KTZERO;
 	if(!tracemap)
 		//tracemap = mallocz(sizeof(struct tracemap *)*codesize, 1);
 		tracemap = mallocz(sizeof(struct Trace *) * codesize, 1);
@@ -510,8 +510,8 @@ traceclose(Chan *c)
  * The data reading involves deep rminnich magic so we don't have
  * to call print(), which is traced.
  */
-static int32_t
-traceread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+traceread(Chan *c, void *a, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	char *buf;
@@ -529,7 +529,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 	}
 
 	if(c->qid.type == QTDIR){
-		int32_t l = devdirread(c, a, n, tracedir, nelem(tracedir), devgen);
+		i32 l = devdirread(c, a, n, tracedir, nelem(tracedir), devgen);
 		poperror();
 		traceactive = saveactive;
 		return l;
@@ -572,7 +572,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 
 		// Set the printsize
 		/* 32-bit E PCPCPCPC TIMETIMETIMETIME PID# CR XXARG1XX XXARG2XX XXARG3XX XXARG4XX\n */
-		if(sizeof(uintptr_t) == 4){
+		if(sizeof(uintptr) == 4){
 			printsize = 73;	       // 32-bit format
 		} else {
 			printsize = 121;	// must be 64-bit
@@ -590,7 +590,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 			if((i + printsize) > n)
 				break;
 			/* simple format */
-			if(sizeof(uintptr_t) == 4){
+			if(sizeof(uintptr) == 4){
 				cp[0] = eventname[pl->info];
 				cp++;
 				*cp++ = ' ';
@@ -622,7 +622,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 				cp[0] = eventname[pl->info];
 				cp++;
 				*cp++ = ' ';
-				hex64((uint64_t)pl->pc, cp);
+				hex64((u64)pl->pc, cp);
 				cp[16] = ' ';
 				cp += 17;
 				hex64(pl->ticks, cp);
@@ -662,8 +662,8 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 /*
  * Process commands sent to the ctl file.
  */
-static int32_t
-tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
+static i32
+tracewrite(Chan *c, void *a, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	char *tok[6];	     //changed this so "tracein" works with the new 4th arg
@@ -681,7 +681,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 		traceactive = saveactive;
 		nexterror();
 	}
-	switch((uintptr_t)c->qid.path){
+	switch((uintptr)c->qid.path){
 	default:
 		error("tracewrite: bad qid");
 	case Qctl:
@@ -699,19 +699,19 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 			}
 			p = *pp;
 			if((ntok > 3) && (!strcmp(tok[3], "new"))){
-				uintptr_t addr;
+				uintptr addr;
 				char *start, *end, *func;
 				if(ntok != 5){
 					error("devtrace: usage: trace <ktextstart> <ktextend> new <name>");
 				}
-				addr = (uintptr_t)strtoul(tok[1], &ep, 16);
+				addr = (uintptr)strtoul(tok[1], &ep, 16);
 				if(addr < KTZERO)
 					addr |= KTZERO;
 				func = start = (void *)addr;
 				if(*ep){
 					error("devtrace: start address not in recognized format");
 				}
-				addr = (uintptr_t)strtoul(tok[2], &ep, 16);
+				addr = (uintptr)strtoul(tok[2], &ep, 16);
 				if(addr < KTZERO)
 					addr |= KTZERO;
 				end = (void *)addr;
@@ -775,11 +775,11 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 		} else if(!strcmp(tok[0], "query")){
 			/* See if addr is being traced */
 			Trace *p;
-			uintptr_t addr;
+			uintptr addr;
 			if(ntok != 2){
 				error("devtrace: usage: query <addr>");
 			}
-			addr = (uintptr_t)strtoul(tok[1], &ep, 16);
+			addr = (uintptr)strtoul(tok[1], &ep, 16);
 			if(addr < KTZERO)
 				addr |= KTZERO;
 			p = traced((void *)addr, 0);
@@ -815,19 +815,19 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 			}
 		} else if(!strcmp(tok[0], "testtracein")){
 			/* Manually jump to a certain bit of traced code */
-			uintptr_t pc, a1, a2, a3, a4;
+			uintptr pc, a1, a2, a3, a4;
 			int x;
 
 			if(ntok != 6)
 				error("devtrace: usage: testtracein <pc> <arg1> <arg2> <arg3> <arg4>");
 
-			pc = (uintptr_t)strtoul(tok[1], &ep, 16);
+			pc = (uintptr)strtoul(tok[1], &ep, 16);
 			if(pc < KTZERO)
 				pc |= KTZERO;
-			a1 = (uintptr_t)strtoul(tok[2], &ep, 16);
-			a2 = (uintptr_t)strtoul(tok[3], &ep, 16);
-			a3 = (uintptr_t)strtoul(tok[4], &ep, 16);
-			a4 = (uintptr_t)strtoul(tok[5], &ep, 16);
+			a1 = (uintptr)strtoul(tok[2], &ep, 16);
+			a2 = (uintptr)strtoul(tok[3], &ep, 16);
+			a3 = (uintptr)strtoul(tok[4], &ep, 16);
+			a4 = (uintptr)strtoul(tok[5], &ep, 16);
 
 			if(traced((void *)pc, 0)){
 				x = splhi();

@@ -75,8 +75,8 @@ capremove(Chan *c)
 		error(Eperm);
 }
 
-static int32_t
-capstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+capstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, capdir, ncapdir, devgen);
 }
@@ -96,7 +96,7 @@ capopen(Chan *c, int omode)
 		return c;
 	}
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qhash:
 		if(!iseve())
 			error(Eperm);
@@ -124,7 +124,7 @@ hashstr(uchar *hash)
  */
 
 static Caphash *
-remcap(uint8_t *hash)
+remcap(u8 *hash)
 {
 	Caphash *t, **l;
 
@@ -149,7 +149,7 @@ remcap(uint8_t *hash)
 
 /* add a capability, throwing out any old ones */
 static void
-addcap(uint8_t *hash)
+addcap(u8 *hash)
 {
 	Caphash *p, *t, **l;
 
@@ -183,10 +183,10 @@ capclose(Chan *c)
 {
 }
 
-static int32_t
-capread(Chan *c, void *va, int32_t n, int64_t m)
+static i32
+capread(Chan *c, void *va, i32 n, i64 m)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, capdir, ncapdir, devgen);
 
@@ -197,17 +197,17 @@ capread(Chan *c, void *va, int32_t n, int64_t m)
 	return n;
 }
 
-static int32_t
-capwrite(Chan *c, void *va, int32_t n, int64_t m)
+static i32
+capwrite(Chan *c, void *va, i32 n, i64 m)
 {
 	Caphash *p;
 	char *cp;
-	uint8_t hash[Hashlen];
+	u8 hash[Hashlen];
 	char *key, *from, *to;
 	char err[256];
 	Proc *up = externup();
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qhash:
 		if(!iseve())
 			error(Eperm);
@@ -233,7 +233,8 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 		if(key == nil)
 			error(Eshort);
 		*key++ = 0;
-		hmac_sha1((uint8_t *)from, strlen(from), (uint8_t *)key, strlen(key), hash, nil);
+		hmac_sha1((u8 *)from, strlen(from), (u8 *)key, strlen(key),
+			  hash, nil);
 
 		p = remcap(hash);
 		if(p == nil){

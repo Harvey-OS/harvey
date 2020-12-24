@@ -157,7 +157,7 @@ scanpci(void)
 {
 	static int already = 0;
 	int i;
-	uint32_t io;
+	u32 io;
 	Ctlr *ctlr;
 	Pcidev *p;
 	Ecapio *capio;

@@ -28,11 +28,11 @@ void lowrisc_flush(int idx);
 // the hardware explodes. So, the uart, if 0, is ignored.
 // At some point it will be ready.
 
-extern uint8_t *uart;
-extern uintptr_t uartpa;
+extern u8 *uart;
+extern uintptr uartpa;
 
 static void
-spike_putchar(uint8_t c)
+spike_putchar(u8 c)
 {
 	*uart = c;
 }
@@ -62,7 +62,7 @@ uart_init(void)
 }
 
 void
-putchar(uint8_t c)
+putchar(u8 c)
 {
 	switch(uartpa){
 	case 0x40001000:

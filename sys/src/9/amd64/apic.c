@@ -79,22 +79,22 @@ enum {			     /* Tdc */
        DivX1 = 0x0000000b,   /* Divide by 1 */
 };
 
-uint8_t *apicbase;
+u8 *apicbase;
 static int apmachno = 1;
 
 Apic xlapic[Napic];
 Mach *xlapicmachptr[Napic]; /* maintained, but unused */
 
-static uint32_t
+static u32
 apicrget(int r)
 {
-	return *((volatile uint32_t *)(apicbase + r));
+	return *((volatile u32 *)(apicbase + r));
 }
 
 static void
-apicrput(int r, uint32_t data)
+apicrput(int r, u32 data)
 {
-	*((volatile uint32_t *)(apicbase + r)) = data;
+	*((volatile u32 *)(apicbase + r)) = data;
 }
 
 int
@@ -116,7 +116,7 @@ apicisr(int vecno)
 }
 
 void
-apicinit(int apicno, uintmem pa, int isbp)
+apicinit(int apicno, u64 pa, int isbp)
 {
 	Apic *apic;
 
@@ -224,8 +224,8 @@ int
 apiconline(void)
 {
 	Apic *apic;
-	uint64_t tsc;
-	uint32_t dfr, ver;
+	u64 tsc;
+	u32 dfr, ver;
 	int apicno, nlvt;
 
 	if(apicbase == nil)
@@ -373,11 +373,11 @@ apictimerenab(void)
 }
 
 void
-apictimerset(uint64_t next)
+apictimerset(u64 next)
 {
 	Mpl pl;
 	Apic *apic;
-	int64_t period;
+	i64 period;
 
 	apic = &xlapic[(apicrget(Id) >> 24) & 0xff];
 
@@ -401,9 +401,9 @@ apictimerset(uint64_t next)
 }
 
 void
-apicsipi(int apicno, uintmem pa)
+apicsipi(int apicno, u64 pa)
 {
-	uint32_t crhi;
+	u32 crhi;
 
 	/*
 	 * SIPI - Start-up IPI.
@@ -418,7 +418,8 @@ apicsipi(int apicno, uintmem pa)
 
 	for(int i = 0; i < 2; i++){
 		apicrput(Ichi, crhi);
-		apicrput(Iclo, DSnone | TMedge | MTsipi | ((uint32_t)pa / (4 * KiB)));
+		apicrput(Iclo,
+			 DSnone | TMedge | MTsipi | ((u32)pa / (4 * KiB)));
 		microdelay(200);
 	}
 }

@@ -154,10 +154,10 @@ struct Drive {
 	unsigned char state;
 	unsigned char smartrs;
 
-	uint64_t sectors;
-	uint32_t secsize;
-	uint32_t intick; /* start tick of current transfer */
-	uint32_t lastseen;
+	u64 sectors;
+	u32 secsize;
+	u32 intick; /* start tick of current transfer */
+	u32 lastseen;
 	int wait;
 	unsigned char mode; /* DMautoneg, satai or sataii */
 	unsigned char active;
@@ -167,15 +167,15 @@ struct Drive {
 	char model[40 + 1];
 
 	int infosz;
-	uint16_t *info;
-	uint16_t tinyinfo[2]; /* used iff malloc fails */
+	u16 *info;
+	u16 tinyinfo[2]; /* used iff malloc fails */
 
 	int driveno; /* ctlr*NCtlrdrv + unit */
 	/* controller port # != driveno when not all ports are enabled */
 	int portno;
 
-	uint32_t lastintr0;
-	uint32_t intrs;
+	u32 lastintr0;
+	u32 intrs;
 };
 
 struct Ctlr {
@@ -189,7 +189,7 @@ struct Ctlr {
 
 	/* virtual register addresses */
 	unsigned char *mmio;
-	uint32_t *lmmio;
+	u32 *lmmio;
 	Ahba *hba;
 
 	/* phyical register address */
@@ -200,8 +200,8 @@ struct Ctlr {
 	int ndrive;
 	int mport; /* highest drive # (0-origin) on ich9 at least */
 
-	uint32_t lastintr0;
-	uint32_t intrs; /* not attributable to any drive */
+	u32 lastintr0;
+	u32 intrs; /* not attributable to any drive */
 };
 
 struct Asleep {
@@ -229,7 +229,7 @@ static char stab[] = {
 	[0] = 'i', 'm', [8] = 't', 'c', 'p', 'e', [16] = 'N', 'I', 'W', 'B', 'D', 'C', 'H', 'S', 'T', 'F', 'X'};
 
 static void
-serrstr(uint32_t r, char *s, char *e)
+serrstr(u32 r, char *s, char *e)
 {
 	int i;
 
@@ -400,7 +400,7 @@ asleep(int ms)
 static int
 ahciportreset(Aportc *c)
 {
-	uint32_t *cmd, i;
+	u32 *cmd, i;
 	Aport *p;
 
 	p = c->p;
@@ -479,7 +479,7 @@ ahciflushcache(Aportc *pc)
 	return 0;
 }
 
-static uint16_t
+static u16
 gbit16(void *a)
 {
 	unsigned char *i;
@@ -488,10 +488,10 @@ gbit16(void *a)
 	return i[1] << 8 | i[0];
 }
 
-static uint32_t
+static u32
 gbit32(void *a)
 {
-	uint32_t j;
+	u32 j;
 	unsigned char *i;
 
 	i = a;
@@ -502,13 +502,13 @@ gbit32(void *a)
 	return j;
 }
 
-static uint64_t
+static u64
 gbit64(void *a)
 {
 	unsigned char *i;
 
 	i = a;
-	return (uint64_t)gbit32(i + 4) << 32 | gbit32(a);
+	return (u64)gbit32(i + 4) << 32 | gbit32(a);
 }
 
 static int
@@ -533,11 +533,11 @@ ahciidentify0(Aportc *pc, void *id, int atapi)
 	return ahciwait(pc, 3 * 1000);
 }
 
-static int64_t
-ahciidentify(Aportc *pc, uint16_t *id)
+static i64
+ahciidentify(Aportc *pc, u16 *id)
 {
 	int i, sig;
-	int64_t s;
+	i64 s;
 	Aportm *pm;
 
 	pm = pc->pm;
@@ -655,7 +655,7 @@ ahcicomreset(Aportc *pc)
 static int
 ahciidle(Aport *port)
 {
-	uint32_t *p, i, r;
+	u32 *p, i, r;
 
 	p = &port->cmd;
 	if((*p & Arun) == 0)
@@ -723,13 +723,13 @@ setupfis(Afis *f)
 	f->p = f->base + 0x20;
 	f->r = f->base + 0x40;
 	f->u = f->base + 0x60;
-	f->devicebits = (uint32_t *)(f->base + 0x58);
+	f->devicebits = (u32 *)(f->base + 0x58);
 }
 
 static void
 ahciwakeup(Aport *p)
 {
-	uint16_t s;
+	u16 s;
 
 	s = p->sstatus;
 	if((s & Intpm) != Intslumber && (s & Intpm) != Intpartpwr)
@@ -809,7 +809,7 @@ ahcidisable(Ahba *h)
 }
 
 static int
-countbits(uint32_t u)
+countbits(u32 u)
 {
 	int n;
 
@@ -837,7 +837,7 @@ ahciconf(Ctlr *ctlr)
 		pcicfgw16(ctlr->pci, 0x92, pcicfgr16(ctlr->pci, 0x92) | 0xf);
 	}
 
-	uint32_t u = h->cap;
+	u32 u = h->cap;
 	dprint("#S/sd%c: type %s port %#p: sss %ld ncs %ld coal %ld "
 	       "%ld ports, led %ld clo %ld ems %ld\n",
 	       ctlr->sdev->idno, tname[ctlr->type], h,
@@ -849,7 +849,7 @@ ahciconf(Ctlr *ctlr)
 }
 
 static void
-idmove(char *p, uint16_t *a, int n)
+idmove(char *p, u16 *a, int n)
 {
 	int i;
 	char *op, *e;
@@ -871,13 +871,13 @@ idmove(char *p, uint16_t *a, int n)
 static int
 identify(Drive *d)
 {
-	uint16_t *id;
-	int64_t osectors, s;
+	u16 *id;
+	i64 osectors, s;
 	unsigned char oserial[21];
 	SDunit *u;
 
 	if(d->info == nil){
-		d->infosz = 512 * sizeof(uint16_t);
+		d->infosz = 512 * sizeof(u16);
 		d->info = malloc(d->infosz);
 	}
 	if(d->info == nil){
@@ -929,10 +929,10 @@ clearci(Aport *p)
 static void
 updatedrive(Drive *d)
 {
-	uint32_t cause, serr, s0, pr, ewake;
+	u32 cause, serr, s0, pr, ewake;
 	char *name;
 	Aport *p;
-	static uint32_t last;
+	static u32 last;
 
 	pr = 1;
 	ewake = 0;
@@ -1009,7 +1009,7 @@ updatedrive(Drive *d)
 }
 
 static void
-pstatus(Drive *d, uint32_t s)
+pstatus(Drive *d, u32 s)
 {
 	/*
 	 * s is masked with Devdet.
@@ -1153,7 +1153,7 @@ westerndigitalhung(Drive *d)
 	}
 }
 
-static uint16_t olds[NCtlr * NCtlrdrv];
+static u16 olds[NCtlr * NCtlrdrv];
 
 static int
 doportreset(Drive *d)
@@ -1193,7 +1193,7 @@ statechange(Drive *d)
 static void
 checkdrive(Drive *d, int i)
 {
-	uint16_t s;
+	u16 s;
 	char *name;
 
 	if(d == nil){
@@ -1316,9 +1316,9 @@ satakproc(void *v)
 }
 
 static void
-isctlrjabbering(Ctlr *c, uint32_t cause)
+isctlrjabbering(Ctlr *c, u32 cause)
 {
-	uint32_t now;
+	u32 now;
 
 	now = TK2MS(sys->ticks);
 	if(now > c->lastintr0){
@@ -1336,7 +1336,7 @@ isctlrjabbering(Ctlr *c, uint32_t cause)
 static void
 isdrivejabbering(Drive *d)
 {
-	uint32_t now;
+	u32 now;
 
 	now = TK2MS(sys->ticks);
 	if(now > d->lastintr0){
@@ -1354,7 +1354,7 @@ static void
 iainterrupt(Ureg *u, void *a)
 {
 	int i;
-	uint32_t cause, mask;
+	u32 cause, mask;
 	Ctlr *c;
 	Drive *d;
 
@@ -1393,7 +1393,7 @@ static void
 awaitspinup(Drive *d)
 {
 	int ms;
-	uint16_t s;
+	u16 s;
 	char *name;
 
 	ilock(&d->Lock);
@@ -1541,7 +1541,7 @@ iaonline(SDunit *unit)
 
 /* returns locked list! */
 static Alist *
-ahcibuild(Drive *d, unsigned char *cmd, void *data, int n, int64_t lba)
+ahcibuild(Drive *d, unsigned char *cmd, void *data, int n, i64 lba)
 {
 	unsigned char *c, acmd, dir, llba;
 	Alist *l;
@@ -1584,7 +1584,7 @@ ahcibuild(Drive *d, unsigned char *cmd, void *data, int n, int64_t lba)
 	c[14] = 0;	/* r */
 	c[15] = 0;	/* control */
 
-	*(uint32_t *)(c + 16) = 0;
+	*(u32 *)(c + 16) = 0;
 
 	l->flags = 1 << 16 | Lpref | 0x5; /* Lpref ?? */
 	if(dir == Write)
@@ -1636,9 +1636,9 @@ ahcibuildpkt(Aportm *pm, SDreq *r, void *data, int n)
 	c[6] = n >> 8; /* cylinder hi		lba hi	23:16 */
 	c[7] = Obs;
 
-	*(uint32_t *)(c + 8) = 0;
-	*(uint32_t *)(c + 12) = 0;
-	*(uint32_t *)(c + 16) = 0;
+	*(u32 *)(c + 8) = 0;
+	*(u32 *)(c + 12) = 0;
+	*(u32 *)(c + 16) = 0;
 
 	l->flags = 1 << 16 | Lpref | Latapi | 0x5;
 	if(r->write != 0 && data)
@@ -1661,7 +1661,7 @@ ahcibuildpkt(Aportm *pm, SDreq *r, void *data, int n)
 static int
 waitready(Drive *d)
 {
-	uint32_t s, i, delta;
+	u32 s, i, delta;
 
 	for(i = 0; i < 15000; i += 250){
 		if(d->state == Dreset || d->state == Dportreset ||
@@ -1834,7 +1834,7 @@ iario(SDreq *r)
 {
 	Proc *up = externup();
 	int i, n, count, try, max, flag, task;
-	int64_t lba;
+	i64 lba;
 	char *name;
 	unsigned char *cmd, *data;
 	Aport *p;
@@ -2060,7 +2060,7 @@ static SDev *
 iapnp(void)
 {
 	int n, nunit, type;
-	uintptr_t io;
+	uintptr io;
 	Ctlr *c;
 	Pcidev *p;
 	SDev *head, *tail, *s;
@@ -2093,7 +2093,7 @@ iapnp(void)
 			      Tname(c), io, p->did);
 			continue;
 		}
-		c->lmmio = (uint32_t *)c->mmio;
+		c->lmmio = (u32 *)c->mmio;
 		c->pci = p;
 		c->type = type;
 
@@ -2186,7 +2186,7 @@ iarctl(SDunit *u, char *p, int l)
 static void
 runflushcache(Drive *d)
 {
-	int32_t t0;
+	i32 t0;
 
 	t0 = sys->ticks;
 	if(flushcache(d) != 0)
@@ -2354,7 +2354,7 @@ portr(char *p, char *e, uint x)
 static char *
 iartopctl(SDev *sdev, char *p, char *e)
 {
-	uint32_t cap;
+	u32 cap;
 	char pr[25];
 	Ahba *hba;
 	Ctlr *ctlr;

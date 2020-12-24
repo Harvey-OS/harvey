@@ -176,7 +176,7 @@ static Cmdtab proccmd[] = {
 #define NOTEID(q) ((q).vers)
 
 static void procctlreq(Proc *, char *, int);
-static int procctlmemio(Proc *, uintptr_t, int, void *, int);
+static int procctlmemio(Proc *, uintptr, int, void *, int);
 static Chan *proctext(Chan *, Proc *);
 static Segment *txt2data(Proc *, Segment *);
 static int procstopped(void *);
@@ -216,7 +216,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 	Proc *p;
 	char *ename;
 	int pid, sno;
-	uint32_t path, perm, len;
+	u32 path, perm, len;
 
 	if(s == DEVDOTDOT){
 		mkqid(&qid, Qdir, 0, QTDIR);
@@ -322,7 +322,7 @@ notrace(Proc *p, int n, int64_t m)
 static Lock tlck;
 
 static void
-_proctrace(Proc *p, int etype, int64_t ts)
+_proctrace(Proc *p, int etype, i64 ts)
 {
 	Traceevent *te;
 	int tp;
@@ -377,8 +377,8 @@ procwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, 0, 0, procgen);
 }
 
-static int32_t
-procstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+procstat(Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, 0, 0, procgen);
 }
@@ -578,8 +578,8 @@ procopen(Chan *c, int omode)
 	return tc;
 }
 
-static int32_t
-procwstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+procwstat(Chan *c, u8 *db, i32 n)
 {
 	Proc *up = externup();
 	Proc *p;
@@ -619,7 +619,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 		else
 			kstrdup(&p->user, d->uid);
 	}
-	if(d->mode != (uint32_t)~0UL)
+	if(d->mode != (u32)~0UL)
 		p->procmode = d->mode & 0777;
 
 	poperror();
@@ -630,8 +630,8 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 	return n;
 }
 
-static int32_t
-procoffset(int32_t offset, char *va, int *np)
+static i32
+procoffset(i32 offset, char *va, int *np)
 {
 	if(offset > 0){
 		offset -= *np;
@@ -669,7 +669,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 }
 
 static int
-procfds(Proc *p, char *va, int count, int32_t offset)
+procfds(Proc *p, char *va, int count, i32 offset)
 {
 	Proc *up = externup();
 	Fgrp *f;
@@ -807,26 +807,26 @@ eventsavailable(void *v)
 	return tproduced > tconsumed;
 }
 
-static int32_t
-procread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+procread(Chan *c, void *va, i32 n, i64 off)
 {
 	Strace *strace;
 	Proc *up = externup();
 	Proc *p;
 	Mach *ac, *wired;
-	int64_t l;
-	int32_t r;
+	i64 l;
+	i32 r;
 	Waitq *wq;
 	Ureg kur;
-	uint8_t *rptr;
+	u8 *rptr;
 	Confmem *cm;
 	Mntwalk *mw;
 	Segment *sg, *s;
 	int i, j, navail, pid, rsize, sno;
 	char flag[10], *sps, *srv, *statbuf;
-	uintptr_t offset, profoff, u;
+	uintptr offset, profoff, u;
 	int tesz;
-	uintptr_t gdbregs[DBG_MAX_REG_NUM];
+	uintptr gdbregs[DBG_MAX_REG_NUM];
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, va, n, 0, 0, procgen);
@@ -854,7 +854,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 			tconsumed++;
 			navail--;
 		}
-		return rptr - (uint8_t *)va;
+		return rptr - (u8 *)va;
 	}
 
 	if(QID(c->qid) == Qtracepids){
@@ -1005,7 +1005,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		return n;
 
 	case Qregs:
-		rptr = (uint8_t *)p->dbgreg;
+		rptr = (u8 *)p->dbgreg;
 		rsize = sizeof(Ureg);
 	regread:
 		if(rptr == 0){
@@ -1024,7 +1024,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 
 		/* Sorry about the code duplication. TODO: clean this up? */
 	case Qgdbregs:
-		rptr = (uint8_t *)&gdbregs[0];
+		rptr = (u8 *)&gdbregs[0];
 		// not sizeof; it's an odd number of 32-bit words ... yuck.
 		rsize = GDB_NUMREGBYTES;
 
@@ -1046,7 +1046,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	case Qkregs:
 		memset(&kur, 0, sizeof(Ureg));
 		setkernur(&kur, p);
-		rptr = (uint8_t *)&kur;
+		rptr = (u8 *)&kur;
 		rsize = sizeof(Ureg);
 		goto regread;
 
@@ -1307,14 +1307,14 @@ mntscan(Mntwalk *mw, Proc *p)
 	runlock(&pg->ns);
 }
 
-static int32_t
-procwrite(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+procwrite(Chan *c, void *va, i32 n, i64 off)
 {
 	Proc *up = externup();
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
-	uintptr_t offset;
+	uintptr offset;
 
 	if(c->qid.type & QTDIR)
 		error(Eisdir);
@@ -1429,7 +1429,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			for(s = buf; *s != '\0' && (*s < '0' || *s > '9'); s++)
 				;
 			if(*s >= '0' && *s <= '9'){
-				p->tls = (uintptr_t)strtoull(s, nil, 0);	// a-tol-whex! a-tol-whex!
+				p->tls = (uintptr)strtoull(s, nil, 0);	// a-tol-whex! a-tol-whex!
 				poperror();
 				qunlock(&p->debug);
 				psdecref(p);
@@ -1609,10 +1609,10 @@ procctlclosefiles(Proc *p, int all, int fd)
 }
 
 static char *
-parsetime(int64_t *rt, char *s)
+parsetime(i64 *rt, char *s)
 {
-	uint64_t ticks;
-	uint32_t l;
+	u64 ticks;
+	u32 l;
 	char *e, *p;
 	static int p10[] = {100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1};
 
@@ -1663,7 +1663,7 @@ procctlreq(Proc *p, char *va, int n)
 	int npc, pri, core, sno;
 	Cmdbuf *cb;
 	Cmdtab *ct;
-	int64_t time;
+	i64 time;
 	char *e;
 
 	if(p->kp) /* no ctl requests to kprocs */
@@ -1903,16 +1903,16 @@ procstopped(void *a)
 }
 
 static int
-procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
+procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 {
 	Proc *up = externup();
 	KMap *k;
 	Pte *pte;
 	Page *pg;
 	Segment *s;
-	uintptr_t soff, l; /* hmmmm */
-	uint8_t *b;
-	uintmem pgsz;
+	uintptr soff, l; /* hmmmm */
+	u8 *b;
+	u64 pgsz;
 
 	for(;;){
 		s = seg(p, offset, 1);
@@ -1955,7 +1955,7 @@ procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 		kunmap(k);
 		nexterror();
 	}
-	b = (uint8_t *)VA(k);
+	b = (u8 *)VA(k);
 	b += offset & (pgsz - 1);
 	if(read == 1)
 		memmove(va, b, n); /* This can fault */

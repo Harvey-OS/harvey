@@ -28,7 +28,7 @@
 
 #define MAXVQS 8	// maximal detectable number of VQs per device
 
-static uint32_t nvq;	    // number of the detected virtio9p devices
+static u32 nvq;	    // number of the detected virtio9p devices
 
 static Vqctl **cvq;	   // array of device control structure pointers, length = nvq
 
@@ -37,7 +37,7 @@ static Vqctl **cvq;	   // array of device control structure pointers, length = n
 
 typedef struct
 {
-	uint16_t did;
+	u16 did;
 	char *desc;
 } didmap;
 
@@ -96,7 +96,7 @@ static void
 vqintr(Ureg *x, void *arg)
 {
 	Vqctl *dev = arg;
-	uint8_t isr = inb(dev->port + VIRTIO_PCI_ISR);
+	u8 isr = inb(dev->port + VIRTIO_PCI_ISR);
 	if(isr & 2){
 		dev->dcmtime = seconds();
 		return;
@@ -134,7 +134,7 @@ vqinterrupt(Virtq *q)
 // Release a given number of descriptors back to the virtqueue.
 
 void
-reldescr(Virtq *q, int n, uint16_t *descr)
+reldescr(Virtq *q, int n, u16 *descr)
 {
 	ilock(&q->l);
 	for(int i = 0; i < n; i++){
@@ -153,7 +153,7 @@ reldescr(Virtq *q, int n, uint16_t *descr)
 // will be chained in the order of the increasing indice of the array.
 
 int
-getdescr(Virtq *q, int n, uint16_t *descr)
+getdescr(Virtq *q, int n, u16 *descr)
 {
 	if(n > q->vr.num)
 		return -1;
@@ -191,11 +191,11 @@ getdescr(Virtq *q, int n, uint16_t *descr)
 // to the queue.
 
 int
-queuedescr(Virtq *q, int n, uint16_t *descr)
+queuedescr(Virtq *q, int n, u16 *descr)
 {
 	Proc *up = externup();
 	int head = descr[0];
-	uint16_t mask = q->vr.num - 1;	      // q->num is power of 2 so mask has all bits set
+	u16 mask = q->vr.num - 1;	      // q->num is power of 2 so mask has all bits set
 	Rock rock;			      // the sleep-wakeup semaphore on the process stack
 	rock.done = 0;
 	rock.sleep = &up->sleep;
@@ -208,7 +208,7 @@ queuedescr(Virtq *q, int n, uint16_t *descr)
 	coherence();
 	iunlock(&q->l);
 	if((q->vr.used->flags & VRING_USED_F_NO_NOTIFY) == 0){
-		uint32_t nport = ((Vqctl *)(q->pdev))->port + VIRTIO_PCI_QUEUE_NOTIFY;
+		u32 nport = ((Vqctl *)(q->pdev))->port + VIRTIO_PCI_QUEUE_NOTIFY;
 		outs(nport, q->idx);
 	}
 	while(!rock.done){
@@ -228,7 +228,7 @@ vqalloc(Virtq **pq, int qs)
 	if(*pq == nil)
 		return -1;
 	Virtq *q = *pq;
-	uint64_t vrsize = vring_size(qs, PGSZ);
+	u64 vrsize = vring_size(qs, PGSZ);
 	q->vq = mallocalign(vrsize, PGSZ, 0, 0);
 	if(q->vq == nil)
 		return -1;
@@ -252,7 +252,7 @@ vqalloc(Virtq **pq, int qs)
 // or normal behavior we limit the maximum number of virtqueues serviced to 8.
 
 static int
-findvqs(uint32_t port, int nvq, Virtq **vqs)
+findvqs(u32 port, int nvq, Virtq **vqs)
 {
 	int cnt = 0;
 	while(1){
@@ -267,7 +267,7 @@ findvqs(uint32_t port, int nvq, Virtq **vqs)
 				break;
 			}
 			coherence();
-			uint64_t paddr = PADDR(vqs[cnt]->vq);
+			u64 paddr = PADDR(vqs[cnt]->vq);
 			outl(port + VIRTIO_PCI_QUEUE_PFN, paddr / PGSZ);
 		}
 		cnt++;
@@ -337,8 +337,8 @@ initvdevs(Vqctl **vcs)
 
 // Identity finction for device features.
 
-static uint32_t
-acceptallfeat(uint32_t feat)
+static u32
+acceptallfeat(u32 feat)
 {
 	return feat;
 }
@@ -348,11 +348,11 @@ acceptallfeat(uint32_t feat)
 // that is, accept whatever is offered (often nothing). Return the feature bits accepted, store
 // the same in the device control structure.
 
-uint32_t
-vdevfeat(Vqctl *vc, uint32_t (*ffltr)(uint32_t))
+u32
+vdevfeat(Vqctl *vc, u32 (*ffltr)(u32))
 {
-	uint32_t feat = inl(vc->port + VIRTIO_PCI_HOST_FEATURES);
-	uint32_t rfeat = ffltr ? (*ffltr)(feat) : acceptallfeat(feat);
+	u32 feat = inl(vc->port + VIRTIO_PCI_HOST_FEATURES);
+	u32 rfeat = ffltr ? (*ffltr)(feat) : acceptallfeat(feat);
 	rfeat &= feat;	      // do not introduce new bits, we can only reject existing
 	vc->feat = rfeat;
 	outl(vc->port + VIRTIO_PCI_GUEST_FEATURES, rfeat);
@@ -377,15 +377,15 @@ finalinitvdev(Vqctl *vc)
 // is preserved. The program that reads the configuration area should take care of endianness conversion.
 
 int
-readvdevcfg(Vqctl *vc, void *va, int32_t n, int64_t offset)
+readvdevcfg(Vqctl *vc, void *va, i32 n, i64 offset)
 {
-	int8_t *a = va;
-	uint32_t r = offset;
+	i8 *a = va;
+	u32 r = offset;
 	int i;
 	for(i = 0; i < n; a++, i++){
 		if(i + r >= vc->dcfglen)
 			break;
-		uint8_t b = inb(vc->port + vc->dcfgoff + i + r);
+		u8 b = inb(vc->port + vc->dcfgoff + i + r);
 		PBIT8(a, b);
 	}
 	return i;
@@ -417,7 +417,7 @@ virtiosetup()
 // Get pointer to a virtio device by its index. Nil is returned if idx is out of range.
 
 Vqctl *
-vdevbyidx(uint32_t idx)
+vdevbyidx(u32 idx)
 {
 	if(idx >= nvq)
 		return nil;
@@ -426,7 +426,7 @@ vdevbyidx(uint32_t idx)
 
 // Get total number of virtio devices defined at the moment.
 
-uint32_t
+u32
 getvdevnum(void)
 {
 	return nvq;
@@ -436,10 +436,10 @@ getvdevnum(void)
 // should be provided; it will be filled out with the device references found. Returned is the number
 // of devices found.
 
-uint32_t
-getvdevsbypciid(int pciid, Vqctl **vqs, uint32_t n)
+u32
+getvdevsbypciid(int pciid, Vqctl **vqs, u32 n)
 {
-	uint32_t j = 0;
+	u32 j = 0;
 	if(n < 1 || nvq <= 0)
 		return 0;
 	for(int i = 0; i < nvq; i++){

@@ -46,7 +46,7 @@
 	print
 
 #define TRUNC(x, sz) ((x) & ((sz)-1))
-#define LPTR(q) ((uint32_t *)KADDR((q) & ~0x1F))
+#define LPTR(q) ((u32 *)KADDR((q) & ~0x1F))
 
 typedef struct Ctlio Ctlio;
 typedef union Ed Ed;
@@ -188,7 +188,7 @@ enum {
 struct Qtree {
 	int nel;
 	int depth;
-	uint32_t *bw;
+	u32 *bw;
 	Qh **root;
 };
 
@@ -202,11 +202,11 @@ struct Qio {
 	int usbid;	 /* usb address for endpoint/device */
 	int toggle;	 /* Tddata0/Tddata1 */
 	int tok;	 /* Tdtoksetup, Tdtokin, Tdtokout */
-	uint32_t iotime; /* last I/O time; to hold interrupt polls */
+	u32 iotime; /* last I/O time; to hold interrupt polls */
 	int debug;	 /* debug flag from the endpoint */
 	char *err;	 /* error string */
 	char *tag;	 /* debug (no room in Qh for this) */
-	uint32_t bw;
+	u32 bw;
 };
 
 struct Ctlio {
@@ -225,12 +225,12 @@ struct Isoio {
 	unsigned char *data; /* iso data buffers if not embedded */
 	char *err;	     /* error string */
 	int nerrs;	     /* nb of consecutive I/O errors */
-	uint32_t maxsize;    /* ntds * ep->maxpkt */
-	int32_t nleft;	     /* number of bytes left from last write */
+	u32 maxsize;    /* ntds * ep->maxpkt */
+	i32 nleft;	     /* number of bytes left from last write */
 	int debug;	     /* debug flag from the endpoint */
 	int hs;		     /* is high speed? */
 	Isoio *next;	     /* in list of active Isoios */
-	uint32_t td0frno;    /* first frame used in ctlr */
+	u32 td0frno;    /* first frame used in ctlr */
 	union {
 		Itd *tdi; /* next td processed by interrupt */
 		Sitd *stdi;
@@ -242,7 +242,7 @@ struct Isoio {
 	union {
 		Itd **itdps;	 /* itdps[i]: ptr to Itd for i-th frame or nil */
 		Sitd **sitdps;	 /* sitdps[i]: ptr to Sitd for i-th frame or nil */
-		uint32_t **tdps; /* same thing, as seen by hw */
+		u32 **tdps; /* same thing, as seen by hw */
 	};
 };
 
@@ -265,18 +265,18 @@ struct Edpool {
  * aligned to 32.
  */
 struct Itd {
-	uint32_t link;	     /* to next hw struct */
-	uint32_t csw[8];     /* sts/length/pg/off. updated by hw */
-	uint32_t buffer[7];  /* buffer pointers, addrs, maxsz */
-	uint32_t xbuffer[7]; /* high 32 bits of buffer for 64-bits */
+	u32 link;	     /* to next hw struct */
+	u32 csw[8];     /* sts/length/pg/off. updated by hw */
+	u32 buffer[7];  /* buffer pointers, addrs, maxsz */
+	u32 xbuffer[7]; /* high 32 bits of buffer for 64-bits */
 
-	uint32_t _32; /* pad to next cache line */
+	u32 _32; /* pad to next cache line */
 	/* cache-line boundary here */
 
 	/* software */
 	Itd *next;
-	uint32_t ndata; /* number of bytes in data */
-	uint32_t mdata; /* max number of bytes in data */
+	u32 ndata; /* number of bytes in data */
+	u32 mdata; /* max number of bytes in data */
 	unsigned char *data;
 };
 
@@ -285,20 +285,20 @@ struct Itd {
  * hw: 36 bytes, 52 bytes total. aligned to 32.
  */
 struct Sitd {
-	uint32_t link;	    /* to next hw struct */
-	uint32_t epc;	    /* static endpoint state. addrs */
-	uint32_t mfs;	    /* static endpoint state. µ-frame sched. */
-	uint32_t csw;	    /* transfer state. updated by hw */
-	uint32_t buffer[2]; /* buf. ptr/offset. offset updated by hw */
+	u32 link;	    /* to next hw struct */
+	u32 epc;	    /* static endpoint state. addrs */
+	u32 mfs;	    /* static endpoint state. µ-frame sched. */
+	u32 csw;	    /* transfer state. updated by hw */
+	u32 buffer[2]; /* buf. ptr/offset. offset updated by hw */
 			    /* buf ptr/TP/Tcnt. TP/Tcnt updated by hw */
-	uint32_t blink;	    /* back pointer */
+	u32 blink;	    /* back pointer */
 	/* cache-line boundary after xbuffer[0] */
-	uint32_t xbuffer[2]; /* high 32 bits of buffer for 64-bits */
+	u32 xbuffer[2]; /* high 32 bits of buffer for 64-bits */
 
 	/* software */
 	Sitd *next;
-	uint32_t ndata; /* number of bytes in data */
-	uint32_t mdata; /* max number of bytes in data */
+	u32 ndata; /* number of bytes in data */
+	u32 mdata; /* max number of bytes in data */
 	unsigned char *data;
 };
 
@@ -307,16 +307,16 @@ struct Sitd {
  * hw: first 52 bytes, total 68+sbuff bytes.  aligned to 32 bytes.
  */
 struct Td {
-	uint32_t nlink;	    /* to next Td */
-	uint32_t alink;	    /* alternate link to next Td */
-	uint32_t csw;	    /* cmd/sts. updated by hw */
-	uint32_t buffer[5]; /* buf ptrs. offset updated by hw */
+	u32 nlink;	    /* to next Td */
+	u32 alink;	    /* alternate link to next Td */
+	u32 csw;	    /* cmd/sts. updated by hw */
+	u32 buffer[5]; /* buf ptrs. offset updated by hw */
 	/* cache-line boundary here */
-	uint32_t xbuffer[5]; /* high 32 bits of buffer for 64-bits */
+	u32 xbuffer[5]; /* high 32 bits of buffer for 64-bits */
 
 	/* software */
 	Td *next;		/* in qh or Isoio or free list */
-	uint32_t ndata;		/* bytes available/used at data */
+	u32 ndata;		/* bytes available/used at data */
 	unsigned char *data;	/* pointer to actual data */
 	unsigned char *buff;	/* allocated data buffer or nil */
 	unsigned char sbuff[1]; /* first byte of embedded buffer */
@@ -327,22 +327,22 @@ struct Td {
  * hw: first 68 bytes, 92 total.
  */
 struct Qh {
-	uint32_t link; /* to next Qh in round robin */
-	uint32_t eps0; /* static endpoint state. addrs */
-	uint32_t eps1; /* static endpoint state. µ-frame sched. */
+	u32 link; /* to next Qh in round robin */
+	u32 eps0; /* static endpoint state. addrs */
+	u32 eps1; /* static endpoint state. µ-frame sched. */
 
 	/* updated by hw */
-	uint32_t tclink; /* current Td (No Term bit here!) */
-	uint32_t nlink;	 /* to next Td */
-	uint32_t alink;	 /* alternate link to next Td */
-	uint32_t csw;	 /* cmd/sts. updated by hw */
+	u32 tclink; /* current Td (No Term bit here!) */
+	u32 nlink;	 /* to next Td */
+	u32 alink;	 /* alternate link to next Td */
+	u32 csw;	 /* cmd/sts. updated by hw */
 	/* cache-line boundary after buffer[0] */
-	uint32_t buffer[5];  /* buf ptrs. offset updated by hw */
-	uint32_t xbuffer[5]; /* high 32 bits of buffer for 64-bits */
+	u32 buffer[5];  /* buf ptrs. offset updated by hw */
+	u32 xbuffer[5]; /* high 32 bits of buffer for 64-bits */
 
 	/* software */
-	int32_t state; /* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
-	int32_t sched; /* slot for for intr. Qhs */
+	i32 state; /* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
+	i32 sched; /* slot for for intr. Qhs */
 	// 96
 	Qh *next;  /* in controller list/tree of Qhs */
 	Qio *io;   /* for this queue */
@@ -432,7 +432,7 @@ edalloc(void)
 	unlock(&edpool.l);
 
 	memset(ed, 0, sizeof(Ed)); /* safety */
-	if(((uint64_t)ed & 0xF) != 0)
+	if(((u64)ed & 0xF) != 0)
 		panic("usbehci: tdalloc ed 0x%p (not 16-aligned)", ed);
 
 	return ed;
@@ -533,9 +533,9 @@ qhlinkqh(Qh *qh, Qh *next)
 }
 
 static void
-qhsetaddr(Qh *qh, uint32_t addr)
+qhsetaddr(Qh *qh, u32 addr)
 {
-	uint32_t eps0;
+	u32 eps0;
 
 	eps0 = qh->eps0 & ~((Epmax << 8) | Devmax);
 	qh->eps0 = eps0 | (addr & Devmax) | (((addr >> 7) & Epmax) << 8);
@@ -556,10 +556,10 @@ flog2lower(int n)
 }
 
 static int
-pickschedq(Qtree *qt, int pollival, uint32_t bw, uint32_t limit)
+pickschedq(Qtree *qt, int pollival, u32 bw, u32 limit)
 {
 	int i, j, d, upperb, q;
-	uint32_t best, worst, total;
+	u32 best, worst, total;
 
 	d = flog2lower(pollival);
 	if(d > qt->depth)
@@ -589,7 +589,7 @@ schedq(Ctlr *ctlr, Qh *qh, int pollival)
 {
 	int q;
 	Qh *tqh;
-	uint32_t bw;
+	u32 bw;
 
 	bw = qh->io->bw;
 	q = pickschedq(ctlr->tree, pollival, 0, ~0);
@@ -617,7 +617,7 @@ unschedq(Ctlr *ctlr, Qh *qh)
 	int q;
 	Qh *prev, *this, *next;
 	Qh **l;
-	uint32_t bw;
+	u32 bw;
 
 	bw = qh->io->bw;
 	q = qh->sched;
@@ -645,7 +645,7 @@ unschedq(Ctlr *ctlr, Qh *qh)
 	print("ehci: unschedq: qh %#p not found\n", qh);
 }
 
-static uint32_t
+static u32
 qhmaxpkt(Qh *qh)
 {
 	return (qh->eps0 >> Qhmplshift) & Qhmplmask;
@@ -654,7 +654,7 @@ qhmaxpkt(Qh *qh)
 static void
 qhsetmaxpkt(Qh *qh, int maxpkt)
 {
-	uint32_t eps0;
+	u32 eps0;
 
 	eps0 = qh->eps0 & ~(Qhmplmask << Qhmplshift);
 	qh->eps0 = eps0 | (maxpkt & Qhmplmask) << Qhmplshift;
@@ -797,7 +797,7 @@ qhfree(Ctlr *ctlr, Qh *qh)
 static void
 qhlinktd(Qh *qh, Td *td)
 {
-	uint32_t csw;
+	u32 csw;
 	int i;
 
 	csw = qh->csw;
@@ -820,7 +820,7 @@ qhlinktd(Qh *qh, Td *td)
 }
 
 static char *
-seprintlink(char *s, char *se, char *name, uint32_t l, int typed)
+seprintlink(char *s, char *se, char *name, u32 l, int typed)
 {
 	s = seprint(s, se, "%s %lx", name, l);
 	if((l & Lterm) != 0)
@@ -843,7 +843,7 @@ static char *
 seprintitd(char *s, char *se, Itd *td)
 {
 	int i;
-	uint32_t b0, b1;
+	u32 b0, b1;
 	char flags[6];
 	char *rw;
 
@@ -929,13 +929,13 @@ seprintsitd(char *s, char *se, Sitd *td)
 	return seprint(s, se, "\n");
 }
 
-static int32_t
+static i32
 maxtdlen(Td *td)
 {
 	return (td->csw >> Tdlenshift) & Tdlenmask;
 }
 
-static int32_t
+static i32
 tdlen(Td *td)
 {
 	if(td->data == nil)
@@ -1251,7 +1251,7 @@ static void
 itdinit(Isoio *iso, Itd *td)
 {
 	int p, t;
-	uint32_t pa, tsize, size;
+	u32 pa, tsize, size;
 
 	/*
 	 * BUG: This does not put an integral number of samples
@@ -1494,7 +1494,7 @@ ehciintr(Hci *hp)
 	Ctlr *ctlr;
 	Eopio *opio;
 	Isoio *iso;
-	uint32_t sts;
+	u32 sts;
 	Qh *qh;
 	int i, some;
 
@@ -1628,7 +1628,7 @@ static void
 portlend(Ctlr *ctlr, int port, char *ss)
 {
 	Eopio *opio;
-	uint32_t s;
+	u32 s;
 
 	opio = ctlr->opio;
 
@@ -1643,7 +1643,7 @@ static int
 portreset(Hci *hp, int port, int on)
 {
 	Proc *up = externup();
-	uint32_t *portscp;
+	u32 *portscp;
 	Eopio *opio;
 	Ctlr *ctlr;
 	int i;
@@ -1841,11 +1841,11 @@ xdump(char* pref, void *qh)
 }
 */
 
-static int32_t
-episohscpy(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
+static i32
+episohscpy(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, i32 count)
 {
 	int nr;
-	int32_t tot;
+	i32 tot;
 	Itd *tdu;
 
 	for(tot = 0; iso->tdi != iso->tdu && tot < count; tot += nr){
@@ -1875,11 +1875,11 @@ episohscpy(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
 	return tot;
 }
 
-static int32_t
-episofscpy(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
+static i32
+episofscpy(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, i32 count)
 {
 	int nr;
-	int32_t tot;
+	i32 tot;
 	Sitd *stdu;
 
 	for(tot = 0; iso->stdi != iso->stdu && tot < count; tot += nr){
@@ -1912,13 +1912,13 @@ episofscpy(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
 	return tot;
 }
 
-static int32_t
-episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
+static i32
+episoread(Ep *ep, Isoio *iso, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlr *ctlr;
 	unsigned char *b;
-	int32_t tot;
+	i32 tot;
 
 	iso->debug = ep->debug;
 	diprint("ehci: episoread: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
@@ -1977,10 +1977,10 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
  * iso->tdu is the next place to put data. When it gets full
  * it is activated and tdu advanced.
  */
-static int32_t
-putsamples(Isoio *iso, unsigned char *b, int32_t count)
+static i32
+putsamples(Isoio *iso, unsigned char *b, i32 count)
 {
-	int32_t tot, n;
+	i32 tot, n;
 
 	for(tot = 0; isocanwrite(iso) && tot < count; tot += n){
 		n = count - tot;
@@ -2015,8 +2015,8 @@ putsamples(Isoio *iso, unsigned char *b, int32_t count)
  * Queue data for writing and return error status from
  * last writes done, to maintain buffered data.
  */
-static int32_t
-episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
+static i32
+episowrite(Ep *ep, Isoio *iso, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlr *ctlr;
@@ -2100,7 +2100,7 @@ static Td *
 epgettd(Qio *io, int flags, void *a, int count, int maxpkt)
 {
 	Td *td;
-	uint32_t pa;
+	u32 pa;
 	int i;
 
 	if(count > Tdmaxpkt)
@@ -2230,7 +2230,7 @@ epiodone(void *a)
 }
 
 static void
-epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
+epiowait(Hci *hp, Qio *io, int tmout, u32 load)
 {
 	Proc *up = externup();
 	Qh *qh;
@@ -2298,13 +2298,13 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
  * To make it work for control transfers, the caller may
  * lock the Qio for the entire control transfer.
  */
-static int32_t
-epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
+static i32
+epio(Ep *ep, Qio *io, void *a, i32 count, int mustlock)
 {
 	Proc *up = externup();
 	int saved, ntds, tmout;
-	int32_t n, tot;
-	uint32_t load;
+	i32 n, tot;
+	u32 load;
 	char *err;
 	char buf[128];
 	unsigned char *c;
@@ -2435,15 +2435,15 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	return tot;
 }
 
-static int32_t
-epread(Ep *ep, void *a, int32_t count)
+static i32
+epread(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
 	Ctlio *cio;
 	Qio *io;
 	Isoio *iso;
 	char buf[160];
-	uint32_t delta;
+	u32 delta;
 
 	ddeprint("ehci: epread\n");
 	if(ep->aux == nil)
@@ -2515,12 +2515,12 @@ epread(Ep *ep, void *a, int32_t count)
  * Upon errors on the data phase we must still run the status
  * phase or the device may cease responding in the future.
  */
-static int32_t
-epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
+static i32
+epctlio(Ep *ep, Ctlio *cio, void *a, i32 count)
 {
 	Proc *up = externup();
 	unsigned char *c;
-	int32_t len;
+	i32 len;
 
 	ddeprint("epctlio: cio %#p ep%d.%d count %ld\n",
 		 cio, ep->dev->nb, ep->nb, count);
@@ -2599,14 +2599,14 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 	return count;
 }
 
-static int32_t
-epwrite(Ep *ep, void *a, int32_t count)
+static i32
+epwrite(Ep *ep, void *a, i32 count)
 {
 	Proc *up = externup();
 	Qio *io;
 	Ctlio *cio;
 	Isoio *iso;
-	uint32_t delta;
+	u32 delta;
 
 	pollcheck(ep->hp);
 
@@ -2640,10 +2640,10 @@ epwrite(Ep *ep, void *a, int32_t count)
 static void
 isofsinit(Ep *ep, Isoio *iso)
 {
-	int32_t left;
+	i32 left;
 	Sitd *td, *ltd;
 	int i;
-	uint32_t frno;
+	u32 frno;
 
 	left = 0;
 	ltd = nil;
@@ -2689,8 +2689,8 @@ static void
 isohsinit(Ep *ep, Isoio *iso)
 {
 	int ival, p;
-	int32_t left;
-	uint32_t frno, i, pa;
+	i32 left;
+	u32 frno, i, pa;
 	Itd *ltd, *td;
 
 	iso->hs = 1;
@@ -2739,7 +2739,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	int ival; /* pollival in ms */
 	int tpf;  /* tds per frame */
 	int i, n, w, woff;
-	uint32_t frno;
+	u32 frno;
 	Isoio *iso;
 
 	iso = ep->aux;
@@ -2951,11 +2951,11 @@ cancelio(Ctlr *ctlr, Qio *io)
 }
 
 static void
-cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
+cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, u32 load)
 {
 	Proc *up = externup();
 	int frno, i, n, t, w, woff;
-	uint32_t *lp, *tp;
+	u32 *lp, *tp;
 	Isoio **il;
 	Itd *td;
 	Sitd *std;
@@ -3112,7 +3112,7 @@ static void
 mkqhtree(Ctlr *ctlr)
 {
 	int i, n, d, o, leaf0, depth;
-	uint32_t leafs[Nintrleafs];
+	u32 leafs[Nintrleafs];
 	Qh *qh;
 	Qh **tree;
 	Qtree *qt;
@@ -3173,7 +3173,7 @@ ehcimeminit(Ctlr *ctlr)
 	Eopio *opio;
 
 	opio = ctlr->opio;
-	frsize = ctlr->nframes * sizeof(uint32_t);
+	frsize = ctlr->nframes * sizeof(u32);
 	assert((frsize & 0xFFF) == 0); /* must be 4k aligned */
 	ctlr->frames = mallocalign(frsize, frsize, 0, 0);
 	if(ctlr->frames == nil)

@@ -42,47 +42,47 @@ enum {
 typedef struct Udp4hdr Udp4hdr;
 struct Udp4hdr {
 	/* ip header */
-	uint8_t vihl;	   /* Version and header length */
-	uint8_t tos;	   /* Type of service */
-	uint8_t length[2]; /* packet length */
-	uint8_t id[2];	   /* Identification */
-	uint8_t frag[2];   /* Fragment information */
-	uint8_t Unused;
-	uint8_t udpproto;	     /* Protocol */
-	uint8_t udpplen[2];	     /* Header plus data length */
-	uint8_t udpsrc[IPv4addrlen]; /* Ip source */
-	uint8_t udpdst[IPv4addrlen]; /* Ip destination */
+	u8 vihl;	   /* Version and header length */
+	u8 tos;	   /* Type of service */
+	u8 length[2]; /* packet length */
+	u8 id[2];	   /* Identification */
+	u8 frag[2];   /* Fragment information */
+	u8 Unused;
+	u8 udpproto;	     /* Protocol */
+	u8 udpplen[2];	     /* Header plus data length */
+	u8 udpsrc[IPv4addrlen]; /* Ip source */
+	u8 udpdst[IPv4addrlen]; /* Ip destination */
 
 	/* udp header */
-	uint8_t udpsport[2]; /* Source port */
-	uint8_t udpdport[2]; /* Destination port */
-	uint8_t udplen[2];   /* data length */
-	uint8_t udpcksum[2]; /* Checksum */
+	u8 udpsport[2]; /* Source port */
+	u8 udpdport[2]; /* Destination port */
+	u8 udplen[2];   /* data length */
+	u8 udpcksum[2]; /* Checksum */
 };
 
 typedef struct Udp6hdr Udp6hdr;
 struct Udp6hdr {
-	uint8_t viclfl[4];
-	uint8_t len[2];
-	uint8_t nextheader;
-	uint8_t hoplimit;
-	uint8_t udpsrc[IPaddrlen];
-	uint8_t udpdst[IPaddrlen];
+	u8 viclfl[4];
+	u8 len[2];
+	u8 nextheader;
+	u8 hoplimit;
+	u8 udpsrc[IPaddrlen];
+	u8 udpdst[IPaddrlen];
 
 	/* udp header */
-	uint8_t udpsport[2]; /* Source port */
-	uint8_t udpdport[2]; /* Destination port */
-	uint8_t udplen[2];   /* data length */
-	uint8_t udpcksum[2]; /* Checksum */
+	u8 udpsport[2]; /* Source port */
+	u8 udpdport[2]; /* Destination port */
+	u8 udplen[2];   /* data length */
+	u8 udpcksum[2]; /* Checksum */
 };
 
 /* MIB II counters */
 typedef struct Udpstats Udpstats;
 struct Udpstats {
-	uint64_t udpInDatagrams;
-	uint32_t udpNoPorts;
-	uint32_t udpInErrors;
-	uint64_t udpOutDatagrams;
+	u64 udpInDatagrams;
+	u32 udpNoPorts;
+	u32 udpInErrors;
+	u64 udpOutDatagrams;
 };
 
 typedef struct Udppriv Udppriv;
@@ -93,8 +93,8 @@ struct Udppriv {
 	Udpstats ustats;
 
 	/* non-MIB stats */
-	uint32_t csumerr; /* checksum errors */
-	uint32_t lenerr;  /* short packet */
+	u32 csumerr; /* checksum errors */
+	u32 lenerr;  /* short packet */
 };
 
 void (*etherprofiler)(char *name, int qlen);
@@ -106,7 +106,7 @@ void udpkick(void *x, Block *bp);
 typedef struct Udpcb Udpcb;
 struct Udpcb {
 	QLock ql;
-	uint8_t headers;
+	u8 headers;
 };
 
 static char *
@@ -185,8 +185,8 @@ udpkick(void *x, Block *bp)
 	Conv *c = x;
 	Udp4hdr *uh4;
 	Udp6hdr *uh6;
-	uint16_t rport;
-	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
+	u16 rport;
+	u8 laddr[IPaddrlen], raddr[IPaddrlen];
 	Udpcb *ucb;
 	int dlen, ptcllen;
 	Udppriv *upriv;
@@ -331,13 +331,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	Udp6hdr *uh6;
 	Conv *c;
 	Udpcb *ucb;
-	uint8_t raddr[IPaddrlen], laddr[IPaddrlen];
-	uint16_t rport, lport;
+	u8 raddr[IPaddrlen], laddr[IPaddrlen];
+	u16 rport, lport;
 	Udppriv *upriv;
 	Fs *f;
 	int version;
 	int ottl, oviclfl, olen;
-	uint8_t *p;
+	u8 *p;
 
 	upriv = udp->priv;
 	f = udp->f;
@@ -536,8 +536,8 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 {
 	Udp4hdr *h4;
 	Udp6hdr *h6;
-	uint8_t source[IPaddrlen], dest[IPaddrlen];
-	uint16_t psource, pdest;
+	u8 source[IPaddrlen], dest[IPaddrlen];
+	u16 psource, pdest;
 	Conv *s, **p;
 	int version;
 

@@ -65,7 +65,7 @@ Queue *qlog;
 
 extern void nullmediumlink(void);
 extern void pktmediumlink(void);
-int32_t ndbwrite(Fs *f, char *a, uint32_t off, int n);
+i32 ndbwrite(Fs *f, char *a, u32 off, int n);
 
 static int
 ip3gen(Chan *c, int i, Dir *dp)
@@ -139,7 +139,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 	int prot;
 	int len = 0;
 	Fs *f;
-	extern uint32_t kerndate;
+	extern u32 kerndate;
 
 	f = ipfs[c->devno];
 
@@ -343,7 +343,7 @@ ipwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-ipstat(Chan *c, uint8_t *db, int n)
+ipstat(Chan *c, u8 *db, int n)
 {
 	return devstat(c, db, n, nil, 0, ipgen);
 }
@@ -526,7 +526,7 @@ ipremove(Chan *c)
 }
 
 static int
-ipwstat(Chan *c, uint8_t *dp, int n)
+ipwstat(Chan *c, u8 *dp, int n)
 {
 	Dir d;
 	Conv *cv;
@@ -621,15 +621,15 @@ enum {
 	Statelen = 32 * 1024,
 };
 
-static int32_t
-ipread(Chan *ch, void *a, int32_t n, int64_t off)
+static i32
+ipread(Chan *ch, void *a, i32 n, i64 off)
 {
 	Conv *c;
 	Proto *x;
 	char *buf, *p;
-	int32_t rv;
+	i32 rv;
 	Fs *f;
-	uint32_t offset = off;
+	u32 offset = off;
 
 	f = ipfs[ch->devno];
 
@@ -713,7 +713,7 @@ ipread(Chan *ch, void *a, int32_t n, int64_t off)
 }
 
 static Block *
-ipbread(Chan *ch, int32_t n, int64_t offset)
+ipbread(Chan *ch, i32 n, i64 offset)
 {
 	Conv *c;
 	Proto *x;
@@ -772,7 +772,7 @@ setluniqueport(Conv *c, int lport)
  * is lport in use by anyone?
  */
 static int
-lportinuse(Proto *p, uint16_t lport)
+lportinuse(Proto *p, u16 lport)
 {
 	int x;
 
@@ -843,8 +843,8 @@ setladdrport(Conv *c, char *str, int announcing)
 {
 	char *p;
 	char *rv;
-	uint16_t lport;
-	uint8_t addr[IPaddrlen];
+	u16 lport;
+	u8 addr[IPaddrlen];
 
 	/*
 	 *  ignore restricted part if it exists.  it's
@@ -1087,18 +1087,18 @@ ttlctlmsg(Conv *c, Cmdbuf *cb)
 		c->ttl = atoi(cb->f[1]);
 }
 
-static int32_t
-ipwrite(Chan *ch, void *v, int32_t n, int64_t off)
+static i32
+ipwrite(Chan *ch, void *v, i32 n, i64 off)
 {
 	Proc *up = externup();
 	Conv *c;
 	Proto *x;
 	char *p;
 	Cmdbuf *cb;
-	uint8_t ia[IPaddrlen], ma[IPaddrlen];
+	u8 ia[IPaddrlen], ma[IPaddrlen];
 	Fs *f;
 	char *a;
-	uint32_t offset = off;
+	u32 offset = off;
 
 	a = v;
 	f = ipfs[ch->devno];
@@ -1194,8 +1194,8 @@ ipwrite(Chan *ch, void *v, int32_t n, int64_t off)
 	return n;
 }
 
-static int32_t
-ipbwrite(Chan *ch, Block *bp, int64_t offset)
+static i32
+ipbwrite(Chan *ch, Block *bp, i64 offset)
 {
 	Conv *c;
 	Proto *x;
@@ -1274,7 +1274,7 @@ Fsproto(Fs *f, Proto *p)
  *  built in
  */
 int
-Fsbuiltinproto(Fs *f, uint8_t proto)
+Fsbuiltinproto(Fs *f, u8 proto)
 {
 	return f->t2p[proto] != nil;
 }
@@ -1377,7 +1377,7 @@ Fsconnected(Conv *c, char *msg)
 }
 
 Proto *
-Fsrcvpcol(Fs *f, uint8_t proto)
+Fsrcvpcol(Fs *f, u8 proto)
 {
 	if(f->ipmux)
 		return f->ipmux;
@@ -1386,7 +1386,7 @@ Fsrcvpcol(Fs *f, uint8_t proto)
 }
 
 Proto *
-Fsrcvpcolx(Fs *f, uint8_t proto)
+Fsrcvpcolx(Fs *f, u8 proto)
 {
 	return f->t2p[proto];
 }
@@ -1395,7 +1395,8 @@ Fsrcvpcolx(Fs *f, uint8_t proto)
  *  called with protocol locked
  */
 Conv *
-Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lport, uint8_t version)
+Fsnewcall(Conv *c, u8 *raddr, u16 rport, u8 *laddr, u16 lport,
+	  u8 version)
 {
 	Conv *nc;
 	Conv **l;
@@ -1439,8 +1440,8 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	return nc;
 }
 
-int32_t
-ndbwrite(Fs *f, char *a, uint32_t off, int n)
+i32
+ndbwrite(Fs *f, char *a, u32 off, int n)
 {
 	if(off > strlen(f->ndb))
 		error(Eio);
@@ -1453,7 +1454,7 @@ ndbwrite(Fs *f, char *a, uint32_t off, int n)
 	return n;
 }
 
-uint32_t
+u32
 scalednconv(void)
 {
 	if(cpuserver && conf.npage * PGSZ >= 128 * MB)

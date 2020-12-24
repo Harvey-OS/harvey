@@ -313,12 +313,12 @@ typedef struct Pcicap Pcicap;
 struct Pcicap {
 	struct Pcidev *dev; /* link to the device structure */
 	Pcicap *link;	    /* next capability or NULL */
-	uint8_t vndr;	    /* vendor code */
-	uint8_t caplen;	    /* length in the config area */
-	uint8_t type;	    /* capability config type */
-	uint8_t bar;	    /* BAR index in the device structure 0 - 5 */
-	uint32_t offset;    /* offset within BAR */
-	uint32_t length;    /* length in the memory or IO space */
+	u8 vndr;	    /* vendor code */
+	u8 caplen;	    /* length in the config area */
+	u8 type;	    /* capability config type */
+	u8 bar;	    /* BAR index in the device structure 0 - 5 */
+	u32 offset;    /* offset within BAR */
+	u32 length;    /* length in the memory or IO space */
 };
 
 /* Linked list of capabilities is added to the PCI device descriptor
@@ -331,10 +331,10 @@ typedef struct Pcidev Pcidev;
 struct Pcidev {
 	int tbdf; /* type+bus+device+function */
 	char *path;
-	uint16_t vid; /* vendor ID */
-	uint16_t did; /* device ID */
+	u16 vid; /* vendor ID */
+	u16 did; /* device ID */
 
-	uint16_t pcr;
+	u16 pcr;
 
 	unsigned char rid;
 	unsigned char ccrp;
@@ -344,12 +344,12 @@ struct Pcidev {
 	unsigned char ltr;
 
 	struct {
-		uint32_t bar; /* base address */
+		u32 bar; /* base address */
 		int size;
 	} mem[6];
 
 	struct {
-		uint32_t bar;
+		u32 bar;
 		int size;
 	} rom;
 	unsigned char intl; /* interrupt line */
@@ -360,10 +360,10 @@ struct Pcidev {
 
 	Pcidev *bridge; /* down a bus */
 	struct {
-		uint32_t bar;
+		u32 bar;
 		int size;
 	} ioa, mema;
 	Pcicap *caplist;
-	uint32_t capcnt;
+	u32 capcnt;
 	Pcicap **capidx;
 };

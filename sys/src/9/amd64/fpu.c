@@ -84,7 +84,7 @@ fpurestore(Fxsave *fxsave)
 }
 
 int
-fpudevprocio(Proc *proc, void *a, int32_t n, uintptr_t offset, int write)
+fpudevprocio(Proc *proc, void *a, i32 n, uintptr offset, int write)
 {
 	/*
 	 * Called from procdevtab.read and procdevtab.write
@@ -96,7 +96,7 @@ fpudevprocio(Proc *proc, void *a, int32_t n, uintptr_t offset, int write)
 	if(offset >= sizeof(Fxsave))
 		return 0;
 
-	uint8_t *p = (uint8_t *)&proc->FPU.fxsave;
+	u8 *p = (u8 *)&proc->FPU.fxsave;
 
 	switch(write){
 	default:
@@ -201,7 +201,7 @@ static char *
 xfpuxm(Ureg *ureg, void *v)
 {
 	Proc *up = externup();
-	uint32_t mxcsr;
+	u32 mxcsr;
 	char *cm;
 
 	// #XM - SIMD Floating Point Exception (Vector 19).
@@ -253,12 +253,12 @@ void
 fpuinit(void)
 {
 	// It's assumed there is an integrated FPU, so Em is cleared;
-	uint64_t cr0 = cr0get();
+	u64 cr0 = cr0get();
 	cr0 &= ~Em;
 	cr0 |= Ne | Mp;
 	cr0put(cr0);
 
-	uint64_t cr4 = cr4get();
+	u64 cr4 = cr4get();
 	cr4 |= Osxmmexcpt | Osfxsr;
 	cr4put(cr4);
 

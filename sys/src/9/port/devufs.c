@@ -221,8 +221,8 @@ ufswalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, nil, 0, ufsgen);
 }
 
-static int32_t
-ufsstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+ufsstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, nil, 0, ufsgen);
 }
@@ -294,7 +294,7 @@ ufsclose(Chan *c)
 }
 
 static int
-dumpstats(void *a, int32_t n, int64_t offset, MountPoint *mp)
+dumpstats(void *a, i32 n, i64 offset, MountPoint *mp)
 {
 	char *buf = malloc(READSTR);
 
@@ -307,7 +307,7 @@ dumpstats(void *a, int32_t n, int64_t offset, MountPoint *mp)
 }
 
 static int
-dumpsuperblock(void *a, int32_t n, int64_t offset, MountPoint *mp)
+dumpsuperblock(void *a, i32 n, i64 offset, MountPoint *mp)
 {
 	char *buf = malloc(READSTR);
 
@@ -320,7 +320,7 @@ dumpsuperblock(void *a, int32_t n, int64_t offset, MountPoint *mp)
 }
 
 static int
-dumpinode(void *a, int32_t n, int64_t offset, vnode *vn)
+dumpinode(void *a, i32 n, i64 offset, vnode *vn)
 {
 	char *buf = malloc(READSTR);
 
@@ -332,8 +332,8 @@ dumpinode(void *a, int32_t n, int64_t offset, vnode *vn)
 	return n;
 }
 
-static int32_t
-ufsread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+ufsread(Chan *c, void *a, i32 n, i64 offset)
 {
 	if(c->qid.type == QTDIR){
 		return devdirread(c, a, n, nil, 0, ufsgen);
@@ -418,7 +418,7 @@ testmount()
 }
 
 static void
-mount(char *a, int32_t n)
+mount(char *a, i32 n)
 {
 	Proc *up = externup();
 
@@ -451,7 +451,7 @@ mount(char *a, int32_t n)
 }
 
 static void
-ctlreq(int mntid, void *a, int32_t n)
+ctlreq(int mntid, void *a, i32 n)
 {
 	Proc *up = externup();
 
@@ -481,8 +481,8 @@ ctlreq(int mntid, void *a, int32_t n)
 	free(cb);
 }
 
-static int32_t
-ufswrite(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+ufswrite(Chan *c, void *a, i32 n, i64 offset)
 {
 	int qid = c->qid.path & ((1 << Qidshift) - 1);
 	int mntid = c->qid.path >> Qidshift;

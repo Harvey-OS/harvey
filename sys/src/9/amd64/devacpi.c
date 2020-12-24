@@ -49,22 +49,22 @@ enum {
 /* what do we need to round up to? */
 #define ATABLEBUFSZ ROUNDUP(sizeof(Atable), 128)
 
-static uint64_t lastpath;
+static u64 lastpath;
 static PSlice emptyslice;
 static Atable **atableindex;
 static Rsdp *rsd = nil;
 static Queue *acpiev;
 Dev acpidevtab;
 
-static uint16_t pm1status;
+static u16 pm1status;
 static int v = 0;
 /* Table of ACPI ports we own. We just burn 64k of bss here rather
  * than look them up in a function each time they're used. */
-static uint8_t acpiport[1 << 16];
-static int32_t acpiioread(Chan *c, void *a, int32_t n, int64_t off);
-static int32_t acpiiowrite(Chan *c, void *a, int32_t n, int64_t off);
-static int32_t acpimemread(Chan *c, void *a, int32_t n, int64_t off);
-static int32_t acpiintrread(Chan *c, void *a, int32_t n, int64_t off);
+static u8 acpiport[1 << 16];
+static i32 acpiioread(Chan *c, void *a, i32 n, isize off);
+static i32 acpiiowrite(Chan *c, void *a, i32 n, isize off);
+static i32 acpimemread(Chan *c, void *a, i32 n, isize off);
+static i32 acpiintrread(Chan *c, void *a, i32 n, isize off);
 
 static void acpiintr(Ureg *, void *);
 
@@ -137,9 +137,9 @@ static char *regnames[] = {
  */
 struct Acpilist {
 	struct Acpilist *next;
-	uintptr_t base;
-	size_t size;
-	int8_t raw[];
+	uintptr base;
+	usize size;
+	u8 raw[];
 };
 typedef struct Acpilist Acpilist;
 static Acpilist *acpilists;
@@ -150,7 +150,7 @@ static Acpilist *acpilists;
  * so size matters.
  */
 static Acpilist *
-findlist(uintptr_t base, uint size)
+findlist(uintptr base, uint size)
 {
 	Acpilist *a = acpilists;
 	if(v)
@@ -171,8 +171,8 @@ findlist(uintptr_t base, uint size)
  */
 Atable *
 mkatable(Atable *parent,
-	 int type, char *name, uint8_t *raw,
-	 size_t rawsize, size_t addsize)
+	 int type, char *name, u8 *raw,
+	 usize rawsize, usize addsize)
 {
 	void *m;
 	Atable *t;
@@ -200,7 +200,7 @@ mkatable(Atable *parent,
 Atable *
 finatable(Atable *t, PSlice *slice)
 {
-	size_t n;
+	usize n;
 	Atable *tail;
 	Dirtab *dirs;
 
@@ -214,7 +214,7 @@ finatable(Atable *t, PSlice *slice)
 	dirs[2] = (Dirtab){"raw", t->rqid, t->rawsize, 0444};
 	dirs[3] = (Dirtab){"table", t->tqid, 0, 0444};
 	dirs[4] = (Dirtab){"ctl", t->tqid, 0, 0666};
-	for(size_t i = 0; i < n; i++){
+	for(usize i = 0; i < n; i++){
 		strlcpy(dirs[i + NQtypes].name, t->children[i]->name, KNAMELEN);
 		dirs[i + NQtypes].qid = t->children[i]->qid;
 		dirs[i + NQtypes].length = 0;
@@ -263,100 +263,100 @@ acpiregid(char *s)
  * TODO(rminnich): Fix these if we're ever on a different-endian machine.
  * They are specific to little-endian processors and are not portable.
  */
-static uint8_t
-mget8(uintptr_t p, void *unused)
+static u8
+mget8(uintptr p, void *unused)
 {
-	uint8_t *cp = (uint8_t *)p;
+	u8 *cp = (u8 *)p;
 	return *cp;
 }
 
 static void
-mset8(uintptr_t p, uint8_t v, void *unused)
+mset8(uintptr p, u8 v, void *unused)
 {
-	uint8_t *cp = (uint8_t *)p;
+	u8 *cp = (u8 *)p;
 	*cp = v;
 }
 
-static uint16_t
-mget16(uintptr_t p, void *unused)
+static u16
+mget16(uintptr p, void *unused)
 {
-	uint16_t *cp = (uint16_t *)p;
+	u16 *cp = (u16 *)p;
 	return *cp;
 }
 
 static void
-mset16(uintptr_t p, uint16_t v, void *unused)
+mset16(uintptr p, u16 v, void *unused)
 {
-	uint16_t *cp = (uint16_t *)p;
+	u16 *cp = (u16 *)p;
 	*cp = v;
 }
 
-static uint32_t
-mget32(uintptr_t p, void *unused)
+static u32
+mget32(uintptr p, void *unused)
 {
-	uint32_t *cp = (uint32_t *)p;
+	u32 *cp = (u32 *)p;
 	return *cp;
 }
 
 static void
-mset32(uintptr_t p, uint32_t v, void *unused)
+mset32(uintptr p, u32 v, void *unused)
 {
-	uint32_t *cp = (uint32_t *)p;
+	u32 *cp = (u32 *)p;
 	*cp = v;
 }
 
-static uint64_t
-mget64(uintptr_t p, void *unused)
+static u64
+mget64(uintptr p, void *unused)
 {
-	uint64_t *cp = (uint64_t *)p;
+	u64 *cp = (u64 *)p;
 	return *cp;
 }
 
 static void
-mset64(uintptr_t p, uint64_t v, void *unused)
+mset64(uintptr p, u64 v, void *unused)
 {
-	uint64_t *cp = (uint64_t *)p;
+	u64 *cp = (u64 *)p;
 	*cp = v;
 }
 
-static uint8_t
-ioget8(uintptr_t p, void *unused)
+static u8
+ioget8(uintptr p, void *unused)
 {
 	return inb(p);
 }
 
 static void
-ioset8(uintptr_t p, uint8_t v, void *unused)
+ioset8(uintptr p, u8 v, void *unused)
 {
 	outb(p, v);
 }
 
-static uint16_t
-ioget16(uintptr_t p, void *unused)
+static u16
+ioget16(uintptr p, void *unused)
 {
 	return ins(p);
 }
 
 static void
-ioset16(uintptr_t p, uint16_t v, void *unused)
+ioset16(uintptr p, u16 v, void *unused)
 {
 	outs(p, v);
 }
 
-static uint32_t
-ioget32(uintptr_t p, void *unused)
+static u32
+ioget32(uintptr p, void *unused)
 {
 	return inl(p);
 }
 
 static void
-ioset32(uintptr_t p, uint32_t v, void *unused)
+ioset32(uintptr p, u32 v, void *unused)
 {
 	outl(p, v);
 }
 
-static uint8_t
-cfgget8(uintptr_t p, void *r)
+static u8
+cfgget8(uintptr p, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -366,7 +366,7 @@ cfgget8(uintptr_t p, void *r)
 }
 
 static void
-cfgset8(uintptr_t p, uint8_t v, void *r)
+cfgset8(uintptr p, u8 v, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -375,8 +375,8 @@ cfgset8(uintptr_t p, uint8_t v, void *r)
 	pcicfgw8(&d, p, v);
 }
 
-static uint16_t
-cfgget16(uintptr_t p, void *r)
+static u16
+cfgget16(uintptr p, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -386,7 +386,7 @@ cfgget16(uintptr_t p, void *r)
 }
 
 static void
-cfgset16(uintptr_t p, uint16_t v, void *r)
+cfgset16(uintptr p, u16 v, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -395,8 +395,8 @@ cfgset16(uintptr_t p, uint16_t v, void *r)
 	pcicfgw16(&d, p, v);
 }
 
-static uint32_t
-cfgget32(uintptr_t p, void *r)
+static u32
+cfgget32(uintptr p, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -406,7 +406,7 @@ cfgget32(uintptr_t p, void *r)
 }
 
 static void
-cfgset32(uintptr_t p, uint32_t v, void *r)
+cfgset32(uintptr p, u32 v, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -434,8 +434,8 @@ static struct Regio cfgio = {
  * Copy memory, 1/2/4/8-bytes at a time, to/from a region.
  */
 static long
-regcpy(Regio *dio, uintptr_t da, Regio *sio,
-       uintptr_t sa, long len, int align)
+regcpy(Regio *dio, uintptr da, Regio *sio,
+       uintptr sa, long len, int align)
 {
 	int n, i;
 
@@ -476,10 +476,10 @@ regcpy(Regio *dio, uintptr_t da, Regio *sio,
  * All units in bytes.
  */
 static long
-regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
+regio(Reg *r, void *p, u32 len, uintptr off, int iswr)
 {
 	Regio rio;
-	uintptr_t rp;
+	uintptr rp;
 
 	print("reg%s %s %#p %#p %#lx sz=%d\n",
 	      iswr ? "out" : "in", r->name, p, off, len, r->accsz);
@@ -498,7 +498,7 @@ regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
 			r->p = KADDR(r->base);
 		if(r->p == nil)
 			error("regio: KADDR failed");
-		rp = (uintptr_t)r->p + off;
+		rp = (uintptr)r->p + off;
 		rio = memio;
 		break;
 	case Rsysio:
@@ -520,32 +520,34 @@ regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
 		error("region not supported");
 	}
 	if(iswr)
-		regcpy(&rio, rp, &memio, (uintptr_t)p, len, r->accsz);
+		regcpy(&rio, rp, &memio, (uintptr)p, len, r->accsz);
 	else
-		regcpy(&memio, (uintptr_t)p, &rio, rp, len, r->accsz);
+		regcpy(&memio, (uintptr)p, &rio, rp, len, r->accsz);
 	return len;
 }
 
 /*
  * Compute and return SDT checksum: '0' is a correct sum.
  */
-static uint8_t
+static u8
 sdtchecksum(void *addr, int len)
 {
-	uint8_t *p, sum;
+	u8 *p;
+	unsigned int sum;
 
 	sum = 0;
 	if(v)
 		print("check %p %d\n", addr, len);
 	for(p = addr; len-- > 0; p++)
 		sum += *p;
+	sum &= 0xFF;  // The checksum is only the low 8 bits.
 	if(v)
 		print("sum is 0x%x\n", sum);
-	return sum;
+	return (u8)sum;
 }
 
 static void *
-sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
+sdtmap(uintptr pa, usize want, usize *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
@@ -559,10 +561,10 @@ sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 	sdt = KADDR(pa);
 	if(want){
 		/* realistically, we get a full page, and acpica seems to know that somehow. */
-		uintptr_t endaddress = (uintptr_t)sdt;
+		uintptr endaddress = (uintptr)sdt;
 		endaddress += want + 0xfff;
 		endaddress &= ~0xfff;
-		want = endaddress - (uintptr_t)sdt;
+		want = endaddress - (uintptr)sdt;
 		*n = want;
 	} else {
 		if(v){
@@ -602,9 +604,9 @@ sdtmap(uintptr_t pa, size_t want, size_t *n, int cksum)
 }
 
 static int
-loadfacs(uintptr_t pa)
+loadfacs(uintptr pa)
 {
-	size_t n;
+	usize n;
 	facs = sdtmap(pa, 0, &n, 0);
 	if(facs == nil)
 		return -1;
@@ -628,10 +630,10 @@ loadfacs(uintptr_t pa)
 }
 
 static void
-loaddsdt(uintptr_t pa)
+loaddsdt(uintptr pa)
 {
-	size_t n;
-	uint8_t *dsdtp;
+	usize n;
+	u8 *dsdtp;
 
 	dsdtp = sdtmap(pa, 0, &n, 1);
 	if(v)
@@ -643,7 +645,7 @@ loaddsdt(uintptr_t pa)
 }
 
 static void
-gasget(Gas *gas, uint8_t *p)
+gasget(Gas *gas, u8 *p)
 {
 	gas->spc = p[0];
 	gas->len = p[1];
@@ -711,7 +713,7 @@ dumpfadt(char *start, char *end, Fadt *fp)
 }
 
 static Atable *
-parsefadt(Atable *parent, char *name, uint8_t *p, size_t rawsize)
+parsefadt(Atable *parent, char *name, u8 *p, usize rawsize)
 {
 	Atable *t;
 	Fadt *fp;
@@ -789,11 +791,11 @@ parsefadt(Atable *parent, char *name, uint8_t *p, size_t rawsize)
 		loadfacs(fp->facs);
 
 	if(v)
-		print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(uint64_t)fp->dsdt);
+		print("x %p %p %p \n", fp, (void *)fp->xdsdt, (void *)(u64)fp->dsdt);
 
 	if(v)
 		print("fp->xdsdt %#llx facs %#llx\n", fp->xdsdt, fp->dsdt);
-	if(fp->xdsdt == (uint64_t)fp->dsdt) /* acpica */
+	if(fp->xdsdt == (u64)fp->dsdt) /* acpica */
 		loaddsdt(fp->xdsdt);
 	else
 		loaddsdt(fp->dsdt);
@@ -834,12 +836,12 @@ dumpmsct(char *start, char *end, Atable *table)
  * Else we should remove this code.
  */
 static Atable *
-parsemsct(Atable *parent, char *name, uint8_t *raw, size_t rawsize)
+parsemsct(Atable *parent, char *name, u8 *raw, usize rawsize)
 {
 	Atable *t;
-	uint8_t *r, *re;
+	u8 *r, *re;
 	Msct *msct;
-	size_t off, nmdom;
+	usize off, nmdom;
 	int i;
 
 	re = raw + rawsize;
@@ -932,10 +934,10 @@ dumpsrat(char *start, char *end, Atable *table)
 }
 
 static Atable *
-parsesrat(Atable *parent, char *name, uint8_t *p, size_t rawsize)
+parsesrat(Atable *parent, char *name, u8 *p, usize rawsize)
 {
 	Atable *t, *tt;
-	uint8_t *pe;
+	u8 *pe;
 	int stlen, flags;
 	PSlice slice;
 	char buf[16];
@@ -1035,13 +1037,13 @@ cmpslitent(void *v1, void *v2)
 
 static Atable *
 parseslit(Atable *parent,
-	  char *name, uint8_t *raw, size_t rawsize)
+	  char *name, u8 *raw, usize rawsize)
 {
 	Atable *t;
-	uint8_t *r, *re;
+	u8 *r, *re;
 	int i;
 	SlEntry *se;
-	size_t addsize, rowlen;
+	usize addsize, rowlen;
 	void *p;
 
 	addsize = sizeof(*slit);
@@ -1228,14 +1230,14 @@ dumpmadt(char *start, char *end, Atable *apics)
 }
 
 static Atable *
-parsemadt(Atable *parent, char *name, uint8_t *p, size_t size)
+parsemadt(Atable *parent, char *name, u8 *p, usize size)
 {
 	Atable *t, *tt;
-	uint8_t *pe;
+	u8 *pe;
 	Madt *mt;
 	Apicst *st, *l;
 	int id;
-	size_t stlen;
+	usize stlen;
 	char buf[16];
 	int i;
 	PSlice slice;
@@ -1359,7 +1361,7 @@ parsemadt(Atable *parent, char *name, uint8_t *p, size_t size)
 }
 
 static Atable *
-parsedmar(Atable *parent, char *name, uint8_t *raw, size_t rawsize)
+parsedmar(Atable *parent, char *name, u8 *raw, usize rawsize)
 {
 	Atable *t, *tt;
 	int i;
@@ -1450,7 +1452,7 @@ parsedmar(Atable *parent, char *name, uint8_t *raw, size_t rawsize)
  */
 static Atable *
 parsessdt(Atable *parent,
-	  char *name, uint8_t *raw, size_t size)
+	  char *name, u8 *raw, usize size)
 {
 	Atable *t;
 	Sdthdr *h;
@@ -1470,7 +1472,7 @@ parsessdt(Atable *parent,
 }
 
 static char *
-dumptable(char *start, char *end, char *sig, uint8_t *p, int l)
+dumptable(char *start, char *end, char *sig, u8 *p, int l)
 {
 	int n, i;
 
@@ -1496,10 +1498,10 @@ dumptable(char *start, char *end, char *sig, uint8_t *p, int l)
 static char *
 seprinttable(char *s, char *e, Atable *t)
 {
-	uint8_t *p;
+	u8 *p;
 	int i, n;
 
-	p = (uint8_t *)t->tbl; /* include header */
+	p = (u8 *)t->tbl; /* include header */
 	n = t->rawsize;
 	s = seprint(s, e, "%s @ %#p\n", t->name, p);
 	for(i = 0; i < n; i++){
@@ -1513,7 +1515,7 @@ seprinttable(char *s, char *e, Atable *t)
 }
 
 void *
-rsdsearch(void *start, uintptr_t size)
+rsdsearch(void *start, uintptr size)
 {
 	if(rsd != nil)
 		return rsd;
@@ -1542,7 +1544,7 @@ rsdsearch(void *start, uintptr_t size)
 typedef struct Parser {
 	char *sig;
 	Atable *(*parse)(Atable *parent,
-			 char *name, uint8_t *raw, size_t rawsize);
+			 char *name, u8 *raw, usize rawsize);
 } Parser;
 
 static Parser ptable[] = {
@@ -1566,10 +1568,10 @@ parsexsdt(Atable *root)
 	Sdthdr *sdt;
 	Atable *table;
 	PSlice slice;
-	size_t l, end;
-	uintptr_t dhpa;
+	usize l, end;
+	uintptr dhpa;
 	//Atable *n;
-	uint8_t *tbl;
+	u8 *tbl;
 	if(v)
 		print("1\n");
 	psliceinit(&slice);
@@ -1608,7 +1610,7 @@ parsexsdt(Atable *root)
 void
 makeindex(Atable *root)
 {
-	uint64_t index;
+	u64 index;
 
 	if(root == nil)
 		return;
@@ -1622,7 +1624,7 @@ static void
 parsersdptr(void)
 {
 	int asize, cksum;
-	uintptr_t sdtpa;
+	uintptr sdtpa;
 
 	/* Find the root pointer. */
 	/*
@@ -1645,8 +1647,8 @@ parsersdptr(void)
 	if(v)
 		print("/* RSDP */ Rsdp = {%08c, %x, %06c, %x, %p, %d, %p, %x}\n",
 		      rsd->signature, rsd->rchecksum, rsd->oemid, rsd->revision,
-		      *(uint32_t *)rsd->raddr, *(uint32_t *)rsd->length,
-		      *(uint64_t *)rsd->xaddr, rsd->xchecksum);
+		      *(u32 *)rsd->raddr, *(u32 *)rsd->length,
+		      *(u64 *)rsd->xaddr, rsd->xchecksum);
 
 	if(v)
 		print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
@@ -1711,7 +1713,7 @@ static Atable *
 genatable(Chan *c)
 {
 	Atable *a;
-	uint64_t ai;
+	u64 ai;
 
 	ai = c->qid.path >> QIndexShift;
 	assert(ai < lastpath);
@@ -1765,12 +1767,12 @@ dumpGas(char *start, char *end, char *prefix, Gas *g)
 		start = seprint(start, end, "[pci ");
 		start =
 			seprint(start, end, "dev %#p ",
-				(uint32_t)(g->addr >> 32) & 0xFFFF);
+				(u32)(g->addr >> 32) & 0xFFFF);
 		start =
 			seprint(start, end, "fn %#p ",
-				(uint32_t)(g->addr & 0xFFFF0000) >> 16);
+				(u32)(g->addr & 0xFFFF0000) >> 16);
 		start =
-			seprint(start, end, "adr %#p ", (uint32_t)(g->addr & 0xFFFF));
+			seprint(start, end, "adr %#p ", (u32)(g->addr & 0xFFFF));
 		break;
 	case Rfixedhw:
 		start = seprint(start, end, "[hw ");
@@ -1785,7 +1787,7 @@ dumpGas(char *start, char *end, char *prefix, Gas *g)
 }
 
 static unsigned int
-getbanked(uintptr_t ra, uintptr_t rb, int sz)
+getbanked(uintptr ra, uintptr rb, int sz)
 {
 	unsigned int r;
 
@@ -1816,7 +1818,7 @@ getbanked(uintptr_t ra, uintptr_t rb, int sz)
 }
 
 static unsigned int
-setbanked(uintptr_t ra, uintptr_t rb, int sz, int val)
+setbanked(uintptr ra, uintptr rb, int sz, int val)
 {
 	unsigned int r;
 	if(v)
@@ -1976,7 +1978,7 @@ startgpes(void)
 }
 
 static void
-acpiioalloc(uint16_t addr, int len)
+acpiioalloc(u16 addr, int len)
 {
 	if(ioalloc(addr, len, 1, "ACPI") < 0)
 		return;
@@ -2101,7 +2103,7 @@ acpiwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-acpistat(Chan *c, uint8_t *dp, int n)
+acpistat(Chan *c, u8 *dp, int n)
 {
 	Atable *a = genatable(c);
 
@@ -2133,8 +2135,8 @@ static int tlen;
  * start at 0 in Qraw. We need this special read so we can make sense of pointers in tables,
  * which are physical addresses.
  */
-static int32_t
-acpimemread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+acpimemread(Chan *c, void *a, i32 n, isize off)
 {
 	Proc *up = externup();
 	Acpilist *l;
@@ -2154,7 +2156,7 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	if(v)
 		print("ACPI Qraw: rsd %p %p %d %p\n", rsd, a, n, (void *)off);
 	if(off == 0){
-		uint32_t pa = (uint32_t)PADDR(rsd);
+		u32 pa = (u32)PADDR(rsd);
 		print("FIND RSD\n");
 		print("PA OF rsd is %lx\n", pa);
 		return readmem(0, a, n, &pa, sizeof(pa));
@@ -2171,7 +2173,7 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 	l = findlist(off, n);
 	/* we don't load all the lists, so this may be a new one. */
 	if(!l){
-		size_t _;
+		usize _;
 		if(sdtmap(off, n, &_, 0) == nil){
 			static char msg[256];
 			snprint(msg, sizeof(msg), "unable to map acpi@%p/%d", off, n);
@@ -2195,8 +2197,8 @@ acpimemread(Chan *c, void *a, int32_t n, int64_t off)
 /*
  * acpiintrread waits on the acpiev Queue.
  */
-static int32_t
-acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+acpiintrread(Chan *c, void *a, i32 n, isize off)
 {
 	if(acpienable())
 		error("Can't enable ACPI");
@@ -2210,13 +2212,13 @@ acpiintrread(Chan *c, void *a, int32_t n, int64_t off)
 /* acpiioread only lets you read one of each type for now.
  * i.e. one byte, word, or long.
  */
-static int32_t
-acpiioread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+acpiioread(Chan *c, void *a, i32 n, isize off)
 {
 	int port, pm1aevtblk;
-	uint8_t *p;
-	uint16_t *sp;
-	uint32_t *lp;
+	u8 *p;
+	u16 *sp;
+	u32 *lp;
 
 	pm1aevtblk = (int)fadt->pm1aevtblk;
 	port = off;
@@ -2261,13 +2263,13 @@ acpiioread(Chan *c, void *a, int32_t n, int64_t off)
 	return -1;
 }
 
-static int32_t
-acpiiowrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+acpiiowrite(Chan *c, void *a, i32 n, isize off)
 {
 	int port, pm1aevtblk;
-	uint8_t *p;
-	uint16_t *sp;
-	uint32_t *lp;
+	u8 *p;
+	u16 *sp;
+	u32 *lp;
 
 	port = off;
 	pm1aevtblk = (int)fadt->pm1aevtblk;
@@ -2312,8 +2314,8 @@ acpiiowrite(Chan *c, void *a, int32_t n, int64_t off)
 // Actually, this function doesn't do this right now for pretty or table.
 // It dumps the same table at every level. Working on it.
 // It does the right thing for raw.
-static int32_t
-acpiread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+acpiread(Chan *c, void *a, i32 n, isize off)
 {
 	long q;
 	Atable *t;
@@ -2373,18 +2375,18 @@ acpiread(Chan *c, void *a, int32_t n, int64_t off)
 	return -1;
 }
 
-static int32_t
-acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+acpiwrite(Chan *c, void *a, i32 n, isize off)
 {
 	error("not yet");
 	return -1;
 #if 0
-	int acpiirq(uint32_t tbdf, int irq);
+	int acpiirq(u32 tbdf, int irq);
 	Proc *up = externup();
 	Cmdtab *ct;
 	Cmdbuf *cb;
 
-	uint32_t tbdf;
+	u32 tbdf;
 	int irq;
 
 	if (c->qid.path == Qio){
@@ -2480,7 +2482,7 @@ pretty(Atable *atbl, char *start, char *end, void *arg)
 static char *
 raw(Atable *atbl, char *start, char *end, void *unused_arg)
 {
-	size_t len = MIN(end - start, atbl->rawsize);
+	usize len = MIN(end - start, atbl->rawsize);
 
 	memmove(start, atbl->raw, len);
 

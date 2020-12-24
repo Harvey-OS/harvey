@@ -64,7 +64,7 @@
 		ADDCARRY(sum);                                                    \
 	}
 
-static const uint32_t in_masks[] = {
+static const u32 in_masks[] = {
 	/*0 bytes*/ /*1 byte*/ /*2 bytes*/		/*3 bytes*/
 	0x00000000, 0x000000FF, 0x0000FFFF, 0x00FFFFFF, /* offset 0 */
 	0x00000000, 0x0000FF00, 0x00FFFF00, 0xFFFFFF00, /* offset 1 */
@@ -73,33 +73,33 @@ static const uint32_t in_masks[] = {
 };
 
 union l_util {
-	uint16_t s[2];
-	uint32_t l;
+	u16 s[2];
+	u32 l;
 };
 union q_util {
-	uint16_t s[4];
-	uint32_t l[2];
-	uint64_t q;
+	u16 s[4];
+	u32 l[2];
+	u64 q;
 };
 
-static uint64_t
+static u64
 in_cksumdata(const void *buf, int len)
 {
-	const uint32_t *lw = (const uint32_t *)buf;
-	uint64_t sum = 0;
-	uint64_t prefilled;
+	const u32 *lw = (const u32 *)buf;
+	u64 sum = 0;
+	u64 prefilled;
 	int offset;
 	union q_util q_util;
 
 	if((3 & (long)lw) == 0 && len == 20){
-		sum = (uint64_t)lw[0] + lw[1] + lw[2] + lw[3] + lw[4];
+		sum = (u64)lw[0] + lw[1] + lw[2] + lw[3] + lw[4];
 		REDUCE32;
 		return sum;
 	}
 
 	if((offset = 3 & (long)lw) != 0){
-		const uint32_t *masks = in_masks + (offset << 2);
-		lw = (uint32_t *)(((long)lw) - offset);
+		const u32 *masks = in_masks + (offset << 2);
+		lw = (u32 *)(((long)lw) - offset);
 		sum = *lw++ & masks[len >= 3 ? 3 : len];
 		len -= 4 - offset;
 		if(len <= 0){
@@ -135,7 +135,7 @@ in_cksumdata(const void *buf, int len)
 	 */
 	prefilled = lw[0];
 	while((len -= 32) >= 4){
-		uint64_t prefilling = lw[8];
+		u64 prefilling = lw[8];
 		sum += prefilled + lw[1] + lw[2] + lw[3] + lw[4] + lw[5] + lw[6] + lw[7];
 		lw += 8;
 		prefilled = prefilling;
@@ -147,26 +147,26 @@ in_cksumdata(const void *buf, int len)
 		len += 32;
 	}
 	while((len -= 16) >= 0){
-		sum += (uint64_t)lw[0] + lw[1] + lw[2] + lw[3];
+		sum += (u64)lw[0] + lw[1] + lw[2] + lw[3];
 		lw += 4;
 	}
 	len += 16;
 	while((len -= 4) >= 0){
-		sum += (uint64_t)*lw++;
+		sum += (u64)*lw++;
 	}
 	len += 4;
 	if(len > 0)
-		sum += (uint64_t)(in_masks[len] & *lw);
+		sum += (u64)(in_masks[len] & *lw);
 	REDUCE32;
 	return sum;
 }
-uint16_t
-ptclbsum(uint8_t *addr, int len)
+u16
+ptclbsum(u8 *addr, int len)
 {
-	uint64_t sum = in_cksumdata(addr, len);
+	u64 sum = in_cksumdata(addr, len);
 	union q_util q_util;
 	union l_util l_util;
 	REDUCE16;
-	return ((sum & (uint16_t)0x00ffU) << 8) |
-	       ((sum & (uint16_t)0xff00U) >> 8);
+	return ((sum & (u16)0x00ffU) << 8) |
+	       ((sum & (u16)0xff00U) >> 8);
 }

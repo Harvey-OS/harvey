@@ -58,15 +58,15 @@ clearwaitstats(void)
 {
 	newwaitstats();
 	memset(waitstats.ns, 0, NWstats * sizeof(int));
-	memset(waitstats.wait, 0, NWstats * sizeof(uint64_t));
-	memset(waitstats.total, 0, NWstats * sizeof(uint64_t));
+	memset(waitstats.wait, 0, NWstats * sizeof(u64));
+	memset(waitstats.total, 0, NWstats * sizeof(u64));
 }
 
 void
-addwaitstat(uintptr_t pc, uint64_t t0, int type)
+addwaitstat(uintptr pc, u64 t0, int type)
 {
 	uint i;
-	uint64_t w;
+	u64 w;
 
 	if(waitstats.on == 0)
 		return;
@@ -111,7 +111,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 }
 
 void
-lockloop(Lock *l, uintptr_t pc)
+lockloop(Lock *l, uintptr pc)
 {
 	Proc *p;
 
@@ -123,22 +123,22 @@ lockloop(Lock *l, uintptr_t pc)
 		dumpaproc(p);
 }
 
-static uint32_t
-getuser(uint32_t key)
+static u32
+getuser(u32 key)
 {
 	return key & 0xFFFF;
 }
 
-static uint32_t
-getticket(uint32_t key)
+static u32
+getticket(u32 key)
 {
 	return (key >> 16) & 0xFFFF;
 }
 
-static uint32_t
-incuser(uint32_t *key)
+static u32
+incuser(u32 *key)
 {
-	uint32_t old, new;
+	u32 old, new;
 
 	do {
 		old = *key;
@@ -147,10 +147,10 @@ incuser(uint32_t *key)
 	return getuser(new);
 }
 
-static uint32_t
-incticket(uint32_t *key)
+static u32
+incticket(u32 *key)
 {
-	uint32_t old, new;
+	u32 old, new;
 
 	do {
 		old = *key;
@@ -160,8 +160,8 @@ incticket(uint32_t *key)
 	return getticket(new);
 }
 
-static uint32_t
-myticket(uint32_t user)
+static u32
+myticket(u32 user)
 {
 	return (user - 1) & 0xFFFF;
 }
@@ -170,9 +170,9 @@ int
 lock(Lock *l)
 {
 	int i;
-	uintptr_t pc;
-	uint32_t user;
-	uint64_t t0;
+	uintptr pc;
+	u32 user;
+	u64 t0;
 
 	pc = getcallerpc();
 	lockstats.locks++;
@@ -218,9 +218,9 @@ void
 ilock(Lock *l)
 {
 	Mpl pl;
-	uintptr_t pc;
-	uint64_t t0;
-	uint32_t user;
+	uintptr pc;
+	u64 t0;
+	u32 user;
 
 	pc = getcallerpc();
 	lockstats.locks++;
@@ -251,8 +251,8 @@ int
 canlock(Lock *l)
 {
 	Lock try, new;
-	uintptr_t pc;
-	uint64_t t0;
+	uintptr pc;
+	u64 t0;
 
 	pc = getcallerpc();
 

@@ -770,7 +770,7 @@ void (*kbdmouse)(int);
 static int nokeyb = 1;
 
 static Lock i8042lock;
-static uint8_t ccc;
+static u8 ccc;
 static void (*auxputc)(int, int);
 
 enum {
@@ -941,7 +941,7 @@ inready(void)
 void
 i8042systemreset(void)
 {
-	uint16_t *s = KADDR(0x472);
+	u16 *s = KADDR(0x472);
 	int i, x;
 
 	if(nokeyb)
@@ -1005,7 +1005,7 @@ i8042auxcmd(int cmd)
 }
 
 int
-i8042auxcmds(uint8_t *cmd, int ncmd)
+i8042auxcmds(u8 *cmd, int ncmd)
 {
 	int i;
 
@@ -1293,7 +1293,7 @@ mousecmd(int cmd)
 }
 
 static int
-mousecmds(uint8_t *cmd, int ncmd)
+mousecmds(u8 *cmd, int ncmd)
 {
 	int i;
 
@@ -1329,14 +1329,14 @@ outbyte(int port, int c)
 	return 0;
 }
 
-static int32_t
-mouserwrite(Chan *c, void *vbuf, int32_t len, int64_t off64)
+static i32
+mouserwrite(Chan *c, void *vbuf, i32 len, i64 off64)
 {
 	return mousecmds(vbuf, len);
 }
 
-static int32_t
-mouseread(Chan *c, void *vbuf, int32_t len, int64_t off64)
+static i32
+mouseread(Chan *c, void *vbuf, i32 len, i64 off64)
 {
 	return qread(mouseq, vbuf, len);
 }
@@ -1430,8 +1430,8 @@ keybinit(void)
 	iunlock(&i8042lock);
 }
 
-static int32_t
-keybread(Chan *c, void *vbuf, int32_t len, int64_t off64)
+static i32
+keybread(Chan *c, void *vbuf, i32 len, i64 off64)
 {
 	return qread(keybq, vbuf, len);
 }
@@ -1454,7 +1454,7 @@ keybenable(void)
 }
 
 void
-kbdputmap(uint16_t m, uint16_t scanc, Rune r)
+kbdputmap(u16 m, u16 scanc, Rune r)
 {
 	if(scanc >= Nscan)
 		error(Ebadarg);

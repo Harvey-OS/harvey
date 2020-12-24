@@ -8,6 +8,18 @@
  */
 
 #define nil		((void*)0)
+
+typedef	unsigned char	u8;
+typedef	signed char	i8;
+typedef	unsigned short	u16;
+typedef signed short	i16;
+typedef	unsigned int	u32;
+typedef signed int	i32;
+typedef	unsigned long long u64;
+typedef signed long long i64;
+typedef u64 		usize;
+typedef	i64		isize;
+
 typedef	unsigned char	uint8_t;
 typedef signed char	int8_t;
 typedef	unsigned short	uint16_t;
@@ -21,9 +33,8 @@ typedef	long long	int64_t;
 typedef uint64_t	uintptr;
 typedef uint64_t	uintptr_t;
 typedef int64_t		intptr_t;
-typedef uint64_t	usize;
 typedef unsigned long	size_t;
-typedef	uint32_t	Rune;
+typedef	u32	Rune;
 typedef union FPdbleword FPdbleword;
 typedef uint64_t	jmp_buf[10]; // for registers.
 

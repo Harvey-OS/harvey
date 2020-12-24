@@ -23,7 +23,7 @@ enum {
 typedef struct Extent Extent;
 struct Extent {
 	int bid;
-	uint32_t start;
+	u32 start;
 	int len;
 	Page *cache;
 	Extent *next;
@@ -268,7 +268,7 @@ cdev(Mntcache *mc, Chan *c)
 }
 
 int
-cread(Chan *c, uint8_t *buf, int len, int64_t off)
+cread(Chan *c, u8 *buf, int len, i64 off)
 {
 	Proc *up = externup();
 	KMap *k;
@@ -276,7 +276,7 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 	Mntcache *mc;
 	Extent *e, **t;
 	int o, l, total;
-	uint32_t offset;
+	u32 offset;
 
 	if(off + len > maxcache)
 		return 0;
@@ -327,7 +327,7 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 			nexterror();
 		}
 
-		memmove(buf, (uint8_t *)VA(k) + o, l);
+		memmove(buf, (u8 *)VA(k) + o, l);
 
 		poperror();
 		kunmap(k);
@@ -349,7 +349,7 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 }
 
 Extent *
-cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
+cchain(u8 *buf, u32 offset, int len, Extent **tail)
 {
 	Proc *up = externup();
 	int l;
@@ -417,7 +417,7 @@ cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 }
 
 int
-cpgmove(Extent *e, uint8_t *buf, int boff, int len)
+cpgmove(Extent *e, u8 *buf, int boff, int len)
 {
 	Proc *up = externup();
 	Page *p;
@@ -433,7 +433,7 @@ cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 		nexterror();
 	}
 
-	memmove((uint8_t *)VA(k) + boff, buf, len);
+	memmove((u8 *)VA(k) + boff, buf, len);
 
 	poperror();
 	kunmap(k);
@@ -443,13 +443,13 @@ cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 }
 
 void
-cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
+cupdate(Chan *c, u8 *buf, int len, i64 off)
 {
 	Mntcache *mc;
 	Extent *tail;
 	Extent *e, *f, *p;
 	int o, ee, eblock;
-	uint32_t offset;
+	u32 offset;
 
 	if(off > maxcache || len == 0)
 		return;
@@ -535,13 +535,13 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 }
 
 void
-cwrite(Chan *c, uint8_t *buf, int len, int64_t off)
+cwrite(Chan *c, u8 *buf, int len, i64 off)
 {
 	int o, eo;
 	Mntcache *mc;
-	uint32_t eblock, ee;
+	u32 eblock, ee;
 	Extent *p, *f, *e, *tail;
-	uint32_t offset;
+	u32 offset;
 
 	if(off > maxcache || len == 0)
 		return;

@@ -24,7 +24,7 @@ struct Fdmux {
 	QLock QLock;
 	Fdmux *next;
 	int ref;
-	uint32_t path;
+	u32 path;
 	Queue *q[2];
 	int qref[2];
 	int owner;	   // pid of owner, e.g. regress/fdmux.
@@ -39,7 +39,7 @@ struct Fdmux {
 struct
 {
 	Lock Lock;
-	uint32_t path;
+	u32 path;
 } fdmuxalloc;
 
 enum {
@@ -143,7 +143,7 @@ fdmuxgen(Chan *c, char *d, Dirtab *tab, int ntab, int i, Dir *dp)
 
 	tab += i;
 	p = c->aux;
-	switch((uint32_t)tab->qid.path){
+	switch((u32)tab->qid.path){
 	case Qdata0:
 		len = qlen(p->q[0]);
 		break;
@@ -186,8 +186,8 @@ fdmuxwalk(Chan *c, Chan *nc, char **name, int nname)
 	return wq;
 }
 
-static int32_t
-fdmuxstat(Chan *c, uint8_t *db, int32_t n)
+static i32
+fdmuxstat(Chan *c, u8 *db, i32 n)
 {
 	Fdmux *p;
 	Dir dir;
@@ -301,8 +301,8 @@ fdmuxclose(Chan *c)
 		qunlock(&p->QLock);
 }
 
-static int32_t
-fdmuxread(Chan *c, void *va, int32_t n, int64_t m)
+static i32
+fdmuxread(Chan *c, void *va, i32 n, i64 m)
 {
 	Proc *up = externup();
 	Fdmux *p;
@@ -340,7 +340,7 @@ fdmuxread(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 static Block *
-fdmuxbread(Chan *c, int32_t n, int64_t offset)
+fdmuxbread(Chan *c, i32 n, i64 offset)
 {
 	Proc *up = externup();
 	Fdmux *p;
@@ -376,8 +376,8 @@ fdmuxbread(Chan *c, int32_t n, int64_t offset)
  *  a write to a closed fdmux causes a note to be sent to
  *  the process.
  */
-static int32_t
-fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
+static i32
+fdmuxwrite(Chan *c, void *va, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Fdmux *p;
@@ -505,11 +505,11 @@ fdmuxwrite(Chan *c, void *va, int32_t n, int64_t mm)
 	return n;
 }
 
-static int32_t
-fdmuxbwrite(Chan *c, Block *bp, int64_t mm)
+static i32
+fdmuxbwrite(Chan *c, Block *bp, i64 mm)
 {
 	Proc *up = externup();
-	int32_t n;
+	i32 n;
 	Fdmux *p;
 
 	if(waserror()){

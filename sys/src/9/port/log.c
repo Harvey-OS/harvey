@@ -52,8 +52,8 @@ logready(void *a)
 	return alog->len >= alog->minread;
 }
 
-int32_t
-logread(Log *alog, void *a, int32_t n, int64_t _)
+i32
+logread(Log *alog, void *a, i32 n, i64 _)
 {
 	Proc *up = externup();
 	int i, d;

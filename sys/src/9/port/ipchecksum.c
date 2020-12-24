@@ -47,8 +47,8 @@ ipchksum(const void *vptr, unsigned long nbytes)
 	}
 	if(nbytes == 1){
 		oddbyte = 0;
-		((uint8_t *)&oddbyte)[0] = *(uint8_t *)ptr;
-		((uint8_t *)&oddbyte)[1] = 0;
+		((u8 *)&oddbyte)[0] = *(u8 *)ptr;
+		((u8 *)&oddbyte)[1] = 0;
 		sum += oddbyte;
 	}
 	sum = (sum >> 16) + (sum & 0xffff);

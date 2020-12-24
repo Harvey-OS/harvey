@@ -32,7 +32,7 @@ char *faulttypes[] = {
  * other one, if we failed for some time.
  */
 int
-fault(uintptr_t addr, uintptr_t pc, int ftype)
+fault(uintptr addr, uintptr pc, int ftype)
 {
 	Proc *up = externup();
 	Segment *s;
@@ -121,17 +121,17 @@ faulterror(char *s, Chan *c, int freemem)
 }
 
 int
-fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
+fixfault(Segment *s, uintptr addr, int ftype, int dommuput, int color)
 {
 	Proc *up = externup();
 	int stype;
 	int ref;
 	Pte **p, *etp;
-	uintptr_t soff;
-	uintmem pgsz;
+	uintptr soff;
+	u64 pgsz;
 	uint mmuattr;
 	Page **pg, *lkp, *new;
-	Page *(*fn)(Segment *, uintptr_t);
+	Page *(*fn)(Segment *, uintptr);
 
 	pgsz = sys->pgsz[s->pgszi];
 	addr &= ~(pgsz - 1);
@@ -290,16 +290,16 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 }
 
 void
-pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
+pio(Segment *s, uintptr addr, u32 soff, Page **p, int color)
 {
 	Proc *up = externup();
 	Page *newpg;
 	KMap *k;
 	Chan *c;
 	int n, ask;
-	uintmem pgsz;
+	u64 pgsz;
 	char *kaddr;
-	uint32_t daddr, doff = 0;
+	u32 daddr, doff = 0;
 	Page *loadrec;
 
 	loadrec = *p;
@@ -399,7 +399,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
  * Called only in a system call
  */
 int
-okaddr(uintptr_t addr, int32_t len, int write)
+okaddr(uintptr addr, i32 len, int write)
 {
 	Proc *up = externup();
 	Segment *s;
@@ -422,7 +422,7 @@ okaddr(uintptr_t addr, int32_t len, int write)
 }
 
 void *
-validaddr(void *addr, int32_t len, int write)
+validaddr(void *addr, i32 len, int write)
 {
 	if(!okaddr(PTR2UINT(addr), len, write)){
 		pprint("suicide: invalid address %#p/%ld in sys call pc=%#p\n",
@@ -439,10 +439,10 @@ validaddr(void *addr, int32_t len, int write)
  * Note this won't work for 4*KiB pages!
  */
 void *
-vmemchr(const void *s, int c, uint32_t n)
+vmemchr(const void *s, int c, u32 n)
 {
 	int m;
-	uintptr_t a;
+	uintptr a;
 	void *t;
 
 	a = PTR2UINT(s);
@@ -471,7 +471,7 @@ vmemchr(const void *s, int c, uint32_t n)
 }
 
 Segment *
-seg(Proc *p, uintptr_t addr, int dolock)
+seg(Proc *p, uintptr addr, int dolock)
 {
 	Segment **s, **et, *n;
 

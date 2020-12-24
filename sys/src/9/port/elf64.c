@@ -244,31 +244,31 @@ enum {
 };
 
 struct Elf64_Ehdr {
-	uint8_t e_ident[16];	/* ELF identification */
-	uint8_t e_type[2];	/* Object file type */
-	uint8_t e_machine[2];	/* Machine type */
-	uint8_t e_version[4];	/* Object file version */
-	uint8_t e_entry[8];	/* Entry point address */
-	uint8_t e_phoff[8];	/* Program header offset */
-	uint8_t e_shoff[8];	/* Section header offset */
-	uint8_t e_flags[4];	/* Processor-specific flags */
-	uint8_t e_ehsize[2];	/* ELF header size */
-	uint8_t e_phentsize[2]; /* Size of program header entry */
-	uint8_t e_phnum[2];	/* Number of program header entries */
-	uint8_t e_shentsize[2]; /* Size of section header entry */
-	uint8_t e_shnum[2];	/* Number of section header entries */
-	uint8_t e_shstrndx[2];	/* Section name string table index */
+	u8 e_ident[16];	/* ELF identification */
+	u8 e_type[2];	/* Object file type */
+	u8 e_machine[2];	/* Machine type */
+	u8 e_version[4];	/* Object file version */
+	u8 e_entry[8];	/* Entry point address */
+	u8 e_phoff[8];	/* Program header offset */
+	u8 e_shoff[8];	/* Section header offset */
+	u8 e_flags[4];	/* Processor-specific flags */
+	u8 e_ehsize[2];	/* ELF header size */
+	u8 e_phentsize[2]; /* Size of program header entry */
+	u8 e_phnum[2];	/* Number of program header entries */
+	u8 e_shentsize[2]; /* Size of section header entry */
+	u8 e_shnum[2];	/* Number of section header entries */
+	u8 e_shstrndx[2];	/* Section name string table index */
 };
 
 struct Elf64_Phdr {
-	uint8_t p_type[4];   /* Type of segment */
-	uint8_t p_flags[4];  /* Segment attributes */
-	uint8_t p_offset[8]; /* Offset in file */
-	uint8_t p_vaddr[8];  /* Virtual address in memory */
-	uint8_t p_paddr[8];  /* Reserved */
-	uint8_t p_filesz[8]; /* Size of segment in file */
-	uint8_t p_memsz[8];  /* Size of segment in memory */
-	uint8_t p_align[8];  /* Alignment of segment */
+	u8 p_type[4];   /* Type of segment */
+	u8 p_flags[4];  /* Segment attributes */
+	u8 p_offset[8]; /* Offset in file */
+	u8 p_vaddr[8];  /* Virtual address in memory */
+	u8 p_paddr[8];  /* Reserved */
+	u8 p_filesz[8]; /* Size of segment in file */
+	u8 p_memsz[8];  /* Size of segment in memory */
+	u8 p_align[8];  /* Alignment of segment */
 };
 
 static struct {
@@ -282,15 +282,15 @@ static struct {
 };
 
 static int
-ispow2(uintptr_t a)
+ispow2(uintptr a)
 {
 	return ((a != 0) && (a & (a - 1)) == 0);
 }
 
 static int
-overlap(uintptr_t a0, uintptr_t aend, uintptr_t b0, uintptr_t bend)
+overlap(uintptr a0, uintptr aend, uintptr b0, uintptr bend)
 {
-	uint64_t max0, minend;
+	u64 max0, minend;
 	max0 = a0 > b0 ? a0 : b0;
 	minend = aend < bend ? aend : bend;
 	return max0 < minend;
@@ -300,17 +300,17 @@ overlap(uintptr_t a0, uintptr_t aend, uintptr_t b0, uintptr_t bend)
  *	return the number of ldsegs in rp
  */
 int
-elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
+elf64ldseg(Chan *c, uintptr *entryp, Ldseg **rp, char *mach, u32 minpgsz)
 {
 	Proc *up = externup();
 	Elf64_Ehdr ehdr;
-	uint16_t (*get16)(uint8_t *);
-	uint32_t (*get32)(uint8_t *);
-	uint64_t (*get64)(uint8_t *);
-	uint8_t *phbuf, *phend;
-	uint8_t *fp;
+	u16 (*get16)(u8 *);
+	u32 (*get32)(u8 *);
+	u64 (*get64)(u8 *);
+	u8 *phbuf, *phend;
+	u8 *fp;
 	Ldseg *ldseg;
-	uint64_t entry;
+	u64 entry;
 	int i, j, si;
 
 	entry = 0;
@@ -345,9 +345,9 @@ elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 		}
 
 		if(fp[EI_CLASS] == ELFCLASS64){
-			int64_t phoff;
-			uint32_t phnum, phentsize;
-			uint16_t e_machine;
+			i64 phoff;
+			u32 phnum, phentsize;
+			u16 e_machine;
 
 			e_machine = get16(ehdr.e_machine);
 			if(mach != nil){
@@ -400,8 +400,8 @@ elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 
 				phdr = (Elf64_Phdr *)fp;
 				if(get32(phdr->p_type) == PT_LOAD){
-					uint64_t offset, vaddr, align, filesz, memsz;
-					uint32_t flags;
+					u64 offset, vaddr, align, filesz, memsz;
+					u32 flags;
 
 					flags = get32(phdr->p_flags);	/* Segment attributes */
 					offset = get64(phdr->p_offset); /* Offset in file */

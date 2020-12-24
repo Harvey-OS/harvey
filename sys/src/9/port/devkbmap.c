@@ -34,7 +34,7 @@ kbmapwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-kbmapstat(Chan *c, uint8_t *dp, int n)
+kbmapstat(Chan *c, u8 *dp, int n)
 {
 	return devstat(c, dp, n, kbmaptab, NKBFILE, devgen);
 }
@@ -56,8 +56,8 @@ kbmapclose(Chan *c)
 	}
 }
 
-static int32_t
-kbmapread(Chan *c, void *a, int32_t n, int64_t offset)
+static i32
+kbmapread(Chan *c, void *a, i32 n, i64 offset)
 {
 	char *bp;
 	char tmp[KBLINELEN + 1];
@@ -111,8 +111,8 @@ kbgetrune(char **p)
 	return r;
 }
 
-static int32_t
-kbmapwrite(Chan *c, void *a, int32_t n, int64_t v)
+static i32
+kbmapwrite(Chan *c, void *a, i32 n, i64 v)
 {
 	char line[100], *lp, *b;
 	int key, m, l;

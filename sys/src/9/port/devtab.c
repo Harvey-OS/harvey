@@ -79,8 +79,8 @@ devtabget(int dc, int user)
 	return nil;
 }
 
-int32_t
-devtabread(Chan *c, void *buf, int32_t n, int64_t off)
+i32
+devtabread(Chan *c, void *buf, i32 n, i64 off)
 {
 	Proc *up = externup();
 	int i;

@@ -20,10 +20,10 @@
  */
 #define LOCKCYCLES 0
 
-uint64_t maxlockcycles;
-uint64_t maxilockcycles;
-uintptr_t maxlockpc;
-uintptr_t maxilockpc;
+u64 maxlockcycles;
+u64 maxilockcycles;
+uintptr maxlockpc;
+uintptr maxilockpc;
 
 Lockstats lockstats;
 Waitstats waitstats;
@@ -55,15 +55,15 @@ clearwaitstats(void)
 {
 	newwaitstats();
 	memset(waitstats.ns, 0, NWstats * sizeof(int));
-	memset(waitstats.wait, 0, NWstats * sizeof(uint64_t));
-	memset(waitstats.total, 0, NWstats * sizeof(uint64_t));
+	memset(waitstats.wait, 0, NWstats * sizeof(u64));
+	memset(waitstats.total, 0, NWstats * sizeof(u64));
 }
 
 void
-addwaitstat(uintptr_t pc, uint64_t t0, int type)
+addwaitstat(uintptr pc, u64 t0, int type)
 {
 	uint i;
-	uint64_t w;
+	u64 w;
 
 	if(waitstats.on == 0)
 		return;
@@ -108,7 +108,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 }
 
 void
-lockloop(Lock *l, uintptr_t pc)
+lockloop(Lock *l, uintptr pc)
 {
 	Proc *up = externup();
 	Proc *p;
@@ -126,8 +126,8 @@ lock(Lock *l)
 {
 	Proc *up = externup();
 	int i;
-	uintptr_t pc;
-	uint64_t t0;
+	uintptr pc;
+	u64 t0;
 
 	pc = getcallerpc();
 
@@ -192,8 +192,8 @@ ilock(Lock *l)
 {
 	Proc *up = externup();
 	Mpl pl;
-	uintptr_t pc;
-	uint64_t t0;
+	uintptr pc;
+	u64 t0;
 
 	pc = getcallerpc();
 	lockstats.locks++;
@@ -260,7 +260,7 @@ void
 unlock(Lock *l)
 {
 	Proc *up = externup();
-	uint64_t x;
+	u64 x;
 
 	if(LOCKCYCLES){
 		cycles(&x);
@@ -296,7 +296,7 @@ iunlock(Lock *l)
 {
 	Proc *up = externup();
 	Mpl pl;
-	uint64_t x;
+	u64 x;
 
 	if(LOCKCYCLES){
 		cycles(&x);

@@ -19,14 +19,14 @@
 static int netown(Netfile *, char *, int);
 static int openfile(Netif *, int);
 static char *matchtoken(char *, char *);
-static char *netmulti(Netif *, Netfile *, uint8_t *, int);
-static int parseaddr(uint8_t *, char *, int);
+static char *netmulti(Netif *, Netfile *, u8 *, int);
+static int parseaddr(u8 *, char *, int);
 
 /*
  *  set up a new network interface
  */
 void
-netifinit(Netif *nif, char *name, int nfile, uint32_t limit)
+netifinit(Netif *nif, char *name, int nfile, u32 limit)
 {
 	strncpy(nif->name, name, KNAMELEN - 1);
 	nif->name[KNAMELEN - 1] = 0;
@@ -213,14 +213,14 @@ netifopen(Netif *nif, Chan *c, int omode)
 	return c;
 }
 
-int32_t
-netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
+i32
+netifread(Netif *nif, Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	int i, j;
 	Netfile *f;
 	char *p;
-	int32_t offset;
+	i32 offset;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, (Dirtab *)nif, 0, netifgen);
@@ -276,7 +276,7 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 }
 
 Block *
-netifbread(Netif *nif, Chan *c, int32_t n, int64_t offset)
+netifbread(Netif *nif, Chan *c, i32 n, i64 offset)
 {
 	if((c->qid.type & QTDIR) || NETTYPE(c->qid.path) != Ndataqid)
 		return devbread(c, n, offset);
@@ -309,14 +309,14 @@ typeinuse(Netif *nif, int type)
 /*
  *  the devxxx.c that calls us handles writing data, it knows best
  */
-int32_t
-netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
+i32
+netifwrite(Netif *nif, Chan *c, void *a, i32 n)
 {
 	Proc *up = externup();
 	Netfile *f;
 	int type, mtu;
 	char *p, buf[64];
-	uint8_t binaddr[Nmaxaddr];
+	u8 binaddr[Nmaxaddr];
 
 	if(NETTYPE(c->qid.path) != Nctlqid)
 		error(Eperm);
@@ -398,8 +398,8 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 	return n;
 }
 
-int32_t
-netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
+i32
+netifwstat(Netif *nif, Chan *c, u8 *db, i32 n)
 {
 	Proc *up = externup();
 	Dir *dir;
@@ -421,14 +421,14 @@ netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
 	}
 	if(!emptystr(dir[0].uid))
 		strncpy(f->owner, dir[0].uid, KNAMELEN);
-	if(dir[0].mode != (uint32_t)~0UL)
+	if(dir[0].mode != (u32)~0UL)
 		f->mode = dir[0].mode;
 	free(dir);
 	return l;
 }
 
-int32_t
-netifstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
+i32
+netifstat(Netif *nif, Chan *c, u8 *db, i32 n)
 {
 	return devstat(c, db, n, (Dirtab *)nif, 0, netifgen);
 }
@@ -603,10 +603,10 @@ matchtoken(char *p, char *token)
 	return p;
 }
 
-static uint32_t
-hash(uint8_t *a, int len)
+static u32
+hash(u8 *a, int len)
 {
-	uint32_t sum = 0;
+	u32 sum = 0;
 
 	while(len-- > 0)
 		sum = (sum << 1) + *a++;
@@ -614,7 +614,7 @@ hash(uint8_t *a, int len)
 }
 
 int
-activemulti(Netif *nif, uint8_t *addr, int alen)
+activemulti(Netif *nif, u8 *addr, int alen)
 {
 	Netaddr *hp;
 
@@ -629,7 +629,7 @@ activemulti(Netif *nif, uint8_t *addr, int alen)
 }
 
 static int
-parseaddr(uint8_t *to, char *from, int alen)
+parseaddr(u8 *to, char *from, int alen)
 {
 	char nip[4];
 	char *p;
@@ -655,11 +655,11 @@ parseaddr(uint8_t *to, char *from, int alen)
  *  keep track of multicast addresses
  */
 static char *
-netmulti(Netif *nif, Netfile *f, uint8_t *addr, int add)
+netmulti(Netif *nif, Netfile *f, u8 *addr, int add)
 {
 	Netaddr **l, *ap;
 	int i;
-	uint32_t h;
+	u32 h;
 
 	if(nif->multicast == nil)
 		return "interface does not support multicast";

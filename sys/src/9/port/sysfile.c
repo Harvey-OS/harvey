@@ -402,12 +402,12 @@ sysclose(Ar0 *ar0, ...)
 	ar0->i = 0;
 }
 
-static int32_t
-unionread(Chan *c, void *va, int32_t n)
+static i32
+unionread(Chan *c, void *va, i32 n)
 {
 	Proc *up = externup();
 	int i;
-	int32_t nr;
+	i32 nr;
 	Mhead *mh;
 	Mount *mount;
 
@@ -461,7 +461,7 @@ unionrewind(Chan *c)
 }
 
 static usize
-dirfixed(uint8_t *p, uint8_t *e, Dir *d)
+dirfixed(u8 *p, u8 *e, Dir *d)
 {
 	int len;
 	Dev *dev;
@@ -498,7 +498,7 @@ dirfixed(uint8_t *p, uint8_t *e, Dir *d)
 }
 
 static char *
-dirname(uint8_t *p, usize *n)
+dirname(u8 *p, usize *n)
 {
 	p += BIT16SZ + BIT16SZ + BIT32SZ + BIT8SZ + BIT32SZ + BIT64SZ + BIT32SZ + BIT32SZ + BIT32SZ + BIT64SZ;
 	*n = GBIT16(p);
@@ -507,7 +507,7 @@ dirname(uint8_t *p, usize *n)
 }
 
 static usize
-dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
+dirsetname(char *name, usize len, u8 *p, usize n, usize maxn)
 {
 	char *oname;
 	usize nn, olen;
@@ -523,8 +523,9 @@ dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
 		return BIT16SZ;
 
 	if(len != olen)
-		memmove(oname + len, oname + olen, p + n - (uint8_t *)(oname + olen));
-	PBIT16((uint8_t *)(oname - 2), len);
+		memmove(oname + len, oname + olen,
+			p + n - (u8 *)(oname + olen));
+	PBIT16((u8 *)(oname - 2), len);
 	memmove(oname, name, len);
 
 	return nn;
@@ -535,9 +536,9 @@ dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
  * to overflow the buffer.  Catch the overflow in c->dirrock.
  */
 static void
-mountrock(Chan *c, uint8_t *p, uint8_t **pe)
+mountrock(Chan *c, u8 *p, u8 **pe)
 {
-	uint8_t *e, *r;
+	u8 *e, *r;
 	int len, n;
 
 	e = *pe;
@@ -572,10 +573,10 @@ mountrock(Chan *c, uint8_t *p, uint8_t **pe)
  * Satisfy a directory read with the results saved in c->dirrock.
  */
 static int
-mountrockread(Chan *c, uint8_t *op, int32_t n, int32_t *nn)
+mountrockread(Chan *c, u8 *op, i32 n, i32 *nn)
 {
-	int32_t dirlen;
-	uint8_t *rp, *erp, *ep, *p;
+	i32 dirlen;
+	u8 *rp, *erp, *ep, *p;
 
 	/* common case */
 	if(c->nrock == 0)
@@ -623,8 +624,8 @@ mountrewind(Chan *c)
  * directory entries for bind and mount points with the results
  * of statting what is mounted there.  Except leave the old names.
  */
-static int32_t
-mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
+static i32
+mountfix(Chan *c, u8 *op, i32 n, i32 maxn)
 {
 	Proc *up = externup();
 	char *name;
@@ -633,8 +634,8 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	Mhead *mh;
 	Mount *mount;
 	usize dirlen, nname, r, rest;
-	int32_t l;
-	uint8_t *buf, *e, *p;
+	i32 l;
+	u8 *buf, *e, *p;
 	Dir d;
 
 	p = op;
@@ -714,11 +715,11 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	return e - op;
 }
 
-static int32_t
-read(int fd, void *p, int32_t n, int64_t off)
+static i32
+read(int fd, void *p, i32 n, i64 off)
 {
 	Proc *up = externup();
-	int32_t nn, nnn;
+	i32 nn, nnn;
 	int notpread = (off == -1LL);	     // in case it matches: it'll be 1, if not 0
 	Chan *c;
 
@@ -793,14 +794,14 @@ syspread(Ar0 *ar0, ...)
 {
 	int fd;
 	void *p;
-	int32_t n;
-	int64_t off;
+	i32 n;
+	i64 off;
 	va_list list;
 	va_start(list, ar0);
 	fd = va_arg(list, int);
 	p = va_arg(list, void *);
-	n = va_arg(list, int32_t);
-	off = va_arg(list, int64_t);
+	n = va_arg(list, i32);
+	off = va_arg(list, i64);
 	va_end(list);
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
@@ -808,11 +809,11 @@ syspread(Ar0 *ar0, ...)
 	ar0->l = read(fd, p, n, off);
 }
 
-static int32_t
-write(int fd, void *p, int32_t n, int64_t off)
+static i32
+write(int fd, void *p, i32 n, i64 off)
 {
 	Proc *up = externup();
-	int32_t r;
+	i32 r;
 	Chan *c;
 
 	r = n;
@@ -867,7 +868,7 @@ syspwrite(Ar0 *ar0, ...)
 	int fd = va_arg(list, int);
 	void *buf = va_arg(list, void *);
 	long nbytes = va_arg(list, long);
-	int64_t offset = va_arg(list, int64_t);
+	i64 offset = va_arg(list, i64);
 	va_end(list);
 	/*
 	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
@@ -875,12 +876,12 @@ syspwrite(Ar0 *ar0, ...)
 	ar0->l = write(fd, buf, nbytes, offset);
 }
 
-static int64_t
-sseek(int fd, int64_t offset, int whence)
+static i64
+sseek(int fd, i64 offset, int whence)
 {
 	Proc *up = externup();
 	Chan *c;
-	uint8_t buf[sizeof(Dir) + 100];
+	u8 buf[sizeof(Dir) + 100];
 	Dir dir;
 	int n;
 
@@ -933,7 +934,7 @@ void
 sysseek(Ar0 *ar0, ...)
 {
 	int fd, whence;
-	int64_t offset;
+	i64 offset;
 	va_list list;
 	va_start(list, ar0);
 
@@ -941,7 +942,7 @@ sysseek(Ar0 *ar0, ...)
 	 * int64_t seek(int fd, int64_t n, int type);
 	 */
 	fd = va_arg(list, int);
-	offset = va_arg(list, int64_t);
+	offset = va_arg(list, i64);
 	whence = va_arg(list, int);
 	va_end(list);
 
@@ -949,7 +950,7 @@ sysseek(Ar0 *ar0, ...)
 }
 
 void
-validstat(uint8_t *s, usize n)
+validstat(u8 *s, usize n)
 {
 	usize m;
 	char buf[64];
@@ -998,7 +999,7 @@ sysfstat(Ar0 *ar0, ...)
 	Chan *c;
 	usize n;
 	int r;
-	uint8_t *p;
+	u8 *p;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1010,7 +1011,7 @@ sysfstat(Ar0 *ar0, ...)
 	 * radical.
 	 */
 	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t *);
+	p = va_arg(list, u8 *);
 	n = va_arg(list, usize);
 	va_end(list);
 
@@ -1035,7 +1036,7 @@ sysstat(Ar0 *ar0, ...)
 	Chan *c;
 	usize n;
 	int r;
-	uint8_t *p;
+	u8 *p;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1048,7 +1049,7 @@ sysstat(Ar0 *ar0, ...)
 	 */
 	aname = va_arg(list, char *);
 	aname = validaddr(aname, 1, 0);
-	p = va_arg(list, uint8_t *);
+	p = va_arg(list, u8 *);
 	n = va_arg(list, usize);
 	va_end(list);
 
@@ -1414,11 +1415,11 @@ Not sure this dicking around is right for Dev ref counts.
 	ar0->i = 0;
 }
 
-static int32_t
-wstat(Chan *c, uint8_t *p, usize n)
+static i32
+wstat(Chan *c, u8 *p, usize n)
 {
 	Proc *up = externup();
-	int32_t l;
+	i32 l;
 	usize namelen;
 
 	if(waserror()){
@@ -1447,7 +1448,7 @@ syswstat(Ar0 *ar0, ...)
 {
 	Chan *c;
 	char *aname;
-	uint8_t *p;
+	u8 *p;
 	usize n;
 	va_list list;
 	va_start(list, ar0);
@@ -1460,7 +1461,7 @@ syswstat(Ar0 *ar0, ...)
 	 * radical.
 	 */
 	aname = va_arg(list, char *);
-	p = va_arg(list, uint8_t *);
+	p = va_arg(list, u8 *);
 	n = va_arg(list, usize);
 
 	p = validaddr(p, n, 0);
@@ -1476,7 +1477,7 @@ sysfwstat(Ar0 *ar0, ...)
 {
 	Chan *c;
 	int fd;
-	uint8_t *p;
+	u8 *p;
 	usize n;
 	va_list list;
 	va_start(list, ar0);
@@ -1489,7 +1490,7 @@ sysfwstat(Ar0 *ar0, ...)
 	 * radical.
 	 */
 	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t *);
+	p = va_arg(list, u8 *);
 	n = va_arg(list, usize);
 
 	p = validaddr(p, n, 0);

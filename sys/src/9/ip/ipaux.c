@@ -43,93 +43,93 @@ char *v6hdrtypes[Maxhdrtype] =
 /*
  *  well known IPv6 addresses
  */
-uint8_t v6Unspecified[IPaddrlen] = {
+u8 v6Unspecified[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
-uint8_t v6loopback[IPaddrlen] = {
+u8 v6loopback[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01};
 
-uint8_t v6linklocal[IPaddrlen] = {
+u8 v6linklocal[IPaddrlen] = {
 	0xfe, 0x80, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
-uint8_t v6linklocalmask[IPaddrlen] = {
+u8 v6linklocalmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
 int v6llpreflen = 8; /* link-local prefix length in bytes */
 
-uint8_t v6multicast[IPaddrlen] = {
+u8 v6multicast[IPaddrlen] = {
 	0xff, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
-uint8_t v6multicastmask[IPaddrlen] = {
+u8 v6multicastmask[IPaddrlen] = {
 	0xff, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
 int v6mcpreflen = 1; /* multicast prefix length */
 
-uint8_t v6allnodesN[IPaddrlen] = {
+u8 v6allnodesN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01};
-uint8_t v6allroutersN[IPaddrlen] = {
+u8 v6allroutersN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x02};
-uint8_t v6allnodesNmask[IPaddrlen] = {
+u8 v6allnodesNmask[IPaddrlen] = {
 	0xff, 0xff, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
 int v6aNpreflen = 2; /* all nodes (N) prefix */
 
-uint8_t v6allnodesL[IPaddrlen] = {
+u8 v6allnodesL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01};
-uint8_t v6allroutersL[IPaddrlen] = {
+u8 v6allroutersL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x02};
-uint8_t v6allnodesLmask[IPaddrlen] = {
+u8 v6allnodesLmask[IPaddrlen] = {
 	0xff, 0xff, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0};
 int v6aLpreflen = 2; /* all nodes (L) prefix */
 
-uint8_t v6solicitednode[IPaddrlen] = {
+u8 v6solicitednode[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01,
 	0xff, 0, 0, 0};
-uint8_t v6solicitednodemask[IPaddrlen] = {
+u8 v6solicitednodemask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0x0, 0x0, 0x0};
 int v6snpreflen = 13;
 
-uint16_t
+u16
 ptclcsum(Block *bp, int offset, int len)
 {
-	uint8_t *addr;
-	uint32_t losum, hisum;
-	uint16_t csum;
+	u8 *addr;
+	u32 losum, hisum;
+	u16 csum;
 	int odd, blocklen, x;
 
 	/* Correct to front of data area */
@@ -185,10 +185,10 @@ enum {
 	Isprefix = 16,
 };
 
-#define CLASS(p) ((*(uint8_t *)(p)) >> 6)
+#define CLASS(p) ((*(u8 *)(p)) >> 6)
 
 void
-ipv62smcast(uint8_t *smcast, uint8_t *a)
+ipv62smcast(u8 *smcast, u8 *a)
 {
 	assert(IPaddrlen == 16);
 	memmove(smcast, v6solicitednode, IPaddrlen);
@@ -201,7 +201,7 @@ ipv62smcast(uint8_t *smcast, uint8_t *a)
  *  parse a hex mac address
  */
 int
-parsemac(uint8_t *to, char *from, int len)
+parsemac(u8 *to, char *from, int len)
 {
 	char nip[4];
 	char *p;
@@ -228,10 +228,10 @@ parsemac(uint8_t *to, char *from, int len)
 /*
  *  hashing tcp, udp, ... connections
  */
-uint32_t
-iphash(uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
+u32
+iphash(u8 *sa, u16 sp, u8 *da, u16 dp)
 {
-	uint32_t kludge;
+	u32 kludge;
 	kludge = ((sa[IPaddrlen - 1] << 24) ^ (sp << 16) ^ (da[IPaddrlen - 1] << 8) ^ dp);
 	return kludge % Nipht;
 #if 0
@@ -244,7 +244,7 @@ iphash(uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 void
 iphtadd(Ipht *ht, Conv *c)
 {
-	uint32_t hv;
+	u32 hv;
 	Iphash *h;
 
 	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
@@ -275,7 +275,7 @@ iphtadd(Ipht *ht, Conv *c)
 void
 iphtrem(Ipht *ht, Conv *c)
 {
-	uint32_t hv;
+	u32 hv;
 	Iphash **l, *h;
 
 	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
@@ -298,9 +298,9 @@ iphtrem(Ipht *ht, Conv *c)
  *	announced && *,*
  */
 Conv *
-iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
+iphtlook(Ipht *ht, u8 *sa, u16 sp, u8 *da, u16 dp)
 {
-	uint32_t hv;
+	u32 hv;
 	Iphash *h;
 	Conv *c;
 

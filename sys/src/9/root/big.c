@@ -13,9 +13,9 @@
 void
 main(int argc, char *argv[])
 {
-	uint32_t num = 1;
-	uint64_t size;
-	uint8_t *c;
+	u32 num = 1;
+	u64 size;
+	u8 *c;
 
 	if(argc > 1)
 		num = strtoul(argv[1], 0, 0);

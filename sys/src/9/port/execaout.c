@@ -81,24 +81,24 @@
 // CPUs available and could have got this right.
 typedef struct {
 	Exec Exec;
-	uint64_t hdr[1];
+	u64 hdr[1];
 } Hdr;
 
-static uint64_t
-vl2be(uint64_t v)
+static u64
+vl2be(u64 v)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t *)&v;
-	return ((uint64_t)((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) << 32) | ((uint64_t)(p[4] << 24) | (p[5] << 16) | (p[6] << 8) | p[7]);
+	p = (u8 *)&v;
+	return ((u64)((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) << 32) | ((u64)(p[4] << 24) | (p[5] << 16) | (p[6] << 8) | p[7]);
 }
 
-static uint32_t
-l2be(int32_t l)
+static u32
+l2be(i32 l)
 {
-	uint8_t *cp;
+	u8 *cp;
 
-	cp = (uint8_t *)&l;
+	cp = (u8 *)&l;
 	return (cp[0] << 24) | (cp[1] << 16) | (cp[2] << 8) | cp[3];
 }
 
@@ -112,12 +112,12 @@ l2be(int32_t l)
  *
  */
 int
-aoutldseg(void *v, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
+aoutldseg(void *v, uintptr *entryp, Ldseg **rp, char *mach, u32 minpgsz)
 {
 	Hdr *hdr = v;
 	Ldseg *ldseg;
-	int32_t hdrsz, magic, textsz, datasz, bsssz;
-	uintptr_t textlim, datalim, bsslim;
+	i32 hdrsz, magic, textsz, datasz, bsssz;
+	uintptr textlim, datalim, bsslim;
 
 	magic = l2be(hdr->Exec.magic);
 	if(magic != AOUT_MAGIC){

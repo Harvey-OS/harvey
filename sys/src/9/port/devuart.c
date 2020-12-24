@@ -231,8 +231,8 @@ uartwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, uartdir, uartndir, devgen);
 }
 
-static int32_t
-uartstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+uartstat(Chan *c, u8 *dp, i32 n)
 {
 	if(UARTTYPE(c->qid.path) == Qdata)
 		uartsetlength(UARTID(c->qid.path));
@@ -327,11 +327,11 @@ uartclose(Chan *c)
 	}
 }
 
-static int32_t
-uartread(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+uartread(Chan *c, void *buf, i32 n, i64 off)
 {
 	Uart *p;
-	uint32_t offset = off;
+	u32 offset = off;
 
 	if(c->qid.type & QTDIR){
 		uartsetlength(-1);
@@ -451,7 +451,7 @@ uartctl(Uart *p, char *cmd)
 		case 'w':
 			if(uarttimer == nil || n < 1)
 				return -1;
-			uarttimer->tns = (int64_t)n * 100000LL;
+			uarttimer->tns = (i64)n * 100000LL;
 			break;
 		case 'X':
 		case 'x':
@@ -466,8 +466,8 @@ uartctl(Uart *p, char *cmd)
 	return 0;
 }
 
-static int32_t
-uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
+static i32
+uartwrite(Chan *c, void *buf, i32 n, i64 mm)
 {
 	Proc *up = externup();
 	Uart *p;
@@ -515,8 +515,8 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 	return n;
 }
 
-static int32_t
-uartwstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+uartwstat(Chan *c, u8 *dp, i32 n)
 {
 	Dir d;
 	Dirtab *dt;
@@ -532,7 +532,7 @@ uartwstat(Chan *c, uint8_t *dp, int32_t n)
 	n = convM2D(dp, n, &d, nil);
 	if(n == 0)
 		error(Eshortstat);
-	if(d.mode != (uint32_t)~0UL)
+	if(d.mode != (u32)~0UL)
 		dt[0].perm = dt[1].perm = d.mode;
 	return n;
 }
@@ -629,7 +629,7 @@ static void
 uartstageinput(Uart *p)
 {
 	int n;
-	uint8_t *ir, *iw;
+	u8 *ir, *iw;
 
 	while(p->ir != p->iw){
 		ir = p->ir;
@@ -654,7 +654,7 @@ uartstageinput(Uart *p)
 void
 uartrecv(Uart *p, char ch)
 {
-	uint8_t *next;
+	u8 *next;
 
 	/* software flow control */
 	if(p->xonoff){

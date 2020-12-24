@@ -106,11 +106,11 @@ iigclose(Chan *c)
 {
 }
 
-static int32_t
-iigread(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+iigread(Chan *c, void *a, i32 n, i64 off)
 {
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, iigdir, nelem(iigdir), devgen);
@@ -146,12 +146,12 @@ iigctl(Cmdbuf *cb)
 	cmderror(cb, "bad IIG control message");
 }
 
-static int32_t
-iigwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+iigwrite(Chan *c, void *a, i32 n, i64 off)
 {
 	Proc *up = externup();
 	Cmdbuf *cb;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		error(Eperm);
 

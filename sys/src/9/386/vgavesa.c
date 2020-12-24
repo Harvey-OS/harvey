@@ -34,7 +34,7 @@ enum {
 };
 
 static void *hardscreen;
-static uint8_t modebuf[0x1000];
+static u8 modebuf[0x1000];
 
 #define WORD(p) ((p)[0] | ((p)[1] << 8))
 #define LONG(p) ((p)[0] | ((p)[1] << 8) | ((p)[2] << 16) | ((p)[3] << 24))
@@ -47,11 +47,11 @@ static uint8_t modebuf[0x1000];
 	(p)[2] = (v) >> 16; \
 	(p)[3] = (v) >> 24
 
-static uint8_t *
+static u8 *
 vbesetup(Ureg *u, int ax)
 {
 	// Yes, it's a PA, but it's a real mode PA, and 32 bits are fine.
-	uint32_t pa;
+	u32 pa;
 
 	pa = PADDR(RMBUF);
 	memset(modebuf, 0, sizeof modebuf);
@@ -67,7 +67,7 @@ vbecall(Ureg *u)
 {
 	Proc *up = externup();
 	Chan *creg, *cmem;
-	uint32_t pa;
+	u32 pa;
 
 	cmem = namec("/dev/realmodemem", Aopen, ORDWR, 0);
 	if(waserror()){
@@ -101,7 +101,7 @@ static void
 vbecheck(void)
 {
 	Ureg u;
-	uint8_t *p;
+	u8 *p;
 
 	p = vbesetup(&u, 0x4F00);
 	strcpy((char *)p, "VBE2");
@@ -122,10 +122,10 @@ vbegetmode(void)
 	return u.bx;
 }
 
-static uint8_t *
+static u8 *
 vbemodeinfo(int mode)
 {
-	uint8_t *p;
+	u8 *p;
 	Ureg u;
 
 	p = vbesetup(&u, 0x4F01);
@@ -138,8 +138,8 @@ static void
 vesalinear(VGAscr *scr, int _1, int _2)
 {
 	int i, mode, size, havesize;
-	uint8_t *p;
-	uint32_t paddr;
+	u8 *p;
+	u32 paddr;
 	Pcidev *pci;
 
 	if(hardscreen){
@@ -209,13 +209,13 @@ static void
 vesaflush(VGAscr *scr, Rectangle r)
 {
 	int t, w, wid, off;
-	uint32_t *hp, *sp, *esp;
+	u32 *hp, *sp, *esp;
 
 	if(hardscreen == nil)
 		return;
 	if(rectclip(&r, scr->gscreen->r) == 0)
 		return;
-	sp = (uint32_t *)(scr->gscreendata->bdata + scr->gscreen->zero);
+	sp = (u32 *)(scr->gscreendata->bdata + scr->gscreen->zero);
 	t = (r.max.x * scr->gscreen->depth + 2 * BI2WD - 1) / BI2WD;
 	w = (r.min.x * scr->gscreen->depth) / BI2WD;
 	w = (t - w) * BY2WD;

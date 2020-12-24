@@ -82,10 +82,10 @@ static struct
 };
 
 char *sysname;
-int64_t fasthz;
+i64 fasthz;
 
 static void seedrand(void);
-static int readtime(uint32_t, char *, int);
+static int readtime(u32, char *, int);
 static int readbintime(char *, int);
 static int writetime(char *, int);
 static int writebintime(char *, int);
@@ -670,7 +670,7 @@ static Dirtab consdir[] = {
 };
 
 int
-readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
+readnum(u32 off, char *buf, u32 n, u32 val, int size)
 {
 	char tmp[64];
 
@@ -684,8 +684,8 @@ readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
 	return n;
 }
 
-int32_t
-readmem(int32_t offset, void *buf, int32_t n, void *v, int32_t size)
+i32
+readmem(i32 offset, void *buf, i32 n, void *v, i32 size)
 {
 	if(offset >= size)
 		return 0;
@@ -695,10 +695,10 @@ readmem(int32_t offset, void *buf, int32_t n, void *v, int32_t size)
 	return n;
 }
 
-int32_t
-readstr(int32_t offset, char *buf, int32_t n, char *str)
+i32
+readstr(i32 offset, char *buf, i32 n, char *str)
 {
-	int32_t size;
+	i32 size;
 
 	size = strlen(str);
 	if(offset >= size)
@@ -733,8 +733,8 @@ conswalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, consdir, nelem(consdir), devgen);
 }
 
-static int32_t
-consstat(Chan *c, uint8_t *dp, int32_t n)
+static i32
+consstat(Chan *c, u8 *dp, i32 n)
 {
 	return devstat(c, dp, n, consdir, nelem(consdir), devgen);
 }
@@ -744,7 +744,7 @@ consopen(Chan *c, int omode)
 {
 	c->aux = nil;
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qconsctl:
 		incref(&kbd.ctl);
 		break;
@@ -758,7 +758,7 @@ consopen(Chan *c, int omode)
 static void
 consclose(Chan *c)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	/* last close of control file turns off raw */
 	case Qconsctl:
 		if(c->flag & COPEN){
@@ -773,24 +773,24 @@ consclose(Chan *c)
 	}
 }
 
-static int32_t
-consread(Chan *c, void *buf, int32_t n, int64_t off)
+static i32
+consread(Chan *c, void *buf, i32 n, i64 off)
 {
 	Proc *up = externup();
-	uint64_t l;
+	u64 l;
 	Mach *mp;
 	char *b, *bp, ch, *s, *e;
 	char tmp[512]; /* Qswap is 381 bytes at clu */
 	int i, k, id, send;
-	int32_t nread;
-	int64_t offset;
+	i32 nread;
+	i64 offset;
 
 	if(n <= 0)
 		return n;
 
 	nread = n;
 	offset = off;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
 
@@ -1006,23 +1006,23 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 	return -1; /* never reached */
 }
 
-static int32_t
-conswrite(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+conswrite(Chan *c, void *va, i32 n, i64 off)
 {
 	Proc *up = externup();
 	char buf[256], ch;
-	int32_t l, bp;
+	i32 l, bp;
 	char *a;
 	Mach *mp;
 	int i;
-	uint32_t offset;
+	u32 offset;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	a = va;
 	offset = off;
 	extern int printallsyscalls;
 
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qcons:
 		/*
 		 * Can't page fault in putstrn, so copy the data locally.
@@ -1105,7 +1105,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 			rebootcmd(cb->nf - 1, cb->f + 1);
 			break;
 		case CMpanic:
-			*(volatile uint32_t *)0 = 0;
+			*(volatile u32 *)0 = 0;
 			panic("/dev/reboot");
 		}
 		poperror();
@@ -1210,7 +1210,7 @@ Dev consdevtab = {
 	.wstat = devwstat,
 };
 
-static uint32_t randn;
+static u32 randn;
 
 static void
 seedrand(void)
@@ -1238,47 +1238,47 @@ rand(void)
 	return randn;
 }
 
-static uint64_t uvorder = 0x0001020304050607ULL;
+static u64 uvorder = 0x0001020304050607ULL;
 
-static uint8_t *
-le2int64_t(int64_t *to, uint8_t *f)
+static u8 *
+le2int64_t(i64 *to, u8 *f)
 {
-	uint8_t *t, *o;
+	u8 *t, *o;
 	int i;
 
-	t = (uint8_t *)to;
-	o = (uint8_t *)&uvorder;
-	for(i = 0; i < sizeof(int64_t); i++)
+	t = (u8 *)to;
+	o = (u8 *)&uvorder;
+	for(i = 0; i < sizeof(i64); i++)
 		t[o[i]] = f[i];
-	return f + sizeof(int64_t);
+	return f + sizeof(i64);
 }
 
-static uint8_t *
-int64_t2le(uint8_t *t, int64_t from)
+static u8 *
+int64_t2le(u8 *t, i64 from)
 {
-	uint8_t *f, *o;
+	u8 *f, *o;
 	int i;
 
-	f = (uint8_t *)&from;
-	o = (uint8_t *)&uvorder;
-	for(i = 0; i < sizeof(int64_t); i++)
+	f = (u8 *)&from;
+	o = (u8 *)&uvorder;
+	for(i = 0; i < sizeof(i64); i++)
 		t[i] = f[o[i]];
-	return t + sizeof(int64_t);
+	return t + sizeof(i64);
 }
 
-static int32_t order = 0x00010203;
+static i32 order = 0x00010203;
 
-static uint8_t *
-le2long(int32_t *to, uint8_t *f)
+static u8 *
+le2long(i32 *to, u8 *f)
 {
-	uint8_t *t, *o;
+	u8 *t, *o;
 	int i;
 
-	t = (uint8_t *)to;
-	o = (uint8_t *)&order;
-	for(i = 0; i < sizeof(int32_t); i++)
+	t = (u8 *)to;
+	o = (u8 *)&order;
+	for(i = 0; i < sizeof(i32); i++)
 		t[o[i]] = f[i];
-	return f + sizeof(int32_t);
+	return f + sizeof(i32);
 }
 
 #if 0
@@ -1304,15 +1304,15 @@ char *Ebadtimectl = "bad time control";
  *	secs	nanosecs	fastticks	fasthz
  */
 static int
-readtime(uint32_t off, char *buf, int n)
+readtime(u32 off, char *buf, int n)
 {
-	int64_t nsec, ticks;
-	int32_t sec;
+	i64 nsec, ticks;
+	i32 sec;
 	char str[7 * NUMSIZE];
 
 	nsec = todget(&ticks);
 	if(fasthz == 0LL)
-		fastticks((uint64_t *)&fasthz);
+		fastticks((u64 *)&fasthz);
 	sec = nsec / 1000000000ULL;
 	snprint(str, sizeof(str), "%*lu %*llu %*llu %*llu ",
 		NUMSIZE - 1, sec,
@@ -1329,8 +1329,8 @@ static int
 writetime(char *buf, int n)
 {
 	char b[13];
-	int32_t i;
-	int64_t now;
+	i32 i;
+	i64 now;
 
 	if(n >= sizeof(b))
 		error(Ebadtimectl);
@@ -1352,24 +1352,24 @@ static int
 readbintime(char *buf, int n)
 {
 	int i;
-	int64_t nsec, ticks;
-	uint8_t *b = (uint8_t *)buf;
+	i64 nsec, ticks;
+	u8 *b = (u8 *)buf;
 
 	i = 0;
 	if(fasthz == 0LL)
-		fastticks((uint64_t *)&fasthz);
+		fastticks((u64 *)&fasthz);
 	nsec = todget(&ticks);
-	if(n >= 3 * sizeof(uint64_t)){
-		int64_t2le(b + 2 * sizeof(uint64_t), fasthz);
-		i += sizeof(uint64_t);
+	if(n >= 3 * sizeof(u64)){
+		int64_t2le(b + 2 * sizeof(u64), fasthz);
+		i += sizeof(u64);
 	}
-	if(n >= 2 * sizeof(uint64_t)){
-		int64_t2le(b + sizeof(uint64_t), ticks);
-		i += sizeof(uint64_t);
+	if(n >= 2 * sizeof(u64)){
+		int64_t2le(b + sizeof(u64), ticks);
+		i += sizeof(u64);
 	}
 	if(n >= 8){
 		int64_t2le(b, nsec);
-		i += sizeof(int64_t);
+		i += sizeof(i64);
 	}
 	return i;
 }
@@ -1383,28 +1383,28 @@ readbintime(char *buf, int n)
 static int
 writebintime(char *buf, int n)
 {
-	uint8_t *p;
-	int64_t delta;
-	int32_t period;
+	u8 *p;
+	i64 delta;
+	i32 period;
 
 	n--;
-	p = (uint8_t *)buf + 1;
+	p = (u8 *)buf + 1;
 	switch(*buf){
 	case 'n':
-		if(n < sizeof(int64_t))
+		if(n < sizeof(i64))
 			error(Ebadtimectl);
 		le2int64_t(&delta, p);
 		todset(delta, 0, 0);
 		break;
 	case 'd':
-		if(n < sizeof(int64_t) + sizeof(int32_t))
+		if(n < sizeof(i64) + sizeof(i32))
 			error(Ebadtimectl);
 		p = le2int64_t(&delta, p);
 		le2long(&period, p);
 		todset(-1, delta, period);
 		break;
 	case 'f':
-		if(n < sizeof(uint64_t))
+		if(n < sizeof(u64))
 			error(Ebadtimectl);
 		le2int64_t(&fasthz, p);
 		todsetfreq(fasthz);

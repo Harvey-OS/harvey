@@ -61,8 +61,8 @@ enum {
 #define vgai(port) inb(port)
 #define vgao(port, data) outb(port, data)
 
-extern int vgaxi(int32_t, unsigned char);
-extern int vgaxo(int32_t, unsigned char, unsigned char);
+extern int vgaxi(i32, unsigned char);
+extern int vgaxo(i32, unsigned char, unsigned char);
 
 /*
  */
@@ -78,9 +78,9 @@ struct VGAdev {
 	void (*page)(VGAscr *, int);
 	void (*linear)(VGAscr *, int, int);
 	void (*drawinit)(VGAscr *);
-	int (*fill)(VGAscr *, Rectangle, uint32_t);
+	int (*fill)(VGAscr *, Rectangle, u32);
 	void (*ovlctl)(VGAscr *, Chan *, void *, int);
-	int (*ovlwrite)(VGAscr *, void *, int, int64_t);
+	int (*ovlwrite)(VGAscr *, void *, int, i64);
 	void (*flush)(VGAscr *, Rectangle);
 };
 
@@ -103,29 +103,29 @@ struct VGAscr {
 	Pcidev *pci;
 
 	VGAcur *cur;
-	uint32_t storage;
+	u32 storage;
 	Cursor Cursor;
 
 	int useflush;
 
-	uint32_t paddr; /* frame buffer */
+	u32 paddr; /* frame buffer */
 	void *vaddr;
 	int apsize;
 
-	uint32_t io; /* device specific registers */
-	uint32_t *mmio;
+	u32 io; /* device specific registers */
+	u32 *mmio;
 
-	uint32_t colormap[Pcolours][3];
+	u32 colormap[Pcolours][3];
 	int palettedepth;
 
 	Memimage *gscreen;
 	Memdata *gscreendata;
 	Memsubfont *memdefont;
 
-	int (*fill)(VGAscr *, Rectangle, uint32_t);
+	int (*fill)(VGAscr *, Rectangle, u32);
 	int (*scroll)(VGAscr *, Rectangle, Rectangle);
 	void (*blank)(VGAscr *, int);
-	uint32_t id; /* internal identifier for driver use */
+	u32 id; /* internal identifier for driver use */
 	int isblank;
 	int overlayinit;
 };
@@ -144,13 +144,13 @@ extern void mouseresize(void);
 extern int hwaccel; /* use hw acceleration; default on */
 extern int hwblank; /* use hw blanking; default on */
 extern int panning; /* use virtual screen panning; default off */
-extern void addvgaseg(char *, uint32_t, uint32_t);
-extern unsigned char *attachscreen(Rectangle *, uint32_t *, int *, int *, int *);
+extern void addvgaseg(char *, u32, u32);
+extern unsigned char *attachscreen(Rectangle *, u32 *, int *, int *, int *);
 extern void flushmemscreen(Rectangle);
 extern int cursoron(int);
 extern void cursoroff(int);
 extern void setcursor(Cursor *);
-extern int screensize(int, int, int, uint32_t);
+extern int screensize(int, int, int, u32);
 extern int screenaperture(int, int);
 extern Rectangle physgscreenr; /* actual monitor size */
 extern void blankscreen(int);
@@ -165,7 +165,7 @@ extern void swcursorunhide(void);
 extern void deletescreenimage(void);
 extern void resetscreenimage(void);
 extern int drawhasclients(void);
-extern uint32_t blanktime;
+extern u32 blanktime;
 extern void setscreenimageclipr(Rectangle);
 extern void drawflush(void);
 extern int drawidletime(void);
@@ -173,10 +173,10 @@ extern QLock drawlock;
 
 /* vga.c */
 extern void vgascreenwin(VGAscr *);
-extern void vgaimageinit(uint32_t);
+extern void vgaimageinit(u32);
 extern void vgalinearpciid(VGAscr *, int, int);
 extern void vgalinearpci(VGAscr *);
-extern void vgalinearaddr(VGAscr *, uint32_t, int);
+extern void vgalinearaddr(VGAscr *, u32, int);
 
 extern void drawblankscreen(int);
 extern void vgablank(VGAscr *, int);
