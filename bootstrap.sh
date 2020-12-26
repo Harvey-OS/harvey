@@ -6,8 +6,8 @@ HOSTBIN=$(go env GOHOSTOS)_$(go env GOHOSTARCH)/bin
 export GOBIN=$(pwd)/$HOSTBIN
 echo GOBIN is now $GOBIN
 
-echo Building the build tool into $HOSTBIN
-GO111MODULE=on go get ./util/src/harvey/cmd/...
+echo Building harvey-os.org commands into $HOSTBIN
+GO111MODULE=on go get harvey-os.org/cmd/...
 
 echo Building u-root into $HOSTBIN
 GO111MODULE=on go get github.com/u-root/u-root@c370a343c8b0b01faac358c1dafb409e5576ae1a
@@ -15,13 +15,6 @@ GO111MODULE=on go get github.com/u-root/u-root@c370a343c8b0b01faac358c1dafb409e5
 # See https://github.com/u-root/u-root/issues/805
 # and https://github.com/u-root/u-root/issues/583
 GO111MODULE=off go get -d github.com/u-root/u-root
-
-echo Building harvey-os.org commands into $HOSTBIN
-GO111MODULE=on go get harvey-os.org/cmd/...@fdc9a5f1c6ed2f37b77c16e82b80b1ed6df8fa17
-
-echo FIXME -- once we get more architectures, this needs to be done in sys/src/cmds/build.json
-echo Building tmpfs command into plan9_amd64/bin
-GO111MODULE=on GOOS=plan9 GOARCH=amd64 go build -o plan9_amd64/bin/tmpfs harvey-os.org/cmd/tmpfs
 
 # this will make booting a VM easier
 mkdir -p tmp

@@ -2,16 +2,16 @@
 	{
 		"Name": "cpu",
 		"Env": [
-			"CONF=cpu",
-			"GO111MODULE=off",
-			"GOOS=plan9",
-			"GOARCH=amd64"
+			"CONF=cpu"
 		],
 		"Include": [
 			"core.json",
 			"../386/386.json",
 			"../ip/ip.json",
-			"../port/port.json",
+			"../port/port.json"
+		],
+		"Projects": [
+			"gocmds.json",
 			"u-root.json"
 		],
 		"Kernel": {
