@@ -34,6 +34,7 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/u-root/u-root v6.0.1-0.20200728234108-3441aaa6cf0c+incompatible h1:vRAKYyEfhZV7SDTcaE3Cuop7tjDMOrapnBb59wVCcyE=
 github.com/u-root/u-root v6.0.1-0.20200728234108-3441aaa6cf0c+incompatible/go.mod h1:RYkpo8pTHrNjW08opNd/U6p/RJE7K0D8fXO0d47+3YY=
+github.com/u-root/u-root v7.0.0+incompatible h1:u+KSS04pSxJGI5E7WE4Bs9+Zd75QjFv+REkjy/aoAc8=
 github.com/u-root/u-root v7.0.1-0.20200915215200-c370a343c8b0+incompatible h1:72xpS/5zzWaJJSlPmvgUG4QCLFjCatyQMwKQ+xuyp+w=
 github.com/u-root/u-root v7.0.1-0.20200915215200-c370a343c8b0+incompatible/go.mod h1:RYkpo8pTHrNjW08opNd/U6p/RJE7K0D8fXO0d47+3YY=
 github.com/ulikunitz/xz v0.5.8 h1:ERv8V6GKqVi23rgu5cj9pVfVzJbOqAY2Ntl88O6c2nQ=
