@@ -12,6 +12,7 @@
 		],
 		"Projects": [
 			"gocmds.json",
+			"gocmdswithmods.json",
 			"u-root.json"
 		],
 		"Kernel": {
@@ -120,7 +121,6 @@
 				"sed": "/$ARCH/bin/sed",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
-				"tmpfs": "/plan9_$ARCH/bin/tmpfs",
 				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti",
 				"vga": "/$ARCH/bin/aux/vga",

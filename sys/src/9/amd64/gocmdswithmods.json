@@ -1,0 +1,13 @@
+[
+	{
+		"Name": "gocmds",
+		"Env": [
+			"GO111MODULE=on",
+			"GOOS=plan9",
+			"GOARCH=amd64"
+		],
+		"Pre": [
+			"go build -o /plan9_amd64/bin/decompress harvey-os.org/cmd/decompress"
+		]
+	}
+]

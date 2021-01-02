@@ -1,4 +1,15 @@
 #!/bin/rc
+
+if (test -e /boot/uroot) {
+	echo 'unpacking uroot'
+	olddir=`{pwd}
+	cd '#@'
+	decompress /boot/uroot > uroot.cpio
+	cpio i < uroot.cpio
+	bind -b '#@' /
+	cd $olddir
+}
+
 # cpu server start up
 date > /env/boottime
 

@@ -7,7 +7,7 @@
 			"GOARCH=amd64"
 		],
 		"Pre": [
-			"u-root -shellbang -initcmd= -o uroot.cpio -files /amd64/bin:amd64/bin -files /rc/bin:rc/bin -files /lib/ndb:lib/ndb $UROOTEXTRARGS plan9 $UROOTEXTRAPACKAGES",
+			"u-root -shellbang -initcmd= -o uroot.cpio plan9",
 			"lzma -f -k -3 uroot.cpio"
 		]
 	}
