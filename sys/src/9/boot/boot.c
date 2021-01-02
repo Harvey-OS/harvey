@@ -70,7 +70,7 @@ acpiirq(void)
 void
 boot(int argc, char *argv[])
 {
-	int fd, afd, srvt;
+	int fd, afd;
 	Method *mp;
 	char *cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
@@ -224,17 +224,9 @@ boot(int argc, char *argv[])
 		close(afd);
 
 	cmd = getenv("init");
-	srvt = strcmp(service, "terminal");
-	if(cmd == nil){
-		if(!srvt){
-			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
-			       "t", mflag ? "m" : "");
-			cmd = cmdbuf;
-		} else {
-			sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
-			       "c", mflag ? "m" : "");
-			cmd = cmdbuf;
-		}
+	if(cmd == nil && service != nil) {
+		sprint(cmdbuf, "/%s/bin/init -s %s %s", cputype, service, mflag ? "m" : "");
+		cmd = cmdbuf;
 	}
 	iargc = tokenize(cmd, iargv, nelem(iargv) - 1);
 	cmd = iargv[0];
