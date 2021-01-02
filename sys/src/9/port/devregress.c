@@ -13,6 +13,7 @@ enum {
 	Qmalloc,
 	Qtsleep,
 	Qlock,
+	Qwalk,
 	Qmax,
 };
 
@@ -22,6 +23,7 @@ static Dirtab regressdir[Qmax] = {
 	{"malloc", {Qmalloc, 0}, 0, 0666},
 	{"tsleep", {Qtsleep, 0}, 0, 0666},
 	{"qlock", {Qlock, 0}, 0, 0666},
+	{"walk", {Qwalk, 0}, 0, 0666},
 };
 
 int verbose = 0;
@@ -30,7 +32,7 @@ static QLock testlock;
 static Chan *
 regressattach(char *spec)
 {
-	return devattach('Z', spec);
+	return devattach('R', spec);
 }
 
 Walkqid *
@@ -89,6 +91,7 @@ regresswrite(Chan *c, void *a, i32 n, i64 offset)
 	Proc *up = externup();
 	char *p;
 	unsigned long amt;
+	u64 addr;
 
 	switch((u32)c->qid.path){
 
@@ -126,6 +129,12 @@ regresswrite(Chan *c, void *a, i32 n, i64 offset)
 			error("Only v or V");
 		return n;
 
+	case Qwalk:
+		p = a;
+		addr = strtoull(p, 0, 0);
+		dumpmmuwalk(KADDR(cr3get()), addr);
+		return n;
+
 	default:
 		error(Eperm);
 		break;
@@ -134,7 +143,7 @@ regresswrite(Chan *c, void *a, i32 n, i64 offset)
 }
 
 Dev regressdevtab = {
-	.dc = L'ξ',
+	.dc = L'R',
 	.name = "regress",
 
 	.reset = devreset,
