@@ -10,11 +10,11 @@ echo Building harvey-os.org commands into $HOSTBIN
 GO111MODULE=on go get harvey-os.org/cmd/...
 
 echo Building u-root into $HOSTBIN
-GO111MODULE=on go get github.com/u-root/u-root@c370a343c8b0b01faac358c1dafb409e5576ae1a
 # Download u-root sources into $GOPATH because that's what u-root expects.
 # See https://github.com/u-root/u-root/issues/805
 # and https://github.com/u-root/u-root/issues/583
 GO111MODULE=off go get -d github.com/u-root/u-root
+GO111MODULE=on go get github.com/u-root/u-root
 
 # this will make booting a VM easier
 mkdir -p tmp
