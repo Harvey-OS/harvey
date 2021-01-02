@@ -161,7 +161,7 @@ allocapage(void)
 		char *pp = mallocalign(npage * PTSZ, PTSZ, 0, 0);
 		assert(pp != nil);
 		p = pp + (npage / 2) * PTSZ;
-	} else {
+	}else{
 
 		static alignas(4096) unsigned char alloc[16 * MiB];
 		static usize offset = 0;
@@ -468,7 +468,7 @@ mmukpmap3(PTE *pml3, u64 pa, uintptr va, PTE attr, usize size)
 			      va, p3e, pa | attr | PtePS | PteP);
 		pml3[PML3X(va)] = pa | attr | PtePS | PteP;
 		return nil;
-	} else if((p3e & (PtePS | PteP)) == (PtePS | PteP)){
+	}else if((p3e & (PtePS | PteP)) == (PtePS | PteP)){
 		PTE *pml2 = allocapage();
 		if(pml2 == nil)
 			panic("mmukphysmap: cannot allocate PML2 to splinter");
@@ -477,8 +477,7 @@ mmukpmap3(PTE *pml3, u64 pa, uintptr va, PTE attr, usize size)
 			pml2[i] = entry + i * PGSZLARGE;
 		p3e = PADDR(pml2) | PteRW | PteP;
 		pml3[PML3X(va)] = p3e;
-	}
-	if((p3e & PteP) == 0){
+	}else if((p3e & PteP) == 0){
 		PTE *pml2 = allocapage();
 		if(pml2 == nil)
 			panic("mmukphysmap: cannot allocate PML2");
@@ -504,7 +503,7 @@ mmukpmap2(PTE *pml2, u64 pa, uintptr va, PTE attr, usize size)
 			      va, p2e, pa | attr | PtePS | PteP);
 		pml2[PML2X(va)] = pa | attr | PtePS | PteP;
 		return nil;
-	} else if((p2e & (PtePS | PteP)) == (PtePS | PteP)){
+	}else if((p2e & (PtePS | PteP)) == (PtePS | PteP)){
 		PTE *pml1 = allocapage();
 		if(pml1 == nil)
 			panic("mmukphysmap: cannot allocate PML1 to splinter");
@@ -513,8 +512,7 @@ mmukpmap2(PTE *pml2, u64 pa, uintptr va, PTE attr, usize size)
 			pml1[i] = entry + i * PGSZ;
 		p2e = PADDR(pml1) | PteRW | PteP;
 		pml2[PML2X(va)] = p2e;
-	}
-	if((p2e & PteP) == 0){
+	}else if((p2e & PteP) == 0){
 		PTE *pml1 = allocapage();
 		if(pml1 == nil)
 			panic("mmukphysmap: cannot allocate PML1");
@@ -529,7 +527,7 @@ static void
 mmukpmap1(PTE *pml1, u64 pa, uintptr va, PTE attr)
 {
 	PTE p1e = pml1[PML1X(va)];
-	if((p1e & PteP) != 0 && PPN(p1e) != pa)
+	if((p1e & PteP) == PteP && PPN(p1e) != pa)
 		panic("mmukphysmap: remapping kernel direct address at va %#P (pml1 %#P old %#P new %#P)",
 		      va, pml1, p1e, pa | attr | PteP);
 	pml1[PML1X(va)] = pa | attr | PteP;
@@ -545,7 +543,7 @@ mmukphysmap(PTE *pml4, u64 pa, PTE attr, usize size)
 	usize pgsz = 0;
 	Mpl pl;
 
-	if(pa >= PHYSADDRSIZE)
+	if(pa >= PHYSADDRSIZE || (pa + size) >= PHYSADDRSIZE)
 		panic("mapping nonexistent physical address");
 
 	pl = splhi();
@@ -658,40 +656,54 @@ mmuwalk(const PTE *pml4, uintptr va, int level, const PTE **ret)
 {
 	Mpl pl;
 
-	pl = splhi();
 	if(DBGFLG > 1)
 		DBG("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
-	const PTE *pte = &pml4[PML4X(va)];
-	assert(pte != nil);
-	if(level == 3 || !(*pte & PteP)){
-		*ret = pte;
+	if(pml4 == nil)
+		panic("mmuwalk with nil pml4");
+
+	pl = splhi();
+	const PTE *p4e = &pml4[PML4X(va)];
+	*ret = p4e;
+	if((*p4e & PteP) == 0){
+		splx(pl);
+		return -1;
+	}
+	if(level == 3){
 		splx(pl);
 		return 3;
 	}
-	const PTE *ptp = KADDR(PPN(*pte));
-	pte = &ptp[PML3X(va)];
-	if(level == 2 || (!(*pte & PteP) || (*pte & PtePS))){
-		*ret = pte;
+
+	const PTE *pml3 = KADDR(PPN(*p4e));
+	const PTE *p3e = &pml3[PML3X(va)];
+	*ret = p3e;
+	if((*p3e & PteP) == 0){
+		splx(pl);
+		return -1;
+	}
+	if(level == 2 || (*p3e & PtePS) == PtePS){
 		splx(pl);
 		return 2;
 	}
-	ptp = KADDR(PPN(*pte));
-	pte = &ptp[PML2X(va)];
-	if(level == 1 || (!(*pte & PteP) || (*pte & PtePS))){
-		*ret = pte;
+
+	const PTE *pml2 = KADDR(PPN(*p3e));
+	const PTE *p2e = &pml2[PML2X(va)];
+	*ret = p2e;
+	if((*p2e & PteP) == 0){
+		splx(pl);
+		return -1;
+	}
+	if(level == 1 || (*p2e & PtePS) == PtePS){
 		splx(pl);
 		return 1;
 	}
-	ptp = KADDR(PPN(*pte));
-	pte = &ptp[PML1X(va)];
-	if(level == 0 || (*pte & PteP)){
-		*ret = pte;
+	const PTE *pml1 = KADDR(PPN(*p2e));
+	const PTE *p1e = &pml1[PML1X(va)];
+	*ret = p1e;
+	if(level == 0 && (*p1e & PteP) == PteP){
 		splx(pl);
 		return 0;
 	}
-	*ret = nil;
 	splx(pl);
-
 	return -1;
 }
 
