@@ -41,14 +41,14 @@ main(int argc, char *argv[])
 	service = "cpu";
 	manual = 0;
 	ARGBEGIN{
-	case 'c':
-		service = "cpu";
-		break;
 	case 'm':
 		manual = 1;
 		break;
-	case 't':
-		service = "terminal";
+	case 's':
+		service = ARGF();
+		if (service == nil) {
+			print("init: warning: expected service\n");
+		}
 		break;
 	}ARGEND
 	cmd = *argv;
