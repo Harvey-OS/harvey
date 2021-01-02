@@ -547,7 +547,7 @@ mmukphysmap(PTE *pml4, u64 pa, PTE attr, usize size)
 		panic("mapping nonexistent physical address");
 
 	pl = splhi();
-	for(usize pae = pa + size; pa < pae; pa += pgsz){
+	for(u64 pae = pa + size; pa < pae; size -= pgsz, pa += pgsz){
 		uintptr va = (uintptr)KADDR(pa);
 		invlpg(va);
 
