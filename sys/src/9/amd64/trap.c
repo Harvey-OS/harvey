@@ -581,6 +581,10 @@ dumpgpr(Ureg *ureg)
 	print("r13\t%#16.16llx\n", ureg->r13);
 	print("r14\t%#16.16llx\n", ureg->r14);
 	print("r15\t%#16.16llx\n", ureg->r15);
+	print("ds\t%#4.4ux\n", ureg->ds);
+	print("es\t%#4.4ux\n", ureg->es);
+	print("fs\t%#4.4ux\n", ureg->fs);
+	print("gs\t%#4.4ux\n", ureg->gs);
 	print("type\t%#llx\n", ureg->type);
 	print("error\t%#llx\n", ureg->error);
 	print("pc\t%#llx\n", ureg->ip);
