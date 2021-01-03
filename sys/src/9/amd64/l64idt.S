@@ -85,6 +85,7 @@ _intrcommon:
 	SWAPGS
 
 _intrnested:
+	SUBQ	$8, %rsp				/* [DEFG]S */
 	PUSHQ	%r15
 	PUSHQ	%r14
 	PUSHQ	%r13
@@ -126,6 +127,7 @@ _intrr:
 	POPQ	%r13
 	POPQ	%r14
 	POPQ	%r15
+	ADDQ	$8, %rsp				/* [DEFG]S */
 
 	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 24(%rsp) 	/* old CS */
 	JE	_iretnested
