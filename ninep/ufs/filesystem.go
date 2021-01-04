@@ -23,10 +23,15 @@ type file struct {
 	protocol.QID
 	fullName string
 	file     *os.File
-	// We can't know how big a serialized dentry is until we serialize it.
-	// At that point it might be too big. We save it here if that happens,
-	// and on the next directory read we start with that.
-	oflow []byte
+	// Stash all the directory entries here, use them up one by one,
+	// and reread them each time offset is 0.
+	// 9P2000 requires that a directory read only contain integral
+	// stat entries.
+	// rock is Ken's term. You can find it in Harvey in various places.
+	// This approach is not robust when you get to 1 million entries
+	// in a directory, but in our experience, only nuclear scientiests
+	// do stuff like that.
+	rock []os.FileInfo
 }
 
 type FileServer struct {
@@ -365,8 +370,12 @@ func (e *FileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Count
 	}
 	if f.QID.Type&protocol.QTDIR != 0 {
 		if o == 0 {
-			f.oflow = nil
-			if err := resetDir(f); err != nil {
+			err := resetDir(f)
+			if err != nil {
+				return nil, err
+			}
+			f.rock, err = f.file.Readdir(-1)
+			if err != nil {
 				return nil, err
 			}
 		}
@@ -374,41 +383,31 @@ func (e *FileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Count
 		// We make the assumption that they can always fit at least one
 		// directory entry into a read. If that assumption does not hold
 		// so many things are broken that we can't fix them here.
-		// But we'll drop out of the loop below having returned nothing
-		// anyway.
-		b := bytes.NewBuffer(f.oflow)
-		f.oflow = nil
-		pos := 0
-
-		for {
-			if b.Len() > int(c) {
-				f.oflow = b.Bytes()[pos:]
-				return b.Bytes()[:pos], nil
-			}
-			pos += b.Len()
-			st, err := f.file.Readdir(1)
-			if err == io.EOF {
-				return b.Bytes(), nil
-			}
+		var b = &bytes.Buffer{}
+		for len(f.rock) > 0 {
+			var nextb = &bytes.Buffer{}
+			d9p, err := dirTo9p2000Dir(f.rock[0])
 			if err != nil {
 				return nil, err
 			}
-
-			d9p, err := dirTo9p2000Dir(st[0])
-			if err != nil {
-				return nil, err
-			}
-			protocol.Marshaldir(b, *d9p)
+			protocol.Marshaldir(nextb, *d9p)
 			// Seen on linux clients: sometimes the math is wrong and
 			// they end up asking for the last element with not enough data.
 			// Linux bug or bug with this server? Not sure yet.
-			if b.Len() > int(c) {
+			if nextb.Len()+b.Len() > int(c) {
+				// If b.Len() is > 0, break, since it will fit.
+				// if the entry could not fit, there are not a lot of good answers.
+				// We'll have to drop it?
+				if b.Len() > 0 {
+					break
+				}
 				log.Printf("Warning: Server bug? %v, need %d bytes;count is %d: skipping", d9p, b.Len(), c)
-				return nil, nil
+			} else {
+				if _, err := b.Write(nextb.Bytes()); err != nil {
+					log.Printf("Warning: Could not write %q to stat buffer", f.rock[0])
+				}
 			}
-			// We're not quite doing the array right.
-			// What does work is returning one thing so, for now, do that.
-			return b.Bytes(), nil
+			f.rock = f.rock[1:]
 		}
 		return b.Bytes(), nil
 	}
