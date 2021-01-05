@@ -205,6 +205,11 @@ pamapinsert(u64 addr, usize size, int type)
 void
 pamapmerge(void)
 {
+	// real mode interrupt vectors etc.
+	// These *must* be preserved for realemu,
+	// and hence VESA, to work.
+	pamapinsert(0x0, 0x1000, PamKRDONLY);
+
 	// Extended BIOS Data Area
 	pamapinsert(0x80000, 0xA0000 - 0x80000, PamKRDWR);
 
