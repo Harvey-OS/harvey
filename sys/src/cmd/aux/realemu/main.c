@@ -813,7 +813,7 @@ static void
 usage(void)
 {
 	print_func_entry();
-	fprint(2, "usgae:\t%s [-Dpt] [-s srvname] [-m mountpoint]\n", argv0);
+	fprint(2, "usgae:\t%s [-Dptf] [-s srvname] [-m mountpoint]\n", argv0);
 	exits("usage");
 	print_func_exit();
 }
@@ -827,6 +827,9 @@ threadmain(int argc, char *argv[])
 	ARGBEGIN{
 	case 'D':
 		chatty9p++;
+		break;
+	case 'f':
+		set_printx(1);
 		break;
 	case 'p':
 		porttrace = 1;
