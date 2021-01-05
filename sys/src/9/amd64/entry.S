@@ -80,11 +80,6 @@ start:
 	movl	%esi, %edi
 	rep stosl
 
-	// Zero the real mode IVT.
-	movl	$0, %edi
-	movl	$1024, %ecx
-	rep stosb
-
 	// We could zero the BSS here, but the loader does it for us.
 
 	// Set the stack and find the start of the page tables.
