@@ -12,7 +12,6 @@
 		],
 		"Projects": [
 			"gocmds.json",
-			"gocmdswithmods.json",
 			"u-root.json"
 		],
 		"Kernel": {
