@@ -251,3 +251,15 @@ wrenwrite(Device dev, int32_t addr, void *b)
 	qunlock(w);
 	return i;
 }
+
+static char *
+devname(void)
+{
+return devtab.name;
+}
+
+static int
+devdc(void)
+{
+return devtab.dc;
+}
