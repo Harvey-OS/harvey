@@ -7,7 +7,8 @@
 			"GOARCH=amd64"
 		],
 		"Pre": [
-			"go build -o /plan9_amd64/bin/cpio github.com/u-root/u-root/cmds/core/cpio"
+			"go build -o /plan9_amd64/bin/cpio github.com/u-root/u-root/cmds/core/cpio",
+			"go build -o /plan9_amd64/bin/decompress harvey-os.org/cmd/decompress"
 		]
 	}
 ]
