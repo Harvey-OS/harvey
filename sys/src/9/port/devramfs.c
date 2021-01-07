@@ -14,9 +14,8 @@
 #include "fns.h"
 #include "../port/error.h"
 
-#define RAM_BLOCK_LEN 32768
 #define RAM_MAGIC 0xbedabb1e
-#define INVALID_FILE "Invalid ram file"
+#define Einvalid "Invalid ram file"
 #define NBLOCK 4096
 
 struct RamFile {
@@ -38,7 +37,7 @@ struct RamFile {
 
 static struct RamFile *ramroot;
 static QLock ramlock;
-static int devramdebug = 0;
+static int devramdebug;
 
 static void
 printramfile(int offset, struct RamFile *file)
@@ -76,7 +75,7 @@ raminit(void)
 {
 	ramroot = (struct RamFile *)malloc(sizeof(struct RamFile));
 	if(ramroot == nil){
-		error(Eperm);
+		error("raminit: out of memory");
 	}
 	ramroot->n = smalloc(2);
 	kstrdup(&ramroot->n, ".");
@@ -105,7 +104,7 @@ ramattach(char *spec)
 		spec = "";
 	buf = malloc(1 + UTFmax + strlen(spec) + 1);
 	if(buf == nil){
-		error(Eperm);
+		error("ramattach:out of memory");
 	}
 	sprint(buf, "#@%s", spec);
 	c->path = newpath(buf);
@@ -177,7 +176,7 @@ ramstat(Chan *c, u8 *dp, i32 n)
 	struct RamFile *current = (struct RamFile *)c->qid.path;
 
 	if(current->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("ramstat: current->magic != RAM_MAGIC");
 
 	qlock(&ramlock);
 	if(waserror()){
@@ -203,7 +202,7 @@ ramwstat(Chan *c, u8 *dp, i32 n)
 	char *strs;
 
 	if(current->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("ramwstat:current->magic != RAM_MAGIC");
 
 	qlock(&ramlock);
 	if(waserror()){
@@ -244,7 +243,7 @@ ramopen(Chan *c, int omode)
 	Chan *ret = devopen(c, omode, nil, 0, ramgen);
 	struct RamFile *file = (struct RamFile *)c->qid.path;
 	if(file->magic != RAM_MAGIC)
-		panic("Invalid ram file");
+		error("ramopen:file->magic != RAM_MAGIC");
 	qunlock(&ramlock);
 	poperror();
 	return ret;
@@ -268,7 +267,7 @@ static void delete(struct RamFile *file)
 		for(; prev != nil && prev->sibling != file; prev = prev->sibling)
 			;
 		if(prev == nil){
-			error(Eperm);
+			error("delete:previous of this file is nil?");
 		} else {
 			prev->sibling = file->sibling;
 		}
@@ -291,7 +290,7 @@ ramclose(Chan *c)
 {
 	struct RamFile *file = (struct RamFile *)c->qid.path;
 	if(file->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("close:file->magic != RAM_MAGIC");
 	if(file->deleteonclose){
 		delete(file);
 	}
@@ -332,7 +331,7 @@ ramreadblock(Chan *c, void *buf, i32 n, i64 off)
 		n = file->length - off;
 
 	if(file->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("ramreadblock:file->magic != RAM_MAGIC");
 	if(n > 0 && off < file->length && file->blocks[fb])
 		memmove(buf, file->blocks[fb] + offinblock, n);
 	else
@@ -389,13 +388,13 @@ ramwriteblock(Chan *c, void *v, i32 n, i64 off)
 		nexterror();
 	}
 	if(file->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("ramwriteblock:file->magic != RAM_MAGIC");
 	if(devramdebug)
 		print("ramwrite: v %p n %#x off %#llx\n", v, n, off);
 	if(!file->blocks[fb]){
 		file->blocks[fb] = mallocz(8192, 1);
 		if(!file->blocks[fb])
-			error("enomem");
+			error("ramwriteblock:enomem");
 	}
 	if(devramdebug){
 		print("length of start of write=%do\n", offinblock);
@@ -436,16 +435,16 @@ ramcreate(Chan *c, char *name, int omode, int perm)
 	Proc *up = externup();
 
 	if(c->qid.type != QTDIR)
-		error(Eperm);
+		error("ramcreate:not a directory");
 
 	struct RamFile *parent = (struct RamFile *)c->qid.path;
 	if(parent->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("ramcreate:parent->magic != RAM_MAGIC");
 
 	omode = openmode(omode);
 	struct RamFile *file = (struct RamFile *)malloc(sizeof(struct RamFile));
 	if(file == nil){
-		error(Eperm);
+		error("ramcreate:no memory to create file struct");
 	}
 	file->length = 0;
 	file->magic = RAM_MAGIC;
@@ -484,7 +483,7 @@ ramremove(Chan *c)
 {
 	struct RamFile *doomed = (struct RamFile *)c->qid.path;
 	if(doomed->magic != RAM_MAGIC)
-		error(INVALID_FILE);
+		error("ramremove:file->magic != RAM_MAGIC");
 	if(doomed->opencount == 0){
 		delete(doomed);
 	}
