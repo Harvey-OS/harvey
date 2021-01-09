@@ -168,7 +168,7 @@ argconv(char *p, Inst *i, Iarg *a)
 	/* setup trap jump in case we dereference bad memory */
 	memmove(jmp, a->cpu->jmp, sizeof jmp);
 	if(setjmp(a->cpu->jmp)){
-		p += sprint(p, "<%.4lux:%.4lux>", a->seg, a->off);
+		p += sprint(p, "<%.4#x:%.4#x>", a->seg, a->off);
 		goto out;
 	}
 
@@ -177,12 +177,12 @@ argconv(char *p, Inst *i, Iarg *a)
 		abort();
 
 	case AAp:
-		p += sprint(p, "[%.4lux:%.4lux]", a->seg, a->off);
+		p += sprint(p, "[%.4#x:%.4#x]", a->seg, a->off);
 		break;
 
 	case AJb:
 	case AJv:
-		p += sprint(p, "[%.4lux]", a->off);
+		p += sprint(p, "[%.4#x]", a->off);
 		break;
 
 	case AIc:
@@ -191,7 +191,7 @@ argconv(char *p, Inst *i, Iarg *a)
 	case AIb:
 	case AIw:
 	case AIv:
-		p += sprint(p, "$%.*lux", (int)a->len*2, ar(a));
+		p += sprint(p, "$%.*#x", (int)a->len*2, ar(a));
 		break;
 
 	case AMp:
@@ -213,7 +213,7 @@ argconv(char *p, Inst *i, Iarg *a)
 			 (i->alen == 4 &&
 		             (i->rm == 5 ||
 			         (i->rm == 4 && i->index == 4 && i->base == 5)))))){
-			p += sprint(p, "[%.*lux]", (int)i->alen*2, a->off);
+			p += sprint(p, "[%.*#x]", (int)i->alen*2, a->off);
 			break;
 		}
 		*p++ = '[';
@@ -227,7 +227,7 @@ argconv(char *p, Inst *i, Iarg *a)
 					p += sprint(p, "%s", memstr32[i->base]);
 				else{
 					if(i->mod == 0)
-						p += sprint(p, "%.4lux", i->off);
+						p += sprint(p, "%.4#x", i->off);
 					else
 						p += sprint(p, "EBP");
 				}
@@ -364,10 +364,10 @@ cpufmt(Fmt *fmt)
 	memmove(cpu->jmp, jmp, sizeof jmp);
 
 	snprint(buf, sizeof(buf),
-		"%.6lux "
-		"%.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux "
-		"%.4lux %.4lux %.4lux %.4lux "
-		"%J %.4lux %.2x %I",
+		"%.6#x "
+		"%.8#x %.8#x %.8#x %.8#x %.8#x %.8#x %.8#x %.8#x "
+		"%.4#x %.4#x %.4#x %.4#x "
+		"%J %.4#x %.2x %I",
 
 		cpu->ic,
 

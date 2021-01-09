@@ -1,0 +1,31 @@
+#!/bin/rc
+for(i in t m v C)
+	/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
+
+# query user if terminal isn't adequately configured yet
+	echo -n 'mouseport is (ps2, ps2intellimouse, 0, 1, 2)[ps2]: '
+	mouseport=`{read}
+	if(~ $#mouseport 0)
+		mouseport=ps2
+	echo -n 'vgasize [1024x768x8]: '
+	vgasize=`{read}
+	if(~ $#vgasize 0)
+		vgasize=1024x768x8
+	echo -n 'monitor is [xga]: '
+	monitor=`{read}
+	if(~ $#monitor 0)
+		monitor=xga
+if(test -f /dev/mousectl){
+	switch($mouseport){
+	case ps2 ps2intellimouse 0 1 2
+		aux/mouse $mouseport
+		ms& #soft mouse
+		# parse vgasize into fields
+		vgasize=`{echo $vgasize}
+		if(! ~ $"monitor '' && ! ~ `{cat /dev/user} none)
+			aux/realemu
+			aux/vga -m $monitor -l $vgasize
+		if(~ $accupoint 1)
+			pipefile -dr /bin/aux/accupoint /dev/mouse
+	}
+}

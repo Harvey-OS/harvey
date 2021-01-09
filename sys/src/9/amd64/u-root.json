@@ -6,13 +6,9 @@
 			"GOOS=plan9",
 			"GOARCH=amd64"
 		],
-		"#Pre only do this when KZERO is 0xffffffff_80000000": [
-			"u-root -o uroot.cpio -files /amd64/bin:amd64/bin -files /rc/bin:rc/bin -files /lib/ndb:lib/ndb $UROOTEXTRARGS plan9 $UROOTEXTRAPACKAGES",
-			"lzma -f -k uroot.cpio"
-		],
 		"Pre": [
-			"u-root -o uroot.cpio plan9",
-			"lzma -f -k uroot.cpio"
+			"u-root -shellbang -initcmd= -o uroot.cpio plan9",
+			"lzma -f -k -3 uroot.cpio"
 		]
 	}
 ]

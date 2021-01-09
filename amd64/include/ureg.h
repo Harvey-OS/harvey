@@ -24,13 +24,13 @@ struct Ureg {
 	uint64_t	r14;
 	uint64_t	r15;
 
-  // these are pointless and I don't want to waste a second on them.
-  // I'm sure it will break something but let's see.
-  // Not pushing them simplifies the interrupt handler a lot.
-  //	uint16_t	ds;
-  //	uint16_t	es;
-  //	uint16_t	fs;
-  //	uint16_t	gs;
+	// These are pointless and not pushing them would simplify the
+	// interrupt handler a lot. However, removing them would break
+	// compatibility with Go Plan 9 binaries.
+	uint16_t	ds;
+	uint16_t	es;
+	uint16_t	fs;
+	uint16_t	gs;
 
 	uint64_t	type;
 	uint64_t	error;				/* error code (or zero) */

@@ -50,7 +50,7 @@ syscallentry:
 
 	movq	%gs:32, %r15 	/* restore r15 from m->rathole */
 
-	SUBQ	$(17*8), %rsp
+	SUBQ	$(18*8), %rsp
 
 	MOVQ	%rAX, (0*8)(%rsp)	// ureg.ax
 	MOVQ	%rBX, (1*8)(%rsp)	// ureg.bx
@@ -67,8 +67,12 @@ syscallentry:
 	MOVQ	%r13, (12*8)(%rsp)
 	MOVQ	%r14, (13*8)(%rsp)
 	MOVQ	%r15, (14*8)(%rsp)
-	// (15*8)(%rsp)	// ureg.type
-	// (16*8)(%rsp) // ureg.error
+	// (15*8+0)(%rsp) // ureg.ds
+	// (15*8+2)(%rsp) // ureg.es
+	// (15*8+4)(%rsp) // ureg.fs
+	// (15*8+6)(%rsp) // ureg.gs
+	// (16*8)(%rsp)	// ureg.type
+	// (17*8)(%rsp) // ureg.error
 
 	MOVQ	%rsp, %rsi 				/* Ureg* */
 	// system call number is in %rax, as per linux.
@@ -98,7 +102,7 @@ syscallreturn:
 	MOVQ	(13*8)(%rsp),%r14
 	MOVQ	(14*8)(%rsp),%r15
 
-	ADDQ	$(17*8), %rsp			/* registers + arguments */
+	ADDQ	$(18*8), %rsp			/* registers + arguments */
 
 	CLI
 	SWAPGS

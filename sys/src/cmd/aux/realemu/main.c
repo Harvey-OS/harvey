@@ -119,7 +119,7 @@ static unsigned long
 rbad(void *aux, unsigned long off, int len)
 {
 	print_func_entry();
-	fprint(2, "bad mem read %.5lux\n", off);
+	fprint(2, "bad mem read %.5#x\n", off);
 	trap(&cpu, EMEM);
 
 	/* not reached */
@@ -131,7 +131,7 @@ static void
 wbad(void *aux, unsigned long off, unsigned long w, int len)
 {
 	print_func_entry();
-	fprint(2, "bad mem write %.5lux\n", off);
+	fprint(2, "bad mem write %.5#x\n", off);
 	trap(&cpu, EMEM);
 	print_func_exit();
 }
@@ -159,7 +159,7 @@ rrealmem(void *aux, unsigned long off, int len)
 	unsigned char data[4];
 
 	if(pread(realmemfd, data, len, off) != len){
-		fprint(2, "bad real mem read %.5lux: %r\n", off);
+		fprint(2, "bad real mem read %.5#x: %r\n", off);
 		trap(&cpu, EMEM);
 	}
 	print_func_exit();
@@ -174,7 +174,7 @@ wrealmem(void *aux, unsigned long off, unsigned long w, int len)
 
 	pw[len](data, w);
 	if(pwrite(realmemfd, data, len, off) != len){
-		fprint(2, "bad real mem write %.5lux: %r\n", off);
+		fprint(2, "bad real mem write %.5#x: %r\n", off);
 		trap(&cpu, EMEM);
 	}
 	print_func_exit();
@@ -242,13 +242,13 @@ rport(void *aux, unsigned long p, int len)
 		break;
 	default:
 		if(pread(portfd[len], data, len, p) != len){
-			fprint(2, "bad %d bit port read %.4lux: %r\n", len*8, p);
+			fprint(2, "bad %d bit port read %.4#x: %r\n", len*8, p);
 			trap(&cpu, EIO);
 		}
 		w = gw[len](data);
 	}
 	if(porttrace)
-		fprint(2, "rport %.4lux %.*lux\n", p, len<<1, w);
+		fprint(2, "rport %.4#x %.*#x\n", p, len<<1, w);
 	print_func_exit();
 	return w;
 }
@@ -260,7 +260,7 @@ wport(void *aux, unsigned long p, unsigned long w, int len)
 	unsigned char data[4];
 
 	if(porttrace)
-		fprint(2, "wport %.4lux %.*lux\n", p, len<<1, w);
+		fprint(2, "wport %.4#x %.*#x\n", p, len<<1, w);
 
 	switch(p){
 	case 0x20:	/* PIC 1 */
@@ -309,7 +309,7 @@ wport(void *aux, unsigned long p, unsigned long w, int len)
 	default:
 		pw[len](data, w);
 		if(pwrite(portfd[len], data, len, p) != len){
-			fprint(2, "bad %d bit port write %.4lux: %r\n", len*8, p);
+			fprint(2, "bad %d bit port write %.4#x: %r\n", len*8, p);
 			trap(&cpu, EIO);
 		}
 	}
@@ -813,7 +813,7 @@ static void
 usage(void)
 {
 	print_func_entry();
-	fprint(2, "usgae:\t%s [-Dpt] [-s srvname] [-m mountpoint]\n", argv0);
+	fprint(2, "usgae:\t%s [-Dptf] [-s srvname] [-m mountpoint]\n", argv0);
 	exits("usage");
 	print_func_exit();
 }
@@ -827,6 +827,9 @@ threadmain(int argc, char *argv[])
 	ARGBEGIN{
 	case 'D':
 		chatty9p++;
+		break;
+	case 'f':
+		set_printx(1);
 		break;
 	case 'p':
 		porttrace = 1;
