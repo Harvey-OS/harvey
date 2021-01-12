@@ -28,8 +28,11 @@ struct RamFile {
 	int perm;
 	int opencount;
 	int deleteonclose;
-	// A file is up to 4K 8192-byte blocks. That's 32M. Enough.
-	void *blocks[NBLOCK];
+	// A file is up to 16 pages. That's 32m.
+	// There is huge wastage here. But hey ...
+	// memory is so cheap. It's getting hard to buy
+	// small amounts.
+	struct Page *pages[16];
 	union {
 		struct RamFile *firstchild;
 	};
@@ -273,8 +276,11 @@ static void delete(struct RamFile *file)
 		}
 	}
 	if(!(file->perm & DMDIR)){
-		for(int i = 0; i < nelem(file->blocks); i++)
-			free(file->blocks[i]);
+		for(int i = 0; i < nelem(file->pages); i++){
+			if (!file->pages[i])
+				continue;
+			pgfree(file->pages[i]);
+		}
 	}
 	file->magic = 0;
 	free(file->n);
@@ -301,12 +307,12 @@ ramreadblock(Chan *c, void *buf, i32 n, i64 off)
 {
 	Proc *up = externup();
 	// first block, last block
-	int fb = off >> 13, fl = (off + n) >> 13, offinblock = off & 0x1fff;
+	int fb = off >> 21, fl = (off + n) >> 21, offinblock = off & 0x1fffff;
 
 	// adjust read size and offset.
 	// we only read one block for now.
 	if(fl != fb){
-		n = 8192 - (off & 0x1fff);
+		n = (1<<21) - (off & 0x1fffff);
 	}
 
 	if(fb > NBLOCK)
@@ -332,8 +338,8 @@ ramreadblock(Chan *c, void *buf, i32 n, i64 off)
 
 	if(file->magic != RAM_MAGIC)
 		error("ramreadblock:file->magic != RAM_MAGIC");
-	if(n > 0 && off < file->length && file->blocks[fb])
-		memmove(buf, file->blocks[fb] + offinblock, n);
+	if(n > 0 && off < file->length && file->pages[fb])
+		memmove(buf, KADDR(file->pages[fb]->pa) + offinblock, n);
 	else
 		n = 0;
 	poperror();
@@ -372,11 +378,11 @@ ramwriteblock(Chan *c, void *v, i32 n, i64 off)
 	Proc *up = externup();
 	struct RamFile *file = (void *)c->qid.path;
 	// first block, last block
-	int fb = off >> 13, fl = (off + n) >> 13, offinblock = off & 0x1fff;
+	int fb = off >> 21, fl = (off + n) >> 21, offinblock = off & 0x1fffff;
 
 	// we only write one block.
 	if(fl != fb){
-		n = 8192 - (off & 0x1fff);
+		n = (1<<21) - (off & 0x1fffff);
 	}
 
 	if(fb > NBLOCK)
@@ -391,15 +397,15 @@ ramwriteblock(Chan *c, void *v, i32 n, i64 off)
 		error("ramwriteblock:file->magic != RAM_MAGIC");
 	if(devramdebug)
 		print("ramwrite: v %p n %#x off %#llx\n", v, n, off);
-	if(!file->blocks[fb]){
-		file->blocks[fb] = mallocz(8192, 1);
-		if(!file->blocks[fb])
+	if(!file->pages[fb]){
+		file->pages[fb] = pgalloc(BIGPGSZ, -1);
+		if(!file->pages[fb])
 			error("ramwriteblock:enomem");
 	}
 	if(devramdebug){
 		print("length of start of write=%do\n", offinblock);
 	}
-	memmove(file->blocks[fb] + offinblock, v, n);
+	memmove(KADDR(file->pages[fb]->pa) + offinblock, v, n);
 	if((off + n) > file->length)
 		file->length = off + n;
 	poperror();

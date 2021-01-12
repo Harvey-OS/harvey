@@ -359,6 +359,7 @@ auxpage(usize size)
 	pa = &pga.pgsza[si];
 	p = pa->head;
 	if(pa->freecount < Nminfree){
+		print("freecount %d Nminfree %d return nil\n", pa->freecount, Nminfree);
 		unlock(&pga.l);
 		return nil;
 	}
