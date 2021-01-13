@@ -246,6 +246,7 @@ func main() {
 					self:         ip,
 					bootfilename: *bootfilename,
 					rootpath:     *rootpath,
+					submask:      ip.DefaultMask(),
 				}
 
 				laddr := &net.UDPAddr{Port: dhcpv4.ServerPort}
