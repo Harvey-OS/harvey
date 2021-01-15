@@ -13,13 +13,13 @@ import "os"
 // resetDir closes the underlying file and reopens it so it can be read again.
 // This is because Windows doesn't seem to support calling Seek on a directory
 // handle.
-func resetDir(f *File) error {
+func resetDir(f *file) error {
 	f2, err := os.OpenFile(f.fullName, os.O_RDONLY, 0)
 	if err != nil {
 		return err
 	}
 
-	f.File.Close()
-	f.File = f2
+	f.file.Close()
+	f.file = f2
 	return nil
 }
