@@ -224,7 +224,7 @@ boot(int argc, char *argv[])
 		close(afd);
 
 	cmd = getenv("init");
-	if(cmd == nil && service != nil) {
+	if(cmd == nil && service[0] != 0) {
 		sprint(cmdbuf, "/%s/bin/init -s %s %s", cputype, service, mflag ? "m" : "");
 		cmd = cmdbuf;
 	}
