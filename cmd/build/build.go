@@ -65,7 +65,7 @@ import (
 type kernconfig struct {
 	Code []string
 	Dev  []string
-	Ip   []string
+	IP   []string
 	Link []string
 	Sd   []string
 	Uart []string
@@ -153,9 +153,9 @@ func (bf *buildfile) UnmarshalJSON(s []byte) error {
 	return nil
 }
 
-func (b *build) includedJson(filename string) bool {
-	for _, includedJson := range b.jsons {
-		if includedJson == filename {
+func (b *build) includedJSON(filename string) bool {
+	for _, jsonfile := range b.jsons {
+		if jsonfile == filename {
 			return true
 		}
 	}
@@ -238,7 +238,7 @@ func fromRoot(p string) string {
 func include(f string, targ string, b *build) {
 	debug("include(%s, %s, %v)", f, targ, b)
 
-	if b.includedJson(f) {
+	if b.includedJSON(f) {
 		return
 	}
 	b.jsons = append(b.jsons, f)
@@ -477,7 +477,7 @@ func cmdTarget(b *build, n string) (string, string) {
 	return exe, b.Install
 }
 
-func compile(b *build) {
+func compile(b *build) []string {
 	log.Printf("Building %s\n", b.Name)
 
 	// N.B. Plan 9 has a very well defined include structure, just three things:
@@ -503,11 +503,12 @@ func compile(b *build) {
 			cmd := exec.Command(command, append(args, sourceFile)...)
 			run(b, *shellhack, cmd)
 		}
-		return
+		return nil
 	}
 	args = append(args, b.SourceFiles...)
 	cmd := exec.Command(command, args...)
 	run(b, *shellhack, cmd)
+	return append([]string{command}, args...)
 }
 
 func link(b *build) {
@@ -522,7 +523,7 @@ func link(b *build) {
 			}
 			n = n[:len(n)-len(ext)]
 			f := path.Base(n)
-			o := f[:len(f)] + ".o"
+			o := f[:] + ".o"
 			args := []string{"-o", n, o}
 			args = append(args, "-L", fromRoot("/$ARCH/lib"))
 			args = append(args, b.Libs...)
@@ -670,7 +671,15 @@ func project(bf string, which []*regexp.Regexp) {
 		runCmds(&b, b.Pre)
 		buildkernel(&b)
 		if len(b.SourceFiles) > 0 || len(b.SourceFilesCmd) > 0 {
-			compile(&b)
+			args := compile(&b)
+			for i, src := range b.SourceFiles {
+				compDB <- compCmd{
+					Arguments: args,
+					File:      path.Join(dir, src),
+					Directory: dir,
+					Output:    path.Join(dir, b.ObjectFiles[i]),
+				}
+			}
 		}
 		if b.Program != "" || len(b.SourceFilesCmd) > 0 {
 			link(&b)
@@ -692,6 +701,14 @@ func main() {
 	if os.Getenv("CC") == "" {
 		log.Fatalf("You need to set the CC environment variable (e.g. gcc, clang, clang-3.6, ...)")
 	}
+
+	c := new(collector)
+	go c.run()
+	defer func() {
+		if err := c.Print(path.Join(harvey, "compile_commands.json")); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	a := os.Getenv("ARCH")
 	if a == "" || !arch[a] {
