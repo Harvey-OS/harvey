@@ -45,7 +45,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: "harvey-os/harvey-os.github.io"
-        path: ${{ join([github.workspace,'/harvey-os.github.io']) }}
+        path: ${{ github.workspace }}/harvey-os.github.io
     - name: generate-docs
       if: ${{ success() }}
       run: |
