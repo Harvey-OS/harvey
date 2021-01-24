@@ -40,3 +40,26 @@ jobs:
       env:
         HARVEY: ${{github.workspace}}
       run: ./linux_amd64/bin/qtap
+    - name: checkout-docs
+      if: ${{ github.ref == 'refs/heads/main' && martix.cc startsWith(matrix.cc, "clang") }}
+      uses: actions/checkout@v2
+      with:
+        repository: "harvey-os/harvey-os.github.io"
+        path: ${{github.workspace+ "/harvey-os.github.io" }}
+    - name: generate-docs
+      if: ${{ success() }}
+      run: |
+        cd ${{github.workspace }}
+        clang-doc \
+          --output={{github.workspace+ "/harvey-os.github.io/docs" }} \
+          --format=md \
+          -p=${{github.workspace }} \ 
+          --project-name='Harvey OS' \
+          --repository=https://github.com/Harvey-OS/harvey/blob/${{ github.ref}}/ \
+          ${{github.workspace }}/sys/src/
+        cd ${{github.workspace }}/harvey-os.github.io
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "updating docs from github.com/harvey-os/harvey/tree/${{ github.ref}}"
+        git push
