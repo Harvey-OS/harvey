@@ -75,10 +75,10 @@ links(void)
 }
 
 #include "../ip/ip.h"
-{{ range .Config.Ip }}extern void {{ . }}init(Fs*);
+{{ range .Config.IP }}extern void {{ . }}init(Fs*);
 {{ end }}
 void (*ipprotoinit[])(Fs*) = {
-{{ range .Config.Ip }}	{{ . }}init,
+{{ range .Config.IP }}	{{ . }}init,
 {{ end }}
 	nil,
 };
