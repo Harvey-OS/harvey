@@ -40,3 +40,5 @@ jobs:
       env:
         HARVEY: ${{github.workspace}}
       run: ./linux_amd64/bin/qtap
+    - name: build a image
+      run: ./util/build-img.sh
