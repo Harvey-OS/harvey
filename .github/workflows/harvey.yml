@@ -51,7 +51,7 @@ jobs:
       run: |
         cd ${{github.workspace }}
         sudo apt-get install -y clang-tools-10
-        clang-doc \
+        clang-doc-10 \
           --output=${{ github.workspace }}/harvey-os.github.io/docs \
           --format=md \
           -p=${{ github.workspace }} \ 
