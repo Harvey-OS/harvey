@@ -41,21 +41,21 @@ jobs:
         HARVEY: ${{github.workspace}}
       run: ./linux_amd64/bin/qtap
     - name: checkout-docs
-      if: ${{ github.ref == 'refs/heads/main' && startsWith(matrix.cc, "clang") }}
+      if: ${{ github.ref == 'refs/heads/main' && startsWith(matrix.cc, 'clang') }}
       uses: actions/checkout@v2
       with:
         repository: "harvey-os/harvey-os.github.io"
-        path: ${{github.workspace+ "/harvey-os.github.io" }}
+        path: ${{ join([github.workspace,'/harvey-os.github.io']) }}
     - name: generate-docs
       if: ${{ success() }}
       run: |
         cd ${{github.workspace }}
         clang-doc \
-          --output={{github.workspace+ "/harvey-os.github.io/docs" }} \
+          --output=${{ github.workspace }}/harvey-os.github.io/docs \
           --format=md \
-          -p=${{github.workspace }} \ 
+          -p=${{ github.workspace }} \ 
           --project-name='Harvey OS' \
-          --repository=https://github.com/Harvey-OS/harvey/blob/${{ github.ref}}/ \
+          --repository=https://github.com/Harvey-OS/harvey/blob/${{ github.ref }}/ \
           ${{github.workspace }}/sys/src/
         cd ${{github.workspace }}/harvey-os.github.io
         git config user.name github-actions
