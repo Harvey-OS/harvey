@@ -182,8 +182,9 @@ boot(int argc, char *argv[])
 		n = fversion(fd, 0, buf, sizeof buf);
 		if(n < 0)
 			fatal("can't init 9P");
-		srvcreate("boot", fd);
 	}
+	
+	srvcreate("boot", fd);	
 
 	/*
 	 *  create the name space, mount the root fs

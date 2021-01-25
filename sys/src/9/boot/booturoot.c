@@ -23,6 +23,9 @@ configuroot(Method *m)
 	}
 
 	// I think we need to extract the uroot archive into the ramdisk here
+	// cd #@
+	// /boot/decompress /boot/uroot > uroot.cpio
+	// /boot/cpio i < uroot.cpio
 
 }
 
@@ -31,12 +34,12 @@ connecturoot(void)
 {
 	print("connecturoot\n");
 
-	/*int fd = open("#@", OREAD);
+	int fd = open("/", OREAD);
 	if (fd < 0) {
 		werrstr("open /: %r");
 	}
 
-	return fd;*/
+	return fd;
 
 	return -1;
 }
