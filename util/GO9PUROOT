@@ -20,7 +20,7 @@ fi
 # the guest, which we can use to identify the TSC frequency
 
 read -r cmd <<EOF
-$kvmdo qemu-system-x86_64 -s -cpu max,vmware-cpuid-freq=on,+invtsc -smp 4 -m 2048 $kvmflag \
+$kvmdo qemu-system-x86_64 -s -cpu max,vmware-cpuid-freq=on,+invtsc -smp 4 -m 4096 $kvmflag \
 -usb \
 -serial stdio \
 --machine $machineflag \
@@ -33,7 +33,7 @@ hostfwd=tcp::1666-:1666,\
 hostfwd=tcp::5356-:5356,\
 hostfwd=tcp::17013-:17013 \
 -object filter-dump,id=f1,netdev=user.0,file=/tmp/vm0.pcap \
--append "service=uroot nobootprompt=tcp maxcores=1024 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1" \
+-append "service=uroot nobootprompt=uroot maxcores=1024 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1" \
 -kernel $HARVEY/sys/src/9/amd64/harvey.32bit $*
 EOF
 

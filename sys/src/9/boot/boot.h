@@ -77,5 +77,9 @@ extern void configip(int, char **, int);
 
 extern void configrc(Method *);
 extern int connectrc(void);
+
+extern void configuroot(Method *);
+extern int connecturoot(void);
+
 /* hack for passing authentication address */
 extern char *authaddr;

@@ -17,6 +17,12 @@
 			"Config": "configlocal",
 			"Connect": "connectlocal",
 			"Name": "local"
+		},
+		{
+			"Arg": "",
+			"Config": "configuroot",
+			"Connect": "connecturoot",
+			"Name": "uroot"
 		}
 	],
 	"SyscallBase": 1024,

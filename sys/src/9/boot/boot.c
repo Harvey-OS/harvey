@@ -67,6 +67,7 @@ acpiirq(void)
 	}
 	exits(nil);
 }
+
 void
 boot(int argc, char *argv[])
 {
@@ -74,7 +75,7 @@ boot(int argc, char *argv[])
 	Method *mp;
 	char *cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
-	int islocal, ishybrid;
+	int islocal, ishybrid, isuroot;
 	char *rp, *rsp;
 	int iargc, n;
 	char buf[32];
@@ -145,6 +146,7 @@ boot(int argc, char *argv[])
 		(*mp->config)(mp);
 		islocal = strcmp(mp->name, "local") == 0;
 		ishybrid = strcmp(mp->name, "hybrid") == 0;
+		isuroot = strcmp(mp->name, "uroot") == 0;
 	}
 
 	/*
@@ -157,25 +159,31 @@ boot(int argc, char *argv[])
 	 */
 	authentication(cpuflag);
 
-	print("connect...");
+	if (isuroot) {
+		print("uroot...");
+	} else {
+		print("connect...");
+	}
 
 	/*
 	 *  connect to the root file system
 	 */
 	fd = (*mp->connect)();
-	if(fd < 0)
+	if(fd < 0 && !isuroot)
 		fatal("can't connect to file server");
 	if(!islocal && !ishybrid){
 		if(cfs)
 			fd = (*cfs)(fd);
 	}
 
-	print("version...");
-	buf[0] = '\0';
-	n = fversion(fd, 0, buf, sizeof buf);
-	if(n < 0)
-		fatal("can't init 9P");
-	srvcreate("boot", fd);
+	if (!isuroot) {
+		print("version...");
+		buf[0] = '\0';
+		n = fversion(fd, 0, buf, sizeof buf);
+		if(n < 0)
+			fatal("can't init 9P");
+		srvcreate("boot", fd);
+	}
 
 	/*
 	 *  create the name space, mount the root fs
@@ -186,46 +194,51 @@ boot(int argc, char *argv[])
 	if(rp == nil)
 		rp = "";
 
-	afd = fauth(fd, rp);
-	if(afd >= 0){
-		ai = auth_proxy(afd, auth_getkey, "proto=p9any role=client");
-		if(ai == nil)
-			print("authentication failed (%r), trying mount anyways\n");
-	}
-	if(mount(fd, afd, "/root", MREPL | MCREATE, rp, 'M') < 0)
-		fatal("mount /");
-	rsp = rp;
-	rp = getenv("rootdir");
-	if(rp == nil)
-		rp = rootdir;
-	if(bind(rp, "/", MAFTER | MCREATE) < 0){
-		if(strncmp(rp, "/root", 5) == 0){
-			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
-			fatal("second bind /");
+	if (!isuroot) {
+		afd = fauth(fd, rp);
+		if(afd >= 0){
+			ai = auth_proxy(afd, auth_getkey, "proto=p9any role=client");
+			if(ai == nil)
+				print("authentication failed (%r), trying mount anyways\n");
 		}
-		snprint(rootbuf, sizeof rootbuf, "/root/%s", rp);
-		rp = rootbuf;
+		if(mount(fd, afd, "/root", MREPL | MCREATE, rp, 'M') < 0)
+			fatal("mount /");
+		rsp = rp;
+		rp = getenv("rootdir");
+		if(rp == nil)
+			rp = rootdir;
 		if(bind(rp, "/", MAFTER | MCREATE) < 0){
-			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
-			if(strcmp(rootbuf, "/root//plan9") == 0){
-				fprint(2, "**** warning: remove rootdir=/plan9 entry from plan9.ini\n");
-				rp = "/root";
-				if(bind(rp, "/", MAFTER | MCREATE) < 0)
-					fatal("second bind /");
-			} else
+			if(strncmp(rp, "/root", 5) == 0){
+				fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
 				fatal("second bind /");
+			}
+			snprint(rootbuf, sizeof rootbuf, "/root/%s", rp);
+			rp = rootbuf;
+			if(bind(rp, "/", MAFTER | MCREATE) < 0){
+				fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
+				if(strcmp(rootbuf, "/root//plan9") == 0){
+					fprint(2, "**** warning: remove rootdir=/plan9 entry from plan9.ini\n");
+					rp = "/root";
+					if(bind(rp, "/", MAFTER | MCREATE) < 0)
+						fatal("second bind /");
+				} else
+					fatal("second bind /");
+			}
 		}
+		close(fd);
 	}
-	close(fd);
 	setenv("rootdir", rp);
 
-	settime(islocal, afd, rsp);
+	settime(islocal || isuroot, afd, rsp);
 	if(afd > 0)
 		close(afd);
 
 	cmd = getenv("init");
+	print("init:%s\n", cmd);
+	print("init:%s\n", service);
 	if(cmd == nil && service[0] != 0) {
 		sprint(cmdbuf, "/%s/bin/init -s %s %s", cputype, service, mflag ? "m" : "");
+		print("cmd: %s<\n", cmdbuf);
 		cmd = cmdbuf;
 	}
 	iargc = tokenize(cmd, iargv, nelem(iargv) - 1);
@@ -239,6 +252,7 @@ boot(int argc, char *argv[])
 
 	iargv[iargc] = nil;
 
+	print("execccc");
 	exec(cmd, iargv);
 	fatal(cmd);
 }

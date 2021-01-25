@@ -26,6 +26,7 @@
 			"bootip.c",
 			"bootcpu.c",
 			"bootrc.c",
+			"booturoot.c",
 			"embed.c",
 			"local.c",
 			"paq.c",
