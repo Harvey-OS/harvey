@@ -115,8 +115,10 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 
 	if(vflag)
 		print("magic %#x pmbi %#x\n", magic, pmbi);
-	if(magic != 0x2badb002)
+	if(magic != 0x2badb002) {
+		print("Multiboot magic is not set, no multiboot tables\n");
 		return -1;
+	}
 
 	mbi = KADDR(pmbi);
 	if(vflag)
