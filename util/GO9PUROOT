@@ -3,8 +3,8 @@ set -e
 
 trap : 2
 
-#$HARVEY/linux_amd64/bin/centre -i "" -ninep-dir=$HARVEY &
-#centrepid=$!
+$HARVEY/linux_amd64/bin/centre -i "" -ninep-dir=$HARVEY &
+centrepid=$!
 
 export machineflag=q35
 if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
@@ -33,12 +33,12 @@ hostfwd=tcp::1666-:1666,\
 hostfwd=tcp::5356-:5356,\
 hostfwd=tcp::17013-:17013 \
 -object filter-dump,id=f1,netdev=user.0,file=/tmp/vm0.pcap \
--append "service=uroot nobootprompt=tcp maxcores=1024 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1" \
+-append "service=uroot nobootprompt=tcp maxcores=1024 fs=10.0.2.2 auth=10.0.2.2 nvram=/boot/nvram nvrlen=512 nvroff=0 acpiirq=1 mouseport=ps2 vgasize=1024x768x24 monitor=vesa" \
 -kernel $HARVEY/sys/src/9/amd64/harvey.32bit $*
 EOF
 
 echo $cmd
 eval $cmd
 
-#kill $centrepid
+kill $centrepid
 wait

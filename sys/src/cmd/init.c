@@ -188,6 +188,9 @@ rcexec(void)
 	}else if(strcmp(service, "terminal") == 0){
 	        print ("init: starting termrc\n");
 		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
+	}else if(strcmp(service, "uroot") == 0){
+	        print ("init: starting urootrc\n");
+		execl("/bin/rc", "rc", "-c", ". /rc/bin/urootrc; home=/usr/$user; cd; . lib/profile", nil);
 	}
 	else
 		execl("/bin/rc", "rc", nil);
