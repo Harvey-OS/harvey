@@ -1,7 +1,7 @@
 #!/bin/rc
 # terminal startup
 
-if(test -e '#@/uroot') {
+if(test -e '/boot/uroot') {
 	# Unpack uroot cpio into the ramdisk and bind to root
 	cd '#@'
 	/boot/decompress /boot/uroot > uroot.cpio
@@ -113,3 +113,25 @@ if(test -f /dev/mousectl){
 }
 
 dontkill '^(ipconfig|factotum|mntgen|fossil|cs|dns|listen|reboot)$'
+
+# If we're running uroot, we're assuming everything's come from the ramdisk
+# at this point.  There may be no usr profile, so let's put sensible defaults here.
+# Can then run something in the $home/lib/profile if it exists
+home=/usr/$user
+cd
+
+# This is what would traditionally be in lib/profile by default
+bind -a $home/bin/rc /bin
+bind -a $home/bin/$cputype /bin
+bind -c tmp /tmp
+
+font=/lib/font/bit/go/Go-Mono/Go-Mono.14.font
+fn cd { builtin cd $* && awd }  # for acme
+fn acme { /bin/acme -f $font $* }
+
+plumber
+echo -n accelerated > '#m/mousectl'
+echo -n 'res 3' > '#m/mousectl'
+prompt=('term% ' '	')
+fn term%{ $* }
+exec rio -s -i riostart

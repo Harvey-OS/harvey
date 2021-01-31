@@ -190,7 +190,7 @@ rcexec(void)
 		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
 	}else if(strcmp(service, "uroot") == 0){
 	        print ("init: starting urootrc\n");
-		execl("/bin/rc", "rc", "-c", ". /rc/bin/urootrc; home=/usr/$user; cd; . lib/profile", nil);
+		execl("/boot/rc", "rc", "-c", ". /boot/urootrc", nil);
 	}
 	else
 		execl("/bin/rc", "rc", nil);
