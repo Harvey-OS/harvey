@@ -527,3 +527,16 @@ Dev ufsdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return ufsdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return ufsdevtab.dc;
+}
+

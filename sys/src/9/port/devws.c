@@ -178,3 +178,16 @@ Dev wsdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return wsdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return wsdevtab.dc;
+}
+

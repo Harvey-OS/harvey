@@ -459,3 +459,16 @@ Dev corebootdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return corebootdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return corebootdevtab.dc;
+}
+

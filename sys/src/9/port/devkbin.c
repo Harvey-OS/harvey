@@ -118,3 +118,16 @@ Dev kbindevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return kbindevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return kbindevtab.dc;
+}
+

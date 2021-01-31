@@ -1274,3 +1274,16 @@ Dev mntdevtab = {
 	.remove = mntremove,
 	.wstat = mntwstat,
 };
+
+static char *
+devname(void)
+{
+        return mntdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return mntdevtab.dc;
+}
+

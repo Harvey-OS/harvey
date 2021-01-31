@@ -235,3 +235,16 @@ Dev kprofdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return kprofdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return kprofdevtab.dc;
+}
+

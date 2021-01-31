@@ -260,3 +260,16 @@ Dev rootdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return rootdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return rootdevtab.dc;
+}
+

@@ -399,3 +399,16 @@ Dev pipedevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return pipedevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return pipedevtab.dc;
+}
+

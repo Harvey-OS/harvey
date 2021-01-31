@@ -150,3 +150,16 @@ Dev wddevtab = {
 	.wstat = devwstat,
 	.power = devpower,
 };
+
+static char *
+devname(void)
+{
+        return wddevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return wddevtab.dc;
+}
+

@@ -901,3 +901,16 @@ Dev tracedevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return tracedevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return tracedevtab.dc;
+}
+

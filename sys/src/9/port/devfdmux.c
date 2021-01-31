@@ -569,3 +569,16 @@ Dev fdmuxdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return fdmuxdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return fdmuxdevtab.dc;
+}
+

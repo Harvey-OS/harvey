@@ -1412,3 +1412,16 @@ writebintime(char *buf, int n)
 	}
 	return n;
 }
+
+static char *
+devname(void)
+{
+        return consdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return consdevtab.dc;
+}
+

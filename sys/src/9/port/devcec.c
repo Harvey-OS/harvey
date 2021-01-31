@@ -926,3 +926,16 @@ Dev cecdevtab = {
 	.power = devpower,
 	.config = devconfig,
 };
+
+static char *
+devname(void)
+{
+        return cecdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return cecdevtab.dc;
+}
+

@@ -153,3 +153,16 @@ Dev dupdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return dupdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return dupdevtab.dc;
+}
+

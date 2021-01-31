@@ -2235,3 +2235,16 @@ pdump(int len, void *a, char *tag)
 			pprint("%s\n", buf);
 	}
 }
+
+static char *
+devname(void)
+{
+        return tlsdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return tlsdevtab.dc;
+}
+

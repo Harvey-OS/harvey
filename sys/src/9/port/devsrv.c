@@ -382,3 +382,16 @@ Dev srvdevtab = {
 	.remove = srvremove,
 	.wstat = srvwstat,
 };
+
+static char *
+devname(void)
+{
+        return srvdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return srvdevtab.dc;
+}
+

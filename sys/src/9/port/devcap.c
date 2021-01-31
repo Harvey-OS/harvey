@@ -288,3 +288,16 @@ Dev capdevtab = {
 	.bwrite = devbwrite,
 	.remove = capremove,
 	.wstat = devwstat};
+
+static char *
+devname(void)
+{
+        return capdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return capdevtab.dc;
+}
+

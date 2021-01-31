@@ -305,3 +305,16 @@ Dev pcidevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return pcidevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return pcidevtab.dc;
+}
+

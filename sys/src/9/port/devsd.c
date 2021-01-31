@@ -1674,3 +1674,16 @@ legacytopctl(Cmdbuf *cb)
 		error(Ebadarg);
 	sdconfig(cd.on, cd.spec, &cd.cf);
 }
+
+static char *
+devname(void)
+{
+        return sddevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return sddevtab.dc;
+}
+

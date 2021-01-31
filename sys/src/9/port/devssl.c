@@ -1596,3 +1596,16 @@ dsnew(Chan *ch, Dstate **pp)
 	ch->qid.path = QID(pp - dstate, t);
 	ch->qid.vers = 0;
 }
+
+static char *
+devname(void)
+{
+        return ssldevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return ssldevtab.dc;
+}
+

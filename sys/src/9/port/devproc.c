@@ -2017,3 +2017,16 @@ data2txt(Segment *s)
 
 	return ps;
 }
+
+static char *
+devname(void)
+{
+        return procdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return procdevtab.dc;
+}
+

@@ -483,3 +483,16 @@ Dev etherdevtab = {
 	.remove = devremove,
 	.wstat = etherwstat,
 };
+
+static char *
+devname(void)
+{
+        return etherdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return etherdevtab.dc;
+}
+

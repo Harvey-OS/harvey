@@ -1191,3 +1191,16 @@ Dev bridgedevtab = {
 	devremove,
 	devwstat,
 };
+
+static char *
+devname(void)
+{
+        return bridgedevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return bridgedevtab.dc;
+}
+

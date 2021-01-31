@@ -2219,3 +2219,16 @@ drawidletime(void)
 {
 	return TK2SEC(machp()->ticks - sdraw.blanktime) / 60;
 }
+
+static char *
+devname(void)
+{
+        return drawdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return drawdevtab.dc;
+}
+

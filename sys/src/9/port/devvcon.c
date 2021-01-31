@@ -243,3 +243,16 @@ Dev vcondevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return vcondevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return vcondevtab.dc;
+}
+

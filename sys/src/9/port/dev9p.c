@@ -648,3 +648,16 @@ Dev v9pdevtab = {
 	.remove = v9premove,
 	.wstat = v9pwstat,
 };
+
+static char *
+devname(void)
+{
+        return 9pdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return 9pdevtab.dc;
+}
+

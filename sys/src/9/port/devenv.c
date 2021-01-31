@@ -448,3 +448,16 @@ getconfenv(void)
 	runlock(&eg->rwl);
 	return p;
 }
+
+static char *
+devname(void)
+{
+        return envdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return envdevtab.dc;
+}
+

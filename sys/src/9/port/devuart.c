@@ -725,3 +725,16 @@ uartclock(void)
 	}
 	unlock(&uartalloc.Lock);
 }
+
+static char *
+devname(void)
+{
+        return uartdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return uartdevtab.dc;
+}
+

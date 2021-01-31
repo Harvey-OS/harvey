@@ -209,3 +209,16 @@ Dev kbmapdevtab = {
 	devremove,
 	devwstat,
 };
+
+static char *
+devname(void)
+{
+        return kbmapdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return kbmapdevtab.dc;
+}
+

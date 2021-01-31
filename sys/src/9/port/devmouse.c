@@ -773,3 +773,16 @@ mouseresize(void)
 	mouse.resize++;
 	wakeup(&mouse.rend);
 }
+
+static char *
+devname(void)
+{
+        return mousedevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return mousedevtab.dc;
+}
+

@@ -779,3 +779,16 @@ Dev segmentdevtab = {
 	.remove = segmentremove,
 	.wstat = segmentwstat,
 };
+
+static char *
+devname(void)
+{
+        return segmentdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return segmentdevtab.dc;
+}
+

@@ -406,3 +406,16 @@ Dev probedevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return probedevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return probedevtab.dc;
+}
+

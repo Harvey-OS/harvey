@@ -597,3 +597,16 @@ Dev zpdevtab = {
 	.zread = zpzread,
 	.zwrite = zpzwrite,
 };
+
+static char *
+devname(void)
+{
+        return zpdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return zpdevtab.dc;
+}
+

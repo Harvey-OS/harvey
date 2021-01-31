@@ -162,3 +162,16 @@ Dev regressdevtab = {
 	.remove = devremove,
 	.wstat = devwstat,
 };
+
+static char *
+devname(void)
+{
+        return regressdevtab.name;
+}
+
+static int
+devdc(void)
+{
+        return regressdevtab.dc;
+}
+
