@@ -41,14 +41,14 @@ main(int argc, char *argv[])
 	service = "cpu";
 	manual = 0;
 	ARGBEGIN{
-	case 'c':
-		service = "cpu";
-		break;
 	case 'm':
 		manual = 1;
 		break;
-	case 't':
-		service = "terminal";
+	case 's':
+		service = ARGF();
+		if (service == nil) {
+			print("init: warning: expected service\n");
+		}
 		break;
 	}ARGEND
 	cmd = *argv;
@@ -188,6 +188,9 @@ rcexec(void)
 	}else if(strcmp(service, "terminal") == 0){
 	        print ("init: starting termrc\n");
 		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
+	}else if(strcmp(service, "uroot") == 0){
+	        print ("init: starting urootrc\n");
+		execl("/boot/rc", "rc", "-c", ". /boot/urootrc", nil);
 	}
 	else
 		execl("/bin/rc", "rc", nil);

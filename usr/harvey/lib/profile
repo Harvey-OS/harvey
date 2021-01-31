@@ -23,6 +23,13 @@ case terminal
 	prompt=('term% ' '	')
 	fn term%{ $* }
 	exec rio -s -i riostart
+case uroot
+	plumber
+	echo -n accelerated > '#m/mousectl'
+	echo -n 'res 3' > '#m/mousectl'
+	prompt=('term% ' '	')
+	fn term%{ $* }
+	exec rio -s -i riostart
 case cpu
 	if (test -e /mnt/term/mnt/wsys) { # rio already running
 		bind -a /mnt/term/mnt/wsys /dev
