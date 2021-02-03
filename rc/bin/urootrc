@@ -3,11 +3,7 @@
 
 if(test -e '/boot/uroot') {
 	# Unpack uroot cpio into the ramdisk and bind to root
-	cd '#@'
-	/boot/decompress /boot/uroot > uroot.cpio
-	/boot/cpio i < uroot.cpio
-	rm uroot.cpio
-	cd
+	@{cd '#@' && /boot/decompress /boot/uroot | /boot/cpio i}
 	bind -b '#@' /
 	bind -b /bbin /bin
 }
