@@ -7,14 +7,14 @@ export GOBIN=$(pwd)/$HOSTBIN
 echo GOBIN is now $GOBIN
 
 echo Building harvey-os.org commands into $HOSTBIN
-GO111MODULE=off go get harvey-os.org/cmd/...
+GO111MODULE=off go get -d -u harvey-os.org/cmd/...
 GO111MODULE=off go install harvey-os.org/cmd/...
 
 echo Building u-root into $HOSTBIN
 # Download u-root sources into $GOPATH because that's what u-root expects.
 # See https://github.com/u-root/u-root/issues/805
 # and https://github.com/u-root/u-root/issues/583
-GO111MODULE=off go get -d github.com/u-root/u-root
+GO111MODULE=off go get -d -u github.com/u-root/u-root
 GO111MODULE=off go install github.com/u-root/u-root
 
 # this will make booting a VM easier
