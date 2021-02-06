@@ -36,7 +36,7 @@ struct Mbi {
 enum {				     /* flags */
        Fmem = 0x00000001,	     /* mem* valid */
        Fbootdevice = 0x00000002,     /* bootdevice valid */
-       Fcmdline = 0x00000004,	     /* cmdline valid */
+       Fcmdline = 0x00000004,	     /* cmdline valid */ 
        Fmods = 0x00000008,	     /* mod* valid */
        Fsyms = 0x00000010,	     /* syms[] has a.out info */
        Felf = 0x00000020,	     /* syms[] has ELF info */
@@ -63,6 +63,20 @@ struct MMap {
 	u32 length[2];
 	u32 type;
 };
+
+// TODO rename and recomment
+// ModDir maps MBI Mod structs to Dir structs after being added to devarch
+typedef struct ModDir ModDir;
+struct ModDir {
+	Qid *qid;
+	void *data;
+	size_t len;
+};
+enum {
+	MaxNumModDirs = 4,
+};
+static int nummoddirs = 0;
+static ModDir moddirs[MaxNumModDirs] = {0};
 
 static int
 mbpamtype(int acpitype)
@@ -103,6 +117,32 @@ mbtypename(int type)
 	return "(unknown)";
 }
 
+static i32
+mbmoduleread(Chan *c, void *buf, i32 len, i64 off)
+{
+	ModDir *mod = nil;
+	for (int i = 0; i < nummoddirs; i++) {
+		if (moddirs[i].qid->path == c->qid.path) {
+			mod = &moddirs[i];
+			break;
+		}
+	}
+	if (!mod) {
+		error("mbmoduleread: module not found");
+	}
+
+	if (off < 0 || off > mod->len) {
+		error("mbmoduleread: offset out of bounds");
+	}
+	print("mbmoduleread: mod->data: %p mod->len: %d buf: %p, len: %d, off: %lld\n", mod->data, mod->len, buf, len, off);
+	if (off + len > mod->len) {
+		len = mod->len - off;
+		print("mbmoduleread: len adjust %d\n", len);
+	}
+	memmove(buf, mod->data + off, len);
+	return len;
+}
+
 int
 multiboot(u32 magic, u32 pmbi, int vflag)
 {
@@ -114,19 +154,19 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 	u64 addr, len;
 
 	if(vflag)
-		print("magic %#x pmbi %#x\n", magic, pmbi);
+		print("Multiboot: magic %#x pmbi %#x\n", magic, pmbi);
 	if(magic != 0x2badb002) {
-		print("Multiboot magic is not set, no multiboot tables\n");
+		print("Multiboot: magic is not set, no multiboot tables\n");
 		return -1;
 	}
 
 	mbi = KADDR(pmbi);
 	if(vflag)
-		print("flags %#x\n", mbi->flags);
+		print("Multiboot: flags %#x\n", mbi->flags);
 	if(mbi->flags & Fcmdline){
 		p = KADDR(mbi->cmdline);
 		if(vflag)
-			print("cmdline <%s>\n", p);
+			print("Multiboot: cmdline <%s>\n", p);
 		else
 			optionsinit(p);
 	}
@@ -146,7 +186,7 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 			case 3:
 			case 4:
 				if(vflag)
-					print("Would check for RSD from %p to %p:", KADDR(addr), KADDR(addr) + len);
+					print("Multiboot: Would check for RSD from %p to %p:", KADDR(addr), KADDR(addr) + len);
 				break;
 			}
 			if(vflag)
@@ -164,17 +204,28 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 			if(mod->string != 0)
 				p = KADDR(mod->string);
 			if(vflag)
-				print("mod %#x %#x <%s>\n",
+				print("Multiboot: mod %#x %#x <%s>\n",
 				      mod->modstart, mod->modend, p);
 			else {
+				u64 modstart = mod->modstart;
 				usize len = mod->modend - mod->modstart;
-				pamapinsert(mod->modstart, len, PamMODULE);
+				pamapinsert(modstart, len, PamMODULE);
+
+				if (nummoddirs < MaxNumModDirs) {
+					Dirtab *dirtab = addarchfile(p, 0444, mbmoduleread, nil);
+					moddirs[nummoddirs].qid = &dirtab->qid;
+					moddirs[nummoddirs].data = (void*)modstart;
+					moddirs[nummoddirs].len = len;
+					nummoddirs++;
+				} else {
+					print("Multiboot: can't add module %s to devarch - too many modules (%d)\n", p, MaxNumModDirs);
+				}
 			}
 		}
 	}
 	if(vflag && (mbi->flags & Fbootloadername)){
 		p = KADDR(mbi->bootloadername);
-		print("bootloadername <%s>\n", p);
+		print("Multiboot: bootloadername <%s>\n", p);
 	}
 
 	return 0;
