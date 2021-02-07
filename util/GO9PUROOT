@@ -21,6 +21,7 @@ fi
 
 read -r cmd <<EOF
 $kvmdo qemu-system-x86_64 -s -cpu max,vmware-cpuid-freq=on,+invtsc -smp 4 -m 2048 $kvmflag \
+-initrd sys/src/9/amd64/uroot.cpio.lzma \
 -usb \
 -serial stdio \
 --machine $machineflag \

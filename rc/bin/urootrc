@@ -1,9 +1,9 @@
 #!/bin/rc
 # terminal startup
 
-if(test -e '/boot/uroot') {
+if(test -e '#P/uroot.cpio.lzma') {
 	# Unpack uroot cpio into the ramdisk and bind to root
-	@{cd '#@' && /boot/decompress /boot/uroot | /boot/cpio i}
+	@{cd '#@' && /boot/decompress '#P/uroot.cpio.lzma' | /boot/cpio i}
 	bind -b '#@' /
 	bind -b /bbin /bin
 }
