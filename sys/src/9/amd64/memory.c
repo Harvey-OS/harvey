@@ -41,6 +41,7 @@ meminit(void)
 		case PamPRESERVE:
 		case PamRESERVED:
 		case PamKRDONLY:
+		case PamMODULE:
 			pgattrs |= PteNX;
 		}
 		mmukphysmap(UINT2PTR(machp()->MMU.pml4->va), m->addr, pgattrs, m->size);
