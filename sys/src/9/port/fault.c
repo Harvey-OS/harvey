@@ -53,7 +53,7 @@ fault(uintptr addr, uintptr pc, int ftype)
 	for(i = 0;; i++){
 		s = seg(up, addr, 1); /* leaves s->lk qlocked if seg != nil */
 		if(s == nil){
-			//iprint("fault seg is nil\n");
+			print("fault seg is nil\n");
 			goto fail;
 		}
 		//iprint("%s fault seg for %p is %p base %p top %p\n", faulttypes[ftype], addr, s, s->base, s->top);
