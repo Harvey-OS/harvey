@@ -189,7 +189,13 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 				pamapinsert(modstart, ROUNDUP(len, PGSZ), PamMODULE);
 
 				if (!initrd) {
-					addarchfile(p, 0444, mbmoduleread, nil);
+					// We just want the name - no directories
+					char *name = strrchr(p, '/');
+					if (!name || *++name == '\0') {
+						name = p;
+					}
+
+					addarchfile(name, 0444, mbmoduleread, nil);
 					initrd = mod;
 				}
 			}
