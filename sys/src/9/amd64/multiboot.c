@@ -36,7 +36,7 @@ struct Mbi {
 enum {				     /* flags */
        Fmem = 0x00000001,	     /* mem* valid */
        Fbootdevice = 0x00000002,     /* bootdevice valid */
-       Fcmdline = 0x00000004,	     /* cmdline valid */ 
+       Fcmdline = 0x00000004,	     /* cmdline valid */
        Fmods = 0x00000008,	     /* mod* valid */
        Fsyms = 0x00000010,	     /* syms[] has a.out info */
        Felf = 0x00000020,	     /* syms[] has ELF info */
@@ -64,19 +64,7 @@ struct MMap {
 	u32 type;
 };
 
-// TODO rename and recomment
-// ModDir maps MBI Mod structs to Dir structs after being added to devarch
-typedef struct ModDir ModDir;
-struct ModDir {
-	Qid *qid;
-	void *data;
-	size_t len;
-};
-enum {
-	MaxNumModDirs = 4,
-};
-static int nummoddirs = 0;
-static ModDir moddirs[MaxNumModDirs] = {0};
+static Mod *initrd = nil;
 
 static int
 mbpamtype(int acpitype)
@@ -120,26 +108,23 @@ mbtypename(int type)
 static i32
 mbmoduleread(Chan *c, void *buf, i32 len, i64 off)
 {
-	ModDir *mod = nil;
-	for (int i = 0; i < nummoddirs; i++) {
-		if (moddirs[i].qid->path == c->qid.path) {
-			mod = &moddirs[i];
-			break;
-		}
-	}
-	if (!mod) {
+	if (!initrd) {
 		error("mbmoduleread: module not found");
 	}
 
-	if (off < 0 || off > mod->len) {
+	u64 modlen = initrd->modend - initrd->modstart;
+	void *data = (void*)(u64)initrd->modstart;
+
+	if (off < 0 || off > modlen) {
 		error("mbmoduleread: offset out of bounds");
 	}
-	print("mbmoduleread: mod->data: %p mod->len: %d buf: %p, len: %d, off: %lld\n", mod->data, mod->len, buf, len, off);
-	if (off + len > mod->len) {
-		len = mod->len - off;
+	print("mbmoduleread: initrd->data: %p initrd->len: %d buf: %p, len: %d, off: %lld\n",
+		data, modlen, buf, len, off);
+	if (off + len > modlen) {
+		len = modlen - off;
 		print("mbmoduleread: len adjust %d\n", len);
 	}
-	memmove(buf, mod->data + off, len);
+	memmove(buf, data + off, len);
 	return len;
 }
 
@@ -211,14 +196,11 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 				usize len = mod->modend - mod->modstart;
 				pamapinsert(modstart, len, PamMODULE);
 
-				if (nummoddirs < MaxNumModDirs) {
-					Dirtab *dirtab = addarchfile(p, 0444, mbmoduleread, nil);
-					moddirs[nummoddirs].qid = &dirtab->qid;
-					moddirs[nummoddirs].data = (void*)modstart;
-					moddirs[nummoddirs].len = len;
-					nummoddirs++;
+				if (!initrd) {
+					addarchfile(p, 0444, mbmoduleread, nil);
+					initrd = mod;
 				} else {
-					print("Multiboot: can't add module %s to devarch - too many modules (%d)\n", p, MaxNumModDirs);
+					print("Multiboot: can't add module %s to devarch\n", p);
 				}
 			}
 		}
