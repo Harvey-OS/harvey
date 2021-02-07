@@ -113,19 +113,11 @@ mbmoduleread(Chan *c, void *buf, i32 len, i64 off)
 	}
 
 	u64 modlen = initrd->modend - initrd->modstart;
-	void *data = (void*)(u64)initrd->modstart;
-
 	if (off < 0 || off > modlen) {
 		error("mbmoduleread: offset out of bounds");
 	}
-	print("mbmoduleread: initrd->data: %p initrd->len: %d buf: %p, len: %d, off: %lld\n",
-		data, modlen, buf, len, off);
-	if (off + len > modlen) {
-		len = modlen - off;
-		print("mbmoduleread: len adjust %d\n", len);
-	}
-	memmove(buf, data + off, len);
-	return len;
+	void *data = KADDR(initrd->modstart);
+	return readmem(off, buf, len, data, modlen);
 }
 
 int
@@ -194,13 +186,11 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 			else {
 				u64 modstart = mod->modstart;
 				usize len = mod->modend - mod->modstart;
-				pamapinsert(modstart, len, PamMODULE);
+				pamapinsert(modstart, ROUNDUP(len, PGSZ), PamMODULE);
 
 				if (!initrd) {
 					addarchfile(p, 0444, mbmoduleread, nil);
 					initrd = mod;
-				} else {
-					print("Multiboot: can't add module %s to devarch\n", p);
 				}
 			}
 		}
