@@ -687,7 +687,7 @@ readnum(u32 off, char *buf, u32 n, u32 val, int size)
 i32
 readmem(i32 offset, void *buf, i32 n, void *v, i32 size)
 {
-	if(offset >= size)
+	if(offset < 0 || offset >= size)
 		return 0;
 	if(offset + n > size)
 		n = size - offset;
