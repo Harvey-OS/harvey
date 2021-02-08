@@ -10,6 +10,9 @@
 			"../ip/ip.json",
 			"../port/port.json"
 		],
+		"Projects": [
+			"gocmds.json"
+		],
 		"Kernel": {
 			"Config": {
 				"Code": [
@@ -91,8 +94,10 @@
 				"bind": "/$ARCH/bin/bind",
 				"boot": "/sys/src/9/boot/bootcpu.elf.out",
 				"cat": "/$ARCH/bin/cat",
+				"cpio": "/plan9_$ARCH/bin/cpio",
 				"crs": "/$ARCH/bin/acpi/crs",
 				"date": "/$ARCH/bin/date",
+				"decompress": "/plan9_$ARCH/bin/decompress",
 				"echo": "/$ARCH/bin/echo",
 				"ed": "/$ARCH/bin/ed",
 				"factotum": "/$ARCH/bin/auth/factotum",
@@ -114,6 +119,7 @@
 				"sed": "/$ARCH/bin/sed",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
+				"urootrc": "/rc/bin/urootrc",
 				"usbd": "/$ARCH/bin/usb/usbd",
 				"venti": "/$ARCH/bin/venti/venti",
 				"vga": "/$ARCH/bin/aux/vga"

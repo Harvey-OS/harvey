@@ -7,8 +7,8 @@
 			"GOARCH=amd64"
 		],
 		"Pre": [
-			"u-root -shellbang -initcmd= -o uroot.cpio plan9",
-			"lzma -f -k -3 uroot.cpio"
+			"u-root -shellbang -initcmd= -o /plan9_$ARCH/uroot.cpio plan9",
+			"lzma -f -k -3 /plan9_$ARCH/uroot.cpio"
 		]
 	}
 ]
