@@ -113,9 +113,6 @@ mbmoduleread(Chan *c, void *buf, i32 len, i64 off)
 	}
 
 	u64 modlen = initrd->modend - initrd->modstart;
-	if (off < 0 || off > modlen) {
-		error("mbmoduleread: offset out of bounds");
-	}
 	void *data = KADDR(initrd->modstart);
 	return readmem(off, buf, len, data, modlen);
 }
@@ -188,6 +185,8 @@ multiboot(u32 magic, u32 pmbi, int vflag)
 				usize len = mod->modend - mod->modstart;
 				pamapinsert(modstart, ROUNDUP(len, PGSZ), PamMODULE);
 
+				// This code will only accept the first module as the initrd
+				// file.  Subsequent modules will be ignored.
 				if (!initrd) {
 					// We just want the name - no directories
 					char *name = strrchr(p, '/');
