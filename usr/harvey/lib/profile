@@ -1,5 +1,6 @@
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
+bind -a /apex/amd64/bin /bin
 bind -c tmp /tmp
 
 # in case we're running off a read-only medium, use ramfs for tmp
