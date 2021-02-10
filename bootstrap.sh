@@ -36,4 +36,8 @@ or to run in terminal mode:
   ./util/GO9PTERM
 
 To netboot, follow the instructions here: https://github.com/Harvey-OS/harvey/wiki/Booting-Harvey-on-real-hardware-I-(TFTP)
+
+You may want to run the following to get APEX installed:
+
+	OS=linux ARCH=amd64 CC=gcc sh getapex.sh
 EOF
