@@ -56,6 +56,11 @@ Harvey uses Github Pull Requests to accept contributions.
 	[commit message](https://github.com/keedon/harvey/commit/09fe3a21fa8b42088bc8ad83287928e9e7cc96ef)
 	for issue #70 mentioned above. You can also use graphical git
     tools such as `git gui` if you like.
+
+    To sign off automatically, copy the script for a git hook:
+    ```sh
+    cp util/prepare-commit-msg .git/hooks/
+    ```
 5.  Fork the repo (only once).
     ![harvey-os_harvey__a_fresh_take_on_plan_9](https://cloud.githubusercontent.com/assets/429977/13457174/099fb5cc-e067-11e5-83ce-f65aa966a4a9.png)
 6.  Add the repo as a remote (every time you clone the repository)
