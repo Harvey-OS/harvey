@@ -495,7 +495,7 @@ regio(Reg *r, void *p, u32 len, uintptr off, int iswr)
 	switch(r->spc){
 	case Rsysmem:
 		if(r->p == nil)
-			r->p = KADDR(r->base);
+			r->p = vmap(r->base, len);
 		if(r->p == nil)
 			error("regio: KADDR failed");
 		rp = (uintptr)r->p + off;
@@ -560,6 +560,11 @@ sdtmap(uintptr pa, usize want, usize *n, int cksum)
 	}
 	sdt = KADDR(pa);
 	if(want){
+		sdt = vmap(pa, want);
+		if (sdt == nil) {
+			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, want);
+			return nil;
+		}
 		/* realistically, we get a full page, and acpica seems to know that somehow. */
 		uintptr endaddress = (uintptr)sdt;
 		endaddress += want + 0xfff;
@@ -567,6 +572,11 @@ sdtmap(uintptr pa, usize want, usize *n, int cksum)
 		want = endaddress - (uintptr)sdt;
 		*n = want;
 	} else {
+		sdt = vmap(pa, sizeof(Sdthdr));
+		if (sdt == nil) {
+			print("acpi: vmap header@%p/%d: nil\n", (void *)pa, sizeof(Sdthdr));
+			return nil;
+		}
 		if(v){
 			hexdump(sdt, sizeof(Sdthdr));
 			print("sdt %p\n", sdt);
@@ -578,6 +588,12 @@ sdtmap(uintptr pa, usize want, usize *n, int cksum)
 			print("sdt has zero length: pa = %p, sig = %.4s\n", pa, sdt->sig);
 			return nil;
 		}
+		sdt = vmap(pa, *n);
+		if (sdt == nil) {
+			print("acpi: vmap full table @%p/0x%x: nil\n", (void *)pa, *n);
+			return nil;
+		}
+		if(v)print("check it\n");
 		if(cksum != 0 && sdtchecksum(sdt, *n) != 0){
 			print("acpi: %c%c%c%c: bad checksum. pa = %p, len = %lu\n", sdt->sig[0], sdt->sig[1], sdt->sig[2], sdt->sig[3], pa, *n);
 			return nil;
