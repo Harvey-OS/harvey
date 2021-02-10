@@ -88,3 +88,4 @@ util/harvey.raw
 /plan9_amd64/
 /usr/harvey/lib/cache/
 compile_commands.json
+apex
