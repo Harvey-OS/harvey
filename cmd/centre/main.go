@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,6 +38,8 @@ var (
 	rootpath     = flag.String("rootpath", "", "RootPath option to serve via DHCPv4")
 	bootfilename = flag.String("bootfilename", "pxelinux.0", "Boot file to serve via DHCPv4")
 	raspi        = flag.Bool("raspi", false, "Configure to boot Raspberry Pi")
+	dnsServers   = flag.String("dns", "", "Comma-separated list of DNS servers for DHCPv4")
+	gateway      = flag.String("gw", "", "Optional gateway IP for DHCPv4")
 
 	// DHCPv6-specific
 	ipv6           = flag.Bool("6", false, "DHCPv6 server")
@@ -59,6 +62,7 @@ type dserver4 struct {
 	self         net.IP
 	bootfilename string
 	rootpath     string
+	dns          []net.IP
 }
 
 func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
@@ -109,6 +113,13 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 				)},
 			}),
 		)
+	}
+	if len(s.dns) != 0 {
+		modifiers = append(modifiers, dhcpv4.WithDNS(s.dns...))
+	}
+	if *gateway != `` {
+		modifiers = append(modifiers, dhcpv4.WithGatewayIP(net.ParseIP(*gateway)))
+		modifiers = append(modifiers, dhcpv4.WithRouter(net.ParseIP(*gateway)))
 	}
 	reply, err := dhcpv4.NewReplyFromRequest(m, modifiers...)
 
@@ -235,6 +246,15 @@ func main() {
 		}()
 	}
 
+	var dns []net.IP
+	parts := strings.Split(*dnsServers, ",")
+	for _, p := range parts {
+		ip := net.ParseIP(p)
+		if ip != nil {
+			dns = append(dns, ip)
+		}
+	}
+
 	if *inf != "" {
 		centre, err := net.LookupIP("centre")
 		if err != nil {
@@ -249,6 +269,7 @@ func main() {
 					bootfilename: *bootfilename,
 					rootpath:     *rootpath,
 					submask:      ip.DefaultMask(),
+					dns:          dns,
 				}
 
 				laddr := &net.UDPAddr{Port: dhcpv4.ServerPort}
