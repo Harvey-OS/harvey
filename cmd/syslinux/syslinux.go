@@ -59,21 +59,22 @@ type command struct {
 	in io.Reader
 }
 
-func gencmds(imgType string) []command {
+func gencmds(root, imgType string) []command {
 	imgFilename := "harvey." + imgType
+	mbr := filepath.Join(root, "util/img/syslinux-bios/mbr.bin")
 	return []command{
 		{Cmd: exec.Command("qemu-img", "create", "-f", imgType, imgFilename, "3G")},
 		{Cmd: exec.Command("chown", os.ExpandEnv("$SUDO_USER"), imgFilename)},
 		{Cmd: exec.Command("chgrp", os.ExpandEnv("$SUDO_USER"), imgFilename)},
 		{Cmd: exec.Command("modprobe", "nbd", "max_part=63")},
 		{Cmd: exec.Command("qemu-nbd", "-c", "/dev/nbd0", "-f", imgType, imgFilename)},
-		{Cmd: exec.Command("dd", "conv=notrunc", "bs=440", "count=1", "if=img/syslinux-bios/mbr.bin", "of=/dev/nbd0")},
+		{Cmd: exec.Command("dd", "conv=notrunc", "bs=440", "count=1", "if="+mbr, "of=/dev/nbd0")},
 		{Cmd: exec.Command("sfdisk", "/dev/nbd0"), in: bytes.NewBufferString(part)},
 		{Cmd: exec.Command("mkfs.ext4", "/dev/nbd0p1")},
 		{Cmd: exec.Command("mkdir", "-p", "disk/")},
 		{Cmd: exec.Command("mount", "/dev/nbd0p1", "disk/")},
 		{Cmd: exec.Command("extlinux", "-i", "disk/")},
-		{Cmd: exec.Command("cp", "../sys/src/9/amd64/harvey.32bit", "disk/harvey")},
+		{Cmd: exec.Command("cp", filepath.Join(root, "sys/src/9/amd64/harvey.32bit"), "disk/harvey")},
 		{Cmd: exec.Command("ls", "-l", "disk")},
 	}
 }
@@ -89,6 +90,10 @@ func detach() {
 }
 
 func main() {
+	root := os.Getenv("HARVEY")
+	if root == "" {
+		log.Fatalf("$HARVEY environment variable is not set")
+	}
 	imgType := flag.String("imgtype", "raw", "Type of image to create (raw, qcow2)")
 	flag.Parse()
 	if *imgType != "qcow2" && *imgType != "raw" {
@@ -103,8 +108,9 @@ func main() {
 
 	defer detach()
 
-	setupcmds := gencmds(*imgType)
+	setupcmds := gencmds(root, *imgType)
 	for _, c := range setupcmds {
+		log.Printf("cmd: %v", c)
 		c.Stdin, c.Stdout, c.Stderr = c.in, os.Stdout, os.Stderr
 		if err := c.Run(); err != nil {
 			log.Printf("%v: %v", c.Cmd, err)
@@ -112,7 +118,8 @@ func main() {
 		}
 	}
 
-	fi, err := ioutil.ReadDir("img/syslinux-bios/syslinux")
+	dir := filepath.Join(root, "util/img/syslinux-bios/syslinux")
+	fi, err := ioutil.ReadDir(dir)
 	if err != nil {
 		log.Print(err)
 		return
@@ -122,7 +129,7 @@ func main() {
 	}
 	for _, f := range fi {
 		log.Printf("Process %v", f)
-		b, err := ioutil.ReadFile(filepath.Join("img/syslinux-bios/syslinux", f.Name()))
+		b, err := ioutil.ReadFile(filepath.Join(dir, f.Name()))
 		if err != nil {
 			log.Print(err)
 			return
