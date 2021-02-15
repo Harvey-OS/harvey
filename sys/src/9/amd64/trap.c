@@ -566,37 +566,21 @@ dumpgpr(Ureg *ureg)
 	else
 		print("cpu%d: registers for kernel\n", machp()->machno);
 
-	print("ax\t%#16.16llx\n", ureg->ax);
-	print("bx\t%#16.16llx\n", ureg->bx);
-	print("cx\t%#16.16llx\n", ureg->cx);
-	print("dx\t%#16.16llx\n", ureg->dx);
-	print("di\t%#16.16llx\n", ureg->di);
-	print("si\t%#16.16llx\n", ureg->si);
-	print("bp\t%#16.16llx\n", ureg->bp);
-	print("r8\t%#16.16llx\n", ureg->r8);
-	print("r9\t%#16.16llx\n", ureg->r9);
-	print("r10\t%#16.16llx\n", ureg->r10);
-	print("r11\t%#16.16llx\n", ureg->r11);
-	print("r12\t%#16.16llx\n", ureg->r12);
-	print("r13\t%#16.16llx\n", ureg->r13);
-	print("r14\t%#16.16llx\n", ureg->r14);
-	print("r15\t%#16.16llx\n", ureg->r15);
-	print("ds\t%#4.4ux\n", ureg->ds);
-	print("es\t%#4.4ux\n", ureg->es);
-	print("fs\t%#4.4ux\n", ureg->fs);
-	print("gs\t%#4.4ux\n", ureg->gs);
-	print("type\t%#llx\n", ureg->type);
-	print("error\t%#llx\n", ureg->error);
-	print("pc\t%#llx\n", ureg->ip);
-	print("cs\t%#llx\n", ureg->cs);
-	print("flags\t%#llx\n", ureg->flags);
-	print("sp\t%#llx\n", ureg->sp);
-	print("ss\t%#llx\n", ureg->ss);
-	print("type\t%#llx\n", ureg->type);
-	print("FS\t%#llx\n", rdmsr(FSbase));
-	print("GS\t%#llx\n", rdmsr(GSbase));
-
-	print("m\t%#16.16p\nup\t%#16.16p\n", machp(), up);
+	print("ax\t%#16.16llx\t", ureg->ax);	print("r8\t%#16.16llx\n", ureg->r8);
+	print("bx\t%#16.16llx\t", ureg->bx);	print("r9\t%#16.16llx\n", ureg->r9);
+	print("cx\t%#16.16llx\t", ureg->cx);	print("r10\t%#16.16llx\n", ureg->r10);
+	print("dx\t%#16.16llx\t", ureg->dx);	print("r11\t%#16.16llx\n", ureg->r11);
+	print("di\t%#16.16llx\t", ureg->di);	print("r12\t%#16.16llx\n", ureg->r12);
+	print("si\t%#16.16llx\t", ureg->si);	print("r13\t%#16.16llx\n", ureg->r13);
+	print("bp\t%#16.16llx\t", ureg->bp);	print("r14\t%#16.16llx\n", ureg->r14);
+	print("sp\t%#16.16llx\t", ureg->sp);	print("r15\t%#16.16llx\n", ureg->r15);
+	print("ds\t%#4.4x\t", ureg->ds);	print("es\t%#4.4x\t", ureg->es);
+	print("fs\t%#4.4x\t", ureg->fs);	print("gs\t%#4.4x\n", ureg->gs);
+	print("cs\t%#llx\t", ureg->cs);		print("ss\t%#llx\t", ureg->ss);
+	print("error\t%#llx\t", ureg->error);	print("flags\t%#llx\n", ureg->flags);
+	print("pc\t%#llx\t", ureg->ip);		print("type\t%#llx\n", ureg->type);
+	print("FS\t%#llx\t", rdmsr(FSbase));	print("GS\t%#llx\n", rdmsr(GSbase));
+	print("m\t%#16.16p\tup\t%#16.16p\n", machp(), up);
 }
 
 void
@@ -611,9 +595,9 @@ dumpregs(Ureg *ureg)
 	 * CR4. If there is a CR4 and machine check extensions, read the machine
 	 * check address and machine check type registers if RDMSR supported.
 	 */
-	print("cr0\t%#16.16llx\n", cr0get());
-	print("cr2\t%#16.16llx\n", machp()->MMU.cr2);
-	print("cr3\t%#16.16llx\n", cr3get());
+	print("cr0 %#16.16llx\t", cr0get());
+	print("cr2 %#16.16llx\t", machp()->MMU.cr2);
+	print("cr3 %#16.16llx\n", cr3get());
 }
 
 /*
