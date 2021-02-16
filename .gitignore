@@ -70,6 +70,7 @@ tools/share
 cfg/pxe/tftpboot/harvey.32bit
 cfg/pxe/tftpboot/pxelinux.cfg
 cfg/pxe/tftpboot/ipxe
+cfg/pxe/tftpboot/uroot.cpio.lzma
 usr/harvey/tmp
 
 build_out
