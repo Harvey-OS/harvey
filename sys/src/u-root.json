@@ -9,6 +9,9 @@
 		"Pre": [
 			"u-root -shellbang -initcmd= -o /plan9_$ARCH/uroot.cpio plan9",
 			"lzma -f -k -3 /plan9_$ARCH/uroot.cpio"
+		],
+		"Post": [
+			"cp /plan9_$ARCH/uroot.cpio.lzma /cfg/pxe/tftpboot"
 		]
 	}
 ]
