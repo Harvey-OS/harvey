@@ -96,7 +96,20 @@ umeminit(void)
 	extern void physallocdump(void);
 	setphysmembounds();
 
+	// If there are any modules, start user memory after the last module.
+	// This avoids any large PamMEMORY sections between the kernel and the
+	// modules.  This has the disadvantage that we don't use these memory
+	// sections, but at least it avoids a page fault if physinit is called.
+	// This should be fixed so that all large-enough PamMEMORY sections
+	// are used, regardless of their position.
+	PAMap *start = pamap;
 	for(PAMap *m = pamap; m != nil; m = m->next){
+		if (m->type == PamMODULE) {
+			start = m;
+		}
+	}
+
+	for(PAMap *m = start; m != nil; m = m->next){
 		if(m->type != PamMEMORY)
 			continue;
 		if(m->addr < 2 * MiB)
