@@ -28,6 +28,31 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+// elf2c converts one or more Harvey ELF files to a single C source file.
+// The first argument is the output file, and 2nd and succeeding ones
+// are input files.
+// The ELF files are assumed to contain at least one segment WITH an
+// 'E' attribute (text); and one segment WITHOUT an 'E' attribute (data).
+// Given a file named, e.g., cat,
+// elf2c generates variables of the form:
+// cat_text_start // starting address of the cat text in user VM.
+// cat_text_end // ending address of the cat text in user VM.
+// cat_text_len // length of the text segment
+// cat_text_out // actual data for the text segment.
+// Another set of these variables is generated for the data segment.
+// Please note: The sizes and starts are ints. These files will not
+// be large, certainly not larger than 2G as they have to fit in the
+// kernel image; And, further, their starting address is easily in
+// 31 bits. It's just for the bootstrap file system, which we hope
+// to continue to shrink as we can use an initrd now.
+//
+// These numbers are easily held by an int -- even an int32.
+// Please don't have this code start emitting uint64 or something.
+// That's already been the cause of one bug.
+// Also, for now, the text and data segments are REQUIRED.
+// If gcc 10 is generating ELF files with a single RWE segment, then
+// fix gcc 10.
+
 package main
 
 import (
@@ -37,21 +62,24 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"math"
 	"os"
 	"path"
 )
 
+const initialStartValue = math.MaxInt32
+
 var dry = flag.Bool("dryrun", true, "don't really do it")
 
-func gencode(w io.Writer, n, t string, m []byte, start, end uint64) {
-	fmt.Fprintf(os.Stderr, "Write %v %v start %v end %v\n", n, t, start, end)
-	fmt.Fprintf(w, "int %v_%v_start = %v;\n", n, t, start)
-	fmt.Fprintf(w, "int %v_%v_end = %v;\n", n, t, end)
-	fmt.Fprintf(w, "int %v_%v_len = %v;\n", n, t, end-start)
-	fmt.Fprintf(w, "uint8_t %v_%v_out[] = {\n", n, t)
-	for i := uint64(start); i < end; i += 16 {
-		for j := uint64(0); i+j < end && j < 16; j++ {
+func gencode(w io.Writer, n, t string, m []byte, start, end int) {
+	fmt.Fprintf(os.Stderr, "Write %v %v start %#x end %#x\n", n, t, start, end)
+	fmt.Fprintf(w, "int %v_%v_start = %#x;\n", n, t, start)
+	fmt.Fprintf(w, "int %v_%v_end = %#x;\n", n, t, end)
+	fmt.Fprintf(w, "int %v_%v_len = %#x;\n", n, t, end-start)
+	fmt.Fprintf(w, "u8 %v_%v_out[] = {\n", n, t)
+	for i := start; i < end; i += 16 {
+		for j := 0; i+j < end && j < 16; j++ {
 			fmt.Fprintf(w, "0x%02x, ", m[j+i])
 		}
 		fmt.Fprintf(w, "\n")
@@ -68,9 +96,8 @@ func main() {
 			fmt.Printf("%v %v\n", n, err)
 			continue
 		}
-		var dataend, codeend, end uint64
-		var datastart, codestart, start uint64
-		datastart, codestart, start = math.MaxUint64, math.MaxUint64, math.MaxUint64
+		datastart, codestart, start := initialStartValue, initialStartValue, initialStartValue
+		dataend, codeend, end := -1, -1, -1
 		mem := []byte{}
 		for _, v := range f.Progs {
 			if v.Type != elf.PT_LOAD {
@@ -87,9 +114,9 @@ func main() {
 			// a virtual memory space with an assumed starting point of
 			// 0x200000, and filling it. We just grow that as needed.
 
-			curstart := v.Vaddr & ^uint64(0xfff) // 0x1fffff)
-			curend := v.Vaddr + v.Memsz
-			fmt.Fprintf(os.Stderr, "s %x e %x\n", curstart, curend)
+			curstart := int(v.Vaddr) & ^0xfff
+			curend := int(v.Vaddr) + int(v.Memsz)
+			fmt.Fprintf(os.Stderr, "s %#x e %#x\n", curstart, curend)
 			if curend > end {
 				nmem := make([]byte, curend)
 				copy(nmem, mem)
@@ -106,7 +133,7 @@ func main() {
 				if curend > codeend {
 					codeend = curend
 				}
-				fmt.Fprintf(os.Stderr, "code s %v e %v\n", codestart, codeend)
+				fmt.Fprintf(os.Stderr, "code s %#x e %#x\n", codestart, codeend)
 			} else {
 				if curstart < datastart {
 					datastart = curstart
@@ -114,28 +141,37 @@ func main() {
 				if curend > dataend {
 					dataend = curend
 				}
-				fmt.Fprintf(os.Stderr, "data s %v e %v\n", datastart, dataend)
+				fmt.Fprintf(os.Stderr, "data s %#x e %#x\n", datastart, dataend)
 			}
-			for i := uint64(0); i < v.Filesz; i++ {
-				if amt, err := v.ReadAt(mem[v.Vaddr+i:], int64(i)); err != nil && err != io.EOF {
-					fmt.Fprintf(os.Stderr, "%v: %v\n", amt, err)
-					os.Exit(1)
+			for i := 0; i < int(v.Filesz); i++ {
+				if amt, err := v.ReadAt(mem[int(v.Vaddr)+i:], int64(i)); err != nil && err != io.EOF {
+					log.Fatalf("%v: %v\n", amt, err)
 				} else if amt == 0 {
-					if i < v.Filesz {
-						fmt.Fprintf(os.Stderr, "%v: Short read: %v of %v\n", v, i, v.Filesz)
-						os.Exit(1)
+					if i < int(v.Filesz) {
+						log.Fatalf("%v: Short read: %v of %v\n", v, i, v.Filesz)
 					}
 					break
 				} else {
-					i = i + uint64(amt)
-					fmt.Fprintf(os.Stderr, "i now %v\n", i)
+					i = i + amt
+					fmt.Fprintf(os.Stderr, "Total bytes read is now %v\n", i)
 				}
 			}
 			fmt.Fprintf(os.Stderr, "Processed %v\n", v)
 		}
 		fmt.Fprintf(os.Stderr, "gencode\n")
 		_, file := path.Split(n)
-		fmt.Fprintf(w, "uintptr_t %v_main = %v;\n", n, f.Entry)
+		fmt.Fprintf(w, "uintptr_t %v_main = %#x;\n", n, f.Entry)
+		var msg string
+		if codestart == initialStartValue {
+			msg = fmt.Sprintf("codestart was never set for %s; the ELF file has no 'R E' segment.", file)
+		}
+		if datastart == initialStartValue {
+			msg += fmt.Sprintf("datastart was never set for %s; the ELF file has no 'RW' or 'R' segment", file)
+		}
+		if len(msg) > 0 {
+			log.Fatal(msg)
+		}
+
 		gencode(w, file, "code", mem, codestart, codeend)
 		gencode(w, file, "data", mem, datastart, dataend)
 	}
