@@ -306,8 +306,8 @@ numfmt(char *s, ulong b, ulong i, ulong a)
 char*
 hexfmt(char *s, int i, uvlong a)
 {
-	if(i > 8){
-		s = numfmt(s, 16, i-8, a>>32);
+	if(i > 8 || i == 0 && (a>>32) != 0){
+		s = numfmt(s, 16, i ? i-8 : 0, a>>32);
 		i = 8;
 	}
 	return numfmt(s, 16, i, a);
