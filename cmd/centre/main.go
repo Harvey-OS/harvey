@@ -82,6 +82,7 @@ func lookupIP(hostFile string, addr string) (net.IP, []string, error) {
 		if f, err = os.Open(hostFile); err != nil {
 			return nil, nil, err
 		}
+		defer f.Close()
 		// We're going to be real simple-minded. We take each line to consist of
 		// one IP, followed by one or more whitespace-separated hostnames, with
 		// the mac address at the end:
