@@ -100,6 +100,40 @@ func lookupIP(hostFile string, addr string) ([]net.IP, error) {
 	return net.LookupIP(addr)
 }
 
+func lookupHostname(hostFile string, ip net.IP) (string, error) {
+	var err error
+	// First try the override
+	if hostFile != `` {
+		// Read the file and walk each line looking for a match.
+		// We do this so you can update the file without restarting the server
+		var f *os.File
+		if f, err = os.Open(hostFile); err != nil {
+			return "", err
+		}
+		// We're going to be real simple-minded. We take each line to consist of
+		// one IP, followed by one or more whitespace-separated hostnames
+		scan := bufio.NewScanner(f)
+		for scan.Scan() {
+			fields := strings.Fields(scan.Text())
+			// You have to have at least 3 fields: <ip> <hostname>... <mac addr>
+			if len(fields) < 3 {
+				continue
+			}
+			if fields[0] != ip.String() {
+				continue
+			}
+			// just return the first hostname given
+			return fields[1], nil
+		}
+	}
+	// Now just do a regular lookup since we didn't find it in the override
+	names, err := net.LookupAddr(ip.String())
+	if len(names) == 0 {
+		return "", nil
+	}
+	return names[0], nil
+}
+
 func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 	log.Printf("Handling request %v for peer %v", m, peer)
 
@@ -123,6 +157,14 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 
 	// Since this is dserver4, we force it to be an ip4 address.
 	ip := i[0].To4()
+
+	// get the hostname
+	hostname, err := lookupHostname(s.hostFile, ip)
+	if err != nil {
+		log.Printf("Failure in trying to look up hostname: %v", err)
+		return
+	}
+
 	modifiers := []dhcpv4.Modifier{
 		dhcpv4.WithMessageType(replyType),
 		dhcpv4.WithServerIP(s.self),
@@ -133,6 +175,9 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 		dhcpv4.WithOption(dhcpv4.OptServerIdentifier(s.self)),
 		// RFC 2131, Section 4.3.1. IP lease time: MUST
 		dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(dhcpv4.MaxLeaseTime)),
+	}
+	if hostname != `` {
+		modifiers = append(modifiers, dhcpv4.WithOption(dhcpv4.OptHostName(hostname)))
 	}
 	if *raspi {
 		modifiers = append(modifiers,
