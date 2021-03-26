@@ -38,6 +38,7 @@ var (
 
 	// DHCPv4-specific
 	ipv4         = flag.Bool("4", true, "IPv4 DHCP server")
+	selfIP       = flag.String("ip", "192.168.0.1", "DHCPv4 IP of self")
 	rootpath     = flag.String("rootpath", "", "RootPath option to serve via DHCPv4")
 	bootfilename = flag.String("bootfilename", "pxelinux.0", "Boot file to serve via DHCPv4")
 	raspi        = flag.Bool("raspi", false, "Configure to boot Raspberry Pi")
@@ -317,11 +318,18 @@ func main() {
 
 	if *inf != "" {
 		centre, _, err := lookupIP(*hostFile, "centre")
+		var ip net.IP
 		if err != nil {
 			log.Printf("No centre entry found via LookupIP: not serving DHCP")
-		} else if *ipv4 {
-			ip := centre.To4()
+		}
+		if *ipv4 {
+			if err == nil {
+				ip = centre.To4()
+			} else {
+				ip = net.ParseIP(*selfIP)
+			}
 			wg.Add(1)
+			log.Printf("Using IP address %v on %v", ip, *inf)
 			go func() {
 				defer wg.Done()
 				s := &dserver4{
