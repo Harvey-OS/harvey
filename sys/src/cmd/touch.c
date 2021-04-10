@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int touch(int, char *);
-uint32_t now;
+u32 now;
 
 void
 usage(void)

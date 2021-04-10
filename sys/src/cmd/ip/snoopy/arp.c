@@ -16,15 +16,15 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uint8_t	hrd[2];
-	uint8_t	pro[2];
-	uint8_t	hln;
-	uint8_t	pln;
-	uint8_t	op[2];
-	uint8_t	sha[6];
-	uint8_t	spa[4];
-	uint8_t	tha[6];
-	uint8_t	tpa[4];
+	u8	hrd[2];
+	u8	pro[2];
+	u8	hln;
+	u8	pln;
+	u8	op[2];
+	u8	sha[6];
+	u8	spa[4];
+	u8	tha[6];
+	u8	tpa[4];
 };
 
 enum

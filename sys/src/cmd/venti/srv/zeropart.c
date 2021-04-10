@@ -15,7 +15,7 @@ void
 zeropart(Part *part, int blocksize)
 {
 	ZBlock *b;
-	uint64_t addr;
+	u64 addr;
 	int w;
 
 	fprint(2, "clearing %s\n", part->name);

@@ -94,7 +94,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, int64_t off, int32_t cnt)
+doread(Ram *r, i64 off, i32 cnt)
 {
 	if (cnt>sizeof(buffer))
 		print("count too big\n");
@@ -104,7 +104,7 @@ doread(Ram *r, int64_t off, int32_t cnt)
 }
 
 void
-dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, i32 off, i32 cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

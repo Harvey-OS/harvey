@@ -147,7 +147,7 @@ con_open(int fid, int mode)
 }
 
 int
-con_read(int fid, char *data, int32_t offset, int count)
+con_read(int fid, char *data, i32 offset, int count)
 {
 	Oldfcall in, ou;
 
@@ -163,7 +163,7 @@ con_read(int fid, char *data, int32_t offset, int count)
 }
 
 int
-con_write(int fid, char *data, int32_t offset, int count)
+con_write(int fid, char *data, i32 offset, int count)
 {
 	Oldfcall in, ou;
 
@@ -190,7 +190,7 @@ con_remove(int fid)
 }
 
 int
-con_create(int fid, char *name, int uid, int gid, int32_t perm,
+con_create(int fid, char *name, int uid, int gid, i32 perm,
 	   int mode)
 {
 	Oldfcall in, ou;

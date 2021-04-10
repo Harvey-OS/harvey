@@ -17,7 +17,7 @@ int ser = 0;
 char tmp[] = "/tmp/here0000.0000";
 char hex[] = "0123456789abcdef";
 
-void psubst(io*, uint8_t*);
+void psubst(io*, u8*);
 void pstrs(io*, word*);
 
 void
@@ -79,7 +79,7 @@ readhere(void)
 				if(tag && strcmp(line, tag) == 0)
 					break;
 				if(subst)
-					psubst(f, (uint8_t *)line);
+					psubst(f, (u8 *)line);
 				else
 					pstr(f, line);
 				s = line;
@@ -102,10 +102,10 @@ readhere(void)
 }
 
 void
-psubst(io *f, uint8_t *s)
+psubst(io *f, u8 *s)
 {
 	int savec, n;
-	uint8_t *t, *u;
+	u8 *t, *u;
 	Rune r;
 	word *star;
 

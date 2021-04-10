@@ -186,8 +186,8 @@ out:
 	return rp;
 }
 
-static uint32_t
-intval(Ndbtuple *entry, Ndbtuple *pair, char *attr, uint32_t def)
+static u32
+intval(Ndbtuple *entry, Ndbtuple *pair, char *attr, u32 def)
 {
 	Ndbtuple *t = look(entry, pair, attr);
 
@@ -346,7 +346,7 @@ static RR*
 addrrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
-	uint8_t addr[IPaddrlen];
+	u8 addr[IPaddrlen];
 
 	USED(entry);
 	parseip(addr, pair->val);
@@ -364,7 +364,7 @@ nullrr(Ndbtuple *entry, Ndbtuple *pair)
 
 	USED(entry);
 	rp = rralloc(Tnull);
-	rp->null->Block.data = (uint8_t*)estrdup(pair->val);
+	rp->null->Block.data = (u8*)estrdup(pair->val);
 	rp->null->Block.dlen = strlen((char*)rp->null->Block.data);
 	return rp;
 }
@@ -578,7 +578,7 @@ static void
 dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
-	static uint32_t ord;
+	static u32 ord;
 
 	rp = 0;
 	if(cistrcmp(pair->attr, "ip") == 0 ||
@@ -673,10 +673,10 @@ loaddomsrvs(void)
 void
 db2cache(int doit)
 {
-	uint32_t youngest;
+	u32 youngest;
 	Ndb *ndb;
 	Dir *d;
-	static uint32_t lastcheck, lastyoungest;
+	static u32 lastcheck, lastyoungest;
 
 	/* no faster than once every 2 minutes */
 	if(now < lastcheck + 2*Min && !doit)
@@ -757,7 +757,7 @@ dnforceage(void)
 	unlock(&dblock);
 }
 
-extern uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+extern u8	ipaddr[IPaddrlen];	/* my ip address */
 
 /*
  *  get all my xxx
@@ -790,7 +790,7 @@ char *localserverprefix = "local#dns#server";
  *  return non-zero if this is a bad delegation
  */
 int
-baddelegation(RR *rp, RR *nsrp, uint8_t *addr)
+baddelegation(RR *rp, RR *nsrp, u8 *addr)
 {
 	Ndbtuple *nt;
 	static int whined;
@@ -876,7 +876,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	DN *nsdp;
 	RR *rp;
 	char buf[32];
-	uint8_t ip[IPaddrlen];
+	u8 ip[IPaddrlen];
 
 	/* reject our own ip addresses so we don't query ourselves via udp */
 	if (myaddr(ipaddr))
@@ -1020,7 +1020,7 @@ createv4ptrs(void)
 	char *dom;
 	char buf[Domlen+1], ipa[48];
 	char *f[40];
-	uint8_t net[IPaddrlen], mask[IPaddrlen];
+	u8 net[IPaddrlen], mask[IPaddrlen];
 	Area *s;
 	Ndbtuple *t, *nt;
 
@@ -1091,7 +1091,7 @@ createv4ptrs(void)
 
 /* convert bytes to nibbles, big-endian */
 void
-bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes)
+bytes2nibbles(u8 *nibbles, u8 *bytes, int nbytes)
 {
 	while (nbytes-- > 0) {
 		*nibbles++ = *bytes >> Nibwidth;
@@ -1100,7 +1100,7 @@ bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes)
 }
 
 void
-nibbles2bytes(uint8_t *bytes, uint8_t *nibbles, int nnibs)
+nibbles2bytes(u8 *bytes, u8 *nibbles, int nnibs)
 {
 	for (; nnibs >= 2; nnibs -= 2) {
 		*bytes++ = nibbles[0] << Nibwidth | (nibbles[1]&Nibmask);
@@ -1120,8 +1120,8 @@ createv6ptrs(void)
 	char *dom;
 	char buf[Domlen+1];
 	char *f[40];
-	uint8_t net[IPaddrlen], mask[IPaddrlen];
-	uint8_t nibnet[IPaddrlen*2], nibmask[IPaddrlen*2];
+	u8 net[IPaddrlen], mask[IPaddrlen];
+	u8 nibnet[IPaddrlen*2], nibmask[IPaddrlen*2];
 	Area *s;
 
 	dlen = strlen(v6ptrdom);
@@ -1217,9 +1217,9 @@ insideaddr(char *dom)
 }
 
 int
-insidens(uint8_t *ip)
+insidens(u8 *ip)
 {
-	uint8_t ipa[IPaddrlen];
+	u8 ipa[IPaddrlen];
 	Ndbtuple *t;
 
 	for (t = innmsrvs; t != nil; t = t->entry)
@@ -1231,12 +1231,12 @@ insidens(uint8_t *ip)
 	return 0;
 }
 
-uint8_t *
+u8 *
 outsidens(int n)
 {
 	int i;
 	Ndbtuple *t;
-	static uint8_t ipa[IPaddrlen];
+	static u8 ipa[IPaddrlen];
 
 	i = 0;
 	for (t = outnmsrvs; t != nil; t = t->entry)

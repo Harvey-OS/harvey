@@ -47,14 +47,14 @@ struct v6dinode {
 };
 
 struct	v6dir {
-	uint8_t	ino[2];
+	u8	ino[2];
 	char	name[V6NAMELEN];
 };
 
 int	tapefile;
 Fileinf	iget(int ino);
-int32_t	bmap(Ram *r, int32_t bno);
-void	getblk(Ram *r, int32_t bno, char *buf);
+i32	bmap(Ram *r, i32 bno);
+void	getblk(Ram *r, i32 bno, char *buf);
 
 void
 populate(char *name)
@@ -114,7 +114,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, int64_t off, int32_t cnt)
+doread(Ram *r, i64 off, i32 cnt)
 {
 	static char buf[Maxbuf+BLSIZE];
 	int bno, i;
@@ -136,7 +136,7 @@ doread(Ram *r, int64_t off, int32_t cnt)
 }
 
 void
-dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, i32 off, i32 cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -159,7 +159,7 @@ iget(int ino)
 {
 	char buf[BLSIZE];
 	struct v6dinode *dp;
-	int32_t flags, i;
+	i32 flags, i;
 	Fileinf f;
 
 	seek(tapefile, BLSIZE*((ino-1)/LINOPB + V6SUPERB + 1), 0);
@@ -170,9 +170,9 @@ iget(int ino)
 	f.size = (dp->hisize << 16) + (dp->losize[1]<<8) + dp->losize[0];
 	if ((flags&V6FMT)==V6IFCHR || (flags&V6FMT)==V6IFBLK)
 		f.size = 0;
-	f.data = emalloc(V6NADDR*sizeof(uint16_t));
+	f.data = emalloc(V6NADDR*sizeof(u16));
 	for (i = 0; i < V6NADDR; i++)
-		((uint16_t*)f.data)[i] = (dp->addr[i][1]<<8) + dp->addr[i][0];
+		((u16*)f.data)[i] = (dp->addr[i][1]<<8) + dp->addr[i][0];
 	f.mode = flags & V6MODE;
 	if ((flags&V6FMT)==V6IFDIR)
 		f.mode |= DMDIR;
@@ -184,9 +184,9 @@ iget(int ino)
 }
 
 void
-getblk(Ram *r, int32_t bno, char *buf)
+getblk(Ram *r, i32 bno, char *buf)
 {
-	int32_t dbno;
+	i32 dbno;
 
 	if ((dbno = bmap(r, bno)) == 0) {
 		memset(buf, 0, BLSIZE);
@@ -202,18 +202,18 @@ getblk(Ram *r, int32_t bno, char *buf)
  * only singly-indirect files for now
  */
 
-int32_t
-bmap(Ram *r, int32_t bno)
+i32
+bmap(Ram *r, i32 bno)
 {
 	unsigned char indbuf[LNINDIR][2];
 
 	if (r->ndata <= V6NADDR*BLSIZE) {	/* assume size predicts largeness of file */
 		if (bno < V6NADDR)
-			return ((uint16_t*)r->data)[bno];
+			return ((u16*)r->data)[bno];
 		return 0;
 	}
 	if (bno < V6NADDR*LNINDIR) {
-		seek(tapefile, ((uint16_t *)r->data)[bno/LNINDIR]*BLSIZE, 0);
+		seek(tapefile, ((u16 *)r->data)[bno/LNINDIR]*BLSIZE, 0);
 		if (read(tapefile, (char *)indbuf, BLSIZE) != BLSIZE)
 			return 0;
 		return ((indbuf[bno%LNINDIR][1]<<8) + indbuf[bno%LNINDIR][0]);

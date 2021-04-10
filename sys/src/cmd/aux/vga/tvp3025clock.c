@@ -20,7 +20,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	int f;
-	uint32_t d, dmax, fmin, fvco, n, nmax, p;
+	u32 d, dmax, fmin, fvco, n, nmax, p;
 
 	if(ctlr->flag & Finit)
 		return;

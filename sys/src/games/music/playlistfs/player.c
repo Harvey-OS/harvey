@@ -40,7 +40,7 @@ char *playprog[] = {
 [Ogg] = "/bin/games/vorbisdec",
 };
 
-uint32_t totbytes, totbuffers;
+u32 totbytes, totbuffers;
 
 static char curfile[8192];
 
@@ -132,7 +132,7 @@ pac4dec(void *a)
 }
 
 static int
-startplay(uint16_t n)
+startplay(u16 n)
 {
 	int fd[2];
 	Playfd *pfd;

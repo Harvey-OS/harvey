@@ -200,8 +200,8 @@ vfprintf(FILE *f, const char *s, va_list args)
 		else
 			precision = -1;
 		while(tflag[*s&_IO_CHMASK]) flags |= tflag[*s++&_IO_CHMASK];
-		if(ocvt[(uint8_t)(*s)])
-			nprint += (*ocvt[(uint8_t)(*s++)])(f, &arg, flags, width, precision);
+		if(ocvt[(u8)(*s)])
+			nprint += (*ocvt[(u8)(*s++)])(f, &arg, flags, width, precision);
 		else if(*s){
 			putc(*s++, f);
 			nprint++;
@@ -277,9 +277,9 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
 //#pragma ref width
 //#pragma ref precision
 	if(flags&SHORT)
-		*va_arg(*args, int16_t *) = nprint;
+		*va_arg(*args, i16 *) = nprint;
 	else if(flags&LONG)
-		*va_arg(*args, int32_t *) = nprint;
+		*va_arg(*args, i32 *) = nprint;
 	else
 		*va_arg(*args, int *) = nprint;
 	return 0;
@@ -302,14 +302,14 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	char digits[128];	/* no reasonable machine will ever overflow this */
 	char *sign;
 	char *dp;
-	int64_t snum;
+	i64 snum;
 	unsigned long num;
 	int nout, npad, nlzero;
 
 	if(sgned){
 		if(flags&PTR) snum = (uintptr_t)va_arg(*args, void *);
 		else if(flags&SHORT) snum = va_arg(*args, int);
-		else if(flags&LONG) snum = va_arg(*args, int32_t);
+		else if(flags&LONG) snum = va_arg(*args, i32);
 		else snum = va_arg(*args, int);
 		if(snum < 0){
 			sign = "-";

@@ -1632,7 +1632,7 @@ portlend(Ctlr *ctlr, int port, char *ss)
 
 	opio = ctlr->opio;
 
-	dprint("ehci %#p port %d: %s speed device: no int32_ter owned\n",
+	dprint("ehci %#p port %d: %s speed device: no i32er owned\n",
 	       ctlr->capio, port, ss);
 	s = opio->portsc[port - 1] & ~(Pschange | Psstatuschg);
 	opio->portsc[port - 1] = s | Psowner;
@@ -1828,7 +1828,7 @@ static void
 xdump(char* pref, void *qh)
 {
 	int i;
-	uint32_t *u;
+	u32 *u;
 
 	u = qh;
 	print("%s %#p:", pref, u);
@@ -3019,7 +3019,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, u32 load)
 	/*
 	 * wakeup anyone waiting for I/O and
 	 * wait to be sure no I/O is in progress in the controller.
-	 * and then wait to be sure episo* is no int32_ter running.
+	 * and then wait to be sure episo* is no i32er running.
 	 */
 	wakeup(&iso->Rendez);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);

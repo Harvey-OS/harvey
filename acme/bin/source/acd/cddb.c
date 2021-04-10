@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 /* see CDDBPROTO */
-static uint32_t 
+static u32 
 cddb_sum(int n)
 {
 	int ret;
@@ -23,7 +23,7 @@ cddb_sum(int n)
 	return ret;
 }
 
-static uint32_t
+static u32
 diskid(Toc *t)
 {
 	int i, n, tmp;

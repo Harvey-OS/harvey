@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include <thread.h>
 
-#define NS(x)		((int64_t)x)
+#define NS(x)		((i64)x)
 #define US(x)		(NS(x) * 1000LL)
 #define MS(x)		(US(x) * 1000LL)
 #define S(x)		(MS(x) * 1000LL)
@@ -41,14 +41,14 @@ struct Endpoints {
 };
 
 typedef struct {
-	uint32_t	nb;		/* Number of data bytes in this message */
-	uint32_t	msg;		/* Message number */
-	uint32_t	acked;		/* Number of messages acked */
+	u32	nb;		/* Number of data bytes in this message */
+	u32	msg;		/* Message number */
+	u32	acked;		/* Number of messages acked */
 } Hdr;
 
 typedef struct {
 	Hdr	hdr;
-	uint8_t	buf[Bufsize];
+	u8	buf[Bufsize];
 } Buf;
 
 static char	*Logname = LOGNAME;
@@ -77,13 +77,13 @@ static void	freeendpoints(Endpoints *);
 static void	fromclient(void*);
 static void	fromnet(void*);
 static Endpoints *getendpoints(char *);
-static void	packhdr(Hdr *, uint8_t *);
+static void	packhdr(Hdr *, u8 *);
 static void	reconnect(void);
 static void	showmsg(int, char *, Buf *);
 static void	synchronize(void);
 static void	timerproc(void *);
-static void	unpackhdr(Hdr *, uint8_t *);
-static int	writen(int, uint8_t *, int);
+static void	unpackhdr(Hdr *, u8 *);
+static int	writen(int, u8 *, int);
 
 static void
 usage(void)
@@ -107,7 +107,7 @@ void
 threadmain(int argc, char **argv)
 {
 	int i, fd, failed, delta;
-	int64_t synctime, now;
+	i64 synctime, now;
 	char *p;
 	unsigned char buf[Hdrsz];
 	Buf *b, *eb;
@@ -257,7 +257,7 @@ static void
 fromnet(void *v)
 {
 	int len, acked, i;
-	uint8_t buf[Hdrsz];
+	u8 buf[Hdrsz];
 	Buf *b, *rb;
 	static int lastacked;
 
@@ -286,7 +286,7 @@ fromnet(void *v)
 			len, b->hdr.nb, b->hdr.msg);
 
 		if (b->hdr.nb == 0) {
-			if  ((int32_t)b->hdr.msg >= 0) {
+			if  ((i32)b->hdr.msg >= 0) {
 				dmessage(1, "fromnet; network closed\n");
 				break;
 			}
@@ -375,7 +375,7 @@ synchronize(void)
 {
 	Channel *tmp;
 	Buf *b;
-	uint8_t buf[Hdrsz];
+	u8 buf[Hdrsz];
 
 	/*
 	 * Ignore network errors here.  If we fail during
@@ -408,7 +408,7 @@ showmsg(int level, char *s, Buf *b)
 }
 
 static int
-writen(int fd, uint8_t *buf, int nb)
+writen(int fd, u8 *buf, int nb)
 {
 	int n, len = nb;
 
@@ -507,9 +507,9 @@ freeendpoints(Endpoints *ep)
 			(p)[2] = (v)>>16; (p)[3] = (v)>>24
 
 static void
-packhdr(Hdr *hdr, uint8_t *buf)
+packhdr(Hdr *hdr, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 	U32PUT(p, hdr->nb);
@@ -520,9 +520,9 @@ packhdr(Hdr *hdr, uint8_t *buf)
 }
 
 static void
-unpackhdr(Hdr *hdr, uint8_t *buf)
+unpackhdr(Hdr *hdr, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 	hdr->nb = U32GET(p);

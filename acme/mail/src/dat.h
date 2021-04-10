@@ -58,14 +58,14 @@ struct Message
 	int		ctlfd;
 	char		*name;
 	char		*replyname;
-	uint8_t	opened;
-	uint8_t	dirty;
-	uint8_t	isreply;
-	uint8_t	deleted;
-	uint8_t	writebackdel;
-	uint8_t	tagposted;
-	uint8_t	recursed;
-	uint8_t	level;
+	u8	opened;
+	u8	dirty;
+	u8	isreply;
+	u8	deleted;
+	u8	writebackdel;
+	u8	tagposted;
+	u8	recursed;
+	u8	level;
 
 	/* header info */
 	char		*fromcolon;	/* from header file; all rest are from info file */

@@ -20,8 +20,8 @@ static struct {
 
 struct Excl {
 	Fsys*	fsys;
-	uint64_t	path;
-	uint32_t	time;
+	u64	path;
+	u32	time;
 
 	Excl*	next;
 	Excl*	prev;
@@ -34,7 +34,7 @@ enum {
 int
 exclAlloc(Fid* fid)
 {
-	uint32_t t;
+	u32 t;
 	Excl *excl;
 
 	assert(fid->excl == nil);
@@ -87,7 +87,7 @@ exclAlloc(Fid* fid)
 int
 exclUpdate(Fid* fid)
 {
-	uint32_t t;
+	u32 t;
 	Excl *excl;
 
 	excl = fid->excl;

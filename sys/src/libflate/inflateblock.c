@@ -15,8 +15,8 @@ typedef struct Block	Block;
 
 struct Block
 {
-	uint8_t	*pos;
-	uint8_t	*limit;
+	u8	*pos;
+	u8	*limit;
 };
 
 static int
@@ -45,7 +45,7 @@ blwrite(void *vb, void *buf, int n)
 }
 
 int
-inflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize)
+inflateblock(u8 *dst, int dsize, u8 *src, int ssize)
 {
 	Block bd, bs;
 	int ok;

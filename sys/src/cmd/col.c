@@ -49,7 +49,7 @@ void
 main(int argc, char **argv)
 {
 	int i, lno;
-	int32_t ch;
+	i32 ch;
 	Rune c;
 
 	ARGBEGIN{

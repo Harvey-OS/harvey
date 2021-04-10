@@ -15,17 +15,17 @@
 #define RISCV_STDINT_H
 
 /* Exact integral types */
-typedef unsigned char uint8_t;
-typedef signed char int8_t;
+typedef unsigned char u8;
+typedef signed char i8;
 
-typedef unsigned short uint16_t;
-typedef signed short int16_t;
+typedef unsigned short u16;
+typedef signed short i16;
 
-typedef unsigned int uint32_t;
-typedef signed int int32_t;
+typedef unsigned int u32;
+typedef signed int i32;
 
-typedef unsigned long long uint64_t;
-typedef signed long long int64_t;
+typedef unsigned long long u64;
+typedef signed long long i64;
 
 /* Small types */
 typedef unsigned char uint_least8_t;

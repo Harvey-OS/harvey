@@ -28,7 +28,7 @@ Image *openface(char *path);
 
 Image *face[18];
 char buf[100];
-uint16_t winflag, level;
+u16 winflag, level;
 Image *back;
 Image *fore;
 
@@ -317,7 +317,7 @@ void
 allocblocks(void)
 {
 	Rectangle r, b;
-	uint16_t i, x, y, sq;
+	u16 i, x, y, sq;
 
 	sq = sqrt(level);
 	r = insetrect(screen->r, 5);
@@ -337,10 +337,10 @@ allocblocks(void)
 }
 
 Image*
-readbit(int fd, uint32_t chan, char *path)
+readbit(int fd, u32 chan, char *path)
 {
 	char buf[4096], hx[4], *p;
-	uint8_t data[Facesize*Facesize];	/* more than enough */
+	u8 data[Facesize*Facesize];	/* more than enough */
 	int nhx, i, n, ndata, nbit;
 	Image *img;
 

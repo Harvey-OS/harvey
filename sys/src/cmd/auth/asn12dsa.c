@@ -26,7 +26,7 @@ main(int argc, char **argv)
 	char *s;
 	unsigned char *buf;
 	int fd;
-	int32_t n, tot;
+	i32 n, tot;
 	char *tag, *file;
 	DSApriv *key;
 

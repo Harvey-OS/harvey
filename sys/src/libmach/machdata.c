@@ -26,10 +26,10 @@ int	asstype = AMIPS;		/* disassembler type */
 Machdata *machdata;		/* machine-dependent functions */
 
 int
-localaddr(Map *map, char *fn, char *var, uint64_t *r, Rgetter rget)
+localaddr(Map *map, char *fn, char *var, u64 *r, Rgetter rget)
 {
 	Symbol s;
-	uint64_t fp, pc, sp, link;
+	u64 fp, pc, sp, link;
 
 	if (!lookup(fn, 0, &s)) {
 		werrstr("function not found");
@@ -75,11 +75,11 @@ localaddr(Map *map, char *fn, char *var, uint64_t *r, Rgetter rget)
  * Print value v as s.name[+offset] if possible, or just v.
  */
 int
-symoff(char *buf, int n, uint64_t v, int space)
+symoff(char *buf, int n, u64 v, int space)
 {
 	Symbol s;
 	int r;
-	int32_t delta;
+	i32 delta;
 
 	r = delta = 0;		/* to shut compiler up */
 	if (v) {
@@ -113,7 +113,7 @@ int
 fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 {
 	char reg[12];
-	uint32_t r;
+	u32 r;
 
 	switch(rp->rformat)
 	{
@@ -125,7 +125,7 @@ fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 	case 'F':	/* first reg of double reg pair */
 		if (modif == 'F')
 		if ((rp->rformat=='F') || (((rp+1)->rflags&RFLT) && (rp+1)->rformat == 'f')) {
-			if (get1(map, rp->roffs, (uint8_t *)reg, 8) < 0)
+			if (get1(map, rp->roffs, (u8 *)reg, 8) < 0)
 				return -1;
 			machdata->dftos(buf, n, reg);
 			if (rp->rformat == 'F')
@@ -133,24 +133,24 @@ fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 			return 2;
 		}
 			/* treat it like 'f' */
-		if (get1(map, rp->roffs, (uint8_t *)reg, 4) < 0)
+		if (get1(map, rp->roffs, (u8 *)reg, 4) < 0)
 			return -1;
 		machdata->sftos(buf, n, reg);
 		break;
 	case 'f':	/* 32 bit float */
-		if (get1(map, rp->roffs, (uint8_t *)reg, 4) < 0)
+		if (get1(map, rp->roffs, (u8 *)reg, 4) < 0)
 			return -1;
 		machdata->sftos(buf, n, reg);
 		break;
 	case '3':	/* little endian ieee 80 with hole in bytes 8&9 */
-		if (get1(map, rp->roffs, (uint8_t *)reg, 10) < 0)
+		if (get1(map, rp->roffs, (u8 *)reg, 10) < 0)
 			return -1;
 		memmove(reg+10, reg+8, 2);	/* open hole */
 		memset(reg+8, 0, 2);		/* fill it */
 		leieee80ftos(buf, n, reg);
 		break;
 	case '8':	/* big-endian ieee 80 */
-		if (get1(map, rp->roffs, (uint8_t *)reg, 10) < 0)
+		if (get1(map, rp->roffs, (u8 *)reg, 10) < 0)
 			return -1;
 		beieee80ftos(buf, n, reg);
 		break;
@@ -161,9 +161,9 @@ fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 }
 
 char *
-_hexify(char *buf, uint32_t p, int zeros)
+_hexify(char *buf, u32 p, int zeros)
 {
-	uint32_t d;
+	u32 d;
 
 	d = p/16;
 	if(d)
@@ -181,7 +181,7 @@ _hexify(char *buf, uint32_t p, int zeros)
  * double format.  Naive but workable, probably.
  */
 int
-ieeedftos(char *buf, int n, uint32_t h, uint32_t l)
+ieeedftos(char *buf, int n, u32 h, u32 l)
 {
 	double fr;
 	int exp;
@@ -219,7 +219,7 @@ ieeedftos(char *buf, int n, uint32_t h, uint32_t l)
 }
 
 int
-ieeesftos(char *buf, int n, uint32_t h)
+ieeesftos(char *buf, int n, u32 h)
 {
 	double fr;
 	int exp;
@@ -254,38 +254,38 @@ ieeesftos(char *buf, int n, uint32_t h)
 int
 beieeesftos(char *buf, int n, void *s)
 {
-	return ieeesftos(buf, n, beswal(*(uint32_t*)s));
+	return ieeesftos(buf, n, beswal(*(u32*)s));
 }
 
 int
 beieeedftos(char *buf, int n, void *s)
 {
-	return ieeedftos(buf, n, beswal(*(uint32_t*)s),
-			 beswal(((uint32_t*)(s))[1]));
+	return ieeedftos(buf, n, beswal(*(u32*)s),
+			 beswal(((u32*)(s))[1]));
 }
 
 int
 leieeesftos(char *buf, int n, void *s)
 {
-	return ieeesftos(buf, n, leswal(*(uint32_t*)s));
+	return ieeesftos(buf, n, leswal(*(u32*)s));
 }
 
 int
 leieeedftos(char *buf, int n, void *s)
 {
-	return ieeedftos(buf, n, leswal(((uint32_t*)(s))[1]),
-			 leswal(*(uint32_t*)s));
+	return ieeedftos(buf, n, leswal(((u32*)(s))[1]),
+			 leswal(*(u32*)s));
 }
 
 /* packed in 12 bytes, with s[2]==s[3]==0; mantissa starts at s[4]*/
 int
 beieee80ftos(char *buf, int n, void *s)
 {
-	uint8_t *reg = (uint8_t*)s;
+	u8 *reg = (u8*)s;
 	int i;
-	uint32_t x;
-	uint8_t ieee[8+8];	/* room for slop */
-	uint8_t *p, *q;
+	u32 x;
+	u8 ieee[8+8];	/* room for slop */
+	u8 *p, *q;
 
 	memset(ieee, 0, sizeof(ieee));
 	/* sign */
@@ -342,11 +342,11 @@ leieee80ftos(char *buf, int n, void *s)
 }
 
 int
-cisctrace(Map *map, uint64_t pc, uint64_t sp, uint64_t link, Tracer trace)
+cisctrace(Map *map, u64 pc, u64 sp, u64 link, Tracer trace)
 {
 	Symbol s;
 	int found, i;
-	uint64_t opc, moved;
+	u64 opc, moved;
 
 	USED(link);
 	i = 0;
@@ -374,11 +374,11 @@ cisctrace(Map *map, uint64_t pc, uint64_t sp, uint64_t link, Tracer trace)
 }
 
 int
-risctrace(Map *map, uint64_t pc, uint64_t sp, uint64_t link, Tracer trace)
+risctrace(Map *map, u64 pc, u64 sp, u64 link, Tracer trace)
 {
 	int i;
 	Symbol s, f;
-	uint64_t oldpc;
+	u64 oldpc;
 
 	i = 0;
 	while(findsym(pc, CTEXT, &s)) {
@@ -409,11 +409,11 @@ risctrace(Map *map, uint64_t pc, uint64_t sp, uint64_t link, Tracer trace)
 	return i;
 }
 
-uint64_t
-ciscframe(Map *map, uint64_t addr, uint64_t pc, uint64_t sp, uint64_t link)
+u64
+ciscframe(Map *map, u64 addr, u64 pc, u64 sp, u64 link)
 {
 	Symbol s;
-	uint64_t moved;
+	u64 moved;
 
 	USED(link);
 	for(;;) {
@@ -431,8 +431,8 @@ ciscframe(Map *map, uint64_t addr, uint64_t pc, uint64_t sp, uint64_t link)
 	return 0;
 }
 
-uint64_t
-riscframe(Map *map, uint64_t addr, uint64_t pc, uint64_t sp, uint64_t link)
+u64
+riscframe(Map *map, u64 addr, u64 pc, u64 sp, u64 link)
 {
 	Symbol s, f;
 

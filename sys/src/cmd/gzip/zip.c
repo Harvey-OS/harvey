@@ -22,25 +22,25 @@ static	void	zip(Biobuf *bout, char *file, int stdout);
 static	void	zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout);
 static	int	crcread(void *fd, void *buf, int n);
 static	int	zwrite(void *bout, void *buf, int n);
-static	void	put4(Biobuf *b, uint32_t v);
+static	void	put4(Biobuf *b, u32 v);
 static	void	put2(Biobuf *b, int v);
 static	void	put1(Biobuf *b, int v);
 static	void	header(Biobuf *bout, ZipHead *zh);
-static	void	trailer(Biobuf *bout, ZipHead *zh, int64_t off);
+static	void	trailer(Biobuf *bout, ZipHead *zh, i64 off);
 static	void	putCDir(Biobuf *bout);
 
 static	void	error(char*, ...);
 //#pragma	varargck	argpos	error	1
 
 static	Biobuf	bout;
-static	uint32_t	crc;
-static	uint32_t	*crctab;
+static	u32	crc;
+static	u32	*crctab;
 static	int	debug;
 static	int	eof;
 static	int	level;
 static	int	nzheads;
-static	uint32_t	totr;
-static	uint32_t	totw;
+static	u32	totr;
+static	u32	totw;
 static	int	verbose;
 static	int	zhalloc;
 static	ZipHead	*zheads;
@@ -121,8 +121,8 @@ zip(Biobuf *bout, char *file, int stdout)
 	Tm *t;
 	ZipHead *zh;
 	Dir *dir;
-	int64_t off;
-	int64_t fd, err;
+	i64 off;
+	i64 fd, err;
 
 	fd = open(file, OREAD);
 	if(fd < 0)
@@ -253,9 +253,9 @@ header(Biobuf *bout, ZipHead *zh)
 }
 
 static void
-trailer(Biobuf *bout, ZipHead *zh, int64_t off)
+trailer(Biobuf *bout, ZipHead *zh, i64 off)
 {
-	int64_t coff;
+	i64 coff;
 
 	coff = -1;
 	if(!(zh->flags & ZTrailInfo)){
@@ -304,7 +304,7 @@ cheader(Biobuf *bout, ZipHead *zh)
 static void
 putCDir(Biobuf *bout)
 {
-	int64_t hoff, ecoff;
+	i64 hoff, ecoff;
 	int i;
 
 	hoff = Boffset(bout);
@@ -362,7 +362,7 @@ zwrite(void *bout, void *buf, int n)
 }
 
 static void
-put4(Biobuf *b, uint32_t v)
+put4(Biobuf *b, u32 v)
 {
 	int i;
 

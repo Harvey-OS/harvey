@@ -195,10 +195,10 @@ acommand(int pc)
 void
 cmdsrc(int c, Map *map)
 {
-	uint32_t w;
-	int32_t locval, locmsk;
+	u32 w;
+	i32 locval, locmsk;
 	ADDR savdot;
-	uint16_t sh;
+	u16 sh;
 	char buf[512];
 	int ret;
 

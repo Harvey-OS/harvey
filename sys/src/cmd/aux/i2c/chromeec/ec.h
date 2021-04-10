@@ -21,8 +21,8 @@
 #include <stdint.h>
 
 #ifndef __PRE_RAM__
-int google_chromeec_i2c_xfer(uint8_t chip, uint8_t addr, int alen,
-			     uint8_t *buffer, int len, int is_read);
+int google_chromeec_i2c_xfer(u8 chip, u8 addr, int alen,
+			     u8 *buffer, int len, int is_read);
 u32 google_chromeec_get_wake_mask(void);
 int google_chromeec_set_sci_mask(u32 mask);
 int google_chromeec_set_smi_mask(u32 mask);
@@ -41,15 +41,15 @@ void google_chromeec_check_ec_image(int expected_type);
 void google_chromeec_check_pd_image(int expected_type);
 #endif
 
-uint8_t google_chromeec_calc_checksum(const uint8_t *data, int size);
+u8 google_chromeec_calc_checksum(const u8 *data, int size);
 u16 google_chromeec_get_board_version(void);
 u32 google_chromeec_get_events_b(void);
 int google_chromeec_clear_events_b(u32 mask);
 int google_chromeec_kbbacklight(int percent);
 void google_chromeec_post(u8 postcode);
 void google_chromeec_log_events(u32 mask);
-int google_chromeec_vbnv_context(int is_read, uint8_t *data, int len);
-uint8_t google_chromeec_get_switches(void);
+int google_chromeec_vbnv_context(int is_read, u8 *data, int len);
+u8 google_chromeec_get_switches(void);
 
 /* For MEC, access ranges 0x800 thru 0x9ff using EMI interface instead of LPC */
 #define MEC_EMI_RANGE_START EC_HOST_CMD_REGION0
@@ -69,12 +69,12 @@ int google_chromeec_set_usb_charge_mode(u8 port_id, enum usb_charge_mode mode);
 
 /* internal structure to send a command to the EC and wait for response. */
 struct chromeec_command {
-	uint16_t    cmd_code;	  /* command code in, status out */
-	uint8_t     cmd_version;  /* command version */
+	u16    cmd_code;	  /* command code in, status out */
+	u8     cmd_version;  /* command version */
 	const void* cmd_data_in;  /* command data, if any */
 	void*	    cmd_data_out; /* command response, if any */
-	uint16_t    cmd_size_in;  /* size of command data */
-	uint16_t    cmd_size_out; /* expected size of command response in,
+	u16    cmd_size_in;  /* size of command data */
+	u16    cmd_size_out; /* expected size of command response in,
 				   * actual received size out */
 	int         cmd_dev_index;/* device index for passthru */
 };

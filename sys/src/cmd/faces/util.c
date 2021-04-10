@@ -14,7 +14,7 @@
 #include "faces.h"
 
 void*
-emalloc(uint32_t sz)
+emalloc(u32 sz)
 {
 	void *v;
 	v = malloc(sz);
@@ -27,7 +27,7 @@ emalloc(uint32_t sz)
 }
 
 void*
-erealloc(void *v, uint32_t sz)
+erealloc(void *v, u32 sz)
 {
 	v = realloc(v, sz);
 	if(v == nil) {

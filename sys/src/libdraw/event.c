@@ -21,14 +21,14 @@ struct Slave
 	int	pid;
 	Ebuf	*head;		/* queue of messages for this descriptor */
 	Ebuf	*tail;
-	int	(*fn)(int, Event*, uint8_t*, int);
+	int	(*fn)(int, Event*, u8*, int);
 };
 
 struct Ebuf
 {
 	Ebuf	*next;
 	int	n;		/* number of bytes in buf */
-	uint8_t	buf[EMAXMSG];
+	u8	buf[EMAXMSG];
 };
 
 static	Slave	eslave[MAXSLAVE];
@@ -41,7 +41,7 @@ static	int	nslave;
 static	int	parentpid;
 static	int	epipe[2];
 
-static	int	eforkslave(uint32_t);
+static	int	eforkslave(u32);
 static	void	extract(void);
 static	void	ekill(void);
 static	int	enote(void *, char *);
@@ -55,7 +55,7 @@ ebread(Slave *s)
 {
 	Ebuf *eb;
 	Dir *d;
-	uint32_t l;
+	u32 l;
 
 	for(;;){
 		d = dirfstat(epipe[0]);
@@ -74,14 +74,14 @@ ebread(Slave *s)
 	return eb;
 }
 
-uint32_t
+u32
 event(Event *e)
 {
-	return eread((uint32_t)~0UL, e);
+	return eread((u32)~0UL, e);
 }
 
-uint32_t
-eread(uint32_t keys, Event *e)
+u32
+eread(u32 keys, Event *e)
 {
 	Ebuf *eb;
 	int i, id;
@@ -130,11 +130,11 @@ ecankbd(void)
 }
 
 int
-ecanread(uint32_t keys)
+ecanread(u32 keys)
 {
 	Dir *d;
 	int i;
-	uint32_t l;
+	u32 l;
 
 	for(;;){
 		for(i=0; i<nslave; i++)
@@ -151,8 +151,8 @@ ecanread(uint32_t keys)
 	}
 }
 
-uint32_t
-estartfn(uint32_t key, int fd, int n, int (*fn)(int, Event*, uint8_t*, int))
+u32
+estartfn(u32 key, int fd, int n, int (*fn)(int, Event*, u8*, int))
 {
 	char buf[EMAXMSG+1];
 	int i, r;
@@ -176,14 +176,14 @@ estartfn(uint32_t key, int fd, int n, int (*fn)(int, Event*, uint8_t*, int))
 	return 0;
 }
 
-uint32_t
-estart(uint32_t key, int fd, int n)
+u32
+estart(u32 key, int fd, int n)
 {
 	return estartfn(key, fd, n, nil);
 }
 
-uint32_t
-etimer(uint32_t key, int n)
+u32
+etimer(u32 key, int n)
 {
 	char t[2];
 
@@ -237,7 +237,7 @@ breakout:;
 }
 
 void
-einit(uint32_t keys)
+einit(u32 keys)
 {
 	int ctl, fd;
 	char buf[256];
@@ -285,7 +285,7 @@ extract(void)
 	Slave *s;
 	Ebuf *eb;
 	int i, n;
-	uint8_t ebuf[EMAXMSG+1];
+	u8 ebuf[EMAXMSG+1];
 
 	/* avoid generating a message if there's nothing to show. */
 	/* this test isn't perfect, though; could do flushimage(display, 0) then call extract */
@@ -341,7 +341,7 @@ loop:
 }
 
 static int
-eforkslave(uint32_t key)
+eforkslave(u32 key)
 {
 	int i, pid;
 
@@ -453,7 +453,7 @@ emoveto(Point pt)
 void
 esetcursor(Cursor *c)
 {
-	uint8_t curs[2*4+2*2*16];
+	u8 curs[2*4+2*2*16];
 
 	if(c == 0)
 		write(cursorfd, curs, 0);

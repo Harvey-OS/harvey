@@ -27,8 +27,8 @@ struct ICache
 	IEntry	free;
 	IEntry	clean;
 	IEntry	dirty;
-	uint32_t	maxdirty;
-	uint32_t	ndirty;
+	u32	maxdirty;
+	u32	ndirty;
 	AState	as;
 
 	ISum	**sum;
@@ -47,14 +47,14 @@ static ICache icache;
 struct IHash
 {
 	int bits;
-	uint32_t size;
+	u32 size;
 	IEntry **table;
 };
 
 static IHash*
 mkihash(int size1)
 {
-	uint32_t size;
+	u32 size;
 	int bits;
 	IHash *ih;
 
@@ -73,9 +73,9 @@ mkihash(int size1)
 }
 
 static IEntry*
-ihashlookup(IHash *ih, uint8_t score[VtScoreSize], int type)
+ihashlookup(IHash *ih, u8 score[VtScoreSize], int type)
 {
-	uint32_t h;
+	u32 h;
 	IEntry *ie;
 
 	h = hashbits(score, ih->bits);
@@ -88,7 +88,7 @@ ihashlookup(IHash *ih, uint8_t score[VtScoreSize], int type)
 static void
 ihashdelete(IHash *ih, IEntry *ie, char *what)
 {
-	uint32_t h;
+	u32 h;
 	IEntry **l;
 
 	h = hashbits(ie->score, ih->bits);
@@ -103,7 +103,7 @@ ihashdelete(IHash *ih, IEntry *ie, char *what)
 static void
 ihashinsert(IHash *ih, IEntry *ie)
 {
-	uint32_t h;
+	u32 h;
 
 	h = hashbits(ie->score, ih->bits);
 	ie->nexthash = ih->table[h];
@@ -155,14 +155,14 @@ struct ISum
 	IEntry	*entries;
 	int	nentries;
 	int	loaded;
-	uint64_t addr;
-	uint64_t limit;
+	u64 addr;
+	u64 limit;
 	Arena *arena;
 	int g;
 };
 
 static ISum*
-scachelookup(uint64_t addr)
+scachelookup(u64 addr)
 {
 	int i;
 	ISum *s;
@@ -216,15 +216,15 @@ scacheevict(void)
 }
 
 static void
-scachehit(uint64_t addr)
+scachehit(u64 addr)
 {
 	scachelookup(addr);	/* for move-to-front */
 }
 
 static void
-scachesetup(ISum *s, uint64_t addr)
+scachesetup(ISum *s, u64 addr)
 {
-	uint64_t addr0, limit;
+	u64 addr0, limit;
 	int g;
 
 	s->arena = amapitoag(mainindex, addr, &addr0, &limit, &g);
@@ -255,7 +255,7 @@ scacheload(ISum *s)
 }
 
 static ISum*
-scachemiss(uint64_t addr)
+scachemiss(u64 addr)
 {
 	ISum *s;
 
@@ -287,9 +287,9 @@ scachemiss(uint64_t addr)
  */
 
 void
-initicache(uint32_t mem0)
+initicache(u32 mem0)
 {
-	uint32_t mem;
+	u32 mem;
 	int i, entries, scache;
 
 	icache.full.l = &icache.lock;
@@ -344,7 +344,7 @@ evictlru(void)
 }
 
 static void
-icacheinsert(uint8_t score[VtScoreSize], IAddr *ia, int state)
+icacheinsert(u8 score[VtScoreSize], IAddr *ia, int state)
 {
 	IEntry *ie;
 
@@ -380,7 +380,7 @@ icacheinsert(uint8_t score[VtScoreSize], IAddr *ia, int state)
 }
 
 int
-icachelookup(uint8_t score[VtScoreSize], int type, IAddr *ia)
+icachelookup(u8 score[VtScoreSize], int type, IAddr *ia)
 {
 	IEntry *ie;
 
@@ -410,7 +410,7 @@ icachelookup(uint8_t score[VtScoreSize], int type, IAddr *ia)
 }
 
 int
-insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
+insertscore(u8 score[VtScoreSize], IAddr *ia, int state, AState *as)
 {
 	ISum *toload;
 
@@ -452,7 +452,7 @@ insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
 }
 
 int
-lookupscore(uint8_t score[VtScoreSize], int type, IAddr *ia)
+lookupscore(u8 score[VtScoreSize], int type, IAddr *ia)
 {
 	int ms, ret;
 	IEntry d;
@@ -475,10 +475,10 @@ lookupscore(uint8_t score[VtScoreSize], int type, IAddr *ia)
 	return ret;
 }
 
-uint32_t
-hashbits(uint8_t *sc, int bits)
+u32
+hashbits(u8 *sc, int bits)
 {
-	uint32_t v;
+	u32 v;
 
 	v = (sc[0] << 24) | (sc[1] << 16) | (sc[2] << 8) | sc[3];
 	if(bits < 32)
@@ -486,10 +486,10 @@ hashbits(uint8_t *sc, int bits)
 	return v;
 }
 
-uint32_t
+u32
 icachedirtyfrac(void)
 {
-	return (int64_t)icache.ndirty*IcacheFrac / icache.nentries;
+	return (i64)icache.ndirty*IcacheFrac / icache.nentries;
 }
 
 /*
@@ -498,9 +498,9 @@ icachedirtyfrac(void)
  * and address < limit.
  */
 IEntry*
-icachedirty(uint32_t lo, uint32_t hi, uint64_t limit)
+icachedirty(u32 lo, u32 hi, u64 limit)
 {
-	uint32_t h;
+	u32 h;
 	IEntry *ie, *dirty;
 
 	dirty = nil;

@@ -227,8 +227,8 @@ static Ctlr *ctlrtail;
 #define csr16r(c, r) (ins((c)->port + (r)))
 #define csr32r(c, r) (inl((c)->port + (r)))
 #define csr8w(c, r, b) (outb((c)->port + (r), (int)(b)))
-#define csr16w(c, r, w) (outs((c)->port + (r), (uint16_t)(w)))
-#define csr32w(c, r, l) (outl((c)->port + (r), (uint32_t)(l)))
+#define csr16w(c, r, w) (outs((c)->port + (r), (u16)(w)))
+#define csr32w(c, r, l) (outl((c)->port + (r), (u32)(l)))
 
 static void
 rtl8139promiscuous(void *arg, int on)

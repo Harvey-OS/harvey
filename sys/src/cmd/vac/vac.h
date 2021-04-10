@@ -65,84 +65,84 @@ enum
 struct VacDir
 {
 	char *elem;		/* path element */
-	uint32_t entry;		/* entry in directory for data */
-	uint32_t gen;		/* generation of data entry */
-	uint32_t mentry;		/* entry in directory for meta */
-	uint32_t mgen;		/* generation of meta entry */
-	uint64_t size;		/* size of file */
-	uint64_t qid;		/* unique file id */
+	u32 entry;		/* entry in directory for data */
+	u32 gen;		/* generation of data entry */
+	u32 mentry;		/* entry in directory for meta */
+	u32 mgen;		/* generation of meta entry */
+	u64 size;		/* size of file */
+	u64 qid;		/* unique file id */
 
 	char *uid;		/* owner id */
 	char *gid;		/* group id */
 	char *mid;		/* last modified by */
-	uint32_t mtime;		/* last modified time */
-	uint32_t mcount;		/* number of modifications: can wrap! */
-	uint32_t ctime;		/* directory entry last changed */
-	uint32_t atime;		/* last time accessed */
-	uint32_t mode;		/* various mode bits */
+	u32 mtime;		/* last modified time */
+	u32 mcount;		/* number of modifications: can wrap! */
+	u32 ctime;		/* directory entry last changed */
+	u32 atime;		/* last time accessed */
+	u32 mode;		/* various mode bits */
 
 	/* plan 9 */
 	int plan9;
-	uint64_t p9path;
-	uint32_t p9version;
+	u64 p9path;
+	u32 p9version;
 
 	/* sub space of qid */
 	int qidspace;
-	uint64_t qidoffset;	/* qid offset */
-	uint64_t qidmax;		/* qid maximum */
+	u64 qidoffset;	/* qid offset */
+	u64 qidmax;		/* qid maximum */
 };
 
 struct VacFs
 {
 	char	name[128];
-	uint8_t	score[VtScoreSize];
+	u8	score[VtScoreSize];
 	VacFile	*root;
 	VtConn	*z;
 	int		mode;
 	int		bsize;
-	uint64_t	qid;
+	u64	qid;
 	VtCache	*cache;
 };
 
 VacFs	*vacfsopen(VtConn *z, char *file, int mode, int ncache);
-VacFs	*vacfsopenscore(VtConn *z, uint8_t *score, int mode, int ncache);
+VacFs	*vacfsopenscore(VtConn *z, u8 *score, int mode, int ncache);
 VacFs	*vacfscreate(VtConn *z, int bsize, int ncache);
 void		vacfsclose(VacFs *fs);
 int		vacfssync(VacFs *fs);
 int		vacfssnapshot(VacFs *fs, char *src, char *dst);
-int		vacfsgetscore(VacFs *fs, uint8_t *score);
-int		vacfsgetmaxqid(VacFs*, uint64_t*);
-void		vacfsjumpqid(VacFs*, uint64_t);
+int		vacfsgetscore(VacFs *fs, u8 *score);
+int		vacfsgetmaxqid(VacFs*, u64*);
+void		vacfsjumpqid(VacFs*, u64);
 
 VacFile *vacfsgetroot(VacFs *fs);
 VacFile	*vacfileopen(VacFs *fs, char *path);
-VacFile	*vacfilecreate(VacFile *file, char *elem, uint32_t perm);
+VacFile	*vacfilecreate(VacFile *file, char *elem, u32 perm);
 VacFile	*vacfilewalk(VacFile *file, char *elem);
 int		vacfileremove(VacFile *file);
-int		vacfileread(VacFile *file, void *buf, int n, int64_t offset);
-int		vacfileblockscore(VacFile *file, uint32_t, uint8_t*);
-int		vacfilewrite(VacFile *file, void *buf, int n, int64_t offset);
-uint64_t	vacfilegetid(VacFile *file);
-uint32_t	vacfilegetmcount(VacFile *file);
+int		vacfileread(VacFile *file, void *buf, int n, i64 offset);
+int		vacfileblockscore(VacFile *file, u32, u8*);
+int		vacfilewrite(VacFile *file, void *buf, int n, i64 offset);
+u64	vacfilegetid(VacFile *file);
+u32	vacfilegetmcount(VacFile *file);
 int		vacfileisdir(VacFile *file);
 int		vacfileisroot(VacFile *file);
-uint32_t	vacfilegetmode(VacFile *file);
-int		vacfilegetsize(VacFile *file, uint64_t *size);
+u32	vacfilegetmode(VacFile *file);
+int		vacfilegetsize(VacFile *file, u64 *size);
 int		vacfilegetdir(VacFile *file, VacDir *dir);
 int		vacfilesetdir(VacFile *file, VacDir *dir);
 VacFile	*vacfilegetparent(VacFile *file);
 int		vacfileflush(VacFile*, int);
 VacFile	*vacfileincref(VacFile*);
 int		vacfiledecref(VacFile*);
-int		vacfilesetsize(VacFile *f, uint64_t size);
+int		vacfilesetsize(VacFile *f, u64 size);
 
 int		vacfilegetentries(VacFile *f, VtEntry *e, VtEntry *me);
 int		vacfilesetentries(VacFile *f, VtEntry *e, VtEntry *me);
 
 void		vdcleanup(VacDir *dir);
 void		vdcopy(VacDir *dst, VacDir *src);
-int		vacfilesetqidspace(VacFile*, uint64_t, uint64_t);
-uint64_t	vacfilegetqidoffset(VacFile*);
+int		vacfilesetqidspace(VacFile*, u64, u64);
+u64	vacfilegetqidoffset(VacFile*);
 
 VacDirEnum	*vdeopen(VacFile*);
 int			vderead(VacDirEnum*, VacDir *);
@@ -150,4 +150,4 @@ void			vdeclose(VacDirEnum*);
 int	vdeunread(VacDirEnum*);
 
 int	vacfiledsize(VacFile *f);
-int	sha1matches(VacFile *f, uint32_t b, uint8_t *buf, int n);
+int	sha1matches(VacFile *f, u32 b, u8 *buf, int n);

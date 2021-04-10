@@ -95,8 +95,8 @@ static Logflag logflags[] =
 
 static Dirtab *dirtab[MaxQ];
 
-#define TYPE(x) (((uint32_t)(x).path) & 0xff)
-#define PORT(x) ((((uint32_t)(x).path) >> 8) & (Maxport - 1))
+#define TYPE(x) (((u32)(x).path) & 0xff)
+#define PORT(x) ((((u32)(x).path) >> 8) & (Maxport - 1))
 #define QID(x, y) (((x) << 8) | (y))
 
 struct Centry {
@@ -1074,7 +1074,7 @@ etherwrite(Port *port, Block *bp)
 	Etherpkt *epkt;
 	int n, lid, len, seglen, chunk, dlen, blklen, offset, mf;
 	Block *xp, *nb;
-	uint16_t fragoff, frag;
+	u16 fragoff, frag;
 	extern Dev *devtab[];
 
 	port->out++;

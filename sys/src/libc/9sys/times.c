@@ -29,13 +29,13 @@ skip(char *p)
  *  are competing moving the offset around.  Hence the unusual loop
  *  in the middle of this routine.
  */
-int32_t
-times(int32_t *t)
+i32
+times(i32 *t)
 {
 	char b[200], *p;
 	static int f = -1;
 	int i, retries;
-	uint32_t r;
+	u32 r;
 
 	memset(b, 0, sizeof(b));
 	for(retries = 0; retries < 100; retries++){

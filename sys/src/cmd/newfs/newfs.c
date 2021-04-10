@@ -55,7 +55,7 @@ int	exitflag = 0;		/* exit in middle of newfs for testing */
 int	enablemultilabel;	/* enable multilabel for file system */
 int	createsnapdir = 1;	/* do not create .snap directory */
 int	enabletrim;		/* enable TRIM */
-int64_t fssize;			/* file system size */
+i64 fssize;			/* file system size */
 int	sectorsize;		/* bytes/sector */
 int	realsectorsize;		/* bytes/sector in hardware */
 int	fsize = 0;		/* fragment size */
@@ -86,7 +86,7 @@ parseint(const char *str, int *val)
 }
 
 static int
-parsei64(const char *str, int64_t *val)
+parsei64(const char *str, i64 *val)
 {
 	if (str == nil) {
 		return 0;

@@ -22,7 +22,7 @@
 #include <device/smbus.h>
 #include "chip.h"
 
-static int w83793_fan_limit(struct device *dev, int fan, uint16_t limit)
+static int w83793_fan_limit(struct device *dev, int fan, u16 limit)
 {
 	return smbus_write_byte(dev, 0x90 + fan * 2, limit >> 8) ||
 		smbus_write_byte(dev, 0x91 + fan * 2, limit & 0xff);
@@ -90,27 +90,27 @@ static int w83793_tr_fan_level(struct device *dev, int fan, const char *level)
 	return 0;
 }
 
-static uint8_t millivolts_to_limit_value_type1(int millivolts)
+static u8 millivolts_to_limit_value_type1(int millivolts)
 {
 	/* Datasheet v1.4 page 64 (VCoreA, VCoreB, Vtt Limit) */
 	return ((millivolts * 125) / 1000);
 }
 
-static uint8_t millivolts_to_limit_value_type2(int millivolts)
+static u8 millivolts_to_limit_value_type2(int millivolts)
 {
 	/* Datasheet v1.4 page 64 (VSEN1, VEN2, VSEN3) */
 	return ((millivolts * 625) / 10000);
 }
 
-static uint8_t millivolts_to_limit_value_type3(int millivolts)
+static u8 millivolts_to_limit_value_type3(int millivolts)
 {
 	/* Datasheet v1.4 page 64 (5VDD, 5VSB) */
 	return ((((millivolts * 10) + 1500) * 417) / 10000);
 }
 
-static uint8_t fan_pct_to_cfg_val(uint8_t percent)
+static u8 fan_pct_to_cfg_val(u8 percent)
 {
-	uint8_t cfg = (((unsigned int)percent * 10000) / 15873);
+	u8 cfg = (((unsigned int)percent * 10000) / 15873);
 	if (cfg > 0x3f)
 		cfg = 0x3f;
 	return cfg;
@@ -119,7 +119,7 @@ static uint8_t fan_pct_to_cfg_val(uint8_t percent)
 static void w83793_init(struct device *dev)
 {
 	struct drivers_i2c_w83793_config *config = dev->chip_info;
-	uint16_t id;
+	u16 id;
 	int i;
 
 	if (w83793_bank(dev, 0))

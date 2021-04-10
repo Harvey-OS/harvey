@@ -81,7 +81,7 @@ enum
 	Nrow = 5
 };
 
-static uint8_t wid [Nrow][16] = {
+static u8 wid [Nrow][16] = {
 	{16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 30, },
 	{24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 24, },
 	{32, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, },
@@ -197,7 +197,7 @@ keyboardy(Keyboard *k, int row)
 static char*
 whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 {
-	uint8_t *wp;
+	u8 *wp;
 	char *kp;
 	int row, col, dx, dy, x, n, maxx;
 	Rectangle r;
@@ -235,7 +235,7 @@ whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 static Rectangle
 keyrect(Keyboard *k, int row, int col)
 {
-	uint8_t *wp;
+	u8 *wp;
 	char *kp;
 	int i, x, n, dx;
 	Rectangle r;
@@ -267,7 +267,7 @@ keydraw(Keyboard *k, int state)
 {
 	Point p, q;
 	int row, col, x, dx, dy, nexty, n;
-	uint8_t *wp;
+	u8 *wp;
 	char *kp;
 	Rectangle r;
 	Font *f, *f1, *f2;

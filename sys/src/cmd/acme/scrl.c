@@ -137,7 +137,7 @@ textscroll(Text *t, int but)
 		}
 		if(but == 2){
 			y = my;
-			p0 = (int64_t)t->file->Buffer.nc*(y-s.min.y)/h;
+			p0 = (i64)t->file->Buffer.nc*(y-s.min.y)/h;
 			if(p0 >= t->q1)
 				p0 = textbacknl(t, p0, 2);
 			if(oldp0 != p0)

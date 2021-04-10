@@ -44,7 +44,7 @@ struct VacFile
 	int		partial;	/* file was never really open */
 	int		removed;	/* file has been removed */
 	int		dirty;	/* dir is dirty with respect to meta data in block */
-	uint32_t	boff;		/* block offset within msource for this file's metadata */
+	u32	boff;		/* block offset within msource for this file's metadata */
 	VacDir	dir;		/* metadata for this file */
 	VacFile	*up;		/* parent file */
 	VacFile	*next;	/* sibling */
@@ -55,7 +55,7 @@ struct VacFile
 	VacFile	*down;	/* children */
 	int		mode;
 
-	uint64_t	qidoffset;	/* qid offset */
+	u64	qidoffset;	/* qid offset */
 };
 
 static VacFile*
@@ -147,23 +147,23 @@ filemetaunlock(VacFile *f)
 	wunlock(&f->up->lk);
 }
 
-uint64_t
+u64
 vacfilegetid(VacFile *f)
 {
 	/* immutable */
 	return f->qidoffset + f->dir.qid;
 }
 
-uint64_t
+u64
 vacfilegetqidoffset(VacFile *f)
 {
 	return f->qidoffset;
 }
 
-uint32_t
+u32
 vacfilegetmcount(VacFile *f)
 {
-	uint32_t mcount;
+	u32 mcount;
 
 	filemetalock(f);
 	mcount = f->dir.mcount;
@@ -171,10 +171,10 @@ vacfilegetmcount(VacFile *f)
 	return mcount;
 }
 
-uint32_t
+u32
 vacfilegetmode(VacFile *f)
 {
-	uint32_t mode;
+	u32 mode;
 
 	filemetalock(f);
 	mode = f->dir.mode;
@@ -398,7 +398,7 @@ dirlookup(VacFile *f, char *elem)
 	VtBlock *b;
 	VtFile *meta;
 	VacFile *ff;
-	uint32_t bo, nb;
+	u32 bo, nb;
 
 	meta = f->msource;
 	b = nil;
@@ -440,7 +440,7 @@ Err:
  * f is locked.
  */
 static VtFile *
-fileopensource(VacFile *f, uint32_t offset, uint32_t gen, int dir,
+fileopensource(VacFile *f, u32 offset, u32 gen, int dir,
 	       uint mode)
 {
 	VtFile *r;
@@ -592,10 +592,10 @@ Err:
  * Extract the score for the bn'th block in f.
  */
 int
-vacfileblockscore(VacFile *f, uint32_t bn, uint8_t *score)
+vacfileblockscore(VacFile *f, u32 bn, u8 *score)
 {
 	VtFile *s;
-	uint64_t size;
+	u64 size;
 	int dsize, ret;
 
 	ret = -1;
@@ -607,7 +607,7 @@ vacfileblockscore(VacFile *f, uint32_t bn, uint8_t *score)
 	s = f->source;
 	dsize = s->dsize;
 	size = vtfilegetsize(s);
-	if((uint64_t)bn*dsize >= size)
+	if((u64)bn*dsize >= size)
 		goto out1;
 	ret = vtfileblockscore(f->source, bn, score);
 
@@ -622,7 +622,7 @@ out:
  * Read data from f.
  */
 int
-vacfileread(VacFile *f, void *buf, int cnt, int64_t offset)
+vacfileread(VacFile *f, void *buf, int cnt, i64 offset)
 {
 	int n;
 
@@ -687,7 +687,7 @@ vacfilegetentries(VacFile *f, VtEntry *e, VtEntry *me)
  * Get the file's size.
  */
 int
-vacfilegetsize(VacFile *f, uint64_t *size)
+vacfilegetsize(VacFile *f, u64 *size)
 {
 	if(filerlock(f) < 0)
 		return -1;
@@ -752,10 +752,10 @@ vdeopen(VacFile *f)
  * each time the file size changes.
  */
 static int
-direntrysize(VtFile *s, uint32_t offset, uint32_t gen, uint64_t *size)
+direntrysize(VtFile *s, u32 offset, u32 gen, u64 *size)
 {
 	VtBlock *b;
-	uint32_t bn;
+	u32 bn;
 	VtEntry e;
 	int epb;
 
@@ -848,7 +848,7 @@ vderead(VacDirEnum *vde, VacDir *de)
 {
 	int ret;
 	VacFile *f;
-	uint32_t nb;
+	u32 nb;
 
 	f = vde->file;
 	if(filerlock(f) < 0)
@@ -948,14 +948,14 @@ vdeclose(VacDirEnum *vde)
  * The caller must have filemetalock'ed f and have
  * vtfilelock'ed f->up->msource.
  */
-static uint32_t
-filemetaalloc(VacFile *fp, VacDir *dir, uint32_t start)
+static u32
+filemetaalloc(VacFile *fp, VacDir *dir, u32 start)
 {
-	uint32_t nb, bo;
+	u32 nb, bo;
 	VtBlock *b;
 	MetaBlock mb;
 	int nn;
-	uint8_t *p;
+	u8 *p;
 	int i, n;
 	MetaEntry me;
 	VtFile *ms;
@@ -992,7 +992,7 @@ filemetaalloc(VacFile *fp, VacDir *dir, uint32_t start)
 	}
 
 	/* No block found, extend the file by one metablock. */
-	vtfileflushbefore(ms, nb*(uint64_t)ms->dsize);
+	vtfileflushbefore(ms, nb*(u64)ms->dsize);
 	if((b = vtfileblock(ms, nb, VtORDWR)) == nil)
 		goto Err;
 	vtfilesetsize(ms, (nb+1)*ms->dsize);
@@ -1039,7 +1039,7 @@ filemetaflush(VacFile *f, char *oelem)
 	MetaEntry me, me2;
 	VacFile *fp;
 	VtBlock *b;
-	uint32_t bo;
+	u32 bo;
 
 	if(!f->dirty)
 		return 0;
@@ -1249,13 +1249,13 @@ vacfileflush(VacFile *f, int recursive)
  * The mode can be changed later except for the ModeDir bit.
  */
 VacFile*
-vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
+vacfilecreate(VacFile *fp, char *elem, u32 mode)
 {
 	VacFile *ff;
 	VacDir *dir;
 	VtFile *pr, *r, *mr;
 	int type;
-	uint32_t bo;
+	u32 bo;
 
 	if(filelock(fp) < 0)
 		return nil;
@@ -1379,7 +1379,7 @@ Err1:
  * Change the size of the file f.
  */
 int
-vacfilesetsize(VacFile *f, uint64_t size)
+vacfilesetsize(VacFile *f, u64 size)
 {
 	if(vacfileisdir(f)){
 		werrstr(ENotFile);
@@ -1412,7 +1412,7 @@ Err:
  * Write data to f.
  */
 int
-vacfilewrite(VacFile *f, void *buf, int cnt, int64_t offset)
+vacfilewrite(VacFile *f, void *buf, int cnt, i64 offset)
 {
 	if(vacfileisdir(f)){
 		werrstr(ENotFile);
@@ -1532,8 +1532,8 @@ vacfilesetdir(VacFile *f, VacDir *dir)
 {
 	VacFile *ff;
 	char *oelem;
-	uint32_t mask;
-	uint64_t size;
+	u32 mask;
+	u64 size;
 
 	/* can not set permissions for the root */
 	if(vacfileisroot(f)){
@@ -1635,7 +1635,7 @@ Err:
  * Set the qid space.
  */
 int
-vacfilesetqidspace(VacFile *f, uint64_t offset, uint64_t max)
+vacfilesetqidspace(VacFile *f, u64 offset, u64 max)
 {
 	int ret;
 
@@ -1664,7 +1664,7 @@ vacfilesetqidspace(VacFile *f, uint64_t offset, uint64_t max)
 static int
 filecheckempty(VacFile *f)
 {
-	uint32_t i, n;
+	u32 i, n;
 	VtBlock *b;
 	MetaBlock mb;
 	VtFile *r;
@@ -1758,7 +1758,7 @@ vacfsalloc(VtConn *z, int bsize, int ncache, int mode)
 }
 
 static int
-readscore(int fd, uint8_t score[VtScoreSize])
+readscore(int fd, u8 score[VtScoreSize])
 {
 	char buf[45], *pref;
 	int n;
@@ -1785,7 +1785,7 @@ VacFs*
 vacfsopen(VtConn *z, char *file, int mode, int ncache)
 {
 	int fd;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 	char *prefix;
 
 	if(vtparsescore(file, &prefix, score) >= 0){
@@ -1807,12 +1807,12 @@ vacfsopen(VtConn *z, char *file, int mode, int ncache)
 }
 
 VacFs*
-vacfsopenscore(VtConn *z, uint8_t *score, int mode, int ncache)
+vacfsopenscore(VtConn *z, u8 *score, int mode, int ncache)
 {
 	VacFs *fs;
 	int n;
 	VtRoot rt;
-	uint8_t buf[VtRootSize];
+	u8 buf[VtRootSize];
 	VacFile *root;
 	VtFile *r;
 	VtEntry e;
@@ -1884,14 +1884,14 @@ vacfsgetblocksize(VacFs *fs)
 }
 
 int
-vacfsgetscore(VacFs *fs, uint8_t *score)
+vacfsgetscore(VacFs *fs, u8 *score)
 {
 	memmove(score, fs->score, VtScoreSize);
 	return 0;
 }
 
 int
-_vacfsnextqid(VacFs *fs, uint64_t *qid)
+_vacfsnextqid(VacFs *fs, u64 *qid)
 {
 	++fs->qid;
 	*qid = fs->qid;
@@ -1899,7 +1899,7 @@ _vacfsnextqid(VacFs *fs, uint64_t *qid)
 }
 
 void
-vacfsjumpqid(VacFs *fs, uint64_t step)
+vacfsjumpqid(VacFs *fs, u64 step)
 {
 	fs->qid += step;
 }
@@ -1911,7 +1911,7 @@ vacfsjumpqid(VacFs *fs, uint64_t step)
  * got created last, so it had the maximum qid.
  */
 int
-vacfsgetmaxqid(VacFs *fs, uint64_t *maxqid)
+vacfsgetmaxqid(VacFs *fs, u64 *maxqid)
 {
 	VacDir vd;
 
@@ -1944,7 +1944,7 @@ vacfscreate(VtConn *z, int bsize, int ncache)
 {
 	VacFs *fs;
 	VtFile *f;
-	uint8_t buf[VtEntrySize], metascore[VtScoreSize];
+	u8 buf[VtEntrySize], metascore[VtScoreSize];
 	VtEntry e;
 	VtBlock *b;
 	MetaBlock mb;
@@ -2025,7 +2025,7 @@ vacfscreate(VtConn *z, int bsize, int ncache)
 int
 vacfssync(VacFs *fs)
 {
-	uint8_t buf[1024];
+	u8 buf[1024];
 	VtEntry e;
 	VtFile *f;
 	VtRoot root;
@@ -2098,10 +2098,10 @@ vacfiledsize(VacFile *f)
  * Does block b of f have the same SHA1 hash as the n bytes at buf?
  */
 int
-sha1matches(VacFile *f, uint32_t b, uint8_t *buf, int n)
+sha1matches(VacFile *f, u32 b, u8 *buf, int n)
 {
-	uint8_t fscore[VtScoreSize];
-	uint8_t bufscore[VtScoreSize];
+	u8 fscore[VtScoreSize];
+	u8 bufscore[VtScoreSize];
 
 	if(vacfileblockscore(f, b, fscore) < 0)
 		return 0;

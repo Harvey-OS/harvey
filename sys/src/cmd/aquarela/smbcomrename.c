@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
+smbcomrename(SmbSession *s, SmbHeader *h, u8 *l, SmbBuffer *b)
 {
 	int rv;
 	char *old,     *new;
@@ -18,7 +18,7 @@ smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 	char *newpath = nil;
 	char *olddir, *newdir;
 	char *oldname, *newname;
-	uint8_t oldfmt, newfmt;
+	u8 oldfmt, newfmt;
 	SmbTree *t;
 	Dir d;
 	SmbProcessResult pr;

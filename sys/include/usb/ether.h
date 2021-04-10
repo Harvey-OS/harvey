@@ -43,8 +43,8 @@ struct Buf
 {
 	int	type;
 	int	ndata;
-	uint8_t*	rp;
-	uint8_t	data[Hdrsize+Maxpkt];
+	u8 *	rp;
+	u8	data[Hdrsize+Maxpkt];
 };
 
 struct Conn
@@ -60,11 +60,11 @@ struct Conn
 struct Etherops
 {
 	int	(*init)(Ether*, int *epin, int *epout);
-	int32_t	(*bread)(Ether*, Buf*);
-	int32_t	(*bwrite)(Ether*, Buf*);
+	i32	(*bread)(Ether*, Buf*);
+	i32	(*bwrite)(Ether*, Buf*);
 	int	(*ctl)(Ether*, char*);
 	int	(*promiscuous)(Ether*, int);
-	int	(*multicast)(Ether*, uint8_t*, int);
+	int	(*multicast)(Ether*, u8*, int);
 	char*	(*seprintstats)(char*, char*, Ether*);
 	void	(*free)(Ether*);
 	int	bufsize;
@@ -86,7 +86,7 @@ struct Ether
 	Ref	prom;			/* nb. of promiscuous conns */
 	int	exiting;			/* shutting down */
 	int	wrexited;			/* write process died */
-	uint8_t	addr[Eaddrlen];		/* mac */
+	u8	addr[Eaddrlen];		/* mac */
 	int	nconns;			/* nb. of entries used in... */
 	Conn*	conns[Nconns];		/* connections */
 	int	nabufs;			/* nb. of allocated buffers */
@@ -114,17 +114,17 @@ struct Cinfo
 
 struct Etherpkt
 {
-	uint8_t d[Eaddrlen];
-	uint8_t s[Eaddrlen];
-	uint8_t type[2];
-	uint8_t data[1500];
+	u8 d[Eaddrlen];
+	u8 s[Eaddrlen];
+	u8 type[2];
+	u8 data[1500];
 };
 
 int	ethermain(Dev *dev, int argc, char **argv);
 int	asixreset(Ether*);
 int smscreset(Ether*);
 int	cdcreset(Ether*);
-int	parseaddr(uint8_t *m, char *s);
+int	parseaddr(u8 *m, char *s);
 void	dumpframe(char *tag, void *p, int n);
 
 extern Cinfo cinfo[];

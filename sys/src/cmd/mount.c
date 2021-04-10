@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 {
 	char *devspec = "M";
 	char *attachname = "";
-	uint32_t flag = 0;
+	u32 flag = 0;
 	int qflag = 0;
 	int noauth = 0;
 	int fd, rv;

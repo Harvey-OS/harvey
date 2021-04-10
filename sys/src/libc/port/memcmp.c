@@ -11,7 +11,7 @@
 #include	<libc.h>
 
 int
-memcmp(const void *a1, const void *a2, uint32_t n)
+memcmp(const void *a1, const void *a2, u32 n)
 {
 	const char *s1, *s2;
 	uint c1, c2;

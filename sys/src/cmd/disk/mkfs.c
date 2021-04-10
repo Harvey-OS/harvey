@@ -32,17 +32,17 @@ struct File{
 	char	*old;
 	char	*uid;
 	char	*gid;
-	uint32_t	mode;
+	u32	mode;
 };
 
 void	arch(Dir*);
 void	copy(Dir*);
 int	copyfile(File*, Dir*, int);
-void*	emalloc(uint32_t);
+void*	emalloc(u32);
 void	error(char *, ...);
 void	freefile(File*);
 File*	getfile(File*);
-char*	getmode(char*, uint32_t*);
+char*	getmode(char*, u32*);
 char*	getname(char*, char**);
 char*	getpath(char*);
 void	kfscmd(char *);
@@ -62,7 +62,7 @@ void	warn(char *, ...);
 
 Biobuf	*b;
 Biobufhdr bout;			/* stdout when writing archive */
-uint8_t	boutbuf[2*LEN];
+u8	boutbuf[2*LEN];
 char	newfile[LEN];
 char	oldfile[LEN];
 char	*proto;
@@ -277,7 +277,7 @@ mkfile(File *f)
 int
 copyfile(File *f, Dir *d, int permonly)
 {
-	uint32_t mode;
+	u32 mode;
 	Dir nd;
 
 	if(xflag){
@@ -354,7 +354,7 @@ copy(Dir *d)
 {
 	char cptmp[LEN], *p;
 	int f, t, n, needwrite, nowarnyet = 1;
-	int64_t tot, len;
+	i64 tot, len;
 	Dir nd;
 
 	f = open(oldfile, OREAD);
@@ -668,10 +668,10 @@ getname(char *p, char **buf)
 }
 
 char*
-getmode(char *p, uint32_t *xmode)
+getmode(char *p, u32 *xmode)
 {
 	char *buf, *s;
-	uint32_t m;
+	u32 m;
 
 	*xmode = ~0;
 	p = getname(p, &buf);
@@ -802,7 +802,7 @@ kfscmd(char *cmd)
 }
 
 void *
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 

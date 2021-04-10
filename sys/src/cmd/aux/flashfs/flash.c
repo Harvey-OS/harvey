@@ -24,10 +24,10 @@ usage(void)
 	exits("usage");
 }
 
-static uint32_t
+static u32
 argval(char *arg)
 {
-	int32_t v;
+	i32 v;
 	char *extra;
 
 	if(arg == nil)

@@ -14,9 +14,9 @@ void
 cat(int f, char *s)
 {
 	char buf[8192];
-	int32_t n;
+	i32 n;
 
-	while((n=read(f, buf, (int32_t)sizeof buf))>0)
+	while((n=read(f, buf, (i32)sizeof buf))>0)
 		if(write(1, buf, n)!=n)
 			sysfatal("write error copying %s: %r", s);
 	if(n < 0)

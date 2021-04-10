@@ -512,7 +512,7 @@ struct DevScope {
 	int *paths;
 };
 /*
- * The device scope is basic tbdf as uint32_t. There is a special value
+ * The device scope is basic tbdf as u32. There is a special value
  * that means "everything" and if we see that we set "all" in the Drhd.
  */
 struct Drhd {

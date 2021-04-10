@@ -30,7 +30,7 @@ enum {
 #define makekey(va) ((va) | 3)
 #define isfree(he) (((he)->key & 1) == 0)
 #define ischain(he) (((he)->key & 2) != 0)
-#define setfree(he) ((he)->key &= ~(uint64_t)1)
+#define setfree(he) ((he)->key &= ~(u64)1)
 
 /*
  *	http://burtleburtle.net/bob/hash/integer.mapml
@@ -38,10 +38,10 @@ enum {
  *	https://github.com/google/cityhash/blob/master/src/city.h
  */
 size_t
-scramble64(uint64_t a)
+scramble64(u64 a)
 {
 	// this is from cityhash. ok avalance, quick.
-	uint64_t kMul = 0x9ddfea08eb382d69ULL;
+	u64 kMul = 0x9ddfea08eb382d69ULL;
 	a *= kMul;
 	a ^= (a >> 47);
 	a *= kMul;
@@ -49,7 +49,7 @@ scramble64(uint64_t a)
 }
 
 static int
-hmapput1(Hashtable *cur, uint64_t key, uint64_t val)
+hmapput1(Hashtable *cur, u64 key, u64 val)
 {
 	Hashentry *tab = cur->tab;
 	size_t cap = cur->cap;
@@ -69,7 +69,7 @@ hmapput1(Hashtable *cur, uint64_t key, uint64_t val)
 }
 
 static int
-hmapget1(Hashtable *cur, uint64_t key, Hashentry **hep)
+hmapget1(Hashtable *cur, u64 key, Hashentry **hep)
 {
 	Hashentry *tab = cur->tab;
 	size_t cap = cur->cap;
@@ -138,7 +138,7 @@ hmapfree(Hashmap *map)
 }
 
 int
-hmapdel(Hashmap *map, uint64_t key, uint64_t *valp)
+hmapdel(Hashmap *map, u64 key, u64 *valp)
 {
 	Hashtable *cur = map->cur;
 	Hashentry *he;
@@ -155,7 +155,7 @@ hmapdel(Hashmap *map, uint64_t key, uint64_t *valp)
 }
 
 int
-hmapget(Hashmap *map, uint64_t key, uint64_t *valp)
+hmapget(Hashmap *map, u64 key, u64 *valp)
 {
 	Hashtable *cur = map->cur;
 	Hashentry *he;
@@ -167,7 +167,7 @@ hmapget(Hashmap *map, uint64_t key, uint64_t *valp)
 }
 
 int
-hmapput(Hashmap *map, uint64_t key, uint64_t val)
+hmapput(Hashmap *map, u64 key, u64 val)
 {
 	Hashtable *cur = map->cur;
 	int err;

@@ -71,7 +71,7 @@ execute(Node *n)
 	Value *v;
 	Lsym *sl;
 	Node *l, *r;
-	int64_t i, s, e;
+	i64 i, s, e;
 	Node res, xx;
 	static int stmnt;
 
@@ -212,14 +212,14 @@ convflt(Node *r, char *flt)
 }
 
 void
-indir(Map *m, uint64_t addr, char fmt, Node *r)
+indir(Map *m, u64 addr, char fmt, Node *r)
 {
 	int i;
-	uint32_t lval;
-	uint64_t uvval;
+	u32 lval;
+	u64 uvval;
 	int ret;
-	uint8_t cval;
-	uint16_t sval;
+	u8 cval;
+	u16 sval;
 	char buf[512], reg[12];
 
 	r->op = OCONST;
@@ -281,7 +281,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 's':
 		r->type = TSTRING;
 		for(i = 0; i < sizeof(buf)-1; i++) {
-			ret = get1(m, addr, (uint8_t*)&buf[i], 1);
+			ret = get1(m, addr, (u8*)&buf[i], 1);
 			if (ret < 0)
 				error("indir: %r");
 			addr++;
@@ -296,7 +296,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 'R':
 		r->type = TSTRING;
 		for(i = 0; i < sizeof(buf)-2; i += 2) {
-			ret = get1(m, addr, (uint8_t*)&buf[i], 2);
+			ret = get1(m, addr, (u8*)&buf[i], 2);
 			if (ret < 0)
 				error("indir: %r");
 			addr += 2;
@@ -316,14 +316,14 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		r->store.string = strnode(buf);
 		break;
 	case 'f':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
+		ret = get1(m, addr, (u8*)buf, mach->szfloat);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->sftos(buf, sizeof(buf), (void*) buf);
 		convflt(r, buf);
 		break;
 	case 'g':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
+		ret = get1(m, addr, (u8*)buf, mach->szfloat);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->sftos(buf, sizeof(buf), (void*) buf);
@@ -331,14 +331,14 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		r->store.string = strnode(buf);
 		break;
 	case 'F':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
+		ret = get1(m, addr, (u8*)buf, mach->szdouble);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->dftos(buf, sizeof(buf), (void*) buf);
 		convflt(r, buf);
 		break;
 	case '3':	/* little endian ieee 80 with hole in bytes 8&9 */
-		ret = get1(m, addr, (uint8_t*)reg, 10);
+		ret = get1(m, addr, (u8*)reg, 10);
 		if (ret < 0)
 			error("indir: %r");
 		memmove(reg+10, reg+8, 2);	/* open hole */
@@ -347,14 +347,14 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		convflt(r, buf);
 		break;
 	case '8':	/* big-endian ieee 80 */
-		ret = get1(m, addr, (uint8_t*)reg, 10);
+		ret = get1(m, addr, (u8*)reg, 10);
 		if (ret < 0)
 			error("indir: %r");
 		beieee80ftos(buf, sizeof(buf), reg);
 		convflt(r, buf);
 		break;
 	case 'G':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
+		ret = get1(m, addr, (u8*)buf, mach->szdouble);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->dftos(buf, sizeof(buf), (void*) buf);
@@ -367,9 +367,9 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 void
 windir(Map *m, Node *addr, Node *rval, Node *r)
 {
-	uint8_t cval;
-	uint16_t sval;
-	int32_t lval;
+	u8 cval;
+	u16 sval;
+	i32 lval;
 	Node res, aes;
 	int ret;
 
@@ -427,7 +427,7 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		break;
 	case 's':
 	case 'R':
-		ret = put1(m, aes.store.ival, (uint8_t*)res.store.string->string,
+		ret = put1(m, aes.store.ival, (u8*)res.store.string->string,
 		           res.store.string->len);
 		break;
 	}

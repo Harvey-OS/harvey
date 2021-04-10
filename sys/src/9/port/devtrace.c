@@ -82,8 +82,8 @@ static const int PIDWATCHSIZE = 32; /* The number of PIDS that can be watched. P
 
 int codesize = 0;
 
-//static uint64_t lastestamp; /* last entry timestamp */
-//static uint64_t lastxstamp; /* last exit timestamp */
+//static u64 lastestamp; /* last entry timestamp */
+//static u64 lastxstamp; /* last exit timestamp */
 
 /* Trace events can be either Entries or Exits */
 static char eventname[] = {

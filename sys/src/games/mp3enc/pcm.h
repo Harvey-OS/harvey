@@ -270,7 +270,7 @@ int  lame_encode_mp3_frame (             // return code, 0 for success
         INOUT lame_global_flags*,        // internal context structure
         OUTTR sample_t * inbuf_l,        // data for left  channel
         OUTTR sample_t * inbuf_r,        // data for right channel
-        IN    uint8_t  * mp3buf,         // where to write the coded data
+        IN    u8  * mp3buf,         // where to write the coded data
         OUT   size_t     mp3buf_size );  // maximum size of coded data
 #endif
 
@@ -278,7 +278,7 @@ int  lame_encode_ogg_frame (             // return code, 0 for success
         INOUT lame_global_flags*,        // internal context structure
         OUT   sample_t * inbuf_l,        // data for left  channel
         OUT   sample_t * inbuf_r,        // data for right channel
-        IN    uint8_t  * mp3buf,         // where to write the coded data
+        IN    u8  * mp3buf,         // where to write the coded data
         OUT   size_t     mp3buf_size );  // maximum size of coded data
 
 /*}}}*/

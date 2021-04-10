@@ -30,10 +30,10 @@ enum
 
 static AHash	*ahash[AHashSize];
 
-static uint32_t
+static u32
 hashstr(char *s)
 {
-	uint32_t h;
+	u32 h;
 	int c;
 
 	h = 0;
@@ -50,7 +50,7 @@ int
 addarena(Arena *arena)
 {
 	AHash *a;
-	uint32_t h;
+	u32 h;
 
 	h = hashstr(arena->name) & (AHashSize - 1);
 	a = MK(AHash);
@@ -66,7 +66,7 @@ Arena*
 findarena(char *name)
 {
 	AHash *a;
-	uint32_t h;
+	u32 h;
 
 	h = hashstr(name) & (AHashSize - 1);
 	for(a = ahash[h]; a != nil; a = a->next)
@@ -79,7 +79,7 @@ int
 delarena(Arena *arena)
 {
 	AHash *a, *last;
-	uint32_t h;
+	u32 h;
 
 	h = hashstr(arena->name) & (AHashSize - 1);
 	last = nil;
@@ -103,7 +103,7 @@ initarenapart(Part *part)
 	AMapN amn;
 	ArenaPart *ap;
 	ZBlock *b;
-	uint32_t i;
+	u32 i;
 	int ok;
 
 	b = alloczblock(HeadSize, 0, 0);
@@ -143,7 +143,7 @@ initarenapart(Part *part)
 	}
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	partblocksize(part, ap->blocksize);
-	ap->size = ap->part->size & ~(uint64_t)(ap->blocksize - 1);
+	ap->size = ap->part->size & ~(u64)(ap->blocksize - 1);
 
 	if(readarenamap(&amn, part, ap->tabbase, ap->tabsize) < 0){
 		freearenapart(ap, 0);
@@ -198,7 +198,7 @@ initarenapart(Part *part)
 }
 
 ArenaPart*
-newarenapart(Part *part, uint32_t blocksize, uint32_t tabsize)
+newarenapart(Part *part, u32 blocksize, u32 tabsize)
 {
 	ArenaPart *ap;
 
@@ -214,7 +214,7 @@ newarenapart(Part *part, uint32_t blocksize, uint32_t tabsize)
 	ap->part = part;
 	ap->blocksize = blocksize;
 	partblocksize(part, blocksize);
-	ap->size = part->size & ~(uint64_t)(blocksize - 1);
+	ap->size = part->size & ~(u64)(blocksize - 1);
 	ap->tabbase = (PartBlank + HeadSize + blocksize - 1) & ~(blocksize - 1);
 	ap->arenabase = (ap->tabbase + tabsize + blocksize - 1) & ~(blocksize - 1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
@@ -277,10 +277,10 @@ freearenapart(ArenaPart *ap, int freearenas)
 }
 
 int
-okamap(AMap *am, int n, uint64_t start, uint64_t stop, char *what)
+okamap(AMap *am, int n, u64 start, u64 stop, char *what)
 {
-	uint64_t last;
-	uint32_t i;
+	u64 last;
+	u32 i;
 
 	last = start;
 	for(i = 0; i < n; i++){
@@ -307,7 +307,7 @@ okamap(AMap *am, int n, uint64_t start, uint64_t stop, char *what)
 int
 maparenas(AMap *am, Arena **arenas, int n, char *what)
 {
-	uint32_t i;
+	u32 i;
 
 	for(i = 0; i < n; i++){
 		arenas[i] = findarena(am[i].name);
@@ -320,10 +320,10 @@ maparenas(AMap *am, Arena **arenas, int n, char *what)
 }
 
 int
-readarenamap(AMapN *amn, Part *part, uint64_t base, uint32_t size)
+readarenamap(AMapN *amn, Part *part, u64 base, u32 size)
 {
 	IFile f;
-	uint32_t ok;
+	u32 ok;
 
 	if(partifile(&f, part, base, size) < 0)
 		return -1;
@@ -333,7 +333,7 @@ readarenamap(AMapN *amn, Part *part, uint64_t base, uint32_t size)
 }
 
 int
-wbarenamap(AMap *am, int n, Part *part, uint64_t base, uint64_t size)
+wbarenamap(AMap *am, int n, Part *part, u64 base, u64 size)
 {
 	Fmt f;
 	ZBlock *b;
@@ -360,23 +360,23 @@ wbarenamap(AMap *am, int n, Part *part, uint64_t base, uint64_t size)
 
 /*
  * amap: n '\n' amapelem * n
- * n: uint32_t
+ * n: u32
  * amapelem: name '\t' astart '\t' astop '\n'
- * astart, astop: uint64_t
+ * astart, astop: u64
  */
 int
 parseamap(IFile *f, AMapN *amn)
 {
 	AMap *am;
-	uint64_t v64;
-	uint32_t v;
+	u64 v64;
+	u32 v;
 	char *s, *t, *flds[4];
 	int i, n;
 
 	/*
 	 * arenas
 	 */
-	if(ifileuint32_t(f, &v) < 0){
+	if(ifileu32(f, &v) < 0){
 		seterr(ECorrupt, "syntax error: bad number of elements in %s", f->name);
 		return -1;
 	}
@@ -406,13 +406,13 @@ parseamap(IFile *f, AMapN *amn)
 		if(nameok(flds[0]) < 0)
 			return -1;
 		namecp(am[i].name, flds[0]);
-		if(struint64_t(flds[1], &v64) < 0){
+		if(stru64(flds[1], &v64) < 0){
 			seterr(ECorrupt, "syntax error: bad arena base address in %s", f->name);
 			free(am);
 			return -1;
 		}
 		am[i].start = v64;
-		if(struint64_t(flds[2], &v64) < 0){
+		if(stru64(flds[2], &v64) < 0){
 			seterr(ECorrupt, "syntax error: bad arena size in %s", f->name);
 			free(am);
 			return -1;

@@ -112,7 +112,7 @@ out:
 }
 
 int
-authread(File *file, uint8_t *data, int count)
+authread(File *file, u8 *data, int count)
 {
 	AuthInfo *ai;
 	AuthRpc *rpc;
@@ -150,7 +150,7 @@ authread(File *file, uint8_t *data, int count)
 }
 
 int
-authwrite(File *file, uint8_t *data, int count)
+authwrite(File *file, u8 *data, int count)
 {
 	int ret;
 
@@ -184,7 +184,7 @@ authfree(File *fp)
 void
 mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode)
 {
-	qid->path = (uint32_t)(qid9p1->path & ~QPDIR);
+	qid->path = (u32)(qid9p1->path & ~QPDIR);
 	qid->vers = qid9p1->version;
 	qid->type = 0;
 	if(mode & DDIR)
@@ -198,7 +198,7 @@ mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode)
 static int
 checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 {
-	uint8_t buf[1];
+	u8 buf[1];
 
 	if(chan == cons.srvchan || chan == cons.chan)
 		return 0;
@@ -241,7 +241,7 @@ fsattach(Chan* chan, Fcall* f, Fcall* r)
 	File *file;
 	File *afile;
 	Filsys *fs;
-	int32_t raddr;
+	i32 raddr;
 	int error, u;
 
 	aname = f->aname;
@@ -367,7 +367,7 @@ walkname(File* file, char* wname, Qid* wqid)
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
 	int error, slot;
-	int32_t addr, qpath;
+	i32 addr, qpath;
 
 	p = p1 = nil;
 
@@ -813,7 +813,7 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 	Dentry *d, *d1;
 	File *file;
 	int error, slot, slot1, fmod, wok, l;
-	int32_t addr, addr1, path;
+	i32 addr, addr1, path;
 	Tlock *t;
 	Wpath *w;
 
@@ -1017,18 +1017,18 @@ out:
 static int
 fsread(Chan* chan, Fcall* f, Fcall* r)
 {
-	uint8_t *data;
+	u8 *data;
 	Iobuf *p, *p1;
 	File *file;
 	Dentry *d, *d1;
 	Tlock *t;
-	int32_t addr, offset, start, tim;
+	i32 addr, offset, start, tim;
 	int error, iounit, nread, count, n, o, slot;
 	Dir dir;
 	char strdata[28*10];
 
 	p = nil;
-	data = (uint8_t*)r->data;
+	data = (u8*)r->data;
 	count = f->count;
 	offset = f->offset;
 	nread = 0;
@@ -1216,7 +1216,7 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 	Dentry *d;
 	File *file;
 	Tlock *t;
-	int32_t offset, addr, tim, qpath;
+	i32 offset, addr, tim, qpath;
 	int count, error, nwrite, o, n;
 
 	offset = f->offset;
@@ -1230,7 +1230,7 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 		goto out;
 	}
 	if(file->qid.type & QTAUTH){
-		nwrite = authwrite(file, (uint8_t*)f->data, count);
+		nwrite = authwrite(file, (u8*)f->data, count);
 		if(nwrite < 0)
 			error = Esystem;
 		else
@@ -1366,7 +1366,7 @@ fsremove(Chan* chan, Fcall* f, Fcall* r)
 }
 
 static int
-fsstat(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
+fsstat(Chan* chan, Fcall* f, Fcall* r, u8 * data)
 {
 	Dir dir;
 	Iobuf *p;
@@ -1415,9 +1415,9 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	Dentry *d, *d1, xd;
 	File *file;
 	int error, slot, uid, gid, l;
-	int32_t addr;
+	i32 addr;
 	Dir dir;
-	uint32_t mode;
+	u32 mode;
 
 	p = p1 = nil;
 	d1 = nil;
@@ -1691,7 +1691,7 @@ out:
 }
 
 static int
-recv(Chan *c, uint8_t *buf, int n)
+recv(Chan *c, u8 *buf, int n)
 {
 	int fd, m, len;
 
@@ -1727,7 +1727,7 @@ recv(Chan *c, uint8_t *buf, int n)
 }
 
 static void
-send(Chan *c, uint8_t *buf, int n)
+send(Chan *c, u8 *buf, int n)
 {
 	int fd, m;
 
@@ -1741,9 +1741,9 @@ send(Chan *c, uint8_t *buf, int n)
 }
 
 void
-serve9p2(Chan *chan, uint8_t *ib, int nib)
+serve9p2(Chan *chan, u8 *ib, int nib)
 {
-	uint8_t inbuf[MSIZE+IOHDRSZ], outbuf[MSIZE+IOHDRSZ];
+	u8 inbuf[MSIZE+IOHDRSZ], outbuf[MSIZE+IOHDRSZ];
 	Fcall f, r;
 	char ename[64];
 	int error, n, type;

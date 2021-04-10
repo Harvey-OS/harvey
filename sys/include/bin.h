@@ -11,7 +11,7 @@
 typedef struct Bin	Bin;
 
 
-void	*binalloc(Bin **, uint32_t size, int zero);
-void	*bingrow(Bin **, void *op, uint32_t osize, uint32_t size,
+void	*binalloc(Bin **, u32 size, int zero);
+void	*bingrow(Bin **, void *op, u32 osize, u32 size,
 		     int zero);
 void	binfree(Bin **);

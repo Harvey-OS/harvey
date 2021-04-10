@@ -22,7 +22,7 @@ msfconv(Fmt *fp)
 static int
 playmsf(Drive *d, Msf start, Msf end)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x47;
@@ -59,7 +59,7 @@ playtrack(Drive *d, int start, int end)
 int
 resume(Drive *d)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x4B;
@@ -70,7 +70,7 @@ resume(Drive *d)
 int
 pause(Drive *d)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x4B;
@@ -80,7 +80,7 @@ pause(Drive *d)
 int
 stop(Drive *d)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x4E;
@@ -90,7 +90,7 @@ stop(Drive *d)
 int
 eject(Drive *d)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x1B;
@@ -102,7 +102,7 @@ eject(Drive *d)
 int
 ingest(Drive *d)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x1B;
@@ -112,7 +112,7 @@ ingest(Drive *d)
 }
 
 static Msf
-rdmsf(uint8_t *p)
+rdmsf(u8 *p)
 {
 	Msf msf;
 
@@ -122,8 +122,8 @@ rdmsf(uint8_t *p)
 	return msf;
 }
 
-static uint32_t
-rdlba(uint8_t *p)
+static u32
+rdlba(u8 *p)
 {
 	return (p[0]<<16) | (p[1]<<8) | p[2];
 }
@@ -133,8 +133,8 @@ int
 gettoc(Scsi *s, Toc *t)
 {
 	int i, n;
-	uint8_t cmd[12];
-	uint8_t resp[1024];
+	u8 cmd[12];
+	u8 resp[1024];
 
 Again:
 	memset(t, 0, sizeof(*t));
@@ -222,7 +222,7 @@ dumptoc(Toc *t)
 static void
 ping(Drive *d)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x43;
@@ -232,7 +232,7 @@ ping(Drive *d)
 static int
 playstatus(Drive *d, Cdstatus *stat)
 {
-	uint8_t cmd[12], resp[16];
+	u8 cmd[12], resp[16];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x42;

@@ -31,9 +31,9 @@ enum {
 static char zmagic[] = "1234567890abcdefghijklmnopqrstuvxyz";
 
 ZBlock *
-alloczblock(uint32_t size, int zeroed, uint blocksize)
+alloczblock(u32 size, int zeroed, uint blocksize)
 {
-	uint8_t *p, *data;
+	u8 *p, *data;
 	ZBlock *b;
 	static ZBlock z;
 	int n;
@@ -75,7 +75,7 @@ freezblock(ZBlock *b)
 }
 
 ZBlock*
-packet2zblock(Packet *p, uint32_t size)
+packet2zblock(Packet *p, u32 size)
 {
 	ZBlock *b;
 
@@ -92,7 +92,7 @@ packet2zblock(Packet *p, uint32_t size)
 }
 
 Packet*
-zblock2packet(ZBlock *zb, uint32_t size)
+zblock2packet(ZBlock *zb, u32 size)
 {
 	Packet *p;
 

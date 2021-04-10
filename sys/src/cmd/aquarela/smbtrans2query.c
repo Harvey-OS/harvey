@@ -10,13 +10,13 @@
 #include "headers.h"
 
 static SmbProcessResult
-query(SmbSession *s, char *cmdname, char *filename, uint16_t infolevel,
-      int64_t cbo, Dir *d)
+query(SmbSession *s, char *cmdname, char *filename, u16 infolevel,
+      i64 cbo, Dir *d)
 {
-	int64_t ntatime, ntmtime;
-	uint16_t dosmode;
-	uint32_t fnlfixupoffset;
-	int64_t allocsize;
+	i64 ntatime, ntmtime;
+	u16 dosmode;
+	u32 fnlfixupoffset;
+	i64 allocsize;
 
 	if (d == nil) {
 		smbseterror(s, ERRDOS, ERRbadfile);
@@ -86,7 +86,7 @@ query(SmbSession *s, char *cmdname, char *filename, uint16_t infolevel,
 		translogprint(s->transaction.in.setup[0], "length=%lld", d->length);
 		translogprint(s->transaction.in.setup[0], "isdir=%d\n", (d->qid.type & QTDIR) != 0);
 
-		if (!smbbufferputv(s->transaction.out.data, smbl2roundupint64_t(d->length, smbglobals.l2allocationsize))
+		if (!smbbufferputv(s->transaction.out.data, smbl2roundupi64(d->length, smbglobals.l2allocationsize))
 			|| !smbbufferputv(s->transaction.out.data, d->length)
 			|| !smbbufferputl(s->transaction.out.data, 1)
 			|| !smbbufferputb(s->transaction.out.data, 0)
@@ -121,7 +121,7 @@ smbtrans2querypathinformation(SmbSession *s, SmbHeader *h)
 	SmbTree *t;
 	SmbBuffer *b = nil;
 	SmbProcessResult pr;
-	uint16_t infolevel;
+	u16 infolevel;
 	Dir *d;
 	char *path = nil;
 	char *fullpath;
@@ -160,9 +160,9 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 	SmbFile *f;
 	SmbBuffer *b = nil;
 	SmbProcessResult pr;
-	uint16_t fid;
-	uint16_t infolevel;
-	int64_t o;
+	u16 fid;
+	u16 infolevel;
+	i64 o;
 	Dir *d;
 
 	t = smbidmapfind(s->tidmap, h->tid);
@@ -206,11 +206,11 @@ SmbProcessResult
 smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 {
 	SmbTree *t;
-	uint16_t infolevel;
+	u16 infolevel;
 	SmbBuffer *b;
 	SmbProcessResult pr;
-	uint32_t fixup;
-	uint32_t vnbase;
+	u32 fixup;
+	u32 vnbase;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {

@@ -41,7 +41,7 @@ void
 main(int argc, char *argv[])
 {
 	int n;
-	int32_t chal;
+	i32 chal;
 	char *err;
 	char ukey[DESKEYLEN], resp[32], buf[NETCHLEN];
 	Ndb *db2;

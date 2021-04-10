@@ -25,19 +25,19 @@
 			"Id": 0,
 			"Name": "r0",
 			"Ret": [
-				"int64_t"
+				"i64"
 			]
 		},
 		{
 			"Args": [
 				"char*",
 				"char*",
-				"int32_t"
+				"i32"
 			],
 			"Id": 2,
 			"Name": "bind",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
@@ -47,38 +47,38 @@
 			"Id": 3,
 			"Name": "chdir",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t"
+				"i32"
 			],
 			"Id": 4,
 			"Name": "close",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
-				"int32_t"
+				"i32",
+				"i32"
 			],
 			"Id": 5,
 			"Name": "dup",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"uint64_t"
+				"u64"
 			],
 			"Id": 6,
 			"Name": "alarm",
 			"Ret": [
-				"int64_t"
+				"i64"
 			]
 		},
 		{
@@ -100,14 +100,14 @@
 			"Libname": "_exits",
 			"Name": "exits",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Id": 10,
 			"Name": "fauth",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
@@ -120,56 +120,56 @@
 		{
 			"Args": [
 				"char*",
-				"int32_t"
+				"i32"
 			],
 			"Id": 14,
 			"Name": "open",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t"
+				"i32"
 			],
 			"Id": 19,
 			"Name": "rfork",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t*"
+				"i32*"
 			],
 			"Id": 21,
 			"Name": "pipe",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
 				"char*",
-				"int32_t",
-				"int32_t"
+				"i32",
+				"i32"
 			],
 			"Id": 22,
 			"Name": "create",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
+				"i32",
 				"char*",
-				"uint32_t"
+				"u32"
 			],
 			"Id": 23,
 			"Name": "fd2path",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
@@ -189,7 +189,7 @@
 			"Id": 25,
 			"Name": "remove",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
@@ -199,17 +199,17 @@
 			"Id": 28,
 			"Name": "notify",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t"
+				"i32"
 			],
 			"Id": 29,
 			"Name": "noted",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
@@ -223,21 +223,21 @@
 			"Id": 31,
 			"Name": "segdetach",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Id": 32,
 			"Name": "segfree",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Id": 33,
 			"Name": "segflush",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
@@ -258,202 +258,202 @@
 			"Id": 35,
 			"Name": "unmount",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t*",
-				"int32_t"
+				"i32*",
+				"i32"
 			],
 			"Id": 37,
 			"Name": "semacquire",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t*",
-				"int32_t"
+				"i32*",
+				"i32"
 			],
 			"Id": 38,
 			"Name": "semrelease",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int64_t*",
-				"int32_t",
-				"int64_t",
-				"int32_t"
+				"i64*",
+				"i32",
+				"i64",
+				"i32"
 			],
 			"Id": 39,
 			"Name": "seek",
 			"Ret": [
-				"int64_t"
+				"i64"
 			]
 		},
 		{
 			"Id": 40,
 			"Name": "fversion",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
 				"char*",
-				"uint32_t"
+				"u32"
 			],
 			"Id": 41,
 			"Name": "errstr",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
 				"char*",
-				"uint8_t*",
-				"uint32_t"
+				"u8*",
+				"u32"
 			],
 			"Id": 42,
 			"Name": "stat",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
-				"uint8_t*",
-				"uint32_t"
+				"i32",
+				"u8*",
+				"u32"
 			],
 			"Id": 43,
 			"Name": "fstat",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
 				"char*",
-				"uint8_t*",
-				"uint32_t"
+				"u8*",
+				"u32"
 			],
 			"Id": 44,
 			"Name": "wstat",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
-				"uint8_t*",
-				"uint32_t"
+				"i32",
+				"u8*",
+				"u32"
 			],
 			"Id": 45,
 			"Name": "fwstat",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
-				"int32_t",
+				"i32",
+				"i32",
 				"char*",
-				"int32_t",
+				"i32",
 				"char*"
 			],
 			"Id": 46,
 			"Name": "mount_",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
 				"char*",
-				"int32_t"
+				"i32"
 			],
 			"Id": 47,
 			"Name": "await",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
+				"i32",
 				"void*",
-				"int32_t",
-				"int64_t"
+				"i32",
+				"i64"
 			],
 			"Id": 50,
 			"Name": "pread",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
+				"i32",
 				"void*",
-				"int32_t",
-				"int64_t"
+				"i32",
+				"i64"
 			],
 			"Id": 51,
 			"Name": "pwrite",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int64_t"
+				"i64"
 			],
 			"Id": 17,
 			"Name": "sleep",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Args": [
-				"int32_t*",
-				"uint64_t"
+				"i32*",
+				"u64"
 			],
 			"Id": 52,
 			"Name": "tsemacquire",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		},
 		{
 			"Id": 53,
 			"Name": "nsec",
 			"Ret": [
-				"int64_t"
+				"i64"
 			]
 		},
 		{
 			"Args": [
-				"int32_t",
-				"int32_t",
+				"i32",
+				"i32",
 				"char*",
-				"int32_t",
+				"i32",
 				"char*",
-				"int32_t"
+				"i32"
 			],
 			"Id": 54,
 			"Name": "mount",
 			"Ret": [
-				"int32_t"
+				"i32"
 			]
 		}
 	],

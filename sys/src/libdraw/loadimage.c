@@ -12,11 +12,11 @@
 #include <draw.h>
 
 int
-loadimage(Image *i, Rectangle r, uint8_t *data, int ndata)
+loadimage(Image *i, Rectangle r, u8 *data, int ndata)
 {
-	int32_t dy;
+	i32 dy;
 	int n, bpl;
-	uint8_t *a;
+	u8 *a;
 	int chunk;
 
 	chunk = i->display->bufsize - 64;

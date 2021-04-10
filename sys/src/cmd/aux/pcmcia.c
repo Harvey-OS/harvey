@@ -62,15 +62,15 @@ readc(void *x)
 	pos++;
 	rv = read(fd, x, 1);
 	if(hex)
-		print("%2.2x ", *(uint8_t*)x);
+		print("%2.2x ", *(u8*)x);
 	return rv;
 }
 
 int
 tuple(int next, int expect)
 {
-	uint8_t link;
-	uint8_t type;
+	u8 link;
+	u8 type;
 
 	pos = next;
 	if(readc(&type) != 1)
@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 		next = tuple(next, 0);
 }
 
-uint32_t speedtab[16] =
+u32 speedtab[16] =
 {
 	[1]	= 250,
 	[2]	= 200,
@@ -128,7 +128,7 @@ uint32_t speedtab[16] =
 	[4]	= 100,
 };
 
-uint32_t mantissa[16] =
+u32 mantissa[16] =
 {
 	[1]	= 10,
 	[2]	= 12,
@@ -147,7 +147,7 @@ uint32_t mantissa[16] =
 	[0xf]	= 80,
 };
 
-uint32_t exponent[8] =
+u32 exponent[8] =
 {
 	[0]	= 1,
 	[1]	= 10,
@@ -171,12 +171,12 @@ char *typetab[256] =
 	[0xD]	= "IO+MEM",
 };
 
-uint32_t
+u32
 getlong(int size)
 {
-	uint8_t c;
+	u8 c;
 	int i;
-	uint32_t x;
+	u32 x;
 
 	x = 0;
 	for(i = 0; i < size; i++){
@@ -190,11 +190,11 @@ getlong(int size)
 void
 tdevice(int ttype, int len)
 {
-	uint8_t id;
-	uint8_t type;
-	uint8_t speed, aespeed;
-	uint8_t size;
-	uint32_t bytes, ns;
+	u8 id;
+	u8 type;
+	u8 speed, aespeed;
+	u8 size;
+	u32 bytes, ns;
 	char *tname, *ttname;
 
 	while(len > 0){
@@ -253,7 +253,7 @@ void
 tlonglnkmfc(int p, int n)
 {
 	int i, opos;
-	uint8_t nfn, space, expect;
+	u8 nfn, space, expect;
 	int addr;
 
 	readc(&nfn);
@@ -285,7 +285,7 @@ static char *funcids[] = {
 void
 tfuncid(int p, int i)
 {
-	uint8_t func;
+	u8 func;
 
 	readc(&func);
 	print("Function %s\n",
@@ -295,7 +295,7 @@ tfuncid(int p, int i)
 void
 tvers1(int ttype, int len)
 {
-	uint8_t c, major, minor;
+	u8 c, major, minor;
 	int  i;
 	char string[512];
 
@@ -331,10 +331,10 @@ tvers1(int ttype, int len)
 void
 tcfig(int ttype, int len)
 {
-	uint8_t size, rasize, rmsize;
-	uint8_t last;
-	uint32_t caddr;
-	uint32_t cregs;
+	u8 size, rasize, rmsize;
+	u8 last;
+	u32 caddr;
+	u32 cregs;
 	int i;
 
 	USED(ttype); USED(len);
@@ -364,11 +364,11 @@ char *intrname[16] =
 	[7] =	"Custom 3",
 };
 
-uint32_t vexp[8] =
+u32 vexp[8] =
 {
 	1, 10, 100, 1000, 10000, 100000, 1000000, 10000000
 };
-uint32_t vmant[16] =
+u32 vmant[16] =
 {
 	10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90,
 };
@@ -376,9 +376,9 @@ uint32_t vmant[16] =
 void
 volt(char *name)
 {
-	uint8_t c;
-	uint32_t microv;
-	uint32_t exp;
+	u8 c;
+	u32 microv;
+	u32 exp;
 
 	if(readc(&c) != 1)
 		return;
@@ -405,8 +405,8 @@ volt(char *name)
 void
 amps(char *name)
 {
-	uint8_t c;
-	uint32_t amps;
+	u8 c;
+	u32 amps;
 
 	if(readc(&c) != 1)
 		return;
@@ -428,7 +428,7 @@ amps(char *name)
 void
 power(char *name)
 {
-	uint8_t feature;
+	u8 feature;
 
 	print("\t%s: ", name);
 	if(readc(&feature) != 1)
@@ -453,8 +453,8 @@ power(char *name)
 void
 ttiming(char *name, int scale)
 {
-	uint8_t unscaled;
-	uint32_t scaled;
+	u8 unscaled;
+	u32 scaled;
 
 	if(readc(&unscaled) != 1)
 		return;
@@ -466,7 +466,7 @@ ttiming(char *name, int scale)
 void
 timing(void)
 {
-	uint8_t c, i;
+	u8 c, i;
 
 	if(readc(&c) != 1)
 		return;
@@ -484,7 +484,7 @@ timing(void)
 void
 range(int asize, int lsize)
 {
-	uint32_t address, len;
+	u32 address, len;
 
 	address = getlong(asize);
 	len = getlong(lsize);
@@ -500,7 +500,7 @@ char *ioaccess[4] =
 };
 
 int
-iospace(uint8_t c)
+iospace(u8 c)
 {
 	int i;
 
@@ -519,7 +519,7 @@ iospace(uint8_t c)
 void
 iospaces(void)
 {
-	uint8_t c;
+	u8 c;
 
 	if(readc(&c) != 1)
 		return;
@@ -529,9 +529,9 @@ iospaces(void)
 void
 irq(void)
 {
-	uint8_t c;
-	uint8_t irq1, irq2;
-	uint16_t i, irqs;
+	u8 c;
+	u8 irq1, irq2;
+	u16 i, irqs;
 
 	if(readc(&c) != 1)
 		return;
@@ -554,7 +554,7 @@ irq(void)
 void
 memspace(int asize, int lsize, int host)
 {
-	uint32_t haddress, address, len;
+	u32 haddress, address, len;
 
 	len = getlong(lsize)*256;
 	address = getlong(asize)*256;
@@ -574,7 +574,7 @@ misc(void)
 void
 tentry(int ttype, int len)
 {
-	uint8_t c, i, feature;
+	u8 c, i, feature;
 	char *tname;
 	char buf[16];
 

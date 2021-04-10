@@ -12,10 +12,10 @@ typedef struct Rawimage Rawimage;
 struct Rawimage
 {
 	Rectangle	r;
-	uint8_t	*cmap;
+	u8	*cmap;
 	int		cmaplen;
 	int		nchans;
-	uint8_t	*chans[4];
+	u8	*chans[4];
 	int		chandesc;
 	int		chanlen;
 
@@ -52,7 +52,7 @@ enum{	/* PNG flags */
 };
 
 typedef struct ImageInfo {
-	uint32_t	fields_set;
+	u32	fields_set;
 	double	gamma;
 	char	*comment;
 } ImageInfo;

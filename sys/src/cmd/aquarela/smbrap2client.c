@@ -37,12 +37,12 @@ smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *o
 }
 
 int
-smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
+smbnetserverenum2(SmbClient *c, u32 stype, char *domain,
 		  int *entriesp,
 		  SmbRapServerInfo1 **sip, char **errmsgp)
 {
 	int rv;
-	uint16_t ec, entries, total, converter;
+	u16 ec, entries, total, converter;
 	SmbRapServerInfo1 *si = nil;
 	SmbBuffer *ipb = smbbuffernew(512);
 	SmbBuffer *odb = smbbuffernew(65535);
@@ -82,7 +82,7 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 		remark = (char *)&si[entries];
 		eremark = remark + remarkspace;
 		for (i = 0; i < entries; i++) {
-			uint32_t offset;
+			u32 offset;
 			int remarklen;
 			assert(smbbuffergetbytes(odb, si[i].name, 16));
 			assert(smbbuffergetb(odb, &si[i].vmaj));

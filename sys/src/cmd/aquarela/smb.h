@@ -8,31 +8,31 @@
  */
 
 typedef struct SmbRawHeader {
-	uint8_t protocol[4];
-	uint8_t command;
+	u8 protocol[4];
+	u8 command;
 //	union {
 //		struct {
-//			uint8_t errorclass;
-//			uint8_t reserved;
-//			uint8_t error[2];
+//			u8 errorclass;
+//			u8 reserved;
+//			u8 error[2];
 //		} doserror;
-		uint8_t status[4];
+		u8 status[4];
 //	};
-	uint8_t flags;
-	uint8_t flags2[2];
+	u8 flags;
+	u8 flags2[2];
 //	union {
-		uint8_t extra[12];
+		u8 extra[12];
 //		struct {
-//			uint8_t pidhigh[2];
-//			uint8_t securitysignature[8];
+//			u8 pidhigh[2];
+//			u8 securitysignature[8];
 //		};
 //	};
-	uint8_t tid[2];
-	uint8_t pid[2];
-	uint8_t uid[2];
-	uint8_t mid[2];
-	uint8_t wordcount;
-	uint8_t parameterwords[1];
+	u8 tid[2];
+	u8 pid[2];
+	u8 uid[2];
+	u8 mid[2];
+	u8 wordcount;
+	u8 parameterwords[1];
 } SmbRawHeader;
 
 enum {

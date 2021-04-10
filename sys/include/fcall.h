@@ -15,16 +15,16 @@
 typedef
 struct	Fcall
 {
-	uint8_t	type;
-	uint32_t	fid;
-	uint16_t	tag;
+	u8	type;
+	u32	fid;
+	u16	tag;
 	union {
 		struct {
-			uint32_t	msize;		/* Tversion, Rversion */
+			u32	msize;		/* Tversion, Rversion */
 			char	*version;	/* Tversion, Rversion */
 		};
 		struct {
-			uint16_t	oldtag;		/* Tflush */
+			u16	oldtag;		/* Tflush */
 		};
 		struct {
 			char	*ename;		/* Rerror */
@@ -34,38 +34,38 @@ struct	Fcall
 		};
 		struct {
 			Qid	qid;		/* Rattach, Ropen, Rcreate */
-			uint32_t	iounit;		/* Ropen, Rcreate */
+			u32	iounit;		/* Ropen, Rcreate */
 		};
 		struct {
 			Qid	aqid;		/* Rauth */
 		};
 		struct {
-			uint32_t	afid;		/* Tauth, Tattach */
+			u32	afid;		/* Tauth, Tattach */
 			char	*uname;		/* Tauth, Tattach */
 			char	*aname;		/* Tauth, Tattach */
 		};
 		struct {
-			uint32_t	perm;		/* Tcreate */ 
+			u32	perm;		/* Tcreate */ 
 			char	*name;		/* Tcreate */
-			uint8_t	mode;		/* Tcreate, Topen */
+			u8	mode;		/* Tcreate, Topen */
 		};
 		struct {
-			uint32_t	newfid;		/* Twalk */
-			uint16_t	nwname;		/* Twalk */
+			u32	newfid;		/* Twalk */
+			u16	nwname;		/* Twalk */
 			char	*wname[MAXWELEM];	/* Twalk */
 		};
 		struct {
-			uint16_t	nwqid;		/* Rwalk */
+			u16	nwqid;		/* Rwalk */
 			Qid	wqid[MAXWELEM];		/* Rwalk */
 		};
 		struct {
-			int64_t	offset;		/* Tread, Twrite */
-			uint32_t	count;		/* Tread, Twrite, Rread */
+			i64	offset;		/* Tread, Twrite */
+			u32	count;		/* Tread, Twrite, Rread */
 			char	*data;		/* Twrite, Rread */
 		};
 		struct {
-			uint16_t	nstat;		/* Twstat, Rstat */
-			uint8_t	*stat;		/* Twstat, Rstat */
+			u16	nstat;		/* Twstat, Rstat */
+			u8	*stat;		/* Twstat, Rstat */
 		};
 	};
 } Fcall;
@@ -74,8 +74,8 @@ struct	Fcall
 #define	GBIT8(p)	((p)[0])
 #define	GBIT16(p)	((p)[0]|((p)[1]<<8))
 #define	GBIT32(p)	((p)[0]|((p)[1]<<8)|((p)[2]<<16)|((p)[3]<<24))
-#define	GBIT64(p)	((uint32_t)((p)[0]|((p)[1]<<8)|((p)[2]<<16)|((p)[3]<<24)) |\
-				((int64_t)((p)[4]|((p)[5]<<8)|((p)[6]<<16)|((p)[7]<<24)) << 32))
+#define	GBIT64(p)	((u32)((p)[0]|((p)[1]<<8)|((p)[2]<<16)|((p)[3]<<24)) |\
+				((i64)((p)[4]|((p)[5]<<8)|((p)[6]<<16)|((p)[7]<<24)) << 32))
 
 #define	PBIT8(p,v)	(p)[0]=(v)
 #define	PBIT16(p,v)	(p)[0]=(v);(p)[1]=(v)>>8
@@ -93,8 +93,8 @@ struct	Fcall
 /* The count, however, excludes itself; total size is BIT16SZ+count */
 #define STATFIXLEN	(BIT16SZ+QIDSZ+5*BIT16SZ+4*BIT32SZ+1*BIT64SZ)	/* amount of fixed length data in a stat buffer */
 
-#define	NOTAG		(uint16_t)~0U	/* Dummy tag */
-#define	NOFID		(uint32_t)~0U	/* Dummy fid */
+#define	NOTAG		(u16)~0U	/* Dummy tag */
+#define	NOFID		(u32)~0U	/* Dummy fid */
 #define	IOHDRSZ		24	/* ample room for Twrite/Rread header (iounit) */
 
 // 9P2000.L, for some reason, lets callers closely tune what comes from a gettattr.
@@ -167,14 +167,14 @@ enum
 	Rreaddir
 };
 
-uint	convM2S(uint8_t*, uint, Fcall*);
-uint	convS2M(Fcall*, uint8_t*, uint);
+uint	convM2S(u8*, uint, Fcall*);
+uint	convS2M(Fcall*, u8*, uint);
 uint	sizeS2M(Fcall*);
 
-int	statcheck(uint8_t *abuf, uint nbuf);
-uint	convM2D(uint8_t*, uint, Dir*, char*);
-uint	convLM2D(uint8_t*, uint, Dir*);
-uint	convD2M(Dir*, uint8_t*, uint);
+int	statcheck(u8 *abuf, uint nbuf);
+uint	convM2D(u8*, uint, Dir*, char*);
+uint	convLM2D(u8*, uint, Dir*);
+uint	convD2M(Dir*, u8*, uint);
 uint	sizeD2M(Dir*);
 
 int	fcallfmt(Fmt*);

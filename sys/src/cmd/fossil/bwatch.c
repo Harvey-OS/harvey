@@ -41,8 +41,8 @@ typedef struct WEntry WEntry;
 
 struct WEntry
 {
-	uint8_t c[VtScoreSize];
-	uint8_t p[VtScoreSize];
+	u8 c[VtScoreSize];
+	u8 p[VtScoreSize];
 	int off;
 
 	WEntry *cprev;
@@ -66,7 +66,7 @@ static WEntry *pool;
 uint bwatchDisabled;
 
 static uint
-hash(uint8_t score[VtScoreSize])
+hash(u8 score[VtScoreSize])
 {
 	uint i, h;
 
@@ -107,7 +107,7 @@ allocWEntry(void)
  * remove all dependencies with score as a parent
  */
 static void
-_bwatchResetParent(uint8_t *score)
+_bwatchResetParent(u8 *score)
 {
 	WEntry *w, *next;
 	uint h;
@@ -136,7 +136,7 @@ _bwatchResetParent(uint8_t *score)
  * and child
  */
 static void
-_bwatchResetChild(uint8_t *score)
+_bwatchResetChild(u8 *score)
 {
 	WEntry *w, *next;
 	uint h;
@@ -162,8 +162,8 @@ _bwatchResetChild(uint8_t *score)
 	}
 }
 
-static uint8_t*
-parent(uint8_t c[VtScoreSize], int *off)
+static u8 *
+parent(u8 c[VtScoreSize], int *off)
 {
 	WEntry *w;
 	uint h;
@@ -178,7 +178,7 @@ parent(uint8_t c[VtScoreSize], int *off)
 }
 
 static void
-addChild(uint8_t p[VtEntrySize], uint8_t c[VtEntrySize], int off)
+addChild(u8 p[VtEntrySize], u8 c[VtEntrySize], int off)
 {
 	uint h;
 	WEntry *w;
@@ -202,7 +202,7 @@ addChild(uint8_t p[VtEntrySize], uint8_t c[VtEntrySize], int off)
 }
 
 void
-bwatchReset(uint8_t score[VtScoreSize])
+bwatchReset(u8 score[VtScoreSize])
 {
 	vtLock(map.lk);
 	_bwatchResetParent(score);
@@ -277,7 +277,7 @@ bwatchDependency(Block *b)
 }
 
 static int
-depth(uint8_t *s)
+depth(u8 *s)
 {
 	int d, x;
 
@@ -290,9 +290,9 @@ depth(uint8_t *s)
 }
 
 static int
-lockConflicts(uint8_t xhave[VtScoreSize], uint8_t xwant[VtScoreSize])
+lockConflicts(u8 xhave[VtScoreSize], u8 xwant[VtScoreSize])
 {
-	uint8_t *have, *want;
+	u8 *have, *want;
 	int havedepth, wantdepth, havepos, wantpos;
 
 	have = xhave;

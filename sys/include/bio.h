@@ -34,12 +34,12 @@ struct	Biobuf
 	int	state;		/* r/w/inactive */
 	int	fid;		/* open file */
 	int	flag;		/* magic if malloc'ed */
-	int64_t	offset;		/* offset of buffer in file */
+	i64	offset;		/* offset of buffer in file */
 	int	bsize;		/* size of buffer */
-	uint8_t*	bbuf;		/* pointer to beginning of buffer */
-	uint8_t*	ebuf;		/* pointer to end of buffer */
-	uint8_t*	gbuf;		/* pointer to good data in buf */
-	uint8_t	b[Bungetsize+Bsize];
+	u8 *	bbuf;		/* pointer to beginning of buffer */
+	u8 *	ebuf;		/* pointer to end of buffer */
+	u8 *	gbuf;		/* pointer to good data in buf */
+	u8	b[Bungetsize+Bsize];
 };
 
 /* Dregs, redefined as functions for backwards compatibility */
@@ -54,22 +54,22 @@ int	Bfildes(Biobufhdr*);
 int	Bflush(Biobufhdr*);
 int	Bgetc(Biobufhdr*);
 int	Bgetd(Biobufhdr*, double*);
-int32_t	Bgetrune(Biobufhdr*);
+i32	Bgetrune(Biobufhdr*);
 int	Binit(Biobuf*, int, int);
-int	Binits(Biobufhdr*, int, int, uint8_t*, int);
+int	Binits(Biobufhdr*, int, int, u8*, int);
 int	Blinelen(Biobufhdr*);
-int64_t	Boffset(Biobufhdr*);
+i64	Boffset(Biobufhdr*);
 Biobuf*	Bopen(char*, int);
 int	Bprint(Biobufhdr*, char*, ...);
 int	Bvprint(Biobufhdr*, char*, va_list);
 int	Bputc(Biobufhdr*, int);
-int	Bputrune(Biobufhdr*, int32_t);
+int	Bputrune(Biobufhdr*, i32);
 void*	Brdline(Biobufhdr*, int);
 char*	Brdstr(Biobufhdr*, int, int);
-int32_t	Bread(Biobufhdr*, void*, int32_t);
-int64_t	Bseek(Biobufhdr*, int64_t, int);
+i32	Bread(Biobufhdr*, void*, i32);
+i64	Bseek(Biobufhdr*, i64, int);
 int	Bterm(Biobufhdr*);
 int	Bungetc(Biobufhdr*);
 int	Bungetrune(Biobufhdr*);
-int32_t	Bwrite(Biobufhdr*, void*, int32_t);
+i32	Bwrite(Biobufhdr*, void*, i32);
 

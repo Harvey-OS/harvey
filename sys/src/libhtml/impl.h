@@ -47,7 +47,7 @@ extern Rune*	_Strndup(Rune* s, int n);
 extern Rune*	_Strnrclass(Rune* s, Rune* cl, int n);
 extern Rune*	_Strrclass(Rune* s, Rune* cl);
 extern Rune*	_Strsubstr(Rune* s, int start, int stop);
-extern int32_t	_Strtol(Rune* s, Rune** eptr, int base);
+extern i32	_Strtol(Rune* s, Rune** eptr, int base);
 extern void	_trimwhite(Rune* s, int n, Rune** pans, int* panslen);
 
 extern Rune*	notwhitespace;

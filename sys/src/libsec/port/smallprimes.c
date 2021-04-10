@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-uint32_t smallprimes[1000] = {
+u32 smallprimes[1000] = {
 	2,
 	3,
 	5,

@@ -25,13 +25,13 @@ struct Aux {
 	Aux	*prev;
 	char	*path;		/* full path fo file */
 	Share	*sp;		/* this share's info */
-	int32_t	expire;		/* expiration time of cache */
-	int32_t	off;		/* file pos of start of cache */
-	int32_t	end;		/* file pos of end of cache */
+	i32	expire;		/* expiration time of cache */
+	i32	off;		/* file pos of start of cache */
+	i32	end;		/* file pos of end of cache */
 	char	*cache;
 	int	fh;		/* file handle */
 	int	sh;		/* search handle */
-	int32_t	srch;		/* find first's internal state */
+	i32	srch;		/* find first's internal state */
 };
 
 extern int chatty9p;
@@ -97,24 +97,24 @@ filetableinfo(Fmt *f)
 }
 
 Qid
-mkqid(char *s, int is_dir, int32_t vers, int subtype, int32_t path)
+mkqid(char *s, int is_dir, i32 vers, int subtype, i32 path)
 {
 	Qid q;
 	union {				/* align digest suitably */
-		uint8_t	digest[SHA1dlen];
-		uint64_t	uvl;
+		u8	digest[SHA1dlen];
+		u64	uvl;
 	} u;
 
-	sha1((uint8_t *)s, strlen(s), u.digest, nil);
+	sha1((u8 *)s, strlen(s), u.digest, nil);
 	q.type = (is_dir)? QTDIR: 0;
 	q.vers = vers;
 	if(subtype){
-		q.path = *((uint64_t *)u.digest) & ~0xfffL;
+		q.path = *((u64 *)u.digest) & ~0xfffL;
 		q.path |= ((path & 0xff) << 4);
 		q.path |= (subtype & 0xf);
 	}
 	else
-		q.path = *((uint64_t *)u.digest) & ~0xfL;
+		q.path = *((u64 *)u.digest) & ~0xfL;
 	return q;
 }
 
@@ -202,7 +202,7 @@ newpath(char *path, char *name)
 static int
 dirgen(int slot, Dir *d, void *aux)
 {
-	int32_t off;
+	i32 off;
 	FInfo *fi;
 	int rc, got;
 	Aux *a = aux;
@@ -741,10 +741,10 @@ fsopen(Req *r)
 static void
 fswrite(Req *r)
 {
-	int64_t n, m, got;
+	i64 n, m, got;
 	Aux *a = r->fid->aux;
-	int64_t len = r->ifcall.count;
-	int64_t off = r->ifcall.offset;
+	i64 len = r->ifcall.count;
+	i64 off = r->ifcall.offset;
 	char *buf = r->ifcall.data;
 
 	got = 0;
@@ -767,11 +767,11 @@ fswrite(Req *r)
 static void
 fsread(Req *r)
 {
-	int64_t n, m, got;
+	i64 n, m, got;
 	Aux *a = r->fid->aux;
 	char *buf = r->ofcall.data;
-	int64_t len = r->ifcall.count;
-	int64_t off = r->ifcall.offset;
+	i64 len = r->ifcall.count;
+	i64 off = r->ifcall.offset;
 
 	if(ptype(r->fid->qid.path) == Pinfo){
 		r->ofcall.count = readinfo(pindex(r->fid->qid.path), buf, len,
@@ -1098,7 +1098,7 @@ static void
 keepalive(void)
 {
 	char buf[32];
-	uint64_t tot, fre;
+	u64 tot, fre;
 	int fd, i, slot, rc;
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
@@ -1149,7 +1149,7 @@ void
 main(int argc, char **argv)
 {
 	int i, n;
-	int32_t svrtime;
+	i32 svrtime;
 	char windom[64], cname[64];
 	char *method, *sysname, *keyp, *mtpt, *svs;
 

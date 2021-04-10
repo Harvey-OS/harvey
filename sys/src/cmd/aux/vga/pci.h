@@ -96,17 +96,17 @@ enum {					/* type 1 pre-defined header */
 typedef struct Pcidev Pcidev;
 struct Pcidev {
 	int	tbdf;			/* type+bus+device+function */
-	uint16_t	vid;			/* vendor ID */
-	uint16_t	did;			/* device ID */
-	uint8_t		rid;			/* revision ID */
+	u16	vid;			/* vendor ID */
+	u16	did;			/* device ID */
+	u8		rid;			/* revision ID */
 
 	struct {
-		uint32_t	bar;		/* base address */
+		u32	bar;		/* base address */
 		int	size;
 	} mem[6];
 
-	uint8_t	intl;			/* interrupt line */
-	uint16_t	ccru;
+	u8	intl;			/* interrupt line */
+	u16	ccru;
 
 
 	Pcidev*	list;

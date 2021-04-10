@@ -134,7 +134,7 @@ _fmtdispatch(Fmt *f, const void *fmt, int isrunes)
 {
 	Rune rune, r;
 	int i, n, w, p;
-	uint32_t fl;
+	u32 fl;
 	const void *ret;
 
 	w = f->width;

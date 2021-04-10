@@ -51,7 +51,7 @@ Dirtab dirtab[]=
 static uint		getclock(void);
 static void		filsysproc(void*);
 static Fid*		newfid(Filsys*, int);
-static int		dostat(Filsys*, int, Dirtab*, uint8_t*, int, uint);
+static int		dostat(Filsys*, int, Dirtab*, u8*, int, uint);
 
 int	clockfd;
 int	firstmessage = 1;
@@ -197,7 +197,7 @@ filsysproc(void *arg)
 	Xfid *x;
 	Fid *f;
 	Fcall t;
-	uint8_t *buf;
+	u8 *buf;
 	Filsys *fs;
 
 	threadsetname("FILSYSPROC");
@@ -395,8 +395,8 @@ filsyswalk(Filsys *fs, Xfid *x, Fid *f)
 	Fcall t;
 	Fid *nf;
 	int i, id;
-	uint8_t type;
-	uint32_t path;
+	u8 type;
+	u32 path;
 	Dirtab *d, *dir;
 	Window *w;
 	char *err;
@@ -588,7 +588,7 @@ filsysread(Filsys *fs, Xfid *x, Fid *f)
 {
 	print_func_entry();
 	Fcall t;
-	uint8_t *b;
+	u8 *b;
 	int i, n, o, e, len, j, k, *ids;
 	Dirtab *d, dt;
 	uint clock;
@@ -767,7 +767,7 @@ getclock(void)
 
 static
 int
-dostat(Filsys *fs, int id, Dirtab *dir, uint8_t *buf, int nbuf, uint clock)
+dostat(Filsys *fs, int id, Dirtab *dir, u8 *buf, int nbuf, uint clock)
 {
 	print_func_entry();
 	Dir d;

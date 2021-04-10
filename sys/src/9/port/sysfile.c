@@ -347,7 +347,7 @@ sysnsec(Ar0 *ar0, ...)
 	va_start(list, ar0);
 	va_end(list);
 	/*
-	 * int64_t nsec(void);
+	 * i64 nsec(void);
 	 */
 	ar0->vl = todget(nil);
 }
@@ -804,7 +804,7 @@ syspread(Ar0 *ar0, ...)
 	off = va_arg(list, i64);
 	va_end(list);
 	/*
-	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
+	 * long pread(int fd, void* buf, long nbytes, i64 offset);
 	 */
 	ar0->l = read(fd, p, n, off);
 }
@@ -871,7 +871,7 @@ syspwrite(Ar0 *ar0, ...)
 	i64 offset = va_arg(list, i64);
 	va_end(list);
 	/*
-	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
+	 * long pwrite(int fd, void *buf, long nbytes, i64 offset);
 	 */
 	ar0->l = write(fd, buf, nbytes, offset);
 }
@@ -939,7 +939,7 @@ sysseek(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int64_t seek(int fd, int64_t n, int type);
+	 * i64 seek(int fd, i64 n, int type);
 	 */
 	fd = va_arg(list, int);
 	offset = va_arg(list, i64);
@@ -1347,7 +1347,7 @@ syscreate(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int create(char* file, int omode, uint32_t perm);
+	 * int create(char* file, int omode, u32 perm);
 	 * should be
 	 * int create(char* file, int omode, int perm);
 	 */

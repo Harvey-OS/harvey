@@ -11,10 +11,10 @@
 #include <libc.h>
 
 int
-dec32(uint8_t *dest, int ndest, const char *src, int nsrc)
+dec32(u8 *dest, int ndest, const char *src, int nsrc)
 {
 	char *s, *tab;
-	uint8_t *start;
+	u8 *start;
 	int i, u[8];
 
 	if(ndest+1 < (5*nsrc+7)/8)
@@ -57,7 +57,7 @@ out:
 }
 
 int
-enc32(char *dest, int ndest, const uint8_t *src, int nsrc)
+enc32(char *dest, int ndest, const u8 *src, int nsrc)
 {
 	char *tab, *start;
 	int j;

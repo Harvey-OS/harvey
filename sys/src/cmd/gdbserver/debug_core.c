@@ -86,7 +86,7 @@ arch_remove_breakpoint(GdbState *ks, struct bkpt *bpt)
 }
 
 unsigned long
-_arch_pc(int exception, uint64_t * regs)
+_arch_pc(int exception, u64 * regs)
 {
 	return regs[16];
 }

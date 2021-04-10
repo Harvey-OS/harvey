@@ -10,13 +10,13 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomcreatedirectory(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
+smbcomcreatedirectory(SmbSession *s, SmbHeader *h, u8 *l, SmbBuffer *b)
 {
 	int fd;
 	char *path;
 	char *fullpath = nil;
 	SmbTree *t;
-	uint8_t fmt;
+	u8 fmt;
 
 	if (h->wordcount != 0)
 		return SmbProcessResultFormat;

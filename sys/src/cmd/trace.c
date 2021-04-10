@@ -20,7 +20,7 @@
 #include "trace.h"
 
 
-#define NS(x)	((int64_t)x)
+#define NS(x)	((i64)x)
 #define US(x)	(NS(x) * 1000ULL)
 #define MS(x)	(US(x) * 1000ULL)
 #define S(x)	(MS(x) * 1000ULL)
@@ -37,7 +37,7 @@ typedef struct Event	Event;
 typedef struct Task	Task;
 struct Event {
 	Traceevent Traceevent;
-	int64_t	etime;	/* length of block to draw */
+	i64	etime;	/* length of block to draw */
 };
 
 struct Task {
@@ -45,13 +45,13 @@ struct Task {
 	char	*name;
 	int	nevents;
 	Event	*events;
-	int64_t	tstart;
-	int64_t	total;
-	int64_t	runtime;
-	int64_t	runmax;
-	int64_t	runthis;
-	int32_t	runs;
-	uint32_t	tevents[Nevent];
+	i64	tstart;
+	i64	total;
+	i64	runtime;
+	i64	runmax;
+	i64	runthis;
+	i32	runs;
+	u32	tevents[Nevent];
 };
 
 enum {
@@ -60,7 +60,7 @@ enum {
 	K = 1024,
 };
 
-int64_t	now, prevts;
+i64	now, prevts;
 
 int	newwin;
 int	Width = 1000;
@@ -95,9 +95,9 @@ char *schedstatename[] = {
 };
 
 struct {
-	int64_t	scale;
-	int64_t	bigtics;
-	int64_t	littletics;
+	i64	scale;
+	i64	bigtics;
+	i64	littletics;
 	int	sleep;
 } scales[] = {
 	{	US(500),	US(100),	US(50),		  0},
@@ -232,7 +232,7 @@ redraw(int scaleno)
 	Point p, q;
 	Rectangle r, rtime;
 	Task *t;
-	int64_t ts, oldestts, newestts, period, ppp, scale, s, ss;
+	i64 ts, oldestts, newestts, period, ppp, scale, s, ss;
 
 #	define time2x(t)	((int)(((t) - oldestts) / ppp))
 
@@ -270,8 +270,8 @@ redraw(int scaleno)
 		s = now - t->tstart;
 		if(t->tevents[SRelease])
 			snprint(buf, sizeof(buf), " per %t — avg: %t max: %t",
-				(int64_t)(s/t->tevents[SRelease]),
-				(int64_t)(t->runtime/t->tevents[SRelease]),
+				(i64)(s/t->tevents[SRelease]),
+				(i64)(t->runtime/t->tevents[SRelease]),
 				t->runmax);
 		else if((s /=1000000000LL) != 0)
 			snprint(buf, sizeof(buf), " per 1s — avg: %t total: %t",
@@ -465,7 +465,7 @@ redraw(int scaleno)
 }
 
 Task*
-newtask(uint32_t pid)
+newtask(u32 pid)
 {
 	Task *t;
 	char buf[64], *p;
@@ -508,7 +508,7 @@ doevent(Task *t, Traceevent *ep)
 {
 	int i, n;
 	Event *event;
-	int64_t runt;
+	i64 runt;
 
 	t->tevents[ep->etype & 0xffff]++;
 	n = t->nevents++;
@@ -663,7 +663,7 @@ drawtrace(void)
 					tasks[i].runthis = 0;
 					tasks[i].runs = 0;
 					memset(tasks[i].tevents, 0,
-					       Nevent*sizeof(uint32_t));
+					       Nevent*sizeof(u32));
 
 				}
 				break;
@@ -735,15 +735,15 @@ int
 timeconv(Fmt *f)
 {
 	char buf[128], *sign;
-	int64_t t;
+	i64 t;
 
 	buf[0] = 0;
 	switch(f->r) {
 	case 'U':
-		t = va_arg(f->args, int64_t);
+		t = va_arg(f->args, i64);
 		break;
-	case 't':		// int64_t in nanoseconds
-		t = va_arg(f->args, int64_t);
+	case 't':		// i64 in nanoseconds
+		t = va_arg(f->args, i64);
 		break;
 	default:
 		return fmtstrcpy(f, "(timeconv)");

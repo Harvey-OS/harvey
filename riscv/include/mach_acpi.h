@@ -6,18 +6,18 @@
  */
 
 #define ACPI_USE_SYSTEM_INTTYPES
-typedef uint8_t BOOLEAN;
+typedef u8 BOOLEAN;
 typedef QLock ACPI_MUTEX;
-typedef uint64_t COMPILER_DEPENDENT_UINT64;
-typedef uint64_t UINT64;
-typedef uint32_t UINT32;
-typedef uint16_t UINT16;
-typedef uint8_t UINT8;
-typedef int64_t COMPILER_DEPENDENT_INT64;
-typedef int64_t INT64;
-typedef int32_t INT32;
-typedef int16_t INT16;
-typedef int8_t INT8;
+typedef u64 COMPILER_DEPENDENT_UINT64;
+typedef u64 UINT64;
+typedef u32 UINT32;
+typedef u16 UINT16;
+typedef u8 UINT8;
+typedef i64 COMPILER_DEPENDENT_INT64;
+typedef i64 INT64;
+typedef i32 INT32;
+typedef i16 INT16;
+typedef i8 INT8;
 typedef int ACPI_THREAD_ID;
 
 #define DEBUGGER_THREADING DEBUGGER_SINGLE_THREADED

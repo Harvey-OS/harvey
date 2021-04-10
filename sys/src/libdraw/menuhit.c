@@ -63,7 +63,7 @@ setimagemenucolors(Image *backcolor, Image *highcolor, Image *bordercolor, Image
 }
 
 void
-setmenucolor(uint32_t backcolor, uint32_t highcolor, uint32_t bordercolor, uint32_t textcolor, uint32_t seltextcolor){
+setmenucolor(u32 backcolor, u32 highcolor, u32 bordercolor, u32 textcolor, u32 seltextcolor){
 	setimagemenucolors(allocimage(display, Rect(0,0,1,1), screen->chan, 1, backcolor),
 	                   allocimage(display, Rect(0,0,1,1), screen->chan, 1, highcolor),
 	                   allocimage(display, Rect(0,0,1,1), screen->chan, 1, bordercolor),

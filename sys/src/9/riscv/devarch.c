@@ -329,8 +329,8 @@ archread(Chan *c, void *a, i32 n, i64 offset)
 {
 	char *buf, *p;
 	//int port;
-	//uint16_t *sp;
-	//uint32_t *lp;
+	//u16 *sp;
+	//u32 *lp;
 	IOMap *map;
 	Rdwrfn *fn;
 
@@ -430,8 +430,8 @@ archwrite(Chan *c, void *a, i32 n, i64 offset)
 {
 	//char *p;
 	//int port;
-	//uint16_t *sp;
-	//uint32_t *lp;
+	//u16 *sp;
+	//u32 *lp;
 	Rdwrfn *fn;
 
 	switch((u32)c->qid.path){

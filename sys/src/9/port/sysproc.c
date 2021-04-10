@@ -256,23 +256,23 @@ sysrfork(Ar0 *ar0, ...)
 	ar0->i = pid;
 }
 #if 0
-static uint64_t
-vl2be(uint64_t v)
+static u64
+vl2be(u64 v)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&v;
-	return ((uint64_t)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
-	      |((uint64_t)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
+	p = (u8*)&v;
+	return ((u64)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
+	      |((u64)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 }
 
 
-static uint32_t
-l2be(int32_t l)
+static u32
+l2be(i32 l)
 {
-	uint8_t *cp;
+	u8 *cp;
 
-	cp = (uint8_t*)&l;
+	cp = (u8*)&l;
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 #endif
@@ -1284,9 +1284,9 @@ systsemacquire(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int tsemacquire(long* addr, uint64_t ms);
+	 * int tsemacquire(long* addr, u64 ms);
 	 * should be (and will be implemented below as) perhaps
-	 * int tsemacquire(int* addr, uint64_t ms);
+	 * int tsemacquire(int* addr, u64 ms);
 	 */
 	addr = va_arg(list, int *);
 	addr = validaddr(addr, sizeof(int), 1);

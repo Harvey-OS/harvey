@@ -87,7 +87,7 @@ struct	Wblk
 
 Biobuf	*curfile, *fsave;
 Blk	*arg1, *arg2;
-uint8_t	savk;
+u8	savk;
 int	dbg;
 int	ifile;
 Blk	*scalptr, *basptr, *tenptr, *inbas;
@@ -108,11 +108,11 @@ int	neg;
 Sym	symlst[TBLSZ];
 Sym	*stable[TBLSZ];
 Sym	*sptr, *sfree;
-int32_t	rel;
-int32_t	nbytes;
-int32_t	all;
-int32_t	headmor;
-int32_t	obase;
+i32	rel;
+i32	nbytes;
+i32	all;
+i32	headmor;
+i32	obase;
 int	fw,fw1,ll;
 void	(*outdit)(Blk *p, int flg);
 int	logo;
@@ -120,7 +120,7 @@ int	logten;
 int	count;
 char	*pp;
 char	*dummy;
-int32_t	longest, maxsize, active;
+i32	longest, maxsize, active;
 int	lall, lrel, lcopy, lmore, lbytes;
 int	inside;
 Biobuf	bin;
@@ -160,7 +160,7 @@ int	subt(void);
 int	command(void);
 int	cond(char c);
 void	load(void);
-int	log2(int32_t n);
+int	log2(i32 n);
 Blk*	salloc(int size);
 Blk*	morehd(void);
 Blk*	copy(Blk *hptr, int size);
@@ -206,7 +206,7 @@ void
 commnds(void)
 {
 	Blk *p, *q, **ptr, *s, *t;
-	int32_t l;
+	i32 l;
 	Sym *sp;
 	int sk, sk1, sk2, c, sign, n, d;
 
@@ -826,7 +826,7 @@ div(Blk *ddivd, Blk *ddivr)
 {
 	int divsign, remsign, offset, divcarry,
 		carry, dig, magic, d, dd, under, first;
-	int32_t c, td, cc;
+	i32 c, td, cc;
 	Blk *ps, *px, *p, *divd, *divr;
 
 	dig = 0;
@@ -2031,7 +2031,7 @@ load(void)
 }
 
 int
-log2(int32_t n)
+log2(i32 n)
 {
 	int i;
 
@@ -2286,7 +2286,7 @@ int
 getstk(void)
 {
 	int n;
-	uint8_t c;
+	u8 c;
 
 	c = readc();
 	if(c != '<')

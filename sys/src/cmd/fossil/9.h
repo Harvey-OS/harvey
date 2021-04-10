@@ -27,7 +27,7 @@ typedef struct Msg Msg;
 
 struct Msg {
 	unsigned char*	data;
-	uint32_t	msize;			/* actual size of data */
+	u32	msize;			/* actual size of data */
 	Fcall	t;
 	Fcall	r;
 	Con*	con;
@@ -70,7 +70,7 @@ struct Con {
 	int	state;
 	int	fd;
 	Msg*	version;
-	uint32_t	msize;			/* negotiated with Tversion */
+	u32	msize;			/* negotiated with Tversion */
 	VtRendez* rendez;
 
 	Con*	anext;			/* alloc */
@@ -109,7 +109,7 @@ enum {
 struct Fid {
 	VtLock*	lock;
 	Con*	con;
-	uint32_t	fidno;
+	u32	fidno;
 	int	ref;			/* inc/dec under Con.fidlock */
 	int	flags;
 
@@ -162,7 +162,7 @@ extern int authWrite(Fid*, void*, int);
  */
 extern void dirBufFree(DirBuf*);
 extern int dirDe2M(DirEntry*, unsigned char*, int);
-extern int dirRead(Fid*, unsigned char*, int, int64_t);
+extern int dirRead(Fid*, unsigned char*, int, i64);
 
 /*
  * 9excl.c
@@ -177,7 +177,7 @@ extern int exclUpdate(Fid*);
  */
 extern void fidClunk(Fid*);
 extern void fidClunkAll(Con*);
-extern Fid* fidGet(Con*, uint32_t, int);
+extern Fid* fidGet(Con*, u32, int);
 extern void fidInit(void);
 extern void fidPut(Fid*);
 

@@ -78,7 +78,7 @@ struct	Node
 	char	oldop;
 	char xcast;
 	char	class;
-	uint8_t	etype;
+	u8	etype;
 	char	complex;
 	char	addable;
 	char	scale;
@@ -102,7 +102,7 @@ struct	Sym
 	char	*name;
 	ushort	block;
 	ushort	sueblock;
-	uint8_t	class;
+	u8	class;
 	char	sym;
 	char	aused;
 	char	sig;
@@ -143,7 +143,7 @@ struct	Type
 	long	lineno;
 	schar	shift;
 	char	nbits;
-	uint8_t	etype;
+	u8	etype;
 	char	garb;
 };
 

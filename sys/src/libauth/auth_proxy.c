@@ -17,8 +17,8 @@ enum {
 	ARgiveup = 100,
 };
 
-static uint8_t*
-gstring(uint8_t *p, uint8_t *ep, char **s)
+static u8 *
+gstring(u8 *p, u8 *ep, char **s)
 {
 	uint n;
 
@@ -37,8 +37,8 @@ gstring(uint8_t *p, uint8_t *ep, char **s)
 	return p;
 }
 
-static uint8_t*
-gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
+static u8 *
+gcarray(u8 *p, u8 *ep, u8 **s, int *np)
 {
 	uint n;
 
@@ -71,10 +71,10 @@ auth_freeAI(AuthInfo *ai)
 	free(ai);
 }
 
-static uint8_t*
-convM2AI(uint8_t *p, int n, AuthInfo **aip)
+static u8 *
+convM2AI(u8 *p, int n, AuthInfo **aip)
 {
-	uint8_t *e = p+n;
+	u8 *e = p+n;
 	AuthInfo *ai;
 
 	ai = mallocz(sizeof(*ai), 1);
@@ -99,7 +99,7 @@ auth_getinfo(AuthRpc *rpc)
 
 	if(auth_rpc(rpc, "authinfo", nil, 0) != ARok)
 		return nil;
-	if(convM2AI((uint8_t*)rpc->arg, rpc->narg, &a) == nil){
+	if(convM2AI((u8*)rpc->arg, rpc->narg, &a) == nil){
 		werrstr("bad auth info from factotum");
 		return nil;
 	}

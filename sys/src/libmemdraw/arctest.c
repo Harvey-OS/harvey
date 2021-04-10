@@ -25,9 +25,9 @@ main(int argc, char **argv)
 	Point sp = {0,0};
 	int alpha = 51;
 	int phi = 3;
-	int64_t t0, t1;
+	i64 t0, t1;
 	int i, n;
-	int64_t del;
+	i64 del;
 
 	if (argc != 2) {
 		fprint(2, "usage: arctest number\n");

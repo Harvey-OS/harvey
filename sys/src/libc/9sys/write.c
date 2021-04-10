@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int32_t
-write(int d, const void *buf, int32_t nbytes)
+i32
+write(int d, const void *buf, i32 nbytes)
 {
 	int n;
 

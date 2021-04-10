@@ -32,7 +32,7 @@ static Memimage *lofill[6];
 static Memimage *hifill[6];
 static Memimage *grid;
 
-static uint32_t fill[] = {
+static u32 fill[] = {
 	0xFFAAAAFF,	0xBB5D5DFF,	/* peach */
 	DPalegreygreen, DPurpleblue,	/* aqua */
 	DDarkyellow, DYellowgreen,	/* yellow */
@@ -42,7 +42,7 @@ static uint32_t fill[] = {
 };
 
 Memimage*
-allocrepl(uint32_t color)
+allocrepl(u32 color)
 {
 	Memimage *m;
 
@@ -114,7 +114,7 @@ scalept(int val, int valmin, int valmax, int ptmin, int ptmax)
 		val = valmax;
 	if(valmax == valmin)
 		valmax++;
-	return ptmin + (int64_t)(val-valmin)*(ptmax-ptmin)/(valmax-valmin);
+	return ptmin + (i64)(val-valmin)*(ptmax-ptmin)/(valmax-valmin);
 }
 
 Memimage*

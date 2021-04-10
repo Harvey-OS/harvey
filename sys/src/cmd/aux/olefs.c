@@ -16,8 +16,8 @@
 #include <9p.h>
 
 /* little endian */
-#define SHORT(p)	(((uint8_t*)(p))[0] | (((uint8_t*)(p))[1] << 8))
-#define LONG(p)	((uint32_t)SHORT(p) |(((uint32_t)SHORT((p)+2)) << 16))
+#define SHORT(p)	(((u8*)(p))[0] | (((u8*)(p))[1] << 8))
+#define LONG(p)	((u32)SHORT(p) |(((u32)SHORT((p)+2)) << 16))
 
 typedef struct Ofile	Ofile;
 typedef struct Odir	Odir;
@@ -48,11 +48,11 @@ enum {
  */
 struct Ofile {
 	Biobuf *b;
-	uint32_t nblock;
-	uint32_t *blockmap;
-	uint32_t rootblock;
-	uint32_t smapblock;
-	uint32_t *smallmap;
+	u32 nblock;
+	u32 *blockmap;
+	u32 rootblock;
+	u32 smapblock;
+	u32 *smallmap;
 };
 
 /* Odir headers are found in directory listings in the Olefile */
@@ -60,17 +60,17 @@ struct Ofile {
 struct Odir {
 	Ofile *f;
 	Rune name[32+1];
-	uint8_t type;
-	uint8_t isroot;
-	uint32_t left;
-	uint32_t right;
-	uint32_t dir;
-	uint32_t start;
-	uint32_t size;
+	u8 type;
+	u8 isroot;
+	u32 left;
+	u32 right;
+	u32 dir;
+	u32 start;
+	u32 size;
 };
 
 void*
-emalloc(uint32_t sz)
+emalloc(u32 sz)
 {
 	void *v;
 
@@ -118,7 +118,7 @@ convM2OD(Odir *f, void *buf, int nbuf)
 }
 
 int
-oreadblock(Ofile *f, int block, uint32_t off, char *buf, int nbuf)
+oreadblock(Ofile *f, int block, u32 off, char *buf, int nbuf)
 {
 	int n;
 
@@ -150,7 +150,7 @@ oreadblock(Ofile *f, int block, uint32_t off, char *buf, int nbuf)
 }
 
 int
-chainlen(Ofile *f, uint32_t start)
+chainlen(Ofile *f, u32 start)
 {
 	int i;
 	for(i=0; start < 0xFFFF0000; i++)
@@ -166,7 +166,7 @@ chainlen(Ofile *f, uint32_t start)
  * like the MS-DOS file allocation tables.
  */
 int
-oreadchain(Ofile *f, uint32_t block, int off, char *buf, int nbuf)
+oreadchain(Ofile *f, u32 block, int off, char *buf, int nbuf)
 {
 	int i;
 	int offblock;
@@ -214,7 +214,7 @@ oreaddir(Ofile *f, int entry, Odir *d)
 }
 
 void
-dumpdir(Ofile *f, uint32_t dnum)
+dumpdir(Ofile *f, u32 dnum)
 {
 	Odir d;
 
@@ -224,11 +224,11 @@ dumpdir(Ofile *f, uint32_t dnum)
 	}
 
 	fprint(2, "%.8lux type %d size %lu l %.8lux r %.8lux d %.8lux (%S)\n", dnum, d.type, d.size, d.left, d.right, d.dir, d.name);
-	if(d.left != (uint32_t)-1)
+	if(d.left != (u32)-1)
 		dumpdir(f, d.left);
-	if(d.right != (uint32_t)-1)
+	if(d.right != (u32)-1)
 		dumpdir(f, d.right);
-	if(d.dir != (uint32_t)-1)
+	if(d.dir != (u32)-1)
 		dumpdir(f, d.dir);
 }
 
@@ -237,10 +237,10 @@ oleopen(char *fn)
 {
 	int i, j, k, block;
 	int ndepot;
-	uint32_t u;
+	u32 u;
 	Odir rootdir;
-	uint32_t extrablock;
-	uint8_t buf[Blocksize];
+	u32 extrablock;
+	u8 buf[Blocksize];
 
 	Ofile *f;
 	Biobuf *b;
@@ -295,7 +295,7 @@ oleopen(char *fn)
 			goto Die;
 		}
 		block = LONG(buf);
-		if((uint32_t)block == Bendchain) {
+		if((u32)block == Bendchain) {
 			ndepot = i;
 			f->nblock = ndepot*(Blocksize/4);
 			break;
@@ -326,7 +326,7 @@ oleopen(char *fn)
 				goto Die;
 			}
 			block = LONG(buf);
-			if((uint32_t)block == Bendchain) {
+			if((u32)block == Bendchain) {
 				ndepot = i;
 				f->nblock = ndepot*(Blocksize/4);
 				goto Break2;
@@ -374,8 +374,8 @@ oleread(Req *r)
 	Odir *d;
 	char *p;
 	int e, n;
-	int32_t c;
-	int64_t o;
+	i32 c;
+	i64 o;
 
 	o = r->ifcall.offset;
 	d = r->fid->file->aux;

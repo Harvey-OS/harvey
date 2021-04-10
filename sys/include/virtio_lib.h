@@ -18,12 +18,12 @@ struct virtq;
 typedef struct vqctl		// per-device control structure
 {
 	Pcidev *pci;			// PCI device descriptor
-	uint32_t port;			// base I/O port for the legacy port-based interface
-	uint32_t feat;			// host features
-	uint32_t nqs;			// virt queues count
+	u32 port;			// base I/O port for the legacy port-based interface
+	u32 feat;			// host features
+	u32 nqs;			// virt queues count
 	struct virtq **vqs;		// virt queues descriptors
-	uint32_t dcfglen;		// device config area length
-	uint32_t dcfgoff;		// device config area offset (20 or 24)
+	u32 dcfglen;		// device config area length
+	u32 dcfgoff;		// device config area offset (20 or 24)
 	long dcmtime;			// device config area modification time
 	char devname[32];		// device name to show in port and interrupt allocations
 } Vqctl;
@@ -37,9 +37,9 @@ typedef struct rock {
 
 typedef struct virtq {
 	struct vring vr;			// vring descriptor per spec
-	uint8_t *vq;				// vring data shared between host and guest
-	uint16_t lastused;
-	uint16_t waiting;
+	u8 *vq;				// vring data shared between host and guest
+	u16 lastused;
+	u16 waiting;
 	Lock l;
 	uint free;
 	uint nfree;
@@ -51,11 +51,11 @@ typedef struct virtq {
 
 // Common virtqueue functions and macros.
 
-int getdescr(Virtq *q, int n, uint16_t *descr);
+int getdescr(Virtq *q, int n, u16 *descr);
 
-int queuedescr(Virtq *q, int n, uint16_t *descr);
+int queuedescr(Virtq *q, int n, u16 *descr);
 
-void reldescr(Virtq *q, int n, uint16_t *descr);
+void reldescr(Virtq *q, int n, u16 *descr);
 
 int initvdevs(Vqctl **vcs);
 
@@ -63,15 +63,15 @@ int vqalloc(Virtq **pq, int qs);
 
 void finalinitvdev(Vqctl *vc);
 
-int readvdevcfg(Vqctl *vc, void *va, int32_t n, int64_t offset);
+int readvdevcfg(Vqctl *vc, void *va, i32 n, i64 offset);
 
-Vqctl *vdevbyidx(uint32_t idx);
+Vqctl *vdevbyidx(u32 idx);
 
-uint32_t vdevfeat(Vqctl *vc, uint32_t(*ffltr)(uint32_t));
+u32 vdevfeat(Vqctl *vc, u32(*ffltr)(u32));
 
-uint32_t getvdevnum(void);
+u32 getvdevnum(void);
 
-uint32_t getvdevsbypciid(int pciid, Vqctl **vqs, uint32_t n);
+u32 getvdevsbypciid(int pciid, Vqctl **vqs, u32 n);
 
 static inline struct vring_desc * q2descr(Virtq *q, int i) { return q->vr.desc + i; }
 
@@ -82,15 +82,15 @@ static inline struct vring_desc * q2descr(Virtq *q, int i) { return q->vr.desc +
 
 // Extract QID type
 
-#define TYPE(q)			((uint32_t)(q).path & 0x0F)
+#define TYPE(q)			((u32)(q).path & 0x0F)
 
 // Extract device index
 
-#define DEV(q)			((uint32_t)(((q).path >> 4) & 0x0FFF))
+#define DEV(q)			((u32)(((q).path >> 4) & 0x0FFF))
 
 // Extract queue index
 
-#define VQ(q)			((uint32_t)(((q).path >> 16) & 0x0FFFF))
+#define VQ(q)			((u32)(((q).path >> 16) & 0x0FFFF))
 
 // Construct a non-queue aware QID (to address a per-device file)
 

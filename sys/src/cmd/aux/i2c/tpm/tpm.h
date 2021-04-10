@@ -47,14 +47,14 @@ enum tpm_timeout {
 struct tpm_chip;
 
 struct tpm_vendor_specific {
-	const uint8_t req_complete_mask;
-	const uint8_t req_complete_val;
-	const uint8_t req_canceled;
+	const u8 req_complete_mask;
+	const u8 req_complete_val;
+	const u8 req_canceled;
 	int irq;
-	int (*recv)(struct tpm_chip *, uint8_t *, size_t);
-	int (*send)(struct tpm_chip *, uint8_t *, size_t);
+	int (*recv)(struct tpm_chip *, u8 *, size_t);
+	int (*send)(struct tpm_chip *, u8 *, size_t);
 	void (*cancel)(struct tpm_chip *);
-	uint8_t(*status)(struct tpm_chip *);
+	u8(*status)(struct tpm_chip *);
 	int locality;
 };
 
@@ -64,28 +64,28 @@ struct tpm_chip {
 };
 
 struct tpm_input_header {
-	uint16_t tag;
-	uint32_t length;
-	uint32_t ordinal;
+	u16 tag;
+	u32 length;
+	u32 ordinal;
 } __attribute__ ((packed));
 
 struct tpm_output_header {
-	uint16_t tag;
-	uint32_t length;
-	uint32_t return_code;
+	u16 tag;
+	u32 length;
+	u32 return_code;
 } __attribute__ ((packed));
 
 struct timeout_t {
-	uint32_t a;
-	uint32_t b;
-	uint32_t c;
-	uint32_t d;
+	u32 a;
+	u32 b;
+	u32 c;
+	u32 d;
 } __attribute__ ((packed));
 
 struct duration_t {
-	uint32_t tpm_short;
-	uint32_t tpm_medium;
-	uint32_t tpm_long;
+	u32 tpm_short;
+	u32 tpm_medium;
+	u32 tpm_long;
 } __attribute__ ((packed));
 
 typedef union {
@@ -94,13 +94,13 @@ typedef union {
 } cap_t;
 
 struct tpm_getcap_params_in {
-	uint32_t cap;
-	uint32_t subcap_size;
-	uint32_t subcap;
+	u32 cap;
+	u32 subcap_size;
+	u32 subcap;
 } __attribute__ ((packed));
 
 struct tpm_getcap_params_out {
-	uint32_t cap_size;
+	u32 cap_size;
 	cap_t cap;
 } __attribute__ ((packed));
 
@@ -121,7 +121,7 @@ struct tpm_cmd_t {
 
 /* ---------- Interface for TPM vendor ------------ */
 
-int tpm_vendor_init(unsigned bus, uint32_t dev_addr);
+int tpm_vendor_init(unsigned bus, u32 dev_addr);
 
 void tpm_vendor_cleanup(struct tpm_chip *chip);
 

@@ -22,7 +22,7 @@ static void usage(void);
 char **
 seekoff(int fd, char *name, char **argv)
 {
-	int64_t o;
+	i64 o;
 
 	if(*argv){
 		if (!isascii(**argv) || !isdigit(**argv))
@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	unsigned char *p, *q;
 	unsigned char buf1[BUF], buf2[BUF];
 	int f1, f2;
-	int64_t nc = 1, l = 1;
+	i64 nc = 1, l = 1;
 	char *name1, *name2;
 	unsigned char *b1s, *b1e, *b2s, *b2e;
 

@@ -34,7 +34,7 @@ enum {
 };
 
 static Auth *
-auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
+auth_plain(char *windom, char *keyp, u8 *chal, int len)
 {
 	UserPasswd *up;
 	static Auth *ap;
@@ -60,7 +60,7 @@ auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
 }
 
 static Auth *
-auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
+auth_lm_and_ntlm(char *windom, char *keyp, u8 *chal, int len)
 {
 	int err;
 	char user[64];
@@ -98,7 +98,7 @@ auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
  * for more info.
  */
 static Auth *
-auth_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
+auth_ntlm(char *windom, char *keyp, u8 *chal, int len)
 {
 	Auth *ap;
 
@@ -118,9 +118,9 @@ auth_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
  * I still do this for completeness
  */
 static DigestState *
-hmac_t64(uint8_t *data, uint32_t dlen, uint8_t *key, uint32_t klen,
-	 uint8_t *digest,
-	DigestState *state)
+hmac_t64(u8 *data, u32 dlen, u8 *key, u32 klen,
+	 u8 *digest,
+	 DigestState *state)
 {
 	if(klen > 64)
 		klen = 64;
@@ -129,13 +129,13 @@ hmac_t64(uint8_t *data, uint32_t dlen, uint8_t *key, uint32_t klen,
 
 
 static int
-ntv2_blob(uint8_t *blob, int len, char *windom)
+ntv2_blob(u8 *blob, int len, char *windom)
 {
 	int n;
-	uint64_t nttime;
+	u64 nttime;
 	Rune r;
 	char *d;
-	uint8_t *p;
+	u8 *p;
 	enum {			/* name types */
 		Beof,		/* end of name list */
 		Bnetbios,	/* Netbios machine name */
@@ -204,13 +204,13 @@ ntv2_blob(uint8_t *blob, int len, char *windom)
 }
 
 static Auth *
-auth_ntlmv2(char *windom, char *keyp, uint8_t *chal, int len)
+auth_ntlmv2(char *windom, char *keyp, u8 *chal, int len)
 {
 	int i, n;
 	Rune r;
 	char *p, *u;
-	uint8_t v1hash[MD5dlen], blip[Bliplen], blob[1024], v2hash[MD5dlen];
-	uint8_t c, lm_hmac[MD5dlen], nt_hmac[MD5dlen], nt_sesskey[MD5dlen],
+	u8 v1hash[MD5dlen], blip[Bliplen], blob[1024], v2hash[MD5dlen];
+	u8 c, lm_hmac[MD5dlen], nt_hmac[MD5dlen], nt_sesskey[MD5dlen],
 		lm_sesskey[MD5dlen];
 	DigestState *ds;
 	UserPasswd *up;
@@ -313,7 +313,7 @@ auth_ntlmv2(char *windom, char *keyp, uint8_t *chal, int len)
 
 struct {
 	char	*name;
-	Auth	*(*func)(char *, char *, uint8_t *, int);
+	Auth	*(*func)(char *, char *, u8 *, int);
 } methods[] = {
 	{ "plain",	auth_plain },
 	{ "lm+ntlm",	auth_lm_and_ntlm },
@@ -336,7 +336,7 @@ autherr(void)
 
 Auth *
 getauth(char *name, char *windom, char *keyp, int secmode,
-	uint8_t *chal,
+	u8 *chal,
 	int len)
 {
 	int i;
@@ -363,11 +363,11 @@ getauth(char *name, char *windom, char *keyp, int secmode,
 }
 
 static int
-genmac(uint8_t *buf, int len, int seq, uint8_t key[MACkeylen],
-       uint8_t ours[MAClen])
+genmac(u8 *buf, int len, int seq, u8 key[MACkeylen],
+       u8 ours[MAClen])
 {
 	DigestState *ds;
-	uint8_t *sig, digest[MD5dlen], theirs[MAClen];
+	u8 *sig, digest[MD5dlen], theirs[MAClen];
 
 	sig = buf+MACoff;
 	memcpy(theirs, sig, MAClen);
@@ -389,7 +389,7 @@ int
 macsign(Pkt *p, int seq)
 {
 	int rc, len;
-	uint8_t *sig, *buf, mac[MAClen];
+	u8 *sig, *buf, mac[MAClen];
 
 	sig = p->buf + NBHDRLEN + MACoff;
 	buf = p->buf + NBHDRLEN;

@@ -20,9 +20,9 @@
 void
 convM2TR(char *ap, Ticketreq *f)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	CHAR(type);
 	STRING(authid, ANAMELEN);
 	f->authid[ANAMELEN-1] = 0;

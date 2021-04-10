@@ -30,8 +30,8 @@ struct
 {
 	int nfile;
 	int ndir;
-	int64_t data;
-	int64_t skipdata;
+	i64 data;
+	i64 skipdata;
 	int skipfiles;
 } stats;
 
@@ -49,7 +49,7 @@ void vac(VacFile*, VacFile*, char*, Dir*);
 void vacstdin(VacFile*, char*);
 VacFile *recentarchive(VacFs*, char*);
 
-static uint64_t unittoull(char*);
+static u64 unittoull(char*);
 static void warn(char *fmt, ...);
 static void removevacfile(void);
 
@@ -59,14 +59,14 @@ threadmain(int argc, char **argv)
 	int i, j, fd, n, printstats;
 	Dir *d;
 	char *s;
-	uint64_t u;
+	u64 u;
 	VacFile *f, *fdiff;
 	VacFs *fsdiff;
 	int blocksize;
 	int outfd;
 	char *stdinname;
 	char *diffvac;
-	uint64_t qid;
+	u64 qid;
 
 
 	fmtinstall('F', vtfcallfmt);
@@ -425,7 +425,7 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 	char *elem, *s;
 	static char buf[65536];
 	int fd, i, n, bsize;
-	int64_t off;
+	i64 off;
 	Dir *dk;	// kids
 	VacDir vd, vddiff;
 	VacFile *f, *fdiff;
@@ -534,7 +534,7 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 		if(qdiff && verbose)
 			fprint(2, "+%s\n", name);
 		while((n = readn(fd, buf, bsize)) > 0){
-			if(fdiff && sha1matches(f, off/bsize, (uint8_t*)buf, n)){
+			if(fdiff && sha1matches(f, off/bsize, (u8*)buf, n)){
 				off += n;
 				stats.skipdata += n;
 				continue;
@@ -565,7 +565,7 @@ Out:
 void
 vacstdin(VacFile *fp, char *name)
 {
-	int64_t off;
+	i64 off;
 	VacFile *f;
 	static char buf[8192];
 	int n;
@@ -598,7 +598,7 @@ vacstdin(VacFile *fp, char *name)
  */
 int
 vacmergefile(VacFile *fp, VacFile *mp, VacDir *d, char *vacfile,
-	int64_t offset, int64_t max)
+	i64 offset, i64 max)
 {
 	VtEntry ed, em;
 	VacFile *mf;
@@ -649,7 +649,7 @@ vacmerge(VacFile *fp, char *name)
 	VacDir vd;
 	VacDirEnum *de;
 	VacFile *mp;
-	uint64_t maxqid, offset;
+	u64 maxqid, offset;
 
 	if(strlen(name) < 4 || strcmp(name+strlen(name)-4, ".vac") != 0)
 		return -1;
@@ -684,13 +684,13 @@ vacmerge(VacFile *fp, char *name)
 	return 0;
 }
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64	((u64)~(u64)0)
 
-static uint64_t
+static u64
 unittoull(char *s)
 {
 	char *es;
-	uint64_t n;
+	u64 n;
 
 	if(s == nil)
 		return TWID64;

@@ -28,11 +28,11 @@ typedef struct Time	Time;
 typedef struct User	User;
 
 struct Time{			/* bit masks for each valid time */
-	uint64_t	min;
-	uint32_t	hour;
-	uint32_t	mday;
-	uint32_t	wday;
-	uint32_t	mon;
+	u64	min;
+	u32	hour;
+	u32	mday;
+	u32	wday;
+	u32	mon;
 };
 
 struct Job{
@@ -55,21 +55,21 @@ char	*savec;
 char	*savetok;
 int	tok;
 int	debug;
-uint32_t	lexval;
+u32	lexval;
 
 void	rexec(User*, Job*);
 void	readalljobs(void);
 Job	*readjobs(char*, User*);
 int	getname(char**);
-uint64_t	gettime(int, int);
+u64	gettime(int, int);
 int	gettok(int, int);
 void	initcap(void);
 void	pushtok(void);
 void	usage(void);
 void	freejobs(Job*);
 User	*newuser(char*);
-void	*emalloc(uint32_t);
-void	*erealloc(void*, uint32_t);
+void	*emalloc(u32);
+void	*erealloc(void*, u32);
 int	myauth(int, char*);
 void	createuser(void);
 int	mkcmd(char*, char*, int);
@@ -77,16 +77,16 @@ void	printjobs(void);
 int	qidcmp(Qid, Qid);
 int	becomeuser(char*);
 
-uint32_t
-minute(uint32_t tm)
+u32
+minute(u32 tm)
 {
 	return tm - tm%Minute;		/* round down to the minute */
 }
 
 int
-sleepuntil(uint32_t tm)
+sleepuntil(u32 tm)
 {
-	uint32_t now = time(0);
+	u32 now = time(0);
 
 
 	if (now < tm)
@@ -160,7 +160,7 @@ main(int argc, char *argv[])
 	Job *j;
 	Tm tm;
 	Time t;
-	uint32_t now, last;		/* in seconds */
+	u32 now, last;		/* in seconds */
 	int i, lock;
 
 	debug = 0;
@@ -452,10 +452,10 @@ getname(char **namep)
  *	| range ',' range
  * a return of zero means a syntax error was discovered
  */
-uint64_t
+u64
 gettime(int min, int max)
 {
-	uint64_t n, m, e;
+	u64 n, m, e;
 
 	if(gettok(min, max) == '*')
 		return ~0ULL;
@@ -633,7 +633,7 @@ rexec(User *user, Job *j)
 }
 
 void *
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -645,7 +645,7 @@ emalloc(uint32_t n)
 }
 
 void *
-erealloc(void *p, uint32_t n)
+erealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -670,9 +670,9 @@ qidcmp(Qid a, Qid b)
 void
 memrandom(void *p, int n)
 {
-	uint8_t *cp;
+	u8 *cp;
 
-	for(cp = (uint8_t*)p; n > 0; n--)
+	for(cp = (u8*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -695,11 +695,11 @@ initcap(void)
 char*
 mkcap(char *from, char *to)
 {
-	uint8_t rand[20];
+	u8 rand[20];
 	char *cap;
 	char *key;
 	int nfrom, nto, ncap;
-	uint8_t hash[SHA1dlen];
+	u8 hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -715,7 +715,7 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+	hmac_sha1((u8*)cap, strlen(cap), (u8*)key, strlen(key),
 		  hash, nil);
 
 	/* give the kernel the hash */

@@ -28,7 +28,7 @@ typedef	struct	File	File;
 typedef	struct	Filsys	Filsys;
 typedef	struct	Filta	Filta;
 typedef	struct	Filter	Filter;
-typedef		uint32_t	Float;
+typedef		u32	Float;
 typedef	struct	Hiob	Hiob;
 typedef	struct	Iobuf	Iobuf;
 typedef	struct	P9call	P9call;
@@ -44,8 +44,8 @@ typedef struct	AuthRpc	AuthRpc;
 /* DONT TOUCH, this is the disk structure */
 struct	Qid9p1
 {
-	int32_t	path;
-	int32_t	version;
+	i32	path;
+	i32	version;
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -54,7 +54,7 @@ struct	Dentry
 	char	name[NAMELEN];
 	short	uid;
 	short	gid;
-	uint16_t	mode;
+	u16	mode;
 		#define	DALLOC	0x8000
 		#define	DDIR	0x4000
 		#define	DAPND	0x2000
@@ -63,12 +63,12 @@ struct	Dentry
 		#define	DWRITE	0x2
 		#define	DEXEC	0x1
 	Qid9p1	qid;
-	int32_t	size;
-	int32_t	dblock[NDBLOCK];
-	int32_t	iblock;
-	int32_t	diblock;
-	int32_t	atime;
-	int32_t	mtime;
+	i32	size;
+	i32	dblock[NDBLOCK];
+	i32	iblock;
+	i32	diblock;
+	i32	atime;
+	i32	mtime;
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -76,32 +76,32 @@ struct	Tag
 {
 	short	pad;
 	short	tag;
-	int32_t	path;
+	i32	path;
 };
 
 /* DONT TOUCH, this is the disk structure */
 struct	Super1
 {
-	int32_t	fstart;
-	int32_t	fsize;
-	int32_t	tfree;
-	int32_t	qidgen;		/* generator for unique ids */
+	i32	fstart;
+	i32	fsize;
+	i32	tfree;
+	i32	qidgen;		/* generator for unique ids */
 
-	int32_t	fsok;		/* file system ok */
+	i32	fsok;		/* file system ok */
 
 	/*
 	 * garbage for WWC device
 	 */
-	int32_t	roraddr;	/* dump root addr */
-	int32_t	last;		/* last super block addr */
-	int32_t	next;		/* next super block addr */
+	i32	roraddr;	/* dump root addr */
+	i32	last;		/* last super block addr */
+	i32	next;		/* next super block addr */
 };
 
 /* DONT TOUCH, this is the disk structure */
 struct	Fbuf
 {
-	int32_t	nfree;
-	int32_t	free[1];		/* changes based on BUFSIZE */
+	i32	nfree;
+	i32	free[1];		/* changes based on BUFSIZE */
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -124,8 +124,8 @@ struct	Device
  */
 struct	Filter
 {
-	uint32_t	count;			/* count and old count kept separate */
-	uint32_t	oldcount;		/* so interrput can read them */
+	u32	count;			/* count and old count kept separate */
+	u32	oldcount;		/* so interrput can read them */
 	Float	filter[3];		/* filters for 1m 10m 100m */
 };
 
@@ -141,8 +141,8 @@ struct	Filta
 struct	Tlock
 {
 	Device	dev;
-	int32_t	time;
-	int32_t	qpath;
+	i32	time;
+	i32	qpath;
 	File*	file;
 };
 
@@ -156,9 +156,9 @@ struct	File
 	File*	next;		/* in cp->flist */
 	File*	list;		/* in list of free files */
 	Filsys*	fs;
-	int32_t	addr;
-	int32_t	slot;
-	int32_t	lastra;		/* read ahead address */
+	i32	addr;
+	i32	slot;
+	i32	lastra;		/* read ahead address */
 	short	fid;
 	short	uid;
 	char	open;
@@ -166,9 +166,9 @@ struct	File
 		#define	FWRITE	2
 		#define	FREMOV	4
 		#define	FWSTAT	8
-	int32_t	doffset;	/* directory reading */
-	uint32_t	dvers;
-	int32_t	dslot;
+	i32	doffset;	/* directory reading */
+	u32	dvers;
+	i32	dslot;
 
 	/* for network authentication */
 	AuthRpc	*rpc;
@@ -199,14 +199,14 @@ struct	Iobuf
 	Iobuf	*back;		/* for lru */
 	char	*iobuf;		/* only active while locked */
 	char	*xiobuf;	/* "real" buffer pointer */
-	int32_t	addr;
+	i32	addr;
 	int	flags;
 };
 
 struct	P9call
 {
-	uint8_t	calln;
-	uint8_t	rxflag;
+	u8	calln;
+	u8	rxflag;
 	short	msize;
 	void	(*func)(Chan*, int);
 };
@@ -236,8 +236,8 @@ struct	Wpath
 {
 	Wpath	*up;		/* pointer upwards in path */
 	Wpath	*list;		/* link in free chain */
-	int32_t	addr;		/* directory entry addr of parent */
-	int32_t	slot;		/* directory entry slot of parent */
+	i32	addr;		/* directory entry addr of parent */
+	i32	slot;		/* directory entry slot of parent */
 	short	refs;		/* number of files using this structure */
 };
 

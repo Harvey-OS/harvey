@@ -12,7 +12,7 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static int32_t
+static i32
 _iodial(va_list *arg)
 {
 	char *addr, *local, *dir;

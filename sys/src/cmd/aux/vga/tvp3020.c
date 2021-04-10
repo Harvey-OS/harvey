@@ -33,14 +33,14 @@ enum {
  * permissions on the direct and index registers. Bits 4 and 5
  * are for the Tvp3025. The Tvp3020 has only 8 direct registers.
  */
-static uint8_t directreg[32] = {
+static u8 directreg[32] = {
 	0x33, 0x33, 0x33, 0x33, 0x00, 0x00, 0x33, 0x33,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
 	0x33, 0x33, 0x11, 0x33, 0x33, 0x33, 0x33, 0x33,
 };
 
-static uint8_t indexreg[64] = {
+static u8 indexreg[64] = {
 	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x00,
 	0x02, 0x02, 0x33, 0x00, 0x00, 0x00, 0x30, 0x30,
 	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
@@ -55,11 +55,11 @@ static uint8_t indexreg[64] = {
  * Check the index register access is valid.
  * Return the number of direct registers.
  */
-static uint8_t
-checkindex(uint8_t index, uint8_t access)
+static u8
+checkindex(u8 index, u8 access)
 {
-	uint8_t crt55;
-	static uint8_t id;
+	u8 crt55;
+	static u8 id;
 
 	if(id == 0){
 		crt55 = vgaxi(Crtx, 0x55) & 0xFC;
@@ -95,10 +95,10 @@ checkindex(uint8_t index, uint8_t access)
 	return id;
 }
 
-static uint8_t
-tvp3020io(uint8_t reg, uint8_t data)
+static u8
+tvp3020io(u8 reg, u8 data)
 {
-	uint8_t crt55;
+	u8 crt55;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -107,10 +107,10 @@ tvp3020io(uint8_t reg, uint8_t data)
 	return crt55;
 }
 
-uint8_t
-tvp3020i(uint8_t reg)
+u8
+tvp3020i(u8 reg)
 {
-	uint8_t crt55, r;
+	u8 crt55, r;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -120,10 +120,10 @@ tvp3020i(uint8_t reg)
 	return r;
 }
 
-uint8_t
-tvp3020xi(uint8_t index)
+u8
+tvp3020xi(u8 index)
 {
-	uint8_t crt55, r;
+	u8 crt55, r;
 
 	checkindex(index, 0x01);
 
@@ -135,18 +135,18 @@ tvp3020xi(uint8_t index)
 }
 
 void
-tvp3020o(uint8_t reg, uint8_t data)
+tvp3020o(u8 reg, u8 data)
 {
-	uint8_t crt55;
+	u8 crt55;
 
 	crt55 = tvp3020io(reg, data);
 	vgaxo(Crtx, 0x55, crt55);
 }
 
 void
-tvp3020xo(uint8_t index, uint8_t data)
+tvp3020xo(u8 index, u8 data)
 {
-	uint8_t crt55;
+	u8 crt55;
 
 	checkindex(index, 0x02);
 
@@ -164,7 +164,7 @@ options(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	uint32_t grade;
+	u32 grade;
 	char *p;
 
 	/*
@@ -199,7 +199,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uint8_t x;
+	u8 x;
 
 	/*
 	 * Input Clock Selection:
@@ -283,7 +283,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	uint8_t access;
+	u8 access;
 	int i;
 
 	access = 0x01;

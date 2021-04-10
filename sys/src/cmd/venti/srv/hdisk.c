@@ -90,7 +90,7 @@ disksummary(HConnect *c)
 static char*
 readap(Part *p, ArenaPart *ap)
 {
-	uint8_t *blk;
+	u8 *blk;
 	char *table;
 
 	blk = vtmalloc(8192);
@@ -104,7 +104,7 @@ readap(Part *p, ArenaPart *ap)
 	ap->tabbase = (PartBlank+HeadSize+ap->blocksize-1)&~(ap->blocksize-1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	table = vtmalloc(ap->tabsize+1);
-	if(readpart(p, ap->tabbase, (uint8_t*)table, ap->tabsize) != ap->tabsize){
+	if(readpart(p, ap->tabbase, (u8*)table, ap->tabsize) != ap->tabsize){
 		werrstr("reading arena part directory: %r");
 		return nil;
 	}
@@ -113,7 +113,7 @@ readap(Part *p, ArenaPart *ap)
 }
 
 static int
-xfindarena(char *table, char *name, int64_t *start, int64_t *end)
+xfindarena(char *table, char *name, i64 *start, i64 *end)
 {
 	int i, nline;
 	char *p, *q, *f[4], line[256];
@@ -190,7 +190,7 @@ diskarenatable(HConnect *c, char *disk, char *table)
 }
 
 static char*
-fmttime(char *buf, uint32_t time)
+fmttime(char *buf, u32 time)
 {
 	strcpy(buf, ctime(time));
 	buf[28] = 0;
@@ -198,7 +198,7 @@ fmttime(char *buf, uint32_t time)
 }
 
 
-static int diskarenaclump(HConnect*, Arena*, int64_t, char*);
+static int diskarenaclump(HConnect*, Arena*, i64, char*);
 static int diskarenatoc(HConnect*, Arena*);
 
 static int
@@ -211,8 +211,8 @@ diskarenapart(HConnect *c, char *disk, Part *p)
 	char *table;
 	char *score;
 	char *clump;
-	uint8_t *blk;
-	int64_t start, end, off;
+	u8 *blk;
+	i64 start, end, off;
 	char tbuf[60];
 
 	hprint(&c->hout, "<h1>arena partition %s</h1>\n", disk);
@@ -329,13 +329,13 @@ out:
 	return 0;
 }
 
-static int64_t
-findintoc(HConnect *c, Arena *arena, uint8_t *score)
+static i64
+findintoc(HConnect *c, Arena *arena, u8 *score)
 {
-	uint8_t *blk;
+	u8 *blk;
 	int i;
-	int64_t off;
-	int64_t coff;
+	i64 off;
+	i64 coff;
 	ClumpInfo ci;
 
 	blk = vtmalloc(arena->blocksize);
@@ -366,10 +366,10 @@ findintoc(HConnect *c, Arena *arena, uint8_t *score)
 static int
 diskarenatoc(HConnect *c, Arena *arena)
 {
-	uint8_t *blk;
+	u8 *blk;
 	int i;
-	int64_t off;
-	int64_t coff;
+	i64 off;
+	i64 coff;
 	ClumpInfo ci;
 	char base[512];
 	int cib;
@@ -414,14 +414,14 @@ diskarenatoc(HConnect *c, Arena *arena)
 	return 0;
 }
 
-#define	U32GET(p)	((uint32_t)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
+#define	U32GET(p)	((u32)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
 static int
-diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
+diskarenaclump(HConnect *c, Arena *arena, i64 off, char *scorestr)
 {
-	uint8_t *blk, *blk2;
+	u8 *blk, *blk2;
 	Clump cl;
 	char err[ERRMAX];
-	uint8_t xscore[VtScoreSize], score[VtScoreSize];
+	u8 xscore[VtScoreSize], score[VtScoreSize];
 	Unwhack uw;
 	int n;
 
@@ -550,7 +550,7 @@ debugamap(HConnect *c)
 }
 
 static void
-debugread(HConnect *c, uint8_t *score)
+debugread(HConnect *c, u8 *score)
 {
 	int type;
 	Lump *u;
@@ -558,11 +558,11 @@ debugread(HConnect *c, uint8_t *score)
 	IEntry ie;
 	int i;
 	Arena *arena;
-	uint64_t aa;
+	u64 aa;
 	ZBlock *zb;
 	Clump cl;
-	int64_t off;
-	uint8_t sc[VtScoreSize];
+	i64 off;
+	u8 sc[VtScoreSize];
 
 	if(scorecmp(score, zeroscore) == 0){
 		hprint(&c->hout, "zero score\n");
@@ -668,7 +668,7 @@ int
 hdebug(HConnect *c)
 {
 	char *scorestr, *op;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 
 	if(hsethtml(c) < 0)
 		return -1;

@@ -21,7 +21,7 @@ typedef struct Wren	Wren;
 struct Wren{
 	QLock;
 	Device	dev;
-	uint32_t	nblocks;
+	u32	nblocks;
 	int	fd;
 };
 
@@ -50,17 +50,17 @@ wren(Device dev)
  * we call this because convM2D is different
  * for the file system than in the os
  */
-uint64_t
+u64
 statlen(char *ap)
 {
-	uint8_t *p;
-	uint32_t ll, hl;
+	u8 *p;
+	u32 ll, hl;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	p += 3*NAMELEN+5*4;
 	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
-	return ll | ((uint64_t) hl << 32);
+	return ll | ((u64) hl << 32);
 }
 
 static void
@@ -154,7 +154,7 @@ wrenream(Device dev)
 }
 
 static int
-wrentag(char *p, int tag, int32_t qpath)
+wrentag(char *p, int tag, i32 qpath)
 {
 	Tag *t;
 
@@ -179,7 +179,7 @@ wrencheck(Device dev)
 	return 1;
 }
 
-int32_t
+i32
 wrensize(Device dev)
 {
 	Wren *w;
@@ -194,14 +194,14 @@ wrensize(Device dev)
 	return nb;
 }
 
-int32_t
+i32
 wrensuper(Device dev)
 {
 	USED(dev);
 	return 1;
 }
 
-int32_t
+i32
 wrenroot(Device dev)
 {
 	USED(dev);
@@ -209,7 +209,7 @@ wrenroot(Device dev)
 }
 
 int
-wrenread(Device dev, int32_t addr, void *b)
+wrenread(Device dev, i32 addr, void *b)
 {
 	Wren *w;
 	int fd, i;
@@ -225,13 +225,13 @@ wrenread(Device dev, int32_t addr, void *b)
 		addr++;
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (i64)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }
 
 int
-wrenwrite(Device dev, int32_t addr, void *b)
+wrenwrite(Device dev, i32 addr, void *b)
 {
 	Wren *w;
 	int fd, i;
@@ -247,7 +247,7 @@ wrenwrite(Device dev, int32_t addr, void *b)
 		addr++;
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (i64)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }

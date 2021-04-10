@@ -32,12 +32,12 @@ main(void)
 {
 	int i;
 	char **pp;
-	uint8_t *p;
-	uint8_t digest[SHA2_512dlen];
+	u8 *p;
+	u8 digest[SHA2_512dlen];
 
 	print("SHA2_224 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uint8_t*)*pp;
+		p = (u8*)*pp;
 		sha2_224(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_224dlen; i++)
 			print("%2.2x", digest[i]);
@@ -46,7 +46,7 @@ main(void)
 
 	print("\nSHA256 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uint8_t*)*pp;
+		p = (u8*)*pp;
 		sha2_256(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_256dlen; i++)
 			print("%2.2x", digest[i]);
@@ -55,7 +55,7 @@ main(void)
 
 	print("\nSHA384 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uint8_t*)*pp;
+		p = (u8*)*pp;
 		sha2_384(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_384dlen; i++)
 			print("%2.2x", digest[i]);
@@ -64,7 +64,7 @@ main(void)
 
 	print("\nSHA512 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uint8_t*)*pp;
+		p = (u8*)*pp;
 		sha2_512(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_512dlen; i++)
 			print("%2.2x", digest[i]);

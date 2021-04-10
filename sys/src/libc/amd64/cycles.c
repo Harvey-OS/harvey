@@ -1,9 +1,9 @@
 #include <u.h>
 #include <libc.h>
 
-void _cycles(uint64_t *x)
+void _cycles(u64 *x)
 {
-        uint32_t a, d;
+        u32 a, d;
 
         __asm__ __volatile__ ("rdtsc" : "=a" (a), "=d" (d));
 

@@ -345,13 +345,13 @@ again:
 }
 
 static void
-do_in(int fd, void (*procfn)(int, Rune **, int32_t), struct convert *out)
+do_in(int fd, void (*procfn)(int, Rune **, i32), struct convert *out)
 {
 	Rune ob[N];
 	Rune *r, *re;
-	uint8_t ibuf[N];
+	u8 ibuf[N];
 	int n, i;
-	int32_t nin;
+	i32 nin;
 
 	r = ob;
 	re = ob+N-3;
@@ -376,28 +376,28 @@ do_in(int fd, void (*procfn)(int, Rune **, int32_t), struct convert *out)
 }
 
 void
-jis_in(int fd, int32_t *notused, struct convert *out)
+jis_in(int fd, i32 *notused, struct convert *out)
 {
 	USED(notused);
 	do_in(fd, alljis, out);
 }
 
 void
-ujis_in(int fd, int32_t *notused, struct convert *out)
+ujis_in(int fd, i32 *notused, struct convert *out)
 {
 	USED(notused);
 	do_in(fd, ujis, out);
 }
 
 void
-msjis_in(int fd, int32_t *notused, struct convert *out)
+msjis_in(int fd, i32 *notused, struct convert *out)
 {
 	USED(notused);
 	do_in(fd, ms, out);
 }
 
 void
-jisjis_in(int fd, int32_t *notused, struct convert *out)
+jisjis_in(int fd, i32 *notused, struct convert *out)
 {
 	USED(notused);
 	do_in(fd, jis, out);
@@ -409,7 +409,7 @@ static void
 tab_init(void)
 {
 	int i;
-	int32_t l;
+	i32 l;
 
 	first = 0;
 	for(i = 0; i < NRUNE; i++)

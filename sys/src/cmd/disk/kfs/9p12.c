@@ -13,7 +13,7 @@ static int
 readmsg(Chan *c, void *abuf, int n, int *ninep)
 {
 	int fd, len;
-	uint8_t *buf;
+	u8 *buf;
 
 	buf = abuf;
 	fd = c->chan;
@@ -57,8 +57,8 @@ readmsg(Chan *c, void *abuf, int n, int *ninep)
 }
 
 int
-startserveproc(void (*f)(Chan*, uint8_t*, int), char *name, Chan *c,
-	       uint8_t *b, int nb)
+startserveproc(void (*f)(Chan*, u8*, int), char *name, Chan *c,
+	       u8 *b, int nb)
 {
 	int pid;
 
@@ -80,8 +80,8 @@ void
 serve(Chan *chan)
 {
 	int i, nin, p9, npid;
-	uint8_t inbuf[1024];
-	void (*s)(Chan*, uint8_t*, int);
+	u8 inbuf[1024];
+	void (*s)(Chan*, u8*, int);
 	int *pid;
 	Waitmsg *w;
 

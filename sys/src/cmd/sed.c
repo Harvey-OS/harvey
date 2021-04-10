@@ -39,7 +39,7 @@ typedef struct {
 		A_LAST,
 	}type;
 	union {
-		int32_t	line;		/* Line # */
+		i32	line;		/* Line # */
 		Reprog	*rp;		/* Compiled R.E. */
 	};
 } Addr;
@@ -151,7 +151,7 @@ int	sflag;				/* Set when substitution done */
 int	jflag;				/* Set when jump required */
 int	delflag;			/* Delete current line when set */
 
-int64_t	lnum = 0;			/* Input line count */
+i64	lnum = 0;			/* Input line count */
 
 char	fname[MAXFILES][40];		/* File name cache */
 Biobuf	*fcode[MAXFILES];		/* File ID cache */
@@ -173,7 +173,7 @@ Rune	*badp = &bad;
 
 char	CGMES[]	 = 	"%S command garbled: %S";
 char	TMMES[]	 = 	"Too much text: %S";
-char	LTL[]	 = 	"Label too int32_t: %S";
+char	LTL[]	 = 	"Label too i32: %S";
 char	AD0MES[] =	"No addresses allowed: %S";
 char	AD1MES[] =	"Only one address allowed: %S";
 
@@ -192,7 +192,7 @@ void	errexit(void);
 int	executable(SedCom *);
 void	execute(void);
 void	fcomp(void);
-int32_t	getrune(void);
+i32	getrune(void);
 Rune	*gline(Rune *);
 int	match(Reprog *, Rune *);
 void	newfile(enum PTYPE, char *);
@@ -703,7 +703,7 @@ newfile(enum PTYPE type, char *name)
 int
 rline(Rune *buf, Rune *end)
 {
-	int32_t c;
+	i32 c;
 	Rune r;
 
 	while ((c = getrune()) >= 0) {
@@ -725,10 +725,10 @@ rline(Rune *buf, Rune *end)
 	return -1;
 }
 
-int32_t
+i32
 getrune(void)
 {
-	int32_t c;
+	i32 c;
 	Rune r;
 	char *p;
 
@@ -752,7 +752,7 @@ void
 address(Addr *ap)
 {
 	int c;
-	int32_t lno;
+	i32 lno;
 
 	if((c = *cp++) == '$')
 		ap->type = A_DOL;
@@ -1075,13 +1075,13 @@ dosub(Rune *rhsbuf)
 		}
 		*sp++ = c;
 		if (sp >= &genbuf[LBSIZE])
-			fprint(2, "sed: Output line too int32_t.\n");
+			fprint(2, "sed: Output line too i32.\n");
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
 	while ((*sp++ = *lp++) != 0)
 		if (sp >= &genbuf[LBSIZE])
-			fprint(2, "sed: Output line too int32_t.\n");
+			fprint(2, "sed: Output line too i32.\n");
 	lp = linebuf;
 	sp = genbuf;
 	while ((*lp++ = *sp++) != 0)
@@ -1095,7 +1095,7 @@ place(Rune *sp, Rune *l1, Rune *l2)
 	while (l1 < l2) {
 		*sp++ = *l1++;
 		if (sp >= &genbuf[LBSIZE])
-			fprint(2, "sed: Output line too int32_t.\n");
+			fprint(2, "sed: Output line too i32.\n");
 	}
 	return sp;
 }
@@ -1397,9 +1397,9 @@ quit(char *fmt, ...)
 Rune *
 gline(Rune *addr)
 {
-	int32_t c;
+	i32 c;
 	Rune *p;
-	static int32_t peekc = 0;
+	static i32 peekc = 0;
 
 	if (f == 0 && opendata() < 0)
 		return 0;

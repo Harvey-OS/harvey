@@ -47,9 +47,9 @@ enum {
 #define badsect(errno) ((errno) != Enone)  /* was last transfer in error? */
 
 /* disk address (in bytes or sectors), also type of 2nd arg. to seek */
-typedef uint64_t Daddr;
-typedef int64_t Sdaddr;				/* signed disk address */
-typedef int32_t Rdwrfn(int, void *, int32_t);	/* plan 9 read or write */
+typedef u64 Daddr;
+typedef i64 Sdaddr;				/* signed disk address */
+typedef i32 Rdwrfn(int, void *, i32);	/* plan 9 read or write */
 
 typedef struct {
 	char	*name;
@@ -58,8 +58,8 @@ typedef struct {
 	int	fast;
 	int	seekable;
 
-	uint32_t	maxconerrs;		/* maximum consecutive errors */
-	uint32_t	conerrs;		/* current consecutive errors */
+	u32	maxconerrs;		/* maximum consecutive errors */
+	u32	conerrs;		/* current consecutive errors */
 	Daddr	congoodblks;
 
 	Daddr	harderrs;
@@ -73,8 +73,8 @@ char *argv0;
 /* privates */
 static int reblock = No, progress = No, swizzle = No;
 static int reverse = No;
-static uint32_t sectsz = Defsectsz;
-static uint32_t blocksize = Defblksz;
+static u32 sectsz = Defsectsz;
+static u32 blocksize = Defblksz;
 
 static char *buf, *vfybuf;
 static int blksects;
@@ -178,10 +178,10 @@ rewind(File *fp)
 }
 
 static char magic[] = "\235any old ☺ rubbish\173";
-static char uniq[sizeof magic + 2*sizeof(uint32_t)];
+static char uniq[sizeof magic + 2*sizeof(u32)];
 
 static char *
-putbe(char *p, uint32_t ul)
+putbe(char *p, u32 ul)
 {
 	*p++ = ul>>24;
 	*p++ = ul>>16;
@@ -198,7 +198,7 @@ static char *
 addmagic(char *buff, int bytes)
 {
 	char *p, *tail;
-	static uint32_t seq;
+	static u32 seq;
 
 	strcpy(uniq, magic);
 	p = putbe(uniq + sizeof magic - 1, time(0));
@@ -228,7 +228,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 {
 	int xfered;
 	char *tail;
-	uint32_t toread, bytes = sects * sectsz;
+	u32 toread, bytes = sects * sectsz;
 	static int reblocked = 0;
 
 	if (mustseek) {
@@ -237,7 +237,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 				fp->name);
 		repos(fp, stsect);
 	}
-	if ((int32_t)blocksize != blocksize || (int32_t)bytes != bytes)
+	if ((i32)blocksize != blocksize || (i32)bytes != bytes)
 		sysfatal("i/o count too big: %lu", bytes);
 
 	SET(tail);
@@ -459,10 +459,10 @@ enum {
 void
 swizzlebits(char *buff, int sects)
 {
-	uint8_t *bp, *endbp;
+	u8 *bp, *endbp;
 
-	endbp = (uint8_t *)(buff+sects*sectsz);
-	for (bp = (uint8_t *)buff; bp < endbp; bp++)
+	endbp = (u8 *)(buff+sects*sectsz);
+	for (bp = (u8 *)buff; bp < endbp; bp++)
 		*bp = ~(*bp>>Rotbits | *bp<<(8-Rotbits));
 }
 
@@ -594,7 +594,7 @@ void
 main(int argc, char **argv)
 {
 	int errflg = 0, plsconfirm = No, plsverify = No;
-	int32_t lval;
+	i32 lval;
 	File src, dest;
 	Sdaddr sect;
 

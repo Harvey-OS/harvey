@@ -10,32 +10,32 @@
 
 #define nil ((void *)0)
 
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed int int32_t;
-typedef unsigned int uint32_t;
+typedef signed char i8;
+typedef unsigned char u8;
+typedef signed short i16;
+typedef unsigned short u16;
+typedef signed int i32;
+typedef unsigned int u32;
 typedef unsigned int uint;
-typedef signed long long int64_t;
-typedef unsigned long long uint64_t;
-typedef uint64_t uintptr;
-typedef uint64_t uintptr_t;
-typedef uint64_t usize;
-typedef uint64_t size_t;
-typedef uint32_t Rune;
+typedef signed long long i64;
+typedef unsigned long long u64;
+typedef u64 uintptr;
+typedef u64 uintptr_t;
+typedef u64 usize;
+typedef u64 size_t;
+typedef u32 Rune;
 
 typedef union FPdbleword FPdbleword;
 union FPdbleword
 {
 	double x;
 	struct {	// little endian
-		uint32_t lo;
-                uint32_t hi;
+		u32 lo;
+                u32 hi;
 	};
 };
 
-typedef uint64_t jmp_buf[32];
+typedef u64 jmp_buf[32];
 
 #define JMPBUFDPC       0
 #define JMPBUFSP        30
@@ -43,7 +43,7 @@ typedef uint64_t jmp_buf[32];
 #define JMPBUFARG1      0
 #define JMPBUFARG2      1
 
-typedef uint32_t	mpdigit;	// for /sys/include/mp.h
+typedef u32	mpdigit;	// for /sys/include/mp.h
 
 typedef __builtin_va_list va_list;
 

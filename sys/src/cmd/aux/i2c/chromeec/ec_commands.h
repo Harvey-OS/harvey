@@ -445,14 +445,14 @@ enum host_event_code {
 
 /* Arguments at EC_LPC_ADDR_HOST_ARGS */
 struct ec_lpc_host_args {
-	uint8_t flags;
-	uint8_t command_version;
-	uint8_t data_size;
+	u8 flags;
+	u8 command_version;
+	u8 data_size;
 	/*
 	 * Checksum; sum of command + flags + command_version + data_size +
 	 * all params/response data bytes.
 	 */
-	uint8_t checksum;
+	u8 checksum;
 } __packed;
 
 /* Flags for ec_lpc_host_args.flags */
@@ -612,25 +612,25 @@ struct ec_host_request {
 	 * EC will return EC_RES_INVALID_HEADER if it receives a header with a
 	 * version it doesn't know how to parse.
 	 */
-	uint8_t struct_version;
+	u8 struct_version;
 
 	/*
 	 * Checksum of request and data; sum of all bytes including checksum
 	 * should total to 0.
 	 */
-	uint8_t checksum;
+	u8 checksum;
 
 	/* Command code */
-	uint16_t command;
+	u16 command;
 
 	/* Command version */
-	uint8_t command_version;
+	u8 command_version;
 
 	/* Unused byte in current protocol version; set to 0 */
-	uint8_t reserved;
+	u8 reserved;
 
 	/* Length of data which follows this header */
-	uint16_t data_len;
+	u16 data_len;
 } __packed;
 
 #define EC_HOST_RESPONSE_VERSION 3
@@ -638,22 +638,22 @@ struct ec_host_request {
 /* Version 3 response from EC */
 struct ec_host_response {
 	/* Struct version (=3) */
-	uint8_t struct_version;
+	u8 struct_version;
 
 	/*
 	 * Checksum of response and data; sum of all bytes including checksum
 	 * should total to 0.
 	 */
-	uint8_t checksum;
+	u8 checksum;
 
 	/* Result code (EC_RES_*) */
-	uint16_t result;
+	u16 result;
 
 	/* Length of data which follows this header */
-	uint16_t data_len;
+	u16 data_len;
 
 	/* Unused bytes in current protocol version; set to 0 */
-	uint16_t reserved;
+	u16 reserved;
 } __packed;
 
 /*****************************************************************************/
@@ -678,7 +678,7 @@ struct ec_host_response {
 #define EC_CMD_PROTO_VERSION 0x00
 
 struct ec_response_proto_version {
-	uint32_t version;
+	u32 version;
 } __packed;
 
 /*
@@ -688,11 +688,11 @@ struct ec_response_proto_version {
 #define EC_CMD_HELLO 0x01
 
 struct ec_params_hello {
-	uint32_t in_data;  /* Pass anything here */
+	u32 in_data;  /* Pass anything here */
 } __packed;
 
 struct ec_response_hello {
-	uint32_t out_data;  /* Output will be in_data + 0x01020304 */
+	u32 out_data;  /* Output will be in_data + 0x01020304 */
 } __packed;
 
 /* Get version number */
@@ -709,19 +709,19 @@ struct ec_response_get_version {
 	char version_string_ro[32];
 	char version_string_rw[32];
 	char reserved[32];       /* Was previously RW-B string */
-	uint32_t current_image;  /* One of ec_current_image */
+	u32 current_image;  /* One of ec_current_image */
 } __packed;
 
 /* Read test */
 #define EC_CMD_READ_TEST 0x03
 
 struct ec_params_read_test {
-	uint32_t offset;   /* Starting value for read buffer */
-	uint32_t size;     /* Size to read in bytes */
+	u32 offset;   /* Starting value for read buffer */
+	u32 size;     /* Size to read in bytes */
 } __packed;
 
 struct ec_response_read_test {
-	uint32_t data[32];
+	u32 data[32];
 } __packed;
 
 /*
@@ -745,7 +745,7 @@ struct ec_response_get_chip_info {
 #define EC_CMD_GET_BOARD_VERSION 0x06
 
 struct ec_response_board_version {
-	uint16_t board_version;  /* A monotonously incrementing number. */
+	u16 board_version;  /* A monotonously incrementing number. */
 } __packed;
 
 /*
@@ -759,19 +759,19 @@ struct ec_response_board_version {
 #define EC_CMD_READ_MEMMAP 0x07
 
 struct ec_params_read_memmap {
-	uint8_t offset;   /* Offset in memmap (EC_MEMMAP_*) */
-	uint8_t size;     /* Size to read in bytes */
+	u8 offset;   /* Offset in memmap (EC_MEMMAP_*) */
+	u8 size;     /* Size to read in bytes */
 } __packed;
 
 /* Read versions supported for a command */
 #define EC_CMD_GET_CMD_VERSIONS 0x08
 
 struct ec_params_get_cmd_versions {
-	uint8_t cmd;      /* Command to check */
+	u8 cmd;      /* Command to check */
 } __packed;
 
 struct ec_params_get_cmd_versions_v1 {
-	uint16_t cmd;     /* Command to check */
+	u16 cmd;     /* Command to check */
 } __packed;
 
 struct ec_response_get_cmd_versions {
@@ -779,7 +779,7 @@ struct ec_response_get_cmd_versions {
 	 * Mask of supported versions; use EC_VER_MASK() to compare with a
 	 * desired version.
 	 */
-	uint32_t version_mask;
+	u32 version_mask;
 } __packed;
 
 /*
@@ -797,7 +797,7 @@ enum ec_comms_status {
 };
 
 struct ec_response_get_comms_status {
-	uint32_t flags;		/* Mask of enum ec_comms_status */
+	u32 flags;		/* Mask of enum ec_comms_status */
 } __packed;
 
 /* Fake a variety of responses, purely for testing purposes. */
@@ -805,14 +805,14 @@ struct ec_response_get_comms_status {
 
 /* Tell the EC what to send back to us. */
 struct ec_params_test_protocol {
-	uint32_t ec_result;
-	uint32_t ret_len;
-	uint8_t buf[32];
+	u32 ec_result;
+	u32 ret_len;
+	u8 buf[32];
 } __packed;
 
 /* Here it comes... */
 struct ec_response_test_protocol {
-	uint8_t buf[32];
+	u8 buf[32];
 } __packed;
 
 /* Get prococol information */
@@ -826,16 +826,16 @@ struct ec_response_get_protocol_info {
 	/* Fields which exist if at least protocol version 3 supported */
 
 	/* Bitmask of protocol versions supported (1 << n means version n)*/
-	uint32_t protocol_versions;
+	u32 protocol_versions;
 
 	/* Maximum request packet size, in bytes */
-	uint16_t max_request_packet_size;
+	u16 max_request_packet_size;
 
 	/* Maximum response packet size, in bytes */
-	uint16_t max_response_packet_size;
+	u16 max_response_packet_size;
 
 	/* Flags; see EC_PROTOCOL_INFO_* */
-	uint32_t flags;
+	u32 flags;
 } __packed;
 
 
@@ -850,13 +850,13 @@ struct ec_response_get_protocol_info {
 #define EC_GSV_PARAM_MASK 0x00ffffff
 
 struct ec_params_get_set_value {
-	uint32_t flags;
-	uint32_t value;
+	u32 flags;
+	u32 value;
 } __packed;
 
 struct ec_response_get_set_value {
-	uint32_t flags;
-	uint32_t value;
+	u32 flags;
+	u32 value;
 } __packed;
 
 /* More than one command can use these structs to get/set paramters. */
@@ -872,22 +872,22 @@ struct ec_response_get_set_value {
 /* Version 0 returns these fields */
 struct ec_response_flash_info {
 	/* Usable flash size, in bytes */
-	uint32_t flash_size;
+	u32 flash_size;
 	/*
 	 * Write block size.  Write offset and size must be a multiple
 	 * of this.
 	 */
-	uint32_t write_block_size;
+	u32 write_block_size;
 	/*
 	 * Erase block size.  Erase offset and size must be a multiple
 	 * of this.
 	 */
-	uint32_t erase_block_size;
+	u32 erase_block_size;
 	/*
 	 * Protection block size.  Protection offset and size must be a
 	 * multiple of this.
 	 */
-	uint32_t protect_block_size;
+	u32 protect_block_size;
 } __packed;
 
 /* Flags for version 1+ flash info command */
@@ -903,10 +903,10 @@ struct ec_response_flash_info {
  */
 struct ec_response_flash_info_1 {
 	/* Version 0 fields; see above for description */
-	uint32_t flash_size;
-	uint32_t write_block_size;
-	uint32_t erase_block_size;
-	uint32_t protect_block_size;
+	u32 flash_size;
+	u32 write_block_size;
+	u32 erase_block_size;
+	u32 protect_block_size;
 
 	/* Version 1 adds these fields: */
 	/*
@@ -915,10 +915,10 @@ struct ec_response_flash_info_1 {
 	 * may have a write buffer which can do half-page operations if data is
 	 * aligned, and a slower word-at-a-time write mode.
 	 */
-	uint32_t write_ideal_size;
+	u32 write_ideal_size;
 
 	/* Flags; see EC_FLASH_INFO_* */
-	uint32_t flags;
+	u32 flags;
 } __packed;
 
 /*
@@ -929,8 +929,8 @@ struct ec_response_flash_info_1 {
 #define EC_CMD_FLASH_READ 0x11
 
 struct ec_params_flash_read {
-	uint32_t offset;   /* Byte offset to read */
-	uint32_t size;     /* Size to read in bytes */
+	u32 offset;   /* Byte offset to read */
+	u32 size;     /* Size to read in bytes */
 } __packed;
 
 /* Write flash */
@@ -941,8 +941,8 @@ struct ec_params_flash_read {
 #define EC_FLASH_WRITE_VER0_SIZE 64
 
 struct ec_params_flash_write {
-	uint32_t offset;   /* Byte offset to write */
-	uint32_t size;     /* Size to write in bytes */
+	u32 offset;   /* Byte offset to write */
+	u32 size;     /* Size to write in bytes */
 	/* Followed by data to write */
 } __packed;
 
@@ -950,8 +950,8 @@ struct ec_params_flash_write {
 #define EC_CMD_FLASH_ERASE 0x13
 
 struct ec_params_flash_erase {
-	uint32_t offset;   /* Byte offset to erase */
-	uint32_t size;     /* Size to erase in bytes */
+	u32 offset;   /* Byte offset to erase */
+	u32 size;     /* Size to erase in bytes */
 } __packed;
 
 /*
@@ -991,21 +991,21 @@ struct ec_params_flash_erase {
 #define EC_FLASH_PROTECT_ALL_AT_BOOT        (1 << 6)
 
 struct ec_params_flash_protect {
-	uint32_t mask;   /* Bits in flags to apply */
-	uint32_t flags;  /* New flags to apply */
+	u32 mask;   /* Bits in flags to apply */
+	u32 flags;  /* New flags to apply */
 } __packed;
 
 struct ec_response_flash_protect {
 	/* Current value of flash protect flags */
-	uint32_t flags;
+	u32 flags;
 	/*
 	 * Flags which are valid on this platform.  This allows the caller
 	 * to distinguish between flags which aren't set vs. flags which can't
 	 * be set on this platform.
 	 */
-	uint32_t valid_flags;
+	u32 valid_flags;
 	/* Flags which can be changed given the current protection state */
-	uint32_t writable_flags;
+	u32 writable_flags;
 } __packed;
 
 /*
@@ -1032,12 +1032,12 @@ enum ec_flash_region {
 };
 
 struct ec_params_flash_region_info {
-	uint32_t region;  /* enum ec_flash_region */
+	u32 region;  /* enum ec_flash_region */
 } __packed;
 
 struct ec_response_flash_region_info {
-	uint32_t offset;
-	uint32_t size;
+	u32 offset;
+	u32 size;
 } __packed;
 
 /* Read/write VbNvContext */
@@ -1051,12 +1051,12 @@ enum ec_vbnvcontext_op {
 };
 
 struct ec_params_vbnvcontext {
-	uint32_t op;
-	uint8_t block[EC_VBNV_BLOCK_SIZE];
+	u32 op;
+	u8 block[EC_VBNV_BLOCK_SIZE];
 } __packed;
 
 struct ec_response_vbnvcontext {
-	uint8_t block[EC_VBNV_BLOCK_SIZE];
+	u8 block[EC_VBNV_BLOCK_SIZE];
 } __packed;
 
 /*****************************************************************************/
@@ -1066,7 +1066,7 @@ struct ec_response_vbnvcontext {
 #define EC_CMD_PWM_GET_FAN_TARGET_RPM 0x20
 
 struct ec_response_pwm_get_fan_rpm {
-	uint32_t rpm;
+	u32 rpm;
 } __packed;
 
 /* Set target fan RPM */
@@ -1074,28 +1074,28 @@ struct ec_response_pwm_get_fan_rpm {
 
 /* Version 0 of input params */
 struct ec_params_pwm_set_fan_target_rpm_v0 {
-	uint32_t rpm;
+	u32 rpm;
 } __packed;
 
 /* Version 1 of input params */
 struct ec_params_pwm_set_fan_target_rpm_v1 {
-	uint32_t rpm;
-	uint8_t fan_idx;
+	u32 rpm;
+	u8 fan_idx;
 } __packed;
 
 /* Get keyboard backlight */
 #define EC_CMD_PWM_GET_KEYBOARD_BACKLIGHT 0x22
 
 struct ec_response_pwm_get_keyboard_backlight {
-	uint8_t percent;
-	uint8_t enabled;
+	u8 percent;
+	u8 enabled;
 } __packed;
 
 /* Set keyboard backlight */
 #define EC_CMD_PWM_SET_KEYBOARD_BACKLIGHT 0x23
 
 struct ec_params_pwm_set_keyboard_backlight {
-	uint8_t percent;
+	u8 percent;
 } __packed;
 
 /* Set target fan PWM duty cycle */
@@ -1103,13 +1103,13 @@ struct ec_params_pwm_set_keyboard_backlight {
 
 /* Version 0 of input params */
 struct ec_params_pwm_set_fan_duty_v0 {
-	uint32_t percent;
+	u32 percent;
 } __packed;
 
 /* Version 1 of input params */
 struct ec_params_pwm_set_fan_duty_v1 {
-	uint32_t percent;
-	uint8_t fan_idx;
+	u32 percent;
+	u8 fan_idx;
 } __packed;
 
 /*****************************************************************************/
@@ -1122,7 +1122,7 @@ struct ec_params_pwm_set_fan_duty_v1 {
 #define EC_CMD_LIGHTBAR_CMD 0x28
 
 struct rgb_s {
-	uint8_t r, g, b;
+	u8 r, g, b;
 };
 
 #define LB_BATTERY_LEVELS 4
@@ -1131,33 +1131,33 @@ struct rgb_s {
  */
 struct lightbar_params_v0 {
 	/* Timing */
-	int32_t google_ramp_up;
-	int32_t google_ramp_down;
-	int32_t s3s0_ramp_up;
-	int32_t s0_tick_delay[2];		/* AC=0/1 */
-	int32_t s0a_tick_delay[2];		/* AC=0/1 */
-	int32_t s0s3_ramp_down;
-	int32_t s3_sleep_for;
-	int32_t s3_ramp_up;
-	int32_t s3_ramp_down;
+	i32 google_ramp_up;
+	i32 google_ramp_down;
+	i32 s3s0_ramp_up;
+	i32 s0_tick_delay[2];		/* AC=0/1 */
+	i32 s0a_tick_delay[2];		/* AC=0/1 */
+	i32 s0s3_ramp_down;
+	i32 s3_sleep_for;
+	i32 s3_ramp_up;
+	i32 s3_ramp_down;
 
 	/* Oscillation */
-	uint8_t new_s0;
-	uint8_t osc_min[2];			/* AC=0/1 */
-	uint8_t osc_max[2];			/* AC=0/1 */
-	uint8_t w_ofs[2];			/* AC=0/1 */
+	u8 new_s0;
+	u8 osc_min[2];			/* AC=0/1 */
+	u8 osc_max[2];			/* AC=0/1 */
+	u8 w_ofs[2];			/* AC=0/1 */
 
 	/* Brightness limits based on the backlight and AC. */
-	uint8_t bright_bl_off_fixed[2];		/* AC=0/1 */
-	uint8_t bright_bl_on_min[2];		/* AC=0/1 */
-	uint8_t bright_bl_on_max[2];		/* AC=0/1 */
+	u8 bright_bl_off_fixed[2];		/* AC=0/1 */
+	u8 bright_bl_on_min[2];		/* AC=0/1 */
+	u8 bright_bl_on_max[2];		/* AC=0/1 */
 
 	/* Battery level thresholds */
-	uint8_t battery_threshold[LB_BATTERY_LEVELS - 1];
+	u8 battery_threshold[LB_BATTERY_LEVELS - 1];
 
 	/* Map [AC][battery_level] to color index */
-	uint8_t s0_idx[2][LB_BATTERY_LEVELS];	/* AP is running */
-	uint8_t s3_idx[2][LB_BATTERY_LEVELS];	/* AP is sleeping */
+	u8 s0_idx[2][LB_BATTERY_LEVELS];	/* AP is running */
+	u8 s3_idx[2][LB_BATTERY_LEVELS];	/* AP is sleeping */
 
 	/* Color palette */
 	struct rgb_s color[8];			/* 0-3 are Google colors */
@@ -1165,48 +1165,48 @@ struct lightbar_params_v0 {
 
 struct lightbar_params_v1 {
 	/* Timing */
-	int32_t google_ramp_up;
-	int32_t google_ramp_down;
-	int32_t s3s0_ramp_up;
-	int32_t s0_tick_delay[2];		/* AC=0/1 */
-	int32_t s0a_tick_delay[2];		/* AC=0/1 */
-	int32_t s0s3_ramp_down;
-	int32_t s3_sleep_for;
-	int32_t s3_ramp_up;
-	int32_t s3_ramp_down;
-	int32_t s5_ramp_up;
-	int32_t s5_ramp_down;
-	int32_t tap_tick_delay;
-	int32_t tap_gate_delay;
-	int32_t tap_display_time;
+	i32 google_ramp_up;
+	i32 google_ramp_down;
+	i32 s3s0_ramp_up;
+	i32 s0_tick_delay[2];		/* AC=0/1 */
+	i32 s0a_tick_delay[2];		/* AC=0/1 */
+	i32 s0s3_ramp_down;
+	i32 s3_sleep_for;
+	i32 s3_ramp_up;
+	i32 s3_ramp_down;
+	i32 s5_ramp_up;
+	i32 s5_ramp_down;
+	i32 tap_tick_delay;
+	i32 tap_gate_delay;
+	i32 tap_display_time;
 
 	/* Tap-for-battery params */
-	uint8_t tap_pct_red;
-	uint8_t tap_pct_green;
-	uint8_t tap_seg_min_on;
-	uint8_t tap_seg_max_on;
-	uint8_t tap_seg_osc;
-	uint8_t tap_idx[3];
+	u8 tap_pct_red;
+	u8 tap_pct_green;
+	u8 tap_seg_min_on;
+	u8 tap_seg_max_on;
+	u8 tap_seg_osc;
+	u8 tap_idx[3];
 
 	/* Oscillation */
-	uint8_t osc_min[2];			/* AC=0/1 */
-	uint8_t osc_max[2];			/* AC=0/1 */
-	uint8_t w_ofs[2];			/* AC=0/1 */
+	u8 osc_min[2];			/* AC=0/1 */
+	u8 osc_max[2];			/* AC=0/1 */
+	u8 w_ofs[2];			/* AC=0/1 */
 
 	/* Brightness limits based on the backlight and AC. */
-	uint8_t bright_bl_off_fixed[2];		/* AC=0/1 */
-	uint8_t bright_bl_on_min[2];		/* AC=0/1 */
-	uint8_t bright_bl_on_max[2];		/* AC=0/1 */
+	u8 bright_bl_off_fixed[2];		/* AC=0/1 */
+	u8 bright_bl_on_min[2];		/* AC=0/1 */
+	u8 bright_bl_on_max[2];		/* AC=0/1 */
 
 	/* Battery level thresholds */
-	uint8_t battery_threshold[LB_BATTERY_LEVELS - 1];
+	u8 battery_threshold[LB_BATTERY_LEVELS - 1];
 
 	/* Map [AC][battery_level] to color index */
-	uint8_t s0_idx[2][LB_BATTERY_LEVELS];	/* AP is running */
-	uint8_t s3_idx[2][LB_BATTERY_LEVELS];	/* AP is sleeping */
+	u8 s0_idx[2][LB_BATTERY_LEVELS];	/* AP is running */
+	u8 s3_idx[2][LB_BATTERY_LEVELS];	/* AP is sleeping */
 
 	/* s5: single color pulse on inhibited power-up */
-	uint8_t s5_idx;
+	u8 s5_idx;
 
 	/* Color palette */
 	struct rgb_s color[8];			/* 0-3 are Google colors */
@@ -1215,12 +1215,12 @@ struct lightbar_params_v1 {
 /* Lightbyte program. */
 #define EC_LB_PROG_LEN 192
 struct lightbar_program {
-	uint8_t size;
-	uint8_t data[EC_LB_PROG_LEN];
+	u8 size;
+	u8 data[EC_LB_PROG_LEN];
 };
 
 struct ec_params_lightbar {
-	uint8_t cmd;		      /* Command (see enum lightbar_command) */
+	u8 cmd;		      /* Command (see enum lightbar_command) */
 	union {
 		struct {
 			/* no args */
@@ -1228,23 +1228,23 @@ struct ec_params_lightbar {
 			version, get_brightness, get_demo, suspend, resume;
 
 		struct {
-			uint8_t num;
+			u8 num;
 		} set_brightness, seq, demo;
 
 		struct {
-			uint8_t ctrl, reg, value;
+			u8 ctrl, reg, value;
 		} reg;
 
 		struct {
-			uint8_t led, red, green, blue;
+			u8 led, red, green, blue;
 		} set_rgb;
 
 		struct {
-			uint8_t led;
+			u8 led;
 		} get_rgb;
 
 		struct {
-			uint8_t enable;
+			u8 enable;
 		} manual_suspend_ctrl;
 
 		struct lightbar_params_v0 set_params_v0;
@@ -1257,26 +1257,26 @@ struct ec_response_lightbar {
 	union {
 		struct {
 			struct {
-				uint8_t reg;
-				uint8_t ic0;
-				uint8_t ic1;
+				u8 reg;
+				u8 ic0;
+				u8 ic1;
 			} vals[23];
 		} dump;
 
 		struct  {
-			uint8_t num;
+			u8 num;
 		} get_seq, get_brightness, get_demo;
 
 		struct lightbar_params_v0 get_params_v0;
 		struct lightbar_params_v1 get_params_v1;
 
 		struct {
-			uint32_t num;
-			uint32_t flags;
+			u32 num;
+			u32 flags;
 		} version;
 
 		struct {
-			uint8_t red, green, blue;
+			u8 red, green, blue;
 		} get_rgb;
 
 		struct {
@@ -1348,10 +1348,10 @@ enum ec_led_colors {
 };
 
 struct ec_params_led_control {
-	uint8_t led_id;     /* Which LED to control */
-	uint8_t flags;      /* Control flags */
+	u8 led_id;     /* Which LED to control */
+	u8 flags;      /* Control flags */
 
-	uint8_t brightness[EC_LED_COLOR_COUNT];
+	u8 brightness[EC_LED_COLOR_COUNT];
 } __packed;
 
 struct ec_response_led_control {
@@ -1362,7 +1362,7 @@ struct ec_response_led_control {
 	 * Range 1 means on/off control.
 	 * Other values means the LED is control by PWM.
 	 */
-	uint8_t brightness_range[EC_LED_COLOR_COUNT];
+	u8 brightness_range[EC_LED_COLOR_COUNT];
 } __packed;
 
 /*****************************************************************************/
@@ -1377,23 +1377,23 @@ struct ec_response_led_control {
 #define EC_CMD_VBOOT_HASH 0x2A
 
 struct ec_params_vboot_hash {
-	uint8_t cmd;             /* enum ec_vboot_hash_cmd */
-	uint8_t hash_type;       /* enum ec_vboot_hash_type */
-	uint8_t nonce_size;      /* Nonce size; may be 0 */
-	uint8_t reserved0;       /* Reserved; set 0 */
-	uint32_t offset;         /* Offset in flash to hash */
-	uint32_t size;           /* Number of bytes to hash */
-	uint8_t nonce_data[64];  /* Nonce data; ignored if nonce_size=0 */
+	u8 cmd;             /* enum ec_vboot_hash_cmd */
+	u8 hash_type;       /* enum ec_vboot_hash_type */
+	u8 nonce_size;      /* Nonce size; may be 0 */
+	u8 reserved0;       /* Reserved; set 0 */
+	u32 offset;         /* Offset in flash to hash */
+	u32 size;           /* Number of bytes to hash */
+	u8 nonce_data[64];  /* Nonce data; ignored if nonce_size=0 */
 } __packed;
 
 struct ec_response_vboot_hash {
-	uint8_t status;          /* enum ec_vboot_hash_status */
-	uint8_t hash_type;       /* enum ec_vboot_hash_type */
-	uint8_t digest_size;     /* Size of hash digest in bytes */
-	uint8_t reserved0;       /* Ignore; will be 0 */
-	uint32_t offset;         /* Offset in flash which was hashed */
-	uint32_t size;           /* Number of bytes hashed */
-	uint8_t hash_digest[64]; /* Hash digest data */
+	u8 status;          /* enum ec_vboot_hash_status */
+	u8 hash_type;       /* enum ec_vboot_hash_type */
+	u8 digest_size;     /* Size of hash digest in bytes */
+	u8 reserved0;       /* Ignore; will be 0 */
+	u32 offset;         /* Offset in flash which was hashed */
+	u32 size;           /* Number of bytes hashed */
+	u8 hash_digest[64]; /* Hash digest data */
 } __packed;
 
 enum ec_vboot_hash_cmd {
@@ -1506,7 +1506,7 @@ enum motionsensor_chip {
 #define EC_MOTION_SENSE_NO_VALUE -1
 
 struct ec_params_motion_sense {
-	uint8_t cmd;
+	u8 cmd;
 	union {
 		/* Used for MOTIONSENSE_CMD_DUMP */
 		struct {
@@ -1515,7 +1515,7 @@ struct ec_params_motion_sense {
 			 * 0 means the host is only interested in the number
 			 * of sensors controlled by the EC.
 			 */
-			uint8_t max_sensor_count;
+			u8 max_sensor_count;
 		} dump;
 
 		/*
@@ -1524,12 +1524,12 @@ struct ec_params_motion_sense {
 		 */
 		struct {
 			/* Data to set or EC_MOTION_SENSE_NO_VALUE to read. */
-			int16_t data;
+			i16 data;
 		} ec_rate, kb_wake_angle;
 
 		/* Used for MOTIONSENSE_CMD_INFO. */
 		struct {
-			uint8_t sensor_num;
+			u8 sensor_num;
 		} info;
 
 		/*
@@ -1537,26 +1537,26 @@ struct ec_params_motion_sense {
 		 * MOTIONSENSE_CMD_SENSOR_RANGE.
 		 */
 		struct {
-			uint8_t sensor_num;
+			u8 sensor_num;
 
 			/* Rounding flag, true for round-up, false for down. */
-			uint8_t roundup;
+			u8 roundup;
 
-			uint16_t reserved;
+			u16 reserved;
 
 			/* Data to set or EC_MOTION_SENSE_NO_VALUE to read. */
-			int32_t data;
+			i32 data;
 		} sensor_odr, sensor_range;
 	};
 } __packed;
 
 struct ec_response_motion_sensor_data {
 	/* Flags for each sensor. */
-	uint8_t flags;
-	uint8_t padding;
+	u8 flags;
+	u8 padding;
 
 	/* Each sensor is up to 3-axis. */
-	int16_t data[3];
+	i16 data[3];
 } __packed;
 
 struct ec_response_motion_sense {
@@ -1564,10 +1564,10 @@ struct ec_response_motion_sense {
 		/* Used for MOTIONSENSE_CMD_DUMP */
 		struct {
 			/* Flags representing the motion sensor module. */
-			uint8_t module_flags;
+			u8 module_flags;
 
 			/* Number of sensors managed directly by the EC */
-			uint8_t sensor_count;
+			u8 sensor_count;
 
 			/*
 			 * sensor data is truncated if response_max is too small
@@ -1579,13 +1579,13 @@ struct ec_response_motion_sense {
 		/* Used for MOTIONSENSE_CMD_INFO. */
 		struct {
 			/* Should be element of enum motionsensor_type. */
-			uint8_t type;
+			u8 type;
 
 			/* Should be element of enum motionsensor_location. */
-			uint8_t location;
+			u8 location;
 
 			/* Should be element of enum motionsensor_chip. */
-			uint8_t chip;
+			u8 chip;
 		} info;
 
 		/*
@@ -1595,7 +1595,7 @@ struct ec_response_motion_sense {
 		 */
 		struct {
 			/* Current value of the parameter queried. */
-			int32_t ret;
+			i32 ret;
 		} ec_rate, sensor_odr, sensor_range, kb_wake_angle;
 	};
 } __packed;
@@ -1607,7 +1607,7 @@ struct ec_response_motion_sense {
 #define EC_CMD_FORCE_LID_OPEN 0x2c
 
 struct ec_params_force_lid_open {
-	uint8_t enabled;
+	u8 enabled;
 } __packed;
 
 /*****************************************************************************/
@@ -1617,8 +1617,8 @@ struct ec_params_force_lid_open {
 #define EC_CMD_USB_CHARGE_SET_MODE 0x30
 
 struct ec_params_usb_charge_set_mode {
-	uint8_t usb_port_id;
-	uint8_t mode;
+	u8 usb_port_id;
+	u8 mode;
 } __packed;
 
 /*****************************************************************************/
@@ -1632,9 +1632,9 @@ struct ec_params_usb_charge_set_mode {
 
 struct ec_response_pstore_info {
 	/* Persistent storage size, in bytes */
-	uint32_t pstore_size;
+	u32 pstore_size;
 	/* Access size; read/write offset and size must be a multiple of this */
-	uint32_t access_size;
+	u32 access_size;
 } __packed;
 
 /*
@@ -1645,17 +1645,17 @@ struct ec_response_pstore_info {
 #define EC_CMD_PSTORE_READ 0x41
 
 struct ec_params_pstore_read {
-	uint32_t offset;   /* Byte offset to read */
-	uint32_t size;     /* Size to read in bytes */
+	u32 offset;   /* Byte offset to read */
+	u32 size;     /* Size to read in bytes */
 } __packed;
 
 /* Write persistent storage */
 #define EC_CMD_PSTORE_WRITE 0x42
 
 struct ec_params_pstore_write {
-	uint32_t offset;   /* Byte offset to write */
-	uint32_t size;     /* Size to write in bytes */
-	uint8_t data[EC_PSTORE_SIZE_MAX];
+	u32 offset;   /* Byte offset to write */
+	u32 size;     /* Size to write in bytes */
+	u8 data[EC_PSTORE_SIZE_MAX];
 } __packed;
 
 /*****************************************************************************/
@@ -1663,11 +1663,11 @@ struct ec_params_pstore_write {
 
 /* RTC params and response structures */
 struct ec_params_rtc {
-	uint32_t time;
+	u32 time;
 } __packed;
 
 struct ec_response_rtc {
-	uint32_t time;
+	u32 time;
 } __packed;
 
 /* These use ec_response_rtc */
@@ -1694,11 +1694,11 @@ enum ec_port80_subcmd {
 };
 
 struct ec_params_port80_read {
-	uint16_t subcmd;
+	u16 subcmd;
 	union {
 		struct {
-			uint32_t offset;
-			uint32_t num_entries;
+			u32 offset;
+			u32 num_entries;
 		} read_buffer;
 	};
 } __packed;
@@ -1706,18 +1706,18 @@ struct ec_params_port80_read {
 struct ec_response_port80_read {
 	union {
 		struct {
-			uint32_t writes;
-			uint32_t history_size;
-			uint32_t last_boot;
+			u32 writes;
+			u32 history_size;
+			u32 last_boot;
 		} get_info;
 		struct {
-			uint16_t codes[EC_PORT80_SIZE_MAX];
+			u16 codes[EC_PORT80_SIZE_MAX];
 		} data;
 	};
 } __packed;
 
 struct ec_response_port80_last_boot {
-	uint16_t code;
+	u16 code;
 } __packed;
 
 /*****************************************************************************/
@@ -1736,19 +1736,19 @@ struct ec_response_port80_last_boot {
 
 /* Version 0 - set */
 struct ec_params_thermal_set_threshold {
-	uint8_t sensor_type;
-	uint8_t threshold_id;
-	uint16_t value;
+	u8 sensor_type;
+	u8 threshold_id;
+	u16 value;
 } __packed;
 
 /* Version 0 - get */
 struct ec_params_thermal_get_threshold {
-	uint8_t sensor_type;
-	uint8_t threshold_id;
+	u8 sensor_type;
+	u8 threshold_id;
 } __packed;
 
 struct ec_response_thermal_get_threshold {
-	uint16_t value;
+	u16 value;
 } __packed;
 
 
@@ -1765,21 +1765,21 @@ enum ec_temp_thresholds {
  * Zero values will be silently ignored by the thermal task.
  */
 struct ec_thermal_config {
-	uint32_t temp_host[EC_TEMP_THRESH_COUNT]; /* levels of hotness */
-	uint32_t temp_fan_off;		/* no active cooling needed */
-	uint32_t temp_fan_max;		/* max active cooling needed */
+	u32 temp_host[EC_TEMP_THRESH_COUNT]; /* levels of hotness */
+	u32 temp_fan_off;		/* no active cooling needed */
+	u32 temp_fan_max;		/* max active cooling needed */
 } __packed;
 
 /* Version 1 - get config for one sensor. */
 struct ec_params_thermal_get_threshold_v1 {
-	uint32_t sensor_num;
+	u32 sensor_num;
 } __packed;
 /* This returns a struct ec_thermal_config */
 
 /* Version 1 - set config for one sensor.
  * Use read-modify-write for best results! */
 struct ec_params_thermal_set_threshold_v1 {
-	uint32_t sensor_num;
+	u32 sensor_num;
 	struct ec_thermal_config cfg;
 } __packed;
 /* This returns no data */
@@ -1791,7 +1791,7 @@ struct ec_params_thermal_set_threshold_v1 {
 
 /* Version 1 of input params */
 struct ec_params_auto_fan_ctrl_v1 {
-	uint8_t fan_idx;
+	u8 fan_idx;
 } __packed;
 
 /* Get/Set TMP006 calibration data */
@@ -1809,7 +1809,7 @@ struct ec_params_auto_fan_ctrl_v1 {
 
 /* This is the same struct for both v0 and v1. */
 struct ec_params_tmp006_get_calibration {
-	uint8_t index;
+	u8 index;
 } __packed;
 
 /* Version 0 */
@@ -1821,8 +1821,8 @@ struct ec_response_tmp006_get_calibration_v0 {
 } __packed;
 
 struct ec_params_tmp006_set_calibration_v0 {
-	uint8_t index;
-	uint8_t reserved[3];
+	u8 index;
+	u8 reserved[3];
 	float s0;
 	float b0;
 	float b1;
@@ -1831,17 +1831,17 @@ struct ec_params_tmp006_set_calibration_v0 {
 
 /* Version 1 */
 struct ec_response_tmp006_get_calibration_v1 {
-	uint8_t algorithm;
-	uint8_t num_params;
-	uint8_t reserved[2];
+	u8 algorithm;
+	u8 num_params;
+	u8 reserved[2];
 	float val[0];
 } __packed;
 
 struct ec_params_tmp006_set_calibration_v1 {
-	uint8_t index;
-	uint8_t algorithm;
-	uint8_t num_params;
-	uint8_t reserved;
+	u8 index;
+	u8 algorithm;
+	u8 num_params;
+	u8 reserved;
 	float val[0];
 } __packed;
 
@@ -1850,12 +1850,12 @@ struct ec_params_tmp006_set_calibration_v1 {
 #define EC_CMD_TMP006_GET_RAW 0x55
 
 struct ec_params_tmp006_get_raw {
-	uint8_t index;
+	u8 index;
 } __packed;
 
 struct ec_response_tmp006_get_raw {
-	int32_t t;  /* In 1/100 K */
-	int32_t v;  /* In nV */
+	i32 t;  /* In 1/100 K */
+	i32 v;  /* In nV */
 };
 
 /*****************************************************************************/
@@ -1873,18 +1873,18 @@ struct ec_response_tmp006_get_raw {
 #define EC_CMD_MKBP_INFO 0x61
 
 struct ec_response_mkbp_info {
-	uint32_t rows;
-	uint32_t cols;
-	uint8_t switches;
+	u32 rows;
+	u32 cols;
+	u8 switches;
 } __packed;
 
 /* Simulate key press */
 #define EC_CMD_MKBP_SIMULATE_KEY 0x62
 
 struct ec_params_mkbp_simulate_key {
-	uint8_t col;
-	uint8_t row;
-	uint8_t pressed;
+	u8 col;
+	u8 row;
+	u8 pressed;
 } __packed;
 
 /* Configure keyboard scanning */
@@ -1908,24 +1908,24 @@ enum mkbp_config_valid {
 
 /* Configuration for our key scanning algorithm */
 struct ec_mkbp_config {
-	uint32_t valid_mask;		/* valid fields */
-	uint8_t flags;		/* some flags (enum mkbp_config_flags) */
-	uint8_t valid_flags;		/* which flags are valid */
-	uint16_t scan_period_us;	/* period between start of scans */
+	u32 valid_mask;		/* valid fields */
+	u8 flags;		/* some flags (enum mkbp_config_flags) */
+	u8 valid_flags;		/* which flags are valid */
+	u16 scan_period_us;	/* period between start of scans */
 	/* revert to interrupt mode after no activity for this long */
-	uint32_t poll_timeout_us;
+	u32 poll_timeout_us;
 	/*
 	 * minimum post-scan relax time. Once we finish a scan we check
 	 * the time until we are due to start the next one. If this time is
 	 * shorter this field, we use this instead.
 	 */
-	uint16_t min_post_scan_delay_us;
+	u16 min_post_scan_delay_us;
 	/* delay between setting up output and waiting for it to settle */
-	uint16_t output_settle_us;
-	uint16_t debounce_down_us;	/* time for debounce on key down */
-	uint16_t debounce_up_us;	/* time for debounce on key up */
+	u16 output_settle_us;
+	u16 debounce_down_us;	/* time for debounce on key down */
+	u16 debounce_up_us;	/* time for debounce on key up */
 	/* maximum depth to allow for fifo (0 = no keyscan output) */
-	uint8_t fifo_max_depth;
+	u8 fifo_max_depth;
 } __packed;
 
 struct ec_params_mkbp_set_config {
@@ -1956,29 +1956,29 @@ enum ec_collect_flags {
 };
 
 struct ec_collect_item {
-	uint8_t flags;		/* some flags (enum ec_collect_flags) */
+	u8 flags;		/* some flags (enum ec_collect_flags) */
 };
 
 struct ec_params_keyscan_seq_ctrl {
-	uint8_t cmd;	/* Command to send (enum ec_keyscan_seq_cmd) */
+	u8 cmd;	/* Command to send (enum ec_keyscan_seq_cmd) */
 	union {
 		struct {
-			uint8_t active;		/* still active */
-			uint8_t num_items;	/* number of items */
+			u8 active;		/* still active */
+			u8 num_items;	/* number of items */
 			/* Current item being presented */
-			uint8_t cur_item;
+			u8 cur_item;
 		} status;
 		struct {
 			/*
 			 * Absolute time for this scan, measured from the
 			 * start of the sequence.
 			 */
-			uint32_t time_us;
-			uint8_t scan[0];	/* keyscan data */
+			u32 time_us;
+			u8 scan[0];	/* keyscan data */
 		} add;
 		struct {
-			uint8_t start_item;	/* First item to return */
-			uint8_t num_items;	/* Number of items to return */
+			u8 start_item;	/* First item to return */
+			u8 num_items;	/* Number of items to return */
 		} collect;
 	};
 } __packed;
@@ -1986,7 +1986,7 @@ struct ec_params_keyscan_seq_ctrl {
 struct ec_result_keyscan_seq_ctrl {
 	union {
 		struct {
-			uint8_t num_items;	/* Number of items */
+			u8 num_items;	/* Number of items */
 			/* Data for each item */
 			struct ec_collect_item item[0];
 		} collect;
@@ -2012,7 +2012,7 @@ enum ec_mkbp_event {
 };
 
 struct ec_response_get_next_event {
-	uint8_t event_type;
+	u8 event_type;
 	/* Followed by event data if any */
 } __packed;
 
@@ -2023,12 +2023,12 @@ struct ec_response_get_next_event {
 #define EC_CMD_TEMP_SENSOR_GET_INFO 0x70
 
 struct ec_params_temp_sensor_get_info {
-	uint8_t id;
+	u8 id;
 } __packed;
 
 struct ec_response_temp_sensor_get_info {
 	char sensor_name[32];
-	uint8_t sensor_type;
+	u8 sensor_type;
 } __packed;
 
 /*****************************************************************************/
@@ -2047,11 +2047,11 @@ struct ec_response_temp_sensor_get_info {
  * event commands below.
  */
 struct ec_params_host_event_mask {
-	uint32_t mask;
+	u32 mask;
 } __packed;
 
 struct ec_response_host_event_mask {
-	uint32_t mask;
+	u32 mask;
 } __packed;
 
 /* These all use ec_response_host_event_mask */
@@ -2074,7 +2074,7 @@ struct ec_response_host_event_mask {
 #define EC_CMD_SWITCH_ENABLE_BKLIGHT 0x90
 
 struct ec_params_switch_enable_backlight {
-	uint8_t enabled;
+	u8 enabled;
 } __packed;
 
 /* Enable/disable WLAN/Bluetooth */
@@ -2083,35 +2083,35 @@ struct ec_params_switch_enable_backlight {
 
 /* Version 0 params; no response */
 struct ec_params_switch_enable_wireless_v0 {
-	uint8_t enabled;
+	u8 enabled;
 } __packed;
 
 /* Version 1 params */
 struct ec_params_switch_enable_wireless_v1 {
 	/* Flags to enable now */
-	uint8_t now_flags;
+	u8 now_flags;
 
 	/* Which flags to copy from now_flags */
-	uint8_t now_mask;
+	u8 now_mask;
 
 	/*
 	 * Flags to leave enabled in S3, if they're on at the S0->S3
 	 * transition.  (Other flags will be disabled by the S0->S3
 	 * transition.)
 	 */
-	uint8_t suspend_flags;
+	u8 suspend_flags;
 
 	/* Which flags to copy from suspend_flags */
-	uint8_t suspend_mask;
+	u8 suspend_mask;
 } __packed;
 
 /* Version 1 response */
 struct ec_response_switch_enable_wireless_v1 {
 	/* Flags to enable now */
-	uint8_t now_flags;
+	u8 now_flags;
 
 	/* Flags to leave enabled in S3 */
-	uint8_t suspend_flags;
+	u8 suspend_flags;
 } __packed;
 
 /*****************************************************************************/
@@ -2122,7 +2122,7 @@ struct ec_response_switch_enable_wireless_v1 {
 
 struct ec_params_gpio_set {
 	char name[32];
-	uint8_t val;
+	u8 val;
 } __packed;
 
 /* Get GPIO value */
@@ -2133,18 +2133,18 @@ struct ec_params_gpio_get {
 	char name[32];
 } __packed;
 struct ec_response_gpio_get {
-	uint8_t val;
+	u8 val;
 } __packed;
 
 /* Version 1 of input params and response */
 struct ec_params_gpio_get_v1 {
-	uint8_t subcmd;
+	u8 subcmd;
 	union {
 		struct {
 			char name[32];
 		} get_value_by_name;
 		struct {
-			uint8_t index;
+			u8 index;
 		} get_info;
 	};
 } __packed;
@@ -2152,12 +2152,12 @@ struct ec_params_gpio_get_v1 {
 struct ec_response_gpio_get_v1 {
 	union {
 		struct {
-			uint8_t val;
+			u8 val;
 		} get_value_by_name, get_count;
 		struct {
-			uint8_t val;
+			u8 val;
 			char name[32];
-			uint32_t flags;
+			u32 flags;
 		} get_info;
 	};
 } __packed;
@@ -2180,24 +2180,24 @@ enum gpio_get_subcmd {
 #define EC_CMD_I2C_READ 0x94
 
 struct ec_params_i2c_read {
-	uint16_t addr; /* 8-bit address (7-bit shifted << 1) */
-	uint8_t read_size; /* Either 8 or 16. */
-	uint8_t port;
-	uint8_t offset;
+	u16 addr; /* 8-bit address (7-bit shifted << 1) */
+	u8 read_size; /* Either 8 or 16. */
+	u8 port;
+	u8 offset;
 } __packed;
 struct ec_response_i2c_read {
-	uint16_t data;
+	u16 data;
 } __packed;
 
 /* Write I2C bus */
 #define EC_CMD_I2C_WRITE 0x95
 
 struct ec_params_i2c_write {
-	uint16_t data;
-	uint16_t addr; /* 8-bit address (7-bit shifted << 1) */
-	uint8_t write_size; /* Either 8 or 16. */
-	uint8_t port;
-	uint8_t offset;
+	u16 data;
+	u16 addr; /* 8-bit address (7-bit shifted << 1) */
+	u8 write_size; /* Either 8 or 16. */
+	u8 port;
+	u8 offset;
 } __packed;
 
 /*****************************************************************************/
@@ -2216,7 +2216,7 @@ enum ec_charge_control_mode {
 };
 
 struct ec_params_charge_control {
-	uint32_t mode;  /* enum charge_control_mode */
+	u32 mode;  /* enum charge_control_mode */
 } __packed;
 
 /*****************************************************************************/
@@ -2247,7 +2247,7 @@ struct ec_params_charge_control {
 #define EC_BATTERY_CUTOFF_FLAG_AT_SHUTDOWN	(1 << 0)
 
 struct ec_params_battery_cutoff {
-	uint8_t flags;
+	u8 flags;
 } __packed;
 
 /*****************************************************************************/
@@ -2259,7 +2259,7 @@ struct ec_params_battery_cutoff {
 #define EC_CMD_USB_MUX 0x9a
 
 struct ec_params_usb_mux {
-	uint8_t mux;
+	u8 mux;
 } __packed;
 
 /*****************************************************************************/
@@ -2276,8 +2276,8 @@ enum ec_ldo_state {
 #define EC_CMD_LDO_SET 0x9b
 
 struct ec_params_ldo_set {
-	uint8_t index;
-	uint8_t state;
+	u8 index;
+	u8 state;
 } __packed;
 
 /*
@@ -2286,11 +2286,11 @@ struct ec_params_ldo_set {
 #define EC_CMD_LDO_GET 0x9c
 
 struct ec_params_ldo_get {
-	uint8_t index;
+	u8 index;
 } __packed;
 
 struct ec_response_ldo_get {
-	uint8_t state;
+	u8 state;
 } __packed;
 
 /*****************************************************************************/
@@ -2302,11 +2302,11 @@ struct ec_response_ldo_get {
 #define EC_CMD_POWER_INFO 0x9d
 
 struct ec_response_power_info {
-	uint32_t usb_dev_type;
-	uint16_t voltage_ac;
-	uint16_t voltage_system;
-	uint16_t current_system;
-	uint16_t usb_current_limit;
+	u32 usb_dev_type;
+	u16 voltage_ac;
+	u16 voltage_system;
+	u16 current_system;
+	u16 usb_current_limit;
 } __packed;
 
 /*****************************************************************************/
@@ -2327,21 +2327,21 @@ struct ec_response_power_info {
 #define EC_I2C_STATUS_ERROR	(EC_I2C_STATUS_NAK | EC_I2C_STATUS_TIMEOUT)
 
 struct ec_params_i2c_passthru_msg {
-	uint16_t addr_flags;	/* I2C slave address (7 or 10 bits) and flags */
-	uint16_t len;		/* Number of bytes to read or write */
+	u16 addr_flags;	/* I2C slave address (7 or 10 bits) and flags */
+	u16 len;		/* Number of bytes to read or write */
 } __packed;
 
 struct ec_params_i2c_passthru {
-	uint8_t port;		/* I2C port number */
-	uint8_t num_msgs;	/* Number of messages */
+	u8 port;		/* I2C port number */
+	u8 num_msgs;	/* Number of messages */
 	struct ec_params_i2c_passthru_msg msg[];
 	/* Data to write for all messages is concatenated here */
 } __packed;
 
 struct ec_response_i2c_passthru {
-	uint8_t i2c_status;	/* Status flags (EC_I2C_STATUS_...) */
-	uint8_t num_msgs;	/* Number of messages processed */
-	uint8_t data[];		/* Data read by messages concatenated here */
+	u8 i2c_status;	/* Status flags (EC_I2C_STATUS_...) */
+	u8 num_msgs;	/* Number of messages processed */
+	u8 data[];		/* Data read by messages concatenated here */
 } __packed;
 
 /*****************************************************************************/
@@ -2390,13 +2390,13 @@ struct ec_response_i2c_passthru {
 
 struct ec_params_hang_detect {
 	/* Flags; see EC_HANG_* */
-	uint32_t flags;
+	u32 flags;
 
 	/* Timeout in msec before generating host event, if enabled */
-	uint16_t host_event_timeout_msec;
+	u16 host_event_timeout_msec;
 
 	/* Timeout in msec before generating warm reboot, if enabled */
-	uint16_t warm_reboot_timeout_msec;
+	u16 warm_reboot_timeout_msec;
 } __packed;
 
 /*****************************************************************************/
@@ -2437,19 +2437,19 @@ enum charge_state_params {
 };
 
 struct ec_params_charge_state {
-	uint8_t cmd;				/* enum charge_state_command */
+	u8 cmd;				/* enum charge_state_command */
 	union {
 		struct {
 			/* no args */
 		} get_state;
 
 		struct {
-			uint32_t param;		/* enum charge_state_param */
+			u32 param;		/* enum charge_state_param */
 		} get_param;
 
 		struct {
-			uint32_t param;		/* param to set */
-			uint32_t value;		/* value to set */
+			u32 param;		/* param to set */
+			u32 value;		/* value to set */
 		} set_param;
 	};
 } __packed;
@@ -2465,7 +2465,7 @@ struct ec_response_charge_state {
 		} get_state;
 
 		struct {
-			uint32_t value;
+			u32 value;
 		} get_param;
 		struct {
 			/* no return values */
@@ -2480,7 +2480,7 @@ struct ec_response_charge_state {
 #define EC_CMD_CHARGE_CURRENT_LIMIT 0xa1
 
 struct ec_params_current_limit {
-	uint32_t limit; /* in mA */
+	u32 limit; /* in mA */
 } __packed;
 
 /*
@@ -2489,7 +2489,7 @@ struct ec_params_current_limit {
 #define EC_CMD_EXT_POWER_CURRENT_LIMIT 0xa2
 
 struct ec_params_ext_power_current_limit {
-	uint32_t limit; /* in mA */
+	u32 limit; /* in mA */
 } __packed;
 
 /*****************************************************************************/
@@ -2506,25 +2506,25 @@ struct ec_params_ext_power_current_limit {
 #define EC_CMD_SB_WRITE_BLOCK 0xb3
 
 struct ec_params_sb_rd {
-	uint8_t reg;
+	u8 reg;
 } __packed;
 
 struct ec_response_sb_rd_word {
-	uint16_t value;
+	u16 value;
 } __packed;
 
 struct ec_params_sb_wr_word {
-	uint8_t reg;
-	uint16_t value;
+	u8 reg;
+	u16 value;
 } __packed;
 
 struct ec_response_sb_rd_block {
-	uint8_t data[32];
+	u8 data[32];
 } __packed;
 
 struct ec_params_sb_wr_block {
-	uint8_t reg;
-	uint16_t data[32];
+	u8 reg;
+	u16 data[32];
 } __packed;
 
 
@@ -2545,13 +2545,13 @@ enum ec_battery_vendor_param_mode {
 };
 
 struct ec_params_battery_vendor_param {
-	uint32_t param;
-	uint32_t value;
-	uint8_t mode;
+	u32 param;
+	u32 value;
+	u8 mode;
 } __packed;
 
 struct ec_response_battery_vendor_param {
-	uint32_t value;
+	u32 value;
 } __packed;
 
 /*****************************************************************************/
@@ -2576,8 +2576,8 @@ enum ec_sb_fw_update_subcmd {
 #define SB_FW_UPDATE_CMD_INFO_SIZE 8
 
 struct ec_sb_fw_update_header {
-	uint16_t subcmd;  /* enum ec_sb_fw_update_subcmd */
-	uint16_t fw_id;   /* firmware id */
+	u16 subcmd;  /* enum ec_sb_fw_update_subcmd */
+	u16 fw_id;   /* firmware id */
 } __packed;
 
 struct ec_params_sb_fw_update {
@@ -2595,7 +2595,7 @@ struct ec_params_sb_fw_update {
 
 		/* EC_SB_FW_UPDATE_WRITE    = 0x3 */
 		struct {
-			uint8_t  data[SB_FW_UPDATE_CMD_WRITE_BLOCK_SIZE];
+			u8  data[SB_FW_UPDATE_CMD_WRITE_BLOCK_SIZE];
 		} write;
 	};
 } __packed;
@@ -2604,12 +2604,12 @@ struct ec_response_sb_fw_update {
 	union {
 		/* EC_SB_FW_UPDATE_INFO     = 0x1 */
 		struct {
-			uint8_t data[SB_FW_UPDATE_CMD_INFO_SIZE];
+			u8 data[SB_FW_UPDATE_CMD_INFO_SIZE];
 		} info;
 
 		/* EC_SB_FW_UPDATE_STATUS   = 0x5 */
 		struct {
-			uint8_t data[SB_FW_UPDATE_CMD_STATUS_SIZE];
+			u8 data[SB_FW_UPDATE_CMD_STATUS_SIZE];
 		} status;
 	};
 } __packed;
@@ -2654,8 +2654,8 @@ enum ec_reboot_cmd {
 #define EC_REBOOT_FLAG_ON_AP_SHUTDOWN (1 << 1)  /* Reboot after AP shutdown */
 
 struct ec_params_reboot_ec {
-	uint8_t cmd;           /* enum ec_reboot_cmd */
-	uint8_t flags;         /* See EC_REBOOT_FLAG_* */
+	u8 cmd;           /* enum ec_reboot_cmd */
+	u8 flags;         /* See EC_REBOOT_FLAG_* */
 } __packed;
 
 /*
@@ -2725,8 +2725,8 @@ enum pd_charge_state {
 
 /* Status of EC being sent to PD */
 struct ec_params_pd_status {
-	int8_t batt_soc;      /* battery state of charge */
-	uint8_t charge_state; /* charging state (from enum pd_charge_state) */
+	i8 batt_soc;      /* battery state of charge */
+	u8 charge_state; /* charging state (from enum pd_charge_state) */
 } __packed;
 
 /* Status of PD being sent back to EC */
@@ -2734,9 +2734,9 @@ struct ec_params_pd_status {
 #define PD_STATUS_IN_RW           (1 << 1) /* Running RW image */
 #define PD_STATUS_JUMPED_TO_IMAGE (1 << 2) /* Current image was jumped to */
 struct ec_response_pd_status {
-	uint32_t status;      /* PD MCU status */
-	uint32_t curr_lim_ma; /* input current limit */
-	int32_t active_charge_port; /* active charging port */
+	u32 status;      /* PD MCU status */
+	u32 curr_lim_ma; /* input current limit */
+	i32 active_charge_port; /* active charging port */
 } __packed;
 
 /* AP to PD MCU host event status command, cleared on read */
@@ -2747,7 +2747,7 @@ struct ec_response_pd_status {
 #define PD_EVENT_POWER_CHANGE      (1 << 1)
 #define PD_EVENT_IDENTITY_RECEIVED (1 << 2)
 struct ec_response_host_event_status {
-	uint32_t status;      /* PD MCU host event status */
+	u32 status;      /* PD MCU host event status */
 } __packed;
 
 /* Set USB type-C port role and muxes */
@@ -2773,36 +2773,36 @@ enum usb_pd_control_mux {
 };
 
 struct ec_params_usb_pd_control {
-	uint8_t port;
-	uint8_t role;
-	uint8_t mux;
+	u8 port;
+	u8 role;
+	u8 mux;
 } __packed;
 
 struct ec_response_usb_pd_control {
-	uint8_t enabled;
-	uint8_t role;
-	uint8_t polarity;
-	uint8_t state;
+	u8 enabled;
+	u8 role;
+	u8 polarity;
+	u8 state;
 } __packed;
 
 struct ec_response_usb_pd_control_v1 {
-	uint8_t enabled;
-	uint8_t role; /* [0] power: 0=SNK/1=SRC [1] data: 0=UFP/1=DFP */
-	uint8_t polarity;
+	u8 enabled;
+	u8 role; /* [0] power: 0=SNK/1=SRC [1] data: 0=UFP/1=DFP */
+	u8 polarity;
 	char state[32];
 } __packed;
 
 #define EC_CMD_USB_PD_PORTS 0x102
 
 struct ec_response_usb_pd_ports {
-	uint8_t num_ports;
+	u8 num_ports;
 } __packed;
 
 #define EC_CMD_USB_PD_POWER_INFO 0x103
 
 #define PD_POWER_CHARGING_PORT 0xff
 struct ec_params_usb_pd_power_info {
-	uint8_t port;
+	u8 port;
 } __packed;
 
 enum usb_chg_type {
@@ -2824,23 +2824,23 @@ enum usb_power_roles {
 };
 
 struct usb_chg_measures {
-	uint16_t voltage_max;
-	uint16_t voltage_now;
-	uint16_t current_max;
+	u16 voltage_max;
+	u16 voltage_now;
+	u16 current_max;
 	/*
 	 * this structure is used below in struct ec_response_usb_pd_power_info,
-	 * and currently expects an odd number of uint16_t for alignment.
+	 * and currently expects an odd number of u16 for alignment.
 	 */
 } __packed;
 
 struct ec_response_usb_pd_power_info {
-	uint8_t role;
-	uint8_t type;
-	uint8_t dualrole;
-	uint8_t reserved1;
+	u8 role;
+	u8 type;
+	u8 dualrole;
+	u8 reserved1;
 	struct usb_chg_measures meas;
-	uint16_t reserved2;
-	uint32_t max_power;
+	u16 reserved2;
+	u32 max_power;
 } __packed;
 
 /* Write USB-PD device FW */
@@ -2854,10 +2854,10 @@ enum usb_pd_fw_update_cmds {
 };
 
 struct ec_params_usb_pd_fw_update {
-	uint16_t dev_id;
-	uint8_t cmd;
-	uint8_t port;
-	uint32_t size;     /* Size to write in bytes */
+	u16 dev_id;
+	u8 cmd;
+	u8 port;
+	u32 size;     /* Size to write in bytes */
 	/* Followed by data to write */
 } __packed;
 
@@ -2866,25 +2866,25 @@ struct ec_params_usb_pd_fw_update {
 /* RW hash is first 20 bytes of SHA-256 of RW section */
 #define PD_RW_HASH_SIZE 20
 struct ec_params_usb_pd_rw_hash_entry {
-	uint16_t dev_id;
-	uint8_t dev_rw_hash[PD_RW_HASH_SIZE];
-	uint8_t reserved;        /* For alignment of current_image */
-	uint32_t current_image;  /* One of ec_current_image */
+	u16 dev_id;
+	u8 dev_rw_hash[PD_RW_HASH_SIZE];
+	u8 reserved;        /* For alignment of current_image */
+	u32 current_image;  /* One of ec_current_image */
 } __packed;
 
 /* Read USB-PD Accessory info */
 #define EC_CMD_USB_PD_DEV_INFO 0x112
 
 struct ec_params_usb_pd_info_request {
-	uint8_t port;
+	u8 port;
 } __packed;
 
 /* Read USB-PD Device discovery info */
 #define EC_CMD_USB_PD_DISCOVERY 0x113
 struct ec_params_usb_pd_discovery_entry {
-	uint16_t vid;  /* USB-IF VID */
-	uint16_t pid;  /* USB-IF PID */
-	uint8_t ptype; /* product type (hub,periph,cable,ama) */
+	u16 vid;  /* USB-IF VID */
+	u16 pid;  /* USB-IF PID */
+	u8 ptype; /* product type (hub,periph,cable,ama) */
 } __packed;
 
 /* Override default charge behavior */
@@ -2898,18 +2898,18 @@ enum usb_pd_override_ports {
 };
 
 struct ec_params_charge_port_override {
-	int16_t override_port; /* Override port# */
+	i16 override_port; /* Override port# */
 } __packed;
 
 /* Read (and delete) one entry of PD event log */
 #define EC_CMD_PD_GET_LOG_ENTRY 0x115
 
 struct ec_response_pd_log {
-	uint32_t timestamp; /* relative timestamp in milliseconds */
-	uint8_t type;       /* event type : see PD_EVENT_xx below */
-	uint8_t size_port;  /* [7:5] port number [4:0] payload size in bytes */
-	uint16_t data;      /* type-defined data payload */
-	uint8_t payload[0]; /* optional additional data payload: 0..16 bytes */
+	u32 timestamp; /* relative timestamp in milliseconds */
+	u8 type;       /* event type : see PD_EVENT_xx below */
+	u8 size_port;  /* [7:5] port number [4:0] payload size in bytes */
+	u16 data;      /* type-defined data payload */
+	u8 payload[0]; /* optional additional data payload: 0..16 bytes */
 } __packed;
 
 
@@ -2974,14 +2974,14 @@ struct ec_response_pd_log {
  * PD_EVENT_VIDEO_CODEC payload is "struct mcdp_info".
  */
 struct mcdp_version {
-	uint8_t major;
-	uint8_t minor;
-	uint16_t build;
+	u8 major;
+	u8 minor;
+	u16 build;
 } __packed;
 
 struct mcdp_info {
-	uint8_t family[2];
-	uint8_t chipid[2];
+	u8 family[2];
+	u8 chipid[2];
 	struct mcdp_version irom;
 	struct mcdp_version fw;
 } __packed;
@@ -2993,14 +2993,14 @@ struct mcdp_info {
 /* Get/Set USB-PD Alternate mode info */
 #define EC_CMD_USB_PD_GET_AMODE 0x116
 struct ec_params_usb_pd_get_mode_request {
-	uint16_t svid_idx; /* SVID index to get */
-	uint8_t port;      /* port */
+	u16 svid_idx; /* SVID index to get */
+	u8 port;      /* port */
 } __packed;
 
 struct ec_params_usb_pd_get_mode_response {
-	uint16_t svid;   /* SVID */
-	uint16_t opos;    /* Object Position */
-	uint32_t vdo[6]; /* Mode VDOs */
+	u16 svid;   /* SVID */
+	u16 opos;    /* Object Position */
+	u32 vdo[6]; /* Mode VDOs */
 } __packed;
 
 #define EC_CMD_USB_PD_SET_AMODE 0x117
@@ -3013,18 +3013,18 @@ enum pd_mode_cmd {
 };
 
 struct ec_params_usb_pd_set_mode_request {
-	uint32_t cmd;  /* enum pd_mode_cmd */
-	uint16_t svid; /* SVID to set */
-	uint8_t opos;  /* Object Position */
-	uint8_t port;  /* port */
+	u32 cmd;  /* enum pd_mode_cmd */
+	u16 svid; /* SVID to set */
+	u8 opos;  /* Object Position */
+	u8 port;  /* port */
 } __packed;
 
 /* Ask the PD MCU to record a log of a requested type */
 #define EC_CMD_PD_WRITE_LOG_ENTRY 0x118
 
 struct ec_params_pd_write_log_entry {
-	uint8_t type; /* event type : see PD_EVENT_xx above */
-	uint8_t port; /* port#, or 0 for events unrelated to a given port */
+	u8 type; /* event type : see PD_EVENT_xx above */
+	u8 port; /* port#, or 0 for events unrelated to a given port */
 } __packed;
 
 #endif  /* !__ACPI__ */

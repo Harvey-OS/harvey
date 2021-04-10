@@ -36,10 +36,10 @@ struct Ctlr {
 	Ether	*ether;
 	Ctlr	*next;
 	Pcidev	*pdev;
-	uint32_t	*nic, *status;
+	u32	*nic, *status;
 
-	uint32_t	*recvret, *recvprod, *sendr;
-	uint32_t	port;
+	u32	*recvret, *recvprod, *sendr;
+	u32	port;
 	uint	recvreti, recvprodi, sendri, sendcleani;
 	Block	**sends;
 	Block	**rxs;
@@ -245,8 +245,8 @@ cname(Ctlr *c)
 	return cttab[c->type].name;
 }
 
-static int32_t
-bcmifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
+static i32
+bcmifstat(Ether *edev, void *a, i32 n, u32 offset)
 {
 	char *s, *p, *e;
 	Ctlr *c;
@@ -396,7 +396,7 @@ static int
 replenish(Ctlr *ctlr)
 {
 	uint incr;
-	uint32_t *next;
+	u32 *next;
 	Block *bp;
 	
 	incr = (ctlr->recvprodi + 1) & (RxProdRingLen - 1);
@@ -425,7 +425,7 @@ static void
 bcmreceive(Ether *edev)
 {
 	uint len;
-	uint32_t *pkt;
+	u32 *pkt;
 	Ctlr *ctlr;
 	Block *bp;
 	
@@ -468,7 +468,7 @@ static void
 bcmtransmit(Ether *edev)
 {
 	uint incr;
-	uint32_t *next;
+	u32 *next;
 	Ctlr *ctlr;
 	Block *bp;
 	
@@ -524,7 +524,7 @@ bcmerror(Ether *edev)
 static void
 bcminterrupt(Ureg*u, void *arg)
 {
-	uint32_t status, tag, dummy;
+	u32 status, tag, dummy;
 	Ether *edev;
 	Ctlr *ctlr;
 	
@@ -557,10 +557,10 @@ mem32w(Ctlr *c, uint r, uint v)
 	pcicfgw32(c->pdev, MemwindData, v);
 }
 
-static uint32_t
+static u32
 mem32r(Ctlr *c, uint r)
 {
-	uint32_t v;
+	u32 v;
 
 	pcicfgw32(c->pdev, Memwind, r);
 	v = pcicfgr32(c->pdev, MemwindData);
@@ -586,7 +586,7 @@ static int
 bcminit(Ether *edev)
 {
 	uint i;
-	uint32_t j;
+	u32 j;
 	Ctlr *ctlr;
 	
 	ctlr = edev->ctlr;
@@ -813,7 +813,7 @@ bcmpci(void)
 		ctlr->port = p->mem[0].bar & ~0x0F;
 		mem = vmap(ctlr->port, p->mem[0].size);
 		if(mem == nil) {
-			print("bcm: can't map %#p\n", (uint64_t)ctlr->port);
+			print("bcm: can't map %#p\n", (u64)ctlr->port);
 			free(ctlr);
 			continue;
 		}
@@ -843,7 +843,7 @@ bcmpromiscuous(void* arg, int on)
 }
 
 static void
-bcmmulticast(void*v, uint8_t*u, int i)
+bcmmulticast(void*v, u8*u, int i)
 {
 }
 

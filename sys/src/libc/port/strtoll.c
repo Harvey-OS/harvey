@@ -13,11 +13,11 @@
 #define VLONG_MAX	~(1LL<<63)
 #define VLONG_MIN	(1LL<<63)
 
-int64_t
+i64
 strtoll(const char *nptr, char **endptr, int base)
 {
 	const char *p;
-	int64_t n, nn, m;
+	i64 n, nn, m;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;

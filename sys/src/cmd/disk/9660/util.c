@@ -28,10 +28,10 @@ static uint
 hash(char *s)
 {
 	uint h;
-	uint8_t *p;
+	u8 *p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
+	for(p=(u8*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
@@ -63,7 +63,7 @@ atom(char *str)
 }
 
 void*
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -74,7 +74,7 @@ emalloc(uint32_t n)
 }
 
 void*
-erealloc(void *v, uint32_t n)
+erealloc(void *v, u32 n)
 {
 	if((v = realloc(v, n)) == nil)
 		sysfatal("realloc(%p, %lu): out of memory", v, n);

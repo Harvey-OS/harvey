@@ -28,33 +28,33 @@ enum {
 };
 
 struct Data {
-	uint32_t len;
+	u32 len;
 	char data[1];
 };
 
 struct Seg {
 	char*	name;
-	uint64_t	offset;
-	uint64_t	 len;
+	u64	offset;
+	u64	 len;
 	Page**	pg;
 	int	npg;
 };
 
 struct Page {
 	Page*	link;
-	uint32_t	len;
+	u32	len;
 	char*	data;
 
 	/* when page is written, these hold the ptr to it */
 	int	written;
 	int	type;
-	uint32_t	pid;
-	uint64_t	offset;
+	u32	pid;
+	u64	offset;
 };
 
 struct Proc {
 	Proc *link;
-	int32_t	pid;
+	i32	pid;
 	Data*	d[Npfile];
 	Seg**	seg;	/* memory segments */
 	int	nseg;
@@ -63,13 +63,13 @@ struct Proc {
 
 extern char *pfile[Npfile];
 
-Proc*	snap(int32_t pid, int usetext);
-void*	emalloc(uint32_t);
-void*	erealloc(void*, uint32_t);
+Proc*	snap(i32 pid, int usetext);
+void*	emalloc(u32);
+void*	erealloc(void*, u32);
 char*	estrdup(char*);
 void	writesnap(Biobuf*, Proc*);
-Page*	datapage(char *p, int32_t len);
+Page*	datapage(char *p, i32 len);
 Proc*	readsnap(Biobuf *b);
-Page*	findpage(Proc *plist, int32_t pid, int type, uint64_t off);
+Page*	findpage(Proc *plist, i32 pid, int type, u64 off);
 
 int	debug;

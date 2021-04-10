@@ -60,35 +60,35 @@
  * These can chain together via "next". */
 struct vring_desc {
         /* Address (guest-physical). */
-        uint64_t addr;
+        u64 addr;
         /* Length. */
-        uint32_t len;
+        u32 len;
         /* The flags as indicated above. */
-        uint16_t flags;
+        u16 flags;
         /* We chain unused descriptors via this, too */
-        uint16_t next;
+        u16 next;
 };
 
 struct vring_avail {
-        uint16_t flags;
-        uint16_t idx;
-        uint16_t ring[];
-        /* Only if VIRTIO_RING_F_EVENT_IDX: uint16_t used_event; */
+        u16 flags;
+        u16 idx;
+        u16 ring[];
+        /* Only if VIRTIO_RING_F_EVENT_IDX: u16 used_event; */
 };
 
-/* uint32_t is used here for ids for padding reasons. */
+/* u32 is used here for ids for padding reasons. */
 struct vring_used_elem {
         /* Index of start of used descriptor chain. */
-        uint32_t id;
+        u32 id;
         /* Total length of the descriptor chain which was written to. */
-        uint32_t len;
+        u32 len;
 };
 
 struct vring_used {
-        uint16_t flags;
-        uint16_t idx;
+        u16 flags;
+        u16 idx;
         struct vring_used_elem ring[];
-        /* Only if VIRTIO_RING_F_EVENT_IDX: uint16_t avail_event; */
+        /* Only if VIRTIO_RING_F_EVENT_IDX: u16 avail_event; */
 };
 
 struct vring {
@@ -107,19 +107,19 @@ struct vring {
  *      struct vring_desc desc[num];
  *
  *      // A ring of available descriptor heads with free-running index.
- *      uint16_t avail_flags;
- *      uint16_t avail_idx;
- *      uint16_t available[num];
- *      uint16_t used_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
+ *      u16 avail_flags;
+ *      u16 avail_idx;
+ *      u16 available[num];
+ *      u16 used_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
  *
  *      // Padding to the next align boundary.
  *      char pad[];
  *
  *      // A ring of used descriptor heads with free-running index.
- *      uint16_t used_flags;
- *      uint16_t used_idx;
+ *      u16 used_flags;
+ *      u16 used_idx;
  *      struct vring_used_elem used[num];
- *      uint16_t avail_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
+ *      u16 avail_event_idx; // Only if VIRTIO_RING_F_EVENT_IDX
  * };
  * Note: for virtio PCI, align is 4096.
  */
@@ -129,32 +129,32 @@ static inline void vring_init(struct vring *vr, unsigned int num, void *p,
         vr->num = num;
         vr->desc = p;
         vr->avail = p + num*sizeof(struct vring_desc);
-        vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + sizeof(uint16_t)
+        vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + sizeof(u16)
                               + align-1)
                             & ~(align - 1));
 }
 
 static inline unsigned vring_size(unsigned int num, unsigned long align)
 {
-        return ((sizeof(struct vring_desc)*num + sizeof(uint16_t)*(3+num)
+        return ((sizeof(struct vring_desc)*num + sizeof(u16)*(3+num)
                  + align - 1) & ~(align - 1))
-                + sizeof(uint16_t)*3 + sizeof(struct vring_used_elem)*num;
+                + sizeof(u16)*3 + sizeof(struct vring_used_elem)*num;
 }
 
-static inline int vring_need_event(uint16_t event_idx, uint16_t new_idx, uint16_t old_idx)
+static inline int vring_need_event(u16 event_idx, u16 new_idx, u16 old_idx)
 {
-         return (uint16_t)(new_idx - event_idx - 1) < (uint16_t)(new_idx - old_idx);
+         return (u16)(new_idx - event_idx - 1) < (u16)(new_idx - old_idx);
 }
 
 /* Get location of event indices (only with VIRTIO_RING_F_EVENT_IDX) */
-static inline uint16_t *vring_used_event(struct vring *vr)
+static inline u16 *vring_used_event(struct vring *vr)
 {
         /* For backwards compat, used event index is at *end* of avail ring. */
         return &vr->avail->ring[vr->num];
 }
 
-static inline uint16_t *vring_avail_event(struct vring *vr)
+static inline u16 *vring_avail_event(struct vring *vr)
 {
         /* For backwards compat, avail event index is at *end* of used ring. */
-        return (uint16_t *)&vr->used->ring[vr->num];
+        return (u16 *)&vr->used->ring[vr->num];
 }

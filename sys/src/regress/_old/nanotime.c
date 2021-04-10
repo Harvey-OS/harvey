@@ -6,7 +6,7 @@ void
 main(void)
 {
 	int ret = 0; // success
-	uint64_t start, end;
+	u64 start, end;
 	char *msg;
 
 	start = nsec();

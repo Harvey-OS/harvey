@@ -8,35 +8,35 @@
  */
 
 struct Ureg {
-	uint64_t	ax;
-	uint64_t	bx;
-	uint64_t	cx;
-	uint64_t	dx;
-	uint64_t	si;
-	uint64_t	di;
-	uint64_t	bp;
-	uint64_t	r8;
-	uint64_t	r9;
-	uint64_t	r10;
-	uint64_t	r11;
-	uint64_t	r12;
-	uint64_t	r13;
-	uint64_t	r14;
-	uint64_t	r15;
+	u64	ax;
+	u64	bx;
+	u64	cx;
+	u64	dx;
+	u64	si;
+	u64	di;
+	u64	bp;
+	u64	r8;
+	u64	r9;
+	u64	r10;
+	u64	r11;
+	u64	r12;
+	u64	r13;
+	u64	r14;
+	u64	r15;
 
 	// These are pointless and not pushing them would simplify the
 	// interrupt handler a lot. However, removing them would break
 	// compatibility with Go Plan 9 binaries.
-	uint16_t	ds;
-	uint16_t	es;
-	uint16_t	fs;
-	uint16_t	gs;
+	u16	ds;
+	u16	es;
+	u16	fs;
+	u16	gs;
 
-	uint64_t	type;
-	uint64_t	error;				/* error code (or zero) */
-	uint64_t	ip;				/* pc */
-	uint64_t	cs;				/* old context */
-	uint64_t	flags;				/* old flags */
-	uint64_t	sp;				/* sp */
-	uint64_t	ss;				/* old stack segment */
+	u64	type;
+	u64	error;				/* error code (or zero) */
+	u64	ip;				/* pc */
+	u64	cs;				/* old context */
+	u64	flags;				/* old flags */
+	u64	sp;				/* sp */
+	u64	ss;				/* old stack segment */
 };

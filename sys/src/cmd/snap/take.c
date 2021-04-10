@@ -14,10 +14,10 @@
 #include "snap.h"
 
 /* research 16-bit crc.  good enough. */
-static uint32_t
-sumr(uint32_t sum, void *buf, int n)
+static u32
+sumr(u32 sum, void *buf, int n)
 {
-	uint8_t *s, *send;
+	u8 *s, *send;
 
 	if(buf == 0)
 		return sum;
@@ -33,11 +33,11 @@ static int npage;
 static Page *pgtab[1<<10];
 
 Page*
-datapage(char *p, int32_t len)
+datapage(char *p, i32 len)
 {
 	Page *pg;
 	char *q, *ep;
-	int32_t	sum;
+	i32	sum;
 	int iszero;
 
 	if(len > Pagesize) {
@@ -79,7 +79,7 @@ datapage(char *p, int32_t len)
 }
 
 static Data*
-readsection(int32_t pid, char *sec)
+readsection(i32 pid, char *sec)
 {
 	char buf[8192];
 	int n, fd;
@@ -105,13 +105,13 @@ readsection(int32_t pid, char *sec)
 }
 
 static Seg*
-readseg(int fd, int64_t off, uint32_t len, char *name)
+readseg(int fd, i64 off, u32 len, char *name)
 {
 	char buf[Pagesize];
 	Page **pg;
 	int npg;
 	Seg *s;
-	uint32_t i;
+	u32 i;
 	int n;
 
 	s = emalloc(sizeof(*s));
@@ -153,13 +153,13 @@ Die:
 }
 
 /* discover the stack pointer of the given process */
-uint32_t
+u32
 stackptr(Proc *proc, int fd)
 {
 	char *q;
 	Fhdr f;
 	Reglist *r;
-	int32_t textoff;
+	i32 textoff;
 	int i;
 	Data *dreg;
 
@@ -194,9 +194,9 @@ stackptr(Proc *proc, int fd)
 
 	q = dreg->data+r->roffs;
 	switch(mach->szreg) {
-	case 2:	return machdata->swab(*(uint16_t*)q);
-	case 4:	return machdata->swal(*(uint32_t*)q);
-	case 8:	return machdata->swav(*(uint64_t*)q);
+	case 2:	return machdata->swab(*(u16*)q);
+	case 4:	return machdata->swal(*(u32*)q);
+	case 8:	return machdata->swav(*(u64*)q);
 	default:
 		fprint(2, "register size is %d bytes?\n", mach->szreg);
 		return 0;
@@ -204,15 +204,15 @@ stackptr(Proc *proc, int fd)
 }
 
 Proc*
-snap(int32_t pid, int usetext)
+snap(i32 pid, int usetext)
 {
 	Data *d;
 	Proc *proc;
 	Seg **s;
 	char *name, *segdat, *q, *f[128+1], buf[128];
 	int fd, i, stacki, nf, np;
-	uint64_t off, len, stackoff, stacklen;
-	uint64_t sp;
+	u64 off, len, stackoff, stacklen;
+	u64 sp;
 
 	proc = emalloc(sizeof(*proc));
 	proc->pid = pid;

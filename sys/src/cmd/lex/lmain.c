@@ -20,8 +20,8 @@ int	sect = DEFSECTION;
 int	prev = '\n';	/* previous input character */
 int	pres = '\n';	/* present input character */
 int	peek = '\n';	/* next input character */
-uint8_t	*pushptr = pushc;
-uint8_t	*slptr = slist;
+u8	*pushptr = pushc;
+u8	*slptr = slist;
 
 char	*cname = "/sys/lib/lex/ncform";
 
@@ -39,7 +39,7 @@ int debug;		/* 1 = on */
 int charc;
 int sargc;
 char **sargv;
-uint8_t buf[520];
+u8 buf[520];
 int yyline;		/* line number of file */
 char *yyfile;		/* filename for error messages */
 int eof;
@@ -54,43 +54,43 @@ int *name;
 int *left;
 int *right;
 int *parent;
-uint8_t *nullstr;
-uint8_t **ptr;
+u8 *nullstr;
+u8 **ptr;
 int tptr;
-uint8_t pushc[TOKENSIZE];
-uint8_t slist[STARTSIZE];
-uint8_t **def, **subs, *dchar;
-uint8_t **sname, *stchar;
-uint8_t *ccl;
-uint8_t *ccptr;
-uint8_t *dp, *sp;
+u8 pushc[TOKENSIZE];
+u8 slist[STARTSIZE];
+u8 **def, **subs, *dchar;
+u8 **sname, *stchar;
+u8 *ccl;
+u8 *ccptr;
+u8 *dp, *sp;
 int dptr;
-uint8_t *bptr;		/* store input position */
-uint8_t *tmpstat;
+u8 *bptr;		/* store input position */
+u8 *tmpstat;
 int count;
 int **foll;
 int *nxtpos;
 int *positions;
 int *gotof;
 int *nexts;
-uint8_t *nchar;
+u8 *nchar;
 int **state;
 int *sfall;		/* fallback state num */
-uint8_t *cpackflg;		/* true if state has been character packed */
+u8 *cpackflg;		/* true if state has been character packed */
 int *atable;
 int nptr;
-uint8_t symbol[NCH];
-uint8_t cindex[NCH];
+u8 symbol[NCH];
+u8 cindex[NCH];
 int xstate;
 int stnum;
-uint8_t match[NCH];
-uint8_t extra[NACTIONS];
-uint8_t *pchar, *pcptr;
+u8 match[NCH];
+u8 extra[NACTIONS];
+u8 *pchar, *pcptr;
 int pchlen = TOKENSIZE;
-int32_t rcount;
+i32 rcount;
 int *verify, *advance, *stoff;
 int scon;
-uint8_t *psave;
+u8 *psave;
 
 static void	free1core(void);
 static void	free2core(void);

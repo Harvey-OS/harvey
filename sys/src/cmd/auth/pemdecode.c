@@ -26,7 +26,7 @@ main(int argc, char **argv)
 	char *buf;
 	unsigned char *bin;
 	int fd;
-	int32_t n, tot;
+	i32 n, tot;
 	int len;
 	char *tag, *file;
 

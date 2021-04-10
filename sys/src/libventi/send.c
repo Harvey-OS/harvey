@@ -12,15 +12,15 @@
 #include <venti.h>
 #include "queue.h"
 
-int32_t ventisendbytes, ventisendpackets;
-int32_t ventirecvbytes, ventirecvpackets;
+i32 ventisendbytes, ventisendpackets;
+i32 ventirecvbytes, ventirecvpackets;
 
 static int
 _vtsend(VtConn *z, Packet *p)
 {
 	IOchunk ioc;
 	int n, tot;
-	uint8_t buf[2];
+	u8 buf[2];
 
 	if(z->state != VtStateConnected) {
 		werrstr("session not connected");
@@ -71,7 +71,7 @@ interrupted(void)
 static Packet*
 _vtrecv(VtConn *z)
 {
-	uint8_t buf[10], *b;
+	u8 buf[10], *b;
 	int n;
 	Packet *p;
 	int size, len;

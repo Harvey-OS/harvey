@@ -21,9 +21,9 @@
 // If the length is not a multiple of 8, I encrypt
 // the overflow to be compatible with lacy's cryptlib
 void
-des3CBCencrypt(uint8_t *p, int len, DES3state *s)
+des3CBCencrypt(u8 *p, int len, DES3state *s)
 {
-	uint8_t *p2, *ip, *eip;
+	u8 *p2, *ip, *eip;
 
 	for(; len >= 8; len -= 8){
 		p2 = p;
@@ -44,10 +44,10 @@ des3CBCencrypt(uint8_t *p, int len, DES3state *s)
 }
 
 void
-des3CBCdecrypt(uint8_t *p, int len, DES3state *s)
+des3CBCdecrypt(u8 *p, int len, DES3state *s)
 {
-	uint8_t *ip, *eip, *tp;
-	uint8_t tmp[8];
+	u8 *ip, *eip, *tp;
+	u8 tmp[8];
 
 	for(; len >= 8; len -= 8){
 		memmove(tmp, p, 8);

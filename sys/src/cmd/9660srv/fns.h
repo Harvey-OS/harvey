@@ -8,9 +8,9 @@
  */
 
 void	chat(char*, ...);
-void*	ealloc(int32_t);
+void*	ealloc(i32);
 void	error(char*);
-Iobuf*	getbuf(Xdata*, uint64_t);
+Iobuf*	getbuf(Xdata*, u64);
 Xdata*	getxdata(char*);
 void	iobuf_init(void);
 void	nexterror(void);

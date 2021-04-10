@@ -81,7 +81,7 @@ static
 void
 dupbox(Frame *f, int bn)
 {
-	uint8_t *p;
+	u8 *p;
 
 	if(f->box[bn].nrune < 0)
 		drawerror(f->display, "dupbox");
@@ -94,8 +94,8 @@ dupbox(Frame *f, int bn)
 }
 
 static
-uint8_t*
-runeindex(uint8_t *p, int n)
+u8 *
+runeindex(u8 *p, int n)
 {
 	int i, w;
 	Rune rune;
@@ -157,7 +157,7 @@ _frmergebox(Frame *f, int bn)		/* merge bn and bn+1 */
 }
 
 int
-_frfindbox(Frame *f, int bn, uint32_t p, uint32_t q)	/* find box containing q and put q on a box boundary */
+_frfindbox(Frame *f, int bn, u32 p, u32 q)	/* find box containing q and put q on a box boundary */
 {
 	Frbox *b;
 

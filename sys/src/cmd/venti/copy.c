@@ -24,13 +24,13 @@ int nskip;
 int nwrite;
 
 VtConn *zsrc, *zdst;
-uint8_t zeroscore[VtScoreSize];	/* all zeros */
+u8 zeroscore[VtScoreSize];	/* all zeros */
 
 typedef struct ScoreTree ScoreTree;
 struct ScoreTree
 {
 	Avl avl;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 	int type;
 };
 
@@ -53,7 +53,7 @@ scoretreecmp(Avl *va, Avl *vb)
 }
 
 static int
-havevisited(uint8_t score[VtScoreSize], int type)
+havevisited(u8 score[VtScoreSize], int type)
 {
 	ScoreTree a;
 
@@ -65,7 +65,7 @@ havevisited(uint8_t score[VtScoreSize], int type)
 }
 
 static void
-markvisited(uint8_t score[VtScoreSize], int type)
+markvisited(u8 score[VtScoreSize], int type)
 {
 	ScoreTree *a;
 	Avl *old;
@@ -86,11 +86,11 @@ usage(void)
 }
 
 void
-walk(uint8_t score[VtScoreSize], uint type, int base)
+walk(u8 score[VtScoreSize], uint type, int base)
 {
 	int i, n;
-	uint8_t *buf;
-	uint8_t nscore[VtScoreSize];
+	u8 *buf;
+	u8 nscore[VtScoreSize];
 	VtEntry e;
 	VtRoot root;
 

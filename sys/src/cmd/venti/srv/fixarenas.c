@@ -45,15 +45,15 @@ char *dumpbase;
 int fix;
 int badreads;
 int unseal;
-uint8_t zero[MaxDiskBlock];
+u8 zero[MaxDiskBlock];
 
 Arena lastarena;
 ArenaPart ap;
-uint64_t arenasize;
+u64 arenasize;
 int nbadread;
 int nbad;
-uint64_t partend;
-void checkarena(int64_t, int);
+u64 partend;
+void checkarena(i64, int);
 
 void
 usage(void)
@@ -68,9 +68,9 @@ usage(void)
 static int
 zfmt(Fmt *fmt)
 {
-	int64_t x;
+	i64 x;
 
-	x = va_arg(fmt->args, int64_t);
+	x = va_arg(fmt->args, i64);
 	if(x == 0)
 		return fmtstrcpy(fmt, "0");
 	if(x%G == 0)
@@ -102,9 +102,9 @@ tfmt(Fmt *fmt)
  * bad(0, 0) flushes the buffer.
  */
 static void
-bad(char *msg, int64_t o, int len)
+bad(char *msg, i64 o, int len)
 {
-	static int64_t lb0, lb1;
+	static i64 lb0, lb1;
 	static char *lmsg;
 
 	if(msg == nil)
@@ -129,8 +129,8 @@ bad(char *msg, int64_t o, int len)
  * Read in the len bytes of data at the offset.  If can't for whatever reason,
  * fill it with garbage but print an error.
  */
-static uint8_t*
-readdisk(uint8_t *buf, int64_t offset, int len)
+static u8 *
+readdisk(u8 *buf, i64 offset, int len)
 {
 	int i, j, k, n;
 
@@ -184,10 +184,10 @@ typedef struct Shabuf Shabuf;
 struct Shabuf
 {
 	int fd;
-	int64_t offset;
+	i64 offset;
 	DigestState state;
 	int rollback;
-	int64_t r0;
+	i64 r0;
 	DigestState *hist;
 	int nhist;
 };
@@ -211,10 +211,10 @@ sbdebug(Shabuf *sb, char *file)
 }
 
 void
-sbupdate(Shabuf *sb, uint8_t *p, int64_t offset, int len)
+sbupdate(Shabuf *sb, u8 *p, i64 offset, int len)
 {
 	int n, x;
-	int64_t o;
+	i64 o;
 
 	if(sb->rollback && !sb->hist){
 		sb->r0 = offset;
@@ -274,9 +274,9 @@ sbupdate(Shabuf *sb, uint8_t *p, int64_t offset, int len)
 }
 
 void
-sbdiskhash(Shabuf *sb, int64_t eoffset)
+sbdiskhash(Shabuf *sb, i64 eoffset)
 {
-	static uint8_t dbuf[4*M];
+	static u8 dbuf[4*M];
 	int n;
 
 	while(sb->offset < eoffset){
@@ -289,10 +289,10 @@ sbdiskhash(Shabuf *sb, int64_t eoffset)
 }
 
 void
-sbrollback(Shabuf *sb, int64_t offset)
+sbrollback(Shabuf *sb, i64 offset)
 {
 	int x;
-	int64_t o;
+	i64 o;
 	Dir d;
 
 	if(!sb->rollback || !sb->r0){
@@ -319,7 +319,7 @@ sbrollback(Shabuf *sb, int64_t offset)
 }
 
 void
-sbscore(Shabuf *sb, uint8_t *score)
+sbscore(Shabuf *sb, u8 *score)
 {
 	if(sb->hist){
 		free(sb->hist);
@@ -332,14 +332,14 @@ sbscore(Shabuf *sb, uint8_t *score)
  * If we're fixing arenas, then editing this memory edits the disk!
  * It will be written back out as new data is paged in.
  */
-uint8_t buf[4*M];
-uint8_t sbuf[4*M];
-int64_t bufoffset;
+u8 buf[4*M];
+u8 sbuf[4*M];
+i64 bufoffset;
 int buflen;
 
 static void pageout(void);
-static uint8_t*
-pagein(int64_t offset, int len)
+static u8 *
+pagein(i64 offset, int len)
 {
 	pageout();
 	if(offset >= partend){
@@ -372,10 +372,10 @@ pageout(void)
 }
 
 static void
-zerorange(int64_t offset, int len)
+zerorange(i64 offset, int len)
 {
 	int i;
-	int64_t ooff;
+	i64 ooff;
 	int olen;
 	enum { MinBlock = 4*K, MaxBlock = 8*K };
 
@@ -413,21 +413,21 @@ zerorange(int64_t offset, int len)
  * read/write integers
  *
 static void
-asp16(unsigned char *p, uint16_t u)
+asp16(unsigned char *p, u16 u)
 {
 	p[0] = (u>>8) & 0xFF;
 	p[1] = u & 0xFF;
 }
 */
 
-static uint16_t
-asu16(uint8_t *p)
+static u16
+asu16(u8 *p)
 {
 	return (p[0]<<8)|p[1];
 }
 
 static void
-asp32(uint8_t *p, uint32_t u)
+asp32(u8 *p, u32 u)
 {
 	p[0] = (u>>24) & 0xFF;
 	p[1] = (u>>16) & 0xFF;
@@ -435,34 +435,34 @@ asp32(uint8_t *p, uint32_t u)
 	p[3] = u & 0xFF;
 }
 
-static uint32_t
-asu32(uint8_t *p)
+static u32
+asu32(u8 *p)
 {
 	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
 }
 
 /*
 static void
-asp64(unsigned char *p, uint64_t u)
+asp64(unsigned char *p, u64 u)
 {
 	asp32(p, u>>32);
 	asp32(p, u);
 }
 */
 
-static uint64_t
-asu64(uint8_t *p)
+static u64
+asu64(u8 *p)
 {
-	return ((uint64_t)asu32(p)<<32) | asu32(p+4);
+	return ((u64)asu32(p)<<32) | asu32(p+4);
 }
 
 static int
 vlongcmp(const void *va, const void *vb)
 {
-	int64_t a, b;
+	i64 a, b;
 
-	a = *(int64_t*)va;
-	b = *(int64_t*)vb;
+	a = *(i64*)va;
+	b = *(i64*)vb;
 	if(a < b)
 		return -1;
 	if(b > a)
@@ -593,7 +593,7 @@ Info tailinfo5a[] = {
 };
 
 void
-showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
+showdiffs(u8 *want, u8 *have, int len, Info *info)
 {
 	int n;
 
@@ -618,8 +618,8 @@ showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
 				break;
 			case Z|4:
 				print("\t%s: correct=%z disk=%z\n",
-					info->name, (uint64_t)asu32(want),
-				      (uint64_t)asu32(have));
+					info->name, (u64)asu32(want),
+				      (u64)asu32(have));
 				break;
 			case D|8:
 				print("\t%s: correct=%,lld disk=%,lld\n",
@@ -675,9 +675,9 @@ void
 guessgeometry(void)
 {
 	int i, j, n, bestn, ndiff, nhead, ntail;
-	uint8_t *p, *ep, *sp;
-	uint64_t diff[100], head[20], tail[20];
-	uint64_t offset, bestdiff;
+	u8 *p, *ep, *sp;
+	u64 diff[100], head[20], tail[20];
+	u64 offset, bestdiff;
 
 	ap.version = ArenaPartVersion;
 
@@ -772,7 +772,7 @@ guessgeometry(void)
 		print("block size likely %z (%d of %d)\n", bestdiff, bestn, ndiff);
 		if(ap.blocksize != 0 && ap.blocksize != bestdiff)
 			print("using user-specified size %z instead\n",
-			      (int64_t)ap.blocksize);
+			      (i64)ap.blocksize);
 		else
 			ap.blocksize = bestdiff;
 		if(ap.blocksize == 0 || ap.blocksize&(ap.blocksize-1))
@@ -823,7 +823,7 @@ guessgeometry(void)
 		}
 	}
 	p = pagein(ap.arenabase, Block);
-	print("arena base likely %z%s\n", (int64_t)ap.arenabase,
+	print("arena base likely %z%s\n", (i64)ap.arenabase,
 		asu32(p)!=ArenaHeadMagic ? " (but no arena head there)" : "");
 
 	ap.tabsize = ap.arenabase - ap.tabbase;
@@ -837,8 +837,8 @@ checkarenas(char *range)
 {
 	char *s, *t;
 	int i, lo, hi, narena;
-	uint8_t dbuf[HeadSize];
-	uint8_t *p;
+	u8 dbuf[HeadSize];
+	u8 *p;
 
 	guessgeometry();
 
@@ -856,7 +856,7 @@ checkarenas(char *range)
 	narena = (partend-ap.arenabase + arenasize-1)/arenasize;
 	if(range == nil){
 		for(i=0; i<narena; i++)
-			checkarena(ap.arenabase+(int64_t)i*arenasize, i);
+			checkarena(ap.arenabase+(i64)i*arenasize, i);
 	}else if(strcmp(range, "none") == 0){
 		/* nothing */
 	}else{
@@ -884,7 +884,7 @@ checkarenas(char *range)
 				continue;
 			}
 			for(i=lo; i<=hi; i++)
-				checkarena(ap.arenabase+(int64_t)i*arenasize,
+				checkarena(ap.arenabase+(i64)i*arenasize,
 					   i);
 		}
 	}
@@ -894,13 +894,13 @@ checkarenas(char *range)
  * Is there a clump here at p?
  */
 static int
-isclump(uint8_t *p, Clump *cl, uint32_t *pmagic)
+isclump(u8 *p, Clump *cl, u32 *pmagic)
 {
 	int n;
-	uint32_t magic;
-	uint8_t score[VtScoreSize], *bp;
+	u32 magic;
+	u8 score[VtScoreSize], *bp;
 	Unwhack uw;
-	uint8_t ubuf[70*1024];
+	u8 ubuf[70*1024];
 
 	bp = p;
 	magic = asu32(p);
@@ -965,7 +965,7 @@ struct Cit
 {
 	int left;
 	int right;
-	int64_t corrupt;
+	i64 corrupt;
 	ClumpInfo ci;
 };
 Cit *cibuf;
@@ -980,7 +980,7 @@ resetcibuf(void)
 }
 
 int*
-ltreewalk(int *p, uint8_t *score)
+ltreewalk(int *p, u8 *score)
 {
 	int i;
 
@@ -998,7 +998,7 @@ ltreewalk(int *p, uint8_t *score)
 }
 
 void
-addcibuf(ClumpInfo *ci, int64_t corrupt)
+addcibuf(ClumpInfo *ci, i64 corrupt)
 {
 	Cit *cit;
 
@@ -1017,7 +1017,7 @@ addcibuf(ClumpInfo *ci, int64_t corrupt)
 }
 
 void
-addcicorrupt(int64_t len)
+addcicorrupt(i64 len)
 {
 	static ClumpInfo zci;
 
@@ -1025,7 +1025,7 @@ addcicorrupt(int64_t len)
 }
 
 int
-haveclump(uint8_t *score)
+haveclump(u8 *score)
 {
 	int i;
 	int p;
@@ -1045,7 +1045,7 @@ haveclump(uint8_t *score)
 }
 
 int
-matchci(ClumpInfo *ci, uint8_t *p)
+matchci(ClumpInfo *ci, u8 *p)
 {
 	if(ci->type != vtfromdisktype(p[0]))
 		return 0;
@@ -1059,7 +1059,7 @@ matchci(ClumpInfo *ci, uint8_t *p)
 }
 
 int
-sealedarena(uint8_t *p, int blocksize)
+sealedarena(u8 *p, int blocksize)
 {
 	int v, n;
 
@@ -1118,10 +1118,10 @@ clumpinfocmp(ClumpInfo *a, ClumpInfo *b)
 }
 
 ClumpInfo*
-loadci(int64_t offset, Arena *arena, int nci)
+loadci(i64 offset, Arena *arena, int nci)
 {
 	int i, j, per;
-	uint8_t *p, *sp;
+	u8 *p, *sp;
 	ClumpInfo *bci, *ci;
 
 	per = arena->blocksize/ClumpInfoSize;
@@ -1142,11 +1142,11 @@ loadci(int64_t offset, Arena *arena, int nci)
 	return bci;
 }
 
-int64_t
-writeci(int64_t offset, Arena *arena, ClumpInfo *ci, int nci)
+i64
+writeci(i64 offset, Arena *arena, ClumpInfo *ci, int nci)
 {
 	int i, j, per;
-	uint8_t *p, *sp;
+	u8 *p, *sp;
 
 	per = arena->blocksize/ClumpInfoSize;
 	offset += arena->size - arena->blocksize;
@@ -1167,11 +1167,11 @@ writeci(int64_t offset, Arena *arena, ClumpInfo *ci, int nci)
 }
 
 void
-loadarenabasics(int64_t offset0, int anum, ArenaHead *head, Arena *arena)
+loadarenabasics(i64 offset0, int anum, ArenaHead *head, Arena *arena)
 {
 	char dname[ANameSize];
 	static char lastbase[ANameSize];
-	uint8_t *p;
+	u8 *p;
 	Arena oarena;
 	ArenaHead ohead;
 
@@ -1245,9 +1245,9 @@ print("old arena: sealed=%d\n", oarena.diskstats.sealed);
 }
 
 void
-shahead(Shabuf *sb, int64_t offset0, ArenaHead *head)
+shahead(Shabuf *sb, i64 offset0, ArenaHead *head)
 {
-	uint8_t headbuf[MaxDiskBlock];
+	u8 headbuf[MaxDiskBlock];
 
 	sb->offset = offset0;
 	memset(headbuf, 0, sizeof headbuf);
@@ -1255,10 +1255,10 @@ shahead(Shabuf *sb, int64_t offset0, ArenaHead *head)
 	sbupdate(sb, headbuf, offset0, head->blocksize);
 }
 
-uint32_t
+u32
 newclumpmagic(int version)
 {
-	uint32_t m;
+	u32 m;
 
 	if(version == ArenaVersion4)
 		return _ClumpMagic;
@@ -1273,16 +1273,16 @@ newclumpmagic(int version)
  * and compute the relevant statistics.
  */
 void
-guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
-	uint8_t *oldscore, uint8_t *score)
+guessarena(i64 offset0, int anum, ArenaHead *head, Arena *arena,
+	u8 *oldscore, u8 *score)
 {
-	uint8_t dbuf[MaxDiskBlock];
+	u8 dbuf[MaxDiskBlock];
 	int needtozero, clumps, nb1, nb2, minclumps;
 	int inbad, n, ncib, printed, sealing, smart;
-	uint32_t magic;
-	uint8_t *sp, *ep, *p;
-	int64_t boffset, eoffset, lastclumpend, leaked;
-	int64_t offset, toffset, totalcorrupt, v;
+	u32 magic;
+	u8 *sp, *ep, *p;
+	i64 boffset, eoffset, lastclumpend, leaked;
+	i64 offset, toffset, totalcorrupt, v;
 	Clump cl;
 	ClumpInfo *bci, *ci, *eci, *xci;
 	Cit *bcit, *cit, *ecit;
@@ -1569,7 +1569,7 @@ Again:
 	ci = bci;
 	for(cit=bcit; cit<ecit && ci<eci; cit++){
 		if(cit->corrupt){
-			int64_t n, m;
+			i64 n, m;
 			if(smart){
 				/*
 				 * If we can, just mark existing entries as corrupt.
@@ -1668,7 +1668,7 @@ Nocib:
 	arena->diskstats.sealed = sealing;
 	arena->memstats = arena->diskstats;
 	if(sealing && fix){
-		uint8_t tbuf[MaxDiskBlock];
+		u8 tbuf[MaxDiskBlock];
 
 		sbdiskhash(&newsha, toffset);
 		memset(tbuf, 0, sizeof tbuf);
@@ -1679,10 +1679,10 @@ Nocib:
 }
 
 void
-dumparena(int64_t offset, int anum, Arena *arena)
+dumparena(i64 offset, int anum, Arena *arena)
 {
 	char buf[1000];
-	int64_t o, e;
+	i64 o, e;
 	int fd, n;
 
 	snprint(buf, sizeof buf, "%s.%d", dumpbase, anum);
@@ -1703,10 +1703,10 @@ dumparena(int64_t offset, int anum, Arena *arena)
 }
 
 void
-checkarena(int64_t offset, int anum)
+checkarena(i64 offset, int anum)
 {
-	uint8_t dbuf[MaxDiskBlock];
-	uint8_t *p, oldscore[VtScoreSize], score[VtScoreSize];
+	u8 dbuf[MaxDiskBlock];
+	u8 *p, oldscore[VtScoreSize], score[VtScoreSize];
 	Arena arena, oarena;
 	ArenaHead head;
 	Info *fmt, *fmta;
@@ -1803,8 +1803,8 @@ checkarena(int64_t offset, int anum)
 AMapN*
 buildamap(void)
 {
-	uint8_t *p;
-	int64_t o;
+	u8 *p;
+	i64 o;
 	ArenaHead h;
 	AMapN *an;
 	AMap *m;
@@ -1827,7 +1827,7 @@ void
 checkmap(void)
 {
 	char *s;
-	uint8_t *p;
+	u8 *p;
 	int i, len;
 	AMapN *an;
 	Fmt fmt;
@@ -1842,7 +1842,7 @@ checkmap(void)
 	len = strlen(s);
 	if(len > ap.tabsize){
 		print("arena partition map too long: need %z bytes have %z\n",
-			(int64_t)len, (int64_t)ap.tabsize);
+			(i64)len, (i64)ap.tabsize);
 		len = ap.tabsize;
 	}
 

@@ -16,7 +16,7 @@ smbsendunicode(SmbPeerInfo *i)
 }
 
 int
-smbcheckwordcount(char *name, SmbHeader *h, uint16_t wordcount)
+smbcheckwordcount(char *name, SmbHeader *h, u16 wordcount)
 {
 	if (h->wordcount != wordcount) {
 		smblogprint(-1, "smb%s: word count not %u\n", name, wordcount);
@@ -26,11 +26,11 @@ smbcheckwordcount(char *name, SmbHeader *h, uint16_t wordcount)
 }
 
 int
-smbcheckwordandbytecount(char *name, SmbHeader *h, uint16_t wordcount,
-			 uint8_t **bdatap, uint8_t **edatap)
+smbcheckwordandbytecount(char *name, SmbHeader *h, u16 wordcount,
+			 u8 **bdatap, u8 **edatap)
 {
-	uint16_t bytecount;
-	uint8_t *bdata;
+	u16 bytecount;
+	u8 *bdata;
 	if (h->wordcount != wordcount) {
 		smblogprint(-1, "smb%s: word count not %u\n", name, wordcount);
 		return 0;
@@ -51,12 +51,12 @@ smbcheckwordandbytecount(char *name, SmbHeader *h, uint16_t wordcount,
 }
 
 int
-smbchaincommand(SmbSession *s, SmbHeader *h, uint32_t andxoffsetfixup,
-		uint8_t cmd, uint16_t offset, SmbBuffer *b)
+smbchaincommand(SmbSession *s, SmbHeader *h, u32 andxoffsetfixup,
+		u8 cmd, u16 offset, SmbBuffer *b)
 {
 	SmbOpTableEntry *ote;
-	uint8_t *pdata;
-	uint16_t bytecount;
+	u8 *pdata;
+	u16 bytecount;
 
 	h->command = cmd;
 	ote = smboptable + cmd;
@@ -94,13 +94,13 @@ smblogprint(cmd, "chaining to %s\n", ote->name);
 }
 
 int
-smbbuffergetheader(SmbBuffer *b, SmbHeader *h, uint8_t **parametersp,
-		   uint16_t *bytecountp)
+smbbuffergetheader(SmbBuffer *b, SmbHeader *h, u8 **parametersp,
+		   u16 *bytecountp)
 {
 	SmbOpTableEntry *ote;
 	SmbRawHeader *rh;
 	rh = (SmbRawHeader *)smbbufferreadpointer(b);
-	if (!smbbuffergetbytes(b, nil, (int32_t)offsetof(SmbRawHeader, parameterwords[0]))) {
+	if (!smbbuffergetbytes(b, nil, (i32)offsetof(SmbRawHeader, parameterwords[0]))) {
 		smblogprint(-1, "smbgetheader: short packet\n");
 		return 0;
 	}
@@ -152,7 +152,7 @@ smbcheckheaderdirection(SmbHeader *h, int response, char **errmsgp)
 }
 
 int
-smbcheckheader(SmbHeader *h, uint8_t command, int response, char **errmsgp)
+smbcheckheader(SmbHeader *h, u8 command, int response, char **errmsgp)
 {
 	if (response && h->command != command) {
 		smbstringprint(errmsgp, "sent %.2uc request, got %.2x response", command, h->command);
@@ -164,9 +164,9 @@ smbcheckheader(SmbHeader *h, uint8_t command, int response, char **errmsgp)
 }
 
 int
-smbbuffergetandcheckheader(SmbBuffer *b, SmbHeader *h, uint8_t command,
-			   int response, uint8_t **pdatap,
-			   uint16_t *bytecountp, char **errmsgp)
+smbbuffergetandcheckheader(SmbBuffer *b, SmbHeader *h, u8 command,
+			   int response, u8 **pdatap,
+			   u16 *bytecountp, char **errmsgp)
 {
 	if (!smbbuffergetheader(b, h, pdatap, bytecountp)) {
 		smbstringprint(errmsgp, "smbbuffergetandcheckheader: not enough data for header");
@@ -221,8 +221,8 @@ smbbufferputheader(SmbBuffer *b, SmbHeader *h, SmbPeerInfo *p)
 
 int
 smbbufferputerror(SmbBuffer *s, SmbHeader *h, SmbPeerInfo *p,
-		  uint8_t errclass,
-		  uint16_t error)
+		  u8 errclass,
+		  u16 error)
 {
 	h->errclass = errclass;
 	h->error = error;
@@ -231,8 +231,8 @@ smbbufferputerror(SmbBuffer *s, SmbHeader *h, SmbPeerInfo *p,
 
 int
 smbbufferputandxheader(SmbBuffer *b, SmbHeader *h, SmbPeerInfo *p,
-		       uint8_t andxcommand,
-		       uint32_t *andxoffsetfixupp)
+		       u8 andxcommand,
+		       u32 *andxoffsetfixupp)
 {
 	if (!smbbufferputheader(b, h, p)
 		|| !smbbufferputb(b, andxcommand)
@@ -243,7 +243,7 @@ smbbufferputandxheader(SmbBuffer *b, SmbHeader *h, SmbPeerInfo *p,
 }
 
 void
-smbseterror(SmbSession *s, uint8_t errclass, uint16_t error)
+smbseterror(SmbSession *s, u8 errclass, u16 error)
 {
 	s->errclass = errclass;
 	s->error = error;
@@ -256,18 +256,18 @@ smbbufferputack(SmbBuffer *b, SmbHeader *h, SmbPeerInfo *p)
 	return smbbufferputheader(b, h, p) && smbbufferputs(b, 0) ? SmbProcessResultReply : SmbProcessResultMisc;
 }
 
-uint16_t
-smbplan9mode2dosattr(uint32_t mode)
+u16
+smbplan9mode2dosattr(u32 mode)
 {
 	if (mode & DMDIR)
 		return SMB_ATTR_DIRECTORY;
 	return SMB_ATTR_NORMAL;
 }
 
-uint32_t
-smbdosattr2plan9mode(uint16_t attr)
+u32
+smbdosattr2plan9mode(u16 attr)
 {
-	uint32_t mode = 0444;
+	u32 mode = 0444;
 	if ((attr & SMB_ATTR_READ_ONLY) == 0)
 		mode |= 0222;
 	if (attr & SMB_ATTR_DIRECTORY) {
@@ -279,10 +279,10 @@ smbdosattr2plan9mode(uint16_t attr)
 	return mode;
 }
 
-uint32_t
-smbdosattr2plan9wstatmode(uint32_t oldmode, uint16_t attr)
+u32
+smbdosattr2plan9wstatmode(u32 oldmode, u16 attr)
 {
-	uint32_t mode;
+	u32 mode;
 	if (oldmode & DMDIR)
 		attr |= SMB_ATTR_DIRECTORY;
 	else
@@ -297,18 +297,18 @@ smbdosattr2plan9wstatmode(uint32_t oldmode, uint16_t attr)
 	return mode;
 }
 
-uint32_t
-smbplan9length2size32(int64_t length)
+u32
+smbplan9length2size32(i64 length)
 {
 	if (length > 0xffffffff)
 		return 0xffffffff;
 	return length;
 }
 
-int64_t
-smbl2roundupint64_t(int64_t v, int l2)
+i64
+smbl2roundupi64(i64 v, int l2)
 {
-	uint64_t mask;
+	u64 mask;
 	mask = (1 << l2) - 1;
 	return (v + mask) & ~mask;
 }

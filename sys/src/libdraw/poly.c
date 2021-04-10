@@ -12,8 +12,8 @@
 #include <draw.h>
 
 static
-uint8_t*
-addcoord(uint8_t *p, int oldx, int newx)
+u8 *
+addcoord(u8 *p, int oldx, int newx)
 {
 	int dx;
 
@@ -33,7 +33,7 @@ static
 void
 dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, Image *src, Point *sp, Drawop op)
 {
-	uint8_t *a, *t, *u;
+	u8 *a, *t, *u;
 	int i, ox, oy;
 
 	if(np == 0)

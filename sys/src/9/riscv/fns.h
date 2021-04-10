@@ -26,8 +26,8 @@ void actouser(void);
 void runacore(void);
 void aamloop(int);
 Dirtab *addarchfile(char *, int,
-		    int32_t (*)(Chan *, void *, int32_t, int64_t),
-		    int32_t (*)(Chan *, void *, int32_t, int64_t));
+		    i32 (*)(Chan *, void *, i32, i64),
+		    i32 (*)(Chan *, void *, i32, i64));
 void acmmuswitch(void);
 void acmodeset(int);
 void archfmtinstall(void);

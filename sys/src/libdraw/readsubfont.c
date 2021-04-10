@@ -16,7 +16,7 @@ readsubfonti(Display*d, char *name, int fd, Image *ai, int dolock)
 {
 	char hdr[3*12+4+1];
 	int n;
-	uint8_t *p;
+	u8 *p;
 	Fontchar *fc;
 	Subfont *f;
 	Image *i;

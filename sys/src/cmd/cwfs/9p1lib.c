@@ -16,11 +16,11 @@
 #include "9p1.h"
 
 #define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	{ uint32_t vvv = f->x; *p++ = vvv; *p++ = vvv>>8; }
+#define	SHORT(x)	{ u32 vvv = f->x; *p++ = vvv; *p++ = vvv>>8; }
 #define	LONGINT(q) {*p++ = (q); *p++ = (q)>>8; *p++ = (q)>>16; *p++ = (q)>>24;}
-#define	LONG(x)		{ uint32_t vvv = f->x; LONGINT(vvv); }
+#define	LONG(x)		{ u32 vvv = f->x; LONGINT(vvv); }
 #define	VLONG(x) { \
-	uint64_t q = f->x; \
+	u64 q = f->x; \
 	*p++ = (q)>> 0; *p++ = (q)>> 8; *p++ = (q)>>16; *p++ = (q)>>24; \
 	*p++ = (q)>>32; *p++ = (q)>>40; *p++ = (q)>>48; *p++ = (q)>>56; \
 	}
@@ -29,9 +29,9 @@
 #define	STRING(x,n)	strncpy((char*)p, f->x, n); p += n
 
 int
-convS2M9p1(Fcall *f, uint8_t *ap)
+convS2M9p1(Fcall *f, u8 *ap)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = ap;
@@ -109,7 +109,7 @@ convS2M9p1(Fcall *f, uint8_t *ap)
 		VLONG(offset);
 		SHORT(count);
 		p++;
-		if((uint8_t*)p == (uint8_t*)f->data) {
+		if((u8*)p == (u8*)f->data) {
 			p += f->count;
 			break;
 		}
@@ -176,7 +176,7 @@ convS2M9p1(Fcall *f, uint8_t *ap)
 		SHORT(fid);
 		SHORT(count);
 		p++;
-		if((uint8_t*)p == (uint8_t*)f->data) {
+		if((u8*)p == (u8*)f->data) {
 			p += f->count;
 			break;
 		}
@@ -193,17 +193,17 @@ convS2M9p1(Fcall *f, uint8_t *ap)
 		BYTES(stat, sizeof(f->stat));
 		break;
 	}
-	return p - (uint8_t*)ap;
+	return p - (u8*)ap;
 }
 
 /*
  * buggery to give false qid for
  * the top 2 levels of the dump fs
  */
-static uint32_t
+static u32
 fakeqid9p1(Dentry *f)
 {
-	uint32_t q;
+	u32 q;
 	int c;
 
 	q = f->qid.path;
@@ -222,10 +222,10 @@ fakeqid9p1(Dentry *f)
 int
 convD2M9p1(Dentry *f, char *ap)
 {
-	uint8_t *p;
-	uint32_t q;
+	u8 *p;
+	u32 q;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	STRING(name, sizeof(f->name));
 
 	memset(p, 0, 2*NAMELEN);
@@ -252,20 +252,20 @@ convD2M9p1(Dentry *f, char *ap)
 	LONG(mtime);
 	VLONG(size);
 	LONGINT(0);
-	return p - (uint8_t*)ap;
+	return p - (u8*)ap;
 }
 
 int
 convA2M9p1(Authenticator *f, char *ap, char *key)
 {
 	int n;
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	CHAR(num);
 	BYTES(chal, CHALLEN);
 	LONG(id);
-	n = p - (uint8_t*)ap;
+	n = p - (u8*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;
@@ -284,7 +284,7 @@ convA2M9p1(Authenticator *f, char *ap, char *key)
 #define	LONG(x)	f->x = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24); p += 4
 #define	VLONG(x) { \
 	f->x =	    (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)) | \
-	    (uint64_t)(p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24)) << 32; \
+	    (u64)(p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24)) << 32; \
 	p += 8; \
 }
 
@@ -292,9 +292,9 @@ convA2M9p1(Authenticator *f, char *ap, char *key)
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int
-convM2S9p1(uint8_t *ap, Fcall *f, int n)
+convM2S9p1(u8 *ap, Fcall *f, int n)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = ap;
@@ -458,7 +458,7 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		BYTES(stat, sizeof(f->stat));
 		break;
 	}
-	if((uint8_t*)ap+n == p)
+	if((u8*)ap+n == p)
 		return n;
 	return 0;
 }
@@ -466,10 +466,10 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 int
 convM2D9p1(char *ap, Dentry *f)
 {
-	uint8_t *p;
+	u8 *p;
 	char str[NAMELEN];
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	BYTES(name, sizeof(f->name));
 
 	memmove(str, p, NAMELEN);
@@ -496,17 +496,17 @@ convM2D9p1(char *ap, Dentry *f)
 	LONG(mtime);
 	VLONG(size);
 	p += 4;
-	return p - (uint8_t*)ap;
+	return p - (u8*)ap;
 }
 
 void
 convM2A9p1(char *ap, Authenticator *f, char *key)
 {
-	uint8_t *p;
+	u8 *p;
 
 	if(key)
 		decrypt(key, ap, AUTHENTLEN);
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	CHAR(num);
 	BYTES(chal, CHALLEN);
 	LONG(id);
@@ -516,11 +516,11 @@ convM2A9p1(char *ap, Authenticator *f, char *key)
 void
 convM2T9p1(char *ap, Ticket *f, char *key)
 {
-	uint8_t *p;
+	u8 *p;
 
 	if(key)
 		decrypt(key, ap, TICKETLEN);
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	CHAR(num);
 	BYTES(chal, CHALLEN);
 	STRING(cuid, NAMELEN);

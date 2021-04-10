@@ -12,10 +12,10 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static int32_t totalmalloc;
+static i32 totalmalloc;
 
 void*
-_threadmalloc(int32_t size, int z)
+_threadmalloc(i32 size, int z)
 {
 	void *m;
 

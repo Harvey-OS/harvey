@@ -21,7 +21,7 @@ typedef struct Sha2 Sha2;
 struct Sha2 {
 	int	bits;
 	int	dlen;
-	DigestState* (*func)(uint8_t *, uint32_t, uint8_t *, DigestState *);
+	DigestState* (*func)(u8 *, u32, u8 *, DigestState *);
 };
 
 static Sha2 sha2s[] = {
@@ -31,7 +31,7 @@ static Sha2 sha2s[] = {
 	{512,	SHA2_512dlen,	sha2_512},
 };
 
-static DigestState* (*shafunc)(uint8_t *, uint32_t, uint8_t *,
+static DigestState* (*shafunc)(u8 *, u32, u8 *,
 			       DigestState *);
 static int shadlen;
 
@@ -39,10 +39,10 @@ static int
 digestfmt(Fmt *fmt)
 {
 	char buf[SHA2_512dlen*2 + 1];
-	uint8_t *p;
+	u8 *p;
 	int i;
 
-	p = va_arg(fmt->args, uint8_t*);
+	p = va_arg(fmt->args, u8*);
 	for(i = 0; i < shadlen; i++)
 		sprint(buf + 2*i, "%.2x", p[i]);
 	return fmtstrcpy(fmt, buf);
@@ -52,7 +52,7 @@ static void
 sum(int fd, char *name)
 {
 	int n;
-	uint8_t buf[8192], digest[SHA2_512dlen];
+	u8 buf[8192], digest[SHA2_512dlen];
 	DigestState *s;
 
 	s = (*shafunc)(nil, 0, nil, nil);

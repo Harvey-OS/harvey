@@ -165,7 +165,7 @@ struct Ep {
 	/* const once inited. */
 	int idx;   /* index in global eps array */
 	int nb;	   /* endpoint number in device */
-	Hci *hp;   /* HCI it beint32_ts to */
+	Hci *hp;   /* HCI it bei32s to */
 	Udev *dev; /* device for the endpoint */
 	Ep *ep0;   /* control endpoint for its device */
 

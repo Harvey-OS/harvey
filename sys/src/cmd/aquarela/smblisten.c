@@ -56,13 +56,13 @@ static void
 tcpreader(void *a)
 {
 	Session *s = a;
-	uint8_t *buf;
+	u8 *buf;
 	int buflen = smbglobals.maxreceive + 4;
 	buf = nbemalloc(buflen);
 	for (;;) {
 		int n;
-		uint8_t flags;
-		uint16_t length;
+		u8 flags;
+		u16 length;
 
 		n = readn(s->scs.fd, buf, 4);
 		if (n != 4) {

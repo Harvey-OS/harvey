@@ -45,10 +45,10 @@
  * engines.
  */
 typedef struct {
-	const uint8_t *program_text;
-	uint8_t program_size;
-	uint8_t  load_addr;
-	uint8_t  engine_start_addr[LP55231_NUM_OF_ENGINES];
+	const u8 *program_text;
+	u8 program_size;
+	u8  load_addr;
+	u8  engine_start_addr[LP55231_NUM_OF_ENGINES];
 } TiLp55231Program;
 
 /* A structure to bind controller programs to a vboot state. */

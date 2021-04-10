@@ -53,7 +53,7 @@ static char *partname[] = {
 Disk *
 diskAlloc(int fd)
 {
-	uint8_t buf[HeaderSize];
+	u8 buf[HeaderSize];
 	Header h;
 	Disk *disk;
 
@@ -101,7 +101,7 @@ diskFree(Disk *disk)
 	vtMemFree(disk);
 }
 
-static uint32_t
+static u32
 partStart(Disk *disk, int part)
 {
 	switch(part){
@@ -117,7 +117,7 @@ partStart(Disk *disk, int part)
 }
 
 
-static uint32_t
+static u32
 partEnd(Disk *disk, int part)
 {
 	switch(part){
@@ -133,10 +133,10 @@ partEnd(Disk *disk, int part)
 }
 
 int
-diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
+diskReadRaw(Disk *disk, int part, u32 addr, u8 *buf)
 {
-	uint32_t start, end;
-	uint64_t offset;
+	u32 start, end;
+	u64 offset;
 	int n, nn;
 
 	start = partStart(disk, part);
@@ -149,7 +149,7 @@ diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 		return 0;
 	}
 
-	offset = ((uint64_t)(addr + start))*disk->h.blockSize;
+	offset = ((u64)(addr + start))*disk->h.blockSize;
 	//print("Offset: %u Blocksize: %u \n",offset, disk->h.blockSize);
 	n = disk->h.blockSize;
 	while(n > 0){
@@ -170,10 +170,10 @@ diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 }
 
 int
-diskWriteRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
+diskWriteRaw(Disk *disk, int part, u32 addr, u8 *buf)
 {
-	uint32_t start, end;
-	uint64_t offset;
+	u32 start, end;
+	u64 offset;
 	int n;
 
 	start = partStart(disk, part);
@@ -184,7 +184,7 @@ diskWriteRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 		return 0;
 	}
 
-	offset = ((uint64_t)(addr + start))*disk->h.blockSize;
+	offset = ((u64)(addr + start))*disk->h.blockSize;
 	n = pwrite(disk->fd, buf, disk->h.blockSize, offset);
 	if(n < 0){
 		vtOSError();
@@ -289,7 +289,7 @@ diskFlush(Disk *disk)
 	return 1;
 }
 
-uint32_t
+u32
 diskSize(Disk *disk, int part)
 {
 	return partEnd(disk, part) - partStart(disk, part);
@@ -316,7 +316,7 @@ diskThread(void *a)
 {
 	Disk *disk = a;
 	Block *b;
-	uint8_t *buf, *p;
+	u8 *buf, *p;
 	double t;
 	int nio;
 

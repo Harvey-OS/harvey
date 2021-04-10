@@ -8,27 +8,27 @@
  */
 
 struct Cfsmsg {
-	uint32_t	n;			/* number of messages (of some type) */
-	int64_t	t;			/* time spent in these messages */
-	int64_t	s;			/* start time of last call */
+	u32	n;			/* number of messages (of some type) */
+	i64	t;			/* time spent in these messages */
+	i64	s;			/* start time of last call */
 };
 
 struct Cfsstat {
 	struct Cfsmsg cm[128];		/* client messages */
 	struct Cfsmsg sm[128];		/* server messages */
 
-	uint32_t ndirread;			/* # of directory read ops */
-	uint32_t ndelegateread;		/* # of read ops delegated */
-	uint32_t ninsert;			/* # of cache insert ops */
-	uint32_t ndelete;			/* # of cache delete ops */
-	uint32_t nupdate;			/* # of cache update ops */
+	u32 ndirread;			/* # of directory read ops */
+	u32 ndelegateread;		/* # of read ops delegated */
+	u32 ninsert;			/* # of cache insert ops */
+	u32 ndelete;			/* # of cache delete ops */
+	u32 nupdate;			/* # of cache update ops */
 
-	uint64_t bytesread;		/* # of bytes read by client */
-	uint64_t byteswritten;		/* # of bytes written by client */
-	uint64_t bytesfromserver;		/* # of bytes read from server */
-	uint64_t bytesfromdirs;		/* # of directory bytes read from server */
-	uint64_t bytesfromcache;		/* # of bytes read from cache */
-	uint64_t bytestocache;		/* # of bytes written to cache */
+	u64 bytesread;		/* # of bytes read by client */
+	u64 byteswritten;		/* # of bytes written by client */
+	u64 bytesfromserver;		/* # of bytes read from server */
+	u64 bytesfromdirs;		/* # of directory bytes read from server */
+	u64 bytesfromcache;		/* # of bytes read from cache */
+	u64 bytestocache;		/* # of bytes written to cache */
 };
 
 extern struct Cfsstat cfsstat, cfsprev;

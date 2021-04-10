@@ -464,8 +464,8 @@ vncannounce(char *net, int display, char *adir, int base)
  */
 static void clientreadproc(Vncs*);
 static void clientwriteproc(Vncs*);
-static void chan2fmt(Pixfmt*, uint32_t);
-static uint32_t fmt2chan(Pixfmt*);
+static void chan2fmt(Pixfmt*, u32);
+static u32 fmt2chan(Pixfmt*);
 
 static void
 vncaccept(Vncs *v)
@@ -603,7 +603,7 @@ vncname(char *fmt, ...)
 static void
 setpixelfmt(Vncs *v)
 {
-	uint32_t chan;
+	u32 chan;
 
 	vncgobble(&v->vnc, 3);
 	v->vnc.pixfmt = vncrdpixfmt(&v->vnc);
@@ -765,7 +765,7 @@ clientreadproc(Vncs *v)
 }
 
 static int
-nbits(uint32_t mask)
+nbits(u32 mask)
 {
 	int n;
 
@@ -782,12 +782,12 @@ struct Col {
 	int shift;
 };
 
-static uint32_t
+static u32
 fmt2chan(Pixfmt *fmt)
 {
 	Col c[4], t;
 	int i, j, depth, n, nc;
-	uint32_t mask, u;
+	u32 mask, u;
 
 	/* unpack the Pixfmt channels */
 	c[0] = (Col){CRed, nbits(fmt->red.max), fmt->red.shift};
@@ -835,9 +835,9 @@ fmt2chan(Pixfmt *fmt)
 }
 
 static void
-chan2fmt(Pixfmt *fmt, uint32_t chan)
+chan2fmt(Pixfmt *fmt, u32 chan)
 {
-	uint32_t c, rc, shift;
+	u32 c, rc, shift;
 
 	shift = 0;
 	for(rc = chan; rc; rc >>=8){
@@ -902,11 +902,11 @@ static int
 updateimage(Vncs *v)
 {
 	int i, ncount, nsend, docursor, needwarp;
-	int64_t ooffset;
+	i64 ooffset;
 	Point warppt;
 	Rectangle cr;
 	Rlist rlist;
-	int64_t t1;
+	i64 t1;
 	int (*count)(Vncs*, Rectangle);
 	int (*send)(Vncs*, Rectangle);
 

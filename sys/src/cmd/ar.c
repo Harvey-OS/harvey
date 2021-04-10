@@ -31,7 +31,7 @@ typedef struct	Arsymref
 	char	*name;
 	int	type;
 	int	len;
-	int64_t	offset;
+	i64	offset;
 	struct	Arsymref *next;
 } Arsymref;
 
@@ -39,8 +39,8 @@ typedef struct	Armember	/* Temp file entry - one per archive member */
 {
 	struct Armember	*next;
 	struct ar_hdr	hdr;
-	int32_t		size;
-	int32_t		date;
+	i32		size;
+	i32		date;
 	void		*member;
 } Armember;
 
@@ -49,7 +49,7 @@ typedef	struct Arfile		/* Temp file control block - one per tempfile */
 	int	paged;		/* set when some data paged to disk */
 	char	*fname;		/* paging file name */
 	int	fd;		/* paging file descriptor */
-	int64_t	size;
+	i64	size;
 	Armember *head;		/* head of member chain */
 	Armember *tail;		/* tail of member chain */
 	Arsymref *sym;		/* head of defined symbol chain */
@@ -117,7 +117,7 @@ int	duplicate(char*);
 Armember *getdir(Biobuf*);
 int	getspace(void);
 void	install(char*, Arfile*, Arfile*, Arfile*, int);
-void	int32_tt(Armember*);
+void	i32t(Armember*);
 int	match(int, char**);
 void	mesg(int, char*);
 Arfile	*newtempfile(char*);
@@ -125,17 +125,17 @@ Armember *newmember(void);
 void	objsym(Sym*, void*);
 int	openar(char*, int, int);
 int	page(Arfile*);
-void	pmode(int32_t);
+void	pmode(i32);
 void	rl(int);
-void	scanobj(Biobuf*, Arfile*, int32_t);
-void	select(int*, int32_t);
+void	scanobj(Biobuf*, Arfile*, i32);
+void	select(int*, i32);
 void	setcom(void(*)(char*, int, char**));
-void	skip(Biobuf*, int64_t);
+void	skip(Biobuf*, i64);
 int	symcomp(void *c, void*);
 void	trim(char*, char*, int);
 void	usage(void);
 void	wrerr(void);
-void	wrsym(Biobuf*, int32_t, Arsymref*);
+void	wrsym(Biobuf*, i32, Arsymref*);
 
 void	rcmd(char*, int, char**);		/* command processing */
 void	dcmd(char*, int, char**);
@@ -469,7 +469,7 @@ tcmd(char *arname, int count, char **files)
 	while((bp = getdir(&bar)) != nil){
 		if(count == 0 || match(count, files)) {
 			if(vflag)
-				int32_tt(bp);
+				i32t(bp);
 			trim(file, name, ARNAMESIZE);
 			Bprint(&bout, "%s\n", name);
 		}
@@ -525,10 +525,10 @@ qcmd(char *arname, int count, char **files)
  *	extract the symbol references from an object file
  */
 void
-scanobj(Biobuf *b, Arfile *ap, int32_t size)
+scanobj(Biobuf *b, Arfile *ap, i32 size)
 {
 	int obj;
-	int64_t offset;
+	i64 offset;
 	Dir *d;
 	static int lastobj = -1;
 
@@ -763,7 +763,7 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 void
 arcopy(Biobuf *b, Arfile *ap, Armember *bp)
 {
-	int32_t n;
+	i32 n;
 
 	n = bp->size;
 	if (n & 01)
@@ -779,7 +779,7 @@ arcopy(Biobuf *b, Arfile *ap, Armember *bp)
  *	Skip an archive member
  */
 void
-skip(Biobuf *bp, int64_t len)
+skip(Biobuf *bp, i64 len)
 {
 	if (len & 01)
 		len++;
@@ -831,7 +831,7 @@ rl(int fd)
 	Biobuf b;
 	char *cp;
 	struct ar_hdr a;
-	int32_t len;
+	i32 len;
 
 	Binit(&b, fd, OWRITE);
 	Bseek(&b,seek(fd,0,1), 0);
@@ -873,7 +873,7 @@ rl(int fd)
  *	Write the defined symbols to the symdef file
  */
 void
-wrsym(Biobuf *bp, int32_t offset, Arsymref *as)
+wrsym(Biobuf *bp, i32 offset, Arsymref *as)
 {
 	int off;
 
@@ -976,7 +976,7 @@ trim(char *s, char *buf, int n)
 }
 
 /*
- *	utilities for printing int32_t form of 't' command
+ *	utilities for printing i32 form of 't' command
  */
 #define	SUID	04000
 #define	SGID	02000
@@ -992,7 +992,7 @@ trim(char *s, char *buf, int n)
 #define	STXT	01000
 
 void
-int32_tt(Armember *bp)
+i32t(Armember *bp)
 {
 	char *cp;
 
@@ -1016,7 +1016,7 @@ int	m9[] = { 2, STXT, 't', XOTH, 'x', '-' };
 int	*m[] = { m1, m2, m3, m4, m5, m6, m7, m8, m9};
 
 void
-pmode(int32_t mode)
+pmode(i32 mode)
 {
 	int **mp;
 
@@ -1025,7 +1025,7 @@ pmode(int32_t mode)
 }
 
 void
-select(int *ap, int32_t mode)
+select(int *ap, i32 mode)
 {
 	int n;
 

@@ -125,7 +125,7 @@ badatomcmp(const void *va, const void *vb)
 }
 
 void
-wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
+wrconform(Cdimg *cd, int n, u32 *pblock, u64 *plength)
 {
 	char buf[1024];
 	int i;
@@ -138,14 +138,14 @@ wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
 		return;
 	}
 
-	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
+	Cwseek(cd, (i64)cd->nextblock * Blocksize);
 	qsort(c->t, c->nt, sizeof(c->t[0]), goodcmp);
 	for(i=n; i<c->nt; i++) {
 		snprint(buf, sizeof buf, "%s %s\n", c->t[i].good, c->t[i].bad);
 		Cwrite(cd, buf, strlen(buf));
 	}
 	qsort(c->t, c->nt, sizeof(c->t[0]), badatomcmp);
-	*plength = Cwoffset(cd) - (int64_t)*pblock * Blocksize;
+	*plength = Cwoffset(cd) - (i64)*pblock * Blocksize;
 	chat("write _conform.map at %lu+%llu\n", *pblock, *plength);
 	Cpadblock(cd);
 }

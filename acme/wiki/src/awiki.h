@@ -104,7 +104,7 @@ struct Wiki {
 	int n;
 	int dead;
 	Window *win;
-	uint32_t time;
+	u32 time;
 	int linked;
 	Wiki *next;
 	Wiki *prev;

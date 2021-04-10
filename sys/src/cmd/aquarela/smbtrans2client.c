@@ -17,7 +17,7 @@ static SmbTransactionMethod method = {
 };
 
 int
-smbclienttrans2(SmbClient *c, uint8_t scount, uint16_t *setup,
+smbclienttrans2(SmbClient *c, u8 scount, u16 *setup,
 		SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata,
 		SmbHeader *rh, char **errmsgp)
 {
@@ -39,13 +39,13 @@ smbclienttrans2(SmbClient *c, uint8_t scount, uint16_t *setup,
 }
 
 int
-smbclienttrans2findfirst2(SmbClient *c, uint16_t searchcount,
+smbclienttrans2findfirst2(SmbClient *c, u16 searchcount,
 			  char *filename,
-	uint16_t *sidp, uint16_t *searchcountp, uint16_t *endofsearchp,SmbFindFileBothDirectoryInfo *ip,
+	u16 *sidp, u16 *searchcountp, u16 *endofsearchp,SmbFindFileBothDirectoryInfo *ip,
 			  char **errmsgp)
 {
 	int rv;
-	uint16_t setup;
+	u16 setup;
 	SmbBuffer *inparam;
 	SmbBuffer *outparam;
 	SmbBuffer *outdata;
@@ -63,8 +63,8 @@ smbclienttrans2findfirst2(SmbClient *c, uint16_t searchcount,
 	rv = smbclienttrans2(c, 1, &setup, inparam, outparam, outdata, &rh, errmsgp);
 	smbbufferfree(&inparam);
 	if (rv) {
-		uint16_t eaerroroffset, lastnameoffset;
-		uint32_t nextentry;
+		u16 eaerroroffset, lastnameoffset;
+		u32 nextentry;
 		int i;
 
 		if (!smbbuffergets(outparam, sidp)
@@ -81,8 +81,8 @@ smblogprint(-1, "returned data:\n");
 smblogdata(-1, smblogprint, smbbufferreadpointer(outdata), smbbufferreadspace(outdata), 256);
 		for (i = 0; i < *searchcountp; i++) {
 			SmbFindFileBothDirectoryInfo *info = ip + i;
-			uint32_t neo, filenamelength, easize;
-			uint8_t shortnamelength;
+			u32 neo, filenamelength, easize;
+			u8 shortnamelength;
 			if (i && !smbbufferreadskipto(outdata, nextentry)) {
 			underflow:
 				smbstringprint(errmsgp, "smbclientrans2findfirst2: not enough data returned");

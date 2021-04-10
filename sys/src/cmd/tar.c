@@ -46,9 +46,9 @@
 #define	G2BEBYTE(x)	(((x)[0]<<8)  |  (x)[1])
 #define	G3BEBYTE(x)	(((x)[0]<<16) | ((x)[1]<<8)  |  (x)[2])
 #define	G4BEBYTE(x)	(((x)[0]<<24) | ((x)[1]<<16) | ((x)[2]<<8) | (x)[3])
-#define	G8BEBYTE(x)	(((int64_t)G4BEBYTE(x)<<32) | (uint32_t)G4BEBYTE((x)+4))
+#define	G8BEBYTE(x)	(((i64)G4BEBYTE(x)<<32) | (u32)G4BEBYTE((x)+4))
 
-typedef int64_t Off;
+typedef i64 Off;
 typedef char *(*Refill)(int ar, char *bufs, int justhdr);
 
 enum { Stdin, Stdout, Stderr };
@@ -168,7 +168,7 @@ usage(void)
 /* I/O, with error retry or exit */
 
 static int
-cope(char *name, int fd, void *buf, int32_t len, Off off)
+cope(char *name, int fd, void *buf, i32 len, Off off)
 {
 	fprint(2, "%s: %serror reading %s: %r\n", argv0,
 		(ignerrs? "ignoring ": ""), name);
@@ -183,7 +183,7 @@ cope(char *name, int fd, void *buf, int32_t len, Off off)
 }
 
 static int
-eread(char *name, int fd, void *buf, int32_t len)
+eread(char *name, int fd, void *buf, i32 len)
 {
 	int rd;
 	Off off;
@@ -196,7 +196,7 @@ eread(char *name, int fd, void *buf, int32_t len)
 }
 
 static int
-ereadn(char *name, int fd, void *buf, int32_t len)
+ereadn(char *name, int fd, void *buf, i32 len)
 {
 	int rd;
 	Off off;
@@ -209,7 +209,7 @@ ereadn(char *name, int fd, void *buf, int32_t len)
 }
 
 static int
-ewrite(char *name, int fd, void *buf, int32_t len)
+ewrite(char *name, int fd, void *buf, i32 len)
 {
 	int rd;
 
@@ -460,11 +460,11 @@ putblkmany(int ar, int blks)
  * modifies hp->chksum but restores it; important for the last block of the
  * old archive when updating with `tar rf archive'
  */
-static int32_t
+static i32
 chksum(Hdr *hp)
 {
 	int n = Tblock;
-	int32_t i = 0;
+	i32 i = 0;
 	unsigned char *cp = hp->data;
 	char oldsum[sizeof hp->chksum];
 
@@ -483,7 +483,7 @@ isustar(Hdr *hp)
 }
 
 /*
- * s is at most n bytes int32_t, but need not be NUL-terminated.
+ * s is at most n bytes i32, but need not be NUL-terminated.
  * if shorter than n bytes, all bytes after the first NUL must also
  * be NUL.
  */
@@ -534,10 +534,10 @@ eotar(Hdr *hp)
 }
 
 /*
-static uint64_t
+static u64
 getbe(unsigned char *src, int size)
 {
-	uint64_t vl = 0;
+	u64 vl = 0;
 
 	while (size-- > 0) {
 		vl <<= 8;
@@ -548,7 +548,7 @@ getbe(unsigned char *src, int size)
  */
 
 static void
-putbe(unsigned char *dest, uint64_t vl, int size)
+putbe(unsigned char *dest, u64 vl, int size)
 {
 	for (dest += size; size-- > 0; vl >>= 8)
 		*--dest = vl;
@@ -559,8 +559,8 @@ putbe(unsigned char *dest, uint64_t vl, int size)
  * a tar header block.  this is particularly important for
  * trusting the checksum when trying to resync.
  */
-static uint64_t
-hdrotoull(char *st, char *end, uint64_t errval, char *name, char *field)
+static u64
+hdrotoull(char *st, char *end, u64 errval, char *name, char *field)
 {
 	char *numb;
 
@@ -581,9 +581,9 @@ hdrotoull(char *st, char *end, uint64_t errval, char *name, char *field)
  * size in the archive (the archive size may be zero for some file types
  * regardless of the nominal size).
  *
- * gnu and freebsd tars are now recording int64_ts as big-endian binary
+ * gnu and freebsd tars are now recording i64s as big-endian binary
  * with a flag in byte 0 to indicate this, which permits file sizes up to
- * 2^64-1 (actually 2^80-1 but our file sizes are int64_ts) rather than 2^33-1.
+ * 2^64-1 (actually 2^80-1 but our file sizes are i64s) rather than 2^33-1.
  */
 static Off
 hdrsize(Hdr *hp)
@@ -596,7 +596,7 @@ hdrsize(Hdr *hp)
 		return 0;
 	} else if((unsigned char)hp->size[0] == Binsize) {
 		p = (unsigned char *)hp->size + sizeof hp->size - 1 -
-			sizeof(int64_t);		/* -1 for terminating space */
+			sizeof(i64);		/* -1 for terminating space */
 		return G8BEBYTE(p);
 	}
 
@@ -615,19 +615,19 @@ arsize(Hdr *hp)
 	return hdrsize(hp);
 }
 
-static int32_t
+static i32
 parsecksum(char *cksum, char *name)
 {
 	Hdr *hp;
 
-	return hdrotoull(cksum, cksum + sizeof hp->chksum, (uint64_t)-1LL,
+	return hdrotoull(cksum, cksum + sizeof hp->chksum, (u64)-1LL,
 		name, "checksum");
 }
 
 static Hdr *
 readhdr(int ar)
 {
-	int32_t hdrcksum;
+	i32 hdrcksum;
 	Hdr *hp;
 
 	hp = getblkrd(ar, Alldata);
@@ -663,7 +663,7 @@ readhdr(int ar)
  */
 
 /*
- * if name is int32_ter than Namsiz bytes, try to split it at a slash and fit the
+ * if name is i32er than Namsiz bytes, try to split it at a slash and fit the
  * pieces into hp->prefix and hp->name.
  */
 static int
@@ -688,7 +688,7 @@ putfullname(Hdr *hp, char *name)
 	}
 
 	if (!posix || namlen > Maxname) {
-		fprint(2, "%s: name too int32_t for tar header: %s\n",
+		fprint(2, "%s: name too i32 for tar header: %s\n",
 			argv0, name);
 		return -1;
 	}
@@ -807,8 +807,8 @@ static void
 addtoar(int ar, char *file, char *shortf)
 {
 	int n, fd, isdir;
-	int32_t bytes, blksread;
-	uint32_t blksleft;
+	i32 bytes, blksread;
+	u32 blksleft;
 	Hdr *hbp;
 	Dir *dir;
 	String *name = nil;
@@ -877,7 +877,7 @@ addtoar(int ar, char *file, char *shortf)
 static void
 skip(int ar, Hdr *hp, char *msg)
 {
-	uint32_t blksleft, blksread;
+	u32 blksleft, blksread;
 	Off bytes;
 
 	bytes = arsize(hp);
@@ -1106,10 +1106,10 @@ openfname(Hdr *hp, char *fname, int dir, int mode)
 
 /* copy from archive to file system (or nowhere for table-of-contents) */
 static void
-copyfromar(int ar, int fd, char *fname, uint32_t blksleft, Off bytes)
+copyfromar(int ar, int fd, char *fname, u32 blksleft, Off bytes)
 {
 	int wrbytes;
-	uint32_t blksread;
+	u32 blksread;
 	Hdr *hbp;
 
 	if (blksleft == 0 || bytes < 0)
@@ -1142,7 +1142,7 @@ copyfromar(int ar, int fd, char *fname, uint32_t blksleft, Off bytes)
 }
 
 static void
-wrmeta(int fd, Hdr *hp, int32_t mtime, int mode)		/* update metadata */
+wrmeta(int fd, Hdr *hp, i32 mtime, int mode)		/* update metadata */
 {
 	Dir nd;
 
@@ -1168,10 +1168,10 @@ static void
 extract1(int ar, Hdr *hp, char *fname)
 {
 	int fd = -1, dir = 0;
-	int32_t mtime = strtol(hp->mtime, nil, 8);
-	uint32_t mode = strtoul(hp->mode, nil, 8) & 0777;
+	i32 mtime = strtol(hp->mtime, nil, 8);
+	u32 mode = strtoul(hp->mode, nil, 8) & 0777;
 	Off bytes = hdrsize(hp);		/* for printing */
-	uint32_t blksleft = BYTES2TBLKS(arsize(hp));
+	u32 blksleft = BYTES2TBLKS(arsize(hp));
 
 	/* fiddle name, figure out mode and blocks */
 	if (isdir(hp)) {
@@ -1223,7 +1223,7 @@ static char *
 extract(char **argv)
 {
 	int ar;
-	char *int32_tname;
+	char *i32name;
 	char msg[Maxname + 40];
 	Compress *comp;
 	Hdr *hp;
@@ -1243,11 +1243,11 @@ extract(char **argv)
 		sysfatal("can't open archive %s: %r", usefile);
 
 	while ((hp = readhdr(ar)) != nil) {
-		int32_tname = name(hp);
-		if (match(int32_tname, argv))
-			extract1(ar, hp, int32_tname);
+		i32name = name(hp);
+		if (match(i32name, argv))
+			extract1(ar, hp, i32name);
 		else {
-			snprint(msg, sizeof msg, "extracting %s", int32_tname);
+			snprint(msg, sizeof msg, "extracting %s", i32name);
 			skip(ar, hp, msg);
 		}
 	}

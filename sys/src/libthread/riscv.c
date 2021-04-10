@@ -13,7 +13,7 @@
 #include "threadimpl.h"
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcherriscv(uint64_t _ /* return from longjmp */, uint64_t __ /* ignored a1 */,  void (*f)(void *arg), void *arg)
+launcherriscv(u64 _ /* return from longjmp */, u64 __ /* ignored a1 */,  void (*f)(void *arg), void *arg)
 {
 	print("launch riscv %p(%p)\n", f, arg);
 	(*f)(arg);
@@ -23,13 +23,13 @@ launcherriscv(uint64_t _ /* return from longjmp */, uint64_t __ /* ignored a1 */
 void
 _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 {
-	uint64_t *tos;
+	u64 *tos;
 
-	tos = (uint64_t*)&t->stk[t->stksize&~7];
+	tos = (u64*)&t->stk[t->stksize&~7];
 	print("TOS: %p\n", tos);
 	print("_threadinitstack: thread %p f %p arg %p\n", t, f, arg);
-	t->sched[JMPBUFPC] = (uint64_t)launcherriscv+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (uint64_t)tos;
-	t->sched[JMPBUFARG3] = (uint64_t)f;
-	t->sched[JMPBUFARG4] = (uint64_t)arg;
+	t->sched[JMPBUFPC] = (u64)launcherriscv+JMPBUFDPC;
+	t->sched[JMPBUFSP] = (u64)tos;
+	t->sched[JMPBUFARG3] = (u64)f;
+	t->sched[JMPBUFARG4] = (u64)arg;
 }

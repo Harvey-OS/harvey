@@ -42,18 +42,18 @@ enum
 typedef struct Rip	Rip;
 struct Rip
 {
-	uint8_t	family[2];
-	uint8_t	port[2];
-	uint8_t	addr[Pasize];
-	uint8_t	pad[8];
-	uint8_t	metric[4];
+	u8	family[2];
+	u8	port[2];
+	u8	addr[Pasize];
+	u8	pad[8];
+	u8	metric[4];
 };
 typedef struct Ripmsg	Ripmsg;
 struct Ripmsg
 {
-	uint8_t	type;
-	uint8_t	vers;
-	uint8_t	pad[2];
+	u8	type;
+	u8	vers;
+	u8	pad[2];
 	Rip	rip[1];		/* the rest of the packet consists of routes */
 };
 
@@ -77,12 +77,12 @@ struct Route
 {
 	Route	*next;
 
-	uint8_t	dest[Pasize];
-	uint8_t	mask[Pasize];
-	uint8_t	gate[Pasize];
+	u8	dest[Pasize];
+	u8	mask[Pasize];
+	u8	gate[Pasize];
 	int	metric;
 	int	inuse;
-	int32_t	time;
+	i32	time;
 };
 struct {
 	Route	route[Nroute];
@@ -95,11 +95,11 @@ typedef struct Ifc	Ifc;
 struct Ifc
 {
 	int	bcast;
-	uint8_t	addr[Pasize];	/* my address */
-	uint8_t	mask[Pasize];	/* subnet mask */
-	uint8_t	net[Pasize];	/* subnet */
-	uint8_t	*cmask;		/* class mask */
-	uint8_t	cnet[Pasize];	/* class net */
+	u8	addr[Pasize];	/* my address */
+	u8	mask[Pasize];	/* subnet mask */
+	u8	net[Pasize];	/* subnet */
+	u8	*cmask;		/* class mask */
+	u8	cnet[Pasize];	/* class net */
 };
 struct {
 	Ifc	ifc[Nifc];
@@ -113,12 +113,12 @@ typedef struct Bnet Bnet;
 struct Bnet
 {
 	Bnet	*next;
-	uint8_t	addr[Pasize];
+	u8	addr[Pasize];
 };
 Bnet	*bnets;
 
 int	ripfd;
-int32_t	now;
+i32	now;
 int	debug;
 int	readonly;
 char	routefile[256];
@@ -130,7 +130,7 @@ void	readifcs(void);
 void	considerroute(Route*);
 void	installroute(Route*);
 void	removeroute(Route*);
-uint8_t	*getmask(uint8_t*);
+u8	*getmask(u8*);
 void	broadcast(void);
 void	timeoutroutes(void);
 
@@ -152,21 +152,21 @@ fatal(int syserr, char *fmt, ...)
 	exits(buf);
 }
 
-uint32_t
-v4parseipmask(uint8_t *ip, char *p)
+u32
+v4parseipmask(u8 *ip, char *p)
 {
-	uint32_t x;
-	uint8_t v6ip[IPaddrlen];
+	u32 x;
+	u8 v6ip[IPaddrlen];
 
 	x = parseipmask(v6ip, p);
 	memmove(ip, v6ip+IPv4off, 4);
 	return x;
 }
 
-uint8_t*
-v4defmask(uint8_t *ip)
+u8 *
+v4defmask(u8 *ip)
 {
-	uint8_t v6ip[IPaddrlen];
+	u8 v6ip[IPaddrlen];
 
 	v4tov6(v6ip, ip);
 	ip = defmask(v6ip);
@@ -174,7 +174,7 @@ v4defmask(uint8_t *ip)
 }
 
 void
-v4maskip(uint8_t *from, uint8_t *mask, uint8_t *to)
+v4maskip(u8 *from, u8 *mask, u8 *to)
 {
 	int i;
 
@@ -183,7 +183,7 @@ v4maskip(uint8_t *from, uint8_t *mask, uint8_t *to)
 }
 
 void
-v6tov4mask(uint8_t *v4, uint8_t *v6)
+v6tov4mask(u8 *v4, u8 *v6)
 {
 	memmove(v4, v6+IPv4off, 4);
 }
@@ -214,7 +214,7 @@ main(int argc, char *argv[])
 	long diff;
 	char *p;
 	char buf[2*1024];
-	uint8_t raddr[Pasize];
+	u8 raddr[Pasize];
 	Bnet *bn, **l;
 	Udphdr *up;
 	Rip *r;
@@ -428,11 +428,11 @@ readroutes(void)
 /*
  *  route's hashed by net, not subnet
  */
-uint32_t
-rhash(uint8_t *d)
+u32
+rhash(u8 *d)
 {
-	uint32_t h;
-	uint8_t net[Pasize];
+	u32 h;
+	u8 net[Pasize];
 
 	v4maskip(d, v4defmask(d), net);
 	h = net[0] + net[1] + net[2];
@@ -446,7 +446,7 @@ rhash(uint8_t *d)
 void
 considerroute(Route *r)
 {
-	uint32_t h;
+	u32 h;
 	Route *hp;
 
 	if(debug)
@@ -520,9 +520,9 @@ void
 installroute(Route *r)
 {
 	int fd;
-	uint32_t h;
+	u32 h;
 	Route *hp;
-	uint8_t net[Pasize];
+	u8 net[Pasize];
 
 	/*
 	 *  don't install routes whose gateway is 00000000
@@ -573,9 +573,9 @@ installroute(Route *r)
  *  return true of dest is on net
  */
 int
-onnet(uint8_t *dest, uint8_t *net, uint8_t *netmask)
+onnet(u8 *dest, u8 *net, u8 *netmask)
 {
-	uint8_t dnet[Pasize];
+	u8 dnet[Pasize];
 
 	v4maskip(dest, netmask, dnet);
 	return equivip(dnet, net);
@@ -585,13 +585,13 @@ onnet(uint8_t *dest, uint8_t *net, uint8_t *netmask)
  *  figure out what mask to use, if we have a direct connected network
  *  with the same class net use its subnet mask.
  */
-uint8_t*
-getmask(uint8_t *dest)
+u8 *
+getmask(u8 *dest)
 {
 	int i;
 	Ifc *ip;
-	uint32_t mask, nmask;
-	uint8_t *m;
+	u32 mask, nmask;
+	u8 *m;
 
 	m = 0;
 	mask = 0xffffffff;
@@ -618,7 +618,7 @@ void
 sendto(Ifc *ip)
 {
 	int h, n;
-	uint8_t raddr[Pasize], mbuf[Udphdrsize+512];
+	u8 raddr[Pasize], mbuf[Udphdrsize+512];
 	Ripmsg *m;
 	Route *r;
 	Udphdr *u;
@@ -698,7 +698,7 @@ void
 timeoutroutes(void)
 {
 	int h;
-	int32_t now;
+	i32 now;
 	Route *r, **l;
 
 	now = time(0);

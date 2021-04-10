@@ -16,12 +16,12 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uint8_t	vcf[4];			/* Version and header length */
-	uint8_t	length[2];		/* packet length */
-	uint8_t	proto;			/* Protocol */
-	uint8_t	ttl;			/* Time to live */
-	uint8_t	src[IPaddrlen];		/* IP source */
-	uint8_t	dst[IPaddrlen];		/* IP destination */
+	u8	vcf[4];			/* Version and header length */
+	u8	length[2];		/* packet length */
+	u8	proto;			/* Protocol */
+	u8	ttl;			/* Time to live */
+	u8	src[IPaddrlen];		/* IP source */
+	u8	dst[IPaddrlen];		/* IP destination */
 };
 
 enum
@@ -174,8 +174,8 @@ v6hdrlen(Hdr *h)
 {
 	int plen, len = IP6HDR;
 	int pktlen = IP6HDR + NetS(h->length);
-	uint8_t nexthdr = h->proto;
-	uint8_t *pkt = (uint8_t*) h;
+	u8 nexthdr = h->proto;
+	u8 *pkt = (u8*) h;
 
 	pkt += len;
 	plen = len;
@@ -230,10 +230,10 @@ static int
 v6hdr_seprint(Msg *m)
 {
 	int plen, len = IP6HDR;
-	uint8_t *pkt = m->ps;
+	u8 *pkt = m->ps;
 	Hdr *h = (Hdr *)pkt;
 	int pktlen = IP6HDR + NetS(h->length);
-	uint8_t nexthdr = h->proto;
+	u8 nexthdr = h->proto;
 
 	pkt += len;
 	plen = len;

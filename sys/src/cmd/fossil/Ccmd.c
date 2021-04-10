@@ -16,18 +16,18 @@ static struct {
 
 	Con*	con;
 	int	confd[2];
-	uint16_t	tag;
+	u16	tag;
 } cbox;
 
-static uint32_t
+static u32
 cmd9pStrtoul(char* s)
 {
 	if(strcmp(s, "~0") == 0)
-		return (int64_t)~0UL;
+		return (i64)~0UL;
 	return strtoul(s, 0, 0);
 }
 
-static uint64_t
+static u64
 cmd9pStrtoull(char* s)
 {
 	if(strcmp(s, "~0") == 0)
@@ -47,7 +47,7 @@ static int
 cmd9pTwstat(Fcall* f, int i, char **argv)
 {
 	Dir d;
-	static uint8_t buf[DIRMAX];
+	static u8 buf[DIRMAX];
 
 	memset(&d, 0, sizeof d);
 	nulldir(&d);
@@ -231,7 +231,7 @@ cmd9p(int argc, char* argv[])
 	Fcall f, t;
 	unsigned char *buf;
 	char *usage;
-	uint32_t msize;
+	u32 msize;
 
 	usage = "usage: 9p T-message ...";
 
@@ -298,10 +298,10 @@ cmd9p(int argc, char* argv[])
 static int
 cmdDot(int argc, char* argv[])
 {
-	int32_t l;
+	i32 l;
 	Dir *dir;
 	int fd, r;
-	int64_t length;
+	i64 length;
 	char *f, *p, *s, *usage;
 
 	usage = "usage: . file";
@@ -407,7 +407,7 @@ cmdEcho(int argc, char* argv[])
 static int
 cmdBind(int argc, char* argv[])
 {
-	uint32_t flag = 0;
+	u32 flag = 0;
 	char *usage;
 
 	usage = "usage: bind [-b|-a|-c|-bc|-ac] new old";

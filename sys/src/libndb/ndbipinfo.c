@@ -23,8 +23,8 @@ enum
 static Ndbtuple*	filter(Ndb *db, Ndbtuple *t, Ndbtuple *f);
 static Ndbtuple*	mkfilter(int argc, char **argv);
 static int		filtercomplete(Ndbtuple *f);
-static int		prefixlen(uint8_t *ip);
-static Ndbtuple*	subnet(Ndb *db, uint8_t *net, Ndbtuple *f,
+static int		prefixlen(u8 *ip);
+static Ndbtuple*	subnet(Ndb *db, u8 *net, Ndbtuple *f,
 			       int prefix);
 
 /* make a filter to be used in filter */
@@ -112,7 +112,7 @@ filter(Ndb *db, Ndbtuple *t, Ndbtuple *f)
 }
 
 static int
-prefixlen(uint8_t *ip)
+prefixlen(u8 *ip)
 {
 	int y, i;
 
@@ -127,12 +127,12 @@ prefixlen(uint8_t *ip)
  *  look through a containing subset
  */
 static Ndbtuple*
-subnet(Ndb *db, uint8_t *net, Ndbtuple *f, int prefix)
+subnet(Ndb *db, u8 *net, Ndbtuple *f, int prefix)
 {
 	Ndbs s;
 	Ndbtuple *t, *nt, *xt;
 	char netstr[128];
-	uint8_t mask[IPaddrlen];
+	u8 mask[IPaddrlen];
 	int masklen;
 
 	t = nil;
@@ -171,9 +171,9 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	Ndbtuple *t, *nt, *f;
 	Ndbs s;
 	char *ipstr;
-	uint8_t net[IPaddrlen], ip[IPaddrlen];
+	u8 net[IPaddrlen], ip[IPaddrlen];
 	int prefix, smallestprefix, force;
-	int64_t r;
+	i64 r;
 
 	/* just in case */
 	fmtinstall('I', eipfmt);

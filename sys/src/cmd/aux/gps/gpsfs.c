@@ -44,15 +44,15 @@ struct Fix {
 	 * The following are in Plan 9 time format:
 	 * seconds or nanoseconds since the epoch.
 	 */
-	int64_t		localtime;	/* nsec() value when first byte was read */
-	int64_t		gpstime;	/* nsec() value from GPS */
+	i64		localtime;	/* nsec() value when first byte was read */
+	i64		gpstime;	/* nsec() value from GPS */
 	long		time;		/* time() value from GPS */
 
 	double		zulu;
 	int		date;
 	char		valid;
 	unsigned char		quality;
-	uint16_t		satellites;
+	u16		satellites;
 	double		pdop;
 	double		hdop;
 	double		vdop;
@@ -70,7 +70,7 @@ struct GPSfile {
 	char	*name;
 	char*	(*rread)(Req*);
 	int	mode;
-	int64_t	offset;		/* for raw: rawout - read-offset */
+	i64	offset;		/* for raw: rawout - read-offset */
 };
 
 enum {
@@ -88,18 +88,18 @@ enum {
 struct Gpsmsg {
 	char *name;
 	int tokens;
-	uint32_t errors;
+	u32 errors;
 };
 
 char	raw[Rawbuf];
-int64_t	rawin;
-int64_t	rawout;
+i64	rawin;
+i64	rawout;
 
-uint32_t	badlat, goodlat, suspectlat;
-uint32_t	badlon, goodlon, suspectlon;
-uint32_t	suspecttime, goodtime;
+u32	badlat, goodlat, suspectlat;
+u32	badlon, goodlon, suspectlon;
+u32	suspecttime, goodtime;
 
-uint32_t histo[32];
+u32 histo[32];
 
 char *serial = "/dev/eia0";
 
@@ -120,9 +120,9 @@ int ttyfd, ctlfd, debug;
 int setrtc;
 int baud = Baud;
 char *baudstr = "b%dd1r1pns1l8i9";
-uint32_t seconds;
-uint32_t starttime;
-uint32_t checksumerrors;
+u32 seconds;
+u32 starttime;
+u32 checksumerrors;
 int gpsplayback;	/* If set, return times and positions with `invalid' marker set */
 
 Place where = {-(74.0 + 23.9191/60.0), 40.0 + 41.1346/60.0};
@@ -132,8 +132,8 @@ Lock fixlock;
 
 int	type(char*);
 void	setline(void);
-int	getonechar(int64_t*);
-void	getline(char*, int, int64_t*);
+int	getonechar(i64*);
+void	getline(char*, int, i64*);
 void	putline(char*);
 int	gettime(Fix*);
 int	getzulu(char *, Fix*);
@@ -264,7 +264,7 @@ gpstrack(void *v)
 	Fix fix;
 	static char buf[256], *t[32];
 	int n, i, k, tp;
-	int64_t localtime;
+	i64 localtime;
 	double d;
 
 	setline();
@@ -580,10 +580,10 @@ readraw(Req *r)
 }
 
 void
-rtcset(int32_t t)
+rtcset(i32 t)
 {
 	static int fd;
-	int32_t r;
+	i32 r;
 	int n;
 	char buf[32];
 
@@ -616,7 +616,7 @@ gettime(Fix *f){
 	Tm tm;
 	int zulu;
 	double d;
-	int32_t t;
+	i32 t;
 	static int count;
 
 	zulu = f->zulu;
@@ -895,7 +895,7 @@ setline(void){
 	free(serialctl);
 }
 
-int getonechar(int64_t *t){
+int getonechar(i64 *t){
 	static char buf[32], *p;
 	static int n;
 
@@ -922,8 +922,8 @@ int getonechar(int64_t *t){
 }
 
 void
-getline(char *s, int size, int64_t *t){
-	uint8_t c;
+getline(char *s, int size, i64 *t){
+	u8 c;
 	char *p;
 	int n, cs;
 

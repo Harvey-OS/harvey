@@ -27,26 +27,26 @@ char	*ofile;
 char	*ibuf;
 char	*obuf;
 
-int64_t	skip;
-int64_t	oseekn;
-int64_t	iseekn;
-int64_t	oseekb;
-int64_t	iseekb;
-int64_t	count;
+i64	skip;
+i64	oseekn;
+i64	iseekn;
+i64	oseekb;
+i64	iseekb;
+i64	count;
 
-int32_t	files	= 1;
-int32_t	ibs	= 512;
-int32_t	obs	= 512;
-int32_t	bs;
-int32_t	cbs;
-int32_t	ibc;
-int32_t	obc;
-int32_t	cbc;
-int32_t	nifr;
-int32_t	nipr;
-int32_t	nofr;
-int32_t	nopr;
-int32_t	ntrunc;
+i32	files	= 1;
+i32	ibs	= 512;
+i32	obs	= 512;
+i32	bs;
+i32	cbs;
+i32	ibc;
+i32	obc;
+i32	cbc;
+i32	nifr;
+i32	nipr;
+i32	nofr;
+i32	nopr;
+i32	ntrunc;
 
 int dotrunc = 1;
 int	ibf;
@@ -55,15 +55,15 @@ int	obf;
 char	*op;
 int	nspace;
 
-uint8_t	etoa[256];
-uint8_t	atoe[256];
-uint8_t	atoibm[256];
+u8	etoa[256];
+u8	atoe[256];
+u8	atoibm[256];
 
 int	quiet;
 
 void	flsh(void);
 int	match(char *s);
-int64_t	number(int64_t big);
+i64	number(i64 big);
 void	cnull(int cc);
 void	null(int c);
 void	ascii(int cc);
@@ -364,11 +364,11 @@ true:
 	return 1;
 }
 
-int64_t
-number(int64_t big)
+i64
+number(i64 big)
 {
 	char *cs;
-	uint64_t n;
+	u64 n;
 
 	cs = string;
 	n = 0;
@@ -589,7 +589,7 @@ stats(void)
 		fprint(2, "%lu truncated records\n", ntrunc);
 }
 
-uint8_t	etoa[] =
+u8	etoa[] =
 {
 	0000,0001,0002,0003,0234,0011,0206,0177,
 	0227,0215,0216,0013,0014,0015,0016,0017,
@@ -624,7 +624,7 @@ uint8_t	etoa[] =
 	0060,0061,0062,0063,0064,0065,0066,0067,
 	0070,0071,0372,0373,0374,0375,0376,0377,
 };
-uint8_t	atoe[] =
+u8	atoe[] =
 {
 	0000,0001,0002,0003,0067,0055,0056,0057,
 	0026,0005,0045,0013,0014,0015,0016,0017,
@@ -659,7 +659,7 @@ uint8_t	atoe[] =
 	0334,0335,0336,0337,0352,0353,0354,0355,
 	0356,0357,0372,0373,0374,0375,0376,0377,
 };
-uint8_t	atoibm[] =
+u8	atoibm[] =
 {
 	0000,0001,0002,0003,0067,0055,0056,0057,
 	0026,0005,0045,0013,0014,0015,0016,0017,

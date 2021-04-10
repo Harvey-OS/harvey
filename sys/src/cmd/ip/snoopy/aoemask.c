@@ -14,10 +14,10 @@
 #include "protos.h"
 
 typedef struct {
-	uint8_t	res;
-	uint8_t	cmd;
-	uint8_t	err;
-	uint8_t	cnt;
+	u8	res;
+	u8	cmd;
+	u8	err;
+	u8	cnt;
 } Hdr;
 
 enum {

@@ -22,16 +22,16 @@ enum {
 };
 
 /* disk address (in bytes or sectors), also type of 2nd arg. to seek */
-typedef uint64_t Daddr;
+typedef u64 Daddr;
 
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
 
 typedef struct {
-	uint8_t*	rp;		/* first unconsumed byte */
-	uint8_t*	wp;		/* first empty byte */
-	uint8_t*	lim;		/* 1 past the end of the buffer */
-	uint8_t*	base;		/* start of the buffer */
+	u8 *	rp;		/* first unconsumed byte */
+	u8 *	wp;		/* first empty byte */
+	u8 *	lim;		/* 1 past the end of the buffer */
+	u8 *	base;		/* start of the buffer */
 } Buffer;
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef struct {
 	char	*filenm;
 	int	filesz;		/* size of filenm */
 	char	*prefix;
-	int32_t	filenum;
+	i32	filenum;
 	int	outf;		/* open output file */
 
 	Buffer	buff;
@@ -62,7 +62,7 @@ bufreset(Buffer *bp)
 }
 
 static void
-bufinit(Buffer *bp, uint8_t *block, unsigned size)
+bufinit(Buffer *bp, u8 *block, unsigned size)
 {
 	bp->base = block;
 	bp->lim = bp->base + size;

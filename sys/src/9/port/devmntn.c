@@ -45,7 +45,7 @@ struct Mntrpc {
 };
 
 enum {
-	TAGSHIFT = 5, /* uint32_t has to be 32 bits */
+	TAGSHIFT = 5, /* u32 has to be 32 bits */
 	TAGMASK = (1 << TAGSHIFT) - 1,
 	NMASK = (64 * 1024) >> TAGSHIFT,
 };

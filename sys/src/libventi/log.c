@@ -33,10 +33,10 @@ static uint
 hash(char *s)
 {
 	uint h;
-	uint8_t *p;
+	u8 *p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
+	for(p=(u8*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
@@ -176,8 +176,8 @@ vtlogremove(char *name)
 static int
 timefmt(Fmt *fmt)
 {
-	static uint64_t t0;
-	uint64_t t;
+	static u64 t0;
+	u64 t;
 
 	if(t0 == 0)
 		t0 = nsec();

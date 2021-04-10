@@ -38,8 +38,8 @@ enum
  */
 #define	QSHIFT	4	/* location in qid of client # */
 
-#define	QID(q)		((((uint32_t)(q).path)&0x0000000F)>>0)
-#define	CLIENTPATH(q)	((((uint32_t)q)&0x7FFFFFF0)>>QSHIFT)
+#define	QID(q)		((((u32)(q).path)&0x0000000F)>>0)
+#define	CLIENTPATH(q)	((((u32)q)&0x7FFFFFF0)>>QSHIFT)
 #define	CLIENT(q)	CLIENTPATH((q).path)
 
 #define	NHASH		(1<<5)
@@ -55,7 +55,7 @@ typedef struct Refresh Refresh;
 typedef struct Refx Refx;
 typedef struct DName DName;
 
-uint32_t blanktime = 30;	/* in minutes; a half hour */
+u32 blanktime = 30;	/* in minutes; a half hour */
 
 struct Draw
 {
@@ -68,8 +68,8 @@ struct Draw
 	int		vers;
 	int		softscreen;
 	int		blanked;	/* screen turned off */
-	uint32_t		blanktime;	/* time of last operation */
-	uint32_t		savemap[3*256];
+	u32		blanktime;	/* time of last operation */
+	u32		savemap[3*256];
 };
 
 struct Client
@@ -79,7 +79,7 @@ struct Client
 	CScreen*	cscreen;
 	Refresh*	refresh;
 	Rendez		refrend;
-	uint8_t*		readdata;
+	u8 *		readdata;
 	int		nreaddata;
 	int		busy;
 	int		clientid;
@@ -114,10 +114,10 @@ struct FChar
 {
 	int		minx;	/* left edge of bits */
 	int		maxx;	/* right edge of bits */
-	uint8_t		miny;	/* first non-zero scan-line */
-	uint8_t		maxy;	/* last non-zero scan-line + 1 */
+	u8		miny;	/* first non-zero scan-line */
+	u8		maxy;	/* last non-zero scan-line + 1 */
 	char		left;	/* offset of baseline */
-	uint8_t		width;	/* width of baseline */
+	u8		width;	/* width of baseline */
 };
 
 /*
@@ -169,7 +169,7 @@ extern	void		flushmemscreen(Rectangle);
 	void		drawmesg(Client*, void*, int);
 	void		drawuninstall(Client*, int);
 	void		drawfreedimage(DImage*);
-	Client*		drawclientofpath(uint32_t);
+	Client*		drawclientofpath(u32);
 
 static	char Enodrawimage[] =	"unknown id for draw image";
 static	char Enodrawscreen[] =	"unknown id for draw screen";
@@ -212,7 +212,7 @@ drawgen(Chan *c, Dirtab *d, int i, int s, Dir *dp)
 {
 	int t;
 	Qid q;
-	uint32_t path;
+	u32 path;
 	Client *cl;
 
 	q.vers = 0;
@@ -810,7 +810,7 @@ drawhasclients(void)
 }
 
 Client*
-drawclientofpath(uint32_t path)
+drawclientofpath(u32 path)
 {
 	Client *cl;
 	int slot;
@@ -837,7 +837,7 @@ drawclient(Chan *c)
 }
 
 Memimage*
-drawimage(Client *client, uint8_t *a)
+drawimage(Client *client, u8 *a)
 {
 	DImage *d;
 
@@ -848,7 +848,7 @@ drawimage(Client *client, uint8_t *a)
 }
 
 void
-drawrectangle(Rectangle *r, uint8_t *a)
+drawrectangle(Rectangle *r, u8 *a)
 {
 	r->min.x = BGLONG(a+0*4);
 	r->min.y = BGLONG(a+1*4);
@@ -857,7 +857,7 @@ drawrectangle(Rectangle *r, uint8_t *a)
 }
 
 void
-drawpoint(Point *p, uint8_t *a)
+drawpoint(Point *p, u8 *a)
 {
 	p->x = BGLONG(a+0*4);
 	p->y = BGLONG(a+1*4);
@@ -887,7 +887,7 @@ static int
 initscreenimage(void)
 {
 	int width, depth;
-	uint32_t chan;
+	u32 chan;
 	Rectangle r;
 
 	if(screenimage != nil)
@@ -945,7 +945,7 @@ drawwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-drawstat(Chan *c, uint8_t *db, int n)
+drawstat(Chan *c, u8 *db, int n)
 {
 	return devstat(c, db, n, 0, 0, drawgen);
 }
@@ -1048,17 +1048,17 @@ drawclose(Chan *c)
 	poperror();
 }
 
-int32_t
-drawread(Chan *c, void *a, int32_t n, int64_t off)
+i32
+drawread(Chan *c, void *a, i32 n, i64 off)
 {
 	int index, m;
-	uint32_t red, green, blue;
+	u32 red, green, blue;
 	Client *cl;
-	uint8_t *p;
+	u8 *p;
 	Refresh *r;
 	DImage *di;
 	Memimage *i;
-	uint32_t offset = off;
+	u32 offset = off;
 	char buf[16];
 
 	USED(offset);
@@ -1149,7 +1149,7 @@ drawread(Chan *c, void *a, int32_t n, int64_t off)
 			n -= 5*4;
 		}
 		cl->refreshme = 0;
-		n = p-(uint8_t*)a;
+		n = p-(u8*)a;
 	}
 	qunlock(&sdraw.qlock);
 	poperror();
@@ -1169,13 +1169,13 @@ drawwakeall(void)
 	}
 }
 
-static int32_t
-drawwrite(Chan *c, void *a, int32_t n, int64_t off)
+static i32
+drawwrite(Chan *c, void *a, i32 n, i64 off)
 {
 	char buf[128], *fields[4], *q;
 	Client *cl;
 	int i, m, red, green, blue, x;
-	uint32_t offset = off;
+	u32 offset = off;
 
 	USED(offset);
 	if(c->qid.type & QTDIR)
@@ -1191,7 +1191,7 @@ drawwrite(Chan *c, void *a, int32_t n, int64_t off)
 	case Qctl:
 		if(n != 4)
 			error("unknown draw control request");
-		cl->infoid = BGLONG((uint8_t*)a);
+		cl->infoid = BGLONG((u8*)a);
 		break;
 
 	case Qcolormap:
@@ -1243,8 +1243,8 @@ drawwrite(Chan *c, void *a, int32_t n, int64_t off)
 	return n;
 }
 
-uint8_t*
-drawcoord(uint8_t *p, uint8_t *maxp, int oldx, int *newx)
+u8 *
+drawcoord(u8 *p, u8 *maxp, int oldx, int *newx)
 {
 	int b, x;
 
@@ -1258,10 +1258,10 @@ drawcoord(uint8_t *p, uint8_t *maxp, int oldx, int *newx)
 		x |= *p++ << 7;
 		x |= *p++ << 15;
 		if(x & (1<<22))
-			x |= (uint32_t)~0<<23;
+			x |= (u32)~0<<23;
 	}else{
 		if(b & 0x40)
-			x |= (uint32_t)~0<<7;
+			x |= (u32)~0<<7;
 		x += oldx;
 	}
 	*newx = x;
@@ -1269,7 +1269,7 @@ drawcoord(uint8_t *p, uint8_t *maxp, int oldx, int *newx)
 }
 
 static void
-printmesg(char *fmt, uint8_t *a, int plsprnt)
+printmesg(char *fmt, u8 *a, int plsprnt)
 {
 	char buf[256];
 	char *p, *q;
@@ -1285,11 +1285,11 @@ printmesg(char *fmt, uint8_t *a, int plsprnt)
 	for(p=fmt; *p; p++){
 		switch(*p){
 		case 'l':
-			q += sprint(q, " %ld", (int32_t)BGLONG(a));
+			q += sprint(q, " %ld", (i32)BGLONG(a));
 			a += 4;
 			break;
 		case 'L':
-			q += sprint(q, " %.8lux", (uint32_t)BGLONG(a));
+			q += sprint(q, " %.8lux", (u32)BGLONG(a));
 			a += 4;
 			break;
 		case 'R':
@@ -1322,9 +1322,9 @@ void
 drawmesg(Client *client, void *av, int n)
 {
 	int c, repl, m, y, dstid, scrnid, ni, ci, j, nw, e0, e1, op, ox, oy, oesize, esize, doflush;
-	uint8_t *u, *a, refresh;
+	u8 *u, *a, refresh;
 	char *fmt;
-	uint32_t value, chan;
+	u32 value, chan;
 	Rectangle r, clipr;
 	Point p, q, *pp, sp;
 	Memimage *i, *dst, *src, *mask;
@@ -2049,7 +2049,7 @@ void
 drawblankscreen(int blank)
 {
 	int i, nc;
-	uint32_t *p;
+	u32 *p;
 
 	if(blank == sdraw.blanked)
 		return;

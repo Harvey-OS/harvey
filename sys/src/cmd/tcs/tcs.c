@@ -35,19 +35,19 @@ void list(void);
 int squawk = 1;
 int clean = 0;
 int verbose = 0;
-int32_t ninput, noutput, nrunes, nerrors;
+i32 ninput, noutput, nrunes, nerrors;
 char *file = "stdin";
 char *argv0;
 Rune runes[N];
 char obuf[UTFmax*N];	/* maximum bloat from N runes */
-int32_t tab[NRUNE];
+i32 tab[NRUNE];
 #ifndef	PLAN9
 extern char version[];
 #endif
 
-void intable(int, int32_t *, struct convert *);
-void unicode_in(int, int32_t *, struct convert *);
-void unicode_out(Rune *, int, int32_t *);
+void intable(int, i32 *, struct convert *);
+void unicode_in(int, i32 *, struct convert *);
+void unicode_out(Rune *, int, i32 *);
 
 int
 main(int argc, char **argv)
@@ -295,7 +295,7 @@ unicode_in_le(int fd, long *notused, struct convert *out)
 }
 
 void
-unicode_out(Rune *base, int n, int32_t *notused)
+unicode_out(Rune *base, int n, i32 *notused)
 {
 	static int first = 1;
 
@@ -312,14 +312,14 @@ unicode_out(Rune *base, int n, int32_t *notused)
 }
 
 void
-unicode_out_be(Rune *base, int n, int32_t *notused)
+unicode_out_be(Rune *base, int n, i32 *notused)
 {
 	int i;
-	uint8_t *p;
+	u8 *p;
 	Rune r;
 
 	USED(notused);
-	p = (uint8_t*)base;
+	p = (u8*)base;
 	for(i=0; i<n; i++){
 		r = base[i];
 		*p++ = r>>8;
@@ -331,14 +331,14 @@ unicode_out_be(Rune *base, int n, int32_t *notused)
 }
 
 void
-unicode_out_le(Rune *base, int n, int32_t *notused)
+unicode_out_le(Rune *base, int n, i32 *notused)
 {
 	int i;
-	uint8_t *p;
+	u8 *p;
 	Rune r;
 
 	USED(notused);
-	p = (uint8_t*)base;
+	p = (u8*)base;
 	for(i=0; i<n; i++){
 		r = base[i];
 		*p++ = r;
@@ -415,7 +415,7 @@ outtable(Rune *base, int n, long *map)
 	write(1, obuf, p-obuf);
 }
 
-int32_t tabascii[256] =
+i32 tabascii[256] =
 {
 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,
 0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,
@@ -435,7 +435,7 @@ int32_t tabascii[256] =
   -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
 };
 
-int32_t tabmsdos[256] =	/* from jhelling@cs.ruu.nl (Jeroen Hellingman) */
+i32 tabmsdos[256] =	/* from jhelling@cs.ruu.nl (Jeroen Hellingman) */
 {
 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,
 0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,
@@ -462,7 +462,7 @@ int32_t tabmsdos[256] =	/* from jhelling@cs.ruu.nl (Jeroen Hellingman) */
 0x2261, 0x00b1, 0x2265, 0x2264, 0x2320, 0x2321, 0x00f7, 0x2248, /* math */
 0x00b0, 0x2022, 0x00b7, 0x221a, 0x207f, 0x00b2, 0x220e, 0x00a0,
 };
-int32_t tabmsdos2[256] =	/* from jhelling@cs.ruu.nl (Jeroen Hellingman) */
+i32 tabmsdos2[256] =	/* from jhelling@cs.ruu.nl (Jeroen Hellingman) */
 {
 0x0000, 0x263a, 0x263b, 0x2665, 0x2666, 0x2663, 0x2660, 0x2022,
 0x25d8, 0x25cb, 0x25d9, 0x2642, 0x2640, 0x266a, 0x266b, 0x263c,

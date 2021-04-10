@@ -138,7 +138,7 @@ extern int nstates, maxpos;
 extern int yytop;
 extern int report;
 extern int ntrans, treesize, outsize;
-extern int32_t rcount;
+extern i32 rcount;
 extern int *verify, *advance, *stoff;
 extern int scon;
 extern unsigned char *psave;

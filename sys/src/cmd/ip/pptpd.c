@@ -89,9 +89,9 @@ struct Call {
 	uint	rack;		/* highest ack sent */
 
 	Event	eack;		/* recved ack - for send */
-	uint32_t	tick;
+	u32	tick;
 
-	uint8_t	remoteip[IPaddrlen];	/* remote ip address */
+	u8	remoteip[IPaddrlen];	/* remote ip address */
 	int	dhcpfd[2];	/* pipe to dhcpclient */
 
 	/* error stats */
@@ -123,10 +123,10 @@ struct {
 	int	start;
 	int	grefd;
 	int	grecfd;
-	uint8_t	local[IPaddrlen];
-	uint8_t	remote[IPaddrlen];
+	u8	local[IPaddrlen];
+	u8	remote[IPaddrlen];
 	char	*tcpdir;
-	uint8_t	ipaddr[IPaddrlen];		/* starting ip addresss to allocate */
+	u8	ipaddr[IPaddrlen];		/* starting ip addresss to allocate */
 
 	int	recvwindow;
 
@@ -170,16 +170,16 @@ void	myfatal(char *fmt, ...);
 
 void	serve(void);
 
-int	sstart(uint8_t*, int);
-int	sstop(uint8_t*, int);
-int	secho(uint8_t*, int);
-int	scallout(uint8_t*, int);
-int	scallreq(uint8_t*, int);
-int	scallcon(uint8_t*, int);
-int	scallclear(uint8_t*, int);
-int	scalldis(uint8_t*, int);
-int	swaninfo(uint8_t*, int);
-int	slinkinfo(uint8_t*, int);
+int	sstart(u8*, int);
+int	sstop(u8*, int);
+int	secho(u8*, int);
+int	scallout(u8*, int);
+int	scallreq(u8*, int);
+int	scallcon(u8*, int);
+int	scallclear(u8*, int);
+int	scalldis(u8*, int);
+int	swaninfo(u8*, int);
+int	slinkinfo(u8*, int);
 
 Call	*callalloc(int id);
 void	callclose(Call*);
@@ -205,7 +205,7 @@ void	esignal(Event *e);
 void	ewait(Event *e);
 int	proc(char **argv, int fd0, int fd1, int fd2);
 double	realtime(void);
-uint32_t	thread(void(*f)(void*), void *a);
+u32	thread(void(*f)(void*), void *a);
 
 void
 main(int argc, char *argv[])
@@ -259,7 +259,7 @@ usage(void)
 void
 serve(void)
 {
-	uint8_t buf[2000], *p;
+	u8 buf[2000], *p;
 	int n, n2, len;
 	int magic;
 	int op, type;
@@ -342,11 +342,11 @@ serve(void)
 }
 
 int
-sstart(uint8_t *p, int n)
+sstart(u8 *p, int n)
 {
 	int ver, frame, bearer, maxchan, firm;
 	char host[64], vendor[64], *sysname;
-	uint8_t buf[156];
+	u8 buf[156];
 
 	if(n < 156)
 		return 0;
@@ -398,10 +398,10 @@ sstart(uint8_t *p, int n)
 }
 
 int
-sstop(uint8_t *p, int n)
+sstop(u8 *p, int n)
 {
 	int reason;
-	uint8_t buf[16];
+	u8 buf[16];
 
 	if(n < 16)
 		return 0;
@@ -423,10 +423,10 @@ sstop(uint8_t *p, int n)
 }
 
 int
-secho(uint8_t *p, int n)
+secho(u8 *p, int n)
 {
 	int id;
-	uint8_t buf[20];
+	u8 buf[20];
 
 	if(n < 16)
 		return 0;
@@ -449,7 +449,7 @@ secho(uint8_t *p, int n)
 }
 
 int
-scallout(uint8_t *p, int n)
+scallout(u8 *p, int n)
 {
 	int id, serial;
 	int minbps, maxbps, bearer, frame;
@@ -505,7 +505,7 @@ scallout(uint8_t *p, int n)
 }
 
 int
-scallreq(uint8_t *p, int n)
+scallreq(u8 *p, int n)
 {
 	USED(p);
 	USED(n);
@@ -515,7 +515,7 @@ scallreq(uint8_t *p, int n)
 }
 
 int
-scallcon(uint8_t *p, int n)
+scallcon(u8 *p, int n)
 {
 	USED(p);
 	USED(n);
@@ -525,11 +525,11 @@ scallcon(uint8_t *p, int n)
 }
 
 int
-scallclear(uint8_t *p, int n)
+scallclear(u8 *p, int n)
 {
 	Call *c;
 	int id;
-	uint8_t buf[148];
+	u8 buf[148];
 
 	if(n < 16)
 		return 0;
@@ -557,7 +557,7 @@ scallclear(uint8_t *p, int n)
 }
 
 int
-scalldis(uint8_t *p, int n)
+scalldis(u8 *p, int n)
 {
 	Call *c;
 	int id, res;
@@ -578,7 +578,7 @@ scalldis(uint8_t *p, int n)
 }
 
 int
-swaninfo(uint8_t *p, int n)
+swaninfo(u8 *p, int n)
 {
 	Call *c;
 	int id;
@@ -606,7 +606,7 @@ swaninfo(uint8_t *p, int n)
 }
 
 int
-slinkinfo(uint8_t *p, int n)
+slinkinfo(u8 *p, int n)
 {
 	Call *c;
 	int id;
@@ -847,10 +847,10 @@ greinit(void)
 void
 greread(void *v)
 {
-	uint8_t buf[Pktsize], *p;
+	u8 buf[Pktsize], *p;
 	int n, i;
 	int flag, prot, len, callid;
-	uint8_t src[IPaddrlen], dst[IPaddrlen];
+	u8 src[IPaddrlen], dst[IPaddrlen];
 	uint rseq, ack;
 	Call *c;
 	static double t, last;
@@ -979,7 +979,7 @@ srv.remote, realtime(), c->id, rseq, len EDB
 void
 greack(Call *c)
 {
-	uint8_t buf[20];
+	u8 buf[20];
 
 	c->stat.sendack++;
 
@@ -1022,7 +1022,7 @@ void
 pppread(void *a)
 {
 	Call *c;
-	uint8_t buf[2000], *p;
+	u8 buf[2000], *p;
 	int n;
 	uintptr tick;
 
@@ -1100,7 +1100,7 @@ myfatal(char *fmt, ...)
 {
 	char sbuf[512];
 	va_list arg;
-	uint8_t buf[16];
+	u8 buf[16];
 
 	/* NT don't seem to like us just going away */
 	memset(buf, 0, sizeof(buf));
@@ -1147,7 +1147,7 @@ void
 dhcpclientwatch(void *a)
 {
 	Call *c = a;
-	uint8_t buf[1];
+	u8 buf[1];
 
 	for(;;) {
 		if(read(c->dhcpfd[0], buf, sizeof(buf)) <= 0)
@@ -1239,7 +1239,7 @@ ewait(Event *e)
 	qunlock(&e->waitlk);
 }
 
-uint32_t
+u32
 thread(void(*f)(void*), void *a)
 {
 	int pid;
@@ -1255,7 +1255,7 @@ thread(void(*f)(void*), void *a)
 double
 realtime(void)
 {
-	int32_t times(int32_t*);
+	i32 times(i32*);
 
 	return times(0) / 1000.0;
 }

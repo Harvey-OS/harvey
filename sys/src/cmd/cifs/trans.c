@@ -42,7 +42,7 @@ thdr(Session *s, Share *sp)
 static void
 ptparam(Pkt *p)
 {
-	uint8_t *pos;
+	u8 *pos;
 
 	if(((p->pos - p->tbase) % 2) != 0)
 		p8(p, 0);			/* pad to word boundry */
@@ -55,7 +55,7 @@ ptparam(Pkt *p)
 static void
 ptdata(Pkt *p)
 {
-	uint8_t *pos = p->pos;
+	u8 *pos = p->pos;
 
 	assert(p->tparam != 0);
 	if(((p->pos - p->tbase) % 2) != 0)
@@ -77,7 +77,7 @@ static int
 trpc(Pkt *p)
 {
 	int got;
-	uint8_t *pos = p->pos;
+	u8 *pos = p->pos;
 
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);

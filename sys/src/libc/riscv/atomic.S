@@ -1,13 +1,13 @@
 .text
 
-.globl ainc				/* int32_t ainc(int32_t *); */
+.globl ainc				/* i32 ainc(i32 *); */
 ainc:
 	li		t0, 1
 	amoadd.w.aq	t1, t0, 0(a0)
 	add		a0, t1, t0
 	ret
 
-.globl adec				/* int32_t adec(int32_t *); */
+.globl adec				/* i32 adec(i32 *); */
 adec:
 	li		t0, -1
 	amoadd.w.aq	t1, t0, 0(a0)
@@ -38,7 +38,7 @@ aswap:
 	ret
 
 .globl cas32
-// int	cas32(void* %rdi, uint32_t %esi, uint32_t %edx);
+// int	cas32(void* %rdi, u32 %esi, u32 %edx);
 // a0 holds address of memory location
 // a1 holds expected value (old)
 // a2 holds desired value (new)

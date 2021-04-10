@@ -28,7 +28,7 @@ typedef Exp* Expptr;
 Exp *yyexp;
 
 static Exp* mkOP(int ty, Exp *e1, Exp *e2);
-static Exp* mkNUM(int64_t x);
+static Exp* mkNUM(i64 x);
 static int yylex(void);
 static void yyerror(char *s);
 
@@ -63,7 +63,7 @@ expr:	NUMBER
 
 
 static Exp*
-mkNUM(int64_t x)
+mkNUM(i64 x)
 {
 	Exp *n;
 
@@ -89,14 +89,14 @@ mkOP(int ty, Exp *e1, Exp *e2)
 
 static char *inp;
 static jmp_buf jmp;
-static int64_t dot, size, dollar;
+static i64 dot, size, dollar;
 static char** errp;
 
 static int
 yylex(void)
 {
 	int c;
-	uint64_t n;
+	u64 n;
 
 	while(isspace(*inp))
 		inp++;
@@ -139,10 +139,10 @@ yyerror(char *s)
 	longjmp(jmp, 1);
 }
 
-static int64_t
+static i64
 eval(Exp *e)
 {
-	int64_t i;
+	i64 i;
 
 	switch(e->ty) {
 	case NUM:
@@ -174,7 +174,7 @@ eval(Exp *e)
 int yyparse(void);
 
 char*
-parseexpr(char *s, int64_t xdot, int64_t xdollar, int64_t xsize, int64_t *result)
+parseexpr(char *s, i64 xdot, i64 xdollar, i64 xsize, i64 *result)
 {
 	char *err;
 
@@ -198,7 +198,7 @@ void
 main(int argc, char **argv)
 {
 	int i;
-	int64_t r;
+	i64 r;
 	char *e;
 
 	for(i=1; i<argc; i++)

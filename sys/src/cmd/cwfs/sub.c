@@ -43,7 +43,7 @@ dev2fs(Device *dev)
 Chan*
 fs_chaninit(int type, int count, int data)
 {
-	uint8_t *p;
+	u8 *p;
 	Chan *cp, *icp;
 	int i;
 
@@ -111,13 +111,13 @@ loop:
 	unlock(&flock);
 }
 
-enum { NOFID = (uint32_t)~0 };
+enum { NOFID = (u32)~0 };
 
 /*
  * returns a locked file structure
  */
 File*
-filep(Chan *cp, uint32_t fid, int flag)
+filep(Chan *cp, u32 fid, int flag)
 {
 	File *f;
 	int h;
@@ -125,7 +125,7 @@ filep(Chan *cp, uint32_t fid, int flag)
 	if(fid == NOFID)
 		return 0;
 
-	h = (int32_t)(uintptr)cp + fid;
+	h = (i32)(uintptr)cp + fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
@@ -210,7 +210,7 @@ freefp(File *fp)
 	if(!fp || !(cp = fp->cp))
 		return;
 
-	h = (int32_t)(uintptr)cp + fp->fid;
+	h = (i32)(uintptr)cp + fp->fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
@@ -467,7 +467,7 @@ buffree(Device *dev, Off addr, int d, Truncstate *ts)
 }
 
 Off
-bufalloc(Device *dev, int tag, int32_t qid, int uid)
+bufalloc(Device *dev, int tag, i32 qid, int uid)
 {
 	Iobuf *bp, *p;
 	Superb *sb;
@@ -873,16 +873,16 @@ mbfree(Msgbuf *mb)
  * there is no need to be clever
  */
 int
-prime(int64_t n)
+prime(i64 n)
 {
-	int32_t i;
+	i32 i;
 
 	if((n%2) == 0)
 		return 0;
 	for(i=3;; i+=2) {
 		if((n%i) == 0)
 			return 0;
-		if((int64_t)i*i >= n)
+		if((i64)i*i >= n)
 			return 1;
 	}
 }
@@ -909,7 +909,7 @@ void
 hexdump(void *a, int n)
 {
 	char s1[30], s2[4];
-	uint8_t *p;
+	u8 *p;
 	int i;
 
 	p = a;
@@ -1355,7 +1355,7 @@ devinit(Device *d)
 void
 swab2(void *c)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = c;
@@ -1368,7 +1368,7 @@ swab2(void *c)
 void
 swab4(void *c)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = c;
@@ -1385,7 +1385,7 @@ swab4(void *c)
 void
 swab8(void *c)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = c;
@@ -1415,7 +1415,7 @@ swab8(void *c)
 void
 swab(void *c, int flag)
 {
-	uint8_t *p;
+	u8 *p;
 	Tag *t;
 	int i, j;
 	Dentry *d;
@@ -1426,7 +1426,7 @@ swab(void *c, int flag)
 	Off *l;
 
 	/* swab the tag */
-	p = (uint8_t*)c;
+	p = (u8*)c;
 	t = (Tag*)(p + BUFSIZE);
 	if(!flag) {
 		swab2(&t->pad);

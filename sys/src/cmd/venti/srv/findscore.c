@@ -28,12 +28,12 @@ clumpinfoeq(ClumpInfo *c, ClumpInfo *d)
 }
 
 int
-findscore(Arena *arena, uint8_t *score)
+findscore(Arena *arena, u8 *score)
 {
 	IEntry ie;
 	ClumpInfo *ci, *cis;
-	uint64_t a;
-	uint32_t clump;
+	u64 a;
+	u32 clump;
 	int i, n, found;
 
 //ZZZ remove fprint?
@@ -81,7 +81,7 @@ threadmain(int argc, char *argv[])
 	ArenaPart *ap;
 	Part *part;
 	char *file;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 	int i, found;
 
 	ventifmtinstall();

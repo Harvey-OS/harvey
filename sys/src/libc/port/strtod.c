@@ -32,8 +32,8 @@ enum
 	Prec	= (Nmant+Nbits+1)/Nbits,	// words of Nbits each to represent mantissa
 	Sigbit	= 1<<(Prec*Nbits-Nmant),	// first significant bit of Prec-th word
 	Ndig	= 1500,
-	One	= (uint32_t)(1<<Nbits),
-	Half	= (uint32_t)(One>>1),
+	One	= (u32)(1<<Nbits),
+	Half	= (u32)(One>>1),
 	Maxe	= 310,
 	Fsign	= 1<<0,		// found -
 	Fesign	= 1<<1,		// found e-
@@ -50,8 +50,8 @@ enum
 };
 
 static	int	xcmp(const char*, char*);
-static	int	fpcmp(char*, uint32_t*);
-static	void	frnorm(uint32_t*);
+static	int	fpcmp(char*, u32*);
+static	void	frnorm(u32*);
 static	void	divascii(char*, int*, int*, int*);
 static	void	mulascii(char*, int*, int*, int*);
 static	void	divby(char*, int*, int);
@@ -68,7 +68,7 @@ double
 strtod(const char *as, char **aas)
 {
 	int na, ona, ex, dp, bp, c, i, flag, state;
-	uint32_t low[Prec], hig[Prec], mid[Prec], num, den;
+	u32 low[Prec], hig[Prec], mid[Prec], num, den;
 	double d;
 	const char *s;
 	char a[Ndig];
@@ -314,7 +314,7 @@ retinf:
 }
 
 static void
-frnorm(uint32_t *f)
+frnorm(u32 *f)
 {
 	int i, c;
 
@@ -328,9 +328,9 @@ frnorm(uint32_t *f)
 }
 
 static int
-fpcmp(char *a, uint32_t* f)
+fpcmp(char *a, u32* f)
 {
-	uint32_t tf[Prec];
+	u32 tf[Prec];
 	int i, d, c;
 
 	for(i=0; i<Prec; i++)

@@ -60,7 +60,7 @@ typedef struct Ctlr {
 	void	(*dump)(Vga*, Ctlr*);
 	char*	type;
 
-	uint32_t	flag;
+	u32	flag;
 
 	Ctlr*	link;
 } Ctlr;
@@ -124,7 +124,7 @@ typedef struct Mode {
 	int		vbs;		/* optional Vertical Blank Start */
 	int		vbe;		/* optional Vertical Blank End */
 
-	uint32_t	videobw;
+	u32	videobw;
 
 	char	hsync;
 	char	vsync;
@@ -135,7 +135,7 @@ typedef struct Mode {
 
 /*
  * The sizes of the register sets are large as many SVGA and GUI chips have extras.
- * The Crt registers are uint16_ts in order to keep overflow bits handy.
+ * The Crt registers are u16s in order to keep overflow bits handy.
  * The clock elements are used for communication between the VGA, RAMDAC and clock chips;
  * they can use them however they like, it's assumed they will be used compatibly.
  *
@@ -156,31 +156,31 @@ typedef struct Mode {
  * dependent on the driver).
  */
 typedef struct Vga {
-	uint8_t	misc;
-	uint8_t	feature;
-	uint8_t	sequencer[256];
-	uint16_t	crt[256];
-	uint8_t	graphics[256];
-	uint8_t	attribute[256];
-	uint8_t	pixmask;
-	uint8_t	pstatus;
-	uint8_t	palette[Pcolours][3];
+	u8	misc;
+	u8	feature;
+	u8	sequencer[256];
+	u16	crt[256];
+	u8	graphics[256];
+	u8	attribute[256];
+	u8	pixmask;
+	u8	pstatus;
+	u8	palette[Pcolours][3];
 
-	uint32_t	f[2];			/* clock */
-	uint32_t	d[2];
-	uint32_t	i[2];
-	uint32_t	m[2];
-	uint32_t	n[2];
-	uint32_t	p[2];
-	uint32_t	q[2];
-	uint32_t	r[2];
+	u32	f[2];			/* clock */
+	u32	d[2];
+	u32	i[2];
+	u32	m[2];
+	u32	n[2];
+	u32	p[2];
+	u32	q[2];
+	u32	r[2];
 
-	uint32_t	vma;			/* video memory linear-address alignment */
-	uint32_t	vmb;			/* video memory linear-address base */
-	uint32_t	apz;			/* aperture size */
-	uint32_t	vmz;			/* video memory size */
+	u32	vma;			/* video memory linear-address alignment */
+	u32	vmb;			/* video memory linear-address base */
+	u32	apz;			/* aperture size */
+	u32	vmz;			/* video memory size */
 
-	uint32_t	membw;			/* memory bandwidth, MB/s */
+	u32	membw;			/* memory bandwidth, MB/s */
 
 	long	offset;			/* BIOS string offset */
 	char*	bios;			/* matching BIOS string */
@@ -188,8 +188,8 @@ typedef struct Vga {
 
 	Mode*	mode;
 
-	uint32_t	virtx;			/* resolution of virtual screen */
-	uint32_t	virty;
+	u32	virtx;			/* resolution of virtual screen */
+	u32	virty;
 
 	int	panning;		/* pan the virtual screen */
 
@@ -219,13 +219,13 @@ extern Ctlr att20c491;
 extern Ctlr att20c492;
 
 /* att21c498.c */
-extern uint8_t attdaci(uint8_t);
-extern void attdaco(uint8_t, uint8_t);
+extern u8 attdaci(u8);
+extern void attdaco(u8, u8);
 extern Ctlr att21c498;
 
 /* bt485.c */
-extern uint8_t bt485i(uint8_t);
-extern void bt485o(uint8_t, uint8_t);
+extern u8 bt485i(u8);
+extern void bt485o(u8, u8);
 extern Ctlr bt485;
 
 /* ch9294.c */
@@ -253,7 +253,7 @@ extern Ctlr cyber938xhwgc;
 extern int cflag;
 extern int dflag;
 extern Ctlr *ctlrs[];
-extern uint16_t dacxreg[4];
+extern u16 dacxreg[4];
 
 /* db.c */
 extern char* dbattr(Attr*, char*);
@@ -294,21 +294,21 @@ extern Ctlr ics2494a;
 extern Ctlr ics534x;
 
 /* io.c */
-extern uint8_t inportb(int32_t);
-extern void outportb(int32_t, uint8_t);
-extern uint16_t inportw(int32_t);
-extern void outportw(int32_t, uint16_t);
-extern uint32_t inportl(int32_t);
-extern void outportl(int32_t, uint32_t);
+extern u8 inportb(i32);
+extern void outportb(i32, u8);
+extern u16 inportw(i32);
+extern void outportw(i32, u16);
+extern u32 inportl(i32);
+extern void outportl(i32, u32);
 extern char* vgactlr(char*, char*);
 extern void vgactlw(char*, char*);
-extern char* readbios(int32_t, int32_t);
-extern void dumpbios(int32_t);
+extern char* readbios(i32, i32);
+extern void dumpbios(i32);
 extern void error(char*, ...);
-extern void* alloc(uint32_t);
+extern void* alloc(u32);
 extern void printitem(char*, char*);
-extern void printreg(uint32_t);
-extern void printflag(uint32_t);
+extern void printreg(u32);
+extern void printflag(u32);
 extern void setpalette(int, int, int, int);
 extern int curprintindex;
 
@@ -324,7 +324,7 @@ extern Ctlr mach64xxhwgc;
 
 /* main.c */
 extern char* chanstr[];
-extern void resyncinit(Vga*, Ctlr*, uint32_t, uint32_t);
+extern void resyncinit(Vga*, Ctlr*, u32, u32);
 extern void sequencer(Vga*, int);
 extern void main(int, char*[]);
 Biobuf stdout;
@@ -364,8 +364,8 @@ extern Pcidev* pcimatch(Pcidev*, int, int);
 extern Ctlr rgb524;
 
 /* rgb524mn.c */
-extern uint8_t (*rgb524mnxi)(Vga*, int);
-extern void (*rgb524mnxo)(Vga*, int, uint8_t);
+extern u8 (*rgb524mnxi)(Vga*, int);
+extern void (*rgb524mnxo)(Vga*, int, u8);
 extern Ctlr rgb524mn;
 
 /* s3801.c */
@@ -403,10 +403,10 @@ extern void trio64clock(Vga*, Ctlr*);
 extern Ctlr trio64;
 
 /* tvp3020.c */
-extern uint8_t tvp3020i(uint8_t);
-extern uint8_t tvp3020xi(uint8_t);
-extern void tvp3020o(uint8_t, uint8_t);
-extern void tvp3020xo(uint8_t, uint8_t);
+extern u8 tvp3020i(u8);
+extern u8 tvp3020xi(u8);
+extern void tvp3020o(u8, u8);
+extern void tvp3020xo(u8, u8);
 extern Ctlr tvp3020;
 
 /* tvp3025.c */
@@ -416,18 +416,18 @@ extern Ctlr tvp3025;
 extern Ctlr tvp3025clock;
 
 /* tvp3026.c */
-extern uint8_t tvp3026xi(uint8_t);
-extern void tvp3026xo(uint8_t, uint8_t);
+extern u8 tvp3026xi(u8);
+extern void tvp3026xo(u8, u8);
 extern Ctlr tvp3026;
 
 /* tvp3026clock.c */
 extern Ctlr tvp3026clock;
 
 /* vga.c */
-extern uint8_t vgai(int32_t);
-extern uint8_t vgaxi(int32_t, uint8_t);
-extern void vgao(int32_t, uint8_t);
-extern void vgaxo(int32_t, uint8_t, uint8_t);
+extern u8 vgai(i32);
+extern u8 vgaxi(i32, u8);
+extern void vgao(i32, u8);
+extern void vgaxo(i32, u8, u8);
 extern Ctlr generic;
 
 /* vesa.c */

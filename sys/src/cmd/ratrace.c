@@ -252,7 +252,7 @@ threadmain(int argc, char **argv)
 
 	out   = chancreate(sizeof(char*), 0);
 	quit  = chancreate(sizeof(char*), 0);
-	forkc = chancreate(sizeof(uint32_t *), 0);
+	forkc = chancreate(sizeof(u32 *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);
 	reader((void*)(uintptr_t)pid);

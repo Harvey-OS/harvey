@@ -13,8 +13,8 @@ static int
 deliver(void *, NbDgram *s)
 {
 	SmbHeader h;
-	uint8_t *pdata;
-	uint16_t bytecount;
+	u8 *pdata;
+	u16 bytecount;
 	SmbBuffer *b;
 	char *errmsg;
 	SmbTransaction transaction;
@@ -22,7 +22,7 @@ deliver(void *, NbDgram *s)
 //	int x;
 	char *comment, *servername;
 	unsigned char opcode, updatecount, versionminor, versionmajor;
-	uint32_t periodicity, signature, type;
+	u32 periodicity, signature, type;
 
 	errmsg = nil;
 	comment = nil;

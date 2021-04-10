@@ -12,8 +12,8 @@
 static	int	sunday(Tm *t, int d);
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
-static	void	klocaltime(int32_t tim, Tm *ct);
-static	void	kgmtime(int32_t tim, Tm *ct);
+static	void	klocaltime(i32 tim, Tm *ct);
+static	void	kgmtime(i32 tim, Tm *ct);
 
 static	char	dmsize[12] =
 {
@@ -27,10 +27,10 @@ static	char	dmsize[12] =
  */
 static	struct
 {
-	int16_t	yrfrom;
-	int16_t	yrto;
-	int16_t	daylb;
-	int16_t	dayle;
+	i16	yrfrom;
+	i16	yrto;
+	i16	daylb;
+	i16	dayle;
 } daytab[] =
 {
 	87,	999,	97,	303,
@@ -42,18 +42,18 @@ static	struct
 
 static struct
 {
-	int16_t	minuteswest;	/* minutes west of Greenwich */
-	int16_t	dsttime;	/* dst correction */
+	i16	minuteswest;	/* minutes west of Greenwich */
+	i16	dsttime;	/* dst correction */
 } timezone =
 {
 	5*60, 1
 };
 
 static void
-klocaltime(int32_t tim, Tm *ct)
+klocaltime(i32 tim, Tm *ct)
 {
 	int daylbegin, daylend, dayno, i;
-	int32_t copyt;
+	i32 copyt;
 
 	copyt = tim - timezone.minuteswest*60L;
 	kgmtime(copyt, ct);
@@ -87,10 +87,10 @@ sunday(Tm *t, int d)
 }
 
 static void
-kgmtime(int32_t tim, Tm *ct)
+kgmtime(i32 tim, Tm *ct)
 {
 	int d0, d1;
-	int32_t hms, day;
+	i32 hms, day;
 
 	/*
 	 * break initial number into days
@@ -145,7 +145,7 @@ kgmtime(int32_t tim, Tm *ct)
 }
 
 void
-datestr(char *s, int32_t t)
+datestr(char *s, i32 t)
 {
 	Tm tm;
 
@@ -158,10 +158,10 @@ Tfmt(Fmt *f1)
 {
 	char s[30];
 	char *cp;
-	int32_t t;
+	i32 t;
 	Tm tm;
 
-	t = va_arg(f1->args, int32_t);
+	t = va_arg(f1->args, i32);
 	if(t == 0)
 		return fmtstrcpy(f1, "The Epoch");
 
@@ -215,8 +215,8 @@ ct_numb(char *cp, int n)
  * day in bitpattern --
  * for automatic dumps
  */
-int32_t
-nextime(int32_t t, int hr, int day)
+i32
+nextime(i32 t, int hr, int day)
 {
 	Tm tm;
 	int nhr;

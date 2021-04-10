@@ -15,10 +15,10 @@
 
 typedef struct Hdr Hdr;
 struct Hdr {
-	uint8_t verstype;
-	uint8_t code;
-	uint8_t sessid[2];
-	uint8_t length[2];	/* of payload */
+	u8 verstype;
+	u8 code;
+	u8 sessid[2];
+	u8 length[2];	/* of payload */
 };
 enum
 {

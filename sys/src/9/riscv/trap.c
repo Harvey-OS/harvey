@@ -868,7 +868,7 @@ void
 setregisters(Ureg *ureg, char *pureg, char *uva, int n)
 {
 #if 0
-	uint64_t cs, flags, ss;
+	u64 cs, flags, ss;
 
 	ss = ureg->ss;
 	flags = ureg->flags;

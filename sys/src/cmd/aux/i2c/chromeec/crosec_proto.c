@@ -36,7 +36,7 @@ void * __attribute__((weak)) crosec_get_buffer(size_t size, int req)
  * @param data	Data buffer to print.
  * @param len	Length of data.
  */
-static void cros_ec_dump_data(const char *name, int cmd, const uint8_t *data,
+static void cros_ec_dump_data(const char *name, int cmd, const u8 *data,
 			      int len)
 {
 	int i;
@@ -55,7 +55,7 @@ static void cros_ec_dump_data(const char *name, int cmd, const uint8_t *data,
  * @param size	Size of data block in bytes
  * @return checksum value (0 to 255)
  */
-static int cros_ec_calc_checksum(const uint8_t *data, int size)
+static int cros_ec_calc_checksum(const u8 *data, int size)
 {
 	int csum, i;
 
@@ -68,12 +68,12 @@ static int cros_ec_calc_checksum(const uint8_t *data, int size)
 
 struct ec_command_v3 {
 	struct ec_host_request header;
-	uint8_t data[MSG_BYTES];
+	u8 data[MSG_BYTES];
 };
 
 struct ec_response_v3 {
 	struct ec_host_response header;
-	uint8_t data[MSG_BYTES];
+	u8 data[MSG_BYTES];
 };
 
 /**
@@ -108,10 +108,10 @@ static int create_proto3_request(const struct chromeec_command *cec_command,
 	memcpy(cmd->data, cec_command->cmd_data_in, cec_command->cmd_size_in);
 
 	/* Write checksum field so the entire packet sums to 0 */
-	rq->checksum = (uint8_t)(-cros_ec_calc_checksum(
-			(const uint8_t*)cmd, out_bytes));
+	rq->checksum = (u8)(-cros_ec_calc_checksum(
+			(const u8*)cmd, out_bytes));
 
-	cros_ec_dump_data("out", rq->command, (const uint8_t *)cmd, out_bytes);
+	cros_ec_dump_data("out", rq->command, (const u8 *)cmd, out_bytes);
 
 	/* Return size of request packet */
 	return out_bytes;
@@ -157,7 +157,7 @@ static int handle_proto3_response(struct ec_response_v3 *resp,
 	int in_bytes;
 	int csum;
 
-	cros_ec_dump_data("in-header", -1, (const uint8_t*)rs, sizeof(*rs));
+	cros_ec_dump_data("in-header", -1, (const u8*)rs, sizeof(*rs));
 
 	/* Check input data */
 	if (rs->struct_version != EC_HOST_RESPONSE_VERSION) {
@@ -182,7 +182,7 @@ static int handle_proto3_response(struct ec_response_v3 *resp,
 	in_bytes = sizeof(*rs) + rs->data_len;
 
 	/* Verify checksum */
-	csum = cros_ec_calc_checksum((const uint8_t *)resp, in_bytes);
+	csum = cros_ec_calc_checksum((const u8 *)resp, in_bytes);
 	if (csum) {
 		printk(BIOS_ERR, "%s: EC response checksum invalid: 0x%02x\n",
 		       __func__, csum);

@@ -23,7 +23,7 @@ Config conf;
 void
 threadmain(int argc, char *argv[])
 {
-	uint32_t bcmem;
+	u32 bcmem;
 	int fix;
 
 	fix = 0;

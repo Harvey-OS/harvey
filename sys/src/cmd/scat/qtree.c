@@ -12,10 +12,10 @@
 #include	<bio.h>
 #include	"sky.h"
 
-static void	qtree_expand(Biobuf*, uint8_t*, int, int, uint8_t*);
-static void	qtree_copy(uint8_t*, int, int, uint8_t*, int);
-static void	qtree_bitins(uint8_t*, int, int, Pix*, int, int);
-static void	read_bdirect(Biobuf*, Pix*, int, int, int, uint8_t*, int);
+static void	qtree_expand(Biobuf*, u8*, int, int, u8*);
+static void	qtree_copy(u8*, int, int, u8*, int);
+static void	qtree_bitins(u8*, int, int, Pix*, int, int);
+static void	read_bdirect(Biobuf*, Pix*, int, int, int, u8*, int);
 
 void
 qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
@@ -40,7 +40,7 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 	 */
 	nqx2 = (nqx+1)/2;
 	nqy2 = (nqy+1)/2;
-	scratch = (uint8_t*)malloc(nqx2*nqy2);
+	scratch = (u8*)malloc(nqx2*nqy2);
 	if(scratch == nil) {
 		fprint(2, "qtree_decode: insufficient memory\n");
 		exits("memory");
@@ -114,9 +114,9 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
  */
 static
 void
-qtree_expand(Biobuf *infile, uint8_t *a, int nx, int ny, uint8_t *b)
+qtree_expand(Biobuf *infile, u8 *a, int nx, int ny, u8 *b)
 {
-	uint8_t *b1;
+	u8 *b1;
 
 	/*
 	 * first copy a to b, expanding each 4-bit value
@@ -141,7 +141,7 @@ qtree_expand(Biobuf *infile, uint8_t *a, int nx, int ny, uint8_t *b)
  */
 static
 void
-qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
+qtree_copy(u8 *a, int nx, int ny, u8 *b, int n)
 {
 	int i, j, k, nx2, ny2;
 	int s00, s10;
@@ -214,7 +214,7 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
  */
 static
 void
-qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
+qtree_bitins(u8 *a, int nx, int ny, Pix *b, int n, int bit)
 {
 	int i, j;
 	Pix *s00, *s10;
@@ -270,7 +270,7 @@ qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 static
 void
 read_bdirect(Biobuf *infile, Pix *a, int n, int nqx, int nqy,
-	     uint8_t *scratch, int bit)
+	     u8 *scratch, int bit)
 {
 	int i;
 

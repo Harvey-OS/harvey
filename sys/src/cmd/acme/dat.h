@@ -142,7 +142,7 @@ struct File
 	Elog		elog;		/* current pending change */
 	Rune		*name;		/* name of associated file */
 	int		nname;		/* size of name */
-	uint64_t	qidpath;	/* of file when read */
+	u64	qidpath;	/* of file when read */
 	unsigned int	mtime;		/* of file when read */
 	int		dev;		/* of file when read */
 	int		unread;		/* file has not been read from disk */
@@ -243,17 +243,17 @@ struct Window
 	Text		tag;
 	Text		body;
 	Rectangle	r;
-	uint8_t	isdir;
-	uint8_t	isscratch;
-	uint8_t	filemenu;
-	uint8_t	dirty;
-	uint8_t	autoindent;
+	u8	isdir;
+	u8	isscratch;
+	u8	filemenu;
+	u8	dirty;
+	u8	autoindent;
 	int		id;
 	Range	addr;
 	Range	limit;
-	uint8_t	nopen[QMAX];
-	uint8_t	nomark;
-	uint8_t	noscroll;
+	u8	nopen[QMAX];
+	u8	nomark;
+	u8	noscroll;
 	Range	wrselrange;
 	int		rdselfd;
 	Column	*col;
@@ -367,7 +367,7 @@ struct Command
 struct Dirtab
 {
 	char	*name;
-	uint8_t	type;
+	u8	type;
 	unsigned int	qid;
 	unsigned int	perm;
 };
@@ -394,7 +394,7 @@ struct Fid
 	Fid		*next;
 	Mntdir	*mntdir;
 	int		nrpart;
-	uint8_t	rpart[UTFmax];
+	u8	rpart[UTFmax];
 	int		logoff;
 };
 
@@ -406,7 +406,7 @@ struct Xfid
 	Xfid	*next;
 	Channel	*c;	/* chan(void(*)(Xfid*)) */
 	Fid	*f;
-	uint8_t	*buf;
+	u8	*buf;
 	int	flushed;
 
 };
@@ -479,7 +479,7 @@ enum
 };
 
 #define	QID(w,q)	((w<<8)|(q))
-#define	WIN(q)	((((uint32_t)(q).path)>>8) & 0xFFFFFF)
+#define	WIN(q)	((((u32)(q).path)>>8) & 0xFFFFFF)
 #define	FILE(q)	((q).path & 0xFF)
 
 enum

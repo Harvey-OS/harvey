@@ -33,23 +33,23 @@ enum {
 
 typedef struct Block Block;
 struct Block{
-	uint8_t *pos;
-	uint8_t *limit;
+	u8 *pos;
+	u8 *limit;
 };
 
 static Biobuf *bin;
-static uint32_t *crctab;
-static uint32_t crc;
+static u32 *crctab;
+static u32 crc;
 
 static int findCDir(Biobuf *);
 static int header(Biobuf *, ZipHead *);
 static int cheader(Biobuf *, ZipHead *);
 static char *getname(Biobuf *, int);
 static int blwrite(void *, void *, int);
-static uint32_t get4(Biobuf *);
+static u32 get4(Biobuf *);
 static int get2(Biobuf *);
 static int get1(Biobuf *);
-static int32_t msdos2time(int, int);
+static i32 msdos2time(int, int);
 
 void
 populate(char *name)
@@ -109,14 +109,14 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, int64_t off, int32_t cnt)
+doread(Ram *r, i64 off, i32 cnt)
 {
 	int i, err;
 	Block bs;
 	ZipHead zh;
 	static Qid oqid;
 	static char buf[Maxbuf];
-	static uint8_t *cache = nil;
+	static u8 *cache = nil;
 
 	if (cnt > Maxbuf)
 		sysfatal("file too big (>%d)", Maxbuf);
@@ -173,7 +173,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, i32 off, i32 cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -190,8 +190,8 @@ dopermw(Ram *r)
 static int
 findCDir(Biobuf *bin)
 {
-	int64_t ecoff;
-	int32_t off;
+	i64 ecoff;
+	i32 off;
 	int entries, zclen;
 
 	ecoff = Bseek(bin, -ZECHeadSize, 2);
@@ -221,7 +221,7 @@ findCDir(Biobuf *bin)
 static int
 header(Biobuf *bin, ZipHead *zh)
 {
-	uint32_t v;
+	u32 v;
 	int flen, xlen;
 
 	v = get4(bin);
@@ -252,7 +252,7 @@ header(Biobuf *bin, ZipHead *zh)
 static int
 cheader(Biobuf *bin, ZipHead *zh)
 {
-	uint32_t v;
+	u32 v;
 	int flen, xlen, fclen;
 
 	v = get4(bin);
@@ -320,10 +320,10 @@ getname(Biobuf *bin, int len)
 }
 
 
-static uint32_t
+static u32
 get4(Biobuf *b)
 {
-	uint32_t v;
+	u32 v;
 	int i, c;
 
 	v = 0;
@@ -362,7 +362,7 @@ get1(Biobuf *b)
 	return c;
 }
 
-static int32_t
+static i32
 msdos2time(int time, int date)
 {
 	Tm tm;

@@ -22,7 +22,7 @@ int diffwflag;
 void copy(Biobuf*, char*, Biobuf*, char*);
 void idiff(Biobuf*, char*, Biobuf*, char*, Biobuf*, char*, Biobuf*,
 	   char*);
-int opentemp(char*, int, int32_t);
+int opentemp(char*, int, i32);
 void rundiff(char*, char*, int);
 
 void
@@ -89,7 +89,7 @@ main(int argc, char **argv)
 }
 
 int
-opentemp(char *template, int mode, int32_t perm)
+opentemp(char *template, int mode, i32 perm)
 {
 	int fd, i;
 	char *p;

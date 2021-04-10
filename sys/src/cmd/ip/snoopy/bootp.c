@@ -39,22 +39,22 @@ enum
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uint8_t	op;			/* opcode */
-	uint8_t	htype;			/* hardware type */
-	uint8_t	hlen;			/* hardware address len */
-	uint8_t	hops;			/* hops */
-	uint8_t	xid[4];			/* a random number */
-	uint8_t	secs[2];		/* elapsed since client started booting */
-	uint8_t	flags[2];
-	uint8_t	ciaddr[IPv4addrlen];	/* client IP address (client tells server) */
-	uint8_t	yiaddr[IPv4addrlen];	/* client IP address (server tells client) */
-	uint8_t	siaddr[IPv4addrlen];	/* server IP address */
-	uint8_t	giaddr[IPv4addrlen];	/* gateway IP address */
-	uint8_t	chaddr[Maxhwlen];	/* client hardware address */
+	u8	op;			/* opcode */
+	u8	htype;			/* hardware type */
+	u8	hlen;			/* hardware address len */
+	u8	hops;			/* hops */
+	u8	xid[4];			/* a random number */
+	u8	secs[2];		/* elapsed since client started booting */
+	u8	flags[2];
+	u8	ciaddr[IPv4addrlen];	/* client IP address (client tells server) */
+	u8	yiaddr[IPv4addrlen];	/* client IP address (server tells client) */
+	u8	siaddr[IPv4addrlen];	/* server IP address */
+	u8	giaddr[IPv4addrlen];	/* gateway IP address */
+	u8	chaddr[Maxhwlen];	/* client hardware address */
 	char	sname[64];		/* server host name (optional) */
 	char	file[Maxfilelen];	/* boot file name */
-	uint8_t	optmagic[4];
-	uint8_t	optdata[Maxoptlen];
+	u8	optmagic[4];
+	u8	optdata[Maxoptlen];
 };
 
 enum
@@ -71,7 +71,7 @@ static Field p_fields[] =
 	{0}
 };
 
-#define plan9opt ((uint32_t)(('p'<<24) | ('9'<<16) | (' '<<8) | ' '))
+#define plan9opt ((u32)(('p'<<24) | ('9'<<16) | (' '<<8) | ' '))
 #define genericopt (0x63825363UL)
 
 static Mux p_mux[] =
@@ -108,7 +108,7 @@ p_filter(Filter *f, Msg *m)
 
 	h = (Hdr*)m->ps;
 
-	if(m->pe < (uint8_t*)h->sname)
+	if(m->pe < (u8*)h->sname)
 		return 0;
 	m->ps = h->optdata;
 
@@ -144,11 +144,11 @@ static int
 p_seprint(Msg *m)
 {
 	Hdr *h;
-	uint32_t x;
+	u32 x;
 
 	h = (Hdr*)m->ps;
 
-	if(m->pe < (uint8_t*)h->sname)
+	if(m->pe < (u8*)h->sname)
 		return -1;
 
 	/* point past data */
@@ -156,7 +156,7 @@ p_seprint(Msg *m)
 
 	/* next protocol */
 	m->pr = nil;
-	if(m->pe >= (uint8_t*)h->optdata){
+	if(m->pe >= (u8*)h->optdata){
 		x = NetL(h->optmagic);
 		demux(p_mux, x, x, m, &dump);
 	}
@@ -165,10 +165,10 @@ p_seprint(Msg *m)
 		op(h->op), h->htype, h->hlen, h->hops,
 		NetL(h->xid), NetS(h->secs), NetS(h->flags),
 		h->ciaddr, h->yiaddr, h->siaddr, h->giaddr, h->chaddr,
-		(uint32_t)NetL(h->optmagic));
-	if(m->pe > (uint8_t*)h->sname && *h->sname)
+		(u32)NetL(h->optmagic));
+	if(m->pe > (u8*)h->sname && *h->sname)
 		m->p = seprint(m->p, m->e, " snam=%s", h->sname);
-	if(m->pe > (uint8_t*)h->file && *h->file)
+	if(m->pe > (u8*)h->file && *h->file)
 		m->p = seprint(m->p, m->e, " file=%s", h->file);
 	return 0;
 }

@@ -11,7 +11,7 @@
  * VNC uses X11's keysyms defined in X11/keysym.h, this is a converter
  * to unicode characters
  */
-static uint32_t
+static u32
 ksym2utf [] = {
 	[0x1a1] =	L'Ą',
 	[0x1a2] =	L'˘',

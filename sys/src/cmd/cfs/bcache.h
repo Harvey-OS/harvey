@@ -21,7 +21,7 @@ enum
 struct Bbuf
 {
 	Lru	lru;				/* must be first in struct */
-	uint32_t	bno;
+	u32	bno;
 	int	inuse;
 	Bbuf	*next;			/* next in dirty list */
 	int	dirty;
@@ -42,13 +42,13 @@ struct Bcache
 };
 
 int	bcinit(Bcache*, int, int);
-Bbuf*	bcalloc(Bcache*, uint32_t);
-Bbuf*	bcread(Bcache*, uint32_t);
+Bbuf*	bcalloc(Bcache*, u32);
+Bbuf*	bcread(Bcache*, u32);
 void	bcmark(Bcache*, Bbuf*);
 int	bcwrite(Bcache*, Bbuf*);
 int	bcsync(Bcache*);
-int	bread(Bcache*, uint32_t, void*);
-int	bwrite(Bcache*, uint32_t, void*);
+int	bread(Bcache*, u32, void*);
+int	bwrite(Bcache*, u32, void*);
 int	bref(Bcache*, Bbuf*);
 void	error(char*, ...);
 void	warning(char*);

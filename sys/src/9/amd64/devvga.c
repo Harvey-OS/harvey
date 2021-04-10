@@ -266,7 +266,7 @@ vgactl(Cmdbuf *cb)
 {
 	int align, i, size, x, y, z;
 	char *chanstr, *p;
-	uint32_t chan;
+	u32 chan;
 	Cmdtab *ct;
 	VGAscr *scr;
 	extern VGAdev *vgadev[];

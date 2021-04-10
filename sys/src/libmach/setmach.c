@@ -18,8 +18,8 @@ typedef	struct machtab Machtab;
 struct machtab
 {
 	char		*name;			/* machine name */
-	int16_t		type;			/* executable type */
-	int16_t		boottype;		/* bootable type */
+	i16		type;			/* executable type */
+	i16		boottype;		/* bootable type */
 	int		asstype;		/* disassembler code */
 	Mach		*mach;			/* machine description */
 	Machdata	*machdata;		/* machine functions */

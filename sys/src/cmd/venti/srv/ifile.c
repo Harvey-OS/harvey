@@ -23,7 +23,7 @@ readifile(IFile *f, char *name)
 {
 	Part *p;
 	ZBlock *b;
-	uint8_t *z;
+	u8 *z;
 
 	p = initpart(name, OREAD);
 	if(p == nil)
@@ -90,7 +90,7 @@ freeifile(IFile *f)
 }
 
 int
-partifile(IFile *f, Part *part, uint64_t start, uint32_t size)
+partifile(IFile *f, Part *part, u64 start, u32 size)
 {
 	ZBlock *b;
 
@@ -147,12 +147,12 @@ ifilename(IFile *f, char *dst)
 }
 
 int
-ifileuint32_t(IFile *f, uint32_t *r)
+ifileu32(IFile *f, u32 *r)
 {
 	char *s;
 
 	s = ifileline(f);
 	if(s == nil)
 		return -1;
-	return struint32_t(s, r);
+	return stru32(s, r);
 }

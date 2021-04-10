@@ -48,7 +48,7 @@ enum {
 	Nhash = 64,
 	Maxincall = 64, /* max. conn.s in listen q not accepted yet */
 	Nchans = 1024,
-	MAClen = 16, /* int32_test mac address */
+	MAClen = 16, /* i32est mac address */
 
 	MAXTTL = 255,
 	DFLTTOS = 0,

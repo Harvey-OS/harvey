@@ -77,7 +77,7 @@ main(int argc, char **argv)
 	for(line=1; ; line++) {
 		n = read(fd, buf, sizeof(buf));
 		if(n == sizeof(buf)) {
-			fprint(2, "ns: ns string too int32_t\n");
+			fprint(2, "ns: ns string too i32\n");
 			exits("read ns");
 		}
 		if(n < 0) {

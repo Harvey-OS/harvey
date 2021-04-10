@@ -29,8 +29,8 @@ double wheel[] =
 	 2, 4, 6, 2, 6, 6, 4, 2, 4, 6,
 	 2, 6, 4, 2, 4, 2,10, 2,
 };
-uint8_t table[1000];
-uint8_t bittab[] =
+u8 table[1000];
+u8 bittab[] =
 {
 	1, 2, 4, 8, 16, 32, 64, 128,
 };
@@ -42,7 +42,7 @@ enum {
 	tsiz8	= tabsiz*8,
 };
 
-void	mark(double nn, int32_t k);
+void	mark(double nn, i32 k);
 
 void
 usage(void)
@@ -160,10 +160,10 @@ main(int argc, char *argv[])
 }
 
 void
-mark(double nn, int32_t k)
+mark(double nn, i32 k)
 {
 	double t1;
-	int32_t j;
+	i32 j;
 
 	modf(nn/k, &t1);
 	j = k*t1 - nn;

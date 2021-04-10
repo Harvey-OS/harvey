@@ -11,11 +11,11 @@
 #include	<libc.h>
 #include	<bio.h>
 
-int32_t
-Bread(Biobufhdr *bp, void *ap, int32_t count)
+i32
+Bread(Biobufhdr *bp, void *ap, i32 count)
 {
-	int32_t c;
-	uint8_t *p;
+	i32 c;
+	u8 *p;
 	int i, n, ic;
 
 	p = ap;

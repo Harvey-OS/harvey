@@ -66,13 +66,13 @@
  * TODO HARVEY Do we need fs_old_cpg?
  */
 #define	CGSIZE(fs) \
-    /* base cg */	(sizeof(Cg) + sizeof(int32_t) + \
-    /* old btotoff */	(fs)->fs_old_cpg * sizeof(int32_t) + \
-    /* old boff */	(fs)->fs_old_cpg * sizeof(uint16_t) + \
+    /* base cg */	(sizeof(Cg) + sizeof(i32) + \
+    /* old btotoff */	(fs)->fs_old_cpg * sizeof(i32) + \
+    /* old boff */	(fs)->fs_old_cpg * sizeof(u16) + \
     /* inode map */	HOWMANY((fs)->fs_ipg, NBBY) + \
     /* block map */	HOWMANY((fs)->fs_fpg, NBBY) +\
     /* if present */	((fs)->fs_contigsumsize <= 0 ? 0 : \
-    /* cluster sum */	(fs)->fs_contigsumsize * sizeof(int32_t) + \
+    /* cluster sum */	(fs)->fs_contigsumsize * sizeof(i32) + \
     /* cluster map */	HOWMANY(fragstoblks(fs, (fs)->fs_fpg), NBBY)))
 
 static struct	csum *fscs;
@@ -83,15 +83,15 @@ static caddr_t iobuf;
 static long iobufsize;
 static ufs2_daddr_t alloc(int size, int mode);
 static void clrblock(Fs *, unsigned char *, int);
-static void fsinit(int32_t);
+static void fsinit(i32);
 static int ilog2(int);
-static void initcg(int, int32_t);
+static void initcg(int, i32);
 static int isblock(Fs *, unsigned char *, int);
 static void iput(ufs2_dinode *, ino_t);
 static int makedir(Direct *, int);
 static void setblock(Fs *, unsigned char *, int);
 static void wtfs(ufs2_daddr_t, int, char *);
-static uint32_t newfs_random();
+static u32 newfs_random();
 
 static int
 do_sbwrite(Uufsd *disk)
@@ -108,8 +108,8 @@ mkfs(char *filename)
 	int fragsperinode, optimalfpg, origdensity, minfpg, lastminfpg;
 	long i, j, csfrags;
 	uint cg;
-	int32_t utime;
-	int64_t sizepb;
+	i32 utime;
+	i64 sizepb;
 	int width = 60;
 	ino_t maxinum;
 	int minfragsperinode;	/* minimum ratio of frags to inodes */
@@ -296,7 +296,7 @@ restart:
 	 * can put into each cylinder group. If this is too big, we reduce
 	 * the density until it fits.
 	 */
-	maxinum = (((int64_t)(1)) << 32) - INOPB(&sblock);
+	maxinum = (((i64)(1)) << 32) - INOPB(&sblock);
 	minfragsperinode = 1 + fssize / maxinum;
 	if (density == 0) {
 		density = MAX(NFPI, minfragsperinode) * fsize;
@@ -342,7 +342,7 @@ restart:
 	 * Start packing more blocks into the cylinder group until
 	 * it cannot grow any larger, the number of cylinder groups
 	 * drops below MINCYLGRPS, or we reach the size requested.
-	 * For UFS1 inodes per cylinder group are stored in an int16_t
+	 * For UFS1 inodes per cylinder group are stored in an i16
 	 * so fs_ipg is limited to 2^15 - 1.
 	 */
 	for ( ; sblock.fs_fpg < maxblkspercg; sblock.fs_fpg += sblock.fs_frag) {
@@ -537,7 +537,7 @@ restart:
  * Initialize a cylinder group.
  */
 void
-initcg(int cylno, int32_t utime)
+initcg(int cylno, i32 utime)
 {
 	long blkno, start;
 	uint i, d, dlower, dupper;
@@ -568,16 +568,16 @@ initcg(int cylno, int32_t utime)
 	acg.cg_ndblk = dmax - cbase;
 	if (sblock.fs_contigsumsize > 0)
 		acg.cg_nclusterblks = acg.cg_ndblk / sblock.fs_frag;
-	start = &acg.cg_space[0] - (uint8_t *)(&acg.cg_firstfield);
+	start = &acg.cg_space[0] - (u8 *)(&acg.cg_firstfield);
 	acg.cg_iusedoff = start;
 	acg.cg_freeoff = acg.cg_iusedoff + HOWMANY(sblock.fs_ipg, CHAR_BIT);
 	acg.cg_nextfreeoff = acg.cg_freeoff + HOWMANY(sblock.fs_fpg, CHAR_BIT);
 	if (sblock.fs_contigsumsize > 0) {
 		acg.cg_clustersumoff =
-		    ROUNDUP(acg.cg_nextfreeoff, sizeof(uint32_t));
-		acg.cg_clustersumoff -= sizeof(uint32_t);
+		    ROUNDUP(acg.cg_nextfreeoff, sizeof(u32));
+		acg.cg_clustersumoff -= sizeof(u32);
 		acg.cg_clusteroff = acg.cg_clustersumoff +
-		    (sblock.fs_contigsumsize + 1) * sizeof(uint32_t);
+		    (sblock.fs_contigsumsize + 1) * sizeof(u32);
 		acg.cg_nextfreeoff = acg.cg_clusteroff +
 		    HOWMANY(fragstoblks(&sblock, sblock.fs_fpg), CHAR_BIT);
 	}
@@ -627,8 +627,8 @@ initcg(int cylno, int32_t utime)
 		}
 	}
 	if (sblock.fs_contigsumsize > 0) {
-		int32_t *sump = cg_clustersum(&acg);
-		uint8_t *mapp = cg_clustersfree(&acg);
+		i32 *sump = cg_clustersum(&acg);
+		u8 *mapp = cg_clustersfree(&acg);
 		int map = *mapp++;
 		int bit = 1;
 		int run = 0;
@@ -690,7 +690,7 @@ static Direct snap_dir[] = {
 };
 
 void
-fsinit(int32_t utime)
+fsinit(i32 utime)
 {
 	// TODO HARVEY Set group
 	ufs2_dinode node;
@@ -840,7 +840,7 @@ iput(ufs2_dinode *ip, ino_t ino)
 	fscs[0].cs_nifree--;
 	if (ino >= (unsigned long)sblock.fs_ipg * sblock.fs_ncg) {
 		fprint(2, "fsinit: inode value out of range (%llu).\n",
-		    (uint64_t)ino);
+		    (u64)ino);
 		exits("inode value out of range");
 	}
 	d = fsbtodb(&sblock, ino_to_fsba(&sblock, ino));
@@ -956,7 +956,7 @@ ilog2(int val)
  * For the regression test, return predictable random values.
  * Otherwise use a true random number generator.
  */
-static uint32_t
+static u32
 newfs_random()
 {
 	static int nextnum = 1;

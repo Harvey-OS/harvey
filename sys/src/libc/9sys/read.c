@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int32_t
-read(int d, void *buf, int32_t nbytes)
+i32
+read(int d, void *buf, i32 nbytes)
 {
 	int n;
 

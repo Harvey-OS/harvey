@@ -55,16 +55,16 @@ initPAKparams(void)
 // H = (sha(ver,C,sha(passphrase)))^r mod p,
 // a hash function expensive to attack by brute force.
 static void
-longhash(char *ver, char *C, uint8_t *passwd, mpint *H)
+longhash(char *ver, char *C, u8 *passwd, mpint *H)
 {
-	uint8_t *Cp;
+	u8 *Cp;
 	int i, n, nver, nC;
-	uint8_t buf[140], key[1];
+	u8 buf[140], key[1];
 
 	nver = strlen(ver);
 	nC = strlen(C);
 	n = nver + nC + SHA1dlen;
-	Cp = (uint8_t*)emalloc(n);
+	Cp = (u8*)emalloc(n);
 	memmove(Cp, ver, nver);
 	memmove(Cp+nver, C, nC);
 	memmove(Cp+nver+nC, passwd, SHA1dlen);
@@ -83,9 +83,9 @@ longhash(char *ver, char *C, uint8_t *passwd, mpint *H)
 char *
 PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 {
-	uint8_t passhash[SHA1dlen];
+	u8 passhash[SHA1dlen];
 
-	sha1((uint8_t *)passphrase, strlen(passphrase), passhash, nil);
+	sha1((u8 *)passphrase, strlen(passphrase), passhash, nil);
 	initPAKparams();
 	longhash(VERSION, C, passhash, H);
 	mpinvert(H, pak->p, Hi);
@@ -97,24 +97,24 @@ PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 static void
 shorthash(char *mess, char *C, char *S, char *m, char *mu,
 	  char *sigma, char *Hi,
-	  uint8_t *digest)
+	  u8 *digest)
 {
 	SHA1state *state;
 
-	state = sha1((uint8_t*)mess, strlen(mess), 0, 0);
-	state = sha1((uint8_t*)C, strlen(C), 0, state);
-	state = sha1((uint8_t*)S, strlen(S), 0, state);
-	state = sha1((uint8_t*)m, strlen(m), 0, state);
-	state = sha1((uint8_t*)mu, strlen(mu), 0, state);
-	state = sha1((uint8_t*)sigma, strlen(sigma), 0, state);
-	state = sha1((uint8_t*)Hi, strlen(Hi), 0, state);
-	state = sha1((uint8_t*)mess, strlen(mess), 0, state);
-	state = sha1((uint8_t*)C, strlen(C), 0, state);
-	state = sha1((uint8_t*)S, strlen(S), 0, state);
-	state = sha1((uint8_t*)m, strlen(m), 0, state);
-	state = sha1((uint8_t*)mu, strlen(mu), 0, state);
-	state = sha1((uint8_t*)sigma, strlen(sigma), 0, state);
-	sha1((uint8_t*)Hi, strlen(Hi), digest, state);
+	state = sha1((u8*)mess, strlen(mess), 0, 0);
+	state = sha1((u8*)C, strlen(C), 0, state);
+	state = sha1((u8*)S, strlen(S), 0, state);
+	state = sha1((u8*)m, strlen(m), 0, state);
+	state = sha1((u8*)mu, strlen(mu), 0, state);
+	state = sha1((u8*)sigma, strlen(sigma), 0, state);
+	state = sha1((u8*)Hi, strlen(Hi), 0, state);
+	state = sha1((u8*)mess, strlen(mess), 0, state);
+	state = sha1((u8*)C, strlen(C), 0, state);
+	state = sha1((u8*)S, strlen(S), 0, state);
+	state = sha1((u8*)m, strlen(m), 0, state);
+	state = sha1((u8*)mu, strlen(mu), 0, state);
+	state = sha1((u8*)sigma, strlen(sigma), 0, state);
+	sha1((u8*)Hi, strlen(Hi), digest, state);
 }
 
 // On input, conn provides an open channel to the server;
@@ -128,7 +128,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 {
 	char *mess, *mess2, *eol, *S, *hexmu, *ks, *hexm, *hexsigma = nil, *hexHi;
 	char kc[2*SHA1dlen+1];
-	uint8_t digest[SHA1dlen];
+	u8 digest[SHA1dlen];
 	int rc = -1, n;
 	mpint *x, *m = mpnew(0), *mu = mpnew(0), *sigma = mpnew(0);
 	mpint *H = mpnew(0), *Hi = mpnew(0);
@@ -149,7 +149,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	mess = (char*)emalloc(2*Maxmsg+2);
 	mess2 = mess+Maxmsg+1;
 	snprint(mess, Maxmsg, "%s\tPAK\nC=%s\nm=%s\n", VERSION, C, hexm);
-	conn->write(conn, (uint8_t*)mess, strlen(mess));
+	conn->write(conn, (u8*)mess, strlen(mess));
 
 	// recv g**y, S, check hash1(g**xy)
 	if(readstr(conn, mess) < 0){
@@ -194,7 +194,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	shorthash("client", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(kc, sizeof kc, digest, SHA1dlen);
 	snprint(mess2, Maxmsg, "k'=%s\n", kc);
-	conn->write(conn, (uint8_t*)mess2, strlen(mess2));
+	conn->write(conn, (u8*)mess2, strlen(mess2));
 
 	// set session key
 	shorthash("session", C, S, hexm, hexmu, hexsigma, hexHi, digest);
@@ -233,7 +233,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	int rc = -1, n;
 	char mess2[Maxmsg+1], *eol;
 	char *C, ks[41], *kc, *hexm, *hexmu = nil, *hexsigma = nil, *hexHi = nil;
-	uint8_t digest[SHA1dlen];
+	u8 digest[SHA1dlen];
 	mpint *H = mpnew(0), *Hi = mpnew(0);
 	mpint *y = nil, *m = mpnew(0), *mu = mpnew(0), *sigma = mpnew(0);
 	PW *pw = nil;
@@ -298,7 +298,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	shorthash("server", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(ks, sizeof ks, digest, SHA1dlen);
 	snprint(mess2, sizeof mess2, "mu=%s\nk=%s\nS=%s\n", hexmu, ks, S);
-	conn->write(conn, (uint8_t*)mess2, strlen(mess2));
+	conn->write(conn, (u8*)mess2, strlen(mess2));
 
 	// recv hash2(g**xy)
 	if(readstr(conn, mess2) < 0){

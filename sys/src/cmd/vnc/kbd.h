@@ -24,7 +24,7 @@ enum
 
 extern	Snarf		snarf;
 
-int32_t			latin1(Rune *k, int n);
+i32			latin1(Rune *k, int n);
 void			kbdputc(int c);
 void			screenputs(char*, int);
 void			vncputc(int, int);

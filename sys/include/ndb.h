@@ -30,12 +30,12 @@ struct Ndb
 	Ndb		*next;
 
 	Biobufhdr	b;		/* buffered input file */
-	uint8_t		buf[256];	/* and its buffer */
+	u8		buf[256];	/* and its buffer */
 
-	uint32_t		mtime;		/* mtime of db file */
+	u32		mtime;		/* mtime of db file */
 	Qid		qid;		/* qid of db file */
 	char		file[128];/* path name of db file */
-	uint32_t		length;		/* length of db file */
+	u32		length;		/* length of db file */
 
 	int		nohash;		/* don't look for hash files */
 	Ndbhf		*hf;		/* open hash files */
@@ -53,7 +53,7 @@ struct Ndbtuple
 	char		*val;			/* value(s) */
 	Ndbtuple	*entry;			/* next tuple in this entry */
 	Ndbtuple	*line;			/* next tuple on this line */
-	uint32_t		ptr;			/* (for the application - starts 0) */
+	u32		ptr;			/* (for the application - starts 0) */
 	char		valbuf[Ndbvlen];	/* initial allocation for value */
 };
 
@@ -101,8 +101,8 @@ struct Ndbs
 	Ndb	*db;	/* data base file being searched */
 	Ndbhf	*hf;	/* hash file being searched */
 	int	type;
-	uint32_t	ptr;	/* current pointer */
-	uint32_t	ptr1;	/* next pointer */
+	u32	ptr;	/* current pointer */
+	u32	ptr1;	/* next pointer */
 	Ndbtuple *t;	/* last attribute value pair found */
 };
 
@@ -116,13 +116,13 @@ struct Ndbs
 /*
  *  macros for packing and unpacking pointers
  */
-#define NDBPUTP(v,a) { (a)[0] = (uint8_t)v; (a)[1] = (uint8_t)(v)>>8; (a)[2] = (uint8_t)(v)>>16; }
+#define NDBPUTP(v,a) { (a)[0] = (u8)v; (a)[1] = (u8)(v)>>8; (a)[2] = (u8)(v)>>16; }
 #define NDBGETP(a) ((a)[0] | ((a)[1]<<8) | ((a)[2]<<16))
 
 /*
  *  macros for packing and unpacking unsigned longs
  */
-#define NDBPUTUL(v,a) { (a)[0] = (uint8_t)v; (a)[1] = (uint8_t)(v)>>8; (a)[2] = (uint8_t)(v)>>16; (a)[3] = (uint8_t)(v)>>24; }
+#define NDBPUTUL(v,a) { (a)[0] = (u8)v; (a)[1] = (u8)(v)>>8; (a)[2] = (u8)(v)>>16; (a)[3] = (u8)(v)>>24; }
 #define NDBGETUL(a) ((a)[0] | ((a)[1]<<8) | ((a)[2]<<16) | ((a)[3]<<24))
 
 #define NDB_IPlen 16
@@ -144,7 +144,7 @@ Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
 char*		ndbgetvalue(Ndb*, Ndbs*, char*, char*, char*,
 				   Ndbtuple**);
 Ndbtuple*	ndbfindattr(Ndbtuple*, Ndbtuple*, char*);
-uint32_t		ndbhash(char*, int);
+u32		ndbhash(char*, int);
 Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
 Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
 Ndbtuple*	ndbnew(char*, char*);

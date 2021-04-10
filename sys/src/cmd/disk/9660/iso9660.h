@@ -13,8 +13,8 @@
  * Routines and data structures to support reading and writing ISO 9660 CD images.
  * See the ISO 9660 or ECMA 119 standards.
  *
- * Also supports Rock Ridge extensions for int32_t file names and Unix stuff.
- * Also supports Microsoft's Joliet extensions for Unicode and int32_t file names.
+ * Also supports Rock Ridge extensions for i32 file names and Unix stuff.
+ * Also supports Microsoft's Joliet extensions for Unicode and i32 file names.
  * Also supports El Torito bootable CD spec.
  */
 
@@ -35,15 +35,15 @@ struct XDir {
 	char	*uid;
 	char	*gid;
 	char	*symlink;
-	uint32_t   uidno;   /* Numeric uid */
-	uint32_t   gidno;   /* Numeric gid */
+	u32   uidno;   /* Numeric uid */
+	u32   gidno;   /* Numeric gid */
 
-	uint32_t	mode;
-	uint32_t	atime;
-	uint32_t	mtime;
-	uint32_t   ctime;
+	u32	mode;
+	u32	atime;
+	u32	mtime;
+	u32   ctime;
 
-        int64_t   length;
+        i64   length;
 };
 
 /*
@@ -55,20 +55,20 @@ struct Direc {
 	char *confname;	/* conformant name */
 	char *srcfile;	/* file to copy onto the image */
 
-	uint32_t block;
-	uint32_t length;
+	u32 block;
+	u32 length;
 	int flags;
 
 	char *uid;
 	char *gid;
 	char *symlink;
-	uint32_t mode;
-	int32_t atime;
-	int32_t ctime;
-	int32_t mtime;
+	u32 mode;
+	i32 atime;
+	i32 ctime;
+	i32 mtime;
 
-	uint32_t uidno;
-	uint32_t gidno;
+	u32 uidno;
+	u32 gidno;
 
 	Direc *child;
 	int nchild;
@@ -93,9 +93,9 @@ struct Voldesc {
 	char *notice;
 
 	/* path table */
-	uint32_t pathsize;
-	uint32_t lpathloc;
-	uint32_t mpathloc;
+	u32 pathsize;
+	u32 lpathloc;
+	u32 mpathloc;
 
 	/* root of file tree */
 	Direc root;
@@ -112,17 +112,17 @@ struct Voldesc {
 struct Cdimg {
 	char *file;
 	int fd;
-	uint32_t dumpblock;
-	uint32_t nextblock;
-	uint32_t iso9660pvd;
-	uint32_t jolietsvd;
-	uint32_t pathblock;
-	uint64_t rrcontin;	/* rock ridge continuation offset */
-	uint32_t nulldump;		/* next dump block */
-	uint32_t nconform;		/* number of conform entries written already */
-	uint64_t bootcatptr;
-	uint32_t bootcatblock;
-	uint64_t bootimageptr;
+	u32 dumpblock;
+	u32 nextblock;
+	u32 iso9660pvd;
+	u32 jolietsvd;
+	u32 pathblock;
+	u64 rrcontin;	/* rock ridge continuation offset */
+	u32 nulldump;		/* next dump block */
+	u32 nconform;		/* number of conform entries written already */
+	u64 bootcatptr;
+	u32 bootcatblock;
+	u64 bootimageptr;
 	Direc *loaderdirec;
 	Direc *bootdirec;
 	char *bootimage;
@@ -189,8 +189,8 @@ struct Dump {
 struct Dumpdir {
 	char *name;
 	unsigned char md5[MD5dlen];
-	uint32_t block;
-	uint32_t length;
+	u32 block;
+	u32 length;
 	Dumpdir *md5left;
 	Dumpdir *md5right;
 	Dumpdir *blockleft;
@@ -310,17 +310,17 @@ void findloader(Cdimg*, Direc*);
 /* cdrdwr.c */
 Cdimg *createcd(char*, Cdinfo);
 Cdimg *opencd(char*, Cdinfo);
-void Creadblock(Cdimg*, void*, uint32_t, uint32_t);
-uint32_t big(void*, int);
-uint32_t little(void*, int);
+void Creadblock(Cdimg*, void*, u32, u32);
+u32 big(void*, int);
+u32 little(void*, int);
 int parsedir(Cdimg*, Direc*, unsigned char*, int, char *(*)(unsigned char*, int));
-void setroot(Cdimg*, uint32_t, uint32_t, uint32_t);
-void setvolsize(Cdimg*, uint64_t, uint32_t);
-void setpathtable(Cdimg*, uint32_t, uint32_t, uint32_t, uint32_t);
+void setroot(Cdimg*, u32, u32, u32);
+void setvolsize(Cdimg*, u64, u32);
+void setpathtable(Cdimg*, u32, u32, u32, u32);
 void Cputc(Cdimg*, int);
-void Cputnl(Cdimg*, uint64_t, int);
-void Cputnm(Cdimg*, uint64_t, int);
-void Cputn(Cdimg*, uint64_t, int);
+void Cputnl(Cdimg*, u64, int);
+void Cputnm(Cdimg*, u64, int);
+void Cputn(Cdimg*, u64, int);
 void Crepeat(Cdimg*, int, int);
 void Cputs(Cdimg*, char*, int);
 void Cwrite(Cdimg*, void*, int);
@@ -329,22 +329,22 @@ void Crepeatr(Cdimg*, Rune, int);
 void Cputrs(Cdimg*, Rune*, int);
 void Cputrscvt(Cdimg*, char*, int);
 void Cpadblock(Cdimg*);
-void Cputdate(Cdimg*, uint32_t);
-void Cputdate1(Cdimg*, uint32_t);
+void Cputdate(Cdimg*, u32);
+void Cputdate1(Cdimg*, u32);
 void Cread(Cdimg*, void*, int);
 void Cwflush(Cdimg*);
-void Cwseek(Cdimg*, int64_t);
-uint64_t Cwoffset(Cdimg*);
-uint64_t Croffset(Cdimg*);
+void Cwseek(Cdimg*, i64);
+u64 Cwoffset(Cdimg*);
+u64 Croffset(Cdimg*);
 int Cgetc(Cdimg*);
-void Crseek(Cdimg*, int64_t);
+void Crseek(Cdimg*, i64);
 char *Crdline(Cdimg*, int);
 int Clinelen(Cdimg*);
 
 /* conform.c */
 void rdconform(Cdimg*);
 char *conform(char*, int);
-void wrconform(Cdimg*, int, uint32_t*, uint64_t*);
+void wrconform(Cdimg*, int, u32*, u64*);
 
 /* direc.c */
 void mkdirec(Direc*, XDir*);
@@ -357,14 +357,14 @@ void dsort(Direc*, int (*)(const void*, const void*));
 void setparents(Direc*);
 
 /* dump.c */
-uint32_t Cputdumpblock(Cdimg*);
+u32 Cputdumpblock(Cdimg*);
 int hasdump(Cdimg*);
 Dump *dumpcd(Cdimg*, Direc*);
 Dumpdir *lookupmd5(Dump*, unsigned char*);
-void insertmd5(Dump*, char*, unsigned char*, uint32_t, uint32_t);
+void insertmd5(Dump*, char*, unsigned char*, u32, u32);
 
 Direc readdumpdirs(Cdimg*, XDir*, char*(*)(unsigned char*,int));
-char *adddumpdir(Direc*, uint32_t, XDir*);
+char *adddumpdir(Direc*, u32, XDir*);
 void copybutname(Direc*, Direc*);
 
 void readkids(Cdimg*, Direc*, char*(*)(unsigned char*,int));
@@ -390,17 +390,17 @@ void Cputjolietsvd(Cdimg*, Cdinfo);
 void writepathtables(Cdimg*);
 
 /* util.c */
-void *emalloc(uint32_t);
-void *erealloc(void*, uint32_t);
+void *emalloc(u32);
+void *erealloc(void*, u32);
 char *atom(char*);
 char *struprcpy(char*, char*);
 int chat(char*, ...);
 
 /* unix.c, plan9.c */
 void dirtoxdir(XDir*, Dir*);
-void fdtruncate(int, uint32_t);
-int32_t uidno(char*);
-int32_t gidno(char*);
+void fdtruncate(int, u32);
+i32 uidno(char*);
+i32 gidno(char*);
 
 /* rune.c */
 Rune *strtorune(Rune*, char*);
@@ -429,7 +429,7 @@ enum {
 	DTrootdot,
 };
 
-extern uint32_t now;
+extern u32 now;
 extern Conform *map;
 extern int chatty;
 extern int docolon;

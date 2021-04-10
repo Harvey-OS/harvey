@@ -32,8 +32,8 @@ struct Re2 {
 	Re *end;
 };
 struct Re {
-	uint8_t type;
-	uint16_t gen;
+	u8 type;
+	u16 gen;
 	union {
 		Re *alt;				/* Talt */
 		Re **cases;				/* case */
@@ -80,8 +80,8 @@ EXTERN union {
 		 * if pre were smaller than buf you'd get a suffix of the
 		 * line with a hole cut out.
 		 */
-		uint8_t pre[16 * 1024];	/* to save to previous '\n' */
-		uint8_t buf[16 * 1024];	/* input buffer */
+		u8 pre[16 * 1024];	/* to save to previous '\n' */
+		u8 buf[16 * 1024];	/* input buffer */
 	};
 } u;
 
@@ -90,13 +90,13 @@ EXTERN char *pattern;
 EXTERN Biobuf bout;
 EXTERN char flags[256];
 EXTERN Re **follow;
-EXTERN uint16_t gen;
+EXTERN u16 gen;
 EXTERN char *input;
-EXTERN int32_t lineno;
+EXTERN i32 lineno;
 EXTERN int literal;
 EXTERN int matched;
-EXTERN int32_t maxfollow;
-EXTERN int32_t nfollow;
+EXTERN i32 maxfollow;
+EXTERN i32 nfollow;
 EXTERN int peekc;
 EXTERN Biobuf *rein;
 EXTERN State *state0;

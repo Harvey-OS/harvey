@@ -134,7 +134,7 @@ void
 actouser(void)
 {
 #if 0
-	void xactouser(uint64_t);
+	void xactouser(u64);
 	Ureg *u;
 
 	acfpusysprocsetup(m->proc);

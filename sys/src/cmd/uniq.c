@@ -23,7 +23,7 @@ int	linec	= 0;
 char	mode;
 int	uniq;
 char	*b1, *b2;
-int32_t	bsize;
+i32	bsize;
 Biobuf	fin;
 Biobuf	fout;
 
@@ -103,7 +103,7 @@ gline(char *buf)
 		return 1;
 	len = Blinelen(&fin);
 	if(len >= bsize-1)
-		sysfatal("line too int32_t");
+		sysfatal("line too i32");
 	memmove(buf, p, len);
 	buf[len-1] = 0;
 	return 0;

@@ -125,7 +125,7 @@ parseerror(char *fmt, ...)
 }
 
 void*
-emalloc(int32_t n)
+emalloc(i32 n)
 {
 	void *p;
 
@@ -137,7 +137,7 @@ emalloc(int32_t n)
 }
 
 void*
-erealloc(void *p, int32_t n)
+erealloc(void *p, i32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)

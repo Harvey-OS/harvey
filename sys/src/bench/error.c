@@ -9,7 +9,7 @@ void
 main(int argc, char *argv[])
 {
 	int i;
-	uint64_t start, stop;
+	u64 start, stop;
 	char buf[1];
 
 	(void) close(3);

@@ -83,35 +83,35 @@ typedef struct NdiscC NdiscC;
 /* we do this to avoid possible struct padding  */
 #define ICMPHDR            \
 	IPV6HDR;           \
-	uint8_t type;      \
-	uint8_t code;      \
-	uint8_t cksum[2];  \
-	uint8_t icmpid[2]; \
-	uint8_t seq[2]
+	u8 type;      \
+	u8 code;      \
+	u8 cksum[2];  \
+	u8 icmpid[2]; \
+	u8 seq[2]
 
 struct IPICMP {
 	ICMPHDR;
-	uint8_t payload[];
+	u8 payload[];
 };
 
 #define IPICMPSZ offsetof(IPICMP, payload[0])
 
 struct NdiscC {
 	ICMPHDR;
-	uint8_t target[IPaddrlen];
-	uint8_t payload[];
+	u8 target[IPaddrlen];
+	u8 payload[];
 };
 
 #define NDISCSZ offsetof(NdiscC, payload[0])
 
 struct Ndpkt {
 	ICMPHDR;
-	uint8_t target[IPaddrlen];
-	uint8_t otype;
-	uint8_t olen;	   /* length in units of 8 octets(incl type, code),
+	u8 target[IPaddrlen];
+	u8 otype;
+	u8 olen;	   /* length in units of 8 octets(incl type, code),
 				 * 1 for IEEE 802 addresses */
-	uint8_t lnaddr[6]; /* link-layer address */
-	uint8_t payload[];
+	u8 lnaddr[6]; /* link-layer address */
+	u8 payload[];
 };
 
 #define NDPKTSZ offsetof(Ndpkt, payload[0])

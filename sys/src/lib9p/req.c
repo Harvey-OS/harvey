@@ -46,7 +46,7 @@ freereqpool(Reqpool *p)
 }
 
 Req*
-allocreq(Reqpool *pool, uint32_t tag)
+allocreq(Reqpool *pool, u32 tag)
 {
 	Req *r;
 
@@ -66,7 +66,7 @@ allocreq(Reqpool *pool, uint32_t tag)
 }
 
 Req*
-lookupreq(Reqpool *pool, uint32_t tag)
+lookupreq(Reqpool *pool, u32 tag)
 {
 	if(chatty9p > 1)
 		fprint(2, "lookupreq %lu\n", tag);
@@ -114,7 +114,7 @@ closereq(Req *r)
 }
 
 Req*
-removereq(Reqpool *pool, uint32_t tag)
+removereq(Reqpool *pool, u32 tag)
 {
 	if(chatty9p > 1)
 		fprint(2, "removereq %lu\n", tag);

@@ -18,12 +18,12 @@
 int
 keyfmt(Fmt *f)
 {
-	uint8_t key[8];
+	u8 key[8];
 	char buf[32];
-	uint8_t *k;
+	u8 *k;
 	int i;
 
-	k = va_arg(f->args, uint8_t*);
+	k = va_arg(f->args, u8*);
 	key[0] = 0;
 	for(i = 0; i < 7; i++){
 		key[i] |= k[i] >> i;

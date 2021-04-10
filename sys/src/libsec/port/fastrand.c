@@ -16,11 +16,11 @@
  *  use the X917 random number generator to create random
  *  numbers (faster than truerand() but not as random).
  */
-uint32_t
+u32
 fastrand(void)
 {
-	uint32_t x;
+	u32 x;
 
-	genrandom((uint8_t*)&x, sizeof x);
+	genrandom((u8*)&x, sizeof x);
 	return x;
 }

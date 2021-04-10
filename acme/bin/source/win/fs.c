@@ -75,7 +75,7 @@ fswrite(Req *r)
 		i = newpipewin(pid, t);
 		free(s);
 		s = emalloc(32);
-		sprint(s, "%lu", (uint32_t)i);
+		sprint(s, "%lu", (u32)i);
 		r->fid->aux = s;
 		r->ofcall.count = r->ifcall.count;
 		respond(r, nil);

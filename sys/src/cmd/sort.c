@@ -68,7 +68,7 @@ struct	Line
 {
 	Key*	key;
 	int	llen;		/* always >= 1 */
-	uint8_t	line[1];	/* always ends in '\n' */
+	u8	line[1];	/* always ends in '\n' */
 };
 
 struct	Merge
@@ -82,7 +82,7 @@ struct	Merge
 struct	Key
 {
 	int	klen;
-	uint8_t	key[1];
+	u8	key[1];
 };
 
 struct	Field
@@ -92,10 +92,10 @@ struct	Field
 	int	end1;
 	int	end2;
 
-	int32_t	flags;
-	uint8_t	mapto[1+255];
+	i32	flags;
+	u8	mapto[1+255];
 
-	void	(*dokey)(Key*, uint8_t*, uint8_t*, Field*);
+	void	(*dokey)(Key*, u8*, u8*, Field*);
 };
 
 struct args
@@ -111,10 +111,10 @@ struct args
 	Field	field[Nfield];
 
 	Line**	linep;
-	int32_t	nline;			/* number of lines in this temp file */
-	int32_t	lineno;			/* overall ordinal for -s option */
+	i32	nline;			/* number of lines in this temp file */
+	i32	lineno;			/* overall ordinal for -s option */
 	int	ntemp;
-	int32_t	mline;			/* max lines per file */
+	i32	mline;			/* max lines per file */
 } args;
 
 extern	Rune*	month[12];
@@ -123,11 +123,11 @@ void	buildkey(Line*);
 void	doargs(int, char*[]);
 void	dofield(char*, int*, int*, int, int);
 void	dofile(Biobuf*);
-void	dokey_(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_dfi(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_gn(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_m(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_r(Key*, uint8_t*, uint8_t*, Field*);
+void	dokey_(Key*, u8*, u8*, Field*);
+void	dokey_dfi(Key*, u8*, u8*, Field*);
+void	dokey_gn(Key*, u8*, u8*, Field*);
+void	dokey_m(Key*, u8*, u8*, Field*);
+void	dokey_r(Key*, u8*, u8*, Field*);
 void	done(char*);
 int	kcmp(Key*, Key*);
 void	makemapd(Field*);
@@ -141,8 +141,8 @@ void	notifyf(void *c, char*);
 void	printargs(void);
 void	printout(Biobuf*);
 void	setfield(int, int);
-uint8_t*	skip(uint8_t*, int, int, int, int);
-void	sort4(void *c, uint32_t);
+u8 *	skip(u8*, int, int, int, int);
+void	sort4(void *c, u32);
 char*	tempfile(int);
 void	tempout(void);
 void	lineout(Biobuf*, Line*);
@@ -325,7 +325,7 @@ lineout(Biobuf *b, Line *l)
 void
 tempout(void)
 {
-	int32_t n;
+	i32 n;
 	Line **lp, *l;
 	char *tf;
 	int f;
@@ -381,7 +381,7 @@ tempfile(int n)
 	if(args.tname)
 		dir = args.tname;
 	if(strlen(dir) >= nelem(file)-20) {
-		fprint(2, "temp file directory name is too int32_t: %s\n", dir);
+		fprint(2, "temp file directory name is too i32: %s\n", dir);
 		done("tdir");
 	}
 
@@ -524,7 +524,7 @@ kcmp(Key *ka, Key *kb)
 void
 printout(Biobuf *b)
 {
-	int32_t n;
+	i32 n;
 	Line **lp, *l;
 	Key *ok;
 
@@ -954,8 +954,8 @@ doargs(int argc, char *argv[])
 	return;
 }
 
-uint8_t*
-skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
+u8 *
+skip(u8 *l, int n1, int n2, int bflag, int endfield)
 {
 	int i, c, tc;
 	Rune r;
@@ -1021,9 +1021,9 @@ skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 }
 
 void
-dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_gn(Key *k, u8 *lp, u8 *lpe, Field *f)
 {
-	uint8_t *kp;
+	u8 *kp;
 	int c, cl, dp;
 	int state, nzero, exp, expsign, rflag;
 
@@ -1221,9 +1221,9 @@ dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_m(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_m(Key *k, u8 *lp, u8 *lpe, Field *f)
 {
-	uint8_t *kp;
+	u8 *kp;
 	Rune r, place[3];
 	int c, cl, pc;
 	int rflag;
@@ -1274,9 +1274,9 @@ dokey_m(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_dfi(Key *k, u8 *lp, u8 *lpe, Field *f)
 {
-	uint8_t *kp;
+	u8 *kp;
 	Rune r;
 	int c, cl, n, rflag;
 
@@ -1361,10 +1361,10 @@ dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_r(Key *k, u8 *lp, u8 *lpe, Field *f)
 {
 	int cl, n;
-	uint8_t *kp;
+	u8 *kp;
 
 	n = lpe - lp;
 	if(n < 0)
@@ -1390,10 +1390,10 @@ dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_(Key *k, u8 *lp, u8 *lpe, Field *f)
 {
 	int n, cl;
-	uint8_t *kp;
+	u8 *kp;
 
 	n = lpe - lp;
 	if(n < 0)
@@ -1409,7 +1409,7 @@ void
 buildkey(Line *l)
 {
 	Key *k;
-	uint8_t *lp, *lpe;
+	u8 *lp, *lpe;
 	int ll, kl, cl, i, n;
 	Field *f;
 
@@ -1557,11 +1557,11 @@ enum
 	Threshold	= 14,
 };
 
-void	rsort4(Key***, uint32_t, int);
-void	bsort4(Key***, uint32_t, int);
+void	rsort4(Key***, u32, int);
+void	bsort4(Key***, u32, int);
 
 void
-sort4(void *a, uint32_t n)
+sort4(void *a, u32 n)
 {
 	if(n > Threshold)
 		rsort4((Key***)a, n, 0);
@@ -1570,12 +1570,12 @@ sort4(void *a, uint32_t n)
 }
 
 void
-rsort4(Key ***a, uint32_t n, int b)
+rsort4(Key ***a, u32 n, int b)
 {
 	Key ***ea, ***t, ***u, **t1, **u1, *k;
 	Key ***part[257];
-	static int32_t count[257];
-	int32_t clist[257+257], *cp, *cp1;
+	static i32 count[257];
+	i32 clist[257+257], *cp, *cp1;
 	int c, lowc, higc;
 
 	/*
@@ -1681,7 +1681,7 @@ rsort4(Key ***a, uint32_t n, int b)
  * the pieces.
  */
 void
-bsort4(Key ***a, uint32_t n, int b)
+bsort4(Key ***a, u32 n, int b)
 {
 	Key ***i, ***j, ***k, ***l, **t;
 	Key *ka, *kb;

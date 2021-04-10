@@ -42,7 +42,7 @@ static int pcicfgrw32(int, int, int, int);
 static int
 pciscan(int bno, Pcidev** list)
 {
-	uint32_t v;
+	u32 v;
 	Pcidev *p, *head, *tail;
 	int dno, fno, i, hdt, l, maxfno, maxubn, rno, sbn, tbdf, ubn;
 

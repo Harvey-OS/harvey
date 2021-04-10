@@ -14,7 +14,7 @@ enum {
 	Isprefix = 16,
 };
 
-uint8_t prefixvals[256] =
+u8 prefixvals[256] =
 	{
 		[0x00] 0 | Isprefix,
 		[0x80] 1 | Isprefix,

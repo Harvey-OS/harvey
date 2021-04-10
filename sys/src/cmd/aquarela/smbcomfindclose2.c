@@ -10,9 +10,9 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomfindclose2(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
+smbcomfindclose2(SmbSession *s, SmbHeader *h, u8 *pdata, SmbBuffer *b)
 {
-	uint16_t sid;
+	u16 sid;
 	if (!smbcheckwordcount("comfindclose2", h, 1))
 		return SmbProcessResultFormat;
 	sid = smbnhgets(pdata);

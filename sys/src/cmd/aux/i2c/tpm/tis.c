@@ -69,7 +69,7 @@ int tis_init(void)
 	int bus = CONFIG_DRIVER_TPM_I2C_BUS;
 	int chip = CONFIG_DRIVER_TPM_I2C_ADDR;
 	struct stopwatch sw;
-	uint8_t buf = 0;
+	u8 buf = 0;
 	int ret;
 	long sw_run_duration = 750;
 
@@ -100,10 +100,10 @@ int tis_init(void)
 	return 0;
 }
 
-static ssize_t tpm_transmit(const uint8_t *buf, size_t bufsiz)
+static ssize_t tpm_transmit(const u8 *buf, size_t bufsiz)
 {
 	int rc;
-	uint32_t count, ordinal;
+	u32 count, ordinal;
 
 	struct tpm_chip *chip = &g_chip;
 
@@ -123,7 +123,7 @@ static ssize_t tpm_transmit(const uint8_t *buf, size_t bufsiz)
 	}
 
 	ASSERT(chip->vendor.send);
-	rc = chip->vendor.send(chip, (uint8_t *) buf, count);
+	rc = chip->vendor.send(chip, (u8 *) buf, count);
 	if (rc < 0) {
 		printk(BIOS_DEBUG, "tpm_transmit: tpm_send error\n");
 		goto out;
@@ -135,7 +135,7 @@ static ssize_t tpm_transmit(const uint8_t *buf, size_t bufsiz)
 	int timeout = 2 * 60 * 1000; /* two minutes timeout */
 	while (timeout) {
 		ASSERT(chip->vendor.status);
-		uint8_t status = chip->vendor.status(chip);
+		u8 status = chip->vendor.status(chip);
 		if ((status & chip->vendor.req_complete_mask) ==
 		    chip->vendor.req_complete_val) {
 			goto out_recv;
@@ -158,17 +158,17 @@ static ssize_t tpm_transmit(const uint8_t *buf, size_t bufsiz)
 
 out_recv:
 
-	rc = chip->vendor.recv(chip, (uint8_t *) buf, TPM_BUFSIZE);
+	rc = chip->vendor.recv(chip, (u8 *) buf, TPM_BUFSIZE);
 	if (rc < 0)
 		printk(BIOS_DEBUG, "tpm_transmit: tpm_recv: error %d\n", rc);
 out:
 	return rc;
 }
 
-int tis_sendrecv(const uint8_t *sendbuf, size_t sbuf_size,
-		uint8_t *recvbuf, size_t *rbuf_len)
+int tis_sendrecv(const u8 *sendbuf, size_t sbuf_size,
+		 u8 *recvbuf, size_t *rbuf_len)
 {
-	uint8_t buf[TPM_BUFSIZE];
+	u8 buf[TPM_BUFSIZE];
 
 	if (sizeof(buf) < sbuf_size)
 		return -1;

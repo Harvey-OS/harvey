@@ -7,43 +7,43 @@
  * in the LICENSE file.
  */
 
-Block*	sourceBlock(Source*, uint32_t, int);
-Block*	_sourceBlock(Source*, uint32_t, int, int, uint32_t);
+Block*	sourceBlock(Source*, u32, int);
+Block*	_sourceBlock(Source*, u32, int, int, u32);
 void	sourceClose(Source*);
-Source*	sourceCreate(Source*, int, int, uint32_t);
-uint32_t	sourceGetDirSize(Source*);
+Source*	sourceCreate(Source*, int, int, u32);
+u32	sourceGetDirSize(Source*);
 int	sourceGetEntry(Source*, Entry*);
-uint64_t	sourceGetSize(Source*);
+u64	sourceGetSize(Source*);
 int	sourceLock2(Source*, Source*, int);
 int	sourceLock(Source*, int);
 char	*sourceName(Source *s);
-Source*	sourceOpen(Source*, uint32_t, int, int);
+Source*	sourceOpen(Source*, u32, int, int);
 int	sourceRemove(Source*);
-Source*	sourceRoot(Fs*, uint32_t, int);
-int	sourceSetDirSize(Source*, uint32_t);
+Source*	sourceRoot(Fs*, u32, int);
+int	sourceSetDirSize(Source*, u32);
 int	sourceSetEntry(Source*, Entry*);
-int	sourceSetSize(Source*, uint64_t);
+int	sourceSetSize(Source*, u64);
 int	sourceTruncate(Source*);
 void	sourceUnlock(Source*);
 
-Block*	cacheAllocBlock(Cache*, int, uint32_t, uint32_t, uint32_t);
-Cache*	cacheAlloc(Disk*, VtSession*, uint32_t, int);
-void	cacheCountUsed(Cache*, uint32_t, uint32_t*, uint32_t*, uint32_t*);
+Block*	cacheAllocBlock(Cache*, int, u32, u32, u32);
+Cache*	cacheAlloc(Disk*, VtSession*, u32, int);
+void	cacheCountUsed(Cache*, u32, u32*, u32*, u32*);
 int	cacheDirty(Cache*);
 void	cacheFlush(Cache*, int);
 void	cacheFree(Cache*);
-Block*	cacheGlobal(Cache*, unsigned char[VtScoreSize], int, uint32_t, int);
-Block*	cacheLocal(Cache*, int, uint32_t, int);
-Block*	cacheLocalData(Cache*, uint32_t, int, uint32_t, int, uint32_t);
-uint32_t	cacheLocalSize(Cache*, int);
-int	readLabel(Cache*, Label*, uint32_t addr);
+Block*	cacheGlobal(Cache*, unsigned char[VtScoreSize], int, u32, int);
+Block*	cacheLocal(Cache*, int, u32, int);
+Block*	cacheLocalData(Cache*, u32, int, u32, int, u32);
+u32	cacheLocalSize(Cache*, int);
+int	readLabel(Cache*, Label*, u32 addr);
 
-Block*	blockCopy(Block*, uint32_t, uint32_t, uint32_t);
+Block*	blockCopy(Block*, u32, u32, u32);
 void	blockDependency(Block*, Block*, int, unsigned char*, Entry*);
 int	blockDirty(Block*);
 void	blockDupLock(Block*);
 void	blockPut(Block*);
-void	blockRemoveLink(Block*, uint32_t, int, uint32_t, int);
+void	blockRemoveLink(Block*, u32, int, u32, int);
 unsigned char*	blockRollback(Block*, unsigned char*);
 void	blockSetIOState(Block*, int);
 Block*	_blockSetLabel(Block*, Label*);
@@ -55,17 +55,17 @@ int	diskBlockSize(Disk*);
 int	diskFlush(Disk*);
 void	diskFree(Disk*);
 void	diskRead(Disk*, Block*);
-int	diskReadRaw(Disk*, int, uint32_t, unsigned char*);
-uint32_t	diskSize(Disk*, int);
+int	diskReadRaw(Disk*, int, u32, unsigned char*);
+u32	diskSize(Disk*, int);
 void	diskWriteAndWait(Disk*,	Block*);
 void	diskWrite(Disk*, Block*);
-int	diskWriteRaw(Disk*, int, uint32_t, unsigned char*);
+int	diskWriteRaw(Disk*, int, u32, unsigned char*);
 
 char*	bioStr(int);
 char*	bsStr(int);
 char*	btStr(int);
-uint32_t	globalToLocal(unsigned char[VtScoreSize]);
-void	localToGlobal(uint32_t, unsigned char[VtScoreSize]);
+u32	globalToLocal(unsigned char[VtScoreSize]);
+void	localToGlobal(u32, unsigned char[VtScoreSize]);
 
 void	headerPack(Header*, unsigned char*);
 int	headerUnpack(Header*, unsigned char*);
@@ -88,8 +88,8 @@ void	periodicKill(Periodic*);
 
 int	fileGetSources(File*, Entry*, Entry*);
 File*	fileRoot(Source*);
-int	fileSnapshot(File*, File*, uint32_t, int);
-int	fsNextQid(Fs*, uint64_t*);
+int	fileSnapshot(File*, File*, u32, int);
+int	fsNextQid(Fs*, u64*);
 int	mkVac(VtSession*, uint, Entry*, Entry*, DirEntry*, unsigned char[VtScoreSize]);
 Block*	superGet(Cache*, Super*);
 
@@ -105,9 +105,9 @@ void	bwatchSetBlockSize(uint);
 void	bwatchUnlock(Block*);
 
 void	initWalk(WalkPtr*, Block*, uint);
-int	nextWalk(WalkPtr*, unsigned char[VtScoreSize], unsigned char*, uint32_t*, Entry**);
+int	nextWalk(WalkPtr*, unsigned char[VtScoreSize], unsigned char*, u32*, Entry**);
 
-void	snapGetTimes(Snap*, uint32_t*, uint32_t*, uint32_t*);
-void	snapSetTimes(Snap*, uint32_t, uint32_t, uint32_t);
+void	snapGetTimes(Snap*, u32*, u32*, u32*);
+void	snapSetTimes(Snap*, u32, u32, u32);
 
 void	fsCheck(Fsck*);

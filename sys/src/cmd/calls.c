@@ -109,13 +109,13 @@ String *cppopt;
 Root *roots;
 
 static struct stats {
-	int32_t	highestseen;	/* aseen high water mark */
-	int32_t	highestname;	/* namelist high water mark */
-	int32_t	highestact;	/* activelist high water mark */
-	int32_t	highgetfree;	/* getfrees high water mark */
+	i32	highestseen;	/* aseen high water mark */
+	i32	highestname;	/* namelist high water mark */
+	i32	highestact;	/* activelist high water mark */
+	i32	highgetfree;	/* getfrees high water mark */
 } stats;
 
-static int32_t getfrees = 0;
+static i32 getfrees = 0;
 
 int bracket = 0;			/* curly brace count in input */
 int linect = 0;				/* line number in output */
@@ -138,7 +138,7 @@ char *dashes;				/* separators for deep nestings */
  */
 char *sysword[] = {
 	"auto", "case", "char", "do", "double", "else", "enum",
-	"extern", "float", "for", "if", "int", "int32_t", "register",
+	"extern", "float", "for", "if", "int", "i32", "register",
 	"return", "short", "sizeof", "static", "struct", "switch",
 	"typedef", "union", "unsigned", "void", "while",
 };
@@ -640,7 +640,7 @@ getfunc(Biobuf *in, char *atom)
 			} while(ap < ep && ISIDENT(c));
 			*ap = '\0';
 			if (ap >= ep) {	/* uncommon case: id won't fit */
-				/* consume remainder of too-int32_t id */
+				/* consume remainder of too-i32 id */
 				while (ISIDENT(c))
 					c = nextc(in);
 			}
@@ -933,7 +933,7 @@ main(int argc, char **argv)
 
 	if (Printstats) {
 		fprint(2, "%ld/%d aseen entries\n", stats.highestseen, Maxseen);
-		fprint(2, "%ld int32_test namelist hash chain\n", stats.highestname);
+		fprint(2, "%ld i32est namelist hash chain\n", stats.highestname);
 		fprint(2, "%ld/%d activelist high water mark\n",
 			stats.highestact, Maxdepth);
 		fprint(2, "%ld dlist high water mark\n", stats.highgetfree);

@@ -12,7 +12,7 @@
  * functions (possibly) linked in, complete, from libc.
  */
 #define nelem(x) (sizeof(x) / sizeof((x)[0]))
-#define offsetof(s, m) (uint64_t)(&(((s *)0)->m))
+#define offsetof(s, m) (u64)(&(((s *)0)->m))
 #define assert(x)                    \
 	do {                         \
 		if(!(x))             \

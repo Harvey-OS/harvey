@@ -47,8 +47,8 @@ int lame_decode_init( void )
 int lame_decode1_headers(
         unsigned char*   buffer,
         int              len,
-        int16_t            pcm_l [],
-        int16_t            pcm_r [],
+        i16            pcm_l [],
+        i16            pcm_r [],
         mp3data_struct*  mp3data )
 {
     static const int smpls [2] [4] = {
@@ -140,8 +140,8 @@ int lame_decode1_headers(
 int lame_decode1(
         unsigned char*  buffer,
 	int    len,
-	int16_t  pcm_l [],
-	int16_t  pcm_r [] )
+	i16  pcm_l [],
+	i16  pcm_r [] )
 {
   mp3data_struct mp3data;
 
@@ -159,8 +159,8 @@ int lame_decode1(
 int lame_decode_headers(
         unsigned char*   buffer,
 	int              len,
-	int16_t            pcm_l [],
-	int16_t            pcm_r [],
+	i16            pcm_l [],
+	i16            pcm_r [],
         mp3data_struct*  mp3data )
 {
     int  ret;
@@ -181,8 +181,8 @@ int lame_decode_headers(
 int lame_decode(
         unsigned char*  buffer,
 	int    len,
-	int16_t  pcm_l [],
-	int16_t  pcm_r [] )
+	i16  pcm_l [],
+	i16  pcm_r [] )
 {
     mp3data_struct  mp3data;
 

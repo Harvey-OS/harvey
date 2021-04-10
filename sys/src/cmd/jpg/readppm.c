@@ -174,7 +174,7 @@ readppm(Biobuf *b, Rawimage *a)
 	int i, ch, wid, ht, r, c;
 	int maxcol, nchan, invert;
 	int (*fetch)(Biobufhdr*);
-	uint8_t *rgb[3];
+	u8 *rgb[3];
 	char buf[ERRMAX];
 	char *e;
 	Pix *p;

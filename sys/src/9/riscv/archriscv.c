@@ -142,7 +142,7 @@ microdelay(int microsecs)
 {
 	print("microdelay\n");
 	/*
-	uint64_t r, t;
+	u64 r, t;
 
 	r = rdtsc();
 	for(t = r + (sys->cyclefreq*microsecs)/1000000ull; r < t; r = rdtsc())
@@ -155,7 +155,7 @@ millidelay(int millisecs)
 {
 	print("millidelay\n");
 	/*
-	uint64_t r, t;
+	u64 r, t;
 
 	r = rdtsc();
 	for(t = r + (sys->cyclefreq*millisecs)/1000ull; r < t; r = rdtsc())

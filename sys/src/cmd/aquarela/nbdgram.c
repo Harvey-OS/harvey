@@ -38,14 +38,14 @@ udplistener(void *v)
 {
 //print("udplistener - starting\n");
 	for (;;) {
-		uint8_t msg[Udphdrsize + 576];
+		u8 msg[Udphdrsize + 576];
 		int len = read(udp.fd, msg, sizeof(msg));
 		if (len < 0)
 			break;
 		if (len >= nbudphdrsize) {
 			NbDgram s;
 //			Udphdr *uh;
-			uint8_t *p;
+			u8 *p;
 			int n;
 
 //			uh = (Udphdr*)msg;
@@ -147,10 +147,10 @@ nbdgramlisten(NbName to, int (*deliver)(void *magic, NbDgram *s), void *magic)
 }
 
 int
-nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s)
+nbdgramsendto(u8 *ipaddr, u16 port, NbDgram *s)
 {
 	Udphdr *u;
-	uint8_t msg[NbDgramMaxPacket + Udphdrsize];
+	u8 msg[NbDgramMaxPacket + Udphdrsize];
 	int l;
 	int rv;
 	char *e;
@@ -178,13 +178,13 @@ nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s)
 
 static struct {
 	Lock	lock;
-	uint16_t id;
+	u16 id;
 } id;
 
-static uint16_t
+static u16
 nextdgramid(void)
 {
-	uint16_t v;
+	u16 v;
 	lock(&id.lock);
 	v = id.id++;
 	unlock(&id.lock);
@@ -192,10 +192,10 @@ nextdgramid(void)
 }
 
 int
-nbdgramsend(NbDgramSendParameters *p, uint8_t *data, int32_t datalen)
+nbdgramsend(NbDgramSendParameters *p, u8 *data, i32 datalen)
 {
 	NbDgram s;
-	uint8_t dstip[IPaddrlen];
+	u8 dstip[IPaddrlen];
 	s.type = p->type;
 	switch (p->type) {
 	case NbDgramBroadcast:

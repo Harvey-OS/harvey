@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-typedef uint32_t	Sumfn(uint32_t, void *c, uint64_t);
+typedef u32	Sumfn(u32, void *c, u64);
 extern Sumfn	sumr, sum5, sum32;
 char		*sumfile(char*, Sumfn*);
 
@@ -52,8 +52,8 @@ sumfile(char *file, Sumfn *fn)
 {
 	int fd;
 	int n;
-	uint32_t sum;
-	uint64_t fsize;
+	u32 sum;
+	u64 fsize;
 	char buf[8*1024];
 
 	if(file){
@@ -88,10 +88,10 @@ sumfile(char *file, Sumfn *fn)
 
 #define	VBSIZE		512		/* system v */
 
-uint32_t
-sum5(uint32_t sum, void *buf, uint64_t uvn)
+u32
+sum5(u32 sum, void *buf, u64 uvn)
 {
-	uint8_t *s, *send;
+	u8 *s, *send;
 	int n;
 
 	if(buf == 0){
@@ -107,10 +107,10 @@ sum5(uint32_t sum, void *buf, uint64_t uvn)
 
 #define	RBSIZE		1024		/* research */
 
-uint32_t
-sumr(uint32_t sum, void *buf, uint64_t uvn)
+u32
+sumr(u32 sum, void *buf, u64 uvn)
 {
-	uint8_t *s, *send;
+	u8 *s, *send;
 	int n;
 
 	if(buf == 0){
@@ -127,13 +127,13 @@ sumr(uint32_t sum, void *buf, uint64_t uvn)
 	return sum;
 }
 
-extern uint32_t crc_table[256];
+extern u32 crc_table[256];
 
-uint32_t
-sum32(uint32_t lcrc, void *buf, uint64_t uvn)
+u32
+sum32(u32 lcrc, void *buf, u64 uvn)
 {
-	uint8_t *s = buf;
-	uint32_t crc = lcrc;
+	u8 *s = buf;
+	u32 crc = lcrc;
 	int n;
 
 	n = uvn;
@@ -156,7 +156,7 @@ sum32(uint32_t lcrc, void *buf, uint64_t uvn)
 /*
  *	CRC 035556101440
  */
-uint32_t crc_table[256] = {
+u32 crc_table[256] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 	0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 	0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,

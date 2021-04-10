@@ -222,7 +222,7 @@ fsysWstatAllow(Fsys* fsys)
 }
 
 static char modechars[] = "YUGalLdHSATs";
-static uint32_t modebits[] = {
+static u32 modebits[] = {
 	ModeSticky,
 	ModeSetUid,
 	ModeSetGid,
@@ -239,7 +239,7 @@ static uint32_t modebits[] = {
 };
 
 char*
-fsysModeString(uint32_t mode, char *buf)
+fsysModeString(u32 mode, char *buf)
 {
 	int i;
 	char *p;
@@ -253,9 +253,9 @@ fsysModeString(uint32_t mode, char *buf)
 }
 
 int
-fsysParseMode(char* s, uint32_t* mode)
+fsysParseMode(char* s, u32* mode)
 {
-	uint32_t x, y;
+	u32 x, y;
 	char *p;
 
 	x = 0;
@@ -414,7 +414,7 @@ fsysSnap(Fsys* fsys, int argc, char* argv[])
 static int
 fsysSnapClean(Fsys *fsys, int argc, char* argv[])
 {
-	uint32_t arch, snap, life;
+	u32 arch, snap, life;
 	char *usage = "usage: [fsys name] snapclean [maxminutes]\n";
 
 	ARGBEGIN{
@@ -438,7 +438,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 {
 	char buf[128], *x;
 	int hh, mm, changed;
-	uint32_t arch, snap, life;
+	u32 arch, snap, life;
 	char *usage = "usage: [fsys name] snaptime [-a hhmm] [-s snapminutes] [-t maxminutes]";
 
 	changed = 0;
@@ -450,7 +450,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		if(x == nil)
 			return cliError(usage);
 		if(strcmp(x, "none") == 0){
-			arch = ~(uint32_t)0;
+			arch = ~(u32)0;
 			break;
 		}
 		if(strlen(x) != 4 || strspn(x, "0123456789") != 4)
@@ -467,7 +467,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		if(x == nil)
 			return cliError(usage);
 		if(strcmp(x, "none") == 0){
-			snap = ~(uint32_t)0;
+			snap = ~(u32)0;
 			break;
 		}
 		snap = atoi(x);
@@ -478,7 +478,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		if(x == nil)
 			return cliError(usage);
 		if(strcmp(x, "none") == 0){
-			life = ~(uint32_t)0;
+			life = ~(u32)0;
 			break;
 		}
 		life = atoi(x);
@@ -494,15 +494,15 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		return 1;
 	}
 	snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
-	if(arch != ~(uint32_t)0)
+	if(arch != ~(u32)0)
 		sprint(buf, "-a %02d%02d", arch/60, arch%60);
 	else
 		sprint(buf, "-a none");
-	if(snap != ~(uint32_t)0)
+	if(snap != ~(u32)0)
 		sprint(buf+strlen(buf), " -s %d", snap);
 	else
 		sprint(buf+strlen(buf), " -s none");
-	if(life != ~(uint32_t)0)
+	if(life != ~(u32)0)
 		sprint(buf+strlen(buf), " -t %u", life);
 	else
 		sprint(buf+strlen(buf), " -t none");
@@ -627,7 +627,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 	Fs *fs;
 	Label l;
 	int n, r;
-	uint32_t addr;
+	u32 addr;
 	Block *b, *bb;
 	char *usage = "usage: [fsys name] label addr [type state epoch epochClose tag]";
 
@@ -706,7 +706,7 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 	char *s;
 	Block *b;
 	unsigned char *buf;
-	uint32_t addr;
+	u32 addr;
 	int c, count, i, offset;
 	char *usage = "usage: [fsys name] block addr offset [count [data]]";
 
@@ -789,7 +789,7 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 	Label l;
 	char *p;
 	Block *b;
-	uint32_t addr;
+	u32 addr;
 	char *usage = "usage: [fsys name] bfree addr ...";
 
 	ARGBEGIN{
@@ -841,7 +841,7 @@ static int
 fsysDf(Fsys *fsys, int argc, char* argv[])
 {
 	char *usage = "usage: [fsys name] df";
-	uint32_t used, tot, bsize;
+	u32 used, tot, bsize;
 	Fs *fs;
 
 	ARGBEGIN{
@@ -854,8 +854,8 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
 	consPrint("\t%s: %,llu used + %,llu free = %,llu (%.1f%% used)\n",
-		fsys->name, used*(int64_t)bsize, (tot-used)*(int64_t)bsize,
-		tot*(int64_t)bsize, used*100.0/tot);
+		fsys->name, used*(i64)bsize, (tot-used)*(i64)bsize,
+		tot*(i64)bsize, used*100.0/tot);
 	return 1;
 }
 
@@ -868,7 +868,7 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 	Fs *fs;
 	Entry e;
 	Block *b;
-	uint32_t addr;
+	u32 addr;
 	int i, max, offset, sz;
 	unsigned char zero[VtEntrySize];
 	char *usage = "usage: [fsys name] clr%c addr offset ...";
@@ -945,7 +945,7 @@ fsysClrp(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysEsearch1(File* f, char* s, uint32_t elo)
+fsysEsearch1(File* f, char* s, u32 elo)
 {
 	int n, r;
 	DirEntry de;
@@ -1000,7 +1000,7 @@ fsysEsearch1(File* f, char* s, uint32_t elo)
 }
 
 static int
-fsysEsearch(Fs* fs, char* path, uint32_t elo)
+fsysEsearch(Fs* fs, char* path, u32 elo)
 {
 	int n;
 	File *f;
@@ -1030,7 +1030,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 {
 	Fs *fs;
 	int force, n, remove;
-	uint32_t low, old;
+	u32 low, old;
 	char *usage = "usage: [fsys name] epoch [[-ry] low]";
 
 	force = 0;
@@ -1050,7 +1050,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	if(argc > 0)
 		low = strtoul(argv[0], 0, 0);
 	else
-		low = ~(uint32_t)0;
+		low = ~(u32)0;
 
 	if(low == 0)
 		return cliError("low epoch cannot be zero");
@@ -1059,7 +1059,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 
 	vtRLock(fs->elk);
 	consPrint("\tlow %u hi %u\n", fs->elo, fs->ehi);
-	if(low == ~(uint32_t)0){
+	if(low == ~(u32)0){
 		vtRUnlock(fs->elk);
 		return 1;
 	}
@@ -1098,7 +1098,7 @@ static int
 fsysCreate(Fsys* fsys, int argc, char* argv[])
 {
 	int r;
-	uint32_t mode;
+	u32 mode;
 	char *elem, *p, *path;
 	char *usage = "usage: [fsys name] create path uid gid perm";
 	DirEntry de;
@@ -1279,7 +1279,7 @@ fsysWstat(Fsys *fsys, int argc, char* argv[])
 	}
 	if(strcmp(argv[5], "-") != 0){
 		de.size = strtoull(argv[5], &p, 0);
-		if(argv[5][0] == '\0' || *p != '\0' || (int64_t)de.size < 0){
+		if(argv[5][0] == '\0' || *p != '\0' || (i64)de.size < 0){
 			vtSetError("console wstat - bad length");
 			goto error;
 		}
@@ -1323,7 +1323,7 @@ fsckClri(Fsck *fsck, char *name, MetaBlock *mb, int i, Block *b)
 }
 
 static void
-fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
+fsckClose(Fsck *fsck, Block *b, u32 epoch)
 {
 	Label l;
 
@@ -1510,11 +1510,11 @@ out:
 	return r;
 }
 
-static uint32_t
+static u32
 freemem(void)
 {
 	int nf, pgsize = 0;
-	uint64_t size, userpgs = 0, userused = 0;
+	u64 size, userpgs = 0, userused = 0;
 	char *ln, *sl;
 	char *fields[2];
 	Biobuf *bp;
@@ -1553,7 +1553,7 @@ fsysOpen(char* name, int argc, char* argv[])
 	char *p, *host;
 	Fsys *fsys;
 	int noauth, noventi, noperm, rflag, wstatallow, noatimeupd;
-	int32_t ncache;
+	i32 ncache;
 	char *usage = "usage: fsys name open [-APVWr] [-c ncache]";
 
 	ncache = 1000;
@@ -1599,7 +1599,7 @@ fsysOpen(char* name, int argc, char* argv[])
 	/* automatic memory sizing? */
 	if(mempcnt > 0) {
 		/* TODO: 8K is a hack; use the actual block size */
-		ncache = (((int64_t)freemem() * mempcnt) / 100) / (8*1024);
+		ncache = (((i64)freemem() * mempcnt) / 100) / (8*1024);
 		if (ncache < 100)
 			ncache = 100;
 	}

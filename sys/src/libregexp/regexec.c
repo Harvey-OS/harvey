@@ -72,7 +72,7 @@ regexec1(Reprog *progp,	/* program to run */
 				break;
 			}
 		}
-		r = *(uint8_t*)s;
+		r = *(u8*)s;
 		if(r < Runeself)
 			n = 1;
 		else

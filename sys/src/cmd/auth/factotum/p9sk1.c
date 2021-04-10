@@ -35,7 +35,7 @@ struct State
 	char cchal[CHALLEN];
 	char tbuf[TICKETLEN+AUTHENTLEN];
 	char authkey[DESKEYLEN];
-	uint8_t *secret;
+	u8 *secret;
 	int speakfor;
 };
 
@@ -178,7 +178,7 @@ p9skread(Fsstate *fss, void *a, uint *n)
 		fss->ai.cuid = s->t.cuid;
 		fss->ai.suid = s->t.suid;
 		s->secret = emalloc(8);
-		des56to64((uint8_t*)s->t.key, s->secret);
+		des56to64((u8*)s->t.key, s->secret);
 		fss->ai.secret = s->secret;
 		fss->ai.nsecret = 8;
 		fss->haveai = 1;
@@ -336,7 +336,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		fss->ai.cuid = s->t.cuid;
 		fss->ai.suid = s->t.suid;
 		s->secret = emalloc(8);
-		des56to64((uint8_t*)s->t.key, s->secret);
+		des56to64((u8*)s->t.key, s->secret);
 		fss->ai.secret = s->secret;
 		fss->ai.nsecret = 8;
 		fss->haveai = 1;
@@ -376,7 +376,7 @@ unhex(char c)
 }
 
 static int
-hexparse(char *hex, uint8_t *dat, int ndat)
+hexparse(char *hex, u8 *dat, int ndat)
 {
 	int i;
 

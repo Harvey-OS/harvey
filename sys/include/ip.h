@@ -34,11 +34,11 @@ struct Iplifc
 	Iplifc	*next;
 
 	/* per address on the ip interface */
-	uint8_t	ip[IPaddrlen];
-	uint8_t	mask[IPaddrlen];
-	uint8_t	net[IPaddrlen];		/* ip & mask */
-	uint32_t	preflt;			/* preferred lifetime */
-	uint32_t	validlt;		/* valid lifetime */
+	u8	ip[IPaddrlen];
+	u8	mask[IPaddrlen];
+	u8	net[IPaddrlen];		/* ip & mask */
+	u32	preflt;			/* preferred lifetime */
+	u32	validlt;		/* valid lifetime */
 };
 
 /* default values, one per stack */
@@ -64,13 +64,13 @@ struct Ipifc
 	/* per ip interface */
 	int	index;			/* number of interface in ipifc dir */
 	char	dev[64];
-	uint8_t	sendra6;		/* on == send router adv */
-	uint8_t	recvra6;		/* on == rcv router adv */
+	u8	sendra6;		/* on == send router adv */
+	u8	recvra6;		/* on == rcv router adv */
 	int	mtu;
-	uint32_t	pktin;
-	uint32_t	pktout;
-	uint32_t	errin;
-	uint32_t	errout;
+	u32	pktin;
+	u32	pktout;
+	u32	errin;
+	u32	errout;
 	Ipv6rp	rp;
 };
 
@@ -126,13 +126,13 @@ enum {
 /* V6 header on the wire */
 typedef struct Ip6hdr Ip6hdr;
 struct Ip6hdr {
-	uint8_t	vcf[4];		/* version:4, traffic class:8, flow label:20 */
-	uint8_t	ploadlen[2];	/* payload length: packet length - 40 */
-	uint8_t	proto;		/* next header type */
-	uint8_t	ttl;		/* hop limit */
-	uint8_t	src[IPaddrlen];	/* source address */
-	uint8_t	dst[IPaddrlen];	/* destination address */
-	uint8_t	payload[];
+	u8	vcf[4];		/* version:4, traffic class:8, flow label:20 */
+	u8	ploadlen[2];	/* payload length: packet length - 40 */
+	u8	proto;		/* next header type */
+	u8	ttl;		/* hop limit */
+	u8	src[IPaddrlen];	/* source address */
+	u8	dst[IPaddrlen];	/* destination address */
+	u8	payload[];
 };
 
 /*
@@ -140,9 +140,9 @@ struct Ip6hdr {
  */
 typedef struct Icmp6hdr Icmp6hdr;
 struct Icmp6hdr {
-	uint8_t	_0_[8];
-	uint8_t	laddr[IPaddrlen];	/* local address */
-	uint8_t	raddr[IPaddrlen];	/* remote address */
+	u8	_0_[8];
+	u8	laddr[IPaddrlen];	/* local address */
+	u8	raddr[IPaddrlen];	/* remote address */
 };
 
 /*
@@ -156,50 +156,50 @@ enum
 typedef struct Udphdr Udphdr;
 struct Udphdr
 {
-	uint8_t	raddr[IPaddrlen];	/* V6 remote address */
-	uint8_t	laddr[IPaddrlen];	/* V6 local address */
-	uint8_t	ifcaddr[IPaddrlen];	/* V6 ifc addr msg was received on */
-	uint8_t	rport[2];		/* remote port */
-	uint8_t	lport[2];		/* local port */
+	u8	raddr[IPaddrlen];	/* V6 remote address */
+	u8	laddr[IPaddrlen];	/* V6 local address */
+	u8	ifcaddr[IPaddrlen];	/* V6 ifc addr msg was received on */
+	u8	rport[2];		/* remote port */
+	u8	lport[2];		/* local port */
 };
 
-uint8_t*	defmask(uint8_t*);
-void	maskip(uint8_t*, uint8_t*, uint8_t*);
+u8 *	defmask(u8*);
+void	maskip(u8*, u8*, u8*);
 int	eipfmt(Fmt*);
-int	isv4(uint8_t*);
-int64_t	parseip(uint8_t*, char*);
-int64_t	parseipmask(uint8_t*, char*);
-char*	v4parseip(uint8_t*, char*);
-char*	v4parsecidr(uint8_t*, uint8_t*, char*);
-int	parseether(uint8_t*, char*);
-int	myipaddr(uint8_t*, char*);
-int	myetheraddr(uint8_t*, char*);
-int	equivip4(uint8_t*, uint8_t*);
-int	equivip6(uint8_t*, uint8_t*);
+int	isv4(u8*);
+i64	parseip(u8*, char*);
+i64	parseipmask(u8*, char*);
+char*	v4parseip(u8*, char*);
+char*	v4parsecidr(u8*, u8*, char*);
+int	parseether(u8*, char*);
+int	myipaddr(u8*, char*);
+int	myetheraddr(u8*, char*);
+int	equivip4(u8*, u8*);
+int	equivip6(u8*, u8*);
 
 Ipifc*	readipifc(char*, Ipifc*, int);
 
-void	hnputv(void*, uint64_t);
+void	hnputv(void*, u64);
 void	hnputl(void*, uint);
-void	hnputs(void*, uint16_t);
-uint64_t	nhgetv(void*);
+void	hnputs(void*, u16);
+u64	nhgetv(void*);
 uint	nhgetl(void*);
-uint16_t	nhgets(void*);
-uint16_t	ptclbsum(uint8_t*, int);
+u16	nhgets(void*);
+u16	ptclbsum(u8*, int);
 
-int	v6tov4(uint8_t*, uint8_t*);
-void	v4tov6(uint8_t*, uint8_t*);
+int	v6tov4(u8*, u8*);
+void	v4tov6(u8*, u8*);
 
 #define	ipcmp(x, y) memcmp(x, y, IPaddrlen)
 #define	ipmove(x, y) memmove(x, y, IPaddrlen)
 
-extern uint8_t IPv4bcast[IPaddrlen];
-extern uint8_t IPv4bcastobs[IPaddrlen];
-extern uint8_t IPv4allsys[IPaddrlen];
-extern uint8_t IPv4allrouter[IPaddrlen];
-extern uint8_t IPnoaddr[IPaddrlen];
-extern uint8_t v4prefix[IPaddrlen];
-extern uint8_t IPallbits[IPaddrlen];
+extern u8 IPv4bcast[IPaddrlen];
+extern u8 IPv4bcastobs[IPaddrlen];
+extern u8 IPv4allsys[IPaddrlen];
+extern u8 IPv4allrouter[IPaddrlen];
+extern u8 IPnoaddr[IPaddrlen];
+extern u8 v4prefix[IPaddrlen];
+extern u8 IPallbits[IPaddrlen];
 
-#define CLASS(p) ((*(uint8_t*)(p))>>6)
+#define CLASS(p) ((*(u8*)(p))>>6)
 

@@ -92,10 +92,10 @@ rename(char *d, char *old, char *new)
 }
 
 void
-int32_t2short(char shortname[ENCLEN+1], char *longname)
+i322short(char shortname[ENCLEN+1], char *longname)
 {
-	uint8_t digest[MD5dlen];
-	md5((uint8_t*)longname, strlen(longname), digest, nil);
+	u8 digest[MD5dlen];
+	md5((u8*)longname, strlen(longname), digest, nil);
 	enc32(shortname, ENCLEN+1, digest, MD5dlen);
 }
 
@@ -114,7 +114,7 @@ readnames(char *lnfile)
 	while((f = Brdstr(bio, '\n', 1)) != nil){
 		n = malloc(sizeof(Name));
 		n->longname = f;
-		int32_t2short(n->shortname, f);
+		i322short(n->shortname, f);
 		n->next = names;
 		names = n;
 	}

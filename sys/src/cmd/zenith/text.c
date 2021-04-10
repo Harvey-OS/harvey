@@ -1516,7 +1516,7 @@ uint
 xselect(Frame *f, Mousectl *mc, Image *col, uint *p1p)	/* when called, button is down */
 {
 	uint p0, p1, q, tmp;
-	uint32_t msec;
+	u32 msec;
 	Point mp, pt0, pt1, qt;
 	int reg, b;
 

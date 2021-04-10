@@ -24,9 +24,9 @@ typedef struct
 {
 	int	type;
 	int	dlen;
-	uint32_t	addr;
-	uint8_t	bytes[256+4];
-	uint8_t	csum;
+	u32	addr;
+	u8	bytes[256+4];
+	u8	csum;
 } Cpline;
 
 char*	rdcpline(Biobuf*, Cpline*);
@@ -42,7 +42,7 @@ usage(void)
 static void
 loadimage(char* file, int mfd)
 {
-	uint8_t buf[256];
+	u8 buf[256];
 	int fd, n, r;
 
 	if((fd = open(file, OREAD)) < 0)
@@ -67,9 +67,9 @@ loadhex(char* file, int mfd)
 	Cpline c;
 	Biobuf *b;
 	char *err;
-	uint32_t addr, seg;
+	u32 addr, seg;
 	int lineno;
-	uint8_t buf[1024];
+	u8 buf[1024];
 
 	b = Bopen(file, OREAD);
 	if(b == 0)
@@ -233,8 +233,8 @@ char*
 rdcpline(Biobuf *b, Cpline *cpl)
 {
 	char *cp, *ep, *p;
-	uint8_t *up;
-	uint8_t csum;
+	u8 *up;
+	u8 csum;
 	int c;
 
 	cp = Brdline(b, '\n');

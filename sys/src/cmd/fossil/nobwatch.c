@@ -13,7 +13,7 @@
 #include "error.h"
 
 void
-bwatchReset(uint8_t score[VtScoreSize])
+bwatchReset(u8 score[VtScoreSize])
 {
 	USED(score);
 }

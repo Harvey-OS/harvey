@@ -519,7 +519,7 @@ unsigned size = 1024;
 char *nstash = 0;
 void define(char *a){
 	char	*ap;
-	int16_t	i, j;
+	i16	i, j;
 	int curly = 0;
 	ap = a;
 	while(isalpha(*ap))ap++;

@@ -40,43 +40,43 @@ Type floppytype[] =
 
 typedef struct Dosboot	Dosboot;
 struct Dosboot{
-	uint8_t	magic[3];	/* really an x86 JMP instruction */
-	uint8_t	version[8];
-	uint8_t	sectsize[2];
-	uint8_t	clustsize;
-	uint8_t	nresrv[2];
-	uint8_t	nfats;
-	uint8_t	rootsize[2];
-	uint8_t	volsize[2];
-	uint8_t	mediadesc;
-	uint8_t	fatsize[2];
-	uint8_t	trksize[2];
-	uint8_t	nheads[2];
-	uint8_t	nhidden[4];
-	uint8_t	bigvolsize[4];
-	uint8_t	driveno;
-	uint8_t	reserved0;
-	uint8_t	bootsig;
-	uint8_t	volid[4];
-	uint8_t	label[11];
-	uint8_t	type[8];
+	u8	magic[3];	/* really an x86 JMP instruction */
+	u8	version[8];
+	u8	sectsize[2];
+	u8	clustsize;
+	u8	nresrv[2];
+	u8	nfats;
+	u8	rootsize[2];
+	u8	volsize[2];
+	u8	mediadesc;
+	u8	fatsize[2];
+	u8	trksize[2];
+	u8	nheads[2];
+	u8	nhidden[4];
+	u8	bigvolsize[4];
+	u8	driveno;
+	u8	reserved0;
+	u8	bootsig;
+	u8	volid[4];
+	u8	label[11];
+	u8	type[8];
 };
 #define	PUTSHORT(p, v) { (p)[1] = (v)>>8; (p)[0] = (v); }
 #define	PUTLONG(p, v) { PUTSHORT((p), (v)); PUTSHORT((p)+2, (v)>>16); }
 #define	GETSHORT(p)	(((p)[1]<<8)|(p)[0])
-#define	GETLONG(p)	(((uint32_t)GETSHORT(p+2)<<16)|(uint32_t)GETSHORT(p))
+#define	GETLONG(p)	(((u32)GETSHORT(p+2)<<16)|(u32)GETSHORT(p))
 
 typedef struct Dosdir	Dosdir;
 struct Dosdir
 {
-	uint8_t	name[8];
-	uint8_t	ext[3];
-	uint8_t	attr;
-	uint8_t	reserved[10];
-	uint8_t	time[2];
-	uint8_t	date[2];
-	uint8_t	start[2];
-	uint8_t	length[4];
+	u8	name[8];
+	u8	ext[3];
+	u8	attr;
+	u8	reserved[10];
+	u8	time[2];
+	u8	date[2];
+	u8	start[2];
+	u8	length[4];
 };
 
 #define	DRONLY	0x01
@@ -116,20 +116,20 @@ unsigned char bootprog[512] =
 
 char *dev;
 int clustersize;
-uint8_t *fat;	/* the fat */
+u8 *fat;	/* the fat */
 int fatbits;
 int fatsecs;
 int fatlast;	/* last cluster allocated */
 int clusters;
 int fatsecs;
-int64_t volsecs;
-uint8_t *root;	/* first block of root */
+i64 volsecs;
+u8 *root;	/* first block of root */
 int rootsecs;
 int rootfiles;
 int rootnext;
 int nresrv = 1;
 int chatty;
-int64_t length;
+i64 length;
 Type *t;
 int fflag;
 int hflag;
@@ -147,8 +147,8 @@ enum
 };
 
 void	dosfs(int, int, Disk*, char*, int, char*[], int);
-uint32_t	clustalloc(int);
-void	addrname(uint8_t*, Dir*, char*, uint32_t);
+u32	clustalloc(int);
+void	addrname(u8*, Dir*, char*, u32);
 void	sanitycheck(Disk*);
 
 void
@@ -357,17 +357,17 @@ getdriveno(Disk *disk)
 	return 0x80;
 }
 
-int32_t
-writen(int fd, void *buf, int32_t n)
+i32
+writen(int fd, void *buf, i32 n)
 {
-	int32_t m, tot;
+	i32 m, tot;
 
 	/* write 8k at a time, to be nice to the disk subsystem */
 	for(tot=0; tot<n; tot+=m){
 		m = n - tot;
 		if(m > 8192)
 			m = 8192;
-		if(write(fd, (uint8_t*)buf+tot, m) != m)
+		if(write(fd, (u8*)buf+tot, m) != m)
 			break;
 	}
 	return tot;
@@ -379,11 +379,11 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc,
 {
 	char r[16];
 	Dosboot *b;
-	uint8_t *buf, *pbsbuf, *p;
+	u8 *buf, *pbsbuf, *p;
 	Dir *d;
 	int i, data, newclusters, npbs, n, sysfd;
-	uint32_t x;
-	int64_t length, secsize;
+	u32 x;
+	i64 length, secsize;
 
 	if(dofat == 0 && dopbs == 0)
 		return;
@@ -712,10 +712,10 @@ fprint(2, "add %s at clust %lx\n", d->name, x);
 /*
  *  allocate a cluster
  */
-uint32_t
+u32
 clustalloc(int flag)
 {
-	uint32_t o, x;
+	u32 o, x;
 
 	if(flag != Sof){
 		x = (flag == Eof) ? 0xffff : (fatlast+1);
@@ -771,7 +771,7 @@ void
 puttime(Dosdir *d)
 {
 	Tm *t = localtime(time(0));
-	uint16_t x;
+	u16 x;
 
 	x = (t->hour<<11) | (t->min<<5) | (t->sec>>1);
 	d->time[0] = x;
@@ -782,7 +782,7 @@ puttime(Dosdir *d)
 }
 
 void
-addrname(uint8_t *entry, Dir *dir, char *name, uint32_t start)
+addrname(u8 *entry, Dir *dir, char *name, u32 start)
 {
 	char *s;
 	Dosdir *d;

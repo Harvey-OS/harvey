@@ -54,7 +54,7 @@ struct AuthInfo
 	char	*suid;		/* server id */
 	char	*cap;		/* capability (only valid on server side) */
 	int	nsecret;	/* length of secret */
-	uint8_t	*secret;	/* secret */
+	u8	*secret;	/* secret */
 };
 
 struct Chalstate
@@ -74,7 +74,7 @@ struct Chalstate
 
 struct	Chapreply		/* for protocol "chap" */
 {
-	uint8_t	id;
+	u8	id;
 	char	resp[MD5LEN];
 };
 

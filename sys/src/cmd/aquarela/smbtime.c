@@ -10,12 +10,12 @@
 #include "headers.h"
 
 void
-smbplan9time2datetime(uint32_t time, int tzoff, uint16_t *datep,
-		      uint16_t *timep)
+smbplan9time2datetime(u32 time, int tzoff, u16 *datep,
+		      u16 *timep)
 {
 	Tm *tm;
 	if (tzoff < 0)
-		time -= (uint32_t)-tzoff;
+		time -= (u32)-tzoff;
 	else
 		time += tzoff;
 	tm = gmtime(time);
@@ -23,8 +23,8 @@ smbplan9time2datetime(uint32_t time, int tzoff, uint16_t *datep,
 	*timep = (tm->sec >> 1) | (tm->min << 5) | (tm->hour << 11);
 }
 
-uint32_t
-smbdatetime2plan9time(uint16_t date, uint16_t time, int tzoff)
+u32
+smbdatetime2plan9time(u16 date, u16 time, int tzoff)
 {
 	Tm tm;
 	strcpy(tm.zone, "GMT");
@@ -40,33 +40,33 @@ smbdatetime2plan9time(uint16_t date, uint16_t time, int tzoff)
 	return tm2sec(&tm) - tzoff;
 }
 
-int64_t
-smbplan9time2time(uint32_t time)
+i64
+smbplan9time2time(u32 time)
 {
-	return ((int64_t)time + 11644473600LL) * 10000000;
+	return ((i64)time + 11644473600LL) * 10000000;
 }
 
-uint32_t
-smbtime2plan9time(int64_t nttime)
+u32
+smbtime2plan9time(i64 nttime)
 {
 	return (nttime / 10000000 - 11644473600LL);
 }
 
-uint32_t
-smbplan9time2utime(uint32_t time, int tzoff)
+u32
+smbplan9time2utime(u32 time, int tzoff)
 {
 	if (tzoff < 0)
-		time -= (uint32_t)-tzoff;
+		time -= (u32)-tzoff;
 	else
 		time += tzoff;
 	return time;
 }
 
-uint32_t
-smbutime2plan9time(uint32_t utime, int tzoff)
+u32
+smbutime2plan9time(u32 utime, int tzoff)
 {
 	if (tzoff < 0)
-		utime += (uint32_t)-tzoff;
+		utime += (u32)-tzoff;
 	else
 		utime -= tzoff;
 	return utime;

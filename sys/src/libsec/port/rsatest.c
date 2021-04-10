@@ -17,9 +17,9 @@ void
 main(void)
 {
 	int n;
-	int64_t start;
+	i64 start;
 	char *p;
-	uint8_t buf[4096];
+	u8 buf[4096];
 	Biobuf b;
 	RSApriv *rsa;
 	mpint *clr, *enc, *clr2;
@@ -53,7 +53,7 @@ main(void)
 	print("> ");
 	while(p = Brdline(&b, '\n')){
 		n = Blinelen(&b);
-		letomp((uint8_t*)p, n, clr);
+		letomp((u8*)p, n, clr);
 		print("clr %B\n", clr);
 		rsaencrypt(&rsa->pub, clr, enc);
 		print("enc %B\n", enc);

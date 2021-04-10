@@ -15,7 +15,7 @@
 			"Config": {
 				"Code": [
 					"int cpuserver = 1;",
-					"uint32_t kerndate = 1;"
+					"u32 kerndate = 1;"
 				],
 				"NoDev": [
 					"arch",

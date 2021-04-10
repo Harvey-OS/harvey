@@ -10,14 +10,14 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomecho(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
+smbcomecho(SmbSession *s, SmbHeader *h, u8 *pdata, SmbBuffer *b)
 {
-	uint16_t echocount, e;
+	u16 echocount, e;
 	if (!smbcheckwordcount("comecho", h, 1))
 		return SmbProcessResultFormat;
 	echocount = smbnhgets(pdata);
 	for (e = 0; e < echocount; e++) {
-		uint32_t bytecountfixupoffset;
+		u32 bytecountfixupoffset;
 		SmbProcessResult pr;
 		if (!smbbufferputheader(s->response, h, &s->peerinfo)
 			|| !smbbufferputs(s->response, e))

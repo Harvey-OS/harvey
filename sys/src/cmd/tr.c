@@ -14,18 +14,18 @@ typedef struct PCB	/* Control block controlling specification parse */
 {
 	char	*base;		/* start of specification */
 	char	*current;	/* current parse point */
-	int32_t	last;		/* last Rune returned */
-	int32_t	final;		/* final Rune in a span */
+	i32	last;		/* last Rune returned */
+	i32	final;		/* final Rune in a span */
 } Pcb;
 
-uint8_t	bits[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+u8	bits[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
 #define	SETBIT(a, c)		((a)[(c)/8] |= bits[(c)&07])
 #define	CLEARBIT(a,c)		((a)[(c)/8] &= ~bits[(c)&07])
 #define	BITSET(a,c)		((a)[(c)/8] & bits[(c)&07])
 
-uint8_t	f[(Runemax+1)/8];
-uint8_t	t[(Runemax+1)/8];
+u8	f[(Runemax+1)/8];
+u8	t[(Runemax+1)/8];
 char 	wbuf[4096];
 char	*wptr;
 
@@ -39,11 +39,11 @@ void	complement(void);
 void	delete(void);
 void	squeeze(void);
 void	translit(void);
-int32_t	canon(Pcb*);
+i32	canon(Pcb*);
 char	*getrune(char*, Rune*);
 void	Pinit(Pcb*, char*);
 void	Prewind(Pcb *p);
-int	readrune(int, int32_t*);
+int	readrune(int, i32*);
 void	wflush(int);
 void	writerune(int, Rune);
 
@@ -86,7 +86,7 @@ main(int argc, char **argv)
 void
 delete(void)
 {
-	int32_t c, last;
+	i32 c, last;
 
 	if (cflag) {
 		memset((char *) f, 0xff, sizeof f);
@@ -116,7 +116,7 @@ complement(void)
 {
 	Rune *p;
 	int i;
-	int32_t from, to, lastc, high;
+	i32 from, to, lastc, high;
 
 	lastc = 0;
 	high = 0;
@@ -170,7 +170,7 @@ translit(void)
 {
 	Rune *p;
 	int i;
-	int32_t from, to, lastc, high;
+	i32 from, to, lastc, high;
 
 	lastc = 0;
 	high = 0;
@@ -216,7 +216,7 @@ translit(void)
 }
 
 int
-readrune(int fd, int32_t *rp)
+readrune(int fd, i32 *rp)
 {
 	Rune r;
 	int j;
@@ -323,7 +323,7 @@ getrune(char *s, Rune *rp)
 	return s;
 }
 
-int32_t
+i32
 canon(Pcb *p)
 {
 	Rune r;

@@ -50,17 +50,17 @@ struct Param {
 struct State {
 	int	a;
 	int	x;
-	int64_t	a2;	/* a^2 */
-	int64_t	b2;	/* b^2 */
-	int64_t	b2x;	/* b^2 * x */
-	int64_t	a2y;	/* a^2 * y */
-	int64_t	c1;
-	int64_t	c2;	/* test criteria */
-	int64_t	ee;	/* ee = e(x+1/2,y-1/2) - (a^2+b^2)/4 */
-	int64_t	dxe;
-	int64_t	dye;
-	int64_t	d2xe;
-	int64_t	d2ye;
+	i64	a2;	/* a^2 */
+	i64	b2;	/* b^2 */
+	i64	b2x;	/* b^2 * x */
+	i64	a2y;	/* a^2 * y */
+	i64	c1;
+	i64	c2;	/* test criteria */
+	i64	ee;	/* ee = e(x+1/2,y-1/2) - (a^2+b^2)/4 */
+	i64	dxe;
+	i64	dye;
+	i64	d2xe;
+	i64	d2ye;
 };
 
 static
@@ -69,14 +69,14 @@ newstate(State *s, int a, int b)
 {
 	s->x = 0;
 	s->a = a;
-	s->a2 = (int64_t)(a*a);
-	s->b2 = (int64_t)(b*b);
-	s->b2x = (int64_t)0;
-	s->a2y = s->a2*(int64_t)b;
-	s->c1 = -((s->a2>>2) + (int64_t)(a&1) + s->b2);
-	s->c2 = -((s->b2>>2) + (int64_t)(b&1));
+	s->a2 = (i64)(a*a);
+	s->b2 = (i64)(b*b);
+	s->b2x = (i64)0;
+	s->a2y = s->a2*(i64)b;
+	s->c1 = -((s->a2>>2) + (i64)(a&1) + s->b2);
+	s->c2 = -((s->b2>>2) + (i64)(b&1));
 	s->ee = -s->a2y;
-	s->dxe = (int64_t)0;
+	s->dxe = (i64)0;
 	s->dye = s->ee<<1;
 	s->d2xe = s->b2<<1;
 	s->d2ye = s->a2<<1;

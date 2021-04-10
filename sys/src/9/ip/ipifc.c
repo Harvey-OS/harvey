@@ -161,7 +161,7 @@ ipifcbind(Conv *c, char **argv, int argc)
 	ifc->rp.ttl = MAXTTL;
 	ifc->rp.routerlt = 3 * ifc->rp.maxraint;
 
-	/* any ancillary structures (like routes) no int32_ter pertain */
+	/* any ancillary structures (like routes) no i32er pertain */
 	ifc->ifcid++;
 
 	/* reopen all the queues closed by a previous unbind */
@@ -1588,7 +1588,7 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, u8 *ip)
 #if 0
 /* added for new v6 mesg types */
 static void
-adddefroute6(Fs *f, uint8_t *gate, int force)
+adddefroute6(Fs *f, u8 *gate, int force)
 {
 	Route *r;
 

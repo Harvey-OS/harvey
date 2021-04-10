@@ -25,7 +25,7 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 	int w, c, nb, delta, nl, nr, rw;
 	Frbox *b;
 	char *s, tmp[TMPSIZE+3];	/* +3 for rune overflow */
-	uint8_t *p;
+	u8 *p;
 
 	frame.r = f->r;
 	frame.b = f->b;
@@ -85,7 +85,7 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 
 static
 void
-chopframe(Frame *f, Point pt, uint32_t p, int bn)
+chopframe(Frame *f, Point pt, u32 p, int bn)
 {
 	Frbox *b;
 
@@ -105,12 +105,12 @@ chopframe(Frame *f, Point pt, uint32_t p, int bn)
 }
 
 void
-frinsert(Frame *f, Rune *sp, Rune *ep, uint32_t p0)
+frinsert(Frame *f, Rune *sp, Rune *ep, u32 p0)
 {
 	Point pt0, pt1, opt0, ppt0, ppt1, pt;
 	Frbox *b;
 	int n, n0, nn0, y;
-	uint32_t cn0;
+	u32 cn0;
 	Image *col;
 	Rectangle r;
 	static struct{

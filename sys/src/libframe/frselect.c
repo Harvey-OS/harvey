@@ -28,7 +28,7 @@ region(int a, int b)
 void
 frselect(Frame *f, Mousectl *mc)	/* when called, button 1 is down */
 {
-	uint32_t p0, p1, q;
+	u32 p0, p1, q;
 	Point mp, pt0, pt1, qt;
 	int reg, b, scrled;
 

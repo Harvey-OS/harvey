@@ -37,7 +37,7 @@ initcolor(void)
 
 Rectangle rbar;
 Point ptext;
-int64_t n, d;
+i64 n, d;
 int last;
 int lastp = -1;
 

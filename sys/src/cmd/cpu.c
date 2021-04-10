@@ -237,7 +237,7 @@ main(int argc, char **argv)
 	else
 		writestr(data, dat, "dir", 0);
 
-	/* start up a process to pass aint32_t notes */
+	/* start up a process to pass ai32 notes */
 	lclnoteproc(data);
 
 	/*
@@ -578,7 +578,7 @@ netkeysrvauth(int fd, char *user)
 }
 
 static void
-mksecret(char *t, uint8_t *f)
+mksecret(char *t, u8 *f)
 {
 	sprint(t, "%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
@@ -590,8 +590,8 @@ mksecret(char *t, uint8_t *f)
 static int
 p9auth(int fd)
 {
-	uint8_t key[16];
-	uint8_t digest[SHA1dlen];
+	u8 key[16];
+	u8 digest[SHA1dlen];
 	char fromclientsecret[21];
 	char fromserversecret[21];
 	int i;
@@ -654,7 +654,7 @@ srvnoauth(int fd, char *user)
 #endif
 
 void
-loghex(uint8_t *p, int n)
+loghex(u8 *p, int n)
 {
 	char buf[100];
 	int i;
@@ -667,8 +667,8 @@ loghex(uint8_t *p, int n)
 static int
 srvp9auth(int fd, char *user)
 {
-	uint8_t key[16];
-	uint8_t digest[SHA1dlen];
+	u8 key[16];
+	u8 digest[SHA1dlen];
 	char fromclientsecret[21];
 	char fromserversecret[21];
 	int i;
@@ -797,7 +797,7 @@ enum
 struct {
 	char	*name;
 	Qid	qid;
-	uint32_t	perm;
+	u32	perm;
 } fstab[] =
 {
 	[Qdir] =		{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
@@ -836,7 +836,7 @@ struct {
 int
 fsreply(int fd, Fcall *f)
 {
-	uint8_t buf[IOHDRSZ+Maxfdata];
+	u8 buf[IOHDRSZ+Maxfdata];
 	int n;
 
 	if(dbg)
@@ -924,7 +924,7 @@ int
 fsstat(int fd, Fid *fid, Fcall *f)
 {
 	Dir d;
-	uint8_t statbuf[256];
+	u8 statbuf[256];
 
 	memset(&d, 0, sizeof(d));
 	d.name = fstab[fid->file].name;
@@ -943,7 +943,7 @@ int
 fsread(int fd, Fid *fid, Fcall *f)
 {
 	Dir d;
-	uint8_t buf[256];
+	u8 buf[256];
 	Request *rp;
 
 	switch(fid->file){
@@ -987,7 +987,7 @@ char Enotdir[] = "not a directory";
 void
 notefs(int fd)
 {
-	uint8_t buf[IOHDRSZ+Maxfdata];
+	u8 buf[IOHDRSZ+Maxfdata];
 	int i, n, ncpunote;
 	Fcall f;
 	Qid wqid[MAXWELEM];

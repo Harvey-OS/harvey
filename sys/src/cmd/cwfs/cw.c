@@ -1310,7 +1310,7 @@ isdirty(Cw *cw, Iobuf *p, Off addr, int tag)
 }
 
 Off
-cwrecur(Cw *cw, Off addr, int tag, int tag1, int32_t qp)
+cwrecur(Cw *cw, Off addr, int tag, int tag1, i32 qp)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -1453,7 +1453,7 @@ Timet	nextdump(Timet t);
 void
 cfsdump(Filsys *fs)
 {
-	int32_t m, n, i;
+	i32 m, n, i;
 	Off orba, rba, oroa, roa, sba, a;
 	Timet tim;
 	char tstr[20];
@@ -1865,7 +1865,7 @@ savecache(Device *dev)
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	int32_t n, left;
+	i32 n, left;
 	Off m, maddr, msize, *longp, nbyte;
 	Device *cdev;
 

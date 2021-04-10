@@ -11,12 +11,12 @@
 #include <libc.h>
 
 void
-_sha1block(uint8_t *p, uint32_t len, uint32_t *s)
+_sha1block(u8 *p, u32 len, u32 *s)
 {
-	uint32_t a, b, c, d, e, x;
-	uint8_t *end;
-	uint32_t *wp, *wend;
-	uint32_t w[80];
+	u32 a, b, c, d, e, x;
+	u8 *end;
+	u32 *wp, *wend;
+	u32 w[80];
 
 	/* at this point, we have a multiple of 64 bytes */
 	for(end = p+len; p < end;){

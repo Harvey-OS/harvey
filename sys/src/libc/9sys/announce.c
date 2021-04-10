@@ -145,7 +145,7 @@ accept(int ctl, const char *dir)
 {
 	char buf[Maxpath];
 	const char *num;
-	int32_t n;
+	i32 n;
 
 	num = strrchr(dir, '/');
 	if(num == nil)
@@ -168,7 +168,7 @@ reject(int ctl, const char *dir, const char *cause)
 {
 	char buf[Maxpath];
 	const char *num;
-	int32_t n;
+	i32 n;
 
 	num = strrchr(dir, '/');
 	if(num == 0)
@@ -218,7 +218,7 @@ nettrans(const char *addr, char *naddr, int na, char *file, int nf)
 	char buf[Maxpath];
 	char netdir[Maxpath];
 	char *p, *p2;
-	int32_t n;
+	i32 n;
 
 	/*
 	 *  parse, get network directory

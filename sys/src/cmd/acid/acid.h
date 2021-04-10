@@ -79,7 +79,7 @@ struct Type
 {
 	Type*	next;
 	int	offset;
-	uint8_t	fmt;
+	u8	fmt;
 	char	depth;
 	Lsym*	type;
 	Lsym*	tag;
@@ -117,7 +117,7 @@ struct Gc
 
 struct Store
 {
-	uint8_t	fmt;
+	u8	fmt;
 	Type*	comt;
 	union {
 		long long	ival;
@@ -161,7 +161,7 @@ struct Lsym
 struct Node
 {
 	Gc	gc;
-	uint8_t	op;
+	u8	op;
 	char	type;
 	Node*	left;
 	Node*	right;

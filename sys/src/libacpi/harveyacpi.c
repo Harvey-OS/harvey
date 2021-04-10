@@ -15,7 +15,7 @@
 #define MiB (1<<20)
 
 //BOOLEAN                        AcpiGbl_DebugTimeout = FALSE;
-static uint32_t rsdp;
+static u32 rsdp;
 static char *name;
 /* debug prints for this file. You can set this in gdb or at compile time. */
 static int debug;
@@ -42,7 +42,7 @@ static void
 hexdump(void *v, int length)
 {
 	int i;
-	uint8_t *m = v;
+	u8 *m = v;
 	uintptr_t memory = (uintptr_t) v;
 	int all_zero = 0;
 	if (debug)
@@ -111,56 +111,56 @@ tbdf(ACPI_PCI_ID * p)
 
 int acpiio = -1;
 
-uint32_t
-inl(uint16_t addr)
+u32
+inl(u16 addr)
 {
-	uint64_t off = addr;
-	uint32_t l;
+	u64 off = addr;
+	u32 l;
 	if (pread(acpiio, &l, 4, off) < 4)
 		print("inl(0x%x): %r\n", addr);
 	return l;
 }
 
-uint16_t
-ins(uint16_t addr)
+u16
+ins(u16 addr)
 {
-	uint64_t off = addr;
-	uint16_t w;
+	u64 off = addr;
+	u16 w;
 	if (pread(acpiio, &w, 2, off) < 2)
 		if(debug) DBG("ins(0x%x): %r\n", addr);
 	return w;
 }
 
-uint8_t
-inb(uint16_t addr)
+u8
+inb(u16 addr)
 {
-	uint64_t off = addr;
-	uint16_t b;
+	u64 off = addr;
+	u16 b;
 	if (pread(acpiio, &b, 1, off) < 1)
 		if(debug) DBG("inb(0x%x): %r\n", addr);
 	return b;
 }
 
 void
-outl(uint16_t addr, uint32_t val)
+outl(u16 addr, u32 val)
 {
-	uint64_t off = addr;
+	u64 off = addr;
 	if (pwrite(acpiio, &val, 4, off) < 4)
 		if(debug) DBG("outl(0x%x): %r\n", addr);
 }
 
 void
-outs(uint16_t addr, uint16_t val)
+outs(u16 addr, u16 val)
 {
-	uint64_t off = addr;
+	u64 off = addr;
 	if (pwrite(acpiio, &val, 2, off) < 2)
 		if(debug) DBG("outs(0x%x): %r\n", addr);
 }
 
 void
-outb(uint16_t addr, uint8_t val)
+outb(u16 addr, u8 val)
 {
-	uint64_t off = addr;
+	u64 off = addr;
 	if (pwrite(acpiio, &val, 1, off) < 1)
 		if(debug) DBG("outb(0x%x): %r\n", addr);
 }
@@ -176,7 +176,7 @@ ACPI_STATUS
 AcpiOsReadPciConfiguration(ACPI_PCI_ID * PciId, UINT32 Reg, UINT64 * Value, UINT32 Width)
 {
 	ACPI_STATUS ret = AE_OK;
-	uint64_t val;
+	u64 val;
 	int amt = 0;
 	static char path[128];
 	snprint(path, sizeof(path), "/dev/pci/%d.%d.%draw", PciId->Bus,
@@ -271,7 +271,7 @@ AcpiOsGetTimer(void)
 	if (debug)
 		fprint(2, "%s\n", __func__);
 	// Return value should be in 100ns units
-	int64_t ns = nsec();
+	i64 ns = nsec();
 	return ns / 100;
 }
 
@@ -347,7 +347,7 @@ AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length)
 	amt = pread(fd, v, Length, Where);
 	close(fd);
 	/* If we just do the amt < Length test, it will not work when
-	 * amt is -1. Length is uint64_t. */
+	 * amt is -1. Length is u64. */
 	if ((amt < 0) || (amt < Length)) {
 		free(v);
 		if (debug)
@@ -737,7 +737,7 @@ __attribute__ ((weak))
 void hexdump(void *v, int length)
 {
 	int i;
-	uint8_t *m = v;
+	u8 *m = v;
 	uintptr_t memory = (uintptr_t) v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);

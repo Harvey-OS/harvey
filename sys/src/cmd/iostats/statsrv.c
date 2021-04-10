@@ -41,9 +41,9 @@ okfile(char *s, int mode)
 }
 
 void
-update(Rpc *rpc, int64_t t)
+update(Rpc *rpc, i64 t)
 {
-	int64_t t2;
+	i64 t2;
 
 	t2 = nsec();
 	t = t2 - t;
@@ -61,7 +61,7 @@ void
 Xversion(Fsrpc *r)
 {
 	Fcall thdr;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -87,7 +87,7 @@ void
 Xauth(Fsrpc *r)
 {
 	Fcall thdr;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -129,7 +129,7 @@ Xattach(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -155,7 +155,7 @@ Xwalk(Fsrpc *r)
 	Fcall thdr;
 	Fid *f, *n;
 	File *nf;
-	int64_t t;
+	i64 t;
 	int i;
 
 	t = nsec();
@@ -226,7 +226,7 @@ Xclunk(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	int64_t t;
+	i64 t;
 	int fid;
 
 	t = nsec();
@@ -257,11 +257,11 @@ void
 Xstat(Fsrpc *r)
 {
 	char err[ERRMAX], path[128];
-	uint8_t statbuf[STATMAX];
+	u8 statbuf[STATMAX];
 	Fcall thdr;
 	Fid *f;
 	int s;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -305,7 +305,7 @@ Xcreate(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	File *nf;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -351,7 +351,7 @@ Xremove(Fsrpc *r)
 	char err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -390,7 +390,7 @@ Xwstat(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	int s;
-	int64_t t;
+	i64 t;
 
 	t = nsec();
 
@@ -512,7 +512,7 @@ slaveopen(Fsrpc *p)
 	char err[ERRMAX], path[128];
 	Fcall *work, thdr;
 	Fid *f;
-	int64_t t;
+	i64 t;
 
 	work = &p->work;
 
@@ -566,7 +566,7 @@ slaveread(Fsrpc *p)
 	Fcall *work, thdr;
 	Fid *f;
 	int n, r;
-	int64_t t;
+	i64 t;
 
 	work = &p->work;
 
@@ -628,7 +628,7 @@ slavewrite(Fsrpc *p)
 	Fcall *work, thdr;
 	Fid *f;
 	int n;
-	int64_t t;
+	i64 t;
 
 	work = &p->work;
 

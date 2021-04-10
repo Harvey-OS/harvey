@@ -20,7 +20,7 @@ struct	Mouse
 {
 	int	buttons;	/* bit array: LMR=124 */
 	Point	xy;
-	uint32_t	msec;
+	u32	msec;
 };
 
 struct Mousectl
@@ -28,7 +28,7 @@ struct Mousectl
 	//Mouse;
 	int	buttons;	/* bit array: LMR=124 */
 	Point	xy;
-	uint32_t	msec;
+	u32	msec;
 	Channel	*c;	/* chan(Mouse) */
 	Channel	*resizec;	/* chan(int)[2] */
 			/* buffered in case client is waiting for a mouse action before handling resize */
@@ -58,4 +58,5 @@ extern void		setcursor(Mousectl*, Cursor*);
 extern void		drawgetrect(Rectangle, int);
 extern Rectangle	getrect(int, Mousectl*);
 extern int	 		menuhit(int, Mousectl*, Menu*, Screen*);
-extern void setmenucolor(uint32_t backcolor, uint32_t highcolor, uint32_t bordercolor, uint32_t textcolor, uint32_t seltextcolor);
+extern void setmenucolor(u32 backcolor, u32 highcolor, u32 bordercolor,
+			 u32 textcolor, u32 seltextcolor);

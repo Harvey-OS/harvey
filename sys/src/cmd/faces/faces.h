@@ -30,7 +30,7 @@ struct Face
 	Image	*mask;	/* unless there's an error, this is file->mask */
 	char		*str[Nstring];
 	int		recent;
-	uint32_t	time;
+	u32	time;
 	Tm		tm;
 	int		unknown;
 	Facefile	*file;
@@ -43,8 +43,8 @@ struct Facefile
 {
 	Image	*image;
 	Image	*mask;
-	uint32_t	mtime;
-	uint32_t	rdtime;
+	u32	mtime;
+	u32	rdtime;
 	int		ref;
 	char		*file;
 	Facefile	*next;
@@ -66,10 +66,10 @@ void	freefacefile(Facefile*);
 Face*	dirface(char*, char*);
 void	resized(void);
 int	alreadyseen(char*);
-uint32_t	dirlen(char*);
+u32	dirlen(char*);
 
-void	*emalloc(uint32_t);
-void	*erealloc(void*, uint32_t);
+void	*emalloc(u32);
+void	*erealloc(void*, u32);
 char	*estrdup(char*);
 char	*findfile(Face*, char*, char*);
 void	addmaildir(char*);

@@ -17,32 +17,32 @@ typedef struct	GZHead	GZHead;
 
 struct GZHead
 {
-	uint32_t	mtime;
+	u32	mtime;
 	char	*file;
 };
 
 static	int	crcwrite(void *bout, void *buf, int n);
 static	int	get1(Biobuf *b);
-static	uint32_t	get4(Biobuf *b);
+static	u32	get4(Biobuf *b);
 static	int	gunzipf(char *file, int stdout);
-static	int	gunzip(int64_t ofd, char *ofile, Biobuf *bin);
+static	int	gunzip(i64 ofd, char *ofile, Biobuf *bin);
 static	void	header(Biobuf *bin, GZHead *h);
-static	void	trailer(Biobuf *bin, int32_t wlen);
+static	void	trailer(Biobuf *bin, i32 wlen);
 static	void	error(char*, ...);
 //#pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
-static	uint32_t	crc;
-static	uint32_t	*crctab;
+static	u32	crc;
+static	u32	*crctab;
 static	int	debug;
 static	char	*delfile;
-static	int64_t	gzok;
+static	i64	gzok;
 static	char	*infile;
 static	int	settimes;
 static	int	table;
 static	int	verbose;
 static	int	wbad;
-static	uint32_t	wlen;
+static	u32	wlen;
 static	jmp_buf	zjmp;
 
 void
@@ -174,7 +174,7 @@ gunzipf(char *file, int stdout)
 }
 
 static int
-gunzip(int64_t ofd, char *ofile, Biobuf *bin)
+gunzip(i64 ofd, char *ofile, Biobuf *bin)
 {
 	Dir *d;
 	GZHead h;
@@ -283,10 +283,10 @@ header(Biobuf *bin, GZHead *h)
 }
 
 static void
-trailer(Biobuf *bin, int32_t wlen)
+trailer(Biobuf *bin, i32 wlen)
 {
-	uint32_t tcrc;
-	int32_t len;
+	u32 tcrc;
+	i32 len;
 
 	tcrc = get4(bin);
 	if(tcrc != crc)
@@ -298,10 +298,10 @@ trailer(Biobuf *bin, int32_t wlen)
 		error("bad output length: expected %lu got %lu", wlen, len);
 }
 
-static uint32_t
+static u32
 get4(Biobuf *b)
 {
-	uint32_t v;
+	u32 v;
 	int i, c;
 
 	v = 0;

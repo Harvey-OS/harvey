@@ -26,9 +26,9 @@ threadmain(int argc, char *argv[])
 	ArenaPart *ap;
 	Arena **arenas;
 	AMap *amap;
-	uint64_t addr;
+	u64 addr;
 	char *file;
-	uint32_t i, j, n, narenas;
+	u32 i, j, n, narenas;
 	int add;
 
 	ventifmtinstall();

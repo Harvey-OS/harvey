@@ -81,13 +81,13 @@ enum
 
 struct Hub
 {
-	uint8_t	pwrmode;
-	uint8_t	compound;
-	uint8_t	pwrms;		/* time to wait in ms */
-	uint8_t	maxcurrent;	/*    after powering port*/
+	u8	pwrmode;
+	u8	compound;
+	u8	pwrms;		/* time to wait in ms */
+	u8	maxcurrent;	/*    after powering port*/
 	int	leds;		/* has port indicators? */
 	int	maxpkt;
-	uint8_t	nport;
+	u8	nport;
 	Port	*port;
 	int	failed;		/* I/O error while enumerating */
 	int	isroot;		/* set if root hub */
@@ -99,25 +99,25 @@ struct Port
 {
 	int	state;		/* state of the device */
 	int	sts;		/* old port status */
-	uint8_t	removable;
-	uint8_t	pwrctl;
+	u8	removable;
+	u8	pwrctl;
 	Dev	*dev;		/* attached device (if non-nil) */
 	Hub	*hub;		/* non-nil if hub attached */
 	int	devnb;		/* device number */
-	uint64_t	*devmaskp;	/* ptr to dev mask */
+	u64	*devmaskp;	/* ptr to dev mask */
 };
 
 
 /* USB HUB descriptor */
 struct DHub
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bNbrPorts;
-	uint8_t	wHubCharacteristics[2];
-	uint8_t	bPwrOn2PwrGood;
-	uint8_t	bHubContrCurrent;
-	uint8_t	DeviceRemovable[1];	/* variable length */
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bNbrPorts;
+	u8	wHubCharacteristics[2];
+	u8	bPwrOn2PwrGood;
+	u8	bHubContrCurrent;
+	u8	DeviceRemovable[1];	/* variable length */
 };
 
 struct Devtab
@@ -128,15 +128,15 @@ struct Devtab
 	int	vid;
 	int	did;
 	char	*args;
-	uint64_t	devmask;
+	u64	devmask;
 	int	noauto;
 };
 
 
 Hub*	newhub(char *fn, Dev *d);
 int	startdev(Port *pp);
-int	getdevnb(uint64_t *maskp);
-void	putdevnb(uint64_t *maskp, int nb);
+int	getdevnb(u64 *maskp);
+void	putdevnb(u64 *maskp, int nb);
 void	threadmain(int argc, char **argv);
 
 extern Usbfs usbdfsops;

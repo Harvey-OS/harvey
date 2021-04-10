@@ -505,9 +505,9 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 
 /*
 static int
-atacsf(Drive* drive, int64_t csf, int supported)
+atacsf(Drive* drive, i64 csf, int supported)
 {
-	uint16_t *info;
+	u16 *info;
 	int cmdset, i, x;
 
 	if(supported)

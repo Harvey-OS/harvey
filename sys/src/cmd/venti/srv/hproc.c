@@ -191,7 +191,7 @@ printlocals(Map *map, Symbol *fn, uintptr fp)
 		if (s.class != CAUTO)
 			continue;
 		snprint(buf, sizeof buf, "%s%s/", debug.stkprefix, s.name);
-		if (geta(map, fp - s.value, (uint64_t*)&w) > 0)
+		if (geta(map, fp - s.value, (u64*)&w) > 0)
 			dprint("\t%-10s %10#p %ld\n", buf, w, w);
 		else
 			dprint("\t%-10s ?\n", buf);
@@ -213,7 +213,7 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 			continue;
 		if (first++)
 			dprint(", ");
-		if (geta(map, fp + s.value, (uint64_t *)&w) > 0)
+		if (geta(map, fp + s.value, (u64 *)&w) > 0)
 			dprint("%s=%#p", s.name, w);
 	}
 }
@@ -234,7 +234,7 @@ printsource(uintptr dot)
 static uintptr nextpc;
 
 static void
-ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
+ptrace(Map *map, u64 pc, u64 sp, Symbol *sym)
 {
 	if(nextpc == 0)
 		nextpc = sym->value;
@@ -278,11 +278,11 @@ stacktrace(Map *m)
 {
 	uintptr pc, sp;
 
-	if(geta(m, debug.pcoff, (uint64_t *)&pc) < 0){
+	if(geta(m, debug.pcoff, (u64 *)&pc) < 0){
 		dprint("geta pc: %r");
 		return;
 	}
-	if(geta(m, debug.spoff, (uint64_t *)&sp) < 0){
+	if(geta(m, debug.spoff, (u64 *)&sp) < 0){
 		dprint("geta sp: %r");
 		return;
 	}
@@ -303,7 +303,7 @@ star(uintptr addr)
 			dprint("no debug.map\n");
 		return 0;
 	}
-	if(geta(debug.map, addr, (uint64_t *)&x) < 0){
+	if(geta(debug.map, addr, (u64 *)&x) < 0){
 		dprint("geta %#p (pid=%d): %r\n", addr, debug.pid);
 		return 0;
 	}
@@ -341,7 +341,7 @@ strprefix(char *big, char *pre)
 	return strncmp(big, pre, strlen(pre));
 }
 static void
-tptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
+tptrace(Map *map, u64 pc, u64 sp, Symbol *sym)
 {
 	char buf[512];
 
@@ -367,8 +367,8 @@ threadstkline(uintptr t)
 	static char buf[500];
 
 	if(FIELD(Thread, t, state) == Running){
-		geta(debug.map, debug.pcoff, (uint64_t *)&pc);
-		geta(debug.map, debug.spoff, (uint64_t *)&sp);
+		geta(debug.map, debug.pcoff, (u64 *)&pc);
+		geta(debug.map, debug.spoff, (u64 *)&sp);
 	}else{
 		// pc = FIELD(Thread, t, sched[JMPBUFPC]);
 		pc = resolvef("longjmp");
@@ -422,7 +422,7 @@ debugstr(uintptr s)
 	p = buf;
 	e = buf+sizeof buf - 1;
 	while(p < e){
-		if(get1(debug.map, s++, (uint8_t*)p, 1) < 0)
+		if(get1(debug.map, s++, (u8*)p, 1) < 0)
 			break;
 		if(*p == 0)
 			break;

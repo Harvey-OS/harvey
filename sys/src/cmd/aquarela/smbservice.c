@@ -65,8 +65,8 @@ run9fs(char *arg)
 
 SmbService *
 smbservicefind(SmbSession *s, char *uncpath, char *servicetype,
-	       uint8_t *errclassp,
-	       uint16_t *errorp)
+	       u8 *errclassp,
+	       u16 *errorp)
 {
 	char *p, *q;
 	if ((uncpath[0] == '/' && uncpath[1] == '/')

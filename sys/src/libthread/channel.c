@@ -376,18 +376,18 @@ channelsize(Channel *c, int sz)
 }
 
 int
-sendul(Channel *c, uint32_t v)
+sendul(Channel *c, u32 v)
 {
-	channelsize(c, sizeof(uint32_t));
+	channelsize(c, sizeof(u32));
 	return send(c, &v);
 }
 
-uint32_t
+u32
 recvul(Channel *c)
 {
-	uint32_t v;
+	u32 v;
 
-	channelsize(c, sizeof(uint32_t));
+	channelsize(c, sizeof(u32));
 	if(recv(c, &v) < 0)
 		return ~0;
 	return v;
@@ -412,18 +412,18 @@ recvp(Channel *c)
 }
 
 int
-nbsendul(Channel *c, uint32_t v)
+nbsendul(Channel *c, u32 v)
 {
-	channelsize(c, sizeof(uint32_t));
+	channelsize(c, sizeof(u32));
 	return nbsend(c, &v);
 }
 
-uint32_t
+u32
 nbrecvul(Channel *c)
 {
-	uint32_t v;
+	u32 v;
 
-	channelsize(c, sizeof(uint32_t));
+	channelsize(c, sizeof(u32));
 	if(nbrecv(c, &v) == 0)
 		return 0;
 	return v;
@@ -525,7 +525,7 @@ canexec(Alt *a)
 static void*
 altexecbuffered(Alt *a, int willreplace)
 {
-	uint8_t *v;
+	u8 *v;
 	Channel *c;
 
 	c = a->c;
@@ -608,7 +608,7 @@ altexec(Alt *a, int spl)
 		unlock(&chanlock);
 		_procsplx(spl);
 		_threaddebug(DBGCHAN, "chanlock is %lu",
-			     *(uint32_t*)&chanlock);
+			     *(u32*)&chanlock);
 		while(_threadrendezvous(b->tag, 0) == Intred)
 			;
 		return 1;

@@ -16,8 +16,8 @@
 struct i2c_seg
 {
 	int read;
-	uint8_t chip;
-	uint8_t *buf;
+	u8 chip;
+	u8 *buf;
 	int len;
 };
 
@@ -35,9 +35,9 @@ struct software_i2c_ops {
 extern struct software_i2c_ops *software_i2c[];
 
 int software_i2c_transfer(unsigned bus, struct i2c_seg *segments, int count);
-void software_i2c_wedge_ack(unsigned bus, uint8_t chip);
-void software_i2c_wedge_read(unsigned bus, uint8_t chip, uint8_t reg, int bit_count);
-void software_i2c_wedge_write(unsigned bus, uint8_t chip, uint8_t reg, int bit_count);
+void software_i2c_wedge_ack(unsigned bus, u8 chip);
+void software_i2c_wedge_read(unsigned bus, u8 chip, u8 reg, int bit_count);
+void software_i2c_wedge_write(unsigned bus, u8 chip, u8 reg, int bit_count);
 
 /*
  * software_i2c is supposed to be a debug feature. It's usually not compiled in,
@@ -59,7 +59,7 @@ static inline int i2c_transfer(unsigned bus, struct i2c_seg *segments,
  *
  * [start][slave addr][r][data][stop]
  */
-static inline int i2c_read_raw(unsigned bus, uint8_t chip, uint8_t *data,
+static inline int i2c_read_raw(unsigned bus, u8 chip, u8 *data,
 			       int len)
 {
 	struct i2c_seg seg =
@@ -72,7 +72,7 @@ static inline int i2c_read_raw(unsigned bus, uint8_t chip, uint8_t *data,
  *
  * [start][slave addr][w][data][stop]
  */
-static inline int i2c_write_raw(unsigned bus, uint8_t chip, uint8_t *data,
+static inline int i2c_write_raw(unsigned bus, u8 chip, u8 *data,
 			        int len)
 {
 	struct i2c_seg seg =
@@ -85,8 +85,8 @@ static inline int i2c_write_raw(unsigned bus, uint8_t chip, uint8_t *data,
  *
  * [start][slave addr][w][register addr][start][slave addr][r][data][stop]
  */
-static inline int i2c_readb(unsigned bus, uint8_t chip, uint8_t reg,
-			    uint8_t *data)
+static inline int i2c_readb(unsigned bus, u8 chip, u8 reg,
+			    u8 *data)
 {
 	struct i2c_seg seg[2];
 
@@ -107,11 +107,11 @@ static inline int i2c_readb(unsigned bus, uint8_t chip, uint8_t reg,
  *
  * [start][slave addr][w][register addr][data][stop]
  */
-static inline int i2c_writeb(unsigned bus, uint8_t chip, uint8_t reg,
-			     uint8_t data)
+static inline int i2c_writeb(unsigned bus, u8 chip, u8 reg,
+			     u8 data)
 {
 	struct i2c_seg seg;
-	uint8_t buf[] = {reg, data};
+	u8 buf[] = {reg, data};
 
 	seg.read = 0;
 	seg.chip = chip;

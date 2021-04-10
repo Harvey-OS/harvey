@@ -27,7 +27,7 @@ subpcs(int modif)
 	int	runmode;
 	int	keepnote;
 	int	n, r;
-	int32_t line, curr;
+	i32 line, curr;
 	BKPT *bk;
 	char *comptr;
 

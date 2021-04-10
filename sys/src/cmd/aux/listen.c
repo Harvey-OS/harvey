@@ -469,7 +469,7 @@ int
 getserv(char *proto, char *dir, Service *s)
 {
 	char addr[128], *serv, *p;
-	int32_t n;
+	i32 n;
 
 	readstr(dir, "remote", s->remote, sizeof(s->remote)-1);
 	if((p = utfrune(s->remote, L'\n')) != nil)

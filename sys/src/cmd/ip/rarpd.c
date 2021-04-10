@@ -18,22 +18,22 @@ typedef struct Rarp	Rarp;
 
 struct Rarp
 {
-	uint8_t	edst[6];
-	uint8_t	esrc[6];
-	uint8_t	type[2];
-	uint8_t	hrd[2];
-	uint8_t	pro[2];
-	uint8_t	hln;
-	uint8_t	pln;
-	uint8_t	op[2];
-	uint8_t	sha[6];
-	uint8_t	spa[4];
-	uint8_t	tha[6];
-	uint8_t	tpa[4];
+	u8	edst[6];
+	u8	esrc[6];
+	u8	type[2];
+	u8	hrd[2];
+	u8	pro[2];
+	u8	hln;
+	u8	pln;
+	u8	op[2];
+	u8	sha[6];
+	u8	spa[4];
+	u8	tha[6];
+	u8	tpa[4];
 };
 
-uint8_t	myip[IPaddrlen];
-uint8_t	myether[6];
+u8	myip[IPaddrlen];
+u8	myether[6];
 char	rlog[] = "ipboot";
 char	*device = "ether0";
 int	debug;
@@ -61,7 +61,7 @@ void
 main(int argc, char *argv[])
 {
 	int edata, ectl;
-	uint8_t buf[2048];
+	u8 buf[2048];
 	long n;
 	Rarp *rp;
 	char ebuf[16];

@@ -134,21 +134,21 @@ Resetf ethers[] =
 };
 
 static int
-qtype(int64_t q)
+qtype(i64 q)
 {
 	return q&0xFF;
 }
 
 static int
-qnum(int64_t q)
+qnum(i64 q)
 {
 	return (q >> 8) & 0xFFFFFF;
 }
 
-static uint64_t
+static u64
 mkqid(int n, int t)
 {
-	uint64_t q;
+	u64 q;
 
 	q = ((n&0xFFFFFF) << 8) | (t&0xFF);
 	return q;
@@ -224,7 +224,7 @@ newconn(Ether *e)
 }
 
 static char*
-seprintaddr(char *s, char *se, uint8_t *addr)
+seprintaddr(char *s, char *se, u8 *addr)
 {
 	int i;
 
@@ -449,7 +449,7 @@ fswalk(Usbfs *fs, Fid *fid, char *name)
 }
 
 static Dirtab*
-qdirtab(int64_t q)
+qdirtab(i64 q)
 {
 	int i, qt;
 	Dirtab *tab;
@@ -477,7 +477,7 @@ static int
 fsopen(Usbfs *fs, Fid *fid, int omode)
 {
 	int qt;
-	int64_t qid;
+	i64 qid;
 	Conn *c;
 	Dirtab *tab;
 	Ether *e;
@@ -529,7 +529,7 @@ static void
 fsclunk(Usbfs *fs, Fid *fid)
 {
 	int qt;
-	int64_t qid;
+	i64 qid;
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -564,10 +564,10 @@ fsclunk(Usbfs *fs, Fid *fid)
 }
 
 int
-parseaddr(uint8_t *m, char *s)
+parseaddr(u8 *m, char *s)
 {
 	int i, n;
-	uint8_t v;
+	u8 v;
 
 	if(strlen(s) < 12)
 		return -1;
@@ -593,8 +593,8 @@ parseaddr(uint8_t *m, char *s)
 	return 0;
 }
 
-static int32_t
-fsread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
+static i32
+fsread(Usbfs *fs, Fid *fid, void *data, i32 count, i64 offset)
 {
 	int cn, qt;
 	char *s, *se;
@@ -689,7 +689,7 @@ isloopback(Ether *e, Buf *_1)
 static int
 etherctl(Ether *e, Conn *c, char *buf)
 {
-	uint8_t addr[Eaddrlen];
+	u8 addr[Eaddrlen];
 	int t;
 
 	deprint(2, "%s: etherctl: %s\n", argv0, buf);
@@ -745,7 +745,7 @@ etherctl(Ether *e, Conn *c, char *buf)
 	return -1;
 }
 
-static int32_t
+static i32
 etherbread(Ether *e, Buf *bp)
 {
 	deprint(2, "%s: etherbread\n", argv0);
@@ -759,10 +759,10 @@ etherbread(Ether *e, Buf *bp)
 	return bp->ndata;
 }
 
-static int32_t
+static i32
 etherbwrite(Ether *e, Buf *bp)
 {
-	int32_t n;
+	i32 n;
 
 	deprint(2, "%s: etherbwrite %d bytes\n", argv0, bp->ndata);
 	n = write(e->epout->dfd, bp->rp, bp->ndata);
@@ -779,8 +779,8 @@ etherbwrite(Ether *e, Buf *bp)
 	return n;
 }
 
-static int32_t
-fswrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t _1)
+static i32
+fswrite(Usbfs *fs, Fid *fid, void *data, i32 count, i64 _1)
 {
 	int cn, qt;
 	char buf[128];
@@ -982,7 +982,7 @@ etherwriteproc(void *a)
 static void
 setbuftype(Buf *bp)
 {
-	uint8_t *p;
+	u8 *p;
 
 	bp->type = 0;
 	if(bp->ndata >= Ehdrsize){
@@ -1184,7 +1184,7 @@ ethermain(Dev *dev, int argc, char **argv)
 {
 	int epin, epout, i, devid;
 	Ether *e;
-	uint8_t ea[Eaddrlen];
+	u8 ea[Eaddrlen];
 
 	devid = dev->id;
 	memset(ea, 0, Eaddrlen);

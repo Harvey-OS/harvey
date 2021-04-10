@@ -16,18 +16,18 @@ int			queuewrites = 0;
 int			writestodevnull = 0;
 int			verifywrites = 0;
 
-static Packet		*readilump(Lump *u, IAddr *ia, uint8_t *score);
+static Packet		*readilump(Lump *u, IAddr *ia, u8 *score);
 
 /*
  * Some of this logic is duplicated in hdisk.c
  */
 Packet*
-readlump(uint8_t *score, int type, uint32_t size, int *cached)
+readlump(u8 *score, int type, u32 size, int *cached)
 {
 	Lump *u;
 	Packet *p;
 	IAddr ia;
-	uint32_t n;
+	u32 n;
 
 	trace(TraceLump, "readlump enter");
 /*
@@ -84,7 +84,7 @@ readlump(uint8_t *score, int type, uint32_t size, int *cached)
  * doesn't store duplicates, but checks that the data is really the same.
  */
 int
-writelump(Packet *p, uint8_t *score, int type, uint32_t creator, uint ms)
+writelump(Packet *p, u8 *score, int type, u32 creator, uint ms)
 {
 	Lump *u;
 	int ok;
@@ -105,7 +105,7 @@ writelump(Packet *p, uint8_t *score, int type, uint32_t creator, uint ms)
 	if(u->data != nil){
 		ok = 0;
 		if(packetcmp(p, u->data) != 0){
-			uint8_t nscore[VtScoreSize];
+			u8 nscore[VtScoreSize];
 
 			packetsha1(u->data, nscore);
 			if(scorecmp(u->score, score) != 0)
@@ -160,7 +160,7 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 		if(old != nil){
 			ok = 0;
 			if(packetcmp(p, old) != 0){
-				uint8_t nscore[VtScoreSize];
+				u8 nscore[VtScoreSize];
 
 				packetsha1(old, nscore);
 				if(scorecmp(u->score, nscore) != 0)
@@ -199,14 +199,14 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 }
 
 static Packet*
-readilump(Lump *u, IAddr *ia, uint8_t *score)
+readilump(Lump *u, IAddr *ia, u8 *score)
 {
 	Arena *arena;
 	ZBlock *zb;
 	Packet *p, *pp;
 	Clump cl;
-	uint64_t aa;
-	uint8_t sc[VtScoreSize];
+	u64 aa;
+	u8 sc[VtScoreSize];
 
 	trace(TraceLump, "readilump enter");
 	arena = amapitoa(mainindex, ia->addr, &aa);

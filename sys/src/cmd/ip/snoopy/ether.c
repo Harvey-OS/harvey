@@ -15,9 +15,9 @@
 
 typedef struct Hdr	Hdr;
 struct Hdr {
-	uint8_t	d[6];
-	uint8_t	s[6];
-	uint8_t	type[2];
+	u8	d[6];
+	u8	s[6];
+	u8	type[2];
 	char	data[1500];
 };
 

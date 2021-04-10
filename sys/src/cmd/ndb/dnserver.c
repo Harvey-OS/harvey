@@ -22,7 +22,7 @@ int	norecursion;		/* don't allow recursive requests */
  *  answer a dns request
  */
 void
-dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
+dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, u8 *srcip, int rcode)
 {
 	int recursionflag;
 	char *cp, *errmsg;
@@ -187,7 +187,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 static RR*
 doextquery(DNSmsg *mp, Request *req, int recurse)
 {
-	uint16_t type;
+	u16 type;
 	char *name;
 	RR *rp, *neg;
 

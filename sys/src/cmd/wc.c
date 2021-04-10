@@ -8,7 +8,7 @@
  */
 
 /*
- * Count bytes within runes, if it fits in a uint64_t, and other things.
+ * Count bytes within runes, if it fits in a u64, and other things.
  */
 #include <u.h>
 #include <libc.h>
@@ -16,8 +16,8 @@
 
 /* flags, per-file counts, and total counts */
 static int pline, pword, prune, pbadr, pchar;
-static uint64_t nline, nword, nrune, nbadr, nchar;
-static uint64_t tnline, tnword, tnrune, tnbadr, tnchar;
+static u64 nline, nword, nrune, nbadr, nchar;
+static u64 tnline, tnword, tnrune, tnbadr, tnchar;
 
 enum{Space, Word};
 
@@ -25,14 +25,14 @@ static void
 wc(Biobuf *bin)
 {
 	int where;
-	int32_t r;
+	i32 r;
 
 	nline = 0;
 	nword = 0;
 	nrune = 0;
 	nbadr = 0;
 	where = Space;
-	while ((int32_t)(r = Bgetrune(bin)) >= 0) {
+	while ((i32)(r = Bgetrune(bin)) >= 0) {
 		nrune++;
 		if(r == Runeerror) {
 			nbadr++;
@@ -58,8 +58,8 @@ wc(Biobuf *bin)
 }
 
 static void
-report(uint64_t nline, uint64_t nword, uint64_t nrune, uint64_t nbadr,
-       uint64_t nchar, char *fname)
+report(u64 nline, u64 nword, u64 nrune, u64 nbadr,
+       u64 nchar, char *fname)
 {
 	char line[1024], *s, *e;
 

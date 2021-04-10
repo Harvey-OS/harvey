@@ -14,7 +14,7 @@ extern int cmdfd;
 Float
 famd(Float a, int b, int c, int d)
 {
-	uint32_t x, m;
+	u32 x, m;
 
 	x = (a + b) * c;
 	m = x % d;
@@ -24,10 +24,10 @@ famd(Float a, int b, int c, int d)
 	return x;
 }
 
-uint32_t
+u32
 fdf(Float a, int d)
 {
-	uint32_t x, m;
+	u32 x, m;
 
 	m = a % d;
 	x = a / d;
@@ -36,12 +36,12 @@ fdf(Float a, int d)
 	return x;
 }
 
-int32_t
+i32
 beint32(char *s)
 {
-	uint8_t *x;
+	u8 *x;
 
-	x = (uint8_t *)s;
+	x = (u8 *)s;
 	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3];
 }
 
@@ -74,7 +74,7 @@ cprint(char *fmt, ...)
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
-	write(cmdfd, buf, (int32_t)(out-buf));
+	write(cmdfd, buf, (i32)(out-buf));
 }
 
 /*

@@ -11,8 +11,8 @@
  * pANS stdio -- ftell
  */
 #include "iolib.h"
-int32_t ftell(FILE *f){
-	int32_t seekp=seek(f->fd, 0L, 1);
+i32 ftell(FILE *f){
+	i32 seekp=seek(f->fd, 0L, 1);
 	if(seekp<0) return -1;		/* enter error state? */
 	switch(f->state){
 	default:

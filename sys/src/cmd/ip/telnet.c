@@ -40,9 +40,9 @@ void	rawon(void);
 void	telnet(int);
 char*	system(int, char*);
 int	echochange(Biobuf*, int);
-int	termsub(Biobuf*, uint8_t*, int);
-int	xlocsub(Biobuf*, uint8_t*, int);
-void*	share(uint32_t);
+int	termsub(Biobuf*, u8*, int);
+int	xlocsub(Biobuf*, u8*, int);
+void*	share(u32);
 
 static int islikeatty(int);
 
@@ -497,7 +497,7 @@ echochange(Biobuf *bp, int cmd)
  *  send terminal type to the other side
  */
 int
-termsub(Biobuf *bp, uint8_t *sub, int n)
+termsub(Biobuf *bp, u8 *sub, int n)
 {
 	unsigned char buf[64];
 	char *term;
@@ -527,7 +527,7 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
  *  send an x display location to the other side
  */
 int
-xlocsub(Biobuf *bp, uint8_t *sub, int n)
+xlocsub(Biobuf *bp, u8 *sub, int n)
 {
 	unsigned char buf[64];
 	char *term;
@@ -568,7 +568,7 @@ islikeatty(int fd)
  *  create a shared segment.
  */
 void*
-share(uint32_t len)
+share(u32 len)
 {
 	// Let the kernel place the segment
 	void* vastart = segattach(0, "shared", 0, len);

@@ -17,9 +17,9 @@
  * are data.  otherwise, it's two bytes specifying a previous string to repeat.
  */
 void
-_twiddlecompressed(uint8_t *buf, int n)
+_twiddlecompressed(u8 *buf, int n)
 {
-	uint8_t *ebuf;
+	u8 *ebuf;
 	int j, k, c;
 
 	ebuf = buf+n;

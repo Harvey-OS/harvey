@@ -19,13 +19,13 @@ struct Seg
 {
 	Point	p0;
 	Point	p1;
-	int32_t	num;
-	int32_t	den;
-	int32_t	dz;
-	int32_t	dzrem;
-	int32_t	z;
-	int32_t	zerr;
-	int32_t	d;
+	i32	num;
+	i32	den;
+	i32	dz;
+	i32	dzrem;
+	i32	z;
+	i32	zerr;
+	i32	d;
 };
 
 static	void	zsort(Seg **seg, Seg **ep);
@@ -116,30 +116,30 @@ _memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Poin
 	free(segtab);
 }
 
-static int32_t
-mod(int32_t x, int32_t y)
+static i32
+mod(i32 x, i32 y)
 {
-	int32_t z;
+	i32 z;
 
 	z = x%y;
-	if((int32_t)(((uint32_t)z)^((uint32_t)y)) > 0 || z == 0)
+	if((i32)(((u32)z)^((u32)y)) > 0 || z == 0)
 		return z;
 	return z + y;
 }
 
-static int32_t
-sdiv(int32_t x, int32_t y)
+static i32
+sdiv(i32 x, i32 y)
 {
-	if((int32_t)(((uint32_t)x)^((uint32_t)y)) >= 0 || x == 0)
+	if((i32)(((u32)x)^((u32)y)) >= 0 || x == 0)
 		return x/y;
 
 	return (x+((y>>30)|1))/y-1;
 }
 
-static int32_t
-smuldivmod(int32_t x, int32_t y, int32_t z, int32_t *mod)
+static i32
+smuldivmod(i32 x, i32 y, i32 z, i32 *mod)
 {
-	int64_t vx;
+	i64 vx;
 
 	if(x == 0 || y == 0){
 		*mod = 0;
@@ -158,9 +158,9 @@ smuldivmod(int32_t x, int32_t y, int32_t z, int32_t *mod)
 static void
 xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int detail, int fixshift, int clipped, int op)
 {
-	int32_t y, maxy, x, x2, xerr, xden, onehalf;
+	i32 y, maxy, x, x2, xerr, xden, onehalf;
 	Seg **ep, **next, **p, **q, *s;
-	int32_t n, i, iy, cnt, ix, ix2, minx, maxx;
+	i32 n, i, iy, cnt, ix, ix2, minx, maxx;
 	Point pt;
 	void	(*fill)(Memimage*, int, int, int, Memimage*, Point, int);
 
@@ -307,7 +307,7 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 static void
 yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int fixshift, int op)
 {
-	int32_t x, maxx, y, y2, yerr, yden, onehalf;
+	i32 x, maxx, y, y2, yerr, yden, onehalf;
 	Seg **ep, **next, **p, **q, *s;
 	int n, i, ix, cnt, iy, iy2, miny, maxy;
 	Point pt;
@@ -469,7 +469,7 @@ static int
 ycompare(const void *a, const void *b)
 {
 	Seg **s0, **s1;
-	int32_t y0, y1;
+	i32 y0, y1;
 
 	s0 = (Seg **)a;
 	s1 = (Seg **)b;
@@ -487,7 +487,7 @@ static int
 xcompare(const void *a, const void *b)
 {
 	Seg **s0, **s1;
-	int32_t x0, x1;
+	i32 x0, x1;
 
 	s0 = (Seg **)a;
 	s1 = (Seg **)b;
@@ -505,7 +505,7 @@ static int
 zcompare(const void *a, const void *b)
 {
 	Seg **s0, **s1;
-	int32_t z0, z1;
+	i32 z0, z1;
 
 	s0 = (Seg **)a;
 	s1 = (Seg **)b;

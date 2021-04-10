@@ -15,32 +15,32 @@
 typedef struct State{
 	QLock		lock;
 	int		seeded;
-	uint64_t		seed;
+	u64		seed;
 	DES3state	des3;
 } State;
 static State x917state;
 
 static void
-X917(uint8_t *rand, int nrand)
+X917(u8 *rand, int nrand)
 {
 	int i, m, n8;
-	uint64_t I, x;
+	u64 I, x;
 
 	/* 1. Compute intermediate value I = Ek(time). */
 	I = nsec();
-	triple_block_cipher(x917state.des3.expanded, (uint8_t*)&I, 0); /* two-key EDE */
+	triple_block_cipher(x917state.des3.expanded, (u8*)&I, 0); /* two-key EDE */
 
 	/* 2. x[i] = Ek(I^seed);  seed = Ek(x[i]^I); */
 	m = (nrand+7)/8;
 	for(i=0; i<m; i++){
 		x = I ^ x917state.seed;
-		triple_block_cipher(x917state.des3.expanded, (uint8_t*)&x, 0);
+		triple_block_cipher(x917state.des3.expanded, (u8*)&x, 0);
 		n8 = (nrand>8) ? 8 : nrand;
-		memcpy(rand, (uint8_t*)&x, n8);
+		memcpy(rand, (u8*)&x, n8);
 		rand += 8;
 		nrand -= 8;
 		x ^= I;
-		triple_block_cipher(x917state.des3.expanded, (uint8_t*)&x, 0);
+		triple_block_cipher(x917state.des3.expanded, (u8*)&x, 0);
 		x917state.seed = x;
 	}
 }
@@ -49,12 +49,12 @@ static void
 X917init(void)
 {
 	int n;
-	uint8_t mix[128];
-	uint8_t key3[3][8];
-	uint32_t *ulp;
+	u8 mix[128];
+	u8 key3[3][8];
+	u32 *ulp;
 
-	ulp = (uint32_t*)key3;
-	for(n = 0; n < sizeof(key3)/sizeof(uint32_t); n++)
+	ulp = (u32*)key3;
+	for(n = 0; n < sizeof(key3)/sizeof(u32); n++)
 		ulp[n] = truerand();
 	setupDES3state(&x917state.des3, key3, nil);
 	X917(mix, sizeof mix);
@@ -62,7 +62,7 @@ X917init(void)
 }
 
 void
-genrandom(uint8_t *p, int n)
+genrandom(u8 *p, int n)
 {
 	qlock(&x917state.lock);
 	if(x917state.seeded == 0)

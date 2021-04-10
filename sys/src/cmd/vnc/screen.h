@@ -32,12 +32,12 @@ void		drawactive(int);
 void		drawlock(void);
 void		drawunlock(void);
 int		candrawlock(void);
-void		getcolor(uint32_t, uint32_t*, uint32_t*, uint32_t*);
-int		setcolor(uint32_t, uint32_t, uint32_t, uint32_t);
+void		getcolor(u32, u32*, u32*, u32*);
+int		setcolor(u32, u32, u32, u32);
 #define		TK2SEC(x)	0
 extern void	blankscreen(int);
 void		screeninit(int x, int y, char *chanstr);
 void		mousetrack(int x, int y, int b, int msec);
-uint8_t		*attachscreen(Rectangle*, uint32_t*, int*, int*, int*);
+u8		*attachscreen(Rectangle*, u32*, int*, int*, int*);
 
 void		fsinit(char *mntpt, int x, int y, char *chanstr);

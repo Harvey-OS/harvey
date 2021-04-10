@@ -411,11 +411,11 @@ _Stradd(Rune* s1, Rune* s2, int n)
 #define LONG_MAX	2147483647L
 #define LONG_MIN	-2147483648L
 
-int32_t
+i32
 _Strtol(Rune* nptr, Rune** endptr, int base)
 {
 	Rune* p;
-	int32_t n, nn;
+	i32 n, nn;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;
@@ -504,7 +504,7 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 // Convert buf[0:n], bytes whose character set is chset,
 // into a emalloc'd null-terminated Unicode string.
 Rune*
-toStr(uint8_t* buf, int n, int chset)
+toStr(u8 * buf, int n, int chset)
 {
 	int i;
 	int m;
@@ -545,20 +545,20 @@ toStr(uint8_t* buf, int n, int chset)
 // Convert buf[0:n], Unicode characters,
 // into an emalloc'd null-terminated string in character set chset.
 // Use 0x80 for unconvertable characters.
-uint8_t*
+u8 *
 fromStr(Rune* buf, int n, int chset)
 {
-	uint8_t* ans;
+	u8 * ans;
 	int i, lim, m;
 	Rune ch;
-	uint8_t* p;
-	uint8_t s[UTFmax];
+	u8 * p;
+	u8 s[UTFmax];
 
 	ans = nil;
 	switch(chset) {
 	case US_Ascii:
 	case ISO_8859_1:
-		ans = (uint8_t*)emalloc(n+1);
+		ans = (u8*)emalloc(n+1);
 		lim = (chset==US_Ascii)? 127 : 255;
 		for(i = 0; i < n; i++) {
 			ch = buf[i];
@@ -574,7 +574,7 @@ fromStr(Rune* buf, int n, int chset)
 		for(i = 0; i < n; i++) {
 			m += runetochar((char*)s, &buf[i]);
 		}
-		ans = (uint8_t*)emalloc(m+1);
+		ans = (u8*)emalloc(m+1);
 		p = ans;
 		for(i = 0; i < n; i++)
 			p += runetochar((char*)p, &buf[i]);

@@ -117,7 +117,7 @@ asixset(Dev *d, int c, int v)
 }
 
 static int
-asixget(Dev *d, int c, uint8_t *buf, int l)
+asixget(Dev *d, int c, u8 *buf, int l)
 {
 	int r;
 	int ec;
@@ -132,7 +132,7 @@ asixget(Dev *d, int c, uint8_t *buf, int l)
 static int
 getgpio(Dev *d)
 {
-	uint8_t c;
+	u8 c;
 
 	if(asixget(d, Crgpio, &c, 1) < 0)
 		return -1;
@@ -142,7 +142,7 @@ getgpio(Dev *d)
 static int
 getphy(Dev *d)
 {
-	uint8_t buf[2];
+	u8 buf[2];
 
 	if(asixget(d, Crphy, buf, sizeof(buf)) < 0)
 		return -1;
@@ -153,7 +153,7 @@ getphy(Dev *d)
 static int
 getrxctl(Dev *d)
 {
-	uint8_t buf[2];
+	u8 buf[2];
 	int r;
 
 	memset(buf, 0, sizeof(buf));
@@ -165,7 +165,7 @@ getrxctl(Dev *d)
 }
 
 static int
-getmac(Dev *d, uint8_t buf[])
+getmac(Dev *d, u8 buf[])
 {
 	if(asixget(d, Crmac, buf, Eaddrlen) < 0)
 		return -1;
@@ -176,7 +176,7 @@ static int
 miiread(Dev *d, int phy, int reg)
 {
 	int r;
-	uint8_t v[2];
+	u8 v[2];
 
 	r = Rd2h|Rvendor|Rdev;
 	if(usbcmd(d, r, Crmii, phy, reg, v, 2) < 0){
@@ -194,7 +194,7 @@ static int
 miiwrite(Dev *d, int phy, int reg, int val)
 {
 	int r;
-	uint8_t v[2];
+	u8 v[2];
 
 	if(asixset(d, Cswmii, 0) < 0)
 		return -1;
@@ -214,7 +214,7 @@ eepromread(Dev *d, int i)
 {
 	int r;
 	int ec;
-	uint8_t buf[2];
+	u8 buf[2];
 
 	r = Rd2h|Rvendor|Rdev;
 	ec = usbcmd(d, r, Creeprom, i, 0, buf, sizeof(buf));
@@ -357,11 +357,11 @@ ctlrinit(Ether *ether)
 }
 
 
-static int32_t
+static i32
 asixbread(Ether *e, Buf *bp)
 {
-	uint32_t nr;
-	uint32_t hd;
+	u32 nr;
+	u32 hd;
 	Buf *rbp;
 
 	rbp = e->Etherops.aux;
@@ -405,11 +405,11 @@ asixbread(Ether *e, Buf *bp)
 	return bp->ndata;
 }
 
-static int32_t
+static i32
 asixbwrite(Ether *e, Buf *bp)
 {
-	uint32_t len;
-	int32_t n;
+	u32 len;
+	i32 n;
 
 	deprint(2, "%s: asixbwrite %d bytes\n", argv0, bp->ndata);
 	assert(bp->rp - bp->data >= Hdrsize);
@@ -444,7 +444,7 @@ asixpromiscuous(Ether *e, int on)
 }
 
 static int
-asixmulticast(Ether *e, uint8_t *addr, int on)
+asixmulticast(Ether *e, u8 *addr, int on)
 {
 	int rxctl;
 

@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-uint8_t buf[64*1024];
+u8 buf[64*1024];
 
 void
 usage(void)
@@ -25,7 +25,7 @@ threadmain(int argc, char *argv[])
 {
 	char *file, *p, *name;
 	char *table;
-	uint64_t offset;
+	u64 offset;
 	Part *part;
 	ArenaPart ap;
 	ArenaHead head;

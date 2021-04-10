@@ -22,8 +22,8 @@ enum {
 
 struct MetaEntry
 {
-	uint8_t *p;
-	uint16_t size;
+	u8 *p;
+	u16 size;
 };
 
 struct MetaBlock
@@ -34,13 +34,13 @@ struct MetaBlock
 	int maxindex;		/* entries allocated for table */
 	int nindex;		/* amount of table used */
 	int unbotch;
-	uint8_t *buf;
+	u8 *buf;
 };
 
 struct VacDirEnum
 {
 	VacFile *file;
-	uint32_t boff;
+	u32 boff;
 	int i, n;
 	VacDir *buf;
 };

@@ -24,14 +24,14 @@ launcheraarch64(int unused, void (*f)(void *arg), void *arg)
 void
 _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 {
-	uint64_t *tos;
+	u64 *tos;
 
-	tos = (uint64_t*)&t->stk[t->stksize&~0x0F];
-	*--tos = (uint64_t)arg;
-	*--tos = (uint64_t)f;
+	tos = (u64*)&t->stk[t->stksize&~0x0F];
+	*--tos = (u64)arg;
+	*--tos = (u64)f;
 	*--tos = 0;	/* first arg to launcheraarch64 */
 	*--tos = 0;	/* place to store return PC */
 
-	t->sched[JMPBUFPC] = (uint64_t)launcheraarch64+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (uint64_t)tos;
+	t->sched[JMPBUFPC] = (u64)launcheraarch64+JMPBUFDPC;
+	t->sched[JMPBUFSP] = (u64)tos;
 }

@@ -19,7 +19,7 @@
 #include "fns.h"
 
 Buf*
-bopen(int32_t (*fn)(Buf*, void*, int32_t, uint32_t), int omode, int bs,
+bopen(i32 (*fn)(Buf*, void*, i32, u32), int omode, int bs,
       int nblock)
 {
 	Buf *b;
@@ -39,11 +39,11 @@ bopen(int32_t (*fn)(Buf*, void*, int32_t, uint32_t), int omode, int bs,
 	return b;
 }
 
-int32_t
-bread(Buf *b, void *v, int32_t n, int64_t off)
+i32
+bread(Buf *b, void *v, i32 n, i64 off)
 {
-	int32_t m;
-	int64_t noff;
+	i32 m;
+	i64 noff;
 
 	assert(b->omode == OREAD);
 
@@ -72,11 +72,11 @@ bread(Buf *b, void *v, int32_t n, int64_t off)
 	return n;
 }
 
-int32_t
-bwrite(Buf *b, void *v, int32_t n)
+i32
+bwrite(Buf *b, void *v, i32 n)
 {
-	int32_t on, m, mdata;
-	uint8_t *p;
+	i32 on, m, mdata;
+	u8 *p;
 
 	p = v;
 	on = n;

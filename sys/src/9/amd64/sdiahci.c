@@ -582,7 +582,7 @@ ahciidentify(Aportc *pc, u16 *id)
 static int
 ahciquiet(Aport *a)
 {
-	uint32_t *p, i;
+	u32 *p, i;
 
 	p = &a->cmd;
 	*p &= ~Ast;
@@ -1803,7 +1803,7 @@ retry:
 			switch(cmd[0]){
 			case 0x0a: /* write (6?) */
 			case 0x2a: /* write (10) */
-			case 0x8a: /* int32_t write (16) */
+			case 0x8a: /* i32 write (16) */
 			case 0x2e: /* write and verify (10) */
 				wormwrite = 1;
 				break;

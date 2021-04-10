@@ -265,7 +265,7 @@ readtext(char *s)
 	Dir *d;
 	Lsym *l;
 	Value *v;
-	uint64_t length;
+	u64 length;
 	Symbol sym;
 
 	if(mtype != 0){
@@ -355,7 +355,7 @@ al(int t)
 }
 
 Node*
-con(int64_t v)
+con(i64 v)
 {
 	Node *n;
 

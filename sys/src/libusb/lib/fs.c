@@ -70,8 +70,8 @@ char Eisopen[] = "it is already open";
 char Ebadctl[] = "unknown control request";
 
 static char *user;
-static uint32_t epoch;
-static uint32_t msgsize = Msgsize;
+static u32 epoch;
+static u32 msgsize = Msgsize;
 static int fsfd = -1;
 static Channel *outc;	/* of Rpc* */
 
@@ -342,7 +342,7 @@ fswalk(Rpc *r)
 static void
 fsioproc(void* a)
 {
-	int32_t rc;
+	i32 rc;
 	Channel *p = a;
 	Rpc *rpc;
 	Fcall *t, *r;
@@ -412,7 +412,7 @@ fsopen(Rpc *r)
 }
 
 int
-usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
+usbdirread(Usbfs*f, Qid q, char *data, i32 cnt, i64 off,
 	   Dirgen gen,
 	   void *arg)
 {
@@ -429,7 +429,7 @@ usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
 	for(i = n = 0; gen(f, q, i, &d, arg) >= 0; i++){
 		if(usbfsdebug > 1)
 			fprint(2, "%s: dir %d q %#llx: %D\n", argv0, i, q.path, &d);
-		nd = convD2M(&d, (uint8_t*)data+n, cnt-n);
+		nd = convD2M(&d, (u8*)data+n, cnt-n);
 		if(nd <= BIT16SZ)
 			break;
 		if(off > 0)
@@ -445,8 +445,8 @@ usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
 	return n;
 }
 
-int32_t
-usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n)
+i32
+usbreadbuf(void *data, i32 count, i64 offset, void *buf, i32 n)
 {
 	if(offset >= n)
 		return 0;
@@ -507,8 +507,8 @@ fsstat(Rpc *r)
 	d.length = 0;
 	if(fsops->stat(fsops, r->fid->qid, &d) < 0)
 		return fserror(r, "%r");
-	r->r.stat = (uint8_t*)r->data;
-	r->r.nstat = convD2M(&d, (uint8_t*)r->data, msgsize);
+	r->r.stat = (u8*)r->data;
+	r->r.nstat = convD2M(&d, (u8*)r->data, msgsize);
 	return r;
 }
 
@@ -550,7 +550,7 @@ Rpc* (*fscalls[])(Rpc*) = {
 static void
 outproc(void*_1)
 {
-	static uint8_t buf[Bufsize];
+	static u8 buf[Bufsize];
 	Rpc *rpc;
 	int nw;
 	static int once = 0;
@@ -619,7 +619,7 @@ usbfs(void*_1)
 			sendp(outc, rpc);
 			break;
 		}
-		if(convM2S((uint8_t*)rpc->data, nr, &rpc->t) <=0){
+		if(convM2S((u8*)rpc->data, nr, &rpc->t) <=0){
 			dprint(2, "%s: convM2S failed\n", argv0);
 			freerpc(rpc);
 			continue;

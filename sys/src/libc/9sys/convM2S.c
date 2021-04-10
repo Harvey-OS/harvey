@@ -12,8 +12,8 @@
 #include	<fcall.h>
 
 static
-uint8_t*
-gstring(uint8_t *p, uint8_t *ep, char **s)
+u8 *
+gstring(u8 *p, u8 *ep, char **s)
 {
 	uint n;
 
@@ -32,8 +32,8 @@ gstring(uint8_t *p, uint8_t *ep, char **s)
 }
 
 static
-uint8_t*
-gqid(uint8_t *p, uint8_t *ep, Qid *q)
+u8 *
+gqid(u8 *p, u8 *ep, Qid *q)
 {
 	if(p+QIDSZ > ep)
 		return nil;
@@ -57,9 +57,9 @@ gqid(uint8_t *p, uint8_t *ep, Qid *q)
  * to test at end of routine.
  */
 uint
-convM2S(uint8_t *ap, uint nap, Fcall *f)
+convM2S(u8 *ap, uint nap, Fcall *f)
 {
-	uint8_t *p, *ep;
+	u8 *p, *ep;
 	uint i, size;
 
 	p = ap;

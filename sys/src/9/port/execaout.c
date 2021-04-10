@@ -54,15 +54,15 @@
 // The reset of the a.out header is like this, in big-endian:
 // struct	Exec
 // {
-// 	int32_t	magic; 00 00 8a 97		/* magic number */
-// 	int32_t	text;  00 08 d5 fe	 	/* size of text segment */
-// 	int32_t	data;  00 00 21 40	 	/* size of initialized data */
-// 	int32_t	bss;   00 01 e6 60	  	/* size of uninitialized data */
-// 	int32_t	syms;  00 00 d0 db	 	/* size of symbol table */
-// 	int32_t	entry; 00 24 30 70	 	/* 32-bit entry point */
-// 	int32_t	spsz;  00 00 00 00		/* size of pc/sp offset table */
-//	int32_t	pcsz;  00 00 00 00		/* size of pc/line number table */
-//      uint64_t hdr;  00 00 00 00              /* expansion (64-bit entry point) */
+// 	i32	magic; 00 00 8a 97		/* magic number */
+// 	i32	text;  00 08 d5 fe	 	/* size of text segment */
+// 	i32	data;  00 00 21 40	 	/* size of initialized data */
+// 	i32	bss;   00 01 e6 60	  	/* size of uninitialized data */
+// 	i32	syms;  00 00 d0 db	 	/* size of symbol table */
+// 	i32	entry; 00 24 30 70	 	/* 32-bit entry point */
+// 	i32	spsz;  00 00 00 00		/* size of pc/sp offset table */
+//	i32	pcsz;  00 00 00 00		/* size of pc/line number table */
+//      u64 hdr;  00 00 00 00              /* expansion (64-bit entry point) */
 //                     00 24 30 70
 //};
 // Note that Go did not get it quite right! The 32-bit entry should be zero on

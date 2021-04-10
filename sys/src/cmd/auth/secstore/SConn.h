@@ -39,6 +39,6 @@ void	writerr(SConn*, char*);
  */
 int	readstr(SConn*, char*);
 
-void	*emalloc(uint32_t);		/* dies on failure; clears memory */
-void	*erealloc(void*, uint32_t);
+void	*emalloc(u32);		/* dies on failure; clears memory */
+void	*erealloc(void*, u32);
 char	*estrdup(char*);

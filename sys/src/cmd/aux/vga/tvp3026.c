@@ -28,10 +28,10 @@ enum {
 	Tvp3026		= 0x26,
 };
 
-static uint8_t
-tvp3026io(uint8_t reg, uint8_t data)
+static u8
+tvp3026io(u8 reg, u8 data)
 {
-	uint8_t crt55;
+	u8 crt55;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -40,10 +40,10 @@ tvp3026io(uint8_t reg, uint8_t data)
 	return crt55;
 }
 
-static uint8_t
-tvp3026i(uint8_t reg)
+static u8
+tvp3026i(u8 reg)
 {
-	uint8_t crt55, r;
+	u8 crt55, r;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -53,10 +53,10 @@ tvp3026i(uint8_t reg)
 	return r;
 }
 
-uint8_t
-tvp3026xi(uint8_t index)
+u8
+tvp3026xi(u8 index)
 {
-	uint8_t crt55, r;
+	u8 crt55, r;
 
 	crt55 = tvp3026io(Index, index);
 	vgaxo(Crtx, 0x55, crt55|((Data>>2) & 0x03));
@@ -67,9 +67,9 @@ tvp3026xi(uint8_t index)
 }
 
 void
-tvp3026xo(uint8_t index, uint8_t data)
+tvp3026xo(u8 index, u8 data)
 {
-	uint8_t crt55;
+	u8 crt55;
 
 	crt55 = tvp3026io(Index, index);
 	vgaxo(Crtx, 0x55, crt55|((Data>>2) & 0x03));
@@ -86,7 +86,7 @@ options(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	uint32_t grade;
+	u32 grade;
 	char *p;
 
 	/*
@@ -120,7 +120,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	uint32_t clock[4], f;
+	u32 clock[4], f;
 
 	printitem(ctlr->name, "direct");
 	for(i = 0; i < 16; i++)

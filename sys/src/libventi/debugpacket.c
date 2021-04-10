@@ -38,7 +38,7 @@ packetalloc(void)
 }
 
 void
-packetappend(Packet *p, uint8_t *buf, int n)
+packetappend(Packet *p, u8 *buf, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
@@ -91,7 +91,7 @@ packetconcat(Packet *p, Packet *q)
 }
 
 int
-packetconsume(Packet *p, uint8_t *buf, int n)
+packetconsume(Packet *p, u8 *buf, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
@@ -105,7 +105,7 @@ packetconsume(Packet *p, uint8_t *buf, int n)
 }
 
 int
-packetcopy(Packet *p, uint8_t *buf, int offset, int n)
+packetcopy(Packet *p, u8 *buf, int offset, int n)
 {
 	NOTFREE(p);
 	if(offset < 0 || n < 0)
@@ -136,7 +136,7 @@ packetdup(Packet *p, int offset, int n)
 }
 
 Packet*
-packetforeign(uint8_t *buf, int n, void (*free)(void*), void *a)
+packetforeign(u8 *buf, int n, void (*free)(void*), void *a)
 {
 	Packet *p;
 
@@ -179,7 +179,7 @@ packetfree(Packet *p)
 	free(p);
 }
 
-uint8_t*
+u8 *
 packetheader(Packet *p, int n)
 {
 	NOTFREE(p);
@@ -190,8 +190,8 @@ packetheader(Packet *p, int n)
 	return p->data;
 }
 
-uint8_t*
-packetpeek(Packet *p, uint8_t *buf, int offset, int n)
+u8 *
+packetpeek(Packet *p, u8 *buf, int offset, int n)
 {
 	NOTFREE(p);
 	if(offset < 0 || n < 0)
@@ -202,7 +202,7 @@ packetpeek(Packet *p, uint8_t *buf, int offset, int n)
 }
 
 void
-packetprefix(Packet *p, uint8_t *buf, int n)
+packetprefix(Packet *p, u8 *buf, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
@@ -217,10 +217,10 @@ packetprefix(Packet *p, uint8_t *buf, int n)
 }
 
 void
-packetsha1(Packet *p, uint8_t d[20])
+packetsha1(Packet *p, u8 d[20])
 {
 	NOTFREE(p);
-	sha1((uint8_t*)p->data, p->len, d, nil);
+	sha1((u8*)p->data, p->len, d, nil);
 }
 
 uint
@@ -249,7 +249,7 @@ packetstats(void)
 {
 }
 
-uint8_t*
+u8 *
 packettrailer(Packet *p, int n)
 {
 	NOTFREE(p);

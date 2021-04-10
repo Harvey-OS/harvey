@@ -115,15 +115,15 @@ in_cksumdata(const void *buf, int len)
 	if (offset < 32 && len > offset){
 		len -= offset;
 		if (4 & offset){
-			sum += (uint64_t) lw[0];
+			sum += (u64) lw[0];
 			lw += 1;
 		}
 		if (8 & offset){
-			sum += (uint64_t) lw[0] + lw[1];
+			sum += (u64) lw[0] + lw[1];
 			lw += 2;
 		}
 		if (16 & offset){
-			sum += (uint64_t) lw[0] + lw[1] + lw[2] + lw[3];
+			sum += (u64) lw[0] + lw[1] + lw[2] + lw[3];
 			lw += 4;
 		}
 	}

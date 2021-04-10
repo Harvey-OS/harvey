@@ -148,7 +148,7 @@ reldescr(Virtq *q, int n, u16 *descr)
 // Obtain a given number of descriptiors from the virtqueue. If the number of free descriptors is low, wait
 // until available. Return value: number of descriptors allocated (should be same as requested),
 // or -1 (if number of descriptors requested is more than the queue length). The caller should preallocate
-// an array of uint16_t values of the same or larger size as the number of descriptors requested;
+// an array of u16 values of the same or larger size as the number of descriptors requested;
 // this array will be populated. If more than one descriptor is requested, the descriptors allocated
 // will be chained in the order of the increasing indice of the array.
 

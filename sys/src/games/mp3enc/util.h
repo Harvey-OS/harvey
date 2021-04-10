@@ -209,7 +209,7 @@ typedef struct {
                                        fir, */
     unsigned char* src_step;
     sample_t*      in_old       [MAX_CHANNELS];
-    //    uint64_t       sample_count [MAX_CHANNELS];
+    //    u64       sample_count [MAX_CHANNELS];
     unsigned       fir_stepper  [MAX_CHANNELS];
     int            inp_stepper  [MAX_CHANNELS];
 

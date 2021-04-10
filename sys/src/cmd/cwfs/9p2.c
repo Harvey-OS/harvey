@@ -13,7 +13,7 @@
 enum { MSIZE = MAXDAT+MAXMSG };
 
 static int
-mkmode9p1(uint32_t mode9p2)
+mkmode9p1(u32 mode9p2)
 {
 	int mode;
 
@@ -58,10 +58,10 @@ mktype9p2(int mode9p1)
 	return type;
 }
 
-static uint32_t
+static u32
 mkmode9p2(int mode9p1)
 {
-	uint32_t mode;
+	u32 mode;
 
 	mode = mode9p1 & 0777;
 	if(mode9p1 & DLOCK)
@@ -77,7 +77,7 @@ mkmode9p2(int mode9p1)
 void
 mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode9p1)
 {
-	qid->path = (uint32_t)(qid9p1->path & ~QPDIR);
+	qid->path = (u32)(qid9p1->path & ~QPDIR);
 	qid->vers = qid9p1->version;
 	qid->type = mktype9p2(mode9p1);
 }
@@ -998,7 +998,7 @@ out:
 }
 
 static int
-fs_read(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
+fs_read(Chan* chan, Fcall* f, Fcall* r, u8 * data)
 {
 	Iobuf *p, *p1;
 	File *file;
@@ -1034,7 +1034,7 @@ fs_read(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
 		goto out;
 	}
 	if(file->qid.type & QTAUTH){
-		nread = authread(file, (uint8_t*)data, count);
+		nread = authread(file, (u8*)data, count);
 		if(nread < 0)
 			error = Eauth2;
 		goto out;
@@ -1231,7 +1231,7 @@ fs_write(Chan* chan, Fcall* f, Fcall* r)
 	}
 
 	if(file->qid.type & QTAUTH){
-		nwrite = authwrite(file, (uint8_t*)f->data, count);
+		nwrite = authwrite(file, (u8*)f->data, count);
 		if(nwrite < 0)
 			error = Eauth2;
 		goto out;
@@ -1356,7 +1356,7 @@ fs_remove(Chan* chan, Fcall* f, Fcall*)
 }
 
 static int
-fs_stat(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
+fs_stat(Chan* chan, Fcall* f, Fcall* r, u8 * data)
 {
 	Dir dir;
 	Iobuf *p;
@@ -1419,7 +1419,7 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 	Dentry *d, *d1;
 	File *file;
 	int error, err, gid, gl, muid, op, slot, tsync, uid;
-	int32_t addr;
+	i32 addr;
 	Dir dir;
 
 	if(convM2D(f->stat, f->nstat, &dir, strs) == 0)
@@ -1499,7 +1499,7 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 	 * if there are changes to the bits also encoded in .qid.type
 	 * then file->qid must be updated appropriately later.
 	 */
-	if(dir.qid.type == (uint8_t)~0){
+	if(dir.qid.type == (u8)~0){
 		if(dir.mode == ~0)
 			dir.qid.type = mktype9p2(d->mode);
 		else

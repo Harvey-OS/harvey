@@ -15,7 +15,7 @@ int uflg, nflg;
 void
 main(int argc, char *argv[])
 {
-	uint32_t now;
+	u32 now;
 
 	ARGBEGIN{
 	case 'n':	nflg = 1; break;

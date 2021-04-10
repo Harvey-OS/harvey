@@ -35,17 +35,17 @@
 #define VIRTIO_CONSOLE_F_MULTIPORT 1	/* Does host provide multiple ports? */
 #define VIRTIO_CONSOLE_F_EMERG_WRITE 2 /* Does host support emergency write? */
 
-#define VIRTIO_CONSOLE_BAD_ID		(~(uint32_t)0)
+#define VIRTIO_CONSOLE_BAD_ID		(~(u32)0)
 
 struct virtio_console_config {
 	/* colums of the screens */
-	uint16_t cols;
+	u16 cols;
 	/* rows of the screens */
-	uint16_t rows;
+	u16 rows;
 	/* max. number of ports this device can hold */
-	uint32_t max_nr_ports;
+	u32 max_nr_ports;
 	/* emergency write register */
-	uint32_t emerg_wr;
+	u32 emerg_wr;
 } __attribute__((packed));
 
 /*
@@ -53,9 +53,9 @@ struct virtio_console_config {
  * particular port.
  */
 struct virtio_console_control {
-	uint32_t id;		/* Port number */
-	uint16_t event;	/* The kind of control event (see below) */
-	uint16_t value;	/* Extra information for the key */
+	u32 id;		/* Port number */
+	u16 event;	/* The kind of control event (see below) */
+	u16 value;	/* Extra information for the key */
 };
 
 /* Some events for control messages */

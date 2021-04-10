@@ -268,7 +268,7 @@ fsattach(Req *r)
 static struct {
 	char *name;
 	int qidpath;
-	uint32_t perm;
+	u32 perm;
 } dirtab[] = {
 	{"confirm",	Qconfirm,	0600|DMEXCL},		/* we know this is slot #0 below */
 	{"needkey",	Qneedkey,	0600|DMEXCL},		/* we know this is slot #1 below */
@@ -282,7 +282,7 @@ int *confirminuse = &inuse[0];
 int *needkeyinuse = &inuse[1];
 
 static void
-fillstat(Dir *dir, char *name, int type, int path, uint32_t perm)
+fillstat(Dir *dir, char *name, int type, int path, u32 perm)
 {
 	dir->name = estrdup(name);
 	dir->uid = estrdup(owner);
@@ -318,7 +318,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 
-	switch((uint32_t)fid->qid.path){
+	switch((u32)fid->qid.path){
 	default:
 		return "cannot happen";
 	case Qroot:
@@ -352,7 +352,7 @@ static void
 fsstat(Req *r)
 {
 	int i;
-	uint32_t path;
+	u32 path;
 
 	path = r->fid->qid.path;
 	if(path == Qroot){
@@ -509,7 +509,7 @@ fsread(Req *r)
 	Fsstate *s;
 
 	s = r->fid->aux;
-	switch((uint32_t)r->fid->qid.path){
+	switch((u32)r->fid->qid.path){
 	default:
 		respond(r, "bug in fsread");
 		break;
@@ -550,7 +550,7 @@ fswrite(Req *r)
 	int ret;
 	char err[ERRMAX], *s;
 
-	switch((uint32_t)r->fid->qid.path){
+	switch((u32)r->fid->qid.path){
 	default:
 		respond(r, "bug in fswrite");
 		break;
@@ -563,7 +563,7 @@ fswrite(Req *r)
 		s = emalloc(r->ifcall.count+1);
 		memmove(s, r->ifcall.data, r->ifcall.count);
 		s[r->ifcall.count] = '\0';
-		switch((uint32_t)r->fid->qid.path){
+		switch((u32)r->fid->qid.path){
 		default:
 			abort();
 		case Qneedkey:

@@ -336,7 +336,7 @@ syssegattach(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * long segattach(int, char*, void*, uint32_t);
+	 * long segattach(int, char*, void*, u32);
 	 * should be
 	 * void* segattach(int, char*, void*, usize);
 	 */
@@ -417,7 +417,7 @@ syssegfree(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int segfree(void*, uint32_t);
+	 * int segfree(void*, u32);
 	 * should be
 	 * int segfree(void*, usize);
 	 */
@@ -466,7 +466,7 @@ syssegflush(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int segflush(void*, uint32_t);
+	 * int segflush(void*, u32);
 	 * should be
 	 * int segflush(void*, usize);
 	 */

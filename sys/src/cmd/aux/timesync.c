@@ -42,15 +42,15 @@ int impotent;
 int logging;
 int type;
 int gmtdelta;		/* rtc+gmtdelta = gmt */
-uint64_t avgerr;
+u64 avgerr;
 
 /* ntp server info */
 int stratum = 14;
-int64_t mydisp, rootdisp;
-int64_t mydelay, rootdelay;
-int64_t avgdelay;
-int64_t lastutc;
-uint8_t rootid[4];
+i64 mydisp, rootdisp;
+i64 mydelay, rootdelay;
+i64 avgdelay;
+i64 lastutc;
+u8 rootid[4];
 char *sysid;
 int myprec;
 
@@ -59,28 +59,28 @@ typedef struct Sample Sample;
 struct Sample
 {
 	Sample	*next;
-	uint64_t	ticks;
-	int64_t	ltime;
-	int64_t	stime;
+	u64	ticks;
+	i64	ltime;
+	i64	stime;
 };
 
 /* ntp packet */
 typedef struct NTPpkt NTPpkt;
 struct NTPpkt
 {
-	uint8_t	mode;
-	uint8_t	stratum;
-	uint8_t	poll;
-	uint8_t	precision;
-	uint8_t	rootdelay[4];
-	uint8_t	rootdisp[4];
-	uint8_t	rootid[4];
-	uint8_t	refts[8];
-	uint8_t	origts[8];	/* departed client */
-	uint8_t	recvts[8];	/* arrived at server */
-	uint8_t	xmitts[8];	/* departed server */
-	uint8_t	keyid[4];
-	uint8_t	digest[16];
+	u8	mode;
+	u8	stratum;
+	u8	poll;
+	u8	precision;
+	u8	rootdelay[4];
+	u8	rootdisp[4];
+	u8	rootid[4];
+	u8	refts[8];
+	u8	origts[8];	/* departed client */
+	u8	recvts[8];	/* arrived at server */
+	u8	xmitts[8];	/* departed server */
+	u8	keyid[4];
+	u8	digest[16];
 };
 
 /* ntp server */
@@ -89,12 +89,12 @@ struct NTPserver
 {
 	NTPserver *next;
 	char	*name;
-	uint8_t	stratum;
-	uint8_t	precision;
-	int64_t	rootdelay;
-	int64_t	rootdisp;
-	int64_t	rtt;
-	int64_t	dt;
+	u8	stratum;
+	u8	precision;
+	i64	rootdelay;
+	i64	rootdisp;
+	i64	rtt;
+	i64	dt;
 };
 
 NTPserver *ntpservers;
@@ -106,38 +106,38 @@ enum
 };
 
 /* error bound of last sample */
-uint32_t	etha;
+u32	etha;
 
 static void	addntpserver(char *name);
-static int	adjustperiod(int64_t diff, int64_t accuracy, int secs);
+static int	adjustperiod(i64 diff, i64 accuracy, int secs);
 static void	background(void);
-static int	caperror(int64_t dhz, int tsecs, int64_t taccuracy);
-static int32_t	fstime(void);
-static int	gettime(int64_t *nsec, uint64_t *ticks, uint64_t *hz); /* returns time, ticks, hz */
-static int	getclockprecision(int64_t);
-static int64_t	gpssample(void);
-static void	hnputts(void *p, int64_t nsec);
-static void	hnputts(void *p, int64_t nsec);
+static int	caperror(i64 dhz, int tsecs, i64 taccuracy);
+static i32	fstime(void);
+static int	gettime(i64 *nsec, u64 *ticks, u64 *hz); /* returns time, ticks, hz */
+static int	getclockprecision(i64);
+static i64	gpssample(void);
+static void	hnputts(void *p, i64 nsec);
+static void	hnputts(void *p, i64 nsec);
 static void	inittime(void);
-static int64_t	nhgetts(void *p);
-static int64_t	nhgetts(void *p);
+static i64	nhgetts(void *p);
+static i64	nhgetts(void *p);
 static void	ntpserver(char*);
-static int64_t	ntpsample(void);
+static i64	ntpsample(void);
 static int	ntptimediff(NTPserver *ns);
 static int	openfreqfile(void);
-static int64_t	readfreqfile(int fd, int64_t ohz, int64_t minhz,
-				   int64_t maxhz);
-static int32_t	rtctime(void);
-static int64_t	sample(int32_t (*get)(void));
+static i64	readfreqfile(int fd, i64 ohz, i64 minhz,
+				   i64 maxhz);
+static i32	rtctime(void);
+static i64	sample(i32 (*get)(void));
 static void	setpriority(void);
 static void	setrootid(char *d);
-static void	settime(int64_t now, uint64_t hz, int64_t delta, int n); /* set time, hz, delta, period */
-static int64_t	utcsample(void);
-static uint64_t	vabs(int64_t);
-static uint64_t	whatisthefrequencykenneth(uint64_t hz, uint64_t minhz,
-						 uint64_t maxhz,
-			int64_t dt, int64_t ticks, int64_t period);
-static void	writefreqfile(int fd, int64_t hz, int secs, int64_t diff);
+static void	settime(i64 now, u64 hz, i64 delta, int n); /* set time, hz, delta, period */
+static i64	utcsample(void);
+static u64	vabs(i64);
+static u64	whatisthefrequencykenneth(u64 hz, u64 minhz,
+						 u64 maxhz,
+			i64 dt, i64 ticks, i64 period);
+static void	writefreqfile(int fd, i64 hz, int secs, i64 diff);
 
 // ((1970-1900)*365 + 17 /*leap days*/)*24*60*60
 #define EPOCHDIFF 2208988800UL
@@ -156,8 +156,8 @@ main(int argc, char **argv)
 	int i, t, fd, nservenet;
 	int secs;		/* sampling period */
 	int tsecs;		/* temporary sampling period */
-	uint64_t hz, minhz, maxhz, period, nhz;
-	int64_t diff, accuracy, taccuracy;
+	u64 hz, minhz, maxhz, period, nhz;
+	i64 diff, accuracy, taccuracy;
 	char *servenet[4];
 	Sample *s, *x, *first, **l;
 	Tm tl, tg;
@@ -505,9 +505,9 @@ main(int argc, char **argv)
  * adjust the sampling period with some histeresis
  */
 static int
-adjustperiod(int64_t diff, int64_t accuracy, int secs)
+adjustperiod(i64 diff, i64 accuracy, int secs)
 {
-	uint64_t absdiff;
+	u64 absdiff;
 
 	absdiff = vabs(diff);
 
@@ -525,12 +525,12 @@ adjustperiod(int64_t diff, int64_t accuracy, int secs)
 /*
  * adjust the frequency
  */
-static uint64_t
-whatisthefrequencykenneth(uint64_t hz, uint64_t minhz, uint64_t maxhz,
-			  int64_t dt,
-	int64_t ticks, int64_t period)
+static u64
+whatisthefrequencykenneth(u64 hz, u64 minhz, u64 maxhz,
+			  i64 dt,
+	i64 ticks, i64 period)
 {
-	uint64_t ohz = hz;
+	u64 ohz = hz;
 	static mpint *mpdt, *mpticks, *mphz, *mpbillion;
 
 	/* sanity check */
@@ -570,7 +570,7 @@ whatisthefrequencykenneth(uint64_t hz, uint64_t minhz, uint64_t maxhz,
  * from nanoseconds to ticks.
  */
 static int
-caperror(int64_t dhz, int tsecs, int64_t taccuracy)
+caperror(i64 dhz, int tsecs, i64 taccuracy)
 {
 	if(dhz*tsecs <= taccuracy)
 		return tsecs;
@@ -636,92 +636,92 @@ inittime(void)
 /*
  *  convert binary numbers from/to kernel
  */
-static uint64_t uvorder = 0x0001020304050607ULL;
+static u64 uvorder = 0x0001020304050607ULL;
 
-static uint8_t*
-be2int64_t(int64_t *to, uint8_t *f)
+static u8 *
+be2i64(i64 *to, u8 *f)
 {
-	uint8_t *t, *o;
+	u8 *t, *o;
 	int i;
 
-	t = (uint8_t*)to;
-	o = (uint8_t*)&uvorder;
-	for(i = 0; i < sizeof(int64_t); i++)
+	t = (u8*)to;
+	o = (u8*)&uvorder;
+	for(i = 0; i < sizeof(i64); i++)
 		t[o[i]] = f[i];
-	return f+sizeof(int64_t);
+	return f+sizeof(i64);
 }
 
-static uint8_t*
-int64_t2be(uint8_t *t, int64_t from)
+static u8 *
+i642be(u8 *t, i64 from)
 {
-	uint8_t *f, *o;
+	u8 *f, *o;
 	int i;
 
-	f = (uint8_t*)&from;
-	o = (uint8_t*)&uvorder;
-	for(i = 0; i < sizeof(int64_t); i++)
+	f = (u8*)&from;
+	o = (u8*)&uvorder;
+	for(i = 0; i < sizeof(i64); i++)
 		t[i] = f[o[i]];
-	return t+sizeof(int64_t);
+	return t+sizeof(i64);
 }
 
-static int32_t order = 0x00010203;
+static i32 order = 0x00010203;
 
-static uint8_t*
-long2be(uint8_t *t, int32_t from)
+static u8 *
+long2be(u8 *t, i32 from)
 {
-	uint8_t *f, *o;
+	u8 *f, *o;
 	int i;
 
-	f = (uint8_t*)&from;
-	o = (uint8_t*)&order;
-	for(i = 0; i < sizeof(int32_t); i++)
+	f = (u8*)&from;
+	o = (u8*)&order;
+	for(i = 0; i < sizeof(i32); i++)
 		t[i] = f[o[i]];
-	return t+sizeof(int32_t);
+	return t+sizeof(i32);
 }
 
 /*
  * read ticks and local time in nanoseconds
  */
 static int
-gettime(int64_t *nsec, uint64_t *ticks, uint64_t *hz)
+gettime(i64 *nsec, u64 *ticks, u64 *hz)
 {
 	int i, n;
-	uint8_t ub[3*8], *p;
+	u8 ub[3*8], *p;
 	char b[2*24+1];
 
 	switch(ifc){
 	case Ibintime:
-		n = sizeof(int64_t);
+		n = sizeof(i64);
 		if(hz != nil)
-			n = 3*sizeof(int64_t);
+			n = 3*sizeof(i64);
 		if(ticks != nil)
-			n = 2*sizeof(int64_t);
+			n = 2*sizeof(i64);
 		i = read(bintimefd, ub, n);
 		if(i != n)
 			break;
 		p = ub;
 		if(nsec != nil)
-			be2int64_t(nsec, ub);
-		p += sizeof(int64_t);
+			be2i64(nsec, ub);
+		p += sizeof(i64);
 		if(ticks != nil)
-			be2int64_t((int64_t*)ticks, p);
-		p += sizeof(int64_t);
+			be2i64((i64*)ticks, p);
+		p += sizeof(i64);
 		if(hz != nil)
-			be2int64_t((int64_t*)hz, p);
+			be2i64((i64*)hz, p);
 		return 0;
 	case Itiming:
-		n = sizeof(int64_t);
+		n = sizeof(i64);
 		if(ticks != nil)
-			n = 2*sizeof(int64_t);
+			n = 2*sizeof(i64);
 		i = read(timingfd, ub, n);
 		if(i != n)
 			break;
 		p = ub;
 		if(nsec != nil)
-			be2int64_t(nsec, ub);
-		p += sizeof(int64_t);
+			be2i64(nsec, ub);
+		p += sizeof(i64);
 		if(ticks != nil)
-			be2int64_t((int64_t*)ticks, p);
+			be2i64((i64*)ticks, p);
 		if(hz != nil){
 			seek(fastclockfd, 0, 0);
 			n = read(fastclockfd, b, sizeof(b)-1);
@@ -762,9 +762,9 @@ gettime(int64_t *nsec, uint64_t *ticks, uint64_t *hz)
 }
 
 static void
-settime(int64_t now, uint64_t hz, int64_t delta, int n)
+settime(i64 now, u64 hz, i64 delta, int n)
 {
-	uint8_t b[1+sizeof(int64_t)+sizeof(int32_t)], *p;
+	u8 b[1+sizeof(i64)+sizeof(i32)], *p;
 
 	if(debug)
 		fprint(2, "settime(now=%lld, hz=%llu, delta=%lld, period=%d)\n",
@@ -776,14 +776,14 @@ settime(int64_t now, uint64_t hz, int64_t delta, int n)
 		if(now >= 0){
 			p = b;
 			*p++ = 'n';
-			p = int64_t2be(p, now);
+			p = i642be(p, now);
 			if(write(bintimefd, b, p-b) < 0)
 				sysfatal("writing /dev/bintime: %r");
 		}
 		if(delta != 0){
 			p = b;
 			*p++ = 'd';
-			p = int64_t2be(p, delta);
+			p = i642be(p, delta);
 			p = long2be(p, n);
 			if(write(bintimefd, b, p-b) < 0)
 				sysfatal("writing /dev/bintime: %r");
@@ -791,7 +791,7 @@ settime(int64_t now, uint64_t hz, int64_t delta, int n)
 		if(hz != 0){
 			p = b;
 			*p++ = 'f';
-			p = int64_t2be(p, hz);
+			p = i642be(p, hz);
 			if(write(bintimefd, b, p-b) < 0)
 				sysfatal("writing /dev/bintime: %r");
 		}
@@ -835,10 +835,10 @@ setpriority(void)
 
 /* convert to ntp timestamps */
 static void
-hnputts(void *p, int64_t nsec)
+hnputts(void *p, i64 nsec)
 {
-	uint8_t *a;
-	uint32_t tsh, tsl;
+	u8 *a;
+	u32 tsh, tsl;
 
 	a = p;
 
@@ -854,12 +854,12 @@ hnputts(void *p, int64_t nsec)
 }
 
 /* convert from ntp timestamps */
-static int64_t
+static i64
 nhgetts(void *p)
 {
-	uint8_t *a;
-	uint32_t tsh, tsl;
-	int64_t nsec;
+	u8 *a;
+	u32 tsh, tsl;
+	i64 nsec;
 
 	a = p;
 	tsh = nhgetl(a);
@@ -872,28 +872,28 @@ nhgetts(void *p)
 
 /* convert to ntp 32 bit fixed point */
 static void
-hnputfp(void *p, int64_t nsec)
+hnputfp(void *p, i64 nsec)
 {
-	uint8_t *a;
-	uint32_t fp;
+	u8 *a;
+	u32 fp;
 
 	a = p;
 
-	fp = nsec/(SEC/((int64_t)(1<<16)));
+	fp = nsec/(SEC/((i64)(1<<16)));
 	hnputl(a, fp);
 }
 
 /* convert from ntp fixed point to nanosecs */
-static int64_t
+static i64
 nhgetfp(void *p)
 {
-	uint8_t *a;
-	uint32_t fp;
-	int64_t nsec;
+	u8 *a;
+	u32 fp;
+	i64 nsec;
 
 	a = p;
 	fp = nhgetl(a);
-	nsec = ((int64_t)fp)*(SEC/((int64_t)(1<<16)));
+	nsec = ((i64)fp)*(SEC/((i64)(1<<16)));
 	return nsec;
 }
 
@@ -951,7 +951,7 @@ ntptimediff(NTPserver *ns)
 {
 	int fd, tries, n;
 	NTPpkt ntpin, ntpout;
-	int64_t dt, recvts, origts, xmitts, destts, x;
+	i64 dt, recvts, origts, xmitts, destts, x;
 	char dir[64];
 	static int whined;
 
@@ -1012,10 +1012,10 @@ ntptimediff(NTPserver *ns)
 	return -1;
 }
 
-static int64_t
+static i64
 gpssample(void)
 {
-	int64_t	l, g, d;
+	i64	l, g, d;
 	int	i, n;
 	char	*v[4], buf[128];
 
@@ -1038,11 +1038,11 @@ gpssample(void)
 	return d;
 }
 
-static int64_t
+static i64
 ntpsample(void)
 {
 	NTPserver *tns, *ns;
-	int64_t metric, x;
+	i64 metric, x;
 
 	metric = 1000LL*SEC;
 	ns = nil;
@@ -1079,10 +1079,10 @@ ntpsample(void)
 /*
  * sample the utc file
  */
-static int64_t
+static i64
 utcsample(void)
 {
-	int64_t	s;
+	i64	s;
 	int	n;
 	char	*v[2], buf[128];
 
@@ -1130,7 +1130,7 @@ static void
 ntpserver(char *servenet)
 {
 	int fd, n, vers, mode;
-	int64_t recvts, x;
+	i64 recvts, x;
 	char buf[512];
 	NTPpkt *ntp;
 
@@ -1192,11 +1192,11 @@ ntpserver(char *servenet)
 /*
  *  get the current time from the file system
  */
-static int32_t
+static i32
 fstime(void)
 {
 	Dir *d;
-	uint32_t t;
+	u32 t;
 
 	d = dirstat("/n/boot");
 	if(d != nil){
@@ -1210,7 +1210,7 @@ fstime(void)
 /*
  *  get the current time from the real time clock
  */
-static int32_t
+static i32
 rtctime(void)
 {
 	char b[20];
@@ -1238,11 +1238,11 @@ rtctime(void)
  *  Sample a clock.  We wait for the clock to always
  *  be at the leading edge of a clock period.
  */
-static int64_t
-sample(int32_t (*get)(void))
+static i64
+sample(i32 (*get)(void))
 {
-	int32_t this, last;
-	int64_t start, end;
+	i32 this, last;
+	i64 start, end;
 
 	/*
 	 *  wait for the second to change
@@ -1293,12 +1293,12 @@ openfreqfile(void)
  *  the file contains the last known frequency and the
  *  number of seconds it was sampled over
  */
-static int64_t
-readfreqfile(int fd, int64_t ohz, int64_t minhz, int64_t maxhz)
+static i64
+readfreqfile(int fd, i64 ohz, i64 minhz, i64 maxhz)
 {
 	int n;
 	char buf[128];
-	int64_t hz;
+	i64 hz;
 
 	n = read(fd, buf, sizeof buf-1);
 	if(n <= 0)
@@ -1317,10 +1317,10 @@ readfreqfile(int fd, int64_t ohz, int64_t minhz, int64_t maxhz)
  *  remember hz and averaging period
  */
 static void
-writefreqfile(int fd, int64_t hz, int secs, int64_t diff)
+writefreqfile(int fd, i64 hz, int secs, i64 diff)
 {
-	int32_t now;
-	static int32_t last;
+	i32 now;
+	static i32 last;
 
 	if(fd < 0)
 		return;
@@ -1333,8 +1333,8 @@ writefreqfile(int fd, int64_t hz, int secs, int64_t diff)
 	fprint(fd, "%lld %d %d %lld\n", hz, secs, type, diff);
 }
 
-static uint64_t
-vabs(int64_t x)
+static u64
+vabs(i64 x)
 {
 	if(x < 0)
 		return -x;
@@ -1364,7 +1364,7 @@ background(void)
 }
 
 static int
-getclockprecision(int64_t hz)
+getclockprecision(i64 hz)
 {
 	int i;
 

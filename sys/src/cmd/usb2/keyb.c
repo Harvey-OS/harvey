@@ -33,11 +33,11 @@ struct Usbkeyb {
 struct Dirtab {
 	char *name;
 	Qid qid;
-	int64_t length;
-	int32_t mode;
+	i64 length;
+	i32 mode;
 };
 
-static uint32_t time0;
+static u32 time0;
 static Usbkeyb *keybs;
 static Dirtab dirtab[] = {
 	{".",	{Qdir, 0, QTDIR},	0,	0555},
@@ -154,11 +154,11 @@ usage(void)
 }
 
 static int
-cmdreq(Dev *d, int type, int req, int value, int index, uint8_t *data, int count)
+cmdreq(Dev *d, int type, int req, int value, int index, u8 *data, int count)
 {
 	int ndata, n;
-	uint8_t *wp;
-	uint8_t buf[8];
+	u8 *wp;
+	u8 buf[8];
 	char *hd, *rs;
 
 	assert(d != nil);
@@ -211,7 +211,7 @@ cmdrep(Dev *d, void *buf, int nb)
 }
 
 int
-usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data, int count)
+usbcmd(Dev *d, int type, int req, int value, int index, u8 *data, int count)
 {
 	int i, r, nerr;
 	char err[64];
@@ -251,7 +251,7 @@ usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data, int count
 int
 loaddevdesc(Dev *d)
 {
-	uint8_t buf[Ddevlen+255];
+	u8 buf[Ddevlen+255];
 	int nr;
 	int type;
 	Ep *ep0;

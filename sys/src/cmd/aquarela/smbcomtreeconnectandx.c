@@ -12,21 +12,21 @@
 static char *s9p2000 = "9p2000";
 
 SmbProcessResult
-smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, u8 *pdata,
 		      SmbBuffer *b)
 {
-	uint8_t andxcommand;
-	uint16_t andxoffset;
+	u8 andxcommand;
+	u16 andxoffset;
 	char *path = nil;
 	char *service = nil;
-	uint16_t flags;
-	uint16_t passwordlength;
-//	uint16_t bytecount;
-	uint8_t errclass;
-	uint16_t error;
+	u16 flags;
+	u16 passwordlength;
+//	u16 bytecount;
+	u8 errclass;
+	u16 error;
 	SmbService *serv;
 	SmbTree *tree;
-	uint32_t andxfixupoffset, bytecountfixup;
+	u32 andxfixupoffset, bytecountfixup;
 	SmbProcessResult pr;
 
 	if (!smbcheckwordcount("comtreeconnectandx", h, 4)) {

@@ -27,7 +27,7 @@ char *ndbfile;
 static Ndb *
 opendb(void)
 {
-	static uint32_t lastcheck;
+	static u32 lastcheck;
 
 	/* check no more often than once every minute */
 	if(db == nil) {
@@ -43,9 +43,9 @@ opendb(void)
 }
 
 Iplifc*
-findlifc(uint8_t *ip)
+findlifc(u8 *ip)
 {
-	uint8_t x[IPaddrlen];
+	u8 x[IPaddrlen];
 	Ipifc *ifc;
 	Iplifc *lifc;
 
@@ -62,7 +62,7 @@ findlifc(uint8_t *ip)
 }
 
 int
-forme(uint8_t *ip)
+forme(u8 *ip)
 {
 	Ipifc *ifc;
 	Iplifc *lifc;
@@ -75,17 +75,17 @@ forme(uint8_t *ip)
 	return 0;
 }
 
-uint8_t noetheraddr[6];
+u8 noetheraddr[6];
 
 static void
-setipaddr(uint8_t *addr, char *ip)
+setipaddr(u8 *addr, char *ip)
 {
 	if(ipcmp(addr, IPnoaddr) == 0)
 		parseip(addr, ip);
 }
 
 static void
-setipmask(uint8_t *mask, char *ip)
+setipmask(u8 *mask, char *ip)
 {
 	if(ipcmp(mask, IPnoaddr) == 0)
 		parseipmask(mask, ip);
@@ -95,7 +95,7 @@ setipmask(uint8_t *mask, char *ip)
  *  do an ipinfo with defaults
  */
 int
-lookupip(uint8_t *ipaddr, Info *iip, int gate)
+lookupip(u8 *ipaddr, Info *iip, int gate)
 {
 	char ip[32];
 	Ndbtuple *t, *nt;
@@ -199,7 +199,7 @@ lookupip(uint8_t *ipaddr, Info *iip, int gate)
 	return 0;
 }
 
-static uint8_t zeroes[6];
+static u8 zeroes[6];
 
 /*
  *  lookup info about a client in the database.  Find an address on the
@@ -212,7 +212,7 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 	Ndbs s;
 	char *hwattr;
 	char *hwval, hwbuf[33];
-	uint8_t ciaddr[IPaddrlen];
+	u8 ciaddr[IPaddrlen];
 
 	if(opendb() == nil){
 		warning(1, "can't open db");
@@ -287,7 +287,7 @@ lookup(Bootp *bp, Info *iip, Info *riip)
  *  interface to ndbipinfo
  */
 Ndbtuple*
-lookupinfo(uint8_t *ipaddr, char **attr, int n)
+lookupinfo(u8 *ipaddr, char **attr, int n)
 {
 	char ip[32];
 
@@ -299,7 +299,7 @@ lookupinfo(uint8_t *ipaddr, char **attr, int n)
  *  return the ip addresses for a type of server for system ip
  */
 int
-lookupserver(char *attr, uint8_t **ipaddrs, Ndbtuple *t)
+lookupserver(char *attr, u8 **ipaddrs, Ndbtuple *t)
 {
 	Ndbtuple *nt;
 	int rv = 0;

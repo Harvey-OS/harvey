@@ -190,7 +190,7 @@ struct Dev
  */
 struct Usbdev
 {
-	uint32_t	csp;		/* USB class/subclass/proto */
+	u32	csp;		/* USB class/subclass/proto */
 	int	vid;		/* vendor id */
 	int	did;		/* product (device) id */
 	int	dno;		/* device release number */
@@ -209,10 +209,10 @@ struct Usbdev
 
 struct Ep
 {
-	uint8_t	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
-	uint8_t	dir;		/* direction, Ein/Eout */
-	uint8_t	type;		/* Econtrol, Eiso, Ebulk, Eintr */
-	uint8_t	isotype;		/* Eunknown, Easync, Eadapt, Esync */
+	u8	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
+	u8	dir;		/* direction, Ein/Eout */
+	u8	type;		/* Econtrol, Eiso, Ebulk, Eintr */
+	u8	isotype;		/* Eunknown, Easync, Eadapt, Esync */
 	int	id;
 	int	maxpkt;		/* max. packet size */
 	int	ntds;		/* nb. of Tds per µframe */
@@ -230,7 +230,7 @@ struct Altc
 struct Iface
 {
 	int 	id;		/* interface number */
-	uint32_t	csp;		/* USB class/subclass/proto */
+	u32	csp;		/* USB class/subclass/proto */
 	Altc*	altc[Naltc];
 	Ep*	ep[Nep];
 	void*	aux;		/* for the driver program */
@@ -252,9 +252,9 @@ struct Conf
  */
 struct DDesc
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bbytes[1];
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bbytes[1];
 	/* extra bytes allocated here to keep the rest of it */
 };
 
@@ -272,55 +272,55 @@ struct Desc
  */
 struct DDev
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bcdUSB[2];
-	uint8_t	bDevClass;
-	uint8_t	bDevSubClass;
-	uint8_t	bDevProtocol;
-	uint8_t	bMaxPacketSize0;
-	uint8_t	idVendor[2];
-	uint8_t	idProduct[2];
-	uint8_t	bcdDev[2];
-	uint8_t	iManufacturer;
-	uint8_t	iProduct;
-	uint8_t	iSerialNumber;
-	uint8_t	bNumConfigurations;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bcdUSB[2];
+	u8	bDevClass;
+	u8	bDevSubClass;
+	u8	bDevProtocol;
+	u8	bMaxPacketSize0;
+	u8	idVendor[2];
+	u8	idProduct[2];
+	u8	bcdDev[2];
+	u8	iManufacturer;
+	u8	iProduct;
+	u8	iSerialNumber;
+	u8	bNumConfigurations;
 };
 
 struct DConf
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	wTotalLength[2];
-	uint8_t	bNumInterfaces;
-	uint8_t	bConfigurationValue;
-	uint8_t	iConfiguration;
-	uint8_t	bmAttributes;
-	uint8_t	MaxPower;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	wTotalLength[2];
+	u8	bNumInterfaces;
+	u8	bConfigurationValue;
+	u8	iConfiguration;
+	u8	bmAttributes;
+	u8	MaxPower;
 };
 
 struct DIface
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bInterfaceNumber;
-	uint8_t	bAlternateSetting;
-	uint8_t	bNumEndpoints;
-	uint8_t	bInterfaceClass;
-	uint8_t	bInterfaceSubClass;
-	uint8_t	bInterfaceProtocol;
-	uint8_t	iInterface;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bInterfaceNumber;
+	u8	bAlternateSetting;
+	u8	bNumEndpoints;
+	u8	bInterfaceClass;
+	u8	bInterfaceSubClass;
+	u8	bInterfaceProtocol;
+	u8	iInterface;
 };
 
 struct DEp
 {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	bEndpointAddress;
-	uint8_t	bmAttributes;
-	uint8_t	wMaxPacketSize[2];
-	uint8_t	bInterval;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bEndpointAddress;
+	u8	bmAttributes;
+	u8	wMaxPacketSize[2];
+	u8	bInterval;
 };
 
 #define Class(csp)	((csp) & 0xff)
@@ -336,7 +336,7 @@ struct DEp
  * The use of macros is a puzzle given the Ken C toolchain's inlining at link time
  * abilities, but ...
  */
-static inline void PUT4(uint8_t *p, uint32_t v)
+static inline void PUT4(u8 *p, u32 v)
 {
 	(p)[0] = (v);
 	(p)[1] = (v)>>8;
@@ -352,7 +352,7 @@ char*	classname(int c);
 void	closedev(Dev *d);
 int	configdev(Dev *d);
 int	devctl(Dev *dev, char *fmt, ...);
-void*	emallocz(uint32_t size, int zero);
+void*	emallocz(u32 size, int zero);
 char*	estrdup(char *s);
 int	matchdevcsp(char *info, void *a);
 int	finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs);
@@ -363,12 +363,13 @@ char*	loaddevstr(Dev *d, int sid);
 Dev*	opendev(char *fn);
 int	opendevdata(Dev *d, int mode);
 Dev*	openep(Dev *d, int id);
-int	parseconf(Usbdev *d, Conf *c, uint8_t *b, int n);
-int	parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n);
-int	parsedev(Dev *xd, uint8_t *b, int n);
+int	parseconf(Usbdev *d, Conf *c, u8 *b, int n);
+int	parsedesc(Usbdev *d, Conf *c, u8 *b, int n);
+int	parsedev(Dev *xd, u8 *b, int n);
 void	startdevs(char *args, char *argv[], int argc, int (*mf)(char*,void*), void*ma, int (*df)(Dev*,int,char**));
 int	unstall(Dev *dev, Dev *ep, int dir);
-int	usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data, int count);
+int	usbcmd(Dev *d, int type, int req, int value, int index, u8 *data,
+		  int count);
 
 
 extern int usbdebug;	/* more messages for bigger values */

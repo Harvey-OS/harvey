@@ -15,7 +15,7 @@
 #include "secstore.h"
 
 void *
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p = malloc(n);
 
@@ -26,7 +26,7 @@ emalloc(uint32_t n)
 }
 
 void *
-erealloc(void *p, uint32_t n)
+erealloc(void *p, u32 n)
 {
 	if ((p = realloc(p, n)) == nil)
 		sysfatal("erealloc");

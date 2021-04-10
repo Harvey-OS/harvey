@@ -52,9 +52,9 @@ enum {
 
 	Nfs = 128,
 };
-#define TYPE(x) (((uint32_t)(x).path) & Masktype)
-#define CONV(x) ((((uint32_t)(x).path) >> Shiftconv) & Maskconv)
-#define PROTO(x) ((((uint32_t)(x).path) >> Shiftproto) & Maskproto)
+#define TYPE(x) (((u32)(x).path) & Masktype)
+#define CONV(x) ((((u32)(x).path) >> Shiftconv) & Maskconv)
+#define PROTO(x) ((((u32)(x).path) >> Shiftproto) & Maskproto)
 #define QID(p, c, y) (((p) << (Shiftproto)) | ((c) << Shiftconv) | (y))
 
 static char network[] = "network";

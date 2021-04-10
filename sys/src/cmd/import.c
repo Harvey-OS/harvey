@@ -44,7 +44,7 @@ void	sysfatal(const char*, ...);
 void	usage(void);
 int	filter(int, char *, char *);
 
-static void	mksecret(char *, uint8_t *);
+static void	mksecret(char *, u8 *);
 
 /*
  * based on libthread's threadsetname, but drags in less library code.
@@ -440,7 +440,7 @@ filter(int fd, char *cmd, char *host)
 }
 
 static void
-mksecret(char *t, uint8_t *f)
+mksecret(char *t, u8 *f)
 {
 	sprint(t, "%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);

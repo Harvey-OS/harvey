@@ -73,10 +73,10 @@ enum {
 	Ncmd = 20,
 };
 
-#define TYPE(q) ((((uint32_t)(q).path) >> TypeSHIFT) & TypeMASK)
-#define PART(q) ((((uint32_t)(q).path) >> PartSHIFT) & PartMASK)
-#define UNIT(q) ((((uint32_t)(q).path) >> UnitSHIFT) & UnitMASK)
-#define DEV(q) ((((uint32_t)(q).path) >> DevSHIFT) & DevMASK)
+#define TYPE(q) ((((u32)(q).path) >> TypeSHIFT) & TypeMASK)
+#define PART(q) ((((u32)(q).path) >> PartSHIFT) & PartMASK)
+#define UNIT(q) ((((u32)(q).path) >> UnitSHIFT) & UnitMASK)
+#define DEV(q) ((((u32)(q).path) >> DevSHIFT) & DevMASK)
 #define QID(d, u, p, t) (((d) << DevSHIFT) | ((u) << UnitSHIFT) | \
 			 ((p) << PartSHIFT) | ((t) << TypeSHIFT))
 
@@ -186,7 +186,7 @@ sdinitpart(SDunit *unit)
 #if 0
 	Mach *m;
 	int nf;
-	uint64_t start, end;
+	u64 start, end;
 	char *f[4], *p, *q, buf[10];
 
 	m = machp();

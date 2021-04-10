@@ -32,7 +32,7 @@ enum
 	LOGNPTR = LOGBLKSZ-2,	/* assume sizeof(void*) == 4 */
 	NPTR = 1<<LOGNPTR,
 };
-static uint8_t zero[BLKSZ];
+static u8 zero[BLKSZ];
 
 struct Trip
 {
@@ -46,7 +46,7 @@ struct Dbl
 
 struct Ind
 {
-	uint8_t *blk[NPTR];
+	u8 *blk[NPTR];
 };
 
 Trip trip;
@@ -55,10 +55,10 @@ struct Part
 {
 	int inuse;
 	int vers;
-	uint32_t mode;
+	u32 mode;
 	char *name;
-	int64_t offset;	/* in sectors */
-	int64_t length;	/* in sectors */
+	i64 offset;	/* in sectors */
+	i64 length;	/* in sectors */
 };
 
 enum
@@ -72,10 +72,10 @@ enum
 Part tab[64];
 int fd = -1;
 char *sdname = "sdXX";
-uint32_t ctlmode = 0666;
+u32 ctlmode = 0666;
 char *inquiry = "aux/disksim hard drive";
-int64_t nsect, sectsize, c, h, s;
-uint32_t time0;
+i64 nsect, sectsize, c, h, s;
+u32 time0;
 int rdonly;
 
 char*
@@ -94,7 +94,7 @@ ctlstring(void)
 }
 
 int
-addpart(char *name, int64_t start, int64_t end)
+addpart(char *name, i64 start, i64 end)
 {
 	int i;
 
@@ -146,7 +146,7 @@ ctlwrite(Req *r)
 {
 	int i;
 	Cmdbuf *cb;
-	int64_t start, end;
+	i64 start, end;
 
 	r->ofcall.count = r->ifcall.count;
 	cb = parsecmd(r->ifcall.data, r->ifcall.count);
@@ -225,11 +225,11 @@ ctlwrite(Req *r)
 }
 
 void*
-allocblk(int64_t addr)
+allocblk(i64 addr)
 {
-	uint8_t *op;
-	static uint8_t *p;
-	static uint32_t n;
+	u8 *op;
+	static u8 *p;
+	static u32 n;
 
 	if(n == 0){
 		p = malloc(4*1024*1024);
@@ -246,14 +246,14 @@ allocblk(int64_t addr)
 	return op;
 }
 
-uint8_t*
-getblock(int64_t addr, int alloc)
+u8 *
+getblock(i64 addr, int alloc)
 {
  	Dbl *p2;
 	Ind *p1;
-	uint8_t *p0;
+	u8 *p0;
 	uint i0, i1, i2;
-	int64_t oaddr;
+	i64 oaddr;
 
 	if(fd >= 0)
 		alloc = 1;
@@ -289,13 +289,13 @@ getblock(int64_t addr, int alloc)
 }
 
 void
-dirty(int64_t addr, uint8_t *buf)
+dirty(i64 addr, u8 *buf)
 {
-	int64_t oaddr;
+	i64 oaddr;
 
 	if(fd == -1 || rdonly)
 		return;
-	oaddr = addr&~((int64_t)BLKSZ-1);
+	oaddr = addr&~((i64)BLKSZ-1);
 	if(pwrite(fd, buf, BLKSZ, oaddr) != BLKSZ)
 		sysfatal("write: %r");
 }
@@ -359,9 +359,9 @@ Have:
 }
 
 int
-isnonzero(void *v, uint32_t n)
+isnonzero(void *v, u32 n)
 {
-	uint8_t *a, *ea;
+	u8 *a, *ea;
 
 	a = v;
 	ea = a+n;
@@ -385,9 +385,9 @@ rdwrpart(Req *r)
 {
 	int q, nonzero;
 	Part *p;
-	int64_t offset;
-	int32_t count, tot, n, o;
-	uint8_t *blk, *dat;
+	i64 offset;
+	i32 count, tot, n, o;
+	u8 *blk, *dat;
 
 	q = r->fid->qid.path-Qpart;
 	if(q < 0 || q > nelem(tab) || !tab[q].inuse || tab[q].vers != r->fid->qid.vers){
@@ -417,9 +417,9 @@ rdwrpart(Req *r)
 	tot = 0;
 	nonzero = 1;
 	if(r->ifcall.type == Tread)
-		dat = (uint8_t*)r->ofcall.data;
+		dat = (u8*)r->ofcall.data;
 	else{
-		dat = (uint8_t*)r->ifcall.data;
+		dat = (u8*)r->ifcall.data;
 		nonzero = isnonzero(dat, r->ifcall.count);
 	}
 	o = offset & (BLKSZ-1);

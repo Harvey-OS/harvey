@@ -144,8 +144,8 @@ struct	Isofile
 {
 	short	fmt;		/* 'z' if iso, 'r' if high sierra */
 	short	blksize;
-	int64_t	offset;		/* true offset when reading directory */
-	int32_t	odelta;		/* true size of directory just read */
-	int64_t	doffset;	/* plan9 offset when reading directory */
+	i64	offset;		/* true offset when reading directory */
+	i32	odelta;		/* true size of directory just read */
+	i64	doffset;	/* plan9 offset when reading directory */
 	Drec	d;
 };

@@ -40,11 +40,11 @@ readfile(char *name)
 	return s;
 }
 
-uint8_t*
+u8 *
 readcert(char *filename, int *pcertlen)
 {
 	char *pem;
-	uint8_t *binary;
+	u8 *binary;
 
 	pem = readfile(filename);
 	if(pem == nil){

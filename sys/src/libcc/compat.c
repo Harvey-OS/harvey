@@ -20,7 +20,7 @@ malloc(ulong n)
 }
 
 void*
-calloc(uint32_t m, size_t n)
+calloc(u32 m, size_t n)
 {
 	return alloc(m*n);
 }
@@ -40,7 +40,7 @@ free(void* v)
 
 /* needed when profiling */
 void*
-mallocz(uint32_t size, int clr)
+mallocz(u32 size, int clr)
 {
 	void *v;
 

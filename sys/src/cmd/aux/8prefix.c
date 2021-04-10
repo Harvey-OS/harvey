@@ -23,8 +23,8 @@ struct Sym
 {
 	char *name;
 	char *newname;
-	int16_t type;
-	int16_t version;
+	i16 type;
+	i16 version;
 	Sym *link;
 };
 
@@ -33,8 +33,8 @@ struct Obj
 {
 	int fd;
 	int version;
-	uint8_t *bp;
-	uint8_t *ep;
+	u8 *bp;
+	u8 *ep;
 	char *name;
 };
 
@@ -54,16 +54,16 @@ Biobuf bout;
 char *prefix;
 int verbose;
 
-void *emalloc(uint32_t);
+void *emalloc(u32);
 Sym *lookup(char*, int);
 Obj *openobj(char*);
-void walkobj(Obj*, void (*fn)(int, Sym*, uint8_t*, int));
-void walkobjs(void (*fn)(int, Sym*, uint8_t*, int));
-void dump(int, Sym*, uint8_t*, int);
-void nop(int, Sym*, uint8_t*, int);
-void owrite(int, Sym*, uint8_t*, int);
-int zaddr(uint8_t*, Sym**);
-void renamesyms(int, Sym*, uint8_t*, int);
+void walkobj(Obj*, void (*fn)(int, Sym*, u8*, int));
+void walkobjs(void (*fn)(int, Sym*, u8*, int));
+void dump(int, Sym*, u8*, int);
+void nop(int, Sym*, u8*, int);
+void owrite(int, Sym*, u8*, int);
+int zaddr(u8*, Sym**);
+void renamesyms(int, Sym*, u8*, int);
 
 void
 usage(void)
@@ -117,7 +117,7 @@ main(int argc, char **argv)
 }
 
 void
-renamesyms(int op, Sym *sym, uint8_t*, int)
+renamesyms(int op, Sym *sym, u8*, int)
 {
 	if(sym && sym->version==0 && !sym->newname)
 	switch(op){
@@ -133,7 +133,7 @@ renamesyms(int op, Sym *sym, uint8_t*, int)
 }
 
 void
-dump(int op, Sym *sym, uint8_t*, int)
+dump(int op, Sym *sym, u8*, int)
 {
 	if(sym && sym->version==0)
 	switch(op){
@@ -147,12 +147,12 @@ dump(int op, Sym *sym, uint8_t*, int)
 }
 
 void
-nop(int, Sym*, uint8_t*, int)
+nop(int, Sym*, u8*, int)
 {
 }
 
 void
-owrite(int op, Sym *sym, uint8_t *p, int l)
+owrite(int op, Sym *sym, u8 *p, int l)
 {
 	switch(op){
 	case ASIGNAME:
@@ -172,7 +172,7 @@ owrite(int op, Sym *sym, uint8_t *p, int l)
 }
 
 int
-zaddr(uint8_t *p, Sym **symp)
+zaddr(u8 *p, Sym **symp)
 {
 	int c, t;
 
@@ -197,7 +197,7 @@ zaddr(uint8_t *p, Sym **symp)
 }
 
 void*
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *v;
 
@@ -212,7 +212,7 @@ lookup(char *symb, int v)
 {
 	Sym *s;
 	char *p;
-	int32_t h;
+	i32 h;
 	int l, c;
 
 	h = v;
@@ -260,7 +260,7 @@ openobj(char *name)
 }
 
 void
-walkobjs(void (*fn)(int, Sym*, uint8_t*, int))
+walkobjs(void (*fn)(int, Sym*, u8*, int))
 {
 	int i;
 
@@ -269,11 +269,11 @@ walkobjs(void (*fn)(int, Sym*, uint8_t*, int))
 }
 
 void
-walkobj(Obj *obj, void (*fn)(int, Sym*, uint8_t*, int))
+walkobj(Obj *obj, void (*fn)(int, Sym*, u8*, int))
 {
 	int op, type;
 	Sym *sym;
-	uint8_t *p, *p0;
+	u8 *p, *p0;
 
 	for(p=obj->bp; p+4<=obj->ep; ){
 		op = p[0] | (p[1]<<8);

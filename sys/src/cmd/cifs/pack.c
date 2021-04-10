@@ -16,7 +16,7 @@
 void *
 pmem(Pkt *p, void *v, int len)
 {
-	uint8_t *str = v;
+	u8 *str = v;
 	void *s = p->pos;
 
 	if(!len || !v)
@@ -95,7 +95,7 @@ pascii(Pkt *p, char *str)
 
 
 void *
-pl64(Pkt *p, uint64_t n)
+pl64(Pkt *p, u64 n)
 {
 	void *s = p->pos;
 
@@ -180,7 +180,7 @@ pname(Pkt *p, char *name, char pad)
 			done = 1;
 		if(!done)
 			c = islower(name[i])? toupper(name[i]): name[i];
-		*p->pos++ = ((uint8_t)c >> 4) + 'A';
+		*p->pos++ = ((u8)c >> 4) + 'A';
 		*p->pos++ = (c & 0xf) + 'A';
 	}
 	*p->pos++ = '\0';
@@ -188,7 +188,7 @@ pname(Pkt *p, char *name, char pad)
 }
 
 void *
-pvtime(Pkt *p, uint64_t n)
+pvtime(Pkt *p, u64 n)
 {
 	void *s = p->pos;
 
@@ -201,7 +201,7 @@ pvtime(Pkt *p, uint64_t n)
 }
 
 void *
-pdatetime(Pkt *p, int32_t utc)
+pdatetime(Pkt *p, i32 utc)
 {
 	void *s = p->pos;
 	Tm *tm = localtime(utc);
@@ -225,7 +225,7 @@ pdatetime(Pkt *p, int32_t utc)
 void
 gmem(Pkt *p, void *v, int n)
 {
-	uint8_t *str = v;
+	u8 *str = v;
 
 	if(!n || !v)
 		return;
@@ -289,39 +289,39 @@ gascii(Pkt *p, char *str, int n)
 }
 
 
-uint64_t
+u64
 gl64(Pkt *p)
 {
-	uint64_t n;
+	u64 n;
 
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	n  = (uint64_t)*p->pos++;
-	n |= (uint64_t)*p->pos++ << 8;
-	n |= (uint64_t)*p->pos++ << 16;
-	n |= (uint64_t)*p->pos++ << 24;
-	n |= (uint64_t)*p->pos++ << 32;
-	n |= (uint64_t)*p->pos++ << 40;
-	n |= (uint64_t)*p->pos++ << 48;
-	n |= (uint64_t)*p->pos++ << 56;
+	n  = (u64)*p->pos++;
+	n |= (u64)*p->pos++ << 8;
+	n |= (u64)*p->pos++ << 16;
+	n |= (u64)*p->pos++ << 24;
+	n |= (u64)*p->pos++ << 32;
+	n |= (u64)*p->pos++ << 40;
+	n |= (u64)*p->pos++ << 48;
+	n |= (u64)*p->pos++ << 56;
 	return n;
 }
 
-uint64_t
+u64
 gb48(Pkt *p)
 {
-	uint64_t n;
+	u64 n;
 
 	if(p->pos + 6 > p->eop)
 		return 0;
 
-	n  = (uint64_t)*p->pos++ << 40;
-	n |= (uint64_t)*p->pos++ << 24;
-	n |= (uint64_t)*p->pos++ << 32;
-	n |= (uint64_t)*p->pos++ << 16;
-	n |= (uint64_t)*p->pos++ << 8;
-	n |= (uint64_t)*p->pos++;
+	n  = (u64)*p->pos++ << 40;
+	n |= (u64)*p->pos++ << 24;
+	n |= (u64)*p->pos++ << 32;
+	n |= (u64)*p->pos++ << 16;
+	n |= (u64)*p->pos++ << 8;
+	n |= (u64)*p->pos++;
 	return n;
 }
 
@@ -387,7 +387,7 @@ g8(Pkt *p)
 	return (uint)*p->pos++;
 }
 
-int32_t
+i32
 gdatetime(Pkt *p)
 {
 	Tm tm;
@@ -420,16 +420,16 @@ gdatetime(Pkt *p)
 	return tm2sec(&tm);
 }
 
-int32_t
+i32
 gvtime(Pkt *p)
 {
-	uint64_t vl;
+	u64 vl;
 
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	vl  = (uint64_t)gl32(p);
-	vl |= (uint64_t)gl32(p) << 32;
+	vl  = (u64)gl32(p);
+	vl |= (u64)gl32(p) << 32;
 
 	vl /= 10000000LL;
 	vl -= 11644473600LL;
@@ -440,7 +440,7 @@ void
 gconv(Pkt *p, int conv, char *str, int n)
 {
 	int off;
-	uint8_t *pos;
+	u8 *pos;
 
 	off = gl32(p) & 0xffff;
 	if(off == 0 || p->tdata - conv + off > p->eop){
@@ -455,10 +455,10 @@ gconv(Pkt *p, int conv, char *str, int n)
 }
 
 void
-goff(Pkt *p, uint8_t *base, char *str, int n)
+goff(Pkt *p, u8 *base, char *str, int n)
 {
 	int off;
-	uint8_t *pos;
+	u8 *pos;
 
 	off = gl16(p);
 	if(off == 0 || base + off > p->eop){

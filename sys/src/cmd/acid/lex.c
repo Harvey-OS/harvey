@@ -221,7 +221,7 @@ lexc(void)
 }
 
 int
-escchar(int8_t c)
+escchar(i8 c)
 {
 	int n;
 	char buf[Strsize];

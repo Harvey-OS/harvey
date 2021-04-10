@@ -22,18 +22,18 @@ enum
 struct File
 {
 	char	*mem;		/* part of file cached in memory */
-	uint32_t	len;		/* length of cached data */
-	int32_t	off;		/* current offset into tpath */
-	int16_t	fd;		/* fd to cache file */
+	u32	len;		/* length of cached data */
+	i32	off;		/* current offset into tpath */
+	i16	fd;		/* fd to cache file */
 	char	inuse;
 	char	dirty;
-	uint32_t	atime;		/* time of last access */
+	u32	atime;		/* time of last access */
 	Node	*node;
 	char 	*template;
 };
 
 static File	files[Nfile];
-static uint32_t	now;
+static u32	now;
 static int	ntmp;
 
 /*
@@ -110,7 +110,7 @@ filefree(Node *node)
  *  file.  It's up to the caller to make sure that the file is valid.
  */
 int
-fileread(Node *node, char *a, int32_t off, int n)
+fileread(Node *node, char *a, i32 off, int n)
 {
 	int sofar;
 	int i;
@@ -193,7 +193,7 @@ createtmp(File *fp)
  *  write cached data (first Chunk bytes stay in memory)
  */
 int
-filewrite(Node *node, char *a, int32_t off, int n)
+filewrite(Node *node, char *a, i32 off, int n)
 {
 	int i, sofar;
 	File *fp;

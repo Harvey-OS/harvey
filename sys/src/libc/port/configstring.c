@@ -144,9 +144,9 @@ static void parse_string(query_result r, char *buf)
 	*buf = 0;
 }
 
-static uint64_t __get_uint_hex(const char *s)
+static u64 __get_uint_hex(const char *s)
 {
-	uint64_t res = 0;
+	u64 res = 0;
 	while (*s) {
 		if (is_hex(*s))
 			res = (res << 4) + parse_hex(*s);
@@ -157,9 +157,9 @@ static uint64_t __get_uint_hex(const char *s)
 	return res;
 }
 
-static uint64_t __get_uint_dec(const char *s)
+static u64 __get_uint_dec(const char *s)
 {
-	uint64_t res = 0;
+	u64 res = 0;
 	while (*s) {
 		if (*s >= '0' && *s <= '9')
 			res = res * 10 + (*s - '0');
@@ -170,16 +170,16 @@ static uint64_t __get_uint_dec(const char *s)
 	return res;
 }
 
-static uint64_t __get_uint(const char *s)
+static u64 __get_uint(const char *s)
 {
 	if (s[0] == '0' && s[1] == 'x')
 		return __get_uint_hex(s + 2);
 	return __get_uint_dec(s);
 }
 
-static inline uint64_t get_uint(query_result res)
+static inline u64 get_uint(query_result res)
 {
-	uint64_t v;
+	u64 v;
 	char *name;
 
 	name = malloc(res.end - res.start + 1);
@@ -191,9 +191,9 @@ static inline uint64_t get_uint(query_result res)
 
 /* this will be needed, but just not yet.*/
 #if 0
-static inline int64_t get_sint(query_result res)
+static inline i64 get_sint(query_result res)
 {
-	int64_t v;
+	i64 v;
 	char *name;
 
 	name = malloc(res.end - res.start + 1);

@@ -15,7 +15,7 @@ void	usage(void);
 void
 main(int argc, char *argv[])
 {
-	uint32_t flag = 0;
+	u32 flag = 0;
 	int qflag = 0;
 
 	ARGBEGIN{

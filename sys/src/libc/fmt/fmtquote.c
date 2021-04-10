@@ -107,7 +107,7 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 	Rune r, *rm, *rme;
 	char *t, *s, *m, *me;
 	Rune *rt, *rs;
-	uint32_t fl;
+	u32 fl;
 	int nc, w;
 
 	m = sin;
@@ -134,7 +134,7 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 		FMTRUNE(f, t, s, '\'');
 	for(nc = q->nrunesin; nc > 0; nc--){
 		if(sin){
-			r = *(uint8_t*)m;
+			r = *(u8*)m;
 			if(r < Runeself)
 				m++;
 			else if((me - m) >= UTFmax || fullrune(m, me-m))
@@ -144,7 +144,7 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 		}else{
 			if(rm >= rme)
 				break;
-			r = *(uint8_t*)rm++;
+			r = *(u8*)rm++;
 		}
 		if(f->runes){
 			FMTRCHAR(f, rt, rs, r);

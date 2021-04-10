@@ -18,7 +18,7 @@
  */
 
 void
-setupDESstate(DESstate *s, uint8_t key[8], uint8_t *ivec)
+setupDESstate(DESstate *s, u8 key[8], u8 *ivec)
 {
 	memset(s, 0, sizeof(*s));
 	memmove(s->key, key, sizeof(s->key));
@@ -29,7 +29,7 @@ setupDESstate(DESstate *s, uint8_t key[8], uint8_t *ivec)
 }
 
 void
-setupDES3state(DES3state *s, uint8_t key[3][8], uint8_t *ivec)
+setupDES3state(DES3state *s, u8 key[3][8], u8 *ivec)
 {
 	memset(s, 0, sizeof(*s));
 	memmove(s->key, key, sizeof(s->key));

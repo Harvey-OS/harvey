@@ -361,7 +361,7 @@ static int google_chromeec_command_v1(struct chromeec_command *cec_command)
 }
 
 /* Return the byte of EC switch states */
-uint8_t google_chromeec_get_switches(void)
+u8 google_chromeec_get_switches(void)
 {
 	return read_byte(EC_LPC_ADDR_MEMMAP + EC_MEMMAP_SWITCHES);
 }

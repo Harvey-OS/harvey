@@ -18,14 +18,14 @@ static int	fontresize(Font*, int, int, int);
 static Rune empty[] = { 0 };
 
 int
-cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
+cachechars(Font *f, char **ss, Rune **rr, u16 *cp, int max,
 	   int *wp,
 	   char **subfontname)
 {
 	int i, th, sh, h, ld, w, rw, wid, nc;
 	char *sp;
 	Rune r, *rp, vr;
-	uint32_t a;
+	u32 a;
 	Cacheinfo *c, *tc, *ec;
 
 	if(ss){
@@ -39,7 +39,7 @@ cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 	*subfontname = 0;
 	for(i=0; i<max && (*sp || *rp); sp+=w, rp+=rw){
 		if(ss){
-			r = *(uint8_t*)sp;
+			r = *(u8*)sp;
 			if(r < Runeself)
 				w = 1;
 			else{
@@ -190,7 +190,7 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 	Fontchar *fi;
 	Cachefont *cf;
 	Cachesubf *subf, *of;
-	uint8_t *b;
+	u8 *b;
 
 	pic = r;
     Again:
@@ -337,7 +337,7 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	Cacheinfo *i;
 	int ret;
 	Image *new;
-	uint8_t *b;
+	u8 *b;
 	Display *d;
 
 	ret = 0;

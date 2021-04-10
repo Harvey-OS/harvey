@@ -73,10 +73,10 @@ archFree(Arch *a)
 }
 
 static int
-ventiSend(Arch *a, Block *b, uint8_t *data)
+ventiSend(Arch *a, Block *b, u8 *data)
 {
 	uint n;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 
 	if(DEBUG > 1)
 		fprint(2, "ventiSend: sending %#x %L to venti\n", b->addr, &b->l);
@@ -88,7 +88,7 @@ ventiSend(Arch *a, Block *b, uint8_t *data)
 		return 0;
 	}
 	if(!vtSha1Check(score, data, n)){
-		uint8_t score2[VtScoreSize];
+		u8 score2[VtScoreSize];
 		vtSha1(score2, data, n);
 		fprint(2, "ventiSend: vtWrite block %#x failed vtSha1Check %V %V\n",
 			b->addr, score, score2);
@@ -132,11 +132,11 @@ struct Param
 
 	/* return value; avoids using stack space */
 	Label l;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 };
 
 static void
-shaBlock(uint8_t score[VtScoreSize], Block *b, uint8_t *data, uint bsize)
+shaBlock(u8 score[VtScoreSize], Block *b, u8 *data, uint bsize)
 {
 	vtSha1(score, data, vtZeroTruncate(vtType[b->l.type], data, bsize));
 }
@@ -155,10 +155,10 @@ etype(Entry *e)
 }
 */
 
-static uint8_t*
-copyBlock(Block *b, uint32_t blockSize)
+static u8 *
+copyBlock(Block *b, u32 blockSize)
 {
-	uint8_t *data;
+	u8 *data;
 
 	data = vtMemAlloc(blockSize);
 	if(data == nil)
@@ -186,10 +186,10 @@ enum
 	ArchFaked,
 };
 static int
-archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
+archWalk(Param *p, u32 addr, u8 type, u32 tag)
 {
 	int ret, i, x, psize, dsize;
-	uint8_t *data, score[VtScoreSize];
+	u8 *data, score[VtScoreSize];
 	Block *b;
 	Label l;
 	Entry *e;
@@ -356,8 +356,8 @@ archThread(void *v)
 	Param p;
 	Super super;
 	int ret;
-	uint32_t addr;
-	uint8_t rbuf[VtRootSize];
+	u32 addr;
+	u8 rbuf[VtRootSize];
 	VtRoot root;
 
 	vtThreadSetName("arch");
@@ -375,7 +375,7 @@ archThread(void *v)
 		addr = super.next;
 		if(addr != NilBlock && super.current == NilBlock){
 			super.current = addr;
-			super.next = (int64_t)NilBlock;
+			super.next = (i64)NilBlock;
 			superPack(&super, b->data);
 			blockDirty(b);
 		}else
@@ -448,7 +448,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 			sleep(60*1000);
 			continue;
 		}
-		super.current = (int64_t)NilBlock;
+		super.current = (i64)NilBlock;
 		memmove(super.last, p.score, VtScoreSize);
 		superPack(&super, b->data);
 		blockDirty(b);

@@ -15,7 +15,7 @@
 #include	<cursor.h>
 #include	<stdio.h>
 
-#define Never	0xffffffff	/* Maximum uint32_t */
+#define Never	0xffffffff	/* Maximum u32 */
 #define LOG2  0.301029995664
 #define Button_bit(b)	(1 << ((b)-1))
 
@@ -145,7 +145,7 @@ int get_1click(int but, Mouse* m, Cursor* curs)
 int get_click_or_kbd(int but, Mouse* m, const char* expected)
 {
 	Event ev;
-	uint32_t expbits[4] = {}, ty;
+	u32 expbits[4] = {}, ty;
 	expbits[0] = expbits[1] = expbits[2] = expbits[3];
 	for (; *expected!=0; expected++)
 		expbits[((*expected)>>5)&3] |= 1 << (*expected&31);
@@ -201,7 +201,7 @@ typedef struct thick_color {
 
 
 typedef struct color_ref {
-	uint32_t c;			/* RGBA pixel color */
+	u32 c;			/* RGBA pixel color */
 	char* nam;			/* ASCII name (matched to input, used in output)*/
 	int nam1;			/* single-letter version of color name */
 	Image* im;			/* replicated solid-color image */
@@ -227,7 +227,7 @@ color_ref clrtab[] = {
 	{DNofill,	0,		0,   0}	/* DNofill means "end of data" */
 };
 
-int16_t nam1_idx[128];			/* the clrtab[] index for each nam1, else -1 */
+i16 nam1_idx[128];			/* the clrtab[] index for each nam1, else -1 */
 
 
 void  init_clrtab(void)
@@ -303,7 +303,7 @@ thick_color* parse_color_chars(const char* c0, const char* fin,
 				return tc_default(tc);
 			else tc[i].thick=1;
 		}
-		j = (*c&~127) ? -1 : nam1_idx[(uint8_t)*c];
+		j = (*c&~127) ? -1 : nam1_idx[(u8)*c];
 		if (j < 0)
 			return tc_default(tc);
 		tc[i].clr = clrtab[j].im;
@@ -2058,9 +2058,9 @@ void do_mmenu(int but, Mouse* m)
 
 void doevent(void)
 {
-	uint32_t etype;
+	u32 etype;
 	int mobile;
-	uint32_t mvtime;
+	u32 mvtime;
 	Event	ev;
 
 	etype = eread(Emouse|Ekeyboard, &ev);

@@ -32,7 +32,7 @@ options(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	uint32_t x;
+	u32 x;
 
 	s3generic.init(vga, ctlr);
 	vga->crt[0x3B] = vga->crt[0]-5;
@@ -63,7 +63,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uint16_t advfunc;
+	u16 advfunc;
 
 	s3generic.load(vga, ctlr);
 	vgaxo(Crtx, 0x60, vga->crt[0x60]);

@@ -106,7 +106,7 @@ excludefile(char *path)
 }
 
 int
-preaddir(Fid *f, uint8_t *data, int n, int64_t offset)
+preaddir(Fid *f, u8 *data, int n, i64 offset)
 {
 	int r = 0, m;
 	Dir *d;

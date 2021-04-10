@@ -72,7 +72,7 @@ enum {
 	Wptrkmode,			/* track mode */
 	Wpdatblktype,
 	Wpsessfmt	= 8,
-	Wppktsz		= 10,		/* BE uint32_t: # user data blks/fixed pkt */
+	Wppktsz		= 10,		/* BE u32: # user data blks/fixed pkt */
 
 	/* Pagwrparams bits */
 	Bufe	= 1<<6,	/* Wpwrtype: buffer under-run free recording enable */
@@ -157,7 +157,7 @@ typedef struct Drive Drive;
 typedef struct Msf Msf;		/* minute, second, frame */
 typedef struct Otrack Otrack;
 typedef struct Track Track;
-typedef uint8_t Tristate;
+typedef u8 Tristate;
 
 struct Msf {
 	int	m;
@@ -168,10 +168,10 @@ struct Msf {
 struct Track
 {
 	/* initialized while obtaining the toc (gettoc) */
-	int64_t	size;		/* total size in bytes */
-	int32_t	bs;		/* block size in bytes */
-	uint32_t	beg;		/* beginning block number */
-	uint32_t	end;		/* ending block number */
+	i64	size;		/* total size in bytes */
+	i32	bs;		/* block size in bytes */
+	u32	beg;		/* beginning block number */
+	u32	end;		/* ending block number */
 	int	type;
 	Msf	mbeg;
 	Msf	mend;
@@ -179,7 +179,7 @@ struct Track
 	/* initialized by fs */
 	char	name[32];
 	int	mode;
-	uint32_t	mtime;
+	u32	mtime;
 };
 
 struct DTrack			/* not used */
@@ -206,8 +206,8 @@ struct Dev
 {
 	Otrack*	(*openrd)(Drive *d, int trackno);
 	Otrack*	(*create)(Drive *d, int bs);
-	int32_t	(*read)(Otrack *t, void *v, int32_t n, int64_t off);
-	int32_t	(*write)(Otrack *t, void *v, int32_t n);
+	i32	(*read)(Otrack *t, void *v, i32 n, i64 off);
+	i32	(*write)(Otrack *t, void *v, i32 n);
 	void	(*close)(Otrack *t);
 	int	(*gettoc)(Drive*);
 	int	(*fixate)(Drive *d);
@@ -230,7 +230,7 @@ struct Drive
 	int	invistrack;
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */
-	uint32_t	changetime;		/* " */
+	u32	changetime;		/* " */
 	int	relearn;		/* need to re-learn the disc? */
 	int	nameok;
 	int	writeok;		/* writable disc? */
@@ -242,8 +242,8 @@ struct Drive
 	Tristate erasable;		/* writable after erasing? */
 
 	Track	track[Ntrack];
-	uint32_t	end;			/* # of blks on current disc */
-	uint32_t	cap;			/* drive capabilities */
+	u32	end;			/* # of blks on current disc */
+	u32	cap;			/* drive capabilities */
 	unsigned char	blkbuf[BScdda];
 
 	int	maxreadspeed;
@@ -260,12 +260,12 @@ struct Drive
 struct Buf
 {
 	unsigned char	*data;		/* buffer */
-	int64_t	off;		/* data[0] at offset off in file */
+	i64	off;		/* data[0] at offset off in file */
 	int	bs;		/* block size */
-	int32_t	ndata;		/* no. valid bytes in data */
+	i32	ndata;		/* no. valid bytes in data */
 	int	nblock;		/* total buffer size in blocks */
 	int	omode;		/* OREAD, OWRITE */
-	int32_t	(*fn)(Buf*, void*, int32_t, uint32_t); /* read, write */
+	i32	(*fn)(Buf*, void*, i32, u32); /* read, write */
 
 	/* used only by client */
 	Otrack	*otrack;

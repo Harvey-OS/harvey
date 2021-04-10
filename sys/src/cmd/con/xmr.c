@@ -19,8 +19,8 @@ enum {
 };
 
 int notifyf(void*, char*);
-int readupto(uint8_t*, int);
-int receive(int, uint8_t);
+int readupto(u8*, int);
+int receive(int, u8);
 void send(int);
 
 int debug, dfd;
@@ -30,7 +30,7 @@ main(int argc, char **argv)
 {
 	int fd;
 	unsigned char seqno;
-	uint32_t bytes;
+	u32 bytes;
 
 	ARGBEGIN {
 	case 'd':
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 void
 send(int byte)
 {
-	uint8_t c;
+	u8 c;
 
 	c = byte;
 	if(write(1, &c, 1) != 1){
@@ -81,7 +81,7 @@ send(int byte)
 }
 
 int
-readupto(uint8_t *a, int len)
+readupto(u8 *a, int len)
 {
 	int n;
 	int sofar;
@@ -101,11 +101,11 @@ readupto(uint8_t *a, int len)
 }
 
 int
-receive(int fd, uint8_t seqno)
+receive(int fd, u8 seqno)
 {
-	uint8_t buf[128+4];
-	uint8_t sum;
-	uint8_t *p;
+	u8 buf[128+4];
+	u8 sum;
+	u8 *p;
 	int n;
 	int tries;
 	int have;

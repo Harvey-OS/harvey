@@ -9,7 +9,7 @@
  */
 
 /*
- * Count bytes within runes, if it fits in a uint64_t, and other things.
+ * Count bytes within runes, if it fits in a u64, and other things.
  */
 #include <u.h>
 #include <libc.h>
@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	int c;
 	static short msg[4];
 	static int nb;
-	static uint8_t b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 3, 2, 3, 6, 7 };
+	static u8 b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 3, 2, 3, 6, 7 };
 	int buttons, dx, dy;
 
 	ps2fd = open("#P/ps2mouse", OREAD);

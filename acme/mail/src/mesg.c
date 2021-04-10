@@ -708,7 +708,7 @@ mesgtagpost(Message *m)
 /* need to expand selection more than default word */
 //#pragma varargck argpos eval 2
 
-int32_t
+i32
 eval(Window *w, char *s, ...)
 {
 	char buf[64];
@@ -745,7 +745,7 @@ char*
 expandaddr(Window *w, Event *e)
 {
 	char *s;
-	int32_t q0, q1;
+	i32 q0, q1;
 
 	if(e->q0 != e->q1)	/* cannot happen */
 		return nil;

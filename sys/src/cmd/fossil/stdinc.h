@@ -10,9 +10,9 @@
 #include <u.h>
 #include <libc.h>
 
-typedef uint64_t	uint64_t;
-typedef	unsigned char	uint8_t;
-//typedef ushort	uint16_t;
+typedef u64	u64;
+typedef	unsigned char	u8;
+//typedef ushort	u16;
 
 #include "oventi.h"
 #include "vac.h"

@@ -20,31 +20,31 @@
 #define	hupdate(h, c)	((((h)<<HSHIFT)^(c))&HMASK)
 typedef struct Hlist Hlist;
 struct Hlist{
-	uint8_t *s;
+	u8 *s;
 	Hlist *next, *prev;
 };
 
 int
 writememimage(int fd, Memimage *i)
 {
-	uint8_t *outbuf, *outp, *eout;		/* encoded data, pointer, end */
-	uint8_t *loutp;				/* start of encoded line */
+	u8 *outbuf, *outp, *eout;		/* encoded data, pointer, end */
+	u8 *loutp;				/* start of encoded line */
 	Hlist *hash;				/* heads of hash chains of past strings */
 	Hlist *chain, *hp;			/* hash chain members, pointer */
 	Hlist *cp;				/* next Hlist to fall out of window */
 	int h;					/* hash value */
-	uint8_t *line, *eline;			/* input line, end pointer */
-	uint8_t *data, *edata;			/* input buffer, end pointer */
-	uint32_t n;				/* length of input buffer */
-	uint32_t nb;				/* # of bytes returned by unloadimage */
+	u8 *line, *eline;			/* input line, end pointer */
+	u8 *data, *edata;			/* input buffer, end pointer */
+	u32 n;				/* length of input buffer */
+	u32 nb;				/* # of bytes returned by unloadimage */
 	int bpl;				/* input line length */
 	int offs, runlen;			/* offset, length of consumed data */
-	uint8_t dumpbuf[NDUMP];			/* dump accumulator */
+	u8 dumpbuf[NDUMP];			/* dump accumulator */
 	int ndump;				/* length of dump accumulator */
 	int miny, dy;				/* y values while unloading input */
 	int ncblock;				/* size of compressed blocks */
 	Rectangle r;
-	uint8_t *p, *q, *s, *es, *t;
+	u8 *p, *q, *s, *es, *t;
 	char hdr[11+5*12+1];
 	char cbuf[20];
 

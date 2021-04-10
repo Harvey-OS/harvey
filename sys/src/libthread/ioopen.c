@@ -12,7 +12,7 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static int32_t
+static i32
 _ioopen(va_list *arg)
 {
 	char *path;

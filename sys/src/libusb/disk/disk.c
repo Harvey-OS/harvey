@@ -58,7 +58,7 @@ int diskdebug;
 static int
 getmaxlun(Dev *dev)
 {
-	uint8_t max;
+	u8 max;
 	int r;
 
 	max = 0;
@@ -110,7 +110,7 @@ umsfatal(Ums *ums)
 }
 
 static int
-ispow2(uint64_t ul)
+ispow2(u64 ul)
 {
 	return (ul & (ul - 1)) == 0;
 }
@@ -131,7 +131,7 @@ log2(int n)
 static int
 umscapacity(Umsc *lun)
 {
-	uint8_t data[32];
+	u8 data[32];
 
 	lun->blocks = 0;
 	lun->capacity = 0;
@@ -148,12 +148,12 @@ umscapacity(Umsc *lun)
 			return -1;
 		}else{
 			lun->ScsiReq.lbsize = GETBELONG(data + 8);
-			lun->blocks = (uint64_t)GETBELONG(data)<<32 |
+			lun->blocks = (u64)GETBELONG(data)<<32 |
 				GETBELONG(data + 4);
 		}
 	}
 	lun->blocks++; /* SRcapacity returns LBA of last block */
-	lun->capacity = (int64_t)lun->blocks * lun->ScsiReq.lbsize;
+	lun->capacity = (i64)lun->blocks * lun->ScsiReq.lbsize;
 	if(diskdebug)
 		fprint(2, "disk: logical block size %lu, # blocks %llu\n",
 			lun->ScsiReq.lbsize, lun->blocks);
@@ -163,7 +163,7 @@ umscapacity(Umsc *lun)
 static int
 umsinit(Ums *ums)
 {
-	uint8_t i;
+	u8 i;
 	Umsc *lun;
 	int some;
 
@@ -213,7 +213,7 @@ umsinit(Ums *ums)
 /*
  * called by SR*() commands provided by scuzz's scsireq
  */
-int32_t
+i32
 umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	Cbw cbw;
@@ -401,7 +401,7 @@ dstat(Usbfs *fs, Qid qid, Dir *d)
 static int
 dopen(Usbfs *fs, Fid *fid, int _1)
 {
-	uint32_t path;
+	u32 path;
 	Umsc *lun;
 
 	path = fid->qid.path & ~fs->qid;
@@ -420,10 +420,10 @@ dopen(Usbfs *fs, Fid *fid, int _1)
  * since we don't need general division nor its cost.
  */
 static int
-setup(Umsc *lun, char *data, int count, int64_t offset)
+setup(Umsc *lun, char *data, int count, i64 offset)
 {
-	int32_t nb, lbsize, lbshift, lbmask;
-	uint64_t bno;
+	i32 nb, lbsize, lbshift, lbmask;
+	u64 bno;
 
 	if(count < 0 || (lun->ScsiReq.lbsize <= 0 && umscapacity(lun) < 0) ||
 	    lun->ScsiReq.lbsize == 0)
@@ -462,11 +462,11 @@ setup(Umsc *lun, char *data, int count, int64_t offset)
  * ctl reads must match the format documented in sd(3) exactly
  * to interoperate with the rest of the system.
  */
-static int32_t
-dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
+static i32
+dread(Usbfs *fs, Fid *fid, void *data, i32 count, i64 offset)
 {
-	int32_t n;
-	uint32_t path;
+	i32 n;
+	u32 path;
 	char buf[1024];
 	char *s, *e;
 	Umsc *lun;
@@ -553,12 +553,12 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 	return count;
 }
 
-static int32_t
-dwrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
+static i32
+dwrite(Usbfs *fs, Fid *fid, void *data, i32 count, i64 offset)
 {
-	int32_t len, ocount;
-	uint32_t path;
-	uint64_t bno;
+	i32 len, ocount;
+	u32 path;
+	u64 bno;
 	Ums *ums;
 	Umsc *lun;
 
@@ -655,7 +655,7 @@ findendpoints(Ums *ums)
 {
 	Ep *ep;
 	Usbdev *ud;
-	uint32_t csp, sc;
+	u32 csp, sc;
 	int i, epin, epout;
 
 	epin = epout = -1;

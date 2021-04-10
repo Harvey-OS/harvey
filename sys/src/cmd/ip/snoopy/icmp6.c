@@ -15,10 +15,10 @@
 
 typedef struct Hdr	Hdr;
 struct Hdr
-{	uint8_t	type;
-	uint8_t	code;
-	uint8_t	cksum[2];	/* Checksum */
-	uint8_t	data[1];
+{	u8	type;
+	u8	code;
+	u8	cksum[2];	/* Checksum */
+	u8	data[1];
 };
 
 enum
@@ -191,7 +191,7 @@ static char*
 opt_seprint(Msg *m)
 {
 	int otype, osz, pktsz;
-	uint8_t *a;
+	u8 *a;
 	char *p = m->p;
 	char *e = m->e;
 	char *opt;
@@ -293,7 +293,7 @@ p_seprint(Msg *m)
 	char *tn;
 	char *p = m->p;
 	char *e = m->e;
-	uint8_t *a;
+	u8 *a;
 	Hdr *h;
 
 	h = (Hdr*)m->ps;
@@ -307,10 +307,10 @@ p_seprint(Msg *m)
 	tn = icmpmsg6[h->type];
 	if(tn == nil)
 		p = seprint(p, e, "t=%u c=%d ck=%4.4x", h->type,
-			h->code, (uint16_t)NetS(h->cksum));
+			h->code, (u16)NetS(h->cksum));
 	else
 		p = seprint(p, e, "t=%s c=%d ck=%4.4x", tn,
-			h->code, (uint16_t)NetS(h->cksum));
+			h->code, (u16)NetS(h->cksum));
 
 /*
 	if(Cflag){

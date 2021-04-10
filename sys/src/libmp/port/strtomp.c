@@ -15,10 +15,10 @@
 static struct {
 	int	inited;
 
-	uint8_t	t64[256];
-	uint8_t	t32[256];
-	uint8_t	t16[256];
-	uint8_t	t10[256];
+	u8	t64[256];
+	u8	t32[256];
+	u8	t16[256];
+	u8	t10[256];
 } tab;
 
 enum {
@@ -41,13 +41,13 @@ init(void)
 	memset(tab.t10, INVAL, sizeof(tab.t10));
 
 	for(p = set64; *p; p++)
-		tab.t64[(uint8_t)*p] = p-set64;
+		tab.t64[(u8)*p] = p-set64;
 	for(p = set32; *p; p++)
-		tab.t32[(uint8_t)*p] = p-set32;
+		tab.t32[(u8)*p] = p-set32;
 	for(p = set16; *p; p++)
-		tab.t16[(uint8_t)*p] = (p-set16)%16;
+		tab.t16[(u8)*p] = (p-set16)%16;
 	for(p = set10; *p; p++)
-		tab.t10[(uint8_t)*p] = (p-set10);
+		tab.t10[(u8)*p] = (p-set10);
 
 	tab.inited = 1;
 }
@@ -61,7 +61,7 @@ from16(char *a, mpint *b)
 
 	b->top = 0;
 	for(p = a; *p; p++)
-		if(tab.t16[*(uint8_t*)p] == INVAL)
+		if(tab.t16[*(u8*)p] == INVAL)
 			break;
 	mpbits(b, (p-a)*4);
 	b->top = 0;
@@ -71,21 +71,21 @@ from16(char *a, mpint *b)
 		for(i = 0; i < Dbits; i += 4){
 			if(p <= a)
 				break;
-			x |= tab.t16[*(uint8_t*)--p]<<i;
+			x |= tab.t16[*(u8*)--p]<<i;
 		}
 		b->p[b->top++] = x;
 	}
 	return next;
 }
 
-static uint32_t mppow10[] = {
+static u32 mppow10[] = {
 	1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
 };
 
 static char*
 from10(char *a, mpint *b)
 {
-	uint32_t x, y;
+	u32 x, y;
 	mpint *pow, *r;
 	int i;
 
@@ -97,7 +97,7 @@ from10(char *a, mpint *b)
 		// do a billion at a time in native arithmetic
 		x = 0;
 		for(i = 0; i < 9; i++){
-			y = tab.t10[*(uint8_t*)a];
+			y = tab.t10[*(u8*)a];
 			if(y == INVAL)
 				break;
 			a++;
@@ -124,10 +124,10 @@ static char*
 from64(char *a, mpint *b)
 {
 	char *buf = a;
-	uint8_t *p;
+	u8 *p;
 	int n, m;
 
-	for(; tab.t64[*(uint8_t*)a] != INVAL; a++)
+	for(; tab.t64[*(u8*)a] != INVAL; a++)
 		;
 	n = a-buf;
 	mpbits(b, n*6);
@@ -144,10 +144,10 @@ static char*
 from32(char *a, mpint *b)
 {
 	char *buf = a;
-	uint8_t *p;
+	u8 *p;
 	int n, m;
 
-	for(; tab.t64[*(uint8_t*)a] != INVAL; a++)
+	for(; tab.t64[*(u8*)a] != INVAL; a++)
 		;
 	n = a-buf;
 	mpbits(b, n*5);

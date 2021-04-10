@@ -116,8 +116,8 @@ var *gvar[NVAR];		/* hash for globals */
 
 #define	new(type)	((type *)emalloc(sizeof(type)))
 
-void *emalloc(int32_t);
-void *Malloc(uint32_t);
+void *emalloc(i32);
+void *Malloc(u32);
 void efree(void *);
 
 struct here{

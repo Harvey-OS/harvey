@@ -7,7 +7,7 @@ enum {
 };
 
 extern uintptr_t gettls0(void);
-uint64_t table[32];
+u64 table[32];
 
 void
 copier(int in, int out, int count)
@@ -16,8 +16,8 @@ copier(int in, int out, int count)
 	char buf2[32];
 	int tlsfd;
 	int i, n;
-	uint64_t *ptr;
-	uint64_t v;
+	u64 *ptr;
+	u64 v;
 	char c;
 
 	snprint(buf, sizeof buf, "/proc/%d/tls", getpid());

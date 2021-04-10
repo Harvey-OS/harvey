@@ -89,8 +89,8 @@
  */
 typedef struct {
 	unsigned i2c_bus;
-	uint8_t  dev_addr;
-	uint8_t  data_buffer[LP55231_PROG_PAGE_SIZE + 1];
+	u8  dev_addr;
+	u8  data_buffer[LP55231_PROG_PAGE_SIZE + 1];
 } TiLp55231;
 
 static void ww_ring_init(unsigned i2c_bus);
@@ -141,8 +141,8 @@ static int ledc_transfer(TiLp55231 *ledc, struct i2c_seg *segs,
  * The controller is programmed to autoincrement on writes, so up to page size
  * bytes can be transmitted in one write transaction.
  */
-static int ledc_write(TiLp55231 *ledc, uint8_t start_addr,
-		      const uint8_t *data, unsigned count)
+static int ledc_write(TiLp55231 *ledc, u8 start_addr,
+		      const u8 *data, unsigned count)
 {
 	struct i2c_seg seg;
 
@@ -164,7 +164,7 @@ static int ledc_write(TiLp55231 *ledc, uint8_t start_addr,
 }
 
 /* To keep things simple, read is limited to one byte at a time. */
-static int ledc_read(TiLp55231 *ledc, uint8_t addr, uint8_t *data)
+static int ledc_read(TiLp55231 *ledc, u8 addr, u8 *data)
 {
 	struct i2c_seg seg[2];
 
@@ -191,7 +191,7 @@ static int ledc_read(TiLp55231 *ledc, uint8_t addr, uint8_t *data)
  */
 static int ledc_reset(TiLp55231 *ledc)
 {
-	uint8_t data;
+	u8 data;
 
 	data = ~0;
 	ledc_read(ledc, LP55231_RESET_REG, &data);
@@ -219,10 +219,10 @@ static int ledc_reset(TiLp55231 *ledc)
  * Write a program into the internal lp55231 memory. Split write transactions
  * into sections fitting into memory pages.
  */
-static void ledc_write_program(TiLp55231 *ledc, uint8_t load_addr,
-			       const uint8_t *program, unsigned count)
+static void ledc_write_program(TiLp55231 *ledc, u8 load_addr,
+			       const u8 *program, unsigned count)
 {
-	uint8_t page_num = load_addr / LP55231_PROG_PAGE_SIZE;
+	u8 page_num = load_addr / LP55231_PROG_PAGE_SIZE;
 	unsigned page_offs = load_addr % LP55231_PROG_PAGE_SIZE;
 
 	if ((load_addr + count) > LP55231_MAX_PROG_SIZE) {
@@ -249,7 +249,7 @@ static void ledc_write_program(TiLp55231 *ledc, uint8_t load_addr,
 	}
 }
 
-static void ledc_write_engctrl2(TiLp55231 *ledc, uint8_t value)
+static void ledc_write_engctrl2(TiLp55231 *ledc, u8 value)
 {
 	ledc_write(ledc, LP55231_ENGCTRL2_REG, &value, 1);
 	udelay(1500);
@@ -260,7 +260,7 @@ static void ledc_run_program(TiLp55231 *ledc,
 			     const TiLp55231Program *program_desc)
 {
 	int i;
-	uint8_t data;
+	u8 data;
 
 	/* All engines on hold. */
 	data = LP55231_ENGCTRL1_CHIP_EN;
@@ -288,7 +288,7 @@ static void ledc_run_program(TiLp55231 *ledc,
  */
 static int ledc_init_validate(TiLp55231 *ledc)
 {
-	uint8_t data;
+	u8 data;
 	int i;
 
 	if (ledc_reset(ledc))

@@ -35,30 +35,30 @@ struct Frec
 {
 	Frec	*next;
 	char	*op;
-	uint32_t	nread;
-	uint32_t	nwrite;
-	uint32_t	bread;
-	uint32_t	bwrite;
-	uint32_t	opens;
+	u32	nread;
+	u32	nwrite;
+	u32	bread;
+	u32	bwrite;
+	u32	opens;
 };
 
 struct Rpc
 {
 	char	*name;
-	uint32_t	count;
+	u32	count;
 	long long	time;
 	long long	lo;
 	long long	hi;
-	uint32_t	bin;
-	uint32_t	bout;
+	u32	bin;
+	u32	bout;
 };
 
 struct Stats
 {
-	uint32_t	totread;
-	uint32_t	totwrite;
-	uint32_t	nrpc;
-	uint32_t	nproto;
+	u32	totread;
+	u32	totwrite;
+	u32	nrpc;
+	u32	nproto;
 	Rpc	rpc[Maxrpc];
 };
 
@@ -69,7 +69,7 @@ struct Fsrpc
 	int	canint;			/* Interrupt gate */
 	int	flushtag;		/* Tag on which to reply to flush */
 	Fcall	work;			/* Plan 9 incoming Fcall */
-	uint8_t	buf[IOHDRSZ+Maxfdata];	/* Data buffer */
+	u8	buf[IOHDRSZ+Maxfdata];	/* Data buffer */
 };
 
 struct Fid
@@ -79,10 +79,10 @@ struct Fid
 	int	mode;
 	int	nr;			/* fid number */
 	Fid	*next;			/* hash link */
-	uint32_t	nread;
-	uint32_t	nwrite;
-	uint32_t	bread;
-	uint32_t	bwrite;
+	u32	nread;
+	u32	nwrite;
+	u32	bread;
+	u32	bwrite;
 	long long	offset;			/* for directories */
 };
 
@@ -147,5 +147,5 @@ void	reopen(Fid *f);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
 void	catcher(void*, char*);
-uint32_t	msec(void);
+u32	msec(void);
 void	fidreport(Fid*);

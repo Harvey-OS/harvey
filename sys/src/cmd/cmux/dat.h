@@ -82,8 +82,8 @@ enum
 };
 
 #define	QID(w,q)	((w<<8)|(q))
-#define	WIN(q)	((((uint32_t)(q).path)>>8) & 0xFFFFFF)
-#define	FILE(q)	(((uint32_t)(q).path) & 0xFF)
+#define	WIN(q)	((((u32)(q).path)>>8) & 0xFFFFFF)
+#define	FILE(q)	(((u32)(q).path) & 0xFF)
 
 enum	/* control messages */
 {
@@ -127,7 +127,7 @@ struct Consreadmesg
 struct	Mouse
 {
 	int	buttons;	/* bit array: LMR=124 */
-	uint32_t	msec;
+	u32	msec;
 };
 
 struct Mousectl
@@ -157,7 +157,7 @@ struct Stringpair	/* rune and nrune or byte and nbyte */
 struct Mousestate
 {
 	Mouse;
-	uint32_t	counter;	/* serial no. of mouse event */
+	u32	counter;	/* serial no. of mouse event */
 };
 
 struct Mouseinfo
@@ -165,8 +165,8 @@ struct Mouseinfo
 	Mousestate	queue[16];
 	int	ri;	/* read index into queue */
 	int	wi;	/* write index */
-	uint32_t	counter;	/* serial no. of last mouse event we received */
-	uint32_t	lastcounter;	/* serial no. of last mouse event sent to client */
+	u32	counter;	/* serial no. of last mouse event we received */
+	u32	lastcounter;	/* serial no. of last mouse event sent to client */
 	int	lastb;	/* last button state we received */
 	unsigned char	qfull;	/* filled the queue; no more recording until client comes back */
 };

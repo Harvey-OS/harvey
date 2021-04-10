@@ -19,15 +19,15 @@ enum
 };
 
 static	int	cheader(Biobuf *bin, ZipHead *zh);
-static	int	copyout(int64_t ofd, Biobuf *bin, int32_t len);
+static	int	copyout(i64 ofd, Biobuf *bin, i32 len);
 static	int	crcwrite(void *ofd, void *buf, int n);
 static	int	findCDir(Biobuf *bin, char *file);
 static	int	get1(Biobuf *b);
 static	int	get2(Biobuf *b);
-static	uint32_t	get4(Biobuf *b);
+static	u32	get4(Biobuf *b);
 static	char	*getname(Biobuf *b, int len);
 static	int	header(Biobuf *bin, ZipHead *zh);
-static	int32_t	msdos2time(int time, int date);
+static	i32	msdos2time(int time, int date);
 static	int	sunzip(Biobuf *bin);
 static	int	sunztable(Biobuf *bin);
 static	void	trailer(Biobuf *bin, ZipHead *zh);
@@ -36,24 +36,24 @@ static	int	unzipEntry(Biobuf *bin, ZipHead *czh);
 static	int	unztable(Biobuf *bin, char *file);
 static	int	wantFile(char *file);
 
-static	void	*emalloc(uint32_t);
+static	void	*emalloc(u32);
 static	void	error(char*, ...);
 //#pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
-static	uint32_t	crc;
-static	uint32_t	*crctab;
+static	u32	crc;
+static	u32	*crctab;
 static	int	debug;
 static	char	*delfile;
 static	int	lower;
 static	int	nwant;
-static	uint32_t	rlen;
+static	u32	rlen;
 static	int	settimes;
 static	int	stdout;
 static	int	verbose;
 static	char	**want;
 static	int	wbad;
-static	uint32_t	wlen;
+static	u32	wlen;
 static	jmp_buf	zjmp;
 static	jmp_buf	seekjmp;
 static	int	autodir;
@@ -209,8 +209,8 @@ static int
 sunztable(Biobuf *bin)
 {
 	ZipHead zh;
-	int64_t off;
-	uint32_t hcrc, hcsize, huncsize;
+	i64 off;
+	u32 hcrc, hcsize, huncsize;
 	int ok, err;
 
 	ok = 1;
@@ -290,7 +290,7 @@ static int
 unzip(Biobuf *bin, char *file)
 {
 	ZipHead zh;
-	int64_t off;
+	i64 off;
 	int ok, eok, entries;
 
 	entries = findCDir(bin, file);
@@ -410,7 +410,7 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 	Dir *d;
 	ZipHead zh;
 	char *p;
-	int64_t off, fd;
+	i64 off, fd;
 	int isdir, ok, err;
 
 	zh.file = nil;
@@ -537,8 +537,8 @@ wantFile(char *file)
 static int
 findCDir(Biobuf *bin, char *file)
 {
-	int64_t ecoff;
-	int32_t off, size, m;
+	i64 ecoff;
+	i32 off, size, m;
 	int entries, zclen, dn, ds, de;
 
 	ecoff = Bseek(bin, -ZECHeadSize, 2);
@@ -585,7 +585,7 @@ findCDir(Biobuf *bin, char *file)
 static int
 cheader(Biobuf *bin, ZipHead *zh)
 {
-	uint32_t v;
+	u32 v;
 	int flen, xlen, fclen;
 
 	v = get4(bin);
@@ -627,7 +627,7 @@ cheader(Biobuf *bin, ZipHead *zh)
 static int
 header(Biobuf *bin, ZipHead *zh)
 {
-	uint32_t v;
+	u32 v;
 	int flen, xlen;
 
 	v = get4(bin);
@@ -700,7 +700,7 @@ crcwrite(void *out, void *buf, int n)
 }
 
 static int
-copyout(int64_t ofd, Biobuf *bin, int32_t len)
+copyout(i64 ofd, Biobuf *bin, i32 len)
 {
 	char buf[BufSize];
 	int n;
@@ -719,10 +719,10 @@ copyout(int64_t ofd, Biobuf *bin, int32_t len)
 	return 1;
 }
 
-static uint32_t
+static u32
 get4(Biobuf *b)
 {
-	uint32_t v;
+	u32 v;
 	int i, c;
 
 	v = 0;
@@ -761,7 +761,7 @@ get1(Biobuf *b)
 	return c;
 }
 
-static int32_t
+static i32
 msdos2time(int time, int date)
 {
 	Tm tm;
@@ -779,7 +779,7 @@ msdos2time(int time, int date)
 }
 
 static void*
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 

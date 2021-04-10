@@ -22,9 +22,9 @@
 Fcall	*req;
 Fcall	*rep;
 
-uint8_t	mdata[Maxiosize];
+u8	mdata[Maxiosize];
 char	repdata[Maxfdata];
-uint8_t	statbuf[STATMAX];
+u8	statbuf[STATMAX];
 int	errno;
 char	errbuf[ERRMAX];
 void	rmservice(void);

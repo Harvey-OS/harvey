@@ -82,6 +82,6 @@ extern char *gdbstub_state(GdbState *ks, char *cmd);
 extern int dbg_kdb_mode;
 
 char *gpr(GdbState *ks, int pid);
-char *rmem(void *dest, int pid, uint64_t addr, int size);
-char *wmem(uint64_t dest, int pid, void *addr, int size);
+char *rmem(void *dest, int pid, u64 addr, int size);
+char *wmem(u64 dest, int pid, void *addr, int size);
 #define MAX_BREAKPOINTS 32768

@@ -34,8 +34,8 @@ struct Pstate
 	int		curfg;		// current foreground color
 	Background	curbg;	// current background
 	int		curvoff;		// current baseline offset
-	uint8_t	curul;		// current underline/strike state
-	uint8_t	curjust;		// current justify state
+	u8	curul;		// current underline/strike state
+	u8	curjust;		// current justify state
 	int		curanchor;	// current (href) anchor id (if in one), or 0
 	int		curstate;		// current value of item state
 	int		literal;		// current literal state
@@ -274,7 +274,7 @@ static void			freetable(Table* t);
 static Map*		getmap(Docinfo* di, Rune* name);
 static Rune*		getpcdata(Token* toks, int tokslen, int* ptoki);
 static Pstate*		lastps(Pstate* psl);
-static Rune*		listmark(uint8_t ty, int n);
+static Rune*		listmark(u8 ty, int n);
 static int			listtyval(Token* tok, int dflt);
 static Align		makealign(int halign, int valign);
 static Background	makebackground(Rune* imgurl, int color);
@@ -374,7 +374,7 @@ newitemsource(Docinfo* di)
 	return is;
 }
 
-static Item *getitems(ItemSource* is, uint8_t* data, int datalen);
+static Item *getitems(ItemSource* is, u8 * data, int datalen);
 
 // Parse an html document and create a list of layout items.
 // Allocate and return document info in *pdi.
@@ -382,7 +382,7 @@ static Item *getitems(ItemSource* is, uint8_t* data, int datalen);
 // freeitems on the returned result, and then
 // freedocinfo(*pdi).
 Item*
-parsehtml(uint8_t* data, int datalen, Rune* pagesrc, int mtype, int chset,
+parsehtml(u8 * data, int datalen, Rune* pagesrc, int mtype, int chset,
 	  Docinfo** pdi)
 {
 	Item *it;
@@ -407,7 +407,7 @@ parsehtml(uint8_t* data, int datalen, Rune* pagesrc, int mtype, int chset,
 // When caller is done with the items, it should call
 // freeitems on the returned result.
 static Item*
-getitems(ItemSource* is, uint8_t* data, int datalen)
+getitems(ItemSource* is, u8 * data, int datalen)
 {
 	int	i;
 	int	j;
@@ -434,12 +434,12 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 	int	tag;
 	int	brksp;
 	int	target;
-	uint8_t	brk;
-	uint8_t	flags;
-	uint8_t	align;
-	uint8_t	al;
-	uint8_t	ty;
-	uint8_t	ty2;
+	u8	brk;
+	u8	flags;
+	u8	align;
+	u8	al;
+	u8	ty;
+	u8	ty2;
 	Pstate*	ps;
 	Pstate*	nextps;
 	Pstate*	outerps;
@@ -2624,7 +2624,7 @@ trim_cell(Tablecell* c)
 
 // Caller must free answer (eventually).
 static Rune*
-listmark(uint8_t ty, int n)
+listmark(u8 ty, int n)
 {
 	Rune*	s;
 	Rune*	t;

@@ -33,7 +33,7 @@ smbsearchclose(SmbSession *s, SmbSearch *search)
 }
 
 void
-smbsearchclosebyid(SmbSession *s, uint16_t sid)
+smbsearchclosebyid(SmbSession *s, u16 sid)
 {
 	smbsearchclose(s,  smbidmapfind(s->sidmap, sid));
 }
@@ -54,11 +54,11 @@ smbsearchnew(SmbSession *s, SmbDirCache *dc, Reprog *r, SmbTree *t)
 }
 
 static int
-standardflatten(SmbSession *s, SmbBuffer *b, Dir *d, uint32_t *nameoffsetp)
+standardflatten(SmbSession *s, SmbBuffer *b, Dir *d, u32 *nameoffsetp)
 {
-	uint16_t mdate, mtime;
-	uint16_t adate, atime;
-	uint16_t fnlfixupoffset;
+	u16 mdate, mtime;
+	u16 adate, atime;
+	u16 fnlfixupoffset;
 
 	smbplan9time2datetime(d->mtime, s->tzoff, &mdate, &mtime);
 	smbplan9time2datetime(d->atime, s->tzoff, &adate, &atime);
@@ -82,11 +82,11 @@ standardflatten(SmbSession *s, SmbBuffer *b, Dir *d, uint32_t *nameoffsetp)
 }
 
 static int
-findbothflatten(SmbBuffer *b, SmbPeerInfo *p, Dir *d, uint32_t resumekey,
-		uint32_t *nameoffsetp)
+findbothflatten(SmbBuffer *b, SmbPeerInfo *p, Dir *d, u32 resumekey,
+		u32 *nameoffsetp)
 {
-	int64_t mtime, atime;
-	uint32_t fixup;
+	i64 mtime, atime;
+	u32 fixup;
 
 	fixup = smbbufferwriteoffset(b);
 	mtime = smbplan9time2time(d->mtime);
@@ -99,7 +99,7 @@ poolcheck(mainmem);
 		|| !smbbufferputv(b, mtime)
 		|| !smbbufferputv(b, mtime)
 		|| !smbbufferputv(b, d->length)
-		|| !smbbufferputv(b, smbl2roundupint64_t(d->length, smbglobals.l2allocationsize))			// ha
+		|| !smbbufferputv(b, smbl2roundupi64(d->length, smbglobals.l2allocationsize))			// ha
 		|| !smbbufferputl(b, (d->qid.type & QTDIR) ? 0x10 : 0x80)
 		|| !smbbufferputl(b, smbstringlen(p, d->name))
 		|| !smbbufferputl(b, 0)
@@ -116,16 +116,16 @@ poolcheck(mainmem);
 }
 
 static void
-populate(SmbSession *s, SmbDirCache *dc, Reprog *r, uint16_t informationlevel,
-	 uint16_t flags, uint16_t scount,
-	uint16_t *ep, uint32_t *nameoffsetp)
+populate(SmbSession *s, SmbDirCache *dc, Reprog *r, u16 informationlevel,
+	 u16 flags, u16 scount,
+	u16 *ep, u32 *nameoffsetp)
 {
-	uint16_t e;
-	uint32_t nameoffset;
+	u16 e;
+	u32 nameoffset;
 	e = 0;
 	nameoffset = 0;
 	while (dc->i < dc->n && e < scount) {
-		uint32_t backup;
+		u32 backup;
 		int rv;
 
 		if (!smbmatch(dc->buf[dc->i].name, r)) {
@@ -166,12 +166,12 @@ smbtrans2findfirst2(SmbSession *s, SmbHeader *h)
 	char *pattern = nil;
 	char *dir = nil;
 	char *name = nil;
-	uint16_t searchattributes, searchcount, flags, informationlevel;
-	uint32_t searchstoragetype;
+	u16 searchattributes, searchcount, flags, informationlevel;
+	u32 searchstoragetype;
 	SmbDirCache *dc = nil;
-	uint16_t e;
-	uint32_t nameoffset;
-	uint16_t eos;
+	u16 e;
+	u32 nameoffset;
+	u16 eos;
 	SmbSearch *search;
 	SmbProcessResult pr;
 	Reprog *r = nil;
@@ -258,14 +258,14 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 {
 	SmbBuffer *b;
 	int debug;
-	uint16_t sid, scount, infolevel;
-	uint32_t resumekey;
-	uint16_t flags;
+	u16 sid, scount, infolevel;
+	u32 resumekey;
+	u16 flags;
 	char *filename = nil;
 	SmbProcessResult pr;
-	uint16_t e;
-	uint32_t nameoffset;
-	uint16_t eos;
+	u16 e;
+	u32 nameoffset;
+	u16 eos;
 	SmbTree *t;
 	SmbSearch *search;
 
@@ -314,7 +314,7 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 	}
 
 	if ((flags & (1 << 3)) == 0) {
-		int32_t i;
+		i32 i;
 		if (filename == nil) {
 			smbseterror(s, ERRDOS, ERRnofiles);
 			pr = SmbProcessResultError;

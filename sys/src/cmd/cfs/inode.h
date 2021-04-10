@@ -23,7 +23,7 @@ struct Ibuf
 {
 	Lru	lru;			/* must be first in structure */
 	int	inuse;		/* non-0 if in use */
-	uint32_t	ino;		/* index into inode table */
+	u32	ino;		/* index into inode table */
 	Inode	inode;		/* the inode contents */
 };
 
@@ -46,7 +46,7 @@ struct Icache
 	Disk	disk;
 
 	int	nino;		/* number of inodes */
-	uint32_t	ib0;		/* first inode block */
+	u32	ib0;		/* first inode block */
 	int	nib;		/* number of inode blocks */
 	int	i2b;		/* inodes to a block */
 
@@ -57,13 +57,13 @@ struct Icache
 	Lru	mlru;
 };
 
-Ibuf*	ialloc(Icache*, uint32_t);
+Ibuf*	ialloc(Icache*, u32);
 Ibuf*	iget(Icache*, Qid);
-Ibuf*	iread(Icache*, uint32_t);
-int	iformat(Icache*, int, uint32_t, char*, int, int);
+Ibuf*	iread(Icache*, u32);
+int	iformat(Icache*, int, u32, char*, int, int);
 int	iinit(Icache*, int, int, char*);
-int	iremove(Icache*, uint32_t);
-int	iupdate(Icache*, uint32_t, Qid);
+int	iremove(Icache*, u32);
+int	iupdate(Icache*, u32, Qid);
 int	iwrite(Icache*, Ibuf*);
 void	ifree(Icache*, Ibuf*);
 void	iinc(Icache*, Ibuf*);

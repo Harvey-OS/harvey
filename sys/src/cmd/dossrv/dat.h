@@ -132,17 +132,17 @@ struct Dosbpb{
 	int	nresrv;			/* sectors */
 	int	nfats;			/* usually 2; modified to 1 if fat mirroring disabled */
 	int	rootsize;		/* number of entries, for fat12 and fat16 */
-	int32_t	volsize;		/* in sectors */
+	i32	volsize;		/* in sectors */
 	int	mediadesc;
-	int32_t	fatsize;		/* in sectors */
+	i32	fatsize;		/* in sectors */
 	int	fatclusters;
 	int	fatbits;		/* 12, 16, or 32 */
-	int32_t	fataddr;		/* sector number of first valid fat entry */
-	int32_t	rootaddr;		/* for fat16 or fat12, sector of root dir */
-	int32_t	rootstart;		/* for fat32, cluster of root dir */
-	int32_t	dataaddr;		/* initial sector of data clusters */
-	int32_t	freeptr;		/* next free cluster candidate */
-	int32_t	freeclusters;		/* count of free clusters, for fat32 */
+	i32	fataddr;		/* sector number of first valid fat entry */
+	i32	rootaddr;		/* for fat16 or fat12, sector of root dir */
+	i32	rootstart;		/* for fat32, cluster of root dir */
+	i32	dataaddr;		/* initial sector of data clusters */
+	i32	freeptr;		/* next free cluster candidate */
+	i32	freeclusters;		/* count of free clusters, for fat32 */
 	int	fatinfo;		/* fat info sector location; 0 => none */
 };
 
@@ -150,7 +150,7 @@ enum
 {
 	DOSDIRSIZE	= 32,
 	DOSEMPTY	= 0xe5,			/* first char in name if entry is unused */
-	DOSRUNE		= 13,			/* runes per dosdir in a int32_t file name */
+	DOSRUNE		= 13,			/* runes per dosdir in a i32 file name */
 	DOSNAMELEN	= 261			/* max dos file name length */
 };
 
@@ -180,19 +180,19 @@ enum
 };
 
 #define	GSHORT(p)	(((p)[0])|(p)[1]<<8)
-#define	GLONG(p)	(((int32_t)(p)[0])|(p)[1]<<8|(p)[2]<<16|(p)[3]<<24)
+#define	GLONG(p)	(((i32)(p)[0])|(p)[1]<<8|(p)[2]<<16|(p)[3]<<24)
 #define PSHORT(p,v)	((p)[0]=(v),(p)[1]=(v)>>8)
 #define PLONG(p,v)	((p)[0]=(v),(p)[1]=(v)>>8,(p)[2]=(v)>>16,(p)[3]=(v)>>24)
 
 struct Dosptr{
-	uint32_t	addr;		/* sector & entry within of file's directory entry */
-	uint32_t	offset;
-	uint32_t	paddr;		/* of parent's directory entry */
-	uint32_t	poffset;
-	uint32_t	iclust;		/* ordinal within file */
-	uint32_t	clust;
-	uint32_t	naddr;		/* next block in directory (for writing multi entry elements) */
-	uint32_t	prevaddr;
+	u32	addr;		/* sector & entry within of file's directory entry */
+	u32	offset;
+	u32	paddr;		/* of parent's directory entry */
+	u32	poffset;
+	u32	iclust;		/* ordinal within file */
+	u32	clust;
+	u32	naddr;		/* next block in directory (for writing multi entry elements) */
+	u32	prevaddr;
 	Iosect *p;
 	Dosdir *d;
 };
@@ -205,19 +205,19 @@ struct Xfs{
 	int omode;		/* of file containing external fs */
 	char	*name;		/* of file containing external f.s. */
 	Qid	qid;		/* of file containing external f.s. */
-	int32_t	ref;		/* attach count */
+	i32	ref;		/* attach count */
 	Qid	rootqid;	/* of plan9 constructed root directory */
 	unsigned char	isfat32;	/* is a fat 32 file system? */
 	short	dev;
 	short	fmt;
-	int32_t	offset;
+	i32	offset;
 	void	*ptr;
 };
 
 struct Xfile{
 	Xfile	*next;		/* in hash bucket */
-	int32_t	fid;
-	uint32_t	flags;
+	i32	fid;
+	u32	flags;
 	Qid	qid;
 	Xfs	*xf;
 	Dosptr	*ptr;

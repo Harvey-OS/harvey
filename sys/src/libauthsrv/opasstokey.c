@@ -14,7 +14,7 @@
 int
 opasstokey(char *key, char *p)
 {
-	uint8_t t[10];
+	u8 t[10];
 	int c, n;
 
 	n = strlen(p);

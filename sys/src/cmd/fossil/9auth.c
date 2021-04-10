@@ -74,7 +74,7 @@ authCheck(Fcall* t, Fid* fid, Fsys* fsys)
 {
 	Con *con;
 	Fid *afid;
-	uint8_t buf[1];
+	u8 buf[1];
 
 	/*
 	 * Can't lookup with FidWlock here as there may be

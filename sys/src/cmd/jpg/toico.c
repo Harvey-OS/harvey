@@ -25,20 +25,20 @@ struct Icon
 	Icon	*next;
 	char	*file;
 
-	uint8_t	w;		/* icon width */
-	uint8_t	h;		/* icon height */
-	uint16_t	ncolor;		/* number of colors */
-	uint16_t	nplane;		/* number of bit planes */
-	uint16_t	bits;		/* bits per pixel */
-	uint32_t	len;		/* length of data */
-	uint32_t	offset;		/* file offset to data */
-	uint8_t	map[4*256];	/* color map */
+	u8	w;		/* icon width */
+	u8	h;		/* icon height */
+	u16	ncolor;		/* number of colors */
+	u16	nplane;		/* number of bit planes */
+	u16	bits;		/* bits per pixel */
+	u32	len;		/* length of data */
+	u32	offset;		/* file offset to data */
+	u8	map[4*256];	/* color map */
 
 	Image	*img;
 
-	uint8_t	*xor;
+	u8	*xor;
 	int	xorlen;
-	uint8_t	*and;
+	u8	*and;
 	int	andlen;
 };
 
@@ -51,14 +51,14 @@ struct Header
 };
 
 void
-Bputs(Biobuf *b, uint16_t x)
+Bputs(Biobuf *b, u16 x)
 {
 	Bputc(b, x&0xff);
 	Bputc(b, x>>8);
 }
 
 void
-Bputl(Biobuf *b, uint32_t x)
+Bputl(Biobuf *b, u32 x)
 {
 	Bputs(b, x&0xffff);
 	Bputs(b, x>>16);
@@ -77,8 +77,8 @@ main(int argc, char **argv)
 	int i;
 	Biobuf *b, out;
 	Icon *icon;
-	uint32_t offset;
-	uint32_t len;
+	u32 offset;
+	u32 len;
 
 	ARGBEGIN{
 	}ARGEND;
@@ -228,15 +228,15 @@ void
 mkxorand(Icon *icon, int grey)
 {
 	int i, x, y, s, sa;
-	uint8_t xx[256];
-	uint8_t *data, *p, *e;
+	u8 xx[256];
+	u8 *data, *p, *e;
 	int ndata;
-	uint8_t *mp;
+	u8 *mp;
 	int ncolor;
-	uint32_t color;
+	u32 color;
 	int bits;
-	uint8_t andbyte, xorbyte;
-	uint8_t *ato, *xto;
+	u8 andbyte, xorbyte;
+	u8 *ato, *xto;
 	int xorrl, andrl;
 
 	ndata = icon->h * icon->w;

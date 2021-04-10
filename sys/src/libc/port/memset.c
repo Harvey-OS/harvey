@@ -57,14 +57,14 @@
 #include <u.h>
 #include <libc.h>
 
-#define wsize   sizeof(uint64_t)
+#define wsize   sizeof(u64)
 #define wmask   (wsize - 1)
 
 void *
 memset(void* dest, int c0, size_t length)
 {
         size_t t;
-        uint64_t c = 0;
+        u64 c = 0;
         unsigned char *dst;
 
         dst = dest;
@@ -92,7 +92,7 @@ memset(void* dest, int c0, size_t length)
         if ((c = (unsigned char)c0) != 0) {     /* Fill the word. */
                c = (c << 8) | c;
                c = (c << 16) | c;
-               c = (c << 32) | c;      /* uint64_t is 64 bits. */
+               c = (c << 32) | c;      /* u64 is 64 bits. */
         }
         /* Align destination by filling in bytes. */
         if ((t = (uintptr_t)dst & wmask) != 0) {
@@ -106,7 +106,7 @@ memset(void* dest, int c0, size_t length)
         /* Fill words.  Length was >= 2*words so we know t >= 1 here. */
         t = length / wsize;
         do {
-                *(uint64_t *)dst = c;
+                *(u64 *)dst = c;
                 dst += wsize;
         } while (--t != 0);
 

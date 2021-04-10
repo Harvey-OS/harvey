@@ -11,7 +11,7 @@
 #include	<libc.h>
 
 int	ulcmp(const void*, const void*);
-void	swapem(uint32_t*, int32_t);
+void	swapem(u32*, i32);
 
 enum
 {
@@ -22,10 +22,10 @@ int	wflag;
 void
 main(int argc, char *argv[])
 {
-	int32_t i, l, x, lobits, hibits, tot;
+	i32 i, l, x, lobits, hibits, tot;
 	int f, j;
 	char *file;
-	uint32_t *b, a, lo, hi;
+	u32 *b, a, lo, hi;
 
 	ARGBEGIN {
 	default:
@@ -48,15 +48,15 @@ main(int argc, char *argv[])
 		print("cant open %s: %r\n", file);
 		exits("open");
 	}
-	l = seek(f, 0, 2) / sizeof(int32_t);
+	l = seek(f, 0, 2) / sizeof(i32);
 
-	b = malloc(l*sizeof(int32_t));
+	b = malloc(l*sizeof(i32));
 	if(b == 0) {
 		print("cant malloc %s: %r\n", file);
 		exits("malloc");
 	}
 	seek(f, 0, 0);
-	if(read(f, b, l*sizeof(int32_t)) != l*sizeof(int32_t)) {
+	if(read(f, b, l*sizeof(i32)) != l*sizeof(i32)) {
 		print("short read %s: %r\n", file);
 		exits("read");
 	}
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 		swapem(b, l);
 	}
 
-	qsort(b, l, sizeof(uint32_t), ulcmp);
+	qsort(b, l, sizeof(u32), ulcmp);
 
 	tot = 0;
 	for(j=0; j<100; j++) {
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 		if(hibits > lobits)
 			swapem(b, l);
 		seek(f, 0, 0);
-		if(write(f, b, l*sizeof(int32_t)) != l*sizeof(int32_t)) {
+		if(write(f, b, l*sizeof(i32)) != l*sizeof(i32)) {
 			print("short write %s\n", file);
 			exits("write");
 		}
@@ -116,8 +116,8 @@ main(int argc, char *argv[])
 int
 ulcmp(const void *va, const void *vb)
 {
-	const uint32_t *a = (const uint32_t*)va;
-	const uint32_t *b = (const uint32_t*)vb;
+	const u32 *a = (const u32*)va;
+	const u32 *b = (const u32*)vb;
 
 	if(*a > *b)
 		return 1;
@@ -127,10 +127,10 @@ ulcmp(const void *va, const void *vb)
 }
 
 void
-swapem(uint32_t *b, int32_t l)
+swapem(u32 *b, i32 l)
 {
-	int32_t i;
-	uint32_t x, a;
+	i32 i;
+	u32 x, a;
 
 	for(i=0; i<l; i++, b++) {
 		a = *b;

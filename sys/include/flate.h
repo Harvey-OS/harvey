@@ -29,21 +29,21 @@ int	deflate(void *wr, int (*w)(void*, void*, int), void *rr, int (*r)(void*, voi
 int	inflateinit(void);
 int	inflate(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*));
 
-int	inflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize);
-int	deflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize,
+int	inflateblock(u8 *dst, int dsize, u8 *src, int ssize);
+int	deflateblock(u8 *dst, int dsize, u8 *src, int ssize,
 			int level, int debug);
 
 int	deflatezlib(void *wr, int (*w)(void*, void*, int), void *rr, int (*r)(void*, void*, int), int level, int debug);
 int	inflatezlib(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*));
 
-int	inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src,
+int	inflatezlibblock(u8 *dst, int dsize, u8 *src,
 			    int ssize);
-int	deflatezlibblock(uint8_t *dst, int dsize, uint8_t *src,
+int	deflatezlibblock(u8 *dst, int dsize, u8 *src,
 			    int ssize, int level, int debug);
 
 char	*flateerr(int err);
 
-uint32_t	*mkcrctab(uint32_t);
-uint32_t	blockcrc(uint32_t *tab, uint32_t crc, void *buf, int n);
+u32	*mkcrctab(u32);
+u32	blockcrc(u32 *tab, u32 crc, void *buf, int n);
 
-uint32_t	adler32(uint32_t adler, void *buf, int n);
+u32	adler32(u32 adler, void *buf, int n);

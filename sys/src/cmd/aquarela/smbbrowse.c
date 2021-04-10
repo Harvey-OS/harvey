@@ -12,7 +12,7 @@
 int
 smbmailslotsend(NbDgramSendParameters *p, SmbBuffer *msg, char **errmsgp)
 {
-	uint16_t setup[3];
+	u16 setup[3];
 	int rv;
 	SmbTransaction transaction;
 	SmbBuffer *b;
@@ -34,7 +34,7 @@ smbmailslotsend(NbDgramSendParameters *p, SmbBuffer *msg, char **errmsgp)
 }
 
 int
-smbbrowsesendhostannouncement(char *name, uint32_t periodms, uint32_t type,
+smbbrowsesendhostannouncement(char *name, u32 periodms, u32 type,
 			      char *comment, char **errmsgp)
 {
 	NbDgramSendParameters p;

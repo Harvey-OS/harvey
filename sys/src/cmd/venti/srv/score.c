@@ -11,13 +11,13 @@
 #include "dat.h"
 #include "fns.h"
 
-uint8_t zeroscore[VtScoreSize];
+u8 zeroscore[VtScoreSize];
 
 /* Call this function to force linking of score.o for zeroscore on OS X */
 void needzeroscore(void) { }
 
 void
-scoremem(uint8_t *score, uint8_t *buf, int n)
+scoremem(u8 *score, u8 *buf, int n)
 {
 	DigestState s;
 
@@ -38,7 +38,7 @@ hexv(int c)
 }
 
 int
-strscore(char *s, uint8_t *score)
+strscore(char *s, u8 *score)
 {
 	int i, c, d;
 

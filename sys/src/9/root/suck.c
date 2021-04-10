@@ -204,7 +204,7 @@ main(int argc, char *argv[])
 	Tpkt *tpkt;
 	u8int d[N];
 	char buf[512], *p;
-	uint64_t r, start, stop;
+	u64 r, start, stop;
 	int count, dflag, fd, i, hflag, length, mhz, n;
 
 	count = 1;

@@ -56,7 +56,7 @@ initcolor(int i)
 }
 
 void*
-erealloc(void *v, uint32_t sz)
+erealloc(void *v, u32 sz)
 {
 	v = realloc(v, sz);
 	if(v == nil){
@@ -172,7 +172,7 @@ reader(void *arg)
 	int fd;
 	double v;
 	char *p, *f[2];
-	uint8_t buf[512];
+	u8 buf[512];
 	Biobufhdr b;
 	Channel *c = arg;
 

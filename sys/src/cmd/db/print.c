@@ -29,7 +29,7 @@ static void	printfp(Map*, int);
  *	callback on stack trace
  */
 static void
-ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
+ptrace(Map *map, u64 pc, u64 sp, Symbol *sym)
 {
 	char buf[512];
 
@@ -51,8 +51,8 @@ void
 printtrace(int modif)
 {
 	int i;
-	uint64_t pc, sp, link;
-	uint32_t w;
+	u64 pc, sp, link;
+	u32 w;
 	BKPT *bk;
 	Symbol s;
 	int stack;
@@ -334,9 +334,9 @@ printpc(void)
 
 	dot = rget(cormap, mach->pc);
 	if(dot){
-		printsource((int32_t)dot);
+		printsource((i32)dot);
 		printc(' ');
-		symoff(buf, sizeof(buf), (int32_t)dot, CTEXT);
+		symoff(buf, sizeof(buf), (i32)dot, CTEXT);
 		dprint("%s/", buf);
 		if (machdata->das(cormap, dot, 'i', buf, sizeof(buf)) < 0)
 			error("%r");
@@ -348,7 +348,7 @@ void
 printlocals(Symbol *fn, ADDR fp)
 {
 	int i;
-	uint32_t w;
+	u32 w;
 	Symbol s;
 
 	s = *fn;
@@ -367,7 +367,7 @@ printparams(Symbol *fn, ADDR fp)
 {
 	int i;
 	Symbol s;
-	uint32_t w;
+	u32 w;
 	int first = 0;
 
 	fp += mach->szaddr;			/* skip saved pc */

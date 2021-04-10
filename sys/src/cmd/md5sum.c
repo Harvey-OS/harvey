@@ -18,10 +18,10 @@ static int
 digestfmt(Fmt *fmt)
 {
 	char buf[MD5dlen*2+1];
-	uint8_t *p;
+	u8 *p;
 	int i;
 
-	p = va_arg(fmt->args, uint8_t*);
+	p = va_arg(fmt->args, u8*);
 	for(i=0; i<MD5dlen; i++)
 		sprint(buf+2*i, "%.2x", p[i]);
 	return fmtstrcpy(fmt, buf);
@@ -31,7 +31,7 @@ static void
 sum(int fd, char *name)
 {
 	int n;
-	uint8_t buf[8192], digest[MD5dlen];
+	u8 buf[8192], digest[MD5dlen];
 	DigestState *s;
 
 	s = md5(nil, 0, nil, nil);

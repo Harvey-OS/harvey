@@ -21,11 +21,11 @@
  */
 
 /* Get, at most, 8 bits*/
-static uint8_t
+static u8
 get8bits(Chain *ch, int nbits)
 {
 	int b, nbyb, nbib, nlb;
-	uint8_t low, high;
+	u8 low, high;
 
 	b = ch->b + nbits - 1;
 	nbib = ch->b % 8;
@@ -47,7 +47,7 @@ static void
 getbits(void *p, Chain *ch, int nbits)
 {
 	int nby, nbi, i;
-	uint8_t *vp;
+	u8 *vp;
 
 	assert(ch->e >= ch->b);
 	nby = nbits / 8;
@@ -62,10 +62,10 @@ getbits(void *p, Chain *ch, int nbits)
 }
 
 int
-parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
+parsereportdesc(HidRepTempl *temp, u8 *repdesc, int repsz)
 {
 	int i, j, l, n, isptr, hasxy, hasbut, nk, ncoll, dsize;
-	uint8_t ks[MaxVals+1];
+	u8 ks[MaxVals+1];
 	HidInterface *ifs;
 
 	ifs = temp->ifcs;
@@ -176,8 +176,8 @@ int
 parsereport(HidRepTempl *templ, Chain *rep)
 {
 	int i, j, k, ifssz;
-	uint32_t u;
-	uint8_t *p;
+	u32 u;
+	u8 *p;
 	HidInterface *ifs;
 
 	ifssz = templ->nifcs;
@@ -190,7 +190,7 @@ parsereport(HidRepTempl *templ, Chain *rep)
 			}
 			u =0;
 			getbits(&u, rep, ifs[i].nbits);
-			p = (uint8_t *)&u;
+			p = (u8 *)&u;
 			/* le to host */
 			ifs[i].v[j] = p[3]<<24 | p[2]<<16 | p[1]<<8 | p[0]<<0;
 			k = ifs[i].kind[j];

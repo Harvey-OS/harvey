@@ -160,7 +160,7 @@ serialctl(Serialport *p, char *cmd)
 	Serial *ser;
 	int c, i, n, nf, nop, nw, par, drain, set, lines;
 	char *f[16];
-	uint8_t x;
+	u8 x;
 
 	ser = p->s;
 	drain = set = lines = 0;
@@ -428,7 +428,7 @@ dstat(Usbfs *fs, Qid qid, Dir *d)
 static int
 dopen(Usbfs *fs, Fid *fid, int _1)
 {
-	uint32_t path;
+	u32 path;
 	Serialport *p;
 
 	path = fid->qid.path & ~fs->qid;
@@ -477,12 +477,12 @@ enum {
 	Serbufsize	= 256,
 };
 
-static int32_t
-dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
+static i32
+dread(Usbfs *fs, Fid *fid, void *data, i32 count, i64 offset)
 {
 	int dfd;
-	int32_t rcount;
-	uint32_t path;
+	i32 rcount;
+	u32 path;
 	char *e, *buf, *err;	/* change */
 	Qid q;
 	Serialport *p;
@@ -570,8 +570,8 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 	return count;
 }
 
-static int32_t
-altwrite(Serialport *p, uint8_t *buf, int32_t count)
+static i32
+altwrite(Serialport *p, u8 *buf, i32 count)
 {
 	int nw, dfd;
 	char err[128];
@@ -603,10 +603,10 @@ altwrite(Serialport *p, uint8_t *buf, int32_t count)
 	return nw;
 }
 
-static int32_t
-dwrite(Usbfs *fs, Fid *fid, void *buf, int32_t count, int64_t _1)
+static i32
+dwrite(Usbfs *fs, Fid *fid, void *buf, i32 count, i64 _1)
 {
-	uint32_t path;
+	u32 path;
 	char *cmd;
 	Serialport *p;
 	Serial *ser;
@@ -618,7 +618,7 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, int32_t count, int64_t _1)
 	qlock(&ser->QLock);
 	switch(path){
 	case Qdata:
-		count = altwrite(p, (uint8_t *)buf, count);
+		count = altwrite(p, (u8 *)buf, count);
 		break;
 	case Qctl:
 		if(p->isjtag)
@@ -871,8 +871,8 @@ serialmain(Dev *dev, int argc, char* argv[])
 			werrstr("serial: no endpoints found for ifc %d", i);
 			return -1;
 		}
-		p->w4data  = chancreate(sizeof(uint32_t), 0);
-		p->gotdata = chancreate(sizeof(uint32_t), 0);
+		p->w4data  = chancreate(sizeof(u32), 0);
+		p->gotdata = chancreate(sizeof(u32), 0);
 	}
 
 	qlock(&ser->QLock);

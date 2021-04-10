@@ -38,7 +38,7 @@ readthread(void *v)
 {
 	char err[ERRMAX];
 	VtReq *r;
-	uint8_t *buf;
+	u8 *buf;
 	int n;
 
 	r = v;

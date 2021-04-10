@@ -14,12 +14,12 @@
 #define PUSHED 4
 
 struct SmbBuffer {
-	uint8_t *buf;
-	uint32_t realmaxlen;
-	uint32_t maxlen;
-	uint32_t rn;
-	uint32_t wn;
-	uint32_t savewn;
+	u8 *buf;
+	u32 realmaxlen;
+	u32 maxlen;
+	u32 rn;
+	u32 wn;
+	u32 savewn;
 	int flags;
 };
 
@@ -34,7 +34,7 @@ smbbufferreset(SmbBuffer *s)
 }
 
 void
-smbbuffersetbuf(SmbBuffer *s, void *p, uint32_t maxlen)
+smbbuffersetbuf(SmbBuffer *s, void *p, u32 maxlen)
 {
 	s->realmaxlen = s->maxlen = maxlen;
 	if (s->buf) {
@@ -53,13 +53,13 @@ smbbuffersetbuf(SmbBuffer *s, void *p, uint32_t maxlen)
 }
 
 SmbBuffer *
-smbbufferinit(void *base, void *bdata, uint32_t blen)
+smbbufferinit(void *base, void *bdata, u32 blen)
 {
 	SmbBuffer *b;
 	b = smbemalloc(sizeof(*b));
 	b->buf = base;
 	b->flags = STRUCT;
-	b->rn = (uint8_t *)bdata - (uint8_t *)base;
+	b->rn = (u8 *)bdata - (u8 *)base;
 	b->wn = b->rn + blen;
 	b->realmaxlen = b->maxlen = b->wn;
 	return b;
@@ -68,7 +68,7 @@ smbbufferinit(void *base, void *bdata, uint32_t blen)
 int
 smbbufferalignl2(SmbBuffer *s, int al2)
 {
-	uint32_t mask, newn;
+	u32 mask, newn;
 	mask = (1 << al2) - 1;
 	newn = (s->wn + mask) & ~mask;
 	if (newn != s->wn) {
@@ -80,7 +80,7 @@ smbbufferalignl2(SmbBuffer *s, int al2)
 }
 
 int
-smbbufferputb(SmbBuffer *s, uint8_t b)
+smbbufferputb(SmbBuffer *s, u8 b)
 {
 	if (s->wn >= s->maxlen)
 		return 0;
@@ -88,14 +88,14 @@ smbbufferputb(SmbBuffer *s, uint8_t b)
 	return 1;
 }
 
-uint32_t
+u32
 smbbufferspace(SmbBuffer *sess)
 {
 	return sess->maxlen - sess->wn;
 }
 
 int
-smbbufferoffsetputs(SmbBuffer *sess, uint32_t offset, uint16_t s)
+smbbufferoffsetputs(SmbBuffer *sess, u32 offset, u16 s)
 {
 	if (offset + 2 > sess->wn)
 		return 0;
@@ -104,37 +104,37 @@ smbbufferoffsetputs(SmbBuffer *sess, uint32_t offset, uint16_t s)
 }
 
 int
-smbbufferputs(SmbBuffer *sess, uint16_t s)
+smbbufferputs(SmbBuffer *sess, u16 s)
 {
-	if (sess->wn + sizeof(uint16_t) > sess->maxlen)
+	if (sess->wn + sizeof(u16) > sess->maxlen)
 		return 0;
 	smbhnputs(sess->buf + sess->wn, s);
-	sess->wn += sizeof(uint16_t);
+	sess->wn += sizeof(u16);
 	return 1;
 }
 
 int
-smbbufferputl(SmbBuffer *s, uint32_t l)
+smbbufferputl(SmbBuffer *s, u32 l)
 {
-	if (s->wn + sizeof(uint32_t) > s->maxlen)
+	if (s->wn + sizeof(u32) > s->maxlen)
 		return 0;
 	smbhnputl(s->buf + s->wn, l);
-	s->wn += sizeof(uint32_t);
+	s->wn += sizeof(u32);
 	return 1;
 }
 
 int
-smbbufferputv(SmbBuffer *s, int64_t v)
+smbbufferputv(SmbBuffer *s, i64 v)
 {
-	if (s->wn + sizeof(int64_t) > s->maxlen)
+	if (s->wn + sizeof(i64) > s->maxlen)
 		return 0;
 	smbhnputv(s->buf + s->wn, v);
-	s->wn += sizeof(int64_t);
+	s->wn += sizeof(i64);
 	return 1;
 }
 
 int
-smbbufferputbytes(SmbBuffer *s, void *data, uint32_t datalen)
+smbbufferputbytes(SmbBuffer *s, void *data, u32 datalen)
 {
 	if (s->wn + datalen > s->maxlen)
 		return 0;
@@ -145,7 +145,7 @@ smbbufferputbytes(SmbBuffer *s, void *data, uint32_t datalen)
 }
 
 int
-smbbufferputstring(SmbBuffer *b, SmbPeerInfo *p, uint32_t flags,
+smbbufferputstring(SmbBuffer *b, SmbPeerInfo *p, u32 flags,
 		   char *string)
 {
 	int n = smbstringput(p, flags, b->buf, b->wn, b->maxlen, string);
@@ -165,19 +165,19 @@ smbbufferputstrn(SmbBuffer *s, char *string, int size, int upcase)
 	return 1;
 }
 
-uint32_t
+u32
 smbbufferwriteoffset(SmbBuffer *s)
 {
 	return s->wn;
 }
 
-uint32_t
+u32
 smbbufferwritemaxoffset(SmbBuffer *s)
 {
 	return s->maxlen;
 }
 
-uint32_t
+u32
 smbbufferreadoffset(SmbBuffer *s)
 {
 	return s->rn;
@@ -195,14 +195,14 @@ smbbufferwritepointer(SmbBuffer *s)
 	return s->buf + s->wn;
 }
 
-uint32_t
+u32
 smbbufferwritespace(SmbBuffer *b)
 {
 	return b->maxlen - b->wn;
 }
 
 SmbBuffer *
-smbbuffernew(uint32_t maxlen)
+smbbuffernew(u32 maxlen)
 {
 	SmbBuffer *b;
 	b = smbemalloc(sizeof(SmbBuffer));
@@ -230,14 +230,14 @@ smbbufferfree(SmbBuffer **bp)
 	}
 }
 
-uint8_t *
+u8 *
 smbbufferbase(SmbBuffer *b)
 {
 	return b->buf;
 }
 
 int
-smbbuffergetbytes(SmbBuffer *b, void *buf, uint32_t len)
+smbbuffergetbytes(SmbBuffer *b, void *buf, u32 len)
 {
 	if (b->rn + len > b->wn)
 		return 0;
@@ -248,13 +248,13 @@ smbbuffergetbytes(SmbBuffer *b, void *buf, uint32_t len)
 }
 
 void
-smbbuffersetreadlen(SmbBuffer *b, uint32_t len)
+smbbuffersetreadlen(SmbBuffer *b, u32 len)
 {
 	b->wn = b->rn + len;
 }
 
 int
-smbbuffertrimreadlen(SmbBuffer *b, uint32_t len)
+smbbuffertrimreadlen(SmbBuffer *b, u32 len)
 {
 	if (b->rn + len > b->wn)
 		return 0;
@@ -264,7 +264,7 @@ smbbuffertrimreadlen(SmbBuffer *b, uint32_t len)
 }
 
 int
-smbbuffergets(SmbBuffer *b, uint16_t *sp)
+smbbuffergets(SmbBuffer *b, u16 *sp)
 {
 	if (b->rn + 2 > b->wn)
 		return 0;
@@ -274,9 +274,9 @@ smbbuffergets(SmbBuffer *b, uint16_t *sp)
 }
 
 int
-smbbuffergetstrn(SmbBuffer *b, uint16_t size, char **sp)
+smbbuffergetstrn(SmbBuffer *b, u16 size, char **sp)
 {
-	uint8_t *np;
+	u8 *np;
 	if (size > b->wn - b->rn)
 		return 0;
 	np = memchr(b->buf + b->rn, 0, size);
@@ -288,11 +288,11 @@ smbbuffergetstrn(SmbBuffer *b, uint16_t size, char **sp)
 }
 
 int
-smbbuffergetstr(SmbBuffer *b, uint32_t flags, char **sp)
+smbbuffergetstr(SmbBuffer *b, u32 flags, char **sp)
 {
 	int c;
 	char *p;
-	uint8_t *np;
+	u8 *np;
 
 	np = memchr(b->buf + b->rn, 0, b->wn - b->rn);
 	if (np == nil)
@@ -320,7 +320,7 @@ smbbuffergetstr(SmbBuffer *b, uint32_t flags, char **sp)
 int
 smbbuffergetstrinline(SmbBuffer *b, char **sp)
 {
-	uint8_t *np;
+	u8 *np;
 	np = memchr(b->buf + b->rn, 0, b->wn - b->rn);
 	if (np == nil)
 		return 0;
@@ -330,14 +330,14 @@ smbbuffergetstrinline(SmbBuffer *b, char **sp)
 }
 
 int
-smbbuffergetucs2(SmbBuffer *b, uint32_t flags, char **sp)
+smbbuffergetucs2(SmbBuffer *b, u32 flags, char **sp)
 {
-	uint8_t *bdata = b->buf + b->rn;
-	uint8_t *edata = b->buf + b->wn;
+	u8 *bdata = b->buf + b->rn;
+	u8 *edata = b->buf + b->wn;
 	Rune r;
 	int l;
 	char *p, *q;
-	uint8_t *savebdata;
+	u8 *savebdata;
 	int first;
 
 	l = 0;
@@ -381,7 +381,7 @@ smbbuffergetucs2(SmbBuffer *b, uint32_t flags, char **sp)
 }
 
 int
-smbbuffergetstring(SmbBuffer *b, SmbHeader *h, uint32_t flags, char **sp)
+smbbuffergetstring(SmbBuffer *b, SmbHeader *h, u32 flags, char **sp)
 {
 	if (flags & SMB_STRING_UNICODE)
 		return smbbuffergetucs2(b, flags, sp);
@@ -394,13 +394,13 @@ smbbuffergetstring(SmbBuffer *b, SmbHeader *h, uint32_t flags, char **sp)
 }
 
 void *
-smbbufferpointer(SmbBuffer *b, uint32_t offset)
+smbbufferpointer(SmbBuffer *b, u32 offset)
 {
 	return b->buf + offset;
 }
 
 int
-smbbuffergetb(SmbBuffer *b, uint8_t *bp)
+smbbuffergetb(SmbBuffer *b, u8 *bp)
 {
 	if (b->rn < b->wn) {
 		*bp = b->buf[b->rn++];
@@ -410,7 +410,7 @@ smbbuffergetb(SmbBuffer *b, uint8_t *bp)
 }
 
 int
-smbbuffergetl(SmbBuffer *b, uint32_t *lp)
+smbbuffergetl(SmbBuffer *b, u32 *lp)
 {
 	if (b->rn + 4 <= b->wn) {
 		*lp = smbnhgetl(b->buf + b->rn);
@@ -421,7 +421,7 @@ smbbuffergetl(SmbBuffer *b, uint32_t *lp)
 }
 
 int
-smbbuffergetv(SmbBuffer *b, int64_t *vp)
+smbbuffergetv(SmbBuffer *b, i64 *vp)
 {
 	if (b->rn + 8 <= b->wn) {
 		*vp = smbnhgetv(b->buf + b->rn);
@@ -431,21 +431,21 @@ smbbuffergetv(SmbBuffer *b, int64_t *vp)
 	return 0;
 }
 
-uint32_t
+u32
 smbbufferreadspace(SmbBuffer *b)
 {
 	return b->wn - b->rn;
 }
 
 void
-smbbufferwritelimit(SmbBuffer *b, uint32_t limit)
+smbbufferwritelimit(SmbBuffer *b, u32 limit)
 {
 	if (b->rn + limit < b->maxlen)
 		b->maxlen = b->rn + limit;
 }
 
 int
-smbbufferreadskipto(SmbBuffer *b, uint32_t offset)
+smbbufferreadskipto(SmbBuffer *b, u32 offset)
 {
 	if (offset < b->rn || offset >= b->wn)
 		return 0;
@@ -454,7 +454,7 @@ smbbufferreadskipto(SmbBuffer *b, uint32_t offset)
 }
 
 int
-smbbufferpushreadlimit(SmbBuffer *b, uint32_t limit)
+smbbufferpushreadlimit(SmbBuffer *b, u32 limit)
 {
 	if (b->flags & PUSHED)
 		return 0;
@@ -477,7 +477,7 @@ smbbufferpopreadlimit(SmbBuffer *b)
 }
 
 int
-smbbufferwritebackup(SmbBuffer *b, uint32_t offset)
+smbbufferwritebackup(SmbBuffer *b, u32 offset)
 {
 	if (offset >= b->rn && offset <= b->wn) {
 		b->wn = offset;
@@ -487,7 +487,7 @@ smbbufferwritebackup(SmbBuffer *b, uint32_t offset)
 }
 
 int
-smbbufferreadbackup(SmbBuffer *b, uint32_t offset)
+smbbufferreadbackup(SmbBuffer *b, u32 offset)
 {
 	if (offset <= b->rn) {
 		b->rn = offset;
@@ -497,9 +497,9 @@ smbbufferreadbackup(SmbBuffer *b, uint32_t offset)
 }
 
 int
-smbbufferfixuprelatives(SmbBuffer *b, uint32_t fixupoffset)
+smbbufferfixuprelatives(SmbBuffer *b, u32 fixupoffset)
 {
-	uint32_t fixval;
+	u32 fixval;
 	if (fixupoffset < b->rn || fixupoffset > b->wn - 2)
 		return 0;
 	fixval = b->wn - fixupoffset - 2;
@@ -510,9 +510,9 @@ smbbufferfixuprelatives(SmbBuffer *b, uint32_t fixupoffset)
 }
 
 int
-smbbufferfixuprelativel(SmbBuffer *b, uint32_t fixupoffset)
+smbbufferfixuprelativel(SmbBuffer *b, u32 fixupoffset)
 {
-	uint32_t fixval;
+	u32 fixval;
 	if (fixupoffset < b->rn || fixupoffset > b->wn - 4)
 		return 0;
 	fixval = b->wn - fixupoffset - 4;
@@ -521,7 +521,7 @@ smbbufferfixuprelativel(SmbBuffer *b, uint32_t fixupoffset)
 }
 
 int
-smbbufferfixupabsolutes(SmbBuffer *b, uint32_t fixupoffset)
+smbbufferfixupabsolutes(SmbBuffer *b, u32 fixupoffset)
 {
 	if (fixupoffset < b->rn || fixupoffset > b->wn - 2)
 		return 0;
@@ -532,7 +532,7 @@ smbbufferfixupabsolutes(SmbBuffer *b, uint32_t fixupoffset)
 }
 
 int
-smbbufferfixupl(SmbBuffer *b, uint32_t fixupoffset, uint32_t fixupval)
+smbbufferfixupl(SmbBuffer *b, u32 fixupoffset, u32 fixupval)
 {
 	if (fixupoffset < b->rn || fixupoffset > b->wn - 4)
 		return 0;
@@ -541,7 +541,7 @@ smbbufferfixupl(SmbBuffer *b, uint32_t fixupoffset, uint32_t fixupval)
 }
 
 int
-smbbufferfixupabsolutel(SmbBuffer *b, uint32_t fixupoffset)
+smbbufferfixupabsolutel(SmbBuffer *b, u32 fixupoffset)
 {
 	if (fixupoffset < b->rn || fixupoffset > b->wn - 2)
 		return 0;
@@ -550,7 +550,7 @@ smbbufferfixupabsolutel(SmbBuffer *b, uint32_t fixupoffset)
 }
 
 int
-smbbufferfixuprelativeinclusivel(SmbBuffer *b, uint32_t fixupoffset)
+smbbufferfixuprelativeinclusivel(SmbBuffer *b, u32 fixupoffset)
 {
 	if (fixupoffset < b->rn || fixupoffset > b->wn - 4)
 		return 0;
@@ -559,7 +559,7 @@ smbbufferfixuprelativeinclusivel(SmbBuffer *b, uint32_t fixupoffset)
 }
 
 int
-smbbufferfill(SmbBuffer *b, uint8_t val, uint32_t len)
+smbbufferfill(SmbBuffer *b, u8 val, u32 len)
 {
 	if (b->maxlen - b->wn < len)
 		return 0;
@@ -569,7 +569,7 @@ smbbufferfill(SmbBuffer *b, uint8_t val, uint32_t len)
 }
 
 int
-smbbufferoffsetgetb(SmbBuffer *b, uint32_t offset, uint8_t *bp)
+smbbufferoffsetgetb(SmbBuffer *b, u32 offset, u8 *bp)
 {
 	if (offset >= b->rn && offset + 1 <= b->wn) {
 		*bp = b->buf[b->rn + offset];
@@ -579,7 +579,7 @@ smbbufferoffsetgetb(SmbBuffer *b, uint32_t offset, uint8_t *bp)
 }
 
 int
-smbbuffercopy(SmbBuffer *to, SmbBuffer *from, uint32_t amount)
+smbbuffercopy(SmbBuffer *to, SmbBuffer *from, u32 amount)
 {
 	if (smbbufferreadspace(from) < amount)
 		return 0;
@@ -591,11 +591,11 @@ smbbuffercopy(SmbBuffer *to, SmbBuffer *from, uint32_t amount)
 }
 
 int
-smbbufferoffsetcopystr(SmbBuffer *b, uint32_t offset, char *buf,
+smbbufferoffsetcopystr(SmbBuffer *b, u32 offset, char *buf,
 		       int buflen,
 		       int *lenp)
 {
-	uint8_t *np;
+	u8 *np;
 	if (offset < b->rn || offset >= b->wn)
 		return 0;
 	np = memchr(b->buf + offset, 0, b->wn - offset);

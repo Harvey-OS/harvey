@@ -36,21 +36,21 @@ usbfsexits(int y)
 }
 
 static int
-qiddev(uint64_t path)
+qiddev(u64 path)
 {
 	return (int)(path>>32) & 0xFF;
 }
 
 static int
-qidfile(uint64_t path)
+qidfile(u64 path)
 {
 	return (int)(path & 0xFFFFFFFFULL);
 }
 
-static uint64_t
+static u64
 mkqid(int qd, int qf)
 {
-	return ((uint64_t)qd << 32) | (uint64_t)qf;
+	return ((u64)qd << 32) | (u64)qf;
 }
 
 void
@@ -296,15 +296,15 @@ dirgen(Usbfs*_1, Qid _2, int n, Dir *d, void *_3)
 	return -1;
 }
 
-static int32_t
-fsread(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
+static i32
+fsread(Usbfs*_1, Fid *fid, void *data, i32 cnt, i64 off)
 {
 	int qd;
 	int rc;
 	Dev *dev;
 	Qid q;
-	int32_t (*xfsread)(Usbfs *fs, Fid *f, void *data, int32_t count,
-			   int64_t );
+	i32 (*xfsread)(Usbfs *fs, Fid *f, void *data, i32 count,
+			   i64 );
 
 	q = fid->qid;
 	qd = qiddev(q.path);
@@ -327,14 +327,14 @@ fsread(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
 	return rc;
 }
 
-static int32_t
-fswrite(Usbfs*_1, Fid *fid, void *data, int32_t cnt, int64_t off)
+static i32
+fswrite(Usbfs*_1, Fid *fid, void *data, i32 cnt, i64 off)
 {
 	int qd;
 	int rc;
 	Dev *dev;
-	int32_t (*xfswrite)(Usbfs *fs, Fid *f, void *data, int32_t count,
-			    int64_t );
+	i32 (*xfswrite)(Usbfs *fs, Fid *f, void *data, i32 count,
+			    i64 );
 
 	qd = qiddev(fid->qid.path);
 	if(qd == Dtop)

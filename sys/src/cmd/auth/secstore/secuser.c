@@ -19,7 +19,7 @@ int verbose;
 static void userinput(char *, int);
 
 static void
-ensure_exists(char *f, uint32_t perm)
+ensure_exists(char *f, u32 perm)
 {
 	int fd;
 
@@ -40,7 +40,7 @@ main(int argc, char **argv)
 	int isnew;
 	char *id, buf[Maxmsg], home[Maxmsg], prompt[100], *hexHi;
 	char *pass, *passck;
-	uint32_t expsecs;
+	u32 expsecs;
 	mpint *H = mpnew(0), *Hi = mpnew(0);
 	PW *pw;
 	Tm *tm;

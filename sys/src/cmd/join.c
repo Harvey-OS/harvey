@@ -53,7 +53,7 @@ void
 main(int argc, char **argv)
 {
 	int i;
-	int64_t off1, off2;
+	i64 off1, off2;
 
 	bin = &binbuf;
 	bout = &boutbuf;
@@ -198,7 +198,7 @@ readboth(int n[])
 }
 
 void
-seekbotreadboth(int seekf, int64_t bot, int n[])
+seekbotreadboth(int seekf, i64 bot, int n[])
 {
 	Bseek(f[seekf], bot, 0);
 	readboth(n);
@@ -209,7 +209,7 @@ join(int seekf)
 {
 	int cmp, less;
 	int n[NIN];
-	int64_t top, bot;
+	i64 top, bot;
 
 	less = seekf == F2;
 	top = 0;

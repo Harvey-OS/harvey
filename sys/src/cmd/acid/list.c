@@ -182,7 +182,7 @@ delete(List *l, int n, Node *res)
 }
 
 List*
-listvar(char *s, int64_t v)
+listvar(char *s, i64 v)
 {
 	List *l, *tl;
 
@@ -201,10 +201,10 @@ listvar(char *s, int64_t v)
 }
 
 static List*
-listlocals(Map *map, Symbol *fn, uint64_t fp)
+listlocals(Map *map, Symbol *fn, u64 fp)
 {
 	int i;
-	uint64_t val;
+	u64 val;
 	Symbol s;
 	List **tail, *l2;
 
@@ -227,11 +227,11 @@ listlocals(Map *map, Symbol *fn, uint64_t fp)
 }
 
 static List*
-listparams(Map *map, Symbol *fn, uint64_t fp)
+listparams(Map *map, Symbol *fn, u64 fp)
 {
 	int i;
 	Symbol s;
-	uint64_t v;
+	u64 v;
 	List **tail, *l2;
 
 	l2 = 0;
@@ -251,7 +251,7 @@ listparams(Map *map, Symbol *fn, uint64_t fp)
 }
 
 void
-trlist(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
+trlist(Map *map, u64 pc, u64 sp, Symbol *sym)
 {
 	List *q, *l;
 

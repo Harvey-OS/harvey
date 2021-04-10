@@ -29,9 +29,9 @@ enum {
 typedef struct Req Req;
 struct Req
 {
-	uint16_t	seq;	/* sequence number */
-	int64_t	time;	/* time sent */
-	int64_t	rtt;
+	u16	seq;	/* sequence number */
+	i64	time;	/* time sent */
+	i64	rtt;
 	int	ttl;
 	int	replied;
 	Req	 *next;
@@ -45,7 +45,7 @@ typedef struct {
 	unsigned iphdrsz;
 
 	void	(*prreply)(Req *r, void *v);
-	void	(*prlost)(uint16_t seq, void *v);
+	void	(*prlost)(u16 seq, void *v);
 } Proto;
 
 
@@ -64,8 +64,8 @@ int lostonly;
 int quiet;
 int rcvdmsgs;
 int rint;
-uint16_t firstseq;
-int64_t sum;
+u16 firstseq;
+i64 sum;
 int waittime = 5000;
 
 static char *network, *target;
@@ -95,7 +95,7 @@ catch(void *a, char *msg)
 }
 
 static void
-prlost4(uint16_t seq, void *v)
+prlost4(u16 seq, void *v)
 {
 	Ip4hdr *ip4 = v;
 
@@ -103,7 +103,7 @@ prlost4(uint16_t seq, void *v)
 }
 
 static void
-prlost6(uint16_t seq, void *v)
+prlost6(u16 seq, void *v)
 {
 	Ip6hdr *ip6 = v;
 
@@ -155,7 +155,7 @@ geticmp(void *v)
 }
 
 void
-clean(uint16_t seq, int64_t now, void *v)
+clean(u16 seq, i64 now, void *v)
 {
 	int ttl;
 	Req **l, *r;
@@ -194,13 +194,13 @@ clean(uint16_t seq, int64_t now, void *v)
 	unlock(&listlock);
 }
 
-static uint8_t loopbacknet[IPaddrlen] = {
+static u8 loopbacknet[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	127, 0, 0, 0
 };
-static uint8_t loopbackmask[IPaddrlen] = {
+static u8 loopbackmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -213,12 +213,12 @@ static uint8_t loopbackmask[IPaddrlen] = {
  * deprecate link-local and multicast addresses.
  */
 static int
-myipvnaddr(uint8_t *ip, Proto *proto, char *net)
+myipvnaddr(u8 *ip, Proto *proto, char *net)
 {
 	int ipisv4, wantv4;
 	Ipifc *nifc;
 	Iplifc *lifc;
-	uint8_t mynet[IPaddrlen], linklocal[IPaddrlen];
+	u8 mynet[IPaddrlen], linklocal[IPaddrlen];
 	static Ipifc *ifc;
 
 	ipmove(linklocal, IPnoaddr);
@@ -248,9 +248,9 @@ void
 sender(int fd, int msglen, int interval, int n)
 {
 	int i, extra;
-	uint16_t seq;
+	u16 seq;
 	char buf[64*1024+512];
-	uint8_t me[IPaddrlen], mev4[IPv4addrlen];
+	u8 me[IPaddrlen], mev4[IPv4addrlen];
 	Icmphdr *icmp;
 	Req *r;
 
@@ -312,9 +312,9 @@ void
 rcvr(int fd, int msglen, int interval, int nmsg)
 {
 	int i, n, munged;
-	uint16_t x;
-	int64_t now;
-	uint8_t buf[64*1024+512];
+	u16 x;
+	i64 now;
+	u8 buf[64*1024+512];
 	Icmphdr *icmp;
 	Req *r;
 
@@ -335,7 +335,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 		icmp = geticmp(buf);
 		munged = 0;
 		for(i = proto->iphdrsz + ICMP_HDRSIZE; i < msglen; i++)
-			if(buf[i] != (uint8_t)i)
+			if(buf[i] != (u8)i)
 				munged++;
 		if(munged)
 			print("corrupted reply\n");

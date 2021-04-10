@@ -48,7 +48,7 @@ getmemdefont(void)
 	p += 5*12;
 
 	md->base = nil;		/* so freememimage doesn't free p */
-	md->bdata = (uint8_t*)p;	/* ick */
+	md->bdata = (u8*)p;	/* ick */
 	md->ref = 1;
 	md->allocd = 1;		/* so freememimage does free md */
 
@@ -58,7 +58,7 @@ getmemdefont(void)
 		return nil;
 	}
 
-	hdr = p+Dy(r)*i->width*sizeof(uint32_t);
+	hdr = p+Dy(r)*i->width*sizeof(u32);
 	n = atoi(hdr);
 	p = hdr+3*12;
 	fc = malloc(sizeof(Fontchar)*(n+1));
@@ -66,7 +66,7 @@ getmemdefont(void)
 		freememimage(i);
 		return 0;
 	}
-	_unpackinfo(fc, (uint8_t*)p, n);
+	_unpackinfo(fc, (u8*)p, n);
 	f = allocmemsubfont("*default*", n, atoi(hdr+12), atoi(hdr+24), fc, i);
 	if(f == 0){
 		freememimage(i);

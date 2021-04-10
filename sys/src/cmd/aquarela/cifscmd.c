@@ -91,13 +91,13 @@ Bprint(&bout, "parse returns %d\n", argc);
 
 typedef struct {
 	char *name;
-	int32_t (*f)(SmbClient *, int, char *[]);
+	i32 (*f)(SmbClient *, int, char *[]);
 	int connected;
 	char *help;
 } Cmd;
 static Cmd cmd[];
 
-static int32_t
+static i32
 cmdhelp(SmbClient *s, int argc, char *argv[])
 {
 	Cmd *cp;
@@ -143,17 +143,17 @@ slut(Slut *s, char *pat)
 	return -1;
 }
 
-static int32_t
+static i32
 cmdopen(SmbClient *c, int argc, char *argv[])
 {
 	char *errmsg;
 	int sm, om;
 	int rv;
-	uint8_t errclass;
-	uint16_t error;
-	uint16_t fid, attr;
-	uint32_t mtime, size;
-	uint16_t accessallowed;
+	u8 errclass;
+	u16 error;
+	u16 fid, attr;
+	u32 mtime, size;
+	u16 accessallowed;
 
 	if (argc != 3) {
 		Bprint(&bout, "wrong number of arguments\n");
@@ -193,7 +193,7 @@ threadmain(int argc, char *argv[])
 	int ac;
 	char *ap, *av[256];
 	Cmd *cp;
-	int32_t status;
+	i32 status;
 
 	if (argc > 3) {
 		print("usage: cifscmd [to [share]]\n");

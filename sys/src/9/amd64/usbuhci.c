@@ -63,7 +63,7 @@ enum {
 	Tdndata = 1 * Align,
 
 	/* i/o space
-	 * Some ports are short, some are int32_t, some are byte.
+	 * Some ports are short, some are i32, some are byte.
 	 * We use ins[bsl] and not vmap.
 	 */
 	Cmd = 0,
@@ -1874,7 +1874,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, u32 load)
 	/*
 	 * wakeup anyone waiting for I/O and
 	 * wait to be sure no I/O is in progress in the controller.
-	 * and then wait to be sure episo-io is no int32_ter running.
+	 * and then wait to be sure episo-io is no i32er running.
 	 */
 	wakeup(&iso->Rendez);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);

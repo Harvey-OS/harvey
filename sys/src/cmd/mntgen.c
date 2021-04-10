@@ -22,14 +22,14 @@ usage(void)
 	exits("usage");
 }
 
-uint32_t time0;
+u32 time0;
 
 typedef struct Tab Tab;
 struct Tab
 {
 	char *name;
-	int64_t qid;
-	uint32_t time;
+	i64 qid;
+	u32 time;
 	int ref;
 };
 
@@ -38,7 +38,7 @@ int ntab;
 int mtab;
 
 static Tab*
-findtab(int64_t path)
+findtab(i64 path)
 {
 	int i;
 
@@ -48,11 +48,11 @@ findtab(int64_t path)
 	return nil;
 }
 
-static int64_t
+static i64
 hash(char *name)
 {
-	int64_t digest[MD5dlen / sizeof(int64_t) + 1];
-	md5((uint8_t *)name, strlen(name), (uint8_t *)digest, nil);
+	i64 digest[MD5dlen / sizeof(i64) + 1];
+	md5((u8 *)name, strlen(name), (u8 *)digest, nil);
 	return digest[0] & ((1ULL<<48)-1);
 }
 
@@ -101,7 +101,7 @@ static void
 fsstat(Req *r)
 {
 	Tab *t;
-	int64_t qid;
+	i64 qid;
 
 	qid = r->fid->qid.path;
 	if(qid == 0)
@@ -121,7 +121,7 @@ fswalk1(Fid *fid, char *name, void *v)
 {
 	int i;
 	Tab *t;
-	int64_t h;
+	i64 h;
 
 	if(fid->qid.path != 0){
 		/* nothing in child directory */
@@ -184,7 +184,7 @@ static void
 fsclunk(Fid *fid)
 {
 	Tab *t;
-	int64_t qid;
+	i64 qid;
 
 	qid = fid->qid.path;
 	if(qid == 0)

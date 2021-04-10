@@ -12,10 +12,10 @@
 #include <draw.h>
 
 int
-cloadimage(Image *i, Rectangle r, uint8_t *data, int ndata)
+cloadimage(Image *i, Rectangle r, u8 *data, int ndata)
 {
 	int m, nb, miny, maxy, ncblock;
-	uint8_t *a;
+	u8 *a;
 
 	if(!rectinrect(r, i->r)){
 		werrstr("cloadimage: bad rectangle");

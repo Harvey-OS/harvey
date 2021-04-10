@@ -13,10 +13,10 @@
 
 static int	verbose;
 static int	fd;
-static uint8_t	*data;
+static u8	*data;
 static int	blocksize;
 static int	sleepms;
-static int64_t offset0;
+static i64 offset0;
 
 void
 usage(void)
@@ -26,7 +26,7 @@ usage(void)
 }
 
 static int
-preadblock(uint8_t *buf, int n, int64_t off)
+preadblock(u8 *buf, int n, i64 off)
 {
 	int nr, m;
 
@@ -43,7 +43,7 @@ preadblock(uint8_t *buf, int n, int64_t off)
 }
 
 static int
-readblock(uint8_t *buf, int n)
+readblock(u8 *buf, int n)
 {
 	int nr, m;
 
@@ -60,14 +60,14 @@ readblock(uint8_t *buf, int n)
 }
 
 static void
-verifyarena(char *name, int64_t len)
+verifyarena(char *name, i64 len)
 {
 	Arena arena;
 	ArenaHead head;
 	DigestState s;
-	uint64_t n, e;
-	uint32_t bs;
-	uint8_t score[VtScoreSize];
+	u64 n, e;
+	u32 bs;
+	u8 score[VtScoreSize];
 
 	fprint(2, "%T verify %s\n", name);
 
@@ -183,7 +183,7 @@ threadmain(int argc, char *argv[])
 {
 	int i, nline;
 	char *p, *q, *table, *f[10], line[256];
-	int64_t start, stop;
+	i64 start, stop;
 	ArenaPart ap;
 	Part *part;
 

@@ -8,18 +8,18 @@
  */
 
 # include "ldefs.h"
-uint8_t *
-getl(uint8_t *p)	/* return next line of input, throw away trailing '\n' */
+u8 *
+getl(u8 *p)	/* return next line of input, throw away trailing '\n' */
 	/* returns 0 if eof is had immediately */
 {
 	int c;
-	uint8_t *s, *t;
+	u8 *s, *t;
 
 	t = s = p;
 	while(((c = gch()) != 0) && c != '\n')
 		*t++ = c;
 	*t = 0;
-	if(c == 0 && s == t) return((uint8_t *)0);
+	if(c == 0 && s == t) return((u8 *)0);
 	prev = '\n';
 	pres = '\n';
 	return(s);
@@ -165,7 +165,7 @@ usescape(int c)
 }
 
 int
-lookup(uint8_t *s, uint8_t **t)
+lookup(u8 *s, u8 **t)
 {
 	int i;
 	i = 0;
@@ -433,7 +433,7 @@ munputc(int p)
 }
 
 void
-munputs(uint8_t *p)
+munputs(u8 *p)
 {
 	int i,j;
 	*pushptr++ = peek;
@@ -512,7 +512,7 @@ allprint(int c)
 }
 
 void
-strpt(uint8_t *s)
+strpt(u8 *s)
 {
 	charc = 0;
 	while(*s){
@@ -555,7 +555,7 @@ void
 treedump(void)
 {
 	int t;
-	uint8_t *p;
+	u8 *p;
 	print("treedump %d nodes:\n",tptr);
 	for(t=0;t<tptr;t++){
 		print("%4d ",t);
@@ -613,7 +613,7 @@ treedump(void)
 				print("new %d %d",left[t],right[t]);
 				break;
 			case RSCON:
-				p = (uint8_t *)right[t];
+				p = (u8 *)right[t];
 				print("start %s",sname[*p++-1]);
 				while(*p)
 					print(", %s",sname[*p++-1]);

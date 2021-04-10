@@ -58,10 +58,10 @@ fmerge(Dptr *p, char *to, char *from, int start, int len)
  *	N.B. ordering is everything
  */
 int
-fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
+fbwrite(Icache *ic, Ibuf *b, char *a, u32 off, int len)
 {
 	int wrinode;
-	uint32_t fbno;
+	u32 fbno;
 	Bbuf *dbb;	/* data block */
 	Bbuf *ibb;	/* indirect block */
 	Dptr *p;
@@ -166,11 +166,11 @@ dowrite:
  *
  *  return number of bytes written
  */
-int32_t
-fwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
+i32
+fwrite(Icache *ic, Ibuf *b, char *a, u32 off, i32 n)
 {
 	int len;
-	int32_t sofar;
+	i32 sofar;
 
 	for(sofar = 0; sofar < n; sofar += len){
 		len = ic->disk.bcache.bsize - ((off+sofar)%ic->disk.bcache.bsize);
@@ -186,10 +186,10 @@ fwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
  *  get a pointer to the next valid data at or after `off'
  */
 Dptr *
-fpget(Icache *ic, Ibuf *b, uint32_t off)
+fpget(Icache *ic, Ibuf *b, u32 off)
 {
-	uint32_t fbno;
-	int32_t doff;
+	u32 fbno;
+	i32 doff;
 	Bbuf *ibb;	/* indirect block */
 	Dptr *p, *p0, *pf;
 
@@ -261,11 +261,11 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
  *
  *  if there are no bytes cached, return 0.
  */
-int32_t
-fread(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
+i32
+fread(Icache *ic, Ibuf *b, char *a, u32 off, i32 n)
 {
 	int len, start;
-	int32_t sofar, gap;
+	i32 sofar, gap;
 	Dptr *p;
 	Bbuf *bb;
 

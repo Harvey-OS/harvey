@@ -1,6 +1,6 @@
 @@
 typedef ulong;
-typedef uint32_t;
+typedef u32;
 @@
 -ulong
-+uint32_t
++u32

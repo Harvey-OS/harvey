@@ -25,8 +25,8 @@ struct Mousestate
 {
 	Point	xy;			/* mouse.xy */
 	int	buttons;		/* mouse.buttons */
-	uint32_t	counter;	/* increments every update */
-	uint32_t	msec;	/* time of last event */
+	u32	counter;	/* increments every update */
+	u32	msec;	/* time of last event */
 };
 
 struct Mouseinfo
@@ -36,7 +36,7 @@ struct Mouseinfo
 	int	dy;
 	int	track;		/* dx & dy updated */
 	int	redraw;		/* update cursor on screen */
-	uint32_t	lastcounter;	/* value when /dev/mouse read */
+	u32	lastcounter;	/* value when /dev/mouse read */
 	Rendez	r;
 	Ref	ref;
 	QLock	qlock;
@@ -46,7 +46,7 @@ struct Mouseinfo
 	Mousestate 	queue[16];	/* circular buffer of click events */
 	int	ri;	/* read index into queue */
 	int	wi;	/* write index into queue */
-	uint8_t	qfull;	/* queue is full */
+	u8	qfull;	/* queue is full */
 };
 
 Mouseinfo	mouse;
@@ -70,7 +70,7 @@ static Dirtab mousedir[]={
 	{"mouse",	{Qmouse},	0,			0666},
 };
 
-static uint8_t buttonmap[8] = {
+static u8 buttonmap[8] = {
 	0, 1, 2, 3, 4, 5, 6, 7,
 };
 
@@ -108,7 +108,7 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-mousestat(Chan *c, uint8_t *db, int n)
+mousestat(Chan *c, u8 *db, int n)
 {
 	return devstat(c, db, n, mousedir, nelem(mousedir), devgen);
 }
@@ -116,7 +116,7 @@ mousestat(Chan *c, uint8_t *db, int n)
 static Chan*
 mouseopen(Chan *c, int omode)
 {
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		if(omode != OREAD)
 			error(Eperm);
@@ -141,7 +141,7 @@ mouseopen(Chan *c, int omode)
 }
 
 static void
-mousecreate(Chan *c, char *a, int i, uint32_t u)
+mousecreate(Chan *c, char *a, int i, u32 u)
 {
 	error(Eperm);
 }
@@ -164,17 +164,17 @@ mouseclose(Chan *c)
 }
 
 
-static int32_t
-mouseread(Chan *c, void *va, int32_t n, int64_t off)
+static i32
+mouseread(Chan *c, void *va, i32 n, i64 off)
 {
 	char buf[4*12+1];
-	uint8_t *p;
-	uint32_t offset = off;
+	u8 *p;
+	u32 offset = off;
 	Mousestate m;
 	int b;
 
 	p = va;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, mousedir, nelem(mousedir), devgen);
 
@@ -233,15 +233,15 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 	return 0;
 }
 
-static int32_t
-mousewrite(Chan *c, void *va, int32_t n, int64_t m)
+static i32
+mousewrite(Chan *c, void *va, i32 n, i64 m)
 {
 	char *p;
 	Point pt;
 	char buf[64];
 
 	p = va;
-	switch((uint32_t)c->qid.path){
+	switch((u32)c->qid.path){
 	case Qdir:
 		error(Eisdir);
 

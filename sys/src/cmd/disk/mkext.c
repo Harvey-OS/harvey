@@ -18,10 +18,10 @@ enum{
 
 int	selected(char*, int, char*[]);
 void	mkdirs(char*, char*);
-void	mkdir(char*, uint32_t, uint32_t, char*, char*);
-void	extract(char*, uint32_t, uint32_t, char*, char*,
-		    uint64_t);
-void	seekpast(uint64_t);
+void	mkdir(char*, u32, u32, char*, char*);
+void	extract(char*, u32, u32, char*, char*,
+		    u64);
+void	seekpast(u64);
 void	error(char*, ...);
 void	warn(char*, ...);
 void	usage(void);
@@ -42,8 +42,8 @@ main(int argc, char **argv)
 	Biobuf bout;
 	char *fields[NFLDS], name[2*LEN], *p, *namep;
 	char *uid, *gid;
-	uint32_t mode, mtime;
-	uint64_t bytes;
+	u32 mode, mtime;
+	u64 bytes;
 
 	quotefmtinstall();
 	namep = name;
@@ -159,7 +159,7 @@ mkdirs(char *name, char *namep)
 }
 
 void
-mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
+mkdir(char *name, u32 mode, u32 mtime, char *uid,
       char *gid)
 {
 	Dir *d, xd;
@@ -212,16 +212,16 @@ mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
 }
 
 void
-extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
+extract(char *name, u32 mode, u32 mtime, char *uid,
 	char *gid,
-	uint64_t bytes)
+	u64 bytes)
 {
 	Dir d, *nd;
 	Biobuf *b;
 	char buf[LEN];
 	char *p;
-	uint32_t n;
-	uint64_t tot;
+	u32 n;
+	u64 tot;
 
 	if(vflag)
 		print("x %q %llu bytes\n", name, bytes);
@@ -280,11 +280,11 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
 }
 
 void
-seekpast(uint64_t bytes)
+seekpast(u64 bytes)
 {
 	char buf[LEN];
-	int32_t n;
-	uint64_t tot;
+	i32 n;
+	u64 tot;
 
 	for(tot = 0; tot < bytes; tot += n){
 		n = sizeof buf;

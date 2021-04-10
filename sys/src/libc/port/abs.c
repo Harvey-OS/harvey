@@ -18,8 +18,8 @@ abs(int a)
 	return a;
 }
 
-int32_t
-labs(int32_t a)
+i32
+labs(i32 a)
 {
 	if(a < 0)
 		return -a;

@@ -16,12 +16,12 @@
 typedef struct MetaChunk MetaChunk;
 
 struct MetaChunk {
-	uint16_t offset;
-	uint16_t size;
-	uint16_t index;
+	u16 offset;
+	u16 size;
+	u16 index;
 };
 
-static int	stringunpack(char **s, uint8_t **p, int *n);
+static int	stringunpack(char **s, u8 **p, int *n);
 
 /*
  * integer conversion routines
@@ -29,8 +29,8 @@ static int	stringunpack(char **s, uint8_t **p, int *n);
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3])
-#define	U48GET(p)	(((uint64_t)U16GET(p)<<32)|(uint64_t)U32GET((p)+2))
-#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
+#define	U48GET(p)	(((u64)U16GET(p)<<32)|(u64)U32GET((p)+2))
+#define	U64GET(p)	(((u64)U32GET(p)<<32)|(u64)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)&0xFF
 #define	U16PUT(p,v)	(p)[0]=((v)>>8)&0xFF;(p)[1]=(v)&0xFF
@@ -39,7 +39,7 @@ static int	stringunpack(char **s, uint8_t **p, int *n);
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 static int
-stringunpack(char **s, uint8_t **p, int *n)
+stringunpack(char **s, u8 **p, int *n)
 {
 	int nn;
 
@@ -60,7 +60,7 @@ stringunpack(char **s, uint8_t **p, int *n)
 }
 
 static int
-stringpack(char *s, uint8_t *p)
+stringpack(char *s, u8 *p)
 {
 	int n;
 
@@ -72,9 +72,9 @@ stringpack(char *s, uint8_t *p)
 
 
 int
-mbunpack(MetaBlock *mb, uint8_t *p, int n)
+mbunpack(MetaBlock *mb, u8 *p, int n)
 {
-	uint32_t magic;
+	u32 magic;
 
 	mb->maxsize = n;
 	mb->buf = p;
@@ -113,7 +113,7 @@ mbunpack(MetaBlock *mb, uint8_t *p, int n)
 void
 mbpack(MetaBlock *mb)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = mb->buf;
 
@@ -128,7 +128,7 @@ mbpack(MetaBlock *mb)
 void
 mbdelete(MetaBlock *mb, int i, MetaEntry *me)
 {
-	uint8_t *p;
+	u8 *p;
 	int n;
 
 	assert(i < mb->nindex);
@@ -148,7 +148,7 @@ mbdelete(MetaBlock *mb, int i, MetaEntry *me)
 void
 mbinsert(MetaBlock *mb, int i, MetaEntry *me)
 {
-	uint8_t *p;
+	u8 *p;
 	int o, n;
 
 	assert(mb->nindex < mb->maxindex);
@@ -172,7 +172,7 @@ mbinsert(MetaBlock *mb, int i, MetaEntry *me)
 int
 meunpack(MetaEntry *me, MetaBlock *mb, int i)
 {
-	uint8_t *p;
+	u8 *p;
 	int eo, en;
 
 	if(i < 0 || i >= mb->nindex) {
@@ -214,7 +214,7 @@ int
 mecmp(MetaEntry *me, char *s)
 {
 	int n;
-	uint8_t *p;
+	u8 *p;
 
 	p = me->p;
 
@@ -227,9 +227,9 @@ mecmp(MetaEntry *me, char *s)
 	while(n > 0) {
 		if(*s == 0)
 			return -1;
-		if(*p < (uint8_t)*s)
+		if(*p < (u8)*s)
 			return -1;
-		if(*p > (uint8_t)*s)
+		if(*p > (u8)*s)
 			return 1;
 		p++;
 		s++;
@@ -242,7 +242,7 @@ int
 mecmpnew(MetaEntry *me, char *s)
 {
 	int n;
-	uint8_t *p;
+	u8 *p;
 
 	p = me->p;
 
@@ -255,9 +255,9 @@ mecmpnew(MetaEntry *me, char *s)
 	while(n > 0) {
 		if(*s == 0)
 			return 1;
-		if(*p < (uint8_t)*s)
+		if(*p < (u8)*s)
 			return -1;
-		if(*p > (uint8_t)*s)
+		if(*p > (u8)*s)
 			return 1;
 		p++;
 		s++;
@@ -285,7 +285,7 @@ metachunks(MetaBlock *mb)
 {
 	MetaChunk *mc;
 	int oo, o, n, i;
-	uint8_t *p;
+	u8 *p;
 
 	mc = vtmalloc(mb->nindex*sizeof(MetaChunk));
 	p = mb->buf + MetaHeaderSize;
@@ -341,7 +341,7 @@ mbcompact(MetaBlock *mb, MetaChunk *mc)
 	mb->free = 0;
 }
 
-uint8_t *
+u8 *
 mballoc(MetaBlock *mb, int n)
 {
 	int i, o;
@@ -435,8 +435,8 @@ vdsize(VacDir *dir, int version)
 void
 vdpack(VacDir *dir, MetaEntry *me, int version)
 {
-	uint8_t *p;
-	uint32_t t32;
+	u8 *p;
+	u32 t32;
 
 	if(version < 8 || version > 9)
 		sysfatal("bad version %d in vdpack", version);
@@ -506,7 +506,7 @@ int
 vdunpack(VacDir *dir, MetaEntry *me)
 {
 	int t, nn, n, version;
-	uint8_t *p;
+	u8 *p;
 
 	p = me->p;
 	n = me->size;
@@ -703,7 +703,7 @@ mbsearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 }
 
 void
-mbinit(MetaBlock *mb, uint8_t *p, int n, int entries)
+mbinit(MetaBlock *mb, u8 *p, int n, int entries)
 {
 	memset(mb, 0, sizeof(MetaBlock));
 	mb->maxsize = n;
@@ -715,7 +715,7 @@ mbinit(MetaBlock *mb, uint8_t *p, int n, int entries)
 int
 mbresize(MetaBlock *mb, MetaEntry *me, int n)
 {
-	uint8_t *p, *ep;
+	u8 *p, *ep;
 
 	/* easy case */
 	if(n <= me->size){

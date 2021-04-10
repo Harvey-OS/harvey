@@ -211,7 +211,7 @@ syscallfmt(u8 what, int syscallno, Ar0 *ar0, u64 start, u64 stop, ...)
 		break;
 	case TSEMACQUIRE:
 		v = va_arg(list, int *);
-		l = va_arg(list, uint32_t);
+		l = va_arg(list, u32);
 		fmtprint(&fmt, "%#p %ld", v, l);
 		break;
 	case SEEK:

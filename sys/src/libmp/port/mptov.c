@@ -11,17 +11,17 @@
 #include <mp.h>
 #include "dat.h"
 
-#define VLDIGITS (sizeof(int64_t)/sizeof(mpdigit))
+#define VLDIGITS (sizeof(i64)/sizeof(mpdigit))
 
 /*
  *  this code assumes that a vlong is an integral number of
  *  mpdigits long.
  */
 mpint*
-vtomp(int64_t v, mpint *b)
+vtomp(i64 v, mpint *b)
 {
 	int s;
-	uint64_t uv;
+	u64 uv;
 
 	if(b == nil)
 		b = mpnew(VLDIGITS*sizeof(mpdigit));
@@ -43,10 +43,10 @@ vtomp(int64_t v, mpint *b)
 	return b;
 }
 
-int64_t
+i64
 mptov(mpint *b)
 {
-	uint64_t v;
+	u64 v;
 	int s;
 
 	if(b->top == 0)
@@ -55,9 +55,9 @@ mptov(mpint *b)
 	mpnorm(b);
 	if(b->top > VLDIGITS){
 		if(b->sign > 0)
-			return (int64_t)MAXVLONG;
+			return (i64)MAXVLONG;
 		else
-			return (int64_t)MINVLONG;
+			return (i64)MINVLONG;
 	}
 
 	v = 0ULL;
@@ -71,8 +71,8 @@ mptov(mpint *b)
 		if(v > MINVLONG)
 			v = MINVLONG;
 		else
-			v = -(int64_t)v;
+			v = -(i64)v;
 	}
 
-	return (int64_t)v;
+	return (i64)v;
 }

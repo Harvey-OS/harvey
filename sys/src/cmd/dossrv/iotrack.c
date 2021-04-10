@@ -29,22 +29,22 @@ static Iotrack	iobuf[NIOBUF];		/* the real ones */
 #define	TOFRONT(h, p)	((h)->next  != (p) && (UNLINK(p, next, prev), LINK(h,p, next, prev)))
 
 Iosect *
-getsect(Xfs *xf, int32_t addr)
+getsect(Xfs *xf, i32 addr)
 {
 	return getiosect(xf, addr, 1);
 }
 
 Iosect *
-getosect(Xfs *xf, int32_t addr)
+getosect(Xfs *xf, i32 addr)
 {
 	return getiosect(xf, addr, 0);
 }
 
 Iosect *
-getiosect(Xfs *xf, int32_t addr, int rflag)
+getiosect(Xfs *xf, i32 addr, int rflag)
 {
 	Iotrack *t;
-	int32_t taddr;
+	i32 taddr;
 	int toff;
 	Iosect *p;
 
@@ -95,11 +95,11 @@ putsect(Iosect *p)
 }
 
 Iotrack *
-getiotrack(Xfs *xf, int32_t addr)
+getiotrack(Xfs *xf, i32 addr)
 {
 	Iotrack *hp, *p;
 	Iotrack *mp = &hiob[HIOB];
-	int32_t h;
+	i32 h;
 /*
  *	chat("iotrack %d,%d...", dev, addr);
  */
@@ -214,7 +214,7 @@ int
 tread(Iotrack *t)
 {
 	int i, ref = 0;
-	uint8_t buf[Sect2trk][Sectorsize];
+	u8 buf[Sect2trk][Sectorsize];
 
 	for(i=0; i<Sect2trk; i++)
 		if(t->tp->p[i])

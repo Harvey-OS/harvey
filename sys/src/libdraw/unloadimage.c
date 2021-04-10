@@ -12,10 +12,10 @@
 #include <draw.h>
 
 int
-unloadimage(Image *i, Rectangle r, uint8_t *data, int ndata)
+unloadimage(Image *i, Rectangle r, u8 *data, int ndata)
 {
 	int bpl, n, ntot, dy;
-	uint8_t *a;
+	u8 *a;
 	Display *d;
 
 	if(!rectinrect(r, i->r)){

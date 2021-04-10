@@ -20,9 +20,9 @@
 void
 convM2PR(char *ap, Passwordreq *f, char *key)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	if(key)
 		decrypt(key, ap, PASSREQLEN);
 	CHAR(num);

@@ -20,7 +20,7 @@ openmemsubfont(char *name)
 	Fontchar *fc;
 	int fd, n;
 	char hdr[3*12+4+1];
-	uint8_t *p;
+	u8 *p;
 
 	fd = open(name, OREAD);
 	if(fd < 0)

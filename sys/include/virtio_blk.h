@@ -49,37 +49,37 @@
 
 struct virtio_blk_config {
 	/* The capacity (in 512-byte sectors). */
-	uint64_t capacity;
+	u64 capacity;
 	/* The maximum segment size (if VIRTIO_BLK_F_SIZE_MAX) */
-	uint32_t size_max;
+	u32 size_max;
 	/* The maximum number of segments (if VIRTIO_BLK_F_SEG_MAX) */
-	uint32_t seg_max;
+	u32 seg_max;
 	/* geometry of the device (if VIRTIO_BLK_F_GEOMETRY) */
 	struct virtio_blk_geometry {
-		uint16_t cylinders;
-		uint8_t heads;
-		uint8_t sectors;
+		u16 cylinders;
+		u8 heads;
+		u8 sectors;
 	} geometry;
 
 	/* block size of device (if VIRTIO_BLK_F_BLK_SIZE) */
-	uint32_t blk_size;
+	u32 blk_size;
 
 	/* the next 4 entries are guarded by VIRTIO_BLK_F_TOPOLOGY  */
 	/* exponent for physical block per logical block. */
-	uint8_t physical_block_exp;
+	u8 physical_block_exp;
 	/* alignment offset in logical blocks. */
-	uint8_t alignment_offset;
+	u8 alignment_offset;
 	/* minimum I/O size without performance penalty in logical blocks. */
-	uint16_t min_io_size;
+	u16 min_io_size;
 	/* optimal sustained I/O size in logical blocks. */
-	uint32_t opt_io_size;
+	u32 opt_io_size;
 
 	/* writeback mode (if VIRTIO_BLK_F_CONFIG_WCE) */
-	uint8_t wce;
-	uint8_t unused;
+	u8 wce;
+	u8 unused;
 
 	/* number of vqs, only available when VIRTIO_BLK_F_MQ is set */
-	uint16_t num_queues;
+	u16 num_queues;
 } __attribute__((packed));
 
 /*
@@ -120,19 +120,19 @@ struct virtio_blk_config {
  */
 struct virtio_blk_outhdr {
 	/* VIRTIO_BLK_T* */
-	uint32_t type;
+	u32 type;
 	/* io priority. */
-	uint32_t ioprio;
+	u32 ioprio;
 	/* Sector (ie. 512 byte offset) */
-	uint64_t sector;
+	u64 sector;
 };
 
 #ifndef VIRTIO_BLK_NO_LEGACY
 struct virtio_scsi_inhdr {
-	uint32_t errors;
-	uint32_t data_len;
-	uint32_t sense_len;
-	uint32_t residual;
+	u32 errors;
+	u32 data_len;
+	u32 sense_len;
+	u32 residual;
 };
 #endif /* !VIRTIO_BLK_NO_LEGACY */
 

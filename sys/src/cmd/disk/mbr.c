@@ -16,16 +16,16 @@
 #include <disk.h>
 
 typedef struct {
-	uint8_t	active;			/* active flag */
-	uint8_t	starth;			/* starting head */
-	uint8_t	starts;			/* starting sector */
-	uint8_t	startc;			/* starting cylinder */
-	uint8_t	type;			/* partition type */
-	uint8_t	endh;			/* ending head */
-	uint8_t	ends;			/* ending sector */
-	uint8_t	endc;			/* ending cylinder */
-	uint8_t	lba[4];			/* starting LBA */
-	uint8_t	size[4];		/* size in sectors */
+	u8	active;			/* active flag */
+	u8	starth;			/* starting head */
+	u8	starts;			/* starting sector */
+	u8	startc;			/* starting cylinder */
+	u8	type;			/* partition type */
+	u8	endh;			/* ending head */
+	u8	ends;			/* ending sector */
+	u8	endc;			/* ending cylinder */
+	u8	lba[4];			/* starting LBA */
+	u8	size[4];		/* size in sectors */
 } Tentry;
 
 enum {
@@ -80,9 +80,9 @@ fatal(char *fmt, ...)
 }
 
 static void
-putle32(void* v, uint32_t i)
+putle32(void* v, u32 i)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = v;
 	p[0] = i;
@@ -92,7 +92,7 @@ putle32(void* v, uint32_t i)
 }
 
 static void
-writechs(Disk *disk, uint8_t *p, int64_t lba)
+writechs(Disk *disk, u8 *p, i64 lba)
 {
 	int c, h, s;
 
@@ -112,8 +112,8 @@ writechs(Disk *disk, uint8_t *p, int64_t lba)
 }
 
 static void
-wrtentry(Disk *disk, Tentry *tp, int type, uint32_t base, uint32_t lba,
-	 uint32_t end)
+wrtentry(Disk *disk, Tentry *tp, int type, u32 base, u32 lba,
+	 u32 end)
 {
 	tp->active = 0x80;		/* make this sole partition active */
 	tp->type = type;
@@ -130,7 +130,7 @@ main(int argc, char **argv)
 	Tentry *tp;
 	unsigned char *mbr, *buf;
 	char *mbrfile;
-	uint32_t secsize;
+	u32 secsize;
 	int flag9, sysfd, nmbr;
 
 	flag9 = 0;

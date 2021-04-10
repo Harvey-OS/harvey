@@ -31,9 +31,9 @@ sizeD2M(Dir *d)
 }
 
 uint
-convD2M(Dir *d, uint8_t *buf, uint nbuf)
+convD2M(Dir *d, u8 *buf, uint nbuf)
 {
-	uint8_t *p, *ebuf;
+	u8 *p, *ebuf;
 	char *sv[4];
 	int i, ns, nsv[4], ss;
 
