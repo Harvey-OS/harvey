@@ -23,7 +23,7 @@ static int
 readarenainfo(Arena *arena)
 {
 	ClumpInfo *ci, *cis;
-	uint32_t clump;
+	u32 clump;
 	int i, n, ok;
 
 	if(arena->memstats.clumps)
@@ -62,7 +62,7 @@ static void
 clumpstats(Index *ix)
 {
 	int ok;
-	uint32_t clumps, n;
+	u32 clumps, n;
 	int i, j, t;
 
 	ok = 0;
@@ -104,7 +104,7 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	uint32_t bcmem;
+	u32 bcmem;
 
 	bcmem = 0;
 

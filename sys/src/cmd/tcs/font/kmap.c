@@ -19,9 +19,9 @@
 */
 
 void
-kmap(int from, int to, int32_t *chars)
+kmap(int from, int to, i32 *chars)
 {
-	int32_t *l, *ll;
+	i32 *l, *ll;
 	int k, k1, n;
 
 	for(n = from; n <= to; n++)

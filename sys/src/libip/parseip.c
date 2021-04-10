@@ -13,7 +13,7 @@
 #include <ip.h>
 
 char*
-v4parseip(uint8_t *to, char *from)
+v4parseip(u8 *to, char *from)
 {
 	int i;
 	char *p;
@@ -70,11 +70,11 @@ delimchar(int c)
  * some callers don't check the return value for errors, so
  * set `to' to something distinctive in the case of a parse error.
  */
-int64_t
-parseip(uint8_t *to, char *from)
+i64
+parseip(u8 *to, char *from)
 {
 	int i, elipsis = 0, v4 = 1;
-	uint32_t x;
+	u32 x;
 	char *p, *op;
 
 	memset(to, 0, IPaddrlen);
@@ -127,12 +127,12 @@ parseip(uint8_t *to, char *from)
  *  hack to allow ip v4 masks to be entered in the old
  *  style
  */
-int64_t
-parseipmask(uint8_t *to, char *from)
+i64
+parseipmask(u8 *to, char *from)
 {
 	int i, w;
-	int64_t x;
-	uint8_t *p;
+	i64 x;
+	u8 *p;
 
 	if(*from == '/'){
 		/* as a number of prefix bits */
@@ -159,7 +159,7 @@ parseipmask(uint8_t *to, char *from)
 		/* as a straight v4 bit mask */
 		x = parseip(to, from);
 		if (x != -1)
-			x = (uint32_t)nhgetl(to + IPv4off);
+			x = (u32)nhgetl(to + IPv4off);
 		if(memcmp(to, v4prefix, IPv4off) == 0)
 			memset(to, 0xff, IPv4off);
 	}
@@ -170,11 +170,11 @@ parseipmask(uint8_t *to, char *from)
  *  parse a v4 ip address/mask in cidr format
  */
 char*
-v4parsecidr(uint8_t *addr, uint8_t *mask, char *from)
+v4parsecidr(u8 *addr, u8 *mask, char *from)
 {
 	int i;
 	char *p;
-	uint8_t *a;
+	u8 *a;
 
 	p = v4parseip(addr, from);
 

@@ -32,13 +32,13 @@ extern	Text*	curtext;
 Rune	*collection;
 int	ncollection;
 
-int	append(File*, Cmd*, int32_t);
+int	append(File*, Cmd*, i32);
 int	pdisplay(File*);
 void	pfilename(File*);
 void	looper(File*, Cmd*, int);
 void	filelooper(Cmd*, int);
 void	linelooper(File*, Cmd*);
-Address	lineaddr(int32_t, Address, int);
+Address	lineaddr(i32, Address, int);
 int	filematch(File*, String*);
 File	*tofile(String*);
 Rune*	cmdname(File *f, String *s, int);
@@ -398,7 +398,7 @@ i_cmd(Text *t, Cmd *cp)
 void
 copy(File *f, Address addr2)
 {
-	int32_t p;
+	i32 p;
 	int ni;
 	Rune *buf;
 
@@ -452,7 +452,7 @@ int
 s_cmd(Text *t, Cmd *cp)
 {
 	int i, j, k, c, m, n, nrp, didsub;
-	int32_t p1, op, delta;
+	i32 p1, op, delta;
 	String *buf;
 	Rangeset *rp;
 	char *err;
@@ -644,10 +644,10 @@ pipe_cmd(Text *t, Cmd *cp)
 	return TRUE;
 }
 
-int32_t
-nlcount(Text *t, int32_t q0, int32_t q1)
+i32
+nlcount(Text *t, i32 q0, i32 q1)
 {
-	int32_t nl;
+	i32 nl;
 	Rune *buf;
 	int i, nbuf;
 
@@ -673,7 +673,7 @@ nlcount(Text *t, int32_t q0, int32_t q1)
 void
 printposn(Text *t, int charsonly)
 {
-	int32_t l1, l2;
+	i32 l1, l2;
 
 	if (t != nil && t->file != nil && t->file->name != nil)
 		warning(nil, "%.*S:", t->file->nname, t->file->name);
@@ -740,7 +740,7 @@ nl_cmd(Text *t, Cmd *cp)
 }
 
 int
-append(File *f, Cmd *cp, int32_t p)
+append(File *f, Cmd *cp, i32 p)
 {
 	if(cp->text->n > 0)
 		eloginsert(f, p, cp->text->r, cp->text->n);
@@ -752,7 +752,7 @@ append(File *f, Cmd *cp, int32_t p)
 int
 pdisplay(File *f)
 {
-	int32_t p1, p2;
+	i32 p1, p2;
 	int np;
 	Rune *buf;
 
@@ -790,9 +790,9 @@ pfilename(File *f)
 }
 
 void
-loopcmd(File *f, Cmd *cp, Range *rp, int32_t nrp)
+loopcmd(File *f, Cmd *cp, Range *rp, i32 nrp)
 {
-	int32_t i;
+	i32 i;
 
 	for(i=0; i<nrp; i++){
 		f->curtext->q0 = rp[i].q0;
@@ -804,7 +804,7 @@ loopcmd(File *f, Cmd *cp, Range *rp, int32_t nrp)
 void
 looper(File *f, Cmd *cp, int xy)
 {
-	int32_t p, op, nrp;
+	i32 p, op, nrp;
 	Range r, tr;
 	Range *rp;
 
@@ -848,7 +848,7 @@ looper(File *f, Cmd *cp, int xy)
 void
 linelooper(File *f, Cmd *cp)
 {
-	int32_t nrp, p;
+	i32 nrp, p;
 	Range r, linesel;
 	Address a, a3;
 	Range *rp;
@@ -965,7 +965,7 @@ filelooper(Cmd *cp, int XY)
 }
 
 void
-nextmatch(File *f, String *r, int32_t p, int sign)
+nextmatch(File *f, String *r, i32 p, int sign)
 {
 	if(rxcompile(r->r) == FALSE)
 		editerror("bad regexp in command address");
@@ -991,8 +991,8 @@ nextmatch(File *f, String *r, int32_t p, int sign)
 }
 
 File	*matchfile(String*);
-Address	charaddr(int32_t, Address, int);
-Address	lineaddr(int32_t, Address, int);
+Address	charaddr(i32, Address, int);
+Address	lineaddr(i32, Address, int);
 
 Address
 cmdaddress(Addr *ap, Address a, int sign)
@@ -1181,7 +1181,7 @@ filematch(File *f, String *r)
 }
 
 Address
-charaddr(int32_t l, Address addr, int sign)
+charaddr(i32 l, Address addr, int sign)
 {
 	if(sign == 0)
 		addr.r.q0 = addr.r.q1 = l;
@@ -1195,13 +1195,13 @@ charaddr(int32_t l, Address addr, int sign)
 }
 
 Address
-lineaddr(int32_t l, Address addr, int sign)
+lineaddr(i32 l, Address addr, int sign)
 {
 	int n;
 	int c;
 	File *f = addr.f;
 	Address a;
-	int32_t p;
+	i32 p;
 
 	a.f = f;
 	if(sign >= 0){

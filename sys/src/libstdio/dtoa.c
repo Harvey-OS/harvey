@@ -84,8 +84,8 @@ struct Bigint {
 };
 
 struct Ulongs {
-	uint32_t	hi;
-	uint32_t	lo;
+	u32	hi;
+	u32	lo;
 };
 
 static Bigint *freelist[Kmax+1];

@@ -43,7 +43,7 @@ nbytes(char *s0, int nr)
 }
 
 void
-frdrawsel(Frame *f, Point pt, uint32_t p0, uint32_t p1, int issel)
+frdrawsel(Frame *f, Point pt, u32 p0, u32 p1, int issel)
 {
 	Image *back, *text;
 
@@ -67,7 +67,7 @@ frdrawsel(Frame *f, Point pt, uint32_t p0, uint32_t p1, int issel)
 }
 
 Point
-frdrawsel0(Frame *f, Point pt, uint32_t p0, uint32_t p1, Image *back,
+frdrawsel0(Frame *f, Point pt, u32 p0, u32 p1, Image *back,
 	   Image *text)
 {
 	Frbox *b;

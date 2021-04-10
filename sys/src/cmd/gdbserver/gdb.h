@@ -160,7 +160,7 @@ struct bkpt {
 void gdb_init_regs(void);
 char *gdb_hex_reg_helper(GdbState *ks, int regnum, char *out);
 
-uint64_t arch_get_pc(GdbState *ks);
+u64 arch_get_pc(GdbState *ks);
 
 char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
 int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
@@ -224,7 +224,7 @@ char *arch_remove_breakpoint(GdbState *ks, struct bkpt *bpt);
 struct io {
 	const char		*name;
 	int			(*read_char) (void);
-	void			(*write_char) (uint8_t);
+	void			(*write_char) (u8);
 	void			(*flush) (void);
 	int			(*init) (void);
 	void			(*pre_exception) (void);
@@ -238,7 +238,7 @@ char *zerohex(char *buf, int count);
 char *hex2mem(char *buf, unsigned char *mem, int count);
 void gdb_cmd_reg_get(GdbState *ks);
 void gdb_cmd_reg_set(GdbState *ks);
-uint64_t arch_get_reg(GdbState *ks, int regnum);
+u64 arch_get_reg(GdbState *ks, int regnum);
 Reg *gdb_get_reg_by_name(char *reg);
 Reg *gdb_get_reg_by_id(int id);
 

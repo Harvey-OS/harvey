@@ -13,10 +13,10 @@ struct Usbconfig {
 		int maxpkt;
 		int pollival;
 	} endpt[16];
-	uint8_t extra[236];
+	u8 extra[236];
 };
 
-int usbdescread(int fd, uint8_t *buf, int len, int desctype, int index);
+int usbdescread(int fd, u8 *buf, int len, int desctype, int index);
 int usbconfread(int fd, Usbconfig **confp);
 int usbconfprint(int fd, Usbconfig *cp);
 int usbopen(int fd, Usbconfig *cp, int epi, int *ctlp);

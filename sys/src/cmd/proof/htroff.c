@@ -32,7 +32,7 @@ int	lastp;	/* last page number we were on */
 #define	NPAGENUMS	200
 struct pagenum {
 	int	num;
-	int32_t	adr;
+	i32	adr;
 } pagenums[NPAGENUMS];
 int	npagenums;
 
@@ -308,7 +308,7 @@ readpage(void)
 static void
 spline(Image *b, int n, Point *pp)
 {
-	int32_t w, t1, t2, t3, fac=1000;
+	i32 w, t1, t2, t3, fac=1000;
 	int i, j, steps=10;
 	Point p, q;
 
@@ -450,7 +450,7 @@ isspace(int c)
 static void
 getstr(char *is)
 {
-	uint8_t *s = (uint8_t *) is;
+	u8 *s = (u8 *) is;
 
 	for (*s = getc(); isspace(*s); *s = getc())
 		;

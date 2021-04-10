@@ -45,13 +45,13 @@ union hblock {
 } dblock;
 
 int	tapefile;
-int64_t	getoct(char*, int);
+i64	getoct(char*, int);
 
 void
 populate(char *name)
 {
-	int64_t offset;
-	int32_t isabs, magic, namesize, mode;
+	i64 offset;
+	i32 isabs, magic, namesize, mode;
 	Fileinf f;
 
 	tapefile = open(name, OREAD);
@@ -94,10 +94,10 @@ populate(char *name)
 	}
 }
 
-int64_t
+i64
 getoct(char *p, int l)
 {
-	int64_t r;
+	i64 r;
 
 	for (r=0; l>0; p++, l--){
 		r <<= 3;
@@ -119,7 +119,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, int64_t off, int32_t cnt)
+doread(Ram *r, i64 off, i32 cnt)
 {
 	seek(tapefile, r->addr+off, 0);
 	if (cnt>sizeof(dblock.tbuf))
@@ -135,7 +135,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, i32 off, i32 cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

@@ -42,9 +42,9 @@ strip(char* file, char* out)
 	int fd, i;
 	Fhdr fhdr;
 	Exec *exec;
-	uint32_t mode;
+	u32 mode;
 	void *data;
-	int64_t length;
+	i64 length;
 
 	if((fd = open(file, OREAD)) < 0){
 		error("%s: open: %r", file);

@@ -25,7 +25,7 @@ struct Afid
 	int afd;
 };
 
-static uint64_t authgen = 1ULL<<63;
+static u64 authgen = 1ULL<<63;
 
 void
 auth9p(Req *r)

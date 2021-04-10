@@ -12,8 +12,8 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-int32_t
-iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
+i32
+iocall(Ioproc *io, i32 (*op)(va_list*), ...)
 {
 	int ret, inted;
 	Ioproc *msg;

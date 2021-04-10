@@ -160,7 +160,7 @@ utfncpy(char *to, char *from, int n)
 static Req *q;
 static Req **eq;
 static int
-__sendinput(Window *w, uint32_t q0, uint32_t q1)
+__sendinput(Window *w, u32 q0, u32 q1)
 {
 	char *s, *t;
 	int n, nb, eofchar;
@@ -235,7 +235,7 @@ __sendinput(Window *w, uint32_t q0, uint32_t q1)
 }
 
 static int
-_sendinput(Window *w, uint32_t q0, uint32_t *q1)
+_sendinput(Window *w, u32 q0, u32 *q1)
 {
 	char buf[32];
 	int n;
@@ -252,9 +252,9 @@ _sendinput(Window *w, uint32_t q0, uint32_t *q1)
 }
 
 int
-sendinput(Window *w, uint32_t q0, uint32_t *q1)
+sendinput(Window *w, u32 q0, u32 *q1)
 {
-	uint32_t n;
+	u32 n;
 	Req *oq;
 
 	n = 0;
@@ -411,7 +411,7 @@ mainctl(void *v)
 	Window *w;
 	Event *e;
 	int delta, pendingS, pendingK;
-	uint32_t hostpt, endpt;
+	u32 hostpt, endpt;
 	char tmp[32];
 
 	w = v;
@@ -643,7 +643,7 @@ startcmd(char *argv[], int *notepg)
 
 	e = emalloc(sizeof(struct Exec));
 	e->argv = argv;
-	cpid = chancreate(sizeof(uint32_t), 0);
+	cpid = chancreate(sizeof(u32), 0);
 	e->cpid = cpid;
 	sprint(buf, "/mnt/wsys/%d", win->id);
 	bind(buf, "/dev/acme", MREPL);

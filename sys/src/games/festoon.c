@@ -1438,7 +1438,7 @@ main(int argc, char *argv[]) {
 	X               tree;
 	int             i, j = 0, k = 0;
 	int             lim = 0;
-	int32_t            t = 0;
+	i32            t = 0;
 	char            c, **str;
 	int		junk, junk2;
 

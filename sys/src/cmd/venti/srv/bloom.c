@@ -19,9 +19,9 @@
 int ignorebloom;
 
 int
-bloominit(Bloom *b, int64_t vsize, uint8_t *data)
+bloominit(Bloom *b, i64 vsize, u8 *data)
 {
-	uint32_t size;
+	u32 size;
 
 	size = vsize;
 	if(size != vsize){	/* truncation */
@@ -49,7 +49,7 @@ wbbloomhead(Bloom *b)
 Bloom*
 readbloom(Part *p)
 {
-	uint8_t buf[512];
+	u8 buf[512];
 	Bloom *b;
 
 	b = vtmallocz(sizeof *b);
@@ -83,11 +83,11 @@ readbloom(Part *p)
 int
 resetbloom(Bloom *b)
 {
-	uint8_t *data;
+	u8 *data;
 
 	data = vtmallocz(b->size);
 	b->data = data;
-	if(b->size == MaxBloomSize)	/* 2^32 overflows uint32_t */
+	if(b->size == MaxBloomSize)	/* 2^32 overflows u32 */
 		addstat(StatBloomBits, b->size*8-1);
 	else
 		addstat(StatBloomBits, b->size*8);
@@ -99,8 +99,8 @@ loadbloom(Bloom *b)
 {
 	int i, n;
 	uint ones;
-	uint8_t *data;
-	uint32_t *a;
+	u8 *data;
+	u32 *a;
 
 	data = vtmallocz(b->size);
 	if(readpart(b->part, 0, data, b->size) < 0){
@@ -110,14 +110,14 @@ loadbloom(Bloom *b)
 	}
 	b->data = data;
 
-	a = (uint32_t*)b->data;
+	a = (u32*)b->data;
 	n = b->size/4;
 	ones = 0;
 	for(i=0; i<n; i++)
 		ones += countbits(a[i]);
 	addstat(StatBloomOnes, ones);
 
-	if(b->size == MaxBloomSize)	/* 2^32 overflows uint32_t */
+	if(b->size == MaxBloomSize)	/* 2^32 overflows u32 */
 		addstat(StatBloomBits, b->size*8-1);
 	else
 		addstat(StatBloomBits, b->size*8);
@@ -143,34 +143,34 @@ writebloom(Bloom *b)
  * We reserve the bottom bytes (BloomHeadSize*8 bits) for the header.
  */
 static void
-gethashes(uint8_t *score, uint32_t *h)
+gethashes(u8 *score, u32 *h)
 {
 	int i;
-	uint32_t a, b;
+	u32 a, b;
 
 	a = 0;
 	b = 0;
 	for(i=4; i+8<=VtScoreSize; i+=8){
-		a ^= *(uint32_t*)(score+i);
-		b ^= *(uint32_t*)(score+i+4);
+		a ^= *(u32*)(score+i);
+		b ^= *(u32*)(score+i+4);
 	}
 	if(i+4 <= VtScoreSize)	/* 20 is not 4-aligned */
-		a ^= *(uint32_t*)(score+i);
+		a ^= *(u32*)(score+i);
 	for(i=0; i<BloomMaxHash; i++, a+=b)
 		h[i] = a < BloomHeadSize*8 ? BloomHeadSize*8 : a;
 }
 
 static void
-_markbloomfilter(Bloom *b, uint8_t *score)
+_markbloomfilter(Bloom *b, u8 *score)
 {
 	int i, nnew;
-	uint32_t h[BloomMaxHash];
-	uint32_t x, *y, z, *tab;
+	u32 h[BloomMaxHash];
+	u32 x, *y, z, *tab;
 
 	trace("markbloomfilter", "markbloomfilter %V", score);
 	gethashes(score, h);
 	nnew = 0;
-	tab = (uint32_t*)b->data;
+	tab = (u32*)b->data;
 	for(i=0; i<b->nhash; i++){
 		x = h[i];
 		y = &tab[(x&b->bitmask)>>5];
@@ -187,14 +187,14 @@ _markbloomfilter(Bloom *b, uint8_t *score)
 }
 
 static int
-_inbloomfilter(Bloom *b, uint8_t *score)
+_inbloomfilter(Bloom *b, u8 *score)
 {
 	int i;
-	uint32_t h[BloomMaxHash], x;
-	uint32_t *tab;
+	u32 h[BloomMaxHash], x;
+	u32 *tab;
 
 	gethashes(score, h);
-	tab = (uint32_t*)b->data;
+	tab = (u32*)b->data;
 	for(i=0; i<b->nhash; i++){
 		x = h[i];
 		if(!(tab[(x&b->bitmask)>>5] & (1<<(x&31))))
@@ -204,7 +204,7 @@ _inbloomfilter(Bloom *b, uint8_t *score)
 }
 
 int
-inbloomfilter(Bloom *b, uint8_t *score)
+inbloomfilter(Bloom *b, u8 *score)
 {
 	int r;
 
@@ -226,7 +226,7 @@ inbloomfilter(Bloom *b, uint8_t *score)
 }
 
 void
-markbloomfilter(Bloom *b, uint8_t *score)
+markbloomfilter(Bloom *b, u8 *score)
 {
 	if(b == nil || b->data == nil)
 		return;
@@ -260,6 +260,6 @@ void
 startbloomproc(Bloom *b)
 {
 	b->writechan = chancreate(sizeof(void*), 0);
-	b->writedonechan = chancreate(sizeof(uint32_t), 0);
+	b->writedonechan = chancreate(sizeof(u32), 0);
 	vtproc(bloomwriteproc, b);
 }

@@ -227,7 +227,7 @@ struct Tcpctl {
 			      /* "recover" rfc3782 */
 	} snd;
 	struct {
-		u32 nxt;  /* Receive pointer to next uint8_t slot */
+		u32 nxt;  /* Receive pointer to next u8 slot */
 		u32 wnd;  /* Receive window incoming */
 		u32 wsnt; /* Last wptr sent.  important to */
 		/* track for large bdp */
@@ -996,7 +996,7 @@ tcpstart(Conv *s, int mode)
 
 #if 0
 static char*
-tcpflag(char *buf, char *e, uint16_t flag)
+tcpflag(char *buf, char *e, u16 flag)
 {
 	char *p;
 
@@ -2776,7 +2776,7 @@ tcpoutput(Conv *s)
 }
 
 /*
- *  the BSD convention (hack?) for keep alives.  resend last uint8_t acked.
+ *  the BSD convention (hack?) for keep alives.  resend last u8 acked.
  */
 static void
 tcpsendka(Conv *s)

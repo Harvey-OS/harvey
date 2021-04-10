@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-int64_t
+i64
 atoll(const char *s)
 {
 	return strtoll(s, nil, 0);

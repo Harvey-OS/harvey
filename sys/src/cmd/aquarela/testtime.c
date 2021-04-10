@@ -12,8 +12,8 @@
 void
 threadmain(int argc, char **argv)
 {
-	uint32_t now, now2;
-	int64_t nttime;
+	u32 now, now2;
+	i64 nttime;
 	if (argc > 1) {
 		nttime = strtoull(argv[1], 0, 0);
 		now2 = smbtime2plan9time(nttime);

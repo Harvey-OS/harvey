@@ -13,30 +13,30 @@
 #define	MAXDEPTH	100
 
 static	char*	abits;
-static	int32_t	sizabits;
+static	i32	sizabits;
 static	char*	qbits;
-static	int32_t	sizqbits;
+static	i32	sizqbits;
 static	char*	name;
-static	int32_t	sizname;
-static	int32_t	fstart;
-static	int32_t	fsize;
-static	int32_t	nfiles;
-static	int32_t	maxq;
+static	i32	sizname;
+static	i32	fstart;
+static	i32	fsize;
+static	i32	nfiles;
+static	i32	maxq;
 static	char*	fence;
 static	char*	fencebase;
 static	Device	dev;
-static	int32_t	ndup;
-static	int32_t	nused;
-static	int32_t	nfdup;
-static	int32_t	nqbad;
-static	int32_t	nfree;
-static	int32_t	nbad;
+static	i32	ndup;
+static	i32	nused;
+static	i32	nfdup;
+static	i32	nqbad;
+static	i32	nfree;
+static	i32	nbad;
 static	int	mod;
 static	int	flags;
 static	int	ronly;
 static	int	cwflag;
-static	int32_t	sbaddr;
-static	int32_t	oldblock;
+static	i32	sbaddr;
+static	i32	oldblock;
 static	int	depth;
 static	int	maxdepth;
 
@@ -44,20 +44,20 @@ static	int	maxdepth;
 static	int	fsck(Dentry*);
 static	void	ckfreelist(Superb*);
 static	void	mkfreelist(Superb*);
-static	Dentry*	maked(int32_t, int, int32_t);
-static	void	modd(int32_t, int, Dentry*);
-static	void	xread(int32_t, int32_t);
-static	int	amark(int32_t);
-static	int	fmark(int32_t);
+static	Dentry*	maked(i32, int, i32);
+static	void	modd(i32, int, Dentry*);
+static	void	xread(i32, i32);
+static	int	amark(i32);
+static	int	fmark(i32);
 static	void	missing(void);
-static	void	qmark(int32_t);
-static	void*	zalloc(uint32_t);
-static	void*	dalloc(uint32_t);
-static	Iobuf*	xtag(int32_t, int, int32_t);
+static	void	qmark(i32);
+static	void*	zalloc(u32);
+static	void*	dalloc(u32);
+static	Iobuf*	xtag(i32, int, i32);
 
 static
 void*
-zalloc(uint32_t n)
+zalloc(u32 n)
 {
 	char *p;
 
@@ -70,7 +70,7 @@ zalloc(uint32_t n)
 
 static
 void*
-dalloc(uint32_t n)
+dalloc(u32 n)
 {
 	char *p;
 
@@ -84,13 +84,13 @@ dalloc(uint32_t n)
 }
 
 void
-check(Filsys *fs, int32_t flag)
+check(Filsys *fs, i32 flag)
 {
 	Iobuf *p;
 	Superb *sb;
 	Dentry *d;
-	int32_t raddr;
-	int32_t nqid;
+	i32 raddr;
+	i32 nqid;
 
 	wlock(&mainlock);
 	dev = fs->dev;
@@ -218,7 +218,7 @@ out:
 
 static
 int
-touch(int32_t a)
+touch(i32 a)
 {
 	Iobuf *p;
 
@@ -233,7 +233,7 @@ touch(int32_t a)
 
 static
 int
-checkdir(int32_t a, int32_t qpath)
+checkdir(i32 a, i32 qpath)
 {
 	Dentry *nd;
 	int i, ns, dmod;
@@ -258,7 +258,7 @@ checkdir(int32_t a, int32_t qpath)
 
 static
 int
-checkindir(int32_t a, Dentry *d, int32_t qpath)
+checkindir(i32 a, Dentry *d, i32 qpath)
 {
 	Iobuf *p;
 	int i, dmod;
@@ -268,12 +268,12 @@ checkindir(int32_t a, Dentry *d, int32_t qpath)
 	if(!p)
 		return dmod;
 	for(i=0; i<INDPERBUF; i++) {
-		a = ((int32_t*)p->iobuf)[i];
+		a = ((i32*)p->iobuf)[i];
 		if(!a)
 			continue;
 		if(amark(a)) {
 			if(flags & Cbad) {
-				((int32_t*)p->iobuf)[i] = 0;
+				((i32*)p->iobuf)[i] = 0;
 				p->flags |= Bmod;
 			}
 			continue;
@@ -295,7 +295,7 @@ fsck(Dentry *d)
 	Rune r;
 	Iobuf *p;
 	int l, i, ns, dmod;
-	int32_t a, qpath;
+	i32 a, qpath;
 
 	depth++;
 	if(depth >= maxdepth){
@@ -376,12 +376,12 @@ fsck(Dentry *d)
 	dmod += touch(a);
 	if(p = xtag(a, Tind2, qpath)){
 		for(i=0; i<INDPERBUF; i++){
-			a = ((int32_t*)p->iobuf)[i];
+			a = ((i32*)p->iobuf)[i];
 			if(!a)
 				continue;
 			if(amark(a)) {
 				if(flags & Cbad) {
-					((int32_t*)p->iobuf)[i] = 0;
+					((i32*)p->iobuf)[i] = 0;
 					p->flags |= Bmod;
 				}
 				continue;
@@ -397,7 +397,7 @@ static
 void
 ckfreelist(Superb *sb)
 {
-	int32_t a, lo, hi;
+	i32 a, lo, hi;
 	int n, i;
 	Iobuf *p;
 	Fbuf *fb;
@@ -453,7 +453,7 @@ static
 void
 mkfreelist(Superb *sb)
 {
-	int32_t a;
+	i32 a;
 	int i, b;
 
 	strcpy(name, "free list");
@@ -474,7 +474,7 @@ mkfreelist(Superb *sb)
 
 static
 Dentry*
-maked(int32_t a, int s, int32_t qpath)
+maked(i32 a, int s, i32 qpath)
 {
 	Iobuf *p;
 	Dentry *d, *d1;
@@ -491,7 +491,7 @@ maked(int32_t a, int s, int32_t qpath)
 
 static
 void
-modd(int32_t a, int s, Dentry *d1)
+modd(i32 a, int s, Dentry *d1)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -512,7 +512,7 @@ modd(int32_t a, int s, Dentry *d1)
 
 static
 void
-xread(int32_t a, int32_t qpath)
+xread(i32 a, i32 qpath)
 {
 	Iobuf *p;
 
@@ -523,7 +523,7 @@ xread(int32_t a, int32_t qpath)
 
 static
 Iobuf*
-xtag(int32_t a, int tag, int32_t qpath)
+xtag(i32 a, int tag, i32 qpath)
 {
 	Iobuf *p;
 
@@ -558,9 +558,9 @@ xtag(int32_t a, int tag, int32_t qpath)
 
 static
 int
-amark(int32_t a)
+amark(i32 a)
 {
-	int32_t i;
+	i32 i;
 	int b;
 
 	if(a < fstart || a >= fsize) {
@@ -591,9 +591,9 @@ amark(int32_t a)
 
 static
 int
-fmark(int32_t a)
+fmark(i32 a)
 {
-	int32_t i;
+	i32 i;
 	int b;
 
 	if(a < fstart || a >= fsize) {
@@ -620,7 +620,7 @@ static
 void
 missing(void)
 {
-	int32_t a, i;
+	i32 a, i;
 	int b, n;
 
 	n = 0;
@@ -640,7 +640,7 @@ missing(void)
 
 static
 void
-qmark(int32_t qpath)
+qmark(i32 qpath)
 {
 	int i, b;
 

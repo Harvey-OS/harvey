@@ -39,7 +39,7 @@ typedef struct TlsSec TlsSec;
 
 typedef struct Bytes{
 	int len;
-	uint8_t data[1];  // [len]
+	u8 data[1];  // [len]
 } Bytes;
 
 typedef struct Ints{
@@ -56,7 +56,7 @@ typedef struct Algs{
 } Algs;
 
 typedef struct Finished{
-	uint8_t verify[SSL3FinishedLen];
+	u8 verify[SSL3FinishedLen];
 	int n;
 } Finished;
 
@@ -76,11 +76,11 @@ typedef struct TlsConnection{
 	int state;		// must be set using setstate
 
 	// input buffer for handshake messages
-	uint8_t buf[MaxChunk+2048];
-	uint8_t *rp, *ep;
+	u8 buf[MaxChunk+2048];
+	u8 *rp, *ep;
 
-	uint8_t crandom[RandomSize];	// client random
-	uint8_t srandom[RandomSize];	// server random
+	u8 crandom[RandomSize];	// client random
+	u8 srandom[RandomSize];	// server random
 	int clientVersion;	// version in ClientHello
 	char *digest;	// name of digest algorithm to use
 	char *enc;		// name of encryption algorithm to use
@@ -97,14 +97,14 @@ typedef struct Msg{
 	union {
 		struct {
 			int version;
-			uint8_t 	random[RandomSize];
+			u8 	random[RandomSize];
 			Bytes*	sid;
 			Ints*	ciphers;
 			Bytes*	compressors;
 		} clientHello;
 		struct {
 			int version;
-			uint8_t 	random[RandomSize];
+			u8 	random[RandomSize];
 			Bytes*	sid;
 			int cipher;
 			int compressor;
@@ -130,15 +130,15 @@ typedef struct TlsSec{
 	int ok;	// <0 killed; == 0 in progress; >0 reusable
 	RSApub *rsapub;
 	AuthRpc *rpc;	// factotum for rsa private key
-	uint8_t sec[MasterSecretSize];	// master secret
-	uint8_t crandom[RandomSize];	// client random
-	uint8_t srandom[RandomSize];	// server random
+	u8 sec[MasterSecretSize];	// master secret
+	u8 crandom[RandomSize];	// client random
+	u8 srandom[RandomSize];	// server random
 	int clientVers;		// version in ClientHello
 	int vers;			// final version
 	// byte generation and handshake checksum
-	void (*prf)(uint8_t*, int, uint8_t*, int, char*, uint8_t*, int,
-		    uint8_t*, int);
-	void (*setFinished)(TlsSec*, MD5state, SHAstate, uint8_t*, int);
+	void (*prf)(u8*, int, u8*, int, char*, u8*, int,
+		    u8*, int);
+	void (*setFinished)(TlsSec*, MD5state, SHAstate, u8*, int);
 	int nfin;
 } TlsSec;
 
@@ -256,14 +256,14 @@ static Algs cipherAlgs[] = {
 	{"aes_256_cbc", "sha1", 2*(32+16+SHA1dlen), TLS_RSA_WITH_AES_256_CBC_SHA}
 };
 
-static uint8_t compressors[] = {
+static u8 compressors[] = {
 	CompressionNull,
 };
 
-static TlsConnection *tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
+static TlsConnection *tlsServer2(int ctl, int hand, u8 *cert, int ncert,
 				 int (*trace)(char*fmt, ...),
 				 PEMChain *chain);
-static TlsConnection *tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
+static TlsConnection *tlsClient2(int ctl, int hand, u8 *csid, int ncsid,
 				 int (*trace)(char*fmt, ...));
 
 static void	msgClear(Msg *m);
@@ -281,50 +281,50 @@ static int okCompression(Bytes *cv);
 static int initCiphers(void);
 static Ints* makeciphers(void);
 
-static TlsSec* tlsSecInits(int cvers, uint8_t *csid, int ncsid,
-			   uint8_t *crandom, uint8_t *ssid, int *nssid,
-			   uint8_t *srandom);
-static int	tlsSecSecrets(TlsSec *sec, int vers, uint8_t *epm,
-				int nepm, uint8_t *kd, int nkd);
-static TlsSec*	tlsSecInitc(int cvers, uint8_t *crandom);
-static int	tlsSecSecretc(TlsSec *sec, uint8_t *sid, int nsid,
-				uint8_t *srandom, uint8_t *cert, int ncert,
-				int vers, uint8_t **epm, int *nepm,
-				uint8_t *kd, int nkd);
+static TlsSec* tlsSecInits(int cvers, u8 *csid, int ncsid,
+			   u8 *crandom, u8 *ssid, int *nssid,
+			   u8 *srandom);
+static int	tlsSecSecrets(TlsSec *sec, int vers, u8 *epm,
+				int nepm, u8 *kd, int nkd);
+static TlsSec*	tlsSecInitc(int cvers, u8 *crandom);
+static int	tlsSecSecretc(TlsSec *sec, u8 *sid, int nsid,
+				u8 *srandom, u8 *cert, int ncert,
+				int vers, u8 **epm, int *nepm,
+				u8 *kd, int nkd);
 static int	tlsSecFinished(TlsSec *sec, MD5state md5, SHAstate sha1,
-				 uint8_t *fin, int nfin, int isclient);
+				 u8 *fin, int nfin, int isclient);
 static void	tlsSecOk(TlsSec *sec);
 static void	tlsSecClose(TlsSec *sec);
 static void	setMasterSecret(TlsSec *sec, Bytes *pm);
-static void	serverMasterSecret(TlsSec *sec, uint8_t *epm, int nepm);
-static void	setSecrets(TlsSec *sec, uint8_t *kd, int nkd);
-static int	clientMasterSecret(TlsSec *sec, RSApub *pub, uint8_t **epm,
+static void	serverMasterSecret(TlsSec *sec, u8 *epm, int nepm);
+static void	setSecrets(TlsSec *sec, u8 *kd, int nkd);
+static int	clientMasterSecret(TlsSec *sec, RSApub *pub, u8 **epm,
 				     int *nepm);
 static Bytes *pkcs1_encrypt(Bytes* data, RSApub* key, int blocktype);
-static Bytes *pkcs1_decrypt(TlsSec *sec, uint8_t *epm, int nepm);
+static Bytes *pkcs1_decrypt(TlsSec *sec, u8 *epm, int nepm);
 static void	tlsSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
-				  uint8_t *finished, int isClient);
+				  u8 *finished, int isClient);
 static void	sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
-				  uint8_t *finished, int isClient);
-static void	sslPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey,
+				  u8 *finished, int isClient);
+static void	sslPRF(u8 *buf, int nbuf, u8 *key, int nkey,
 			  char *label,
-			uint8_t *seed0, int nseed0, uint8_t *seed1,
-			  int nseed1);
+			u8 *seed0, int nseed0, u8 *seed1,
+			int nseed1);
 static int setVers(TlsSec *sec, int version);
 
-static AuthRpc* factotum_rsa_open(uint8_t *cert, int certlen);
+static AuthRpc* factotum_rsa_open(u8 *cert, int certlen);
 static mpint* factotum_rsa_decrypt(AuthRpc *rpc, mpint *cipher);
 static void factotum_rsa_close(AuthRpc*rpc);
 
 static void* emalloc(int);
 static void* erealloc(void*, int);
-static void put32(uint8_t *p, uint32_t);
-static void put24(uint8_t *p, int);
-static void put16(uint8_t *p, int);
-static int get24(uint8_t *p);
-static int get16(uint8_t *p);
+static void put32(u8 *p, u32);
+static void put24(u8 *p, int);
+static void put16(u8 *p, int);
+static int get24(u8 *p);
+static int get16(u8 *p);
 static Bytes* newbytes(int len);
-static Bytes* makebytes(uint8_t* buf, int len);
+static Bytes* makebytes(u8 * buf, int len);
 static void freebytes(Bytes* b);
 static Ints* newints(int len);
 static void freeints(Ints* b);
@@ -452,13 +452,13 @@ countchain(PEMChain *p)
 }
 
 static TlsConnection *
-tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
+tlsServer2(int ctl, int hand, u8 *cert, int ncert,
 	   int (*trace)(char*fmt, ...), PEMChain *chp)
 {
 	TlsConnection *c;
 	Msg m;
 	Bytes *csid;
-	uint8_t sid[SidSize], kd[MaxKeyData];
+	u8 sid[SidSize], kd[MaxKeyData];
 	char *secrets;
 	int cipher, compressor, nsid, rv, numcerts, i;
 
@@ -624,12 +624,12 @@ Err:
 }
 
 static TlsConnection *
-tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
+tlsClient2(int ctl, int hand, u8 *csid, int ncsid,
 	   int (*trace)(char*fmt, ...))
 {
 	TlsConnection *c;
 	Msg m;
-	uint8_t kd[MaxKeyData], *epm;
+	u8 kd[MaxKeyData], *epm;
 	char *secrets;
 	int creq, nepm, rv;
 
@@ -824,12 +824,12 @@ Err:
 
 //================= message functions ========================
 
-static uint8_t sendbuf[9000], *sendp;
+static u8 sendbuf[9000], *sendp;
 
 static int
 msgSend(TlsConnection *c, Msg *m, int act)
 {
-	uint8_t *p; // sendp = start of new message;  p = write pointer
+	u8 *p; // sendp = start of new message;  p = write pointer
 	int nn, n, i;
 
 	if(sendp == nil)
@@ -957,10 +957,10 @@ Err:
 	return 0;
 }
 
-static uint8_t*
+static u8 *
 tlsReadN(TlsConnection *c, int n)
 {
-	uint8_t *p;
+	u8 *p;
 	int nn, nr;
 
 	nn = c->ep - c->rp;
@@ -985,7 +985,7 @@ tlsReadN(TlsConnection *c, int n)
 static int
 msgRecv(TlsConnection *c, Msg *m)
 {
-	uint8_t *p;
+	u8 *p;
 	int type, n, nn, i, nsid, nrandom, nciph;
 
 	for(;;) {
@@ -1622,7 +1622,7 @@ makeciphers(void)
 // given X.509 certificate, set up connection to factotum
 //	for using corresponding private key
 static AuthRpc*
-factotum_rsa_open(uint8_t *cert, int certlen)
+factotum_rsa_open(u8 *cert, int certlen)
 {
 	int afd;
 	char *s;
@@ -1688,11 +1688,11 @@ factotum_rsa_close(AuthRpc*rpc)
 }
 
 static void
-tlsPmd5(uint8_t *buf, int nbuf, uint8_t *key, int nkey, uint8_t *label,
-	int nlabel, uint8_t *seed0, int nseed0, uint8_t *seed1,
+tlsPmd5(u8 *buf, int nbuf, u8 *key, int nkey, u8 *label,
+	int nlabel, u8 *seed0, int nseed0, u8 *seed1,
 	int nseed1)
 {
-	uint8_t ai[MD5dlen], tmp[MD5dlen];
+	u8 ai[MD5dlen], tmp[MD5dlen];
 	int i, n;
 	MD5state *s;
 
@@ -1719,11 +1719,11 @@ tlsPmd5(uint8_t *buf, int nbuf, uint8_t *key, int nkey, uint8_t *label,
 }
 
 static void
-tlsPsha1(uint8_t *buf, int nbuf, uint8_t *key, int nkey, uint8_t *label,
-	 int nlabel, uint8_t *seed0, int nseed0, uint8_t *seed1,
+tlsPsha1(u8 *buf, int nbuf, u8 *key, int nkey, u8 *label,
+	 int nlabel, u8 *seed0, int nseed0, u8 *seed1,
 	 int nseed1)
 {
-	uint8_t ai[SHA1dlen], tmp[SHA1dlen];
+	u8 ai[SHA1dlen], tmp[SHA1dlen];
 	int i, n;
 	SHAstate *s;
 
@@ -1751,8 +1751,8 @@ tlsPsha1(uint8_t *buf, int nbuf, uint8_t *key, int nkey, uint8_t *label,
 
 // fill buf with md5(args)^sha1(args)
 static void
-tlsPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, char *label,
-       uint8_t *seed0, int nseed0, uint8_t *seed1, int nseed1)
+tlsPRF(u8 *buf, int nbuf, u8 *key, int nkey, char *label,
+       u8 *seed0, int nseed0, u8 *seed1, int nseed1)
 {
 	int i;
 	int nlabel = strlen(label);
@@ -1760,9 +1760,9 @@ tlsPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, char *label,
 
 	for(i = 0; i < nbuf; i++)
 		buf[i] = 0;
-	tlsPmd5(buf, nbuf, key, n, (uint8_t*)label, nlabel, seed0, nseed0,
+	tlsPmd5(buf, nbuf, key, n, (u8*)label, nlabel, seed0, nseed0,
 		seed1, nseed1);
-	tlsPsha1(buf, nbuf, key+nkey-n, n, (uint8_t*)label, nlabel, seed0,
+	tlsPsha1(buf, nbuf, key+nkey-n, n, (u8*)label, nlabel, seed0,
 		 nseed0, seed1, nseed1);
 }
 
@@ -1770,13 +1770,13 @@ tlsPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, char *label,
  * for setting server session id's
  */
 static Lock	sidLock;
-static int32_t	maxSid = 1;
+static i32	maxSid = 1;
 
 /* the keys are verified to have the same public components
  * and to function correctly with pkcs 1 encryption and decryption. */
 static TlsSec*
-tlsSecInits(int cvers, uint8_t *csid, int ncsid, uint8_t *crandom,
-	    uint8_t *ssid, int *nssid, uint8_t *srandom)
+tlsSecInits(int cvers, u8 *csid, int ncsid, u8 *crandom,
+	    u8 *ssid, int *nssid, u8 *srandom)
 {
 	TlsSec *sec = emalloc(sizeof(*sec));
 
@@ -1803,7 +1803,7 @@ tlsSecInits(int cvers, uint8_t *csid, int ncsid, uint8_t *crandom,
 }
 
 static int
-tlsSecSecrets(TlsSec *sec, int vers, uint8_t *epm, int nepm, uint8_t *kd,
+tlsSecSecrets(TlsSec *sec, int vers, u8 *epm, int nepm, u8 *kd,
 	      int nkd)
 {
 	if(epm != nil){
@@ -1822,7 +1822,7 @@ Err:
 }
 
 static TlsSec*
-tlsSecInitc(int cvers, uint8_t *crandom)
+tlsSecInitc(int cvers, u8 *crandom)
 {
 	TlsSec *sec = emalloc(sizeof(*sec));
 	sec->clientVers = cvers;
@@ -1833,9 +1833,9 @@ tlsSecInitc(int cvers, uint8_t *crandom)
 }
 
 static int
-tlsSecSecretc(TlsSec *sec, uint8_t *sid, int nsid, uint8_t *srandom,
-	      uint8_t *cert, int ncert, int vers, uint8_t **epm,
-	      int *nepm, uint8_t *kd, int nkd)
+tlsSecSecretc(TlsSec *sec, u8 *sid, int nsid, u8 *srandom,
+	      u8 *cert, int ncert, int vers, u8 **epm,
+	      int *nepm, u8 *kd, int nkd)
 {
 	RSApub *pub;
 
@@ -1868,7 +1868,7 @@ Err:
 }
 
 static int
-tlsSecFinished(TlsSec *sec, MD5state md5, SHAstate sha1, uint8_t *fin,
+tlsSecFinished(TlsSec *sec, MD5state md5, SHAstate sha1, u8 *fin,
 	       int nfin, int isclient)
 {
 	if(sec->nfin != nfin){
@@ -1926,7 +1926,7 @@ setVers(TlsSec *sec, int v)
  * but it's all generated using the same function.
  */
 static void
-setSecrets(TlsSec *sec, uint8_t *kd, int nkd)
+setSecrets(TlsSec *sec, u8 *kd, int nkd)
 {
 	(*sec->prf)(kd, nkd, sec->sec, MasterSecretSize, "key expansion",
 			sec->srandom, RandomSize, sec->crandom, RandomSize);
@@ -1943,7 +1943,7 @@ setMasterSecret(TlsSec *sec, Bytes *pm)
 }
 
 static void
-serverMasterSecret(TlsSec *sec, uint8_t *epm, int nepm)
+serverMasterSecret(TlsSec *sec, u8 *epm, int nepm)
 {
 	Bytes *pm;
 
@@ -1967,7 +1967,7 @@ serverMasterSecret(TlsSec *sec, uint8_t *epm, int nepm)
 }
 
 static int
-clientMasterSecret(TlsSec *sec, RSApub *pub, uint8_t **epm, int *nepm)
+clientMasterSecret(TlsSec *sec, RSApub *pub, u8 **epm, int *nepm)
 {
 	Bytes *pm, *key;
 
@@ -2001,10 +2001,10 @@ clientMasterSecret(TlsSec *sec, RSApub *pub, uint8_t **epm, int *nepm)
 
 static void
 sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
-	       uint8_t *finished, int isClient)
+	       u8 *finished, int isClient)
 {
 	DigestState *s;
-	uint8_t h0[MD5dlen], h1[SHA1dlen], pad[48];
+	u8 h0[MD5dlen], h1[SHA1dlen], pad[48];
 	char *label;
 
 	if(isClient)
@@ -2012,7 +2012,7 @@ sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 	else
 		label = "SRVR";
 
-	md5((uint8_t*)label, 4, nil, &hsmd5);
+	md5((u8*)label, 4, nil, &hsmd5);
 	md5(sec->sec, MasterSecretSize, nil, &hsmd5);
 	memset(pad, 0x36, 48);
 	md5(pad, 48, nil, &hsmd5);
@@ -2022,7 +2022,7 @@ sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 	s = md5(pad, 48, nil, s);
 	md5(h0, MD5dlen, finished, s);
 
-	sha1((uint8_t*)label, 4, nil, &hssha1);
+	sha1((u8*)label, 4, nil, &hssha1);
 	sha1(sec->sec, MasterSecretSize, nil, &hssha1);
 	memset(pad, 0x36, 40);
 	sha1(pad, 40, nil, &hssha1);
@@ -2036,9 +2036,9 @@ sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 // fill "finished" arg with md5(args)^sha1(args)
 static void
 tlsSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
-	       uint8_t *finished, int isClient)
+	       u8 *finished, int isClient)
 {
-	uint8_t h0[MD5dlen], h1[SHA1dlen];
+	u8 h0[MD5dlen], h1[SHA1dlen];
 	char *label;
 
 	// get current hash value, but allow further messages to be hashed in
@@ -2053,11 +2053,11 @@ tlsSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 }
 
 static void
-sslPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, char *label,
-       uint8_t *seed0, int nseed0, uint8_t *seed1, int nseed1)
+sslPRF(u8 *buf, int nbuf, u8 *key, int nkey, char *label,
+       u8 *seed0, int nseed0, u8 *seed1, int nseed1)
 {
 	DigestState *s;
-	uint8_t sha1dig[SHA1dlen], md5dig[MD5dlen], tmp[26];
+	u8 sha1dig[SHA1dlen], md5dig[MD5dlen], tmp[26];
 	int i, n, len;
 
 	USED(label);
@@ -2099,7 +2099,7 @@ static Bytes*
 mptobytes(mpint* big)
 {
 	int n, m;
-	uint8_t *a;
+	u8 *a;
 	Bytes* ans;
 
 	a = nil;
@@ -2181,7 +2181,7 @@ pkcs1_encrypt(Bytes* data, RSApub* key, int blocktype)
 // decrypt data according to PKCS#1, with given key.
 // expect a block type of 2.
 static Bytes*
-pkcs1_decrypt(TlsSec *sec, uint8_t *epm, int nepm)
+pkcs1_decrypt(TlsSec *sec, u8 *epm, int nepm)
 {
 	Bytes *eb, *ans = nil;
 	int i, modlen;
@@ -2244,7 +2244,7 @@ erealloc(void *ReallocP, int ReallocN)
 }
 
 static void
-put32(uint8_t *p, uint32_t x)
+put32(u8 *p, u32 x)
 {
 	p[0] = x>>24;
 	p[1] = x>>16;
@@ -2253,7 +2253,7 @@ put32(uint8_t *p, uint32_t x)
 }
 
 static void
-put24(uint8_t *p, int x)
+put24(u8 *p, int x)
 {
 	p[0] = x>>16;
 	p[1] = x>>8;
@@ -2261,20 +2261,20 @@ put24(uint8_t *p, int x)
 }
 
 static void
-put16(uint8_t *p, int x)
+put16(u8 *p, int x)
 {
 	p[0] = x>>8;
 	p[1] = x;
 }
 
 static int
-get24(uint8_t *p)
+get24(u8 *p)
 {
 	return (p[0]<<16)|(p[1]<<8)|p[2];
 }
 
 static int
-get16(uint8_t *p)
+get16(u8 *p)
 {
 	return (p[0]<<8)|p[1];
 }
@@ -2300,7 +2300,7 @@ newbytes(int len)
  * newbytes(len), with data initialized from buf
  */
 static Bytes*
-makebytes(uint8_t* buf, int len)
+makebytes(u8 * buf, int len)
 {
 	Bytes* ans;
 

@@ -570,7 +570,7 @@ fchar(void)
 			return -1;
 		cons.offset += uidgc.flen;
 	}
-	return (uint8_t)uidgc.uidbuf->iobuf[uidgc.find++];
+	return (u8)uidgc.uidbuf->iobuf[uidgc.find++];
 }
 
 int

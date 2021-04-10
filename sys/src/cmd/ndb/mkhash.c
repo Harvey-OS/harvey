@@ -16,10 +16,10 @@
  *  make the hash table completely in memory and then write as a file
  */
 
-uint8_t *ht;
-uint32_t hlen;
+u8 *ht;
+u32 hlen;
 Ndb *db;
-uint32_t nextchain;
+u32 nextchain;
 
 char*
 syserr(void)
@@ -31,11 +31,11 @@ syserr(void)
 }
 
 void
-enter(char *val, uint32_t dboff)
+enter(char *val, u32 dboff)
 {
-	uint32_t h;
-	uint8_t *last;
-	uint32_t ptr;
+	u32 h;
+	u8 *last;
+	u32 ptr;
 
 	h = ndbhash(val, hlen);
 	h *= NDBPLEN;
@@ -70,7 +70,7 @@ enter(char *val, uint32_t dboff)
 	nextchain += 2*NDBPLEN;
 }
 
-uint8_t nbuf[16*1024];
+u8 nbuf[16*1024];
 
 void
 main(int argc, char **argv)
@@ -78,11 +78,11 @@ main(int argc, char **argv)
 	Ndbtuple *t, *nt;
 	int n;
 	Dir *d;
-	uint8_t buf[8];
+	u8 buf[8];
 	char file[128];
 	int fd;
-	uint32_t off;
-	uint8_t *p;
+	u32 off;
+	u8 *p;
 
 	if(argc != 3){
 		fprint(2, "usage: mkhash file attribute\n");

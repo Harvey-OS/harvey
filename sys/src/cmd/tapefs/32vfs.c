@@ -48,14 +48,14 @@ struct v32dinode {
 };
 
 struct	v32dir {
-	uint8_t	ino[2];
+	u8	ino[2];
 	char	name[VNAMELEN];
 };
 
 int	tapefile;
 Fileinf	iget(int ino);
-int32_t	bmap(Ram *r, int32_t bno);
-void	getblk(Ram *r, int32_t bno, char *buf);
+i32	bmap(Ram *r, i32 bno);
+void	getblk(Ram *r, i32 bno, char *buf);
 
 void
 populate(char *name)
@@ -122,7 +122,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, int64_t off, int32_t cnt)
+doread(Ram *r, i64 off, i32 cnt)
 {
 	static char buf[Maxbuf+MAXBLSIZE];
 	int bno, i;
@@ -144,7 +144,7 @@ doread(Ram *r, int64_t off, int32_t cnt)
 }
 
 void
-dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, i32 off, i32 cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -167,7 +167,7 @@ iget(int ino)
 {
 	char buf[MAXBLSIZE];
 	struct v32dinode *dp;
-	int32_t flags, i;
+	i32 flags, i;
 	Fileinf f;
 
 	seek(tapefile, BLSIZE*((ino-1)/LINOPB + VSUPERB + 1), 0);
@@ -178,9 +178,9 @@ iget(int ino)
 	f.size = g4byte(dp->size);
 	if ((flags&VFMT)==VIFCHR || (flags&VFMT)==VIFBLK)
 		f.size = 0;
-	f.data = emalloc(VNADDR*sizeof(int32_t));
+	f.data = emalloc(VNADDR*sizeof(i32));
 	for (i = 0; i < VNADDR; i++)
-		((int32_t*)f.data)[i] = g3byte(dp->addr+3*i);
+		((i32*)f.data)[i] = g3byte(dp->addr+3*i);
 	f.mode = flags & VMODE;
 	if ((flags&VFMT)==VIFDIR)
 		f.mode |= DMDIR;
@@ -191,9 +191,9 @@ iget(int ino)
 }
 
 void
-getblk(Ram *r, int32_t bno, char *buf)
+getblk(Ram *r, i32 bno, char *buf)
 {
-	int32_t dbno;
+	i32 dbno;
 
 	if ((dbno = bmap(r, bno)) == 0) {
 		memset(buf, 0, BLSIZE);
@@ -209,16 +209,16 @@ getblk(Ram *r, int32_t bno, char *buf)
  * only singly-indirect files for now
  */
 
-int32_t
-bmap(Ram *r, int32_t bno)
+i32
+bmap(Ram *r, i32 bno)
 {
 	unsigned char indbuf[MAXLNINDIR][4];
 
 	if (bno < VNADDR-3)
-		return ((int32_t*)r->data)[bno];
+		return ((i32*)r->data)[bno];
 	if (bno < VNADDR*LNINDIR) {
 		seek(tapefile,
-		     ((int32_t *)r->data)[(bno-(VNADDR-3))/LNINDIR]*BLSIZE,
+		     ((i32 *)r->data)[(bno-(VNADDR-3))/LNINDIR]*BLSIZE,
 		     0);
 		if (read(tapefile, (char *)indbuf, BLSIZE) != BLSIZE)
 			return 0;

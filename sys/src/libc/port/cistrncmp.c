@@ -16,8 +16,8 @@ cistrncmp(const char *s1, const char *s2, int n)
 	int c1, c2;
 
 	while(*s1 && n-- > 0){
-		c1 = *(uint8_t*)s1++;
-		c2 = *(uint8_t*)s2++;
+		c1 = *(u8*)s1++;
+		c2 = *(u8*)s2++;
 
 		if(c1 == c2)
 			continue;

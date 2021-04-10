@@ -168,15 +168,15 @@ combinerect(Rectangle *r1, Rectangle r2)
 		r1->max.y = r2.max.y;
 }
 
-uint32_t drawld2chan[] = {
+u32 drawld2chan[] = {
 	GREY1,
 	GREY2,
 	GREY4,
 	CMAP8,
 };
 
-uint32_t
-setalpha(uint32_t color, uint8_t alpha)
+u32
+setalpha(u32 color, u8 alpha)
 {
 	int red, green, blue;
 

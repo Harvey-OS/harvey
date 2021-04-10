@@ -53,9 +53,9 @@ globsort(word *left, word *right)
  */
 
 void
-globdir(uint8_t *p, uint8_t *namep)
+globdir(u8 *p, u8 *namep)
 {
-	uint8_t *t, *newp;
+	u8 *t, *newp;
 	int f;
 	/* scan the pattern looking for a component with a metacharacter in it */
 	if(*p=='\0'){
@@ -100,7 +100,7 @@ globdir(uint8_t *p, uint8_t *namep)
 void
 glob(void *ap)
 {
-	uint8_t *p = ap;
+	u8 *p = ap;
 	word *svglobv = globv;
 	int globlen = Globsize(ap);
 
@@ -111,7 +111,7 @@ glob(void *ap)
 	}
 	globname = emalloc(globlen);
 	globname[0]='\0';
-	globdir(p, (uint8_t *)globname);
+	globdir(p, (u8 *)globname);
 	efree(globname);
 	if(svglobv==globv){
 		deglob(p);
@@ -125,7 +125,7 @@ glob(void *ap)
  * Do p and q point at equal utf codes
  */
 int
-equtf(uint8_t *p, uint8_t *q)
+equtf(u8 *p, u8 *q)
 {
 	Rune pr, qr;
 	if(*p!=*q)
@@ -141,8 +141,8 @@ equtf(uint8_t *p, uint8_t *q)
  * not jumping past nuls in broken utf codes!
  */
 
-uint8_t*
-nextutf(uint8_t *p)
+u8 *
+nextutf(u8 *p)
 {
 	Rune dummy;
 	return p + chartorune(&dummy, (char*)p);
@@ -153,7 +153,7 @@ nextutf(uint8_t *p)
  */
 
 int
-unicode(uint8_t *p)
+unicode(u8 *p)
 {
 	Rune r;
 
@@ -172,7 +172,7 @@ unicode(uint8_t *p)
 int
 matchfn(void *as, void *ap)
 {
-	uint8_t *s = as, *p = ap;
+	u8 *s = as, *p = ap;
 
 	if(s[0]=='.' && (s[1]=='\0' || (s[1]=='.' && s[2]=='\0')) && p[0]!='.')
 		return 0;
@@ -183,7 +183,7 @@ int
 match(void *as, void *ap, int stop)
 {
 	int compl, hit, lo, hi, t, c;
-	uint8_t *s = as, *p = ap;
+	u8 *s = as, *p = ap;
 
 	for(; *p!=stop && *p!='\0'; s = nextutf(s), p = nextutf(p)){
 		if(*p!=GLOB){

@@ -24,19 +24,19 @@ extern char* getpassm(char*);
 
 enum{ CHK = 16, BUF = 4096 };
 
-uint8_t v2hdr[AESbsize+1] = "AES CBC SHA1  2\n";
+u8 v2hdr[AESbsize+1] = "AES CBC SHA1  2\n";
 Biobuf bin;
 Biobuf bout;
 
 void
-safewrite(uint8_t *buf, int n)
+safewrite(u8 *buf, int n)
 {
 	if(Bwrite(&bout, buf, n) != n)
 		sysfatal("write error");
 }
 
 void
-saferead(uint8_t *buf, int n)
+saferead(u8 *buf, int n)
 {
 	if(Bread(&bin, buf, n) != n)
 		sysfatal("read error");

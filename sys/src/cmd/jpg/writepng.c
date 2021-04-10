@@ -30,7 +30,7 @@ typedef struct ZlibW ZlibW;
 
 struct ZlibR
 {
-	uint8_t *data;
+	u8 *data;
 	int width;
 	int dx;
 	int dy;
@@ -42,16 +42,16 @@ struct ZlibR
 struct ZlibW
 {
 	Biobuf *io;
-	uint8_t *buf;
-	uint8_t *b;
-	uint8_t *e;
+	u8 *buf;
+	u8 *b;
+	u8 *e;
 };
 
-static uint32_t *crctab;
-static uint8_t PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static u32 *crctab;
+static u8 PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
 
 static void
-put4(uint8_t *a, uint32_t v)
+put4(u8 *a, u32 v)
 {
 	a[0] = v>>24;
 	a[1] = v>>16;
@@ -60,10 +60,10 @@ put4(uint8_t *a, uint32_t v)
 }
 
 static void
-chunk(Biobuf *bo, char *type, uint8_t *d, int n)
+chunk(Biobuf *bo, char *type, u8 *d, int n)
 {
-	uint8_t buf[4];
-	uint32_t crc = 0;
+	u8 buf[4];
+	u32 crc = 0;
 
 	if(strlen(type) != 4)
 		return;
@@ -81,7 +81,7 @@ static int
 zread(void *va, void *buf, int n)
 {
 	int a, i, pixels, pixwid;
-	uint8_t *b, *e, *img;
+	u8 *b, *e, *img;
 	ZlibR *z;
 
 	z = va;
@@ -127,7 +127,7 @@ zread(void *va, void *buf, int n)
 			z->y++;
 		}
 	}
-	return b - (uint8_t*)buf;
+	return b - (u8*)buf;
 }
 
 static void
@@ -141,7 +141,7 @@ static int
 zwrite(void *va, void *buf, int n)
 {
 	int m;
-	uint8_t *b, *e;
+	u8 *b, *e;
 	ZlibW *z;
 
 	z = va;
@@ -166,7 +166,7 @@ memRGBA(Memimage *i)
 {
 	Memimage *ni;
 	char buf[32];
-	uint32_t dst;
+	u32 dst;
 
 	/*
 	 * [A]BGR because we want R,G,B,[A] in big-endian order.  Sigh.
@@ -191,8 +191,8 @@ char*
 memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 {
 	int err, n;
-	uint8_t buf[200], *h;
-	uint32_t vgamma;
+	u8 buf[200], *h;
+	u32 vgamma;
 	Tm *tm;
 	Memimage *rgb;
 	ZlibR zr;
@@ -253,7 +253,7 @@ memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 	/* image data */
 	zr.dx = Dx(m->r);
 	zr.dy = Dy(m->r);
-	zr.width = rgb->width * sizeof(uint32_t);
+	zr.width = rgb->width * sizeof(u32);
 	zr.data = rgb->data->bdata;
 	zr.x = 0;
 	zr.y = 0;

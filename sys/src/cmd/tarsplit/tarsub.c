@@ -24,16 +24,16 @@ enum {
 char *thisnm, *lastnm;
 
 /* private data */
-static uint64_t outoff = 0;		/* maintained by newarch, writetar */
+static u64 outoff = 0;		/* maintained by newarch, writetar */
 
 unsigned
 checksum(Hblock *hp)
 {
 	int i;
-	uint8_t *cp, *csum, *end;
+	u8 *cp, *csum, *end;
 
 	i = ' ' * sizeof hp->header.chksum;	/* pretend blank chksum field */
-	csum = (uint8_t *)hp->header.chksum;
+	csum = (u8 *)hp->header.chksum;
 	end = &hp->dummy[Tblock];
 	/*
 	 * Unixware gets this wrong; it adds *signed* chars.
@@ -48,7 +48,7 @@ checksum(Hblock *hp)
 }
 
 void
-readtar(int in, char *buffer, int32_t size)
+readtar(int in, char *buffer, i32 size)
 {
 	int i;
 	unsigned bytes;
@@ -75,8 +75,8 @@ newarch(void)
 	outoff = 0;
 }
 
-uint64_t
-writetar(int outf, char *buffer, uint32_t size)
+u64
+writetar(int outf, char *buffer, u32 size)
 {
 	if (write(outf, buffer, size) < size) {
 		fprint(2, "%s: archive write error: %r\n", argv0);
@@ -87,11 +87,11 @@ writetar(int outf, char *buffer, uint32_t size)
 	return outoff;
 }
 
-uint32_t
+u32
 otoi(char *s)
 {
 	int c;
-	uint32_t ul = 0;
+	u32 ul = 0;
 
 	while (isascii(*s) && isspace(*s))
 		s++;
@@ -103,7 +103,7 @@ otoi(char *s)
 }
 
 int
-getdir(Hblock *hp, int in, int64_t *lenp)
+getdir(Hblock *hp, int in, i64 *lenp)
 {
 	*lenp = 0;
 	readtar(in, (char*)hp, Tblock);
@@ -121,18 +121,18 @@ getdir(Hblock *hp, int in, int64_t *lenp)
 	return 1;
 }
 
-uint64_t
-passtar(Hblock *hp, int in, int outf, int64_t len)
+u64
+passtar(Hblock *hp, int in, int outf, i64 len)
 {
-	uint32_t bytes;
-	int64_t off;
-	uint64_t blks;
+	u32 bytes;
+	i64 off;
+	u64 blks;
 	char bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
 
 	off = outoff;
 	if (islink(hp->header.linkflag))
 		return off;
-	for (blks = TAPEBLKS((uint64_t)len); blks >= Blocksxfr;
+	for (blks = TAPEBLKS((u64)len); blks >= Blocksxfr;
 	    blks -= Blocksxfr) {
 		readtar(in, bigbuf, sizeof bigbuf);
 		off = writetar(outf, bigbuf, sizeof bigbuf);

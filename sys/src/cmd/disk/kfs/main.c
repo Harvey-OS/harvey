@@ -195,8 +195,8 @@ syncproc(void)
 {
 	char buf[4*1024];
 	Filter *ft;
-	uint32_t c0, c1;
-	int32_t t, n, d;
+	u32 c0, c1;
+	i32 t, n, d;
 	int i, p[2];
 
 	/*
@@ -433,7 +433,7 @@ askream(Filsys *fs)
 	return c == 'y';
 }
 
-uint32_t
+u32
 memsize(void)
 {
 	char *p, buf[128];
@@ -501,9 +501,9 @@ fsinit(int ream, int newbufsize)
 	 */
 	BUFSIZE = RBUFSIZE - sizeof(Tag);
 	DIRPERBUF = BUFSIZE / sizeof(Dentry);
-	INDPERBUF = BUFSIZE / sizeof(int32_t);
+	INDPERBUF = BUFSIZE / sizeof(i32);
 	INDPERBUF2 = INDPERBUF * INDPERBUF;
-	FEPERBUF = (BUFSIZE - sizeof(Super1) - sizeof(int32_t)) / sizeof(int32_t);
+	FEPERBUF = (BUFSIZE - sizeof(Super1) - sizeof(i32)) / sizeof(i32);
 	return ream;
 }
 
@@ -515,7 +515,7 @@ fsinit(int ream, int newbufsize)
 void
 iobufinit(void)
 {
-	int32_t i;
+	i32 i;
 	Iobuf *p, *q;
 	Hiob *hp;
 

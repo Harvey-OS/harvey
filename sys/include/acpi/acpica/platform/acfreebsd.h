@@ -161,8 +161,8 @@
 #define ACPI_MACHINE_WIDTH      32
 #endif
 
-#define COMPILER_DEPENDENT_INT64        int64_t
-#define COMPILER_DEPENDENT_UINT64       uint64_t
+#define COMPILER_DEPENDENT_INT64        i64
+#define COMPILER_DEPENDENT_UINT64       u64
 
 #define ACPI_UINTPTR_T      uintptr_t
 

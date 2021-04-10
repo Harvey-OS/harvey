@@ -29,8 +29,8 @@
 int
 encrypt(void *key, void *vbuf, int n)
 {
-	uint32_t ekey[32];
-	uint8_t *buf;
+	u32 ekey[32];
+	u8 *buf;
 	int i, r;
 
 	if(n < 8)
@@ -56,8 +56,8 @@ encrypt(void *key, void *vbuf, int n)
 int
 decrypt(void *key, void *vbuf, int n)
 {
-	uint32_t ekey[128];
-	uint8_t *buf;
+	u32 ekey[128];
+	u8 *buf;
 	int i, r;
 
 	if(n < 8)

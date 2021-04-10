@@ -20,12 +20,12 @@ extern void *ACPIRootPointer;
 extern int ACPITableSize;
 extern UINT32 AcpiDbgLevel;
 
-extern ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, uint32_t pin, int* irq);
+extern ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, u32 pin, int* irq);
 
 void hexdump(void *v, int length)
 {
 	int i;
-	uint8_t *m = v;
+	u8 *m = v;
 	uintptr_t memory = (uintptr_t) v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);

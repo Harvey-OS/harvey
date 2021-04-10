@@ -25,9 +25,9 @@ threadmain(int argc, char *argv[])
 {
 	Part *part;
 	char *file;
-	int64_t bits, size, size2;
+	i64 bits, size, size2;
 	int nhash;
-	int64_t nblocks;
+	i64 nblocks;
 
 	ventifmtinstall();
 	statsinit();
@@ -77,7 +77,7 @@ threadmain(int argc, char *argv[])
 
 	if(size > MaxBloomSize){
 		fprint(2, "warning: not using entire %,lld bytes; using only %,lld bytes\n",
-			size, (int64_t)MaxBloomSize);
+			size, (i64)MaxBloomSize);
 		size = MaxBloomSize;
 	}
 	if(size&(size-1)){

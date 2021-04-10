@@ -14,7 +14,7 @@ rmtmp(void)
 }
 
 static int
-preadn(int fd, char *buf, int32_t nbytes, int64_t offset)
+preadn(int fd, char *buf, i32 nbytes, i64 offset)
 {
 	int nread = 0;
 	do {

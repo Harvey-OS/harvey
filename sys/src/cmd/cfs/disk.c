@@ -14,7 +14,7 @@
 #include "bcache.h"
 #include "disk.h"
 
-int	icformat(Disk*, uint32_t);
+int	icformat(Disk*, u32);
 
 /*
  *  read in the disk structures,  return -1 if the format
@@ -23,8 +23,8 @@ int	icformat(Disk*, uint32_t);
 int
 dinit(Disk *d, int f, int psize, char *expname)
 {
-	uint32_t	i;
-	uint64_t	length;
+	u32	i;
+	u64	length;
 	char	buf[1024];
 	Bbuf	*b;
 	Dalloc	*ba;
@@ -114,10 +114,10 @@ dinit(Disk *d, int f, int psize, char *expname)
  *  format the disk as a cache
  */
 int
-dformat(Disk *d, int f, char *name, uint32_t bsize, uint32_t psize)
+dformat(Disk *d, int f, char *name, u32 bsize, u32 psize)
 {
 	int	i;
-	uint64_t	length;
+	u64	length;
 	Bbuf	*b;
 	Dalloc	*ba;
 	Dir	*dir;
@@ -179,14 +179,14 @@ dformat(Disk *d, int f, char *name, uint32_t bsize, uint32_t psize)
  *
  *  a return value of Notabno means no blocks left
  */
-static uint32_t
-_balloc(Dalloc *ba, uint32_t max)
+static u32
+_balloc(Dalloc *ba, u32 max)
 {
 	int len;	/* number of valid words */
-	uint32_t i;	/* bit position in long */
-	uint32_t m;	/* 1<<i */
-	uint32_t v;	/* old value of long */
-	uint32_t *p, *e;
+	u32 i;	/* bit position in long */
+	u32 m;	/* 1<<i */
+	u32 v;	/* old value of long */
+	u32 *p, *e;
 
 	/*
 	 *  find a word with a 0 bit
@@ -225,10 +225,10 @@ _balloc(Dalloc *ba, uint32_t max)
  *
  *  return Notabno if none left
  */
-uint32_t
+u32
 dalloc(Disk *d, Dptr *p)
 {
-	uint32_t	bno, max, rv;
+	u32	bno, max, rv;
 	Bbuf	*b;
 	Dalloc	*ba;
 
@@ -256,7 +256,7 @@ dalloc(Disk *d, Dptr *p)
 /*
  *  allocate a block of pointers
  */
-uint32_t
+u32
 dpalloc(Disk *d, Dptr *p)
 {
 	Bbuf *b;
@@ -292,10 +292,10 @@ dpalloc(Disk *d, Dptr *p)
  *  free a block
  */
 int
-_bfree(Disk *d, uint32_t i)
+_bfree(Disk *d, u32 i)
 {
-	uint32_t bno, m;
-	uint32_t *p;
+	u32 bno, m;
+	u32 *p;
 	Bbuf *b;
 	Dalloc *ba;
 
@@ -328,7 +328,7 @@ _bfree(Disk *d, uint32_t i)
 int
 dfree(Disk *d, Dptr *dp)
 {
-	uint32_t bno;
+	u32 bno;
 	Dptr *sp, *ep;
 	Bbuf *b;
 

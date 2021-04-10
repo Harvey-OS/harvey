@@ -21,9 +21,9 @@ Channel *writechan;
 typedef struct Write Write;
 struct Write
 {
-	uint8_t *p;
+	u8 *p;
 	int n;
-	uint64_t o;
+	u64 o;
 	int error;
 };
 
@@ -33,7 +33,7 @@ int force;
 int verbose;
 int dosha1 = 1;
 char *status;
-uint64_t astart, aend;
+u64 astart, aend;
 
 void
 usage(void)
@@ -78,7 +78,7 @@ chat(char *fmt, ...)
 
 
 int
-ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
+ereadpart(Part *p, u64 offset, u8 *buf, u32 count)
 {
 	if(readpart(p, offset, buf, count) != count){
 		chat("%T readpart %s at %#llx+%u: %r\n", p->name, offset, count);
@@ -88,7 +88,7 @@ ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 }
 
 int
-ewritepart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
+ewritepart(Part *p, u64 offset, u8 *buf, u32 count)
 {
 	if(writepart(p, offset, buf, count) != count || flushpart(p) < 0){
 		chat("%T writepart %s at %#llx+%u: %r\n", p->name, offset, count);
@@ -118,11 +118,11 @@ writeproc(void *v)
 }
 
 int
-copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
+copy(u64 start, u64 end, char *what, DigestState *ds)
 {
 	int i, n;
-	uint64_t o;
-	static uint8_t tmp[2][1024*1024];
+	u64 o;
+	static u8 tmp[2][1024*1024];
 	Write w[2];
 
 	assert(start <= end);
@@ -177,11 +177,11 @@ error:
 
 /* single-threaded, for reference */
 int
-copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
+copy1(u64 start, u64 end, char *what, DigestState *ds)
 {
 	int n;
-	uint64_t o;
-	static uint8_t tmp[1024*1024];
+	u64 o;
+	static u8 tmp[1024*1024];
 
 	assert(start <= end);
 	assert(astart <= start && start < aend);
@@ -205,11 +205,11 @@ copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
 }
 
 int
-asha1(Part *p, uint64_t start, uint64_t end, DigestState *ds)
+asha1(Part *p, u64 start, u64 end, DigestState *ds)
 {
 	int n;
-	uint64_t o;
-	static uint8_t tmp[1024*1024];
+	u64 o;
+	static u8 tmp[1024*1024];
 
 	if(start == end)
 		return 0;
@@ -229,14 +229,14 @@ asha1(Part *p, uint64_t start, uint64_t end, DigestState *ds)
 	return 0;
 }
 
-uint64_t
-rdown(uint64_t a, int b)
+u64
+rdown(u64 a, int b)
 {
 	return a-a%b;
 }
 
-uint64_t
-rup(uint64_t a, int b)
+u64
+rup(u64 a, int b)
 {
 	if(a%b == 0)
 		return a;
@@ -246,12 +246,12 @@ rup(uint64_t a, int b)
 void
 mirror(Arena *sa, Arena *da)
 {
-	int64_t v, si, di, end;
+	i64 v, si, di, end;
 	int clumpmax, blocksize, sealed;
-	static uint8_t buf[MaxIoSize];
+	static u8 buf[MaxIoSize];
 	ArenaHead h;
 	DigestState xds, *ds;
-	int64_t shaoff, base;
+	i64 shaoff, base;
 
 	base = sa->base;
 	blocksize = sa->blocksize;

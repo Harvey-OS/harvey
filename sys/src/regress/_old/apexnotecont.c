@@ -12,7 +12,7 @@ typedef struct Pcstack Pcstack;
 static struct Pcstack {
 	int sig;
 	void (*hdlr)(int, char*, struct Ureg*);
-	uint64_t restorepc;
+	u64 restorepc;
 	struct Ureg *u;
 } pcstack[MAXSIGSTACK];
 
@@ -39,7 +39,7 @@ print("d\n");
 print("e\n");
 	nstack++;
 print("f\n");
-	u->ip = (uint64_t) notecont;
+	u->ip = (u64) notecont;
 print("g\n");
 	noted(2);	/* NSAVE: clear note but hold state */
 }

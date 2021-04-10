@@ -25,28 +25,28 @@
  * hextile encoding uses rre encoding on at most 16x16 rectangles tiled
  * across and then down the screen.
  */
-static int	encrre(uint8_t *raw, int stride, int w, int h, int back,
-			 int pixb, uint8_t *buf, int maxr, uint8_t *done,
-			 int (*eqpix)(uint8_t*, int, int),
-			 uint8_t *(putr)(uint8_t*, uint8_t*, int, int, int, int, int, int));
-static int	eqpix16(uint8_t *raw, int p1, int p2);
-static int	eqpix32(uint8_t *raw, int p1, int p2);
-static int	eqpix8(uint8_t *raw, int p1, int p2);
-static int	findback(uint8_t *raw, int stride, int w, int h,
-			   int (*eqpix)(uint8_t*, int, int));
-static uint8_t*	putcorre(uint8_t *buf, uint8_t *raw, int p, int pixb,
+static int	encrre(u8 *raw, int stride, int w, int h, int back,
+			 int pixb, u8 *buf, int maxr, u8 *done,
+			 int (*eqpix)(u8*, int, int),
+			 u8 *(putr)(u8*, u8*, int, int, int, int, int, int));
+static int	eqpix16(u8 *raw, int p1, int p2);
+static int	eqpix32(u8 *raw, int p1, int p2);
+static int	eqpix8(u8 *raw, int p1, int p2);
+static int	findback(u8 *raw, int stride, int w, int h,
+			   int (*eqpix)(u8*, int, int));
+static u8 *	putcorre(u8 *buf, u8 *raw, int p, int pixb,
 				int x, int y, int w, int h);
-static uint8_t*	putrre(uint8_t *buf, uint8_t *raw, int p, int pixb,
+static u8 *	putrre(u8 *buf, u8 *raw, int p, int pixb,
 			      int x, int y, int w, int h);
-static void	putpix(Vnc *v, uint8_t *raw, int p, int pixb);
-static int	hexcolors(uint8_t *raw, int stride, int w, int h,
-			    int (*eqpix)(uint8_t*, int, int), int back,
+static void	putpix(Vnc *v, u8 *raw, int p, int pixb);
+static int	hexcolors(u8 *raw, int stride, int w, int h,
+			    int (*eqpix)(u8*, int, int), int back,
 			    int *fore);
-static uint8_t	*puthexfore(uint8_t *buf, uint8_t*, int, int, int x,
+static u8	*puthexfore(u8 *buf, u8*, int, int, int x,
 				  int y, int w, int h);
-static uint8_t	*puthexcol(uint8_t *buf, uint8_t*, int, int, int x,
+static u8	*puthexcol(u8 *buf, u8*, int, int, int x,
 				 int y, int w, int h);
-static void	sendtraw(Vnc *v, uint8_t *raw, int pixb, int stride,
+static void	sendtraw(Vnc *v, u8 *raw, int pixb, int stride,
 			    int w, int h);
 
 /*
@@ -56,7 +56,7 @@ int
 sendraw(Vncs *v, Rectangle r)
 {
 	int pixb, stride;
-	uint8_t *raw;
+	u8 *raw;
 
 	if(!rectinrect(r, v->image->r))
 		sysfatal("sending bad rectangle");
@@ -64,7 +64,7 @@ sendraw(Vncs *v, Rectangle r)
 	pixb = v->vnc.pixfmt.bpp >> 3;
 	if((pixb << 3) != v->vnc.pixfmt.bpp)
 		sysfatal("bad pixel math in sendraw");
-	stride = v->image->width*sizeof(uint32_t);
+	stride = v->image->width*sizeof(u32);
 	if(((stride / pixb) * pixb) != stride)
 		sysfatal("bad pixel math in sendraw");
 	stride /= pixb;
@@ -90,10 +90,10 @@ countraw(Vncs *v, Rectangle r)
 int
 sendhextile(Vncs *v, Rectangle r)
 {
-	uint8_t *(*putr)(uint8_t*, uint8_t*, int, int, int, int, int,
+	u8 *(*putr)(u8*, u8*, int, int, int, int, int,
 			 int);
-	int (*eq)(uint8_t*, int, int);
-	uint8_t *raw, *buf, *done, *traw;
+	int (*eq)(u8*, int, int);
+	u8 *raw, *buf, *done, *traw;
 	int w, h, stride, pixb, pixlg, nr, bpr, back, fore;
 	int sy, sx, th, tw, oback, ofore, k, nc;
 
@@ -111,7 +111,7 @@ sendhextile(Vncs *v, Rectangle r)
 		return 1;
 	}
 	pixb = 1 << pixlg;
-	stride = v->image->width*sizeof(uint32_t);
+	stride = v->image->width*sizeof(u32);
 	if(((stride >> pixlg) << pixlg) != stride){
 		sendraw(v, r);
 		return 1;
@@ -211,8 +211,8 @@ counthextile(Vncs *v, Rectangle r)
 }
 
 static int
-hexcolors(uint8_t *raw, int stride, int w, int h,
-	  int (*eqpix)(uint8_t*, int, int), int back, int *rfore)
+hexcolors(u8 *raw, int stride, int w, int h,
+	  int (*eqpix)(u8*, int, int), int back, int *rfore)
 {
 	int s, es, sx, esx, fore;
 
@@ -237,8 +237,8 @@ hexcolors(uint8_t *raw, int stride, int w, int h,
 	return 2;
 }
 
-static uint8_t*
-puthexcol(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y,
+static u8 *
+puthexcol(u8 *buf, u8 *raw, int p, int pixb, int x, int y,
 	  int w, int h)
 {
 	raw += p * pixb;
@@ -249,8 +249,8 @@ puthexcol(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y,
 	return buf;
 }
 
-static uint8_t*
-puthexfore(uint8_t *buf, uint8_t *c, int i, int n, int x, int y, int w, int h)
+static u8 *
+puthexfore(u8 *buf, u8 *c, int i, int n, int x, int y, int w, int h)
 {
 	*buf++ = (x << 4) | y;
 	*buf++ = (w - 1) << 4 | (h - 1);
@@ -258,7 +258,7 @@ puthexfore(uint8_t *buf, uint8_t *c, int i, int n, int x, int y, int w, int h)
 }
 
 static void
-sendtraw(Vnc *v, uint8_t *raw, int pixb, int stride, int w, int h)
+sendtraw(Vnc *v, u8 *raw, int pixb, int stride, int w, int h)
 {
 	int y;
 
@@ -293,9 +293,9 @@ countcorre(Vncs *v, Rectangle r)
 static int
 _sendrre(Vncs *v, Rectangle r, int split, int compact)
 {
-	uint8_t *raw, *buf, *done;
+	u8 *raw, *buf, *done;
 	int w, h, stride, pixb, pixlg, nraw, nr, bpr, back, totr;
-	int (*eq)(uint8_t*, int, int);
+	int (*eq)(u8*, int, int);
 
 	totr = 0;
 	h = Dy(r);
@@ -328,7 +328,7 @@ _sendrre(Vncs *v, Rectangle r, int split, int compact)
 		return totr + 1;
 	}
 	pixb = 1 << pixlg;
-	stride = v->image->width*sizeof(uint32_t);
+	stride = v->image->width*sizeof(u32);
 	if(((stride >> pixlg) << pixlg) != stride){
 		sendraw(v, r);
 		return totr + 1;
@@ -391,10 +391,10 @@ sendcorre(Vncs *v, Rectangle r)
 }
 
 static int
-encrre(uint8_t *raw, int stride, int w, int h, int back, int pixb,
-       uint8_t *buf,
-	int maxr, uint8_t *done, int (*eqpix)(uint8_t*, int, int),
-	uint8_t *(*putr)(uint8_t*, uint8_t*, int, int, int, int, int, int))
+encrre(u8 *raw, int stride, int w, int h, int back, int pixb,
+       u8 *buf,
+       int maxr, u8 *done, int (*eqpix)(u8*, int, int),
+       u8 *(*putr)(u8*, u8*, int, int, int, int, int, int))
 {
 	int s, es, sx, esx, sy, syx, esyx, rh, rw, y, nr, dsy, dp;
 
@@ -471,8 +471,8 @@ encrre(uint8_t *raw, int stride, int w, int h, int back, int pixb,
  * by finding the most frequent character in a small sample
  */
 static int
-findback(uint8_t *raw, int stride, int w, int h,
-	 int (*eqpix)(uint8_t*, int, int))
+findback(u8 *raw, int stride, int w, int h,
+	 int (*eqpix)(u8*, int, int))
 {
 	enum{
 		NCol = 6,
@@ -519,8 +519,8 @@ findback(uint8_t *raw, int stride, int w, int h,
 	return col[max];
 }
 
-static uint8_t*
-putrre(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y, int w,
+static u8 *
+putrre(u8 *buf, u8 *raw, int p, int pixb, int x, int y, int w,
        int h)
 {
 	raw += p * pixb;
@@ -537,8 +537,8 @@ putrre(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y, int w,
 	return buf;
 }
 
-static uint8_t*
-putcorre(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y,
+static u8 *
+putcorre(u8 *buf, u8 *raw, int p, int pixb, int x, int y,
 	 int w, int h)
 {
 	raw += p * pixb;
@@ -552,25 +552,25 @@ putcorre(uint8_t *buf, uint8_t *raw, int p, int pixb, int x, int y,
 }
 
 static int
-eqpix8(uint8_t *raw, int p1, int p2)
+eqpix8(u8 *raw, int p1, int p2)
 {
 	return raw[p1] == raw[p2];
 }
 
 static int
-eqpix16(uint8_t *raw, int p1, int p2)
+eqpix16(u8 *raw, int p1, int p2)
 {
-	return ((uint16_t*)raw)[p1] == ((uint16_t*)raw)[p2];
+	return ((u16*)raw)[p1] == ((u16*)raw)[p2];
 }
 
 static int
-eqpix32(uint8_t *raw, int p1, int p2)
+eqpix32(u8 *raw, int p1, int p2)
 {
-	return ((uint32_t*)raw)[p1] == ((uint32_t*)raw)[p2];
+	return ((u32*)raw)[p1] == ((u32*)raw)[p2];
 }
 
 static void
-putpix(Vnc *v, uint8_t *raw, int p, int pixb)
+putpix(Vnc *v, u8 *raw, int p, int pixb)
 {
 	vncwrbytes(v, raw + p * pixb, pixb);
 }

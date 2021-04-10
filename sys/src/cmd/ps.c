@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 void
 ps(char *s)
 {
-	uint32_t utime, stime, rtime, size;
+	u32 utime, stime, rtime, size;
 	int argc, basepri, fd, i, n, pri;
 	char args[256], *argv[16], buf[64], pbuf[8], rbuf[20], rbuf1[20], status[4096];
 

@@ -11,10 +11,10 @@
 #include	<libc.h>
 #include	<bio.h>
 
-int64_t
+i64
 Boffset(Biobufhdr *bp)
 {
-	int64_t n;
+	i64 n;
 
 	switch(bp->state) {
 	default:

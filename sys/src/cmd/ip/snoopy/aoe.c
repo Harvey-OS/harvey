@@ -14,12 +14,12 @@
 #include "protos.h"
 
 typedef struct{
-	uint8_t	verflags;
-	uint8_t	error;
-	uint8_t	major[2];
-	uint8_t	minor;
-	uint8_t	cmd;
-	uint8_t	tag[4];
+	u8	verflags;
+	u8	error;
+	u8	major[2];
+	u8	minor;
+	u8	cmd;
+	u8	tag[4];
 }Hdr;
 
 enum{

@@ -21,7 +21,7 @@ static int
 finished(int hand, int isclient)
 {
 	int i, n;
-	uint8_t buf[500], buf2[500];
+	u8 buf[500], buf2[500];
 
 	buf[0] = HFinished;
 	buf[1] = TLSFinishedLen>>16;

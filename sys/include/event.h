@@ -28,7 +28,7 @@ struct	Mouse
 {
 	int	buttons;	/* bit array: LMR=124 */
 	Point	xy;
-	uint32_t	msec;
+	u32	msec;
 };
 
 struct	Event
@@ -37,7 +37,7 @@ struct	Event
 	Mouse	mouse;
 	int	n;		/* number of characters in message */
 	void	*v;		/* data unpacked by general event-handling function */
-	uint8_t	data[EMAXMSG];	/* message from an arbitrary file descriptor */
+	u8	data[EMAXMSG];	/* message from an arbitrary file descriptor */
 };
 
 struct Menu
@@ -50,16 +50,16 @@ struct Menu
 /*
  * Events
  */
-extern void	 einit(uint32_t);
-extern uint32_t	 estart(uint32_t, int, int);
-extern uint32_t	 estartfn(uint32_t, int, int,
-				 int (*fn)(int, Event*, uint8_t*, int));
-extern uint32_t	 etimer(uint32_t, int);
-extern uint32_t	 event(Event*);
-extern uint32_t	 eread(uint32_t, Event*);
+extern void	 einit(u32);
+extern u32	 estart(u32, int, int);
+extern u32	 estartfn(u32, int, int,
+				 int (*fn)(int, Event*, u8*, int));
+extern u32	 etimer(u32, int);
+extern u32	 event(Event*);
+extern u32	 eread(u32, Event*);
 extern Mouse	 emouse(void);
 extern int	 ekbd(void);
-extern int	 ecanread(uint32_t);
+extern int	 ecanread(u32);
 extern int	 ecanmouse(void);
 extern int	 ecankbd(void);
 extern void	 eresized(int);	/* supplied by user */

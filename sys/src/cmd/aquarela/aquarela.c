@@ -45,14 +45,14 @@ smbsessionfree(SmbSession *s)
 }
 
 int
-smbsessionwrite(SmbSession *smbs, void *p, int32_t n)
+smbsessionwrite(SmbSession *smbs, void *p, i32 n)
 {
 	SmbHeader h;
 	SmbOpTableEntry *ote;
-	uint8_t *pdata;
+	u8 *pdata;
 	int rv;
 	SmbBuffer *b = nil;
-	uint16_t bytecount;
+	u16 bytecount;
 	SmbProcessResult pr;
 
 	if (smbs->response == nil)
@@ -152,13 +152,13 @@ done:
 }
 
 static int
-nbwrite(NbSession *nbss, void *p, int32_t n)
+nbwrite(NbSession *nbss, void *p, i32 n)
 {
 	return smbsessionwrite((SmbSession *)nbss->magic, p, n);
 }
 
 static int
-cifswrite(SmbCifsSession *cifs, void *p, int32_t n)
+cifswrite(SmbCifsSession *cifs, void *p, i32 n)
 {
 	return smbsessionwrite((SmbSession *)cifs->magic, p, n);
 }

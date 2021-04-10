@@ -64,7 +64,7 @@ void *
 vtMemBrk(int n)
 {
 	static Lock lk;
-	static uint8_t *buf;
+	static u8 *buf;
 	static int nbuf;
 	static int nchunk;
 	int align, pad;
@@ -111,7 +111,7 @@ vtThreadSetName(char *name)
 }
 
 int
-vtFdRead(int fd, uint8_t *buf, int n)
+vtFdRead(int fd, u8 *buf, int n)
 {
 	n = read(fd, buf, n);
 	if(n < 0) {
@@ -126,7 +126,7 @@ vtFdRead(int fd, uint8_t *buf, int n)
 }
 
 int
-vtFdWrite(int fd, uint8_t *buf, int n)
+vtFdWrite(int fd, u8 *buf, int n)
 {
 	int nn;
 

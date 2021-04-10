@@ -114,10 +114,10 @@ nbnsdumpmessage(NbnsMessage *s)
 }
 
 void
-nbdumpdata(void *ap, int32_t n)
+nbdumpdata(void *ap, i32 n)
 {
-	uint8_t *p = ap;
-	int32_t i;
+	u8 *p = ap;
+	i32 i;
 	i = 0;
 	while (i < n) {
 		int l = n - i < 16 ? n - i : 16;

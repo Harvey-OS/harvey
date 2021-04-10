@@ -16,10 +16,10 @@
 #include "dat.h"
 #include "fns.h"
 
-static uint8_t	isdos[256];
+static u8	isdos[256];
 
 int
-isdosfs(uint8_t *buf)
+isdosfs(u8 *buf)
 {
 	/*
 	 * When dynamic disc managers move the disc partition,
@@ -53,7 +53,7 @@ dosfs(Xfs *xf)
 	Fatinfo *fi;
 	Dosboot32 *b32;
 	Dosbpb *bp;
-	int32_t fisec, extflags;
+	i32 fisec, extflags;
 	int i;
 
 	if(!isdos['a']){
@@ -202,7 +202,7 @@ rootfile(Xfile *f)
 }
 
 int
-isroot(uint32_t addr)
+isroot(u32 addr)
 {
 	return addr == 0;
 }
@@ -250,10 +250,10 @@ putfile(Xfile *f)
 	dp->d = nil;
 }
 
-int32_t
+i32
 getstart(Xfs *xf, Dosdir *d)
 {
-	int32_t start;
+	i32 start;
 
 	start = GSHORT(d->start);
 	if(xf->isfat32)
@@ -262,7 +262,7 @@ getstart(Xfs *xf, Dosdir *d)
 }
 
 void
-putstart(Xfs *xf, Dosdir *d, int32_t start)
+putstart(Xfs *xf, Dosdir *d, i32 start)
 {
 	PSHORT(d->start, start);
 	if(xf->isfat32)
@@ -272,13 +272,13 @@ putstart(Xfs *xf, Dosdir *d, int32_t start)
 /*
  * return the disk cluster for the iclust cluster in f
  */
-int32_t
-fileclust(Xfile *f, int32_t iclust, int cflag)
+i32
+fileclust(Xfile *f, i32 iclust, int cflag)
 {
 	Dosbpb *bp;
 	Dosptr *dp;
 	Dosdir *d;
-	int32_t start, clust, nskip, next;
+	i32 start, clust, nskip, next;
 
 	bp = f->xf->ptr;
 	dp = f->ptr;
@@ -360,12 +360,12 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 /*
  * return the disk sector for the isect disk sector in f
  */
-int32_t
-fileaddr(Xfile *f, int32_t isect, int cflag)
+i32
+fileaddr(Xfile *f, i32 isect, int cflag)
 {
 	Dosbpb *bp;
 	Dosptr *dp;
-	int32_t clust;
+	i32 clust;
 
 	bp = f->xf->ptr;
 	dp = f->ptr;
@@ -416,7 +416,7 @@ classifyname(char *buf)
 	islower = 0;
 	dot = nil;
 	ndot = 0;
-	while((c = (uint8_t)*p) != 0){
+	while((c = (u8)*p) != 0){
 		if(c&0x80)	/* UTF8 */
 			isextended = 1;
 		else if(c == '.'){
@@ -458,7 +458,7 @@ mkalias(char *name, char *sname, int id)
 	s = name;
 	i = 0;
 	while(s < e && i < 6){
-		if(isdos[(uint8_t)*s])
+		if(isdos[(u8)*s])
 			sname[i++] = *s++;
 		else
 			s += chartorune(&r, s);
@@ -476,7 +476,7 @@ mkalias(char *name, char *sname, int id)
 	if(esuf > 12)
 		panic("bad mkalias");
 	while(*e && i < esuf){
-		if(isdos[(uint8_t)*e])
+		if(isdos[(u8)*e])
 			sname[i++] = *e++;
 		else
 			e += chartorune(&r, e);
@@ -506,7 +506,7 @@ nameok(char *elem)
 	while(*elem) {
 		if(*elem == ' ' && trspaces)
 			*elem = ':';
-		if(isfrog[*(uint8_t*)elem])
+		if(isfrog[*(u8*)elem])
 			return 0;
 		elem++;
 	}
@@ -682,8 +682,8 @@ emptydir(Xfile *f)
 	return 0;
 }
 
-int32_t
-readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
+i32
+readdir(Xfile *f, void *vbuf, i32 offset, i32 count)
 {
 	Xfs *xf;
 	Dosbpb *bp;
@@ -691,9 +691,9 @@ readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	int isect, addr, o, islong, sum;
 	Iosect *p;
 	Dosdir *d;
-	int32_t rcnt, n;
+	i32 rcnt, n;
 	char *name, snamebuf[8+1+3+1], namebuf[DOSNAMELEN];
-	uint8_t *buf;
+	u8 *buf;
 
 	buf = vbuf;
 	rcnt = 0;
@@ -774,7 +774,7 @@ walkup(Xfile *f, Dosptr *ndp)
 	Dosptr *dp;
 	Dosdir *xd;
 	Iosect *p;
-	int32_t k, o, so, start, pstart, ppstart, st, ppclust;
+	i32 k, o, so, start, pstart, ppstart, st, ppclust;
 
 	bp = f->xf->ptr;
 	dp = f->ptr;
@@ -929,8 +929,8 @@ error:
 	return -1;
 }
 
-int32_t
-readfile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
+i32
+readfile(Xfile *f, void *vbuf, i32 offset, i32 count)
 {
 	Xfs *xf = f->xf;
 	Dosbpb *bp = xf->ptr;
@@ -938,8 +938,8 @@ readfile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	Dosdir *d = dp->d;
 	int isect, addr, o, c;
 	Iosect *p;
-	uint8_t *buf;
-	int32_t length, rcnt;
+	u8 *buf;
+	i32 length, rcnt;
 
 	rcnt = 0;
 	length = GLONG(d->length);
@@ -969,8 +969,8 @@ readfile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	return rcnt;
 }
 
-int32_t
-writefile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
+i32
+writefile(Xfile *f, void *vbuf, i32 offset, i32 count)
 {
 	Xfs *xf = f->xf;
 	Dosbpb *bp = xf->ptr;
@@ -978,8 +978,8 @@ writefile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	Dosdir *d = dp->d;
 	int isect, addr = 0, o, c;
 	Iosect *p;
-	uint8_t *buf;
-	int32_t length, rcnt = 0, dlen;
+	u8 *buf;
+	i32 length, rcnt = 0, dlen;
 
 	buf = vbuf;
 	isect = offset/bp->sectsize;
@@ -1025,13 +1025,13 @@ writefile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 }
 
 int
-truncfile(Xfile *f, int32_t length)
+truncfile(Xfile *f, i32 length)
 {
 	Xfs *xf = f->xf;
 	Dosbpb *bp = xf->ptr;
 	Dosptr *dp = f->ptr;
 	Dosdir *d = dp->d;
-	int32_t clust, next, n;
+	i32 clust, next, n;
 
 	mlock(&bp->MLock);
 	clust = getstart(f->xf, d);
@@ -1139,7 +1139,7 @@ getname(char *p, Dosdir *d)
 }
 
 static char*
-getnamerunes(char *dst, uint8_t *buf, int step)
+getnamerunes(char *dst, u8 *buf, int step)
 {
 	int i;
 	Rune r;
@@ -1174,7 +1174,7 @@ getnamerunes(char *dst, uint8_t *buf, int step)
 }
 
 char*
-getnamesect(char *dbuf, char *d, uint8_t *buf, int *islong, int *sum,
+getnamesect(char *dbuf, char *d, u8 *buf, int *islong, int *sum,
 	    int step)
 {
 	/*
@@ -1239,7 +1239,7 @@ putname(char *p, Dosdir *d)
 }
 
 static void
-putnamesect(uint8_t *slot, Rune *longname, int curslot, int first, int sum)
+putnamesect(u8 *slot, Rune *longname, int curslot, int first, int sum)
 {
 	Rune r;
 	Dosdir ds;
@@ -1344,12 +1344,12 @@ putlongname(Xfs *xf, Dosptr *ndp, char *name, char sname[13])
 	return 0;
 }
 
-int32_t
+i32
 getfat(Xfs *xf, int n)
 {
 	Dosbpb *bp = xf->ptr;
 	Iosect *p;
-	uint32_t k, sect;
+	u32 k, sect;
 	int o, fb;
 
 	if(n < FATRESRV || n >= bp->fatclusters)
@@ -1401,12 +1401,12 @@ getfat(Xfs *xf, int n)
 }
 
 void
-putfat(Xfs *xf, int n, uint32_t val)
+putfat(Xfs *xf, int n, u32 val)
 {
 	Fatinfo *fi;
 	Dosbpb *bp;
 	Iosect *p;
-	uint32_t k, sect, esect;
+	u32 k, sect, esect;
 	int o;
 
 	bp = xf->ptr;
@@ -1506,7 +1506,7 @@ cfalloc(Xfile *f)
 int
 iscontig(Xfs *xf, Dosdir *d)
 {
-	int32_t clust, next;
+	i32 clust, next;
 
 	clust = getstart(xf, d);
 	if(clust <= 0)
@@ -1535,7 +1535,7 @@ makecontig(Xfile *f, int nextra)
 	Dosptr *dp;
 	Xfs *xf;
 	Iosect *wp, *rp;
-	int32_t clust, next, last, start, rclust, wclust, eclust, ostart;
+	i32 clust, next, last, start, rclust, wclust, eclust, ostart;
 	int isok, i, n, nclust, nrun, rs, ws;
 
 	xf = f->xf;
@@ -1695,21 +1695,21 @@ falloc(Xfs *xf)
 }
 
 void
-ffree(Xfs *xf, int32_t start)
+ffree(Xfs *xf, i32 start)
 {
 	putfat(xf, start, 0);
 }
 
-int32_t
-clust2sect(Dosbpb *bp, int32_t clust)
+i32
+clust2sect(Dosbpb *bp, i32 clust)
 {
 	return bp->dataaddr + (clust - FATRESRV) * bp->clustsize;
 }
 
-int32_t
-sect2clust(Dosbpb *bp, int32_t sect)
+i32
+sect2clust(Dosbpb *bp, i32 sect)
 {
-	int32_t c;
+	i32 c;
 
 	c = (sect - bp->dataaddr) / bp->clustsize + FATRESRV;
 	assert(sect == clust2sect(bp, c));
@@ -1717,10 +1717,10 @@ sect2clust(Dosbpb *bp, int32_t sect)
 }
 
 void
-puttime(Dosdir *d, int32_t s)
+puttime(Dosdir *d, i32 s)
 {
 	Tm *t;
-	uint16_t x;
+	u16 x;
 
 	if(s == 0)
 		s = time(0);
@@ -1732,7 +1732,7 @@ puttime(Dosdir *d, int32_t s)
 	PSHORT(d->date, x);
 }
 
-int32_t
+i32
 gtime(Dosdir *dp)
 {
 	Tm tm;
@@ -1867,7 +1867,7 @@ dirdump(void *vdbuf)
 	Dosdir *d;
 	char *name, namebuf[DOSNAMELEN];
 	char buf[128], *s, *ebuf;
-	uint8_t *dbuf;
+	u8 *dbuf;
 	int i;
 
 	if(!chatty)
@@ -1914,7 +1914,7 @@ utftorunes(Rune *rr, char *s, int n)
 
 	r = rr;
 	re = r + n - 1;
-	while((c = (uint8_t)*s) != 0){
+	while((c = (u8)*s) != 0){
 		if(c < Runeself){
 			*r = c;
 			s++;

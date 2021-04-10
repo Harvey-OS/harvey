@@ -22,7 +22,7 @@ int	nineflag = 0;
 int	threeflag = 0;
 int	colorspace = CRGB;
 int	output = 0;
-uint32_t	outchan = CMAP8;
+u32	outchan = CMAP8;
 Image	*image;
 int	defaultcolor = 1;
 
@@ -147,7 +147,7 @@ show(int fd, char *name, int outc)
 	Rawimage **array, *r, *c;
 	Image *i, *i2;
 	int j, ch, outchan;
-	int32_t len;
+	i32 len;
 	Biobuf b;
 	char buf[32];
 	static int inited;

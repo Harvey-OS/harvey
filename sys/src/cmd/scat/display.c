@@ -18,7 +18,7 @@ displaypic(Picture *pic)
 {
 	int p[2];
 	int i, n;
-	uint8_t *a;
+	u8 *a;
 
 
 	if(pipe(p) < 0){

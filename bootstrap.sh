@@ -8,7 +8,13 @@ echo GOBIN is now $GOBIN
 
 echo Building harvey-os.org commands into $HOSTBIN
 GO111MODULE=off go get -d -u harvey-os.org/cmd/...
-GO111MODULE=off go install harvey-os.org/cmd/...
+GO111MODULE=off go install harvey-os.org/cmd/build
+GO111MODULE=off go install harvey-os.org/cmd/elf2c
+GO111MODULE=off go install harvey-os.org/cmd/mksys
+GO111MODULE=off go install harvey-os.org/cmd/data2c
+GO111MODULE=off go install harvey-os.org/cmd/qtap
+echo 'Can not build ... until ipfs gets fixed :-('
+echo GO111MODULE=off go install harvey-os.org/cmd/...
 
 echo Building u-root into $HOSTBIN
 # Download u-root sources into $GOPATH because that's what u-root expects.

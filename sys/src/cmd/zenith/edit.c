@@ -221,10 +221,10 @@ ungetch(void)
 		error("ungetch");
 }
 
-int32_t
+i32
 getnum(int signok)
 {
-	int32_t n;
+	i32 n;
 	int c, sign;
 
 	n = 0;
@@ -354,9 +354,9 @@ freecmd(void)
 	int i;
 
 	while(cmdlist.nused > 0)
-		free(cmdlist.uint8_tptr[--cmdlist.nused]);
+		free(cmdlist.u8ptr[--cmdlist.nused]);
 	while(addrlist.nused > 0)
-		free(addrlist.uint8_tptr[--addrlist.nused]);
+		free(addrlist.u8ptr[--addrlist.nused]);
 	while(stringlist.nused>0){
 		i = --stringlist.nused;
 		freestring(stringlist.stringptr[i]);

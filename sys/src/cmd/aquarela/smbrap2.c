@@ -16,9 +16,9 @@ struct RapTableEntry {
 	SmbProcessResult (*procedure)(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata);
 };
 
-typedef int INFOSIZEFN(uint16_t level, void *data);
-typedef int INFOPUTFN(SmbBuffer *b, uint16_t level, void *data);
-typedef int INFOPUTSTRINGSFN(SmbBuffer *b, uint16_t level, int instance,
+typedef int INFOSIZEFN(u16 level, void *data);
+typedef int INFOPUTFN(SmbBuffer *b, u16 level, void *data);
+typedef int INFOPUTSTRINGSFN(SmbBuffer *b, u16 level, int instance,
 			     void *data);
 typedef void *INFOENUMERATEFN(void *magic, int i);
 
@@ -30,7 +30,7 @@ typedef struct InfoMethod {
 } InfoMethod;
 
 static int
-serverinfosize(uint16_t level, void *data)
+serverinfosize(u16 level, void *data)
 {
 	SmbServerInfo *si = data;
 	switch (level) {
@@ -44,7 +44,7 @@ serverinfosize(uint16_t level, void *data)
 }
 
 static int
-serverinfoput(SmbBuffer *b, uint16_t level, void *data)
+serverinfoput(SmbBuffer *b, u16 level, void *data)
 {
 	SmbServerInfo *si = data;
 	if (!smbbufferputstrn(b, si->name, 16, 1))
@@ -62,7 +62,7 @@ serverinfoput(SmbBuffer *b, uint16_t level, void *data)
 }
 
 static int
-serverinfoputstrings(SmbBuffer *b, uint16_t level, int instance, void *data)
+serverinfoputstrings(SmbBuffer *b, u16 level, int instance, void *data)
 {
 	SmbServerInfo *si = data;
 	if (level == 1) {
@@ -93,7 +93,7 @@ InfoMethod serverinfo = {
 };
 
 static int
-shareinfosize(uint16_t level, void *data)
+shareinfosize(u16 level, void *data)
 {
 	SmbService *serv = data;
 	switch (level) {
@@ -109,7 +109,7 @@ shareinfosize(uint16_t level, void *data)
 }
 
 static int
-shareinfoput(SmbBuffer *b, uint16_t level, void *data)
+shareinfoput(SmbBuffer *b, u16 level, void *data)
 {
 	SmbService *serv = data;
 	if (!smbbufferputstrn(b, serv->name, 13, 0))
@@ -134,7 +134,7 @@ shareinfoput(SmbBuffer *b, uint16_t level, void *data)
 }
 
 static int
-shareinfoputstrings(SmbBuffer *b, uint16_t level, int instance, void *data)
+shareinfoputstrings(SmbBuffer *b, u16 level, int instance, void *data)
 {
 	SmbService *serv = data;
 	switch (level) {
@@ -176,7 +176,7 @@ static InfoMethod shareinfo = {
 
 static SmbProcessResult
 thingfill(SmbBuffer *outparam, SmbBuffer *outdata, InfoMethod *m,
-	  uint16_t level, void *magic)
+	  u16 level, void *magic)
 {
 	int sentthings, totalthings;
 	int i;
@@ -212,7 +212,7 @@ thingfill(SmbBuffer *outparam, SmbBuffer *outdata, InfoMethod *m,
 
 static SmbProcessResult
 onethingfill(SmbBuffer *outparam, SmbBuffer *outdata, InfoMethod *m,
-	     uint16_t level, void *thing)
+	     u16 level, void *thing)
 {
 	int moredata;
 	int totalbytes = (*m->size)(level, thing);
@@ -233,10 +233,10 @@ onethingfill(SmbBuffer *outparam, SmbBuffer *outdata, InfoMethod *m,
 static SmbProcessResult
 netshareenum(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
-	uint16_t level;
+	u16 level;
 
 	/* WrLeh */
-	/* uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, uint16_t *pcTotalAvail */
+	/* u16 sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, u16 *pcTotalAvail */
 
 	if (!smbbuffergets(inparam, &level))
 		return SmbProcessResultFormat;
@@ -253,17 +253,17 @@ netshareenum(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 static SmbProcessResult
 netserverenum2(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
-	uint16_t level, rbl;
+	u16 level, rbl;
 	char *domain;
-	uint32_t servertype;
+	u32 servertype;
 	SmbProcessResult pr;
 	SmbServerInfo *si[3];
 	SmbServerInfo domainsi;
 	int entries;
 
 	/* WrLehDz
-	 * uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, uint16_t *pcTotalAvail,
-	 * uint32_t fServerType, char *pszDomain
+	 * u16 sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, ENTCOUNT pcEntriesRead, u16 *pcTotalAvail,
+	 * u32 fServerType, char *pszDomain
 	*/
 
 	domain = malloc(sizeof(domain));
@@ -315,13 +315,13 @@ static SmbProcessResult
 netsharegetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
 	char *netname;
-	uint16_t level;
+	u16 level;
 	SmbProcessResult pr;
 	SmbService *serv;
 
 	/*
 	 * zWrLh
-	 * char *pszNetName, uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, uint16_t *pcbTotalAvail
+	 * char *pszNetName, u16 sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, u16 *pcbTotalAvail
 	*/
 
 	if (!smbbuffergetstrinline(inparam, &netname)
@@ -356,11 +356,11 @@ done:
 static SmbProcessResult
 netservergetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
-	uint16_t level;
+	u16 level;
 	SmbProcessResult pr;
 
 	/* WrLh
-	 * uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, uint16_t *pcbTotalAvail
+	 * u16 sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, u16 *pcbTotalAvail
 	*/
 
 	if (!smbbuffergets(inparam, &level)) {
@@ -384,13 +384,13 @@ done:
 static SmbProcessResult
 netwkstagetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
-	uint16_t level;
-	uint16_t usefulbytes;
+	u16 level;
+	u16 usefulbytes;
 	SmbProcessResult pr;
 	int moredata;
 
 	/* WrLh
-	 * uint16_t sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, uint16_t *pcbTotalAvail
+	 * u16 sLevel, RCVBUF pbBuffer, RCVBUFLEN cbBuffer, u16 *pcbTotalAvail
 	*/
 
 	if (!smbbuffergets(inparam, &level)) {
@@ -454,7 +454,7 @@ smbrap2(SmbSession *s)
 {
 	char *pstring;
 	char *dstring;
-	uint16_t pno;
+	u16 pno;
 	RapTableEntry *e;
 	SmbProcessResult pr;
 	SmbBuffer *inparam;

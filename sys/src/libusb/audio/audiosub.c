@@ -18,7 +18,7 @@ typedef struct Namelist Namelist;
 
 struct Namelist
 {
-	int16_t	index;
+	i16	index;
 	char		*name;
 };
 
@@ -60,7 +60,7 @@ findunit(int nr)
 void
 audio_interface(Dev *_1, Desc *dd)
 {
-	byte *b = (uint8_t*)&dd->data;
+	byte *b = (u8*)&dd->data;
 	byte *bb = b;
 	int nb = dd->data.bLength;
 	int ctl, ch, u, x;

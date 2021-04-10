@@ -19,12 +19,12 @@ int diffb;
 enum{ DAY = 24*60*60 };
 
 void
-lastbefore(uint32_t t, char *f, char *b)
+lastbefore(u32 t, char *f, char *b)
 {
 	Tm *tm;
 	Dir *dir;
 	int try;
-	uint32_t t0, mtime;
+	u32 t0, mtime;
 
 	t0 = t;
 	for(try=0; try<10; try++) {
@@ -76,7 +76,7 @@ netlibhistory(char *file)
 	char buf[500], pair[2][500], tmpf[2][30], *f;
 	int toggle = 0, started = 0, limit;
 	Dir *dir;
-	uint32_t otime, dt;
+	u32 otime, dt;
 	int i, fd, tmpcnt;
 
 	if(strncmp(file, "../", 3) == 0 || strstr(file, "/../") ||

@@ -13,9 +13,9 @@ typedef struct Msg Msg;
 typedef struct Mux Mux;
 typedef struct Proto Proto;
 
-#define NetS(x) ((((uint8_t*)x)[0]<<8) | ((uint8_t*)x)[1])
-#define Net3(x) ((((uint8_t*)x)[0]<<16) | (((uint8_t*)x)[1]<<8) | ((uint8_t*)x)[2])
-#define NetL(x) ((((uint8_t*)x)[0]<<24) | (((uint8_t*)x)[1]<<16) | (((uint8_t*)x)[2]<<8) | ((uint8_t*)x)[3])
+#define NetS(x) ((((u8*)x)[0]<<8) | ((u8*)x)[1])
+#define Net3(x) ((((u8*)x)[0]<<16) | (((u8*)x)[1]<<8) | ((u8*)x)[2])
+#define NetL(x) ((((u8*)x)[0]<<24) | (((u8*)x)[1]<<16) | (((u8*)x)[2]<<8) | ((u8*)x)[3])
 
 /*
  *  one per protocol module
@@ -29,7 +29,7 @@ struct Proto
 	Mux*	mux;
 	char*	valfmt;
 	Field*	field;
-	int	(*framer)(int, uint8_t*, int);
+	int	(*framer)(int, u8*, int);
 };
 extern Proto *protos[];
 
@@ -39,7 +39,7 @@ extern Proto *protos[];
 struct Mux
 {
 	char*	name;
-	uint32_t	val;
+	u32	val;
 	Proto*	pr;
 };
 
@@ -59,8 +59,8 @@ struct Field
  */
 struct Msg
 {
-	uint8_t	*ps;	/* packet ptr */
-	uint8_t	*pe;	/* packet end */
+	u8	*ps;	/* packet ptr */
+	u8	*pe;	/* packet end */
 
 	char	*p;	/* buffer start */
 	char	*e;	/* buffer end */
@@ -91,11 +91,11 @@ struct Filter {
 
 	/* protocol specific */
 	int	subop;
-	uint32_t	param;
+	u32	param;
 	union {
-		uint32_t	ulv;
-		int64_t	vlv;
-		uint8_t	a[32];
+		u32	ulv;
+		i64	vlv;
+		u8	a[32];
 	};
 };
 
@@ -103,8 +103,8 @@ extern void	yyinit(char*);
 extern int	yyparse(void);
 extern Filter*	newfilter(void);
 extern void	compile_cmp(char*, Filter*, Field*);
-extern void	demux(Mux*, uint32_t, uint32_t, Msg*, Proto*);
-extern int	defaultframer(int, uint8_t*, int);
+extern void	demux(Mux*, u32, u32, Msg*, Proto*);
+extern int	defaultframer(int, u8*, int);
 
 extern int Mflag;
 extern int Nflag;

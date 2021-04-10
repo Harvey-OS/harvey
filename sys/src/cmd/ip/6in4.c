@@ -40,17 +40,17 @@ enum {
 typedef struct Iphdr Iphdr;
 struct Iphdr
 {
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;		/* Time to live */
-	uint8_t	proto;		/* Protocol */
-	uint8_t	cksum[2];	/* Header checksum */
-	uint8_t	src[4];		/* Ip source (uint8_t ordering unimportant) */
-	uint8_t	dst[4];		/* Ip destination (uint8_t ordering unimportant) */
-	uint8_t	payload[];
+	u8	vihl;		/* Version and header length */
+	u8	tos;		/* Type of service */
+	u8	length[2];	/* packet length */
+	u8	id[2];		/* Identification */
+	u8	frag[2];	/* Fragment information */
+	u8	ttl;		/* Time to live */
+	u8	proto;		/* Protocol */
+	u8	cksum[2];	/* Header checksum */
+	u8	src[4];		/* Ip source (u8 ordering unimportant) */
+	u8	dst[4];		/* Ip destination (u8 ordering unimportant) */
+	u8	payload[];
 };
 
 #define STFHDR offsetof(Iphdr, payload[0])
@@ -59,20 +59,20 @@ int anysender;
 int gateway;
 int debug;
 
-uint8_t local6[IPaddrlen];
-uint8_t remote6[IPaddrlen];
-uint8_t remote4[IPaddrlen];
-uint8_t localmask[IPaddrlen];
-uint8_t localnet[IPaddrlen];
-uint8_t myip[IPaddrlen];
+u8 local6[IPaddrlen];
+u8 remote6[IPaddrlen];
+u8 remote4[IPaddrlen];
+u8 localmask[IPaddrlen];
+u8 localnet[IPaddrlen];
+u8 myip[IPaddrlen];
 
 /* magic anycast address from rfc3068 */
-uint8_t anycast6to4[IPv4addrlen] = { 192, 88, 99, 1 };
+u8 anycast6to4[IPv4addrlen] = { 192, 88, 99, 1 };
 
 static char *net = "/net";
 
-static int	badipv4(uint8_t*);
-static int	badipv6(uint8_t*);
+static int	badipv4(u8*);
+static int	badipv6(u8*);
 static void	ip2tunnel(int, int);
 static void	tunnel2ip(int, int);
 
@@ -87,7 +87,7 @@ usage(void)
 static char *
 defv6addr(void)
 {
-	uint8_t *ipv4 = &myip[IPaddrlen - IPv4addrlen];
+	u8 *ipv4 = &myip[IPaddrlen - IPv4addrlen];
 
 	return smprint("%x:%2.2x%2.2x:%2.2x%2.2x::1/48", V6to4pfx,
 		ipv4[0], ipv4[1], ipv4[2], ipv4[3]);
@@ -383,7 +383,7 @@ tunnel2ip(int in, int out)
 {
 	int n, m;
 	char buf[64*1024];
-	uint8_t a[IPaddrlen];
+	u8 a[IPaddrlen];
 	Ip6hdr *op;
 	Iphdr *ip;
 
@@ -443,7 +443,7 @@ tunnel2ip(int in, int out)
 }
 
 static int
-badipv4(uint8_t *a)
+badipv4(u8 *a)
 {
 	switch (a[0]) {
 	case 0:				/* unassigned */
@@ -466,7 +466,7 @@ badipv4(uint8_t *a)
  * site-local is now deprecated, rfc3879
  */
 static int
-badipv6(uint8_t *a)
+badipv6(u8 *a)
 {
 	int h = a[0]<<8 | a[1];
 

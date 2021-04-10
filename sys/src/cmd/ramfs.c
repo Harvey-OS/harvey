@@ -25,7 +25,7 @@ enum
 	Nram	= 4096,
 	Maxsize	= 768*1024*1024,
 	Maxfdata	= 8192,
-	Maxuint32_t= (1ULL << 32) - 1,
+	Maxu32= (1ULL << 32) - 1,
 };
 
 typedef struct Fid Fid;
@@ -33,9 +33,9 @@ typedef struct Ram Ram;
 
 struct Fid
 {
-	int16_t	busy;
-	int16_t	open;
-	int16_t	rclose;
+	i16	busy;
+	i16	open;
+	i16	rclose;
 	int	fid;
 	Fid	*next;
 	char	*user;
@@ -44,19 +44,19 @@ struct Fid
 
 struct Ram
 {
-	int16_t	busy;
-	int16_t	open;
-	int32_t	parent;		/* index in Ram array */
+	i16	busy;
+	i16	open;
+	i32	parent;		/* index in Ram array */
 	Qid	qid;
-	int32_t	perm;
+	i32	perm;
 	char	*name;
-	uint32_t	atime;
-	uint32_t	mtime;
+	u32	atime;
+	u32	mtime;
 	char	*user;
 	char	*group;
 	char	*muid;
 	char	*data;
-	int32_t	ndata;
+	i32	ndata;
 };
 
 enum
@@ -69,25 +69,25 @@ enum
 	Powner =	64,
 };
 
-uint32_t	path;		/* incremented for each new file */
+u32	path;		/* incremented for each new file */
 Fid	*fids;
 Ram	ram[Nram];
 int	nram;
 int	mfd[2];
 char	*user;
-uint8_t	mdata[IOHDRSZ+Maxfdata];
-uint8_t	rdata[Maxfdata];	/* buffer for data in reply */
-uint8_t statbuf[STATMAX];
+u8	mdata[IOHDRSZ+Maxfdata];
+u8	rdata[Maxfdata];	/* buffer for data in reply */
+u8 statbuf[STATMAX];
 Fcall thdr;
 Fcall	rhdr;
 int	messagesize = sizeof mdata;
 
 Fid *	newfid(int);
-uint	ramstat(Ram*, uint8_t*, uint);
+uint	ramstat(Ram*, u8*, uint);
 void	error(char*);
 void	io(void);
-void	*erealloc(void *c, uint32_t);
-void	*emalloc(uint32_t);
+void	*erealloc(void *c, u32);
+void	*emalloc(u32);
 char	*estrdup(char*);
 void	usage(void);
 int	perm(Fid*, Ram*, int);
@@ -327,7 +327,7 @@ rwalk(Fid *f)
 	Ram *parent;
 	Fid *nf;
 	char *err;
-	uint32_t t;
+	u32 t;
 	int i;
 
 	err = nil;
@@ -447,7 +447,7 @@ rcreate(Fid *f)
 {
 	Ram *r;
 	char *name;
-	int32_t parent, prm;
+	i32 parent, prm;
 
 	if(f->open)
 		return Eisopen;
@@ -506,8 +506,8 @@ char*
 rread(Fid *f)
 {
 	Ram *r;
-	uint8_t *buf;
-	int64_t off;
+	u8 *buf;
+	i64 off;
 	int n, m, cnt;
 
 	if(f->ram->busy == 0)
@@ -559,7 +559,7 @@ char*
 rwrite(Fid *f)
 {
 	Ram *r;
-	int64_t off;
+	i64 off;
 	int cnt;
 
 	r = f->ram;
@@ -594,7 +594,7 @@ rwrite(Fid *f)
 static int
 emptydir(Ram *dr)
 {
-	int32_t didx = dr - ram;
+	i32 didx = dr - ram;
 	Ram *r;
 
 	for(r=ram; r<&ram[nram]; r++)
@@ -743,7 +743,7 @@ rwstat(Fid *f)
 }
 
 uint
-ramstat(Ram *r, uint8_t *buf, uint nbuf)
+ramstat(Ram *r, u8 *buf, uint nbuf)
 {
 	int n;
 	Dir dir;
@@ -874,7 +874,7 @@ error(char *s)
 }
 
 void *
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -886,7 +886,7 @@ emalloc(uint32_t n)
 }
 
 void *
-erealloc(void *p, uint32_t n)
+erealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(!p)

@@ -11,11 +11,11 @@
 #include <libc.h>
 #include <bio.h>
 
-uint8_t		odata[16];
-uint8_t		data[32];
+u8		odata[16];
+u8		data[32];
 int		ndata;
 int		nread;
-uint32_t		addr;
+u32		addr;
 int		repeats;
 int		swizzle;
 int		flush;
@@ -294,9 +294,9 @@ xd(char *name, int title)
 void
 swizz(void)
 {
-	uint8_t *p, *q;
+	u8 *p, *q;
 	int i;
-	uint8_t swdata[16];
+	u8 swdata[16];
 
 	p = data;
 	q = swdata;
@@ -326,7 +326,7 @@ void
 fmt1(char *f)
 {
 	int i;
-	for(i=0; i<ndata; i+=sizeof(uint16_t))
+	for(i=0; i<ndata; i+=sizeof(u16))
 		xprint(f, (data[i]<<8)|data[i+1]);
 }
 
@@ -334,7 +334,7 @@ void
 fmt2(char *f)
 {
 	int i;
-	for(i=0; i<ndata; i+=sizeof(uint32_t))
+	for(i=0; i<ndata; i+=sizeof(u32))
 		xprint(f, (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3]);
 }
 
@@ -342,9 +342,9 @@ void
 fmt3(char *f)
 {
 	int i;
-	uint64_t v;
+	u64 v;
 
-	for(i=0; i<ndata; i+=sizeof(uint64_t)){
+	for(i=0; i<ndata; i+=sizeof(u64)){
 		v = (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3];
 		v <<= 32;
 		v |= (data[i+4]<<24)|(data[i+1+4]<<16)|(data[i+2+4]<<8)|data[i+3+4];
@@ -356,7 +356,7 @@ fmt3(char *f)
 }
 
 void
-onefmtc(uint8_t c)
+onefmtc(u8 c)
 {
 	switch(c){
 	case '\t':

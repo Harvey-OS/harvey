@@ -16,10 +16,10 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uint8_t	sport[2];	/* Source port */
-	uint8_t	dport[2];	/* Destination port */
-	uint8_t	len[2];		/* data length */
-	uint8_t	cksum[2];	/* Checksum */
+	u8	sport[2];	/* Source port */
+	u8	dport[2];	/* Destination port */
+	u8	len[2];		/* data length */
+	u8	cksum[2];	/* Checksum */
 };
 
 enum

@@ -25,7 +25,7 @@ enum {
 /* private data */
 static char *filenm;
 static char *prefix = "ts.";
-static int64_t size = 512*1024*1024;	/* fits on a CD with room to spare */
+static i64 size = 512*1024*1024;	/* fits on a CD with room to spare */
 
 static int
 opennext(int out, char *prefix)
@@ -49,13 +49,13 @@ opennext(int out, char *prefix)
 static int
 split(int in, int out, char *inname)
 {
-	int64_t len, membsz;
-	uint64_t outoff = 0;
+	i64 len, membsz;
+	u64 outoff = 0;
 	static Hblock hdr;
 	Hblock *hp = &hdr;
 
 	while (getdir(hp, in, &len)) {
-		membsz = Tblock + ROUNDUP((uint64_t)len, Tblock);
+		membsz = Tblock + ROUNDUP((u64)len, Tblock);
 		if (outoff + membsz + Endsize > size) {	/* won't fit? */
 			out = closeout(out, filenm, 1);
 			if (membsz + Endsize > size)

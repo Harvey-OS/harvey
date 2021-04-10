@@ -28,21 +28,21 @@ static char rwbuf[MaxIOsize];
 static int verbose = 1;
 
 Biobuf bin, bout;
-int32_t maxiosize = MaxIOsize;
+i32 maxiosize = MaxIOsize;
 int exabyte = 0;
 int force6bytecmds = 0;
 
 typedef struct {
 	char *name;
-	int32_t (*f)(ScsiReq *, int, char *[]);
+	i32 (*f)(ScsiReq *, int, char *[]);
 	int open;
 	char *help;
 } ScsiCmd;
 
 static ScsiCmd scsicmds[];
 
-static int64_t
-vlmin(int64_t a, int64_t b)
+static i64
+vlmin(i64 a, i64 b)
 {
 	if (a < b)
 		return a;
@@ -50,24 +50,24 @@ vlmin(int64_t a, int64_t b)
 		return b;
 }
 
-static int32_t
+static i32
 cmdready(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRready(rp);
 }
 
-static int32_t
+static i32
 cmdrewind(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRrewind(rp);
 }
 
-static int32_t
+static i32
 cmdreqsense(ScsiReq *rp, int argc, char *argv[])
 {
-	int32_t nbytes;
+	i32 nbytes;
 
 	USED(argc), USED(argv);
 	if((nbytes = SRreqsense(rp)) != -1)
@@ -75,18 +75,18 @@ cmdreqsense(ScsiReq *rp, int argc, char *argv[])
 	return nbytes;
 }
 
-static int32_t
+static i32
 cmdformat(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRformat(rp);
 }
 
-static int32_t
+static i32
 cmdrblimits(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t l[6];
-	int32_t n;
+	u8 l[6];
+	i32 n;
 
 	USED(argc), USED(argv);
 	if((n = SRrblimits(rp, l)) == -1)
@@ -156,11 +156,11 @@ waitfor(int pid)
 	return -1;
 }
 
-static int32_t
+static i32
 cmdread(ScsiReq *rp, int argc, char *argv[])
 {
-	int32_t n, iosize, prevsize = 0;
-	int64_t nbytes, total;
+	i32 n, iosize, prevsize = 0;
+	i64 nbytes, total;
 	int fd, pid;
 	char *p;
 
@@ -220,11 +220,11 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 	return total;
 }
 
-static int32_t
+static i32
 cmdwrite(ScsiReq *rp, int argc, char *argv[])
 {
-	int32_t n, prevsize = 0;
-	int64_t nbytes, total;
+	i32 n, prevsize = 0;
+	i64 nbytes, total;
 	int fd, pid;
 	char *p;
 
@@ -282,11 +282,11 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 	return total;
 }
 
-static int32_t
+static i32
 cmdseek(ScsiReq *rp, int argc, char *argv[])
 {
 	char *p;
-	int32_t offset;
+	i32 offset;
 	int type;
 
 	type = 0;
@@ -313,11 +313,11 @@ cmdseek(ScsiReq *rp, int argc, char *argv[])
 	return SRseek(rp, offset, type);
 }
 
-static int32_t
+static i32
 cmdfilemark(ScsiReq *rp, int argc, char *argv[])
 {
 	char *p;
-	uint32_t howmany;
+	u32 howmany;
 
 	howmany = 1;
 	if(argc && (howmany = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
@@ -327,11 +327,11 @@ cmdfilemark(ScsiReq *rp, int argc, char *argv[])
 	return SRfilemark(rp, howmany);
 }
 
-static int32_t
+static i32
 cmdspace(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t code;
-	int32_t howmany;
+	u8 code;
+	i32 howmany;
 	char option, *p;
 
 	code = 0x00;
@@ -368,12 +368,12 @@ cmdspace(ScsiReq *rp, int argc, char *argv[])
 	return SRspace(rp, code, howmany);
 }
 
-static int32_t
+static i32
 cmdinquiry(ScsiReq *rp, int argc, char *argv[])
 {
-	int32_t status;
+	i32 status;
 	int i, n;
-	uint8_t *p;
+	u8 *p;
 
 	USED(argc), USED(argv);
 	if((status = SRinquiry(rp)) != -1){
@@ -391,11 +391,11 @@ cmdinquiry(ScsiReq *rp, int argc, char *argv[])
 	return status;
 }
 
-static int32_t
+static i32
 cmdmodeselect6(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t list[MaxDirData];
-	int32_t nbytes, ul;
+	u8 list[MaxDirData];
+	i32 nbytes, ul;
 	char *p;
 
 	memset(list, 0, sizeof list);
@@ -412,11 +412,11 @@ cmdmodeselect6(ScsiReq *rp, int argc, char *argv[])
 	return SRmodeselect6(rp, list, nbytes);
 }
 
-static int32_t
+static i32
 cmdmodeselect10(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t list[MaxDirData];
-	int32_t nbytes, ul;
+	u8 list[MaxDirData];
+	i32 nbytes, ul;
 	char *p;
 
 	memset(list, 0, sizeof list);
@@ -433,11 +433,11 @@ cmdmodeselect10(ScsiReq *rp, int argc, char *argv[])
 	return SRmodeselect10(rp, list, nbytes);
 }
 
-static int32_t
+static i32
 cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t list[MaxDirData], *lp, page;
-	int32_t i, n, nbytes, status;
+	u8 list[MaxDirData], *lp, page;
+	i32 i, n, nbytes, status;
 	char *p;
 
 	nbytes = sizeof list;
@@ -507,11 +507,11 @@ cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 	return status;
 }
 
-static int32_t
+static i32
 cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t *list, *lp, page;
-	int32_t blen, i, n, nbytes, status;
+	u8 *list, *lp, page;
+	i32 blen, i, n, nbytes, status;
 	char *p;
 
 	nbytes = MaxDirData;
@@ -600,8 +600,8 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 	return status;
 }
 
-static int32_t
-start(ScsiReq *rp, int argc, char *argv[], uint8_t code)
+static i32
+start(ScsiReq *rp, int argc, char *argv[], u8 code)
 {
 	char *p;
 
@@ -612,35 +612,35 @@ start(ScsiReq *rp, int argc, char *argv[], uint8_t code)
 	return SRstart(rp, code);
 }
 
-static int32_t
+static i32
 cmdstart(ScsiReq *rp, int argc, char *argv[])
 {
 	return start(rp, argc, argv, 1);
 }
 
-static int32_t
+static i32
 cmdstop(ScsiReq *rp, int argc, char *argv[])
 {
 	return start(rp, argc, argv, 0);
 }
 
-static int32_t
+static i32
 cmdeject(ScsiReq *rp, int argc, char *argv[])
 {
 	return start(rp, argc, argv, 2);
 }
 
-static int32_t
+static i32
 cmdingest(ScsiReq *rp, int argc, char *argv[])
 {
 	return start(rp, argc, argv, 3);
 }
 
-static int32_t
+static i32
 cmdcapacity(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t d[8];
-	int32_t n;
+	u8 d[8];
+	i32 n;
 
 	USED(argc), USED(argv);
 	if((n = SRrcapacity(rp, d)) == -1)
@@ -651,10 +651,10 @@ cmdcapacity(ScsiReq *rp, int argc, char *argv[])
 	return n;
 }
 
-static int32_t
+static i32
 cmdblank(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t type, track;
+	u8 type, track;
 	char *sp;
 
 	type = track = 0;
@@ -688,12 +688,12 @@ cmdblank(ScsiReq *rp, int argc, char *argv[])
 	return SRblank(rp, type, track);
 }
 
-static int32_t
+static i32
 cmdrtoc(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t d[100*8+4], format, track, *p;
+	u8 d[100*8+4], format, track, *p;
 	char *sp;
-	int32_t n, nbytes;
+	i32 n, nbytes;
 	int tdl;
 
 	format = track = 0;
@@ -808,12 +808,12 @@ cmdrtoc(ScsiReq *rp, int argc, char *argv[])
 	return nbytes;
 }
 
-static int32_t
+static i32
 cmdrdiscinfo(ScsiReq *rp, int argc, char *c[])
 {
-	uint8_t d[MaxDirData];
+	u8 d[MaxDirData];
 	int dl;
-	int32_t n, nbytes;
+	i32 n, nbytes;
 
 	switch(argc){
 
@@ -918,12 +918,12 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char *c[])
 	return nbytes;
 }
 
-static int32_t
+static i32
 cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t d[MaxDirData], track;
+	u8 d[MaxDirData], track;
 	char *sp;
-	int32_t n, nbytes;
+	i32 n, nbytes;
 	int dl;
 
 	track = 0;
@@ -1033,31 +1033,31 @@ cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
 	return nbytes;
 }
 
-static int32_t
+static i32
 cmdcdpause(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRcdpause(rp, 0);
 }
 
-static int32_t
+static i32
 cmdcdresume(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRcdpause(rp, 1);
 }
 
-static int32_t
+static i32
 cmdcdstop(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRcdstop(rp);
 }
 
-static int32_t
+static i32
 cmdcdplay(ScsiReq *rp, int argc, char *argv[])
 {
-	int32_t length, start;
+	i32 length, start;
 	char *sp;
 	int raw;
 
@@ -1096,11 +1096,11 @@ cmdcdplay(ScsiReq *rp, int argc, char *argv[])
 	return SRcdplay(rp, raw, start, length);
 }
 
-static int32_t
+static i32
 cmdcdload(ScsiReq *rp, int argc, char *argv[])
 {
 	char *p;
-	uint32_t slot;
+	u32 slot;
 
 	slot = 0;
 	if(argc && (slot = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
@@ -1110,11 +1110,11 @@ cmdcdload(ScsiReq *rp, int argc, char *argv[])
 	return SRcdload(rp, 1, slot);
 }
 
-static int32_t
+static i32
 cmdcdunload(ScsiReq *rp, int argc, char *argv[])
 {
 	char *p;
-	uint32_t slot;
+	u32 slot;
 
 	slot = 0;
 	if(argc && (slot = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
@@ -1124,11 +1124,11 @@ cmdcdunload(ScsiReq *rp, int argc, char *argv[])
 	return SRcdload(rp, 0, slot);
 }
 
-static int32_t
+static i32
 cmdcdstatus(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t *list, *lp;
-	int32_t nbytes, status;
+	u8 *list, *lp;
+	i32 nbytes, status;
 	int i, slots;
 
 	USED(argc), USED(argv);
@@ -1165,14 +1165,14 @@ cmdcdstatus(ScsiReq *rp, int argc, char *argv[])
 	return status;
 }
 
-static int32_t
+static i32
 cmdeinit(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SReinitialise(rp);
 }
 
-static int32_t
+static i32
 cmdmmove(ScsiReq *rp, int argc, char *argv[])
 {
 	int transport, source, destination, invert;
@@ -1212,11 +1212,11 @@ cmdmmove(ScsiReq *rp, int argc, char *argv[])
 	return SRmmove(rp, transport, source, destination, invert);
 }
 
-static int32_t
+static i32
 cmdestatus(ScsiReq *rp, int argc, char *argv[])
 {
-	uint8_t *list, *lp, type;
-	int32_t d, i, n, nbytes, status;
+	u8 *list, *lp, type;
+	i32 d, i, n, nbytes, status;
 	char *p;
 
 	type = 0;
@@ -1289,7 +1289,7 @@ cmdestatus(ScsiReq *rp, int argc, char *argv[])
 	return status;
 }
 
-static int32_t
+static i32
 cmdhelp(ScsiReq *rp, int argc, char *argv[])
 {
 	ScsiCmd *cp;
@@ -1307,7 +1307,7 @@ cmdhelp(ScsiReq *rp, int argc, char *argv[])
 	return 0;
 }
 
-static int32_t
+static i32
 cmdprobe(ScsiReq *rp, int argc, char *argv[])
 {
 	char buf[32];
@@ -1349,18 +1349,18 @@ cmdprobe(ScsiReq *rp, int argc, char *argv[])
 	return 0;
 }
 
-static int32_t
+static i32
 cmdclose(ScsiReq *rp, int argc, char *argv[])
 {
 	USED(argc), USED(argv);
 	return SRclose(rp);
 }
 
-static int32_t
+static i32
 cmdopen(ScsiReq *rp, int argc, char *argv[])
 {
 	int raw;
-	int32_t status;
+	i32 status;
 
 	raw = 0;
 	if(argc && strcmp("-r", argv[0]) == 0){
@@ -1731,7 +1731,7 @@ main(int argc, char *argv[])
 }
 
 /* USB mass storage fake */
-int32_t
+i32
 umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	USED(umsc), USED(data), USED(cmd);

@@ -19,7 +19,7 @@
 
 static
 int
-notrans(uint32_t chan)
+notrans(u32 chan)
 {
 	switch(chan){
 	case GREY1:

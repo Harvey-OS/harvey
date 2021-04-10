@@ -49,7 +49,7 @@ int	screenfd;
 int	mag = 4;
 int	showgrid = 0;
 Rectangle	screenr;
-uint8_t	*screenbuf;
+u8	*screenbuf;
 
 void	magnify(void);
 void makegrid(void);
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 {
 	Event e;
 	char buf[5*12];
-	uint32_t chan;
+	u32 chan;
 	int d;
 
 	USED(argc); USED(argv);
@@ -225,8 +225,8 @@ magnify(void)
 	int x, y, xx, yy, dd, i;
 	int dx, dy;
 	int xoff, yoff;
-	uint8_t out[8192];
-	uint8_t sp[4];
+	u8 out[8192];
+	u8 sp[4];
 
 	dx = (Dx(tmp->r)+mag-1)/mag;
 	dy = (Dy(tmp->r)+mag-1)/mag;

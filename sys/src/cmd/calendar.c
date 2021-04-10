@@ -42,7 +42,7 @@ void
 main(int argc, char *argv[])
 {
 	int i, fd, ahead;
-	int32_t now;
+	i32 now;
 	char *line;
 	Tm *tm;
 	Date *d;

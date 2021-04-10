@@ -38,7 +38,7 @@ struct ZPipe {
 	QLock;
 	ZPipe *next;
 	int ref;
-	uint32_t path;
+	u32 path;
 	Zq q[2];
 	int qref[2];
 };
@@ -46,7 +46,7 @@ struct ZPipe {
 struct
 {
 	Lock;
-	uint32_t path;
+	u32 path;
 } zpalloc;
 
 enum {

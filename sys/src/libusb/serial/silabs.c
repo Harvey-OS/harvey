@@ -103,7 +103,7 @@ slinit(Serialport *p)
 static int
 slgetparam(Serialport *p)
 {
-	uint16_t lcr;
+	u16 lcr;
 
 	slread(p, Getbaud, &p->baud, sizeof(p->baud));
 	slread(p, Getlcr, &lcr, sizeof(lcr));
@@ -116,7 +116,7 @@ slgetparam(Serialport *p)
 static int
 slsetparam(Serialport *p)
 {
-	uint16_t lcr;
+	u16 lcr;
 
 	lcr = p->stop == 1? Stop1 : Stop2;
 	lcr |= (p->bits<<Bitsshift) | (p->parity<<Parshift);
@@ -136,7 +136,7 @@ seteps(Serialport *p)
 }
 
 static int
-wait4data(Serialport *p, uint8_t *data, int count)
+wait4data(Serialport *p, u8 *data, int count)
 {
 	int n;
 

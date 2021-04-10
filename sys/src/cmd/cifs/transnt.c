@@ -40,7 +40,7 @@ tnthdr(Session *s, Share *sp, int cmd)
 static void
 ptntparam(Pkt *p)
 {
-	uint8_t *pos = p->pos;
+	u8 *pos = p->pos;
 	assert(p->tbase != 0);
 
 	p->pos = p->tbase +23;
@@ -52,7 +52,7 @@ ptntparam(Pkt *p)
 static void
 ptntdata(Pkt *p)
 {
-	uint8_t *pos = p->pos;
+	u8 *pos = p->pos;
 	assert(p->tbase != 0);
 	assert(p->tparam != 0);
 
@@ -71,7 +71,7 @@ static int
 tntrpc(Pkt *p)
 {
 	int got;
-	uint8_t *pos;
+	u8 *pos;
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);
 
@@ -115,7 +115,7 @@ int
 TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 {
 	Pkt *p;
-	uint8_t *base;
+	u8 *base;
 	Fmt fmt, *f = &fmt;
 	int n, i, off2owner, off2group;
 

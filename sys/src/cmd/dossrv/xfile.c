@@ -26,7 +26,7 @@ getxfs(char *user, char *name)
 	Dir *dir;
 	Qid dqid;
 	char *p, *q;
-	int32_t offset;
+	i32 offset;
 	int fd, omode;
 
 	USED(user);
@@ -151,7 +151,7 @@ xfile(int fid, int flag)
 	Xfile **hp, *f, *pf;
 	int k;
 
-	k = ((uint32_t)fid) % FIDMOD;
+	k = ((u32)fid) % FIDMOD;
 	hp = &xfiles[k];
 	mlock(&xlocks[k]);
 	pf = nil;
@@ -234,7 +234,7 @@ clean(Xfile *f)
  * relocate the dos entries of all fids in the same file
  */
 void
-dosptrreloc(Xfile *f, Dosptr *dp, uint32_t addr, uint32_t offset)
+dosptrreloc(Xfile *f, Dosptr *dp, u32 addr, u32 offset)
 {
 	int i;
 	Xfile *p;

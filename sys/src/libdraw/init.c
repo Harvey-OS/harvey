@@ -460,10 +460,10 @@ flushimage(Display *d, int visible)
 	return doflush(d);
 }
 
-uint8_t*
+u8 *
 bufimage(Display *d, int n)
 {
-	uint8_t *p;
+	u8 *p;
 
 	if(n<0 || n>d->bufsize){
 		werrstr("bad count in bufimage");

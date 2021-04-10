@@ -76,7 +76,7 @@ struct Fsstate
 	struct {		/* pending or finished key confirmations */
 		Key *key;
 		int canuse;
-		uint32_t tag;
+		u32 tag;
 	} *conf;
 	int nconf;
 };
@@ -89,7 +89,7 @@ struct Key
 	Proto *proto;
 
 	void *priv;	/* protocol-specific; a parsed key, perhaps */
-	uint32_t successes;
+	u32 successes;
 };
 
 struct Keyinfo	/* for findkey */

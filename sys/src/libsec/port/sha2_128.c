@@ -15,12 +15,12 @@
 #include <mp.h>
 #include <libsec.h>
 
-static void encode64(uint8_t*, uint64_t*, uint32_t);
-static DigestState* sha2_128(uint8_t *, uint32_t, uint8_t *,
+static void encode64(u8*, u64*, u32);
+static DigestState* sha2_128(u8 *, u32, u8 *,
 			     SHA2_256state *,
 			     int);
 
-extern void _sha2block128(uint8_t*, uint32_t, uint64_t*);
+extern void _sha2block128(u8*, u32, u64*);
 
 /*
  *  for sha2_384 and sha2_512, len must be multiple of 128 for all but
@@ -31,7 +31,7 @@ extern void _sha2block128(uint8_t*, uint32_t, uint64_t*);
  *  it's the same as sha2_512.
  */
 SHA2_384state*
-sha2_384(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_384state *s)
+sha2_384(u8 *p, u32 len, u8 *digest, SHA2_384state *s)
 {
 	if(s == nil) {
 		s = mallocz(sizeof(*s), 1);
@@ -58,7 +58,7 @@ sha2_384(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_384state *s)
 }
 
 SHA2_512state*
-sha2_512(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_512state *s)
+sha2_512(u8 *p, u32 len, u8 *digest, SHA2_512state *s)
 {
 
 	if(s == nil) {
@@ -87,13 +87,13 @@ sha2_512(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_512state *s)
 
 /* common 128 byte block padding and count code for SHA2_384 and SHA2_512 */
 static DigestState*
-sha2_128(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_512state *s,
+sha2_128(u8 *p, u32 len, u8 *digest, SHA2_512state *s,
 	 int dlen)
 {
 	int i;
-	uint64_t x[16];
-	uint8_t buf[256];
-	uint8_t *e;
+	u64 x[16];
+	u8 buf[256];
+	u8 *e;
 
 	/* fill out the partial 128 byte block from previous calls */
 	if(s->blen){
@@ -171,10 +171,10 @@ sha2_128(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_512state *s,
  * Assumes len is a multiple of 8.
  */
 static void
-encode64(uint8_t *output, uint64_t *input, uint32_t len)
+encode64(u8 *output, u64 *input, u32 len)
 {
-	uint64_t x;
-	uint8_t *e;
+	u64 x;
+	u8 *e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -190,17 +190,17 @@ encode64(uint8_t *output, uint64_t *input, uint32_t len)
 }
 
 DigestState*
-hmac_sha2_384(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	      uint8_t *digest,
-	DigestState *s)
+hmac_sha2_384(u8 *p, u32 len, u8 *key, u32 klen,
+	      u8 *digest,
+	      DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha2_384, SHA2_384dlen);
 }
 
 DigestState*
-hmac_sha2_512(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	      uint8_t *digest,
-	DigestState *s)
+hmac_sha2_512(u8 *p, u32 len, u8 *key, u32 klen,
+	      u8 *digest,
+	      DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha2_512, SHA2_512dlen);
 }

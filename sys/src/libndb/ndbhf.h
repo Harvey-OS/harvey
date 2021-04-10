@@ -13,7 +13,7 @@ struct Ndbhf
 	Ndbhf	*next;
 
 	int	fd;
-	uint32_t	dbmtime;	/* mtime of data base */
+	u32	dbmtime;	/* mtime of data base */
 	int	hlen;		/* length (in entries) of hash table */
 	char	attr[Ndbalen];	/* attribute hashed */
 

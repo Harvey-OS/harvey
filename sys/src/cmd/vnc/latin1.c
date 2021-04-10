@@ -26,10 +26,10 @@ struct cvlist
 /*
  * Given 5 characters k[0]..k[4], find the rune or return -1 for failure.
  */
-int32_t
+i32
 unicode(Rune *k)
 {
-	int32_t i, c;
+	i32 i, c;
 
 	k++;	/* skip 'X' */
 	c = 0;
@@ -52,7 +52,7 @@ unicode(Rune *k)
  * failure, or something < -1 if n is too small.  In the latter case, the result
  * is minus the required n.
  */
-int32_t
+i32
 latin1(Rune *k, int n)
 {
 	struct cvlist *l;

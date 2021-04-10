@@ -14,7 +14,7 @@
 /*
  * lucm/latin1.9, in uncompressed form
  */
-uint8_t
+u8
 defontdata[] =
 {
 0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x30,0x20,0x20,0x20,0x20,0x20,
@@ -395,7 +395,7 @@ defontdata[] =
 int	sizeofdefont = sizeof defontdata;
 
 void
-_unpackinfo(Fontchar *fc, uint8_t *p, int n)
+_unpackinfo(Fontchar *fc, u8 *p, int n)
 {
 	int j;
 

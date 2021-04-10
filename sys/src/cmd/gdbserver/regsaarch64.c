@@ -48,17 +48,17 @@ char *
 gdb_hex_reg_helper(GdbState *ks, int regnum, char *out)
 {
 	fprint(2, "%s: NOT YET\n", __func__);
-	memset(out, 0, sizeof(uint32_t));
+	memset(out, 0, sizeof(u32));
 	return nil;
 }
 
-uint64_t
+u64
 arch_get_reg(GdbState *ks, int regnum)
 {
 	return 0;
 }
 
-uint64_t
+u64
 arch_get_pc(GdbState *ks)
 {
 	// not yet.

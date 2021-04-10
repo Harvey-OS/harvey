@@ -249,7 +249,7 @@ rpcread(Req *r)
 	Attr *attr;
 	char *p;
 	int ophase, ret;
-	uint8_t *e;
+	u8 *e;
 	uint count;
 	Fsstate *fss;
 	Proto *proto;
@@ -314,7 +314,7 @@ rpcread(Req *r)
 			break;
 		count = r->ifcall.count - 3;
 		ophase = fss->phase;
-		ret = fss->proto->read(fss, (uint8_t*)r->ofcall.data+3,
+		ret = fss->proto->read(fss, (u8*)r->ofcall.data+3,
 				       &count);
 		rpcrdwrlog(fss, "read", count, ophase, ret);
 		if(ret == RpcOk){
@@ -349,7 +349,7 @@ rpcread(Req *r)
 		}
 		memmove(r->ofcall.data, "ok ", 3);
 		fss->ai.cap = mkcap(r->fid->uid, fss->ai.suid);
-		e = convAI2M(&fss->ai, (uint8_t*)r->ofcall.data+3,
+		e = convAI2M(&fss->ai, (u8*)r->ofcall.data+3,
 			     r->ifcall.count-3);
 		free(fss->ai.cap);
 		fss->ai.cap = nil;
@@ -357,7 +357,7 @@ rpcread(Req *r)
 			retstring(r, fss, "error read too small");
 			break;
 		}
-		r->ofcall.count = e - (uint8_t*)r->ofcall.data;
+		r->ofcall.count = e - (u8*)r->ofcall.data;
 		fss->pending = 0;
 		respond(r, nil);
 		break;

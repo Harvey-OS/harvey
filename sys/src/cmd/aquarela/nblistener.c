@@ -14,7 +14,7 @@ static char *hmsg = "headers";
 int nbudphdrsize;
 
 char *
-nbudpannounce(uint16_t port, int *fdp)
+nbudpannounce(u16 port, int *fdp)
 {
 	int data, ctl;
 	char dir[64], datafile[64+6], addr[NETPATHLEN];

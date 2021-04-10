@@ -78,7 +78,7 @@ nbnsmessageaddquestion(NbnsMessage *s, NbnsMessageQuestion *q)
 }
 
 NbnsMessageQuestion *
-nbnsmessagequestionnew(NbName name, uint16_t type, uint16_t class)
+nbnsmessagequestionnew(NbName name, u16 type, u16 class)
 {
 	NbnsMessageQuestion *q;
 	q = mallocz(sizeof(*q), 1);
@@ -91,9 +91,9 @@ nbnsmessagequestionnew(NbName name, uint16_t type, uint16_t class)
 }
 
 NbnsMessageResource *
-nbnsmessageresourcenew(NbName name, uint16_t type, uint16_t class,
-		       uint32_t ttl,
-		       int rdlength, uint8_t *rdata)
+nbnsmessageresourcenew(NbName name, u16 type, u16 class,
+		       u32 ttl,
+		       int rdlength, u8 *rdata)
 {
 	NbnsMessageResource *r;
 	r= mallocz(sizeof(*r), 1);
@@ -130,10 +130,10 @@ nbnsmessagenew(void)
 }
 
 static int
-resourcedecode(NbnsMessageResource **headp, int count, uint8_t *ap,
-	       uint8_t *pp, uint8_t *ep)
+resourcedecode(NbnsMessageResource **headp, int count, u8 *ap,
+	       u8 *pp, u8 *ep)
 {
-	uint8_t *p = pp;
+	u8 *p = pp;
 	int i;
 	for (i = 0; i < count; i++) {
 		int n;
@@ -169,10 +169,10 @@ resourcedecode(NbnsMessageResource **headp, int count, uint8_t *ap,
 }
 
 NbnsMessage *
-nbnsconvM2S(uint8_t *ap, int nap)
+nbnsconvM2S(u8 *ap, int nap)
 {
-	uint8_t *p, *ep;
-	uint16_t qdcount, ancount, nscount, arcount, ctrl;
+	u8 *p, *ep;
+	u16 qdcount, ancount, nscount, arcount, ctrl;
 	int i;
 	NbnsMessage *s;
 	int n;
@@ -202,7 +202,7 @@ nbnsconvM2S(uint8_t *ap, int nap)
 		int n;
 		NbName nbname;
 		NbnsMessageQuestion *q;
-		uint16_t type, class;
+		u16 type, class;
 		n = nbnamedecode(ap, p, ep, nbname);
 		if (n == 0)
 			goto fail;
@@ -235,9 +235,9 @@ fail:
 }
 
 static int
-resourceencode(NbnsMessageResource *r, uint8_t *ap, uint8_t *ep)
+resourceencode(NbnsMessageResource *r, u8 *ap, u8 *ep)
 {
-	uint8_t *p = ap;
+	u8 *p = ap;
 	for (; r; r = r->next) {
 		int n = nbnameencode(p, ep, r->name);
 		if (n == 0)
@@ -258,11 +258,11 @@ resourceencode(NbnsMessageResource *r, uint8_t *ap, uint8_t *ep)
 }
 
 int
-nbnsconvS2M(NbnsMessage *s, uint8_t *ap, int nap)
+nbnsconvS2M(NbnsMessage *s, u8 *ap, int nap)
 {
-	uint8_t *p = ap;
-	uint8_t *ep = ap + nap;
-	uint16_t ctrl;
+	u8 *p = ap;
+	u8 *ep = ap + nap;
+	u16 ctrl;
 	NbnsMessageQuestion *q;
 	NbnsMessageResource *r;
 	int k;

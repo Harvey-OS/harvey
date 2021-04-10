@@ -15,7 +15,7 @@
 
 Memimage*
 memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr,
-	  uint32_t val)
+	  u32 val)
 {
 	Memlayer *l;
 	Memimage *n;

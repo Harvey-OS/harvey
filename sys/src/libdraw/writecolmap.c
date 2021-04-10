@@ -22,7 +22,7 @@ writecolmap(Display *d, RGB *m)
 {
 	int i, n, fd;
 	char buf[64], *t;
-	uint32_t r, g, b;
+	u32 r, g, b;
 
 	sprint(buf, "/dev/draw/%d/colormap", d->dirno);
 	fd = open(buf, OWRITE);

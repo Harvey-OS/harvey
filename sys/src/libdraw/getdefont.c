@@ -28,7 +28,7 @@ getdefont(Display *d)
 	 * declared as char*, not ulong*.
 	 */
 	p = (char*)defontdata;
-	n = (int)(uint64_t)p & 3;				/* stupid ape */
+	n = (int)(u64)p & 3;				/* stupid ape */
 	if(n != 0){
 		memmove(p+(4-n), p, sizeofdefont-n);
 		p += 4-n;
@@ -44,8 +44,8 @@ getdefont(Display *d)
 		return 0;
 
 	p += 5*12;
-	n = loadimage(i, r, (uint8_t*)p,
-		      (defontdata+sizeofdefont)-(uint8_t*)p);
+	n = loadimage(i, r, (u8*)p,
+		      (defontdata+sizeofdefont)-(u8*)p);
 	if(n < 0){
 		freeimage(i);
 		return 0;
@@ -59,7 +59,7 @@ getdefont(Display *d)
 		freeimage(i);
 		return 0;
 	}
-	_unpackinfo(fc, (uint8_t*)p, n);
+	_unpackinfo(fc, (u8*)p, n);
 	f = allocsubfont("*default*", n, atoi(hdr+12), atoi(hdr+24), fc, i);
 	if(f == 0){
 		freeimage(i);

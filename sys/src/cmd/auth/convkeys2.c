@@ -22,7 +22,7 @@ int	usepass;
 int	convert(char*, char*, char*, int);
 int	dofcrypt(int, char*, char*, int);
 void	usage(void);
-void	randombytes(uint8_t*, int);
+void	randombytes(u8*, int);
 
 void
 main(int argc, char *argv[])
@@ -82,14 +82,14 @@ main(int argc, char *argv[])
 void
 oldCBCencrypt(char *key7, char *p, int len)
 {
-	uint8_t ivec[8];
-	uint8_t key[8];
+	u8 ivec[8];
+	u8 key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((u8*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uint8_t*)p, len, &s);
+	desCBCencrypt((u8*)p, len, &s);
 }
 
 int
@@ -110,7 +110,7 @@ convert(char *p, char *np, char *key, int len)
 		if(verb)
 			print("%s\n", &p[off]);
 	}
-	randombytes((uint8_t*)np, KEYDBOFF);
+	randombytes((u8*)np, KEYDBOFF);
 	len = (len*KEYDBLEN) + KEYDBOFF;
 	oldCBCencrypt(key, np, len);
 	return len;
@@ -124,7 +124,7 @@ usage(void)
 }
 
 void
-randombytes(uint8_t *p, int len)
+randombytes(u8 *p, int len)
 {
 	int i, fd;
 

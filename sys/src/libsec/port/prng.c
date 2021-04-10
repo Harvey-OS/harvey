@@ -16,9 +16,9 @@
 //  just use the libc prng to fill a buffer
 //
 void
-prng(uint8_t *p, int n)
+prng(u8 *p, int n)
 {
-	uint8_t *e;
+	u8 *e;
 
 	for(e = p+n; p < e; p++)
 		*p = rand();

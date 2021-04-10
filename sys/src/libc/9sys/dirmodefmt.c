@@ -24,7 +24,7 @@ static char *modes[] =
 };
 
 static void
-rwx(int32_t m, char *s)
+rwx(i32 m, char *s)
 {
 	strncpy(s, modes[m], 3);
 }
@@ -33,9 +33,9 @@ int
 dirmodefmt(Fmt *f)
 {
 	static char buf[16];
-	uint32_t m;
+	u32 m;
 
-	m = va_arg(f->args, uint32_t);
+	m = va_arg(f->args, u32);
 
 	if(m & DMDIR)
 		buf[0]='d';

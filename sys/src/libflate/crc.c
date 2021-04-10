@@ -11,14 +11,14 @@
 #include <libc.h>
 #include <flate.h>
 
-uint32_t*
-mkcrctab(uint32_t poly)
+u32*
+mkcrctab(u32 poly)
 {
-	uint32_t *crctab;
-	uint32_t crc;
+	u32 *crctab;
+	u32 crc;
 	int i, j;
 
-	crctab = malloc(256 * sizeof(uint32_t));
+	crctab = malloc(256 * sizeof(u32));
 	if(crctab == nil)
 		return nil;
 
@@ -35,10 +35,10 @@ mkcrctab(uint32_t poly)
 	return crctab;
 }
 
-uint32_t
-blockcrc(uint32_t *crctab, uint32_t crc, void *vbuf, int n)
+u32
+blockcrc(u32 *crctab, u32 crc, void *vbuf, int n)
 {
-	uint8_t *buf, *ebuf;
+	u8 *buf, *ebuf;
 
 	crc ^= 0xffffffff;
 	buf = vbuf;

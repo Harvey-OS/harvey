@@ -20,7 +20,7 @@
 #include "exportfs.h"
 
 #define QIDPATH	((1LL<<48)-1)
-int64_t newqid = 0;
+i64 newqid = 0;
 
 enum {
 	Encnone,
@@ -61,8 +61,8 @@ char	*aanfilter = "/bin/aan";
 int	encproto = Encnone;
 int	readonly;
 
-static void	mksecret(char *, uint8_t *);
-static int localread9pmsg(int, void *, uint, uint32_t *);
+static void	mksecret(char *, u8 *);
+static int localread9pmsg(int, void *, uint, u32 *);
 static char *anstring  = "tcp!*!0";
 
 char *netdir = "", *local = "", *remote = "";
@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	int doauth, n, fd;
 	char *dbfile, *srv, *na, *nsfile, *keyspec;
 	AuthInfo *ai;
-	uint32_t initial;
+	u32 initial;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
@@ -300,10 +300,10 @@ main(int argc, char **argv)
 	if(srv == nil && srvfd == -1 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
-	if (readn(netfd, &initial, sizeof(uint32_t)) < sizeof(uint32_t))
+	if (readn(netfd, &initial, sizeof(u32)) < sizeof(u32))
 		fatal("can't read initial string: %r\n");
 
-	if (strncmp((char *)&initial, "impo", sizeof(uint32_t)) == 0) {
+	if (strncmp((char *)&initial, "impo", sizeof(u32)) == 0) {
 		char buf[128], *p, *args[3];
 
 		/* New import.  Read import's parameters... */
@@ -343,8 +343,8 @@ main(int argc, char **argv)
 	}
 
 	if (encproto != Encnone && ealgs && ai) {
-		uint8_t key[16];
-		uint8_t digest[SHA1dlen];
+		u8 key[16];
+		u8 digest[SHA1dlen];
 		char fromclientsecret[21];
 		char fromserversecret[21];
 		int i;
@@ -417,15 +417,15 @@ main(int argc, char **argv)
  * cpu relies on this (which needs to be fixed!) -- pb.
  */
 static int
-localread9pmsg(int fd, void *abuf, uint n, uint32_t *initial)
+localread9pmsg(int fd, void *abuf, uint n, u32 *initial)
 {
 	int m, len;
-	uint8_t *buf;
+	u8 *buf;
 
 	buf = abuf;
 
 	/* read count */
-	assert(BIT32SZ == sizeof(uint32_t));
+	assert(BIT32SZ == sizeof(u32));
 	if (*initial) {
 		memcpy(buf, initial, BIT32SZ);
 		*initial = 0;
@@ -453,7 +453,7 @@ localread9pmsg(int fd, void *abuf, uint n, uint32_t *initial)
 void
 reply(Fcall *r, Fcall *t, char *err)
 {
-	uint8_t *data;
+	u8 *data;
 	int n;
 
 	t->tag = r->tag;
@@ -739,7 +739,7 @@ makepath(File *p, char *name)
 }
 
 int
-qidhash(int64_t path)
+qidhash(i64 path)
 {
 	int h, n;
 
@@ -754,7 +754,7 @@ qidhash(int64_t path)
 void
 freeqid(Qidtab *q)
 {
-	uint32_t h;
+	u32 h;
 	Qidtab *l;
 
 	q->ref--;
@@ -776,7 +776,7 @@ freeqid(Qidtab *q)
 Qidtab*
 qidlookup(Dir *d)
 {
-	uint32_t h;
+	u32 h;
 	Qidtab *q;
 
 	h = qidhash(d->qid.path);
@@ -787,7 +787,7 @@ qidlookup(Dir *d)
 }
 
 int
-qidexists(int64_t path)
+qidexists(i64 path)
 {
 	int h;
 	Qidtab *q;
@@ -802,8 +802,8 @@ qidexists(int64_t path)
 Qidtab*
 uniqueqid(Dir *d)
 {
-	uint32_t h;
-	int64_t path;
+	u32 h;
+	i64 path;
 	Qidtab *q;
 
 	q = qidlookup(d);
@@ -945,7 +945,7 @@ filter(int fd, char *cmd)
 }
 
 static void
-mksecret(char *t, uint8_t *f)
+mksecret(char *t, u8 *f)
 {
 	sprint(t, "%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);

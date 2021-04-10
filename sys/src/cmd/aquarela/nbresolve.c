@@ -12,9 +12,9 @@
 #include <ndb.h>
 
 int
-nbnameresolve(NbName nbname, uint8_t *ipaddr)
+nbnameresolve(NbName nbname, u8 *ipaddr)
 {
-	uint32_t r, ttl;
+	u32 r, ttl;
 	char name[NETPATHLEN];
 	NbName copy;
 	Ndbtuple *t;

@@ -115,7 +115,7 @@ setname(Face *f, char *sender)
 int
 getc(void)
 {
-	static uint8_t buf[512];
+	static u8 buf[512];
 	static int nbuf = 0;
 	static int i = 0;
 
@@ -167,7 +167,7 @@ getmon(char *s)
 }
 
 /* Fri Jul 23 14:05:14 EDT 1999 */
-uint32_t
+u32
 parsedatev(char **a)
 {
 	char *p;
@@ -202,7 +202,7 @@ Err:
 	return time(0);
 }
 
-uint32_t
+u32
 parsedate(char *s)
 {
 	char *f[10];
@@ -217,7 +217,7 @@ parsedate(char *s)
 /* achille Jul 23 14:05:15 delivered jmk From ms.com!bub Fri Jul 23 14:05:14 EDT 1999 (plan9.bell-labs.com!jmk) 1352 */
 /* achille Oct 26 13:45:42 remote local!rsc From rsc Sat Oct 26 13:45:41 EDT 2002 (rsc) 170 */
 int
-parselog(char *s, char **sender, uint32_t *xtime)
+parselog(char *s, char **sender, u32 *xtime)
 {
 	char *f[20];
 	int nf;
@@ -238,7 +238,7 @@ Found:
 }
 
 int
-logrecv(char **sender, uint32_t *xtime)
+logrecv(char **sender, u32 *xtime)
 {
 	char buf[4096];
 
@@ -273,7 +273,7 @@ nextface(void)
 	Face *f;
 	Plumbmsg *m;
 	char *t, *senderp, *showmailp, *digestp;
-	uint32_t xtime;
+	u32 xtime;
 
 	f = emalloc(sizeof(Face));
 	for(;;){
@@ -340,7 +340,7 @@ dirface(char *dir, char *num)
 	char *from, *date;
 	char buf[1024], pwd[1024], *info, *p, *digest;
 	int n, fd;
-	uint32_t len;
+	u32 len;
 
 	/*
 	 * loadmbox leaves us in maildir, so we needn't

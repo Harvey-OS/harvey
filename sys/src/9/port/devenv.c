@@ -256,7 +256,7 @@ envread(Chan *c, void *a, i32 n, i64 off)
 	}
 
 	offset = off;
-	if(offset > e->len) /* protects against overflow converting int64_t to long */
+	if(offset > e->len) /* protects against overflow converting i64 to long */
 		n = 0;
 	else if(offset + n > e->len)
 		n = e->len - offset;

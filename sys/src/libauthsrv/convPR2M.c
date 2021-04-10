@@ -21,15 +21,15 @@ int
 convPR2M(Passwordreq *f, char *ap, char *key)
 {
 	int n;
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	CHAR(num);
 	STRING(old, ANAMELEN);
 	STRING(new, ANAMELEN);
 	CHAR(changesecret);
 	STRING(secret, SECRETLEN);
-	n = p - (uint8_t*)ap;
+	n = p - (u8*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

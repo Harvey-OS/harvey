@@ -12,7 +12,7 @@
 #include <ip.h>
 
 int
-equivip4(uint8_t *a, uint8_t *b)
+equivip4(u8 *a, u8 *b)
 {
 	int i;
 
@@ -23,7 +23,7 @@ equivip4(uint8_t *a, uint8_t *b)
 }
 
 int
-equivip6(uint8_t *a, uint8_t *b)
+equivip6(u8 *a, u8 *b)
 {
 	int i;
 

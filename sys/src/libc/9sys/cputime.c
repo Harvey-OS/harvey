@@ -15,7 +15,7 @@
 double
 cputime(void)
 {
-	int32_t t[4];
+	i32 t[4];
 	int i;
 
 	times(t);

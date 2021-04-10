@@ -22,8 +22,8 @@ struct Serialops {
 	int	(*modemctl)(Serialport*, int);
 	int	(*setbreak)(Serialport*, int);
 	int	(*readstatus)(Serialport*);
-	int	(*wait4data)(Serialport*, uint8_t *, int);
-	int	(*wait4write)(Serialport*, uint8_t *, int);
+	int	(*wait4data)(Serialport*, u8 *, int);
+	int	(*wait4write)(Serialport*, u8 *, int);
 };
 
 enum {
@@ -43,7 +43,7 @@ struct Serialport {
 	Dev	*epout;
 
 	Usbfs	fs;
-	uint8_t	ctlstate;
+	u8	ctlstate;
 
 	/* serial parameters */
 	uint	baud;
@@ -60,7 +60,7 @@ struct Serialport {
 	int	dtr;
 	int	rlsd;
 
-	int64_t	timer;
+	i64	timer;
 	int	blocked;	/* for sw flow ctl. BUG: not implemented yet */
 	int	nbreakerr;
 	int	ring;
@@ -75,7 +75,7 @@ struct Serialport {
 	Channel *gotdata;
 	Channel *readc;		/* to uncouple reads, only used in ftdi... */
 	int	ndata;
-	uint8_t	data[DataBufSz];
+	u8	data[DataBufSz];
 };
 
 struct Serial {

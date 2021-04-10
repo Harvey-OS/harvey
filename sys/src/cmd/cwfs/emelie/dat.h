@@ -32,8 +32,8 @@ enum { FIXEDSIZE = 1 };
 enum { MAXBANK = 2 };
 
 typedef struct Mbank {
-	uint32_t	base;
-	uint32_t	limit;
+	u32	base;
+	u32	limit;
 } Mbank;
 
 typedef struct Mconf {

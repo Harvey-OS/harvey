@@ -12,12 +12,12 @@
 typedef struct MetaChunk MetaChunk;
 
 struct MetaChunk {
-	uint16_t offset;
-	uint16_t size;
-	uint16_t index;
+	u16 offset;
+	u16 size;
+	u16 index;
 };
 
-static int stringUnpack(char **s, uint8_t **p, int *n);
+static int stringUnpack(char **s, u8 **p, int *n);
 static int meCmp(MetaEntry*, char *s);
 static int meCmpOld(MetaEntry*, char *s);
 
@@ -32,8 +32,8 @@ static char ENoFile[] = "file does not exist";
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3])
-#define	U48GET(p)	(((uint64_t)U16GET(p)<<32)|(uint64_t)U32GET((p)+2))
-#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
+#define	U48GET(p)	(((u64)U16GET(p)<<32)|(u64)U32GET((p)+2))
+#define	U64GET(p)	(((u64)U32GET(p)<<32)|(u64)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)
 #define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
@@ -43,7 +43,7 @@ static char ENoFile[] = "file does not exist";
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 static int
-stringUnpack(char **s, uint8_t **p, int *n)
+stringUnpack(char **s, u8 **p, int *n)
 {
 	int nn;
 
@@ -64,7 +64,7 @@ stringUnpack(char **s, uint8_t **p, int *n)
 }
 
 static int
-stringPack(char *s, uint8_t *p)
+stringPack(char *s, u8 *p)
 {
 	int n;
 
@@ -114,7 +114,7 @@ if(0)fprint(2, "mbSearch %s\n", elem);
 }
 
 void
-mbInit(MetaBlock *mb, uint8_t *p, int n, int ne)
+mbInit(MetaBlock *mb, u8 *p, int n, int ne)
 {
 	memset(p, 0, n);
 	mb->maxsize = n;
@@ -127,12 +127,12 @@ mbInit(MetaBlock *mb, uint8_t *p, int n, int ne)
 }
 
 int
-mbUnpack(MetaBlock *mb, uint8_t *p, int n)
+mbUnpack(MetaBlock *mb, u8 *p, int n)
 {
-	uint32_t magic;
+	u32 magic;
 	int i;
 	int eo, en, omin;
-	uint8_t *q;
+	u8 *q;
 
 	mb->maxsize = n;
 	mb->buf = p;
@@ -182,7 +182,7 @@ Err:
 void
 mbPack(MetaBlock *mb)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = mb->buf;
 
@@ -199,7 +199,7 @@ mbPack(MetaBlock *mb)
 void
 mbDelete(MetaBlock *mb, int i)
 {
-	uint8_t *p;
+	u8 *p;
 	int n;
 	MetaEntry me;
 
@@ -222,7 +222,7 @@ mbDelete(MetaBlock *mb, int i)
 void
 mbInsert(MetaBlock *mb, int i, MetaEntry *me)
 {
-	uint8_t *p;
+	u8 *p;
 	int o, n;
 
 	assert(mb->nindex < mb->maxindex);
@@ -246,7 +246,7 @@ mbInsert(MetaBlock *mb, int i, MetaEntry *me)
 int
 mbResize(MetaBlock *mb, MetaEntry *me, int n)
 {
-	uint8_t *p, *ep;
+	u8 *p, *ep;
 
 	/* easy case */
 	if(n <= me->size){
@@ -278,7 +278,7 @@ mbResize(MetaBlock *mb, MetaEntry *me, int n)
 void
 meUnpack(MetaEntry *me, MetaBlock *mb, int i)
 {
-	uint8_t *p;
+	u8 *p;
 	int eo, en;
 
 	assert(i >= 0 && i < mb->nindex);
@@ -299,7 +299,7 @@ static int
 meCmp(MetaEntry *me, char *s)
 {
 	int n;
-	uint8_t *p;
+	u8 *p;
 
 	p = me->p;
 
@@ -314,9 +314,9 @@ meCmp(MetaEntry *me, char *s)
 	while(n > 0){
 		if(*s == 0)
 			return 1;
-		if(*p < (uint8_t)*s)
+		if(*p < (u8)*s)
 			return -1;
-		if(*p > (uint8_t)*s)
+		if(*p > (u8)*s)
 			return 1;
 		p++;
 		s++;
@@ -338,7 +338,7 @@ static int
 meCmpOld(MetaEntry *me, char *s)
 {
 	int n;
-	uint8_t *p;
+	u8 *p;
 
 	p = me->p;
 
@@ -353,9 +353,9 @@ meCmpOld(MetaEntry *me, char *s)
 	while(n > 0){
 		if(*s == 0)
 			return -1;
-		if(*p < (uint8_t)*s)
+		if(*p < (u8)*s)
 			return -1;
-		if(*p > (uint8_t)*s)
+		if(*p > (u8)*s)
 			return 1;
 		p++;
 		s++;
@@ -383,7 +383,7 @@ metaChunks(MetaBlock *mb)
 {
 	MetaChunk *mc;
 	int oo, o, n, i;
-	uint8_t *p;
+	u8 *p;
 
 	mc = vtMemAlloc(mb->nindex*sizeof(MetaChunk));
 	p = mb->buf + MetaHeaderSize;
@@ -447,7 +447,7 @@ mbCompact(MetaBlock *mb, MetaChunk *mc)
 	mb->free = 0;
 }
 
-uint8_t *
+u8 *
 mbAlloc(MetaBlock *mb, int n)
 {
 	int i, o;
@@ -533,8 +533,8 @@ deSize(DirEntry *dir)
 void
 dePack(DirEntry *dir, MetaEntry *me)
 {
-	uint8_t *p;
-	uint32_t t32;
+	u8 *p;
+	u32 t32;
 
 	p = me->p;
 
@@ -579,7 +579,7 @@ int
 deUnpack(DirEntry *dir, MetaEntry *me)
 {
 	int t, nn, n, version;
-	uint8_t *p;
+	u8 *p;
 
 	p = me->p;
 	n = me->size;

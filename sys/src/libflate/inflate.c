@@ -37,14 +37,14 @@ struct Input
 	int	(*w)(void*, void*, int);
 	void	*getr;
 	int	(*get)(void*);
-	uint32_t	sreg;
+	u32	sreg;
 	int	nbits;
 };
 
 struct History
 {
-	uint8_t	his[HistorySize];
-	uint8_t	*cp;		/* current pointer in history */
+	u8	his[HistorySize];
+	u8	*cp;		/* current pointer in history */
 	int	full;		/* his has been filled up at least once */
 };
 
@@ -53,10 +53,10 @@ struct Huff
 	int	maxbits;	/* max bits for any code */
 	int	minbits;	/* min bits to get before looking in flat */
 	int	flatmask;	/* bits used in "flat" fast decoding table */
-	uint32_t	flat[1<<MaxFlatBits];
-	uint32_t	maxcode[MaxHuffBits];
-	uint32_t	last[MaxHuffBits];
-	uint32_t	decode[MaxLeaf];
+	u32	flat[1<<MaxFlatBits];
+	u32	maxcode[MaxHuffBits];
+	u32	last[MaxHuffBits];
+	u32	decode[MaxLeaf];
 };
 
 /* litlen code words 257-285 extra bits */
@@ -89,7 +89,7 @@ static int clenorder[Nclen] =
 /* for static huffman tables */
 static	Huff	litlentab;
 static	Huff	offtab;
-static	uint8_t	revtab[256];
+static	u8	revtab[256];
 
 static int	uncblock(Input *in, History*);
 static int	fixedblock(Input *in, History*);
@@ -225,7 +225,7 @@ static int
 uncblock(Input *in, History *his)
 {
 	int len, nlen, c;
-	uint8_t *hs, *hp, *he;
+	u8 *hs, *hp, *he;
 
 	if(!sregunget(in))
 		return 0;
@@ -403,7 +403,7 @@ static int
 decode(Input *in, History *his, Huff *litlentab, Huff *offtab)
 {
 	int len, off;
-	uint8_t *hs, *hp, *hq, *he;
+	u8 *hs, *hp, *hq, *he;
 	int c;
 	int nb;
 
@@ -556,8 +556,8 @@ revcode(int c, int b)
 static int
 hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 {
-	uint32_t bitcount[MaxHuffBits];
-	uint32_t c, fc, ec, mincode, code, nc[MaxHuffBits];
+	u32 bitcount[MaxHuffBits];
+	u32 c, fc, ec, mincode, code, nc[MaxHuffBits];
 	int i, b, minbits, maxbits;
 
 	for(i = 0; i < MaxHuffBits; i++)
@@ -648,7 +648,7 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 static int
 hdecsym(Input *in, Huff *h, int nb)
 {
-	int32_t c;
+	i32 c;
 
 	if((nb & 0xff) == 0xff)
 		nb = nb >> 8;

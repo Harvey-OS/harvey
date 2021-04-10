@@ -40,8 +40,8 @@ enum
 	Nhash=		64,		/* Fid hash buckets */
 };
 
-#define TYPE(x)		(((uint32_t)x.path) & 0xf)
-#define CONS(x)		((((uint32_t)x.path) >> 4)&0xfff)
+#define TYPE(x)		(((u32)x.path) & 0xf)
+#define CONS(x)		((((u32)x.path) >> 4)&0xfff)
 #define QID(c, x)	(((c)<<4) | (x))
 
 struct Request
@@ -50,7 +50,7 @@ struct Request
 	Fid	*fid;
 	Fs	*fs;
 	Fcall	f;
-	uint8_t	buf[1];
+	u8	buf[1];
 };
 
 struct Reqlist
@@ -123,7 +123,7 @@ extern	void	fsreader(void*);
 extern	void	fsrun(void*);
 extern	Fid*	fsgetfid(Fs*, int);
 extern	void	fsputfid(Fs*, Fid*);
-extern	int	fsdirgen(Fs*, Qid, int, Dir*, uint8_t*, int);
+extern	int	fsdirgen(Fs*, Qid, int, Dir*, u8*, int);
 extern	void	fsreply(Fs*, Request*, char*);
 extern	void	fskick(Fs*, Fid*);
 extern	int	fsreopen(Fs*, Console*);
@@ -282,7 +282,7 @@ parentqid(Qid q)
 }
 
 int
-fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uint8_t *buf, int nbuf)
+fsdirgen(Fs *fs, Qid parent, int i, Dir *d, u8 *buf, int nbuf)
 {
 	static char name[64];
 	char *p;
@@ -1026,9 +1026,9 @@ fscreate(Fs *fs, Request *r, Fid *f)
 void
 fsread(Fs *fs, Request *r, Fid *f)
 {
-	uint8_t *p, *e;
+	u8 *p, *e;
 	int i, m, off;
-	int64_t offset;
+	i64 offset;
 	Dir d;
 	char sbuf[ERRMAX];
 
@@ -1216,7 +1216,7 @@ void
 fsreply(Fs *fs, Request *r, char *err)
 {
 	int n;
-	uint8_t buf[8192+IOHDRSZ];
+	u8 buf[8192+IOHDRSZ];
 
 	if(err){
 		r->f.type = Rerror;

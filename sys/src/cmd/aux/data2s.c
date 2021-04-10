@@ -15,7 +15,7 @@ void
 main(int argc, char *argv[])
 {
 	Biobuf bin, bout;
-	int32_t len, slen;
+	i32 len, slen;
 	int c;
 
 	if(argc != 2){

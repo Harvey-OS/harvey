@@ -392,7 +392,7 @@ strtouid1(char *s)
 int
 ingroup(int u, int g)
 {
-	int16_t *p;
+	i16 *p;
 
 	if(u == g)
 		return 1;

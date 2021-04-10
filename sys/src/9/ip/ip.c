@@ -147,7 +147,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 
 	ip->stats[OutRequests]++;
 
-	/* Number of uint8_ts in data and ip header to write */
+	/* Number of u8s in data and ip header to write */
 	len = blocklen(bp);
 
 	if(gating){

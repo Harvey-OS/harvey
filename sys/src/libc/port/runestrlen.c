@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-int32_t
+i32
 runestrlen(const Rune *s)
 {
 

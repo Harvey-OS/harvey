@@ -1453,7 +1453,7 @@ run(Window *win, char *s, Rune *rdir, int ndir, int newns,
 
 	arg = emalloc(10*sizeof(void*));
 	c = emalloc(sizeof *c);
-	cpid = chancreate(sizeof(uint32_t), 0);
+	cpid = chancreate(sizeof(u32), 0);
 	arg[0] = win;
 	arg[1] = s;
 	arg[2] = rdir;

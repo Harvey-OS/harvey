@@ -43,11 +43,11 @@ torgbv(Rawimage *i, int errdiff)
 	int *ered, *egrn, *eblu, *rp, *gp, *bp;
 	int bpc;
 	uint *map3;
-	uint8_t *closest;
+	u8 *closest;
 	Rawimage *im;
 	int dx, dy;
 	char err[ERRMAX];
-	uint8_t *cmap, *cm, *in, *out, *inp, *outp, cmap1[3*256], map[256], *rpic, *bpic, *gpic;
+	u8 *cmap, *cm, *in, *out, *inp, *outp, cmap1[3*256], map[256], *rpic, *bpic, *gpic;
 
 	err[0] = '\0';
 	errstr(err, sizeof err);	/* throw it away */

@@ -84,8 +84,8 @@ search(char *file, int flag)
 {
 	State *s, *ns;
 	int c, fid, eof, nl, empty;
-	int32_t count, lineno, n;
-	uint8_t *elp, *lp, *bol;
+	i32 count, lineno, n;
+	u8 *elp, *lp, *bol;
 
 	if (file == 0) {
 		file = "stdin";

@@ -35,7 +35,7 @@ struct word
 {
 	char	*text;
 	int	length;
-	uint32_t	mask;
+	u32	mask;
 	word	*next;
 };
 
@@ -45,7 +45,7 @@ typedef struct
 {
 	int	count[ALPHAS];
 	int	length;
-	uint32_t	mask;
+	u32	mask;
 }
 	target;
 
@@ -62,7 +62,7 @@ error(char *s)
 }
 
 void	*
-salloc(uint32_t z)
+salloc(u32 z)
 {
 	void	*p;
 
@@ -123,10 +123,10 @@ word_ok(word *w)
 	return vowel;
 }
 
-uint32_t
+u32
 str_to_mask(char *s)
 {
-	uint32_t	m;
+	u32	m;
 
 	m = 0;
 
@@ -282,10 +282,10 @@ print_set(set s)
 	}
 }
 
-uint32_t
+u32
 target_mask(int c[])
 {
-	uint32_t	m;
+	u32	m;
 	int	i;
 
 	m = 0;

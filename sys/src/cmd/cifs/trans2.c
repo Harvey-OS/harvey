@@ -46,7 +46,7 @@ t2hdr(Session *s, Share *sp, int cmd)
 static void
 pt2param(Pkt *p)
 {
-	uint8_t *pos = p->pos;
+	u8 *pos = p->pos;
 
 	assert(p->tbase != 0);
 	p->pos = p->tbase + 20;
@@ -58,7 +58,7 @@ pt2param(Pkt *p)
 static void
 pt2data(Pkt *p)
 {
-	uint8_t *pos = p->pos;
+	u8 *pos = p->pos;
 
 	assert(p->tbase != 0);
 	assert(p->tparam != 0);
@@ -79,7 +79,7 @@ static int
 t2rpc(Pkt *p)
 {
 	int got;
-	uint8_t *pos;
+	u8 *pos;
 
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);
@@ -126,10 +126,10 @@ gt2data(Pkt *p)
 
 int
 T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
-	int32_t *resume, FInfo *fip)
+	i32 *resume, FInfo *fip)
 {
 	int pktlen, i, n, sh;
-	uint8_t *next;
+	u8 *next;
 	Pkt *p;
 
 	p = t2hdr(s, sp, TRANS2_FIND_FIRST2);
@@ -194,11 +194,11 @@ T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
 
 int
 T2findnext(Session *s, Share *sp, int slots, char *path, int *got,
-	int32_t *resume, FInfo *fip, int sh)
+	i32 *resume, FInfo *fip, int sh)
 {
 	Pkt *p;
 	int i, n;
-	uint8_t *next;
+	u8 *next;
 
 	/*
 	 * So I believe from comp.protocols.smb if you send
@@ -390,11 +390,11 @@ T2setfilelength(Session *s, Share *sp, int fh, FInfo *fip) /* FIXME: maybe broke
 
 
 int
-T2fsvolumeinfo(Session *s, Share *sp, int32_t *created, int32_t *serialno,
-	char *label, int labellen)
+T2fsvolumeinfo(Session *s, Share *sp, i32 *created, i32 *serialno,
+	       char *label, int labellen)
 {
 	Pkt *p;
-	int32_t ct, sn, n;
+	i32 ct, sn, n;
 
 	p = t2hdr(s, sp, TRANS2_QUERY_FS_INFORMATION);
 	pt2param(p);
@@ -427,10 +427,10 @@ T2fsvolumeinfo(Session *s, Share *sp, int32_t *created, int32_t *serialno,
 }
 
 int
-T2fssizeinfo(Session *s, Share *sp, uint64_t *total, uint64_t *unused)
+T2fssizeinfo(Session *s, Share *sp, u64 *total, u64 *unused)
 {
 	Pkt *p;
-	uint64_t t, f, n, b;
+	u64 t, f, n, b;
 
 	p = t2hdr(s, sp, TRANS2_QUERY_FS_INFORMATION);
 	pt2param(p);
@@ -471,7 +471,7 @@ T2getdfsreferral(Session *s, Share *sp, char *path, int *gflags,
 {
 	int i, vers, nret, len;
 	char tmp[1024];
-	uint8_t *base;
+	u8 *base;
 	Pkt *p;
 
 	p = t2hdr(s, sp, TRANS2_GET_DFS_REFERRAL);

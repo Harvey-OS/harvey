@@ -12,9 +12,9 @@
 #include	<fcall.h>
 
 int
-statcheck(uint8_t *buf, uint nbuf)
+statcheck(u8 *buf, uint nbuf)
 {
-	uint8_t *ebuf;
+	u8 *ebuf;
 	int i;
 
 	ebuf = buf + nbuf;
@@ -42,9 +42,9 @@ statcheck(uint8_t *buf, uint nbuf)
 static char nullstring[] = "";
 
 uint
-convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
+convM2D(u8 *buf, uint nbuf, Dir *d, char *strs)
 {
-	uint8_t *p, *ebuf;
+	u8 *p, *ebuf;
 	char *sv[4];
 	int i, ns;
 
@@ -106,9 +106,9 @@ convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 }
 
 uint
-convLM2D(uint8_t *buf, uint nbuf, Dir *d)
+convLM2D(u8 *buf, uint nbuf, Dir *d)
 {
-	uint8_t *p, *ebuf;
+	u8 *p, *ebuf;
 
 	if(nbuf < 22)
 		return 0;

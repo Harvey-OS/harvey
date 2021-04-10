@@ -33,7 +33,7 @@ SmbTransactionMethod smbtransactionmethod2 = {
 };
 
 SmbProcessResult
-smbcomtransaction(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
+smbcomtransaction(SmbSession *s, SmbHeader *h, u8 *pdata, SmbBuffer *b)
 {
 	int rv;
 	char *errmsg;
@@ -83,12 +83,12 @@ done:
 }
 
 SmbProcessResult
-smbcomtransaction2(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
+smbcomtransaction2(SmbSession *s, SmbHeader *h, u8 *pdata, SmbBuffer *b)
 {
 	int rv;
 	char *errmsg;
 	SmbProcessResult pr = SmbProcessResultDie;
-	uint16_t op;
+	u16 op;
 
 	errmsg = nil;
 	rv = smbtransactiondecodeprimary2(&s->transaction, h, pdata, b, &errmsg);

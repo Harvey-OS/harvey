@@ -23,11 +23,11 @@ typedef struct Dict	Dict;
 struct Dict
 {
 	struct {
-		uint16_t	offset;		/* pointer to packed name in message */
+		u16	offset;		/* pointer to packed name in message */
 		char	*name;		/* pointer to unpacked name in buf */
 	} x[Ndict];
 	int	n;		/* size of dictionary */
-	uint8_t	*start;		/* start of packed message */
+	u8	*start;		/* start of packed message */
 	char	buf[16*1024];	/* buffer for unpacked names (was 4k) */
 	char	*ep;		/* first free char in buf */
 };
@@ -42,8 +42,8 @@ struct Dict
 #define V4ADDR(x)	p = pv4addr(p, ep, x)
 #define V6ADDR(x)	p = pv6addr(p, ep, x)
 
-static uint8_t*
-psym(uint8_t *p, uint8_t *ep, char *np)
+static u8 *
+psym(u8 *p, u8 *ep, char *np)
 {
 	int n;
 
@@ -57,14 +57,14 @@ psym(uint8_t *p, uint8_t *ep, char *np)
 	return p + n;
 }
 
-static uint8_t*
-pstr(uint8_t *p, uint8_t *ep, char *np)
+static u8 *
+pstr(u8 *p, u8 *ep, char *np)
 {
 	return psym(p, ep, np);
 }
 
-static uint8_t*
-pbytes(uint8_t *p, uint8_t *ep, uint8_t *np, int n)
+static u8 *
+pbytes(u8 *p, u8 *ep, u8 *np, int n)
 {
 	if(ep - p < n)
 		return ep+1;
@@ -72,8 +72,8 @@ pbytes(uint8_t *p, uint8_t *ep, uint8_t *np, int n)
 	return p + n;
 }
 
-static uint8_t*
-puchar(uint8_t *p, uint8_t *ep, int val)
+static u8 *
+puchar(u8 *p, u8 *ep, int val)
 {
 	if(ep - p < 1)
 		return ep+1;
@@ -81,8 +81,8 @@ puchar(uint8_t *p, uint8_t *ep, int val)
 	return p;
 }
 
-static uint8_t*
-pushort(uint8_t *p, uint8_t *ep, int val)
+static u8 *
+pushort(u8 *p, u8 *ep, int val)
 {
 	if(ep - p < 2)
 		return ep+1;
@@ -91,8 +91,8 @@ pushort(uint8_t *p, uint8_t *ep, int val)
 	return p;
 }
 
-static uint8_t*
-pulong(uint8_t *p, uint8_t *ep, int val)
+static u8 *
+pulong(u8 *p, u8 *ep, int val)
 {
 	if(ep - p < 4)
 		return ep+1;
@@ -103,10 +103,10 @@ pulong(uint8_t *p, uint8_t *ep, int val)
 	return p;
 }
 
-static uint8_t*
-pv4addr(uint8_t *p, uint8_t *ep, char *name)
+static u8 *
+pv4addr(u8 *p, u8 *ep, char *name)
 {
-	uint8_t ip[IPaddrlen];
+	u8 ip[IPaddrlen];
 
 	if(ep - p < 4)
 		return ep+1;
@@ -115,8 +115,8 @@ pv4addr(uint8_t *p, uint8_t *ep, char *name)
 	return p + 4;
 }
 
-static uint8_t*
-pv6addr(uint8_t *p, uint8_t *ep, char *name)
+static u8 *
+pv6addr(u8 *p, u8 *ep, char *name)
 {
 	if(ep - p < IPaddrlen)
 		return ep+1;
@@ -124,8 +124,8 @@ pv6addr(uint8_t *p, uint8_t *ep, char *name)
 	return p + IPaddrlen;
 }
 
-static uint8_t*
-pname(uint8_t *p, uint8_t *ep, char *np, Dict *dp)
+static u8 *
+pname(u8 *p, u8 *ep, char *np, Dict *dp)
 {
 	int i;
 	char *cp;
@@ -197,10 +197,10 @@ pname(uint8_t *p, uint8_t *ep, char *np, Dict *dp)
 	return p;
 }
 
-static uint8_t*
-convRR2M(RR *rp, uint8_t *p, uint8_t *ep, Dict *dp)
+static u8 *
+convRR2M(RR *rp, u8 *p, u8 *ep, Dict *dp)
 {
-	uint8_t *lp, *data;
+	u8 *lp, *data;
 	int len, ttl;
 	Txt *t;
 
@@ -316,8 +316,8 @@ convRR2M(RR *rp, uint8_t *p, uint8_t *ep, Dict *dp)
 	return p;
 }
 
-static uint8_t*
-convQ2M(RR *rp, uint8_t *p, uint8_t *ep, Dict *dp)
+static u8 *
+convQ2M(RR *rp, u8 *p, u8 *ep, Dict *dp)
 {
 	NAME(rp->owner->name);
 	USHORT(rp->type);
@@ -325,10 +325,10 @@ convQ2M(RR *rp, uint8_t *p, uint8_t *ep, Dict *dp)
 	return p;
 }
 
-static uint8_t*
-rrloop(RR *rp, int *countp, uint8_t *p, uint8_t *ep, Dict *dp, int quest)
+static u8 *
+rrloop(RR *rp, int *countp, u8 *p, u8 *ep, Dict *dp, int quest)
 {
-	uint8_t *np;
+	u8 *np;
 
 	*countp = 0;
 	for(; rp && p < ep; rp = rp->next){
@@ -348,10 +348,10 @@ rrloop(RR *rp, int *countp, uint8_t *p, uint8_t *ep, Dict *dp, int quest)
  *  convert into a message
  */
 int
-convDNS2M(DNSmsg *m, uint8_t *buf, int len)
+convDNS2M(DNSmsg *m, u8 *buf, int len)
 {
-	uint32_t trunc = 0;
-	uint8_t *p, *ep, *np;
+	u32 trunc = 0;
+	u8 *p, *ep, *np;
 	Dict d;
 
 	d.n = 0;

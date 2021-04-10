@@ -54,10 +54,10 @@ eval(Rune *s)
 {
 	return eval0(&s, 1, 1);
 }
-int32_t
+i32
 runestrtol(Rune *a, Rune **p)
 {
-	int32_t n;
+	i32 n;
 
 	n = 0;
 	while('0' <= *a && *a <= '9'){

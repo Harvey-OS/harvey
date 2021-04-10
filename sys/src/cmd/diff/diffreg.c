@@ -96,8 +96,8 @@ int *klist;		/*will be overlaid on file[0] after class*/
 struct cand *clist;	/* merely a free storage pot for candidates */
 int clen;
 int *J;		/*will be overlaid on class*/
-int32_t *ixold;	/*will be overlaid on klist*/
-int32_t *ixnew;	/*will be overlaid on file[1]*/
+i32 *ixold;	/*will be overlaid on klist*/
+i32 *ixnew;	/*will be overlaid on file[1]*/
 /* END OF SOME TIDYING */
 
 static void
@@ -330,10 +330,10 @@ static int
 cmp(Biobuf* b1, Biobuf* b2)
 {
 	int n;
-	uint8_t buf1[BUF], buf2[BUF];
+	u8 buf1[BUF], buf2[BUF];
 	int f1, f2;
-	int64_t nc = 1;
-	uint8_t *b1s, *b1e, *b2s, *b2e;
+	i64 nc = 1;
+	u8 *b1s, *b1e, *b2s, *b2e;
 
 	f1 = Bfildes(b1);
 	f2 = Bfildes(b2);
@@ -418,8 +418,8 @@ diffreg(char *f, char *t)
 	FREE(clist);
 	FREE(klist);
 
-	ixold = MALLOC(int32_t, len[0]+2);
-	ixnew = MALLOC(int32_t, len[1]+2);
+	ixold = MALLOC(i32, len[0]+2);
+	ixnew = MALLOC(i32, len[1]+2);
 	Bseek(b0, 0, 0); Bseek(b1, 0, 0);
 	check(b0, b1);
 	output();

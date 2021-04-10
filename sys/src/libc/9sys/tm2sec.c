@@ -13,15 +13,15 @@
 #define	TZSIZE	150
 static	void	readtimezone(void);
 static	int	rd_name(char**, char*);
-static	int	rd_long(char**, int32_t*);
+static	int	rd_long(char**, i32*);
 static
 struct
 {
 	char	stname[4];
 	char	dlname[4];
-	int32_t	stdiff;
-	int32_t	dldiff;
-	int32_t	dlpairs[TZSIZE];
+	i32	stdiff;
+	i32	dldiff;
+	i32	dlpairs[TZSIZE];
 } timezone;
 
 #define SEC2MIN 60L
@@ -56,10 +56,10 @@ yrsize(int y)
  * compute seconds since Jan 1 1970 GMT
  * and convert to our timezone.
  */
-int32_t
+i32
 tm2sec(Tm *tm)
 {
-	int32_t secs;
+	i32 secs;
 	int i, yday, year, *d2m;
 
 	if(strcmp(tm->zone, "GMT") != 0 && timezone.stname[0] == 0)
@@ -168,10 +168,10 @@ rd_name(char **f, char *p)
 }
 
 static int
-rd_long(char **f, int32_t *p)
+rd_long(char **f, i32 *p)
 {
 	int c, s;
-	int32_t l;
+	i32 l;
 
 	s = 0;
 	for(;;) {

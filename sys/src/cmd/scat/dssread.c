@@ -12,8 +12,8 @@
 #include	<bio.h>
 #include	"sky.h"
 
-static	void	dodecode(Biobuf*, Pix*, int, int, uint8_t*);
-static	int32_t	getlong(uint8_t*);
+static	void	dodecode(Biobuf*, Pix*, int, int, u8*);
+static	i32	getlong(u8*);
 int	debug;
 
 Img*
@@ -21,7 +21,7 @@ dssread(char *file)
 {
 	int nx, ny, scale, sumall;
 	Pix  *p, *pend;
-	uint8_t buf[21];
+	u8 buf[21];
 	Biobuf *bp;
 	Img *ip;
 
@@ -65,7 +65,7 @@ dssread(char *file)
 
 static
 void
-dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
+dodecode(Biobuf *infile, Pix  *a, int nx, int ny, u8 *nbitplanes)
 {
 	int nel, nx2, ny2, bits, mask;
 	Pix *aend, px;
@@ -116,7 +116,7 @@ dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
 }
 
 static
-int32_t	getlong(uint8_t *p)
+i32	getlong(u8 *p)
 {
 	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
 }

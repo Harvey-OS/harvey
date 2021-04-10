@@ -18,7 +18,7 @@
 
 #define BUFLEN 256*1024
 
-static uint8_t ibuf[BUFLEN], obuf[BUFLEN];
+static u8 ibuf[BUFLEN], obuf[BUFLEN];
 
 void
 exerr(char *s)
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 			close(fd);
 			exerr(argv[0]);
 		}
-		uint32_t ml = GBIT32(ibuf);
+		u32 ml = GBIT32(ibuf);
 		rc = write(1, ibuf, ml);
 		if(rc < 0)
 		{

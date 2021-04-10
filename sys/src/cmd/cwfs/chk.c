@@ -17,12 +17,12 @@ typedef struct {
 } Extdentry;
 
 static	char*	abits;
-static	int32_t	sizabits;
+static	i32	sizabits;
 static	char*	qbits;
-static	int32_t	sizqbits;
+static	i32	sizqbits;
 
 static	char*	name;
-static	int32_t	sizname;
+static	i32	sizname;
 
 static	Off	fstart;
 static	Off	fsize;
@@ -44,7 +44,7 @@ static	Devsize	oldblock;
 
 static	int	depth;
 static	int	maxdepth;
-static	uint8_t	*lowstack, *startstack;
+static	u8	*lowstack, *startstack;
 
 /* local prototypes */
 static	int	amark(Off);
@@ -65,7 +65,7 @@ static	void	xread(Off, Off);
 static	Iobuf*	xtag(Off, int, Off);
 
 static void *
-chkalloc(uint32_t n)
+chkalloc(u32 n)
 {
 	char *p = mallocz(n, 1);
 
@@ -99,7 +99,7 @@ enum
 
 static struct {
 	char*	option;
-	int32_t	flag;
+	i32	flag;
 } ckoption[] = {
 	"rdall",	Crdall,
 	"tag",		Ctag,
@@ -117,7 +117,7 @@ static struct {
 void
 cmd_check(int argc, char *argv[])
 {
-	int32_t f, i, flag;
+	i32 f, i, flag;
 	Off raddr;
 	Filsys *fs;
 	Iobuf *p;
@@ -237,9 +237,9 @@ cmd_check(int argc, char *argv[])
 	print("nbad   = %lld\n", (Wideoff)nbad);
 	print("nqbad  = %lld\n", (Wideoff)nqbad);
 	print("maxq   = %lld\n", (Wideoff)maxq);
-	print("base stack=%llu\n", (int64_t)startstack);
+	print("base stack=%llu\n", (i64)startstack);
 	/* high-water mark of stack usage */
-	print("high stack=%llu\n", (int64_t)lowstack);
+	print("high stack=%llu\n", (i64)lowstack);
 	print("deepest recursion=%d\n", maxdepth-1);	/* one-origin */
 	if(!cwflag)
 		missing();
@@ -396,10 +396,10 @@ fsck(Dentry *d)
 	if(depth >= maxdepth)
 		maxdepth = depth;
 	if (lowstack == nil)
-		startstack = lowstack = (uint8_t *)&edent;
+		startstack = lowstack = (u8 *)&edent;
 	/* more precise check, assumes downward-growing stack */
-	if ((uint8_t *)&edent < lowstack)
-		lowstack = (uint8_t *)&edent;
+	if ((u8 *)&edent < lowstack)
+		lowstack = (u8 *)&edent;
 
 	/* check that entry is allocated */
 	if(!(d->mode & DALLOC))

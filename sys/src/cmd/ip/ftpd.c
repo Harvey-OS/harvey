@@ -148,9 +148,9 @@ int	debug;
 NetConnInfo	*nci;
 int	createperm = 0660;
 int	isnoworld;
-int64_t	offset;			/* from restart command */
+i64	offset;			/* from restart command */
 
-uint32_t id;
+u32 id;
 
 typedef struct Passive Passive;
 struct Passive
@@ -159,7 +159,7 @@ struct Passive
 	char	adir[40];
 	int	afd;
 	int	port;
-	uint8_t	ipaddr[IPaddrlen];
+	u8	ipaddr[IPaddrlen];
 } passive;
 
 #define FTPLOG "ftp"
@@ -271,7 +271,7 @@ main(int argc, char **argv)
 		/*
 		 *  get rid of telnet control sequences (we don't need them)
 		 */
-		while(*cmd && (uint8_t)*cmd == Iac){
+		while(*cmd && (u8)*cmd == Iac){
 			cmd++;
 			if(*cmd)
 				cmd++;
@@ -526,7 +526,7 @@ loginuser(char *user, char *nsfile, int gotoslash)
 static void
 slowdown(void)
 {
-	static uint32_t pause;
+	static u32 pause;
 
 	if (pause) {
 		sleep(pause);			/* deter guessers */
@@ -894,7 +894,7 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 {
 	char ts[32];
 	int n, links, pad;
-	int32_t now;
+	i32 now;
 	char *x;
 	Dir *d;
 
@@ -968,7 +968,7 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname,
 	Dir *p;
 	int fd, n, i, l;
 	char *dname;
-	uint64_t total;
+	u64 total;
 
 	col = 0;
 
@@ -1027,7 +1027,7 @@ list(char *arg, int lflag)
 	char *alist[Narg];
 	char **argv;
 	Biobufhdr bh;
-	uint8_t buf[512];
+	u8 buf[512];
 	char *p, *s;
 
 	if(arg == 0)

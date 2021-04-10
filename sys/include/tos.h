@@ -19,16 +19,16 @@ struct Tos {
 		Plink	*next;	/* known to be 4(ptr) */
 		Plink	*last;
 		Plink	*first;
-		uint32_t	pid;
-		uint32_t	what;
+		u32	pid;
+		u32	what;
 	} prof;
-	uint64_t	cyclefreq;	/* cycle clock frequency if there is one, 0 otherwise */
-	int64_t	kcycles;	/* cycles spent in kernel */
-	int64_t	pcycles;	/* cycles spent in process (kernel + user) */
-	uint32_t	nixpid;		/* might as well put the pid here */
-	uint32_t	clock;
+	u64	cyclefreq;	/* cycle clock frequency if there is one, 0 otherwise */
+	i64	kcycles;	/* cycles spent in kernel */
+	i64	pcycles;	/* cycles spent in process (kernel + user) */
+	u32	nixpid;		/* might as well put the pid here */
+	u32	clock;
 	/* scratch space for kernel use (e.g., mips fp delay-slot execution) */
-	uint32_t	kscr[4];
+	u32	kscr[4];
 
 	/*
 	 * Fields below are not available on Plan 9 kernels.

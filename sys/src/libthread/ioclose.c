@@ -12,7 +12,7 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static int32_t
+static i32
 _ioclose(va_list *arg)
 {
 	int fd;

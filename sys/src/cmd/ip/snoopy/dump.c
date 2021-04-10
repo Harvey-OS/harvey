@@ -28,7 +28,7 @@ static int
 p_seprint(Msg *m)
 {
 	int c, i, n, isstring;
-	uint8_t *ps = m->ps;
+	u8 *ps = m->ps;
 	char *p = m->p;
 	char *e = m->e;
 

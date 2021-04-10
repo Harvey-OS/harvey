@@ -14,7 +14,7 @@
 int
 dirfwstat(int fd, Dir *d)
 {
-	uint8_t *buf;
+	u8 *buf;
 	int r;
 
 	r = sizeD2M(d);

@@ -20,23 +20,15 @@ typedef signed long long i64;
 typedef u64 		usize;
 typedef	i64		isize;
 
-typedef	unsigned char	uint8_t;
-typedef signed char	int8_t;
-typedef	unsigned short	uint16_t;
-typedef	signed short	int16_t;
-typedef unsigned int	uint32_t;
 typedef unsigned int	uint;
-typedef signed int	int32_t;
 typedef long		ssize_t;
-typedef	unsigned long long uint64_t;
-typedef	long long	int64_t;
-typedef uint64_t	uintptr;
-typedef uint64_t	uintptr_t;
-typedef int64_t		intptr_t;
+typedef u64	uintptr;
+typedef u64	uintptr_t;
+typedef i64		intptr_t;
 typedef unsigned long	size_t;
 typedef	u32	Rune;
 typedef union FPdbleword FPdbleword;
-typedef uint64_t	jmp_buf[10]; // for registers.
+typedef u64	jmp_buf[10]; // for registers.
 
 #define	alignas		_Alignas
 #define static_assert	_Static_assert
@@ -89,7 +81,7 @@ union FPdbleword
 typedef	char*	va_list;
 #define va_start(list, start) list =\
 	(sizeof(start) < 8?\
-		(char*)((int64_t*)&(start)+1):\
+		(char*)((i64*)&(start)+1):\
 		(char*)(&(start)+1))
 #define va_end(list)\
 	USED(list)

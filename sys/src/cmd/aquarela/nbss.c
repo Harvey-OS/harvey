@@ -72,13 +72,13 @@ static void
 tcpreader(void *a)
 {
 	Session *s = a;
-	uint8_t *buf;
+	u8 *buf;
 	int buflen = 0x1ffff + 4;
 	buf = nbemalloc(buflen);
 	for (;;) {
 		int n;
-		uint8_t flags;
-		uint16_t length;
+		u8 flags;
+		u16 length;
 
 		n = readn(s->nbs.fd, buf, 4);
 		if (n != 4) {
@@ -112,11 +112,11 @@ tcpreader(void *a)
 			}
 			break;
 		case 0x81: /* session request */ {
-			uint8_t *p, *ep;
+			u8 *p, *ep;
 			Listen *l;
 			int k;
 			int called_found;
-			uint8_t error_code;
+			u8 error_code;
 
 			if (s->state == Connected) {
 				print("nbss: unexpected session request\n");
@@ -271,9 +271,9 @@ nbssfree(NbSession *s)
 int
 nbssgatherwrite(NbSession *s, NbScatterGather *a)
 {
-	uint8_t hdr[4];
+	u8 hdr[4];
 	NbScatterGather *ap;
-	int32_t l = 0;
+	i32 l = 0;
 	for (ap = a; ap->p; ap++)
 		l += ap->l;
 //print("nbssgatherwrite %ld bytes\n", l);
@@ -293,14 +293,14 @@ NbSession *
 nbssconnect(NbName to, NbName from)
 {
 	Session *s;
-	uint8_t ipaddr[IPaddrlen];
+	u8 ipaddr[IPaddrlen];
 	char dialaddress[100];
 	char dir[NETPATHLEN];
-	uint8_t msg[576];
+	u8 msg[576];
 	int fd;
-	int32_t o;
-	uint8_t flags;
-	int32_t length;
+	i32 o;
+	u8 flags;
+	i32 length;
 
 	if (!nbnameresolve(to, ipaddr))
 		return nil;
@@ -361,16 +361,16 @@ nbssconnect(NbName to, NbName from)
 	return &s->nbs;
 }
 
-int32_t
+i32
 nbssscatterread(NbSession *nbs, NbScatterGather *a)
 {
-	uint8_t hdr[4];
-	uint8_t flags;
-	int32_t length, total;
+	u8 hdr[4];
+	u8 flags;
+	i32 length, total;
 	NbScatterGather *ap;
 	Session *s = (Session *)nbs;
 
-	int32_t l = 0;
+	i32 l = 0;
 	for (ap = a; ap->p; ap++)
 		l += ap->l;
 //print("nbssscatterread %ld bytes\n", l);
@@ -402,8 +402,8 @@ again:
 	}
 	total = length;
 	for (ap = a; length && ap->p; ap++) {
-		int32_t thistime;
-		int32_t n;
+		i32 thistime;
+		i32 n;
 		thistime = length;
 		if (thistime > ap->l)
 			thistime = ap->l;
@@ -417,7 +417,7 @@ again:
 }
 
 int
-nbsswrite(NbSession *s, void *buf, int32_t maxlen)
+nbsswrite(NbSession *s, void *buf, i32 maxlen)
 {
 	NbScatterGather a[2];
 	a[0].l = maxlen;
@@ -426,8 +426,8 @@ nbsswrite(NbSession *s, void *buf, int32_t maxlen)
 	return nbssgatherwrite(s, a);
 }
 
-int32_t
-nbssread(NbSession *s, void *buf, int32_t maxlen)
+i32
+nbssread(NbSession *s, void *buf, i32 maxlen)
 {
 	NbScatterGather a[2];
 	a[0].l = maxlen;

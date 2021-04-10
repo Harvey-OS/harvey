@@ -78,9 +78,9 @@ opentemp(char *template)
  * we've already read the initial in bytes into ibuf.
  */
 int
-spooltodisk(uint8_t *ibuf, int in, char **name)
+spooltodisk(u8 *ibuf, int in, char **name)
 {
-	uint8_t buf[8192];
+	u8 buf[8192];
 	int fd, n;
 	char temp[40];
 
@@ -109,9 +109,9 @@ spooltodisk(uint8_t *ibuf, int in, char **name)
  * we've already ready the first in bytes into ibuf
  */
 int
-stdinpipe(uint8_t *ibuf, int in)
+stdinpipe(u8 *ibuf, int in)
 {
-	uint8_t buf[8192];
+	u8 buf[8192];
 	int n;
 	int p[2];
 	if(pipe(p) < 0){

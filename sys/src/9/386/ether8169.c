@@ -344,7 +344,7 @@ static Ctlr *rtl8169ctlrtail;
 #define csr8r(c, r) (inb((c)->port + (r)))
 #define csr16r(c, r) (ins((c)->port + (r)))
 #define csr32r(c, r) (inl((c)->port + (r)))
-#define csr8w(c, r, b) (outb((c)->port + (r), (uint8_t)(b)))
+#define csr8w(c, r, b) (outb((c)->port + (r), (u8)(b)))
 #define csr16w(c, r, w) (outs((c)->port + (r), (u16)(w)))
 #define csr32w(c, r, l) (outl((c)->port + (r), (u32)(l)))
 
@@ -926,7 +926,7 @@ rtl8169attach(Ether *edev)
 	}
 	qunlock(&ctlr->alock);
 
-	/* Don't wait int32_t for link to be ready. */
+	/* Don't wait i32 for link to be ready. */
 	for(timeo = 0; timeo < 10; timeo++){
 		if(miistatus(ctlr->mii) == 0)
 			break;

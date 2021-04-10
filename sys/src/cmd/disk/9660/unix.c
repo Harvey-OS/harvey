@@ -27,8 +27,8 @@ struct Xarg {
 	void *arg;
 };
 
-static int32_t numericuid(char *user);
-static int32_t numericgid(char *gp);
+static i32 numericuid(char *user);
+static i32 numericgid(char *gp);
 
 void
 dirtoxdir(XDir *xd, Dir *d)
@@ -53,14 +53,14 @@ dirtoxdir(XDir *xd, Dir *d)
 };
 
 void
-fdtruncate(int fd, uint32_t size)
+fdtruncate(int fd, u32 size)
 {
 	ftruncate(fd, size);
 
 	return;
 }
 
-static int32_t
+static i32
 numericuid(char *user)
 {
 	struct passwd *pass;
@@ -76,7 +76,7 @@ numericuid(char *user)
 	return pass->pw_uid;
 }
 
-static int32_t
+static i32
 numericgid(char *gp)
 {
 	struct group *gr;

@@ -29,7 +29,7 @@ getmac(Ether *ether)
 {
 	int i;
 	Usbdev *ud;
-	uint8_t *b;
+	u8 *b;
 	Desc *dd;
 	char *mac;
 
@@ -37,7 +37,7 @@ getmac(Ether *ether)
 
 	for(i = 0; i < nelem(ud->ddesc); i++)
 		if((dd = ud->ddesc[i]) != nil && okclass(dd->iface)){
-			b = (uint8_t*)&dd->data;
+			b = (u8*)&dd->data;
 			if(b[1] == Dfunction && b[2] == Fnether){
 				mac = loaddevstr(ether->dev, b[3]);
 				if(mac != nil && strlen(mac) != 12){

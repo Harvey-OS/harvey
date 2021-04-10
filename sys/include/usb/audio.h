@@ -69,7 +69,7 @@ enum {
 	maxpkt_only = 0x80,	/* packets must be padded to max size */
 };
 
-typedef uint8_t byte;
+typedef u8 byte;
 
 extern int setrec;
 extern int verbose;
@@ -83,9 +83,9 @@ void	audio_interface(Dev *d, Desc *dd);
 void	setalt(Dev *d, int endpt, int value);
 int	getalt(Dev *d, int endpt);
 int	setspeed(int rec, int speed);
-int	setcontrol(int rec, char *name, int32_t *value);
-int	getspecialcontrol(int rec, int ctl, int req, int32_t *value);
-int	getcontrol(int rec, char *name, int32_t *value);
+int	setcontrol(int rec, char *name, i32 *value);
+int	getspecialcontrol(int rec, int ctl, int req, i32 *value);
+int	getcontrol(int rec, char *name, i32 *value);
 int	findalt(int rec, int nchan, int res, int speed);
 void	getcontrols(void);
 void	serve(void *);

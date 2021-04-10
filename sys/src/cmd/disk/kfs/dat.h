@@ -23,7 +23,7 @@ struct	Chan
 	QLock rlock, wlock;		/* lock for reading/writing messages on chan */
 	int	type;
 	int	flags;
-	int32_t	whotime;
+	i32	whotime;
 	File*	flist;			/* base of file structures */
 	Lock	flock;			/* manipulate flist */
 	RWLock	reflock;		/* lock for Tflush */
@@ -31,8 +31,8 @@ struct	Chan
 	int	authed;		/* someone other than ``none'' has authed */
 
 /* 9p1 auth */
-	uint8_t	chal[8];
-	uint8_t	rchal[8];
+	u8	chal[8];
+	u8	rchal[8];
 	int	idoffset;
 	int	idvec;
 	Lock	idlock;
@@ -54,7 +54,7 @@ struct	Cons
 	int	uid;		/* botch -- used to get uid on cons_create */
 	int	gid;		/* botch -- used to get gid on cons_create */
 	int	allow;		/* no-protection flag */
-	int32_t	offset;		/* used to read files, c.f. fchar */
+	i32	offset;		/* used to read files, c.f. fchar */
 	char*	arg;		/* pointer to remaining line */
 
 	Chan	*chan;	/* console channel */
@@ -70,14 +70,14 @@ struct	Cons
 
 struct	Conf
 {
-	uint32_t	niobuf;		/* number of iobufs to allocate */
-	uint32_t	nuid;		/* distinct uids */
-	uint32_t	uidspace;	/* space for uid names -- derrived from nuid */
-	uint32_t	gidspace;	/* space for gid names -- derrived from nuid */
-	uint32_t	nserve;		/* server processes */
-	uint32_t	nfile;		/* number of fid -- system wide */
-	uint32_t	nwpath;		/* number of active paths, derrived from nfile */
-	uint32_t	bootsize;	/* number of bytes reserved for booting */
+	u32	niobuf;		/* number of iobufs to allocate */
+	u32	nuid;		/* distinct uids */
+	u32	uidspace;	/* space for uid names -- derrived from nuid */
+	u32	gidspace;	/* space for gid names -- derrived from nuid */
+	u32	nserve;		/* server processes */
+	u32	nfile;		/* number of fid -- system wide */
+	u32	nwpath;		/* number of active paths, derrived from nfile */
+	u32	bootsize;	/* number of bytes reserved for booting */
 };
 
 struct	Command
@@ -92,11 +92,11 @@ struct Devcall
 	void	(*init)(Device);
 	void	(*ream)(Device);
 	int	(*check)(Device);
-	int32_t	(*super)(Device);
-	int32_t	(*root)(Device);
-	int32_t	(*size)(Device);
-	int	(*read)(Device, int32_t, void*);
-	int	(*write)(Device, int32_t, void*);
+	i32	(*super)(Device);
+	i32	(*root)(Device);
+	i32	(*size)(Device);
+	int	(*read)(Device, i32, void*);
+	int	(*write)(Device, i32, void*);
 };
 
 /*
@@ -153,7 +153,7 @@ extern	short*	gidspace;
 extern	char*	errstring[MAXERR];
 extern	Chan*	chans;
 extern	RWLock	mainlock;
-extern	int32_t	boottime;
+extern	i32	boottime;
 extern	Tlock	*tlocks;
 extern	Device	devnone;
 extern	Filsys	filesys[];
@@ -166,8 +166,8 @@ extern	Chan	*chan;
 extern	Devcall	devcall[];
 extern	char	*progname;
 extern	char	*procname;
-extern	int32_t	niob;
-extern	int32_t	nhiob;
+extern	i32	niob;
+extern	i32	nhiob;
 extern	Hiob	*hiob;
 extern	int	chat;
 extern	int	writeallow;

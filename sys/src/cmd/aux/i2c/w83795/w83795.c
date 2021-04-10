@@ -22,12 +22,12 @@
 #include <device/smbus.h>
 #include "chip.h"
 
-static int w83795_set_bank(struct device *dev, uint8_t bank)
+static int w83795_set_bank(struct device *dev, u8 bank)
 {
 	return smbus_write_byte(dev, W83795_REG_BANKSEL, bank);
 }
 
-static uint8_t w83795_read(struct device *dev, uint16_t reg)
+static u8 w83795_read(struct device *dev, u16 reg)
 {
 	int ret;
 
@@ -41,7 +41,7 @@ static uint8_t w83795_read(struct device *dev, uint16_t reg)
 	return ret;
 }
 
-static uint8_t w83795_write(struct device *dev, uint16_t reg, uint8_t value)
+static u8 w83795_write(struct device *dev, u16 reg, u8 value)
 {
 	int err;
 
@@ -58,7 +58,7 @@ static uint8_t w83795_write(struct device *dev, uint16_t reg, uint8_t value)
 /*
  * Configure Digital Temperature Sensor
  */
-static void w83795_dts_configure(struct device *dev, uint8_t dts_src)
+static void w83795_dts_configure(struct device *dev, u8 dts_src)
 {
 	u8 val;
 
@@ -109,27 +109,27 @@ static void w83795_set_fan(struct device *dev, w83795_fan_mode_t mode)
 	//TODO
 }
 
-static uint8_t fan_pct_to_cfg_val(uint8_t percent)
+static u8 fan_pct_to_cfg_val(u8 percent)
 {
-	uint16_t cfg = (((unsigned int)percent * 10000) / 3922);
+	u16 cfg = (((unsigned int)percent * 10000) / 3922);
 	if (cfg > 0xff)
 		cfg = 0xff;
 	return cfg;
 }
 
-static uint8_t millivolts_to_limit_value_type1(int millivolts)
+static u8 millivolts_to_limit_value_type1(int millivolts)
 {
 	/* Datasheet v1.41 pages 44 and 70 (VSEN1 - VSEN11, VTT) */
 	return ((millivolts / 2) >> 2);
 }
 
-static uint8_t millivolts_to_limit_value_type2(int millivolts)
+static u8 millivolts_to_limit_value_type2(int millivolts)
 {
 	/* Datasheet v1.41 page pages 44 and 70 (3VSB, 3VDD, VBAT) */
 	return ((millivolts / 6) >> 2);
 }
 
-static uint16_t millivolts_to_limit_value_type3(int millivolts)
+static u16 millivolts_to_limit_value_type3(int millivolts)
 {
 	/* Datasheet v1.41 page 45 (VSEN12, VSEN13, VDSEN14 - VDSEN17) */
 	return (millivolts / 2);
@@ -138,12 +138,12 @@ static uint16_t millivolts_to_limit_value_type3(int millivolts)
 static void w83795_init(struct device *dev, w83795_fan_mode_t mode, u8 dts_src)
 {
 	struct drivers_i2c_w83795_config *config = dev->chip_info;
-	uint8_t i;
-	uint8_t val;
-	uint16_t limit_value;
+	u8 i;
+	u8 val;
+	u16 limit_value;
 
 #if IS_ENABLED(CONFIG_SMBUS_HAS_AUX_CHANNELS)
-	uint8_t smbus_aux_channel_prev = smbus_get_current_channel();
+	u8 smbus_aux_channel_prev = smbus_get_current_channel();
 	smbus_switch_to_channel(config->smbus_aux);
 	printk(BIOS_DEBUG, "Set SMBUS controller to channel %d\n", config->smbus_aux);
 #endif

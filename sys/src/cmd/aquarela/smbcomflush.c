@@ -11,11 +11,11 @@
 #include <String.h>
 
 SmbProcessResult
-smbcomflush(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *sb)
+smbcomflush(SmbSession *s, SmbHeader *h, u8 *pdata, SmbBuffer *sb)
 {
 	SmbTree *t;
 	SmbFile *f;
-	uint16_t fid;
+	u16 fid;
 	Dir nulldir;
 	if (h->wordcount != 1)
 		return SmbProcessResultFormat;

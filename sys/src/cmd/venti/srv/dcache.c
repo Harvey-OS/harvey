@@ -53,7 +53,7 @@ struct DCache
 	Rendez		full;
 	Round		round;
 	DBlock		*free;			/* list of available lumps */
-	uint32_t		now;			/* ticks for usage timestamps */
+	u32		now;			/* ticks for usage timestamps */
 	int		size;			/* max. size of any block; allocated to each block */
 	DBlock		**heads;		/* hash table for finding address */
 	int		nheap;			/* number of available victims */
@@ -61,7 +61,7 @@ struct DCache
 	int		nblocks;		/* number of blocks allocated */
 	DBlock		*blocks;		/* array of block descriptors */
 	DBlock		**write;		/* array of block pointers to be written */
-	uint8_t		*mem;			/* memory for all block descriptors */
+	u8		*mem;			/* memory for all block descriptors */
 	int		ndirty;			/* number of dirty blocks */
 	int		maxdirty;		/* max. number of dirty blocks */
 };
@@ -70,7 +70,7 @@ typedef struct Ra Ra;
 struct Ra
 {
 	Part *part;
-	uint64_t addr;
+	u64 addr;
 };
 
 static DCache	dcache;
@@ -84,12 +84,12 @@ static void	flushproc(void*);
 static void	writeproc(void*);
 
 void
-initdcache(uint32_t mem)
+initdcache(u32 mem)
 {
 	DBlock *b, *last;
-	uint32_t nblocks, blocksize;
+	u32 nblocks, blocksize;
 	int i;
-	uint8_t *p;
+	u8 *p;
 
 	if(mem < maxblocksize * 2)
 		sysfatal("need at least %d bytes for the disk cache", maxblocksize * 2);
@@ -107,10 +107,10 @@ initdcache(uint32_t mem)
 	dcache.heap = MKNZ(DBlock*, nblocks);
 	dcache.blocks = MKNZ(DBlock, nblocks);
 	dcache.write = MKNZ(DBlock*, nblocks);
-	dcache.mem = MKNZ(uint8_t, (nblocks+1+128) * blocksize);
+	dcache.mem = MKNZ(u8, (nblocks+1+128) * blocksize);
 
 	last = nil;
-	p = (uint8_t*)(((uintptr)dcache.mem+blocksize-1)&~(uintptr)(blocksize-1));
+	p = (u8*)(((uintptr)dcache.mem+blocksize-1)&~(uintptr)(blocksize-1));
 	for(i = 0; i < nblocks; i++){
 		b = &dcache.blocks[i];
 		b->data = &p[i * blocksize];
@@ -129,10 +129,10 @@ initdcache(uint32_t mem)
 	vtproc(delaykickroundproc, &dcache.round);
 }
 
-static uint32_t
-pbhash(uint64_t addr)
+static u32
+pbhash(u64 addr)
 {
-	uint32_t h;
+	u32 h;
 
 #define hashit(c)	((((c) * 0x6b43a9b5) >> (32 - HashLog)) & HashMask)
 	h = (addr >> 32) ^ addr;
@@ -140,7 +140,7 @@ pbhash(uint64_t addr)
 }
 
 DBlock*
-getdblock(Part *part, uint64_t addr, int mode)
+getdblock(Part *part, u64 addr, int mode)
 {
 	DBlock *b;
 
@@ -153,10 +153,10 @@ getdblock(Part *part, uint64_t addr, int mode)
 }
 
 DBlock*
-_getdblock(Part *part, uint64_t addr, int mode, int load)
+_getdblock(Part *part, u64 addr, int mode, int load)
 {
 	DBlock *b;
-	uint32_t h, size, ms;
+	u32 h, size, ms;
 
 	ms = 0;
 	trace(TraceBlock, "getdblock enter %s 0x%llux", part->name, addr);
@@ -343,7 +343,7 @@ dirtydblock(DBlock *b, int dirty)
 static void
 unchain(DBlock *b)
 {
-	uint32_t h;
+	u32 h;
 
 	/*
 	 * unchain the block
@@ -444,7 +444,7 @@ static int
 upheap(int i, DBlock *b)
 {
 	DBlock *bb;
-	uint32_t now;
+	u32 now;
 	int p;
 
 	now = dcache.now;
@@ -466,7 +466,7 @@ static int
 downheap(int i, DBlock *b)
 {
 	DBlock *bb;
-	uint32_t now;
+	u32 now;
 	int k;
 
 	now = dcache.now;
@@ -510,7 +510,7 @@ void
 checkdcache(void)
 {
 	DBlock *b;
-	uint32_t size, now;
+	u32 size, now;
 	int i, k, refed, nfree;
 
 	qlock(&dcache.lock);
@@ -627,7 +627,7 @@ static void
 flushproc(void *v)
 {
 	int i, j, n;
-	uint32_t t0;
+	u32 t0;
 	DBlock *b, **write;
 
 	USED(v);
@@ -637,7 +637,7 @@ flushproc(void *v)
 
 		trace(TraceWork, "start");
 		t0 = nsec()/1000;
-		trace(TraceProc, "build t=%lu", (uint32_t)(nsec()/1000)-t0);
+		trace(TraceProc, "build t=%lu", (u32)(nsec()/1000)-t0);
 
 		write = dcache.write;
 		n = 0;
@@ -651,11 +651,11 @@ flushproc(void *v)
 
 		/* Write each stage of blocks out. */
 		trace(TraceProc, "writeblocks t=%lu",
-		      (uint32_t)(nsec()/1000)-t0);
+		      (u32)(nsec()/1000)-t0);
 		i = 0;
 		for(j=1; j<DirtyMax; j++){
 			trace(TraceProc, "writeblocks.%d t=%lu",
-				j, (uint32_t)(nsec()/1000)-t0);
+				j, (u32)(nsec()/1000)-t0);
 			i += parallelwrites(write+i, write+n, j);
 		}
 		if(i != n){
@@ -675,7 +675,7 @@ flushproc(void *v)
 		 * one too high until we catch up and do the decrement.
 		 */
 		trace(TraceProc, "undirty.%d t=%lu", j,
-		      (uint32_t)(nsec()/1000)-t0);
+		      (u32)(nsec()/1000)-t0);
 		qlock(&dcache.lock);
 		for(i=0; i<n; i++){
 			b = write[i];

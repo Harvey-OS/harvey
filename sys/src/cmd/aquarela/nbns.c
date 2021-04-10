@@ -30,7 +30,7 @@ struct Listen {
 
 static struct {
 	Lock	lock;
-	uint16_t id;
+	u16 id;
 } id;
 
 struct {
@@ -42,14 +42,14 @@ static void
 udplistener(void *v)
 {
 	for (;;) {
-		uint8_t msg[Udphdrsize + 576];
+		u8 msg[Udphdrsize + 576];
 		int len = read(udp.fd, msg, sizeof(msg));
 		if (len < 0)
 			break;
 		if (len >= nbudphdrsize) {
 			NbnsMessage *s;
 //			Udphdr *uh;
-			uint8_t *p;
+			u8 *p;
 
 //			uh = (Udphdr*)msg;
 			p = msg + nbudphdrsize;
@@ -94,10 +94,10 @@ startlistener(void)
 	return nil;
 }
 
-uint16_t
+u16
 nbnsnextid(void)
 {
-	uint16_t rv;
+	u16 rv;
 	lock(&id.lock);
 	rv = id.id++;
 	unlock(&id.lock);
@@ -105,10 +105,10 @@ nbnsnextid(void)
 }
 
 NbnsTransaction *
-nbnstransactionnew(NbnsMessage *s, uint8_t *ipaddr)
+nbnstransactionnew(NbnsMessage *s, u8 *ipaddr)
 {
 	NbnsTransaction *t;
-	uint8_t msg[Udphdrsize + 576];
+	u8 msg[Udphdrsize + 576];
 	Udphdr *u;
 	int len;
 

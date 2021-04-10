@@ -13,10 +13,10 @@
 #include	"compat.h"
 #include	"error.h"
 
-extern uint32_t	kerndate;
+extern u32	kerndate;
 
 void
-mkqid(Qid *q, int64_t path, uint32_t vers, int type)
+mkqid(Qid *q, i64 path, u32 vers, int type)
 {
 	q->type = type;
 	q->vers = vers;
@@ -39,8 +39,8 @@ devno(int c, int user)
 }
 
 void
-devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
-       int32_t perm,
+devdir(Chan *c, Qid qid, char *n, i64 length, char *user,
+       i32 perm,
        Dir *db)
 {
 	db->name = n;
@@ -198,7 +198,7 @@ Done:
 }
 
 int
-devstat(Chan *c, uint8_t *db, int n, Dirtab *tab, int ntab, Devgen *gen)
+devstat(Chan *c, u8 *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 {
 	int i;
 	Dir dir;
@@ -231,11 +231,11 @@ devstat(Chan *c, uint8_t *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 		}
 }
 
-int32_t
-devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
+i32
+devdirread(Chan *c, char *d, i32 n, Dirtab *tab, int ntab,
 	   Devgen *gen)
 {
-	int32_t k, m, dsz;
+	i32 k, m, dsz;
 	struct{
 		Dir	dir;
 		char slop[100];
@@ -252,7 +252,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 			break;
 
 		case 1:
-			dsz = convD2M(&dir.dir, (uint8_t*)d, n-m);
+			dsz = convD2M(&dir.dir, (u8*)d, n-m);
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					return -1;
@@ -271,9 +271,9 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
  * error(Eperm) if open permission not granted for up->user.
  */
 void
-devpermcheck(char *fileuid, uint32_t perm, int omode)
+devpermcheck(char *fileuid, u32 perm, int omode)
 {
-	uint32_t t;
+	u32 t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
 	if(strcmp(up->user, fileuid) == 0)
@@ -319,20 +319,20 @@ Return:
 }
 
 void
-devcreate(Chan *c, char *r, int i, uint32_t u)
+devcreate(Chan *c, char *r, int i, u32 u)
 {
 	error(Eperm);
 }
 
 Block*
-devbread(Chan *c, int32_t i, uint32_t u)
+devbread(Chan *c, i32 i, u32 u)
 {
 	panic("no block read");
 	return nil;
 }
 
-int32_t
-devbwrite(Chan *c, Block *b, uint32_t u)
+i32
+devbwrite(Chan *c, Block *b, u32 u)
 {
 	panic("no block write");
 	return 0;
@@ -345,7 +345,7 @@ devremove(Chan *c)
 }
 
 int
-devwstat(Chan *c, uint8_t *u, int i)
+devwstat(Chan *c, u8 *u, int i)
 {
 	error(Eperm);
 	return 0;

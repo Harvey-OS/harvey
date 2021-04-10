@@ -19,7 +19,7 @@ struct line {
 };
 extern struct line *file[2];
 extern int len[2];
-extern int32_t *ixold, *ixnew;
+extern i32 *ixold, *ixnew;
 extern int *J;
 
 static Biobuf *input[2];
@@ -68,7 +68,7 @@ readline(Biobuf *bp, char *buf)
 static int
 readhash(Biobuf *bp, char *buf)
 {
-	int32_t sum;
+	i32 sum;
 	unsigned shift;
 	char *p;
 	int len, space;
@@ -82,7 +82,7 @@ readhash(Biobuf *bp, char *buf)
 	{
 	case 0:
 		while (len--) {
-			sum += (int32_t)*p++ << (shift &= (HALFLONG-1));
+			sum += (i32)*p++ << (shift &= (HALFLONG-1));
 			shift += 7;
 		}
 		break;
@@ -99,7 +99,7 @@ readhash(Biobuf *bp, char *buf)
 				shift += 7;
 				space = 0;
 			}
-			sum += (int32_t)*p << (shift &= (HALFLONG-1));
+			sum += (i32)*p << (shift &= (HALFLONG-1));
 			shift += 7;
 		}
 		break;
@@ -112,13 +112,13 @@ readhash(Biobuf *bp, char *buf)
 				p++;
 				continue;
 			}
-			sum += (int32_t)*p++ << (shift &= (HALFLONG-1));
+			sum += (i32)*p++ << (shift &= (HALFLONG-1));
 			shift += 7;
 		}
 		break;
 	}
 	sum = low(sum) + high(sum);
-	return ((int16_t)low(sum) + (int16_t)high(sum));
+	return ((i16)low(sum) + (i16)high(sum));
 }
 
 Biobuf *
@@ -232,7 +232,7 @@ range(int a, int b, char *separator)
 }
 
 static void
-fetch(int32_t *f, int a, int b, Biobuf *bp, char *s)
+fetch(i32 *f, int a, int b, Biobuf *bp, char *s)
 {
 	char buf[MAXLINELEN];
 	int maxb;

@@ -49,7 +49,7 @@ ding(void *v, char *msg)
 }
 
 int
-g16(uint8_t **p)
+g16(u8 **p)
 {
 	int n;
 
@@ -59,14 +59,14 @@ g16(uint8_t **p)
 }
 
 void
-p16(uint8_t **p, int n)
+p16(u8 **p, int n)
 {
 	*(*p)++ = n >> 8;
 	*(*p)++ = n;
 }
 
 void
-p32(uint8_t **p, int n)
+p32(u8 **p, int n)
 {
 	*(*p)++ = n >> 24;
 	*(*p)++ = n >> 16;
@@ -75,16 +75,16 @@ p32(uint8_t **p, int n)
 }
 
 void
-pmem(uint8_t **p, void *v, int len)
+pmem(u8 **p, void *v, int len)
 {
 	memmove(*p, v, len);
 	*p += len;
 }
 
 void
-pname(uint8_t **p, char *s)
+pname(u8 **p, char *s)
 {
-	uint8_t *len;
+	u8 *len;
 
 	while (*s){
 		len = (*p)++;
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 	uint err;
 	char *sysname, *dnsdomain, *dom, *inform, *ns, net[32];
 	unsigned char *p, buf[4096], addr[IPv4addrlen], v6addr[IPaddrlen];
-	uint16_t txid;
+	u16 txid;
 	Ndb *db;
 	Ndbtuple *t, *tt;
 	static char *query[] = { "dom", "dnsdomain", "ns", "inform" };

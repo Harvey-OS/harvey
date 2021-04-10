@@ -138,7 +138,7 @@ static Memsubfont *memdefont;
 static Point curpos;
 static int h, w;
 static int landscape = 0; /* screen orientation, default is 0: portrait */
-//static uint32_t	*vscreen;	/* virtual screen */
+//static u32	*vscreen;	/* virtual screen */
 static Rectangle window;
 
 static struct VGAdev cbvgadev = {
@@ -150,9 +150,9 @@ static struct VGAdev cbvgadev = {
 		void	(*page)(VGAscr*, int);
 		void	(*linear)(VGAscr*, int, int);
 		void	(*drawinit)(VGAscr*);
-		int	(*fill)(VGAscr*, Rectangle, uint32_t);
+		int	(*fill)(VGAscr*, Rectangle, u32);
 		void	(*ovlctl)(VGAscr*, Chan*, void*, int);
-		int	(*ovlwrite)(VGAscr*, void*, int, int64_t);
+		int	(*ovlwrite)(VGAscr*, void*, int, i64);
 		void (*flush)(VGAscr*, Rectangle);
 */
 
@@ -184,7 +184,7 @@ VGAscr vgascreen[1] = {
 };
 
 //static	void	corebootscreenputs(char *s, int n);
-//static	uint32_t rep(uint32_t, int);
+//static	u32 rep(u32, int);
 //static	void	screenputc(char *buf);
 static void screenwin(void);
 
@@ -518,7 +518,7 @@ flushmemscreen(Rectangle r)
 	start = (uintptr)&framebuf.pixel[r.min.y * Wid + r.min.x];
 	end = (uintptr)&framebuf.pixel[(r.max.y - 1) * Wid + r.max.x - 1];
 	print("Flushmemscreen %p %p\n", start, end);
-	// for now. Don't think we need it. cachedwbse((uint32_t *)start, end - start);
+	// for now. Don't think we need it. cachedwbse((u32 *)start, end - start);
 	coherence();
 }
 

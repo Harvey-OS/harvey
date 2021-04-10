@@ -183,7 +183,7 @@ fidUnHash(Fid* fid)
 }
 
 Fid*
-fidGet(Con* con, uint32_t fidno, int flags)
+fidGet(Con* con, u32 fidno, int flags)
 {
 	Fid *fid, **hash;
 
@@ -293,7 +293,7 @@ void
 fidClunkAll(Con* con)
 {
 	Fid *fid;
-	uint32_t fidno;
+	u32 fidno;
 
 	vtLock(con->fidlock);
 	while(con->fhead != nil){

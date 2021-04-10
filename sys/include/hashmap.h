@@ -4,8 +4,8 @@ typedef struct Hashtable Hashtable;
 typedef struct Hashmap Hashmap;
 
 struct Hashentry {
-	uint64_t key;
-	uint64_t val;
+	u64 key;
+	u64 val;
 };
 
 struct Hashtable {
@@ -22,7 +22,7 @@ struct Hashmap {
 
 int hmapinit(Hashmap *ht);
 int hmapfree(Hashmap *ht);
-int hmapdel(Hashmap *ht, uint64_t key, uint64_t *valp);
-int hmapget(Hashmap *ht, uint64_t key, uint64_t *valp);
-int hmapput(Hashmap *ht, uint64_t key, uint64_t val);
+int hmapdel(Hashmap *ht, u64 key, u64 *valp);
+int hmapget(Hashmap *ht, u64 key, u64 *valp);
+int hmapput(Hashmap *ht, u64 key, u64 val);
 int hmapstats(Hashmap *ht, size_t *lens, size_t nlens);

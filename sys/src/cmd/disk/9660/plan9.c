@@ -31,7 +31,7 @@ dirtoxdir(XDir *xd, Dir *d)
 };
 
 void
-fdtruncate(int fd, uint32_t size)
+fdtruncate(int fd, u32 size)
 {
 	USED(fd); USED(size);
 }

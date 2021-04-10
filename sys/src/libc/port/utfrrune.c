@@ -13,7 +13,7 @@
 char*
 utfrrune(const char *s, Rune c)
 {
-	int32_t c1;
+	i32 c1;
 	Rune r;
 	const char *s1;
 
@@ -22,7 +22,7 @@ utfrrune(const char *s, Rune c)
 
 	s1 = 0;
 	for(;;) {
-		c1 = *(uint8_t*)s;
+		c1 = *(u8*)s;
 		if(c1 < Runeself) {	/* one byte rune */
 			if(c1 == 0)
 				return (char *)s1;

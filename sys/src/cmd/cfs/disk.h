@@ -15,17 +15,17 @@ typedef struct Disk	Disk;
 struct Disk
 {
 	Bcache	bcache;
-	uint32_t	nb;	/* number of blocks */
-	uint32_t	nab;	/* number of allocation blocks */
+	u32	nb;	/* number of blocks */
+	u32	nab;	/* number of allocation blocks */
 	int	b2b;	/* allocation bits to a block */
 	int	p2b;	/* Dptr's per page */
 	char	name[CACHENAMELEN];
 };
 
 int	dinit(Disk*, int, int, char*);
-int	dformat(Disk*, int, char*, uint32_t, uint32_t);
-uint32_t	dalloc(Disk*, Dptr*);
-uint32_t	dpalloc(Disk*, Dptr*);
+int	dformat(Disk*, int, char*, u32, u32);
+u32	dalloc(Disk*, Dptr*);
+u32	dpalloc(Disk*, Dptr*);
 int	dfree(Disk*, Dptr*);
 
 extern int debug;

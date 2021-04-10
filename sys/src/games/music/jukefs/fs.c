@@ -108,8 +108,8 @@ char 	*(*fcalls[])(Fid*) = {
 };
 
 int	messagesize = 8*1024+IOHDRSZ;
-uint8_t	mdata[8*1024+IOHDRSZ];
-uint8_t	mbuf[8*1024+IOHDRSZ];
+u8	mdata[8*1024+IOHDRSZ];
+u8	mbuf[8*1024+IOHDRSZ];
 char	bigbuf[1<<23];	/* 8 megabytes */
 Fid	*fids;
 
@@ -345,10 +345,10 @@ rcreate(Fid*)
 	return Eperm;
 }
 
-static int32_t
+static i32
 fileinfo(char *buf, int bufsize, int onum, int t)
 {
-	int32_t n;
+	i32 n;
 
 	n = 0;
 	switch(t){
@@ -466,7 +466,7 @@ mkstat(Dir *d, int n, int t)
 }
 
 int
-readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
+readtopdir(Fid*, u8 *buf, i32 off, int cnt, int blen)
 {
 	int m, n;
 	Dir d;
@@ -483,10 +483,10 @@ readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 int
-readclasdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
+readclasdir(Fid*, u8 *buf, i32 off, int cnt, int blen)
 {
 	int m, n;
-	int32_t pos;
+	i32 pos;
 	Dir d;
 	Fid *fid;
 
@@ -527,10 +527,10 @@ readclasdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 int
-readdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
+readdir(Fid *f, u8 *buf, i32 off, int cnt, int blen)
 {
 	int i, m, n;
-	int32_t pos;
+	i32 pos;
 	Dir d;
 
 	n = 0;
@@ -550,7 +550,7 @@ readdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 void
-readbuf(char *s, int32_t n)
+readbuf(char *s, i32 n)
 {
 	rhdr.count = thdr.count;
 	if(thdr.offset >= n){
@@ -565,7 +565,7 @@ readbuf(char *s, int32_t n)
 char*
 rread(Fid *f)
 {
-	int32_t off;
+	i32 off;
 	int n, cnt, t;
 
 	rhdr.count = 0;
@@ -618,7 +618,7 @@ rread(Fid *f)
 char*
 rwrite(Fid *f)
 {
-	int32_t cnt;
+	i32 cnt;
 	char *p;
 
 	if(FILE(f->qid.path) != Qctl)

@@ -67,7 +67,7 @@ vthello(VtConn *z)
 }
 
 Packet*
-vtreadpacket(VtConn *z, uint8_t score[VtScoreSize], uint type, int n)
+vtreadpacket(VtConn *z, u8 score[VtScoreSize], uint type, int n)
 {
 	VtFcall tx, rx;
 
@@ -98,7 +98,7 @@ vtreadpacket(VtConn *z, uint8_t score[VtScoreSize], uint type, int n)
 }
 
 int
-vtread(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
+vtread(VtConn *z, u8 score[VtScoreSize], uint type, u8 *buf,
        int n)
 {
 	int nn;
@@ -114,7 +114,7 @@ vtread(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
 }
 
 int
-vtwritepacket(VtConn *z, uint8_t score[VtScoreSize], uint type, Packet *p)
+vtwritepacket(VtConn *z, u8 score[VtScoreSize], uint type, Packet *p)
 {
 	VtFcall tx, rx;
 
@@ -140,7 +140,7 @@ vtwritepacket(VtConn *z, uint8_t score[VtScoreSize], uint type, Packet *p)
 }
 
 int
-vtwrite(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
+vtwrite(VtConn *z, u8 score[VtScoreSize], uint type, u8 *buf,
 	int n)
 {
 	Packet *p;

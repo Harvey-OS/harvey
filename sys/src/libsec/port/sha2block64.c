@@ -31,7 +31,7 @@
  * first 32 bits of the fractional parts of cube roots of
  * first 64 primes (2..311).
  */
-static uint32_t K256[64] = {
+static u32 K256[64] = {
 	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,
 	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
 	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,
@@ -51,12 +51,12 @@ static uint32_t K256[64] = {
 };
 
 void
-_sha2block64(uint8_t *p, uint32_t len, uint32_t *s)
+_sha2block64(u8 *p, u32 len, u32 *s)
 {
-	uint32_t a, b, c, d, e, f, g, h, t1, t2;
-	uint32_t *kp, *wp;
-	uint32_t w[64];
-	uint8_t *end;
+	u32 a, b, c, d, e, f, g, h, t1, t2;
+	u32 *kp, *wp;
+	u32 w[64];
+	u8 *end;
 
 	/* at this point, we have a multiple of 64 bytes */
 	for(end = p+len; p < end;){

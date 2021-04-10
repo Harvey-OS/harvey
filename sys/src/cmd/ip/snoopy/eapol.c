@@ -16,9 +16,9 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uint8_t	vi;		/* version */
-	uint8_t	type;
-	uint8_t	len[2];	/* length of data following this header */
+	u8	vi;		/* version */
+	u8	type;
+	u8	len[2];	/* length of data following this header */
 };
 
 enum

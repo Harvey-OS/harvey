@@ -14,7 +14,7 @@
 int
 dirwstat(const char *name, Dir *d)
 {
-	uint8_t *buf;
+	u8 *buf;
 	int r;
 
 	r = sizeD2M(d);

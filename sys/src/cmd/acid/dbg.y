@@ -13,7 +13,7 @@
 {
 	Node		*node;
 	Lsym		*sym;
-	uint64_t	ival;
+	u64	ival;
 	float		fval;
 	String		*string;
 }

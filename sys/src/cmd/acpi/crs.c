@@ -21,7 +21,7 @@ extern UINT32 AcpiDbgLevel;
 void hexdump(void *v, int length)
 {
 	int i;
-	uint8_t *m = v;
+	u8 *m = v;
 	uintptr_t memory = (uintptr_t) v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);

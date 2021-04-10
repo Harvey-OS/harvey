@@ -117,10 +117,10 @@ int vfscanf(FILE *f, const char *s, va_list args){
 			width=-1;
 		}
 		type = *fmtp=='h' || *fmtp=='l' || *fmtp=='L'?*fmtp++:'n';
-		if (!icvt[(uint8_t)(*fmtp)]) {
+		if (!icvt[(u8)(*fmtp)]) {
 			goto NonSpecial;
 		}
-		if (!(*icvt[(uint8_t)(*fmtp)])(f, &arg, store, width, type)) {
+		if (!(*icvt[(u8)(*fmtp)])(f, &arg, store, width, type)) {
 			va_end(arg);
 			return ncvt?ncvt:EOF;
 		}
@@ -140,10 +140,10 @@ static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
 	if(store){
 		--ncvt;	/* this assignment doesn't count! */
 		switch(type){
-		case 'h': *va_arg(*args, int16_t *)=nread; break;
+		case 'h': *va_arg(*args, i16 *)=nread; break;
 		case 'n': *va_arg(*args, int *)=nread; break;
 		case 'l':
-		case 'L': *va_arg(*args, int32_t *)=nread; break;
+		case 'L': *va_arg(*args, i32 *)=nread; break;
 		}
 	}
 	return 1;
@@ -220,10 +220,10 @@ Done:
 		switch(unsgned){
 		case SIGNED:
 			switch(type){
-			case 'h': *va_arg(*args,  int16_t *)=num*sign; break;
+			case 'h': *va_arg(*args,  i16 *)=num*sign; break;
 			case 'n': *va_arg(*args,  int *)=num*sign; break;
 			case 'l':
-			case 'L': *va_arg(*args,  int32_t *)=num*sign; break;
+			case 'L': *va_arg(*args,  i32 *)=num*sign; break;
 			}
 			break;
 		case UNSIGNED:

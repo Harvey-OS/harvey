@@ -17,7 +17,7 @@
  */
 void
 checksum(char key[], char csum[]) {
-	uint8_t buf[8];
+	u8 buf[8];
 
 	memset(buf, 0, 8);
 	encrypt(key, buf, 8);
@@ -31,9 +31,9 @@ checksum(char key[], char csum[]) {
  * this was copied from inet's guard.
  */
 char *
-netresp(char *key, int32_t chal, char *answer)
+netresp(char *key, i32 chal, char *answer)
 {
-	uint8_t buf[8];
+	u8 buf[8];
 
 	memset(buf, 0, 8);
 	snprint((char *)buf, sizeof buf, "%lu", chal);
@@ -63,7 +63,7 @@ netdecimal(char *answer)
 }
 
 int
-netcheck(void *key, int32_t chal, char *response)
+netcheck(void *key, i32 chal, char *response)
 {
 	char answer[32], *p;
 	int i;
@@ -91,9 +91,9 @@ netcheck(void *key, int32_t chal, char *response)
 }
 
 int
-smartcheck(void *key, int32_t chal, char *response)
+smartcheck(void *key, i32 chal, char *response)
 {
-	uint8_t buf[2*8];
+	u8 buf[2*8];
 	int i, c, cslo, cshi;
 
 	snprint((char*)buf, sizeof buf, "%lu        ", chal);

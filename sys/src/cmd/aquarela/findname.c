@@ -14,8 +14,8 @@
 #include "netbios.h"
 
 int
-nbnsfindname(uint8_t *serveripaddr, NbName name, uint8_t *ipaddr,
-	     uint32_t *ttlp)
+nbnsfindname(u8 *serveripaddr, NbName name, u8 *ipaddr,
+	     u32 *ttlp)
 {
 	NbnsMessage *nq;
 	Alt aa[3];

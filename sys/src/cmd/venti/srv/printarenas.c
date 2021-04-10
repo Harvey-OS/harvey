@@ -49,11 +49,11 @@ enum
 };
 
 void
-dumparena(Arena *arena, uint64_t a)
+dumparena(Arena *arena, u64 a)
 {
 	IEntry ie;
 	ClumpInfo *ci, *cis;
-	uint32_t clump;
+	u32 clump;
 	int i, n, nskip;
 
 	cis = MKN(ClumpInfo, ClumpChunks);
@@ -87,7 +87,7 @@ threadmain(int argc, char *argv[])
 {
 	int i;
 	Index *ix;
-	uint32_t bcmem;
+	u32 bcmem;
 
 	bcmem = 0;
 	ARGBEGIN{

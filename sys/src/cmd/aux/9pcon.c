@@ -50,7 +50,7 @@ void
 watch(int fd)
 {
 	int n;
-	uint8_t *buf;
+	u8 *buf;
 	Fcall f;
 
 	buf = malloc(messagesize);
@@ -181,7 +181,7 @@ tstat(Fcall *f, int p, char **argv)
 	return nil;
 }
 
-uint32_t
+u32
 xstrtoul(char *s)
 {
 	if(strcmp(s, "~0") == 0)
@@ -189,7 +189,7 @@ xstrtoul(char *s)
 	return strtoul(s, 0, 0);
 }
 
-uint64_t
+u64
 xstrtoull(char *s)
 {
 	if(strcmp(s, "~0") == 0)
@@ -200,7 +200,7 @@ xstrtoull(char *s)
 char*
 twstat(Fcall *f, int p, char **argv)
 {
-	static uint8_t buf[DIRMAX];
+	static u8 buf[DIRMAX];
 	Dir d;
 
 	memset(&d, 0, sizeof d);
@@ -263,7 +263,7 @@ void
 shell9p(int fd)
 {
 	char *e, *f[10], *p;
-	uint8_t *buf;
+	u8 *buf;
 	int i, n, nf;
 	Biobuf b;
 	Fcall t;

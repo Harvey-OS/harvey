@@ -12,11 +12,11 @@
 
 #define ULONG_MAX	4294967295UL
 
-uint32_t
+u32
 strtoul(const char *nptr, char **endptr, int base)
 {
 	const char *p;
-	uint32_t n, nn, m;
+	u32 n, nn, m;
 	int c, ovfl, neg, v, ndig;
 
 	p = nptr;

@@ -48,12 +48,12 @@ int	conssim(void);
 int	fromchild(char*, int);
 int	fromnet(char*, int);
 int	termchange(Biobuf*, int);
-int	termsub(Biobuf*, uint8_t*, int);
+int	termsub(Biobuf*, u8*, int);
 int	xlocchange(Biobuf*, int);
-int	xlocsub(Biobuf*, uint8_t*, int);
+int	xlocsub(Biobuf*, u8*, int);
 int	challuser(char*);
 int	noworldlogin(char*);
-void*	share(uint32_t);
+void*	share(u32);
 int	doauth(char*);
 
 #define TELNETLOG "telnet"
@@ -502,7 +502,7 @@ termchange(Biobuf *bp, int cmd)
 }
 
 int
-termsub(Biobuf *bp, uint8_t *sub, int n)
+termsub(Biobuf *bp, u8 *sub, int n)
 {
 	char term[Maxvar];
 
@@ -536,7 +536,7 @@ xlocchange(Biobuf *bp, int cmd)
 }
 
 int
-xlocsub(Biobuf *bp, uint8_t *sub, int n)
+xlocsub(Biobuf *bp, u8 *sub, int n)
 {
 	char xloc[Maxvar];
 
@@ -554,7 +554,7 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
  *  create a shared segment.
  */
 void*
-share(uint32_t len)
+share(u32 len)
 {
 	// Let the kernel place the segment
 	void* vastart = segattach(0, "shared", 0, len);

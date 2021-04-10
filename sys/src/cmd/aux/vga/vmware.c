@@ -62,13 +62,13 @@ enum {
 
 typedef struct Vmware	Vmware;
 struct Vmware {
-	uint32_t	mmio;
-	uint32_t	fb;
+	u32	mmio;
+	u32	fb;
 
-	uint32_t	ra;
-	uint32_t	rd;
+	u32	ra;
+	u32	rd;
 
-	uint32_t	r[Nreg];
+	u32	r[Nreg];
 
 	char	chan[32];
 	int	depth;
@@ -107,7 +107,7 @@ rname[Nreg] = {
 	"HostBpp",
 };
 
-static uint32_t
+static u32
 vmrd(Vmware *vm, int i)
 {
 	outportl(vm->ra, i);
@@ -115,14 +115,14 @@ vmrd(Vmware *vm, int i)
 }
 
 static void
-vmwr(Vmware *vm, int i, uint32_t v)
+vmwr(Vmware *vm, int i, u32 v)
 {
 	outportl(vm->ra, i);
 	outportl(vm->rd, v);
 }
 
 static uint
-bits(uint32_t a)
+bits(u32 a)
 {
 	int b;
 

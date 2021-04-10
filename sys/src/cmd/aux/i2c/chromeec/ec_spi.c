@@ -20,12 +20,12 @@
 #include <spi-generic.h>
 #include <timer.h>
 
-static const uint8_t EcFramingByte = 0xec;
+static const u8 EcFramingByte = 0xec;
 
 #define PROTO3_MAX_PACKET_SIZE 268
 
-static uint8_t req_buf[PROTO3_MAX_PACKET_SIZE];
-static uint8_t resp_buf[PROTO3_MAX_PACKET_SIZE];
+static u8 req_buf[PROTO3_MAX_PACKET_SIZE];
+static u8 resp_buf[PROTO3_MAX_PACKET_SIZE];
 
 void *crosec_get_buffer(size_t size, int req)
 {
@@ -57,7 +57,7 @@ static int crosec_spi_io(size_t req_size, size_t resp_size, void *context)
 		return -1;
 	}
 
-	uint8_t byte;
+	u8 byte;
 	struct stopwatch sw;
 	// Wait 1s for a framing byte.
 	stopwatch_init_usecs_expire(&sw, USECS_PER_SEC);

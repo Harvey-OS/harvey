@@ -27,7 +27,7 @@ struct File {
 	int	partial;	/* file was never really open */
 	int	removed;	/* file has been removed */
 	int	dirty;	/* dir is dirty with respect to meta data in block */
-	uint32_t	boff;	/* block offset within msource for this file's meta data */
+	u32	boff;	/* block offset within msource for this file's meta data */
 
 	DirEntry dir;	/* meta data for this file, including component name */
 
@@ -45,7 +45,7 @@ struct File {
 };
 
 static int fileMetaFlush2(File*, char*);
-static uint32_t fileMetaAlloc(File*, DirEntry*, uint32_t);
+static u32 fileMetaAlloc(File*, DirEntry*, u32);
 static int fileRLock(File*);
 static void fileRUnlock(File*);
 static int fileLock(File*);
@@ -64,7 +64,7 @@ fileAlloc(Fs *fs)
 	f->lk = vtLockAlloc();
 	f->ref = 1;
 	f->fs = fs;
-	f->boff = (int64_t)NilBlock;
+	f->boff = (i64)NilBlock;
 	f->mode = fs->mode;
 	return f;
 }
@@ -94,7 +94,7 @@ dirLookup(File *f, char *elem)
 	Block *b;
 	Source *meta;
 	File *ff;
-	uint32_t bo, nb;
+	u32 bo, nb;
 
 	meta = f->msource;
 	b = nil;
@@ -212,7 +212,7 @@ Err:
 }
 
 static Source *
-fileOpenSource(File *f, uint32_t offset, uint32_t gen, int dir, uint mode,
+fileOpenSource(File *f, u32 offset, u32 gen, int dir, uint mode,
 	int issnapshot)
 {
 	char *rname, *fname;
@@ -416,7 +416,7 @@ fileSetTmp(File *f, int istmp)
 }
 
 File *
-fileCreate(File *f, char *elem, uint32_t mode, char *uid)
+fileCreate(File *f, char *elem, u32 mode, char *uid)
 {
 	File *ff;
 	DirEntry *dir;
@@ -536,14 +536,14 @@ Err1:
 }
 
 int
-fileRead(File *f, void *buf, int cnt, int64_t offset)
+fileRead(File *f, void *buf, int cnt, i64 offset)
 {
 	Source *s;
-	uint64_t size;
-	uint32_t bn;
+	u64 size;
+	u32 bn;
 	int off, dsize, n, nn;
 	Block *b;
-	uint8_t *p;
+	u8 *p;
 
 if(0)fprint(2, "fileRead: %s %d, %lld\n", f->dir.elem, cnt, offset);
 
@@ -592,7 +592,7 @@ if(0)fprint(2, "fileRead: %s %d, %lld\n", f->dir.elem, cnt, offset);
 	}
 	sourceUnlock(s);
 	fileRUnlock(f);
-	return p-(uint8_t*)buf;
+	return p-(u8*)buf;
 
 Err:
 	sourceUnlock(s);
@@ -606,7 +606,7 @@ Err1:
  * Very sneaky.  Only used by flfmt.
  */
 int
-fileMapBlock(File *f, uint32_t bn, uint8_t score[VtScoreSize], uint32_t tag)
+fileMapBlock(File *f, u32 bn, u8 score[VtScoreSize], u32 tag)
 {
 	Block *b;
 	Entry e;
@@ -658,7 +658,7 @@ Err:
 }
 
 int
-fileSetSize(File *f, uint64_t size)
+fileSetSize(File *f, u64 size)
 {
 	int r;
 
@@ -683,14 +683,14 @@ Err:
 }
 
 int
-fileWrite(File *f, void *buf, int cnt, int64_t offset, char *uid)
+fileWrite(File *f, void *buf, int cnt, i64 offset, char *uid)
 {
 	Source *s;
-	uint32_t bn;
+	u32 bn;
 	int off, dsize, n;
 	Block *b;
-	uint8_t *p;
-	int64_t eof;
+	u8 *p;
+	i64 eof;
 
 if(0)fprint(2, "fileWrite: %s %d, %lld\n", f->dir.elem, cnt, offset);
 
@@ -748,7 +748,7 @@ if(0)fprint(2, "fileWrite: %s %d, %lld\n", f->dir.elem, cnt, offset);
 		goto Err;
 	sourceUnlock(s);
 	fileUnlock(f);
-	return p-(uint8_t*)buf;
+	return p-(u8*)buf;
 Err:
 	if(s)
 		sourceUnlock(s);
@@ -817,8 +817,8 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 {
 	File *ff;
 	char *oelem;
-	uint32_t mask;
-	uint64_t size;
+	u32 mask;
+	u64 size;
 
 	/* can not set permissions for the root */
 	if(fileIsRoot(f)){
@@ -917,7 +917,7 @@ Err:
 }
 
 int
-fileSetQidSpace(File *f, uint64_t offset, uint64_t max)
+fileSetQidSpace(File *f, u64 offset, u64 max)
 {
 	int ret;
 
@@ -934,17 +934,17 @@ fileSetQidSpace(File *f, uint64_t offset, uint64_t max)
 }
 
 
-uint64_t
+u64
 fileGetId(File *f)
 {
 	/* immutable */
 	return f->dir.qid;
 }
 
-uint32_t
+u32
 fileGetMcount(File *f)
 {
-	uint32_t mcount;
+	u32 mcount;
 
 	fileMetaLock(f);
 	mcount = f->dir.mcount;
@@ -952,10 +952,10 @@ fileGetMcount(File *f)
 	return mcount;
 }
 
-uint32_t
+u32
 fileGetMode(File *f)
 {
-	uint32_t mode;
+	u32 mode;
 
 	fileMetaLock(f);
 	mode = f->dir.mode;
@@ -1001,7 +1001,7 @@ fileIsRoFs(File *f)
 }
 
 int
-fileGetSize(File *f, uint64_t *size)
+fileGetSize(File *f, u64 *size)
 {
 	if(!fileRLock(f))
 		return 0;
@@ -1060,7 +1060,7 @@ fileMetaFlush2(File *f, char *oelem)
 	MetaBlock mb;
 	MetaEntry me, me2;
 	int i, n;
-	uint32_t boff;
+	u32 boff;
 
 	if(!f->dirty)
 		return 0;
@@ -1183,7 +1183,7 @@ fprint(2, "S\n");
 	blockPut(b);
 
 	f->removed = 1;
-	f->boff = (int64_t)NilBlock;
+	f->boff = (i64)NilBlock;
 	f->dirty = 0;
 
 	fileMetaUnlock(f);
@@ -1200,7 +1200,7 @@ Err:
 static int
 fileCheckEmpty(File *f)
 {
-	uint32_t i, n;
+	u32 i, n;
 	Block *b;
 	MetaBlock mb;
 	Source *r;
@@ -1388,10 +1388,10 @@ deeOpen(File *f)
 }
 
 static int
-dirEntrySize(Source *s, uint32_t elem, uint32_t gen, uint64_t *size)
+dirEntrySize(Source *s, u32 elem, u32 gen, u64 *size)
 {
 	Block *b;
-	uint32_t bn;
+	u32 bn;
 	Entry e;
 	int epb;
 
@@ -1474,7 +1474,7 @@ deeRead(DirEntryEnum *dee, DirEntry *de)
 {
 	int ret, didread;
 	File *f;
-	uint32_t nb;
+	u32 nb;
 
 	if(dee == nil){
 		vtSetError("cannot happen in deeRead");
@@ -1537,14 +1537,14 @@ deeClose(DirEntryEnum *dee)
  * caller must NOT lock the source and msource
  * referenced by dir.
  */
-static uint32_t
-fileMetaAlloc(File *f, DirEntry *dir, uint32_t start)
+static u32
+fileMetaAlloc(File *f, DirEntry *dir, u32 start)
 {
-	uint32_t nb, bo;
+	u32 nb, bo;
 	Block *b, *bb;
 	MetaBlock mb;
 	int nn;
-	uint8_t *p;
+	u8 *p;
 	int i, n, epb;
 	MetaEntry me;
 	Source *s, *ms;
@@ -1617,7 +1617,7 @@ fileMetaAlloc(File *f, DirEntry *dir, uint32_t start)
 	return bo;
 Err:
 	blockPut(b);
-	return (int64_t)NilBlock;
+	return (i64)NilBlock;
 }
 
 static int
@@ -1736,7 +1736,7 @@ fileWAccess(File* f, char *mid)
 static int
 getEntry(Source *r, Entry *e, int checkepoch)
 {
-	uint32_t epoch;
+	u32 epoch;
 	Block *b;
 
 	if(r == nil){
@@ -1793,7 +1793,7 @@ setEntry(Source *r, Entry *e)
 
 /* assumes hold elk */
 int
-fileSnapshot(File *dst, File *src, uint32_t epoch, int doarchive)
+fileSnapshot(File *dst, File *src, u32 epoch, int doarchive)
 {
 	Entry e, ee;
 

@@ -81,7 +81,7 @@ uint rgbacolors[8] = {
 	0x7F7F7FFF,	/* white */
 };
 
-uint32_t rgbahicolors[8] = {
+u32 rgbahicolors[8] = {
 	0x555555FF,	/* light black aka grey */
 	0xFF5555FF,	/* light red */
 	0x55FF55FF,	/* light green */
@@ -131,7 +131,7 @@ void	eresized(int);
 void	resize(void);
 void	send_interrupt(void);
 int	alnum(int);
-void	escapedump(int,uint8_t *,int);
+void	escapedump(int,u8 *,int);
 
 void
 main(int argc, char **argv)
@@ -286,7 +286,7 @@ int
 get_next_char(void)
 {
 	int c = peekc;
-	uint8_t buf[1];
+	u8 buf[1];
 	peekc = 0;
 	if(c > 0)
 		return(c);
@@ -301,7 +301,7 @@ get_next_char(void)
 			}
 			backp = 0;
 		}
-		c = (uint8_t)waitchar();
+		c = (u8)waitchar();
 		if(c > 0 && logfd >= 0) {
 			buf[0] = c;
 			write(logfd, buf, 1);
@@ -836,7 +836,7 @@ alnum(int c)
 }
 
 void
-escapedump(int fd,uint8_t *str,int len)
+escapedump(int fd,u8 *str,int len)
 {
 	int i;
 

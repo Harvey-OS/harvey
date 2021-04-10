@@ -37,7 +37,7 @@ int	isint(char *, int *);
 int	isolder(char *, char *);
 int	isolderthan(char *, char *);
 int	isnewerthan(char *, char *);
-int	hasmode(char *, uint32_t);
+int	hasmode(char *, u32);
 int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
 char	*nxtarg(int);
@@ -246,7 +246,7 @@ tio(char *a, int f)
  */
 
 int
-hasmode(char *f, uint32_t m)
+hasmode(char *f, u32 m)
 {
 	int r;
 	Dir *dir;
@@ -338,7 +338,7 @@ int
 isolder(char *pin, char *f)
 {
 	int r, rel;
-	uint32_t n, m;
+	u32 n, m;
 	char *p = pin;
 	Dir *dir;
 

@@ -208,8 +208,8 @@
 #endif
 
 #ifndef USE_STDLIB
-#define UINTN       uint64_t
-#define INTN        int64_t
+#define UINTN       u64
+#define INTN        i64
 #endif
 
 #define ACPI_EFI_ERR(a)             (0x8000000000000000 | a)
@@ -219,15 +219,15 @@
 #define ACPI_MACHINE_WIDTH          32
 
 #ifndef USE_STDLIB
-#define UINTN       uint32_t
-#define INTN        int32_t
+#define UINTN       u32
+#define INTN        i32
 #endif
 
 #define ACPI_EFI_ERR(a)             (0x80000000 | a)
 
 #endif
 
-#define CHAR16      uint16_t
+#define CHAR16      u16
 
 #ifdef USE_EFI_FUNCTION_WRAPPER
 #define __VA_NARG__(...)                        \

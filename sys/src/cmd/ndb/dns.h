@@ -197,7 +197,7 @@ typedef struct Txt	Txt;
 struct Request
 {
 	int	isslave;	/* pid of slave */
-	uint64_t	aborttime;	/* time in ms at which we give up */
+	u64	aborttime;	/* time in ms at which we give up */
 	jmp_buf	mret;		/* where master jumps to after starting a slave */
 	int	id;
 	char	*from;		/* who asked us? */
@@ -217,15 +217,15 @@ struct Querylck
 struct DN
 {
 	DN	*next;		/* hash collision list */
-	uint32_t	magic;
+	u32	magic;
 	char	*name;		/* owner */
 	RR	*rr;		/* resource records off this name */
-	uint32_t	referenced;	/* time last referenced */
-	uint32_t	lookuptime;	/* last time we tried to get a better value */
+	u32	referenced;	/* time last referenced */
+	u32	lookuptime;	/* last time we tried to get a better value */
 	/* refs was `char' but we've seen refs > 120, so go whole hog */
-	uint32_t	refs;		/* for mark and sweep */
-	uint32_t	ordinal;
-	uint16_t	class;		/* RR class */
+	u32	refs;		/* for mark and sweep */
+	u32	ordinal;
+	u16	class;		/* RR class */
 	unsigned char	keep;		/* flag: never age this name */
 	unsigned char	respcode;	/* response code */
 /* was:	char	nonexistent; *//* true if we get an authoritative nx for this domain */
@@ -259,9 +259,9 @@ struct Sig
 {
 	Cert Cert;
 	int	labels;
-	uint32_t	ttl;
-	uint32_t	exp;
-	uint32_t	incep;
+	u32	ttl;
+	u32	exp;
+	u32	incep;
 	DN	*signer;
 };
 struct Null
@@ -284,14 +284,14 @@ struct Txt
 struct RR
 {
 	RR	*next;
-	uint32_t	magic;
+	u32	magic;
 	DN	*owner;		/* domain that owns this resource record */
 	uintptr	pc;		/* for tracking memory allocation */
-	uint32_t	ttl;		/* time to live to be passed on */
-	uint32_t	expire;		/* time this entry expires locally */
-	uint32_t	marker;		/* used locally when scanning rrlists */
-	uint16_t	type;		/* RR type */
-	uint16_t	query;		/* query type is in response to */
+	u32	ttl;		/* time to live to be passed on */
+	u32	expire;		/* time this entry expires locally */
+	u32	marker;		/* used locally when scanning rrlists */
+	u16	type;		/* RR type */
+	u16	query;		/* query type is in response to */
 	unsigned char	auth;		/* flag: authoritative */
 	unsigned char	db;		/* flag: from database */
 	unsigned char	cached;		/* flag: rr in cache */
@@ -311,9 +311,9 @@ struct RR
 		DN	*rmb;	/* responsible maibox - minfo, soa, rp */
 		DN	*ptr;	/* pointer to domain name - ptr */
 		DN	*os;	/* operating system - hinfo */
-		uint32_t	pref;	/* preference value - mx */
-		uint32_t	local;	/* ns served from local database - ns */
-		uint16_t	port;	/* - srv */
+		u32	pref;	/* preference value - mx */
+		u32	local;	/* ns served from local database - ns */
+		u16	port;	/* - srv */
 		uintptr	arg1;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated by type */
@@ -337,15 +337,15 @@ struct Server
 };
 
 /*
- *  timers for a start-of-authority record.  all uint32_t's are in seconds.
+ *  timers for a start-of-authority record.  all u32's are in seconds.
  */
 struct SOA
 {
-	uint32_t	serial;		/* zone serial # */
-	uint32_t	refresh;	/* zone refresh interval */
-	uint32_t	retry;		/* zone retry interval */
-	uint32_t	expire;		/* time to expiration */
-	uint32_t	minttl;		/* min. time to live for any entry */
+	u32	serial;		/* zone serial # */
+	u32	refresh;	/* zone refresh interval */
+	u32	retry;		/* zone retry interval */
+	u32	expire;		/* time to expiration */
+	u32	minttl;		/* min. time to live for any entry */
 
 	Server	*slaves;	/* slave servers */
 };
@@ -356,8 +356,8 @@ struct SOA
  */
 struct Srv
 {
-	uint16_t	pri;
-	uint16_t	weight;
+	u16	pri;
+	u16	weight;
 };
 
 typedef struct Rrlist Rrlist;
@@ -372,7 +372,7 @@ struct Rrlist
  */
 struct DNSmsg
 {
-	uint16_t	id;
+	u16	id;
 	int	flags;
 	int	qdcount;	/* questions */
 	RR 	*qd;
@@ -410,25 +410,25 @@ struct Cfg {
 /* (udp) query stats */
 typedef struct {
 	QLock QLock;
-	uint32_t	slavehiwat;	/* procs */
-	uint32_t	qrecvd9p;	/* query counts */
-	uint32_t	qrecvdudp;
-	uint32_t	qsent;
-	uint32_t	qrecvd9prpc;	/* packet count */
-	uint32_t	alarms;
+	u32	slavehiwat;	/* procs */
+	u32	qrecvd9p;	/* query counts */
+	u32	qrecvdudp;
+	u32	qsent;
+	u32	qrecvd9prpc;	/* packet count */
+	u32	alarms;
 	/* reply times by count */
-	uint32_t	under10ths[3*10+2];	/* under n*0.1 seconds, n is index */
-	uint32_t	tmout;
-	uint32_t	tmoutcname;
-	uint32_t	tmoutv6;
+	u32	under10ths[3*10+2];	/* under n*0.1 seconds, n is index */
+	u32	tmout;
+	u32	tmoutcname;
+	u32	tmoutv6;
 
-	uint32_t	answinmem;	/* answers in memory */
-	uint32_t	negans;		/* negative answers received */
-	uint32_t	negserver;	/* neg ans with Rserver set */
-	uint32_t	negbaddeleg;	/* neg ans with bad delegations */
-	uint32_t	negbdnoans;	/* ⋯ and no answers */
-	uint32_t	negnorname;	/* neg ans with no Rname set */
-	uint32_t	negcached;	/* neg ans cached */
+	u32	answinmem;	/* answers in memory */
+	u32	negans;		/* negative answers received */
+	u32	negserver;	/* neg ans with Rserver set */
+	u32	negbaddeleg;	/* neg ans with bad delegations */
+	u32	negbdnoans;	/* ⋯ and no answers */
+	u32	negnorname;	/* neg ans with no Rname set */
+	u32	negcached;	/* neg ans cached */
 } Stats;
 
 Stats stats;
@@ -450,11 +450,11 @@ extern int	maxage;		/* age of oldest entry in cache (secs) */
 extern char	mntpt[];
 extern int	needrefresh;
 extern int	norecursion;
-extern uint32_t	now;		/* time base */
-extern int64_t	nowns;
+extern u32	now;		/* time base */
+extern i64	nowns;
 extern Area	*owned;
 extern int	sendnotifies;
-extern uint32_t	target;
+extern u32	target;
 extern int	testing;	/* test cache whenever removing a DN */
 extern char	*trace;
 extern int	traceactivity;
@@ -544,10 +544,10 @@ void	procsetname(char *fmt, ...);
 /* dnresolve.c */
 RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
 int	udpport(char *);
-int	mkreq(DN *dp, int type, unsigned char *buf, int flags, uint16_t reqno);
+int	mkreq(DN *dp, int type, unsigned char *buf, int flags, u16 reqno);
 int	seerootns(void);
-void	initdnsmsg(DNSmsg *mp, RR *rp, int flags, uint16_t reqno);
-DNSmsg*	newdnsmsg(RR *rp, int flags, uint16_t reqno);
+void	initdnsmsg(DNSmsg *mp, RR *rp, int flags, u16 reqno);
+DNSmsg*	newdnsmsg(RR *rp, int flags, u16 reqno);
 
 /* dnserver.c */
 void	dnserver(DNSmsg*, DNSmsg*, Request*, unsigned char *, int);

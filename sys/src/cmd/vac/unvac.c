@@ -36,8 +36,8 @@ usage(void)
 
 struct
 {
-	int64_t data;
-	int64_t skipdata;
+	i64 data;
+	i64 skipdata;
 } stats;
 
 void
@@ -173,10 +173,10 @@ unvac(VacFile *f, char *name, VacDir *vdir)
 {
 	static char buf[65536];
 	int fd, n, m,  bsize;
-	uint32_t mode, mode9;
+	u32 mode, mode9;
 	char *newname;
 	char *what;
-	int64_t off;
+	i64 off;
 	Dir d, *dp;
 	VacDirEnum *vde;
 	VacDir newvdir;
@@ -279,7 +279,7 @@ unvac(VacFile *f, char *name, VacDir *vdir)
 			else if(diff && (fd = open(name, ORDWR)) >= 0){
 				bsize = vacfiledsize(f);
 				while((n = readn(fd, buf, bsize)) > 0){
-					if(sha1matches(f, off/bsize, (uint8_t*)buf, n)){
+					if(sha1matches(f, off/bsize, (u8*)buf, n)){
 						off += n;
 						stats.skipdata += n;
 						continue;
@@ -337,7 +337,7 @@ mtimefmt(Fmt *f)
 {
 	Tm *tm;
 
-	tm = localtime(va_arg(f->args, uint32_t));
+	tm = localtime(va_arg(f->args, u32));
 	fmtprint(f, "%04d-%02d-%02d %02d:%02d",
 		tm->year+1900, tm->mon+1, tm->mday,
 		tm->hour, tm->min);

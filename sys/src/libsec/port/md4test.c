@@ -27,12 +27,12 @@ void
 main(void)
 {
 	char **pp;
-	uint8_t *p;
+	u8 *p;
 	int i;
-	uint8_t digest[MD5dlen];
+	u8 digest[MD5dlen];
 
 	for(pp = tests; *pp; pp++){
-		p = (uint8_t*)*pp;
+		p = (u8*)*pp;
 		md4(p, strlen(*pp), digest, 0);
 		for(i = 0; i < MD5dlen; i++)
 			print("%2.2x", digest[i]);

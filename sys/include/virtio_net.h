@@ -59,16 +59,16 @@
 
 struct virtio_net_config {
 	/* The config defining mac address (if VIRTIO_NET_F_MAC) */
-	uint8_t mac[ETH_ALEN];
+	u8 mac[ETH_ALEN];
 	/* See VIRTIO_NET_F_STATUS and VIRTIO_NET_S_* above */
-	uint16_t status;
+	u16 status;
 	/* Maximum number of each of transmit and receive queues;
 	 * see VIRTIO_NET_F_MQ and VIRTIO_NET_CTRL_MQ.
 	 * Legal values are between 1 and 0x8000
 	 */
-	uint16_t max_virtqueue_pairs;
+	u16 max_virtqueue_pairs;
 	/* Default maximum transmit unit advice */
-	uint16_t mtu;
+	u16 mtu;
 } __attribute__((packed));
 
 /*
@@ -81,18 +81,18 @@ struct virtio_net_config {
 struct virtio_net_hdr_v1 {
 #define VIRTIO_NET_HDR_F_NEEDS_CSUM	1	/* Use csum_start, csum_offset */
 #define VIRTIO_NET_HDR_F_DATA_VALID	2	/* Csum is valid */
-	uint8_t flags;
+	u8 flags;
 #define VIRTIO_NET_HDR_GSO_NONE		0	/* Not a GSO frame */
 #define VIRTIO_NET_HDR_GSO_TCPV4	1	/* GSO frame, IPv4 TCP (TSO) */
 #define VIRTIO_NET_HDR_GSO_UDP		3	/* GSO frame, IPv4 UDP (UFO) */
 #define VIRTIO_NET_HDR_GSO_TCPV6	4	/* GSO frame, IPv6 TCP */
 #define VIRTIO_NET_HDR_GSO_ECN		0x80	/* TCP has ECN set */
-	uint8_t gso_type;
-	uint16_t hdr_len;	/* Ethernet + IP + tcp/udp hdrs */
-	uint16_t gso_size;	/* Bytes to append to hdr_len per frame */
-	uint16_t csum_start;	/* Position to start checksumming from */
-	uint16_t csum_offset;	/* Offset after that to place checksum */
-	uint16_t num_buffers;	/* Number of merged rx buffers */
+	u8 gso_type;
+	u16 hdr_len;	/* Ethernet + IP + tcp/udp hdrs */
+	u16 gso_size;	/* Bytes to append to hdr_len per frame */
+	u16 csum_start;	/* Position to start checksumming from */
+	u16 csum_offset;	/* Offset after that to place checksum */
+	u16 num_buffers;	/* Number of merged rx buffers */
 };
 
 #ifndef VIRTIO_NET_NO_LEGACY
@@ -102,20 +102,20 @@ struct virtio_net_hdr_v1 {
  * specify GSO or CSUM features, you can simply ignore the header. */
 struct virtio_net_hdr {
 	/* See VIRTIO_NET_HDR_F_* */
-	uint8_t flags;
+	u8 flags;
 	/* See VIRTIO_NET_HDR_GSO_* */
-	uint8_t gso_type;
-	uint16_t hdr_len;		/* Ethernet + IP + tcp/udp hdrs */
-	uint16_t gso_size;		/* Bytes to append to hdr_len per frame */
-	uint16_t csum_start;	/* Position to start checksumming from */
-	uint16_t csum_offset;	/* Offset after that to place checksum */
+	u8 gso_type;
+	u16 hdr_len;		/* Ethernet + IP + tcp/udp hdrs */
+	u16 gso_size;		/* Bytes to append to hdr_len per frame */
+	u16 csum_start;	/* Position to start checksumming from */
+	u16 csum_offset;	/* Offset after that to place checksum */
 };
 
 /* This is the version of the header to use when the MRG_RXBUF
  * feature has been negotiated. */
 struct virtio_net_hdr_mrg_rxbuf {
 	struct virtio_net_hdr hdr;
-	uint16_t num_buffers;	/* Number of merged rx buffers */
+	u16 num_buffers;	/* Number of merged rx buffers */
 };
 #endif /* ...VIRTIO_NET_NO_LEGACY */
 
@@ -127,11 +127,11 @@ struct virtio_net_hdr_mrg_rxbuf {
  * command goes in between.
  */
 struct virtio_net_ctrl_hdr {
-	uint8_t class;
-	uint8_t cmd;
+	u8 class;
+	u8 cmd;
 } __attribute__((packed));
 
-typedef uint8_t virtio_net_ctrl_ack;
+typedef u8 virtio_net_ctrl_ack;
 
 #define VIRTIO_NET_OK     0
 #define VIRTIO_NET_ERR    1
@@ -171,8 +171,8 @@ typedef uint8_t virtio_net_ctrl_ack;
  * VIRTIO_NET_F_CTRL_MAC_ADDR feature is available.
  */
 struct virtio_net_ctrl_mac {
-	uint32_t entries;
-	uint8_t macs[][ETH_ALEN];
+	u32 entries;
+	u8 macs[][ETH_ALEN];
 } __attribute__((packed));
 
 #define VIRTIO_NET_CTRL_MAC    1
@@ -215,7 +215,7 @@ struct virtio_net_ctrl_mac {
  * specified.
  */
 struct virtio_net_ctrl_mq {
-	uint16_t virtqueue_pairs;
+	u16 virtqueue_pairs;
 };
 
 #define VIRTIO_NET_CTRL_MQ   4

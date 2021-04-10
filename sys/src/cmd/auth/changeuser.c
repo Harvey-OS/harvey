@@ -14,7 +14,7 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-void	install(char*, char*, char*, int32_t, int);
+void	install(char*, char*, char*, i32, int);
 int	exists (char*, char*);
 
 void
@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 {
 	char *u, key[DESKEYLEN], answer[32], p9pass[32];
 	int which, i, newkey, newbio, dosecret;
-	int32_t t;
+	i32 t;
 	Acctbio a;
 	Fs *f;
 
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 }
 
 void
-install(char *db, char *u, char *key, int32_t t, int newkey)
+install(char *db, char *u, char *key, i32 t, int newkey)
 {
 	char buf[KEYDBBUF+ANAMELEN+20];
 	int fd;

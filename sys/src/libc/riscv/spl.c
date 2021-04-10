@@ -7,8 +7,8 @@
  * inline assembly is not allowed in harvey.
  */
 
-int64_t _splhi(void);
-int64_t _spllo(void);
+i64 _splhi(void);
+i64 _spllo(void);
 
 int splhi(void)
 {

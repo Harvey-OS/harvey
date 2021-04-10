@@ -12,11 +12,11 @@
 #include <fcall.h>
 
 static
-int32_t
-dirpackage(uint8_t *buf, int32_t ts, Dir **d)
+i32
+dirpackage(u8 *buf, i32 ts, Dir **d)
 {
 	char *s;
-	int32_t ss, i, n, nn, m;
+	i32 ss, i, n, nn, m;
 
 	*d = nil;
 	if(ts <= 0)
@@ -48,7 +48,7 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 	s = (char*)*d + n * sizeof(Dir);
 	nn = 0;
 	for(i = 0; i < ts; i += m){
-		m = BIT16SZ + GBIT16((uint8_t*)&buf[i]);
+		m = BIT16SZ + GBIT16((u8*)&buf[i]);
 		if(nn >= n || convM2D(&buf[i], m, *d + nn, s) != m){
 			free(*d);
 			*d = nil;
@@ -61,11 +61,11 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 	return nn;
 }
 
-int32_t
+i32
 dirread(int fd, Dir **d)
 {
-	uint8_t *buf;
-	int32_t ts;
+	u8 *buf;
+	i32 ts;
 
 	buf = malloc(DIRMAX);
 	if(buf == nil)
@@ -77,11 +77,11 @@ dirread(int fd, Dir **d)
 	return ts;
 }
 
-int32_t
+i32
 dirreadall(int fd, Dir **d)
 {
-	uint8_t *buf, *nbuf;
-	int32_t n, ts;
+	u8 *buf, *nbuf;
+	i32 n, ts;
 
 	buf = nil;
 	ts = 0;

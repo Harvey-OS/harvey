@@ -91,13 +91,13 @@ big5proc(int c, Rune **r, long input_loc)
 }
 
 void
-big5_in(int fd, int32_t *notused, struct convert *out)
+big5_in(int fd, i32 *notused, struct convert *out)
 {
 	Rune ob[N];
 	Rune *r, *re;
-	uint8_t ibuf[N];
+	u8 ibuf[N];
 	int n, i;
-	int32_t nin;
+	i32 nin;
 
 	USED(notused);
 	r = ob;

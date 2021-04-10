@@ -13,10 +13,10 @@
 #include "zlib.h"
 
 int
-deflatezlibblock(uint8_t *dst, int dsize, uint8_t *src, int ssize,
+deflatezlibblock(u8 *dst, int dsize, u8 *src, int ssize,
 		 int level, int debug)
 {
-	uint32_t adler;
+	u32 adler;
 	int n;
 
 	if(dsize < 6)

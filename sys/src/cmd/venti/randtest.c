@@ -16,15 +16,15 @@
 
 
 enum { STACK = 32768 };
-void xxxsrand(int32_t);
-int32_t xxxlrand(void);
+void xxxsrand(i32);
+i32 xxxlrand(void);
 
 Channel *cw;
 Channel *cr;
 char *host;
 int blocksize, seed, randpct;
 int doread, dowrite, packets, permute;
-int64_t totalbytes, cur;
+i64 totalbytes, cur;
 VtConn *z;
 int multi;
 int maxpackets;
@@ -42,14 +42,14 @@ usage(void)
 void
 wr(char *buf, char *buf2)
 {
-	uint8_t score[VtScoreSize], score2[VtScoreSize];
+	u8 score[VtScoreSize], score2[VtScoreSize];
 	DigestState ds;
 
 	USED(buf2);
 	memset(&ds, 0, sizeof ds);
 	if(doublecheck)
-		sha1((uint8_t*)buf, blocksize, score, &ds);
-	if(vtwrite(z, score2, VtDataType, (uint8_t*)buf, blocksize) < 0)
+		sha1((u8*)buf, blocksize, score, &ds);
+	if(vtwrite(z, score2, VtDataType, (u8*)buf, blocksize) < 0)
 		sysfatal("vtwrite %V at %,lld: %r", score, cur);
 	if(doublecheck && memcmp(score, score2, VtScoreSize) != 0)
 		sysfatal("score mismatch! %V %V", score, score2);
@@ -70,12 +70,12 @@ wrthread(void *v)
 void
 rd(char *buf, char *buf2)
 {
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 	DigestState ds;
 
 	memset(&ds, 0, sizeof ds);
-	sha1((uint8_t*)buf, blocksize, score, &ds);
-	if(vtread(z, score, VtDataType, (uint8_t*)buf2, blocksize) < 0)
+	sha1((u8*)buf, blocksize, score, &ds);
+	if(vtread(z, score, VtDataType, (u8*)buf2, blocksize) < 0)
 		sysfatal("vtread %V at %,lld: %r", score, cur);
 	if(memcmp(buf, buf2, blocksize) != 0)
 		sysfatal("bad data read! %V", score);
@@ -132,13 +132,13 @@ run(void (*fn)(char*, char*), Channel *c)
 	free(order);
 }
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64	((u64)~(u64)0)
 
-uint64_t
+u64
 unittoull(char *s)
 {
 	char *es;
-	uint64_t n;
+	u64 n;
 
 	if(s == nil)
 		return TWID64;
@@ -165,7 +165,7 @@ void
 threadmain(int argc, char *argv[])
 {
 	int i, max;
-	int64_t t0;
+	i64 t0;
 	double t;
 
 	blocksize = 8192;
@@ -283,14 +283,14 @@ threadmain(int argc, char *argv[])
 #define	R	3399
 #define	NORM	(1.0/(1.0+MASK))
 
-static	uint32_t	rng_vec[LEN];
-static	uint32_t*	rng_tap = rng_vec;
-static	uint32_t*	rng_feed = 0;
+static	u32	rng_vec[LEN];
+static	u32*	rng_tap = rng_vec;
+static	u32*	rng_feed = 0;
 
 static void
-isrand(int32_t seed)
+isrand(i32 seed)
 {
-	int32_t lo, hi, x;
+	i32 lo, hi, x;
 	int i;
 
 	rng_tap = rng_vec;
@@ -316,15 +316,15 @@ isrand(int32_t seed)
 }
 
 void
-xxxsrand(int32_t seed)
+xxxsrand(i32 seed)
 {
 	isrand(seed);
 }
 
-int32_t
+i32
 xxxlrand(void)
 {
-	uint32_t x;
+	u32 x;
 
 	rng_tap--;
 	if(rng_tap < rng_vec) {

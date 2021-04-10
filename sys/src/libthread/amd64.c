@@ -23,14 +23,14 @@ void
 _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 {
 	// Ensure tos is aligned to 16 bytes
-	uint64_t *tos = (uint64_t*)&t->stk[t->stksize&~0x0F];
+	u64 *tos = (u64*)&t->stk[t->stksize&~0x0F];
 
-	t->sched[JMPBUFPC] = (uint64_t)launcheramd64+JMPBUFDPC;
+	t->sched[JMPBUFPC] = (u64)launcheramd64+JMPBUFDPC;
 	// Ensure we'll still be aligned to 16 bytes after return address is
 	// pushed onto the stack.  Important because otherwise we'll get a GP
 	// exception if we try to use some SIMD instructions with a stack that's
 	// not aligned to 16 bytes.
-	t->sched[JMPBUFSP] = (uint64_t)tos - 8;
-	t->sched[JMPBUFARG1] = (uint64_t)f;
-	t->sched[JMPBUFARG2] = (uint64_t)arg;
+	t->sched[JMPBUFSP] = (u64)tos - 8;
+	t->sched[JMPBUFARG1] = (u64)f;
+	t->sched[JMPBUFARG2] = (u64)arg;
 }

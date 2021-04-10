@@ -400,7 +400,7 @@ fas64:
 	RET
 
 // %rdi:&key, %esi:old, %edx:new
-// int	cas32(void* %rdi, uint32_t %esi, uint32_t %edx);
+// int	cas32(void* %rdi, u32 %esi, u32 %edx);
 .global cas32
 cas32:
 	movl	%esi, %eax

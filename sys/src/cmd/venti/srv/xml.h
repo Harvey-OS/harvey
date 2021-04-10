@@ -12,9 +12,9 @@ void	xmlarena(Hio *hout, Arena *v, char *tag, int indent);
 void	xmlindex(Hio *hout, Index *v, char *tag, int indent);
 
 void	xmlaname(Hio *hout, char *v, char *tag);
-void	xmlscore(Hio *hout, uint8_t *v, char *tag);
+void	xmlscore(Hio *hout, u8 *v, char *tag);
 void	xmlsealed(Hio *hout, int v, char *tag);
-void	xmlu32int(Hio *hout, uint32_t v, char *tag);
-void	xmlu64int(Hio *hout, uint64_t v, char *tag);
+void	xmlu32int(Hio *hout, u32 v, char *tag);
+void	xmlu64int(Hio *hout, u64 v, char *tag);
 
 void	xmlindent(Hio *hout, int indent);

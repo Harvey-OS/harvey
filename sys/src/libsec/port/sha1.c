@@ -12,9 +12,9 @@
 #include <mp.h>
 #include <libsec.h>
 
-static void encode(uint8_t*, uint32_t*, uint32_t);
+static void encode(u8*, u32*, u32);
 
-extern void _sha1block(uint8_t*, uint32_t, uint32_t*);
+extern void _sha1block(u8*, u32, u32*);
 
 /*
  *  we require len to be a multiple of 64 for all but
@@ -22,12 +22,12 @@ extern void _sha1block(uint8_t*, uint32_t, uint32_t*);
  *  to pad.
  */
 SHA1state*
-sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
+sha1(u8 *p, u32 len, u8 *digest, SHA1state *s)
 {
-	uint8_t buf[128];
-	uint32_t x[16];
+	u8 buf[128];
+	u32 x[16];
 	int i;
-	uint8_t *e;
+	u8 *e;
 
 	if(s == nil){
 		s = malloc(sizeof(*s));
@@ -123,10 +123,10 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
  *	a multiple of 4.
  */
 static void
-encode(uint8_t *output, uint32_t *input, uint32_t len)
+encode(u8 *output, u32 *input, u32 len)
 {
-	uint32_t x;
-	uint8_t *e;
+	u32 x;
+	u8 *e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -138,9 +138,9 @@ encode(uint8_t *output, uint32_t *input, uint32_t len)
 }
 
 DigestState*
-hmac_sha1(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	  uint8_t *digest,
-	DigestState *s)
+hmac_sha1(u8 *p, u32 len, u8 *key, u32 klen,
+	  u8 *digest,
+	  DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha1, SHA1dlen);
 }

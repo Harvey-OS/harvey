@@ -13,7 +13,7 @@
 
 /* big endian */
 #define	b4byte(x)	(((x)[0]<<24) + ((x)[1]<<16) + ((x)[2]<<8) + (x)[3])
-#define	b8byte(x)	(((int64_t)b4byte(x)<<32) | (uint32_t)b4byte((x)+4))
+#define	b8byte(x)	(((i64)b4byte(x)<<32) | (u32)b4byte((x)+4))
 enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
@@ -26,9 +26,9 @@ typedef struct Ram Ram;
 
 struct Fid
 {
-	int16_t	busy;
-	int16_t	open;
-	int16_t	rclose;
+	i16	busy;
+	i16	open;
+	i16	rclose;
 	int	fid;
 	Fid	*next;
 	char	*user;
@@ -44,15 +44,15 @@ struct Ram
 	Ram	*child;		/* first member of directory */
 	Ram	*next;		/* next member of file's directory */
 	Qid	qid;
-	int32_t	perm;
+	i32	perm;
 	char	*name;
-	uint32_t	atime;
-	uint32_t	mtime;
+	u32	atime;
+	u32	mtime;
 	char	*user;
 	char	*group;
-	int64_t addr;
+	i64 addr;
 	void *data;
-	int64_t	ndata;
+	i64	ndata;
 };
 
 enum
@@ -72,16 +72,16 @@ typedef struct idmap {
 
 typedef struct fileinf {
 	char	*name;
-	int64_t	addr;
+	i64	addr;
 	void	*data;
-	int64_t	size;
+	i64	size;
 	int	mode;
 	int	uid;
 	int	gid;
-	int32_t	mdate;
+	i32	mdate;
 } Fileinf;
 
-extern	uint32_t	path;		/* incremented for each new file */
+extern	u32	path;		/* incremented for each new file */
 extern	Ram	*ram;
 extern	char	*user;
 extern	Idmap	*uidmap;
@@ -89,14 +89,14 @@ extern	Idmap	*gidmap;
 extern	int	replete;
 extern	int	blocksize;
 void	error(char*);
-void	*erealloc(void*, uint32_t);
-void	*emalloc(uint32_t);
+void	*erealloc(void*, u32);
+void	*emalloc(u32);
 char	*estrdup(char*);
 void	populate(char *);
 void	dotrunc(Ram*);
 void	docreate(Ram*);
-char	*doread(Ram*, int64_t, int32_t);
-void	dowrite(Ram*, char*, int32_t, int32_t);
+char	*doread(Ram*, i64, i32);
+void	dowrite(Ram*, char*, i32, i32);
 int	dopermw(Ram*);
 Idmap	*getpass(char*);
 char	*mapid(Idmap*,int);

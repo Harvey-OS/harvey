@@ -1,10 +1,10 @@
 #include <u.h>
 #include <libc.h>
 
-int32_t nprocs = 32;
-int32_t nloops = 100000;
-int32_t x = 1;
-int32_t incr;
+i32 nprocs = 32;
+i32 nloops = 100000;
+i32 x = 1;
+i32 incr;
 
 void
 tsemloop(void)

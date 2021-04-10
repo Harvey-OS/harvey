@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-uint32_t
+u32
 truerand(void)
 {
-	uint32_t x;
+	u32 x;
 	static int randfd = -1;
 
 	if(randfd < 0)

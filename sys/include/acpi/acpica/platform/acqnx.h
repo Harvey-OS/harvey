@@ -162,8 +162,8 @@
 /* At present time (QNX 6.6) all supported architectures are 32 bits. */
 #define ACPI_MACHINE_WIDTH      32
 
-#define COMPILER_DEPENDENT_INT64  int64_t
-#define COMPILER_DEPENDENT_UINT64 uint64_t
+#define COMPILER_DEPENDENT_INT64  i64
+#define COMPILER_DEPENDENT_UINT64 u64
 
 #include <ctype.h>
 #include <stdint.h>

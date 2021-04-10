@@ -12,9 +12,9 @@
 #include <ip.h>
 
 void
-hnputv(void *p, uint64_t v)
+hnputv(void *p, u64 v)
 {
-	uint8_t *a;
+	u8 *a;
 
 	a = p;
 	a[0] = v>>56;
@@ -30,7 +30,7 @@ hnputv(void *p, uint64_t v)
 void
 hnputl(void *p, uint v)
 {
-	uint8_t *a;
+	u8 *a;
 
 	a = p;
 	a[0] = v>>24;
@@ -40,26 +40,26 @@ hnputl(void *p, uint v)
 }
 
 void
-hnputs(void *p, uint16_t v)
+hnputs(void *p, u16 v)
 {
-	uint8_t *a;
+	u8 *a;
 
 	a = p;
 	a[0] = v>>8;
 	a[1] = v;
 }
 
-uint64_t
+u64
 nhgetv(void *p)
 {
-	uint8_t *a;
-	uint64_t v;
+	u8 *a;
+	u64 v;
 
 	a = p;
-	v = (uint64_t)a[0]<<56;
-	v |= (uint64_t)a[1]<<48;
-	v |= (uint64_t)a[2]<<40;
-	v |= (uint64_t)a[3]<<32;
+	v = (u64)a[0]<<56;
+	v |= (u64)a[1]<<48;
+	v |= (u64)a[2]<<40;
+	v |= (u64)a[3]<<32;
 	v |= a[4]<<24;
 	v |= a[5]<<16;
 	v |= a[6]<<8;
@@ -70,16 +70,16 @@ nhgetv(void *p)
 uint
 nhgetl(void *p)
 {
-	uint8_t *a;
+	u8 *a;
 
 	a = p;
 	return (a[0]<<24)|(a[1]<<16)|(a[2]<<8)|(a[3]<<0);
 }
 
-uint16_t
+u16
 nhgets(void *p)
 {
-	uint8_t *a;
+	u8 *a;
 
 	a = p;
 	return (a[0]<<8)|(a[1]<<0);

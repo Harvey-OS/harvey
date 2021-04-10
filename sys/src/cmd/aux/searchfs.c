@@ -44,7 +44,7 @@ struct Quick
 	char	*pat;
 	char	*up;		/* match string for upper case of pat */
 	int	len;		/* of pat (and up) -1; used for fast search */
-	uint8_t 	jump[256];	/* jump index table */
+	u8 	jump[256];	/* jump index table */
 	int	miss;		/* amount to jump if we falsely match the last char */
 };
 extern void	quickmk(Quick*, char*, int);
@@ -90,7 +90,7 @@ struct Fid
 	int	n;		/* number of bytes left in found item */
 };
 
-int			dostat(int, uint8_t*, int);
+int			dostat(int, u8*, int);
 void*			emalloc(uint);
 void			fatal(char*, ...);
 Match*			mkmatch(Match*,
@@ -478,7 +478,7 @@ void
 quickmk(Quick *q, char *spat, int ignorecase)
 {
 	char *pat, *up;
-	uint8_t *j;
+	u8 *j;
 	int ep, ea, cp, ca, i, c, n;
 
 	/*
@@ -518,8 +518,8 @@ quickmk(Quick *q, char *spat, int ignorecase)
 	n--;
 	q->len = n;
 	for(i = 0; i <= n; i++){
-		j[(uint8_t)pat[i]] = n - i;
-		j[(uint8_t)up[i]] = n - i;
+		j[(u8)pat[i]] = n - i;
+		j[(u8)up[i]] = n - i;
 	}
 
 	/*
@@ -549,7 +549,7 @@ char *
 quicksearch(Quick *q, char *s, char *e)
 {
 	char *pat, *up, *m, *ee;
-	uint8_t *j;
+	u8 *j;
 	int len, n, c, mc;
 
 	len = q->len;
@@ -564,15 +564,15 @@ quicksearch(Quick *q, char *s, char *e)
 		/*
 		 * look for a match on the last char
 		 */
-		while(s < ee && (n = j[(uint8_t)*s])){
+		while(s < ee && (n = j[(u8)*s])){
 			s += n;
-			s += j[(uint8_t)*s];
-			s += j[(uint8_t)*s];
-			s += j[(uint8_t)*s];
+			s += j[(u8)*s];
+			s += j[(u8)*s];
+			s += j[(u8)*s];
 		}
 		if(s >= e)
 			return nil;
-		while((n = j[(uint8_t)*s]) != 0){
+		while((n = j[(u8)*s]) != 0){
 			s += n;
 			if(s >= e)
 				return nil;
@@ -599,7 +599,7 @@ fsrun(Fs *fs, int fd)
 {
 	Fcall rpc;
 	char *err;
-	uint8_t *buf;
+	u8 *buf;
 	int n;
 
 	buf = emalloc(messagesize);
@@ -747,7 +747,7 @@ fswalk(Fs *fs, Fcall *rpc)
 	Fid *f, *nf;
 	int nqid, nwname, type;
 	char *err, *name;
-	uint32_t path;
+	u32 path;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
@@ -856,7 +856,7 @@ fsread(Fs *fs, Fcall *rpc)
 		if(off > 0)
 			rpc->count = 0;
 		else
-			rpc->count = dostat(Qsearch, (uint8_t*)rpc->data,
+			rpc->count = dostat(Qsearch, (u8*)rpc->data,
 					    count);
 		putfid(fs, f);
 		if(off == 0 && rpc->count <= BIT16SZ)
@@ -954,7 +954,7 @@ fswstat(Fs *fs, Fcall *f)
 }
 
 int
-dostat(int path, uint8_t *buf, int nbuf)
+dostat(int path, u8 *buf, int nbuf)
 {
 	Dir d;
 

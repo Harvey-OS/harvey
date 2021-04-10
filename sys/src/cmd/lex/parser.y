@@ -13,7 +13,7 @@
 union _yystype_
 {
 	int	i;
-	uint8_t	*cp;
+	u8	*cp;
 };
 %}
 
@@ -21,7 +21,7 @@ union _yystype_
 int i;
 int j,k;
 int g;
-uint8_t *p;
+u8 *p;
 %}
 %%
 
@@ -220,12 +220,12 @@ r:	CHAR
 int
 yylex(void)
 {
-	uint8_t *p;
+	u8 *p;
 	int c, i;
-	uint8_t  *t, *xp;
+	u8  *t, *xp;
 	int n, j, k, x;
 	static int sectbegin;
-	static uint8_t token[TOKENSIZE];
+	static u8 token[TOKENSIZE];
 	static int iter;
 
 # ifdef DEBUG

@@ -60,16 +60,16 @@ enum
 struct Umsc
 {
 	ScsiReq	ScsiReq;
-	uint64_t	blocks;
-	int64_t	capacity;
+	u64	blocks;
+	i64	capacity;
 
 	/* from setup */
 	char	*bufp;
 	long	off;		/* offset within a block */
 	long	nb;		/* byte count */
 
-	uint8_t 	rawcmd[16];
-	uint8_t	phase;
+	u8 	rawcmd[16];
+	u8	phase;
 	char	*inq;
 	Ums	*ums;
 	Usbfs	fs;
@@ -83,7 +83,7 @@ struct Ums
 	Dev	*epin;
 	Dev	*epout;
 	Umsc	*lun;
-	uint8_t	maxlun;
+	u8	maxlun;
 	int	seq;
 	int	nerrs;
 	int	wrongresidues;
@@ -97,9 +97,9 @@ struct Cbw
 	char	signature[4];		/* "USBC" */
 	long	tag;
 	long	datalen;
-	uint8_t	flags;
-	uint8_t	lun;
-	uint8_t	len;
+	u8	flags;
+	u8	lun;
+	u8	len;
 	char	command[16];
 };
 
@@ -108,7 +108,7 @@ struct Csw
 	char	signature[4];		/* "USBS" */
 	long	tag;
 	long	dataresidue;
-	uint8_t	status;
+	u8	status;
 };
 
 

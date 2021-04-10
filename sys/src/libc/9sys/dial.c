@@ -62,7 +62,7 @@ struct Dest {
 	Conn	*connend;
 	int	nkid;
 
-	int32_t	oalarm;
+	i32	oalarm;
 	int	naddrs;
 
 	QLock	winlck;
@@ -152,7 +152,7 @@ connsalloc(Dest *dp, int addrs)
 static void
 freedest(Dest *dp)
 {
-	int32_t oalarm;
+	i32 oalarm;
 
 	if (dp == nil)
 		return;

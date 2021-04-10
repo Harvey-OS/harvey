@@ -12,17 +12,17 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static int32_t
+static i32
 _iosleep(va_list *arg)
 {
-	int32_t n;
+	i32 n;
 
-	n = va_arg(*arg, int32_t);
+	n = va_arg(*arg, i32);
 	return sleep(n);
 }
 
 int
-iosleep(Ioproc *io, int32_t n)
+iosleep(Ioproc *io, i32 n)
 {
 	return iocall(io, _iosleep, n);
 }

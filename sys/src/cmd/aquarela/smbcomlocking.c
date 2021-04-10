@@ -10,11 +10,11 @@
 #include "headers.h"
 
 static int
-getlock(SmbBuffer *b, int large, uint16_t *pidp, uint64_t *offsetp,
-	uint64_t *lengthp)
+getlock(SmbBuffer *b, int large, u16 *pidp, u64 *offsetp,
+	u64 *lengthp)
 {
-	uint32_t ohigh, olow;
-	uint32_t lhigh, llow;
+	u32 ohigh, olow;
+	u32 lhigh, llow;
 	if (!smbbuffergets(b, pidp))
 		return 0;
 	if (large && !smbbuffergetbytes(b, nil, 2))
@@ -23,8 +23,8 @@ getlock(SmbBuffer *b, int large, uint16_t *pidp, uint64_t *offsetp,
 		if (!smbbuffergetl(b, &ohigh) || !smbbuffergetl(b, &olow)
 			|| !smbbuffergetl(b, &lhigh) || !smbbuffergetl(b, &llow))
 			return 0;
-		*offsetp = ((uint64_t)ohigh << 32) | olow;
-		*lengthp = ((uint64_t)lhigh << 32) | llow;
+		*offsetp = ((u64)ohigh << 32) | olow;
+		*lengthp = ((u64)lhigh << 32) | llow;
 		return 1;
 	}
 	if (!smbbuffergetl(b, &olow) || !smbbuffergetl(b, &llow))
@@ -35,22 +35,22 @@ getlock(SmbBuffer *b, int large, uint16_t *pidp, uint64_t *offsetp,
 }
 
 SmbProcessResult
-smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
+smbcomlockingandx(SmbSession *s, SmbHeader *h, u8 *pdata, SmbBuffer *b)
 {
-	uint8_t andxcommand;
-	uint16_t andxoffset;
-	uint32_t andxoffsetfixup;
-	uint16_t fid;
-	uint8_t locktype;
-	uint8_t oplocklevel;
-	uint32_t timeout;
-	uint16_t numberofunlocks;
-	uint16_t numberoflocks;
+	u8 andxcommand;
+	u16 andxoffset;
+	u32 andxoffsetfixup;
+	u16 fid;
+	u8 locktype;
+	u8 oplocklevel;
+	u32 timeout;
+	u16 numberofunlocks;
+	u16 numberoflocks;
 	SmbTree *t;
 	SmbFile *f;
 	int l;
 	SmbProcessResult pr;
-	uint32_t backupoffset;
+	u32 backupoffset;
 	int large;
 
 	if (!smbcheckwordcount("comlockingandx", h, 8))
@@ -90,9 +90,9 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	}
 	backupoffset = smbbufferreadoffset(b);
 	for (l = 0; l < numberofunlocks; l++) {
-		uint16_t pid;
-		uint64_t offset;
-		uint64_t length;
+		u16 pid;
+		u64 offset;
+		u64 length;
 		if (!getlock(b, large, &pid, &offset, &length)) {
 			pr = SmbProcessResultFormat;
 			goto done;
@@ -102,9 +102,9 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 		smbsharedfileunlock(f->sf, s, h->pid, offset, offset + length);
 	}
 	for (l = 0; l < numberoflocks; l++) {
-		uint16_t pid;
-		uint64_t offset;
-		uint64_t length;
+		u16 pid;
+		u64 offset;
+		u64 length;
 		if (!getlock(b, large, &pid, &offset, &length)) {
 			pr = SmbProcessResultFormat;
 			goto done;
@@ -115,10 +115,10 @@ smbcomlockingandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 			break;
 	}
 	if (l < numberoflocks) {
-		uint16_t i;
-		uint16_t pid;
-		uint64_t offset;
-		uint64_t length;
+		u16 i;
+		u16 pid;
+		u64 offset;
+		u64 length;
 		smbbufferreadbackup(b, backupoffset);
 		for (i  = 0; i < l; i++) {
 			assert(getlock(b, large, &pid, &offset, &length));

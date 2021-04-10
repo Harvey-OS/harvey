@@ -21,10 +21,10 @@ enum {
 	NAttrx		= 0x15,
 };
 
-uint8_t
-vgai(int32_t port)
+u8
+vgai(i32 port)
 {
-	uint8_t data;
+	u8 data;
 
 	switch(port){
 
@@ -48,10 +48,10 @@ vgai(int32_t port)
 	return data;
 }
 
-uint8_t
-vgaxi(int32_t port, uint8_t index)
+u8
+vgaxi(i32 port, u8 index)
 {
-	uint8_t data;
+	u8 data;
 
 	switch(port){
 
@@ -95,7 +95,7 @@ vgaxi(int32_t port, uint8_t index)
 }
 
 void
-vgao(int32_t port, uint8_t data)
+vgao(i32 port, u8 data)
 {
 	switch(port){
 
@@ -116,7 +116,7 @@ vgao(int32_t port, uint8_t data)
 }
 
 void
-vgaxo(int32_t port, uint8_t index, uint8_t data)
+vgaxo(i32 port, u8 index, u8 data)
 {
 	switch(port){
 
@@ -193,7 +193,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	int vt, vde, vrs, vre;
-	uint32_t tmp;
+	u32 tmp;
 
 	mode = vga->mode;
 

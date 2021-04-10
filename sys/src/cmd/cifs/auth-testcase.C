@@ -51,7 +51,7 @@ dmp(char *s, int seq, void *buf, int n)
 }
 
 static Auth *
-auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
+auth_plain(char *windom, char *keyp, u8 *chal, int len)
 {
 	UserPasswd *up;
 	static Auth *ap;
@@ -77,7 +77,7 @@ auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
 }
 
 static Auth *
-auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
+auth_lm_and_ntlm(char *windom, char *keyp, u8 *chal, int len)
 {
 	int err;
 	Auth *ap;
@@ -114,7 +114,7 @@ auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
  * response is easily reversed - Google for l0pht for more info.
  */
 static Auth *
-auth_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
+auth_ntlm(char *windom, char *keyp, u8 *chal, int len)
 {
 	Auth *ap;
 
@@ -134,8 +134,8 @@ auth_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
  * I still do this for completeness.
  */
 static DigestState *
-hmac_t64(uint8_t *data, uint32_t dlen, uint8_t *key, uint32_t klen,
-	 uint8_t *digest,
+hmac_t64(u8 *data, u32 dlen, u8 *key, u32 klen,
+	 u8 *digest,
 	DigestState *state)
 {
 	if(klen > 64)
@@ -145,13 +145,13 @@ hmac_t64(uint8_t *data, uint32_t dlen, uint8_t *key, uint32_t klen,
 
 
 static int
-ntv2_blob(uint8_t *blob, int len, char *windom)
+ntv2_blob(u8 *blob, int len, char *windom)
 {
 	int n;
-	uint64_t nttime;
+	u64 nttime;
 	Rune r;
 	char *d;
-	uint8_t *p;
+	u8 *p;
 	enum {			/* name types */
 		Beof,		/* end of name list */
 		Bnetbios,	/* Netbios machine name */
@@ -381,7 +381,7 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 
 struct {
 	char	*name;
-	Auth	*(*func)(char *, char *, uint8_t *, int);
+	Auth	*(*func)(char *, char *, u8 *, int);
 } methods[] = {
 	{ "plain",	auth_plain },
 	{ "lm+ntlm",	auth_lm_and_ntlm },
@@ -404,7 +404,7 @@ autherr(void)
 
 Auth *
 getauth(char *name, char *windom, char *keyp, int secmode,
-	uint8_t *chal,
+	u8 *chal,
 	int len)
 {
 	int i;
@@ -431,11 +431,11 @@ getauth(char *name, char *windom, char *keyp, int secmode,
 }
 
 static int
-genmac(uint8_t *buf, int len, int seq, uint8_t key[MACkeylen],
-       uint8_t mine[MAClen])
+genmac(u8 *buf, int len, int seq, u8 key[MACkeylen],
+       u8 mine[MAClen])
 {
 	DigestState *ds;
-	uint8_t *sig, digest[MD5dlen], their[MAClen];
+	u8 *sig, digest[MD5dlen], their[MAClen];
 
 	sig = buf+MACoff;
 	memcpy(their, sig, MAClen);
@@ -457,7 +457,7 @@ int
 macsign(Pkt *p)
 {
 	int i, len;
-	uint8_t *sig, *buf, mac[MAClen], zeros[MACkeylen];
+	u8 *sig, *buf, mac[MAClen], zeros[MACkeylen];
 
 	sig = p->buf + NBHDRLEN + MACoff;
 	buf = p->buf + NBHDRLEN;

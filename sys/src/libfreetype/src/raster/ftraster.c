@@ -243,9 +243,9 @@
 
   typedef int             Int;
   typedef unsigned int    UInt;
-  typedef int16_t           Short;
+  typedef i16           Short;
   typedef unsigned short  UShort, *PUShort;
-  typedef int32_t            Long, *PLong;
+  typedef i32            Long, *PLong;
   typedef unsigned long   ULong;
 
   typedef unsigned char   Byte, *PByte;
@@ -288,8 +288,8 @@
     PProfile    link;        /* link to next profile - various purpose */
     PLong       offset;      /* start of profile's data in render pool */
     int         flow;        /* Profile orientation: Asc/Descending    */
-    int32_t        height;      /* profile's height in scanlines          */
-    int32_t        start;       /* profile's starting scanline            */
+    i32        height;      /* profile's height in scanlines          */
+    i32        start;       /* profile's starting scanline            */
 
     unsigned    countL;      /* number of lines to step before this    */
                              /* profile becomes drawable               */
@@ -313,7 +313,7 @@
 
 
 #define AlignProfileSize \
-          ( ( sizeof ( TProfile ) + sizeof (int32_t ) - 1 ) / sizeof (int32_t ) )
+          ( ( sizeof ( TProfile ) + sizeof (i32 ) - 1 ) / sizeof (i32 ) )
 
 
 #ifdef TT_STATIC_RASTER
@@ -564,7 +564,7 @@
   static Bool
   New_Profile( RAS_ARGS TStates  aState )
   {
-    uint64_t cp = (uint64_t)ras.cProfile;
+    u64 cp = (u64)ras.cProfile;
 
     if ( !ras.fProfile )
     {
@@ -583,12 +583,12 @@
     {
     case Ascending_State:
       ras.cProfile->flow = Flow_Up;
-      FT_TRACE6(( "New ascending profile = %lx\n", (int32_t)cp ));
+      FT_TRACE6(( "New ascending profile = %lx\n", (i32)cp ));
       break;
 
     case Descending_State:
       ras.cProfile->flow = Flow_Down;
-      FT_TRACE6(( "New descending profile = %lx\n", (int32_t)cp ));
+      FT_TRACE6(( "New descending profile = %lx\n", (i32)cp ));
       break;
 
     default:
@@ -630,7 +630,7 @@
   {
     Long      h;
     PProfile  oldProfile;
-    uint64_t cp = (uint64_t)ras.cProfile;;
+    u64 cp = (u64)ras.cProfile;;
 
 
     h = (Long)( ras.top - ras.cProfile->offset );
@@ -645,7 +645,7 @@
     if ( h > 0 )
     {
       FT_TRACE6(( "Ending profile %lx, start = %ld, height = %ld\n",
-                  (int32_t)cp, ras.cProfile->start, h ));
+                  (i32)cp, ras.cProfile->start, h ));
 
       oldProfile           = ras.cProfile;
       ras.cProfile->height = h;
@@ -2087,8 +2087,8 @@
       f1 = (Byte)  ( 0xFF >> ( e1 & 7 ) );
       f2 = (Byte) ~( 0x7F >> ( e2 & 7 ) );
 
-      if ( ras.gray_min_x > c1 ) ras.gray_min_x = (int16_t)c1;
-      if ( ras.gray_max_x < c2 ) ras.gray_max_x = (int16_t)c2;
+      if ( ras.gray_min_x > c1 ) ras.gray_min_x = (i16)c1;
+      if ( ras.gray_max_x < c2 ) ras.gray_max_x = (i16)c2;
 
       target = ras.bTarget + ras.traceOfs + c1;
       c2 -= c1;

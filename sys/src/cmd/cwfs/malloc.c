@@ -10,8 +10,8 @@
 #include "all.h"
 #include "io.h"
 
-int32_t	niob;
-int32_t	nhiob;
+i32	niob;
+i32	nhiob;
 Hiob	*hiob;
 
 /*
@@ -20,7 +20,7 @@ Hiob	*hiob;
  * end of the allocated memory.
  */
 void*
-ialloc(uint32_t n, int align)
+ialloc(u32 n, int align)
 {
 	void *p = mallocalign(n, align, 0, 0);
 
@@ -42,7 +42,7 @@ prbanks(void)
 }
 
 static void
-cmd_memory(int, int8_t *[])
+cmd_memory(int, i8 *[])
 {
 	prbanks();
 }
@@ -56,7 +56,7 @@ enum { HWIDTH = 8 };		/* buffers per hash */
 void
 iobufinit(void)
 {
-	int32_t m;
+	i32 m;
 	int i;
 	char *xiop;
 	Iobuf *p, *q;

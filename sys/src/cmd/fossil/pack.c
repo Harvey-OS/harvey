@@ -18,8 +18,8 @@
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3])
-#define	U48GET(p)	(((uint64_t)U16GET(p)<<32)|(uint64_t)U32GET((p)+2))
-#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
+#define	U48GET(p)	(((u64)U16GET(p)<<32)|(u64)U32GET((p)+2))
+#define	U64GET(p)	(((u64)U32GET(p)<<32)|(u64)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)
 #define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
@@ -29,7 +29,7 @@
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 void
-headerPack(Header *h, uint8_t *p)
+headerPack(Header *h, u8 *p)
 {
 	memset(p, 0, HeaderSize);
 	U32PUT(p, HeaderMagic);
@@ -42,7 +42,7 @@ headerPack(Header *h, uint8_t *p)
 }
 
 int
-headerUnpack(Header *h, uint8_t *p)
+headerUnpack(Header *h, u8 *p)
 {
 	if(U32GET(p) != HeaderMagic){
 		vtSetError("vac header bad magic");
@@ -62,7 +62,7 @@ headerUnpack(Header *h, uint8_t *p)
 }
 
 void
-labelPack(Label *l, uint8_t *p, int i)
+labelPack(Label *l, u8 *p, int i)
 {
 	p += i*LabelSize;
 	U8PUT(p, l->state);
@@ -73,7 +73,7 @@ labelPack(Label *l, uint8_t *p, int i)
 }
 
 int
-labelUnpack(Label *l, uint8_t *p, int i)
+labelUnpack(Label *l, u8 *p, int i)
 {
 	p += i*LabelSize;
 	l->state = p[0];
@@ -94,39 +94,39 @@ Bad:
 		if(!(l->state&BsAlloc) || l->state & ~BsMask)
 			goto Bad;
 		if(l->state&BsClosed){
-			if(l->epochClose == ~(uint32_t)0)
+			if(l->epochClose == ~(u32)0)
 				goto Bad;
 		}else{
-			if(l->epochClose != ~(uint32_t)0)
+			if(l->epochClose != ~(u32)0)
 				goto Bad;
 		}
 	}
 	return 1;
 }
 
-uint32_t
-globalToLocal(uint8_t score[VtScoreSize])
+u32
+globalToLocal(u8 score[VtScoreSize])
 {
 	int i;
 
 	for(i=0; i<VtScoreSize-4; i++)
 		if(score[i] != 0)
 			return NilBlock;
-			//return (int64_t)NilBlock;
+			//return (i64)NilBlock;
 	return U32GET(score+VtScoreSize-4);
 }
 
 void
-localToGlobal(uint32_t addr, uint8_t score[VtScoreSize])
+localToGlobal(u32 addr, u8 score[VtScoreSize])
 {
 	memset(score, 0, VtScoreSize-4);
 	U32PUT(score+VtScoreSize-4, addr);
 }
 
 void
-entryPack(Entry *e, uint8_t *p, int index)
+entryPack(Entry *e, u8 *p, int index)
 {
-	uint32_t t32;
+	u32 t32;
 	int flags;
 
 	p += index * VtEntrySize;
@@ -152,7 +152,7 @@ entryPack(Entry *e, uint8_t *p, int index)
 }
 
 int
-entryUnpack(Entry *e, uint8_t *p, int index)
+entryUnpack(Entry *e, u8 *p, int index)
 {
 	p += index * VtEntrySize;
 
@@ -188,9 +188,9 @@ entryType(Entry *e)
 
 
 void
-superPack(Super *s, uint8_t *p)
+superPack(Super *s, u8 *p)
 {
-	uint32_t t32;
+	u32 t32;
 
 	memset(p, 0, SuperSize);
 	U32PUT(p, SuperMagic);
@@ -207,7 +207,7 @@ superPack(Super *s, uint8_t *p)
 }
 
 int
-superUnpack(Super *s, uint8_t *p)
+superUnpack(Super *s, u8 *p)
 {
 	memset(s, 0, sizeof(*s));
 	if(U32GET(p) != SuperMagic)

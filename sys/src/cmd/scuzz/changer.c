@@ -12,10 +12,10 @@
 #include <disk.h>
 #include "scsireq.h"
 
-int32_t
+i32
 SReinitialise(ScsiReq *rp)
 {
-	uint8_t cmd[6];
+	u8 cmd[6];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdEInitialise;
@@ -27,10 +27,10 @@ SReinitialise(ScsiReq *rp)
 	return SRrequest(rp);
 }
 
-int32_t
+i32
 SRmmove(ScsiReq *rp, int transport, int source, int destination, int invert)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdMMove;
@@ -49,10 +49,10 @@ SRmmove(ScsiReq *rp, int transport, int source, int destination, int invert)
 	return SRrequest(rp);
 }
 
-int32_t
-SRestatus(ScsiReq *rp, uint8_t type, uint8_t *list, int nbytes)
+i32
+SRestatus(ScsiReq *rp, u8 type, u8 *list, int nbytes)
 {
-	uint8_t cmd[12];
+	u8 cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdEStatus;

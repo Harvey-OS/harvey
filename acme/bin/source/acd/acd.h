@@ -101,8 +101,8 @@ typedef struct Track Track;
 struct Track {
 	Msf start;
 	Msf end;
-	uint32_t bstart;
-	uint32_t bend;
+	u32 bstart;
+	u32 bend;
 	char *title;
 };
 
@@ -171,6 +171,6 @@ int stop(Drive*);
 int eject(Drive*);
 int ingest(Drive*);
 
-int markplay(Window*, uint32_t);
+int markplay(Window*, u32);
 int setplaytime(Window*, char*);
 void advancetrack(Drive*, Window*);

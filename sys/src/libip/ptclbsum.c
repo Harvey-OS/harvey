@@ -11,15 +11,15 @@
 #include	<libc.h>
 #include	<ip.h>
 
-static	int16_t	endian	= 1;
-static	uint8_t*	aendian	= (uint8_t*)&endian;
+static	i16	endian	= 1;
+static	u8 *	aendian	= (u8*)&endian;
 #define	LITTLE	*aendian
 
-uint16_t
-ptclbsum(uint8_t *addr, int len)
+u16
+ptclbsum(u8 *addr, int len)
 {
-	uint32_t losum, hisum, mdsum, x;
-	uint32_t t1, t2;
+	u32 losum, hisum, mdsum, x;
+	u32 t1, t2;
 
 	losum = 0;
 	hisum = 0;
@@ -35,20 +35,20 @@ ptclbsum(uint8_t *addr, int len)
 		x = 1;
 	}
 	while(len >= 16) {
-		t1 = *(uint16_t*)(addr+0);
-		t2 = *(uint16_t*)(addr+2);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+4);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+6);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+8);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+10);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+12);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+14);	mdsum += t1;
+		t1 = *(u16*)(addr+0);
+		t2 = *(u16*)(addr+2);	mdsum += t1;
+		t1 = *(u16*)(addr+4);	mdsum += t2;
+		t2 = *(u16*)(addr+6);	mdsum += t1;
+		t1 = *(u16*)(addr+8);	mdsum += t2;
+		t2 = *(u16*)(addr+10);	mdsum += t1;
+		t1 = *(u16*)(addr+12);	mdsum += t2;
+		t2 = *(u16*)(addr+14);	mdsum += t1;
 		mdsum += t2;
 		len -= 16;
 		addr += 16;
 	}
 	while(len >= 2) {
-		mdsum += *(uint16_t*)addr;
+		mdsum += *(u16*)addr;
 		len -= 2;
 		addr += 2;
 	}

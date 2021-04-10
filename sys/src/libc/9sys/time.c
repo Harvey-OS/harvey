@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-int32_t
-time(int32_t *tp)
+i32
+time(i32 *tp)
 {
-	int64_t t;
+	i64 t;
 
 	t = nsec()/1000000000LL;
 	if(tp != nil)

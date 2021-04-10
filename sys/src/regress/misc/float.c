@@ -34,9 +34,9 @@ main(void)
 {
 	double p = DPREC;
 	int d[2] = { DIEEELO, DIEEEHI };
-	uint64_t dieee, q;
-	dieee = *(uint64_t*)d;
-	q = *(uint64_t*)&p;
+	u64 dieee, q;
+	dieee = *(u64*)d;
+	q = *(u64*)&p;
 
 	err = 0;
 	notify(catcher);

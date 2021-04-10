@@ -138,7 +138,7 @@ int
 vtHello(VtSession *z)
 {
 	Packet *p;
-	uint8_t buf[10];
+	u8 buf[10];
 	char *sid;
 	int crypto, codec;
 
@@ -209,7 +209,7 @@ Err:
 }
 
 int
-vtWrite(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
+vtWrite(VtSession *z, u8 score[VtScoreSize], int type, u8 *buf,
 	int n)
 {
 	Packet *p = packetAlloc();
@@ -219,10 +219,10 @@ vtWrite(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
 }
 
 int
-vtWritePacket(VtSession *z, uint8_t score[VtScoreSize], int type, Packet *p)
+vtWritePacket(VtSession *z, u8 score[VtScoreSize], int type, Packet *p)
 {
 	int n = packetSize(p);
-	uint8_t *hdr;
+	u8 *hdr;
 
 	if(n > VtMaxLumpSize || n < 0) {
 		vtSetError(ELumpSize);
@@ -256,7 +256,7 @@ Err:
 }
 
 int
-vtRead(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
+vtRead(VtSession *z, u8 score[VtScoreSize], int type, u8 *buf,
        int n)
 {
 	Packet *p;
@@ -271,10 +271,10 @@ vtRead(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
 }
 
 Packet *
-vtReadPacket(VtSession *z, uint8_t score[VtScoreSize], int type, int n)
+vtReadPacket(VtSession *z, u8 score[VtScoreSize], int type, int n)
 {
 	Packet *p;
-	uint8_t buf[10];
+	u8 buf[10];
 
 	if(n < 0 || n > VtMaxLumpSize) {
 		vtSetError(ELumpSize);
@@ -298,7 +298,7 @@ vtReadPacket(VtSession *z, uint8_t score[VtScoreSize], int type, int n)
 static Packet *
 vtRPC(VtSession *z, int op, Packet *p)
 {
-	uint8_t *hdr, buf[2];
+	u8 *hdr, buf[2];
 	char *err;
 
 	if(z == nil){

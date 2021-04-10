@@ -89,7 +89,7 @@ main(int argc, char **argv)
 	Document *doc;
 	Biobuf *b;
 	enum { Ninput = 16 };
-	uint8_t buf[Ninput+1];
+	u8 buf[Ninput+1];
 	int readstdin;
 
 	ARGBEGIN{

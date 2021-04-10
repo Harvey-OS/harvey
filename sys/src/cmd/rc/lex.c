@@ -175,7 +175,7 @@ addtok(char *p, int val)
 char*
 addutf(char *p, int c)
 {
-	uint8_t b, m;
+	u8 b, m;
 	int i;
 
 	p = addtok(p, c);	/* 1-byte UTF runes are special */

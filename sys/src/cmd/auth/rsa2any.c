@@ -264,8 +264,8 @@ call:
 	return key;
 }
 
-uint8_t*
-put4(uint8_t *p, uint n)
+u8 *
+put4(u8 *p, uint n)
 {
 	p[0] = (n>>24)&0xFF;
 	p[1] = (n>>16)&0xFF;
@@ -274,24 +274,24 @@ put4(uint8_t *p, uint n)
 	return p+4;
 }
 
-uint8_t*
-putn(uint8_t *p, void *v, uint n)
+u8 *
+putn(u8 *p, void *v, uint n)
 {
 	memmove(p, v, n);
 	p += n;
 	return p;
 }
 
-uint8_t*
-putstr(uint8_t *p, char *s)
+u8 *
+putstr(u8 *p, char *s)
 {
 	p = put4(p, strlen(s));
 	p = putn(p, s, strlen(s));
 	return p;
 }
 
-uint8_t*
-putmp2(uint8_t *p, mpint *b)
+u8 *
+putmp2(u8 *p, mpint *b)
 {
 	int bits, n;
 

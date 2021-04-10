@@ -41,7 +41,7 @@ static int __wait(unsigned bus, int timeout_us, int for_scl)
 {
 	int sda = software_i2c[bus]->get_sda(bus);
 	int scl = software_i2c[bus]->get_scl(bus);
-	uint64_t start, end;
+	u64 start, end;
 
 	start = nsec();
 	end = start + timeout_us * 1000;
@@ -62,7 +62,7 @@ static int __wait(unsigned bus, int timeout_us, int for_scl)
 /* Waits the default DELAY_US to allow line state to stabilize. */
 static void i2cwait(unsigned bus)
 {
-	uint64_t end = nsec() + DELAY_US * 1000;
+	u64 end = nsec() + DELAY_US * 1000;
 	while (nsec() < end)
 		;
 }
@@ -201,7 +201,7 @@ static int in_bit(unsigned bus)
 }
 
 /* Write a byte to I2C bus. Return 0 if ack by the slave. */
-static int out_byte(unsigned bus, uint8_t byte)
+static int out_byte(unsigned bus, u8 byte)
 {
 	unsigned bit;
 	int nack;
@@ -221,7 +221,7 @@ static int out_byte(unsigned bus, uint8_t byte)
 
 static int in_byte(unsigned bus, int ack)
 {
-	uint8_t byte = 0;
+	u8 byte = 0;
 	int i;
 	for (i = 0; i < 8; ++i) {
 		int bit = in_bit(bus);
@@ -254,7 +254,7 @@ int software_i2c_transfer(unsigned bus, struct i2c_seg *segments, int count)
 			int ret;
 			if (seg->read) {
 				ret = in_byte(bus, i < seg->len - 1);
-				seg->buf[i] = (uint8_t)ret;
+				seg->buf[i] = (u8)ret;
 			} else {
 				ret = out_byte(bus, seg->buf[i]);
 			}
@@ -268,7 +268,7 @@ int software_i2c_transfer(unsigned bus, struct i2c_seg *segments, int count)
 	return 0;
 }
 
-void software_i2c_wedge_ack(unsigned bus, uint8_t chip)
+void software_i2c_wedge_ack(unsigned bus, u8 chip)
 {
 	int i;
 
@@ -291,7 +291,7 @@ void software_i2c_wedge_ack(unsigned bus, uint8_t chip)
 		software_i2c[bus]->get_scl(bus));
 }
 
-void software_i2c_wedge_read(unsigned bus, uint8_t chip, uint8_t reg, int bits)
+void software_i2c_wedge_read(unsigned bus, u8 chip, u8 reg, int bits)
 {
 	int i;
 
@@ -320,7 +320,7 @@ void software_i2c_wedge_read(unsigned bus, uint8_t chip, uint8_t reg, int bits)
 		software_i2c[bus]->get_scl(bus));
 }
 
-void software_i2c_wedge_write(unsigned bus, uint8_t chip, uint8_t reg, int bits)
+void software_i2c_wedge_write(unsigned bus, u8 chip, u8 reg, int bits)
 {
 	int i;
 

@@ -11,8 +11,8 @@
 typedef struct Completion Completion;
 
 struct Completion{
-	uint8_t advance;		/* whether forward progress has been made */
-	uint8_t complete;	/* whether the completion now represents a file or directory */
+	u8 advance;		/* whether forward progress has been made */
+	u8 complete;	/* whether the completion now represents a file or directory */
 	char *string;		/* the string to advance, suffixed " " or "/" for file or directory */
 	int nmatch;		/* number of files that matched */
 	int nfile;			/* number of files returned */

@@ -44,24 +44,24 @@ mpint*	mpcopy(mpint *b);
 void	mpassign(mpint *old, mpint *new);
 
 /* random bits */
-mpint*	mprand(int bits, void (*gen)(uint8_t*, int), mpint *b);
+mpint*	mprand(int bits, void (*gen)(u8*, int), mpint *b);
 
 /* conversion */
 mpint*	strtomp(char*, char**, int, mpint*);	/* ascii */
 int	mpfmt(Fmt*);
 char*	mptoa(mpint*, int, char*, int);
-mpint*	letomp(uint8_t*, uint, mpint*);	/* byte array, little-endian */
-int	mptole(mpint*, uint8_t*, uint, uint8_t**);
-mpint*	betomp(uint8_t*, uint, mpint*);	/* byte array, little-endian */
-int	mptobe(mpint*, uint8_t*, uint, uint8_t**);
+mpint*	letomp(u8*, uint, mpint*);	/* byte array, little-endian */
+int	mptole(mpint*, u8*, uint, u8**);
+mpint*	betomp(u8*, uint, mpint*);	/* byte array, little-endian */
+int	mptobe(mpint*, u8*, uint, u8**);
 uint	mptoui(mpint*);			/* unsigned int */
 mpint*	uitomp(uint, mpint*);
 int	mptoi(mpint*);			/* int */
 mpint*	itomp(int, mpint*);
-uint64_t	mptouv(mpint*);			/* unsigned vlong */
-mpint*	uvtomp(uint64_t, mpint*);
-int64_t	mptov(mpint*);			/* vlong */
-mpint*	vtomp(int64_t, mpint*);
+u64	mptouv(mpint*);			/* unsigned vlong */
+mpint*	uvtomp(u64, mpint*);
+i64	mptov(mpint*);			/* vlong */
+mpint*	vtomp(i64, mpint*);
 
 /* divide 2 digits by one */
 void	mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient);

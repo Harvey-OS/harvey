@@ -46,7 +46,7 @@ hubfeature(Hub *h, int port, int f, int on)
 static void
 checkhubstatus(Hub *h)
 {
-	uint8_t buf[4];
+	u8 buf[4];
 	int sts;
 
 	if(h->isroot)	/* not for root hubs */
@@ -64,14 +64,14 @@ static int
 confighub(Hub *h)
 {
 	int type;
-	uint8_t buf[128];	/* room for extra descriptors */
+	u8 buf[128];	/* room for extra descriptors */
 	int i;
 	Usbdev *d;
 	DHub *dd;
 	Port *pp;
 	int nr;
 	int nmap;
-	uint8_t *PortPwrCtrlMask;
+	u8 *PortPwrCtrlMask;
 	int offset;
 	int mask;
 
@@ -259,7 +259,7 @@ static int
 portstatus(Hub *h, int p)
 {
 	Dev *d;
-	uint8_t buf[4];
+	u8 buf[4];
 	int t;
 	int sts;
 	int dbg;
@@ -309,7 +309,7 @@ stsstr(int sts)
 static int
 getmaxpkt(Dev *d, int islow)
 {
-	uint8_t buf[64];	/* More room to try to get device-specific descriptors */
+	u8 buf[64];	/* More room to try to get device-specific descriptors */
 	DDev *dd;
 
 	dd = (DDev*)buf;
@@ -706,8 +706,8 @@ cfsopen(Usbfs*_1, Fid *_2, int _3)
 	return 0;
 }
 
-static int32_t
-cfsread(Usbfs*_1, Fid *_2, void *_3, int32_t _4, int64_t _5)
+static i32
+cfsread(Usbfs*_1, Fid *_2, void *_3, i32 _4, i64 _5)
 {
 	return 0;
 }
@@ -734,8 +734,8 @@ setdrvauto(char *name, int on)
 			dt->noauto = !on;
 }
 
-static int32_t
-cfswrite(Usbfs*_1, Fid *_2, void *data, int32_t cnt, int64_t _3)
+static i32
+cfswrite(Usbfs*_1, Fid *_2, void *data, i32 cnt, i64 _3)
 {
 	char *cmd, *arg;
 	char buf[80];

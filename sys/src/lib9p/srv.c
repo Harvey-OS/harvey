@@ -58,8 +58,8 @@ changemsize(Srv *srv, int msize)
 static Req*
 getreq(Srv *s)
 {
-	int32_t n;
-	uint8_t *buf;
+	i32 n;
+	u8 *buf;
 	Fcall f;
 	Req *r;
 
@@ -623,8 +623,8 @@ static void
 rstat(Req *r, char *error)
 {
 	int n;
-	uint8_t *statbuf;
-	uint8_t tmp[BIT16SZ];
+	u8 *statbuf;
+	u8 tmp[BIT16SZ];
 
 	if(error)
 		return;
@@ -662,7 +662,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, Ebaddir);
 		return;
 	}
-	if((uint16_t)~r->d.type){
+	if((u16)~r->d.type){
 		respond(r, "wstat -- attempt to change type");
 		return;
 	}
@@ -670,7 +670,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change dev");
 		return;
 	}
-	if((uint8_t)~r->d.qid.type || (uint32_t)~r->d.qid.vers || (uint64_t)~r->d.qid.path){
+	if((u8)~r->d.qid.type || (u32)~r->d.qid.vers || (u64)~r->d.qid.path){
 		respond(r, "wstat -- attempt to change qid");
 		return;
 	}
@@ -678,7 +678,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change muid");
 		return;
 	}
-	if((uint32_t)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
+	if((u32)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
 		respond(r, "wstat -- attempt to change DMDIR bit");
 		return;
 	}

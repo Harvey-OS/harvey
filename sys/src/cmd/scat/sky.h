@@ -13,7 +13,7 @@
  *		of prior implementations.
  *
  *	Keys:
- *		32 bits int32_t. High 26 bits are encoded as described below.
+ *		32 bits i32. High 26 bits are encoded as described below.
  *		Low 6 bits are types:
  *
  *		Patch is ~ one square degree of sky.  It points to an otherwise
@@ -144,9 +144,9 @@ enum
 #define	NPlanet			20
 
 typedef float	Angle;	/* in radians */
-typedef int32_t	DAngle;	/* on disk: in units of milliarcsec */
-typedef int16_t	Mag;	/* multiplied by 10 */
-typedef int32_t	Key;	/* known to be 4 bytes, unfortunately */
+typedef i32	DAngle;	/* on disk: in units of milliarcsec */
+typedef i16	Mag;	/* multiplied by 10 */
+typedef i32	Key;	/* known to be 4 bytes, unfortunately */
 
 /*
  * All integers are stored in little-endian order.
@@ -158,7 +158,7 @@ struct NGCrec{
 	DAngle	dummy1;	/* compatibility with old RNGC version */
 	DAngle	diam;
 	Mag	mag;
-	int16_t	ngc;	/* if >NNGC, IC number is ngc-NNGC */
+	i16	ngc;	/* if >NNGC, IC number is ngc-NNGC */
 	char	diamlim;
 	char	type;
 	char	magtype;
@@ -173,10 +173,10 @@ struct Abellrec{
 	DAngle	glat;
 	DAngle	glong;
 	Mag	mag10;	/* mag of 10th brightest cluster member; in same place as ngc.mag*/
-	int16_t	abell;
+	i16	abell;
 	DAngle	rad;
-	int16_t	pop;
-	int16_t	dist;
+	i16	pop;
+	i16	dist;
 	char	distgrp;
 	char	richgrp;
 	char	flag;
@@ -212,22 +212,22 @@ struct SAOrec{
 	char	compid[2];
 	char	hdcode;
 	char	pad1;
-	int32_t	hd;		/* HD catalog number */
+	i32	hd;		/* HD catalog number */
 	char	name[3];	/* name[0]=alpha name[1]=2 name[3]=ori */
 	char	nname;		/* number of prose names */
 	/* 36 bytes to here */
 };
 
 typedef struct Mindexrec Mindexrec;
-struct Mindexrec{	/* code knows the bit patterns in here; this is a int32_t */
+struct Mindexrec{	/* code knows the bit patterns in here; this is a i32 */
 	char	m;		/* M number */
 	char	dummy;
-	int16_t	ngc;
+	i16	ngc;
 };
 
 typedef struct Bayerec Bayerec;
 struct Bayerec{
-	int32_t	sao;
+	i32	sao;
 	char	name[3];
 	char	pad;
 };
@@ -243,22 +243,22 @@ struct Namedrec{
 
 typedef struct Namerec Namerec;
 struct Namerec{
-	int32_t	sao;
-	int32_t	ngc;
-	int32_t	abell;
+	i32	sao;
+	i32	ngc;
+	i32	abell;
 	char	name[36];	/* null terminated */
 };
 
 typedef struct Patchrec Patchrec;
 struct Patchrec{
 	int	nkey;
-	int32_t	key[60];
+	i32	key[60];
 };
 
 typedef struct Record Record;
 struct Record{
 	Type	type;
-	int32_t	index;
+	i32	index;
 	union{
 		SAOrec	sao;
 		NGCrec	ngc;
@@ -296,7 +296,7 @@ struct	Header
 	float	xi;
 	float	eta;
 };
-typedef	int32_t	Pix;
+typedef	i32	Pix;
 
 typedef struct	Img Img;
 struct	Img
@@ -336,7 +336,7 @@ struct Picture
 	int	maxx;
 	int	maxy;
 	char	name[16];
-	uint8_t	*data;
+	u8	*data;
 };
 
 typedef struct Image Image;
@@ -347,7 +347,7 @@ extern	char	*progname;
 extern	char	*desctab[][2];
 extern	Name	names[];
 extern	Record	*rec;
-extern	int32_t		nrec;
+extern	i32		nrec;
 extern	Planetrec	*planet;
 /* for bbox: */
 extern	int		folded;
@@ -371,9 +371,9 @@ extern void prrec(Record*);
 extern int equal(char*, char*);
 extern int parsename(char*);
 extern void radec(int, int*, int*, int*);
-extern int btag(int16_t);
-extern int32_t patcha(Angle, Angle);
-extern int32_t patch(int, int, int);
+extern int btag(i16);
+extern i32 patcha(Angle, Angle);
+extern i32 patch(int, int, int);
 extern char*hms(Angle);
 extern char*dms(Angle);
 extern char*ms(Angle);
@@ -381,9 +381,9 @@ extern char*hm(Angle);
 extern char*dm(Angle);
 extern char*deg(Angle);
 extern char*hm5(Angle);
-extern int32_t dangle(Angle);
+extern i32 dangle(Angle);
 extern Angle angle(DAngle);
-extern void prdesc(char*, char*(*)[2], int16_t*);
+extern void prdesc(char*, char*(*)[2], i16*);
 extern double	xsqrt(double);
 extern Angle	dist(Angle, Angle, Angle, Angle);
 extern Header*	getheader(char*);
@@ -413,7 +413,7 @@ extern void	astro(char*, int);
 extern char*	alpha(char*, char*);
 extern char*	skipbl(char*);
 extern void	flatten(void);
-extern int		bbox(int32_t, int32_t, int);
+extern int		bbox(i32, i32, int);
 extern int		inbbox(DAngle, DAngle);
 extern char*	nameof(Record*);
 

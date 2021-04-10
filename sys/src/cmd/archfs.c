@@ -31,12 +31,12 @@ struct Ahdr {
 
 typedef struct Arch Arch;
 struct Arch {
-	int64_t off;
-	int64_t length;
+	i64 off;
+	i64 length;
 };
 
 static void*
-emalloc(int32_t sz)
+emalloc(i32 sz)
 {
 	void *v;
 
@@ -96,7 +96,7 @@ gethdr(Biobuf *b)
 }
 
 static Arch*
-newarch(int64_t off, int64_t length)
+newarch(i64 off, i64 length)
 {
 	static Arch *abuf;
 	static int nabuf;
@@ -113,7 +113,7 @@ newarch(int64_t off, int64_t length)
 }
 
 static File*
-createpath(File *f, char *name, char *u, uint32_t m)
+createpath(File *f, char *name, char *u, u32 m)
 {
 	char *p;
 	File *nf;
@@ -199,7 +199,7 @@ void
 main(int argc, char **argv)
 {
 	Ahdr *a;
-	uint32_t flag;
+	u32 flag;
 	char *mtpt;
 	char err[ERRMAX];
 

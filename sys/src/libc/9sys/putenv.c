@@ -15,7 +15,7 @@ putenv(const char *name, const char *val)
 {
 	int f;
 	char ename[100];
-	int32_t s;
+	i32 s;
 
 	if(strchr(name, '/') != nil)
 		return -1;

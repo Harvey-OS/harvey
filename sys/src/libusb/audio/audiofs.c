@@ -33,8 +33,8 @@ typedef struct Worker Worker;
 
 struct Audioctldata
 {
-	int32_t	offoff;			/* offset of the offset for audioctl */
-	int32_t	values[2][Ncontrol][8];	/* last values transmitted */
+	i32	offoff;			/* offset of the offset for audioctl */
+	i32	values[2][Ncontrol][8];	/* last values transmitted */
 	char	*s;
 	int	ns;
 };
@@ -50,8 +50,8 @@ struct Fid
 	QLock	QLock;
 	int	fid;
 	Dir	*dir;
-	uint16_t	flags;
-	int16_t	readers;
+	u16	flags;
+	i16	readers;
 	void	*fiddata;  /* file specific per-fid data (used for audioctl) */
 	Fid	*next;
 };
@@ -59,7 +59,7 @@ struct Fid
 struct Worker
 {
 	Fid	*fid;
-	uint16_t	tag;
+	u16	tag;
 	Fcall	*rhdr;
 	Dir	*dir;
 	Channel	*eventc;
@@ -89,8 +89,8 @@ Dir dirs[] = {
 };
 
 int	messagesize = 4*1024+IOHDRSZ;
-uint8_t	mdata[8*1024+IOHDRSZ];
-uint8_t	mbuf[8*1024+IOHDRSZ];
+u8	mdata[8*1024+IOHDRSZ];
+u8	mbuf[8*1024+IOHDRSZ];
 
 Fcall	thdr;
 Fcall	rhdr;
@@ -176,7 +176,7 @@ void
 serve(void *_)
 {
 	int i;
-	uint32_t t;
+	u32 t;
 
 	if(pipe(p) < 0)
 		sysfatal("pipe failed");
@@ -398,10 +398,10 @@ rcreate(Fid*_)
 }
 
 int
-readtopdir(Fid*_, uint8_t *buf, int32_t off, int cnt, int blen)
+readtopdir(Fid*_, u8 *buf, i32 off, int cnt, int blen)
 {
 	int i, m, n;
-	int32_t pos;
+	i32 pos;
 
 	n = 0;
 	pos = 0;
@@ -424,7 +424,7 @@ int
 makeaudioctldata(Fid *f)
 {
 	int rec, ctl, i, diff;
-	int32_t *actls;		/* 8 of them */
+	i32 *actls;		/* 8 of them */
 	char *p, *e;
 	Audiocontrol *c;
 	Audioctldata *a;
@@ -470,9 +470,9 @@ void
 readproc(void *x)
 {
 	int n, cnt;
-	uint32_t event;
-	int64_t off;
-	uint8_t *mdata;
+	u32 event;
+	i64 off;
+	u8 *mdata;
 	Audioctldata *a;
 	Fcall *rhdr;
 	Fid *f;
@@ -542,7 +542,7 @@ char*
 rread(Fid *f)
 {
 	int i, n, cnt, rec, div;
-	int64_t off;
+	i64 off;
 	char *p;
 	Audiocontrol *c;
 	Audioctldata *a;
@@ -652,7 +652,7 @@ rread(Fid *f)
 		w = nbrecvp(procchan);
 		if(w == nil){
 			w = emallocz(sizeof(Worker), 1);
-			w->eventc = chancreate(sizeof(uint32_t), 1);
+			w->eventc = chancreate(sizeof(u32), 1);
 			w->next = workers;
 			workers = w;
 			proccreate(readproc, w, 4096);
@@ -677,7 +677,7 @@ rread(Fid *f)
 char*
 rwrite(Fid *f)
 {
-	int32_t cnt, value;
+	i32 cnt, value;
 	char *lines[2*Ncontrol], *fields[4], *subfields[9], *err, *p;
 	int nlines, i, nf, nnf, rec, ctl;
 	Audiocontrol *c;

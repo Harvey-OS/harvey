@@ -11,16 +11,16 @@
 #include "9p1.h"
 
 #define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	{ uint32_t vvv = f->x; p[0] = vvv; p[1] = vvv>>8; p += 2; }
+#define	SHORT(x)	{ u32 vvv = f->x; p[0] = vvv; p[1] = vvv>>8; p += 2; }
 #define	VLONG(q)	p[0] = (q); p[1] = (q)>>8; p[2] = (q)>>16; p[3] = (q)>>24; p += 4
-#define	LONG(x)		{ uint32_t vvv = f->x; VLONG(vvv); }
+#define	LONG(x)		{ u32 vvv = f->x; VLONG(vvv); }
 #define	BYTES(x,n)	memmove(p, f->x, n); p += n
 #define	STRING(x,n)	strncpy((char*)p, f->x, n); p += n
 
 int
-convS2M9p1(Oldfcall *f, uint8_t *ap)
+convS2M9p1(Oldfcall *f, u8 *ap)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = ap;
@@ -99,7 +99,7 @@ convS2M9p1(Oldfcall *f, uint8_t *ap)
 		LONG(offset); VLONG(0);
 		SHORT(count);
 		p++;
-		if((uint8_t*)p == (uint8_t*)f->data) {
+		if((u8*)p == (u8*)f->data) {
 			p += f->count;
 			break;
 		}
@@ -166,7 +166,7 @@ convS2M9p1(Oldfcall *f, uint8_t *ap)
 		SHORT(fid);
 		SHORT(count);
 		p++;
-		if((uint8_t*)p == (uint8_t*)f->data) {
+		if((u8*)p == (u8*)f->data) {
 			p += f->count;
 			break;
 		}
@@ -183,17 +183,17 @@ convS2M9p1(Oldfcall *f, uint8_t *ap)
 		BYTES(stat, sizeof(f->stat));
 		break;
 	}
-	return p - (uint8_t*)ap;
+	return p - (u8*)ap;
 }
 
 /*
  * buggery to give false qid for
  * the top 2 levels of the dump fs
  */
-static uint32_t
+static u32
 fakeqid9p1(Dentry *f)
 {
-	uint32_t q;
+	u32 q;
 	int c;
 
 	q = f->qid.path;
@@ -212,10 +212,10 @@ fakeqid9p1(Dentry *f)
 int
 convD2M9p1(Dentry *f, char *ap)
 {
-	uint8_t *p;
-	uint32_t q;
+	u8 *p;
+	u32 q;
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	STRING(name, sizeof(f->name));
 
 	memset(p, 0, 2*NAMELEN);
@@ -242,7 +242,7 @@ convD2M9p1(Dentry *f, char *ap)
 	LONG(mtime);
 	LONG(size); VLONG(0);
 	VLONG(0);
-	return p - (uint8_t*)ap;
+	return p - (u8*)ap;
 }
 
 #undef	CHAR
@@ -260,9 +260,9 @@ convD2M9p1(Dentry *f, char *ap)
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int
-convM2S9p1(uint8_t *ap, Oldfcall *f, int n)
+convM2S9p1(u8 *ap, Oldfcall *f, int n)
 {
-	uint8_t *p;
+	u8 *p;
 	int t;
 
 	p = ap;
@@ -427,7 +427,7 @@ convM2S9p1(uint8_t *ap, Oldfcall *f, int n)
 		BYTES(stat, sizeof(f->stat));
 		break;
 	}
-	if((uint8_t*)ap+n == p)
+	if((u8*)ap+n == p)
 		return n;
 	return 0;
 }
@@ -435,10 +435,10 @@ convM2S9p1(uint8_t *ap, Oldfcall *f, int n)
 int
 convM2D9p1(char *ap, Dentry *f)
 {
-	uint8_t *p;
+	u8 *p;
 	char str[28];
 
-	p = (uint8_t*)ap;
+	p = (u8*)ap;
 	BYTES(name, sizeof(f->name));
 
 	memmove(str, p, NAMELEN);
@@ -465,5 +465,5 @@ convM2D9p1(char *ap, Dentry *f)
 	LONG(mtime);
 	LONG(size); p += 4;
 	p += 4;
-	return p - (uint8_t*)ap;
+	return p - (u8*)ap;
 }

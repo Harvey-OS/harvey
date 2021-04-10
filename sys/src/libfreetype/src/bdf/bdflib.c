@@ -363,16 +363,16 @@
     unsigned long   cnt;
     unsigned long   row;
 
-    int16_t           minlb;
-    int16_t           maxlb;
-    int16_t           maxrb;
-    int16_t           maxas;
-    int16_t           maxds;
+    i16           minlb;
+    i16           maxlb;
+    i16           maxrb;
+    i16           maxas;
+    i16           maxds;
 
-    int16_t           rbearing;
+    i16           rbearing;
 
     char*           glyph_name;
-    int32_t            glyph_enc;
+    i32            glyph_enc;
 
     bdf_font_t*     font;
     bdf_options_t*  opts;
@@ -833,12 +833,12 @@
 
 
   /* Routine to convert an ASCII string into an signed long integer. */
-  static int32_t
+  static i32
   _bdf_atol( char*   s,
              char**  end,
              int     base )
   {
-    int32_t                  v, neg;
+    i32                  v, neg;
     const unsigned char*  dmap;
 
 
@@ -888,12 +888,12 @@
 
 
   /* Routine to convert an ASCII string into an signed short integer. */
-  static int16_t
+  static i16
   _bdf_atos( char*   s,
              char**  end,
              int     base )
   {
-    int16_t                 v, neg;
+    i16                 v, neg;
     const unsigned char*  dmap;
 
 
@@ -933,12 +933,12 @@
     }
 
     for ( v = 0; isdigok( dmap, *s ); s++ )
-      v = (int16_t)( v * base + a2i[(int)*s] );
+      v = (i16)( v * base + a2i[(int)*s] );
 
     if ( end != 0 )
       *end = s;
 
-    return (int16_t)( ( !neg ) ? v : -v );
+    return (i16)( ( !neg ) ? v : -v );
   }
 
 

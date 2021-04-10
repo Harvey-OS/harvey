@@ -168,8 +168,8 @@ main(int argc, char *argv[])
 int
 locate(void)
 {
-	int64_t top, bot, mid;
-	int32_t c;
+	i64 top, bot, mid;
+	i32 c;
 	int n;
 
 	bot = 0;
@@ -338,7 +338,7 @@ ncomp(Rune *s, Rune *t)
 int
 getword(Biobuf *f, Rune *rp, int n)
 {
-	int32_t c;
+	i32 c;
 
 	while(n-- > 0) {
 		c = Bgetrune(f);
@@ -350,6 +350,6 @@ getword(Biobuf *f, Rune *rp, int n)
 		}
 		*rp++ = c;
 	}
-	fprint(2, "Look: word too int32_t.  Bailing out.\n");
+	fprint(2, "Look: word too i32.  Bailing out.\n");
 	return 0;
 }

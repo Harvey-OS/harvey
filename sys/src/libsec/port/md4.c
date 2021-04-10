@@ -41,8 +41,8 @@ enum
 typedef struct MD4Table MD4Table;
 struct MD4Table
 {
-	uint8_t	x;	/* index into data block */
-	uint8_t	rot;	/* amount to rotate left by */
+	u8	x;	/* index into data block */
+	u8	rot;	/* amount to rotate left by */
 };
 
 static MD4Table tab[] =
@@ -102,17 +102,17 @@ static MD4Table tab[] =
 	{ 15,	S34},
 };
 
-static void encode(uint8_t*, uint32_t*, uint32_t);
-static void decode(uint32_t*, uint8_t*, uint32_t);
+static void encode(u8*, u32*, u32);
+static void decode(u32*, u8*, u32);
 
 static void
-md4block(uint8_t *p, uint32_t len, MD4state *s)
+md4block(u8 *p, u32 len, MD4state *s)
 {
 	int i;
-	uint32_t a, b, c, d, tmp;
+	u32 a, b, c, d, tmp;
 	MD4Table *t;
-	uint8_t *end;
-	uint32_t x[16];
+	u8 *end;
+	u32 x[16];
 
 	for(end = p+len; p < end; p += 64){
 		a = s->state[0];
@@ -156,12 +156,12 @@ md4block(uint8_t *p, uint32_t len, MD4state *s)
 }
 
 MD4state*
-md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
+md4(u8 *p, u32 len, u8 *digest, MD4state *s)
 {
-	uint32_t x[16];
-	uint8_t buf[128];
+	u32 x[16];
+	u8 buf[128];
 	int i;
-	uint8_t *e;
+	u8 *e;
 
 	if(s == nil){
 		s = malloc(sizeof(*s));
@@ -253,10 +253,10 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
  *	a multiple of 4.
  */
 static void
-encode(uint8_t *output, uint32_t *input, uint32_t len)
+encode(u8 *output, u32 *input, u32 len)
 {
-	uint32_t x;
-	uint8_t *e;
+	u32 x;
+	u8 *e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -272,9 +272,9 @@ encode(uint8_t *output, uint32_t *input, uint32_t len)
  *	a multiple of 4.
  */
 static void
-decode(uint32_t *output, uint8_t *input, uint32_t len)
+decode(u32 *output, u8 *input, u32 len)
 {
-	uint8_t *e;
+	u8 *e;
 
 	for(e = input+len; input < e; input += 4)
 		*output++ = input[0] | (input[1] << 8) |

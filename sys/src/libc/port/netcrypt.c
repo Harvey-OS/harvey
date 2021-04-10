@@ -14,7 +14,7 @@
 int
 netcrypt(void *key, void *chal)
 {
-	uint8_t buf[8], *p;
+	u8 buf[8], *p;
 
 	strncpy((char*)buf, chal, 7);
 	buf[7] = '\0';

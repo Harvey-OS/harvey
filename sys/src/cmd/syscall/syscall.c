@@ -31,7 +31,7 @@ uintptr parse(char *);
 void catch(void*, char*);
 
 char*
-xctime(uint32_t t)
+xctime(u32 t)
 {
 	char *buf, *s;
 
@@ -46,11 +46,11 @@ xctime(uint32_t t)
 
 
 char*
-lstime(int32_t l)
+lstime(i32 l)
 {
 	static char buf[32];
 	char *t;
-	int32_t clk;
+	i32 clk;
 
 	clk = time(0);
 	t = ctime(l);
@@ -69,7 +69,7 @@ main(int argc, char *argv[])
 {
 	int i, j, c;
 	int oflag, xflag, sflag;
-	int64_t r;
+	i64 r;
 	Dir d;
 	char strs[1024];
 	char ebuf[1024];
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 				print("\n");
 			}
 			if(sflag && r > 0){
-				r = convM2D((uint8_t*)buf, r, &d, strs);
+				r = convM2D((u8*)buf, r, &d, strs);
 				if(r <= BIT16SZ)
 					print("short stat message\n");
 				else{

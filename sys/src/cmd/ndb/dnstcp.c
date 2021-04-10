@@ -20,18 +20,18 @@ Cfg cfg;
 char	*caller = "";
 char	*dbfile;
 int	debug;
-uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+u8	ipaddr[IPaddrlen];	/* my ip address */
 char	*logfile = "dns";
 int	maxage = 60*60;
 char	mntpt[Maxpath];
 int	needrefresh;
-uint32_t	now;
-int64_t	nowns;
+u32	now;
+i64	nowns;
 int	testing;
 int	traceactivity;
 char	*zonerefreshprogram;
 
-static int	readmsg(int, uint8_t*, int);
+static int	readmsg(int, u8*, int);
 static void	reply(int, DNSmsg*, Request*);
 static void	dnzone(DNSmsg*, DNSmsg*, Request*);
 static void	getcaller(char*);
@@ -164,10 +164,10 @@ main(int argc, char *argv[])
 }
 
 static int
-readmsg(int fd, uint8_t *buf, int max)
+readmsg(int fd, u8 *buf, int max)
 {
 	int n;
-	uint8_t x[2];
+	u8 x[2];
 
 	if(readn(fd, x, 2) != 2)
 		return -1;
@@ -184,7 +184,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 {
 	int len, rv;
 	char tname[32];
-	uint8_t buf[64*1024];
+	u8 buf[64*1024];
 	RR *rp;
 
 	if(debug){
@@ -356,7 +356,7 @@ refreshmain(char *net)
  *  the following varies between dnsdebug and dns
  */
 void
-logreply(int id, uint8_t *addr, DNSmsg *mp)
+logreply(int id, u8 *addr, DNSmsg *mp)
 {
 	RR *rp;
 
@@ -377,7 +377,7 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
+logsend(int id, int subid, u8 *addr, char *sname, char *rname,
 	int type)
 {
 	char buf[12];

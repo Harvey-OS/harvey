@@ -11,18 +11,18 @@
 #include "dat.h"
 #include "fns.h"
 
-uint32_t lasttime[2];
+u32 lasttime[2];
 int manualscheduling;
 int l0quantum = 120;
 int l1quantum = 120;
-uint32_t lasticachechange;
+u32 lasticachechange;
 
 void
 disksched(void)
 {
 	int p, nwrite, nflush, ndirty, tdirty, toflush;
-	uint32_t t;
-	int64_t cflush;
+	u32 t;
+	i64 cflush;
 	Stats *prev;
 
 	/*
@@ -57,10 +57,10 @@ disksched(void)
 			nflush = nwrite - ndirty;
 
 			/* want to stay around 70% dirty */
-			tdirty = (int64_t)stats.n[StatIcacheSize]*700/1000;
+			tdirty = (i64)stats.n[StatIcacheSize]*700/1000;
 
 			/* assume nflush*icachesleeptime is a constant */
-			cflush = (int64_t)nflush*(icachesleeptime+1);
+			cflush = (i64)nflush*(icachesleeptime+1);
 
 			/* computer number entries to write in next minute */
 			toflush = nwrite + (stats.n[StatIcacheDirty] - tdirty);

@@ -45,8 +45,8 @@ writelog(HConnect *c, char *fmt, ...)
 	HSPriv *p;
 	char buf[HBufSize+500], *bufp, *bufe;
 	char statuscode[4];
-	int64_t objectsize;
-	uint32_t now, today;
+	i64 objectsize;
+	u32 now, today;
 	int logfd;
 	va_list arg;
 	Tm *tm;
@@ -93,9 +93,9 @@ writelog(HConnect *c, char *fmt, ...)
 			strcmp(fmt+7, "206 partial content %lld %lld\n") == 0 ||
 			strcmp(fmt+7, "206 partial content, early termination %lld %lld\n") == 0){
 			va_start(arg, fmt);
-			objectsize = va_arg(arg, int64_t); /* length in sendfd.c */
+			objectsize = va_arg(arg, i64); /* length in sendfd.c */
 			USED(objectsize);
-			objectsize = va_arg(arg, int64_t); /* wrote in sendfd.c */
+			objectsize = va_arg(arg, i64); /* wrote in sendfd.c */
 			va_end(arg);
 		}
 		bufp = seprint(buf, bufe, "%s - -", p->remotesys);

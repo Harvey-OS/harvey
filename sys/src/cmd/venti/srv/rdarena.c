@@ -24,8 +24,8 @@ static void
 rdarena(Arena *arena)
 {
 	ZBlock *b;
-	uint64_t a, e;
-	uint32_t bs;
+	u64 a, e;
+	u32 bs;
 
 	if (!quiet) {
 		fprint(2, "copying %s to standard output\n", arena->name);

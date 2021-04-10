@@ -35,7 +35,7 @@ newclient(void)
 
 	c = emalloc(sizeof(Client));
 	c->writerkick = chancreate(sizeof(void*), 1);
-	c->execpid = chancreate(sizeof(uint32_t), 0);
+	c->execpid = chancreate(sizeof(u32), 0);
 	c->cmd = nocmd;
 
 	c->readerproc = ioproc();
@@ -219,7 +219,7 @@ dataread(Req *r, Client *c)
 static void
 readthread(void *a)
 {
-	uint8_t *buf;
+	u8 *buf;
 	int n;
 	Client *c;
 	Ioproc *io;
@@ -234,7 +234,7 @@ readthread(void *a)
 	io = c->readerproc;
 	while((n = ioread(io, c->fd[0], buf, 8192)) >= 0){
 		m = emalloc(sizeof(Msg)+n);
-		m->rp = (uint8_t*)&m[1];
+		m->rp = (u8*)&m[1];
 		m->ep = m->rp + n;
 		if(n)
 			memmove(m->rp, buf, n);
@@ -282,7 +282,7 @@ static void
 writethread(void *a)
 {
 	char e[ERRMAX];
-	uint8_t *buf;
+	u8 *buf;
 	int n;
 	Ioproc *io;
 	Req *r;
@@ -358,7 +358,7 @@ execthread(void *a)
 	c = a;
 	snprint(tmp, sizeof tmp, "exec%d", c->num);
 	threadsetname(tmp);
-	c->execpid = chancreate(sizeof(uint32_t), 0);
+	c->execpid = chancreate(sizeof(u32), 0);
 	proccreate(execproc, c, STACK);
 	p = recvul(c->execpid);
 	chanfree(c->execpid);

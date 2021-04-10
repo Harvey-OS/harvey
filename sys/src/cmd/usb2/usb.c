@@ -146,7 +146,7 @@ enum {
 		Tsmax	= 0x90,
 		Tsetdelim = 0xA0,
 	 Treserved	= 3<<2,
-	 Tint32_t	= 0xFE,
+	 Ti32	= 0xFE,
 
 };
 
@@ -158,103 +158,103 @@ typedef struct Usbifacedesc Usbifacedesc;
 typedef struct Usbendptdesc Usbendptdesc;
 
 struct Usbdevdesc {
-	uint8_t bLength;
-	uint8_t bDescriptorType;
+	u8 bLength;
+	u8 bDescriptorType;
 	//	Device Descriptor (0x01, Ddevice)
-	uint8_t bcdUSB[2];
+	u8 bcdUSB[2];
 	//	USB Specification Number which device complies too.
-	uint8_t bDeviceClass;
+	u8 bDeviceClass;
 	/*	Class Code (Assigned by USB Org)
 	 *	0x00: each interface specifies it’s own class code
 	 *	0xFF, the class code is vendor specified.
 	 *	Otherwise field is valid Class Code. */
-	uint8_t bDeviceSubClass;
+	u8 bDeviceSubClass;
 	//	Subclass Code (Assigned by USB Org)
-	uint8_t bDeviceProtocol;
+	u8 bDeviceProtocol;
 	//	Protocol Code (Assigned by USB Org)
-	uint8_t bMaxPacketSize;
+	u8 bMaxPacketSize;
 	//	Valid Sizes are 8, 16, 32, 64
-	uint8_t idVendor[2];
-	uint8_t idProduct[2];
-	uint8_t bcDdeviceice[2];
-	uint8_t iManufacturer;
-	uint8_t iProduct;
-	uint8_t iSerialNumber;
-	uint8_t bNumConfigurations;
+	u8 idVendor[2];
+	u8 idProduct[2];
+	u8 bcDdeviceice[2];
+	u8 iManufacturer;
+	u8 iProduct;
+	u8 iSerialNumber;
+	u8 bNumConfigurations;
 };
 
 struct Usbconfdesc {
-	uint8_t bLength;
-	uint8_t bDescriptorType;
+	u8 bLength;
+	u8 bDescriptorType;
 	//	Configuration Descriptor (0x02, Dconfig)
-	uint8_t wTotalLength[2];
+	u8 wTotalLength[2];
 	//	Total length in bytes of data returned
-	uint8_t bNumInterfaces;
+	u8 bNumInterfaces;
 	//	Number of Interfaces
-	uint8_t bConfigurationValue;
+	u8 bConfigurationValue;
 	//	Value to use as an argument to select this configuration
-	uint8_t iConfiguration;
+	u8 iConfiguration;
 	//	Index of String Descriptor describing this configuration
-	uint8_t bmAttributes;
+	u8 bmAttributes;
 	/*	D7 Reserved, set to 1. (USB 1.0 Bus Powered)
 	 *	D6 Self Powered
 	 *	D5 Remote Wakeup
 	 *	D4..0 Reserved, set to 0. */
-	uint8_t bMaxPower;
+	u8 bMaxPower;
 	//	Maximum Power Consumption in 2mA units
 };
 
 struct Usbstringdesc0 {
-	uint8_t bLength;
+	u8 bLength;
 	//	Size of Descriptor in Bytes
-	uint8_t bDescriptorType;
+	u8 bDescriptorType;
 	//	String Descriptor (0x03, Dstring)
-	uint8_t wLANGID0[2];
+	u8 wLANGID0[2];
 	//	Supported Language Code Zero. bLength indicates how many wLANGIDs there are.
 };
 
 struct Usbstringdesc {
-	uint8_t bLength;
+	u8 bLength;
 	//	Size of Descriptor in Bytes
-	uint8_t bDescriptorType;
+	u8 bDescriptorType;
 	//	String Descriptor (0x03, Dstring)
-	uint8_t bString[1];
+	u8 bString[1];
 	//	Unicode Encoded String
 };
 
 struct Usbifacedesc {
-	uint8_t bLength;
+	u8 bLength;
 	//	Size of Descriptor in Bytes (9 Bytes)
-	uint8_t bDescriptorType;
+	u8 bDescriptorType;
 	//	Interface Descriptor (0x04, Diface)
-	uint8_t bInterfaceNumber;
+	u8 bInterfaceNumber;
 	//	Number of Interface
-	uint8_t bAlternateSetting;
+	u8 bAlternateSetting;
 	//	Value used to select alternative setting
-	uint8_t bNumEndpoints;
+	u8 bNumEndpoints;
 	//	Number of Endpoints used for this interface
-	uint8_t bInterfaceClass;
+	u8 bInterfaceClass;
 	//	Class Code (Assigned by USB Org)
-	uint8_t bInterfaceSubClass;
+	u8 bInterfaceSubClass;
 	//	Subclass Code (Assigned by USB Org)
-	uint8_t bInterfaceProtocol;
+	u8 bInterfaceProtocol;
 	//	Protocol Code (Assigned by USB Org)
-	uint8_t iInterface;
+	u8 iInterface;
 	//	Index of String Descriptor Describing this interface
-	uint8_t extra[256-9];
+	u8 extra[256-9];
 };
 
 struct Usbendptdesc {
-	uint8_t bLength;
+	u8 bLength;
 	//	Size of Descriptor in Bytes (7 bytes)
-	uint8_t bDescriptorType;
+	u8 bDescriptorType;
 	//	Endpoint Descriptor (0x05, Dendpt)
-	uint8_t bEndpointAddress;
+	u8 bEndpointAddress;
 	/*	Endpoint Address
 	 *	Bits 0..3b Endpoint Number.
 	 *	Bits 4..6b Reserved. Set to Zero
 	 *	Bits 7 Direction 0 = Out, 1 = In (Ignored for Control Endpoints) */
-	uint8_t bmAttributes;
+	u8 bmAttributes;
 	/*	Bits 0..1 Transfer Type
 	 *	00 = Control
 	 *	01 = Isochronous
@@ -271,35 +271,35 @@ struct Usbendptdesc {
 	 *	01 = Feedback Endpoint
 	 *	10 = Explicit Feedback Data Endpoint
 	 *	11 = Reserved */
-	uint8_t wMaxPacketSize[2];
+	u8 wMaxPacketSize[2];
 	//	Maximum Packet Size this endpoint is capable of sending or receiving
-	uint8_t bInterval;
+	u8 bInterval;
 	/*	Interval for polling endpoint data transfers. Value in frame counts.
 	 *	Ignored for Bulk & Control Endpoints. Isochronous must equal 1,
 	 *	may range from 1 to 255 for interrupt endpoints. */
 };
 
 static void
-put16(uint8_t *buf, uint16_t val)
+put16(u8 *buf, u16 val)
 {
 	buf[0] = val & 0xff;
 	buf[1] = (val >> 8) & 0xff;
 }
 
-static uint16_t
-get16(uint8_t *buf)
+static u16
+get16(u8 *buf)
 {
-	uint16_t val;
-	val = (uint16_t)buf[0] + ((uint16_t)buf[1] << 8);
+	u16 val;
+	val = (u16)buf[0] + ((u16)buf[1] << 8);
 	return val;
 }
 
 static int
-cmdreq(int fd, int type, int req, int value, int index, uint8_t *data, int count)
+cmdreq(int fd, int type, int req, int value, int index, u8 *data, int count)
 {
 	int ndata, n;
-	uint8_t *wp;
-	uint8_t buf[8];
+	u8 *wp;
+	u8 buf[8];
 
 	if(data == nil){
 		wp = buf;
@@ -337,7 +337,7 @@ cmdrep(int fd, void *buf, int nb)
 }
 
 static int
-usbcmd(int fd, int type, int req, int value, int index, uint8_t *data, int count)
+usbcmd(int fd, int type, int req, int value, int index, u8 *data, int count)
 {
 	int i, r, nerr;
 	char err[64];
@@ -373,7 +373,7 @@ usbcmd(int fd, int type, int req, int value, int index, uint8_t *data, int count
 }
 
 int
-usbdescread(int fd, uint8_t *buf, int len, int desctype, int index)
+usbdescread(int fd, u8 *buf, int len, int desctype, int index)
 {
 	return usbcmd(fd, Rd2h|Rstd|Rdevice, Rgetdesc, desctype<<8|0, index, buf, len);
 }
@@ -419,7 +419,7 @@ usbconfread(int fd, Usbconfig **confp)
 {
 	Usbconfig *confs;
 	int nconfs, aconfs;
-	uint8_t buf[1024];
+	u8 buf[1024];
 	Usbdevdesc devdesc;
 	Usbconfdesc confdesc;
 	Usbifacedesc ifacedesc;

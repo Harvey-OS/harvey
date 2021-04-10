@@ -17,22 +17,22 @@
 struct IEStream
 {
 	Part	*part;
-	uint64_t	off;		/* read position within part */
-	uint64_t	n;		/* number of valid ientries left to read */
-	uint32_t	size;		/* allocated space in buffer */
-	uint8_t	*buf;
-	uint8_t	*pos;		/* current place in buffer */
-	uint8_t	*epos;		/* end of valid buffer contents */
+	u64	off;		/* read position within part */
+	u64	n;		/* number of valid ientries left to read */
+	u32	size;		/* allocated space in buffer */
+	u8	*buf;
+	u8	*pos;		/* current place in buffer */
+	u8	*epos;		/* end of valid buffer contents */
 };
 
 IEStream*
-initiestream(Part *part, uint64_t off, uint64_t clumps, uint32_t size)
+initiestream(Part *part, u64 off, u64 clumps, u32 size)
 {
 	IEStream *ies;
 
 /* out of memory? */
 	ies = MKZ(IEStream);
-	ies->buf = MKN(uint8_t, size);
+	ies->buf = MKN(u8, size);
 	ies->epos = ies->buf;
 	ies->pos = ies->epos;
 	ies->off = off;
@@ -54,10 +54,10 @@ freeiestream(IEStream *ies)
 /*
  * Return the next IEntry (still packed) in the stream.
  */
-static uint8_t*
+static u8 *
 peekientry(IEStream *ies)
 {
-	uint32_t n, nn;
+	u32 n, nn;
 
 	n = ies->epos - ies->pos;
 	if(n < IEntrySize){
@@ -86,8 +86,8 @@ peekientry(IEStream *ies)
  * Knows that the score is the first thing in the packed
  * representation.
  */
-static uint32_t
-iebuck(Index *ix, uint8_t *b, IBucket *ib, IEStream *ies)
+static u32
+iebuck(Index *ix, u8 *b, IBucket *ib, IEStream *ies)
 {
 	USED(ies);
 	USED(ib);
@@ -97,12 +97,12 @@ iebuck(Index *ix, uint8_t *b, IBucket *ib, IEStream *ies)
 /*
  * Fill ib with the next bucket in the stream.
  */
-uint32_t
+u32
 buildbucket(Index *ix, IEStream *ies, IBucket *ib, uint maxdata)
 {
 	IEntry ie1, ie2;
-	uint8_t *b;
-	uint32_t buck;
+	u8 *b;
+	u32 buck;
 
 	buck = TWID32;
 	ib->n = 0;

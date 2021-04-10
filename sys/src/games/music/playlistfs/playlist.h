@@ -64,7 +64,7 @@ enum {
 };
 
 union Pmsg {
-	uint32_t m;
+	u32 m;
 	struct{
 		ushort cmd;
 		ushort off;
@@ -83,10 +83,10 @@ struct Playlist {
 	 * by newline characters.  Neither file names, nor object refs
 	 * may contain newlines.
 	 */
-	uint32_t	*lines;
-	uint32_t	nlines;
+	u32	*lines;
+	u32	nlines;
 	char	*data;
-	uint32_t	ndata;
+	u32	ndata;
 };
 
 struct File {
@@ -106,7 +106,7 @@ struct Fid
 	File	*file;
 	ushort	flags;
 	short	readers;
-	uint32_t	vers;	/* set to file's version when completely read */
+	u32	vers;	/* set to file's version when completely read */
 	Fid	*next;
 };
 

@@ -11,82 +11,82 @@
  *	Definitions needed for accessing ELF headers
  */
 typedef struct {
-	uint8_t		ident[16];	/* ident bytes */
-	uint16_t	type;		/* file type */
-	uint16_t	machine;	/* target machine */
-	uint32_t	version;	/* file version */
-	uint64_t	elfentry;	/* start address */
-	uint64_t	phoff;		/* phdr file offset */
-	uint64_t	shoff;		/* shdr file offset */
-	uint32_t	flags;		/* file flags */
-	uint16_t	ehsize;		/* sizeof ehdr */
-	uint16_t	phentsize;	/* sizeof phdr */
-	uint16_t	phnum;		/* number phdrs */
-	uint16_t	shentsize;	/* sizeof shdr */
-	uint16_t	shnum;		/* number shdrs */
-	uint16_t	shstrndx;	/* shdr string index */
+	u8		ident[16];	/* ident bytes */
+	u16	type;		/* file type */
+	u16	machine;	/* target machine */
+	u32	version;	/* file version */
+	u64	elfentry;	/* start address */
+	u64	phoff;		/* phdr file offset */
+	u64	shoff;		/* shdr file offset */
+	u32	flags;		/* file flags */
+	u16	ehsize;		/* sizeof ehdr */
+	u16	phentsize;	/* sizeof phdr */
+	u16	phnum;		/* number phdrs */
+	u16	shentsize;	/* sizeof shdr */
+	u16	shnum;		/* number shdrs */
+	u16	shstrndx;	/* shdr string index */
 } E64hdr;
 
 typedef struct {
 	int		type;		/* entry type */
-	uint32_t	offset;		/* file offset */
-	uint32_t	vaddr;		/* virtual address */
-	uint32_t	paddr;		/* physical address */
+	u32	offset;		/* file offset */
+	u32	vaddr;		/* virtual address */
+	u32	paddr;		/* physical address */
 	int		filesz;		/* file size */
-	uint32_t	memsz;		/* memory size */
+	u32	memsz;		/* memory size */
 	int		flags;		/* entry flags */
 	int		align;		/* memory/file alignment */
 } Phdr;
 
 typedef struct {
-	uint32_t	type;		/* entry type */
-	uint32_t	flags;		/* entry flags */
-	uint64_t	offset;		/* file offset */
-	uint64_t	vaddr;		/* virtual address */
-	uint64_t	paddr;		/* physical address */
-	uint64_t	filesz;		/* file size */
-	uint64_t	memsz;		/* memory size */
-	uint64_t	align;		/* memory/file alignment */
+	u32	type;		/* entry type */
+	u32	flags;		/* entry flags */
+	u64	offset;		/* file offset */
+	u64	vaddr;		/* virtual address */
+	u64	paddr;		/* physical address */
+	u64	filesz;		/* file size */
+	u64	memsz;		/* memory size */
+	u64	align;		/* memory/file alignment */
 } P64hdr;
 
 typedef struct {
-	uint32_t	name;		/* section name */
-	uint32_t	type;		/* SHT_... */
-	uint32_t	flags;		/* SHF_... */
-	uint32_t	addr;		/* virtual address */
-	uint32_t	offset;		/* file offset */
-	uint32_t	size;		/* section size */
-	uint32_t	link;		/* misc info */
-	uint32_t	info;		/* misc info */
-	uint32_t	addralign;	/* memory alignment */
-	uint32_t	entsize;	/* entry size if table */
+	u32	name;		/* section name */
+	u32	type;		/* SHT_... */
+	u32	flags;		/* SHF_... */
+	u32	addr;		/* virtual address */
+	u32	offset;		/* file offset */
+	u32	size;		/* section size */
+	u32	link;		/* misc info */
+	u32	info;		/* misc info */
+	u32	addralign;	/* memory alignment */
+	u32	entsize;	/* entry size if table */
 } Shdr;
 
 typedef struct {
-	uint32_t	name;		/* section name */
-	uint32_t	type;		/* SHT_... */
-	uint64_t	flags;		/* SHF_... */
-	uint64_t	addr;		/* virtual address */
-	uint64_t	offset;		/* file offset */
-	uint64_t	size;		/* section size */
-	uint32_t	link;		/* misc info */
-	uint32_t	info;		/* misc info */
-	uint64_t	addralign;	/* memory alignment */
-	uint64_t	entsize;	/* entry size if table */
+	u32	name;		/* section name */
+	u32	type;		/* SHT_... */
+	u64	flags;		/* SHF_... */
+	u64	addr;		/* virtual address */
+	u64	offset;		/* file offset */
+	u64	size;		/* section size */
+	u32	link;		/* misc info */
+	u32	info;		/* misc info */
+	u64	addralign;	/* memory alignment */
+	u64	entsize;	/* entry size if table */
 } S64hdr;
 
 typedef struct {
-	uint32_t	st_name;	/* Symbol name */
-	uint8_t		st_info;	/* Type and Binding attributes */
-	uint8_t		st_other;	/* Reserved */
-	uint16_t	st_shndx;	/* Section table index */
-	uint64_t	st_value;	/* Symbol value */
-	uint64_t	st_size;	/* Size of object (e.g., common) */
+	u32	st_name;	/* Symbol name */
+	u8		st_info;	/* Type and Binding attributes */
+	u8		st_other;	/* Reserved */
+	u16	st_shndx;	/* Section table index */
+	u64	st_value;	/* Symbol value */
+	u64	st_size;	/* Size of object (e.g., common) */
 } E64Sym;
 
 
 typedef struct Sym {
-	int64_t		value;
+	i64		value;
 	uint		sig;
 	char		type;
 	char		*name;

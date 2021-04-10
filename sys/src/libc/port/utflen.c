@@ -14,12 +14,12 @@ int
 utflen(const char *s)
 {
 	int c;
-	int32_t n;
+	i32 n;
 	Rune rune;
 
 	n = 0;
 	for(;;) {
-		c = *(uint8_t*)s;
+		c = *(u8*)s;
 		if(c < Runeself) {
 			if(c == 0)
 				return n;

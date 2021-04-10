@@ -28,7 +28,7 @@ extern Devtab devtab[];
 static char* cputype;
 
 int
-getdevnb(uint64_t *maskp)
+getdevnb(u64 *maskp)
 {
 	int i;
 
@@ -44,7 +44,7 @@ getdevnb(uint64_t *maskp)
 }
 
 void
-putdevnb(uint64_t *maskp, int id)
+putdevnb(u64 *maskp, int id)
 {
 	lock(&masklck);
 	if(id >= 0)
@@ -283,7 +283,7 @@ startdev(Port *pp)
 	sa = emallocz(sizeof(Sarg), 1);
 	sa->pp = pp;
 	sa->dt = dt;
-	rc = sa->rc = chancreate(sizeof(uint32_t), 1);
+	rc = sa->rc = chancreate(sizeof(u32), 1);
 	procrfork(startdevproc, sa, Stack, RFNOTEG);
 	if(recvul(rc) != 0)
 		free(sa);

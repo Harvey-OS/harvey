@@ -53,8 +53,8 @@ enum {
 	Cmbyte,	   /* single byte with mask */
 	Cshort,	   /* single short */
 	Cmshort,   /* single short with mask */
-	Cint32_t,  /* single int32_t */
-	Cmint32_t, /* single int32_t with mask */
+	Ci32,  /* single i32 */
+	Cmi32, /* single i32 with mask */
 	Cifc,
 	Cmifc,
 };
@@ -311,7 +311,7 @@ parsemux(char *p)
 			if(f->type == Tifc)
 				f->ctype = nomask ? Cifc : Cmifc;
 			else
-				f->ctype = nomask ? Cint32_t : Cmint32_t;
+				f->ctype = nomask ? Ci32 : Cmi32;
 			break;
 		}
 	}
@@ -350,7 +350,7 @@ ipmuxcmp(Ipmux *a, Ipmux *b)
 	if(n != 0)
 		return n;
 
-	/* compare match lengths, int32_ter ones are more specific */
+	/* compare match lengths, i32er ones are more specific */
 	n = b->len - a->len;
 	if(n != 0)
 		return n;
@@ -702,11 +702,11 @@ ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
 			if((*(u16 *)hp & (*((u16 *)mux->mask))) == *((u16 *)mux->val))
 				goto yes;
 			break;
-		case Cint32_t:
+		case Ci32:
 			if(*((u32 *)mux->val) == *(u32 *)hp)
 				goto yes;
 			break;
-		case Cmint32_t:
+		case Cmi32:
 			if((*(u32 *)hp & (*((u32 *)mux->mask))) == *((u32 *)mux->val))
 				goto yes;
 			break;

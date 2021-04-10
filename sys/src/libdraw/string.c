@@ -73,8 +73,8 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	Drawop op)
 {
 	int m, n, wid, max;
-	uint16_t cbuf[Max], *c, *ec;
-	uint8_t *b;
+	u16 cbuf[Max], *c, *ec;
+	u8 *b;
 	char *subfontname;
 	char **sptr;
 	Rune **rptr;

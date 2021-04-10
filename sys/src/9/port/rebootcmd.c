@@ -17,10 +17,10 @@
 
 /* some day we will want these.
 void
-readn(Chan *c, void *vp, int32_t n)
+readn(Chan *c, void *vp, i32 n)
 {
 	char *p;
-	int32_t nn;
+	i32 nn;
 
 	p = vp;
 	while(n > 0){

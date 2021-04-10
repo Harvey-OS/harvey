@@ -21,10 +21,10 @@ typedef struct rijndaelCtx rijndaelCtx;
 
 struct rijndaelCtx
 {
-	uint32_t		k_len;
+	u32		k_len;
 	int				decrypt;
-	uint32_t		e_key[64];
-	uint32_t		d_key[64];
+	u32		e_key[64];
+	u32		d_key[64];
 };
 
 
@@ -34,14 +34,18 @@ struct rijndaelCtx
 /* require endian conversions for big-endian architectures			*/
 
 rijndaelCtx *
-			rijndael_set_key(rijndaelCtx *, const uint32_t *, const uint32_t, int);
-void		rijndael_encrypt(rijndaelCtx *, const uint32_t *, uint32_t *);
-void		rijndael_decrypt(rijndaelCtx *, const uint32_t *, uint32_t *);
+			rijndael_set_key(rijndaelCtx *, const u32 *,
+					 const u32, int);
+void		rijndael_encrypt(rijndaelCtx *, const u32 *, u32 *);
+void		rijndael_decrypt(rijndaelCtx *, const u32 *, u32 *);
 
 /* conventional interface */
 
-void		aes_set_key(rijndaelCtx *ctx, const uint8_t *key, unsigned keybits, int enc);
-void		aes_ecb_encrypt(rijndaelCtx *ctx, uint8_t *data, unsigned len);
-void		aes_ecb_decrypt(rijndaelCtx *ctx, uint8_t *data, unsigned len);
-void		aes_cbc_encrypt(rijndaelCtx *ctx, uint8_t *iva, uint8_t *data, unsigned len);
-void		aes_cbc_decrypt(rijndaelCtx *ctx, uint8_t *iva, uint8_t *data, unsigned len);
+void		aes_set_key(rijndaelCtx *ctx, const u8 *key,
+				unsigned keybits, int enc);
+void		aes_ecb_encrypt(rijndaelCtx *ctx, u8 *data, unsigned len);
+void		aes_ecb_decrypt(rijndaelCtx *ctx, u8 *data, unsigned len);
+void		aes_cbc_encrypt(rijndaelCtx *ctx, u8 *iva, u8 *data,
+				    unsigned len);
+void		aes_cbc_decrypt(rijndaelCtx *ctx, u8 *iva, u8 *data,
+				    unsigned len);

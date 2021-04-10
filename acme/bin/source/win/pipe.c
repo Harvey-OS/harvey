@@ -52,7 +52,7 @@ newpipewin(int pid, char *p)
 int
 pipecommand(Window *w, char *s)
 {
-	uint32_t q0, q1;
+	u32 q0, q1;
 	char tmp[32], *t;
 	int n, k;
 

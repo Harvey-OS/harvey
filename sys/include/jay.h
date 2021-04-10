@@ -14,38 +14,38 @@ enum wtype{
 
 struct Jayconfig{
 	// Task Panel Config
-	uint32_t taskPanelColor;
+	u32 taskPanelColor;
 
 	// Main Menu Config
-	uint32_t mainMenuColor;
-	uint32_t mainMenuHooverColor;
+	u32 mainMenuColor;
+	u32 mainMenuHooverColor;
 
 	// Window Config
-	uint32_t windowTitleColor;
-	uint32_t windowTitleFontColor;
-	uint32_t windowBackgroundColor;
-	uint32_t windowInTopBorder;
-	uint32_t windowInBottomBorder;
-	uint32_t windowSelectedColor;
-	uint32_t windowScrollBarFrontColor;
-	uint32_t windowTextCursorColor;
-	uint32_t windowBackTextColor;
-	uint32_t windowFrontTextColor;
+	u32 windowTitleColor;
+	u32 windowTitleFontColor;
+	u32 windowBackgroundColor;
+	u32 windowInTopBorder;
+	u32 windowInBottomBorder;
+	u32 windowSelectedColor;
+	u32 windowScrollBarFrontColor;
+	u32 windowTextCursorColor;
+	u32 windowBackTextColor;
+	u32 windowFrontTextColor;
 
 	//Background
-	uint32_t backgroundColor;
+	u32 backgroundColor;
 	char *backgroundimgpath;
 
 	//Menu
-	uint32_t menuBackColor;
-	uint32_t menuHighColor;
-	uint32_t menuBorderColor;
-	uint32_t menuTextColor;
-	uint32_t menuSelTextColor;
+	u32 menuBackColor;
+	u32 menuHighColor;
+	u32 menuBorderColor;
+	u32 menuTextColor;
+	u32 menuSelTextColor;
 
   //Widgets
-  uint32_t mainBackColor;
-  uint32_t mainTextColor;
+  u32 mainBackColor;
+  u32 mainTextColor;
   char *fontPath;
 
   unsigned int doubleclickTime;
@@ -115,7 +115,7 @@ struct Border{
 
 struct Panel {
   Widget *w;
-  uint32_t backColor;
+  u32 backColor;
   WListElement *l;
 };
 
@@ -125,8 +125,8 @@ struct Label {
   Font *f;
 
   Border border;
-  uint32_t backColor;
-  uint32_t textColor;
+  u32 backColor;
+  u32 textColor;
 
   void (*setText)(Label *l, const char *text);
   char * (*gettext)(Label *l);

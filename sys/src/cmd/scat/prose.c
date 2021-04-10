@@ -36,7 +36,7 @@ matchlen(char *a, char *b)
 }
 
 char*
-prose(char *s, char *desc[][2], int16_t index[])
+prose(char *s, char *desc[][2], i16 index[])
 {
 	static char buf[512];
 	char *p=buf;
@@ -154,7 +154,7 @@ prose(char *s, char *desc[][2], int16_t index[])
 }
 
 void
-prdesc(char *s, char *desc[][2], int16_t index[])
+prdesc(char *s, char *desc[][2], i16 index[])
 {
 	int c, j;
 

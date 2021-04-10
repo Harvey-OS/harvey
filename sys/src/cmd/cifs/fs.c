@@ -15,7 +15,7 @@
 #include <9p.h>
 #include "cifs.h"
 
-static char *period(int32_t sec);
+static char *period(i32 sec);
 
 int
 shareinfo(Fmt *f)
@@ -356,7 +356,7 @@ workstationinfo(Fmt *f)
 }
 
 static char *
-period(int32_t sec)
+period(i32 sec)
 {
 	int days, hrs, min;
 	static char when[32];

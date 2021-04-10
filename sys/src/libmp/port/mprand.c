@@ -13,11 +13,11 @@
 #include "dat.h"
 
 mpint*
-mprand(int bits, void (*gen)(uint8_t*, int), mpint *b)
+mprand(int bits, void (*gen)(u8*, int), mpint *b)
 {
 	int n, m;
 	mpdigit mask;
-	uint8_t *p;
+	u8 *p;
 
 	n = DIGITS(bits);
 	if(b == nil)

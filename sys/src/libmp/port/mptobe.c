@@ -15,11 +15,11 @@
 //   return number of bytes converted
 //   if p == nil, allocate and result array
 int
-mptobe(mpint *b, uint8_t *p, uint n, uint8_t **pp)
+mptobe(mpint *b, u8 *p, uint n, u8 **pp)
 {
 	int i, j, suppress;
 	mpdigit x;
-	uint8_t *e, *s, c;
+	u8 *e, *s, c;
 
 	if(p == nil){
 		n = (b->top+1)*Dbytes;

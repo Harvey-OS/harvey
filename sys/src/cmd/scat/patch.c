@@ -44,7 +44,7 @@ radec(int p, int *rah, int *ram, int *deg)
 		(*deg)++;
 }
 
-int32_t
+i32
 patcha(Angle ra, Angle dec)
 {
 	ra = DEG(ra);
@@ -68,7 +68,7 @@ char round[91]={	/* extra 0 is to offset the array */
 	/* 90 */
 };
 
-int32_t
+i32
 patch(int rah, int ram, int deg)
 {
 	int ra, dec;

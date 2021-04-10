@@ -22,10 +22,10 @@ struct Part
 {
 	int	inuse;
 	int	vers;
-	uint32_t	mode;
+	u32	mode;
 	char	*name;
-	int64_t	offset;		/* in sectors */
-	int64_t	length;		/* in sectors */
+	i64	offset;		/* in sectors */
+	i64	length;		/* in sectors */
 };
 
 enum
@@ -38,9 +38,9 @@ enum
 
 int fd = -1, ctlfd = -1;
 int rdonly;
-uint32_t ctlmode = 0666;
-uint32_t time0;
-int64_t nsect, sectsize;
+u32 ctlmode = 0666;
+u32 time0;
+i64 nsect, sectsize;
 
 char *inquiry = "partfs hard drive";
 char *sdname = "sdXX";
@@ -63,7 +63,7 @@ ctlstring(void)
 }
 
 int
-addpart(char *name, int64_t start, int64_t end)
+addpart(char *name, i64 start, i64 end)
 {
 	Part *p;
 
@@ -139,7 +139,7 @@ addparts(char *buf)
 static void
 ctlwrite0(Req *r, char *msg, Cmdbuf *cb)
 {
-	int64_t start, end;
+	i64 start, end;
 	Part *p;
 
 	r->ofcall.count = r->ifcall.count;
@@ -287,9 +287,9 @@ int
 rdwrpart(Req *r)
 {
 	int q;
-	int32_t count, tot;
-	int64_t offset;
-	uint8_t *dat;
+	i32 count, tot;
+	i64 offset;
+	u8 *dat;
 	Part *p;
 
 	q = r->fid->qid.path - Qpart;
@@ -319,9 +319,9 @@ rdwrpart(Req *r)
 	offset += p->offset*sectsize;
 
 	if(r->ifcall.type == Tread)
-		dat = (uint8_t*)r->ofcall.data;
+		dat = (u8*)r->ofcall.data;
 	else
-		dat = (uint8_t*)r->ifcall.data;
+		dat = (u8*)r->ifcall.data;
 
 	/* pass i/o through to underlying file */
 	seek(fd, offset, 0);

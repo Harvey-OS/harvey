@@ -364,17 +364,17 @@ struct Sys {
 
 	alignas(4096) Mach *machptr[MACHMAX];
 
-	uint64_t pmstart; /* physical memory */
-	uint64_t pmend;	  /* total span */
+	u64 pmstart; /* physical memory */
+	u64 pmend;	  /* total span */
 
-	uint64_t epoch; /* crude time synchronisation */
+	u64 epoch; /* crude time synchronisation */
 
 	int nc[NIXROLES]; /* number of online processors */
 	int nmach;
 	int load;
-	uint64_t ticks; /* of the clock since boot time */
+	u64 ticks; /* of the clock since boot time */
 
-	uint64_t cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
+	u64 cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
 
 	uint pgszlg2[NPGSZ];  /* per Mach or per Sys? */
 	uint pgszmask[NPGSZ]; /* Per sys -aki */

@@ -30,7 +30,7 @@ nvrgetconfig(void)
 int
 nvrcheck(void)
 {
-	uint8_t csum;
+	u8 csum;
 
 	if (readnvram(&nvr, NVread) < 0) {
 		print("nvrcheck: can't read nvram\n");
@@ -202,7 +202,7 @@ authfree(Auth *s)
 }
 
 int
-authread(File* file, uint8_t* data, int n)
+authread(File* file, u8 * data, int n)
 {
 	Auth *s;
 	int m;
@@ -244,7 +244,7 @@ authread(File* file, uint8_t* data, int n)
 }
 
 int
-authwrite(File* file, uint8_t *data, int n)
+authwrite(File* file, u8 *data, int n)
 {
 	Auth *s;
 	int m;

@@ -41,25 +41,25 @@ struct VtCache
 {
 	QLock	lk;
 	VtConn	*z;
-	uint32_t	blocksize;
-	uint32_t	now;		/* ticks for usage time stamps */
+	u32	blocksize;
+	u32	now;		/* ticks for usage time stamps */
 	VtBlock	**hash;	/* hash table for finding addresses */
 	int		nhash;
 	VtBlock	**heap;	/* heap for finding victims */
 	int		nheap;
 	VtBlock	*block;	/* all allocated blocks */
 	int		nblock;
-	uint8_t	*mem;	/* memory for all blocks and data */
-	int		(*write)(VtConn*, uint8_t[VtScoreSize], uint,
-				    uint8_t*, int);
+	u8	*mem;	/* memory for all blocks and data */
+	int		(*write)(VtConn*, u8[VtScoreSize], uint,
+				    u8*, int);
 };
 
 static void cachecheck(VtCache*);
 
 VtCache*
-vtcachealloc(VtConn *z, int blocksize, uint32_t nblock)
+vtcachealloc(VtConn *z, int blocksize, u32 nblock)
 {
-	uint8_t *p;
+	u8 *p;
 	VtCache *c;
 	int i;
 	VtBlock *b;
@@ -98,7 +98,7 @@ vtcachealloc(VtConn *z, int blocksize, uint32_t nblock)
  */
 void
 vtcachesetwrite(VtCache *c,
-		int (*write)(VtConn*, uint8_t[VtScoreSize], uint, uint8_t*, int))
+		int (*write)(VtConn*, u8[VtScoreSize], uint, u8*, int))
 {
 	if(write == nil)
 		write = vtwrite;
@@ -139,7 +139,7 @@ vtcachedump(VtCache *c)
 static void
 cachecheck(VtCache *c)
 {
-	uint32_t size, now;
+	u32 size, now;
 	int i, k, refed;
 	VtBlock *b;
 
@@ -183,7 +183,7 @@ static int
 upheap(int i, VtBlock *b)
 {
 	VtBlock *bb;
-	uint32_t now;
+	u32 now;
 	int p;
 	VtCache *c;
 
@@ -207,7 +207,7 @@ static int
 downheap(int i, VtBlock *b)
 {
 	VtBlock *bb;
-	uint32_t now;
+	u32 now;
 	int k;
 	VtCache *c;
 
@@ -315,7 +315,7 @@ if(0)fprint(2, "droping %x:%V\n", b->addr, b->score);
  * if we're out of free blocks, we're screwed.
  */
 VtBlock*
-vtcachelocal(VtCache *c, uint32_t addr, int type)
+vtcachelocal(VtCache *c, u32 addr, int type)
 {
 	VtBlock *b;
 
@@ -367,12 +367,12 @@ vtcacheallocblock(VtCache *c, int type)
  * if it's not there, load it, bumping some other block.
  */
 VtBlock*
-vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
+vtcacheglobal(VtCache *c, u8 score[VtScoreSize], int type)
 {
 	VtBlock *b;
-	uint32_t h;
+	u32 h;
 	int n;
-	uint32_t addr;
+	u32 addr;
 
 	if(vttracelevel)
 		fprint(2, "vtcacheglobal %V %d from %p\n", score, type, getcallerpc());
@@ -386,7 +386,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 		return b;
 	}
 
-	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
+	h = (u32)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
 
 	/*
 	 * look for the block in the cache
@@ -534,7 +534,7 @@ if(0)fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->ios
 int
 vtblockwrite(VtBlock *b)
 {
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 	VtCache *c;
 	uint h;
 	int n;
@@ -555,7 +555,7 @@ vtblockwrite(VtBlock *b)
 	qlock(&c->lk);
 	b->addr = NilBlock;	/* now on venti */
 	b->iostate = BioVenti;
-	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
+	h = (u32)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
 	b->next = c->hash[h];
 	c->hash[h] = b;
 	if(b->next != nil)
@@ -589,7 +589,7 @@ vtblockcopy(VtBlock *b)
 }
 
 void
-vtlocaltoglobal(uint32_t addr, uint8_t score[VtScoreSize])
+vtlocaltoglobal(u32 addr, u8 score[VtScoreSize])
 {
 	memset(score, 0, 16);
 	score[16] = addr>>24;
@@ -599,10 +599,10 @@ vtlocaltoglobal(uint32_t addr, uint8_t score[VtScoreSize])
 }
 
 
-uint32_t
-vtglobaltolocal(uint8_t score[VtScoreSize])
+u32
+vtglobaltolocal(u8 score[VtScoreSize])
 {
-	static uint8_t zero[16];
+	static u8 zero[16];
 	if(memcmp(score, zero, 16) != 0)
 		return NilBlock;
 	return (score[16]<<24)|(score[17]<<16)|(score[18]<<8)|score[19];

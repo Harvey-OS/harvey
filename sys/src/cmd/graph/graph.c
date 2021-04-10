@@ -272,11 +272,11 @@ void limread(struct xy *p, int *argcp, char ***argvp){
 	p->xqf = 1;
 }
 
-int32_t isdigit (char c){
+i32 isdigit (char c){
 	return '0'<=c && c<='9';
 }
 
-int32_t numb(float *np, int *argcp, char ***argvp){
+i32 numb(float *np, int *argcp, char ***argvp){
 	char c;
 
 	if(*argcp <= 1)
@@ -668,7 +668,7 @@ void plot(void){
 
 int
 conv(float xv, struct xy *p, int *ip){
-	int32_t ix;
+	i32 ix;
 	ix = p->xa*(*p->xf)(xv*p->xmult) + p->xb;
 	if(ix<p->xbot || ix>p->xtop)
 		return(0);

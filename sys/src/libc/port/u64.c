@@ -14,7 +14,7 @@ enum {
 	INVAL=	255
 };
 
-static uint8_t t64d[256] = {
+static u8 t64d[256] = {
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,   62,INVAL,INVAL,INVAL,   63,
@@ -35,18 +35,18 @@ static uint8_t t64d[256] = {
 static char t64e[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int
-dec64(uint8_t *out, int lim, const char *in, int n)
+dec64(u8 *out, int lim, const char *in, int n)
 {
-	uint32_t b24;
-	uint8_t *start = out;
-	uint8_t *e = out + lim;
+	u32 b24;
+	u8 *start = out;
+	u8 *e = out + lim;
 	int i, c;
 
 	b24 = 0;
 	i = 0;
 	while(n-- > 0){
 
-		c = t64d[*(uint8_t*)in++];
+		c = t64d[*(u8*)in++];
 		if(c == INVAL)
 			continue;
 		switch(i){
@@ -90,10 +90,10 @@ exhausted:
 }
 
 int
-enc64(char *out, int lim, const uint8_t *in, int n)
+enc64(char *out, int lim, const u8 *in, int n)
 {
 	int i;
-	uint32_t b24;
+	u32 b24;
 	char *start = out;
 	char *e = out + lim;
 

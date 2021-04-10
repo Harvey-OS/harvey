@@ -306,7 +306,7 @@ resend(Conn *cp)
 
 #if 0
 static void
-reset(If *ifc, uint8_t conn)
+reset(If *ifc, u8 conn)
 {
 	Block *bp;
 	Pkt *p;

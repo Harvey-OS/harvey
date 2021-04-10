@@ -12,7 +12,7 @@
 #include <pool.h>
 #include <tos.h>
 
-static void*	sbrkalloc(uint32_t);
+static void*	sbrkalloc(u32);
 static int		sbrkmerge(void*, void*);
 static void		plock(Pool*);
 static void		punlock(Pool*);
@@ -50,11 +50,11 @@ Pool *mainmem = &sbrkmem;
  * whether two blocks are adjacent and thus mergeable.
  */
 static void*
-sbrkalloc(uint32_t n)
+sbrkalloc(u32 n)
 {
-	uint32_t *x;
+	u32 *x;
 
-	n += 2*sizeof(uint32_t);	/* two longs for us */
+	n += 2*sizeof(u32);	/* two longs for us */
 	x = sbrk(n);
 	if(x == (void*)-1)
 		return nil;
@@ -66,13 +66,13 @@ sbrkalloc(uint32_t n)
 static int
 sbrkmerge(void *x, void *y)
 {
-	uint32_t *lx, *ly;
+	u32 *lx, *ly;
 
 	lx = x;
 	if(lx[-1] != 0xDeadBeef)
 		abort();
 
-	if((uint8_t*)lx+lx[-2] == (uint8_t*)y) {
+	if((u8*)lx+lx[-2] == (u8*)y) {
 		ly = y;
 		lx[-2] += ly[-2];
 		return 1;
@@ -219,7 +219,7 @@ malloc(size_t size)
 }
 
 void*
-mallocz(uint32_t size, int clr)
+mallocz(u32 size, int clr)
 {
 	void *v;
 
@@ -235,7 +235,7 @@ mallocz(uint32_t size, int clr)
 }
 
 void*
-mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
+mallocalign(u32 size, u32 align, i32 offset, u32 span)
 {
 	void *v;
 
@@ -279,14 +279,14 @@ realloc(void *v, size_t size)
 	return nv;
 }
 
-uint32_t
+u32
 msize(void *v)
 {
 	return poolmsize(mainmem, (uintptr_t*)v-Npadlong)-Npadlong*sizeof(uintptr_t);
 }
 
 void*
-calloc(uint32_t n, size_t szelem)
+calloc(u32 n, size_t szelem)
 {
 	void *v;
 	if((v = mallocz(n*szelem, 1)))

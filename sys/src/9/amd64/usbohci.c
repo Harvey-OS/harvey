@@ -381,7 +381,7 @@ static	QLock	usbhstate;	/ * protects name space state * /
 
 static int	schedendpt(Ctlr *ub, Ep *ep);
 static void	unschedendpt(Ctlr *ub, Ep *ep);
-static int32_t	qtd(Ctlr*, Ep*, int, Block*, unsigned char*, unsigned char*, int, uint32_t);
+static i32	qtd(Ctlr*, Ep*, int, Block*, unsigned char*, unsigned char*, int, u32);
 */
 
 static char *errmsgs[] =

@@ -10,9 +10,9 @@
 // Plan9 types
 typedef unsigned char uchar;
 typedef unsigned short ushort;
-typedef uint64_t uvlong;
-typedef uint32_t ulong;
-typedef int64_t vlong;
+typedef u64 uvlong;
+typedef u32 ulong;
+typedef i64 vlong;
 
 
 typedef enum Vis{

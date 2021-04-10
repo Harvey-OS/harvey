@@ -90,28 +90,28 @@ enum {
 };
 
 struct VtRoot {
-	uint16_t version;
+	u16 version;
 	char name[128];
 	char type[128];
-	uint8_t score[VtScoreSize];	/* to a Dir block */
-	uint16_t blockSize;		/* maximum block size */
-	uint8_t prev[VtScoreSize];	/* last root block */
+	u8 score[VtScoreSize];	/* to a Dir block */
+	u16 blockSize;		/* maximum block size */
+	u8 prev[VtScoreSize];	/* last root block */
 };
 
 struct VtEntry {
-	uint32_t gen;			/* generation number */
-	uint16_t psize;			/* pointer block size */
-	uint16_t dsize;			/* data block size */
-	uint8_t depth;			/* unpacked from flags */
-	uint8_t flags;
-	uint64_t size;
-	uint8_t score[VtScoreSize];
+	u32 gen;			/* generation number */
+	u16 psize;			/* pointer block size */
+	u16 dsize;			/* data block size */
+	u8 depth;			/* unpacked from flags */
+	u8 flags;
+	u64 size;
+	u8 score[VtScoreSize];
 };
 
 struct VtServerVtbl {
-	Packet *(*read)(VtSession*, uint8_t score[VtScoreSize], int type,
+	Packet *(*read)(VtSession*, u8 score[VtScoreSize], int type,
 			int n);
-	int (*write)(VtSession*, uint8_t score[VtScoreSize], int type,
+	int (*write)(VtSession*, u8 score[VtScoreSize], int type,
 		     Packet *p);
 	void (*closing)(VtSession*, int clean);
 	void (*sync)(VtSession*);
@@ -125,7 +125,7 @@ enum {
 };
 
 /* score of zero length block */
-extern uint8_t vtZeroScore[VtScoreSize];	
+extern u8 vtZeroScore[VtScoreSize];	
 
 /* both sides */
 void vtAttach(void);
@@ -168,24 +168,24 @@ int vtRedial(VtSession*, char *server);
 VtSession *vtStdioServer(char *server);
 int vtPing(VtSession *s);
 int vtSetUid(VtSession*, char *uid);
-int vtRead(VtSession*, uint8_t score[VtScoreSize], int type, uint8_t *buf,
+int vtRead(VtSession*, u8 score[VtScoreSize], int type, u8 *buf,
 	   int n);
-int vtWrite(VtSession*, uint8_t score[VtScoreSize], int type, uint8_t *buf,
+int vtWrite(VtSession*, u8 score[VtScoreSize], int type, u8 *buf,
 	    int n);
-Packet *vtReadPacket(VtSession*, uint8_t score[VtScoreSize], int type,
+Packet *vtReadPacket(VtSession*, u8 score[VtScoreSize], int type,
 		     int n);
-int vtWritePacket(VtSession*, uint8_t score[VtScoreSize], int type,
+int vtWritePacket(VtSession*, u8 score[VtScoreSize], int type,
 		  Packet *p);
 int vtSync(VtSession *s);
 
-int vtZeroExtend(int type, uint8_t *buf, int n, int nn);
-int vtZeroTruncate(int type, uint8_t *buf, int n);
-int vtParseScore(char*, uint, uint8_t[VtScoreSize]);
+int vtZeroExtend(int type, u8 *buf, int n, int nn);
+int vtZeroTruncate(int type, u8 *buf, int n);
+int vtParseScore(char*, uint, u8[VtScoreSize]);
 
-void vtRootPack(VtRoot*, uint8_t*);
-int vtRootUnpack(VtRoot*, uint8_t*);
-void vtEntryPack(VtEntry*, uint8_t*, int index);
-int vtEntryUnpack(VtEntry*, uint8_t*, int index);
+void vtRootPack(VtRoot*, u8*);
+int vtRootUnpack(VtRoot*, u8*);
+void vtEntryPack(VtEntry*, u8*, int index);
+int vtEntryUnpack(VtEntry*, u8*, int index);
 
 /* server side */
 VtSession *vtServerAlloc(VtServerVtbl*);
@@ -196,31 +196,31 @@ int vtExport(VtSession *s);
 VtSha1* vtSha1Alloc(void);
 void vtSha1Free(VtSha1*);
 void vtSha1Init(VtSha1*);
-void vtSha1Update(VtSha1*, uint8_t *, int n);
-void vtSha1Final(VtSha1*, uint8_t sha1[VtScoreSize]);
-void vtSha1(uint8_t score[VtScoreSize], uint8_t *, int);
-int vtSha1Check(uint8_t score[VtScoreSize], uint8_t *, int);
+void vtSha1Update(VtSha1*, u8 *, int n);
+void vtSha1Final(VtSha1*, u8 sha1[VtScoreSize]);
+void vtSha1(u8 score[VtScoreSize], u8 *, int);
+int vtSha1Check(u8 score[VtScoreSize], u8 *, int);
 int vtScoreFmt(Fmt *fmt);
 
 /* Packet */
 Packet *packetAlloc(void);
 void packetFree(Packet*);
-Packet *packetForeign(uint8_t *buf, int n, void (*free)(void *a), void *a);
+Packet *packetForeign(u8 *buf, int n, void (*free)(void *a), void *a);
 Packet *packetDup(Packet*, int offset, int n);
 Packet *packetSplit(Packet*, int n);
-int packetConsume(Packet*, uint8_t *buf, int n);
+int packetConsume(Packet*, u8 *buf, int n);
 int packetTrim(Packet*, int offset, int n);
-uint8_t *packetHeader(Packet*, int n);
-uint8_t *packetTrailer(Packet*, int n);
-int packetPrefix(Packet*, uint8_t *buf, int n);
-int packetAppend(Packet*, uint8_t *buf, int n);
+u8 *packetHeader(Packet*, int n);
+u8 *packetTrailer(Packet*, int n);
+int packetPrefix(Packet*, u8 *buf, int n);
+int packetAppend(Packet*, u8 *buf, int n);
 int packetConcat(Packet*, Packet*);
-uint8_t *packetPeek(Packet*, uint8_t *buf, int offset, int n);
-int packetCopy(Packet*, uint8_t *buf, int offset, int n);
+u8 *packetPeek(Packet*, u8 *buf, int offset, int n);
+int packetCopy(Packet*, u8 *buf, int offset, int n);
 int packetFragments(Packet*, IOchunk*, int nio, int offset);
 int packetSize(Packet*);
 int packetAllocatedSize(Packet*);
-void packetSha1(Packet*, uint8_t sha1[VtScoreSize]);
+void packetSha1(Packet*, u8 sha1[VtScoreSize]);
 int packetCompact(Packet*);
 int packetCmp(Packet*, Packet*);
 void packetStats(void);
@@ -260,9 +260,9 @@ int vtWakeupAll(VtRendez*);
 
 /* fd functions - really network (socket) functions */
 void vtFdClose(int);
-int vtFdRead(int, uint8_t*, int);
-int vtFdReadFully(int, uint8_t*, int);
-int vtFdWrite(int, uint8_t*, int);
+int vtFdRead(int, u8*, int);
+int vtFdReadFully(int, u8*, int);
+int vtFdWrite(int, u8*, int);
 
 /*
  * formatting

@@ -45,13 +45,13 @@ struct	Fils
 {
 	Biobuf*	f_f;
 	char*	f_name;
-	int32_t	f_nextc;
+	i32	f_nextc;
 };
 struct	Colp
 {
 	Rune*	c_ptr;
 	Rune*	c_ptr0;
-	int32_t	c_lno;
+	i32	c_lno;
 };
 struct	Err
 {
@@ -83,7 +83,7 @@ int	Lcolpos;
 int	Len = LENGTH;
 int	Line;
 int	Linew = 0;
-int32_t	Lnumb = 0;
+i32	Lnumb = 0;
 int	Margin = MARGIN;
 int	Multi = 0;
 int	Ncols = 1;
@@ -107,13 +107,13 @@ extern	void	errprint(void);
 extern	char*	ffiler(char*);
 extern	int	findopt(int, char**);
 extern	int	get(int);
-extern	void*	getspace(uint32_t);
+extern	void*	getspace(u32);
 extern	int	intopt(char**, int*);
 extern	void	main(int, char**);
 extern	Biobuf*	mustopen(char*, Fils*);
 extern	void	nexbuf(void);
 extern	int	pr(char*);
-extern	void	put(int32_t);
+extern	void	put(i32);
 extern	void	putpage(void);
 extern	void	putspace(void);
 
@@ -125,7 +125,7 @@ getdate(void)
 {
 	static char *now = 0;
 	static Dir *sbuf;
-	uint32_t mtime;
+	u32 mtime;
 
 	if(Nfiles > 1 || Files->f_name == nulls) {
 		if(now == 0) {
@@ -278,7 +278,7 @@ findopt(int argc, char *argv[])
 	if((Colw = (Linew - Ncols + 1)/Ncols) < 1)
 		die("width too small");
 	if(Ncols != 1 && Multi == 0) {
-		uint32_t buflen = ((uint32_t)(Plength/Dblspace + 1))*(Linew+1)*sizeof(char);
+		u32 buflen = ((u32)(Plength/Dblspace + 1))*(Linew+1)*sizeof(char);
 		Buffer = getspace(buflen*sizeof(*Buffer));
 		Bufend = &Buffer[buflen];
 		Colpts = getspace((Ncols+1)*sizeof(*Colpts));
@@ -474,7 +474,7 @@ get(int colno)
 	static int peekc = 0;
 	Colp p;
 	Fils *q;
-	int32_t c;
+	i32 c;
 
 	if(peekc) {
 		peekc = 0;
@@ -521,7 +521,7 @@ get(int colno)
 }
 
 void
-put(int32_t c)
+put(i32 c)
 {
 	int move;
 
@@ -629,7 +629,7 @@ mustopen(char *s, Fils *f)
 }
 
 void*
-getspace(uint32_t n)
+getspace(u32 n)
 {
 	void *t;
 

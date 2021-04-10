@@ -87,7 +87,7 @@ Image *screen;
 #include "td.bits"
 
 Image*
-eallocimage(Display *d, Rectangle r, uint32_t chan, int repl, int col)
+eallocimage(Display *d, Rectangle r, u32 chan, int repl, int col)
 {
 	Image *i;
 	i = allocimage(d, r, chan, repl, col);
@@ -624,14 +624,14 @@ upd(Dot *d)
 
 static
 void
-setup(Dot *d, char *who, uint8_t *face, int n_els)
+setup(Dot *d, char *who, u8 *face, int n_els)
 {
 	int	i, j, k, n;
 	int	repl;
-	uint8_t	mask;
+	u8	mask;
 	int 	nbits, bits;
-	uint8_t	tmpface[NPJW*NPJW];
-	uint8_t	tmpmask[NPJW*NPJW];
+	u8	tmpface[NPJW*NPJW];
+	u8	tmpmask[NPJW*NPJW];
 	static	Image	*im;	/* not the global */
 	static	Image	*imask;
 

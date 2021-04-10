@@ -27,24 +27,24 @@ enum {					/* fundamental constants/defaults */
 };
 
 typedef struct {
-	uint8_t	*p;
-	int32_t	count;
-	uint8_t	write;
+	u8	*p;
+	i32	count;
+	u8	write;
 } ScsiPtr;
 
 typedef struct {
 	int	flags;
 	char	*unit;			/* unit directory */
 	int	lun;
-	uint32_t	lbsize;
-	uint64_t	offset;			/* in blocks of lbsize bytes */
+	u32	lbsize;
+	u64	offset;			/* in blocks of lbsize bytes */
 	int	fd;
 	Umsc	*umsc;			/* lun */
 	ScsiPtr	cmd;
 	ScsiPtr	data;
 	int	status;			/* returned status */
-	uint8_t	sense[MaxDirData];	/* returned sense data */
-	uint8_t	inquiry[MaxDirData];	/* returned inquiry data */
+	u8	sense[MaxDirData];	/* returned sense data */
+	u8	inquiry[MaxDirData];	/* returned inquiry data */
 	int	readblock;		/* flag: read a block since open */
 } ScsiReq;
 
@@ -119,65 +119,65 @@ enum {
 	Devjuke,
 };
 
-/* p arguments should be of type uint8_t* */
-#define GETBELONG(p) ((uint32_t)(p)[0]<<24 | (uint32_t)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
+/* p arguments should be of type u8* */
+#define GETBELONG(p) ((u32)(p)[0]<<24 | (u32)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
 #define PUTBELONG(p, ul) ((p)[0] = (ul)>>24, (p)[1] = (ul)>>16, \
 			  (p)[2] = (ul)>>8,  (p)[3] = (ul))
-#define GETBE24(p)	((uint32_t)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
+#define GETBE24(p)	((u32)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
 #define PUTBE24(p, ul)	((p)[0] = (ul)>>16, (p)[1] = (ul)>>8, (p)[2] = (ul))
 
-int32_t	SRready(ScsiReq*);
-int32_t	SRrewind(ScsiReq*);
-int32_t	SRreqsense(ScsiReq*);
-int32_t	SRformat(ScsiReq*);
-int32_t	SRrblimits(ScsiReq*, uint8_t*);
-int32_t	SRread(ScsiReq*, void*, int32_t);
-int32_t	SRwrite(ScsiReq*, void*, int32_t);
-int32_t	SRseek(ScsiReq*, int32_t, int);
-int32_t	SRfilemark(ScsiReq*, uint32_t);
-int32_t	SRspace(ScsiReq*, uint8_t, int32_t);
-int32_t	SRinquiry(ScsiReq*);
-int32_t	SRmodeselect6(ScsiReq*, uint8_t*, int32_t);
-int32_t	SRmodeselect10(ScsiReq*, uint8_t*, int32_t);
-int32_t	SRmodesense6(ScsiReq*, uint8_t, uint8_t*, int32_t);
-int32_t	SRmodesense10(ScsiReq*, uint8_t, uint8_t*, int32_t);
-int32_t	SRstart(ScsiReq*, uint8_t);
-int32_t	SRrcapacity(ScsiReq*, uint8_t*);
-int32_t	SRrcapacity16(ScsiReq*, uint8_t*);
+i32	SRready(ScsiReq*);
+i32	SRrewind(ScsiReq*);
+i32	SRreqsense(ScsiReq*);
+i32	SRformat(ScsiReq*);
+i32	SRrblimits(ScsiReq*, u8*);
+i32	SRread(ScsiReq*, void*, i32);
+i32	SRwrite(ScsiReq*, void*, i32);
+i32	SRseek(ScsiReq*, i32, int);
+i32	SRfilemark(ScsiReq*, u32);
+i32	SRspace(ScsiReq*, u8, i32);
+i32	SRinquiry(ScsiReq*);
+i32	SRmodeselect6(ScsiReq*, u8*, i32);
+i32	SRmodeselect10(ScsiReq*, u8*, i32);
+i32	SRmodesense6(ScsiReq*, u8, u8*, i32);
+i32	SRmodesense10(ScsiReq*, u8, u8*, i32);
+i32	SRstart(ScsiReq*, u8);
+i32	SRrcapacity(ScsiReq*, u8*);
+i32	SRrcapacity16(ScsiReq*, u8*);
 
-int32_t	SRblank(ScsiReq*, uint8_t, uint8_t);	/* MMC CD-R/CD-RW commands */
-int32_t	SRsynccache(ScsiReq*);
-int32_t	SRTOC(ScsiReq*, void*, int, uint8_t, uint8_t);
-int32_t	SRrdiscinfo(ScsiReq*, void*, int);
-int32_t	SRrtrackinfo(ScsiReq*, void*, int, int);
+i32	SRblank(ScsiReq*, u8, u8);	/* MMC CD-R/CD-RW commands */
+i32	SRsynccache(ScsiReq*);
+i32	SRTOC(ScsiReq*, void*, int, u8, u8);
+i32	SRrdiscinfo(ScsiReq*, void*, int);
+i32	SRrtrackinfo(ScsiReq*, void*, int, int);
 
-int32_t	SRcdpause(ScsiReq*, int);		/* MMC CD audio commands */
-int32_t	SRcdstop(ScsiReq*);
-int32_t	SRcdload(ScsiReq*, int, int);
-int32_t	SRcdplay(ScsiReq*, int, int32_t, int32_t);
-int32_t	SRcdstatus(ScsiReq*, uint8_t*, int);
-int32_t	SRgetconf(ScsiReq*, uint8_t*, int);
+i32	SRcdpause(ScsiReq*, int);		/* MMC CD audio commands */
+i32	SRcdstop(ScsiReq*);
+i32	SRcdload(ScsiReq*, int, int);
+i32	SRcdplay(ScsiReq*, int, i32, i32);
+i32	SRcdstatus(ScsiReq*, u8*, int);
+i32	SRgetconf(ScsiReq*, u8*, int);
 
 /*	old CD-R/CD-RW commands */
-int32_t	SRfwaddr(ScsiReq*, uint8_t, uint8_t, uint8_t, uint8_t*);
-int32_t	SRtreserve(ScsiReq*, int32_t);
-int32_t	SRtinfo(ScsiReq*, uint8_t, uint8_t*);
-int32_t	SRwtrack(ScsiReq*, void*, int32_t, uint8_t, uint8_t);
-int32_t	SRmload(ScsiReq*, uint8_t);
-int32_t	SRfixation(ScsiReq*, uint8_t);
+i32	SRfwaddr(ScsiReq*, u8, u8, u8, u8*);
+i32	SRtreserve(ScsiReq*, i32);
+i32	SRtinfo(ScsiReq*, u8, u8*);
+i32	SRwtrack(ScsiReq*, void*, i32, u8, u8);
+i32	SRmload(ScsiReq*, u8);
+i32	SRfixation(ScsiReq*, u8);
 
-int32_t	SReinitialise(ScsiReq*);		/* CHANGER commands */
-int32_t	SRestatus(ScsiReq*, uint8_t, uint8_t*, int);
-int32_t	SRmmove(ScsiReq*, int, int, int, int);
+i32	SReinitialise(ScsiReq*);		/* CHANGER commands */
+i32	SRestatus(ScsiReq*, u8, u8*, int);
+i32	SRmmove(ScsiReq*, int, int, int, int);
 
-int32_t	SRrequest(ScsiReq*);
+i32	SRrequest(ScsiReq*);
 int	SRclose(ScsiReq*);
 int	SRopenraw(ScsiReq*, char*);
 int	SRopen(ScsiReq*, char*);
 
 void	makesense(ScsiReq*);
 
-int32_t	umsrequest(struct Umsc*, ScsiPtr*, ScsiPtr*, int*);
+i32	umsrequest(struct Umsc*, ScsiPtr*, ScsiPtr*, int*);
 
 void	scsidebug(int);
 

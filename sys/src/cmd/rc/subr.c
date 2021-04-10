@@ -13,7 +13,7 @@
 #include "fns.h"
 
 void *
-emalloc(int32_t n)
+emalloc(i32 n)
 {
 	void *p = Malloc(n);
 
@@ -68,7 +68,7 @@ iacvt(int n)
 }
 
 void
-inttoascii(char *s, int32_t n)
+inttoascii(char *s, i32 n)
 {
 	bp = s;
 	iacvt(n);

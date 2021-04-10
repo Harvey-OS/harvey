@@ -212,8 +212,8 @@ hargstr(HConnect *c, char *name, char *def)
 	return def;
 }
 
-int64_t
-hargint(HConnect *c, char *name, int64_t def)
+i64
+hargint(HConnect *c, char *name, i64 def)
 {
 	char *a;
 
@@ -223,7 +223,7 @@ hargint(HConnect *c, char *name, int64_t def)
 }
 
 static int
-percent(uint32_t v, uint32_t total)
+percent(u32 v, u32 total)
 {
 	if(total == 0)
 		total = 1;
@@ -524,7 +524,7 @@ sindex(HConnect *c)
 	Hio *hout;
 	Index *ix;
 	Arena *arena;
-	int64_t clumps, cclumps, uncsize, used, size;
+	i64 clumps, cclumps, uncsize, used, size;
 	int i, r, active;
 
 	r = hsettext(c);
@@ -757,7 +757,7 @@ struct Arg
 	int index2;
 };
 
-static int32_t
+static i32
 rawgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -767,7 +767,7 @@ rawgraph(Stats *s, Stats *t, void *va)
 	return t->n[a->index];
 }
 
-static int32_t
+static i32
 diffgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -776,7 +776,7 @@ diffgraph(Stats *s, Stats *t, void *va)
 	return t->n[a->index] - s->n[a->index];
 }
 
-static int32_t
+static i32
 pctgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -786,7 +786,7 @@ pctgraph(Stats *s, Stats *t, void *va)
 	return percent(t->n[a->index], t->n[a->index2]);
 }
 
-static int32_t
+static i32
 pctdiffgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -795,15 +795,15 @@ pctdiffgraph(Stats *s, Stats *t, void *va)
 	return percent(t->n[a->index]-s->n[a->index], t->n[a->index2]-s->n[a->index2]);
 }
 
-static int32_t
-xdiv(int32_t a, int32_t b)
+static i32
+xdiv(i32 a, i32 b)
 {
 	if(b == 0)
 		b++;
 	return a/b;
 }
 
-static int32_t
+static i32
 divdiffgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -812,19 +812,19 @@ divdiffgraph(Stats *s, Stats *t, void *va)
 	return xdiv(t->n[a->index] - s->n[a->index], t->n[a->index2] - s->n[a->index2]);
 }
 
-static int32_t
+static i32
 netbw(Stats *s)
 {
-	uint32_t *n;
+	u32 *n;
 
 	n = s->n;
 	return n[StatRpcReadBytes]+n[StatRpcWriteBytes];	/* not exactly right */
 }
 
-static int32_t
+static i32
 diskbw(Stats *s)
 {
-	uint32_t *n;
+	u32 *n;
 
 	n = s->n;
 	return n[StatApartReadBytes]+n[StatApartWriteBytes]
@@ -832,27 +832,27 @@ diskbw(Stats *s)
 		+ n[StatSumReadBytes];
 }
 
-static int32_t
+static i32
 iobw(Stats *s)
 {
 	return netbw(s)+diskbw(s);
 }
 
-static int32_t
+static i32
 diskgraph(Stats *s, Stats *t, void *va)
 {
 	USED(va);
 	return diskbw(t)-diskbw(s);
 }
 
-static int32_t
+static i32
 netgraph(Stats *s, Stats *t, void *va)
 {
 	USED(va);
 	return netbw(t)-netbw(s);
 }
 
-static int32_t
+static i32
 iograph(Stats *s, Stats *t, void *va)
 {
 	USED(va);
@@ -1108,7 +1108,7 @@ xmlaname(Hio *hout, char *v, char *tag)
 }
 
 void
-xmlscore(Hio *hout, uint8_t *v, char *tag)
+xmlscore(Hio *hout, u8 *v, char *tag)
 {
 	if(scorecmp(zeroscore, v) == 0)
 		return;
@@ -1124,13 +1124,13 @@ xmlsealed(Hio *hout, int v, char *tag)
 }
 
 void
-xmlu32int(Hio *hout, uint32_t v, char *tag)
+xmlu32int(Hio *hout, u32 v, char *tag)
 {
 	hprint(hout, " %s=\"%u\"", tag, v);
 }
 
 void
-xmlu64int(Hio *hout, uint64_t v, char *tag)
+xmlu64int(Hio *hout, u64 v, char *tag)
 {
 	hprint(hout, " %s=\"%llu\"", tag, v);
 }

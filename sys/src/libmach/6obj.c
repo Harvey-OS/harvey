@@ -30,7 +30,7 @@ static	void	skip(Biobuf*, int);
 int
 _is6(char *t)
 {
-	uint8_t *s = (uint8_t*)t;
+	u8 *s = (u8*)t;
 
 	return  s[0] == (ANAME&0xff)			/* aslo = ANAME */
 		&& s[1] == ((ANAME>>8)&0xff)
@@ -97,8 +97,8 @@ addr(Biobuf *bp)
 {
 	Addr a;
 	int t;
-	int32_t l;
-	int64_t off;
+	i32 l;
+	i64 off;
 
 	off = 0;
 	a.sym = -1;
@@ -116,7 +116,7 @@ addr(Biobuf *bp)
 			l |= Bgetc(bp) << 8;
 			l |= Bgetc(bp) << 16;
 			l |= Bgetc(bp) << 24;
-			off = ((int64_t)l << 32) | (off & 0xFFFFFFFF);
+			off = ((i64)l << 32) | (off & 0xFFFFFFFF);
 		}
 		if(off < 0)
 			off = -off;

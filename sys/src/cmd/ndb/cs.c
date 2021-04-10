@@ -184,7 +184,7 @@ Ipifc *ipifcs;
 
 char	eaddr[16];		/* ascii ethernet address */
 char	ipaddr[64];		/* ascii internet address */
-uint8_t	ipa[IPaddrlen];		/* binary internet address */
+u8	ipa[IPaddrlen];		/* binary internet address */
 char	*mysysname;
 
 Network *netlist;		/* networks ordered by preference */
@@ -426,10 +426,10 @@ flushjob(int tag)
 void
 io(void)
 {
-	int32_t n;
+	i32 n;
 	Mfile *mf;
 	int slaveflag;
-	uint8_t mdata[IOHDRSZ + Maxfdata];
+	u8 mdata[IOHDRSZ + Maxfdata];
 	Job *job;
 
 	/*
@@ -667,9 +667,9 @@ void
 rread(Job *job, Mfile *mf)
 {
 	int i, n, cnt;
-	int32_t off, toff, clock;
+	i32 off, toff, clock;
 	Dir dir;
-	uint8_t buf[Maxfdata];
+	u8 buf[Maxfdata];
 	char *err;
 
 	n = 0;
@@ -893,7 +893,7 @@ void
 rstat(Job *job, Mfile *mf)
 {
 	Dir dir;
-	uint8_t buf[IOHDRSZ+Maxfdata];
+	u8 buf[IOHDRSZ+Maxfdata];
 
 	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
@@ -925,7 +925,7 @@ void
 sendmsg(Job *job, char *err)
 {
 	int n;
-	uint8_t mdata[IOHDRSZ + Maxfdata];
+	u8 mdata[IOHDRSZ + Maxfdata];
 	char ename[ERRMAX];
 
 	if(err){
@@ -958,7 +958,7 @@ error(char *s)
 }
 
 static int
-isvalidip(uint8_t *ip)
+isvalidip(u8 *ip)
 {
 	return ipcmp(ip, IPnoaddr) != 0 && ipcmp(ip, v4prefix) != 0;
 }
@@ -979,7 +979,7 @@ readipinterfaces(void)
 void
 ipid(void)
 {
-	uint8_t addr[6];
+	u8 addr[6];
 	Ndbtuple *t, *tt;
 	char *p, *attr;
 	Ndbs s;
@@ -1348,9 +1348,9 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	Ndbs s;
 	char ts[Maxservice];
 	char dollar[Maxhost];
-	uint8_t ip[IPaddrlen];
-	uint8_t net[IPaddrlen];
-	uint8_t tnet[IPaddrlen];
+	u8 ip[IPaddrlen];
+	u8 net[IPaddrlen];
+	u8 tnet[IPaddrlen];
 	Ipifc *ifc;
 	Iplifc *lifc;
 

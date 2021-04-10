@@ -16,7 +16,7 @@
 #include "iso9660.h"
 
 static void
-writelittlebig4(uint8_t *buf, uint32_t x)
+writelittlebig4(u8 *buf, u32 x)
 {
 	buf[0] = buf[7] = x;
 	buf[1] = buf[6] = x>>8;
@@ -27,7 +27,7 @@ writelittlebig4(uint8_t *buf, uint32_t x)
 void
 rewritedot(Cdimg *cd, Direc *d)
 {
-	uint8_t buf[Blocksize];
+	u8 buf[Blocksize];
 	Cdir *c;
 
 	Creadblock(cd, buf, d->block, Blocksize);
@@ -37,14 +37,14 @@ rewritedot(Cdimg *cd, Direc *d)
 	writelittlebig4(c->dloc, d->block);
 	writelittlebig4(c->dlen, d->length);
 
-	Cwseek(cd, (int64_t)d->block * Blocksize);
+	Cwseek(cd, (i64)d->block * Blocksize);
 	Cwrite(cd, buf, Blocksize);
 }
 
 void
 rewritedotdot(Cdimg *cd, Direc *d, Direc *dparent)
 {
-	uint8_t buf[Blocksize];
+	u8 buf[Blocksize];
 	Cdir *c;
 
 	Creadblock(cd, buf, d->block, Blocksize);
@@ -59,7 +59,7 @@ rewritedotdot(Cdimg *cd, Direc *d, Direc *dparent)
 	writelittlebig4(c->dloc, dparent->block);
 	writelittlebig4(c->dlen, dparent->length);
 
-	Cwseek(cd, (int64_t)d->block * Blocksize);
+	Cwseek(cd, (i64)d->block * Blocksize);
 	Cwrite(cd, buf, Blocksize);
 }
 
@@ -75,8 +75,8 @@ void
 writefiles(Dump *d, Cdimg *cd, Direc *direc)
 {
 	int i;
-	uint8_t buf[8192], digest[MD5dlen];
-	uint32_t length, n, start;
+	u8 buf[8192], digest[MD5dlen];
+	u32 length, n, start;
 	Biobuf *b;
 	DigestState *s;
 	Dumpdir *dd;
@@ -101,7 +101,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 	if(blocksize && start%blocksize)
 		start += blocksize-start%blocksize;
 
-	Cwseek(cd, (int64_t)start * Blocksize);
+	Cwseek(cd, (i64)start * Blocksize);
 
 	s = md5(nil, 0, nil, nil);
 	length = 0;
@@ -142,7 +142,7 @@ static void
 _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int level)
 {
 	int i, l, ll;
-	uint32_t start, next;
+	u32 start, next;
 
 	if((d->mode & DMDIR) == 0)
 		return;
@@ -163,7 +163,7 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 	cd->nextblock += (l+Blocksize-1)/Blocksize;
 	next = cd->nextblock;
 
-	Cwseek(cd, (int64_t)start * Blocksize);
+	Cwseek(cd, (i64)start * Blocksize);
 	ll = 0;
 	ll += put(cd, d, (level == 0) ? DTrootdot : DTdot, 1, ll);
 	ll += put(cd, nil, DTdotdot, 1, ll);
@@ -171,10 +171,10 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 		ll += put(cd, &d->child[i], DTiden, 1, ll);
 	assert(ll == l);
 	Cpadblock(cd);
-	assert(Cwoffset(cd) == (int64_t)next * Blocksize);
+	assert(Cwoffset(cd) == (i64)next * Blocksize);
 
 	d->block = start;
-	d->length = (int64_t)(next - start) * Blocksize;
+	d->length = (i64)(next - start) * Blocksize;
 	rewritedot(cd, d);
 	rewritedotdot(cd, d, d);
 
@@ -206,7 +206,7 @@ static void
 _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int level)
 {
 	int i;
-	uint32_t start;
+	u32 start;
 
 	switch(level) {
 	case 0:
@@ -225,7 +225,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 
 	Writedir:
 		start = cd->nextblock;
-		Cwseek(cd, (int64_t)start * Blocksize);
+		Cwseek(cd, (i64)start * Blocksize);
 
 		put(cd, d, (level == 0) ? DTrootdot : DTdot, 1, Cwoffset(cd));
 		put(cd, nil, DTdotdot, 1, Cwoffset(cd));
@@ -234,7 +234,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 		Cpadblock(cd);
 
 		d->block = start;
-		d->length = (int64_t)(cd->nextblock - start) * Blocksize;
+		d->length = (i64)(cd->nextblock - start) * Blocksize;
 
 		rewritedot(cd, d);
 		rewritedotdot(cd, d, d);
@@ -313,7 +313,7 @@ static int
 genputdir(Cdimg *cd, Direc *d, int dot, int joliet, int dowrite, int offset)
 {
 	int f, n, l, lp;
-	int64_t o;
+	i64 o;
 
 	f = 0;
 	if(dot != DTiden || (d->mode & DMDIR))

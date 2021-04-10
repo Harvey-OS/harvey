@@ -12,7 +12,7 @@
 #include <oventi.h>
 
 int
-vtParseScore(char *buf, uint n, uint8_t score[VtScoreSize])
+vtParseScore(char *buf, uint n, u8 score[VtScoreSize])
 {
 	int i, c;
 

@@ -51,7 +51,7 @@ enum {
 
 struct Fid {
 	int	fid;
-	uint32_t	qtype;
+	u32	qtype;
 	User	*user;
 	int	busy;
 	Fid	*next;
@@ -61,14 +61,14 @@ struct User {
 	char	*name;
 	char	key[DESKEYLEN];
 	char	secret[SECRETLEN];
-	uint32_t	expire;			/* 0 == never */
-	uint8_t	status;
-	uint32_t	bad;		/* # of consecutive bad authentication attempts */
+	u32	expire;			/* 0 == never */
+	u8	status;
+	u32	bad;		/* # of consecutive bad authentication attempts */
 	int	ref;
 	char	removed;
-	uint8_t	warnings;
-	int32_t	purgatory;		/* time purgatory ends */
-	uint32_t	uniq;
+	u8	warnings;
+	i32	purgatory;		/* time purgatory ends */
+	u32	uniq;
 	User	*link;
 };
 
@@ -92,16 +92,16 @@ Fid	*fids;
 User	*users[Nuser];
 char	*userkeys;
 int	nuser;
-uint32_t	uniq = 1;
+u32	uniq = 1;
 Fcall	rhdr,
 	thdr;
 int	usepass;
 char	*warnarg;
-uint8_t	mdata[8192 + IOHDRSZ];
+u8	mdata[8192 + IOHDRSZ];
 int	messagesize = sizeof mdata;
 
 int	readusers(void);
-uint32_t	hash(char*);
+u32	hash(char*);
 Fid	*findfid(int);
 User	*finduser(char*);
 User	*installuser(char*);
@@ -109,9 +109,9 @@ int	removeuser(User*);
 void	insertuser(User*);
 void	writeusers(void);
 void	io(int, int);
-void	*emalloc(uint32_t);
-Qid	mkqid(User*, uint32_t);
-int	dostat(User*, uint32_t, void*, int);
+void	*emalloc(u32);
+Qid	mkqid(User*, u32);
+int	dostat(User*, u32, void*, int);
 int	newkeys(void);
 void	warning(void);
 int	weirdfmt(Fmt *f);
@@ -249,7 +249,7 @@ Walk(Fid *f)
 	char *name, *err;
 	int i, j, max;
 	Fid *nf;
-	uint32_t qtype;
+	u32 qtype;
 	User *user;
 
 	if(!f->busy)
@@ -365,7 +365,7 @@ char *
 Create(Fid *f)
 {
 	char *name;
-	int32_t perm;
+	i32 perm;
 
 	if(!f->busy)
 		return "create of unused fid";
@@ -397,7 +397,7 @@ Read(Fid *f)
 {
 	User *u;
 	char *data;
-	uint32_t off, n, m;
+	u32 off, n, m;
 	int i, j, max;
 
 	if(!f->busy)
@@ -517,7 +517,7 @@ char *
 Write(Fid *f)
 {
 	char *data, *p;
-	uint32_t n, expire;
+	u32 n, expire;
 	int i;
 
 	if(!f->busy)
@@ -613,7 +613,7 @@ Remove(Fid *f)
 char *
 Stat(Fid *f)
 {
-	static uint8_t statbuf[1024];
+	static u8 statbuf[1024];
 
 	if(!f->busy)
 		return "stat on unattached fid";
@@ -654,7 +654,7 @@ Wstat(Fid *f)
 }
 
 Qid
-mkqid(User *u, uint32_t qtype)
+mkqid(User *u, u32 qtype)
 {
 	Qid q;
 
@@ -670,7 +670,7 @@ mkqid(User *u, uint32_t qtype)
 }
 
 int
-dostat(User *user, uint32_t qtype, void *p, int n)
+dostat(User *user, u32 qtype, void *p, int n)
 {
 	Dir d;
 
@@ -702,7 +702,7 @@ passline(Biobuf *b, void *vbuf)
 }
 
 void
-randombytes(uint8_t *p, int len)
+randombytes(u8 *p, int len)
 {
 	int i, fd;
 
@@ -719,29 +719,29 @@ randombytes(uint8_t *p, int len)
 }
 
 void
-oldCBCencrypt(char *key7, uint8_t *p, int len)
+oldCBCencrypt(char *key7, u8 *p, int len)
 {
-	uint8_t ivec[8];
-	uint8_t key[8];
+	u8 ivec[8];
+	u8 key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((u8*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uint8_t*)p, len, &s);
+	desCBCencrypt((u8*)p, len, &s);
 }
 
 void
-oldCBCdecrypt(char *key7, uint8_t *p, int len)
+oldCBCdecrypt(char *key7, u8 *p, int len)
 {
-	uint8_t ivec[8];
-	uint8_t key[8];
+	u8 ivec[8];
+	u8 key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((u8*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uint8_t*)p, len, &s);
+	desCBCdecrypt((u8*)p, len, &s);
 
 }
 
@@ -750,8 +750,8 @@ writeusers(void)
 {
 	int fd, i, nu;
 	User *u;
-	uint8_t *p, *buf;
-	uint32_t expire;
+	u8 *p, *buf;
+	u32 expire;
 
 	/* count users */
 	nu = 0;
@@ -866,7 +866,7 @@ int
 readusers(void)
 {
 	int fd, i, n, nu;
-	uint8_t *p, *buf, *ep;
+	u8 *p, *buf, *ep;
 	User *u;
 	Dir *d;
 
@@ -989,10 +989,10 @@ insertuser(User *user)
 	users[h] = user;
 }
 
-uint32_t
+u32
 hash(char *s)
 {
-	uint32_t h;
+	u32 h;
 
 	h = 0;
 	while(*s)
@@ -1029,7 +1029,7 @@ io(int in, int out)
 {
 	char *err;
 	int n;
-	int32_t now, lastwarning;
+	i32 now, lastwarning;
 
 	/* after restart, let the system settle for 5 mins before warning */
 	lastwarning = time(0) - 24*60*60 + 5*60;
@@ -1076,7 +1076,7 @@ int
 newkeys(void)
 {
 	Dir *d;
-	static int32_t ftime;
+	static i32 ftime;
 
 	d = dirstat(userkeys);
 	if(d == nil)
@@ -1091,7 +1091,7 @@ newkeys(void)
 }
 
 void *
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 

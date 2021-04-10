@@ -29,9 +29,9 @@ char*
 writedata(Biobuf *fd, Image *image, Memimage *memimage)
 {
 	char *err;
-	uint8_t *data;
+	u8 *data;
 	int i, x, y, ndata, depth, col, pix, xmask, pmask;
-	uint32_t chan;
+	u32 chan;
 	Rectangle r;
 
 	if(memimage != nil){

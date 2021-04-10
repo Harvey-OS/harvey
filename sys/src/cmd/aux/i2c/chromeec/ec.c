@@ -28,13 +28,13 @@
 #include "ec.h"
 #include "ec_commands.h"
 
-uint8_t google_chromeec_calc_checksum(const uint8_t *data, int size)
+u8 google_chromeec_calc_checksum(const u8 *data, int size)
 {
 	int csum;
 
 	for (csum = 0; size > 0; data++, size--)
 		csum += *data;
-	return (uint8_t)(csum & 0xff);
+	return (u8)(csum & 0xff);
 }
 
 int google_chromeec_kbbacklight(int percent)
@@ -228,7 +228,7 @@ u16 google_chromeec_get_board_version(void)
 	return board_v.board_version;
 }
 
-int google_chromeec_vbnv_context(int is_read, uint8_t *data, int len)
+int google_chromeec_vbnv_context(int is_read, u8 *data, int len)
 {
 	struct chromeec_command cec_cmd;
 	struct ec_params_vbnvcontext cmd_vbnvcontext;
@@ -271,22 +271,22 @@ retry:
 
 #ifndef __PRE_RAM__
 
-int google_chromeec_i2c_xfer(uint8_t chip, uint8_t addr, int alen,
-			     uint8_t *buffer, int len, int is_read)
+int google_chromeec_i2c_xfer(u8 chip, u8 addr, int alen,
+			     u8 *buffer, int len, int is_read)
 {
 	union {
 		struct ec_params_i2c_passthru p;
-		uint8_t outbuf[EC_HOST_PARAM_SIZE];
+		u8 outbuf[EC_HOST_PARAM_SIZE];
 	} params;
 	union {
 		struct ec_response_i2c_passthru r;
-		uint8_t inbuf[EC_HOST_PARAM_SIZE];
+		u8 inbuf[EC_HOST_PARAM_SIZE];
 	} response;
 	struct ec_params_i2c_passthru *p = &params.p;
 	struct ec_response_i2c_passthru *r = &response.r;
 	struct ec_params_i2c_passthru_msg *msg = p->msg;
 	struct chromeec_command cmd;
-	uint8_t *pdata;
+	u8 *pdata;
 	int read_len, write_len;
 	int size;
 	int rv;
@@ -318,7 +318,7 @@ int google_chromeec_i2c_xfer(uint8_t chip, uint8_t addr, int alen,
 	}
 
 	/* Create a message to write the register address and optional data */
-	pdata = (uint8_t *)p + size;
+	pdata = (u8 *)p + size;
 	msg->addr_flags = chip;
 	msg->len = write_len;
 	pdata[0] = addr;

@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-uint32_t
-ntruerand(uint32_t n)
+u32
+ntruerand(u32 n)
 {
-	uint32_t m, r;
+	u32 m, r;
 
 	/*
 	 * set m to the one less than the maximum multiple of n <= 2^32,

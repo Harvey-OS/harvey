@@ -74,13 +74,13 @@ errstring(char *prefix)
 	return error;
 }
 
-static uint8_t
+static u8
 hex_asc_lo(int x)
 {
 	return hex_asc[x & 0xf];
 }
 
-static uint8_t
+static u8
 hex_asc_hi(int x)
 {
 	return hex_asc_lo(x >> 4);
@@ -123,7 +123,7 @@ p16(char *dest, int c)
 }
 
 char *
-p32(char *dest, uint32_t c)
+p32(char *dest, u32 c)
 {
 	dest = p16(dest, c);
 	dest = p16(dest, c >> 16);
@@ -131,7 +131,7 @@ p32(char *dest, uint32_t c)
 }
 
 char *
-p64(char *dest, uint64_t c)
+p64(char *dest, u64 c)
 {
 	dest = p32(dest, c);
 	dest = p32(dest, c >> 32);
@@ -267,7 +267,7 @@ remove_note(void)
 }
 
 static void
-write_char(uint8_t c)
+write_char(u8 c)
 {
 	write(remotefd, &c, 1);
 }
@@ -275,7 +275,7 @@ write_char(uint8_t c)
 static int
 read_char()
 {
-	uint8_t c;
+	u8 c;
 	if (read(remotefd, &c, 1) < 0)
 		return -1;
 	return c;
@@ -625,7 +625,7 @@ int_to_threadref(unsigned char *id, int value)
 //  put_unaligned_be32(value, id);
 }
 
-uint64_t
+u64
 get_reg(Map *map, char *reg)
 {
 	(void)map;
@@ -636,7 +636,7 @@ get_reg(Map *map, char *reg)
 		return 0;
 	}
 
-	uint64_t value = arch_get_reg(&ks, r->idx);
+	u64 value = arch_get_reg(&ks, r->idx);
 	return value;
 }
 
@@ -809,13 +809,15 @@ gdb_cmd_query(GdbState *ks)
 
 			// Just pass the main pid for now
 			remcom_out_buffer[0] = 'm';
-			pack_threadid((char *)remcom_out_buffer + 1, (uint8_t *)&ks->threadid);
+			pack_threadid((char *)remcom_out_buffer + 1,
+				      (u8 *)&ks->threadid);
 			break;
 
 		case 'C':
 			/* Current thread id */
 			strcpy((char *)remcom_out_buffer, "QC");
-			pack_threadid((char *)remcom_out_buffer + 2, (uint8_t *) & ks->threadid);
+			pack_threadid((char *)remcom_out_buffer + 2,
+				      (u8 *) & ks->threadid);
 			break;
 
 		case 'T':
@@ -1004,8 +1006,8 @@ gdb_cmd_single_step(GdbState *ks)
 		return;
 	}
 
-	uint64_t foll[] = {0, 0, 0};
-	uint64_t pc = arch_get_pc(ks);
+	u64 foll[] = {0, 0, 0};
+	u64 pc = arch_get_pc(ks);
 	int nfoll = machdata->foll(cormap, pc, get_reg, foll);
 	if (nfoll < 0)
 		syslog(0, "gdbserver", "machdata->foll failed: %r");
@@ -1245,7 +1247,7 @@ gdbstub_exit(int status)
 }
 
 char *
-rmem(void *dest, int pid, uint64_t addr, int size)
+rmem(void *dest, int pid, u64 addr, int size)
 {
 	syslog(0, "gdbserver", "rmem(%p, %d, %p, %d)", dest, pid, addr, size);
 
@@ -1259,7 +1261,7 @@ rmem(void *dest, int pid, uint64_t addr, int size)
 }
 
 char *
-wmem(uint64_t dest, int pid, void *addr, int size)
+wmem(u64 dest, int pid, void *addr, int size)
 {
 	syslog(0, "gdbserver", "wmem(%p, %d, %p, %d)", dest, pid, addr, size);
 
@@ -1310,7 +1312,7 @@ main(int argc, char **argv)
 	}
 
 	if (argc > 0) {
-		uint8_t statbuf[STATMAX];
+		u8 statbuf[STATMAX];
 		if (stat(argv[0], statbuf, sizeof(statbuf)) < 0) {
 			print("program does not exist %s\n", argv[0]);
 			werrstr("program does not exist %s", argv[0]);

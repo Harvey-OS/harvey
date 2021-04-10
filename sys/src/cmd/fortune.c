@@ -19,8 +19,8 @@ void
 main(int argc, char *argv[])
 {
 	int i;
-	int32_t offs;
-	uint8_t off[4];
+	i32 offs;
+	u8 off[4];
 	int ix, nix;
 	int newindex, oldindex;
 	char *p;

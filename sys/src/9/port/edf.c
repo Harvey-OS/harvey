@@ -65,9 +65,9 @@ timeconv(Fmt *f)
 	buf[0] = 0;
 	switch(f->r){
 	case 'U':
-		t = va_arg(f->args, uint64_t);
+		t = va_arg(f->args, u64);
 		break;
-	case 't': /* int64_t in nanoseconds */
+	case 't': /* i64 in nanoseconds */
 		t = va_arg(f->args, i32);
 		break;
 	default:

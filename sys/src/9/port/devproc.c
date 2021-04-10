@@ -170,8 +170,8 @@ static Cmdtab proccmd[] = {
 #define QIDMASK ((1 << QSHIFT) - 1)
 #define SLOTMASK (((1 << SLOTBITS) - 1) << QSHIFT)
 
-#define QID(q) ((((uint32_t)(q).path) & QIDMASK) >> 0)
-#define SLOT(q) (((((uint32_t)(q).path) & SLOTMASK) >> QSHIFT) - 1)
+#define QID(q) ((((u32)(q).path) & QIDMASK) >> 0)
+#define SLOT(q) (((((u32)(q).path) & SLOTMASK) >> QSHIFT) - 1)
 #define PID(q) ((q).vers)
 #define NOTEID(q) ((q).vers)
 
@@ -187,9 +187,9 @@ static char *tpids, *tpidsc, *tpidse;
 static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
-static void notrace(Proc *, int, int64_t);
+static void notrace(Proc *, int, i64);
 
-void (*proctrace)(Proc *, int, int64_t) = notrace;
+void (*proctrace)(Proc *, int, i64) = notrace;
 
 static void
 profclock(Ureg *ur, Timer *ti)
@@ -316,7 +316,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 }
 
 static void
-notrace(Proc *p, int n, int64_t m)
+notrace(Proc *p, int n, i64 m)
 {
 }
 static Lock tlck;

@@ -348,17 +348,17 @@ display_bitrates(FILE*const fp)
 
 typedef struct {
 	const char*name;	/* name of preset */
-	int32_t	resample;	/* resample frequency in Hz, or -1 for no resampling */
-	int16_t	highpass_freq;	/* highpass frequency in Hz, or -1 for no highpass filtering */
-	int16_t	lowpass_freq;	/* lowpass frequency in Hz, or -1 for no lowpass filtering */
-	int16_t	lowpass_width;	/* lowpass width in Hz */
+	i32	resample;	/* resample frequency in Hz, or -1 for no resampling */
+	i16	highpass_freq;	/* highpass frequency in Hz, or -1 for no highpass filtering */
+	i16	lowpass_freq;	/* lowpass frequency in Hz, or -1 for no lowpass filtering */
+	i16	lowpass_width;	/* lowpass width in Hz */
 	signed char no_short_blocks;	/* use of short blocks, 1: no, 0: yes */
 	signed char quality;	/* quality, the same as -f or -h */
 	MPEG_mode mode;		/* channel mode (mono, stereo, joint) */
-	int16_t	cbr;		/* CBR data rate in kbps (8...320) */
+	i16	cbr;		/* CBR data rate in kbps (8...320) */
 	signed char xvbr_mode;	/* VBR mode (0...9) */
-	int16_t	vbr_min;	/* minimum VBR rate in kbps(8...256) */
-	int16_t	vbr_max;	/* maximum VBR rate in kbps (16...320) */
+	i16	vbr_min;	/* minimum VBR rate in kbps(8...256) */
+	i16	vbr_max;	/* maximum VBR rate in kbps (16...320) */
 } preset_t;
 
 const preset_t Presets [] = {

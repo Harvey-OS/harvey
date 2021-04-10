@@ -16,10 +16,10 @@
 #include "defs.h"
 #include "fns.h"
 
-static int32_t	round(int32_t, int32_t);
+static i32	round(i32, i32);
 
 extern	ADDR	ditto;
-uint64_t	expv;
+u64	expv;
 
 static WORD
 ascval(void)
@@ -375,10 +375,10 @@ symchar(int dig)
 	return(isalpha(lastc) || lastc>0x80 || lastc=='_' || dig && isdigit(lastc));
 }
 
-static int32_t
-round(int32_t a, int32_t b)
+static i32
+round(i32 a, i32 b)
 {
-	int32_t w;
+	i32 w;
 
 	w = (a/b)*b;
 	if (a!=w)

@@ -10,11 +10,11 @@
 #include "headers.h"
 
 SmbProcessResult
-smbnegotiate(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
+smbnegotiate(SmbSession *s, SmbHeader *h, u8 *l, SmbBuffer *b)
 {
-	uint16_t index;
+	u16 index;
 	int i;
-	uint8_t bufferformat;
+	u8 bufferformat;
 
 	if (!smbcheckwordcount("negotiate", h, 0))
 		return SmbProcessResultFormat;
@@ -43,8 +43,8 @@ smbnegotiate(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 	}
 	if (index != 0xffff) {
 		Tm *tm;
-		uint32_t capabilities;
-		uint32_t bytecountfixupoffset;
+		u32 capabilities;
+		u32 bytecountfixupoffset;
 
 		h->wordcount = 17;
 		if (!smbbufferputheader(s->response, h, nil)
@@ -63,7 +63,7 @@ smbnegotiate(SmbSession *s, SmbHeader *h, uint8_t *l, SmbBuffer *b)
 		tm = localtime(time(nil));
 		s->tzoff = tm->tzoff;
 		if (!smbbufferputl(s->response, capabilities)
-			|| !smbbufferputv(s->response, nsec() / 100 + (int64_t)10000000 * 11644473600LL)
+			|| !smbbufferputv(s->response, nsec() / 100 + (i64)10000000 * 11644473600LL)
 			|| !smbbufferputs(s->response, -s->tzoff / 60)
 			|| !smbbufferputb(s->response, 8))	/* crypt len */
 			goto die;

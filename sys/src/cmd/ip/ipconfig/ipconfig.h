@@ -40,16 +40,16 @@ struct Conf
 	/* dhcp specific */
 	int	state;
 	int	fd;
-	uint32_t	xid;
-	uint32_t	starttime;
+	u32	xid;
+	u32	starttime;
 	char	sname[64];
 	char	hostname[32];
 	char	domainname[64];
 	unsigned char	server[IPaddrlen];	/* server IP address */
-	uint32_t	offered;		/* offered lease time */
-	uint32_t	lease;			/* lease time */
-	uint32_t	resend;			/* # of resends for current state */
-	uint32_t	timeout;		/* time to timeout - seconds */
+	u32	offered;		/* offered lease time */
+	u32	lease;			/* lease time */
+	u32	resend;			/* # of resends for current state */
+	u32	timeout;		/* time to timeout - seconds */
 
 	/*
 	 * IPv6
@@ -78,8 +78,8 @@ struct Conf
 	int	prefixlen;
 	unsigned char	onlink;		/* flag: address is `on-link' */
 	unsigned char	autoflag;	/* flag: autonomous */
-	uint32_t	validlt;	/* valid lifetime (seconds) */
-	uint32_t	preflt;		/* preferred lifetime (seconds) */
+	u32	validlt;	/* valid lifetime (seconds) */
+	u32	preflt;		/* preferred lifetime (seconds) */
 };
 
 struct Ctl
@@ -119,7 +119,7 @@ void	dounbind(void);
 int	getndb(void);
 int	ipconfig4(void);
 int	ipconfig6(int);
-int32_t	jitter(void);
+i32	jitter(void);
 void	lookforip(char*);
 void	mkclientid(void);
 int	nipifcs(char*);
@@ -128,20 +128,20 @@ unsigned char	*optaddaddr(unsigned char*, int, unsigned char*);
 unsigned char	*optaddbyte(unsigned char*, int, int);
 unsigned char	*optaddstr(unsigned char*, int, char*);
 unsigned char	*optadd(unsigned char*, int, void*, int);
-unsigned char	*optaddulong(unsigned char*, int, uint32_t);
+unsigned char	*optaddulong(unsigned char*, int, u32);
 unsigned char	*optaddvec(unsigned char*, int, unsigned char*, int);
 int	optgetaddrs(unsigned char*, int, unsigned char*, int);
 int	optgetaddr(unsigned char*, int, unsigned char*);
 int	optgetbyte(unsigned char*, int);
 int	optgetstr(unsigned char*, int, char*, int);
 unsigned char	*optget(unsigned char*, int, int*);
-uint32_t	optgetulong(unsigned char*, int);
+u32	optgetulong(unsigned char*, int);
 int	optgetvec(unsigned char*, int, unsigned char*, int);
 int	parseoptions(unsigned char *p, int n);
 int	parseverb(char*);
 void	procsetname(char *fmt, ...);
 void	putndb(void);
-uint32_t	randint(uint32_t low, uint32_t hi);
+u32	randint(u32 low, u32 hi);
 void	tweakservers(void);
 void	usage(void);
 int	validip(unsigned char*);

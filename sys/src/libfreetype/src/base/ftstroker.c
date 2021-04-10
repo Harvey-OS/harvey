@@ -552,7 +552,7 @@
      }
    }
 
-   outline->n_points  = (int16_t)( outline->n_points + border->num_points );
+   outline->n_points  = (i16)( outline->n_points + border->num_points );
 
    FT_ASSERT( FT_Outline_Check( outline ) == 0 );
  }

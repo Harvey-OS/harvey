@@ -14,7 +14,7 @@
 int
 passtokey(char *key, char *p)
 {
-	uint8_t buf[ANAMELEN], *t;
+	u8 buf[ANAMELEN], *t;
 	int i, n;
 
 	n = strlen(p);

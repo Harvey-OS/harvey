@@ -428,15 +428,15 @@ dowstat(Xfile *f, Dir *stat)
 
 	return 1;
 }
-int32_t
-readfile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
+i32
+readfile(Xfile *f, void *vbuf, i64 offset, i32 count)
 {
 	Xfs *xf = f->xf;
 	Inode *inode;
 	Iobuf *buffer, *ibuf;
-	int32_t rcount;
+	i32 rcount;
 	int len, o, cur_block, baddr;
-	uint8_t *buf;
+	u8 *buf;
 
 	buf = vbuf;
 
@@ -489,11 +489,11 @@ readfile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	putbuf(ibuf);
 	return rcount;
 }
-int32_t
-readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
+i32
+readdir(Xfile *f, void *vbuf, i64 offset, i32 count)
 {
 	int off, i, len;
-	int32_t rcount;
+	i32 rcount;
 	Xfs *xf = f->xf;
 	Inode *inode, *tinode;
 	int nblock;
@@ -501,7 +501,7 @@ readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	Iobuf *buffer, *ibuf, *tbuf;
 	Dir pdir;
 	Xfile ft;
-	uint8_t *buf;
+	u8 *buf;
 	char name[EXT2_NAME_LEN+1];
 	unsigned int dirlen;
 	int index;
@@ -682,13 +682,13 @@ error:
 	putbuf(ibuf);
 	return 0;
 }
-int32_t
-writefile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
+i32
+writefile(Xfile *f, void *vbuf, i64 offset, i32 count)
 {
 	Xfs *xf = f->xf;
 	Inode *inode;
 	Iobuf *buffer, *ibuf;
-	int32_t w;
+	i32 w;
 	int len, o, cur_block, baddr;
 	char *buf;
 
@@ -737,7 +737,7 @@ new_block( Xfile *f, int goal )
 {
 	Xfs *xf= f->xf;
 	int group, block, baddr, k, redo;
-	uint32_t lmap;
+	u32 lmap;
 	char *p, *r;
 	Iobuf *buf;
 	Ext2 ed, es, eb;
@@ -769,10 +769,10 @@ repeat:
 			 * block within the next 32 blocks
 			*/
 
-			lmap = (((uint32_t *)eb.u.bmp)[block>>5]) >>
+			lmap = (((u32 *)eb.u.bmp)[block>>5]) >>
 					((block & 31) + 1);
 			if( block < xf->blocks_per_group - 32 )
-				lmap |= (((uint32_t *)eb.u.bmp)[(block>>5)+1]) <<
+				lmap |= (((u32 *)eb.u.bmp)[(block>>5)+1]) <<
 					( 31-(block & 31) );
 			else
 				lmap |= 0xffffffff << ( 31-(block & 31) );
@@ -838,7 +838,7 @@ full:
 	if( block < xf->blocks_per_group )
 		goto search_back;
 	else
-		block = find_first_zero_bit((uint32_t *)eb.u.bmp,
+		block = find_first_zero_bit((u32 *)eb.u.bmp,
 								xf->blocks_per_group>>3);
 	if( block >= xf->blocks_per_group ){
 		chat("Free block count courupted for block group %d...", group);
@@ -1228,7 +1228,7 @@ void
 free_inode( Xfs *xf, int inr)
 {
 	Inode *inode;
-	uint32_t b, bg;
+	u32 b, bg;
 	Iobuf *buf;
 	Ext2 ed, es, eb;
 
@@ -1591,7 +1591,7 @@ free_block_inode(Xfile *file)
 {
 	Xfs *xf = file->xf;
 	int i, j, k;
-	uint32_t b, *y, *z;
+	u32 b, *y, *z;
 	uint *x;
 	int naddr;
 	Inode *inode;
@@ -1634,7 +1634,7 @@ free_block_inode(Xfile *file)
 			buf1 = getbuf(xf, *x);
 			if( !buf1 ){ putbuf(buf); putbuf(ibuf); return -1; }
 			for(j=0 ; j < naddr ; j++){
-				y = ((uint32_t *)buf1->iobuf) + j;
+				y = ((u32 *)buf1->iobuf) + j;
 				if( *y == 0 ) break;
 				free_block(xf, *y);
 			}
@@ -1656,12 +1656,12 @@ free_block_inode(Xfile *file)
 			buf1 = getbuf(xf, *x);
 			if( !buf1 ){ putbuf(buf); putbuf(ibuf); return -1; }
 			for(j=0 ; j < naddr ; j++){
-				y = ((uint32_t *)buf1->iobuf) + j;
+				y = ((u32 *)buf1->iobuf) + j;
 				if( *y == 0 ) break;
 				buf2 = getbuf(xf, *y);
 				if( !buf2 ){ putbuf(buf); putbuf(buf1); putbuf(ibuf); return -1; }
 				for(k=0 ; k < naddr ; k++){
-					z = ((uint32_t *)buf2->iobuf) + k;
+					z = ((u32 *)buf2->iobuf) + k;
 					if( *z == 0 ) break;
 					free_block(xf, *z);
 				}
@@ -1678,9 +1678,9 @@ free_block_inode(Xfile *file)
 	putbuf(ibuf);
 	return 0;
 }
-void free_block( Xfs *xf, uint32_t block )
+void free_block( Xfs *xf, u32 block )
 {
-	uint32_t bg;
+	u32 bg;
 	Ext2 ed, es, eb;
 
 	es = getext2(xf, EXT2_SUPER, 0);
@@ -1757,17 +1757,17 @@ truncfile(Xfile *f)
 	inode->i_atime = inode->i_mtime = time(0);
 	inode->i_blocks = 0;
 	inode->i_size = 0;
-	memset(inode->i_block, 0, EXT2_N_BLOCKS*sizeof(uint32_t));
+	memset(inode->i_block, 0, EXT2_N_BLOCKS*sizeof(u32));
 	dirtybuf(ibuf);
 	putbuf(ibuf);
 	chat("trunc ok...");
 	return 0;
 }
-int32_t
+i32
 getmode(Xfile *f)
 {
 	Iobuf *ibuf;
-	int32_t mode;
+	i32 mode;
 
 	ibuf = getbuf(f->xf, f->bufaddr);
 	if( !ibuf )

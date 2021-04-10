@@ -12,18 +12,18 @@
 #include <libsec.h>
 
 SmbProcessResult
-smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, u8 *pdata,
 		       SmbBuffer *b)
 {
-	uint8_t andxcommand;
-	uint16_t andxoffset;
-	uint32_t andxfixupoffset;
-	uint16_t vcnumber;
-	uint32_t sessionkey;
-	uint16_t caseinsensitivepasswordlength;
-	uint16_t casesensitivepasswordlength;
-	uint16_t bytecountfixup, offset;
-	uint8_t *mschapreply;
+	u8 andxcommand;
+	u16 andxoffset;
+	u32 andxfixupoffset;
+	u16 vcnumber;
+	u32 sessionkey;
+	u16 caseinsensitivepasswordlength;
+	u16 casesensitivepasswordlength;
+	u16 bytecountfixup, offset;
+	u8 *mschapreply;
 	AuthInfo *ai;
 	char *sp;
 	SmbProcessResult pr;

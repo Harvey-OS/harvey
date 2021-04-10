@@ -40,7 +40,7 @@ enum {
  */
 #define QSHIFT 4 /* location in qid of client # */
 
-#define QID(q) ((((uint32_t)(q).path) & 0x0000000F) >> 0)
+#define QID(q) ((((u32)(q).path) & 0x0000000F) >> 0)
 #define CLIENTPATH(q) ((((u32)q) & 0x7FFFFFF0) >> QSHIFT)
 #define CLIENT(q) CLIENTPATH((q).path)
 
@@ -185,7 +185,7 @@ static char Enoclient[] = "no such draw client";
 //static	char Edepth[] =		"image has bad depth";
 static char Enameused[] = "image name in use";
 static char Enoname[] = "no image with that name";
-static char Eoldname[] = "named image no int32_ter valid";
+static char Eoldname[] = "named image no i32er valid";
 static char Enamed[] = "image already has name";
 static char Ewrongname[] = "wrong name for image";
 

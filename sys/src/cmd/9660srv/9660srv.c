@@ -21,25 +21,25 @@ static void	iclone(Xfile*, Xfile*);
 static void	iwalkup(Xfile*);
 static void	iwalk(Xfile*, char*);
 static void	iopen(Xfile*, int);
-static void	icreate(Xfile*, char*, int32_t, int);
-static int32_t	ireaddir(Xfile*, uint8_t*, int32_t, int32_t);
-static int32_t	iread(Xfile*, char*, int64_t, int32_t);
-static int32_t	iwrite(Xfile*, char*, int64_t, int32_t);
+static void	icreate(Xfile*, char*, i32, int);
+static i32	ireaddir(Xfile*, u8*, i32, i32);
+static i32	iread(Xfile*, char*, i64, i32);
+static i32	iwrite(Xfile*, char*, i64, i32);
 static void	iclunk(Xfile*);
 static void	iremove(Xfile*);
 static void	istat(Xfile*, Dir*);
 static void	iwstat(Xfile*, Dir*);
 
-static char*	nstr(uint8_t*, int);
-static char*	rdate(uint8_t*, int);
-static int	getcontin(Xdata*, uint8_t*, uint8_t**);
+static char*	nstr(u8*, int);
+static char*	rdate(u8*, int);
+static int	getcontin(Xdata*, u8*, u8**);
 static int	getdrec(Xfile*, void*);
 static void	ungetdrec(Xfile*);
 static int	opendotdot(Xfile*, Xfile*);
 static int	showdrec(int, int, void*);
-static int32_t	gtime(uint8_t*);
-static int32_t	l16(void*);
-static int32_t	l32(void*);
+static i32	gtime(u8*);
+static i32	l16(void*);
+static i32	l32(void*);
 static void	newdrec(Xfile*, Drec*);
 static int	rzdir(Xfs*, Dir*, int, Drec*);
 
@@ -49,8 +49,8 @@ Xfsub	isosub =
 	ireaddir, iread, iwrite, iclunk, iremove, istat, iwstat
 };
 
-static int64_t
-fakemax(int64_t len)
+static i64
+fakemax(i64 len)
 {
 	if(len == (1UL << 31) - 1)	/* max. 9660 size? */
 		len = (1ULL << 63) - 1;	/* pretend it's vast */
@@ -68,9 +68,9 @@ iattach(Xfile *root)
 	Iobuf *p; Voldesc *v; Isofile *fp; Drec *dp;
 	int fmt, blksize, i, n, l, haveplan9;
 	Iobuf *dirp;
-	uint8_t dbuf[256];
+	u8 dbuf[256];
 	Drec *rd = (Drec *)dbuf;
-	uint8_t *q, *s;
+	u8 *q, *s;
 
 	dirp = nil;
 	blksize = 0;
@@ -175,7 +175,7 @@ chat("%d %d\n", haveplan9, nojoliet);
 	poperror();
 	if(getdrec(root, rd) >= 0){
 		n = rd->reclen-(34+rd->namelen);
-		s = (uint8_t*)rd->name + rd->namelen;
+		s = (u8*)rd->name + rd->namelen;
 		if((uintptr)s & 1){
 			s++;
 			n--;
@@ -220,8 +220,8 @@ iclone(Xfile *of, Xfile *nf)
 static void
 iwalkup(Xfile *f)
 {
-	int64_t paddr;
-	uint8_t dbuf[256];
+	i64 paddr;
+	u8 dbuf[256];
 	Drec *d = (Drec *)dbuf;
 	Xfile pf, ppf;
 	Isofile piso, ppiso;
@@ -260,7 +260,7 @@ static void
 iwalk(Xfile *f, char *name)
 {
 	Isofile *ip = f->ptr;
-	uint8_t dbuf[256];
+	u8 dbuf[256];
 	char nbuf[4*Maxname];
 	Drec *d = (Drec*)dbuf;
 	Dir dir;
@@ -316,19 +316,19 @@ iopen(Xfile *f, int mode)
 }
 
 static void
-icreate(Xfile *f, char *name, int32_t perm, int mode)
+icreate(Xfile *f, char *name, i32 perm, int mode)
 {
 	USED(f); USED(name); USED(perm); USED(mode);
 	error(Eperm);
 }
 
-static int32_t
-ireaddir(Xfile *f, uint8_t *buf, int32_t offset, int32_t count)
+static i32
+ireaddir(Xfile *f, u8 *buf, i32 offset, i32 count)
 {
 	Isofile *ip = f->ptr;
 	Dir d;
 	char names[4*Maxname];
-	uint8_t dbuf[256];
+	u8 dbuf[256];
 	Drec *drec = (Drec *)dbuf;
 	int n, rcnt;
 
@@ -359,11 +359,11 @@ ireaddir(Xfile *f, uint8_t *buf, int32_t offset, int32_t count)
 	return rcnt;
 }
 
-static int32_t
-iread(Xfile *f, char *buf, int64_t offset, int32_t count)
+static i32
+iread(Xfile *f, char *buf, i64 offset, i32 count)
 {
 	int n, o, rcnt = 0;
-	int64_t size, addr;
+	i64 size, addr;
 	Isofile *ip = f->ptr;
 	Iobuf *p;
 
@@ -372,7 +372,7 @@ iread(Xfile *f, char *buf, int64_t offset, int32_t count)
 		return 0;
 	if(offset+count > size)
 		count = size - offset;
-	addr = ((int64_t)l32(ip->d.addr) + ip->d.attrlen)*ip->blksize + offset;
+	addr = ((i64)l32(ip->d.addr) + ip->d.attrlen)*ip->blksize + offset;
 	o = addr % Sectorsize;
 	addr /= Sectorsize;
 	/*chat("d.addr=%ld, addr=%lld, o=%d...", l32(ip->d.addr), addr, o);*/
@@ -393,8 +393,8 @@ iread(Xfile *f, char *buf, int64_t offset, int32_t count)
 	return rcnt;
 }
 
-static int32_t
-iwrite(Xfile *f, char *buf, int64_t offset, int32_t count)
+static i32
+iwrite(Xfile *f, char *buf, i64 offset, i32 count)
 {
 	USED(f); USED(buf); USED(offset); USED(count);
 	error(Eperm);
@@ -494,15 +494,15 @@ getdrec(Xfile *f, void *buf)
 {
 	Isofile *ip = f->ptr;
 	int len = 0, boff = 0;
-	int64_t addr;
-	uint64_t size;
+	i64 addr;
+	u64 size;
 	Iobuf *p = 0;
 
 	if(!ip)
 		return -1;
 	size = fakemax(l32(ip->d.size));
 	while(ip->offset < size){
-		addr = ((int64_t)l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
+		addr = ((i64)l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
 		boff = addr % Sectorsize;
 		if(boff > Sectorsize-34){
 			ip->offset += Sectorsize-boff;
@@ -529,7 +529,7 @@ getdrec(Xfile *f, void *buf)
 static int
 opendotdot(Xfile *f, Xfile *pf)
 {
-	uint8_t dbuf[256];
+	u8 dbuf[256];
 	Drec *d = (Drec *)dbuf;
 	Isofile *ip = f->ptr, *pip = pf->ptr;
 
@@ -573,10 +573,10 @@ static int
 rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 {
 	int n, flags, i, j, lj, nl, vers, sysl, mode, l, have;
-	uint8_t *s;
+	u8 *s;
 	char *p;
 	char buf[Maxname+UTFmax+1];
-	uint8_t *q;
+	u8 *q;
 	Rune r;
 	enum { ONAMELEN = 28 };	/* old Plan 9 directory name length */
 
@@ -602,7 +602,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 		}
 	} else {
 		if(fmt == 'J'){	/* Joliet, 16-bit Unicode */
-			q = (uint8_t*)dp->name;
+			q = (u8*)dp->name;
 			for(i=j=lj=0; i<n && j<Maxname; i+=2){
 				lj = j;
 				r = (q[i]<<8)|q[i+1];
@@ -620,7 +620,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 	}
 
 	sysl = dp->reclen-(34+dp->namelen);
-	s = (uint8_t*)dp->name + dp->namelen;
+	s = (u8*)dp->name + dp->namelen;
 	if(((uintptr)s) & 1) {
 		s++;
 		sysl--;
@@ -755,9 +755,9 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 }
 
 static int
-getcontin(Xdata *dev, uint8_t *p, uint8_t **s)
+getcontin(Xdata *dev, u8 *p, u8 **s)
 {
-	int64_t bn, off, len;
+	i64 bn, off, len;
 	Iobuf *b;
 
 	bn = l32(p+4);
@@ -775,7 +775,7 @@ getcontin(Xdata *dev, uint8_t *p, uint8_t **s)
 }
 
 static char *
-nstr(uint8_t *p, int n)
+nstr(u8 *p, int n)
 {
 	static char buf[132];
 	char *q = buf;
@@ -793,7 +793,7 @@ nstr(uint8_t *p, int n)
 }
 
 static char *
-rdate(uint8_t *p, int fmt)
+rdate(u8 *p, int fmt)
 {
 	static char buf[64];
 	int htz, s, n;
@@ -827,10 +827,10 @@ dysize(int y)
 	return 365;
 }
 
-static int32_t
-gtime(uint8_t *p)	/* yMdhmsz */
+static i32
+gtime(u8 *p)	/* yMdhmsz */
 {
-	int32_t t;
+	i32 t;
 	int i, y, M, d, h, m, s, tz;
 
 	y=p[0]; M=p[1]; d=p[2];
@@ -864,23 +864,23 @@ gtime(uint8_t *p)	/* yMdhmsz */
 	return t;
 }
 
-#define	p	((uint8_t*)arg)
+#define	p	((u8*)arg)
 
-static int32_t
+static i32
 l16(void *arg)
 {
-	int32_t v;
+	i32 v;
 
-	v = ((int32_t)p[1]<<8)|p[0];
+	v = ((i32)p[1]<<8)|p[0];
 	if (v >= 0x8000L)
 		v -= 0x10000L;
 	return v;
 }
 
-static int32_t
+static i32
 l32(void *arg)
 {
-	return (((int32_t)p[3]<<8 | p[2])<<8 | p[1])<<8 | p[0];
+	return (((i32)p[3]<<8 | p[2])<<8 | p[1])<<8 | p[0];
 }
 
 #undef	p

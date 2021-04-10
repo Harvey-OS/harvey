@@ -415,8 +415,8 @@ void WriteBytesSwapped(FILE *fp, char *p, int n)
 # define FloatToUnsigned(f)	((unsigned long)(f))
 # define UnsignedToFloat(u)	((double)(u))
 #else /* applec */
-# define FloatToUnsigned(f)	((unsigned long)(((int32_t)((f) - 2147483648.0)) + 2147483647L + 1))
-# define UnsignedToFloat(u)	(((double)((int32_t)((u) - 2147483647L - 1))) + 2147483648.0)
+# define FloatToUnsigned(f)	((unsigned long)(((i32)((f) - 2147483648.0)) + 2147483647L + 1))
+# define UnsignedToFloat(u)	(((double)((i32)((u) - 2147483647L - 1))) + 2147483648.0)
 #endif /* applec */
 /****************************************************************
  * Extended precision IEEE floating-point conversion routines
@@ -426,15 +426,15 @@ double
 ConvertFromIeeeExtended(char* bytes)
 {
 	double	f;
-	int32_t	expon;
+	i32	expon;
 	unsigned long hiMant, loMant;
 
 #ifdef	TEST
 printf("ConvertFromIEEEExtended(%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx\r",
-	(int32_t)bytes[0], (int32_t)bytes[1], (int32_t)bytes[2],
-       (int32_t)bytes[3],
-	(int32_t)bytes[4], (int32_t)bytes[5], (int32_t)bytes[6],
-	(int32_t)bytes[7], (int32_t)bytes[8], (int32_t)bytes[9]);
+	(i32)bytes[0], (i32)bytes[1], (i32)bytes[2],
+	(i32)bytes[3],
+	(i32)bytes[4], (i32)bytes[5], (i32)bytes[6],
+	(i32)bytes[7], (i32)bytes[8], (i32)bytes[9]);
 #endif
 
 	expon = ((bytes[0] & 0x7F) << 8) | (bytes[1] & 0xFF);

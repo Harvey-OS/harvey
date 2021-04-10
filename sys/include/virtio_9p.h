@@ -31,8 +31,8 @@
 
 struct virtio_9p_config {
 	/* length of the tag name */
-	uint16_t tag_len;
+	u16 tag_len;
 	/* non-NULL terminated tag name */
-	uint8_t tag[0];
+	u8 tag[0];
 } __attribute__((packed));
 

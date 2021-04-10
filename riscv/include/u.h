@@ -20,21 +20,13 @@ typedef	signed long long i64;
 typedef	u64		usize;
 typedef	i64		isize;
 
-typedef	unsigned char	uint8_t;
-typedef signed char	int8_t;
-typedef	unsigned short	uint16_t;
-typedef	signed short	int16_t;
-typedef unsigned int	uint32_t;
 typedef unsigned int	uint;
-typedef signed int	int32_t;
-typedef	unsigned long long uint64_t;
-typedef	long long	int64_t;
-typedef int64_t intptr_t;
-typedef uint64_t uintptr;
-typedef uint64_t uintptr_t;
-typedef uint32_t	usize;
-typedef int64_t size_t;
-typedef	uint32_t		Rune;
+typedef i64 intptr_t;
+typedef u64 uintptr;
+typedef u64 uintptr_t;
+typedef u32	usize;
+typedef i64 size_t;
+typedef	u32		Rune;
 typedef union FPdbleword FPdbleword;
 // This is a guess! Assumes float!
 typedef uintptr		jmp_buf[64]; // for registers.

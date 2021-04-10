@@ -28,14 +28,14 @@ struct URL
 	char	*postbody;
 	char	*cred;
 	char *rhead;
-	int32_t	mtime;
+	i32	mtime;
 };
 
 typedef struct Range Range;
 struct Range
 {
-	int32_t	start;	/* only 2 gig supported, tdb */
-	int32_t	end;
+	i32	start;	/* only 2 gig supported, tdb */
+	i32	end;
 };
 
 typedef struct Out Out;
@@ -68,8 +68,8 @@ int debug;
 char *ofile;
 
 
-int	doftp(URL*, URL*, Range*, Out*, int32_t);
-int	dohttp(URL*, URL*,  Range*, Out*, int32_t);
+int	doftp(URL*, URL*, Range*, Out*, i32);
+int	dohttp(URL*, URL*,  Range*, Out*, i32);
 int	crackurl(URL*, char*);
 Range*	crackrange(char*);
 int	getheader(int, char*, int);
@@ -90,7 +90,7 @@ int	headerprint;
 
 struct {
 	char	*name;
-	int	(*f)(URL*, URL*, Range*, Out*, int32_t);
+	int	(*f)(URL*, URL*, Range*, Out*, i32);
 } method[] = {
 	[Http] =	{ "http",	dohttp },
 	[Https] =	{ "https",	dohttp },
@@ -111,7 +111,7 @@ main(int argc, char **argv)
 	URL u;
 	Range r;
 	int errs, n;
-	uint32_t mtime;
+	u32 mtime;
 	Dir *d;
 	char postbody[4096], *p, *e, *t, *hpx;
 	URL px; // Proxy
@@ -161,7 +161,7 @@ main(int argc, char **argv)
 
 	if(net != nil){
 		if(strlen(net) > sizeof(tcpdir)-5)
-			sysfatal("network mount point too int32_t");
+			sysfatal("network mount point too i32");
 		snprint(tcpdir, sizeof(tcpdir), "%s/tcp", net);
 	} else
 		snprint(tcpdir, sizeof(tcpdir), "tcp");
@@ -311,7 +311,7 @@ char *month[] = {
 struct
 {
 	int	fd;
-	int32_t	mtime;
+	i32	mtime;
 } note;
 
 void
@@ -327,12 +327,12 @@ catch(void *v, char *c)
 }
 
 int
-dohttp(URL *u, URL *px, Range *r, Out *out, int32_t mtime)
+dohttp(URL *u, URL *px, Range *r, Out *out, i32 mtime)
 {
 	int fd, cfd;
 	int redirect, auth, loop;
 	int n, rv, code;
-	int32_t tot, vtime;
+	i32 tot, vtime;
 	Tm *tm;
 	char buf[1024];
 	char err[ERRMAX];
@@ -767,7 +767,7 @@ void
 hhcrange(char *p, URL *u, Range *r)
 {
 	char *x;
-	int64_t l;
+	i64 l;
 
 	l = 0;
 	x = strchr(p, '/');
@@ -817,7 +817,7 @@ hhauth(char *p, URL *u, Range *r)
 			sysfatal("cannot authenticate");
 
 	s = smprint("%s:%s", up->user, up->passwd);
-	if(enc64(cred, sizeof(cred), (uint8_t *)s, strlen(s)) == -1)
+	if(enc64(cred, sizeof(cred), (u8 *)s, strlen(s)) == -1)
 		sysfatal("enc64");
  	free(s);
 
@@ -846,11 +846,11 @@ int passive(int, URL*);
 int active(int, URL*);
 int ftpxfer(int, Out*, Range*);
 int terminateftp(int, int);
-int getaddrport(char*, uint8_t*, uint8_t*);
-int ftprestart(int, Out*, URL*, Range*, int32_t);
+int getaddrport(char*, u8*, u8*);
+int ftprestart(int, Out*, URL*, Range*, i32);
 
 int
-doftp(URL *u, URL *px, Range *r, Out *out, int32_t mtime)
+doftp(URL *u, URL *px, Range *r, Out *out, i32 mtime)
 {
 	int pid, ctl, data, rv;
 	Waitmsg *w;
@@ -1016,11 +1016,11 @@ getdec(char *p, int n)
 }
 
 int
-ftprestart(int ctl, Out *out, URL *u, Range *r, int32_t mtime)
+ftprestart(int ctl, Out *out, URL *u, Range *r, i32 mtime)
 {
 	Tm tm;
 	char msg[1024];
-	int32_t x, rmtime;
+	i32 x, rmtime;
 
 	ftpcmd(ctl, "MDTM %s", u->page);
 	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
@@ -1161,8 +1161,8 @@ active(int ctl, URL *u)
 {
 	char msg[1024];
 	char dir[40], ldir[40];
-	uint8_t ipaddr[4];
-	uint8_t port[2];
+	u8 ipaddr[4];
+	u8 port[2];
 	int lcfd, dfd, afd;
 
 	/* announce a port for the call back */
@@ -1216,7 +1216,7 @@ int
 ftpxfer(int in, Out *out, Range *r)
 {
 	char buf[1024];
-	int32_t vtime;
+	i32 vtime;
 	int i, n;
 
 	vtime = 0;
@@ -1354,7 +1354,7 @@ dfprint(int fd, char *fmt, ...)
 }
 
 int
-getaddrport(char *dir, uint8_t *ipaddr, uint8_t *port)
+getaddrport(char *dir, u8 *ipaddr, u8 *port)
 {
 	char buf[256];
 	int fd, i;
@@ -1382,7 +1382,7 @@ getaddrport(char *dir, uint8_t *ipaddr, uint8_t *port)
 void
 md5free(DigestState *state)
 {
-	uint8_t x[MD5dlen];
+	u8 x[MD5dlen];
 	md5(nil, 0, x, state);
 }
 
@@ -1427,7 +1427,7 @@ int
 output(Out *out, char *buf, int nb)
 {
 	int n, d;
-	uint8_t m0[MD5dlen], m1[MD5dlen];
+	u8 m0[MD5dlen], m1[MD5dlen];
 
 	n = nb;
 	d = out->written - out->offset;
@@ -1435,12 +1435,12 @@ output(Out *out, char *buf, int nb)
 	if(d > 0){
 		if(n < d){
 			if(out->curr != nil)
-				md5((uint8_t*)buf, n, nil, out->curr);
+				md5((u8*)buf, n, nil, out->curr);
 			out->offset += n;
 			return n;
 		}
 		if(out->curr != nil){
-			md5((uint8_t*)buf, d, m0, out->curr);
+			md5((u8*)buf, d, m0, out->curr);
 			out->curr = nil;
 			md5(nil, 0, m1, md5dup(out->hiwat));
 			if(memcmp(m0, m1, MD5dlen) != 0){
@@ -1453,7 +1453,7 @@ output(Out *out, char *buf, int nb)
 		out->offset += d;
 	}
 	if(n > 0){
-		out->hiwat = md5((uint8_t*)buf, n, nil, out->hiwat);
+		out->hiwat = md5((u8*)buf, n, nil, out->hiwat);
 		n = write(out->fd, buf, n);
 		if(n > 0){
 			out->offset += n;

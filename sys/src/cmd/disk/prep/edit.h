@@ -11,10 +11,10 @@ typedef struct Part Part;
 struct Part {
 	char *name;
 	char *ctlname;
-	int64_t start;
-	int64_t end;
-	int64_t ctlstart;
-	int64_t ctlend;
+	i64 start;
+	i64 end;
+	i64 ctlstart;
+	i64 ctlend;
 	int changed;
 };
 
@@ -32,19 +32,19 @@ struct Edit {
 	Part *part[Maxpart];
 	int npart;
 
-	char *(*add)(Edit*, char*, int64_t, int64_t);
+	char *(*add)(Edit*, char*, i64, i64);
 	char *(*del)(Edit*, Part*);
 	char *(*ext)(Edit*, int, char**);
 	char *(*help)(Edit*);
 	char *(*okname)(Edit*, char*);
-	void (*sum)(Edit*, Part*, int64_t, int64_t);
+	void (*sum)(Edit*, Part*, i64, i64);
 	char *(*write)(Edit*);
 	void (*printctl)(Edit*, int);
 
 	char *unit;
 	void *aux;
-	int64_t dot;
-	int64_t end;
+	i64 dot;
+	i64 end;
 
 	/* do not use fields below this line */
 	int changed;
@@ -57,7 +57,7 @@ void	runcmd(Edit*, char*);
 Part	*findpart(Edit*, char*);
 char	*addpart(Edit*, Part*);
 char	*delpart(Edit*, Part*);
-char *parseexpr(char *s, int64_t xdot, int64_t xdollar, int64_t xsize, int64_t *result);
+char *parseexpr(char *s, i64 xdot, i64 xdollar, i64 xsize, i64 *result);
 int	ctldiff(Edit *edit, int ctlfd);
-void *emalloc(uint32_t);
+void *emalloc(u32);
 char *estrdup(char*);

@@ -55,7 +55,7 @@ flclri(Fsck *f, char *name, MetaBlock *m, int i, Block *b)
 }
 
 static void
-flclose(Fsck *f, Block *b, uint32_t epoch)
+flclose(Fsck *f, Block *b, u32 epoch)
 {
 	Bprint(&bout, "# bclose 0x%x %u\n", b->addr, epoch);
 }

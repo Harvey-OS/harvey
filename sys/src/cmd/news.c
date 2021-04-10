@@ -35,9 +35,9 @@ char*	ignore[] =
 typedef
 struct
 {
-	int32_t	time;
+	i32	time;
 	char	*name;
-	int64_t	length;
+	i64	length;
 } File;
 File*	n_list;
 int	n_count;
@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 int
 fcmp(const void *a, const void *b)
 {
-	int32_t x;
+	i32 x;
 
 	x = ((File*)b)->time - ((File*)a)->time;
 	if(x < 0)

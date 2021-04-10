@@ -21,41 +21,41 @@ typedef struct {
 	union{
 		struct {
 			/* this will die soon. For now, just include it here. */
-			int32_t	magic;		/* magic number */
-			int32_t	text;	 	/* size of text segment */
-			int32_t	data;	 	/* size of initialized data */
-			int32_t	bss;	  	/* size of uninitialized data */
-			int32_t	syms;	 	/* size of symbol table */
-			int32_t	entry;	 	/* entry point */
-			int32_t	spsz;		/* size of pc/sp offset table */
-			int32_t	pcsz;		/* size of pc/line number table */
+			i32	magic;		/* magic number */
+			i32	text;	 	/* size of text segment */
+			i32	data;	 	/* size of initialized data */
+			i32	bss;	  	/* size of uninitialized data */
+			i32	syms;	 	/* size of symbol table */
+			i32	entry;	 	/* entry point */
+			i32	spsz;		/* size of pc/sp offset table */
+			i32	pcsz;		/* size of pc/line number table */
 		};
 		E64hdr E64hdr;
 	} e;
-	int32_t dummy;			/* padding to ensure extra long */
+	i32 dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
 static int	elfdotout(int, Fhdr*, ExecHdr*);
-static void	setsym(Fhdr*, int32_t, int32_t, int32_t, int64_t);
-static void	setdata(Fhdr*, uint64_t, int32_t, int64_t, int32_t);
-static void	settext(Fhdr*, uint64_t, uint64_t, int32_t, int64_t);
-static void	setstr(Fhdr *fp, int64_t stroff, uint64_t strsz);
-static void	setbssidx(Fhdr *fp, uint16_t bssidx);
-static void	setdbglineidx(Fhdr *fp, uint16_t dbglineidx);
-static void	hswal(void*, int, uint32_t(*)(uint32_t));
+static void	setsym(Fhdr*, i32, i32, i32, i64);
+static void	setdata(Fhdr*, u64, i32, i64, i32);
+static void	settext(Fhdr*, u64, u64, i32, i64);
+static void	setstr(Fhdr *fp, i64 stroff, u64 strsz);
+static void	setbssidx(Fhdr *fp, u16 bssidx);
+static void	setdbglineidx(Fhdr *fp, u16 dbglineidx);
+static void	hswal(void*, int, u32(*)(u32));
 
 /*
  *	definition of per-executable file type structures
  */
 
 typedef struct Exectable{
-	int32_t		magic;			/* big-endian magic number of file */
+	i32		magic;			/* big-endian magic number of file */
 	char		*name;			/* executable identifier */
 	char		*dlmname;		/* dynamically loadable module identifier */
-	uint8_t		type;			/* Internal code */
+	u8		type;			/* Internal code */
 	Mach		*mach;			/* Per-machine data */
-	int32_t		hsize;			/* header size */
-	uint32_t	(*swal)(uint32_t);	/* beswal or leswal */
+	i32		hsize;			/* header size */
+	u32	(*swal)(u32);	/* beswal or leswal */
 	int		(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
@@ -82,7 +82,7 @@ crackhdr(int fd, Fhdr *fp)
 	ExecTable *mp;
 	ExecHdr d;
 	int nb, ret;
-	uint32_t magic;
+	u32 magic;
 
 	fp->type = FNONE;
 	nb = read(fd, (char *)&d.e, sizeof(d.e));
@@ -105,7 +105,7 @@ crackhdr(int fd, Fhdr *fp)
 
 		mach = mp->mach;
 		if(mp->swal != nil)
-			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
+			hswal(&d, sizeof(d.e)/sizeof(u32), mp->swal);
 		ret = mp->hparse(fd, fp, &d);
 		seek(fd, mp->hsize, 0);		/* seek to end of header */
 		break;
@@ -119,9 +119,9 @@ crackhdr(int fd, Fhdr *fp)
  * Convert header to canonical form
  */
 static void
-hswal(void *v, int n, uint32_t (*swap)(uint32_t))
+hswal(void *v, int n, u32 (*swap)(u32))
 {
-	uint32_t *ulp;
+	u32 *ulp;
 
 	for(ulp = v; n--; ulp++)
 		*ulp = (*swap)(*ulp);
@@ -133,9 +133,9 @@ hswal(void *v, int n, uint32_t (*swap)(uint32_t))
 static int
 elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	uint16_t (*swab)(uint16_t);
-	uint32_t (*swal)(uint32_t);
-	uint64_t (*swav)(uint64_t);
+	u16 (*swab)(u16);
+	u32 (*swal)(u32);
+	u64 (*swav)(u64);
 
 	E64hdr *ep = &hp->e.E64hdr;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
@@ -221,7 +221,7 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	}
 
 	settext(fp, ep->elfentry, ph[it].vaddr, ph[it].memsz, ph[it].offset);
-	uint64_t uvl = ph[id].memsz - ph[id].filesz;
+	u64 uvl = ph[id].memsz - ph[id].filesz;
 	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, uvl);
 	free(ph);
 
@@ -288,8 +288,8 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 
 	// Get sections based on names - load the section string table first
 	if (ep->shstrndx != SHN_UNDEF) {
-		uint64_t shstroff = sh[ep->shstrndx].offset;
-		uint64_t shstrsz = sh[ep->shstrndx].size;
+		u64 shstroff = sh[ep->shstrndx].offset;
+		u64 shstrsz = sh[ep->shstrndx].size;
 		char *shstrtab = (char *)malloc(shstrsz);
 		if (shstrtab == 0) {
 			werrstr("can't allocate memory to load section string table");
@@ -347,7 +347,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 }
 
 static void
-settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
+settext(Fhdr *fp, u64 e, u64 a, i32 s, i64 off)
 {
 	fp->txtaddr = a;
 	fp->entry = e;
@@ -356,7 +356,7 @@ settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
 }
 
 static void
-setdata(Fhdr *fp, uint64_t a, int32_t s, int64_t off, int32_t bss)
+setdata(Fhdr *fp, u64 a, i32 s, i64 off, i32 bss)
 {
 	fp->dataddr = a;
 	fp->datsz = s;
@@ -365,7 +365,7 @@ setdata(Fhdr *fp, uint64_t a, int32_t s, int64_t off, int32_t bss)
 }
 
 static void
-setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz, int64_t symoff)
+setsym(Fhdr *fp, i32 symsz, i32 sppcsz, i32 lnpcsz, i64 symoff)
 {
 	fp->symsz = symsz;
 	fp->symoff = symoff;
@@ -376,20 +376,20 @@ setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz, int64_t symoff)
 }
  
 static void
-setstr(Fhdr *fp, int64_t stroff, uint64_t strsz)
+setstr(Fhdr *fp, i64 stroff, u64 strsz)
 {
 	fp->stroff = stroff;
 	fp->strsz = strsz;
 }
 
 static void
-setbssidx(Fhdr *fp, uint16_t bssidx)
+setbssidx(Fhdr *fp, u16 bssidx)
 {
 	fp->bssidx = bssidx;
 }
 
 static void
-setdbglineidx(Fhdr *fp, uint16_t dbglineidx)
+setdbglineidx(Fhdr *fp, u16 dbglineidx)
 {
 	fp->dbglineidx = dbglineidx;
 }

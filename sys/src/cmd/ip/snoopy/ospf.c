@@ -22,15 +22,15 @@
 typedef struct Ospfpkt	Ospfpkt;
 struct Ospfpkt
 {
-	uint8_t	version;
-	uint8_t	type;
-	uint8_t	length[2];
-	uint8_t	router[4];
-	uint8_t	area[4];
-	uint8_t	sum[2];
-	uint8_t	autype[2];
-	uint8_t	auth[8];
-	uint8_t	data[1];
+	u8	version;
+	u8	type;
+	u8	length[2];
+	u8	router[4];
+	u8	area[4];
+	u8	sum[2];
+	u8	autype[2];
+	u8	auth[8];
+	u8	data[1];
 };
 #define OSPF_HDRSIZE	24
 
@@ -89,14 +89,14 @@ ospfauth(Ospfpkt *ospf)
 typedef struct Ospfhello	Ospfhello;
 struct Ospfhello
 {
-	uint8_t	mask[4];
-	uint8_t	interval[2];
-	uint8_t	options;
-	uint8_t	pri;
-	uint8_t	deadint[4];
-	uint8_t	designated[4];
-	uint8_t	bdesignated[4];
-	uint8_t	neighbor[1];
+	u8	mask[4];
+	u8	interval[2];
+	u8	options;
+	u8	pri;
+	u8	deadint[4];
+	u8	designated[4];
+	u8	bdesignated[4];
+	u8	neighbor[1];
 };
 
 char*
@@ -143,74 +143,74 @@ lsapkttype(int x)
 /* rfc2178 section 12.1 */
 /* data of Ospfpkt point to a 4-uchar value that is the # of LSAs */
 struct OspfLSAhdr {
-	uint8_t	lsage[2];
-	uint8_t	options;	/* 0x2=stub area, 0x1=TOS routing capable */
+	u8	lsage[2];
+	u8	options;	/* 0x2=stub area, 0x1=TOS routing capable */
 
-	uint8_t	lstype;	/* 1=Router-LSAs
+	u8	lstype;	/* 1=Router-LSAs
 						 * 2=Network-LSAs
 						 * 3=Summary-LSAs (to network)
 						 * 4=Summary-LSAs (to AS boundary routers)
 						 * 5=AS-External-LSAs
 						 */
-	uint8_t	lsid[4];
-	uint8_t	advtrt[4];
+	u8	lsid[4];
+	u8	advtrt[4];
 
-	uint8_t	lsseqno[4];
-	uint8_t	lscksum[2];
-	uint8_t	lsalen[2];	/* includes the 20 byte lsa header */
+	u8	lsseqno[4];
+	u8	lscksum[2];
+	u8	lsalen[2];	/* includes the 20 byte lsa header */
 };
 
 struct Ospfrt {
-	uint8_t	linkid[4];
-	uint8_t	linkdata[4];
-	uint8_t	typ;
-	uint8_t	numtos;
-	uint8_t	metric[2];
+	u8	linkid[4];
+	u8	linkdata[4];
+	u8	typ;
+	u8	numtos;
+	u8	metric[2];
 
 };
 
 struct OspfrtLSA {
 	struct OspfLSAhdr	hdr;
-	uint8_t			netmask[4];
+	u8			netmask[4];
 };
 
 struct OspfntLSA {
 	struct OspfLSAhdr	hdr;
-	uint8_t			netmask[4];
-	uint8_t			attrt[4];
+	u8			netmask[4];
+	u8			attrt[4];
 };
 
 /* Summary Link State Advertisement info */
 struct Ospfsumm {
-	uint8_t	flag;	/* always zero */
-	uint8_t	metric[3];
+	u8	flag;	/* always zero */
+	u8	metric[3];
 };
 
 struct OspfsummLSA {
 	struct OspfLSAhdr	hdr;
-	uint8_t			netmask[4];
+	u8			netmask[4];
 	struct Ospfsumm		lsa;
 };
 
 /* AS external Link State Advertisement info */
 struct OspfASext {
-	uint8_t	flag;	/* external */
-	uint8_t	metric[3];
-	uint8_t	fwdaddr[4];
-	uint8_t	exrttag[4];
+	u8	flag;	/* external */
+	u8	metric[3];
+	u8	fwdaddr[4];
+	u8	exrttag[4];
 };
 
 struct OspfASextLSA {
 	struct OspfLSAhdr	hdr;
-	uint8_t			netmask[4];
+	u8			netmask[4];
 	struct OspfASext	lsa;
 };
 
 /* OSPF Link State Update Packet */
 struct OspfLSupdpkt {
-	uint8_t	lsacnt[4];
+	u8	lsacnt[4];
 	union {
-		uint8_t			hdr[1];
+		u8			hdr[1];
 		struct OspfrtLSA	rt[1];
 		struct OspfntLSA	nt[1];
 		struct OspfsummLSA	sum[1];
@@ -229,10 +229,10 @@ seprintospflsaheader(char *p, char *e, struct OspfLSAhdr *h)
 
 /* OSPF Database Description Packet */
 struct OspfDDpkt {
-	uint8_t	intMTU[2];
-	uint8_t	options;
-	uint8_t	bits;
-	uint8_t	DDseqno[4];
+	u8	intMTU[2];
+	u8	options;
+	u8	bits;
+	u8	DDseqno[4];
 	struct OspfLSAhdr	hdr[1];		/* LSA headers... */
 };
 

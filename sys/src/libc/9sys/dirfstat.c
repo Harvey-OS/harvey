@@ -20,7 +20,7 @@ Dir*
 dirfstat(int fd)
 {
 	Dir *d;
-	uint8_t *buf;
+	u8 *buf;
 	int n, nd, i;
 
 	nd = DIRSIZE;
@@ -28,7 +28,7 @@ dirfstat(int fd)
 		d = malloc(sizeof(Dir) + BIT16SZ + nd);
 		if(d == nil)
 			return nil;
-		buf = (uint8_t*)&d[1];
+		buf = (u8*)&d[1];
 		n = fstat(fd, buf, BIT16SZ+nd);
 		if(n < BIT16SZ){
 			free(d);

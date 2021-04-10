@@ -20,7 +20,7 @@ int		eflag = 0;
 int		nineflag = 0;
 int		threeflag = 0;
 int		output = 0;
-uint32_t		outchan = CMAP8;
+u32		outchan = CMAP8;
 int		defaultcolor = 1;
 Image		*image;
 

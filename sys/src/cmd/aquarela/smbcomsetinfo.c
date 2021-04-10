@@ -10,10 +10,10 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomsetinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+smbcomsetinformation2(SmbSession *s, SmbHeader *h, u8 *pdata,
 		      SmbBuffer *sb)
 {
-	uint16_t fid, adate, atime, mdate, mtime;
+	u16 fid, adate, atime, mdate, mtime;
 	SmbTree *t;
 	SmbFile *f;
 	Dir d;
@@ -46,7 +46,7 @@ smbcomsetinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 		/* something to change */
 		if (!(adate && atime && mdate && mtime)) {
 			/* some null entries */
-			uint16_t odate, otime;
+			u16 odate, otime;
 			Dir *od = dirfstat(f->fd);
 			if (od == nil) {
 				smbseterror(s, ERRDOS, ERRnoaccess);
@@ -87,11 +87,11 @@ smbcomsetinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 }
 
 SmbProcessResult
-smbcomsetinformation(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+smbcomsetinformation(SmbSession *s, SmbHeader *h, u8 *pdata,
 		     SmbBuffer *b)
 {
-	uint16_t attr;
-	uint32_t utime;
+	u16 attr;
+	u32 utime;
 	char *name;
 	if (h->wordcount != 8)
 		return SmbProcessResultFormat;

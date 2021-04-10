@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 }
 
 void
-randombytes(uint8_t *p, int len)
+randombytes(u8 *p, int len)
 {
 	int i, fd;
 
@@ -98,27 +98,27 @@ randombytes(uint8_t *p, int len)
 void
 oldCBCencrypt(char *key7, char *p, int len)
 {
-	uint8_t ivec[8];
-	uint8_t key[8];
+	u8 ivec[8];
+	u8 key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((u8*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uint8_t*)p, len, &s);
+	desCBCencrypt((u8*)p, len, &s);
 }
 
 void
 oldCBCdecrypt(char *key7, char *p, int len)
 {
-	uint8_t ivec[8];
-	uint8_t key[8];
+	u8 ivec[8];
+	u8 key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((u8*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uint8_t*)p, len, &s);
+	desCBCdecrypt((u8*)p, len, &s);
 
 }
 
@@ -158,7 +158,7 @@ convert(char *p, char *key, int len)
 		for(i = KEYDBOFF; i < len; i += KEYDBLEN)
 			print("%s\n", &p[i]);
 
-	randombytes((uint8_t*)p, 8);
+	randombytes((u8*)p, 8);
 	oldCBCencrypt(key, p, len);
 	return len;
 }

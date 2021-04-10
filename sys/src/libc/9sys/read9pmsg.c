@@ -15,7 +15,7 @@ int
 read9pmsg(int fd, void *abuf, uint n)
 {
 	int m, len;
-	uint8_t *buf;
+	u8 *buf;
 
 	buf = abuf;
 

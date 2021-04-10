@@ -17,9 +17,9 @@
  */
 typedef struct Etherpkt	Etherpkt;
 struct Etherpkt {
-	uint8_t d[6];
-	uint8_t s[6];
-	uint8_t type[2];
+	u8 d[6];
+	u8 s[6];
+	u8 type[2];
 	char data[1500];
 };
 #define	ETHERMINTU	60	/* minimum transmit size */
@@ -32,16 +32,16 @@ struct Etherpkt {
 typedef struct Ippkt	Ippkt;
 struct Ippkt
 {
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;		/* Time to live */
-	uint8_t	proto;		/* Protocol */
-	uint8_t	cksum[2];	/* Header checksum */
-	uint8_t	src[4];		/* Ip source */
-	uint8_t	dst[4];		/* Ip destination */
+	u8	vihl;		/* Version and header length */
+	u8	tos;		/* Type of service */
+	u8	length[2];	/* packet length */
+	u8	id[2];		/* Identification */
+	u8	frag[2];	/* Fragment information */
+	u8	ttl;		/* Time to live */
+	u8	proto;		/* Protocol */
+	u8	cksum[2];	/* Header checksum */
+	u8	src[4];		/* Ip source */
+	u8	dst[4];		/* Ip destination */
 	char	data[1];
 };
 
@@ -63,10 +63,10 @@ struct Ippkt
 int	debug;
 int	mbone;
 
-uint32_t protoin[256];
-uint32_t protoout[256];
-uint32_t protopin[256];
-uint32_t protopout[256];
+u32 protoin[256];
+u32 protoout[256];
+u32 protopin[256];
+u32 protopout[256];
 
 void
 error(char *s)
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 	int ts, len, t;
 	long start;
 	int delta;
-	uint8_t target[6];
+	u8 target[6];
 	char buf[256];
 	uintptr samples;
 

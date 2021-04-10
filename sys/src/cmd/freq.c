@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <bio.h>
 
-uint64_t	count[Runemax+1];
+u64	count[Runemax+1];
 Biobuf	bout;
 
 void	usage(void);
 void	freq(int, char*);
-int32_t	flag;
+i32	flag;
 enum
 {
 	Fdec	= 1<<0,
@@ -81,7 +81,7 @@ void
 freq(int f, char *s)
 {
 	Biobuf bin;
-	int32_t c, i;
+	i32 c, i;
 
 	memset(count, 0, sizeof(count));
 	Binit(&bin, f, OREAD);

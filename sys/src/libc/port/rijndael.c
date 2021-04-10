@@ -59,7 +59,7 @@ Mean:		   500 cycles =    51.2 mbits/sec
 
 /* Extract byte from a 32 bit quantity (little endian notation)		*/
 
-#define byte(x,n)	((uint8_t)((x) >> (8 * (n))))
+#define byte(x,n)	((u8)((x) >> (8 * (n))))
 
 #define io_swap(x)	(x)
 
@@ -143,16 +143,16 @@ do {   t = ls_box(rotr(t,  8)) ^ rco_tab[i];		   \
 } while (0)
 
 rijndaelCtx *
-rijndael_set_key(rijndaelCtx *ctx, const uint32_t *in_key, const uint32_t key_len,
+rijndael_set_key(rijndaelCtx *ctx, const u32 *in_key, const u32 key_len,
 				 int encrypt)
 {
-	uint32_t		i,
+	u32		i,
 				t,
 				u,
 				v,
 				w;
-	uint32_t	   *e_key = ctx->e_key;
-	uint32_t	   *d_key = ctx->d_key;
+	u32	   *e_key = ctx->e_key;
+	u32	   *d_key = ctx->d_key;
 
 	ctx->decrypt = !encrypt;
 
@@ -222,11 +222,11 @@ do { \
 } while (0)
 
 void
-rijndael_encrypt(rijndaelCtx *ctx, const uint32_t *in_blk, uint32_t *out_blk)
+rijndael_encrypt(rijndaelCtx *ctx, const u32 *in_blk, u32 *out_blk)
 {
-	uint32_t		k_len = ctx->k_len;
-	uint32_t	   *e_key = ctx->e_key;
-	uint32_t		b0[4],
+	u32		k_len = ctx->k_len;
+	u32	   *e_key = ctx->e_key;
+	u32		b0[4],
 				b1[4],
 			   *kp;
 
@@ -286,14 +286,14 @@ do { \
 } while (0)
 
 void
-rijndael_decrypt(rijndaelCtx *ctx, const uint32_t *in_blk, uint32_t *out_blk)
+rijndael_decrypt(rijndaelCtx *ctx, const u32 *in_blk, u32 *out_blk)
 {
-	uint32_t		b0[4],
+	u32		b0[4],
 				b1[4],
 			   *kp;
-	uint32_t		k_len = ctx->k_len;
-	uint32_t	   *e_key = ctx->e_key;
-	uint32_t	   *d_key = ctx->d_key;
+	u32		k_len = ctx->k_len;
+	u32	   *e_key = ctx->e_key;
+	u32	   *d_key = ctx->d_key;
 
 	b0[0] = io_swap(in_blk[0]) ^ e_key[4 * k_len + 24];
 	b0[1] = io_swap(in_blk[1]) ^ e_key[4 * k_len + 25];
@@ -339,23 +339,23 @@ rijndael_decrypt(rijndaelCtx *ctx, const uint32_t *in_blk, uint32_t *out_blk)
  */
 
 void
-aes_set_key(rijndaelCtx *ctx, const uint8_t *key, unsigned keybits, int enc)
+aes_set_key(rijndaelCtx *ctx, const u8 *key, unsigned keybits, int enc)
 {
-	uint32_t	   *k;
+	u32	   *k;
 
-	k = (uint32_t *) key;
+	k = (u32 *) key;
 	rijndael_set_key(ctx, k, keybits, enc);
 }
 
 void
-aes_ecb_encrypt(rijndaelCtx *ctx, uint8_t *data, unsigned len)
+aes_ecb_encrypt(rijndaelCtx *ctx, u8 *data, unsigned len)
 {
 	unsigned	bs = 16;
-	uint32_t	   *d;
+	u32	   *d;
 
 	while (len >= bs)
 	{
-		d = (uint32_t *) data;
+		d = (u32 *) data;
 		rijndael_encrypt(ctx, d, d);
 
 		len -= bs;
@@ -364,14 +364,14 @@ aes_ecb_encrypt(rijndaelCtx *ctx, uint8_t *data, unsigned len)
 }
 
 void
-aes_ecb_decrypt(rijndaelCtx *ctx, uint8_t *data, unsigned len)
+aes_ecb_decrypt(rijndaelCtx *ctx, u8 *data, unsigned len)
 {
 	unsigned	bs = 16;
-	uint32_t	   *d;
+	u32	   *d;
 
 	while (len >= bs)
 	{
-		d = (uint32_t *) data;
+		d = (u32 *) data;
 		rijndael_decrypt(ctx, d, d);
 
 		len -= bs;
@@ -380,10 +380,10 @@ aes_ecb_decrypt(rijndaelCtx *ctx, uint8_t *data, unsigned len)
 }
 
 void
-aes_cbc_encrypt(rijndaelCtx *ctx, uint8_t *iva, uint8_t *data, unsigned len)
+aes_cbc_encrypt(rijndaelCtx *ctx, u8 *iva, u8 *data, unsigned len)
 {
-	uint32_t	   *iv = (uint32_t *) iva;
-	uint32_t	   *d = (uint32_t *) data;
+	u32	   *iv = (u32 *) iva;
+	u32	   *d = (u32 *) data;
 	unsigned	bs = 16;
 
 	while (len >= bs)
@@ -402,11 +402,11 @@ aes_cbc_encrypt(rijndaelCtx *ctx, uint8_t *iva, uint8_t *data, unsigned len)
 }
 
 void
-aes_cbc_decrypt(rijndaelCtx *ctx, uint8_t *iva, uint8_t *data, unsigned len)
+aes_cbc_decrypt(rijndaelCtx *ctx, u8 *iva, u8 *data, unsigned len)
 {
-	uint32_t	   *d = (uint32_t *) data;
+	u32	   *d = (u32 *) data;
 	unsigned	bs = 16;
-	uint32_t		buf[4],
+	u32		buf[4],
 				iv[4];
 
 	memcpy(iv, iva, bs);

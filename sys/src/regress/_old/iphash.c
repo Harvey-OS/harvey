@@ -16,16 +16,16 @@ enum {
 	Nipht = 521,				/* convenient prime */
 };
 
-uint32_t newiphash(uint8_t * sa, uint16_t sp, uint8_t * da, uint16_t dp)
+u32 newiphash(u8 * sa, u16 sp, u8 * da, u16 dp)
 {
-	uint32_t kludge;
+	u32 kludge;
 	kludge =
 		((sa[IPaddrlen - 1] << 24) ^ (sp << 16) ^ (da[IPaddrlen - 1] << 8) ^
 		 dp);
 	return kludge % Nipht;
 }
 
-uint32_t oldiphash(uint8_t * sa, uint16_t sp, uint8_t * da, uint16_t dp)
+u32 oldiphash(u8 * sa, u16 sp, u8 * da, u16 dp)
 {
 	return ((sa[IPaddrlen - 1] << 24) ^ (sp << 16) ^ (da[IPaddrlen - 1] << 8) ^
 			dp) % Nipht;
@@ -42,11 +42,11 @@ uint32_t oldiphash(uint8_t * sa, uint16_t sp, uint8_t * da, uint16_t dp)
  */
 int main()
 {
-	static uint8_t sa[IPaddrlen] = { 0x80, };
-	static uint8_t da[IPaddrlen];
-	uint16_t sp = 4;
-	uint16_t dp = 5;
-	uint32_t ohash, nhash;
+	static u8 sa[IPaddrlen] = { 0x80, };
+	static u8 da[IPaddrlen];
+	u16 sp = 4;
+	u16 dp = 5;
+	u32 ohash, nhash;
 	sa[IPaddrlen - 1] = 0x80;
 	ohash = oldiphash(sa, sp, da, dp);
 	if (ohash > Nipht)

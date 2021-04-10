@@ -25,14 +25,14 @@
 
 #if IS_ENABLED(CONFIG_EC_GOOGLE_CHROMEEC_I2C_PROTO3)
 
-#define PROTO3_FRAMING_BYTES sizeof(uint32_t)
+#define PROTO3_FRAMING_BYTES sizeof(u32)
 /* Just use the LPC host packet size to size the buffer. */
 #define PROTO3_MAX_PACKET_SIZE 268
 
 struct proto3_i2c_buf {
-	uint8_t framing_bytes[PROTO3_FRAMING_BYTES];
-	uint8_t data[PROTO3_MAX_PACKET_SIZE];
-} __attribute__((aligned(sizeof(uint32_t))));
+	u8 framing_bytes[PROTO3_FRAMING_BYTES];
+	u8 data[PROTO3_MAX_PACKET_SIZE];
+} __attribute__((aligned(sizeof(u32))));
 
 static struct proto3_i2c_buf req_buf;
 static struct proto3_i2c_buf resp_buf;
@@ -85,7 +85,7 @@ void *crosec_get_buffer(size_t size, int req)
 static int crosec_i2c_io(size_t req_size, size_t resp_size, void *context)
 {
 	struct i2c_ec *ec = context;
-	uint8_t ret_code;
+	u8 ret_code;
 	size_t resp_len;
 
 	if (req_size > PROTO3_MAX_PACKET_SIZE ||
@@ -129,10 +129,10 @@ int google_chromeec_command(struct chromeec_command *cec_command)
 #else /* CONFIG_EC_GOOGLE_CHROMEEC_I2C_PROTO3 */
 
 /* Command (host->device) format for I2C:
- *  uint8_t version, cmd, len, data[len], checksum;
+ *  u8 version, cmd, len, data[len], checksum;
  *
  * Response (device->host) format for I2C:
- *  uint8_t response, len, data[len], checksum;
+ *  u8 response, len, data[len], checksum;
  *
  * Note the location of checksum is different from LPC protocol.
  *
@@ -143,19 +143,19 @@ int google_chromeec_command(struct chromeec_command *cec_command)
 #define MAX_I2C_DATA_SIZE		(0xff)
 
 typedef struct {
-	uint8_t version;
-	uint8_t command;
-	uint8_t length;
-	uint8_t data[MAX_I2C_DATA_SIZE + 1];
+	u8 version;
+	u8 command;
+	u8 length;
+	u8 data[MAX_I2C_DATA_SIZE + 1];
 } EcCommandI2c;
 
 typedef struct {
-	uint8_t response;
-	uint8_t length;
-	uint8_t data[MAX_I2C_DATA_SIZE + 1];
+	u8 response;
+	u8 length;
+	u8 data[MAX_I2C_DATA_SIZE + 1];
 } EcResponseI2c;
 
-static inline void i2c_dump(int bus, int chip, const uint8_t *data, size_t size)
+static inline void i2c_dump(int bus, int chip, const u8 *data, size_t size)
 {
 #ifdef TRACE_CHROMEEC
 	printk(BIOS_INFO, "i2c: bus=%d, chip=%#x, size=%d, data: ", bus, chip,
@@ -170,9 +170,9 @@ static inline void i2c_dump(int bus, int chip, const uint8_t *data, size_t size)
 static int ec_verify_checksum(const EcResponseI2c *resp)
 {
 	size_t size = sizeof(*resp) - sizeof(resp->data) + resp->length;
-	uint8_t calculated = google_chromeec_calc_checksum(
-			(const uint8_t *)resp, size);
-	uint8_t received = resp->data[resp->length];
+	u8 calculated = google_chromeec_calc_checksum(
+			(const u8 *)resp, size);
+	u8 received = resp->data[resp->length];
 	if (calculated != received) {
 		printk(BIOS_ERR, "%s: Unmatch (rx: %#02x, calc: %#02x)\n",
 		       __func__, received, calculated);
@@ -185,7 +185,7 @@ static void ec_fill_checksum(EcCommandI2c *cmd)
 {
 	size_t size = sizeof(*cmd) - sizeof(cmd->data) + cmd->length;
 	cmd->data[cmd->length] = google_chromeec_calc_checksum(
-			(const uint8_t *)cmd, size);
+			(const u8 *)cmd, size);
 }
 
 int google_chromeec_command(struct chromeec_command *cec_command)
@@ -216,14 +216,14 @@ int google_chromeec_command(struct chromeec_command *cec_command)
 	ec_fill_checksum(&cmd);
 
 	/* Start I2C communication */
-	i2c_dump(bus, chip, (const uint8_t *)&cmd, size_i2c_cmd);
-	if (i2c_write_raw(bus, chip, (uint8_t *)&cmd, size_i2c_cmd) != 0) {
+	i2c_dump(bus, chip, (const u8 *)&cmd, size_i2c_cmd);
+	if (i2c_write_raw(bus, chip, (u8 *)&cmd, size_i2c_cmd) != 0) {
 		printk(BIOS_ERR, "%s: Cannot complete write to i2c-%d:%#x\n",
 		       __func__, bus, chip);
 		cec_command->cmd_code = EC_RES_ERROR;
 		return 1;
 	}
-	if (i2c_read_raw(bus, chip, (uint8_t *)&resp, size_i2c_resp) != 0) {
+	if (i2c_read_raw(bus, chip, (u8 *)&resp, size_i2c_resp) != 0) {
 		printk(BIOS_ERR, "%s: Cannot complete read from i2c-%d:%#x\n",
 		       __func__, bus, chip);
 		cec_command->cmd_code = EC_RES_ERROR;

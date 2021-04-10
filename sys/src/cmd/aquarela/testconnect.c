@@ -27,7 +27,7 @@ threadmain(int argc, char *argv[])
 		SmbRapServerInfo1 *si = nil;
 		SmbFindFileBothDirectoryInfo ip[10];
 		char *errmsg;
-		uint16_t sid, searchcount, endofsearch;
+		u16 sid, searchcount, endofsearch;
 		errmsg = nil;
 		rv = smbnetserverenum2(c, SV_TYPE_SERVER, "PLAN9", &entries, &si, &errmsg);
 		if (rv < 0)

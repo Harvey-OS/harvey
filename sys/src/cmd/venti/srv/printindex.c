@@ -47,15 +47,15 @@ void
 dumpisect(ISect *is)
 {
 	int j;
-	uint8_t *buf;
-	uint32_t i;
-	uint64_t off;
+	u8 *buf;
+	u32 i;
+	u64 off;
 	IBucket ib;
 	IEntry ie;
 
 	buf = emalloc(is->blocksize);
 	for(i=0; i<is->blocks; i++){
-		off = is->blockbase+(uint64_t)is->blocksize*i;
+		off = is->blockbase+(u64)is->blocksize*i;
 		if(readpart(is->part, off, buf, is->blocksize) < 0)
 			fprint(2, "read %s at 0x%llux: %r\n", is->part->name, off);
 		else{
@@ -73,7 +73,7 @@ threadmain(int argc, char *argv[])
 {
 	int i;
 	Index *ix;
-	uint32_t bcmem;
+	u32 bcmem;
 
 	bcmem = 0;
 	ARGBEGIN{

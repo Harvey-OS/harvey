@@ -94,11 +94,11 @@ enum {
 };
 
 /*
- * we're only using the uint32_t as a place to store bytes,
+ * we're only using the u32 as a place to store bytes,
  * and as something to compare against.
  * the bytes are stored in little-endian format.
  */
-typedef uint32_t Color;
+typedef u32 Color;
 
 /* auth.c */
 extern	int		vncauth(Vnc*, char*);
@@ -108,9 +108,9 @@ extern	int		vncsrvhandshake(Vnc*);
 
 /* proto.c */
 extern	Vnc*		vncinit(int, int, Vnc*);
-extern	uint8_t		vncrdchar(Vnc*);
-extern	uint16_t		vncrdshort(Vnc*);
-extern	uint32_t		vncrdlong(Vnc*);
+extern	u8		vncrdchar(Vnc*);
+extern	u16		vncrdshort(Vnc*);
+extern	u32		vncrdlong(Vnc*);
 extern	Point		vncrdpoint(Vnc*);
 extern	Rectangle	vncrdrect(Vnc*);
 extern	Rectangle	vncrdcorect(Vnc*);
@@ -119,14 +119,14 @@ extern	void		vncrdbytes(Vnc*, void*, int);
 extern	char*		vncrdstring(Vnc*);
 extern	char*	vncrdstringx(Vnc*);
 extern	void		vncwrstring(Vnc*, char*);
-extern  void    	vncgobble(Vnc*, int32_t);
+extern  void    	vncgobble(Vnc*, i32);
 
 extern	void		vncflush(Vnc*);
 extern	void		vncterm(Vnc*);
 extern	void		vncwrbytes(Vnc*, void*, int);
-extern	void		vncwrlong(Vnc*, uint32_t);
-extern	void		vncwrshort(Vnc*, uint16_t);
-extern	void		vncwrchar(Vnc*, uint8_t);
+extern	void		vncwrlong(Vnc*, u32);
+extern	void		vncwrshort(Vnc*, u16);
+extern	void		vncwrchar(Vnc*, u8);
 extern	void		vncwrpixfmt(Vnc*, Pixfmt*);
 extern	void		vncwrrect(Vnc*, Rectangle);
 extern	void		vncwrpoint(Vnc*, Point);

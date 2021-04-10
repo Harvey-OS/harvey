@@ -11,7 +11,7 @@
  * pANS stdio -- setvbuf
  */
 #include "iolib.h"
-int setvbuf(FILE *f, char *buf, int mode, int32_t size){
+int setvbuf(FILE *f, char *buf, int mode, i32 size){
 	if(f->state!=OPEN){
 		f->state=ERR;
 		return -1;

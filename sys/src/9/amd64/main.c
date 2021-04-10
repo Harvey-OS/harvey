@@ -221,7 +221,7 @@ extern int num_cpus;
 void
 squidboy(Mach *mach)
 {
-	// FIX QEMU. extern int64_t hz;
+	// FIX QEMU. extern i64 hz;
 	i64 hz;
 
 	sys->machptr[mach->machno] = mach;

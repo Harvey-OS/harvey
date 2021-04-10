@@ -20,14 +20,14 @@ static struct {
 	NbnsAlarm *head;
 } alarmlist = { -1 };
 
-#define MaxLong ((1 << (sizeof(int32_t) * 4 - 1)) - 1)
+#define MaxLong ((1 << (sizeof(i32) * 4 - 1)) - 1)
 
 void
 alarmist(void *v)
 {
 	for (;;) {
-		int64_t now;
-		int32_t snooze;
+		i64 now;
+		i32 snooze;
 //print("running\n");
 		qlock(&alarmlist.qlock);
 		if (alarmlist.die) {
@@ -41,7 +41,7 @@ alarmist(void *v)
 			alarmlist.head = alarmlist.head->next;
 		}
 		if (alarmlist.head) {
-			int64_t vsnooze = alarmlist.head->expirems - now;
+			i64 vsnooze = alarmlist.head->expirems - now;
 			if (vsnooze > MaxLong)
 				snooze = MaxLong;
 			else
@@ -62,7 +62,7 @@ nbnsalarmnew(void)
 	a = mallocz(sizeof(*a), 1);
 	if (a == nil)
 		return nil;
-	a->c = chancreate(sizeof(uint32_t), 1);
+	a->c = chancreate(sizeof(u32), 1);
 	if (a->c == nil) {
 		free(a);
 		return nil;
@@ -85,7 +85,7 @@ nbnsalarmcancel(NbnsAlarm *a)
 	}
 	qunlock(&alarmlist.qlock);
 	do {
-		uint32_t v;
+		u32 v;
 		rv = nbrecv(a->c, &v);
 	} while (rv != 0);
 }
@@ -102,7 +102,7 @@ nbnsalarmend(void)
 }
 
 void
-nbnsalarmset(NbnsAlarm *a, uint32_t millisec)
+nbnsalarmset(NbnsAlarm *a, u32 millisec)
 {
 	NbnsAlarm **ap;
 	nbnsalarmcancel(a);

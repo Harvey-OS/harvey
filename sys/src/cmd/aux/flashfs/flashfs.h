@@ -73,9 +73,9 @@ typedef struct	Renum	Renum;
 struct Extent
 {
 	int	sect;
-	uint32_t	addr;
-	uint32_t	off;
-	uint32_t	size;
+	u32	addr;
+	u32	off;
+	u32	size;
 	Extent*	next;
 	Extent*	prev;
 };
@@ -90,11 +90,11 @@ struct Entry
 {
 	int	ref;
 	char*	name;
-	uint32_t	fnum;
-	uint32_t	mode;
-	uint32_t	mnum;
-	uint32_t	mtime;
-	uint32_t	size;
+	u32	fnum;
+	u32	mode;
+	u32	mnum;
+	u32	mtime;
+	u32	size;
 
 	union
 	{
@@ -123,21 +123,21 @@ struct Dirr
 	Entry*	cur;
 	Dirr*	next;
 	Dirr*	prev;
-	uint32_t	offset;
+	u32	offset;
 };
 
 struct Jrec
 {
 	int	type;
-	uint32_t	mode;
-	uint32_t	fnum;
-	uint32_t	mnum;
-	uint32_t	tnum;
-	uint32_t	mtime;
-	uint32_t	parent;
-	uint32_t	size;
-	uint32_t	offset;
-	uint32_t	seq;
+	u32	mode;
+	u32	fnum;
+	u32	mnum;
+	u32	tnum;
+	u32	mtime;
+	u32	parent;
+	u32	size;
+	u32	offset;
+	u32	seq;
 	char	name[MAXNSIZE+2];
 };
 
@@ -151,12 +151,12 @@ extern char *prog;
 
 extern	void	initdata(char*, int);
 extern	void	clearsect(int);
-extern	void	readdata(int, void*, uint32_t, uint32_t);
-extern	int	writedata(int, int, void*, uint32_t, uint32_t);
-extern	int	getc3(unsigned char*, uint32_t*);
-extern	int	putc3(unsigned char*, uint32_t);
-extern	uint32_t	get4(unsigned char*);
-extern	void	put4(unsigned char*, uint32_t);
+extern	void	readdata(int, void*, u32, u32);
+extern	int	writedata(int, int, void*, u32, u32);
+extern	int	getc3(unsigned char*, u32*);
+extern	int	putc3(unsigned char*, u32);
+extern	u32	get4(unsigned char*);
+extern	void	put4(unsigned char*, u32);
 extern	int	convM2J(Jrec*, unsigned char*);
 extern	int	convJ2M(Jrec*, unsigned char*);
 extern	void	loadfs(int);
@@ -164,27 +164,27 @@ extern	char*	need(int bytes);
 extern	void	put(Jrec*, int);
 extern	void	putw(Jrec*, int, Extent *x, void*);
 extern	int	Jconv(Fmt*);
-extern	uint32_t	now(void);
+extern	u32	now(void);
 extern	void	serve(char*);
 
 
 extern	void	einit(void);
 extern	void	edump(void);
-extern	Entry*	elookup(uint32_t);
-extern	Extent*	esum(Entry*, int, uint32_t, int*);
+extern	Entry*	elookup(u32);
+extern	Extent*	esum(Entry*, int, u32, int*);
 extern	void	edestroy(Entry*);
-extern	Entry*	ecreate(Entry*, char*, uint32_t, uint32_t,
-				    uint32_t, char**);
+extern	Entry*	ecreate(Entry*, char*, u32, u32,
+				    u32, char**);
 extern	char*	eremove(Entry*);
 extern	Entry*	ewalk(Entry*, char*, char**);
-extern	void	etrunc(Entry*, uint32_t, uint32_t);
-extern	uint32_t	echmod(Entry*, uint32_t, uint32_t);
-extern	uint32_t	eread(Entry*, int, void*, uint32_t, uint32_t);
-extern	void	ewrite(Entry*, Extent *, int, uint32_t);
+extern	void	etrunc(Entry*, u32, u32);
+extern	u32	echmod(Entry*, u32, u32);
+extern	u32	eread(Entry*, int, void*, u32, u32);
+extern	void	ewrite(Entry*, Extent *, int, u32);
 extern	Qid	eqid(Entry*);
 extern	void	estat(Entry*, Dir*, int);
 extern	Dirr*	ediropen(Entry*);
-extern	int	edirread(Dirr*, char*, int32_t);
+extern	int	edirread(Dirr*, char*, i32);
 extern	void	edirclose(Dirr*);
 extern	void	erenum(Renum*);
 
@@ -196,14 +196,14 @@ extern	char	Enotdir[];
 extern	char	Eperm[];
 extern	char	Erofs[];
 
-extern	uint32_t	sectsize;
-extern	uint32_t	nsects;
+extern	u32	sectsize;
+extern	u32	nsects;
 extern	unsigned char*	sectbuff;
 extern	Entry	*root;
 extern	int	readonly;
-extern	uint32_t	delta;
+extern	u32	delta;
 extern	int	eparity;
 extern	unsigned char	magic[];
-extern	uint32_t	used;
-extern	uint32_t	limit;
-extern	uint32_t	maxwrite;
+extern	u32	used;
+extern	u32	limit;
+extern	u32	maxwrite;

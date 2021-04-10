@@ -50,7 +50,7 @@ dump(Vga* vga)
 }
 
 void
-resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
+resyncinit(Vga* vga, Ctlr* ctlr, u32 on, u32 off)
 {
 	Ctlr *link;
 
@@ -74,7 +74,7 @@ resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
 void
 sequencer(Vga* vga, int on)
 {
-	static uint8_t seq01;
+	static u8 seq01;
 	static int state = 1;
 	char *s;
 
@@ -329,7 +329,7 @@ main(int argc, char** argv)
 			 * boost clock as much as possible subject
 			 * to video and memory bandwidth constraints
 			 */
-			uint32_t bytes, freq, membw;
+			u32 bytes, freq, membw;
 			double rr;
 
 			freq = vga->mode->videobw;

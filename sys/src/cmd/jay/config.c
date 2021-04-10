@@ -38,7 +38,7 @@ getjayconfig(){
   return estrdup(s);
 }
 
-static uint32_t
+static u32
 getuint32property(char *p){
   char *s, aux[11];
   s = p;

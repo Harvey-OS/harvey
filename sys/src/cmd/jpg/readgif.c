@@ -26,9 +26,9 @@ struct Header{
 	Biobuf	*fd;
 	char		err[256];
 	jmp_buf	errlab;
-	uint8_t 	buf[3*256];
+	u8 	buf[3*256];
 	char 		vers[8];
-	uint8_t 	*globalcmap;
+	u8 	*globalcmap;
 	int		screenw;
 	int		screenh;
 	int		fields;
@@ -42,7 +42,7 @@ struct Header{
 	Rawimage	**array;
 	Rawimage	*new;
 
-	uint8_t	*pic;
+	u8	*pic;
 };
 
 static char		readerr[] = "ReadGIF: read error: %r";
@@ -53,8 +53,8 @@ static Rawimage**	readarray(Header*);
 static Rawimage*	readone(Header*);
 static void			readheader(Header*);
 static void			skipextension(Header*);
-static uint8_t*		readcmap(Header*, int);
-static uint8_t*		decode(Header*, Rawimage*, Entry*);
+static u8 *		readcmap(Header*, int);
+static u8 *		decode(Header*, Rawimage*, Entry*);
 static void			interlace(Header*, Rawimage*);
 
 static
@@ -248,10 +248,10 @@ readheader(Header *h)
 }
 
 static
-uint8_t*
+u8 *
 readcmap(Header *h, int size)
 {
-	uint8_t *map;
+	u8 *map;
 
 	if(size > 8)
 		giferror(h, "ReadGIF: can't handles %d bits per pixel", size);
@@ -295,7 +295,7 @@ readone(Header *h)
 
 static
 int
-readdata(Header *h, uint8_t *data)
+readdata(Header *h, u8 *data)
 {
 	int nbytes, n;
 
@@ -328,7 +328,7 @@ void
 skipextension(Header *h)
 {
 	int type, hsize, hasdata, n;
-	uint8_t data[256];
+	u8 data[256];
 
 	hsize = 0;
 	hasdata = 0;
@@ -380,13 +380,13 @@ skipextension(Header *h)
 }
 
 static
-uint8_t*
+u8 *
 decode(Header *h, Rawimage *i, Entry *tbl)
 {
 	int c, doclip, incode, codesize, CTM, EOD, pici, datai, stacki, nbits, sreg, fc, code, piclen;
 	int csize, nentry, maxentry, first, ocode, ndata, nb;
-	uint8_t clip, *p, *pic;
-	uint8_t stack[4096], data[256];
+	u8 clip, *p, *pic;
+	u8 stack[4096], data[256];
 
 	if(Bread(h->fd, h->buf, 1) != 1)
 		giferror(h, "ReadGIF: can't read data: %r");
@@ -511,10 +511,10 @@ static
 void
 interlace(Header *h, Rawimage *image)
 {
-	uint8_t *pic;
+	u8 *pic;
 	Rectangle r;
 	int dx, yy, y;
-	uint8_t *ipic;
+	u8 *ipic;
 
 	pic = image->chans[0];
 	r = image->r;

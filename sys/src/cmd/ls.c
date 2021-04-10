@@ -38,15 +38,15 @@ int	ndir;
 NDir*	dirbuf;
 int	ls(char*, int);
 int	compar(const NDir*, const NDir*);
-char*	asciitime(int32_t);
-char*	darwx(int32_t);
-void	rwx(int32_t, char*);
-void	growto(int32_t);
+char*	asciitime(i32);
+char*	darwx(i32);
+void	rwx(i32, char*);
+void	growto(i32);
 void	dowidths(Dir*);
 void	format(Dir*, char*);
 void	output(void);
 char*	xcleanname(char*);
-uint32_t	clk;
+u32	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
 int	vwidth;			/* max width of dev */
@@ -100,7 +100,7 @@ int
 ls(char *s, int multi)
 {
 	int fd;
-	int32_t i, n;
+	i32 i, n;
 	char *p;
 	Dir *db;
 
@@ -249,7 +249,7 @@ format(Dir *db, char *name)
 }
 
 void
-growto(int32_t n)
+growto(i32 n)
 {
 	if(n <= ndirbuf)
 		return;
@@ -264,7 +264,7 @@ growto(int32_t n)
 int
 compar(const NDir *a, const NDir *b)
 {
-	int32_t i;
+	i32 i;
 	Dir *ad, *bd;
 
 	ad = a->d;
@@ -283,11 +283,11 @@ compar(const NDir *a, const NDir *b)
 		}else if(a->prefix){
 			i = strcmp(a->prefix, bd->name);
 			if(i == 0)
-				i = 1;	/* a is int32_ter than b */
+				i = 1;	/* a is i32er than b */
 		}else if(b->prefix){
 			i = strcmp(ad->name, b->prefix);
 			if(i == 0)
-				i = -1;	/* b is int32_ter than a */
+				i = -1;	/* b is i32er than a */
 		}else
 			i = strcmp(ad->name, bd->name);
 	}
@@ -299,7 +299,7 @@ compar(const NDir *a, const NDir *b)
 }
 
 char*
-asciitime(int32_t l)
+asciitime(i32 l)
 {
 	static char buf[32];
 	char *t;

@@ -38,22 +38,22 @@ struct Cache
 	int	size;			/* block size */
 	int	ndmap;		/* size of per-block dirty pointer map used in blockWrite */
 	VtSession *z;
-	uint32_t	now;			/* ticks for usage timestamps */
+	u32	now;			/* ticks for usage timestamps */
 	Block	**heads;		/* hash table for finding address */
 	int	nheap;			/* number of available victims */
 	Block	**heap;			/* heap for locating victims */
-	int32_t	nblocks;		/* number of blocks allocated */
+	i32	nblocks;		/* number of blocks allocated */
 	Block	*blocks;		/* array of block descriptors */
-	uint8_t	*mem;			/* memory for all block data & blists */
+	u8	*mem;			/* memory for all block data & blists */
 
 	BList	*blfree;
 	VtRendez *blrend;
 
 	int 	ndirty;			/* number of dirty blocks in the cache */
 	int 	maxdirty;		/* max number of dirty blocks */
-	uint32_t	vers;
+	u32	vers;
 
-	int32_t hashSize;
+	i32 hashSize;
 
 	FreeList *fl;
 
@@ -80,38 +80,38 @@ struct Cache
 
 struct BList {
 	int part;
-	uint32_t addr;
-	uint8_t type;
-	uint32_t tag;
-	uint32_t epoch;
-	uint32_t vers;
+	u32 addr;
+	u8 type;
+	u32 tag;
+	u32 epoch;
+	u32 vers;
 
 	int recurse;	/* for block unlink */
 
 	/* for roll back */
 	int index;			/* -1 indicates not valid */
 	union {
-		uint8_t score[VtScoreSize];
-		uint8_t entry[VtEntrySize];
+		u8 score[VtScoreSize];
+		u8 entry[VtEntrySize];
 	} old;
 	BList *next;
 };
 
 struct BAddr {
 	int part;
-	uint32_t addr;
-	uint32_t vers;
+	u32 addr;
+	u32 vers;
 };
 
 struct FreeList {
 	VtLock *lk;
-	uint32_t last;		/* last block allocated */
-	uint32_t end;		/* end of data partition */
-	uint32_t nused;		/* number of used blocks */
-	uint32_t epochLow;	/* low epoch when last updated nused */
+	u32 last;		/* last block allocated */
+	u32 end;		/* end of data partition */
+	u32 nused;		/* number of used blocks */
+	u32 epochLow;	/* low epoch when last updated nused */
 };
 
-static FreeList *flAlloc(uint32_t end);
+static FreeList *flAlloc(u32 end);
 static void flFree(FreeList *fl);
 
 static Block *cacheBumpBlock(Cache *c);
@@ -153,13 +153,13 @@ int vtType[BtMax] = {
  * Allocate the memory cache.
  */
 Cache *
-cacheAlloc(Disk *disk, VtSession *z, uint32_t nblocks, int mode)
+cacheAlloc(Disk *disk, VtSession *z, u32 nblocks, int mode)
 {
 	int i;
 	Cache *c;
 	Block *b;
 	BList *bl;
-	uint8_t *p;
+	u8 *p;
 	int nbl;
 
 	c = vtMemAllocZ(sizeof(Cache));
@@ -296,9 +296,9 @@ cacheDump(Cache *c)
 static void
 cacheCheck(Cache *c)
 {
-	uint32_t size, now;
+	u32 size, now;
 	int i, k, refed;
-	//static uint8_t zero[VtScoreSize];
+	//static u8 zero[VtScoreSize];
 	Block *b;
 
 	size = c->size;
@@ -409,11 +409,11 @@ if(0)fprint(2, "%s: dropping %d:%x:%V\n", argv0, b->part, b->addr, b->score);
  * look for a particular version of the block in the memory cache.
  */
 static Block *
-_cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
+_cacheLocalLookup(Cache *c, int part, u32 addr, u32 vers,
 	int waitlock, int *lockfailure)
 {
 	Block *b;
-	uint32_t h;
+	u32 h;
 
 	h = addr % c->hashSize;
 
@@ -478,7 +478,7 @@ _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
 
 /* Not used?
 static Block*
-cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers)
+cacheLocalLookup(Cache *c, int part, u32 addr, u32 vers)
 {
 	return _cacheLocalLookup(c, part, addr, vers, Waitlock, 0);
 }
@@ -489,10 +489,10 @@ cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers)
  * if it's not there, load it, bumping some other block.
  */
 Block *
-_cacheLocal(Cache *c, int part, uint32_t addr, int mode, uint32_t epoch)
+_cacheLocal(Cache *c, int part, u32 addr, int mode, u32 epoch)
 {
 	Block *b;
-	uint32_t h;
+	u32 h;
 
 	assert(part != PartVenti);
 
@@ -597,7 +597,7 @@ fprint(2, "%s: _cacheLocal want epoch %u got %u\n", argv0, epoch, b->l.epoch);
 }
 
 Block *
-cacheLocal(Cache *c, int part, uint32_t addr, int mode)
+cacheLocal(Cache *c, int part, u32 addr, int mode)
 {
 	return _cacheLocal(c, part, addr, mode, 0);
 }
@@ -608,8 +608,8 @@ cacheLocal(Cache *c, int part, uint32_t addr, int mode)
  * check tag and type.
  */
 Block *
-cacheLocalData(Cache *c, uint32_t addr, int type, uint32_t tag, int mode,
-	       uint32_t epoch)
+cacheLocalData(Cache *c, u32 addr, int type, u32 tag, int mode,
+	       u32 epoch)
 {
 	Block *b;
 
@@ -633,13 +633,13 @@ cacheLocalData(Cache *c, uint32_t addr, int type, uint32_t tag, int mode,
  * check tag and type if it's really a local block in disguise.
  */
 Block *
-cacheGlobal(Cache *c, uint8_t score[VtScoreSize], int type, uint32_t tag,
+cacheGlobal(Cache *c, u8 score[VtScoreSize], int type, u32 tag,
 	    int mode)
 {
 	int n;
 	Block *b;
-	uint32_t h;
-	uint32_t addr;
+	u32 h;
+	u32 addr;
 
 	addr = globalToLocal(score);
 	if(addr != NilBlock){
@@ -649,7 +649,7 @@ cacheGlobal(Cache *c, uint8_t score[VtScoreSize], int type, uint32_t tag,
 		return b;
 	}
 
-	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->hashSize;
+	h = (u32)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->hashSize;
 
 	/*
 	 * look for the block in the cache
@@ -669,7 +669,7 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 		b = cacheBumpBlock(c);
 
 		b->part = PartVenti;
-		b->addr = (int64_t)NilBlock;
+		b->addr = (i64)NilBlock;
 		b->l.type = type;
 		memmove(b->score, score, VtScoreSize);
 
@@ -721,14 +721,14 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
  * allocate a new on-disk block and load it into the memory cache.
  * BUG: if the disk is full, should we flush some of it to Venti?
  */
-static uint32_t lastAlloc;
+static u32 lastAlloc;
 
 Block *
-cacheAllocBlock(Cache *c, int type, uint32_t tag, uint32_t epoch,
-		uint32_t epochLow)
+cacheAllocBlock(Cache *c, int type, u32 tag, u32 epoch,
+		u32 epochLow)
 {
 	FreeList *fl;
-	uint32_t addr;
+	u32 addr;
 	Block *b;
 	int n, nwrap;
 	Label lab;
@@ -795,7 +795,7 @@ assert(b->iostate == BioLabel || b->iostate == BioClean);
 	lab.tag = tag;
 	lab.state = BsAlloc;
 	lab.epoch = epoch;
-	lab.epochClose = ~(uint32_t)0;
+	lab.epochClose = ~(u32)0;
 	if(!blockSetLabel(b, &lab, 1)){
 		fprint(2, "%s: cacheAllocBlock: xxx4 %R\n", argv0);
 		blockPut(b);
@@ -819,11 +819,11 @@ cacheDirty(Cache *c)
 }
 
 void
-cacheCountUsed(Cache *c, uint32_t epochLow, uint32_t *used, uint32_t *total,
-	       uint32_t *bsize)
+cacheCountUsed(Cache *c, u32 epochLow, u32 *used, u32 *total,
+	       u32 *bsize)
 {
 	int n;
-	uint32_t addr, nused;
+	u32 addr, nused;
 	Block *b;
 	Label lab;
 	FreeList *fl;
@@ -871,7 +871,7 @@ cacheCountUsed(Cache *c, uint32_t epochLow, uint32_t *used, uint32_t *total,
 }
 
 static FreeList *
-flAlloc(uint32_t end)
+flAlloc(u32 end)
 {
 	FreeList *fl;
 
@@ -889,7 +889,7 @@ flFree(FreeList *fl)
 	vtMemFree(fl);
 }
 
-uint32_t
+u32
 cacheLocalSize(Cache *c, int part)
 {
 	return diskSize(c->disk, part);
@@ -977,7 +977,7 @@ _blockSetLabel(Block *b, Label *l)
 {
 	int lpb;
 	Block *bb;
-	uint32_t a;
+	u32 a;
 	Cache *c;
 
 	c = b->c;
@@ -1041,7 +1041,7 @@ blockSetLabel(Block *b, Label *l, int allocating)
  * can write a safer ``old'' version of the block if pressed.
  */
 void
-blockDependency(Block *b, Block *bb, int index, uint8_t *score, Entry *e)
+blockDependency(Block *b, Block *bb, int index, u8 *score, Entry *e)
 {
 	BList *p;
 
@@ -1130,10 +1130,10 @@ blockDirty(Block *b)
  * copy of b that is safe to write out.  (diskThread will make sure the block
  * remains marked as dirty.)
  */
-uint8_t *
-blockRollback(Block *b, uint8_t *buf)
+u8 *
+blockRollback(Block *b, u8 *buf)
 {
-	uint32_t addr;
+	u32 addr;
 	BList *p;
 	Super super;
 
@@ -1185,7 +1185,7 @@ blockRollback(Block *b, uint8_t *buf)
 int
 blockWrite(Block *b, int waitlock)
 {
-	uint8_t *dmap;
+	u8 *dmap;
 	Cache *c;
 	BList *p, **pp;
 	Block *bb;
@@ -1406,7 +1406,7 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
  * the copy gets written out.
  */
 Block*
-blockCopy(Block *b, uint32_t tag, uint32_t ehi, uint32_t elo)
+blockCopy(Block *b, u32 tag, u32 ehi, u32 elo)
 {
 	Block *bb, *lb;
 	Label l;
@@ -1465,7 +1465,7 @@ blockCopy(Block *b, uint32_t tag, uint32_t ehi, uint32_t elo)
  * If b depends on bb, it doesn't anymore, so we remove bb from the prior list.
  */
 void
-blockRemoveLink(Block *b, uint32_t addr, int type, uint32_t tag,
+blockRemoveLink(Block *b, u32 addr, int type, u32 tag,
 		int recurse)
 {
 	BList *p, **pp, bl;
@@ -1519,7 +1519,7 @@ static void
 doRemoveLink(Cache *c, BList *p)
 {
 	int i, n, recurse;
-	uint32_t a;
+	u32 a;
 	Block *b;
 	Label l;
 	BList bl;
@@ -1758,11 +1758,11 @@ labelFmt(Fmt *f)
 int
 scoreFmt(Fmt *f)
 {
-	uint8_t *v;
+	u8 *v;
 	int i;
-	uint32_t addr;
+	u32 addr;
 
-	v = va_arg(f->args, uint8_t*);
+	v = va_arg(f->args, u8*);
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)
@@ -1779,7 +1779,7 @@ static int
 upHeap(int i, Block *b)
 {
 	Block *bb;
-	uint32_t now;
+	u32 now;
 	int p;
 	Cache *c;
 
@@ -1803,7 +1803,7 @@ static int
 downHeap(int i, Block *b)
 {
 	Block *bb;
-	uint32_t now;
+	u32 now;
 	int k;
 	Cache *c;
 
@@ -1867,11 +1867,11 @@ heapIns(Block *b)
  * Get just the label for a block.
  */
 int
-readLabel(Cache *c, Label *l, uint32_t addr)
+readLabel(Cache *c, Label *l, u32 addr)
 {
 	int lpb;
 	Block *b;
-	uint32_t a;
+	u32 a;
 
 	lpb = c->size / LabelSize;
 	a = addr / lpb;

@@ -135,7 +135,7 @@ repaginate(PSInfo *ps, int n)
 }
 
 Document*
-initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
+initps(Biobuf *b, int argc, char **argv, u8 *buf, int nbuf)
 {
 	Document *d;
 	PSInfo *ps;
@@ -153,8 +153,8 @@ initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	int nesting=0;
 	int dumb=0;
 	int landscape=0;
-	int32_t psoff;
-	int32_t npage, mpage;
+	i32 psoff;
+	i32 npage, mpage;
 	Page *page;
 	Rectangle bbox = Rect(0,0,0,0);
 
@@ -389,7 +389,7 @@ pswritepage(Document *d, int fd, int page)
 	Biobuf *b = d->b;
 	PSInfo *ps = d->extra;
 	int t, n, i;
-	int32_t begin, end;
+	i32 begin, end;
 	char buf[8192];
 
 	if(page == -1)

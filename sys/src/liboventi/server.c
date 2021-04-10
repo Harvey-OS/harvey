@@ -28,9 +28,9 @@ vtServerAlloc(VtServerVtbl *vtbl)
 }
 
 static int
-srvHello(VtSession *z, char *version, char *uid, int n, uint8_t *m,
+srvHello(VtSession *z, char *version, char *uid, int n, u8 *m,
 	 int p,
-	 uint8_t *q, int r)
+	 u8 *q, int r)
 {
 	vtLock(z->lk);
 	if(z->auth.state != VtAuthHello) {
@@ -57,8 +57,8 @@ static int
 dispatchHello(VtSession *z, Packet **pkt)
 {
 	char *version, *uid;
-	uint8_t *crypto, *codec;
-	uint8_t buf[10];
+	u8 *crypto, *codec;
+	u8 buf[10];
 	int ncrypto, ncodec, cryptoStrength;
 	int ret;
 	Packet *p;
@@ -118,7 +118,7 @@ dispatchRead(VtSession *z, Packet **pkt)
 {
 	Packet *p;
 	int type, n;
-	uint8_t score[VtScoreSize], buf[4];
+	u8 score[VtScoreSize], buf[4];
 
 	p = *pkt;
 	if(!packetConsume(p, score, VtScoreSize))
@@ -141,7 +141,7 @@ dispatchWrite(VtSession *z, Packet **pkt)
 {
 	Packet *p;
 	int type;
-	uint8_t score[VtScoreSize], buf[4];
+	u8 score[VtScoreSize], buf[4];
 
 	p = *pkt;
 	if(!packetConsume(p, buf, 4))
@@ -171,7 +171,7 @@ int
 vtExport(VtSession *z)
 {
 	Packet *p;
-	uint8_t buf[10], *hdr;
+	u8 buf[10], *hdr;
 	int op, tid, clean;
 
 	if(z->vtbl == nil) {

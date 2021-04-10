@@ -67,14 +67,14 @@ char* uidadm = "adm";
 char* unamenone = "none";
 char* uidnoworld = "noworld";
 
-static uint32_t
+static u32
 userHash(char* s)
 {
-	uint8_t *p;
-	uint32_t hash;
+	u8 *p;
+	u32 hash;
 
 	hash = 0;
-	for(p = (uint8_t*)s; *p != '\0'; p++)
+	for(p = (u8*)s; *p != '\0'; p++)
 		hash = hash*7 + *p;
 
 	return hash % NUserHash;
@@ -679,7 +679,7 @@ usersFileRead(char* path)
 	File *file;
 	Fsys *fsys;
 	int len, r;
-	uint64_t size;
+	u64 size;
 
 	if((fsys = fsysGet("main")) == nil)
 		return 0;

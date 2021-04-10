@@ -21,7 +21,7 @@ panic(char *s)
 }
 
 static Proc*
-findpid(Proc *plist, int32_t pid)
+findpid(Proc *plist, i32 pid)
 {
 	while(plist) {
 		if(plist->pid == pid)
@@ -32,7 +32,7 @@ findpid(Proc *plist, int32_t pid)
 }
 
 Page*
-findpage(Proc *plist, int32_t pid, int type, uint64_t off)
+findpage(Proc *plist, i32 pid, int type, u64 off)
 {
 	Seg *s;
 	int i;
@@ -99,7 +99,7 @@ Breadnumber(Biobuf *b, char *buf)
 }
 
 static int
-Breadulong(Biobuf *b, uint32_t *x)
+Breadulong(Biobuf *b, u32 *x)
 {
 	char buf[32];
 
@@ -110,7 +110,7 @@ Breadulong(Biobuf *b, uint32_t *x)
 }
 
 static int
-Breaduvlong(Biobuf *b, uint64_t *x)
+Breaduvlong(Biobuf *b, u64 *x)
 {
 	char buf[32];
 
@@ -125,7 +125,7 @@ readdata(Biobuf *b)
 {
 	Data *d;
 	char str[32];
-	int32_t len;
+	i32 len;
 
 	if(Bread(b, str, 12) != 12)
 		panic("can't read data hdr\n");
@@ -146,8 +146,8 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 	int i, npg;
 	int t;
 	int n, len;
-	uint32_t pid;
-	uint64_t off;
+	u32 pid;
+	u64 off;
 	char buf[Pagesize];
 	static char zero[Pagesize];
 
@@ -208,7 +208,7 @@ readsnap(Biobuf *b)
 {
 	char *q;
 	char buf[12];
-	int32_t pid;
+	i32 pid;
 	Proc *p, *plist;
 	int i, n;
 

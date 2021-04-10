@@ -13,11 +13,11 @@
 extern Nvrsafe	nvr;
 
 typedef struct {
-	uint8_t	chal[CHALLEN];		/* locally generated challenge */
-	uint8_t	rchal[CHALLEN];		/* remotely generated challenge */
+	u8	chal[CHALLEN];		/* locally generated challenge */
+	u8	rchal[CHALLEN];		/* remotely generated challenge */
 	Lock	idlock;
-	uint32_t	idoffset;		/* offset of id vector */
-	uint32_t	idvec;			/* vector of acceptable id's */
+	u32	idoffset;		/* offset of id vector */
+	u32	idvec;			/* vector of acceptable id's */
 } Authinfo;
 
 static void
@@ -84,7 +84,7 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
 	Ticket t;
 	Authenticator a;
 	int x;
-	uint32_t bit;
+	u32 bit;
 	Authinfo *aip;
 
 	if(noauth || wstatallow)	/* set to allow entry during boot */

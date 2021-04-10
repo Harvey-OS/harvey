@@ -101,8 +101,8 @@ QLock statslock;
 Stats stats;
 Stats *stathist;
 int nstathist;
-uint32_t statind;
-uint32_t stattime;
+u32 statind;
+u32 stattime;
 
 void
 statsproc(void *v)
@@ -126,7 +126,7 @@ statsinit(void)
 }
 
 void
-setstat(int index, int32_t val)
+setstat(int index, i32 val)
 {
 	qlock(&statslock);
 	stats.n[index] = val;
@@ -160,12 +160,12 @@ printstats(void)
 }
 
 void
-binstats(int32_t (*fn)(Stats *s0, Stats *s1, void *arg), void *arg,
-	int32_t t0, int32_t t1, Statbin *bin, int nbin)
+binstats(i32 (*fn)(Stats *s0, Stats *s1, void *arg), void *arg,
+	 i32 t0, i32 t1, Statbin *bin, int nbin)
 {
-	int32_t xt0, t, te, v;
+	i32 xt0, t, te, v;
 	int i, j, lo, hi, m;
-	int64_t tot;
+	i64 tot;
 	Statbin *b;
 
 	t = stats.now;

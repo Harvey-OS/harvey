@@ -17,8 +17,8 @@ cistrcmp(const char *s1, const char *s2)
 	unsigned int c1, c2;
 
 	do{
-		c1 = *(uint8_t*)s1++;
-		c2 = *(uint8_t*)s2++;
+		c1 = *(u8*)s1++;
+		c2 = *(u8*)s2++;
 		if(c1 == c2)
 			continue;
 		c1 = tolower(c1);

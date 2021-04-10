@@ -44,12 +44,12 @@ getint(char *s)
 }
 
 Rectangle
-crop(Memimage *m, uint32_t c)
+crop(Memimage *m, u32 c)
 {
 	Memimage *n;
 	int x, y, bpl, wpl;
 	int left, right, top, bottom;
-	uint32_t *buf;
+	u32 *buf;
 
 	left = m->r.max.x;
 	right = m->r.min.x;
@@ -65,14 +65,14 @@ crop(Memimage *m, uint32_t c)
 		m = n;
 	}
 	wpl = wordsperline(m->r, m->depth);
-	bpl = wpl*sizeof(uint32_t);
+	bpl = wpl*sizeof(u32);
 	buf = malloc(bpl);
 	if(buf == nil)
 		sysfatal("can't allocate buffer: %r");
 
 	for(y=m->r.min.y; y<m->r.max.y; y++){
 		x = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y+1),
-				   (uint8_t*)buf, bpl);
+				   (u8*)buf, bpl);
 		if(x != bpl)
 			sysfatal("unloadmemimage");
 		for(x=0; x<wpl; x++)
@@ -100,8 +100,8 @@ main(int argc, char *argv[])
 	Point t;
 	Memimage *m, *new;
 	char *file;
-	uint32_t bg, cropval;
-	int32_t dw;
+	u32 bg, cropval;
+	i32 dw;
 
 	memimageinit();
 	mode = None;

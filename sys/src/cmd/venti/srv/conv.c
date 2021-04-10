@@ -16,8 +16,8 @@
  */
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
-#define	U32GET(p)	((uint32_t)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
-#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
+#define	U32GET(p)	((u32)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
+#define	U64GET(p)	(((u64)U32GET(p)<<32)|(u64)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)&0xFF
 #define	U16PUT(p,v)	(p)[0]=((v)>>8)&0xFF;(p)[1]=(v)&0xFF
@@ -27,7 +27,7 @@
 int debugarena = -1;		/* hack to improve error reporting */
 
 static struct {
-	uint32_t m;
+	u32 m;
 	char *s;
 } magics[] = {
 	{ArenaPartMagic, "ArenaPartMagic"},
@@ -38,7 +38,7 @@ static struct {
 };
 
 static char*
-fmtmagic(char *s, uint32_t m)
+fmtmagic(char *s, u32 m)
 {
 	int i;
 
@@ -49,23 +49,23 @@ fmtmagic(char *s, uint32_t m)
 	return s;
 }
 
-uint32_t
-unpackmagic(uint8_t *buf)
+u32
+unpackmagic(u8 *buf)
 {
 	return U32GET(buf);
 }
 
 void
-packmagic(uint32_t magic, uint8_t *buf)
+packmagic(u32 magic, u8 *buf)
 {
 	U32PUT(buf, magic);
 }
 
 int
-unpackarenapart(ArenaPart *ap, uint8_t *buf)
+unpackarenapart(ArenaPart *ap, u8 *buf)
 {
-	uint8_t *p;
-	uint32_t m;
+	u8 *p;
+	u32 m;
 	char fbuf[20];
 
 	p = buf;
@@ -90,9 +90,9 @@ unpackarenapart(ArenaPart *ap, uint8_t *buf)
 }
 
 int
-packarenapart(ArenaPart *ap, uint8_t *buf)
+packarenapart(ArenaPart *ap, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 
@@ -112,11 +112,11 @@ packarenapart(ArenaPart *ap, uint8_t *buf)
 }
 
 int
-unpackarena(Arena *arena, uint8_t *buf)
+unpackarena(Arena *arena, u8 *buf)
 {
 	int sz;
-	uint8_t *p;
-	uint32_t m;
+	u8 *p;
+	u32 m;
 	char fbuf[20];
 
 	p = buf;
@@ -220,25 +220,25 @@ unpackarena(Arena *arena, uint8_t *buf)
 }
 
 int
-packarena(Arena *arena, uint8_t *buf)
+packarena(Arena *arena, u8 *buf)
 {
 	return _packarena(arena, buf, 0);
 }
 
 int
-_packarena(Arena *arena, uint8_t *buf, int forceext)
+_packarena(Arena *arena, u8 *buf, int forceext)
 {
 	int sz;
-	uint8_t *p;
-	uint32_t t32;
+	u8 *p;
+	u32 t32;
 
 	switch(arena->version){
 	case ArenaVersion4:
 		sz = ArenaSize4;
 		if(arena->clumpmagic != _ClumpMagic)
 			fprint(2, "warning: writing old arena tail loses clump magic 0x%lx != 0x%lx\n",
-				(uint32_t)arena->clumpmagic,
-			       (uint32_t)_ClumpMagic);
+				(u32)arena->clumpmagic,
+			       (u32)_ClumpMagic);
 		break;
 	case ArenaVersion5:
 		sz = ArenaSize5;
@@ -311,10 +311,10 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 }
 
 int
-unpackarenahead(ArenaHead *head, uint8_t *buf)
+unpackarenahead(ArenaHead *head, u8 *buf)
 {
-	uint8_t *p;
-	uint32_t m;
+	u8 *p;
+	u32 m;
 	int sz;
 	char fbuf[20];
 
@@ -362,19 +362,19 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 }
 
 int
-packarenahead(ArenaHead *head, uint8_t *buf)
+packarenahead(ArenaHead *head, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 	int sz;
-	uint32_t t32;
+	u32 t32;
 
 	switch(head->version){
 	case ArenaVersion4:
 		sz = ArenaHeadSize4;
 		if(head->clumpmagic != _ClumpMagic)
 			fprint(2, "warning: writing old arena header loses clump magic 0x%lx != 0x%lx\n",
-				(uint32_t)head->clumpmagic,
-			       (uint32_t)_ClumpMagic);
+				(u32)head->clumpmagic,
+			       (u32)_ClumpMagic);
 		break;
 	case ArenaVersion5:
 		sz = ArenaHeadSize5;
@@ -428,10 +428,10 @@ checkclump(Clump *w)
 }
 
 int
-unpackclump(Clump *c, uint8_t *buf, uint32_t cmagic)
+unpackclump(Clump *c, u8 *buf, u32 cmagic)
 {
-	uint8_t *p;
-	uint32_t magic;
+	u8 *p;
+	u32 magic;
 
 	p = buf;
 	magic = U32GET(p);
@@ -464,9 +464,9 @@ unpackclump(Clump *c, uint8_t *buf, uint32_t cmagic)
 }
 
 int
-packclump(Clump *c, uint8_t *buf, uint32_t magic)
+packclump(Clump *c, u8 *buf, u32 magic)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 	U32PUT(p, magic);
@@ -495,9 +495,9 @@ packclump(Clump *c, uint8_t *buf, uint32_t magic)
 }
 
 void
-unpackclumpinfo(ClumpInfo *ci, uint8_t *buf)
+unpackclumpinfo(ClumpInfo *ci, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 	ci->type = vtfromdisktype(U8GET(p));
@@ -514,9 +514,9 @@ unpackclumpinfo(ClumpInfo *ci, uint8_t *buf)
 }
 
 void
-packclumpinfo(ClumpInfo *ci, uint8_t *buf)
+packclumpinfo(ClumpInfo *ci, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 	U8PUT(p, vttodisktype(ci->type));
@@ -533,10 +533,10 @@ packclumpinfo(ClumpInfo *ci, uint8_t *buf)
 }
 
 int
-unpackisect(ISect *is, uint8_t *buf)
+unpackisect(ISect *is, u8 *buf)
 {
-	uint8_t *p;
-	uint32_t m;
+	u8 *p;
+	u32 m;
 	char fbuf[20];
 
 	p = buf;
@@ -579,9 +579,9 @@ unpackisect(ISect *is, uint8_t *buf)
 }
 
 int
-packisect(ISect *is, uint8_t *buf)
+packisect(ISect *is, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 
@@ -616,9 +616,9 @@ packisect(ISect *is, uint8_t *buf)
 }
 
 void
-unpackientry(IEntry *ie, uint8_t *buf)
+unpackientry(IEntry *ie, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 
@@ -647,10 +647,10 @@ if(ie->ia.addr>>56) print("%.8H => %llux\n", p, ie->ia.addr);
 }
 
 void
-packientry(IEntry *ie, uint8_t *buf)
+packientry(IEntry *ie, u8 *buf)
 {
-	uint32_t t32;
-	uint8_t *p;
+	u32 t32;
+	u8 *p;
 
 	p = buf;
 
@@ -674,7 +674,7 @@ packientry(IEntry *ie, uint8_t *buf)
 }
 
 void
-unpackibucket(IBucket *b, uint8_t *buf, uint32_t magic)
+unpackibucket(IBucket *b, u8 *buf, u32 magic)
 {
 	b->n = U16GET(buf);
 	b->data = buf + IBucketSize;
@@ -683,16 +683,16 @@ unpackibucket(IBucket *b, uint8_t *buf, uint32_t magic)
 }
 
 void
-packibucket(IBucket *b, uint8_t *buf, uint32_t magic)
+packibucket(IBucket *b, u8 *buf, u32 magic)
 {
 	U16PUT(buf, b->n);
 	U32PUT(buf+U16Size, magic);
 }
 
 void
-packbloomhead(Bloom *b, uint8_t *buf)
+packbloomhead(Bloom *b, u8 *buf)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = buf;
 	U32PUT(p, BloomMagic);
@@ -702,10 +702,10 @@ packbloomhead(Bloom *b, uint8_t *buf)
 }
 
 int
-unpackbloomhead(Bloom *b, uint8_t *buf)
+unpackbloomhead(Bloom *b, u8 *buf)
 {
-	uint8_t *p;
-	uint32_t m;
+	u8 *p;
+	u32 m;
 	char fbuf[20];
 
 	p = buf;
@@ -713,7 +713,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 	m = U32GET(p);
 	if(m != BloomMagic){
 		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lx)", fmtmagic(fbuf, m),
-		       (uint32_t)BloomMagic);
+		       (u32)BloomMagic);
 		return -1;
 	}
 	p += U32Size;

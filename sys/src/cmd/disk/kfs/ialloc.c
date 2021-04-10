@@ -9,7 +9,7 @@
 
 #include "all.h"
 
-void *ialloc(uint32_t n){
+void *ialloc(u32 n){
 	void *p;
 
 	if(p = malloc(n))

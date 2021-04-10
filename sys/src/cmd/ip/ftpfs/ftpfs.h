@@ -57,8 +57,8 @@ extern OS oslist[];
 
 /* temporary files */
 void	filefree(Node*);
-int	fileread(Node*, char*, int32_t, int);
-int	filewrite(Node*, char*, int32_t, int);
+int	fileread(Node*, char*, i32, int);
+int	filewrite(Node*, char*, i32, int);
 void	filedirty(Node*);
 void	fileclean(Node*);
 int	fileisdirty(Node*);

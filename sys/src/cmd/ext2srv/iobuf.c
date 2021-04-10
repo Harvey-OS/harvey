@@ -24,7 +24,7 @@ static Iobuf*	iohead;
 static Iobuf*	iotail;
 
 Iobuf*
-getbuf(Xfs *dev, int32_t addr)
+getbuf(Xfs *dev, i32 addr)
 {
 	Iobuf *p, *h, **l, **f;
 
@@ -141,11 +141,11 @@ iobuf_init(void)
 	iotail->next = 0;
 }
 int
-xread(Xfs *dev, Iobuf *p, int32_t addr)
+xread(Xfs *dev, Iobuf *p, i32 addr)
 {
 	/*chat("xread %d,%d...", dev->dev, addr);*/
 
-	seek(dev->dev, (int64_t)addr*dev->block_size, 0);
+	seek(dev->dev, (i64)addr*dev->block_size, 0);
 	if(read(dev->dev, p->iobuf, dev->block_size) != dev->block_size){
 		chat("xread %d, block=%d failed ...", dev->dev, addr);
 		errno = Eio;
@@ -158,13 +158,13 @@ void
 xwrite(Iobuf *p)
 {
 	Xfs *dev;
-	int32_t addr;
+	i32 addr;
 
 	dev = p->dev;
 	addr = p->addr;
 	/*chat("xwrite %d,%d...", dev->dev, addr);*/
 
-	seek(dev->dev, (int64_t)addr*dev->block_size, 0);
+	seek(dev->dev, (i64)addr*dev->block_size, 0);
 	if(write(dev->dev, p->iobuf, dev->block_size) != dev->block_size){
 		chat("xwrite %d, block=%d failed ...", dev->dev, addr);
 		errno = Eio;

@@ -11,13 +11,13 @@
 #include <libc.h>
 #include <ip.h>
 
-static uint8_t loopbacknet[IPaddrlen] = {
+static u8 loopbacknet[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	127, 0, 0, 0
 };
-static uint8_t loopbackmask[IPaddrlen] = {
+static u8 loopbackmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -27,12 +27,12 @@ static uint8_t loopbackmask[IPaddrlen] = {
 // find first ip addr that isn't the friggin loopback address
 // unless there are no others
 int
-myipaddr(uint8_t *ip, char *net)
+myipaddr(u8 *ip, char *net)
 {
 	Ipifc *nifc;
 	Iplifc *lifc;
 	static Ipifc *ifc;
-	uint8_t mynet[IPaddrlen];
+	u8 mynet[IPaddrlen];
 
 	ifc = readipifc(net, ifc, -1);
 	for(nifc = ifc; nifc; nifc = nifc->next)

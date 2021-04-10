@@ -1,70 +1,70 @@
 @uvlong@
 typedef uvlong;
-typedef uint64_t;
+typedef u64;
 @@
 -uvlong
-+uint64_t
++u64
 
 @@
 typedef u64int;
 @@
 -u64int
-+uint64_t
++u64
 
 @vlong@
-typedef vlong, int64_t;
+typedef vlong, i64;
 @@
 -vlong
-+int64_t
++i64
 
 @@
 typedef u32int;
-typedef uint32_t;
+typedef u32;
 @@
 -u32int
-+uint32_t
++u32
 
 @@
 typedef ulong;
 @@
 -ulong
-+uint32_t
++u32
 
 @@
-typedef int32_t;
+typedef i32;
 @@
 -long
-+int32_t
++i32
 
 @ushort@
-typedef ushort, uint16_t;
+typedef ushort, u16;
 @@
 -ushort
-+uint16_t
++u16
 
 @@
 typedef u16int;
 @@
 -u16int
-+uint16_t
++u16
 
 @@
-typedef int16_t;
+typedef i16;
 @@
 -short
-+int16_t
++i16
 
 @@
-typedef uchar, uint8_t;
+typedef uchar, u8;
 @@
 -uchar
-+uint8_t
++u8
 
 @@
 typedef u8int;
 @@
 -u8int
-+uint8_t
++u8
 
 @@
 typedef uintptr;

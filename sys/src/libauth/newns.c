@@ -375,7 +375,7 @@ setenv(char *name, char *val)
 {
 	int f;
 	char ename[ANAMELEN+6];
-	int32_t s;
+	i32 s;
 
 	sprint(ename, "#e/%s", name);
 	f = create(ename, OWRITE, 0664);

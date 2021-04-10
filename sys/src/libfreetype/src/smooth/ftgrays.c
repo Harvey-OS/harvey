@@ -232,7 +232,7 @@
   /* new algorithms                                                       */
 
   typedef int   TCoord;   /* integer scanline/pixel coordinate */
-  typedef int32_t  TPos;     /* sub-pixel coordinate              */
+  typedef i32  TPos;     /* sub-pixel coordinate              */
 
   /* determine the type used to store cell areas.  This normally takes at */
   /* least PIXEL_BYTES*2 + 1.  On 16-bit systems, we need to use `long'   */
@@ -246,7 +246,7 @@
 
   /* approximately determine the size of integers using an ANSI-C header */
 #if FT_UINT_MAX == 0xFFFFU
-  typedef int32_t  TArea;
+  typedef i32  TArea;
 #else
   typedef int  TArea;
 #endif
@@ -262,8 +262,8 @@
 
   typedef struct  TCell_
   {
-    int16_t  x     : 14;
-    int16_t  y     : 14;
+    i16  x     : 14;
+    i16  y     : 14;
     int    cover : PIXEL_BITS + 2;
     int    area  : PIXEL_BITS * 2 + 2;
 
@@ -337,7 +337,7 @@
   /*                                                                       */
   static void
   gray_init_cells( RAS_ARG_ void*  buffer,
-                   int32_t            byte_size )
+                   i32            byte_size )
   {
     ras.cells     = (PCell)buffer;
     ras.max_cells = byte_size / sizeof ( TCell );
@@ -507,7 +507,7 @@
                                   TCoord  y2 )
   {
     TCoord  ex1, ex2, fx1, fx2, delta;
-    int32_t    p, first, dx;
+    i32    p, first, dx;
     int     incr, lift, mod, rem;
 
 
@@ -612,7 +612,7 @@
   {
     TCoord  ey1, ey2, fy1, fy2;
     TPos    dx, dy, x, x2;
-    int32_t    p, first;
+    i32    p, first;
     int     delta, rem, mod, lift, incr;
 
 
@@ -1039,7 +1039,7 @@
   /* a macro comparing two cell pointers.  Returns true if a <= b. */
 #if 1
 
-#define PACK( a )          ( ( (int32_t)(a)->y << 16 ) + (a)->x )
+#define PACK( a )          ( ( (i32)(a)->y << 16 ) + (a)->x )
 #define LESS_THAN( a, b )  ( PACK( a ) < PACK( b ) )
 
 #else /* 1 */
@@ -1438,7 +1438,7 @@
         span++;
 
       /* add a gray span to the current list */
-      span->x        = (int16_t)x;
+      span->x        = (i16)x;
       span->len      = (unsigned short)acount;
       span->coverage = (unsigned char)coverage;
       ras.num_gray_spans++;
@@ -2132,7 +2132,7 @@
   static void
   gray_raster_reset( FT_Raster    raster,
                      const char*  pool_base,
-                     int32_t         pool_size )
+                     i32         pool_size )
   {
     PRaster  rast = (PRaster)raster;
 

@@ -44,7 +44,7 @@ struct Vncs
 	int		snarfvers;
 
 	Memimage	*image;
-	uint32_t	imagechan;
+	u32	imagechan;
 };
 
 /* rre.c */

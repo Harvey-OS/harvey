@@ -2282,7 +2282,7 @@ static void lialg_compute_lpf_parameters(void) {
 /* Code from Joseph Hall (jnhall@sat.mot.com). */
 static int isqrt(int n) {
 		register int i;
-		register int32_t k0, k1, nn;
+		register i32 k0, k1, nn;
 
 		for (nn = i = n, k0 = 2; i > 0; i >>= 2, k0 <<= 1)
 				;

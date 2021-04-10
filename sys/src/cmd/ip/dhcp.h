@@ -138,7 +138,7 @@ enum
 };
 
 /* a lease that never expires. DHCP specifies that it is 32 bits of seconds. */
-#define Lforever	((uint32_t)~0)
+#define Lforever	((u32)~0)
 
 /* dhcp states */
 enum {

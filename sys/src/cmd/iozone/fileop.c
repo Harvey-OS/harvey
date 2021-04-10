@@ -111,7 +111,7 @@ void clear_stats();
 int validate(char *, int , char );
 char *getcwd(char *buf, size_t len);
 void rmdir(char *);
-void be2vlong(int64_t *, char *);
+void be2vlong(i64 *, char *);
 char version[]="        $Revision: 1.61 $";
 char thedir[pathMax]="."; /* Default is to use the current directory */
 const char *mountname=nil; /* Default is not to unmount anything between the tests */
@@ -1091,7 +1091,7 @@ time_so_far(){
 	static int fd = -1;
 	int tv_sec, tv_usec;
 	char b[8];
-	int64_t t;
+	i64 t;
 
 	if(fd <0 )
 		if ((fd = open("/dev/bintime", OREAD|OCEXEC)) < 0)
@@ -1112,9 +1112,9 @@ time_so_far(){
 }
 
 void
-be2vlong(int64_t *to, char *f)
+be2vlong(i64 *to, char *f)
 {
-	static uint64_t order = 0x0001020304050607ULL;
+	static u64 order = 0x0001020304050607ULL;
 	char *t, *o;
 	int i;
 

@@ -10,17 +10,17 @@
 #include "headers.h"
 
 int
-smbclientopen(SmbClient *c, uint16_t mode, char *name, uint8_t *errclassp,
-	      uint16_t *errorp,
-	uint16_t *fidp, uint16_t *attrp, uint32_t *mtimep, uint32_t *sizep,
-	      uint16_t *accessallowedp, char **errmsgp)
+smbclientopen(SmbClient *c, u16 mode, char *name, u8 *errclassp,
+	      u16 *errorp,
+	u16 *fidp, u16 *attrp, u32 *mtimep, u32 *sizep,
+	      u16 *accessallowedp, char **errmsgp)
 {
 	SmbBuffer *b;
 	SmbHeader h;
-	uint32_t bytecountfixup;
-	int32_t n;
-	uint8_t *pdata;
-	uint16_t bytecount;
+	u32 bytecountfixup;
+	i32 n;
+	u8 *pdata;
+	u16 bytecount;
 
 	b = smbbuffernew(65535);
 	h = c->protoh;

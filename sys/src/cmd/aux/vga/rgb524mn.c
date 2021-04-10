@@ -18,8 +18,8 @@
  * IBM RGB52x and compatibles.
  * High Performance Palette DAC.
  */
-uint8_t (*rgb524mnxi)(Vga*, int);
-void (*rgb524mnxo)(Vga*, int, uint8_t);
+u8 (*rgb524mnxi)(Vga*, int);
+void (*rgb524mnxo)(Vga*, int, u8);
 
 enum {						/* index registers */
 	MiscClock	= 0x02,
@@ -43,10 +43,10 @@ enum {						/* index registers */
 };
 
 static void
-clock(Vga* vga, Ctlr* ctlr, uint32_t fref, uint32_t maxpclk)
+clock(Vga* vga, Ctlr* ctlr, u32 fref, u32 maxpclk)
 {
 	int d, mind;
-	uint32_t df, f, m, n, vrf;
+	u32 df, f, m, n, vrf;
 
 	mind = vga->f[0]+1;
 	for(df = 0; df < 4; df++){
@@ -98,7 +98,7 @@ clock(Vga* vga, Ctlr* ctlr, uint32_t fref, uint32_t maxpclk)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	uint32_t fref, maxpclk;
+	u32 fref, maxpclk;
 	char *p, *val;
 
 	/*
@@ -223,10 +223,10 @@ sleep(50);
 }
 
 static void
-dumpclock(Vga* vga, Ctlr* ctlr, uint32_t fref, uint32_t m, uint32_t n,
+dumpclock(Vga* vga, Ctlr* ctlr, u32 fref, u32 m, u32 n,
 	  char* name)
 {
-	uint32_t df, f;
+	u32 df, f;
 
 	df = (m>>6) & 0x03;
 	m &= 0x3F;
@@ -256,8 +256,8 @@ dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	char *val;
-	uint8_t x[256];
-	uint32_t fref, fs;
+	u8 x[256];
+	u32 fref, fs;
 
 	if(rgb524mnxi == nil && rgb524mnxo == nil)
 		error("%s->dump: no access routines\n", ctlr->name);

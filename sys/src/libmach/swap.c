@@ -12,77 +12,77 @@
 /*
  * big-endian short
  */
-uint16_t
-beswab(uint16_t s)
+u16
+beswab(u16 s)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&s;
+	p = (u8*)&s;
 	return (p[0]<<8) | p[1];
 }
 
 /*
  * big-endian long
  */
-uint32_t
-beswal(uint32_t l)
+u32
+beswal(u32 l)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&l;
+	p = (u8*)&l;
 	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
 }
 
 /*
  * big-endian vlong
  */
-uint64_t
-beswav(uint64_t v)
+u64
+beswav(u64 v)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&v;
-	return ((uint64_t)p[0]<<56) | ((uint64_t)p[1]<<48) | ((uint64_t)p[2]<<40)
-				  | ((uint64_t)p[3]<<32) | ((uint64_t)p[4]<<24)
-				  | ((uint64_t)p[5]<<16) | ((uint64_t)p[6]<<8)
-				  | (uint64_t)p[7];
+	p = (u8*)&v;
+	return ((u64)p[0]<<56) | ((u64)p[1]<<48) | ((u64)p[2]<<40)
+				  | ((u64)p[3]<<32) | ((u64)p[4]<<24)
+				  | ((u64)p[5]<<16) | ((u64)p[6]<<8)
+				  | (u64)p[7];
 }
 
 /*
  * little-endian short
  */
-uint16_t
-leswab(uint16_t s)
+u16
+leswab(u16 s)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&s;
+	p = (u8*)&s;
 	return (p[1]<<8) | p[0];
 }
 
 /*
  * little-endian long
  */
-uint32_t
-leswal(uint32_t l)
+u32
+leswal(u32 l)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&l;
+	p = (u8*)&l;
 	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
 }
 
 /*
  * little-endian vlong
  */
-uint64_t
-leswav(uint64_t v)
+u64
+leswav(u64 v)
 {
-	uint8_t *p;
+	u8 *p;
 
-	p = (uint8_t*)&v;
-	return ((uint64_t)p[7]<<56) | ((uint64_t)p[6]<<48) | ((uint64_t)p[5]<<40)
-				  | ((uint64_t)p[4]<<32) | ((uint64_t)p[3]<<24)
-				  | ((uint64_t)p[2]<<16) | ((uint64_t)p[1]<<8)
-				  | (uint64_t)p[0];
+	p = (u8*)&v;
+	return ((u64)p[7]<<56) | ((u64)p[6]<<48) | ((u64)p[5]<<40)
+				  | ((u64)p[4]<<32) | ((u64)p[3]<<24)
+				  | ((u64)p[2]<<16) | ((u64)p[1]<<8)
+				  | (u64)p[0];
 }

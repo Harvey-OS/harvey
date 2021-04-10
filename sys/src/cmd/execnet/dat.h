@@ -11,8 +11,8 @@ typedef struct Msg Msg;
 struct Msg
 {
 	Msg *link;
-	uint8_t *rp;
-	uint8_t *ep;
+	u8 *rp;
+	u8 *ep;
 };
 
 typedef struct Client Client;

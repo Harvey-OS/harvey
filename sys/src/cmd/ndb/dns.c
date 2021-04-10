@@ -34,7 +34,7 @@ typedef struct Mfile	Mfile;
 typedef struct Job	Job;
 typedef struct Network	Network;
 
-extern	uint32_t	start;
+extern	u32	start;
 
 int vers;		/* incremented each clone/attach */
 
@@ -52,8 +52,8 @@ struct Mfile
 
 	int		type;		/* reply type */
 	char		reply[Maxreply];
-	uint16_t		rr[Maxrrr];	/* offset of rr's */
-	uint16_t		nrr;		/* number of rr's */
+	u16		rr[Maxrrr];	/* offset of rr's */
+	u16		nrr;		/* number of rr's */
 };
 
 /*
@@ -76,12 +76,12 @@ struct {
 
 Cfg	cfg;
 int	debug;
-uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+u8	ipaddr[IPaddrlen];	/* my ip address */
 int	maxage = Defmaxage;
 int	mfd[2];
 int	needrefresh;
-uint32_t	now;
-int64_t	nowns;
+u32	now;
+i64	nowns;
 int	sendnotifies;
 int	testing;
 char	*trace;
@@ -456,8 +456,8 @@ flushjob(int tag)
 void
 io(void)
 {
-	int32_t n;
-	uint8_t mdata[IOHDRSZ + Maxfdata];
+	i32 n;
+	u8 mdata[IOHDRSZ + Maxfdata];
 	Job *job;
 	Mfile *mf;
 	Request req;
@@ -691,11 +691,11 @@ void
 rread(Job *job, Mfile *mf)
 {
 	int i, n;
-	int32_t clock;
-	uint32_t cnt;
-	int64_t off;
+	i32 clock;
+	u32 cnt;
+	i64 off;
 	char *err;
-	uint8_t buf[Maxfdata];
+	u8 buf[Maxfdata];
 	Dir dir;
 
 	n = 0;
@@ -742,7 +742,7 @@ void
 rwrite(Job *job, Mfile *mf, Request *req)
 {
 	int rooted, wantsav, send;
-	uint32_t cnt;
+	u32 cnt;
 	char *err, *p, *atype;
 	char errbuf[ERRMAX];
 
@@ -892,7 +892,7 @@ static char *
 respond(Job *job, Mfile *mf, RR *rp, char *errbuf, int status,
 	int wantsav)
 {
-	int32_t n;
+	i32 n;
 	RR *tp;
 
 	if(rp == nil)
@@ -935,7 +935,7 @@ lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	int wantsav, int)
 {
 	char *err;
-	uint8_t buf[Udphdrsize + Maxpayload];
+	u8 buf[Udphdrsize + Maxpayload];
 	DNSmsg *mp;
 	DNSmsg repmsg;
 	RR *rp;
@@ -945,7 +945,7 @@ lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	memset(&repmsg, 0, sizeof repmsg);
 	rp = rralloc(mf->type);
 	rp->owner = dnlookup(p, Cin, 1);
-	mp = newdnsmsg(rp, Frecurse|Oquery, (uint16_t)rand());
+	mp = newdnsmsg(rp, Frecurse|Oquery, (u16)rand());
 
 	/* BUG: buf is srcip, yet it's uninitialised */
 	dnserver(mp, &repmsg, req, buf, Rok);
@@ -976,7 +976,7 @@ void
 rstat(Job *job, Mfile *mf)
 {
 	Dir dir;
-	uint8_t buf[IOHDRSZ+Maxfdata];
+	u8 buf[IOHDRSZ+Maxfdata];
 
 	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
@@ -1006,7 +1006,7 @@ void
 sendmsg(Job *job, char *err)
 {
 	int n;
-	uint8_t mdata[IOHDRSZ + Maxfdata];
+	u8 mdata[IOHDRSZ + Maxfdata];
 	char ename[ERRMAX];
 
 	if(err){
@@ -1034,7 +1034,7 @@ sendmsg(Job *job, char *err)
  *  the following varies between dnsdebug and dns
  */
 void
-logreply(int id, uint8_t *addr, DNSmsg *mp)
+logreply(int id, u8 *addr, DNSmsg *mp)
 {
 	RR *rp;
 
@@ -1055,7 +1055,7 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
+logsend(int id, int subid, u8 *addr, char *sname, char *rname,
 	int type)
 {
 	char buf[12];

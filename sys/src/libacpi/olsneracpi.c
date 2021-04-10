@@ -173,12 +173,12 @@ failed:
 typedef struct IRQRouteData
 {
 	ACPI_PCI_ID pci;
-	uint32_t pin;
-	int8_t gsi;
+	u32 pin;
+	i8 gsi;
 	// triggering: 1 = edge triggered, 0 = level
-	int8_t triggering;
+	i8 triggering;
 	// polarity: 1 = active-low, 0 = active-high
-	int8_t polarity;
+	i8 polarity;
 	BOOLEAN found;
 } IRQRouteData;
 
@@ -516,7 +516,7 @@ failed:
 	return_ACPI_STATUS(status);
 }
 
-ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, uint32_t pin, int* irq) {
+ACPI_STATUS RouteIRQ(ACPI_PCI_ID* device, u32 pin, int* irq) {
 	IRQRouteData data = { *device, pin, 0, 0, 0, FALSE };
 	ACPI_STATUS status = AE_OK;
 

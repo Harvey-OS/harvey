@@ -24,7 +24,7 @@ int		nineflag = 0;
 int		threeflag = 0;
 int		colorspace = CYCbCr;	/* default for 8-bit displays: combine color rotation with dither */
 int		output = 0;
-uint32_t	outchan = CMAP8;
+u32	outchan = CMAP8;
 Image	*image;
 int		defaultcolor = 1;
 
@@ -207,7 +207,7 @@ vidmerge(Rawimage **aa1, Rawimage **aa2)
 		}
 		row = Dx(a1->r);
 		for (c = 0; c < ao->nchans; c++) {
-			uint8_t *po, *p1, *p2;
+			u8 *po, *p1, *p2;
 
 			ao->chans[c] = malloc(ao->chanlen);
 			po = ao->chans[c];

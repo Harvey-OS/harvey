@@ -26,8 +26,8 @@ enum
 
 struct Fid
 {
-	int16_t busy;
-	int16_t open;
+	i16 busy;
+	i16 open;
 	int fid;
 	char *user;
 	Qid qid;
@@ -47,11 +47,11 @@ enum
 };
 
 Fid	*fids;
-uint8_t	*data;
+u8	*data;
 int	mfd[2];
 int	srvfd = -1;
 char	*user;
-uint8_t	mdata[8192+IOHDRSZ];
+u8	mdata[8192+IOHDRSZ];
 int messagesize = sizeof mdata;
 Fcall	rhdr;
 Fcall	thdr;
@@ -68,10 +68,10 @@ void	vacshutdown(void);
 void	usage(void);
 int	perm(Fid*, int);
 int	permf(VacFile*, char*, int);
-uint32_t	getl(void *p);
-void	init(char*, char*, int32_t, int);
-int	vacdirread(Fid *f, char *p, int32_t off, int32_t cnt);
-int	vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np);
+u32	getl(void *p);
+void	init(char*, char*, i32, int);
+int	vacdirread(Fid *f, char *p, i32 off, i32 cnt);
+int	vacstat(VacFile *parent, VacDir *vd, u8 *p, int np);
 void 	srv(void* a);
 
 
@@ -442,7 +442,7 @@ char*
 rcreate(Fid* fid)
 {
 	VacFile *vf;
-	uint32_t mode;
+	u32 mode;
 
 	if(fid->open)
 		return vtstrdup(Eisopen);
@@ -500,7 +500,7 @@ char*
 rread(Fid *f)
 {
 	char *buf;
-	int64_t off;
+	i64 off;
 	int cnt;
 	VacFile *vf;
 	char err[80];
@@ -585,7 +585,7 @@ char *
 rstat(Fid *f)
 {
 	VacDir dir;
-	static uint8_t statbuf[1024];
+	static u8 statbuf[1024];
 	VacFile *parent;
 
 	if(!f->busy)
@@ -608,7 +608,7 @@ rwstat(Fid *f)
 }
 
 int
-vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np)
+vacstat(VacFile *parent, VacDir *vd, u8 *p, int np)
 {
 	int ret;
 	Dir dir;
@@ -648,7 +648,7 @@ vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np)
 }
 
 int
-vacdirread(Fid *f, char *p, int32_t off, int32_t cnt)
+vacdirread(Fid *f, char *p, i32 off, i32 cnt)
 {
 	int i, n, nb;
 	VacDir vd;
@@ -674,7 +674,7 @@ vacdirread(Fid *f, char *p, int32_t off, int32_t cnt)
 			return -1;
 		if(i == 0)
 			break;
-		n = vacstat(f->file, &vd, (uint8_t*)p, cnt-nb);
+		n = vacstat(f->file, &vd, (u8*)p, cnt-nb);
 		if(n <= BIT16SZ) {
 			vdeunread(f->vde);
 			break;
@@ -753,7 +753,7 @@ int
 permf(VacFile *vf, char *user, int p)
 {
 	VacDir dir;
-	uint32_t perm;
+	u32 perm;
 
 	if(vacfilegetdir(vf, &dir))
 		return 0;

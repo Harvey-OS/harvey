@@ -28,9 +28,9 @@ struct LumpCache
 	QLock		lock;
 	Rendez		full;
 	Lump		*free;			/* list of available lumps */
-	uint32_t		allowed;		/* total allowable space for packets */
-	uint32_t		avail;			/* remaining space for packets */
-	uint32_t		now;			/* ticks for usage timestamps */
+	u32		allowed;		/* total allowable space for packets */
+	u32		avail;			/* remaining space for packets */
+	u32		now;			/* ticks for usage timestamps */
 	Lump		**heads;		/* hash table for finding address */
 	int		nheap;			/* number of available victims */
 	Lump		**heap;			/* heap for locating victims */
@@ -47,7 +47,7 @@ static int	upheap(int i, Lump *b);
 static Lump	*bumplump(void);
 
 void
-initlumpcache(uint32_t size, uint32_t nblocks)
+initlumpcache(u32 size, u32 nblocks)
 {
 	Lump *last, *b;
 	int i;
@@ -74,11 +74,11 @@ initlumpcache(uint32_t size, uint32_t nblocks)
 }
 
 Lump*
-lookuplump(uint8_t *score, int type)
+lookuplump(u8 *score, int type)
 {
 	uint ms;
 	Lump *b;
-	uint32_t h;
+	u32 h;
 
 	ms = 0;
 	trace(TraceLump, "lookuplump enter");
@@ -170,7 +170,7 @@ found:
 void
 insertlump(Lump *b, Packet *p)
 {
-	uint32_t size;
+	u32 size;
 
 	/*
 	 * look for the block in the cache
@@ -236,7 +236,7 @@ static Lump*
 bumplump(void)
 {
 	Lump *b;
-	uint32_t h;
+	u32 h;
 
 	/*
 	 * remove blocks until we find one that is unused
@@ -321,7 +321,7 @@ static int
 upheap(int i, Lump *b)
 {
 	Lump *bb;
-	uint32_t now;
+	u32 now;
 	int p;
 
 	now = lumpcache.now;
@@ -343,7 +343,7 @@ static int
 downheap(int i, Lump *b)
 {
 	Lump *bb;
-	uint32_t now;
+	u32 now;
 	int k;
 
 	now = lumpcache.now;
@@ -387,7 +387,7 @@ void
 checklumpcache(void)
 {
 	Lump *b;
-	uint32_t size, now, nfree;
+	u32 size, now, nfree;
 	int i, k, refed;
 
 	now = lumpcache.now;

@@ -23,7 +23,7 @@ enum {
 	Mpart = 64,
 };
 
-static void rdpart(Edit*, uint64_t, uint64_t);
+static void rdpart(Edit*, u64, u64);
 static void findmbr(Edit*);
 static void autopart(Edit*);
 static void wrpart(Edit*);
@@ -35,14 +35,14 @@ static int dowrite;
 static int file;
 static int rdonly;
 static int doauto;
-static int64_t mbroffset;
+static i64 mbroffset;
 static int printflag;
 static int printchs;
 static int sec2cyl;
 static int written;
 
-static void 	cmdsum(Edit*, Part*, int64_t, int64_t);
-static char 	*cmdadd(Edit*, char*, int64_t, int64_t);
+static void 	cmdsum(Edit*, Part*, i64, i64);
+static char 	*cmdadd(Edit*, char*, i64, i64);
 static char 	*cmddel(Edit*, Part*);
 static char 	*cmdext(Edit*, int, char**);
 static char 	*cmdhelp(Edit*);
@@ -104,7 +104,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int64_t secsize;
+	i64 secsize;
 
 	secsize = 0;
 	ARGBEGIN{
@@ -187,22 +187,22 @@ typedef struct Tab	Tab;
 typedef struct Recover Recover;
 
 struct Tentry {
-	uint8_t	active;			/* active flag */
-	uint8_t	starth;			/* starting head */
-	uint8_t	starts;			/* starting sector */
-	uint8_t	startc;			/* starting cylinder */
-	uint8_t	type;			/* partition type */
-	uint8_t	endh;			/* ending head */
-	uint8_t	ends;			/* ending sector */
-	uint8_t	endc;			/* ending cylinder */
-	uint8_t	xlba[4];		/* starting LBA from beginning of disc or ext. partition */
-	uint8_t	xsize[4];		/* size in sectors */
+	u8	active;			/* active flag */
+	u8	starth;			/* starting head */
+	u8	starts;			/* starting sector */
+	u8	startc;			/* starting cylinder */
+	u8	type;			/* partition type */
+	u8	endh;			/* ending head */
+	u8	ends;			/* ending sector */
+	u8	endc;			/* ending cylinder */
+	u8	xlba[4];		/* starting LBA from beginning of disc or ext. partition */
+	u8	xsize[4];		/* size in sectors */
 };
 
 struct Table {
 	Tentry	entry[NTentry];
-	uint8_t	magic[2];
-	uint8_t	size[];
+	u8	magic[2];
+	u8	size[];
 };
 
 enum {
@@ -275,13 +275,13 @@ struct Dospart {
 	Part Part;
 	Tentry Tentry;
 
-	uint32_t	lba;
-	uint32_t	size;
+	u32	lba;
+	u32	size;
 	int		primary;
 };
 
 struct Recover {
-	uint32_t	lba;
+	u32	lba;
 	Table	table;
 };
 
@@ -353,19 +353,19 @@ typestr0(int type)
 	return types[type].desc;
 }
 
-static uint32_t
+static u32
 getle32(void* v)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = v;
 	return (p[3]<<24)|(p[2]<<16)|(p[1]<<8)|p[0];
 }
 
 static void
-putle32(void* v, uint32_t i)
+putle32(void* v, u32 i)
 {
-	uint8_t *p;
+	u8 *p;
 
 	p = v;
 	p[0] = i;
@@ -375,21 +375,21 @@ putle32(void* v, uint32_t i)
 }
 
 static void
-diskread(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
+diskread(Disk *disk, void *data, int ndata, u32 sec, u32 off)
 {
-	if(seek(disk->fd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
-		sysfatal("diskread seek %lu.%lu: %r", (uint32_t)sec,
-		         (uint32_t)off);
+	if(seek(disk->fd, (i64)sec*disk->secsize+off, 0) != (i64)sec*disk->secsize+off)
+		sysfatal("diskread seek %lu.%lu: %r", (u32)sec,
+		         (u32)off);
 	if(readn(disk->fd, data, ndata) != ndata)
-		sysfatal("diskread %lu at %lu.%lu: %r", (uint32_t)ndata,
-		         (uint32_t)sec, (uint32_t)off);
+		sysfatal("diskread %lu at %lu.%lu: %r", (u32)ndata,
+		         (u32)sec, (u32)off);
 }
 
 static int
-diskwrite(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
+diskwrite(Disk *disk, void *data, int ndata, u32 sec, u32 off)
 {
 	written = 1;
-	if(seek(disk->wfd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
+	if(seek(disk->wfd, (i64)sec*disk->secsize+off, 0) != (i64)sec*disk->secsize+off)
 		goto Error;
 	if(write(disk->wfd, data, ndata) != ndata)
 		goto Error;
@@ -397,12 +397,12 @@ diskwrite(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 
 Error:
 	fprint(2, "write %d bytes at %lu.%lu failed: %r\n", ndata,
-	       (uint32_t)sec, (uint32_t)off);
+	       (u32)sec, (u32)off);
 	return -1;
 }
 
 static Dospart*
-mkpart(char *name, int primary, int64_t lba, int64_t size, Tentry *t)
+mkpart(char *name, int primary, i64 lba, i64 size, Tentry *t)
 {
 	static int n;
 	Dospart *p;
@@ -444,7 +444,7 @@ static Recover	*rtab;
 static int		nrtab;
 
 static void
-addrecover(Table t, uint32_t lba)
+addrecover(Table t, u32 lba)
 {
 	if((nrtab%8) == 0) {
 		rtab = realloc(rtab, (nrtab+8)*sizeof(rtab[0]));
@@ -459,7 +459,7 @@ static void
 recover(Edit *edit)
 {
 	int err, i, ctlfd;
-	int64_t offset;
+	i64 offset;
 
 	err = 0;
 	for(i=0; i<nrtab; i++)
@@ -498,7 +498,7 @@ recover(Edit *edit)
  * from the disk into the part array.
  */
 static void
-rdpart(Edit *edit, uint64_t lba, uint64_t xbase)
+rdpart(Edit *edit, u64 lba, u64 xbase)
 {
 	char *err;
 	Table table;
@@ -556,11 +556,11 @@ findmbr(Edit *edit)
 }
 
 static int
-haveroom(Edit *edit, int primary, int64_t start)
+haveroom(Edit *edit, int primary, i64 start)
 {
 	int i, lastsec, n;
 	Dospart *p, *q;
-	uint32_t pend, qstart;
+	u32 pend, qstart;
 
 	if(primary) {
 		/*
@@ -614,7 +614,7 @@ autopart(Edit *edit)
 {
 	char *err;
 	int active, i;
-	int64_t bigstart, bigsize, start;
+	i64 bigstart, bigsize, start;
 	Dospart *p;
 
 	for(i=0; i<edit->npart; i++)
@@ -679,7 +679,7 @@ plan9print(Dospart *part, int fd)
 	int i, ok;
 	char *name, *vname;
 	Name *n;
-	int64_t start, end;
+	i64 start, end;
 	char *sep;
 
 	vname = types[part->Tentry.type].name;
@@ -767,13 +767,13 @@ cmdokname(Edit *e, char *name)
 #define KB (1024)
 
 static void
-cmdsum(Edit *edit, Part *vp, int64_t a, int64_t b)
+cmdsum(Edit *edit, Part *vp, i64 a, i64 b)
 {
 	char *name, *ty;
 	char buf[3];
 	char *suf;
 	Dospart *p;
-	int64_t sz, div;
+	i64 sz, div;
 
 	p = (Dospart*)vp;
 
@@ -812,7 +812,7 @@ cmdsum(Edit *edit, Part *vp, int64_t a, int64_t b)
 }
 
 static char*
-cmdadd(Edit *edit, char *name, int64_t start, int64_t end)
+cmdadd(Edit *edit, char *name, i64 start, i64 end)
 {
 	Dospart *p;
 
@@ -972,10 +972,10 @@ static int
 Dfmt(Fmt *f)
 {
 	char buf[60];
-	uint8_t *p;
+	u8 *p;
 	int c, h, s;
 
-	p = va_arg(f->args, uint8_t*);
+	p = va_arg(f->args, u8*);
 	h = p[0];
 	c = p[2];
 	c |= (p[1]&0xC0)<<2;
@@ -986,7 +986,7 @@ Dfmt(Fmt *f)
 }
 
 static void
-writechs(Disk *disk, uint8_t *p, int64_t lba)
+writechs(Disk *disk, u8 *p, i64 lba)
 {
 	int c, h, s;
 
@@ -1006,8 +1006,8 @@ writechs(Disk *disk, uint8_t *p, int64_t lba)
 }
 
 static void
-wrtentry(Disk *disk, Tentry *tp, int type, uint32_t xbase, uint32_t lba,
-	 uint32_t end)
+wrtentry(Disk *disk, Tentry *tp, int type, u32 xbase, u32 lba,
+	 u32 end)
 {
 	tp->type = type;
 	writechs(disk, &tp->starth, lba);
@@ -1017,8 +1017,8 @@ wrtentry(Disk *disk, Tentry *tp, int type, uint32_t xbase, uint32_t lba,
 }
 
 static int
-wrextend(Edit *edit, int i, int64_t xbase, int64_t startlba,
-	 int64_t *endlba)
+wrextend(Edit *edit, int i, i64 xbase, i64 startlba,
+	 i64 *endlba)
 {
 	int ni;
 	Table table;
@@ -1047,7 +1047,7 @@ wrextend(Edit *edit, int i, int64_t xbase, int64_t startlba,
 
 	p = (Dospart*)edit->part[i];
 	if(p->primary){
-		*endlba = (int64_t)p->Part.start*sec2cyl;
+		*endlba = (i64)p->Part.start*sec2cyl;
 		goto Finish;
 	}
 
@@ -1086,7 +1086,7 @@ wrpart(Edit *edit)
 	Table table;
 	Tentry *tp, *ep;
 	Disk *disk;
-	int64_t s, endlba;
+	i64 s, endlba;
 	Dospart *p;
 
 	disk = edit->disk;

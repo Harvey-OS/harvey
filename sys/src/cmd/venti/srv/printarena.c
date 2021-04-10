@@ -19,19 +19,19 @@ usage(void)
 }
 
 static void
-rdarena(Arena *arena, uint64_t offset)
+rdarena(Arena *arena, u64 offset)
 {
-	uint64_t a, aa, e;
-	uint32_t magic;
+	u64 a, aa, e;
+	u32 magic;
 	Clump cl;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 	ZBlock *lump;
 
 	printarena(2, arena);
 
 	a = arena->base;
 	e = arena->base + arena->size;
-	if(offset != ~(uint64_t)0) {
+	if(offset != ~(u64)0) {
 		if(offset >= e-a)
 			sysfatal("bad offset %llu >= %llu",
 				offset, e-a);
@@ -75,7 +75,7 @@ threadmain(int argc, char *argv[])
 {
 	char *file;
 	Arena *arena;
-	uint64_t offset, aoffset;
+	u64 offset, aoffset;
 	Part *part;
 	static unsigned char buf[8192];
 	ArenaHead head;
@@ -91,7 +91,7 @@ threadmain(int argc, char *argv[])
 		break;
 	}ARGEND
 
-	offset = ~(uint64_t)0;
+	offset = ~(u64)0;
 	switch(argc) {
 	default:
 		usage();

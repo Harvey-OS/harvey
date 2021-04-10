@@ -33,7 +33,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
-	uint32_t x;
+	u32 x;
 
 	/*
 	 * s3generic.init() will perform the same test.
@@ -97,7 +97,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uint16_t advfunc;
+	u16 advfunc;
 
 	(*s3generic.load)(vga, ctlr);
 	vgaxo(Crtx, 0x65, vga->crt[0x65]);

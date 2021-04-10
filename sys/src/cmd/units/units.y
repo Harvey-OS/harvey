@@ -38,7 +38,7 @@ Biobuf*	fi;
 Biobuf	linebuf;
 Var*	fund[Ndim];
 Rune	line[1000];
-uint32_t	lineno;
+u32	lineno;
 int	linep;
 int	nerrors;
 Node	one;
@@ -615,7 +615,7 @@ lookup(int f)
 	int i;
 	Var *v, *w;
 	double p;
-	uint32_t h;
+	u32 h;
 
 	h = 0;
 	for(i=0; sym[i]; i++)

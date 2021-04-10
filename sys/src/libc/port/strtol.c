@@ -13,11 +13,11 @@
 #define LONG_MAX	2147483647L
 #define LONG_MIN	-2147483648L
 
-int32_t
+i32
 strtol(const char *nptr, char **endptr, int base)
 {
 	const char *p;
-	int32_t n, nn, m;
+	i32 n, nn, m;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;

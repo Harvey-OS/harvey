@@ -12,7 +12,7 @@
 #define SHORT(p) (((p)[0]<<8)|((p)[1]))
 #define LONG(p) ((SHORT(p)<<16)|SHORT(p+2))
 
-uint8_t zero[64];
+u8 zero[64];
 
 Vnc*
 vncinit(int fd, int cfd, Vnc *v)
@@ -43,28 +43,28 @@ vncflush(Vnc *v)
 	}
 }
 
-uint8_t
+u8
 vncrdchar(Vnc *v)
 {
-	uint8_t buf[1];
+	u8 buf[1];
 
 	vncrdbytes(v, buf, 1);
 	return buf[0];
 }
 
-uint16_t
+u16
 vncrdshort(Vnc *v)
 {
-	uint8_t buf[2];
+	u8 buf[2];
 
 	vncrdbytes(v, buf, 2);
 	return SHORT(buf);
 }
 
-uint32_t
+u32
 vncrdlong(Vnc *v)
 {
-	uint8_t buf[4];
+	u8 buf[4];
 
 	vncrdbytes(v, buf, 4);
 	return LONG(buf);
@@ -118,7 +118,7 @@ Pixfmt
 vncrdpixfmt(Vnc *v)
 {
 	Pixfmt fmt;
-	uint8_t pad[3];
+	u8 pad[3];
 
 	fmt.bpp = vncrdchar(v);
 	fmt.depth = vncrdchar(v);
@@ -137,7 +137,7 @@ vncrdpixfmt(Vnc *v)
 char*
 vncrdstring(Vnc *v)
 {
-	uint32_t len;
+	u32 len;
 	char *s;
 
 	len = vncrdlong(v);
@@ -164,7 +164,7 @@ vncrdstringx(Vnc *v)
 {
 	char tmp[4];
 	char *s;
-	uint32_t len;
+	u32 len;
 
 	assert(Bbuffered(&v->in) == 0);
 	if(readn(v->datafd, tmp, 4) != 4){
@@ -185,7 +185,7 @@ vncrdstringx(Vnc *v)
 void
 vncwrstring(Vnc *v, char *s)
 {
-	uint32_t len;
+	u32 len;
 
 	len = strlen(s);
 	vncwrlong(v, len);
@@ -203,9 +203,9 @@ vncwrbytes(Vnc *v, void *a, int n)
 }
 
 void
-vncwrlong(Vnc *v, uint32_t u)
+vncwrlong(Vnc *v, u32 u)
 {
-	uint8_t buf[4];
+	u8 buf[4];
 
 	buf[0] = u>>24;
 	buf[1] = u>>16;
@@ -215,9 +215,9 @@ vncwrlong(Vnc *v, uint32_t u)
 }
 
 void
-vncwrshort(Vnc *v, uint16_t u)
+vncwrshort(Vnc *v, u16 u)
 {
-	uint8_t buf[2];
+	u8 buf[2];
 
 	buf[0] = u>>8;
 	buf[1] = u;
@@ -225,7 +225,7 @@ vncwrshort(Vnc *v, uint16_t u)
 }
 
 void
-vncwrchar(Vnc *v, uint8_t c)
+vncwrchar(Vnc *v, u8 c)
 {
 	vncwrbytes(v, &c, 1);
 }
@@ -277,7 +277,7 @@ vncunlock(Vnc *v)
 void
 hexdump(void *a, int n)
 {
-	uint8_t *p, *ep;
+	u8 *p, *ep;
 
 	p = a;
 	ep = p+n;
@@ -288,10 +288,10 @@ hexdump(void *a, int n)
 }
 
 void
-vncgobble(Vnc *v, int32_t n)
+vncgobble(Vnc *v, i32 n)
 {
-	uint8_t buf[8192];
-	int32_t m;
+	u8 buf[8192];
+	i32 m;
 
 	while(n > 0){
 		m = n;

@@ -162,7 +162,7 @@ void	flush(void);
 void	trailer(void);
 
 void*
-emalloc(uint32_t n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -173,7 +173,7 @@ emalloc(uint32_t n)
 }
 
 void*
-erealloc(void *p, uint32_t n)
+erealloc(void *p, u32 n)
 {
 
 	p = realloc(p, n);

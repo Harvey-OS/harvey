@@ -16,7 +16,7 @@
 int readonly;
 
 static int
-deverror(char *name, Xfs *xf, int32_t addr, int32_t n, int32_t nret)
+deverror(char *name, Xfs *xf, i32 addr, i32 n, i32 nret)
 {
 	errno = Eio;
 	if(nret < 0){
@@ -30,29 +30,29 @@ deverror(char *name, Xfs *xf, int32_t addr, int32_t n, int32_t nret)
 }
 
 int
-devread(Xfs *xf, int32_t addr, void *buf, int32_t n)
+devread(Xfs *xf, i32 addr, void *buf, i32 n)
 {
-	int32_t nread;
+	i32 nread;
 
 	if(xf->dev < 0)
 		return -1;
-	nread = pread(xf->dev, buf, n, xf->offset+(int64_t)addr*Sectorsize);
+	nread = pread(xf->dev, buf, n, xf->offset+(i64)addr*Sectorsize);
 	if (nread == n)
 		return 0;
 	return deverror("read", xf, addr, n, nread);
 }
 
 int
-devwrite(Xfs *xf, int32_t addr, void *buf, int32_t n)
+devwrite(Xfs *xf, i32 addr, void *buf, i32 n)
 {
-	int32_t nwrite;
+	i32 nwrite;
 
 	if(xf->omode==OREAD)
 		return -1;
 
 	if(xf->dev < 0)
 		return -1;
-	nwrite = pwrite(xf->dev, buf, n, xf->offset+(int64_t)addr*Sectorsize);
+	nwrite = pwrite(xf->dev, buf, n, xf->offset+(i64)addr*Sectorsize);
 	if (nwrite == n)
 		return 0;
 	return deverror("write", xf, addr, n, nwrite);

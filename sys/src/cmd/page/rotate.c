@@ -324,7 +324,7 @@ kaiser(double x, double t, double a)
 
 
 void
-resamplex(uint8_t *in, int off, int d, int inx, uint8_t *out, int outx)
+resamplex(u8 *in, int off, int d, int inx, u8 *out, int outx)
 {
 	int i, x, k;
 	double X, xx, v, rat;
@@ -353,7 +353,7 @@ resamplex(uint8_t *in, int off, int d, int inx, uint8_t *out, int outx)
 }
 
 void
-resampley(uint8_t **in, int off, int iny, uint8_t **out, int outy)
+resampley(u8 **in, int off, int iny, u8 **out, int outy)
 {
 	int y, i, k;
 	double Y, yy, v, rat;
@@ -385,12 +385,12 @@ Image*
 resample(Image *from, Image *to)
 {
 	int i, j, bpl, nchan;
-	uint8_t **oscan, **nscan;
+	u8 **oscan, **nscan;
 	char tmp[20];
 	int xsize, ysize;
 	double v;
 	Image *t1, *t2;
-	uint32_t tchan;
+	u32 tchan;
 
 	for(i=-K2; i<=K2; i++){
 		K[K2+i] = kaiser(i/10., K2/10., 4.);
@@ -446,8 +446,8 @@ resample(Image *from, Image *to)
 
 	xsize = Dx(to->r);
 	ysize = Dy(to->r);
-	oscan = malloc(Dy(from->r)*sizeof(uint8_t*));
-	nscan = malloc(max(ysize, Dy(from->r))*sizeof(uint8_t*));
+	oscan = malloc(Dy(from->r)*sizeof(u8*));
+	nscan = malloc(max(ysize, Dy(from->r))*sizeof(u8*));
 	if(oscan == nil || nscan == nil)
 		sysfatal("can't allocate: %r");
 

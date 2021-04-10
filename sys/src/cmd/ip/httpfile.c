@@ -33,7 +33,7 @@ char *get;
 char *user;
 char *net = "net";
 
-int64_t size;
+i64 size;
 int usetls;
 int debug;
 int ncache;
@@ -59,16 +59,16 @@ enum
 Channel *reqchan;
 Channel *httpchan;
 Channel *finishchan;
-uint32_t time0;
+u32 time0;
 
 typedef struct Block Block;
 struct Block
 {
-	uint8_t *p;
-	int64_t off;
-	int64_t len;
+	u8 *p;
+	i64 off;
+	i64 len;
 	Block *link;
-	int32_t lastuse;
+	i32 lastuse;
 	Req *rq;
 	Req **erq;
 };
@@ -146,7 +146,7 @@ evictblock(Blocklist *cache)
 }
 
 Block *
-findblock(Blocklist *s, int64_t off)
+findblock(Blocklist *s, i64 off)
 {
 	Block *b;
 
@@ -217,7 +217,7 @@ nocr(char *s)
 }
 
 char*
-readhttphdr(Biobuf *netbio, int64_t *size)
+readhttphdr(Biobuf *netbio, i64 *size)
 {
 	char *s, *stat;
 
@@ -251,10 +251,10 @@ dialhttp(Biobuf *netbio)
 	return netfd;
 }
 
-uint8_t*
+u8 *
 getrange(Block *b)
 {
-	uint8_t *data;
+	u8 *data;
 	char *status;
 	int netfd;
 	static Biobuf netbio;
@@ -329,7 +329,7 @@ typedef struct Tab Tab;
 struct Tab
 {
 	char *name;
-	uint32_t mode;
+	u32 mode;
 };
 
 Tab tab[] =
@@ -339,7 +339,7 @@ Tab tab[] =
 };
 
 static void
-fillstat(Dir *d, uint64_t path)
+fillstat(Dir *d, u64 path)
 {
 	Tab *t;
 
@@ -391,7 +391,7 @@ static char*
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
-	uint32_t path;
+	u32 path;
 
 	path = fid->qid.path;
 	if(!(fid->qid.type & QTDIR))
@@ -420,11 +420,11 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	return "directory entry not found";
 }
 
-int64_t
+i64
 getfilesize(void)
 {
 	char *status;
-	int64_t size;
+	i64 size;
 	int netfd;
 	static Biobuf netbio;
 
@@ -547,7 +547,7 @@ static void
 fsread(Req *r)
 {
 	char e[ERRMAX];
-	uint32_t path;
+	u32 path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){

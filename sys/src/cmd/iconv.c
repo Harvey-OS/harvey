@@ -24,7 +24,7 @@ writeuncompressed(int fd, Memimage *m)
 {
 	char chanstr[32];
 	int bpl, y, j;
-	uint8_t *buf;
+	u8 *buf;
 
 	if(chantostr(chanstr, m->chan) == nil)
 		sysfatal("can't convert channel descriptor: %r");
@@ -50,7 +50,7 @@ main(int argc, char *argv[])
 {
 	char *tostr, *file;
 	int fd, uncompressed;
-	uint32_t tochan;
+	u32 tochan;
 	Memimage *m, *n;
 
 	tostr = nil;

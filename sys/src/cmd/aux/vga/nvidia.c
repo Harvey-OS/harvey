@@ -77,46 +77,46 @@ struct Nvidia {
 	int	arch;
 	int	crystalfreq;
 
-	uint32_t*	mmio;
-	uint32_t*	pfb;			/* mmio pointers */
-	uint32_t*	pramdac;
-	uint32_t*	pextdev;
-	uint32_t*	pmc;
-	uint32_t*	ptimer;
-	uint32_t*	pfifo;
-	uint32_t*	pramin;
-	uint32_t*	pgraph;
-	uint32_t*	fifo;
-	uint32_t*	pcrtc;
+	u32*	mmio;
+	u32*	pfb;			/* mmio pointers */
+	u32*	pramdac;
+	u32*	pextdev;
+	u32*	pmc;
+	u32*	ptimer;
+	u32*	pfifo;
+	u32*	pramin;
+	u32*	pgraph;
+	u32*	fifo;
+	u32*	pcrtc;
 
-	uint16_t	repaint0;
-	uint16_t	repaint1;
-	uint16_t	screen;
-	uint16_t	pixel;
-	uint16_t	horiz;
-	uint16_t	cursor0;
-	uint16_t	cursor1;
-	uint16_t	cursor2;
-	uint16_t	interlace;
-	uint16_t	extra;
-	uint16_t	crtcowner;
-	uint16_t	timingH;
-	uint16_t	timingV;
+	u16	repaint0;
+	u16	repaint1;
+	u16	screen;
+	u16	pixel;
+	u16	horiz;
+	u16	cursor0;
+	u16	cursor1;
+	u16	cursor2;
+	u16	interlace;
+	u16	extra;
+	u16	crtcowner;
+	u16	timingH;
+	u16	timingV;
 
-	uint32_t	vpll;
-	uint32_t	vpllB;
-	uint32_t	vpll2;
-	uint32_t	vpll2B;
-	uint32_t	pllsel;
-	uint32_t	general;
-	uint32_t	scale;
-	uint32_t	config;
-	uint32_t	head;
-	uint32_t	head2;
-	uint32_t	cursorconfig;
-	uint32_t	dither;
-	uint32_t	crtcsync;
-	uint32_t	displayV;
+	u32	vpll;
+	u32	vpllB;
+	u32	vpll2;
+	u32	vpll2B;
+	u32	pllsel;
+	u32	general;
+	u32	scale;
+	u32	config;
+	u32	head;
+	u32	head2;
+	u32	cursorconfig;
+	u32	dither;
+	u32	crtcsync;
+	u32	displayV;
 
 	int	islcd;
 	int	fpwidth;
@@ -129,8 +129,8 @@ struct Nvidia {
 static void
 getpcixdid(Nvidia* nv)
 {
-	uint32_t	pcicmd, pciid;
-	uint16_t	vid, did;
+	u32	pcicmd, pciid;
+	u16	vid, did;
 
 	pcicmd = pcicfgr32(nv->pci, PciPCR);
 	pcicfgw32(nv->pci, PciPCR, pcicmd | 0x02);
@@ -152,7 +152,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
 	Pcidev *p;
-	uint32_t *mmio, tmp;
+	u32 *mmio, tmp;
 	int implementation;
 
 	if(vga->private == nil){
@@ -491,7 +491,7 @@ init(Vga* vga, Ctlr* ctlr)
 	Nvidia *nv;
 	char *p, *val;
 	int tmp, pixeldepth;
-	uint32_t cursorstart;
+	u32 cursorstart;
 
 	mode = vga->mode;
 	if(mode->z == 24)
@@ -675,7 +675,7 @@ load(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
 	int i, regions;
-	uint32_t tmp;
+	u32 tmp;
 
 	nv = vga->private;
 

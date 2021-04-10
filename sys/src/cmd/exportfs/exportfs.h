@@ -28,7 +28,7 @@ struct Fsrpc
 	int	canint;		/* Interrupt gate */
 	int	flushtag;	/* Tag on which to reply to flush */
 	Fcall	work;		/* Plan 9 incoming Fcall */
-	uint8_t	*buf;		/* Data buffer */
+	u8	*buf;		/* Data buffer */
 };
 
 struct Fid
@@ -45,7 +45,7 @@ struct Fid
 	int	ndir;		/* number of entries in dir */
 	int	cdir;		/* number of consumed entries in dir */
 	int	gdir;		/* glue index */
-	int64_t	offset;		/* offset in virtual directory */
+	i64	offset;		/* offset in virtual directory */
 };
 
 struct File
@@ -72,8 +72,8 @@ struct Qidtab
 	int	ref;
 	int	type;
 	int	dev;
-	int64_t	path;
-	int64_t	uniqpath;
+	i64	path;
+	i64	uniqpath;
 	Qidtab	*next;
 };
 
@@ -99,7 +99,7 @@ Extern Fid	*fidfree;
 Extern Proc	*Proclist;
 Extern char	psmap[Npsmpt];
 Extern Qidtab	*qidtab[Nqidtab];
-Extern uint32_t	messagesize;
+Extern u32	messagesize;
 //Extern char	Enomem[];
 Extern int	srvfd;
 Extern char*	patternfile;
@@ -143,4 +143,4 @@ void*	emallocz(uint);
 int	readmessage(int, char*, int);
 void	exclusions(void);
 int	excludefile(char*);
-int	preaddir(Fid*, uint8_t*, int, int64_t);
+int	preaddir(Fid*, u8*, int, i64);

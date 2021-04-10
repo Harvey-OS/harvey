@@ -9,7 +9,7 @@
 
 /* color.c */
 extern	void		choosecolor(Vnc*);
-extern	void		(*cvtpixels)(uint8_t*, uint8_t*, int);
+extern	void		(*cvtpixels)(u8*, u8*, int);
 extern  void            settranslation(Vnc*);
 
 /* draw.c */
@@ -17,7 +17,7 @@ extern	void		sendencodings(Vnc*);
 extern	void		requestupdate(Vnc*, int);
 extern	void		readfromserver(Vnc*);
 
-extern	uint8_t	zero[];
+extern	u8	zero[];
 
 /* vncv.c */
 extern	char		*encodings;
@@ -31,5 +31,5 @@ extern	void		initmouse(void);
 extern	void		mousewarp(Point);
 extern	void		readmouse(Vnc*);
 extern  void            senddim(Vnc*);
-extern  void            writesnarf(Vnc*, int32_t);
+extern  void            writesnarf(Vnc*, i32);
 extern  void            checksnarf(Vnc*);

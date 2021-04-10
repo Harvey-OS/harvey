@@ -15,7 +15,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-typedef uint32_t Time;
+typedef u32 Time;
 
 enum {
 	AM, PM, HR24,
@@ -46,7 +46,7 @@ enum {
 typedef struct {
 	char	token[Maxtok];
 	char	type;
-	uint8_t	value;
+	u8	value;
 } Datetok;
 
 int dtok_numparsed;
@@ -110,7 +110,7 @@ int
 tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 {
 	int i, mer = HR24, bigval = -1;
-	int32_t flg = 0, ty;
+	i32 flg = 0, ty;
 	char *p;
 	Datetok *tp;
 
@@ -135,7 +135,7 @@ tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 		case Year:
 			tm->year = bigval;
 			if (tm->year < 1970 || tm->year > 2106)
-				return -1;	/* can't represent in uint32_t */
+				return -1;	/* can't represent in u32 */
 			/* convert 4-digit year to 1900 origin */
 			if (tm->year >= 1900)
 				tm->year -= 1900;

@@ -13,12 +13,12 @@
 #include <libsec.h>
 
 void
-setupRC4state(RC4state *key, uint8_t *start, int n)
+setupRC4state(RC4state *key, u8 *start, int n)
 {
 	int t;
 	int index2;
-	uint8_t *state;
-	uint8_t *p, *e, *sp, *se;
+	u8 *state;
+	u8 *p, *e, *sp, *se;
 
 	state = key->state;
 	se = &state[256];
@@ -42,12 +42,12 @@ setupRC4state(RC4state *key, uint8_t *start, int n)
 }
 
 void
-rc4(RC4state *key, uint8_t *p, int len)
+rc4(RC4state *key, u8 *p, int len)
 {
 	int tx, ty;
 	int x, y;
-	uint8_t *state;
-	uint8_t *e;
+	u8 *state;
+	u8 *e;
 
 	x = key->x;
 	y = key->y;
@@ -71,7 +71,7 @@ rc4skip(RC4state *key, int len)
 {
 	int tx, ty;
 	int x, y;
-	uint8_t *state;
+	u8 *state;
 	int i;
 
 	x = key->x;
@@ -95,7 +95,7 @@ rc4back(RC4state *key, int len)
 {
 	int tx, ty;
 	int x, y;
-	uint8_t *state;
+	u8 *state;
 	int i;
 
 	x = key->x;

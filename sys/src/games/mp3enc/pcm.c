@@ -60,7 +60,7 @@ octetstream_t*  octetstream_open ( OUT size_t  size )
 {
     octetstream_t*  ret = (octetstream_t*) calloc ( 1, sizeof(octetstream_t) );
     FN("octetstream_open");
-    ret -> data = (uint8_t*) calloc ( 1, size );
+    ret -> data = (u8*) calloc ( 1, size );
     ret -> size = size;
     return ret;
 }
@@ -69,11 +69,11 @@ int  octetstream_resize ( INOUT octetstream_t* const  os, OUT size_t  size )
 {
     FN("octetstream_resize");
     if ( size > os->size ) {
-        os -> data = (uint8_t*) realloc ( os -> data, size );
+        os -> data = (u8*) realloc ( os -> data, size );
         memset ( os -> data + os -> size, 0, size - os -> size );
         os -> size = size;
     } else if ( size < os->size ) {
-	os -> data = (uint8_t*) realloc ( os -> data, os->size = size );
+	os -> data = (u8*) realloc ( os -> data, os->size = size );
     }
     return 0;
 }
@@ -100,7 +100,7 @@ int  octetstream_close ( INOUT octetstream_t* const  os )
 static inline int  lame_encode_frame (
         INOUT lame_t*     lame,
         OUTTR sample_t**  inbuf,
-        IN    uint8_t*    mp3buf,
+        IN    u8*    mp3buf,
         OUT   size_t      mp3buf_size )
 {
     int  ret;
@@ -179,7 +179,7 @@ static inline int  lame_encode_frame (
  *       support native endian shorts.
  */
 
-static const int16_t  ulaw [256] = {
+static const i16  ulaw [256] = {
     -32124, -31100, -30076, -29052, -28028, -27004, -25980, -24956,
     -23932, -22908, -21884, -20860, -19836, -18812, -17788, -16764,
     -15996, -15484, -14972, -14460, -13948, -13436, -12924, -12412,
@@ -214,7 +214,7 @@ static const int16_t  ulaw [256] = {
         56,     48,     40,     32,     24,     16,      8,      0,
 };
 
-static const int16_t  alaw [256] = {
+static const i16  alaw [256] = {
      -5504,  -5248,  -6016,  -5760,  -4480,  -4224,  -4992,  -4736,
      -7552,  -7296,  -8064,  -7808,  -6528,  -6272,  -7040,  -6784,
      -2752,  -2624,  -3008,  -2880,  -2240,  -2112,  -2496,  -2368,
@@ -255,10 +255,10 @@ static const int16_t  alaw [256] = {
  *  These are used to decode integer PCM (if there is no faster code available).
  */
 
-#define BYTES1(x1)          ((((int8_t)(x1)) << 8))
-#define BYTES2(x1,x2)       ((((int8_t)(x1)) << 8) + (uint8_t)(x2))
-#define BYTES3(x1,x2,x3)    ((((int8_t)(x1)) << 8) + (uint8_t)(x2) + 1/256.*(uint8_t)(x3))
-#define BYTES4(x1,x2,x3,x4) ((((int8_t)(x1)) << 8) + (uint8_t)(x2) + 1/256.*(uint8_t)(x3) + 1/65536.*(uint8_t)(x4))
+#define BYTES1(x1)          ((((i8)(x1)) << 8))
+#define BYTES2(x1,x2)       ((((i8)(x1)) << 8) + (u8)(x2))
+#define BYTES3(x1,x2,x3)    ((((i8)(x1)) << 8) + (u8)(x2) + 1/256.*(u8)(x3))
+#define BYTES4(x1,x2,x3,x4) ((((i8)(x1)) << 8) + (u8)(x2) + 1/256.*(u8)(x3) + 1/65536.*(u8)(x4))
 
 /*
  * The next two functions can read a 32 and 64 bit floating pointer number
@@ -268,9 +268,9 @@ static const int16_t  alaw [256] = {
  * to const unsigned char.
  */
 
-static inline sample_t  read_opposite_float32 ( OUT uint8_t* const src )
+static inline sample_t  read_opposite_float32 ( OUT u8* const src )
 {
-    uint8_t  tmp [4];
+    u8  tmp [4];
     tmp[0] = src[3];
     tmp[1] = src[2];
     tmp[2] = src[1];
@@ -278,9 +278,9 @@ static inline sample_t  read_opposite_float32 ( OUT uint8_t* const src )
     return *(const float32_t*)tmp;
 }
 
-static inline sample_t  read_opposite_float64 ( OUT uint8_t* const src )
+static inline sample_t  read_opposite_float64 ( OUT u8* const src )
 {
-    uint8_t  tmp [8];
+    u8  tmp [8];
     tmp[0] = src[7];
     tmp[1] = src[6];
     tmp[2] = src[5];
@@ -298,10 +298,10 @@ static inline sample_t  read_opposite_float64 ( OUT uint8_t* const src )
  *  on a machine not supporting 80 bit floats.
  */
 
-static sample_t  read_float80_le ( OUT uint8_t* const src )
+static sample_t  read_float80_le ( OUT u8* const src )
 {
     int         sign     = src [9] & 128  ?  -1  :  +1;
-    int32_t        exponent =(src [9] & 127) * 256 +
+    i32        exponent =(src [9] & 127) * 256 +
                            src [8] - 16384 - 62;
     long double mantisse = src [7] * 72057594037927936.L +
                            src [6] * 281474976710656.L +
@@ -314,10 +314,10 @@ static sample_t  read_float80_le ( OUT uint8_t* const src )
     return sign * ldexp (mantisse, exponent);
 }
 
-static sample_t  read_float80_be ( OUT uint8_t* const src )
+static sample_t  read_float80_be ( OUT u8* const src )
 {
     int         sign     = src [0] & 128  ?  -1  :  +1;
-    int32_t        exponent =(src [0] & 127) * 256 +
+    i32        exponent =(src [0] & 127) * 256 +
                            src [1] - 16384 - 62;
     long double mantisse = src [2] * 72057594037927936.L +
                            src [3] * 281474976710656.L +
@@ -330,9 +330,9 @@ static sample_t  read_float80_be ( OUT uint8_t* const src )
     return sign * ldexp (mantisse, exponent);
 }
 
-static inline sample_t  read_opposite_float80 ( OUT uint8_t* const src )
+static inline sample_t  read_opposite_float80 ( OUT u8* const src )
 {
-    uint8_t  tmp [10];
+    u8  tmp [10];
     tmp[0] = src[9];
     tmp[1] = src[8];
     tmp[2] = src[7];
@@ -361,12 +361,12 @@ static inline sample_t  read_opposite_float80 ( OUT uint8_t* const src )
  *     length:      The number of elements to process. Number must be positive.
  */
 
-typedef void (*demux_t) ( IN sample_t* dst, OUT uint8_t* src, OUT ssize_t step, OUT size_t len );
+typedef void (*demux_t) ( IN sample_t* dst, OUT u8* src, OUT ssize_t step, OUT size_t len );
 
 #define FUNCTION(name,expr)       \
 static void  name (               \
         IN  sample_t*  dst,       \
-	OUT uint8_t*   src,       \
+	OUT u8*   src,       \
 	OUT ssize_t    step,      \
 	OUT size_t     len )      \
 {                                 \
@@ -397,13 +397,13 @@ FUNCTION ( copy_f80_be , read_float80_be (src) )
 #ifndef WORDS_BIGENDIAN
 
 /* little endian */
-FUNCTION ( copy_s16_le , *(const int16_t*)src )
+FUNCTION ( copy_s16_le , *(const i16*)src )
 FUNCTION ( copy_s16_be , BYTES2 (src[0], src[1] ) )
-FUNCTION ( copy_u16_le , *(const uint16_t*)src - 32768 )
+FUNCTION ( copy_u16_le , *(const u16*)src - 32768 )
 FUNCTION ( copy_u16_be , BYTES2 (src[0]-128, src[1] ) )
-FUNCTION ( copy_s32_le , 1/65536. * *(const int32_t*)src )
+FUNCTION ( copy_s32_le , 1/65536. * *(const i32*)src )
 FUNCTION ( copy_s32_be , BYTES4 (src[0], src[1], src[2], src[3] ) )
-FUNCTION ( copy_u32_le , 1/65536. * *(const uint32_t*)src - 32768. )
+FUNCTION ( copy_u32_le , 1/65536. * *(const u32*)src - 32768. )
 FUNCTION ( copy_u32_be , BYTES4 (src[0]-128, src[1], src[2], src[3] ) )
 FUNCTION ( copy_f32_le , *(const float32_t*)src )
 FUNCTION ( copy_f32_be , read_opposite_float32 (src) )
@@ -414,13 +414,13 @@ FUNCTION ( copy_f64_be , read_opposite_float64 (src) )
 
 /* big endian */
 FUNCTION ( copy_s16_le , BYTES2 (src[1], src[0] ) )
-FUNCTION ( copy_s16_be , *(const int16_t*)src )
+FUNCTION ( copy_s16_be , *(const i16*)src )
 FUNCTION ( copy_u16_le , BYTES2 (src[1]-128, src[0] ) )
-FUNCTION ( copy_u16_be , *(const uint16_t*)src - 32768 )
+FUNCTION ( copy_u16_be , *(const u16*)src - 32768 )
 FUNCTION ( copy_s32_le , BYTES4 (src[3], src[2], src[1], src[0] ) )
-FUNCTION ( copy_s32_be , 1/65536. * *(const int32_t*)src )
+FUNCTION ( copy_s32_be , 1/65536. * *(const i32*)src )
 FUNCTION ( copy_u32_le , BYTES4 (src[3]-128, src[2], src[1], src[0] ) )
-FUNCTION ( copy_u32_be , 1/65536. * *(const uint32_t*)src - 32768. )
+FUNCTION ( copy_u32_be , 1/65536. * *(const u32*)src - 32768. )
 FUNCTION ( copy_f32_le , read_opposite_float32 (src) )
 FUNCTION ( copy_f32_be , *(const float32_t*)src )
 FUNCTION ( copy_f64_le , read_opposite_float64 (src) )
@@ -481,9 +481,9 @@ const demux_info_t  demux_info [] = {
     { -1, NULL        , NULL         }, /* 1F: */
     { 16, copy_f80_be , copy_f80_le  }, /* 20: */
 
-    { sizeof(int16_t)      , NULL        , NULL         }, /* 21: */
+    { sizeof(i16)      , NULL        , NULL         }, /* 21: */
     { sizeof(int)        , NULL        , NULL         }, /* 22: */
-    { sizeof(int32_t)       , NULL        , NULL         }, /* 23: */
+    { sizeof(i32)       , NULL        , NULL         }, /* 23: */
     { sizeof(float)      , copy_f32_be , copy_f32_le  }, /* 24: */
     { sizeof(double)     , copy_f64_be , copy_f64_le  }, /* 25: */
     { sizeof(long double), NULL        , NULL         }, /* 26: */
@@ -521,7 +521,7 @@ const demux_info_t  demux_info [] = {
  *  lame_encode_pcm)
  */
 
-static inline int  select_demux ( OUT uint32_t mode, IN demux_t* retf, IN ssize_t* size )
+static inline int  select_demux ( OUT u32 mode, IN demux_t* retf, IN ssize_t* size )
 {
     int                  big    = mode >> 24;
     const demux_info_t*  tabptr = demux_info + ((mode >> 16) & 0x3F);
@@ -727,13 +727,13 @@ int  lame_encode_pcm (
         octetstream_t*  os,
         const void*     pcm,
         size_t          len,
-        uint32_t        flags )
+        u32        flags )
 {
     sample_t*           data [2];
     demux_t             retf;
     ssize_t             size;
-    const uint8_t*      p;
-    const uint8_t* const*  q;
+    const u8 *      p;
+    const u8 * const*  q;
     int                 ret;
     size_t              channels_in = flags & 0xFFFF;
 
@@ -750,7 +750,7 @@ int  lame_encode_pcm (
 
     switch (flags >> 28) {
     case LAME_INTERLEAVED >> 28:
-        p = (const uint8_t*) pcm;
+        p = (const u8*) pcm;
         switch ( lame->channels_out ) {
         case 1:
             switch ( channels_in ) {
@@ -789,7 +789,7 @@ int  lame_encode_pcm (
         break;
 
     case LAME_CHAINED >> 28:
-        p = (const uint8_t*) pcm;
+        p = (const u8*) pcm;
         switch ( lame->channels_out ) {
         case 1:
             switch ( channels_in ) {
@@ -828,7 +828,7 @@ int  lame_encode_pcm (
         break;
 
     case LAME_INDIRECT >> 28:
-        q = (const uint8_t* const*) pcm;
+        q = (const u8 * const*) pcm;
         switch ( lame->channels_out ) {
         case 1:
             switch ( channels_in ) {
@@ -961,13 +961,13 @@ static lame_t*  pointer2lame ( void* const handle )
 
 int  lame_encode_buffer (
         void* const    gfp,
-        const int16_t  buffer_l [],
-        const int16_t  buffer_r [],
+        const i16  buffer_l [],
+        const i16  buffer_r [],
         const size_t   nsamples,
         void* const    mp3buf,
         const size_t   mp3buf_size )
 {
-    const int16_t*  pcm [2];
+    const i16*  pcm [2];
     octetstream_t*  os;
     int             ret;
     lame_t*         lame;
@@ -992,7 +992,7 @@ int  lame_encode_buffer (
 
 int  lame_encode_buffer_interleaved (
         void* const    gfp,
-        const int16_t  buffer [],
+        const i16  buffer [],
         size_t         nsamples,
         void* const    mp3buf,
         const size_t   mp3buf_size )
@@ -1042,21 +1042,21 @@ int  lame_encode_flush (
 /*}}}*/
 /*{{{ sin/cos/sinc/rounding functions */
 
-static inline int32_t  round_nearest ( long double x )
+static inline i32  round_nearest ( long double x )
 {
     if ( x >= 0. )
-        return (int32_t)(x+0.5);
+        return (i32)(x+0.5);
     else
-        return (int32_t)(x-0.5);
+        return (i32)(x-0.5);
 }
 
 
-static inline int32_t  round_down ( long double x )
+static inline i32  round_down ( long double x )
 {
     if ( x >= 0. )
-        return +(int32_t)(+x);
+        return +(i32)(+x);
     else
-        return -(int32_t)(-x);
+        return -(i32)(-x);
 }
 
 

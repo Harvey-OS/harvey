@@ -25,8 +25,8 @@ enum {
 };
 
 char*	scsierror(int, int);
-int		scsicmd(Scsi*, uint8_t*, int, void*, int, int);
-int		scsi(Scsi*, uint8_t*, int, void*, int, int);
+int		scsicmd(Scsi*, u8*, int, void*, int, int);
+int		scsi(Scsi*, u8*, int, void*, int, int);
 Scsi*		openscsi(char*);
 void		closescsi(Scsi*);
 int		scsiready(Scsi*);
@@ -44,10 +44,10 @@ struct Disk {
 	int rdonly;
 	int type;
 
-	int64_t secs;
-	int64_t secsize;
-	int64_t size;
-	int64_t offset;	/* within larger disk, perhaps */
+	i64 secs;
+	i64 secsize;
+	i64 size;
+	i64 offset;	/* within larger disk, perhaps */
 	int width;	/* of disk size in bytes as decimal string */
 	int c;
 	int h;

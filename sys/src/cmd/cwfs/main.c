@@ -162,31 +162,31 @@ confinit(void)
  * while watching for overflow; in that case, return 0.
  */
 
-static uint64_t
-adduvlongov(uint64_t a, uint64_t b)
+static u64
+adduvlongov(u64 a, u64 b)
 {
-	uint64_t r = a + b;
+	u64 r = a + b;
 
 	if (r < a || r < b)
 		return 0;
 	return r;
 }
 
-static uint64_t
-muluvlongov(uint64_t a, uint64_t b)
+static u64
+muluvlongov(u64 a, u64 b)
 {
-	uint64_t r = a * b;
+	u64 r = a * b;
 
 	if (a != 0 && r/a != b || r < a || r < b)
 		return 0;
 	return r;
 }
 
-static uint64_t
+static u64
 maxsize(void)
 {
 	int i;
-	uint64_t max = NDBLOCK, ind = 1;
+	u64 max = NDBLOCK, ind = 1;
 
 	for (i = 0; i < NIBLOCK; i++) {
 		ind = muluvlongov(ind, INDPERBUF);	/* power of INDPERBUF */

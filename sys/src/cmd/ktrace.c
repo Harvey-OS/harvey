@@ -14,11 +14,11 @@
 #include <a.out.h>
 #include <ctype.h>
 
-static	int	rtrace(uint64_t, uint64_t, uint64_t);
-static	int	ctrace(uint64_t, uint64_t, uint64_t);
-static	int	i386trace(uint64_t, uint64_t, uint64_t);
-static	int	amd64trace(uint64_t, uint64_t, uint64_t);
-static	uint64_t	getval(uint64_t);
+static	int	rtrace(u64, u64, u64);
+static	int	ctrace(u64, u64, u64);
+static	int	i386trace(u64, u64, u64);
+static	int	amd64trace(u64, u64, u64);
+static	u64	getval(u64);
 static	void	inithdr(int);
 static	void	fatal(char*, ...);
 static	void	readstack(void);
@@ -36,7 +36,7 @@ usage(void)
 }
 
 static void
-printaddr(char *addr, uint64_t pc)
+printaddr(char *addr, u64 pc)
 {
 	int i;
 	char *p;
@@ -65,13 +65,13 @@ printaddr(char *addr, uint64_t pc)
 		print("src(%#.8llux); // %s\n", pc, addr);
 }
 
-static void (*fmt)(char*, uint64_t) = printaddr;
+static void (*fmt)(char*, u64) = printaddr;
 
 void
 main(int argc, char *argv[])
 {
-	int (*t)(uint64_t, uint64_t, uint64_t);
-	uint64_t pc, sp, link;
+	int (*t)(u64, u64, u64);
+	u64 pc, sp, link;
 	int fd;
 
 	ARGBEGIN{
@@ -148,11 +148,11 @@ inithdr(int fd)
 }
 
 static int
-rtrace(uint64_t pc, uint64_t sp, uint64_t link)
+rtrace(u64 pc, u64 sp, u64 link)
 {
 	Symbol s, f;
 	char buf[128];
-	uint64_t oldpc;
+	u64 oldpc;
 	int i;
 
 	i = 0;
@@ -188,13 +188,13 @@ rtrace(uint64_t pc, uint64_t sp, uint64_t link)
 }
 
 static int
-ctrace(uint64_t pc, uint64_t sp, uint64_t link)
+ctrace(u64 pc, u64 sp, u64 link)
 {
 	Symbol s;
 	char buf[128];
 	int found;
-	uint64_t opc, moved;
-	int32_t j;
+	u64 opc, moved;
+	i32 j;
 
 	USED(link);
 	j = 0;
@@ -226,10 +226,10 @@ ctrace(uint64_t pc, uint64_t sp, uint64_t link)
 }
 
 static int
-i386trace(uint64_t pc, uint64_t sp, uint64_t link)
+i386trace(u64 pc, u64 sp, u64 link)
 {
 	int i;
-	uint64_t osp;
+	u64 osp;
 	Symbol s, f;
 	char buf[128];
 
@@ -279,10 +279,10 @@ i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 }
 
 static int
-amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
+amd64trace(u64 pc, u64 sp, u64 link)
 {
 	int i, isintrr;
-	uint64_t osp;
+	u64 osp;
 	Symbol s, f;
 	char buf[128];
 
@@ -341,11 +341,11 @@ amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 }
 
 int naddr;
-uint64_t addr[1024];
-uint64_t val[1024];
+u64 addr[1024];
+u64 val[1024];
 
 static void
-putval(uint64_t a, uint64_t v)
+putval(u64 a, u64 v)
 {
 	if(naddr < nelem(addr)){
 		addr[naddr] = a;
@@ -375,12 +375,12 @@ readstack(void)
 	}
 }
 
-static uint64_t
-getval(uint64_t a)
+static u64
+getval(u64 a)
 {
 	char buf[256];
 	int i, n;
-	uint64_t r;
+	u64 r;
 
 	if(interactive){
 		print("// data at %#8.8llux? ", a);

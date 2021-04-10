@@ -32,18 +32,18 @@ typedef struct Readcache	Readcache;
 struct Readcache {
 	char *file;
 	char *data;
-	int32_t mtime;
-	int32_t rdtime;
+	i32 mtime;
+	i32 rdtime;
 	Readcache *next;
 };
 
 static Readcache *rcache;
 
-uint32_t
+u32
 dirlen(char *s)
 {
 	Dir *d;
-	uint32_t len;
+	u32 len;
 
 	d = dirstat(s);
 	if(d == nil)
@@ -53,11 +53,11 @@ dirlen(char *s)
 	return len;
 }
 
-uint32_t
+u32
 dirmtime(char *s)
 {
 	Dir *d;
-	uint32_t t;
+	u32 t;
 
 	d = dirstat(s);
 	if(d == nil)
@@ -72,7 +72,7 @@ doreadfile(char *s)
 {
 	char *p;
 	int fd, n;
-	uint32_t len;
+	u32 len;
 
 	len = dirlen(s);
 	if(len == 0)
@@ -98,7 +98,7 @@ readfile(char *s)
 {
 	Readcache *r, **l;
 	char *p;
-	uint32_t mtime;
+	u32 mtime;
 
 	for(l=&rcache, r=*l; r; l=&r->next, r=*l) {
 		if(strcmp(r->file, s) != 0)
@@ -395,7 +395,7 @@ freefacefile(Facefile *f)
 }
 
 static Image*
-myallocimage(uint32_t chan)
+myallocimage(u32 chan)
 {
 	Image *img;
 	img = allocimage(display, Rect(0,0,Facesize,Facesize), chan, 0, DNofill);
@@ -410,10 +410,10 @@ myallocimage(uint32_t chan)
 
 
 static Image*
-readbit(int fd, uint32_t chan)
+readbit(int fd, u32 chan)
 {
 	char buf[4096], hx[4], *p;
-	uint8_t data[Facesize*Facesize];	/* more than enough */
+	u8 data[Facesize*Facesize];	/* more than enough */
 	int nhx, i, n, ndata, nbit;
 	Image *img;
 
@@ -458,13 +458,13 @@ static Facefile*
 readface(char *fn)
 {
 	int x, y, fd;
-	uint8_t bits;
-	uint8_t *p;
+	u8 bits;
+	u8 *p;
 	Image *mask;
 	Image *face;
 	char buf[16];
-	uint8_t data[Facesize*Facesize];
-	uint8_t mdata[(Facesize*Facesize)/8];
+	u8 data[Facesize*Facesize];
+	u8 mdata[(Facesize*Facesize)/8];
 	Facefile *f;
 	Dir *d;
 

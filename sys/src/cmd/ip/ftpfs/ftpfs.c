@@ -29,8 +29,8 @@ Fid	*fids;			/* linked list of fids */
 char	errstring[128];		/* error to return */
 int	mfd;			/* fd for 9fs */
 int	messagesize = 4*1024*IOHDRSZ;
-uint8_t	mdata[8*1024*IOHDRSZ];
-uint8_t	mbuf[8*1024*IOHDRSZ];
+u8	mdata[8*1024*IOHDRSZ];
+u8	mbuf[8*1024*IOHDRSZ];
 Fcall	rhdr;
 Fcall	thdr;
 int	debug;
@@ -511,7 +511,7 @@ rcreate(Fid *f)
 char*
 rread(Fid *f)
 {
-	int32_t off;
+	i32 off;
 	int n, cnt, rv;
 	Node *np;
 
@@ -560,7 +560,7 @@ rread(Fid *f)
 char*
 rwrite(Fid *f)
 {
-	int32_t off;
+	i32 off;
 	int cnt;
 
 	if(f->node->d->qid.type & QTDIR)
@@ -699,7 +699,7 @@ Node*
 newnode(Node *parent, String *name)
 {
 	Node *np;
-	static uint32_t path;
+	static u32 path;
 	Dir d;
 
 	np = mallocz(sizeof(Node), 1);

@@ -13,7 +13,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-extern void vtSha1Block(uint32_t *s, uint8_t *p, uint32_t len);
+extern void vtSha1Block(u32 *s, u8 *p, u32 len);
 
 struct VtSha1
 {
@@ -47,20 +47,20 @@ vtSha1Init(VtSha1 *s)
 }
 
 void
-vtSha1Update(VtSha1 *s, uint8_t *p, int len)
+vtSha1Update(VtSha1 *s, u8 *p, int len)
 {
 	s->s = sha1(p, len, nil, s->s);
 }
 
 void
-vtSha1Final(VtSha1 *s, uint8_t *digest)
+vtSha1Final(VtSha1 *s, u8 *digest)
 {
 	sha1(nil, 0, digest, s->s);
 	s->s = nil;
 }
 
 void
-vtSha1(uint8_t sha1[VtScoreSize], uint8_t *p, int n)
+vtSha1(u8 sha1[VtScoreSize], u8 *p, int n)
 {
 	VtSha1 s;
 
@@ -70,10 +70,10 @@ vtSha1(uint8_t sha1[VtScoreSize], uint8_t *p, int n)
 }
 
 int
-vtSha1Check(uint8_t score[VtScoreSize], uint8_t *p, int n)
+vtSha1Check(u8 score[VtScoreSize], u8 *p, int n)
 {
 	VtSha1 s;
-	uint8_t score2[VtScoreSize];
+	u8 score2[VtScoreSize];
 
 	vtSha1Init(&s);
 	vtSha1Update(&s, p, n);

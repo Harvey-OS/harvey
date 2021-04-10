@@ -138,7 +138,7 @@ todget(i64 *ticksp)
 
 	/*
 	 * we don't want time to pass twixt the measuring of fastticks
-	 * and grabbing tod.last.  Also none of the int64_ts are atomic so
+	 * and grabbing tod.last.  Also none of the i64s are atomic so
 	 * we have to look at them inside the lock.
 	 */
 	ilock(&tod.Lock);

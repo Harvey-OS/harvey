@@ -20,9 +20,9 @@ strspn(const char *s, const char *b)
 
 	memset(map, 0, N);
 	while(*b)
-		map[*(uint8_t *)b++] = 1;
+		map[*(u8 *)b++] = 1;
 	os = s;
-	while(map[*(uint8_t *)s++])
+	while(map[*(u8 *)s++])
 		;
 	return s - os - 1;
 }

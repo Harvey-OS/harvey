@@ -316,7 +316,7 @@ mk8dot3name(Xfile *f, Dosptr *ndp, char *name, char *sname)
 static int
 mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype,
 	 int nattr,
-	 int32_t start, int32_t length)
+	 i32 start, i32 length)
 {
 	Dosdir *nd;
 
@@ -360,7 +360,7 @@ rcreate(void)
 	Iosect *xp;
 	Dosdir *pd, *xd;
 	char sname[13];
-	int32_t start;
+	i32 start;
 	int longtype, attr, omode, nattr;
 
 	f = xfile(req->fid, Asis);
@@ -719,8 +719,8 @@ rwstat(void)
 	Iosect *parp;
 	Dosdir *pard, *d, od;
 	char sname[13];
-	uint32_t oaddr, ooffset;
-	int32_t start, length;
+	u32 oaddr, ooffset;
+	i32 start, length;
 	int i, longtype, changes, attr;
 
 	f = xfile(req->fid, Asis);

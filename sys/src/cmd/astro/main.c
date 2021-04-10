@@ -202,7 +202,7 @@ readdt(void)
 }
 
 double
-etdate(int32_t year, int mo, double day)
+etdate(i32 year, int mo, double day)
 {
 	Tim t;
 

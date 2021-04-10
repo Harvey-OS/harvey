@@ -35,7 +35,7 @@ struct Hlex
 	int	tok;
 	int	eoh;
 	int	eol;			/* end of header line encountered? */
-	uint8_t	*hstart;		/* start of header */
+	u8	*hstart;		/* start of header */
 	jmp_buf	jmp;			/* jmp here to parse header */
 	char	wordval[HMaxWord];
 	HConnect *c;
@@ -45,8 +45,8 @@ struct MimeHead
 {
 	char	*name;
 	void	(*parse)(Hlex*, char*);
-	uint8_t	seen;
-	uint8_t	ignore;
+	u8	seen;
+	u8	ignore;
 };
 
 static void	mimeaccept(Hlex*, char*);
@@ -117,7 +117,7 @@ static	void	word(Hlex*, char*);
 static	int	lex1(Hlex*, int);
 static	int	lex(Hlex*);
 static	int	lexbase64(Hlex*);
-static	uint32_t	digtoul(char *s, char **e);
+static	u32	digtoul(char *s, char **e);
 
 /*
  * flush and clean up junk from a request
@@ -427,7 +427,7 @@ mimeranges(Hlex *h, HRange *head)
 {
 	HRange *r, *rh, *tail;
 	char *w;
-	uint32_t start, stop;
+	u32 start, stop;
 	int suf;
 
 	if(lex(h) != Word || strcmp(h->wordval, "bytes") != 0 || lex(h) != '=')
@@ -632,7 +632,7 @@ authbasic(Hlex *h, char *name)
 	h->c->hpos[-1] = '=';
 
 	up = halloc(h->c, n + 1);
-	n = dec64((uint8_t*)up, n, h->wordval, n);
+	n = dec64((u8*)up, n, h->wordval, n);
 	up[n] = '\0';
 	p = strchr(up, ':');
 	if(p != nil){
@@ -1023,10 +1023,10 @@ ungetc(Hlex *h)
 	h->c->hpos--;
 }
 
-static uint32_t
+static u32
 digtoul(char *s, char **e)
 {
-	uint32_t v;
+	u32 v;
 	int c, ovfl;
 
 	v = 0;

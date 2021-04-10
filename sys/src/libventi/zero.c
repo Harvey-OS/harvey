@@ -12,9 +12,9 @@
 #include <venti.h>
 
 void
-vtzeroextend(int type, uint8_t *buf, uint n, uint nn)
+vtzeroextend(int type, u8 *buf, uint n, uint nn)
 {
-	uint8_t *p, *ep;
+	u8 *p, *ep;
 
 	switch(type&7) {
 	case 0:
@@ -33,9 +33,9 @@ vtzeroextend(int type, uint8_t *buf, uint n, uint nn)
 }
 
 uint
-vtzerotruncate(int type, uint8_t *buf, uint n)
+vtzerotruncate(int type, u8 *buf, uint n)
 {
-	uint8_t *p;
+	u8 *p;
 
 	if(type == VtRootType){
 		if(n < VtRootSize)

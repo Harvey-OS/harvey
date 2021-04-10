@@ -11,13 +11,13 @@
 #include "dat.h"
 #include "fns.h"
 
-static uint8_t	*data;
-static uint8_t	*data1;
+static u8	*data;
+static u8	*data1;
 static int	blocksize;
 static int	sleepms;
 static int	fd;
 static int	force;
-static int64_t	offset0;
+static i64	offset0;
 
 void
 usage(void)
@@ -27,7 +27,7 @@ usage(void)
 }
 
 static int
-pwriteblock(uint8_t *buf, int n, int64_t off)
+pwriteblock(u8 *buf, int n, i64 off)
 {
 	int nr, m;
 
@@ -41,7 +41,7 @@ pwriteblock(uint8_t *buf, int n, int64_t off)
 }
 
 static int
-preadblock(uint8_t *buf, int n, int64_t off)
+preadblock(u8 *buf, int n, i64 off)
 {
 	int nr, m;
 
@@ -58,7 +58,7 @@ preadblock(uint8_t *buf, int n, int64_t off)
 }
 
 static int
-loadheader(char *name, ArenaHead *head, Arena *arena, int64_t off)
+loadheader(char *name, ArenaHead *head, Arena *arena, i64 off)
 {
 	if(preadblock(data, head->blocksize, off + head->size - head->blocksize) < 0){
 		fprint(2, "%s: reading arena tail: %r\n", name);
@@ -80,14 +80,14 @@ loadheader(char *name, ArenaHead *head, Arena *arena, int64_t off)
 	return 0;
 }
 
-uint8_t zero[VtScoreSize];
+u8 zero[VtScoreSize];
 
 static int
-verify(Arena *arena, void *data, uint8_t *newscore)
+verify(Arena *arena, void *data, u8 *newscore)
 {
-	int64_t e, bs, n, o;
+	i64 e, bs, n, o;
 	DigestState ds, ds1;
-	uint8_t score[VtScoreSize];
+	u8 score[VtScoreSize];
 
 	/*
 	 * now we know how much to read
@@ -127,19 +127,19 @@ verify(Arena *arena, void *data, uint8_t *newscore)
 	memset(data, 0, arena->blocksize);
 	packarena(arena, data);
 	sha1(data, bs, newscore, &ds1);
-	scorecp((uint8_t*)data + arena->blocksize - VtScoreSize, newscore);
+	scorecp((u8*)data + arena->blocksize - VtScoreSize, newscore);
 
 	return 0;
 }
 
 static void
-resealarena(char *name, int64_t len)
+resealarena(char *name, i64 len)
 {
 	ArenaHead head;
 	Arena arena;
 	DigestState s;
-	uint64_t off;
-	uint8_t newscore[VtScoreSize];
+	u64 off;
+	u8 newscore[VtScoreSize];
 
 	fprint(2, "%s: begin reseal\n", name);
 
@@ -224,7 +224,7 @@ readap(ArenaPart *ap)
 	ap->tabbase = (PartBlank+HeadSize+ap->blocksize-1)&~(ap->blocksize-1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	table = malloc(ap->tabsize+1);
-	if(preadblock((uint8_t*)table, ap->tabsize, ap->tabbase) < 0)
+	if(preadblock((u8*)table, ap->tabsize, ap->tabbase) < 0)
 		sysfatal("reading arena part directory: %r");
 	table[ap->tabsize] = 0;
 	return table;
@@ -235,7 +235,7 @@ threadmain(int argc, char *argv[])
 {
 	int i, nline;
 	char *p, *q, *table, *f[10], line[256];
-	int64_t start, stop;
+	i64 start, stop;
 	ArenaPart ap;
 	Part *part;
 

@@ -18,9 +18,9 @@
  */
 #define	LENDIAN(p)	((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
 
-uint8_t	buf[6001];
-int16_t	cfreq[140];
-int16_t	wfreq[50];
+u8	buf[6001];
+i16	cfreq[140];
+i16	wfreq[50];
 int	nbuf;
 Dir*	mbuf;
 int	fd;
@@ -75,7 +75,7 @@ struct
 	{"integer",	Fword},
 	{"iota",	Lword},
 	{"libc",	I2},
-	{"int32_t",	Cword},
+	{"i32",	Cword},
 	{"module",	Lword},
 	{"real",	Fword},
 	{"ref",		Lword},
@@ -148,7 +148,7 @@ enum
 
 void	bump_utf_count(Rune);
 void	filetype(int);
-int	getfontnum(uint8_t*, uint8_t**);
+int	getfontnum(u8*, u8**);
 int	isas(void);
 int	isc(void);
 int	iscint(void);
@@ -172,8 +172,8 @@ int	longoff(void);
 int	istar(void);
 int	isface(void);
 int	isexec(void);
-int	p9bitnum(uint8_t*);
-int	p9subfont(uint8_t*);
+int	p9bitnum(u8*);
+int	p9subfont(u8*);
 void	print_utf(void);
 void	type(char*, int);
 int	utf_count(void);
@@ -491,7 +491,7 @@ void
 wordfreq(void)
 {
 	int low, high, mid, r;
-	uint8_t *p, *p2, c;
+	u8 *p, *p2, c;
 
 	p = buf;
 	for(;;) {
@@ -523,8 +523,8 @@ wordfreq(void)
 
 typedef struct Filemagic Filemagic;
 struct Filemagic {
-	uint32_t x;
-	uint32_t mask;
+	u32 x;
+	u32 mask;
 	char *desc;
 	char *mime;
 };
@@ -570,7 +570,7 @@ Filemagic long0tab[] = {
 };
 
 int
-filemagic(Filemagic *tab, int ntab, uint32_t x)
+filemagic(Filemagic *tab, int ntab, u32 x)
 {
 	int i;
 
@@ -590,7 +590,7 @@ long0(void)
 
 typedef struct Fileoffmag Fileoffmag;
 struct Fileoffmag {
-	uint32_t	off;
+	u32	off;
 	Filemagic Filemagic;
 };
 
@@ -613,9 +613,9 @@ int
 fileoffmagic(Fileoffmag *tab, int ntab)
 {
 	int i;
-	uint32_t x;
+	u32 x;
 	Fileoffmag *tp;
-	uint8_t buf[sizeof(int32_t)];
+	u8 buf[sizeof(i32)];
 
 	for(i=0; i<ntab; i++) {
 		tp = tab + i;
@@ -823,7 +823,7 @@ istring(void)
 
 struct offstr
 {
-	uint32_t	off;
+	u32	off;
 	struct FILE_STRING FILE_STRING;
 } offstrs[] = {
 	{32*1024, { "\001CD001\001",	"ISO9660 CD image",	7,	OCTET }},
@@ -899,7 +899,7 @@ char*	html_string[] =
 int
 ishtml(void)
 {
-	uint8_t *p, *q;
+	u8 *p, *q;
 	int i, count;
 
 		/* compare strings between '<' and '>' to html table */
@@ -1156,17 +1156,17 @@ isenglish(void)
 
 	vow = 0;
 	for(p="AEIOU"; *p; p++) {
-		vow += cfreq[(uint8_t)*p];
+		vow += cfreq[(u8)*p];
 		vow += cfreq[tolower(*p)];
 	}
 	comm = 0;
 	for(p="ETAION"; *p; p++) {
-		comm += cfreq[(uint8_t)*p];
+		comm += cfreq[(u8)*p];
 		comm += cfreq[tolower(*p)];
 	}
 	rare = 0;
 	for(p="VJKQXZ"; *p; p++) {
-		rare += cfreq[(uint8_t)*p];
+		rare += cfreq[(u8)*p];
 		rare += cfreq[tolower(*p)];
 	}
 	if(vow*5 >= nbuf-cfreq[' '] && comm >= 10*rare) {
@@ -1182,7 +1182,7 @@ isenglish(void)
  */
 #define	P9BITLEN	12
 int
-p9bitnum(uint8_t *bp)
+p9bitnum(u8 *bp)
 {
 	int n, c, len;
 
@@ -1238,10 +1238,10 @@ int
 isp9bit(void)
 {
 	int dep, lox, loy, hix, hiy, px, new, cmpr;
-	uint32_t t;
-	int32_t len;
+	u32 t;
+	i32 len;
 	char *newlabel;
-	uint8_t *cp;
+	u8 *cp;
 
 	cp = buf;
 	cmpr = 0;
@@ -1305,7 +1305,7 @@ isp9bit(void)
 }
 
 int
-p9subfont(uint8_t *p)
+p9subfont(u8 *p)
 {
 	int n, h, a;
 
@@ -1330,7 +1330,7 @@ p9subfont(uint8_t *p)
 int
 isp9font(void)
 {
-	uint8_t *cp, *p;
+	u8 *cp, *p;
 	int i, n;
 	char pathname[1024];
 
@@ -1339,7 +1339,7 @@ isp9font(void)
 		return 0;
 	if (!getfontnum(cp, &cp))	/* ascent */
 		return 0;
-	for (i = 0; (cp=(uint8_t*)strchr((char*)cp, '\n')) != nil; i++) {
+	for (i = 0; (cp=(u8*)strchr((char*)cp, '\n')) != nil; i++) {
 		if (!getfontnum(cp, &cp))	/* min */
 			break;
 		if (!getfontnum(cp, &cp))	/* max */
@@ -1376,9 +1376,9 @@ isp9font(void)
 }
 
 int
-getfontnum(uint8_t *cp, uint8_t **rp)
+getfontnum(u8 *cp, u8 **rp)
 {
-	while (WHITESPACE(*cp))		/* extract uint32_t delimited by whitespace */
+	while (WHITESPACE(*cp))		/* extract u32 delimited by whitespace */
 		cp++;
 	if (*cp < '0' || *cp > '9')
 		return 0;

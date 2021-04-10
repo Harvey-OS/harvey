@@ -312,7 +312,7 @@ int	g2debug = 0;
 struct
 {
 	char*	name;
-	int32_t	value;
+	i32	value;
 } resrv[] =
 {
 	{"binary",	BINARY},
@@ -355,7 +355,7 @@ void	finact(void);
 int	defin(int, char*);
 void	defout(int);
 char*	cstash(char*);
-int32_t	gettok(void);
+i32	gettok(void);
 int	fdtype(int);
 int	chfind(int, char*);
 void	cpyunion(void);
@@ -465,7 +465,7 @@ others(void)
 	warray("yytok2", temp1, c+1);
 
 	/* table 3 has everything else */
-	Bprint(ftable, "int32_t	yytok3[] =\n{\n");
+	Bprint(ftable, "i32	yytok3[] =\n{\n");
 	c = 0;
 	TLOOP(i) {
 		j = tokset[i].value;
@@ -917,7 +917,7 @@ more:
 	/* set pempty to WHOKNOWS */
 	aryfil( pempty, nnonter+1, WHOKNOWS);
 
-	/* loop as int32_t as we keep finding empty nonterminals */
+	/* loop as i32 as we keep finding empty nonterminals */
 
 again:
 	PLOOP(1, i) {
@@ -1182,7 +1182,7 @@ usage(void)
 void
 setup(int argc, char *argv[])
 {
-	int32_t c, t;
+	i32 c, t;
 	int i, j, lev, ty, ytab, *p;
 	int vflag, dflag, stem;
 	char actnm[8], *stemc, *s, dirbuf[128];
@@ -1657,10 +1657,10 @@ cstash(char *s)
 	return temp;
 }
 
-int32_t
+i32
 gettok(void)
 {
-	int32_t c;
+	i32 c;
 	Rune rune;
 	int i, base, match, reserve;
 	static int peekline;
@@ -1845,7 +1845,7 @@ chfind(int t, char *s)
 void
 cpyunion(void)
 {
-	int32_t c;
+	i32 c;
 	int level;
 
 	Bprint(ftable, "\n#line\t%d\t\"%s\"\n", lineno, infile);
@@ -1888,7 +1888,7 @@ void
 cpycode(void)
 {
 
-	int32_t c;
+	i32 c;
 
 	c = Bgetrune(finput);
 	if(c == '\n') {
@@ -1922,7 +1922,7 @@ cpycode(void)
 int
 skipcom(void)
 {
-	int32_t c;
+	i32 c;
 	int i;
 
 	/* i is the number of lines skipped */
@@ -1953,7 +1953,7 @@ skipcom(void)
 void
 cpyact(int offset)
 {
-	int32_t c;
+	i32 c;
 	int brac, match, j, s, fnd, tok;
 
 	Bprint(faction, "\n#line\t%d\t\"%s\"\n", lineno, infile);

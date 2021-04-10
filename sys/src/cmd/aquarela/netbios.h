@@ -16,12 +16,12 @@ enum {
 };
 
 typedef struct NbnsHdr {
-	uint8_t name_trn_id[2];
-	uint8_t ctrl[2];
-	uint8_t qdcount[2];
-	uint8_t ancount[2];
-	uint8_t nscount[2];
-	uint8_t arcount[2];
+	u8 name_trn_id[2];
+	u8 ctrl[2];
+	u8 qdcount[2];
+	u8 ancount[2];
+	u8 nscount[2];
+	u8 arcount[2];
 } NbnsHdr;
 
 enum {
@@ -69,41 +69,41 @@ enum {
 typedef struct NbnsMessageQuestion NbnsMessageQuestion;
 typedef struct NbnsMessageResource NbnsMessageResource;
 
-typedef uint8_t NbName[NbNameLen];
-int nbnamedecode(uint8_t *base, uint8_t *p, uint8_t *ep, NbName name);
-int nbnameencode(uint8_t *p, uint8_t *ep, NbName name);
+typedef u8 NbName[NbNameLen];
+int nbnamedecode(u8 *base, u8 *p, u8 *ep, NbName name);
+int nbnameencode(u8 *p, u8 *ep, NbName name);
 int nbnameequal(NbName name1, NbName name2);
 void nbnamecpy(NbName n1, NbName n2);
 void nbmknamefromstring(NbName nbname, char *string);
-void nbmknamefromstringandtype(NbName nbname, char *string, uint8_t type);
+void nbmknamefromstringandtype(NbName nbname, char *string, u8 type);
 void nbmkstringfromname(char *buf, int buflen, NbName name);
 
 int nbnamefmt(Fmt *);
 
 struct NbnsMessageQuestion {
 	NbName name;
-	uint16_t type;
-	uint16_t class;
+	u16 type;
+	u16 class;
 	NbnsMessageQuestion *next;
 };
 
-NbnsMessageQuestion *nbnsmessagequestionnew(NbName name, uint16_t type, uint16_t class);
+NbnsMessageQuestion *nbnsmessagequestionnew(NbName name, u16 type, u16 class);
 
 struct NbnsMessageResource {
 	NbName name;
-	uint16_t type;
-	uint16_t class;
-	uint32_t ttl;
-	uint16_t rdlength;
-	uint8_t *rdata;
+	u16 type;
+	u16 class;
+	u32 ttl;
+	u16 rdlength;
+	u8 *rdata;
 	NbnsMessageResource *next;
 };
-NbnsMessageResource *nbnsmessageresourcenew(NbName name, uint16_t type, uint16_t class,
-					    uint32_t ttl, int rdcount,
-					    uint8_t *rdata);
+NbnsMessageResource *nbnsmessageresourcenew(NbName name, u16 type, u16 class,
+					    u32 ttl, int rdcount,
+					    u8 *rdata);
 
 typedef struct NbnsMessage {
-	uint16_t id;
+	u16 id;
 	int response;
 	int opcode;
 	int broadcast;
@@ -121,50 +121,50 @@ typedef struct NbnsMessage {
 NbnsMessage *nbnsmessagenew(void);
 void nbnsmessageaddquestion(NbnsMessage *s, NbnsMessageQuestion *q);
 void nbnsmessageaddresource(NbnsMessageResource **rp, NbnsMessageResource *r);
-NbnsMessage *nbnsconvM2S(uint8_t *ap, int nap);
+NbnsMessage *nbnsconvM2S(u8 *ap, int nap);
 void nbnsmessagefree(NbnsMessage **sp);
 void nbnsdumpmessage(NbnsMessage *s);
-int nbnsconvS2M(NbnsMessage *s, uint8_t *ap, int nap);
+int nbnsconvS2M(NbnsMessage *s, u8 *ap, int nap);
 
 
-NbnsMessage *nbnsmessagenamequeryrequestnew(uint16_t id, int broadcast, NbName name);
-NbnsMessage *nbnsmessagenameregistrationrequestnew(uint16_t id, int broadcast, NbName name,
-						   uint32_t ttl,
-						   uint8_t *ipaddr);
+NbnsMessage *nbnsmessagenamequeryrequestnew(u16 id, int broadcast, NbName name);
+NbnsMessage *nbnsmessagenameregistrationrequestnew(u16 id, int broadcast, NbName name,
+						   u32 ttl,
+						   u8 *ipaddr);
 
 typedef struct NbnsTransaction NbnsTransaction;
 
 struct NbnsTransaction {
-	uint16_t id;
+	u16 id;
 	Channel *c;
 	NbnsTransaction *next;
 };
-uint16_t nbnsnextid(void);
+u16 nbnsnextid(void);
 
-int nbnsfindname(uint8_t *serveripaddr, NbName name, uint8_t *ipaddr,
-		 uint32_t *ttlp);
-int nbnsaddname(uint8_t *serveripaddr, NbName name, uint32_t ttl,
-		uint8_t *ipaddr);
+int nbnsfindname(u8 *serveripaddr, NbName name, u8 *ipaddr,
+		 u32 *ttlp);
+int nbnsaddname(u8 *serveripaddr, NbName name, u32 ttl,
+		u8 *ipaddr);
 
-NbnsTransaction *nbnstransactionnew(NbnsMessage *request, uint8_t *ipaddr);
+NbnsTransaction *nbnstransactionnew(NbnsMessage *request, u8 *ipaddr);
 void nbnstransactionfree(NbnsTransaction **tp);
 
 typedef struct NbnsAlarm NbnsAlarm;
 
 struct NbnsAlarm {
 	Channel *c;
-	int64_t expirems;
+	i64 expirems;
 	NbnsAlarm *next;
 };
 
-void nbnsalarmset(NbnsAlarm *a, uint32_t millisec);
+void nbnsalarmset(NbnsAlarm *a, u32 millisec);
 void nbnsalarmcancel(NbnsAlarm *a);
 void nbnsalarmfree(NbnsAlarm **ap);
 NbnsAlarm *nbnsalarmnew(void);
 void nbnsalarmend(void);
 
 typedef struct NbSession NbSession;
-typedef int NBSSWRITEFN(NbSession *s, void *buf, int32_t n);
+typedef int NBSSWRITEFN(NbSession *s, void *buf, i32 n);
 
 struct NbSession {
 	int fd;
@@ -181,35 +181,35 @@ typedef struct NbScatterGather NbScatterGather;
 
 struct NbScatterGather {
 	void *p;
-	int32_t l;
+	i32 l;
 };
 
 int nbssgatherwrite(NbSession *s, NbScatterGather *a);
-int32_t nbssscatterread(NbSession *, NbScatterGather *a);
-int nbsswrite(NbSession *s, void *buf, int32_t n);
-int32_t nbssread(NbSession *s, void *buf, int32_t n);
-void *nbemalloc(uint32_t);
+i32 nbssscatterread(NbSession *, NbScatterGather *a);
+int nbsswrite(NbSession *s, void *buf, i32 n);
+i32 nbssread(NbSession *s, void *buf, i32 n);
+void *nbemalloc(u32);
 
-int nbnameresolve(NbName name, uint8_t *ipaddr);
+int nbnameresolve(NbName name, u8 *ipaddr);
 
-void nbdumpdata(void *data, int32_t datalen);
+void nbdumpdata(void *data, i32 datalen);
 
 typedef struct NbDgram {
-	uint8_t type;
-	uint8_t flags;
-	uint16_t id;
-	uint8_t srcip[IPaddrlen];
-	uint16_t srcport;
+	u8 type;
+	u8 flags;
+	u16 id;
+	u8 srcip[IPaddrlen];
+	u16 srcport;
 	union {
 		struct {
-			uint16_t length;
-			uint16_t offset;
+			u16 length;
+			u16 offset;
 			NbName srcname;
 			NbName dstname;
-			uint8_t *data;
+			u8 *data;
 		} datagram;
 		struct {
-			uint8_t code;
+			u8 code;
 		} error;
 		struct {
 			NbName dstname;
@@ -234,25 +234,25 @@ enum {
 
 typedef struct NbDgramSendParameters {
 	NbName to;
-	uint8_t type;
+	u8 type;
 } NbDgramSendParameters;
 
-int nbdgramconvM2S(NbDgram *s, uint8_t *p, uint8_t *ep);
-int nbdgramconvS2M(uint8_t *p, uint8_t *ep, NbDgram *s);
+int nbdgramconvM2S(NbDgram *s, u8 *p, u8 *ep);
+int nbdgramconvS2M(u8 *p, u8 *ep, NbDgram *s);
 void nbdgramdump(NbDgram *s);
-int nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s);
-int nbdgramsend(NbDgramSendParameters *p, unsigned char *data, int32_t datalen);
+int nbdgramsendto(u8 *ipaddr, u16 port, NbDgram *s);
+int nbdgramsend(NbDgramSendParameters *p, unsigned char *data, i32 datalen);
 char *nbdgramlisten(NbName to, int (*deliver)(void *magic, NbDgram *s), void *magic);
 
 int nbnametablefind(NbName name, int add);
 int nbnameisany(NbName name);
 
-int nbremotenametablefind(NbName name, uint8_t *ipaddr);
-int nbremotenametableadd(NbName name, uint8_t *ipaddr, uint32_t ttl);
+int nbremotenametablefind(NbName name, u8 *ipaddr);
+int nbremotenametableadd(NbName name, u8 *ipaddr, u32 ttl);
 
 typedef struct NbGlobals {
-	uint8_t myipaddr[IPaddrlen];
-	uint8_t bcastaddr[IPaddrlen];
+	u8 myipaddr[IPaddrlen];
+	u8 bcastaddr[IPaddrlen];
 	NbName myname;
 } NbGlobals;
 
@@ -260,6 +260,6 @@ extern NbGlobals nbglobals;
 extern NbName nbnameany;
 
 int nbinit(void);
-char *nbudpannounce(uint16_t port, int *fdp);
+char *nbudpannounce(u16 port, int *fdp);
 
 extern int nbudphdrsize;

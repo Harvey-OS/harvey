@@ -72,7 +72,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
-	uint32_t x;
+	u32 x;
 
 	trace("%s->init->s3generic\n", ctlr->name);
 	mode = vga->mode;
@@ -184,7 +184,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uint32_t l;
+	u32 l;
 
 	trace("%s->load->s3generic\n", ctlr->name);
 
@@ -236,7 +236,7 @@ dump(Vga* vga, Ctlr* ctlr)
 {
 	int i, id, interlace, mul, div;
 	char *name;
-	uint16_t shb, vrs, x;
+	u16 shb, vrs, x;
 
 	name = ctlr->name;
 

@@ -29,7 +29,7 @@ int
 havesecstore(void)
 {
 	int m, n, fd;
-	uint8_t buf[500];
+	u8 buf[500];
 
 	n = snprint((char*)buf, sizeof buf, testmess, owner);
 	hnputs(buf, 0x8000+n-2);
@@ -70,9 +70,9 @@ extern SConn* newSConn(int);	// arg is open file descriptor
 struct SConn{
 	void *chan;
 	int secretlen;
-	int (*secret)(SConn*, uint8_t*, int);//
-	int (*read)(SConn*, uint8_t*, int); // <0 if error;  errmess in buffer
-	int (*write)(SConn*, uint8_t*, int);
+	int (*secret)(SConn*, u8*, int);//
+	int (*read)(SConn*, u8*, int); // <0 if error;  errmess in buffer
+	int (*write)(SConn*, u8*, int);
 	void (*free)(SConn*);		// also closes file descriptor
 };
 // secret(s,b,dir) sets secret for digest, encrypt, using the secretlen
@@ -86,8 +86,8 @@ static int readstr(SConn*, char*);  // call with buf of size Maxmsg+1
 	// returns -1 upon error, with error message in buf
 
 typedef struct ConnState {
-	uint8_t secret[SHA1dlen];
-	uint32_t seqno;
+	u8 secret[SHA1dlen];
+	u32 seqno;
 	RC4state rc4;
 } ConnState;
 
@@ -98,20 +98,20 @@ typedef struct SS{
 } SS;
 
 static int
-SC_secret(SConn *conn, uint8_t *sigma, int direction)
+SC_secret(SConn *conn, u8 *sigma, int direction)
 {
 	SS *ss = (SS*)(conn->chan);
 	int nsigma = conn->secretlen;
 
 	if(direction != 0){
-		hmac_sha1(sigma, nsigma, (uint8_t*)"one", 3, ss->out.secret,
+		hmac_sha1(sigma, nsigma, (u8*)"one", 3, ss->out.secret,
 			  nil);
-		hmac_sha1(sigma, nsigma, (uint8_t*)"two", 3, ss->in.secret,
+		hmac_sha1(sigma, nsigma, (u8*)"two", 3, ss->in.secret,
 			  nil);
 	}else{
-		hmac_sha1(sigma, nsigma, (uint8_t*)"two", 3, ss->out.secret,
+		hmac_sha1(sigma, nsigma, (u8*)"two", 3, ss->out.secret,
 			  nil);
-		hmac_sha1(sigma, nsigma, (uint8_t*)"one", 3, ss->in.secret,
+		hmac_sha1(sigma, nsigma, (u8*)"one", 3, ss->in.secret,
 			  nil);
 	}
 	setupRC4state(&ss->in.rc4, ss->in.secret, 16); // restrict to 128 bits
@@ -121,11 +121,11 @@ SC_secret(SConn *conn, uint8_t *sigma, int direction)
 }
 
 static void
-hash(uint8_t secret[SHA1dlen], uint8_t *data, int len, int seqno,
-     uint8_t d[SHA1dlen])
+hash(u8 secret[SHA1dlen], u8 *data, int len, int seqno,
+     u8 d[SHA1dlen])
 {
 	DigestState sha;
-	uint8_t seq[4];
+	u8 seq[4];
 
 	seq[0] = seqno>>24;
 	seq[1] = seqno>>16;
@@ -138,12 +138,12 @@ hash(uint8_t secret[SHA1dlen], uint8_t *data, int len, int seqno,
 }
 
 static int
-verify(uint8_t secret[SHA1dlen], uint8_t *data, int len, int seqno,
-       uint8_t d[SHA1dlen])
+verify(u8 secret[SHA1dlen], u8 *data, int len, int seqno,
+       u8 d[SHA1dlen])
 {
 	DigestState sha;
-	uint8_t seq[4];
-	uint8_t digest[SHA1dlen];
+	u8 seq[4];
+	u8 digest[SHA1dlen];
 
 	seq[0] = seqno>>24;
 	seq[1] = seqno>>16;
@@ -157,10 +157,10 @@ verify(uint8_t secret[SHA1dlen], uint8_t *data, int len, int seqno,
 }
 
 static int
-SC_read(SConn *conn, uint8_t *buf, int n)
+SC_read(SConn *conn, u8 *buf, int n)
 {
 	SS *ss = (SS*)(conn->chan);
-	uint8_t count[2], digest[SHA1dlen];
+	u8 count[2], digest[SHA1dlen];
 	int len, nr;
 
 	if(read(ss->fd, count, 2) != 2 || (count[0]&0x80) == 0){
@@ -199,10 +199,10 @@ SC_read(SConn *conn, uint8_t *buf, int n)
 }
 
 static int
-SC_write(SConn *conn, uint8_t *buf, int n)
+SC_write(SConn *conn, u8 *buf, int n)
 {
 	SS *ss = (SS*)(conn->chan);
-	uint8_t count[2], digest[SHA1dlen], enc[Maxmsg+1];
+	u8 count[2], digest[SHA1dlen], enc[Maxmsg+1];
 	int len;
 
 	if(n <= 0 || n > Maxmsg+1){
@@ -275,7 +275,7 @@ writerr(SConn *conn, char *s)
 	char buf[Maxmsg];
 
 	snprint(buf, Maxmsg, "!%s", s);
-	conn->write(conn, (uint8_t*)buf, strlen(buf));
+	conn->write(conn, (u8*)buf, strlen(buf));
 }
 
 static int
@@ -283,7 +283,7 @@ readstr(SConn *conn, char *s)
 {
 	int n;
 
-	n = conn->read(conn, (uint8_t*)s, Maxmsg);
+	n = conn->read(conn, (u8*)s, Maxmsg);
 	if(n >= 0){
 		s[n] = 0;
 		if(s[0] == '!'){
@@ -297,12 +297,12 @@ readstr(SConn *conn, char *s)
 }
 
 static int
-getfile(SConn *conn, uint8_t *key, int nkey)
+getfile(SConn *conn, u8 *key, int nkey)
 {
 	char *buf;
 	int nbuf, n, nr, len;
 	char s[Maxmsg+1], *gf, *p, *q;
-	uint8_t skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw;
+	u8 skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw;
 	AESstate aes;
 	DigestState *sha;
 
@@ -310,7 +310,7 @@ getfile(SConn *conn, uint8_t *key, int nkey)
 	memset(&aes, 0, sizeof aes);
 
 	snprint(s, Maxmsg, "GET %s\n", gf);
-	conn->write(conn, (uint8_t*)s, strlen(s));
+	conn->write(conn, (u8*)s, strlen(s));
 
 	/* get file size */
 	s[0] = '\0';
@@ -341,7 +341,7 @@ getfile(SConn *conn, uint8_t *key, int nkey)
 				werrstr("secstore: no IV in file");
 				return -1;
 			}
-			sha = sha1((uint8_t*)"aescbc file", 11, nil, nil);
+			sha = sha1((u8*)"aescbc file", 11, nil, nil);
 			sha1(key, nkey, skey, sha);
 			setupAESstate(&aes, skey, AESbsize, ibr);
 			memset(skey, 0, sizeof skey);
@@ -418,16 +418,16 @@ initPAKparams(void)
 // H = (sha(ver,C,sha(passphrase)))^r mod p,
 // a hash function expensive to attack by brute force.
 static void
-longhash(char *ver, char *C, uint8_t *passwd, mpint *H)
+longhash(char *ver, char *C, u8 *passwd, mpint *H)
 {
-	uint8_t *Cp;
+	u8 *Cp;
 	int i, n, nver, nC;
-	uint8_t buf[140], key[1];
+	u8 buf[140], key[1];
 
 	nver = strlen(ver);
 	nC = strlen(C);
 	n = nver + nC + SHA1dlen;
-	Cp = (uint8_t*)emalloc(n);
+	Cp = (u8*)emalloc(n);
 	memmove(Cp, ver, nver);
 	memmove(Cp+nver, C, nC);
 	memmove(Cp+nver+nC, passwd, SHA1dlen);
@@ -446,9 +446,9 @@ longhash(char *ver, char *C, uint8_t *passwd, mpint *H)
 static char *
 PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 {
-	uint8_t passhash[SHA1dlen];
+	u8 passhash[SHA1dlen];
 
-	sha1((uint8_t *)passphrase, strlen(passphrase), passhash, nil);
+	sha1((u8 *)passphrase, strlen(passphrase), passhash, nil);
 	initPAKparams();
 	longhash(VERSION, C, passhash, H);
 	mpinvert(H, pak->p, Hi);
@@ -460,24 +460,24 @@ PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 static void
 shorthash(char *mess, char *C, char *S, char *m, char *mu,
 	  char *sigma, char *Hi,
-	  uint8_t *digest)
+	  u8 *digest)
 {
 	SHA1state *state;
 
-	state = sha1((uint8_t*)mess, strlen(mess), 0, 0);
-	state = sha1((uint8_t*)C, strlen(C), 0, state);
-	state = sha1((uint8_t*)S, strlen(S), 0, state);
-	state = sha1((uint8_t*)m, strlen(m), 0, state);
-	state = sha1((uint8_t*)mu, strlen(mu), 0, state);
-	state = sha1((uint8_t*)sigma, strlen(sigma), 0, state);
-	state = sha1((uint8_t*)Hi, strlen(Hi), 0, state);
-	state = sha1((uint8_t*)mess, strlen(mess), 0, state);
-	state = sha1((uint8_t*)C, strlen(C), 0, state);
-	state = sha1((uint8_t*)S, strlen(S), 0, state);
-	state = sha1((uint8_t*)m, strlen(m), 0, state);
-	state = sha1((uint8_t*)mu, strlen(mu), 0, state);
-	state = sha1((uint8_t*)sigma, strlen(sigma), 0, state);
-	sha1((uint8_t*)Hi, strlen(Hi), digest, state);
+	state = sha1((u8*)mess, strlen(mess), 0, 0);
+	state = sha1((u8*)C, strlen(C), 0, state);
+	state = sha1((u8*)S, strlen(S), 0, state);
+	state = sha1((u8*)m, strlen(m), 0, state);
+	state = sha1((u8*)mu, strlen(mu), 0, state);
+	state = sha1((u8*)sigma, strlen(sigma), 0, state);
+	state = sha1((u8*)Hi, strlen(Hi), 0, state);
+	state = sha1((u8*)mess, strlen(mess), 0, state);
+	state = sha1((u8*)C, strlen(C), 0, state);
+	state = sha1((u8*)S, strlen(S), 0, state);
+	state = sha1((u8*)m, strlen(m), 0, state);
+	state = sha1((u8*)mu, strlen(mu), 0, state);
+	state = sha1((u8*)sigma, strlen(sigma), 0, state);
+	sha1((u8*)Hi, strlen(Hi), digest, state);
 }
 
 // On input, conn provides an open channel to the server;
@@ -491,7 +491,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 {
 	char *mess, *mess2, *eol, *S, *hexmu, *ks, *hexm, *hexsigma = nil, *hexHi;
 	char kc[2*SHA1dlen+1];
-	uint8_t digest[SHA1dlen];
+	u8 digest[SHA1dlen];
 	int rc = -1, n;
 	mpint *x, *m = mpnew(0), *mu = mpnew(0), *sigma = mpnew(0);
 	mpint *H = mpnew(0), *Hi = mpnew(0);
@@ -510,7 +510,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	mess = (char*)emalloc(2*Maxmsg+2);
 	mess2 = mess+Maxmsg+1;
 	snprint(mess, Maxmsg, "%s\tPAK\nC=%s\nm=%s\n", VERSION, C, hexm);
-	conn->write(conn, (uint8_t*)mess, strlen(mess));
+	conn->write(conn, (u8*)mess, strlen(mess));
 
 	// recv g**y, S, check hash1(g**xy)
 	if(readstr(conn, mess) < 0){
@@ -555,7 +555,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	shorthash("client", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(kc, sizeof kc, digest, SHA1dlen);
 	snprint(mess2, Maxmsg, "k'=%s\n", kc);
-	conn->write(conn, (uint8_t*)mess2, strlen(mess2));
+	conn->write(conn, (u8*)mess2, strlen(mess2));
 
 	// set session key
 	shorthash("session", C, S, hexm, hexmu, hexsigma, hexHi, digest);
@@ -621,16 +621,16 @@ secstorefetch(char *password)
 			goto Out;
 		}
 		strcpy(s+3, sta);
-		conn->write(conn, (uint8_t*)s, strlen(s));
+		conn->write(conn, (u8*)s, strlen(s));
 		readstr(conn, s);
 	}
 	if(strcmp(s, "OK") !=0){
 		werrstr("%s", s);
 		goto Out;
 	}
-	if(getfile(conn, (uint8_t*)pass, strlen(pass)) < 0)
+	if(getfile(conn, (u8*)pass, strlen(pass)) < 0)
 		goto Out;
-	conn->write(conn, (uint8_t*)"BYE", 3);
+	conn->write(conn, (u8*)"BYE", 3);
 	rv = 0;
 
 Out:

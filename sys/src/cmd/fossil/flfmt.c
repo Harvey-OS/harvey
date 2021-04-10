@@ -15,27 +15,27 @@
 #define blockWrite _blockWrite	/* hack */
 
 static void usage(void);
-static uint64_t fdsize(int fd);
+static u64 fdsize(int fd);
 static void partition(int fd, int bsize, Header *h);
-static uint64_t unittoull(char *s);
-static uint32_t blockAlloc(int type, uint32_t tag);
-static void blockRead(int part, uint32_t addr);
-static void blockWrite(int part, uint32_t addr);
-static void superInit(char *label, uint32_t root, uint8_t[VtScoreSize]);
+static u64 unittoull(char *s);
+static u32 blockAlloc(int type, u32 tag);
+static void blockRead(int part, u32 addr);
+static void blockWrite(int part, u32 addr);
+static void superInit(char *label, u32 root, u8[VtScoreSize]);
 static void rootMetaInit(Entry *e);
-static uint32_t rootInit(Entry *e);
+static u32 rootInit(Entry *e);
 static void topLevel(char *name);
-static int parseScore(uint8_t[VtScoreSize], char*);
-static uint32_t ventiRoot(char*, char*);
+static int parseScore(u8[VtScoreSize], char*);
+static u32 ventiRoot(char*, char*);
 static VtSession *z;
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64	((u64)~(u64)0)
 
 Disk *disk;
 Fs *fs;
-uint8_t *buf;
+u8 *buf;
 int bsize = 8*1024;
-uint64_t qid = 1;
+u64 qid = 1;
 int iso9660off;
 char *iso9660file;
 
@@ -59,12 +59,12 @@ main(int argc, char *argv[])
 {
 	int fd, force;
 	Header h;
-	uint32_t bn;
+	u32 bn;
 	Entry e;
 	char *label = "vfs";
 	char *host = nil;
 	char *score = nil;
-	uint32_t root;
+	u32 root;
 	Dir *d;
 
 	force = 0;
@@ -170,11 +170,11 @@ Out:
 	exits(0);
 }
 
-static uint64_t
+static u64
 fdsize(int fd)
 {
 	Dir *dir;
-	uint64_t size;
+	u64 size;
 
 	dir = dirfstat(fd);
 	if(dir == nil)
@@ -195,8 +195,8 @@ usage(void)
 static void
 partition(int fd, int bsize, Header *h)
 {
-	uint32_t nblock, ndata, nlabel;
-	uint32_t lpb;
+	u32 nblock, ndata, nlabel;
+	u32 lpb;
 
 	if(bsize % 512 != 0)
 		sysfatal("block size must be a multiple of 512 bytes");
@@ -216,17 +216,17 @@ partition(int fd, int bsize, Header *h)
 
 	h->super = (HeaderOffset + 2*bsize)/bsize;
 	h->label = h->super + 1;
-	ndata = ((uint64_t)lpb)*(nblock - h->label)/(lpb+1);
+	ndata = ((u64)lpb)*(nblock - h->label)/(lpb+1);
 	nlabel = (ndata + lpb - 1)/lpb;
 	h->data = h->label + nlabel;
 	h->end = h->data + ndata;
 
 }
 
-static uint32_t
+static u32
 tagGen(void)
 {
-	uint32_t tag;
+	u32 tag;
 
 	for(;;){
 		tag = lrand();
@@ -254,8 +254,8 @@ entryInit(Entry *e)
 static void
 rootMetaInit(Entry *e)
 {
-	uint32_t addr;
-	uint32_t tag;
+	u32 addr;
+	u32 tag;
 	DirEntry de;
 	MetaBlock mb;
 	MetaEntry me;
@@ -300,11 +300,11 @@ rootMetaInit(Entry *e)
 	localToGlobal(addr, e->score);
 }
 
-static uint32_t
+static u32
 rootInit(Entry *e)
 {
-	uint32_t addr;
-	uint32_t tag;
+	u32 addr;
+	u32 tag;
 
 	tag = tagGen();
 
@@ -339,10 +339,10 @@ rootInit(Entry *e)
 }
 
 
-static uint32_t
-blockAlloc(int type, uint32_t tag)
+static u32
+blockAlloc(int type, u32 tag)
 {
-	static uint32_t addr;
+	static u32 addr;
 	Label l;
 	int lpb;
 
@@ -354,7 +354,7 @@ blockAlloc(int type, uint32_t tag)
 	if(l.state != BsFree)
 		vtFatal("want to allocate block already in use");
 	l.epoch = 1;
-	l.epochClose = ~(uint32_t)0;
+	l.epochClose = ~(u32)0;
 	l.type = type;
 	l.state = BsAlloc;
 	l.tag = tag;
@@ -364,7 +364,7 @@ blockAlloc(int type, uint32_t tag)
 }
 
 static void
-superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
+superInit(char *label, u32 root, u8 score[VtScoreSize])
 {
 	Super s;
 
@@ -375,8 +375,8 @@ superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
 	s.epochHigh = 1;
 	s.qid = qid;
 	s.active = root;
-	s.next = (int64_t)NilBlock;
-	s.current = (int64_t)NilBlock;
+	s.next = (i64)NilBlock;
+	s.current = (i64)NilBlock;
 	strecpy(s.name, s.name+sizeof(s.name), label);
 	memmove(s.last, score, VtScoreSize);
 
@@ -384,11 +384,11 @@ superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
 	blockWrite(PartSuper, 0);
 }
 
-static uint64_t
+static u64
 unittoull(char *s)
 {
 	char *es;
-	uint64_t n;
+	u64 n;
 
 	if(s == nil)
 		return TWID64;
@@ -409,14 +409,14 @@ unittoull(char *s)
 }
 
 static void
-blockRead(int part, uint32_t addr)
+blockRead(int part, u32 addr)
 {
 	if(!diskReadRaw(disk, part, addr, buf))
 		vtFatal("read failed: %r");
 }
 
 static void
-blockWrite(int part, uint32_t addr)
+blockWrite(int part, u32 addr)
 {
 	if(!diskWriteRaw(disk, part, addr, buf))
 		vtFatal("write failed: %r");
@@ -458,7 +458,7 @@ topLevel(char *name)
 }
 
 static int
-ventiRead(uint8_t score[VtScoreSize], int type)
+ventiRead(u8 score[VtScoreSize], int type)
 {
 	int n;
 
@@ -469,12 +469,12 @@ ventiRead(uint8_t score[VtScoreSize], int type)
 	return n;
 }
 
-static uint32_t
+static u32
 ventiRoot(char *host, char *s)
 {
 	int i, n;
-	uint8_t score[VtScoreSize];
-	uint32_t addr, tag;
+	u8 score[VtScoreSize];
+	u32 addr, tag;
 	DirEntry de;
 	MetaBlock mb;
 	MetaEntry me;
@@ -553,7 +553,7 @@ ventiRoot(char *host, char *s)
 }
 
 static int
-parseScore(uint8_t *score, char *buf)
+parseScore(u8 *score, char *buf)
 {
 	int i, c;
 

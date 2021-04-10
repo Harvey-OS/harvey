@@ -111,7 +111,7 @@ void
 readbuf(int fd)
 {
 	int lastwascolon = 0;
-	int32_t c;
+	i32 c;
 	int linesiz = 0;
 
 	Binit(&bin, fd, OREAD);

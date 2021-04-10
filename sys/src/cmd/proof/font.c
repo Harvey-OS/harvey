@@ -39,7 +39,7 @@ int	curmap	= -1;	/* what map are we working on */
 typedef struct Link Link;
 struct Link	/* link names together */
 {
-	uint8_t	*name;
+	u8	*name;
 	int	val;
 	Link	*next;
 };
@@ -255,7 +255,7 @@ buildxheight(Biobuf *fp)	/* map goes from char name to value to print via *strin
 static void
 buildmap(Biobuf *fp)	/* map goes from char name to value to print via *string() */
 {
-	uint8_t *p, *line, ch[100];
+	u8 *p, *line, ch[100];
 	int val;
 	Rune r;
 
@@ -292,7 +292,7 @@ addmap(int n, char *s, int val)	/* stick a new link on */
 
 	if(p == 0)
 		exits("out of memory in addmap");
-	p->name = (uint8_t *) s;
+	p->name = (u8 *) s;
 	p->val = val;
 	p->next = prev;
 	charmap[n].slow = p;
@@ -383,9 +383,9 @@ map(Rune rp[], int font)	/* figure out mapping for char in this font */
 static void
 scanstr(char *s, char *ans, char **ep)
 {
-	for (; isspace((uint8_t) *s); s++)
+	for (; isspace((u8) *s); s++)
 		;
-	for (; *s!=0 && !isspace((uint8_t) *s); )
+	for (; *s!=0 && !isspace((u8) *s); )
 		*ans++ = *s++;
 	*ans = 0;
 	if (ep)

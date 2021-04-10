@@ -137,7 +137,7 @@ con_remove(int fid)
 }
 
 int
-con_create(int fid, char *name, int uid, int gid, int32_t perm,
+con_create(int fid, char *name, int uid, int gid, i32 perm,
 	   int mode)
 {
 	Fcall in, ou;

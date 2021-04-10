@@ -20,7 +20,7 @@ enum {
 	Cancel=	0x18,
 };
 
-int send(uint8_t*, int);
+int send(u8*, int);
 int notifyf(void*, char*);
 
 int debug, progress, onek;
@@ -28,7 +28,7 @@ int debug, progress, onek;
 void
 errorout(int ctl, int bytes)
 {
-	uint8_t buf[2];
+	u8 buf[2];
 
 	buf[0] = Cancel;
 	write(1, buf, 1);
@@ -37,8 +37,8 @@ errorout(int ctl, int bytes)
 	exits("cancel");
 }
 
-uint16_t
-updcrc(int c, uint16_t crc)
+u16
+updcrc(int c, u16 crc)
 {
 	int count;
 
@@ -63,7 +63,7 @@ main(int argc, char **argv)
 	unsigned char buf[1024+5];
 	unsigned char seqno;
 	int fd, ctl;
-	int32_t n;
+	i32 n;
 	int sum;
 	unsigned char *p;
 	int bytes;
@@ -170,11 +170,11 @@ main(int argc, char **argv)
  *  send a message till it's acked or we give up
  */
 int
-send(uint8_t *buf, int len)
+send(u8 *buf, int len)
 {
 	int tries;
 	int n;
-	uint8_t c;
+	u8 c;
 
 	for(tries = 0;; tries++, sleep(2*1000)){
 		if(tries == 10)

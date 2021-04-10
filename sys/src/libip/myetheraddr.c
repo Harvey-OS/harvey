@@ -12,7 +12,7 @@
 #include <ip.h>
 
 int
-myetheraddr(uint8_t *to, char *dev)
+myetheraddr(u8 *to, char *dev)
 {
 	int n, fd;
 	char buf[256];

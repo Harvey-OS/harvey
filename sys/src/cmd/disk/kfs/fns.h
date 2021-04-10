@@ -9,16 +9,16 @@
 
 #include "portfns.h"
 
-int32_t	beint32(char *);
+i32	beint32(char *);
 Chan*	chaninit(char*);
-void	check(Filsys *, int32_t);
+void	check(Filsys *, i32);
 int 	cmd_exec(char*);
 void	consserve(void);
 void	confinit(void);
 int	fsinit(int, int);
-void	*ialloc(uint32_t);
+void	*ialloc(u32);
 int	nextelem(void);
-int32_t	number(int, int);
+i32	number(int, int);
 Device	scsidev(char*);
 int	skipbl(int);
 void	startproc(void (*)(void), char *);
@@ -29,11 +29,11 @@ int	fprint(int, char*, ...);
 void	wreninit(Device);
 int	wrencheck(Device);
 void	wrenream(Device);
-int32_t	wrensize(Device);
-int32_t	wrensuper(Device);
-int32_t	wrenroot(Device);
-int	wrenread(Device, int32_t, void *);
-int	wrenwrite(Device, int32_t, void *);
+i32	wrensize(Device);
+i32	wrensuper(Device);
+i32	wrenroot(Device);
+int	wrenread(Device, i32, void *);
+int	wrenwrite(Device, i32, void *);
 
 /*
  * macros for compat with bootes

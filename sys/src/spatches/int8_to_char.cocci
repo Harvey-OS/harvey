@@ -1,5 +1,5 @@
 @@
-typedef int8_t;
+typedef i8;
 @@
--int8_t
+-i8
 +char

@@ -27,7 +27,7 @@ struct ZClump
 {
 	ZBlock *lump;
 	Clump cl;
-	uint64_t aa;
+	u64 aa;
 };
 
 void
@@ -67,11 +67,11 @@ vtsendthread(void *v)
 }
 
 static void
-rdarena(Arena *arena, uint64_t offset)
+rdarena(Arena *arena, u64 offset)
 {
 	int i;
-	uint64_t a, aa, e;
-	uint8_t score[VtScoreSize];
+	u64 a, aa, e;
+	u8 score[VtScoreSize];
 	Clump cl;
 	ClumpInfo ci;
 	ZBlock *lump;
@@ -82,7 +82,7 @@ rdarena(Arena *arena, uint64_t offset)
 
 	a = arena->base;
 	e = arena->base + arena->size;
-	if(offset != ~(uint64_t)0) {
+	if(offset != ~(u64)0) {
 		if(offset >= e - a)
 			sysfatal("bad offset %#llx >= %#llx", offset, e - a);
 		aa = offset;
@@ -140,7 +140,7 @@ threadmain(int argc, char *argv[])
 	int i;
 	char *file;
 	Arena *arena;
-	uint64_t offset, aoffset;
+	u64 offset, aoffset;
 	Part *part;
 	unsigned char buf[8192];
 	ArenaHead head;
@@ -172,7 +172,7 @@ threadmain(int argc, char *argv[])
 		break;
 	}ARGEND
 
-	offset = ~(uint64_t)0;
+	offset = ~(u64)0;
 	switch(argc) {
 	default:
 		usage();

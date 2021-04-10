@@ -83,7 +83,7 @@ cifshdr(Session *s, Share *sp, int cmd)
 	p = emalloc9p(sizeof(Pkt) + MTU);
 	memset(p, 0, sizeof(Pkt) +MTU);
 
-	p->buf = (uint8_t *)p + sizeof(Pkt);
+	p->buf = (u8 *)p + sizeof(Pkt);
 	p->s = s;
 
 	qlock(&s->seqlock);
@@ -134,7 +134,7 @@ cifsrpc(Pkt *p)
 {
 	int flags2, got, err;
 	uint tid, uid, seq;
-	uint8_t *pos;
+	u8 *pos;
 	char m[nelem(magic)];
 
 	pos = p->pos;
@@ -222,7 +222,7 @@ print("MAC signature bad\n");
  * more modern ones, so we don't give them the choice.
  */
 int
-CIFSnegotiate(Session *s, int32_t *svrtime, char *domain, int domlen,
+CIFSnegotiate(Session *s, i32 *svrtime, char *domain, int domlen,
 	      char *cname,
 	int cnamlen)
 {
@@ -273,7 +273,7 @@ CIFSnegotiate(Session *s, int32_t *svrtime, char *domain, int domlen,
 	gl32(p);				/* Session key */
 	s->caps = gl32(p);			/* Server capabilities */
 	*svrtime = gvtime(p);			/* fileserver time */
-	s->tz = (int16_t)gl16(p) * 60; /* TZ in mins, is signed (SNIA doc is wrong) */
+	s->tz = (i16)gl16(p) * 60; /* TZ in mins, is signed (SNIA doc is wrong) */
 	s->challen = g8(p);			/* Encryption key length */
 	gl16(p);
 	gmem(p, s->chal, s->challen);		/* Get the challenge */
@@ -621,11 +621,11 @@ CIFS_SMB_opencreate(Session *s, Share *sp, char *name, int access,
 	return fh;
 }
 
-int64_t
-CIFSwrite(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n)
+i64
+CIFSwrite(Session *s, Share *sp, int fh, u64 off, void *buf, i64 n)
 {
 	Pkt *p;
-	int64_t got;
+	i64 got;
 
 	/* FIXME: Payload should be padded to long boundary */
 	assert((n   & 0xffffffff00000000LL) == 0 || s->caps & CAP_LARGE_FILES);
@@ -666,12 +666,12 @@ CIFSwrite(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n)
 	return got;
 }
 
-int64_t
-CIFSread(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n,
-	int64_t minlen)
+i64
+CIFSread(Session *s, Share *sp, int fh, u64 off, void *buf, i64 n,
+	i64 minlen)
 {
 	int doff;
-	int64_t got;
+	i64 got;
 	Pkt *p;
 
 	assert((n   & 0xffffffff00000000LL) == 0 || s->caps & CAP_LARGE_FILES);

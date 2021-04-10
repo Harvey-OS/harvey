@@ -11,6 +11,6 @@
 struct	Cursor
 {
 	Point	offset;
-	uint8_t	clr[2*16];
-	uint8_t	set[2*16];
+	u8	clr[2*16];
+	u8	set[2*16];
 };

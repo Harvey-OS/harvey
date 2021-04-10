@@ -36,15 +36,15 @@ enum {
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uint16_t flags;
-	uint16_t proto;
-	uint8_t version;
-	uint16_t chksum;
-	uint16_t offset;
-	uint32_t key;
-	uint32_t seq;
-	uint32_t route;
-	uint32_t ack;
+	u16 flags;
+	u16 proto;
+	u8 version;
+	u16 chksum;
+	u16 offset;
+	u32 key;
+	u32 seq;
+	u32 route;
+	u32 ack;
 };
 
 enum
@@ -77,7 +77,7 @@ static Mux p_mux[] =
 };
 
 int
-parthdrlen(uint16_t flags)
+parthdrlen(u16 flags)
 {
 	return 4 +
 		(flags&GRE_chksum || flags&GRE_routing) ? 4 : 0 +
@@ -87,10 +87,10 @@ parthdrlen(uint16_t flags)
 }
 
 int
-parsehdr(Hdr *h, uint8_t *s, uint8_t *e)
+parsehdr(Hdr *h, u8 *s, u8 *e)
 {
-	uint8_t *p;
-	uint8_t n;
+	u8 *p;
+	u8 n;
 
 	if(e - s < 4)
 		return -1;

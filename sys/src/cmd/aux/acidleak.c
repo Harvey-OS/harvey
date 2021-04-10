@@ -12,7 +12,7 @@
 #include <bio.h>
 
 void*
-emalloc(uint32_t sz)
+emalloc(u32 sz)
 {
 	void *v;
 
@@ -24,7 +24,7 @@ emalloc(uint32_t sz)
 }
 
 void*
-erealloc(void *v, uint32_t sz)
+erealloc(void *v, u32 sz)
 {
 	v = realloc(v, sz);
 	if(v == nil)
@@ -46,10 +46,10 @@ estrdup(char* s)
 typedef struct Block Block;
 typedef struct Data Data;
 struct Block {
-	uint32_t addr;
-	uint32_t size;
-	uint32_t w0;
-	uint32_t w1;
+	u32 addr;
+	u32 size;
+	u32 w0;
+	u32 w1;
 	char *s0;
 	char *s1;
 	int mark;
@@ -58,9 +58,9 @@ struct Block {
 };
 
 struct Data {
-	uint32_t addr;
-	uint32_t val;
-	uint8_t type;
+	u32 addr;
+	u32 val;
+	u8 type;
 	Block *b;
 };
 
@@ -76,8 +76,8 @@ uint adata;
 int
 addrcmp(const void *va, const void *vb)
 {
-	const uint32_t *a = (const uint32_t*)va;
-	const uint32_t *b = (const uint32_t*)vb;
+	const u32 *a = (const u32*)va;
+	const u32 *b = (const u32*)vb;
 
 	if(*a < *b)
 		return -1;
@@ -87,7 +87,7 @@ addrcmp(const void *va, const void *vb)
 }
 
 Block*
-findblock(uint32_t addr)
+findblock(u32 addr)
 {
 	int lo, hi, m;
 
@@ -107,7 +107,7 @@ findblock(uint32_t addr)
 }
 
 Data*
-finddata(uint32_t addr)
+finddata(u32 addr)
 {
 	int lo, hi, m;
 
@@ -131,10 +131,10 @@ finddata(uint32_t addr)
 int nmark;
 
 int
-markblock(uint32_t from, uint32_t fromval, Block *b)
+markblock(u32 from, u32 fromval, Block *b)
 {
 	Data *d;
-	uint32_t top;
+	u32 top;
 	Block *nb;
 
 USED(from); USED(fromval);
@@ -184,7 +184,7 @@ main(int argc, char **argv)
 	Biobuf bio;
 	char *p, *f[10];
 	int bitmap, c, nf, resolution, n8, n16, hdr, nhdr, nlhdr, nleak, x, y, nb;
-	uint32_t allocstart, allocend, len, u;
+	u32 allocstart, allocend, len, u;
 	Data *d, *ed;
 	Block *b, *eb;
 

@@ -98,7 +98,7 @@ f_attach(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	File *f;
 	int u;
 	Filsys *fs;
-	int32_t raddr;
+	i32 raddr;
 
 	if(CHAT(cp)) {
 		print("c_attach %d\n", cp->chan);
@@ -225,7 +225,7 @@ f_walk(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	File *f;
 	Wpath *w, *ow;
 	int slot;
-	int32_t addr;
+	i32 addr;
 
 	if(CHAT(cp)) {
 		print("c_walk %d\n", cp->chan);
@@ -335,7 +335,7 @@ f_clunk(Chan *cp, Oldfcall *in, Oldfcall *ou)
 {
 	File *f;
 	Tlock *t;
-	int32_t tim;
+	i32 tim;
 
 	if(CHAT(cp)) {
 		print("c_clunk %d\n", cp->chan);
@@ -561,7 +561,7 @@ f_create(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	Dentry *d, *d1;
 	File *f;
 	int slot, slot1, fmod;
-	int32_t addr, addr1, path;
+	i32 addr, addr1, path;
 	Qid qid;
 	Tlock *t;
 	Wpath *w;
@@ -763,7 +763,7 @@ f_read(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	File *f;
 	Dentry *d, *d1;
 	Tlock *t;
-	int32_t addr, offset, tim;
+	i32 addr, offset, tim;
 	int nread, count, n, o, slot;
 
 	if(CHAT(cp)) {
@@ -896,7 +896,7 @@ f_write(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	Dentry *d;
 	File *f;
 	Tlock *t;
-	int32_t offset, addr, tim;
+	i32 offset, addr, tim;
 	int count, nwrite, o, n;
 
 	if(CHAT(cp)) {
@@ -993,7 +993,7 @@ doremove(File *f, int iscon)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
-	int32_t addr;
+	i32 addr;
 	int slot, err;
 
 	p = 0;
@@ -1142,7 +1142,7 @@ f_wstat(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	Dentry *d, *d1, xd;
 	File *f;
 	int slot;
-	int32_t addr;
+	i32 addr;
 
 	if(CHAT(cp)) {
 		print("c_wstat %d\n", cp->chan);
@@ -1347,7 +1347,7 @@ void
 };
 
 static void
-send(Chan *c, uint8_t *buf, int n)
+send(Chan *c, u8 *buf, int n)
 {
 	int fd, m;
 
@@ -1359,7 +1359,7 @@ send(Chan *c, uint8_t *buf, int n)
 }
 
 void
-error9p1(Chan *c, uint8_t *buf)
+error9p1(Chan *c, u8 *buf)
 {
 	buf[0] = Rnop9p1;
 	buf[1] = ~0;
@@ -1369,10 +1369,10 @@ error9p1(Chan *c, uint8_t *buf)
 }
 
 void
-serve9p1(Chan *chan, uint8_t *ib, int nib)
+serve9p1(Chan *chan, u8 *ib, int nib)
 {
 	int n, t;
-	uint8_t inbuf[MAXMSG+MAXDAT], outbuf[MAXMSG+MAXDAT];
+	u8 inbuf[MAXMSG+MAXDAT], outbuf[MAXMSG+MAXDAT];
 	Oldfcall fi, fo;
 
 	for(;;){

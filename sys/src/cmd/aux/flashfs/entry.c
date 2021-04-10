@@ -21,9 +21,9 @@ static	Intmap*	map;
 static	char	user[]	= "flash";
 
 	Entry	*root;
-	uint32_t	used;
-	uint32_t	limit;
-	uint32_t	maxwrite;
+	u32	used;
+	u32	limit;
+	u32	maxwrite;
 
 enum
 {
@@ -160,7 +160,7 @@ edump(void)
 }
 
 Entry *
-elookup(uint32_t key)
+elookup(u32 key)
 {
 	if(key == 0)
 		return root;
@@ -169,7 +169,7 @@ elookup(uint32_t key)
 }
 
 Extent *
-esum(Entry *e, int sect, uint32_t addr, int *more)
+esum(Entry *e, int sect, u32 addr, int *more)
 {
 	Exts *x;
 	Extent *t, *u;
@@ -208,7 +208,7 @@ edestroy(Entry *e)
 }
 
 Entry *
-ecreate(Entry *d, char *name, uint32_t n, uint32_t mode, uint32_t mtime,
+ecreate(Entry *d, char *name, u32 n, u32 mode, u32 mtime,
 	char **err)
 {
 	int h;
@@ -262,7 +262,7 @@ ecreate(Entry *d, char *name, uint32_t n, uint32_t mode, uint32_t mtime,
 }
 
 void
-etrunc(Entry *e, uint32_t n, uint32_t mtime)
+etrunc(Entry *e, u32 n, u32 mtime)
 {
 	extfree(e);
 	deletekey(map, e->fnum);
@@ -353,10 +353,10 @@ ewalk(Entry *d, char *name, char **err)
 }
 
 static void
-eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
+eread0(Extent *e, Extent *x, u8 *a, u32 n, u32 off)
 {
-	uint8_t *a0, *a1;
-	uint32_t n0, n1, o0, o1, d, z;
+	u8 *a0, *a1;
+	u32 n0, n1, o0, o1, d, z;
 
 	for(;;) {
 		while(e != nil) {
@@ -420,8 +420,8 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 	memset(a, 0, n);
 }
 
-uint32_t
-eread(Entry *e, int parity, void *a, uint32_t n, uint32_t off)
+u32
+eread(Entry *e, int parity, void *a, u32 n, u32 off)
 {
 	if(n + off >= e->size)
 		n = e->size - off;
@@ -432,9 +432,9 @@ eread(Entry *e, int parity, void *a, uint32_t n, uint32_t off)
 }
 
 void
-ewrite(Entry *e, Extent *x, int parity, uint32_t mtime)
+ewrite(Entry *e, Extent *x, int parity, u32 mtime)
 {
-	uint32_t z;
+	u32 z;
 	Extent *t;
 
 	t = e->gen[parity].head;
@@ -453,8 +453,8 @@ ewrite(Entry *e, Extent *x, int parity, uint32_t mtime)
 		e->size = z;
 }
 
-uint32_t
-echmod(Entry *e, uint32_t mode, uint32_t mnum)
+u32
+echmod(Entry *e, u32 mode, u32 mnum)
 {
 	if(mnum != 0)
 		e->mnum = mnum;
@@ -521,7 +521,7 @@ ediropen(Entry *e)
 }
 
 int
-edirread(Dirr *r, char *a, int32_t n)
+edirread(Dirr *r, char *a, i32 n)
 {
 	Dir d;
 	Entry *e;
@@ -530,7 +530,7 @@ edirread(Dirr *r, char *a, int32_t n)
 	m = 0;
 	for(e = r->cur; e != nil; e = e->fnext) {
 		estat(e, &d, 0);
-		x = convD2M(&d, (uint8_t *)a, n);
+		x = convD2M(&d, (u8 *)a, n);
 		if(x <= BIT16SZ)
 			break;
 		a += x;

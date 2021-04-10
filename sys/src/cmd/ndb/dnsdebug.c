@@ -26,13 +26,13 @@ static RR *serveraddrs;
 
 char	*dbfile;
 int	debug;
-uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+u8	ipaddr[IPaddrlen];	/* my ip address */
 char	*logfile = "dnsdebug";
 int	maxage  = 60*60;
 char	mntpt[Maxpath];
 int	needrefresh;
-uint32_t	now;
-int64_t	nowns;
+u32	now;
+i64	nowns;
 int	testing;
 char	*trace;
 int	traceactivity;
@@ -109,7 +109,7 @@ main(int argc, char *argv[])
 }
 
 static char*
-longtime(int32_t t)
+longtime(i32 t)
 {
 	int d, h, m, n;
 	static char x[128];
@@ -238,7 +238,7 @@ logsection(char *flag, RR *rp)
 }
 
 void
-logreply(int id, uint8_t *addr, DNSmsg *mp)
+logreply(int id, u8 *addr, DNSmsg *mp)
 {
 	RR *rp;
 	char buf[12], resp[32];
@@ -282,7 +282,7 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
+logsend(int id, int subid, u8 *addr, char *sname, char *rname,
 	int type)
 {
 	char buf[12];

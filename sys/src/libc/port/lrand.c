@@ -24,15 +24,15 @@
 #define	R	3399
 #define	NORM	(1.0/(1.0+MASK))
 
-static	uint32_t	rng_vec[LEN];
-static	uint32_t*	rng_tap = rng_vec;
-static	uint32_t*	rng_feed = 0;
+static	u32	rng_vec[LEN];
+static	u32*	rng_tap = rng_vec;
+static	u32*	rng_feed = 0;
 static	Lock	lk;
 
 static void
-isrand(int32_t seed)
+isrand(i32 seed)
 {
-	int32_t lo, hi, x;
+	i32 lo, hi, x;
 	int i;
 
 	rng_tap = rng_vec;
@@ -58,17 +58,17 @@ isrand(int32_t seed)
 }
 
 void
-srand(int32_t seed)
+srand(i32 seed)
 {
 	lock(&lk);
 	isrand(seed);
 	unlock(&lk);
 }
 
-int32_t
+i32
 lrand(void)
 {
-	uint32_t x;
+	u32 x;
 
 	lock(&lk);
 

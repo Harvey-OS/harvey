@@ -31,12 +31,12 @@ struct Graph
 {
 	int		colindex;
 	Rectangle	r;
-	int32_t		*data;
+	i32		*data;
 	int		ndata;
 	char		*label;
-	void		(*newvalue)(Machine*, int32_t*, int32_t*,
-					int32_t*);
-	void		(*update)(Graph*, int32_t, int32_t, int32_t);
+	void		(*newvalue)(Machine*, i32*, i32*,
+					i32*);
+	void		(*update)(Graph*, i32, i32, i32);
 	Machine		*mach;
 	int		overflow;
 	Image		*overtmp;
@@ -56,7 +56,7 @@ enum
 struct Req
 {
 	int	seq;	/* sequence number */
-	int64_t	time;	/* time sent */
+	i64	time;	/* time sent */
 //	int	rtt;
 	Req	*next;
 };
@@ -77,7 +77,7 @@ struct Machine
 	uintptr	lostavg;
 	int	unreachable;
 
-	uint16_t	seq;
+	u16	seq;
 	Req	*first;
 	Req	*last;
 	Req	*rcvd;
@@ -112,13 +112,13 @@ char	*menu2str[Nmenu2+1] = {
 };
 
 
-void	rttval(Machine*, int32_t*, int32_t*, int32_t*);
-void	lostval(Machine*, int32_t*, int32_t*, int32_t*);
+void	rttval(Machine*, i32*, i32*, i32*);
+void	lostval(Machine*, i32*, i32*, i32*);
 
 Menu	menu2 = {menu2str, nil};
 int		present[Nmenu2];
-void		(*newvaluefn[Nmenu2])(Machine*, int32_t*, int32_t*,
-					  int32_t*) = {
+void		(*newvaluefn[Nmenu2])(Machine*, i32*, i32*,
+					  i32*) = {
 	rttval,
 	lostval,
 };
@@ -132,14 +132,14 @@ int		npid;
 int 		parity;	/* toggled to avoid patterns in textured background */
 int		nmach;
 int		ngraph;	/* totaly number is ngraph*nmach */
-int32_t		starttime;
+i32		starttime;
 int		pinginterval;
 
 void	dropgraph(int);
 void	addgraph(int);
 void	startproc(void (*)(void*), void*);
 void	resize(void);
-int32_t	rttscale(int32_t);
+i32	rttscale(i32);
 int	which2index(int);
 int	index2which(int);
 
@@ -156,7 +156,7 @@ killall(char *s)
 }
 
 void*
-emalloc(uint32_t sz)
+emalloc(u32 sz)
 {
 	void *v;
 	v = malloc(sz);
@@ -169,7 +169,7 @@ emalloc(uint32_t sz)
 }
 
 void*
-erealloc(void *v, uint32_t sz)
+erealloc(void *v, u32 sz)
 {
 	v = realloc(v, sz);
 	if(v == nil) {
@@ -266,7 +266,7 @@ label(Point p, int dy, char *text)
 }
 
 void
-hashmark(Point p, int dy, int32_t v, int32_t vmax, char *label)
+hashmark(Point p, int dy, i32 v, i32 vmax, char *label)
 {
 	int y;
 	int x;
@@ -304,7 +304,7 @@ paritypt(int x)
 }
 
 Point
-datapoint(Graph *g, int x, int32_t v, int32_t vmax)
+datapoint(Graph *g, int x, i32 v, i32 vmax)
 {
 	Point p;
 
@@ -318,7 +318,7 @@ datapoint(Graph *g, int x, int32_t v, int32_t vmax)
 }
 
 void
-drawdatum(Graph *g, int x, int32_t prev, int32_t v, int32_t vmax)
+drawdatum(Graph *g, int x, i32 prev, i32 v, i32 vmax)
 {
 	int c;
 	Point p, q;
@@ -386,7 +386,7 @@ void
 clearcursor(Graph *g)
 {
 	int x;
-	int32_t prev;
+	i32 prev;
 
 	if(g->overtmp == nil)
 		return;
@@ -411,7 +411,7 @@ drawcursor(Graph *g, int x)
 }
 
 void
-update1(Graph *g, int32_t v, int32_t vmax, int32_t mark)
+update1(Graph *g, i32 v, i32 vmax, i32 mark)
 {
 	char buf[Gmsglen];
 
@@ -456,7 +456,7 @@ pinglost(Machine *m, Req *r)
 void
 pingreply(Machine *m, Req *r)
 {
-	uint32_t x;
+	u32 x;
 
 	x = r->time/1000LL;
 	m->rttsum += x;
@@ -466,10 +466,10 @@ pingreply(Machine *m, Req *r)
 
 
 void
-pingclean(Machine *m, uint16_t seq, int64_t now, int i)
+pingclean(Machine *m, u16 seq, i64 now, int i)
 {
 	Req **l, *r;
-	int64_t x, y;
+	i64 x, y;
 
 	y = 10LL*1000000000LL;
 	for(l = &m->first; *l; ){
@@ -533,9 +533,9 @@ void
 pingrcv(void *arg)
 {
 	int i, n, fd;
-	uint8_t buf[512];
-	uint16_t x;
-	int64_t now;
+	u8 buf[512];
+	u16 x;
+	i64 now;
 	Icmphdr *ip;
 	Ip4hdr *ip4;
 	Machine *m = arg;
@@ -585,8 +585,8 @@ initmach(Machine *m, char *name)
 	startproc(pingrcv, m);
 }
 
-int32_t
-rttscale(int32_t x)
+i32
+rttscale(i32 x)
 {
 	if(x == 0)
 		return 0;
@@ -597,7 +597,7 @@ rttscale(int32_t x)
 }
 
 double
-rttunscale(int32_t x)
+rttunscale(i32 x)
 {
 	double dx;
 
@@ -607,9 +607,9 @@ rttunscale(int32_t x)
 }
 
 void
-rttval(Machine *m, int32_t *v, int32_t *vmax, int32_t *mark)
+rttval(Machine *m, i32 *v, i32 *vmax, i32 *mark)
 {
-	uint32_t x;
+	u32 x;
 
 	if(m->rttmsgs == 0){
 		x = m->lastrtt;
@@ -625,9 +625,9 @@ rttval(Machine *m, int32_t *v, int32_t *vmax, int32_t *mark)
 }
 
 void
-lostval(Machine *m, int32_t *v, int32_t *vmax, int32_t *mark)
+lostval(Machine *m, i32 *v, i32 *vmax, i32 *mark)
 {
-	uint32_t x;
+	u32 x;
 
 	if(m->rcvdmsgs+m->lostmsgs > 0)
 		x = (m->lostavg>>1) + (((m->lostmsgs*100)/(m->lostmsgs + m->rcvdmsgs))>>1);
@@ -777,7 +777,7 @@ resize(void)
 	int i, j, n, startx, starty, x, y, dx, dy, hashdx, ondata;
 	Graph *g;
 	Rectangle machr, r;
-	int32_t v, vmax, mark;
+	i32 v, vmax, mark;
 	char buf[128];
 
 	draw(screen, screen->r, display->white, nil, ZP);
@@ -842,10 +842,10 @@ resize(void)
 			/* allocate data */
 			ondata = g->ndata;
 			g->ndata = Dx(machr)+1;	/* may be too many if label will be drawn here; so what? */
-			g->data = erealloc(g->data, g->ndata*sizeof(int32_t));
+			g->data = erealloc(g->data, g->ndata*sizeof(i32));
 			if(g->ndata > ondata)
 				memset(g->data+ondata, 0,
-				       (g->ndata-ondata)*sizeof(int32_t));
+				       (g->ndata-ondata)*sizeof(i32));
 			/* set geometry */
 			g->r = machr;
 			g->r.min.y = y;
@@ -996,7 +996,7 @@ void
 main(int argc, char *argv[])
 {
 	int i, j;
-	int32_t v, vmax, mark;
+	i32 v, vmax, mark;
 	char flags[10], *f, *p;
 
 	fmtinstall('V', eipfmt);

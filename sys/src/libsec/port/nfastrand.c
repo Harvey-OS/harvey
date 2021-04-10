@@ -14,10 +14,10 @@
 
 #define Maxrand	((1UL<<31)-1)
 
-uint32_t
-nfastrand(uint32_t n)
+u32
+nfastrand(u32 n)
 {
-	uint32_t m, r;
+	u32 m, r;
 
 	/*
 	 * set m to the maximum multiple of n <= 2^31-1

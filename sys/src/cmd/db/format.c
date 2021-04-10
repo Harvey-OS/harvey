@@ -17,7 +17,7 @@
 #include "fns.h"
 
 void
-scanform(int32_t icount, int prt, char *ifp, Map *map, int literal)
+scanform(i32 icount, int prt, char *ifp, Map *map, int literal)
 {
 	char	*fp;
 	char	c;
@@ -61,14 +61,14 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 	 * sets `dotinc' and moves `dot'
 	 * returns address of next format item
 	 */
-	uint64_t	v;
-	uint32_t	w;
+	u64	v;
+	u32	w;
 	ADDR	savdot;
 	char	*fp;
 	char	c, modifier;
 	int	i;
-	uint16_t sh, *sp;
-	uint8_t ch, *cp;
+	u16 sh, *sp;
+	u8 ch, *cp;
 	Symbol s;
 	char buf[512];
 	extern int printcol;
@@ -130,7 +130,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 		case 'o':
 		case 'q':
 			if (literal)
-				sh = (uint16_t) dot;
+				sh = (u16) dot;
 			else if (get2(map, dot, &sh) < 0)
 				error("%r");
 			w = sh;
@@ -153,7 +153,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 		case 'O':
 		case 'Q':
 			if (literal)
-				w = (int32_t) dot;
+				w = (i32) dot;
 			else if (get4(map, dot, &w) < 0)
 				error("%r");
 			dotinc = 4;
@@ -188,13 +188,13 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 		case 'c':
 		case 'C':
 			if (literal)
-				ch = (uint8_t) dot;
+				ch = (u8) dot;
 			else if (get1(map, dot, &ch, 1)  < 0)
 				error("%r");
 			if (modifier == 'C')
 				printesc(ch);
 			else if (modifier == 'B' || modifier == 'b')
-				dprint("%-8#lux", (int32_t) ch);
+				dprint("%-8#lux", (i32) ch);
 			else
 				printc(ch);
 			dotinc = 1;
@@ -202,7 +202,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 
 		case 'r':
 			if (literal)
-				sh = (uint16_t) dot;
+				sh = (u16) dot;
 			else if (get2(map, dot, &sh) < 0)
 				error("%r");
 			dprint("%C", sh);
@@ -211,7 +211,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 
 		case 'R':
 			if (literal) {
-				sp = (uint16_t*) &dot;
+				sp = (u16*) &dot;
 				dprint("%C%C", sp[0], sp[1]);
 				endline();
 				dotinc = 4;
@@ -231,7 +231,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 
 		case 's':
 			if (literal) {
-				cp = (uint8_t*) &dot;
+				cp = (u8*) &dot;
 				for (i = 0; i < 4; i++)
 					buf[i] = cp[i];
 				buf[i] = 0;
@@ -244,7 +244,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 			for(;;){
 				i = 0;
 				do{
-					if (get1(map, dot, (uint8_t*)&buf[i], 1) < 0)
+					if (get1(map, dot, (u8*)&buf[i], 1) < 0)
 						error("%r");
 					dot = inkdot(1);
 					i++;
@@ -261,7 +261,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 
 		case 'S':
 			if (literal) {
-				cp = (uint8_t*) &dot;
+				cp = (u8*) &dot;
 				for (i = 0; i < 4; i++)
 					printesc(cp[i]);
 				endline();
@@ -308,7 +308,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 			if (literal) {
 				v = machdata->swav(dot);
 				memmove(buf, &v, mach->szfloat);
-			}else if (get1(map, dot, (uint8_t*)buf, mach->szfloat) < 0)
+			}else if (get1(map, dot, (u8*)buf, mach->szfloat) < 0)
 				error("%r");
 			machdata->sftos(buf, sizeof(buf), (void*) buf);
 			dprint("%s\n", buf);
@@ -320,7 +320,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal,
 			if (literal) {
 				v = machdata->swav(dot);
 				memmove(buf, &v, mach->szdouble);
-			}else if (get1(map, dot, (uint8_t*)buf, mach->szdouble) < 0)
+			}else if (get1(map, dot, (u8*)buf, mach->szdouble) < 0)
 				error("%r");
 			machdata->dftos(buf, sizeof(buf), (void*) buf);
 			dprint("%s\n", buf);

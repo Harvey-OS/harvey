@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <authsrv.h>
 
-static int32_t	finddosfile(int, char*);
+static i32	finddosfile(int, char*);
 
 static int nvramdebug;
 
 static int
-check(void *x, int len, uint8_t sum, char *msg)
+check(void *x, int len, u8 sum, char *msg)
 {
 	if(nvcsum(x, len) == sum)
 		return 0;
@@ -358,26 +358,26 @@ Out:
 
 typedef struct Dosboot	Dosboot;
 struct Dosboot{
-	uint8_t	magic[3];	/* really an xx86 JMP instruction */
-	uint8_t	version[8];
-	uint8_t	sectsize[2];
-	uint8_t	clustsize;
-	uint8_t	nresrv[2];
-	uint8_t	nfats;
-	uint8_t	rootsize[2];
-	uint8_t	volsize[2];
-	uint8_t	mediadesc;
-	uint8_t	fatsize[2];
-	uint8_t	trksize[2];
-	uint8_t	nheads[2];
-	uint8_t	nhidden[4];
-	uint8_t	bigvolsize[4];
-	uint8_t	driveno;
-	uint8_t	reserved0;
-	uint8_t	bootsig;
-	uint8_t	volid[4];
-	uint8_t	label[11];
-	uint8_t	type[8];
+	u8	magic[3];	/* really an xx86 JMP instruction */
+	u8	version[8];
+	u8	sectsize[2];
+	u8	clustsize;
+	u8	nresrv[2];
+	u8	nfats;
+	u8	rootsize[2];
+	u8	volsize[2];
+	u8	mediadesc;
+	u8	fatsize[2];
+	u8	trksize[2];
+	u8	nheads[2];
+	u8	nhidden[4];
+	u8	bigvolsize[4];
+	u8	driveno;
+	u8	reserved0;
+	u8	bootsig;
+	u8	volid[4];
+	u8	label[11];
+	u8	type[8];
 };
 #define	GETSHORT(p) (((p)[1]<<8) | (p)[0])
 #define	GETLONG(p) ((GETSHORT((p)+2) << 16) | GETSHORT((p)))
@@ -387,12 +387,12 @@ struct Dosdir
 {
 	char	name[8];
 	char	ext[3];
-	uint8_t	attr;
-	uint8_t	reserved[10];
-	uint8_t	time[2];
-	uint8_t	date[2];
-	uint8_t	start[2];
-	uint8_t	length[4];
+	u8	attr;
+	u8	reserved[10];
+	u8	time[2];
+	u8	date[2];
+	u8	start[2];
+	u8	length[4];
 };
 
 static char*
@@ -431,10 +431,10 @@ dosparse(char *from, char *to, int len)
  *  and I'ld prefer not to waste the space on something that
  *  runs only at boottime -- presotto.
  */
-static int32_t
+static i32
 finddosfile(int fd, char *file)
 {
-	uint8_t secbuf[512];
+	u8 secbuf[512];
 	char name[8];
 	char ext[3];
 	Dosboot	*b;

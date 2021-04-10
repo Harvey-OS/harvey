@@ -236,11 +236,11 @@ chanhangup(Chan *cp, char *msg, int dolock)
  * returns length of next 9p message (including the length) and
  * leaves it in the first few bytes of abuf.
  */
-static int32_t
+static i32
 size9pmsg(int fd, void *abuf, uint n)
 {
 	int m;
-	uint8_t *buf = abuf;
+	u8 *buf = abuf;
 
 	if (n < BIT32SZ)
 		return -1;	/* caller screwed up */
@@ -259,7 +259,7 @@ static int
 readalloc9pmsg(int fd, Msgbuf **mbp)
 {
 	int m, len;
-	uint8_t lenbuf[BIT32SZ];
+	u8 lenbuf[BIT32SZ];
 	Msgbuf *mb;
 
 	*mbp = nil;

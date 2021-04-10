@@ -46,10 +46,10 @@ Image		*sea;
 Image		*white;
 Image		*yellow;
 
-static uint32_t
-rgba(uint32_t rgba)
+static u32
+rgba(u32 rgba)
 {
-	uint8_t r, g, b, a;
+	u8 r, g, b, a;
 
 	a = rgba & 0xff;
 	b = (rgba >>= 8) & 0xff;

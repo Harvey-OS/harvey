@@ -22,8 +22,8 @@
  */
 
 typedef struct {
-	uint8_t	id;			/* Id */
-	uint32_t	vclk;			/* Maximum dot clock */
+	u8	id;			/* Id */
+	u32	vclk;			/* Maximum dot clock */
 } Gd542x;
 
 static Gd542x family[] = {
@@ -49,7 +49,7 @@ static Gd542x*
 identify(Vga* vga, Ctlr* ctlr)
 {
 	Gd542x *gd542x;
-	uint8_t id;
+	u8 id;
 
 	id = vga->crt[0x27] & ~0x03;
 	for(gd542x = &family[0]; gd542x->id; gd542x++){
@@ -172,7 +172,7 @@ void
 clgd54xxclock(Vga* vga, Ctlr* ctlr)
 {
 	int f;
-	uint32_t d, dmin, fmin, n, nmin, p;
+	u32 d, dmin, fmin, n, nmin, p;
 
 	trace("%s->init->clgd54xxclock\n", ctlr->name);
 
@@ -223,7 +223,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	Gd542x *gd542x;
-	uint16_t x;
+	u16 x;
 
 	mode = vga->mode;
 	gd542x = identify(vga, ctlr);

@@ -12,9 +12,9 @@
 #include <bio.h>
 #include <mach.h>
 
-void	record(uint8_t*, int32_t);
+void	record(u8*, i32);
 void	usage(void);
-void	segment(int64_t, int64_t);
+void	segment(i64, i64);
 
 enum
 {
@@ -26,8 +26,8 @@ int	supressend;
 int	binary;
 int	halfswap;
 int	srec = 2;
-uint64_t	addr;
-uint64_t 	psize = 4096;
+u64	addr;
+u64 	psize = 4096;
 Biobuf 	stdout;
 Fhdr	exech;
 Biobuf *bio;
@@ -36,7 +36,7 @@ void
 main(int argc, char **argv)
 {
 	Dir *dir;
-	uint64_t totsz;
+	u64 totsz;
 
 	ARGBEGIN{
 	case 'd':
@@ -129,11 +129,11 @@ main(int argc, char **argv)
 }
 
 void
-segment(int64_t foff, int64_t len)
+segment(i64 foff, i64 len)
 {
 	int i;
-	int32_t l, n;
-	uint8_t t, buf[2*Recordsize];
+	i32 l, n;
+	u8 t, buf[2*Recordsize];
 
 	Bseek(bio, foff, 0);
 	for(;;) {
@@ -164,10 +164,10 @@ segment(int64_t foff, int64_t len)
 }
 
 void
-record(uint8_t *s, int32_t l)
+record(u8 *s, i32 l)
 {
 	int i;
-	uint32_t cksum = 0;
+	u32 cksum = 0;
 
 	switch(srec) {
 	case 1:

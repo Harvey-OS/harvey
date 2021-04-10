@@ -138,7 +138,7 @@ char *
 gdb_hex_reg_helper(GdbState *ks, int regnum, char *out) {
 	if (regnum >= GDB_MAX_REG) {
 		syslog(0, "gdbserver", "unknown reg: %d", regnum);
-		memset(out, 0, sizeof(uint32_t));
+		memset(out, 0, sizeof(u32));
 		return nil;
 	}
 
@@ -163,7 +163,7 @@ gdb_hex_reg_helper(GdbState *ks, int regnum, char *out) {
 	return mem2hex((void *)regaddr, out, reg->size);
 }
 
-uint64_t
+u64
 arch_get_reg(GdbState *ks, int regnum) {
 	if (regnum >= GDB_MAX_REG) {
 		return 0;
@@ -181,18 +181,18 @@ arch_get_reg(GdbState *ks, int regnum) {
 	}
 
 	if (reg->size == 4) {
-		return *(uint32_t*)regaddr;
+		return *(u32*)regaddr;
 	} else if (reg->size == 8) {
-		return *(uint64_t*)regaddr;
+		return *(u64*)regaddr;
 	}
 
 	return 0;
 }
 
-uint64_t
+u64
 arch_get_pc(GdbState *ks)
 {
-	uint64_t pc = arch_get_reg(ks, GDB_PC);
+	u64 pc = arch_get_reg(ks, GDB_PC);
 	syslog(0, "gdbserver", "get_pc: %p", pc);
 	return pc;
 }

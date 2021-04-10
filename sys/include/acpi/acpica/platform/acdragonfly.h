@@ -163,8 +163,8 @@
 #endif
 
 #define ACPI_UINTPTR_T                  uintptr_t
-#define COMPILER_DEPENDENT_INT64        int64_t
-#define COMPILER_DEPENDENT_UINT64       uint64_t
+#define COMPILER_DEPENDENT_INT64        i64
+#define COMPILER_DEPENDENT_UINT64       u64
 
 #define ACPI_USE_DO_WHILE_0
 #define ACPI_USE_SYSTEM_CLIBRARY
