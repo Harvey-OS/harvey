@@ -154,10 +154,10 @@ func main() {
 			fpoff := 0
 			for k := range syscalls[i].Args {
 				switch syscalls[i].Args[k] {
-				case "int32_t", "uint32_t":
+				case "i32", "u32":
 					goargs = append(goargs, fmt.Sprintf("MOVL	arg%d+%d(FP), %s", k, fpoff, syscallargs[k]))
 					fpoff += 4
-				case "void*", "char*", "char**", "uint8_t*", "int32_t*", "uint64_t*", "int64_t*", "int64_t":
+				case "void*", "char*", "char**", "u8*", "i32*", "u64*", "i64*", "i64":
 					fpoff = (fpoff + 7) & ^7
 					goargs = append(goargs, fmt.Sprintf("MOVQ	arg%d+%d(FP), %s", k, fpoff, syscallargs[k]))
 					fpoff += 8
@@ -167,10 +167,10 @@ func main() {
 			}
 			syscalls[i].GoArgs = goargs
 			switch syscalls[i].Ret[0] {
-			case "int32_t", "uint32_t":
+			case "i32", "u32":
 				syscalls[i].Ret0 = fmt.Sprintf("MOVL	AX, ret+%d(FP)", fpoff)
 				fpoff += 4
-			case "void*", "char*", "char**", "uint8_t*", "int32_t*", "uint64_t*", "int64_t*", "int64_t":
+			case "void*", "char*", "char**", "u8*", "i32*", "u64*", "i64*", "i64":
 				fpoff = (fpoff + 7) & ^7
 				syscalls[i].Ret0 = fmt.Sprintf("MOVQ	AX, ret+%d(FP)", fpoff)
 				fpoff += 8
@@ -297,9 +297,9 @@ const(
 		for i := range syscalls {
 			var fudge string
 			switch syscalls[i].Ret[0] {
-			case "int32_t":
+			case "i32":
 				fudge = "{ .i = -1 }"
-			case "int64_t":
+			case "i64":
 				fudge = "{ .vl = -1ll }"
 			case "void*", "char*":
 				fudge = "{ .v = (void*)-1ll }"
