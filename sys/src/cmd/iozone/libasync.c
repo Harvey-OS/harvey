@@ -335,8 +335,8 @@ long long depth;
 	long long a_size;
 	struct cache_ent *ce,*first_ce=0;
 	long long i;
-	ssize_t retval=0;
-	ssize_t ret;
+	isize retval=0;
+	isize ret;
 	long long start = 0;
 	long long del_read=0;
 
@@ -797,7 +797,7 @@ del_cache(gc)
 struct cache *gc;
 {
 	struct cache_ent *ce;
-	ssize_t ret;
+	isize ret;
 	ce=gc->head;
 	while(1)
 	{
@@ -852,8 +852,8 @@ long long depth;
 	long long a_size;
 	struct cache_ent *ce,*first_ce=0;
 	long long i;
-	ssize_t retval=0;
-	ssize_t ret;
+	isize retval=0;
+	isize ret;
 	long long del_read=0;
 	long long start=0;
 
@@ -1269,7 +1269,7 @@ again:
 			exit(177);
 		}
 	}
-	return((ssize_t)size);
+	return((isize)size);
 }
 
 /*************************************************************************
@@ -1590,7 +1590,7 @@ again:
 	}
 	else
 	{
-		return((ssize_t)size);
+		return((isize)size);
 	}
 }
 

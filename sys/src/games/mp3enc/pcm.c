@@ -361,13 +361,13 @@ static inline sample_t  read_opposite_float80 ( OUT u8* const src )
  *     length:      The number of elements to process. Number must be positive.
  */
 
-typedef void (*demux_t) ( IN sample_t* dst, OUT u8* src, OUT ssize_t step, OUT size_t len );
+typedef void (*demux_t) ( IN sample_t* dst, OUT u8* src, OUT isize step, OUT size_t len );
 
 #define FUNCTION(name,expr)       \
 static void  name (               \
         IN  sample_t*  dst,       \
 	OUT u8*   src,       \
-	OUT ssize_t    step,      \
+	OUT isize    step,      \
 	OUT size_t     len )      \
 {                                 \
     size_t  i = len;              \
@@ -441,7 +441,7 @@ FUNCTION ( copy_f64_be , *(const float64_t*)src )
  */
 
 typedef struct {
-    const ssize_t  size;
+    const isize  size;
     const demux_t  demultiplexer_be;
     const demux_t  demultiplexer_le;
 } demux_info_t;
@@ -521,7 +521,7 @@ const demux_info_t  demux_info [] = {
  *  lame_encode_pcm)
  */
 
-static inline int  select_demux ( OUT u32 mode, IN demux_t* retf, IN ssize_t* size )
+static inline int  select_demux ( OUT u32 mode, IN demux_t* retf, IN isize* size )
 {
     int                  big    = mode >> 24;
     const demux_info_t*  tabptr = demux_info + ((mode >> 16) & 0x3F);
@@ -731,7 +731,7 @@ int  lame_encode_pcm (
 {
     sample_t*           data [2];
     demux_t             retf;
-    ssize_t             size;
+    isize             size;
     const u8 *      p;
     const u8 * const*  q;
     int                 ret;

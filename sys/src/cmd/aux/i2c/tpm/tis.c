@@ -100,7 +100,7 @@ int tis_init(void)
 	return 0;
 }
 
-static ssize_t tpm_transmit(const u8 *buf, size_t bufsiz)
+static isize tpm_transmit(const u8 *buf, size_t bufsiz)
 {
 	int rc;
 	u32 count, ordinal;

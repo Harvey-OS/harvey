@@ -21,7 +21,6 @@ typedef u64 		usize;
 typedef	i64		isize;
 
 typedef unsigned int	uint;
-typedef long		ssize_t;
 typedef u64	uintptr;
 typedef u64	uintptr_t;
 typedef i64		intptr_t;

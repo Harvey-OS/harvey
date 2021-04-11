@@ -136,7 +136,7 @@ static
 enum mad_flow send_io(int fd, void const *data, size_t len)
 {
   char const *ptr = data;
-  ssize_t count;
+  isize count;
 
   while (len) {
     do
@@ -157,7 +157,7 @@ static
 enum mad_flow receive_io(int fd, void *buffer, size_t len)
 {
   char *ptr = buffer;
-  ssize_t count;
+  isize count;
 
   while (len) {
     do
