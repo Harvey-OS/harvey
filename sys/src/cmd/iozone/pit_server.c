@@ -493,7 +493,7 @@ static void pit( int    tSckt[ ],
                  size_t uScktSize )
 {
    char                     bfr[ 256 ];
-   ssize_t                  count;
+   isize                  count;
    struct pollfd           *desc;
    size_t                   descSize = tScktSize + uScktSize;
    int                      idx;
@@ -504,7 +504,7 @@ static void pit( int    tSckt[ ],
    int                      status;
    size_t                   timeLen;
    time_t                   timeVal;
-   ssize_t                  wBytes;
+   isize                  wBytes;
    unsigned long long	    secs;
    int 	    		    ret;
    /*
@@ -726,7 +726,7 @@ static void pit( int    tSckt[ ],
             */
             if ( verbose )
             {
-               ssize_t rBytes = count;
+               isize rBytes = count;
                fprintf( stderr,
                         "%s: UDP datagram received (%ld bytes).\n",
                         pgmName,

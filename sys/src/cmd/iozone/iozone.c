@@ -1020,8 +1020,8 @@ int sp_start_child_send();
 int sp_start_master_listen();
 #ifdef HAVE_ANSIC_C
 #if defined (HAVE_PREAD) && defined(_LARGEFILE64_SOURCE)
-ssize_t pwrite64();
-ssize_t pread64();
+isize pwrite64();
+isize pread64();
 #endif
 #if !defined(linux)
 char *getenv();

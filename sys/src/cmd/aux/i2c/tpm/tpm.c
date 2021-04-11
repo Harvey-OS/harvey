@@ -313,9 +313,9 @@ static void tpm_tis_i2c_ready(struct tpm_chip *chip)
 	iic_tpm_write_long(TPM_STS(chip->vendor.locality), &buf, 1);
 }
 
-static ssize_t get_burstcount(struct tpm_chip *chip)
+static isize get_burstcount(struct tpm_chip *chip)
 {
-	ssize_t burstcnt;
+	isize burstcnt;
 	u8 buf[3];
 
 	/* wait for burstcount */
@@ -354,7 +354,7 @@ static int recv_data(struct tpm_chip *chip, u8 *buf, size_t count)
 	size_t size = 0;
 
 	while (size < count) {
-		ssize_t burstcnt = get_burstcount(chip);
+		isize burstcnt = get_burstcount(chip);
 		int rc;
 
 		/* burstcount < 0 = TPM is busy */
@@ -439,7 +439,7 @@ static int tpm_tis_i2c_send(struct tpm_chip *chip, u8 *buf, size_t len)
 	}
 
 	while (count < len - 1) {
-		ssize_t burstcnt = get_burstcount(chip);
+		isize burstcnt = get_burstcount(chip);
 
 		/* burstcount < 0 = TPM is busy */
 		if (burstcnt < 0)
