@@ -30,7 +30,7 @@ void backtrace_frame(uintptr_t eip, uintptr_t ebp)
 	char *func_name;
 #define MAX_BT_DEPTH 20
 	uintptr_t pcs[MAX_BT_DEPTH];
-	size_t nr_pcs = backtrace_list(eip, ebp, pcs, MAX_BT_DEPTH);
+	usize nr_pcs = backtrace_list(eip, ebp, pcs, MAX_BT_DEPTH);
 
 	for (int i = 0; i < nr_pcs; i++){
 		func_name = get_fn_name(pcs[i]);

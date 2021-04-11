@@ -314,9 +314,9 @@ SHA256_Transform(SHA256Ctx *context, const u32 *data)
 }
 
 void
-SHA256_Update(SHA256Ctx *context, const u8 *data, size_t len)
+SHA256_Update(SHA256Ctx *context, const u8 *data, usize len)
 {
-	size_t		freespace,
+	usize		freespace,
 				usedspace;
 
 	/* Calling with no data is valid (we do nothing) */
@@ -528,9 +528,9 @@ SHA512_Transform(SHA512Ctx *context, const u64 *data)
 }
 
 void
-SHA512_Update(SHA512Ctx *context, const u8 *data, size_t len)
+SHA512_Update(SHA512Ctx *context, const u8 *data, usize len)
 {
-	size_t		freespace,
+	usize		freespace,
 				usedspace;
 
 	/* Calling with no data is valid (we do nothing) */
@@ -655,7 +655,7 @@ SHA384_Init(SHA384Ctx *context)
 }
 
 void
-SHA384_Update(SHA384Ctx *context, const u8 *data, size_t len)
+SHA384_Update(SHA384Ctx *context, const u8 *data, usize len)
 {
 	SHA512_Update((SHA512Ctx *) context, data, len);
 }
@@ -688,7 +688,7 @@ SHA224_Init(SHA224Ctx *context)
 }
 
 void
-SHA224_Update(SHA224Ctx *context, const u8 *data, size_t len)
+SHA224_Update(SHA224Ctx *context, const u8 *data, usize len)
 {
 	SHA256_Update((SHA256Ctx *) context, data, len);
 }

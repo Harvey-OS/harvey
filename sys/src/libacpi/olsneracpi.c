@@ -236,7 +236,7 @@ failed:
 	return_ACPI_STATUS(status);
 }
 
-static int readfile(char *path, char *buf, size_t buflen)
+static int readfile(char *path, char *buf, usize buflen)
 {
 	int fd = open(path, OREAD);
 	int amt;

@@ -343,7 +343,7 @@ set_4_byte_value(unsigned char *bytes, unsigned long value)
 
 static unsigned char *
 set_frame(unsigned char *frame, unsigned long id, const char *text,
-    size_t length)
+    usize length)
 {
     if (length) {
         frame = set_4_byte_value(frame, id);
@@ -380,13 +380,13 @@ id3tag_write_v2(lame_global_flags *gfp)
     if ((gfc->tag_spec.flags & CHANGED_FLAG)
             && !(gfc->tag_spec.flags & V1_ONLY_FLAG)) {
         /* calculate length of four fields which may not fit in verion 1 tag */
-        size_t title_length = gfc->tag_spec.title
+        usize title_length = gfc->tag_spec.title
             ? strlen(gfc->tag_spec.title) : 0;
-        size_t artist_length = gfc->tag_spec.artist
+        usize artist_length = gfc->tag_spec.artist
             ? strlen(gfc->tag_spec.artist) : 0;
-        size_t album_length = gfc->tag_spec.album
+        usize album_length = gfc->tag_spec.album
             ? strlen(gfc->tag_spec.album) : 0;
-        size_t comment_length = gfc->tag_spec.comment
+        usize comment_length = gfc->tag_spec.comment
             ? strlen(gfc->tag_spec.comment) : 0;
         /* write tag if explicitly requested or if fields overflow */
         if ((gfc->tag_spec.flags & (ADD_V2_FLAG | V2_ONLY_FLAG))
@@ -394,16 +394,16 @@ id3tag_write_v2(lame_global_flags *gfp)
                 || (artist_length > 30) || (album_length > 30)
                 || (comment_length > 30)
                 || (gfc->tag_spec.track && (comment_length > 28))) {
-            size_t tag_size;
+            usize tag_size;
             char year[5];
-            size_t year_length;
+            usize year_length;
             char track[3];
-            size_t track_length;
+            usize track_length;
             char genre[6];
-            size_t genre_length;
+            usize genre_length;
             unsigned char *tag;
             unsigned char *p;
-            size_t adjusted_tag_size;
+            usize adjusted_tag_size;
             unsigned int index;
             /* calulate size of tag starting with 10-byte tag header */
             tag_size = 10;
@@ -498,7 +498,7 @@ id3tag_write_v2(lame_global_flags *gfp)
 }
 
 static unsigned char *
-set_text_field(unsigned char *field, const char *text, size_t size,
+set_text_field(unsigned char *field, const char *text, usize size,
                int pad)
 {
     while (size--) {

@@ -284,7 +284,7 @@ FT_BEGIN_HEADER
   /*    FT_Offset                                                          */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    This is equivalent to the ANSI C `size_t' type, i.e. the largest   */
+  /*    This is equivalent to the ANSI C `usize' type, i.e. the largest   */
   /*    _unsigned_ integer type used to express a file size or position,   */
   /*    or a memory block size.                                            */
   /*                                                                       */

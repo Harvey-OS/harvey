@@ -69,11 +69,11 @@ int true = 1;
 static int  openSckt( const char *service,
                       const char *protocol,
                       int         desc[ ],
-                      size_t     *descSize );
+                      usize     *descSize );
 static void pit( int    tSckt[ ],
-                 size_t tScktSize,
+                 usize tScktSize,
                  int    uSckt[ ],
-                 size_t uScktSize );
+                 usize uScktSize );
 /*
 ** Global data objects.
 */
@@ -131,9 +131,9 @@ int main( int   argc,
 {
    int         opt;
    int         tSckt[ MAXTCPSCKTS ];     /* Array of TCP socket descriptors. */
-   size_t      tScktSize = MAXTCPSCKTS;  /* Size of uSckt (# of elements).   */
+   usize      tScktSize = MAXTCPSCKTS;  /* Size of uSckt (# of elements).   */
    int         uSckt[ MAXUDPSCKTS ];     /* Array of UDP socket descriptors. */
-   size_t      uScktSize = MAXUDPSCKTS;  /* Size of uSckt (# of elements).   */
+   usize      uScktSize = MAXUDPSCKTS;  /* Size of uSckt (# of elements).   */
 
    strcpy(service_name,DFLT_SERVICE);
    /*
@@ -232,14 +232,14 @@ int main( int   argc,
 static int openSckt( const char *service,
                      const char *protocol,
                      int         desc[ ],
-                     size_t     *descSize )
+                     usize     *descSize )
 {
    struct addrinfo *ai;
    int              aiErr;
    struct addrinfo *aiHead;
    struct addrinfo  hints    = { .ai_flags  = AI_PASSIVE,    /* Server mode.  */
                                  .ai_family = PF_UNSPEC };   /* IPv4 or IPv6. */
-   size_t           maxDescs = *descSize;
+   usize           maxDescs = *descSize;
    /*
    ** Initialize output parameters.  When the loop completes, *descSize is 0.
    */
@@ -488,21 +488,21 @@ static int openSckt( const char *service,
 * Return Value: None.
 ******************************************************************************/
 static void pit( int    tSckt[ ],
-                 size_t tScktSize,
+                 usize tScktSize,
                  int    uSckt[ ],
-                 size_t uScktSize )
+                 usize uScktSize )
 {
    char                     bfr[ 256 ];
    isize                  count;
    struct pollfd           *desc;
-   size_t                   descSize = tScktSize + uScktSize;
+   usize                   descSize = tScktSize + uScktSize;
    int                      idx;
    int                      newSckt;
    struct sockaddr         *sadr;
    socklen_t                sadrLen;
    struct sockaddr_storage  sockStor;
    int                      status;
-   size_t                   timeLen;
+   usize                   timeLen;
    time_t                   timeVal;
    isize                  wBytes;
    unsigned long long	    secs;

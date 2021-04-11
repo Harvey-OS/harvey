@@ -11,8 +11,8 @@ main(void)
 {
 	Hashmap map;
 	u64 *keys;
-	size_t stats[40];
-	size_t i, j, nkeys, maxkeys;
+	usize stats[40];
+	usize i, j, nkeys, maxkeys;
 
 	hmapinit(&map);
 
@@ -50,7 +50,7 @@ main(void)
 			}
 		}
 		if(verbose){
-			size_t sum = 0;
+			usize sum = 0;
 			hmapstats(&map, stats, nelem(stats));
 			for(i = 0; i < nelem(stats); i++){
 				if(stats[i] > 0){

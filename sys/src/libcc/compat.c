@@ -14,19 +14,19 @@
  * fake mallocs
  */
 void*
-malloc(ulong n)
+malloc(usize n)
 {
 	return alloc(n);
 }
 
 void*
-calloc(u32 m, size_t n)
+calloc(u32 m, usize n)
 {
 	return alloc(m*n);
 }
 
 void*
-realloc(void* v, ulong u)
+realloc(void* v, usize u)
 {
 	fprint(2, "realloc called\n");
 	abort();

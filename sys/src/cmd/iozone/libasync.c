@@ -132,7 +132,7 @@
 #include <strings.h> /* For the BSD string functions */
 #endif
 
-void mbcopy(char *source, char *dest, size_t len);
+void mbcopy(char *source, char *dest, usize len);
 
 
 #if !defined(solaris) && !defined(off64_t) && !defined(_OFF64_T) && !defined(__off64_t_defined) && !defined(SCO_Unixware_gcc)
@@ -172,7 +172,7 @@ struct cache_ent {
 						/* accidents */
 	int oldfd;				/* Used for firewall to prevent in flight */
 						/* accidents */
-	size_t oldsize;				/* Used for firewall to prevent in flight */
+	usize oldsize;				/* Used for firewall to prevent in flight */
 						/* accidents */
 };
 
@@ -203,7 +203,7 @@ void async_release();
 void putoninuse();
 void takeoffinuse();
 struct cache_ent *allocate_write_buffer();
-size_t async_write();
+usize async_write();
 void async_wait_for_write();
 void async_put_on_write_queue();
 void async_write_finish();
@@ -238,7 +238,7 @@ int flag;
 		printf("Warning calling async_init two times ?\n");
 		return;
 	}
-	*gc=(struct cache *)malloc((size_t)sizeof(struct cache));
+	*gc=(struct cache *)malloc((usize)sizeof(struct cache));
 	if(*gc == 0)
 	{
 		printf("Malloc failed\n");
@@ -387,12 +387,12 @@ long long depth;
 		{
 #ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
-			mbcopy((char *)ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
+			mbcopy((char *)ce->myaiocb.aio_buf,(char *)ubuffer,(usize)retval);
 #else
-			mbcopy((char *)ce->myaiocb64.aio_buf,(char *)ubuffer,(size_t)retval);
+			mbcopy((char *)ce->myaiocb64.aio_buf,(char *)ubuffer,(usize)retval);
 #endif
 #else
-			mbcopy((char *)ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
+			mbcopy((char *)ce->myaiocb.aio_buf,(char *)ubuffer,(usize)retval);
 #endif
 		}
 #ifdef _LARGEFILE64_SOURCE
@@ -570,12 +570,12 @@ out:
 		{
 #ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
-			mbcopy((char *)first_ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
+			mbcopy((char *)first_ce->myaiocb.aio_buf,(char *)ubuffer,(usize)retval);
 #else
-			mbcopy((char *)first_ce->myaiocb64.aio_buf,(char *)ubuffer,(size_t)retval);
+			mbcopy((char *)first_ce->myaiocb64.aio_buf,(char *)ubuffer,(usize)retval);
 #endif
 #else
-			mbcopy((char *)first_ce->myaiocb.aio_buf,(char *)ubuffer,(size_t)retval);
+			mbcopy((char *)first_ce->myaiocb.aio_buf,(char *)ubuffer,(usize)retval);
 #endif
 		}
 		first_ce->direct=0;
@@ -602,7 +602,7 @@ off64_t offset;
 {
 	struct cache_ent *ce;
 	long temp;
-	ce=(struct cache_ent *)malloc((size_t)sizeof(struct cache_ent));
+	ce=(struct cache_ent *)malloc((usize)sizeof(struct cache_ent));
 	if(ce == (struct cache_ent *)0)
 	{
 		printf("Malloc failed\n");
@@ -613,7 +613,7 @@ off64_t offset;
 #ifdef __LP64__
 	ce->myaiocb.aio_fildes=(int)fd;
 	ce->myaiocb.aio_offset=(off64_t)offset;
-	ce->real_address = (char *)malloc((size_t)(size+page_size));
+	ce->real_address = (char *)malloc((usize)(size+page_size));
 	temp=(long)ce->real_address;
 	temp = (temp+page_size) & ~(page_size-1);
 	ce->myaiocb.aio_buf=(volatile void *)temp;
@@ -621,7 +621,7 @@ off64_t offset;
 #else
 	ce->myaiocb64.aio_fildes=(int)fd;
 	ce->myaiocb64.aio_offset=(off64_t)offset;
-	ce->real_address = (char *)malloc((size_t)(size+page_size));
+	ce->real_address = (char *)malloc((usize)(size+page_size));
 	temp=(long)ce->real_address;
 	temp = (temp+page_size) & ~(page_size-1);
 	ce->myaiocb64.aio_buf=(volatile void *)temp;
@@ -630,7 +630,7 @@ off64_t offset;
 #else
 	ce->myaiocb.aio_fildes=(int)fd;
 	ce->myaiocb.aio_offset=(off_t)offset;
-	ce->real_address = (char *)malloc((size_t)(size+page_size));
+	ce->real_address = (char *)malloc((usize)(size+page_size));
 	temp=(long)ce->real_address;
 	temp = (temp+page_size) & ~(page_size-1);
 	ce->myaiocb.aio_buf=(volatile void *)temp;
@@ -640,22 +640,22 @@ off64_t offset;
 		printf("Malloc failed\n");
 		exit(176);
 	}
-	/*bzero(ce->myaiocb.aio_buf,(size_t)size);*/
+	/*bzero(ce->myaiocb.aio_buf,(usize)size);*/
 #ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ce->myaiocb.aio_reqprio=0;
-	ce->myaiocb.aio_nbytes=(size_t)size;
+	ce->myaiocb.aio_nbytes=(usize)size;
 	ce->myaiocb.aio_sigevent.sigev_notify=SIGEV_NONE;
 	ce->myaiocb.aio_lio_opcode=(int)op;
 #else
 	ce->myaiocb64.aio_reqprio=0;
-	ce->myaiocb64.aio_nbytes=(size_t)size;
+	ce->myaiocb64.aio_nbytes=(usize)size;
 	ce->myaiocb64.aio_sigevent.sigev_notify=SIGEV_NONE;
 	ce->myaiocb64.aio_lio_opcode=(int)op;
 #endif
 #else
 	ce->myaiocb.aio_reqprio=0;
-	ce->myaiocb.aio_nbytes=(size_t)size;
+	ce->myaiocb.aio_nbytes=(usize)size;
 	ce->myaiocb.aio_sigevent.sigev_notify=SIGEV_NONE;
 	ce->myaiocb.aio_lio_opcode=(int)op;
 #endif
@@ -692,7 +692,7 @@ off64_t offset;
 	while(move)
 	{
 		if((move->fd == fd) && (move->myaiocb.aio_offset==(off64_t)offset) &&
-			((size_t)size==move->myaiocb.aio_nbytes))
+			((usize)size==move->myaiocb.aio_nbytes))
 			{
 				return(move);
 			}
@@ -702,7 +702,7 @@ off64_t offset;
 	while(move)
 	{
 		if((move->fd == fd) && (move->myaiocb64.aio_offset==(off64_t)offset) &&
-			((size_t)size==move->myaiocb64.aio_nbytes))
+			((usize)size==move->myaiocb64.aio_nbytes))
 			{
 				return(move);
 			}
@@ -713,7 +713,7 @@ off64_t offset;
 	while(move)
 	{
 		if((move->fd == fd) && (move->myaiocb.aio_offset==(off_t)offset) &&
-			((size_t)size==move->myaiocb.aio_nbytes))
+			((usize)size==move->myaiocb.aio_nbytes))
 			{
 				return(move);
 			}
@@ -1205,7 +1205,7 @@ struct cache *gc;
  * depth  ..... How much read-ahead do you want.
  *
  *************************************************************************/
-size_t
+usize
 async_write(gc,fd,buffer,size,offset,depth)
 struct cache *gc;
 long long fd,size;
@@ -1214,17 +1214,17 @@ off64_t offset;
 long long depth;
 {
 	struct cache_ent *ce;
-	size_t ret;
+	usize ret;
 	ce=allocate_write_buffer(gc,fd,offset,size,(long long)LIO_WRITE,depth,0LL,(char *)0,(char *)0);
 	ce->direct=0;	 /* not direct. Lib supplies buffer and must free it */
 #ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
-	mbcopy(buffer,(char *)(ce->myaiocb.aio_buf),(size_t)size);
+	mbcopy(buffer,(char *)(ce->myaiocb.aio_buf),(usize)size);
 #else
-	mbcopy(buffer,(char *)(ce->myaiocb64.aio_buf),(size_t)size);
+	mbcopy(buffer,(char *)(ce->myaiocb64.aio_buf),(usize)size);
 #endif
 #else
-	mbcopy(buffer,(char *)(ce->myaiocb.aio_buf),(size_t)size);
+	mbcopy(buffer,(char *)(ce->myaiocb.aio_buf),(usize)size);
 #endif
 	async_put_on_write_queue(gc,ce);
 	/*
@@ -1296,7 +1296,7 @@ char *buffer,*free_addr;
 	}
 	if(gc->w_count > w_depth)
 		async_wait_for_write(gc);
-	ce=(struct cache_ent *)malloc((size_t)sizeof(struct cache_ent));
+	ce=(struct cache_ent *)malloc((usize)sizeof(struct cache_ent));
 	if(ce == (struct cache_ent *)0)
 	{
 		printf("Malloc failed 1\n");
@@ -1309,7 +1309,7 @@ char *buffer,*free_addr;
 	ce->myaiocb.aio_offset=(off64_t)offset;
 	if(!direct)
 	{
-		ce->real_address = (char *)malloc((size_t)(size+page_size));
+		ce->real_address = (char *)malloc((usize)(size+page_size));
 		temp=(long)ce->real_address;
 		temp = (temp+page_size) & ~(page_size-1);
 		ce->myaiocb.aio_buf=(volatile void *)temp;
@@ -1324,7 +1324,7 @@ char *buffer,*free_addr;
 	ce->myaiocb64.aio_offset=(off64_t)offset;
 	if(!direct)
 	{
-		ce->real_address = (char *)malloc((size_t)(size+page_size));
+		ce->real_address = (char *)malloc((usize)(size+page_size));
 		temp=(long)ce->real_address;
 		temp = (temp+page_size) & ~(page_size-1);
 		ce->myaiocb64.aio_buf=(volatile void *)temp;
@@ -1341,7 +1341,7 @@ char *buffer,*free_addr;
 	ce->myaiocb.aio_offset=(off_t)offset;
 	if(!direct)
 	{
-		ce->real_address = (char *)malloc((size_t)(size+page_size));
+		ce->real_address = (char *)malloc((usize)(size+page_size));
 		temp=(long)ce->real_address;
 		temp = (temp+page_size) & ~(page_size-1);
 		ce->myaiocb.aio_buf=(volatile void *)temp;
@@ -1360,18 +1360,18 @@ char *buffer,*free_addr;
 #ifdef _LARGEFILE64_SOURCE
 #ifdef __LP64__
 	ce->myaiocb.aio_reqprio=0;
-	ce->myaiocb.aio_nbytes=(size_t)size;
+	ce->myaiocb.aio_nbytes=(usize)size;
 	ce->myaiocb.aio_sigevent.sigev_notify=SIGEV_NONE;
 	ce->myaiocb.aio_lio_opcode=(int)op;
 #else
 	ce->myaiocb64.aio_reqprio=0;
-	ce->myaiocb64.aio_nbytes=(size_t)size;
+	ce->myaiocb64.aio_nbytes=(usize)size;
 	ce->myaiocb64.aio_sigevent.sigev_notify=SIGEV_NONE;
 	ce->myaiocb64.aio_lio_opcode=(int)op;
 #endif
 #else
 	ce->myaiocb.aio_reqprio=0;
-	ce->myaiocb.aio_nbytes=(size_t)size;
+	ce->myaiocb.aio_nbytes=(usize)size;
 	ce->myaiocb.aio_sigevent.sigev_notify=SIGEV_NONE;
 	ce->myaiocb.aio_lio_opcode=(int)op;
 #endif
@@ -1422,7 +1422,7 @@ async_wait_for_write(gc)
 struct cache *gc;
 {
 	struct cache_ent *ce;
-	size_t ret,retval;
+	usize ret,retval;
 	if(gc->w_head==0)
 		return;
 	ce=gc->w_head;
@@ -1517,7 +1517,7 @@ struct cache *gc;
  * free_addr .. address of memory to free after write is completed.
  *
  *************************************************************************/
-size_t
+usize
 async_write_no_copy(gc,fd,buffer,size,offset,depth,free_addr)
 struct cache *gc;
 long long fd,size;
@@ -1527,7 +1527,7 @@ long long depth;
 char *free_addr;
 {
 	struct cache_ent *ce;
-	size_t ret;
+	usize ret;
 	long long direct = 1;
 	ce=allocate_write_buffer(gc,fd,offset,size,(long long)LIO_WRITE,depth,direct,buffer,free_addr);
 	ce->direct=0;	/* have library de-allocate the buffer */
@@ -1596,7 +1596,7 @@ again:
 
 void mbcopy(source, dest, len)
 char *source,*dest;
-size_t len;
+usize len;
 {
 	int i;
 	for(i=0;i<len;i++)

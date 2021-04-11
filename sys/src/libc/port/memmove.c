@@ -49,12 +49,12 @@ void *
 memmove(
 	void *dst0,
 	const void *src0,
-	size_t length
+	usize length
 	)
 {
 	char *dst = dst0;
 	const char *src = src0;
-	size_t t;
+	usize t;
 
 	if (length == 0 || dst == src)		/* nothing to do */
 	    goto done;
@@ -69,13 +69,13 @@ memmove(
 		/*
 		 * Copy forward.
 		 */
-		t = ((size_t)src) & wmask;	/* only need low bits */
-		if ((t | (size_t)dst) & wmask) {
+		t = ((usize)src) & wmask;	/* only need low bits */
+		if ((t | (usize)dst) & wmask) {
 			/*
 			 * Try to align operands.  This cannot be done
 			 * unless the low bits match.
 			 */
-			if ((t ^ (size_t)dst) & wmask || length < wsize)
+			if ((t ^ (usize)dst) & wmask || length < wsize)
 			    t = length;
 			else
 			    t = wsize - (t & wmask);
@@ -97,9 +97,9 @@ memmove(
 		 */
 		src += length;
 		dst += length;
-		t = (size_t)src & wmask;
-		if ((t | (size_t)dst) & wmask) {
-			if ((t ^ (size_t)dst) & wmask || length <= wsize)
+		t = (usize)src & wmask;
+		if ((t | (usize)dst) & wmask) {
+			if ((t ^ (usize)dst) & wmask || length <= wsize)
 			    t = length;
 			else
 			    t &= wmask;
@@ -116,7 +116,7 @@ memmove(
 }
 
 void*
-memcpy(void *a1, const void *a2, size_t n)
+memcpy(void *a1, const void *a2, usize n)
 {
        return memmove(a1, a2, n);
 }

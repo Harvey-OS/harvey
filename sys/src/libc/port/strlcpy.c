@@ -9,10 +9,10 @@
 #include <u.h>
 #include <libc.h>
 
-size_t
-strlcpy(char *dst, const char *src, size_t size)
+usize
+strlcpy(char *dst, const char *src, usize size)
 {
-	size_t len, srclen;
+	usize len, srclen;
 
 	/*
 	 * Get the length of the source first, test for the

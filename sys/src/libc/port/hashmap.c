@@ -37,7 +37,7 @@ enum {
  *	https://gist.github.com/badboy/6267743
  *	https://github.com/google/cityhash/blob/master/src/city.h
  */
-size_t
+usize
 scramble64(u64 a)
 {
 	// this is from cityhash. ok avalance, quick.
@@ -45,16 +45,16 @@ scramble64(u64 a)
 	a *= kMul;
 	a ^= (a >> 47);
 	a *= kMul;
-	return (size_t)a;
+	return (usize)a;
 }
 
 static int
 hmapput1(Hashtable *cur, u64 key, u64 val)
 {
 	Hashentry *tab = cur->tab;
-	size_t cap = cur->cap;
-	size_t hash = scramble64(key)&(cap-1);
-	for(size_t i = 0; i < cap; i++, hash = (hash+1)&(cap-1)){
+	usize cap = cur->cap;
+	usize hash = scramble64(key)&(cap-1);
+	for(usize i = 0; i < cap; i++, hash = (hash+1)&(cap-1)){
 		Hashentry *he = tab + hash;
 		if(isfree(he)){
 			he->val = val;
@@ -72,10 +72,10 @@ static int
 hmapget1(Hashtable *cur, u64 key, Hashentry **hep)
 {
 	Hashentry *tab = cur->tab;
-	size_t cap = cur->cap;
+	usize cap = cur->cap;
 	key = makekey(key);
-	size_t hash = scramble64(key)&(cap-1);
-	for(size_t i = 0; i < cap; i++, hash = (hash+1)&(cap-1)){
+	usize hash = scramble64(key)&(cap-1);
+	for(usize i = 0; i < cap; i++, hash = (hash+1)&(cap-1)){
 		Hashentry *he = tab + hash;
 		if(he->key == key){
 			*hep = he;
@@ -100,8 +100,8 @@ hmapresize(Hashmap *map, int isgrow)
 	memset(next->tab, 0, next->cap * sizeof cur->tab[0]);
 	if(cur->tab !=nil){
 		Hashentry *tab = cur->tab;
-		size_t cap = cur->cap;
-		for(size_t i = 0; i < cap; i++){
+		usize cap = cur->cap;
+		for(usize i = 0; i < cap; i++){
 			Hashentry *he = tab + i;
 			if(!isfree(he)){
 				int err;
@@ -178,15 +178,15 @@ hmapput(Hashmap *map, u64 key, u64 val)
 }
 
 int
-hmapstats(Hashmap *map, size_t *chains, size_t nchains)
+hmapstats(Hashmap *map, usize *chains, usize nchains)
 {
 	Hashtable *cur = map->cur;
 
 	memset(chains, 0, nchains * sizeof chains[0]);
-	for(size_t i = 0; i < cur->cap; i++){
+	for(usize i = 0; i < cur->cap; i++){
 		Hashentry *he = cur->tab + i;
 		if(!isfree(he)){
-			size_t offset = i - (scramble64(he->key) & (cur->cap-1));
+			usize offset = i - (scramble64(he->key) & (cur->cap-1));
 			if(offset < nchains){
 				chains[offset]++;
 			} else {

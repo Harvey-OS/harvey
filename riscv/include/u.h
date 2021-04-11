@@ -24,8 +24,6 @@ typedef unsigned int	uint;
 typedef i64 intptr_t;
 typedef u64 uintptr;
 typedef u64 uintptr_t;
-typedef u32	usize;
-typedef i64 size_t;
 typedef	u32		Rune;
 typedef union FPdbleword FPdbleword;
 // This is a guess! Assumes float!

@@ -77,7 +77,7 @@ setecho(int on)
 char *
 readpass(char *pw, int n)
 {
-	size_t len;
+	usize len;
 	char buf[64];
 
 	if(fgets(buf, sizeof buf, stdin) == nil)

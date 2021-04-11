@@ -33,7 +33,7 @@ psliceclear(PSlice *slice)
 }
 
 void *
-psliceget(PSlice *slice, size_t i)
+psliceget(PSlice *slice, usize i)
 {
 	if (i >= slice->len)
 		return nil;
@@ -41,7 +41,7 @@ psliceget(PSlice *slice, size_t i)
 }
 
 int
-psliceput(PSlice *slice, size_t i, void *p)
+psliceput(PSlice *slice, usize i, void *p)
 {
 	if (i >= slice->len)
 		return 0;
@@ -50,7 +50,7 @@ psliceput(PSlice *slice, size_t i, void *p)
 }
 
 int
-pslicedel(PSlice *slice, size_t i)
+pslicedel(PSlice *slice, usize i)
 {
 	if (i >= slice->len)
 		return 0;
@@ -81,7 +81,7 @@ psliceappend(PSlice *s, void *p)
 	s->len++;
 }
 
-size_t
+usize
 pslicelen(PSlice *slice)
 {
 	return slice->len;

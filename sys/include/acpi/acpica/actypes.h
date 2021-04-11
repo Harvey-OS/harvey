@@ -215,7 +215,7 @@
  * 2) These types represent the native word size of the target mode of the
  * processor, and may be 16-bit, 32-bit, or 64-bit as required. They are
  * usually used for memory allocation, efficient loop counters, and array
- * indexes. The types are similar to the size_t type in the C library and
+ * indexes. The types are similar to the usize type in the C library and
  * are required because there is no C type that consistently represents the
  * native data width. ACPI_SIZE is needed because there is no guarantee
  * that a kernel-level C library is present.

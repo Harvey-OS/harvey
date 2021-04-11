@@ -61,9 +61,9 @@
 #define wmask   (wsize - 1)
 
 void *
-memset(void* dest, int c0, size_t length)
+memset(void* dest, int c0, usize length)
 {
-        size_t t;
+        usize t;
         u64 c = 0;
         unsigned char *dst;
 

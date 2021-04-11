@@ -61,13 +61,13 @@ typedef struct {
 } type34_t;
 
 typedef struct {
-    size_t                 len1;
+    usize                 len1;
     const type1_t*  const  tab1;
-    size_t                 len2;
+    usize                 len2;
     const type2_t*  const  tab2;
-    size_t                 len3;
+    usize                 len3;
     const type34_t* const  tab3;
-    size_t                 len4;
+    usize                 len4;
     const type34_t* const  tab4;
 } type5_t;
 

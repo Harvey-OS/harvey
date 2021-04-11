@@ -267,7 +267,7 @@ typedef struct  {
 #else
   sample_t     mfbuf [2] [MFSIZE];
 #endif
-  size_t       frame_size;    /* size of one frame in samples per channel */
+  usize       frame_size;    /* size of one frame in samples per channel */
   lame_global_flags* gfp;     /* needed as long as the frame encoding functions must access gfp (all needed information can be added to gfc) */
   coding_t     coding;        /* MPEG Layer 1/2/3, Ogg Vorbis, MPEG AAC, ... */
   unsigned long frame_count;  /* Number of frames coded, 2^32 > 3 years */

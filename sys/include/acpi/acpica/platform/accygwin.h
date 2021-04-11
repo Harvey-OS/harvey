@@ -201,9 +201,9 @@
  * to __STRICT_ANSI__. So, we just declare the prototype here.
  */
 int
-vsnprintf (char *s, size_t n, const char *format, va_list ap);
+vsnprintf (char *s, usize n, const char *format, va_list ap);
 
 int
-snprintf (char *s, size_t n, const char *format, ...);
+snprintf (char *s, usize n, const char *format, ...);
 
 #endif /* __ACCYGWIN_H__ */
