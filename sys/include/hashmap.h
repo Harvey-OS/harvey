@@ -10,8 +10,8 @@ struct Hashentry {
 
 struct Hashtable {
 	Hashentry *tab;
-	size_t len;
-	size_t cap; // always a power of 2.
+	usize len;
+	usize cap; // always a power of 2.
 };
 
 struct Hashmap {
@@ -25,4 +25,4 @@ int hmapfree(Hashmap *ht);
 int hmapdel(Hashmap *ht, u64 key, u64 *valp);
 int hmapget(Hashmap *ht, u64 key, u64 *valp);
 int hmapput(Hashmap *ht, u64 key, u64 val);
-int hmapstats(Hashmap *ht, size_t *lens, size_t nlens);
+int hmapstats(Hashmap *ht, usize *lens, usize nlens);

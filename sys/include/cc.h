@@ -21,6 +21,8 @@ typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 
+#define YYSIZE_T usize
+
 #ifndef	EXTERN
 #define EXTERN	extern
 #endif

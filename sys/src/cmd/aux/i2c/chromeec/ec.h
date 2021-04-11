@@ -88,14 +88,14 @@ struct chromeec_command {
  * buffer requested is for EC requests. Otherwise it's for responses. Return
  * non-NULL on success, NULL on error.
  */
-void *crosec_get_buffer(size_t size, int req);
+void *crosec_get_buffer(usize size, int req);
 
 /*
  * The lower level transport works on the buffers handed out to the
  * upper level. Therefore, only the size of the request and response
  * are required.
  */
-typedef int (*crosec_io_t)(size_t req_size, size_t resp_size, void *context);
+typedef int (*crosec_io_t)(usize req_size, usize resp_size, void *context);
 int crosec_command_proto(struct chromeec_command *cec_command,
 			 crosec_io_t crosec_io, void *context);
 

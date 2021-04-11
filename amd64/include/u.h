@@ -24,10 +24,12 @@ typedef unsigned int	uint;
 typedef u64	uintptr;
 typedef u64	uintptr_t;
 typedef i64		intptr_t;
-typedef unsigned long	size_t;
 typedef	u32	Rune;
 typedef union FPdbleword FPdbleword;
 typedef u64	jmp_buf[10]; // for registers.
+
+// YUCK but ...
+#define YYSIZE_T usize
 
 #define	alignas		_Alignas
 #define static_assert	_Static_assert

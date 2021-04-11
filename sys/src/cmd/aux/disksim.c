@@ -372,7 +372,7 @@ isnonzero(void *v, u32 n)
 }
 
 void
-move(int type, void *a, void *b, size_t len)
+move(int type, void *a, void *b, usize len)
 {
 	if (type == Tread)
 		memmove(a, b, len);

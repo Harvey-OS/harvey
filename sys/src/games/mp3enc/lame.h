@@ -693,7 +693,7 @@ int CDECL lame_encode_pcm (
         lame_t* const   lame,      /* lame context handle                     */
         octetstream_t*  os,        /* octet stream object                     */
         const void*     pcm,       /* pointer to PCM data                     */
-        size_t          len,       /* samples per channel in this data stream */
+        usize          len,       /* samples per channel in this data stream */
         u32        flags );   /* PCM data description field              */
 
 int CDECL lame_encode_pcm_flush (

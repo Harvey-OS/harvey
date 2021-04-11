@@ -205,7 +205,7 @@ enum {
 };
 
 void*
-malloc(size_t size)
+malloc(usize size)
 {
 	void *v;
 
@@ -257,7 +257,7 @@ free(void *v)
 }
 
 void*
-realloc(void *v, size_t size)
+realloc(void *v, usize size)
 {
 	void *nv;
 
@@ -286,7 +286,7 @@ msize(void *v)
 }
 
 void*
-calloc(u32 n, size_t szelem)
+calloc(u32 n, usize szelem)
 {
 	void *v;
 	if((v = mallocz(n*szelem, 1)))

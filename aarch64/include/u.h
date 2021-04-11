@@ -22,7 +22,7 @@ typedef unsigned long long u64;
 typedef u64 uintptr;
 typedef u64 uintptr_t;
 typedef u64 usize;
-typedef u64 size_t;
+typedef i64 isize;
 typedef u32 Rune;
 
 typedef union FPdbleword FPdbleword;

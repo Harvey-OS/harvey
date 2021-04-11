@@ -519,7 +519,7 @@ int  lame_encode_ogg_frame (
 	const sample_t*     inbuf_l,
 	const sample_t*     inbuf_r,
 	unsigned char*      mp3buf,
-	size_t              mp3buf_size )
+	usize              mp3buf_size )
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     int  i;

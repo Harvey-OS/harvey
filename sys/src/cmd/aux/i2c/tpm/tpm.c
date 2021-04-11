@@ -97,7 +97,7 @@ static struct tpm_inf_dev tpm_dev = {
  *
  * Return -1 on error, 0 on success.
  */
-static int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
+static int iic_tpm_read(u8 addr, u8 *buffer, usize len)
 {
 	int rc;
 	int count;
@@ -157,7 +157,7 @@ static int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
 	return 0;
 }
 
-static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
+static int iic_tpm_write_generic(u8 addr, u8 *buffer, usize len,
 				 unsigned int sleep_time,
 				 u8 max_count)
 {
@@ -208,7 +208,7 @@ static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
  *
  * Return -EIO on error, 0 on success
  */
-static int iic_tpm_write(u8 addr, u8 *buffer, size_t len)
+static int iic_tpm_write(u8 addr, u8 *buffer, usize len)
 {
 	return iic_tpm_write_generic(addr, buffer, len, SLEEP_DURATION,
 			MAX_COUNT);
@@ -218,7 +218,7 @@ static int iic_tpm_write(u8 addr, u8 *buffer, size_t len)
  * This function is needed especially for the cleanup situation after
  * sending TPM_READY
  * */
-static int iic_tpm_write_long(u8 addr, u8 *buffer, size_t len)
+static int iic_tpm_write_long(u8 addr, u8 *buffer, usize len)
 {
 	return iic_tpm_write_generic(addr, buffer, len, SLEEP_DURATION_LONG,
 			MAX_COUNT_LONG);
@@ -349,9 +349,9 @@ static int wait_for_stat(struct tpm_chip *chip, u8 mask, int *status)
 	return -1;
 }
 
-static int recv_data(struct tpm_chip *chip, u8 *buf, size_t count)
+static int recv_data(struct tpm_chip *chip, u8 *buf, usize count)
 {
-	size_t size = 0;
+	usize size = 0;
 
 	while (size < count) {
 		isize burstcnt = get_burstcount(chip);
@@ -375,7 +375,7 @@ static int recv_data(struct tpm_chip *chip, u8 *buf, size_t count)
 	return size;
 }
 
-static int tpm_tis_i2c_recv(struct tpm_chip *chip, u8 *buf, size_t count)
+static int tpm_tis_i2c_recv(struct tpm_chip *chip, u8 *buf, usize count)
 {
 	int size = 0;
 	u32 expected;
@@ -395,7 +395,7 @@ static int tpm_tis_i2c_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 
 	memcpy(&expected, buf + TPM_RSP_SIZE_BYTE, sizeof(expected));
 	expected = be32_to_cpu(expected);
-	if ((size_t)expected > count) {
+	if ((usize)expected > count) {
 		size = -1;
 		goto out;
 	}
@@ -422,10 +422,10 @@ out:
 	return size;
 }
 
-static int tpm_tis_i2c_send(struct tpm_chip *chip, u8 *buf, size_t len)
+static int tpm_tis_i2c_send(struct tpm_chip *chip, u8 *buf, usize len)
 {
 	int status;
-	size_t count = 0;
+	usize count = 0;
 	u8 sts = TPM_STS_GO;
 
 	if (len > TPM_BUFSIZE)

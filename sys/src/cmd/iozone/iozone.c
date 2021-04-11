@@ -1032,16 +1032,16 @@ void my_nap();
 void my_unap();
 int thread_exit();
 #ifdef ASYNC_IO
-size_t async_write();
+usize async_write();
 void async_release();
 int async_read();
 int async_read_no_copy();
-size_t async_write_no_copy();
+usize async_write_no_copy();
 void end_async();
 void async_init();
 #else
-size_t async_write();
-size_t async_write_no_copy();
+usize async_write();
+usize async_write_no_copy();
 void async_release();
 #endif
 void do_float();
@@ -1125,8 +1125,8 @@ int create_xls();
 void do_float();
 #ifdef ASYNC_IO
 void async_release();
-size_t async_write();
-size_t async_write_no_copy();
+usize async_write();
+usize async_write_no_copy();
 int async_read();
 int async_read_no_copy();
 #endif
@@ -1181,10 +1181,10 @@ void dump_hist();
 #define I_FOPEN(x,y) 	fopen64(x,y)
 #define I_STAT(x,y) 	stat64(x,y)
 #ifdef HAVE_PREAD
-#define I_PREAD(a,b,c,d)	pread64(a,b,(size_t)(c),(off64_t)(d))
-#define I_PWRITE(a,b,c,d)	pwrite64(a,b,(size_t)(c),(off64_t)(d))
+#define I_PREAD(a,b,c,d)	pread64(a,b,(usize)(c),(off64_t)(d))
+#define I_PWRITE(a,b,c,d)	pwrite64(a,b,(usize)(c),(off64_t)(d))
 #endif
-#define I_MMAP(a,b,c,d,e,f) 	mmap64((void *)(a),(size_t)(b),(int)(c),(int)(d),(int)(e),(off64_t)(f))
+#define I_MMAP(a,b,c,d,e,f) 	mmap64((void *)(a),(usize)(b),(int)(c),(int)(d),(int)(e),(off64_t)(f))
 #else
 #define I_LSEEK(x,y,z) 	lseek(x,(off_t)(y),z)
 #define I_OPEN(x,y,z) 	open(x,(int)(y),(int)(z))
@@ -1192,10 +1192,10 @@ void dump_hist();
 #define I_FOPEN(x,y) 	fopen(x,y)
 #define I_STAT(x,y) 	stat(x,y)
 #ifdef HAVE_PREAD
-#define I_PREAD(a,b,c,d)	pread(a,b,(size_t)(c),(off_t)(d))
-#define I_PWRITE(a,b,c,d)	pwrite(a,b,(size_t)(c),(off_t)(d))
+#define I_PREAD(a,b,c,d)	pread(a,b,(usize)(c),(off_t)(d))
+#define I_PWRITE(a,b,c,d)	pwrite(a,b,(usize)(c),(off_t)(d))
 #endif
-#define I_MMAP(a,b,c,d,e,f) 	mmap((void *)(a),(size_t)(b),(int)(c),(int)(d),(int)(e),(off_t)(f))
+#define I_MMAP(a,b,c,d,e,f) 	mmap((void *)(a),(usize)(b),(int)(c),(int)(d),(int)(e),(off_t)(f))
 #endif
 
 
@@ -1640,8 +1640,8 @@ char **argv;
 	strcpy(tfile,"iozone"); /* Dummy name prefix */
 	anwser=bind_cpu=0;
 	/* Used to make fread/fwrite do something better than their defaults */
-	setvbuf( stdout, NULL, _IONBF, (size_t) NULL );
-	setvbuf( stderr, NULL, _IONBF, (size_t) NULL );
+	setvbuf( stdout, NULL, _IONBF, (usize) NULL );
+	setvbuf( stderr, NULL, _IONBF, (usize) NULL );
 
 	/* Save the master's name */
 	gethostname(controlling_host_name,100);
@@ -3172,7 +3172,7 @@ char **argv;
 	}
 	else
 	{
-		bzero(buffer,(size_t)l_min(reclen,(long long)cache_size));
+		bzero(buffer,(usize)l_min(reclen,(long long)cache_size));
 	}
 
 #ifndef NO_THREADS
@@ -7621,7 +7621,7 @@ long long *data2;
 		}
 		if(mmap_mix)
 		{
-			wval=write(fd, pbuff, (size_t) page_size);
+			wval=write(fd, pbuff, (usize) page_size);
 			if(wval != page_size)
 			{
 #ifdef NO_PRINT_LLD
@@ -7715,7 +7715,7 @@ long long *data2;
 			}
 			if(async_flag && no_copy_flag)
 			{
-				free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+				free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 				nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 				if(verify || dedup || dedup_interior)
 					fill_buffer(nbuff,reclen,(long long)pattern,sverify,i);
@@ -7735,9 +7735,9 @@ long long *data2;
 				if(!mmapnsflag)
 				{
 				  if(mmapasflag)
-				    msync(wmaddr,(size_t)reclen,MS_ASYNC);
+				    msync(wmaddr,(usize)reclen,MS_ASYNC);
 				  if(mmapssflag)
-				    msync(wmaddr,(size_t)reclen,MS_SYNC);
+				    msync(wmaddr,(usize)reclen,MS_SYNC);
 				}
 			}
 			else
@@ -7760,7 +7760,7 @@ long long *data2;
 			    else
 			    {
 #endif
-			    wval=write(fd, pbuff, (size_t ) reclen);
+			    wval=write(fd, pbuff, (usize ) reclen);
 			    if(wval != reclen)
 			    {
 #ifdef NO_PRINT_LLD
@@ -7840,7 +7840,7 @@ long long *data2;
 		if(include_flush)
 		{
 			if(mmapflag){
-				msync(maddr,(size_t)filebytes64,MS_SYNC);
+				msync(maddr,(usize)filebytes64,MS_SYNC);
 			}
 			else
 			{
@@ -7886,7 +7886,7 @@ long long *data2;
 		if(!include_close)
 		{
 			if(mmapflag)
-				msync(maddr,(size_t)filebytes64,MS_SYNC);/* Clean up before read starts */
+				msync(maddr,(usize)filebytes64,MS_SYNC);/* Clean up before read starts */
 			else
 			{
 				wval=fsync(fd);
@@ -8005,7 +8005,7 @@ long long *data2;
 		return;
 	numrecs64 = (kilo64*1024)/reclen;
 	filebytes64 = numrecs64*reclen;
-	stdio_buf=(char *)malloc((size_t)reclen);
+	stdio_buf=(char *)malloc((usize)reclen);
 	if(noretest)
 		ltest=1;
 	else
@@ -8077,7 +8077,7 @@ long long *data2;
 				fill_buffer(buffer,reclen,(long long)pattern,sverify,i);
 			if(purge)
 				purgeit(buffer,reclen);
-			if(fwrite(buffer, (size_t) reclen, 1, stream) != 1)
+			if(fwrite(buffer, (usize) reclen, 1, stream) != 1)
 			{
 #ifdef NO_PRINT_LLD
 			    	printf("\nError fwriting block %ld, fd= %d\n", i,
@@ -8230,7 +8230,7 @@ long long *data1,*data2;
 		return;
 	numrecs64 = (kilo64*1024)/reclen;
 	filebytes64 = numrecs64*reclen;
-	stdio_buf=(char *)malloc((size_t)reclen);
+	stdio_buf=(char *)malloc((usize)reclen);
 
 	if(noretest)
 		ltest=1;
@@ -8288,7 +8288,7 @@ long long *data1,*data2;
                         }
 			if(purge)
 				purgeit(buffer,reclen);
-			if(fread(buffer, (size_t) reclen,1, stream) != 1)
+			if(fread(buffer, (usize) reclen,1, stream) != 1)
 			{
 #ifdef _64BIT_ARCH_
 #ifdef NO_PRINT_LLD
@@ -8589,7 +8589,7 @@ long long *data1,*data2;
 		if(!unbuffered)
 		{
 #endif
-		if(read(fd, (void *)nbuff, (size_t) reclen) != reclen)
+		if(read(fd, (void *)nbuff, (usize) reclen) != reclen)
 		{
 #ifdef _64BIT_ARCH_
 			printf("\nError reading block %d %llx\n", 0,
@@ -8705,7 +8705,7 @@ long long *data1,*data2;
 			    }
 			    else
 #endif
-			      wval=read((int)fd, (void*)nbuff, (size_t) reclen);
+			      wval=read((int)fd, (void*)nbuff, (usize) reclen);
 			    if(wval != reclen)
 			    {
 #ifdef _64BIT_ARCH_
@@ -8805,7 +8805,7 @@ long long *data1,*data2;
 		if(include_flush)
 		{
 			if(mmapflag)
-				msync(maddr,(size_t)filebytes64,MS_SYNC);
+				msync(maddr,(usize)filebytes64,MS_SYNC);
 			else
 				fsync(fd);
 		}
@@ -8836,7 +8836,7 @@ long long *data1,*data2;
 		if(!include_close)
 		{
 			if(mmapflag)
-				msync(maddr,(size_t)filebytes64,MS_SYNC);
+				msync(maddr,(usize)filebytes64,MS_SYNC);
 			else
 				fsync(fd);
 			if(mmapflag)
@@ -9184,7 +9184,7 @@ long long *data1, *data2;
 			  }
 			  else
 			  {
-		  	     if(read(fd, (void *)nbuff, (size_t)reclen) != reclen)
+		  	     if(read(fd, (void *)nbuff, (usize)reclen) != reclen)
 		  	     {
 #ifdef NO_PRINT_LLD
 				 printf("\nError reading block at %ld\n",
@@ -9262,7 +9262,7 @@ long long *data1, *data2;
 				}
 				if(async_flag && no_copy_flag)
 				{
-					free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+					free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 					nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 					if(verify || dedup || dedup_interior)
 						fill_buffer(nbuff,reclen,(long long)pattern,sverify,offset64/reclen);
@@ -9290,9 +9290,9 @@ long long *data1, *data2;
 					if(!mmapnsflag)
 					{
 					  	if(mmapasflag)
-						    	msync(wmaddr,(size_t)reclen,MS_ASYNC);
+						    	msync(wmaddr,(usize)reclen,MS_ASYNC);
 					  	if(mmapssflag)
-					    		msync(wmaddr,(size_t)reclen,MS_SYNC);
+					    		msync(wmaddr,(usize)reclen,MS_SYNC);
 					}
 				}
 				else
@@ -9307,7 +9307,7 @@ long long *data1, *data2;
 			  		}
 			  		else
 			  		{
-			  		  wval=write(fd, nbuff,(size_t)reclen);
+			  		  wval=write(fd, nbuff,(usize)reclen);
 			  		  if(wval != reclen)
 			  		  {
 #ifdef NO_PRINT_LLD
@@ -9343,7 +9343,7 @@ long long *data1, *data2;
 	     if(include_flush)
 	     {
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);/* Clean up before read starts running */
+			msync(maddr,(usize)filebytes64,MS_SYNC);/* Clean up before read starts running */
 		else
 		{
 	     		wval=fsync(fd);
@@ -9381,7 +9381,7 @@ long long *data1, *data2;
 	    {
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)filebytes64,MS_SYNC);/* Clean up before read starts running */
+			msync(maddr,(usize)filebytes64,MS_SYNC);/* Clean up before read starts running */
 		}
 		else
 		{
@@ -9626,7 +9626,7 @@ long long *data1,*data2;
 			       	  reclen,-1LL,(numrecs64*reclen),depth);
 			}else
 			{
-				if(read((int)fd, (void*)nbuff, (size_t) reclen) != reclen)
+				if(read((int)fd, (void*)nbuff, (usize) reclen) != reclen)
 				{
 #ifdef NO_PRINT_LLD
 					printf("\nError reading block %ld\n", i);
@@ -9673,7 +9673,7 @@ long long *data1,*data2;
 		if(include_flush)
 		{
 			if(mmapflag)
-				msync(maddr,(size_t)filebytes64,MS_SYNC);
+				msync(maddr,(usize)filebytes64,MS_SYNC);
 			else
 				fsync(fd);
 		}
@@ -9700,7 +9700,7 @@ long long *data1,*data2;
 		if(!include_close)
 		{
 			if(mmapflag)
-				msync(maddr,(size_t)filebytes64,MS_SYNC);
+				msync(maddr,(usize)filebytes64,MS_SYNC);
 			else
 				fsync(fd);
 			if(mmapflag)
@@ -9873,7 +9873,7 @@ long long *data1,*data2;
 	if(fetchon)
 		fetchit(nbuff,reclen);
 	/*
-	wval=write(fd, nbuff, (size_t) reclen);
+	wval=write(fd, nbuff, (usize) reclen);
 	if(wval != reclen)
 	{
 #ifdef NO_PRINT_LLD
@@ -9913,7 +9913,7 @@ long long *data1,*data2;
                 }
 		if(async_flag && no_copy_flag)
 		{
-			free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+			free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 			nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 			if(verify || dedup || dedup_interior)
 				fill_buffer(nbuff,reclen,(long long)pattern,sverify,(long long)0);
@@ -9929,9 +9929,9 @@ long long *data1,*data2;
 			if(!mmapnsflag)
 			{
 			  if(mmapasflag)
-			    msync(wmaddr,(size_t)reclen,MS_ASYNC);
+			    msync(wmaddr,(usize)reclen,MS_ASYNC);
 			  if(mmapssflag)
-			    msync(wmaddr,(size_t)reclen,MS_SYNC);
+			    msync(wmaddr,(usize)reclen,MS_SYNC);
 			}
 		}
 		else
@@ -9945,7 +9945,7 @@ long long *data1,*data2;
 			  }
 			  else
 			  {
-			       wval=write(fd, nbuff, (size_t) reclen);
+			       wval=write(fd, nbuff, (usize) reclen);
 			       if(wval != reclen)
 			       {
 #ifdef NO_PRINT_LLD
@@ -9983,7 +9983,7 @@ long long *data1,*data2;
 	if(include_flush)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);/* Clean up before read starts running */
+			msync(maddr,(usize)filebytes64,MS_SYNC);/* Clean up before read starts running */
 		else
 		{
 			wval=fsync(fd);
@@ -10029,7 +10029,7 @@ long long *data1,*data2;
 	if(!include_close)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);/* Clean up before read starts running */
+			msync(maddr,(usize)filebytes64,MS_SYNC);/* Clean up before read starts running */
 		else
 		{
 			wval=fsync(fd);
@@ -10230,7 +10230,7 @@ long long *data1, *data2;
 		   	}
 			else
 			{
-		   	  if((uu=read((int)fd, (void*)nbuff, (size_t) reclen)) != reclen)
+		   	  if((uu=read((int)fd, (void*)nbuff, (usize) reclen)) != reclen)
 		   	  {
 #ifdef NO_PRINT_LLD
 		    		printf("\nError reading block %ld, fd= %d Filename %s Read returned %ld\n", i, fd,filename,uu);
@@ -10333,7 +10333,7 @@ long long *data1, *data2;
 	if(include_flush)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);
+			msync(maddr,(usize)filebytes64,MS_SYNC);
 		else
 			fsync(fd);
 	}
@@ -10361,7 +10361,7 @@ long long *data1, *data2;
 	if(!include_close)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);
+			msync(maddr,(usize)filebytes64,MS_SYNC);
 		else
 			fsync(fd);
 		if(mmapflag)
@@ -10825,7 +10825,7 @@ long long *data1, *data2;
 
 			if(purge)
 				purgeit(nbuff,reclen);
-			if(I_PREAD(((int)fd), ((void*)nbuff), ((size_t) reclen),traj_offset )
+			if(I_PREAD(((int)fd), ((void*)nbuff), ((usize) reclen),traj_offset )
 					!= reclen)
 			{
 #ifdef NO_PRINT_LLD
@@ -12212,29 +12212,29 @@ int shared_flag;
 	{
 		if(!trflag)
 		{
-			addr=(char *)malloc((size_t)size1);
+			addr=(char *)malloc((usize)size1);
 			return(addr);
 		}
 		if(use_thread)
 		{
-			addr=(char *)malloc((size_t)size1);
+			addr=(char *)malloc((usize)size1);
 			return(addr);
 		}
 	}
 	if(!shared_flag)
 	{
-		addr=(char *)malloc((size_t)size1);
+		addr=(char *)malloc((usize)size1);
 		return(addr);
 	}
 #ifdef SHARED_MEM
 	size1=l_max(size,page_size);
 	size1=(size1 +page_size) & ~(page_size-1);
-	shmid=(int)shmget((key_t)(IPC_PRIVATE), (size_t)size1 , (int)(IPC_CREAT|0666));
+	shmid=(int)shmget((key_t)(IPC_PRIVATE), (usize)size1 , (int)(IPC_CREAT|0666));
         if(shmid < (int)0)
         {
                 printf("\nUnable to get shared memory segment(shmget)\n");
 #ifdef NO_PRINT_LLD
-                printf("shmid = %d, size = %ld, size1 = %lu, Error %d\n",shmid,size,(size_t)size1,errno);
+                printf("shmid = %d, size = %ld, size1 = %lu, Error %d\n",shmid,size,(usize)size1,errno);
 #else
                 printf("shmid = %d, size = %lld, size1 = %lu, Error %d\n",shmid,size,(unsigned long)size1,errno);
 #endif
@@ -12283,11 +12283,11 @@ int shared_flag;
 		printf("Unable to create tmp file\n");
 		exit(121);
 	}
-	dumb=(char *)malloc((size_t)size1);
+	dumb=(char *)malloc((usize)size1);
 	bzero(dumb,size1);
 	write(tfd,dumb,size1);
 	free(dumb);
-	addr=(char *)mmap(0,(size_t)size1,PROT_WRITE|PROT_READ,
+	addr=(char *)mmap(0,(usize)size1,PROT_WRITE|PROT_READ,
 		MAP_SHARED, tfd, 0);
 	unlink(mmapFileName);
 #else
@@ -12299,15 +12299,15 @@ int shared_flag;
                 printf("Unable to create tmp file\n");
                 exit(121);
         }
-        dumb=(char *)malloc((size_t)size1);
+        dumb=(char *)malloc((usize)size1);
 	bzero(dumb,size1);
         write(tfd,dumb,size1);
         free(dumb);
-        addr=(char *)mmap(0,(size_t)size1,PROT_WRITE|PROT_READ,
+        addr=(char *)mmap(0,(usize)size1,PROT_WRITE|PROT_READ,
                 MAP_SHARED, tfd, 0);
 	unlink(mmapFileName);
 #else
-	addr=(char *)mmap(0,(size_t)size1,PROT_WRITE|PROT_READ,
+	addr=(char *)mmap(0,(usize)size1,PROT_WRITE|PROT_READ,
 		MAP_ANONYMOUS|MAP_SHARED, -1, 0);
 #endif
 #endif
@@ -12408,7 +12408,7 @@ long long mint, maxt;
 	long long i;
         if(t_count == 0){
             t_count = (int) maxt - mint + 1;
-            t_rangeptr = (int *) malloc((size_t)sizeof(int)*t_count);
+            t_rangeptr = (int *) malloc((usize)sizeof(int)*t_count);
 	    saveptr = t_rangeptr;
             tofree = 1;
             t_rangecurs = t_rangeptr;
@@ -12599,7 +12599,7 @@ thread_write_test( x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -12839,7 +12839,7 @@ thread_write_test( x)
 			if(include_flush)
 			{
 				if(mmapflag)
-					msync(maddr,(size_t)filebytes64,MS_SYNC);
+					msync(maddr,(usize)filebytes64,MS_SYNC);
 				else
 					fsync(fd);
 			}
@@ -12901,9 +12901,9 @@ again:
 			if(!mmapnsflag)
 			{
 			  if(mmapasflag)
-			    msync(wmaddr,(size_t)reclen,MS_ASYNC);
+			    msync(wmaddr,(usize)reclen,MS_ASYNC);
 			  if(mmapssflag)
-			    msync(wmaddr,(size_t)reclen,MS_SYNC);
+			    msync(wmaddr,(usize)reclen,MS_SYNC);
 			}
 		}
 		else
@@ -12912,7 +12912,7 @@ again:
 		   {
 			     if(no_copy_flag)
 			     {
-				free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+				free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 				nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 				if(verify || dedup || dedup_interior)
 					fill_buffer(nbuff,reclen,(long long)pattern,sverify,i);
@@ -12931,7 +12931,7 @@ again:
 		      else
 		      {
 #endif
-		      wval=write(fd, nbuff, (size_t) reclen);
+		      wval=write(fd, nbuff, (usize) reclen);
 #if defined(Windows)
 		      }
 #endif
@@ -12941,7 +12941,7 @@ again:
 				if(include_flush)
 				{
 					if(mmapflag)
-						msync(maddr,(size_t)filebytes64,MS_SYNC);
+						msync(maddr,(usize)filebytes64,MS_SYNC);
 					else
 						fsync(fd);
 				}
@@ -13059,7 +13059,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	if(include_flush)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);
+			msync(maddr,(usize)filebytes64,MS_SYNC);
 		else
 			fsync(fd);
 	}
@@ -13143,7 +13143,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)numrecs64*reclen,MS_SYNC); /*Clean up before read starts running*/
+			msync(maddr,(usize)numrecs64*reclen,MS_SYNC); /*Clean up before read starts running*/
 			mmap_end(maddr,(unsigned long long)numrecs64*reclen);
 		}else
 			fsync(fd);
@@ -13307,7 +13307,7 @@ thread_pwrite_test( x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -13515,7 +13515,7 @@ thread_pwrite_test( x)
 			if(include_flush)
 			{
 				if(mmapflag)
-					msync(maddr,(size_t)filebytes64,MS_SYNC);
+					msync(maddr,(usize)filebytes64,MS_SYNC);
 				else
 					fsync(fd);
 			}
@@ -13561,9 +13561,9 @@ again:
 			if(!mmapnsflag)
 			{
 			  if(mmapasflag)
-			    msync(wmaddr,(size_t)reclen,MS_ASYNC);
+			    msync(wmaddr,(usize)reclen,MS_ASYNC);
 			  if(mmapssflag)
-			    msync(wmaddr,(size_t)reclen,MS_SYNC);
+			    msync(wmaddr,(usize)reclen,MS_SYNC);
 			}
 		}
 		else
@@ -13572,7 +13572,7 @@ again:
 		   {
 			     if(no_copy_flag)
 			     {
-				free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+				free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 				nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 				if(verify || dedup || dedup_interior)
 					fill_buffer(nbuff,reclen,(long long)pattern,sverify,i);
@@ -13590,7 +13590,7 @@ again:
 				if(include_flush)
 				{
 					if(mmapflag)
-						msync(maddr,(size_t)filebytes64,MS_SYNC);
+						msync(maddr,(usize)filebytes64,MS_SYNC);
 					else
 						fsync(fd);
 				}
@@ -13708,7 +13708,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	if(include_flush)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);
+			msync(maddr,(usize)filebytes64,MS_SYNC);
 		else
 			fsync(fd);
 	}
@@ -13787,7 +13787,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)numrecs64*reclen,MS_SYNC); /*Clean up before read starts running*/
+			msync(maddr,(usize)numrecs64*reclen,MS_SYNC); /*Clean up before read starts running*/
 			mmap_end(maddr,(unsigned long long)numrecs64*reclen);
 		}else
 			fsync(fd);
@@ -13946,7 +13946,7 @@ thread_rwrite_test(x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -14187,9 +14187,9 @@ fprintf(newstdout,"Chid: %lld Rewriting offset %lld for length of %lld\n",chid, 
 			if(!mmapnsflag)
 			{
 			  if(mmapasflag)
-			    msync(wmaddr,(size_t)reclen,MS_ASYNC);
+			    msync(wmaddr,(usize)reclen,MS_ASYNC);
 			  if(mmapssflag)
-			    msync(wmaddr,(size_t)reclen,MS_SYNC);
+			    msync(wmaddr,(usize)reclen,MS_SYNC);
 			}
 		}
 		else
@@ -14198,7 +14198,7 @@ fprintf(newstdout,"Chid: %lld Rewriting offset %lld for length of %lld\n",chid, 
 		   	{
 			     if(no_copy_flag)
 			     {
-				free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+				free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 				nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 				if(verify || dedup || dedup_interior)
 					fill_buffer(nbuff,reclen,(long long)pattern,sverify,i);
@@ -14216,7 +14216,7 @@ fprintf(newstdout,"Chid: %lld Rewriting offset %lld for length of %lld\n",chid, 
 			   }
 			   else
 #endif
-			   wval=write(fd, nbuff, (size_t) reclen);
+			   wval=write(fd, nbuff, (usize) reclen);
 			   if(wval != reclen)
 			   {
 				if(*stop_flag)
@@ -14300,7 +14300,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -14371,7 +14371,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)filebytes64);
 		}
 		else
@@ -14522,7 +14522,7 @@ thread_read_test(x)
 		nbuff=barray[xx];
 	else
 		nbuff=buffer;
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -14779,7 +14779,7 @@ thread_read_test(x)
 			      }
 			      else
 #endif
-			      wval=read((int)fd, (void*)nbuff, (size_t) reclen);
+			      wval=read((int)fd, (void*)nbuff, (usize) reclen);
 			      if(wval != reclen)
 			      {
 				if(*stop_flag)
@@ -14890,7 +14890,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -14961,7 +14961,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)filebytes64);
 		}else
 			fsync(fd);
@@ -15100,7 +15100,7 @@ thread_pread_test(x)
 		nbuff=barray[xx];
 	else
 		nbuff=buffer;
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -15315,7 +15315,7 @@ thread_pread_test(x)
 			  }
 			  else
 			  {
-				if(I_PREAD((int)fd, (void*)nbuff, (size_t) reclen,(traj_offset) ) != reclen)
+				if(I_PREAD((int)fd, (void*)nbuff, (usize) reclen,(traj_offset) ) != reclen)
 			      {
 				if(*stop_flag)
 				{
@@ -15425,7 +15425,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -15491,7 +15491,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)filebytes64);
 		}else
 			fsync(fd);
@@ -15654,7 +15654,7 @@ thread_rread_test(x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -15892,7 +15892,7 @@ thread_rread_test(x)
 			      }
 			      else
 #endif
-			      wval=read((int)fd, (void*)nbuff, (size_t) reclen);
+			      wval=read((int)fd, (void*)nbuff, (usize) reclen);
 			      if(wval != reclen)
 			      {
 				if(*stop_flag)
@@ -16004,7 +16004,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -16069,7 +16069,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(filebytes64),MS_SYNC);
+			msync(maddr,(usize)(filebytes64),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)filebytes64);
 		}else
 			fsync(fd);
@@ -16222,7 +16222,7 @@ thread_reverse_read_test(x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -16444,7 +16444,7 @@ thread_reverse_read_test(x)
 			  }
 			  else
 			  {
-			      if(read((int)fd, (void*)nbuff, (size_t) reclen) != reclen)
+			      if(read((int)fd, (void*)nbuff, (usize) reclen) != reclen)
 			      {
 				if(*stop_flag)
 				{
@@ -16555,7 +16555,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(numrecs64*reclen),MS_SYNC);
+			msync(maddr,(usize)(numrecs64*reclen),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -16611,7 +16611,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(numrecs64*reclen),MS_SYNC);
+			msync(maddr,(usize)(numrecs64*reclen),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)numrecs64*reclen);
 		}else
 			fsync(fd);
@@ -16758,7 +16758,7 @@ thread_stride_read_test(x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -16954,7 +16954,7 @@ thread_stride_read_test(x)
 			}
 			else
 			{
-			  if(read((int)fd, (void*)nbuff, (size_t) reclen) != reclen)
+			  if(read((int)fd, (void*)nbuff, (usize) reclen) != reclen)
 			  {
 				if(*stop_flag)
 				{
@@ -17100,7 +17100,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(numrecs64*reclen),MS_SYNC);
+			msync(maddr,(usize)(numrecs64*reclen),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -17158,7 +17158,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(numrecs64*reclen),MS_SYNC);
+			msync(maddr,(usize)(numrecs64*reclen),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)numrecs64*reclen);
 		}else
 			fsync(fd);
@@ -17413,7 +17413,7 @@ thread_ranread_test(x)
 		nbuff=barray[xx];
 	else
 		nbuff=buffer;
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -17676,7 +17676,7 @@ thread_ranread_test(x)
 			}
 			else
 			{
-	  		  if(read((int)fd, (void*)nbuff, (size_t)reclen) != reclen)
+	  		  if(read((int)fd, (void*)nbuff, (usize)reclen) != reclen)
 	  		  {
 				if(*stop_flag)
 				{
@@ -17784,7 +17784,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(numrecs64*reclen),MS_SYNC);
+			msync(maddr,(usize)(numrecs64*reclen),MS_SYNC);
 		}else
 			fsync(fd);
 	}
@@ -17847,7 +17847,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)(numrecs64*reclen),MS_SYNC);
+			msync(maddr,(usize)(numrecs64*reclen),MS_SYNC);
 			mmap_end(maddr,(unsigned long long)numrecs64*reclen);
 		}else
 			fsync(fd);
@@ -18061,7 +18061,7 @@ thread_ranwrite_test( x)
 #endif
 
 	}
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	xx2=xx;
 	if(share_file)
 		xx2=(long long)0;
@@ -18284,7 +18284,7 @@ thread_ranwrite_test( x)
 			if(include_flush)
 			{
 				if(mmapflag)
-					msync(maddr,(size_t)filebytes64,MS_SYNC);
+					msync(maddr,(usize)filebytes64,MS_SYNC);
 				else
 					fsync(fd);
 			}
@@ -18325,9 +18325,9 @@ again:
 			if(!mmapnsflag)
 			{
 			  if(mmapasflag)
-			    msync(wmaddr,(size_t)reclen,MS_ASYNC);
+			    msync(wmaddr,(usize)reclen,MS_ASYNC);
 			  if(mmapssflag)
-			    msync(wmaddr,(size_t)reclen,MS_SYNC);
+			    msync(wmaddr,(usize)reclen,MS_SYNC);
 			}
 		}
 		else
@@ -18336,7 +18336,7 @@ again:
 		   {
 			     if(no_copy_flag)
 			     {
-				free_addr=nbuff=(char *)malloc((size_t)reclen+page_size);
+				free_addr=nbuff=(char *)malloc((usize)reclen+page_size);
 				nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 				if(verify || dedup || dedup_interior)
 					fill_buffer(nbuff,reclen,(long long)pattern,sverify,(long long)(current_offset/reclen));
@@ -18347,14 +18347,14 @@ again:
 		   }
 		   else
 		   {
-		      wval = write(fd, nbuff, (size_t) reclen);
+		      wval = write(fd, nbuff, (usize) reclen);
 		      if(wval != reclen)
 		      {
 			if(*stop_flag && !stopped){
 				if(include_flush)
 				{
 					if(mmapflag)
-						msync(maddr,(size_t)filebytes64,MS_SYNC);
+						msync(maddr,(usize)filebytes64,MS_SYNC);
 					else
 						fsync(fd);
 				}
@@ -18472,7 +18472,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	if(include_flush)
 	{
 		if(mmapflag)
-			msync(maddr,(size_t)filebytes64,MS_SYNC);
+			msync(maddr,(usize)filebytes64,MS_SYNC);
 		else
 			fsync(fd);
 	}
@@ -18541,7 +18541,7 @@ printf("Desired rate %g  Actual rate %g Nap %g microseconds\n",desired_op_rate_t
 	{
 		if(mmapflag)
 		{
-			msync(maddr,(size_t)numrecs64*reclen,MS_SYNC); /*Clean up before read starts running*/
+			msync(maddr,(usize)numrecs64*reclen,MS_SYNC); /*Clean up before read starts running*/
 			mmap_end(maddr,(unsigned long long)numrecs64*reclen);
 		}else
 			fsync(fd);
@@ -18605,7 +18605,7 @@ thread_cleanup_test(x)
 		xx=chid;
 	}
 #endif
-	dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
 	if(mfflag)
 	{
 #ifdef NO_PRINT_LLD
@@ -19057,7 +19057,7 @@ int flag, prot;
 		  * Allocate a temporary buffer to meet any alignment
 		  * contraints of any method.
 		  */
-		 tmp=(char *)malloc((size_t)reclen * 2);
+		 tmp=(char *)malloc((usize)reclen * 2);
 		 stmp=tmp;
 		 /*
 		  * Align to a reclen boundary.
@@ -19084,7 +19084,7 @@ int flag, prot;
 	 		recs=filebytes/reclen;
 			for (i =0; i<recs ;i++)
 			{
-				x=write(fd,tmp,(size_t)reclen);
+				x=write(fd,tmp,(usize)reclen);
 				if(x < 1)
 				{
 					printf("Unable to write file\n");
@@ -19096,7 +19096,7 @@ int flag, prot;
 		{
 			/* Save time, just seek out and touch at the end */
 		 	I_LSEEK(fd,(filebytes-reclen),SEEK_SET);
-			x=write(fd,tmp,(size_t)reclen);
+			x=write(fd,tmp,(usize)reclen);
 			if(x < 1)
 			{
 				printf("Unable to write file\n");
@@ -19168,19 +19168,19 @@ int flag, prot;
 	{
 		switch(advise_op){
 		case 0:
-			madvise( (char *)pa, (size_t) filebytes, MADV_NORMAL);
+			madvise( (char *)pa, (usize) filebytes, MADV_NORMAL);
 			break;
 		case 1:
-			madvise( (char *)pa, (size_t) filebytes, MADV_RANDOM);
+			madvise( (char *)pa, (usize) filebytes, MADV_RANDOM);
 			break;
 		case 2:
-			madvise( (char *)pa, (size_t) filebytes, MADV_SEQUENTIAL);
+			madvise( (char *)pa, (usize) filebytes, MADV_SEQUENTIAL);
 			break;
 		case 3:
-			madvise( (char *)pa, (size_t) filebytes, MADV_DONTNEED);
+			madvise( (char *)pa, (usize) filebytes, MADV_DONTNEED);
 			break;
 		case 4:
-			madvise( (char *)pa, (size_t) filebytes, MADV_WILLNEED);
+			madvise( (char *)pa, (usize) filebytes, MADV_WILLNEED);
 			break;
 		default:
 			break;
@@ -19206,7 +19206,7 @@ char *buffer;
 long long size;
 #endif
 {
-	if(munmap(buffer,(size_t)size)<0)
+	if(munmap(buffer,(usize)size)<0)
 #ifdef NO_PRINT_LLD
 		printf("munmap buffer %lx, size %ld failed.\n",(long)buffer,size);
 #else
@@ -19238,8 +19238,8 @@ long long *dest_buffer;
 long long length;
 #endif
 {
-	/*printf("Fill area %d\n",(size_t)length);*/
-	bcopy((void *)src_buffer,(void *)dest_buffer,(size_t)length);
+	/*printf("Fill area %d\n",(usize)length);*/
+	bcopy((void *)src_buffer,(void *)dest_buffer,(usize)length);
 }
 
 #ifndef ASYNC_IO
@@ -19249,13 +19249,13 @@ async_read()
 	printf("Your system does not support async I/O\n");
 	exit(169);
 }
-size_t
+usize
 async_write_no_copy()
 {
 	printf("Your system does not support async I/O\n");
 	exit(170);
 }
-size_t
+usize
 async_write()
 {
 	printf("Your system does not support async I/O\n");
@@ -19720,7 +19720,7 @@ int fd;
 	char *nbuff,*free_addr;
 	off64_t current;
 
-	free_addr=nbuff=(char *)malloc((size_t)page_size+page_size);
+	free_addr=nbuff=(char *)malloc((usize)page_size+page_size);
 	nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 
 	/* Save current position */
@@ -19770,7 +19770,7 @@ int hand;
 	off64_t current;
 	long retval;
 
-	free_addr=nbuff=(char *)malloc((size_t)page_size+page_size);
+	free_addr=nbuff=(char *)malloc((usize)page_size+page_size);
 	nbuff=(char *)(((long)nbuff+(long)page_size) & (long)~(page_size-1));
 
 	/* Save current position */
@@ -22744,7 +22744,7 @@ int i;
 {
 
 	char *dummyfile[MAXSTREAMS];           /* name of dummy file     */
-	dummyfile[i]=(char *)malloc((size_t)MAXNAMESIZE);
+	dummyfile[i]=(char *)malloc((usize)MAXNAMESIZE);
 	if(mfflag)
 	{
 		sprintf(dummyfile[i],"%s",filearray[i]);
@@ -24760,7 +24760,7 @@ void * thread_fwrite_test( x)
 #endif
 
         }
-        dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+        dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
         xx2=xx;
         if(share_file)
                 xx2=(long long)0;
@@ -24785,7 +24785,7 @@ void * thread_fwrite_test( x)
         if(mmapflag || async_flag)
                 return(0);
 
-        stdio_buf=(char *)malloc((size_t)reclen);
+        stdio_buf=(char *)malloc((usize)reclen);
 
         if(Uflag) /* Unmount and re-mount the mountpoint */
         {
@@ -24931,7 +24931,7 @@ void * thread_fwrite_test( x)
 		{
 			thread_qtime_start=time_so_far();
 		}
-                if(fwrite(buffer, (size_t) reclen, 1, stream) != 1)
+                if(fwrite(buffer, (usize) reclen, 1, stream) != 1)
                 {
 #ifdef NO_PRINT_LLD
                         printf("\nError fwriting block %ld, fd= %d\n", i,
@@ -25219,7 +25219,7 @@ void * thread_fread_test( x)
 #endif
 
         }
-        dummyfile[xx]=(char *)malloc((size_t)MAXNAMESIZE);
+        dummyfile[xx]=(char *)malloc((usize)MAXNAMESIZE);
         xx2=xx;
         if(share_file)
                 xx2=(long long)0;
@@ -25245,7 +25245,7 @@ void * thread_fread_test( x)
         if(mmapflag || async_flag)
                 return(0);
 
-        stdio_buf=(char *)malloc((size_t)reclen);
+        stdio_buf=(char *)malloc((usize)reclen);
 
 	if(Uflag) /* Unmount and re-mount the mountpoint */
 	{
@@ -25376,7 +25376,7 @@ void * thread_fread_test( x)
 		{
 			thread_qtime_start=time_so_far();
 		}
-		if(fread(buffer, (size_t) reclen,1, stream) != 1)
+		if(fread(buffer, (usize) reclen,1, stream) != 1)
 		{
 #ifdef _64BIT_ARCH_
 #ifdef NO_PRINT_LLD

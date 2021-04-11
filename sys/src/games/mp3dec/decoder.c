@@ -133,7 +133,7 @@ int mad_decoder_finish(struct mad_decoder *decoder)
 
 # if defined(USE_ASYNC)
 static
-enum mad_flow send_io(int fd, void const *data, size_t len)
+enum mad_flow send_io(int fd, void const *data, usize len)
 {
   char const *ptr = data;
   isize count;
@@ -154,7 +154,7 @@ enum mad_flow send_io(int fd, void const *data, size_t len)
 }
 
 static
-enum mad_flow receive_io(int fd, void *buffer, size_t len)
+enum mad_flow receive_io(int fd, void *buffer, usize len)
 {
   char *ptr = buffer;
   isize count;
@@ -177,7 +177,7 @@ enum mad_flow receive_io(int fd, void *buffer, size_t len)
 }
 
 static
-enum mad_flow receive_io_blocking(int fd, void *buffer, size_t len)
+enum mad_flow receive_io_blocking(int fd, void *buffer, usize len)
 {
   int flags, blocking;
   enum mad_flow result;

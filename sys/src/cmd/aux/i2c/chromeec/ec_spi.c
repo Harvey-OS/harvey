@@ -27,7 +27,7 @@ static const u8 EcFramingByte = 0xec;
 static u8 req_buf[PROTO3_MAX_PACKET_SIZE];
 static u8 resp_buf[PROTO3_MAX_PACKET_SIZE];
 
-void *crosec_get_buffer(size_t size, int req)
+void *crosec_get_buffer(usize size, int req)
 {
 	if (size > PROTO3_MAX_PACKET_SIZE) {
 		printk(BIOS_DEBUG, "Proto v3 buffer request too large: %zu!\n",
@@ -41,7 +41,7 @@ void *crosec_get_buffer(size_t size, int req)
 		return resp_buf;
 }
 
-static int crosec_spi_io(size_t req_size, size_t resp_size, void *context)
+static int crosec_spi_io(usize req_size, usize resp_size, void *context)
 {
 	struct spi_slave *slave = (struct spi_slave *)context;
 

@@ -71,7 +71,7 @@ typedef struct {
 
 static query_result query_config_string(const char *str, const char *k)
 {
-	size_t ksize = 0;
+	usize ksize = 0;
 	while (k[ksize] && k[ksize] != '{')
 		ksize++;
 	int last = !k[ksize];
@@ -80,9 +80,9 @@ static query_result query_config_string(const char *str, const char *k)
 	while (1) {
 		const char *key_start = str = skip_whitespace(str);
 		const char *key_end = str = skip_key(str);
-		int match = (size_t)(key_end - key_start) == ksize;
+		int match = (usize)(key_end - key_start) == ksize;
 		if (match)
-			for (size_t i = 0; i < ksize; i++)
+			for (usize i = 0; i < ksize; i++)
 				if (key_start[i] != k[i])
 					match = 0;
 		const char *value_start = str = skip_whitespace(str);
@@ -206,7 +206,7 @@ static inline i64 get_sint(query_result res)
 }
 #endif
 
-void query_mem(const char *config_string, uintptr_t *base, size_t *size)
+void query_mem(const char *config_string, uintptr_t *base, usize *size)
 {
 	*base = 0;
 	*size = 0;

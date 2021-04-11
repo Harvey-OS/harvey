@@ -51,8 +51,8 @@ struct tpm_vendor_specific {
 	const u8 req_complete_val;
 	const u8 req_canceled;
 	int irq;
-	int (*recv)(struct tpm_chip *, u8 *, size_t);
-	int (*send)(struct tpm_chip *, u8 *, size_t);
+	int (*recv)(struct tpm_chip *, u8 *, usize);
+	int (*send)(struct tpm_chip *, u8 *, usize);
 	void (*cancel)(struct tpm_chip *);
 	u8(*status)(struct tpm_chip *);
 	int locality;

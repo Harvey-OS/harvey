@@ -53,7 +53,7 @@ typedef long double   double_t;                    // temporarly results of doub
 typedef long double   longdouble_t;                // temporarly results of long double operations
 
 typedef float_t (*scalar_t)  ( const sample_t* p, const sample_t* q );
-typedef float_t (*scalarn_t) ( const sample_t* p, const sample_t* q, size_t len );
+typedef float_t (*scalarn_t) ( const sample_t* p, const sample_t* q, usize len );
 
 /*}}}*/
 /*{{{ data direction attributes       */
@@ -63,9 +63,9 @@ typedef float_t (*scalarn_t) ( const sample_t* p, const sample_t* q, size_t len 
  * The data direction is seen from the caller to the calling function.
  * Examples:
  *
- *    size_t  fread  ( void INOUT* buffer, size_t items, size_t itemsize, FILE INOUT* fp );
- *    size_t  fwrite ( void OUT  * buffer, size_t items, size_t itemsize, FILE INOUT* fp );
- *    size_t  memset ( void IN   * buffer, unsigned char value, size_t size );
+ *    usize  fread  ( void INOUT* buffer, usize items, usize itemsize, FILE INOUT* fp );
+ *    usize  fwrite ( void OUT  * buffer, usize items, usize itemsize, FILE INOUT* fp );
+ *    usize  memset ( void IN   * buffer, unsigned char value, usize size );
  *
  * Return values are implizit IN (note that here C uses the opposite attribute).
  * Arguments not transmitted via references are implizit OUT.
@@ -210,8 +210,8 @@ float_t  scalar16_float32_i387  ( const float32_t* p, const float32_t* q );
 float_t  scalar20_float32_i387  ( const float32_t* p, const float32_t* q );
 float_t  scalar24_float32_i387  ( const float32_t* p, const float32_t* q );
 float_t  scalar32_float32_i387  ( const float32_t* p, const float32_t* q );
-float_t  scalar4n_float32_i387  ( const float32_t* p, const float32_t* q, const size_t len );
-float_t  scalar1n_float32_i387  ( const float32_t* p, const float32_t* q, const size_t len );
+float_t  scalar4n_float32_i387  ( const float32_t* p, const float32_t* q, const usize len );
+float_t  scalar1n_float32_i387  ( const float32_t* p, const float32_t* q, const usize len );
 
 float_t  scalar04_float32_3DNow ( const float32_t* p, const float32_t* q );
 float_t  scalar08_float32_3DNow ( const float32_t* p, const float32_t* q );
@@ -220,8 +220,8 @@ float_t  scalar16_float32_3DNow ( const float32_t* p, const float32_t* q );
 float_t  scalar20_float32_3DNow ( const float32_t* p, const float32_t* q );
 float_t  scalar24_float32_3DNow ( const float32_t* p, const float32_t* q );
 float_t  scalar32_float32_3DNow ( const float32_t* p, const float32_t* q );
-float_t  scalar4n_float32_3DNow ( const float32_t* p, const float32_t* q, const size_t len );
-float_t  scalar1n_float32_3DNow ( const float32_t* p, const float32_t* q, const size_t len );
+float_t  scalar4n_float32_3DNow ( const float32_t* p, const float32_t* q, const usize len );
+float_t  scalar1n_float32_3DNow ( const float32_t* p, const float32_t* q, const usize len );
 
 float_t  scalar04_float32_SIMD  ( const float32_t* p, const float32_t* q );
 float_t  scalar08_float32_SIMD  ( const float32_t* p, const float32_t* q );
@@ -230,8 +230,8 @@ float_t  scalar16_float32_SIMD  ( const float32_t* p, const float32_t* q );
 float_t  scalar20_float32_SIMD  ( const float32_t* p, const float32_t* q );
 float_t  scalar24_float32_SIMD  ( const float32_t* p, const float32_t* q );
 float_t  scalar32_float32_SIMD  ( const float32_t* p, const float32_t* q );
-float_t  scalar4n_float32_SIMD  ( const float32_t* p, const float32_t* q, const size_t len );
-float_t  scalar1n_float32_SIMD  ( const float32_t* p, const float32_t* q, const size_t len );
+float_t  scalar4n_float32_SIMD  ( const float32_t* p, const float32_t* q, const usize len );
+float_t  scalar1n_float32_SIMD  ( const float32_t* p, const float32_t* q, const usize len );
 
 float_t  scalar04_float32       ( const float32_t* p, const float32_t* q );
 float_t  scalar08_float32       ( const float32_t* p, const float32_t* q );
@@ -240,8 +240,8 @@ float_t  scalar16_float32       ( const float32_t* p, const float32_t* q );
 float_t  scalar20_float32       ( const float32_t* p, const float32_t* q );
 float_t  scalar24_float32       ( const float32_t* p, const float32_t* q );
 float_t  scalar32_float32       ( const float32_t* p, const float32_t* q );
-float_t  scalar4n_float32       ( const float32_t* p, const float32_t* q, const size_t len );
-float_t  scalar1n_float32       ( const float32_t* p, const float32_t* q, const size_t len );
+float_t  scalar4n_float32       ( const float32_t* p, const float32_t* q, const usize len );
+float_t  scalar1n_float32       ( const float32_t* p, const float32_t* q, const usize len );
 
 
 /*{{{ some prototypes                 */
@@ -255,10 +255,10 @@ resample_t*  resample_open (
 int  resample_buffer (                          // return code, 0 for success
         INOUT resample_t *const   r,            // internal structure
         IN    sample_t   *const   out,          // where to write the output data
-        INOUT size_t     *const   out_req_len,  // requested output data len/really written output data len
+        INOUT usize     *const   out_req_len,  // requested output data len/really written output data len
         OUT   sample_t   *const   in,           // where are the input data?
-        INOUT size_t     *const   in_avail_len, // available input data len/consumed input data len
-        OUT   size_t              channel );    // number of the channel (needed for buffering)
+        INOUT usize     *const   in_avail_len, // available input data len/consumed input data len
+        OUT   usize              channel );    // number of the channel (needed for buffering)
 
 int  resample_close ( INOUT resample_t* const r );
 
@@ -271,7 +271,7 @@ int  lame_encode_mp3_frame (             // return code, 0 for success
         OUTTR sample_t * inbuf_l,        // data for left  channel
         OUTTR sample_t * inbuf_r,        // data for right channel
         IN    u8  * mp3buf,         // where to write the coded data
-        OUT   size_t     mp3buf_size );  // maximum size of coded data
+        OUT   usize     mp3buf_size );  // maximum size of coded data
 #endif
 
 int  lame_encode_ogg_frame (             // return code, 0 for success
@@ -279,7 +279,7 @@ int  lame_encode_ogg_frame (             // return code, 0 for success
         OUT   sample_t * inbuf_l,        // data for left  channel
         OUT   sample_t * inbuf_r,        // data for right channel
         IN    u8  * mp3buf,         // where to write the coded data
-        OUT   size_t     mp3buf_size );  // maximum size of coded data
+        OUT   usize     mp3buf_size );  // maximum size of coded data
 
 /*}}}*/
 

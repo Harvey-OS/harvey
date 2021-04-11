@@ -109,7 +109,7 @@ void usage(void);
 void bzero();
 void clear_stats();
 int validate(char *, int , char );
-char *getcwd(char *buf, size_t len);
+char *getcwd(char *buf, usize len);
 void rmdir(char *);
 void be2vlong(i64 *, char *);
 char version[]="        $Revision: 1.61 $";
@@ -1200,7 +1200,7 @@ validate(char *buffer, int size, char value)
 }
 
 char*
-getcwd(char *buf, size_t len)
+getcwd(char *buf, usize len)
 {
         int fd;
 
@@ -1271,7 +1271,7 @@ rmdir(char *f){
 }
 
 void
-bzero(void *a, size_t n)
+bzero(void *a, usize n)
 {
         memset(a, 0, n);
 }

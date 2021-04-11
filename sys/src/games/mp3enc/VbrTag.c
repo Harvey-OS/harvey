@@ -437,7 +437,7 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 	u_char pbtStreamBuffer[MAXFRAMESIZE];
 	char str1[80];
         unsigned char id3v2Header[10];
-        size_t id3v2TagSize;
+        usize id3v2TagSize;
 
         if (gfc->VBR_seek_table.pos <= 0)
 		return -1;

@@ -64,7 +64,7 @@ static struct i2c_ec ec_dev = {
 	},
 };
 
-void *crosec_get_buffer(size_t size, int req)
+void *crosec_get_buffer(usize size, int req)
 {
 	struct proto3_i2c_buf *ib;
 
@@ -82,11 +82,11 @@ void *crosec_get_buffer(size_t size, int req)
 	return &ib->data[0];
 }
 
-static int crosec_i2c_io(size_t req_size, size_t resp_size, void *context)
+static int crosec_i2c_io(usize req_size, usize resp_size, void *context)
 {
 	struct i2c_ec *ec = context;
 	u8 ret_code;
-	size_t resp_len;
+	usize resp_len;
 
 	if (req_size > PROTO3_MAX_PACKET_SIZE ||
 		resp_size > PROTO3_MAX_PACKET_SIZE)
@@ -155,7 +155,7 @@ typedef struct {
 	u8 data[MAX_I2C_DATA_SIZE + 1];
 } EcResponseI2c;
 
-static inline void i2c_dump(int bus, int chip, const u8 *data, size_t size)
+static inline void i2c_dump(int bus, int chip, const u8 *data, usize size)
 {
 #ifdef TRACE_CHROMEEC
 	printk(BIOS_INFO, "i2c: bus=%d, chip=%#x, size=%d, data: ", bus, chip,
@@ -169,7 +169,7 @@ static inline void i2c_dump(int bus, int chip, const u8 *data, size_t size)
 
 static int ec_verify_checksum(const EcResponseI2c *resp)
 {
-	size_t size = sizeof(*resp) - sizeof(resp->data) + resp->length;
+	usize size = sizeof(*resp) - sizeof(resp->data) + resp->length;
 	u8 calculated = google_chromeec_calc_checksum(
 			(const u8 *)resp, size);
 	u8 received = resp->data[resp->length];
@@ -183,7 +183,7 @@ static int ec_verify_checksum(const EcResponseI2c *resp)
 
 static void ec_fill_checksum(EcCommandI2c *cmd)
 {
-	size_t size = sizeof(*cmd) - sizeof(cmd->data) + cmd->length;
+	usize size = sizeof(*cmd) - sizeof(cmd->data) + cmd->length;
 	cmd->data[cmd->length] = google_chromeec_calc_checksum(
 			(const u8 *)cmd, size);
 }
@@ -194,7 +194,7 @@ int google_chromeec_command(struct chromeec_command *cec_command)
 	EcResponseI2c resp;
 	int bus = CONFIG_EC_GOOGLE_CHROMEEC_I2C_BUS;
 	int chip = CONFIG_EC_GOOGLE_CHROMEEC_I2C_CHIP;
-	size_t size_i2c_cmd = (sizeof(cmd) - sizeof(cmd.data) +
+	usize size_i2c_cmd = (sizeof(cmd) - sizeof(cmd.data) +
 			       cec_command->cmd_size_in + 1),
 	       size_i2c_resp = (sizeof(resp) - sizeof(resp.data) +
 				cec_command->cmd_size_out + 1);

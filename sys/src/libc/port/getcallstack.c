@@ -12,7 +12,7 @@
 #include <libc.h>
 
 void
-getcallstack(uintptr *pcs, size_t npcs)
+getcallstack(uintptr *pcs, usize npcs)
 {
 	assert(npcs < 6);
 

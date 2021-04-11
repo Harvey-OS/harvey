@@ -56,7 +56,7 @@
  *  CHAR_BIT < 8: Not allowed by C
  */
 
-octetstream_t*  octetstream_open ( OUT size_t  size )
+octetstream_t*  octetstream_open ( OUT usize  size )
 {
     octetstream_t*  ret = (octetstream_t*) calloc ( 1, sizeof(octetstream_t) );
     FN("octetstream_open");
@@ -65,7 +65,7 @@ octetstream_t*  octetstream_open ( OUT size_t  size )
     return ret;
 }
 
-int  octetstream_resize ( INOUT octetstream_t* const  os, OUT size_t  size )
+int  octetstream_resize ( INOUT octetstream_t* const  os, OUT usize  size )
 {
     FN("octetstream_resize");
     if ( size > os->size ) {
@@ -101,7 +101,7 @@ static inline int  lame_encode_frame (
         INOUT lame_t*     lame,
         OUTTR sample_t**  inbuf,
         IN    u8*    mp3buf,
-        OUT   size_t      mp3buf_size )
+        OUT   usize      mp3buf_size )
 {
     int  ret;
 #if 1
@@ -361,16 +361,16 @@ static inline sample_t  read_opposite_float80 ( OUT u8* const src )
  *     length:      The number of elements to process. Number must be positive.
  */
 
-typedef void (*demux_t) ( IN sample_t* dst, OUT u8* src, OUT isize step, OUT size_t len );
+typedef void (*demux_t) ( IN sample_t* dst, OUT u8* src, OUT isize step, OUT usize len );
 
 #define FUNCTION(name,expr)       \
 static void  name (               \
         IN  sample_t*  dst,       \
 	OUT u8*   src,       \
 	OUT isize    step,      \
-	OUT size_t     len )      \
+	OUT usize     len )      \
 {                                 \
-    size_t  i = len;              \
+    usize  i = len;              \
     do {                          \
         *dst++ = (expr);          \
         src   += (step);          \
@@ -553,18 +553,18 @@ static inline int  internal_lame_encoding_pcm (
         INOUT lame_t*           const lame,
         INOUT octetstream_t*    const os,
         OUT   sample_t* const * const data,
-        OUT   size_t                  len )
+        OUT   usize                  len )
 {
-    size_t           i;
+    usize           i;
     double           ampl;
     double           dampl;
     int              ampl_on;
-    size_t           ch;
-    size_t           mf_needed;
+    usize           ch;
+    usize           mf_needed;
     int              ret;
-    size_t           n_in;
-    size_t           n_out;
-    size_t           remaining = len;
+    usize           n_in;
+    usize           n_out;
+    usize           remaining = len;
     sample_t*        mfbuf [MAX_CHANNELS];
     const sample_t*  pdata [MAX_CHANNELS];
 
@@ -714,7 +714,7 @@ static inline int  internal_lame_encoding_pcm (
 /*}}}*/
 /*{{{ demultiplexing stuff            */
 
-static inline void  average ( sample_t* dst, const sample_t* src1, const sample_t* src2, size_t len )
+static inline void  average ( sample_t* dst, const sample_t* src1, const sample_t* src2, usize len )
 {
     FN("average");
 
@@ -726,7 +726,7 @@ int  lame_encode_pcm (
         lame_t* const   lame,
         octetstream_t*  os,
         const void*     pcm,
-        size_t          len,
+        usize          len,
         u32        flags )
 {
     sample_t*           data [2];
@@ -735,7 +735,7 @@ int  lame_encode_pcm (
     const u8 *      p;
     const u8 * const*  q;
     int                 ret;
-    size_t              channels_in = flags & 0xFFFF;
+    usize              channels_in = flags & 0xFFFF;
 
     FN("lame_encode_pcm");
 
@@ -963,9 +963,9 @@ int  lame_encode_buffer (
         void* const    gfp,
         const i16  buffer_l [],
         const i16  buffer_r [],
-        const size_t   nsamples,
+        const usize   nsamples,
         void* const    mp3buf,
-        const size_t   mp3buf_size )
+        const usize   mp3buf_size )
 {
     const i16*  pcm [2];
     octetstream_t*  os;
@@ -993,9 +993,9 @@ int  lame_encode_buffer (
 int  lame_encode_buffer_interleaved (
         void* const    gfp,
         const i16  buffer [],
-        size_t         nsamples,
+        usize         nsamples,
         void* const    mp3buf,
-        const size_t   mp3buf_size )
+        const usize   mp3buf_size )
 {
     octetstream_t*  os;
     int             ret;
@@ -1020,7 +1020,7 @@ int  lame_encode_buffer_interleaved (
 int  lame_encode_flush (
         void* const    gfp,
         void* const    mp3buf,
-        const size_t   mp3buf_size )
+        const usize   mp3buf_size )
 {
     octetstream_t*  os;
     int             ret;
@@ -1273,7 +1273,7 @@ float_t  scalar32_float32 ( const sample_t* p, const sample_t* q )
           + p[28]*q[28] + p[29]*q[29] + p[30]*q[30] + p[31]*q[31];
 }
 
-float_t  scalar4n_float32 ( const sample_t* p, const sample_t* q, size_t len )
+float_t  scalar4n_float32 ( const sample_t* p, const sample_t* q, usize len )
 {
     double sum = p[0]*q[0] + p[1]*q[1] + p[2]*q[2] + p[3]*q[3];
 
@@ -1285,7 +1285,7 @@ float_t  scalar4n_float32 ( const sample_t* p, const sample_t* q, size_t len )
     return sum;
 }
 
-float_t  scalar1n_float32 ( const sample_t* p, const sample_t* q, size_t len )
+float_t  scalar1n_float32 ( const sample_t* p, const sample_t* q, usize len )
 {
     float_t sum;
 
@@ -1558,17 +1558,17 @@ int  resample_close ( INOUT resample_t* const r )
 int  resample_buffer (                          // return code, 0 for success
         INOUT resample_t *const   r,            // internal structure
         IN    sample_t   *const   out,          // where to write the output data
-        INOUT size_t     *const   out_req_len,  // requested output data len/really written output data len
+        INOUT usize     *const   out_req_len,  // requested output data len/really written output data len
         OUT   sample_t   *const   in,           // where are the input data?
-        INOUT size_t     *const   in_avail_len, // available input data len/consumed input data len
-        OUT   size_t              channel )     // number of the channel (needed for internal buffering)
+        INOUT usize     *const   in_avail_len, // available input data len/consumed input data len
+        OUT   usize              channel )     // number of the channel (needed for internal buffering)
 {
     sample_t*  p           = out;
     sample_t*  in_old      = r->in_old [channel];
-    size_t     len         = *in_avail_len;
-    size_t     desired_len = *out_req_len;
-    size_t     i;
-    size_t     k;
+    usize     len         = *in_avail_len;
+    usize     desired_len = *out_req_len;
+    usize     i;
+    usize     k;
     int        l;
 
     FN("resample_buffer");

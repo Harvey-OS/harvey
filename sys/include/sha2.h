@@ -77,18 +77,18 @@ struct SHA512Ctx
 
 
 void		SHA224_Init(SHA224Ctx *);
-void		SHA224_Update(SHA224Ctx *, const u8 *, size_t);
+void		SHA224_Update(SHA224Ctx *, const u8 *, usize);
 void		SHA224_Final(u8[SHA224DigestLength], SHA224Ctx *);
 
 void		SHA256_Init(SHA256Ctx *);
-void		SHA256_Update(SHA256Ctx *, const u8 *, size_t);
+void		SHA256_Update(SHA256Ctx *, const u8 *, usize);
 void		SHA256_Final(u8[SHA256DigestLength], SHA256Ctx *);
 
 void		SHA384_Init(SHA384Ctx *);
-void		SHA384_Update(SHA384Ctx *, const u8 *, size_t);
+void		SHA384_Update(SHA384Ctx *, const u8 *, usize);
 void		SHA384_Final(u8[SHA384DigestLength], SHA384Ctx *);
 
 void		SHA512_Init(SHA512Ctx *);
-void		SHA512_Update(SHA512Ctx *, const u8 *, size_t);
+void		SHA512_Update(SHA512Ctx *, const u8 *, usize);
 void		SHA512_Final(u8[SHA512DigestLength], SHA512Ctx *);
 

@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-size_t
-strlcat(char *dst, const char *src, size_t size)
+usize
+strlcat(char *dst, const char *src, usize size)
 {
-	size_t len, n;
+	usize len, n;
 
 	/*
 	 * This mimics the OpenBSD semantics most closely.

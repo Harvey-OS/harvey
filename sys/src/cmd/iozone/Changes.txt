@@ -601,7 +601,7 @@ Add RCS Header to support versioning.
 ----------------------------
 Revision 1.36        
 date: 98/04/22 15:38:26;  author: capps;  state: Exp;  lines added/del: 1/1
-fix to bcopy() third arg needs to be size_t for 32 bit mode.
+fix to bcopy() third arg needs to be usize for 32 bit mode.
 ----------------------------
 Revision 1.35        
 date: 98/04/22 09:09:24;  author: capps;  state: Exp;  lines added/del: 17/17
@@ -625,7 +625,7 @@ Fixes for 32 bit mode.
 ----------------------------
 Revision 1.31        
 date: 98/04/20 16:57:29;  author: capps;  state: Exp;  lines added/del: 8/8
-make sure malloc is called with (size_t) parameter.
+make sure malloc is called with (usize) parameter.
 ----------------------------
 Revision 1.30        
 date: 98/04/20 16:05:08;  author: capps;  state: Exp;  lines added/del: 933/757
@@ -1585,7 +1585,7 @@ Add pread/pwrite throughput testing
 =============================================================================
 Revision 3.153 
 =============================================================================
-Changed second parameter to mmap() to be size_t. AIX needs this.
+Changed second parameter to mmap() to be usize. AIX needs this.
 =============================================================================
 Revision 3.154 
 =============================================================================

@@ -24,7 +24,7 @@
 #define fcntl(fd, op, arg)	/* unix compatibility */
 #define F_SETFD
 #define FD_CLOEXEC
-#define YYSIZE_T size_t		/* GNU Bison/yacc has hundred of types :( */
+#define YYSIZE_T usize		/* GNU Bison/yacc has hundred of types :( */
 #else
 #include "unix.h"
 #endif

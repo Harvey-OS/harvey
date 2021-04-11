@@ -1,6 +1,6 @@
 %{
 #include	"grep.h"
-#define YYSIZE_T size_t
+#define YYSIZE_T usize
 	long yylex(void);
 %}
 

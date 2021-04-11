@@ -6,7 +6,7 @@
 #define Extern extern
 #include "acid.h"
 
-#define YYSIZE_T size_t
+#define YYSIZE_T usize
 %}
 
 %union

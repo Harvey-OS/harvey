@@ -16,10 +16,10 @@
  * mem routines
  */
 extern	void*	memccpy(void*, const void*, int, u32);
-extern	void*	memset(void*, int, size_t);
+extern	void*	memset(void*, int, usize);
 extern	int	memcmp(const void*, const void*, u32);
-extern	void*	memcpy(void*, const void*, size_t);
-extern	void*	memmove(void*, const void*, size_t);
+extern	void*	memcpy(void*, const void*, usize);
+extern	void*	memmove(void*, const void*, usize);
 extern	void*	memchr(const void*, int, u32);
 
 /*
@@ -31,8 +31,8 @@ extern	int	strcmp(const char*, const char*);
 extern	char*	strcpy(char*, const char*);
 extern	char*	strecpy(char*, char *, const char*);
 extern	char*	strdup(const char*);
-extern	size_t	strlcat(char *, const char *, size_t);
-extern	size_t	strlcpy(char *, const char *, size_t);
+extern	usize	strlcat(char *, const char *, usize);
+extern	usize	strlcpy(char *, const char *, usize);
 extern	char*	strncat(char*, const char*, i32);
 extern	char*	strncpy(char*, const char*, u32);
 extern	int	strncmp(const char*, const char*, i32);
@@ -101,13 +101,13 @@ extern	int	isupperrune(Rune);
 /*
  * malloc
  */
-extern	void*	malloc(size_t);
+extern	void*	malloc(usize);
 extern	void*	mallocz(u32, int);
 extern	void	free(void*);
 extern	u32	msize(void*);
 extern	void*	mallocalign(u32, u32, i32, u32);
-extern	void*	calloc(u32, size_t);
-extern	void*	realloc(void*, size_t);
+extern	void*	calloc(u32, usize);
+extern	void*	realloc(void*, usize);
 void	setmalloctag(void*, uintptr_t);
 void	setrealloctag(void*, uintptr_t);
 uintptr_t	getmalloctag(void*);
@@ -318,7 +318,7 @@ extern	int	enc16(char*, int, const u8*, int);
 extern	int	encodefmt(Fmt*);
 extern	void	exits(const char*);
 extern	double	frexp(double, int*);
-extern	void	getcallstack(uintptr *, size_t);
+extern	void	getcallstack(uintptr *, usize);
 extern	char*	getenv(const char*);
 extern	int	getfields(char*, char**, int, int, const char*);
 extern	int	gettokens(char *, char **, int, const char *);
@@ -689,28 +689,28 @@ extern char *argv0;
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */
 extern	char	end[];
 
-void* reallocarray(void *base, size_t nel, size_t size);
+void* reallocarray(void *base, usize nel, usize size);
 
 typedef struct PSlice PSlice;
 
 struct PSlice {
 	void **ptrs;
-	size_t len;
-	size_t capacity;
+	usize len;
+	usize capacity;
 };
 
 void psliceinit(PSlice *slice);
 void psliceclear(PSlice *slice);
-void *psliceget(PSlice *slice, size_t i);
-int psliceput(PSlice *slice, size_t i, void *p);
-int pslicedel(PSlice *slice, size_t i);
+void *psliceget(PSlice *slice, usize i);
+int psliceput(PSlice *slice, usize i, void *p);
+int pslicedel(PSlice *slice, usize i);
 void psliceappend(PSlice *s, void *p);
-size_t pslicelen(PSlice *slice);
+usize pslicelen(PSlice *slice);
 void **pslicefinalize(PSlice *slice);
 void pslicedestroy(PSlice *slice);
 
 /* configstring functions. These are from riscv but the idea is so good
  * it might have other uses. */
-void query_mem(const char *config_string, uintptr_t *base, size_t *size);
+void query_mem(const char *config_string, uintptr_t *base, usize *size);
 void query_rtc(const char *config_string, uintptr_t *mtime);
 int query_uint(const char *configstring, char *name, uintptr_t *m);
