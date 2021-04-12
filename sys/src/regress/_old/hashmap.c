@@ -22,13 +22,13 @@ main(void)
 
 	for(j = 0; j < 100; j++){
 		nkeys = maxkeys / (100-j);
-		uintptr_t rnd = (uintptr_t)rand() << 32;
+		usize rnd = (usize)rand() << 32;
 		rnd |= rand();
 		rnd &= ~1023ull;
 		if(j == 99)
 			rnd = 0;
 		for(i = 0; i < nkeys; i++)
-			keys[i] = rnd + ((uintptr_t)i<<12);
+			keys[i] = rnd + ((usize)i<<12);
 
 		for(i = 0; i < nkeys; i++){
 			int err;
@@ -82,7 +82,7 @@ main(void)
 
 	for(j = 0; j < 100*maxkeys; j++){
 		i = rand()%maxkeys;
-		uintptr_t key = (uintptr_t)keys[i];
+		usize key = (usize)keys[i];
 		if((key&1) == 0){
 			int err;
 			if((err = hmapput(&map, key, (u64)i)) != 0){
@@ -107,7 +107,7 @@ main(void)
 		}
 	}
 	for(i = 0; i < maxkeys; i++){
-		uintptr_t key = (uintptr_t)keys[i];
+		usize key = (usize)keys[i];
 		if((key&1) == 0)
 			continue;
 		u64 val;

@@ -422,7 +422,7 @@ slave(Fsrpc *f)
 {
 	int r;
 	Proc *p;
-	uintptr pid;
+	usize pid;
 	static int nproc;
 
 	for(;;) {
@@ -430,7 +430,7 @@ slave(Fsrpc *f)
 			if(p->busy == 0) {
 				f->pid = p->pid;
 				p->busy = 1;
-				pid = (uintptr)rendezvous((void*)p->pid, f);
+				pid = (usize)rendezvous((void*)p->pid, f);
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
@@ -464,7 +464,7 @@ void
 blockingslave(void)
 {
 	Proc *m;
-	uintptr pid;
+	usize pid;
 	Fsrpc *p;
 	Fcall thdr;
 

@@ -1505,7 +1505,7 @@ nameof(Record *r)
 				i += snprint(buf+i, sizeof buf-i, "%d", s->name[1]);
 		}else
 			i = snprint(buf, sizeof buf, " %d", s->name[0]);
-		snprint(buf+i, sizeof buf-i, " %s", constel[(uintptr_t)s->name[2]]);
+		snprint(buf+i, sizeof buf-i, " %s", constel[(usize)s->name[2]]);
 		break;
 	case NGC:
 		n = &r->ngc;

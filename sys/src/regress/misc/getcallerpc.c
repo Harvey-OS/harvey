@@ -11,10 +11,10 @@ void b(void);
 
 void a(void)
 {
-	uintptr_t d = getcallerpc();
+	usize d = getcallerpc();
 	fprint(2, "This should print something more than %p and less than %p: %p\n",
 		b, c, d);
-	if ((d > (uintptr_t)b) && (d < (uintptr_t)c)) {
+	if ((d > (usize)b) && (d < (usize)c)) {
 		print("PASS\n");
 		exits(nil);
 		return;

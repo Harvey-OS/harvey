@@ -194,7 +194,7 @@ initiebucks(Part *part, int bits, u32 size)
 		return nil;
 	}
 	ib->xbuf = MKN(u8, size * ((1 << bits)+1));
-	ib->buf = (u8*)(((uintptr)ib->xbuf+size-1)&~(uintptr)(size-1));
+	ib->buf = (u8*)(((usize)ib->xbuf+size-1)&~(usize)(size-1));
 	if(ib->buf == nil){
 		seterr(EOk, "out of memory allocating sorting buckets' buffers");
 		freeiebucks(ib);

@@ -63,13 +63,13 @@ pte_ppn(u64 pte)
 }
 
 u64
-ptd_create(uintptr ppn)
+ptd_create(usize ppn)
 {
 	return (ppn << PTE_PPN_SHIFT) | PTE_V;
 }
 
 u64
-pte_create(uintptr ppn, int prot, int user)
+pte_create(usize ppn, int prot, int user)
 {
 	u64 pte = (ppn << PTE_PPN_SHIFT) | PTE_R | PTE_V;
 	if(prot & PTE_W)
@@ -82,10 +82,10 @@ pte_create(uintptr ppn, int prot, int user)
 }
 
 void
-rootput(uintptr root)
+rootput(usize root)
 {
 	Proc *up = externup();
-	uintptr ptbr = root >> RISCV_PGSHIFT;
+	usize ptbr = root >> RISCV_PGSHIFT;
 
 	if(0)
 		print("rootput %p pid %d\n", root, up ? up->pid : -1);
@@ -100,7 +100,7 @@ mmuflushtlb(void)
 		memset(UINT2PTR(machp()->MMU.root->va), 0, machp()->MMU.root->daddr * sizeof(PTE));
 		machp()->MMU.root->daddr = 0;
 	}
-	rootput((uintptr)machp()->MMU.root->pa);
+	rootput((usize)machp()->MMU.root->pa);
 }
 
 void
@@ -156,7 +156,7 @@ tabs(int n)
 }
 
 void
-dumpptepg(int lvl, uintptr pa)
+dumpptepg(int lvl, usize pa)
 {
 	PTE *pte;
 	int tab, i;
@@ -317,8 +317,8 @@ mmuswitch(Proc *proc)
 	}
 
 	if(0)
-		print("rootput %p\n", (void *)(uintptr)machp()->MMU.root->pa);
-	rootput((uintptr)machp()->MMU.root->pa);
+		print("rootput %p\n", (void *)(usize)machp()->MMU.root->pa);
+	rootput((usize)machp()->MMU.root->pa);
 	if(0)
 		print("splx\n");
 	splx(pl);
@@ -458,7 +458,7 @@ pteflags(uint attr)
 }
 
 void
-invlpg(uintptr _)
+invlpg(usize _)
 {
 	// TOODO
 	if(0)
@@ -472,7 +472,7 @@ invlpg(uintptr _)
  * For 1*GiB pages, we use two levels.
  */
 void
-mmuput(uintptr va, Page *pg, uint attr)
+mmuput(usize va, Page *pg, uint attr)
 {
 	Proc *up = externup();
 	int lvl, user, x, pgsz;
@@ -659,7 +659,7 @@ findKSeg2(void)
  * validity by testing PetP. To see how far it got, check
  * the return value. */
 int
-mmuwalk(PTE *root, uintptr va, int level, PTE **ret,
+mmuwalk(PTE *root, usize va, int level, PTE **ret,
 	u64 (*alloc)(usize))
 {
 	int l;
@@ -704,7 +704,7 @@ mmuwalk(PTE *root, uintptr va, int level, PTE **ret,
 }
 
 u64
-mmuphysaddr(uintptr va)
+mmuphysaddr(usize va)
 {
 	int l;
 	PTE *pte;
@@ -716,7 +716,7 @@ mmuphysaddr(uintptr va)
 	 * Given a VA, find the PA.
 	 * This is probably not the right interface,
 	 * but will do as an experiment. Usual
-	 * question, should va be void* or uintptr?
+	 * question, should va be void* or usize?
 	 */
 	print("machp() %p \n", machp());
 	print("mahcp()->MMU.root %p\n", machp()->MMU.root);
@@ -774,7 +774,7 @@ mmuinit(void)
 
 	machp()->MMU.root = &sys->root;
 
-	uintptr PhysicalRoot = read_csr(sptbr) << 12;
+	usize PhysicalRoot = read_csr(sptbr) << 12;
 	PTE *root = KADDR(PhysicalRoot);
 	print("Physical root is 0x%llx and root 0x %p\n", PhysicalRoot, root);
 	PTE *KzeroPTE;
@@ -795,7 +795,7 @@ mmuinit(void)
 	case 0:
 		machp()->MMU.root->pa = PhysicalRoot;
 		print("root is 0x%x\n", machp()->MMU.root->pa);
-		machp()->MMU.root->va = (uintptr)KADDR(machp()->MMU.root->pa);
+		machp()->MMU.root->va = (usize)KADDR(machp()->MMU.root->pa);
 		break;
 	}
 

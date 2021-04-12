@@ -66,7 +66,7 @@ arch_get_pc(GdbState *ks)
 	return 0;
 }
 
-void arch_set_pc(uintptr_t *regs, unsigned long pc)
+void arch_set_pc(usize *regs, unsigned long pc)
 {
 	// not yet.
 }

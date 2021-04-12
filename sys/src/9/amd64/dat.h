@@ -90,17 +90,17 @@ struct Lock {
 	u32 key;
 	int isilock;
 	Mpl pl;
-	uintptr _pc;
+	usize _pc;
 	Proc *p;
 	Mach *m;
 	u64 lockcycles;
 };
 
 struct Label {
-	uintptr sp;
-	uintptr pc;
-	uintptr fp;
-	uintptr _pad[13];
+	usize sp;
+	usize pc;
+	usize fp;
+	usize _pad[13];
 };
 
 struct Fxsave {
@@ -142,10 +142,10 @@ struct PNOTIFY {
 };
 
 struct Confmem {
-	uintptr base;
+	usize base;
 	usize npage;
-	uintptr kbase;
-	uintptr klimit;
+	usize kbase;
+	usize klimit;
 };
 
 struct Conf {
@@ -192,7 +192,7 @@ struct NIX {
  *  MMU stuff in Mach.
  */
 struct MMMU {
-	uintptr cr2;
+	usize cr2;
 	Page *pml4;	 /* pml4 for this processor */
 	Page pml4kludge; /* NIX KLUDGE: we need a page */
 };
@@ -266,12 +266,12 @@ enum {
  */
 struct Mach {
 	/* WARNING! Known to assembly! */
-	uintptr self; /* %gs:0 still gives us a Mach* */
+	usize self; /* %gs:0 still gives us a Mach* */
 	u64 splpc; /* pc of last caller to splhi */
 
 	Proc *proc;	   /* current process on this processor */
-	uintptr stack;   /* mach stack, kstack is in proc->kstack */
-	uintptr rathole; /* to save a reg in syscallentry */
+	usize stack;   /* mach stack, kstack is in proc->kstack */
+	usize rathole; /* to save a reg in syscallentry */
 	Proc *externup;	   /* Forsyth recommends we replace the global up with this. */
 	/* end warning, I think */
 
@@ -331,7 +331,7 @@ static_assert(sizeof(Mach) <= PGSZ, "Mach is too big");
 
 struct Stackframe {
 	Stackframe *next;
-	uintptr pc;
+	usize pc;
 };
 
 /*
@@ -442,10 +442,10 @@ struct {
 
 struct ISAConf {
 	char *type;
-	uintptr port;
+	usize port;
 	int irq;
 	u32 dma;
-	uintptr mem;
+	usize mem;
 	usize size;
 	u32 freq;
 

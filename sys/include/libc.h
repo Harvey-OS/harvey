@@ -9,7 +9,7 @@
 
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
-#define	offsetof(s, m)	(uintptr_t)(&(((s*)0)->m))
+#define	offsetof(s, m)	(usize)(&(((s*)0)->m))
 #define	assert(x)	do{if(!(x))_assert(#x);}while(0)
 
 /*
@@ -108,10 +108,10 @@ extern	u32	msize(void*);
 extern	void*	mallocalign(u32, u32, i32, u32);
 extern	void*	calloc(u32, usize);
 extern	void*	realloc(void*, usize);
-void	setmalloctag(void*, uintptr_t);
-void	setrealloctag(void*, uintptr_t);
-uintptr_t	getmalloctag(void*);
-uintptr_t	getrealloctag(void*);
+void	setmalloctag(void*, usize);
+void	setrealloctag(void*, usize);
+usize	getmalloctag(void*);
+usize	getrealloctag(void*);
 void*	malloctopoolblock(void*);
 
 /*
@@ -318,7 +318,7 @@ extern	int	enc16(char*, int, const u8*, int);
 extern	int	encodefmt(Fmt*);
 extern	void	exits(const char*);
 extern	double	frexp(double, int*);
-extern	void	getcallstack(uintptr *, usize);
+extern	void	getcallstack(usize *, usize);
 extern	char*	getenv(const char*);
 extern	int	getfields(char*, char**, int, int, const char*);
 extern	int	gettokens(char *, char **, int, const char *);
@@ -711,6 +711,6 @@ void pslicedestroy(PSlice *slice);
 
 /* configstring functions. These are from riscv but the idea is so good
  * it might have other uses. */
-void query_mem(const char *config_string, uintptr_t *base, usize *size);
-void query_rtc(const char *config_string, uintptr_t *mtime);
-int query_uint(const char *configstring, char *name, uintptr_t *m);
+void query_mem(const char *config_string, usize *base, usize *size);
+void query_rtc(const char *config_string, usize *mtime);
+int query_uint(const char *configstring, char *name, usize *m);

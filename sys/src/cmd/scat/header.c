@@ -150,7 +150,7 @@ getheader(char *rgn)
 			if(j >= nelem(Hproto))
 				j = 0;
 			if(strcmp(name, Hproto[j].name) == 0) {
-				hd.param[(uintptr_t)Hproto[j].offset] = atof(value);
+				hd.param[(usize)Hproto[j].offset] = atof(value);
 				break;
 			}
 		}

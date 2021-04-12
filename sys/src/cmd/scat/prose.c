@@ -60,7 +60,7 @@ prose(char *s, char *desc[][2], i16 index[])
 			*p++ = *s++;
 			continue;	/* below will copy the number */
 		}
-		if((i=index[(uintptr_t)*s]) == -1){
+		if((i=index[(usize)*s]) == -1){
 	Dup:
 			switch(*s){
 			default:

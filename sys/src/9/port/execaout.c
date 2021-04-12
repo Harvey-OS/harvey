@@ -112,12 +112,12 @@ l2be(i32 l)
  *
  */
 int
-aoutldseg(void *v, uintptr *entryp, Ldseg **rp, char *mach, u32 minpgsz)
+aoutldseg(void *v, usize *entryp, Ldseg **rp, char *mach, u32 minpgsz)
 {
 	Hdr *hdr = v;
 	Ldseg *ldseg;
 	i32 hdrsz, magic, textsz, datasz, bsssz;
-	uintptr textlim, datalim, bsslim;
+	usize textlim, datalim, bsslim;
 
 	magic = l2be(hdr->Exec.magic);
 	if(magic != AOUT_MAGIC){

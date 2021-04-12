@@ -206,7 +206,7 @@ static inline i64 get_sint(query_result res)
 }
 #endif
 
-void query_mem(const char *config_string, uintptr_t *base, usize *size)
+void query_mem(const char *config_string, usize *base, usize *size)
 {
 	*base = 0;
 	*size = 0;
@@ -221,22 +221,22 @@ void query_mem(const char *config_string, uintptr_t *base, usize *size)
 }
 
 /* query_rtc returns the physical address of the rtc. */
-void query_rtc(const char *config_string, uintptr_t *mtime)
+void query_rtc(const char *config_string, usize *mtime)
 {
 	*mtime = 0;
 	query_result res = query_config_string(config_string, "rtc{addr");
 	if (!res.start)
 		return;
-	*mtime = (uintptr_t)get_uint(res);
+	*mtime = (usize)get_uint(res);
 }
 
-int query_uint(const char *configstring, char *name, uintptr_t *res)
+int query_uint(const char *configstring, char *name, usize *res)
 {
 	query_result m;
 
 	m = query_config_string(configstring, name);
 	if (m.start) {
-		*res = (uintptr_t)get_uint(m);
+		*res = (usize)get_uint(m);
 		return 0;
 	}
 	return -1;

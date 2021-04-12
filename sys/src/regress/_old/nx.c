@@ -36,7 +36,7 @@ writeptr(char *name, void *ptr)
 		exits("notify fails");
 	}
 
-	*(uintptr_t*)ptr = 0xdeadbeef;
+	*(usize*)ptr = 0xdeadbeef;
 	print("FAIL %s\n", name);
 	exits("FAIL");
 }

@@ -22,9 +22,9 @@
 int cpuserver = 1;
 
 extern void (*consuartputs)(char *, int);
-void query_mem(const char *config_string, uintptr *base, usize *size);
-void query_rtc(const char *config_string, uintptr *mtime);
-void query_uint(const char *config_string, char *name, uintptr *val);
+void query_mem(const char *config_string, usize *base, usize *size);
+void query_rtc(const char *config_string, usize *mtime);
+void query_uint(const char *config_string, char *name, usize *val);
 
 void putchar(u8 c);
 
@@ -63,10 +63,10 @@ Mach m0;
 
 Sys asys, *sys = &asys;
 Conf conf;
-uintptr kseg0 = KZERO;
+usize kseg0 = KZERO;
 char *cputype = "riscv";
 i64 hz;
-uintptr rtc;
+usize rtc;
 
 /* I forget where this comes from and I don't care just now. */
 u32 kerndate;
@@ -84,7 +84,7 @@ void *kseg2;
 
 char *configstring; /* from coreboot, first arg to main */
 
-static uintptr sp; /* XXX - must go - user stack of init proc */
+static usize sp; /* XXX - must go - user stack of init proc */
 
 /* general purpose hart startup. We call this via startmach.
  * When we enter here, the machp() function is usable.
@@ -176,7 +176,7 @@ init0(void)
 
 	//debugtouser((void *)UTZERO);
 	memset(&u, 0, sizeof(u));
-	u.ip = (uintptr)init_main;
+	u.ip = (usize)init_main;
 	u.sp = sp;
 	u.a2 = USTKTOP - sizeof(Tos);
 	print("sstatus is 0x%x, sip is 0x%x, sie is 0x%x\n", read_csr(sstatus),
@@ -196,7 +196,7 @@ static char oargb[1024];
 static int oargblen;
 
 void
-bootargs(uintptr base)
+bootargs(usize base)
 {
 	int i;
 	u32 ssize;
@@ -264,7 +264,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(usize));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -413,7 +413,7 @@ check(void)
 // in this function. Hence, I've left some messages in that won't
 // print as an example of debugging.
 void
-bsp(void *stack, uintptr _configstring)
+bsp(void *stack, usize _configstring)
 {
 	msg("BSP starting\n");
 	kseg2 = findKSeg2();
@@ -427,13 +427,13 @@ bsp(void *stack, uintptr _configstring)
 	MACHP(0) = mach;
 
 	msg(configstring);
-	mach->self = (uintptr)mach;
+	mach->self = (usize)mach;
 	msg("SET SELF OK\n");
 	mach->machno = 0;
 	mach->online = 1;
 	mach->NIX.nixtype = NIXTC;
 	mach->stack = PTR2UINT(stack);
-	*(uintptr *)mach->stack = STACKGUARD;
+	*(usize *)mach->stack = STACKGUARD;
 	msg(configstring);
 	mach->externup = nil;
 	active.nonline = 1;
@@ -502,7 +502,7 @@ bsp(void *stack, uintptr _configstring)
 		msg("free ok\n");
 	}
 
-	query_uint(configstring, "uart{addr", (uintptr *)&uartpa);
+	query_uint(configstring, "uart{addr", (usize *)&uartpa);
 	uart = KADDR(uartpa);
 	print("\nHarvey\n");
 	/* you're going to love this. Print does not print the whole
@@ -515,9 +515,9 @@ bsp(void *stack, uintptr _configstring)
 	query_rtc(configstring, &rtc);
 	print("rtc: %p\n", rtc);
 
-	query_uint(configstring, "rtc{addr", (uintptr *)&mtimepa);
+	query_uint(configstring, "rtc{addr", (usize *)&mtimepa);
 	mtime = KADDR(mtimepa);
-	query_uint(configstring, "core{0{0{timecmp", (uintptr *)&mtimecmppa);
+	query_uint(configstring, "core{0{0{timecmp", (usize *)&mtimecmppa);
 	mtimecmp = KADDR(mtimecmppa);
 
 	print("mtime is %p and mtimecmp is %p\n", mtime, mtimecmp);
@@ -609,7 +609,7 @@ hardhalt(void)
 }
 
 void
-ureg2gdb(Ureg *u, uintptr *g)
+ureg2gdb(Ureg *u, usize *g)
 {
 	panic((char *)__func__);
 }
@@ -686,7 +686,7 @@ fpusysrforkchild(Proc *_, Proc *__)
 }
 
 int
-fpudevprocio(Proc *p, void *v, i32 _, uintptr __, int ___)
+fpudevprocio(Proc *p, void *v, i32 _, usize __, int ___)
 {
 	panic((char *)__func__);
 	return -1;

@@ -164,7 +164,7 @@
 #define COMPILER_DEPENDENT_INT64        i64
 #define COMPILER_DEPENDENT_UINT64       u64
 
-#define ACPI_UINTPTR_T      uintptr_t
+#define ACPI_UINTPTR_T      usize
 
 #define ACPI_USE_DO_WHILE_0
 #define ACPI_USE_LOCAL_CACHE

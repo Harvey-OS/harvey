@@ -409,7 +409,7 @@ typedef UINT64                          ACPI_PHYSICAL_ADDRESS;
  *
  ******************************************************************************/
 
-/* Use C99 uintptr_t for pointer casting if available, "void *" otherwise */
+/* Use C99 usize for pointer casting if available, "void *" otherwise */
 
 #ifndef ACPI_UINTPTR_T
 #define ACPI_UINTPTR_T                  void *

@@ -2060,7 +2060,7 @@ static SDev *
 iapnp(void)
 {
 	int n, nunit, type;
-	uintptr io;
+	usize io;
 	Ctlr *c;
 	Pcidev *p;
 	SDev *head, *tail, *s;

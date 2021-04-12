@@ -142,10 +142,10 @@ void
 pptr(io *f, void *v)
 {
 	int n;
-	uintptr p;
+	usize p;
 
-	p = (uintptr)v;
-	if(sizeof(uintptr) == sizeof(u64) && p>>32)
+	p = (usize)v;
+	if(sizeof(usize) == sizeof(u64) && p>>32)
 		for(n = 60;n>=32;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
 
 	for(n = 28;n>=0;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);

@@ -466,7 +466,7 @@ struct	Msgbuf
 		#define BTRACE	(1<<7)
 	Chan*	chan;		/* file server conn within a net. conn */
 	Msgbuf*	next;
-	uintptr	param;		/* misc. use; keep Conn* here */
+	usize	param;		/* misc. use; keep Conn* here */
 
 	int	category;
 	uchar*	data;		/* rp or wp: current processing point */

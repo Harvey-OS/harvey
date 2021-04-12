@@ -26,9 +26,9 @@ struct Bin
 {
 	Bin	*next;
 	u32	total;			/* total bytes allocated in can->next */
-	uintptr	pos;
-	uintptr	end;
-	uintptr	v;			/* last value allocated */
+	usize	pos;
+	usize	end;
+	usize	v;			/* last value allocated */
 	u8	body[BinSize];
 };
 
@@ -47,8 +47,8 @@ mkbin(Bin *bin, u32 size)
 	b->next = bin;
 	b->total = 0;
 	if(bin != nil)
-		b->total = bin->total + bin->pos - (uintptr)bin->body;
-	b->pos = (uintptr)b->body;
+		b->total = bin->total + bin->pos - (usize)bin->body;
+	b->pos = (usize)b->body;
 	b->end = b->pos + size;
 	return b;
 }
@@ -57,7 +57,7 @@ void*
 binalloc(Bin **bin, u32 size, int zero)
 {
 	Bin *b;
-	uintptr p;
+	usize p;
 
 	if(size == 0)
 		size = 1;
@@ -89,9 +89,9 @@ bingrow(Bin **bin, void *op, u32 osize, u32 size, int zero)
 {
 	Bin *b;
 	void *np;
-	uintptr p;
+	usize p;
 
-	p = (uintptr)op;
+	p = (usize)op;
 	b = *bin;
 	if(b != nil && p == b->v && p + size <= b->end){
 		b->pos = p + size;
@@ -114,7 +114,7 @@ binfree(Bin **bin)
 	while(*bin != nil){
 		last = *bin;
 		*bin = (*bin)->next;
-		last->pos = (uintptr)last->body;
+		last->pos = (usize)last->body;
 		free(last);
 	}
 }

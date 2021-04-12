@@ -6,7 +6,7 @@ enum {
 	Nproc = 64,
 };
 
-extern uintptr_t gettls0(void);
+extern usize gettls0(void);
 u64 table[32];
 
 void

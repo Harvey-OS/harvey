@@ -13,8 +13,8 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa) UINT2PTR(kseg0 + ((uintptr)(pa)))
-#define _PADDR(va) PTR2UINT(((uintptr)(va)) - kseg0)
+#define _KADDR(pa) UINT2PTR(kseg0 + ((usize)(pa)))
+#define _PADDR(va) PTR2UINT(((usize)(va)) - kseg0)
 
 /* physical is from 2 -> 4 GiB */
 #define TMFM (4ULL * GiB)
@@ -22,16 +22,16 @@
 /* the wacko hole in RISCV address space makes KADDR a bit more complex. */
 int km, ku, k2;
 void *
-KADDR(uintptr pa)
+KADDR(usize pa)
 {
 	if((pa > 2 * GiB) && (pa < TMFM)){
 		km++;
 		return (void *)(KSEG0 | pa);
 	}
 
-	assert(pa < (uintptr)kseg2);
+	assert(pa < (usize)kseg2);
 	k2++;
-	return (void *)((uintptr)kseg2 | pa);
+	return (void *)((usize)kseg2 | pa);
 }
 
 u64
@@ -43,8 +43,8 @@ PADDR(void *va)
 	if(pa >= KSEG0){
 		return (u64)(u32)pa;	     //-KSEG0;
 	}
-	if(pa > (uintptr)kseg2){
-		return pa - (uintptr)kseg2;
+	if(pa > (usize)kseg2){
+		return pa - (usize)kseg2;
 	}
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc());

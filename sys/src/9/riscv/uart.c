@@ -29,7 +29,7 @@ void lowrisc_flush(int idx);
 // At some point it will be ready.
 
 extern u8 *uart;
-extern uintptr uartpa;
+extern usize uartpa;
 
 static void
 spike_putchar(u8 c)

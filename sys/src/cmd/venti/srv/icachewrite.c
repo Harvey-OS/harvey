@@ -226,7 +226,7 @@ icachewriteproc(void *v)
 
 	bsize = 1<<is->blocklog;
 	buf = emalloc(Bufsize+bsize);
-	buf = (u8*)(((uintptr)buf+bsize-1)&~(uintptr)(bsize-1));
+	buf = (u8*)(((usize)buf+bsize-1)&~(usize)(bsize-1));
 
 	for(;;){
 		trace(TraceProc, "icachewriteproc recv");

@@ -746,7 +746,7 @@ void
 addfuncs(int infd)
 {
 	int intern;
-	uintptr ok = 1;
+	usize ok = 1;
 	char atom[Maxid];
 	Biobuf inbb;
 	Biobuf *in;
@@ -759,7 +759,7 @@ addfuncs(int infd)
 		if (intern == Call)
 			ok = add2call(atom, curproc);	/* function call */
 		else
-			ok = (uintptr)(curproc = newproc(atom)); /* fn def'n */
+			ok = (usize)(curproc = newproc(atom)); /* fn def'n */
 	Bterm(in);
 }
 

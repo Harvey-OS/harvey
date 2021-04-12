@@ -64,7 +64,7 @@ choochar(void)
 int
 point(char *ss)
 {
-	i64 s = (uintptr)ss;
+	i64 s = (usize)ss;
 
 	return(s >= 128 || s < 0);
 }

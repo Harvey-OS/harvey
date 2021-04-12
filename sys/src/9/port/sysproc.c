@@ -296,7 +296,7 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 	// This line array is an accident waiting to happen but ...
 	char line[64], aoutheader[64], *progarg[sizeof(line) / 2 + 1];
 	i32 hdrsz;
-	uintptr entry, stack;
+	usize entry, stack;
 	int plan9 = 0;
 
 	file = nil;
@@ -536,7 +536,7 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 		*--argv = p + (USTKTOP - TSTKTOP);
 		p += strlen(p) + 1;
 	}
-	*--argv = (void *)(uintptr)argc;
+	*--argv = (void *)(usize)argc;
 
 	/*
 	 * Make a good faith copy of the args in up->args using the strings
@@ -598,7 +598,7 @@ execac(Ar0 *ar0, int flags, char *ufile, char **argv)
 	relocateseg(s, USTKTOP - TSTKTOP);
 
 	img = nil;
-	uintptr datalim;
+	usize datalim;
 	datalim = 0;
 	for(i = 0; i < nldseg; i++){
 
@@ -956,7 +956,7 @@ sysrendezvous(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Proc *p, **l;
-	uintptr tag, val;
+	usize tag, val;
 	va_list list;
 	va_start(list, ar0);
 

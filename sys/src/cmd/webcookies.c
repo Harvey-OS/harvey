@@ -1011,7 +1011,7 @@ fsopen(Req *r)
 	int i, sz;
 	Aux *a;
 
-	switch((uintptr)r->fid->file->aux){
+	switch((usize)r->fid->file->aux){
 	case Xhttp:
 		syncjar(jar);
 		a = emalloc9p(sizeof(Aux));
@@ -1047,7 +1047,7 @@ fsread(Req *r)
 	Aux *a;
 
 	a = r->fid->aux;
-	switch((uintptr)r->fid->file->aux){
+	switch((usize)r->fid->file->aux){
 	case Xhttp:
 		if(a->state == NeedUrl){
 			respond(r, "must write url before read");
@@ -1079,7 +1079,7 @@ fswrite(Req *r)
 	Jar *j;
 
 	a = r->fid->aux;
-	switch((uintptr)r->fid->file->aux){
+	switch((usize)r->fid->file->aux){
 	case Xhttp:
 		if(a->state == NeedUrl){
 			if(r->ifcall.count >= sizeof buf){
@@ -1165,7 +1165,7 @@ fsdestroyfid(Fid *fid)
 	a = fid->aux;
 	if(a == nil)
 		return;
-	switch((uintptr)fid->file->aux){
+	switch((usize)fid->file->aux){
 	case Xhttp:
 		parsehttp(jar, a->inhttp, a->dom, a->path);
 		break;

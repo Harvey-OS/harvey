@@ -286,7 +286,7 @@ struct RR
 	RR	*next;
 	u32	magic;
 	DN	*owner;		/* domain that owns this resource record */
-	uintptr	pc;		/* for tracking memory allocation */
+	usize	pc;		/* for tracking memory allocation */
 	u32	ttl;		/* time to live to be passed on */
 	u32	expire;		/* time this entry expires locally */
 	u32	marker;		/* used locally when scanning rrlists */
@@ -304,7 +304,7 @@ struct RR
 		DN	*mb;	/* mailbox - mg, minfo */
 		DN	*ip;	/* ip address - a, aaaa */
 		DN	*rp;	/* rp arg - rp */
-		uintptr	arg0;	/* arg[01] are compared to find dups in dn.c */
+		usize	arg0;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated by negative & type */
 		int	negrcode; /* response code for cached negative resp. */
@@ -314,7 +314,7 @@ struct RR
 		u32	pref;	/* preference value - mx */
 		u32	local;	/* ns served from local database - ns */
 		u16	port;	/* - srv */
-		uintptr	arg1;	/* arg[01] are compared to find dups in dn.c */
+		usize	arg1;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated by type */
 		SOA	*soa;	/* soa timers - soa */

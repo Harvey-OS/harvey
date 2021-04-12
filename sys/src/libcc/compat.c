@@ -51,6 +51,6 @@ mallocz(u32 size, int clr)
 }
 
 void
-setmalloctag(void* v, uintptr_t u)
+setmalloctag(void* v, usize u)
 {
 }

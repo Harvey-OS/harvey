@@ -95,7 +95,7 @@ memset(void* dest, int c0, usize length)
                c = (c << 32) | c;      /* u64 is 64 bits. */
         }
         /* Align destination by filling in bytes. */
-        if ((t = (uintptr_t)dst & wmask) != 0) {
+        if ((t = (usize)dst & wmask) != 0) {
                 t = wsize - t;
                 length -= t;
                 do {

@@ -847,7 +847,7 @@ i82563rballoc(void)
 static void
 i82563rbfree(Block *b)
 {
-	b->rp = b->wp = (u8 *)PGROUND((uintptr)b->base);
+	b->rp = b->wp = (u8 *)PGROUND((usize)b->base);
 	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;

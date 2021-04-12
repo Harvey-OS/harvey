@@ -18,7 +18,7 @@ main(int argc, char *argv[])
 {
 	char p[16];
 
-	if(((uintptr_t)&p & 15) != 0){
+	if(((usize)&p & 15) != 0){
 		print("%p not 16-byte aligned\n", &p);
 		exits("not 16-byte aligned");
 	}

@@ -691,7 +691,7 @@ fail:
  * Third and following words are PCs, there must be at least one of them.
  */
 void
-oprofile_add_backtrace(uintptr pc, uintptr fp)
+oprofile_add_backtrace(usize pc, usize fp)
 {
 	/* version 1. */
 	u64 descriptor = 0xee01ULL << 48;
@@ -710,7 +710,7 @@ oprofile_add_backtrace(uintptr pc, uintptr fp)
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
 	u64 event = fastticks2ns(rdtsc());
 
-	uintptr bt_pcs[oprofile_backtrace_depth];
+	usize bt_pcs[oprofile_backtrace_depth];
 
 	int nr_pcs;
 	nr_pcs = backtrace_list(pc, fp, bt_pcs, oprofile_backtrace_depth);
@@ -728,14 +728,14 @@ oprofile_add_backtrace(uintptr pc, uintptr fp)
 	sample = entry.sample;
 	sample->eip = descriptor;
 	sample->event = event;
-	memmove(sample->data, bt_pcs, sizeof(uintptr) * nr_pcs);
+	memmove(sample->data, bt_pcs, sizeof(usize) * nr_pcs);
 
 	//print_func_exit();
 	return;
 }
 
 void
-oprofile_add_userpc(uintptr pc)
+oprofile_add_userpc(usize pc)
 {
 	struct oprofile_cpu_buffer *cpu_buf;
 	u32 pcoreid = machp()->machno;

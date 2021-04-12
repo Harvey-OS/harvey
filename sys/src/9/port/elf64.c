@@ -282,13 +282,13 @@ static struct {
 };
 
 static int
-ispow2(uintptr a)
+ispow2(usize a)
 {
 	return ((a != 0) && (a & (a - 1)) == 0);
 }
 
 static int
-overlap(uintptr a0, uintptr aend, uintptr b0, uintptr bend)
+overlap(usize a0, usize aend, usize b0, usize bend)
 {
 	u64 max0, minend;
 	max0 = a0 > b0 ? a0 : b0;
@@ -300,7 +300,7 @@ overlap(uintptr a0, uintptr aend, uintptr b0, uintptr bend)
  *	return the number of ldsegs in rp
  */
 int
-elf64ldseg(Chan *c, uintptr *entryp, Ldseg **rp, char *mach, u32 minpgsz)
+elf64ldseg(Chan *c, usize *entryp, Ldseg **rp, char *mach, u32 minpgsz)
 {
 	Proc *up = externup();
 	Elf64_Ehdr ehdr;

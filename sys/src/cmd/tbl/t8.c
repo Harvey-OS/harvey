@@ -38,14 +38,14 @@ putline(int i, int nl)
 					if (!vspen(ss))
 						break;
 				}
-				s = (int)(uintptr)ss;
+				s = (int)(usize)ss;
 				if (s > 0 && s < 128)
 					Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
 				continue;
 			}
 			if (point(ss))
 				continue;
-			s = (int)(uintptr)ss;
+			s = (int)(usize)ss;
 			Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
 			watchout = 1;
 		}
@@ -86,7 +86,7 @@ putline(int i, int nl)
 			chfont = 1;
 		if (point(ss) )
 			continue;
-		s = (int)(uintptr)ss;
+		s = (int)(usize)ss;
 		lf = prev(nl);
 		if (lf >= 0 && vspen(table[lf][c].col))
 			Bprint(&tabout,
@@ -305,7 +305,7 @@ funnies(int stl, int lin)
 			continue;
 		if (ss == 0)
 			continue;
-		s = (int)(uintptr)ss;
+		s = (int)(usize)ss;
 		Bprint(&tabout, ".sp |\\n(##u-1v\n");
 		Bprint(&tabout, ".nr %d ", SIND);
 		ct = 0;

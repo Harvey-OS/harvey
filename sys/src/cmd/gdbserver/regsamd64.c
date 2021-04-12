@@ -149,15 +149,15 @@ gdb_hex_reg_helper(GdbState *ks, int regnum, char *out) {
 		return zerohex(out, reg->size);
 	}
 
-	uintptr_t regaddr;
+	usize regaddr;
 	if (regnum <= GDB_LAST_GP_REG) {
 		// GP register
 		syslog(0, "gdbserver", "gp reg: %d", regnum);
-		regaddr = (uintptr_t)ks->gdbregs + reg->offset;
+		regaddr = (usize)ks->gdbregs + reg->offset;
 	} else {
 		// FPU register
 		syslog(0, "gdbserver", "fpu reg: %d", regnum);
-		regaddr = (uintptr_t)ks->fpregs + reg->offset;
+		regaddr = (usize)ks->fpregs + reg->offset;
 	}
 
 	return mem2hex((void *)regaddr, out, reg->size);
@@ -171,13 +171,13 @@ arch_get_reg(GdbState *ks, int regnum) {
 
 	Reg *reg = &gdbregs[regnum];
 
-	uintptr_t regaddr;
+	usize regaddr;
 	if (regnum <= GDB_LAST_GP_REG) {
 		// GP register
-		regaddr = (uintptr_t)ks->gdbregs + reg->offset;
+		regaddr = (usize)ks->gdbregs + reg->offset;
 	} else {
 		// FPU register
-		regaddr = (uintptr_t)ks->fpregs + reg->offset;
+		regaddr = (usize)ks->fpregs + reg->offset;
 	}
 
 	if (reg->size == 4) {
@@ -197,7 +197,7 @@ arch_get_pc(GdbState *ks)
 	return pc;
 }
 
-void arch_set_pc(uintptr_t *regs, unsigned long pc)
+void arch_set_pc(usize *regs, unsigned long pc)
 {
 	// not yet.
 }

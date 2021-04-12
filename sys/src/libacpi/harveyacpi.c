@@ -43,7 +43,7 @@ hexdump(void *v, int length)
 {
 	int i;
 	u8 *m = v;
-	uintptr_t memory = (uintptr_t) v;
+	usize memory = (usize) v;
 	int all_zero = 0;
 	if (debug)
 		fprint(2, "hexdump: %p, %u\n", v, length);
@@ -371,7 +371,7 @@ ACPI_STATUS
 AcpiOsGetPhysicalAddress(void *LogicalAddress,
 						 ACPI_PHYSICAL_ADDRESS * PhysicalAddress)
 {
-	ACPI_PHYSICAL_ADDRESS ret = (uintptr_t) LogicalAddress;
+	ACPI_PHYSICAL_ADDRESS ret = (usize) LogicalAddress;
 	if (debug)
 		fprint(2, "%s %p = %p", __func__, (void *)ret, LogicalAddress);
 	*PhysicalAddress = ret;
@@ -738,7 +738,7 @@ void hexdump(void *v, int length)
 {
 	int i;
 	u8 *m = v;
-	uintptr_t memory = (uintptr_t) v;
+	usize memory = (usize) v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);
 	for (i = 0; i < length; i += 16) {

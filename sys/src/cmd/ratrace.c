@@ -65,12 +65,12 @@ void
 reader(void *v)
 {
 	int cfd, tfd, exiting, pid;
-	uintptr_t newpid;
+	usize newpid;
 	char *ctl, *truss;
 	Str *s;
 	static char waitstop[] = "waitstop";
 
-	pid = (int)(uintptr)v;
+	pid = (int)(usize)v;
 	if (debug)
 		fprint(outf, "DEBUG: -------------> reader starts with pid %d\n", pid);
 	ctl = smprint("/proc/%d/ctl", pid);
@@ -255,5 +255,5 @@ threadmain(int argc, char **argv)
 	forkc = chancreate(sizeof(u32 *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);
-	reader((void*)(uintptr_t)pid);
+	reader((void*)(usize)pid);
 }

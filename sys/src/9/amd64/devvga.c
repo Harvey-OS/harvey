@@ -84,7 +84,7 @@ rmemrw(int isr, void *a, long n, i64 off)
 			return 0;
 		if(off + n >= MB)
 			n = MB - off;
-		memmove(a, KADDR((uintptr)off), n);
+		memmove(a, KADDR((usize)off), n);
 	} else {
 		/* realmode buf page ok, allow vga framebuf's access */
 		if(off >= MB)
@@ -99,7 +99,7 @@ rmemrw(int isr, void *a, long n, i64 off)
 			error("off < 0xa0000");
 		if(off + n > 0xB0000 + 0x10000)
 			error("off+n > 0xb0000+0x10000");
-		memmove(KADDR((uintptr)off), a, n);
+		memmove(KADDR((usize)off), a, n);
 	}
 	return n;
 }

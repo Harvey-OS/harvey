@@ -206,7 +206,7 @@ int trip;
  * can be called with up == nil during boot.
  */
 Page *
-newpage(int clear, Segment **s, uintptr va, usize size, int color)
+newpage(int clear, Segment **s, usize va, usize size, int color)
 {
 	Page *p;
 	KMap *k;

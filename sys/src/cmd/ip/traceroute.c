@@ -343,7 +343,7 @@ void
 main(int argc, char **argv)
 {
 	int buckets, ttl, j, done, tries, notranslate;
-	uintptr lo, hi, sum, x;
+	usize lo, hi, sum, x;
 	i32 *t;
 	char *net, *p;
 	char clone[Maxpath], dest[Maxstring], hop[Maxstring], dom[Maxstring];
@@ -381,7 +381,7 @@ main(int argc, char **argv)
 	if(argc < 1)
 		usage();
 
-	t = malloc(tries*sizeof(uintptr));
+	t = malloc(tries*sizeof(usize));
 
 	dial_string_parse(argv[0], &ds);
 

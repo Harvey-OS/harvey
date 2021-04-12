@@ -211,7 +211,7 @@ imagechanreclaim(void)
 }
 
 Image *
-attachimage(int type, Chan *c, int color, uintptr base, usize len)
+attachimage(int type, Chan *c, int color, usize base, usize len)
 {
 	Proc *up = externup();
 	Image *i, **l;

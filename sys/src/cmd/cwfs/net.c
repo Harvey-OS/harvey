@@ -313,7 +313,7 @@ connection(void *v)
 	while (conn9p->fd > 0 && (n = readalloc9pmsg(conn9p->fd, &mb)) >= 0) {
 		if(n == 0)
 			continue;
-		mb->param = (uintptr)conn9p;	/* has fd for replies */
+		mb->param = (usize)conn9p;	/* has fd for replies */
 		mb->chan = chan9p;
 
 		assert(mb->magic == Mbmagic);

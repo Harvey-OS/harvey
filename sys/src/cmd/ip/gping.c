@@ -69,12 +69,12 @@ struct Machine
 	int	nproc;
 
 	int	rttmsgs;
-	uintptr	rttsum;
-	uintptr	lastrtt;
+	usize	rttsum;
+	usize	lastrtt;
 
 	int	lostmsgs;
 	int	rcvdmsgs;
-	uintptr	lostavg;
+	usize	lostavg;
 	int	unreachable;
 
 	u16	seq;

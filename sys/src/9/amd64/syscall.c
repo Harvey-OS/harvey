@@ -25,7 +25,7 @@
 extern int nosmp;
 
 typedef struct {
-	uintptr ip;
+	usize ip;
 	Ureg *arg0;
 	char *arg1;
 	char msg[ERRMAX];
@@ -37,7 +37,7 @@ typedef struct {
  *   Return user to state before notify()
  */
 void
-noted(Ureg *cur, uintptr arg0)
+noted(Ureg *cur, usize arg0)
 {
 	Proc *up = externup();
 	NFrame *nf;
@@ -137,7 +137,7 @@ notify(Ureg *ureg)
 	int l;
 	Mpl pl;
 	Note note;
-	uintptr sp;
+	usize sp;
 	NFrame *nf;
 
 	/*
@@ -200,8 +200,8 @@ notify(Ureg *ureg)
 	memmove(nf->msg, note.msg, ERRMAX);
 	nf->arg1 = nf->msg;
 	nf->arg0 = &nf->ureg;
-	ureg->di = (uintptr)nf->arg0;
-	ureg->si = (uintptr)nf->arg1;
+	ureg->di = (usize)nf->arg0;
+	ureg->si = (usize)nf->arg1;
 	ureg->bp = PTR2UINT(nf->arg0);
 	nf->ip = 0;
 
@@ -244,8 +244,8 @@ void
 syscall(unsigned int scallnr, Ureg *ureg)
 {
 	// can only handle 6 args right now.
-	uintptr a0, a1, a2, a3;
-	uintptr a4, a5;
+	usize a0, a1, a2, a3;
+	usize a4, a5;
 	u64 *retptr;
 
 	Proc *up = externup();
@@ -279,7 +279,7 @@ syscall(unsigned int scallnr, Ureg *ureg)
 	if(0)
 		iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
-	uintptr sp;
+	usize sp;
 	int s;
 	i64 startns, stopns;
 	Ar0 ar0;
@@ -468,10 +468,10 @@ syscall(unsigned int scallnr, Ureg *ureg)
 		hi("done kexit\n");
 }
 
-uintptr
-sysexecstack(uintptr stack, int argc)
+usize
+sysexecstack(usize stack, int argc)
 {
-	uintptr sp;
+	usize sp;
 	/*
 	 * Given a current bottom-of-stack and a count
 	 * of pointer arguments to be pushed onto it followed
@@ -503,10 +503,10 @@ sysexecstack(uintptr stack, int argc)
 }
 
 void *
-sysexecregs(uintptr entry, u32 ssize, void *tos)
+sysexecregs(usize entry, u32 ssize, void *tos)
 {
 	Proc *up = externup();
-	uintptr *sp;
+	usize *sp;
 	Ureg *ureg;
 
 	// We made sure it was correctly aligned in sysexecstack, above.
@@ -514,13 +514,13 @@ sysexecregs(uintptr entry, u32 ssize, void *tos)
 		print("your stack is wrong: stacksize is not 16-byte aligned: %d\n", ssize);
 		panic("misaligned stack in sysexecregs");
 	}
-	sp = (uintptr *)(USTKTOP - ssize);
+	sp = (usize *)(USTKTOP - ssize);
 
 	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
 	ureg->type = 64; /* fiction for acid */
-	ureg->dx = (uintptr)tos;
+	ureg->dx = (usize)tos;
 
 	/*
 	 * return the address of kernel/user shared data

@@ -1024,7 +1024,7 @@ pppread(void *a)
 	Call *c;
 	u8 buf[2000], *p;
 	int n;
-	uintptr tick;
+	usize tick;
 
 	c = a;
 	for(;;) {

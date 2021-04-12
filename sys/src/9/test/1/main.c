@@ -24,9 +24,9 @@ Conf conf; /* XXX - must go - gag */
 extern void crapoptions(void); /* XXX - must go */
 extern void confsetenv(void);  /* XXX - must go */
 
-static uintptr sp; /* XXX - must go - user stack of init proc */
+static usize sp; /* XXX - must go - user stack of init proc */
 
-uintptr kseg0 = KZERO;
+usize kseg0 = KZERO;
 Sys *sys = nil;
 usize sizeofSys = sizeof(Sys);
 
@@ -266,7 +266,7 @@ main(u32 ax, u32 bx)
 	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr) * 8);
+	cgapost(sizeof(usize) * 8);
 	memset(m, 0, sizeof(Mach));
 	machp()->machno = 0;
 	m->online = 1;
@@ -408,7 +408,7 @@ init0(void)
 }
 
 void
-bootargs(uintptr base)
+bootargs(usize base)
 {
 	int i;
 	u32 ssize;
@@ -472,7 +472,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(usize));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*

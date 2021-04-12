@@ -1347,7 +1347,7 @@ epgettd(Ep *ep, Qio *io, Td **dtdp, int flags, void *a, int count)
 			panic("ohci: transfer > two pages");
 		/* maximum of one physical page crossing allowed */
 		bp = allocb(count + BIGPGSZ);
-		bp->rp = (unsigned char *)BIGPGROUND((uintptr)bp->rp);
+		bp->rp = (unsigned char *)BIGPGROUND((usize)bp->rp);
 		bp->wp = bp->rp;
 	}
 	dtd = *dtdp;
@@ -1357,7 +1357,7 @@ epgettd(Ep *ep, Qio *io, Td **dtdp, int flags, void *a, int count)
 		td->cbp0 = td->cbp = ptr2pa(bp->wp);
 		td->be = ptr2pa(bp->wp + count - 1);
 		if(a != nil){
-			/* validaddr((uintptr)a, count, 0); DEBUG */
+			/* validaddr((usize)a, count, 0); DEBUG */
 			memmove(bp->wp, a, count);
 		}
 		bp->wp += count;
@@ -2548,7 +2548,7 @@ reset(Hci *hp)
 	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
 		ctlr = ctlrs[i];
 		if(ctlr->active == 0)
-			if(hp->ISAConf.port == 0 || hp->ISAConf.port == (uintptr)ctlr->ohci){
+			if(hp->ISAConf.port == 0 || hp->ISAConf.port == (usize)ctlr->ohci){
 				ctlr->active = 1;
 				break;
 			}
@@ -2561,7 +2561,7 @@ reset(Hci *hp)
 
 	p = ctlr->pcidev;
 	hp->Hciimpl.aux = ctlr;
-	hp->ISAConf.port = (uintptr)ctlr->ohci;
+	hp->ISAConf.port = (usize)ctlr->ohci;
 	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
 	ctlr->nports = hp->nports = ctlr->ohci->rhdesca & 0xff;

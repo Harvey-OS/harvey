@@ -445,7 +445,7 @@ screeninit(void)
 	if(!cbinfo.framebuffer)
 		return -1;
 
-	fb = KADDR((uintptr)cbinfo.framebuffer);
+	fb = KADDR((usize)cbinfo.framebuffer);
 	framebuf.pixel = KADDR(fb->physical_address);
 
 	/* should not happen but ...*/
@@ -503,7 +503,7 @@ void
 flushmemscreen(Rectangle r)
 {
 	print("%s\n", __func__);
-	uintptr start, end;
+	usize start, end;
 
 	if(r.min.x < 0)
 		r.min.x = 0;
@@ -515,8 +515,8 @@ flushmemscreen(Rectangle r)
 		r.max.y = Ht;
 	if(rectclip(&r, gscreen->r) == 0)
 		return;
-	start = (uintptr)&framebuf.pixel[r.min.y * Wid + r.min.x];
-	end = (uintptr)&framebuf.pixel[(r.max.y - 1) * Wid + r.max.x - 1];
+	start = (usize)&framebuf.pixel[r.min.y * Wid + r.min.x];
+	end = (usize)&framebuf.pixel[(r.max.y - 1) * Wid + r.max.x - 1];
 	print("Flushmemscreen %p %p\n", start, end);
 	// for now. Don't think we need it. cachedwbse((u32 *)start, end - start);
 	coherence();

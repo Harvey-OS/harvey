@@ -9,7 +9,7 @@
 #include "amd64.h"
 
 int
-backtrace_list(uintptr pc, uintptr fp, uintptr *pcs, usize nr_slots)
+backtrace_list(usize pc, usize fp, usize *pcs, usize nr_slots)
 {
 	usize nr_pcs = 0;
 	while(fp && nr_pcs < nr_slots){
@@ -22,18 +22,18 @@ backtrace_list(uintptr pc, uintptr fp, uintptr *pcs, usize nr_slots)
 		 * function that called us.  this was necessary in case we called as the
 		 * last instruction in a function (would have to never return).  not
 		 * sure how necessary this still is. */
-		pc = *(uintptr *)(fp + sizeof(uintptr)) - 1;
-		fp = *(uintptr *)fp;
+		pc = *(usize *)(fp + sizeof(usize)) - 1;
+		fp = *(usize *)fp;
 	}
 	return nr_pcs;
 }
 
 #if 0
-void backtrace_frame(uintptr_t eip, uintptr_t ebp)
+void backtrace_frame(usize eip, usize ebp)
 {
 	char *func_name;
 #define MAX_BT_DEPTH 20
-	uintptr_t pcs[MAX_BT_DEPTH];
+	usize pcs[MAX_BT_DEPTH];
 	usize nr_pcs = backtrace_list(eip, ebp, pcs, MAX_BT_DEPTH);
 
 	for (int i = 0; i < nr_pcs; i++){
@@ -45,16 +45,16 @@ void backtrace_frame(uintptr_t eip, uintptr_t ebp)
 
 void backtrace(void)
 {
-	uintptr_t ebp, eip;
+	usize ebp, eip;
 	ebp = read_bp();
 	/* retaddr is right above ebp on the stack.  we subtract an additional 1 to
 	 * make sure the eip we get is actually in the function that called us.
 	 * i had a couple cases early on where call was the last instruction in a
 	 * function, and simply reading the retaddr would point into another
 	 * function (the next one in the object) */
-	eip = *(uintptr_t*)(ebp + sizeof(uintptr_t)) - 1;
+	eip = *(usize*)(ebp + sizeof(usize)) - 1;
 	/* jump back a frame (out of backtrace) */
-	ebp = *(uintptr_t*)ebp;
+	ebp = *(usize*)ebp;
 	printk("Stack Backtrace on Core %d:\n", core_id());
 	backtrace_frame(eip, ebp);
 }

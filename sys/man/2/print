@@ -370,7 +370,7 @@ verb is similar, but works on runes.
 The
 .B p
 verb formats a single pointer or pointer-sized integer
-.RB ( uintptr ,
+.RB ( usize ,
 see
 .IR intro (2))
 in hexadecimal.

@@ -67,9 +67,9 @@ typedef u8int;
 +u8
 
 @@
-typedef uintptr;
-typedef uintptr_t;
+typedef usize;
+typedef usize;
 @@
-- uintptr
-+ uintptr_t
+- usize
++ usize
 

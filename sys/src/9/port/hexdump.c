@@ -38,7 +38,7 @@ hexdump(void *v, int length)
 {
 	int i;
 	u8 *m = v;
-	uintptr memory = (uintptr)v;
+	usize memory = (usize)v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);
 	for(i = 0; i < length; i += 16){
@@ -67,7 +67,7 @@ hexdump(void *v, int length)
 }
 
 void
-pahexdump(uintptr pa, int len)
+pahexdump(usize pa, int len)
 {
 	void *v = KADDR(pa);
 	hexdump(v, len);

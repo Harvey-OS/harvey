@@ -164,7 +164,7 @@ extern void	mkmatch(void);
 extern int	mn0(int);
 extern int	mn1(int, int);
 extern int	mnp(int, void*);
-extern int	mn2(int, int, uintptr);
+extern int	mn2(int, int, usize);
 extern void	munputc(int);
 extern void	munputs(unsigned char *);
 extern void	*myalloc(int, int);

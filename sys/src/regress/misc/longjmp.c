@@ -27,18 +27,18 @@ main(void)
 		print("njmp is %d, wanted %d\n", njmp, Njmps);
 		fail++;
 	}
-	if(label[JMPBUFPC] < (uintptr_t)main) {
+	if(label[JMPBUFPC] < (usize)main) {
 		print("label[%d] is %p, which is < main(%p)\n",
 			JMPBUFPC, label[JMPBUFPC], main);
 		fail++;
 	}
-	if(label[JMPBUFPC] > (uintptr_t)foo) {
+	if(label[JMPBUFPC] > (usize)foo) {
 		print("label[%d] is %p, which is > foo(%p)\n",
 			JMPBUFPC, label[JMPBUFPC], foo);
 		fail++;
 	}
-	if(label[JMPBUFSP] > (uintptr_t)&label[nelem(label)]) {
-		print("label[%d] is %p, which is > (uintptr_t)&label[nelem(label)](%p)\n",
+	if(label[JMPBUFSP] > (usize)&label[nelem(label)]) {
+		print("label[%d] is %p, which is > (usize)&label[nelem(label)](%p)\n",
 			JMPBUFSP, label[JMPBUFSP], foo);
 		fail++;
 	}

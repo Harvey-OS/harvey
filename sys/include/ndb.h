@@ -156,4 +156,4 @@ Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
 void		ndbsetval(Ndbtuple*, char*, int);
 Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
 Ndbtuple*	ndbsubstitute(Ndbtuple*, Ndbtuple*, Ndbtuple*);
-void		ndbsetmalloctag(Ndbtuple*, uintptr);
+void		ndbsetmalloctag(Ndbtuple*, usize);

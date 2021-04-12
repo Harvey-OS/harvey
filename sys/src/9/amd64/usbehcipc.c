@@ -201,7 +201,7 @@ scanpci(void)
 			panic("usbehci: out of memory");
 		ctlr->pcidev = p;
 		capio = ctlr->capio = vmap(io, p->mem[0].size);
-		ctlr->opio = (Eopio *)((uintptr)capio + (capio->cap & 0xff));
+		ctlr->opio = (Eopio *)((usize)capio + (capio->cap & 0xff));
 		pcisetbme(p);
 		pcisetpms(p, 0);
 		for(i = 0; i < Nhcis; i++)
@@ -235,7 +235,7 @@ reset(Hci *hp)
 	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
 		ctlr = ctlrs[i];
 		if(ctlr->active == 0)
-			if(hp->ISAConf.port == 0 || hp->ISAConf.port == (uintptr)ctlr->capio){
+			if(hp->ISAConf.port == 0 || hp->ISAConf.port == (usize)ctlr->capio){
 				ctlr->active = 1;
 				break;
 			}
@@ -246,7 +246,7 @@ reset(Hci *hp)
 
 	p = ctlr->pcidev;
 	hp->Hciimpl.aux = ctlr;
-	hp->ISAConf.port = (uintptr)ctlr->capio;
+	hp->ISAConf.port = (usize)ctlr->capio;
 	hp->ISAConf.irq = p->intl;
 	hp->tbdf = p->tbdf;
 

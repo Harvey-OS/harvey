@@ -16,7 +16,7 @@ enum{
 	Wid = 20,	/* tmac.anhtml sets page width to 20" so we can recognize .nf text */
 };
 
-typedef uintptr Char;
+typedef usize Char;
 typedef struct Troffchar Troffchar;
 typedef struct Htmlchar Htmlchar;
 typedef struct Font Font;

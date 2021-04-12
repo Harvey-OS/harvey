@@ -162,7 +162,7 @@
 #define ACPI_USE_NATIVE_MATH64
 #endif
 
-#define ACPI_UINTPTR_T                  uintptr_t
+#define ACPI_UINTPTR_T                  usize
 #define COMPILER_DEPENDENT_INT64        i64
 #define COMPILER_DEPENDENT_UINT64       u64
 

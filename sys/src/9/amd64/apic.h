@@ -21,7 +21,7 @@ typedef struct Apic Apic;
 struct Ioapic {
 	Lock l;		 /* IOAPIC: register access */
 	u32 *addr;	 /* IOAPIC: register base */
-	uintptr paddr; /* physical address */
+	usize paddr; /* physical address */
 	int nrdt;	 /* IOAPIC: size of RDT */
 	int gsib;	 /* IOAPIC: global RDT index */
 };

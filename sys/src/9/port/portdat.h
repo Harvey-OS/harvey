@@ -97,7 +97,7 @@ struct Waitstats {
 	int on;
 	int npcs;
 	int *type;
-	uintptr *pcs;
+	usize *pcs;
 	int *ns;
 	u64 *wait;
 	u64 *total;
@@ -126,14 +126,14 @@ struct QLock {
 	Proc *head; /* next process waiting for object */
 	Proc *tail; /* last process waiting for object */
 	int locked; /* flag */
-	uintptr pc;
+	usize pc;
 };
 
 struct RWlock {
 	Lock use;
 	Proc *head; /* list of waiting processes */
 	Proc *tail;
-	uintptr wpc; /* pc of writer */
+	usize wpc; /* pc of writer */
 	Proc *wproc;   /* writing proc */
 	int readers;   /* number of readers */
 	int writer;    /* number of writers */
@@ -348,7 +348,7 @@ enum {
 struct Page {
 	Lock l;
 	u64 pa;		/* Physical address in memory */
-	uintptr va;		/* Virtual address for user */
+	usize va;		/* Virtual address for user */
 	u32 daddr;		/* Disc address on swap */
 	int ref;		/* Reference count */
 	unsigned char modref;	/* Simulated modify/reference bits */
@@ -447,9 +447,9 @@ struct Physseg {
 	u64 pa;				/* Physical address */
 	usize size;				/* Maximum segment size in pages */
 	int pgszi;				/* Page size index in Mach  */
-	Page *(*pgalloc)(Segment *, uintptr); /* Allocation if we need it */
+	Page *(*pgalloc)(Segment *, usize); /* Allocation if we need it */
 	void (*pgfree)(Page *);
-	uintptr gva; /* optional global virtual address */
+	usize gva; /* optional global virtual address */
 };
 
 struct Sema {
@@ -463,7 +463,7 @@ struct Sema {
 /* Zero copy per-segment information (locked using Segment.lk) */
 struct Zseg {
 	void *map;	 /* memory map for buffers within this segment */
-	uintptr *addr; /* array of addresses released */
+	usize *addr; /* array of addresses released */
 	int naddr;	 /* size allocated for the array */
 	int end;	 /* 1+ last used index in addr */
 	Rendez rr;	 /* process waiting to read free addresses */
@@ -476,7 +476,7 @@ struct Ldseg {
 	i64 memsz;
 	i64 filesz;
 	i64 pg0fileoff;
-	uintptr pg0vaddr;
+	usize pg0vaddr;
 	u32 pg0off;
 	u32 pgsz;
 	u16 type;
@@ -490,8 +490,8 @@ struct Segment {
 	int pgszi;	/* page size index in Mach MMMU */
 	uint ptepertab;
 	int color;
-	uintptr base; /* virtual base */
-	uintptr top;	/* virtual top */
+	usize base; /* virtual base */
+	usize top;	/* virtual top */
 	usize size;	/* size in pages */
 	Ldseg ldseg;
 	int flushme;  /* maintain icache for this segment */
@@ -716,7 +716,7 @@ typedef union Ar0 Ar0;
 union Ar0 {
 	intptr_t i;
 	i32 l;
-	uintptr p;
+	usize p;
 	usize u;
 	void *v;
 	i64 vl;
@@ -737,7 +737,7 @@ struct Proc {
 	Label sched;   /* known to l.s */
 	char *kstack;  /* known to l.s */
 	void *dbgreg;  /* known to l.s User registers for devproc */
-	uintptr tls; /* known to l.s thread local storage */
+	usize tls; /* known to l.s thread local storage */
 	Mach *mach;    /* machine running this proc */
 	char *text;
 	char *user;
@@ -793,7 +793,7 @@ struct Proc {
 	u32 privatemem; /* proc does not let anyone read mem */
 	int hang;	     /* hang at next exec for debug */
 	int procctl;	     /* Control for /proc debugging */
-	uintptr pc;	     /* DEBUG only */
+	usize pc;	     /* DEBUG only */
 
 	Lock rlock;	 /* sync sleep/wakeup with postnote */
 	Rendez *r;	 /* rendezvous point slept on */
@@ -805,8 +805,8 @@ struct Proc {
 	int newtlb;	 /* Pager has changed my pte's, I must flush */
 	int noswap;	 /* process is not swappable */
 
-	uintptr rendtag; /* Tag for rendezvous */
-	uintptr rendval; /* Value for rendezvous */
+	usize rendtag; /* Tag for rendezvous */
+	usize rendval; /* Value for rendezvous */
 	Proc *rendhash;	 /* Hash list for tag values */
 
 	Timer Timer; /* For tsleep and real-time */
@@ -854,7 +854,7 @@ struct Proc {
 	Edf *edf;	    /* if non-null, real-time proc, edf contains scheduling params */
 	int trace;	    /* process being traced? */
 
-	uintptr qpc; /* pc calling last blocking qlock */
+	usize qpc; /* pc calling last blocking qlock */
 
 	int setargs;
 

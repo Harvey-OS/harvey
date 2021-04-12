@@ -63,7 +63,7 @@ clearwaitstats(void)
 }
 
 void
-addwaitstat(uintptr pc, u64 t0, int type)
+addwaitstat(usize pc, u64 t0, int type)
 {
 	uint i;
 	u64 w;
@@ -111,7 +111,7 @@ addwaitstat(uintptr pc, u64 t0, int type)
 }
 
 void
-lockloop(Lock *l, uintptr pc)
+lockloop(Lock *l, usize pc)
 {
 	Proc *p;
 
@@ -170,7 +170,7 @@ int
 lock(Lock *l)
 {
 	int i;
-	uintptr pc;
+	usize pc;
 	u32 user;
 	u64 t0;
 
@@ -218,7 +218,7 @@ void
 ilock(Lock *l)
 {
 	Mpl pl;
-	uintptr pc;
+	usize pc;
 	u64 t0;
 	u32 user;
 
@@ -251,7 +251,7 @@ int
 canlock(Lock *l)
 {
 	Lock try, new;
-	uintptr pc;
+	usize pc;
 	u64 t0;
 
 	pc = getcallerpc();

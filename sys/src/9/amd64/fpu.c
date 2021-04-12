@@ -84,7 +84,7 @@ fpurestore(Fxsave *fxsave)
 }
 
 int
-fpudevprocio(Proc *proc, void *a, i32 n, uintptr offset, int write)
+fpudevprocio(Proc *proc, void *a, i32 n, usize offset, int write)
 {
 	/*
 	 * Called from procdevtab.read and procdevtab.write

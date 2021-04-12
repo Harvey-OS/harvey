@@ -363,7 +363,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 
 enum { PTRSIZE = 19 }; /* "0x1234567812345678 " */
 static int
-readptr(char *buf, i32 n, uintptr val)
+readptr(char *buf, i32 n, usize val)
 {
 	if(n < PTRSIZE)
 		return 0;
@@ -387,7 +387,7 @@ segmentread(Chan *c, void *a, i32 n, i64 voff)
 	Proc *up = externup();
 	Globalseg *g;
 	Zseg *zs;
-	uintptr va;
+	usize va;
 	char *p, *s;
 	i32 tot;
 	char buf[64];
@@ -432,7 +432,7 @@ segmentread(Chan *c, void *a, i32 n, i64 voff)
 		else
 			s = "addr";
 		snprint(buf, sizeof(buf), "%s %#p %#p\n",
-			s, g->s->base, (uintptr)(g->s->top - g->s->base));
+			s, g->s->base, (usize)(g->s->top - g->s->base));
 		return readstr(voff, a, n, buf);
 	case Qdata:
 		if(voff < 0)
@@ -474,12 +474,12 @@ segmentread(Chan *c, void *a, i32 n, i64 voff)
  * back when the segment is destroyed.
  * BUG: what if we overlap other segments attached by the user?
  */
-static uintptr
-placeseg(uintptr len)
+static usize
+placeseg(usize len)
 {
 	static Lock lck;
-	static uintptr va = HEAPTOP;
-	uintptr v;
+	static usize va = HEAPTOP;
+	usize v;
 
 	len += BIGPGSZ; /* so we fault upon overflows */
 	lock(&lck);
@@ -497,7 +497,7 @@ segmentwrite(Chan *c, void *a, i32 n, i64 voff)
 	Proc *up = externup();
 	Cmdbuf *cb;
 	Globalseg *g;
-	uintptr va, len, top;
+	usize va, len, top;
 	int i;
 	struct {
 		char *name;

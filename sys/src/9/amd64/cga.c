@@ -159,7 +159,7 @@ cgaclearln(int off, int c)
  * debug
  */
 void
-cgaprinthex(uintptr x)
+cgaprinthex(usize x)
 {
 	char str[30];
 	char *s;

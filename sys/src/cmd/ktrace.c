@@ -241,7 +241,7 @@ i386trace(u64 pc, u64 sp, u64 link)
 		symoff(buf, sizeof buf, pc, CANY);
 		fmt(buf, pc);
 
-//XXX		s.value &= ~(uintptr)0;
+//XXX		s.value &= ~(usize)0;
 		if(pc != s.value) {	/* not at first instruction */
 			if(findlocal(&s, FRAMENAME, &f) == 0)
 				break;

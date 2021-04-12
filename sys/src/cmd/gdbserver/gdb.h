@@ -162,8 +162,8 @@ char *gdb_hex_reg_helper(GdbState *ks, int regnum, char *out);
 
 u64 arch_get_pc(GdbState *ks);
 
-char *dbg_get_reg(int regno, void *mem, uintptr_t *regs);
-int dbg_set_reg(int regno, void *mem, uintptr_t *regs);
+char *dbg_get_reg(int regno, void *mem, usize *regs);
+int dbg_set_reg(int regno, void *mem, usize *regs);
 
 
 /**
@@ -186,7 +186,7 @@ int
 arch_handle_exception(int vector, int signo, int err_code,
 		      char *remcom_in_buffer,
 		      char *remcom_out_buffer,
-		      uintptr_t*regs);
+		      usize*regs);
 
 /**
  *	arch_set_pc - Generic call back to the program counter
@@ -196,7 +196,7 @@ arch_handle_exception(int vector, int signo, int err_code,
  *	This function handles updating the program counter and requires an
  *	architecture specific implementation.
  */
-void arch_set_pc(uintptr_t *regs, unsigned long pc);
+void arch_set_pc(usize *regs, unsigned long pc);
 
 
 /* Optional functions. */
@@ -245,4 +245,4 @@ Reg *gdb_get_reg_by_id(int id);
 int isremovedbreak(unsigned long addr);
 void schedule_breakpoint(void);
 
-int handle_exception(int ex_vector, int signo, int err_code, uintptr_t *regs);
+int handle_exception(int ex_vector, int signo, int err_code, usize *regs);

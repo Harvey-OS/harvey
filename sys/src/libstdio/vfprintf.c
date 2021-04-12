@@ -307,7 +307,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	int nout, npad, nlzero;
 
 	if(sgned){
-		if(flags&PTR) snum = (uintptr_t)va_arg(*args, void *);
+		if(flags&PTR) snum = (usize)va_arg(*args, void *);
 		else if(flags&SHORT) snum = va_arg(*args, int);
 		else if(flags&LONG) snum = va_arg(*args, i32);
 		else snum = va_arg(*args, int);
@@ -322,7 +322,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (uintptr_t)va_arg(*args, void *);
+		if(flags&PTR) num = (usize)va_arg(*args, void *);
 		else if(flags&SHORT) num = va_arg(*args, int);
 		else if(flags&LONG) num = va_arg(*args, unsigned long);
 		else num = va_arg(*args, unsigned int);

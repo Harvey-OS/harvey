@@ -11,6 +11,6 @@
 #include <u.h>
 
 void
-main(u64 mbmagic, uintptr mbaddress)
+main(u64 mbmagic, usize mbaddress)
 {
 }

@@ -21,8 +21,8 @@
 
 struct
 {
-	uintptr minpc;
-	uintptr maxpc;
+	usize minpc;
+	usize maxpc;
 	int nbuf;
 	int time;
 	u32 *buf;
@@ -76,7 +76,7 @@ kprofattach(char *spec)
 }
 
 static void
-_kproftimer(uintptr pc)
+_kproftimer(usize pc)
 {
 	if(kprof.time == 0)
 		return;

@@ -115,7 +115,7 @@ L(char *s)
 	Lhash *l;
 	uint h;
 
-	h = (uintptr)s%nelem(hash);
+	h = (usize)s%nelem(hash);
 	for(l=hash[h]; l; l=l->next)
 		if(l->s == s)
 			return l->r;

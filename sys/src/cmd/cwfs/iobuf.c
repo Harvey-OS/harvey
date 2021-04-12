@@ -24,7 +24,7 @@ getbuf(Device *d, Off addr, int flag)
 
 	if(DEBUG)
 		print("getbuf %Z(%lld) f=%x\n", d, (Wideoff)addr, flag);
-	h = addr + (Off)(uintptr)d*1009;
+	h = addr + (Off)(usize)d*1009;
 	if(h < 0)
 		h = ~h;
 	h %= nhiob;

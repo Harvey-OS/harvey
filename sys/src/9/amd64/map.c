@@ -13,11 +13,11 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa) UINT2PTR(KZERO + ((uintptr)(pa)))
-#define _PADDR(va) PTR2UINT(((uintptr)(va)) - KZERO)
+#define _KADDR(pa) UINT2PTR(KZERO + ((usize)(pa)))
+#define _PADDR(va) PTR2UINT(((usize)(va)) - KZERO)
 
 void *
-KADDR(uintptr pa)
+KADDR(usize pa)
 {
 	if(pa < KZERO)
 		return _KADDR(pa);
