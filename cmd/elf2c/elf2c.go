@@ -160,7 +160,7 @@ func main() {
 		}
 		fmt.Fprintf(os.Stderr, "gencode\n")
 		_, file := path.Split(n)
-		fmt.Fprintf(w, "uintptr_t %v_main = %#x;\n", n, f.Entry)
+		fmt.Fprintf(w, "usize %v_main = %#x;\n", n, f.Entry)
 		var msg string
 		if codestart == initialStartValue {
 			msg = fmt.Sprintf("codestart was never set for %s; the ELF file has no 'R E' segment.", file)
