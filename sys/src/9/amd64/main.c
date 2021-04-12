@@ -24,7 +24,7 @@
 
 Conf conf; /* XXX - must go - gag */
 
-static uintptr sp; /* XXX - must go - user stack of init proc */
+static usize sp; /* XXX - must go - user stack of init proc */
 
 /* Next time you see a system with cores/sockets running at different clock rates, on x86,
  * let me know. AFAIK, it no longer happens. So the BSP hz is good for the AP hz.
@@ -100,7 +100,7 @@ sigscan(u8 *address, int length, char *signature)
  *	pretty printing below, so it doesn't need to be accurate
  */
 static int
-ktextaddr(uintptr pc)
+ktextaddr(usize pc)
 {
 	return (pc & KTZERO) == KTZERO;
 }
@@ -118,11 +118,11 @@ stacksnippet(void)
 void
 machp_bad(void)
 {
-	static uintptr trace[256];
-	uintptr badpc;
+	static usize trace[256];
+	usize badpc;
 	int i;
 
-	badpc = (uintptr)getcallerpc();
+	badpc = (usize)getcallerpc();
 	for(i = 0; i < nelem(trace); i++){
 		if(trace[i] == badpc)
 			return;
@@ -494,7 +494,7 @@ main(Mach *mach, u32 mbmagic, u32 mbaddress)
 
 	// The kernel maps the first 4GiB before entry to main().  If the
 	// image is too big, we will fail to boot properly.
-	if((uintptr)end - KZERO > 4ULL * GiB)
+	if((usize)end - KZERO > 4ULL * GiB)
 		panic("main: kernel too big: image ends after 4GiB");
 
 	/*
@@ -515,7 +515,7 @@ main(Mach *mach, u32 mbmagic, u32 mbaddress)
 	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr) * 8);
+	cgapost(sizeof(usize) * 8);
 
 	mallocinit();
 	pamapinit();
@@ -658,7 +658,7 @@ init0(void)
 }
 
 void
-bootargs(uintptr base)
+bootargs(usize base)
 {
 	int i;
 	u32 ssize;
@@ -724,7 +724,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr));
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(usize));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*

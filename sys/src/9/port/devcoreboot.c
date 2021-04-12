@@ -84,7 +84,7 @@ cb_parse_vboot_handoff(unsigned char *ptr, struct sysinfo_t *info)
 	kmprint("%s\n", __func__);
 	struct cb_range *vbho = (struct cb_range *)ptr;
 
-	info->vboot_handoff = (void *)(uintptr)vbho->range_start;
+	info->vboot_handoff = (void *)(usize)vbho->range_start;
 	info->vboot_handoff_size = vbho->range_size;
 }
 

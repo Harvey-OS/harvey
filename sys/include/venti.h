@@ -414,7 +414,7 @@ struct VtBlock
 	u32	used;
 	u32	used2;
 	u32	addr;
-	uintptr	pc;
+	usize	pc;
 };
 
 u32	vtglobaltolocal(u8[VtScoreSize]);

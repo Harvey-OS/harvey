@@ -471,7 +471,7 @@ mkipool(ISect *isect, Minibuf *mbuf, u32 nmbuf,
 	p->nmbuf = nmbuf;
 	p->mbuf = mbuf;
 	data = (u8*)(p->mcount+nmbuf);
-	data += bufsize - (uintptr)data%bufsize;
+	data += bufsize - (usize)data%bufsize;
 	p->rbuf = data;
 	p->wbuf = data+bufsize;
 	p->epbuf = bufsize/IEntrySize;

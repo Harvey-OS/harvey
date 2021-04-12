@@ -36,7 +36,7 @@
 #define RFFDG 1
 #define RFNOTEG 1
 
-#define uintptr uintptr_t
+#define usize usize
 
 char *strdup(const char *);
 

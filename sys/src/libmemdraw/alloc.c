@@ -138,7 +138,7 @@ freememimage(Memimage *i)
 u32*
 wordaddr(Memimage *i, Point p)
 {
-	return (u32*) ((uintptr)byteaddr(i, p) & ~(sizeof(u32)-1));
+	return (u32*) ((usize)byteaddr(i, p) & ~(sizeof(u32)-1));
 }
 
 u8 *

@@ -22,8 +22,8 @@
 
 u64 maxlockcycles;
 u64 maxilockcycles;
-uintptr maxlockpc;
-uintptr maxilockpc;
+usize maxlockpc;
+usize maxilockpc;
 
 Lockstats lockstats;
 Waitstats waitstats;
@@ -60,7 +60,7 @@ clearwaitstats(void)
 }
 
 void
-addwaitstat(uintptr pc, u64 t0, int type)
+addwaitstat(usize pc, u64 t0, int type)
 {
 	uint i;
 	u64 w;
@@ -108,7 +108,7 @@ addwaitstat(uintptr pc, u64 t0, int type)
 }
 
 void
-lockloop(Lock *l, uintptr pc)
+lockloop(Lock *l, usize pc)
 {
 	Proc *up = externup();
 	Proc *p;
@@ -126,7 +126,7 @@ lock(Lock *l)
 {
 	Proc *up = externup();
 	int i;
-	uintptr pc;
+	usize pc;
 	u64 t0;
 
 	pc = getcallerpc();
@@ -192,7 +192,7 @@ ilock(Lock *l)
 {
 	Proc *up = externup();
 	Mpl pl;
-	uintptr pc;
+	usize pc;
 	u64 t0;
 
 	pc = getcallerpc();

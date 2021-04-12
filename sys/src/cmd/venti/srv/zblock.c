@@ -23,7 +23,7 @@ fmtzbinit(Fmt *f, ZBlock *b)
 	f->stop = (char*)f->start + b->len;
 }
 
-#define ROUNDUP(p, n) ((void*)(((uintptr)(p)+(n)-1)&~(uintptr)((n)-1)))
+#define ROUNDUP(p, n) ((void*)(((usize)(p)+(n)-1)&~(usize)((n)-1)))
 
 enum {
 	OverflowCheck = 32

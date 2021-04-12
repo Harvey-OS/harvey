@@ -32,7 +32,7 @@ char *faulttypes[] = {
  * other one, if we failed for some time.
  */
 int
-fault(uintptr addr, uintptr pc, int ftype)
+fault(usize addr, usize pc, int ftype)
 {
 	Proc *up = externup();
 	Segment *s;
@@ -121,17 +121,17 @@ faulterror(char *s, Chan *c, int freemem)
 }
 
 int
-fixfault(Segment *s, uintptr addr, int ftype, int dommuput, int color)
+fixfault(Segment *s, usize addr, int ftype, int dommuput, int color)
 {
 	Proc *up = externup();
 	int stype;
 	int ref;
 	Pte **p, *etp;
-	uintptr soff;
+	usize soff;
 	u64 pgsz;
 	uint mmuattr;
 	Page **pg, *lkp, *new;
-	Page *(*fn)(Segment *, uintptr);
+	Page *(*fn)(Segment *, usize);
 
 	pgsz = sys->pgsz[s->pgszi];
 	addr &= ~(pgsz - 1);
@@ -290,7 +290,7 @@ fixfault(Segment *s, uintptr addr, int ftype, int dommuput, int color)
 }
 
 void
-pio(Segment *s, uintptr addr, u32 soff, Page **p, int color)
+pio(Segment *s, usize addr, u32 soff, Page **p, int color)
 {
 	Proc *up = externup();
 	Page *newpg;
@@ -399,7 +399,7 @@ pio(Segment *s, uintptr addr, u32 soff, Page **p, int color)
  * Called only in a system call
  */
 int
-okaddr(uintptr addr, i32 len, int write)
+okaddr(usize addr, i32 len, int write)
 {
 	Proc *up = externup();
 	Segment *s;
@@ -442,7 +442,7 @@ void *
 vmemchr(const void *s, int c, u32 n)
 {
 	int m;
-	uintptr a;
+	usize a;
 	void *t;
 
 	a = PTR2UINT(s);
@@ -471,7 +471,7 @@ vmemchr(const void *s, int c, u32 n)
 }
 
 Segment *
-seg(Proc *p, uintptr addr, int dolock)
+seg(Proc *p, usize addr, int dolock)
 {
 	Segment **s, **et, *n;
 

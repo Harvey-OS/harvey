@@ -295,7 +295,7 @@ diskSize(Disk *disk, int part)
 	return partEnd(disk, part) - partStart(disk, part);
 }
 
-static uintptr
+static usize
 mypc(int x)
 {
 	return getcallerpc();

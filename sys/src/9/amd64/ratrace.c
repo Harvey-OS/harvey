@@ -48,11 +48,11 @@ cwrite(int fd, char *path, char *cmd, int len)
 void
 reader(void *v)
 {
-	uintptr cfd, tfd, forking = 0, pid, newpid;
+	usize cfd, tfd, forking = 0, pid, newpid;
 	char *ctl, *truss;
 	Str *s;
 
-	pid = (int)(uintptr)v;
+	pid = (int)(usize)v;
 	ctl = smprint("/proc/%d/ctl", pid);
 	if((cfd = open(ctl, OWRITE)) < 0)
 		die(smprint("%s: %r", ctl));
@@ -149,7 +149,7 @@ usage(void)
 void
 threadmain(int argc, char **argv)
 {
-	uintptr pid;
+	usize pid;
 	char *cmd = nil;
 	char **args = nil;
 

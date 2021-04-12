@@ -325,7 +325,7 @@ acpi_make_rdt(Vctl *v, int irq, int bustype, int busno, int devno, int fno)
 }
 
 void
-ioapicinit(int id, int ibase, uintptr pa)
+ioapicinit(int id, int ibase, usize pa)
 {
 	Apic *apic;
 

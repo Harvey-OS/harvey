@@ -78,12 +78,12 @@ vtMemBrk(int n)
 		align = 4;
 
 	lock(&lk);
-	pad = (align - (uintptr)buf) & (align-1);
+	pad = (align - (usize)buf) & (align-1);
 	if(n + pad > nbuf) {
 		buf = vtMemAllocZ(ChunkSize);
 		setmalloctag(buf, getcallerpc());
 		nbuf = ChunkSize;
-		pad = (align - (uintptr)buf) & (align-1);
+		pad = (align - (usize)buf) & (align-1);
 		nchunk++;
 	}
 

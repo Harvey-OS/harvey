@@ -125,7 +125,7 @@ filep(Chan *cp, u32 fid, int flag)
 	if(fid == NOFID)
 		return 0;
 
-	h = (i32)(uintptr)cp + fid;
+	h = (i32)(usize)cp + fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
@@ -210,7 +210,7 @@ freefp(File *fp)
 	if(!fp || !(cp = fp->cp))
 		return;
 
-	h = (i32)(uintptr)cp + fp->fid;
+	h = (i32)(usize)cp + fp->fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);

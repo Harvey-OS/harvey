@@ -127,7 +127,7 @@ qsort(void *va, i32 n, i32 es, int (*cmp)(const void*, const void*))
 	s.cmp = cmp;
 	s.es = es;
 	s.swap = swapi;
-	if(((uintptr)va | es) % sizeof(i32))
+	if(((usize)va | es) % sizeof(i32))
 		s.swap = swapb;
 	qsorts((char*)va, n, &s);
 }

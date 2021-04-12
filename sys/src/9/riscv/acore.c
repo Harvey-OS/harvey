@@ -333,7 +333,7 @@ acinit(void)
 	 */
 	mp = 0;
 	pp = 0;
-	assert((uintptr)&mp->proc == 16);
-	assert((uintptr)&pp->dbgreg == 24);
-	assert((uintptr)&mp->stack == 24);
+	assert((usize)&mp->proc == 16);
+	assert((usize)&pp->dbgreg == 24);
+	assert((usize)&mp->stack == 24);
 }

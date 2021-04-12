@@ -388,11 +388,11 @@ kstackok(void)
 	Proc *up = externup();
 
 	if(up == nil){
-		uintptr *stk = (uintptr *)machp()->stack;
+		usize *stk = (usize *)machp()->stack;
 		if(*stk != STACKGUARD)
 			panic("trap: mach %d machstk went through bottom %p\n", machp()->machno, machp()->stack);
 	} else {
-		uintptr *stk = (uintptr *)up->kstack;
+		usize *stk = (usize *)up->kstack;
 		if(*stk != STACKGUARD)
 			panic("trap: proc %d kstack went through bottom %p\n", up->pid, up->kstack);
 	}
@@ -617,7 +617,7 @@ static void
 dumpstackwithureg(Ureg *ureg)
 {
 	Proc *up = externup();
-	uintptr l, v, i, estack;
+	usize l, v, i, estack;
 	//	extern char etext;
 	int x;
 
@@ -631,10 +631,10 @@ dumpstackwithureg(Ureg *ureg)
 	x += iprint("ktrace %#p %#p\n", ureg->ip, ureg->sp);
 	i = 0;
 	if(up != nil
-	   //	&& (uintptr)&l >= (uintptr)up->kstack
-	   && (uintptr)&l <= (uintptr)up->kstack + KSTACK)
-		estack = (uintptr)up->kstack + KSTACK;
-	else if((uintptr)&l >= machp()->stack && (uintptr)&l <= machp()->stack + MACHSTKSZ)
+	   //	&& (usize)&l >= (usize)up->kstack
+	   && (usize)&l <= (usize)up->kstack + KSTACK)
+		estack = (usize)up->kstack + KSTACK;
+	else if((usize)&l >= machp()->stack && (usize)&l <= machp()->stack + MACHSTKSZ)
 		estack = machp()->stack + MACHSTKSZ;
 	else {
 		if(up != nil)
@@ -645,9 +645,9 @@ dumpstackwithureg(Ureg *ureg)
 	}
 	x += iprint("estackx %#p\n", estack);
 
-	for(l = (uintptr)&l; l < estack; l += sizeof(uintptr)){
-		v = *(uintptr *)l;
-		if((KTZERO < v && v < (uintptr)&etext) || ((uintptr)&l < v && v < estack) || estack - l < 256){
+	for(l = (usize)&l; l < estack; l += sizeof(usize)){
+		v = *(usize *)l;
+		if((KTZERO < v && v < (usize)&etext) || ((usize)&l < v && v < estack) || estack - l < 256){
 			x += iprint("%#16.16p=%#16.16p ", l, v);
 			i++;
 		}
@@ -757,7 +757,7 @@ faultamd64(Ureg *ureg, void *v)
 /*
  *  return the userpc the last exception happened at
  */
-uintptr
+usize
 userpc(Ureg *ureg)
 {
 	Proc *up = externup();
@@ -794,7 +794,7 @@ setkernur(Ureg *ureg, Proc *p)
 	ureg->sp = p->sched.sp + BY2SE;
 }
 
-uintptr
+usize
 dbgpc(Proc *p)
 {
 	Ureg *ureg;

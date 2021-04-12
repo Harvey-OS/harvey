@@ -78,7 +78,7 @@ ndbnew(char *attr, char *val)
  *  set owner of a tuple
  */
 void
-ndbsetmalloctag(Ndbtuple *t, uintptr tag)
+ndbsetmalloctag(Ndbtuple *t, usize tag)
 {
 	for(; t; t=t->entry)
 		setmalloctag(t, tag);

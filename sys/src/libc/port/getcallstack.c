@@ -12,36 +12,36 @@
 #include <libc.h>
 
 void
-getcallstack(uintptr *pcs, usize npcs)
+getcallstack(usize *pcs, usize npcs)
 {
 	assert(npcs < 6);
 
 #if 0
 	if (npcs > 0)
-		pcs[0] = (uintptr)__builtin_return_address(2);
+		pcs[0] = (usize)__builtin_return_address(2);
 	if (npcs > 1)
-		pcs[1] = (uintptr)__builtin_return_address(3);
+		pcs[1] = (usize)__builtin_return_address(3);
 	if (npcs > 2)
-		pcs[2] = (uintptr)__builtin_return_address(4);
+		pcs[2] = (usize)__builtin_return_address(4);
 	if (npcs > 3)
-		pcs[3] = (uintptr)__builtin_return_address(5);
+		pcs[3] = (usize)__builtin_return_address(5);
 	if (npcs > 4)
-		pcs[4] = (uintptr)__builtin_return_address(6);
+		pcs[4] = (usize)__builtin_return_address(6);
 	if (npcs > 5)
-		pcs[5] = (uintptr)__builtin_return_address(7);
+		pcs[5] = (usize)__builtin_return_address(7);
 #else
 	if (npcs > 0)
-		pcs[0] = (uintptr)0;
+		pcs[0] = (usize)0;
 	if (npcs > 1)
-		pcs[1] = (uintptr)0;
+		pcs[1] = (usize)0;
 	if (npcs > 2)
-		pcs[2] = (uintptr)0;
+		pcs[2] = (usize)0;
 	if (npcs > 3)
-		pcs[3] = (uintptr)0;
+		pcs[3] = (usize)0;
 	if (npcs > 4)
-		pcs[4] = (uintptr)0;
+		pcs[4] = (usize)0;
 	if (npcs > 5)
-		pcs[5] = (uintptr)0;
+		pcs[5] = (usize)0;
 #endif
 	if (npcs > 6)
 		sysfatal("getcallstack: stack size must be <= 6, got %zu", npcs);

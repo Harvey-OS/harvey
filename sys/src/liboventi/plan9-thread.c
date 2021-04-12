@@ -34,7 +34,7 @@ struct VtLock {
 	int readers;		/* number writering read lock */
 	Thread *qfirst;
 	Thread *qlast;
-	uintptr	pc;
+	usize	pc;
 };
 
 struct VtRendez {

@@ -122,11 +122,11 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 	struct RamFile *current = (struct RamFile *)c->qid.path;
 	if(pos == DEVDOTDOT){
 		if(current->parent == nil){
-			mkqid(&qid, (uintptr)current, 0, QTDIR);
+			mkqid(&qid, (usize)current, 0, QTDIR);
 			devdir(c, qid, "#@", 0, eve, current->perm, dp);
 			return 1;
 		} else {
-			mkqid(&qid, (uintptr)current->parent, 0, QTDIR);
+			mkqid(&qid, (usize)current->parent, 0, QTDIR);
 			devdir(c, qid, current->n, 0, eve, current->perm, dp);
 			return 1;
 		}
@@ -143,7 +143,7 @@ ramgen(Chan *c, char *name, Dirtab *tab, int ntab, int pos, Dir *dp)
 			return -1;
 		}
 	}
-	mkqid(&qid, (uintptr)current, 0, current->perm & DMDIR ? QTDIR : 0);
+	mkqid(&qid, (usize)current, 0, current->perm & DMDIR ? QTDIR : 0);
 	devdir(c, qid, current->n, current->length, eve, current->perm, dp);
 	if(name == nil || strcmp(current->n, name) == 0){
 		return 1;
@@ -463,7 +463,7 @@ ramcreate(Chan *c, char *name, int omode, int perm)
 
 	file->sibling = parent->firstchild;
 	parent->firstchild = file;
-	mkqid(&c->qid, (uintptr)file, 0, file->perm & DMDIR ? QTDIR : 0);
+	mkqid(&c->qid, (usize)file, 0, file->perm & DMDIR ? QTDIR : 0);
 
 	c->offset = 0;
 	c->mode = omode;

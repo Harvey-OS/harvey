@@ -57,10 +57,10 @@ int decref(Ref *);
 void delay(int);
 void dumpmmu(Proc *);
 void dumpmmuwalk(u64 pa);
-void dumpptepg(int lvl, uintptr pa);
+void dumpptepg(int lvl, usize pa);
 #define evenaddr(x) /* x86 doesn't care */
 void *findKSeg2(void);
-int fpudevprocio(Proc *, void *, i32, uintptr, int);
+int fpudevprocio(Proc *, void *, i32, usize, int);
 void fpuinit(void);
 void fpunoted(void);
 void fpunotify(Ureg *);
@@ -71,7 +71,7 @@ void fpusysrfork(Ureg *);
 void fpusysrforkchild(Proc *, Proc *);
 Mach *getac(Proc *, int);
 char *getconf(char *);
-void gdb2ureg(uintptr *g, Ureg *u);
+void gdb2ureg(usize *g, Ureg *u);
 void halt(void);
 void hardhalt(void);
 void mouseenable(void);
@@ -93,7 +93,7 @@ u32 inl(int);
 void insl(int, void *, int);
 int intrdisable(void *);
 void *intrenable(int, void (*)(Ureg *, void *), void *, int, char *);
-void invlpg(uintptr);
+void invlpg(usize);
 void iofree(int);
 void ioinit(void);
 int iounused(int, int);
@@ -115,10 +115,10 @@ void meminit(void);
 void mfence(void);
 void mmuflushtlb(void);
 void mmuinit(void);
-uintptr mmukmap(uintptr, uintptr, usize);
+usize mmukmap(usize, usize, usize);
 int mmukmapsync(u64);
-u64 mmuphysaddr(uintptr);
-int mmuwalk(PTE *, uintptr, int, PTE **, PTE (*)(usize));
+u64 mmuphysaddr(usize);
+int mmuwalk(PTE *, usize, int, PTE **, PTE (*)(usize));
 int multiboot(u32, u32, int);
 void ndnr(void);
 unsigned char nvramread(int);
@@ -148,22 +148,22 @@ void stacksnippet(void);
 void stopac(void);
 void syncclock(void);
 void syscall(unsigned int scallnr, Ureg *ureg);
-void *sysexecregs(uintptr, u32, void *);
-uintptr sysexecstack(uintptr, int);
+void *sysexecregs(usize, u32, void *);
+usize sysexecstack(usize, int);
 void sysprocsetup(Proc *);
 void tssrsp0(Mach *, u64);
 void trapenable(int, void (*)(Ureg *, void *), void *, char *);
 void trapinit(void);
 void trap(Ureg *);
 void umeminit(void);
-void ureg2gdb(Ureg *u, uintptr *g);
+void ureg2gdb(Ureg *u, usize *g);
 int userureg(Ureg *);
-void *vmap(uintptr, usize);
+void *vmap(usize, usize);
 void vsvminit(int, int, Mach *);
 void vunmap(void *, usize);
 
 extern u64 rootget(void);
-extern void rootput(uintptr);
+extern void rootput(usize);
 extern void idtput(int, u64);
 extern u64 rdtsc(void);
 
@@ -196,10 +196,10 @@ void sysrforkret(void);
 
 #define dcflush(a, b)
 
-#define PTR2UINT(p) ((uintptr)(p))
+#define PTR2UINT(p) ((usize)(p))
 #define UINT2PTR(i) ((void *)(i))
 
-void *KADDR(uintptr);
+void *KADDR(usize);
 u64 PADDR(void *);
 
 #define BIOSSEG(a) KADDR(((uint)(a)) << 4)
@@ -258,7 +258,7 @@ void die(char *);
 void dumpgpr(Ureg *ureg);
 
 /* debug support. */
-int backtrace_list(uintptr pc, uintptr fp, uintptr *pcs, usize nr_slots);
+int backtrace_list(usize pc, usize fp, usize *pcs, usize nr_slots);
 
 /* horror */
 static inline void

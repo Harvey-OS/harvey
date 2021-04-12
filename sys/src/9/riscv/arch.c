@@ -158,7 +158,7 @@ idlehands(void)
 
 #if 0
 void
-ureg2gdb(Ureg *u, uintptr_t *g)
+ureg2gdb(Ureg *u, usize *g)
 {
 	g[GDB_AX] = u->ax;
 	g[GDB_BX] = u->bx;
@@ -191,7 +191,7 @@ ureg2gdb(Ureg *u, uintptr_t *g)
 }
 
 void
-gdb2ureg(uintptr_t *g, Ureg *u)
+gdb2ureg(usize *g, Ureg *u)
 {
 	u->ax = g[GDB_AX];
 	u->bx = g[GDB_BX];

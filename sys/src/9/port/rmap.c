@@ -29,7 +29,7 @@ struct RMap {
 };
 
 void
-rmapfree(RMap *rmap, uintptr addr, uint size)
+rmapfree(RMap *rmap, usize addr, uint size)
 {
 	Map *mp;
 	uint t;
@@ -73,8 +73,8 @@ rmapfree(RMap *rmap, uintptr addr, uint size)
 	unlock(&rmap->Lock);
 }
 
-uintptr
-rmapalloc(RMap *rmap, uintptr addr, uint size, int align)
+usize
+rmapalloc(RMap *rmap, usize addr, uint size, int align)
 {
 	Map *mp;
 	u32 maddr, oaddr;

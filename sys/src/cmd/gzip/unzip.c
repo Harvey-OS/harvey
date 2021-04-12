@@ -690,7 +690,7 @@ crcwrite(void *out, void *buf, int n)
 
 	wlen += n;
 	crc = blockcrc(crctab, crc, buf, n);
-	fd = (int)(uintptr)out;
+	fd = (int)(usize)out;
 	if(fd < 0)
 		return n;
 	nw = write(fd, buf, n);

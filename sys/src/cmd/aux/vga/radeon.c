@@ -32,7 +32,7 @@ enum {
 
 typedef struct Radeon Radeon;
 struct Radeon {
-	uintptr	mmio;
+	usize	mmio;
 	Pcidev	*pci;
 	u8	*bios;
 
@@ -231,7 +231,7 @@ snarf(Vga *vga, Ctlr *ctlr)
 {
 	int isr300;
 	u32 tmp;
-	uintptr mmio;
+	usize mmio;
 	Pcidev *p;
 	Radeon *radeon;
 
@@ -247,7 +247,7 @@ snarf(Vga *vga, Ctlr *ctlr)
 
 		vgactlw("type", ctlr->name);
 
-		mmio = (uintptr)segattach(0, "radeonmmio", (void *)0,
+		mmio = (usize)segattach(0, "radeonmmio", (void *)0,
 			p->mem[2].size);
 		if (mmio == ~0)
 			error("%s: can't attach mmio segment\n", ctlr->name);

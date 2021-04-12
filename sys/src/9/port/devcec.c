@@ -735,7 +735,7 @@ cecread(Chan *c, void *a, i32 n, i64 offset)
 					     "%E %3d %-6s %12d %d %d %.8lux\n",
 					     cp->ea, cp->cno, cstate[cp->state], cp->idle,
 					     cp->to, cp->retries,
-					     (uintptr)cp->bp);
+					     (usize)cp->bp);
 		n = readstr(offset, a, n, p);
 		free(p);
 		return n;

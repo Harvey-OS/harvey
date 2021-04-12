@@ -137,7 +137,7 @@ static char *regnames[] = {
  */
 struct Acpilist {
 	struct Acpilist *next;
-	uintptr base;
+	usize base;
 	usize size;
 	u8 raw[];
 };
@@ -150,7 +150,7 @@ static Acpilist *acpilists;
  * so size matters.
  */
 static Acpilist *
-findlist(uintptr base, uint size)
+findlist(usize base, uint size)
 {
 	Acpilist *a = acpilists;
 	if(v)
@@ -264,99 +264,99 @@ acpiregid(char *s)
  * They are specific to little-endian processors and are not portable.
  */
 static u8
-mget8(uintptr p, void *unused)
+mget8(usize p, void *unused)
 {
 	u8 *cp = (u8 *)p;
 	return *cp;
 }
 
 static void
-mset8(uintptr p, u8 v, void *unused)
+mset8(usize p, u8 v, void *unused)
 {
 	u8 *cp = (u8 *)p;
 	*cp = v;
 }
 
 static u16
-mget16(uintptr p, void *unused)
+mget16(usize p, void *unused)
 {
 	u16 *cp = (u16 *)p;
 	return *cp;
 }
 
 static void
-mset16(uintptr p, u16 v, void *unused)
+mset16(usize p, u16 v, void *unused)
 {
 	u16 *cp = (u16 *)p;
 	*cp = v;
 }
 
 static u32
-mget32(uintptr p, void *unused)
+mget32(usize p, void *unused)
 {
 	u32 *cp = (u32 *)p;
 	return *cp;
 }
 
 static void
-mset32(uintptr p, u32 v, void *unused)
+mset32(usize p, u32 v, void *unused)
 {
 	u32 *cp = (u32 *)p;
 	*cp = v;
 }
 
 static u64
-mget64(uintptr p, void *unused)
+mget64(usize p, void *unused)
 {
 	u64 *cp = (u64 *)p;
 	return *cp;
 }
 
 static void
-mset64(uintptr p, u64 v, void *unused)
+mset64(usize p, u64 v, void *unused)
 {
 	u64 *cp = (u64 *)p;
 	*cp = v;
 }
 
 static u8
-ioget8(uintptr p, void *unused)
+ioget8(usize p, void *unused)
 {
 	return inb(p);
 }
 
 static void
-ioset8(uintptr p, u8 v, void *unused)
+ioset8(usize p, u8 v, void *unused)
 {
 	outb(p, v);
 }
 
 static u16
-ioget16(uintptr p, void *unused)
+ioget16(usize p, void *unused)
 {
 	return ins(p);
 }
 
 static void
-ioset16(uintptr p, u16 v, void *unused)
+ioset16(usize p, u16 v, void *unused)
 {
 	outs(p, v);
 }
 
 static u32
-ioget32(uintptr p, void *unused)
+ioget32(usize p, void *unused)
 {
 	return inl(p);
 }
 
 static void
-ioset32(uintptr p, u32 v, void *unused)
+ioset32(usize p, u32 v, void *unused)
 {
 	outl(p, v);
 }
 
 static u8
-cfgget8(uintptr p, void *r)
+cfgget8(usize p, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -366,7 +366,7 @@ cfgget8(uintptr p, void *r)
 }
 
 static void
-cfgset8(uintptr p, u8 v, void *r)
+cfgset8(usize p, u8 v, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -376,7 +376,7 @@ cfgset8(uintptr p, u8 v, void *r)
 }
 
 static u16
-cfgget16(uintptr p, void *r)
+cfgget16(usize p, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -386,7 +386,7 @@ cfgget16(uintptr p, void *r)
 }
 
 static void
-cfgset16(uintptr p, u16 v, void *r)
+cfgset16(usize p, u16 v, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -396,7 +396,7 @@ cfgset16(uintptr p, u16 v, void *r)
 }
 
 static u32
-cfgget32(uintptr p, void *r)
+cfgget32(usize p, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -406,7 +406,7 @@ cfgget32(uintptr p, void *r)
 }
 
 static void
-cfgset32(uintptr p, u32 v, void *r)
+cfgset32(usize p, u32 v, void *r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -434,8 +434,8 @@ static struct Regio cfgio = {
  * Copy memory, 1/2/4/8-bytes at a time, to/from a region.
  */
 static long
-regcpy(Regio *dio, uintptr da, Regio *sio,
-       uintptr sa, long len, int align)
+regcpy(Regio *dio, usize da, Regio *sio,
+       usize sa, long len, int align)
 {
 	int n, i;
 
@@ -476,10 +476,10 @@ regcpy(Regio *dio, uintptr da, Regio *sio,
  * All units in bytes.
  */
 static long
-regio(Reg *r, void *p, u32 len, uintptr off, int iswr)
+regio(Reg *r, void *p, u32 len, usize off, int iswr)
 {
 	Regio rio;
-	uintptr rp;
+	usize rp;
 
 	print("reg%s %s %#p %#p %#lx sz=%d\n",
 	      iswr ? "out" : "in", r->name, p, off, len, r->accsz);
@@ -498,7 +498,7 @@ regio(Reg *r, void *p, u32 len, uintptr off, int iswr)
 			r->p = vmap(r->base, len);
 		if(r->p == nil)
 			error("regio: KADDR failed");
-		rp = (uintptr)r->p + off;
+		rp = (usize)r->p + off;
 		rio = memio;
 		break;
 	case Rsysio:
@@ -520,9 +520,9 @@ regio(Reg *r, void *p, u32 len, uintptr off, int iswr)
 		error("region not supported");
 	}
 	if(iswr)
-		regcpy(&rio, rp, &memio, (uintptr)p, len, r->accsz);
+		regcpy(&rio, rp, &memio, (usize)p, len, r->accsz);
 	else
-		regcpy(&memio, (uintptr)p, &rio, rp, len, r->accsz);
+		regcpy(&memio, (usize)p, &rio, rp, len, r->accsz);
 	return len;
 }
 
@@ -547,7 +547,7 @@ sdtchecksum(void *addr, int len)
 }
 
 static void *
-sdtmap(uintptr pa, usize want, usize *n, int cksum)
+sdtmap(usize pa, usize want, usize *n, int cksum)
 {
 	Sdthdr *sdt;
 	Acpilist *p;
@@ -566,10 +566,10 @@ sdtmap(uintptr pa, usize want, usize *n, int cksum)
 			return nil;
 		}
 		/* realistically, we get a full page, and acpica seems to know that somehow. */
-		uintptr endaddress = (uintptr)sdt;
+		usize endaddress = (usize)sdt;
 		endaddress += want + 0xfff;
 		endaddress &= ~0xfff;
-		want = endaddress - (uintptr)sdt;
+		want = endaddress - (usize)sdt;
 		*n = want;
 	} else {
 		sdt = vmap(pa, sizeof(Sdthdr));
@@ -620,7 +620,7 @@ sdtmap(uintptr pa, usize want, usize *n, int cksum)
 }
 
 static int
-loadfacs(uintptr pa)
+loadfacs(usize pa)
 {
 	usize n;
 	facs = sdtmap(pa, 0, &n, 0);
@@ -646,7 +646,7 @@ loadfacs(uintptr pa)
 }
 
 static void
-loaddsdt(uintptr pa)
+loaddsdt(usize pa)
 {
 	usize n;
 	u8 *dsdtp;
@@ -1531,7 +1531,7 @@ seprinttable(char *s, char *e, Atable *t)
 }
 
 void *
-rsdsearch(void *start, uintptr size)
+rsdsearch(void *start, usize size)
 {
 	if(rsd != nil)
 		return rsd;
@@ -1585,7 +1585,7 @@ parsexsdt(Atable *root)
 	Atable *table;
 	PSlice slice;
 	usize l, end;
-	uintptr dhpa;
+	usize dhpa;
 	//Atable *n;
 	u8 *tbl;
 	if(v)
@@ -1640,7 +1640,7 @@ static void
 parsersdptr(void)
 {
 	int asize, cksum;
-	uintptr sdtpa;
+	usize sdtpa;
 
 	/* Find the root pointer. */
 	/*
@@ -1803,7 +1803,7 @@ dumpGas(char *start, char *end, char *prefix, Gas *g)
 }
 
 static unsigned int
-getbanked(uintptr ra, uintptr rb, int sz)
+getbanked(usize ra, usize rb, int sz)
 {
 	unsigned int r;
 
@@ -1834,7 +1834,7 @@ getbanked(uintptr ra, uintptr rb, int sz)
 }
 
 static unsigned int
-setbanked(uintptr ra, uintptr rb, int sz, int val)
+setbanked(usize ra, usize rb, int sz, int val)
 {
 	unsigned int r;
 	if(v)

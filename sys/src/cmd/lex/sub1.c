@@ -311,7 +311,7 @@ gch(void){
 }
 
 int
-mn2(int a, int d, uintptr c)
+mn2(int a, int d, usize c)
 {
 	name[tptr] = a;
 	left[tptr] = d;

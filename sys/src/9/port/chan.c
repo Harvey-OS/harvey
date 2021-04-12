@@ -1651,7 +1651,7 @@ char isfrog[256] = {
  * to access unchecked addresses.)
  */
 static char *
-validname0(char *aname, int slashok, int dup, uintptr pc)
+validname0(char *aname, int slashok, int dup, usize pc)
 {
 	Proc *up = externup();
 	char *ename, *name, *s;

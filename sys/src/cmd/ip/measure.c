@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 	int delta;
 	u8 target[6];
 	char buf[256];
-	uintptr samples;
+	usize samples;
 
 	samples = -1;
 	ARGBEGIN{

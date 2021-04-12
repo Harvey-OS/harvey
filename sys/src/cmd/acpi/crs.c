@@ -22,7 +22,7 @@ void hexdump(void *v, int length)
 {
 	int i;
 	u8 *m = v;
-	uintptr_t memory = (uintptr_t) v;
+	usize memory = (usize) v;
 	int all_zero = 0;
 	print("hexdump: %p, %u\n", v, length);
 	for (i = 0; i < length; i += 16) {

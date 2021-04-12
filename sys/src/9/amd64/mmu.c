@@ -87,7 +87,7 @@ tabs(int n)
 }
 
 void
-dumpptepg(int lvl, uintptr pa)
+dumpptepg(int lvl, usize pa)
 {
 	PTE *pte;
 	int tab, i;
@@ -132,7 +132,7 @@ dumpmmu(Proc *p)
 }
 
 void
-dumpmmuwalk(const PTE *pml4, uintptr addr)
+dumpmmuwalk(const PTE *pml4, usize addr)
 {
 	int l;
 	const PTE *pte;
@@ -360,7 +360,7 @@ allocptpage(Proc *p, int level)
  * For 1*GiB pages, we use two levels.
  */
 void
-mmuput(uintptr va, Page *pg, uint attr)
+mmuput(usize va, Page *pg, uint attr)
 {
 	Proc *up;
 	int pgsz;
@@ -445,7 +445,7 @@ mmukmapsync(u64 va)
 }
 
 static PTE *
-mmukpmap4(PTE *pml4, uintptr va)
+mmukpmap4(PTE *pml4, usize va)
 {
 	PTE p4e = pml4[PML4X(va)];
 	if((p4e & PteP) == 0)
@@ -454,7 +454,7 @@ mmukpmap4(PTE *pml4, uintptr va)
 }
 
 static PTE *
-mmukpmap3(PTE *pml3, u64 pa, uintptr va, PTE attr, usize size)
+mmukpmap3(PTE *pml3, u64 pa, usize va, PTE attr, usize size)
 {
 	PTE p3e = pml3[PML3X(va)];
 
@@ -489,7 +489,7 @@ mmukpmap3(PTE *pml3, u64 pa, uintptr va, PTE attr, usize size)
 }
 
 static PTE *
-mmukpmap2(PTE *pml2, u64 pa, uintptr va, PTE attr, usize size)
+mmukpmap2(PTE *pml2, u64 pa, usize va, PTE attr, usize size)
 {
 	PTE p2e = pml2[PML2X(va)];
 
@@ -524,7 +524,7 @@ mmukpmap2(PTE *pml2, u64 pa, uintptr va, PTE attr, usize size)
 }
 
 static void
-mmukpmap1(PTE *pml1, u64 pa, uintptr va, PTE attr)
+mmukpmap1(PTE *pml1, u64 pa, usize va, PTE attr)
 {
 	PTE p1e = pml1[PML1X(va)];
 	if((p1e & PteP) == PteP && PPN(p1e) != pa)
@@ -548,7 +548,7 @@ mmukphysmap(PTE *pml4, u64 pa, PTE attr, usize size)
 
 	pl = splhi();
 	for(u64 pae = pa + size; pa < pae; size -= pgsz, pa += pgsz){
-		uintptr va = (uintptr)KADDR(pa);
+		usize va = (usize)KADDR(pa);
 		invlpg(va);
 
 		PTE *pml3 = mmukpmap4(pml4, va);
@@ -578,9 +578,9 @@ mmukphysmap(PTE *pml4, u64 pa, PTE attr, usize size)
  * vmap() is required to access them.
  */
 void *
-vmap(uintptr pa, usize size)
+vmap(usize pa, usize size)
 {
-	uintptr va;
+	usize va;
 	usize o, sz;
 
 	DBG("vmap(%#p, %lu) pc=%#p\n", pa, size, getcallerpc());
@@ -617,7 +617,7 @@ vmap(uintptr pa, usize size)
 		return nil;
 	}
 	ilock(&vmaplock);
-	va = (uintptr)KADDR(pa);
+	va = (usize)KADDR(pa);
 	mmukphysmap(sys->pml4, pa, PteNX | PtePCD | PteRW, sz);
 	iunlock(&vmaplock);
 
@@ -629,7 +629,7 @@ vmap(uintptr pa, usize size)
 void
 vunmap(void *v, usize size)
 {
-	uintptr va;
+	usize va;
 
 	DBG("vunmap(%#p, %lu)\n", v, size);
 
@@ -652,7 +652,7 @@ vunmap(void *v, usize size)
 }
 
 int
-mmuwalk(const PTE *pml4, uintptr va, int level, const PTE **ret)
+mmuwalk(const PTE *pml4, usize va, int level, const PTE **ret)
 {
 	Mpl pl;
 
@@ -707,8 +707,8 @@ mmuwalk(const PTE *pml4, uintptr va, int level, const PTE **ret)
 	return -1;
 }
 
-uintptr
-mmuphysaddr(const PTE *pml4, uintptr va)
+usize
+mmuphysaddr(const PTE *pml4, usize va)
 {
 	int l;
 	const PTE *pte;
@@ -718,10 +718,10 @@ mmuphysaddr(const PTE *pml4, uintptr va)
 	 * Given a VA, find the PA.
 	 * This is probably not the right interface,
 	 * but will do as an experiment. Usual
-	 * question, should va be void* or uintptr?
+	 * question, should va be void* or usize?
 	 * cross: Since it is unknown whether a mapping
 	 * for the virtual address exists in the given
-	 * address space, uintptr is more appropriate.
+	 * address space, usize is more appropriate.
 	 */
 	l = mmuwalk(pml4, va, 0, &pte);
 	DBG("physaddr: va %#p l %d\n", va, l);

@@ -87,7 +87,7 @@ Ndbtuple*	ndbreorder(Ndbtuple *t, Ndbtuple *a)
 Ndbtuple*	ndbsubstitute(Ndbtuple *t, Ndbtuple *from, Ndbtuple *to)
 .PP
 .B
-void	ndbsetmalloctag(Ndbtuple *t, uintptr tag)
+void	ndbsetmalloctag(Ndbtuple *t, usize tag)
 .SH DESCRIPTION
 These routines are used by network administrative programs to search
 the network database.

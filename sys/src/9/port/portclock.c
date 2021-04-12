@@ -152,7 +152,7 @@ void
 hzclock(Ureg *ur)
 {
 	Proc *up = externup();
-	uintptr pc;
+	usize pc;
 
 	machp()->ticks++;
 	if(machp()->machno == 0)

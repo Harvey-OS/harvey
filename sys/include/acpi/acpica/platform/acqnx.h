@@ -155,7 +155,7 @@
 #define ACPI_USE_STANDARD_HEADERS
 #define ACPI_USE_SYSTEM_CLIBRARY
 
-#define ACPI_UINTPTR_T          uintptr_t
+#define ACPI_UINTPTR_T          usize
 #define ACPI_USE_LOCAL_CACHE
 #define ACPI_CAST_PTHREAD_T(x)  ((ACPI_THREAD_ID) ACPI_TO_INTEGER (x))
 

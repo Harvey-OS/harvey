@@ -40,7 +40,7 @@ _threadrendezvous(void *tag, void *val)
 	Thread *t, **l;
 
 	lock(&_threadrgrp.lock);
-	l = &_threadrgrp.hash[((uintptr)tag)%nelem(_threadrgrp.hash)];
+	l = &_threadrgrp.hash[((usize)tag)%nelem(_threadrgrp.hash)];
 	for(t=*l; t; l=&t->rendhash, t=*l){
 		if(t->rendtag==tag){
 			_threaddebug(DBGREND, "Rendezvous with thread %d.%d", t->proc->pid, t->id);

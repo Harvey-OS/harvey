@@ -198,7 +198,7 @@ r:	CHAR
 			}
 		}
 	| SCON r
-	{	$$.i = mn2(RSCON,$2.i,(uintptr)$1.cp); }
+	{	$$.i = mn2(RSCON,$2.i,(usize)$1.cp); }
 	| '^' r
 	{	$$.i = mn1(CARAT,$2.i); }
 	| r '$'

@@ -39,7 +39,7 @@ typedef struct Map Map;
 struct Map {
 	Map *next;
 	int free;
-	uintptr addr;
+	usize addr;
 	u64 size;
 };
 
@@ -50,8 +50,8 @@ struct ZMap {
 
 static int inited;
 
-static void zmapfree(ZMap *rmap, uintptr addr);
-static uintptr zmapalloc(ZMap *rmap, usize size);
+static void zmapfree(ZMap *rmap, usize addr);
+static usize zmapalloc(ZMap *rmap, usize size);
 
 static void
 zioinit(void)
@@ -141,7 +141,7 @@ zgrow(Segment *s)
 	zioinit();
 	zs = &s->zseg;
 	zs->naddr += Incr;
-	zs->addr = realloc(zs->addr, zs->naddr * sizeof(uintptr));
+	zs->addr = realloc(zs->addr, zs->naddr * sizeof(usize));
 	if(zs->addr == nil)
 		panic("zgrow: no memory");
 }
@@ -149,11 +149,11 @@ zgrow(Segment *s)
 /*
  * Find an address in s's zseg; s is qlocked
  */
-uintptr
+usize
 zgetaddr(Segment *s)
 {
 	Zseg *zs;
-	uintptr va;
+	usize va;
 
 	zs = &s->zseg;
 	if(zs->end == 0)
@@ -172,7 +172,7 @@ zgetaddr(Segment *s)
  * wakeup any reader if it's waiting.
  */
 int
-zputaddr(Segment *s, uintptr va)
+zputaddr(Segment *s, usize va)
 {
 	Zseg *zs;
 
@@ -199,7 +199,7 @@ void *
 alloczio(Segment *s, i32 len)
 {
 	Zseg *zs;
-	uintptr va;
+	usize va;
 
 	zs = &s->zseg;
 	va = zmapalloc(zs->map, len);
@@ -579,7 +579,7 @@ newzmap(Segment *s)
 }
 
 static void
-zmapfree(ZMap *rmap, uintptr addr)
+zmapfree(ZMap *rmap, usize addr)
 {
 	Proc *up = externup();
 	Map *mp, *prev, *next;
@@ -620,7 +620,7 @@ zmapfree(ZMap *rmap, uintptr addr)
 	}
 }
 
-static uintptr
+static usize
 zmapalloc(ZMap *rmap, usize size)
 {
 	Proc *up = externup();

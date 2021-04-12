@@ -179,10 +179,10 @@ printmap(char *s, Map *map)
 }
 
 static void
-printlocals(Map *map, Symbol *fn, uintptr fp)
+printlocals(Map *map, Symbol *fn, usize fp)
 {
 	int i;
-	uintptr w;
+	usize w;
 	Symbol s;
 	char buf[100];
 
@@ -199,11 +199,11 @@ printlocals(Map *map, Symbol *fn, uintptr fp)
 }
 
 static void
-printparams(Map *map, Symbol *fn, uintptr fp)
+printparams(Map *map, Symbol *fn, usize fp)
 {
 	int i;
 	Symbol s;
-	uintptr w;
+	usize w;
 	int first = 0;
 
 	fp += mach->szaddr;			/* skip saved pc */
@@ -219,7 +219,7 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 }
 
 static void
-printsource(uintptr dot)
+printsource(usize dot)
 {
 	char str[100];
 
@@ -231,7 +231,7 @@ printsource(uintptr dot)
 /*
  *	callback on stack trace
  */
-static uintptr nextpc;
+static usize nextpc;
 
 static void
 ptrace(Map *map, u64 pc, u64 sp, Symbol *sym)
@@ -252,7 +252,7 @@ ptrace(Map *map, u64 pc, u64 sp, Symbol *sym)
 }
 
 static void
-stacktracepcsp(Map *m, uintptr pc, uintptr sp)
+stacktracepcsp(Map *m, usize pc, usize sp)
 {
 	nextpc = 0;
 	if(machdata->ctrace==nil)
@@ -276,7 +276,7 @@ ureginit(void)
 static void
 stacktrace(Map *m)
 {
-	uintptr pc, sp;
+	usize pc, sp;
 
 	if(geta(m, debug.pcoff, (u64 *)&pc) < 0){
 		dprint("geta pc: %r");
@@ -289,10 +289,10 @@ stacktrace(Map *m)
 	stacktracepcsp(m, pc, sp);
 }
 
-static uintptr
-star(uintptr addr)
+static usize
+star(usize addr)
 {
-	uintptr x;
+	usize x;
 	static int warned;
 
 	if(addr == 0)
@@ -310,7 +310,7 @@ star(uintptr addr)
 	return x;
 }
 
-static uintptr
+static usize
 resolvev(char *name)
 {
 	Symbol s;
@@ -320,7 +320,7 @@ resolvev(char *name)
 	return s.value;
 }
 
-static uintptr
+static usize
 resolvef(char *name)
 {
 	Symbol s;
@@ -333,7 +333,7 @@ resolvef(char *name)
 #define FADDR(type, p, name) ((p) + offsetof(type, name))
 #define FIELD(type, p, name) star(FADDR(type, p, name))
 
-static uintptr threadpc;
+static usize threadpc;
 
 static int
 strprefix(char *big, char *pre)
@@ -361,9 +361,9 @@ tptrace(Map *map, u64 pc, u64 sp, Symbol *sym)
 }
 
 static char*
-threadstkline(uintptr t)
+threadstkline(usize t)
 {
-	uintptr pc, sp;
+	usize pc, sp;
 	static char buf[500];
 
 	if(FIELD(Thread, t, state) == Running){
@@ -384,7 +384,7 @@ threadstkline(uintptr t)
 }
 
 static void
-proc(uintptr p)
+proc(usize p)
 {
 	dprint("p=(Proc)%#p pid %d ", p, FIELD(Proc, p, pid));
 	if(FIELD(Proc, p, thread) == 0)
@@ -414,7 +414,7 @@ fmtbufflush(Fmt *f)
 }
 
 static char*
-debugstr(uintptr s)
+debugstr(usize s)
 {
 	static char buf[4096];
 	char *p, *e;
@@ -433,7 +433,7 @@ debugstr(uintptr s)
 }
 
 static char*
-threadfmt(uintptr t)
+threadfmt(usize t)
 {
 	static char buf[4096];
 	Fmt fmt;
@@ -471,16 +471,16 @@ threadfmt(uintptr t)
 
 
 static void
-thread(uintptr t)
+thread(usize t)
 {
 	dprint("%s\n", threadfmt(t));
 }
 
 static void
-threadapply(uintptr p, void (*fn)(uintptr))
+threadapply(usize p, void (*fn)(usize))
 {
 	int oldpid, pid;
-	uintptr tq, t;
+	usize tq, t;
 
 	oldpid = debug.pid;
 	pid = FIELD(Proc, p, pid);
@@ -496,29 +496,29 @@ threadapply(uintptr p, void (*fn)(uintptr))
 }
 
 static void
-pthreads1(uintptr t)
+pthreads1(usize t)
 {
 	dprint("\t");
 	thread(t);
 }
 
 static void
-pthreads(uintptr p)
+pthreads(usize p)
 {
 	threadapply(p, pthreads1);
 }
 
 static void
-lproc(uintptr p)
+lproc(usize p)
 {
 	proc(p);
 	pthreads(p);
 }
 
 static void
-procapply(void (*fn)(uintptr))
+procapply(void (*fn)(usize))
 {
-	uintptr proc, pq;
+	usize proc, pq;
 
 	pq = resolvev("_threadpq");
 	if(pq == 0){
@@ -548,9 +548,9 @@ procs(HConnect *c)
 }
 
 static void
-threadstack(uintptr t)
+threadstack(usize t)
 {
-	uintptr pc, sp;
+	usize pc, sp;
 
 	if(FIELD(Thread, t, state) == Running){
 		stacktrace(debug.map);
@@ -564,7 +564,7 @@ threadstack(uintptr t)
 
 
 static void
-tstacks(uintptr t)
+tstacks(usize t)
 {
 	dprint("\t");
 	thread(t);
@@ -573,7 +573,7 @@ tstacks(uintptr t)
 }
 
 static void
-pstacks(uintptr p)
+pstacks(usize p)
 {
 	proc(p);
 	threadapply(p, tstacks);

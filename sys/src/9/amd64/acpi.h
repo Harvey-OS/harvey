@@ -208,9 +208,9 @@ struct Atable {
 };
 
 struct Gpe {
-	uintptr stsio; /* port used for status */
+	usize stsio; /* port used for status */
 	int stsbit;	 /* bit number */
-	uintptr enio;	 /* port used for enable */
+	usize enio;	 /* port used for enable */
 	int enbit;	 /* bit number */
 	int nb;		 /* event number */
 	char *obj;	 /* handler object  */
@@ -224,14 +224,14 @@ struct Parse {
 
 struct Regio {
 	void *arg;
-	u8 (*get8)(uintptr, void *);
-	void (*set8)(uintptr, u8, void *);
-	u16 (*get16)(uintptr, void *);
-	void (*set16)(uintptr, u16, void *);
-	u32 (*get32)(uintptr, void *);
-	void (*set32)(uintptr, u32, void *);
-	u64 (*get64)(uintptr, void *);
-	void (*set64)(uintptr, u64, void *);
+	u8 (*get8)(usize, void *);
+	void (*set8)(usize, u8, void *);
+	u16 (*get16)(usize, void *);
+	void (*set16)(usize, u16, void *);
+	u32 (*get32)(usize, void *);
+	void (*set32)(usize, u32, void *);
+	u64 (*get64)(usize, void *);
+	void (*set64)(usize, u64, void *);
 };
 
 struct Reg {
@@ -518,8 +518,8 @@ struct DevScope {
 struct Drhd {
 	int flags;
 	int segment;
-	uintptr rba;
-	uintptr all;	      // This drhd scope is for everything.
+	usize rba;
+	usize all;	      // This drhd scope is for everything.
 	usize nscope;
 	struct DevScope *scopes;
 };

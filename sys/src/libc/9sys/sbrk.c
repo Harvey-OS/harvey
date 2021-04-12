@@ -22,9 +22,9 @@ enum
 int
 brk(void *p)
 {
-	uintptr bl;
+	usize bl;
 
-	bl = ((uintptr)p + Round) & ~Round;
+	bl = ((usize)p + Round) & ~Round;
 	if(brk_((void*)bl) < 0)
 		return -1;
 	bloc = (char*)bl;
@@ -34,9 +34,9 @@ brk(void *p)
 void*
 sbrk(u32 n)
 {
-	uintptr bl;
+	usize bl;
 
-	bl = ((uintptr)bloc + Round) & ~Round;
+	bl = ((usize)bloc + Round) & ~Round;
 	if(brk_((void*)(bl+n)) < 0)
 		return (void*)-1;
 	bloc = (char*)bl + n;

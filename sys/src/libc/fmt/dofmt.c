@@ -328,7 +328,7 @@ _ifmt(Fmt *f)
 	char buf[Maxintwidth + 1], *p, *conv;
 	u64 vu;
 	u32 u;
-	uintptr pu;
+	usize pu;
 	int neg, base, i, n, fl, w, isv;
 
 	neg = 0;
@@ -337,8 +337,8 @@ _ifmt(Fmt *f)
 	vu = 0;
 	u = 0;
 	if(f->r == 'p'){
-		pu = va_arg(f->args, uintptr);
-		if(sizeof(uintptr) == sizeof(u64)){
+		pu = va_arg(f->args, usize);
+		if(sizeof(usize) == sizeof(u64)){
 			vu = pu;
 			isv = 1;
 		}else

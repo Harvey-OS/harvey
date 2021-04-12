@@ -176,7 +176,7 @@ static Cmdtab proccmd[] = {
 #define NOTEID(q) ((q).vers)
 
 static void procctlreq(Proc *, char *, int);
-static int procctlmemio(Proc *, uintptr, int, void *, int);
+static int procctlmemio(Proc *, usize, int, void *, int);
 static Chan *proctext(Chan *, Proc *);
 static Segment *txt2data(Proc *, Segment *);
 static int procstopped(void *);
@@ -824,9 +824,9 @@ procread(Chan *c, void *va, i32 n, i64 off)
 	Segment *sg, *s;
 	int i, j, navail, pid, rsize, sno;
 	char flag[10], *sps, *srv, *statbuf;
-	uintptr offset, profoff, u;
+	usize offset, profoff, u;
 	int tesz;
-	uintptr gdbregs[DBG_MAX_REG_NUM];
+	usize gdbregs[DBG_MAX_REG_NUM];
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, va, n, 0, 0, procgen);
@@ -1314,7 +1314,7 @@ procwrite(Chan *c, void *va, i32 n, i64 off)
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
-	uintptr offset;
+	usize offset;
 
 	if(c->qid.type & QTDIR)
 		error(Eisdir);
@@ -1429,7 +1429,7 @@ procwrite(Chan *c, void *va, i32 n, i64 off)
 			for(s = buf; *s != '\0' && (*s < '0' || *s > '9'); s++)
 				;
 			if(*s >= '0' && *s <= '9'){
-				p->tls = (uintptr)strtoull(s, nil, 0);	// a-tol-whex! a-tol-whex!
+				p->tls = (usize)strtoull(s, nil, 0);	// a-tol-whex! a-tol-whex!
 				poperror();
 				qunlock(&p->debug);
 				psdecref(p);
@@ -1903,14 +1903,14 @@ procstopped(void *a)
 }
 
 static int
-procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
+procctlmemio(Proc *p, usize offset, int n, void *va, int read)
 {
 	Proc *up = externup();
 	KMap *k;
 	Pte *pte;
 	Page *pg;
 	Segment *s;
-	uintptr soff, l; /* hmmmm */
+	usize soff, l; /* hmmmm */
 	u8 *b;
 	u64 pgsz;
 

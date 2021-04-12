@@ -37,7 +37,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define ALIGNED(p, a) (!(((uintptr)(p)) & ((a)-1)))
+#define ALIGNED(p, a) (!(((usize)(p)) & ((a)-1)))
 
 /*
  * Sizes

@@ -96,7 +96,7 @@ mkgd(Gd *gd, u64 offset, Ss ss, u64 bits, int ist)
 }
 
 static void
-idtinit(Gd *gd, uintptr offset)
+idtinit(Gd *gd, usize offset)
 {
 	int ist, v;
 	u64 dpl;
@@ -122,7 +122,7 @@ idtinit(Gd *gd, uintptr offset)
 }
 
 void
-tssrsp0(Mach *mach, uintptr sp)
+tssrsp0(Mach *mach, usize sp)
 {
 	Tss *tss;
 
@@ -132,7 +132,7 @@ tssrsp0(Mach *mach, uintptr sp)
 }
 
 static void
-tssinit(Mach *mach, uintptr sp)
+tssinit(Mach *mach, usize sp)
 {
 	int ist;
 	Tss *tss;
@@ -172,7 +172,7 @@ vsvminit(int size, int nixtype, Mach *mach)
 	sd = &((Sd *)mach->gdt)[SiTSS];
 	*sd = mksd(PTR2UINT(mach->tss), sizeof(Tss) - 1, SdP | SdDPL0 | SdaTSS, sd + 1);
 	// Can not do this until multiboot information has been processed!
-	//*(uintptr_t*)mach->stack = STACKGUARD;
+	//*(usize*)mach->stack = STACKGUARD;
 	tssinit(mach, mach->stack + size);
 	gdtput(sizeof(gdt64) - 1, PTR2UINT(mach->gdt), SSEL(SiCS, SsTIGDT | SsRPL0));
 	trput(SSEL(SiTSS, SsTIGDT | SsRPL0));

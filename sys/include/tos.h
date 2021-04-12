@@ -10,7 +10,7 @@
 // This TOS is compatible with Plan 9 TOS.
 typedef struct Tos Tos;
 // This type does not matter; we don't use it.
-typedef uintptr_t Plink;
+typedef usize Plink;
 
 struct Tos {
 	struct			/* Per process profiling */

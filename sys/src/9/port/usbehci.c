@@ -2790,7 +2790,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	 */
 	assert(ep->maxpkt > 0 && ep->ntds > 0 && ep->ntds < 4);
 	assert(ep->maxpkt <= 1024);
-	iso->tdps = smalloc(sizeof(uintptr) * Nisoframes);
+	iso->tdps = smalloc(sizeof(usize) * Nisoframes);
 	iso->data = smalloc(iso->nframes * tpf * ep->ntds * ep->maxpkt);
 	iso->td0frno = TRUNC(ctlr->opio->frno + 10, Nisoframes);
 	/* read: now; write: 1s ahead */

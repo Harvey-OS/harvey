@@ -22,12 +22,10 @@ typedef	i64		isize;
 
 typedef unsigned int	uint;
 typedef i64 intptr_t;
-typedef u64 uintptr;
-typedef u64 uintptr_t;
 typedef	u32		Rune;
 typedef union FPdbleword FPdbleword;
 // This is a guess! Assumes float!
-typedef uintptr		jmp_buf[64]; // for registers.
+typedef usize		jmp_buf[64]; // for registers.
 
 #define	JMPBUFSP	1
 #define	JMPBUFPC	0
@@ -56,4 +54,4 @@ typedef __builtin_va_list va_list;
 #define va_arg(v,l)	__builtin_va_arg(v,l)
 #define va_copy(v,l)	__builtin_va_copy(v,l)
 
-#define getcallerpc()	((uintptr_t)__builtin_return_address(0))
+#define getcallerpc()	((usize)__builtin_return_address(0))

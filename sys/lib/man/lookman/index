@@ -65630,10 +65630,10 @@ uint	/sys/man/2/venti-fcall
 uint	/sys/man/2/venti-log
 uint	/sys/man/2/venti-packet
 uint	/sys/man/2/venti-zero
-uintptr	/sys/man/2/0intro
-uintptr	/sys/man/2/getcallerpc
-uintptr	/sys/man/2/ndb
-uintptr	/sys/man/2/print
+usize	/sys/man/2/0intro
+usize	/sys/man/2/getcallerpc
+usize	/sys/man/2/ndb
+usize	/sys/man/2/print
 uitomp	/sys/man/2/mp
 ujis	/sys/man/1/tcs
 ul	/sys/man/2/html

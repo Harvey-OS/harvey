@@ -176,7 +176,7 @@ chat("%d %d\n", haveplan9, nojoliet);
 	if(getdrec(root, rd) >= 0){
 		n = rd->reclen-(34+rd->namelen);
 		s = (u8*)rd->name + rd->namelen;
-		if((uintptr)s & 1){
+		if((usize)s & 1){
 			s++;
 			n--;
 		}
@@ -621,7 +621,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 
 	sysl = dp->reclen-(34+dp->namelen);
 	s = (u8*)dp->name + dp->namelen;
-	if(((uintptr)s) & 1) {
+	if(((usize)s) & 1) {
 		s++;
 		sysl--;
 	}
@@ -650,7 +650,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 		memset(d->gid, 0, ONAMELEN);
 		memmove(d->gid, s+1, nl);
 		s += 1 + *s;
-		if(((uintptr)s) & 1)
+		if(((usize)s) & 1)
 			s++;
 		d->mode = l32(s);
 		if(d->mode & DMDIR)
@@ -708,7 +708,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 			s += fs->suspoff;
 			sysl -= fs->suspoff;
 			for(; sysl >= 4 && have != (Hname|Hmode); sysl -= l, s += l){
-				if(s[0] == 0 && ((uintptr)s & 1)){
+				if(s[0] == 0 && ((usize)s & 1)){
 					/* MacOS pads individual entries, contrary to spec */
 					s++;
 					sysl--;

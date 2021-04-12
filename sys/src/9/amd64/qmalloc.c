@@ -108,7 +108,7 @@ static Lock mainlock;
 			 (p)->s.size = (n), (p)->s.next = &checkval)
 
 #define ISPOWEROF2(x) (/*((x) != 0) && */ !((x) & ((x)-1)))
-#define ALIGNHDR(h, a) (Header *)((((uintptr)(h)) + ((a)-1)) & ~((a)-1))
+#define ALIGNHDR(h, a) (Header *)((((usize)(h)) + ((a)-1)) & ~((a)-1))
 
 /*
  * From libc malloc.c to *draw devices
@@ -133,10 +133,10 @@ struct Private {
 #define QLIST quicklist
 
 static void *
-qmallocalign(usize nbytes, uintptr align, i32 offset, usize span)
+qmallocalign(usize nbytes, usize align, i32 offset, usize span)
 {
 	Qlist *qlist;
-	uintptr aligned;
+	usize aligned;
 	Header **pp, *p, *q, *r;
 	uint naligned, nunits, n;
 

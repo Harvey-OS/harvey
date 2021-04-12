@@ -1222,13 +1222,13 @@ runproc(void *argvp)
 	win = argv[0];
 	s = argv[1];
 	rdir = argv[2];
-	ndir = (uintptr)argv[3];
-	newns = (uintptr)argv[4];
+	ndir = (usize)argv[3];
+	newns = (usize)argv[4];
 	argaddr = argv[5];
 	arg = argv[6];
 	c = argv[7];
 	cpid = argv[8];
-	iseditcmd = (uintptr)argv[9];
+	iseditcmd = (usize)argv[9];
 	free(argv);
 
 	t = s;
@@ -1457,13 +1457,13 @@ run(Window *win, char *s, Rune *rdir, int ndir, int newns,
 	arg[0] = win;
 	arg[1] = s;
 	arg[2] = rdir;
-	arg[3] = (void*)(uintptr_t)ndir;
-	arg[4] = (void*)(uintptr_t)newns;
+	arg[3] = (void*)(usize)ndir;
+	arg[4] = (void*)(usize)newns;
 	arg[5] = argaddr;
 	arg[6] = xarg;
 	arg[7] = c;
 	arg[8] = cpid;
-	arg[9] = (void*)(uintptr_t)iseditcmd;
+	arg[9] = (void*)(usize)iseditcmd;
 	proccreate(runproc, arg, STACK);
 	/* mustn't block here because must be ready to answer mount() call in run() */
 	arg = emalloc(2*sizeof(void*));

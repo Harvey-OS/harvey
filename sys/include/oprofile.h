@@ -68,8 +68,8 @@ void oprofile_add_ext_hw_sample(unsigned long pc, Ureg *regs,
  * backtrace. */
 void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event);
 
-void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp);
-void oprofile_add_userpc(uintptr_t pc);
+void oprofile_add_backtrace(usize pc, usize fp);
+void oprofile_add_userpc(usize pc);
 
 /* add a backtrace entry, to be called from the ->backtrace callback */
 void oprofile_add_trace(unsigned long eip);

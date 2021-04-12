@@ -44,7 +44,7 @@ maktab(void)			/* define the tab stops of the table */
 				case 'a':
 					acase[icol] = 1;
 					ss = table[ilin][icol].col;
-					s = (int)(uintptr)ss;
+					s = (int)(usize)ss;
 					if (s > 0 && s < 128 && text) {
 						if (doubled[icol] == 0)
 							Bprint(&tabout, ".nr %d 0\n.nr %d 0\n",
@@ -60,7 +60,7 @@ maktab(void)			/* define the tab stops of the table */
 							    S1, S2);
 						doubled[icol] = 1;
 						if (real(ss = table[ilin][icol].col) && !vspen(ss)) {
-							s = (int)(uintptr)ss;
+							s = (int)(usize)ss;
 							if (tx(s) != text)
 								continue;
 							Bprint(&tabout, ".nr %d ", TMP);
@@ -81,7 +81,7 @@ maktab(void)			/* define the tab stops of the table */
 				case 'c':
 				case 'l':
 					if (real(ss = table[ilin][icol].col) && !vspen(ss)) {
-						s = (int)(uintptr)ss;
+						s = (int)(usize)ss;
 						if (tx(s) != text)
 							continue;
 						Bprint(&tabout, ".nr %d ", TMP);
@@ -226,7 +226,7 @@ wide(char *s, char *fn, char *size)
 			putsize("0");
 		Bprint(&tabout, "%c", F1);
 	} else
-		Bprint(&tabout, "\\n(%c-", (int)(uintptr)s);
+		Bprint(&tabout, "\\n(%c-", (int)(usize)s);
 }
 
 

@@ -300,7 +300,7 @@ static int npg[4];
 void *
 asmbootalloc(usize size)
 {
-	uintptr va;
+	usize va;
 
 	assert(sys->vmunused + size <= sys->vmunmapped);
 	va = sys->vmunused;
@@ -336,7 +336,7 @@ asmmeminit(void)
 	int i, l;
 	Asm *assem;
 	PTE *pte, *root;
-	uintptr va;
+	usize va;
 	u64 hi, lo, mem, nextmem, pa;
 #ifdef ConfCrap
 	int cx;
@@ -382,7 +382,7 @@ asmmeminit(void)
 			DBG("Skipping, it's not AsmMEMORY or AsmRESERVED\n");
 			continue;
 		}
-		va = (uintptr)kseg2 + assem->addr;
+		va = (usize)kseg2 + assem->addr;
 		DBG("asm: addr %#P end %#P type %d size %P\n",
 		    assem->addr, assem->addr + assem->size,
 		    assem->type, assem->size);

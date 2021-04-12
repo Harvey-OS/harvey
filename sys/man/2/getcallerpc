@@ -7,7 +7,7 @@ getcallerpc \- fetch return PC of current function
 .br
 .B #include <libc.h>
 .PP
-.B uintptr getcallerpc(void)
+.B usize getcallerpc(void)
 .SH DESCRIPTION
 .I Getcallerpc
 is a portable way to discover the PC to which the current function will return.

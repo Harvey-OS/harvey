@@ -1276,7 +1276,7 @@ igbeattach(Ether *edev)
 		print("igbe: can't allocate ctlr->alloc\n");
 		error(Enomem);
 	}
-	ctlr->rdba = (Rd *)ROUNDUP((uintptr)ctlr->alloc, 128);
+	ctlr->rdba = (Rd *)ROUNDUP((usize)ctlr->alloc, 128);
 	ctlr->tdba = (Td *)(ctlr->rdba + ctlr->nrd);
 
 	ctlr->rb = malloc(ctlr->nrd * sizeof(Block *));

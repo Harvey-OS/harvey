@@ -68,7 +68,7 @@ struct Lock {
 	u32 key;
 	int isilock;
 	Mpl pl;
-	uintptr _pc;
+	usize _pc;
 	Proc *p;
 	Mach *m;
 	u64 lockcycles;
@@ -76,10 +76,10 @@ struct Lock {
 
 struct Label {
 	/* order known to assembly */
-	uintptr sp;
-	uintptr pc;
-	uintptr fp;
-	uintptr x[32];
+	usize sp;
+	usize pc;
+	usize fp;
+	usize x[32];
 };
 
 struct Fxsave {
@@ -112,10 +112,10 @@ struct PNOTIFY {
 };
 
 struct Confmem {
-	uintptr base;
+	usize base;
 	usize npage;
-	uintptr kbase;
-	uintptr klimit;
+	usize kbase;
+	usize klimit;
 };
 
 struct Conf {
@@ -157,7 +157,7 @@ struct NIX {
  *  MMU stuff in Mach.
  */
 struct MMMU {
-	uintptr badaddr;
+	usize badaddr;
 	Page *root; /* root for this processor */
 	PTE *pmap;  /* unused as of yet */
 
@@ -238,12 +238,12 @@ enum {
  */
 struct Mach {
 	/* WARNING! Known to assembly! */
-	uintptr self; /* %gs:0 still gives us a Mach* */
+	usize self; /* %gs:0 still gives us a Mach* */
 	u64 splpc; /* pc of last caller to splhi */
 
 	Proc *proc;	   /* current process on this processor */
-	uintptr stack;   /* mach stack, kstack is in proc->kstack */
-	uintptr rathole; /* to save a reg in syscallentry */
+	usize stack;   /* mach stack, kstack is in proc->kstack */
+	usize rathole; /* to save a reg in syscallentry */
 	Proc *externup;	   /* Forsyth recommends we replace the global up with this. */
 	/* end warning, I think */
 
@@ -296,7 +296,7 @@ struct Mach {
 
 struct Stackframe {
 	Stackframe *next;
-	uintptr pc;
+	usize pc;
 };
 
 /*
@@ -318,10 +318,10 @@ struct Sys {
 			u64 pmoccupied; /* how much is occupied */
 			u64 pmend;	     /* total span */
 
-			uintptr vmstart;    /* base address for malloc */
-			uintptr vmunused;   /* 1st unused va */
-			uintptr vmunmapped; /* 1st unmapped va */
-			uintptr vmend;      /* 1st unusable va */
+			usize vmstart;    /* base address for malloc */
+			usize vmunused;   /* 1st unused va */
+			usize vmunmapped; /* 1st unmapped va */
+			usize vmend;      /* 1st unusable va */
 			u64 epoch;	      /* crude time synchronisation */
 
 			int nc[NIXROLES]; /* number of online processors */
@@ -374,7 +374,7 @@ struct
  * the clock which is only maintained by the bootstrap processor (0).
  */
 
-extern uintptr kseg0;
+extern usize kseg0;
 
 extern char *rolename[];
 extern void *kseg2;

@@ -23,8 +23,8 @@ struct IOMap {
 	IOMap *next;
 	int reserved;
 	char tag[13];
-	uintptr start;
-	uintptr end;
+	usize start;
+	usize end;
 };
 
 static struct

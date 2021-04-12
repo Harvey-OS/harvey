@@ -517,7 +517,7 @@ blocksetdsize(Pool *p, Alloc *b, u32 dsize)
 	if(eq > q+4)
 		eq = q+4;
 	for(; q<eq; q++)
-		*q = datamagic[((u32)(uintptr)q)%nelem(datamagic)];
+		*q = datamagic[((u32)(usize)q)%nelem(datamagic)];
 
 	return b;
 }
@@ -822,7 +822,7 @@ blockcheck(Pool *p, Bhdr *b)
 		if(eq > bq+4)
 			eq = bq+4;
 		for(q=bq; q<eq; q++){
-			if(*q != datamagic[((uintptr)q)%nelem(datamagic)]){
+			if(*q != datamagic[((usize)q)%nelem(datamagic)]){
 				if(q == bq && *q == 0 && (p->flags & POOL_TOLERANCE)){
 					printblock(p, b, "mem user overflow");
 					continue;
@@ -950,8 +950,8 @@ D2B(Pool *p, void *v)
 	Alloc *a;
 	u32 *u;
 
-	if((uintptr)v&(sizeof(u32)-1))
-		v = (char*)v - ((uintptr)v&(sizeof(u32)-1));
+	if((usize)v&(sizeof(u32)-1))
+		v = (char*)v - ((usize)v&(sizeof(u32)-1));
 	u = v;
 	while(u[-1] == ALIGN_MAGIC)
 		u--;
@@ -1082,7 +1082,7 @@ alignptr(void *v, u32 align, long offset)
 
 	c = v;
 	if(align){
-		off = (uintptr)c%align;
+		off = (usize)c%align;
 		if(off != offset){
 			c += offset - off;
 			if(off > offset)
@@ -1128,7 +1128,7 @@ poolallocalignl(Pool *p, u32 dsize, u32 align, long offset,
 	v = poolallocl(p, asize);
 	if(v == nil)
 		return nil;
-	if(span && (uintptr)v/span != ((uintptr)v+asize)/span){
+	if(span && (usize)v/span != ((usize)v+asize)/span){
 		/* try again */
 		poolfreel(p, v);
 		v = poolallocl(p, 2*asize);
@@ -1140,10 +1140,10 @@ poolallocalignl(Pool *p, u32 dsize, u32 align, long offset,
 	 * figure out what pointer we want to return
 	 */
 	c = alignptr(v, align, offset);
-	if(span && (uintptr)c/span != (uintptr)(c+dsize-1)/span){
-		c += span - (uintptr)c%span;
+	if(span && (usize)c/span != (usize)(c+dsize-1)/span){
+		c += span - (usize)c%span;
 		c = alignptr(c, align, offset);
-		if((uintptr)c/span != (uintptr)(c+dsize-1)/span){
+		if((usize)c/span != (usize)(c+dsize-1)/span){
 			poolfreel(p, v);
 			werrstr("cannot satisfy dsize %lu span %lu with align %lu+%ld", dsize, span, align, offset);
 			return nil;
@@ -1454,7 +1454,7 @@ memmark(void *v, int sig, u32 size)
 	lp = v;
 	elp = lp+size/4;
 	while(lp < elp) {
-		*lp = (sig<<24) ^ ((uintptr)lp-(uintptr)v);
+		*lp = (sig<<24) ^ ((usize)lp-(usize)v);
 		lp++;
 	}
 	p = (u8*)lp;

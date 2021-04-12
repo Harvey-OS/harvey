@@ -110,7 +110,7 @@ initdcache(u32 mem)
 	dcache.mem = MKNZ(u8, (nblocks+1+128) * blocksize);
 
 	last = nil;
-	p = (u8*)(((uintptr)dcache.mem+blocksize-1)&~(uintptr)(blocksize-1));
+	p = (u8*)(((usize)dcache.mem+blocksize-1)&~(usize)(blocksize-1));
 	for(i = 0; i < nblocks; i++){
 		b = &dcache.blocks[i];
 		b->data = &p[i * blocksize];

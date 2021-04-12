@@ -14,7 +14,7 @@
 
 char	buf[1048576];
 #define	NARG	5
-uintptr	arg[NARG];
+usize	arg[NARG];
 
 /* system calls not defined in libc.h */
 int	brk_(void*);
@@ -27,7 +27,7 @@ struct{
 	0,		0
 };
 
-uintptr parse(char *);
+usize parse(char *);
 void catch(void*, char*);
 
 char*
@@ -159,19 +159,19 @@ main(int argc, char *argv[])
 	exits("unknown");
 }
 
-uintptr
+usize
 parse(char *s)
 {
 	char *t;
-	uintptr l;
+	usize l;
 
 	if(strcmp(s, "buf") == 0)
-		return (uintptr)buf;
+		return (usize)buf;
 
 	l = strtoull(s, &t, 0);
 	if(t>s && *t==0)
 		return l;
-	return (uintptr)s;
+	return (usize)s;
 }
 
 void
