@@ -82,7 +82,7 @@ struct Thread
 	State		state;		/* run state */
 	State		nextstate;	/* next run state */
 	unsigned char		*stk;		/* top of stack (lowest address of stack) */
-	uint		stksize;	/* stack size */
+	u32		stksize;	/* stack size */
 	Thread		*next;		/* next on ready queue */
 
 	Proc		*proc;		/* proc of this thread */
@@ -133,7 +133,7 @@ struct Proc
 	int		blocked;		/* In a rendezvous */
 	int		pending;		/* delayed note pending */
 	int		nonotes;		/*  delay notes */
-	uint		nextID;			/* ID of most recently created thread */
+	u32		nextID;			/* ID of most recently created thread */
 	Proc		*next;			/* linked list of Procs */
 
 	void		*arg;			/* passed between shared and unshared stk */
@@ -164,7 +164,7 @@ struct Ioproc
 
 void	_freeproc(Proc*);
 void	_freethread(Thread*);
-Proc*	_newproc(void(*)(void*), void*, uint, char*, int, int);
+Proc*	_newproc(void(*)(void*), void*, u32, char*, int, int);
 int	_procsplhi(void);
 void	_procsplx(int);
 void	_sched(void);

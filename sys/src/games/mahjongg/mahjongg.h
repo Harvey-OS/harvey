@@ -115,9 +115,9 @@ void	resize(Point);
 void	undo(void);
 
 /* mahjongg.c */
-Image	*eallocimage(Rectangle, int, uint, uint);
+Image	*eallocimage(Rectangle, int, u32, u32);
 char	*genlevels(int);
 
 /* level.c */
-void	generate(uint seed);
+void	generate(u32 seed);
 int	parse(char *);

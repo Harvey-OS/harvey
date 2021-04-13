@@ -98,7 +98,7 @@ iebuck(Index *ix, u8 *b, IBucket *ib, IEStream *ies)
  * Fill ib with the next bucket in the stream.
  */
 u32
-buildbucket(Index *ix, IEStream *ies, IBucket *ib, uint maxdata)
+buildbucket(Index *ix, IEStream *ies, IBucket *ib, u32 maxdata)
 {
 	IEntry ie1, ie2;
 	u8 *b;

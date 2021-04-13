@@ -14,7 +14,7 @@
 #include "win.h"
 
 void*
-erealloc(void *p, uint n)
+erealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -100,7 +100,7 @@ nrunes(char *s, int nb)
 }
 
 void
-wread(Win *w, uint q0, uint q1, char *data)
+wread(Win *w, u32 q0, u32 q1, char *data)
 {
 	int m, n, nr;
 	char buf[256];

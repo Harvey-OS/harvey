@@ -194,7 +194,7 @@ void
 winctl(void *arg)
 {
 	Rune *rp, *bp, *tp, *up, *kbdr;
-	uint qh;
+	u32 qh;
 	int nr, nb, c, wid, i, npart, initial, lastb;
 	char *s, *t, part[3];
 	Window *w;
@@ -452,9 +452,9 @@ interruptproc(void *v)
 }
 
 int
-windfilewidth(Window *w, uint q0, int oneelement)
+windfilewidth(Window *w, u32 q0, int oneelement)
 {
-	uint q;
+	u32 q;
 	Rune r;
 
 	q = q0;
@@ -475,7 +475,7 @@ showcandidates(Window *w, Completion *c)
 	int i;
 	Fmt f;
 	Rune *rp;
-	uint nr, qline, q0;
+	u32 nr, qline, q0;
 	char *s;
 
 	runefmtstrinit(&f);
@@ -564,7 +564,7 @@ namecomplete(Window *w)
 void
 wkeyctl(Window *w, Rune r)
 {
-	uint q0 ,q1;
+	u32 q0 ,q1;
 	int n, nb, nr;
 	Rune *rp;
 	int *notefd;
@@ -730,7 +730,7 @@ wrepaint(Window *w)
 int
 wbswidth(Window *w, Rune c)
 {
-	uint q, eq, stop;
+	u32 q, eq, stop;
 	Rune r;
 	int skipping;
 
@@ -785,7 +785,7 @@ wcut(Window *w)
 void
 wpaste(Window *w)
 {
-	uint q0;
+	u32 q0;
 
 	if(nsnarf == 0)
 		return;
@@ -806,7 +806,7 @@ wplumb(Window *w)
 	Plumbmsg *m;
 	static int fd = -2;
 	char buf[32];
-	uint p0, p1;
+	u32 p0, p1;
 	Cursor *c;
 
 	if(fd == -2)
@@ -885,9 +885,9 @@ wmousectl(Window *w)
 }
 
 void
-wdelete(Window *w, uint q0, uint q1)
+wdelete(Window *w, u32 q0, u32 q1)
 {
-	uint n, p0, p1;
+	u32 n, p0, p1;
 
 	n = q1-q0;
 	if(n == 0)
@@ -920,9 +920,9 @@ wdelete(Window *w, uint q0, uint q1)
 
 
 static Window	*clickwin;
-static uint	clickmsec;
+static u32	clickmsec;
 static Window	*selectwin;
-static uint	selectq;
+static u32	selectq;
 
 /*
  * called from frame library
@@ -938,7 +938,7 @@ framescroll(Frame *f, int dl)
 void
 wframescroll(Window *w, int dl)
 {
-	uint q0;
+	u32 q0;
 
 	if(dl == 0){
 		wscrsleep(w, 100);
@@ -965,7 +965,7 @@ wframescroll(Window *w, int dl)
 void
 wselect(Window *w)
 {
-	uint q0, q1;
+	u32 q0, q1;
 	int b, x, y, first;
 
 	first = 1;
@@ -1408,11 +1408,11 @@ Rune *right[] = {
 };
 
 void
-wdoubleclick(Window *w, uint *q0, uint *q1)
+wdoubleclick(Window *w, u32 *q0, u32 *q1)
 {
 	int c, i;
 	Rune *r, *l, *p;
-	uint q;
+	u32 q;
 
 	for(i=0; left[i]!=nil; i++){
 		q = *q0;
@@ -1454,7 +1454,7 @@ wdoubleclick(Window *w, uint *q0, uint *q1)
 }
 
 int
-wclickmatch(Window *w, int cl, int cr, int dir, uint *q)
+wclickmatch(Window *w, int cl, int cr, int dir, u32 *q)
 {
 	Rune c;
 	int nest;
@@ -1482,8 +1482,8 @@ wclickmatch(Window *w, int cl, int cr, int dir, uint *q)
 }
 
 
-uint
-wbacknl(Window *w, uint p, uint n)
+u32
+wbacknl(Window *w, u32 p, u32 n)
 {
 	int i, j;
 
@@ -1504,11 +1504,11 @@ wbacknl(Window *w, uint p, uint n)
 }
 
 void
-wshow(Window *w, uint q0)
+wshow(Window *w, u32 q0)
 {
 	int qe;
 	int nl;
-	uint q;
+	u32 q;
 
 	qe = w->org+w->Frame.nchars;
 	if(w->org<=q0 && (q0<qe || (q0==qe && qe==w->nr)))
@@ -1525,11 +1525,11 @@ wshow(Window *w, uint q0)
 }
 
 void
-wsetorigin(Window *w, uint org, int exact)
+wsetorigin(Window *w, u32 org, int exact)
 {
 	int i, a, fixup;
 	Rune *r;
-	uint n;
+	u32 n;
 
 	if(org>0 && !exact){
 		/* org is an estimate of the char posn; find a newline */
@@ -1564,7 +1564,7 @@ wsetorigin(Window *w, uint org, int exact)
 }
 
 void
-wsetselect(Window *w, uint q0, uint q1)
+wsetselect(Window *w, u32 q0, u32 q1)
 {
 	int p0, p1;
 
@@ -1612,10 +1612,10 @@ wsetselect(Window *w, uint q0, uint q1)
 	w->Frame.p1 = p1;
 }
 
-uint
-winsert(Window *w, Rune *r, int n, uint q0)
+u32
+winsert(Window *w, Rune *r, int n, u32 q0)
 {
-	uint m;
+	u32 m;
 
 	if(n == 0)
 		return q0;

@@ -260,23 +260,23 @@ warning(Mntdir *md, char *s, ...)
 }
 
 int
-runeeq(Rune *s1, uint n1, Rune *s2, uint n2)
+runeeq(Rune *s1, u32 n1, Rune *s2, u32 n2)
 {
 	if(n1 != n2)
 		return FALSE;
 	return memcmp(s1, s2, n1*sizeof(Rune)) == 0;
 }
 
-uint
-min(uint a, uint b)
+u32
+min(u32 a, u32 b)
 {
 	if(a < b)
 		return a;
 	return b;
 }
 
-uint
-max(uint a, uint b)
+u32
+max(u32 a, u32 b)
 {
 	if(a > b)
 		return a;
@@ -331,13 +331,13 @@ isalnum(Rune c)
 }
 
 int
-rgetc(void *v, uint n)
+rgetc(void *v, u32 n)
 {
 	return ((Rune*)v)[n];
 }
 
 int
-tgetc(void *a, uint n)
+tgetc(void *a, u32 n)
 {
 	Text *t;
 
@@ -409,7 +409,7 @@ estrdup(char *s)
 }
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -422,7 +422,7 @@ emalloc(uint n)
 }
 
 void*
-erealloc(void *p, uint n)
+erealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)

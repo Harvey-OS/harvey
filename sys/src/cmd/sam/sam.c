@@ -420,7 +420,7 @@ filename(File *f)
 void
 undostep(File *f, int isundo)
 {
-	uint p1, p2;
+	u32 p1, p2;
 	int mod;
 
 	mod = f->mod;

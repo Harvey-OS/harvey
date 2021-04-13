@@ -462,7 +462,7 @@ Block *
 ip6reassemble(IP *ip, int uflen, Block *bp, Ip6hdr *ih)
 {
 	int fend, offset, ovlap, len, fragsize, pktposn;
-	uint id;
+	u32 id;
 	u8 src[IPaddrlen], dst[IPaddrlen];
 	Block *bl, **l, *last, *prev;
 	Fraghdr6 *fraghdr;

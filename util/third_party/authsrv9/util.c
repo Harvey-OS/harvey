@@ -176,7 +176,7 @@ passtokey(uchar *key, char *pw)
 	t = 0;
 	for(;;) {
 		for(i = 0; i < Deskeylen; i++)
-			key[i] = (buf[t+i]>>i) + ((uint)buf[t+i+1] << (8 - (i+1)));
+			key[i] = (buf[t+i]>>i) + ((u32)buf[t+i+1] << (8 - (i+1)));
 		if(n <= 8)
 			return;
 		n -= 8;

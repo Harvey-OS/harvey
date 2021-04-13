@@ -117,7 +117,7 @@ static int
 load_4T(Biobuf* b, i32 width, i32 height, Rgb* buf, Rgb* clut)
 {
 	i32 ix, iy, i = 0, step_up = 0, skip = (4 - (((width % 8) + 1) / 2)) & 3;
-	uint valH, valL;
+	u32 valH, valL;
 
 	if(height > 0) {	/* bottom-up */
 		i = (height - 1) * width;
@@ -149,16 +149,16 @@ static int
 load_4C(Biobuf *b, i32 width, i32 height, Rgb* buf, Rgb* clut)
 {
 	i32 ix, iy = height -1;
-	uint val, valS, skip;
+	u32 val, valS, skip;
 	Rgb* p;
 
 	while(iy >= 0) {
 		ix = 0;
 		while(ix < width) {
-			val = (uint)Bgetc(b);
+			val = (u32)Bgetc(b);
 
 			if(0 != val) {
-				valS = (uint)Bgetc(b);
+				valS = (u32)Bgetc(b);
 				p = &buf[ix + iy * width];
 				while(val--) {
 					*p = clut[0xf & (valS >> 4)];
@@ -184,9 +184,9 @@ load_4C(Biobuf *b, i32 width, i32 height, Rgb* buf, Rgb* clut)
 						iy = -1;
 						break;
 					case 2:	/* Position change detected */
-						val = (uint)Bgetc(b);
+						val = (u32)Bgetc(b);
 						ix += val;
-						val = (uint)Bgetc(b);
+						val = (u32)Bgetc(b);
 						iy -= val;
 						break;
 
@@ -198,7 +198,7 @@ load_4C(Biobuf *b, i32 width, i32 height, Rgb* buf, Rgb* clut)
 							skip = 0;
 
 						while(val--) {
-							valS = (uint)Bgetc(b);
+							valS = (u32)Bgetc(b);
 							*p = clut[0xf & (valS >> 4)];
 							p++;
 							ix++;

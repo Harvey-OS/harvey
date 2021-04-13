@@ -14,7 +14,7 @@
 #include "win.h"
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 

@@ -183,9 +183,9 @@ struct Text
 	File	*file;
 	Frame	Frame;
 	Reffont	*reffont;
-	uint	org;
-	uint	q0;
-	uint	q1;
+	u32	org;
+	u32	q0;
+	u32	q1;
 	int	what;
 	int	tabstop;
 	Window	*w;
@@ -195,8 +195,8 @@ struct Text
 	Row	*row;
 	Column	*col;
 
-	uint	eq0;	/* start of typing for ESC */
-	uint	cq0;	/* cache position */
+	u32	eq0;	/* start of typing for ESC */
+	u32	cq0;	/* cache position */
 	int		ncache;	/* storage for insert */
 	int		ncachealloc;
 	Rune	*cache;
@@ -271,7 +271,7 @@ struct Window
 	Rune		**incl;
 	Reffont	*reffont;
 	QLock	ctllock;
-	uint		ctlfid;
+	u32		ctlfid;
 	char		*dumpstr;
 	char		*dumpdir;
 	int		dumpid;

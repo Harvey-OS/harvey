@@ -50,12 +50,12 @@ mpint*	mprand(int bits, void (*gen)(u8*, int), mpint *b);
 mpint*	strtomp(char*, char**, int, mpint*);	/* ascii */
 int	mpfmt(Fmt*);
 char*	mptoa(mpint*, int, char*, int);
-mpint*	letomp(u8*, uint, mpint*);	/* byte array, little-endian */
-int	mptole(mpint*, u8*, uint, u8**);
-mpint*	betomp(u8*, uint, mpint*);	/* byte array, little-endian */
-int	mptobe(mpint*, u8*, uint, u8**);
-uint	mptoui(mpint*);			/* unsigned int */
-mpint*	uitomp(uint, mpint*);
+mpint*	letomp(u8*, u32, mpint*);	/* byte array, little-endian */
+int	mptole(mpint*, u8*, u32, u8**);
+mpint*	betomp(u8*, u32, mpint*);	/* byte array, little-endian */
+int	mptobe(mpint*, u8*, u32, u8**);
+u32	mptoui(mpint*);			/* unsigned int */
+mpint*	uitomp(u32, mpint*);
 int	mptoi(mpint*);			/* int */
 mpint*	itomp(int, mpint*);
 u64	mptouv(mpint*);			/* unsigned vlong */

@@ -741,9 +741,9 @@ Bits	band(Bits, Bits);
 Bits	bnot(Bits);
 int	bany(Bits*);
 int	bnum(Bits);
-Bits	blsh(uint);
+Bits	blsh(u32);
 int	beq(Bits, Bits);
-int	bset(Bits, uint);
+int	bset(Bits, u32);
 
 /*
  * dpchk.c

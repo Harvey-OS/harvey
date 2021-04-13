@@ -71,7 +71,7 @@ i64			Bfilelen(void*);
 
 /* redirect.c */
 void			redirectinit(void);
-char*			redirect(HConnect *hc, char*, uint *);
+char*			redirect(HConnect *hc, char*, u32 *);
 char*			masquerade(char*);
 char*			authrealm(HConnect *hc, char *path);
 char			*undecorated(char *repl);

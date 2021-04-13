@@ -35,8 +35,8 @@ Timer*	timerstart(int);
 void	error(char*);
 void	killprocs(void);
 int	shutdown(void*, char*);
-void	*erealloc(void*, uint);
-void *emalloc(uint);
+void	*erealloc(void*, u32);
+void *emalloc(u32);
 char *estrdup(char*);
 // snarf buffer? Sure, why not?
 // /dev/snarf can hold items to be pasted between consoles.

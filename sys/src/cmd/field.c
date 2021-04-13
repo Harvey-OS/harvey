@@ -19,8 +19,8 @@ struct Slice {
 };
 
 struct Slices {
-	uint len;
-	uint size;
+	u32 len;
+	u32 size;
 	Slice *slices;
 };
 
@@ -47,7 +47,7 @@ int stoi(Slice slice);
 int parsenum(char **s);
 void process(Biobuf *b, int rc, Range *rv, Reprog *delim, char *sep, int collapse);
 void pprefix(char *prefix);
-uint split(char *line, Reprog *delim, Slices *ss, int collapse);
+u32 split(char *line, Reprog *delim, Slices *ss, int collapse);
 void reset(Slices *ss);
 void append(Slices *ss, char *begin, char *end);
 void usage(void);
@@ -361,7 +361,7 @@ process(Biobuf *b, int rc, Range *rv, Reprog *delim, char *outsep, int collapse)
 	memset(&ss, 0, sizeof(ss));
 	while ((line = Brdstr(b, '\n', nulldelim)) != 0) {
 		int printed = 0;
-		uint nfields = split(line, delim, &ss, collapse);
+		u32 nfields = split(line, delim, &ss, collapse);
 		s = ss.slices;
 		prefix = nil;
 		for (int k = 0; k < rc; k++) {
@@ -414,7 +414,7 @@ reset(Slices *ss)
 	ss->len = 0;
 }
 
-uint
+u32
 split(char *line, Reprog *delim, Slices *ss, int collapse)
 {
 	char *s, *b, *e;

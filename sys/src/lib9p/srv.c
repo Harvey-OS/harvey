@@ -666,7 +666,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change type");
 		return;
 	}
-	if((uint)~r->d.dev){
+	if((u32)~r->d.dev){
 		respond(r, "wstat -- attempt to change dev");
 		return;
 	}

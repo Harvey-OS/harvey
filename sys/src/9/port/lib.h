@@ -228,7 +228,7 @@ struct Qid {
 struct Dir {
 	/* system-modified data */
 	u16 type; /* server type */
-	uint dev;      /* server subtype */
+	u32 dev;      /* server subtype */
 	/* file data */
 	Qid qid;	/* unique id from server */
 	u32 mode;	/* permissions */

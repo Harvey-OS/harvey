@@ -17,7 +17,7 @@ readimage(Display *d, int fd, int dolock)
 	char hdr[5*12+1];
 	int dy;
 	int new;
-	uint l, n;
+	u32 l, n;
 	int m, j, chunk;
 	int miny, maxy;
 	Rectangle r;

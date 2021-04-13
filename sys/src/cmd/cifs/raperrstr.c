@@ -337,7 +337,7 @@ static struct {
 };
 
 char *
-raperrstr(uint err)
+raperrstr(u32 err)
 {
 	int i, match;
 	static char buf[0xff];

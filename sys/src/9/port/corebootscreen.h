@@ -61,8 +61,8 @@ enum {
 struct CorebootScreen {
 	Lock l;
 	Cursor Cursor;
-	uint wid; /* width in pixels */
-	uint ht;  /* height in pixels */
+	u32 wid; /* width in pixels */
+	u32 ht;  /* height in pixels */
 	int open;
 };
 

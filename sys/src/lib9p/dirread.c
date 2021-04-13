@@ -19,7 +19,7 @@ dirread9p(Req *r, Dirgen *gen, void *aux)
 {
 	int start;
 	u8 *p, *ep;
-	uint rv;
+	u32 rv;
 	Dir d;
 
 	if(r->ifcall.offset == 0)

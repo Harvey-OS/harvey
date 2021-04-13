@@ -62,7 +62,7 @@ clearwaitstats(void)
 void
 addwaitstat(usize pc, u64 t0, int type)
 {
-	uint i;
+	u32 i;
 	u64 w;
 
 	if(waitstats.on == 0)

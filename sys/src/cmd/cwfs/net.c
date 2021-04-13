@@ -237,7 +237,7 @@ chanhangup(Chan *cp, char *msg, int dolock)
  * leaves it in the first few bytes of abuf.
  */
 static i32
-size9pmsg(int fd, void *abuf, uint n)
+size9pmsg(int fd, void *abuf, u32 n)
 {
 	int m;
 	u8 *buf = abuf;

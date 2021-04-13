@@ -371,7 +371,7 @@ enum {			       /* Receive Delay Timer Ring */
 };
 
 typedef struct Rd { /* Receive Descriptor */
-	uint addr[2];
+	u32 addr[2];
 	u16 length;
 	u16 checksum;
 	unsigned char status;
@@ -402,7 +402,7 @@ enum {		    /* Rd errors */
 typedef struct Td Td;
 struct Td { /* Transmit Descriptor */
 	union {
-		uint addr[2]; /* Data */
+		u32 addr[2]; /* Data */
 		struct {      /* Context */
 			unsigned char ipcss;
 			unsigned char ipcso;
@@ -412,8 +412,8 @@ struct Td { /* Transmit Descriptor */
 			u16 tucse;
 		};
 	};
-	uint control;
-	uint status;
+	u32 control;
+	u32 status;
 };
 
 enum {			     /* Td control */
@@ -492,16 +492,16 @@ struct Ctlr {
 	Watermark wmtd;
 
 	QLock slock;
-	uint statistics[Nstatistics];
-	uint lsleep;
-	uint lintr;
-	uint rsleep;
-	uint rintr;
-	uint txdw;
-	uint tintr;
-	uint ixsm;
-	uint ipcs;
-	uint tcpcs;
+	u32 statistics[Nstatistics];
+	u32 lsleep;
+	u32 lintr;
+	u32 rsleep;
+	u32 rintr;
+	u32 txdw;
+	u32 tintr;
+	u32 ixsm;
+	u32 ipcs;
+	u32 tcpcs;
 
 	unsigned char ra[Eaddrlen]; /* receive address */
 	u32 mta[128];	    /* multicast table array */

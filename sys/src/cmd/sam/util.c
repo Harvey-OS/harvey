@@ -54,8 +54,8 @@ fbuffree(void *f)
 	free(f);
 }
 
-uint
-min(uint a, uint b)
+u32
+min(u32 a, u32 b)
 {
 	if(a < b)
 		return a;

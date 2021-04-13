@@ -265,7 +265,7 @@ call:
 }
 
 u8 *
-put4(u8 *p, uint n)
+put4(u8 *p, u32 n)
 {
 	p[0] = (n>>24)&0xFF;
 	p[1] = (n>>16)&0xFF;
@@ -275,7 +275,7 @@ put4(u8 *p, uint n)
 }
 
 u8 *
-putn(u8 *p, void *v, uint n)
+putn(u8 *p, void *v, u32 n)
 {
 	memmove(p, v, n);
 	p += n;

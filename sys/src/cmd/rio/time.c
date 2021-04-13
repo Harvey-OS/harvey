@@ -23,7 +23,7 @@ static Channel*	ctimer;	/* chan(Timer*)[100] */
 static Timer *timer;
 
 static
-uint
+u32
 msec(void)
 {
 	return nsec()/1000000;
@@ -48,7 +48,7 @@ timerproc(void* vacio)
 {
 	int i, nt, na, dt, del;
 	Timer **t, *x;
-	uint old, new;
+	u32 old, new;
 
 	rfork(RFFDG);
 	threadsetname("TIMERPROC");

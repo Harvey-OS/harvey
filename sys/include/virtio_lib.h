@@ -41,8 +41,8 @@ typedef struct virtq {
 	u16 lastused;
 	u16 waiting;
 	Lock l;
-	uint free;
-	uint nfree;
+	u32 free;
+	u32 nfree;
 	void *pdev;					// use this to reference the virtio device control structure which is per-driver
 	int idx;					// driver use only, index of the queue per device
 	void *pqdata;				// per-queue private data (may be shared between queues of the same device)

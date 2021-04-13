@@ -293,7 +293,7 @@ D_cmd(Text *t, Cmd *cp)
 }
 
 static int
-readloader(void *v, uint q0, Rune *r, int nr)
+readloader(void *v, u32 q0, Rune *r, int nr)
 {
 	if(nr > 0)
 		eloginsert(v, q0, r, nr);

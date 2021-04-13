@@ -26,18 +26,18 @@ struct Undo
 {
 	short	type;		/* Delete, Insert, Filename, Dot, Mark */
 	short	mod;		/* modify bit */
-	uint	seq;		/* sequence number */
-	uint	p0;		/* location of change (unused in f) */
-	uint	n;		/* # runes in string or file name */
+	u32	seq;		/* sequence number */
+	u32	p0;		/* location of change (unused in f) */
+	u32	n;		/* # runes in string or file name */
 };
 
 struct Merge
 {
 	File	*f;
-	uint	seq;		/* of logged change */
-	uint	p0;		/* location of change (unused in f) */
-	uint	n;		/* # runes to delete */
-	uint	nbuf;		/* # runes to insert */
+	u32	seq;		/* of logged change */
+	u32	p0;		/* location of change (unused in f) */
+	u32	n;		/* # runes to delete */
+	u32	nbuf;		/* # runes to insert */
 	Rune	buf[RBUFSIZE];
 };
 
@@ -71,7 +71,7 @@ fileisdirty(File *f)
 }
 
 static void
-wrinsert(Buffer *delta, int seq, int mod, uint p0, Rune *s, uint ns)
+wrinsert(Buffer *delta, int seq, int mod, u32 p0, Rune *s, u32 ns)
 {
 	Undo u;
 
@@ -85,7 +85,7 @@ wrinsert(Buffer *delta, int seq, int mod, uint p0, Rune *s, uint ns)
 }
 
 static void
-wrdelete(Buffer *delta, int seq, int mod, uint p0, uint p1)
+wrdelete(Buffer *delta, int seq, int mod, u32 p0, u32 p1)
 {
 	Undo u;
 
@@ -117,9 +117,9 @@ flushmerge(void)
 }
 
 void
-mergeextend(File *f, uint p0)
+mergeextend(File *f, u32 p0)
 {
-	uint mp0n;
+	u32 mp0n;
 
 	mp0n = merge.p0+merge.n;
 	if(mp0n != p0){
@@ -133,7 +133,7 @@ mergeextend(File *f, uint p0)
  * like fileundelete, but get the data from arguments
  */
 void
-loginsert(File *f, uint p0, Rune *s, uint ns)
+loginsert(File *f, u32 p0, Rune *s, u32 ns)
 {
 	if(f->rescuing)
 		return;
@@ -174,7 +174,7 @@ loginsert(File *f, uint p0, Rune *s, uint ns)
 }
 
 void
-logdelete(File *f, uint p0, uint p1)
+logdelete(File *f, u32 p0, u32 p1)
 {
 	if(f->rescuing)
 		return;
@@ -275,7 +275,7 @@ filedeltext(File *f, Text *t)
 #endif
 
 void
-fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
+fileuninsert(File *f, Buffer *delta, u32 p0, u32 ns)
 {
 	Undo u;
 
@@ -289,11 +289,11 @@ fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
 }
 
 void
-fileundelete(File *f, Buffer *delta, uint p0, uint p1)
+fileundelete(File *f, Buffer *delta, u32 p0, u32 p1)
 {
 	Undo u;
 	Rune *buf;
-	uint i, n;
+	u32 i, n;
 
 	/* undo a deletion by inserting */
 	u.type = Insert;
@@ -315,7 +315,7 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 }
 
 int
-filereadc(File *f, uint q)
+filereadc(File *f, u32 q)
 {
 	Rune r;
 
@@ -382,8 +382,8 @@ fileunsetmark(File *f, Buffer *delta, Range mark)
 	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
 }
 
-uint
-fileload(File *f, uint p0, int fd, int *nulls)
+u32
+fileload(File *f, u32 p0, int fd, int *nulls)
 {
 	if(f->seq > 0)
 		panic("undo in file.load unimplemented");
@@ -393,7 +393,7 @@ fileload(File *f, uint p0, int fd, int *nulls)
 int
 fileupdate(File *f, int notrans, int toterm)
 {
-	uint p1, p2;
+	u32 p1, p2;
 	int mod;
 
 	if(f->rescuing)
@@ -442,7 +442,7 @@ long
 prevseq(Buffer *b)
 {
 	Undo u;
-	uint up;
+	u32 up;
 
 	up = b->nc;
 	if(up == 0)
@@ -462,12 +462,12 @@ undoseq(File *f, int isundo)
 }
 
 void
-fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
+fileundo(File *f, int isundo, int canredo, u32 *q0p, u32 *q1p, int flag)
 {
 	Undo u;
 	Rune *buf;
-	uint i, n, up;
-	uint stop;
+	u32 i, n, up;
+	u32 stop;
 	Buffer *delta, *epsilon;
 
 	if(isundo){

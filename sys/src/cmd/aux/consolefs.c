@@ -190,7 +190,7 @@ fatal(char *fmt, ...)
 
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 

@@ -54,10 +54,10 @@ Dirtab dirtab[]=
 	{ nil, }
 };
 
-static uint		getclock(void);
+static u32		getclock(void);
 static void		filsysproc(void*);
 static Fid*		newfid(Filsys*, int);
-static int		dostat(Filsys*, int, Dirtab*, u8*, int, uint);
+static int		dostat(Filsys*, int, Dirtab*, u8*, int, u32);
 
 int	clockfd;
 int	firstmessage = 1;
@@ -531,7 +531,7 @@ filsysread(Filsys *fs, Xfid *x, Fid *f)
 	u8 *b;
 	int i, n, o, e, len, j, k, *ids;
 	Dirtab *d, dt;
-	uint clock;
+	u32 clock;
 	char buf[16];
 
 	if((f->qid.type & QTDIR) == 0){
@@ -673,7 +673,7 @@ newfid(Filsys *fs, int fid)
 }
 
 static
-uint
+u32
 getclock(void)
 {
 	char buf[32];
@@ -685,7 +685,7 @@ getclock(void)
 
 static
 int
-dostat(Filsys *fs, int id, Dirtab *dir, u8 *buf, int nbuf, uint clock)
+dostat(Filsys *fs, int id, Dirtab *dir, u8 *buf, int nbuf, u32 clock)
 {
 	Dir d;
 

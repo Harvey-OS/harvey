@@ -29,10 +29,10 @@ static struct {
 	VtLog *hash[1024];
 } vl;
 
-static uint
+static u32
 hash(char *s)
 {
-	uint h;
+	u32 h;
 	u8 *p;
 
 	h = 0;
@@ -76,9 +76,9 @@ vtlognames(int *pn)
 }
 
 VtLog*
-vtlogopen(char *name, uint size)
+vtlogopen(char *name, u32 size)
 {
-	uint h;
+	u32 h;
 	int i, nc;
 	char *p;
 	VtLog *l, *last;
@@ -152,7 +152,7 @@ vtlogclose(VtLog *l)
 void
 vtlogremove(char *name)
 {
-	uint h;
+	u32 h;
 	VtLog *last, *l;
 
 	h = hash(name)%nelem(vl.hash);
@@ -182,7 +182,8 @@ timefmt(Fmt *fmt)
 	if(t0 == 0)
 		t0 = nsec();
 	t = nsec()-t0;
-	return fmtprint(fmt, "T+%d.%04d", (uint)(t/1000000000), (uint)(t%1000000000)/100000);
+	return fmtprint(fmt, "T+%d.%04d", (u32)(t/1000000000),
+			(u32)(t%1000000000)/100000);
 }
 
 void

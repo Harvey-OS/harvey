@@ -12,7 +12,7 @@
 #include <fcall.h>
 
 int
-read9pmsg(int fd, void *abuf, uint n)
+read9pmsg(int fd, void *abuf, u32 n)
 {
 	int m, len;
 	u8 *buf;

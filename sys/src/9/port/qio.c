@@ -61,7 +61,7 @@ enum {
 	Maxatomic = 64 * 1024,
 };
 
-uint qiomaxatomic = Maxatomic;
+u32 qiomaxatomic = Maxatomic;
 
 void
 ixsummary(void)

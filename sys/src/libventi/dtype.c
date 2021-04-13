@@ -32,7 +32,7 @@ enum {
 };
 
 
-uint todisk[] = {
+u32 todisk[] = {
 	OVtDataType,
 	OVtPointerType0,
 	OVtPointerType1,
@@ -52,7 +52,7 @@ uint todisk[] = {
 	OVtRootType,
 };
 
-uint fromdisk[] = {
+u32 fromdisk[] = {
 	VtCorruptType,
 	VtRootType,
 	VtDirType,
@@ -69,16 +69,16 @@ uint fromdisk[] = {
 	VtDataType,
 };
 
-uint
-vttodisktype(uint n)
+u32
+vttodisktype(u32 n)
 {
 	if(n >= nelem(todisk))
 		return VtCorruptType;
 	return todisk[n];
 }
 
-uint
-vtfromdisktype(uint n)
+u32
+vtfromdisktype(u32 n)
 {
 	if(n >= nelem(fromdisk))
 		return VtCorruptType;

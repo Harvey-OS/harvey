@@ -680,10 +680,10 @@ struct Stats
 
 struct Statbin
 {
-	uint nsamp;
-	uint min;
-	uint max;
-	uint avg;
+	u32 nsamp;
+	u32 min;
+	u32 max;
+	u32 avg;
 };
 
 struct Graph

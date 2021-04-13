@@ -215,7 +215,7 @@ struct Tcpctl {
 		u32 wnd; /* Tcp send window */
 		u32 urg; /* Urgent data pointer */
 		u32 wl2;
-		uint scale; /* how much to right shift window */
+		u32 scale; /* how much to right shift window */
 			    /* in xmitted packets */
 		/* to implement tahoe and reno TCP */
 		u32 dupacks; /* number of duplicate acks rcvd */
@@ -235,20 +235,20 @@ struct Tcpctl {
 		u32 urg;	 /* Urgent pointer */
 		u32 ackptr; /* last acked sequence */
 		int blocked;
-		uint scale; /* how much to left shift window in */
+		u32 scale; /* how much to left shift window in */
 			    /* rcv'd packets */
 	} rcv;
 	u32 iss;	   /* Initial sequence number */
 	u32 cwind;	   /* Congestion window */
 	u32 abcbytes; /* appropriate byte counting rfc 3465 */
-	uint scale;	   /* desired snd.scale */
+	u32 scale;	   /* desired snd.scale */
 	u32 ssthresh; /* Slow start threshold */
 	int resent;	   /* Bytes just resent */
 	int irs;	   /* Initial received squence */
 	u16 mss;	   /* Maximum segment size */
 	int rerecv;	   /* Overlap of data rerecevived */
 	u32 window;   /* Our receive window (queue) */
-	uint qscale;	   /* Log2 of our receive window (queue) */
+	u32 qscale;	   /* Log2 of our receive window (queue) */
 	u8 backoff;   /* Exponential backoff counter */
 	int backedoff;	   /* ms we've backed off for rexmits */
 	u8 flags;	   /* State flags */
@@ -263,7 +263,7 @@ struct Tcpctl {
 	int srtt;	    /* Smoothed round trip */
 	int mdev;	    /* Mean deviation of round trip */
 	int kacounter;	    /* count down for keep alive */
-	uint sndsyntime;    /* time syn sent */
+	u32 sndsyntime;    /* time syn sent */
 	u32 time;	    /* time Finwait2 or Syn_received was sent */
 	u32 timeuna;   /* snd.una when time was set */
 	int nochecksum;	    /* non-zero means don't send checksums */
@@ -682,9 +682,9 @@ enum {
 };
 
 static void
-tcpabcincr(Tcpctl *tcb, uint acked)
+tcpabcincr(Tcpctl *tcb, u32 acked)
 {
-	uint limit;
+	u32 limit;
 
 	tcb->abcbytes += acked;
 	if(tcb->cwind < tcb->ssthresh){
@@ -852,7 +852,7 @@ localclose(Conv *s, char *reason) /* called with tcb locked */
 
 /* mtu (- TCP + IP hdr len) of 1st hop */
 static int
-tcpmtu(Proto *tcp, u8 *addr, int version, uint *scale)
+tcpmtu(Proto *tcp, u8 *addr, int version, u32 *scale)
 {
 	Ipifc *ifc;
 	int mtu;
@@ -1469,7 +1469,7 @@ sndsynack(Proto *tcp, Limbo *lp)
 	Tcp4hdr ph4;
 	Tcp6hdr ph6;
 	Tcp seg;
-	uint scale;
+	u32 scale;
 
 	/* make pseudo header */
 	switch(lp->version){
@@ -2549,7 +2549,7 @@ static void
 tcpoutput(Conv *s)
 {
 	Tcp seg;
-	uint msgs;
+	u32 msgs;
 	Tcpctl *tcb;
 	Block *hbp, *bp;
 	int sndcnt;

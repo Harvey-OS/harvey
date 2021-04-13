@@ -66,7 +66,7 @@ extern	int		winopenfile(Window*, char*);
 extern	void		wintagwrite(Window*, char*, int);
 extern	void		winname(Window*, char*);
 extern	void		winwriteevent(Window*, Event*);
-extern	int		winread(Window*, uint, uint, char*);
+extern	int		winread(Window*, u32, u32, char*);
 extern	int		windel(Window*, int);
 extern	void		wingetevent(Window*, Event*);
 extern	void		wineventproc(void*);
@@ -77,7 +77,7 @@ extern	void		windormant(Window*);
 extern	void		winsetdump(Window*, char*, char*);
 
 extern	void		ctlprint(int, char*, ...);
-extern	void*	emalloc(uint);
+extern	void*	emalloc(u32);
 extern	char*	estrdup(char*);
 extern	char*	estrstrdup(char*, char*);
 extern	char*	egrow(char*, char*, char*);

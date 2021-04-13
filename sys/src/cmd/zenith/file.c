@@ -35,9 +35,9 @@ struct Undo
 {
 	i16	type;		/* Delete, Insert, Filename */
 	i16	mod;	/* modify bit */
-	uint		seq;		/* sequence number */
-	uint		p0;		/* location of change (unused in f) */
-	uint		n;		/* # runes in string or file name */
+	u32		seq;		/* sequence number */
+	u32		p0;		/* location of change (unused in f) */
+	u32		n;		/* # runes in string or file name */
 };
 
 enum
@@ -80,7 +80,7 @@ filedeltext(File *f, Text *t)
 }
 
 void
-fileinsert(File *f, uint p0, Rune *s, uint ns)
+fileinsert(File *f, u32 p0, Rune *s, u32 ns)
 {
 	if(p0 > f->Buffer.nc)
 		error("internal error: fileinsert");
@@ -92,7 +92,7 @@ fileinsert(File *f, uint p0, Rune *s, uint ns)
 }
 
 void
-fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
+fileuninsert(File *f, Buffer *delta, u32 p0, u32 ns)
 {
 	Undo u;
 
@@ -106,7 +106,7 @@ fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
 }
 
 void
-filedelete(File *f, uint p0, uint p1)
+filedelete(File *f, u32 p0, u32 p1)
 {
 	if(!(p0<=p1 && p0<=f->Buffer.nc && p1<=f->Buffer.nc))
 		error("internal error: filedelete");
@@ -118,11 +118,11 @@ filedelete(File *f, uint p0, uint p1)
 }
 
 void
-fileundelete(File *f, Buffer *delta, uint p0, uint p1)
+fileundelete(File *f, Buffer *delta, u32 p0, u32 p1)
 {
 	Undo u;
 	Rune *buf;
-	uint i, n;
+	u32 i, n;
 
 	/* undo a deletion by inserting */
 	u.type = Insert;
@@ -171,8 +171,8 @@ fileunsetname(File *f, Buffer *delta)
 	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
 }
 
-uint
-fileload(File *f, uint p0, int fd, int *nulls)
+u32
+fileload(File *f, u32 p0, int fd, int *nulls)
 {
 	if(f->seq > 0)
 		error("undo in file.load unimplemented");
@@ -180,7 +180,7 @@ fileload(File *f, uint p0, int fd, int *nulls)
 }
 
 /* return sequence number of pending redo */
-uint
+u32
 fileredoseq(File *f)
 {
 	Undo u;
@@ -194,12 +194,12 @@ fileredoseq(File *f)
 }
 
 void
-fileundo(File *f, int isundo, uint *q0p, uint *q1p)
+fileundo(File *f, int isundo, u32 *q0p, u32 *q1p)
 {
 	Undo u;
 	Rune *buf;
-	uint i, j, n, up;
-	uint stop;
+	u32 i, j, n, up;
+	u32 stop;
 	Buffer *delta, *epsilon;
 
 	if(isundo){

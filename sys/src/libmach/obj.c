@@ -77,7 +77,7 @@ static	Sym	*names[NNAMES];	/* working set of active names */
 
 static	int	processprog(Prog*,int);	/* decode each symbol reference */
 static	void	objreset(void);
-static	void	objlookup(int, char *, int, uint);
+static	void	objlookup(int, char *, int, u32);
 static	void 	objupdate(int, int);
 
 int
@@ -178,7 +178,7 @@ processprog(Prog *p, int doautos)
  * make a new entry if it is not already there.
  */
 static void
-objlookup(int id, char *name, int type, uint sig)
+objlookup(int id, char *name, int type, u32 sig)
 {
 	i32 h;
 	char *cp;

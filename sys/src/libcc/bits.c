@@ -80,7 +80,7 @@ bnum(Bits a)
 }
 
 Bits
-blsh(uint n)
+blsh(u32 n)
 {
 	Bits c;
 
@@ -90,7 +90,7 @@ blsh(uint n)
 }
 
 int
-bset(Bits a, uint n)
+bset(Bits a, u32 n)
 {
 	if(a.b[n/32] & (1L << (n%32)))
 		return 1;

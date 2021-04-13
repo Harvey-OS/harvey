@@ -25,8 +25,8 @@ static void archThread(void*);
 struct Arch
 {
 	int ref;
-	uint blockSize;
-	uint diskSize;
+	u32 blockSize;
+	u32 diskSize;
 	Cache *c;
 	Fs *fs;
 	VtSession *z;
@@ -75,7 +75,7 @@ archFree(Arch *a)
 static int
 ventiSend(Arch *a, Block *b, u8 *data)
 {
-	uint n;
+	u32 n;
 	u8 score[VtScoreSize];
 
 	if(DEBUG > 1)
@@ -108,27 +108,27 @@ typedef struct Param Param;
 struct Param
 {
 	/* these never change */
-	uint snapEpoch;	/* epoch for snapshot being archived */
-	uint blockSize;
+	u32 snapEpoch;	/* epoch for snapshot being archived */
+	u32 blockSize;
 	Cache *c;
 	Arch *a;
 
 	/* changes on every call */
-	uint depth;
+	u32 depth;
 
 	/* statistics */
-	uint nfixed;
-	uint nsend;
-	uint nvisit;
-	uint nfailsend;
-	uint maxdepth;
-	uint nreclaim;
-	uint nfake;
-	uint nreal;
+	u32 nfixed;
+	u32 nsend;
+	u32 nvisit;
+	u32 nfailsend;
+	u32 maxdepth;
+	u32 nreclaim;
+	u32 nfake;
+	u32 nreal;
 
 	/* these occasionally change (must save old values and put back) */
-	uint dsize;
-	uint psize;
+	u32 dsize;
+	u32 psize;
 
 	/* return value; avoids using stack space */
 	Label l;
@@ -136,16 +136,16 @@ struct Param
 };
 
 static void
-shaBlock(u8 score[VtScoreSize], Block *b, u8 *data, uint bsize)
+shaBlock(u8 score[VtScoreSize], Block *b, u8 *data, u32 bsize)
 {
 	vtSha1(score, data, vtZeroTruncate(vtType[b->l.type], data, bsize));
 }
 
 /* Not used?
-static uint
+static u32
 etype(Entry *e)
 {
-	uint t;
+	u32 t;
 
 	if(e->flags&VtEntryDir)
 		t = BtDir;

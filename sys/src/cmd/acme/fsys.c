@@ -111,8 +111,8 @@ struct Mnt
 Mnt	mnt;
 
 Xfid*	respond(Xfid*, Fcall*, char*);
-int		dostat(int, Dirtab*, u8*, int, uint);
-uint	getclock(void);
+int		dostat(int, Dirtab*, u8*, int, u32);
+u32	getclock(void);
 
 char	*user = "Wile E. Coyote";
 int	clockfd;
@@ -602,7 +602,7 @@ fsysread(Xfid *x, Fid *f)
 	int i, id, n, o, e, j, k, *ids, nids;
 	Dirtab *d, dt;
 	Column *c;
-	uint clock, len;
+	u32 clock, len;
 	char buf[16];
 
 	if(f->qid.type & QTDIR){
@@ -742,7 +742,7 @@ newfid(int fid)
 	return f;
 }
 
-uint
+u32
 getclock()
 {
 	char buf[32];
@@ -753,7 +753,7 @@ getclock()
 }
 
 int
-dostat(int id, Dirtab *dir, u8 *buf, int nbuf, uint clock)
+dostat(int id, Dirtab *dir, u8 *buf, int nbuf, u32 clock)
 {
 	Dir d;
 

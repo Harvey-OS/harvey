@@ -597,7 +597,7 @@ xfidread(Xfid *x)
 	Fcall fc;
 	int n, off, cnt, c;
 	char *jc;
-	uint qid;
+	u32 qid;
 	char buf[128], *t;
 	char cbuf[30];
 	Window *w;

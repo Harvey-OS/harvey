@@ -339,9 +339,9 @@ struct Sys {
 
 	u64 cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
 
-	uint pgszlg2[NPGSZ];  /* per Mach or per Sys? */
-	uint pgszmask[NPGSZ]; /* Per sys -aki */
-	uint pgsz[NPGSZ];
+	u32 pgszlg2[NPGSZ];  /* per Mach or per Sys? */
+	u32 pgszmask[NPGSZ]; /* Per sys -aki */
+	u32 pgsz[NPGSZ];
 	int npgsz;
 
 	unsigned char _57344_[2][4 * KiB]; /* unused */

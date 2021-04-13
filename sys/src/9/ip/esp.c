@@ -688,7 +688,7 @@ setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
 {
 	u8 *key;
 	int c, nbyte, nchar;
-	uint i;
+	u32 i;
 
 	if(n < 2 || n > 3)
 		return "bad format";

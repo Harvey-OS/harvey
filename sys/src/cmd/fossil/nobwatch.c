@@ -24,7 +24,7 @@ bwatchInit(void)
 }
 
 void
-bwatchSetBlockSize(uint u)
+bwatchSetBlockSize(u32 u)
 {
 }
 

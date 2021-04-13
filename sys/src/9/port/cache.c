@@ -32,7 +32,7 @@ struct Extent {
 typedef struct Mntcache Mntcache;
 struct Mntcache {
 	Qid qid;
-	uint devno;
+	u32 devno;
 	Dev *dev;
 	QLock QLock;
 	Extent *list;

@@ -44,7 +44,7 @@ enum
 
 #define PATH(type, n)	((type)|((n)<<8))
 #define TYPE(path)		((int)(path) & 0xFF)
-#define NUM(path)		((uint)(path)>>8)
+#define NUM(path)		((u32)(path)>>8)
 
 typedef struct Tab Tab;
 struct Tab

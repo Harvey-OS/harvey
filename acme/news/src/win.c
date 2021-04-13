@@ -208,7 +208,7 @@ nrunes(char *s, int nb)
 }
 
 void
-winread(Window *w, uint q0, uint q1, char *data)
+winread(Window *w, u32 q0, u32 q1, char *data)
 {
 	int m, n, nr;
 	char buf[256];

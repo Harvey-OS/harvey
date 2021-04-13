@@ -218,7 +218,7 @@ logret(char *pre, Fsstate *fss, int ret)
 }
 
 void
-rpcrdwrlog(Fsstate *fss, char *rdwr, uint n, int ophase, int ret)
+rpcrdwrlog(Fsstate *fss, char *rdwr, u32 n, int ophase, int ret)
 {
 	char buf0[40], buf1[40], pre[300];
 
@@ -250,7 +250,7 @@ rpcread(Req *r)
 	char *p;
 	int ophase, ret;
 	u8 *e;
-	uint count;
+	u32 count;
 	Fsstate *fss;
 	Proto *proto;
 

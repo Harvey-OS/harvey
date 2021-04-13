@@ -62,7 +62,7 @@ error(char *s)
 }
 
 void*
-erealloc(void *p, uint n)
+erealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -71,7 +71,7 @@ erealloc(void *p, uint n)
 }
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 

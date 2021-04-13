@@ -12,7 +12,7 @@
 #include	<fcall.h>
 
 int
-statcheck(u8 *buf, uint nbuf)
+statcheck(u8 *buf, u32 nbuf)
 {
 	u8 *ebuf;
 	int i;
@@ -41,8 +41,8 @@ statcheck(u8 *buf, uint nbuf)
 
 static char nullstring[] = "";
 
-uint
-convM2D(u8 *buf, uint nbuf, Dir *d, char *strs)
+u32
+convM2D(u8 *buf, u32 nbuf, Dir *d, char *strs)
 {
 	u8 *p, *ebuf;
 	char *sv[4];
@@ -105,8 +105,8 @@ convM2D(u8 *buf, uint nbuf, Dir *d, char *strs)
 	return p - buf;
 }
 
-uint
-convLM2D(u8 *buf, uint nbuf, Dir *d)
+u32
+convLM2D(u8 *buf, u32 nbuf, Dir *d)
 {
 	u8 *p, *ebuf;
 

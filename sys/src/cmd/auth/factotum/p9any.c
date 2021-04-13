@@ -147,7 +147,7 @@ passret(Fsstate *fss, State *s, int ret)
 }
 
 static int
-p9anyread(Fsstate *fss, void *a, uint *n)
+p9anyread(Fsstate *fss, void *a, u32 *n)
 {
 	int i, m, ophase, ret;
 	Attr *anew;
@@ -255,7 +255,7 @@ findneg(char *name)
 }
 
 static int
-p9anywrite(Fsstate *fss, void *va, uint n)
+p9anywrite(Fsstate *fss, void *va, u32 n)
 {
 	char *a, *dom, *user, *token[20];
 	int asking, i, m, ophase, ret;

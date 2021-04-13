@@ -13,7 +13,7 @@
 
 // convert a big-endian byte array (most significant byte first) to an mpint
 mpint*
-betomp(u8 *p, uint n, mpint *b)
+betomp(u8 *p, u32 n, mpint *b)
 {
 	int m, s;
 	mpdigit x;

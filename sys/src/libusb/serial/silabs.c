@@ -64,7 +64,7 @@ slwrite(Serialport *p, int req, void *buf, int len)
 }
 
 static int
-slput(Serialport *p, uint op, uint val)
+slput(Serialport *p, u32 op, u32 val)
 {
 	Serial *ser;
 

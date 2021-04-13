@@ -83,7 +83,7 @@ Fcall	rhdr;
 int	messagesize = sizeof mdata;
 
 Fid *	newfid(int);
-uint	ramstat(Ram*, u8*, uint);
+u32	ramstat(Ram*, u8*, u32);
 void	error(char*);
 void	io(void);
 void	*erealloc(void *c, u32);
@@ -742,8 +742,8 @@ rwstat(Fid *f)
 	return 0;
 }
 
-uint
-ramstat(Ram *r, u8 *buf, uint nbuf)
+u32
+ramstat(Ram *r, u8 *buf, u32 nbuf)
 {
 	int n;
 	Dir dir;

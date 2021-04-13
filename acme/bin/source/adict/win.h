@@ -47,7 +47,7 @@ struct Win
 int     dead(Win*);
 void	wnew(Win*);
 void	wwritebody(Win*, char *s, int n);
-void	wread(Win*, uint, uint, char*);
+void	wread(Win*, u32, u32, char*);
 void	wclean(Win*);
 void	wname(Win*, char*);
 void	wdormant(Win*);

@@ -31,7 +31,7 @@ enum {
 static char zmagic[] = "1234567890abcdefghijklmnopqrstuvxyz";
 
 ZBlock *
-alloczblock(u32 size, int zeroed, uint blocksize)
+alloczblock(u32 size, int zeroed, u32 blocksize)
 {
 	u8 *p, *data;
 	ZBlock *b;

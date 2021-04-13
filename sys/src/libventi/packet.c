@@ -654,7 +654,7 @@ packetstats(void)
 }
 
 
-uint
+u32
 packetsize(Packet *p)
 {
 	NOTFREE(p);
@@ -671,7 +671,7 @@ packetsize(Packet *p)
 	return p->size;
 }
 
-uint
+u32
 packetasize(Packet *p)
 {
 	NOTFREE(p);

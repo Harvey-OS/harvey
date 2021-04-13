@@ -30,7 +30,7 @@ struct	Fcall
 			char	*ename;		/* Rerror */
 		};
 		struct {
-			uint	errno;		/* Rlerror */
+			u32	errno;		/* Rlerror */
 		};
 		struct {
 			Qid	qid;		/* Rattach, Ropen, Rcreate */
@@ -167,19 +167,19 @@ enum
 	Rreaddir
 };
 
-uint	convM2S(u8*, uint, Fcall*);
-uint	convS2M(Fcall*, u8*, uint);
-uint	sizeS2M(Fcall*);
+u32	convM2S(u8*, u32, Fcall*);
+u32	convS2M(Fcall*, u8*, u32);
+u32	sizeS2M(Fcall*);
 
-int	statcheck(u8 *abuf, uint nbuf);
-uint	convM2D(u8*, uint, Dir*, char*);
-uint	convLM2D(u8*, uint, Dir*);
-uint	convD2M(Dir*, u8*, uint);
-uint	sizeD2M(Dir*);
+int	statcheck(u8 *abuf, u32 nbuf);
+u32	convM2D(u8*, u32, Dir*, char*);
+u32	convLM2D(u8*, u32, Dir*);
+u32	convD2M(Dir*, u8*, u32);
+u32	sizeD2M(Dir*);
 
 int	fcallfmt(Fmt*);
 int	dirfmt(Fmt*);
 int	dirmodefmt(Fmt*);
 
-int	read9pmsg(int, void*, uint);
+int	read9pmsg(int, void*, u32);
 

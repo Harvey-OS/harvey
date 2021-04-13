@@ -28,7 +28,7 @@ hnputv(void *p, u64 v)
 }
 
 void
-hnputl(void *p, uint v)
+hnputl(void *p, u32 v)
 {
 	u8 *a;
 
@@ -67,7 +67,7 @@ nhgetv(void *p)
 	return v;
 }
 
-uint
+u32
 nhgetl(void *p)
 {
 	u8 *a;

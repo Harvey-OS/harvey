@@ -110,7 +110,7 @@ struct Netif {
 	void (*promiscuous)(void *, int);
 	void (*multicast)(void *, u8 *, int);
 	int (*hwmtu)(void *, int);    /* get/set mtu */
-	void (*scanbs)(void *, uint); /* scan for base stations */
+	void (*scanbs)(void *, u32); /* scan for base stations */
 };
 
 void netifinit(Netif *, char *, int, u32);

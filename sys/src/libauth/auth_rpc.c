@@ -27,7 +27,7 @@ static struct {
 };
 
 static int
-classify(char *buf, uint n, AuthRpc *rpc)
+classify(char *buf, u32 n, AuthRpc *rpc)
 {
 	int i, len;
 
@@ -66,7 +66,7 @@ auth_freerpc(AuthRpc *rpc)
 	free(rpc);
 }
 
-uint
+u32
 auth_rpc(AuthRpc *rpc, char *verb, void *a, int na)
 {
 	int l, n, type;

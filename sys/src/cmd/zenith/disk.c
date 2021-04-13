@@ -55,10 +55,10 @@ diskinit()
 }
 
 static
-uint
-ntosize(uint n, uint *ip)
+u32
+ntosize(u32 n, u32 *ip)
 {
-	uint size;
+	u32 size;
 
 	if(n > Maxblock)
 		error("internal error: ntosize");
@@ -72,9 +72,9 @@ ntosize(uint n, uint *ip)
 }
 
 Block*
-disknewblock(Disk *d, uint n)
+disknewblock(Disk *d, u32 n)
 {
-	uint i, j, size;
+	u32 i, j, size;
 	Block *b;
 
 	size = ntosize(n, &i);
@@ -100,7 +100,7 @@ disknewblock(Disk *d, uint n)
 void
 diskrelease(Disk *d, Block *b)
 {
-	uint i;
+	u32 i;
 
 	ntosize(b->n, &i);
 	b->next = d->free[i];
@@ -108,7 +108,7 @@ diskrelease(Disk *d, Block *b)
 }
 
 void
-diskwrite(Disk *d, Block **bp, Rune *r, uint n)
+diskwrite(Disk *d, Block **bp, Rune *r, u32 n)
 {
 	int size, nsize;
 	Block *b;
@@ -127,7 +127,7 @@ diskwrite(Disk *d, Block **bp, Rune *r, uint n)
 }
 
 void
-diskread(Disk *d, Block *b, Rune *r, uint n)
+diskread(Disk *d, Block *b, Rune *r, u32 n)
 {
 	int tot, nr;
 	char *p;

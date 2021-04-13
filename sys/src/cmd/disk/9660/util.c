@@ -24,10 +24,10 @@ struct Stringtab {
 
 static Stringtab *stab[1024];
 
-static uint
+static u32
 hash(char *s)
 {
-	uint h;
+	u32 h;
 	u8 *p;
 
 	h = 0;
@@ -47,7 +47,7 @@ estrdup(char *s)
 char*
 atom(char *str)
 {
-	uint h;
+	u32 h;
 	Stringtab *tab;
 
 	h = hash(str) % nelem(stab);

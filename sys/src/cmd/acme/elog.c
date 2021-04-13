@@ -38,9 +38,9 @@ typedef struct Buflog Buflog;
 struct Buflog
 {
 	i16	type;		/* Replace, Filename */
-	uint		q0;		/* location of change (unused in f) */
-	uint		nd;		/* # runes to delete */
-	uint		nr;		/* # runes in string or file name */
+	u32		q0;		/* location of change (unused in f) */
+	u32		nd;		/* # runes to delete */
+	u32		nr;		/* # runes in string or file name */
 };
 
 enum
@@ -131,7 +131,7 @@ elogflush(File *f)
 void
 elogreplace(File *f, int q0, int q1, Rune *r, int nr)
 {
-	uint gap;
+	u32 gap;
 
 	if(q0==q1 && nr==0)
 		return;
@@ -226,8 +226,8 @@ elogapply(File *f)
 {
 	Buflog b;
 	Rune *buf;
-	uint i, n, up, mod;
-	uint tq0, tq1;
+	u32 i, n, up, mod;
+	u32 tq0, tq1;
 	Buffer *log;
 	Text *t;
 	int owner;

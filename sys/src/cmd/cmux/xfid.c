@@ -542,7 +542,7 @@ xfidread(Xfid *x)
 	print_func_entry();
 	Fcall fc;
 	int n, off, cnt, c;
-	uint qid;
+	u32 qid;
 	char buf[128], *t;
 	Window *w;
 	Mouse ms;

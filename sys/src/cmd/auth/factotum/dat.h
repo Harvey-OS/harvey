@@ -123,8 +123,8 @@ struct Proto
 	int (*init)(Proto*, Fsstate*);
 	int (*addkey)(Key*, int);
 	void (*closekey)(Key*);
-	int (*write)(Fsstate*, void*, uint);
-	int (*read)(Fsstate*, void*, uint*);
+	int (*write)(Fsstate*, void*, u32);
+	int (*read)(Fsstate*, void*, u32*);
 	void (*close)(Fsstate*);
 	char *keyprompt;
 };
@@ -179,7 +179,7 @@ int needkeyqueue(Req*, Fsstate*);
 
 /* rpc.c */
 int ctlwrite(char*, int);
-void rpcrdwrlog(Fsstate*, char*, uint, int, int);
+void rpcrdwrlog(Fsstate*, char*, u32, int, int);
 void rpcstartlog(Attr*, Fsstate*, int);
 void rpcread(Req*);
 void rpcwrite(Req*);
@@ -225,7 +225,7 @@ void		sethostowner(void);
 void		setmalloctaghere(void*);
 int		smatch(char*, char*);
 Attr		*sortattr(Attr*);
-int		toosmall(Fsstate*, uint);
+int		toosmall(Fsstate*, u32);
 void		writehostowner(char*);
 
 /* protocols */

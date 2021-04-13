@@ -98,7 +98,7 @@ apopinit(Proto *p, Fsstate *fss)
 }
 
 static int
-apopwrite(Fsstate *fss, void *va, uint n)
+apopwrite(Fsstate *fss, void *va, u32 n)
 {
 	char *a, *v;
 	int i, ret;
@@ -167,7 +167,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 }
 
 static int
-apopread(Fsstate *fss, void *va, uint *n)
+apopread(Fsstate *fss, void *va, u32 *n)
 {
 	State *s;
 

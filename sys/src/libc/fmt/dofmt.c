@@ -368,7 +368,7 @@ _ifmt(Fmt *f)
 			u = (i16)va_arg(f->args, int);
 	}else{
 		if(fl & FmtUnsigned)
-			u = va_arg(f->args, uint);
+			u = va_arg(f->args, u32);
 		else
 			u = va_arg(f->args, int);
 	}

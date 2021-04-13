@@ -49,7 +49,7 @@ usage(void)
 }
 
 Image *
-eallocimage(Rectangle r, int repl, uint chan, uint color)
+eallocimage(Rectangle r, int repl, u32 chan, u32 color)
 {
 	Image *tmp;
 

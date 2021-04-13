@@ -32,8 +32,8 @@ typedef struct WThread WThread;
 struct WThread
 {
 	Block *b[MaxLock];	/* blocks currently held */
-	uint nb;
-	uint pid;
+	u32 nb;
+	u32 pid;
 };
 
 typedef struct WMap WMap;
@@ -61,14 +61,14 @@ struct WMap
 
 static WMap map;
 static void **wp;
-static uint blockSize;
+static u32 blockSize;
 static WEntry *pool;
-uint bwatchDisabled;
+u32 bwatchDisabled;
 
-static uint
+static u32
 hash(u8 score[VtScoreSize])
 {
-	uint i, h;
+	u32 i, h;
 
 	h = 0;
 	for(i=0; i<VtScoreSize; i++)
@@ -110,7 +110,7 @@ static void
 _bwatchResetParent(u8 *score)
 {
 	WEntry *w, *next;
-	uint h;
+	u32 h;
 
 	h = hash(score);
 	for(w=map.hparent[h]; w; w=next){
@@ -139,7 +139,7 @@ static void
 _bwatchResetChild(u8 *score)
 {
 	WEntry *w, *next;
-	uint h;
+	u32 h;
 
 	h = hash(score);
 	for(w=map.hchild[h]; w; w=next){
@@ -166,7 +166,7 @@ static u8 *
 parent(u8 c[VtScoreSize], int *off)
 {
 	WEntry *w;
-	uint h;
+	u32 h;
 
 	h = hash(c);
 	for(w=map.hchild[h]; w; w=w->cnext)
@@ -180,7 +180,7 @@ parent(u8 c[VtScoreSize], int *off)
 static void
 addChild(u8 p[VtEntrySize], u8 c[VtEntrySize], int off)
 {
-	uint h;
+	u32 h;
 	WEntry *w;
 
 	w = allocWEntry();
@@ -219,7 +219,7 @@ bwatchInit(void)
 }
 
 void
-bwatchSetBlockSize(uint bs)
+bwatchSetBlockSize(u32 bs)
 {
 	blockSize = bs;
 }

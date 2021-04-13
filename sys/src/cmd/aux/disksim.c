@@ -252,7 +252,7 @@ getblock(i64 addr, int alloc)
  	Dbl *p2;
 	Ind *p1;
 	u8 *p0;
-	uint i0, i1, i2;
+	u32 i0, i1, i2;
 	i64 oaddr;
 
 	if(fd >= 0)

@@ -45,7 +45,7 @@ freescrtemps(void)
 
 static
 Rectangle
-scrpos(Rectangle r, uint p0, uint p1, uint tot)
+scrpos(Rectangle r, u32 p0, u32 p1, u32 tot)
 {
 	Rectangle q;
 	int h;
@@ -101,7 +101,7 @@ wscrdraw(Window *w)
 }
 
 void
-wscrsleep(Window *w, uint dt)
+wscrsleep(Window *w, u32 dt)
 {
 	Timer	*timer;
 	int y, b;
@@ -134,7 +134,7 @@ wscrsleep(Window *w, uint dt)
 void
 wscroll(Window *w, int but)
 {
-	uint p0, oldp0;
+	u32 p0, oldp0;
 	Rectangle s;
 	int x, y, my, h, first;
 

@@ -146,7 +146,7 @@ static struct {
 };
 
 char *
-doserrstr(uint err)
+doserrstr(u32 err)
 {
 	int i, match;
 	char *class;

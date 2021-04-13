@@ -15,7 +15,7 @@
 #include "dat.h"
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -28,7 +28,7 @@ emalloc(uint n)
 }
 
 void*
-erealloc(void *p, uint n)
+erealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)

@@ -65,10 +65,10 @@ ie2diskaddr(Index *ix, ISect *is, IEntry *ie)
 }
 
 static IEntry*
-nextchunk(Index *ix, ISect *is, IEntry **pie, u64 *paddr, uint *pnbuf)
+nextchunk(Index *ix, ISect *is, IEntry **pie, u64 *paddr, u32 *pnbuf)
 {
 	u64 addr, naddr;
-	uint nbuf;
+	u32 nbuf;
 	int bsize;
 	IEntry *iefirst, *ie, **l;
 
@@ -97,7 +97,7 @@ icachewritesect(Index *ix, ISect *is, u8 *buf)
 	int err, i, werr, h, bsize, t;
 	u32 lo, hi;
 	u64 addr, naddr;
-	uint nbuf, off;
+	u32 nbuf, off;
 	DBlock *b;
 	IBucket ib;
 	IEntry *ie, *iedirty, **l, *chunk;
@@ -215,7 +215,7 @@ static void
 icachewriteproc(void *v)
 {
 	int ret;
-	uint bsize;
+	u32 bsize;
 	ISect *is;
 	Index *ix;
 	u8 *buf;

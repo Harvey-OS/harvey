@@ -18,7 +18,7 @@ typedef struct pen_point {
 } pen_point;
 
 typedef struct Stroke {
-	uint			npts;	/*Number of pen_point in array.*/
+	u32			npts;	/*Number of pen_point in array.*/
 	pen_point*	pts;	/*Array of points.*/
 } Stroke;
 

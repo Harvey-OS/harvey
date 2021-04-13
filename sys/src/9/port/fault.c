@@ -129,7 +129,7 @@ fixfault(Segment *s, usize addr, int ftype, int dommuput, int color)
 	Pte **p, *etp;
 	usize soff;
 	u64 pgsz;
-	uint mmuattr;
+	u32 mmuattr;
 	Page **pg, *lkp, *new;
 	Page *(*fn)(Segment *, usize);
 

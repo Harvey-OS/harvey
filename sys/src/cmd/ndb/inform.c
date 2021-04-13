@@ -101,7 +101,7 @@ void
 main(int argc, char *argv[])
 {
 	int debug, len, fd;
-	uint err;
+	u32 err;
 	char *sysname, *dnsdomain, *dom, *inform, *ns, net[32];
 	unsigned char *p, buf[4096], addr[IPv4addrlen], v6addr[IPaddrlen];
 	u16 txid;

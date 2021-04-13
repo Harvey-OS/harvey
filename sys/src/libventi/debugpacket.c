@@ -51,7 +51,7 @@ packetappend(Packet *p, u8 *buf, int n)
 	p->len += n;
 }
 
-uint
+u32
 packetasize(Packet *p)
 {
 	NOTFREE(p);
@@ -223,7 +223,7 @@ packetsha1(Packet *p, u8 d[20])
 	sha1((u8*)p->data, p->len, d, nil);
 }
 
-uint
+u32
 packetsize(Packet *p)
 {
 	NOTFREE(p);

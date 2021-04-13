@@ -128,9 +128,9 @@ isexecc(int c)
 }
 
 void
-execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
+execute(Text *t, u32 aq0, u32 aq1, int external, Text *argt)
 {
-	uint q0, q1;
+	u32 q0, q1;
 	Rune *r, *s;
 	char *b, *a, *aa;
 	Exectab *e;
@@ -231,7 +231,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 }
 
 char*
-printarg(Text *argt, uint q0, uint q1)
+printarg(Text *argt, u32 q0, u32 q1)
 {
 	char *buf;
 
@@ -367,7 +367,7 @@ sort(Text *et, Text*a, Text*b, int c, int d, Rune*e, int f)
 		colsort(et->col);
 }
 
-uint
+u32
 seqof(Window *w, int isundo)
 {
 	/* if it's undo, see who changed with us */
@@ -383,7 +383,7 @@ undo(Text *et, Text*a, Text*b, int flag1, int ic, Rune*d, int e)
 	int i, j;
 	Column *c;
 	Window *w;
-	uint seq;
+	u32 seq;
 
 	if(et==nil || et->w== nil)
 		return;
@@ -569,7 +569,7 @@ get(Text *et, Text *t, Text *argt, int flag1, int a, Rune *arg, int narg)
 void
 putfile(File *f, int q0, int q1, Rune *namer, int nname)
 {
-	uint n, m;
+	u32 n, m;
 	Rune *r;
 	char *s, *name, *p;
 	int i, fd, q;
@@ -722,7 +722,7 @@ dump(Text *a, Text *b, Text *argt, int isdump, int c, Rune *arg, int narg)
 void
 cut(Text *et, Text *t, Text*a, int dosnarf, int docut, Rune*b, int ic)
 {
-	uint q0, q1, n, locked, c;
+	u32 q0, q1, n, locked, c;
 	Rune *r;
 
 	/*
@@ -790,7 +790,7 @@ void
 paste(Text *et, Text *t, Text*a, int selectall, int tobody, Rune*b, int ic)
 {
 	int c;
-	uint q, q0, q1, n;
+	u32 q, q0, q1, n;
 	Rune *r;
 
 	/* if(tobody), use body of executing window  (Paste or Send command) */

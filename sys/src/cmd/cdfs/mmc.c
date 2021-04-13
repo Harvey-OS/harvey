@@ -670,7 +670,7 @@ getdiscinfo(Drive *drive, u8 resp[], int resplen)
 }
 
 int
-isbitset(uint bit, u8 *map)
+isbitset(u32 bit, u8 *map)
 {
 	return map[bit/8] & (1 << (bit%8));
 }
@@ -796,7 +796,7 @@ static void
 notefeats(Drive *drive, u8 *p, u32 datalen)
 {
 	int left, len;
-	uint feat;
+	u32 feat;
 	char *ftnm;
 
 	if (vflag)

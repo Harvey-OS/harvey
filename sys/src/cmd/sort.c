@@ -374,7 +374,7 @@ char*
 tempfile(int n)
 {
 	static char file[100];
-	static uint pid;
+	static u32 pid;
 	char *dir;
 
 	dir = "/tmp";

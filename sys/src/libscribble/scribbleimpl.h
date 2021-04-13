@@ -44,7 +44,7 @@ typedef struct rec_correlation	rec_correlation;
 typedef struct rec_alternative	rec_alternative;
 typedef struct rec_element	rec_element;
 typedef struct gesture		gesture;
-typedef uint			wchar_t;
+typedef u32			wchar_t;
 
 /* Scalar Type Definitions */
 
@@ -179,7 +179,7 @@ struct rec_element {
 
 struct rec_alternative {
 	rec_element			ra_elem; 	/*the translated element*/
-	uint				ra_nalter;	/*number of next alternatives*/
+	u32				ra_nalter;	/*number of next alternatives*/
 	rec_alternative*	ra_next;	/*the array of next alternatives*/
 };
 
@@ -196,7 +196,7 @@ struct rec_alternative {
 
 struct gesture {
 	char*		g_name;			/*The gesture's name.*/
-	uint			g_nhs;			/*Number of hotspots.*/
+	u32			g_nhs;			/*Number of hotspots.*/
 	pen_point*	g_hspots;			/*The hotspots.*/
 	pen_rect		g_bbox;			/*The bounding box.*/
 	void	  		(*g_action)(gesture*);	/*Pointer to execution function.*/
@@ -217,10 +217,10 @@ typedef void (*xgesture)(gesture*);
 
 struct rec_correlation {
 	rec_element	ro_elem;			/*The recognized alternative.*/
-	uint		ro_nstrokes;		/*Number of strokes.*/
+	u32		ro_nstrokes;		/*Number of strokes.*/
 	Stroke*	ro_strokes;			/*Array of strokes.*/
-	uint*		ro_start;			/*Starting index of points.*/
-	uint*		ro_stop;			/*Stopping index of points.*/
+	u32 *		ro_start;			/*Starting index of points.*/
+	u32 *		ro_stop;			/*Stopping index of points.*/
 };
 
 /*
@@ -347,8 +347,8 @@ int			recognizer_clear(recognizer, bool);
  * an error occurs, otherwise 0.
  */
 
-int			recognizer_get_buffer(recognizer, uint*, Stroke**);
-int			recognizer_set_buffer(recognizer, uint, Stroke*);
+int			recognizer_get_buffer(recognizer, u32*, Stroke**);
+int			recognizer_set_buffer(recognizer, u32, Stroke*);
 
 /* recognizer_translate - Copy the strokes argument into the stroke buffer and
  * translate the buffer. If correlate_p is true, then provide stroke
@@ -361,8 +361,9 @@ int			recognizer_set_buffer(recognizer, uint, Stroke*);
  * otherwise 0.
  */
 
-int			recognizer_translate(recognizer, uint, Stroke*, bool,
-				int*, rec_alternative**);
+int			recognizer_translate(recognizer, u32, Stroke*,
+						bool,
+						int*, rec_alternative**);
 
 /*
  * recognizer_get_extension_functions-Return a null terminated array
@@ -395,7 +396,7 @@ xgesture	recognizer_set_gesture_action(recognizer, char*, xgesture, void*);
  *   by the API functions.
  */
 
-void		delete_rec_alternative_array(uint, rec_alternative*, bool);
+void		delete_rec_alternative_array(u32, rec_alternative*, bool);
 void		delete_rec_correlation(rec_correlation*, bool);
 
 /*
@@ -403,13 +404,13 @@ void		delete_rec_correlation(rec_correlation*, bool);
  *  functions.
  */
 
-Stroke*	make_Stroke_array(uint);
-void		delete_Stroke_array(uint, Stroke*, bool);
+Stroke*	make_Stroke_array(u32);
+void		delete_Stroke_array(u32, Stroke*, bool);
 
-pen_point* 	make_pen_point_array(uint);
+pen_point* 	make_pen_point_array(u32);
 void 		delete_pen_point_array(pen_point*);
 
-Stroke*	copy_Stroke_array(uint, Stroke*);
+Stroke*	copy_Stroke_array(u32, Stroke*);
 
 /*Extension function interfaces and indices.*/
 
@@ -420,7 +421,7 @@ Stroke*	copy_Stroke_array(uint, Stroke*);
 #define LI_NUM_EX_FNS	4	/*Number of extension functions*/
 
 typedef bool	(*li_isa_li)(recognizer r);
-typedef int		(*li_recognizer_train)(recognizer, rc*, uint,
-					Stroke*, rec_element*, bool);
+typedef int		(*li_recognizer_train)(recognizer, rc*, u32,
+						  Stroke*, rec_element*, bool);
 typedef int		(*li_recognizer_clearState)(recognizer);
 typedef int		(*li_recognizer_getClasses)(recognizer, char ***, int *);

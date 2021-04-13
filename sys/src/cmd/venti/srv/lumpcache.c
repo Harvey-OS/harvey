@@ -76,7 +76,7 @@ initlumpcache(u32 size, u32 nblocks)
 Lump*
 lookuplump(u8 *score, int type)
 {
-	uint ms;
+	u32 ms;
 	Lump *b;
 	u32 h;
 

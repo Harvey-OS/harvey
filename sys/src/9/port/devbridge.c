@@ -692,7 +692,7 @@ static Centry *
 cachelookup(Bridge *b, u8 d[Eaddrlen])
 {
 	int i;
-	uint h;
+	u32 h;
 	Centry *p;
 	long sec;
 
@@ -729,7 +729,7 @@ static void
 cacheupdate(Bridge *b, u8 d[Eaddrlen], int port)
 {
 	int i;
-	uint h;
+	u32 h;
 	Centry *p, *pp;
 	long sec;
 

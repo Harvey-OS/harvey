@@ -558,7 +558,7 @@ typedef
 struct Dir {
 	/* system-modified data */
 	u16	type;	/* server type */
-	uint	dev;	/* server subtype */
+	u32	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
 	u32	mode;	/* permissions */
@@ -599,8 +599,8 @@ extern	int	chdir(const char*);
 extern	int	close(int);
 extern	int	create(const char*, int, u32);
 extern	int	dup(int, int);
-extern	char*	errno2str(uint errno);
-extern	int	errstr(char*, uint);
+extern	char*	errno2str(u32 errno);
+extern	int	errstr(char*, u32);
 extern	int	exec(const char*, char* const[]);
 extern	int	execl(const char*, ...);
 extern	int	fork(void);
@@ -655,7 +655,7 @@ extern	void	nulldir(Dir*);
 extern	i32	dirreadall(int, Dir**);
 extern	int	getpid(void);
 extern	int	getppid(void);
-extern	void	rerrstr(char*, uint);
+extern	void	rerrstr(char*, u32);
 extern	char*	sysname(void);
 extern	void	werrstr(const char*, ...);
 

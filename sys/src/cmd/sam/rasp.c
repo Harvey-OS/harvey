@@ -103,7 +103,7 @@ raspflush(File *f)
 }
 
 void
-raspdelete(File *f, uint p1, uint p2, int toterm)
+raspdelete(File *f, u32 p1, u32 p2, int toterm)
 {
 	long n;
 
@@ -145,7 +145,7 @@ raspdelete(File *f, uint p1, uint p2, int toterm)
 }
 
 void
-raspinsert(File *f, uint p1, Rune *buf, uint n, int toterm)
+raspinsert(File *f, u32 p1, Rune *buf, u32 n, int toterm)
 {
 	Range r;
 

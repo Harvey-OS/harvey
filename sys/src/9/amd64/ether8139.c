@@ -217,7 +217,7 @@ typedef struct Ctlr {
 	int dis;  /* disconnect counter */
 	int fcsc; /* false carrier sense counter */
 	int rec;  /* RX_ER counter */
-	uint mcast;
+	u32 mcast;
 } Ctlr;
 
 static Ctlr *ctlrhead;

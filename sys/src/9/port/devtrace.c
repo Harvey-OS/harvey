@@ -64,7 +64,7 @@ int traceactive = 0;
 /* trace indices. These are just unsigned longs. You mask them
  * to get an index. This makes fifo empty/full etc. trivial.
  */
-static uint pw = 0, pr = 0;
+static u32 pw = 0, pr = 0;
 static int tracesactive = 0;
 static int all = 0;
 static int watching = 0;
@@ -336,7 +336,7 @@ traceoff(struct Trace *p)
 static struct Tracelog *
 newpl(void)
 {
-	uint index;
+	u32 index;
 
 	index = ainc((int *)&pw);
 
@@ -594,7 +594,7 @@ traceread(Chan *c, void *a, i32 n, i64 offset)
 				cp[0] = eventname[pl->info];
 				cp++;
 				*cp++ = ' ';
-				hex32((uint)pl->pc, cp);
+				hex32((u32)pl->pc, cp);
 				cp[8] = ' ';
 				cp += 9;
 				hex64(pl->ticks, cp);

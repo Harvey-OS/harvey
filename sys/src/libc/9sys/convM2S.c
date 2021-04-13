@@ -15,7 +15,7 @@ static
 u8 *
 gstring(u8 *p, u8 *ep, char **s)
 {
-	uint n;
+	u32 n;
 
 	if(p+BIT16SZ > ep)
 		return nil;
@@ -56,11 +56,11 @@ gqid(u8 *p, u8 *ep, Qid *q)
  * main switch statement checks range and also can fall through
  * to test at end of routine.
  */
-uint
-convM2S(u8 *ap, uint nap, Fcall *f)
+u32
+convM2S(u8 *ap, u32 nap, Fcall *f)
 {
 	u8 *p, *ep;
-	uint i, size;
+	u32 i, size;
 
 	p = ap;
 	ep = p + nap;

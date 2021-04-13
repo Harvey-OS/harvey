@@ -202,7 +202,7 @@ void sysrforkret(void);
 void *KADDR(usize);
 u64 PADDR(void *);
 
-#define BIOSSEG(a) KADDR(((uint)(a)) << 4)
+#define BIOSSEG(a) KADDR(((u32)(a)) << 4)
 
 /*
  * apic.c

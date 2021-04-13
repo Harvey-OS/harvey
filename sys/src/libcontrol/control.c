@@ -130,7 +130,7 @@ _ctllookup(char *s, char *tab[], int ntab)
 }
 
 static Control*
-_newcontrol(Controlset *cs, uint n, char *name, char *type)
+_newcontrol(Controlset *cs, u32 n, char *name, char *type)
 {
 	Control *c;
 
@@ -253,7 +253,7 @@ controlsetthread(void *v)
 }
 
 Control*
-_createctl(Controlset *cs, char *type, uint size, char *name)
+_createctl(Controlset *cs, char *type, u32 size, char *name)
 {
 	Control *c;
 
@@ -359,7 +359,7 @@ _ctlstrrune(Rune *r)
 }
 
 void*
-ctlmalloc(uint n)
+ctlmalloc(u32 n)
 {
 	void *p;
 
@@ -370,7 +370,7 @@ ctlmalloc(uint n)
 }
 
 void*
-ctlrealloc(void *p, uint n)
+ctlrealloc(void *p, u32 n)
 {
 	p = realloc(p, n);
 	if(p == nil)

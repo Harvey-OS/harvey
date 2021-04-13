@@ -24,7 +24,7 @@ static Image *scrtmp;
 
 static
 Rectangle
-scrpos(Rectangle r, uint p0, uint p1, uint tot)
+scrpos(Rectangle r, u32 p0, u32 p1, u32 tot)
 {
 	Rectangle q;
 	int h;
@@ -88,7 +88,7 @@ textscrdraw(Text *t)
 }
 
 void
-scrsleep(uint dt)
+scrsleep(u32 dt)
 {
 	Timer	*timer;
 	static Alt alts[3];
@@ -115,7 +115,7 @@ scrsleep(uint dt)
 void
 textscroll(Text *t, int but)
 {
-	uint p0, oldp0;
+	u32 p0, oldp0;
 	Rectangle s;
 	int x, y, my, h, first;
 

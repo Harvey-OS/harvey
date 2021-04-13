@@ -42,24 +42,24 @@ enum {
 };
 
 typedef struct Step {
-	uint dir;		/* direction */
-	uint count;	/* number of single-step moves */
+	u32 dir;		/* direction */
+	u32 count;	/* number of single-step moves */
 } Step;
 
 typedef struct Route {
-	uint nstep;	/* number of valid Step */
+	u32 nstep;	/* number of valid Step */
 	Step *step;
 	Point dest;	/* result of step */
 } Route;
 
 typedef struct Walk {
-	uint nroute;	/* number of valid Route* */
+	u32 nroute;	/* number of valid Route* */
 	Route **route;
-	uint beyond;	/* number of allocated Route* */
+	u32 beyond;	/* number of allocated Route* */
 } Walk;
 
 typedef struct Visited {
-	uint 	board[MazeX][MazeY];
+	u32 	board[MazeX][MazeY];
 } Visited;
 
 typedef struct Animation {
@@ -71,9 +71,9 @@ typedef struct Animation {
 typedef struct {
 	Point 	glenda;
 	Point 	max;		/* that's how much the board spans */
-	uint 	index;
-	uint	done;
-	uint 	board[MazeX][MazeY];
+	u32 	index;
+	u32	done;
+	u32 	board[MazeX][MazeY];
 } Level;
 
 Level level;		/* the current level */
@@ -125,4 +125,4 @@ void stopanimation(Animation*);
 
 /* sokoban.c */
 char *genlevels(int);
-Image *eallocimage(Rectangle, int, uint);
+Image *eallocimage(Rectangle, int, u32);

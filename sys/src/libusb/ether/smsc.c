@@ -276,7 +276,7 @@ smscinit(Ether *ether)
 static i32
 smscbread(Ether *e, Buf *bp)
 {
-	uint hd;
+	u32 hd;
 	int n, m;
 	Buf *rbp;
 

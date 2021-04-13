@@ -62,7 +62,7 @@ error(char *s)
 }
 
 void*
-erealloc(void *p, uint n)
+erealloc(void *p, u32 n)
 {
 	print_func_entry();
 	p = realloc(p, n);
@@ -73,7 +73,7 @@ erealloc(void *p, uint n)
 }
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	print_func_entry();
 	void *p;

@@ -22,7 +22,7 @@ typedef struct Packet Packet;
 
 Packet*	packetalloc(void);
 void	packetappend(Packet*, u8 *buf, int n);
-uint	packetasize(Packet*);
+u32	packetasize(Packet*);
 int	packetcmp(Packet*, Packet*);
 int	packetcompact(Packet*);
 void	packetconcat(Packet*, Packet*);
@@ -37,7 +37,7 @@ u8 *	packetheader(Packet*, int n);
 u8 *	packetpeek(Packet*, u8 *buf, int offset, int n);
 void	packetprefix(Packet*, u8 *buf, int n);
 void	packetsha1(Packet*, u8 sha1[20]);
-uint	packetsize(Packet*);
+u32	packetsize(Packet*);
 Packet*	packetsplit(Packet*, int n);
 void	packetstats(void);
 u8 *	packettrailer(Packet*, int n);
@@ -55,7 +55,7 @@ struct VtLog
 	VtLog	*next;		/* in hash table */
 	char	*name;
 	VtLogChunk *chunk;
-	uint	nchunk;
+	u32	nchunk;
 	VtLogChunk *w;
 	QLock	lk;
 	int	ref;
@@ -68,7 +68,7 @@ struct VtLogChunk
 	char	*wp;
 };
 
-VtLog*	vtlogopen(char *name, uint size);
+VtLog*	vtlogopen(char *name, u32 size);
 void	vtlogprint(VtLog *log, char *fmt, ...);
 void	vtlog(char *name, char *fmt, ...);
 void	vtlogclose(VtLog*);
@@ -124,8 +124,8 @@ enum
 };
 
 /* convert to/from on-disk type numbers */
-uint vttodisktype(uint);
-uint vtfromdisktype(uint);
+u32 vttodisktype(u32);
+u32 vtfromdisktype(u32);
 
 /*
  * VtEntry describes a Venti stream
@@ -187,8 +187,8 @@ extern u8 vtzeroscore[VtScoreSize];
 /*
  * zero extend and truncate blocks
  */
-void vtzeroextend(int type, u8 *buf, uint n, uint nn);
-uint vtzerotruncate(int type, u8 *buf, uint n);
+void vtzeroextend(int type, u8 *buf, u32 n, u32 nn);
+u32 vtzerotruncate(int type, u8 *buf, u32 n);
 
 /*
  * parse score: mungs s
@@ -286,14 +286,14 @@ struct VtFcall
 	char	*uid;		/* Thello */
 	u8	strength;	/* Thello */
 	u8	*crypto;	/* Thello */
-	uint	ncrypto;	/* Thello */
+	u32	ncrypto;	/* Thello */
 	u8	*codec;		/* Thello */
-	uint	ncodec;		/* Thello */
+	u32	ncodec;		/* Thello */
 	char	*sid;		/* Rhello */
 	u8	rcrypto;	/* Rhello */
 	u8	rcodec;		/* Rhello */
 	u8	*auth;		/* TauthX, RauthX */
-	uint	nauth;		/* TauthX, RauthX */
+	u32	nauth;		/* TauthX, RauthX */
 	u8	score[VtScoreSize];	/* Tread, Rwrite */
 	u8	blocktype;	/* Tread, Twrite */
 	u16	count;		/* Tread */
@@ -325,8 +325,8 @@ struct VtConn
 	void	*readq;
 	int	state;
 	void	*wait[256];
-	uint	ntag;
-	uint	nsleep;
+	u32	ntag;
+	u32	nsleep;
 	Packet	*part;
 	Rendez	tagrend;
 	Rendez	rpcfork;
@@ -373,13 +373,13 @@ void	vtsendproc(void*);	/* VtConn */
 
 int	vtconnect(VtConn*);
 int	vthello(VtConn*);
-int	vtread(VtConn*, u8 score[VtScoreSize], uint type,
+int	vtread(VtConn*, u8 score[VtScoreSize], u32 type,
 		  u8 *buf, int n);
-int	vtwrite(VtConn*, u8 score[VtScoreSize], uint type,
+int	vtwrite(VtConn*, u8 score[VtScoreSize], u32 type,
 		   u8 *buf, int n);
-Packet*	vtreadpacket(VtConn*, u8 score[VtScoreSize], uint type,
+Packet*	vtreadpacket(VtConn*, u8 score[VtScoreSize], u32 type,
 			    int n);
-int	vtwritepacket(VtConn*, u8 score[VtScoreSize], uint type,
+int	vtwritepacket(VtConn*, u8 score[VtScoreSize], u32 type,
 			 Packet *p);
 int	vtsync(VtConn*);
 int	vtping(VtConn*);
@@ -426,7 +426,7 @@ VtBlock*vtcachelocal(VtCache*, u32 addr, int type);
 VtBlock*vtcacheglobal(VtCache*, u8[VtScoreSize], int type);
 VtBlock*vtcacheallocblock(VtCache*, int type);
 void	vtcachesetwrite(VtCache*,
-	int(*)(VtConn*, u8[VtScoreSize], uint, u8*, int));
+	int(*)(VtConn*, u8[VtScoreSize], u32, u8*, int));
 void	vtblockput(VtBlock*);
 u32	vtcacheblocksize(VtCache*);
 int	vtblockwrite(VtBlock*);

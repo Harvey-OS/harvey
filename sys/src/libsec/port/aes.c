@@ -104,7 +104,7 @@ void
 setupAESXCBCstate(AESstate *s)		/* was setupmac96 */
 {
 	int i, j;
-	uint q[16 / sizeof(uint)];
+	u32 q[16 / sizeof(u32)];
 	u8 *p;
 
 	assert(s->keybytes == 16);
@@ -122,10 +122,10 @@ setupAESXCBCstate(AESstate *s)		/* was setupmac96 */
 	 * only key1 is used for encryption;
 	 * BUG!!: I think this is what I got wrong.
 	 */
-	for(i = 0; i < 16 / sizeof(uint); i ++){
-		for(j = 0; j < sizeof(uint); j++)
-			q[i] |= p[sizeof(uint)-j-1] << 8*j;
-		p += sizeof(uint);
+	for(i = 0; i < 16 / sizeof(u32); i ++){
+		for(j = 0; j < sizeof(u32); j++)
+			q[i] |= p[sizeof(u32)-j-1] << 8*j;
+		p += sizeof(u32);
 	}
 	memmove(s->mackey, q, 16);
 }
@@ -238,7 +238,7 @@ aesCBCdecrypt(u8 *p, int len, AESstate *s)
  */
 
 static void
-incrementCTR(u8 *p, uint ctrsz)
+incrementCTR(u8 *p, u32 ctrsz)
 {
 	int len;
 	u8 *ctr;

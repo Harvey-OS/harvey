@@ -150,7 +150,7 @@ static Acpilist *acpilists;
  * so size matters.
  */
 static Acpilist *
-findlist(usize base, uint size)
+findlist(usize base, u32 size)
 {
 	Acpilist *a = acpilists;
 	if(v)

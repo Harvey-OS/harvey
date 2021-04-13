@@ -304,7 +304,8 @@ static bool isa_li(recognizer r)
 { return(CHECK_LI_MAGIC(r)); }
 
 static int
-recognizer_train(recognizer r, rc* rc, uint u, Stroke* s, rec_element* re, bool b)
+recognizer_train(recognizer r, rc* rc, u32 u, Stroke* s, rec_element* re,
+                 bool b)
 {
   /*This operation isn't supported by the LI recognizer.*/
 
@@ -541,7 +542,7 @@ li_recognizer_get_context(recognizer r)
 }
 
 static int
-li_recognizer_get_buffer(recognizer r, uint* u, Stroke** s)
+li_recognizer_get_buffer(recognizer r, u32 * u, Stroke** s)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Buffer get/set are not supported by the LI recognizer";
@@ -549,7 +550,7 @@ li_recognizer_get_buffer(recognizer r, uint* u, Stroke** s)
 }
 
 static int
-li_recognizer_set_buffer(recognizer r, uint u, Stroke* s)
+li_recognizer_set_buffer(recognizer r, u32 u, Stroke* s)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Buffer get/set are not supported by the LI recognizer";
@@ -557,7 +558,8 @@ li_recognizer_set_buffer(recognizer r, uint u, Stroke* s)
 }
 
 static int
-li_recognizer_translate(recognizer r, uint ncs, Stroke* tps, bool b, int* nret, rec_alternative** ret)
+li_recognizer_translate(recognizer r, u32 ncs, Stroke* tps, bool b, int* nret,
+			rec_alternative** ret)
 {
 	char* clss;
 	li_recognizer* rec;

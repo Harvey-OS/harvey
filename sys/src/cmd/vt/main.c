@@ -70,7 +70,7 @@ Image	*bgcolor;
 Image	*fgdefault;
 Image	*bgdefault;
 
-uint rgbacolors[8] = {
+u32 rgbacolors[8] = {
 	0x000000FF,	/* black */
 	0xAA0000FF,	/* red */
 	0x00AA00FF,	/* green */

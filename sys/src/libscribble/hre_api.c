@@ -474,7 +474,7 @@ int recognizer_clear(recognizer rec,bool delete_points_p)
 /*recognizer_get_buffer-Get stroke buffer. Return 0 if success, else -1.*/
 
 
-int recognizer_get_buffer(recognizer rec, uint* nstrokes,Stroke** strokes)
+int recognizer_get_buffer(recognizer rec, u32 * nstrokes,Stroke** strokes)
 {
 
     /*Make sure magic numbers right.*/
@@ -495,7 +495,7 @@ int recognizer_get_buffer(recognizer rec, uint* nstrokes,Stroke** strokes)
  * return -1.
 */
 
-int recognizer_set_buffer(recognizer rec,uint nstrokes,Stroke* strokes)
+int recognizer_set_buffer(recognizer rec,u32 nstrokes,Stroke* strokes)
 {
 
     /*Make sure magic numbers right.*/
@@ -518,7 +518,7 @@ int recognizer_set_buffer(recognizer rec,uint nstrokes,Stroke* strokes)
 */
 
 int recognizer_translate(recognizer rec,
-			 uint nstrokes,
+			 u32 nstrokes,
 			 Stroke* strokes,
 			 bool correlate_p,
 			 int* nret,
@@ -535,7 +535,7 @@ int recognizer_translate(recognizer rec,
 
 /* ari */
 /*    {
- *      uint i;
+ *      u32 i;
  *      Stroke ari_pstr;
  *      pen_point* ari_pts;
  *      int ari;
@@ -873,7 +873,7 @@ void delete_recognizer(recognizer rec)
  * rec_alternative
 */
 
-rec_alternative* make_rec_alternative_array(uint size)
+rec_alternative* make_rec_alternative_array(u32 size)
 {
     int i;
     rec_alternative* ri;
@@ -892,7 +892,7 @@ rec_alternative* make_rec_alternative_array(uint size)
 }
 
 rec_alternative*
-  initialize_rec_alternative(rec_alternative* ra, uint nelm)
+  initialize_rec_alternative(rec_alternative* ra, u32 nelm)
 {
   if( ra != nil ) {
     if( (ra->ra_next = make_rec_alternative_array(nelm)) == nil ) {
@@ -905,7 +905,7 @@ rec_alternative*
   return(ra);
 }
 
-void delete_rec_alternative_array(uint nalter,
+void delete_rec_alternative_array(u32 nalter,
 				  rec_alternative* ra,
 				  bool delete_points_p)
 {
@@ -935,7 +935,7 @@ void delete_rec_alternative_array(uint nalter,
 rec_element*
 initialize_rec_element(rec_element* re,
 		       char type,
-		       uint size,
+		       u32 size,
 		       void* trans,
 		       rec_confidence conf)
 {
@@ -1028,10 +1028,10 @@ static void cleanup_rec_element(rec_element* re,bool delete_points_p)
 
 rec_correlation*
 make_rec_correlation(char type,
-		     uint size,
+		     u32 size,
 		     void* trans,
 		     rec_confidence conf,
-		     uint ps_size)
+		     u32 ps_size)
 {
   rec_correlation* rc;
 
@@ -1053,8 +1053,8 @@ make_rec_correlation(char type,
       return(nil);
     }
 
-    rc->ro_start = (uint*)safe_malloc(ps_size * sizeof(int));
-    rc->ro_stop = (uint*)safe_malloc(ps_size * sizeof(int));
+    rc->ro_start = (u32*)safe_malloc(ps_size * sizeof(int));
+    rc->ro_stop = (u32*)safe_malloc(ps_size * sizeof(int));
     return(rc);
 }
 
@@ -1085,7 +1085,7 @@ void delete_rec_correlation(rec_correlation* rc,bool delete_points_p)
 */
 
 
-rec_fn* make_rec_fn_array(uint size)
+rec_fn* make_rec_fn_array(u32 size)
 {
     rec_fn* ri = (rec_fn*)safe_malloc((size + 1) * sizeof(rec_fn));
     int i;
@@ -1111,7 +1111,7 @@ void delete_rec_fn_array(rec_fn* rf)
 */
 
 
-Stroke* make_Stroke_array(uint size)
+Stroke* make_Stroke_array(u32 size)
 {
     int i;
     Stroke* ri;
@@ -1126,7 +1126,7 @@ Stroke* make_Stroke_array(uint size)
 }
 
 Stroke* initialize_Stroke(Stroke* ps,
-				  uint npts,
+				  u32 npts,
 				  pen_point* pts)
 {
   if( ps != nil ) {
@@ -1136,7 +1136,7 @@ Stroke* initialize_Stroke(Stroke* ps,
   return (ps);
 }
 
-void delete_Stroke_array(uint size,Stroke* ps,bool delete_points_p)
+void delete_Stroke_array(u32 size,Stroke* ps,bool delete_points_p)
 {
   int i;
 
@@ -1168,14 +1168,14 @@ void delete_pen_point_array(pen_point* pp)
 */
 
 gesture*
-make_gesture_array(uint size)
+make_gesture_array(u32 size)
 {
     return((gesture*)safe_malloc(size * sizeof(gesture)));
 }
 
 gesture* initialize_gesture(gesture* g,
 			    char* name,
-			    uint nhs,
+			    u32 nhs,
 			    pen_point* hspots,
 			    pen_rect bbox,
 			    xgesture fn,
@@ -1198,7 +1198,7 @@ gesture* initialize_gesture(gesture* g,
 }
 
 void
-delete_gesture_array(uint size,gesture* ga,bool delete_points_p)
+delete_gesture_array(u32 size,gesture* ga,bool delete_points_p)
 {
     int i;
 
@@ -1232,7 +1232,7 @@ copy_Stroke(Stroke* ps1,Stroke* ps2)
 }
 
 Stroke*
- copy_Stroke_array(uint nstrokes,
+ copy_Stroke_array(u32 nstrokes,
 		    Stroke* strokes)
 {
   int i;
@@ -1251,10 +1251,10 @@ Stroke*
   return(ps);
 }
 
-uint*
- copy_state_trans_array(uint ntrans,uint* trans)
+u32 *
+ copy_state_trans_array(u32 ntrans,u32 * trans)
 {
-  uint* pt = (uint*)safe_malloc(ntrans*sizeof(uint));
+  u32 * pt = (u32*)safe_malloc(ntrans*sizeof(u32));
   int i;
 
   for( i = 0; i < ntrans; i++ ) {

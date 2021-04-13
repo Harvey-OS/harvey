@@ -98,7 +98,7 @@ int
 loadbloom(Bloom *b)
 {
 	int i, n;
-	uint ones;
+	u32 ones;
 	u8 *data;
 	u32 *a;
 

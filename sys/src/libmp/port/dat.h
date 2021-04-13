@@ -11,7 +11,7 @@
 #define DIGITS(x) ((Dbits - 1 + (x))/Dbits)
 
 // for converting between int's and mpint's
-#define MAXUINT ((uint)-1)
+#define MAXUINT ((u32)-1)
 #define MAXINT (MAXUINT>>1)
 #define MININT (MAXINT+1)
 

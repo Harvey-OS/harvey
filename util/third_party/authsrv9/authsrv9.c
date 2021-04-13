@@ -203,7 +203,7 @@ getuserinfo(char *uid, User *u)
 	char buf[128];
 	User t;
 	char *e;
-	uint expire;
+	u32 expire;
 
 	snprintf(pre, sizeof pre, "/auth/users/%s", uid);
 
@@ -232,7 +232,7 @@ getuserinfo(char *uid, User *u)
 	if(eq(buf, "never")) {
 		t.expire = 0;
 	} else {
-		expire = (uint)strtol(buf, &e, 10);
+		expire = (u32)strtol(buf, &e, 10);
 		if(*e == '\0')
 			t.expire = expire;
 		else
@@ -341,7 +341,7 @@ authtreq(Ticketreq *tr)
 	char *authid, *authdom;
 	User au, u;
 	uchar ks[Deskeylen], kc[Deskeylen], kn[Deskeylen];
-	uint now;
+	u32 now;
 	char idr[ANamelen+1];
 	Ticket tc, ts;
 	uchar tcbuf[Ticketlen], tsbuf[Ticketlen];
@@ -433,7 +433,7 @@ static void
 authpass(Ticketreq *tr)
 {
 	User u;
-	uint now;
+	u32 now;
 	uchar kc[Deskeylen], kn[Deskeylen];
 	Ticket tp;
 	uchar tresp[1+Ticketlen];

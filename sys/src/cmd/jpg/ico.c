@@ -37,7 +37,7 @@ struct Icon
 typedef struct Header Header;
 struct Header
 {
-	uint	n;
+	u32	n;
 	Icon	*first;
 	Icon	*last;
 };

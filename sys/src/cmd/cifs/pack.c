@@ -111,7 +111,7 @@ pl64(Pkt *p, u64 n)
 }
 
 void *
-pb32(Pkt *p, uint n)
+pb32(Pkt *p, u32 n)
 {
 	void *s = p->pos;
 
@@ -123,7 +123,7 @@ pb32(Pkt *p, uint n)
 }
 
 void *
-pl32(Pkt *p, uint n)
+pl32(Pkt *p, u32 n)
 {
 	void *s = p->pos;
 
@@ -135,7 +135,7 @@ pl32(Pkt *p, uint n)
 }
 
 void *
-pb16(Pkt *p, uint n)
+pb16(Pkt *p, u32 n)
 {
 	void *s = p->pos;
 
@@ -145,7 +145,7 @@ pb16(Pkt *p, uint n)
 }
 
 void *
-pl16(Pkt *p, uint n)
+pl16(Pkt *p, u32 n)
 {
 	void *s = p->pos;
 
@@ -155,7 +155,7 @@ pl16(Pkt *p, uint n)
 }
 
 void *
-p8(Pkt *p, uint n)
+p8(Pkt *p, u32 n)
 {
 	void *s = p->pos;
 
@@ -325,73 +325,73 @@ gb48(Pkt *p)
 	return n;
 }
 
-uint
+u32
 gb32(Pkt *p)
 {
-	uint n;
+	u32 n;
 
 	if(p->pos + 4 > p->eop)
 		return 0;
 
-	n  = (uint)*p->pos++ << 24;
-	n |= (uint)*p->pos++ << 16;
-	n |= (uint)*p->pos++ << 8;
-	n |= (uint)*p->pos++;
+	n  = (u32)*p->pos++ << 24;
+	n |= (u32)*p->pos++ << 16;
+	n |= (u32)*p->pos++ << 8;
+	n |= (u32)*p->pos++;
 	return n;
 }
 
-uint
+u32
 gl32(Pkt *p)
 {
-	uint n;
+	u32 n;
 
 	if(p->pos + 4 > p->eop)
 		return 0;
 
-	n  = (uint)*p->pos++;
-	n |= (uint)*p->pos++ << 8;
-	n |= (uint)*p->pos++ << 16;
-	n |= (uint)*p->pos++ << 24;
+	n  = (u32)*p->pos++;
+	n |= (u32)*p->pos++ << 8;
+	n |= (u32)*p->pos++ << 16;
+	n |= (u32)*p->pos++ << 24;
 	return n;
 }
 
-uint
+u32
 gb16(Pkt *p)
 {
-	uint n;
+	u32 n;
 
 	if(p->pos + 2 > p->eop)
 		return 0;
-	n  = (uint)*p->pos++ << 8;
-	n |= (uint)*p->pos++;
+	n  = (u32)*p->pos++ << 8;
+	n |= (u32)*p->pos++;
 	return n;
 }
 
-uint
+u32
 gl16(Pkt *p)
 {
-	uint n;
+	u32 n;
 
 	if(p->pos + 2 > p->eop)
 		return 0;
-	n  = (uint)*p->pos++;
-	n |= (uint)*p->pos++ << 8;
+	n  = (u32)*p->pos++;
+	n |= (u32)*p->pos++ << 8;
 	return n;
 }
 
-uint
+u32
 g8(Pkt *p)
 {
 	if(p->pos + 1 > p->eop)
 		return 0;
-	return (uint)*p->pos++;
+	return (u32)*p->pos++;
 }
 
 i32
 gdatetime(Pkt *p)
 {
 	Tm tm;
-	uint d, t;
+	u32 d, t;
 
 	if(p->pos + 4 > p->eop)
 		return 0;

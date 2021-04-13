@@ -62,7 +62,7 @@ struct State
 };
 
 static mpint* mkdigest(RSApub *key, char *hashalg, u8 *hash,
-		       uint dlen);
+		       u32 dlen);
 
 static RSApriv*
 readrsapriv(Key *k)
@@ -135,7 +135,7 @@ rsainit(Proto* p, Fsstate *fss)
 }
 
 static int
-rsaread(Fsstate *fss, void *va, uint *n)
+rsaread(Fsstate *fss, void *va, u32 *n)
 {
 	RSApriv *priv;
 	State *s;
@@ -188,7 +188,7 @@ rsaread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-rsawrite(Fsstate *fss, void *va, uint n)
+rsawrite(Fsstate *fss, void *va, u32 n)
 {
 	RSApriv *priv;
 	mpint *m, *mm;
@@ -337,10 +337,10 @@ u8 oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
  * instead.  Sigh.
  */
 static int
-mkasn1(u8 *asn1, char *alg, u8 *d, uint dlen)
+mkasn1(u8 *asn1, char *alg, u8 *d, u32 dlen)
 {
 	u8 *obj, *p;
-	uint olen;
+	u32 olen;
 
 	if(strcmp(alg, "sha1") == 0){
 		obj = oidsha1;
@@ -380,7 +380,7 @@ mkasn1(u8 *asn1, char *alg, u8 *d, uint dlen)
 }
 
 static mpint*
-mkdigest(RSApub *key, char *hashalg, u8 *hash, uint dlen)
+mkdigest(RSApub *key, char *hashalg, u8 *hash, u32 dlen)
 {
 	mpint *m;
 	u8 asn1[512], *buf;

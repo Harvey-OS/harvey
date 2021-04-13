@@ -430,7 +430,7 @@ mousethread(void *v)
 {
 	Text *t, *argt;
 	int but;
-	uint q0, q1;
+	u32 q0, q1;
 	Window *w;
 	Plumbmsg *pm;
 	Mouse m;
@@ -600,7 +600,7 @@ waitthread(void *v)
 {
 	Waitmsg *w;
 	Command *c, *lc;
-	uint pid;
+	u32 pid;
 	int found, ncmd;
 	Rune *cmd;
 	char *err;

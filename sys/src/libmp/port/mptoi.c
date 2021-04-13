@@ -35,7 +35,7 @@ itomp(int i, mpint *b)
 int
 mptoi(mpint *b)
 {
-	uint x;
+	u32 x;
 
 	if(b->top==0)
 		return 0;

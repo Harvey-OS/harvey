@@ -24,7 +24,7 @@ struct AESstate
 	u32	setup;
 	int	rounds;
 	int	keybytes;
-	uint	ctrsz;
+	u32	ctrsz;
 	u8	key[AESmaxkey];			/* unexpanded key */
 	u32	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
 	u32	dkey[4*(AESmaxrounds + 1)];	/* decryption key */

@@ -1061,7 +1061,7 @@ setstate(Drive *d, int state)
 static void
 resetdisk(Drive *d)
 {
-	uint state, det, stat;
+	u32 state, det, stat;
 	Aport *p;
 
 	p = d->port;
@@ -2264,7 +2264,7 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 	char **f;
 	Ctlr *c;
 	Drive *d;
-	uint i;
+	u32 i;
 
 	c = u->dev->ctlr;
 	d = c->drive[u->subno];
@@ -2326,7 +2326,7 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 }
 
 static char *
-portr(char *p, char *e, uint x)
+portr(char *p, char *e, u32 x)
 {
 	int i, a;
 

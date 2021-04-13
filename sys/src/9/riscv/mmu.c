@@ -392,7 +392,7 @@ mmuptpcheck(Proc *proc)
 {
 	int lvl, npgs, i;
 	Page *lp, *p, *pgs[16], *fp;
-	uint idx[16];
+	u32 idx[16];
 
 	if(proc == nil)
 		return;
@@ -435,7 +435,7 @@ mmuptpcheck(Proc *proc)
 }
 
 static u64
-pteflags(uint attr)
+pteflags(u32 attr)
 {
 	u64 flags;
 
@@ -472,7 +472,7 @@ invlpg(usize _)
  * For 1*GiB pages, we use two levels.
  */
 void
-mmuput(usize va, Page *pg, uint attr)
+mmuput(usize va, Page *pg, u32 attr)
 {
 	Proc *up = externup();
 	int lvl, user, x, pgsz;

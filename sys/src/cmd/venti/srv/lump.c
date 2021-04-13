@@ -84,7 +84,7 @@ readlump(u8 *score, int type, u32 size, int *cached)
  * doesn't store duplicates, but checks that the data is really the same.
  */
 int
-writelump(Packet *p, u8 *score, int type, u32 creator, uint ms)
+writelump(Packet *p, u8 *score, int type, u32 creator, u32 ms)
 {
 	Lump *u;
 	int ok;
@@ -136,7 +136,7 @@ writelump(Packet *p, u8 *score, int type, u32 creator, uint ms)
 }
 
 int
-writeqlump(Lump *u, Packet *p, int creator, uint ms)
+writeqlump(Lump *u, Packet *p, int creator, u32 ms)
 {
 	ZBlock *flat;
 	Packet *old;

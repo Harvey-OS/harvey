@@ -276,7 +276,7 @@ xfidread(Xfid *x)
 {
 	Fcall fc;
 	int n, q;
-	uint off;
+	u32 off;
 	char *b;
 	char buf[256];
 	Window *w;
@@ -431,7 +431,7 @@ xfidwrite(Xfid *x)
 	Rune *r;
 	Range a;
 	Text *t;
-	uint q0, tq0, tq1;
+	u32 q0, tq0, tq1;
 
 	qid = FILE(x->f->qid);
 	w = x->f->w;
@@ -464,7 +464,8 @@ xfidwrite(Xfid *x)
 		t = &w->body;
 		wincommit(w, t);
 		eval = TRUE;
-		a = address(x->f->mntdir, t, w->limit, w->addr, r, 0, nr, rgetc, &eval, (uint*)&nb);
+		a = address(x->f->mntdir, t, w->limit, w->addr, r, 0, nr, rgetc, &eval,
+		            (u32*)&nb);
 		free(r);
 		if(nb < nr){
 			respond(x, &fc, Ebadaddr);
@@ -818,7 +819,7 @@ xfideventwrite(Xfid *x, Window *w)
 	int isfbuf;
 	Text *t;
 	int c;
-	uint q0, q1;
+	u32 q0, q1;
 
 	err = nil;
 	isfbuf = TRUE;
@@ -893,13 +894,13 @@ xfideventwrite(Xfid *x, Window *w)
 }
 
 void
-xfidutfread(Xfid *x, Text *t, uint q1, int qid)
+xfidutfread(Xfid *x, Text *t, u32 q1, int qid)
 {
 	Fcall fc;
 	Window *w;
 	Rune *r;
 	char *b, *b1;
-	uint q, off, boff;
+	u32 q, off, boff;
 	int m, n, nr, nb;
 
 	w = t->w;
@@ -958,13 +959,13 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 }
 
 int
-xfidruneread(Xfid *x, Text *t, uint q0, uint q1)
+xfidruneread(Xfid *x, Text *t, u32 q0, u32 q1)
 {
 	Fcall fc;
 	Window *w;
 	Rune *r, junk;
 	char *b, *b1;
-	uint q, boff;
+	u32 q, boff;
 	int i, rw, m, n, nr, nb;
 
 	w = t->w;

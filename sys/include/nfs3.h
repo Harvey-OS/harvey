@@ -74,9 +74,9 @@ struct NfsMount3TMnt {
 
 struct NfsMount3RMnt {
 	NfsMount3Call call;
-	uint status;
+	u32 status;
 	u8 *handle;
-	uint len;
+	u32 len;
 	u32 *auth;
 	u32 nauth;
 };
@@ -129,14 +129,14 @@ struct NfsMount3RExport {
 	u32 count;
 };
 
-uint nfsMount3ExportGroupSize(u8*);
-uint nfsMount3ExportSize(NfsMount3Export*);
+u32 nfsMount3ExportGroupSize(u8*);
+u32 nfsMount3ExportSize(NfsMount3Export*);
 int nfsMount3ExportPack(u8*, u8*, u8**, NfsMount3Export*);
 int nfsMount3ExportUnpack(u8*, u8*, u8**, char**, char***,
 			  NfsMount3Export*);
 int nfsMount3EntryPack(u8*, u8*, u8**, NfsMount3Entry*);
 int nfsMount3EntryUnpack(u8*, u8*, u8**, NfsMount3Entry*);
-uint nfsMount3EntrySize(NfsMount3Entry*);
+u32 nfsMount3EntrySize(NfsMount3Entry*);
 
 extern SunProg nfsMount3Prog;
 

@@ -423,7 +423,7 @@ blockWrite(int part, u32 addr)
 }
 
 static void
-addFile(File *root, char *name, uint mode)
+addFile(File *root, char *name, u32 mode)
 {
 	File *f;
 

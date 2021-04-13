@@ -227,7 +227,7 @@ closekey(Key *k)
 static u8 *
 pstring(u8 *p, u8 *e, char *s)
 {
-	uint n;
+	u32 n;
 
 	if(p == nil)
 		return nil;
@@ -244,7 +244,7 @@ pstring(u8 *p, u8 *e, char *s)
 }
 
 static u8 *
-pcarray(u8 *p, u8 *e, u8 *s, uint n)
+pcarray(u8 *p, u8 *e, u8 *s, u32 n)
 {
 	if(p == nil)
 		return nil;
@@ -951,7 +951,7 @@ sortattr(Attr *a)
 }
 
 int
-toosmall(Fsstate *fss, uint n)
+toosmall(Fsstate *fss, u32 n)
 {
 	fss->rpc.nwant = n;
 	return RpcToosmall;

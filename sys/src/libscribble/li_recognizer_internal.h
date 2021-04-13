@@ -36,7 +36,7 @@ typedef struct {
 
 typedef struct {
     /*Instance-specific data.*/
-    uint li_magic;            /*Just to make sure nobody's cheating.*/
+    u32 li_magic;            /*Just to make sure nobody's cheating.*/
     rClassifier li_rc;         /*The character classifier.*/
 } li_recognizer;
 
