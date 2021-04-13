@@ -21,7 +21,6 @@ typedef u64 		usize;
 typedef	i64		isize;
 
 typedef unsigned int	uint;
-typedef i64		intptr_t;
 typedef	u32	Rune;
 typedef union FPdbleword FPdbleword;
 typedef u64	jmp_buf[10]; // for registers.

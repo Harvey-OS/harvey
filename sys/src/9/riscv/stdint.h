@@ -70,7 +70,7 @@ typedef u8 bool;
 #define false 0
 
 /* Types for `void *' pointers.  */
-typedef s64 intptr_t;
+typedef s64 isize;
 typedef u64 usize;
 
 #endif /* RISCV_STDINT_H */
