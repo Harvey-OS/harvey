@@ -87,7 +87,7 @@ typedef struct {
 
 typedef struct Sym {
 	i64		value;
-	uint		sig;
+	u32		sig;
 	char		type;
 	char		*name;
 } Sym;

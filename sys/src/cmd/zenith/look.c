@@ -26,13 +26,13 @@ Window*	openfile(Text*, Expand*);
 int	nuntitled;
 
 void
-look3(Text *t, uint q0, uint q1, int external)
+look3(Text *t, u32 q0, u32 q1, int external)
 {
 	int n, c, f, expanded;
 	Text *ct;
 	Expand e;
 	Rune *r;
-	uint p;
+	u32 p;
 	Plumbmsg *m;
 	Runestr dir;
 	char buf[32];
@@ -167,7 +167,7 @@ look3(Text *t, uint q0, uint q1, int external)
 }
 
 int
-plumbgetc(void *a, uint n)
+plumbgetc(void *a, u32 n)
 {
 	Rune *r;
 
@@ -246,9 +246,9 @@ plumbshow(Plumbmsg *m)
 }
 
 int
-search(Text *ct, Rune *r, uint n)
+search(Text *ct, Rune *r, u32 n)
 {
-	uint q, nb, maxn;
+	u32 q, nb, maxn;
 	int around;
 	Rune *s, *b, *c;
 
@@ -407,7 +407,7 @@ Runestr
 dirname(Text *t, Rune *r, int n)
 {
 	Rune *b, c;
-	uint m, nt;
+	u32 m, nt;
 	int slash;
 	Runestr tmp;
 
@@ -444,10 +444,10 @@ dirname(Text *t, Rune *r, int n)
 }
 
 int
-expandfile(Text *t, uint q0, uint q1, Expand *e)
+expandfile(Text *t, u32 q0, u32 q1, Expand *e)
 {
 	int i, n, nname, colon, eval;
-	uint amin, amax;
+	u32 amin, amax;
 	Rune *r, c;
 	Window *w;
 	Runestr rs;
@@ -550,7 +550,8 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	e->at = t;
 	e->a0 = amin+1;
 	eval = FALSE;
-	address(nil, nil, (Range){-1,-1}, (Range){0, 0}, t, e->a0, amax, tgetc, &eval, (uint*)&e->a1);
+	address(nil, nil, (Range){-1,-1}, (Range){0, 0}, t, e->a0, amax, tgetc, &eval,
+		(u32*)&e->a1);
 	return TRUE;
 
    Isntfile:
@@ -559,7 +560,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 }
 
 int
-expand(Text *t, uint q0, uint q1, Expand *e)
+expand(Text *t, u32 q0, u32 q1, Expand *e)
 {
 	memset(e, 0, sizeof *e);
 	e->agetc = tgetc;
@@ -643,7 +644,7 @@ openfile(Text *t, Expand *e)
 	Window *w, *ow;
 	int eval, i, n;
 	Rune *rp;
-	uint dummy;
+	u32 dummy;
 
 	if(e->nname == 0){
 		w = t->w;

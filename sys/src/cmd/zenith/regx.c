@@ -29,7 +29,7 @@ Rune		*lastregexp;
 typedef struct Inst Inst;
 struct Inst
 {
-	uint	type;	/* <= Runemax+1 ==> literal, otherwise action */
+	u32	type;	/* <= Runemax+1 ==> literal, otherwise action */
 	union {
 		int sid;
 		int subid;
@@ -55,7 +55,7 @@ struct Ilist
 {
 	Inst	*inst;		/* Instruction of the thread */
 	Rangeset se;
-	uint	startp;		/* first char of match */
+	u32	startp;		/* first char of match */
 };
 
 #define	NLIST	127
@@ -563,12 +563,12 @@ rxnull(void)
 
 /* either t!=nil or r!=nil, and we match the string in the appropriate place */
 int
-rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
+rxexecute(Text *t, Rune *r, u32 startp, u32 eof, Rangeset *rp)
 {
 	int flag;
 	Inst *inst;
 	Ilist *tlp;
-	uint p;
+	u32 p;
 	int nnl, ntl;
 	int nc, c;
 	int wrapped;
@@ -706,7 +706,7 @@ newmatch(Rangeset *sp)
 }
 
 int
-rxbexecute(Text *t, uint startp, Rangeset *rp)
+rxbexecute(Text *t, u32 startp, Rangeset *rp)
 {
 	int flag;
 	Inst *inst;

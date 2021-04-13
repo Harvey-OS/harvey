@@ -561,7 +561,7 @@ Lsym*
 enter(char *name, int t)
 {
 	Lsym *s;
-	uint h;
+	u32 h;
 	char *p;
 	Value *v;
 
@@ -592,7 +592,7 @@ Lsym*
 look(char *name)
 {
 	Lsym *s;
-	uint h;
+	u32 h;
 	char *p;
 
 	h = 0;

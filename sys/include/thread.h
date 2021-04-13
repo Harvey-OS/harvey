@@ -26,8 +26,8 @@ enum {
 
 struct Channel {
 	int	s;		/* Size of the channel (may be zero) */
-	uint	f;		/* Extraction point (insertion pt: (f+n) % s) */
-	uint	n;		/* Number of values in the channel */
+	u32	f;		/* Extraction point (insertion pt: (f+n) % s) */
+	u32	n;		/* Number of values in the channel */
 	int	e;		/* Element size */
 	int	freed;		/* Set when channel is being deleted */
 	volatile Alt **qentry;	/* Receivers/senders waiting (malloc) */
@@ -79,8 +79,8 @@ int	nbsend(Channel *c, void *v);
 int	nbsendp(Channel *c, void *v);
 int	nbsendul(Channel *c, u32 v);
 void	needstack(int);
-int	proccreate(void (*f)(void *arg), void *arg, uint stacksize);
-int	procrfork(void (*f)(void *arg), void *arg, uint stacksize, int flag);
+int	proccreate(void (*f)(void *arg), void *arg, u32 stacksize);
+int	procrfork(void (*f)(void *arg), void *arg, u32 stacksize, int flag);
 void**	procdata(void);
 void	procexec(Channel *, char *, char *[]);
 void	procexecl(Channel *, char *, ...);
@@ -90,7 +90,7 @@ u32	recvul(Channel *c);
 int	send(Channel *c, void *v);
 int	sendp(Channel *c, void *v);
 int	sendul(Channel *c, u32 v);
-int	threadcreate(void (*f)(void *arg), void *arg, uint stacksize);
+int	threadcreate(void (*f)(void *arg), void *arg, u32 stacksize);
 void**	threaddata(void);
 void	threadexits(char *);
 void	threadexitsall(char *);

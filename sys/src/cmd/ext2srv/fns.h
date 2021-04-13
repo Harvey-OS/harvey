@@ -27,7 +27,7 @@ Xfile *	xfile(Fid*, int);
 int	xfspurge(void);
 
 int ext2fs(Xfs *);
-int get_inode( Xfile *, uint);
+int get_inode( Xfile *, u32);
 char *getname(Xfile *, char *);
 int get_file(Xfile *, char *);
 int bmap( Xfile *f, int block );

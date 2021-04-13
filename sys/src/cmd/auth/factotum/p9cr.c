@@ -140,7 +140,7 @@ p9crinit(Proto *p, Fsstate *fss)
 }
 
 static int
-p9crread(Fsstate *fss, void *va, uint *n)
+p9crread(Fsstate *fss, void *va, u32 *n)
 {
 	int m;
 	State *s;
@@ -248,7 +248,7 @@ vncresponse(Fsstate* f, State *s)
 }
 
 static int
-p9crwrite(Fsstate *fss, void *va, uint n)
+p9crwrite(Fsstate *fss, void *va, u32 n)
 {
 	char tbuf[TICKETLEN+AUTHENTLEN];
 	State *s;

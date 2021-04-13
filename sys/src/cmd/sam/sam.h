@@ -122,10 +122,10 @@ enum
 
 struct Block
 {
-	uint		addr;	/* disk address in bytes */
+	u32		addr;	/* disk address in bytes */
 	union
 	{
-		uint	n;	/* number of used runes in block */
+		u32	n;	/* number of used runes in block */
 		Block	*next;	/* pointer to next in free list */
 	};
 };
@@ -133,32 +133,32 @@ struct Block
 struct Disk
 {
 	int		fd;
-	uint		addr;	/* length of temp file */
+	u32		addr;	/* length of temp file */
 	Block		*free[Maxblock/Blockincr+1];
 };
 
 Disk*		diskinit(void);
-Block*		disknewblock(Disk*, uint);
+Block*		disknewblock(Disk*, u32);
 void		diskrelease(Disk*, Block*);
-void		diskread(Disk*, Block*, Rune*, uint);
-void		diskwrite(Disk*, Block**, Rune*, uint);
+void		diskread(Disk*, Block*, Rune*, u32);
+void		diskwrite(Disk*, Block**, Rune*, u32);
 
 struct Buffer
 {
-	uint		nc;
+	u32		nc;
 	Rune		*c;	/* cache */
-	uint		cnc;	/* bytes in cache */
-	uint		cmax;	/* size of allocated cache */
-	uint		cq;	/* position of cache */
+	u32		cnc;	/* bytes in cache */
+	u32		cmax;	/* size of allocated cache */
+	u32		cq;	/* position of cache */
 	int		cdirty;	/* cache needs to be written */
-	uint		cbi;	/* index of cache Block */
+	u32		cbi;	/* index of cache Block */
 	Block		**bl;	/* array of blocks */
-	uint		nbl;	/* number of blocks */
+	u32		nbl;	/* number of blocks */
 };
-void		bufinsert(Buffer*, uint, Rune*, uint);
-void		bufdelete(Buffer*, uint, uint);
-uint		bufload(Buffer*, uint, int, int*);
-void		bufread(Buffer*, uint, Rune*, uint);
+void		bufinsert(Buffer*, u32, Rune*, u32);
+void		bufdelete(Buffer*, u32, u32);
+u32		bufload(Buffer*, u32, int, int*);
+void		bufread(Buffer*, u32, Rune*, u32);
 void		bufclose(Buffer*);
 void		bufreset(Buffer*);
 
@@ -169,7 +169,7 @@ struct File
 	Buffer		epsilon;	/* inversion of delta for redo */
 	String		name;		/* name of associated file */
 	uvlong		qidpath;	/* of file when read */
-	uint		mtime;		/* of file when read */
+	u32		mtime;		/* of file when read */
 	int		dev;		/* of file when read */
 	int		unread;		/* file has not been read from disk */
 
@@ -199,23 +199,23 @@ struct File
 };
 //File*		fileaddtext(File*, Text*);
 void		fileclose(File*);
-void		filedelete(File*, uint, uint);
+void		filedelete(File*, u32, u32);
 //void		filedeltext(File*, Text*);
-void		fileinsert(File*, uint, Rune*, uint);
-uint		fileload(File*, uint, int, int*);
+void		fileinsert(File*, u32, Rune*, u32);
+u32		fileload(File*, u32, int, int*);
 void		filemark(File*);
 void		filereset(File*);
 void		filesetname(File*, String*);
-void		fileundelete(File*, Buffer*, uint, uint);
-void		fileuninsert(File*, Buffer*, uint, uint);
+void		fileundelete(File*, Buffer*, u32, u32);
+void		fileuninsert(File*, Buffer*, u32, u32);
 void		fileunsetname(File*, Buffer*);
-void		fileundo(File*, int, int, uint*, uint*, int);
+void		fileundo(File*, int, int, u32*, u32*, int);
 int		fileupdate(File*, int, int);
 
-int		filereadc(File*, uint);
+int		filereadc(File*, u32);
 File		*fileopen(void);
-void		loginsert(File*, uint, Rune*, uint);
-void		logdelete(File*, uint, uint);
+void		loginsert(File*, u32, Rune*, u32);
+void		logdelete(File*, u32, u32);
 void		logsetname(File*, String*);
 int		fileisdirty(File*);
 long		undoseq(File*, int);
@@ -223,8 +223,8 @@ long		prevseq(Buffer*);
 
 void		raspload(File*);
 void		raspstart(File*);
-void		raspdelete(File*, uint, uint, int);
-void		raspinsert(File*, uint, Rune*, uint, int);
+void		raspdelete(File*, u32, u32, int);
+void		raspinsert(File*, u32, Rune*, u32, int);
 void		raspdone(File*, int);
 void		raspflush(File*);
 
@@ -233,7 +233,7 @@ void		raspflush(File*);
  */
 void*	fbufalloc(void);
 void	fbuffree(void*);
-uint	min(uint, uint);
+u32	min(u32, u32);
 void	cvttorunes(char*, int, Rune*, int*, int*, int*);
 
 #define	runemalloc(a)		(Rune*)emalloc((a)*sizeof(Rune))

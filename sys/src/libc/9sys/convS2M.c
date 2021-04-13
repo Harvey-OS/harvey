@@ -15,7 +15,7 @@ static
 u8 *
 pstring(u8 *p, char *s)
 {
-	uint n;
+	u32 n;
 
 	if(s == nil){
 		PBIT16(p, 0);
@@ -48,7 +48,7 @@ pqid(u8 *p, Qid *q)
 }
 
 static
-uint
+u32
 stringsz(char *s)
 {
 	if(s == nil)
@@ -57,10 +57,10 @@ stringsz(char *s)
 	return BIT16SZ+strlen(s);
 }
 
-uint
+u32
 sizeS2M(Fcall *f)
 {
-	uint n;
+	u32 n;
 	int i;
 
 	n = 0;
@@ -267,11 +267,11 @@ sizeS2M(Fcall *f)
 	return n;
 }
 
-uint
-convS2M(Fcall *f, u8 *ap, uint nap)
+u32
+convS2M(Fcall *f, u8 *ap, u32 nap)
 {
 	u8 *p;
-	uint i, size;
+	u32 i, size;
 	int t = f->type;
 
 	size = sizeS2M(f);

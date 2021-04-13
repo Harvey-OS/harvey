@@ -41,7 +41,7 @@ rcargv(char *s)
 void
 Xasync(void)
 {
-	uint pid;
+	u32 pid;
 	char buf[20], **argv;
 
 	Updenv();

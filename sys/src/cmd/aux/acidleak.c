@@ -65,13 +65,13 @@ struct Data {
 };
 
 Block *block;
-uint nblock;
-uint ablock;
+u32 nblock;
+u32 ablock;
 
 Data *data;
 Data *edata;
-uint ndata;
-uint adata;
+u32 ndata;
+u32 adata;
 
 int
 addrcmp(const void *va, const void *vb)

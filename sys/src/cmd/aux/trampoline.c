@@ -123,7 +123,7 @@ void
 xfer9p(int from, int to)
 {
 	u8 *buf;
-	uint nbuf;
+	u32 nbuf;
 	int n;
 
 	nbuf = 256;

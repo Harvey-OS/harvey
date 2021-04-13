@@ -11,7 +11,7 @@
 #include	<libc.h>
 #include	<fcall.h>
 
-uint
+u32
 sizeD2M(Dir *d)
 {
 	char *sv[4];
@@ -30,8 +30,8 @@ sizeD2M(Dir *d)
 	return STATFIXLEN + ns;
 }
 
-uint
-convD2M(Dir *d, u8 *buf, uint nbuf)
+u32
+convD2M(Dir *d, u8 *buf, u32 nbuf)
 {
 	u8 *p, *ebuf;
 	char *sv[4];

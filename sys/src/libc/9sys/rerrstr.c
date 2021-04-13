@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-rerrstr(char *buf, uint nbuf)
+rerrstr(char *buf, u32 nbuf)
 {
 	char tmp[ERRMAX];
 

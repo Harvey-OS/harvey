@@ -10,7 +10,7 @@
 #include "a.h"
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *v;
 
@@ -44,7 +44,7 @@ erunestrdup(Rune *s)
 }
 
 void*
-erealloc(void *ov, uint n)
+erealloc(void *ov, u32 n)
 {
 	void *v;
 
@@ -113,7 +113,7 @@ L(char *s)
 {
 	Rune *p;
 	Lhash *l;
-	uint h;
+	u32 h;
 
 	h = (usize)s%nelem(hash);
 	for(l=hash[h]; l; l=l->next)

@@ -499,7 +499,7 @@ ioapicintrdd(u32 *hi, u32 *lo)
 static int
 nextvec(void)
 {
-	uint vecno;
+	u32 vecno;
 
 	lock(&idtnolock);
 	vecno = idtno;
@@ -525,7 +525,7 @@ msimask(Vkey *v, int mask)
 static int
 intrenablemsi(Vctl *v, Pcidev *p)
 {
-	uint vno, lo, hi;
+	u32 vno, lo, hi;
 	u64 msivec;
 
 	vno = nextvec();

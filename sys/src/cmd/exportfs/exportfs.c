@@ -62,7 +62,7 @@ int	encproto = Encnone;
 int	readonly;
 
 static void	mksecret(char *, u8 *);
-static int localread9pmsg(int, void *, uint, u32 *);
+static int localread9pmsg(int, void *, u32, u32 *);
 static char *anstring  = "tcp!*!0";
 
 char *netdir = "", *local = "", *remote = "";
@@ -417,7 +417,7 @@ main(int argc, char **argv)
  * cpu relies on this (which needs to be fixed!) -- pb.
  */
 static int
-localread9pmsg(int fd, void *abuf, uint n, u32 *initial)
+localread9pmsg(int fd, void *abuf, u32 n, u32 *initial)
 {
 	int m, len;
 	u8 *buf;
@@ -865,7 +865,7 @@ fatal(char *s, ...)
 }
 
 void*
-emallocz(uint n)
+emallocz(u32 n)
 {
 	void *p;
 

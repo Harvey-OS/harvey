@@ -534,7 +534,7 @@ int	dfscacheinfo(Fmt *);
 char	*trimshare(char *);
 
 /* doserrstr.c */
-char	*doserrstr(uint);
+char	*doserrstr(u32);
 
 /* fs.c */
 int	shareinfo(Fmt *);
@@ -575,7 +575,7 @@ int	nbtrpc(Pkt *);
 void	xd(char *, void *, int);
 
 /* nterrstr.c */
-char	*nterrstr(uint);
+char	*nterrstr(u32);
 
 /* pack.c */
 void	*pmem(Pkt *, void *, int);
@@ -583,11 +583,11 @@ void	*ppath(Pkt *, char *);
 void	*pstr(Pkt *, char *);
 void	*pascii(Pkt *, char *);
 void	*pl64(Pkt *, u64);
-void	*pb32(Pkt *, uint);
-void	*pl32(Pkt *, uint);
-void	*pb16(Pkt *, uint);
-void	*pl16(Pkt *, uint);
-void	*p8(Pkt *, uint);
+void	*pb32(Pkt *, u32);
+void	*pl32(Pkt *, u32);
+void	*pb16(Pkt *, u32);
+void	*pl16(Pkt *, u32);
+void	*p8(Pkt *, u32);
 void	*pname(Pkt *, char *, char);
 void	*pvtime(Pkt *, u64);
 void	*pdatetime(Pkt *, i32);
@@ -596,17 +596,17 @@ void	gstr(Pkt *, char *, int);
 void	gascii(Pkt *, char *, int);
 u64	gl64(Pkt *);
 u64	gb48(Pkt *);
-uint	gb32(Pkt *);
-uint	gl32(Pkt *);
-uint	gb16(Pkt *);
-uint	gl16(Pkt *);
-uint	g8(Pkt *);
+u32	gb32(Pkt *);
+u32	gl32(Pkt *);
+u32	gb16(Pkt *);
+u32	gl16(Pkt *);
+u32	g8(Pkt *);
 i32	gdatetime(Pkt *);
 i32	gvtime(Pkt *);
 void	gconv(Pkt *, int, char *, int);
 
 /* raperrstr.c */
-char	*raperrstr(uint);
+char	*raperrstr(u32);
 
 /* sid2name.c */
 void	upd_names(Session *, Share *, char *, Dir *);

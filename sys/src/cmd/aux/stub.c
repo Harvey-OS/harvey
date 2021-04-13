@@ -13,7 +13,7 @@
 #include <thread.h>
 #include <9p.h>
 
-uint time0;
+u32 time0;
 
 enum
 {
@@ -22,7 +22,7 @@ enum
 };
 
 char *kidname;
-uint kidmode;
+u32 kidmode;
 
 void
 fsattach(Req *r)

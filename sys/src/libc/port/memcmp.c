@@ -14,7 +14,7 @@ int
 memcmp(const void *a1, const void *a2, u32 n)
 {
 	const char *s1, *s2;
-	uint c1, c2;
+	u32 c1, c2;
 
 	s1 = a1;
 	s2 = a2;

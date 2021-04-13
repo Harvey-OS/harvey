@@ -18,7 +18,7 @@ enum{ URLmax = 65536, HINTmax = 20 };
 
 char **urlname;				/* array of url strings    1,...,nurl */
 static int nurl;
-static uint urltab[URLmax];		/* hashstr(url)  1,...,nurl */
+static u32 urltab[URLmax];		/* hashstr(url)  1,...,nurl */
 static int urlnext[URLmax];		/* index urltab of next url in chain */
 static int urlhash[URLmax];		/* initially 0, meaning empty buckets */
 
@@ -41,19 +41,19 @@ Bfilelen(void *vb)
 	return n;
 }
 
-static uint
+static u32
 hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
 	u8 *k = (unsigned char*)key;
-	uint h = 0;
+	u32 h = 0;
 	while(*k!=0)
 		h = 65599*h + *k++;
         return h;
 }
 
 static int
-urllookup(uint url)
+urllookup(u32 url)
 {
 	/* returns +index into urltab, else -hash */
 	int j, hash;
@@ -92,7 +92,7 @@ urlinit(void)
 	i64 newlen;
 	char *s, *arena;
 	int i, j, n;
-	uint url;
+	u32 url;
 	char *file;
 
 	if(filelen < 0)

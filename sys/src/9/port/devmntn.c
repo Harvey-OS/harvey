@@ -35,7 +35,7 @@ struct Mntrpc {
 	Mnt *m;		 /* Mount device during rpc */
 	Rendez r;	 /* Place to hang out */
 	u8 *rpc;	 /* I/O Data buffer */
-	uint rpclen;	 /* len of buffer */
+	u32 rpclen;	 /* len of buffer */
 	Block *b;	 /* reply blocks */
 	char done;	 /* Rpc completed */
 	u64 stime;	 /* start time for mnt statistics */
@@ -57,7 +57,7 @@ struct Mntalloc {
 	Mntrpc *rpcfree;
 	int nrpcfree;
 	int nrpcused;
-	uint id;
+	u32 id;
 	u32 tagmask[NMASK];
 } mntalloc;
 

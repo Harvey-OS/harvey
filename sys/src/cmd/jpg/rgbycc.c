@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 //exits("X");
 
 	/* ycbcrmap */
-	print("uint ycbcrmap[256] = {\n");
+	print("u32 ycbcrmap[256] = {\n");
 	for(i=0; i<256; i++){
 		if(i%8 == 0)
 			print("\t");

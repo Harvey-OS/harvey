@@ -222,7 +222,7 @@ cbput(Conn *cp, int c)
 static void
 trace(Block *bp)
 {
-	uint type;
+	u32 type;
 	Pkt *p;
 
 	if(tflag == 0)

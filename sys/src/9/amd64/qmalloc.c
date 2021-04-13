@@ -29,7 +29,7 @@ typedef struct Qlist Qlist;
 union Header {
 	struct {
 		Header *next;
-		uint size;
+		u32 size;
 	} s;
 	Align al;
 };
@@ -38,7 +38,7 @@ struct Qlist {
 	Lock lk;
 	Header *first;
 
-	uint nalloc;
+	u32 nalloc;
 };
 
 enum {
@@ -138,7 +138,7 @@ qmallocalign(usize nbytes, usize align, i32 offset, usize span)
 	Qlist *qlist;
 	usize aligned;
 	Header **pp, *p, *q, *r;
-	uint naligned, nunits, n;
+	u32 naligned, nunits, n;
 
 	if(nbytes == 0 || offset != 0 || span != 0)
 		return nil;
@@ -268,7 +268,7 @@ qmalloc(usize nbytes)
 {
 	Qlist *qlist;
 	Header *p, *q;
-	uint nunits, n;
+	u32 nunits, n;
 
 	///* FIXME: (ignore for now)
 	if(nbytes == 0)
@@ -329,7 +329,7 @@ qfreeinternal(void *ap)
 {
 	Qlist *qlist;
 	Header *p, *q;
-	uint nunits;
+	u32 nunits;
 
 	if(ap == nil)
 		return;
@@ -381,7 +381,7 @@ u32
 msize(void *ap)
 {
 	Header *p;
-	uint nunits;
+	u32 nunits;
 
 	if(ap == nil)
 		return 0;
@@ -572,7 +572,7 @@ realloc(void *ap, u32 size)
 	void *v;
 	Header *p;
 	u32 osize;
-	uint nunits, ounits;
+	u32 nunits, ounits;
 
 	/*
 	 * Easy stuff:
@@ -666,7 +666,7 @@ mallocinit(void)
 }
 
 static int
-morecore(uint nunits)
+morecore(u32 nunits)
 {
 	/*
 	 * First (simple) cut.

@@ -143,7 +143,7 @@ static char *errors[] = {
 	[132] = "operation not possible due to RF-kill",
 };
 
-char *errno2str(uint errno)
+char *errno2str(u32 errno)
 {
 	char *Etoobig = "Errno out of range";
 	char *Eunknown = "Unknown error";

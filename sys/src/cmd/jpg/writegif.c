@@ -56,7 +56,7 @@ static char*	writedata(Biobuf*, Image*, Memimage*);
 static void		writecomment(Biobuf *fd, char*);
 static void		writegraphiccontrol(Biobuf *fd, int, int);
 static void*	gifmalloc(u32);
-static void		encode(Biobuf*, Rectangle, int, u8*, uint);
+static void		encode(Biobuf*, Rectangle, int, u8*, u32);
 
 static
 char*
@@ -446,7 +446,7 @@ output(IO *io, int c, int n)
  */
 static
 void
-encode(Biobuf *fd, Rectangle r, int depth, u8 *data, uint ndata)
+encode(Biobuf *fd, Rectangle r, int depth, u8 *data, u32 ndata)
 {
 	int i, c, h, csize, prefix, first, sreg, nbits, bitsperpixel;
 	int CTM, EOD, codesize, ld0, datai, x, ld, pm;

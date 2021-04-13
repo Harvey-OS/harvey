@@ -90,7 +90,8 @@ int	fileGetSources(File*, Entry*, Entry*);
 File*	fileRoot(Source*);
 int	fileSnapshot(File*, File*, u32, int);
 int	fsNextQid(Fs*, u64*);
-int	mkVac(VtSession*, uint, Entry*, Entry*, DirEntry*, unsigned char[VtScoreSize]);
+int	mkVac(VtSession*, u32, Entry*, Entry*, DirEntry*,
+		 unsigned char[VtScoreSize]);
 Block*	superGet(Cache*, Super*);
 
 void	archFree(Arch*);
@@ -101,10 +102,10 @@ void	bwatchDependency(Block*);
 void	bwatchInit(void);
 void	bwatchLock(Block*);
 void	bwatchReset(unsigned char[VtScoreSize]);
-void	bwatchSetBlockSize(uint);
+void	bwatchSetBlockSize(u32);
 void	bwatchUnlock(Block*);
 
-void	initWalk(WalkPtr*, Block*, uint);
+void	initWalk(WalkPtr*, Block*, u32);
 int	nextWalk(WalkPtr*, unsigned char[VtScoreSize], unsigned char*, u32*, Entry**);
 
 void	snapGetTimes(Snap*, u32*, u32*, u32*);

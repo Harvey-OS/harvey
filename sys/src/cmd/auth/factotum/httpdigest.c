@@ -108,7 +108,7 @@ digest(char *user, char *realm, char *passwd,
 }
 
 static int
-hdwrite(Fsstate *fss, void *va, uint n)
+hdwrite(Fsstate *fss, void *va, u32 n)
 {
 	State *s;
 	int ret;
@@ -159,7 +159,7 @@ hdwrite(Fsstate *fss, void *va, uint n)
 }
 
 static int
-hdread(Fsstate *fss, void *va, uint *n)
+hdread(Fsstate *fss, void *va, u32 *n)
 {
 	State *s;
 

@@ -133,7 +133,7 @@ int
 cifsrpc(Pkt *p)
 {
 	int flags2, got, err;
-	uint tid, uid, seq;
+	u32 tid, uid, seq;
 	u8 *pos;
 	char m[nelem(magic)];
 
@@ -686,7 +686,7 @@ CIFSread(Session *s, Share *sp, int fh, u64 off, void *buf, i64 n,
 	pl32(p, off & 0xffffffff);	/* Offset to beginning of write */
 	pl16(p, n);			/* Maximum number of bytes to return */
 	pl16(p, minlen);		/* Minimum number of bytes to return */
-	pl32(p, (uint)n >> 16);		/* MSBs of maxlen */
+	pl32(p, (u32)n >> 16);		/* MSBs of maxlen */
 	pl16(p, 0);			/* Bytes remaining to satisfy request */
 	pl32(p, off >> 32);		/* MS 32 bits of offset */
 	pbytes(p);

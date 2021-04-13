@@ -30,11 +30,11 @@ struct Tnode
 
 	char *str;
 //	char *(*strfn)(Tnode*);
-//	uint (*draw)(Tnode*, Image*, Image*, Point);
+//	u32 (*draw)(Tnode*, Image*, Image*, Point);
 	void (*expand)(Tnode*);
 	void (*collapse)(Tnode*);
 
-	uint expanded;
+	u32 expanded;
 	Tnode **kid;
 	int nkid;
 	void *aux;
@@ -57,7 +57,7 @@ Tnode *initxlocalroot(char *name, u32 addr);
 Tnode *initxentry(Entry);
 Tnode *initxsource(Entry, int);
 Tnode *initxentryblock(Block*, Entry*);
-Tnode *initxdatablock(Block*, uint);
+Tnode *initxdatablock(Block*, u32);
 Tnode *initxroot(char *name, u8[VtScoreSize]);
 
 int fd;
@@ -224,7 +224,7 @@ int vtType[BtMax] = {
 };
 
 Block*
-ventiBlock(u8 score[VtScoreSize], uint type)
+ventiBlock(u8 score[VtScoreSize], u32 type)
 {
 	int n;
 	Block *b;
@@ -248,7 +248,7 @@ ventiBlock(u8 score[VtScoreSize], uint type)
 }
 
 Block*
-dataBlock(u8 score[VtScoreSize], uint type, uint tag)
+dataBlock(u8 score[VtScoreSize], u32 type, u32 tag)
 {
 	Block *b, *bl;
 	int lpb;
@@ -622,7 +622,7 @@ ptrgen(void *v, Block *b, int o, Tnode **tp)
 static int
 etype(int flags, int depth)
 {
-	uint t;
+	u32 t;
 
 	if(flags&VtEntryDir)
 		t = BtDir;
@@ -788,7 +788,7 @@ metablockgen(void *v, Block *b, int o, Tnode **tp)
  * it could just be data from a file, but we're hoping it's MetaBlocks.
  */
 Tnode*
-initxdatablock(Block *b, uint n)
+initxdatablock(Block *b, u32 n)
 {
 	MetaBlock mb;
 
@@ -888,11 +888,11 @@ enum
 	Linewidth = Nubwidth*2+4,
 };
 
-uint
+u32
 drawtext(char *s, Image *m, Image *clipr, Point o)
 {
 	char *t, *nt, *e;
-	uint dy;
+	u32 dy;
 
 	if(s == nil)
 		s = "???";
@@ -938,12 +938,12 @@ drawnub(Image *m, Image *clipr, Point o, Tnode *t)
 
 }
 
-uint
+u32
 drawnode(Tnode *t, Image *m, Image *clipr, Point o)
 {
 	int i;
 	char *fs, *s;
-	uint dy;
+	u32 dy;
 	Point oo;
 
 	if(t == nil)

@@ -324,18 +324,18 @@ typedef struct Ctlr {
 
 	QLock slock; /* statistics */
 	Dtcc *dtcc;
-	uint txdu;
-	uint tcpf;
-	uint udpf;
-	uint ipf;
-	uint fovf;
-	uint ierrs;
-	uint rer;
-	uint rdu;
-	uint punlc;
-	uint fovw;
-	uint mcast;
-	uint frag; /* partial packets; rb was too small */
+	u32 txdu;
+	u32 tcpf;
+	u32 udpf;
+	u32 ipf;
+	u32 fovf;
+	u32 ierrs;
+	u32 rer;
+	u32 rdu;
+	u32 punlc;
+	u32 fovw;
+	u32 mcast;
+	u32 frag; /* partial packets; rb was too small */
 } Ctlr;
 
 static Ctlr *rtl8169ctlrhead;
@@ -351,7 +351,7 @@ static Ctlr *rtl8169ctlrtail;
 static int
 rtl8169miimir(Mii *mii, int pa, int ra)
 {
-	uint r;
+	u32 r;
 	int timeo;
 	Ctlr *ctlr;
 
@@ -376,7 +376,7 @@ rtl8169miimir(Mii *mii, int pa, int ra)
 static int
 rtl8169miimiw(Mii *mii, int pa, int ra, int data)
 {
-	uint r;
+	u32 r;
 	int timeo;
 	Ctlr *ctlr;
 
@@ -937,7 +937,7 @@ rtl8169attach(Ether *edev)
 static void
 rtl8169link(Ether *edev)
 {
-	uint r;
+	u32 r;
 	int limit;
 	Ctlr *ctlr;
 
@@ -1151,7 +1151,7 @@ rtl8169interrupt(Ureg *u, void *arg)
 }
 
 int
-vetmacv(Ctlr *ctlr, uint *macv)
+vetmacv(Ctlr *ctlr, u32 *macv)
 {
 	*macv = csr32r(ctlr, Tcr) & HwveridMASK;
 	switch(*macv){
@@ -1190,7 +1190,7 @@ rtl8169pci(void)
 	Pcidev *p;
 	Ctlr *ctlr;
 	int i, port, pcie;
-	uint macv;
+	u32 macv;
 
 	p = nil;
 	while((p = pcimatch(p, 0, 0)) != nil){

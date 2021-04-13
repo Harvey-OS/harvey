@@ -24,7 +24,7 @@ enum {
 
 typedef struct Dirlist Dirlist;
 struct Dirlist {
-	uint base;
+	u32 base;
 	Dirtab *dir;
 	u8 **data;
 	int ndir;

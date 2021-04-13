@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	u8 close[16*16*16];
 
 	/* rgbmap */
-	print("uint rgbmap[256] = {\n");
+	print("u32 rgbmap[256] = {\n");
 	for(i=0; i<256; i++){
 		if(i%8 == 0)
 			print("\t");

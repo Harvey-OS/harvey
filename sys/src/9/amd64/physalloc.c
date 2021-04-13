@@ -33,15 +33,15 @@ enum {
 	Avail = 1,
 };
 
-#define INDEX(b, v) ((uint)(((v)) / (b)->bminsz))
+#define INDEX(b, v) ((u32)(((v)) / (b)->bminsz))
 #define BLOCK(b, i) ((i)-INDEX((b), (b)->memory))
 
 typedef struct Buddy Buddy;
 struct Buddy {
 	i16 tag; /* Used or Avail */
 	i16 kval;
-	uint next;
-	uint prev;
+	u32 next;
+	u32 prev;
 	void *p;
 };
 
@@ -60,7 +60,7 @@ struct Bal {
 	int kmax;	/* Maximum lg2 */
 	u64 bminsz; /* minimum block sz */
 	u64 memory;
-	uint kspan;
+	u32 kspan;
 
 	Buddy *blocks;
 	Buddy *avail;
@@ -90,7 +90,7 @@ seprintphysstats(char *s, char *e)
 static void
 xphysfree(Bal *b, u64 data, u64 size)
 {
-	uint i;
+	u32 i;
 	Buddy *l, *p;
 	Buddy *blocks, *avail;
 
@@ -195,7 +195,7 @@ physfree(u64 data, u64 size)
 static void *
 xphystag(Bal *b, u64 data)
 {
-	uint i;
+	u32 i;
 	Buddy *blocks;
 
 	DBG("phystag\n");
@@ -509,7 +509,7 @@ lg2floor(u64 w)
 static u64
 xphysalloc(Bal *b, u64 size, void *tag)
 {
-	uint i, j, k;
+	u32 i, j, k;
 	Buddy *l, *p;
 	Buddy *avail, *blocks;
 	u64 m;
@@ -617,7 +617,7 @@ physalloc(u64 size, int *colorp, void *tag)
 static void
 dump(Bal *b)
 {
-	uint bi, i, k;
+	u32 bi, i, k;
 	Buddy *blocks;
 
 	blocks = b->blocks;
@@ -653,7 +653,7 @@ physallocdump(void)
 static int
 plop(Bal *b, u64 a, int k, int type)
 {
-	uint i;
+	u32 i;
 	Buddy *l;
 
 	DBG("plop(a %#p k %d type %d)\n", a, k, type);
@@ -671,7 +671,7 @@ static int
 iimbchunk(Bal *b, u64 a, u64 e, int type)
 {
 	int k;
-	uint s;
+	u32 s;
 
 	a = ROUNDUP(a, b->bminsz);
 	e = ROUNDDN(e, b->bminsz);

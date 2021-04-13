@@ -45,7 +45,7 @@ exhausted:
 int
 enc16(char *out, int lim, const u8 *in, int n)
 {
-	uint c;
+	u32 c;
 	char *eout = out + lim;
 	char *start = out;
 

@@ -518,7 +518,7 @@ eqchan(Chan *a, Chan *b, int skipvers)
 }
 
 int
-eqchanddq(Chan *c, int dc, uint devno, Qid qid, int skipvers)
+eqchanddq(Chan *c, int dc, u32 devno, Qid qid, int skipvers)
 {
 	if(c->qid.path != qid.path)
 		return 0;
@@ -754,7 +754,7 @@ cclone(Chan *c)
 
 /* also used by sysfile.c:/^mountfix */
 int
-findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
+findmount(Chan **cp, Mhead **mp, int dc, u32 devno, Qid qid)
 {
 	Proc *up = externup();
 	Pgrp *pg;

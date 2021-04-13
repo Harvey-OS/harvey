@@ -440,7 +440,7 @@ fsdestroyfid(Fid *fid)
 }
 
 static int
-readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r,
+readlist(int off, int (*gen)(int, char*, u32, Fsstate*), Req *r,
 	 Fsstate *fss)
 {
 	char *a, *ea;
@@ -463,7 +463,7 @@ enum { Nearend = 2, };			/* at least room for \n and NUL */
 
 /* result in `a', of `n' bytes maximum */
 static int
-keylist(int i, char *a, uint n, Fsstate *fss)
+keylist(int i, char *a, u32 n, Fsstate *fss)
 {
 	int wb;
 	Keyinfo ki;
@@ -489,7 +489,7 @@ keylist(int i, char *a, uint n, Fsstate *fss)
 }
 
 static int
-protolist(int i, char *a, uint n, Fsstate *fss)
+protolist(int i, char *a, u32 n, Fsstate *fss)
 {
 	USED(fss);
 

@@ -47,7 +47,7 @@ int
 vtrootunpack(VtRoot *r, u8 *p)
 {
 	u8 *op = p;
-	uint vers;
+	u32 vers;
 	memset(r, 0, sizeof(*r));
 
 	vers = U16GET(p);

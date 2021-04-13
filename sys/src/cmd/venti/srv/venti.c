@@ -24,7 +24,7 @@ struct Allocs {
 	u32	bcmem;
 	u32	icmem;
 	u32	stfree;				/* free memory at start */
-	uint	mempcnt;
+	u32	mempcnt;
 };
 
 int debug;
@@ -367,7 +367,7 @@ ventiserver(void *v)
 	Packet *p;
 	VtReq *r;
 	char err[ERRMAX];
-	uint ms;
+	u32 ms;
 	int cached, ok;
 
 	USED(v);

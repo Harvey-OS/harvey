@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <fcall.h>
 
-static uint dumpsome(char*, char*, char*, i32);
+static u32 dumpsome(char*, char*, char*, i32);
 static void fdirconv(char*, char*, Dir*);
 static char *qidtype(char*, u8);
 
@@ -205,7 +205,7 @@ fdirconv(char *buf, char *e, Dir *d)
  */
 #define DUMPL 64
 
-static uint
+static u32
 dumpsome(char *ans, char *e, char *buf, i32 count)
 {
 	int i, printable;

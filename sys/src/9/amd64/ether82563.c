@@ -540,17 +540,17 @@ struct Ctlr {
 	Watermark wmtd;
 
 	QLock slock;
-	uint statistics[Nstatistics];
-	uint lsleep;
-	uint lintr;
-	uint rsleep;
-	uint rintr;
-	uint txdw;
-	uint tintr;
-	uint ixsm;
-	uint ipcs;
-	uint tcpcs;
-	uint speeds[4];
+	u32 statistics[Nstatistics];
+	u32 lsleep;
+	u32 lintr;
+	u32 rsleep;
+	u32 rintr;
+	u32 txdw;
+	u32 tintr;
+	u32 ixsm;
+	u32 ipcs;
+	u32 tcpcs;
+	u32 speeds[4];
 
 	u8 ra[Eaddrlen]; /* receive address */
 	u32 mta[128];    /* multicast table array */
@@ -573,8 +573,8 @@ struct Ctlr {
 	int fcrtl;
 	int fcrth;
 
-	uint pbs; /* packet buffer size */
-	uint pba; /* packet buffer allocation */
+	u32 pbs; /* packet buffer size */
+	u32 pba; /* packet buffer allocation */
 };
 
 #define csr32r(c, r) (*((c)->nic + ((r) / 4)))
@@ -1218,10 +1218,10 @@ phynum(Ctlr *ctlr)
 	return ctlr->phynum;
 }
 
-static uint
+static u32
 phyread(Ctlr *ctlr, int reg)
 {
-	uint phy, i;
+	u32 phy, i;
 
 	if(reg >= 32)
 		iprint("phyread: reg %d >= 32\n", reg);
@@ -1238,10 +1238,10 @@ phyread(Ctlr *ctlr, int reg)
 	return phy & 0xffff;
 }
 
-static uint
+static u32
 phywrite(Ctlr *ctlr, int reg, u16 val)
 {
-	uint phy, i;
+	u32 phy, i;
 
 	if(reg >= 32)
 		iprint("phyread: reg %d >= 32\n", reg);
@@ -1353,7 +1353,7 @@ k1fix(Ctlr *ctlr)
 static void
 i82563lproc(void *v)
 {
-	uint phy, sp, a, phy79, prevlink;
+	u32 phy, sp, a, phy79, prevlink;
 	Ctlr *ctlr;
 	Ether *edev;
 

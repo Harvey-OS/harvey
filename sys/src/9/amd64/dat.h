@@ -376,9 +376,9 @@ struct Sys {
 
 	u64 cyclefreq; /* Frequency of user readable cycle counter (mach 0) */
 
-	uint pgszlg2[NPGSZ];  /* per Mach or per Sys? */
-	uint pgszmask[NPGSZ]; /* Per sys -aki */
-	uint pgsz[NPGSZ];
+	u32 pgszlg2[NPGSZ];  /* per Mach or per Sys? */
+	u32 pgszmask[NPGSZ]; /* Per sys -aki */
+	u32 pgsz[NPGSZ];
 	int npgsz;
 };
 static_assert(sizeof(Sys) <= (1 * MiB - 1 * KiB), "Sys is too big");

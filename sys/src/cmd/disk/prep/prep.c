@@ -61,7 +61,7 @@ struct Auto
 	char	*name;
 	u64	min;
 	u64	max;
-	uint	weight;
+	u32	weight;
 	u8	alloc;
 	u64	size;
 };

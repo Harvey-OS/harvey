@@ -25,7 +25,7 @@ struct WLump
 	Packet	*p;
 	int	creator;
 	int	gen;
-	uint	ms;
+	u32	ms;
 };
 
 struct LumpQueue
@@ -76,7 +76,7 @@ initlumpqueues(int nq)
  * queue a lump & it's packet data for writing
  */
 int
-queuewrite(Lump *u, Packet *p, int creator, uint ms)
+queuewrite(Lump *u, Packet *p, int creator, u32 ms)
 {
 	LumpQueue *q;
 	int i;
@@ -144,7 +144,7 @@ queueproc(void *vq)
 	Lump *u;
 	Packet *p;
 	int creator;
-	uint ms;
+	u32 ms;
 
 	threadsetname("queueproc");
 

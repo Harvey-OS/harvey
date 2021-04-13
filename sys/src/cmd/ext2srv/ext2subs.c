@@ -125,7 +125,7 @@ ext2fs(Xfs *xf)
 	xf->desc_per_block = xf->block_size / sizeof (GroupDesc);
 	xf->inodes_per_group = superblock.s_inodes_per_group;
 	xf->inodes_per_block = xf->block_size / sizeof (Inode);
-	xf->addr_per_block = xf->block_size / sizeof (uint);
+	xf->addr_per_block = xf->block_size / sizeof (u32);
 	xf->blocks_per_group = superblock.s_blocks_per_group;
 
 	if( xf->block_size == OFFSET_SUPER_BLOCK )
@@ -213,7 +213,7 @@ error:
 	return e;
 }
 int
-get_inode( Xfile *file, uint nr )
+get_inode( Xfile *file, u32 nr )
 {
 	unsigned long block_group, block;
 	Xfs *xf = file->xf;
@@ -247,7 +247,7 @@ get_inode( Xfile *file, uint nr )
 int
 get_file( Xfile *f, char *name)
 {
-	uint offset, nr, i;
+	u32 offset, nr, i;
 	Xfs *xf = f->xf;
 	Inode *inode;
 	int nblock;
@@ -634,7 +634,7 @@ bmap( Xfile *f, int block )
 		if (!addr) goto error;
 		buf = getbuf(xf, addr);
 		if( !buf ) goto error;
-		addr = *(((uint *)buf->iobuf) + block);
+		addr = *(((u32 *)buf->iobuf) + block);
 		putbuf(buf);
 		putbuf(ibuf);
 		return addr;
@@ -647,11 +647,11 @@ bmap( Xfile *f, int block )
 		if (!addr) goto error;
 		buf = getbuf(xf, addr);
 		if( !buf ) goto error;
-		addr = *(((uint *)buf->iobuf) + (block >> addr_per_block_bits));
+		addr = *(((u32 *)buf->iobuf) + (block >> addr_per_block_bits));
 		putbuf(buf);
 		buf = getbuf(xf, addr);
 		if( !buf ) goto error;
-		addr = *(((uint *)buf->iobuf) + (block & (addr_per_block - 1)));
+		addr = *(((u32 *)buf->iobuf) + (block & (addr_per_block - 1)));
 		putbuf(buf);
 		putbuf(ibuf);
 		return addr;
@@ -663,18 +663,18 @@ bmap( Xfile *f, int block )
 	if(!addr) goto error;
 	buf = getbuf(xf, addr);
 	if( !buf ) goto error;
-	addr = *(((uint *)buf->iobuf) + (block >> (addr_per_block_bits * 2)));
+	addr = *(((u32 *)buf->iobuf) + (block >> (addr_per_block_bits * 2)));
 	putbuf(buf);
 	if(!addr) goto error;
 	buf = getbuf(xf, addr);
 	if( !buf ) goto error;
-	addr = *(((uint *)buf->iobuf) +
+	addr = *(((u32 *)buf->iobuf) +
 			((block >> addr_per_block_bits) & (addr_per_block - 1)));
 	putbuf(buf);
 	if(!addr) goto error;
 	buf = getbuf(xf, addr);
 	if( !buf ) goto error;
-	addr = *(((uint *)buf->iobuf) + (block & (addr_per_block - 1)));
+	addr = *(((u32 *)buf->iobuf) + (block & (addr_per_block - 1)));
 	putbuf(buf);
 	putbuf(ibuf);
 	return addr;
@@ -964,7 +964,7 @@ block_getblk(Xfile *f, int rb, int nr)
 	int tmp, goal = 0;
 	int blocks = xf->block_size / 512;
 	Iobuf *buf, *ibuf;
-	uint *p;
+	u32 *p;
 	Ext2 es;
 
 	if( !rb )
@@ -973,7 +973,7 @@ block_getblk(Xfile *f, int rb, int nr)
 	buf = getbuf(xf, rb);
 	if( !buf )
 		return 0;
-	p = (uint *)(buf->iobuf) + nr;
+	p = (u32 *)(buf->iobuf) + nr;
 	if( *p ){
 		tmp = *p;
 		putbuf(buf);
@@ -981,8 +981,8 @@ block_getblk(Xfile *f, int rb, int nr)
 	}
 
 	for(tmp=nr - 1 ; tmp >= 0 ; tmp--){
-		if( ((uint *)(buf->iobuf))[tmp] ){
-			goal = ((uint *)(buf->iobuf))[tmp];
+		if( ((u32 *)(buf->iobuf))[tmp] ){
+			goal = ((u32 *)(buf->iobuf))[tmp];
 			break;
 		}
 	}
@@ -1551,7 +1551,7 @@ empty_dir(Xfile *dir)
 {
 	Xfs *xf = dir->xf;
 	int nblock;
-	uint offset, i,count;
+	u32 offset, i,count;
 	DirEntry *de;
 	Inode *inode;
 	Iobuf *buf, *ibuf;
@@ -1592,7 +1592,7 @@ free_block_inode(Xfile *file)
 	Xfs *xf = file->xf;
 	int i, j, k;
 	u32 b, *y, *z;
-	uint *x;
+	u32 *x;
 	int naddr;
 	Inode *inode;
 	Iobuf *buf, *buf1, *buf2, *ibuf;
@@ -1615,7 +1615,7 @@ free_block_inode(Xfile *file)
 		buf = getbuf(xf, b);
 		if( !buf ){ putbuf(ibuf); return -1; }
 		for(i=0 ; i < naddr ; i++){
-			x = ((uint *)buf->iobuf) + i;
+			x = ((u32 *)buf->iobuf) + i;
 			if( *x == 0 ) break;
 			free_block(xf, *x);
 		}
@@ -1629,7 +1629,7 @@ free_block_inode(Xfile *file)
 		buf = getbuf(xf, b);
 		if( !buf ){ putbuf(ibuf); return -1; }
 		for(i=0 ; i < naddr ; i++){
-			x = ((uint *)buf->iobuf) + i;
+			x = ((u32 *)buf->iobuf) + i;
 			if( *x== 0 ) break;
 			buf1 = getbuf(xf, *x);
 			if( !buf1 ){ putbuf(buf); putbuf(ibuf); return -1; }
@@ -1651,7 +1651,7 @@ free_block_inode(Xfile *file)
 		buf = getbuf(xf, b);
 		if( !buf ){ putbuf(ibuf); return -1; }
 		for(i=0 ; i < naddr ; i++){
-			x = ((uint *)buf->iobuf) + i;
+			x = ((u32 *)buf->iobuf) + i;
 			if( *x == 0 ) break;
 			buf1 = getbuf(xf, *x);
 			if( !buf1 ){ putbuf(buf); putbuf(ibuf); return -1; }
@@ -1707,7 +1707,7 @@ int
 delete_entry(Xfs *xf, Inode *inode, int inbr)
 {
 	int nblock = (inode->i_blocks * 512) / xf->block_size;
-	uint offset, i;
+	u32 offset, i;
 	DirEntry *de, *pde;
 	Iobuf *buf;
 

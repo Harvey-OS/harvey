@@ -24,7 +24,7 @@ struct Redir
 	Redir	*next;
 	char	*pat;
 	char	*repl;
-	uint	flags;		/* generated from repl's decorations */
+	u32	flags;		/* generated from repl's decorations */
 };
 
 static Redir *redirtab[HASHSIZE];
@@ -32,7 +32,7 @@ static Redir *vhosttab[HASHSIZE];
 static char emptystring[1];
 /* these two arrays must be kept in sync */
 static char decorations[] = { Modsilent, Modperm, Modsubord, Modonly, '\0' };
-static uint redirflags[] = { Redirsilent, Redirperm, Redirsubord, Redironly, };
+static u32 redirflags[] = { Redirsilent, Redirperm, Redirsubord, Redironly, };
 
 /* replacement field decorated with redirection modifiers? */
 static int
@@ -41,10 +41,10 @@ isdecorated(char *repl)
 	return strchr(decorations, repl[0]) != nil;
 }
 
-static uint
+static u32
 decor2flags(char *repl)
 {
-	uint flags;
+	u32 flags;
 	char *p;
 
 	flags = 0;
@@ -191,7 +191,7 @@ prevslash(char *p, char *s)
  * subordinate ones to the same replacement URL.
  */
 char*
-redirect(HConnect *hc, char *path, uint *flagp)
+redirect(HConnect *hc, char *path, u32 *flagp)
 {
 	Redir *redir;
 	char *s, *newpath, *repl;

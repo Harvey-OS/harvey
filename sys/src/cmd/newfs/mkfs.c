@@ -107,7 +107,7 @@ mkfs(char *filename)
 {
 	int fragsperinode, optimalfpg, origdensity, minfpg, lastminfpg;
 	long i, j, csfrags;
-	uint cg;
+	u32 cg;
 	i32 utime;
 	i64 sizepb;
 	int width = 60;
@@ -540,7 +540,7 @@ void
 initcg(int cylno, i32 utime)
 {
 	long blkno, start;
-	uint i, d, dlower, dupper;
+	u32 i, d, dlower, dupper;
 	ufs2_daddr_t cbase, dmax;
 	ufs2_dinode *dp2;
 	csum *cs;
@@ -773,7 +773,7 @@ ufs2_daddr_t
 alloc(int size, int mode)
 {
 	int i, blkno, frag;
-	uint d;
+	u32 d;
 
 	bread(&disk, fsbtodb(&sblock, cgtod(&sblock, 0)), (char *)&acg,
 	    sblock.fs_cgsize);

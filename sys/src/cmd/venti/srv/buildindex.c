@@ -701,7 +701,7 @@ sortminibuffer(ISect *is, Minibuf *mb, u8 *buf, u32 nbuf,
 		errors = 1;
 		return;
 	}
-	assert(*(uint*)buf != 0xa5a5a5a5);
+	assert(*(u32*)buf != 0xa5a5a5a5);
 
 	/*
 	 * remove fragmentation due to IEntrySize

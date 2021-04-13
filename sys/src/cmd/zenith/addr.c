@@ -60,7 +60,7 @@ isregexc(int r)
 Range
 number(Mntdir *md, Text *t, Range r, int line, int dir, int size, int *evalp)
 {
-	uint q0, q1;
+	u32 q0, q1;
 
 	if(size == Char){
 		if(dir == Fore)
@@ -156,11 +156,12 @@ regexp(Mntdir *md, Text *t, Range lim, Range r, Rune *pat, int dir, int *foundp)
 }
 
 Range
-address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int (*getc)(void*, uint),  int *evalp, uint *qp)
+address(Mntdir *md, Text *t, Range lim, Range ar, void *a, u32 q0, u32 q1,
+	int (*getc)(void*, u32),  int *evalp, u32 *qp)
 {
 	int dir, size, npat;
 	int prevc, c, nc, n;
-	uint q;
+	u32 q;
 	Rune *pat;
 	Range r, nr;
 

@@ -86,7 +86,7 @@ usage(void)
 }
 
 void
-walk(u8 score[VtScoreSize], uint type, int base)
+walk(u8 score[VtScoreSize], u32 type, int base)
 {
 	int i, n;
 	u8 *buf;

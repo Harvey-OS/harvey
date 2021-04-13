@@ -14,7 +14,7 @@
 int quiet;
 int goal;
 int buffer;
-int (*fn)(void(*)(void*), void*, uint) = threadcreate;
+int (*fn)(void(*)(void*), void*, u32) = threadcreate;
 
 void
 primethread(void *arg)

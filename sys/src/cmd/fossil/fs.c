@@ -351,7 +351,7 @@ fileOpenSnapshot(Fs *fs, char *dstpath, int doarchive)
 }
 
 static int
-fsNeedArch(Fs *fs, uint archMinute)
+fsNeedArch(Fs *fs, u32 archMinute)
 {
 	int need;
 	File *f;
@@ -654,7 +654,7 @@ fsVac(Fs *fs, char *name, u8 score[VtScoreSize])
 }
 
 static int
-vtWriteBlock(VtSession *z, u8 *buf, uint n, uint type,
+vtWriteBlock(VtSession *z, u8 *buf, u32 n, u32 type,
 	     u8 score[VtScoreSize])
 {
 	if(!vtWrite(z, score, type, buf, n))
@@ -665,13 +665,13 @@ vtWriteBlock(VtSession *z, u8 *buf, uint n, uint type,
 }
 
 int
-mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde,
+mkVac(VtSession *z, u32 blockSize, Entry *pe, Entry *pee, DirEntry *pde,
       u8 score[VtScoreSize])
 {
 	u8 buf[8192];
 	int i;
 	u8 *p;
-	uint n;
+	u32 n;
 	DirEntry de;
 	Entry e, ee, eee;
 	MetaBlock mb;
@@ -982,13 +982,13 @@ struct Snap
 	Fs	*fs;
 	Periodic*tick;
 	VtLock	*lk;
-	uint	snapMinutes;
-	uint	archMinute;
-	uint	snapLife;
+	u32	snapMinutes;
+	u32	archMinute;
+	u32	snapLife;
 	u32	lastSnap;
 	u32	lastArch;
 	u32	lastCleanup;
-	uint	ignore;
+	u32	ignore;
 };
 
 static void

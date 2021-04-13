@@ -583,7 +583,7 @@ SRclose(ScsiReq *rp)
 	return 0;
 }
 
-uint
+u32
 mkascq(ScsiReq *r)
 {
 	u8 *u;

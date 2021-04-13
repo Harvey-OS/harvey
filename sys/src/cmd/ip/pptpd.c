@@ -83,10 +83,10 @@ struct Call {
 	int	sendaccm;
 	int	recvaccm;
 
-	uint	seq;		/* current seq number - for send */
-	uint	ack;		/* current acked mesg - for send */
-	uint	rseq;		/* highest recv seq number for in order packet  */
-	uint	rack;		/* highest ack sent */
+	u32	seq;		/* current seq number - for send */
+	u32	ack;		/* current acked mesg - for send */
+	u32	rseq;		/* highest recv seq number for in order packet  */
+	u32	rack;		/* highest ack sent */
 
 	Event	eack;		/* recved ack - for send */
 	u32	tick;
@@ -633,7 +633,7 @@ slinkinfo(u8 *p, int n)
 Call*
 callalloc(int id)
 {
-	uint h;
+	u32 h;
 	Call *c;
 	char buf[300], *argv[30], local[20], remote[20], **p;
 	int fd, pfd[2], n;
@@ -705,7 +705,7 @@ callclose(Call *c)
 {
 	Call *oc;
 	int id;
-	uint h;
+	u32 h;
 
 	syslog(0, LOG, ": src=%I: call closed: id=%d: send=%d sendack=%d recv=%d recvack=%d dropped=%d missing=%d sendwait=%d sendtimeout=%d",
 		srv.remote, c->id, c->stat.send, c->stat.sendack, c->stat.recv, c->stat.recvack,
@@ -761,7 +761,7 @@ SDB "call free\n" EDB
 Call*
 calllookup(int id)
 {
-	uint h;
+	u32 h;
 	Call *c;
 
 	h = id%Nhash;
@@ -851,7 +851,7 @@ greread(void *v)
 	int n, i;
 	int flag, prot, len, callid;
 	u8 src[IPaddrlen], dst[IPaddrlen];
-	uint rseq, ack;
+	u32 rseq, ack;
 	Call *c;
 	static double t, last;
 

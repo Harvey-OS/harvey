@@ -36,7 +36,7 @@ struct Cookie
 	char*	version;
 	char*	comment;	/* optional, may be nil */
 
-	uint	expire;		/* time of expiration: ~0 means when webcookies dies */
+	u32	expire;		/* time of expiration: ~0 means when webcookies dies */
 	int	secure;
 	int	explicitdom;	/* dom was explicitly set */
 	int	explicitpath;	/* path was explicitly set */
@@ -340,7 +340,7 @@ int
 expirejar(Jar *jar, int exiting)
 {
 	int i, n;
-	uint now;
+	u32 now;
 
 	now = time(0);
 	n = 0;
@@ -532,7 +532,7 @@ isdomainmatch(char *name, char *pattern)
  *	- cookie must not have expired
  */
 int
-iscookiematch(Cookie *c, char *dom, char *path, uint now)
+iscookiematch(Cookie *c, char *dom, char *path, u32 now)
 {
 	return isdomainmatch(dom, c->dom)
 		&& strncmp(c->path, path, strlen(c->path))==0
@@ -548,7 +548,7 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 {
 	int i;
 	Jar *j;
-	uint now;
+	u32 now;
 
 	now = time(0);
 	j = newjar();
@@ -600,7 +600,7 @@ isleap(int year)
 	return year%4==0 && (year%100!=0 || year%400==0);
 }
 
-uint
+u32
 strtotime(char *s)
 {
 	char *os;

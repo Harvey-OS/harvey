@@ -132,7 +132,7 @@ p9skinit(Proto *p, Fsstate *fss)
 }
 
 static int
-p9skread(Fsstate *fss, void *a, uint *n)
+p9skread(Fsstate *fss, void *a, u32 *n)
 {
 	int m;
 	State *s;
@@ -188,7 +188,7 @@ p9skread(Fsstate *fss, void *a, uint *n)
 }
 
 static int
-p9skwrite(Fsstate *fss, void *a, uint n)
+p9skwrite(Fsstate *fss, void *a, u32 n)
 {
 	int m, ret, sret;
 	char tbuf[2*TICKETLEN], trbuf[TICKREQLEN], *user;

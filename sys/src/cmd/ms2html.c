@@ -525,7 +525,7 @@ void	closel(void);
 void	closefont(void);
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 

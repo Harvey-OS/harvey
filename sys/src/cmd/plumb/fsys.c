@@ -32,8 +32,8 @@ struct Dirtab
 {
 	char		*name;
 	u8	type;
-	uint		qid;
-	uint		perm;
+	u32		qid;
+	u32		perm;
 	int		nopen;		/* #fids open on this port */
 	Fid		*fopen;
 	Holdq	*holdq;
@@ -323,8 +323,8 @@ newfid(int fid)
 	return f;
 }
 
-static uint
-dostat(Dirtab *dir, u8 *buf, uint nbuf, uint clock)
+static u32
+dostat(Dirtab *dir, u8 *buf, u32 nbuf, u32 clock)
 {
 	Dir d;
 
@@ -802,9 +802,9 @@ fsysread(Fcall *t, u8 *buf, Fid *f)
 {
 	u8 *b;
 	int i, n, o, e;
-	uint len;
+	u32 len;
 	Dirtab *d;
-	uint clock;
+	u32 clock;
 
 	if(f->qid.path != Qdir){
 		if(f->qid.path == Qrules)

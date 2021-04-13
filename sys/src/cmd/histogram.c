@@ -34,7 +34,7 @@ Rectangle hrect;
 Point maxvloc;
 double *data;
 double vmax = 100, scale = 1.0;
-uint nval;
+u32 nval;
 int dontdie = 0, col = 1;
 
 int colors[][3] = {
@@ -127,7 +127,7 @@ redrawhistogram(int new)
 {
 	Point p, q;
 	Rectangle r;
-	uint onval = nval;
+	u32 onval = nval;
 	int i;
 	char buf[32];
 

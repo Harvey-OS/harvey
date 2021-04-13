@@ -94,14 +94,14 @@ G8(u8 **p)
 }
 
 static void
-PB16(u8 **p, uint n)
+PB16(u8 **p, u32 n)
 {
 	*(*p)++ = n >> 8;
 	*(*p)++ = n;
 }
 
 static void
-P8(u8 **p, uint n)
+P8(u8 **p, u32 n)
 {
 	*(*p)++ = n;
 }
@@ -359,7 +359,7 @@ void
 xd(char *str, void *buf, int n)
 {
 	int fd, flg, flags2, cmd;
-	uint sum;
+	u32 sum;
 	i32 err;
 	u8 *p, *end;
 

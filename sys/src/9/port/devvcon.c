@@ -138,8 +138,8 @@ vconstat(Chan *c, u8 *dp, i32 n)
 static Chan *
 vconopen(Chan *c, int omode)
 {
-	uint t = TYPE(c->qid);
-	uint vdidx = DEV(c->qid);
+	u32 t = TYPE(c->qid);
+	u32 vdidx = DEV(c->qid);
 	if(vdidx >= nvcon)
 		error(Ebadarg);
 	c = devopen(c, omode, (Dirtab *)0, 0, vcongen);

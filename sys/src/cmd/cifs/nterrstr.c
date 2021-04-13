@@ -971,7 +971,7 @@ static struct {
 };
 
 char *
-nterrstr(uint err)
+nterrstr(u32 err)
 {
 	int i, f, match;
 	char *why, *facility, tmp[32];

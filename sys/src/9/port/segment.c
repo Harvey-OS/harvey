@@ -46,7 +46,7 @@ newseg(int type, usize base, u64 size)
 {
 	Segment *s;
 	int mapsize;
-	uint pgsz;
+	u32 pgsz;
 
 	if(size > SEGMAPSIZE * (PTEMAPMEM / BIGPGSZ))
 		error(Enovmem);

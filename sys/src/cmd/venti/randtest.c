@@ -30,7 +30,7 @@ int multi;
 int maxpackets;
 int sequence;
 int doublecheck = 1;
-uint *order;
+u32 *order;
 
 void
 usage(void)
@@ -121,7 +121,7 @@ run(void (*fn)(char*, char*), Channel *c)
 	}
 	for(i=0; i<packets && i<maxpackets; i++){
 		memmove(buf, template, blocksize);
-		*(uint*)buf = order[i];
+		*(u32*)buf = order[i];
 		if(c){
 			sendp(c, buf);
 			buf = vtmalloc(blocksize);

@@ -182,18 +182,18 @@ struct Window
 	Channel		*consread;	/* chan(Consreadmesg) */
 	Channel		*mouseread;	/* chan(Mousereadmesg) */
 	Channel		*wctlread;		/* chan(Consreadmesg) */
-	uint			nr;			/* number of runes in window */
-	uint			maxr;		/* number of runes allocated in r */
+	u32			nr;			/* number of runes in window */
+	u32			maxr;		/* number of runes allocated in r */
 	Rune			*run;
-	uint			nraw;
+	u32			nraw;
 	Rune			*raw;
-	uint			org;
-	uint			q0;
-	uint			q1;
-	uint			qh;
+	u32			org;
+	u32			q0;
+	u32			q1;
+	u32			qh;
 	int			id;
 	char			name[32];
-	uint			namecount;
+	u32			namecount;
 	Rectangle		scrollr;
 	/*
 	 * Jay once used originwindow, so screenr could be different from i->r.
@@ -235,19 +235,19 @@ void		wtopme(Window*);
 void		wbottomme(Window*);
 char*	wcontents(Window*, int*);
 int		wbswidth(Window*, Rune);
-int		wclickmatch(Window*, int, int, int, uint*);
+int		wclickmatch(Window*, int, int, int, u32*);
 int		wclose(Window*);
 int		wctlmesg(Window*, int, Rectangle, Image*);
 int		wctlmesg(Window*, int, Rectangle, Image*);
-uint		wbacknl(Window*, uint, uint);
-uint		winsert(Window*, Rune*, int, uint);
+u32		wbacknl(Window*, u32, u32);
+u32		winsert(Window*, Rune*, int, u32);
 void		waddraw(Window*, Rune*, int);
 void		wborder(Window*, int);
 void		wclosewin(Window*);
 void		wcurrent(Window*);
 void		wcut(Window*);
-void		wdelete(Window*, uint, uint);
-void		wdoubleclick(Window*, uint*, uint*);
+void		wdelete(Window*, u32, u32);
+void		wdoubleclick(Window*, u32*, u32*);
 void		wfill(Window*);
 void		wframescroll(Window*, int);
 void		wkeyctl(Window*, Rune);
@@ -264,12 +264,12 @@ void		wselect(Window*);
 void		wsendctlmesg(Window*, int, Rectangle, Image*);
 void		wsetcursor(Window*, int);
 void		wsetname(Window*);
-void		wsetorigin(Window*, uint, int);
+void		wsetorigin(Window*, u32, int);
 void		wsetpid(Window*, int, int);
-void		wsetselect(Window*, uint, uint);
-void		wshow(Window*, uint);
+void		wsetselect(Window*, u32, u32);
+void		wshow(Window*, u32);
 void		wsnarf(Window*);
-void 		wscrsleep(Window*, uint);
+void 		wscrsleep(Window*, u32);
 void		wsetcols(Window*);
 void		wcurrentnext();
 void		whooverbutton(Point p, Window *w);
@@ -279,8 +279,8 @@ struct Dirtab
 {
 	char		*name;
 	unsigned char	type;
-	uint		qid;
-	uint		perm;
+	u32		qid;
+	u32		perm;
 };
 
 struct Fid

@@ -18,7 +18,7 @@ readmemimage(int fd)
 	char hdr[5*12+1];
 	int dy;
 	u32 chan;
-	uint l, n;
+	u32 l, n;
 	int m, j;
 	int new, miny, maxy;
 	Rectangle r;

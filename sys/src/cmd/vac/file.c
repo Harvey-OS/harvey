@@ -441,7 +441,7 @@ Err:
  */
 static VtFile *
 fileopensource(VacFile *f, u32 offset, u32 gen, int dir,
-	       uint mode)
+	       u32 mode)
 {
 	VtFile *r;
 

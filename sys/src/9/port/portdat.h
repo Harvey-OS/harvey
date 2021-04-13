@@ -198,7 +198,7 @@ struct Chan {
 	i64 offset;	   /* in fd */
 	i64 devoffset; /* in underlying device; see read */
 	Dev *dev;
-	uint devno;
+	u32 devno;
 	u16 mode; /* read/write */
 	u16 flag;
 	Qid qid;
@@ -316,7 +316,7 @@ struct Mnt {
 	Chan *c;       /* Channel to file service */
 	Proc *rip;     /* Reader in progress */
 	Mntrpc *queue; /* Queue of pending requests on this channel */
-	uint id;       /* Multiplexer id for channel check */
+	u32 id;       /* Multiplexer id for channel check */
 	Mnt *list;     /* Free list */
 	int flags;     /* cache */
 	int msize;     /* data + IOHDRSZ */
@@ -488,7 +488,7 @@ struct Segment {
 	u16 steal; /* Page stealer lock */
 	u16 type;	/* segment type */
 	int pgszi;	/* page size index in Mach MMMU */
-	uint ptepertab;
+	u32 ptepertab;
 	int color;
 	usize base; /* virtual base */
 	usize top;	/* virtual top */
@@ -871,12 +871,12 @@ struct Proc {
 	int prepagemem;
 	Nixpctl *nixpctl; /* NIX queue based system calls */
 
-	uint ntrap;	  /* # of traps while in this process */
-	uint nintr;	  /* # of intrs while in this process */
-	uint nsyscall;	  /* # of syscalls made by the process */
-	uint nactrap;	  /* # of traps in the AC for this process */
-	uint nacsyscall;  /* # of syscalls in the AC for this process */
-	uint nicc;	  /* # of ICCs for the process */
+	u32 ntrap;	  /* # of traps while in this process */
+	u32 nintr;	  /* # of intrs while in this process */
+	u32 nsyscall;	  /* # of syscalls made by the process */
+	u32 nactrap;	  /* # of traps in the AC for this process */
+	u32 nacsyscall;  /* # of syscalls in the AC for this process */
+	u32 nicc;	  /* # of ICCs for the process */
 	u64 actime1; /* ticks as of last call in AC */
 	u64 actime;  /* ∑time from call in AC to ret to AC, and... */
 	u64 tctime;  /* ∑time from call received to call handled */
@@ -941,7 +941,7 @@ extern int nsyscall;
 extern Pgalloc pga;
 extern Physseg physseg[];
 extern Procalloc procalloc;
-extern uint qiomaxatomic;
+extern u32 qiomaxatomic;
 extern char *statename[];
 extern char *sysname;
 

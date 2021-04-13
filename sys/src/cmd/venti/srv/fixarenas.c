@@ -88,10 +88,10 @@ zfmt(Fmt *fmt)
 static int
 tfmt(Fmt *fmt)
 {
-	uint t;
+	u32 t;
 	char buf[30];
 
-	t = va_arg(fmt->args, uint);
+	t = va_arg(fmt->args, u32);
 	strcpy(buf, ctime(t));
 	buf[28] = 0;
 	return fmtstrcpy(fmt, buf);

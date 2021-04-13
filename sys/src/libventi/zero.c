@@ -12,7 +12,7 @@
 #include <venti.h>
 
 void
-vtzeroextend(int type, u8 *buf, uint n, uint nn)
+vtzeroextend(int type, u8 *buf, u32 n, u32 nn)
 {
 	u8 *p, *ep;
 
@@ -32,8 +32,8 @@ vtzeroextend(int type, u8 *buf, uint n, uint nn)
 	}
 }
 
-uint
-vtzerotruncate(int type, u8 *buf, uint n)
+u32
+vtzerotruncate(int type, u8 *buf, u32 n)
 {
 	u8 *p;
 

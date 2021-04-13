@@ -16,7 +16,7 @@ enum
 
 static
 void
-sizecache(Buffer *b, uint n)
+sizecache(Buffer *b, u32 n)
 {
 	if(n <= b->cmax)
 		return;
@@ -26,7 +26,7 @@ sizecache(Buffer *b, uint n)
 
 static
 void
-addblock(Buffer *b, uint i, uint n)
+addblock(Buffer *b, u32 i, u32 n)
 {
 	if(i > b->nbl)
 		panic("internal error: addblock");
@@ -41,7 +41,7 @@ addblock(Buffer *b, uint i, uint n)
 
 static
 void
-delblock(Buffer *b, uint i)
+delblock(Buffer *b, u32 i)
 {
 	if(i >= b->nbl)
 		panic("internal error: delblock");
@@ -73,10 +73,10 @@ flush(Buffer *b)
 
 static
 void
-setcache(Buffer *b, uint q0)
+setcache(Buffer *b, u32 q0)
 {
 	Block **blp, *bl;
-	uint i, q;
+	u32 i, q;
 
 	if(q0 > b->nc)
 		panic("internal error: setcache");
@@ -118,9 +118,9 @@ setcache(Buffer *b, uint q0)
 }
 
 void
-bufinsert(Buffer *b, uint q0, Rune *s, uint n)
+bufinsert(Buffer *b, u32 q0, Rune *s, u32 n)
 {
-	uint i, m, t, off;
+	u32 i, m, t, off;
 
 	if(q0 > b->nc)
 		panic("internal error: bufinsert");
@@ -199,9 +199,9 @@ bufinsert(Buffer *b, uint q0, Rune *s, uint n)
 }
 
 void
-bufdelete(Buffer *b, uint q0, uint q1)
+bufdelete(Buffer *b, u32 q0, u32 q1)
 {
-	uint m, n, off;
+	u32 m, n, off;
 
 	if(!(q0<=q1 && q0<=b->nc && q1<=b->nc))
 		panic("internal error: bufdelete");
@@ -222,13 +222,13 @@ bufdelete(Buffer *b, uint q0, uint q1)
 	}
 }
 
-uint
-bufload(Buffer *b, uint q0, int fd, int *nulls)
+u32
+bufload(Buffer *b, u32 q0, int fd, int *nulls)
 {
 	char *p;
 	Rune *r;
 	int l, m, n, nb, nr;
-	uint q1;
+	u32 q1;
 
 	if(q0 > b->nc)
 		panic("internal error: bufload");
@@ -266,9 +266,9 @@ bufload(Buffer *b, uint q0, int fd, int *nulls)
 }
 
 void
-bufread(Buffer *b, uint q0, Rune *s, uint n)
+bufread(Buffer *b, u32 q0, Rune *s, u32 n)
 {
-	uint m;
+	u32 m;
 
 	if(!(q0<=b->nc && q0+n<=b->nc))
 		panic("bufread: internal error");

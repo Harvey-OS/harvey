@@ -186,12 +186,12 @@ mkhspriv(void)
 	return p;
 }
 
-static uint
+static u32
 hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
 	u8 *k = (unsigned char*)key;
-	uint h = 0;
+	u32 h = 0;
 
 	while(*k!=0)
 		h = 65599*h + *k++;
@@ -384,7 +384,7 @@ doreq(HConnect *c)
 	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
 	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
 	int n, nredirect;
-	uint flags;
+	u32 flags;
 
 	/*
 	 * munge uri for magic

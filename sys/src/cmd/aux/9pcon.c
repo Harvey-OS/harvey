@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include <bio.h>
 
-uint messagesize = 65536;	/* just a buffer size */
+u32 messagesize = 65536;	/* just a buffer size */
 
 void
 usage(void)

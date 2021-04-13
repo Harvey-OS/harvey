@@ -144,7 +144,7 @@ long
 outlstring(TRune *s, long n)
 {
 	char buf[sizeof(TRune)];
-	uint c;
+	u32 c;
 	int i;
 	long r;
 

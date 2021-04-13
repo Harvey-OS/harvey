@@ -31,7 +31,7 @@ nextID(void)
  * Create and initialize a new Thread structure attached to a given proc.
  */
 static int
-newthread(Proc *p, void (*f)(void *arg), void *arg, uint stacksize,
+newthread(Proc *p, void (*f)(void *arg), void *arg, u32 stacksize,
 	  char *name, int grp)
 {
 	int id;
@@ -71,7 +71,7 @@ newthread(Proc *p, void (*f)(void *arg), void *arg, uint stacksize,
  * The thread grp is inherited from the currently running thread.
  */
 int
-threadcreate(void (*f)(void *arg), void *arg, uint stacksize)
+threadcreate(void (*f)(void *arg), void *arg, u32 stacksize)
 {
 	return newthread(_threadgetproc(), f, arg, stacksize, nil, threadgetgrp());
 }
@@ -81,7 +81,7 @@ threadcreate(void (*f)(void *arg), void *arg, uint stacksize)
  * running inside it.  Add the Proc to the global process list.
  */
 Proc*
-_newproc(void (*f)(void *arg), void *arg, uint stacksize, char *name,
+_newproc(void (*f)(void *arg), void *arg, u32 stacksize, char *name,
 	 int grp, int rforkflag)
 {
 	Proc *p;
@@ -102,7 +102,7 @@ _newproc(void (*f)(void *arg), void *arg, uint stacksize, char *name,
 }
 
 int
-procrfork(void (*f)(void *), void *arg, uint stacksize, int rforkflag)
+procrfork(void (*f)(void *), void *arg, u32 stacksize, int rforkflag)
 {
 	Proc *p;
 	int id;
@@ -116,7 +116,7 @@ procrfork(void (*f)(void *), void *arg, uint stacksize, int rforkflag)
 }
 
 int
-proccreate(void (*f)(void*), void *arg, uint stacksize)
+proccreate(void (*f)(void*), void *arg, u32 stacksize)
 {
 	return procrfork(f, arg, stacksize, 0);
 }

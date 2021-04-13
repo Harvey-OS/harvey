@@ -32,32 +32,32 @@ typedef struct DirEntry DirEntry;
  * Structure of the super block
  */
 struct SuperBlock {
-	uint	s_inodes_count;		/* Inodes count */
-	uint	s_blocks_count;		/* Blocks count */
-	uint	s_r_blocks_count;	/* Reserved blocks count */
-	uint	s_free_blocks_count;	/* Free blocks count */
-	uint	s_free_inodes_count;	/* Free inodes count */
-	uint	s_first_data_block;	/* First Data Block */
-	uint	s_log_block_size;	/* Block size */
+	u32	s_inodes_count;		/* Inodes count */
+	u32	s_blocks_count;		/* Blocks count */
+	u32	s_r_blocks_count;	/* Reserved blocks count */
+	u32	s_free_blocks_count;	/* Free blocks count */
+	u32	s_free_inodes_count;	/* Free inodes count */
+	u32	s_first_data_block;	/* First Data Block */
+	u32	s_log_block_size;	/* Block size */
 	int	s_log_frag_size;	/* Fragment size */
-	uint	s_blocks_per_group;	/* # Blocks per group */
-	uint	s_frags_per_group;	/* # Fragments per group */
-	uint	s_inodes_per_group;	/* # Inodes per group */
-	uint	s_mtime;		/* Mount time */
-	uint	s_wtime;		/* Write time */
+	u32	s_blocks_per_group;	/* # Blocks per group */
+	u32	s_frags_per_group;	/* # Fragments per group */
+	u32	s_inodes_per_group;	/* # Inodes per group */
+	u32	s_mtime;		/* Mount time */
+	u32	s_wtime;		/* Write time */
 	u16	s_mnt_count;		/* Mount count */
 	short	s_max_mnt_count;	/* Maximal mount count */
 	u16	s_magic;		/* Magic signature */
 	u16	s_state;		/* File system state */
 	u16	s_errors;		/* Behaviour when detecting errors */
 	u16	s_pad;
-	uint	s_lastcheck;		/* time of last check */
-	uint	s_checkinterval;	/* max. time between checks */
-	uint	s_creator_os;		/* OS */
-	uint	s_rev_level;		/* Revision level */
+	u32	s_lastcheck;		/* time of last check */
+	u32	s_checkinterval;	/* max. time between checks */
+	u32	s_creator_os;		/* OS */
+	u32	s_rev_level;		/* Revision level */
 	u16	s_def_resuid;		/* Default uid for reserved blocks */
 	u16	s_def_resgid;		/* Default gid for reserved blocks */
-	uint	s_reserved[235];	/* Padding to the end of the block */
+	u32	s_reserved[235];	/* Padding to the end of the block */
 };
 
 /*
@@ -65,14 +65,14 @@ struct SuperBlock {
  */
 struct GroupDesc
 {
-	uint	bg_block_bitmap;		/* Blocks bitmap block */
-	uint	bg_inode_bitmap;		/* Inodes bitmap block */
-	uint	bg_inode_table;		/* Inodes table block */
+	u32	bg_block_bitmap;		/* Blocks bitmap block */
+	u32	bg_inode_bitmap;		/* Inodes bitmap block */
+	u32	bg_inode_table;		/* Inodes table block */
 	u16	bg_free_blocks_count;	/* Free blocks count */
 	u16	bg_free_inodes_count;	/* Free inodes count */
 	u16	bg_used_dirs_count;	/* Directories count */
 	u16	bg_pad;
-	uint	bg_reserved[3];
+	u32	bg_reserved[3];
 };
 
 /*
@@ -90,21 +90,21 @@ struct GroupDesc
 struct Inode {
 	u16 i_mode;		/* File mode */
 	u16 i_uid;		/* Owner Uid */
-	uint  i_size;		/* Size in bytes */
-	uint  i_atime;		/* Access time */
-	uint i_ctime;		/* Creation time */
-	uint  i_mtime;		/* Modification time */
-	uint  i_dtime;		/* Deletion Time */
+	u32  i_size;		/* Size in bytes */
+	u32  i_atime;		/* Access time */
+	u32 i_ctime;		/* Creation time */
+	u32  i_mtime;		/* Modification time */
+	u32  i_dtime;		/* Deletion Time */
 	u16 i_gid;		/* Group Id */
 	u16 i_links_count;	/* Links count */
-	uint  i_blocks;	/* Blocks count */
-	uint  i_flags;		/* File flags */
-	uint osd1;
-	uint	i_block[EXT2_N_BLOCKS];/* Pointers to blocks */
-	uint	i_version;	/* File version (for NFS) */
-	uint	i_file_acl;	/* File ACL */
-	uint	i_dir_acl;	/* Directory ACL */
-	uint	i_faddr;		/* Fragment address */
+	u32  i_blocks;	/* Blocks count */
+	u32  i_flags;		/* File flags */
+	u32 osd1;
+	u32	i_block[EXT2_N_BLOCKS];/* Pointers to blocks */
+	u32	i_version;	/* File version (for NFS) */
+	u32	i_file_acl;	/* File ACL */
+	u32	i_dir_acl;	/* Directory ACL */
+	u32	i_faddr;		/* Fragment address */
 	u8 osd2[12];
 };
 
@@ -115,7 +115,7 @@ struct Inode {
 #define DIR_REC_LEN(name_len)	(((name_len) + 8 + 3) & ~3)
 
 struct DirEntry {
-	uint	inode;			/* Inode number */
+	u32	inode;			/* Inode number */
 	u16	rec_len;		/* Directory entry length */
 	u8	name_len;		/* Name length */
 	u8	reserved;
@@ -177,8 +177,8 @@ struct Xfile{
 	Xfs *	xf;
 	void *	ptr;
 
-	uint inbr;		/* inode nbr */
-	uint pinbr;	/* parrent inode */
+	u32 inbr;		/* inode nbr */
+	u32 pinbr;	/* parrent inode */
 	u32 bufaddr;	/* addr of inode block */
 	u32 bufoffset;
 	int root;		/* true on attach for ref count */

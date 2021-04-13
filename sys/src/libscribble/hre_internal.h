@@ -51,7 +51,7 @@ struct _wordset {
 */
 
 struct _Recognizer {
-	uint		recognizer_magic;
+	u32		recognizer_magic;
 	char		*recognizer_version;
 
 	rec_info	*recognizer_info;
@@ -69,14 +69,18 @@ struct _Recognizer {
 	rc*		(*recognizer_get_context)(struct _Recognizer*);
 
 	int		(*recognizer_clear)(struct _Recognizer*, bool);
-	int		(*recognizer_get_buffer)(struct _Recognizer*, uint*, Stroke**);
+	int		(*recognizer_get_buffer)(struct _Recognizer*, u32*,
+						    Stroke**);
 
-	int		(*recognizer_set_buffer)(struct _Recognizer*, uint, Stroke*);
-	int		(*recognizer_translate)(struct _Recognizer*, uint, Stroke*, bool, int*, rec_alternative**);
+	int		(*recognizer_set_buffer)(struct _Recognizer*, u32,
+						    Stroke*);
+	int		(*recognizer_translate)(struct _Recognizer*, u32,
+						   Stroke*, bool, int*,
+						   rec_alternative**);
 	rec_fn*		(*recognizer_get_extension_functions)(struct _Recognizer*);
 	char**		(*recognizer_get_gesture_names)(struct _Recognizer*);
 	xgesture	(*recognizer_set_gesture_action)(struct _Recognizer*, char*, xgesture, void*);
-	uint recognizer_end_magic;
+	u32 recognizer_end_magic;
 };
 
 /*
@@ -116,26 +120,27 @@ recognizer			make_recognizer(rec_info* ri);
 void 				delete_recognizer(recognizer rec);
 
 RECOGNIZER_FINALIZE(_a);
-rec_alternative*	make_rec_alternative_array(uint size);
-rec_correlation*	make_rec_correlation(char type, uint size, void* trans, rec_confidence conf, uint ps_size);
+rec_alternative*	make_rec_alternative_array(u32 size);
+rec_correlation*	make_rec_correlation(char type, u32 size, void* trans,
+					     rec_confidence conf, u32 ps_size);
 
 rec_fn*
-make_rec_fn_array(uint size);
+make_rec_fn_array(u32 size);
 void
 delete_rec_fn_array(rec_fn* rf);
 
 gesture*
 initialize_gesture(gesture* g,
 		   char* name,
-		   uint nhs,
+		   u32 nhs,
 		   pen_point* hspots,
 		   pen_rect bbox,
 		   xgesture cback,
 		   void* wsinfo);
 gesture*
-make_gesture_array(uint size);
+make_gesture_array(u32 size);
 void
-delete_gesture_array(uint size,gesture* ga,bool delete_points_p);
+delete_gesture_array(u32 size,gesture* ga,bool delete_points_p);
 
 Stroke*
 concatenate_Strokes(int nstrokes1,
@@ -145,9 +150,10 @@ concatenate_Strokes(int nstrokes1,
 			int* nstrokes3,
 			Stroke** strokes3);
 
-rec_alternative* initialize_rec_alternative(rec_alternative* ra, uint);
+rec_alternative* initialize_rec_alternative(rec_alternative* ra, u32);
 
-rec_element* initialize_rec_element(rec_element*, char, uint, void*, rec_confidence);
+rec_element* initialize_rec_element(rec_element*, char, u32, void*,
+				    rec_confidence);
 
 /*
  * Pathnames, etc.

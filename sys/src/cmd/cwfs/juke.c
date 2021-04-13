@@ -469,7 +469,7 @@ devtojuke(Device *d, Device *top)
 		case Devmcat:
 		case Devmlev:
 		case Devmirr:
-			/* squint hard & call an mlev or a mirr an mcat */
+			/* squ32 hard & call an mlev or a mirr an mcat */
 			return d;
 
 		case Devworm:

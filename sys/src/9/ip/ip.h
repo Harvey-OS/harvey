@@ -122,7 +122,7 @@ struct Fragment6 {
 	Fragment6 *next;
 	u8 src[IPaddrlen];
 	u8 dst[IPaddrlen];
-	uint id;
+	u32 id;
 	u32 age;
 };
 
@@ -176,8 +176,8 @@ struct Conv {
 	Proto *p;
 
 	int restricted;	  /* remote port is restricted */
-	uint ttl;	  /* max time to live */
-	uint tos;	  /* type of service */
+	u32 ttl;	  /* max time to live */
+	u32 tos;	  /* type of service */
 	int ignoreadvice; /* don't terminate connection on icmp errors */
 
 	u8 ipversion;
@@ -599,11 +599,11 @@ struct Arpent {
 	Arpent *hash;
 	Block *hold;
 	Block *last;
-	uint ctime; /* time entry was created or refreshed */
-	uint utime; /* time entry was last used */
+	u32 ctime; /* time entry was created or refreshed */
+	u32 utime; /* time entry was last used */
 	u8 state;
 	Arpent *nextrxt; /* re-transmit chain */
-	uint rtime;	 /* time for next retransmission */
+	u32 rtime;	 /* time for next retransmission */
 	u8 rxtsrem;
 	Ipifc *ifc;
 	u8 ifcid; /* must match ifc->id */

@@ -64,13 +64,13 @@ wepclose(Fsstate *fss)
 }
 
 static int
-wepread(Fsstate *fss, void* v, uint* u)
+wepread(Fsstate *fss, void* v, u32 * u)
 {
 	return phaseerror(fss, "read");
 }
 
 static int
-wepwrite(Fsstate *fss, void *va, uint n)
+wepwrite(Fsstate *fss, void *va, u32 n)
 {
 	char *data = va;
 	State *s;

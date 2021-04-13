@@ -672,7 +672,7 @@ screenputc(char *buf)
 {
 	print("%s\n", __func__);
 	int w;
-	uint pos;
+	u32 pos;
 	Point p;
 	Rectangle r;
 	static int *xp;

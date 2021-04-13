@@ -121,7 +121,7 @@ vmwr(Vmware *vm, int i, u32 v)
 	outportl(vm->rd, v);
 }
 
-static uint
+static u32
 bits(u32 a)
 {
 	int b;

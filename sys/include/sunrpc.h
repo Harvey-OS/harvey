@@ -55,9 +55,9 @@ typedef enum {
 
 struct SunAuthInfo
 {
-	uint flavor;
+	u32 flavor;
 	u8 *data;
-	uint ndata;
+	u32 ndata;
 };
 
 struct SunAuthUnix
@@ -73,7 +73,7 @@ struct SunAuthUnix
 struct SunRpc
 {
 	u32 xid;
-	uint iscall;
+	u32 iscall;
 
 	/*
 	 * only sent on wire in call
@@ -82,19 +82,19 @@ struct SunRpc
 	u32 proc;
 
 	/* call */
-	// uint proc;
+	// u32 proc;
 	u32 prog, vers;
 	SunAuthInfo cred;
 	SunAuthInfo verf;
 	u8 *data;
-	uint ndata;
+	u32 ndata;
 
 	/* reply */
 	u32 status;
 	// SunAuthInfo verf;
 	u32 low, high;
 	// uchar *data;
-	// uint ndata;
+	// u32 ndata;
 };
 
 typedef enum
@@ -112,17 +112,17 @@ struct SunCall
 void sunErrstr(SunStatus);
 
 void sunRpcPrint(Fmt*, SunRpc*);
-uint sunRpcSize(SunRpc*);
+u32 sunRpcSize(SunRpc*);
 SunStatus sunRpcPack(u8*, u8*, u8**, SunRpc*);
 SunStatus sunRpcUnpack(u8*, u8*, u8**, SunRpc*);
 
 void sunAuthInfoPrint(Fmt*, SunAuthInfo*);
-uint sunAuthInfoSize(SunAuthInfo*);
+u32 sunAuthInfoSize(SunAuthInfo*);
 int sunAuthInfoPack(u8*, u8*, u8**, SunAuthInfo*);
 int sunAuthInfoUnpack(u8*, u8*, u8**, SunAuthInfo*);
 
 void sunAuthUnixPrint(Fmt*, SunAuthUnix*);
-uint sunAuthUnixSize(SunAuthUnix*);
+u32 sunAuthUnixSize(SunAuthUnix*);
 int sunAuthUnixPack(u8*, u8*, u8**, SunAuthUnix*);
 int sunAuthUnixUnpack(u8*, u8*, u8**, SunAuthUnix*);
 
@@ -133,7 +133,7 @@ int sunUint1Unpack(u8*, u8*, u8**, u1int*);
 
 int sunStringPack(u8*, u8*, u8**, char**, u32);
 int sunStringUnpack(u8*, u8*, u8**, char**, u32);
-uint sunStringSize(char*);
+u32 sunStringSize(char*);
 
 int sunUint32Pack(u8*, u8*, u8**, u32*);
 int sunUint32Unpack(u8*, u8*, u8**, u32*);
@@ -144,11 +144,11 @@ int sunVarOpaquePack(u8*, u8*, u8**, u8**, u32*,
 		     u32);
 int sunVarOpaqueUnpack(u8*, u8*, u8**, u8**, u32*,
 		       u32);
-uint sunVarOpaqueSize(u32);
+u32 sunVarOpaqueSize(u32);
 
 int sunFixedOpaquePack(u8*, u8*, u8**, u8*, u32);
 int sunFixedOpaqueUnpack(u8*, u8*, u8**, u8*, u32);
-uint sunFixedOpaqueSize(u32);
+u32 sunFixedOpaqueSize(u32);
 
 /*
  * Sun RPC Program
@@ -157,8 +157,8 @@ typedef struct SunProc SunProc;
 typedef struct SunProg SunProg;
 struct SunProg
 {
-	uint prog;
-	uint vers;
+	u32 prog;
+	u32 vers;
 	SunProc *proc;
 	int nproc;
 };
@@ -167,17 +167,17 @@ struct SunProc
 {
 	int (*pack)(u8*, u8*, u8**, SunCall*);
 	int (*unpack)(u8*, u8*, u8**, SunCall*);
-	uint (*size)(SunCall*);
+	u32 (*size)(SunCall*);
 	void (*fmt)(Fmt*, SunCall*);
-	uint sizeoftype;
+	u32 sizeoftype;
 };
 
 SunStatus sunCallPack(SunProg*, u8*, u8*, u8**, SunCall*);
 SunStatus sunCallUnpack(SunProg*, u8*, u8*, u8**, SunCall*);
 SunStatus sunCallUnpackAlloc(SunProg*, SunCallType, u8*, u8*,
 			     u8**, SunCall**);
-uint sunCallSize(SunProg*, SunCall*);
-void sunCallSetup(SunCall*, SunProg*, uint);
+u32 sunCallSize(SunProg*, SunCall*);
+void sunCallSetup(SunCall*, SunProg*, u32);
 
 /*
  * Formatting

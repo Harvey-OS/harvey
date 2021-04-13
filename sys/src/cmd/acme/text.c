@@ -136,7 +136,7 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 {
 	int i, j, w, colw, mint, maxt, ncol, nrow;
 	Dirlist *dl;
-	uint q1;
+	u32 q1;
 
 	if(t->file->ntext > 1)
 		return;
@@ -186,13 +186,13 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 	}
 }
 
-uint
-textload(Text *t, uint q0, char *file, int setqid)
+u32
+textload(Text *t, u32 q0, char *file, int setqid)
 {
 	Rune *rp;
 	Dirlist *dl, **dlp;
 	int fd, i, j, n, ndl, nulls;
-	uint q, q1;
+	u32 q, q1;
 	Dir *d, *dbuf;
 	char *tmp;
 	Text *u;
@@ -300,8 +300,8 @@ textload(Text *t, uint q0, char *file, int setqid)
 	return 0;
 }
 
-uint
-textbsinsert(Text *t, uint q0, Rune *r, uint n, int tofile, int *nrp)
+u32
+textbsinsert(Text *t, u32 q0, Rune *r, u32 n, int tofile, int *nrp)
 {
 	Rune *bp, *tp, *up;
 	int i, initial;
@@ -346,7 +346,7 @@ textbsinsert(Text *t, uint q0, Rune *r, uint n, int tofile, int *nrp)
 }
 
 void
-textinsert(Text *t, uint q0, Rune *r, uint n, int tofile)
+textinsert(Text *t, u32 q0, Rune *r, u32 n, int tofile)
 {
 	int c, i;
 	Text *u;
@@ -438,9 +438,9 @@ textfill(Text *t)
 }
 
 void
-textdelete(Text *t, uint q0, uint q1, int tofile)
+textdelete(Text *t, u32 q0, u32 q1, int tofile)
 {
-	uint n, p0, p1;
+	u32 n, p0, p1;
 	int i, c;
 	Text *u;
 
@@ -493,14 +493,14 @@ textdelete(Text *t, uint q0, uint q1, int tofile)
 }
 
 void
-textconstrain(Text *t, uint q0, uint q1, uint *p0, uint *p1)
+textconstrain(Text *t, u32 q0, u32 q1, u32 *p0, u32 *p1)
 {
 	*p0 = min(q0, t->file->Buffer.nc);
 	*p1 = min(q1, t->file->Buffer.nc);
 }
 
 Rune
-textreadc(Text *t, uint q)
+textreadc(Text *t, u32 q)
 {
 	Rune r;
 
@@ -514,7 +514,7 @@ textreadc(Text *t, uint q)
 int
 textbswidth(Text *t, Rune c)
 {
-	uint q, eq;
+	u32 q, eq;
 	Rune r;
 	int skipping;
 
@@ -543,9 +543,9 @@ textbswidth(Text *t, Rune c)
 }
 
 int
-textfilewidth(Text *t, uint q0, int oneelement)
+textfilewidth(Text *t, u32 q0, int oneelement)
 {
-	uint q;
+	u32 q;
 	Rune r;
 
 	q = q0;
@@ -564,7 +564,7 @@ Rune*
 textcomplete(Text *t)
 {
 	int i, nstr, npath;
-	uint q;
+	u32 q;
 	Rune tmp[200];
 	Rune *str, *path;
 	Rune *rp;
@@ -646,7 +646,7 @@ textcomplete(Text *t)
 void
 texttype(Text *t, Rune r)
 {
-	uint q0, q1;
+	u32 q0, q1;
 	int nnb, nb, n, i;
 	int nr;
 	Rune *rp;
@@ -843,9 +843,9 @@ textcommit(Text *t, int tofile)
 }
 
 static	Text	*clicktext;
-static	uint	clickmsec;
+static	u32	clickmsec;
 static	Text	*selecttext;
-static	uint	selectq;
+static	u32	selectq;
 
 /*
  * called from frame library
@@ -861,7 +861,7 @@ framescroll(Frame *f, int dl)
 void
 textframescroll(Text *t, int dl)
 {
-	uint q0;
+	u32 q0;
 
 	if(dl == 0){
 		scrsleep(100);
@@ -889,7 +889,7 @@ textframescroll(Text *t, int dl)
 void
 textselect(Text *t)
 {
-	uint q0, q1;
+	u32 q0, q1;
 	int b, x, y;
 	int state;
 
@@ -986,11 +986,11 @@ textselect(Text *t)
 }
 
 void
-textshow(Text *t, uint q0, uint q1, int doselect)
+textshow(Text *t, u32 q0, u32 q1, int doselect)
 {
 	int qe;
 	int nl;
-	uint q;
+	u32 q;
 
 	if(t->what != Body){
 		if(doselect)
@@ -1030,7 +1030,7 @@ region(int a, int b)
 }
 
 void
-selrestore(Frame *f, Point pt0, uint p0, uint p1)
+selrestore(Frame *f, Point pt0, u32 p0, u32 p1)
 {
 	if(p1<=f->p0 || p0>=f->p1){
 		/* no overlap */
@@ -1061,7 +1061,7 @@ selrestore(Frame *f, Point pt0, uint p0, uint p1)
 }
 
 void
-textsetselect(Text *t, uint q0, uint q1)
+textsetselect(Text *t, u32 q0, u32 q1)
 {
 	int p0, p1;
 
@@ -1118,10 +1118,10 @@ enum {
 	MINMOVE = 4,
 };
 
-uint
-xselect(Frame *f, Mousectl *mc, Image *col, uint *p1p)	/* when called, button is down */
+u32
+xselect(Frame *f, Mousectl *mc, Image *col, u32 *p1p)	/* when called, button is down */
 {
-	uint p0, p1, q, tmp;
+	u32 p0, p1, q, tmp;
 	u32 msec;
 	Point mp, pt0, pt1, qt;
 	int reg, b;
@@ -1202,9 +1202,9 @@ xselect(Frame *f, Mousectl *mc, Image *col, uint *p1p)	/* when called, button is
 }
 
 int
-textselect23(Text *t, uint *q0, uint *q1, Image *high, int mask)
+textselect23(Text *t, u32 *q0, u32 *q1, Image *high, int mask)
 {
-	uint p0, p1;
+	u32 p0, p1;
 	int buts;
 
 	p0 = xselect(&t->Frame, mousectl, high, &p1);
@@ -1220,7 +1220,7 @@ textselect23(Text *t, uint *q0, uint *q1, Image *high, int mask)
 }
 
 int
-textselect2(Text *t, uint *q0, uint *q1, Text **tp)
+textselect2(Text *t, u32 *q0, u32 *q1, Text **tp)
 {
 	int buts;
 
@@ -1236,7 +1236,7 @@ textselect2(Text *t, uint *q0, uint *q1, Text **tp)
 }
 
 int
-textselect3(Text *t, uint *q0, uint *q1)
+textselect3(Text *t, u32 *q0, u32 *q1)
 {
 	int h;
 
@@ -1265,11 +1265,11 @@ Rune *right[] = {
 };
 
 void
-textdoubleclick(Text *t, uint *q0, uint *q1)
+textdoubleclick(Text *t, u32 *q0, u32 *q1)
 {
 	int c, i;
 	Rune *r, *l, *p;
-	uint q;
+	u32 q;
 
 	for(i=0; left[i]!=nil; i++){
 		q = *q0;
@@ -1311,7 +1311,7 @@ textdoubleclick(Text *t, uint *q0, uint *q1)
 }
 
 int
-textclickmatch(Text *t, int cl, int cr, int dir, uint *q)
+textclickmatch(Text *t, int cl, int cr, int dir, u32 *q)
 {
 	Rune c;
 	int nest;
@@ -1338,8 +1338,8 @@ textclickmatch(Text *t, int cl, int cr, int dir, uint *q)
 	return cl=='\n' && nest==1;
 }
 
-uint
-textbacknl(Text *t, uint p, uint n)
+u32
+textbacknl(Text *t, u32 p, u32 n)
 {
 	int i, j;
 
@@ -1360,11 +1360,11 @@ textbacknl(Text *t, uint p, uint n)
 }
 
 void
-textsetorigin(Text *t, uint org, int exact)
+textsetorigin(Text *t, u32 org, int exact)
 {
 	int i, a, fixup;
 	Rune *r;
-	uint n;
+	u32 n;
 
 	if(org>0 && !exact){
 		/* org is an estimate of the char posn; find a newline */

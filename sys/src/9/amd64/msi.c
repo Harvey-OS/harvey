@@ -71,7 +71,7 @@ blacklist(Pcidev *p)
 int
 pcimsienable(Pcidev *p, u64 vec)
 {
-	uint c, f, d, datao, lopri, dmode, logical;
+	u32 c, f, d, datao, lopri, dmode, logical;
 
 	c = msicap(p);
 	if(c == 0)
@@ -91,7 +91,8 @@ pcimsienable(Pcidev *p, u64 vec)
 		pcicfgw32(p, c + 8, 0);
 	}
 	dmode = (vec >> 8) & 7;
-	pcicfgw16(p, c + datao, Msidassert | Msidlogical * logical | Msidmode * dmode | ((uint)vec & 0xff));
+	pcicfgw16(p, c + datao,
+		  Msidassert | Msidlogical * logical | Msidmode * dmode | ((u32)vec & 0xff));
 	if(f & Vmask)
 		pcicfgw32(p, c + datao + 4, 0);
 
@@ -106,7 +107,7 @@ pcimsienable(Pcidev *p, u64 vec)
 int
 pcimsimask(Pcidev *p, int mask)
 {
-	uint c, f;
+	u32 c, f;
 
 	c = msicap(p);
 	if(c == 0)

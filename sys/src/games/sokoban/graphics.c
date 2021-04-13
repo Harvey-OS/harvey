@@ -57,7 +57,7 @@ void
 drawboard(Point p)
 {
 	Rectangle r;
-	uint square = level.board[p.x][p.y];
+	u32 square = level.board[p.x][p.y];
 
 	p.x *= BoardX;
 	p.y *= BoardY;

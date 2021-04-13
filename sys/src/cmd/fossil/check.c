@@ -93,7 +93,7 @@ static void
 checkEpochs(Fsck *chk)
 {
 	u32 e;
-	uint nb;
+	u32 nb;
 
 	nb = chk->nblocks;
 	chk->amap = vtMemAllocZ(nb/8+1);

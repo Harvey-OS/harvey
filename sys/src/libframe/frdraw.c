@@ -73,7 +73,7 @@ frdrawsel0(Frame *f, Point pt, u32 p0, u32 p1, Image *back,
 	Frbox *b;
 	int nb, nr, w, x, trim;
 	Point qt;
-	uint p;
+	u32 p;
 	char *ptr;
 
 	p = 0;

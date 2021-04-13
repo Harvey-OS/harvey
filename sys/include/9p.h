@@ -206,7 +206,7 @@ struct Srv {
 /* below is implementation-specific; don't use */
 	Fidpool*	fpool;
 	Reqpool*	rpool;
-	uint		msize;
+	u32		msize;
 
 	u8 *	rbuf;
 	QLock		rlock;

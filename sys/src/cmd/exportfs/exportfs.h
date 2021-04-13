@@ -139,7 +139,7 @@ void	pushfcall(char*);
 Qidtab* uniqueqid(Dir*);
 void	freeqid(Qidtab*);
 char*	estrdup(char*);
-void*	emallocz(uint);
+void*	emallocz(u32);
 int	readmessage(int, char*, int);
 void	exclusions(void);
 int	excludefile(char*);

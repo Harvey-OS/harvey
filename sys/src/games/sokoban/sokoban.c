@@ -69,7 +69,7 @@ buildmenu(void)
 }
 
 Image *
-eallocimage(Rectangle r, int repl, uint color)
+eallocimage(Rectangle r, int repl, u32 color)
 {
 	Image *tmp;
 

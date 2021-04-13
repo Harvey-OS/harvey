@@ -357,7 +357,7 @@ winsettag1(Window *w)
 	int i, j, k, n, bar, dirty;
 	Rune *new, *old, *r;
 	Image *b;
-	uint q0, q1;
+	u32 q0, q1;
 	Rectangle br;
 
 	/* there are races that get us here with stuff in the tag cache, so we take extra care to sync it */

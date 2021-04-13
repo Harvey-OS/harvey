@@ -361,7 +361,7 @@ typedef union Header Header;
 union Header {
 	struct {
 		Header *next;
-		uint size;
+		u32 size;
 	} s;
 	Align al;
 };

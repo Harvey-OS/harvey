@@ -42,7 +42,7 @@ torgbv(Rawimage *i, int errdiff)
 	int r, g, b, r1, g1, b1;
 	int *ered, *egrn, *eblu, *rp, *gp, *bp;
 	int bpc;
-	uint *map3;
+	u32 *map3;
 	u8 *closest;
 	Rawimage *im;
 	int dx, dy;

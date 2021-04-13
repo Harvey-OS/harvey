@@ -58,7 +58,7 @@ passclose(Fsstate *fss)
 }
 
 static int
-passread(Fsstate *fss, void *va, uint *n)
+passread(Fsstate *fss, void *va, u32 *n)
 {
 	int m;
 	char buf[500];
@@ -86,7 +86,7 @@ passread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-passwrite(Fsstate *fss, void* v, uint u)
+passwrite(Fsstate *fss, void* v, u32 u)
 {
 	return phaseerror(fss, "write");
 }

@@ -20,7 +20,7 @@ enum {
 static u8 *
 gstring(u8 *p, u8 *ep, char **s)
 {
-	uint n;
+	u32 n;
 
 	if(p == nil)
 		return nil;
@@ -40,7 +40,7 @@ gstring(u8 *p, u8 *ep, char **s)
 static u8 *
 gcarray(u8 *p, u8 *ep, u8 **s, int *np)
 {
-	uint n;
+	u32 n;
 
 	if(p == nil)
 		return nil;

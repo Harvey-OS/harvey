@@ -155,7 +155,7 @@ editerror(char *fmt, ...)
 }
 
 void
-editcmd(Text *ct, Rune *r, uint n)
+editcmd(Text *ct, Rune *r, u32 n)
 {
 	char *err;
 

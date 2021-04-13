@@ -224,13 +224,13 @@ consactive(void)
 struct {
 	Lock lk;
 	char buf[1048576];
-	uint n;
+	u32 n;
 } kmesg;
 
 static void
 kmesgputs(char *str, int n)
 {
-	uint nn, d;
+	u32 nn, d;
 
 	ilock(&kmesg.lk);
 	/* take the tail of huge writes */

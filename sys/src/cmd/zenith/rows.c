@@ -303,7 +303,7 @@ void
 rowdump(Row *row, char *file)
 {
 	int i, j, fd, m, n, dumped;
-	uint q0, q1;
+	u32 q0, q1;
 	Biobuf *b;
 	char *buf, *a, *fontname;
 	Rune *r;
@@ -491,7 +491,7 @@ rowload(Row *row, char *file, int initing)
 	char *buf, *l, *t, *fontname;
 	Rune *r, rune, *fontr;
 	Column *c, *c1, *c2;
-	uint q0, q1;
+	u32 q0, q1;
 	Rectangle r1, r2;
 	Window *w;
 

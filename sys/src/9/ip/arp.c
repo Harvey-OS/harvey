@@ -74,7 +74,7 @@ arpinit(Fs *f)
 static Arpent *
 newarp6(Arp *arp, u8 *ip, Ipifc *ifc, int addrxt)
 {
-	uint t;
+	u32 t;
 	Block *next, *xp;
 	Arpent *a, *e, *f, **l;
 	Medium *medium = ifc->medium;
@@ -570,7 +570,7 @@ arpread(Arp *arp, char *p, u32 offset, int len)
 extern int
 rxmitsols(Arp *arp)
 {
-	uint sflag;
+	u32 sflag;
 	Block *next, *xp;
 	Arpent *a, *b, **l;
 	Fs *f;

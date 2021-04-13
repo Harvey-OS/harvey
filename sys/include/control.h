@@ -133,7 +133,7 @@ extern char *ctltypenames[];
 /* Functions used internally */
 void		_ctladdgroup(Control*, Control*);
 void		_ctlargcount(Control*, CParse*, int);
-Control*	_createctl(Controlset*, char*, uint, char*);
+Control*	_createctl(Controlset*, char*, u32, char*);
 Rune*		_ctlrunestr(char*);
 char*		_ctlstrrune(Rune*);
 void		_ctlputsnarf(Rune*);
@@ -182,8 +182,8 @@ void		ctlerror(char*, ...);
 Control*	controlcalled(char*);
 
 /* publicly visible error-checking allocation routines */
-void*		ctlmalloc(uint);
-void*		ctlrealloc(void*, uint);
+void*		ctlmalloc(u32);
+void*		ctlrealloc(void*, u32);
 char*		ctlstrdup(char*);
 
 /* creation */

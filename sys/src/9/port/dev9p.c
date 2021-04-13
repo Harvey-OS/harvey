@@ -117,7 +117,7 @@ static struct v9pmnt {
 	int pcuse;				// cache usage counter (entering processes)
 	int pchit;				// cache hits counter
 	int pcmiss;				// cache misses counter
-	uint mounted;				// true if mounted
+	u32 mounted;				// true if mounted
 } * mounts;
 
 // Find a hold buffer structure by PID. Nil is returned if no process found.
@@ -345,7 +345,7 @@ v9pread(Chan *c, void *buf, i32 n, i64 off)
 			if(p + dirlen > e)
 				break;
 			u8 *pn = p + 41;
-			uint lstrs = 0;
+			u32 lstrs = 0;
 			for(int i = 0; i < 4; i++){
 				int ns = GBIT16(pn);
 				lstrs += ns + 1;
@@ -358,7 +358,7 @@ v9pread(Chan *c, void *buf, i32 n, i64 off)
 				d.uid = eve;
 				d.gid = eve;
 				d.muid = eve;
-				uint dms = convD2M(&d, xnbuf, dirlen);
+				u32 dms = convD2M(&d, xnbuf, dirlen);
 				validstat(xnbuf, dms);
 				mntdirfix(xnbuf, c);
 				xnbuf = xnbuf + dms;
@@ -417,11 +417,11 @@ phread(Chan *c, void *va, i32 n, i64 offset)
 		break;
 	case Rstat:
 		mlen = GBIT16(msg);
-		uint nbuf = GBIT16(msg + 9);
+		u32 nbuf = GBIT16(msg + 9);
 		u8 *buf = msg + 9;
 		Dir d;
 		u8 *pn = buf + 41;
-		uint lstrs = 0;
+		u32 lstrs = 0;
 		for(int i = 0; i < 4; i++){
 			int ns = GBIT16(pn);
 			lstrs += ns + 1;
@@ -433,7 +433,7 @@ phread(Chan *c, void *va, i32 n, i64 offset)
 			d.uid = eve;
 			d.gid = eve;
 			d.muid = eve;
-			uint dms = convD2M(&d, buf, nbuf);
+			u32 dms = convD2M(&d, buf, nbuf);
 			PBIT16(msg + 7, dms);
 			mlen = 9 + dms;
 			PBIT32(msg, mlen);

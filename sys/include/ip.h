@@ -180,10 +180,10 @@ int	equivip6(u8*, u8*);
 Ipifc*	readipifc(char*, Ipifc*, int);
 
 void	hnputv(void*, u64);
-void	hnputl(void*, uint);
+void	hnputl(void*, u32);
 void	hnputs(void*, u16);
 u64	nhgetv(void*);
-uint	nhgetl(void*);
+u32	nhgetl(void*);
 u16	nhgets(void*);
 u16	ptclbsum(u8*, int);
 

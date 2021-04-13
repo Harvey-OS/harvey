@@ -15,10 +15,10 @@
 #include "dat.h"
 #include "fns.h"
 
-static uint
+static u32
 etype(Entry *e)
 {
-	uint t;
+	u32 t;
 
 	if(e->flags&VtEntryDir)
 		t = BtDir;
@@ -28,7 +28,7 @@ etype(Entry *e)
 }
 
 void
-initWalk(WalkPtr *w, Block *b, uint size)
+initWalk(WalkPtr *w, Block *b, u32 size)
 {
 	memset(w, 0, sizeof *w);
 	switch(b->l.type){

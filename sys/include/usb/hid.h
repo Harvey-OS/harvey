@@ -105,7 +105,7 @@ struct HidInterface {
 
 struct HidRepTempl{
 	int	id;				/* id which may not be present */
-	uint	sz;				/* in bytes */
+	u32	sz;				/* in bytes */
 	int	nifcs;
 	HidInterface ifcs[MaxIfc];
 };

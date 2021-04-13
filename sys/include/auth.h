@@ -45,7 +45,7 @@ struct AuthRpc
 	char ibuf[AuthRpcMax+1];	/* +1 for NUL in auth_rpc.c */
 	char obuf[AuthRpcMax];
 	char *arg;
-	uint narg;
+	u32 narg;
 };
 
 struct AuthInfo
@@ -135,8 +135,8 @@ extern void		auth_freeAI(AuthInfo *ai);
 extern int		auth_chuid(AuthInfo *ai, char *ns);
 extern Chalstate	*auth_challenge(char*, ...);
 extern AuthInfo*	auth_response(Chalstate*);
-extern int		auth_respond(void*, uint, char*, uint, void*,
-				       uint, AuthGetkey *getkey, char*,
+extern int		auth_respond(void*, u32, char*, u32, void*,
+				       u32, AuthGetkey *getkey, char*,
 				       ...);
 extern void		auth_freechal(Chalstate*);
 extern AuthInfo*	auth_userpasswd(char *user, char *passwd);
@@ -146,6 +146,6 @@ extern AuthInfo*	auth_getinfo(AuthRpc *rpc);
 extern AuthRpc*		auth_allocrpc(int afd);
 extern Attr*		auth_attr(AuthRpc *rpc);
 extern void		auth_freerpc(AuthRpc *rpc);
-extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a,
+extern u32		auth_rpc(AuthRpc *rpc, char *verb, void *a,
 				    int n);
 extern int		auth_wep(char*, char*, ...);

@@ -250,14 +250,14 @@ ventifmtinstall(void)
 	fmtinstall('V', vtscorefmt);
 }
 
-uint
+u32
 msec(void)
 {
 	return nsec()/1000000;
 }
 
-uint
-countbits(uint n)
+u32
+countbits(u32 n)
 {
 	n = (n&0x55555555)+((n>>1)&0x55555555);
 	n = (n&0x33333333)+((n>>2)&0x33333333);

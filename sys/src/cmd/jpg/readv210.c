@@ -80,7 +80,7 @@ BreadV210(Biobuf *bp, int colourspace)
 	Rawimage *a, **array;
 	u16 *mux, *end, *frm, *wr;
 	u8 *buf, *r, *g, *b;
-	uint i, t;
+	u32 i, t;
 	int y1, y2, cb, cr, c, l, rd;
 	int chunk, lines, pixels = 0;
 	int F1, F2, F3, F4;

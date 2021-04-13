@@ -17,7 +17,7 @@
 //   return number of bytes converted
 //   if p == nil, allocate and result array
 int
-mptole(mpint *b, u8 *p, uint n, u8 **pp)
+mptole(mpint *b, u8 *p, u32 n, u8 **pp)
 {
 	int i, j, res;
 	mpdigit x;

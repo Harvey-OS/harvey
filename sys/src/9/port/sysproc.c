@@ -889,7 +889,7 @@ syserrstr(Ar0 *ar0, ...)
 	va_start(list, ar0);
 
 	/*
-	 * int errstr(char* err, uint nerr);
+	 * int errstr(char* err, u32 nerr);
 	 * should really be
 	 * usize errstr(char* err, usize nerr);
 	 * but errstr always returns 0.

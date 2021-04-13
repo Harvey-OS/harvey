@@ -53,7 +53,7 @@ cachechars(Font *f, char **ss, Rune **rr, u16 *cp, int max,
 			rw = 1;
 		}
 
-		sh = (17 * (uint)r) & (f->ncache-NFLOOK-1);
+		sh = (17 * (u32)r) & (f->ncache-NFLOOK-1);
 		c = &f->cache[sh];
 		ec = c+NFLOOK;
 		h = sh;

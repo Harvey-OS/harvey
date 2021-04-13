@@ -305,10 +305,10 @@ winctl(void *arg)
 	print_func_exit();
 }
 
-uint
-winsert(Window *w, Rune *r, int n, uint q0)
+u32
+winsert(Window *w, Rune *r, int n, u32 q0)
 {
-	uint m;
+	u32 m;
 
 	if(n == 0)
 		return q0;
@@ -362,7 +362,7 @@ void
 wkeyctl(Window *w, Rune r)
 {
 
-	uint q0;
+	u32 q0;
 
 	if(r == 0)
 		return;
@@ -370,7 +370,7 @@ wkeyctl(Window *w, Rune r)
 		return;
 	fprint(2, "wkyctl: skipping all ctl chars\n");
 #if 0
-	uint q0 ,q1;
+	u32 q0 ,q1;
 	int n, nb, nr;
 
 	Rune *rp;
@@ -531,9 +531,9 @@ interruptproc(void *v)
 
 
 //static Window	*clickwin;
-//static uint	clickmsec;
+//static u32	clickmsec;
 //static Window	*selectwin;
-//static uint	selectq;
+//static u32	selectq;
 
 void
 wsendctlmesg(Window *w, int type, Console *image)

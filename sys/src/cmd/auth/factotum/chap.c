@@ -138,7 +138,7 @@ chapclose(Fsstate *fss)
 
 
 static int
-chapwrite(Fsstate *fss, void *va, uint n)
+chapwrite(Fsstate *fss, void *va, u32 n)
 {
 	int ret, nreply;
 	char *a, *v;
@@ -228,7 +228,7 @@ chapwrite(Fsstate *fss, void *va, uint n)
 }
 
 static int
-chapread(Fsstate *fss, void *va, uint *n)
+chapread(Fsstate *fss, void *va, u32 *n)
 {
 	State *s;
 

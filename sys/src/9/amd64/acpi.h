@@ -428,7 +428,7 @@ struct Slit {
 
 struct SlEntry {
 	int dom;   /* proximity domain */
-	uint dist; /* distance to proximity domain */
+	u32 dist; /* distance to proximity domain */
 };
 
 /* Fixed ACPI description table.

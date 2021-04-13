@@ -212,8 +212,8 @@ Err:
 }
 
 static Source *
-fileOpenSource(File *f, u32 offset, u32 gen, int dir, uint mode,
-	int issnapshot)
+fileOpenSource(File *f, u32 offset, u32 gen, int dir, u32 mode,
+	       int issnapshot)
 {
 	char *rname, *fname;
 	Source *r;

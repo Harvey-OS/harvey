@@ -79,7 +79,7 @@ struct Fid
 	Lock Lock;
 	Fid	*next;
 	Fid	**last;
-	uint	fid;
+	u32	fid;
 	int	ref;		/* number of fcalls using the fid */
 	int	attached;		/* fid has beed attached or cloned and not clunked */
 
@@ -91,7 +91,7 @@ struct Fid
 };
 
 int			dostat(int, u8*, int);
-void*			emalloc(uint);
+void*			emalloc(u32);
 void			fatal(char*, ...);
 Match*			mkmatch(Match*,
 				      int(*)(Match*, char*, char*),
@@ -113,8 +113,8 @@ struct Fs
 	unsigned char	statbuf[1024];	/* plenty big enough */
 };
 extern	void	fsrun(Fs*, int);
-extern	Fid*	getfid(Fs*, uint);
-extern	Fid*	mkfid(Fs*, uint);
+extern	Fid*	getfid(Fs*, u32);
+extern	Fid*	mkfid(Fs*, u32);
 extern	void	putfid(Fs*, Fid*);
 extern	char*	fsversion(Fs*, Fcall*);
 extern	char*	fsauth(Fs*, Fcall*);
@@ -647,7 +647,7 @@ fsrun(Fs *fs, int fd)
 }
 
 Fid*
-mkfid(Fs *fs, uint fid)
+mkfid(Fs *fs, u32 fid)
 {
 	Fid *f;
 	int h;
@@ -673,7 +673,7 @@ mkfid(Fs *fs, uint fid)
 }
 
 Fid*
-getfid(Fs *fs, uint fid)
+getfid(Fs *fs, u32 fid)
 {
 	Fid *f;
 	int h;
@@ -1055,7 +1055,7 @@ fatal(char *fmt, ...)
 }
 
 void *
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 

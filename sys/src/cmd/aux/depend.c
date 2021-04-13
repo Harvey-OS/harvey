@@ -74,10 +74,10 @@ struct File
 	char	*name;
 	Symbol	*ref;
 	unsigned char	*refvec;	/* files resolving the references */
-	uint	len;		/* length of file */
-	uint	tarlen;		/* length of tar file */
-	uint	mode;
-	uint	mtime;
+	u32	len;		/* length of file */
+	u32	tarlen;		/* length of tar file */
+	u32	mode;
+	u32	mtime;
 
 	int	use;
 	int	fd;
@@ -222,11 +222,11 @@ void	releasedf(Dfile*);
 Symbol*	dfsearch(Dfile*, char*);
 void	dfresolve(Dfile*, int);
 char*	mkpath(char*, char*);
-int	mktar(Dfile*, Symbol*, u8*, uint, int);
+int	mktar(Dfile*, Symbol*, u8*, u32, int);
 void	closetar(Dfile*, Symbol*);
 
 void*
-emalloc(uint n)
+emalloc(u32 n)
 {
 	void *p;
 
@@ -768,7 +768,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 			return;
 		}
 		f->dp = dp;
-		d.qid.path = (uint)dp;
+		d.qid.path = (u32)dp;
 		d.qid.vers = 0;
 	}
 
@@ -977,10 +977,10 @@ fswstat(Fs *fs, Request *r, Fid *f)
 /*
  *  string hash
  */
-uint
+u32
 shash(char *str, int len)
 {
-	uint	hash;
+	u32	hash;
 	char	*val;
 
 	hash = 0;
@@ -1067,7 +1067,7 @@ awk(Biobuf *b, char **field, int n)
 }
 
 void
-crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
+crackdf(Dfile *df, Biobuf *b, u32 len, char *dpath)
 {
 	char *name;
 	char *field[3];
@@ -1311,7 +1311,7 @@ merge(u8 *vec, u8 *ovec, int nfile)
 	while(nfile-- > 0)
 		*vec++ |= *ovec++;
 }
-uint
+u32
 res(Dfile *df, u8 *vec, int fno)
 {
 	File *f;
@@ -1355,7 +1355,7 @@ mktardir(File *f)
 {
 	u8 *ep;
 	Tardir *tp;
-	uint sum;
+	u32 sum;
 	u8 *p, *cp;
 
 	p = emalloc(Tblocksize);
@@ -1425,7 +1425,7 @@ closefile(File *f)
  *  return a block of a tar file
  */
 int
-mktar(Dfile *df, Symbol *dp, u8 *area, uint offset, int len)
+mktar(Dfile *df, Symbol *dp, u8 *area, u32 offset, int len)
 {
 	int fd, i, j, n, off;
 	u8 *p, *buf;

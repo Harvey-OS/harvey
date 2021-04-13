@@ -25,7 +25,7 @@ rune2html(Rune r)
 	if(r == '\n')
 		return L("\n");
 
-	if(((uint)r&~0xFFFF) != 0){
+	if(((u32)r&~0xFFFF) != 0){
 		/* The cache must grow a lot to handle them */
 		fprint(2, "%s: can't handle rune '%C'\n", argv0, r);
 		return L("?");

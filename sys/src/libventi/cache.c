@@ -50,7 +50,7 @@ struct VtCache
 	VtBlock	*block;	/* all allocated blocks */
 	int		nblock;
 	u8	*mem;	/* memory for all blocks and data */
-	int		(*write)(VtConn*, u8[VtScoreSize], uint,
+	int		(*write)(VtConn*, u8[VtScoreSize], u32,
 				    u8*, int);
 };
 
@@ -98,7 +98,7 @@ vtcachealloc(VtConn *z, int blocksize, u32 nblock)
  */
 void
 vtcachesetwrite(VtCache *c,
-		int (*write)(VtConn*, u8[VtScoreSize], uint, u8*, int))
+		int (*write)(VtConn*, u8[VtScoreSize], u32, u8*, int))
 {
 	if(write == nil)
 		write = vtwrite;
@@ -536,7 +536,7 @@ vtblockwrite(VtBlock *b)
 {
 	u8 score[VtScoreSize];
 	VtCache *c;
-	uint h;
+	u32 h;
 	int n;
 
 	if(b->iostate != BioLocal){
@@ -565,7 +565,7 @@ vtblockwrite(VtBlock *b)
 	return 0;
 }
 
-uint
+u32
 vtcacheblocksize(VtCache *c)
 {
 	return c->blocksize;

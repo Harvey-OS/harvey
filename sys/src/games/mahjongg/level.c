@@ -115,7 +115,7 @@ indexpt(int type)
 
 /* use the seed to generate a replayable game */
 void
-generate(uint seed)
+generate(u32 seed)
 {
 	int x, y, d, n;
 	int order[144];
