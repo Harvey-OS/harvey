@@ -118,7 +118,7 @@ archfmtinstall(void)
 	 * Architecture-specific formatting. Not as neat as they
 	 * could be (e.g. there's no defined type for a 'register':
 	 *	L - Mpl, mach priority level
-	 *	P - uintmem, physical address
+	 *	P - physaddr, physical address
 	 *	R - register
 	 * With a little effort these routines could be written
 	 * in a fairly architecturally-independent manner, relying
