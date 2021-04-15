@@ -1,0 +1,22 @@
+[
+	{
+		"Name": "usb",
+		"Cflags": [
+			"-fplan9-extensions",
+			"-DPLAN9"
+		],
+		"Include": [
+			"../../../lib.json"
+		],
+		"Install": "/sys/src/cmd/usb/lib/",
+		"Library": "usb.a",
+		"SourceFiles": [
+			"dev.c",
+			"devs.c",
+			"dump.c",
+			"fs.c",
+			"fsdir.c",
+			"parse.c"
+		]
+	}
+]

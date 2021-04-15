@@ -1,0 +1,20 @@
+[
+	{
+		"Name": "audio",
+		"CFlags": ["-I../lib", "-fplan9-extensions"],
+		"Include": [
+			"../../cmd.json"
+		],
+		"Libs": [
+			"../lib/usb.a"
+		],
+		"Install": "/$ARCH/bin/usb/",
+		"Program": "audio",
+		"SourceFiles": [
+			"audio.c",
+			"audioctl.c",
+			"audiofs.c",
+			"audiosub.c"
+		]
+	}
+]

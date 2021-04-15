@@ -1,21 +1,19 @@
 [
 	{
 		"Name": "usbd",
+		"CFlags": ["-I../lib","-fplan9-extensions"],
 		"Include": [
-			"/sys/src/cmd/cmd.json"
+			"../../cmd.json"
 		],
-		"Install": "/$ARCH/bin/usb",
-		"Oflags": [
-			"-lusb"
+		"Libs": [
+			"../lib/usb.a"
 		],
-		"Pre": [
-			"go run ./m.go -o devtab.c usbdb.json"
-		],
+		"Install": "/$ARCH/bin/usb/",
 		"Program": "usbd",
 		"SourceFiles": [
-			"usbd.c",
 			"dev.c",
-			"devtab.c"
+			"devtab.c",
+			"usbd.c"
 		]
 	}
 ]

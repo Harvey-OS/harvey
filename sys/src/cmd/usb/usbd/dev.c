@@ -1,16 +1,7 @@
 /*
- * This file is part of the UCB release of Plan 9. It is subject to the license
- * terms in the LICENSE file found in the top-level directory of this
- * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
- * part of the UCB release of Plan 9, including this file, may be copied,
- * modified, propagated, or distributed except according to the terms contained
- * in the LICENSE file.
- */
-
-/*
  * Framework for USB devices.
  * Some of them may be embedded into usbd and some of
- * them may exist as /bin/usb/ * binaries on their own.
+ * them may exist as /bin/usb/ binaries on their own.
  *
  * When embedded, devmain() is given a ref of an already
  * configured and open Dev. If devmain()
@@ -20,7 +11,7 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include <usb/usb.h>
+#include "usb.h"
 #include "usbd.h"
 
 static Lock masklck;
@@ -51,20 +42,22 @@ putdevnb(u64 *maskp, int id)
 		*maskp &= ~(1ULL<<id);
 	unlock(&masklck);
 }
-
+		
 static int
 cspmatch(Devtab *dt, int dcsp)
 {
 	int	i;
 	int	csp;
 
-	for(i = 0; i < nelem(dt->csps); i++)
-		if((csp=dt->csps[i]) != 0){
-			if(csp == dcsp)
-				return 1;
-			else if((csp&DCL) && (csp&~DCL) == Class(dcsp))
-				return 1;
+	for(i = 0; i < nelem(dt->csps); i++) {
+		if((csp=dt->csps[i]) != 0) {
+		if(csp == dcsp) {
+			return 1;
+		} else if((csp&DCL) && (csp&~DCL) == Class(dcsp)) {
+			return 1;
 		}
+		}
+	}
 	return 0;
 }
 
@@ -213,7 +206,7 @@ writeinfo(Dev *d)
 	ud = d->usb;
 	s = buf;
 	se = buf+sizeof(buf);
-	s = seprint(s, se, "info %s csp %#08ux", classname(ud->class), ud->csp);
+	s = seprint(s, se, "info %s csp %#08ulx", classname(ud->class), ud->csp);
 	for(i = 0; i < ud->nconf; i++){
 		c = ud->conf[i];
 		if(c == nil)

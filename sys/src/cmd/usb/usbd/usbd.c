@@ -1,18 +1,9 @@
-/*
- * This file is part of the UCB release of Plan 9. It is subject to the license
- * terms in the LICENSE file found in the top-level directory of this
- * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
- * part of the UCB release of Plan 9, including this file, may be copied,
- * modified, propagated, or distributed except according to the terms contained
- * in the LICENSE file.
- */
-
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
 #include <fcall.h>
-#include <usb/usb.h>
-#include <usb/usbfs.h>
+#include "usb.h"
+#include "usbfs.h"
 #include "usbd.h"
 
 static Channel *portc;
@@ -22,9 +13,6 @@ static Hub *hubs;
 static int nhubs;
 static int mustdump;
 static int pollms = Pollms;
-
-// Wow, did anyone really use this code?
-//static char *dsname[] = { "disabled", "attached", "configed" };
 
 static int
 hubfeature(Hub *h, int port, int f, int on)
@@ -37,28 +25,6 @@ hubfeature(Hub *h, int port, int f, int on)
 		cmd = Rclearfeature;
 	return usbcmd(h->dev, Rh2d|Rclass|Rother, cmd, f, port, nil, 0);
 }
-
-// Never used, but too handy to remove just now?
-#if 0
-/*
- * This may be used to detect overcurrent on the hub
- */
-static void
-checkhubstatus(Hub *h)
-{
-	u8 buf[4];
-	int sts;
-
-	if(h->isroot)	/* not for root hubs */
-		return;
-	if(usbcmd(h->dev, Rd2h|Rclass|Rdev, Rgetstatus, 0, 0, buf, 4) < 0){
-		dprint(2, "%s: get hub status: %r\n", h->dev->dir);
-		return;
-	}
-	sts = GET2(buf);
-	dprint(2, "hub %s: status %#x\n", h->dev->dir, sts);
-}
-#endif
 
 static int
 confighub(Hub *h)
@@ -161,7 +127,7 @@ newhub(char *fn, Dev *d)
 	if(h->isroot){
 		h->dev = opendev(fn);
 		if(h->dev == nil){
-			fprint(2, "%s: opendev: %s: %r\n", argv0, fn);
+			fprint(2, "%s: opendev: %s: %r", argv0, fn);
 			goto Fail;
 		}
 		if(opendevdata(h->dev, ORDWR) < 0){
@@ -182,11 +148,11 @@ newhub(char *fn, Dev *d)
 	}
 	devctl(h->dev, "hub");
 	ud = h->dev->usb;
-	if (h->isroot) {
-		devctl(h->dev, "info roothub csp %#08x ports %d",
+	if(h->isroot)
+		devctl(h->dev, "info roothub csp %#08ux ports %d",
 			0x000009, h->nport);
-	} else {
-		devctl(h->dev, "info hub csp %#08x ports %d %q %q",
+	else{
+		devctl(h->dev, "info hub csp %#08ulx ports %d %q %q",
 			ud->csp, h->nport, ud->vendor, ud->product);
 		for(i = 1; i <= h->nport; i++)
 			if(hubfeature(h, i, Fportpower, 1) < 0)
@@ -203,14 +169,14 @@ newhub(char *fn, Dev *d)
 	dprint(2, " ports %d pwrms %d max curr %d pwrm %d cmp %d leds %d\n",
 		h->nport, h->pwrms, h->maxcurrent,
 		h->pwrmode, h->compound, h->leds);
-	incref(&h->dev->Ref);
+	incref(h->dev);
 	return h;
 Fail:
 	if(d != nil)
 		devctl(d, "detach");
 	free(h->port);
 	free(h);
-	dprint(2, "%s: hub %#p failed to start\n", argv0, h);
+	dprint(2, "%s: hub %#p failed to start:", argv0, h);
 	return nil;
 }
 
@@ -341,7 +307,7 @@ portattach(Hub *h, int p, int sts)
 	pp = &h->port[p];
 	nd = nil;
 	pp->state = Pattached;
-	dprint(2, "%s: %s: port %d attach sts %#x\n", argv0, d->dir, p, sts);
+	dprint(2, "%s: %s: port %d attach sts %#ux\n", argv0, d->dir, p, sts);
 	sleep(Connectdelay);
 	if(hubfeature(h, p, Fportenable, 1) < 0)
 		dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
@@ -366,7 +332,7 @@ portattach(Hub *h, int p, int sts)
 		sp = "low";
 	if(sts & PShigh)
 		sp = "high";
-	dprint(2, "%s: %s: port %d: attached status %#x\n", argv0, d->dir, p, sts);
+	dprint(2, "%s: %s: port %d: attached status %#ux\n", argv0, d->dir, p, sts);
 
 	if(devctl(d, "newdev %s %d", sp, p) < 0){
 		fprint(2, "%s: %s: port %d: newdev: %r\n", argv0, d->dir, p);
@@ -428,7 +394,7 @@ portattach(Hub *h, int p, int sts)
 		if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0)
 			goto Fail;
 	}
-	dprint(2, "%s: %U\n", argv0, nd);
+	dprint(2, "%s: %U", argv0, nd);
 	pp->state = Pconfiged;
 	dprint(2, "%s: %s: port %d: configed: %s\n",
 			argv0, d->dir, p, nd->dir);
@@ -608,7 +574,7 @@ enumhub(Hub *h, int p)
 			dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
 		sleep(Enabledelay);
 		sts = portstatus(h, p);
-		fprint(2, "%s: %s: port %d: resumed (sts %#x)\n", argv0, d->dir, p, sts);
+		fprint(2, "%s: %s: port %d: resumed (sts %#ux)\n", argv0, d->dir, p, sts);
 	}
 	if((pp->sts & PSpresent) == 0 && (sts & PSpresent) != 0){
 		if(portattach(h, p, sts) != nil)
@@ -694,20 +660,20 @@ Again:
 }
 
 static int
-cfswalk(Usbfs*_1, Fid *_2, char *_3)
+cfswalk(Usbfs* unused, Fid * funused, char *cunused)
 {
 	werrstr(Enotfound);
 	return -1;
 }
 
 static int
-cfsopen(Usbfs*_1, Fid *_2, int _3)
+cfsopen(Usbfs* unused, Fid * funused, int iunused)
 {
 	return 0;
 }
 
 static i32
-cfsread(Usbfs*_1, Fid *_2, void *_3, i32 _4, i64 _5)
+cfsread(Usbfs* unused, Fid *funused, void *vunused, i32 i32unused, i64 i64unused)
 {
 	return 0;
 }
@@ -735,7 +701,7 @@ setdrvauto(char *name, int on)
 }
 
 static i32
-cfswrite(Usbfs*_1, Fid *_2, void *data, i32 cnt, i64 _3)
+cfswrite(Usbfs* unused, Fid * funused, void *data, i32 cnt, i64 iunused)
 {
 	char *cmd, *arg;
 	char buf[80];
