@@ -1,0 +1,22 @@
+[
+	{
+		"Name": "disk",
+		"CFlags": ["-I../lib", "-fplan9-extensions"],
+		"Include": [
+			"../../cmd.json"
+		],
+		"Libs": [
+			"../lib/usb.a"
+		],
+		"Post": [
+			"ar vu ../lib/usbdev.a *.o"
+		],
+		"Install": "/$ARCH/bin/usb/",
+		"Program": "disk",
+		"SourceFiles": [
+			"disk.c",
+			"main.c",
+			"scsireq.c"
+		]
+	}
+]

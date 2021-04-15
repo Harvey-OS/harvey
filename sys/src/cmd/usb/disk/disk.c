@@ -33,10 +33,10 @@ struct Dirtab
 
 static Dirtab dirtab[] =
 {
-	[Qdir]	"/",	DMDIR|0555,
-	[Qctl]	"ctl",	0664,		/* nothing secret here */
-	[Qraw]	"raw",	0640,
-	[Qdata]	"data",	0640,
+	[Qdir]= {	"/",	DMDIR|0555},
+	[Qctl]= { "ctl",	0664},		/* nothing secret here */
+	[Qraw]= { "raw",	0640},
+	[Qdata]= { "data",	0640},
 };
 
 /*
@@ -46,18 +46,20 @@ int exabyte, force6bytecmds;
 
 int diskdebug;
 
+/*
 static void
-ding(void *, char *msg)
+ding(void *unused, char *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);
 	noted(NDFLT);
 }
+*/
 
 static int
 getmaxlun(Dev *dev)
 {
-	uchar max;
+	u8 max;
 	int r;
 
 	max = 0;
@@ -109,7 +111,7 @@ umsfatal(Ums *ums)
 }
 
 static int
-ispow2(uvlong ul)
+ispow2(u64 ul)
 {
 	return (ul & (ul - 1)) == 0;
 }
@@ -130,7 +132,7 @@ log2(int n)
 static int
 umscapacity(Umsc *lun)
 {
-	uchar data[32];
+	u8 data[32];
 
 	lun->blocks = 0;
 	lun->capacity = 0;
@@ -147,12 +149,12 @@ umscapacity(Umsc *lun)
 			return -1;
 		}else{
 			lun->lbsize = GETBELONG(data + 8);
-			lun->blocks = (uvlong)GETBELONG(data)<<32 |
+			lun->blocks = (u64)GETBELONG(data)<<32 |
 				GETBELONG(data + 4);
 		}
 	}
 	lun->blocks++; /* SRcapacity returns LBA of last block */
-	lun->capacity = (vlong)lun->blocks * lun->lbsize;
+	lun->capacity = (i64)lun->blocks * lun->lbsize;
 	if(diskdebug)
 		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
 			lun->lbsize, lun->blocks);
@@ -162,7 +164,7 @@ umscapacity(Umsc *lun)
 static int
 umsinit(Ums *ums)
 {
-	uchar i;
+	u8 i;
 	Umsc *lun;
 	int some;
 
@@ -197,7 +199,7 @@ umsinit(Ums *ums)
 		 * Some devices return a wrong value but would still work.
 		 */
 		some++;
-		lun->inq = smprint("%.48s", (char *)lun->inquiry+8);
+		lun->inq = smprint("%.48s", lun->inquiry+8);
 		umscapacity(lun);
 	}
 	if(some == 0){
@@ -212,7 +214,7 @@ umsinit(Ums *ums)
 /*
  * called by SR*() commands provided by scuzz's scsireq
  */
-long
+i32
 umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	Cbw cbw;
@@ -261,14 +263,18 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 				memset(data->p + n, 0, left);
 		}
 		nio = n;
-		if(diskdebug)
-			if(n < 0)
+		if(diskdebug) {
+			if(n < 0) {
 				fprint(2, "disk: data: %r\n");
-			else
+			} else {
 				fprint(2, "disk: data: %d bytes\n", n);
-		if(n <= 0)
-			if(data->write == 0)
+			}
+		}
+		if(n <= 0) {
+			if(data->write == 0) {
 				unstall(ums->dev, ums->epin, Ein);
+			}
+		}
 	}
 
 	/* read the transfer's status */
@@ -373,7 +379,7 @@ dostat(Usbfs *fs, int path, Dir *d)
 }
 
 static int
-dirgen(Usbfs *fs, Qid, int i, Dir *d, void*)
+dirgen(Usbfs *fs, Qid unused, int i, Dir *d, void *vunused)
 {
 	i++;	/* skip dir */
 	if(i >= Qmax)
@@ -397,9 +403,9 @@ dstat(Usbfs *fs, Qid qid, Dir *d)
 }
 
 static int
-dopen(Usbfs *fs, Fid *fid, int)
+dopen(Usbfs *fs, Fid *fid, int unused)
 {
-	ulong path;
+	u32 path;
 	Umsc *lun;
 
 	path = fid->qid.path & ~fs->qid;
@@ -418,12 +424,12 @@ dopen(Usbfs *fs, Fid *fid, int)
  * since we don't need general division nor its cost.
  */
 static int
-setup(Umsc *lun, char *data, int count, vlong offset)
+setup(Umsc *lun, char *data, int count, i64 offset)
 {
-	long nb, lbsize, lbshift, lbmask;
-	uvlong bno;
+	i32 nb, lbsize, lbshift, lbmask;
+	u64 bno;
 
-	if(count < 0 || lun->lbsize <= 0 && umscapacity(lun) < 0 ||
+	if(count < 0 || (lun->lbsize <= 0 && umscapacity(lun) < 0) ||
 	    lun->lbsize == 0)
 		return -1;
 	lbsize = lun->lbsize;
@@ -460,11 +466,11 @@ setup(Umsc *lun, char *data, int count, vlong offset)
  * ctl reads must match the format documented in sd(3) exactly
  * to interoperate with the rest of the system.
  */
-static long
-dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
+static i32
+dread(Usbfs *fs, Fid *fid, void *data, i32 count, i64 offset)
 {
-	long n;
-	ulong path;
+	i32 n;
+	u32 path;
 	char buf[1024];
 	char *s, *e;
 	Umsc *lun;
@@ -551,12 +557,12 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	return count;
 }
 
-static long
-dwrite(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
+static i32
+dwrite(Usbfs *fs, Fid *fid, void *data, i32 count, i64 offset)
 {
-	long len, ocount;
-	ulong path;
-	uvlong bno;
+	i32 len, ocount;
+	u32 path;
+	u64 bno;
 	Ums *ums;
 	Umsc *lun;
 
@@ -653,7 +659,7 @@ findendpoints(Ums *ums)
 {
 	Ep *ep;
 	Usbdev *ud;
-	ulong csp, sc;
+	u32 csp, sc;
 	int i, epin, epout;
 
 	epin = epout = -1;
