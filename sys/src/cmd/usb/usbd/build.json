@@ -6,7 +6,8 @@
 			"../../cmd.json"
 		],
 		"Libs": [
-			"../lib/usb.a"
+			"../lib/usb.a",
+			"../lib/usbdev.a"
 		],
 		"Install": "/$ARCH/bin/usb/",
 		"Program": "usbd",

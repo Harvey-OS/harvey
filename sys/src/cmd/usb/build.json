@@ -6,6 +6,8 @@
 		],
 		"Install": "/$ARCH/bin/usb",
 		"Projects": [
+			"lib/build.json",
+			"disk/build.json",
 			"usbd/build.json"
 		]
 	}

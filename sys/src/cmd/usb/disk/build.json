@@ -9,7 +9,7 @@
 			"../lib/usb.a"
 		],
 		"Post": [
-			"ar vu ../lib/usbdev.a *.o"
+			"ar r ../lib/usbdev.a *.o"
 		],
 		"Install": "/$ARCH/bin/usb/",
 		"Program": "disk",
