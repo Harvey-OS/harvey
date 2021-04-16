@@ -16,6 +16,7 @@
 		"SourceFiles": [
 			"disk.c",
 			"main.c",
+			"scsierrs.c",
 			"scsireq.c"
 		]
 	}
