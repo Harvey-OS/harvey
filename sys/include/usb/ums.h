@@ -65,8 +65,8 @@ struct Umsc
 
 	/* from setup */
 	char	*bufp;
-	long	off;		/* offset within a block */
-	long	nb;		/* byte count */
+	i32	off;		/* offset within a block */
+	i32	nb;		/* byte count */
 
 	u8 	rawcmd[16];
 	u8	phase;
@@ -95,8 +95,8 @@ struct Ums
 struct Cbw
 {
 	char	signature[4];		/* "USBC" */
-	long	tag;
-	long	datalen;
+	i32	tag;
+	i32	datalen;
 	u8	flags;
 	u8	lun;
 	u8	len;
@@ -106,8 +106,8 @@ struct Cbw
 struct Csw
 {
 	char	signature[4];		/* "USBS" */
-	long	tag;
-	long	dataresidue;
+	i32	tag;
+	i32	dataresidue;
 	u8	status;
 };
 

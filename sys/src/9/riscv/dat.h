@@ -32,7 +32,7 @@ typedef u64 PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
 typedef struct Stackframe Stackframe;
-typedef u64 uintmem; /* Physical address (hideous) */
+typedef u64 physaddr; /* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 

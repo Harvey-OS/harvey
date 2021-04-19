@@ -280,7 +280,7 @@ struct Td {
 #define OUTS(x, v) outs(ctlr->port + (x), (v))
 #define OUTL(x, v) outl(ctlr->port + (x), (v))
 #define TRUNC(x, sz) ((x) & ((sz)-1))
-#define PTR(q) ((void *)KADDR((uintmem)(q) & ~0xFULL))
+#define PTR(q) ((void *)KADDR((physaddr)(q) & ~0xFULL))
 #define QPTR(q) ((Qh *)PTR(q))
 #define TPTR(q) ((Td *)PTR(q))
 #define PORT(p) (Portsc0 + 2 * (p))
