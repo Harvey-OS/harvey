@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+TARG=audio
+OFILES=\
+	audiofs.$O\
+	audiosub.$O\
+	audio.$O\
+	audioctl.$O\
+
+HFILES=\
+	audio.h\
+	audioctl.h\
+	../lib/usb.h\
+
+UPDATE=\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	mkfile\
+	/sys/man/3/usb\
+
+LIB=../lib/usb.a$O
+
+BIN=/$objtype/bin/usb
+</sys/src/cmd/mkone
+
+CFLAGS=-I../lib $CFLAGS
+
+$LIB:
+	cd ../lib
+	mk install
+	mk clean
