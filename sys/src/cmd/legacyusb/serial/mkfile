@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+TARG=serial
+OFILES=main.$O
+LIBDOFILES=ftdi.$O serial.$O prolific.$O ucons.$O silabs.$O
+HFILES=\
+	../lib/usb.h\
+	ftdi.h\
+	prolific.h\
+	serial.h\
+	ucons.h\
+
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
+
+BIN=/$objtype/bin/usb
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+
+CFLAGS=-I../lib $CFLAGS
+
+$LIBU:
+	cd ../lib
+	mk install
+	mk clean
+
+$LIBD:V: $LIBDOFILES
+	ar vu $LIBD $newprereq
+	rm $newprereq
