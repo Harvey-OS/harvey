@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+TARG=disk
+OFILES=\
+	disk.$O\
+	scsireq.$O\
+	scsierrs.$O\
+
+HFILES=../lib/usb.h\
+	scsireq.h\
+	ums.h\
+
+LIB=../lib/usb.a$O
+
+BIN=/$objtype/bin/nusb
+
+</sys/src/cmd/mkone
+CFLAGS=-I../lib $CFLAGS
+CLEANFILES=scsierrs.c
+
+scsierrs.c: /sys/lib/scsicodes mkscsierrs
+	./mkscsierrs >scsierrs.c
+
