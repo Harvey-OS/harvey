@@ -69,7 +69,7 @@ static int
 chinit(Serialport *p)
 {
 	Serial *ser;
-	uchar ver[2];
+	u8 ver[2];
 
 	ser = p->s;
 	dsprint(2, "chinit\n");

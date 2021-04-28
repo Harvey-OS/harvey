@@ -1,107 +1,107 @@
 typedef struct VCDescriptor {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
 } VCDescriptor;
 
 typedef struct VCHeader {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bNumFormats;
-	uchar wTotalLength[2];
-	uchar dwClockFrequency[4];
-	uchar bInCollection;
-	uchar baInterfaceNr[1];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bNumFormats;
+	u8 wTotalLength[2];
+	u8 dwClockFrequency[4];
+	u8 bInCollection;
+	u8 baInterfaceNr[1];
 } VCHeader;
 
 typedef struct VCInputTerminal {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bTerminalID;
-	uchar wTerminalType[2];
-	uchar bAssocTerminal;
-	uchar iTerminal;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bTerminalID;
+	u8 wTerminalType[2];
+	u8 bAssocTerminal;
+	u8 iTerminal;
 } VCInputTerminal;
 
 typedef struct VCOutputTerminal {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bTerminalID;
-	uchar wTerminalType[2];
-	uchar bAssocTerminal;
-	uchar bSourceID;
-	uchar iTerminal;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bTerminalID;
+	u8 wTerminalType[2];
+	u8 bAssocTerminal;
+	u8 bSourceID;
+	u8 iTerminal;
 } VCOutputTerminal;
 
 typedef struct VCCameraTerminal {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bTerminalID;
-	uchar wTerminalType[2];
-	uchar bAssocTerminal;
-	uchar iTerminal;
-	uchar wObjectiveFocalLengthMin[2];
-	uchar wObjectiveFocalLengthMax[2];
-	uchar wOcularFocalLength[2];
-	uchar bControlSize;
-	uchar bmControls[3];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bTerminalID;
+	u8 wTerminalType[2];
+	u8 bAssocTerminal;
+	u8 iTerminal;
+	u8 wObjectiveFocalLengthMin[2];
+	u8 wObjectiveFocalLengthMax[2];
+	u8 wOcularFocalLength[2];
+	u8 bControlSize;
+	u8 bmControls[3];
 } VCCameraTerminal;
 
 typedef struct VCUnit {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bUnitID;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bUnitID;
 } VCUnit;
 
 typedef struct VCSelectorUnit {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bUnitID;
-	uchar bNrInPins;
-	uchar baSourceID[1];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bUnitID;
+	u8 bNrInPins;
+	u8 baSourceID[1];
 	/* after baSourceID: uchar iSelector; */
 } VCSelectorUnit;
 
 typedef struct VCProcessingUnit {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bUnitID;
-	uchar bSourceID;
-	uchar wMaxMultiplier[2];
-	uchar bControlSize;
-	uchar bmControls[3];
-	uchar iProcessing;
-	uchar bmVideoStandards;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bUnitID;
+	u8 bSourceID;
+	u8 wMaxMultiplier[2];
+	u8 bControlSize;
+	u8 bmControls[3];
+	u8 iProcessing;
+	u8 bmVideoStandards;
 } VCProcessingUnit;
 
 typedef struct VCEncodingUnit {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bUnitID;
-	uchar bSourceID;
-	uchar iEncoding;
-	uchar bControlSize;
-	uchar bmControls[3];
-	uchar bmControlsRuntime[3];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bUnitID;
+	u8 bSourceID;
+	u8 iEncoding;
+	u8 bControlSize;
+	u8 bmControls[3];
+	u8 bmControlsRuntime[3];
 } VCEncodingUnit;
 
 typedef struct VCExtensionUnit {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bUnitID;
-	uchar guidExtensionCode[16];
-	uchar bNumControls;
-	uchar bNrInPins;
-	uchar baSourceID[1];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bUnitID;
+	u8 guidExtensionCode[16];
+	u8 bNumControls;
+	u8 bNrInPins;
+	u8 baSourceID[1];
 	/*
 		uchar bControlSize;
 		uchar bmControls[1];
@@ -110,104 +110,104 @@ typedef struct VCExtensionUnit {
 } VCExtensionUnit;
 
 typedef struct VSInputHeader {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bNumFormats;
-	uchar wTotalLength[2];
-	uchar bEndpointAddress;
-	uchar bmInfo;
-	uchar bTerminalLink;
-	uchar bStillCaptureMethod;
-	uchar bTriggerSupport;
-	uchar bTriggerUsage;
-	uchar bControlSize;
-	uchar bmaControls[1];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bNumFormats;
+	u8 wTotalLength[2];
+	u8 bEndpointAddress;
+	u8 bmInfo;
+	u8 bTerminalLink;
+	u8 bStillCaptureMethod;
+	u8 bTriggerSupport;
+	u8 bTriggerUsage;
+	u8 bControlSize;
+	u8 bmaControls[1];
 } VSInputHeader;
 
 typedef struct VSOutputHeader {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bNumFormats;
-	uchar wTotalLength[2];
-	uchar bEndpointAddress;
-	uchar bTerminalLink;
-	uchar bControlSize;
-	uchar bmaControls[1];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bNumFormats;
+	u8 wTotalLength[2];
+	u8 bEndpointAddress;
+	u8 bTerminalLink;
+	u8 bControlSize;
+	u8 bmaControls[1];
 } VSOutputHeader;
 
 typedef struct VSStillFrame {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bEndpointAddress;
-	uchar bNumImageSizePatterns;
-	uchar data[1];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bEndpointAddress;
+	u8 bNumImageSizePatterns;
+	u8 data[1];
 } VSStillFrame;
 
 typedef struct VSUncompressedFormat {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bFormatIndex;
-	uchar bNumFrameDescriptors;
-	uchar guidFormat[16];
-	uchar bBitsPerPixel;
-	uchar bDefaultFrameIndex;
-	uchar bAspectRatioX;
-	uchar bAspectRatioY;
-	uchar bmInterlaceFlags;
-	uchar bCopyProtect;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bFormatIndex;
+	u8 bNumFrameDescriptors;
+	u8 guidFormat[16];
+	u8 bBitsPerPixel;
+	u8 bDefaultFrameIndex;
+	u8 bAspectRatioX;
+	u8 bAspectRatioY;
+	u8 bmInterlaceFlags;
+	u8 bCopyProtect;
 } VSUncompressedFormat;
 
 typedef struct VSUncompressedFrame {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bFrameIndex;
-	uchar bmCapabilities;
-	uchar wWidth[2];
-	uchar wHeight[2];
-	uchar dwMinBitRate[4];
-	uchar dwMaxBitRate[4];
-	uchar dwMaxVideoFrameBufferSize[4];
-	uchar dwDefaultFrameInterval[4];
-	uchar bFrameIntervalType;
-	uchar dwFrameInterval[1][4];
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bFrameIndex;
+	u8 bmCapabilities;
+	u8 wWidth[2];
+	u8 wHeight[2];
+	u8 dwMinBitRate[4];
+	u8 dwMaxBitRate[4];
+	u8 dwMaxVideoFrameBufferSize[4];
+	u8 dwDefaultFrameInterval[4];
+	u8 bFrameIntervalType;
+	u8 dwFrameInterval[1][4];
 } VSUncompressedFrame;
 
 typedef struct VSColorFormat {
-	uchar bLength;
-	uchar bDescriptorType;
-	uchar bDescriptorSubtype;
-	uchar bColorPrimaries;
-	uchar bTransferCharacteristics;
-	uchar bMatrixCoefficients;
+	u8 bLength;
+	u8 bDescriptorType;
+	u8 bDescriptorSubtype;
+	u8 bColorPrimaries;
+	u8 bTransferCharacteristics;
+	u8 bMatrixCoefficients;
 } VSColorFormat;
 
 typedef struct ProbeControl {
-	uchar bmHint[2];
-	uchar bFormatIndex;
-	uchar bFrameIndex;
-	uchar dwFrameInterval[4];
-	uchar wKeyFrameRate[2];
-	uchar wPFrameRate[2];
-	uchar wCompQuality[2];
-	uchar wCompWindowSize[2];
-	uchar wDelay[2];
-	uchar dwMaxVideoFrameSize[4];
-	uchar dwMaxPayloadTransferSize[4];
-	uchar dwClockFrequency[4];
-	uchar bmFramingInfo;
-	uchar bPreferedVersion;
-	uchar bMinVersion;
-	uchar bMaxVersion;
-	uchar bBitDepthLuma;
-	uchar bmSettings;
-	uchar bMaxNumberOfRefFramesPlus1;
-	uchar bmRateControlModes[2];
-	uchar bmLayoutPerStream[8];
+	u8 bmHint[2];
+	u8 bFormatIndex;
+	u8 bFrameIndex;
+	u8 dwFrameInterval[4];
+	u8 wKeyFrameRate[2];
+	u8 wPFrameRate[2];
+	u8 wCompQuality[2];
+	u8 wCompWindowSize[2];
+	u8 wDelay[2];
+	u8 dwMaxVideoFrameSize[4];
+	u8 dwMaxPayloadTransferSize[4];
+	u8 dwClockFrequency[4];
+	u8 bmFramingInfo;
+	u8 bPreferedVersion;
+	u8 bMinVersion;
+	u8 bMaxVersion;
+	u8 bBitDepthLuma;
+	u8 bmSettings;
+	u8 bMaxNumberOfRefFramesPlus1;
+	u8 bmRateControlModes[2];
+	u8 bmLayoutPerStream[8];
 } ProbeControl;
 
 enum {

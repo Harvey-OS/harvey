@@ -10,7 +10,7 @@ struct Format {
 
 struct VFrame {
 	int n, sz, p;
-	uchar *d;
+	u8 *d;
 	VFrame *next;
 };
 

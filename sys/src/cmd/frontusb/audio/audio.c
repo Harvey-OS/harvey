@@ -37,7 +37,7 @@ parsedescr(Desc *dd)
 {
 	Aconf *c;
 	Range *f;
-	uchar *b;
+	u8 *b;
 	int i;
 
 	if(dd == nil || dd->iface == nil || dd->altc == nil)
@@ -51,7 +51,7 @@ parsedescr(Desc *dd)
 		dd->altc->aux = c;
 	}
 
-	b = (uchar*)&dd->data;
+	b = (u8*)&dd->data;
 	switch(b[1]<<8 | b[2]){
 	case 0x2501:	/* CS_ENDPOINT, EP_GENERAL */
 		c->caps |= b[3];
@@ -111,7 +111,7 @@ Foundaltc:
 	}
 
 	if(c->caps & 1){
-		uchar b[4];
+		u8 b[4];
 
 		b[0] = speed;
 		b[1] = speed >> 8;

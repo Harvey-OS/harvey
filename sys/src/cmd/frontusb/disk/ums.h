@@ -58,10 +58,10 @@ struct Part
 	int id;
 	int inuse;
 	int vers;
-	ulong mode;
+	u32 mode;
 	char	*name;
-	vlong offset;		/* in lbsize units */
-	vlong length;		/* in lbsize units */
+	i64 offset;		/* in lbsize units */
+	i64 length;		/* in lbsize units */
 };
 
 
@@ -69,21 +69,21 @@ struct Umsc
 {
 	ScsiReq;
 	char name[40];
-	uvlong	blocks;
-	vlong	capacity;
+	u64	blocks;
+	i64	capacity;
 
 	/* from setup */
 	char	*bufp;
-	long	off;		/* offset within a block */
-	long	nb;		/* byte count */
+	i32	off;		/* offset within a block */
+	i32	nb;		/* byte count */
 
 	QLock;
 
 	/* partitions */
 	Part part[Maxparts];
 
-	uchar 	rawcmd[16];
-	uchar	phase;
+	u8 	rawcmd[16];
+	u8	phase;
 	char	*inq;
 	Ums	*ums;
 	char	buf[Maxiosize];
@@ -94,7 +94,7 @@ struct Ums
 	Dev	*epin;
 	Dev	*epout;
 	Umsc	*lun;
-	uchar	maxlun;
+	u8	maxlun;
 	int	seq;
 	int	nerrs;
 	int	wrongresidues;
@@ -106,18 +106,18 @@ struct Ums
 struct Cbw
 {
 	char	signature[4];		/* "USBC" */
-	long	tag;
-	long	datalen;
-	uchar	flags;
-	uchar	lun;
-	uchar	len;
+	i32	tag;
+	i32	datalen;
+	u8	flags;
+	u8	lun;
+	u8	len;
 	char	command[16];
 };
 
 struct Csw
 {
 	char	signature[4];		/* "USBS" */
-	long	tag;
-	long	dataresidue;
-	uchar	status;
+	i32	tag;
+	i32	dataresidue;
+	u8	status;
 };

@@ -5,7 +5,7 @@
 #include "usb.h"
 #include "dat.h"
 
-static uchar minit[24] = {
+static u8 minit[24] = {
 	2,  0, 0, 0, /* type = 2 (init) */
 	24, 0, 0, 0, /* len = 24 */
 	0,  0, 0, 0, /* rid = 1 */
@@ -13,7 +13,7 @@ static uchar minit[24] = {
 	1,  0, 0, 0, /* vminor = 1 */
 	0,  0, 0, 0, /* max xfer */
 };
-static uchar mgetmac[28] = {
+static u8 mgetmac[28] = {
 	4,  0, 0, 0, /* type = 4 (query) */
 	28, 0, 0, 0, /* len = 28 */
 	0,  0, 0, 0, /* rid = 2 */
@@ -22,7 +22,7 @@ static uchar mgetmac[28] = {
 	0,  0, 0, 0, /* bufoff = 0 */
 	0,  0, 0, 0, /* reserved = 0 */
 };
-static uchar mfilter[32] = {
+static u8 mfilter[32] = {
 	5,  0, 0, 0, /* type = 5 (set) */
 	32, 0, 0, 0, /* len = 32 */
 	0,  0, 0, 0, /* rid = 3 */
@@ -34,13 +34,13 @@ static uchar mfilter[32] = {
 };
 
 static int
-rndisout(Dev *d, int id, uchar *msg, int sz)
+rndisout(Dev *d, int id, u8 *msg, int sz)
 {
 	return usbcmd(d, Rh2d|Rclass|Riface, Rgetstatus, 0, id, msg, sz);
 }
 
 static int
-rndisin(Dev *d, int id, uchar *buf, int sz)
+rndisin(Dev *d, int id, u8 *buf, int sz)
 {
 	int r, status;
 	for(;;){
@@ -110,9 +110,9 @@ rndistransmit(Dev *ep, Block *b)
 int
 rndisinit(Dev *d)
 {
-	uchar res[128];
+	u8 res[128];
 	int r, i, off, sz;
-	ulong csp;
+	u32 csp;
 	Ep *ep;
 
 	r = 0;
